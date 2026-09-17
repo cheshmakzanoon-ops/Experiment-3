@@ -23,6 +23,11 @@ export function safePitRelease(car: Vehicle, cars: readonly Vehicle[], track: Tr
   for (const other of cars) {
     if (other === car || !other.inPit || Math.abs(other.lateral - 20.5) > 2.4) continue;
     const gap = mod(other.s - car.s + track.length / 2, track.length) - track.length / 2;
+    // A stopped follower already outside our chassis envelope must yield to
+    // the releasing car ahead. Treating it as approaching traffic creates a
+    // circular wait: it cannot pass our box and we can never leave it.
+    // The following controller retains its normal braking/separation checks.
+    if (gap <= -6.5 && other.speed < 0.5) continue;
     if (gap > -Math.max(12, other.speed * 2) && gap < 10) return false;
   }
   return true;
