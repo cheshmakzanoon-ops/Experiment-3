@@ -1,0 +1,155 @@
+name: Publish staged APEX source
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/publish-apex-source.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Refuse to overwrite an existing application
+        id: guard
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = 'cheshmakzanoon-ops/Experiment-3'
+          if test -e src/main.ts; then
+            echo 'publish=false' >> "$GITHUB_OUTPUT"
+            echo 'Application already exists. No source files will be changed.'
+          else
+            echo 'publish=true' >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/setup-node@v4
+        if: steps.guard.outputs.publish == 'true'
+        with:
+          node-version: 22
+      - name: Materialize the repository-owned staged source tree
+        if: steps.guard.outputs.publish == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import base64, hashlib, json, os, pathlib, urllib.request
+          repo = 'cheshmakzanoon-ops/Experiment-3'
+          tree_sha = '26be86c8af9fd09832806256b50fa5c1ad09b0bf'
+          root = pathlib.Path.cwd().resolve()
+          def get(suffix):
+              req = urllib.request.Request(
+                  'https://api.github.com/repos/' + repo + suffix,
+                  headers={'Authorization': 'Bearer ' + os.environ['GH_TOKEN'],
+                           'Accept': 'application/vnd.github+json',
+                           'X-GitHub-Api-Version': '2022-11-28'})
+              with urllib.request.urlopen(req, timeout=60) as response:
+                  return json.load(response)
+          tree = get('/git/trees/' + tree_sha + '?recursive=1')
+          if tree.get('truncated'):
+              raise RuntimeError('Source tree was truncated')
+          count = 0
+          for entry in tree['tree']:
+              if entry['type'] != 'blob':
+                  continue
+              relative = pathlib.PurePosixPath(entry['path'])
+              if relative.is_absolute() or '..' in relative.parts or relative.parts[0] == '.git':
+                  raise RuntimeError('Unsafe source path')
+              # Workflow files are deliberately excluded. The connector-created
+              # read-only verification workflow remains unchanged.
+              if relative.parts[0] == '.github':
+                  continue
+              if entry['mode'] != '100644':
+                  raise RuntimeError('Unsupported source file mode')
+              blob = get('/git/blobs/' + entry['sha'])
+              if blob.get('encoding') != 'base64':
+                  raise RuntimeError('Unexpected blob encoding')
+              data = base64.b64decode(blob['content'])
+              actual = hashlib.sha1(b'blob ' + str(len(data)).encode() + b'\0' + data).hexdigest()
+              if actual != entry['sha']:
+                  raise RuntimeError('Git blob integrity check failed: ' + str(relative))
+              destination = root.joinpath(*relative.parts)
+              destination.parent.mkdir(parents=True, exist_ok=True)
+              destination.write_bytes(data)
+              count += 1
+          if not (root / 'src/main.ts').is_file():
+              raise RuntimeError('Staged application entry point is missing')
+          print('Verified and materialized', count, 'source files')
+          PY
+      - name: Retrieve the exact validated dependency lock
+        if: steps.guard.outputs.publish == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: validation-toolchain
+          run-id: 35193563344
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/validation-toolchain
+      - name: Verify and normalize the dependency lock
+        if: steps.guard.outputs.publish == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          tar -xOf "$RUNNER_TEMP/validation-toolchain/toolchain.tar.gz" package-lock.json > package-lock.json
+          echo 'cfbc4c9c0a02a1c7fa79359fbb9a0d5e731b920285c8f02639678827d51b2304  package-lock.json' | sha256sum --check -
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const lock = JSON.parse(fs.readFileSync('package-lock.json', 'utf8'));
+          const name = JSON.parse(fs.readFileSync('package.json', 'utf8')).name;
+          lock.name = name;
+          lock.packages[''].name = name;
+          fs.writeFileSync('package-lock.json', JSON.stringify(lock, null, 2) + '\n');
+          NODE
+          echo '73c2f51b7d10f68533366426822564b1212488c3300e023c5d3df201a22783ce  package-lock.json' | sha256sum --check -
+      - if: steps.guard.outputs.publish == 'true'
+        run: npm ci
+      - if: steps.guard.outputs.publish == 'true'
+        run: npm run check
+      - if: steps.guard.outputs.publish == 'true'
+        run: npm run test:physics
+      - if: steps.guard.outputs.publish == 'true'
+        run: npm run test:endurance
+      - name: Commit and fast-forward main
+        if: steps.guard.outputs.publish == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- src tests scripts e2e public docs README.md package.json package-lock.json tsconfig.json vite.config.ts vitest.config.ts playwright.config.ts eslint.config.js .prettierrc.json .gitignore index.html
+          if git diff --cached --name-only | grep -q '^.github/'; then
+            echo 'Refusing to publish a workflow modification with the job token.' >&2
+            exit 1
+          fi
+          git commit -m 'feat: publish APEX Formula simulation, rendering, race lifecycle and validated source'
+          git push origin HEAD:main
+          git rev-parse HEAD > "$RUNNER_TEMP/apex-publication-commit.txt"
+      - if: steps.guard.outputs.publish == 'true'
+        run: npx playwright install --with-deps chromium
+      - if: steps.guard.outputs.publish == 'true'
+        run: npm run test:e2e
+      - name: Preserve browser checks and publication evidence
+        if: always() && steps.guard.outputs.publish == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: apex-publication-validation
+          path: |
+            test-results/
+            playwright-report/
+            docs/scenario-results.json
+            docs/endurance-results.json
+            ${{ runner.temp }}/apex-publication-commit.txt
+          retention-days: 7
+      - name: Preserve built web application
+        if: always() && steps.guard.outputs.publish == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: apex-formula-web
+          path: dist/
+          if-no-files-found: ignore
+          retention-days: 7
