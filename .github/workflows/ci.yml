@@ -9,7 +9,7 @@ permissions:
 jobs:
   validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -18,7 +18,57 @@ jobs:
           cache: npm
       - run: npm ci --no-audit --no-fund
       - run: npm run check
+      - name: Static application build
+        uses: actions/upload-artifact@v4
+        with:
+          name: apex-formula-web
+          path: dist/
+          retention-days: 7
+      - name: Preserve exact committed source
+        shell: bash
+        run: |
+          git archive --format=tar.gz HEAD > "$RUNNER_TEMP/apex-source.tar.gz"
+          git rev-parse HEAD > "$RUNNER_TEMP/source-commit.txt"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: apex-source
+          path: |
+            ${{ runner.temp }}/apex-source.tar.gz
+            ${{ runner.temp }}/source-commit.txt
+          retention-days: 7
+  scenarios:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
       - run: npm run test:physics
+      - name: Scenario evidence, including failures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: physics-scenarios
+          path: docs/scenario-results.json
+          retention-days: 7
+  browser:
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - uses: actions/download-artifact@v4
+        with:
+          name: apex-formula-web
+          path: dist/
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
       - name: Browser screenshots and diagnostics
@@ -29,12 +79,4 @@ jobs:
           path: |
             test-results/
             playwright-report/
-            docs/scenario-results.json
-          retention-days: 7
-      - name: Static application build
-        uses: actions/upload-artifact@v4
-        if: success()
-        with:
-          name: apex-formula-web
-          path: dist/
           retention-days: 7
