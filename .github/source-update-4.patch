@@ -1,0 +1,526 @@
+diff --git a/src/storage/replay-pages.ts b/src/storage/replay-pages.ts
+new file mode 100644
+index 0000000..3db8f86
+--- /dev/null
++++ b/src/storage/replay-pages.ts
+@@ -0,0 +1,364 @@
++import { CAR_STRIDE, HEADER, H, PROTOCOL_VERSION } from '../simulation/protocol.ts';
++import { clamp } from '../core/math.ts';
++
++export interface SurfaceRecord {
++  time: number;
++  data: Uint16Array;
++}
++export interface ReplayPage {
++  version: number;
++  id: number;
++  count: number;
++  stride: number;
++  frames: Float32Array;
++  surfaces: SurfaceRecord[];
++}
++export interface ReplayPageStore {
++  put(page: ReplayPage): Promise<void>;
++  get(id: number): Promise<ReplayPage>;
++  dispose(): Promise<void>;
++}
++
++/** Private session cache, separate from saved preferences. Writes resolve only
++ * on transaction completion. Closing a session removes only that session's keys. */
++export class IndexedReplayStore implements ReplayPageStore {
++  private db: Promise<IDBDatabase>;
++  private session = globalThis.crypto.randomUUID();
++  constructor() {
++    this.db = new Promise((resolve, reject) => {
++      if (!globalThis.indexedDB) {
++        reject(new Error('IndexedDB replay cache unavailable'));
++        return;
++      }
++      const request = indexedDB.open('apex-replay-cache', 1);
++      request.onupgradeneeded = () => request.result.createObjectStore('pages');
++      request.onerror = () => reject(request.error ?? new Error('Replay cache open failed'));
++      request.onblocked = () => reject(new Error('Another tab blocked the replay cache'));
++      request.onsuccess = () => {
++        const db = request.result;
++        db.onversionchange = () => db.close();
++        resolve(db);
++      };
++    });
++    // Consumers observe the original rejection when writing/reading. Avoid an
++    // unhandled rejection while a newly-created session has not filled a page.
++    void this.db.catch(() => undefined);
++  }
++  async put(page: ReplayPage) {
++    const db = await this.db;
++    await new Promise<void>((resolve, reject) => {
++      const tx = db.transaction('pages', 'readwrite');
++      tx.objectStore('pages').put(page, [this.session, page.id]);
++      tx.oncomplete = () => resolve();
++      tx.onabort = tx.onerror = () => reject(tx.error ?? new Error('Replay page write failed'));
++    });
++  }
++  async get(id: number) {
++    const db = await this.db;
++    return new Promise<ReplayPage>((resolve, reject) => {
++      const tx = db.transaction('pages', 'readonly');
++      const request = tx.objectStore('pages').get([this.session, id]);
++      let page: ReplayPage | undefined;
++      request.onsuccess = () => {
++        page = request.result as ReplayPage | undefined;
++      };
++      tx.oncomplete = () =>
++        page ? resolve(page) : reject(new Error(`Replay page ${id} is missing`));
++      tx.onabort = tx.onerror = () => reject(tx.error ?? new Error('Replay page read failed'));
++    });
++  }
++  async dispose() {
++    const db = await this.db;
++    try {
++      await new Promise<void>((resolve, reject) => {
++        const tx = db.transaction('pages', 'readwrite');
++        tx.objectStore('pages').delete(
++          IDBKeyRange.bound([this.session, 0], [this.session, Number.MAX_SAFE_INTEGER]),
++        );
++        tx.oncomplete = () => resolve();
++        tx.onabort = tx.onerror = () =>
++          reject(tx.error ?? new Error('Replay cache cleanup failed'));
++      });
++    } finally {
++      db.close();
++    }
++  }
++}
++
++interface PageMeta {
++  start: number;
++  end: number;
++  count: number;
++}
++/** Full-session pose history with bounded resident pages. No scene geometry,
++ * textures or game objects are retained. Random seeks never let an old async
++ * read overwrite the currently requested position. Storage failure stops the
++ * archive with an explicit error instead of silently discarding old laps. */
++export class SessionReplay {
++  readonly stride: number;
++  private current: ReplayPage;
++  private metadata: PageMeta[] = [];
++  private cache = new Map<number, ReplayPage>();
++  private pendingReads = new Map<number, Promise<void>>();
++  private failedReads = new Set<number>();
++  private writing = new Set<number>();
++  private writes: Promise<void> = Promise.resolve();
++  private lastTime = -Infinity;
++  private surface: SurfaceRecord | null = null;
++  private closed = false;
++  private failure: string | null = null;
++  private totalCount = 0;
++  private decodedWater = new Float32Array(0);
++  private decodedRubber = new Float32Array(0);
++  private decodedSurface: SurfaceRecord | null = null;
++  constructor(
++    readonly cars: number,
++    private store: ReplayPageStore = new IndexedReplayStore(),
++    private notify: (message: string) => void = () => undefined,
++    readonly pageFrames = 300,
++  ) {
++    if (
++      !Number.isInteger(cars) ||
++      cars < 1 ||
++      cars > 12 ||
++      !Number.isInteger(pageFrames) ||
++      pageFrames < 2 ||
++      pageFrames > 900
++    )
++      throw new Error('Invalid replay configuration');
++    this.stride = HEADER + CAR_STRIDE * cars;
++    this.current = this.page(0);
++  }
++  private page(id: number): ReplayPage {
++    return {
++      version: PROTOCOL_VERSION,
++      id,
++      count: 0,
++      stride: this.stride,
++      frames: new Float32Array(this.stride * this.pageFrames),
++      surfaces: this.surface ? [this.surface] : [],
++    };
++  }
++  append(frame: Float32Array) {
++    if (this.closed || this.failure) return;
++    if (frame.length !== this.stride || !frame.every(Number.isFinite)) {
++      this.fail('Invalid replay snapshot');
++      return;
++    }
++    const time = frame[H.TIME];
++    if (time - this.lastTime < 1 / 15 - 0.001) return;
++    if (this.current.count === this.pageFrames) this.seal();
++    if (this.failure) return;
++    this.lastTime = time;
++    this.current.frames.set(frame, this.current.count * this.stride);
++    this.current.count++;
++    this.totalCount++;
++  }
++  recordSurface(water: Float32Array, rubber: Float32Array, time: number) {
++    if (this.closed || this.failure) return;
++    if (
++      water.length !== rubber.length ||
++      !Number.isFinite(time) ||
++      !water.every(Number.isFinite) ||
++      !rubber.every(Number.isFinite)
++    ) {
++      this.fail('Invalid replay surface');
++      return;
++    }
++    if (this.surface && time <= this.surface.time) return;
++    const data = new Uint16Array(water.length * 2);
++    for (let i = 0; i < water.length; i++) {
++      data[i * 2] = Math.round(clamp(water[i], 0, 65.535) * 1000);
++      data[i * 2 + 1] = Math.round(clamp(rubber[i], 0, 1) * 65535);
++    }
++    this.surface = { time, data };
++    this.current.surfaces.push(this.surface);
++  }
++  private seal() {
++    if (this.writing.size >= 3) {
++      this.fail('Replay cache cannot keep up; recording stopped without deleting earlier laps.');
++      return;
++    }
++    const page = this.current;
++    this.metadata.push({
++      start: page.frames[H.TIME],
++      end: page.frames[(page.count - 1) * this.stride + H.TIME],
++      count: page.count,
++    });
++    this.cache.set(page.id, page);
++    this.writing.add(page.id);
++    this.writes = this.writes.then(async () => {
++      try {
++        await this.store.put(page);
++      } catch (error) {
++        this.fail(`Replay storage failed: ${String(error)}`);
++      } finally {
++        this.writing.delete(page.id);
++        this.trim();
++      }
++    });
++    this.current = this.page(page.id + 1);
++    this.trim();
++  }
++  private trim() {
++    if (this.cache.size <= 4) return;
++    for (const id of this.cache.keys()) {
++      if (!this.writing.has(id)) this.cache.delete(id);
++      if (this.cache.size <= 4) break;
++    }
++  }
++  private fail(message: string) {
++    if (!this.failure) {
++      this.failure = message;
++      this.notify(message);
++    }
++  }
++  private read(id: number): ReplayPage | null {
++    if (id === this.current.id) return this.current;
++    const cached = this.cache.get(id);
++    if (cached) {
++      this.cache.delete(id);
++      this.cache.set(id, cached);
++      return cached;
++    }
++    if (
++      !this.pendingReads.has(id) &&
++      !this.failedReads.has(id) &&
++      this.pendingReads.size < 2 &&
++      !this.closed
++    ) {
++      const request = this.store
++        .get(id)
++        .then((page) => {
++          if (this.closed) return;
++          if (
++            page.id !== id ||
++            page.version !== PROTOCOL_VERSION ||
++            page.stride !== this.stride ||
++            page.count !== this.metadata[id]?.count ||
++            page.frames.length !== this.stride * this.pageFrames
++          )
++            throw new Error('Incompatible replay page');
++          this.cache.set(id, page);
++          this.trim();
++        })
++        .catch((error) => {
++          this.failedReads.add(id);
++          if (!this.closed) this.fail(`Replay read failed: ${String(error)}`);
++        })
++        .finally(() => this.pendingReads.delete(id));
++      this.pendingReads.set(id, request);
++    }
++    return null;
++  }
++  sample(seconds: number, a: Float32Array, b: Float32Array): number | null {
++    if (this.closed || !this.count || !Number.isFinite(seconds)) return null;
++    if (a.length !== this.stride || b.length !== this.stride)
++      throw new Error('Invalid replay output buffers');
++    const time = clamp(this.start + seconds, this.start, this.end);
++    let lo = 0,
++      hi = this.metadata.length;
++    while (lo < hi) {
++      const mid = (lo + hi) >>> 1;
++      if (this.metadata[mid].end < time) lo = mid + 1;
++      else hi = mid;
++    }
++    // Retain the preceding frame when interpolating a cross-page interval.
++    let pageId = lo;
++    if (pageId > 0) {
++      const start =
++        pageId === this.current.id ? this.current.frames[H.TIME] : this.metadata[pageId].start;
++      if (time < start) pageId--;
++    }
++    const page = this.read(pageId);
++    if (!page) return null;
++    let left = 0,
++      right = page.count - 1;
++    while (right - left > 1) {
++      const mid = (left + right) >>> 1;
++      if (page.frames[mid * this.stride + H.TIME] <= time) left = mid;
++      else right = mid;
++    }
++    if (time >= page.frames[right * this.stride + H.TIME]) left = right;
++    let next = page,
++      nextIndex = Math.min(left + 1, page.count - 1);
++    if (left === page.count - 1 && pageId < this.current.id) {
++      const found = this.read(pageId + 1);
++      if (!found) return null;
++      if (found.count) {
++        next = found;
++        nextIndex = 0;
++      }
++    }
++    a.set(page.frames.subarray(left * this.stride, (left + 1) * this.stride));
++    b.set(next.frames.subarray(nextIndex * this.stride, (nextIndex + 1) * this.stride));
++    this.selectSurface(page, time);
++    return clamp((time - a[H.TIME]) / (b[H.TIME] - a[H.TIME] || 1), 0, 1);
++  }
++  private selectSurface(page: ReplayPage, time: number) {
++    let surface: SurfaceRecord | undefined;
++    for (const record of page.surfaces) if (record.time <= time) surface = record;
++    if (!surface || surface === this.decodedSurface) return;
++    this.decodedSurface = surface;
++    const size = surface.data.length / 2;
++    if (size !== this.decodedWater.length) {
++      this.decodedWater = new Float32Array(size);
++      this.decodedRubber = new Float32Array(size);
++    }
++    for (let i = 0; i < size; i++) {
++      this.decodedWater[i] = surface.data[i * 2] / 1000;
++      this.decodedRubber[i] = surface.data[i * 2 + 1] / 65535;
++    }
++  }
++  get surfaceState() {
++    return {
++      water: this.decodedWater,
++      rubber: this.decodedRubber,
++      time: this.decodedSurface?.time ?? -1,
++    };
++  }
++  get count() {
++    return this.totalCount;
++  }
++  get start() {
++    return this.metadata[0]?.start ?? (this.current.count ? this.current.frames[H.TIME] : 0);
++  }
++  get end() {
++    return this.current.count
++      ? this.current.frames[(this.current.count - 1) * this.stride + H.TIME]
++      : (this.metadata.at(-1)?.end ?? 0);
++  }
++  get duration() {
++    return this.end - this.start;
++  }
++  get error() {
++    return this.failure;
++  }
++  get bytes() {
++    return (
++      this.current.frames.byteLength +
++      [...this.cache.values()].reduce(
++        (sum, page) =>
++          sum + page.frames.byteLength + page.surfaces.reduce((n, s) => n + s.data.byteLength, 0),
++        0,
++      )
++    );
++  }
++  makeFrame() {
++    return new Float32Array(this.stride);
++  }
++  async settle() {
++    await this.writes;
++    await Promise.all(this.pendingReads.values());
++  }
++  async dispose() {
++    this.closed = true;
++    await this.settle();
++    this.cache.clear();
++    try {
++      await this.store.dispose();
++    } catch (error) {
++      this.notify(`Replay cache cleanup failed: ${String(error)}`);
++    }
++  }
++}
+diff --git a/src/storage/telemetry-export.ts b/src/storage/telemetry-export.ts
+new file mode 100644
+index 0000000..3b21043
+--- /dev/null
++++ b/src/storage/telemetry-export.ts
+@@ -0,0 +1,59 @@
++/** One cancellable export job. A session transition cannot download a stale
++ * previous-session result. Timeout/error rejects the request and frees the worker. */
++export class TelemetryExport {
++  private worker: Worker | null = null;
++  private reject: ((error: Error) => void) | null = null;
++  private timeout: ReturnType<typeof setTimeout> | null = null;
++  private sequence = 0;
++  export(values: Float32Array, count: number): Promise<Blob> {
++    this.cancel();
++    const id = ++this.sequence;
++    return new Promise((resolve, reject) => {
++      this.reject = reject;
++      try {
++        const worker = new Worker(new URL('../workers/telemetry.worker.ts', import.meta.url), {
++          type: 'module',
++        });
++        this.worker = worker;
++        worker.onmessage = (event: MessageEvent<{ id: number; blob?: Blob; error?: string }>) => {
++          if (id !== this.sequence || event.data.id !== id) return;
++          const { blob, error } = event.data;
++          this.release();
++          if (error || !blob) reject(new Error(error ?? 'Export worker returned no data'));
++          else resolve(blob);
++        };
++        worker.onerror = (event) => {
++          if (id !== this.sequence) return;
++          this.release();
++          reject(new Error(event.message));
++        };
++        worker.onmessageerror = () => {
++          if (id !== this.sequence) return;
++          this.release();
++          reject(new Error('Telemetry transfer failed'));
++        };
++        this.timeout = setTimeout(() => {
++          this.release();
++          reject(new Error('Telemetry export timed out'));
++        }, 30000);
++        worker.postMessage({ id, values, count }, [values.buffer]);
++      } catch (error) {
++        this.release();
++        reject(error);
++      }
++    });
++  }
++  private release() {
++    if (this.timeout) clearTimeout(this.timeout);
++    this.timeout = null;
++    this.worker?.terminate();
++    this.worker = null;
++    this.reject = null;
++  }
++  cancel() {
++    const reject = this.reject;
++    this.sequence++;
++    this.release();
++    reject?.(new Error('Telemetry export cancelled'));
++  }
++}
+diff --git a/src/storage/telemetry-sampler.ts b/src/storage/telemetry-sampler.ts
+new file mode 100644
+index 0000000..84c89ae
+--- /dev/null
++++ b/src/storage/telemetry-sampler.ts
+@@ -0,0 +1,85 @@
++import { packTelemetry, TELEMETRY_BATCH_ROWS, TELEMETRY_STRIDE } from './telemetry-schema.ts';
++import type { Simulation } from '../simulation/world.ts';
++
++/** Captures every second physics tick, irrespective of snapshot recycling or
++ * render FPS. Six transferable pages bound queued memory. Backpressure is
++ * reported explicitly rather than fabricating a continuous capture. */
++export class TelemetrySampler {
++  private pool = Array.from(
++    { length: 6 },
++    () => new Float32Array(TELEMETRY_BATCH_ROWS * TELEMETRY_STRIDE),
++  );
++  private page: Float32Array | undefined = this.pool.pop();
++  private rows = 0;
++  private scratch: Float32Array;
++  private lastTick = -1;
++  private warned = false;
++  private replayPool: Float32Array[];
++  private replayPage: Float32Array | undefined;
++  private replayRows = 0;
++  private replayWarned = false;
++  constructor(
++    private simulation: Simulation,
++    private send: (buffer: ArrayBuffer, rows: number) => void,
++    private warning: (message: string) => void,
++    private sendReplay: (buffer: ArrayBuffer, rows: number) => void = () => undefined,
++  ) {
++    this.scratch = simulation.makeFrame();
++    this.replayPool = Array.from({ length: 6 }, () => new Float32Array(this.scratch.length * 15));
++    this.replayPage = this.replayPool.pop();
++  }
++  capture(stepMs = 0, droppedSeconds = 0) {
++    const tick = this.simulation.tick;
++    if (tick % 2 || tick === this.lastTick) return;
++    this.lastTick = tick;
++    this.simulation.writeFrame(this.scratch, stepMs, droppedSeconds);
++    if (tick % 8 === 0) this.captureReplay();
++    this.page ??= this.pool.pop();
++    if (!this.page) {
++      if (!this.warned)
++        this.warning(
++          'Telemetry capture gap: the browser did not return recording buffers in time.',
++        );
++      this.warned = true;
++      return;
++    }
++    packTelemetry(this.scratch, this.page, this.rows * TELEMETRY_STRIDE);
++    this.rows++;
++    if (this.rows === TELEMETRY_BATCH_ROWS) this.flush();
++  }
++  flush() {
++    if (!this.page || !this.rows) return;
++    const page = this.page,
++      rows = this.rows;
++    this.page = undefined;
++    this.rows = 0;
++    this.send(page.buffer as ArrayBuffer, rows);
++  }
++  private captureReplay() {
++    this.replayPage ??= this.replayPool.pop();
++    if (!this.replayPage) {
++      if (!this.replayWarned)
++        this.warning('Replay capture gap: recording buffers were not returned in time.');
++      this.replayWarned = true;
++      return;
++    }
++    this.replayPage.set(this.scratch, this.replayRows * this.scratch.length);
++    if (++this.replayRows === 15) this.flushReplay();
++  }
++  flushReplay() {
++    if (!this.replayPage || !this.replayRows) return;
++    const page = this.replayPage,
++      rows = this.replayRows;
++    this.replayPage = undefined;
++    this.replayRows = 0;
++    this.sendReplay(page.buffer as ArrayBuffer, rows);
++  }
++  recycleReplay(buffer: ArrayBuffer) {
++    if (buffer.byteLength === this.scratch.length * 15 * 4 && this.replayPool.length < 6)
++      this.replayPool.push(new Float32Array(buffer));
++  }
++  recycle(buffer: ArrayBuffer) {
++    if (buffer.byteLength === TELEMETRY_BATCH_ROWS * TELEMETRY_STRIDE * 4 && this.pool.length < 6)
++      this.pool.push(new Float32Array(buffer));
++  }
++}

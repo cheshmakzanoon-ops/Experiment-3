@@ -77,7 +77,7 @@ jobs:
           git add -- docs/scenario-results.json docs/pit-integration.json
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git commit -m 'feat: repair pit traffic and integrate verified cockpit, mirrors, shaders and LOD'
+          git commit -m 'feat: integrate verified telemetry, full-session replay and damage feedback'
           git push origin HEAD:main
           echo "Published source commit: $(git rev-parse HEAD)" >> "$GITHUB_STEP_SUMMARY"
       - name: Preserve candidate source and validation evidence

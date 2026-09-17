@@ -1,0 +1,375 @@
+diff --git a/src/simulation/vehicle.ts b/src/simulation/vehicle.ts
+index 923f3c1..4b03a54 100644
+--- a/src/simulation/vehicle.ts
++++ b/src/simulation/vehicle.ts
+@@ -71,2 +71,6 @@ export class Vehicle {
+   pitLastS = 0;
++  frontRideHeight = 0;
++  rearRideHeight = 0;
++  private frontDetached = false;
++  private rearDetached = false;
+   motorPower = 0;
+@@ -194,2 +198,3 @@ export class Vehicle {
+       wheelTorque = (ice + motor) * ratio * 0.95;
++    this.motorPower = motorPower;
+     this.battery = Math.max(0, this.battery - (motorPower * dt) / 0.94);
+@@ -298,7 +303,11 @@ export class Vehicle {
+     }
+-    this.battery = Math.min(
+-      VEHICLE.maxBatteryJ,
+-      this.battery +
+-        regenTorque * (Math.abs(this.tires[2].omega) + Math.abs(this.tires[3].omega)) * 0.78 * dt,
++    // Actual generator work is limited by the requested power and battery
++    // headroom, even if angular speed changed during the implicit wheel solve.
++    const recovered = Math.min(
++      VEHICLE.maxBatteryJ - this.battery,
++      regenPower * 0.78 * dt,
++      regenTorque * (Math.abs(this.tires[2].omega) + Math.abs(this.tires[3].omega)) * 0.78 * dt,
+     );
++    this.battery += recovered;
++    this.regenerationPower = recovered / dt;
+     this.relativeAir.copy(b.velocity);
+@@ -309,2 +318,4 @@ export class Vehicle {
+       rearHeight = b.position.y - this.contacts[2].height - 0.43;
++    this.frontRideHeight = frontHeight;
++    this.rearRideHeight = rearHeight;
+     aero(
+@@ -381,8 +392,15 @@ export class Vehicle {
+     // Wing detachment transfers its inherited momentum into a physical fragment.
+-    if (this.frontHealth < 0.08 && !this.debris.pieces.some((p) => p.kind === 1))
+-      this.detach(1, 2.5, 4.5);
+-    if (this.rearHealth < 0.08 && !this.debris.pieces.some((p) => p.kind === 2))
+-      this.detach(2, -2.1, 6);
++    if (this.frontHealth < 0.08 && !this.frontDetached) this.detach(1, 2.5, 4.5);
++    if (this.rearHealth < 0.08 && !this.rearDetached) this.detach(2, -2.1, 6);
++  }
++  repairFrontWing(dt: number) {
++    this.frontHealth = Math.min(1, this.frontHealth + dt * 0.3);
++    if (this.frontDetached && this.frontHealth > 0.08) {
++      this.lostMass = Math.max(0, this.lostMass - 4.5);
++      this.frontDetached = false;
++    }
+   }
+   private detach(kind: number, z: number, mass: number) {
++    if (kind === 1) this.frontDetached = true;
++    if (kind === 2) this.rearDetached = true;
+     this.body.orientation
+diff --git a/src/simulation/world.ts b/src/simulation/world.ts
+index 940160a..1a47a9e 100644
+--- a/src/simulation/world.ts
++++ b/src/simulation/world.ts
+@@ -5,3 +5,14 @@ import { CollisionSolver } from './collision.ts';
+ import { COMPOUNDS, type Controls, type SessionOptions, validateOptions } from './config.ts';
+-import { CAR_STRIDE, F, H, HEADER, W, WHEEL_BASE, WHEEL_STRIDE, carBase } from './protocol.ts';
++import {
++  CAR_STRIDE,
++  DEBRIS_BASE,
++  DEBRIS_STRIDE,
++  F,
++  H,
++  HEADER,
++  W,
++  WHEEL_BASE,
++  WHEEL_STRIDE,
++  carBase,
++} from './protocol.ts';
+ import { PHASE, RaceDirector, updatePit } from './race.ts';
+@@ -9,2 +20,3 @@ import { Track } from './track.ts';
+ import { Vehicle } from './vehicle.ts';
++const COMPOUND_IDS = Object.keys(COMPOUNDS);
+ export class Simulation {
+@@ -95,2 +107,4 @@ export class Simulation {
+   writeFrame(out: Float32Array, stepMs = 0, dropped = 0) {
++    if (out.length !== HEADER + this.cars.length * CAR_STRIDE)
++      throw new Error('Invalid snapshot buffer');
+     out[H.TIME] = this.race.time;
+@@ -109,3 +123,2 @@ export class Simulation {
+     out[H.LENGTH] = this.track.length;
+-    const compounds = Object.keys(COMPOUNDS);
+     for (let id = 0; id < this.cars.length; id++) {
+@@ -116,53 +129,83 @@ export class Simulation {
+         q = b.orientation;
+-      const values = [
+-        b.position.x,
+-        b.position.y,
+-        b.position.z,
+-        q.x,
+-        q.y,
+-        q.z,
+-        q.w,
+-        b.velocity.x,
+-        b.velocity.y,
+-        b.velocity.z,
+-        b.omega.x,
+-        b.omega.y,
+-        b.omega.z,
+-        c.speed,
+-        c.steer,
+-        c.rpm,
+-        c.gear,
+-        c.throttle,
+-        c.brake,
+-        c.fuel,
+-        c.battery,
+-        c.aero.front + c.aero.floor * 0.46,
+-        c.aero.rear + c.aero.floor * 0.54,
+-        c.aero.drag,
+-        c.frontHealth,
+-        c.floorHealth,
+-        c.rearHealth,
+-        c.s,
+-        c.lateral,
+-        t.completed,
+-        t.lapTime,
+-        t.best,
+-        t.last,
+-        t.penalty,
+-        c.pitPhase,
+-        Number(c.inPit),
+-        c.aiTarget,
+-        c.gLong,
+-        c.gLat,
+-        c.gVert,
+-        this.race.order.indexOf(id) + 1,
+-        c.finishTime,
+-        c.wake,
+-        c.tires.reduce((sum, w) => sum + w.energy, 0),
+-        c.bottomEnergy,
+-        c.impact,
+-        compounds.indexOf(c.tires[0].compound),
+-        c.pitStops,
+-      ];
+-      out.set(values, o);
++      out[o + F.X] = b.position.x;
++      out[o + F.Y] = b.position.y;
++      out[o + F.Z] = b.position.z;
++      out[o + F.QX] = q.x;
++      out[o + F.QY] = q.y;
++      out[o + F.QZ] = q.z;
++      out[o + F.QW] = q.w;
++      out[o + F.VX] = b.velocity.x;
++      out[o + F.VY] = b.velocity.y;
++      out[o + F.VZ] = b.velocity.z;
++      out[o + F.WX] = b.omega.x;
++      out[o + F.WY] = b.omega.y;
++      out[o + F.WZ] = b.omega.z;
++      out[o + F.SPEED] = c.speed;
++      out[o + F.STEER] = c.steer;
++      out[o + F.RPM] = c.rpm;
++      out[o + F.GEAR] = c.gear;
++      out[o + F.THROTTLE] = c.throttle;
++      out[o + F.BRAKE] = c.brake;
++      out[o + F.FUEL] = c.fuel;
++      out[o + F.BATTERY] = c.battery;
++      out[o + F.AERO_FRONT] = c.aero.front + c.aero.floor * 0.46;
++      out[o + F.AERO_REAR] = c.aero.rear + c.aero.floor * 0.54;
++      out[o + F.DRAG] = c.aero.drag;
++      out[o + F.FRONT_HEALTH] = c.frontHealth;
++      out[o + F.FLOOR_HEALTH] = c.floorHealth;
++      out[o + F.REAR_HEALTH] = c.rearHealth;
++      out[o + F.S] = c.s;
++      out[o + F.LATERAL] = c.lateral;
++      out[o + F.LAPS] = t.completed;
++      out[o + F.LAP_TIME] = t.lapTime;
++      out[o + F.BEST_LAP] = t.best;
++      out[o + F.LAST_LAP] = t.last;
++      out[o + F.PENALTY] = t.penalty;
++      out[o + F.PIT_PHASE] = c.pitPhase;
++      out[o + F.IN_PIT] = Number(c.inPit);
++      out[o + F.AI_TARGET] = c.aiTarget;
++      out[o + F.G_LONG] = c.gLong;
++      out[o + F.G_LAT] = c.gLat;
++      out[o + F.G_VERT] = c.gVert;
++      out[o + F.RANK] = this.race.order.indexOf(id) + 1;
++      out[o + F.FINISH] = c.finishTime;
++      out[o + F.WAKE] = c.wake;
++      out[o + F.SLIP_ENERGY] = c.tires.reduce((sum, w) => sum + w.energy, 0);
++      out[o + F.BOTTOM_ENERGY] = c.bottomEnergy;
++      out[o + F.IMPACT] = c.impact;
++      out[o + F.COMPOUND] = COMPOUND_IDS.indexOf(c.tires[0].compound);
++      out[o + F.PIT_STOPS] = c.pitStops;
++      out[o + F.MOTOR_POWER] = c.motorPower;
++      out[o + F.REGEN_POWER] = c.regenerationPower;
++      out[o + F.FRONT_RIDE] = c.frontRideHeight;
++      out[o + F.REAR_RIDE] = c.rearRideHeight;
++      out[o + F.BRAKE_BIAS] = c.setup.brakeBias;
++      out[o + F.DIFF_POWER] = c.setup.diffPower;
++      out[o + F.DIFF_COAST] = c.setup.diffCoast;
++      out[o + F.ERS_MODE] = c.input.ers;
++      out[o + F.JACK_HEIGHT] = c.jackHeight;
++      out[o + F.SIDEPOD_HEALTH] = c.sidepodHealth;
++      out[o + F.LOST_MASS] = c.lostMass;
++      out[o + F.SUSPENSION_DAMAGE] = c.suspensionDamage;
++      out[o + F.SECTOR] = t.sector;
++      out[o + F.SECTOR_1] = t.sectors[0];
++      out[o + F.SECTOR_2] = t.sectors[1];
++      out[o + F.SECTOR_3] = t.sectors[2];
++      out[o + F.LAP_VALID] = Number(t.valid);
++      out[o + F.WARNINGS] = t.warnings;
++      out[o + F.PIT_YIELDING] = Number(c.pitYielding);
++      out[o + F.RETIRED] = Number(c.retired);
++      out[o + F.MASS] = c.body.mass;
++      for (let i = 0; i < c.debris.pieces.length; i++) {
++        const piece = c.debris.pieces[i],
++          p = o + DEBRIS_BASE + i * DEBRIS_STRIDE;
++        out[p] = piece.kind;
++        out[p + 1] = piece.position.x;
++        out[p + 2] = piece.position.y;
++        out[p + 3] = piece.position.z;
++        out[p + 4] = piece.rotation;
++        out[p + 5] = piece.age;
++        out[p + 6] = piece.mass;
++        out[p + 7] = Number(piece.active);
++      }
+       for (let i = 0; i < 4; i++) {
+@@ -186,2 +229,10 @@ export class Simulation {
+         out[p + W.FLAT] = w.flatSpot;
++        out[p + W.PRESSURE] = w.pressure;
++        out[p + W.RADIUS] = w.radius;
++        out[p + W.BLISTERING] = w.blistering;
++        out[p + W.GRAINING] = w.graining;
++        out[p + W.PUNCTURED] = Number(w.punctured);
++        out[p + W.SUSPENSION_DAMAGE] = c.cornerDamage[i];
++        out[p + W.SLIP_POWER] = w.energy;
++        out[p + W.LENGTH] = w.length;
+       }
+@@ -194,3 +245 @@ export class Simulation {
+ }
+-// Export field constants through protocol.ts; keep the simulation renderer-free.
+-void F;
+diff --git a/src/storage/recorders.ts b/src/storage/recorders.ts
+index 0bd516b..a14c0b8 100644
+--- a/src/storage/recorders.ts
++++ b/src/storage/recorders.ts
+@@ -10,2 +10,4 @@ import {
+ } from '../simulation/protocol.ts';
++import { CHANNELS, packTelemetry, telemetryCsv } from './telemetry-schema.ts';
++export { TELEMETRY_FIELDS } from './telemetry-schema.ts';
+ import { clamp } from '../core/math.ts';
+@@ -141,69 +143,12 @@ export class ReplayRecorder {
+ }
+-export const TELEMETRY_FIELDS = [
+-  F.SPEED,
+-  F.THROTTLE,
+-  F.BRAKE,
+-  F.STEER,
+-  F.GEAR,
+-  F.RPM,
+-  F.G_LONG,
+-  F.G_LAT,
+-  F.FUEL,
+-  F.BATTERY,
+-  F.AERO_FRONT,
+-  F.AERO_REAR,
+-  F.DRAG,
+-  F.FRONT_HEALTH,
+-  F.REAR_HEALTH,
+-  F.FLOOR_HEALTH,
+-  F.WAKE,
+-];
+-const CHANNELS = [
+-  'time_s',
+-  'distance_m',
+-  'lap',
+-  'speed_mps',
+-  'throttle',
+-  'brake',
+-  'steering_rad',
+-  'gear',
+-  'rpm',
+-  'longitudinal_g',
+-  'lateral_g',
+-  'fuel_kg',
+-  'battery_J',
+-  'front_aero_N',
+-  'rear_aero_N',
+-  'drag_N',
+-  'front_health',
+-  'rear_health',
+-  'floor_health',
+-  'wake',
+-];
+-for (const wheel of ['FL', 'FR', 'RL', 'RR'])
+-  for (const channel of [
+-    'load_N',
+-    'slip_ratio',
+-    'slip_angle_rad',
+-    'surface_C',
+-    'carcass_C',
+-    'wear',
+-    'disc_C',
+-    'compression_m',
+-  ])
+-    CHANNELS.push(`${wheel}_${channel}`);
+-const TF = [
+-  W.LOAD,
+-  W.SLIP,
+-  W.ANGLE,
+-  W.SURFACE_TEMP,
+-  W.CARCASS_TEMP,
+-  W.WEAR,
+-  W.DISC_TEMP,
+-  W.COMPRESSION,
+-];
+ export class TelemetryRecorder {
+   readonly stride = CHANNELS.length;
+-  readonly capacity = 60 * 900;
+-  private data = new Float32Array(this.capacity * this.stride);
++  readonly capacity: number;
++  private data: Float32Array;
++  constructor(seconds = 900) {
++    if (!Number.isFinite(seconds) || seconds < 1 || seconds > 3600)
++      throw new Error('Invalid telemetry capacity');
++    this.capacity = Math.ceil(60 * seconds);
++    this.data = new Float32Array(this.capacity * this.stride);
++  }
+   count = 0;
+@@ -214,10 +159,3 @@ export class TelemetryRecorder {
+     this.last = frame[H.TICK];
+-    let p = this.head * this.stride;
+-    const b = carBase(0);
+-    this.data[p++] = frame[H.RACE_TIME];
+-    this.data[p++] = frame[b + F.S];
+-    this.data[p++] = frame[b + F.LAP_TIME] > 0 ? frame[b + F.LAPS] : -1;
+-    for (const f of TELEMETRY_FIELDS) this.data[p++] = frame[b + f];
+-    for (let w = 0; w < 4; w++)
+-      for (const f of TF) this.data[p++] = frame[b + WHEEL_BASE + w * WHEEL_STRIDE + f];
++    packTelemetry(frame, this.data, this.head * this.stride);
+     this.head = (this.head + 1) % this.capacity;
+@@ -231,14 +169,25 @@ export class TelemetryRecorder {
+   }
+-  csv() {
+-    const chunks: string[] = [CHANNELS.join(',') + '\n'];
+-    for (let start = 0; start < this.count; start += 500) {
+-      let text = '';
+-      for (let i = start; i < Math.min(this.count, start + 500); i++) {
+-        const p = this.offset(i);
+-        text +=
+-          Array.from(this.data.subarray(p, p + this.stride), (v) => v.toFixed(5)).join(',') + '\n';
+-      }
+-      chunks.push(text);
++  appendBatch(batch: Float32Array, rows: number) {
++    if (!Number.isInteger(rows) || rows < 0 || rows * this.stride > batch.length)
++      throw new Error('Invalid telemetry batch');
++    for (let row = 0; row < rows; row++) {
++      this.data.set(
++        batch.subarray(row * this.stride, (row + 1) * this.stride),
++        this.head * this.stride,
++      );
++      this.head = (this.head + 1) % this.capacity;
++      this.count = Math.min(this.count + 1, this.capacity);
+     }
+-    return new Blob(chunks, { type: 'text/csv;charset=utf-8' });
++  }
++  snapshot() {
++    const values = new Float32Array(this.count * this.stride);
++    for (let row = 0; row < this.count; row++)
++      values.set(
++        this.data.subarray(this.offset(row), this.offset(row) + this.stride),
++        row * this.stride,
++      );
++    return values;
++  }
++  csv() {
++    return telemetryCsv(this.snapshot(), this.count);
+   }
