@@ -45,19 +45,25 @@ export class TrackContactMesh {
         // Asphalt/paint bands approach the kerb from the inside.
         if (col === 6) lateral = -p.width + 0.18;
         if (col === 8) lateral = p.width - 0.18;
-        const height = trackHeight(p.y, p.bank, p.s, lateral, p.width);
+        const inPit =
+          track.isPitSection(p.s) &&
+          track.pitOffset(p.s) > 3 &&
+          Math.abs(lateral - track.pitOffset(p.s)) < 3.6;
+        const height = inPit
+          ? p.y + p.bank * clamp(lateral, -12, 12)
+          : trackHeight(p.y, p.bank, p.s, lateral, p.width);
         const i = (row * columns + col) * 3;
         this.vertices[i] = p.x + p.nx * lateral;
         this.vertices[i + 1] = height;
         this.vertices[i + 2] = p.z + p.nz * lateral;
         const across = Math.abs(lateral) - p.width;
         const sideDerivative =
-          across > 0 && across < 1.1
+          !inPit && across > 0 && across < 1.1
             ? ((kerbHeight(p.s, across + 0.005) - kerbHeight(p.s, across - 0.005)) / 0.01) *
               Math.sign(lateral)
             : 0;
         const alongDerivative =
-          across > 0 && across < 1.1
+          !inPit && across > 0 && across < 1.1
             ? (kerbHeight(p.s + 0.005, across) - kerbHeight(p.s - 0.005, across)) / 0.01
             : 0;
         const bank = Math.abs(lateral) < 12 ? p.bank : 0;

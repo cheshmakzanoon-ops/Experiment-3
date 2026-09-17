@@ -1,3 +1,4 @@
+import { safePitRelease } from './pit-safety.ts';
 import { mod, Random } from '../core/math.ts';
 import type { SessionOptions } from './config.ts';
 import type { Vehicle } from './vehicle.ts';
@@ -161,7 +162,12 @@ export class RaceDirector {
   }
 }
 /** Service requires physically reaching the box and stopping; never teleports. */
-export function updatePit(car: Vehicle, track: Track, dt: number) {
+export function updatePit(
+  car: Vehicle,
+  track: Track,
+  dt: number,
+  traffic: readonly Vehicle[] = [],
+) {
   const box = 102 + car.id * 7;
   if (car.pitRequested && !car.inPit && car.s > track.length - 210) {
     car.inPit = true;
@@ -187,7 +193,7 @@ export function updatePit(car: Vehicle, track: Track, dt: number) {
     } else if (car.pitClock < 5.2) {
       car.pitPhase = 5;
       car.frontHealth = Math.min(1, car.frontHealth + dt * 0.3);
-    } else {
+    } else if (safePitRelease(car, traffic, track)) {
       car.pitPhase = 6;
       car.pitStops++;
       car.pitRequested = false;

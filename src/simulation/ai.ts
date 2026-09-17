@@ -1,3 +1,5 @@
+import { TrafficPlanner, personality, type DriverPersonality } from './traffic.ts';
+import { pitMergeConflict, pitYieldSpeed } from './pit-safety.ts';
 import { peakGrip } from './tire.ts';
 import { approach, clamp, mod, Vec3 } from '../core/math.ts';
 import { VEHICLE } from './config.ts';
@@ -17,12 +19,16 @@ export class AIDriver {
   private trafficSpeed = 100;
   private stuckTime = 0;
   private pitRecovery = false;
-  private laneHoldUntil = 0;
+  private planner = new TrafficPlanner();
+  readonly personality: DriverPersonality;
   decision = 'RACING LINE';
   constructor(
     readonly car: Vehicle,
     readonly skill = 0.96,
-  ) {}
+    seed = 73021,
+  ) {
+    this.personality = personality(seed, car.id);
+  }
   update(dt: number, track: Track, cars: Vehicle[], race: RaceDirector) {
     const c = this.car,
       command = c.input;
@@ -42,9 +48,11 @@ export class AIDriver {
       const wet = track.meanWater(),
         compound = c.tires[0].compound;
       if (
+        !c.inPit &&
         c.s < track.length - 250 &&
         ((wet > 0.18 && compound !== 'intermediate' && compound !== 'wet') ||
-          c.tires.some((t) => t.wear > 0.67))
+          c.tires.some((t) => t.wear > 0.67 || t.punctured) ||
+          (wet < 0.05 && (compound === 'wet' || compound === 'intermediate')))
       ) {
         c.pitRequested = true;
         c.nextCompound = wet > 0.9 ? 'wet' : wet > 0.16 ? 'intermediate' : 'medium';
@@ -52,88 +60,34 @@ export class AIDriver {
     }
     if (this.tacticalClock > 1 / 12) {
       this.tacticalClock = 0;
-      this.trafficSpeed = 110;
-      if (race.time > this.laneHoldUntil) this.desiredOffset = 0;
-      this.decision = 'RACING LINE';
-      let nearest = Infinity,
-        leader: Vehicle | null = null;
-      for (const other of cars) {
-        if (other === c) continue;
-        const gap = mod(other.s - c.s, track.length);
-        if (
-          gap > 2 &&
-          gap < nearest &&
-          gap < Math.max(80, (c.speed * c.speed) / 16 + 30) &&
-          Math.abs(other.lateral - c.lateral) < 5
-        ) {
-          nearest = gap;
-          leader = other;
-        }
-      }
-      if (leader && !c.inPit) {
-        const closing = c.speed - leader.speed;
-        if (nearest < Math.max(65, c.speed * 2.2) && closing > -0.5) {
-          const leftClear = !cars.some(
-              (o) =>
-                o !== c &&
-                o !== leader &&
-                Math.abs(mod(o.s - c.s + track.length / 2, track.length) - track.length / 2) < 13 &&
-                o.lateral < c.lateral - 1,
-            ),
-            rightClear = !cars.some(
-              (o) =>
-                o !== c &&
-                o !== leader &&
-                Math.abs(mod(o.s - c.s + track.length / 2, track.length) - track.length / 2) < 13 &&
-                o.lateral > c.lateral + 1,
-            );
-          if ((leftClear || rightClear) && race.time > this.laneHoldUntil) {
-            this.laneHoldUntil = race.time + 2.5;
-            const left = clamp(leader.lateral - 3.3, -6, 6),
-              right = clamp(leader.lateral + 3.3, -6, 6);
-            this.desiredOffset =
-              leftClear && (!rightClear || Math.abs(left - c.lateral) < Math.abs(right - c.lateral))
-                ? left
-                : right;
-            this.decision = 'OVERTAKE';
-            command.ers = 2;
-          }
-        }
-        if (Math.abs(leader.lateral - c.lateral) < 2.6) {
-          this.trafficSpeed = Math.sqrt(
-            leader.speed * leader.speed +
-              Math.max(0, nearest - 10) *
-                2 *
-                Math.min(
-                  8,
-                  (5 * peakGrip(c.tires[0], 2500, c.contacts[0], Math.max(c.speed, 38))) / 1.82,
-                ),
-          );
-          this.decision = 'YIELD / AVOID';
-        }
-      }
-      for (const other of cars) {
-        if (other === c || other.inPit !== c.inPit) continue;
-        const gap = mod(other.s - c.s + track.length / 2, track.length) - track.length / 2;
-        if (Math.abs(gap) < 8 && Math.abs(other.lateral - c.lateral) < 6) {
-          this.desiredOffset =
-            c.lateral >= other.lateral
-              ? clamp(other.lateral + 3.5, 2.2, 5.4)
-              : clamp(other.lateral - 3.5, -5.4, -2.2);
-          this.laneHoldUntil = race.time + 1;
-          this.decision = 'SIDE-BY-SIDE';
-        }
-      }
+      const grip = clamp(
+        peakGrip(c.tires[0], 2500, c.contacts[0], Math.max(c.speed, 38)) / 1.82,
+        0.1,
+        1,
+      );
+      const plan = this.planner.evaluate(
+        c,
+        cars,
+        track,
+        race.time,
+        8.5 * grip,
+        this.personality,
+        race.flag === 'YELLOW',
+      );
+      this.desiredOffset = plan.offset;
+      this.trafficSpeed = plan.speedLimit;
+      this.decision = plan.decision;
     }
+    if (!c.inPit) c.pitYielding = false;
     const pit = c.inPit,
       box = 102 + c.id * 7,
       boxGap = mod(box - c.s, track.length);
     this.offset = approach(
       this.offset,
       pit ? this.pitLine(track, c.s) : this.desiredOffset,
-      dt * (pit ? 6 : 2),
+      dt * (pit ? 6 : 1.6),
     );
-    let lookahead = clamp(7 + c.speed * 0.67, 9, 67);
+    let lookahead = clamp(6 + c.speed * 0.48, 8, 46);
     if (pit && c.pitPhase === 1 && boxGap < 35)
       lookahead = Math.min(lookahead, Math.max(1, boxGap));
     track.at(c.s + lookahead, this.target);
@@ -184,6 +138,20 @@ export class AIDriver {
         );
       if (c.pitPhase >= 2 && c.pitPhase <= 5) desired = 0;
       this.decision = 'PIT SERVICE';
+      c.pitYielding = pitMergeConflict(c, cars, track);
+      if (c.pitYielding) {
+        desired = Math.min(desired, pitYieldSpeed(c, true, braking));
+        this.decision = 'YIELD AT PIT EXIT';
+      }
+      for (const other of cars) {
+        if (other === c || !other.inPit || Math.abs(other.lateral - c.lateral) > 2.7) continue;
+        const gap = mod(other.s - c.s, track.length);
+        if (gap > 0 && gap < 80)
+          desired = Math.min(
+            desired,
+            Math.sqrt(other.speed ** 2 + 2 * Math.max(1, braking * 0.7) * Math.max(0, gap - 7)),
+          );
+      }
     }
     const lateralError = Math.abs(c.lateral - (pit ? this.pitLine(track, c.s) : this.offset));
     if (lateralError > 4) desired = Math.min(desired, Math.max(10, 34 - lateralError * 2));

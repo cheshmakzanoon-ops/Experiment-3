@@ -30,7 +30,7 @@ export class Simulation {
       );
       return c;
     });
-    this.ai = this.cars.map((c) => new AIDriver(c, 0.92 + (c.id % 4) * 0.014));
+    this.ai = this.cars.map((c) => new AIDriver(c, 0.92 + (c.id % 4) * 0.014, this.options.seed));
     this.race = new RaceDirector(this.cars, this.track, this.options);
     if (this.options.mode === 'practice') {
       this.race.phase = PHASE.RACING;
@@ -80,7 +80,7 @@ export class Simulation {
       for (const c of this.cars) c.step(dt * 0.5, this.track);
       this.collisions.solve(this.cars, this.track);
     }
-    for (const c of this.cars) updatePit(c, this.track, dt);
+    for (const c of this.cars) updatePit(c, this.track, dt, this.cars);
     if (player.inPit && player.speed > 23) {
       this.pitSpeedClock += dt;
       if (this.pitSpeedClock > 1 && !this.pitSpeedPenalized) {

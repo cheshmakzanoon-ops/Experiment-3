@@ -1,3 +1,4 @@
+import { DebrisPool } from './damage.ts';
 import { approach, clamp, G, lerp, Vec3 } from '../core/math.ts';
 import { aero, type AeroForces } from './aero.ts';
 import {
@@ -61,6 +62,14 @@ export class Vehicle {
   rearHealth = 1;
   floorHealth = 1;
   suspensionDamage = 0;
+  readonly cornerDamage = new Float64Array(4);
+  readonly debris = new DebrisPool();
+  lostMass = 0;
+  sidepodHealth = 1;
+  jackHeight = 0;
+  pitYielding = false;
+  motorPower = 0;
+  regenerationPower = 0;
   impact = 0;
   bottomEnergy = 0;
   gLong = 0;
@@ -129,7 +138,8 @@ export class Vehicle {
   }
   step(dt: number, track: Track) {
     const b = this.body;
-    b.mass = VEHICLE.dryMass + this.fuel;
+    b.mass = VEHICLE.dryMass + this.fuel - this.lostMass;
+    this.debris.step(dt, track);
     b.clear();
     b.force.y = -b.mass * G;
     b.orientation.inverseRotate(b.velocity, this.localVelocity);
@@ -203,7 +213,10 @@ export class Vehicle {
       if (!Number.isFinite(distance)) track.sample(origin.x, origin.z, s);
       const rest =
           VEHICLE.restLength + (i < 2 ? this.setup.frontRide - 0.065 : this.setup.rearRide - 0.075),
-        length = distance - t.radius / Math.max(0.15, this.up.dot(s.normal));
+        length =
+          distance -
+          (t.radius - t.flatSpot * 0.002 * (1 + Math.cos(t.rotation))) /
+            Math.max(0.15, this.up.dot(s.normal));
       t.length = Math.min(rest + 0.05, Math.max(0.06, length));
       t.compression = Number.isFinite(length) ? Math.max(0, rest - length) : 0;
       hub.copy(origin).addScaled(this.up, -t.length);
@@ -227,6 +240,7 @@ export class Vehicle {
       this.normalLoads[i + 1] = Math.max(0, this.normalLoads[i + 1] - antiRoll);
     }
     for (let i = 0; i < 4; i++) {
+      this.normalLoads[i] *= 1 - this.cornerDamage[i] * 0.5;
       const t = this.tires[i],
         s = this.contacts[i],
         hub = this.hubs[i];
@@ -239,7 +253,7 @@ export class Vehicle {
                   (VEHICLE.wheelbase - WHEEL_POSITIONS[i][0] * Math.tan(this.steer)),
               )
             : 0,
-        steering = ackermann + toe + (i < 2 ? this.suspensionDamage * 0.035 : 0),
+        steering = ackermann + toe + this.cornerDamage[i] * 0.07 * (i % 2 ? 1 : -1),
         sn = Math.sin(steering),
         cs = Math.cos(steering),
         long = this.localContactVelocity.x * sn + this.localContactVelocity.z * cs,
@@ -270,7 +284,7 @@ export class Vehicle {
       b.orientation.rotate(this.axis.set(cs, 0, -sn), this.wheelRight);
       this.wheelForward.addScaled(s.normal, -this.wheelForward.dot(s.normal)).normalize();
       this.wheelRight.cross(s.normal, this.wheelForward).normalize();
-      const rolling = Math.tanh(long * 2) * s.resistance * t.load;
+      const rolling = Math.tanh(long * 2) * (s.resistance + (t.punctured ? 0.13 : 0)) * t.load;
       this.force
         .copy(s.normal)
         .scale(t.load)
@@ -321,6 +335,20 @@ export class Vehicle {
       if (this.speed > 0.1) b.force.addScaled(b.velocity, (-0.06 * floorForce) / this.speed);
       this.floorHealth = Math.max(0.25, this.floorHealth - (this.bottomEnergy * dt) / 1e8);
     }
+    const jackTarget = this.pitPhase >= 3 && this.pitPhase <= 5 ? 0.19 : 0;
+    this.jackHeight = approach(this.jackHeight, jackTarget, dt * 0.16);
+    if (this.jackHeight > 0) {
+      for (const z of [-1.4, 1.5]) {
+        b.orientation.rotate(this.localPoint.set(0, -0.43, z), this.point).add(b.position);
+        track.sample(this.point.x, this.point.z, this.surface);
+        const penetration = this.surface.height + this.jackHeight - this.point.y;
+        if (penetration > 0) {
+          b.pointVelocity(this.point, this.force);
+          const load = Math.max(0, 280000 * penetration - 8000 * this.force.y);
+          b.apply(this.force.set(0, load, 0), this.point);
+        }
+      }
+    }
     b.integrate(dt);
     b.orientation.inverseRotate(b.acceleration, this.localAccel);
     this.gLong = this.localAccel.z / G;
@@ -329,11 +357,43 @@ export class Vehicle {
     this.impact = Math.max(0, this.impact - dt * 2);
     if (b.position.y < this.surface.height - 4) this.retired = true;
   }
-  damage(energy: number, front: boolean) {
-    const loss = clamp(energy / 150000, 0, 0.8);
-    if (front) this.frontHealth = Math.max(0.12, this.frontHealth - loss);
-    else this.rearHealth = Math.max(0.2, this.rearHealth - loss * 0.6);
-    this.suspensionDamage = clamp(this.suspensionDamage + loss * 0.3, 0, 1);
+  impactAt(energy: number, point: Vec3) {
+    if (!Number.isFinite(energy) || energy < 0) throw new Error('Invalid impact energy');
+    this.localPoint.copy(point).sub(this.body.position);
+    this.body.orientation.inverseRotate(this.localPoint, this.localPoint);
+    const local = this.localPoint;
+    const loss = clamp(energy / 150000, 0, 1);
+    if (local.z > 1.35) this.frontHealth = Math.max(0, this.frontHealth - loss);
+    else if (local.z < -1.35) this.rearHealth = Math.max(0, this.rearHealth - loss * 0.7);
+    else this.sidepodHealth = Math.max(0, this.sidepodHealth - loss * 0.8);
+    if (local.y < -0.2) this.floorHealth = Math.max(0.1, this.floorHealth - loss * 0.5);
+    for (let i = 0; i < 4; i++) {
+      const wheel = WHEEL_POSITIONS[i];
+      if (Math.hypot(local.x - wheel[0], local.z - wheel[2]) < 0.85) {
+        this.cornerDamage[i] = clamp(this.cornerDamage[i] + energy / 90000, 0, 1);
+        if (energy > 45000) this.tires[i].punctured = true;
+      }
+    }
+    this.suspensionDamage = Math.max(...this.cornerDamage);
     this.impact = Math.max(this.impact, Math.min(1, energy / 30000));
+    // Wing detachment transfers its inherited momentum into a physical fragment.
+    if (this.frontHealth < 0.08 && !this.debris.pieces.some((p) => p.kind === 1))
+      this.detach(1, 2.5, 4.5);
+    if (this.rearHealth < 0.08 && !this.debris.pieces.some((p) => p.kind === 2))
+      this.detach(2, -2.1, 6);
+  }
+  private detach(kind: number, z: number, mass: number) {
+    this.body.orientation
+      .rotate(this.localPoint.set(0, 0.1, z), this.point)
+      .add(this.body.position);
+    this.body.pointVelocity(this.point, this.force);
+    this.debris.emit(kind, this.point, this.force, mass, this.body.omega.x + this.body.omega.z);
+    this.lostMass += mass;
+  }
+  damage(energy: number, front: boolean) {
+    this.body.orientation
+      .rotate(this.point.set(0, 0, front ? 2.5 : -2.1), this.point)
+      .add(this.body.position);
+    this.impactAt(energy, this.point);
   }
 }

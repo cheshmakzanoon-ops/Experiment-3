@@ -17,6 +17,9 @@ export interface Tire {
   wear: number;
   dirt: number;
   flatSpot: number;
+  blistering: number;
+  graining: number;
+  punctured: boolean;
   compression: number;
   length: number;
   discTemp: number;
@@ -43,6 +46,9 @@ export function makeTire(compound: Compound, pressure = 155): Tire {
     wear: 0,
     dirt: 0,
     flatSpot: 0,
+    blistering: 0,
+    graining: 0,
+    punctured: false,
     compression: 0,
     length: 0.25,
     discTemp: 320,
@@ -80,6 +86,8 @@ export function peakGrip(t: Tire, load: number, s: SurfaceSample, speed: number)
     (1 - 0.5 * t.wear) *
     (1 - 0.34 * t.dirt) *
     (1 - 0.08 * t.flatSpot) *
+    (1 - 0.18 * t.blistering - 0.12 * t.graining) *
+    (t.punctured ? 0.28 : 1) *
     clamp(pressurePenalty, 0.75, 1) *
     (1 + s.rubber * 0.05 * (1 - wetRatio) - s.marbles * 0.14)
   );
@@ -111,7 +119,8 @@ export function solveTire(
   t.load = Math.max(0, load);
   t.water = surface.water;
   t.surface = surface.surface;
-  t.radius = VEHICLE.wheelRadius * (1 - 0.12 * smooth(0.97, 1, t.wear));
+  if (t.wear >= 0.999) t.punctured = true;
+  t.radius = VEHICLE.wheelRadius * (t.punctured ? 0.77 : 1 - 0.06 * smooth(0.97, 1, t.wear));
   const r = t.radius,
     I = VEHICLE.wheelInertia,
     old = t.omega,
@@ -156,11 +165,30 @@ export function solveTire(
     ((t.energy * 0.62 + t.load * Math.abs(vLong) * 0.0012 - conduction - convection) * dt) / 9000;
   t.carcassTemp += ((conduction - (t.carcassTemp - surface.temp) * 12) * dt) / 52000;
   t.pressure =
-    (t.coldPressure * (t.carcassTemp + 273.15)) / (COMPOUNDS[t.compound].ideal - 5 + 273.15);
+    ((t.punctured ? 12 : t.coldPressure) * (t.carcassTemp + 273.15)) /
+    (COMPOUNDS[t.compound].ideal - 5 + 273.15);
   t.wear = clamp(
     t.wear +
       ((t.energy * dt) / COMPOUNDS[t.compound].lifeJ) *
         (1 + Math.max(0, t.surfaceTemp - 120) * 0.015),
+    0,
+    1,
+  );
+  // Damage accumulation is proportional to dissipated slip energy; cold grain
+  // can clean up through rolling, while heat-blistered rubber does not regrow.
+  const slipWork = (t.energy * dt) / COMPOUNDS[t.compound].lifeJ;
+  t.blistering = clamp(
+    t.blistering +
+      slipWork *
+        smooth(COMPOUNDS[t.compound].ideal + 20, COMPOUNDS[t.compound].ideal + 60, t.surfaceTemp),
+    0,
+    1,
+  );
+  t.graining = clamp(
+    t.graining +
+      slipWork *
+        (1 - smooth(COMPOUNDS[t.compound].ideal - 30, COMPOUNDS[t.compound].ideal, t.carcassTemp)) -
+      Math.abs(t.omega) * dt * 0.000008,
     0,
     1,
   );

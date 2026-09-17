@@ -1,9 +1,14 @@
-import { clamp, Vec3 } from '../core/math.ts';
+import { ChassisBox, BoxContact } from './obb.ts';
+import { Vec3 } from '../core/math.ts';
 import { trackPoint, type Track } from './track.ts';
 import type { Vehicle } from './vehicle.ts';
 /** Scratch state is owned per collision solver, not by a mutable module singleton. */
 export class CollisionSolver {
   private n = new Vec3();
+  private boxes: ChassisBox[] = [];
+  private order: number[] = [];
+  private contact = new BoxContact();
+  private corner = new Vec3();
   private rA = new Vec3();
   private rB = new Vec3();
   private vA = new Vec3();
@@ -44,17 +49,38 @@ export class CollisionSolver {
         B.inverseInertia(cross, inertia);
         B.omega.add(inertia);
       }
-      vA.addScaled(normal, -vn);
+      // Recompute tangential relative velocity after the normal impulse.
+      // Friction has rotational effective mass and angular impulse too.
+      A.pointVelocity(contact, vA);
+      if (B) B.pointVelocity(contact, vB);
+      else vB.set(0, 0, 0);
+      vA.sub(vB).addScaled(normal, -vA.dot(normal));
       const speed = vA.length();
       if (speed > 1e-5) {
         vA.scale(1 / speed);
-        const jt = Math.min(j * 0.3, speed / inverseMass);
+        cross.cross(rA, vA);
+        A.inverseInertia(cross, inertia);
+        let tangentMass = inverseMass + inertia.dot(cross);
+        if (B) {
+          cross.cross(rB, vA);
+          B.inverseInertia(cross, inertia);
+          tangentMass += inertia.dot(cross);
+        }
+        const jt = Math.min(j * 0.3, speed / tangentMass);
         A.velocity.addScaled(vA, -jt / A.mass);
-        if (B) B.velocity.addScaled(vA, jt / B.mass);
+        cross.cross(rA, vA).scale(-jt);
+        A.inverseInertia(cross, inertia);
+        A.omega.add(inertia);
+        if (B) {
+          B.velocity.addScaled(vA, jt / B.mass);
+          cross.cross(rB, vA).scale(jt);
+          B.inverseInertia(cross, inertia);
+          B.omega.add(inertia);
+        }
       }
       const energy = (0.5 * vn * vn) / denominator;
-      a.damage(energy, rA.dot(a.forward) > 0);
-      if (b) b.damage(energy, rB.dot(b.forward) > 0);
+      a.impactAt(energy, contact);
+      if (b) b.impactAt(energy, contact);
     }
     const correction = (Math.max(0, penetration - 0.004) * 0.48) / inverseMass;
     A.position.addScaled(normal, correction / A.mass);
@@ -62,60 +88,44 @@ export class CollisionSolver {
   }
   solve(cars: Vehicle[], track: Track) {
     const { n, point, trackPos } = this;
-    for (let i = 0; i < cars.length; i++) {
-      const a = cars[i],
-        A = a.body;
-      for (let j = i + 1; j < cars.length; j++) {
-        const b = cars[j],
-          B = b.body;
-        if (
-          (A.position.x - B.position.x) ** 2 + (A.position.z - B.position.z) ** 2 > 30 ||
-          Math.abs(A.position.y - B.position.y) > 1.6
-        )
-          continue;
-        let deepest = 0,
-          ax = 0,
-          az = 0,
-          bx = 0,
-          bz = 0;
-        for (let u = -1; u <= 1; u += 2)
-          for (let v = -1; v <= 1; v += 2) {
-            const x = A.position.x + a.forward.x * u * 1.25,
-              z = A.position.z + a.forward.z * u * 1.25,
-              xx = B.position.x + b.forward.x * v * 1.25,
-              zz = B.position.z + b.forward.z * v * 1.25,
-              pen = 1.72 - Math.hypot(x - xx, z - zz);
-            if (pen > deepest) {
-              deepest = pen;
-              ax = x;
-              az = z;
-              bx = xx;
-              bz = zz;
-            }
+    while (this.boxes.length < cars.length) this.boxes.push(new ChassisBox());
+    if (this.order.length !== cars.length) this.order = cars.map((_, i) => i);
+    for (let i = 0; i < cars.length; i++) this.boxes[i].update(cars[i].body);
+    // Sweep-and-prune broad phase; stable ID tie-break makes ordering repeatable.
+    this.order.sort((a, b) => this.boxes[a].minX - this.boxes[b].minX || a - b);
+    for (let k = 0; k < cars.length; k++) {
+      const i = this.order[k],
+        a = cars[i],
+        A = this.boxes[i];
+      for (let l = k + 1; l < cars.length; l++) {
+        const j = this.order[l],
+          B = this.boxes[j];
+        if (B.minX > A.maxX) break;
+        if (this.contact.intersect(A, B))
+          this.impulse(a, cars[j], this.contact.point, this.contact.normal, this.contact.depth);
+      }
+    }
+    for (const a of cars) {
+      let deepest = 0;
+      // Probe chassis corners, not just its centre, against track barriers.
+      for (let side = -1; side <= 1; side += 2)
+        for (let end = -1; end <= 1; end += 2) {
+          a.body.orientation
+            .rotate(this.corner.set(side * 0.94, 0, end * 2.5), this.corner)
+            .add(a.body.position);
+          const lateral = track.nearest(this.corner.x, this.corner.z, trackPos);
+          const boundary =
+            lateral < 0
+              ? trackPos.width + 11
+              : Math.max(trackPos.width + 11, track.pitOffset(trackPos.s) + 5);
+          const penetration = Math.abs(lateral) - boundary;
+          if (penetration > deepest) {
+            deepest = penetration;
+            n.set(-trackPos.nx * Math.sign(lateral), 0, -trackPos.nz * Math.sign(lateral));
+            point.copy(this.corner);
           }
-        if (deepest > 0) {
-          n.set(ax - bx, 0, az - bz);
-          if (n.length() < 1e-6) n.set(i % 2 ? 1 : -1, 0, 0);
-          else n.normalize();
-          point.set((ax + bx) * 0.5, (A.position.y + B.position.y) * 0.5, (az + bz) * 0.5);
-          this.impulse(a, b, point, n, deepest);
         }
-      }
-      const lateral = track.nearest(A.position.x, A.position.z, trackPos),
-        boundary =
-          lateral < 0
-            ? trackPos.width + 11
-            : Math.max(trackPos.width + 11, track.pitOffset(trackPos.s) + 5);
-      if (Math.abs(lateral) > boundary) {
-        const sign = Math.sign(lateral);
-        n.set(-trackPos.nx * sign, 0, -trackPos.nz * sign);
-        point.set(
-          A.position.x + trackPos.nx * sign * 0.85,
-          A.position.y,
-          A.position.z + trackPos.nz * sign * 0.85,
-        );
-        this.impulse(a, null, point, n, clamp(Math.abs(lateral) - boundary + 0.85, 0, 5));
-      }
+      if (deepest > 0) this.impulse(a, null, point, n, deepest);
     }
   }
 }
