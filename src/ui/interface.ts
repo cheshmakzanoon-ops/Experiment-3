@@ -1,4 +1,12 @@
 import {
+  BINDING_LABELS,
+  keyName,
+  validateBindings,
+  type BindingAction,
+  type Bindings,
+} from '../input/bindings.ts';
+import { TELEMETRY_VIEWS, type TelemetryView } from '../storage/telemetry-plots.ts';
+import {
   COMPOUNDS,
   DEFAULT_OPTIONS,
   DEFAULT_SETUP,
@@ -40,6 +48,7 @@ export class Interface {
   private nodes = new Map<string, HTMLElement>();
   private tick = 0;
   private lastAnnounced = '';
+  private bindingCapture: AbortController | null = null;
   options: SessionOptions = { ...DEFAULT_OPTIONS };
   constructor(
     readonly element: HTMLElement,
@@ -78,7 +87,13 @@ export class Interface {
   <div id="replayBar" class="replay-bar" hidden><span class="replay-tag">REPLAY</span><button data-action="replayPlay" id="replayPlay">PAUSE</button><span id="replayTime">0:00</span><input id="replaySeek" type="range" min="0" max="1" step=".01" value="0" aria-label="Replay position"><select id="replaySpeed" aria-label="Replay playback speed"><option value=".25">¼×</option><option value=".5">½×</option><option value="1" selected>1×</option><option value="2">2×</option></select><button data-action="camera">CAMERA</button><button data-action="replayExit">RETURN</button></div>
   <div id="debug" class="debug" hidden></div><div id="toast" class="toast" role="status" hidden></div>
   <dialog id="modal"><div id="modalContent"></div></dialog>
-  <dialog id="telemetryModal" class="telemetry-modal"><header><div><span class="eyebrow">ENGINEERING / DATA</span><h2>Telemetry</h2></div><button data-action="telemetryClose" aria-label="Close telemetry">✕</button></header><canvas id="graph" width="1100" height="430"></canvas><div class="telemetry-actions"><button data-action="compare">COMPARE LAPS</button><button data-action="csv">EXPORT CSV</button><span>SI UNITS · RECORDED SIMULATION STATE</span></div></dialog>
+  <dialog id="telemetryModal" class="telemetry-modal"><header><div><span class="eyebrow">ENGINEERING / DATA</span><h2>Telemetry</h2></div><button data-action="telemetryClose" aria-label="Close telemetry">✕</button></header><label class="telemetry-selector">CHANNEL GROUP<select id="telemetryView" aria-label="Telemetry channels">${Object.entries(
+    TELEMETRY_VIEWS,
+  )
+    .map(([key, view]) => `<option value="${key}">${view.title}</option>`)
+    .join(
+      '',
+    )}</select></label><canvas id="graph" width="1100" height="590" role="img"></canvas><div class="telemetry-actions"><button data-action="compare">COMPARE LAPS</button><button data-action="csv">EXPORT CSV</button><span>SI UNITS · RECORDED SIMULATION STATE</span></div></dialog>
   `;
     this.menu = this.get('menu');
     this.hud = this.get('hud');
@@ -311,17 +326,40 @@ export class Interface {
       `<span class="eyebrow">SESSION SUSPENDED</span><h2>Hold your line.</h2><p>Simulation and race time are paused.</p><div class="dialog-buttons"><button class="primary" data-action="resume">RESUME SESSION</button><button data-action="settings">GARAGE & SETTINGS</button><button data-action="replay">WATCH REPLAY</button><button data-action="restart">RESTART SESSION</button><button data-action="menu">RETURN TO PADDOCK</button></div>`,
     );
   }
-  controls() {
+  controls(bindings: Bindings) {
     this.modalContent(
-      `<span class="eyebrow">DRIVER BRIEFING</span><h2>Take control.</h2><div class="control-grid"><b>W / ↑</b><span>Throttle</span><b>S / ↓ / SPACE</b><span>Brake</span><b>A D / ← →</b><span>Steering</span><b>[ / ]</b><span>Shift down / up · switches to manual</span><b>B + W</b><span>Reverse when nearly stopped</span><b>C</b><span>Chase / cockpit / pod / trackside</span><b>P</b><span>Pit request · automatic drive to box and exit</span><b>E</b><span>Harvest / balanced / attack energy modes</span><b>G</b><span>Toggle AI demonstration driving</span><b>T / R / F3</b><span>Telemetry / replay / engineering overlay</span><b>M / ESC</b><span>Mute / pause</span><b>DOUBLE CLICK</b><span>Mouse look in cockpit · Escape releases</span></div><p>Standard gamepads: left stick, trigger pedals, shoulder shifts, Y camera, X energy, Start pause. Nonstandard wheels require axis mapping in settings. Native wheel force feedback is not implemented.</p><button class="primary" data-action="modalClose">UNDERSTOOD</button>`,
+      `<span class="eyebrow">DRIVER BRIEFING</span><h2>Take control.</h2><div class="control-grid">${Object.entries(
+        bindings,
+      )
+        .map(
+          ([action, code]) =>
+            `<b>${keyName(code)}</b><span>${BINDING_LABELS[action as BindingAction]}</span>`,
+        )
+        .join(
+          '',
+        )}<b>ESC</b><span>Pause / release mouse look</span><b>DOUBLE CLICK</b><span>Cockpit mouse look</span></div><p>Standard gamepads: left stick, trigger pedals, shoulder shifts, Y camera, X energy, Start pause. Nonstandard wheels require axis mapping in settings. Native wheel force feedback is not implemented.</p><button class="primary" data-action="modalClose">UNDERSTOOD</button>`,
     );
   }
   modalContent(html: string) {
+    this.bindingCapture?.abort();
+    this.bindingCapture = null;
     this.get('modalContent').innerHTML = html;
     if (!this.modal.open) this.modal.showModal();
   }
   closeModal() {
+    this.bindingCapture?.abort();
+    this.bindingCapture = null;
     if (this.modal.open) this.modal.close();
+  }
+  applyBindings(bindings: Bindings) {
+    this.hud.querySelectorAll<HTMLElement>('[data-action] kbd').forEach((key) => {
+      const action = key.parentElement?.dataset.action as BindingAction;
+      if (bindings[action]) key.textContent = keyName(bindings[action]);
+    });
+  }
+  get telemetryView(): TelemetryView {
+    const key = (this.get('telemetryView') as HTMLSelectElement).value;
+    return Object.hasOwn(TELEMETRY_VIEWS, key) ? (key as TelemetryView) : 'driver';
   }
   settings(settings: Settings) {
     const descriptions: Record<keyof Setup, string> = {
@@ -389,7 +427,7 @@ export class Interface {
       )
         .map(
           ([action, key]) =>
-            `<label>${action}<button type="button" data-bind="${action}" data-key="${key}">${key}</button></label>`,
+            `<label>${BINDING_LABELS[action as BindingAction]}<button type="button" data-bind="${action}" data-key="${key}">${keyName(key)}</button></label>`,
         )
         .join(
           '',
@@ -404,20 +442,38 @@ export class Interface {
     });
     form.querySelectorAll<HTMLButtonElement>('[data-bind]').forEach((button) =>
       button.addEventListener('click', () => {
-        button.textContent = 'PRESS A KEY';
+        this.bindingCapture?.abort();
+        this.bindingCapture = new AbortController();
+        const capture = this.bindingCapture;
+        button.textContent = 'PRESS A KEY · ESC CANCELS';
+        capture.signal.addEventListener(
+          'abort',
+          () => {
+            button.textContent = keyName(button.dataset.key!);
+          },
+          { once: true },
+        );
         const listener = (e: KeyboardEvent) => {
           e.preventDefault();
-          e.stopPropagation();
-          if (/^(Key[A-Z]|Arrow(Left|Right|Up|Down)|Digit[0-9])$/.test(e.code)) {
+          e.stopImmediatePropagation();
+          if (e.code === 'Escape') {
+            capture.abort();
+            return;
+          }
+          const proposed = { ...settings.bindings };
+          form.querySelectorAll<HTMLButtonElement>('[data-bind]').forEach((item) => {
+            proposed[item.dataset.bind as BindingAction] = item.dataset.key!;
+          });
+          proposed[button.dataset.bind as BindingAction] = e.code;
+          try {
+            validateBindings(proposed);
             button.dataset.key = e.code;
-            button.textContent = e.code;
-            document.removeEventListener('keydown', listener, true);
-          } else if (e.code === 'Escape') {
-            button.textContent = button.dataset.key!;
-            document.removeEventListener('keydown', listener, true);
+            capture.abort();
+          } catch (error) {
+            this.toast(String(error));
           }
         };
-        document.addEventListener('keydown', listener, true);
+        document.addEventListener('keydown', listener, { capture: true, signal: capture.signal });
       }),
     );
     document.getElementById('exportSetup')!.onclick = () => this.callbacks.exportSetup();
@@ -447,8 +503,15 @@ export class Interface {
         next.mapping[key] = (form.elements.namedItem(key) as HTMLInputElement).checked;
       form
         .querySelectorAll<HTMLButtonElement>('[data-bind]')
-        .forEach((button) => (next.bindings[button.dataset.bind!] = button.dataset.key!));
-      this.callbacks.apply(validateSettings(next));
+        .forEach(
+          (button) => (next.bindings[button.dataset.bind as BindingAction] = button.dataset.key!),
+        );
+      this.bindingCapture?.abort();
+      try {
+        this.callbacks.apply(validateSettings(next));
+      } catch (error) {
+        this.toast(`Settings not applied: ${String(error)}`);
+      }
     };
   }
   results(frame: Float32Array) {

@@ -139,6 +139,7 @@ export class GameApp {
     }
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) this.settings.shake = 0;
     this.input.settings = this.settings;
+    this.ui.applyBindings(this.settings.bindings);
     this.ui.loading('Building original bodywork, materials and Aurel circuit…');
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
     this.renderer = new RacingRenderer(canvas, this.track);
@@ -398,7 +399,12 @@ export class GameApp {
     if (this.ui.telemetryModal.open && this.telemetry) {
       this.graphClock += dt;
       if (this.graphClock > 0.2) {
-        this.telemetry.draw(this.ui.graph, this.comparison);
+        this.telemetry.draw(
+          this.ui.graph,
+          this.comparison,
+          this.ui.telemetryView,
+          this.track.length,
+        );
         this.graphClock = 0;
       }
     }
@@ -505,7 +511,7 @@ export class GameApp {
         this.ui.settings(this.settings);
         break;
       case 'controls':
-        this.ui.controls();
+        this.ui.controls(this.settings.bindings);
         break;
       case 'modalClose':
         this.ui.closeModal();
@@ -563,7 +569,12 @@ export class GameApp {
         this.input.setEnabled(false);
         this.audio.stop();
         this.ui.telemetryModal.showModal();
-        this.telemetry.draw(this.ui.graph, this.comparison);
+        this.telemetry.draw(
+          this.ui.graph,
+          this.comparison,
+          this.ui.telemetryView,
+          this.track.length,
+        );
         break;
       case 'telemetryClose':
         this.ui.telemetryModal.close();
@@ -573,7 +584,12 @@ export class GameApp {
         break;
       case 'compare':
         this.comparison = !this.comparison;
-        this.telemetry?.draw(this.ui.graph, this.comparison);
+        this.telemetry?.draw(
+          this.ui.graph,
+          this.comparison,
+          this.ui.telemetryView,
+          this.track.length,
+        );
         break;
       case 'csv':
         void this.exportTelemetry();
@@ -608,6 +624,7 @@ export class GameApp {
   private applySettings(settings: Settings) {
     this.settings = settings;
     this.input.settings = settings;
+    this.ui.applyBindings(settings.bindings);
     this.renderer?.setQuality(settings.quality);
     if (this.renderer) this.renderer.shake = settings.shake;
     this.audio.volume = settings.volume;

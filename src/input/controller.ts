@@ -1,3 +1,4 @@
+import { boundAction, isHeld } from './bindings.ts';
 import { approach, clamp } from '../core/math.ts';
 import { controls, type Controls } from '../simulation/config.ts';
 import type { Settings } from '../storage/data.ts';
@@ -26,20 +27,16 @@ export class InputController {
       e.preventDefault();
     this.keys.add(e.code);
     if (e.repeat) return;
-    const actions: Record<string, string> = {
-      Escape: 'pause',
-      KeyC: 'camera',
-      KeyP: 'pit',
-      KeyE: 'ers',
-      KeyR: 'replay',
-      KeyT: 'telemetry',
-      F3: 'debug',
-      KeyM: 'mute',
-      KeyG: 'autopilot',
-    };
-    if (actions[e.code]) this.action(actions[e.code]);
-    if (e.code === 'BracketRight') this.state.shift = 1;
-    if (e.code === 'BracketLeft') this.state.shift = -1;
+    if (e.code === 'Escape') {
+      this.action('pause');
+      return;
+    }
+    const action = boundAction(this.settings.bindings, e.code);
+    if (action) e.preventDefault();
+    if (action === 'shiftUp') this.state.shift = 1;
+    else if (action === 'shiftDown') this.state.shift = -1;
+    else if (action && !['throttle', 'brake', 'left', 'right', 'reverse'].includes(action))
+      this.action(action);
   };
   private keyUp = (e: KeyboardEvent) => this.keys.delete(e.code);
   private blur = () => {
@@ -74,10 +71,10 @@ export class InputController {
       k = this.keys,
       t = this.touch;
     let steer =
-      Number(k.has(b.right) || k.has('ArrowRight') || t.right) -
-      Number(k.has(b.left) || k.has('ArrowLeft') || t.left);
-    let throttle = Number(k.has(b.throttle) || k.has('ArrowUp') || t.throttle),
-      brake = Number(k.has(b.brake) || k.has('ArrowDown') || k.has('Space') || t.brake);
+      Number(isHeld(k, b, 'right', ['ArrowRight']) || t.right) -
+      Number(isHeld(k, b, 'left', ['ArrowLeft']) || t.left);
+    let throttle = Number(isHeld(k, b, 'throttle', ['ArrowUp']) || t.throttle),
+      brake = Number(isHeld(k, b, 'brake', ['ArrowDown', 'Space']) || t.brake);
     const pad = navigator.getGamepads?.().find((p) => p?.connected);
     if (pad) {
       this.gamepadName = pad.id;
@@ -127,7 +124,7 @@ export class InputController {
     this.state.steer = -this.steering;
     this.state.throttle = throttle;
     this.state.brake = brake;
-    this.state.reverse = k.has('KeyB');
+    this.state.reverse = isHeld(k, b, 'reverse');
     return this.state;
   }
   dispose() {

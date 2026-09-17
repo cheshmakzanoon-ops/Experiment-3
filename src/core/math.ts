@@ -1,4 +1,4 @@
-/** SI units. Right-handed world/body axes: +X right, +Y up, +Z forward. */
+/** SI units. Right-handed body axes: +Z nose, +Y up, +X driver left. */
 export const G = 9.80665,
   TAU = Math.PI * 2;
 export const clamp = (x: number, a: number, b: number) => Math.max(a, Math.min(b, x));

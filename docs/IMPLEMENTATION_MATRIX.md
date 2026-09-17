@@ -12,7 +12,7 @@ This ledger follows the numbered sections of the supplied directive. “Implemen
 | 6 | PHYSICS COORDINATE SYSTEM | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 7 | RIGID BODY STATE | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 8 | FORCE ACCUMULATION | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
-| 9 | INTEGRATOR | Semi-implicit integration and normalized quaternion; no advanced symplectic rotational solver. |
+| 9 | INTEGRATOR | Semi-implicit translation; implicit body midpoint/Cayley rotation with world-torque half kicks. Free-spin energy/world-momentum and forced-impulse regressions pass. |
 | 10 | WHEEL CONTACT MODEL | BVH triangle ribbon queries along suspension axes, shared seam normals, contact tests; contact-patch/multibody refinement remains. |
 | 11 | SUSPENSION CORNER | Spring/damper/ARB/bump stop; no unsprung-body multibody model. |
 | 12 | TIRE MODEL | Nonlinear approximate tire curves; no experimentally fitted commercial tire dataset. |
@@ -84,7 +84,7 @@ This ledger follows the numbered sections of the supplied directive. “Implemen
 | 78 | KEYBOARD STEERING | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 79 | WHEEL INPUT | Gamepad-exposed axes/buttons, inversion/deadzone/response mapping. No native wheel force feedback. |
 | 80 | TELEMETRY DATA | 176 actual-state telemetry channels captured at fixed 60 Hz in the physics worker, bounded transport/ring buffers and asynchronous CSV export. |
-| 81 | TELEMETRY UI | Speed/pedal traces and lap-distance comparison remain implemented. Broader selectable multi-channel graph presentation is still incomplete. |
+| 81 | TELEMETRY UI | Seven selectable groups expose the requested inputs, RPM/gears, G forces, tire temperatures/slip/loads, ride height and aero balance. Latest two fully recorded laps overlay by distance; truncated/gapped recordings are not mislabelled complete. |
 | 82 | REPLAY SYSTEM | 15 Hz all-car numeric pose pages, bounded resident IndexedDB replay cache, asynchronous seeking, original spatial water/rubber history, explicit recording failures. Permanent replay-library UI is not included. |
 | 83 | RACE DIRECTOR | Core starts/laps/penalties/classification; no safety car, formation laps or steward simulation. |
 | 84 | START LIGHTS | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
@@ -142,7 +142,7 @@ This ledger follows the numbered sections of the supplied directive. “Implemen
 | 136 | EVENT BUS | Typed worker protocol and explicit callbacks, not a separate generalized event-bus package. |
 | 137 | CONFIGURATION DATA | Central vehicle/setup data with some renderer/AI constants still local. |
 | 138 | NO MAGIC NUMBERS | Units and named core settings provided, but some local tuning constants remain. |
-| 139 | VERSIONED SAVES | Versioned preferences/setup and best laps; no mid-race checkpoint restore. |
+| 139 | VERSIONED SAVES | Version-2 preferences with version-1 keyboard-binding migration and conflict rejection; versioned replay pages and setup. No mid-race physical-state checkpoint restore. |
 | 140 | DEVELOPMENT PHASES | OPEN: development has not passed all thirty-one phase gates. |
 | 141 | THREE FINAL AUDITS | OPEN: the three complete final project audits have not been completed. |
 | 142 | ANTI-LAZINESS RULES | No success declaration from compilation or a single scenario. Full master completion remains open. |

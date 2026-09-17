@@ -1,3 +1,4 @@
+import { drawTelemetry, type TelemetryView } from './telemetry-plots.ts';
 import {
   F,
   H,
@@ -191,76 +192,12 @@ export class TelemetryRecorder {
   csv() {
     return telemetryCsv(this.snapshot(), this.count);
   }
-  draw(canvas: HTMLCanvasElement, lapComparison = false) {
-    const c = canvas.getContext('2d');
-    if (!c) return;
-    const w = canvas.width,
-      h = canvas.height;
-    c.fillStyle = '#141b1d';
-    c.fillRect(0, 0, w, h);
-    c.font = '14px monospace';
-    c.fillStyle = '#bdc8c7';
-    c.fillText(
-      lapComparison
-        ? 'SPEED / DISTANCE — LATEST TWO COMPLETE LAPS'
-        : 'LIVE TRACES — SPEED / THROTTLE / BRAKE',
-      20,
-      26,
-    );
-    c.strokeStyle = '#324044';
-    for (let i = 0; i < 5; i++) {
-      const y = 50 + (i * (h - 80)) / 4;
-      c.beginPath();
-      c.moveTo(48, y);
-      c.lineTo(w - 20, y);
-      c.stroke();
-    }
-    if (this.count < 2) return;
-    const currentLap = Math.round(this.at(this.count - 1, 2));
-    if (lapComparison) {
-      if (currentLap < 2) {
-        c.fillText('Complete two timed laps to compare their recorded speed traces.', 32, h / 2);
-        return;
-      }
-      const maxDistance = Math.max(
-        ...Array.from({ length: Math.min(this.count, 4000) }, (_, i) =>
-          this.at(this.count - 1 - i, 1),
-        ),
-      );
-      for (let lap = currentLap - 2; lap < currentLap; lap++) {
-        c.strokeStyle = lap === currentLap - 1 ? '#ed6a47' : '#68c8b9';
-        c.beginPath();
-        let started = false;
-        for (let i = 0; i < this.count; i += 3) {
-          if (Math.round(this.at(i, 2)) !== lap) continue;
-          const x = 48 + (this.at(i, 1) / maxDistance) * (w - 70),
-            y = h - 30 - (this.at(i, 3) / 100) * (h - 90);
-          if (!started) {
-            c.moveTo(x, y);
-            started = true;
-          } else c.lineTo(x, y);
-        }
-        c.stroke();
-      }
-    } else {
-      const count = Math.min(this.count, 1500),
-        start = this.count - count;
-      for (const [column, color, max] of [
-        [3, '#eaddc4', 100],
-        [4, '#63cbb2', 1],
-        [5, '#ed6147', 1],
-      ] as const) {
-        c.strokeStyle = color;
-        c.lineWidth = 2;
-        c.beginPath();
-        for (let i = 0; i < count; i++) {
-          const x = 48 + (i / (count - 1)) * (w - 70),
-            y = h - 30 - clamp(this.at(start + i, column) / max, 0, 1) * (h - 90);
-          if (i === 0) c.moveTo(x, y);
-          else c.lineTo(x, y);
-        }
-        c.stroke();
-      }
-    }
+  draw(
+    canvas: HTMLCanvasElement,
+    lapComparison = false,
+    view: TelemetryView = 'driver',
+    trackLength = 2973,
+  ) {
+    drawTelemetry(canvas, this, view, lapComparison, trackLength);
   }
 }

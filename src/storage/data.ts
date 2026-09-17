@@ -1,3 +1,4 @@
+import { DEFAULT_BINDINGS, validateBindings, type Bindings } from '../input/bindings.ts';
 import { clamp } from '../core/math.ts';
 import { DEFAULT_SETUP, validateSetup, type Setup } from '../simulation/config.ts';
 import type { Quality } from '../rendering/renderer.ts';
@@ -14,17 +15,17 @@ export interface InputMapping {
   exponent: number;
 }
 export interface Settings {
-  version: 1;
+  version: 2;
   quality: Quality;
   volume: number;
   shake: number;
   uiScale: number;
   mapping: InputMapping;
   setup: Setup;
-  bindings: Record<string, string>;
+  bindings: Bindings;
 }
 export const DEFAULT_SETTINGS: Settings = {
-  version: 1,
+  version: 2,
   quality: 'medium',
   volume: 0.45,
   shake: 0.35,
@@ -42,23 +43,19 @@ export const DEFAULT_SETTINGS: Settings = {
     exponent: 1.5,
   },
   setup: { ...DEFAULT_SETUP },
-  bindings: { throttle: 'KeyW', brake: 'KeyS', left: 'KeyA', right: 'KeyD' },
+  bindings: { ...DEFAULT_BINDINGS },
 };
 export function validateSettings(v: unknown): Settings {
   if (!v || typeof v !== 'object') throw new Error('Settings data must be an object');
   const p = v as Partial<Settings>;
-  if (p.version !== 1) throw new Error('Unsupported settings version');
+  if ((v as { version?: unknown }).version !== 1 && p.version !== 2)
+    throw new Error('Unsupported settings version');
   const finite = (x: unknown, f: number, a: number, b: number) =>
     typeof x === 'number' && Number.isFinite(x) ? clamp(x, a, b) : f;
-  const m = p.mapping ?? DEFAULT_SETTINGS.mapping,
-    bindings = { ...DEFAULT_SETTINGS.bindings };
-  for (const key of Object.keys(bindings)) {
-    const val = p.bindings?.[key];
-    if (typeof val === 'string' && /^(Key[A-Z]|Arrow(Left|Right|Up|Down)|Digit[0-9])$/.test(val))
-      bindings[key] = val;
-  }
+  const m = p.mapping ?? DEFAULT_SETTINGS.mapping;
+  const bindings = validateBindings(p.bindings);
   return {
-    version: 1,
+    version: 2,
     quality: p.quality === 'low' || p.quality === 'high' ? p.quality : 'medium',
     volume: finite(p.volume, 0.45, 0, 1),
     shake: finite(p.shake, 0.35, 0, 1),

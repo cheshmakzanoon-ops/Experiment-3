@@ -115,7 +115,15 @@ test('recorded telemetry exports and replay leaves live physics paused', async (
     .toBeGreaterThan(0);
   await page.keyboard.press('t');
   await expect(page.locator('#telemetryModal')).toBeVisible();
+  await page.getByLabel('Telemetry channels').selectOption('tires');
+  await expect(page.locator('#graph')).toHaveAttribute('data-view', 'tires');
+  await expect(page.locator('#graph')).toHaveAttribute(
+    'aria-label',
+    /Carcass temperature.*Contact load/,
+  );
   await page.screenshot({ path: testInfo.outputPath('04-telemetry.png') });
+  await page.getByLabel('Telemetry channels').selectOption('balance');
+  await expect(page.locator('#graph')).toHaveAttribute('aria-label', /Aerodynamic balance/);
   const download = page.waitForEvent('download');
   await page.getByRole('button', { name: 'EXPORT CSV' }).click();
   const csvDownload = await download;
@@ -274,4 +282,33 @@ test('manual right steering and live rear-view passes work without autopilot', a
     contentType: 'application/json',
   });
   expect(errors).toEqual([]);
+});
+
+test('keyboard remapping rejects conflicts, cleans cancelled capture and persists valid changes', async ({
+  page,
+}) => {
+  await ready(page);
+  await page.getByRole('button', { name: 'GARAGE & SETTINGS', exact: true }).click();
+  const throttle = page.locator('[data-bind="throttle"]');
+  await throttle.click();
+  await page.keyboard.press('c');
+  await expect(page.locator('#toast')).toContainText('already assigned');
+  await expect(throttle).toHaveAttribute('data-key', 'KeyW');
+  await page.keyboard.press('Escape');
+  await expect(throttle).toHaveText('W');
+  await throttle.click();
+  await page.keyboard.press('i');
+  await expect(throttle).toHaveAttribute('data-key', 'KeyI');
+  await page.locator('[data-bind="camera"]').click();
+  await page.getByRole('button', { name: 'Close settings' }).click();
+  await page.getByRole('button', { name: 'GARAGE & SETTINGS', exact: true }).click();
+  await expect(page.locator('[data-bind="camera"]')).toHaveText('C');
+  await page.locator('[data-bind="throttle"]').click();
+  await page.keyboard.press('i');
+  await page.getByRole('button', { name: 'APPLY & SAVE' }).click();
+  await expect(page.locator('#toast')).toContainText('Preferences saved');
+  await page.reload();
+  await ready(page);
+  await page.getByRole('button', { name: 'GARAGE & SETTINGS', exact: true }).click();
+  await expect(page.locator('[data-bind="throttle"]')).toHaveAttribute('data-key', 'KeyI');
 });

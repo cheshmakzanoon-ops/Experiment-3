@@ -15,24 +15,31 @@ if (
   !Number.isInteger(cars) ||
   cars < 1 ||
   cars > 12 ||
+  !Number.isInteger(seed) ||
+  seed < 0 ||
+  seed > 0xffffffff ||
   !['clear', 'rain', 'changeable'].includes(weather)
 )
   throw new Error('Usage: acceptance.ts [1..100 laps] [1..12 cars] [seed] [clear|rain|changeable]');
-const hash = createHash('sha256');
+const hashes = { source: createHash('sha256'), simulation: createHash('sha256') };
 function fingerprint(directory: string) {
   for (const entry of readdirSync(directory, { withFileTypes: true }).sort((a, b) =>
-    a.name.localeCompare(b.name),
+    a.name < b.name ? -1 : a.name > b.name ? 1 : 0,
   )) {
     const path = join(directory, entry.name);
     if (entry.isDirectory()) fingerprint(path);
     else {
-      hash.update(path);
-      hash.update(readFileSync(path));
+      const name = path.replaceAll('\\', '/');
+      const digest = createHash('sha256').update(readFileSync(path)).digest('hex');
+      hashes.source.update(name + '\0' + digest + '\n');
+      if (name.startsWith('src/simulation/') || name.startsWith('src/core/'))
+        hashes.simulation.update(name + '\0' + digest + '\n');
     }
   }
 }
 fingerprint('src');
-const sourceSHA256 = hash.digest('hex');
+const sourceSHA256 = hashes.source.digest('hex'),
+  simulationSHA256 = hashes.simulation.digest('hex');
 const sim = new Simulation({
   ...DEFAULT_OPTIONS,
   mode: 'practice',
@@ -50,6 +57,9 @@ const records = sim.cars.map((car) => ({
   maxOffsetM: 0,
   offTrackSeconds: 0,
   maximumImpact: 0,
+  minimumComponentHealth: 1,
+  impactEvents: 0,
+  previousImpact: 0,
   stalledSeconds: 0,
   maximumStall: 0,
   pitSeconds: 0,
@@ -73,7 +83,13 @@ try {
       if (
         !car.body.position.finite() ||
         !car.body.velocity.finite() ||
-        !Number.isFinite(car.body.orientation.w)
+        !car.body.omega.finite() ||
+        !Number.isFinite(
+          car.body.orientation.x +
+            car.body.orientation.y +
+            car.body.orientation.z +
+            car.body.orientation.w,
+        )
       )
         throw new Error(`Non-finite vehicle ${car.id}`);
       if (car.retired) throw new Error(`Vehicle ${car.id} retired`);
@@ -81,6 +97,21 @@ try {
       if (car.battery < 0 || car.battery > 4e6)
         throw new Error(`Vehicle ${car.id} violated battery bounds`);
       r.maximumImpact = Math.max(r.maximumImpact, car.impact);
+      if (car.impact > r.previousImpact + 1e-6) r.impactEvents++;
+      r.previousImpact = car.impact;
+      r.minimumComponentHealth = Math.min(
+        r.minimumComponentHealth,
+        car.frontHealth,
+        car.rearHealth,
+        car.floorHealth,
+      );
+      for (const tire of car.tires)
+        if (
+          !Number.isFinite(
+            tire.omega + tire.load + tire.surfaceTemp + tire.carcassTemp + tire.pressure,
+          )
+        )
+          throw new Error(`Vehicle ${car.id}: non-finite tire state`);
       if (!car.inPit) {
         r.maxOffsetM = Math.max(r.maxOffsetM, Math.abs(car.lateral));
         if (Math.abs(car.lateral) > car.trackPosition.width + 1.1) r.offTrackSeconds += 1 / 120;
@@ -117,7 +148,7 @@ try {
   }
   for (const r of records) {
     if (r.completed < laps) failures.push(`Car ${r.id}: incomplete endurance`);
-    if (Math.min(r.frontHealth, r.rearHealth, r.floorHealth) < 0.9)
+    if (r.minimumComponentHealth < 0.9)
       failures.push(`Car ${r.id}: material collision/underfloor damage`);
     if (r.offTrackSeconds > laps * 0.5) failures.push(`Car ${r.id}: systematic off-track running`);
   }
@@ -126,6 +157,10 @@ try {
 }
 const report = {
   sourceSHA256,
+  simulationSHA256,
+  fingerprintVersion: 2,
+  acceptancePolicy:
+    'All cars finish; no retirement, non-finite state, fuel exhaustion, 30-second track stall or 100-second pit stall; component health stays at least 0.9 throughout, including before repairs.',
   scenario: { laps, cars, seed, weather, initialFuelKg },
   simulatedSeconds: sim.race.raceTime,
   wallSeconds: (performance.now() - started) / 1000,

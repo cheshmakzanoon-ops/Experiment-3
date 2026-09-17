@@ -205,7 +205,7 @@ Experiment-3/
 
 The current source adds a physically open cockpit, live rear-view cameras, carbon/wet-road shaders, a budgeted local reflection probe, spatial circuit culling and three-level car detail. The rendering integration passed seven Chromium workflows before publication in commit `77c4d3b`.
 
-The recording extension captures **176 telemetry channels at 60 Hz** and **all-car pose replay at 15 Hz** from physics ticks, independently of display rate. Replay pages and spatial surface history use a bounded IndexedDB cache; CSV formatting runs in a separate worker. Rendered punctures, suspension damage and detached components consume actual simulation state. Read [recording and replay architecture](docs/RECORDING_AND_REPLAY.md) for storage failure behavior and verification limits.
+The recording extension captures **176 telemetry channels at 60 Hz** and **all-car pose replay at 15 Hz** from physics ticks, independently of display rate. Replay pages and spatial surface history use a bounded IndexedDB cache; CSV formatting runs in a separate worker. Rendered punctures, suspension damage and detached components consume actual simulation state. Read [recording and replay architecture](docs/RECORDING_AND_REPLAY.md) for storage failure behavior and verification limits. The [telemetry and keyboard interface](docs/TELEMETRY_AND_INPUT_UI.md) adds seven graph groups, complete-lap distance comparison, and conflict-checked remapping for fifteen keyboard actions.
 
 The original validation results below are historical baseline measurements, not certificates for every later feature.
 

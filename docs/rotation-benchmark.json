@@ -1,0 +1,43 @@
+{
+  "method": "body implicit midpoint + Cayley rotation + world-torque half kicks",
+  "sources": {
+    "src/simulation/rigid.ts": "47507ac3eb5358dc509c465ccec2837d7701471a41f802440494b52161fb5827",
+    "src/core/math.ts": "7bc9476654e67f604b9d5e078700b86c0eaa09c79b982e0d84f351d9bf0d98fd"
+  },
+  "durationSeconds": 60,
+  "timestepSeconds": 0.004166666666666667,
+  "stepsPerCase": 14400,
+  "passed": true,
+  "results": [
+    {
+      "initialOmegaRadPerSec": [
+        10,
+        15,
+        25
+      ],
+      "initialEnergyJ": 477826.58699084475,
+      "maxRelativeEnergyError": 2.5678348336555246e-10,
+      "maxRelativeWorldMomentumError": 1.4915112769623713e-10
+    },
+    {
+      "initialOmegaRadPerSec": [
+        2,
+        80,
+        -30
+      ],
+      "initialEnergyJ": 4217678.042061569,
+      "maxRelativeEnergyError": 7.635403420636067e-11,
+      "maxRelativeWorldMomentumError": 3.037509721159469e-11
+    },
+    {
+      "initialOmegaRadPerSec": [
+        0.001,
+        18,
+        0.001
+      ],
+      "initialEnergyJ": 197640.00107254658,
+      "maxRelativeEnergyError": 1.1615153283628388e-12,
+      "maxRelativeWorldMomentumError": 5.8081756307376e-13
+    }
+  ]
+}
