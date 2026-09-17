@@ -3,12 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "An original, instrumented Formula racing simulation built with TypeScript and Three.js.",
-  "engines": { "node": ">=22.12.0" },
+  "description": "Original instrumented Formula racing simulation in TypeScript and Three.js",
+  "engines": {
+    "node": ">=22.12.0"
+  },
   "scripts": {
-    "dev": "vite --host 0.0.0.0",
+    "dev": "vite --host 127.0.0.1",
     "build": "tsc --noEmit && vite build",
-    "preview": "vite preview --host 0.0.0.0",
+    "preview": "vite preview --host 127.0.0.1",
     "test": "vitest run",
     "test:physics": "node --experimental-transform-types scripts/validate.ts",
     "test:endurance": "node --experimental-transform-types scripts/endurance.ts",
@@ -17,7 +19,9 @@
     "format": "prettier --write src tests e2e scripts *.json *.ts *.html",
     "check": "npm run lint && npm test && npm run build"
   },
-  "dependencies": { "three": "0.180.0" },
+  "dependencies": {
+    "three": "0.180.0"
+  },
   "devDependencies": {
     "@eslint/js": "9.36.0",
     "@playwright/test": "1.55.1",

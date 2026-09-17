@@ -1,0 +1,336 @@
+import { approach, clamp, G, lerp, Vec3 } from '../core/math.ts';
+import { aero, type AeroForces } from './aero.ts';
+import {
+  controls,
+  DEFAULT_SETUP,
+  VEHICLE,
+  type Assist,
+  type Compound,
+  type Controls,
+  type Setup,
+} from './config.ts';
+import { RigidBody } from './rigid.ts';
+import { brakeEfficiency, makeTire, solveTire, type Tire } from './tire.ts';
+import { surfaceSample, trackPoint, type Track } from './track.ts';
+export const WHEEL_POSITIONS = [
+  [-0.83, 0.05, 1.82],
+  [0.83, 0.05, 1.82],
+  [-0.83, 0.05, -1.62],
+  [0.83, 0.05, -1.62],
+] as const;
+export function engineTorque(rpm: number) {
+  const curve = VEHICLE.torqueCurve;
+  if (rpm <= curve[0][0]) return curve[0][1];
+  for (let i = 1; i < curve.length; i++)
+    if (rpm <= curve[i][0])
+      return lerp(
+        curve[i - 1][1],
+        curve[i][1],
+        (rpm - curve[i - 1][0]) / (curve[i][0] - curve[i - 1][0]),
+      );
+  return 0;
+}
+export class Vehicle {
+  readonly body = new RigidBody();
+  readonly input: Controls = controls();
+  readonly tires: Tire[];
+  readonly contacts = WHEEL_POSITIONS.map(() => surfaceSample());
+  readonly hubs = WHEEL_POSITIONS.map(() => new Vec3());
+  readonly origins = WHEEL_POSITIONS.map(() => new Vec3());
+  readonly pointVelocities = WHEEL_POSITIONS.map(() => new Vec3());
+  readonly normalLoads = new Float64Array(4);
+  readonly aero: AeroForces = { front: 0, rear: 0, floor: 0, drag: 0, wake: 0 };
+  readonly localVelocity = new Vec3();
+  readonly forward = new Vec3(0, 0, 1);
+  readonly up = new Vec3(0, 1, 0);
+  readonly setup: Setup;
+  readonly trackPosition = trackPoint();
+  fuel = 24;
+  battery = VEHICLE.maxBatteryJ * 0.8;
+  rpm = VEHICLE.idleRPM;
+  gear = 1;
+  shiftClock = 0;
+  steer = 0;
+  throttle = 0;
+  brake = 0;
+  speed = 0;
+  s = 0;
+  lateral = 0;
+  wake = 0;
+  frontHealth = 1;
+  rearHealth = 1;
+  floorHealth = 1;
+  suspensionDamage = 0;
+  impact = 0;
+  bottomEnergy = 0;
+  gLong = 0;
+  gLat = 0;
+  gVert = 0;
+  autoShift = true;
+  pitRequested = false;
+  inPit = false;
+  pitPhase = 0;
+  pitClock = 0;
+  pitStops = 0;
+  nextCompound: Compound = 'medium';
+  aiTarget = 0;
+  aiOffset = 0;
+  retired = false;
+  finishTime = 0;
+  private force = new Vec3();
+  private point = new Vec3();
+  private localPoint = new Vec3();
+  private localContactVelocity = new Vec3();
+  private localAccel = new Vec3();
+  private wheelForward = new Vec3();
+  private wheelRight = new Vec3();
+  private relativeAir = new Vec3();
+  private surface = surfaceSample();
+  private axis = new Vec3();
+  constructor(
+    readonly id: number,
+    compound: Compound = 'medium',
+    setup: Setup = DEFAULT_SETUP,
+    readonly assist: Assist = 'sport',
+  ) {
+    this.setup = { ...setup };
+    this.tires = WHEEL_POSITIONS.map((_, i) =>
+      makeTire(compound, i < 2 ? setup.frontPressure : setup.rearPressure),
+    );
+  }
+  place(track: Track, s: number, offset = 0) {
+    track.at(s, this.trackPosition);
+    const p = this.trackPosition;
+    this.body.position.set(p.x + p.nx * offset, p.y + p.bank * offset + 0.516, p.z + p.nz * offset);
+    this.body.orientation.yaw(Math.atan2(p.tx, p.tz));
+    this.body.velocity.set(0, 0, 0);
+    this.body.omega.set(0, 0, 0);
+    this.s = s;
+    this.lateral = offset;
+  }
+  replaceTires(compound: Compound) {
+    for (let i = 0; i < 4; i++)
+      this.tires[i] = makeTire(
+        compound,
+        i < 2 ? this.setup.frontPressure : this.setup.rearPressure,
+      );
+  }
+  shift(direction: number) {
+    if (this.shiftClock > 0) return;
+    const next = clamp(this.gear + Math.sign(direction), -1, 8),
+      ratio = VEHICLE.gearRatios[next + 1] * VEHICLE.finalDrive,
+      predicted = Math.abs(
+        ((this.tires[2].omega + this.tires[3].omega) * 0.5 * ratio * 60) / (Math.PI * 2),
+      );
+    if (predicted > VEHICLE.limiterRPM || (next < 0 && this.speed > 2)) return;
+    this.gear = next;
+    this.shiftClock = 0.09;
+  }
+  step(dt: number, track: Track) {
+    const b = this.body;
+    b.mass = VEHICLE.dryMass + this.fuel;
+    b.clear();
+    b.force.y = -b.mass * G;
+    b.orientation.inverseRotate(b.velocity, this.localVelocity);
+    b.orientation.rotate(this.axis.set(0, 0, 1), this.forward);
+    b.orientation.rotate(this.axis.set(0, 1, 0), this.up);
+    this.speed = b.velocity.length();
+    this.bottomEnergy = 0;
+    this.lateral = track.nearest(b.position.x, b.position.z, this.trackPosition);
+    this.s = this.trackPosition.s;
+    const speedSteer = this.assist === 'sport' ? 1 / (1 + this.speed * 0.018) : 1;
+    this.steer = approach(this.steer, this.input.steer * VEHICLE.maxSteer * speedSteer, 1.6 * dt);
+    this.throttle = clamp(this.input.throttle, 0, 1);
+    this.brake = clamp(this.input.brake, 0, 1);
+    if (this.retired) {
+      this.throttle = 0;
+      this.brake = 1;
+    }
+    if (this.assist === 'sport') {
+      const slip = Math.max(this.tires[2].slip, this.tires[3].slip);
+      this.throttle /= 1 + Math.max(0, slip - 0.16) * 4.5;
+    }
+    if (this.input.reverse && this.speed < 1.5) this.gear = -1;
+    else if (!this.input.reverse && this.gear < 0 && this.speed < 1.5) this.gear = 1;
+    if (this.input.shift) {
+      this.shift(this.input.shift);
+      this.input.shift = 0;
+      this.autoShift = false;
+    }
+    this.shiftClock = Math.max(0, this.shiftClock - dt);
+    const rearOmega = Math.abs((this.tires[2].omega + this.tires[3].omega) * 0.5);
+    this.rpm = Math.max(
+      VEHICLE.idleRPM,
+      (rearOmega * Math.abs(VEHICLE.gearRatios[this.gear + 1] * VEHICLE.finalDrive) * 60) /
+        (Math.PI * 2),
+    );
+    if (this.autoShift && this.gear > 0) {
+      if (this.rpm > VEHICLE.shiftRPM && this.gear < 8) this.shift(1);
+      else if (this.rpm < 6900 && this.gear > 1) this.shift(-1);
+    }
+    const ratio = VEHICLE.gearRatios[this.gear + 1] * VEHICLE.finalDrive,
+      shaft = (this.rpm * Math.PI) / 30;
+    let ice = this.fuel > 0 ? engineTorque(this.rpm) * this.throttle : 0;
+    if (this.shiftClock > 0 || this.rpm > VEHICLE.limiterRPM) ice = 0;
+    const deploy = this.input.ers === 2 ? 1 : this.input.ers === 1 ? 0.55 : 0,
+      motorPower =
+        this.gear > 0 && this.brake < 0.05 && this.shiftClock === 0
+          ? Math.min(VEHICLE.motorPowerW * deploy * this.throttle, (this.battery * 0.94) / dt)
+          : 0,
+      motor = motorPower / Math.max(shaft, 400),
+      wheelTorque = (ice + motor) * ratio * 0.95;
+    this.battery = Math.max(0, this.battery - (motorPower * dt) / 0.94);
+    this.fuel = Math.max(0, this.fuel - ((ice * shaft) / (0.43 * 43e6) + 0.00045) * dt);
+    const rearFriction = VEHICLE.brakeTorque * (1 - this.setup.brakeBias) * this.brake * 0.5,
+      regenPower = Math.min(
+        VEHICLE.regenPowerW * this.brake,
+        (VEHICLE.maxBatteryJ - this.battery) / dt,
+        rearFriction * 2 * rearOmega * 0.65,
+      ),
+      regenTorque = regenPower / Math.max(2 * rearOmega, 10),
+      diff = this.input.throttle > 0.08 ? this.setup.diffPower : this.setup.diffCoast,
+      locking = clamp((this.tires[3].omega - this.tires[2].omega) * diff * 55, -1050, 1050);
+    for (let i = 0; i < 4; i++) {
+      const pos = WHEEL_POSITIONS[i],
+        t = this.tires[i],
+        origin = this.origins[i],
+        hub = this.hubs[i],
+        s = this.contacts[i];
+      b.orientation.rotate(this.localPoint.set(pos[0], pos[1], pos[2]), origin).add(b.position);
+      track.sample(origin.x, origin.z, s);
+      const rest =
+          VEHICLE.restLength + (i < 2 ? this.setup.frontRide - 0.065 : this.setup.rearRide - 0.075),
+        length = (origin.y - s.height - t.radius) / Math.max(this.up.y, 0.15);
+      t.length = Math.min(rest + 0.05, Math.max(0.06, length));
+      t.compression = Math.max(0, rest - length);
+      hub.copy(origin).addScaled(this.up, -t.length);
+      this.point.set(hub.x, s.height, hub.z);
+      b.pointVelocity(this.point, this.pointVelocities[i]);
+      const vertical = this.pointVelocities[i].dot(s.normal),
+        spring = i < 2 ? this.setup.frontSpring : this.setup.rearSpring,
+        damping = vertical < 0 ? 4800 : 6200,
+        bump = Math.max(0, t.compression - 0.13);
+      this.normalLoads[i] =
+        length > rest + 0.05 || this.up.y < 0.25
+          ? 0
+          : Math.max(0, spring * t.compression - damping * vertical + 1.8e6 * bump * bump);
+    }
+    for (let axle = 0; axle < 2; axle++) {
+      const i = axle * 2,
+        antiRoll =
+          (this.tires[i].compression - this.tires[i + 1].compression) *
+          (axle === 0 ? this.setup.frontARB : this.setup.rearARB);
+      this.normalLoads[i] = Math.max(0, this.normalLoads[i] + antiRoll);
+      this.normalLoads[i + 1] = Math.max(0, this.normalLoads[i + 1] - antiRoll);
+    }
+    for (let i = 0; i < 4; i++) {
+      const t = this.tires[i],
+        s = this.contacts[i],
+        hub = this.hubs[i];
+      b.orientation.inverseRotate(this.pointVelocities[i], this.localContactVelocity);
+      const toe = (i < 2 ? this.setup.frontToe : this.setup.rearToe) * (i % 2 === 0 ? -1 : 1),
+        ackermann =
+          i < 2
+            ? Math.atan(
+                (VEHICLE.wheelbase * Math.tan(this.steer)) /
+                  (VEHICLE.wheelbase - WHEEL_POSITIONS[i][0] * Math.tan(this.steer)),
+              )
+            : 0,
+        steering = ackermann + toe + (i < 2 ? this.suspensionDamage * 0.035 : 0),
+        sn = Math.sin(steering),
+        cs = Math.cos(steering),
+        long = this.localContactVelocity.x * sn + this.localContactVelocity.z * cs,
+        lat = this.localContactVelocity.x * cs - this.localContactVelocity.z * sn,
+        total =
+          VEHICLE.brakeTorque *
+          (i < 2 ? this.setup.brakeBias : 1 - this.setup.brakeBias) *
+          this.brake *
+          0.5;
+      let friction = Math.max(0, total - (i >= 2 ? regenTorque : 0)) * brakeEfficiency(t.discTemp);
+      if (this.assist === 'sport') friction /= 1 + Math.max(0, -t.slip - 0.14) * 9;
+      const driven =
+          i === 2 ? wheelTorque * 0.5 + locking : i === 3 ? wheelTorque * 0.5 - locking : 0,
+        regen = i >= 2 ? regenTorque : 0;
+      solveTire(
+        t,
+        long,
+        lat,
+        this.normalLoads[i],
+        driven,
+        friction + regen,
+        s,
+        (i < 2 ? this.setup.frontCamber : this.setup.rearCamber) * (i % 2 === 0 ? -1 : 1),
+        dt,
+        regen,
+      );
+      b.orientation.rotate(this.axis.set(sn, 0, cs), this.wheelForward);
+      b.orientation.rotate(this.axis.set(cs, 0, -sn), this.wheelRight);
+      this.wheelForward.addScaled(s.normal, -this.wheelForward.dot(s.normal)).normalize();
+      this.wheelRight.cross(s.normal, this.wheelForward).normalize();
+      const rolling = Math.tanh(long * 2) * s.resistance * t.load;
+      this.force
+        .copy(s.normal)
+        .scale(t.load)
+        .addScaled(this.wheelForward, t.fx - rolling)
+        .addScaled(this.wheelRight, t.fy);
+      this.point.set(hub.x, s.height, hub.z);
+      b.apply(this.force, this.point);
+      track.interact(s.cell, t.load, t.energy, this.speed, dt);
+    }
+    this.battery = Math.min(
+      VEHICLE.maxBatteryJ,
+      this.battery +
+        regenTorque * (Math.abs(this.tires[2].omega) + Math.abs(this.tires[3].omega)) * 0.78 * dt,
+    );
+    this.relativeAir.copy(b.velocity);
+    this.relativeAir.x -= track.windX;
+    this.relativeAir.z -= track.windZ;
+    const airspeed = this.relativeAir.length(),
+      frontHeight = b.position.y - this.contacts[0].height - 0.43,
+      rearHeight = b.position.y - this.contacts[2].height - 0.43;
+    aero(
+      airspeed,
+      this.setup,
+      frontHeight,
+      rearHeight,
+      this.frontHealth,
+      this.rearHealth,
+      this.floorHealth,
+      this.wake,
+      Math.atan2(this.localVelocity.x, Math.abs(this.localVelocity.z) + 1),
+      this.aero,
+    );
+    this.force.copy(this.up).scale(-this.aero.front);
+    b.orientation.rotate(this.localPoint.set(0, 0, 1.7), this.point).add(b.position);
+    b.apply(this.force, this.point);
+    this.force.copy(this.up).scale(-this.aero.rear);
+    b.orientation.rotate(this.localPoint.set(0, 0, -1.6), this.point).add(b.position);
+    b.apply(this.force, this.point);
+    this.force.copy(this.up).scale(-this.aero.floor);
+    b.apply(this.force, b.position);
+    if (airspeed > 0.01) b.force.addScaled(this.relativeAir, -this.aero.drag / airspeed);
+    track.sample(b.position.x, b.position.z, this.surface);
+    const penetration = this.surface.height + 0.43 - b.position.y;
+    if (penetration > 0) {
+      const floorForce = Math.max(0, penetration * 1100000 - b.velocity.y * 14000);
+      b.force.y += floorForce;
+      this.bottomEnergy = floorForce * Math.max(0, -b.velocity.y);
+      if (this.speed > 0.1) b.force.addScaled(b.velocity, (-0.06 * floorForce) / this.speed);
+      this.floorHealth = Math.max(0.25, this.floorHealth - (this.bottomEnergy * dt) / 1e8);
+    }
+    b.integrate(dt);
+    b.orientation.inverseRotate(b.acceleration, this.localAccel);
+    this.gLong = this.localAccel.z / G;
+    this.gLat = this.localAccel.x / G;
+    this.gVert = this.localAccel.y / G;
+    this.impact = Math.max(0, this.impact - dt * 2);
+    if (b.position.y < this.surface.height - 4) this.retired = true;
+  }
+  damage(energy: number, front: boolean) {
+    const loss = clamp(energy / 150000, 0, 0.8);
+    if (front) this.frontHealth = Math.max(0.12, this.frontHealth - loss);
+    else this.rearHealth = Math.max(0.2, this.rearHealth - loss * 0.6);
+    this.suspensionDamage = clamp(this.suspensionDamage + loss * 0.3, 0, 1);
+    this.impact = Math.max(this.impact, Math.min(1, energy / 30000));
+  }
+}
