@@ -25,6 +25,10 @@ jobs:
           python3 - <<'PY'
           import hashlib, json, os, pathlib, re, subprocess
           manifest = json.loads(pathlib.Path('.github/source-update.json').read_text())
+          message = manifest.get('commit_message', 'feat: integrate verified simulator source')
+          if not isinstance(message, str) or not 1 <= len(message) <= 200 or any(ord(c) < 32 for c in message):
+              raise SystemExit('Invalid commit description')
+          pathlib.Path(os.environ['RUNNER_TEMP'], 'source-commit-message.txt').write_text(message + '\n')
           parts = manifest['parts']
           if not 1 <= len(parts) <= 8:
               raise SystemExit('Invalid source part count')
@@ -63,6 +67,7 @@ jobs:
           cache: npm
       - run: npm ci --no-audit --no-fund
       - run: npm run check
+      - run: node --experimental-transform-types scripts/rotation-benchmark.ts
       - run: npm run test:physics
       - run: node --experimental-transform-types scripts/pit-integration.ts
       - run: npx playwright install --with-deps chromium
@@ -74,10 +79,10 @@ jobs:
           git fetch origin main
           test "$(git rev-parse HEAD)" = "$(git rev-parse origin/main)"
           git rm -- .github/source-update.json .github/source-update-*.patch
-          git add -- docs/scenario-results.json docs/pit-integration.json
+          git add -- docs/scenario-results.json docs/pit-integration.json docs/rotation-benchmark.json
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git commit -m 'feat: integrate verified telemetry, full-session replay and damage feedback'
+          git commit -F "$RUNNER_TEMP/source-commit-message.txt"
           git push origin HEAD:main
           echo "Published source commit: $(git rev-parse HEAD)" >> "$GITHUB_STEP_SUMMARY"
       - name: Preserve candidate source and validation evidence
@@ -95,6 +100,7 @@ jobs:
             ${{ runner.temp }}/base-commit.txt
             docs/scenario-results.json
             docs/pit-integration.json
+            docs/rotation-benchmark.json
             test-results/
             playwright-report/
           retention-days: 7
