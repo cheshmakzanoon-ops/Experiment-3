@@ -1,0 +1,31 @@
+name: Build and validation
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Validate implemented application
+        if: hashFiles('src/main.ts') != ''
+        run: npm run check
+      - name: Package validation toolchain for the restricted development runtime
+        if: hashFiles('src/main.ts') == ''
+        run: tar -czf validation-toolchain.tgz node_modules package-lock.json
+      - uses: actions/upload-artifact@v4
+        if: hashFiles('src/main.ts') == ''
+        with:
+          name: validation-toolchain
+          path: validation-toolchain.tgz
+          retention-days: 1
