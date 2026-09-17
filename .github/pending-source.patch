@@ -1,0 +1,397 @@
+diff --git a/src/simulation/bvh.ts b/src/simulation/bvh.ts
+new file mode 100644
+--- /dev/null
++++ b/src/simulation/bvh.ts
+@@ -0,0 +1,176 @@
++import { Vec3 } from '../core/math.ts';
++
++export interface RayHit {
++  distance: number;
++  point: Vec3;
++  normal: Vec3;
++  triangle: number;
++}
++export const rayHit = (): RayHit => ({
++  distance: Infinity,
++  point: new Vec3(),
++  normal: new Vec3(0, 1, 0),
++  triangle: -1,
++});
++interface Node {
++  min: number[];
++  max: number[];
++  left: number;
++  right: number;
++  start: number;
++  end: number;
++}
++
++/** Static triangle BVH. Build-time sorting is separate from allocation-free ray queries.
++ * Two-sided Möller–Trumbore intersections admit triangle seams with an explicit
++ * barycentric tolerance. The returned normal opposes the incident ray.
++ */
++export class TriangleBVH {
++  readonly nodes: Node[] = [];
++  private order: number[];
++  private centroids: Float64Array;
++  private stack = new Int32Array(128);
++  trianglesTested = 0;
++  constructor(
++    readonly vertices: Float64Array,
++    readonly indices: Uint32Array,
++    readonly normals?: Float64Array,
++  ) {
++    if (vertices.length % 3 || indices.length % 3 || !indices.length)
++      throw new Error('BVH requires nonempty triangle geometry');
++    if (normals && normals.length !== vertices.length) throw new Error('Invalid vertex normals');
++    for (const value of vertices) if (!Number.isFinite(value)) throw new Error('Invalid vertex');
++    for (const index of indices)
++      if (index * 3 >= vertices.length) throw new Error('Triangle index outside vertex array');
++    this.order = Array.from({ length: indices.length / 3 }, (_, i) => i);
++    this.centroids = new Float64Array(this.order.length * 3);
++    for (const t of this.order)
++      for (let axis = 0; axis < 3; axis++)
++        this.centroids[t * 3 + axis] =
++          (vertices[indices[t * 3] * 3 + axis] +
++            vertices[indices[t * 3 + 1] * 3 + axis] +
++            vertices[indices[t * 3 + 2] * 3 + axis]) /
++          3;
++    this.build(0, this.order.length);
++    // Centroids are never used by the hot path.
++    this.centroids = new Float64Array(0);
++  }
++  private build(start: number, end: number): number {
++    const node: Node = {
++      min: [Infinity, Infinity, Infinity],
++      max: [-Infinity, -Infinity, -Infinity],
++      left: -1,
++      right: -1,
++      start,
++      end,
++    };
++    const id = this.nodes.push(node) - 1;
++    for (let j = start; j < end; j++)
++      for (let k = 0; k < 3; k++) {
++        const p = this.indices[this.order[j] * 3 + k] * 3;
++        for (let a = 0; a < 3; a++) {
++          node.min[a] = Math.min(node.min[a], this.vertices[p + a]);
++          node.max[a] = Math.max(node.max[a], this.vertices[p + a]);
++        }
++      }
++    if (end - start > 8) {
++      let axis = 0;
++      for (let a = 1; a < 3; a++)
++        if (node.max[a] - node.min[a] > node.max[axis] - node.min[axis]) axis = a;
++      const part = this.order.slice(start, end);
++      part.sort((a, b) => this.centroids[a * 3 + axis] - this.centroids[b * 3 + axis] || a - b);
++      for (let j = 0; j < part.length; j++) this.order[start + j] = part[j];
++      const middle = (start + end) >>> 1;
++      node.left = this.build(start, middle);
++      node.right = this.build(middle, end);
++    }
++    return id;
++  }
++  private intersects(node: Node, o: Vec3, d: Vec3, max: number) {
++    let near = 0,
++      far = max;
++    for (let axis = 0; axis < 3; axis++) {
++      const origin = axis === 0 ? o.x : axis === 1 ? o.y : o.z;
++      const direction = axis === 0 ? d.x : axis === 1 ? d.y : d.z;
++      if (Math.abs(direction) < 1e-12) {
++        if (origin < node.min[axis] - 1e-8 || origin > node.max[axis] + 1e-8) return false;
++      } else {
++        const a = (node.min[axis] - origin) / direction;
++        const b = (node.max[axis] - origin) / direction;
++        near = Math.max(near, Math.min(a, b));
++        far = Math.min(far, Math.max(a, b));
++        if (near > far + 1e-8) return false;
++      }
++    }
++    return true;
++  }
++  raycast(origin: Vec3, direction: Vec3, maximum: number, out: RayHit): boolean {
++    if (!origin.finite() || !direction.finite() || !Number.isFinite(maximum) || maximum < 0)
++      throw new Error('Invalid ray');
++    const magnitude = direction.length();
++    if (Math.abs(magnitude - 1) > 1e-5) throw new Error('Ray direction must have unit length');
++    out.distance = maximum;
++    out.triangle = -1;
++    this.trianglesTested = 0;
++    let size = 1;
++    this.stack[0] = 0;
++    while (size) {
++      const node = this.nodes[this.stack[--size]];
++      if (!this.intersects(node, origin, direction, out.distance)) continue;
++      if (node.left >= 0) {
++        if (size + 2 > this.stack.length) throw new Error('BVH traversal stack overflow');
++        this.stack[size++] = node.left;
++        this.stack[size++] = node.right;
++        continue;
++      }
++      for (let j = node.start; j < node.end; j++)
++        this.triangle(this.order[j], origin, direction, out);
++    }
++    return out.triangle !== -1;
++  }
++  private triangle(t: number, o: Vec3, d: Vec3, hit: RayHit) {
++    this.trianglesTested++;
++    const v = this.vertices,
++      idx = this.indices;
++    const a = idx[t * 3] * 3,
++      b = idx[t * 3 + 1] * 3,
++      c = idx[t * 3 + 2] * 3;
++    const ex = v[b] - v[a],
++      ey = v[b + 1] - v[a + 1],
++      ez = v[b + 2] - v[a + 2];
++    const fx = v[c] - v[a],
++      fy = v[c + 1] - v[a + 1],
++      fz = v[c + 2] - v[a + 2];
++    const px = d.y * fz - d.z * fy,
++      py = d.z * fx - d.x * fz,
++      pz = d.x * fy - d.y * fx;
++    const determinant = ex * px + ey * py + ez * pz;
++    if (Math.abs(determinant) < 1e-12) return;
++    const x = o.x - v[a],
++      y = o.y - v[a + 1],
++      z = o.z - v[a + 2];
++    const u = (x * px + y * py + z * pz) / determinant;
++    if (u < -1e-8 || u > 1 + 1e-8) return;
++    const qx = y * ez - z * ey,
++      qy = z * ex - x * ez,
++      qz = x * ey - y * ex;
++    const w = (d.x * qx + d.y * qy + d.z * qz) / determinant;
++    if (w < -1e-8 || u + w > 1 + 1e-8) return;
++    const distance = (fx * qx + fy * qy + fz * qz) / determinant;
++    if (distance < 0 || distance > hit.distance) return;
++    hit.distance = distance;
++    hit.triangle = t;
++    hit.point.copy(o).addScaled(d, distance);
++    if (this.normals) {
++      const n = this.normals;
++      hit.normal
++        .set(
++          n[a] * (1 - u - w) + n[b] * u + n[c] * w,
++          n[a + 1] * (1 - u - w) + n[b + 1] * u + n[c + 1] * w,
++          n[a + 2] * (1 - u - w) + n[b + 2] * u + n[c + 2] * w,
++        )
++        .normalize();
++    } else hit.normal.set(ey * fz - ez * fy, ez * fx - ex * fz, ex * fy - ey * fx).normalize();
++    if (hit.normal.dot(d) > 0) hit.normal.scale(-1);
++  }
++}
+diff --git a/src/simulation/contact.ts b/src/simulation/contact.ts
+new file mode 100644
+--- /dev/null
++++ b/src/simulation/contact.ts
+@@ -0,0 +1,88 @@
++import { clamp, TAU, Vec3 } from '../core/math.ts';
++import { TriangleBVH, rayHit } from './bvh.ts';
++import type { Track, SurfaceSample } from './track.ts';
++
++/** One authored height law feeds the contact mesh and rendered kerbs. */
++export function kerbHeight(s: number, across: number): number {
++  const shoulder = clamp(across / 0.12, 0, 1) * clamp((1.1 - across) / 0.12, 0, 1);
++  return shoulder * (0.025 + 0.016 * Math.sin((s * TAU) / 0.65));
++}
++export function trackHeight(y: number, bank: number, s: number, lateral: number, width: number) {
++  const across = Math.abs(lateral) - width;
++  return (
++    y + bank * clamp(lateral, -12, 12) + (across > 0 && across < 1.1 ? kerbHeight(s, across) : 0)
++  );
++}
++
++/** Independent static collision ribbon. Narrow bands preserve kerb profiles;
++ * vertex normals are shared across triangle seams. No Three.js/DOM dependency.
++ */
++export class TrackContactMesh {
++  readonly bvh: TriangleBVH;
++  readonly vertices: Float64Array;
++  readonly normals: Float64Array;
++  readonly indices: Uint32Array;
++  private hit = rayHit();
++  constructor(
++    readonly track: Track,
++    readonly rows = 8192,
++  ) {
++    const p = { ...track.points[0] };
++    const bands = [-35, -12, -4, -1.1, -0.55, 0, 0.18, 100, 0.18, 0, 0.55, 1.1, 4, 12, 35];
++    const columns = bands.length;
++    this.vertices = new Float64Array((rows + 1) * columns * 3);
++    this.normals = new Float64Array(this.vertices.length);
++    this.indices = new Uint32Array(rows * (columns - 1) * 6);
++    const n = new Vec3();
++    for (let row = 0; row <= rows; row++) {
++      track.at((row * track.length) / rows, p);
++      for (let col = 0; col < columns; col++) {
++        let lateral: number;
++        if (col === 0 || col === columns - 1) lateral = bands[col];
++        else if (col === 7) lateral = 0;
++        else if (col < 7) lateral = -p.width + bands[col];
++        else lateral = p.width + bands[col];
++        // Asphalt/paint bands approach the kerb from the inside.
++        if (col === 6) lateral = -p.width + 0.18;
++        if (col === 8) lateral = p.width - 0.18;
++        const height = trackHeight(p.y, p.bank, p.s, lateral, p.width);
++        const i = (row * columns + col) * 3;
++        this.vertices[i] = p.x + p.nx * lateral;
++        this.vertices[i + 1] = height;
++        this.vertices[i + 2] = p.z + p.nz * lateral;
++        const across = Math.abs(lateral) - p.width;
++        const sideDerivative =
++          across > 0 && across < 1.1
++            ? ((kerbHeight(p.s, across + 0.005) - kerbHeight(p.s, across - 0.005)) / 0.01) *
++              Math.sign(lateral)
++            : 0;
++        const alongDerivative =
++          across > 0 && across < 1.1
++            ? (kerbHeight(p.s + 0.005, across) - kerbHeight(p.s - 0.005, across)) / 0.01
++            : 0;
++        const bank = Math.abs(lateral) < 12 ? p.bank : 0;
++        n.set(
++          -p.tx * (p.gradient + alongDerivative) - p.nx * (bank + sideDerivative),
++          1,
++          -p.tz * (p.gradient + alongDerivative) - p.nz * (bank + sideDerivative),
++        ).normalize();
++        this.normals.set([n.x, n.y, n.z], i);
++        if (row < rows && col < columns - 1) {
++          const a = row * columns + col,
++            b = a + 1,
++            c = a + columns,
++            d = c + 1;
++          this.indices.set([a, c, b, b, c, d], (row * (columns - 1) + col) * 6);
++        }
++      }
++    }
++    this.bvh = new TriangleBVH(this.vertices, this.indices, this.normals);
++  }
++  cast(origin: Vec3, down: Vec3, maximum: number, surface: SurfaceSample) {
++    if (!this.bvh.raycast(origin, down, maximum, this.hit)) return Infinity;
++    this.track.sample(this.hit.point.x, this.hit.point.z, surface);
++    surface.height = this.hit.point.y;
++    surface.normal.copy(this.hit.normal);
++    return this.hit.distance;
++  }
++}
+diff --git a/src/simulation/track.ts b/src/simulation/track.ts
+--- a/src/simulation/track.ts
++++ b/src/simulation/track.ts
+@@ -1,3 +1,4 @@
++import { TrackContactMesh, kerbHeight } from './contact.ts';
+ import { clamp, lerp, mod, smooth, Vec3, TAU } from '../core/math.ts';
+ import type { WeatherPreset } from './config.ts';
+ export const TRACK_NAME = 'AUREL / GRAND CIRCUIT',
+@@ -96,6 +97,11 @@
+   readonly temperature = new Float32Array(CELL_ROWS * CELL_COLS);
+   readonly hash = new Map<string, number[]>();
+   readonly length: number;
++  private contactMesh: TrackContactMesh | null = null;
++  cast(origin: Vec3, down: Vec3, maximum: number, out: SurfaceSample) {
++    this.contactMesh ??= new TrackContactMesh(this);
++    return this.contactMesh.cast(origin, down, maximum, out);
++  }
+   private queryPoint = trackPoint();
+   rain = 0;
+   cloud = 0.12;
+@@ -259,7 +265,7 @@
+     } else if (a > p.width) {
+       surface = SURFACE.KERB;
+       grip = 0.91;
+-      kerb = 0.025 + 0.016 * Math.sin((p.s * TAU) / 0.65);
++      kerb = kerbHeight(p.s, a - p.width);
+     } else if (a > p.width - 0.18) {
+       surface = SURFACE.PAINT;
+       grip = 0.94;
+diff --git a/src/simulation/vehicle.ts b/src/simulation/vehicle.ts
+--- a/src/simulation/vehicle.ts
++++ b/src/simulation/vehicle.ts
+@@ -87,6 +87,7 @@
+   private relativeAir = new Vec3();
+   private surface = surfaceSample();
+   private axis = new Vec3();
++  private down = new Vec3(0, -1, 0);
+   constructor(
+     readonly id: number,
+     compound: Compound = 'medium',
+@@ -197,12 +198,14 @@
+         hub = this.hubs[i],
+         s = this.contacts[i];
+       b.orientation.rotate(this.localPoint.set(pos[0], pos[1], pos[2]), origin).add(b.position);
+-      track.sample(origin.x, origin.z, s);
++      this.down.copy(this.up).scale(-1);
++      const distance = track.cast(origin, this.down, 1.5, s);
++      if (!Number.isFinite(distance)) track.sample(origin.x, origin.z, s);
+       const rest =
+           VEHICLE.restLength + (i < 2 ? this.setup.frontRide - 0.065 : this.setup.rearRide - 0.075),
+-        length = (origin.y - s.height - t.radius) / Math.max(this.up.y, 0.15);
++        length = distance - t.radius / Math.max(0.15, this.up.dot(s.normal));
+       t.length = Math.min(rest + 0.05, Math.max(0.06, length));
+-      t.compression = Math.max(0, rest - length);
++      t.compression = Number.isFinite(length) ? Math.max(0, rest - length) : 0;
+       hub.copy(origin).addScaled(this.up, -t.length);
+       this.point.set(hub.x, s.height, hub.z);
+       b.pointVelocity(this.point, this.pointVelocities[i]);
+diff --git a/tests/contact.test.ts b/tests/contact.test.ts
+new file mode 100644
+--- /dev/null
++++ b/tests/contact.test.ts
+@@ -0,0 +1,60 @@
++import { describe, it, expect } from 'vitest';
++import { Vec3 } from '../src/core/math.ts';
++import { TriangleBVH, rayHit } from '../src/simulation/bvh.ts';
++import { Track, trackPoint, surfaceSample } from '../src/simulation/track.ts';
++import { TrackContactMesh, kerbHeight } from '../src/simulation/contact.ts';
++
++const square = () =>
++  new TriangleBVH(
++    new Float64Array([-1, 0, -1, 1, 0, -1, -1, 0, 1, 1, 0, 1]),
++    new Uint32Array([0, 2, 1, 1, 2, 3]),
++  );
++describe('triangle contact acceleration', () => {
++  it('hits edges, vertices and seams without a gap', () => {
++    const b = square(),
++      hit = rayHit(),
++      down = new Vec3(0, -1, 0);
++    for (const x of [-1, -0.5, 0, 0.5, 1]) {
++      expect(b.raycast(new Vec3(x, 2, -x), down, 3, hit)).toBe(true);
++      expect(hit.distance).toBeCloseTo(2, 10);
++      expect(hit.normal.y).toBeCloseTo(1, 10);
++    }
++  });
++  it('rejects distant, backwards and malformed rays', () => {
++    const b = square(),
++      hit = rayHit();
++    expect(b.raycast(new Vec3(0, 2, 0), new Vec3(0, -1, 0), 1, hit)).toBe(false);
++    expect(b.raycast(new Vec3(0, 2, 0), new Vec3(0, 1, 0), 3, hit)).toBe(false);
++    expect(() => b.raycast(new Vec3(), new Vec3(), 3, hit)).toThrow();
++    expect(() => b.raycast(new Vec3(NaN), new Vec3(0, -1, 0), 3, hit)).toThrow();
++  });
++  it('traverses both directions and respects inclined triangles', () => {
++    const b = new TriangleBVH(
++      new Float64Array([-1, -1, -1, 1, 1, -1, 0, 0, 1]),
++      new Uint32Array([0, 2, 1]),
++    );
++    const hit = rayHit();
++    expect(b.raycast(new Vec3(0, 2, 0), new Vec3(0, -1, 0), 3, hit)).toBe(true);
++    expect(hit.normal.x).toBeLessThan(-0.6);
++    expect(b.raycast(new Vec3(0, -2, 0), new Vec3(0, 1, 0), 3, hit)).toBe(true);
++    expect(hit.normal.y).toBeLessThan(0);
++  });
++  it('matches the analytic road, limits triangle work and closes the lap seam', () => {
++    const track = new Track(),
++      mesh = new TrackContactMesh(track, 2048);
++    const p = trackPoint(),
++      s = surfaceSample();
++    for (let j = 0; j < 100; j++) {
++      track.at((j * track.length) / 100, p);
++      const distance = mesh.cast(new Vec3(p.x, p.y + 1, p.z), new Vec3(0, -1, 0), 2, s);
++      expect(Number.isFinite(distance)).toBe(true);
++      expect(Math.abs(s.height - p.y)).toBeLessThan(0.002);
++      expect(mesh.bvh.trianglesTested).toBeLessThan(100);
++    }
++  });
++  it('has continuous kerb shoulders and a real rib profile', () => {
++    expect(kerbHeight(0, 0)).toBe(0);
++    expect(kerbHeight(0, 1.1)).toBe(0);
++    expect(kerbHeight(0.1625, 0.55)).toBeGreaterThan(kerbHeight(0.4875, 0.55));
++  });
++});
