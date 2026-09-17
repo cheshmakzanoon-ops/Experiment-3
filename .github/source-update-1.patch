@@ -1,0 +1,410 @@
+diff --git a/e2e/application.spec.ts b/e2e/application.spec.ts
+index cb7837a..17fc6bf 100644
+--- a/e2e/application.spec.ts
++++ b/e2e/application.spec.ts
+@@ -43,7 +43,22 @@ test('browser session, cameras, pause safety, telemetry and replay', async ({ pa
+     .toBeGreaterThan(15);
+   await page.screenshot({ path: testInfo.outputPath('02-racing.png') });
+   await page.keyboard.press('c');
+-  await page.waitForTimeout(300);
++  await expect.poll(async () => (await diag(page)).renderer?.camera).toBe('cockpit');
++  await expect.poll(async () => (await diag(page)).renderer?.mirrorUpdates).toBeGreaterThan(2);
++  const visual = await page.evaluate(() => window.apexDiagnostics(true));
++  const eye = visual.renderer!.cameraLocalPosition;
++  expect(Math.abs(eye[0])).toBeLessThan(0.06);
++  expect(eye[1]).toBeGreaterThan(0.35);
++  expect(eye[1]).toBeLessThan(0.48);
++  expect(eye[2]).toBeGreaterThan(-0.56);
++  expect(eye[2]).toBeLessThan(-0.4);
++  expect(Math.abs(visual.visual!.wheelProjection[0])).toBeLessThan(1);
++  expect(Math.abs(visual.visual!.wheelProjection[1])).toBeLessThan(1);
++  expect(visual.visual!.mirrors.every((mirror) => mirror.range > 5)).toBe(true);
++  await testInfo.attach('cockpit-diagnostics.json', {
++    body: JSON.stringify(visual, null, 2),
++    contentType: 'application/json',
++  });
+   await page.screenshot({ path: testInfo.outputPath('03-cockpit.png') });
+   await page.keyboard.press('Escape');
+   await expect(page.getByRole('button', { name: 'RESUME SESSION' })).toBeVisible();
+@@ -135,6 +150,32 @@ test('race start and chequered flag produce an actual result', async ({ page },
+   await page.screenshot({ path: testInfo.outputPath('08-results.png') });
+ });
+ 
++test('high quality compiles shaders and renders a live local reflection', async ({
++  page,
++}, testInfo) => {
++  const errors: string[] = [];
++  page.on('pageerror', (e) => errors.push(e.message));
++  page.on('console', (m) => {
++    if (m.type() === 'error') errors.push(m.text());
++  });
++  await ready(page);
++  await page.getByRole('button', { name: 'GARAGE & SETTINGS', exact: true }).click();
++  await page.locator('[name=quality]').selectOption('high');
++  await page.getByRole('button', { name: 'APPLY & SAVE' }).click();
++  await begin(page);
++  await page.keyboard.press('c');
++  await expect
++    .poll(async () => (await diag(page)).renderer?.reflectionProbeUpdates, { timeout: 60000 })
++    .toBeGreaterThan(0);
++  await expect.poll(async () => (await diag(page)).renderer?.mirrorUpdates).toBeGreaterThan(0);
++  await page.screenshot({ path: testInfo.outputPath('09-high-cockpit.png') });
++  await testInfo.attach('high-quality-diagnostics.json', {
++    body: JSON.stringify(await page.evaluate(() => window.apexDiagnostics(true)), null, 2),
++    contentType: 'application/json',
++  });
++  expect(errors).toEqual([]);
++});
++
+ test('manual right steering and live rear-view passes work without autopilot', async ({
+   page,
+ }, testInfo) => {
+diff --git a/scripts/acceptance.ts b/scripts/acceptance.ts
+index 0aa7074..b1d1eb0 100644
+--- a/scripts/acceptance.ts
++++ b/scripts/acceptance.ts
+@@ -133,6 +133,22 @@ const report = {
+   passed: failures.length === 0,
+   zeroImpact: records.every((r) => r.maximumImpact === 0),
+   failures,
++  failureState: failures.length
++    ? sim.cars.map((c) => ({
++        id: c.id,
++        s: c.s,
++        lateral: c.lateral,
++        speed: c.speed,
++        pitPhase: c.pitPhase,
++        pitClock: c.pitClock,
++        target: c.aiTarget,
++        input: { ...c.input },
++        position: { ...c.body.position },
++        orientation: { ...c.body.orientation },
++        tires: c.tires.map((t) => ({ wear: t.wear, omega: t.omega, load: t.load })),
++        decision: sim.ai[c.id].decision,
++      }))
++    : undefined,
+   cars: records,
+ };
+ writeFileSync(
+diff --git a/scripts/pit-integration.ts b/scripts/pit-integration.ts
+new file mode 100644
+index 0000000..5d02062
+--- /dev/null
++++ b/scripts/pit-integration.ts
+@@ -0,0 +1,58 @@
++import assert from 'node:assert/strict';
++import { writeFileSync } from 'node:fs';
++import { Simulation } from '../src/simulation/world.ts';
++import { DEFAULT_OPTIONS } from '../src/simulation/config.ts';
++
++// A request made after the entry line must be carried round to the next legal
++// entry. Ten cars then approach, stop, receive service and leave under physics.
++const sim = new Simulation({ ...DEFAULT_OPTIONS, mode: 'practice', opponents: 9, seed: 4417 });
++sim.autoPlayer = true;
++for (const car of sim.cars) car.pitRequested = true;
++const maximumImpact = new Float64Array(10);
++const entered = new Uint8Array(10);
++const completed = new Uint8Array(10);
++let ticks = 0;
++const failures: string[] = [];
++try {
++  for (; ticks < 220 * 120; ticks++) {
++    sim.step(1 / 120);
++    for (const car of sim.cars) {
++      maximumImpact[car.id] = Math.max(maximumImpact[car.id], car.impact);
++      if (car.inPit) entered[car.id] = 1;
++      if (car.pitStops === 1 && !car.inPit) completed[car.id] = 1;
++      assert(car.body.position.finite(), `Car ${car.id}: non-finite position`);
++      assert(!car.retired, `Car ${car.id}: retired`);
++    }
++    if (completed.every(Boolean)) break;
++  }
++  assert(entered.every(Boolean), 'Every car must enter the pit lane');
++  assert(completed.every(Boolean), 'Every car must service and exit within the scenario');
++  assert(
++    sim.cars.every((c) => c.pitStops === 1),
++    'Exactly one service per requested stop',
++  );
++  assert(
++    maximumImpact.every((v) => v < 0.05),
++    'Pit sequence must not depend on collision impulses',
++  );
++} catch (error) {
++  failures.push(error instanceof Error ? error.message : String(error));
++}
++const report = {
++  passed: failures.length === 0,
++  failures,
++  simulatedSeconds: ticks / 120,
++  cars: sim.cars.map((car) => ({
++    id: car.id,
++    entered: !!entered[car.id],
++    exited: !!completed[car.id],
++    stops: car.pitStops,
++    phase: car.pitPhase,
++    maximumImpact: maximumImpact[car.id],
++    frontHealth: car.frontHealth,
++    rearHealth: car.rearHealth,
++  })),
++};
++writeFileSync('docs/pit-integration.json', JSON.stringify(report, null, 2) + '\n');
++console.log(JSON.stringify(report));
++if (failures.length) process.exitCode = 1;
+diff --git a/src/main.ts b/src/main.ts
+index 7c8ab55..95596b6 100644
+--- a/src/main.ts
++++ b/src/main.ts
+@@ -539,13 +539,14 @@ export class GameApp {
+     console.error(error);
+     this.ui.error(error instanceof Error ? error.message : String(error));
+   }
+-  diagnostics() {
++  diagnostics(visual = false) {
+     return {
+       state: this.state,
+       auto: this.auto,
+       options: this.options,
+       frame: this.current ? Array.from(this.current) : null,
+       renderer: this.renderer?.stats(),
++      visual: visual ? this.renderer?.visualDiagnostics() : null,
+       replaySeconds: this.replay?.duration ?? 0,
+       telemetrySamples: this.telemetry?.count ?? 0,
+     };
+@@ -562,11 +563,11 @@ export class GameApp {
+ const app = new GameApp();
+ // Read-only diagnostics are useful to automated browser tests and hardware profiling.
+ Object.defineProperty(window, 'apexDiagnostics', {
+-  value: () => app.diagnostics(),
++  value: (visual = false) => app.diagnostics(visual),
+   writable: false,
+ });
+ declare global {
+   interface Window {
+-    apexDiagnostics: () => ReturnType<GameApp['diagnostics']>;
++    apexDiagnostics: (visual?: boolean) => ReturnType<GameApp['diagnostics']>;
+   }
+ }
+diff --git a/src/rendering/camera-dynamics.ts b/src/rendering/camera-dynamics.ts
+new file mode 100644
+index 0000000..911857e
+--- /dev/null
++++ b/src/rendering/camera-dynamics.ts
+@@ -0,0 +1,73 @@
++import { Quaternion, Vector3 } from 'three';
++import { clamp } from '../core/math.ts';
++
++/** Analytic critically-damped spring. A relative offset, not a delayed world
++ * position, keeps the driver's eyes inside the cockpit at constant velocity. */
++export class InertialCamera {
++  readonly offset = new Vector3();
++  private velocity = new Vector3();
++  private target = new Vector3();
++  private error = new Vector3();
++  private coefficient = new Vector3();
++  private previousImpact = 0;
++  reset() {
++    this.offset.set(0, 0, 0);
++    this.velocity.set(0, 0, 0);
++    this.previousImpact = 0;
++  }
++  step(
++    dt: number,
++    lateralG: number,
++    longitudinalG: number,
++    verticalG: number,
++    impact: number,
++    gain: number,
++  ) {
++    if (![dt, lateralG, longitudinalG, verticalG, impact, gain].every(Number.isFinite) || dt < 0)
++      throw new Error('Invalid camera state');
++    const h = Math.min(dt, 0.25),
++      omega = 22;
++    gain = clamp(gain, 0, 1);
++    this.target.set(
++      clamp(-lateralG * 0.012, -0.04, 0.04) * gain,
++      clamp(-verticalG * 0.004, -0.022, 0.022) * gain,
++      clamp(-longitudinalG * 0.008, -0.04, 0.04) * gain,
++    );
++    if (impact > this.previousImpact + 0.01) {
++      this.velocity.y -= (impact - this.previousImpact) * 0.1 * gain;
++      this.velocity.z += (impact - this.previousImpact) * 0.1 * gain;
++    }
++    this.previousImpact = impact;
++    this.error.copy(this.offset).sub(this.target);
++    this.coefficient.copy(this.velocity).addScaledVector(this.error, omega);
++    const decay = Math.exp(-omega * h);
++    this.offset
++      .copy(this.error)
++      .addScaledVector(this.coefficient, h)
++      .multiplyScalar(decay)
++      .add(this.target);
++    this.velocity.addScaledVector(this.coefficient, -omega * h).multiplyScalar(decay);
++    return this.offset;
++  }
++  eye(position: Vector3, orientation: Quaternion, pod: boolean, out: Vector3) {
++    out.set(0, pod ? 0.87 : 0.41, pod ? -0.78 : -0.48);
++    return out.add(this.offset).applyQuaternion(orientation).add(position);
++  }
++}
++
++/** A driver view follows heading, while the up-vector retains bounded body roll.
++ * Angular filtering never delays translational motion out of the driver's seat. */
++export class ViewOrientation {
++  readonly rotation = new Quaternion();
++  private initialized = false;
++  reset() {
++    this.initialized = false;
++  }
++  update(target: Quaternion, dt: number) {
++    if (!this.initialized) {
++      this.rotation.copy(target);
++      this.initialized = true;
++    } else this.rotation.slerp(target, 1 - Math.exp(-32 * Math.min(dt, 0.1)));
++    return this.rotation;
++  }
++}
+diff --git a/src/rendering/car.ts b/src/rendering/car.ts
+index 486ec03..10e408f 100644
+--- a/src/rendering/car.ts
++++ b/src/rendering/car.ts
+@@ -1,4 +1,6 @@
+ import * as T from 'three';
++import { carbonMaterial } from './materials.ts';
++import { ReducedCar, carLod } from './lod.ts';
+ import { box, canvasTexture, label, loft, mergeStatic, mesh, rod, tube } from './geometry.ts';
+ import { COMPOUNDS, LIVERIES } from '../simulation/config.ts';
+ import { F, W, WHEEL_BASE, WHEEL_STRIDE } from '../simulation/protocol.ts';
+@@ -8,6 +10,9 @@ export class FormulaCar {
+   readonly root = new T.Group();
+   readonly mirrors: T.Mesh[] = [];
+   readonly staticBody = new T.Group();
++  private highDetail = new T.Group();
++  private reduced: ReducedCar[] = [];
++  lodLevel = 0;
+   readonly frontWing = new T.Group();
+   readonly rearWing = new T.Group();
+   readonly wheelPivots: T.Group[] = [];
+@@ -39,18 +44,7 @@ export class FormulaCar {
+       clearcoat: 1,
+       clearcoatRoughness: 0.16,
+     });
+-    const carbonMap = canvasTexture(128, 128, (c) => {
+-      c.fillStyle = '#1b2023';
+-      c.fillRect(0, 0, 128, 128);
+-      for (let y = 0; y < 128; y += 4)
+-        for (let x = 0; x < 128; x += 4) {
+-          c.fillStyle = ((x + y) / 4) % 2 ? '#252b2e' : '#14191c';
+-          c.fillRect(x, y, 3, 3);
+-        }
+-    });
+-    carbonMap.wrapS = carbonMap.wrapT = T.RepeatWrapping;
+-    carbonMap.repeat.set(6, 6);
+-    const carbon = new T.MeshStandardMaterial({ map: carbonMap, metalness: 0.25, roughness: 0.53 });
++    const carbon = carbonMaterial();
+     const dark = new T.MeshStandardMaterial({ color: 0x101416, roughness: 0.75 });
+     const metal = new T.MeshStandardMaterial({ color: 0x7c8589, metalness: 0.88, roughness: 0.3 });
+     const ivory = new T.MeshPhysicalMaterial({
+@@ -179,16 +173,11 @@ export class FormulaCar {
+       mirror.scale.set(0.12, 0.05, 0.075);
+       const glass = mesh(
+         this.root,
+-        new T.PlaneGeometry(0.18, 0.065),
+-        new T.MeshStandardMaterial({
+-          color: 0xa9c3c8,
+-          metalness: 1,
+-          roughness: 0.06,
+-          side: T.DoubleSide,
+-        }),
++        new T.PlaneGeometry(0.195, 0.069),
++        new T.MeshBasicMaterial({ color: 0xd4dde0 }),
+         sign * 0.64,
+         0.3,
+-        0.4,
++        0.377,
+       );
+       glass.rotation.y = Math.PI;
+       glass.name = sign < 0 ? 'Right rear-view mirror' : 'Left rear-view mirror';
+@@ -477,6 +466,20 @@ export class FormulaCar {
+     mergeStatic(s);
+     mergeStatic(this.frontWing);
+     mergeStatic(this.rearWing);
++    const highChildren = [...this.root.children];
++    this.root.add(this.highDetail);
++    this.highDetail.add(...highChildren);
++    for (const level of [1, 2] as const) {
++      const reduced = new ReducedCar(level, this.paint, carbon, dark);
++      this.reduced.push(reduced);
++      reduced.root.visible = false;
++      this.root.add(reduced.root);
++    }
++  }
++  setLod(distance: number, quality: 'low' | 'medium' | 'high', player: boolean) {
++    this.lodLevel = carLod(distance, this.lodLevel, quality, player);
++    this.highDetail.visible = this.lodLevel === 0;
++    this.reduced.forEach((car, index) => (car.root.visible = this.lodLevel === index + 1));
+   }
+   update(
+     a: Float32Array,
+@@ -495,6 +498,18 @@ export class FormulaCar {
+     this.qa.set(a[o + F.QX], a[o + F.QY], a[o + F.QZ], a[o + F.QW]);
+     this.qb.set(b[o + F.QX], b[o + F.QY], b[o + F.QZ], b[o + F.QW]);
+     this.root.quaternion.copy(this.qa).slerp(this.qb, t);
++    if (this.lodLevel > 0) {
++      const reduced = this.reduced[this.lodLevel - 1];
++      for (let i = 0; i < 4; i++) {
++        const p = o + WHEEL_BASE + i * WHEEL_STRIDE;
++        reduced.wheels[i].position.y = -0.2 + b[p + W.COMPRESSION];
++        reduced.wheels[i].rotation.y = i < 2 ? b[o + F.STEER] : 0;
++        reduced.spins[i].rotation.x = b[p + W.ROTATION];
++      }
++      reduced.front.visible = b[o + F.FRONT_HEALTH] > 0.08;
++      reduced.rear.visible = b[o + F.REAR_HEALTH] > 0.08;
++      return;
++    }
+     this.steering.rotation.z = -b[o + F.STEER] * 2.2;
+     this.helmet.visible = !cockpit;
+     const compound = Object.values(COMPOUNDS)[Math.round(b[o + F.COMPOUND])] ?? COMPOUNDS.medium;
+diff --git a/src/rendering/circuit.ts b/src/rendering/circuit.ts
+index 886a893..fd6dccf 100644
+--- a/src/rendering/circuit.ts
++++ b/src/rendering/circuit.ts
+@@ -1,4 +1,6 @@
+ import * as T from 'three';
++import wetRoad from '../shaders/wetRoad.frag?raw';
++import { kerbHeight } from '../simulation/contact.ts';
+ import { Track, CELL_ROWS, CELL_COLS, trackPoint } from '../simulation/track.ts';
+ import { Random, clamp } from '../core/math.ts';
+ import { batchScene, box, canvasTexture, label, mesh } from './geometry.ts';
+@@ -68,11 +70,11 @@ export class CircuitScene {
+       );
+       shader.fragmentShader = shader.fragmentShader.replace(
+         '#include <map_fragment>',
+-        '#include <map_fragment>\nvec4 roadState=texture2D(trackState,vTrackUV); float wet=clamp(roadState.r*2.0,0.0,1.0); diffuseColor.rgb*=mix(1.0,0.55,wet)*(1.0-roadState.g*0.25);',
++        '#include <map_fragment>\n' + wetRoad,
+       );
+       shader.fragmentShader = shader.fragmentShader.replace(
+         '#include <roughnessmap_fragment>',
+-        '#include <roughnessmap_fragment>\nroughnessFactor=mix(roughnessFactor,0.16,wet);',
++        '#include <roughnessmap_fragment>\nroughnessFactor=mix(roughnessFactor,mix(0.23,0.10,puddle),wet);',
+       );
+     };
+     const grass = new T.MeshStandardMaterial({ color: 0x69734d, roughness: 1 });
+@@ -118,10 +120,15 @@ export class CircuitScene {
+           track.at(s, this.temp);
+           return side * (this.temp.width + t * 1.1);
+         },
+-        height: (s) => 0.025 + 0.016 * Math.sin((s * Math.PI * 2) / 0.65),
+-        step: 0.26,
++        height: (s, l, t) => {
++          const pit = track.pitOffset(s);
++          return track.isPitSection(s) && pit > 3 && Math.abs(l - pit) < 3.6
++            ? 0
++            : kerbHeight(s, t * 1.1);
++        },
++        step: 0.16,
+         stripes: true,
+-        columns: 2,
++        columns: 6,
+       });
+       this.ribbon(white, {
+         offset: (s, t) => {
