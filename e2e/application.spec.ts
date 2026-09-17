@@ -1,3 +1,4 @@
+import { readFile } from 'node:fs/promises';
 import { test, expect, type Page } from '@playwright/test';
 import { F, H, carBase } from '../src/simulation/protocol.ts';
 async function ready(page: Page) {
@@ -90,13 +91,46 @@ test('recorded telemetry exports and replay leaves live physics paused', async (
   await page.keyboard.press('g');
   await expect
     .poll(async () => (await diag(page)).telemetrySamples, { timeout: 60000 })
-    .toBeGreaterThan(60);
+    .toBeGreaterThan(60 * 22);
+  await expect
+    .poll(async () =>
+      page.evaluate(async () => {
+        const db = await new Promise<IDBDatabase>((resolve, reject) => {
+          const request = indexedDB.open('apex-replay-cache', 1);
+          request.onsuccess = () => resolve(request.result);
+          request.onerror = () => reject(request.error);
+        });
+        try {
+          return await new Promise<number>((resolve, reject) => {
+            const tx = db.transaction('pages', 'readonly'),
+              request = tx.objectStore('pages').count();
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(request.error);
+          });
+        } finally {
+          db.close();
+        }
+      }),
+    )
+    .toBeGreaterThan(0);
   await page.keyboard.press('t');
   await expect(page.locator('#telemetryModal')).toBeVisible();
   await page.screenshot({ path: testInfo.outputPath('04-telemetry.png') });
   const download = page.waitForEvent('download');
   await page.getByRole('button', { name: 'EXPORT CSV' }).click();
-  expect((await download).suggestedFilename()).toBe('apex-telemetry.csv');
+  const csvDownload = await download;
+  expect(csvDownload.suggestedFilename()).toBe('apex-telemetry.csv');
+  const csv = (await readFile((await csvDownload.path())!, 'utf8')).trim().split('\n');
+  const columns = csv[0].split(',');
+  expect(columns).toHaveLength(176);
+  expect(columns).toContain('motor_power_W');
+  expect(columns).toContain('FL_pressure_kPa');
+  expect(csv.length).toBeGreaterThan(1320);
+  const tickColumn = columns.indexOf('tick');
+  const firstTick = Number(csv[1].split(',')[tickColumn]);
+  for (let row = 2; row < csv.length; row++) {
+    expect(Number(csv[row].split(',')[tickColumn]) - firstTick).toBe(2 * (row - 1));
+  }
   await page.getByRole('button', { name: 'Close telemetry' }).click();
   await page.getByRole('button', { name: 'WATCH REPLAY' }).click();
   await expect(page.locator('#replayBar')).toBeVisible();
@@ -108,6 +142,8 @@ test('recorded telemetry exports and replay leaves live physics paused', async (
   await page.screenshot({ path: testInfo.outputPath('05-replay.png') });
   await page.waitForTimeout(1000);
   expect((await diag(page)).frame![H.TICK]).toBe(tick);
+  expect((await diag(page)).replayError).toBeNull();
+  expect((await diag(page)).recordingWarnings).toEqual([]);
   await page.getByRole('button', { name: 'RETURN', exact: true }).click();
   await page.getByRole('button', { name: 'RETURN TO PADDOCK' }).click();
   await expect(page.locator('#menu')).toBeVisible();

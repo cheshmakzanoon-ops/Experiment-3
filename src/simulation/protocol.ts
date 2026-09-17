@@ -1,8 +1,14 @@
 import type { Controls, SessionOptions } from './config.ts';
 export const HEADER = 16,
-  CAR_STRIDE = 112,
-  WHEEL_BASE = 48,
-  WHEEL_STRIDE = 16;
+  CAR_STRIDE = 208,
+  WHEEL_BASE = 80,
+  WHEEL_STRIDE = 24,
+  DEBRIS_BASE = 176,
+  DEBRIS_STRIDE = 8;
+export const PROTOCOL_VERSION = 2;
+// +Z is the nose, +Y up and +X the driver's left; negative-X hubs are right-side wheels.
+export const WHEEL_NAMES = ['FR', 'FL', 'RR', 'RL'] as const;
+export const D = { KIND: 0, X: 1, Y: 2, Z: 3, ROTATION: 4, AGE: 5, MASS: 6, ACTIVE: 7 } as const;
 export const H = {
   TIME: 0,
   PHASE: 1,
@@ -68,6 +74,27 @@ export const F = {
   IMPACT: 45,
   COMPOUND: 46,
   PIT_STOPS: 47,
+  MOTOR_POWER: 48,
+  REGEN_POWER: 49,
+  FRONT_RIDE: 50,
+  REAR_RIDE: 51,
+  BRAKE_BIAS: 52,
+  DIFF_POWER: 53,
+  DIFF_COAST: 54,
+  ERS_MODE: 55,
+  JACK_HEIGHT: 56,
+  SIDEPOD_HEALTH: 57,
+  LOST_MASS: 58,
+  SUSPENSION_DAMAGE: 59,
+  SECTOR: 60,
+  SECTOR_1: 61,
+  SECTOR_2: 62,
+  SECTOR_3: 63,
+  LAP_VALID: 64,
+  WARNINGS: 65,
+  PIT_YIELDING: 66,
+  RETIRED: 67,
+  MASS: 68,
 } as const;
 export const W = {
   OMEGA: 0,
@@ -86,16 +113,29 @@ export const W = {
   SURFACE: 13,
   ROTATION: 14,
   FLAT: 15,
+  PRESSURE: 16,
+  RADIUS: 17,
+  BLISTERING: 18,
+  GRAINING: 19,
+  PUNCTURED: 20,
+  SUSPENSION_DAMAGE: 21,
+  SLIP_POWER: 22,
+  LENGTH: 23,
 } as const;
 export type ToWorker =
   | { type: 'init'; options: SessionOptions }
   | { type: 'input'; input: Controls }
   | { type: 'pause'; value: boolean }
   | { type: 'recycle'; buffer: ArrayBuffer }
+  | { type: 'recycleTelemetry'; buffer: ArrayBuffer }
+  | { type: 'recycleReplay'; buffer: ArrayBuffer }
   | { type: 'pit' }
   | { type: 'autopilot'; value: boolean };
 export type FromWorker =
   | { type: 'frame'; buffer: ArrayBuffer }
-  | { type: 'surface'; water: Float32Array; rubber: Float32Array }
+  | { type: 'telemetry'; buffer: ArrayBuffer; rows: number }
+  | { type: 'replayFrames'; buffer: ArrayBuffer; rows: number }
+  | { type: 'recordingWarning'; message: string }
+  | { type: 'surface'; water: Float32Array; rubber: Float32Array; time: number }
   | { type: 'error'; message: string };
 export const carBase = (id: number) => HEADER + id * CAR_STRIDE;

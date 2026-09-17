@@ -69,6 +69,10 @@ export class Vehicle {
   jackHeight = 0;
   pitYielding = false;
   pitLastS = 0;
+  frontRideHeight = 0;
+  rearRideHeight = 0;
+  private frontDetached = false;
+  private rearDetached = false;
   motorPower = 0;
   regenerationPower = 0;
   impact = 0;
@@ -192,6 +196,7 @@ export class Vehicle {
           : 0,
       motor = motorPower / Math.max(shaft, 400),
       wheelTorque = (ice + motor) * ratio * 0.95;
+    this.motorPower = motorPower;
     this.battery = Math.max(0, this.battery - (motorPower * dt) / 0.94);
     this.fuel = Math.max(0, this.fuel - ((ice * shaft) / (0.43 * 43e6) + 0.00045) * dt);
     const rearFriction = VEHICLE.brakeTorque * (1 - this.setup.brakeBias) * this.brake * 0.5,
@@ -296,17 +301,23 @@ export class Vehicle {
       b.apply(this.force, this.point);
       track.interact(s.cell, t.load, t.energy, this.speed, dt);
     }
-    this.battery = Math.min(
-      VEHICLE.maxBatteryJ,
-      this.battery +
-        regenTorque * (Math.abs(this.tires[2].omega) + Math.abs(this.tires[3].omega)) * 0.78 * dt,
+    // Actual generator work is limited by the requested power and battery
+    // headroom, even if angular speed changed during the implicit wheel solve.
+    const recovered = Math.min(
+      VEHICLE.maxBatteryJ - this.battery,
+      regenPower * 0.78 * dt,
+      regenTorque * (Math.abs(this.tires[2].omega) + Math.abs(this.tires[3].omega)) * 0.78 * dt,
     );
+    this.battery += recovered;
+    this.regenerationPower = recovered / dt;
     this.relativeAir.copy(b.velocity);
     this.relativeAir.x -= track.windX;
     this.relativeAir.z -= track.windZ;
     const airspeed = this.relativeAir.length(),
       frontHeight = b.position.y - this.contacts[0].height - 0.43,
       rearHeight = b.position.y - this.contacts[2].height - 0.43;
+    this.frontRideHeight = frontHeight;
+    this.rearRideHeight = rearHeight;
     aero(
       airspeed,
       this.setup,
@@ -379,12 +390,19 @@ export class Vehicle {
     this.suspensionDamage = Math.max(...this.cornerDamage);
     this.impact = Math.max(this.impact, Math.min(1, energy / 30000));
     // Wing detachment transfers its inherited momentum into a physical fragment.
-    if (this.frontHealth < 0.08 && !this.debris.pieces.some((p) => p.kind === 1))
-      this.detach(1, 2.5, 4.5);
-    if (this.rearHealth < 0.08 && !this.debris.pieces.some((p) => p.kind === 2))
-      this.detach(2, -2.1, 6);
+    if (this.frontHealth < 0.08 && !this.frontDetached) this.detach(1, 2.5, 4.5);
+    if (this.rearHealth < 0.08 && !this.rearDetached) this.detach(2, -2.1, 6);
+  }
+  repairFrontWing(dt: number) {
+    this.frontHealth = Math.min(1, this.frontHealth + dt * 0.3);
+    if (this.frontDetached && this.frontHealth > 0.08) {
+      this.lostMass = Math.max(0, this.lostMass - 4.5);
+      this.frontDetached = false;
+    }
   }
   private detach(kind: number, z: number, mass: number) {
+    if (kind === 1) this.frontDetached = true;
+    if (kind === 2) this.rearDetached = true;
     this.body.orientation
       .rotate(this.localPoint.set(0, 0.1, z), this.point)
       .add(this.body.position);

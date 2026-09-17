@@ -1,4 +1,5 @@
 import * as T from 'three';
+import { F, carBase } from '../simulation/protocol.ts';
 import wetRoad from '../shaders/wetRoad.frag?raw';
 import { kerbHeight } from '../simulation/contact.ts';
 import { Track, CELL_ROWS, CELL_COLS, trackPoint } from '../simulation/track.ts';
@@ -550,7 +551,7 @@ export class CircuitScene {
   update(frame: Float32Array) {
     for (let i = 0; i < 5; i++) this.startLamps[i].emissiveIntensity = i < frame[3] ? 2.5 : 0;
     for (let i = 0; i < this.pitPeople.length; i++) {
-      const phase = frame[16 + i * 112 + 34] ?? 0;
+      const phase = frame[carBase(i) + F.PIT_PHASE] ?? 0;
       this.pitPeople[i].position.y =
         this.at(102 + i * 7, 25, 0.4).y + (phase >= 2 && phase <= 4 ? -0.18 : 0);
     }

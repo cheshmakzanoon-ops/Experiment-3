@@ -512,7 +512,12 @@ export class FormulaCar {
       const reduced = this.reduced[this.lodLevel - 1];
       for (let i = 0; i < 4; i++) {
         const p = o + WHEEL_BASE + i * WHEEL_STRIDE;
-        reduced.wheels[i].position.y = -0.2 + b[p + W.COMPRESSION];
+        reduced.wheels[i].position.y = 0.05 - (b[p + W.LENGTH] || 0.25);
+        reduced.wheels[i].scale.set(
+          1,
+          (b[p + W.RADIUS] || 0.335) / 0.335,
+          (b[p + W.RADIUS] || 0.335) / 0.335,
+        );
         reduced.wheels[i].rotation.y = i < 2 ? b[o + F.STEER] : 0;
         reduced.spins[i].rotation.x = b[p + W.ROTATION];
       }
@@ -526,12 +531,16 @@ export class FormulaCar {
     for (let i = 0; i < 4; i++) {
       const p = o + WHEEL_BASE + i * WHEEL_STRIDE,
         pivot = this.wheelPivots[i];
-      pivot.position.y = 0.05 - 0.25 + b[p + W.COMPRESSION];
-      pivot.rotation.y = i < 2 ? b[o + F.STEER] : 0;
+      pivot.position.y = 0.05 - (b[p + W.LENGTH] || 0.25);
+      pivot.rotation.y =
+        (i < 2 ? b[o + F.STEER] : 0) + b[p + W.SUSPENSION_DAMAGE] * 0.07 * (i % 2 ? 1 : -1);
       this.wheelSpins[i].rotation.x = b[p + W.ROTATION];
       this.discs[i].emissiveIntensity = clamp((b[p + W.DISC_TEMP] - 500) / 450, 0, 2);
       this.rings[i].color.setHex(compound.color);
-      pivot.scale.y = 1 - 0.025 * clamp(b[p + W.LOAD] / 7000, 0, 1) - b[p + W.FLAT] * 0.02;
+      const radius = (b[p + W.RADIUS] || 0.335) / 0.335;
+      pivot.scale.z = radius;
+      pivot.scale.y =
+        radius * (1 - 0.025 * clamp(b[p + W.LOAD] / 7000, 0, 1) - b[p + W.FLAT] * 0.02);
     }
     for (let j = 0; j < this.links.length; j++) {
       const link = this.links[j];
@@ -545,6 +554,8 @@ export class FormulaCar {
       this.suspension.setMatrixAt(j, link.mesh.matrix);
     }
     this.suspension.instanceMatrix.needsUpdate = true;
+    this.frontWing.visible = b[o + F.FRONT_HEALTH] > 0.08;
+    this.rearWing.visible = b[o + F.REAR_HEALTH] > 0.08;
     this.frontWing.scale.x = 0.35 + 0.65 * b[o + F.FRONT_HEALTH];
     this.frontWing.rotation.z = (1 - b[o + F.FRONT_HEALTH]) * 0.12;
     this.rearWing.rotation.z = (1 - b[o + F.REAR_HEALTH]) * 0.09;

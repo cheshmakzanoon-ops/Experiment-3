@@ -1,6 +1,7 @@
 import * as T from 'three';
 import { InertialCamera, ViewOrientation } from './camera-dynamics.ts';
 import { ReflectionSystem } from './reflections.ts';
+import { DebrisView } from './debris.ts';
 import { GpuTimer } from './gpu-timer.ts';
 import { Sky } from 'three/addons/objects/Sky.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
@@ -11,7 +12,7 @@ import { FormulaCar } from './car.ts';
 import { CircuitScene } from './circuit.ts';
 import { Effects } from './effects.ts';
 import { Track, trackPoint } from '../simulation/track.ts';
-import { F, H, carBase } from '../simulation/protocol.ts';
+import { F, H, WHEEL_BASE, WHEEL_STRIDE, carBase } from '../simulation/protocol.ts';
 import { clamp } from '../core/math.ts';
 export type CameraMode = 'chase' | 'cockpit' | 'pod' | 'trackside';
 export type Quality = 'low' | 'medium' | 'high';
@@ -22,6 +23,7 @@ export class RacingRenderer {
   readonly circuit: CircuitScene;
   readonly cars: FormulaCar[] = [];
   readonly effects = new Effects();
+  readonly debris = new DebrisView();
   readonly sun = new T.DirectionalLight(0xffead0, 3.3);
   private hemisphere = new T.HemisphereLight(0xe7f2ef, 0x737765, 2);
   private sky = new Sky();
@@ -79,6 +81,7 @@ export class RacingRenderer {
       powerPreference: 'high-performance',
     });
     this.gpuTimer = new GpuTimer(context);
+    this.scene.add(this.debris.mesh);
     this.renderer.info.autoReset = false;
     this.renderer.outputColorSpace = T.SRGBColorSpace;
     this.renderer.toneMapping = T.ACESFilmicToneMapping;
@@ -310,10 +313,11 @@ export class RacingRenderer {
     this.sun.target.updateMatrixWorld();
     this.circuit.update(b);
     this.effects.update(b, dt, !menu && !replay);
+    this.debris.update(b);
     this.debugGroup.visible = this.debug;
     if (this.debug)
       for (let i = 0; i < 4; i++) {
-        const p = o + 48 + i * 16;
+        const p = o + WHEEL_BASE + i * WHEEL_STRIDE;
         this.arrows[i].position
           .copy(car.wheelPivots[i].position)
           .applyQuaternion(car.root.quaternion)

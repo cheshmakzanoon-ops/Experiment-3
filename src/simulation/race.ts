@@ -195,7 +195,7 @@ export function updatePit(
       car.pitPhase = 4;
     } else if (car.pitClock < 5.2) {
       car.pitPhase = 5;
-      car.frontHealth = Math.min(1, car.frontHealth + dt * 0.3);
+      car.repairFrontWing(dt);
     } else if (safePitRelease(car, traffic, track)) {
       car.pitPhase = 6;
       car.pitStops++;

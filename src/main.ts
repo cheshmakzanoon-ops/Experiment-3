@@ -26,7 +26,9 @@ import {
   downloadBlob,
   type Settings,
 } from './storage/data.ts';
-import { ReplayRecorder, TelemetryRecorder } from './storage/recorders.ts';
+import { TelemetryExport } from './storage/telemetry-export.ts';
+import { SessionReplay } from './storage/replay-pages.ts';
+import { TelemetryRecorder } from './storage/recorders.ts';
 import { clamp } from './core/math.ts';
 type State = 'menu' | 'loading' | 'driving' | 'paused' | 'results' | 'replay';
 export class GameApp {
@@ -36,6 +38,8 @@ export class GameApp {
   private input: InputController;
   private audio = new RacingAudio();
   private store = new SaveStore();
+  private exporter = new TelemetryExport();
+  private exporting = false;
   private settings: Settings = structuredClone(DEFAULT_SETTINGS);
   private worker: Worker | null = null;
   private current: Float32Array | null = null;
@@ -51,7 +55,7 @@ export class GameApp {
   private renderedState: State | null = null;
   private timer = 0;
   private generation = 0;
-  private replay: ReplayRecorder | null = null;
+  private replay: SessionReplay | null = null;
   private telemetry: TelemetryRecorder | null = null;
   private replayA: Float32Array | null = null;
   private replayB: Float32Array | null = null;
@@ -60,6 +64,9 @@ export class GameApp {
   private replayPlaying = true;
   private replayReturn: State = 'paused';
   private comparison = false;
+  private liveSurface: { water: Float32Array; rubber: Float32Array; time: number } | null = null;
+  private appliedReplaySurfaceTime = -Infinity;
+  private recordingWarnings: string[] = [];
   private graphClock = 0;
   private telemetryReturn: State = 'paused';
   private errorStopped = false;
@@ -201,7 +208,11 @@ export class GameApp {
     this.ui.options = this.options;
     this.auto = false;
     this.ers = 1;
+    this.exporter.cancel();
+    if (this.replay) void this.replay.dispose();
     this.replay = null;
+    this.liveSurface = null;
+    this.recordingWarnings = [];
     this.telemetry = null;
     this.replayA = null;
     this.replayB = null;
@@ -222,8 +233,38 @@ export class GameApp {
         this.fail(new Error(message.message));
         return;
       }
+      if (message.type === 'telemetry') {
+        this.telemetry?.appendBatch(new Float32Array(message.buffer), message.rows);
+        this.post({ type: 'recycleTelemetry', buffer: message.buffer }, [message.buffer]);
+        return;
+      }
+      if (message.type === 'recordingWarning') {
+        this.recordingWarnings.push(message.message);
+        this.ui.toast(message.message);
+        return;
+      }
+      if (message.type === 'replayFrames') {
+        const data = new Float32Array(message.buffer);
+        if (this.replay) {
+          const stride = this.replay.stride;
+          if (
+            !Number.isInteger(message.rows) ||
+            message.rows < 0 ||
+            message.rows * stride > data.length
+          ) {
+            this.fail(new Error('Invalid replay batch'));
+          } else
+            for (let i = 0; i < message.rows; i++)
+              this.replay.append(data.subarray(i * stride, (i + 1) * stride));
+        }
+        this.post({ type: 'recycleReplay', buffer: message.buffer }, [message.buffer]);
+        return;
+      }
       if (message.type === 'surface') {
-        this.renderer?.circuit.updateSurface(message.water, message.rubber);
+        this.liveSurface = { water: message.water, rubber: message.rubber, time: message.time };
+        this.replay?.recordSurface(message.water, message.rubber, message.time);
+        if (this.state !== 'replay')
+          this.renderer?.circuit.updateSurface(message.water, message.rubber);
         return;
       }
       this.accept(message.buffer);
@@ -242,7 +283,15 @@ export class GameApp {
     clearTimeout(this.initTimeout);
     if (this.errorStopped) return;
     const cars = this.options.opponents + 1;
-    this.replay = new ReplayRecorder(cars);
+    this.replay = new SessionReplay(cars, undefined, (message) => {
+      if (generation !== this.generation) return;
+      this.recordingWarnings.push(message);
+      this.ui.toast(message);
+    });
+    // The initial surface is retained even before the first full recording batch.
+    const initialTrack = new Track(this.options.weather);
+    this.liveSurface = { water: initialTrack.water, rubber: initialTrack.rubber, time: 0 };
+    this.replay.recordSurface(initialTrack.water, initialTrack.rubber, 0);
     this.telemetry = new TelemetryRecorder();
     this.replayA = this.replay.makeFrame();
     this.replayB = this.replay.makeFrame();
@@ -266,8 +315,6 @@ export class GameApp {
     this.current = next;
     this.receivedAt = performance.now();
     if (this.state === 'driving') {
-      this.replay?.append(next);
-      this.telemetry?.append(next);
       if (next[H.PHASE] === 3) this.finish(next);
     }
     if (this.readyResolve) {
@@ -302,10 +349,26 @@ export class GameApp {
       b = this.current,
       alpha = clamp((time - this.receivedAt) / Math.max(8, (b[H.TIME] - a[H.TIME]) * 1000), 0, 1);
     if (this.state === 'replay' && this.replay && this.replayA && this.replayB) {
-      if (this.replayPlaying)
-        this.replayTime = Math.min(this.replay.duration, this.replayTime + dt * this.replayRate);
+      const targetTime = this.replayPlaying
+        ? Math.min(
+            this.replay.duration,
+            this.replayTime + Math.min(wallDelta, 0.5) * this.replayRate,
+          )
+        : this.replayTime;
+      const fraction = this.replay.sample(targetTime, this.replayA, this.replayB);
+      if (fraction === null) {
+        this.ui.setText('replayTime', this.replay.error ?? 'BUFFERING RECORDED LAP…');
+        this.audio.stop();
+        return;
+      }
+      this.replayTime = targetTime;
       if (this.replayTime >= this.replay.duration) this.replayPlaying = false;
-      alpha = this.replay.sample(this.replayTime, this.replayA, this.replayB);
+      alpha = fraction;
+      const surface = this.replay.surfaceState;
+      if (surface.water.length && surface.time !== this.appliedReplaySurfaceTime) {
+        this.renderer.circuit.updateSurface(surface.water, surface.rubber);
+        this.appliedReplaySurfaceTime = surface.time;
+      }
       a = this.replayA;
       b = this.replayB;
       const seek = this.ui.get('replaySeek') as HTMLInputElement;
@@ -392,6 +455,7 @@ export class GameApp {
     this.ui.closeModal();
     this.ui.telemetryModal.close();
     this.state = 'replay';
+    this.appliedReplaySurfaceTime = -Infinity;
     this.replayTime = 0;
     this.replayPlaying = true;
     this.renderer?.reset();
@@ -401,6 +465,8 @@ export class GameApp {
   private exitReplay() {
     if (this.state !== 'replay') return;
     this.state = this.replayReturn === 'results' ? 'results' : 'paused';
+    if (this.liveSurface)
+      this.renderer?.circuit.updateSurface(this.liveSurface.water, this.liveSurface.rubber);
     this.input.setEnabled(false);
     this.renderer?.reset();
     this.ui.showMode(this.state);
@@ -510,11 +576,33 @@ export class GameApp {
         this.telemetry?.draw(this.ui.graph, this.comparison);
         break;
       case 'csv':
-        if (this.telemetry) downloadBlob(this.telemetry.csv(), 'apex-telemetry.csv');
+        void this.exportTelemetry();
         break;
       case 'reload':
         location.reload();
         break;
+    }
+  }
+  private async exportTelemetry() {
+    if (!this.telemetry || this.exporting) return;
+    const generation = this.generation;
+    this.exporting = true;
+    const button = document.querySelector<HTMLButtonElement>('[data-action="csv"]');
+    if (button) {
+      button.disabled = true;
+      button.textContent = 'EXPORTING…';
+    }
+    try {
+      const blob = await this.exporter.export(this.telemetry.snapshot(), this.telemetry.count);
+      if (generation === this.generation) downloadBlob(blob, 'apex-telemetry.csv');
+    } catch (error) {
+      if (generation === this.generation) this.ui.toast(`Export failed: ${String(error)}`);
+    } finally {
+      this.exporting = false;
+      if (button) {
+        button.disabled = false;
+        button.textContent = 'EXPORT CSV';
+      }
     }
   }
   private applySettings(settings: Settings) {
@@ -561,10 +649,17 @@ export class GameApp {
       renderer: this.renderer?.stats(),
       visual: visual ? this.renderer?.visualDiagnostics() : null,
       replaySeconds: this.replay?.duration ?? 0,
+      replaySamples: this.replay?.count ?? 0,
+      replayResidentBytes: this.replay?.bytes ?? 0,
+      replayError: this.replay?.error ?? null,
+      replayPosition: this.replayTime,
+      recordingWarnings: [...this.recordingWarnings],
       telemetrySamples: this.telemetry?.count ?? 0,
     };
   }
   dispose() {
+    this.exporter.cancel();
+    if (this.replay) void this.replay.dispose();
     cancelAnimationFrame(this.timer);
     clearTimeout(this.initTimeout);
     this.worker?.terminate();

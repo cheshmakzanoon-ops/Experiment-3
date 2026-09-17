@@ -24,7 +24,6 @@ export class RacingAudio {
   private hybridGain: GainNode | null = null;
   private previousImpact = 0;
   private previousGear = 1;
-  private previousBattery = 0;
   private last = 0;
   volume = 0.45;
   muted = false;
@@ -170,9 +169,7 @@ export class RacingAudio {
       surface = 0;
     for (let i = 0; i < 4; i++) {
       const p = b + WHEEL_BASE + i * WHEEL_STRIDE;
-      slip +=
-        Math.abs(frame[p + W.FX] * (frame[p + W.OMEGA] * 0.335 - speed)) +
-        Math.abs(frame[p + W.FY] * Math.tan(frame[p + W.ANGLE]) * speed);
+      slip += frame[p + W.SLIP_POWER];
       water += frame[p + W.WATER];
       surface += frame[p + W.SURFACE] >= 2 && frame[p + W.SURFACE] <= 4 ? 1 : 0;
     }
@@ -181,11 +178,7 @@ export class RacingAudio {
     set(this.water!.gain, Math.min(0.2, water * speed * 0.001));
     set(this.surface!.gain, Math.min(0.2, surface * speed * 0.001));
     set(this.hybrid!.frequency, 1100 + speed * 27);
-    set(
-      this.hybridGain!.gain,
-      frame[b + F.BATTERY] < this.previousBattery && frame[b + F.THROTTLE] > 0.5 ? 0.025 : 0.003,
-    );
-    this.previousBattery = frame[b + F.BATTERY];
+    set(this.hybridGain!.gain, 0.003 + 0.022 * clamp(frame[b + F.MOTOR_POWER] / 120000, 0, 1));
     const impact = frame[b + F.IMPACT];
     if (impact > this.previousImpact + 0.05 || frame[b + F.GEAR] !== this.previousGear) {
       this.impact!.gain.cancelScheduledValues(time);

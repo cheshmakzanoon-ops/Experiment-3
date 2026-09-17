@@ -3,10 +3,22 @@ import { AIDriver } from './ai.ts';
 import { wakeOverlap } from './aero.ts';
 import { CollisionSolver } from './collision.ts';
 import { COMPOUNDS, type Controls, type SessionOptions, validateOptions } from './config.ts';
-import { CAR_STRIDE, F, H, HEADER, W, WHEEL_BASE, WHEEL_STRIDE, carBase } from './protocol.ts';
+import {
+  CAR_STRIDE,
+  DEBRIS_BASE,
+  DEBRIS_STRIDE,
+  F,
+  H,
+  HEADER,
+  W,
+  WHEEL_BASE,
+  WHEEL_STRIDE,
+  carBase,
+} from './protocol.ts';
 import { PHASE, RaceDirector, updatePit } from './race.ts';
 import { Track } from './track.ts';
 import { Vehicle } from './vehicle.ts';
+const COMPOUND_IDS = Object.keys(COMPOUNDS);
 export class Simulation {
   readonly options: SessionOptions;
   readonly track: Track;
@@ -93,6 +105,8 @@ export class Simulation {
     this.race.step(dt);
   }
   writeFrame(out: Float32Array, stepMs = 0, dropped = 0) {
+    if (out.length !== HEADER + this.cars.length * CAR_STRIDE)
+      throw new Error('Invalid snapshot buffer');
     out[H.TIME] = this.race.time;
     out[H.PHASE] = this.race.phase;
     out[H.RACE_TIME] = this.race.raceTime;
@@ -107,64 +121,93 @@ export class Simulation {
     out[H.TICK] = this.tick;
     out[H.CARS] = this.cars.length;
     out[H.LENGTH] = this.track.length;
-    const compounds = Object.keys(COMPOUNDS);
     for (let id = 0; id < this.cars.length; id++) {
       const c = this.cars[id],
         b = c.body,
         t = this.race.laps[id],
         o = carBase(id),
         q = b.orientation;
-      const values = [
-        b.position.x,
-        b.position.y,
-        b.position.z,
-        q.x,
-        q.y,
-        q.z,
-        q.w,
-        b.velocity.x,
-        b.velocity.y,
-        b.velocity.z,
-        b.omega.x,
-        b.omega.y,
-        b.omega.z,
-        c.speed,
-        c.steer,
-        c.rpm,
-        c.gear,
-        c.throttle,
-        c.brake,
-        c.fuel,
-        c.battery,
-        c.aero.front + c.aero.floor * 0.46,
-        c.aero.rear + c.aero.floor * 0.54,
-        c.aero.drag,
-        c.frontHealth,
-        c.floorHealth,
-        c.rearHealth,
-        c.s,
-        c.lateral,
-        t.completed,
-        t.lapTime,
-        t.best,
-        t.last,
-        t.penalty,
-        c.pitPhase,
-        Number(c.inPit),
-        c.aiTarget,
-        c.gLong,
-        c.gLat,
-        c.gVert,
-        this.race.order.indexOf(id) + 1,
-        c.finishTime,
-        c.wake,
-        c.tires.reduce((sum, w) => sum + w.energy, 0),
-        c.bottomEnergy,
-        c.impact,
-        compounds.indexOf(c.tires[0].compound),
-        c.pitStops,
-      ];
-      out.set(values, o);
+      out[o + F.X] = b.position.x;
+      out[o + F.Y] = b.position.y;
+      out[o + F.Z] = b.position.z;
+      out[o + F.QX] = q.x;
+      out[o + F.QY] = q.y;
+      out[o + F.QZ] = q.z;
+      out[o + F.QW] = q.w;
+      out[o + F.VX] = b.velocity.x;
+      out[o + F.VY] = b.velocity.y;
+      out[o + F.VZ] = b.velocity.z;
+      out[o + F.WX] = b.omega.x;
+      out[o + F.WY] = b.omega.y;
+      out[o + F.WZ] = b.omega.z;
+      out[o + F.SPEED] = c.speed;
+      out[o + F.STEER] = c.steer;
+      out[o + F.RPM] = c.rpm;
+      out[o + F.GEAR] = c.gear;
+      out[o + F.THROTTLE] = c.throttle;
+      out[o + F.BRAKE] = c.brake;
+      out[o + F.FUEL] = c.fuel;
+      out[o + F.BATTERY] = c.battery;
+      out[o + F.AERO_FRONT] = c.aero.front + c.aero.floor * 0.46;
+      out[o + F.AERO_REAR] = c.aero.rear + c.aero.floor * 0.54;
+      out[o + F.DRAG] = c.aero.drag;
+      out[o + F.FRONT_HEALTH] = c.frontHealth;
+      out[o + F.FLOOR_HEALTH] = c.floorHealth;
+      out[o + F.REAR_HEALTH] = c.rearHealth;
+      out[o + F.S] = c.s;
+      out[o + F.LATERAL] = c.lateral;
+      out[o + F.LAPS] = t.completed;
+      out[o + F.LAP_TIME] = t.lapTime;
+      out[o + F.BEST_LAP] = t.best;
+      out[o + F.LAST_LAP] = t.last;
+      out[o + F.PENALTY] = t.penalty;
+      out[o + F.PIT_PHASE] = c.pitPhase;
+      out[o + F.IN_PIT] = Number(c.inPit);
+      out[o + F.AI_TARGET] = c.aiTarget;
+      out[o + F.G_LONG] = c.gLong;
+      out[o + F.G_LAT] = c.gLat;
+      out[o + F.G_VERT] = c.gVert;
+      out[o + F.RANK] = this.race.order.indexOf(id) + 1;
+      out[o + F.FINISH] = c.finishTime;
+      out[o + F.WAKE] = c.wake;
+      out[o + F.SLIP_ENERGY] = c.tires.reduce((sum, w) => sum + w.energy, 0);
+      out[o + F.BOTTOM_ENERGY] = c.bottomEnergy;
+      out[o + F.IMPACT] = c.impact;
+      out[o + F.COMPOUND] = COMPOUND_IDS.indexOf(c.tires[0].compound);
+      out[o + F.PIT_STOPS] = c.pitStops;
+      out[o + F.MOTOR_POWER] = c.motorPower;
+      out[o + F.REGEN_POWER] = c.regenerationPower;
+      out[o + F.FRONT_RIDE] = c.frontRideHeight;
+      out[o + F.REAR_RIDE] = c.rearRideHeight;
+      out[o + F.BRAKE_BIAS] = c.setup.brakeBias;
+      out[o + F.DIFF_POWER] = c.setup.diffPower;
+      out[o + F.DIFF_COAST] = c.setup.diffCoast;
+      out[o + F.ERS_MODE] = c.input.ers;
+      out[o + F.JACK_HEIGHT] = c.jackHeight;
+      out[o + F.SIDEPOD_HEALTH] = c.sidepodHealth;
+      out[o + F.LOST_MASS] = c.lostMass;
+      out[o + F.SUSPENSION_DAMAGE] = c.suspensionDamage;
+      out[o + F.SECTOR] = t.sector;
+      out[o + F.SECTOR_1] = t.sectors[0];
+      out[o + F.SECTOR_2] = t.sectors[1];
+      out[o + F.SECTOR_3] = t.sectors[2];
+      out[o + F.LAP_VALID] = Number(t.valid);
+      out[o + F.WARNINGS] = t.warnings;
+      out[o + F.PIT_YIELDING] = Number(c.pitYielding);
+      out[o + F.RETIRED] = Number(c.retired);
+      out[o + F.MASS] = c.body.mass;
+      for (let i = 0; i < c.debris.pieces.length; i++) {
+        const piece = c.debris.pieces[i],
+          p = o + DEBRIS_BASE + i * DEBRIS_STRIDE;
+        out[p] = piece.kind;
+        out[p + 1] = piece.position.x;
+        out[p + 2] = piece.position.y;
+        out[p + 3] = piece.position.z;
+        out[p + 4] = piece.rotation;
+        out[p + 5] = piece.age;
+        out[p + 6] = piece.mass;
+        out[p + 7] = Number(piece.active);
+      }
       for (let i = 0; i < 4; i++) {
         const w = c.tires[i],
           p = o + WHEEL_BASE + i * WHEEL_STRIDE;
@@ -184,6 +227,14 @@ export class Simulation {
         out[p + W.SURFACE] = w.surface;
         out[p + W.ROTATION] = w.rotation;
         out[p + W.FLAT] = w.flatSpot;
+        out[p + W.PRESSURE] = w.pressure;
+        out[p + W.RADIUS] = w.radius;
+        out[p + W.BLISTERING] = w.blistering;
+        out[p + W.GRAINING] = w.graining;
+        out[p + W.PUNCTURED] = Number(w.punctured);
+        out[p + W.SUSPENSION_DAMAGE] = c.cornerDamage[i];
+        out[p + W.SLIP_POWER] = w.energy;
+        out[p + W.LENGTH] = w.length;
       }
     }
     return out;
@@ -192,5 +243,3 @@ export class Simulation {
     return this.writeFrame(new Float32Array(HEADER + this.cars.length * CAR_STRIDE));
   }
 }
-// Export field constants through protocol.ts; keep the simulation renderer-free.
-void F;

@@ -1,6 +1,7 @@
 /// <reference lib="webworker" />
 import { FixedStepper } from '../core/math.ts';
 import { CAR_STRIDE, HEADER, type FromWorker, type ToWorker } from '../simulation/protocol.ts';
+import { TelemetrySampler } from '../storage/telemetry-sampler.ts';
 import { Simulation } from '../simulation/world.ts';
 import { controls } from '../simulation/config.ts';
 const scope = self as unknown as DedicatedWorkerGlobalScope;
@@ -11,6 +12,7 @@ let simulation: Simulation | null = null,
   stepMs = 0;
 const clock = new FixedStepper();
 let pool: ArrayBuffer[] = [];
+let telemetry: TelemetrySampler | null = null;
 let lastSent = -1,
   lastSurface = -1;
 const send = (msg: FromWorker, transfer: Transferable[] = []) => scope.postMessage(msg, transfer);
@@ -26,6 +28,12 @@ scope.onmessage = (event: MessageEvent<ToWorker>) => {
     switch (msg.type) {
       case 'init':
         simulation = new Simulation(msg.options);
+        telemetry = new TelemetrySampler(
+          simulation,
+          (buffer, rows) => send({ type: 'telemetry', buffer, rows }, [buffer]),
+          (message) => send({ type: 'recordingWarning', message }),
+          (buffer, rows) => send({ type: 'replayFrames', buffer, rows }, [buffer]),
+        );
         clock.reset();
         paused = true;
         previous = performance.now();
@@ -47,6 +55,8 @@ scope.onmessage = (event: MessageEvent<ToWorker>) => {
         previous = performance.now();
         lastInput = previous;
         if (paused) {
+          telemetry?.flush();
+          telemetry?.flushReplay();
           simulation?.setInput(controls());
           snapshot();
         }
@@ -56,6 +66,12 @@ scope.onmessage = (event: MessageEvent<ToWorker>) => {
         break;
       case 'autopilot':
         if (simulation) simulation.autoPlayer = msg.value;
+        break;
+      case 'recycleReplay':
+        telemetry?.recycleReplay(msg.buffer);
+        break;
+      case 'recycleTelemetry':
+        telemetry?.recycle(msg.buffer);
         break;
       case 'recycle':
         if (
@@ -80,7 +96,10 @@ setInterval(() => {
     if (now - lastInput > 750) simulation.setInput({ ...controls(), brake: 0.4 });
     const start = performance.now(),
       before = clock.ticks;
-    clock.advance(elapsed, (dt) => simulation!.step(dt));
+    clock.advance(elapsed, (dt) => {
+      simulation!.step(dt);
+      telemetry?.capture(stepMs, clock.droppedSeconds);
+    });
     const count = clock.ticks - before;
     if (count) stepMs = stepMs * 0.9 + ((performance.now() - start) / count) * 0.1;
     if (simulation.tick - lastSent >= 2) {
@@ -90,7 +109,11 @@ setInterval(() => {
     if (simulation.tick - lastSurface >= 60) {
       const water = simulation.track.water.slice(),
         rubber = simulation.track.rubber.slice();
-      send({ type: 'surface', water, rubber }, [water.buffer, rubber.buffer]);
+      telemetry?.flushReplay();
+      send({ type: 'surface', water, rubber, time: simulation.race.time }, [
+        water.buffer,
+        rubber.buffer,
+      ]);
       lastSurface = simulation.tick;
     }
   } catch (error) {

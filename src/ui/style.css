@@ -1397,3 +1397,15 @@ dialog:has(#settingsForm) {
     animation-duration: 3s;
   }
 }
+
+/* Preserve the physical steering-display sightline rather than drawing a second
+   full dashboard over it. Dense desktop telemetry sits beside the cockpit. */
+@media (min-width: 1100px) and (min-height: 760px) {
+  .hud[data-camera='cockpit'] .instruments {
+    left: 26px;
+    top: 34%;
+    bottom: auto;
+    transform-origin: top left;
+    transform: scale(calc(var(--scale) * 0.72));
+  }
+}

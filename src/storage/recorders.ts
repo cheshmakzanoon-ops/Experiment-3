@@ -8,6 +8,8 @@ import {
   WHEEL_STRIDE,
   carBase,
 } from '../simulation/protocol.ts';
+import { CHANNELS, packTelemetry, telemetryCsv } from './telemetry-schema.ts';
+export { TELEMETRY_FIELDS } from './telemetry-schema.ts';
 import { clamp } from '../core/math.ts';
 const REPLAY_FIELDS = [
   F.X,
@@ -139,87 +141,23 @@ export class ReplayRecorder {
     return this.data.byteLength;
   }
 }
-export const TELEMETRY_FIELDS = [
-  F.SPEED,
-  F.THROTTLE,
-  F.BRAKE,
-  F.STEER,
-  F.GEAR,
-  F.RPM,
-  F.G_LONG,
-  F.G_LAT,
-  F.FUEL,
-  F.BATTERY,
-  F.AERO_FRONT,
-  F.AERO_REAR,
-  F.DRAG,
-  F.FRONT_HEALTH,
-  F.REAR_HEALTH,
-  F.FLOOR_HEALTH,
-  F.WAKE,
-];
-const CHANNELS = [
-  'time_s',
-  'distance_m',
-  'lap',
-  'speed_mps',
-  'throttle',
-  'brake',
-  'steering_rad',
-  'gear',
-  'rpm',
-  'longitudinal_g',
-  'lateral_g',
-  'fuel_kg',
-  'battery_J',
-  'front_aero_N',
-  'rear_aero_N',
-  'drag_N',
-  'front_health',
-  'rear_health',
-  'floor_health',
-  'wake',
-];
-for (const wheel of ['FL', 'FR', 'RL', 'RR'])
-  for (const channel of [
-    'load_N',
-    'slip_ratio',
-    'slip_angle_rad',
-    'surface_C',
-    'carcass_C',
-    'wear',
-    'disc_C',
-    'compression_m',
-  ])
-    CHANNELS.push(`${wheel}_${channel}`);
-const TF = [
-  W.LOAD,
-  W.SLIP,
-  W.ANGLE,
-  W.SURFACE_TEMP,
-  W.CARCASS_TEMP,
-  W.WEAR,
-  W.DISC_TEMP,
-  W.COMPRESSION,
-];
 export class TelemetryRecorder {
   readonly stride = CHANNELS.length;
-  readonly capacity = 60 * 900;
-  private data = new Float32Array(this.capacity * this.stride);
+  readonly capacity: number;
+  private data: Float32Array;
+  constructor(seconds = 900) {
+    if (!Number.isFinite(seconds) || seconds < 1 || seconds > 3600)
+      throw new Error('Invalid telemetry capacity');
+    this.capacity = Math.ceil(60 * seconds);
+    this.data = new Float32Array(this.capacity * this.stride);
+  }
   count = 0;
   head = 0;
   private last = -1;
   append(frame: Float32Array) {
     if (frame[H.TICK] === this.last) return;
     this.last = frame[H.TICK];
-    let p = this.head * this.stride;
-    const b = carBase(0);
-    this.data[p++] = frame[H.RACE_TIME];
-    this.data[p++] = frame[b + F.S];
-    this.data[p++] = frame[b + F.LAP_TIME] > 0 ? frame[b + F.LAPS] : -1;
-    for (const f of TELEMETRY_FIELDS) this.data[p++] = frame[b + f];
-    for (let w = 0; w < 4; w++)
-      for (const f of TF) this.data[p++] = frame[b + WHEEL_BASE + w * WHEEL_STRIDE + f];
+    packTelemetry(frame, this.data, this.head * this.stride);
     this.head = (this.head + 1) % this.capacity;
     this.count = Math.min(this.count + 1, this.capacity);
   }
@@ -229,18 +167,29 @@ export class TelemetryRecorder {
   at(index: number, column: number) {
     return this.data[this.offset(index) + column];
   }
-  csv() {
-    const chunks: string[] = [CHANNELS.join(',') + '\n'];
-    for (let start = 0; start < this.count; start += 500) {
-      let text = '';
-      for (let i = start; i < Math.min(this.count, start + 500); i++) {
-        const p = this.offset(i);
-        text +=
-          Array.from(this.data.subarray(p, p + this.stride), (v) => v.toFixed(5)).join(',') + '\n';
-      }
-      chunks.push(text);
+  appendBatch(batch: Float32Array, rows: number) {
+    if (!Number.isInteger(rows) || rows < 0 || rows * this.stride > batch.length)
+      throw new Error('Invalid telemetry batch');
+    for (let row = 0; row < rows; row++) {
+      this.data.set(
+        batch.subarray(row * this.stride, (row + 1) * this.stride),
+        this.head * this.stride,
+      );
+      this.head = (this.head + 1) % this.capacity;
+      this.count = Math.min(this.count + 1, this.capacity);
     }
-    return new Blob(chunks, { type: 'text/csv;charset=utf-8' });
+  }
+  snapshot() {
+    const values = new Float32Array(this.count * this.stride);
+    for (let row = 0; row < this.count; row++)
+      values.set(
+        this.data.subarray(this.offset(row), this.offset(row) + this.stride),
+        row * this.stride,
+      );
+    return values;
+  }
+  csv() {
+    return telemetryCsv(this.snapshot(), this.count);
   }
   draw(canvas: HTMLCanvasElement, lapComparison = false) {
     const c = canvas.getContext('2d');

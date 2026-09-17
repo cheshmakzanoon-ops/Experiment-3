@@ -5,7 +5,7 @@ This ledger follows the numbered sections of the supplied directive. “Implemen
 | Section | Topic | Delivery status |
 |---:|---|---|
 | 1 | NON-NEGOTIABLE ENGINEERING PHILOSOPHY | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
-| 2 | THREE-PASS RULE | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+| 2 | THREE-PASS RULE | OPEN: functional and focused validation passes exist; three complete passes for every subsystem are not certified. |
 | 3 | REQUIRED TECH STACK | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 4 | REPOSITORY STRUCTURE | Equivalent ownership boundaries in a smaller module tree; not the exact requested directory layout. |
 | 5 | GAME LOOP | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
@@ -13,7 +13,7 @@ This ledger follows the numbered sections of the supplied directive. “Implemen
 | 7 | RIGID BODY STATE | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 8 | FORCE ACCUMULATION | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 9 | INTEGRATOR | Semi-implicit integration and normalized quaternion; no advanced symplectic rotational solver. |
-| 10 | WHEEL CONTACT MODEL | Four suspension rays against an analytic ribbon; no tire contact-patch mesh. |
+| 10 | WHEEL CONTACT MODEL | BVH triangle ribbon queries along suspension axes, shared seam normals, contact tests; contact-patch/multibody refinement remains. |
 | 11 | SUSPENSION CORNER | Spring/damper/ARB/bump stop; no unsprung-body multibody model. |
 | 12 | TIRE MODEL | Nonlinear approximate tire curves; no experimentally fitted commercial tire dataset. |
 | 13 | SLIP RATIO | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
@@ -51,23 +51,23 @@ This ledger follows the numbered sections of the supplied directive. “Implemen
 | 45 | AI RACING LINE | Pure-pursuit offset racing line; no globally optimized minimum-time trajectory. |
 | 46 | AI OVERTAKING | Lane selection/commitment, following envelope and side protection. |
 | 47 | AI DEFENSE | Side-by-side protection, not a fully strategic defensive behavior tree. |
-| 48 | COLLISION PREDICTION | Longitudinal preview and corridor checks, not continuous swept-volume prediction. |
-| 49 | AI PERSONALITIES | Small deterministic skill differences; not a rich personality model. |
+| 48 | COLLISION PREDICTION | Swept track-coordinate trajectory/corridor prediction with lane commitment and pit merging; adversarial racecraft validation remains open. |
+| 49 | AI PERSONALITIES | Seeded personality parameters and tactical risk/headway differences; not all requested traits have full behavioral effects. |
 | 50 | AI ERROR MODEL | Emergent errors, not a calibrated driver-error stochastic model. |
-| 51 | COLLISION SYSTEM | Two-capsule chassis approximation; not arbitrary mesh contact. |
+| 51 | COLLISION SYSTEM | Sweep-and-prune broad phase, 15-axis oriented chassis boxes, rotational normal/friction impulses, barrier corners; wheel/convex manifold refinement remains. |
 | 52 | DAMAGE ENERGY | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
-| 53 | DAMAGE PHYSICS | Wing/floor/suspension changes; no detached-part or full crash deformation simulation. |
+| 53 | DAMAGE PHYSICS | Contact-localized suspension damage, puncture radius/pressure/grip, wing/floor aero loss, bounded physical and rendered fragments, repair mass bookkeeping. Full crash deformation is not claimed. |
 | 54 | RENDER PIPELINE | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 55 | PBR | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
-| 56 | CARBON FIBER SHADER | Procedural woven PBR texture, not a dedicated anisotropic carbon BSDF. |
+| 56 | CARBON FIBER SHADER | Dedicated band-limited carbon roughness and micro-normal GLSL, browser shader tests passed at the rendering checkpoint. |
 | 57 | WET ROAD SHADER | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
-| 58 | REFLECTIONS | Generated environment reflections; no SSR, ray tracing or live mirrors. |
+| 58 | REFLECTIONS | Real rear-view camera targets and budgeted local cube reflection probe. No SSR or ray tracing; those techniques are alternatives in the directive. |
 | 59 | SHADOWS | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 60 | LIGHTING | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 61 | ATMOSPHERE | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 62 | MOTION BLUR | Not implemented: no object/camera motion blur. |
 | 63 | SPEED PERCEPTION | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
-| 64 | CAMERA DYNAMICS | Damped positional cameras and acceleration offsets, not full six-axis camera dynamics. |
+| 64 | CAMERA DYNAMICS | Analytic critically damped local inertial cockpit offsets, independent heading filtering and chase translation feed-forward; 24–144 FPS regression coverage. |
 | 65 | COCKPIT CAMERA | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 66 | TRACKSIDE CAMERAS | Circuit-position trackside cameras; no director shot-selection system. |
 | 67 | PARTICLES | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
@@ -83,9 +83,9 @@ This ledger follows the numbered sections of the supplied directive. “Implemen
 | 77 | GAMEPAD STEERING | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 78 | KEYBOARD STEERING | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 79 | WHEEL INPUT | Gamepad-exposed axes/buttons, inversion/deadzone/response mapping. No native wheel force feedback. |
-| 80 | TELEMETRY DATA | Delivered player snapshots, normally 60 Hz; CSV timestamps preserve real capture gaps. |
-| 81 | TELEMETRY UI | Live plots, CSV and two-lap distance comparison; no full professional telemetry workstation. |
-| 82 | REPLAY SYSTEM | Bounded interpolated pose replay, not complete deterministic state reconstruction. |
+| 80 | TELEMETRY DATA | 176 actual-state telemetry channels captured at fixed 60 Hz in the physics worker, bounded transport/ring buffers and asynchronous CSV export. |
+| 81 | TELEMETRY UI | Speed/pedal traces and lap-distance comparison remain implemented. Broader selectable multi-channel graph presentation is still incomplete. |
+| 82 | REPLAY SYSTEM | 15 Hz all-car numeric pose pages, bounded resident IndexedDB replay cache, asynchronous seeking, original spatial water/rubber history, explicit recording failures. Permanent replay-library UI is not included. |
 | 83 | RACE DIRECTOR | Core starts/laps/penalties/classification; no safety car, formation laps or steward simulation. |
 | 84 | START LIGHTS | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 85 | LAP DETECTION | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
@@ -98,12 +98,12 @@ This ledger follows the numbered sections of the supplied directive. “Implemen
 | 92 | GRAPHICS SETTINGS | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 93 | PERFORMANCE BUDGET | Instrumented, but target-GPU performance is not certified. |
 | 94 | OBJECT ALLOCATION | Pooled snapshots/particles/recorders; small per-tick/per-frame allocations remain. |
-| 95 | LOD | Quality reduction and batching; explicit mesh LOD levels not implemented. |
+| 95 | LOD | Three separate car geometries with hysteresis and articulated wheels; player remains full detail. Track/prop spatial culling is implemented. |
 | 96 | INSTANCING | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 97 | TEXTURE MANAGEMENT | Locally generated small textures and mipmaps; no compressed asset atlas pipeline. |
 | 98 | ASSET STREAMING | Not implemented: no asynchronous external asset streaming, because all assets are generated. |
-| 99 | PHYSICS WORKER | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
-| 100 | AI WORKER | AI runs in the physics worker, not a second dedicated AI worker. |
+| 99 | PHYSICS WORKER | Fixed-step worker, transferable render/telemetry/pose buffers and explicit backpressure warnings. Full profiling remains open. |
+| 100 | AI WORKER | Strategic/tactical AI runs with the simulation inside the physics worker; a separate worker is an optional candidate, not an implemented independent thread. |
 | 101 | DEBUG OVERLAY | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 102 | VISUAL DEBUGGING | Contact-load arrows and numeric telemetry; not all requested overlays. |
 | 103 | UNIT TESTS | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
@@ -143,12 +143,12 @@ This ledger follows the numbered sections of the supplied directive. “Implemen
 | 137 | CONFIGURATION DATA | Central vehicle/setup data with some renderer/AI constants still local. |
 | 138 | NO MAGIC NUMBERS | Units and named core settings provided, but some local tuning constants remain. |
 | 139 | VERSIONED SAVES | Versioned preferences/setup and best laps; no mid-race checkpoint restore. |
-| 140 | DEVELOPMENT PHASES | Implemented as an integrated delivery rather than separate commits for every phase. |
-| 141 | THREE FINAL AUDITS | Acceptance target: see actual validation reports and stated limitations; no blanket claim of completion. |
-| 142 | ANTI-LAZINESS RULES | Acceptance target: see actual validation reports and stated limitations; no blanket claim of completion. |
-| 143 | PLACEHOLDER POLICY | Acceptance target: see actual validation reports and stated limitations; no blanket claim of completion. |
+| 140 | DEVELOPMENT PHASES | OPEN: development has not passed all thirty-one phase gates. |
+| 141 | THREE FINAL AUDITS | OPEN: the three complete final project audits have not been completed. |
+| 142 | ANTI-LAZINESS RULES | No success declaration from compilation or a single scenario. Full master completion remains open. |
+| 143 | PLACEHOLDER POLICY | Release-critical placeholder review must be repeated before final completion. |
 | 144 | COMMENTS | Acceptance target: see actual validation reports and stated limitations; no blanket claim of completion. |
 | 145 | CODE QUALITY | Acceptance target: see actual validation reports and stated limitations; no blanket claim of completion. |
-| 146 | FINAL REQUIRED SCENARIO | Acceptance target: see actual validation reports and stated limitations; no blanket claim of completion. |
-| 147 | FINAL QUALITY STANDARD | Acceptance target: see actual validation reports and stated limitations; no blanket claim of completion. |
-| 148 | FINAL OPERATING INSTRUCTION | Acceptance target: see actual validation reports and stated limitations; no blanket claim of completion. |
+| 146 | FINAL REQUIRED SCENARIO | OPEN: component and browser workflows cover portions; the complete combined final scenario has not passed as one end-to-end acceptance test. |
+| 147 | FINAL QUALITY STANDARD | OPEN: the complete final perceived-physics and visual quality standard is not certified. |
+| 148 | FINAL OPERATING INSTRUCTION | OPEN: iterative implementation and evidence continue; no full-spec completion declaration. |
