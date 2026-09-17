@@ -1,0 +1,65 @@
+name: Integrate validated source changes
+on:
+  push:
+    branches: [main]
+    paths: ['.github/pending-source.patch']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: apex-source-integration
+  cancel-in-progress: false
+jobs:
+  integrate:
+    if: github.repository == 'cheshmakzanoon-ops/Experiment-3'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: Validate source patch scope and apply
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f .github/pending-source.patch
+          git apply --check --recount .github/pending-source.patch
+          git apply --index --recount .github/pending-source.patch
+          python3 - <<'PY'
+          import pathlib, subprocess
+          paths = subprocess.check_output(['git','diff','--cached','--name-only','-z']).decode().split('\0')
+          roots = {'src','tests','scripts','e2e','docs','public'}
+          root_files = {'README.md','package.json','package-lock.json','index.html','tsconfig.json','vite.config.ts','vitest.config.ts','playwright.config.ts','eslint.config.js','.prettierrc.json','.gitignore'}
+          for name in filter(None, paths):
+              p = pathlib.PurePosixPath(name)
+              if p.is_absolute() or '..' in p.parts or (p.parts[0] not in roots and name not in root_files):
+                  raise SystemExit('Disallowed source path: '+name)
+          PY
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm run check
+      - run: npm run test:physics
+      - name: Publish tested source without overwriting concurrent changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          test "$(git rev-parse HEAD)" = "$(git rev-parse origin/main)"
+          git rm -- .github/pending-source.patch
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'feat: integrate tested APEX simulator source and regression coverage'
+          git push origin HEAD:main
+          echo "Published source commit: $(git rev-parse HEAD)" >> "$GITHUB_STEP_SUMMARY"
+      - name: Capture validation reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: source-integration-evidence
+          path: docs/scenario-results.json
+          retention-days: 7
