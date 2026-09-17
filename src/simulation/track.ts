@@ -1,3 +1,4 @@
+import { TrackContactMesh, kerbHeight } from './contact.ts';
 import { clamp, lerp, mod, smooth, Vec3, TAU } from '../core/math.ts';
 import type { WeatherPreset } from './config.ts';
 export const TRACK_NAME = 'AUREL / GRAND CIRCUIT',
@@ -96,6 +97,11 @@ export class Track {
   readonly temperature = new Float32Array(CELL_ROWS * CELL_COLS);
   readonly hash = new Map<string, number[]>();
   readonly length: number;
+  private contactMesh: TrackContactMesh | null = null;
+  cast(origin: Vec3, down: Vec3, maximum: number, out: SurfaceSample) {
+    this.contactMesh ??= new TrackContactMesh(this);
+    return this.contactMesh.cast(origin, down, maximum, out);
+  }
   private queryPoint = trackPoint();
   rain = 0;
   cloud = 0.12;
@@ -259,7 +265,7 @@ export class Track {
     } else if (a > p.width) {
       surface = SURFACE.KERB;
       grip = 0.91;
-      kerb = 0.025 + 0.016 * Math.sin((p.s * TAU) / 0.65);
+      kerb = kerbHeight(p.s, a - p.width);
     } else if (a > p.width - 0.18) {
       surface = SURFACE.PAINT;
       grip = 0.94;

@@ -87,6 +87,7 @@ export class Vehicle {
   private relativeAir = new Vec3();
   private surface = surfaceSample();
   private axis = new Vec3();
+  private down = new Vec3(0, -1, 0);
   constructor(
     readonly id: number,
     compound: Compound = 'medium',
@@ -197,12 +198,14 @@ export class Vehicle {
         hub = this.hubs[i],
         s = this.contacts[i];
       b.orientation.rotate(this.localPoint.set(pos[0], pos[1], pos[2]), origin).add(b.position);
-      track.sample(origin.x, origin.z, s);
+      this.down.copy(this.up).scale(-1);
+      const distance = track.cast(origin, this.down, 1.5, s);
+      if (!Number.isFinite(distance)) track.sample(origin.x, origin.z, s);
       const rest =
           VEHICLE.restLength + (i < 2 ? this.setup.frontRide - 0.065 : this.setup.rearRide - 0.075),
-        length = (origin.y - s.height - t.radius) / Math.max(this.up.y, 0.15);
+        length = distance - t.radius / Math.max(0.15, this.up.dot(s.normal));
       t.length = Math.min(rest + 0.05, Math.max(0.06, length));
-      t.compression = Math.max(0, rest - length);
+      t.compression = Number.isFinite(length) ? Math.max(0, rest - length) : 0;
       hub.copy(origin).addScaled(this.up, -t.length);
       this.point.set(hub.x, s.height, hub.z);
       b.pointVelocity(this.point, this.pointVelocities[i]);
