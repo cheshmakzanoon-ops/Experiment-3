@@ -47,6 +47,8 @@ export class GameApp {
   private ers: 0 | 1 | 2 = 1;
   private sentAt = 0;
   private previousTime = 0;
+  private renderedAt = 0;
+  private renderedState: State | null = null;
   private timer = 0;
   private generation = 0;
   private replay: ReplayRecorder | null = null;
@@ -286,6 +288,16 @@ export class GameApp {
       input.shift = 0;
       this.sentAt = time;
     }
+    // Menus and paused telemetry do not need a continuously saturated GPU.
+    // Input and worker clocks above remain independent of this presentation cap.
+    const idle =
+      this.state === 'menu' ||
+      this.state === 'loading' ||
+      this.state === 'paused' ||
+      this.state === 'results';
+    if (idle && this.renderedState === this.state && time - this.renderedAt < 1000 / 15) return;
+    this.renderedAt = time;
+    this.renderedState = this.state;
     let a = this.previous,
       b = this.current,
       alpha = clamp((time - this.receivedAt) / Math.max(8, (b[H.TIME] - a[H.TIME]) * 1000), 0, 1);
@@ -396,6 +408,7 @@ export class GameApp {
     else this.ui.pause();
   }
   private action(name: string) {
+    this.renderedState = null;
     switch (name) {
       case 'pause':
         if (this.state === 'driving') this.pause();
@@ -539,13 +552,14 @@ export class GameApp {
     console.error(error);
     this.ui.error(error instanceof Error ? error.message : String(error));
   }
-  diagnostics() {
+  diagnostics(visual = false) {
     return {
       state: this.state,
       auto: this.auto,
       options: this.options,
       frame: this.current ? Array.from(this.current) : null,
       renderer: this.renderer?.stats(),
+      visual: visual ? this.renderer?.visualDiagnostics() : null,
       replaySeconds: this.replay?.duration ?? 0,
       telemetrySamples: this.telemetry?.count ?? 0,
     };
@@ -562,11 +576,11 @@ export class GameApp {
 const app = new GameApp();
 // Read-only diagnostics are useful to automated browser tests and hardware profiling.
 Object.defineProperty(window, 'apexDiagnostics', {
-  value: () => app.diagnostics(),
+  value: (visual = false) => app.diagnostics(visual),
   writable: false,
 });
 declare global {
   interface Window {
-    apexDiagnostics: () => ReturnType<GameApp['diagnostics']>;
+    apexDiagnostics: (visual?: boolean) => ReturnType<GameApp['diagnostics']>;
   }
 }

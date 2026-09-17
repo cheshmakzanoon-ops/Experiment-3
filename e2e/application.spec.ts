@@ -43,7 +43,23 @@ test('browser session, cameras, pause safety, telemetry and replay', async ({ pa
     .toBeGreaterThan(15);
   await page.screenshot({ path: testInfo.outputPath('02-racing.png') });
   await page.keyboard.press('c');
-  await page.waitForTimeout(300);
+  await expect.poll(async () => (await diag(page)).renderer?.camera).toBe('cockpit');
+  await expect.poll(async () => (await diag(page)).renderer?.mirrorUpdates).toBeGreaterThan(2);
+  const visual = await page.evaluate(() => window.apexDiagnostics(true));
+  const eye = visual.renderer!.cameraLocalPosition;
+  expect(Math.abs(eye[0])).toBeLessThan(0.06);
+  expect(eye[1]).toBeGreaterThan(0.35);
+  expect(eye[1]).toBeLessThan(0.48);
+  expect(eye[2]).toBeGreaterThan(-0.56);
+  expect(eye[2]).toBeLessThan(-0.4);
+  expect(visual.visual!.screenVisible).toBe(true);
+  expect(Math.abs(visual.visual!.wheelProjection[0])).toBeLessThan(1);
+  expect(Math.abs(visual.visual!.wheelProjection[1])).toBeLessThan(1);
+  expect(visual.visual!.mirrors.every((mirror) => mirror.range > 5)).toBe(true);
+  await testInfo.attach('cockpit-diagnostics.json', {
+    body: JSON.stringify(visual, null, 2),
+    contentType: 'application/json',
+  });
   await page.screenshot({ path: testInfo.outputPath('03-cockpit.png') });
   await page.keyboard.press('Escape');
   await expect(page.getByRole('button', { name: 'RESUME SESSION' })).toBeVisible();
@@ -56,6 +72,25 @@ test('browser session, cameras, pause safety, telemetry and replay', async ({ pa
   await expect
     .poll(async () => (await diag(page)).frame?.[H.TICK])
     .toBeGreaterThan(paused.frame![H.TICK]);
+  expect(errors).toEqual([]);
+});
+test('recorded telemetry exports and replay leaves live physics paused', async ({
+  page,
+}, testInfo) => {
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  page.on('console', (m) => {
+    if (m.type() === 'error') errors.push(m.text());
+  });
+  await ready(page);
+  await page.getByRole('button', { name: 'GARAGE & SETTINGS', exact: true }).click();
+  await page.locator('[name=quality]').selectOption('low');
+  await page.getByRole('button', { name: 'APPLY & SAVE' }).click();
+  await begin(page);
+  await page.keyboard.press('g');
+  await expect
+    .poll(async () => (await diag(page)).telemetrySamples, { timeout: 60000 })
+    .toBeGreaterThan(60);
   await page.keyboard.press('t');
   await expect(page.locator('#telemetryModal')).toBeVisible();
   await page.screenshot({ path: testInfo.outputPath('04-telemetry.png') });
@@ -133,6 +168,32 @@ test('race start and chequered flag produce an actual result', async ({ page }, 
   expect(frame[carBase(0) + F.LAPS]).toBe(1);
   expect(frame[carBase(0) + F.BEST_LAP]).toBeGreaterThan(20);
   await page.screenshot({ path: testInfo.outputPath('08-results.png') });
+});
+
+test('high quality compiles shaders and renders a live local reflection', async ({
+  page,
+}, testInfo) => {
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  page.on('console', (m) => {
+    if (m.type() === 'error') errors.push(m.text());
+  });
+  await ready(page);
+  await page.getByRole('button', { name: 'GARAGE & SETTINGS', exact: true }).click();
+  await page.locator('[name=quality]').selectOption('high');
+  await page.getByRole('button', { name: 'APPLY & SAVE' }).click();
+  await begin(page);
+  await page.keyboard.press('c');
+  await expect
+    .poll(async () => (await diag(page)).renderer?.reflectionProbeUpdates, { timeout: 60000 })
+    .toBeGreaterThan(0);
+  await expect.poll(async () => (await diag(page)).renderer?.mirrorUpdates).toBeGreaterThan(0);
+  await page.screenshot({ path: testInfo.outputPath('09-high-cockpit.png') });
+  await testInfo.attach('high-quality-diagnostics.json', {
+    body: JSON.stringify(await page.evaluate(() => window.apexDiagnostics(true)), null, 2),
+    contentType: 'application/json',
+  });
+  expect(errors).toEqual([]);
 });
 
 test('manual right steering and live rear-view passes work without autopilot', async ({

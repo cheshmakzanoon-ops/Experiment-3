@@ -58,7 +58,9 @@ export class AIDriver {
         c.nextCompound = wet > 0.9 ? 'wet' : wet > 0.16 ? 'intermediate' : 'medium';
       }
     }
-    if (this.tacticalClock > 1 / 12) {
+    const entryGap = mod(track.length - 210 - c.s, track.length);
+    const preparingPit = c.pitRequested && !c.inPit && entryGap < 450;
+    if (this.tacticalClock > 1 / 12 && !c.inPit) {
       this.tacticalClock = 0;
       const grip = clamp(
         peakGrip(c.tires[0], 2500, c.contacts[0], Math.max(c.speed, 38)) / 1.82,
@@ -73,6 +75,7 @@ export class AIDriver {
         8.5 * grip,
         this.personality,
         race.flag === 'YELLOW',
+        preparingPit ? 6 : 0,
       );
       this.desiredOffset = plan.offset;
       this.trafficSpeed = plan.speedLimit;
@@ -124,7 +127,12 @@ export class AIDriver {
         ) * this.skill;
       desired = Math.min(desired, Math.sqrt(corner * corner + 2 * braking * d));
     }
-    desired = Math.min(desired, this.trafficSpeed);
+    if (!c.inPit) desired = Math.min(desired, this.trafficSpeed);
+    if (preparingPit)
+      desired = Math.min(
+        desired,
+        Math.sqrt(14 * 14 + 2 * braking * 0.85 * Math.max(0, entryGap - 30)),
+      );
     if (race.flag === 'YELLOW') desired *= 0.68;
     if (pit) {
       desired = Math.min(desired, 21.1);
@@ -208,6 +216,7 @@ export class AIDriver {
             ? 1
             : clamp((55 - gap) / 45, 0, 1)
           : 0;
-    return base + (-1.5 + service * 3.6) * clamp(base / 22, 0, 1);
+    const offset = base + (-1.5 + service * 3.6) * clamp(base / 22, 0, 1);
+    return s > track.length - 235 ? Math.max(6, offset) : offset;
   }
 }

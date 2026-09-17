@@ -68,6 +68,7 @@ export class Vehicle {
   sidepodHealth = 1;
   jackHeight = 0;
   pitYielding = false;
+  pitLastS = 0;
   motorPower = 0;
   regenerationPower = 0;
   impact = 0;
@@ -116,6 +117,7 @@ export class Vehicle {
     this.body.velocity.set(0, 0, 0);
     this.body.omega.set(0, 0, 0);
     this.s = s;
+    this.pitLastS = s;
     this.lateral = offset;
   }
   replaceTires(compound: Compound) {

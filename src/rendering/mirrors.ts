@@ -7,7 +7,7 @@ export class MirrorViews {
   readonly cameras = [0, 1].map(() => new T.PerspectiveCamera(42, 8 / 3, 0.03, 280));
   readonly targets = [0, 1].map(() => {
     const target = new T.WebGLRenderTarget(256, 96, {
-      type: T.HalfFloatType,
+      type: T.UnsignedByteType,
       depthBuffer: true,
       stencilBuffer: false,
       minFilter: T.LinearFilter,

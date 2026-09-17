@@ -169,7 +169,10 @@ export function updatePit(
   traffic: readonly Vehicle[] = [],
 ) {
   const box = 102 + car.id * 7;
-  if (car.pitRequested && !car.inPit && car.s > track.length - 210) {
+  const entry = track.length - 210;
+  const crossedEntry = car.pitLastS < entry && car.s >= entry && car.s - car.pitLastS < 15;
+  car.pitLastS = car.s;
+  if (car.pitRequested && !car.inPit && crossedEntry && car.lateral > 1.5) {
     car.inPit = true;
     car.pitPhase = 1;
   }

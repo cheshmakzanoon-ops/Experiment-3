@@ -1,4 +1,6 @@
 import * as T from 'three';
+import wetRoad from '../shaders/wetRoad.frag?raw';
+import { kerbHeight } from '../simulation/contact.ts';
 import { Track, CELL_ROWS, CELL_COLS, trackPoint } from '../simulation/track.ts';
 import { Random, clamp } from '../core/math.ts';
 import { batchScene, box, canvasTexture, label, mesh } from './geometry.ts';
@@ -68,11 +70,11 @@ export class CircuitScene {
       );
       shader.fragmentShader = shader.fragmentShader.replace(
         '#include <map_fragment>',
-        '#include <map_fragment>\nvec4 roadState=texture2D(trackState,vTrackUV); float wet=clamp(roadState.r*2.0,0.0,1.0); diffuseColor.rgb*=mix(1.0,0.55,wet)*(1.0-roadState.g*0.25);',
+        '#include <map_fragment>\n' + wetRoad,
       );
       shader.fragmentShader = shader.fragmentShader.replace(
         '#include <roughnessmap_fragment>',
-        '#include <roughnessmap_fragment>\nroughnessFactor=mix(roughnessFactor,0.16,wet);',
+        '#include <roughnessmap_fragment>\nroughnessFactor=mix(roughnessFactor,mix(0.23,0.10,puddle),wet);',
       );
     };
     const grass = new T.MeshStandardMaterial({ color: 0x69734d, roughness: 1 });
@@ -118,10 +120,15 @@ export class CircuitScene {
           track.at(s, this.temp);
           return side * (this.temp.width + t * 1.1);
         },
-        height: (s) => 0.025 + 0.016 * Math.sin((s * Math.PI * 2) / 0.65),
-        step: 0.26,
+        height: (s, l, t) => {
+          const pit = track.pitOffset(s);
+          return track.isPitSection(s) && pit > 3 && Math.abs(l - pit) < 3.6
+            ? 0
+            : kerbHeight(s, t * 1.1);
+        },
+        step: 0.16,
         stripes: true,
-        columns: 2,
+        columns: 6,
       });
       this.ribbon(white, {
         offset: (s, t) => {
@@ -178,7 +185,22 @@ export class CircuitScene {
     this.grid();
     batchScene(this.props, new Set(this.pitPeople));
   }
-  ribbon(material: T.Material, options: RibbonOptions) {
+  ribbon(material: T.Material, options: RibbonOptions): T.Mesh {
+    const begin = options.start ?? 0,
+      finish = options.end ?? this.track.length;
+    if (finish - begin > 80) {
+      let first: T.Mesh | undefined;
+      const pieces = Math.ceil((finish - begin) / 80);
+      for (let i = 0; i < pieces; i++) {
+        const part = this.ribbon(material, {
+          ...options,
+          start: begin + ((finish - begin) * i) / pieces,
+          end: begin + ((finish - begin) * (i + 1)) / pieces,
+        });
+        first ??= part;
+      }
+      return first!;
+    }
     const start = options.start ?? 0,
       end = options.end ?? this.track.length,
       rows = Math.ceil((end - start) / (options.step ?? 2)),

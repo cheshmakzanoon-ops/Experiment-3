@@ -133,6 +133,22 @@ const report = {
   passed: failures.length === 0,
   zeroImpact: records.every((r) => r.maximumImpact === 0),
   failures,
+  failureState: failures.length
+    ? sim.cars.map((c) => ({
+        id: c.id,
+        s: c.s,
+        lateral: c.lateral,
+        speed: c.speed,
+        pitPhase: c.pitPhase,
+        pitClock: c.pitClock,
+        target: c.aiTarget,
+        input: { ...c.input },
+        position: { ...c.body.position },
+        orientation: { ...c.body.orientation },
+        tires: c.tires.map((t) => ({ wear: t.wear, omega: t.omega, load: t.load })),
+        decision: sim.ai[c.id].decision,
+      }))
+    : undefined,
   cars: records,
 };
 writeFileSync(

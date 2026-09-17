@@ -125,31 +125,76 @@ export function label(text: string, bg = '#171d21', fg = '#f5eee2', w = 512, h =
 export function batchScene(root: T.Group, preserve: Set<T.Object3D>) {
   root.updateMatrixWorld(true);
   const inverse = root.matrixWorld.clone().invert(),
-    groups = new Map<T.Material, T.BufferGeometry[]>(),
+    groups = new Map<T.Material, Map<string, T.BufferGeometry[]>>(),
     remove: T.Mesh[] = [];
   root.traverse((o) => {
     if (!(o instanceof T.Mesh) || o instanceof T.InstancedMesh || Array.isArray(o.material)) return;
     for (let p: T.Object3D | null = o; p; p = p.parent) if (preserve.has(p)) return;
     const geometry = o.geometry.clone().applyMatrix4(inverse.clone().multiply(o.matrixWorld));
-    const list = groups.get(o.material);
+    // Spatial buckets preserve culling. A single material batch spanning the
+    // whole circuit otherwise submits every fence/sign in every camera pass.
+    geometry.computeBoundingBox();
+    const centre = geometry.boundingBox!.getCenter(new T.Vector3());
+    const cell = `${Math.floor(centre.x / 80)}:${Math.floor(centre.z / 80)}`;
+    let cells = groups.get(o.material);
+    if (!cells) {
+      cells = new Map();
+      groups.set(o.material, cells);
+    }
+    const list = cells.get(cell);
     if (list) list.push(geometry);
-    else groups.set(o.material, [geometry]);
+    else cells.set(cell, [geometry]);
     remove.push(o);
   });
   for (const o of remove) {
     o.removeFromParent();
     o.geometry.dispose();
   }
-  for (const [material, geometries] of groups) {
-    const normalized = geometries.map((g) => {
-      const out = g.index ? g.toNonIndexed() : g;
-      for (const key of Object.keys(out.attributes))
-        if (!['position', 'normal', 'uv'].includes(key)) out.deleteAttribute(key);
-      return out;
-    });
-    const merged = mergeGeometries(normalized, false);
-    if (merged) mesh(root, merged, material);
-    for (const g of normalized) g.dispose();
-    for (const g of geometries) g.dispose();
+  for (const [material, cells] of groups)
+    for (const geometries of cells.values()) {
+      const normalized = geometries.map((g) => {
+        const out = g.index ? g.toNonIndexed() : g;
+        for (const key of Object.keys(out.attributes))
+          if (!['position', 'normal', 'uv'].includes(key)) out.deleteAttribute(key);
+        return out;
+      });
+      const merged = mergeGeometries(normalized, false);
+      if (merged) mesh(root, merged, material);
+      for (const g of normalized) g.dispose();
+      for (const g of geometries) g.dispose();
+    }
+}
+
+/** Monocoque shell below an actual open cockpit. The upper arc is deliberately
+ * absent, not hidden by material tricks. +Z remains the vehicle nose direction. */
+export function cockpitShell() {
+  const sections = [
+    [-0.8, -0.01, 0.29, 0.25],
+    [-0.3, 0.02, 0.33, 0.25],
+    [0.1, 0.02, 0.33, 0.2],
+    [0.4, 0.025, 0.3, 0.17],
+  ];
+  const sides = 32,
+    positions: number[] = [],
+    uv: number[] = [],
+    indices: number[] = [];
+  for (let row = 0; row < sections.length; row++) {
+    const [z, y, width, height] = sections[row];
+    for (let j = 0; j <= sides; j++) {
+      const angle = Math.PI - 0.25 + ((Math.PI + 0.5) * j) / sides;
+      positions.push(Math.cos(angle) * width, y + Math.sin(angle) * height, z);
+      uv.push(j / sides, row / (sections.length - 1));
+      if (row < sections.length - 1 && j < sides) {
+        const a = row * (sides + 1) + j,
+          b = a + sides + 1;
+        indices.push(a, a + 1, b, a + 1, b + 1, b);
+      }
+    }
   }
+  const geometry = new T.BufferGeometry();
+  geometry.setAttribute('position', new T.Float32BufferAttribute(positions, 3));
+  geometry.setAttribute('uv', new T.Float32BufferAttribute(uv, 2));
+  geometry.setIndex(indices);
+  geometry.computeVertexNormals();
+  return geometry;
 }

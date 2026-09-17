@@ -36,7 +36,7 @@ export class TrafficPlanner {
   readonly result: TrafficPlan = { offset: 0, speedLimit: 110, decision: 'RACING LINE' };
   private heldOffset = 0;
   private holdUntil = 0;
-  private candidates = new Float64Array(5);
+  private candidates = new Float64Array(6);
   evaluate(
     car: Vehicle,
     cars: readonly Vehicle[],
@@ -45,6 +45,7 @@ export class TrafficPlanner {
     braking: number,
     traits: DriverPersonality,
     yellow: boolean,
+    preferredOffset = 0,
   ) {
     const result = this.result;
     const limit = Math.max(1, car.trackPosition.width - 2.4);
@@ -54,16 +55,25 @@ export class TrafficPlanner {
     this.candidates[2] = clamp(closest - 3.5, -limit, limit);
     this.candidates[3] = clamp(closest + 3.5, -limit, limit);
     this.candidates[4] = 0;
+    this.candidates[5] = clamp(preferredOffset, -limit, limit);
     let best = Infinity,
       bestOffset = this.candidates[0],
       found = false;
     for (const candidate of this.candidates) {
       if (yellow && Math.abs(candidate - closest) > 1.5) continue;
-      let score = Math.abs(candidate) * 0.22 + Math.abs(candidate - closest) * 0.6;
+      let score = Math.abs(candidate - preferredOffset) * 1.0 + Math.abs(candidate - closest) * 0.2;
       if (now < this.holdUntil && Math.abs(candidate - this.heldOffset) > 0.6) score += 6;
       let safe = true;
       for (const other of cars) {
-        if (other === car || other.inPit !== car.inPit) continue;
+        if (
+          other === car ||
+          (other.inPit !== car.inPit &&
+            !(
+              Math.abs(other.lateral) < other.trackPosition.width + 2.8 ||
+              (other.pitPhase === 6 && other.s > 250)
+            ))
+        )
+          continue;
         const gap = mod(other.s - car.s + track.length / 2, track.length) - track.length / 2;
         if (Math.abs(gap) > 180) continue;
         const closing = other.speed - car.speed;
@@ -76,7 +86,11 @@ export class TrafficPlanner {
         for (let t = 0.2; t <= 4; t += 0.4) {
           const dx = gap + closing * t;
           const ours = approach(closest, candidate, 1.6 * t);
-          const theirs = clamp(other.lateral + lateralVelocity * Math.min(t, 1.2), -limit, limit);
+          const theirs = other.inPit
+            ? other.pitPhase === 6
+              ? track.pitOffset(other.s + other.speed * t) * (20.5 / 22)
+              : Math.max(6, track.pitOffset(other.s + other.speed * t) * (20.5 / 22))
+            : other.lateral + lateralVelocity * Math.min(t, 1.2);
           const dy = Math.abs(theirs - ours);
           if (Math.abs(dx) < 6.5 + Math.min(4, t * 0.5) && dy < 2.75) {
             safe = false;
@@ -106,13 +120,21 @@ export class TrafficPlanner {
       this.holdUntil = now + 3;
     }
     for (const other of cars) {
-      if (other === car || other.inPit !== car.inPit) continue;
+      if (
+        other === car ||
+        (other.inPit !== car.inPit &&
+          !(
+            Math.abs(other.lateral) < other.trackPosition.width + 2.8 ||
+            (other.pitPhase === 6 && other.s > 250)
+          ))
+      )
+        continue;
       const gap = mod(other.s - car.s + track.length / 2, track.length) - track.length / 2;
       if (gap <= 0 || gap > 180) continue;
       const corridor =
         Math.abs(other.lateral - car.lateral) < 3 || Math.abs(other.lateral - result.offset) < 3;
       if (!corridor) continue;
-      const reserve = 7 + car.speed * (0.28 + 0.12 * (1 - traits.consistency));
+      const reserve = 7 + car.speed * (0.45 + 0.12 * (1 - traits.consistency));
       const safeSpeed = Math.sqrt(
         Math.max(0, other.speed * other.speed + 2 * Math.max(1, braking * 0.72) * (gap - reserve)),
       );

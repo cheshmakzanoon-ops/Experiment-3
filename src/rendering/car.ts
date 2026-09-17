@@ -1,5 +1,17 @@
 import * as T from 'three';
-import { box, canvasTexture, label, loft, mergeStatic, mesh, rod, tube } from './geometry.ts';
+import { carbonMaterial } from './materials.ts';
+import { ReducedCar, carLod } from './lod.ts';
+import {
+  box,
+  canvasTexture,
+  label,
+  loft,
+  cockpitShell,
+  mergeStatic,
+  mesh,
+  rod,
+  tube,
+} from './geometry.ts';
 import { COMPOUNDS, LIVERIES } from '../simulation/config.ts';
 import { F, W, WHEEL_BASE, WHEEL_STRIDE } from '../simulation/protocol.ts';
 import { WHEEL_POSITIONS } from '../simulation/vehicle.ts';
@@ -8,6 +20,9 @@ export class FormulaCar {
   readonly root = new T.Group();
   readonly mirrors: T.Mesh[] = [];
   readonly staticBody = new T.Group();
+  private highDetail = new T.Group();
+  private reduced: ReducedCar[] = [];
+  lodLevel = 0;
   readonly frontWing = new T.Group();
   readonly rearWing = new T.Group();
   readonly wheelPivots: T.Group[] = [];
@@ -39,18 +54,7 @@ export class FormulaCar {
       clearcoat: 1,
       clearcoatRoughness: 0.16,
     });
-    const carbonMap = canvasTexture(128, 128, (c) => {
-      c.fillStyle = '#1b2023';
-      c.fillRect(0, 0, 128, 128);
-      for (let y = 0; y < 128; y += 4)
-        for (let x = 0; x < 128; x += 4) {
-          c.fillStyle = ((x + y) / 4) % 2 ? '#252b2e' : '#14191c';
-          c.fillRect(x, y, 3, 3);
-        }
-    });
-    carbonMap.wrapS = carbonMap.wrapT = T.RepeatWrapping;
-    carbonMap.repeat.set(6, 6);
-    const carbon = new T.MeshStandardMaterial({ map: carbonMap, metalness: 0.25, roughness: 0.53 });
+    const carbon = carbonMaterial();
     const dark = new T.MeshStandardMaterial({ color: 0x101416, roughness: 0.75 });
     const metal = new T.MeshStandardMaterial({ color: 0x7c8589, metalness: 0.88, roughness: 0.3 });
     const ivory = new T.MeshPhysicalMaterial({
@@ -74,10 +78,7 @@ export class FormulaCar {
     mesh(
       s,
       loft([
-        [-1.2, -0.1, 0.12, 0.1],
-        [-0.7, -0.01, 0.3, 0.28],
-        [-0.3, 0.02, 0.33, 0.25],
-        [0.1, 0.02, 0.33, 0.2],
+        [0.4, 0.025, 0.3, 0.17],
         [0.52, 0.025, 0.29, 0.16],
         [1.15, -0.025, 0.23, 0.12],
         [1.9, -0.14, 0.115, 0.075],
@@ -86,6 +87,9 @@ export class FormulaCar {
       ]),
       this.paint,
     );
+    mesh(s, cockpitShell(), this.paint);
+    box(s, dark, 0, -0.24, -0.14, 0.5, 0.08, 1.02);
+    box(s, dark, 0, -0.02, -0.6, 0.44, 0.45, 0.09);
     for (const sign of [-1, 1]) {
       const pod = mesh(
         s,
@@ -179,16 +183,11 @@ export class FormulaCar {
       mirror.scale.set(0.12, 0.05, 0.075);
       const glass = mesh(
         this.root,
-        new T.PlaneGeometry(0.18, 0.065),
-        new T.MeshStandardMaterial({
-          color: 0xa9c3c8,
-          metalness: 1,
-          roughness: 0.06,
-          side: T.DoubleSide,
-        }),
+        new T.PlaneGeometry(0.195, 0.069),
+        new T.MeshBasicMaterial({ color: 0xd4dde0 }),
         sign * 0.64,
         0.3,
-        0.4,
+        0.377,
       );
       glass.rotation.y = Math.PI;
       glass.name = sign < 0 ? 'Right rear-view mirror' : 'Left rear-view mirror';
@@ -477,6 +476,20 @@ export class FormulaCar {
     mergeStatic(s);
     mergeStatic(this.frontWing);
     mergeStatic(this.rearWing);
+    const highChildren = [...this.root.children];
+    this.root.add(this.highDetail);
+    this.highDetail.add(...highChildren);
+    for (const level of [1, 2] as const) {
+      const reduced = new ReducedCar(level, this.paint, carbon, dark);
+      this.reduced.push(reduced);
+      reduced.root.visible = false;
+      this.root.add(reduced.root);
+    }
+  }
+  setLod(distance: number, quality: 'low' | 'medium' | 'high', player: boolean) {
+    this.lodLevel = carLod(distance, this.lodLevel, quality, player);
+    this.highDetail.visible = this.lodLevel === 0;
+    this.reduced.forEach((car, index) => (car.root.visible = this.lodLevel === index + 1));
   }
   update(
     a: Float32Array,
@@ -495,6 +508,18 @@ export class FormulaCar {
     this.qa.set(a[o + F.QX], a[o + F.QY], a[o + F.QZ], a[o + F.QW]);
     this.qb.set(b[o + F.QX], b[o + F.QY], b[o + F.QZ], b[o + F.QW]);
     this.root.quaternion.copy(this.qa).slerp(this.qb, t);
+    if (this.lodLevel > 0) {
+      const reduced = this.reduced[this.lodLevel - 1];
+      for (let i = 0; i < 4; i++) {
+        const p = o + WHEEL_BASE + i * WHEEL_STRIDE;
+        reduced.wheels[i].position.y = -0.2 + b[p + W.COMPRESSION];
+        reduced.wheels[i].rotation.y = i < 2 ? b[o + F.STEER] : 0;
+        reduced.spins[i].rotation.x = b[p + W.ROTATION];
+      }
+      reduced.front.visible = b[o + F.FRONT_HEALTH] > 0.08;
+      reduced.rear.visible = b[o + F.REAR_HEALTH] > 0.08;
+      return;
+    }
     this.steering.rotation.z = -b[o + F.STEER] * 2.2;
     this.helmet.visible = !cockpit;
     const compound = Object.values(COMPOUNDS)[Math.round(b[o + F.COMPOUND])] ?? COMPOUNDS.medium;

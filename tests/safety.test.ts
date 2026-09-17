@@ -104,21 +104,44 @@ describe('pit traffic gates', () => {
       other = new Vehicle(1);
     c.inPit = true;
     c.pitPhase = 6;
-    c.s = 235;
+    c.s = 265;
     c.speed = 12;
-    other.s = 130;
+    other.s = track.length - 10;
     other.speed = 70;
     expect(pitMergeConflict(c, [c, other], track)).toBe(true);
     expect(pitYieldSpeed(c, true, 5)).toBeLessThan(6);
     other.s = 350;
     expect(pitMergeConflict(c, [c, other], track)).toBe(false);
   });
+  it('allows a safe separated racing lane and does not deadlock on a stopped queue', () => {
+    const c = new Vehicle(0),
+      other = new Vehicle(1);
+    c.inPit = true;
+    c.pitPhase = 6;
+    c.s = 265;
+    c.speed = 0;
+    other.s = track.length - 10;
+    other.speed = 70;
+    other.lateral = -6;
+    other.aiOffset = -6;
+    expect(pitMergeConflict(c, [c, other], track)).toBe(false);
+    c.pitPhase = 5;
+    c.s = 102;
+    c.lateral = 24.1;
+    other.inPit = true;
+    other.s = 94;
+    other.lateral = 20.5;
+    other.speed = 0;
+    expect(safePitRelease(c, [c, other], track)).toBe(true);
+    other.s = 100;
+    expect(safePitRelease(c, [c, other], track)).toBe(false);
+  });
   it('does not self-block or block on parked pit boxes', () => {
     const c = new Vehicle(0),
       other = new Vehicle(1);
     c.inPit = true;
     c.pitPhase = 6;
-    c.s = 235;
+    c.s = 265;
     other.inPit = true;
     other.pitPhase = 3;
     other.s = 110;
