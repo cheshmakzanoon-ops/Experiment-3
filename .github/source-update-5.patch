@@ -1,0 +1,321 @@
+diff --git a/e2e/application.spec.ts b/e2e/application.spec.ts
+index 17fc6bf..852352a 100644
+--- a/e2e/application.spec.ts
++++ b/e2e/application.spec.ts
+@@ -52,6 +52,7 @@ test('browser session, cameras, pause safety, telemetry and replay', async ({ pa
+   expect(eye[1]).toBeLessThan(0.48);
+   expect(eye[2]).toBeGreaterThan(-0.56);
+   expect(eye[2]).toBeLessThan(-0.4);
++  expect(visual.visual!.screenVisible).toBe(true);
+   expect(Math.abs(visual.visual!.wheelProjection[0])).toBeLessThan(1);
+   expect(Math.abs(visual.visual!.wheelProjection[1])).toBeLessThan(1);
+   expect(visual.visual!.mirrors.every((mirror) => mirror.range > 5)).toBe(true);
+@@ -71,6 +72,25 @@ test('browser session, cameras, pause safety, telemetry and replay', async ({ pa
+   await expect
+     .poll(async () => (await diag(page)).frame?.[H.TICK])
+     .toBeGreaterThan(paused.frame![H.TICK]);
++  expect(errors).toEqual([]);
++});
++test('recorded telemetry exports and replay leaves live physics paused', async ({
++  page,
++}, testInfo) => {
++  const errors: string[] = [];
++  page.on('pageerror', (e) => errors.push(e.message));
++  page.on('console', (m) => {
++    if (m.type() === 'error') errors.push(m.text());
++  });
++  await ready(page);
++  await page.getByRole('button', { name: 'GARAGE & SETTINGS', exact: true }).click();
++  await page.locator('[name=quality]').selectOption('low');
++  await page.getByRole('button', { name: 'APPLY & SAVE' }).click();
++  await begin(page);
++  await page.keyboard.press('g');
++  await expect
++    .poll(async () => (await diag(page)).telemetrySamples, { timeout: 60000 })
++    .toBeGreaterThan(60);
+   await page.keyboard.press('t');
+   await expect(page.locator('#telemetryModal')).toBeVisible();
+   await page.screenshot({ path: testInfo.outputPath('04-telemetry.png') });
+diff --git a/src/main.ts b/src/main.ts
+index 95596b6..2132a86 100644
+--- a/src/main.ts
++++ b/src/main.ts
+@@ -47,6 +47,8 @@ export class GameApp {
+   private ers: 0 | 1 | 2 = 1;
+   private sentAt = 0;
+   private previousTime = 0;
++  private renderedAt = 0;
++  private renderedState: State | null = null;
+   private timer = 0;
+   private generation = 0;
+   private replay: ReplayRecorder | null = null;
+@@ -286,6 +288,16 @@ export class GameApp {
+       input.shift = 0;
+       this.sentAt = time;
+     }
++    // Menus and paused telemetry do not need a continuously saturated GPU.
++    // Input and worker clocks above remain independent of this presentation cap.
++    const idle =
++      this.state === 'menu' ||
++      this.state === 'loading' ||
++      this.state === 'paused' ||
++      this.state === 'results';
++    if (idle && this.renderedState === this.state && time - this.renderedAt < 1000 / 15) return;
++    this.renderedAt = time;
++    this.renderedState = this.state;
+     let a = this.previous,
+       b = this.current,
+       alpha = clamp((time - this.receivedAt) / Math.max(8, (b[H.TIME] - a[H.TIME]) * 1000), 0, 1);
+@@ -396,6 +408,7 @@ export class GameApp {
+     else this.ui.pause();
+   }
+   private action(name: string) {
++    this.renderedState = null;
+     switch (name) {
+       case 'pause':
+         if (this.state === 'driving') this.pause();
+diff --git a/src/rendering/car.ts b/src/rendering/car.ts
+index 10e408f..a75be15 100644
+--- a/src/rendering/car.ts
++++ b/src/rendering/car.ts
+@@ -1,7 +1,17 @@
+ import * as T from 'three';
+ import { carbonMaterial } from './materials.ts';
+ import { ReducedCar, carLod } from './lod.ts';
+-import { box, canvasTexture, label, loft, mergeStatic, mesh, rod, tube } from './geometry.ts';
++import {
++  box,
++  canvasTexture,
++  label,
++  loft,
++  cockpitShell,
++  mergeStatic,
++  mesh,
++  rod,
++  tube,
++} from './geometry.ts';
+ import { COMPOUNDS, LIVERIES } from '../simulation/config.ts';
+ import { F, W, WHEEL_BASE, WHEEL_STRIDE } from '../simulation/protocol.ts';
+ import { WHEEL_POSITIONS } from '../simulation/vehicle.ts';
+@@ -68,10 +78,7 @@ export class FormulaCar {
+     mesh(
+       s,
+       loft([
+-        [-1.2, -0.1, 0.12, 0.1],
+-        [-0.7, -0.01, 0.3, 0.28],
+-        [-0.3, 0.02, 0.33, 0.25],
+-        [0.1, 0.02, 0.33, 0.2],
++        [0.4, 0.025, 0.3, 0.17],
+         [0.52, 0.025, 0.29, 0.16],
+         [1.15, -0.025, 0.23, 0.12],
+         [1.9, -0.14, 0.115, 0.075],
+@@ -80,6 +87,9 @@ export class FormulaCar {
+       ]),
+       this.paint,
+     );
++    mesh(s, cockpitShell(), this.paint);
++    box(s, dark, 0, -0.24, -0.14, 0.5, 0.08, 1.02);
++    box(s, dark, 0, -0.02, -0.6, 0.44, 0.45, 0.09);
+     for (const sign of [-1, 1]) {
+       const pod = mesh(
+         s,
+diff --git a/src/rendering/circuit.ts b/src/rendering/circuit.ts
+index fd6dccf..a57d821 100644
+--- a/src/rendering/circuit.ts
++++ b/src/rendering/circuit.ts
+@@ -185,7 +185,22 @@ export class CircuitScene {
+     this.grid();
+     batchScene(this.props, new Set(this.pitPeople));
+   }
+-  ribbon(material: T.Material, options: RibbonOptions) {
++  ribbon(material: T.Material, options: RibbonOptions): T.Mesh {
++    const begin = options.start ?? 0,
++      finish = options.end ?? this.track.length;
++    if (finish - begin > 80) {
++      let first: T.Mesh | undefined;
++      const pieces = Math.ceil((finish - begin) / 80);
++      for (let i = 0; i < pieces; i++) {
++        const part = this.ribbon(material, {
++          ...options,
++          start: begin + ((finish - begin) * i) / pieces,
++          end: begin + ((finish - begin) * (i + 1)) / pieces,
++        });
++        first ??= part;
++      }
++      return first!;
++    }
+     const start = options.start ?? 0,
+       end = options.end ?? this.track.length,
+       rows = Math.ceil((end - start) / (options.step ?? 2)),
+diff --git a/src/rendering/geometry.ts b/src/rendering/geometry.ts
+index 416e4c8..424eeab 100644
+--- a/src/rendering/geometry.ts
++++ b/src/rendering/geometry.ts
+@@ -125,31 +125,76 @@ export function label(text: string, bg = '#171d21', fg = '#f5eee2', w = 512, h =
+ export function batchScene(root: T.Group, preserve: Set<T.Object3D>) {
+   root.updateMatrixWorld(true);
+   const inverse = root.matrixWorld.clone().invert(),
+-    groups = new Map<T.Material, T.BufferGeometry[]>(),
++    groups = new Map<T.Material, Map<string, T.BufferGeometry[]>>(),
+     remove: T.Mesh[] = [];
+   root.traverse((o) => {
+     if (!(o instanceof T.Mesh) || o instanceof T.InstancedMesh || Array.isArray(o.material)) return;
+     for (let p: T.Object3D | null = o; p; p = p.parent) if (preserve.has(p)) return;
+     const geometry = o.geometry.clone().applyMatrix4(inverse.clone().multiply(o.matrixWorld));
+-    const list = groups.get(o.material);
++    // Spatial buckets preserve culling. A single material batch spanning the
++    // whole circuit otherwise submits every fence/sign in every camera pass.
++    geometry.computeBoundingBox();
++    const centre = geometry.boundingBox!.getCenter(new T.Vector3());
++    const cell = `${Math.floor(centre.x / 80)}:${Math.floor(centre.z / 80)}`;
++    let cells = groups.get(o.material);
++    if (!cells) {
++      cells = new Map();
++      groups.set(o.material, cells);
++    }
++    const list = cells.get(cell);
+     if (list) list.push(geometry);
+-    else groups.set(o.material, [geometry]);
++    else cells.set(cell, [geometry]);
+     remove.push(o);
+   });
+   for (const o of remove) {
+     o.removeFromParent();
+     o.geometry.dispose();
+   }
+-  for (const [material, geometries] of groups) {
+-    const normalized = geometries.map((g) => {
+-      const out = g.index ? g.toNonIndexed() : g;
+-      for (const key of Object.keys(out.attributes))
+-        if (!['position', 'normal', 'uv'].includes(key)) out.deleteAttribute(key);
+-      return out;
+-    });
+-    const merged = mergeGeometries(normalized, false);
+-    if (merged) mesh(root, merged, material);
+-    for (const g of normalized) g.dispose();
+-    for (const g of geometries) g.dispose();
++  for (const [material, cells] of groups)
++    for (const geometries of cells.values()) {
++      const normalized = geometries.map((g) => {
++        const out = g.index ? g.toNonIndexed() : g;
++        for (const key of Object.keys(out.attributes))
++          if (!['position', 'normal', 'uv'].includes(key)) out.deleteAttribute(key);
++        return out;
++      });
++      const merged = mergeGeometries(normalized, false);
++      if (merged) mesh(root, merged, material);
++      for (const g of normalized) g.dispose();
++      for (const g of geometries) g.dispose();
++    }
++}
++
++/** Monocoque shell below an actual open cockpit. The upper arc is deliberately
++ * absent, not hidden by material tricks. +Z remains the vehicle nose direction. */
++export function cockpitShell() {
++  const sections = [
++    [-0.8, -0.01, 0.29, 0.25],
++    [-0.3, 0.02, 0.33, 0.25],
++    [0.1, 0.02, 0.33, 0.2],
++    [0.4, 0.025, 0.3, 0.17],
++  ];
++  const sides = 32,
++    positions: number[] = [],
++    uv: number[] = [],
++    indices: number[] = [];
++  for (let row = 0; row < sections.length; row++) {
++    const [z, y, width, height] = sections[row];
++    for (let j = 0; j <= sides; j++) {
++      const angle = Math.PI - 0.25 + ((Math.PI + 0.5) * j) / sides;
++      positions.push(Math.cos(angle) * width, y + Math.sin(angle) * height, z);
++      uv.push(j / sides, row / (sections.length - 1));
++      if (row < sections.length - 1 && j < sides) {
++        const a = row * (sides + 1) + j,
++          b = a + sides + 1;
++        indices.push(a, a + 1, b, a + 1, b + 1, b);
++      }
++    }
+   }
++  const geometry = new T.BufferGeometry();
++  geometry.setAttribute('position', new T.Float32BufferAttribute(positions, 3));
++  geometry.setAttribute('uv', new T.Float32BufferAttribute(uv, 2));
++  geometry.setIndex(indices);
++  geometry.computeVertexNormals();
++  return geometry;
+ }
+diff --git a/src/rendering/renderer.ts b/src/rendering/renderer.ts
+index 88bc6ad..859bf8c 100644
+--- a/src/rendering/renderer.ts
++++ b/src/rendering/renderer.ts
+@@ -346,11 +346,25 @@ export class RacingRenderer {
+     const car = this.cars[this.follow];
+     const wheel = new T.Vector3(0, 0.01, -0.025);
+     car.steering.localToWorld(wheel);
++    const distance = wheel.distanceTo(this.camera.position);
++    const ray = new T.Raycaster(
++      this.camera.position,
++      wheel.clone().sub(this.camera.position).normalize(),
++      0.001,
++      distance + 0.005,
++    );
++    const visibleHit = ray.intersectObject(car.root, true).find((hit) => {
++      for (let object: T.Object3D | null = hit.object; object; object = object.parent)
++        if (!object.visible) return false;
++      return true;
++    });
++    const screenVisible = !!visibleHit && visibleHit.distance >= distance - 0.008;
+     wheel.project(this.camera);
+     const halo = new T.Vector3(0, 0.35, 0.64);
+     car.root.localToWorld(halo);
+     halo.project(this.camera);
+     return {
++      screenVisible,
+       wheelProjection: wheel.toArray(),
+       haloProjection: halo.toArray(),
+       mirrors: this.reflection.diagnostics(this.renderer),
+diff --git a/tests/rendering.test.ts b/tests/rendering.test.ts
+index ff1063d..46afe03 100644
+--- a/tests/rendering.test.ts
++++ b/tests/rendering.test.ts
+@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
+ import * as T from 'three';
+ import { CircuitScene } from '../src/rendering/circuit.ts';
+ import { Track } from '../src/simulation/track.ts';
+-import { loft } from '../src/rendering/geometry.ts';
++import { loft, cockpitShell, batchScene } from '../src/rendering/geometry.ts';
+ 
+ describe('Visible geometry agrees with the physical surface', () => {
+   it.each([-1, 1])('gives side %s strips upward-facing triangles', (side) => {
+@@ -36,3 +36,33 @@ describe('Visible geometry agrees with the physical surface', () => {
+     geometry.dispose();
+   });
+ });
++
++it('leaves the actual steering display sightline open through the monocoque', () => {
++  const shell = new T.Mesh(cockpitShell(), new T.MeshStandardMaterial({ side: T.DoubleSide }));
++  shell.updateMatrixWorld();
++  const eye = new T.Vector3(0, 0.41, -0.48);
++  const display = new T.Vector3(0, 0.125, 0.195);
++  const direction = display.clone().sub(eye);
++  const ray = new T.Raycaster(eye, direction.clone().normalize(), 0, direction.length());
++  expect(ray.intersectObject(shell)).toHaveLength(0);
++  // The same shell still has real sidewalls.
++  ray.set(new T.Vector3(1, 0.02, -0.3), new T.Vector3(-1, 0, 0));
++  ray.far = 2;
++  expect(ray.intersectObject(shell).length).toBeGreaterThan(0);
++});
++it('keeps separated material batches spatially cullable', () => {
++  const root = new T.Group(),
++    material = new T.MeshStandardMaterial();
++  for (const x of [0, 5, 300]) {
++    const box = new T.Mesh(new T.BoxGeometry(), material);
++    box.position.x = x;
++    root.add(box);
++  }
++  batchScene(root, new Set());
++  expect(root.children).toHaveLength(2);
++  for (const object of root.children) {
++    const geometry = (object as T.Mesh).geometry;
++    geometry.computeBoundingBox();
++    expect(geometry.boundingBox!.max.x - geometry.boundingBox!.min.x).toBeLessThan(10);
++  }
++});
