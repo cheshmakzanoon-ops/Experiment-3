@@ -1,0 +1,67 @@
+name: APEX application verification
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - 'e2e/**'
+      - 'scripts/**'
+      - 'public/**'
+      - '*.json'
+      - '*.ts'
+      - '*.js'
+      - 'index.html'
+      - '.github/workflows/verify-apex.yml'
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check whether application publication is complete
+        id: source
+        shell: bash
+        run: |
+          if test -f src/main.ts && test -f package-lock.json; then
+            echo 'ready=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'ready=false' >> "$GITHUB_OUTPUT"
+            echo 'Application publication has not completed yet.'
+          fi
+      - uses: actions/setup-node@v4
+        if: steps.source.outputs.ready == 'true'
+        with:
+          node-version: 22
+          cache: npm
+      - if: steps.source.outputs.ready == 'true'
+        run: npm ci
+      - if: steps.source.outputs.ready == 'true'
+        run: npm run check
+      - if: steps.source.outputs.ready == 'true'
+        run: npm run test:physics
+      - if: steps.source.outputs.ready == 'true'
+        run: npx playwright install --with-deps chromium
+      - if: steps.source.outputs.ready == 'true'
+        run: npm run test:e2e
+      - name: Preserve browser and scenario evidence
+        if: always() && steps.source.outputs.ready == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: apex-browser-validation
+          path: |
+            test-results/
+            playwright-report/
+            docs/scenario-results.json
+          retention-days: 7
+      - name: Preserve production build
+        if: success() && steps.source.outputs.ready == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: apex-formula-web
+          path: dist/
+          retention-days: 7
