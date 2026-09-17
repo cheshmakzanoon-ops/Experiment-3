@@ -134,3 +134,47 @@ test('race start and chequered flag produce an actual result', async ({ page }, 
   expect(frame[carBase(0) + F.BEST_LAP]).toBeGreaterThan(20);
   await page.screenshot({ path: testInfo.outputPath('08-results.png') });
 });
+
+test('manual right steering and live rear-view passes work without autopilot', async ({
+  page,
+}, testInfo) => {
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  page.on('console', (m) => {
+    if (m.type() === 'error') errors.push(m.text());
+  });
+  await ready(page);
+  await page.getByRole('button', { name: 'GARAGE & SETTINGS', exact: true }).click();
+  await page.locator('[name=quality]').selectOption('low');
+  await page.getByRole('button', { name: 'APPLY & SAVE' }).click();
+  await page.selectOption('#mode', 'practice');
+  await page.selectOption('#opponents', '0');
+  await page.getByRole('button', { name: 'ENTER CIRCUIT' }).click();
+  await expect.poll(async () => (await diag(page)).state, { timeout: 40000 }).toBe('driving');
+  expect((await diag(page)).auto).toBe(false);
+  await page.keyboard.down('w');
+  await expect
+    .poll(async () => (await diag(page)).frame?.[carBase(0) + F.SPEED], { timeout: 30000 })
+    .toBeGreaterThan(8);
+  await page.keyboard.down('d');
+  await expect
+    .poll(async () => (await diag(page)).frame?.[carBase(0) + F.STEER])
+    .toBeLessThan(-0.03);
+  await page.keyboard.up('d');
+  await page.keyboard.up('w');
+  await page.keyboard.down('s');
+  await page.keyboard.press('c');
+  const before = (await diag(page)).renderer?.mirrorUpdates ?? 0;
+  await expect
+    .poll(async () => (await diag(page)).renderer?.mirrorUpdates)
+    .toBeGreaterThan(before + 2);
+  expect((await diag(page)).renderer?.mirrorWidth).toBe(128);
+  await page.screenshot({ path: testInfo.outputPath('09-live-mirrors-manual.png') });
+  await page.keyboard.up('s');
+  await page.keyboard.press('Escape');
+  await testInfo.attach('manual-mirror-diagnostics.json', {
+    body: JSON.stringify(await diag(page), null, 2),
+    contentType: 'application/json',
+  });
+  expect(errors).toEqual([]);
+});

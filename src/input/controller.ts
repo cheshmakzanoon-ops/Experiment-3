@@ -121,7 +121,10 @@ export class InputController {
       }
     } else this.gamepadName = 'KEYBOARD';
     this.steering = approach(this.steering, steer, dt * (Math.abs(steer) < 0.001 ? 4.8 : 2.6));
-    this.state.steer = this.steering;
+    // The simulation is right-handed with +Z forward and +X to the driver's
+    // left. Devices use right-positive input, so convert exactly once here.
+    // AI controls already use the simulation's left-positive convention.
+    this.state.steer = -this.steering;
     this.state.throttle = throttle;
     this.state.brake = brake;
     this.state.reverse = k.has('KeyB');

@@ -5,6 +5,7 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { FormulaCar } from './car.ts';
+import { MirrorViews } from './mirrors.ts';
 import { CircuitScene } from './circuit.ts';
 import { Effects } from './effects.ts';
 import { Track, trackPoint } from '../simulation/track.ts';
@@ -19,6 +20,7 @@ export class RacingRenderer {
   readonly circuit: CircuitScene;
   readonly cars: FormulaCar[] = [];
   readonly effects = new Effects();
+  readonly mirrors = new MirrorViews();
   readonly sun = new T.DirectionalLight(0xffead0, 3.3);
   private hemisphere = new T.HemisphereLight(0xe7f2ef, 0x737765, 2);
   private sky = new Sky();
@@ -122,11 +124,13 @@ export class RacingRenderer {
       const car = new FormulaCar(this.cars.length);
       this.cars.push(car);
       this.scene.add(car.root);
+      if (car.id === 0) this.mirrors.bind(car.mirrors);
     }
     this.cars.forEach((c, i) => (c.root.visible = i < n));
   }
   setQuality(q: Quality) {
     this.quality = q;
+    this.mirrors.quality(q);
     this.renderer.shadowMap.enabled = q !== 'low';
     this.bloom.enabled = q === 'high';
     this.circuit.crowd.visible = q !== 'low';
@@ -277,6 +281,7 @@ export class RacingRenderer {
         this.arrows[i].setLength(Math.max(0.03, b[p + 1] / 3500), 0.15, 0.08);
       }
     this.renderer.info.reset();
+    this.mirrors.render(this.renderer, this.scene, this.cars[0].root, dt);
     this.composer.render();
     this.renderMs = this.renderMs * 0.9 + (performance.now() - start) * 0.1;
   }
@@ -294,9 +299,13 @@ export class RacingRenderer {
       triangles: info.triangles,
       textures: this.renderer.info.memory.textures,
       geometries: this.renderer.info.memory.geometries,
+      mirrorUpdates: this.mirrors.updates,
+      mirrorPasses: this.mirrors.passes,
+      mirrorWidth: this.mirrors.targets[0].width,
     };
   }
   dispose() {
+    this.mirrors.dispose();
     const geometries = new Set<T.BufferGeometry>(),
       materials = new Set<T.Material>(),
       textures = new Set<T.Texture>();

@@ -6,6 +6,7 @@ import { WHEEL_POSITIONS } from '../simulation/vehicle.ts';
 import { clamp, lerp } from '../core/math.ts';
 export class FormulaCar {
   readonly root = new T.Group();
+  readonly mirrors: T.Mesh[] = [];
   readonly staticBody = new T.Group();
   readonly frontWing = new T.Group();
   readonly rearWing = new T.Group();
@@ -177,7 +178,7 @@ export class FormulaCar {
       const mirror = mesh(s, new T.SphereGeometry(1, 24, 12), this.paint, sign * 0.64, 0.3, 0.46);
       mirror.scale.set(0.12, 0.05, 0.075);
       const glass = mesh(
-        s,
+        this.root,
         new T.PlaneGeometry(0.18, 0.065),
         new T.MeshStandardMaterial({
           color: 0xa9c3c8,
@@ -190,6 +191,9 @@ export class FormulaCar {
         0.4,
       );
       glass.rotation.y = Math.PI;
+      glass.name = sign < 0 ? 'Right rear-view mirror' : 'Left rear-view mirror';
+      glass.castShadow = false;
+      this.mirrors.push(glass);
     }
     rod(s, metal, new T.Vector3(0.055, 0.13, 0.93), new T.Vector3(0.055, 0.52, 0.93), 0.004);
     // Multi-element curved wings with endplates and supports.
