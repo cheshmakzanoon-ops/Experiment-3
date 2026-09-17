@@ -20,13 +20,28 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 1
-      - name: Validate source patch scope and apply
+      - name: Decode and verify source patch
         shell: bash
         run: |
           set -euo pipefail
-          test -f .github/pending-source.patch
-          git apply --check --recount .github/pending-source.patch
-          git apply --index --recount .github/pending-source.patch
+          python3 - <<'PY'
+          import base64, hashlib, os, pathlib, zlib
+          data = pathlib.Path('.github/pending-source.patch').read_bytes()
+          if data.startswith(b'APEX-PATCH-GZIP/1\n'):
+              _, expected, encoded = data.split(b'\n', 2)
+              if len(encoded) > 3000000:
+                  raise SystemExit('Encoded patch is too large')
+              compressed = base64.b64decode(encoded.strip(), validate=True)
+              decoder = zlib.decompressobj(16 + zlib.MAX_WBITS)
+              data = decoder.decompress(compressed, 8000001)
+              if len(data) > 8000000 or not decoder.eof or decoder.unused_data:
+                  raise SystemExit('Invalid or oversized compressed patch')
+              if hashlib.sha256(data).hexdigest().encode() != expected:
+                  raise SystemExit('Source patch integrity mismatch')
+          pathlib.Path(os.environ['RUNNER_TEMP'], 'apex-source.patch').write_bytes(data)
+          PY
+          git apply --check --recount "$RUNNER_TEMP/apex-source.patch"
+          git apply --index --recount "$RUNNER_TEMP/apex-source.patch"
           python3 - <<'PY'
           import pathlib, subprocess
           paths = subprocess.check_output(['git','diff','--cached','--name-only','-z']).decode().split('\0')
@@ -44,6 +59,8 @@ jobs:
       - run: npm ci --no-audit --no-fund
       - run: npm run check
       - run: npm run test:physics
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
       - name: Publish tested source without overwriting concurrent changes
         shell: bash
         run: |
@@ -61,5 +78,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: source-integration-evidence
-          path: docs/scenario-results.json
+          path: |
+            docs/scenario-results.json
+            test-results/
+            playwright-report/
           retention-days: 7
