@@ -57,7 +57,9 @@ jobs:
   browser:
     needs: validate
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    # The full sequential SwiftShader suite measured 17 minutes. Retain every
+    # assertion and its individual timeout; allow the complete job to finish.
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
