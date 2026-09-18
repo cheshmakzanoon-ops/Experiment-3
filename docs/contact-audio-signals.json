@@ -1,0 +1,34 @@
+{
+  "scope": "Real OfflineAudioContext rendering of the production ContactAudio graph, not device playback certification",
+  "sourceSHA256": "9c9dd2b0236d870ed5606a32b23dbd45b91d3abbcdfa2f78e808c586817d8260",
+  "sampleRateHz": 48000,
+  "durationSeconds": 1,
+  "discardedInitialSeconds": 0.25,
+  "highFrequencyDefinition": "sum((sample[n]-sample[n-1])^2) / sum(sample[n]^2)",
+  "measurements": {
+    "grass": {
+      "rms": 0.007085492730399266,
+      "highFrequency": 0.0009471821612950172,
+      "peak": 0.028421588242053986,
+      "finite": true
+    },
+    "gravel": {
+      "rms": 0.03190377023899649,
+      "highFrequency": 0.440193375508242,
+      "peak": 0.11449868977069855,
+      "finite": true
+    },
+    "airborne": {
+      "rms": 0,
+      "highFrequency": 0,
+      "peak": 0,
+      "finite": true
+    },
+    "flat": {
+      "rms": 0.03934222621625636,
+      "highFrequency": 5.9472077319769276e-05,
+      "peak": 0.15098696947097778,
+      "finite": true
+    }
+  }
+}

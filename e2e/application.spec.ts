@@ -48,6 +48,12 @@ test('browser session, cameras, pause safety, telemetry and replay', async ({ pa
   await expect.poll(async () => (await diag(page)).renderer?.mirrorUpdates).toBeGreaterThan(2);
   const visual = await page.evaluate(() => window.apexDiagnostics(true));
   const eye = visual.renderer!.cameraLocalPosition;
+  expect(visual.visual!.driver).toHaveLength(2);
+  for (const arm of visual.visual!.driver) {
+    expect(arm.reachable).toBe(true);
+    expect(arm.upperLength).toBeCloseTo(0.37, 6);
+    expect(arm.lowerLength).toBeCloseTo(0.36, 6);
+  }
   expect(Math.abs(eye[0])).toBeLessThan(0.06);
   expect(eye[1]).toBeGreaterThan(0.35);
   expect(eye[1]).toBeLessThan(0.48);

@@ -74,10 +74,10 @@ This ledger follows the numbered sections of the supplied directive. “Implemen
 | 68 | RAIN SPRAY | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 69 | TIRE SMOKE | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 70 | SPARKS | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
-| 71 | AUDIO ARCHITECTURE | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
-| 72 | ENGINE SOUND | Original procedural harmonic synthesis rather than recorded engine layers. |
-| 73 | TIRE AUDIO | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
-| 74 | SURFACE AUDIO | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+| 71 | AUDIO ARCHITECTURE | Layered original engine synthesis plus independent actual-contact grass, gravel, kerb, scrub, spray, rain, bottoming, impact and shift buses. Real OfflineAudioContext signal tests cover the contact graph. |
+| 72 | ENGINE SOUND | Three RPM crossfade bands use distinct harmonic spectra and torque-dependent filtering; original synthesized sound, not licensed engine recordings or certified acoustic matching. |
+| 73 | TIRE AUDIO | Actual tire slip work sets scrub level; measured slip ratio distinguishes lockup and wheelspin spectra. Loaded flat-spot/puncture repetition follows actual wheel speed. |
+| 74 | SURFACE AUDIO | Separate asphalt, grass, gravel and kerb spectra; positive kerb-load changes excite decaying contact pulses. Airborne wheels emit no road/scrub/spray sound. |
 | 75 | DOPPLER | Approximate stereo/Doppler for nearest engines, not full acoustic propagation. |
 | 76 | INPUT PIPELINE | Actual device sampling, calibration, response and simulation input on an independent 60 Hz timer; worker stale-input safety retained. Render-suspension browser regression added. |
 | 77 | GAMEPAD STEERING | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
@@ -127,8 +127,8 @@ This ledger follows the numbered sections of the supplied directive. “Implemen
 | 121 | PHYSICS TUNING | Engineering coefficients are approximations; no proprietary real-car reference calibration. |
 | 122 | VISUAL QUALITY PASSES | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 123 | CAR MODEL REQUIREMENTS | Original lofted bodywork, multi-element wings, halo, wheels, suspension and cockpit; not AAA artist-authored fidelity. |
-| 124 | COCKPIT QUALITY | Modeled cockpit and live controls, but no fully detailed tactile replica. |
-| 125 | DRIVER ANIMATION | Steering-mounted hands/arms and an external helmet; no full skeletal driver animation. |
+| 124 | COCKPIT QUALITY | Open cockpit, live display/mirrors, band-limited carbon, articulated arms, finger-segment gloves and seams. Browser screenshot inspection remains a quality gate; no AAA asset claim. |
+| 125 | DRIVER ANIMATION | Two-bone inverse kinematics fixes shoulders to the body and wrists to the wheel across steering range. Actual gear changes drive up/down paddles; ERS changes move thumbs; replay seeks reset transient actions. |
 | 126 | VISUAL SUSPENSION | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 127 | TIRE DEFORMATION | Load-driven visual compression and flat-spot term, not full tire deformation geometry. |
 | 128 | TRACK DETAIL DENSITY | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |

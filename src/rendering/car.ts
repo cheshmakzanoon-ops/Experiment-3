@@ -1,4 +1,5 @@
 import * as T from 'three';
+import { DriverRig } from './driver.ts';
 import { carbonMaterial } from './materials.ts';
 import { ReducedCar, carLod } from './lod.ts';
 import {
@@ -32,6 +33,7 @@ export class FormulaCar {
   readonly links: { mesh: T.Object3D; anchor: T.Vector3; wheel: number; dy: number }[] = [];
   private suspension: T.InstancedMesh;
   readonly steering = new T.Group();
+  readonly driver: DriverRig;
   readonly helmet = new T.Group();
   readonly rainLight: T.MeshStandardMaterial;
   readonly display: T.CanvasTexture;
@@ -442,27 +444,10 @@ export class FormulaCar {
         );
         b.rotation.x = Math.PI / 2;
       }
-      box(this.steering, metal, sign * 0.115, 0, 0.038, 0.025, 0.1, 0.01);
-      const glove = mesh(
-        this.steering,
-        new T.SphereGeometry(1, 20, 14),
-        ivory,
-        sign * 0.178,
-        -0.003,
-        -0.008,
-      );
-      glove.scale.set(0.042, 0.075, 0.048);
-      tube(
-        this.steering,
-        ivory,
-        [
-          [sign * 0.18, -0.045, 0.015],
-          [sign * 0.245, -0.12, -0.08],
-          [sign * 0.26, -0.19, -0.27],
-        ],
-        0.043,
-      );
     }
+    this.driver = new DriverRig(this.steering);
+    this.root.add(this.driver.root);
+
     const head = mesh(this.helmet, new T.SphereGeometry(0.137, 32, 24), ivory, 0, 0.29, -0.38);
     head.scale.set(1, 1.08, 0.99);
     const visor = mesh(
@@ -527,6 +512,7 @@ export class FormulaCar {
       return;
     }
     this.steering.rotation.z = -b[o + F.STEER] * 2.2;
+    this.driver.update(time, b[o + F.GEAR], b[o + F.ERS_MODE]);
     this.helmet.visible = !cockpit;
     const compound = Object.values(COMPOUNDS)[Math.round(b[o + F.COMPOUND])] ?? COMPOUNDS.medium;
     for (let i = 0; i < 4; i++) {

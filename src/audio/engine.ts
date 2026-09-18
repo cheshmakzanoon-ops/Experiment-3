@@ -1,4 +1,5 @@
-import { F, H, W, WHEEL_BASE, WHEEL_STRIDE, carBase } from '../simulation/protocol.ts';
+import { ContactAudio } from './surface-audio.ts';
+import { F, H, carBase } from '../simulation/protocol.ts';
 import { clamp, Random } from '../core/math.ts';
 interface Voice {
   osc: OscillatorNode[];
@@ -16,14 +17,7 @@ export class RacingAudio {
   private voices: Voice[] = [];
   private sources: AudioScheduledSourceNode[] = [];
   private wind: GainNode | null = null;
-  private tire: GainNode | null = null;
-  private water: GainNode | null = null;
-  private surface: GainNode | null = null;
-  private impact: GainNode | null = null;
-  private hybrid: OscillatorNode | null = null;
-  private hybridGain: GainNode | null = null;
-  private previousImpact = 0;
-  private previousGear = 1;
+  private contactAudio: ContactAudio | null = null;
   private last = 0;
   volume = 0.45;
   muted = false;
@@ -42,10 +36,15 @@ export class RacingAudio {
     this.compressor.attack.value = 0.004;
     this.compressor.release.value = 0.18;
     this.master.connect(this.compressor).connect(ctx.destination);
-    const real = new Float32Array(40),
-      imag = new Float32Array(40);
-    for (let k = 1; k < 40; k++) imag[k] = (k % 3 === 0 ? 0.8 : 1) / k ** 1.3;
-    const wave = ctx.createPeriodicWave(real, imag);
+    const waves = [0, 1, 2].map((band) => {
+      const real = new Float32Array(40),
+        imag = new Float32Array(40);
+      for (let k = 1; k < 40; k++)
+        imag[k] =
+          (band === 0 ? (k % 2 ? 1 : 0.35) : band === 1 ? (k % 3 ? 0.6 : 1) : 0.65) /
+          k ** (1.8 - band * 0.35);
+      return ctx.createPeriodicWave(real, imag);
+    });
     for (let i = 0; i < 4; i++) {
       const gain = ctx.createGain(),
         filter = ctx.createBiquadFilter(),
@@ -60,7 +59,7 @@ export class RacingAudio {
       for (let j = 0; j < 3; j++) {
         const o = ctx.createOscillator(),
           g = ctx.createGain();
-        o.setPeriodicWave(wave);
+        o.setPeriodicWave(waves[j]);
         g.gain.value = 0;
         o.connect(g).connect(gain);
         o.start();
@@ -94,18 +93,7 @@ export class RacingAudio {
       return gain;
     };
     this.wind = noise('lowpass', 700);
-    this.tire = noise('bandpass', 1800, 1.6);
-    this.water = noise('highpass', 2300);
-    this.surface = noise('lowpass', 130);
-    this.impact = noise('lowpass', 200);
-    this.hybrid = ctx.createOscillator();
-    this.hybrid.type = 'sine';
-    this.hybrid.frequency.value = 1400;
-    this.hybridGain = ctx.createGain();
-    this.hybridGain.gain.value = 0;
-    this.hybrid.connect(this.hybridGain).connect(this.master);
-    this.hybrid.start();
-    this.sources.push(this.hybrid);
+    this.contactAudio = new ContactAudio(ctx, this.master);
     await ctx.resume();
   }
   update(frame: Float32Array, cockpit: boolean, playing: boolean) {
@@ -138,7 +126,7 @@ export class RacingAudio {
       }
       const o = carBase(id),
         rpm = frame[o + F.RPM],
-        load = frame[o + F.THROTTLE],
+        load = clamp(Math.abs(frame[o + F.ENGINE_TORQUE]) / 650, 0, 1),
         dx = frame[o] - frame[b],
         dz = frame[o + 2] - frame[b + 2],
         distance = Math.hypot(dx, dz);
@@ -164,40 +152,26 @@ export class RacingAudio {
       );
       set(voice.filter.frequency, id === 0 && cockpit ? 1500 + load * 2300 : 2500 + load * 4600);
     });
-    let slip = 0,
-      water = 0,
-      surface = 0;
-    for (let i = 0; i < 4; i++) {
-      const p = b + WHEEL_BASE + i * WHEEL_STRIDE;
-      slip += frame[p + W.SLIP_POWER];
-      water += frame[p + W.WATER];
-      surface += frame[p + W.SURFACE] >= 2 && frame[p + W.SURFACE] <= 4 ? 1 : 0;
-    }
     set(this.wind!.gain, Math.min(0.25, (speed / 100) ** 2 * 0.23));
-    set(this.tire!.gain, Math.min(0.26, slip / 3e5));
-    set(this.water!.gain, Math.min(0.2, water * speed * 0.001));
-    set(this.surface!.gain, Math.min(0.2, surface * speed * 0.001));
-    set(this.hybrid!.frequency, 1100 + speed * 27);
-    set(this.hybridGain!.gain, 0.003 + 0.022 * clamp(frame[b + F.MOTOR_POWER] / 120000, 0, 1));
-    const impact = frame[b + F.IMPACT];
-    if (impact > this.previousImpact + 0.05 || frame[b + F.GEAR] !== this.previousGear) {
-      this.impact!.gain.cancelScheduledValues(time);
-      this.impact!.gain.setValueAtTime(
-        impact > this.previousImpact + 0.05 ? impact * 0.75 : 0.09,
-        time,
-      );
-      this.impact!.gain.exponentialRampToValueAtTime(0.0001, time + 0.16);
-    }
-    this.previousImpact = impact;
-    this.previousGear = frame[b + F.GEAR];
+    this.contactAudio!.update(frame, cockpit, time);
   }
   stop() {
     this.master?.gain.setTargetAtTime(0, this.context?.currentTime ?? 0, 0.03);
   }
   async dispose() {
-    for (const s of this.sources) s.stop();
+    this.contactAudio?.dispose();
+    this.contactAudio = null;
+    for (const s of this.sources) {
+      s.stop();
+      s.disconnect();
+    }
     this.sources = [];
     if (this.context) await this.context.close();
     this.context = null;
+    this.voices = [];
+    this.master = null;
+    this.compressor = null;
+    this.wind = null;
+    this.last = 0;
   }
 }

@@ -477,6 +477,7 @@ export class RacingRenderer {
     return {
       screenVisible,
       wheelProjection: wheel.toArray(),
+      driver: car.driver.diagnostics(),
       haloProjection: halo.toArray(),
       mirrors: this.reflection.diagnostics(this.renderer),
     };
