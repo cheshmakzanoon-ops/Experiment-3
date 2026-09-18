@@ -1,4 +1,5 @@
 import * as T from 'three';
+import type { BuildProgress } from './build-queue.ts';
 import { TracksideDirector } from './trackside.ts';
 import { InertialCamera, ViewOrientation } from './camera-dynamics.ts';
 import { ReflectionSystem } from './reflections.ts';
@@ -47,7 +48,8 @@ export class RacingRenderer {
   graphics: GraphicsOptions = graphicsPreset('medium');
   private renderWidth = 1;
   private renderHeight = 1;
-  private env: T.WebGLRenderTarget;
+  private env: T.WebGLRenderTarget | null = null;
+  private disposed = false;
   private target = new T.Vector3();
   private desired = new T.Vector3();
   private velocity = new T.Vector3();
@@ -82,6 +84,7 @@ export class RacingRenderer {
   constructor(
     readonly canvas: HTMLCanvasElement,
     track: Track,
+    deferred = false,
   ) {
     const context = canvas.getContext('webgl2', {
       antialias: true,
@@ -114,12 +117,6 @@ export class RacingRenderer {
     u.mieDirectionalG.value = 0.8;
     u.sunPosition.value.set(-0.55, 0.35, -0.65);
     this.scene.add(this.sky);
-    const envScene = new T.Scene();
-    envScene.add(this.sky.clone());
-    const generator = new T.PMREMGenerator(this.renderer);
-    this.env = generator.fromScene(envScene, 0.04, 0.1, 700000);
-    generator.dispose();
-    this.scene.environment = this.env.texture;
     this.scene.environmentIntensity = 0.7;
     this.scene.fog = new T.FogExp2(0xb9c7c1, 0.00044);
     this.scene.add(this.hemisphere, this.sun, this.sun.target);
@@ -136,7 +133,15 @@ export class RacingRenderer {
     });
     this.sun.shadow.bias = -0.00012;
     this.sun.shadow.normalBias = 0.035;
-    this.circuit = new CircuitScene(track);
+    this.circuit = new CircuitScene(track, true);
+    this.circuit.construction.add('Environment lighting', 1, () => {
+      const envScene = new T.Scene();
+      envScene.add(this.sky.clone());
+      const generator = new T.PMREMGenerator(this.renderer);
+      this.env = generator.fromScene(envScene, 0.04, 0.1, 700000);
+      generator.dispose();
+      this.scene.environment = this.env.texture;
+    });
     this.trackside = new TracksideDirector(track);
     this.scene.add(this.circuit.group, this.effects.group, this.debugGroup);
     for (let i = 0; i < 4; i++) {
@@ -150,8 +155,35 @@ export class RacingRenderer {
     this.composer.addPass(this.bloom);
     this.composer.addPass(new OutputPass());
     this.composer.addPass(this.fxaa);
-    this.textures.register(this.circuit.group);
+    if (!deferred) {
+      this.circuit.construction.runSynchronously();
+      this.textures.register(this.circuit.group);
+    }
     this.resize();
+  }
+  /** The factory owns partial resources until the complete scene is ready.
+   * Cancellation disposes the partial scene; a failed job is never hidden. */
+  static async create(
+    canvas: HTMLCanvasElement,
+    track: Track,
+    progress: (value: BuildProgress) => void,
+    cancelled: () => boolean,
+  ): Promise<RacingRenderer | null> {
+    const renderer = new RacingRenderer(canvas, track, true);
+    renderer.circuit.construction.add('Player car and live instruments', 1, () =>
+      renderer.setCars(1),
+    );
+    try {
+      if (!(await renderer.circuit.construction.run(progress, cancelled))) {
+        renderer.dispose();
+        return null;
+      }
+      renderer.textures.register(renderer.circuit.group);
+      return renderer;
+    } catch (error) {
+      renderer.dispose();
+      throw error;
+    }
   }
   setCars(n: number) {
     while (this.cars.length < n) {
@@ -496,6 +528,7 @@ export class RacingRenderer {
       graphics: { ...this.graphics },
       renderWidth: this.renderWidth,
       renderHeight: this.renderHeight,
+      construction: { ...this.circuit.construction.statistics },
       carLods: this.cars.map((car) => car.lodLevel),
       camera: this.mode,
       tracksideRig: this.trackside.activeId,
@@ -518,6 +551,8 @@ export class RacingRenderer {
     };
   }
   dispose() {
+    if (this.disposed) return;
+    this.disposed = true;
     this.reflection.dispose();
     this.gpuTimer.dispose();
     this.bloom.dispose();
@@ -538,7 +573,8 @@ export class RacingRenderer {
     for (const g of geometries) g.dispose();
     for (const m of materials) m.dispose();
     for (const t of textures) t.dispose();
-    this.env.dispose();
+    this.circuit.stateTexture.dispose();
+    this.env?.dispose();
     this.composer.dispose();
     this.renderer.dispose();
   }

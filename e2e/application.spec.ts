@@ -27,6 +27,14 @@ test('browser session, cameras, pause safety, telemetry and replay', async ({ pa
     }
   });
   await ready(page);
+  const construction = (await diag(page)).renderer!.construction;
+  expect(construction.tasks).toBeGreaterThan(100);
+  expect(construction.yields).toBeGreaterThan(2);
+  expect(construction.cancelled).toBe(false);
+  await testInfo.attach('bootstrap-metrics.json', {
+    body: JSON.stringify(construction, null, 2),
+    contentType: 'application/json',
+  });
   await page.screenshot({ path: testInfo.outputPath('01-paddock.png') });
   await page.getByRole('button', { name: 'GARAGE & SETTINGS', exact: true }).click();
   await page.locator('[name=quality]').selectOption('low');

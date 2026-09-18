@@ -1,4 +1,5 @@
 import * as T from 'three';
+import { BuildQueue } from './build-queue.ts';
 import wetRoad from '../shaders/wetRoad.frag?raw';
 import { kerbHeight } from '../simulation/contact.ts';
 import { Track, CELL_ROWS, CELL_COLS, trackPoint } from '../simulation/track.ts';
@@ -25,7 +26,11 @@ export class CircuitScene {
   readonly stateBytes = new Uint8Array(CELL_ROWS * CELL_COLS * 4);
   readonly startLamps: T.MeshStandardMaterial[] = [];
   private temp = trackPoint();
-  constructor(readonly track: Track) {
+  readonly construction = new BuildQueue();
+  constructor(
+    readonly track: Track,
+    deferred = false,
+  ) {
     this.group.name = 'Aurel circuit';
     this.group.add(this.props, this.crowd, this.vegetationGroup);
     this.stateTexture = new T.DataTexture(this.stateBytes, CELL_COLS, CELL_ROWS, T.RGBAFormat);
@@ -80,7 +85,7 @@ export class CircuitScene {
     const grass = new T.MeshStandardMaterial({ color: 0x69734d, roughness: 1 });
     const runOff = new T.MeshStandardMaterial({ color: 0x364c44, roughness: 0.93 });
     const gravel = new T.MeshStandardMaterial({ color: 0xb2a591, roughness: 1 });
-    this.ribbon(grass, {
+    this.queueRibbon(grass, {
       offset: (s, t) => {
         track.at(s, this.temp);
         return (t * 2 - 1) * (this.temp.width + 38);
@@ -88,7 +93,7 @@ export class CircuitScene {
       height: (_s, l) => -0.04 - Math.max(0, Math.abs(l) - 15) * 0.045,
       columns: 6,
     });
-    this.ribbon(gravel, {
+    this.queueRibbon(gravel, {
       offset: (s, t) => {
         track.at(s, this.temp);
         return (t * 2 - 1) * (this.temp.width + 10);
@@ -96,7 +101,7 @@ export class CircuitScene {
       height: () => -0.027,
       columns: 4,
     });
-    this.ribbon(runOff, {
+    this.queueRibbon(runOff, {
       offset: (s, t) => {
         track.at(s, this.temp);
         return (t * 2 - 1) * (this.temp.width + 4);
@@ -104,7 +109,7 @@ export class CircuitScene {
       height: () => -0.008,
       columns: 4,
     });
-    this.ribbon(this.roadMaterial, {
+    this.queueRibbon(this.roadMaterial, {
       offset: (s, t) => {
         track.at(s, this.temp);
         return (t * 2 - 1) * this.temp.width;
@@ -115,7 +120,7 @@ export class CircuitScene {
     });
     const white = new T.MeshStandardMaterial({ color: 0xf1eee0, roughness: 0.75 });
     for (const side of [-1, 1]) {
-      this.ribbon(new T.MeshStandardMaterial({ vertexColors: true, roughness: 0.78 }), {
+      this.queueRibbon(new T.MeshStandardMaterial({ vertexColors: true, roughness: 0.78 }), {
         offset: (s, t) => {
           track.at(s, this.temp);
           return side * (this.temp.width + t * 1.1);
@@ -130,7 +135,7 @@ export class CircuitScene {
         stripes: true,
         columns: 6,
       });
-      this.ribbon(white, {
+      this.queueRibbon(white, {
         offset: (s, t) => {
           track.at(s, this.temp);
           return side * (this.temp.width - 0.17 + t * 0.14);
@@ -145,7 +150,7 @@ export class CircuitScene {
       [track.length - 220, track.length],
       [0, 330],
     ]) {
-      this.ribbon(pitMat, {
+      this.queueRibbon(pitMat, {
         start,
         end,
         offset: (s, t) => track.pitOffset(s) + (t * 2 - 1) * 3.6,
@@ -154,7 +159,7 @@ export class CircuitScene {
         step: 1,
       });
       for (const side of [-1, 1])
-        this.ribbon(white, {
+        this.queueRibbon(white, {
           start,
           end,
           offset: (s, t) => track.pitOffset(s) + side * (3.35 + t * 0.12),
@@ -163,27 +168,52 @@ export class CircuitScene {
         });
     }
     // Surface colour below the horizon: track ribbons cover the actual collision elevation.
-    const terrain = new T.PlaneGeometry(5500, 5500, 96, 96);
-    terrain.rotateX(-Math.PI / 2);
-    const pos = terrain.getAttribute('position');
-    for (let i = 0; i < pos.count; i++) {
-      const x = pos.getX(i),
-        z = pos.getZ(i),
-        dist = Math.hypot(x, z);
-      pos.setY(
-        i,
-        -4 +
-          Math.max(0, dist - 680) * 0.033 * (0.3 + 0.7 * Math.sin(x * 0.004 + z * 0.002) ** 2) +
-          Math.max(0, dist - 1000) * 0.038 * Math.cos(x * 0.003 - z * 0.004) ** 2,
+    this.construction.add('Distant terrain', 3, () => {
+      const terrain = new T.PlaneGeometry(5500, 5500, 96, 96);
+      terrain.rotateX(-Math.PI / 2);
+      const pos = terrain.getAttribute('position');
+      for (let i = 0; i < pos.count; i++) {
+        const x = pos.getX(i),
+          z = pos.getZ(i),
+          dist = Math.hypot(x, z);
+        pos.setY(
+          i,
+          -4 +
+            Math.max(0, dist - 680) * 0.033 * (0.3 + 0.7 * Math.sin(x * 0.004 + z * 0.002) ** 2) +
+            Math.max(0, dist - 1000) * 0.038 * Math.cos(x * 0.003 - z * 0.004) ** 2,
+        );
+      }
+      terrain.computeVertexNormals();
+      mesh(this.group, terrain, new T.MeshStandardMaterial({ color: 0x81836d, roughness: 1 }));
+    });
+    this.construction.add('Track barriers and fencing', 2, () => this.barriers());
+    this.infrastructure();
+    this.construction.add('Background vegetation', 3, () => this.vegetation(rng));
+    this.construction.add('Grid and finish markings', 0, () => this.grid());
+    this.construction.add('Spatial geometry batches', 4, () => batchScene(this.props, new Set()));
+    if (!deferred) this.construction.runSynchronously();
+  }
+  private queueRibbon(material: T.Material, options: RibbonOptions) {
+    const start = options.start ?? 0;
+    const end = options.end ?? this.track.length;
+    const count = Math.ceil((end - start) / 80);
+    const priority = options.road || options.stripes || options.start !== undefined ? 0 : 2;
+    for (let i = 0; i < count; i++) {
+      const part = {
+        ...options,
+        start: start + ((end - start) * i) / count,
+        end: start + ((end - start) * (i + 1)) / count,
+      };
+      this.construction.add(
+        options.road
+          ? 'Circuit asphalt'
+          : options.stripes
+            ? 'Physical kerb geometry'
+            : 'Track surface',
+        priority,
+        () => this.ribbon(material, part),
       );
     }
-    terrain.computeVertexNormals();
-    mesh(this.group, terrain, new T.MeshStandardMaterial({ color: 0x81836d, roughness: 1 }));
-    this.barriers();
-    this.infrastructure();
-    this.vegetation(rng);
-    this.grid();
-    batchScene(this.props, new Set());
   }
   ribbon(material: T.Material, options: RibbonOptions): T.Mesh {
     const begin = options.start ?? 0,
@@ -362,35 +392,37 @@ export class CircuitScene {
     const glass = new T.MeshStandardMaterial({ color: 0x557577, metalness: 0.75, roughness: 0.15 });
     // Paddock follows the main straight. Each garage has a separate bay and service box.
     for (let i = 0; i < 12; i++) {
-      const s = 70 + i * 9,
-        p = this.track.at(s, trackPoint()),
-        g = new T.Group();
-      g.position.copy(this.at(s, 35, 0));
-      g.rotation.y = Math.atan2(p.tx, p.tz);
-      this.props.add(g);
-      box(g, concrete, 0, 3, 0, 13, 6, 8.6);
-      box(g, dark, -6.55, 1.5, 0, 0.04, 2.9, 6.3);
-      box(g, roof, 0, 6.12, 0, 14, 0.24, 9);
-      box(g, glass, -6.59, 4.65, 0, 0.05, 1.6, 7.7);
-      const panel = mesh(
-        g,
-        new T.PlaneGeometry(7.5, 0.9),
-        new T.MeshStandardMaterial({ map: label(`AUREL  ${String(i + 1).padStart(2, '0')}`) }),
-        -6.62,
-        3.5,
-        0,
-      );
-      panel.rotation.y = -Math.PI / 2;
-      for (const z of [-3.4, 3.4]) box(g, concrete, -6.8, 3, z, 0.35, 6, 0.3);
-      const boxS = 102 + i * 7,
-        mark = this.track.at(boxS, trackPoint());
-      const painting = new T.Group();
-      painting.position.copy(this.at(boxS, 24.1, 0.016));
-      painting.rotation.y = Math.atan2(mark.tx, mark.tz);
-      this.props.add(painting);
-      const yellow = new T.MeshBasicMaterial({ color: 0xe7c969 });
-      for (const x of [-1.4, 1.4]) box(painting, yellow, x, 0, 0, 0.08, 0.012, 5);
-      box(painting, yellow, 0, 0, 2.5, 2.9, 0.012, 0.08);
+      this.construction.add(`Garage ${i + 1} / 12`, 2, () => {
+        const s = 70 + i * 9,
+          p = this.track.at(s, trackPoint()),
+          g = new T.Group();
+        g.position.copy(this.at(s, 35, 0));
+        g.rotation.y = Math.atan2(p.tx, p.tz);
+        this.props.add(g);
+        box(g, concrete, 0, 3, 0, 13, 6, 8.6);
+        box(g, dark, -6.55, 1.5, 0, 0.04, 2.9, 6.3);
+        box(g, roof, 0, 6.12, 0, 14, 0.24, 9);
+        box(g, glass, -6.59, 4.65, 0, 0.05, 1.6, 7.7);
+        const panel = mesh(
+          g,
+          new T.PlaneGeometry(7.5, 0.9),
+          new T.MeshStandardMaterial({ map: label(`AUREL  ${String(i + 1).padStart(2, '0')}`) }),
+          -6.62,
+          3.5,
+          0,
+        );
+        panel.rotation.y = -Math.PI / 2;
+        for (const z of [-3.4, 3.4]) box(g, concrete, -6.8, 3, z, 0.35, 6, 0.3);
+        const boxS = 102 + i * 7,
+          mark = this.track.at(boxS, trackPoint());
+        const painting = new T.Group();
+        painting.position.copy(this.at(boxS, 24.1, 0.016));
+        painting.rotation.y = Math.atan2(mark.tx, mark.tz);
+        this.props.add(painting);
+        const yellow = new T.MeshBasicMaterial({ color: 0xe7c969 });
+        for (const x of [-1.4, 1.4]) box(painting, yellow, x, 0, 0, 0.08, 0.012, 5);
+        box(painting, yellow, 0, 0, 2.5, 2.9, 0.012, 0.08);
+      });
     }
     for (const [s, side] of [
       [450, -1],
@@ -400,92 +432,97 @@ export class CircuitScene {
       [2210, -1],
       [2600, 1],
     ]) {
-      const p = this.track.at(s, trackPoint()),
-        g = new T.Group();
-      g.position.copy(this.at(s, side * (p.width + 28), 0));
-      g.rotation.y = Math.atan2(p.tx, p.tz);
-      this.props.add(g);
-      for (let row = 0; row < 7; row++) {
-        box(g, concrete, side * row * 0.8, row * 0.5, 0, 1, 0.45, 48);
-      }
-      box(g, roof, side * 2, 5, 0, 10, 0.22, 50);
-      for (const z of [-23, 0, 23]) box(g, dark, side * 5, 2.5, z, 0.25, 5, 0.25);
-      const people: { s: number; l: number; y: number; sx: number; sy: number; sz: number }[] = [];
-      for (let row = 0; row < 7; row++)
-        for (let col = 0; col < 48; col++) {
-          if ((col + row) % 9 === 0) continue;
-          people.push({
-            s: s + (col - 24) * 0.88,
-            l: side * (p.width + 28 + row * 0.8),
-            y: row * 0.5 + 0.9,
-            sx: 0.2,
-            sy: 0.45,
-            sz: 0.18,
-          });
+      this.construction.add(`Grandstand at ${s} m`, 3, () => {
+        const p = this.track.at(s, trackPoint()),
+          g = new T.Group();
+        g.position.copy(this.at(s, side * (p.width + 28), 0));
+        g.rotation.y = Math.atan2(p.tx, p.tz);
+        this.props.add(g);
+        for (let row = 0; row < 7; row++) {
+          box(g, concrete, side * row * 0.8, row * 0.5, 0, 1, 0.45, 48);
         }
-      const c = this.instance(
-        new T.SphereGeometry(1, 6, 4),
-        new T.MeshStandardMaterial({ color: 0xffffff, roughness: 1 }),
-        people,
-        this.crowd,
-      );
-      const random = new Random(s);
-      for (let j = 0; j < people.length; j++)
-        c.setColorAt(
-          j,
-          new T.Color().setHSL(
-            random.next(),
-            0.2 + random.next() * 0.3,
-            0.3 + random.next() * 0.45,
-          ),
+        box(g, roof, side * 2, 5, 0, 10, 0.22, 50);
+        for (const z of [-23, 0, 23]) box(g, dark, side * 5, 2.5, z, 0.25, 5, 0.25);
+        const people: { s: number; l: number; y: number; sx: number; sy: number; sz: number }[] =
+          [];
+        for (let row = 0; row < 7; row++)
+          for (let col = 0; col < 48; col++) {
+            if ((col + row) % 9 === 0) continue;
+            people.push({
+              s: s + (col - 24) * 0.88,
+              l: side * (p.width + 28 + row * 0.8),
+              y: row * 0.5 + 0.9,
+              sx: 0.2,
+              sy: 0.45,
+              sz: 0.18,
+            });
+          }
+        const c = this.instance(
+          new T.SphereGeometry(1, 6, 4),
+          new T.MeshStandardMaterial({ color: 0xffffff, roughness: 1 }),
+          people,
+          this.crowd,
         );
-    }
-    this.sign('APEX  /  FORMULA', 360, -19, 18, 2);
-    this.sign('AUREL MOTORSPORT', 870, 19, 20, 2);
-    this.sign('NORTHLINE', 1540, -19, 15, 1.8);
-    this.sign('PULSE / ENGINEERING', 2300, 19, 20, 2);
-    for (const corner of [570, 1170, 1410, 1640, 2070, 2670])
-      for (const distance of [50, 100, 150])
-        this.sign(String(distance), corner - distance, -18, 1, 0.9);
-    const p = this.track.at(0, trackPoint()),
-      gantry = new T.Group();
-    gantry.position.copy(this.at(0, 0));
-    gantry.rotation.y = Math.atan2(p.tx, p.tz);
-    this.props.add(gantry);
-    box(gantry, dark, 0, 6, 0, 22, 1.3, 0.5);
-    for (const side of [-1, 1]) box(gantry, concrete, side * 10.8, 3, 0, 0.5, 6, 0.5);
-    const banner = mesh(
-      gantry,
-      new T.PlaneGeometry(14, 1),
-      new T.MeshStandardMaterial({ map: label('AUREL / GRAND CIRCUIT'), side: T.DoubleSide }),
-      0,
-      6,
-      -0.27,
-    );
-    banner.rotation.y = Math.PI;
-    for (let i = 0; i < 5; i++) {
-      const mat = new T.MeshStandardMaterial({
-        color: 0x1a0e0c,
-        emissive: 0xff210c,
-        emissiveIntensity: 0,
+        const random = new Random(s);
+        for (let j = 0; j < people.length; j++)
+          c.setColorAt(
+            j,
+            new T.Color().setHSL(
+              random.next(),
+              0.2 + random.next() * 0.3,
+              0.3 + random.next() * 0.45,
+            ),
+          );
       });
-      this.startLamps.push(mat);
-      const lamp = mesh(
-        gantry,
-        new T.CylinderGeometry(0.16, 0.16, 0.08, 20),
-        mat,
-        (i - 2) * 0.45,
-        4.95,
-        -0.3,
-      );
-      lamp.rotation.x = Math.PI / 2;
     }
-    const tower = new T.Group();
-    tower.position.copy(this.at(235, 38));
-    this.props.add(tower);
-    box(tower, concrete, 0, 8, 0, 7, 16, 7);
-    box(tower, glass, 0, 15, 0, 9, 3.5, 9);
-    box(tower, roof, 0, 17, 0, 10, 0.25, 10);
+    this.construction.add('Signs, gantry and control tower', 2, () => {
+      this.sign('APEX  /  FORMULA', 360, -19, 18, 2);
+      this.sign('AUREL MOTORSPORT', 870, 19, 20, 2);
+      this.sign('NORTHLINE', 1540, -19, 15, 1.8);
+      this.sign('PULSE / ENGINEERING', 2300, 19, 20, 2);
+      for (const corner of [570, 1170, 1410, 1640, 2070, 2670])
+        for (const distance of [50, 100, 150])
+          this.sign(String(distance), corner - distance, -18, 1, 0.9);
+      const p = this.track.at(0, trackPoint()),
+        gantry = new T.Group();
+      gantry.position.copy(this.at(0, 0));
+      gantry.rotation.y = Math.atan2(p.tx, p.tz);
+      this.props.add(gantry);
+      box(gantry, dark, 0, 6, 0, 22, 1.3, 0.5);
+      for (const side of [-1, 1]) box(gantry, concrete, side * 10.8, 3, 0, 0.5, 6, 0.5);
+      const banner = mesh(
+        gantry,
+        new T.PlaneGeometry(14, 1),
+        new T.MeshStandardMaterial({ map: label('AUREL / GRAND CIRCUIT'), side: T.DoubleSide }),
+        0,
+        6,
+        -0.27,
+      );
+      banner.rotation.y = Math.PI;
+      for (let i = 0; i < 5; i++) {
+        const mat = new T.MeshStandardMaterial({
+          color: 0x1a0e0c,
+          emissive: 0xff210c,
+          emissiveIntensity: 0,
+        });
+        this.startLamps.push(mat);
+        const lamp = mesh(
+          gantry,
+          new T.CylinderGeometry(0.16, 0.16, 0.08, 20),
+          mat,
+          (i - 2) * 0.45,
+          4.95,
+          -0.3,
+        );
+        lamp.rotation.x = Math.PI / 2;
+      }
+      const tower = new T.Group();
+      tower.position.copy(this.at(235, 38));
+      this.props.add(tower);
+      box(tower, concrete, 0, 8, 0, 7, 16, 7);
+      box(tower, glass, 0, 15, 0, 9, 3.5, 9);
+      box(tower, roof, 0, 17, 0, 10, 0.25, 10);
+    });
   }
   private vegetation(random: Random) {
     const transforms: { s: number; l: number; y: number; sx: number; sy: number; sz: number }[] =

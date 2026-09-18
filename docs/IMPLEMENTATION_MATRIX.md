@@ -101,7 +101,7 @@ This ledger follows the numbered sections of the supplied directive. “Implemen
 | 95 | LOD | Three separate car geometries with hysteresis and articulated wheels; player remains full detail. Track/prop spatial culling is implemented. |
 | 96 | INSTANCING | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 97 | TEXTURE MANAGEMENT | Actual immutable-canvas texture resampling/restoration, mipmaps and hardware-bounded anisotropy; live displays and data textures excluded. No compressed external asset atlas. |
-| 98 | ASSET STREAMING | Not implemented: no asynchronous external asset streaming, because all assets are generated. |
+| 98 | ASSET STREAMING | Prioritized cooperative procedural-asset construction: bounded ribbon jobs, separate buildings, real completion progress and cancellation/cleanup. Generated local assets have no external streaming dependency. |
 | 99 | PHYSICS WORKER | Fixed-step worker and pooled render/telemetry/replay transport. Input polling no longer waits for requestAnimationFrame; stale-input safety remains. Target-hardware profiling is separate. |
 | 100 | AI WORKER | Strategic/tactical AI runs with the simulation inside the physics worker; a separate worker is an optional candidate, not an implemented independent thread. |
 | 101 | DEBUG OVERLAY | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
@@ -118,7 +118,7 @@ This ledger follows the numbered sections of the supplied directive. “Implemen
 | 112 | WET TEST | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 113 | DAMAGE TEST | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 114 | WAKE TEST | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
-| 115 | AI TESTS | Executable ten-car 50/100-lap acceptance harness checks finite state, stalls, retirement, fuel, component health and impact counts. Each measured report is tied to the exact simulation fingerprint; earlier reports do not certify later driver changes. |
+| 115 | AI TESTS | Current simulation fingerprint 5cc029957e89… passes ten-car dry 50 laps (seed 4417) and 100 laps (seed 73021), both zero contact and component damage; all ten cars physically service once in the 100-lap fixture. Reports and limits are recorded in CONSTRUCTION_AND_ENDURANCE.md. |
 | 116 | RACE TEST | Two ten-car three-lap clear/changing-weather whole-field classification fixtures with pit service and measured sectors. The full manual audiovisual scenario remains separate. |
 | 117 | PLAYWRIGHT TESTS | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 118 | PERFORMANCE REGRESSION | Runtime instrumentation and CI diagnostics, not a certified GPU regression benchmark. |
@@ -135,7 +135,7 @@ This ledger follows the numbered sections of the supplied directive. “Implemen
 | 129 | NO PROCEDURAL SLOP | Controlled original procedural design; final aesthetic judgment still requires visual review. |
 | 130 | CIRCUIT PHYSICS FIDELITY | Visual/contact geometry shared; one original circuit, not surveyed circuit data. |
 | 131 | UI PRINCIPLE | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
-| 132 | MENU PERFORMANCE | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+| 132 | MENU PERFORMANCE | Initial circuit construction yields between prioritized jobs and reports real task completion. Session car/shader preparation remains paused and cooperative. Oversized CPU/GPU work is measured rather than declared instantaneous. |
 | 133 | ACCESSIBILITY | Scalable interface, patterned/text flags, high-contrast instruments, adjustable shake and remapping. Optional motion-blur control is absent because the effect is not implemented. |
 | 134 | AUDIO/VISUAL CONNECTION | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 135 | NO DISCONNECTED EFFECTS | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |

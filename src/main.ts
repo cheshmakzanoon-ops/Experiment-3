@@ -156,7 +156,13 @@ export class GameApp {
     this.ui.applyBindings(this.settings.bindings);
     this.ui.loading('Building original bodywork, materials and Aurel circuit…');
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
-    this.renderer = new RacingRenderer(canvas, this.track);
+    this.renderer = await RacingRenderer.create(
+      canvas,
+      this.track,
+      (progress) => this.ui.loading(`${Math.floor(progress.fraction * 100)}% · ${progress.label}…`),
+      () => this.disposed || this.errorStopped,
+    );
+    if (!this.renderer || this.disposed || this.errorStopped) return;
     this.renderer.setQuality(this.settings.quality, this.settings.graphics);
     this.renderer.shake = this.settings.shake;
     this.audio.volume = this.settings.volume;

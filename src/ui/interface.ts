@@ -77,7 +77,7 @@ export class Interface {
   <section id="hud" class="hud" hidden>
    <div class="hud-top"><div class="brand small">APEX<span>/ LIVE</span></div><div class="session-status"><span id="lapLabel">LAP 1 / 3</span><b id="flag">GRID</b><span id="weatherLabel">24°C / DRY</span></div><button class="icon-button" data-action="pause" aria-label="Pause session">Ⅱ</button></div>
    <aside class="timing"><div class="panel-heading">CLASSIFICATION <span>LIVE</span></div><div id="tower"></div></aside>
-   <div class="lap-panel"><label>DELTA TO BEST<span id="lapDelta">—</span></label><label>CURRENT LAP<b id="lapTime">—:——.———</b></label><label>PERSONAL BEST<span id="bestLap">—:——.———</span></label><label>LAST LAP<span id="lastLap">—:——.———</span></label></div>
+   <div class="lap-panel"><label class="lap-delta">DELTA TO BEST<span id="lapDelta">—</span></label><label class="lap-current">CURRENT LAP<b id="lapTime">—:——.———</b></label><label>PERSONAL BEST<span id="bestLap">—:——.———</span></label><label>LAST LAP<span id="lastLap">—:——.———</span></label></div>
    <div id="startSequence" class="start-sequence" hidden><div id="lights">${'<i></i>'.repeat(5)}</div><span id="startText">BUILD REVS. HOLD THE BRAKE.</span></div>
    <div class="race-message" id="raceMessage" role="status" aria-live="polite"></div>
    <div class="minimap"><canvas id="minimap" width="250" height="240"></canvas><span>AUREL / GRAND CIRCUIT</span></div>

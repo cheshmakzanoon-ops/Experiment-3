@@ -278,3 +278,7 @@ Incidents now create local yellow or double-yellow zones instead of slowing the 
 ### 🧠 Driver strategy and functional pit service
 
 Seeded driver traits now influence tire care, deployment, reaction time, overtaking cost and early defensive choices. Bounded control mistakes respond to pressure and conditions without changing the vehicle's physical capability. Pit queues account for the future service corridor rather than only current separation. A six-person instanced crew and wheel removal follow actual unloaded service state. The cockpit display adds real best-lap distance delta, brake bias, differential and RPM-driven shift LEDs. See [implementation and validation](docs/DRIVER_STRATEGY_AND_PIT_SERVICE.md).
+
+### ⏱️ Prioritized loading and measured endurance
+
+The initial circuit now builds through cooperative, prioritized work rather than one blocking geometry pass. Loading progress reflects completed chunks. The current simulation also passed ten-car **50-lap and 100-lap dry endurance runs with zero contact**, including a physical tire stop for every car in the 100-lap run. These are recorded fixture results, not universal performance or AI guarantees. See [construction and endurance evidence](docs/CONSTRUCTION_AND_ENDURANCE.md).

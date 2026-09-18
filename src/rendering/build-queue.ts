@@ -1,0 +1,108 @@
+export interface BuildProgress {
+  completed: number;
+  total: number;
+  label: string;
+  fraction: number;
+}
+export interface BuildStatistics {
+  tasks: number;
+  yields: number;
+  workMilliseconds: number;
+  maximumTaskMilliseconds: number;
+  cancelled: boolean;
+}
+interface Task {
+  label: string;
+  priority: number;
+  work: () => void;
+}
+
+/** Cooperative construction, not simulation scheduling. Jobs stay small at
+ * their source (for example, one 80 m ribbon chunk). Measured task durations
+ * expose oversized work; yielding is not a claim of a hard real-time budget. */
+export class BuildQueue {
+  readonly statistics: BuildStatistics = {
+    tasks: 0,
+    yields: 0,
+    workMilliseconds: 0,
+    maximumTaskMilliseconds: 0,
+    cancelled: false,
+  };
+  private tasks: Task[] = [];
+  private started = false;
+  private complete = false;
+  add(label: string, priority: number, work: () => void) {
+    if (this.started) throw new Error('Cannot extend a running construction queue');
+    if (!label || !Number.isFinite(priority)) throw new Error('Invalid construction task');
+    this.tasks.push({ label, priority, work });
+  }
+  get ready() {
+    return this.complete;
+  }
+  private begin() {
+    if (this.started) throw new Error('Construction queue already started');
+    this.started = true;
+    this.tasks.sort((a, b) => a.priority - b.priority);
+  }
+  private execute(task: Task, now: () => number) {
+    const start = now();
+    task.work();
+    const elapsed = Math.max(0, now() - start);
+    this.statistics.tasks++;
+    this.statistics.workMilliseconds += elapsed;
+    this.statistics.maximumTaskMilliseconds = Math.max(
+      this.statistics.maximumTaskMilliseconds,
+      elapsed,
+    );
+  }
+  runSynchronously() {
+    this.begin();
+    try {
+      for (const task of this.tasks) this.execute(task, () => performance.now());
+      this.complete = true;
+    } finally {
+      this.tasks.length = 0;
+    }
+  }
+  async run(
+    progress: (value: BuildProgress) => void,
+    cancelled: () => boolean,
+    yieldControl: () => Promise<void> = () =>
+      new Promise((resolve) => requestAnimationFrame(() => resolve())),
+    now: () => number = () => performance.now(),
+    budgetMilliseconds = 8,
+  ): Promise<boolean> {
+    if (!Number.isFinite(budgetMilliseconds) || budgetMilliseconds <= 0)
+      throw new Error('Invalid construction slice budget');
+    this.begin();
+    const total = this.tasks.length;
+    let started = now();
+    try {
+      for (let index = 0; index < total; index++) {
+        if (cancelled()) {
+          this.statistics.cancelled = true;
+          return false;
+        }
+        const task = this.tasks[index];
+        // Report the pending task before yielding: progress is actual work,
+        // not a cosmetic timer or an intentionally delayed loading screen.
+        progress({ completed: index, total, label: task.label, fraction: index / total });
+        if (index === 0 || now() - started >= budgetMilliseconds) {
+          this.statistics.yields++;
+          await yieldControl();
+          if (cancelled()) {
+            this.statistics.cancelled = true;
+            return false;
+          }
+          started = now();
+        }
+        this.execute(task, now);
+      }
+      this.complete = true;
+      progress({ completed: total, total, label: 'Scene ready', fraction: 1 });
+      return true;
+    } finally {
+      this.tasks.length = 0;
+    }
+  }
+}
