@@ -1,0 +1,255 @@
+diff --git a/src/simulation/aero-map.ts b/src/simulation/aero-map.ts
+new file mode 100644
+index 0000000..cb63e64
+--- /dev/null
++++ b/src/simulation/aero-map.ts
+@@ -0,0 +1,70 @@
++import { clamp, lerp } from '../core/math.ts';
++
++/** Original engineering calibration, not measured CFD. Rows are front clearance,
++ * columns rear clearance, in metres; entries are dimensionless floor efficiency.
++ * Independent pitch samples give a separable incidence correction. Edge queries
++ * clamp to the calibration domain instead of extrapolating negative coefficients.
++ */
++export const RIDE_AXIS = [0, 0.012, 0.025, 0.044, 0.065, 0.075, 0.11, 0.16, 0.25] as const;
++export const PITCH_AXIS = [-0.12, -0.06, 0, 0.06, 0.12] as const;
++const PITCH_FRONT = [0.8, 0.92, 1, 1.03, 0.88];
++const PITCH_REAR = [0.9, 1.025, 1, 0.93, 0.81];
++const PITCH_FLOOR = [0.61, 0.85, 1, 0.89, 0.65];
++const PITCH_DRAG = [1.18, 1.055, 1, 1.055, 1.18];
++const WING_GROUND = [0.88, 0.94, 0.98, 1, 1, 1, 0.985, 0.96, 0.93];
++
++// Authored samples of the documented choking/clearance envelope. Retaining the
++// baseline optimum keeps the calibration change separate from arbitrary grip tuning.
++const FLOOR = [
++  0.3, 0.3, 0.300507355, 0.462353516, 0.79376297, 0.925087738, 1.0, 0.965605416, 0.70468809, 0.3,
++  0.3, 0.374912262, 0.65, 0.945072174, 0.999492645, 1.0, 0.925889854, 0.675704114, 0.300507355,
++  0.374912262, 0.552716064, 0.851548004, 1.0, 1.0, 1.0, 0.884705905, 0.645648526, 0.462353516, 0.65,
++  0.851548004, 1.0, 1.0, 1.0, 0.986097544, 0.827786507, 0.604109383, 0.79376297, 0.945072174, 1.0,
++  1.0, 1.0, 1.0, 0.916218872, 0.769126364, 0.561299864, 0.925087738, 0.999492645, 1.0, 1.0, 1.0,
++  1.0, 0.884705905, 0.742672583, 0.541994188, 1.0, 1.0, 1.0, 0.986097544, 0.916218872, 0.884705905,
++  0.782704538, 0.65704682, 0.479505459, 0.965605416, 0.925889854, 0.884705905, 0.827786507,
++  0.769126364, 0.742672583, 0.65704682, 0.551562566, 0.402524224, 0.70468809, 0.675704114,
++  0.645648526, 0.604109383, 0.561299864, 0.541994188, 0.479505459, 0.402524224, 0.2937577,
++];
++export interface AeroCoefficients {
++  front: number;
++  rear: number;
++  floor: number;
++  drag: number;
++}
++const lower = (axis: readonly number[], x: number) => {
++  let i = 0;
++  while (i < axis.length - 2 && x > axis[i + 1]) i++;
++  return i;
++};
++function sample1(axis: readonly number[], values: readonly number[], x: number) {
++  const i = lower(axis, x);
++  return lerp(values[i], values[i + 1], clamp((x - axis[i]) / (axis[i + 1] - axis[i]), 0, 1));
++}
++export function sampleAeroMap(
++  frontM: number,
++  rearM: number,
++  pitchRad: number,
++  out: AeroCoefficients,
++) {
++  if (!Number.isFinite(frontM) || !Number.isFinite(rearM) || !Number.isFinite(pitchRad))
++    throw new Error('Non-finite aero map input');
++  const i = lower(RIDE_AXIS, frontM),
++    j = lower(RIDE_AXIS, rearM),
++    n = RIDE_AXIS.length;
++  const u = clamp((frontM - RIDE_AXIS[i]) / (RIDE_AXIS[i + 1] - RIDE_AXIS[i]), 0, 1);
++  const v = clamp((rearM - RIDE_AXIS[j]) / (RIDE_AXIS[j + 1] - RIDE_AXIS[j]), 0, 1);
++  const floor = lerp(
++    lerp(FLOOR[i * n + j], FLOOR[i * n + j + 1], v),
++    lerp(FLOOR[(i + 1) * n + j], FLOOR[(i + 1) * n + j + 1], v),
++    u,
++  );
++  out.front = sample1(RIDE_AXIS, WING_GROUND, frontM) * sample1(PITCH_AXIS, PITCH_FRONT, pitchRad);
++  out.rear = sample1(RIDE_AXIS, WING_GROUND, rearM) * sample1(PITCH_AXIS, PITCH_REAR, pitchRad);
++  out.floor =
++    floor *
++    sample1(PITCH_AXIS, PITCH_FLOOR, pitchRad) *
++    Math.exp(-7 * Math.max(0, (frontM + rearM) * 0.5 - RIDE_AXIS[RIDE_AXIS.length - 1]));
++  out.drag = sample1(PITCH_AXIS, PITCH_DRAG, pitchRad);
++  return out;
++}
+diff --git a/src/simulation/aero.ts b/src/simulation/aero.ts
+index 42752c2..031f6eb 100644
+--- a/src/simulation/aero.ts
++++ b/src/simulation/aero.ts
+@@ -1,4 +1,5 @@
+-import { clamp, smooth, Vec3 } from '../core/math.ts';
++import { sampleAeroMap } from './aero-map.ts';
++import { smooth, Vec3 } from '../core/math.ts';
+ import { VEHICLE, type Setup } from './config.ts';
+ export interface AeroForces {
+   front: number;
+@@ -25,11 +26,12 @@ export function aero(
+ ) {
+   const q = 0.5 * VEHICLE.airDensity * speed * speed * 1.3,
+     yawLoss = Math.exp(-Math.abs(yawSlip) * 0.85),
+-    floor = groundEffect(frontHeight, rearHeight);
+-  out.front = q * (0.85 + setup.frontWing * 0.8) * frontHealth * (1 - 0.43 * wake) * yawLoss;
+-  out.rear = q * (1.05 + setup.rearWing * 0.9) * rearHealth * (1 - 0.2 * wake) * yawLoss;
+-  out.floor = q * 2.25 * floor * floorHealth * yawLoss * (1 - 0.24 * wake);
+-  out.drag =
++    pitch = Math.atan2(frontHeight - rearHeight, VEHICLE.wheelbase);
++  sampleAeroMap(frontHeight, rearHeight, pitch, out);
++  out.front *= q * (0.85 + setup.frontWing * 0.8) * frontHealth * (1 - 0.43 * wake) * yawLoss;
++  out.rear *= q * (1.05 + setup.rearWing * 0.9) * rearHealth * (1 - 0.2 * wake) * yawLoss;
++  out.floor *= q * 2.25 * floorHealth * yawLoss * (1 - 0.24 * wake);
++  out.drag *=
+     q *
+     (0.76 + setup.frontWing * 0.14 + setup.rearWing * 0.23 + (1 - frontHealth) * 0.12) *
+     (1 - 0.16 * wake);
+@@ -40,16 +42,34 @@ export function wakeOverlap(
+   leader: Vec3,
+   leaderForward: Vec3,
+   leaderSpeed: number,
++  followerForward?: Vec3,
+ ) {
++  const length = leaderForward.length();
++  if (length < 1e-8 || leaderSpeed <= 20) return 0;
+   const dx = follower.x - leader.x,
+-    dz = follower.z - leader.z,
+-    behind = -(dx * leaderForward.x + dz * leaderForward.z);
+-  if (behind <= 2 || behind > 100 || leaderSpeed < 20) return 0;
+-  const lateral = Math.abs(dx * leaderForward.z - dz * leaderForward.x),
+-    radius = 1.3 + behind * 0.055;
++    dy = follower.y - leader.y,
++    dz = follower.z - leader.z;
++  const behind = -(dx * leaderForward.x + dy * leaderForward.y + dz * leaderForward.z) / length;
++  if (behind <= 2 || behind >= 100) return 0;
++  const horizontal = Math.hypot(leaderForward.x, leaderForward.z);
++  if (horizontal < 1e-8) return 0;
++  const lateral = Math.abs(dx * leaderForward.z - dz * leaderForward.x) / horizontal;
++  const vertical = Math.abs(dy + (behind * leaderForward.y) / length);
++  const radius = 1.3 + behind * 0.055;
++  const alignment = followerForward
++    ? smooth(
++        0,
++        0.85,
++        followerForward.dot(leaderForward) / Math.max(1e-8, followerForward.length() * length),
++      )
++    : 1;
+   return (
+     Math.exp(-behind / 46) *
++    smooth(2, 6, behind) *
++    (1 - smooth(75, 100, behind)) *
+     (1 - smooth(radius * 0.3, radius, lateral)) *
+-    clamp(leaderSpeed / 55, 0, 1)
++    (1 - smooth(0.6, 2.5, vertical)) *
++    smooth(20, 55, leaderSpeed) *
++    alignment
+   );
+ }
+diff --git a/src/simulation/tire.ts b/src/simulation/tire.ts
+index 9365aa9..6e1306d 100644
+--- a/src/simulation/tire.ts
++++ b/src/simulation/tire.ts
+@@ -66,15 +66,25 @@ export function temperatureGrip(compound: Compound, temp: number) {
+   const d = temp - COMPOUNDS[compound].ideal;
+   return 1 - (d < 0 ? 0.35 : 0.48) * (1 - Math.exp(-((d / (d < 0 ? 45 : 65)) ** 2)));
+ }
++/** Smooth load/tread/water coupling, not a random aquaplaning event. Higher
++ * contact load moves both speed breakpoints upward. It is a bounded reduced
++ * grip model, not a hydrodynamic contact-patch solver. */
++export function aquaplaning(compound: Compound, load: number, waterMm: number, speed: number) {
++  if (load <= 0 || waterMm <= 0) return 0;
++  const tolerance = COMPOUNDS[compound].waterTolerance;
++  const loadScale = Math.sqrt(clamp(load / 2200, 0.25, 4));
++  return (
++    smooth(tolerance * 0.7, tolerance * 3 + 1, waterMm) *
++    smooth(24 * loadScale, 95 * loadScale, Math.abs(speed))
++  );
++}
+ export function peakGrip(t: Tire, load: number, s: SurfaceSample, speed: number) {
+   const c = COMPOUNDS[t.compound],
+     loadRatio = Math.max(load, 100) / 2200,
+     wetRatio = s.water / (s.water + c.waterTolerance),
+     wetPenalty =
+       (t.compound === 'wet' ? 0.1 : t.compound === 'intermediate' ? 0.22 : 0.63) * wetRatio,
+-    hydro =
+-      smooth(c.waterTolerance * 0.7, c.waterTolerance * 3 + 1, s.water) *
+-      smooth(24, 95, Math.abs(speed)),
++    hydro = aquaplaning(t.compound, load, s.water, speed),
+     pressurePenalty = 1 - 0.12 * ((t.pressure - 165) / 65) ** 2;
+   return (
+     c.mu *
+@@ -194,9 +204,9 @@ export function solveTire(
+   );
+   if (vLong > 12 && t.slip < -0.8 && t.load > 700)
+     t.flatSpot = clamp(t.flatSpot + (Math.abs(t.fx * vLong) * dt) / 2e7, 0, 1);
+-  if (surface.surface === SURFACE.GRASS || surface.surface === SURFACE.GRAVEL)
++  if (t.load > 1 && (surface.surface === SURFACE.GRASS || surface.surface === SURFACE.GRAVEL))
+     t.dirt = clamp(t.dirt + 0.35 * dt, 0, 1);
+-  else t.dirt = Math.max(0, t.dirt - Math.abs(omega) * 0.0009 * dt);
++  else if (t.load > 1) t.dirt = Math.max(0, t.dirt - Math.abs(omega) * 0.0009 * dt);
+   t.discTemp +=
+     ((Math.max(0, brake - regen) * Math.abs(omega) -
+       (t.discTemp - 24) * (25 + Math.abs(vLong) * 4)) *
+diff --git a/src/simulation/track.ts b/src/simulation/track.ts
+index 15c3378..d2edbf7 100644
+--- a/src/simulation/track.ts
++++ b/src/simulation/track.ts
+@@ -317,6 +317,7 @@ export class Track {
+       }
+   }
+   interact(cell: number, load: number, energy: number, speed: number, dt: number) {
++    if (load <= 1) return; // Airborne wheels cannot displace water or lay rubber.
+     this.rubber[cell] = Math.min(1, this.rubber[cell] + (load * 1e-9 + energy * 8e-10) * dt);
+     this.water[cell] = Math.max(0, this.water[cell] - Math.abs(speed) * 0.00025 * dt);
+     const c = cell % CELL_COLS,
+diff --git a/src/simulation/vehicle.ts b/src/simulation/vehicle.ts
+index 531f926..f87a9a3 100644
+--- a/src/simulation/vehicle.ts
++++ b/src/simulation/vehicle.ts
+@@ -339,9 +339,11 @@ export class Vehicle {
+     this.relativeAir.copy(b.velocity);
+     this.relativeAir.x -= track.windX;
+     this.relativeAir.z -= track.windZ;
+-    const airspeed = this.relativeAir.length(),
+-      frontHeight = b.position.y - this.contacts[0].height - 0.43,
+-      rearHeight = b.position.y - this.contacts[2].height - 0.43;
++    const airspeed = this.relativeAir.length();
++    // Clearance is measured at actual floor stations, including chassis pitch
++    // and local road elevation/bank. CG height alone misses nose dive and rake.
++    const frontHeight = this.floorClearance(track, 1.7);
++    const rearHeight = this.floorClearance(track, -1.6);
+     this.frontRideHeight = frontHeight;
+     this.rearRideHeight = rearHeight;
+     aero(
+@@ -408,6 +410,13 @@ export class Vehicle {
+     this.impact = Math.max(0, this.impact - dt * 2);
+     if (b.position.y < this.surface.height - 4) this.retired = true;
+   }
++  floorClearance(track: Track, z: number) {
++    this.body.orientation
++      .rotate(this.localPoint.set(0, -0.43, z), this.point)
++      .add(this.body.position);
++    track.sample(this.point.x, this.point.z, this.surface);
++    return (this.point.y - this.surface.height) * this.surface.normal.y;
++  }
+   impactAt(energy: number, point: Vec3) {
+     if (!Number.isFinite(energy) || energy < 0) throw new Error('Invalid impact energy');
+     this.localPoint.copy(point).sub(this.body.position);
+diff --git a/src/simulation/world.ts b/src/simulation/world.ts
+index be85f39..2a2dc2b 100644
+--- a/src/simulation/world.ts
++++ b/src/simulation/world.ts
+@@ -83,7 +83,13 @@ export class Simulation {
+         if (other !== c)
+           c.wake = Math.max(
+             c.wake,
+-            wakeOverlap(c.body.position, other.body.position, other.forward, other.speed),
++            wakeOverlap(
++              c.body.position,
++              other.body.position,
++              other.forward,
++              other.speed,
++              c.forward,
++            ),
+           );
+     }
+     for (let sub = 0; sub < 2; sub++) {
