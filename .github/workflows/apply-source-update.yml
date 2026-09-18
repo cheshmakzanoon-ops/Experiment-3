@@ -70,6 +70,7 @@ jobs:
       - run: node --experimental-transform-types scripts/rotation-benchmark.ts
       - run: npm run test:physics
       - run: node --experimental-transform-types scripts/pit-integration.ts
+      - run: node --experimental-transform-types scripts/race-classification.ts
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
       - name: Commit verified source and fast-forward main
@@ -79,7 +80,7 @@ jobs:
           git fetch origin main
           test "$(git rev-parse HEAD)" = "$(git rev-parse origin/main)"
           git rm -- .github/source-update.json .github/source-update-*.patch
-          git add -- docs/scenario-results.json docs/pit-integration.json docs/rotation-benchmark.json
+          git add -- docs/scenario-results.json docs/pit-integration.json docs/rotation-benchmark.json docs/race-classification.json
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git commit -F "$RUNNER_TEMP/source-commit-message.txt"
@@ -101,6 +102,7 @@ jobs:
             docs/scenario-results.json
             docs/pit-integration.json
             docs/rotation-benchmark.json
+            docs/race-classification.json
             test-results/
             playwright-report/
           retention-days: 7

@@ -1,0 +1,398 @@
++    wheelSteering: true,
++    manualClutch: true,
++    shiftUpButton: 10,
++    shiftDownButton: 11,
++    calibration: {
++      steering: { axis: 0, left: -0.8, center: 0, right: 0.6 },
++      throttle: { axis: 1, released: 1, pressed: -1 },
++      brake: { axis: 2, released: -1, pressed: 1 },
++      clutch: { axis: 3, released: 1, pressed: -1 },
++    },
++  });
++  const action = vi.fn();
++  const input = new InputController(settings, action);
++  input.setEnabled(true);
++  const axes = wheel.axes as number[],
++    buttons = wheel.buttons as GamepadButton[];
++  return {
++    input,
++    action,
++    wheel,
++    axes,
++    buttons,
++    setPads: (value: (Gamepad | null)[]) => {
++      pads = value;
++    },
++  };
++}
++describe('physical device controls', () => {
++  it('delivers calibrated wheel input directly and maps independent pedals', () => {
++    const f = fixture();
++    f.axes[0] = 0.6;
++    f.axes[1] = -1;
++    f.axes[2] = -1;
++    f.axes[3] = -1;
++    const value = f.input.update(1 / 120);
++    expect(value.steer).toBe(-1);
++    expect(value.throttle).toBe(1);
++    expect(value.brake).toBe(0);
++    expect(value.clutch).toBe(1);
++    expect(value.manualClutch).toBe(true);
++    f.input.dispose();
++  });
++  it('uses configured paddles once on nonstandard wheels and ignores held buttons after resume', () => {
++    const f = fixture();
++    f.buttons[10] = button(1);
++    expect(f.input.update(0.01).shift).toBe(0);
++    f.buttons[10] = button(0);
++    f.input.update(0.01);
++    f.buttons[10] = button(1);
++    expect(f.input.update(0.01).shift).toBe(1);
++    f.input.state.shift = 0;
++    expect(f.input.update(0.01).shift).toBe(0);
++    f.buttons[11] = button(1);
++    expect(f.input.update(0.01).shift).toBe(-1);
++    f.input.dispose();
++  });
++  it('neutralizes and pauses once after disconnect, without applying the profile to another wheel', () => {
++    const f = fixture();
++    f.axes[1] = -1;
++    expect(f.input.update(0.01).throttle).toBe(1);
++    f.setPads([null, null, pad(2, 'Wrong wheel')]);
++    expect(f.input.update(0.01).throttle).toBe(0);
++    expect(f.action).toHaveBeenCalledWith('deviceLost');
++    f.input.update(0.01);
++    expect(f.action).toHaveBeenCalledTimes(1);
++    f.input.dispose();
++  });
++  it('fails closed for a missing or changed calibrated pedal axis', () => {
++    const f = fixture();
++    f.input.settings.mapping.throttleAxis = 9;
++    expect(f.input.update(0.01).throttle).toBe(0);
++    expect(f.action).toHaveBeenCalledWith('deviceLost');
++    f.input.dispose();
++  });
++});
++
++it('an explicitly mapped standard-gamepad paddle owns its button instead of also pausing', () => {
++  const f = fixture();
++  Object.assign(f.wheel, { mapping: 'standard' });
++  f.input.settings.mapping.shiftUpButton = 9;
++  f.input.update(0.01);
++  f.buttons[9] = button(1);
++  expect(f.input.update(0.01).shift).toBe(1);
++  expect(f.action).not.toHaveBeenCalled();
++  f.input.dispose();
++});
++it('a broken profile is suppressed until reapplied instead of repeatedly pausing keyboard fallback', () => {
++  const f = fixture();
++  f.input.settings.mapping.throttleAxis = 9;
++  f.input.update(0.01);
++  for (let i = 0; i < 5; i++) f.input.update(0.01);
++  expect(f.action).toHaveBeenCalledTimes(1);
++  f.input.settings.mapping = structuredClone(f.input.settings.mapping);
++  f.input.settings.mapping.throttleAxis = 1;
++  f.axes[1] = -1;
++  expect(f.input.update(0.01).throttle).toBe(1);
++  f.input.dispose();
++});
+diff --git a/tests/clutch.test.ts b/tests/clutch.test.ts
+new file mode 100644
+index 0000000..05f903a
+--- /dev/null
++++ b/tests/clutch.test.ts
+@@ -0,0 +1,70 @@
++import { expect, it } from 'vitest';
++import { FrictionClutch } from '../src/simulation/clutch.ts';
++import { VEHICLE } from '../src/simulation/config.ts';
++import { Vehicle } from '../src/simulation/vehicle.ts';
++import { Track } from '../src/simulation/track.ts';
++import { Simulation } from '../src/simulation/world.ts';
++import { DEFAULT_OPTIONS } from '../src/simulation/config.ts';
++import { F, carBase } from '../src/simulation/protocol.ts';
++it('open clutch permits free engine acceleration with zero wheel torque', () => {
++  const c = new FrictionClutch(),
++    before = c.engineOmega;
++  expect(c.step(1 / 240, 200, 0, 12, 1, false, false)).toBe(0);
++  expect(c.engineOmega - before).toBeCloseTo(200 / (240 * c.inertia));
++  expect(c.slipPower).toBe(0);
++});
++it.each([0.1, 0.5, 1])(
++  'slip coupling is dissipative and conserves shaft impulse at engagement %s',
++  (engagement) => {
++    const c = new FrictionClutch(),
++      dt = 1 / 240,
++      ratio = 12,
++      omega = 5,
++      I = 2 * VEHICLE.wheelInertia;
++    const before = 0.5 * c.inertia * c.engineOmega ** 2 + 0.5 * I * omega ** 2;
++    const momentum = c.inertia * c.engineOmega;
++    const torque = c.step(dt, 0, omega, ratio, 1 - engagement, false, false);
++    const wheelAfter = omega + (torque * dt) / I;
++    const after = 0.5 * c.inertia * c.engineOmega ** 2 + 0.5 * I * wheelAfter ** 2;
++    expect(after).toBeLessThan(before);
++    expect((before - after) / dt).toBeCloseTo(c.slipPower, 5);
++    expect(momentum - c.inertia * c.engineOmega).toBeCloseTo((torque * dt) / ratio, 9);
++    expect(Math.abs(c.transmittedTorque)).toBeLessThanOrEqual(c.capacity * engagement + 1e-9);
++  },
++);
++it('supports reverse coupling and unloads for neutral and gearshift', () => {
++  const c = new FrictionClutch();
++  expect(c.step(1 / 240, 200, 0, -8, 0, false, false)).toBeLessThan(0);
++  expect(c.step(1 / 240, 200, 0, 0, 0, false, false)).toBe(0);
++  expect(c.step(1 / 240, 200, 0, 8, 0, false, true)).toBe(0);
++  expect(() => c.step(0, 200, 0, 8, 0, false, false)).toThrow();
++});
++it('a real car can free-rev with its clutch open, then launch without a velocity override', () => {
++  const track = new Track('clear', true);
++  track.windX = track.windZ = 0;
++  const car = new Vehicle(0);
++  car.place(track, 30);
++  car.input.manualClutch = true;
++  car.input.clutch = 1;
++  car.input.throttle = 0.6;
++  for (let i = 0; i < 480; i++) car.step(1 / 240, track);
++  expect(car.speed).toBeLessThan(0.3);
++  expect(car.rpm).toBeGreaterThan(8000);
++  car.input.clutch = 0;
++  for (let i = 0; i < 720; i++) car.step(1 / 240, track);
++  expect(car.speed).toBeGreaterThan(8);
++  expect(car.clutch.transmittedTorque).not.toBe(0);
++}, 30000);
++it('serializes physical clutch state and rejects non-finite input', () => {
++  const sim = new Simulation({ ...DEFAULT_OPTIONS, opponents: 0, mode: 'practice' });
++  sim.setInput({ ...sim.cars[0].input, manualClutch: true, clutch: 1, throttle: 0.5 });
++  sim.step(1 / 120);
++  const f = sim.makeFrame(),
++    o = carBase(0);
++  expect(f[o + F.CLUTCH_PEDAL]).toBe(1);
++  expect(f[o + F.CLUTCH_ENGAGEMENT]).toBe(0);
++  expect(f[o + F.CLUTCH_TORQUE]).toBe(0);
++  expect(f[o + F.ENGINE_TORQUE]).toBeGreaterThan(0);
++  sim.setInput({ ...sim.cars[0].input, clutch: NaN });
++  expect(sim.cars[0].input.clutch).toBe(0);
++});
+diff --git a/tests/core.test.ts b/tests/core.test.ts
+index c8f531b..669499f 100644
+--- a/tests/core.test.ts
++++ b/tests/core.test.ts
+@@ -124,2 +124,4 @@ describe('validated persistence and messages', () => {
+     s.setInput({
++      clutch: NaN,
++      manualClutch: false,
+       throttle: NaN,
+diff --git a/tests/input.test.ts b/tests/input.test.ts
+index cb55707..ada6137 100644
+--- a/tests/input.test.ts
++++ b/tests/input.test.ts
+@@ -19,3 +19,9 @@ function setup(pad?: Partial<Gamepad>) {
+   vi.stubGlobal('navigator', { getGamepads: () => (pad ? [pad] : []) });
+-  const input = new InputController(structuredClone(DEFAULT_SETTINGS), () => undefined);
++  const settings = structuredClone(DEFAULT_SETTINGS);
++  if (pad) {
++    pad = { ...pad, index: 0 };
++    settings.mapping.device = { index: 0, id: pad.id! };
++    settings.mapping.throttleButton = settings.mapping.brakeButton = -1;
++  }
++  const input = new InputController(settings, () => undefined);
+   input.setEnabled(true);
+diff --git a/tests/race-control.test.ts b/tests/race-control.test.ts
+new file mode 100644
+index 0000000..63d5b41
+--- /dev/null
++++ b/tests/race-control.test.ts
+@@ -0,0 +1,187 @@
++import { describe, expect, it } from 'vitest';
++import {
++  LapTracker,
++  RaceDirector,
++  PHASE,
++  FINISH_GRACE_SECONDS,
++  outsideTrack,
++} from '../src/simulation/race.ts';
++import { DEFAULT_OPTIONS } from '../src/simulation/config.ts';
++import { Track } from '../src/simulation/track.ts';
++import { Vehicle } from '../src/simulation/vehicle.ts';
++import { stoppingTarget } from '../src/simulation/ai.ts';
++import { Simulation } from '../src/simulation/world.ts';
++import { F, carBase } from '../src/simulation/protocol.ts';
++
++describe('timing and four-wheel boundaries', () => {
++  it('interpolates sector crossings and preserves all three completed sectors', () => {
++    const lap = new LapTracker(1000, 990);
++    for (let distance = 1; distance <= 1015; distance++)
++      lap.update((990 + distance) % 1000, distance / 100, false);
++    expect(lap.completed).toBe(1);
++    expect(lap.last).toBeCloseTo(10, 10);
++    for (const sector of lap.lastSectors) expect(sector).toBeCloseTo(10 / 3, 10);
++    expect(lap.lastSectors.reduce((a, b) => a + b)).toBeCloseTo(lap.last, 10);
++    expect(lap.lapTime).toBeCloseTo(0.05, 10);
++    expect(lap.lastValid).toBe(true);
++  });
++  it('records invalid-lap sectors without turning that lap into a best lap', () => {
++    const lap = new LapTracker(1000, 990);
++    for (let distance = 1; distance <= 1015; distance++)
++      lap.update((990 + distance) % 1000, distance / 100, distance === 500);
++    expect(lap.completed).toBe(1);
++    expect(lap.lastSectors[2]).toBeGreaterThan(0);
++    expect(lap.best).toBe(0);
++    expect(lap.lastValid).toBe(false);
++    expect(lap.valid).toBe(true);
++  });
++  it('does not award teleport progress and rejects a reversed clock', () => {
++    const lap = new LapTracker(1000, 100);
++    const initial = lap.distance;
++    lap.update(400, 1, false);
++    expect(lap.distance).toBe(initial);
++    expect(lap.valid).toBe(false);
++    expect(() => lap.update(401, 0.5, false)).toThrow();
++  });
++  it('uses each tire footprint and local width, including the outer paint line', () => {
++    const car = new Vehicle(0);
++    for (const surface of car.contacts) {
++      surface.width = 8;
++      surface.lateral = 8.4;
++    }
++    expect(outsideTrack(car)).toBe(true);
++    car.contacts[2].lateral = 8.18; // Rear tread still overlaps the line.
++    expect(outsideTrack(car)).toBe(false);
++    car.contacts[2].lateral = 8.2;
++    expect(outsideTrack(car)).toBe(true);
++    car.contacts[0].width = 9; // One local ribbon is wider; not a chassis-centre test.
++    expect(outsideTrack(car)).toBe(false);
++    car.contacts[0].width = 8;
++    car.inPit = true;
++    expect(outsideTrack(car)).toBe(false);
++  });
++  it('exports the completed third sector after crossing the line', () => {
++    const sim = new Simulation({ ...DEFAULT_OPTIONS, mode: 'practice', opponents: 0 });
++    const lap = sim.race.laps[0];
++    lap.lastSectors.splice(0, 3, 21, 22, 23);
++    const frame = sim.makeFrame();
++    expect(frame[carBase(0) + F.SECTOR_3]).toBe(23);
++  });
++});
++
++function finishingField() {
++  const track = new Track();
++  const cars = [new Vehicle(0), new Vehicle(1)];
++  for (const car of cars) car.place(track, track.length - 2);
++  const race = new RaceDirector(cars, track, { ...DEFAULT_OPTIONS, laps: 2, mode: 'race' });
++  race.phase = PHASE.RACING;
++  race.time = race.greenAt + 100;
++  for (const lap of race.laps) {
++    lap.active = true;
++    lap.completed = 1;
++    lap.nextGate = 0;
++    lap.lastTime = 100;
++    lap.lapStart = 40;
++    lap.sector = 2;
++    lap.sectorStart = 80;
++    lap.sectors.splice(0, 3, 20, 20, 0);
++  }
++  return { cars, race, track };
++}
++
++describe('whole-field classification', () => {
++  it('keeps the simulation racing after the first finish, then applies time penalties', () => {
++    const { cars, race } = finishingField();
++    race.laps[1].penalty = 5;
++    cars[1].s = 2;
++    race.step(0.1);
++    expect(cars[1].finishTime).toBeCloseTo(105.05, 7);
++    expect(cars[0].finishTime).toBe(0);
++    expect(race.phase).toBe(PHASE.RACING);
++    expect(race.flag).toBe('CHEQUERED');
++    cars[0].s = 2;
++    race.step(0.1);
++    expect(race.phase).toBe(PHASE.FINISHED);
++    expect(race.order).toEqual([0, 1]);
++    expect(race.laps.map((l) => l.completed)).toEqual([2, 2]);
++    const final = cars[1].finishTime;
++    race.step(1);
++    expect(cars[1].finishTime).toBe(final);
++  });
++  it('classifies a lapped car on its next finish crossing rather than waiting for extra laps', () => {
++    const { cars, race } = finishingField();
++    race.laps[0].completed = 0;
++    cars[1].s = 2;
++    race.step(0.1);
++    cars[0].s = 2;
++    race.step(0.1);
++    expect(race.phase).toBe(PHASE.FINISHED);
++    expect(race.order).toEqual([1, 0]);
++    expect(race.laps[0].completed).toBe(1);
++    expect(cars[0].finishTime).toBeGreaterThan(0);
++  });
++  it('resolves same-tick first crossings by time, not vehicle-array order', () => {
++    const { cars, race, track } = finishingField();
++    race.laps[0].lastS = track.length - 3;
++    race.laps[1].lastS = track.length - 1;
++    cars[0].s = 1;
++    cars[1].s = 3;
++    race.step(0.1);
++    expect(race.finishStartedAt).toBeCloseTo(100.025, 7);
++    expect(race.order).toEqual([1, 0]);
++  });
++  it('marks a timed-out competitor DNF without manufacturing a finishing time', () => {
++    const { cars, race } = finishingField();
++    cars[1].s = 2;
++    race.step(0.1);
++    for (let i = 0; i < FINISH_GRACE_SECONDS; i++) race.step(1);
++    expect(race.phase).toBe(PHASE.FINISHED);
++    expect(cars[0].retired).toBe(true);
++    expect(cars[0].finishTime).toBe(0);
++  });
++  it('ends an all-retired race without inventing a winner', () => {
++    const { cars, race } = finishingField();
++    cars.forEach((car) => (car.retired = true));
++    race.step(0.1);
++    expect(race.phase).toBe(PHASE.FINISHED);
++    expect(cars.every((car) => car.finishTime === 0)).toBe(true);
++  });
++});
++it('reserves pedal-response distance in the pit stopping target', () => {
++  for (const distance of [0, 0.1, 1, 5, 30, 100]) {
++    const v = stoppingTarget(distance, 3, 0.8);
++    expect(v).toBeGreaterThanOrEqual(0);
++    expect(v * 0.8 + (v * v) / 6).toBeCloseTo(distance, 9);
++  }
++});
++it('a missed pit box becomes a physical drive-through, never a reverse into the queue', () => {
++  const sim = new Simulation({ ...DEFAULT_OPTIONS, mode: 'practice', opponents: 0 });
++  const car = sim.cars[0];
++  car.place(sim.track, 110, 24.1);
++  car.inPit = true;
++  car.pitPhase = 1;
++  car.pitRequested = true;
++  sim.race.time += 1;
++  sim.ai[0].update(1 / 120, sim.track, sim.cars, sim.race);
++  expect(car.pitPhase).toBe(6);
++  expect(car.pitRequested).toBe(true);
++  expect(car.pitStops).toBe(0);
++  expect(car.input.reverse).toBe(false);
++});
++it('raised pit jack feet retain a finite support polygon on the sloped lane', () => {
++  const track = new Track();
++  const car = new Vehicle(0);
++  car.place(track, 123, 24.1);
++  car.inPit = true;
++  car.input.brake = 1;
++  for (let tick = 0; tick < 240 * 3; tick++) car.step(1 / 240, track);
++  car.pitPhase = 3;
++  const start = { ...car.body.position };
++  for (let tick = 0; tick < 240 * 5; tick++) car.step(1 / 240, track);
++  expect(Math.hypot(car.body.position.x - start.x, car.body.position.z - start.z)).toBeLessThan(
++    0.1,
++  );
++  expect(car.body.position.y - start.y).toBeGreaterThan(0.06);
++  expect(car.body.omega.length()).toBeLessThan(0.01);
++  expect(car.body.position.finite()).toBe(true);
++}, 10000);
+diff --git a/tests/recording.test.ts b/tests/recording.test.ts
+index a18d1e2..c99b69f 100644
+--- a/tests/recording.test.ts
++++ b/tests/recording.test.ts
+@@ -56,3 +56,3 @@ describe('real-state telemetry', () => {
+   it('has unique named fields and faithfully exports each wheel and hybrid power', async () => {
+-    expect(CHANNELS.length).toBe(176);

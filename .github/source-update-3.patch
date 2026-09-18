@@ -1,0 +1,377 @@
++  if (!Number.isInteger(value) || (value as number) < 0 || (value as number) > 31)
++    throw new Error('Calibration axis must be an integer from 0 to 31.');
++  return value as number;
++};
++const endpoint = (value: unknown): number => {
++  if (typeof value !== 'number' || !Number.isFinite(value) || Math.abs(value) > 1)
++    throw new Error('Calibration endpoints must be finite Gamepad axis values from -1 to 1.');
++  return value;
++};
++export function validateSteering(value: unknown): SteeringCalibration {
++  if (!value || typeof value !== 'object') throw new Error('Invalid steering calibration.');
++  const v = value as SteeringCalibration;
++  const result = {
++    axis: axisIndex(v.axis),
++    left: endpoint(v.left),
++    center: endpoint(v.center),
++    right: endpoint(v.right),
++  };
++  if (
++    (result.left - result.center) * (result.right - result.center) >= 0 ||
++    Math.min(Math.abs(result.left - result.center), Math.abs(result.right - result.center)) < 0.05
++  )
++    throw new Error(
++      'Capture steering left, centered, and right with at least 0.05 travel on each side.',
++    );
++  return result;
++}
++export function validatePedal(value: unknown): PedalCalibration {
++  if (!value || typeof value !== 'object') throw new Error('Invalid pedal calibration.');
++  const v = value as PedalCalibration;
++  const result = {
++    axis: axisIndex(v.axis),
++    released: endpoint(v.released),
++    pressed: endpoint(v.pressed),
++  };
++  if (Math.abs(result.pressed - result.released) < 0.1)
++    throw new Error('Pedal released and pressed positions must differ by at least 0.1.');
++  return result;
++}
++export function validateCalibration(value: unknown): CalibrationSet {
++  if (value === undefined || value === null) return emptyCalibration();
++  if (typeof value !== 'object') throw new Error('Invalid device calibration.');
++  const v = value as CalibrationSet;
++  return {
++    steering: v.steering == null ? null : validateSteering(v.steering),
++    throttle: v.throttle == null ? null : validatePedal(v.throttle),
++    brake: v.brake == null ? null : validatePedal(v.brake),
++    clutch: v.clutch == null ? null : validatePedal(v.clutch),
++  };
++}
++export function validateDevice(value: unknown): DeviceSelection | null {
++  if (value === undefined || value === null) return null;
++  if (typeof value !== 'object') throw new Error('Invalid selected device.');
++  const v = value as DeviceSelection;
++  if (
++    !Number.isInteger(v.index) ||
++    v.index < 0 ||
++    v.index > 31 ||
++    typeof v.id !== 'string' ||
++    !v.id ||
++    v.id.length > 1024
++  )
++    throw new Error('Invalid device identity. Select a connected device.');
++  return { index: v.index, id: v.id };
++}
++/** Gamepad slots are sparse and may be reused for different hardware. A custom
++ * profile is never applied to a different device merely because it got its slot. */
++export function selectDevice(pads: readonly (Gamepad | null)[], selection: DeviceSelection | null) {
++  if (selection)
++    return (
++      pads.find((p) => p?.connected && p.index === selection.index && p.id === selection.id) ?? null
++    );
++  return pads.find((p) => p?.connected && p.mapping === 'standard') ?? null;
++}
++export function readAxis(pad: Gamepad, index: number): number | undefined {
++  const value = pad.axes[index];
++  return Number.isFinite(value) && Math.abs(value) <= 1 ? value : undefined;
++}
++export function calibratedSteer(raw: number, c: SteeringCalibration): number {
++  const side = (raw - c.center) * Math.sign(c.right - c.center);
++  const extent = side >= 0 ? Math.abs(c.right - c.center) : Math.abs(c.left - c.center);
++  return Number.isFinite(raw) && side !== 0 ? clamp(side / extent, -1, 1) : 0;
++}
++export function calibratedPedal(raw: number, c: PedalCalibration): number {
++  return Number.isFinite(raw) ? clamp((raw - c.released) / (c.pressed - c.released), 0, 1) : 0;
++}
++export function steeringResponse(
++  raw: number,
++  deadzone: number,
++  saturation: number,
++  exponent: number,
++) {
++  if (!Number.isFinite(raw)) return 0;
++  const x = clamp((Math.abs(raw) - deadzone) / Math.max(0.01, saturation - deadzone), 0, 1);
++  return Math.sign(raw) * x ** exponent;
++}
+diff --git a/src/input/controller.ts b/src/input/controller.ts
+index 9a118b5..a34a3ff 100644
+--- a/src/input/controller.ts
++++ b/src/input/controller.ts
+@@ -1 +1,8 @@
++import {
++  calibratedPedal,
++  calibratedSteer,
++  readAxis,
++  selectDevice,
++  steeringResponse,
++} from './calibration.ts';
+ import { boundAction, isHeld } from './bindings.ts';
+@@ -12,2 +19,8 @@ export class InputController {
+   gamepadName = 'KEYBOARD';
++  deviceStatus = '';
++  private lastDevice = '';
++  private lastFault = '';
++  private suppressedDevice = '';
++  private blockedMapping: Settings['mapping'] | null = null;
++  private touchEvents = new AbortController();
+   constructor(
+@@ -19,3 +32,3 @@ export class InputController {
+     window.addEventListener('blur', this.blur);
+-    window.addEventListener('gamepaddisconnected', this.blur);
++    window.addEventListener('gamepaddisconnected', this.disconnected);
+   }
+@@ -37,3 +50,6 @@ export class InputController {
+     else if (action === 'shiftDown') this.state.shift = -1;
+-    else if (action && !['throttle', 'brake', 'left', 'right', 'reverse'].includes(action))
++    else if (
++      action &&
++      !['throttle', 'brake', 'left', 'right', 'reverse', 'clutch'].includes(action)
++    )
+       this.action(action);
+@@ -45,2 +61,19 @@ export class InputController {
+   };
++  private disconnected = (event: GamepadEvent) => {
++    if (this.lastDevice === `${event.gamepad.index}:${event.gamepad.id}`)
++      this.deviceFault('Selected controller disconnected.', false);
++  };
++  private deviceFault(message: string, suppress = true) {
++    if (suppress) {
++      this.suppressedDevice = this.lastDevice;
++      this.blockedMapping = this.settings.mapping;
++    }
++    this.deviceStatus = message;
++    this.reset();
++    if (message !== this.lastFault) {
++      this.lastFault = message;
++      if (this.enabled) this.action('deviceLost');
++    }
++    return this.state;
++  }
+   setEnabled(value: boolean) {
+@@ -54,2 +87,3 @@ export class InputController {
+     this.previousButtons.clear();
++    this.lastDevice = '';
+     this.touch = { left: false, right: false, throttle: false, brake: false };
+@@ -57,11 +91,16 @@ export class InputController {
+   bindTouch(element: HTMLElement, action: 'left' | 'right' | 'throttle' | 'brake') {
+-    element.addEventListener('pointerdown', (e) => {
+-      e.preventDefault();
+-      element.setPointerCapture(e.pointerId);
+-      this.touch[action] = true;
+-    });
++    const options = { signal: this.touchEvents.signal };
++    element.addEventListener(
++      'pointerdown',
++      (e) => {
++        e.preventDefault();
++        element.setPointerCapture(e.pointerId);
++        this.touch[action] = true;
++      },
++      options,
++    );
+     const release = () => (this.touch[action] = false);
+-    element.addEventListener('pointerup', release);
+-    element.addEventListener('pointercancel', release);
+-    element.addEventListener('lostpointercapture', release);
++    element.addEventListener('pointerup', release, options);
++    element.addEventListener('pointercancel', release, options);
++    element.addEventListener('lostpointercapture', release, options);
+   }
+@@ -77,22 +116,66 @@ export class InputController {
+       brake = Number(isHeld(k, b, 'brake', ['ArrowDown', 'Space']) || t.brake);
+-    const pad = navigator.getGamepads?.().find((p) => p?.connected);
++    const m = this.settings.mapping;
++    let clutch = Number(isHeld(k, b, 'clutch'));
++    let pads: (Gamepad | null)[] = [];
++    try {
++      pads = navigator.getGamepads?.() ?? [];
++    } catch (error) {
++      this.deviceStatus = `Gamepad access unavailable: ${String(error)}`;
++      if (this.lastDevice) return this.deviceFault(this.deviceStatus, false);
++    }
++    let pad = selectDevice(pads, m.device);
++    if (pad && this.blockedMapping === m && this.suppressedDevice === `${pad.index}:${pad.id}`)
++      pad = null;
++    if (!pad && this.lastDevice)
++      return this.deviceFault('Selected controller disconnected or changed.', false);
++    let wheelInput = false;
+     if (pad) {
+       this.gamepadName = pad.id;
+-      const m = this.settings.mapping;
+-      const raw = (pad.axes[m.steerAxis] ?? 0) * (m.invertSteer ? -1 : 1),
+-        v =
+-          Math.sign(raw) *
+-          Math.pow(clamp((Math.abs(raw) - m.deadzone) / (1 - m.deadzone), 0, 1), m.exponent);
+-      if (Math.abs(v) > 0.001) steer = v;
+-      if (m.axisPedals) {
+-        const sign = m.invertPedals ? -1 : 1;
+-        throttle = Math.max(
+-          throttle,
+-          clamp((1 + sign * (pad.axes[m.throttleAxis] ?? -sign)) * 0.5, 0, 1),
+-        );
+-        brake = Math.max(brake, clamp((1 + sign * (pad.axes[m.brakeAxis] ?? -sign)) * 0.5, 0, 1));
+-      } else {
+-        throttle = Math.max(throttle, pad.buttons[m.throttleButton]?.value ?? 0);
+-        brake = Math.max(brake, pad.buttons[m.brakeButton]?.value ?? 0);
++      const identity = `${pad.index}:${pad.id}`;
++      // A button held while connecting/resuming is not a new paddle press.
++      if (identity !== this.lastDevice) {
++        this.previousButtons.clear();
++        pad.buttons.forEach((button, index) => {
++          if (button.pressed) this.previousButtons.add(index);
++        });
++        this.lastDevice = identity;
+       }
++      const raw = readAxis(pad, m.steerAxis);
++      const sc = m.calibration.steering;
++      if (raw === undefined || (sc && sc.axis !== m.steerAxis))
++        return this.deviceFault(
++          'Steering axis is missing or its calibration belongs to a different axis.',
++        );
++      const normalized = (sc ? calibratedSteer(raw, sc) : raw) * (m.invertSteer ? -1 : 1);
++      const v = steeringResponse(normalized, m.deadzone, m.saturation, m.exponent);
++      wheelInput = m.wheelSteering && steer === 0;
++      if (wheelInput || (!m.wheelSteering && Math.abs(v) > 0.001)) steer = v;
++      const pedal = (
++        name: 'throttle' | 'brake' | 'clutch',
++        axis: number,
++        button: number,
++        useAxis: boolean,
++      ) => {
++        if (!useAxis) {
++          if (button < 0) return 0;
++          const value = pad.buttons[button]?.value;
++          return value !== undefined && Number.isFinite(value) ? clamp(value, 0, 1) : undefined;
++        }
++        const raw = readAxis(pad, axis),
++          calibration = m.calibration[name];
++        if (raw === undefined || (calibration && calibration.axis !== axis)) return undefined;
++        return calibration
++          ? calibratedPedal(raw, calibration)
++          : clamp((1 + (m.invertPedals ? -1 : 1) * raw) / 2, 0, 1);
++      };
++      const pt = pedal('throttle', m.throttleAxis, m.throttleButton, m.axisPedals);
++      const pb = pedal('brake', m.brakeAxis, m.brakeButton, m.axisPedals);
++      const pc = m.manualClutch
++        ? pedal('clutch', m.clutchAxis, m.clutchButton, m.clutchAxis >= 0)
++        : 0;
++      if (pt === undefined || pb === undefined || pc === undefined)
++        return this.deviceFault('A mapped pedal is missing or needs recalibration. Input paused.');
++      throttle = Math.max(throttle, pt);
++      brake = Math.max(brake, pb);
++      clutch = Math.max(clutch, pc);
+       if (pad.mapping === 'standard') {
+@@ -103,13 +186,14 @@ export class InputController {
+         ] as const) {
+-          const down = pad.buttons[index]?.pressed;
+-          if (down && !this.previousButtons.has(index)) this.action(name);
+-          if (down) this.previousButtons.add(index);
+-          else this.previousButtons.delete(index);
+-        }
+-        for (const [index, direction] of [
+-          [4, -1],
+-          [5, 1],
+-        ] as const) {
+-          const down = pad.buttons[index]?.pressed;
+-          if (down && !this.previousButtons.has(index)) this.state.shift = direction;
++          if (
++            index === m.shiftUpButton ||
++            index === m.shiftDownButton ||
++            (m.manualClutch && index === m.clutchButton) ||
++            (!m.axisPedals && (index === m.throttleButton || index === m.brakeButton))
++          )
++            continue;
++          const down = !!pad.buttons[index]?.pressed;
++          if (down && !this.previousButtons.has(index)) {
++            this.action(name);
++            if (!this.enabled) return this.state;
++          }
+           if (down) this.previousButtons.add(index);
+@@ -118,4 +202,27 @@ export class InputController {
+       }
+-    } else this.gamepadName = 'KEYBOARD';
+-    this.steering = approach(this.steering, steer, dt * (Math.abs(steer) < 0.001 ? 4.8 : 2.6));
++      for (const [index, direction] of [
++        [m.shiftDownButton, -1],
++        [m.shiftUpButton, 1],
++      ]) {
++        if (index < 0) continue;
++        const down = !!pad.buttons[index]?.pressed;
++        if (down && !this.previousButtons.has(index)) this.state.shift = direction;
++        if (down) this.previousButtons.add(index);
++        else this.previousButtons.delete(index);
++      }
++      this.deviceStatus = 'Controller ready';
++      this.lastFault = '';
++    } else {
++      this.gamepadName = 'KEYBOARD';
++      this.deviceStatus = m.device
++        ? 'Selected controller unavailable; keyboard remains available.'
++        : 'Standard gamepad auto-detection. Select custom wheels in settings.';
++    }
++    this.steering = wheelInput
++      ? steer
++      : approach(
++          this.steering,
++          steer,
++          Math.max(0, Math.min(dt, 0.25)) * (Math.abs(steer) < 0.001 ? 4.8 : 2.6),
++        );
+     // The simulation is right-handed with +Z forward and +X to the driver's
+@@ -126,2 +233,4 @@ export class InputController {
+     this.state.brake = brake;
++    this.state.clutch = clutch;
++    this.state.manualClutch = m.manualClutch;
+     this.state.reverse = isHeld(k, b, 'reverse');
+@@ -133,3 +242,4 @@ export class InputController {
+     window.removeEventListener('blur', this.blur);
+-    window.removeEventListener('gamepaddisconnected', this.blur);
++    window.removeEventListener('gamepaddisconnected', this.disconnected);
++    this.touchEvents.abort();
+   }
+diff --git a/src/main.ts b/src/main.ts
+index e973747..f936d53 100644
+--- a/src/main.ts
++++ b/src/main.ts
+@@ -489,2 +489,6 @@ export class GameApp {
+         break;
++      case 'deviceLost':
++        if (this.state === 'driving') this.pause();
++        this.ui.toast(this.input.deviceStatus);
++        break;
+       case 'blur':
+diff --git a/src/simulation/ai.ts b/src/simulation/ai.ts
+index 2bfc321..db57714 100644
+--- a/src/simulation/ai.ts
++++ b/src/simulation/ai.ts
+@@ -9,2 +9,11 @@ import type { Vehicle } from './vehicle.ts';
+ /** Strategic 2 Hz, tactical 12 Hz, controller 120 Hz. All driving uses normal pedals. */
++/** Braking envelope with explicit controller response distance. Solving
++ * d = v*tau + v²/(2a) keeps a finite-bandwidth pedal controller inside its stop.
++ */
++export function stoppingTarget(distance: number, deceleration: number, responseSeconds = 0.8) {
++  const a = Math.max(0.1, deceleration);
++  return (
++    Math.sqrt((a * responseSeconds) ** 2 + 2 * a * Math.max(0, distance)) - a * responseSeconds
++  );
++}
+ export class AIDriver {
+@@ -20,3 +29,2 @@ export class AIDriver {
+   private stuckTime = 0;
+-  private pitRecovery = false;
+   private planner = new TrafficPlanner();
+@@ -35,2 +43,4 @@ export class AIDriver {
+     command.shift = 0;
++    command.manualClutch = false;
++    command.clutch = 0;
+     command.reverse = false;
+@@ -51,2 +61,3 @@ export class AIDriver {
+         !c.inPit &&
++        !c.finishTime &&
+         c.s < track.length - 250 &&
+@@ -130,2 +141,3 @@ export class AIDriver {
+     if (!c.inPit) desired = Math.min(desired, this.trafficSpeed);
++    if (c.finishTime) desired = Math.min(desired, 38);
+     if (preparingPit)
+@@ -142,6 +154,3 @@ export class AIDriver {
+       if (c.pitPhase === 1 && distance < 125)

@@ -1,0 +1,377 @@
+-        desired = Math.min(
+-          desired,
+-          Math.sqrt(Math.max(0, distance - 1.8) * 2 * Math.max(1.1, 4.5 * grip)),
+-        );
++        desired = Math.min(desired, stoppingTarget(distance - 1.8, Math.max(1.1, 4.5 * grip)));
+       if (c.pitPhase >= 2 && c.pitPhase <= 5) desired = 0;
+@@ -159,3 +168,8 @@ export class AIDriver {
+             desired,
+-            Math.sqrt(other.speed ** 2 + 2 * Math.max(1, braking * 0.7) * Math.max(0, gap - 7)),
++            Math.sqrt(
++              Math.max(
++                0,
++                other.speed ** 2 + 2 * Math.max(1, braking * 0.7) * (gap - 7 - c.speed * 0.75),
++              ),
++            ),
+           );
+@@ -174,3 +188,3 @@ export class AIDriver {
+     }
+-    if (c.speed < 0.7 && desired > 6) this.stuckTime += dt;
++    if (!pit && c.speed < 0.7 && desired > 6) this.stuckTime += dt;
+     else this.stuckTime = 0;
+@@ -184,21 +198,9 @@ export class AIDriver {
+     if (this.stuckTime >= 10) this.stuckTime = 0;
+-    if (pit && c.pitPhase === 1 && c.s > box + 2 && c.s < box + 40) this.pitRecovery = true;
+-    if (this.pitRecovery) {
+-      this.decision = 'PIT BOX RECOVERY';
+-      command.steer = clamp((c.lateral - 24.1) * 0.12, -0.3, 0.3);
+-      if (c.pitPhase !== 1) {
+-        this.pitRecovery = false;
+-        command.reverse = false;
+-      } else if (c.s - box < 1.5) {
+-        command.throttle = 0;
+-        command.brake = 1;
+-        command.reverse = true;
+-      } else if (c.gear >= 0 && c.speed > 0.3) {
+-        command.throttle = 0;
+-        command.brake = 1;
+-      } else {
+-        command.reverse = true;
+-        command.throttle = c.speed < 2.5 ? 0.14 : 0;
+-        command.brake = c.speed > 3 ? 0.25 : 0;
+-      }
++    // A missed service box is a drive-through, not a reverse maneuver across
++    // queued cars. Preserve the request so the next lawful entry retries it.
++    if (pit && c.pitPhase === 1 && c.s > box + 2.4 && c.s < box + 80) {
++      c.pitPhase = 6;
++      c.pitRequested = true;
++      command.reverse = false;
++      this.decision = 'MISSED BOX / RETRY NEXT LAP';
+     }
+diff --git a/src/simulation/clutch.ts b/src/simulation/clutch.ts
+new file mode 100644
+index 0000000..9c392e2
+--- /dev/null
++++ b/src/simulation/clutch.ts
+@@ -0,0 +1,49 @@
++import { VEHICLE } from './config.ts';
++import { clamp } from '../core/math.ts';
++
++/** Finite engine and referred rear-wheel inertias exchange an equal/opposite
++ * angular impulse. Limiting that impulse by friction capacity dissipates slip;
++ * no synthetic vehicle acceleration or wheel-speed overwrite is applied. */
++export class FrictionClutch {
++  engineOmega = (VEHICLE.idleRPM * Math.PI) / 30;
++  transmittedTorque = 0;
++  slipPower = 0;
++  engagement = 0;
++  readonly inertia = 0.34; // crankshaft + motor reflected rotational inertia, kg m²
++  readonly capacity = 760; // shaft friction capacity, N m
++  step(
++    dt: number,
++    sourceTorque: number,
++    wheelOmega: number,
++    ratio: number,
++    pedal: number,
++    automatic: boolean,
++    shifting: boolean,
++  ) {
++    if (
++      ![dt, sourceTorque, wheelOmega, ratio, pedal, this.engineOmega].every(Number.isFinite) ||
++      dt <= 0
++    )
++      throw new Error('Invalid clutch state');
++    const free = this.engineOmega + (sourceTorque * dt) / this.inertia;
++    const idle = (VEHICLE.idleRPM * Math.PI) / 30;
++    this.engagement =
++      ratio === 0 || shifting
++        ? 0
++        : automatic
++          ? clamp((free - idle * 0.55) / (idle * 0.55), 0, 1)
++          : 1 - clamp(pedal, 0, 1);
++    // The rear axle has two rotating wheels. Tire forces are solved afterward;
++    // their reactions enter wheelOmega on the next substep (operator split).
++    const inverseInertia = 1 / this.inertia + (ratio * ratio) / (2 * VEHICLE.wheelInertia);
++    const slip = free - ratio * wheelOmega;
++    const capacityImpulse = this.capacity * this.engagement * dt;
++    const impulse = clamp(slip / inverseInertia, -capacityImpulse, capacityImpulse);
++    const finalSlip = slip - impulse * inverseInertia;
++    this.engineOmega = free - impulse / this.inertia;
++    this.transmittedTorque = impulse / dt;
++    // Work removed by the internal impulse. Nonnegative up to roundoff.
++    this.slipPower = Math.max(0, (impulse * (slip + finalSlip)) / (2 * dt));
++    return this.transmittedTorque * ratio;
++  }
++}
+diff --git a/src/simulation/config.ts b/src/simulation/config.ts
+index c23c5b4..8621965 100644
+--- a/src/simulation/config.ts
++++ b/src/simulation/config.ts
+@@ -149,2 +149,4 @@ export interface Controls {
+   brake: number;
++  clutch: number;
++  manualClutch: boolean;
+   steer: number;
+@@ -158,2 +160,4 @@ export const controls = (): Controls => ({
+   brake: 0,
++  clutch: 0,
++  manualClutch: false,
+   steer: 0,
+diff --git a/src/simulation/protocol.ts b/src/simulation/protocol.ts
+index af642d8..a350bed 100644
+--- a/src/simulation/protocol.ts
++++ b/src/simulation/protocol.ts
+@@ -7,3 +7,3 @@ export const HEADER = 16,
+   DEBRIS_STRIDE = 8;
+-export const PROTOCOL_VERSION = 2;
++export const PROTOCOL_VERSION = 3;
+ // +Z is the nose, +Y up and +X the driver's left; negative-X hubs are right-side wheels.
+@@ -97,2 +97,7 @@ export const F = {
+   MASS: 68,
++  CLUTCH_PEDAL: 69,
++  CLUTCH_ENGAGEMENT: 70,
++  CLUTCH_TORQUE: 71,
++  CLUTCH_SLIP_POWER: 72,
++  ENGINE_TORQUE: 73,
+ } as const;
+diff --git a/src/simulation/race.ts b/src/simulation/race.ts
+index fe894fc..5698ed2 100644
+--- a/src/simulation/race.ts
++++ b/src/simulation/race.ts
+@@ -25,2 +25,7 @@ export class LapTracker {
+   sectorStart = 0;
++  lastTime = 0;
++  lastCrossingTime = 0;
++  crossedFinish = false;
++  lastValid = false;
++  readonly lastSectors = [0, 0, 0];
+   constructor(
+@@ -33,12 +38,26 @@ export class LapTracker {
+   update(s: number, time: number, offTrack: boolean) {
++    if (!Number.isFinite(s + time) || time < this.lastTime)
++      throw new Error('Invalid timing sample');
++    this.crossedFinish = false;
+     const delta = mod(s - this.lastS + this.length / 2, this.length) - this.length / 2;
+-    this.distance += delta;
++    const elapsed = time - this.lastTime;
++    if (Math.abs(delta) < 15) this.distance += delta;
++    else this.valid = false; // Discontinuous location changes cannot earn progress.
++    if (offTrack) this.valid = false;
+     if (delta > 0 && delta < 15) {
+-      const gate = (this.nextGate * this.length) / 8,
+-        travelToGate = mod(gate - this.lastS, this.length);
++      const crossingTime = (distance: number) => this.lastTime + (elapsed * distance) / delta;
++      const gate = (this.nextGate * this.length) / 8;
++      const travelToGate = mod(gate - this.lastS, this.length);
+       if (travelToGate > 1e-7 && travelToGate <= delta + 1e-7) {
+         if (this.nextGate === 0) {
++          const crossing = crossingTime(travelToGate);
+           if (this.active) {
+             this.completed++;
+-            this.last = time - this.lapStart;
++            this.crossedFinish = true;
++            this.lastCrossingTime = crossing;
++            this.last = crossing - this.lapStart;
++            this.lastSectors[0] = this.sectors[0];
++            this.lastSectors[1] = this.sectors[1];
++            this.lastSectors[2] = crossing - this.sectorStart;
++            this.lastValid = this.valid;
+             if (this.valid && (this.best === 0 || this.last < this.best)) this.best = this.last;
+@@ -46,7 +65,7 @@ export class LapTracker {
+           this.active = true;
+-          this.valid = true;
+-          this.lapStart = time;
+-          this.sectorStart = time;
++          this.valid = !offTrack;
++          this.lapStart = crossing;
++          this.sectorStart = crossing;
+           this.sector = 0;
+-          this.sectors = [0, 0, 0];
++          this.sectors.fill(0);
+         }
+@@ -54,8 +73,10 @@ export class LapTracker {
+       }
+-      if (this.active) {
+-        const sector = Math.min(2, Math.floor((s / this.length) * 3));
+-        if (sector > this.sector) {
+-          this.sectors[this.sector] = time - this.sectorStart;
+-          this.sectorStart = time;
+-          this.sector = sector;
++      if (this.active && this.sector < 2) {
++        const nextSector = ((this.sector + 1) * this.length) / 3;
++        const travel = mod(nextSector - this.lastS, this.length);
++        if (travel > 1e-7 && travel <= delta + 1e-7) {
++          const crossing = crossingTime(travel);
++          this.sectors[this.sector] = crossing - this.sectorStart;
++          this.sectorStart = crossing;
++          this.sector++;
+         }
+@@ -63,5 +84,5 @@ export class LapTracker {
+     }
+-    if (offTrack) this.valid = false;
+     this.lapTime = this.active ? time - this.lapStart : 0;
+     this.lastS = s;
++    this.lastTime = time;
+   }
+@@ -85,2 +106,15 @@ export class LapTracker {
+ }
++/** A tire counts as on track while any of its tread width overlaps the outer
++ * paint edge. Kerbs/runoff beyond that edge do not extend legal track width.
++ * Each wheel queries its own local ribbon width, rather than the chassis centre.
++ */
++export function outsideTrack(car: Vehicle): boolean {
++  return (
++    !car.inPit &&
++    car.contacts.every(
++      (surface, i) => Math.abs(surface.lateral) - (i < 2 ? 0.155 : 0.19) > surface.width + 1e-6,
++    )
++  );
++}
++export const FINISH_GRACE_SECONDS = 180;
+ export class RaceDirector {
+@@ -90,2 +124,3 @@ export class RaceDirector {
+   lights = 0;
++  finishStartedAt = -1;
+   readonly greenAt: number;
+@@ -106,2 +141,4 @@ export class RaceDirector {
+   step(dt: number) {
++    if (!Number.isFinite(dt) || dt <= 0) throw new Error('Invalid race timestep');
++    if (this.phase === PHASE.FINISHED) return;
+     this.time += dt;
+@@ -132,11 +169,37 @@ export class RaceDirector {
+       const c = this.cars[i],
+-        lap = this.laps[i],
+-        outside = !c.inPit && c.contacts.every((s) => Math.abs(s.lateral) > 9.7);
+-      lap.limits(outside, dt);
+-      lap.update(c.s, this.raceTime, outside);
+-      if (c.impact > 0.18 || c.retired) incident = true;
+-      if (c.finishTime === 0 && lap.completed >= this.options.laps && this.options.mode === 'race')
+-        c.finishTime = this.raceTime + lap.penalty;
++        lap = this.laps[i];
++      lap.crossedFinish = false;
++      if (!c.finishTime && !c.retired) {
++        const outside = outsideTrack(c);
++        lap.limits(outside, dt);
++        lap.update(c.s, this.raceTime, outside);
++      }
++      if (c.impact > 0.18 || (c.retired && !c.finishTime)) incident = true;
++    }
++    if (this.options.mode === 'race') {
++      // Resolve the first finisher by interpolated crossing time, not array order.
++      if (this.finishStartedAt < 0) {
++        let earliest = Infinity;
++        for (const lap of this.laps)
++          if (lap.crossedFinish && lap.completed >= this.options.laps)
++            earliest = Math.min(earliest, lap.lastCrossingTime);
++        if (Number.isFinite(earliest)) this.finishStartedAt = earliest;
++      }
++      if (this.finishStartedAt >= 0) {
++        for (let i = 0; i < this.cars.length; i++) {
++          const car = this.cars[i],
++            lap = this.laps[i];
++          if (
++            !car.finishTime &&
++            !car.retired &&
++            lap.crossedFinish &&
++            lap.lastCrossingTime >= this.finishStartedAt - 1e-8
++          )
++            car.finishTime = lap.lastCrossingTime + lap.penalty;
++          else if (!car.finishTime && this.raceTime - this.finishStartedAt >= FINISH_GRACE_SECONDS)
++            car.retired = true; // Explicit DNF, never a manufactured finishing time.
++        }
++      }
++      if (this.cars.every((c) => c.finishTime > 0 || c.retired)) this.phase = PHASE.FINISHED;
+     }
+-    this.flag = incident ? 'YELLOW' : 'GREEN';
+     this.order.sort((a, b) => {
+@@ -144,12 +207,18 @@ export class RaceDirector {
+         cb = this.cars[b];
+-      if (ca.finishTime && cb.finishTime) return ca.finishTime - cb.finishTime;
++      const difference = this.laps[b].completed - this.laps[a].completed;
++      if (difference) return difference;
++      if (ca.finishTime && cb.finishTime) return ca.finishTime - cb.finishTime || a - b;
+       if (ca.finishTime) return -1;
+       if (cb.finishTime) return 1;
+-      return this.laps[b].distance - this.laps[a].distance;
++      return this.laps[b].distance - this.laps[a].distance || a - b;
+     });
+-    if (this.cars[0].finishTime) {
+-      this.phase = PHASE.FINISHED;
+-      this.flag = 'CHEQUERED';
+-      this.message = 'CHEQUERED FLAG';
+-    } else if (this.time > this.nextMessage)
++    this.flag =
++      this.finishStartedAt >= 0 || this.phase === PHASE.FINISHED
++        ? 'CHEQUERED'
++        : incident
++          ? 'YELLOW'
++          : 'GREEN';
++    if (this.phase === PHASE.FINISHED) this.message = 'SESSION COMPLETE';
++    else if (this.finishStartedAt >= 0) this.message = 'CHEQUERED FLAG · FIELD FINISHING';
++    else if (this.time > this.nextMessage)
+       this.message = incident
+diff --git a/src/simulation/track.ts b/src/simulation/track.ts
+index 82abd17..15c3378 100644
+--- a/src/simulation/track.ts
++++ b/src/simulation/track.ts
+@@ -23,2 +23,3 @@ export interface SurfaceSample {
+   s: number;
++  width: number;
+   lateral: number;
+@@ -52,2 +53,3 @@ export const surfaceSample = (): SurfaceSample => ({
+   s: 0,
++  width: 8,
+   lateral: 0,
+@@ -277,2 +279,3 @@ export class Track {
+     out.lateral = l;
++    out.width = p.width;
+     out.height = p.y + p.bank * clamp(l, -12, 12) + kerb;
+diff --git a/src/simulation/vehicle.ts b/src/simulation/vehicle.ts
+index 4b03a54..531f926 100644
+--- a/src/simulation/vehicle.ts
++++ b/src/simulation/vehicle.ts
+@@ -1 +1,2 @@
++import { FrictionClutch } from './clutch.ts';
+ import { DebrisPool } from './damage.ts';
+@@ -51,2 +52,4 @@ export class Vehicle {
+   rpm = VEHICLE.idleRPM;
++  readonly clutch = new FrictionClutch();
++  engineOutputTorque = 0;
+   gear = 1;
+@@ -177,26 +180,49 @@ export class Vehicle {
+     this.shiftClock = Math.max(0, this.shiftClock - dt);
+-    const rearOmega = Math.abs((this.tires[2].omega + this.tires[3].omega) * 0.5);
+-    this.rpm = Math.max(
+-      VEHICLE.idleRPM,
+-      (rearOmega * Math.abs(VEHICLE.gearRatios[this.gear + 1] * VEHICLE.finalDrive) * 60) /
+-        (Math.PI * 2),
+-    );
+-    if (this.autoShift && this.gear > 0) {
+-      if (this.rpm > VEHICLE.shiftRPM && this.gear < 8) this.shift(1);
+-      else if (this.rpm < 6900 && this.gear > 1) this.shift(-1);
++    const signedRearOmega = (this.tires[2].omega + this.tires[3].omega) * 0.5;
++    const rearOmega = Math.abs(signedRearOmega);
++    this.rpm = Math.max(0, (this.clutch.engineOmega * 30) / Math.PI);
++    if (this.autoShift && this.gear > 0 && !this.input.manualClutch) {
++      // Wheel-coupled RPM excludes free-revving launch slip from shift decisions.
++      const coupledRPM =
++        (rearOmega * Math.abs(VEHICLE.gearRatios[this.gear + 1] * VEHICLE.finalDrive) * 30) /
++        Math.PI;
++      if (coupledRPM > VEHICLE.shiftRPM && this.gear < 8) this.shift(1);
++      else if (coupledRPM < 6900 && this.gear > 1) this.shift(-1);
+     }
+-    const ratio = VEHICLE.gearRatios[this.gear + 1] * VEHICLE.finalDrive,
+-      shaft = (this.rpm * Math.PI) / 30;
+-    let ice = this.fuel > 0 ? engineTorque(this.rpm) * this.throttle : 0;
++    const ratio = VEHICLE.gearRatios[this.gear + 1] * VEHICLE.finalDrive;
++    const shaft = Math.max(0, this.clutch.engineOmega);
++    const frictionTorque = 12 + shaft * 0.04;
++    // Powered idle governor prevents unintended restart/stabilization without
++    // fuel. It supplies real shaft torque rather than clamping engine RPM.
++    const idleTorque =
++      this.fuel > 0 ? clamp(((VEHICLE.idleRPM * Math.PI) / 30 - shaft) * 3, 0, 180) : 0;
++    let ice = this.fuel > 0 ? engineTorque(this.rpm) * this.throttle + idleTorque : 0;
+     if (this.shiftClock > 0 || this.rpm > VEHICLE.limiterRPM) ice = 0;
+-    const deploy = this.input.ers === 2 ? 1 : this.input.ers === 1 ? 0.55 : 0,
+-      motorPower =
+-        this.gear > 0 && this.brake < 0.05 && this.shiftClock === 0

@@ -1,0 +1,7 @@
++    expect(CHANNELS.length).toBe(181);
+     expect(new Set(CHANNELS).size).toBe(CHANNELS.length);
+@@ -71,3 +71,3 @@ describe('real-state telemetry', () => {
+     expect(text.trim().split('\n')).toHaveLength(2);
+-    expect(text.split('\n')[1].split(',')).toHaveLength(176);
++    expect(text.split('\n')[1].split(',')).toHaveLength(181);
+     out[5] = NaN;

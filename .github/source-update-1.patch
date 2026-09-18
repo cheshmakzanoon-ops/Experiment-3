@@ -1,0 +1,118 @@
+diff --git a/README.md b/README.md
+index 38d9f2f..d48a4dd 100644
+--- a/README.md
++++ b/README.md
+@@ -207,3 +207,3 @@ The current source adds a physically open cockpit, live rear-view cameras, carbo
+ 
+-The recording extension captures **176 telemetry channels at 60 Hz** and **all-car pose replay at 15 Hz** from physics ticks, independently of display rate. Replay pages and spatial surface history use a bounded IndexedDB cache; CSV formatting runs in a separate worker. Rendered punctures, suspension damage and detached components consume actual simulation state. Read [recording and replay architecture](docs/RECORDING_AND_REPLAY.md) for storage failure behavior and verification limits. The [telemetry and keyboard interface](docs/TELEMETRY_AND_INPUT_UI.md) adds seven graph groups, complete-lap distance comparison, and conflict-checked remapping for fifteen keyboard actions.
++The recording extension captures **181 telemetry channels at 60 Hz** and **all-car pose replay at 15 Hz** from physics ticks, independently of display rate. Replay pages and spatial surface history use a bounded IndexedDB cache; CSV formatting runs in a separate worker. Rendered punctures, suspension damage and detached components consume actual simulation state. Read [recording and replay architecture](docs/RECORDING_AND_REPLAY.md) for storage failure behavior and verification limits. The [telemetry and keyboard interface](docs/TELEMETRY_AND_INPUT_UI.md) adds eight graph groups, complete-lap distance comparison, and conflict-checked remapping for fifteen keyboard actions.
+ 
+@@ -231,2 +231,8 @@ These JSON files are measured snapshots from the original validation run. Re-run
+ 
++### 🎮 Calibrated controls and complete race classification
++
++The new device editor explicitly selects unmapped wheels, captures asymmetric steering and independent throttle/brake/clutch endpoints, configures paddles, and pauses safely on disconnect. Settings migrate to version 3. A finite-inertia friction clutch produces actual free-revving and pedal-controlled torque transfer; five new channels bring telemetry to **181 channels** and eight graph groups. These are browser Gamepad inputs, not a claim of native wheel force feedback or hardware certification. See [device calibration and clutch](docs/DEVICE_CALIBRATION_AND_CLUTCH.md).
++
++Race timing now preserves all three interpolated sectors, checks all four tire footprints against local track width, finishes the entire field including lapped cars, and labels unresolved competitors DNF instead of manufacturing times. The pit controller reserves pedal-response distance and does not reverse into queues. See [race control and pit response](docs/RACE_CONTROL_AND_PIT_RESPONSE.md).
++
+ ## 🧭 Current boundaries
+diff --git a/docs/DEVICE_CALIBRATION_AND_CLUTCH.md b/docs/DEVICE_CALIBRATION_AND_CLUTCH.md
+new file mode 100644
+index 0000000..f2059b3
+--- /dev/null
++++ b/docs/DEVICE_CALIBRATION_AND_CLUTCH.md
+@@ -0,0 +1,29 @@
++# Calibrated devices and physical clutch
++
++## Scope
++
++This checkpoint implements the master directive's wheel calibration and clutch control path. It does not certify physical hardware compatibility, native force feedback, or completion of the full master directive.
++
++## Input ownership
++
++Automatic selection uses only a browser-standard gamepad. Unmapped wheels require explicit slot and device-ID selection in Garage & Settings. A different device reusing the slot never receives the saved calibration. A disconnected device pauses active driving once. A malformed/missing configured channel pauses the session and suppresses that profile until settings are reapplied; keyboard controls remain available. Nonstandard paddles use configured button numbers, not Xbox assumptions. A held button during connection/resume is not a new shift edge.
++
++Steering captures left/center/right values independently; asymmetric travel and reversed axes are supported. Throttle, brake and clutch each capture released/fully-pressed values, independently of the others. A live monitor exposes the actual raw axes and pressed buttons. Incomplete, degenerate, non-finite and mismatched-axis captures are rejected. All captures are draft state until Apply, and modal replacement/close aborts polling and listeners.
++
++Deadzone, saturation and exponent act after normalization. Wheel mode bypasses keyboard slew limiting. Explicit keyboard steering remains available. Legacy settings versions 1 and 2 migrate to version 3; the new clutch key does not steal a previously assigned Shift key. The default clutch key is Left Shift, and manual clutch mode is opt-in.
++
++## Physics
++
++`FrictionClutch` couples finite engine inertia (0.34 kg m²) to the two rear-wheel inertias through the selected gear ratio. Source torque first advances engine momentum; the clutch exchanges an equal/opposite angular impulse limited by 760 Nm times engagement and timestep. The unclipped impulse is computed from the sum of inverse engine inertia and gear-referred wheel inverse inertia. Slip work is the impulse times average pre/post relative shaft speed; it is nonnegative in the isolated solve. Tire/road forces are operator-split after this coupling rather than overwritten with prescribed wheel velocity.
++
++Pressing the clutch opens the torque path. The engine can free-rev in neutral or with the clutch pressed, shifting unloads the shaft, and releasing the pedal transfers torque through the normal tire solver. Automatic launch control derives engagement from engine speed and disconnects at rest with no throttle. The powered idle governor consumes fuel; motor deployment still debits actual battery energy. Engine drag dissipates rotation rather than clamping RPM. These coefficients are documented engineering approximations, not measured race-engine data.
++
++Five new telemetry channels expose clutch pedal, engagement, shaft torque, slip heating, and combustion torque. Snapshot protocol version 3 and 181 named CSV channels distinguish this extension from earlier saved data. The telemetry screen includes a clutch/engine group.
++
++## Verification
++
++`tests/calibration.test.ts` covers endpoint normalization, sparse/reused device slots, migration, custom paddles, disconnects and malformed mappings. `tests/clutch.test.ts` checks dissipative impulse transfer, reverse/neutral/shift behavior, physical free-rev-to-launch and serialized state. `e2e/calibration.spec.ts` drives the actual settings UI with synthetic Gamepad snapshots, persists calibration, then exercises the real simulation clutch and disconnect pause. Synthetic device tests do not stand in for a real wheel/pedal hardware test.
++
++## Browser interface reference
++
++The W3C Gamepad specification defines sparse/reused indices, unmapped versus standard devices, and normalized axes: https://www.w3.org/TR/gamepad/. The device-ID format is browser-dependent; a browser/driver change may require reselection and recalibration. The implementation uses only Gamepad-exposed inputs; it does not send undocumented device reports.
+diff --git a/docs/IMPLEMENTATION_MATRIX.md b/docs/IMPLEMENTATION_MATRIX.md
+index 5bc5b30..cb81c91 100644
+--- a/docs/IMPLEMENTATION_MATRIX.md
++++ b/docs/IMPLEMENTATION_MATRIX.md
+@@ -32,3 +32,3 @@ This ledger follows the numbered sections of the supplied directive. “Implemen
+ | 26 | ENGINE MODEL | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+-| 27 | GEARBOX | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
++| 27 | GEARBOX | Neutral, reverse, eight forward ratios, torque-cut shifting and invalid-downshift guard. Finite-inertia friction clutch supports actual free revving and pedal-controlled torque transfer. |
+ | 28 | DIFFERENTIAL | Torque-coupling limited-slip approximation. |
+@@ -84,12 +84,12 @@ This ledger follows the numbered sections of the supplied directive. “Implemen
+ | 78 | KEYBOARD STEERING | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+-| 79 | WHEEL INPUT | Gamepad-exposed axes/buttons, inversion/deadzone/response mapping. No native wheel force feedback. |
+-| 80 | TELEMETRY DATA | 176 actual-state telemetry channels captured at fixed 60 Hz in the physics worker, bounded transport/ring buffers and asynchronous CSV export. |
+-| 81 | TELEMETRY UI | Seven selectable groups expose the requested inputs, RPM/gears, G forces, tire temperatures/slip/loads, ride height and aero balance. Latest two fully recorded laps overlay by distance; truncated/gapped recordings are not mislabelled complete. |
++| 79 | WHEEL INPUT | Explicit device selection, asymmetric steering and independent pedal calibration, clutch/paddle mapping, sparse-slot/disconnect guards, live monitor and saved version-3 profiles. Synthetic browser tests; real wheel hardware not certified. |
++| 80 | TELEMETRY DATA | 181 actual-state telemetry channels captured at fixed 60 Hz in the physics worker, bounded transport/ring buffers and asynchronous CSV export. |
++| 81 | TELEMETRY UI | Eight selectable graph groups include clutch torque/slip, the requested driver/chassis/tire channels and complete-lap distance comparison; truncated/gapped laps are labelled rather than fabricated. |
+ | 82 | REPLAY SYSTEM | 15 Hz all-car numeric pose pages, bounded resident IndexedDB replay cache, asynchronous seeking, original spatial water/rubber history, explicit recording failures. Permanent replay-library UI is not included. |
+-| 83 | RACE DIRECTOR | Core starts/laps/penalties/classification; no safety car, formation laps or steward simulation. |
++| 83 | RACE DIRECTOR | Explicit grid/lights/racing/results states; whole-field chequered classification, lapped finish, penalty ordering, automatic cooldown and explicit timeout DNF. Full safety-car and local-flag policy remain open. |
+ | 84 | START LIGHTS | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+-| 85 | LAP DETECTION | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+-| 86 | TRACK LIMITS | Simplified four-wheel outside test and penalty accumulation. |
++| 85 | LAP DETECTION | Eight ordered forward gates; interpolated finish and sector crossings, persistent third-sector record, no discontinuity-earned progress, invalid-lap tagging. |
++| 86 | TRACK LIMITS | Four wheel tread-width samples against each local asphalt/paint boundary; no chassis-centre or fixed-width penalty. Kerbs/runoff are outside the documented legal edge. |
+ | 87 | PIT LANE | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+-| 88 | PIT STOP | Timed physical box service and tire/front-wing changes; simplified crew animation. |
++| 88 | PIT STOP | Physical box entry, tire-object replacement, four-foot jack support, contact-safe release and forward drive-through/retry for missed boxes. Detailed mechanic animation remains partial. |
+ | 89 | SETUP SYSTEM | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+@@ -121,3 +121,3 @@ This ledger follows the numbered sections of the supplied directive. “Implemen
+ | 115 | AI TESTS | 100-lap dry single-car endurance and shorter multi-car weather scenarios; not 100-lap multi-car proof. |
+-| 116 | RACE TEST | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
++| 116 | RACE TEST | Two ten-car three-lap clear/changing-weather whole-field classification fixtures with pit service and measured sectors. The full manual audiovisual scenario remains separate. |
+ | 117 | PLAYWRIGHT TESTS | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+@@ -144,3 +144,3 @@ This ledger follows the numbered sections of the supplied directive. “Implemen
+ | 138 | NO MAGIC NUMBERS | Units and named core settings provided, but some local tuning constants remain. |
+-| 139 | VERSIONED SAVES | Version-2 preferences with version-1 keyboard-binding migration and conflict rejection; versioned replay pages and setup. No mid-race physical-state checkpoint restore. |
++| 139 | VERSIONED SAVES | Version-3 device calibration/preferences with version-1/2 keyboard-binding migration and conflict rejection; versioned replay pages and setup. No mid-race physical-state checkpoint restore. |
+ | 140 | DEVELOPMENT PHASES | OPEN: development has not passed all thirty-one phase gates. |
+diff --git a/docs/RACE_CONTROL_AND_PIT_RESPONSE.md b/docs/RACE_CONTROL_AND_PIT_RESPONSE.md
+new file mode 100644
+index 0000000..d1e06f0
+--- /dev/null
++++ b/docs/RACE_CONTROL_AND_PIT_RESPONSE.md
+@@ -0,0 +1,25 @@
++# Race timing, classification and pit response
++
++## Timing and the legal boundary
++
++Each completed lap still requires the eight ordered forward checkpoints. Sector boundaries and the finish crossing now interpolate within the fixed simulation step; the third sector is closed at the finish and the preceding three-sector record survives the next lap reset. Their sum equals the completed lap time. Invalid laps retain their measured sectors without becoming a valid best lap. Discontinuous location changes do not award classification progress, and reversed/non-finite timing samples fail explicitly.
++
++The track-limit policy uses the outer edge of the authored asphalt/paint ribbon. Outer kerbs and painted runoff do not expand that legal boundary. Four independent wheel samples carry the local ribbon half-width. A tread that still overlaps the boundary counts as on-track; a violation requires all four to be wholly outside. This is a wheel-tread-width approximation, not a deformable three-dimensional contact-patch calculation. Pit-lane traversal is excluded from racing-surface violations. The old fixed 9.7-metre chassis-independent threshold is removed.
++
++## Finishing the entire field
++
++The first valid driver crossing after the configured lap distance starts the chequered period. Same-tick first crossings are ordered by interpolated time, not vehicle array index. Remaining drivers finish on their next valid finish crossing, including lapped drivers; their completed-lap counts remain distinct. Classification sorts completed laps first and then penalty-adjusted finish time. Finished drivers perform an AI-controlled cooldown instead of parking across the racing line. Their timing records stop changing.
++
++Results are shown only when the whole field has finished or retired. A 180-second simulated grace period after the first finish prevents a stopped competitor deadlocking the session; expiry creates an explicit DNF with no fabricated finish time. An all-retired race also terminates without inventing a winner. These are this original simulator's session rules, not a claim to implement every real championship regulation.
++
++## Physical pit response
++
++The finite-inertia clutch exposed a pit-controller weakness: the old braking envelope assumed the pedal controller reached its target speed immediately. The target now reserves 0.8 seconds of response distance using `d = v*tau + v²/(2a)`, and following cars reserve speed-dependent headway. A missed box takes the actual exit and retries a later legal entry instead of reversing into a queue. It does not count a service or teleport the car.
++
++Four ground-contact jack feet provide a finite support polygon and bounded tangential friction while raised. Forces act at physical attachment points; the solver does not clamp the chassis position or velocity. These remain rigid contact approximations rather than a multibody animated mechanic/jack model.
++

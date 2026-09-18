@@ -1,0 +1,384 @@
++## Executable evidence
++
++`tests/race-control.test.ts` checks interpolated sectors, invalid laps, discontinuity rejection, four-wheel boundaries, lapped finishes, same-tick ordering, penalties, explicit timeout DNFs, all-retired termination, pit retry and jack support. `scripts/race-classification.ts` runs two actual ten-car, three-lap races, clear and changing-weather, verifies the entire field finishes and sector sums agree, and requires every car to service in the changing-weather race. The browser race test now finishes three actual competitors and rejects a results table containing RUNNING entries.
++
++`tests/clutch.test.ts` and `tests/calibration.test.ts` cover the associated physical torque/input path. The weather runner now persists current failures rather than leaving an old passing report behind. The longer endurance gates and final combined audiovisual scenario are separate acceptance requirements; none is inferred from unit-test counts.
+diff --git a/e2e/application.spec.ts b/e2e/application.spec.ts
+index 779bdf3..3bcd04c 100644
+--- a/e2e/application.spec.ts
++++ b/e2e/application.spec.ts
+@@ -132,3 +132,4 @@ test('recorded telemetry exports and replay leaves live physics paused', async (
+   const columns = csv[0].split(',');
+-  expect(columns).toHaveLength(176);
++  expect(columns).toHaveLength(181);
++  expect(columns).toContain('clutch_torque_Nm');
+   expect(columns).toContain('motor_power_W');
+@@ -202,3 +203,3 @@ test('race start and chequered flag produce an actual result', async ({ page },
+   await page.selectOption('#laps', '1');
+-  await page.selectOption('#opponents', '0');
++  await page.selectOption('#opponents', '2');
+   await page.getByRole('button', { name: 'ENTER CIRCUIT' }).click();
+@@ -213,2 +214,10 @@ test('race start and chequered flag produce an actual result', async ({ page },
+   expect(frame[carBase(0) + F.BEST_LAP]).toBeGreaterThan(20);
++  expect(frame[H.CARS]).toBe(3);
++  for (let id = 0; id < 3; id++) {
++    const p = carBase(id);
++    expect(frame[p + F.FINISH]).toBeGreaterThan(0);
++    expect(frame[p + F.RETIRED]).toBe(0);
++    expect(frame[p + F.SECTOR_3]).toBeGreaterThan(0);
++  }
++  await expect(page.locator('.results')).not.toContainText('RUNNING');
+   await page.screenshot({ path: testInfo.outputPath('08-results.png') });
+@@ -255,3 +264,3 @@ test('manual right steering and live rear-view passes work without autopilot', a
+   await page.selectOption('#mode', 'practice');
+-  await page.selectOption('#opponents', '0');
++  await page.selectOption('#opponents', '2');
+   await page.getByRole('button', { name: 'ENTER CIRCUIT' }).click();
+diff --git a/e2e/calibration.spec.ts b/e2e/calibration.spec.ts
+new file mode 100644
+index 0000000..47683c8
+--- /dev/null
++++ b/e2e/calibration.spec.ts
+@@ -0,0 +1,121 @@
++import { expect, test } from '@playwright/test';
++import { F, carBase } from '../src/simulation/protocol.ts';
++
++test('custom wheel calibration persists, drives a real clutch and disconnects safely', async ({
++  page,
++}) => {
++  test.setTimeout(240000);
++  await page.addInitScript(() => {
++    const pad = {
++      index: 2,
++      id: 'Regression wheel',
++      mapping: '',
++      connected: true,
++      axes: [0, 1, -1, 1],
++      buttons: Array.from({ length: 12 }, () => ({ pressed: false, touched: false, value: 0 })),
++    };
++    Object.assign(window, { testWheel: pad });
++    Object.defineProperty(navigator, 'getGamepads', {
++      configurable: true,
++      value: () => [null, null, pad.connected ? pad : null],
++    });
++  });
++  await page.goto('/');
++  await expect(page.locator('#loading')).toBeHidden({ timeout: 60000 });
++  await page.getByRole('button', { name: 'GARAGE & SETTINGS', exact: true }).click();
++  await page.getByLabel('Active input device').selectOption('2');
++  await page.locator('[name=steerAxis]').fill('0');
++  await page.locator('[name=throttleAxis]').fill('1');
++  await page.locator('[name=brakeAxis]').fill('2');
++  await page.locator('[name=clutchAxis]').fill('3');
++  await page.locator('[name=shiftUpButton]').fill('10');
++  await page.locator('[name=shiftDownButton]').fill('11');
++  await page.locator('[name=axisPedals]').check();
++  await page.locator('[name=wheelSteering]').check();
++  await page.locator('[name=manualClutch]').check();
++  const set = async (axis: number, value: number) =>
++    page.evaluate(
++      ({ axis, value }) => {
++        (window as unknown as { testWheel: { axes: number[] } }).testWheel.axes[axis] = value;
++      },
++      { axis, value },
++    );
++  for (const [capture, axis, value] of [
++    ['steering:left', 0, -0.8],
++    ['steering:center', 0, 0.1],
++    ['steering:right', 0, 0.7],
++    ['throttle:released', 1, 1],
++    ['throttle:pressed', 1, -1],
++    ['brake:released', 2, -1],
++    ['brake:pressed', 2, 1],
++    ['clutch:released', 3, 1],
++    ['clutch:pressed', 3, -1],
++  ] as const) {
++    await set(axis, value);
++    await page.locator(`[data-capture="${capture}"]`).click();
++    await expect(page.locator(`[data-capture="${capture}"]`)).toHaveAttribute(
++      'aria-pressed',
++      'true',
++    );
++  }
++  await page.getByRole('button', { name: 'APPLY & SAVE' }).click();
++  await page.reload();
++  await expect(page.locator('#loading')).toBeHidden({ timeout: 60000 });
++  await page.getByRole('button', { name: 'GARAGE & SETTINGS', exact: true }).click();
++  await expect(page.getByLabel('Active input device')).toHaveValue('2');
++  await expect(page.locator('[name=manualClutch]')).toBeChecked();
++  await expect(page.locator('[name=shiftUpButton]')).toHaveValue('10');
++  await page.getByRole('button', { name: 'Close settings' }).click();
++  await set(0, 0.1);
++  await set(1, -0.7);
++  await set(2, -1);
++  await set(3, -1);
++  await page.locator('#mode').selectOption('practice');
++  await page.locator('#opponents').selectOption('0');
++  await page.getByRole('button', { name: /ENTER CIRCUIT/ }).click();
++  const frame = () => page.evaluate(() => window.apexDiagnostics().frame!);
++  await expect
++    .poll(async () => (await frame())[carBase(0) + F.RPM], { timeout: 60000 })
++    .toBeGreaterThan(8000);
++  expect((await frame())[carBase(0) + F.SPEED]).toBeLessThan(0.5);
++  expect((await frame())[carBase(0) + F.CLUTCH_ENGAGEMENT]).toBe(0);
++  await set(3, 1);
++  await expect
++    .poll(async () => (await frame())[carBase(0) + F.SPEED], { timeout: 60000 })
++    .toBeGreaterThan(5);
++  await page.evaluate(() => {
++    (window as unknown as { testWheel: { connected: boolean } }).testWheel.connected = false;
++  });
++  await expect(page.getByRole('button', { name: 'RESUME SESSION' })).toBeVisible();
++  await expect(page.locator('#toast')).toContainText('controller disconnected');
++});
++
++test('incomplete calibration cannot be saved and closing the editor discards capture state', async ({
++  page,
++}) => {
++  await page.addInitScript(() => {
++    const pad = {
++      index: 0,
++      id: 'Incomplete wheel',
++      mapping: '',
++      connected: true,
++      axes: [-0.8],
++      buttons: [],
++    };
++    Object.defineProperty(navigator, 'getGamepads', { configurable: true, value: () => [pad] });
++  });
++  await page.goto('/');
++  await expect(page.locator('#loading')).toBeHidden({ timeout: 60000 });
++  await page.getByRole('button', { name: 'GARAGE & SETTINGS', exact: true }).click();
++  await page.getByLabel('Active input device').selectOption('0');
++  await page.locator('[data-capture="steering:left"]').click();
++  await page.getByRole('button', { name: 'APPLY & SAVE' }).click();
++  await expect(page.locator('#toast')).toContainText('Finish all endpoint captures');
++  await page.getByRole('button', { name: 'Close settings' }).click();
++  await page.getByRole('button', { name: 'GARAGE & SETTINGS', exact: true }).click();
++  await expect(page.getByLabel('Active input device')).toHaveValue('-1');
++  await expect(page.locator('[data-capture="steering:left"]')).not.toHaveAttribute(
++    'data-captured',
++    /./,
++  );
++});
+diff --git a/scripts/race-classification.ts b/scripts/race-classification.ts
+new file mode 100644
+index 0000000..4ea0d86
+--- /dev/null
++++ b/scripts/race-classification.ts
+@@ -0,0 +1,85 @@
++import assert from 'node:assert/strict';
++import { createHash } from 'node:crypto';
++import { readFileSync, writeFileSync } from 'node:fs';
++import { Simulation } from '../src/simulation/world.ts';
++import { DEFAULT_OPTIONS } from '../src/simulation/config.ts';
++import { PHASE } from '../src/simulation/race.ts';
++
++const reports = [];
++for (const weather of ['clear', 'changeable'] as const) {
++  const sim = new Simulation({
++    ...DEFAULT_OPTIONS,
++    mode: 'race',
++    laps: 3,
++    opponents: 9,
++    weather,
++    seed: 4417,
++  });
++  sim.autoPlayer = true;
++  let firstFinish = 0,
++    playerFinish = 0;
++  let maximumImpact = 0;
++  const failures: string[] = [];
++  try {
++    for (let tick = 0; tick < 540 * 120 && sim.race.phase !== PHASE.FINISHED; tick++) {
++      sim.step(1 / 120);
++      for (const car of sim.cars) {
++        assert(car.body.position.finite() && car.body.omega.finite(), 'Finite rigid state');
++        maximumImpact = Math.max(maximumImpact, car.impact);
++        if (car.finishTime && !firstFinish) firstFinish = sim.race.raceTime;
++        if (car.id === 0 && car.finishTime && !playerFinish) playerFinish = sim.race.raceTime;
++      }
++    }
++    assert.equal(sim.race.phase, PHASE.FINISHED, 'Whole field must resolve');
++    assert(
++      sim.cars.every((c) => c.finishTime > 0 && !c.retired),
++      'Every car must finish without a timeout DNF',
++    );
++    assert(
++      sim.race.laps.every((l) => l.completed > 0 && l.lastSectors.every((s) => s > 0)),
++      'All three actual sectors',
++    );
++    assert(
++      sim.race.laps.every((l) => Math.abs(l.lastSectors.reduce((a, b) => a + b) - l.last) < 1e-6),
++      'Sector sum equals completed lap',
++    );
++    assert(sim.race.raceTime > firstFinish, 'First finisher does not freeze the field');
++    if (weather === 'changeable')
++      assert(
++        sim.cars.every((c) => c.pitStops >= 1),
++        'Every car must physically fit wet-weather tires',
++      );
++  } catch (error) {
++    failures.push(error instanceof Error ? error.message : String(error));
++  }
++  reports.push({
++    weather,
++    passed: failures.length === 0,
++    failures,
++    firstFinish,
++    playerFinish,
++    sessionEnd: sim.race.raceTime,
++    maximumImpact,
++    classification: sim.race.order.map((id) => ({
++      id,
++      laps: sim.race.laps[id].completed,
++      finishTime: sim.cars[id].finishTime,
++      penalty: sim.race.laps[id].penalty,
++      retired: sim.cars[id].retired,
++      pitStops: sim.cars[id].pitStops,
++      sectors: sim.race.laps[id].lastSectors,
++    })),
++  });
++}
++const report = {
++  sources: Object.fromEntries(
++    ['src/simulation/race.ts', 'src/simulation/world.ts', 'src/simulation/ai.ts'].map((p) => [
++      p,
++      createHash('sha256').update(readFileSync(p)).digest('hex'),
++    ]),
++  ),
++  reports,
++};
++writeFileSync('docs/race-classification.json', JSON.stringify(report, null, 2) + '\n');
++console.log(JSON.stringify(report));
++if (reports.some((r) => !r.passed)) process.exitCode = 1;
+diff --git a/scripts/validate.ts b/scripts/validate.ts
+index 2de45e6..b3574d1 100644
+--- a/scripts/validate.ts
++++ b/scripts/validate.ts
+@@ -17,26 +17,36 @@ for (const weather of ['clear', 'changeable', 'rain'] as const) {
+   const started = performance.now();
+-  for (let tick = 0; tick < 120 * 320; tick++) {
+-    if (weather === 'clear' && tick === 120 * 15) sim.requestPit();
+-    sim.step(1 / 120);
+-    for (const car of sim.cars) {
+-      assert(car.body.position.finite());
+-      assert(car.body.velocity.finite());
+-      assert(car.battery >= 0 && car.battery <= 4e6);
+-      assert(car.fuel >= 0);
+-      maxSpeed = Math.max(maxSpeed, car.speed);
+-      if (!car.inPit) maxLateral = Math.max(maxLateral, Math.abs(car.lateral));
++  const failures: string[] = [];
++  let tick = 0;
++  try {
++    for (; tick < 120 * 320; tick++) {
++      if (weather === 'clear' && tick === 120 * 15) sim.requestPit();
++      sim.step(1 / 120);
++      for (const car of sim.cars) {
++        assert(car.body.position.finite());
++        assert(car.body.velocity.finite());
++        assert(car.battery >= 0 && car.battery <= 4e6);
++        assert(car.fuel >= 0);
++        maxSpeed = Math.max(maxSpeed, car.speed);
++        if (!car.inPit) maxLateral = Math.max(maxLateral, Math.abs(car.lateral));
++      }
+     }
+-  }
+-  assert(
+-    sim.race.laps.every((lap) => lap.completed >= 2),
+-    `${weather}: an AI car failed to complete two laps`,
+-  );
+-  if (weather !== 'rain')
+     assert(
+-      sim.cars.every((c) => (weather === 'clear' ? c.id > 0 || c.pitStops >= 1 : c.pitStops >= 1)),
+-      `${weather}: required pit stop was missed`,
++      sim.race.laps.every((lap) => lap.completed >= 2),
++      `${weather}: an AI car failed to complete two laps`,
+     );
++    if (weather !== 'rain')
++      assert(
++        sim.cars.every((c) =>
++          weather === 'clear' ? c.id > 0 || c.pitStops >= 1 : c.pitStops >= 1,
++        ),
++        `${weather}: required pit stop was missed`,
++      );
++  } catch (error) {
++    failures.push(error instanceof Error ? error.message : String(error));
++  }
+   const report = {
++    passed: failures.length === 0,
++    failures,
+     weather,
+-    simulatedSeconds: 320,
++    simulatedSeconds: tick / 120,
+     cars: 4,
+@@ -54,3 +64,7 @@ for (const weather of ['clear', 'changeable', 'rain'] as const) {
+   console.log(JSON.stringify(report));
++  // Persist this execution even on failure; never upload an older passing file.
++  writeFileSync('docs/scenario-results.json', JSON.stringify(reports, null, 2) + '\n');
+ }
+ writeFileSync('docs/scenario-results.json', JSON.stringify(reports, null, 2) + '\n');
++
++if (reports.some((report) => !report.passed)) process.exitCode = 1;
+diff --git a/src/input/bindings.ts b/src/input/bindings.ts
+index e4d190b..7c7e562 100644
+--- a/src/input/bindings.ts
++++ b/src/input/bindings.ts
+@@ -6,2 +6,3 @@ export const DEFAULT_BINDINGS = {
+   reverse: 'KeyB',
++  clutch: 'ShiftLeft',
+   shiftDown: 'BracketLeft',
+@@ -25,2 +26,3 @@ export const BINDING_LABELS: Record<BindingAction, string> = {
+   reverse: 'Reverse (hold at low speed)',
++  clutch: 'Clutch pedal (manual clutch mode)',
+   shiftDown: 'Downshift',
+@@ -44,5 +46,12 @@ export function validateBindings(value: unknown): Bindings {
+   const result = { ...DEFAULT_BINDINGS };
++  if (source.clutch === undefined) {
++    result.clutch =
++      ['ShiftLeft', 'ShiftRight', 'ControlRight', 'ControlLeft', 'KeyQ', 'KeyZ'].find(
++        (code) =>
++          !Object.entries(source).some(([name, value]) => name !== 'clutch' && value === code),
++      ) ?? 'ShiftLeft';
++  }
+   const occupied = new Map<string, string>();
+   for (const action of Object.keys(result) as BindingAction[]) {
+-    const code = source[action] === undefined ? DEFAULT_BINDINGS[action] : source[action];
++    const code = source[action] === undefined ? result[action] : source[action];
+     if (!validBindingCode(code))
+diff --git a/src/input/calibration.ts b/src/input/calibration.ts
+new file mode 100644
+index 0000000..47634c6
+--- /dev/null
++++ b/src/input/calibration.ts
+@@ -0,0 +1,126 @@
++import { clamp } from '../core/math.ts';
++
++export interface SteeringCalibration {
++  axis: number;
++  left: number;
++  center: number;
++  right: number;
++}
++export interface PedalCalibration {
++  axis: number;
++  released: number;
++  pressed: number;
++}
++export interface CalibrationSet {
++  steering: SteeringCalibration | null;
++  throttle: PedalCalibration | null;
++  brake: PedalCalibration | null;
++  clutch: PedalCalibration | null;
++}
++export interface DeviceSelection {
++  index: number;
++  id: string;
++}
++export const emptyCalibration = (): CalibrationSet => ({
++  steering: null,
++  throttle: null,
++  brake: null,
++  clutch: null,
++});
++const axisIndex = (value: unknown): number => {
