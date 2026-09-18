@@ -1,0 +1,390 @@
+diff --git a/src/simulation/world.ts b/src/simulation/world.ts
+index 6388502..b425b31 100644
+--- a/src/simulation/world.ts
++++ b/src/simulation/world.ts
+@@ -201,6 +201,17 @@ export class Simulation {
+       out[o + F.BLUE_CAR] = this.race.control.blueCar[id];
+       out[o + F.CONTROL_SEQUENCE] = this.race.control.sequence;
+       out[o + F.CONTROL_PENALTIES] = this.race.control.penaltyCount[id];
++      out[o + F.PIT_CLOCK] = c.pitClock;
++      out[o + F.LAP_DELTA] = t.reference.delta(c.s, t.lapTime);
++      out[o + F.DELTA_VALID] = Number(t.active && t.reference.bestTime > 0);
++      const brain = this.ai[id].brain;
++      out[o + F.AI_STRESS] = brain.stress;
++      out[o + F.AI_TIRE_CARE] = brain.tireCare;
++      out[o + F.AI_ERROR_COUNT] = brain.errors.events;
++      out[o + F.AI_STEER_ERROR] = brain.errors.steer;
++      out[o + F.AI_PEDAL_ERROR] = brain.errors.pedal;
++      out[o + F.AI_DEFENDING] = brain.defence.offset;
++      out[o + F.AI_PACE] = brain.pace;
+       for (let i = 0; i < c.debris.pieces.length; i++) {
+         const piece = c.debris.pieces[i],
+           p = o + DEBRIS_BASE + i * DEBRIS_STRIDE;
+diff --git a/src/storage/telemetry-schema.ts b/src/storage/telemetry-schema.ts
+index 2a419c5..3317711 100644
+--- a/src/storage/telemetry-schema.ts
++++ b/src/storage/telemetry-schema.ts
+@@ -69,6 +69,9 @@ const units: Record<string, string> = {
+   ENGINE_TORQUE: 'Nm',
+   CAUTION_DISTANCE: 'm',
+   CAUTION_SPEED: 'mps',
++  PIT_CLOCK: 's',
++  LAP_DELTA: 's',
++  AI_DEFENDING: 'm',
+   SECTOR_1: 's',
+   SECTOR_2: 's',
+   SECTOR_3: 's',
+diff --git a/src/ui/interface.ts b/src/ui/interface.ts
+index 7dd80b3..a2c78cb 100644
+--- a/src/ui/interface.ts
++++ b/src/ui/interface.ts
+@@ -77,7 +77,7 @@ export class Interface {
+   <section id="hud" class="hud" hidden>
+    <div class="hud-top"><div class="brand small">APEX<span>/ LIVE</span></div><div class="session-status"><span id="lapLabel">LAP 1 / 3</span><b id="flag">GRID</b><span id="weatherLabel">24°C / DRY</span></div><button class="icon-button" data-action="pause" aria-label="Pause session">Ⅱ</button></div>
+    <aside class="timing"><div class="panel-heading">CLASSIFICATION <span>LIVE</span></div><div id="tower"></div></aside>
+-   <div class="lap-panel"><label>CURRENT LAP<b id="lapTime">—:——.———</b></label><label>PERSONAL BEST<span id="bestLap">—:——.———</span></label><label>LAST LAP<span id="lastLap">—:——.———</span></label></div>
++   <div class="lap-panel"><label>DELTA TO BEST<span id="lapDelta">—</span></label><label>CURRENT LAP<b id="lapTime">—:——.———</b></label><label>PERSONAL BEST<span id="bestLap">—:——.———</span></label><label>LAST LAP<span id="lastLap">—:——.———</span></label></div>
+    <div id="startSequence" class="start-sequence" hidden><div id="lights">${'<i></i>'.repeat(5)}</div><span id="startText">BUILD REVS. HOLD THE BRAKE.</span></div>
+    <div class="race-message" id="raceMessage" role="status" aria-live="polite"></div>
+    <div class="minimap"><canvas id="minimap" width="250" height="240"></canvas><span>AUREL / GRAND CIRCUIT</span></div>
+@@ -195,6 +195,12 @@ export class Interface {
+       `${this.options.mode === 'practice' ? 'PRACTICE / LAP' : 'LAP'} ${Math.min(this.options.laps, Math.round(frame[o + F.LAPS]) + 1)}${this.options.mode === 'race' ? ' / ' + this.options.laps : ''}`,
+     );
+     const flag = frame[H.PHASE] < 2 ? 'GRID' : flagLabel(frame[H.FLAG]);
++    const delta = frame[o + F.LAP_DELTA];
++    this.setText(
++      'lapDelta',
++      frame[o + F.DELTA_VALID] ? `${delta >= 0 ? '+' : ''}${delta.toFixed(3)} S` : '—',
++    );
++    this.get('lapDelta').dataset.ahead = String(frame[o + F.DELTA_VALID] > 0 && delta < 0);
+     this.setText('flag', flag);
+     this.get('flag').dataset.flag = String(frame[H.FLAG]);
+     this.setText(
+diff --git a/src/ui/style.css b/src/ui/style.css
+index 8bbd2fe..62a0904 100644
+--- a/src/ui/style.css
++++ b/src/ui/style.css
+@@ -1477,3 +1477,10 @@ html[data-colorblind='true'] #flag[data-flag='3']::before {
+ html[data-colorblind='true'] #flag[data-flag='4']::before {
+   content: '>> ';
+ }
++
++#lapDelta[data-ahead='true'] {
++  color: #84d9b3;
++}
++#lapDelta[data-ahead='false'] {
++  color: #f0cd8d;
++}
+diff --git a/tests/driver-brain.test.ts b/tests/driver-brain.test.ts
+new file mode 100644
+index 0000000..a5bc231
+--- /dev/null
++++ b/tests/driver-brain.test.ts
+@@ -0,0 +1,127 @@
++import { it, expect } from 'vitest';
++import { DriverBrain, DriverErrorModel, DefensiveLine } from '../src/simulation/driver-brain.ts';
++import { Simulation } from '../src/simulation/world.ts';
++import { DEFAULT_OPTIONS, controls } from '../src/simulation/config.ts';
++import { personality, TrafficPlanner } from '../src/simulation/traffic.ts';
++import { FLAG } from '../src/simulation/marshal.ts';
++
++it('generates repeatable, bounded correlated control mistakes from the seed', () => {
++  const a = new DriverErrorModel(99),
++    b = new DriverErrorModel(99),
++    c = controls();
++  let acted = false;
++  for (let i = 0; i < 1200; i++) {
++    a.sample(0.5, 0.1, 0.8, 0.94, true);
++    b.sample(0.5, 0.1, 0.8, 0.94, true);
++    for (let tick = 0; tick < 60; tick++) {
++      c.throttle = 0.6;
++      c.brake = 0.2;
++      c.steer = 0;
++      a.apply(1 / 120, c, true);
++      b.apply(1 / 120, controls(), true);
++      acted ||= Math.abs(c.steer) > 0.001;
++      expect(Math.abs(a.steer)).toBeLessThan(0.02);
++      expect(Math.abs(a.pedal)).toBeLessThan(0.05);
++    }
++    expect(a.steer).toBe(b.steer);
++    expect(a.events).toBe(b.events);
++  }
++  expect(acted).toBe(true);
++  expect(a.events).toBeGreaterThan(10);
++  a.sample(0.5, 0.1, 1, 0.9, false);
++  a.apply(0.5, c, false);
++  expect(a.active).toBe(false);
++  expect(a.steer).toBe(0);
++});
++it('increased stress increases error events without random chassis changes', () => {
++  const quiet = new DriverErrorModel(123),
++    stressed = new DriverErrorModel(123);
++  for (let i = 0; i < 10000; i++) {
++    quiet.sample(0.5, 0.005, 0, 0.98, true);
++    stressed.sample(0.5, 0.005, 1, 0.98, true);
++  }
++  expect(stressed.events).toBeGreaterThan(quiet.events * 2);
++  expect(() => quiet.sample(NaN, 0, 0, 1, true)).toThrow();
++});
++it('tire-management and wet skill affect planning, not tire coefficients', () => {
++  const sim = new Simulation({ ...DEFAULT_OPTIONS, mode: 'practice', opponents: 1 });
++  const c = sim.cars[0],
++    traits = personality(1, 0),
++    brain = new DriverBrain({ ...traits, tireManagement: 1, wetSkill: 0.7 }, 1, 0);
++  c.place(sim.track, 1000);
++  c.speed = 40;
++  c.tires.forEach((t) => {
++    t.wear = 0.5;
++    t.surfaceTemp = 140;
++  });
++  sim.track.water.fill(0.8);
++  const original = c.tires.map((t) => ({ ...t }));
++  brain.update(0.5, c, sim.cars, sim.track, sim.race);
++  expect(brain.pace).toBeLessThan(1);
++  expect(brain.tireCare).toBeGreaterThan(0);
++  expect(c.pitRequested).toBe(true);
++  expect(c.nextCompound).toBe('intermediate');
++  expect(c.tires).toEqual(original);
++});
++it('battery reserve and an actual passing opportunity control hybrid modes', () => {
++  const sim = new Simulation({ ...DEFAULT_OPTIONS, mode: 'practice', opponents: 1 });
++  const [c, other] = sim.cars;
++  c.place(sim.track, 1000, 3);
++  c.speed = 50;
++  c.trackPosition.curvature = 0;
++  other.place(sim.track, 1030, 0);
++  other.speed = 48;
++  const brain = new DriverBrain({ ...personality(2, 0), aggression: 0.9 }, 2, 0);
++  c.battery = 3.8e6;
++  brain.update(0.5, c, sim.cars, sim.track, sim.race);
++  expect(brain.ers).toBe(2);
++  c.battery = 1e5;
++  brain.update(0.5, c, sim.cars, sim.track, sim.race);
++  expect(brain.ers).toBe(0);
++  c.battery = 3.8e6;
++  sim.race.control.flags[0] = FLAG.YELLOW;
++  brain.update(0.5, c, sim.cars, sim.track, sim.race);
++  expect(brain.ers).toBe(0);
++});
++it('makes one early defensive move, never a late side-by-side block or zigzag', () => {
++  const sim = new Simulation({ ...DEFAULT_OPTIONS, mode: 'practice', opponents: 1 });
++  const [c, other] = sim.cars;
++  const bend = sim.track.points.find((p) => Math.abs(p.curvature) > 0.004)!;
++  c.place(sim.track, bend.s - 90);
++  c.speed = 35;
++  c.brake = 0;
++  other.place(sim.track, bend.s - 120);
++  other.speed = 40;
++  const line = new DefensiveLine();
++  const first = line.update(c, sim.cars, sim.track, 10, 0.9, true);
++  expect(Math.abs(first)).toBeGreaterThan(1);
++  other.s = c.s - 2;
++  expect(line.update(c, sim.cars, sim.track, 10.2, 0.9, true)).toBe(first);
++  const fresh = new DefensiveLine();
++  expect(fresh.update(c, sim.cars, sim.track, 10, 0.9, true)).toBe(0);
++  expect(line.update(c, sim.cars, sim.track, 20, 0.9, true)).toBe(0);
++  expect(line.update(c, sim.cars, sim.track, 21, 0.9, false)).toBe(0);
++});
++it('emergency and disabled control paths cannot have braking removed by an error', () => {
++  const error = new DriverErrorModel(1),
++    request = controls();
++  error.sample(0.5, 100, 1, 0.9, true);
++  request.brake = 1;
++  request.steer = 0;
++  request.throttle = 0;
++  error.apply(0.1, request, true);
++  expect(request.brake).toBe(1);
++  const snapshot = { ...request };
++  error.apply(0.1, request, false);
++  expect(request).toEqual(snapshot);
++});
++it('a new pit-entry purpose is not postponed by an old racing-lane commitment', () => {
++  const sim = new Simulation({ ...DEFAULT_OPTIONS, mode: 'practice', opponents: 0 });
++  const c = sim.cars[0];
++  c.place(sim.track, 2000, -3);
++  c.speed = 35;
++  const planner = new TrafficPlanner();
++  planner.evaluate(c, [c], sim.track, 10, 8, personality(1, 0), false, 0);
++  const next = planner.evaluate(c, [c], sim.track, 10.1, 8, personality(1, 0), false, 6);
++  expect(next.offset).toBeGreaterThan(4);
++});
+diff --git a/tests/lap-reference.test.ts b/tests/lap-reference.test.ts
+new file mode 100644
+index 0000000..9cddc5b
+--- /dev/null
++++ b/tests/lap-reference.test.ts
+@@ -0,0 +1,77 @@
++import { expect, it } from 'vitest';
++import { LapReference } from '../src/simulation/lap-reference.ts';
++import { LapTracker } from '../src/simulation/race.ts';
++
++it('uses actual nonuniform crossing times rather than average lap speed', () => {
++  const reference = new LapReference(256);
++  reference.start(10);
++  reference.observe(0, 128, 10, 30);
++  reference.observe(128, 256, 30, 90);
++  reference.finish(80, true);
++  expect(reference.bestTime).toBe(80);
++  expect(reference.delta(128, 21)).toBe(1);
++  expect(reference.delta(192, 49)).toBe(-1);
++  expect(reference.delta(256, 81)).toBe(1);
++});
++it('rejects incomplete, invalid and discontinuous reference laps', () => {
++  const reference = new LapReference(256);
++  reference.start(0);
++  reference.observe(0, 100, 0, 20);
++  reference.observe(110, 256, 21, 60);
++  reference.finish(60, true);
++  expect(reference.bestTime).toBe(0);
++  reference.start(0);
++  reference.observe(0, 256, 0, 60);
++  reference.finish(60, false);
++  expect(reference.bestTime).toBe(0);
++  expect(reference.delta(40, 2)).toBe(0);
++});
++it('tracks ordered lap gates, a stopped interval and a new best without reference corruption', () => {
++  const lap = new LapTracker(256, 250);
++  lap.update(2, 1, false);
++  let time = 1;
++  for (let s = 4; s <= 254; s += 2) {
++    time += 0.5;
++    lap.update(s, time, false);
++  }
++  lap.update(2, time + 1, false);
++  expect(lap.completed).toBe(1);
++  expect(lap.reference.bestTime).toBeCloseTo(lap.best);
++  const previous = Array.from(lap.reference.best);
++  expect(lap.reference.delta(2, lap.lapTime)).toBeCloseTo(0.25, 6);
++  time += 1;
++  for (let s = 4; s <= 254; s += 2) {
++    if (s === 64) {
++      time += 4;
++      lap.update(62, time, false);
++    }
++    time += 0.5;
++    lap.update(s, time, false);
++  }
++  lap.update(2, time + 1, false);
++  expect(lap.completed).toBe(2);
++  expect(lap.reference.bestTime).toBe(lap.best);
++  expect(Array.from(lap.reference.best)).toEqual(previous);
++  expect(lap.last).toBeGreaterThan(lap.best);
++});
++it('disallows malformed interval times and nonfinite reference parameters', () => {
++  expect(() => new LapReference(NaN)).toThrow();
++  const r = new LapReference(256);
++  expect(() => r.start(NaN)).toThrow();
++  expect(() => r.start(-1)).toThrow();
++  expect(() => r.delta(NaN, 10)).toThrow();
++  expect(() => r.observe(0, 10, 2, 1)).toThrow();
++  expect(() => r.observe(-1, 10, 1, 2)).toThrow();
++});
++
++it('preserves the faster recorded reference even if a caller accepts a slower lap', () => {
++  const r = new LapReference(256);
++  r.start(0);
++  r.observe(0, 256, 0, 60);
++  r.finish(60, true);
++  r.start(70);
++  r.observe(0, 256, 70, 150);
++  r.finish(80, true);
++  expect(r.bestTime).toBe(60);
++  expect(r.delta(128, 30)).toBe(0);
++});
+diff --git a/tests/pit-presentation.test.ts b/tests/pit-presentation.test.ts
+new file mode 100644
+index 0000000..9aefbb4
+--- /dev/null
++++ b/tests/pit-presentation.test.ts
+@@ -0,0 +1,55 @@
++import { expect, it } from 'vitest';
++import * as T from 'three';
++import { PitCrewView, serviceWheelOffset } from '../src/rendering/pit-crew.ts';
++import {
++  F,
++  H,
++  HEADER,
++  CAR_STRIDE,
++  W,
++  WHEEL_BASE,
++  WHEEL_STRIDE,
++  carBase,
++} from '../src/simulation/protocol.ts';
++
++it('keeps loaded wheels attached and aligns removal/install with the service phases', () => {
++  expect(serviceWheelOffset(2, 0.5, 0)).toBe(0);
++  expect(serviceWheelOffset(3, 1.8, 1000)).toBe(0);
++  expect(serviceWheelOffset(3, 1.8, 0)).toBeGreaterThan(0.2);
++  expect(serviceWheelOffset(3, 2.2, 0)).toBe(0.48);
++  expect(serviceWheelOffset(4, 2.2, 0)).toBe(0.48);
++  expect(serviceWheelOffset(4, 3.3, 0)).toBe(0);
++  expect(serviceWheelOffset(5, 4, 0)).toBe(0);
++  expect(serviceWheelOffset(6, 5.2, 0)).toBe(0);
++  expect(() => serviceWheelOffset(3, NaN, 0)).toThrow();
++});
++it('bounds all twelve pit crews to four instanced draw batches with finite transforms', () => {
++  const frame = new Float32Array(HEADER + 12 * CAR_STRIDE);
++  frame[H.CARS] = 12;
++  for (let i = 0; i < 12; i++) {
++    const o = carBase(i);
++    frame[o + F.QW] = 1;
++    frame[o + F.PIT_PHASE] = 3;
++    frame[o + F.PIT_CLOCK] = 1.9;
++    frame[o + F.JACK_HEIGHT] = 0.19;
++    frame[o + F.Y] = 0.75;
++    frame[o + F.X] = i * 7;
++    for (let wheel = 0; wheel < 4; wheel++)
++      frame[o + WHEEL_BASE + wheel * WHEEL_STRIDE + W.LENGTH] = 0.3;
++  }
++  const crew = new PitCrewView();
++  crew.update(frame, new T.Vector3());
++  expect(crew.activeCrews).toBe(12);
++  expect(crew.root.children).toHaveLength(4);
++  for (const object of crew.root.children) {
++    const batch = object as T.InstancedMesh;
++    expect(batch.count).toBeGreaterThan(0);
++    expect(batch.count).toBeLessThanOrEqual(batch.instanceMatrix.count);
++    expect([...batch.instanceMatrix.array].every(Number.isFinite)).toBe(true);
++  }
++  crew.update(frame, new T.Vector3(10000, 0, 0));
++  expect(crew.activeCrews).toBe(0);
++  for (let i = 0; i < 12; i++) frame[carBase(i) + F.PIT_PHASE] = 6;
++  crew.update(frame, new T.Vector3());
++  expect(crew.activeCrews).toBe(0);
++});
+diff --git a/tests/pit-release.test.ts b/tests/pit-release.test.ts
+index 741d4c9..d801c70 100644
+--- a/tests/pit-release.test.ts
++++ b/tests/pit-release.test.ts
+@@ -48,3 +48,31 @@ describe('pit-release circular-wait regression', () => {
+     expect(maximumImpact).toBe(0);
+   }, 30000);
+ });
++
++it('anticipates the future service-bay sweep before a moving car becomes trapped beside a serviced car', () => {
++  const sim = new Simulation({ ...DEFAULT_OPTIONS, mode: 'practice', opponents: 9, seed: 4417 });
++  sim.autoPlayer = true;
++  sim.race.time += 10;
++  for (const car of sim.cars) car.place(sim.track, 1800 + car.id * 40);
++  const service = sim.cars[4],
++    following = sim.cars[9];
++  service.place(sim.track, 128.1, 24.1);
++  following.place(sim.track, 109, 20.5);
++  service.inPit = following.inPit = true;
++  service.pitRequested = following.pitRequested = true;
++  service.pitPhase = 5;
++  service.pitClock = 5.3;
++  following.pitPhase = 1;
++  const facing = following.trackPosition;
++  following.body.velocity.set(facing.tx * 10, 0, facing.tz * 10);
++  following.speed = 10;
++  let peak = 0;
++  for (let i = 0; i < 65 * 120; i++) {
++    sim.step(1 / 120);
++    peak = Math.max(peak, service.impact, following.impact);
++  }
++  expect(service.pitStops).toBe(1);
++  expect(following.pitStops).toBe(1);
++  expect(service.inPit || following.inPit).toBe(false);
++  expect(peak).toBe(0);
++}, 30000);
