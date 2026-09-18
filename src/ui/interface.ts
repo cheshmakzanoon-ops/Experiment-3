@@ -1,5 +1,5 @@
 import { FLAG, flagLabel, yellowFlag } from '../simulation/marshal.ts';
-import { presentationControls, bindPresentation } from './presentation.ts';
+import { presentationControls, bindPresentation, weatherReadout } from './presentation.ts';
 import { DeviceCalibrationPanel } from './device-calibration.ts';
 import {
   BINDING_LABELS,
@@ -205,7 +205,7 @@ export class Interface {
     this.get('flag').dataset.flag = String(frame[H.FLAG]);
     this.setText(
       'weatherLabel',
-      `${Math.round(frame[H.AMBIENT])}°C / ${frame[H.RAIN] > 0.1 ? 'RAIN ' + frame[H.RAIN].toFixed(0) + ' MM/H' : 'DRY'}`,
+      weatherReadout(frame[H.AMBIENT], frame[H.RAIN], frame[H.WATER]),
     );
     for (const [id, field] of [
       ['lapTime', F.LAP_TIME],

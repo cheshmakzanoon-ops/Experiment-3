@@ -28,3 +28,8 @@ The reports retain per-car maximum offset, impact count, minimum component healt
 The full master directive is still subject to the complete combined scenario, target-device profiling, all specified final audits and further presentation review. Passing these fixtures does not certify AAA presentation or every remaining requirement.
 
 Separate ten-car wet and initially-slick-in-rain service fixtures are now part of the physics CI gate. They pass their declared service/impact thresholds, but contain minor contacts and must not be described as zero-contact endurance. See `wet-pit-results.json` and [weather/braking](WEATHER_AND_BRAKING.md).
+
+The later instrument-freshness/weather-caption follow-up modifies presentation only.
+Its all-source fingerprint differs, while the simulation/core fingerprint above
+remains identical. The listed all-source hash identifies the measured weather
+checkpoint; it is not silently rewritten to describe a later presentation build.

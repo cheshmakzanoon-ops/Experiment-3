@@ -68,3 +68,12 @@ validation or a request to reintroduce superseded recovery logic.
 All-source checks and browser publication gates remain required. Full three-pass
 certification, the single combined section-146 driving scenario, representative
 hardware performance and independent presentation assessment remain separate.
+
+## Instrument follow-up
+
+A review of the presentation path found that the cockpit's upload timer consumed
+clamped camera dt and could lag behind the current gear/speed after a slow frame.
+It now consumes snapshot simulation time, with immediate first/shift/rewind updates.
+The HUD also distinguishes stopped rainfall from water remaining on the circuit.
+These are presentation-only changes; the recorded simulation fingerprint and
+its dry endurance results are unchanged, while the all-source fingerprint differs.

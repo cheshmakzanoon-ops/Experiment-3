@@ -1,7 +1,7 @@
 import * as T from 'three';
 import { DriverRig } from './driver.ts';
 import { serviceWheelOffset } from './pit-crew.ts';
-import { drawSteeringDisplay, shiftLight } from './steering-display.ts';
+import { drawSteeringDisplay, shiftLight, SteeringDisplayClock } from './steering-display.ts';
 import { carbonMaterial } from './materials.ts';
 import { ReducedCar, carLod } from './lod.ts';
 import {
@@ -16,7 +16,7 @@ import {
   tube,
 } from './geometry.ts';
 import { COMPOUNDS, LIVERIES } from '../simulation/config.ts';
-import { F, W, WHEEL_BASE, WHEEL_STRIDE } from '../simulation/protocol.ts';
+import { F, H, W, WHEEL_BASE, WHEEL_STRIDE } from '../simulation/protocol.ts';
 import { WHEEL_POSITIONS } from '../simulation/vehicle.ts';
 import { clamp, lerp } from '../core/math.ts';
 export class FormulaCar {
@@ -41,7 +41,7 @@ export class FormulaCar {
   readonly display: T.CanvasTexture;
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
-  private displayClock = 0;
+  private displayClock = new SteeringDisplayClock();
   private shiftLeds: T.MeshBasicMaterial[] = [];
   readonly paint: T.MeshPhysicalMaterial;
   private qa = new T.Quaternion();
@@ -481,7 +481,7 @@ export class FormulaCar {
     b: Float32Array,
     o: number,
     t: number,
-    dt: number,
+    _dt: number,
     time: number,
     cockpit: boolean,
   ) {
@@ -550,9 +550,7 @@ export class FormulaCar {
     this.rearWing.rotation.z = (1 - b[o + F.REAR_HEALTH]) * 0.09;
     this.rainLight.emissiveIntensity =
       b[o + F.BRAKE] > 0.1 ? 2.5 : Math.sin(time * 12) > 0 ? 1.4 : 0.1;
-    this.displayClock += dt;
-    if (this.displayClock > 0.08 && this.id === 0) {
-      this.displayClock = 0;
+    if (this.id === 0 && this.displayClock.due(b[H.TIME], b[o + F.GEAR])) {
       drawSteeringDisplay(this.ctx, b, o);
       for (let j = 0; j < this.shiftLeds.length; j++)
         this.shiftLeds[j].color.setHex(

@@ -72,3 +72,14 @@ export function bindPresentation(form: HTMLFormElement, settings: Settings) {
     return validateGraphics(result, preset.value as Quality);
   };
 }
+
+/** Rainfall and water left on the surface are distinct observations. The water
+ * label explicitly describes the circuit mean, not a claim about every cell. */
+export function weatherReadout(ambientC: number, rainMmHr: number, meanWaterMm: number) {
+  if (![ambientC, rainMmHr, meanWaterMm].every(Number.isFinite) || rainMmHr < 0 || meanWaterMm < 0)
+    return 'WEATHER DATA UNAVAILABLE';
+  const rain = rainMmHr > 0.01 ? `RAIN ${rainMmHr.toFixed(1)} MM/H · ` : '';
+  const surface = meanWaterMm >= 0.04 ? `TRACK AVG ${meanWaterMm.toFixed(2)} MM WATER`
+    : meanWaterMm > 0.001 ? 'DAMP TRACK' : rainMmHr > 0.01 ? 'TRACK WETTING' : 'DRY TRACK';
+  return `${Math.round(ambientC)}°C / ${rain}${surface}`;
+}

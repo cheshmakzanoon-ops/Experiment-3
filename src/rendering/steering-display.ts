@@ -54,3 +54,21 @@ export function drawSteeringDisplay(
   c.fillStyle = '#54d4b6';
   c.fillRect(12, 244, 488 * value.battery, 5);
 }
+
+/** Throttle texture uploads by observed simulation time, never the camera's
+ * clamped integration delta. A hitch must not leave an old gear/speed visible
+ * for several more frames. Gear changes and replay rewinds refresh immediately.
+ * Repeated paused snapshots do not synthesize a new measurement or upload. */
+export class SteeringDisplayClock {
+  private previousTime = NaN;
+  private previousGear = NaN;
+  due(simulationTime: number, gear: number) {
+    if (!Number.isFinite(simulationTime) || !Number.isFinite(gear))
+      throw new Error('Non-finite steering display state');
+    const refresh = !Number.isFinite(this.previousTime) ||
+      simulationTime < this.previousTime || gear !== this.previousGear ||
+      simulationTime - this.previousTime >= 0.08 - 1e-6;
+    if (refresh) { this.previousTime = simulationTime; this.previousGear = gear; }
+    return refresh;
+  }
+}

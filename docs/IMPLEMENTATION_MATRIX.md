@@ -94,7 +94,7 @@ This ledger follows all 148 numbered sections of the exact [Pasted markdown(6) d
 | 88 | PIT STOP | Physical entry, new tire-state objects, four-foot jack support and safe queue/release. Four mechanics plus two operators consume service state; wheels move off hubs only while unloaded. Browser fixture uses a real captured service state. |
 | 89 | SETUP SYSTEM | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 90 | HUD DESIGN | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
-| 91 | STEERING-WHEEL DISPLAY | Actual gear, speed, RPM LEDs, battery, ERS, brake bias, differential and best-lap distance delta on the physical wheel. No fake constant-speed reference trace. |
+| 91 | STEERING-WHEEL DISPLAY | Actual gear, speed, RPM LEDs, battery, ERS, brake bias, differential and best-lap distance delta. Texture uploads follow snapshot time; first frame, shifts and replay rewinds refresh immediately. No fake constant-speed reference trace. |
 | 92 | GRAPHICS SETTINGS | Independent physical render scale, texture cap, shadows, mirrors/probes, particle/vegetation density, crowds, bloom, FXAA and anisotropy. Independent bounded motion-blur strength is available, off by default. |
 | 93 | PERFORMANCE BUDGET | Opt-in real-frame captures include raw renderer CPU, worker-reported tick cost, GPU queries and all-pass counters. Hardware targets remain targets, not certified results. |
 | 94 | OBJECT ALLOCATION | Pooled snapshots/particles/recorders; small per-tick/per-frame allocations remain. |

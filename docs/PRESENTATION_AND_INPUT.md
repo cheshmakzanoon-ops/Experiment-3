@@ -29,3 +29,22 @@ The local full check at this checkpoint passed **179 unit/property tests**, ESLi
 `e2e/presentation.spec.ts` adds browser workflows for durable settings, physical drawing-buffer dimensions and pedal delivery while render callbacks are suspended. Existing browser tests continue to check real mirror images, shaders, manual steering, calibrated clutch behavior, stored replay pages and telemetry output. Browser outcomes are reported by the matching GitHub Actions run, not inferred from passing TypeScript.
 
 No target-device frame-rate certification, full physical-wheel test, independent player-experience audit, or final master-scenario completion is claimed by this checkpoint.
+
+## Instrument freshness and remaining water
+
+The physical wheel texture now schedules updates from the observed simulation
+clock, not from the camera's clamped render delta. Its first snapshot, gear changes
+and replay rewinds draw immediately. Regular speed/RPM updates are limited to
+roughly 12.5 Hz while repeated paused snapshots do not upload again. A long frame
+therefore displays the current snapshot rather than retaining an old instrument
+for additional frames. This changes presentation only, not simulation timing.
+
+The weather line separately describes rain rate and the circuit's mean remaining
+water. A retreating storm cannot turn the label to DRY while wet cells remain;
+small rainfall is displayed to one decimal instead of being rounded to zero.
+The circuit mean is not a claim that all contact patches have identical water.
+
+Native cadence/label assertions are shared with Vitest. A Chromium canvas fixture
+constructs the actual FormulaCar, checks texture version changes and real drawn
+text/pixels across artificial hitch, gear and rewind snapshots. That controlled
+rendering fixture is not passed off as a vehicle-dynamics test or a complete race.
