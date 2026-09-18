@@ -1,0 +1,347 @@
+         this.input.bindTouch(e, e.dataset.touch as 'left' | 'right' | 'throttle' | 'brake'),
+       );
+-    window.addEventListener('resize', () => this.renderer?.resize());
++    window.addEventListener('resize', () => {
++      this.performanceCapture.interrupt('Viewport changed');
++      this.renderer?.resize();
++    });
+     document.addEventListener('visibilitychange', () => {
+       if (document.hidden && this.state === 'driving') this.pause();
+     });
+@@ -215,6 +227,7 @@ export class GameApp {
+     if (this.state === 'loading' && this.worker) return;
+     this.ui.closeModal();
+     this.ui.telemetryModal.close();
++    this.performanceCapture.interrupt('Session restarted');
+     this.state = 'loading';
+     this.ui.showMode('loading');
+     this.ui.loading('Preparing grid, race timing and recording buffers…');
+@@ -427,9 +440,21 @@ export class GameApp {
+         this.graphClock = 0;
+       }
+     }
++    if (this.performanceCapture.active) {
++      if (this.state !== 'driving' || document.hidden) {
++        this.performanceCapture.interrupt('Capture left visible live driving');
++      } else {
++        this.renderer.readPerformanceMetrics(this.profileMetrics);
++        this.profileMetrics.physicsMs = b[H.STEP_MS];
++        this.performanceCapture.record(performance.now(), this.profileMetrics);
++        if (this.performanceCapture.state === 'complete')
++          this.ui.toast('Performance capture complete. Pause → Performance capture → Export JSON.');
++      }
++    }
+   };
+   private pause() {
+     if (this.state !== 'driving') return;
++    this.performanceCapture.interrupt('Session paused or focus lost');
+     this.state = 'paused';
+     this.post({ type: 'pause', value: true });
+     this.input.setEnabled(false);
+@@ -449,6 +474,7 @@ export class GameApp {
+     (document.activeElement as HTMLElement)?.blur();
+   }
+   private finish(frame: Float32Array) {
++    this.performanceCapture.interrupt('Session finished');
+     this.state = 'results';
+     this.post({ type: 'pause', value: true });
+     this.input.setEnabled(false);
+@@ -517,6 +543,7 @@ export class GameApp {
+         this.resume();
+         break;
+       case 'menu':
++        this.performanceCapture.interrupt('Returned to paddock');
+         this.ui.closeModal();
+         this.ui.telemetryModal.close();
+         this.state = 'menu';
+@@ -542,6 +569,7 @@ export class GameApp {
+         else if (this.state === 'results' && this.current) this.ui.results(this.current);
+         break;
+       case 'camera':
++        this.performanceCapture.interrupt('Camera changed');
+         this.renderer?.changeCamera();
+         break;
+       case 'pit':
+@@ -560,9 +588,11 @@ export class GameApp {
+         this.ui.toast(this.audio.muted ? 'Audio muted.' : 'Audio enabled.');
+         break;
+       case 'debug':
++        this.performanceCapture.interrupt('Debug workload changed');
+         if (this.renderer) this.renderer.debug = !this.renderer.debug;
+         break;
+       case 'autopilot':
++        this.performanceCapture.interrupt('Driver changed');
+         if (this.state === 'driving') {
+           this.auto = !this.auto;
+           this.post({ type: 'autopilot', value: this.auto });
+@@ -617,11 +647,54 @@ export class GameApp {
+       case 'csv':
+         void this.exportTelemetry();
+         break;
++      case 'performance':
++        if (this.state === 'driving') this.pause();
++        if (this.state !== 'paused') break;
++        this.ui.performance(
++          `${this.performanceCapture.state.toUpperCase()} · ${this.performanceCapture.count} measured frames${this.performanceCapture.reason ? ` · ${this.performanceCapture.reason}` : ''}`,
++          this.profileMachine, this.profileWorkload, !!this.performanceCapture.report(),
++        );
++        break;
++      case 'profileStart':
++        this.startPerformanceCapture();
++        break;
++      case 'profileExport': {
++        const report = this.performanceCapture.report();
++        if (report) downloadBlob(
++          new Blob([JSON.stringify(report, null, 2) + '\n'], { type: 'application/json' }),
++          'apex-performance.json',
++        );
++        break;
++      }
+       case 'reload':
+         location.reload();
+         break;
+     }
+   }
++  private startPerformanceCapture() {
++    if (this.state !== 'paused' || !this.renderer) return;
++    const machine = (document.getElementById('profileMachine') as HTMLInputElement | null)?.value.trim() ?? '';
++    const workload = (document.getElementById('profileWorkload') as HTMLInputElement | null)?.value.trim() ?? '';
++    const stats = this.renderer.stats();
++    try {
++      this.performanceCapture.start({
++        machine, workload, source: __APEX_SOURCE_FINGERPRINT__, browser: navigator.userAgent,
++        configuration: JSON.stringify({
++          session: this.options, camera: stats.camera, auto: this.auto, ers: this.ers,
++          graphics: stats.graphics, width: stats.renderWidth, height: stats.renderHeight,
++          pixelRatio: devicePixelRatio, debug: this.renderer.debug,
++          sound: { volume: this.settings.volume, muted: this.audio.muted },
++          shake: this.settings.shake, uiScale: this.settings.uiScale,
++          gpuTiming: stats.gpuTimerSupported,
++        }),
++      }, performance.now());
++      this.profileMachine = machine; this.profileWorkload = workload;
++      this.resume();
++      this.ui.toast('Performance warm-up: 5 seconds, followed by 30 seconds of measured driving.');
++    } catch (error) {
++      this.ui.toast(error instanceof Error ? error.message : String(error));
++    }
++  }
+   private async exportTelemetry() {
+     if (!this.telemetry || this.exporting) return;
+     const generation = this.generation;
+@@ -653,6 +726,7 @@ export class GameApp {
+       submit.disabled = true;
+       submit.textContent = 'SAVING…';
+     }
++    this.performanceCapture.interrupt('Settings changed');
+     this.settings = settings;
+     this.input.settings = settings;
+     this.ui.applyBindings(settings.bindings);
+@@ -700,6 +774,7 @@ export class GameApp {
+   }
+   private fail(error: unknown) {
+     if (this.errorStopped) return;
++    this.performanceCapture.interrupt('Application error');
+     this.errorStopped = true;
+     clearTimeout(this.initTimeout);
+     this.worker?.terminate();
+@@ -711,6 +786,10 @@ export class GameApp {
+   diagnostics(visual = false) {
+     return {
+       state: this.state,
++      performanceCapture: {
++        state: this.performanceCapture.state, frames: this.performanceCapture.count,
++        elapsedMs: this.performanceCapture.elapsedMs, reason: this.performanceCapture.reason,
++      },
+       auto: this.auto,
+       options: this.options,
+       frame: this.current ? Array.from(this.current) : null,
+@@ -728,6 +807,7 @@ export class GameApp {
+   }
+   dispose() {
+     if (this.disposed) return;
++    this.performanceCapture.interrupt('Application disposed');
+     this.disposed = true;
+     this.generation++;
+     this.exporter.cancel();
+diff --git a/src/rendering/gpu-timer.ts b/src/rendering/gpu-timer.ts
+index a8d082e..9ae1ccb 100644
+--- a/src/rendering/gpu-timer.ts
++++ b/src/rendering/gpu-timer.ts
+@@ -1,48 +1,59 @@
+-/** Nonblocking WebGL2 timestamp queries. Null means unsupported/no valid sample,
+- * never a fabricated GPU estimate inferred from requestAnimationFrame time. */
++/** Nonblocking elapsed-time queries. Null is unsupported, pending or invalid;
++ * RAF duration is never substituted for GPU execution time. */
+ export class GpuTimer {
+   milliseconds: number | null = null;
++  sampleSequence = 0;
+   readonly supported: boolean;
+   private ext: { TIME_ELAPSED_EXT: number; GPU_DISJOINT_EXT: number } | null;
+   private queries: WebGLQuery[] = [];
+   private current: WebGLQuery | null = null;
++  private disposed = false;
+   constructor(private gl: WebGL2RenderingContext) {
+     this.ext = gl.getExtension('EXT_disjoint_timer_query_webgl2');
+     this.supported = !!this.ext;
+   }
+-  begin() {
+-    const gl = this.gl,
+-      ext = this.ext;
+-    if (!ext || gl.isContextLost()) return;
+-    if (gl.getParameter(ext.GPU_DISJOINT_EXT)) {
+-      for (const query of this.queries) gl.deleteQuery(query);
+-      this.queries.length = 0;
+-      this.milliseconds = null;
++  private invalidate(lost: boolean) {
++    if (!lost) {
++      if (this.current && this.ext) this.gl.endQuery(this.ext.TIME_ELAPSED_EXT);
++      if (this.current) this.gl.deleteQuery(this.current);
++      for (const query of this.queries) this.gl.deleteQuery(query);
+     }
++    this.current = null;
++    this.queries.length = 0;
++    this.milliseconds = null;
++  }
++  begin() {
++    const gl = this.gl, ext = this.ext;
++    if (this.disposed || !ext) return;
++    if (gl.isContextLost()) { this.invalidate(true); return; }
++    if (gl.getParameter(ext.GPU_DISJOINT_EXT)) { this.invalidate(false); return; }
++    if (this.current) return; // An unmatched begin must not nest a GL query.
+     const first = this.queries[0];
+     if (first && gl.getQueryParameter(first, gl.QUERY_RESULT_AVAILABLE)) {
+       const value = gl.getQueryParameter(first, gl.QUERY_RESULT) / 1e6;
+-      if (Number.isFinite(value)) this.milliseconds = value;
++      if (Number.isFinite(value) && value >= 0) {
++        this.milliseconds = value;
++        this.sampleSequence++;
++      } else this.milliseconds = null;
+       gl.deleteQuery(first);
+       this.queries.shift();
+     }
+-    if (this.queries.length >= 4 || this.current) return;
++    if (this.queries.length >= 4) return;
+     this.current = gl.createQuery();
+     if (this.current) gl.beginQuery(ext.TIME_ELAPSED_EXT, this.current);
+   }
+   end() {
+-    if (!this.current || !this.ext) return;
++    if (this.disposed || !this.ext) return;
++    if (this.gl.isContextLost()) { this.invalidate(true); return; }
++    if (!this.current) return;
+     this.gl.endQuery(this.ext.TIME_ELAPSED_EXT);
+     this.queries.push(this.current);
+     this.current = null;
++    if (this.gl.getParameter(this.ext.GPU_DISJOINT_EXT)) this.invalidate(false);
+   }
+   dispose() {
+-    if (this.current && this.ext) {
+-      this.gl.endQuery(this.ext.TIME_ELAPSED_EXT);
+-      this.gl.deleteQuery(this.current);
+-    }
+-    for (const query of this.queries) this.gl.deleteQuery(query);
+-    this.current = null;
+-    this.queries.length = 0;
++    if (this.disposed) return;
++    this.invalidate(this.gl.isContextLost());
++    this.disposed = true;
+   }
+ }
+diff --git a/src/rendering/renderer.ts b/src/rendering/renderer.ts
+index b9cb5b8..4e8993c 100644
+--- a/src/rendering/renderer.ts
++++ b/src/rendering/renderer.ts
+@@ -1,4 +1,5 @@
+ import * as T from 'three';
++import type { FrameMetrics } from '../core/performance.ts';
+ import type { BuildProgress } from './build-queue.ts';
+ import { TracksideDirector } from './trackside.ts';
+ import { InertialCamera, ViewOrientation } from './camera-dynamics.ts';
+@@ -66,6 +67,7 @@ export class RacingRenderer {
+   fps = 60;
+   frameMs = 16.7;
+   renderMs = 0;
++  private lastRenderCPUms = 0;
+   debug = false;
+   private follow = 0;
+   private inertia = new InertialCamera();
+@@ -486,7 +488,8 @@ export class RacingRenderer {
+     } finally {
+       this.gpuTimer.end();
+     }
+-    this.renderMs = this.renderMs * 0.9 + (performance.now() - start) * 0.1;
++    this.lastRenderCPUms = performance.now() - start;
++    this.renderMs = this.renderMs * 0.9 + this.lastRenderCPUms * 0.1;
+   }
+   visualDiagnostics() {
+     const car = this.cars[this.follow];
+@@ -518,11 +521,22 @@ export class RacingRenderer {
+       mirrors: this.reflection.diagnostics(this.renderer),
+     };
+   }
++  /** Copy unaveraged counters without allocating/sorting a debug snapshot. */
++  readPerformanceMetrics(target: FrameMetrics) {
++    target.renderCPUms = this.lastRenderCPUms;
++    target.drawCalls = this.renderer.info.render.calls;
++    target.triangles = this.renderer.info.render.triangles;
++    target.gpuMs = this.gpuTimer.milliseconds;
++    target.gpuSequence = this.gpuTimer.sampleSequence;
++  }
+   stats() {
+     const info = this.renderer.info.render;
+     const sorted = Array.from(this.frameSamples.subarray(0, this.sampleCount)).sort(
+       (a, b) => a - b,
+     );
++    const slowCount = Math.ceil(sorted.length * 0.01);
++    let slowTotal = 0;
++    for (let i = sorted.length - slowCount; i < sorted.length; i++) slowTotal += sorted[i];
+     return {
+       warmupFrames: this.warmupFrames,
+       graphics: { ...this.graphics },
+@@ -542,7 +556,7 @@ export class RacingRenderer {
+       gpuTimerSupported: this.gpuTimer.supported,
+       fps: this.fps,
+       frameMs: this.frameMs,
+-      p1FPS: sorted.length ? 1000 / sorted[Math.floor((sorted.length - 1) * 0.99)] : 0,
++      p1FPS: slowTotal ? 1000 * slowCount / slowTotal : 0,
+       renderCPUms: this.renderMs,
+       drawCalls: info.calls,
+       triangles: info.triangles,
+diff --git a/src/ui/interface.ts b/src/ui/interface.ts
+index 710945d..a6f60e2 100644
+--- a/src/ui/interface.ts
++++ b/src/ui/interface.ts
+@@ -144,7 +144,7 @@ export class Interface {
+   }
+   get(id: string) {
+     let node = this.nodes.get(id);
+-    if (!node) {
++    if (!node || !node.isConnected) {
+       node = document.getElementById(id) ?? undefined;
+       if (!node) throw new Error(`Missing UI element: ${id}`);
+       this.nodes.set(id, node);
+@@ -301,7 +301,7 @@ export class Interface {
+     if (renderer.debug) {
+       const s = renderer.stats();
+       this.get('debug').textContent =
+-        `RENDER ${s.fps.toFixed(1)} FPS / ${s.frameMs.toFixed(1)} ms\n1% LOW ${s.p1FPS.toFixed(1)} FPS\nCPU SUBMIT ${s.renderCPUms.toFixed(2)} ms\nPHYSICS ${frame[H.STEP_MS].toFixed(2)} ms / tick\nDRAWS ${s.drawCalls} · TRI ${s.triangles.toLocaleString()}\nWALL TIME DROPPED ${frame[H.DROPPED].toFixed(3)} s\nTICK ${Math.round(frame[H.TICK])}\nFRONT AERO ${frame[o + F.AERO_FRONT].toFixed(0)} N\nREAR AERO ${frame[o + F.AERO_REAR].toFixed(0)} N\nWATER ${frame[H.WATER].toFixed(3)} mm\nWAKE ${(frame[o + F.WAKE] * 100).toFixed(0)}%\nAI TARGET ${(frame[o + F.AI_TARGET] * 3.6).toFixed(0)} km/h\nGPU TIME: NOT MEASURED`;
++        `RENDER ${s.fps.toFixed(1)} FPS / ${s.frameMs.toFixed(1)} ms\n1% LOW ${s.p1FPS.toFixed(1)} FPS\nCPU SUBMIT ${s.renderCPUms.toFixed(2)} ms\nPHYSICS ${frame[H.STEP_MS].toFixed(2)} ms / tick\nDRAWS ${s.drawCalls} · TRI ${s.triangles.toLocaleString()}\nWALL TIME DROPPED ${frame[H.DROPPED].toFixed(3)} s\nTICK ${Math.round(frame[H.TICK])}\nFRONT AERO ${frame[o + F.AERO_FRONT].toFixed(0)} N\nREAR AERO ${frame[o + F.AERO_REAR].toFixed(0)} N\nWATER ${frame[H.WATER].toFixed(3)} mm\nWAKE ${(frame[o + F.WAKE] * 100).toFixed(0)}%\nAI TARGET ${(frame[o + F.AI_TARGET] * 3.6).toFixed(0)} km/h\nGPU QUERY ${s.gpuMilliseconds === null ? (s.gpuTimerSupported ? 'PENDING / INVALID' : 'UNSUPPORTED') : `${s.gpuMilliseconds.toFixed(2)} ms`}`;
+     }
+   }
+   private drawMap(frame: Float32Array) {
+@@ -333,9 +333,22 @@ export class Interface {
+   }
+   pause() {
+     this.modalContent(
+-      `<span class="eyebrow">SESSION SUSPENDED</span><h2>Hold your line.</h2><p>Simulation and race time are paused.</p><div class="dialog-buttons"><button class="primary" data-action="resume">RESUME SESSION</button><button data-action="settings">GARAGE & SETTINGS</button><button data-action="replay">WATCH REPLAY</button><button data-action="restart">RESTART SESSION</button><button data-action="menu">RETURN TO PADDOCK</button></div>`,
++      `<span class="eyebrow">SESSION SUSPENDED</span><h2>Hold your line.</h2><p>Simulation and race time are paused.</p><div class="dialog-buttons"><button class="primary" data-action="resume">RESUME SESSION</button><button data-action="settings">GARAGE & SETTINGS</button><button data-action="replay">WATCH REPLAY</button><button data-action="performance">PERFORMANCE CAPTURE</button><button data-action="restart">RESTART SESSION</button><button data-action="menu">RETURN TO PADDOCK</button></div>`,
+     );
+   }
++  performance(status: string, machine: string, workload: string, exportable: boolean) {
++    this.modalContent(
++      `<span class="eyebrow">MEASURE / COMPARE</span><h2>Performance capture.</h2>
++       <p id="profileStatus"></p><p>Resume this session, warm up for 5 seconds, then record 30 seconds of real frames. Slow frames are retained. Pausing, changing the view or resizing interrupts the run.</p>
++       <label>COMPUTER / POWER PROFILE<input id="profileMachine" maxlength="80" placeholder="e.g. desktop-plugged-in" /></label>
++       <label>REPEATABLE WORKLOAD<input id="profileWorkload" maxlength="120" placeholder="e.g. same seed, new practice, AI, cockpit" /></label>
++       <p>These labels are your declaration that the hardware and workload match. They are not detected or verified by the browser. Export contains frame timings and browser/configuration details; it is not uploaded.</p>
