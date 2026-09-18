@@ -1,5 +1,4 @@
 import * as T from 'three';
-import { F, carBase } from '../simulation/protocol.ts';
 import wetRoad from '../shaders/wetRoad.frag?raw';
 import { kerbHeight } from '../simulation/contact.ts';
 import { Track, CELL_ROWS, CELL_COLS, trackPoint } from '../simulation/track.ts';
@@ -26,7 +25,6 @@ export class CircuitScene {
   readonly stateBytes = new Uint8Array(CELL_ROWS * CELL_COLS * 4);
   readonly startLamps: T.MeshStandardMaterial[] = [];
   private temp = trackPoint();
-  readonly pitPeople: T.Group[] = [];
   constructor(readonly track: Track) {
     this.group.name = 'Aurel circuit';
     this.group.add(this.props, this.crowd, this.vegetationGroup);
@@ -185,7 +183,7 @@ export class CircuitScene {
     this.infrastructure();
     this.vegetation(rng);
     this.grid();
-    batchScene(this.props, new Set(this.pitPeople));
+    batchScene(this.props, new Set());
   }
   ribbon(material: T.Material, options: RibbonOptions): T.Mesh {
     const begin = options.start ?? 0,
@@ -393,15 +391,6 @@ export class CircuitScene {
       const yellow = new T.MeshBasicMaterial({ color: 0xe7c969 });
       for (const x of [-1.4, 1.4]) box(painting, yellow, x, 0, 0, 0.08, 0.012, 5);
       box(painting, yellow, 0, 0, 2.5, 2.9, 0.012, 0.08);
-      const crew = new T.Group();
-      crew.position.copy(this.at(boxS, 25, 0.4));
-      crew.rotation.y = painting.rotation.y;
-      this.props.add(crew);
-      this.pitPeople.push(crew);
-      const suit = new T.MeshStandardMaterial({ color: 0xd45738, roughness: 1 });
-      const body = mesh(crew, new T.CapsuleGeometry(0.18, 0.55, 4, 8), suit, 0, 0.5, 0);
-      body.rotation.z = -0.15;
-      mesh(crew, new T.SphereGeometry(0.14, 10, 8), dark, 0, 1.03, 0);
     }
     for (const [s, side] of [
       [450, -1],
@@ -553,10 +542,5 @@ export class CircuitScene {
   }
   update(frame: Float32Array) {
     for (let i = 0; i < 5; i++) this.startLamps[i].emissiveIntensity = i < frame[3] ? 2.5 : 0;
-    for (let i = 0; i < this.pitPeople.length; i++) {
-      const phase = frame[carBase(i) + F.PIT_PHASE] ?? 0;
-      this.pitPeople[i].position.y =
-        this.at(102 + i * 7, 25, 0.4).y + (phase >= 2 && phase <= 4 ? -0.18 : 0);
-    }
   }
 }

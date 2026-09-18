@@ -48,3 +48,31 @@ describe('pit-release circular-wait regression', () => {
     expect(maximumImpact).toBe(0);
   }, 30000);
 });
+
+it('anticipates the future service-bay sweep before a moving car becomes trapped beside a serviced car', () => {
+  const sim = new Simulation({ ...DEFAULT_OPTIONS, mode: 'practice', opponents: 9, seed: 4417 });
+  sim.autoPlayer = true;
+  sim.race.time += 10;
+  for (const car of sim.cars) car.place(sim.track, 1800 + car.id * 40);
+  const service = sim.cars[4],
+    following = sim.cars[9];
+  service.place(sim.track, 128.1, 24.1);
+  following.place(sim.track, 109, 20.5);
+  service.inPit = following.inPit = true;
+  service.pitRequested = following.pitRequested = true;
+  service.pitPhase = 5;
+  service.pitClock = 5.3;
+  following.pitPhase = 1;
+  const facing = following.trackPosition;
+  following.body.velocity.set(facing.tx * 10, 0, facing.tz * 10);
+  following.speed = 10;
+  let peak = 0;
+  for (let i = 0; i < 65 * 120; i++) {
+    sim.step(1 / 120);
+    peak = Math.max(peak, service.impact, following.impact);
+  }
+  expect(service.pitStops).toBe(1);
+  expect(following.pitStops).toBe(1);
+  expect(service.inPit || following.inPit).toBe(false);
+  expect(peak).toBe(0);
+}, 30000);

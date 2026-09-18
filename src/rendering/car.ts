@@ -1,5 +1,7 @@
 import * as T from 'three';
 import { DriverRig } from './driver.ts';
+import { serviceWheelOffset } from './pit-crew.ts';
+import { drawSteeringDisplay, shiftLight } from './steering-display.ts';
 import { carbonMaterial } from './materials.ts';
 import { ReducedCar, carLod } from './lod.ts';
 import {
@@ -40,6 +42,7 @@ export class FormulaCar {
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
   private displayClock = 0;
+  private shiftLeds: T.MeshBasicMaterial[] = [];
   readonly paint: T.MeshPhysicalMaterial;
   private qa = new T.Quaternion();
   private qb = new T.Quaternion();
@@ -405,9 +408,9 @@ export class FormulaCar {
       0.022,
     );
     box(this.steering, carbon, 0, 0, 0, 0.29, 0.11, 0.04);
-    this.display = canvasTexture(256, 128, (c) => {
+    this.display = canvasTexture(512, 256, (c) => {
       c.fillStyle = '#0c1212';
-      c.fillRect(0, 0, 256, 128);
+      c.fillRect(0, 0, 512, 256);
     });
     this.display.userData.dynamic = true;
     this.canvas = this.display.image as HTMLCanvasElement;
@@ -421,17 +424,13 @@ export class FormulaCar {
       -0.025,
     );
     screen.rotation.y = Math.PI;
-    for (let j = 0; j < 10; j++)
-      box(
-        this.steering,
-        new T.MeshBasicMaterial({ color: j < 5 ? 0x6fec9b : j < 8 ? 0xed6540 : 0xaabef8 }),
-        -0.071 + j * 0.016,
-        0.065,
-        -0.018,
-        0.01,
-        0.007,
-        0.003,
-      );
+    for (let j = 0; j < 10; j++) {
+      const material = new T.MeshBasicMaterial({
+        color: j < 5 ? 0x6fec9b : j < 8 ? 0xed6540 : 0xaabef8,
+      });
+      this.shiftLeds.push(material);
+      box(this.steering, material, -0.071 + j * 0.016, 0.065, -0.018, 0.01, 0.007, 0.003);
+    }
     for (const sign of [-1, 1]) {
       for (let k = 0; k < 3; k++) {
         const b = mesh(
@@ -522,6 +521,9 @@ export class FormulaCar {
       pivot.rotation.y =
         (i < 2 ? b[o + F.STEER] : 0) + b[p + W.SUSPENSION_DAMAGE] * 0.07 * (i % 2 ? 1 : -1);
       this.wheelSpins[i].rotation.x = b[p + W.ROTATION];
+      this.wheelSpins[i].position.x =
+        Math.sign(WHEEL_POSITIONS[i][0]) *
+        serviceWheelOffset(b[o + F.PIT_PHASE], b[o + F.PIT_CLOCK], b[p + W.LOAD]);
       this.discs[i].emissiveIntensity = clamp((b[p + W.DISC_TEMP] - 500) / 450, 0, 2);
       this.rings[i].color.setHex(compound.color);
       const radius = (b[p + W.RADIUS] || 0.335) / 0.335;
@@ -551,19 +553,11 @@ export class FormulaCar {
     this.displayClock += dt;
     if (this.displayClock > 0.08 && this.id === 0) {
       this.displayClock = 0;
-      const c = this.ctx;
-      c.fillStyle = '#09100f';
-      c.fillRect(0, 0, 256, 128);
-      c.fillStyle = '#d9ffde';
-      c.font = 'bold 70px monospace';
-      c.textAlign = 'center';
-      c.fillText(String(Math.round(b[o + F.GEAR])), 128, 76);
-      c.font = '22px monospace';
-      c.fillText(`${Math.round(b[o + F.SPEED] * 3.6)} KM/H`, 128, 109);
-      c.fillStyle = '#f3a849';
-      c.fillRect(10, 8, 236 * clamp(b[o + F.RPM] / 13700, 0, 1), 8);
-      c.fillStyle = '#54d4b6';
-      c.fillRect(10, 119, (236 * b[o + F.BATTERY]) / 4e6, 4);
+      drawSteeringDisplay(this.ctx, b, o);
+      for (let j = 0; j < this.shiftLeds.length; j++)
+        this.shiftLeds[j].color.setHex(
+          shiftLight(b[o + F.RPM], j) ? (j < 5 ? 0x6fec9b : j < 8 ? 0xed6540 : 0xaabef8) : 0x20292a,
+        );
       this.display.needsUpdate = true;
     }
   }

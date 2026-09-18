@@ -136,7 +136,7 @@ test('recorded telemetry exports and replay leaves live physics paused', async (
   expect(csvDownload.suggestedFilename()).toBe('apex-telemetry.csv');
   const csv = (await readFile((await csvDownload.path())!, 'utf8')).trim().split('\n');
   const columns = csv[0].split(',');
-  expect(columns).toHaveLength(187);
+  expect(columns).toHaveLength(197);
   expect(columns).toContain('clutch_torque_Nm');
   expect(columns).toContain('motor_power_W');
   expect(columns).toContain('FL_pressure_kPa');

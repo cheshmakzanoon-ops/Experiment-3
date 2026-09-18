@@ -3,6 +3,7 @@ import { TracksideDirector } from './trackside.ts';
 import { InertialCamera, ViewOrientation } from './camera-dynamics.ts';
 import { ReflectionSystem } from './reflections.ts';
 import { DebrisView } from './debris.ts';
+import { PitCrewView } from './pit-crew.ts';
 import { GpuTimer } from './gpu-timer.ts';
 import { TextureBudget } from './texture-budget.ts';
 import {
@@ -35,6 +36,7 @@ export class RacingRenderer {
   readonly cars: FormulaCar[] = [];
   readonly effects = new Effects();
   readonly debris = new DebrisView();
+  readonly pitCrew = new PitCrewView();
   readonly sun = new T.DirectionalLight(0xffead0, 3.3);
   private hemisphere = new T.HemisphereLight(0xe7f2ef, 0x737765, 2);
   private sky = new Sky();
@@ -97,7 +99,7 @@ export class RacingRenderer {
       powerPreference: 'high-performance',
     });
     this.gpuTimer = new GpuTimer(context);
-    this.scene.add(this.debris.mesh);
+    this.scene.add(this.debris.mesh, this.pitCrew.root);
     this.renderer.info.autoReset = false;
     this.renderer.outputColorSpace = T.SRGBColorSpace;
     this.renderer.toneMapping = T.ACESFilmicToneMapping;
@@ -421,6 +423,7 @@ export class RacingRenderer {
     this.circuit.update(b);
     this.effects.update(b, dt, !menu && !replay);
     this.debris.update(b);
+    this.pitCrew.update(b, this.camera.position, !menu);
     this.debugGroup.visible = this.debug;
     if (this.debug)
       for (let i = 0; i < 4; i++) {
@@ -478,6 +481,7 @@ export class RacingRenderer {
       screenVisible,
       wheelProjection: wheel.toArray(),
       driver: car.driver.diagnostics(),
+      pitCrews: this.pitCrew.activeCrews,
       haloProjection: halo.toArray(),
       mirrors: this.reflection.diagnostics(this.renderer),
     };

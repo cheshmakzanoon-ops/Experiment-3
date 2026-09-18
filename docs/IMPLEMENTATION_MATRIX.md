@@ -46,14 +46,14 @@ This ledger follows the numbered sections of the supplied directive. “Implemen
 | 40 | WATER MODEL | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 41 | AQUAPLANING | Smooth load-, speed-, water- and compound-dependent grip reduction. No random binary aquaplaning; hydrodynamic contact-patch simulation remains outside this reduced model. |
 | 42 | WEATHER TIMELINE | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
-| 43 | AI ARCHITECTURE | Strategic/tactical/controller frequencies separated inside the physics worker. |
+| 43 | AI ARCHITECTURE | Strategic 2 Hz decisions, tactical 12 Hz swept traffic/defense and 120 Hz controls remain separate inside the physics worker. |
 | 44 | AI SPEED PLANNING | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 45 | AI RACING LINE | Pure-pursuit offset racing line; no globally optimized minimum-time trajectory. |
 | 46 | AI OVERTAKING | Lane selection/commitment, following envelope and side protection. |
-| 47 | AI DEFENSE | Side-by-side protection, not a fully strategic defensive behavior tree. |
+| 47 | AI DEFENSE | An early one-move-per-corner defensive preference with cooldown, overlap/braking guards and swept collision veto. Not a universal racecraft certification. |
 | 48 | COLLISION PREDICTION | Swept track-coordinate trajectory/corridor prediction with lane commitment and pit merging; adversarial racecraft validation remains open. |
-| 49 | AI PERSONALITIES | Seeded personality parameters and tactical risk/headway differences; not all requested traits have full behavioral effects. |
-| 50 | AI ERROR MODEL | Emergent errors, not a calibrated driver-error stochastic model. |
+| 49 | AI PERSONALITIES | All seven seeded traits influence actual reaction, strategy, risk, lane cost, tire care, wet margin or control-error behavior, not physical grip. |
+| 50 | AI ERROR MODEL | Seeded correlated steering/pedal errors respond to pressure, wear, wetness and temperature. Bounded requests, caution/pit suppression and emergency-brake protection; not measured human error statistics. |
 | 51 | COLLISION SYSTEM | Sweep-and-prune broad phase, 15-axis oriented chassis boxes, rotational normal/friction impulses, barrier corners; wheel/convex manifold refinement remains. |
 | 52 | DAMAGE ENERGY | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 53 | DAMAGE PHYSICS | Contact-localized suspension damage, puncture radius/pressure/grip, wing/floor aero loss, bounded physical and rendered fragments, repair mass bookkeeping. Full crash deformation is not claimed. |
@@ -83,7 +83,7 @@ This ledger follows the numbered sections of the supplied directive. “Implemen
 | 77 | GAMEPAD STEERING | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 78 | KEYBOARD STEERING | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 79 | WHEEL INPUT | Explicit device selection, asymmetric steering/pedal calibration, clutch/paddle mapping and disconnect guards. Version-4 profiles preserve earlier calibrations; real hardware certification remains open. |
-| 80 | TELEMETRY DATA | 187 actual-state telemetry channels captured at fixed 60 Hz in the physics worker, bounded transport/ring buffers and asynchronous CSV export. |
+| 80 | TELEMETRY DATA | 197 actual-state telemetry channels captured at fixed 60 Hz in the physics worker, bounded transport/ring buffers and asynchronous CSV export. |
 | 81 | TELEMETRY UI | Eight selectable graph groups include clutch torque/slip, the requested driver/chassis/tire channels and complete-lap distance comparison; truncated/gapped laps are labelled rather than fabricated. |
 | 82 | REPLAY SYSTEM | 15 Hz all-car numeric pose pages, bounded resident IndexedDB replay cache, asynchronous seeking, original spatial water/rubber history, explicit recording failures. Permanent replay-library UI is not included. |
 | 83 | RACE DIRECTOR | Explicit grid/lights/racing/results states; whole-field chequered classification, lapped finish, penalty ordering, automatic cooldown and explicit timeout DNF. Local single/double-yellow zones, approach braking, blue flags, bounded race-control events, pit-speed enforcement for every car, and reversible no-overtake penalties are implemented and tested. A physical safety-car vehicle is not implemented. |
@@ -91,10 +91,10 @@ This ledger follows the numbered sections of the supplied directive. “Implemen
 | 85 | LAP DETECTION | Eight ordered forward gates; interpolated finish and sector crossings, persistent third-sector record, no discontinuity-earned progress, invalid-lap tagging. |
 | 86 | TRACK LIMITS | Four wheel tread-width samples against each local asphalt/paint boundary; no chassis-centre or fixed-width penalty. Kerbs/runoff are outside the documented legal edge. |
 | 87 | PIT LANE | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
-| 88 | PIT STOP | Physical box entry, tire-object replacement, four-foot jack support, contact-safe release and forward drive-through/retry for missed boxes. Detailed mechanic animation remains partial. |
+| 88 | PIT STOP | Physical entry, new tire-state objects, four-foot jack support and safe queue/release. Four mechanics plus two operators consume service state; wheels move off hubs only while unloaded. Browser fixture uses a real captured service state. |
 | 89 | SETUP SYSTEM | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 90 | HUD DESIGN | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
-| 91 | STEERING-WHEEL DISPLAY | Live canvas display and steering animation; not every steering-wheel button is interactive. |
+| 91 | STEERING-WHEEL DISPLAY | Actual gear, speed, RPM LEDs, battery, ERS, brake bias, differential and best-lap distance delta on the physical wheel. No fake constant-speed reference trace. |
 | 92 | GRAPHICS SETTINGS | Independent physical render scale, texture cap, shadows, mirrors/probes, particle/vegetation density, crowds, bloom, FXAA and anisotropy. Optional motion blur remains absent. |
 | 93 | PERFORMANCE BUDGET | Instrumented, but target-GPU performance is not certified. |
 | 94 | OBJECT ALLOCATION | Pooled snapshots/particles/recorders; small per-tick/per-frame allocations remain. |
@@ -118,7 +118,7 @@ This ledger follows the numbered sections of the supplied directive. “Implemen
 | 112 | WET TEST | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 113 | DAMAGE TEST | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 114 | WAKE TEST | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
-| 115 | AI TESTS | 100-lap dry single-car endurance and shorter multi-car weather scenarios; not 100-lap multi-car proof. |
+| 115 | AI TESTS | Executable ten-car 50/100-lap acceptance harness checks finite state, stalls, retirement, fuel, component health and impact counts. Each measured report is tied to the exact simulation fingerprint; earlier reports do not certify later driver changes. |
 | 116 | RACE TEST | Two ten-car three-lap clear/changing-weather whole-field classification fixtures with pit service and measured sectors. The full manual audiovisual scenario remains separate. |
 | 117 | PLAYWRIGHT TESTS | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 118 | PERFORMANCE REGRESSION | Runtime instrumentation and CI diagnostics, not a certified GPU regression benchmark. |

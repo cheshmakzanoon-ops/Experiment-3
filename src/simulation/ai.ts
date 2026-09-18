@@ -1,3 +1,4 @@
+import { DriverBrain } from './driver-brain.ts';
 import { FLAG, yellowFlag } from './marshal.ts';
 import { TrafficPlanner, personality, type DriverPersonality } from './traffic.ts';
 import {
@@ -33,8 +34,10 @@ export class AIDriver {
   private desiredOffset = 0;
   private trafficSpeed = 100;
   private stuckTime = 0;
+  private preparingPit = false;
   private planner = new TrafficPlanner();
   readonly personality: DriverPersonality;
+  readonly brain: DriverBrain;
   decision = 'RACING LINE';
   constructor(
     readonly car: Vehicle,
@@ -42,6 +45,7 @@ export class AIDriver {
     seed = 73021,
   ) {
     this.personality = personality(seed, car.id);
+    this.brain = new DriverBrain(this.personality, seed, car.id);
   }
   update(dt: number, track: Track, cars: Vehicle[], race: RaceDirector) {
     const c = this.car,
@@ -50,8 +54,8 @@ export class AIDriver {
     command.manualClutch = false;
     command.clutch = 0;
     command.reverse = false;
-    command.ers = c.battery < 4e5 ? 0 : 1;
-    if (race.phase === PHASE.LIGHTS || race.time < race.greenAt + 0.18 + c.id * 0.016) {
+    command.ers = this.brain.ers;
+    if (race.phase === PHASE.LIGHTS || race.time < race.greenAt + this.brain.reactionSeconds) {
       command.throttle = 0;
       command.brake = 1;
       command.steer = 0;
@@ -59,25 +63,17 @@ export class AIDriver {
     }
     this.strategyClock += dt;
     this.tacticalClock += dt;
-    if (this.strategyClock > 0.5) {
+    if (this.strategyClock >= 0.5) {
+      this.brain.update(this.strategyClock, c, cars, track, race);
       this.strategyClock = 0;
-      const wet = track.meanWater(),
-        compound = c.tires[0].compound;
-      if (
-        !c.inPit &&
-        !c.finishTime &&
-        c.s < track.length - 250 &&
-        ((wet > 0.18 && compound !== 'intermediate' && compound !== 'wet') ||
-          c.tires.some((t) => t.wear > 0.67 || t.punctured) ||
-          (wet < 0.05 && (compound === 'wet' || compound === 'intermediate')))
-      ) {
-        c.pitRequested = true;
-        c.nextCompound = wet > 0.9 ? 'wet' : wet > 0.16 ? 'intermediate' : 'medium';
-      }
+      command.ers = this.brain.ers;
     }
     const entryGap = mod(track.length - 210 - c.s, track.length);
-    const preparingPit =
-      c.pitRequested && !c.inPit && entryGap < pitPreparationDistance(c.speed, c.lateral);
+    // Once preparation starts, slower speed must not shrink its lookahead and
+    // cancel the lane change. Only crossing/missing the entry ends this intent.
+    if (!c.pitRequested || c.inPit || entryGap > track.length - 20) this.preparingPit = false;
+    else if (entryGap < pitPreparationDistance(c.speed, c.lateral)) this.preparingPit = true;
+    const preparingPit = this.preparingPit;
     if (this.tacticalClock > 1 / 12 && !c.inPit) {
       this.tacticalClock = 0;
       const grip = clamp(
@@ -93,7 +89,7 @@ export class AIDriver {
         8.5 * grip,
         this.personality,
         yellowFlag(race.control.flags[c.id]),
-        preparingPit ? 6 : 0,
+        preparingPit ? 6 : this.brain.preferredLine(c, cars, track, race),
       );
       this.desiredOffset = plan.offset;
       this.trafficSpeed = plan.speedLimit;
@@ -145,7 +141,7 @@ export class AIDriver {
         ) * this.skill;
       desired = Math.min(desired, Math.sqrt(corner * corner + 2 * braking * d));
     }
-    if (!c.inPit) desired = Math.min(desired, this.trafficSpeed);
+    if (!c.inPit) desired = Math.min(desired * this.brain.pace, this.trafficSpeed);
     if (c.finishTime) desired = Math.min(desired, 38);
     if (preparingPit)
       desired = Math.min(
@@ -181,9 +177,17 @@ export class AIDriver {
         this.decision = 'YIELD AT PIT EXIT';
       }
       for (const other of cars) {
-        if (other === c || !other.inPit || Math.abs(other.lateral - c.lateral) > 2.7) continue;
+        if (other === c || !other.inPit) continue;
         const gap = mod(other.s - c.s, track.length);
-        if (gap > 0 && gap < 80)
+        // Fast-lane traffic queues in longitudinal order. A service-bay car
+        // also blocks if our upcoming bay approach would sweep into it, even
+        // while our current lateral separation still looks harmless.
+        const conflict =
+          other.pitPhase === 1 ||
+          other.pitPhase === 6 ||
+          Math.abs(other.lateral - c.lateral) < 2.7 ||
+          Math.abs(other.lateral - this.pitLine(track, other.s)) < 3;
+        if (conflict && gap > 0 && gap < 80)
           desired = Math.min(
             desired,
             Math.sqrt(
@@ -216,6 +220,18 @@ export class AIDriver {
       this.decision = 'RECOVERY';
     }
     if (this.stuckTime >= 10) this.stuckTime = 0;
+    this.brain.errors.apply(
+      dt,
+      command,
+      !pit &&
+        !preparingPit &&
+        !c.finishTime &&
+        !c.retired &&
+        !command.reverse &&
+        race.control.flags[c.id] === FLAG.GREEN &&
+        desired > 15 &&
+        this.trafficSpeed > c.speed + 2,
+    );
     // A missed service box is a drive-through, not a reverse maneuver across
     // queued cars. Preserve the request so the next lawful entry retries it.
     if (pit && c.pitPhase === 1 && c.s > box + 2.4 && c.s < box + 80) {

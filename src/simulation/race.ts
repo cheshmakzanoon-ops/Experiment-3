@@ -1,3 +1,4 @@
+import { LapReference } from './lap-reference.ts';
 import { MarshalControl } from './marshal.ts';
 import { safePitRelease } from './pit-safety.ts';
 import { mod, Random } from '../core/math.ts';
@@ -29,12 +30,14 @@ export class LapTracker {
   crossedFinish = false;
   lastValid = false;
   readonly lastSectors = [0, 0, 0];
+  readonly reference: LapReference;
   constructor(
     readonly length: number,
     s: number,
   ) {
     this.lastS = s;
     this.distance = s - length;
+    this.reference = new LapReference(length);
   }
   update(s: number, time: number, offTrack: boolean) {
     if (!Number.isFinite(s + time) || time < this.lastTime)
@@ -47,6 +50,10 @@ export class LapTracker {
     if (offTrack) this.valid = false;
     if (delta > 0 && delta < 15) {
       const crossingTime = (distance: number) => this.lastTime + (elapsed * distance) / delta;
+      if (this.active) {
+        const end = Math.min(this.length, this.lastS + delta);
+        this.reference.observe(this.lastS, end, this.lastTime, crossingTime(end - this.lastS));
+      }
       const gate = (this.nextGate * this.length) / 8;
       const travelToGate = mod(gate - this.lastS, this.length);
       if (travelToGate > 1e-7 && travelToGate <= delta + 1e-7) {
@@ -61,11 +68,15 @@ export class LapTracker {
             this.lastSectors[1] = this.sectors[1];
             this.lastSectors[2] = crossing - this.sectorStart;
             this.lastValid = this.valid;
-            if (this.valid && (this.best === 0 || this.last < this.best)) this.best = this.last;
+            const improved = this.valid && (this.best === 0 || this.last < this.best);
+            this.reference.finish(this.last, improved);
+            if (improved) this.best = this.last;
           }
           this.active = true;
           this.valid = !offTrack;
           this.lapStart = crossing;
+          this.reference.start(crossing);
+          this.reference.observe(0, s, crossing, time);
           this.sectorStart = crossing;
           this.sector = 0;
           this.sectors.fill(0);

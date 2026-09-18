@@ -36,6 +36,7 @@ export class TrafficPlanner {
   readonly result: TrafficPlan = { offset: 0, speedLimit: 110, decision: 'RACING LINE' };
   private heldOffset = 0;
   private holdUntil = 0;
+  private preferred = 0;
   private candidates = new Float64Array(6);
   evaluate(
     car: Vehicle,
@@ -47,6 +48,10 @@ export class TrafficPlanner {
     yellow: boolean,
     preferredOffset = 0,
   ) {
+    // A new tactical purpose (pit entry or an early defensive choice) may
+    // release the previous lane commitment; the swept safety tests still apply.
+    if (Math.abs(preferredOffset - this.preferred) > 0.5) this.holdUntil = 0;
+    this.preferred = preferredOffset;
     const result = this.result;
     const limit = Math.max(1, car.trackPosition.width - 2.4);
     const closest = clamp(car.lateral, -limit, limit);
@@ -62,7 +67,9 @@ export class TrafficPlanner {
     for (const candidate of this.candidates) {
       // Under yellow, safe changes around stationary hazards remain legal.
       // The speed planner below prevents gaining on moving competitors.
-      let score = Math.abs(candidate - preferredOffset) * 1.0 + Math.abs(candidate - closest) * 0.2;
+      let score =
+        Math.abs(candidate - preferredOffset) * 1.0 +
+        Math.abs(candidate - closest) * (0.2 + (1 - traits.overtakingSkill) * 0.45);
       if (now < this.holdUntil && Math.abs(candidate - this.heldOffset) > 0.6) score += 6;
       let safe = true;
       for (const other of cars) {

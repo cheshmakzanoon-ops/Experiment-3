@@ -201,6 +201,17 @@ export class Simulation {
       out[o + F.BLUE_CAR] = this.race.control.blueCar[id];
       out[o + F.CONTROL_SEQUENCE] = this.race.control.sequence;
       out[o + F.CONTROL_PENALTIES] = this.race.control.penaltyCount[id];
+      out[o + F.PIT_CLOCK] = c.pitClock;
+      out[o + F.LAP_DELTA] = t.reference.delta(c.s, t.lapTime);
+      out[o + F.DELTA_VALID] = Number(t.active && t.reference.bestTime > 0);
+      const brain = this.ai[id].brain;
+      out[o + F.AI_STRESS] = brain.stress;
+      out[o + F.AI_TIRE_CARE] = brain.tireCare;
+      out[o + F.AI_ERROR_COUNT] = brain.errors.events;
+      out[o + F.AI_STEER_ERROR] = brain.errors.steer;
+      out[o + F.AI_PEDAL_ERROR] = brain.errors.pedal;
+      out[o + F.AI_DEFENDING] = brain.defence.offset;
+      out[o + F.AI_PACE] = brain.pace;
       for (let i = 0; i < c.debris.pieces.length; i++) {
         const piece = c.debris.pieces[i],
           p = o + DEBRIS_BASE + i * DEBRIS_STRIDE;
