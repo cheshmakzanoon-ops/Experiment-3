@@ -1,0 +1,221 @@
+diff --git a/docs/CONSTRUCTION_AND_ENDURANCE.md b/docs/CONSTRUCTION_AND_ENDURANCE.md
+index 1a86aea..4e9184e 100644
+--- a/docs/CONSTRUCTION_AND_ENDURANCE.md
++++ b/docs/CONSTRUCTION_AND_ENDURANCE.md
+@@ -29,2 +29,7 @@ The full master directive is still subject to the complete combined scenario, ta
+ 
+ Separate ten-car wet and initially-slick-in-rain service fixtures are now part of the physics CI gate. They pass their declared service/impact thresholds, but contain minor contacts and must not be described as zero-contact endurance. See `wet-pit-results.json` and [weather/braking](WEATHER_AND_BRAKING.md).
++
++The later instrument-freshness/weather-caption follow-up modifies presentation only.
++Its all-source fingerprint differs, while the simulation/core fingerprint above
++remains identical. The listed all-source hash identifies the measured weather
++checkpoint; it is not silently rewritten to describe a later presentation build.
+diff --git a/docs/DEVELOPMENT_STATUS.md b/docs/DEVELOPMENT_STATUS.md
+index 595d7c7..95efebe 100644
+--- a/docs/DEVELOPMENT_STATUS.md
++++ b/docs/DEVELOPMENT_STATUS.md
+@@ -69,2 +69,11 @@ All-source checks and browser publication gates remain required. Full three-pass
+ certification, the single combined section-146 driving scenario, representative
+ hardware performance and independent presentation assessment remain separate.
++
++## Instrument follow-up
++
++A review of the presentation path found that the cockpit's upload timer consumed
++clamped camera dt and could lag behind the current gear/speed after a slow frame.
++It now consumes snapshot simulation time, with immediate first/shift/rewind updates.
++The HUD also distinguishes stopped rainfall from water remaining on the circuit.
++These are presentation-only changes; the recorded simulation fingerprint and
++its dry endurance results are unchanged, while the all-source fingerprint differs.
+diff --git a/docs/IMPLEMENTATION_MATRIX.md b/docs/IMPLEMENTATION_MATRIX.md
+index 93f127e..a11f917 100644
+--- a/docs/IMPLEMENTATION_MATRIX.md
++++ b/docs/IMPLEMENTATION_MATRIX.md
+@@ -95,5 +95,5 @@ This ledger follows all 148 numbered sections of the exact [Pasted markdown(6) d
+ | 89 | SETUP SYSTEM | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+ | 90 | HUD DESIGN | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+-| 91 | STEERING-WHEEL DISPLAY | Actual gear, speed, RPM LEDs, battery, ERS, brake bias, differential and best-lap distance delta on the physical wheel. No fake constant-speed reference trace. |
++| 91 | STEERING-WHEEL DISPLAY | Actual gear, speed, RPM LEDs, battery, ERS, brake bias, differential and best-lap distance delta. Texture uploads follow snapshot time; first frame, shifts and replay rewinds refresh immediately. No fake constant-speed reference trace. |
+ | 92 | GRAPHICS SETTINGS | Independent physical render scale, texture cap, shadows, mirrors/probes, particle/vegetation density, crowds, bloom, FXAA and anisotropy. Independent bounded motion-blur strength is available, off by default. |
+ | 93 | PERFORMANCE BUDGET | Opt-in real-frame captures include raw renderer CPU, worker-reported tick cost, GPU queries and all-pass counters. Hardware targets remain targets, not certified results. |
+diff --git a/docs/PRESENTATION_AND_INPUT.md b/docs/PRESENTATION_AND_INPUT.md
+index f333562..1421549 100644
+--- a/docs/PRESENTATION_AND_INPUT.md
++++ b/docs/PRESENTATION_AND_INPUT.md
+@@ -30,2 +30,21 @@ The local full check at this checkpoint passed **179 unit/property tests**, ESLi
+ 
+ No target-device frame-rate certification, full physical-wheel test, independent player-experience audit, or final master-scenario completion is claimed by this checkpoint.
++
++## Instrument freshness and remaining water
++
++The physical wheel texture now schedules updates from the observed simulation
++clock, not from the camera's clamped render delta. Its first snapshot, gear changes
++and replay rewinds draw immediately. Regular speed/RPM updates are limited to
++roughly 12.5 Hz while repeated paused snapshots do not upload again. A long frame
++therefore displays the current snapshot rather than retaining an old instrument
++for additional frames. This changes presentation only, not simulation timing.
++
++The weather line separately describes rain rate and the circuit's mean remaining
++water. A retreating storm cannot turn the label to DRY while wet cells remain;
++small rainfall is displayed to one decimal instead of being rounded to zero.
++The circuit mean is not a claim that all contact patches have identical water.
++
++Native cadence/label assertions are shared with Vitest. A Chromium canvas fixture
++constructs the actual FormulaCar, checks texture version changes and real drawn
++text/pixels across artificial hitch, gear and rewind snapshots. That controlled
++rendering fixture is not passed off as a vehicle-dynamics test or a complete race.
+diff --git a/e2e/fixtures/instruments.ts b/e2e/fixtures/instruments.ts
+new file mode 100644
+index 0000000..ffa94d3
+--- /dev/null
++++ b/e2e/fixtures/instruments.ts
+@@ -0,0 +1,49 @@
++import * as T from 'three';
++import { FormulaCar } from '../../src/rendering/car.ts';
++import { F, H, HEADER, CAR_STRIDE, carBase } from '../../src/simulation/protocol.ts';
++
++/** Test-only canvas oracle. Artificial snapshots isolate rendering cadence, not
++ * a claim about vehicle dynamics. No test hooks are exposed in the application. */
++export function verifyInstrumentCanvas() {
++  const car = new FormulaCar(0), frame = new Float32Array(HEADER + CAR_STRIDE), o = carBase(0);
++  frame[H.CARS] = 1; frame[o + F.QW] = 1;
++  frame[o + F.FRONT_HEALTH] = frame[o + F.REAR_HEALTH] = 1;
++  const canvas = car.display.image as HTMLCanvasElement, context = canvas.getContext('2d')!;
++  const original = context.fillText, text: string[] = [];
++  context.fillText = function(value: string, x: number, y: number, width?: number) {
++    text.push(value);
++    if (width === undefined) original.call(this, value, x, y);
++    else original.call(this, value, x, y, width);
++  };
++  const update = (time: number, gear: number, speed: number) => {
++    frame[H.TIME] = time; frame[o + F.GEAR] = gear; frame[o + F.SPEED] = speed;
++    text.length = 0;
++    const version = car.display.version;
++    // Deliberately tiny camera delta: uploads must follow snapshot time instead.
++    car.update(frame, frame, o, 1, 1 / 300, time, true);
++    return { changed: car.display.version > version, text: [...text] };
++  };
++  try {
++    const first = update(0, 1, 0), hitch = update(2, 1, 44), gear = update(2.001, 3, 45);
++    const paused = update(2.001, 3, 45), rewind = update(0.4, 2, 20);
++    const pixels = context.getImageData(0, 0, canvas.width, canvas.height).data;
++    let brightPixels = 0;
++    for (let i = 0; i < pixels.length; i += 4)
++      if (pixels[i] > 100 && pixels[i + 1] > 100 && pixels[i + 2] > 100) brightPixels++;
++    return { first, hitch, gear, paused, rewind, brightPixels };
++  } finally {
++    context.fillText = original;
++    const geometry = new Set<T.BufferGeometry>(), materials = new Set<T.Material>(), textures = new Set<T.Texture>();
++    car.root.traverse((object) => {
++      if (!(object instanceof T.Mesh)) return;
++      geometry.add(object.geometry);
++      for (const material of Array.isArray(object.material) ? object.material : [object.material]) {
++        materials.add(material);
++        for (const value of Object.values(material)) if (value instanceof T.Texture) textures.add(value);
++      }
++    });
++    for (const g of geometry) g.dispose();
++    for (const m of materials) m.dispose();
++    for (const t of textures) t.dispose();
++  }
++}
+diff --git a/e2e/instruments.spec.ts b/e2e/instruments.spec.ts
+new file mode 100644
+index 0000000..8d63d52
+--- /dev/null
++++ b/e2e/instruments.spec.ts
+@@ -0,0 +1,34 @@
++import { expect, test } from '@playwright/test';
++import { build } from 'vite';
++import { resolve } from 'node:path';
++import type { verifyInstrumentCanvas } from './fixtures/instruments.ts';
++
++test('actual cockpit canvas refreshes after hitches, shifts and replay rewinds', async ({ page }, info) => {
++  test.setTimeout(60000);
++  const result = await build({ configFile: false, logLevel: 'error', build: {
++    write: false, minify: false,
++    lib: { entry: resolve('e2e/fixtures/instruments.ts'), name: 'InstrumentOracle', formats: ['iife'] },
++  } });
++  const output = Array.isArray(result) ? result[0] : result;
++  if (!('output' in output)) throw new Error('Missing instrument fixture');
++  const chunk = output.output.find((entry) => entry.type === 'chunk');
++  if (!chunk || chunk.type !== 'chunk') throw new Error('Missing instrument fixture entry');
++  const errors: string[] = [];
++  page.on('pageerror', (error) => errors.push(error.message));
++  page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()); });
++  await page.setContent('<!doctype html><title>Instrument canvas oracle</title>');
++  await page.addScriptTag({ content: chunk.code });
++  const measured = await page.evaluate(() =>
++    (window as unknown as { InstrumentOracle: { verifyInstrumentCanvas: typeof verifyInstrumentCanvas } }).InstrumentOracle.verifyInstrumentCanvas());
++  expect(measured.first.changed).toBe(true);
++  expect(measured.hitch.changed).toBe(true);
++  expect(measured.hitch.text).toContain('158 KM/H');
++  expect(measured.gear.changed).toBe(true);
++  expect(measured.gear.text[0]).toBe('3');
++  expect(measured.paused.changed).toBe(false);
++  expect(measured.rewind.changed).toBe(true);
++  expect(measured.rewind.text).toContain('72 KM/H');
++  expect(measured.brightPixels).toBeGreaterThan(100);
++  expect(errors).toEqual([]);
++  await info.attach('instrument-canvas.json', { body: JSON.stringify(measured), contentType: 'application/json' });
++});
+diff --git a/scripts/instrument-oracles.ts b/scripts/instrument-oracles.ts
+new file mode 100644
+index 0000000..c0ab178
+--- /dev/null
++++ b/scripts/instrument-oracles.ts
+@@ -0,0 +1,41 @@
++import assert from 'node:assert/strict';
++import { SteeringDisplayClock } from '../src/rendering/steering-display.ts';
++import { weatherReadout } from '../src/ui/presentation.ts';
++
++export const instrumentOracles: Record<string, () => void> = {
++  'first snapshot and gear changes refresh without waiting for a render frame counter': () => {
++    const clock = new SteeringDisplayClock();
++    assert(clock.due(0, 1)); assert(!clock.due(0, 1));
++    assert(clock.due(0.001, 2)); assert(!clock.due(0.002, 2));
++  },
++  'slow frames refresh from real snapshot time and paused snapshots remain unchanged': () => {
++    const clock = new SteeringDisplayClock();
++    assert(clock.due(0, 1)); assert(clock.due(2, 1)); assert(clock.due(4, 1));
++    for (let i = 0; i < 100; i++) assert(!clock.due(4, 1));
++    assert(clock.due(0.02, 1), 'Replay rewind must refresh immediately');
++    assert.throws(() => clock.due(NaN, 1));
++    assert.throws(() => clock.due(0.04, Infinity));
++  },
++  'ordinary high-refresh driving bounds upload frequency without starving the display': () => {
++    for (const hz of [24, 30, 60, 90, 120, 144]) {
++      const clock = new SteeringDisplayClock(); let previous = -1, updates = 0;
++      for (let i = 0; i <= hz * 3; i++) {
++        const now = i / hz;
++        if (clock.due(now, 4)) {
++          if (previous >= 0) assert(now - previous <= 0.08 + 1 / hz + 1e-6);
++          previous = now; updates++;
++        }
++      }
++      assert(updates >= 30 && updates <= 39, `${hz}Hz has ${updates} texture uploads`);
++    }
++  },
++  'rain stopping never labels retained standing water dry': () => {
++    assert.equal(weatherReadout(21, 0, 1.25), '21°C / TRACK AVG 1.25 MM WATER');
++    assert.equal(weatherReadout(21, 0, 0.01), '21°C / DAMP TRACK');
++    assert.equal(weatherReadout(24, 0, 0), '24°C / DRY TRACK');
++    assert.equal(weatherReadout(24, 0.25, 0), '24°C / RAIN 0.3 MM/H · TRACK WETTING');
++    assert(!weatherReadout(24, 0.25, 0.5).includes('DRY'));
++    assert.equal(weatherReadout(NaN, 0, 0), 'WEATHER DATA UNAVAILABLE');
++    assert.equal(weatherReadout(24, -1, 0), 'WEATHER DATA UNAVAILABLE');
++  },
++};
+diff --git a/src/rendering/car.ts b/src/rendering/car.ts
+index aa214e6..1acccf7 100644
+--- a/src/rendering/car.ts
++++ b/src/rendering/car.ts
+@@ -2,5 +2,5 @@ import * as T from 'three';
+ import { DriverRig } from './driver.ts';
+ import { serviceWheelOffset } from './pit-crew.ts';
+-import { drawSteeringDisplay, shiftLight } from './steering-display.ts';
++import { drawSteeringDisplay, shiftLight, SteeringDisplayClock } from './steering-display.ts';
+ import { carbonMaterial } from './materials.ts';
+ import { ReducedCar, carLod } from './lod.ts';
+@@ -17,5 +17,5 @@ import {
+ } from './geometry.ts';
+ import { COMPOUNDS, LIVERIES } from '../simulation/config.ts';
