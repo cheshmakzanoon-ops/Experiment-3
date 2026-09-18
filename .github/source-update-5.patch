@@ -1,0 +1,359 @@
++    ['128 px / 10 Hz', '256 px / 15 Hz', '512 px / 30 Hz'],
++  ],
++  ['anisotropy', 'Anisotropic filtering', [1, 2, 4, 8, 16], ['1×', '2×', '4×', '8×', '16×']],
++];
++const ranges: [keyof GraphicsOptions, string, number, number, number][] = [
++  ['resolutionScale', 'Render resolution scale', 0.5, 1.5, 0.05],
++  ['particleDensity', 'Smoke, spray and rain density', 0, 1, 0.1],
++  ['vegetationDensity', 'Environment vegetation density', 0, 1, 0.1],
++];
++const checks: [keyof GraphicsOptions, string][] = [
++  ['crowd', 'Grandstand crowd'],
++  ['bloom', 'Bloom post-processing'],
++  ['antialias', 'FXAA anti-aliasing'],
++];
++export function presentationControls(settings: Settings) {
++  return `<details class="presentation-details"><summary>Individual graphics controls</summary><p class="small-note">Presets reset these controls. Individual changes apply on save. Lower resolutions reduce GPU work; barriers and timing signs are never removed.</p>${choices.map(([key, label, values, labels]) => `<label>${label}<select name="graphics_${key}">${values.map((value, i) => `<option value="${value}">${labels[i]}</option>`).join('')}</select></label>`).join('')}${ranges.map(([key, label, min, max, step]) => `<label class="range-row">${label}<output></output><input name="graphics_${key}" type="range" min="${min}" max="${max}" step="${step}"></label>`).join('')}${checks.map(([key, label]) => `<label class="check"><input type="checkbox" name="graphics_${key}">${label}</label>`).join('')}</details><h3>Accessibility</h3><label class="check"><input name="colorblind" type="checkbox" ${settings.colorblind ? 'checked' : ''}>Patterned flags (colorblind-friendly)</label><label class="check"><input name="highContrast" type="checkbox" ${settings.highContrast ? 'checked' : ''}>High-contrast instruments</label><p class="small-note">Flags always include text. Camera movement and interface scale can be adjusted below.</p>`;
++}
++export function bindPresentation(form: HTMLFormElement, settings: Settings) {
++  const input = (key: keyof GraphicsOptions) =>
++    form.elements.namedItem(`graphics_${key}`) as HTMLInputElement;
++  const fill = (values: GraphicsOptions) => {
++    for (const [key] of [...choices, ...ranges]) {
++      const control = input(key);
++      control.value = String(values[key]);
++      const output = control.parentElement?.querySelector('output');
++      if (output) output.value = control.value;
++    }
++    for (const [key] of checks) input(key).checked = !!values[key];
++  };
++  fill(settings.graphics);
++  const preset = form.elements.namedItem('quality') as HTMLSelectElement;
++  preset.addEventListener('change', () => fill(graphicsPreset(preset.value as Quality)));
++  return () => {
++    const result: Record<string, unknown> = {};
++    for (const [key] of [...choices, ...ranges]) {
++      const value = input(key).value;
++      result[key] = key === 'reflections' || key === 'mirrorQuality' ? value : Number(value);
++    }
++    for (const [key] of checks) result[key] = input(key).checked;
++    return validateGraphics(result, preset.value as Quality);
++  };
++}
+diff --git a/src/ui/style.css b/src/ui/style.css
+index 4e0cd89..6dd49b9 100644
+--- a/src/ui/style.css
++++ b/src/ui/style.css
+@@ -1421,3 +1421,43 @@ dialog:has(#settingsForm) {
+   flex: 1;
+   max-width: 400px;
+ }
++
++.presentation-details {
++  border-top: 1px solid #7b8887;
++  border-bottom: 1px solid #7b8887;
++  padding: 12px 0;
++  margin: 16px 0;
++}
++.presentation-details summary {
++  cursor: pointer;
++  font-weight: 700;
++}
++.presentation-details label {
++  margin-top: 12px;
++}
++html[data-colorblind='true'] #flag::before {
++  content: '● ';
++  font-size: 14px;
++}
++html[data-colorblind='true'] #flag[data-flag='1']::before {
++  content: '▲ ';
++}
++html[data-colorblind='true'] #flag[data-flag='2']::before {
++  content: '▦ ';
++}
++html[data-colorblind='true'] #flag[data-flag='1'] {
++  background: repeating-linear-gradient(135deg, #ffd966, #ffd966 8px, #fff0aa 8px, #fff0aa 12px);
++  color: #172026;
++}
++html[data-high-contrast='true'] .hud-top,
++html[data-high-contrast='true'] .timing,
++html[data-high-contrast='true'] .car-status,
++html[data-high-contrast='true'] .instruments,
++html[data-high-contrast='true'] .lap-panel {
++  background: #101a1c;
++  color: #ffffff;
++  border: 1px solid #ffffff;
++}
++html[data-high-contrast='true'] .small-note {
++  color: #263b3c;
++}
+diff --git a/tests/bindings.test.ts b/tests/bindings.test.ts
+index d751c5d..a8f39df 100644
+--- a/tests/bindings.test.ts
++++ b/tests/bindings.test.ts
+@@ -10,7 +10,7 @@ it('migrates version-one driving keys and provides bindings for every existing a
+     version: 1,
+     bindings: { throttle: 'KeyI', brake: 'KeyK', left: 'KeyJ', right: 'KeyL' },
+   });
+-  expect(result.version).toBe(3);
++  expect(result.version).toBe(4);
+   expect(result.bindings.throttle).toBe('KeyI');
+   expect(result.bindings.shiftUp).toBe('BracketRight');
+   expect(result.bindings.camera).toBe('KeyC');
+diff --git a/tests/calibration.test.ts b/tests/calibration.test.ts
+index 80e7b68..ae4c90c 100644
+--- a/tests/calibration.test.ts
++++ b/tests/calibration.test.ts
+@@ -76,7 +76,7 @@ describe('device calibration', () => {
+       version: 1,
+       bindings: { throttle: 'ShiftLeft' },
+     });
+-    expect(settings.version).toBe(3);
++    expect(settings.version).toBe(4);
+     expect(settings.bindings.throttle).toBe('ShiftLeft');
+     expect(settings.bindings.clutch).toBe('ShiftRight');
+     expect(settings.mapping.manualClutch).toBe(false);
+diff --git a/tests/presentation.test.ts b/tests/presentation.test.ts
+new file mode 100644
+index 0000000..c945b3c
+--- /dev/null
++++ b/tests/presentation.test.ts
+@@ -0,0 +1,118 @@
++import { afterEach, expect, it, vi } from 'vitest';
++import * as T from 'three';
++import { graphicsPreset, validateGraphics, bufferSize } from '../src/rendering/options.ts';
++import { DEFAULT_SETTINGS, validateSettings } from '../src/storage/data.ts';
++import { InputPump } from '../src/input/pump.ts';
++import { TextureBudget } from '../src/rendering/texture-budget.ts';
++
++afterEach(() => {
++  vi.useRealTimers();
++  vi.unstubAllGlobals();
++});
++it.each([1, 2, 3])('migrates version %i without losing controls or setup', (version) => {
++  const old = structuredClone(DEFAULT_SETTINGS);
++  const saved = {
++    ...old,
++    version,
++    quality: 'high',
++    bindings: { ...old.bindings, throttle: 'KeyI' },
++  };
++  const migrated = validateSettings(saved);
++  expect(migrated.version).toBe(4);
++  expect(migrated.graphics).toEqual(graphicsPreset('high'));
++  expect(migrated.bindings.throttle).toBe('KeyI');
++  expect(migrated.setup).toEqual(old.setup);
++});
++it('preserves independent quality controls through version-four serialization', () => {
++  const saved = structuredClone(DEFAULT_SETTINGS);
++  Object.assign(saved.graphics, {
++    resolutionScale: 0.55,
++    textureSize: 128,
++    shadowSize: 512,
++    reflections: 'local',
++    particleDensity: 0.2,
++    crowd: false,
++    bloom: true,
++    antialias: false,
++    anisotropy: 4,
++  });
++  saved.colorblind = true;
++  saved.highContrast = true;
++  expect(validateSettings(JSON.parse(JSON.stringify(saved)))).toEqual(saved);
++});
++it('bounds every numeric budget and rejects unsupported quality values', () => {
++  const g = validateGraphics(
++    {
++      resolutionScale: Infinity,
++      textureSize: 12345,
++      shadowSize: 999,
++      particleDensity: -8,
++      vegetationDensity: 10,
++      anisotropy: 999,
++      reflections: 'magic',
++      antialias: 'false',
++    },
++    'medium',
++  );
++  expect(g.resolutionScale).toBe(1);
++  expect(g.textureSize).toBe(512);
++  expect(g.shadowSize).toBe(1024);
++  expect(g.particleDensity).toBe(0);
++  expect(g.vegetationDensity).toBe(1);
++  expect(g.anisotropy).toBe(8);
++  expect(g.reflections).toBe('environment');
++  expect(g.antialias).toBe(true);
++});
++it('calculates bounded physical pixels without changing aspect ratio', () => {
++  expect(bufferSize(1920, 1080, 0.5, 8192)).toEqual({ width: 960, height: 540 });
++  expect(bufferSize(8000, 4000, 2, 4096)).toEqual({ width: 4096, height: 2048 });
++  expect(() => bufferSize(NaN, 100, 1, 4096)).toThrow();
++});
++it('samples input without any animation callbacks and stops cleanly', () => {
++  vi.useFakeTimers();
++  const sample = vi.fn();
++  let now = 1000;
++  const pump = new InputPump(sample, () => now);
++  pump.start();
++  pump.start();
++  now += 20;
++  vi.advanceTimersByTime(20);
++  expect(sample).toHaveBeenCalledTimes(1);
++  expect(sample).toHaveBeenLastCalledWith(0.02);
++  now += 5000;
++  pump.poll();
++  expect(sample).toHaveBeenLastCalledWith(0.25);
++  pump.dispose();
++  const count = sample.mock.calls.length;
++  vi.advanceTimersByTime(2000);
++  expect(sample).toHaveBeenCalledTimes(count);
++});
++it('resizes immutable texture assets but never live displays and can restore resolution', () => {
++  class Canvas {
++    width = 1024;
++    height = 512;
++    getContext() {
++      return { drawImage: vi.fn() };
++    }
++  }
++  vi.stubGlobal('HTMLCanvasElement', Canvas);
++  vi.stubGlobal('document', { createElement: () => new Canvas() });
++  const original = new Canvas() as unknown as HTMLCanvasElement;
++  const map = new T.CanvasTexture(original);
++  const display = new T.CanvasTexture(new Canvas() as unknown as HTMLCanvasElement);
++  display.userData.dynamic = true;
++  const group = new T.Group();
++  group.add(new T.Mesh(new T.PlaneGeometry(), new T.MeshBasicMaterial({ map })));
++  group.add(new T.Mesh(new T.PlaneGeometry(), new T.MeshBasicMaterial({ map: display })));
++  const budget = new TextureBudget();
++  budget.register(group);
++  budget.configure(128, 2);
++  expect(map.image.width).toBe(128);
++  expect(map.image.height).toBe(64);
++  expect(display.image.width).toBe(1024);
++  expect(map.anisotropy).toBe(2);
++  budget.configure(1024, 16);
++  expect(map.image).toBe(original);
++  expect(map.anisotropy).toBe(16);
++  budget.dispose();
++});
+diff --git a/tests/reflections.test.ts b/tests/reflections.test.ts
+new file mode 100644
+index 0000000..1992285
+--- /dev/null
++++ b/tests/reflections.test.ts
+@@ -0,0 +1,95 @@
++import { afterEach, expect, it, vi } from 'vitest';
++import * as T from 'three';
++import { ReflectionSystem } from '../src/rendering/reflections.ts';
++
++afterEach(() => vi.restoreAllMocks());
++function fixture() {
++  const previous = new T.WebGLRenderTarget(4, 4);
++  const renderer = {
++    shadowMap: { autoUpdate: true },
++    xr: { enabled: true },
++    getRenderTarget: () => previous,
++    getActiveCubeFace: () => 2,
++    getActiveMipmapLevel: () => 1,
++    getViewport: (v: T.Vector4) => v.set(3, 4, 800, 600),
++    getScissor: (v: T.Vector4) => v.set(5, 6, 700, 500),
++    getScissorTest: () => true,
++    setRenderTarget: vi.fn(),
++    setViewport: vi.fn(),
++    setScissor: vi.fn(),
++    setScissorTest: vi.fn(),
++  };
++  return { renderer, previous, gl: renderer as unknown as T.WebGLRenderer };
++}
++it('alternates completed cubemaps without read/write feedback or repeated material recompiles', () => {
++  const reflection = new ReflectionSystem(),
++    { gl } = fixture();
++  const scene = new T.Scene(),
++    car = new T.Group(),
++    material = new T.MeshStandardMaterial();
++  const captures: T.Texture[] = [];
++  vi.spyOn(T.CubeCamera.prototype, 'update').mockImplementation(function (this: T.CubeCamera) {
++    expect(car.visible).toBe(false);
++    expect(this.renderTarget.texture).not.toBe(material.envMap);
++    captures.push(this.renderTarget.texture);
++  });
++  reflection.beginFrame(1, false);
++  reflection.updateProbe(gl, scene, car, [material], true);
++  const version = material.version;
++  expect(material.envMap).toBe(captures[0]);
++  reflection.beginFrame(3, false);
++  reflection.updateProbe(gl, scene, car, [material], true);
++  expect(material.envMap).toBe(captures[1]);
++  expect(captures[1]).not.toBe(captures[0]);
++  expect(material.version).toBe(version);
++  reflection.beginFrame(5, false);
++  reflection.updateProbe(gl, scene, car, [material], true);
++  expect(captures[2]).toBe(captures[0]);
++  reflection.dispose();
++});
++it('restores the original environment when local reflections are switched off', () => {
++  const reflection = new ReflectionSystem(),
++    { gl } = fixture();
++  const scene = new T.Scene(),
++    car = new T.Group(),
++    original = new T.Texture();
++  const material = new T.MeshStandardMaterial({ envMap: original });
++  vi.spyOn(T.CubeCamera.prototype, 'update').mockImplementation(() => undefined);
++  reflection.beginFrame(1, false);
++  reflection.updateProbe(gl, scene, car, [material], true);
++  expect(material.envMap).not.toBe(original);
++  reflection.updateProbe(gl, scene, car, [material], false);
++  expect(material.envMap).toBe(original);
++  expect(reflection.localProbeActive).toBe(false);
++  reflection.updateProbe(gl, scene, car, [material], true);
++  expect(reflection.localProbeActive).toBe(true);
++  reflection.dispose();
++  expect(material.envMap).toBe(original);
++});
++it('restores renderer state on failed capture and never publishes an incomplete reflection', () => {
++  const reflection = new ReflectionSystem(),
++    { renderer, gl, previous } = fixture();
++  const material = new T.MeshStandardMaterial(),
++    scene = new T.Scene(),
++    car = new T.Group();
++  const update = vi.spyOn(T.CubeCamera.prototype, 'update').mockImplementation(() => undefined);
++  reflection.beginFrame(1, false);
++  reflection.updateProbe(gl, scene, car, [material], true);
++  const complete = material.envMap;
++  update.mockImplementation(() => {
++    renderer.xr.enabled = false;
++    throw new Error('GPU failure');
++  });
++  reflection.beginFrame(3, false);
++  expect(() => reflection.updateProbe(gl, scene, car, [material], true)).toThrow('GPU failure');
++  expect(material.envMap).toBe(complete);
++  expect(car.visible).toBe(true);
++  expect(renderer.xr.enabled).toBe(true);
++  expect(renderer.shadowMap.autoUpdate).toBe(true);
++  expect(renderer.setRenderTarget).toHaveBeenLastCalledWith(previous, 2, 1);
++  expect(renderer.setViewport).toHaveBeenLastCalledWith(new T.Vector4(3, 4, 800, 600));
++  expect(renderer.setScissor).toHaveBeenLastCalledWith(new T.Vector4(5, 6, 700, 500));
++  expect(renderer.setScissorTest).toHaveBeenLastCalledWith(true);
++  expect(reflection.probeUpdates).toBe(1);
++  reflection.dispose();
++});
+diff --git a/tests/trackside.test.ts b/tests/trackside.test.ts
+new file mode 100644
+index 0000000..e636a55
+--- /dev/null
++++ b/tests/trackside.test.ts
+@@ -0,0 +1,52 @@
++import { expect, it } from 'vitest';
++import { Vector3 } from 'three';
++import { Track, trackPoint } from '../src/simulation/track.ts';
++import { TracksideDirector } from '../src/rendering/trackside.ts';
++const track = new Track();
++it('covers a complete lap with fixed platforms and finite camera directions', () => {
++  const director = new TracksideDirector(track),
++    p = trackPoint();
++  const position = new Vector3(),
++    velocity = new Vector3();
++  for (let s = 0; s < track.length; s += 2) {
++    track.at(s, p);

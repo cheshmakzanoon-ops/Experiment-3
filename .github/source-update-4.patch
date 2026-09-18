@@ -1,0 +1,388 @@
+@@ -171,6 +221,7 @@ export class RacingRenderer {
+     this.initialized = false;
+     this.inertia.reset();
+     this.viewOrientation.reset();
++    this.trackside.reset();
+     this.lookX = 0;
+     this.lookY = 0;
+     return this.mode;
+@@ -179,6 +230,7 @@ export class RacingRenderer {
+     this.initialized = false;
+     this.inertia.reset();
+     this.viewOrientation.reset();
++    this.trackside.reset();
+     this.effects.clear();
+     this.sampleCount = 0;
+     this.sampleIndex = 0;
+@@ -242,12 +294,15 @@ export class RacingRenderer {
+         .add(new T.Vector3(-0.8, 0.15, 0).applyQuaternion(car.root.quaternion));
+       this.camera.fov = 45;
+     } else if (this.mode === 'trackside') {
+-      const s = Math.floor(b[o + F.S] / 100) * 100 + 70;
+-      this.circuit.track.at(s, this.trackPoint);
+-      const p = this.trackPoint;
+-      this.desired.set(p.x + p.nx * 18, p.y + 3.5, p.z + p.nz * 18);
+-      this.gaze.copy(this.target).addScaledVector(this.direction, speed * 0.12);
+-      this.camera.fov = 42;
++      this.trackside.update(
++        b[o + F.S],
++        this.target,
++        this.temporary.set(b[o + F.VX], b[o + F.VY], b[o + F.VZ]),
++        dt,
++      );
++      this.desired.copy(this.trackside.position);
++      this.gaze.copy(this.trackside.gaze);
++      this.camera.fov = this.trackside.fov;
+     } else {
+       const seated = this.mode === 'cockpit' || this.mode === 'pod';
+       if (seated) {
+@@ -337,7 +392,7 @@ export class RacingRenderer {
+         this.scene,
+         car.root,
+         this.reflectionMaterials,
+-        this.quality === 'high' && !menu,
++        this.graphics.reflections === 'local' && !menu,
+       );
+       this.reflection.renderMirrors(this.renderer, this.scene, car.root, dt);
+       this.composer.render();
+@@ -380,12 +435,18 @@ export class RacingRenderer {
+       (a, b) => a - b,
+     );
+     return {
++      graphics: { ...this.graphics },
++      renderWidth: this.renderWidth,
++      renderHeight: this.renderHeight,
+       carLods: this.cars.map((car) => car.lodLevel),
+       camera: this.mode,
++      tracksideRig: this.trackside.activeId,
++      tracksideCuts: this.trackside.cuts,
+       cameraLocalPosition: this.eyeLocal.toArray(),
+       mirrorUpdates: this.reflection.mirrorUpdates,
+       mirrorWidth: this.reflection.mirrorWidth,
+       reflectionProbeUpdates: this.reflection.probeUpdates,
++      localProbeActive: this.reflection.localProbeActive,
+       gpuMilliseconds: this.gpuTimer.milliseconds,
+       gpuTimerSupported: this.gpuTimer.supported,
+       fps: this.fps,
+@@ -402,6 +463,8 @@ export class RacingRenderer {
+     this.reflection.dispose();
+     this.gpuTimer.dispose();
+     this.bloom.dispose();
++    this.fxaa.dispose();
++    this.textures.dispose();
+     const geometries = new Set<T.BufferGeometry>(),
+       materials = new Set<T.Material>(),
+       textures = new Set<T.Texture>();
+diff --git a/src/rendering/texture-budget.ts b/src/rendering/texture-budget.ts
+new file mode 100644
+index 0000000..7aa0f84
+--- /dev/null
++++ b/src/rendering/texture-budget.ts
+@@ -0,0 +1,57 @@
++import * as T from 'three';
++
++/** Resample immutable generated canvas assets only. Dynamic cockpit displays,
++ * simulation state textures and render targets must retain their own ownership.
++ * Keep one source canvas so quality can be restored without accumulating copies. */
++export class TextureBudget {
++  private assets = new Map<T.CanvasTexture, HTMLCanvasElement>();
++  private limit = 512;
++  private anisotropy = 8;
++  register(root: T.Object3D) {
++    root.traverse((object) => {
++      if (!(object instanceof T.Mesh)) return;
++      for (const material of Array.isArray(object.material) ? object.material : [object.material]) {
++        for (const value of Object.values(material)) {
++          if (!(value instanceof T.CanvasTexture) || value.userData.dynamic) continue;
++          if (this.assets.has(value)) continue;
++          const source = value.image as HTMLCanvasElement;
++          if (!(source instanceof HTMLCanvasElement)) continue;
++          this.assets.set(value, source);
++          this.apply(value, source);
++        }
++      }
++    });
++  }
++  configure(limit: number, anisotropy: number) {
++    if (limit === this.limit && anisotropy === this.anisotropy) return;
++    this.limit = limit;
++    this.anisotropy = anisotropy;
++    for (const [texture, source] of this.assets) this.apply(texture, source);
++  }
++  private apply(texture: T.CanvasTexture, source: HTMLCanvasElement) {
++    const factor = Math.min(1, this.limit / Math.max(source.width, source.height));
++    const width = Math.max(1, Math.round(source.width * factor));
++    const height = Math.max(1, Math.round(source.height * factor));
++    const current = texture.image as HTMLCanvasElement;
++    if (current.width !== width || current.height !== height) {
++      let image = source;
++      if (factor < 1) {
++        image = document.createElement('canvas');
++        image.width = width;
++        image.height = height;
++        const context = image.getContext('2d');
++        if (!context) throw new Error('Texture resampling requires Canvas 2D');
++        context.drawImage(source, 0, 0, width, height);
++      }
++      texture.dispose();
++      texture.image = image;
++    }
++    texture.anisotropy = this.anisotropy;
++    texture.generateMipmaps = true;
++    texture.minFilter = T.LinearMipmapLinearFilter;
++    texture.needsUpdate = true;
++  }
++  dispose() {
++    this.assets.clear();
++  }
++}
+diff --git a/src/rendering/trackside.ts b/src/rendering/trackside.ts
+new file mode 100644
+index 0000000..dc76635
+--- /dev/null
++++ b/src/rendering/trackside.ts
+@@ -0,0 +1,106 @@
++import { Vector3 } from 'three';
++import { clamp, mod } from '../core/math.ts';
++import { Track, trackPoint } from '../simulation/track.ts';
++
++export interface CameraRig {
++  id: number;
++  centerS: number;
++  coverageM: number;
++  position: Vector3;
++  baseFov: number;
++  trackingHz: number;
++}
++// Alternating crane/low platform placements are authored, not random camera
++// teleport offsets. Pit-lane cameras stay across the circuit from the garages.
++const PLATFORMS = [
++  [-1, 5, 43],
++  [-1, 3.4, 38],
++  [-1, 5, 42],
++  [1, 7, 36],
++  [-1, 4, 42],
++  [1, 5, 40],
++  [-1, 3.5, 45],
++  [1, 6, 39],
++  [-1, 5, 40],
++  [1, 3.5, 42],
++  [-1, 6, 38],
++  [1, 5, 40],
++  [-1, 4, 43],
++  [1, 7, 37],
++  [-1, 3.5, 44],
++  [1, 5, 40],
++  [-1, 6, 37],
++  [1, 4, 42],
++  [-1, 5, 40],
++  [-1, 6, 42],
++] as const;
++
++/** Fixed trackside positions plus a predictable pan/zoom director. Replay seeks
++ * and camera cuts reset the pan; normal boundary jitter uses coverage hysteresis. */
++export class TracksideDirector {
++  readonly rigs: readonly CameraRig[];
++  readonly position = new Vector3();
++  readonly gaze = new Vector3();
++  private predicted = new Vector3();
++  activeId = -1;
++  cuts = 0;
++  fov = 42;
++  private previousS = NaN;
++  constructor(readonly track: Track) {
++    const p = trackPoint(),
++      spacing = track.length / PLATFORMS.length;
++    this.rigs = PLATFORMS.map(([side, height, fov], id) => {
++      const centerS = id * spacing;
++      track.at(centerS + spacing * 0.18, p);
++      const offset = side * (p.width + 18);
++      return {
++        id,
++        centerS,
++        coverageM: spacing + 16,
++        position: new Vector3(p.x + p.nx * offset, p.y + height, p.z + p.nz * offset),
++        baseFov: fov,
++        trackingHz: 12,
++      };
++    });
++  }
++  reset() {
++    this.activeId = -1;
++    this.previousS = NaN;
++  }
++  update(s: number, target: Vector3, velocity: Vector3, dt: number) {
++    if (
++      !Number.isFinite(
++        s + dt + target.x + target.y + target.z + velocity.x + velocity.y + velocity.z,
++      ) ||
++      dt < 0
++    )
++      throw new Error('Invalid trackside camera state');
++    const length = this.track.length;
++    s = mod(s, length);
++    const spacing = length / this.rigs.length;
++    const distance = (a: number, b: number) =>
++      Math.abs(mod(a - b + length / 2, length) - length / 2);
++    const seek = Number.isFinite(this.previousS) && distance(s, this.previousS) > spacing;
++    let id = this.activeId;
++    if (id < 0 || seek || distance(s, this.rigs[id].centerS) > this.rigs[id].coverageM / 2)
++      id = Math.round(s / spacing) % this.rigs.length;
++    const cut = id !== this.activeId || seek;
++    const rig = this.rigs[id];
++    this.position.copy(rig.position);
++    this.predicted.copy(target).addScaledVector(velocity, 0.12);
++    const distanceM = this.position.distanceTo(target);
++    const fov = clamp(rig.baseFov * Math.sqrt(40 / Math.max(20, distanceM)), 24, 55);
++    if (cut) {
++      this.gaze.copy(this.predicted);
++      this.fov = fov;
++      this.cuts++;
++    } else {
++      const mix = 1 - Math.exp(-rig.trackingHz * Math.min(dt, 0.2));
++      this.gaze.lerp(this.predicted, mix);
++      this.fov += (fov - this.fov) * mix;
++    }
++    this.activeId = id;
++    this.previousS = s;
++    return this;
++  }
++}
+diff --git a/src/storage/data.ts b/src/storage/data.ts
+index 6f3d36c..8ba7e6a 100644
+--- a/src/storage/data.ts
++++ b/src/storage/data.ts
+@@ -8,7 +8,12 @@ import {
+ } from '../input/calibration.ts';
+ import { clamp } from '../core/math.ts';
+ import { DEFAULT_SETUP, validateSetup, type Setup } from '../simulation/config.ts';
+-import type { Quality } from '../rendering/renderer.ts';
++import {
++  graphicsPreset,
++  validateGraphics,
++  type GraphicsOptions,
++  type Quality,
++} from '../rendering/options.ts';
+ export interface InputMapping {
+   device: DeviceSelection | null;
+   wheelSteering: boolean;
+@@ -31,7 +36,10 @@ export interface InputMapping {
+   exponent: number;
+ }
+ export interface Settings {
+-  version: 3;
++  version: 4;
++  graphics: GraphicsOptions;
++  colorblind: boolean;
++  highContrast: boolean;
+   quality: Quality;
+   volume: number;
+   shake: number;
+@@ -41,7 +49,10 @@ export interface Settings {
+   bindings: Bindings;
+ }
+ export const DEFAULT_SETTINGS: Settings = {
+-  version: 3,
++  version: 4,
++  graphics: graphicsPreset('medium'),
++  colorblind: false,
++  highContrast: false,
+   quality: 'medium',
+   volume: 0.45,
+   shake: 0.35,
+@@ -73,15 +84,19 @@ export const DEFAULT_SETTINGS: Settings = {
+ export function validateSettings(v: unknown): Settings {
+   if (!v || typeof v !== 'object') throw new Error('Settings data must be an object');
+   const p = v as Partial<Settings>;
+-  if (![1, 2, 3].includes((v as { version: number }).version))
++  if (![1, 2, 3, 4].includes((v as { version: number }).version))
+     throw new Error('Unsupported settings version');
+   const finite = (x: unknown, f: number, a: number, b: number) =>
+     typeof x === 'number' && Number.isFinite(x) ? clamp(x, a, b) : f;
+   const m = p.mapping ?? DEFAULT_SETTINGS.mapping;
+   const bindings = validateBindings(p.bindings);
++  const quality = p.quality === 'low' || p.quality === 'high' ? p.quality : 'medium';
+   return {
+-    version: 3,
+-    quality: p.quality === 'low' || p.quality === 'high' ? p.quality : 'medium',
++    version: 4,
++    graphics: validateGraphics(p.version === 4 ? p.graphics : undefined, quality),
++    colorblind: p.colorblind === true,
++    highContrast: p.highContrast === true,
++    quality,
+     volume: finite(p.volume, 0.45, 0, 1),
+     shake: finite(p.shake, 0.35, 0, 1),
+     uiScale: finite(p.uiScale, 1, 0.8, 1.35),
+diff --git a/src/ui/interface.ts b/src/ui/interface.ts
+index 1617446..c3ec1f3 100644
+--- a/src/ui/interface.ts
++++ b/src/ui/interface.ts
+@@ -1,3 +1,4 @@
++import { presentationControls, bindPresentation } from './presentation.ts';
+ import { DeviceCalibrationPanel } from './device-calibration.ts';
+ import {
+   BINDING_LABELS,
+@@ -398,7 +399,7 @@ export class Interface {
+       })
+       .join('');
+     this.modalContent(
+-      `<header><div><span class="eyebrow">GARAGE / PREFERENCES</span><h2>Make it yours.</h2></div><button data-action="modalClose" aria-label="Close settings">✕</button></header><form id="settingsForm"><div class="settings-columns"><section><h3>Presentation</h3><label>RENDER QUALITY<select name="quality"><option value="low">Low · No shadows / crowd / particles</option><option value="medium">Medium · Balanced</option><option value="high">High · Bloom / higher resolution</option></select></label>${[
++      `<header><div><span class="eyebrow">GARAGE / PREFERENCES</span><h2>Make it yours.</h2></div><button data-action="modalClose" aria-label="Close settings">✕</button></header><form id="settingsForm"><div class="settings-columns"><section><h3>Presentation</h3><label>RENDER QUALITY<select name="quality"><option value="low">Low · No shadows / crowd / particles</option><option value="medium">Medium · Balanced</option><option value="high">High · Bloom / higher resolution</option></select></label>${presentationControls(settings)}${[
+         ['volume', 'Volume', 0, 1, 0.01],
+         ['shake', 'Camera vibration', 0, 1, 0.01],
+         ['uiScale', 'Interface scale', 0.8, 1.35, 0.05],
+@@ -453,6 +454,7 @@ export class Interface {
+       settings.mapping,
+     );
+     (form.elements.namedItem('quality') as HTMLSelectElement).value = settings.quality;
++    const graphics = bindPresentation(form, settings);
+     form.addEventListener('input', (e) => {
+       const input = e.target as HTMLInputElement;
+       const output = input.parentElement?.querySelector('output');
+@@ -504,6 +506,9 @@ export class Interface {
+       const value = (key: string) => (form.elements.namedItem(key) as HTMLInputElement).value;
+       const next = structuredClone(settings);
+       next.quality = value('quality') as Settings['quality'];
++      next.graphics = graphics();
++      next.colorblind = (form.elements.namedItem('colorblind') as HTMLInputElement).checked;
++      next.highContrast = (form.elements.namedItem('highContrast') as HTMLInputElement).checked;
+       for (const key of ['volume', 'shake', 'uiScale'] as const) next[key] = Number(value(key));
+       for (const key of Object.keys(DEFAULT_SETUP) as (keyof Setup)[])
+         next.setup[key] = Number(value(key));
+diff --git a/src/ui/presentation.ts b/src/ui/presentation.ts
+new file mode 100644
+index 0000000..fbd8e9a
+--- /dev/null
++++ b/src/ui/presentation.ts
+@@ -0,0 +1,73 @@
++import {
++  graphicsPreset,
++  validateGraphics,
++  type GraphicsOptions,
++  type Quality,
++} from '../rendering/options.ts';
++import type { Settings } from '../storage/data.ts';
++
++const choices: [keyof GraphicsOptions, string, (string | number)[], string[]][] = [
++  [
++    'textureSize',
++    'Texture detail limit',
++    [128, 256, 512, 1024],
++    ['128 px', '256 px', '512 px', '1024 px'],
++  ],
++  [
++    'shadowSize',
++    'Shadow resolution',
++    [0, 512, 1024, 2048],
++    ['Off', '512 px', '1024 px', '2048 px'],
++  ],
++  [
++    'reflections',
++    'Reflection method',
++    ['environment', 'local'],
++    ['Environment lighting', 'Local scene probe'],
++  ],
++  [
++    'mirrorQuality',
++    'Rear-view mirror quality',
++    ['low', 'medium', 'high'],

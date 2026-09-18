@@ -1,0 +1,115 @@
+diff --git a/README.md b/README.md
+index d48a4dd..ba5d996 100644
+--- a/README.md
++++ b/README.md
+@@ -42,6 +42,12 @@ Its central design rule is that a system should change the car, not merely decor
+ | 📊 | Engineering tools | Telemetry graphs, lap-distance comparison, CSV export, force/debug overlays, and bounded pose replay with seeking and playback-speed controls. |
+ | 🎮 | Browser integration | Keyboard, gamepad, and touch controls; optional cockpit mouse look; versioned IndexedDB preferences and best-lap records. |
+ 
++## 🎛️ Tune the presentation without changing the physics
++
++The garage exposes independent render resolution, real texture-detail limits, shadows, mirror quality, local scene reflections, particles, vegetation, crowds, bloom, FXAA and anisotropic filtering. Presets initialize these controls; individual overrides persist. Patterned flags and high-contrast instruments accompany the existing remapping, calibration and camera-shake controls.
++
++Trackside mode uses twenty fixed camera rigs with coverage-based cuts and predictive panning. Keyboard, touch and controller sampling runs on its own 60 Hz timer rather than waiting for a rendered frame. See [presentation and input engineering](docs/PRESENTATION_AND_INPUT.md) for ownership, tests and remaining boundaries.
++
+ ## 🚀 Get started
+ 
+ Use **Node.js 22.12 or newer** and a browser with **WebGL2 and module-worker support**.
+diff --git a/docs/IMPLEMENTATION_MATRIX.md b/docs/IMPLEMENTATION_MATRIX.md
+index cb81c91..13296d2 100644
+--- a/docs/IMPLEMENTATION_MATRIX.md
++++ b/docs/IMPLEMENTATION_MATRIX.md
+@@ -61,7 +61,7 @@ This ledger follows the numbered sections of the supplied directive. “Implemen
+ | 55 | PBR | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+ | 56 | CARBON FIBER SHADER | Dedicated band-limited carbon roughness and micro-normal GLSL, browser shader tests passed at the rendering checkpoint. |
+ | 57 | WET ROAD SHADER | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+-| 58 | REFLECTIONS | Real rear-view camera targets and budgeted local cube reflection probe. No SSR or ray tracing; those techniques are alternatives in the directive. |
++| 58 | REFLECTIONS | Real mirrors plus double-buffered local probes; source/target separation, failure cleanup and environment-only restoration are tested. No SSR/ray tracing; these are alternatives in the directive. |
+ | 59 | SHADOWS | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+ | 60 | LIGHTING | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+ | 61 | ATMOSPHERE | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+@@ -69,7 +69,7 @@ This ledger follows the numbered sections of the supplied directive. “Implemen
+ | 63 | SPEED PERCEPTION | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+ | 64 | CAMERA DYNAMICS | Analytic critically damped local inertial cockpit offsets, independent heading filtering and chase translation feed-forward; 24–144 FPS regression coverage. |
+ | 65 | COCKPIT CAMERA | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+-| 66 | TRACKSIDE CAMERAS | Circuit-position trackside cameras; no director shot-selection system. |
++| 66 | TRACKSIDE CAMERAS | Twenty fixed authored rigs, predictive pan/zoom, track-distance coverage, cut hysteresis and replay-seek resets. Complete-lap unit coverage; final shot-obstruction review remains. |
+ | 67 | PARTICLES | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+ | 68 | RAIN SPRAY | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+ | 69 | TIRE SMOKE | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+@@ -79,10 +79,10 @@ This ledger follows the numbered sections of the supplied directive. “Implemen
+ | 73 | TIRE AUDIO | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+ | 74 | SURFACE AUDIO | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+ | 75 | DOPPLER | Approximate stereo/Doppler for nearest engines, not full acoustic propagation. |
+-| 76 | INPUT PIPELINE | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
++| 76 | INPUT PIPELINE | Actual device sampling, calibration, response and simulation input on an independent 60 Hz timer; worker stale-input safety retained. Render-suspension browser regression added. |
+ | 77 | GAMEPAD STEERING | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+ | 78 | KEYBOARD STEERING | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+-| 79 | WHEEL INPUT | Explicit device selection, asymmetric steering and independent pedal calibration, clutch/paddle mapping, sparse-slot/disconnect guards, live monitor and saved version-3 profiles. Synthetic browser tests; real wheel hardware not certified. |
++| 79 | WHEEL INPUT | Explicit device selection, asymmetric steering/pedal calibration, clutch/paddle mapping and disconnect guards. Version-4 profiles preserve earlier calibrations; real hardware certification remains open. |
+ | 80 | TELEMETRY DATA | 181 actual-state telemetry channels captured at fixed 60 Hz in the physics worker, bounded transport/ring buffers and asynchronous CSV export. |
+ | 81 | TELEMETRY UI | Eight selectable graph groups include clutch torque/slip, the requested driver/chassis/tire channels and complete-lap distance comparison; truncated/gapped laps are labelled rather than fabricated. |
+ | 82 | REPLAY SYSTEM | 15 Hz all-car numeric pose pages, bounded resident IndexedDB replay cache, asynchronous seeking, original spatial water/rubber history, explicit recording failures. Permanent replay-library UI is not included. |
+@@ -95,14 +95,14 @@ This ledger follows the numbered sections of the supplied directive. “Implemen
+ | 89 | SETUP SYSTEM | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+ | 90 | HUD DESIGN | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+ | 91 | STEERING-WHEEL DISPLAY | Live canvas display and steering animation; not every steering-wheel button is interactive. |
+-| 92 | GRAPHICS SETTINGS | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
++| 92 | GRAPHICS SETTINGS | Independent physical render scale, texture cap, shadows, mirrors/probes, particle/vegetation density, crowds, bloom, FXAA and anisotropy. Optional motion blur remains absent. |
+ | 93 | PERFORMANCE BUDGET | Instrumented, but target-GPU performance is not certified. |
+ | 94 | OBJECT ALLOCATION | Pooled snapshots/particles/recorders; small per-tick/per-frame allocations remain. |
+ | 95 | LOD | Three separate car geometries with hysteresis and articulated wheels; player remains full detail. Track/prop spatial culling is implemented. |
+ | 96 | INSTANCING | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+-| 97 | TEXTURE MANAGEMENT | Locally generated small textures and mipmaps; no compressed asset atlas pipeline. |
++| 97 | TEXTURE MANAGEMENT | Actual immutable-canvas texture resampling/restoration, mipmaps and hardware-bounded anisotropy; live displays and data textures excluded. No compressed external asset atlas. |
+ | 98 | ASSET STREAMING | Not implemented: no asynchronous external asset streaming, because all assets are generated. |
+-| 99 | PHYSICS WORKER | Fixed-step worker, transferable render/telemetry/pose buffers and explicit backpressure warnings. Full profiling remains open. |
++| 99 | PHYSICS WORKER | Fixed-step worker and pooled render/telemetry/replay transport. Input polling no longer waits for requestAnimationFrame; stale-input safety remains. Target-hardware profiling is separate. |
+ | 100 | AI WORKER | Strategic/tactical AI runs with the simulation inside the physics worker; a separate worker is an optional candidate, not an implemented independent thread. |
+ | 101 | DEBUG OVERLAY | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+ | 102 | VISUAL DEBUGGING | Contact-load arrows and numeric telemetry; not all requested overlays. |
+@@ -136,13 +136,13 @@ This ledger follows the numbered sections of the supplied directive. “Implemen
+ | 130 | CIRCUIT PHYSICS FIDELITY | Visual/contact geometry shared; one original circuit, not surveyed circuit data. |
+ | 131 | UI PRINCIPLE | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+ | 132 | MENU PERFORMANCE | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+-| 133 | ACCESSIBILITY | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
++| 133 | ACCESSIBILITY | Scalable interface, patterned/text flags, high-contrast instruments, adjustable shake and remapping. Optional motion-blur control is absent because the effect is not implemented. |
+ | 134 | AUDIO/VISUAL CONNECTION | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+ | 135 | NO DISCONNECTED EFFECTS | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+ | 136 | EVENT BUS | Typed worker protocol and explicit callbacks, not a separate generalized event-bus package. |
+ | 137 | CONFIGURATION DATA | Central vehicle/setup data with some renderer/AI constants still local. |
+ | 138 | NO MAGIC NUMBERS | Units and named core settings provided, but some local tuning constants remain. |
+-| 139 | VERSIONED SAVES | Version-3 device calibration/preferences with version-1/2 keyboard-binding migration and conflict rejection; versioned replay pages and setup. No mid-race physical-state checkpoint restore. |
++| 139 | VERSIONED SAVES | Version-4 graphics/accessibility/preferences migrate versions 1–3 without discarding bindings, device calibration or setup. Versioned replay pages remain separate. |
+ | 140 | DEVELOPMENT PHASES | OPEN: development has not passed all thirty-one phase gates. |
+ | 141 | THREE FINAL AUDITS | OPEN: the three complete final project audits have not been completed. |
+ | 142 | ANTI-LAZINESS RULES | No success declaration from compilation or a single scenario. Full master completion remains open. |
+diff --git a/docs/PRESENTATION_AND_INPUT.md b/docs/PRESENTATION_AND_INPUT.md
+new file mode 100644
+index 0000000..f333562
+--- /dev/null
++++ b/docs/PRESENTATION_AND_INPUT.md
+@@ -0,0 +1,31 @@
++# Presentation and input checkpoint
++
++This change closes concrete graphics-control and camera gaps in sections 58, 66, 76, 92, 97, 99, 133 and 139. It is not a declaration that all master-directive phase gates or final audits passed.
++
++## Hardware work follows the selected settings
++
++`src/rendering/options.ts` defines validated per-setting budgets. A quality preset initializes them; individually saved overrides remain distinct from the preset label. Resolution scale updates both the WebGL drawing buffer and EffectComposer render targets. FXAA samples the inverse physical buffer dimensions. The hardware maximum texture dimension bounds allocations.
++
++Texture detail resamples only immutable generated canvas assets and can restore each original source. Dynamic steering-wheel displays, numeric surface textures and render targets retain separate ownership. Mipmaps and hardware-bounded anisotropic filtering remain enabled. This is real resolution management, not KTX2 compression or an externally streamed asset pipeline.
++
++Shadow resolution, local reflections, mirror resolution/frequency, bloom, FXAA, particle density, grandstand crowds and vegetation instance counts have independent controls. Removing vegetation never removes physical barriers, timing infrastructure or track geometry. Quality changes do not modify vehicle physics.
++
++Local reflection probes alternate two completed cubemaps instead of sampling their write target. A failed capture restores renderer state and keeps the preceding complete reflection. Switching back to environment-only restores the original material map, rather than displaying a stale local probe. Anisotropy and texture settings do not resize live telemetry displays.
++
++## Controls do not wait for a rendered frame
++
++`src/input/pump.ts` samples actual keyboard, touch and selected-controller state on a separate 60 Hz timer. Physics still runs at its fixed rate in the worker. A render callback can be delayed or capped without withholding newly sampled pedals. This does not fabricate input heartbeats: genuinely blocked main-thread execution still triggers the worker's stale-input braking fallback. Pausing, disconnect handling and application disposal disable or stop input appropriately.
++
++## Camera rigs and accessibility
++
++Twenty fixed trackside platforms have authored side, elevation, field of view and track-distance coverage. A director selects coverage with hysteresis, pans toward predicted car position, resets on replay seeks, and never drags the physical platform behind the car. Unit tests cover an entire lap, cut boundaries, lap wrap and replay jumps. Per-rig obstruction/final visual review remains a separate quality task.
++
++Flags keep their text and optionally add distinct symbols and a yellow stripe pattern. High-contrast instruments are selectable without altering other color settings. Existing camera-shake, interface-scale and remapping controls remain available. Settings version 4 migrates versions 1–3 while retaining saved device calibration, bindings and vehicle setup.
