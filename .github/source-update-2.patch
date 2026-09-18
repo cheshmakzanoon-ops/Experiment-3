@@ -1,0 +1,363 @@
++  await expect.poll(async () => (await page.evaluate(() => window.apexDiagnostics())).renderer!.motionBlur.velocityFrames).toBeGreaterThan(3);
+   await page.screenshot({ path: info.outputPath('graphics-and-accessibility.png') });
+   expect(errors).toEqual([]);
+ });
+diff --git a/src/main.ts b/src/main.ts
+index 981e6cf..09fc03c 100644
+--- a/src/main.ts
++++ b/src/main.ts
+@@ -581,9 +581,11 @@ export class GameApp {
+         }
+         break;
+       case 'ers':
++        this.performanceCapture.interrupt('Deployment mode changed');
+         this.ers = ((this.ers + 1) % 3) as 0 | 1 | 2;
+         break;
+       case 'mute':
++        this.performanceCapture.interrupt('Audio workload changed');
+         this.audio.muted = !this.audio.muted;
+         this.ui.toast(this.audio.muted ? 'Audio muted.' : 'Audio enabled.');
+         break;
+diff --git a/src/rendering/motion-blur.ts b/src/rendering/motion-blur.ts
+new file mode 100644
+index 0000000..70f9b1c
+--- /dev/null
++++ b/src/rendering/motion-blur.ts
+@@ -0,0 +1,245 @@
++import * as T from 'three';
++import { Pass, FullScreenQuad } from 'three/addons/postprocessing/Pass.js';
++
++const vertex = /* glsl */ `
++  uniform mat4 previousViewProjection;
++  uniform mat4 previousModel;
++  uniform mat3 clipTransform;
++  uniform float historyValid;
++  varying vec4 currentClip;
++  varying vec4 previousClip;
++  varying float viewDepth;
++  varying vec2 clipUV;
++  void main() {
++    vec4 local = vec4(position, 1.0);
++    #ifdef USE_INSTANCING
++      local = instanceMatrix * local;
++    #endif
++    vec4 view = modelViewMatrix * local;
++    currentClip = projectionMatrix * view;
++    previousClip = historyValid > 0.5
++      ? previousViewProjection * previousModel * local : currentClip;
++    viewDepth = max(0.0, -view.z);
++    clipUV = (clipTransform * vec3(uv, 1.0)).xy;
++    gl_Position = currentClip;
++  }
++`;
++const fragment = /* glsl */ `
++  uniform sampler2D clipMap;
++  uniform float clipThreshold;
++  varying vec4 currentClip;
++  varying vec4 previousClip;
++  varying float viewDepth;
++  varying vec2 clipUV;
++  void main() {
++    if (clipThreshold > 0.0 && texture2D(clipMap, clipUV).a < clipThreshold) discard;
++    vec2 velocity = vec2(0.0);
++    if (currentClip.w > 0.0001 && previousClip.w > 0.0001)
++      velocity = 0.5 * (currentClip.xy / currentClip.w - previousClip.xy / previousClip.w);
++    gl_FragColor = vec4(velocity, min(viewDepth, 65000.0), 1.0);
++  }
++`;
++const compositeVertex = /* glsl */ `
++  varying vec2 vUv;
++  void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }
++`;
++const compositeFragment = /* glsl */ `
++  uniform sampler2D image;
++  uniform sampler2D motion;
++  uniform vec2 resolution;
++  uniform float shutter;
++  uniform float maximumPixels;
++  varying vec2 vUv;
++  void main() {
++    vec4 base = texture2D(image, vUv);
++    vec4 center = texture2D(motion, vUv);
++    vec2 pixels = center.rg * resolution * shutter;
++    float lengthPixels = length(pixels);
++    if (center.a < 0.5 || lengthPixels < 0.25) { gl_FragColor = base; return; }
++    pixels *= min(1.0, maximumPixels / max(lengthPixels, 0.0001));
++    vec2 sweep = pixels / resolution;
++    vec4 sum = base;
++    float weight = 1.0;
++    for (int i = 1; i <= 6; i++) {
++      vec2 uv = vUv - sweep * (float(i) / 6.0);
++      if (uv.x < 0.0 || uv.y < 0.0 || uv.x > 1.0 || uv.y > 1.0) continue;
++      vec4 neighbor = texture2D(motion, uv);
++      // Do not drag foreground bodywork, fences or the sky over the road.
++      if (neighbor.a < 0.5 || abs(neighbor.b - center.b) > max(0.15, center.b * 0.025)) continue;
++      float w = 1.0 - float(i) / 8.0;
++      sum += texture2D(image, uv) * w; weight += w;
++    }
++    gl_FragColor = sum / weight;
++  }
++`;
++interface History {
++  matrix: T.Matrix4;
++  frame: number;
++  generation: number;
++  original: T.Mesh['onBeforeRender'];
++  callback: T.Mesh['onBeforeRender'];
++}
++/** Bounded screen-space velocity blur for rigid meshes and static instances.
++ * Color remains current-frame only; history stores transforms, never old images.
++ * The HTML HUD is outside this pass. Unsupported GPUs render normally. */
++export class MotionBlurPass extends Pass {
++  readonly velocityTarget = new T.WebGLRenderTarget(1, 1, {
++    type: T.HalfFloatType, format: T.RGBAFormat,
++    minFilter: T.NearestFilter, magFilter: T.NearestFilter, depthBuffer: true,
++  });
++  private white = new T.DataTexture(new Uint8Array([255, 255, 255, 255]), 1, 1);
++  private velocityMaterial: T.ShaderMaterial;
++  private composite: T.ShaderMaterial;
++  private quad: FullScreenQuad;
++  private history = new WeakMap<T.Mesh, History>();
++  private visible: T.Mesh[] = [];
++  private hidden: T.Object3D[] = [];
++  private previousViewProjection = new T.Matrix4();
++  private currentViewProjection = new T.Matrix4();
++  private previousPosition = new T.Vector3();
++  private previousRotation = new T.Quaternion();
++  private previousTime = NaN;
++  private previousFov = 0;
++  private clearColor = new T.Color();
++  private generation = 0;
++  private frame = 0;
++  private ready = false;
++  private disposed = false;
++  private amount = 0;
++  velocityFrames = 0;
++  resets = 0;
++  constructor(private scene: T.Scene, private camera: T.PerspectiveCamera, readonly supported: boolean) {
++    super();
++    this.enabled = false;
++    this.white.needsUpdate = true;
++    this.velocityTarget.texture.name = 'APEX rigid motion / linear depth';
++    this.velocityMaterial = new T.ShaderMaterial({
++      name: 'APEX rigid motion vectors', vertexShader: vertex, fragmentShader: fragment,
++      uniforms: {
++        previousViewProjection: { value: this.previousViewProjection },
++        previousModel: { value: new T.Matrix4() }, historyValid: { value: 0 },
++        clipMap: { value: this.white }, clipThreshold: { value: 0 },
++        clipTransform: { value: new T.Matrix3() },
++      },
++      side: T.DoubleSide, blending: T.NoBlending, toneMapped: false,
++    });
++    this.composite = new T.ShaderMaterial({
++      name: 'APEX depth-gated motion blur', vertexShader: compositeVertex,
++      fragmentShader: compositeFragment, depthTest: false, depthWrite: false,
++      blending: T.NoBlending, toneMapped: false,
++      uniforms: { image: { value: null }, motion: { value: this.velocityTarget.texture },
++        resolution: { value: new T.Vector2(1, 1) }, shutter: { value: 0 }, maximumPixels: { value: 24 } },
++    });
++    this.quad = new FullScreenQuad(this.composite);
++  }
++  setStrength(value: number) {
++    const next = Number.isFinite(value) ? Math.max(0, Math.min(0.6, value)) : 0;
++    if (next !== this.amount) this.reset();
++    this.amount = next;
++    this.composite.uniforms.shutter.value = next;
++    this.enabled = !this.disposed && this.supported && next > 0;
++  }
++  reset() {
++    this.ready = false; this.previousTime = NaN; this.generation++; this.resets++;
++  }
++  setSize(width: number, height: number) {
++    this.velocityTarget.setSize(Math.max(1, Math.floor(width)), Math.max(1, Math.floor(height)));
++    this.composite.uniforms.resolution.value.set(this.velocityTarget.width, this.velocityTarget.height);
++    this.reset();
++  }
++  /** A dropped frame, seek or camera cut cannot become a full-screen smear. */
++  prepareFrame(delta: number, simulationTime: number) {
++    if (!this.enabled) return;
++    if (!Number.isFinite(delta) || delta <= 0 || delta > 0.12 ||
++      !Number.isFinite(simulationTime) ||
++      (Number.isFinite(this.previousTime) && (simulationTime < this.previousTime || simulationTime - this.previousTime > 1)) ||
++      (this.ready && (this.camera.position.distanceToSquared(this.previousPosition) > 625 ||
++        Math.abs(this.camera.quaternion.dot(this.previousRotation)) < 0.96 ||
++        Math.abs(this.camera.fov - this.previousFov) > 8))) this.reset();
++    this.previousTime = simulationTime;
++  }
++  private remember(mesh: T.Mesh): History {
++    let entry = this.history.get(mesh);
++    if (entry) return entry;
++    entry = { matrix: new T.Matrix4(), frame: -1, generation: -1,
++      original: mesh.onBeforeRender, callback: mesh.onBeforeRender };
++    const record = entry;
++    record.callback = (_renderer, _scene, _camera, _geometry, _material, group) => {
++      const u = this.velocityMaterial.uniforms;
++      u.previousModel.value.copy(record.matrix);
++      u.historyValid.value = this.ready && record.generation === this.generation && record.frame === this.frame - 1 ? 1 : 0;
++      // Three's callback passes a geometry group here (not an Object3D Group).
++      const index = (group as unknown as { materialIndex?: number } | null)?.materialIndex ?? 0;
++      const source = (Array.isArray(mesh.material) ? mesh.material[index] : mesh.material) as
++        T.Material & { map?: T.Texture | null };
++      const map = source?.map;
++      u.clipThreshold.value = map ? source.alphaTest : 0;
++      u.clipMap.value = map ?? this.white;
++      if (map) {
++        if (map.matrixAutoUpdate) map.updateMatrix();
++        u.clipTransform.value.copy(map.matrix);
++      } else u.clipTransform.value.identity();
++      this.velocityMaterial.uniformsNeedUpdate = true;
++    };
++    this.history.set(mesh, entry);
++    return entry;
++  }
++  render(renderer: T.WebGLRenderer, writeBuffer: T.WebGLRenderTarget, readBuffer: T.WebGLRenderTarget) {
++    if (this.disposed || !this.enabled) return;
++    const target = renderer.getRenderTarget(), autoClear = renderer.autoClear;
++    const background = this.scene.background, override = this.scene.overrideMaterial;
++    const shadow = renderer.shadowMap.enabled, alpha = renderer.getClearAlpha();
++    renderer.getClearColor(this.clearColor);
++    this.currentViewProjection.multiplyMatrices(this.camera.projectionMatrix, this.camera.matrixWorldInverse);
++    this.visible.length = 0; this.hidden.length = 0;
++    this.scene.traverseVisible((object) => {
++      if (object.userData.excludeMotionBlur || object instanceof T.Points || object instanceof T.Line) {
++        this.hidden.push(object); return;
++      }
++      if (!(object instanceof T.Mesh)) return;
++      const entry = this.remember(object);
++      entry.original = object.onBeforeRender;
++      object.onBeforeRender = entry.callback;
++      this.visible.push(object);
++    });
++    try {
++      for (const object of this.hidden) object.visible = false;
++      renderer.autoClear = false; renderer.shadowMap.enabled = false;
++      this.scene.background = null; this.scene.overrideMaterial = this.velocityMaterial;
++      renderer.setRenderTarget(this.velocityTarget);
++      renderer.setClearColor(0x000000, 0); renderer.clear(true, true, false);
++      renderer.render(this.scene, this.camera);
++      this.velocityFrames++;
++    } finally {
++      for (const object of this.hidden) object.visible = true;
++      for (const mesh of this.visible) mesh.onBeforeRender = this.history.get(mesh)!.original;
++      this.scene.background = background; this.scene.overrideMaterial = override;
++      renderer.shadowMap.enabled = shadow; renderer.autoClear = autoClear;
++      renderer.setClearColor(this.clearColor, alpha); renderer.setRenderTarget(target);
++    }
++    // Commit history only after the actual velocity draw succeeds.
++    for (const mesh of this.visible) {
++      const entry = this.history.get(mesh)!;
++      entry.matrix.copy(mesh.matrixWorld); entry.frame = this.frame; entry.generation = this.generation;
++    }
++    this.previousViewProjection.copy(this.currentViewProjection);
++    this.previousPosition.copy(this.camera.position); this.previousRotation.copy(this.camera.quaternion);
++    this.previousFov = this.camera.fov; this.ready = true; this.frame++;
++    this.composite.uniforms.image.value = readBuffer.texture;
++    renderer.setRenderTarget(this.renderToScreen ? null : writeBuffer);
++    this.quad.render(renderer);
++  }
++  diagnostics() {
++    return { supported: this.supported, active: this.enabled, strength: this.amount,
++      velocityFrames: this.velocityFrames, resets: this.resets,
++      width: this.velocityTarget.width, height: this.velocityTarget.height, maximumPixels: 24 };
++  }
++  dispose() {
++    if (this.disposed) return;
++    this.disposed = true; this.enabled = false;
++    this.velocityTarget.dispose(); this.velocityMaterial.dispose(); this.composite.dispose();
++    this.quad.dispose(); this.white.dispose();
++    this.visible.length = 0; this.hidden.length = 0;
++    this.history = new WeakMap();
++  }
++}
+diff --git a/src/rendering/options.ts b/src/rendering/options.ts
+index ad04a2c..17eddf1 100644
+--- a/src/rendering/options.ts
++++ b/src/rendering/options.ts
+@@ -11,6 +11,7 @@ export interface GraphicsOptions {
+   vegetationDensity: number;
+   crowd: boolean;
+   bloom: boolean;
++  motionBlur: number;
+   antialias: boolean;
+   anisotropy: 1 | 2 | 4 | 8 | 16;
+ }
+@@ -25,6 +26,7 @@ export function graphicsPreset(quality: Quality): GraphicsOptions {
+     vegetationDensity: quality === 'low' ? 0.5 : 1,
+     crowd: quality !== 'low',
+     bloom: quality === 'high',
++    motionBlur: 0,
+     antialias: true,
+     anisotropy: quality === 'low' ? 2 : quality === 'high' ? 16 : 8,
+   };
+@@ -47,6 +49,7 @@ export function validateGraphics(value: unknown, quality: Quality): GraphicsOpti
+     vegetationDensity: number(p.vegetationDensity, fallback.vegetationDensity, 0, 1),
+     crowd: typeof p.crowd === 'boolean' ? p.crowd : fallback.crowd,
+     bloom: typeof p.bloom === 'boolean' ? p.bloom : fallback.bloom,
++    motionBlur: number(p.motionBlur, fallback.motionBlur, 0, 0.6),
+     antialias: typeof p.antialias === 'boolean' ? p.antialias : fallback.antialias,
+     anisotropy: choice(p.anisotropy, [1, 2, 4, 8, 16], fallback.anisotropy),
+   };
+diff --git a/src/rendering/renderer.ts b/src/rendering/renderer.ts
+index 4e8993c..3a2dad5 100644
+--- a/src/rendering/renderer.ts
++++ b/src/rendering/renderer.ts
+@@ -6,6 +6,7 @@ import { InertialCamera, ViewOrientation } from './camera-dynamics.ts';
+ import { ReflectionSystem } from './reflections.ts';
+ import { DebrisView } from './debris.ts';
+ import { PitCrewView } from './pit-crew.ts';
++import { MotionBlurPass } from './motion-blur.ts';
+ import { GpuTimer } from './gpu-timer.ts';
+ import { TextureBudget } from './texture-budget.ts';
+ import {
+@@ -44,6 +45,7 @@ export class RacingRenderer {
+   private sky = new Sky();
+   private composer: EffectComposer;
+   private bloom: UnrealBloomPass;
++  private motionBlur: MotionBlurPass;
+   private fxaa = new ShaderPass(FXAAShader);
+   private textures = new TextureBudget();
+   graphics: GraphicsOptions = graphicsPreset('medium');
+@@ -112,6 +114,7 @@ export class RacingRenderer {
+     this.renderer.shadowMap.enabled = true;
+     this.renderer.shadowMap.type = T.PCFSoftShadowMap;
+     this.sky.scale.setScalar(450000);
++    this.sky.userData.excludeMotionBlur = true;
+     const u = this.sky.material.uniforms;
+     u.turbidity.value = 5;
+     u.rayleigh.value = 1.8;
+@@ -153,6 +156,8 @@ export class RacingRenderer {
+     }
+     this.composer = new EffectComposer(this.renderer);
+     this.composer.addPass(new RenderPass(this.scene, this.camera));
++    this.motionBlur = new MotionBlurPass(this.scene, this.camera, this.renderer.extensions.has('EXT_color_buffer_float'));
++    this.composer.addPass(this.motionBlur);
+     this.bloom = new UnrealBloomPass(new T.Vector2(1, 1), 0.1, 0.3, 1.3);
+     this.composer.addPass(this.bloom);
+     this.composer.addPass(new OutputPass());
+@@ -268,6 +273,7 @@ export class RacingRenderer {
+       this.sun.shadow.needsUpdate = true;
+     }
+     this.bloom.enabled = g.bloom;
++    this.motionBlur.setStrength(g.motionBlur);
+     this.fxaa.enabled = g.antialias;
+     this.circuit.crowd.visible = g.crowd;
+     this.circuit.vegetationGroup.traverse((object) => {
+@@ -304,6 +310,7 @@ export class RacingRenderer {
+     this.fxaa.uniforms.resolution.value.set(1 / actual.x, 1 / actual.y);
+   }
+   changeCamera(mode?: CameraMode) {
++    this.motionBlur.reset();
+     const modes: CameraMode[] = ['chase', 'cockpit', 'pod', 'trackside'];
+     this.mode = mode ?? modes[(modes.indexOf(this.mode) + 1) % modes.length];
+     this.initialized = false;
+@@ -315,6 +322,7 @@ export class RacingRenderer {
+     return this.mode;
+   }
+   reset() {
++    this.motionBlur.reset();
+     this.initialized = false;
+     this.inertia.reset();
+     this.viewOrientation.reset();
+@@ -484,6 +492,7 @@ export class RacingRenderer {
+         this.graphics.reflections === 'local' && !menu,
+       );

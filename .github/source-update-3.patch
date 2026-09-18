@@ -1,0 +1,164 @@
+       this.reflection.renderMirrors(this.renderer, this.scene, car.root, dt);
++      this.motionBlur.prepareFrame(wallDelta, b[H.TIME]);
+       this.composer.render();
+     } finally {
+       this.gpuTimer.end();
+@@ -552,6 +561,7 @@ export class RacingRenderer {
+       mirrorWidth: this.reflection.mirrorWidth,
+       reflectionProbeUpdates: this.reflection.probeUpdates,
+       localProbeActive: this.reflection.localProbeActive,
++      motionBlur: this.motionBlur.diagnostics(),
+       gpuMilliseconds: this.gpuTimer.milliseconds,
+       gpuTimerSupported: this.gpuTimer.supported,
+       fps: this.fps,
+@@ -569,6 +579,7 @@ export class RacingRenderer {
+     this.disposed = true;
+     this.reflection.dispose();
+     this.gpuTimer.dispose();
++    this.motionBlur.dispose();
+     this.bloom.dispose();
+     this.fxaa.dispose();
+     this.textures.dispose();
+diff --git a/src/ui/presentation.ts b/src/ui/presentation.ts
+index fbd8e9a..4a86137 100644
+--- a/src/ui/presentation.ts
++++ b/src/ui/presentation.ts
+@@ -35,6 +35,7 @@ const choices: [keyof GraphicsOptions, string, (string | number)[], string[]][]
+ ];
+ const ranges: [keyof GraphicsOptions, string, number, number, number][] = [
+   ['resolutionScale', 'Render resolution scale', 0.5, 1.5, 0.05],
++  ['motionBlur', 'Motion blur (0 disables; HUD stays sharp)', 0, 0.6, 0.05],
+   ['particleDensity', 'Smoke, spray and rain density', 0, 1, 0.1],
+   ['vegetationDensity', 'Environment vegetation density', 0, 1, 0.1],
+ ];
+diff --git a/tests/motion-blur.test.ts b/tests/motion-blur.test.ts
+new file mode 100644
+index 0000000..32c13bb
+--- /dev/null
++++ b/tests/motion-blur.test.ts
+@@ -0,0 +1,97 @@
++import { expect, it, vi } from 'vitest';
++import * as T from 'three';
++import { MotionBlurPass } from '../src/rendering/motion-blur.ts';
++
++function fixture(supported = true) {
++  const scene = new T.Scene(), camera = new T.PerspectiveCamera(60, 1, 0.1, 100);
++  const mesh = new T.Mesh(new T.BoxGeometry(), new T.MeshBasicMaterial());
++  mesh.position.z = -5; scene.add(mesh); scene.updateMatrixWorld(true); camera.updateMatrixWorld(true);
++  return { scene, camera, mesh, pass: new MotionBlurPass(scene, camera, supported) };
++}
++it('off by default and unavailable float buffers cannot enable a fake effect', () => {
++  const { pass } = fixture(false);
++  expect(pass.enabled).toBe(false);
++  pass.setStrength(0.4);
++  expect(pass.enabled).toBe(false);
++  expect(pass.diagnostics().supported).toBe(false);
++  pass.dispose();
++});
++it('limits shutter strength and independently resizes the motion buffer', () => {
++  const { pass } = fixture();
++  pass.setStrength(10);
++  expect(pass.diagnostics().strength).toBe(0.6);
++  pass.setSize(801.9, 450.7);
++  expect(pass.diagnostics().width).toBe(801);
++  expect(pass.diagnostics().height).toBe(450);
++  pass.setStrength(NaN);
++  expect(pass.enabled).toBe(false);
++  pass.dispose();
++});
++it('disposal releases each owned resource once and cannot re-enable rendering', () => {
++  const { pass } = fixture();
++  const dispose = vi.spyOn(pass.velocityTarget, 'dispose');
++  pass.setStrength(0.3); pass.dispose(); pass.dispose(); pass.setStrength(0.4);
++  expect(dispose).toHaveBeenCalledTimes(1);
++  expect(pass.enabled).toBe(false);
++});
++function mockRenderer(scene: T.Scene, camera: T.Camera, fail = false) {
++  const state = { target: null as T.WebGLRenderTarget | null, color: new T.Color(0x346789), alpha: 0.4 };
++  const matrices: T.Matrix4[] = [], valid: number[] = [];
++  const renderer = {
++    autoClear: true, shadowMap: { enabled: true },
++    getRenderTarget: () => state.target,
++    setRenderTarget: (target: T.WebGLRenderTarget | null) => { state.target = target; },
++    getClearColor: (target: T.Color) => target.copy(state.color),
++    getClearAlpha: () => state.alpha,
++    setClearColor: (color: T.ColorRepresentation, alpha: number) => { state.color.set(color); state.alpha = alpha; },
++    clear: vi.fn(),
++    render: (object: T.Object3D) => {
++      if (object !== scene) return; // The fullscreen quad is a separate draw.
++      if (fail) throw new Error('GPU draw failed');
++      scene.traverseVisible((object) => {
++        if (!(object instanceof T.Mesh)) return;
++        const material = scene.overrideMaterial as T.ShaderMaterial;
++        object.onBeforeRender(renderer as unknown as T.WebGLRenderer, scene, camera, object.geometry, material, null!);
++        matrices.push(material.uniforms.previousModel.value.clone());
++        valid.push(material.uniforms.historyValid.value);
++      });
++    },
++  };
++  return { renderer: renderer as unknown as T.WebGLRenderer, state, matrices, valid };
++}
++it('uses the preceding rigid transform and invalidates history after a cut or seek', () => {
++  const { scene, camera, mesh, pass } = fixture();
++  const { renderer, matrices, valid } = mockRenderer(scene, camera);
++  const input = new T.WebGLRenderTarget(), output = new T.WebGLRenderTarget();
++  pass.setStrength(0.3);
++  pass.prepareFrame(1 / 60, 1); pass.render(renderer, output, input);
++  mesh.position.x = 1; scene.updateMatrixWorld(true);
++  pass.prepareFrame(1 / 60, 1.016); pass.render(renderer, output, input);
++  expect(valid).toEqual([0, 1]);
++  expect(matrices[1].elements[12]).toBe(0); // Not the current x=1 transform.
++  camera.position.x = 40; camera.updateMatrixWorld(true);
++  pass.prepareFrame(1 / 60, 1.032); pass.render(renderer, output, input);
++  expect(valid.at(-1)).toBe(0);
++  pass.prepareFrame(1 / 60, 0); pass.render(renderer, output, input);
++  expect(valid.at(-1)).toBe(0);
++  pass.prepareFrame(0.5, 0.016); pass.render(renderer, output, input);
++  expect(valid.at(-1)).toBe(0);
++  pass.dispose(); input.dispose(); output.dispose();
++});
++it('restores callbacks, clear color, visibility, shadows and targets even after a failed draw', () => {
++  const { scene, camera, mesh, pass } = fixture();
++  const hook = vi.fn(); mesh.onBeforeRender = hook;
++  const points = new T.Points(new T.BufferGeometry(), new T.PointsMaterial()); scene.add(points);
++  const background = new T.Color(0xabcdef); scene.background = background;
++  const { renderer, state } = mockRenderer(scene, camera, true);
++  const input = new T.WebGLRenderTarget(), output = new T.WebGLRenderTarget();
++  pass.setStrength(0.3);
++  expect(() => pass.render(renderer, output, input)).toThrow('GPU draw failed');
++  expect(mesh.onBeforeRender).toBe(hook);
++  expect(points.visible).toBe(true); expect(scene.background).toBe(background);
++  expect(scene.overrideMaterial).toBeNull(); expect(renderer.autoClear).toBe(true);
++  expect(renderer.shadowMap.enabled).toBe(true); expect(state.target).toBeNull();
++  expect(state.color.getHex()).toBe(0x346789); expect(state.alpha).toBe(0.4);
++  expect(pass.diagnostics().velocityFrames).toBe(0);
++  pass.dispose(); input.dispose(); output.dispose();
++});
+diff --git a/tests/presentation.test.ts b/tests/presentation.test.ts
+index c945b3c..36d6d1d 100644
+--- a/tests/presentation.test.ts
++++ b/tests/presentation.test.ts
+@@ -33,6 +33,7 @@ it('preserves independent quality controls through version-four serialization',
+     particleDensity: 0.2,
+     crowd: false,
+     bloom: true,
++    motionBlur: 0.35,
+     antialias: false,
+     anisotropy: 4,
+   });
+@@ -48,6 +49,7 @@ it('bounds every numeric budget and rejects unsupported quality values', () => {
+       shadowSize: 999,
+       particleDensity: -8,
+       vegetationDensity: 10,
++      motionBlur: 8,
+       anisotropy: 999,
+       reflections: 'magic',
+       antialias: 'false',
+@@ -59,6 +61,7 @@ it('bounds every numeric budget and rejects unsupported quality values', () => {
+   expect(g.shadowSize).toBe(1024);
+   expect(g.particleDensity).toBe(0);
+   expect(g.vegetationDensity).toBe(1);
++  expect(g.motionBlur).toBe(0.6);
+   expect(g.anisotropy).toBe(8);
+   expect(g.reflections).toBe('environment');
+   expect(g.antialias).toBe(true);
