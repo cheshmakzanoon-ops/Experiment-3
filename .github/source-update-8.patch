@@ -1,0 +1,303 @@
+diff --git a/e2e/application.spec.ts b/e2e/application.spec.ts
+index b134b9f..ada8de8 100644
+--- a/e2e/application.spec.ts
++++ b/e2e/application.spec.ts
+@@ -236,6 +236,9 @@ test('high quality compiles shaders and renders a live local reflection', async
+   await page.locator('[name=quality]').selectOption('high');
+   await page.getByRole('button', { name: 'APPLY & SAVE' }).click();
+   await begin(page);
++  const started = await diag(page);
++  expect(started.renderer!.warmupFrames).toBeGreaterThanOrEqual(2);
++  expect(started.recordingWarnings).toEqual([]);
+   await page.keyboard.press('c');
+   await expect
+     .poll(async () => (await diag(page)).renderer?.reflectionProbeUpdates, { timeout: 60000 })
+diff --git a/src/main.ts b/src/main.ts
+index b1fdfa1..81fb33a 100644
+--- a/src/main.ts
++++ b/src/main.ts
+@@ -42,6 +42,7 @@ export class GameApp {
+   private exporter = new TelemetryExport();
+   private exporting = false;
+   private savingSettings = false;
++  private disposed = false;
+   private settings: Settings = structuredClone(DEFAULT_SETTINGS);
+   private worker: Worker | null = null;
+   private current: Float32Array | null = null;
+@@ -149,6 +150,7 @@ export class GameApp {
+     } catch (e) {
+       this.ui.toast(`Local preferences unavailable: ${e instanceof Error ? e.message : String(e)}`);
+     }
++    if (this.disposed) return;
+     if (matchMedia('(prefers-reduced-motion: reduce)').matches) this.settings.shake = 0;
+     this.input.settings = this.settings;
+     this.ui.applyBindings(this.settings.bindings);
+@@ -219,6 +221,7 @@ export class GameApp {
+         `Audio unavailable: ${e instanceof Error ? e.message : String(e)}. Racing remains available.`,
+       );
+     }
++    if (this.disposed) return;
+     this.options = { ...options, setup: { ...this.settings.setup } };
+     this.ui.options = this.options;
+     this.auto = false;
+@@ -296,7 +299,15 @@ export class GameApp {
+     this.post({ type: 'init', options: this.options });
+     await ready;
+     clearTimeout(this.initTimeout);
+-    if (this.errorStopped) return;
++    if (this.errorStopped || this.disposed || generation !== this.generation) return;
++    if (!this.renderer || !this.current)
++      throw new Error('Session initialization has no render state');
++    const warmed = await this.renderer.prepare(
++      this.current,
++      (message) => this.ui.loading(message),
++      () => this.errorStopped || this.disposed || generation !== this.generation,
++    );
++    if (!warmed || this.errorStopped || this.disposed || generation !== this.generation) return;
+     const cars = this.options.opponents + 1;
+     this.replay = new SessionReplay(cars, undefined, (message) => {
+       if (generation !== this.generation) return;
+@@ -339,17 +350,20 @@ export class GameApp {
+   }
+   private frame = (time: number) => {
+     this.timer = requestAnimationFrame(this.frame);
+-    if (this.errorStopped || !this.renderer || !this.current || !this.previous) return;
++    if (
++      this.errorStopped ||
++      this.state === 'loading' ||
++      !this.renderer ||
++      !this.current ||
++      !this.previous
++    )
++      return;
+     const wallDelta = Math.max(0.001, (time - (this.previousTime || time - 16)) / 1000),
+       dt = clamp(wallDelta, 0.001, 0.08);
+     this.previousTime = time;
+     // Menus and paused telemetry do not need a continuously saturated GPU.
+     // Input and worker clocks above remain independent of this presentation cap.
+-    const idle =
+-      this.state === 'menu' ||
+-      this.state === 'loading' ||
+-      this.state === 'paused' ||
+-      this.state === 'results';
++    const idle = this.state === 'menu' || this.state === 'paused' || this.state === 'results';
+     if (idle && this.renderedState === this.state && time - this.renderedAt < 1000 / 15) return;
+     this.renderedAt = time;
+     this.renderedState = this.state;
+@@ -388,15 +402,7 @@ export class GameApp {
+       );
+       this.ui.setText('replayPlay', this.replayPlaying ? 'PAUSE' : 'PLAY');
+     }
+-    this.renderer.draw(
+-      a,
+-      b,
+-      alpha,
+-      dt,
+-      this.state === 'menu' || this.state === 'loading',
+-      this.state === 'replay',
+-      wallDelta,
+-    );
++    this.renderer.draw(a, b, alpha, dt, this.state === 'menu', this.state === 'replay', wallDelta);
+     if (this.state !== 'menu') this.ui.update(b, this.renderer, this.auto, this.ers);
+     this.audio.update(
+       b,
+@@ -715,6 +721,9 @@ export class GameApp {
+     };
+   }
+   dispose() {
++    if (this.disposed) return;
++    this.disposed = true;
++    this.generation++;
+     this.exporter.cancel();
+     if (this.replay) void this.replay.dispose();
+     this.inputPump.dispose();
+diff --git a/src/rendering/renderer.ts b/src/rendering/renderer.ts
+index a4cdf54..f6ca5e5 100644
+--- a/src/rendering/renderer.ts
++++ b/src/rendering/renderer.ts
+@@ -165,6 +165,58 @@ export class RacingRenderer {
+     }
+     this.cars.forEach((c, i) => (c.root.visible = i < n));
+   }
++  warmupFrames = 0;
++  /** Build the grid and warm real GPU paths while the physics worker is paused.
++   * Yield between car construction and shader stages so progress can repaint.
++   * No recording sample or race time is invented during loading. */
++  async prepare(
++    frame: Float32Array,
++    progress: (message: string) => void,
++    cancelled: () => boolean,
++    yieldFrame: () => Promise<void> = () =>
++      new Promise((resolve) => requestAnimationFrame(() => resolve())),
++  ) {
++    const total = frame[H.CARS];
++    if (!Number.isInteger(total) || total < 1 || total > 12) throw new Error('Invalid warmup grid');
++    for (let n = this.cars.length + 1; n <= total; n++) {
++      if (cancelled()) return false;
++      progress(`Building original Formula car ${n} / ${total}…`);
++      this.setCars(n);
++      await yieldFrame();
++    }
++    if (cancelled()) return false;
++    this.setCars(total);
++    for (let i = 0; i < total; i++)
++      this.cars[i].update(frame, frame, carBase(i), 1, 1 / 120, frame[H.TIME], false);
++    progress('Compiling circuit and vehicle materials…');
++    await yieldFrame();
++    if (cancelled()) return false;
++    await this.renderer.compileAsync(this.scene, this.camera);
++    if (cancelled()) return false;
++    const camera = this.mode;
++    try {
++      for (const mode of ['chase', 'cockpit'] as const) {
++        progress(
++          mode === 'chase'
++            ? 'Warming shadows and scene reflections…'
++            : 'Warming cockpit, mirrors and post-processing…',
++        );
++        await yieldFrame();
++        if (cancelled()) return false;
++        this.changeCamera(mode);
++        this.draw(frame, frame, 1, 1 / 120, false, true);
++        this.warmupFrames++;
++        await this.renderer.compileAsync(this.scene, this.camera);
++        if (cancelled()) return false;
++      }
++    } finally {
++      if (!cancelled()) {
++        this.changeCamera(camera);
++        this.reset();
++      }
++    }
++    return true;
++  }
+   setQuality(q: Quality, options: GraphicsOptions = graphicsPreset(q)) {
+     this.quality = q;
+     this.graphics = validateGraphics(options, q);
+@@ -435,6 +487,7 @@ export class RacingRenderer {
+       (a, b) => a - b,
+     );
+     return {
++      warmupFrames: this.warmupFrames,
+       graphics: { ...this.graphics },
+       renderWidth: this.renderWidth,
+       renderHeight: this.renderHeight,
+diff --git a/tests/startup.test.ts b/tests/startup.test.ts
+new file mode 100644
+index 0000000..fb467ef
+--- /dev/null
++++ b/tests/startup.test.ts
+@@ -0,0 +1,113 @@
++import { expect, it, vi } from 'vitest';
++import { RacingRenderer } from '../src/rendering/renderer.ts';
++import { CAR_STRIDE, HEADER, H } from '../src/simulation/protocol.ts';
++
++function fixture() {
++  const calls: string[] = [];
++  const sample = new Float32Array(HEADER + CAR_STRIDE * 3);
++  sample[H.CARS] = 3;
++  sample[H.TIME] = 0;
++  const target = {
++    cars: [] as { update: ReturnType<typeof vi.fn> }[],
++    scene: {},
++    camera: {},
++    mode: 'pod',
++    warmupFrames: 0,
++    setCars(n: number) {
++      while (this.cars.length < n) this.cars.push({ update: vi.fn() });
++      calls.push(`cars:${n}`);
++    },
++    renderer: {
++      compileAsync: vi.fn(async () => {
++        calls.push('compile');
++      }),
++    },
++    changeCamera(mode: string) {
++      this.mode = mode;
++      calls.push(mode);
++    },
++    reset: vi.fn(),
++    draw: vi.fn(
++      (
++        a: Float32Array,
++        b: Float32Array,
++        _alpha: number,
++        _dt: number,
++        menu: boolean,
++        replay: boolean,
++      ) => {
++        expect(a).toBe(sample);
++        expect(b[H.TIME]).toBe(0);
++        expect(menu).toBe(false);
++        expect(replay).toBe(true);
++        calls.push('draw');
++      },
++    ),
++  };
++  return { target, calls, sample, typed: target as unknown as RacingRenderer };
++}
++it('yields construction, compiles and warms camera passes without modifying simulation time', async () => {
++  const { target, typed, sample, calls } = fixture();
++  const yieldFrame = vi.fn(async () => {
++    calls.push('yield');
++  });
++  expect(
++    await RacingRenderer.prototype.prepare.call(typed, sample, vi.fn(), () => false, yieldFrame),
++  ).toBe(true);
++  expect(target.cars).toHaveLength(3);
++  expect(target.renderer.compileAsync).toHaveBeenCalledTimes(3);
++  expect(target.draw).toHaveBeenCalledTimes(2);
++  expect(target.mode).toBe('pod');
++  expect(target.warmupFrames).toBe(2);
++  expect(sample[H.TICK]).toBe(0);
++  expect(calls.indexOf('compile')).toBeGreaterThan(calls.indexOf('cars:3'));
++  expect(calls.indexOf('draw')).toBeGreaterThan(calls.indexOf('compile'));
++});
++it('stops cancelled construction before touching any further GPU resources', async () => {
++  const { target, typed, sample } = fixture();
++  let cancelled = false;
++  const result = await RacingRenderer.prototype.prepare.call(
++    typed,
++    sample,
++    vi.fn(),
++    () => cancelled,
++    async () => {
++      cancelled = true;
++    },
++  );
++  expect(result).toBe(false);
++  expect(target.cars).toHaveLength(1);
++  expect(target.draw).not.toHaveBeenCalled();
++  expect(target.renderer.compileAsync).not.toHaveBeenCalled();
++});
++it('a shader failure rejects initialization instead of starting unprepared gameplay', async () => {
++  const { target, typed, sample } = fixture();
++  target.renderer.compileAsync.mockRejectedValueOnce(new Error('Shader failure'));
++  await expect(
++    RacingRenderer.prototype.prepare.call(
++      typed,
++      sample,
++      vi.fn(),
++      () => false,
++      async () => undefined,
++    ),
++  ).rejects.toThrow('Shader failure');
++  expect(target.draw).not.toHaveBeenCalled();
++});
++it('restores the selected camera when a GPU warmup pass throws', async () => {
++  const { target, typed, sample } = fixture();
++  target.draw.mockImplementationOnce(() => {
++    throw new Error('GPU pass failed');
++  });
++  await expect(
++    RacingRenderer.prototype.prepare.call(
++      typed,
++      sample,
++      vi.fn(),
++      () => false,
++      async () => undefined,
++    ),
++  ).rejects.toThrow('GPU pass failed');
++  expect(target.mode).toBe('pod');
++  expect(target.reset).toHaveBeenCalled();
++});
