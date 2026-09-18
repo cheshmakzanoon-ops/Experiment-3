@@ -1,0 +1,136 @@
+diff --git a/docs/AERO_AND_DYNAMICS.md b/docs/AERO_AND_DYNAMICS.md
+index ad22f6f..3854786 100644
+--- a/docs/AERO_AND_DYNAMICS.md
++++ b/docs/AERO_AND_DYNAMICS.md
+@@ -25,3 +25,7 @@ Initial velocity and wheel rotation are set once for defined-speed braking/kerb
+ The first run measured dry stopping distances of 18.86, 54.66 and 96.83 m from 100, 200 and 300 km/h. On the skidpad, measured lateral acceleration was 0.289, 0.792 and 1.515 g; each agrees with the corresponding measured speed/radius within 0.002 g. These are **model results**, not proof of agreement with a real vehicle. Kerb severity increased measured peak load from approximately 3.90 to 5.98 to 7.73 kN. Repeated slalom yaw amplitude remained bounded and decayed after steering ceased.
+ 
+ Remaining whole-project work includes broader multi-car robustness, local race-control flags, stronger driver animation/audio quality, full scenario verification and target-device profiling. Passing these isolated cases is not full master-directive completion.
++
++## Race integration regression and repair
++
++The first candidate passed isolated dynamics but failed the changing-weather whole-field race: three side-by-side cars missed their legal pit entry. Preparation now budgets lateral travel time, and cars blocked outside the entry corridor yield through normal braking to traffic already nearer that corridor. The repeat completed both ten-car three-lap races with zero recorded impacts, and all ten cars serviced their tires in changing weather. Existing legal-entry checks and whole-field acceptance assertions remain intact; neither was relaxed to make the test pass.
+diff --git a/src/simulation/ai.ts b/src/simulation/ai.ts
+index db57714..a213be7 100644
+--- a/src/simulation/ai.ts
++++ b/src/simulation/ai.ts
+@@ -1,5 +1,10 @@
+ import { TrafficPlanner, personality, type DriverPersonality } from './traffic.ts';
+-import { pitMergeConflict, pitYieldSpeed } from './pit-safety.ts';
++import {
++  pitMergeConflict,
++  pitYieldSpeed,
++  pitPreparationDistance,
++  pitApproachTrafficSpeed,
++} from './pit-safety.ts';
+ import { peakGrip } from './tire.ts';
+ import { approach, clamp, mod, Vec3 } from '../core/math.ts';
+ import { VEHICLE } from './config.ts';
+@@ -70,7 +75,8 @@ export class AIDriver {
+       }
+     }
+     const entryGap = mod(track.length - 210 - c.s, track.length);
+-    const preparingPit = c.pitRequested && !c.inPit && entryGap < 450;
++    const preparingPit =
++      c.pitRequested && !c.inPit && entryGap < pitPreparationDistance(c.speed, c.lateral);
+     if (this.tacticalClock > 1 / 12 && !c.inPit) {
+       this.tacticalClock = 0;
+       const grip = clamp(
+@@ -145,6 +151,13 @@ export class AIDriver {
+         desired,
+         Math.sqrt(14 * 14 + 2 * braking * 0.85 * Math.max(0, entryGap - 30)),
+       );
++    if (preparingPit) {
++      const yielding = pitApproachTrafficSpeed(c, cars, track, this.desiredOffset);
++      if (yielding < desired) {
++        desired = yielding;
++        this.decision = 'YIELD FOR PIT APPROACH';
++      }
++    }
+     if (race.flag === 'YELLOW') desired *= 0.68;
+     if (pit) {
+       desired = Math.min(desired, 21.1);
+diff --git a/src/simulation/pit-safety.ts b/src/simulation/pit-safety.ts
+index d4373a3..bf14d94 100644
+--- a/src/simulation/pit-safety.ts
++++ b/src/simulation/pit-safety.ts
+@@ -56,3 +56,35 @@ export function pitYieldSpeed(car: Vehicle, conflict: boolean, braking: number):
+   const remaining = Math.max(0, PIT_HOLD_S - car.s);
+   return Math.sqrt(2 * clamp(braking, 1, 8) * remaining);
+ }
++
++/** Preparation must budget a finite-speed cross-track movement plus controller
++ * response, not assume every car starts next to the pit-entry lane. */
++export function pitPreparationDistance(speed: number, lateral: number, entryOffset = 6) {
++  return Math.max(450, Math.max(0, speed) * (Math.abs(entryOffset - lateral) / 1.6 + 3));
++}
++/** When an occupied approach corridor prevents moving toward the pit entry,
++ * yield longitudinally to traffic already nearer that corridor. Otherwise two
++ * equally slow cars can stay side by side until the entry line is missed.
++ * This returns a pedal-controller target only; no pose or velocity is rewritten.
++ */
++export function pitApproachTrafficSpeed(
++  car: Vehicle,
++  cars: readonly Vehicle[],
++  track: Track,
++  plannedOffset: number,
++  entryOffset = 6,
++): number {
++  if (Math.abs(car.lateral - entryOffset) < 1.4 || Math.abs(plannedOffset - entryOffset) < 1.4)
++    return Infinity;
++  let speed = Infinity;
++  for (const other of cars) {
++    if (other === car || other.retired || other.inPit) continue;
++    const gap = mod(other.s - car.s + track.length / 2, track.length) - track.length / 2;
++    const reserve = 8 + Math.max(car.speed, other.speed) * 0.75;
++    const nearer =
++      Math.abs(other.lateral - entryOffset) < Math.abs(car.lateral - entryOffset) - 0.5;
++    if (nearer && gap > -reserve && gap < reserve && Math.abs(other.lateral - car.lateral) > 2)
++      speed = Math.min(speed, Math.max(0, other.speed - 4));
++  }
++  return speed;
++}
+diff --git a/tests/pit-approach.test.ts b/tests/pit-approach.test.ts
+new file mode 100644
+index 0000000..6025fc8
+--- /dev/null
++++ b/tests/pit-approach.test.ts
+@@ -0,0 +1,38 @@
++import { expect, it } from 'vitest';
++import { Track } from '../src/simulation/track.ts';
++import { Vehicle } from '../src/simulation/vehicle.ts';
++import { pitApproachTrafficSpeed, pitPreparationDistance } from '../src/simulation/pit-safety.ts';
++
++it('budgets more approach distance for an outside-lane car at higher speed', () => {
++  expect(pitPreparationDistance(60, -6)).toBeGreaterThan(pitPreparationDistance(30, -6));
++  expect(pitPreparationDistance(60, -6)).toBeGreaterThan(pitPreparationDistance(60, 5));
++});
++it('yields behind adjacent entry-lane traffic instead of maintaining a blocked side-by-side approach', () => {
++  const t = new Track(),
++    c = new Vehicle(0),
++    other = new Vehicle(1);
++  c.s = t.length - 350;
++  c.lateral = 1.38;
++  c.speed = 14;
++  other.s = c.s - 7.5;
++  other.lateral = 5.74;
++  other.speed = 14;
++  expect(pitApproachTrafficSpeed(c, [c, other], t, 1.38)).toBe(10);
++  other.s = c.s + 35;
++  expect(pitApproachTrafficSpeed(c, [c, other], t, 1.38)).toBe(Infinity);
++});
++it('does not make the car already occupying the entry lane yield back in a circular wait', () => {
++  const t = new Track(),
++    c = new Vehicle(0),
++    other = new Vehicle(1);
++  c.s = 2000;
++  c.lateral = 5.8;
++  c.speed = 14;
++  other.s = 2002;
++  other.lateral = 1.4;
++  other.speed = 14;
++  expect(pitApproachTrafficSpeed(c, [c, other], t, 6)).toBe(Infinity);
++  c.lateral = 1.38;
++  other.lateral = 5.8;
++  expect(pitApproachTrafficSpeed(c, [c, other], t, 6)).toBe(Infinity);
++});
