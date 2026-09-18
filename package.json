@@ -19,7 +19,8 @@
     "format": "prettier --write src tests e2e scripts *.json *.ts *.html",
     "check": "npm run lint && npm test && npm run build",
     "test:dynamics": "node --experimental-transform-types scripts/dynamics-benchmark.ts",
-    "test:race-control": "node --experimental-transform-types scripts/marshal-integration.ts"
+    "test:race-control": "node --experimental-transform-types scripts/marshal-integration.ts",
+    "test:performance": "node --experimental-transform-types scripts/performance-compare.ts"
   },
   "dependencies": {
     "three": "0.180.0"

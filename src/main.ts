@@ -1,4 +1,6 @@
 import './ui/style.css';
+import { PerformanceCapture, type FrameMetrics } from './core/performance.ts';
+declare const __APEX_SOURCE_FINGERPRINT__: string;
 import { Track } from './simulation/track.ts';
 import {
   controls,
@@ -41,6 +43,13 @@ export class GameApp {
   private store = new SaveStore();
   private exporter = new TelemetryExport();
   private exporting = false;
+  private performanceCapture = new PerformanceCapture();
+  private profileMachine = '';
+  private profileWorkload = '';
+  private profileMetrics: FrameMetrics = {
+    renderCPUms: 0, physicsMs: 0, drawCalls: 0, triangles: 0,
+    gpuMs: null, gpuSequence: 0,
+  };
   private savingSettings = false;
   private disposed = false;
   private settings: Settings = structuredClone(DEFAULT_SETTINGS);
@@ -111,7 +120,10 @@ export class GameApp {
       .forEach((e) =>
         this.input.bindTouch(e, e.dataset.touch as 'left' | 'right' | 'throttle' | 'brake'),
       );
-    window.addEventListener('resize', () => this.renderer?.resize());
+    window.addEventListener('resize', () => {
+      this.performanceCapture.interrupt('Viewport changed');
+      this.renderer?.resize();
+    });
     document.addEventListener('visibilitychange', () => {
       if (document.hidden && this.state === 'driving') this.pause();
     });
@@ -215,6 +227,7 @@ export class GameApp {
     if (this.state === 'loading' && this.worker) return;
     this.ui.closeModal();
     this.ui.telemetryModal.close();
+    this.performanceCapture.interrupt('Session restarted');
     this.state = 'loading';
     this.ui.showMode('loading');
     this.ui.loading('Preparing grid, race timing and recording buffers…');
@@ -427,9 +440,21 @@ export class GameApp {
         this.graphClock = 0;
       }
     }
+    if (this.performanceCapture.active) {
+      if (this.state !== 'driving' || document.hidden) {
+        this.performanceCapture.interrupt('Capture left visible live driving');
+      } else {
+        this.renderer.readPerformanceMetrics(this.profileMetrics);
+        this.profileMetrics.physicsMs = b[H.STEP_MS];
+        this.performanceCapture.record(performance.now(), this.profileMetrics);
+        if (this.performanceCapture.state === 'complete')
+          this.ui.toast('Performance capture complete. Pause → Performance capture → Export JSON.');
+      }
+    }
   };
   private pause() {
     if (this.state !== 'driving') return;
+    this.performanceCapture.interrupt('Session paused or focus lost');
     this.state = 'paused';
     this.post({ type: 'pause', value: true });
     this.input.setEnabled(false);
@@ -449,6 +474,7 @@ export class GameApp {
     (document.activeElement as HTMLElement)?.blur();
   }
   private finish(frame: Float32Array) {
+    this.performanceCapture.interrupt('Session finished');
     this.state = 'results';
     this.post({ type: 'pause', value: true });
     this.input.setEnabled(false);
@@ -517,6 +543,7 @@ export class GameApp {
         this.resume();
         break;
       case 'menu':
+        this.performanceCapture.interrupt('Returned to paddock');
         this.ui.closeModal();
         this.ui.telemetryModal.close();
         this.state = 'menu';
@@ -542,6 +569,7 @@ export class GameApp {
         else if (this.state === 'results' && this.current) this.ui.results(this.current);
         break;
       case 'camera':
+        this.performanceCapture.interrupt('Camera changed');
         this.renderer?.changeCamera();
         break;
       case 'pit':
@@ -560,9 +588,11 @@ export class GameApp {
         this.ui.toast(this.audio.muted ? 'Audio muted.' : 'Audio enabled.');
         break;
       case 'debug':
+        this.performanceCapture.interrupt('Debug workload changed');
         if (this.renderer) this.renderer.debug = !this.renderer.debug;
         break;
       case 'autopilot':
+        this.performanceCapture.interrupt('Driver changed');
         if (this.state === 'driving') {
           this.auto = !this.auto;
           this.post({ type: 'autopilot', value: this.auto });
@@ -617,9 +647,52 @@ export class GameApp {
       case 'csv':
         void this.exportTelemetry();
         break;
+      case 'performance':
+        if (this.state === 'driving') this.pause();
+        if (this.state !== 'paused') break;
+        this.ui.performance(
+          `${this.performanceCapture.state.toUpperCase()} · ${this.performanceCapture.count} measured frames${this.performanceCapture.reason ? ` · ${this.performanceCapture.reason}` : ''}`,
+          this.profileMachine, this.profileWorkload, !!this.performanceCapture.report(),
+        );
+        break;
+      case 'profileStart':
+        this.startPerformanceCapture();
+        break;
+      case 'profileExport': {
+        const report = this.performanceCapture.report();
+        if (report) downloadBlob(
+          new Blob([JSON.stringify(report, null, 2) + '\n'], { type: 'application/json' }),
+          'apex-performance.json',
+        );
+        break;
+      }
       case 'reload':
         location.reload();
         break;
+    }
+  }
+  private startPerformanceCapture() {
+    if (this.state !== 'paused' || !this.renderer) return;
+    const machine = (document.getElementById('profileMachine') as HTMLInputElement | null)?.value.trim() ?? '';
+    const workload = (document.getElementById('profileWorkload') as HTMLInputElement | null)?.value.trim() ?? '';
+    const stats = this.renderer.stats();
+    try {
+      this.performanceCapture.start({
+        machine, workload, source: __APEX_SOURCE_FINGERPRINT__, browser: navigator.userAgent,
+        configuration: JSON.stringify({
+          session: this.options, camera: stats.camera, auto: this.auto, ers: this.ers,
+          graphics: stats.graphics, width: stats.renderWidth, height: stats.renderHeight,
+          pixelRatio: devicePixelRatio, debug: this.renderer.debug,
+          sound: { volume: this.settings.volume, muted: this.audio.muted },
+          shake: this.settings.shake, uiScale: this.settings.uiScale,
+          gpuTiming: stats.gpuTimerSupported,
+        }),
+      }, performance.now());
+      this.profileMachine = machine; this.profileWorkload = workload;
+      this.resume();
+      this.ui.toast('Performance warm-up: 5 seconds, followed by 30 seconds of measured driving.');
+    } catch (error) {
+      this.ui.toast(error instanceof Error ? error.message : String(error));
     }
   }
   private async exportTelemetry() {
@@ -653,6 +726,7 @@ export class GameApp {
       submit.disabled = true;
       submit.textContent = 'SAVING…';
     }
+    this.performanceCapture.interrupt('Settings changed');
     this.settings = settings;
     this.input.settings = settings;
     this.ui.applyBindings(settings.bindings);
@@ -700,6 +774,7 @@ export class GameApp {
   }
   private fail(error: unknown) {
     if (this.errorStopped) return;
+    this.performanceCapture.interrupt('Application error');
     this.errorStopped = true;
     clearTimeout(this.initTimeout);
     this.worker?.terminate();
@@ -711,6 +786,10 @@ export class GameApp {
   diagnostics(visual = false) {
     return {
       state: this.state,
+      performanceCapture: {
+        state: this.performanceCapture.state, frames: this.performanceCapture.count,
+        elapsedMs: this.performanceCapture.elapsedMs, reason: this.performanceCapture.reason,
+      },
       auto: this.auto,
       options: this.options,
       frame: this.current ? Array.from(this.current) : null,
@@ -728,6 +807,7 @@ export class GameApp {
   }
   dispose() {
     if (this.disposed) return;
+    this.performanceCapture.interrupt('Application disposed');
     this.disposed = true;
     this.generation++;
     this.exporter.cancel();

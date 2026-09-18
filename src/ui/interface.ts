@@ -144,7 +144,7 @@ export class Interface {
   }
   get(id: string) {
     let node = this.nodes.get(id);
-    if (!node) {
+    if (!node || !node.isConnected) {
       node = document.getElementById(id) ?? undefined;
       if (!node) throw new Error(`Missing UI element: ${id}`);
       this.nodes.set(id, node);
@@ -301,7 +301,7 @@ export class Interface {
     if (renderer.debug) {
       const s = renderer.stats();
       this.get('debug').textContent =
-        `RENDER ${s.fps.toFixed(1)} FPS / ${s.frameMs.toFixed(1)} ms\n1% LOW ${s.p1FPS.toFixed(1)} FPS\nCPU SUBMIT ${s.renderCPUms.toFixed(2)} ms\nPHYSICS ${frame[H.STEP_MS].toFixed(2)} ms / tick\nDRAWS ${s.drawCalls} · TRI ${s.triangles.toLocaleString()}\nWALL TIME DROPPED ${frame[H.DROPPED].toFixed(3)} s\nTICK ${Math.round(frame[H.TICK])}\nFRONT AERO ${frame[o + F.AERO_FRONT].toFixed(0)} N\nREAR AERO ${frame[o + F.AERO_REAR].toFixed(0)} N\nWATER ${frame[H.WATER].toFixed(3)} mm\nWAKE ${(frame[o + F.WAKE] * 100).toFixed(0)}%\nAI TARGET ${(frame[o + F.AI_TARGET] * 3.6).toFixed(0)} km/h\nGPU TIME: NOT MEASURED`;
+        `RENDER ${s.fps.toFixed(1)} FPS / ${s.frameMs.toFixed(1)} ms\n1% LOW ${s.p1FPS.toFixed(1)} FPS\nCPU SUBMIT ${s.renderCPUms.toFixed(2)} ms\nPHYSICS ${frame[H.STEP_MS].toFixed(2)} ms / tick\nDRAWS ${s.drawCalls} · TRI ${s.triangles.toLocaleString()}\nWALL TIME DROPPED ${frame[H.DROPPED].toFixed(3)} s\nTICK ${Math.round(frame[H.TICK])}\nFRONT AERO ${frame[o + F.AERO_FRONT].toFixed(0)} N\nREAR AERO ${frame[o + F.AERO_REAR].toFixed(0)} N\nWATER ${frame[H.WATER].toFixed(3)} mm\nWAKE ${(frame[o + F.WAKE] * 100).toFixed(0)}%\nAI TARGET ${(frame[o + F.AI_TARGET] * 3.6).toFixed(0)} km/h\nGPU QUERY ${s.gpuMilliseconds === null ? (s.gpuTimerSupported ? 'PENDING / INVALID' : 'UNSUPPORTED') : `${s.gpuMilliseconds.toFixed(2)} ms`}`;
     }
   }
   private drawMap(frame: Float32Array) {
@@ -333,8 +333,21 @@ export class Interface {
   }
   pause() {
     this.modalContent(
-      `<span class="eyebrow">SESSION SUSPENDED</span><h2>Hold your line.</h2><p>Simulation and race time are paused.</p><div class="dialog-buttons"><button class="primary" data-action="resume">RESUME SESSION</button><button data-action="settings">GARAGE & SETTINGS</button><button data-action="replay">WATCH REPLAY</button><button data-action="restart">RESTART SESSION</button><button data-action="menu">RETURN TO PADDOCK</button></div>`,
+      `<span class="eyebrow">SESSION SUSPENDED</span><h2>Hold your line.</h2><p>Simulation and race time are paused.</p><div class="dialog-buttons"><button class="primary" data-action="resume">RESUME SESSION</button><button data-action="settings">GARAGE & SETTINGS</button><button data-action="replay">WATCH REPLAY</button><button data-action="performance">PERFORMANCE CAPTURE</button><button data-action="restart">RESTART SESSION</button><button data-action="menu">RETURN TO PADDOCK</button></div>`,
     );
+  }
+  performance(status: string, machine: string, workload: string, exportable: boolean) {
+    this.modalContent(
+      `<span class="eyebrow">MEASURE / COMPARE</span><h2>Performance capture.</h2>
+       <p id="profileStatus"></p><p>Resume this session, warm up for 5 seconds, then record 30 seconds of real frames. Slow frames are retained. Pausing, changing the view or resizing interrupts the run.</p>
+       <label>COMPUTER / POWER PROFILE<input id="profileMachine" maxlength="80" placeholder="e.g. desktop-plugged-in" /></label>
+       <label>REPEATABLE WORKLOAD<input id="profileWorkload" maxlength="120" placeholder="e.g. same seed, new practice, AI, cockpit" /></label>
+       <p>These labels are your declaration that the hardware and workload match. They are not detected or verified by the browser. Export contains frame timings and browser/configuration details; it is not uploaded.</p>
+       <div class="dialog-buttons"><button class="primary" data-action="profileStart">RESUME & CAPTURE</button><button data-action="profileExport" ${exportable ? '' : 'disabled'}>EXPORT PERFORMANCE JSON</button><button data-action="modalClose">BACK</button></div>`,
+    );
+    this.get('profileStatus').textContent = status;
+    (this.get('profileMachine') as HTMLInputElement).value = machine;
+    (this.get('profileWorkload') as HTMLInputElement).value = workload;
   }
   controls(bindings: Bindings) {
     this.modalContent(

@@ -26,3 +26,22 @@ The source fingerprint for the latest long-run trials was `2f6fc69f7ab257ea84853
 These trials substantially outlasted the earlier traffic implementation but do not satisfy either endurance gate. The next repair targets pit-lane service/fast-lane interaction, deadlock-free release, and the physically driven approach. Do not lower acceptance thresholds to make these failures disappear.
 
 The normal GitHub validation workflow remains. Temporary patch-transfer files/workflows are removed in this source checkpoint. Actual readable source files, not an encoded patch, are the delivered application.
+
+## Continuation from 3d62267: measured performance
+
+The requested source of truth remains the 148-section **Pasted markdown(6).md**
+master engineering directive, not a different numbered attachment. The recovered
+base tree was byte-identical to published commit `3d62267bdcc0365cbc1c8ceecad042c571cfb1dd`,
+which added cooperative construction and current dry endurance evidence.
+
+This continuation adds an opt-in bounded real-frame capture/export/comparison
+path, corrects GPU timing lifecycle and HUD reporting, and prevents dynamic modal
+lookups from returning detached inputs on subsequent openings. Performance
+mathematics and CLI failure exits have an executable Node oracle; Vitest and
+visible-UI browser cases are included in the publication gates. No simulation
+physics module is changed by this batch. Earlier endurance reports remain evidence
+for their recorded source fingerprints, not automatic certification of later code.
+
+Full three-pass subsystem certification and the single combined manual
+audiovisual scenario remain open. This is an implementation continuation, not a
+claim that the complete AAA quality ambition has been attained.

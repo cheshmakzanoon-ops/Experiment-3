@@ -282,3 +282,19 @@ Seeded driver traits now influence tire care, deployment, reaction time, overtak
 ### ⏱️ Prioritized loading and measured endurance
 
 The initial circuit now builds through cooperative, prioritized work rather than one blocking geometry pass. Loading progress reflects completed chunks. The current simulation also passed ten-car **50-lap and 100-lap dry endurance runs with zero contact**, including a physical tire stop for every car in the 100-lap run. These are recorded fixture results, not universal performance or AI guarantees. See [construction and endurance evidence](docs/CONSTRUCTION_AND_ENDURANCE.md).
+
+## 📈 Reproducible performance captures
+
+Pause a running session and choose **Performance capture**. The app warms up for
+five seconds and records thirty seconds of raw live frame intervals, renderer CPU
+cost, draw calls, triangles, worker-reported tick cost and valid asynchronous GPU
+queries. Pauses, resize and workload changes interrupt the capture instead of
+silently dropping bad frames. Exported reports identify the actual built source.
+
+```sh
+npm run test:performance -- baseline.json candidate.json
+```
+
+The comparison command rejects mismatched machines/configurations, incomplete
+runs and significant regressions. Read [measurement definitions and limits](docs/PERFORMANCE_VALIDATION.md)
+before comparing reports. CI software rendering is not a consumer GPU benchmark.

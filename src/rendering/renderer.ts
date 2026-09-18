@@ -1,4 +1,5 @@
 import * as T from 'three';
+import type { FrameMetrics } from '../core/performance.ts';
 import type { BuildProgress } from './build-queue.ts';
 import { TracksideDirector } from './trackside.ts';
 import { InertialCamera, ViewOrientation } from './camera-dynamics.ts';
@@ -66,6 +67,7 @@ export class RacingRenderer {
   fps = 60;
   frameMs = 16.7;
   renderMs = 0;
+  private lastRenderCPUms = 0;
   debug = false;
   private follow = 0;
   private inertia = new InertialCamera();
@@ -486,7 +488,8 @@ export class RacingRenderer {
     } finally {
       this.gpuTimer.end();
     }
-    this.renderMs = this.renderMs * 0.9 + (performance.now() - start) * 0.1;
+    this.lastRenderCPUms = performance.now() - start;
+    this.renderMs = this.renderMs * 0.9 + this.lastRenderCPUms * 0.1;
   }
   visualDiagnostics() {
     const car = this.cars[this.follow];
@@ -518,11 +521,22 @@ export class RacingRenderer {
       mirrors: this.reflection.diagnostics(this.renderer),
     };
   }
+  /** Copy unaveraged counters without allocating/sorting a debug snapshot. */
+  readPerformanceMetrics(target: FrameMetrics) {
+    target.renderCPUms = this.lastRenderCPUms;
+    target.drawCalls = this.renderer.info.render.calls;
+    target.triangles = this.renderer.info.render.triangles;
+    target.gpuMs = this.gpuTimer.milliseconds;
+    target.gpuSequence = this.gpuTimer.sampleSequence;
+  }
   stats() {
     const info = this.renderer.info.render;
     const sorted = Array.from(this.frameSamples.subarray(0, this.sampleCount)).sort(
       (a, b) => a - b,
     );
+    const slowCount = Math.ceil(sorted.length * 0.01);
+    let slowTotal = 0;
+    for (let i = sorted.length - slowCount; i < sorted.length; i++) slowTotal += sorted[i];
     return {
       warmupFrames: this.warmupFrames,
       graphics: { ...this.graphics },
@@ -542,7 +556,7 @@ export class RacingRenderer {
       gpuTimerSupported: this.gpuTimer.supported,
       fps: this.fps,
       frameMs: this.frameMs,
-      p1FPS: sorted.length ? 1000 / sorted[Math.floor((sorted.length - 1) * 0.99)] : 0,
+      p1FPS: slowTotal ? 1000 * slowCount / slowTotal : 0,
       renderCPUms: this.renderMs,
       drawCalls: info.calls,
       triangles: info.triangles,

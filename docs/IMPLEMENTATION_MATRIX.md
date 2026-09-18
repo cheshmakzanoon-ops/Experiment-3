@@ -96,7 +96,7 @@ This ledger follows the numbered sections of the supplied directive. “Implemen
 | 90 | HUD DESIGN | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 91 | STEERING-WHEEL DISPLAY | Actual gear, speed, RPM LEDs, battery, ERS, brake bias, differential and best-lap distance delta on the physical wheel. No fake constant-speed reference trace. |
 | 92 | GRAPHICS SETTINGS | Independent physical render scale, texture cap, shadows, mirrors/probes, particle/vegetation density, crowds, bloom, FXAA and anisotropy. Optional motion blur remains absent. |
-| 93 | PERFORMANCE BUDGET | Instrumented, but target-GPU performance is not certified. |
+| 93 | PERFORMANCE BUDGET | Opt-in real-frame captures include raw renderer CPU, worker-reported tick cost, GPU queries and all-pass counters. Hardware targets remain targets, not certified results. |
 | 94 | OBJECT ALLOCATION | Pooled snapshots/particles/recorders; small per-tick/per-frame allocations remain. |
 | 95 | LOD | Three separate car geometries with hysteresis and articulated wheels; player remains full detail. Track/prop spatial culling is implemented. |
 | 96 | INSTANCING | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
@@ -104,7 +104,7 @@ This ledger follows the numbered sections of the supplied directive. “Implemen
 | 98 | ASSET STREAMING | Prioritized cooperative procedural-asset construction: bounded ribbon jobs, separate buildings, real completion progress and cancellation/cleanup. Generated local assets have no external streaming dependency. |
 | 99 | PHYSICS WORKER | Fixed-step worker and pooled render/telemetry/replay transport. Input polling no longer waits for requestAnimationFrame; stale-input safety remains. Target-hardware profiling is separate. |
 | 100 | AI WORKER | Strategic/tactical AI runs with the simulation inside the physics worker; a separate worker is an optional candidate, not an implemented independent thread. |
-| 101 | DEBUG OVERLAY | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+| 101 | DEBUG OVERLAY | Actual render/physics/force counters, corrected slowest-one-percent FPS and valid/pending/unsupported GPU query display. No fabricated GPU estimate. |
 | 102 | VISUAL DEBUGGING | Contact-load arrows and numeric telemetry; not all requested overlays. |
 | 103 | UNIT TESTS | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 104 | PHYSICS PROPERTY TESTS | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
@@ -121,7 +121,7 @@ This ledger follows the numbered sections of the supplied directive. “Implemen
 | 115 | AI TESTS | Current simulation fingerprint 5cc029957e89… passes ten-car dry 50 laps (seed 4417) and 100 laps (seed 73021), both zero contact and component damage; all ten cars physically service once in the 100-lap fixture. Reports and limits are recorded in CONSTRUCTION_AND_ENDURANCE.md. |
 | 116 | RACE TEST | Two ten-car three-lap clear/changing-weather whole-field classification fixtures with pit service and measured sectors. The full manual audiovisual scenario remains separate. |
 | 117 | PLAYWRIGHT TESTS | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
-| 118 | PERFORMANCE REGRESSION | Runtime instrumentation and CI diagnostics, not a certified GPU regression benchmark. |
+| 118 | PERFORMANCE REGRESSION | Bounded 5-second warm-up / 30-second real-frame captures, content fingerprint, raw JSON export, recomputed metrics and identity-checked regression CLI. Interrupted/incomparable runs fail closed; no invented consumer-hardware baseline. See PERFORMANCE_VALIDATION.md. |
 | 119 | ERROR POLICY | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 120 | NUMERICAL SAFETY | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 121 | PHYSICS TUNING | Engineering coefficients are approximations; no proprietary real-car reference calibration. |
