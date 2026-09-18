@@ -213,6 +213,12 @@ export class Vehicle {
       (Math.max(0, this.clutch.engineOmega) * this.clutch.inertia) / dt,
     );
     this.engineOutputTorque = ice;
+    // Automatic anti-stall releases the clutch while braking below idle's
+    // wheel-coupled speed. Otherwise the idle governor drives through a light
+    // brake pedal until a hard-coded 3 m/s threshold. Manual clutch stays manual.
+    const automaticStop = !this.input.manualClutch && this.throttle < 0.02 && (
+      this.speed < 3 || (this.brake > 0.02 && signedRearOmega * ratio < VEHICLE.idleRPM * Math.PI / 30 * 0.9)
+    );
     const wheelTorque = this.clutch.step(
       dt,
       ice + motor - drag,
@@ -220,7 +226,7 @@ export class Vehicle {
       ratio,
       this.input.clutch,
       !this.input.manualClutch,
-      this.shiftClock > 0 || (!this.input.manualClutch && this.speed < 3 && this.throttle < 0.02),
+      this.shiftClock > 0 || automaticStop,
     );
     this.rpm = Math.max(0, (this.clutch.engineOmega * 30) / Math.PI);
     this.motorPower = motorPower;
@@ -276,6 +282,7 @@ export class Vehicle {
       this.normalLoads[i] = Math.max(0, this.normalLoads[i] + antiRoll);
       this.normalLoads[i + 1] = Math.max(0, this.normalLoads[i + 1] - antiRoll);
     }
+    let generatorWorkW = 0;
     for (let i = 0; i < 4; i++) {
       this.normalLoads[i] *= 1 - this.cornerDamage[i] * 0.5;
       const t = this.tires[i],
@@ -300,11 +307,13 @@ export class Vehicle {
           (i < 2 ? this.setup.brakeBias : 1 - this.setup.brakeBias) *
           this.brake *
           0.5;
-      let friction = Math.max(0, total - (i >= 2 ? regenTorque : 0)) * brakeEfficiency(t.discTemp);
-      if (this.assist === 'sport') friction /= 1 + Math.max(0, -t.slip - 0.14) * 9;
+      // ABS must release *both* sources of wheel braking. Leaving generator
+      // torque untouched can keep a rear wheel locked while friction is released.
+      const release = this.assist === 'sport' ? 1 / (1 + Math.max(0, -t.slip - 0.14) * 9) : 1;
+      const friction = Math.max(0, total - (i >= 2 ? regenTorque : 0)) * brakeEfficiency(t.discTemp) * release;
       const driven =
           i === 2 ? wheelTorque * 0.5 + locking : i === 3 ? wheelTorque * 0.5 - locking : 0,
-        regen = i >= 2 ? regenTorque : 0;
+        regen = i >= 2 ? regenTorque * release : 0;
       solveTire(
         t,
         long,
@@ -317,6 +326,7 @@ export class Vehicle {
         dt,
         regen,
       );
+      generatorWorkW += regen * Math.abs(t.omega);
       b.orientation.rotate(this.axis.set(sn, 0, cs), this.wheelForward);
       b.orientation.rotate(this.axis.set(cs, 0, -sn), this.wheelRight);
       this.wheelForward.addScaled(s.normal, -this.wheelForward.dot(s.normal)).normalize();
@@ -336,7 +346,7 @@ export class Vehicle {
     const recovered = Math.min(
       VEHICLE.maxBatteryJ - this.battery,
       regenPower * 0.78 * dt,
-      regenTorque * (Math.abs(this.tires[2].omega) + Math.abs(this.tires[3].omega)) * 0.78 * dt,
+      generatorWorkW * 0.78 * dt,
     );
     this.battery += recovered;
     this.regenerationPower = recovered / dt;

@@ -115,6 +115,8 @@ export class Simulation {
     out[H.TICK] = this.tick;
     out[H.CARS] = this.cars.length;
     out[H.LENGTH] = this.track.length;
+    out[H.WIND_X] = this.track.windX;
+    out[H.WIND_Z] = this.track.windZ;
     for (let id = 0; id < this.cars.length; id++) {
       const c = this.cars[id],
         b = c.body,

@@ -528,6 +528,7 @@ export class RacingRenderer {
       pitCrews: this.pitCrew.activeCrews,
       haloProjection: halo.toArray(),
       mirrors: this.reflection.diagnostics(this.renderer),
+      particles: this.effects.diagnostics(),
     };
   }
   /** Copy unaveraged counters without allocating/sorting a debug snapshot. */

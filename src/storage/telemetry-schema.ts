@@ -107,6 +107,8 @@ export const HEADER_FIELDS = [
   H.FLAG,
   H.STEP_MS,
   H.DROPPED,
+  H.WIND_X,
+  H.WIND_Z,
 ];
 export const CHANNELS = [
   'time_s',
@@ -129,6 +131,8 @@ export const CHANNELS = [
   'flag',
   'physics_step_ms',
   'dropped_wall_time_s',
+  'wind_x_mps',
+  'wind_z_mps',
 ];
 export const TELEMETRY_STRIDE = CHANNELS.length;
 export const TELEMETRY_BATCH_ROWS = 60;

@@ -47,6 +47,7 @@ export class TrafficPlanner {
     traits: DriverPersonality,
     yellow: boolean,
     preferredOffset = 0,
+    approachingPit = false,
   ) {
     // A new tactical purpose (pit entry or an early defensive choice) may
     // release the previous lane commitment; the swept safety tests still apply.
@@ -65,6 +66,11 @@ export class TrafficPlanner {
       bestOffset = this.candidates[0],
       found = false;
     for (const candidate of this.candidates) {
+      // A service approach is a merge, not a new passing attempt. When its
+      // destination corridor is occupied, hold and yield longitudinally rather
+      // than taking an apparently clear overtaking lane away from the entry.
+      if (approachingPit && Math.abs(candidate - preferredOffset) > Math.abs(closest - preferredOffset) + 0.1)
+        continue;
       // Under yellow, safe changes around stationary hazards remain legal.
       // The speed planner below prevents gaining on moving competitors.
       let score =

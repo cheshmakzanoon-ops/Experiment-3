@@ -90,6 +90,7 @@ export class AIDriver {
         this.personality,
         yellowFlag(race.control.flags[c.id]),
         preparingPit ? 6 : this.brain.preferredLine(c, cars, track, race),
+        preparingPit,
       );
       this.desiredOffset = plan.offset;
       this.trafficSpeed = plan.speedLimit;

@@ -163,7 +163,15 @@ export class DriverBrain {
       0,
       1,
     );
-    this.pace = 1 - this.tireCare * 0.035 - wet * (1 - traits.wetSkill) * 0.07;
+    // The steady-state corner envelope cannot spend the entire tire budget on
+    // cornering while a slick shod car also changes lanes on standing water.
+    // Preserve a control margin until the real stop fits suitable tires. This
+    // reduces pedal targets only; it never increases friction or alters poses.
+    const compound = car.tires[0].compound;
+    const slick = compound !== 'intermediate' && compound !== 'wet';
+    const mismatch = slick ? clamp((water - 0.12) / 0.7, 0, 1) : 0;
+    this.pace = (1 - this.tireCare * 0.035 - wet * (1 - traits.wetSkill) * 0.07) *
+      (1 - 0.22 * mismatch);
     const caution = yellowFlag(race.control.flags[car.id]);
     const safe = !car.inPit && !car.pitRequested && !car.finishTime && !car.retired && !caution;
     const reserve = 4e6 * (0.13 + 0.12 * traits.tireManagement);

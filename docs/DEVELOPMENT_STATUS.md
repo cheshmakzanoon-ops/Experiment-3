@@ -1,4 +1,4 @@
-# Development checkpoint — 2026-09-17
+# Development checkpoints — historical entries followed by current continuation
 
 This is an incremental implementation checkpoint, **not completion of the master directive**.
 
@@ -45,3 +45,26 @@ for their recorded source fingerprints, not automatic certification of later cod
 Full three-pass subsystem certification and the single combined manual
 audiovisual scenario remain open. This is an implementation continuation, not a
 claim that the complete AAA quality ambition has been attained.
+
+## Continuation from 9eb0a9d: weather and wet-pit braking
+
+The latest recovered published source was the tested camera/object motion-blur
+implementation `9eb0a9d`. The exact Pasted markdown(6) is now retained verbatim as
+`MASTER_DIRECTIVE.md`, with hash and all 148 ledger headings under test.
+
+This continuation adds an immutable physical weather timeline and storm retreat,
+stable water/thermal relaxation, recorded world wind, grounded work-driven effects,
+and refresh-independent light-rain emission. It repairs ABS/regeneration coupling
+and automatic anti-stall, then addresses the exposed AI pit-entry regression with
+wet-slick control margin and a pit-directed traffic merge. Native tests, measured
+reports and the required real-GPU browser oracle are described in
+`WEATHER_AND_BRAKING.md`; no simulation outcome is substituted by a pose override.
+
+Architecture/recording documentation has also been corrected where old descriptions
+still claimed capsules, reflective-only mirrors, missing LOD or an immediate
+player-only finish. Earlier dated evidence above is historical, not current
+validation or a request to reintroduce superseded recovery logic.
+
+All-source checks and browser publication gates remain required. Full three-pass
+certification, the single combined section-146 driving scenario, representative
+hardware performance and independent presentation assessment remain separate.

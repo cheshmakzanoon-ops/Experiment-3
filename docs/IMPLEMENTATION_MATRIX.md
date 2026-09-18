@@ -1,6 +1,6 @@
 # Specification coverage ledger
 
-This ledger follows the numbered sections of the supplied directive. “Implemented” means a concrete code path exists; it does **not** certify every aspirational fidelity or performance statement in that section. Approximate/partial sections explicitly state the boundary.
+This ledger follows all 148 numbered sections of the exact [Pasted markdown(6) directive](MASTER_DIRECTIVE.md), retained verbatim in this repository. “Implemented” means a concrete code path exists; it does **not** certify every aspirational fidelity or performance statement in that section. Approximate/partial sections explicitly state the boundary.
 
 | Section | Topic | Delivery status |
 |---:|---|---|
@@ -26,13 +26,13 @@ This ledger follows the numbered sections of the supplied directive. “Implemen
 | 20 | TIRE WEAR | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 21 | FLAT SPOTS | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 22 | TIRE CONTAMINATION | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
-| 23 | BRAKE SYSTEM | Front/rear distribution and fade; no detailed hydraulic circuit. |
+| 23 | BRAKE SYSTEM | Front/rear distribution and fade; Sport ABS releases actual friction and regenerative torque together. No detailed hydraulic circuit. |
 | 24 | BRAKE THERMALS | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
-| 25 | LOCKUP | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+| 25 | LOCKUP | Physical wheel lock/slip and recovery; grounded smoke consumes dissipated slip work, not the brake pedal. Coupled ABS/regeneration regressions are executable. |
 | 26 | ENGINE MODEL | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
-| 27 | GEARBOX | Neutral, reverse, eight forward ratios, torque-cut shifting and invalid-downshift guard. Finite-inertia friction clutch supports actual free revving and pedal-controlled torque transfer. |
+| 27 | GEARBOX | Neutral, reverse, eight forward ratios, shift cut/downshift guard and finite-inertia friction clutch. Automatic anti-stall no longer drives through braking below idle coupling; manual clutch remains manual. |
 | 28 | DIFFERENTIAL | Torque-coupling limited-slip approximation. |
-| 29 | HYBRID SYSTEM | Energy-conserving deployment/regeneration; no detailed electrical hardware model. |
+| 29 | HYBRID SYSTEM | Battery deployment and recovery bounded by actual motor/generator work, efficiency and headroom. ABS does not credit released generator torque. No detailed electrical hardware model. |
 | 30 | AERODYNAMICS | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 31 | AERO MAP | Sampled 2D clearance envelope plus independent pitch calibration; actual chassis floor-station clearance, wing settings, damage and wake feed force accumulation. Original engineering calibration, not measured CFD. |
 | 32 | GROUND EFFECT | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
@@ -43,13 +43,13 @@ This ledger follows the numbered sections of the supplied directive. “Implemen
 | 37 | TRACK SURFACE STATE GRID | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 38 | RUBBERING | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 39 | MARBLES | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
-| 40 | WATER MODEL | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+| 40 | WATER MODEL | Spatial water from real rain, drainage, evaporation and tire passage. Stable first-order drainage update; stopping rain does not erase wet cells. Reduced surface model, not fluid simulation. |
 | 41 | AQUAPLANING | Smooth load-, speed-, water- and compound-dependent grip reduction. No random binary aquaplaning; hydrodynamic contact-patch simulation remains outside this reduced model. |
-| 42 | WEATHER TIMELINE | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+| 42 | WEATHER TIMELINE | Validated immutable keyframes with cloud/rain/ambient/wind; bounded smooth interpolation and short-arc wind direction. Simulation-clock storm and retreat drive physics, shaders, effects, telemetry and replay. No weather editor or meteorological model. |
 | 43 | AI ARCHITECTURE | Strategic 2 Hz decisions, tactical 12 Hz swept traffic/defense and 120 Hz controls remain separate inside the physics worker. |
-| 44 | AI SPEED PLANNING | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+| 44 | AI SPEED PLANNING | Curvature preview and backward braking envelope using actual tires/mass/aero; wet slicks reserve margin for mixed turning/braking/traffic rather than gaining artificial grip. |
 | 45 | AI RACING LINE | Pure-pursuit offset racing line; no globally optimized minimum-time trajectory. |
-| 46 | AI OVERTAKING | Lane selection/commitment, following envelope and side protection. |
+| 46 | AI OVERTAKING | Lane selection/commitment, following and side protection. Pit-bound cars merge toward entry instead of taking overtaking lanes farther away. |
 | 47 | AI DEFENSE | An early one-move-per-corner defensive preference with cooldown, overlap/braking guards and swept collision veto. Not a universal racecraft certification. |
 | 48 | COLLISION PREDICTION | Swept track-coordinate trajectory/corridor prediction with lane commitment and pit merging; adversarial racecraft validation remains open. |
 | 49 | AI PERSONALITIES | All seven seeded traits influence actual reaction, strategy, risk, lane cost, tire care, wet margin or control-error behavior, not physical grip. |
@@ -70,10 +70,10 @@ This ledger follows the numbered sections of the supplied directive. “Implemen
 | 64 | CAMERA DYNAMICS | Analytic critically damped local inertial cockpit offsets, independent heading filtering and chase translation feed-forward; 24–144 FPS regression coverage. |
 | 65 | COCKPIT CAMERA | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 66 | TRACKSIDE CAMERAS | Twenty fixed authored rigs, predictive pan/zoom, track-distance coverage, cut hysteresis and replay-seek resets. Complete-lap unit coverage; final shot-obstruction review remains. |
-| 67 | PARTICLES | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
-| 68 | RAIN SPRAY | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
-| 69 | TIRE SMOKE | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
-| 70 | SPARKS | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+| 67 | PARTICLES | Bounded 1,800-particle pool; fractional emissions, contact/work triggers and simulation wind. CPU production oracles and isolated real-GPU browser fixture; not a fluid solver. |
+| 68 | RAIN SPRAY | Spray requires grounded loaded tires and actual local water/speed, with compound scaling. Wind is recorded simulation state, not a second presentation clock. |
+| 69 | TIRE SMOKE | Smoke requires grounded tire slip work; a brake pedal or airborne spinning wheel alone does not emit ground smoke. |
+| 70 | SPARKS | Sparks consume actual bottom-contact work and seeded bounded particles. |
 | 71 | AUDIO ARCHITECTURE | Layered original engine synthesis plus independent actual-contact grass, gravel, kerb, scrub, spray, rain, bottoming, impact and shift buses. Real OfflineAudioContext signal tests cover the contact graph. |
 | 72 | ENGINE SOUND | Three RPM crossfade bands use distinct harmonic spectra and torque-dependent filtering; original synthesized sound, not licensed engine recordings or certified acoustic matching. |
 | 73 | TIRE AUDIO | Actual tire slip work sets scrub level; measured slip ratio distinguishes lockup and wheelspin spectra. Loaded flat-spot/puncture repetition follows actual wheel speed. |
@@ -83,14 +83,14 @@ This ledger follows the numbered sections of the supplied directive. “Implemen
 | 77 | GAMEPAD STEERING | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 78 | KEYBOARD STEERING | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 79 | WHEEL INPUT | Explicit device selection, asymmetric steering/pedal calibration, clutch/paddle mapping and disconnect guards. Version-4 profiles preserve earlier calibrations; real hardware certification remains open. |
-| 80 | TELEMETRY DATA | 197 actual-state telemetry channels captured at fixed 60 Hz in the physics worker, bounded transport/ring buffers and asynchronous CSV export. |
+| 80 | TELEMETRY DATA | 199 actual-state telemetry channels at 60 Hz in the physics worker; appended world-wind values preserve earlier column positions. Bounded transport/ring and async CSV export. |
 | 81 | TELEMETRY UI | Eight selectable graph groups include clutch torque/slip, the requested driver/chassis/tire channels and complete-lap distance comparison; truncated/gapped laps are labelled rather than fabricated. |
 | 82 | REPLAY SYSTEM | 15 Hz all-car numeric pose pages, bounded resident IndexedDB replay cache, asynchronous seeking, original spatial water/rubber history, explicit recording failures. Permanent replay-library UI is not included. |
 | 83 | RACE DIRECTOR | Explicit grid/lights/racing/results states; whole-field chequered classification, lapped finish, penalty ordering, automatic cooldown and explicit timeout DNF. Local single/double-yellow zones, approach braking, blue flags, bounded race-control events, pit-speed enforcement for every car, and reversible no-overtake penalties are implemented and tested. A physical safety-car vehicle is not implemented. |
 | 84 | START LIGHTS | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 85 | LAP DETECTION | Eight ordered forward gates; interpolated finish and sector crossings, persistent third-sector record, no discontinuity-earned progress, invalid-lap tagging. |
 | 86 | TRACK LIMITS | Four wheel tread-width samples against each local asphalt/paint boundary; no chassis-centre or fixed-width penalty. Kerbs/runoff are outside the documented legal edge. |
-| 87 | PIT LANE | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+| 87 | PIT LANE | Physically driven offset pit corridor, entry/box/exit and limiter/release state. Wet and slick-in-rain ten-car service fixtures pass their declared thresholds with minor contact; no universal zero-contact claim. |
 | 88 | PIT STOP | Physical entry, new tire-state objects, four-foot jack support and safe queue/release. Four mechanics plus two operators consume service state; wheels move off hubs only while unloaded. Browser fixture uses a real captured service state. |
 | 89 | SETUP SYSTEM | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 90 | HUD DESIGN | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
@@ -118,7 +118,7 @@ This ledger follows the numbered sections of the supplied directive. “Implemen
 | 112 | WET TEST | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 113 | DAMAGE TEST | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 114 | WAKE TEST | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
-| 115 | AI TESTS | Current simulation fingerprint 5cc029957e89… passes ten-car dry 50 laps (seed 4417) and 100 laps (seed 73021), both zero contact and component damage; all ten cars physically service once in the 100-lap fixture. Reports and limits are recorded in CONSTRUCTION_AND_ENDURANCE.md. |
+| 115 | AI TESTS | Current simulation fingerprint e600dbe7cab11… passes ten-car dry 50 laps (seed 4417) and 100 laps (seed 73021), both zero contact and wing/floor damage; all ten cars physically service once in the 100-lap fixture. Reports and limits are recorded in CONSTRUCTION_AND_ENDURANCE.md. |
 | 116 | RACE TEST | Two ten-car three-lap clear/changing-weather whole-field classification fixtures with pit service and measured sectors. The full manual audiovisual scenario remains separate. |
 | 117 | PLAYWRIGHT TESTS | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 118 | PERFORMANCE REGRESSION | Bounded 5-second warm-up / 30-second real-frame captures, content fingerprint, raw JSON export, recomputed metrics and identity-checked regression CLI. Interrupted/incomparable runs fail closed; no invented consumer-hardware baseline. See PERFORMANCE_VALIDATION.md. |

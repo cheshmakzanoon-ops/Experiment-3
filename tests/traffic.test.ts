@@ -46,3 +46,11 @@ it('plans ahead toward a legal pit approach instead of an instantaneous lateral 
   expect(plan.offset).toBeGreaterThan(3);
   expect(plan.offset).toBeLessThanOrEqual(car.trackPosition.width - 2.4);
 });
+it('an occupied service-approach corridor never becomes an overtake away from entry', () => {
+  const track = new Track(), car = new Vehicle(0), other = new Vehicle(1);
+  car.place(track, 2500, 1.4); other.place(track, 2500, 5.6);
+  car.speed = other.speed = 25;
+  const planner = new TrafficPlanner();
+  const plan = planner.evaluate(car, [car, other], track, 10, 4, personality(4417, 0), false, 6, true);
+  expect(Math.abs(plan.offset - 6)).toBeLessThanOrEqual(Math.abs(car.lateral - 6) + 0.1);
+});

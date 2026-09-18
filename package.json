@@ -12,7 +12,7 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview --host 127.0.0.1",
     "test": "vitest run",
-    "test:physics": "node --experimental-transform-types scripts/validate.ts && npm run test:dynamics && npm run test:race-control",
+    "test:physics": "node --experimental-transform-types scripts/validate.ts && npm run test:dynamics && npm run test:race-control && npm run test:wet-pits",
     "test:endurance": "node --experimental-transform-types scripts/endurance.ts",
     "test:e2e": "playwright test",
     "lint": "eslint src tests e2e scripts",
@@ -20,7 +20,9 @@
     "check": "npm run lint && npm test && npm run build",
     "test:dynamics": "node --experimental-transform-types scripts/dynamics-benchmark.ts",
     "test:race-control": "node --experimental-transform-types scripts/marshal-integration.ts",
-    "test:performance": "node --experimental-transform-types scripts/performance-compare.ts"
+    "test:performance": "node --experimental-transform-types scripts/performance-compare.ts",
+    "test:weather": "node --experimental-transform-types scripts/weather-selftest.ts",
+    "test:wet-pits": "node --experimental-transform-types scripts/wet-pit-integration.ts"
   },
   "dependencies": {
     "three": "0.180.0"

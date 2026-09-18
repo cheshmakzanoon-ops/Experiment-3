@@ -125,3 +125,14 @@ it('a new pit-entry purpose is not postponed by an old racing-lane commitment', 
   const next = planner.evaluate(c, [c], sim.track, 10.1, 8, personality(1, 0), false, 6);
   expect(next.offset).toBeGreaterThan(4);
 });
+it('reserves control margin on rainy slicks and releases it only after fitting suitable tires', () => {
+  const sim = new Simulation({ ...DEFAULT_OPTIONS, mode: 'practice', opponents: 0, weather: 'rain', compound: 'medium' });
+  const c = sim.cars[0], brain = sim.ai[0].brain;
+  const tires = c.tires.map((t) => ({ ...t }));
+  brain.update(0.5, c, sim.cars, sim.track, sim.race);
+  expect(brain.pace).toBeLessThan(0.8);
+  expect(c.tires).toEqual(tires);
+  c.replaceTires('wet');
+  brain.update(0.5, c, sim.cars, sim.track, sim.race);
+  expect(brain.pace).toBeGreaterThan(0.96);
+});

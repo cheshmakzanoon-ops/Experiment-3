@@ -5,7 +5,7 @@ export const HEADER = 16,
   WHEEL_STRIDE = 24,
   DEBRIS_BASE = 192,
   DEBRIS_STRIDE = 8;
-export const PROTOCOL_VERSION = 5;
+export const PROTOCOL_VERSION = 6;
 // +Z is the nose, +Y up and +X the driver's left; negative-X hubs are right-side wheels.
 export const WHEEL_NAMES = ['FR', 'FL', 'RR', 'RL'] as const;
 export const D = { KIND: 0, X: 1, Y: 2, Z: 3, ROTATION: 4, AGE: 5, MASS: 6, ACTIVE: 7 } as const;
@@ -24,6 +24,8 @@ export const H = {
   TICK: 11,
   CARS: 12,
   LENGTH: 13,
+  WIND_X: 14,
+  WIND_Z: 15,
 } as const;
 export const F = {
   X: 0,

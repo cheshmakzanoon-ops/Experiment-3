@@ -1,6 +1,7 @@
 import { TrackContactMesh, kerbHeight } from './contact.ts';
 import { clamp, lerp, mod, smooth, Vec3, TAU } from '../core/math.ts';
 import type { WeatherPreset } from './config.ts';
+import { WeatherTimeline, weatherKeyframes, advanceWater, type WeatherKeyframe } from './weather.ts';
 export const TRACK_NAME = 'AUREL / GRAND CIRCUIT',
   CELL_ROWS = 512,
   CELL_COLS = 7;
@@ -105,6 +106,7 @@ export class Track {
     return this.contactMesh.cast(origin, down, maximum, out);
   }
   private queryPoint = trackPoint();
+  readonly weather: WeatherTimeline;
   rain = 0;
   cloud = 0.12;
   ambient = 24;
@@ -114,7 +116,10 @@ export class Track {
   constructor(
     readonly preset: WeatherPreset = 'clear',
     readonly flat = false,
+    keyframes: readonly WeatherKeyframe[] = weatherKeyframes(preset),
   ) {
+    this.weather = new WeatherTimeline(keyframes);
+    this.weather.sample(0, this);
     const count = 1536;
     let distance = 0;
     for (let i = 0; i <= count; i++) {
@@ -174,11 +179,6 @@ export class Track {
       this.temperature[i] = preset === 'rain' ? 22 : 34;
       this.water[i] = preset === 'rain' ? 0.7 + 0.35 * (0.5 + 0.5 * Math.sin(i * 0.27)) : 0;
       this.rubber[i] = Math.abs((i % CELL_COLS) - 3) < 2 ? 0.2 : 0.035;
-    }
-    if (preset === 'rain') {
-      this.rain = 24;
-      this.cloud = 0.95;
-      this.ambient = 19;
     }
   }
   at(s: number, out: TrackPoint): TrackPoint {
@@ -294,26 +294,23 @@ export class Track {
     return out;
   }
   evolve(dt: number, time: number) {
+    if (!Number.isFinite(dt) || dt <= 0) throw new Error('Invalid weather timestep');
+    this.weather.sample(time, this);
     this.surfaceClock += dt;
     if (this.surfaceClock < 0.5) return;
     const step = this.surfaceClock;
     this.surfaceClock = 0;
-    if (this.preset === 'changeable') {
-      this.cloud = lerp(0.16, 0.95, smooth(25, 115, time));
-      this.rain = 36 * smooth(60, 135, time);
-      this.ambient = lerp(25, 19, smooth(60, 180, time));
-    }
     for (let r = 0; r < CELL_ROWS; r++)
       for (let c = 0; c < CELL_COLS; c++) {
         const i = r * CELL_COLS + c,
           depression = 0.65 + 0.35 * Math.sin(r * 0.113 + c * 0.4) ** 2,
           rainfall = (this.rain / 3600) * depression,
-          drainage = this.water[i] * (0.002 + (0.003 * Math.abs(c - 3)) / 3),
+          drainage = 0.002 + (0.003 * Math.abs(c - 3)) / 3,
           evaporation = (1 - this.cloud) * 0.0006;
-        this.water[i] = Math.max(0, this.water[i] + (rainfall - drainage - evaporation) * step);
+        this.water[i] = advanceWater(this.water[i], rainfall - evaporation, drainage, step);
         this.rubber[i] = Math.max(0, this.rubber[i] - this.rain * 0.000001 * step);
         const target = this.ambient + 14 * (1 - this.cloud);
-        this.temperature[i] += (target - this.temperature[i]) * 0.015 * step;
+        this.temperature[i] += (target - this.temperature[i]) * -Math.expm1(-0.015 * step);
       }
   }
   interact(cell: number, load: number, energy: number, speed: number, dt: number) {

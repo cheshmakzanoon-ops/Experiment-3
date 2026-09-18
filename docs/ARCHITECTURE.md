@@ -1,59 +1,155 @@
 # Architecture and engineering notes
 
-## Ownership and units
+This describes the current code paths, not certification that every fidelity goal
+in [the original directive](MASTER_DIRECTIVE.md) has been met. The numbered
+[coverage ledger](IMPLEMENTATION_MATRIX.md) records implementation boundaries.
 
-World and body coordinates are right handed: X right, Y up, Z forward. Distances are metres; time is seconds; mass is kilograms; force is newtons; torque is newton-metres; angles are radians; tire/track/disc temperatures are degrees Celsius; tire pressure is kPa; energy is joules. Display conversion to km/h is confined to UI and reports.
+## Ownership, coordinates and clocks
 
-The worker owns the Simulation, Track, Vehicle, AIDriver and RaceDirector instances. Main-thread input sends bounded controls and explicit state commands. The worker validates inputs, detects stale input after 750 ms and applies a braking fallback. A 120 Hz accumulator admits at most 0.2 seconds of wall time in one iteration and explicitly records discarded wall time. Each tick runs two 240 Hz contact/rigid-body substeps. A late renderer does not determine simulation dt.
+Body coordinates are right handed: **+Z is the nose, +Y is up, +X is the driver's
+left**. Right steering therefore uses negative local X. The internal wheel order
+is FR, FL, RR, RL; the helpers and tests in `core/math.ts` and `input/filter.ts`
+make the input/render boundary explicit. Length, time, mass, force, torque and
+energy use metres, seconds, kilograms, newtons, newton-metres and joules. Angles
+are radians, temperatures explicitly Celsius, pressure kPa, and rainfall mm/hour.
+Speed conversion to km/h belongs to presentation and reports.
 
-Five typed-array buffers form a transferable snapshot pool. The main thread holds the newest two for interpolation, copies selected fields into bounded recorders, then transfers old buffers back. Pausing resets wall-clock accounting; resuming cannot inject elapsed pause time into physics. Physics errors stop the worker and produce a visible error rather than silently resetting a car.
+The physics worker owns `Simulation`, `Track`, `Vehicle`, AI and race control.
+The 120 Hz accumulator runs two 240 Hz contact/rigid-body substeps per tick. Main
+thread input is polled independently at 60 Hz. Inputs and commands are validated;
+a 750 ms stale-input condition applies the braking fallback. The accumulator
+bounds admitted wall time and reports discarded time, rather than integrating a
+large step or pretending overload never happened. Pausing resets clock accounting.
 
-## Vehicle model
+Five transferable render buffers keep previous/current numeric snapshots for
+interpolation. Telemetry and replay have separate bounded transport pools and
+physics-tick capture clocks. Main-thread callbacks return consumed buffers. A
+backlogged consumer receives an explicit recording-gap warning; no fake samples
+are inserted. Worker failures stop the session and surface a visible error.
 
-The chassis integrates linear momentum and body-diagonal angular inertia, including the gyroscopic term. Forces at contact or aero application points accumulate torque. Four oriented suspension attachments query the same analytic surface used to construct track geometry. Spring, bump/rebound damping, anti-roll and quadratic bump-stop forces establish dynamic normal loads. The car model is not an unsprung-mass multibody suspension solver: unsprung mass and suspension kinematics are approximations.
+## Vehicle, tires, brakes and energy
 
-The tire model is inspired by nonlinear steady-state force curves, not a fit to proprietary tire data. Its combined longitudinal/lateral output is limited to a load-sensitive force circle. Surface grip, water, temperature, pressure, wear, dirt and flat spots modify the peak. A backward-Euler angular solve with bisection handles stiff low-speed tire dynamics; a brake complementarity condition prevents a brake from accelerating a stopped wheel backwards. Lateral relaxation length and full transient tire carcass deformation are not implemented.
+Translation is semi-implicit. Angular motion uses body implicit midpoint, a Cayley
+rotation and world-torque half kicks. Free-spin energy/world-momentum and applied
+impulse tests exercise the production integrator. Contact and aerodynamic forces
+act at their application points and generate moments. A body-diagonal inertia
+model and suspension kinematics are reduced approximations, not a multibody car.
 
-Slip power heats the tire surface. A separate carcass thermal mass exchanges heat with the surface and environment. Pressure follows a simplified absolute-temperature relation. Brake heating uses friction-brake torque, explicitly excluding regenerative torque. The hybrid model tracks battery energy, deployment efficiency and regeneration headroom; it is not a detailed inverter, engine or battery-chemistry simulation.
+Four oriented suspension axes query a BVH triangle contact ribbon. Shared normals
+stabilize triangle seams. Spring, bump/rebound damping, anti-roll and progressive
+bump-stop forces establish wheel loads. Tire forces use nonlinear load-sensitive
+longitudinal/lateral curves and a combined-force limit. Water, compound, load,
+temperature, pressure, wear, contamination and flat spots affect those forces.
+A backward-Euler angular solve with bisection addresses stiff low-speed wheel
+motion; brake complementarity does not accelerate a stopped wheel backwards.
+The tire coefficients are original approximations, not fitted proprietary data.
 
-Aerodynamic loads scale with relative-air-speed squared. Front and rear wing, floor and drag terms are separate. The floor map includes choking at very low height and loss at excessive clearance. Damage and a spatial wake change these terms before integration. The maps are tunable engineering approximations, not CFD measurements.
+Dissipated slip work heats surface and carcass thermal masses. Pressure follows a
+simplified absolute-temperature relation. Brake discs receive friction-brake
+work, excluding regeneration. Sport ABS releases friction **and** generator
+braking; recovered battery energy is limited by actual applied generator torque
+and wheel angular speed. Automatic anti-stall opens the clutch below coupled
+idle speed while braking. A selected manual clutch remains controlled by the
+pedal. No braking fix writes a preferred chassis speed or increases tire grip.
 
-## Circuit, surface state and collisions
+The finite-inertia clutch couples the combustion and hybrid shafts to the geared
+axle. Differential locking is a torque-coupling approximation. Front/rear wings,
+floor and drag use relative air velocity, including timeline wind. Clearance and
+pitch maps, damage, and a three-dimensional wake modify physical forces. Lost
+bodywork changes mass; localized impacts affect suspension and tire state.
+Full hydrodynamics, CFD, battery chemistry and structural crash deformation are
+outside the reduced model. See [aero/dynamics](AERO_AND_DYNAMICS.md),
+[angular integration](ANGULAR_INTEGRATION.md) and [clutch](DEVICE_CALIBRATION_AND_CLUTCH.md).
 
-A sampled closed Catmull-Rom design is arc-length indexed. Binary distance lookup provides track position, tangent, curvature, slope and banking. A uniform spatial hash accelerates world-to-ribbon queries. Kerb waveform, widths, elevation and boundaries are shared between simulation and rendering.
+## Circuit, environment and collision
 
-A 512 by 7 grid stores water, rubber, marbles and surface temperature. Rainfall, drainage, evaporation and tire passage update it at a lower frequency; wheel contact reads the relevant cell. Wetness is not just a screen overlay. The wet material uses a corresponding data texture for surface darkening/roughness. However, the rendering does not implement true screen-space or ray-traced moving-car reflections.
+One original Catmull-Rom circuit is arc-length indexed. Track queries provide
+position, tangent, curvature, slope and banking; a spatial index narrows world
+queries. Contact ribbons and visible kerbs/road share the same construction data.
+A 512 × 7 grid stores water, rubber, marbles and temperature. Tire passage and
+rainfall/drainage/evaporation evolve real cells, which supply wheel contacts and
+the dynamic wet-road texture. The immutable, seekable weather timeline supplies
+cloud, rain, ambient temperature and wind from simulation time. Water and thermal
+relaxation use stable first-order updates; stopped rain does not erase wet ground.
 
-Collision broad phase uses proximity checks. The car narrow phase approximates each chassis with two overlapping longitudinal capsules; angular effective mass, low restitution, Coulomb friction and positional correction resolve contacts. This is not a general arbitrary-mesh collision engine. Barrier segments visually follow the same lateral limit function as collision queries. A wide pit corridor includes a fast lane and an off-line service box.
+Collision broad phase is sweep-and-prune; the narrow phase tests fifteen
+separating axes between oriented chassis boxes. Normal and friction impulses
+include rotational effective mass. Chassis corners query the physical barrier
+boundary, including the wider pit corridor. These are approximate chassis
+shapes, not arbitrary detailed vehicle triangle-to-triangle collision meshes.
+The original circuit is procedural, not surveyed real-world circuit data.
 
-## Race and AI
+## Race, strategy and pits
 
-Start-light timing includes a seed-derived hold. The first valid forward finish crossing arms timing, then eight ordered gates must be crossed before another lap counts. Reversing across the line or skipping intermediate gates cannot farm laps. Four wheels outside the road invalidate the lap; repeated distinct excursions produce penalties. Pit speed enforcement is a simplified single penalty per passage.
+Race control implements seed-derived start timing, ordered lap gates, interpolated
+sector crossings, local yellow/double-yellow, blue flags, track-limit and pit
+penalties, retirements and whole-field classification. A finished player follows
+a cooldown while remaining competitors finish or reach the classification limit;
+the session does not immediately freeze every opponent at the player's finish.
+Formation laps, safety-car procedure, red-flag restarts and championships are not
+implemented. See [race control](RACE_CONTROL_AND_PIT_RESPONSE.md) and [marshals](MARSHAL_RULES.md).
 
-AI strategizes at 2 Hz, evaluates traffic at 12 Hz and controls at 120 Hz. Preview curvature and a backward braking envelope set target speed. Actual tire grip, mass and aero health influence planning. A lane commitment avoids repeated side swapping; side-by-side corridor protection and following speed constraints reduce contact. Drivers share exactly the same engine, tire, contact and damage code as the player. Differing skill parameters are not differing grip coefficients.
+AI strategy runs at 2 Hz, swept traffic decisions at 12 Hz, and controls at 120 Hz.
+Preview curvature, backward braking envelopes, actual tire grip, fuel and aero
+condition feed target speed. Seeded traits affect risk, reaction, tire care,
+energy, defense and bounded mistakes, not special grip or vehicle constraints.
+A slick tire on standing water reserves additional control margin while reaching
+the real pit stop. Pit approach candidates do not choose passing lanes farther
+from the required entry; occupied corridors are handled by existing following
+and longitudinal yielding. Normal race overtaking remains independent.
 
-The AI is not a fully featured professional racecraft system. Rare contacts, poor recovery after severe user-created pile-ups, and missed service approaches remain areas for further adversarial testing. Pit-box overshoot has a physical reversing recovery path. Wet sessions default to suitable tires; starting on slicks in heavy rain is not part of the successful standard wet scenario.
+Pit approaches, stopping, jack support, tire-object replacement, repair and release
+are physical states. Missed boxes use a driven-through retry on a subsequent lap,
+not teleportation or reversing into a busy pit lane. Service crew poses and removed
+wheel visuals consume that actual state. Congestion and severe player-created
+pile-ups still require adversarial testing; successful fixtures are not universal
+racecraft certification.
 
-The session pauses at the player's chequered flag. Competitors not finished are honestly labelled RUNNING. Formation laps, safety cars, red-flag restarts, steward investigations, full championship calendars and network multiplayer are not implemented.
+## Rendering, controls and sound
 
-## Rendering and audio
+Three.js WebGL2 renders original generated geometry, textures and shaders. Static
+geometry is merged, repeated objects instanced, remote cars use three LODs, and
+circuit props have spatial culling. Initial procedural construction runs through a
+prioritized cooperative queue with real progress and cancellation cleanup. This
+is not streaming unspecified downloaded assets. Individual graphics controls
+change real resolution, textures, shadows, mirrors/probes, effects and processing.
 
-All visual models, textures and sound synthesis are generated by this project. Static bodywork and infrastructure are merged by material; crowds, barriers, trees and suspension rods are instanced. Wheels, steering and suspension remain articulated. The three quality levels reduce resolution, shadows, crowd/particles and bloom. Explicit model LOD meshes and asynchronous asset streaming are not yet implemented.
+The renderer uses PBR surfaces, an original sky/environment, directional shadows,
+wet/carbon shaders, true rear-view camera passes and an optional local reflection
+probe. Depth-aware camera/rigid-object motion blur is independently adjustable
+and off by default. Camera cuts, hitches and replay seeks reset its history; the
+HTML HUD remains outside the effect. GPU queries are nonblocking and invalidated
+on disjoint/context-loss events. [Performance captures](PERFORMANCE_VALIDATION.md)
+measure real intervals and identify the built source, not a guessed consumer GPU.
 
-The renderer uses PBR materials, ACES output, a generated sky/environment, a camera-following directional shadow map, and restrained bloom at the highest setting. Cockpit/chase camera offsets use actual accelerations and a damped spring. Car force/damage state drives visible wing changes, tire compression, disc heat and particles. Mirror surfaces are reflective materials, not live rear-view cameras. Motion blur is intentionally absent.
+Articulated wheels, suspension links, driver, steering display, damage, debris and
+pit crew follow state. Pooled spray requires loaded tires, actual water and speed;
+smoke uses tire slip work, sparks use bottom-contact work. Fractional emissions
+avoid losing light rain at high FPS. Weather wind drives rain and entrainment.
+The same wind is recorded in replay rather than sampled from a second wall clock.
 
-Web Audio starts from a user gesture. Engine harmonic bands depend on RPM and load; tire noise derives from force/slip power, surface/water noise from contact state, and impacts from actual damage impulses. Nearby engine voices use distance attenuation, stereo positioning and an approximate Doppler factor. Procedural synthesis is not equivalent to professionally recorded, layered real-car samples.
+Keyboard, gamepad, touch and explicitly calibrated unmapped-wheel inputs route to
+bounded controls; supported devices may provide vibration. Native wheel force
+feedback is not claimed. Web Audio starts from a user gesture. Engine/load bands,
+contact spectra, wind, impacts and nearby spatial voices consume state. Procedural
+synthesis is not a professionally recorded layered car-audio library.
 
-## Persistence, replay and errors
+## Persistence, recording and errors
 
-Version-1 IndexedDB records store validated preferences and best-lap records. Import/export only handles setup JSON, with version, type, size and finite-value checks. No network writes or analytics are performed by the app. No mid-race save/restore, replay file import/export or cloud sync is implemented.
+Settings records are version 4 and accept supported earlier versions; IndexedDB's
+object-store schema version is separately 1. Setup, calibration, bindings and
+graphics are validated. Stored best laps and local preferences require no account
+or network write. There is no full mid-race physics save/restore or cloud sync.
 
-Replay is a bounded 20-minute, 15 Hz pose history interpolated at display rate. It does not restore/re-simulate the full physics state. Telemetry records delivered player snapshots, normally 60 Hz, in a 15-minute ring. CSV time stamps expose gaps; no samples are fabricated to claim a constant capture rate. Lap comparison uses distance, and requires two completed recorded laps.
+Protocol version 6 uses sixteen header floats and 224 floats per car. Wheel
+records start at offset 96; four debris records start at 192. Telemetry now exports
+199 named channels at 60 Hz into a fifteen-minute ring. Complete all-car numeric
+pose replay is captured at 15 Hz and paged through bounded IndexedDB storage,
+with separately recorded surface state. Playback does not rerun live physics.
+Missing/incompatible pages, storage failures, cancelled exports and backlog are
+reported rather than silently substituted. See [recording/replay](RECORDING_AND_REPLAY.md).
 
-Settings failures surface as notices and leave session-only operation available. Missing WebGL2, worker startup failure, uncaught physics errors and graphics-context loss stop the session with an actionable error. The build intentionally does not claim crash-free behavior on untested browsers or GPUs.
-
-## Three review passes
-
-1. Functional integration: common surface geometry; all controls routed to bounded inputs; rendering, audio, telemetry and replay consume simulation state; pit stops require actual arrival.
-2. Engineering review: low-speed wheel chatter removed, regenerative disc heating corrected, ordered lap gates tested, collision energy checked, multi-instance scratch state isolated, renderer wall-time statistics separated from bounded camera dt, and rear-tire wear added to AI service decisions.
-3. Presentation/lifecycle review: original car/track/UI; articulated suspension and live steering display; instancing/merging; keyboard/gamepad/touch mappings; pause/focus resets; typed lifecycle, explicit limitations and reproducible CI artifacts. Browser visual review is recorded separately from type/build validation.
+Missing WebGL2, worker startup failure, invalid physical state and context loss
+have explicit stop/error paths. Focus loss pauses driving. This architecture and
+its automated checks do not substitute for the directive's combined driving
+scenario, representative-device performance runs or complete human-quality audits.

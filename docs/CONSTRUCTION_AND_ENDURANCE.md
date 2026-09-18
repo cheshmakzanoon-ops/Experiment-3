@@ -16,13 +16,15 @@ The complete browser session test also checks that the real renderer reports com
 
 ## Long-run AI evidence for the current simulation
 
-The simulation fingerprint is `5cc029957e8966ea1b65ce4bed1b2d6df0d8940659fac63edbb5fd5de63ca86a`. It covers every source file in `src/simulation/` and `src/core/`, with path and content hashes in deterministic lexical order. The new construction scheduler belongs to `src/rendering/` and does not change this simulation fingerprint. The two reports below were generated after the seeded-driver and pit-corridor repairs, not borrowed from the earlier marshal-only revision.
+The simulation fingerprint is `e600dbe7cab11f3762a35c30697ee6d137fbaf9a6c43c25b1b530e1d744a2c0a`. It covers every source file in `src/simulation/` and `src/core/`, with path and content hashes in deterministic lexical order. The two current reports were rerun after the weather timeline, ABS/regeneration, anti-stall and wet-pit traffic changes. Their complete `src/` fingerprint is `1db6169ec9a928dbbbbc6a28c267fb827a5d4770f49b71f725afc9fd47cd165a`. They are not the earlier 5cc02995 construction-only reports.
 
 | Trial | Actual result |
 |---|---|
-| Ten cars × 50 dry laps, seed 4417 | All ten completed 50 laps in 3,449.742 simulated seconds; no impact, off-track running or component damage. Initial fuel was 60.5 kg per car; no service was required in this fixture. |
-| Ten cars × 100 dry laps, seed 73021 | All ten completed 100 laps in 7,023.117 simulated seconds. Every car completed one physical tire stop; no impact, off-track running or component damage. Initial fuel was 113 kg per car and affected actual mass throughout. |
+| Ten cars × 50 dry laps, seed 4417 | All ten completed 50 laps in 3,450.000 simulated seconds; no impact, off-track running or wing/floor damage. Initial fuel was 60.5 kg per car; no service was required in this fixture. |
+| Ten cars × 100 dry laps, seed 73021 | All ten completed 100 laps in 7,029.683 simulated seconds. Every car completed one physical tire stop; no impact, off-track running or wing/floor damage. Initial fuel was 113 kg per car and affected actual mass throughout. |
 
 The reports retain per-car maximum offset, impact count, minimum component health, stall durations, fuel remaining and service count. They are positive evidence for these seeds, grid, setup and weather, not a guarantee of flawless AI under every adversarial condition. Clear and changing-weather whole-field three-lap races, obstruction handling and the simultaneous ten-car service fixture remain separate regressions.
 
 The full master directive is still subject to the complete combined scenario, target-device profiling, all specified final audits and further presentation review. Passing these fixtures does not certify AAA presentation or every remaining requirement.
+
+Separate ten-car wet and initially-slick-in-rain service fixtures are now part of the physics CI gate. They pass their declared service/impact thresholds, but contain minor contacts and must not be described as zero-contact endurance. See `wet-pit-results.json` and [weather/braking](WEATHER_AND_BRAKING.md).
