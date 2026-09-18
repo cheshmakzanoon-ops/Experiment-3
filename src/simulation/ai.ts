@@ -1,3 +1,4 @@
+import { FLAG, yellowFlag } from './marshal.ts';
 import { TrafficPlanner, personality, type DriverPersonality } from './traffic.ts';
 import {
   pitMergeConflict,
@@ -91,7 +92,7 @@ export class AIDriver {
         race.time,
         8.5 * grip,
         this.personality,
-        race.flag === 'YELLOW',
+        yellowFlag(race.control.flags[c.id]),
         preparingPit ? 6 : 0,
       );
       this.desiredOffset = plan.offset;
@@ -158,7 +159,13 @@ export class AIDriver {
         this.decision = 'YIELD FOR PIT APPROACH';
       }
     }
-    if (race.flag === 'YELLOW') desired *= 0.68;
+    desired = Math.min(desired, race.control.targetSpeed(c.id, braking * 0.7));
+    if (race.control.flags[c.id] === FLAG.BLUE && c.speed > 10)
+      desired = Math.min(desired, c.speed * 0.94);
+    if (yellowFlag(race.control.flags[c.id])) {
+      this.decision = 'LOCAL CAUTION / NO OVERTAKING';
+      command.ers = 0;
+    }
     if (pit) {
       desired = Math.min(desired, 21.1);
       if (c.s > track.length - 225 || (c.s > 210 && c.s < 335))

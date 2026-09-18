@@ -1,3 +1,4 @@
+import { FLAG, flagLabel, yellowFlag } from '../simulation/marshal.ts';
 import { presentationControls, bindPresentation } from './presentation.ts';
 import { DeviceCalibrationPanel } from './device-calibration.ts';
 import {
@@ -193,14 +194,7 @@ export class Interface {
       'lapLabel',
       `${this.options.mode === 'practice' ? 'PRACTICE / LAP' : 'LAP'} ${Math.min(this.options.laps, Math.round(frame[o + F.LAPS]) + 1)}${this.options.mode === 'race' ? ' / ' + this.options.laps : ''}`,
     );
-    const flag =
-      frame[H.PHASE] < 2
-        ? 'GRID'
-        : frame[H.FLAG] === 1
-          ? 'YELLOW FLAG'
-          : frame[H.FLAG] === 2
-            ? 'CHEQUERED'
-            : 'GREEN FLAG';
+    const flag = frame[H.PHASE] < 2 ? 'GRID' : flagLabel(frame[H.FLAG]);
     this.setText('flag', flag);
     this.get('flag').dataset.flag = String(frame[H.FLAG]);
     this.setText(
@@ -247,23 +241,27 @@ export class Interface {
     const message =
       frame[o + F.FINISH] > 0
         ? 'FINISHED · AUTOMATIC COOLDOWN / WAITING FOR FIELD'
-        : auto
-          ? 'AI DEMONSTRATION · PRESS G TO TAKE CONTROL'
-          : pit > 0
-            ? [
-                '',
-                'PIT ASSIST · APPROACHING BOX',
-                'JACKED · SERVICE',
-                'REMOVING WHEELS',
-                'NEW TIRES INSTALLED',
-                'REPAIRING FRONT WING',
-                'RELEASED · PIT EXIT',
-              ][pit]
-            : frame[o + F.FRONT_HEALTH] < 0.6
-              ? 'FRONT WING DAMAGE · REQUEST PIT SERVICE'
-              : frame[H.FLAG] === 1
-                ? 'YELLOW · INCIDENT ON CIRCUIT'
-                : '';
+        : yellowFlag(frame[H.FLAG])
+          ? `${flagLabel(frame[H.FLAG])} · ${Math.round(frame[o + F.CAUTION_SPEED] * 3.6)} KM/H · NO OVERTAKING`
+          : frame[H.FLAG] === FLAG.BLUE
+            ? 'BLUE FLAG · HOLD A PREDICTABLE LINE / LET THE LEADER PASS'
+            : auto
+              ? 'AI DEMONSTRATION · PRESS G TO TAKE CONTROL'
+              : pit > 0
+                ? [
+                    '',
+                    'PIT ASSIST · APPROACHING BOX',
+                    'JACKED · SERVICE',
+                    'REMOVING WHEELS',
+                    'NEW TIRES INSTALLED',
+                    'REPAIRING FRONT WING',
+                    'RELEASED · PIT EXIT',
+                  ][pit]
+                : frame[o + F.FRONT_HEALTH] < 0.6
+                  ? 'FRONT WING DAMAGE · REQUEST PIT SERVICE'
+                  : frame[H.FLAG] === 1
+                    ? 'YELLOW · INCIDENT ON CIRCUIT'
+                    : '';
     if (message !== this.lastAnnounced) {
       this.setText('raceMessage', message);
       this.lastAnnounced = message;

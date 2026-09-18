@@ -1461,3 +1461,19 @@ html[data-high-contrast='true'] .lap-panel {
 html[data-high-contrast='true'] .small-note {
   color: #263b3c;
 }
+
+/* Text and patterns retain flag meaning without color discrimination. */
+.session-status > b[data-flag='3'] {
+  color: #e9c345;
+  border-bottom: 3px double currentColor;
+}
+.session-status > b[data-flag='4'] {
+  color: #89c7f2;
+  border-bottom: 2px solid currentColor;
+}
+html[data-colorblind='true'] #flag[data-flag='3']::before {
+  content: '!! ';
+}
+html[data-colorblind='true'] #flag[data-flag='4']::before {
+  content: '>> ';
+}

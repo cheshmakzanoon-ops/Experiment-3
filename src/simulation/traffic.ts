@@ -60,7 +60,8 @@ export class TrafficPlanner {
       bestOffset = this.candidates[0],
       found = false;
     for (const candidate of this.candidates) {
-      if (yellow && Math.abs(candidate - closest) > 1.5) continue;
+      // Under yellow, safe changes around stationary hazards remain legal.
+      // The speed planner below prevents gaining on moving competitors.
       let score = Math.abs(candidate - preferredOffset) * 1.0 + Math.abs(candidate - closest) * 0.2;
       if (now < this.holdUntil && Math.abs(candidate - this.heldOffset) > 0.6) score += 6;
       let safe = true;
@@ -131,6 +132,8 @@ export class TrafficPlanner {
         continue;
       const gap = mod(other.s - car.s + track.length / 2, track.length) - track.length / 2;
       if (gap <= 0 || gap > 180) continue;
+      if (yellow && !other.retired && other.speed > 5 && gap < 55)
+        result.speedLimit = Math.min(result.speedLimit, Math.max(5, other.speed - 1));
       const corridor =
         Math.abs(other.lateral - car.lateral) < 3 || Math.abs(other.lateral - result.offset) < 3;
       if (!corridor) continue;

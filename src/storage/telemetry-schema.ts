@@ -67,6 +67,8 @@ const units: Record<string, string> = {
   CLUTCH_TORQUE: 'Nm',
   CLUTCH_SLIP_POWER: 'W',
   ENGINE_TORQUE: 'Nm',
+  CAUTION_DISTANCE: 'm',
+  CAUTION_SPEED: 'mps',
   SECTOR_1: 's',
   SECTOR_2: 's',
   SECTOR_3: 's',

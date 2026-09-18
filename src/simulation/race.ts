@@ -1,3 +1,4 @@
+import { MarshalControl } from './marshal.ts';
 import { safePitRelease } from './pit-safety.ts';
 import { mod, Random } from '../core/math.ts';
 import type { SessionOptions } from './config.ts';
@@ -126,6 +127,7 @@ export class RaceDirector {
   readonly greenAt: number;
   readonly laps: LapTracker[];
   readonly order: number[];
+  readonly control: MarshalControl;
   flag: 'GREEN' | 'YELLOW' | 'CHEQUERED' = 'GREEN';
   message = 'SYSTEMS READY';
   private nextMessage = 0;
@@ -137,6 +139,14 @@ export class RaceDirector {
     this.greenAt = 5.6 + new Random(options.seed).next() * 0.9;
     this.laps = cars.map((c) => new LapTracker(track.length, c.s));
     this.order = cars.map((c) => c.id);
+    this.control = new MarshalControl(track.length, cars.length, (car, seconds, code) =>
+      this.penalize(car, seconds, code),
+    );
+  }
+  penalize(car: number, seconds: number, code: string) {
+    this.laps[car].penalty += seconds;
+    if (this.cars[car].finishTime > 0) this.cars[car].finishTime += seconds;
+    this.control.recordPenalty(car, seconds, code, this.raceTime);
   }
   step(dt: number) {
     if (!Number.isFinite(dt) || dt <= 0) throw new Error('Invalid race timestep');
@@ -150,7 +160,7 @@ export class RaceDirector {
           c = this.cars[i];
         if (c.speed > 0.8 && !lap.jumped && this.time < this.greenAt) {
           lap.jumped = true;
-          lap.penalty += 5;
+          this.penalize(i, 5, 'JUMP_START');
           this.message = 'JUMP START · +5 SECONDS';
           this.nextMessage = this.time + 5;
         }
@@ -164,17 +174,24 @@ export class RaceDirector {
     }
     if (this.phase !== PHASE.RACING) return;
     this.raceTime = this.time - this.greenAt;
-    let incident = false;
+    this.control.update(dt, this.raceTime, this.cars, this.laps);
     for (let i = 0; i < this.cars.length; i++) {
       const c = this.cars[i],
         lap = this.laps[i];
       lap.crossedFinish = false;
       if (!c.finishTime && !c.retired) {
         const outside = outsideTrack(c);
+        const previousPenalty = lap.penalty;
         lap.limits(outside, dt);
+        if (lap.penalty > previousPenalty)
+          this.control.recordPenalty(
+            i,
+            lap.penalty - previousPenalty,
+            'TRACK_LIMITS',
+            this.raceTime,
+          );
         lap.update(c.s, this.raceTime, outside);
       }
-      if (c.impact > 0.18 || (c.retired && !c.finishTime)) incident = true;
     }
     if (this.options.mode === 'race') {
       // Resolve the first finisher by interpolated crossing time, not array order.
@@ -200,7 +217,10 @@ export class RaceDirector {
             car.retired = true; // Explicit DNF, never a manufactured finishing time.
         }
       }
-      if (this.cars.every((c) => c.finishTime > 0 || c.retired)) this.phase = PHASE.FINISHED;
+      if (this.cars.every((c) => c.finishTime > 0 || c.retired)) {
+        this.control.settlePending(this.cars);
+        this.phase = PHASE.FINISHED;
+      }
     }
     this.order.sort((a, b) => {
       const ca = this.cars[a],
@@ -215,13 +235,13 @@ export class RaceDirector {
     this.flag =
       this.finishStartedAt >= 0 || this.phase === PHASE.FINISHED
         ? 'CHEQUERED'
-        : incident
+        : this.control.hasIncident
           ? 'YELLOW'
           : 'GREEN';
     if (this.phase === PHASE.FINISHED) this.message = 'SESSION COMPLETE';
     else if (this.finishStartedAt >= 0) this.message = 'CHEQUERED FLAG · FIELD FINISHING';
     else if (this.time > this.nextMessage)
-      this.message = incident
+      this.message = this.control.hasIncident
         ? 'YELLOW · INCIDENT AHEAD'
         : this.cars[0].inPit
           ? 'PIT LANE · 80 KM/H'

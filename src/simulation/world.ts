@@ -28,8 +28,7 @@ export class Simulation {
   readonly collisions = new CollisionSolver();
   tick = 0;
   autoPlayer = false;
-  private pitSpeedClock = 0;
-  private pitSpeedPenalized = false;
+
   constructor(options: SessionOptions) {
     this.options = validateOptions(options);
     this.track = new Track(this.options.weather);
@@ -72,7 +71,6 @@ export class Simulation {
   }
   step(dt: number) {
     this.tick++;
-    const player = this.cars[0];
     for (let i = 0; i < this.cars.length; i++) {
       const c = this.cars[i];
       if (i > 0 || this.autoPlayer || c.pitRequested || c.inPit || c.finishTime > 0)
@@ -97,14 +95,6 @@ export class Simulation {
       this.collisions.solve(this.cars, this.track);
     }
     for (const c of this.cars) updatePit(c, this.track, dt, this.cars);
-    if (player.inPit && player.speed > 23) {
-      this.pitSpeedClock += dt;
-      if (this.pitSpeedClock > 1 && !this.pitSpeedPenalized) {
-        this.race.laps[0].penalty += 5;
-        this.pitSpeedPenalized = true;
-      }
-    } else this.pitSpeedClock = 0;
-    if (!player.inPit) this.pitSpeedPenalized = false;
     this.track.evolve(dt, Math.max(0, this.race.time - this.race.greenAt));
     this.race.step(dt);
   }
@@ -118,7 +108,7 @@ export class Simulation {
     out[H.RAIN] = this.track.rain;
     out[H.CLOUD] = this.track.cloud;
     out[H.AMBIENT] = this.track.ambient;
-    out[H.FLAG] = this.race.flag === 'GREEN' ? 0 : this.race.flag === 'YELLOW' ? 1 : 2;
+    out[H.FLAG] = this.race.flag === 'CHEQUERED' ? 2 : this.race.control.flags[0];
     out[H.STEP_MS] = stepMs;
     out[H.DROPPED] = dropped;
     out[H.WATER] = this.track.meanWater();
@@ -205,6 +195,12 @@ export class Simulation {
       out[o + F.CLUTCH_TORQUE] = c.clutch.transmittedTorque;
       out[o + F.CLUTCH_SLIP_POWER] = c.clutch.slipPower;
       out[o + F.ENGINE_TORQUE] = c.engineOutputTorque;
+      out[o + F.LOCAL_FLAG] = this.race.control.flags[id];
+      out[o + F.CAUTION_DISTANCE] = this.race.control.zoneDistance[id];
+      out[o + F.CAUTION_SPEED] = this.race.control.zoneSpeed[id];
+      out[o + F.BLUE_CAR] = this.race.control.blueCar[id];
+      out[o + F.CONTROL_SEQUENCE] = this.race.control.sequence;
+      out[o + F.CONTROL_PENALTIES] = this.race.control.penaltyCount[id];
       for (let i = 0; i < c.debris.pieces.length; i++) {
         const piece = c.debris.pieces[i],
           p = o + DEBRIS_BASE + i * DEBRIS_STRIDE;

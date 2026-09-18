@@ -5,7 +5,7 @@ export const HEADER = 16,
   WHEEL_STRIDE = 24,
   DEBRIS_BASE = 176,
   DEBRIS_STRIDE = 8;
-export const PROTOCOL_VERSION = 3;
+export const PROTOCOL_VERSION = 4;
 // +Z is the nose, +Y up and +X the driver's left; negative-X hubs are right-side wheels.
 export const WHEEL_NAMES = ['FR', 'FL', 'RR', 'RL'] as const;
 export const D = { KIND: 0, X: 1, Y: 2, Z: 3, ROTATION: 4, AGE: 5, MASS: 6, ACTIVE: 7 } as const;
@@ -100,6 +100,12 @@ export const F = {
   CLUTCH_TORQUE: 71,
   CLUTCH_SLIP_POWER: 72,
   ENGINE_TORQUE: 73,
+  LOCAL_FLAG: 74,
+  CAUTION_DISTANCE: 75,
+  CAUTION_SPEED: 76,
+  BLUE_CAR: 77,
+  CONTROL_SEQUENCE: 78,
+  CONTROL_PENALTIES: 79,
 } as const;
 export const W = {
   OMEGA: 0,
