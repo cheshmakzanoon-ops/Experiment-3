@@ -22,6 +22,8 @@ test('individual rendering controls persist and allocate the selected buffer dim
   for (let i = 0; i < 3; i++)
     await page.locator('[name=graphics_particleDensity]').press('ArrowRight');
   await page.locator('[name=graphics_vegetationDensity]').press('Home');
+  await page.locator('[name=graphics_motionBlur]').press('Home');
+  for (let i = 0; i < 6; i++) await page.locator('[name=graphics_motionBlur]').press('ArrowRight');
   await page.locator('[name=colorblind]').check();
   await page.locator('[name=highContrast]').check();
   await page.getByRole('button', { name: 'APPLY & SAVE' }).click();
@@ -46,6 +48,8 @@ test('individual rendering controls persist and allocate the selected buffer dim
   });
   const render = state.diagnostics.renderer!;
   expect(render.graphics.textureSize).toBe(128);
+  expect(render.graphics.motionBlur).toBe(0.3);
+  expect(render.motionBlur.active).toBe(true);
   expect(render.graphics.particleDensity).toBe(0.3);
   expect(render.graphics.vegetationDensity).toBe(0);
   expect(render.renderWidth).toBeCloseTo(state.width * state.ratio * 0.5, 0);
@@ -55,6 +59,9 @@ test('individual rendering controls persist and allocate the selected buffer dim
     body: JSON.stringify(state),
     contentType: 'application/json',
   });
+  await page.keyboard.press('g');
+  await expect.poll(async () => (await page.evaluate(() => window.apexDiagnostics())).frame![carBase(0) + F.SPEED], { timeout: 20000 }).toBeGreaterThan(5);
+  await expect.poll(async () => (await page.evaluate(() => window.apexDiagnostics())).renderer!.motionBlur.velocityFrames).toBeGreaterThan(3);
   await page.screenshot({ path: info.outputPath('graphics-and-accessibility.png') });
   expect(errors).toEqual([]);
 });

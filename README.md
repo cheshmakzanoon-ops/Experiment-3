@@ -298,3 +298,11 @@ npm run test:performance -- baseline.json candidate.json
 The comparison command rejects mismatched machines/configurations, incomplete
 runs and significant regressions. Read [measurement definitions and limits](docs/PERFORMANCE_VALIDATION.md)
 before comparing reports. CI software rendering is not a consumer GPU benchmark.
+
+## 🎥 Optional motion blur
+
+The garage now offers bounded, depth-aware camera and rigid-object motion blur.
+It is off by default and independently adjustable from the graphics preset. The
+HTML instruments remain sharp, and camera cuts, replay seeks and long stalls
+reset motion history. Unsupported float-render-target devices keep the normal
+unblurred renderer. See [implementation and GPU tests](docs/MOTION_BLUR.md).

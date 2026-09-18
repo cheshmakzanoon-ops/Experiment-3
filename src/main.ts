@@ -581,9 +581,11 @@ export class GameApp {
         }
         break;
       case 'ers':
+        this.performanceCapture.interrupt('Deployment mode changed');
         this.ers = ((this.ers + 1) % 3) as 0 | 1 | 2;
         break;
       case 'mute':
+        this.performanceCapture.interrupt('Audio workload changed');
         this.audio.muted = !this.audio.muted;
         this.ui.toast(this.audio.muted ? 'Audio muted.' : 'Audio enabled.');
         break;

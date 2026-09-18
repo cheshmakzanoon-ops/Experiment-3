@@ -6,6 +6,7 @@ import { InertialCamera, ViewOrientation } from './camera-dynamics.ts';
 import { ReflectionSystem } from './reflections.ts';
 import { DebrisView } from './debris.ts';
 import { PitCrewView } from './pit-crew.ts';
+import { MotionBlurPass } from './motion-blur.ts';
 import { GpuTimer } from './gpu-timer.ts';
 import { TextureBudget } from './texture-budget.ts';
 import {
@@ -44,6 +45,7 @@ export class RacingRenderer {
   private sky = new Sky();
   private composer: EffectComposer;
   private bloom: UnrealBloomPass;
+  private motionBlur: MotionBlurPass;
   private fxaa = new ShaderPass(FXAAShader);
   private textures = new TextureBudget();
   graphics: GraphicsOptions = graphicsPreset('medium');
@@ -112,6 +114,7 @@ export class RacingRenderer {
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = T.PCFSoftShadowMap;
     this.sky.scale.setScalar(450000);
+    this.sky.userData.excludeMotionBlur = true;
     const u = this.sky.material.uniforms;
     u.turbidity.value = 5;
     u.rayleigh.value = 1.8;
@@ -153,6 +156,8 @@ export class RacingRenderer {
     }
     this.composer = new EffectComposer(this.renderer);
     this.composer.addPass(new RenderPass(this.scene, this.camera));
+    this.motionBlur = new MotionBlurPass(this.scene, this.camera, this.renderer.extensions.has('EXT_color_buffer_float'));
+    this.composer.addPass(this.motionBlur);
     this.bloom = new UnrealBloomPass(new T.Vector2(1, 1), 0.1, 0.3, 1.3);
     this.composer.addPass(this.bloom);
     this.composer.addPass(new OutputPass());
@@ -268,6 +273,7 @@ export class RacingRenderer {
       this.sun.shadow.needsUpdate = true;
     }
     this.bloom.enabled = g.bloom;
+    this.motionBlur.setStrength(g.motionBlur);
     this.fxaa.enabled = g.antialias;
     this.circuit.crowd.visible = g.crowd;
     this.circuit.vegetationGroup.traverse((object) => {
@@ -304,6 +310,7 @@ export class RacingRenderer {
     this.fxaa.uniforms.resolution.value.set(1 / actual.x, 1 / actual.y);
   }
   changeCamera(mode?: CameraMode) {
+    this.motionBlur.reset();
     const modes: CameraMode[] = ['chase', 'cockpit', 'pod', 'trackside'];
     this.mode = mode ?? modes[(modes.indexOf(this.mode) + 1) % modes.length];
     this.initialized = false;
@@ -315,6 +322,7 @@ export class RacingRenderer {
     return this.mode;
   }
   reset() {
+    this.motionBlur.reset();
     this.initialized = false;
     this.inertia.reset();
     this.viewOrientation.reset();
@@ -484,6 +492,7 @@ export class RacingRenderer {
         this.graphics.reflections === 'local' && !menu,
       );
       this.reflection.renderMirrors(this.renderer, this.scene, car.root, dt);
+      this.motionBlur.prepareFrame(wallDelta, b[H.TIME]);
       this.composer.render();
     } finally {
       this.gpuTimer.end();
@@ -552,6 +561,7 @@ export class RacingRenderer {
       mirrorWidth: this.reflection.mirrorWidth,
       reflectionProbeUpdates: this.reflection.probeUpdates,
       localProbeActive: this.reflection.localProbeActive,
+      motionBlur: this.motionBlur.diagnostics(),
       gpuMilliseconds: this.gpuTimer.milliseconds,
       gpuTimerSupported: this.gpuTimer.supported,
       fps: this.fps,
@@ -569,6 +579,7 @@ export class RacingRenderer {
     this.disposed = true;
     this.reflection.dispose();
     this.gpuTimer.dispose();
+    this.motionBlur.dispose();
     this.bloom.dispose();
     this.fxaa.dispose();
     this.textures.dispose();

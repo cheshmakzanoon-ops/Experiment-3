@@ -11,6 +11,7 @@ export interface GraphicsOptions {
   vegetationDensity: number;
   crowd: boolean;
   bloom: boolean;
+  motionBlur: number;
   antialias: boolean;
   anisotropy: 1 | 2 | 4 | 8 | 16;
 }
@@ -25,6 +26,7 @@ export function graphicsPreset(quality: Quality): GraphicsOptions {
     vegetationDensity: quality === 'low' ? 0.5 : 1,
     crowd: quality !== 'low',
     bloom: quality === 'high',
+    motionBlur: 0,
     antialias: true,
     anisotropy: quality === 'low' ? 2 : quality === 'high' ? 16 : 8,
   };
@@ -47,6 +49,7 @@ export function validateGraphics(value: unknown, quality: Quality): GraphicsOpti
     vegetationDensity: number(p.vegetationDensity, fallback.vegetationDensity, 0, 1),
     crowd: typeof p.crowd === 'boolean' ? p.crowd : fallback.crowd,
     bloom: typeof p.bloom === 'boolean' ? p.bloom : fallback.bloom,
+    motionBlur: number(p.motionBlur, fallback.motionBlur, 0, 0.6),
     antialias: typeof p.antialias === 'boolean' ? p.antialias : fallback.antialias,
     anisotropy: choice(p.anisotropy, [1, 2, 4, 8, 16], fallback.anisotropy),
   };

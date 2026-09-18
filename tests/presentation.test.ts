@@ -33,6 +33,7 @@ it('preserves independent quality controls through version-four serialization', 
     particleDensity: 0.2,
     crowd: false,
     bloom: true,
+    motionBlur: 0.35,
     antialias: false,
     anisotropy: 4,
   });
@@ -48,6 +49,7 @@ it('bounds every numeric budget and rejects unsupported quality values', () => {
       shadowSize: 999,
       particleDensity: -8,
       vegetationDensity: 10,
+      motionBlur: 8,
       anisotropy: 999,
       reflections: 'magic',
       antialias: 'false',
@@ -59,6 +61,7 @@ it('bounds every numeric budget and rejects unsupported quality values', () => {
   expect(g.shadowSize).toBe(1024);
   expect(g.particleDensity).toBe(0);
   expect(g.vegetationDensity).toBe(1);
+  expect(g.motionBlur).toBe(0.6);
   expect(g.anisotropy).toBe(8);
   expect(g.reflections).toBe('environment');
   expect(g.antialias).toBe(true);

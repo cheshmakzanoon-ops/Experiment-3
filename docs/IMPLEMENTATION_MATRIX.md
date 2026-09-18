@@ -65,7 +65,7 @@ This ledger follows the numbered sections of the supplied directive. “Implemen
 | 59 | SHADOWS | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 60 | LIGHTING | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 61 | ATMOSPHERE | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
-| 62 | MOTION BLUR | Not implemented: no object/camera motion blur. |
+| 62 | MOTION BLUR | Optional rigid-object/camera velocity pass with depth-gated sampling, 24-pixel cap and reset on cuts/seeks/hitches. Off by default; the HTML HUD is never blurred. Static-instance approximation and validation scope are documented in MOTION_BLUR.md. |
 | 63 | SPEED PERCEPTION | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 64 | CAMERA DYNAMICS | Analytic critically damped local inertial cockpit offsets, independent heading filtering and chase translation feed-forward; 24–144 FPS regression coverage. |
 | 65 | COCKPIT CAMERA | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
@@ -95,7 +95,7 @@ This ledger follows the numbered sections of the supplied directive. “Implemen
 | 89 | SETUP SYSTEM | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 90 | HUD DESIGN | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 91 | STEERING-WHEEL DISPLAY | Actual gear, speed, RPM LEDs, battery, ERS, brake bias, differential and best-lap distance delta on the physical wheel. No fake constant-speed reference trace. |
-| 92 | GRAPHICS SETTINGS | Independent physical render scale, texture cap, shadows, mirrors/probes, particle/vegetation density, crowds, bloom, FXAA and anisotropy. Optional motion blur remains absent. |
+| 92 | GRAPHICS SETTINGS | Independent physical render scale, texture cap, shadows, mirrors/probes, particle/vegetation density, crowds, bloom, FXAA and anisotropy. Independent bounded motion-blur strength is available, off by default. |
 | 93 | PERFORMANCE BUDGET | Opt-in real-frame captures include raw renderer CPU, worker-reported tick cost, GPU queries and all-pass counters. Hardware targets remain targets, not certified results. |
 | 94 | OBJECT ALLOCATION | Pooled snapshots/particles/recorders; small per-tick/per-frame allocations remain. |
 | 95 | LOD | Three separate car geometries with hysteresis and articulated wheels; player remains full detail. Track/prop spatial culling is implemented. |
@@ -136,7 +136,7 @@ This ledger follows the numbered sections of the supplied directive. “Implemen
 | 130 | CIRCUIT PHYSICS FIDELITY | Visual/contact geometry shared; one original circuit, not surveyed circuit data. |
 | 131 | UI PRINCIPLE | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 132 | MENU PERFORMANCE | Initial circuit construction yields between prioritized jobs and reports real task completion. Session car/shader preparation remains paused and cooperative. Oversized CPU/GPU work is measured rather than declared instantaneous. |
-| 133 | ACCESSIBILITY | Scalable interface, patterned/text flags, high-contrast instruments, adjustable shake and remapping. Optional motion-blur control is absent because the effect is not implemented. |
+| 133 | ACCESSIBILITY | Scalable interface, patterned/text flags, high-contrast instruments, adjustable shake and remapping. Motion-blur strength includes a true zero-cost off mode and never affects the HTML HUD. |
 | 134 | AUDIO/VISUAL CONNECTION | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 135 | NO DISCONNECTED EFFECTS | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 136 | EVENT BUS | Typed worker protocol and explicit callbacks, not a separate generalized event-bus package. |

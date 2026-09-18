@@ -35,6 +35,7 @@ const choices: [keyof GraphicsOptions, string, (string | number)[], string[]][] 
 ];
 const ranges: [keyof GraphicsOptions, string, number, number, number][] = [
   ['resolutionScale', 'Render resolution scale', 0.5, 1.5, 0.05],
+  ['motionBlur', 'Motion blur (0 disables; HUD stays sharp)', 0, 0.6, 0.05],
   ['particleDensity', 'Smoke, spray and rain density', 0, 1, 0.1],
   ['vegetationDensity', 'Environment vegetation density', 0, 1, 0.1],
 ];
