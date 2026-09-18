@@ -40,6 +40,7 @@ export class GameApp {
   private store = new SaveStore();
   private exporter = new TelemetryExport();
   private exporting = false;
+  private savingSettings = false;
   private settings: Settings = structuredClone(DEFAULT_SETTINGS);
   private worker: Worker | null = null;
   private current: Float32Array | null = null;
@@ -487,6 +488,10 @@ export class GameApp {
         else if (this.state === 'paused') this.resume();
         else if (this.state === 'replay') this.exitReplay();
         break;
+      case 'deviceLost':
+        if (this.state === 'driving') this.pause();
+        this.ui.toast(this.input.deviceStatus);
+        break;
       case 'blur':
         if (this.state === 'driving') this.pause();
         break;
@@ -622,6 +627,14 @@ export class GameApp {
     }
   }
   private applySettings(settings: Settings) {
+    if (this.savingSettings) return;
+    const form = document.querySelector<HTMLFormElement>('#settingsForm');
+    const submit = form?.querySelector<HTMLButtonElement>('[type="submit"]');
+    this.savingSettings = true;
+    if (submit) {
+      submit.disabled = true;
+      submit.textContent = 'SAVING…';
+    }
     this.settings = settings;
     this.input.settings = settings;
     this.ui.applyBindings(settings.bindings);
@@ -629,11 +642,29 @@ export class GameApp {
     if (this.renderer) this.renderer.shake = settings.shake;
     this.audio.volume = settings.volume;
     document.documentElement.style.setProperty('--ui-scale', String(settings.uiScale));
-    this.action('modalClose');
+    // Closing the editor is the completion signal. Do not emit it before the
+    // readwrite transaction commits: an immediate reload can abort the save.
+    const closeCurrentEditor = () => {
+      if (form?.isConnected && document.querySelector('#settingsForm') === form)
+        this.action('modalClose');
+    };
     void this.store
       .write('settings', settings)
-      .then(() => this.ui.toast('Preferences saved. Vehicle setup applies to the next session.'))
-      .catch((e) => this.ui.toast(`Applied for this session, but saving failed: ${String(e)}`));
+      .then(() => {
+        closeCurrentEditor();
+        this.ui.toast('Preferences saved. Vehicle setup applies to the next session.');
+      })
+      .catch((e) => {
+        closeCurrentEditor();
+        this.ui.toast(`Applied for this session, but saving failed: ${String(e)}`);
+      })
+      .finally(() => {
+        this.savingSettings = false;
+        if (submit) {
+          submit.disabled = false;
+          submit.textContent = 'APPLY & SAVE';
+        }
+      });
   }
   private async importSetup(file: File) {
     try {

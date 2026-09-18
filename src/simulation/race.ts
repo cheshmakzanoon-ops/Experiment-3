@@ -23,6 +23,11 @@ export class LapTracker {
   sector = 0;
   sectors = [0, 0, 0];
   sectorStart = 0;
+  lastTime = 0;
+  lastCrossingTime = 0;
+  crossedFinish = false;
+  lastValid = false;
+  readonly lastSectors = [0, 0, 0];
   constructor(
     readonly length: number,
     s: number,
@@ -31,39 +36,55 @@ export class LapTracker {
     this.distance = s - length;
   }
   update(s: number, time: number, offTrack: boolean) {
+    if (!Number.isFinite(s + time) || time < this.lastTime)
+      throw new Error('Invalid timing sample');
+    this.crossedFinish = false;
     const delta = mod(s - this.lastS + this.length / 2, this.length) - this.length / 2;
-    this.distance += delta;
+    const elapsed = time - this.lastTime;
+    if (Math.abs(delta) < 15) this.distance += delta;
+    else this.valid = false; // Discontinuous location changes cannot earn progress.
+    if (offTrack) this.valid = false;
     if (delta > 0 && delta < 15) {
-      const gate = (this.nextGate * this.length) / 8,
-        travelToGate = mod(gate - this.lastS, this.length);
+      const crossingTime = (distance: number) => this.lastTime + (elapsed * distance) / delta;
+      const gate = (this.nextGate * this.length) / 8;
+      const travelToGate = mod(gate - this.lastS, this.length);
       if (travelToGate > 1e-7 && travelToGate <= delta + 1e-7) {
         if (this.nextGate === 0) {
+          const crossing = crossingTime(travelToGate);
           if (this.active) {
             this.completed++;
-            this.last = time - this.lapStart;
+            this.crossedFinish = true;
+            this.lastCrossingTime = crossing;
+            this.last = crossing - this.lapStart;
+            this.lastSectors[0] = this.sectors[0];
+            this.lastSectors[1] = this.sectors[1];
+            this.lastSectors[2] = crossing - this.sectorStart;
+            this.lastValid = this.valid;
             if (this.valid && (this.best === 0 || this.last < this.best)) this.best = this.last;
           }
           this.active = true;
-          this.valid = true;
-          this.lapStart = time;
-          this.sectorStart = time;
+          this.valid = !offTrack;
+          this.lapStart = crossing;
+          this.sectorStart = crossing;
           this.sector = 0;
-          this.sectors = [0, 0, 0];
+          this.sectors.fill(0);
         }
         this.nextGate = (this.nextGate + 1) % 8;
       }
-      if (this.active) {
-        const sector = Math.min(2, Math.floor((s / this.length) * 3));
-        if (sector > this.sector) {
-          this.sectors[this.sector] = time - this.sectorStart;
-          this.sectorStart = time;
-          this.sector = sector;
+      if (this.active && this.sector < 2) {
+        const nextSector = ((this.sector + 1) * this.length) / 3;
+        const travel = mod(nextSector - this.lastS, this.length);
+        if (travel > 1e-7 && travel <= delta + 1e-7) {
+          const crossing = crossingTime(travel);
+          this.sectors[this.sector] = crossing - this.sectorStart;
+          this.sectorStart = crossing;
+          this.sector++;
         }
       }
     }
-    if (offTrack) this.valid = false;
     this.lapTime = this.active ? time - this.lapStart : 0;
     this.lastS = s;
+    this.lastTime = time;
   }
   limits(outside: boolean, dt: number) {
     if (outside) {
@@ -83,11 +104,25 @@ export class LapTracker {
     this.valid = false;
   }
 }
+/** A tire counts as on track while any of its tread width overlaps the outer
+ * paint edge. Kerbs/runoff beyond that edge do not extend legal track width.
+ * Each wheel queries its own local ribbon width, rather than the chassis centre.
+ */
+export function outsideTrack(car: Vehicle): boolean {
+  return (
+    !car.inPit &&
+    car.contacts.every(
+      (surface, i) => Math.abs(surface.lateral) - (i < 2 ? 0.155 : 0.19) > surface.width + 1e-6,
+    )
+  );
+}
+export const FINISH_GRACE_SECONDS = 180;
 export class RaceDirector {
   phase: number = PHASE.GRID;
   time = 0;
   raceTime = 0;
   lights = 0;
+  finishStartedAt = -1;
   readonly greenAt: number;
   readonly laps: LapTracker[];
   readonly order: number[];
@@ -104,6 +139,8 @@ export class RaceDirector {
     this.order = cars.map((c) => c.id);
   }
   step(dt: number) {
+    if (!Number.isFinite(dt) || dt <= 0) throw new Error('Invalid race timestep');
+    if (this.phase === PHASE.FINISHED) return;
     this.time += dt;
     if (this.phase === PHASE.GRID) this.phase = PHASE.LIGHTS;
     if (this.phase === PHASE.LIGHTS) {
@@ -130,28 +167,60 @@ export class RaceDirector {
     let incident = false;
     for (let i = 0; i < this.cars.length; i++) {
       const c = this.cars[i],
-        lap = this.laps[i],
-        outside = !c.inPit && c.contacts.every((s) => Math.abs(s.lateral) > 9.7);
-      lap.limits(outside, dt);
-      lap.update(c.s, this.raceTime, outside);
-      if (c.impact > 0.18 || c.retired) incident = true;
-      if (c.finishTime === 0 && lap.completed >= this.options.laps && this.options.mode === 'race')
-        c.finishTime = this.raceTime + lap.penalty;
+        lap = this.laps[i];
+      lap.crossedFinish = false;
+      if (!c.finishTime && !c.retired) {
+        const outside = outsideTrack(c);
+        lap.limits(outside, dt);
+        lap.update(c.s, this.raceTime, outside);
+      }
+      if (c.impact > 0.18 || (c.retired && !c.finishTime)) incident = true;
     }
-    this.flag = incident ? 'YELLOW' : 'GREEN';
+    if (this.options.mode === 'race') {
+      // Resolve the first finisher by interpolated crossing time, not array order.
+      if (this.finishStartedAt < 0) {
+        let earliest = Infinity;
+        for (const lap of this.laps)
+          if (lap.crossedFinish && lap.completed >= this.options.laps)
+            earliest = Math.min(earliest, lap.lastCrossingTime);
+        if (Number.isFinite(earliest)) this.finishStartedAt = earliest;
+      }
+      if (this.finishStartedAt >= 0) {
+        for (let i = 0; i < this.cars.length; i++) {
+          const car = this.cars[i],
+            lap = this.laps[i];
+          if (
+            !car.finishTime &&
+            !car.retired &&
+            lap.crossedFinish &&
+            lap.lastCrossingTime >= this.finishStartedAt - 1e-8
+          )
+            car.finishTime = lap.lastCrossingTime + lap.penalty;
+          else if (!car.finishTime && this.raceTime - this.finishStartedAt >= FINISH_GRACE_SECONDS)
+            car.retired = true; // Explicit DNF, never a manufactured finishing time.
+        }
+      }
+      if (this.cars.every((c) => c.finishTime > 0 || c.retired)) this.phase = PHASE.FINISHED;
+    }
     this.order.sort((a, b) => {
       const ca = this.cars[a],
         cb = this.cars[b];
-      if (ca.finishTime && cb.finishTime) return ca.finishTime - cb.finishTime;
+      const difference = this.laps[b].completed - this.laps[a].completed;
+      if (difference) return difference;
+      if (ca.finishTime && cb.finishTime) return ca.finishTime - cb.finishTime || a - b;
       if (ca.finishTime) return -1;
       if (cb.finishTime) return 1;
-      return this.laps[b].distance - this.laps[a].distance;
+      return this.laps[b].distance - this.laps[a].distance || a - b;
     });
-    if (this.cars[0].finishTime) {
-      this.phase = PHASE.FINISHED;
-      this.flag = 'CHEQUERED';
-      this.message = 'CHEQUERED FLAG';
-    } else if (this.time > this.nextMessage)
+    this.flag =
+      this.finishStartedAt >= 0 || this.phase === PHASE.FINISHED
+        ? 'CHEQUERED'
+        : incident
+          ? 'YELLOW'
+          : 'GREEN';
+    if (this.phase === PHASE.FINISHED) this.message = 'SESSION COMPLETE';
+    else if (this.finishStartedAt >= 0) this.message = 'CHEQUERED FLAG · FIELD FINISHING';
+    else if (this.time > this.nextMessage)
       this.message = incident
         ? 'YELLOW · INCIDENT AHEAD'
         : this.cars[0].inPit

@@ -7,6 +7,15 @@ import { PHASE, type RaceDirector } from './race.ts';
 import { trackPoint, type Track } from './track.ts';
 import type { Vehicle } from './vehicle.ts';
 /** Strategic 2 Hz, tactical 12 Hz, controller 120 Hz. All driving uses normal pedals. */
+/** Braking envelope with explicit controller response distance. Solving
+ * d = v*tau + v²/(2a) keeps a finite-bandwidth pedal controller inside its stop.
+ */
+export function stoppingTarget(distance: number, deceleration: number, responseSeconds = 0.8) {
+  const a = Math.max(0.1, deceleration);
+  return (
+    Math.sqrt((a * responseSeconds) ** 2 + 2 * a * Math.max(0, distance)) - a * responseSeconds
+  );
+}
 export class AIDriver {
   private target = trackPoint();
   private sample = trackPoint();
@@ -18,7 +27,6 @@ export class AIDriver {
   private desiredOffset = 0;
   private trafficSpeed = 100;
   private stuckTime = 0;
-  private pitRecovery = false;
   private planner = new TrafficPlanner();
   readonly personality: DriverPersonality;
   decision = 'RACING LINE';
@@ -33,6 +41,8 @@ export class AIDriver {
     const c = this.car,
       command = c.input;
     command.shift = 0;
+    command.manualClutch = false;
+    command.clutch = 0;
     command.reverse = false;
     command.ers = c.battery < 4e5 ? 0 : 1;
     if (race.phase === PHASE.LIGHTS || race.time < race.greenAt + 0.18 + c.id * 0.016) {
@@ -49,6 +59,7 @@ export class AIDriver {
         compound = c.tires[0].compound;
       if (
         !c.inPit &&
+        !c.finishTime &&
         c.s < track.length - 250 &&
         ((wet > 0.18 && compound !== 'intermediate' && compound !== 'wet') ||
           c.tires.some((t) => t.wear > 0.67 || t.punctured) ||
@@ -128,6 +139,7 @@ export class AIDriver {
       desired = Math.min(desired, Math.sqrt(corner * corner + 2 * braking * d));
     }
     if (!c.inPit) desired = Math.min(desired, this.trafficSpeed);
+    if (c.finishTime) desired = Math.min(desired, 38);
     if (preparingPit)
       desired = Math.min(
         desired,
@@ -140,10 +152,7 @@ export class AIDriver {
         desired = Math.min(desired, 9 + 5 * grip);
       const distance = mod(102 + c.id * 7 - c.s, track.length);
       if (c.pitPhase === 1 && distance < 125)
-        desired = Math.min(
-          desired,
-          Math.sqrt(Math.max(0, distance - 1.8) * 2 * Math.max(1.1, 4.5 * grip)),
-        );
+        desired = Math.min(desired, stoppingTarget(distance - 1.8, Math.max(1.1, 4.5 * grip)));
       if (c.pitPhase >= 2 && c.pitPhase <= 5) desired = 0;
       this.decision = 'PIT SERVICE';
       c.pitYielding = pitMergeConflict(c, cars, track);
@@ -157,7 +166,12 @@ export class AIDriver {
         if (gap > 0 && gap < 80)
           desired = Math.min(
             desired,
-            Math.sqrt(other.speed ** 2 + 2 * Math.max(1, braking * 0.7) * Math.max(0, gap - 7)),
+            Math.sqrt(
+              Math.max(
+                0,
+                other.speed ** 2 + 2 * Math.max(1, braking * 0.7) * (gap - 7 - c.speed * 0.75),
+              ),
+            ),
           );
       }
     }
@@ -172,7 +186,7 @@ export class AIDriver {
       command.throttle = 0;
       command.brake = 1;
     }
-    if (c.speed < 0.7 && desired > 6) this.stuckTime += dt;
+    if (!pit && c.speed < 0.7 && desired > 6) this.stuckTime += dt;
     else this.stuckTime = 0;
     if (this.stuckTime > 5 && this.stuckTime < 9) {
       command.reverse = true;
@@ -182,25 +196,13 @@ export class AIDriver {
       this.decision = 'RECOVERY';
     }
     if (this.stuckTime >= 10) this.stuckTime = 0;
-    if (pit && c.pitPhase === 1 && c.s > box + 2 && c.s < box + 40) this.pitRecovery = true;
-    if (this.pitRecovery) {
-      this.decision = 'PIT BOX RECOVERY';
-      command.steer = clamp((c.lateral - 24.1) * 0.12, -0.3, 0.3);
-      if (c.pitPhase !== 1) {
-        this.pitRecovery = false;
-        command.reverse = false;
-      } else if (c.s - box < 1.5) {
-        command.throttle = 0;
-        command.brake = 1;
-        command.reverse = true;
-      } else if (c.gear >= 0 && c.speed > 0.3) {
-        command.throttle = 0;
-        command.brake = 1;
-      } else {
-        command.reverse = true;
-        command.throttle = c.speed < 2.5 ? 0.14 : 0;
-        command.brake = c.speed > 3 ? 0.25 : 0;
-      }
+    // A missed service box is a drive-through, not a reverse maneuver across
+    // queued cars. Preserve the request so the next lawful entry retries it.
+    if (pit && c.pitPhase === 1 && c.s > box + 2.4 && c.s < box + 80) {
+      c.pitPhase = 6;
+      c.pitRequested = true;
+      command.reverse = false;
+      this.decision = 'MISSED BOX / RETRY NEXT LAP';
     }
   }
   private pitLine(track: Track, s: number) {

@@ -30,7 +30,7 @@ This ledger follows the numbered sections of the supplied directive. “Implemen
 | 24 | BRAKE THERMALS | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 25 | LOCKUP | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 26 | ENGINE MODEL | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
-| 27 | GEARBOX | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+| 27 | GEARBOX | Neutral, reverse, eight forward ratios, torque-cut shifting and invalid-downshift guard. Finite-inertia friction clutch supports actual free revving and pedal-controlled torque transfer. |
 | 28 | DIFFERENTIAL | Torque-coupling limited-slip approximation. |
 | 29 | HYBRID SYSTEM | Energy-conserving deployment/regeneration; no detailed electrical hardware model. |
 | 30 | AERODYNAMICS | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
@@ -82,16 +82,16 @@ This ledger follows the numbered sections of the supplied directive. “Implemen
 | 76 | INPUT PIPELINE | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 77 | GAMEPAD STEERING | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 78 | KEYBOARD STEERING | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
-| 79 | WHEEL INPUT | Gamepad-exposed axes/buttons, inversion/deadzone/response mapping. No native wheel force feedback. |
-| 80 | TELEMETRY DATA | 176 actual-state telemetry channels captured at fixed 60 Hz in the physics worker, bounded transport/ring buffers and asynchronous CSV export. |
-| 81 | TELEMETRY UI | Seven selectable groups expose the requested inputs, RPM/gears, G forces, tire temperatures/slip/loads, ride height and aero balance. Latest two fully recorded laps overlay by distance; truncated/gapped recordings are not mislabelled complete. |
+| 79 | WHEEL INPUT | Explicit device selection, asymmetric steering and independent pedal calibration, clutch/paddle mapping, sparse-slot/disconnect guards, live monitor and saved version-3 profiles. Synthetic browser tests; real wheel hardware not certified. |
+| 80 | TELEMETRY DATA | 181 actual-state telemetry channels captured at fixed 60 Hz in the physics worker, bounded transport/ring buffers and asynchronous CSV export. |
+| 81 | TELEMETRY UI | Eight selectable graph groups include clutch torque/slip, the requested driver/chassis/tire channels and complete-lap distance comparison; truncated/gapped laps are labelled rather than fabricated. |
 | 82 | REPLAY SYSTEM | 15 Hz all-car numeric pose pages, bounded resident IndexedDB replay cache, asynchronous seeking, original spatial water/rubber history, explicit recording failures. Permanent replay-library UI is not included. |
-| 83 | RACE DIRECTOR | Core starts/laps/penalties/classification; no safety car, formation laps or steward simulation. |
+| 83 | RACE DIRECTOR | Explicit grid/lights/racing/results states; whole-field chequered classification, lapped finish, penalty ordering, automatic cooldown and explicit timeout DNF. Full safety-car and local-flag policy remain open. |
 | 84 | START LIGHTS | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
-| 85 | LAP DETECTION | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
-| 86 | TRACK LIMITS | Simplified four-wheel outside test and penalty accumulation. |
+| 85 | LAP DETECTION | Eight ordered forward gates; interpolated finish and sector crossings, persistent third-sector record, no discontinuity-earned progress, invalid-lap tagging. |
+| 86 | TRACK LIMITS | Four wheel tread-width samples against each local asphalt/paint boundary; no chassis-centre or fixed-width penalty. Kerbs/runoff are outside the documented legal edge. |
 | 87 | PIT LANE | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
-| 88 | PIT STOP | Timed physical box service and tire/front-wing changes; simplified crew animation. |
+| 88 | PIT STOP | Physical box entry, tire-object replacement, four-foot jack support, contact-safe release and forward drive-through/retry for missed boxes. Detailed mechanic animation remains partial. |
 | 89 | SETUP SYSTEM | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 90 | HUD DESIGN | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 91 | STEERING-WHEEL DISPLAY | Live canvas display and steering animation; not every steering-wheel button is interactive. |
@@ -119,7 +119,7 @@ This ledger follows the numbered sections of the supplied directive. “Implemen
 | 113 | DAMAGE TEST | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 114 | WAKE TEST | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 115 | AI TESTS | 100-lap dry single-car endurance and shorter multi-car weather scenarios; not 100-lap multi-car proof. |
-| 116 | RACE TEST | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+| 116 | RACE TEST | Two ten-car three-lap clear/changing-weather whole-field classification fixtures with pit service and measured sectors. The full manual audiovisual scenario remains separate. |
 | 117 | PLAYWRIGHT TESTS | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 118 | PERFORMANCE REGRESSION | Runtime instrumentation and CI diagnostics, not a certified GPU regression benchmark. |
 | 119 | ERROR POLICY | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
@@ -142,7 +142,7 @@ This ledger follows the numbered sections of the supplied directive. “Implemen
 | 136 | EVENT BUS | Typed worker protocol and explicit callbacks, not a separate generalized event-bus package. |
 | 137 | CONFIGURATION DATA | Central vehicle/setup data with some renderer/AI constants still local. |
 | 138 | NO MAGIC NUMBERS | Units and named core settings provided, but some local tuning constants remain. |
-| 139 | VERSIONED SAVES | Version-2 preferences with version-1 keyboard-binding migration and conflict rejection; versioned replay pages and setup. No mid-race physical-state checkpoint restore. |
+| 139 | VERSIONED SAVES | Version-3 device calibration/preferences with version-1/2 keyboard-binding migration and conflict rejection; versioned replay pages and setup. No mid-race physical-state checkpoint restore. |
 | 140 | DEVELOPMENT PHASES | OPEN: development has not passed all thirty-one phase gates. |
 | 141 | THREE FINAL AUDITS | OPEN: the three complete final project audits have not been completed. |
 | 142 | ANTI-LAZINESS RULES | No success declaration from compilation or a single scenario. Full master completion remains open. |

@@ -1,3 +1,4 @@
+import { FrictionClutch } from './clutch.ts';
 import { DebrisPool } from './damage.ts';
 import { approach, clamp, G, lerp, Vec3 } from '../core/math.ts';
 import { aero, type AeroForces } from './aero.ts';
@@ -49,6 +50,8 @@ export class Vehicle {
   fuel = 24;
   battery = VEHICLE.maxBatteryJ * 0.8;
   rpm = VEHICLE.idleRPM;
+  readonly clutch = new FrictionClutch();
+  engineOutputTorque = 0;
   gear = 1;
   shiftClock = 0;
   steer = 0;
@@ -175,30 +178,53 @@ export class Vehicle {
       this.autoShift = false;
     }
     this.shiftClock = Math.max(0, this.shiftClock - dt);
-    const rearOmega = Math.abs((this.tires[2].omega + this.tires[3].omega) * 0.5);
-    this.rpm = Math.max(
-      VEHICLE.idleRPM,
-      (rearOmega * Math.abs(VEHICLE.gearRatios[this.gear + 1] * VEHICLE.finalDrive) * 60) /
-        (Math.PI * 2),
-    );
-    if (this.autoShift && this.gear > 0) {
-      if (this.rpm > VEHICLE.shiftRPM && this.gear < 8) this.shift(1);
-      else if (this.rpm < 6900 && this.gear > 1) this.shift(-1);
+    const signedRearOmega = (this.tires[2].omega + this.tires[3].omega) * 0.5;
+    const rearOmega = Math.abs(signedRearOmega);
+    this.rpm = Math.max(0, (this.clutch.engineOmega * 30) / Math.PI);
+    if (this.autoShift && this.gear > 0 && !this.input.manualClutch) {
+      // Wheel-coupled RPM excludes free-revving launch slip from shift decisions.
+      const coupledRPM =
+        (rearOmega * Math.abs(VEHICLE.gearRatios[this.gear + 1] * VEHICLE.finalDrive) * 30) /
+        Math.PI;
+      if (coupledRPM > VEHICLE.shiftRPM && this.gear < 8) this.shift(1);
+      else if (coupledRPM < 6900 && this.gear > 1) this.shift(-1);
     }
-    const ratio = VEHICLE.gearRatios[this.gear + 1] * VEHICLE.finalDrive,
-      shaft = (this.rpm * Math.PI) / 30;
-    let ice = this.fuel > 0 ? engineTorque(this.rpm) * this.throttle : 0;
+    const ratio = VEHICLE.gearRatios[this.gear + 1] * VEHICLE.finalDrive;
+    const shaft = Math.max(0, this.clutch.engineOmega);
+    const frictionTorque = 12 + shaft * 0.04;
+    // Powered idle governor prevents unintended restart/stabilization without
+    // fuel. It supplies real shaft torque rather than clamping engine RPM.
+    const idleTorque =
+      this.fuel > 0 ? clamp(((VEHICLE.idleRPM * Math.PI) / 30 - shaft) * 3, 0, 180) : 0;
+    let ice = this.fuel > 0 ? engineTorque(this.rpm) * this.throttle + idleTorque : 0;
     if (this.shiftClock > 0 || this.rpm > VEHICLE.limiterRPM) ice = 0;
-    const deploy = this.input.ers === 2 ? 1 : this.input.ers === 1 ? 0.55 : 0,
-      motorPower =
-        this.gear > 0 && this.brake < 0.05 && this.shiftClock === 0
-          ? Math.min(VEHICLE.motorPowerW * deploy * this.throttle, (this.battery * 0.94) / dt)
-          : 0,
-      motor = motorPower / Math.max(shaft, 400),
-      wheelTorque = (ice + motor) * ratio * 0.95;
+    const deploy = this.input.ers === 2 ? 1 : this.input.ers === 1 ? 0.55 : 0;
+    const motorPower =
+      this.gear > 0 && this.brake < 0.05 && this.shiftClock === 0 && shaft > 100
+        ? Math.min(VEHICLE.motorPowerW * deploy * this.throttle, (this.battery * 0.94) / dt)
+        : 0;
+    const motor = motorPower / Math.max(shaft, 100);
+    const drag = Math.min(
+      frictionTorque,
+      (Math.max(0, this.clutch.engineOmega) * this.clutch.inertia) / dt,
+    );
+    this.engineOutputTorque = ice;
+    const wheelTorque = this.clutch.step(
+      dt,
+      ice + motor - drag,
+      signedRearOmega,
+      ratio,
+      this.input.clutch,
+      !this.input.manualClutch,
+      this.shiftClock > 0 || (!this.input.manualClutch && this.speed < 3 && this.throttle < 0.02),
+    );
+    this.rpm = Math.max(0, (this.clutch.engineOmega * 30) / Math.PI);
     this.motorPower = motorPower;
     this.battery = Math.max(0, this.battery - (motorPower * dt) / 0.94);
-    this.fuel = Math.max(0, this.fuel - ((ice * shaft) / (0.43 * 43e6) + 0.00045) * dt);
+    this.fuel = Math.max(
+      0,
+      this.fuel - ((ice * shaft) / (0.43 * 43e6) + (this.fuel > 0 ? 0.00045 : 0)) * dt,
+    );
     const rearFriction = VEHICLE.brakeTorque * (1 - this.setup.brakeBias) * this.brake * 0.5,
       regenPower = Math.min(
         VEHICLE.regenPowerW * this.brake,
@@ -351,16 +377,28 @@ export class Vehicle {
     const jackTarget = this.pitPhase >= 3 && this.pitPhase <= 5 ? 0.19 : 0;
     this.jackHeight = approach(this.jackHeight, jackTarget, dt * 0.16);
     if (this.jackHeight > 0) {
-      for (const z of [-1.4, 1.5]) {
-        b.orientation.rotate(this.localPoint.set(0, -0.43, z), this.point).add(b.position);
-        track.sample(this.point.x, this.point.z, this.surface);
-        const penetration = this.surface.height + this.jackHeight - this.point.y;
-        if (penetration > 0) {
-          b.pointVelocity(this.point, this.force);
-          const load = Math.max(0, 280000 * penetration - 8000 * this.force.y);
-          b.apply(this.force.set(0, load, 0), this.point);
+      // Four feet provide a finite support polygon. Tangential Coulomb contact
+      // stops the raised chassis sliding on sloped asphalt without fixing pose.
+      for (const z of [-1.4, 1.5])
+        for (const x of [-0.38, 0.38]) {
+          b.orientation.rotate(this.localPoint.set(x, -0.43, z), this.point).add(b.position);
+          track.sample(this.point.x, this.point.z, this.surface);
+          const penetration = this.surface.height + this.jackHeight - this.point.y;
+          if (penetration > 0) {
+            b.pointVelocity(this.point, this.force);
+            const load = Math.max(0, 140000 * penetration - 4000 * this.force.y);
+            this.axis
+              .copy(this.force)
+              .addScaled(this.surface.normal, -this.force.dot(this.surface.normal));
+            const speed = this.axis.length();
+            this.force.set(0, load, 0);
+            if (speed > 1e-7) {
+              const friction = Math.min(0.75 * load, (speed * b.mass) / (4 * dt));
+              this.force.addScaled(this.axis, -friction / speed);
+            }
+            b.apply(this.force, this.point);
+          }
         }
-      }
     }
     b.integrate(dt);
     b.orientation.inverseRotate(b.acceleration, this.localAccel);

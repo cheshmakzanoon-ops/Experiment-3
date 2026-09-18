@@ -1,8 +1,24 @@
 import { DEFAULT_BINDINGS, validateBindings, type Bindings } from '../input/bindings.ts';
+import {
+  emptyCalibration,
+  validateCalibration,
+  validateDevice,
+  type CalibrationSet,
+  type DeviceSelection,
+} from '../input/calibration.ts';
 import { clamp } from '../core/math.ts';
 import { DEFAULT_SETUP, validateSetup, type Setup } from '../simulation/config.ts';
 import type { Quality } from '../rendering/renderer.ts';
 export interface InputMapping {
+  device: DeviceSelection | null;
+  wheelSteering: boolean;
+  saturation: number;
+  calibration: CalibrationSet;
+  clutchAxis: number;
+  clutchButton: number;
+  manualClutch: boolean;
+  shiftUpButton: number;
+  shiftDownButton: number;
   steerAxis: number;
   throttleAxis: number;
   brakeAxis: number;
@@ -15,7 +31,7 @@ export interface InputMapping {
   exponent: number;
 }
 export interface Settings {
-  version: 2;
+  version: 3;
   quality: Quality;
   volume: number;
   shake: number;
@@ -25,12 +41,21 @@ export interface Settings {
   bindings: Bindings;
 }
 export const DEFAULT_SETTINGS: Settings = {
-  version: 2,
+  version: 3,
   quality: 'medium',
   volume: 0.45,
   shake: 0.35,
   uiScale: 1,
   mapping: {
+    device: null,
+    wheelSteering: false,
+    saturation: 1,
+    calibration: emptyCalibration(),
+    clutchAxis: -1,
+    clutchButton: -1,
+    manualClutch: false,
+    shiftUpButton: 5,
+    shiftDownButton: 4,
     steerAxis: 0,
     throttleAxis: 2,
     brakeAxis: 5,
@@ -48,14 +73,14 @@ export const DEFAULT_SETTINGS: Settings = {
 export function validateSettings(v: unknown): Settings {
   if (!v || typeof v !== 'object') throw new Error('Settings data must be an object');
   const p = v as Partial<Settings>;
-  if ((v as { version?: unknown }).version !== 1 && p.version !== 2)
+  if (![1, 2, 3].includes((v as { version: number }).version))
     throw new Error('Unsupported settings version');
   const finite = (x: unknown, f: number, a: number, b: number) =>
     typeof x === 'number' && Number.isFinite(x) ? clamp(x, a, b) : f;
   const m = p.mapping ?? DEFAULT_SETTINGS.mapping;
   const bindings = validateBindings(p.bindings);
   return {
-    version: 2,
+    version: 3,
     quality: p.quality === 'low' || p.quality === 'high' ? p.quality : 'medium',
     volume: finite(p.volume, 0.45, 0, 1),
     shake: finite(p.shake, 0.35, 0, 1),
@@ -63,11 +88,20 @@ export function validateSettings(v: unknown): Settings {
     setup: validateSetup(p.setup ?? DEFAULT_SETUP),
     bindings,
     mapping: {
-      steerAxis: Math.round(finite(m.steerAxis, 0, 0, 15)),
-      throttleAxis: Math.round(finite(m.throttleAxis, 2, 0, 15)),
-      brakeAxis: Math.round(finite(m.brakeAxis, 5, 0, 15)),
-      throttleButton: Math.round(finite(m.throttleButton, 7, 0, 31)),
-      brakeButton: Math.round(finite(m.brakeButton, 6, 0, 31)),
+      device: validateDevice(m.device),
+      wheelSteering: !!m.wheelSteering,
+      saturation: finite(m.saturation, 1, 0.5, 1),
+      calibration: validateCalibration(m.calibration),
+      clutchAxis: Math.round(finite(m.clutchAxis, -1, -1, 31)),
+      clutchButton: Math.round(finite(m.clutchButton, -1, -1, 127)),
+      manualClutch: !!m.manualClutch,
+      shiftUpButton: Math.round(finite(m.shiftUpButton, 5, -1, 127)),
+      shiftDownButton: Math.round(finite(m.shiftDownButton, 4, -1, 127)),
+      steerAxis: Math.round(finite(m.steerAxis, 0, 0, 31)),
+      throttleAxis: Math.round(finite(m.throttleAxis, 2, 0, 31)),
+      brakeAxis: Math.round(finite(m.brakeAxis, 5, 0, 31)),
+      throttleButton: Math.round(finite(m.throttleButton, 7, -1, 127)),
+      brakeButton: Math.round(finite(m.brakeButton, 6, -1, 127)),
       axisPedals: !!m.axisPedals,
       invertSteer: !!m.invertSteer,
       invertPedals: !!m.invertPedals,

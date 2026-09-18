@@ -57,6 +57,8 @@ export class Simulation {
     dst.shift = Number.isFinite(input.shift) ? Math.sign(input.shift) : 0;
     dst.ers = input.ers === 0 ? 0 : input.ers === 2 ? 2 : 1;
     dst.reverse = !!input.reverse;
+    dst.manualClutch = input.manualClutch === true;
+    dst.clutch = Number.isFinite(input.clutch) ? clamp(input.clutch, 0, 1) : 0;
   }
   requestPit() {
     const c = this.cars[0];
@@ -73,13 +75,9 @@ export class Simulation {
     const player = this.cars[0];
     for (let i = 0; i < this.cars.length; i++) {
       const c = this.cars[i];
-      if (i > 0 || this.autoPlayer || c.pitRequested || c.inPit)
+      if (i > 0 || this.autoPlayer || c.pitRequested || c.inPit || c.finishTime > 0)
         this.ai[i].update(dt, this.track, this.cars, this.race);
       else if (this.race.phase === PHASE.LIGHTS && c.input.throttle === 0) c.input.brake = 1;
-      if (c.finishTime) {
-        c.input.throttle = 0;
-        c.input.brake = 0.7;
-      }
       c.wake = 0;
       for (const other of this.cars)
         if (other !== c)
@@ -188,14 +186,19 @@ export class Simulation {
       out[o + F.LOST_MASS] = c.lostMass;
       out[o + F.SUSPENSION_DAMAGE] = c.suspensionDamage;
       out[o + F.SECTOR] = t.sector;
-      out[o + F.SECTOR_1] = t.sectors[0];
-      out[o + F.SECTOR_2] = t.sectors[1];
-      out[o + F.SECTOR_3] = t.sectors[2];
+      out[o + F.SECTOR_1] = t.sectors[0] || t.lastSectors[0];
+      out[o + F.SECTOR_2] = t.sectors[1] || t.lastSectors[1];
+      out[o + F.SECTOR_3] = t.sectors[2] || t.lastSectors[2];
       out[o + F.LAP_VALID] = Number(t.valid);
       out[o + F.WARNINGS] = t.warnings;
       out[o + F.PIT_YIELDING] = Number(c.pitYielding);
       out[o + F.RETIRED] = Number(c.retired);
       out[o + F.MASS] = c.body.mass;
+      out[o + F.CLUTCH_PEDAL] = c.input.clutch;
+      out[o + F.CLUTCH_ENGAGEMENT] = c.clutch.engagement;
+      out[o + F.CLUTCH_TORQUE] = c.clutch.transmittedTorque;
+      out[o + F.CLUTCH_SLIP_POWER] = c.clutch.slipPower;
+      out[o + F.ENGINE_TORQUE] = c.engineOutputTorque;
       for (let i = 0; i < c.debris.pieces.length; i++) {
         const piece = c.debris.pieces[i],
           p = o + DEBRIS_BASE + i * DEBRIS_STRIDE;

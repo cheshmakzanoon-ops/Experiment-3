@@ -32,6 +32,7 @@ export const TELEMETRY_VIEWS = {
         traces: [
           { channel: 'throttle', label: 'Throttle', factor: 100 },
           { channel: 'brake', label: 'Brake', factor: 100 },
+          { channel: 'clutch_pedal', label: 'Clutch', factor: 100 },
         ],
       },
       {
@@ -109,6 +110,45 @@ export const TELEMETRY_VIEWS = {
   slip: { title: 'Tire slip and forces', plots: [] as Plot[] },
   brakes: { title: 'Brakes and wear', plots: [] as Plot[] },
   suspension: { title: 'Suspension travel', plots: [] as Plot[] },
+  clutch: {
+    title: 'Clutch and engine coupling',
+    plots: [
+      {
+        title: 'Clutch pedal / engagement',
+        unit: '%',
+        minimum: 0,
+        maximum: 100,
+        traces: [
+          { channel: 'clutch_pedal', label: 'Pedal', factor: 100 },
+          { channel: 'clutch_engagement', label: 'Engagement', factor: 100 },
+        ],
+      },
+      {
+        title: 'Shaft torque',
+        unit: 'Nm',
+        minimum: -800,
+        maximum: 800,
+        traces: [
+          { channel: 'clutch_torque_Nm', label: 'Clutch' },
+          { channel: 'engine_torque_Nm', label: 'Combustion' },
+        ],
+      },
+      {
+        title: 'Clutch slip heating',
+        unit: 'kW',
+        minimum: 0,
+        maximum: 200,
+        traces: [{ channel: 'clutch_slip_power_W', label: 'Dissipated', factor: 0.001 }],
+      },
+      {
+        title: 'Engine speed',
+        unit: 'RPM',
+        minimum: 0,
+        maximum: 14000,
+        traces: [{ channel: 'rpm_rpm', label: 'Crankshaft' }],
+      },
+    ],
+  },
   hybrid: {
     title: 'Hybrid and fuel',
     plots: [

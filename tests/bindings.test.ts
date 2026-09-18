@@ -10,11 +10,11 @@ it('migrates version-one driving keys and provides bindings for every existing a
     version: 1,
     bindings: { throttle: 'KeyI', brake: 'KeyK', left: 'KeyJ', right: 'KeyL' },
   });
-  expect(result.version).toBe(2);
+  expect(result.version).toBe(3);
   expect(result.bindings.throttle).toBe('KeyI');
   expect(result.bindings.shiftUp).toBe('BracketRight');
   expect(result.bindings.camera).toBe('KeyC');
-  expect(new Set(Object.values(result.bindings)).size).toBe(15);
+  expect(new Set(Object.values(result.bindings)).size).toBe(16);
 });
 it('rejects duplicate actions and reserved browser/safety keys', () => {
   expect(() => validateBindings({ ...DEFAULT_BINDINGS, throttle: 'KeyC' })).toThrow(

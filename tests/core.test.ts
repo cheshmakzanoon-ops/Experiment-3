@@ -122,6 +122,8 @@ describe('validated persistence and messages', () => {
   it('does not admit NaN or unbounded controls to the simulation', () => {
     const s = new Simulation({ ...DEFAULT_OPTIONS, opponents: 0 });
     s.setInput({
+      clutch: NaN,
+      manualClutch: false,
       throttle: NaN,
       brake: Infinity,
       steer: 40,

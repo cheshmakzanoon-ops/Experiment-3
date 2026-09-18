@@ -4,6 +4,7 @@ export const DEFAULT_BINDINGS = {
   left: 'KeyA',
   right: 'KeyD',
   reverse: 'KeyB',
+  clutch: 'ShiftLeft',
   shiftDown: 'BracketLeft',
   shiftUp: 'BracketRight',
   camera: 'KeyC',
@@ -23,6 +24,7 @@ export const BINDING_LABELS: Record<BindingAction, string> = {
   left: 'Steer left',
   right: 'Steer right',
   reverse: 'Reverse (hold at low speed)',
+  clutch: 'Clutch pedal (manual clutch mode)',
   shiftDown: 'Downshift',
   shiftUp: 'Upshift',
   camera: 'Cycle camera',
@@ -42,9 +44,16 @@ export const validBindingCode = (code: unknown): code is string =>
 export function validateBindings(value: unknown): Bindings {
   const source = value && typeof value === 'object' ? (value as Record<string, unknown>) : {};
   const result = { ...DEFAULT_BINDINGS };
+  if (source.clutch === undefined) {
+    result.clutch =
+      ['ShiftLeft', 'ShiftRight', 'ControlRight', 'ControlLeft', 'KeyQ', 'KeyZ'].find(
+        (code) =>
+          !Object.entries(source).some(([name, value]) => name !== 'clutch' && value === code),
+      ) ?? 'ShiftLeft';
+  }
   const occupied = new Map<string, string>();
   for (const action of Object.keys(result) as BindingAction[]) {
-    const code = source[action] === undefined ? DEFAULT_BINDINGS[action] : source[action];
+    const code = source[action] === undefined ? result[action] : source[action];
     if (!validBindingCode(code))
       throw new Error(`Invalid ${BINDING_LABELS[action]} key. Escape remains reserved for pause.`);
     if (occupied.has(code))

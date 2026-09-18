@@ -130,7 +130,8 @@ test('recorded telemetry exports and replay leaves live physics paused', async (
   expect(csvDownload.suggestedFilename()).toBe('apex-telemetry.csv');
   const csv = (await readFile((await csvDownload.path())!, 'utf8')).trim().split('\n');
   const columns = csv[0].split(',');
-  expect(columns).toHaveLength(176);
+  expect(columns).toHaveLength(181);
+  expect(columns).toContain('clutch_torque_Nm');
   expect(columns).toContain('motor_power_W');
   expect(columns).toContain('FL_pressure_kPa');
   expect(csv.length).toBeGreaterThan(1320);
@@ -200,7 +201,7 @@ test('race start and chequered flag produce an actual result', async ({ page }, 
   await page.locator('[name=quality]').selectOption('low');
   await page.getByRole('button', { name: 'APPLY & SAVE' }).click();
   await page.selectOption('#laps', '1');
-  await page.selectOption('#opponents', '0');
+  await page.selectOption('#opponents', '3');
   await page.getByRole('button', { name: 'ENTER CIRCUIT' }).click();
   await expect.poll(async () => (await diag(page)).state, { timeout: 40000 }).toBe('driving');
   await page.keyboard.press('g');
@@ -211,6 +212,14 @@ test('race start and chequered flag produce an actual result', async ({ page }, 
   const frame = (await diag(page)).frame!;
   expect(frame[carBase(0) + F.LAPS]).toBe(1);
   expect(frame[carBase(0) + F.BEST_LAP]).toBeGreaterThan(20);
+  expect(frame[H.CARS]).toBe(4);
+  for (let id = 0; id < 4; id++) {
+    const p = carBase(id);
+    expect(frame[p + F.FINISH]).toBeGreaterThan(0);
+    expect(frame[p + F.RETIRED]).toBe(0);
+    expect(frame[p + F.SECTOR_3]).toBeGreaterThan(0);
+  }
+  await expect(page.locator('.results')).not.toContainText('RUNNING');
   await page.screenshot({ path: testInfo.outputPath('08-results.png') });
 });
 

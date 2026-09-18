@@ -1,3 +1,4 @@
+import { DeviceCalibrationPanel } from './device-calibration.ts';
 import {
   BINDING_LABELS,
   keyName,
@@ -48,6 +49,7 @@ export class Interface {
   private nodes = new Map<string, HTMLElement>();
   private tick = 0;
   private lastAnnounced = '';
+  private deviceCalibration: DeviceCalibrationPanel | null = null;
   private bindingCapture: AbortController | null = null;
   options: SessionOptions = { ...DEFAULT_OPTIONS };
   constructor(
@@ -241,23 +243,26 @@ export class Interface {
       e.classList.toggle('lit', i < frame[H.LIGHTS]),
     );
     const pit = frame[o + F.PIT_PHASE];
-    const message = auto
-      ? 'AI DEMONSTRATION · PRESS G TO TAKE CONTROL'
-      : pit > 0
-        ? [
-            '',
-            'PIT ASSIST · APPROACHING BOX',
-            'JACKED · SERVICE',
-            'REMOVING WHEELS',
-            'NEW TIRES INSTALLED',
-            'REPAIRING FRONT WING',
-            'RELEASED · PIT EXIT',
-          ][pit]
-        : frame[o + F.FRONT_HEALTH] < 0.6
-          ? 'FRONT WING DAMAGE · REQUEST PIT SERVICE'
-          : frame[H.FLAG] === 1
-            ? 'YELLOW · INCIDENT ON CIRCUIT'
-            : '';
+    const message =
+      frame[o + F.FINISH] > 0
+        ? 'FINISHED · AUTOMATIC COOLDOWN / WAITING FOR FIELD'
+        : auto
+          ? 'AI DEMONSTRATION · PRESS G TO TAKE CONTROL'
+          : pit > 0
+            ? [
+                '',
+                'PIT ASSIST · APPROACHING BOX',
+                'JACKED · SERVICE',
+                'REMOVING WHEELS',
+                'NEW TIRES INSTALLED',
+                'REPAIRING FRONT WING',
+                'RELEASED · PIT EXIT',
+              ][pit]
+            : frame[o + F.FRONT_HEALTH] < 0.6
+              ? 'FRONT WING DAMAGE · REQUEST PIT SERVICE'
+              : frame[H.FLAG] === 1
+                ? 'YELLOW · INCIDENT ON CIRCUIT'
+                : '';
     if (message !== this.lastAnnounced) {
       this.setText('raceMessage', message);
       this.lastAnnounced = message;
@@ -343,12 +348,16 @@ export class Interface {
   modalContent(html: string) {
     this.bindingCapture?.abort();
     this.bindingCapture = null;
+    this.deviceCalibration?.dispose();
+    this.deviceCalibration = null;
     this.get('modalContent').innerHTML = html;
     if (!this.modal.open) this.modal.showModal();
   }
   closeModal() {
     this.bindingCapture?.abort();
     this.bindingCapture = null;
+    this.deviceCalibration?.dispose();
+    this.deviceCalibration = null;
     if (this.modal.open) this.modal.close();
   }
   applyBindings(bindings: Bindings) {
@@ -406,10 +415,14 @@ export class Interface {
         ['brakeAxis', 'Brake axis'],
         ['throttleButton', 'Throttle button'],
         ['brakeButton', 'Brake button'],
+        ['clutchAxis', 'Clutch axis (-1: button / key)'],
+        ['clutchButton', 'Clutch button (-1: key only)'],
+        ['shiftUpButton', 'Upshift button (-1: disabled)'],
+        ['shiftDownButton', 'Downshift button (-1: disabled)'],
       ]
         .map(
           ([key, title]) =>
-            `<label>${title}<input name="${key}" type="number" min="0" max="${key.includes('Button') ? 31 : 15}" value="${settings.mapping[key as keyof typeof settings.mapping]}"></label>`,
+            `<label>${title}<input name="${key}" type="number" min="${key.startsWith('clutch') || key.includes('Button') ? -1 : 0}" max="${key.includes('Button') ? 127 : 31}" value="${settings.mapping[key as keyof typeof settings.mapping]}"></label>`,
         )
         .join('')}</div>${[
         ['axisPedals', 'Use axes for pedals'],
@@ -422,7 +435,7 @@ export class Interface {
         )
         .join(
           '',
-        )}<label class="range-row">Deadzone<output>${settings.mapping.deadzone}</output><input name="deadzone" type="range" min="0" max=".35" step=".01" value="${settings.mapping.deadzone}"></label><label class="range-row">Steering response exponent<output>${settings.mapping.exponent}</output><input name="exponent" type="range" min=".5" max="3" step=".1" value="${settings.mapping.exponent}"></label><h3>Keyboard bindings</h3><div class="binding-grid">${Object.entries(
+        )}<label class="range-row">Deadzone<output>${settings.mapping.deadzone}</output><input name="deadzone" type="range" min="0" max=".35" step=".01" value="${settings.mapping.deadzone}"></label><label class="range-row">Steering response exponent<output>${settings.mapping.exponent}</output><input name="exponent" type="range" min=".5" max="3" step=".1" value="${settings.mapping.exponent}"></label><div id="deviceCalibration"></div><h3>Keyboard bindings</h3><div class="binding-grid">${Object.entries(
         settings.bindings,
       )
         .map(
@@ -434,6 +447,11 @@ export class Interface {
         )}</div></section><section><h3>Vehicle setup</h3><p class="small-note">Physical setup changes take effect at the next session start. Rendering and audio changes apply immediately.</p>${setupRows}<div class="setup-files"><button type="button" id="exportSetup">EXPORT SETUP</button><label class="file-label">IMPORT SETUP<input id="importSetup" type="file" accept=".json,application/json" hidden></label></div></section></div><footer><button type="button" data-action="modalClose">CANCEL</button><button class="primary" type="submit">APPLY & SAVE</button></footer></form>`,
     );
     const form = document.getElementById('settingsForm') as HTMLFormElement;
+    this.deviceCalibration = new DeviceCalibrationPanel(
+      document.getElementById('deviceCalibration')!,
+      form,
+      settings.mapping,
+    );
     (form.elements.namedItem('quality') as HTMLSelectElement).value = settings.quality;
     form.addEventListener('input', (e) => {
       const input = e.target as HTMLInputElement;
@@ -495,6 +513,10 @@ export class Interface {
         'brakeAxis',
         'throttleButton',
         'brakeButton',
+        'clutchAxis',
+        'clutchButton',
+        'shiftUpButton',
+        'shiftDownButton',
         'deadzone',
         'exponent',
       ] as const)
@@ -508,6 +530,7 @@ export class Interface {
         );
       this.bindingCapture?.abort();
       try {
+        this.deviceCalibration?.apply(next.mapping);
         this.callbacks.apply(validateSettings(next));
       } catch (error) {
         this.toast(`Settings not applied: ${String(error)}`);
@@ -519,11 +542,11 @@ export class Interface {
       .sort((a, b) => frame[carBase(a) + F.RANK] - frame[carBase(b) + F.RANK])
       .map((id, index) => {
         const p = carBase(id);
-        return `<tr${id === 0 ? ' class="you"' : ''}><td>${index + 1}</td><td>${DRIVERS[id]}</td><td>${frame[p + F.FINISH] > 0 ? lapTime(frame[p + F.FINISH]) : 'RUNNING'}</td><td>${lapTime(frame[p + F.BEST_LAP])}</td><td>${frame[p + F.PENALTY].toFixed(0)}s</td></tr>`;
+        return `<tr${id === 0 ? ' class="you"' : ''}><td>${index + 1}</td><td>${DRIVERS[id]}</td><td>${Math.round(frame[p + F.LAPS])}</td><td>${frame[p + F.FINISH] > 0 ? lapTime(frame[p + F.FINISH]) : frame[p + F.RETIRED] ? 'DNF' : 'RUNNING'}</td><td>${lapTime(frame[p + F.BEST_LAP])}</td><td>${frame[p + F.PENALTY].toFixed(0)}s</td></tr>`;
       })
       .join('');
     this.modalContent(
-      `<span class="eyebrow">CHEQUERED FLAG / SESSION CLASSIFICATION</span><h2>Across the line.</h2><p>Order at your finish. Cars not yet finished are marked RUNNING.</p><table class="results"><thead><tr><th>POS</th><th>DRIVER</th><th>TIME + PEN.</th><th>BEST LAP</th><th>PEN.</th></tr></thead><tbody>${rows}</tbody></table><div class="dialog-buttons inline"><button class="primary" data-action="replay">WATCH REPLAY</button><button data-action="telemetry">TELEMETRY</button><button data-action="restart">RACE AGAIN</button><button data-action="menu">PADDOCK</button></div>`,
+      `<span class="eyebrow">CHEQUERED FLAG / SESSION CLASSIFICATION</span><h2>${frame[carBase(0) + F.FINISH] > 0 ? 'Across the line.' : 'Session ended.'}</h2><p>Final classification by completed laps and penalty-adjusted time. DNF cars have no invented finish time.</p><table class="results"><thead><tr><th>POS</th><th>DRIVER</th><th>LAPS</th><th>TIME + PEN.</th><th>BEST LAP</th><th>PEN.</th></tr></thead><tbody>${rows}</tbody></table><div class="dialog-buttons inline"><button class="primary" data-action="replay">WATCH REPLAY</button><button data-action="telemetry">TELEMETRY</button><button data-action="restart">RACE AGAIN</button><button data-action="menu">PADDOCK</button></div>`,
     );
   }
   error(error: string) {

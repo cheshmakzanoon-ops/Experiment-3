@@ -21,6 +21,7 @@ export interface TrackPoint {
 }
 export interface SurfaceSample {
   s: number;
+  width: number;
   lateral: number;
   height: number;
   normal: Vec3;
@@ -50,6 +51,7 @@ export const trackPoint = (): TrackPoint => ({
 });
 export const surfaceSample = (): SurfaceSample => ({
   s: 0,
+  width: 8,
   lateral: 0,
   height: 0,
   normal: new Vec3(0, 1, 0),
@@ -275,6 +277,7 @@ export class Track {
       cell = row * CELL_COLS + col;
     out.s = p.s;
     out.lateral = l;
+    out.width = p.width;
     out.height = p.y + p.bank * clamp(l, -12, 12) + kerb;
     out.pit = pit;
     out.normal

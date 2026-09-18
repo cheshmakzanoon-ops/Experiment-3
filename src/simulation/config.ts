@@ -147,6 +147,8 @@ export function validateOptions(v: unknown): SessionOptions {
 export interface Controls {
   throttle: number;
   brake: number;
+  clutch: number;
+  manualClutch: boolean;
   steer: number;
   shift: number;
   ers: 0 | 1 | 2;
@@ -156,6 +158,8 @@ export interface Controls {
 export const controls = (): Controls => ({
   throttle: 0,
   brake: 0,
+  clutch: 0,
+  manualClutch: false,
   steer: 0,
   shift: 0,
   ers: 1,

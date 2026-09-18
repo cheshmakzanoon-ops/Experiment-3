@@ -17,7 +17,13 @@ function setup(pad?: Partial<Gamepad>) {
   const window = new InputTarget();
   vi.stubGlobal('window', window);
   vi.stubGlobal('navigator', { getGamepads: () => (pad ? [pad] : []) });
-  const input = new InputController(structuredClone(DEFAULT_SETTINGS), () => undefined);
+  const settings = structuredClone(DEFAULT_SETTINGS);
+  if (pad) {
+    pad = { ...pad, index: 0 };
+    settings.mapping.device = { index: 0, id: pad.id! };
+    settings.mapping.throttleButton = settings.mapping.brakeButton = -1;
+  }
+  const input = new InputController(settings, () => undefined);
   input.setEnabled(true);
   return { input, window };
 }
