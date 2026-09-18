@@ -339,9 +339,11 @@ export class Vehicle {
     this.relativeAir.copy(b.velocity);
     this.relativeAir.x -= track.windX;
     this.relativeAir.z -= track.windZ;
-    const airspeed = this.relativeAir.length(),
-      frontHeight = b.position.y - this.contacts[0].height - 0.43,
-      rearHeight = b.position.y - this.contacts[2].height - 0.43;
+    const airspeed = this.relativeAir.length();
+    // Clearance is measured at actual floor stations, including chassis pitch
+    // and local road elevation/bank. CG height alone misses nose dive and rake.
+    const frontHeight = this.floorClearance(track, 1.7);
+    const rearHeight = this.floorClearance(track, -1.6);
     this.frontRideHeight = frontHeight;
     this.rearRideHeight = rearHeight;
     aero(
@@ -407,6 +409,13 @@ export class Vehicle {
     this.gVert = this.localAccel.y / G;
     this.impact = Math.max(0, this.impact - dt * 2);
     if (b.position.y < this.surface.height - 4) this.retired = true;
+  }
+  floorClearance(track: Track, z: number) {
+    this.body.orientation
+      .rotate(this.localPoint.set(0, -0.43, z), this.point)
+      .add(this.body.position);
+    track.sample(this.point.x, this.point.z, this.surface);
+    return (this.point.y - this.surface.height) * this.surface.normal.y;
   }
   impactAt(energy: number, point: Vec3) {
     if (!Number.isFinite(energy) || energy < 0) throw new Error('Invalid impact energy');

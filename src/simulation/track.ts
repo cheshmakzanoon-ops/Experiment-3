@@ -317,6 +317,7 @@ export class Track {
       }
   }
   interact(cell: number, load: number, energy: number, speed: number, dt: number) {
+    if (load <= 1) return; // Airborne wheels cannot displace water or lay rubber.
     this.rubber[cell] = Math.min(1, this.rubber[cell] + (load * 1e-9 + energy * 8e-10) * dt);
     this.water[cell] = Math.max(0, this.water[cell] - Math.abs(speed) * 0.00025 * dt);
     const c = cell % CELL_COLS,

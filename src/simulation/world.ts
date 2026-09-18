@@ -83,7 +83,13 @@ export class Simulation {
         if (other !== c)
           c.wake = Math.max(
             c.wake,
-            wakeOverlap(c.body.position, other.body.position, other.forward, other.speed),
+            wakeOverlap(
+              c.body.position,
+              other.body.position,
+              other.forward,
+              other.speed,
+              c.forward,
+            ),
           );
     }
     for (let sub = 0; sub < 2; sub++) {

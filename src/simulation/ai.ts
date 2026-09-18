@@ -1,5 +1,10 @@
 import { TrafficPlanner, personality, type DriverPersonality } from './traffic.ts';
-import { pitMergeConflict, pitYieldSpeed } from './pit-safety.ts';
+import {
+  pitMergeConflict,
+  pitYieldSpeed,
+  pitPreparationDistance,
+  pitApproachTrafficSpeed,
+} from './pit-safety.ts';
 import { peakGrip } from './tire.ts';
 import { approach, clamp, mod, Vec3 } from '../core/math.ts';
 import { VEHICLE } from './config.ts';
@@ -70,7 +75,8 @@ export class AIDriver {
       }
     }
     const entryGap = mod(track.length - 210 - c.s, track.length);
-    const preparingPit = c.pitRequested && !c.inPit && entryGap < 450;
+    const preparingPit =
+      c.pitRequested && !c.inPit && entryGap < pitPreparationDistance(c.speed, c.lateral);
     if (this.tacticalClock > 1 / 12 && !c.inPit) {
       this.tacticalClock = 0;
       const grip = clamp(
@@ -145,6 +151,13 @@ export class AIDriver {
         desired,
         Math.sqrt(14 * 14 + 2 * braking * 0.85 * Math.max(0, entryGap - 30)),
       );
+    if (preparingPit) {
+      const yielding = pitApproachTrafficSpeed(c, cars, track, this.desiredOffset);
+      if (yielding < desired) {
+        desired = yielding;
+        this.decision = 'YIELD FOR PIT APPROACH';
+      }
+    }
     if (race.flag === 'YELLOW') desired *= 0.68;
     if (pit) {
       desired = Math.min(desired, 21.1);

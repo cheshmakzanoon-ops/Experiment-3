@@ -56,3 +56,35 @@ export function pitYieldSpeed(car: Vehicle, conflict: boolean, braking: number):
   const remaining = Math.max(0, PIT_HOLD_S - car.s);
   return Math.sqrt(2 * clamp(braking, 1, 8) * remaining);
 }
+
+/** Preparation must budget a finite-speed cross-track movement plus controller
+ * response, not assume every car starts next to the pit-entry lane. */
+export function pitPreparationDistance(speed: number, lateral: number, entryOffset = 6) {
+  return Math.max(450, Math.max(0, speed) * (Math.abs(entryOffset - lateral) / 1.6 + 3));
+}
+/** When an occupied approach corridor prevents moving toward the pit entry,
+ * yield longitudinally to traffic already nearer that corridor. Otherwise two
+ * equally slow cars can stay side by side until the entry line is missed.
+ * This returns a pedal-controller target only; no pose or velocity is rewritten.
+ */
+export function pitApproachTrafficSpeed(
+  car: Vehicle,
+  cars: readonly Vehicle[],
+  track: Track,
+  plannedOffset: number,
+  entryOffset = 6,
+): number {
+  if (Math.abs(car.lateral - entryOffset) < 1.4 || Math.abs(plannedOffset - entryOffset) < 1.4)
+    return Infinity;
+  let speed = Infinity;
+  for (const other of cars) {
+    if (other === car || other.retired || other.inPit) continue;
+    const gap = mod(other.s - car.s + track.length / 2, track.length) - track.length / 2;
+    const reserve = 8 + Math.max(car.speed, other.speed) * 0.75;
+    const nearer =
+      Math.abs(other.lateral - entryOffset) < Math.abs(car.lateral - entryOffset) - 0.5;
+    if (nearer && gap > -reserve && gap < reserve && Math.abs(other.lateral - car.lateral) > 2)
+      speed = Math.min(speed, Math.max(0, other.speed - 4));
+  }
+  return speed;
+}

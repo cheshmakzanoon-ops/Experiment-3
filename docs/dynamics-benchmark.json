@@ -1,0 +1,149 @@
+{
+  "sourceSHA256": "30ebcc1de980a6fbad8e5c14ee0f501d4fdc3b3abc84b5e5c7d7682531b1b63d",
+  "fixedDtSeconds": 0.004166666666666667,
+  "fixture": "Isolated analytic runway/skidpad/kerbs with the production Vehicle solver",
+  "passed": true,
+  "cases": [
+    {
+      "name": "braking-100kmh",
+      "passed": true,
+      "measurements": {
+        "distanceM": 18.86048223504653,
+        "stopSeconds": 1.4375,
+        "lateralDriftM": 0,
+        "minimumSlip": -1,
+        "peakLoadN": 4186.178464385312,
+        "discTemperaturesC": [
+          317.77716085561934,
+          317.77716085561934,
+          318.8210612754838,
+          318.8210612754838
+        ]
+      }
+    },
+    {
+      "name": "braking-200kmh",
+      "passed": true,
+      "measurements": {
+        "distanceM": 54.66078930710072,
+        "stopSeconds": 2.3291666666666666,
+        "lateralDriftM": 0,
+        "minimumSlip": -1,
+        "peakLoadN": 7790.838076064071,
+        "discTemperaturesC": [
+          324.2372918023268,
+          324.2372918023268,
+          322.93032586972527,
+          322.93032586972527
+        ]
+      }
+    },
+    {
+      "name": "braking-300kmh",
+      "passed": true,
+      "measurements": {
+        "distanceM": 96.82852410806888,
+        "stopSeconds": 2.933333333333333,
+        "lateralDriftM": 0,
+        "minimumSlip": -1,
+        "peakLoadN": 12422.928242027016,
+        "discTemperaturesC": [
+          346.6164805092951,
+          346.6164805092951,
+          333.2923394428325,
+          333.2923394428325
+        ]
+      }
+    },
+    {
+      "name": "braking-speed-order",
+      "passed": true,
+      "measurements": [
+        18.86048223504653,
+        54.66078930710072,
+        96.82852410806888
+      ]
+    },
+    {
+      "name": "skidpad-15mps",
+      "passed": true,
+      "measurements": {
+        "commandedSpeedMps": 15,
+        "meanSpeedMps": 15.042890945656186,
+        "radialRmsErrorM": 0.04417981626538914,
+        "measuredLateralG": 0.28859348952500014,
+        "kinematicLateralG": 0.28859702903578965
+      }
+    },
+    {
+      "name": "skidpad-25mps",
+      "passed": true,
+      "measurements": {
+        "commandedSpeedMps": 25,
+        "meanSpeedMps": 24.978369124652236,
+        "radialRmsErrorM": 0.3378981810419391,
+        "measuredLateralG": 0.7917775878482207,
+        "kinematicLateralG": 0.7919304053607938
+      }
+    },
+    {
+      "name": "skidpad-35mps",
+      "passed": true,
+      "measurements": {
+        "commandedSpeedMps": 35,
+        "meanSpeedMps": 34.75774216415858,
+        "radialRmsErrorM": 1.2168978659555818,
+        "measuredLateralG": 1.5150921149967873,
+        "kinematicLateralG": 1.5168269769066869
+      }
+    },
+    {
+      "name": "slalom-repeated-steering",
+      "passed": true,
+      "measurements": {
+        "cyclePeakYawRadps": [
+          0.20035092687024708,
+          0.20019735945506054,
+          0.20019860418093022,
+          0.20019910271027067,
+          0.20019958891623013,
+          0.2002004975261215
+        ],
+        "recoveredYawRadps": 0.0000017916099858005417
+      }
+    },
+    {
+      "name": "low-kerb",
+      "passed": true,
+      "measurements": {
+        "peakCompressionM": 0.027589692665978494,
+        "peakLoadN": 3904.454034758915,
+        "peakVerticalG": 0.24537412251163696,
+        "skidWorkJ": 0,
+        "finalHeightM": 0.5176572924132944
+      }
+    },
+    {
+      "name": "high-kerb",
+      "passed": true,
+      "measurements": {
+        "peakCompressionM": 0.037500948353505204,
+        "peakLoadN": 5983.423401575542,
+        "peakVerticalG": 0.451466587763031,
+        "skidWorkJ": 0,
+        "finalHeightM": 0.5176573299932157
+      }
+    },
+    {
+      "name": "sausage-kerb",
+      "passed": true,
+      "measurements": {
+        "peakCompressionM": 0.04575861440575757,
+        "peakLoadN": 7730.770289197917,
+        "peakVerticalG": 0.7635463746841209,
+        "skidWorkJ": 0,
+        "finalHeightM": 0.5176573843332324
+      }
+    }
+  ]
+}

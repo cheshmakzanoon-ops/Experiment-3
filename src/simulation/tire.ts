@@ -66,15 +66,25 @@ export function temperatureGrip(compound: Compound, temp: number) {
   const d = temp - COMPOUNDS[compound].ideal;
   return 1 - (d < 0 ? 0.35 : 0.48) * (1 - Math.exp(-((d / (d < 0 ? 45 : 65)) ** 2)));
 }
+/** Smooth load/tread/water coupling, not a random aquaplaning event. Higher
+ * contact load moves both speed breakpoints upward. It is a bounded reduced
+ * grip model, not a hydrodynamic contact-patch solver. */
+export function aquaplaning(compound: Compound, load: number, waterMm: number, speed: number) {
+  if (load <= 0 || waterMm <= 0) return 0;
+  const tolerance = COMPOUNDS[compound].waterTolerance;
+  const loadScale = Math.sqrt(clamp(load / 2200, 0.25, 4));
+  return (
+    smooth(tolerance * 0.7, tolerance * 3 + 1, waterMm) *
+    smooth(24 * loadScale, 95 * loadScale, Math.abs(speed))
+  );
+}
 export function peakGrip(t: Tire, load: number, s: SurfaceSample, speed: number) {
   const c = COMPOUNDS[t.compound],
     loadRatio = Math.max(load, 100) / 2200,
     wetRatio = s.water / (s.water + c.waterTolerance),
     wetPenalty =
       (t.compound === 'wet' ? 0.1 : t.compound === 'intermediate' ? 0.22 : 0.63) * wetRatio,
-    hydro =
-      smooth(c.waterTolerance * 0.7, c.waterTolerance * 3 + 1, s.water) *
-      smooth(24, 95, Math.abs(speed)),
+    hydro = aquaplaning(t.compound, load, s.water, speed),
     pressurePenalty = 1 - 0.12 * ((t.pressure - 165) / 65) ** 2;
   return (
     c.mu *
@@ -194,9 +204,9 @@ export function solveTire(
   );
   if (vLong > 12 && t.slip < -0.8 && t.load > 700)
     t.flatSpot = clamp(t.flatSpot + (Math.abs(t.fx * vLong) * dt) / 2e7, 0, 1);
-  if (surface.surface === SURFACE.GRASS || surface.surface === SURFACE.GRAVEL)
+  if (t.load > 1 && (surface.surface === SURFACE.GRASS || surface.surface === SURFACE.GRAVEL))
     t.dirt = clamp(t.dirt + 0.35 * dt, 0, 1);
-  else t.dirt = Math.max(0, t.dirt - Math.abs(omega) * 0.0009 * dt);
+  else if (t.load > 1) t.dirt = Math.max(0, t.dirt - Math.abs(omega) * 0.0009 * dt);
   t.discTemp +=
     ((Math.max(0, brake - regen) * Math.abs(omega) -
       (t.discTemp - 24) * (25 + Math.abs(vLong) * 4)) *

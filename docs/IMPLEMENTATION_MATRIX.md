@@ -34,17 +34,17 @@ This ledger follows the numbered sections of the supplied directive. “Implemen
 | 28 | DIFFERENTIAL | Torque-coupling limited-slip approximation. |
 | 29 | HYBRID SYSTEM | Energy-conserving deployment/regeneration; no detailed electrical hardware model. |
 | 30 | AERODYNAMICS | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
-| 31 | AERO MAP | Analytic tunable aero map, not measured CFD tables. |
+| 31 | AERO MAP | Sampled 2D clearance envelope plus independent pitch calibration; actual chassis floor-station clearance, wing settings, damage and wake feed force accumulation. Original engineering calibration, not measured CFD. |
 | 32 | GROUND EFFECT | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 33 | BOTTOMING | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
-| 34 | WAKE / DIRTY AIR | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+| 34 | WAKE / DIRTY AIR | Smooth finite 3D wake volume, continuous speed/distance/lateral/vertical boundaries, heading alignment and slipstream drag reduction; regression sweeps cover cutoff continuity. |
 | 35 | SURFACE TYPES | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 36 | TRACK SPLINE | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 37 | TRACK SURFACE STATE GRID | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 38 | RUBBERING | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 39 | MARBLES | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 40 | WATER MODEL | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
-| 41 | AQUAPLANING | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+| 41 | AQUAPLANING | Smooth load-, speed-, water- and compound-dependent grip reduction. No random binary aquaplaning; hydrodynamic contact-patch simulation remains outside this reduced model. |
 | 42 | WEATHER TIMELINE | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 43 | AI ARCHITECTURE | Strategic/tactical/controller frequencies separated inside the physics worker. |
 | 44 | AI SPEED PLANNING | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
@@ -111,10 +111,10 @@ This ledger follows the numbered sections of the supplied directive. “Implemen
 | 105 | DETERMINISM TEST | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 106 | FRAME-INDEPENDENCE TEST | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 107 | STRAIGHT-LINE TEST | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
-| 108 | SKIDPAD TEST | Not implemented as an isolated instrumented skidpad test. |
+| 108 | SKIDPAD TEST | Instrumented 80 m skidpad at 15/25/35 m/s using the production vehicle solver; measured lateral G compared with actual speed/radius, radial RMS error and speed tracking. |
 | 109 | BRAKING TEST | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
-| 110 | SLALOM TEST | No dedicated standalone slalom report; dynamic steering is exercised by circuit tests. |
-| 111 | KERB TEST | Shared physical kerbs exercised on circuit; no standalone kerb-impact report. |
+| 110 | SLALOM TEST | Six repeated steering cycles with yaw-amplification and post-input recovery measurements on an isolated runway. |
+| 111 | KERB TEST | One-sided 25/55/85 mm kerb fixtures record contact loads, suspension travel, vertical G and floor-contact work using the production vehicle solver. |
 | 112 | WET TEST | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 113 | DAMAGE TEST | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 114 | WAKE TEST | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
