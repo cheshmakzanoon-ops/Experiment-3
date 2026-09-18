@@ -20,6 +20,7 @@ export class CircuitScene {
   readonly group = new T.Group();
   readonly crowd = new T.Group();
   readonly props = new T.Group();
+  readonly vegetationGroup = new T.Group();
   readonly stateTexture: T.DataTexture;
   readonly roadMaterial: T.MeshStandardMaterial;
   readonly stateBytes = new Uint8Array(CELL_ROWS * CELL_COLS * 4);
@@ -28,7 +29,7 @@ export class CircuitScene {
   readonly pitPeople: T.Group[] = [];
   constructor(readonly track: Track) {
     this.group.name = 'Aurel circuit';
-    this.group.add(this.props, this.crowd);
+    this.group.add(this.props, this.crowd, this.vegetationGroup);
     this.stateTexture = new T.DataTexture(this.stateBytes, CELL_COLS, CELL_ROWS, T.RGBAFormat);
     this.stateTexture.magFilter = T.LinearFilter;
     this.stateTexture.minFilter = T.LinearFilter;
@@ -512,7 +513,9 @@ export class CircuitScene {
       new T.IcosahedronGeometry(1, 1),
       new T.MeshStandardMaterial({ color: 0x56623d, roughness: 1 }),
       transforms,
+      this.vegetationGroup,
     );
+    trees.userData.fullCount = transforms.length;
     for (let i = 0; i < transforms.length; i++)
       trees.setColorAt(
         i,

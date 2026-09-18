@@ -8,7 +8,12 @@ import {
 } from '../input/calibration.ts';
 import { clamp } from '../core/math.ts';
 import { DEFAULT_SETUP, validateSetup, type Setup } from '../simulation/config.ts';
-import type { Quality } from '../rendering/renderer.ts';
+import {
+  graphicsPreset,
+  validateGraphics,
+  type GraphicsOptions,
+  type Quality,
+} from '../rendering/options.ts';
 export interface InputMapping {
   device: DeviceSelection | null;
   wheelSteering: boolean;
@@ -31,7 +36,10 @@ export interface InputMapping {
   exponent: number;
 }
 export interface Settings {
-  version: 3;
+  version: 4;
+  graphics: GraphicsOptions;
+  colorblind: boolean;
+  highContrast: boolean;
   quality: Quality;
   volume: number;
   shake: number;
@@ -41,7 +49,10 @@ export interface Settings {
   bindings: Bindings;
 }
 export const DEFAULT_SETTINGS: Settings = {
-  version: 3,
+  version: 4,
+  graphics: graphicsPreset('medium'),
+  colorblind: false,
+  highContrast: false,
   quality: 'medium',
   volume: 0.45,
   shake: 0.35,
@@ -73,15 +84,19 @@ export const DEFAULT_SETTINGS: Settings = {
 export function validateSettings(v: unknown): Settings {
   if (!v || typeof v !== 'object') throw new Error('Settings data must be an object');
   const p = v as Partial<Settings>;
-  if (![1, 2, 3].includes((v as { version: number }).version))
+  if (![1, 2, 3, 4].includes((v as { version: number }).version))
     throw new Error('Unsupported settings version');
   const finite = (x: unknown, f: number, a: number, b: number) =>
     typeof x === 'number' && Number.isFinite(x) ? clamp(x, a, b) : f;
   const m = p.mapping ?? DEFAULT_SETTINGS.mapping;
   const bindings = validateBindings(p.bindings);
+  const quality = p.quality === 'low' || p.quality === 'high' ? p.quality : 'medium';
   return {
-    version: 3,
-    quality: p.quality === 'low' || p.quality === 'high' ? p.quality : 'medium',
+    version: 4,
+    graphics: validateGraphics(p.version === 4 ? p.graphics : undefined, quality),
+    colorblind: p.colorblind === true,
+    highContrast: p.highContrast === true,
+    quality,
     volume: finite(p.volume, 0.45, 0, 1),
     shake: finite(p.shake, 0.35, 0, 1),
     uiScale: finite(p.uiScale, 1, 0.8, 1.35),

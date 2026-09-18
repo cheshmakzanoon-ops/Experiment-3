@@ -236,6 +236,9 @@ test('high quality compiles shaders and renders a live local reflection', async 
   await page.locator('[name=quality]').selectOption('high');
   await page.getByRole('button', { name: 'APPLY & SAVE' }).click();
   await begin(page);
+  const started = await diag(page);
+  expect(started.renderer!.warmupFrames).toBeGreaterThanOrEqual(2);
+  expect(started.recordingWarnings).toEqual([]);
   await page.keyboard.press('c');
   await expect
     .poll(async () => (await diag(page)).renderer?.reflectionProbeUpdates, { timeout: 60000 })

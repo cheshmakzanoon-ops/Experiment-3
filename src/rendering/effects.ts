@@ -20,6 +20,7 @@ export class Effects {
   private q = new T.Quaternion();
   private emission = new Float32Array(12 * 4);
   enabled = true;
+  density = 1;
   constructor() {
     this.geometry.setAttribute(
       'position',
@@ -103,7 +104,7 @@ export class Effects {
             rate = Math.min(80, slip * speed);
             kind = 4;
           }
-          this.emission[id * 4 + wheel] += rate * dt;
+          this.emission[id * 4 + wheel] += rate * dt * this.density;
           while (this.emission[id * 4 + wheel] >= 1) {
             this.emission[id * 4 + wheel]--;
             this.v
@@ -120,7 +121,7 @@ export class Effects {
             );
           }
         }
-        if (frame[o + F.BOTTOM_ENERGY] > 300 && r.next() < dt * 100) {
+        if (frame[o + F.BOTTOM_ENERGY] > 300 && r.next() < dt * 100 * this.density) {
           this.spawn(
             frame[o],
             frame[o + 1] - 0.42,
@@ -134,7 +135,7 @@ export class Effects {
       }
     if (emit && frame[H.RAIN] > 0) {
       const o = carBase(0);
-      for (let i = 0; i < Math.floor(frame[H.RAIN] * dt * 40); i++)
+      for (let i = 0; i < Math.floor(frame[H.RAIN] * dt * 40 * this.density); i++)
         this.spawn(
           frame[o] + (r.next() - 0.5) * 40,
           frame[o + 1] + 4 + r.next() * 18,

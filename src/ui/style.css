@@ -1421,3 +1421,43 @@ dialog:has(#settingsForm) {
   flex: 1;
   max-width: 400px;
 }
+
+.presentation-details {
+  border-top: 1px solid #7b8887;
+  border-bottom: 1px solid #7b8887;
+  padding: 12px 0;
+  margin: 16px 0;
+}
+.presentation-details summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+.presentation-details label {
+  margin-top: 12px;
+}
+html[data-colorblind='true'] #flag::before {
+  content: '● ';
+  font-size: 14px;
+}
+html[data-colorblind='true'] #flag[data-flag='1']::before {
+  content: '▲ ';
+}
+html[data-colorblind='true'] #flag[data-flag='2']::before {
+  content: '▦ ';
+}
+html[data-colorblind='true'] #flag[data-flag='1'] {
+  background: repeating-linear-gradient(135deg, #ffd966, #ffd966 8px, #fff0aa 8px, #fff0aa 12px);
+  color: #172026;
+}
+html[data-high-contrast='true'] .hud-top,
+html[data-high-contrast='true'] .timing,
+html[data-high-contrast='true'] .car-status,
+html[data-high-contrast='true'] .instruments,
+html[data-high-contrast='true'] .lap-panel {
+  background: #101a1c;
+  color: #ffffff;
+  border: 1px solid #ffffff;
+}
+html[data-high-contrast='true'] .small-note {
+  color: #263b3c;
+}

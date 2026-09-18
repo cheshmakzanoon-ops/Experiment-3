@@ -1,8 +1,19 @@
 import * as T from 'three';
+import { TracksideDirector } from './trackside.ts';
 import { InertialCamera, ViewOrientation } from './camera-dynamics.ts';
 import { ReflectionSystem } from './reflections.ts';
 import { DebrisView } from './debris.ts';
 import { GpuTimer } from './gpu-timer.ts';
+import { TextureBudget } from './texture-budget.ts';
+import {
+  graphicsPreset,
+  validateGraphics,
+  bufferSize,
+  type GraphicsOptions,
+  type Quality,
+} from './options.ts';
+import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+import { FXAAShader } from 'three/addons/shaders/FXAAShader.js';
 import { Sky } from 'three/addons/objects/Sky.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
@@ -11,11 +22,11 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { FormulaCar } from './car.ts';
 import { CircuitScene } from './circuit.ts';
 import { Effects } from './effects.ts';
-import { Track, trackPoint } from '../simulation/track.ts';
+import { Track } from '../simulation/track.ts';
 import { F, H, WHEEL_BASE, WHEEL_STRIDE, carBase } from '../simulation/protocol.ts';
 import { clamp } from '../core/math.ts';
 export type CameraMode = 'chase' | 'cockpit' | 'pod' | 'trackside';
-export type Quality = 'low' | 'medium' | 'high';
+export type { Quality } from './options.ts';
 export class RacingRenderer {
   readonly renderer: T.WebGLRenderer;
   readonly scene = new T.Scene();
@@ -29,6 +40,11 @@ export class RacingRenderer {
   private sky = new Sky();
   private composer: EffectComposer;
   private bloom: UnrealBloomPass;
+  private fxaa = new ShaderPass(FXAAShader);
+  private textures = new TextureBudget();
+  graphics: GraphicsOptions = graphicsPreset('medium');
+  private renderWidth = 1;
+  private renderHeight = 1;
   private env: T.WebGLRenderTarget;
   private target = new T.Vector3();
   private desired = new T.Vector3();
@@ -37,7 +53,7 @@ export class RacingRenderer {
   private direction = new T.Vector3();
   private orbitTime = 0;
   private initialized = false;
-  private trackPoint = trackPoint();
+  private trackside: TracksideDirector;
   mode: CameraMode = 'chase';
   quality: Quality = 'medium';
   shake = 0.35;
@@ -119,6 +135,7 @@ export class RacingRenderer {
     this.sun.shadow.bias = -0.00012;
     this.sun.shadow.normalBias = 0.035;
     this.circuit = new CircuitScene(track);
+    this.trackside = new TracksideDirector(track);
     this.scene.add(this.circuit.group, this.effects.group, this.debugGroup);
     for (let i = 0; i < 4; i++) {
       const a = new T.ArrowHelper(new T.Vector3(0, 1, 0), new T.Vector3(), 1, 0x46ffd1, 0.2, 0.1);
@@ -130,6 +147,8 @@ export class RacingRenderer {
     this.bloom = new UnrealBloomPass(new T.Vector2(1, 1), 0.1, 0.3, 1.3);
     this.composer.addPass(this.bloom);
     this.composer.addPass(new OutputPass());
+    this.composer.addPass(this.fxaa);
+    this.textures.register(this.circuit.group);
     this.resize();
   }
   setCars(n: number) {
@@ -137,33 +156,116 @@ export class RacingRenderer {
       const car = new FormulaCar(this.cars.length);
       this.cars.push(car);
       this.scene.add(car.root);
+      this.textures.register(car.root);
       if (car.id === 0) {
         this.reflection.attachMirrors(car.mirrors);
-        this.reflection.quality(this.quality);
+        this.reflection.quality(this.graphics.mirrorQuality);
         this.reflectionMaterials.push(car.paint, this.circuit.roadMaterial);
       }
     }
     this.cars.forEach((c, i) => (c.root.visible = i < n));
   }
-  setQuality(q: Quality) {
+  warmupFrames = 0;
+  /** Build the grid and warm real GPU paths while the physics worker is paused.
+   * Yield between car construction and shader stages so progress can repaint.
+   * No recording sample or race time is invented during loading. */
+  async prepare(
+    frame: Float32Array,
+    progress: (message: string) => void,
+    cancelled: () => boolean,
+    yieldFrame: () => Promise<void> = () =>
+      new Promise((resolve) => requestAnimationFrame(() => resolve())),
+  ) {
+    const total = frame[H.CARS];
+    if (!Number.isInteger(total) || total < 1 || total > 12) throw new Error('Invalid warmup grid');
+    for (let n = this.cars.length + 1; n <= total; n++) {
+      if (cancelled()) return false;
+      progress(`Building original Formula car ${n} / ${total}…`);
+      this.setCars(n);
+      await yieldFrame();
+    }
+    if (cancelled()) return false;
+    this.setCars(total);
+    for (let i = 0; i < total; i++)
+      this.cars[i].update(frame, frame, carBase(i), 1, 1 / 120, frame[H.TIME], false);
+    progress('Compiling circuit and vehicle materials…');
+    await yieldFrame();
+    if (cancelled()) return false;
+    await this.renderer.compileAsync(this.scene, this.camera);
+    if (cancelled()) return false;
+    const camera = this.mode;
+    try {
+      for (const mode of ['chase', 'cockpit'] as const) {
+        progress(
+          mode === 'chase'
+            ? 'Warming shadows and scene reflections…'
+            : 'Warming cockpit, mirrors and post-processing…',
+        );
+        await yieldFrame();
+        if (cancelled()) return false;
+        this.changeCamera(mode);
+        this.draw(frame, frame, 1, 1 / 120, false, true);
+        this.warmupFrames++;
+        await this.renderer.compileAsync(this.scene, this.camera);
+        if (cancelled()) return false;
+      }
+    } finally {
+      if (!cancelled()) {
+        this.changeCamera(camera);
+        this.reset();
+      }
+    }
+    return true;
+  }
+  setQuality(q: Quality, options: GraphicsOptions = graphicsPreset(q)) {
     this.quality = q;
-    this.reflection.quality(q);
-    this.renderer.shadowMap.enabled = q !== 'low';
-    this.bloom.enabled = q === 'high';
-    this.circuit.crowd.visible = q !== 'low';
-    this.effects.enabled = q !== 'low';
-    this.renderer.setPixelRatio(
-      Math.min(devicePixelRatio, q === 'high' ? 1.65 : q === 'medium' ? 1.25 : 1),
+    this.graphics = validateGraphics(options, q);
+    const g = this.graphics;
+    this.reflection.quality(g.mirrorQuality);
+    this.renderer.shadowMap.enabled = g.shadowSize > 0;
+    if (this.sun.shadow.mapSize.x !== g.shadowSize && g.shadowSize > 0) {
+      this.sun.shadow.map?.dispose();
+      this.sun.shadow.map = null;
+      this.sun.shadow.mapPass?.dispose();
+      this.sun.shadow.mapPass = null;
+      this.sun.shadow.mapSize.set(g.shadowSize, g.shadowSize);
+      this.sun.shadow.needsUpdate = true;
+    }
+    this.bloom.enabled = g.bloom;
+    this.fxaa.enabled = g.antialias;
+    this.circuit.crowd.visible = g.crowd;
+    this.circuit.vegetationGroup.traverse((object) => {
+      if (object instanceof T.InstancedMesh)
+        object.count = Math.floor(object.userData.fullCount * g.vegetationDensity);
+    });
+    this.effects.enabled = g.particleDensity > 0;
+    this.effects.density = g.particleDensity;
+    this.textures.configure(
+      g.textureSize,
+      Math.min(g.anisotropy, this.renderer.capabilities.getMaxAnisotropy()),
     );
     this.resize();
   }
   resize() {
     const w = this.canvas.clientWidth || innerWidth,
       h = this.canvas.clientHeight || innerHeight;
+    const size = bufferSize(
+      w,
+      h,
+      Math.min(devicePixelRatio, 1.5) * this.graphics.resolutionScale,
+      this.renderer.capabilities.maxTextureSize,
+    );
+    const ratio = Math.min(size.width / w, size.height / h);
+    this.renderer.setPixelRatio(ratio);
     this.renderer.setSize(w, h, false);
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
+    this.composer.setPixelRatio(ratio);
     this.composer.setSize(w, h);
+    const actual = this.renderer.getDrawingBufferSize(new T.Vector2());
+    this.renderWidth = actual.x;
+    this.renderHeight = actual.y;
+    this.fxaa.uniforms.resolution.value.set(1 / actual.x, 1 / actual.y);
   }
   changeCamera(mode?: CameraMode) {
     const modes: CameraMode[] = ['chase', 'cockpit', 'pod', 'trackside'];
@@ -171,6 +273,7 @@ export class RacingRenderer {
     this.initialized = false;
     this.inertia.reset();
     this.viewOrientation.reset();
+    this.trackside.reset();
     this.lookX = 0;
     this.lookY = 0;
     return this.mode;
@@ -179,6 +282,7 @@ export class RacingRenderer {
     this.initialized = false;
     this.inertia.reset();
     this.viewOrientation.reset();
+    this.trackside.reset();
     this.effects.clear();
     this.sampleCount = 0;
     this.sampleIndex = 0;
@@ -242,12 +346,15 @@ export class RacingRenderer {
         .add(new T.Vector3(-0.8, 0.15, 0).applyQuaternion(car.root.quaternion));
       this.camera.fov = 45;
     } else if (this.mode === 'trackside') {
-      const s = Math.floor(b[o + F.S] / 100) * 100 + 70;
-      this.circuit.track.at(s, this.trackPoint);
-      const p = this.trackPoint;
-      this.desired.set(p.x + p.nx * 18, p.y + 3.5, p.z + p.nz * 18);
-      this.gaze.copy(this.target).addScaledVector(this.direction, speed * 0.12);
-      this.camera.fov = 42;
+      this.trackside.update(
+        b[o + F.S],
+        this.target,
+        this.temporary.set(b[o + F.VX], b[o + F.VY], b[o + F.VZ]),
+        dt,
+      );
+      this.desired.copy(this.trackside.position);
+      this.gaze.copy(this.trackside.gaze);
+      this.camera.fov = this.trackside.fov;
     } else {
       const seated = this.mode === 'cockpit' || this.mode === 'pod';
       if (seated) {
@@ -337,7 +444,7 @@ export class RacingRenderer {
         this.scene,
         car.root,
         this.reflectionMaterials,
-        this.quality === 'high' && !menu,
+        this.graphics.reflections === 'local' && !menu,
       );
       this.reflection.renderMirrors(this.renderer, this.scene, car.root, dt);
       this.composer.render();
@@ -380,12 +487,19 @@ export class RacingRenderer {
       (a, b) => a - b,
     );
     return {
+      warmupFrames: this.warmupFrames,
+      graphics: { ...this.graphics },
+      renderWidth: this.renderWidth,
+      renderHeight: this.renderHeight,
       carLods: this.cars.map((car) => car.lodLevel),
       camera: this.mode,
+      tracksideRig: this.trackside.activeId,
+      tracksideCuts: this.trackside.cuts,
       cameraLocalPosition: this.eyeLocal.toArray(),
       mirrorUpdates: this.reflection.mirrorUpdates,
       mirrorWidth: this.reflection.mirrorWidth,
       reflectionProbeUpdates: this.reflection.probeUpdates,
+      localProbeActive: this.reflection.localProbeActive,
       gpuMilliseconds: this.gpuTimer.milliseconds,
       gpuTimerSupported: this.gpuTimer.supported,
       fps: this.fps,
@@ -402,6 +516,8 @@ export class RacingRenderer {
     this.reflection.dispose();
     this.gpuTimer.dispose();
     this.bloom.dispose();
+    this.fxaa.dispose();
+    this.textures.dispose();
     const geometries = new Set<T.BufferGeometry>(),
       materials = new Set<T.Material>(),
       textures = new Set<T.Texture>();

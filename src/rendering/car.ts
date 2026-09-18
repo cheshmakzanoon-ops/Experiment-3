@@ -407,6 +407,7 @@ export class FormulaCar {
       c.fillStyle = '#0c1212';
       c.fillRect(0, 0, 256, 128);
     });
+    this.display.userData.dynamic = true;
     this.canvas = this.display.image as HTMLCanvasElement;
     this.ctx = this.canvas.getContext('2d')!;
     const screen = mesh(

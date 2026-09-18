@@ -18,6 +18,7 @@ import {
 import { RacingRenderer } from './rendering/renderer.ts';
 import { Interface, shortTime } from './ui/interface.ts';
 import { InputController } from './input/controller.ts';
+import { InputPump } from './input/pump.ts';
 import { RacingAudio } from './audio/engine.ts';
 import {
   SaveStore,
@@ -41,6 +42,7 @@ export class GameApp {
   private exporter = new TelemetryExport();
   private exporting = false;
   private savingSettings = false;
+  private disposed = false;
   private settings: Settings = structuredClone(DEFAULT_SETTINGS);
   private worker: Worker | null = null;
   private current: Float32Array | null = null;
@@ -50,7 +52,7 @@ export class GameApp {
   private options: SessionOptions = { ...DEFAULT_OPTIONS };
   private auto = false;
   private ers: 0 | 1 | 2 = 1;
-  private sentAt = 0;
+  private inputPump: InputPump;
   private previousTime = 0;
   private renderedAt = 0;
   private renderedState: State | null = null;
@@ -94,6 +96,16 @@ export class GameApp {
       importSetup: (file) => void this.importSetup(file),
     });
     this.input = new InputController(this.settings, (name) => this.action(name));
+    this.inputPump = new InputPump((dt) => {
+      if (this.state !== 'driving' || this.errorStopped) return;
+      const input = this.input.update(dt);
+      // A device fault may have paused the session during update().
+      if (this.state !== 'driving') return;
+      input.ers = this.ers;
+      this.post({ type: 'input', input: { ...input } });
+      input.shift = 0;
+    });
+    this.inputPump.start();
     element
       .querySelectorAll<HTMLElement>('[data-touch]')
       .forEach((e) =>
@@ -138,16 +150,19 @@ export class GameApp {
     } catch (e) {
       this.ui.toast(`Local preferences unavailable: ${e instanceof Error ? e.message : String(e)}`);
     }
+    if (this.disposed) return;
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) this.settings.shake = 0;
     this.input.settings = this.settings;
     this.ui.applyBindings(this.settings.bindings);
     this.ui.loading('Building original bodywork, materials and Aurel circuit…');
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
     this.renderer = new RacingRenderer(canvas, this.track);
-    this.renderer.setQuality(this.settings.quality);
+    this.renderer.setQuality(this.settings.quality, this.settings.graphics);
     this.renderer.shake = this.settings.shake;
     this.audio.volume = this.settings.volume;
     document.documentElement.style.setProperty('--ui-scale', String(this.settings.uiScale));
+    document.documentElement.dataset.colorblind = String(this.settings.colorblind);
+    document.documentElement.dataset.highContrast = String(this.settings.highContrast);
     const preview = new Float32Array(HEADER + CAR_STRIDE);
     const p = this.track.at(this.track.length - 32, {
         s: 0,
@@ -206,6 +221,7 @@ export class GameApp {
         `Audio unavailable: ${e instanceof Error ? e.message : String(e)}. Racing remains available.`,
       );
     }
+    if (this.disposed) return;
     this.options = { ...options, setup: { ...this.settings.setup } };
     this.ui.options = this.options;
     this.auto = false;
@@ -283,7 +299,15 @@ export class GameApp {
     this.post({ type: 'init', options: this.options });
     await ready;
     clearTimeout(this.initTimeout);
-    if (this.errorStopped) return;
+    if (this.errorStopped || this.disposed || generation !== this.generation) return;
+    if (!this.renderer || !this.current)
+      throw new Error('Session initialization has no render state');
+    const warmed = await this.renderer.prepare(
+      this.current,
+      (message) => this.ui.loading(message),
+      () => this.errorStopped || this.disposed || generation !== this.generation,
+    );
+    if (!warmed || this.errorStopped || this.disposed || generation !== this.generation) return;
     const cars = this.options.opponents + 1;
     this.replay = new SessionReplay(cars, undefined, (message) => {
       if (generation !== this.generation) return;
@@ -303,7 +327,7 @@ export class GameApp {
     this.input.setEnabled(true);
     (document.activeElement as HTMLElement)?.blur();
     this.post({ type: 'pause', value: false });
-    this.sentAt = 0;
+    this.inputPump.poll();
   }
   private accept(buffer: ArrayBuffer) {
     const next = new Float32Array(buffer);
@@ -326,24 +350,20 @@ export class GameApp {
   }
   private frame = (time: number) => {
     this.timer = requestAnimationFrame(this.frame);
-    if (this.errorStopped || !this.renderer || !this.current || !this.previous) return;
+    if (
+      this.errorStopped ||
+      this.state === 'loading' ||
+      !this.renderer ||
+      !this.current ||
+      !this.previous
+    )
+      return;
     const wallDelta = Math.max(0.001, (time - (this.previousTime || time - 16)) / 1000),
       dt = clamp(wallDelta, 0.001, 0.08);
     this.previousTime = time;
-    const input = this.input.update(dt);
-    input.ers = this.ers;
-    if (this.state === 'driving' && time - this.sentAt >= 16) {
-      this.post({ type: 'input', input: { ...input } });
-      input.shift = 0;
-      this.sentAt = time;
-    }
     // Menus and paused telemetry do not need a continuously saturated GPU.
     // Input and worker clocks above remain independent of this presentation cap.
-    const idle =
-      this.state === 'menu' ||
-      this.state === 'loading' ||
-      this.state === 'paused' ||
-      this.state === 'results';
+    const idle = this.state === 'menu' || this.state === 'paused' || this.state === 'results';
     if (idle && this.renderedState === this.state && time - this.renderedAt < 1000 / 15) return;
     this.renderedAt = time;
     this.renderedState = this.state;
@@ -382,15 +402,7 @@ export class GameApp {
       );
       this.ui.setText('replayPlay', this.replayPlaying ? 'PAUSE' : 'PLAY');
     }
-    this.renderer.draw(
-      a,
-      b,
-      alpha,
-      dt,
-      this.state === 'menu' || this.state === 'loading',
-      this.state === 'replay',
-      wallDelta,
-    );
+    this.renderer.draw(a, b, alpha, dt, this.state === 'menu', this.state === 'replay', wallDelta);
     if (this.state !== 'menu') this.ui.update(b, this.renderer, this.auto, this.ers);
     this.audio.update(
       b,
@@ -638,10 +650,12 @@ export class GameApp {
     this.settings = settings;
     this.input.settings = settings;
     this.ui.applyBindings(settings.bindings);
-    this.renderer?.setQuality(settings.quality);
+    this.renderer?.setQuality(settings.quality, settings.graphics);
     if (this.renderer) this.renderer.shake = settings.shake;
     this.audio.volume = settings.volume;
     document.documentElement.style.setProperty('--ui-scale', String(settings.uiScale));
+    document.documentElement.dataset.colorblind = String(settings.colorblind);
+    document.documentElement.dataset.highContrast = String(settings.highContrast);
     // Closing the editor is the completion signal. Do not emit it before the
     // readwrite transaction commits: an immediate reload can abort the save.
     const closeCurrentEditor = () => {
@@ -703,11 +717,16 @@ export class GameApp {
       replayPosition: this.replayTime,
       recordingWarnings: [...this.recordingWarnings],
       telemetrySamples: this.telemetry?.count ?? 0,
+      inputPolls: this.inputPump.ticks,
     };
   }
   dispose() {
+    if (this.disposed) return;
+    this.disposed = true;
+    this.generation++;
     this.exporter.cancel();
     if (this.replay) void this.replay.dispose();
+    this.inputPump.dispose();
     cancelAnimationFrame(this.timer);
     clearTimeout(this.initTimeout);
     this.worker?.terminate();

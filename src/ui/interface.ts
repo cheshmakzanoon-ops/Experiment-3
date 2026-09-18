@@ -1,3 +1,4 @@
+import { presentationControls, bindPresentation } from './presentation.ts';
 import { DeviceCalibrationPanel } from './device-calibration.ts';
 import {
   BINDING_LABELS,
@@ -398,7 +399,7 @@ export class Interface {
       })
       .join('');
     this.modalContent(
-      `<header><div><span class="eyebrow">GARAGE / PREFERENCES</span><h2>Make it yours.</h2></div><button data-action="modalClose" aria-label="Close settings">✕</button></header><form id="settingsForm"><div class="settings-columns"><section><h3>Presentation</h3><label>RENDER QUALITY<select name="quality"><option value="low">Low · No shadows / crowd / particles</option><option value="medium">Medium · Balanced</option><option value="high">High · Bloom / higher resolution</option></select></label>${[
+      `<header><div><span class="eyebrow">GARAGE / PREFERENCES</span><h2>Make it yours.</h2></div><button data-action="modalClose" aria-label="Close settings">✕</button></header><form id="settingsForm"><div class="settings-columns"><section><h3>Presentation</h3><label>RENDER QUALITY<select name="quality"><option value="low">Low · No shadows / crowd / particles</option><option value="medium">Medium · Balanced</option><option value="high">High · Bloom / higher resolution</option></select></label>${presentationControls(settings)}${[
         ['volume', 'Volume', 0, 1, 0.01],
         ['shake', 'Camera vibration', 0, 1, 0.01],
         ['uiScale', 'Interface scale', 0.8, 1.35, 0.05],
@@ -453,6 +454,7 @@ export class Interface {
       settings.mapping,
     );
     (form.elements.namedItem('quality') as HTMLSelectElement).value = settings.quality;
+    const graphics = bindPresentation(form, settings);
     form.addEventListener('input', (e) => {
       const input = e.target as HTMLInputElement;
       const output = input.parentElement?.querySelector('output');
@@ -504,6 +506,9 @@ export class Interface {
       const value = (key: string) => (form.elements.namedItem(key) as HTMLInputElement).value;
       const next = structuredClone(settings);
       next.quality = value('quality') as Settings['quality'];
+      next.graphics = graphics();
+      next.colorblind = (form.elements.namedItem('colorblind') as HTMLInputElement).checked;
+      next.highContrast = (form.elements.namedItem('highContrast') as HTMLInputElement).checked;
       for (const key of ['volume', 'shake', 'uiScale'] as const) next[key] = Number(value(key));
       for (const key of Object.keys(DEFAULT_SETUP) as (keyof Setup)[])
         next.setup[key] = Number(value(key));

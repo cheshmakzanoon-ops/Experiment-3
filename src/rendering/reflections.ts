@@ -19,13 +19,32 @@ export class ReflectionSystem {
   private clock = 0;
   private enabled = false;
   private lastProbe = -Infinity;
-  private cubeTarget = new T.WebGLCubeRenderTarget(128, {
-    type: T.HalfFloatType,
-    generateMipmaps: true,
-    minFilter: T.LinearMipmapLinearFilter,
-  });
-  private cube = new T.CubeCamera(0.1, 1600, this.cubeTarget);
-  private fallbackEnvironment: T.Texture | null = null;
+  // Alternate completed targets: a scene never samples the cubemap into which
+  // it is currently rendering. Material programs stay stable between captures.
+  private cubeTargets = [0, 1].map(
+    () =>
+      new T.WebGLCubeRenderTarget(128, {
+        type: T.HalfFloatType,
+        generateMipmaps: true,
+        minFilter: T.LinearMipmapLinearFilter,
+      }),
+  );
+  private cubes = this.cubeTargets.map((target) => new T.CubeCamera(0.1, 1600, target));
+  private nextTarget = 0;
+  private originalMaps = new Map<T.MeshStandardMaterial, T.Texture | null>();
+  private probeActive = false;
+  get localProbeActive() {
+    return this.probeActive;
+  }
+  private restoreEnvironment() {
+    for (const [material, texture] of this.originalMaps) {
+      material.envMap = texture;
+      material.needsUpdate = true;
+    }
+    this.originalMaps.clear();
+    this.probeActive = false;
+    this.lastProbe = -Infinity;
+  }
   attachMirrors(surfaces: readonly T.Mesh[]) {
     this.surfaces = [...surfaces];
     this.views.bind(surfaces);
@@ -48,40 +67,60 @@ export class ReflectionSystem {
     materials: readonly T.MeshStandardMaterial[],
     high: boolean,
   ) {
-    if (!high || this.activePass || this.clock - this.lastProbe < 1.5) return;
-    this.lastProbe = this.clock;
-    this.fallbackEnvironment = scene.environment;
-    const maps = materials.map((material) => material.envMap);
+    if (!high) {
+      if (this.probeActive) this.restoreEnvironment();
+      return;
+    }
+    if (this.activePass || this.clock - this.lastProbe < 1.5) return;
+    const cube = this.cubes[this.nextTarget];
     const visible = car.visible;
     const mirrorVisibility = this.mirrors.map((m) => m.visible);
     const shadows = renderer.shadowMap.autoUpdate;
+    const target = renderer.getRenderTarget();
+    const face = renderer.getActiveCubeFace();
+    const mip = renderer.getActiveMipmapLevel();
+    const viewport = renderer.getViewport(new T.Vector4());
+    const scissor = renderer.getScissor(new T.Vector4());
+    const scissorTest = renderer.getScissorTest();
+    const xr = renderer.xr.enabled;
     this.activePass = true;
     try {
-      // Never sample the cube texture while rendering into the same target.
-      materials.forEach((material) => {
-        material.envMap = this.fallbackEnvironment;
-        material.needsUpdate = true;
+      this.mirrors.forEach((mirror) => {
+        mirror.visible = false;
       });
-      this.mirrors.forEach((mirror) => (mirror.visible = false));
       car.visible = false;
       renderer.shadowMap.autoUpdate = false;
-      this.cube.position.copy(car.position).add(new T.Vector3(0, 1.5, 0));
-      this.cube.update(renderer, scene);
+      renderer.setScissorTest(false);
+      cube.position.copy(car.position);
+      cube.position.y += 1.5;
+      cube.update(renderer, scene);
       this.probeUpdates++;
+      this.lastProbe = this.clock;
     } finally {
       car.visible = visible;
       renderer.shadowMap.autoUpdate = shadows;
-      this.mirrors.forEach((mirror, i) => (mirror.visible = mirrorVisibility[i]));
-      materials.forEach((material, i) => {
-        material.envMap = maps[i];
-        material.needsUpdate = true;
+      renderer.xr.enabled = xr;
+      renderer.setRenderTarget(target, face, mip);
+      renderer.setViewport(viewport);
+      renderer.setScissor(scissor);
+      renderer.setScissorTest(scissorTest);
+      this.mirrors.forEach((mirror, i) => {
+        mirror.visible = mirrorVisibility[i];
       });
       this.activePass = false;
     }
-    materials.forEach((material) => {
-      material.envMap = this.cubeTarget.texture;
-      material.needsUpdate = true;
-    });
+    // Publish only a completed six-face capture. A thrown GPU pass leaves the
+    // last complete reflection and all renderer ownership untouched.
+    const texture = this.cubeTargets[this.nextTarget].texture;
+    for (const material of materials) {
+      if (!this.originalMaps.has(material)) {
+        this.originalMaps.set(material, material.envMap);
+        material.needsUpdate = true;
+      }
+      material.envMap = texture;
+    }
+    this.probeActive = true;
+    this.nextTarget = 1 - this.nextTarget;
   }
   diagnostics(renderer: T.WebGLRenderer) {
     return this.mirrors.map((mirror, i) => {
@@ -118,6 +157,7 @@ export class ReflectionSystem {
   dispose() {
     this.views.dispose();
     this.surfaces.length = 0;
-    this.cubeTarget.dispose();
+    this.restoreEnvironment();
+    this.cubeTargets.forEach((target) => target.dispose());
   }
 }

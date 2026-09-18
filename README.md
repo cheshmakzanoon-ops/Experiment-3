@@ -42,6 +42,12 @@ Its central design rule is that a system should change the car, not merely decor
 | 📊 | Engineering tools | Telemetry graphs, lap-distance comparison, CSV export, force/debug overlays, and bounded pose replay with seeking and playback-speed controls. |
 | 🎮 | Browser integration | Keyboard, gamepad, and touch controls; optional cockpit mouse look; versioned IndexedDB preferences and best-lap records. |
 
+## 🎛️ Tune the presentation without changing the physics
+
+The garage exposes independent render resolution, real texture-detail limits, shadows, mirror quality, local scene reflections, particles, vegetation, crowds, bloom, FXAA and anisotropic filtering. Presets initialize these controls; individual overrides persist. Patterned flags and high-contrast instruments accompany the existing remapping, calibration and camera-shake controls.
+
+Trackside mode uses twenty fixed camera rigs with coverage-based cuts and predictive panning. Keyboard, touch and controller sampling runs on its own 60 Hz timer rather than waiting for a rendered frame. See [presentation and input engineering](docs/PRESENTATION_AND_INPUT.md) for ownership, tests and remaining boundaries.
+
 ## 🚀 Get started
 
 Use **Node.js 22.12 or newer** and a browser with **WebGL2 and module-worker support**.
