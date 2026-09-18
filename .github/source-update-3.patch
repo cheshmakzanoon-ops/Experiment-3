@@ -1,0 +1,1760 @@
++│  │  ├─ AudioEngine.ts
++│  │  ├─ VehicleAudio.ts
++│  │  ├─ EngineSynth.ts
++│  │  ├─ TireAudio.ts
++│  │  ├─ EnvironmentAudio.ts
++│  │  └─ CollisionAudio.ts
++│  │
++│  ├─ input/
++│  │  ├─ InputManager.ts
++│  │  ├─ KeyboardInput.ts
++│  │  ├─ GamepadInput.ts
++│  │  ├─ WheelInput.ts
++│  │  ├─ InputFilter.ts
++│  │  └─ InputBindings.ts
++│  │
++│  ├─ telemetry/
++│  │  ├─ TelemetryRecorder.ts
++│  │  ├─ TelemetryChannel.ts
++│  │  ├─ LapTelemetry.ts
++│  │  └─ TelemetryExport.ts
++│  │
++│  ├─ replay/
++│  │  ├─ ReplayRecorder.ts
++│  │  ├─ ReplayPlayer.ts
++│  │  └─ ReplayCameraDirector.ts
++│  │
++│  ├─ ui/
++│  │  ├─ HUD.ts
++│  │  ├─ TimingTower.ts
++│  │  ├─ SteeringDisplay.ts
++│  │  ├─ SetupMenu.ts
++│  │  ├─ GraphicsMenu.ts
++│  │  └─ TelemetryScreen.ts
++│  │
++│  ├─ workers/
++│  │  ├─ physics.worker.ts
++│  │  ├─ ai.worker.ts
++│  │  └─ telemetry.worker.ts
++│  │
++│  └─ tests/
++│     ├─ physics/
++│     ├─ tires/
++│     ├─ aero/
++│     ├─ drivetrain/
++│     ├─ race/
++│     ├─ ai/
++│     └─ integration/
++│
++├─ e2e/
++├─ scripts/
++├─ vite.config.ts
++├─ tsconfig.json
++└─ package.json
++
++```
++
++This structure is guidance, not an excuse to create empty files.
++
++Never create placeholder modules merely to satisfy a directory tree.
++
++---
++
++# 5. GAME LOOP
++
++Implement explicitly separated loops.
++
++Rendering must NEVER drive simulation timing.
++
++Use:
++
++```ts
++const PHYSICS_HZ = 120;
++const PHYSICS_DT = 1 / PHYSICS_HZ;
++
++```
++
++Potential optional tire/contact substep:
++
++```ts
++const TIRE_SUBSTEPS = 2;
++
++```
++
++Resulting tire solve:
++
++240 Hz.
++
++Main pattern:
++
++```ts
++accumulator += Math.min(frameDelta, MAX_FRAME_DELTA);
++
++while (accumulator >= PHYSICS_DT) {
++    previousState.copy(currentState);
++
++    simulation.step(PHYSICS_DT);
++
++    accumulator -= PHYSICS_DT;
++}
++
++const alpha = accumulator / PHYSICS_DT;
++
++renderer.renderInterpolated(previousState, currentState, alpha);
++
++```
++
++Never perform important physics using `requestAnimationFrame()` delta directly.
++
++Test simulation under artificial render limits:
++
++- 24 FPS
++- 30 FPS
++- 60 FPS
++- 90 FPS
++- 120 FPS
++- 144 FPS
++
++Lap time and trajectory should remain materially consistent.
++
++---
++
++# 6. PHYSICS COORDINATE SYSTEM
++
++Define a single canonical system.
++
++Example:
++
+++X = vehicle right
+++Y = up
+++Z = vehicle forward
++
++Or choose another convention.
++
++Document it.
++
++Use it everywhere.
++
++Never mix Three.js conventions and vehicle-local conventions silently.
++
++Provide explicit helpers:
++
++```ts
++worldToVehicleVector()
++vehicleToWorldVector()
++worldToWheelVector()
++wheelToWorldVector()
++
++```
++
++Maintain SI units internally:
++
++- metres
++- seconds
++- kilograms
++- Newtons
++- Newton-metres
++- radians
++- Kelvin/Celsius where explicit
++- Pascals where necessary
++
++Never internally mix km/h with m/s.
++
++---
++
++# 7. RIGID BODY STATE
++
++Vehicle state must contain at least:
++
++```ts
++interface VehicleRigidState {
++    position: Vector3;
++    orientation: Quaternion;
++
++    linearVelocity: Vector3;
++    angularVelocity: Vector3;
++
++    linearAcceleration: Vector3;
++    angularAcceleration: Vector3;
++
++    totalForce: Vector3;
++    totalTorque: Vector3;
++}
++
++```
++
++Vehicle configuration:
++
++```ts
++interface ChassisConfig {
++    massKg: number;
++    inertiaTensor: Matrix3;
++    cgOffset: Vector3;
++
++    wheelbaseM: number;
++    frontTrackM: number;
++    rearTrackM: number;
++
++    referenceAreaM2: number;
++}
++
++```
++
++Mass must update with:
++
++- fuel quantity
++- damage/lost body parts if modeled materially
++
++---
++
++# 8. FORCE ACCUMULATION
++
++Every physics step:
++
++1. clear force accumulator
++2. calculate gravity
++3. query suspension contacts
++4. calculate suspension forces
++5. calculate tire forces
++6. calculate drivetrain forces
++7. calculate brake torques
++8. calculate aero forces
++9. calculate floor forces
++10. calculate collision impulses
++11. integrate rigid body
++12. update thermal systems
++13. update wear
++14. update damage
++15. emit telemetry
++
++Apply forces at actual application points.
++
++Use:
++
++```ts
++torque += r.cross(force);
++
++```
++
++Do NOT collapse everything into force through center of mass.
++
++---
++
++# 9. INTEGRATOR
++
++Use a stable integrator.
++
++Prefer semi-implicit Euler initially:
++
++```text
++v += a * dt
++x += v * dt
++ω += α * dt
++q += quaternionDerivative(ω) * dt
++normalize(q)
++
++```
++
++If necessary, improve angular integration.
++
++Never allow quaternion drift.
++
++Add debug assertions for:
++
++- non-finite vectors
++- invalid quaternion magnitude
++- impossible velocities
++- impossible wheel speeds
++
++---
++
++# 10. WHEEL CONTACT MODEL
++
++Avoid simplistic chassis raycasts only at visual wheel centres without suspension geometry.
++
++Each wheel requires:
++
++```ts
++interface WheelContact {
++    grounded: boolean;
++    pointWorld: Vector3;
++    normalWorld: Vector3;
++    distance: number;
++    surfaceId: number;
++    surfaceVelocity: Vector3;
++}
++
++```
++
++Use BVH-accelerated track queries.
++
++Use `three-mesh-bvh` or equivalent.
++
++Collision mesh must be distinct from graphics mesh when necessary.
++
++Ensure smooth contact over triangle seams.
++
++If raycast instability becomes visible, evaluate sphere cast / multi-ray contact approximation.
++
++---
++
++# 11. SUSPENSION CORNER
++
++Each wheel has:
++
++```ts
++interface SuspensionState {
++    lengthM: number;
++    previousLengthM: number;
++    compressionM: number;
++    velocityMS: number;
++    normalLoadN: number;
++}
++
++```
++
++Force:
++
++```text
++Fspring = k * compression
++Fdamper = c * compressionVelocity
++
++```
++
++Support separate:
++
++- bump damping
++- rebound damping
++
++Add progressive bump-stop force near minimum travel.
++
++Example:
++
++```text
++FbumpStop = kBump * penetration²
++
++```
++
++Prevent negative attractive suspension force when wheel becomes unloaded unless geometry explicitly demands it.
++
++Implement anti-roll bars through axle compression difference.
++
++---
++
++# 12. TIRE MODEL
++
++This system receives more engineering time than almost anything else.
++
++Each tire state:
++
++```ts
++interface TireState {
++    angularVelocity: number;
++
++    slipRatio: number;
++    slipAngle: number;
++
++    verticalLoadN: number;
++
++    longitudinalForceN: number;
++    lateralForceN: number;
++
++    surfaceTempC: number;
++    carcassTempC: number;
++
++    pressureKPa: number;
++
++    wear01: number;
++    dirt01: number;
++    blistering01: number;
++    graining01: number;
++    flatSpot01: number;
++
++    compound: TireCompound;
++}
++
++```
++
++---
++
++# 13. SLIP RATIO
++
++Use a numerically safe definition.
++
++Example:
++
++```text
++Vwheel = omega * effectiveRadius
++
++kappa =
++(Vwheel - Vx) /
++max(abs(Vx), Vregularization)
++
++```
++
++Use low-speed blending near zero vehicle velocity.
++
++Do not permit slip ratio to explode at 0.1 km/h.
++
++---
++
++# 14. SLIP ANGLE
++
++Wheel local velocity:
++
++```text
++Vlocal = Rwheel^-1 * Vcontact
++
++```
++
++Then:
++
++```text
++alpha = atan2(Vlateral, abs(Vlongitudinal) + epsilon)
++
++```
++
++Correct sign consistently.
++
++Steering must change wheel basis before slip calculation.
++
++---
++
++# 15. PACEJKA-LIKE FORCE CURVES
++
++Implement a physically motivated nonlinear tire-force curve.
++
++Do not blindly paste arbitrary Magic Formula constants.
++
++Provide tuned parameter sets for each compound.
++
++General form:
++
++```text
++F = D * sin(C * atan(Bx - E(Bx - atan(Bx))))
++
++```
++
++Where:
++
++B = stiffness
++C = shape
++D = peak
++E = curvature
++
++Use separate longitudinal/lateral parameterization.
++
++Normalize force based on current vertical load and grip modifiers.
++
++---
++
++# 16. LOAD SENSITIVITY
++
++Tire grip must exhibit load sensitivity.
++
++A simplified model:
++
++```text
++mu(Fz) = muRef * (Fz / FzRef)^loadExponent
++
++```
++
++with exponent below zero or equivalent formulation.
++
++Then:
++
++```text
++Fpeak = mu(Fz) * Fz
++
++```
++
++Result:
++
++Two tires each carrying 3000 N should collectively have somewhat more usable grip than one tire carrying 6000 N.
++
++This is crucial to realistic weight-transfer behavior.
++
++---
++
++# 17. COMBINED SLIP
++
++Use friction ellipse.
++
++Calculate provisional:
++
++```text
++Fx0
++Fy0
++
++```
++
++Then normalize:
++
++```text
++usage =
++sqrt(
++  (Fx0 / FxMax)^2 +
++  (Fy0 / FyMax)^2
++)
++
++```
++
++If usage > 1:
++
++```text
++Fx = Fx0 / usage
++Fy = Fy0 / usage
++
++```
++
++A more sophisticated weighting function is preferable later.
++
++Braking while cornering must reduce available lateral force.
++
++---
++
++# 18. TIRE TEMPERATURE
++
++Use at least two thermal masses:
++
++- surface
++- carcass
++
++Surface heats quickly.
++
++Carcass heats slowly.
++
++Heat sources:
++
++- longitudinal slip
++- lateral slip
++- hysteresis/load
++- braking transfer where physically defensible
++
++Cooling:
++
++- ambient air
++- speed-dependent convection
++- rain/water
++- conduction between surface and carcass
++
++Example conceptual equations:
++
++```text
++Qslip = abs(Fx * VslipLong) + abs(Fy * VslipLat)
++
++```
++
++Temperature evolution:
++
++```text
++dTsurface/dt =
++(Qslip
++ - convection
++ - waterCooling
++ - conductionToCarcass)
++ / thermalCapacitySurface
++
++```
++
++Do not globally change temperature with arbitrary timers.
++
++---
++
++# 19. TEMPERATURE GRIP CURVE
++
++Compound defines:
++
++```ts
++interface TireCompoundConfig {
++    idealTempMinC: number;
++    idealTempMaxC: number;
++    coldGripPenalty: number;
++    hotGripPenalty: number;
++    wearRate: number;
++    wetPerformance: number;
++}
++
++```
++
++Grip modifier should follow smooth curves.
++
++No sudden cliff exactly at one temperature.
++
++---
++
++# 20. TIRE WEAR
++
++Calculate wear from accumulated energy:
++
++```text
++wearEnergy +=
++abs(Fx * slipVelocityLong) * dt +
++abs(Fy * slipVelocityLat) * dt
++
++```
++
++Scale by:
++
++- compound
++- temperature
++- surface type
++- excessive slide
++- wheel lock
++- wheelspin
++
++Wear changes:
++
++- peak friction
++- temperature behavior
++- consistency
++- puncture likelihood at extreme wear
++
++---
++
++# 21. FLAT SPOTS
++
++If wheel remains significantly locked under high load/speed:
++
++increase local flat-spot severity.
++
++Consequences:
++
++- periodic vibration
++- reduced tire smoothness
++- cockpit feedback
++- audible thumping
++- possible performance loss
++
++Do not implement as UI only.
++
++---
++
++# 22. TIRE CONTAMINATION
++
++Off-track surfaces increase contamination:
++
++```text
++dirt += contaminationRate * dt
++
++```
++
++Returning to asphalt cleans over:
++
++- wheel rotations
++- distance
++- temperature
++
++Dirt temporarily reduces available friction.
++
++---
++
++# 23. BRAKE SYSTEM
++
++Each axle/wheel receives brake torque.
++
++Input:
++
++```text
++0..1 brake pedal
++
++```
++
++Total requested braking torque distributed using brake bias.
++
++Example:
++
++```text
++frontTorque =
++totalTorque * frontBias
++
++rearTorque =
++totalTorque * (1-frontBias)
++
++```
++
++But include:
++
++- hydraulic pressure approximation
++- brake disc temperature
++- friction-temperature relationship
++- regen interaction
++
++---
++
++# 24. BRAKE THERMALS
++
++Brake discs:
++
++```ts
++interface BrakeDiscState {
++    tempC: number;
++    energyJ: number;
++}
++
++```
++
++Heat from:
++
++```text
++Q = brakeTorque * wheelAngularVelocity
++
++```
++
++Cooling increases with speed.
++
++Model reduced performance when:
++
++- extremely cold
++- overheated
++
++Do not exaggerate unless tuning supports it.
++
++---
++
++# 25. LOCKUP
++
++Lockup emerges naturally when requested brake torque exceeds tire-road capacity.
++
++Do not trigger lockup through a random threshold.
++
++Detect:
++
++- very low wheel angular velocity
++- substantial forward vehicle velocity
++- high negative slip ratio
++
++Feed lockup into:
++
++- tire force model
++- tire temperature
++- flat spot
++- smoke
++- audio
++- steering feedback
++
++---
++
++# 26. ENGINE MODEL
++
++Define torque curve as sampled data.
++
++Example:
++
++```ts
++interface TorqueCurvePoint {
++    rpm: number;
++    torqueNm: number;
++}
++
++```
++
++Interpolate between points.
++
++Engine state:
++
++```ts
++interface EngineState {
++    rpm: number;
++    throttle: number;
++    torqueNm: number;
++    limiterActive: boolean;
++}
++
++```
++
++Output depends on:
++
++- RPM
++- throttle
++- engine condition
++- fuel availability
++- hybrid contribution
++
++Do not set acceleration directly.
++
++---
++
++# 27. GEARBOX
++
++Implement:
++
++- neutral
++- reverse
++- gears 1–8
++- gear ratios
++- final drive
++- shift duration
++- shift torque cut
++- rev limiter
++- invalid downshift rejection/over-rev handling
++
++Wheel torque:
++
++```text
++Twheel =
++(Tengine + Tmotor)
++* currentGearRatio
++* finalDrive
++* efficiency
++
++```
++
++---
++
++# 28. DIFFERENTIAL
++
++Model driven-wheel speed difference.
++
++Support setup values:
++
++```ts
++diffOnThrottle01
++diffOffThrottle01
++
++```
++
++Higher locking reduces left/right speed difference.
++
++It must affect:
++
++- rotation
++- exit traction
++- inside-wheel spin
++- stability
++
++Do not implement as simple steering multiplier.
++
++---
++
++# 29. HYBRID SYSTEM
++
++Track:
++
++```ts
++batteryEnergyJ
++maxBatteryEnergyJ
++motorPowerW
++regenPowerW
++deploymentMode
++
++```
++
++Deployment strategies:
++
++- harvest
++- balanced
++- attack
++
++Motor torque:
++
++```text
++Tmotor = Power / angularVelocity
++
++```
++
++with safe limits at low RPM.
++
++ERS consumption must physically reduce stored energy.
++
++Regeneration adds stored energy subject to:
++
++- power cap
++- battery cap
++- braking conditions
++
++---
++
++# 30. AERODYNAMICS
++
++Base equation:
++
++```text
++F = 0.5 * rho * v² * C * A
++
++```
++
++Separate:
++
++- front wing
++- rear wing
++- floor
++- drag
++
++Apply front and rear forces at distinct centers of pressure.
++
++This creates pitch/yaw torque naturally.
++
++---
++
++# 31. AERO MAP
++
++Do not use one static downforce coefficient.
++
++Aero coefficients should respond to:
++
++- speed
++- ride height front
++- ride height rear
++- pitch
++- yaw
++- wing settings
++- damage
++
++Use sampled/interpolated aero maps.
++
++Example:
++
++```ts
++interface AeroSample {
++    frontRideHeight: number;
++    rearRideHeight: number;
++    pitchRad: number;
++    clFront: number;
++    clRear: number;
++    cd: number;
++}
++
++```
++
++Interpolate between points.
++
++---
++
++# 32. GROUND EFFECT
++
++Floor downforce should have an optimal ride-height region.
++
++Too high:
++reduced floor suction.
++
++Optimal:
++strong downforce.
++
++Too low:
++partial choking/stall/bottoming.
++
++Create a smooth nonlinear response.
++
++Do NOT instantly remove all floor grip below arbitrary threshold.
++
++---
++
++# 33. BOTTOMING
++
++When floor/skid region contacts track:
++
++- calculate contact
++- produce sparks
++- add vibration
++- temporarily modify aero
++- optionally induce instability
++
++Frequency and severity based on actual contact energy.
++
++---
++
++# 34. WAKE / DIRTY AIR
++
++Each car emits an approximate aerodynamic wake.
++
++Represent efficiently as one or more downstream volumes.
++
++Wake data:
++
++```ts
++interface WakeSample {
++    center: Vector3;
++    direction: Vector3;
++    length: number;
++    radiusNear: number;
++    radiusFar: number;
++    downforceLoss: number;
++    dragReduction: number;
++}
++
++```
++
++Following car computes overlap.
++
++Effects depend on:
++
++- longitudinal distance
++- lateral offset
++- relative yaw
++- speed
++
++Primarily reduce front aero when close behind.
++
++Straight-line drag reduction should permit slipstream effect.
++
++---
++
++# 35. SURFACE TYPES
++
++Create enum:
++
++```ts
++enum SurfaceType {
++    Asphalt,
++    PaintedAsphalt,
++    Kerb,
++    Concrete,
++    Grass,
++    Gravel,
++    WetAsphalt,
++    StandingWater
++}
++
++```
++
++Each surface config:
++
++```ts
++interface SurfacePhysics {
++    dryGrip: number;
++    wetGrip: number;
++    rollingResistance: number;
++    roughness: number;
++    contaminationRate: number;
++}
++
++```
++
++Rendering material is separate from physics surface.
++
++---
++
++# 36. TRACK SPLINE
++
++Represent circuit centerline with a high-resolution spline.
++
++Each sampled point stores:
++
++```ts
++interface TrackSample {
++    s: number;
++    position: Vector3;
++    tangent: Vector3;
++    normal: Vector3;
++    binormal: Vector3;
++
++    leftWidth: number;
++    rightWidth: number;
++
++    curvature: number;
++    camber: number;
++    gradient: number;
++}
++
++```
++
++`s` is distance around lap.
++
++Use this system for:
++
++- timing
++- AI
++- track limits
++- telemetry position
++- replay
++- racing line
++- pit detection
++
++---
++
++# 37. TRACK SURFACE STATE GRID
++
++Track must possess dynamic surface state.
++
++Sample track into longitudinal/lateral cells.
++
++Example:
++
++```ts
++interface TrackCell {
++    rubber01: number;
++    waterMm: number;
++    tempC: number;
++    marbles01: number;
++    dirt01: number;
++}
++
++```
++
++Do NOT update every cell every physics tick.
++
++Use scheduled updates.
++
++Vehicle interaction updates nearby cells.
++
++---
++
++# 38. RUBBERING
++
++Each tire deposits rubber based on:
++
++- tire load
++- slip
++- tire type
++- current rubber
++
++Dry rubber improves dry grip up to a sensible limit.
++
++Heavy rain can reduce or alter that advantage.
++
++Racing line should visibly darken over session duration.
++
++---
++
++# 39. MARBLES
++
++Generate marbles primarily outside high-usage racing zones.
++
++Driving through marbles:
++
++- reduces grip
++- contaminates tire
++- produces particles
++
++---
++
++# 40. WATER MODEL
++
++Rain adds water spatially.
++
++Drainage removes it.
++
++Cars displace it.
++
++Evaporation removes it.
++
++Track slope can influence approximate drainage.
++
++Do NOT maintain a single global wetness scalar.
++
++---
++
++# 41. AQUAPLANING
++
++Probability/severity depends on:
++
++- water depth
++- speed
++- tire compound
++- tread suitability
++- tire load
++
++Modify effective vertical/grip behavior smoothly.
++
++Avoid binary aquaplaning trigger.
++
++---
++
++# 42. WEATHER TIMELINE
++
++Represent:
++
++```ts
++interface WeatherKeyframe {
++    timeSec: number;
++    cloudCover01: number;
++    rainRateMmHr: number;
++    ambientTempC: number;
++    windSpeedMS: number;
++    windDirection: number;
++}
++
++```
++
++Interpolate over time.
++
++Weather must affect:
++
++- light
++- track temperature
++- rain particles
++- surface water
++- visibility
++- tire temperatures
++- strategy
++- AI
++
++---
++
++# 43. AI ARCHITECTURE
++
++AI has three layers.
++
++## Layer 1 — Strategic
++
++Runs around 1–5 Hz.
++
++Determines:
++
++- pit strategy
++- tire selection
++- ERS plan
++- risk level
++
++## Layer 2 — Tactical
++
++Runs 10–20 Hz.
++
++Determines:
++
++- racing line
++- overtaking
++- defending
++- traffic response
++- yellow flag behavior
++
++## Layer 3 — Control
++
++Runs at physics rate or 60–120 Hz.
++
++Produces:
++
++- steering
++- throttle
++- brake
++- gear command
++
++---
++
++# 44. AI SPEED PLANNING
++
++Calculate target speed from upcoming curvature.
++
++Approximation:
++
++```text
++vMax ≈ sqrt(mu * g / curvature)
++
++```
++
++Then improve using:
++
++- downforce
++- tire state
++- fuel mass
++- wetness
++- vehicle setup
++
++Look ahead multiple seconds.
++
++Solve backward braking profile.
++
++Do not simply brake when within fixed metres of corner waypoint.
++
++---
++
++# 45. AI RACING LINE
++
++Represent racing line separately from track centerline.
++
++Generate or author line offsets along track.
++
++AI target point:
++
++```text
++targetS = currentS + lookAheadDistance
++
++```
++
++Lookahead changes with speed.
++
++Use smooth lateral offset interpolation.
++
++Never drive from discrete waypoint to waypoint with visible oscillation.
++
++---
++
++# 46. AI OVERTAKING
++
++Implement relative-state prediction.
++
++For nearby cars calculate:
++
++- distance
++- closing speed
++- projected overlap
++- braking-zone arrival
++- side availability
++- track edge
++- collision risk
++
++Overtake options:
++
++- remain behind
++- move left
++- move right
++- late-brake attempt
++- crossover
++- abort
++
++Score each option.
++
++Do not force an overtake merely because AI is faster.
++
++---
++
++# 47. AI DEFENSE
++
++Defending car may:
++
++- hold racing line
++- cover inside
++- return toward optimal line before braking where legal logic allows
++- conserve tires
++- prioritize exit
++
++Avoid zigzag blocking.
++
++---
++
++# 48. COLLISION PREDICTION
++
++Predict short-horizon trajectories.
++
++Use oriented bounding boxes or swept approximations.
++
++AI must react before collision, not only after touching.
++
++---
++
++# 49. AI PERSONALITIES
++
++Each driver:
++
++```ts
++interface DriverPersonality {
++    aggression: number;
++    consistency: number;
++    wetSkill: number;
++    overtakingSkill: number;
++    tireManagement: number;
++    defensiveBias: number;
++    errorRate: number;
++}
++
++```
++
++Personality modifies decisions, not physical grip.
++
++---
++
++# 50. AI ERROR MODEL
++
++Occasional mistakes may occur from:
++
++- braking variance
++- throttle variance
++- line deviation
++- reaction delay
++
++Probability increases under:
++
++- pressure
++- worn tires
++- wet conditions
++- overheating
++
++Do not randomly spin cars without physical cause.
++
++---
++
++# 51. COLLISION SYSTEM
++
++Broad phase:
++
++- spatial hash
++- BVH
++- sweep-and-prune
++
++Narrow phase:
++
++- chassis primitive/convex hull
++- barriers
++- wheels where necessary
++
++Resolve impulse:
++
++```text
++j =
++-(1 + restitution) * relativeNormalVelocity
++/
++(invMassA + invMassB + rotationalTerms)
++
++```
++
++Include friction impulse.
++
++Avoid excessive restitution.
++
++---
++
++# 52. DAMAGE ENERGY
++
++Impact severity should derive from:
++
++- relative velocity
++- impulse
++- contact location
++- angle
++
++Map impact to:
++
++- front wing
++- suspension
++- floor
++- sidepod
++- rear wing
++
++No arbitrary damage solely based on speed.
++
++---
++
++# 53. DAMAGE PHYSICS
++
++Examples:
++
++Front-wing damage:
++
++```text
++frontCL *= damageMultiplier
++frontDrag += damageDrag
++
++```
++
++Floor damage:
++
++```text
++floorCL *= floorHealth
++
++```
++
++Suspension damage:
++
++- toe offset
++- camber offset
++- spring/damper alteration
++- steering misalignment
++
++Tire puncture:
++
++- loss of stiffness
++- effective radius changes
++- huge drag
++- severe vibration
++
++---
++
++# 54. RENDER PIPELINE
++
++Create explicit rendering stages.
++
++Example:
++
++1. shadow maps
++2. main opaque scene
++3. transparent effects
++4. wet/reflection contributions
++5. post processing
++6. HUD
++
++Keep renderer abstraction separate from gameplay.
++
++---
++
++# 55. PBR
++
++Use:
++
++`MeshStandardMaterial`
++
++or:
++
++`MeshPhysicalMaterial`
++
++where appropriate.
++
++Cars require:
++
++- clearcoat
++- metallic paint
++- carbon
++- rubber
++- glass
++- anodized metal
++
++Do not make entire car equally glossy.
++
++---
++
++# 56. CARBON FIBER SHADER
++
++Carbon should have:
++
++- micro-normal weave
++- angle-dependent highlight
++- roughness variation
++
++Avoid giant obvious checkerboard weave.
++
++Mip-map or frequency-limit procedural pattern to prevent shimmer.
++
++---
++
++# 57. WET ROAD SHADER
++
++Road wetness depends on `waterMm`.
++
++Shader should blend:
++
++- darker albedo
++- reduced roughness
++- reflection strength
++- normal response
++
++Concept:
++
++```text
++wetness = saturate(waterMm / WET_MAX)
++roughness = mix(dryRoughness, wetRoughness, wetness)
++albedo = mix(dryAlbedo, dryAlbedo * 0.6, wetness)
++
++```
++
++Add shallow puddle behavior selectively.
++
++---
++
++# 58. REFLECTIONS
++
++Use appropriate combination of:
++
++- environment maps
++- reflection probes
++- planar-ish local techniques where justified
++- screen-space approximation if stable
++
++Do not attempt expensive perfect reflections everywhere.
++
++Prioritize:
++
++- wet track
++- car body
++- cockpit reflective materials
++
++---
++
++# 59. SHADOWS
++
++Use high-quality directional shadows around player.
++
++Possible cascaded shadow mapping.
++
++Far objects may use reduced quality.
++
++Prevent:
++
++- acne
++- peter-panning
++- flicker
++
++---
++
++# 60. LIGHTING
++
++At minimum:
++
++- sun directional light
++- sky/environment illumination
++- physically plausible exposure
++- atmospheric haze
++
++Lighting should change with weather.
++
++Cloudiness should:
++
++- soften sun
++- reduce contrast
++- alter ambient illumination
++
++---
++
++# 61. ATMOSPHERE
++
++Implement distance haze.
++
++Use depth-aware fog rather than flat opaque fog where possible.
++
++Track should possess readable distant geography.
++
++---
++
++# 62. MOTION BLUR
++
++If implemented, use velocity-aware or camera-aware approximation.
++
++Do not smear HUD.
++
++Do not use excessive blur to fake speed.
++
++---
++
++# 63. SPEED PERCEPTION
++
++Use:
++
++- environment parallax
++- restrained dynamic FOV
++- cockpit vibration
++- wind volume
++- suspension movement
++- peripheral blur where tasteful
++- trackside density
++
++At 300 km/h, speed must feel violent but controllable.
++
++---
++
++# 64. CAMERA DYNAMICS
++
++Do not rigidly parent camera directly to chassis orientation.
++
++Maintain filtered camera transform.
++
++Inputs:
++
++- longitudinal acceleration
++- lateral acceleration
++- vertical acceleration
++- yaw rate
++- suspension impact
++
++Use spring-damper camera dynamics.
++
++Example:
++
++```text
++cameraOffsetAcceleration =
++k*(targetOffset-currentOffset)
++-c*offsetVelocity
++
++```
++
++---
++
++# 65. COCKPIT CAMERA
++
++Cockpit should provide:
++
++- small inertial lag
++- braking compression
++- lateral G response
++- kerb vibration
++- crash shock
++
++Do not overdo head movement.
++
++Driver still needs visual precision.
++
++---
++
++# 66. TRACKSIDE CAMERAS
++
++Trackside cameras contain:
++
++```ts
++position
++lookTargetRegion
++startS
++endS
++fov
++trackingSpeed
++
++```
++
++Replay director chooses best camera based on player position.
++
++Camera should pan predictively.
++
++---
++
++# 67. PARTICLES
++
++Use pooled GPU-friendly particles.
++
++Separate systems:
++
++- sparks
++- smoke
++- spray
++- dust
++- grass/debris
++
++Never instantiate thousands of Three.js objects per frame.
++
++---
++
++# 68. RAIN SPRAY
++
++Spray emission rate depends on:
++
++```text
++speed * wheelWaterDepth * tireFactor
++
++```
++
++Spawn from rear-wheel region.
++
++Particle:
++
++- velocity aligned behind car
++- turbulence
++- opacity decay
++- size growth
++
++Heavy spray should impair visibility.
++
++---
++
++# 69. TIRE SMOKE
++
++Smoke emitted from actual excessive slip.
++
++Intensity approximately related to sliding energy.
++
++Do not emit smoke whenever braking.
++
++---
++
++# 70. SPARKS
++
++Sparks emit only when underside contact energy exceeds threshold.
++
++Direction influenced by vehicle velocity and track normal.
++
++---
++
++# 71. AUDIO ARCHITECTURE
++
++Use AudioContext graph.
++
++Vehicle audio consists of layers.
++
++Example:
++
++```text
++masterVehicleGain
++ ├── engineLow
++ ├── engineMid
++ ├── engineHigh
++ ├── intake
++ ├── exhaust
++ ├── gearbox
++ ├── hybrid
++ ├── wind
++ ├── tire

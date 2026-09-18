@@ -1,0 +1,493 @@
++| Ten cars × 100 dry laps, seed 73021 | All ten completed 100 laps in 7,029.683 simulated seconds. Every car completed one physical tire stop; no impact, off-track running or wing/floor damage. Initial fuel was 113 kg per car and affected actual mass throughout. |
+ 
+ The reports retain per-car maximum offset, impact count, minimum component health, stall durations, fuel remaining and service count. They are positive evidence for these seeds, grid, setup and weather, not a guarantee of flawless AI under every adversarial condition. Clear and changing-weather whole-field three-lap races, obstruction handling and the simultaneous ten-car service fixture remain separate regressions.
+ 
+ The full master directive is still subject to the complete combined scenario, target-device profiling, all specified final audits and further presentation review. Passing these fixtures does not certify AAA presentation or every remaining requirement.
++
++Separate ten-car wet and initially-slick-in-rain service fixtures are now part of the physics CI gate. They pass their declared service/impact thresholds, but contain minor contacts and must not be described as zero-contact endurance. See `wet-pit-results.json` and [weather/braking](WEATHER_AND_BRAKING.md).
+diff --git a/docs/DEVELOPMENT_STATUS.md b/docs/DEVELOPMENT_STATUS.md
+index b8e900e..595d7c7 100644
+--- a/docs/DEVELOPMENT_STATUS.md
++++ b/docs/DEVELOPMENT_STATUS.md
+@@ -1,3 +1,3 @@
+-# Development checkpoint — 2026-09-17
++# Development checkpoints — historical entries followed by current continuation
+ 
+ This is an incremental implementation checkpoint, **not completion of the master directive**.
+@@ -46,2 +46,25 @@ Full three-pass subsystem certification and the single combined manual
+ audiovisual scenario remain open. This is an implementation continuation, not a
+ claim that the complete AAA quality ambition has been attained.
++
++## Continuation from 9eb0a9d: weather and wet-pit braking
++
++The latest recovered published source was the tested camera/object motion-blur
++implementation `9eb0a9d`. The exact Pasted markdown(6) is now retained verbatim as
++`MASTER_DIRECTIVE.md`, with hash and all 148 ledger headings under test.
++
++This continuation adds an immutable physical weather timeline and storm retreat,
++stable water/thermal relaxation, recorded world wind, grounded work-driven effects,
++and refresh-independent light-rain emission. It repairs ABS/regeneration coupling
++and automatic anti-stall, then addresses the exposed AI pit-entry regression with
++wet-slick control margin and a pit-directed traffic merge. Native tests, measured
++reports and the required real-GPU browser oracle are described in
++`WEATHER_AND_BRAKING.md`; no simulation outcome is substituted by a pose override.
++
++Architecture/recording documentation has also been corrected where old descriptions
++still claimed capsules, reflective-only mirrors, missing LOD or an immediate
++player-only finish. Earlier dated evidence above is historical, not current
++validation or a request to reintroduce superseded recovery logic.
++
++All-source checks and browser publication gates remain required. Full three-pass
++certification, the single combined section-146 driving scenario, representative
++hardware performance and independent presentation assessment remain separate.
+diff --git a/docs/DRIVER_STRATEGY_AND_PIT_SERVICE.md b/docs/DRIVER_STRATEGY_AND_PIT_SERVICE.md
+index 3525dba..250e76e 100644
+--- a/docs/DRIVER_STRATEGY_AND_PIT_SERVICE.md
++++ b/docs/DRIVER_STRATEGY_AND_PIT_SERVICE.md
+@@ -23,5 +23,5 @@ A focused physical regression starts with the previously problematic bay/queue g
+ Each car stores 257 crossing-time samples at equal distances for the current lap and best complete valid lap. The reference uses interpolated physical crossing times, not an invented constant-speed trace derived from the total lap time. Missing samples and invalid laps cannot replace the reference. Stopping adds real elapsed time. A slower accepted trace cannot overwrite an existing faster one.
+ 
+-The HUD and cockpit display show a delta only after a complete valid reference exists. The physical wheel also displays brake bias, power differential setting, deployment mode and battery state; individual shift LEDs follow measured engine RPM. Protocol version 5 adds the service clock, actual delta/reference availability and driver-decision diagnostics. The fixed snapshot stride is 224 floats per car and the telemetry schema has 197 uniquely named channels. Recording and replay use the same state.
++The HUD and cockpit display show a delta only after a complete valid reference exists. The physical wheel also displays brake bias, power differential setting, deployment mode and battery state; individual shift LEDs follow measured engine RPM. At that checkpoint, protocol version 5 added the service clock, actual delta/reference availability and driver-decision diagnostics. The fixed snapshot stride is 224 floats per car and that checkpoint had 197 uniquely named channels. Weather protocol 6 now appends two wind channels (199 total), retaining the same stride. Recording and replay use the same state.
+ 
+ ## Service visuals are consumers of the physical state
+diff --git a/docs/IMPLEMENTATION_MATRIX.md b/docs/IMPLEMENTATION_MATRIX.md
+index 1be692a..93f127e 100644
+--- a/docs/IMPLEMENTATION_MATRIX.md
++++ b/docs/IMPLEMENTATION_MATRIX.md
+@@ -1,5 +1,5 @@
+ # Specification coverage ledger
+ 
+-This ledger follows the numbered sections of the supplied directive. “Implemented” means a concrete code path exists; it does **not** certify every aspirational fidelity or performance statement in that section. Approximate/partial sections explicitly state the boundary.
++This ledger follows all 148 numbered sections of the exact [Pasted markdown(6) directive](MASTER_DIRECTIVE.md), retained verbatim in this repository. “Implemented” means a concrete code path exists; it does **not** certify every aspirational fidelity or performance statement in that section. Approximate/partial sections explicitly state the boundary.
+ 
+ | Section | Topic | Delivery status |
+@@ -27,11 +27,11 @@ This ledger follows the numbered sections of the supplied directive. “Implemen
+ | 21 | FLAT SPOTS | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+ | 22 | TIRE CONTAMINATION | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+-| 23 | BRAKE SYSTEM | Front/rear distribution and fade; no detailed hydraulic circuit. |
++| 23 | BRAKE SYSTEM | Front/rear distribution and fade; Sport ABS releases actual friction and regenerative torque together. No detailed hydraulic circuit. |
+ | 24 | BRAKE THERMALS | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+-| 25 | LOCKUP | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
++| 25 | LOCKUP | Physical wheel lock/slip and recovery; grounded smoke consumes dissipated slip work, not the brake pedal. Coupled ABS/regeneration regressions are executable. |
+ | 26 | ENGINE MODEL | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+-| 27 | GEARBOX | Neutral, reverse, eight forward ratios, torque-cut shifting and invalid-downshift guard. Finite-inertia friction clutch supports actual free revving and pedal-controlled torque transfer. |
++| 27 | GEARBOX | Neutral, reverse, eight forward ratios, shift cut/downshift guard and finite-inertia friction clutch. Automatic anti-stall no longer drives through braking below idle coupling; manual clutch remains manual. |
+ | 28 | DIFFERENTIAL | Torque-coupling limited-slip approximation. |
+-| 29 | HYBRID SYSTEM | Energy-conserving deployment/regeneration; no detailed electrical hardware model. |
++| 29 | HYBRID SYSTEM | Battery deployment and recovery bounded by actual motor/generator work, efficiency and headroom. ABS does not credit released generator torque. No detailed electrical hardware model. |
+ | 30 | AERODYNAMICS | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+ | 31 | AERO MAP | Sampled 2D clearance envelope plus independent pitch calibration; actual chassis floor-station clearance, wing settings, damage and wake feed force accumulation. Original engineering calibration, not measured CFD. |
+@@ -44,11 +44,11 @@ This ledger follows the numbered sections of the supplied directive. “Implemen
+ | 38 | RUBBERING | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+ | 39 | MARBLES | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+-| 40 | WATER MODEL | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
++| 40 | WATER MODEL | Spatial water from real rain, drainage, evaporation and tire passage. Stable first-order drainage update; stopping rain does not erase wet cells. Reduced surface model, not fluid simulation. |
+ | 41 | AQUAPLANING | Smooth load-, speed-, water- and compound-dependent grip reduction. No random binary aquaplaning; hydrodynamic contact-patch simulation remains outside this reduced model. |
+-| 42 | WEATHER TIMELINE | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
++| 42 | WEATHER TIMELINE | Validated immutable keyframes with cloud/rain/ambient/wind; bounded smooth interpolation and short-arc wind direction. Simulation-clock storm and retreat drive physics, shaders, effects, telemetry and replay. No weather editor or meteorological model. |
+ | 43 | AI ARCHITECTURE | Strategic 2 Hz decisions, tactical 12 Hz swept traffic/defense and 120 Hz controls remain separate inside the physics worker. |
+-| 44 | AI SPEED PLANNING | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
++| 44 | AI SPEED PLANNING | Curvature preview and backward braking envelope using actual tires/mass/aero; wet slicks reserve margin for mixed turning/braking/traffic rather than gaining artificial grip. |
+ | 45 | AI RACING LINE | Pure-pursuit offset racing line; no globally optimized minimum-time trajectory. |
+-| 46 | AI OVERTAKING | Lane selection/commitment, following envelope and side protection. |
++| 46 | AI OVERTAKING | Lane selection/commitment, following and side protection. Pit-bound cars merge toward entry instead of taking overtaking lanes farther away. |
+ | 47 | AI DEFENSE | An early one-move-per-corner defensive preference with cooldown, overlap/braking guards and swept collision veto. Not a universal racecraft certification. |
+ | 48 | COLLISION PREDICTION | Swept track-coordinate trajectory/corridor prediction with lane commitment and pit merging; adversarial racecraft validation remains open. |
+@@ -71,8 +71,8 @@ This ledger follows the numbered sections of the supplied directive. “Implemen
+ | 65 | COCKPIT CAMERA | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+ | 66 | TRACKSIDE CAMERAS | Twenty fixed authored rigs, predictive pan/zoom, track-distance coverage, cut hysteresis and replay-seek resets. Complete-lap unit coverage; final shot-obstruction review remains. |
+-| 67 | PARTICLES | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+-| 68 | RAIN SPRAY | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+-| 69 | TIRE SMOKE | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+-| 70 | SPARKS | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
++| 67 | PARTICLES | Bounded 1,800-particle pool; fractional emissions, contact/work triggers and simulation wind. CPU production oracles and isolated real-GPU browser fixture; not a fluid solver. |
++| 68 | RAIN SPRAY | Spray requires grounded loaded tires and actual local water/speed, with compound scaling. Wind is recorded simulation state, not a second presentation clock. |
++| 69 | TIRE SMOKE | Smoke requires grounded tire slip work; a brake pedal or airborne spinning wheel alone does not emit ground smoke. |
++| 70 | SPARKS | Sparks consume actual bottom-contact work and seeded bounded particles. |
+ | 71 | AUDIO ARCHITECTURE | Layered original engine synthesis plus independent actual-contact grass, gravel, kerb, scrub, spray, rain, bottoming, impact and shift buses. Real OfflineAudioContext signal tests cover the contact graph. |
+ | 72 | ENGINE SOUND | Three RPM crossfade bands use distinct harmonic spectra and torque-dependent filtering; original synthesized sound, not licensed engine recordings or certified acoustic matching. |
+@@ -84,5 +84,5 @@ This ledger follows the numbered sections of the supplied directive. “Implemen
+ | 78 | KEYBOARD STEERING | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+ | 79 | WHEEL INPUT | Explicit device selection, asymmetric steering/pedal calibration, clutch/paddle mapping and disconnect guards. Version-4 profiles preserve earlier calibrations; real hardware certification remains open. |
+-| 80 | TELEMETRY DATA | 197 actual-state telemetry channels captured at fixed 60 Hz in the physics worker, bounded transport/ring buffers and asynchronous CSV export. |
++| 80 | TELEMETRY DATA | 199 actual-state telemetry channels at 60 Hz in the physics worker; appended world-wind values preserve earlier column positions. Bounded transport/ring and async CSV export. |
+ | 81 | TELEMETRY UI | Eight selectable graph groups include clutch torque/slip, the requested driver/chassis/tire channels and complete-lap distance comparison; truncated/gapped laps are labelled rather than fabricated. |
+ | 82 | REPLAY SYSTEM | 15 Hz all-car numeric pose pages, bounded resident IndexedDB replay cache, asynchronous seeking, original spatial water/rubber history, explicit recording failures. Permanent replay-library UI is not included. |
+@@ -91,5 +91,5 @@ This ledger follows the numbered sections of the supplied directive. “Implemen
+ | 85 | LAP DETECTION | Eight ordered forward gates; interpolated finish and sector crossings, persistent third-sector record, no discontinuity-earned progress, invalid-lap tagging. |
+ | 86 | TRACK LIMITS | Four wheel tread-width samples against each local asphalt/paint boundary; no chassis-centre or fixed-width penalty. Kerbs/runoff are outside the documented legal edge. |
+-| 87 | PIT LANE | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
++| 87 | PIT LANE | Physically driven offset pit corridor, entry/box/exit and limiter/release state. Wet and slick-in-rain ten-car service fixtures pass their declared thresholds with minor contact; no universal zero-contact claim. |
+ | 88 | PIT STOP | Physical entry, new tire-state objects, four-foot jack support and safe queue/release. Four mechanics plus two operators consume service state; wheels move off hubs only while unloaded. Browser fixture uses a real captured service state. |
+ | 89 | SETUP SYSTEM | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+@@ -119,5 +119,5 @@ This ledger follows the numbered sections of the supplied directive. “Implemen
+ | 113 | DAMAGE TEST | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+ | 114 | WAKE TEST | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+-| 115 | AI TESTS | Current simulation fingerprint 5cc029957e89… passes ten-car dry 50 laps (seed 4417) and 100 laps (seed 73021), both zero contact and component damage; all ten cars physically service once in the 100-lap fixture. Reports and limits are recorded in CONSTRUCTION_AND_ENDURANCE.md. |
++| 115 | AI TESTS | Current simulation fingerprint e600dbe7cab11… passes ten-car dry 50 laps (seed 4417) and 100 laps (seed 73021), both zero contact and wing/floor damage; all ten cars physically service once in the 100-lap fixture. Reports and limits are recorded in CONSTRUCTION_AND_ENDURANCE.md. |
+ | 116 | RACE TEST | Two ten-car three-lap clear/changing-weather whole-field classification fixtures with pit service and measured sectors. The full manual audiovisual scenario remains separate. |
+ | 117 | PLAYWRIGHT TESTS | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+diff --git a/docs/MASTER_DIRECTIVE.md b/docs/MASTER_DIRECTIVE.md
+new file mode 100644
+index 0000000..d54cf47
+--- /dev/null
++++ b/docs/MASTER_DIRECTIVE.md
+@@ -0,0 +1,4235 @@
++# MASTER ENGINEERING DIRECTIVE
++
++You are not acting as a normal coding assistant.
++
++You are acting simultaneously as:
++
++- principal game-engine architect
++- senior TypeScript engineer
++- Three.js rendering engineer
++- vehicle-dynamics engineer
++- motorsport simulation engineer
++- real-time graphics programmer
++- shader engineer
++- technical artist
++- gameplay programmer
++- AI/racecraft engineer
++- audio programmer
++- UI engineer
++- optimization engineer
++- numerical-methods engineer
++- automated-testing engineer
++- QA lead
++
++Your task is to engineer an exceptionally sophisticated browser-based Formula racing simulator using Three.js.
++
++The experience should target the **simulation depth, visual density, responsiveness, polish, audiovisual intensity, and systemic integration expected from modern AAA Formula racing games**, while remaining an original implementation.
++
++Do NOT rip, extract, reproduce, trace, redistribute, or reverse-engineer proprietary F1 25:
++
++- code
++- car models
++- track meshes
++- textures
++- liveries
++- logos
++- sound samples
++- fonts
++- menus
++- HUD artwork
++- shaders
++- game files
++- animation data
++- proprietary telemetry formats
++
++Do not build a pixel-for-pixel reproduction of copyrighted presentation.
++
++Instead, reproduce the *engineering sophistication and sensory qualities* expected from a premium Formula racing simulation through original systems and assets.
++
++The result must not feel like:
++
++- a Three.js demo
++- an arcade prototype
++- a tutorial project
++- a physics sandbox
++- a tech demo with a car
++- a pretty scene with fake racing systems
++
++It must behave as one integrated racing simulator.
++
++---
++
++# 1. NON-NEGOTIABLE ENGINEERING PHILOSOPHY
++
++Never implement a subsystem purely visually if it is supposed to affect simulation.
++
++Examples:
++
++Tire temperature must affect grip.
++
++Brake temperature must affect braking.
++
++Damage must affect physics.
++
++Fuel mass must affect vehicle mass.
++
++Aero setup must affect downforce and drag.
++
++Ride height must affect floor performance.
++
++Rain must alter actual track-water state.
++
++Standing water must influence tire behavior.
++
++Dirty air must affect downforce.
++
++ERS must modify drivetrain output.
++
++Brake bias must affect front/rear wheel lock tendency.
++
++Differential settings must affect rear axle dynamics.
++
++Surface contamination must affect tires.
++
++Pit stops must actually replace tire-state objects.
++
++Race strategy must use actual simulation variables.
++
++Telemetry must expose real internal state.
++
++AI must operate under substantially the same vehicle constraints as the player.
++
++Do not fake systems merely because a fake version looks convincing.
++
++---
++
++# 2. THREE-PASS RULE
++
++Every meaningful subsystem receives THREE separate implementation passes.
++
++## PASS A — FUNCTIONAL
++
++Make the complete system work.
++
++## PASS B — ENGINEERING VALIDATION
++
++Measure it.
++
++Instrument it.
++
++Stress it.
++
++Find instability.
++
++Test edge cases.
++
++Verify physical relationships.
++
++## PASS C — POLISH
++
++Improve:
++
++- transitions
++- feedback
++- graphics
++- sound
++- tuning
++- interactions
++- numerical stability
++- performance
++- usability
++
++Never treat first implementation as final.
++
++---
++
++# 3. REQUIRED TECH STACK
++
++Use:
++
++- TypeScript
++- Three.js
++- Vite
++- WebGL2 baseline
++- optional WebGPU renderer enhancement if feature detection succeeds
++- GLSL shaders where custom rendering is necessary
++- Web Audio API
++- Web Workers
++- Gamepad API
++- Pointer Lock API
++- IndexedDB
++- Vitest
++- Playwright
++- ESLint
++- Prettier
++
++Prefer native browser APIs over unnecessary dependencies.
++
++Potential dependencies:
++
++- three
++- three-mesh-bvh
++- gl-matrix only if genuinely useful
++- zustand or equivalent only for UI application state if needed
++- comlink only if worker RPC complexity justifies it
++- zod for configuration validation
++- uplot or another lightweight graph library for telemetry
++
++Do NOT introduce a heavyweight game engine underneath Three.js.
++
++Do not use Unity.
++
++Do not use Unreal.
++
++Do not use Babylon as the runtime.
++
++Three.js remains the primary renderer/runtime foundation.
++
++---
++
++# 4. REPOSITORY STRUCTURE
++
++Use a deliberate structure similar to:
++
++```text
++/
++├─ public/
++│  ├─ assets/
++│  │  ├─ cars/
++│  │  ├─ tracks/
++│  │  ├─ environments/
++│  │  ├─ audio/
++│  │  ├─ textures/
++│  │  ├─ fonts/
++│  │  └─ ui/
++│  └─ config/
++│
++├─ src/
++│  ├─ main.ts
++│  ├─ app/
++│  │  ├─ GameApp.ts
++│  │  ├─ GameBootstrap.ts
++│  │  ├─ GameState.ts
++│  │  └─ RuntimeConfig.ts
++│  │
++│  ├─ core/
++│  │  ├─ Clock.ts
++│  │  ├─ FixedStepper.ts
++│  │  ├─ EventBus.ts
++│  │  ├─ ObjectPool.ts
++│  │  ├─ RingBuffer.ts
++│  │  ├─ MathUtil.ts
++│  │  ├─ Units.ts
++│  │  └─ Diagnostics.ts
++│  │
++│  ├─ physics/
++│  │  ├─ PhysicsWorld.ts
++│  │  ├─ RigidBody.ts
++│  │  ├─ Integrator.ts
++│  │  ├─ ForceAccumulator.ts
++│  │  ├─ CollisionWorld.ts
++│  │  ├─ ContactSolver.ts
++│  │  └─ SurfaceQuery.ts
++│  │
++│  ├─ vehicle/
++│  │  ├─ Vehicle.ts
++│  │  ├─ VehicleState.ts
++│  │  ├─ VehicleConfig.ts
++│  │  ├─ VehicleFactory.ts
++│  │  ├─ VehicleController.ts
++│  │  └─ VehicleTelemetry.ts
++│  │
++│  ├─ tires/
++│  │  ├─ TireModel.ts
++│  │  ├─ TireState.ts
++│  │  ├─ TireCompound.ts
++│  │  ├─ TireThermalModel.ts
++│  │  ├─ TireWearModel.ts
++│  │  └─ CombinedSlip.ts
++│  │
++│  ├─ suspension/
++│  │  ├─ SuspensionCorner.ts
++│  │  ├─ SuspensionGeometry.ts
++│  │  ├─ SpringDamper.ts
++│  │  └─ AntiRollSystem.ts
++│  │
++│  ├─ drivetrain/
++│  │  ├─ PowerUnit.ts
++│  │  ├─ ICEModel.ts
++│  │  ├─ HybridSystem.ts
++│  │  ├─ Gearbox.ts
++│  │  ├─ Differential.ts
++│  │  ├─ Clutch.ts
++│  │  └─ DrivetrainState.ts
++│  │
++│  ├─ brakes/
++│  │  ├─ BrakeSystem.ts
++│  │  ├─ BrakeDisc.ts
++│  │  ├─ BrakeThermalModel.ts
++│  │  └─ BrakeBias.ts
++│  │
++│  ├─ aero/
++│  │  ├─ AeroModel.ts
++│  │  ├─ GroundEffect.ts
++│  │  ├─ AeroMap.ts
++│  │  └─ WakeField.ts
++│  │
++│  ├─ track/
++│  │  ├─ Track.ts
++│  │  ├─ TrackSpline.ts
++│  │  ├─ TrackSurface.ts
++│  │  ├─ TrackLimits.ts
++│  │  ├─ RacingLine.ts
++│  │  ├─ TrackEvolution.ts
++│  │  └─ SpatialTrackIndex.ts
++│  │
++│  ├─ weather/
++│  │  ├─ WeatherSystem.ts
++│  │  ├─ RainSystem.ts
++│  │  ├─ SurfaceWater.ts
++│  │  ├─ TrackTemperature.ts
++│  │  └─ WeatherTimeline.ts
++│  │
++│  ├─ race/
++│  │  ├─ RaceDirector.ts
++│  │  ├─ Session.ts
++│  │  ├─ LapCounter.ts
++│  │  ├─ TimingSystem.ts
++│  │  ├─ SectorSystem.ts
++│  │  ├─ FlagSystem.ts
++│  │  ├─ PenaltySystem.ts
++│  │  ├─ PitSystem.ts
++│  │  └─ RaceStart.ts
++│  │
++│  ├─ ai/
++│  │  ├─ AIDriver.ts
++│  │  ├─ AIPlanner.ts
++│  │  ├─ AISpeedPlanner.ts
++│  │  ├─ AISteering.ts
++│  │  ├─ OvertakePlanner.ts
++│  │  ├─ DefensePlanner.ts
++│  │  ├─ CollisionPrediction.ts
++│  │  ├─ AIStrategy.ts
++│  │  └─ AIPersonality.ts
++│  │
++│  ├─ damage/
++│  │  ├─ DamageModel.ts
++│  │  ├─ AeroDamage.ts
++│  │  ├─ SuspensionDamage.ts
++│  │  ├─ TireDamage.ts
++│  │  └─ DebrisSystem.ts
++│  │
++│  ├─ rendering/
++│  │  ├─ Renderer.ts
++│  │  ├─ RenderPipeline.ts
++│  │  ├─ SceneManager.ts
++│  │  ├─ LightingSystem.ts
++│  │  ├─ ShadowManager.ts
++│  │  ├─ ReflectionSystem.ts
++│  │  ├─ MaterialLibrary.ts
++│  │  └─ LODManager.ts
++│  │
++│  ├─ shaders/
++│  │  ├─ wetRoad.vert
++│  │  ├─ wetRoad.frag
++│  │  ├─ carbon.frag
++│  │  ├─ spray.vert
++│  │  ├─ spray.frag
++│  │  ├─ tireMarks.frag
++│  │  └─ atmospheric.frag
++│  │
++│  ├─ effects/
++│  │  ├─ ParticleSystem.ts
++│  │  ├─ SpraySystem.ts
++│  │  ├─ SmokeSystem.ts
++│  │  ├─ SparkSystem.ts
++│  │  ├─ DustSystem.ts
++│  │  └─ TireMarkSystem.ts
++│  │
++│  ├─ cameras/
++│  │  ├─ CameraManager.ts
++│  │  ├─ CockpitCamera.ts
++│  │  ├─ ChaseCamera.ts
++│  │  ├─ TVPodCamera.ts
++│  │  ├─ TracksideCamera.ts
++│  │  └─ CameraDynamics.ts
++│  │
++│  ├─ audio/
