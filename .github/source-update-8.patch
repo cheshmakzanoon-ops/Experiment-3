@@ -111,3 +111,21 @@ index f936d53..1227d59 100644
    }
    private async importSetup(file: File) {
      try {
+diff --git a/e2e/calibration.spec.ts b/e2e/calibration.spec.ts
+index 531d7e9..2402503 100644
+--- a/e2e/calibration.spec.ts
++++ b/e2e/calibration.spec.ts
+@@ -75,6 +75,13 @@ test('custom wheel calibration persists, drives a real clutch and disconnects sa
+   await page.locator('#mode').selectOption('practice');
+   await page.locator('#opponents').selectOption('0');
+   await page.getByRole('button', { name: /ENTER CIRCUIT/ }).click();
++  // Session startup replaces the preview and initializes a module worker.
++  // A null frame during that transition is not a failed clutch response.
++  await expect
++    .poll(async () => page.evaluate(() => window.apexDiagnostics().state), {
++      timeout: 60000,
++    })
++    .toBe('driving');
+   const frame = () => page.evaluate(() => window.apexDiagnostics().frame!);
+   await expect
+     .poll(async () => (await frame())[carBase(0) + F.RPM], { timeout: 60000 })
