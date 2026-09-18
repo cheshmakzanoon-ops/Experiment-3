@@ -1,0 +1,408 @@
+diff --git a/src/rendering/driver.ts b/src/rendering/driver.ts
+new file mode 100644
+index 0000000..09f8531
+--- /dev/null
++++ b/src/rendering/driver.ts
+@@ -0,0 +1,214 @@
++import * as T from 'three';
++import { clamp } from '../core/math.ts';
++import { box, mesh, mergeStatic, tube } from './geometry.ts';
++
++/** Analytic two-bone IK in vehicle-local metres. The pole chooses the elbow's
++ * bend plane. Unreachable targets are reported, not hidden by stretching bones. */
++export class ArmPose {
++  readonly elbow = new T.Vector3();
++  readonly wrist = new T.Vector3();
++  reachable = true;
++  private axis = new T.Vector3();
++  private bend = new T.Vector3();
++  solve(shoulder: T.Vector3, target: T.Vector3, pole: T.Vector3, upper: number, lower: number) {
++    if (!(upper > 0 && lower > 0) || !Number.isFinite(upper + lower))
++      throw new Error('Invalid driver limb length');
++    this.axis.copy(target).sub(shoulder);
++    const requested = this.axis.length();
++    if (!Number.isFinite(requested) || !Number.isFinite(pole.lengthSq()))
++      throw new Error('Invalid driver joint position');
++    const distance = clamp(requested, Math.abs(upper - lower) + 1e-6, upper + lower - 1e-6);
++    this.reachable = requested <= upper + lower && requested >= Math.abs(upper - lower);
++    if (requested > 1e-8) this.axis.multiplyScalar(1 / requested);
++    else this.axis.set(0, 0, 1);
++    this.bend.copy(pole).sub(shoulder);
++    this.bend.addScaledVector(this.axis, -this.bend.dot(this.axis));
++    if (this.bend.lengthSq() < 1e-10) {
++      this.bend.set(0, -1, 0).addScaledVector(this.axis, this.axis.y);
++      if (this.bend.lengthSq() < 1e-10)
++        this.bend.set(1, 0, 0).addScaledVector(this.axis, -this.axis.x);
++    }
++    this.bend.normalize();
++    const along = (upper * upper - lower * lower + distance * distance) / (2 * distance);
++    const radius = Math.sqrt(Math.max(0, upper * upper - along * along));
++    this.elbow.copy(shoulder).addScaledVector(this.axis, along).addScaledVector(this.bend, radius);
++    this.wrist.copy(shoulder).addScaledVector(this.axis, distance);
++    return this;
++  }
++}
++
++/** Responds only to observed powertrain changes. Seeks/discontinuities establish
++ * a new baseline and never manufacture dozens of paddle taps during replay. */
++export class DriverActions {
++  up = 0;
++  down = 0;
++  button = 0;
++  private time = -1;
++  private gear = 0;
++  private mode = 0;
++  sample(time: number, gear: number, mode: number) {
++    if (![time, gear, mode].every(Number.isFinite)) throw new Error('Invalid driver action');
++    const dt = time - this.time;
++    if (this.time < 0 || dt < 0 || dt > 0.35) {
++      this.up = this.down = this.button = 0;
++    } else {
++      this.up = Math.max(0, this.up - dt / 0.16);
++      this.down = Math.max(0, this.down - dt / 0.16);
++      this.button = Math.max(0, this.button - dt / 0.22);
++      if (gear > this.gear) this.up = 1;
++      else if (gear < this.gear) this.down = 1;
++      if (mode !== this.mode) this.button = 1;
++    }
++    this.time = time;
++    this.gear = gear;
++    this.mode = mode;
++  }
++}
++
++interface Arm {
++  side: number;
++  shoulder: T.Vector3;
++  pole: T.Vector3;
++  hand: T.Group;
++  upper: T.Mesh;
++  lower: T.Mesh;
++  elbow: T.Mesh;
++  thumb: T.Group;
++  paddle: T.Group;
++  pose: ArmPose;
++}
++const UPPER = 0.37,
++  LOWER = 0.36;
++export class DriverRig {
++  readonly root = new T.Group();
++  readonly actions = new DriverActions();
++  private readonly arms: Arm[] = [];
++  private target = new T.Vector3();
++  private delta = new T.Vector3();
++  private up = new T.Vector3(0, 1, 0);
++  constructor(private steering: T.Group) {
++    this.root.name = 'Articulated driver';
++    const suit = new T.MeshStandardMaterial({ color: 0x273d46, roughness: 0.94 });
++    const glove = new T.MeshStandardMaterial({ color: 0xd8d4c5, roughness: 0.91 });
++    const grip = new T.MeshStandardMaterial({ color: 0x222a2a, roughness: 0.97 });
++    const stitch = new T.MeshStandardMaterial({ color: 0x928d7c, roughness: 1 });
++    const paddleMaterial = new T.MeshStandardMaterial({
++      color: 0x59646b,
++      metalness: 0.7,
++      roughness: 0.33,
++    });
++    for (const side of [-1, 1]) {
++      const shoulder = new T.Vector3(side * 0.16, 0.015, -0.48);
++      const pole = new T.Vector3(side * 0.24, -0.32, -0.23);
++      const hand = new T.Group();
++      hand.name = side < 0 ? 'Right glove' : 'Left glove';
++      hand.position.set(side * 0.178, -0.009, -0.01);
++      steering.add(hand);
++      const palm = mesh(hand, new T.SphereGeometry(1, 20, 14), glove);
++      palm.scale.set(0.031, 0.05, 0.026);
++      const pad = mesh(hand, new T.SphereGeometry(1, 16, 12), grip, 0, -0.002, 0.017);
++      pad.scale.set(0.025, 0.044, 0.016);
++      const cuff = mesh(
++        hand,
++        new T.CylinderGeometry(0.028, 0.034, 0.05, 16),
++        suit,
++        0,
++        -0.051,
++        -0.022,
++      );
++      cuff.rotation.x = -0.8;
++      for (let finger = 0; finger < 4; finger++) {
++        const y = 0.028 - finger * 0.018;
++        tube(
++          hand,
++          glove,
++          [
++            [side * 0.012, y, -0.022],
++            [side * 0.033, y, -0.007],
++            [side * 0.028, y - 0.002, 0.022],
++            [side * 0.004, y - 0.004, 0.032],
++          ],
++          0.008,
++        );
++        tube(
++          hand,
++          stitch,
++          [
++            [side * 0.01, y + 0.006, -0.028],
++            [side * 0.027, y + 0.005, -0.016],
++            [side * 0.036, y + 0.004, 0.001],
++          ],
++          0.0012,
++        );
++      }
++      const thumb = new T.Group();
++      const thumbMesh = mesh(thumb, new T.CapsuleGeometry(0.01, 0.025, 5, 12), glove, 0, 0.014, 0);
++      thumbMesh.rotation.z = side * 0.55;
++      thumb.position.set(-side * 0.024, 0.017, -0.012);
++      // Merge the static glove, retaining the independently moving thumb.
++      mergeStatic(hand);
++      hand.add(thumb);
++      const paddle = new T.Group();
++      paddle.name = side < 0 ? 'Upshift paddle' : 'Downshift paddle';
++      paddle.position.set(side * 0.104, 0, 0.041);
++      box(paddle, paddleMaterial, side * 0.017, 0, 0, 0.031, 0.087, 0.006);
++      steering.add(paddle);
++      const upper = mesh(this.root, new T.CylinderGeometry(0.045, 0.053, 1, 16), suit);
++      const lower = mesh(this.root, new T.CylinderGeometry(0.03, 0.042, 1, 16), suit);
++      const elbow = mesh(this.root, new T.SphereGeometry(0.045, 16, 12), suit);
++      this.arms.push({
++        side,
++        shoulder,
++        pole,
++        hand,
++        upper,
++        lower,
++        elbow,
++        thumb,
++        paddle,
++        pose: new ArmPose(),
++      });
++    }
++    this.update(0, 1, 1);
++  }
++  private segment(mesh: T.Mesh, from: T.Vector3, to: T.Vector3) {
++    this.delta.copy(to).sub(from);
++    const length = this.delta.length();
++    mesh.position.copy(from).add(to).multiplyScalar(0.5);
++    mesh.quaternion.setFromUnitVectors(
++      this.up,
++      this.delta.multiplyScalar(1 / Math.max(length, 1e-8)),
++    );
++    mesh.scale.y = length;
++  }
++  update(time: number, gear: number, mode: number) {
++    this.actions.sample(time, gear, mode);
++    this.steering.updateMatrix();
++    for (const arm of this.arms) {
++      // Wrist is the cuff's car-local anchor, transformed by the actual wheel.
++      this.target
++        .copy(arm.hand.position)
++        .add(this.delta.set(0, -0.043, -0.038))
++        .applyMatrix4(this.steering.matrix);
++      arm.pose.solve(arm.shoulder, this.target, arm.pole, UPPER, LOWER);
++      this.segment(arm.upper, arm.shoulder, arm.pose.elbow);
++      this.segment(arm.lower, arm.pose.elbow, arm.pose.wrist);
++      arm.elbow.position.copy(arm.pose.elbow);
++      const pull = arm.side < 0 ? this.actions.up : this.actions.down;
++      arm.paddle.rotation.y = -arm.side * pull * 0.18;
++      arm.thumb.rotation.z = arm.side * this.actions.button * 0.2;
++    }
++  }
++  diagnostics() {
++    return this.arms.map((arm) => ({
++      side: arm.side,
++      shoulder: arm.shoulder.toArray(),
++      elbow: arm.pose.elbow.toArray(),
++      wrist: arm.pose.wrist.toArray(),
++      reachable: arm.pose.reachable,
++      upperLength: arm.shoulder.distanceTo(arm.pose.elbow),
++      lowerLength: arm.pose.elbow.distanceTo(arm.pose.wrist),
++      paddleRadians: arm.paddle.rotation.y,
++    }));
++  }
++}
+diff --git a/src/rendering/renderer.ts b/src/rendering/renderer.ts
+index f6ca5e5..f7d33a0 100644
+--- a/src/rendering/renderer.ts
++++ b/src/rendering/renderer.ts
+@@ -477,6 +477,7 @@ export class RacingRenderer {
+     return {
+       screenVisible,
+       wheelProjection: wheel.toArray(),
++      driver: car.driver.diagnostics(),
+       haloProjection: halo.toArray(),
+       mirrors: this.reflection.diagnostics(this.renderer),
+     };
+diff --git a/tests/audio.test.ts b/tests/audio.test.ts
+new file mode 100644
+index 0000000..4b1dbb3
+--- /dev/null
++++ b/tests/audio.test.ts
+@@ -0,0 +1,93 @@
++import { expect, it } from 'vitest';
++import { contactMix, newContactMix } from '../src/audio/surface-audio.ts';
++import {
++  HEADER,
++  CAR_STRIDE,
++  F,
++  H,
++  W,
++  WHEEL_BASE,
++  WHEEL_STRIDE,
++  carBase,
++} from '../src/simulation/protocol.ts';
++import { SURFACE } from '../src/simulation/track.ts';
++function frame() {
++  const f = new Float32Array(HEADER + CAR_STRIDE),
++    o = carBase(0);
++  f[H.CARS] = 1;
++  f[o + F.SPEED] = 40;
++  f[o + F.RPM] = 8000;
++  for (let i = 0; i < 4; i++) {
++    const p = o + WHEEL_BASE + i * WHEEL_STRIDE;
++    f[p + W.LOAD] = 2000;
++    f[p + W.OMEGA] = 120;
++  }
++  return f;
++}
++it('distinguishes asphalt, grass, gravel and kerb instead of one road rumble', () => {
++  const f = frame(),
++    o = carBase(0);
++  for (const [surface, key] of [
++    [SURFACE.ASPHALT, 'asphalt'],
++    [SURFACE.GRASS, 'grass'],
++    [SURFACE.GRAVEL, 'gravel'],
++    [SURFACE.KERB, 'kerb'],
++  ] as const) {
++    for (let i = 0; i < 4; i++) f[o + WHEEL_BASE + i * WHEEL_STRIDE + W.SURFACE] = surface;
++    const mix = contactMix(f, newContactMix());
++    expect(mix[key]).toBeGreaterThan(0);
++    for (const other of ['asphalt', 'grass', 'gravel', 'kerb'] as const)
++      if (other !== key) expect(mix[other]).toBe(0);
++  }
++});
++it('does not synthesize ground scrub or spray for unloaded wheels', () => {
++  const f = frame(),
++    o = carBase(0);
++  for (let i = 0; i < 4; i++) {
++    const p = o + WHEEL_BASE + i * WHEEL_STRIDE;
++    f[p + W.LOAD] = 0;
++    f[p + W.WATER] = 2;
++    f[p + W.FLAT] = 1;
++    f[p + W.SLIP_POWER] = 1e5;
++  }
++  const mix = contactMix(f, newContactMix());
++  expect([mix.scrub, mix.spray, mix.flat, mix.asphalt]).toEqual([0, 0, 0, 0]);
++});
++it('braking alone does not make smoke-like tire audio and lock/spin change the spectrum', () => {
++  const f = frame(),
++    o = carBase(0),
++    p = o + WHEEL_BASE;
++  f[o + F.BRAKE] = 1;
++  expect(contactMix(f, newContactMix()).scrub).toBe(0);
++  f[p + W.SLIP_POWER] = 8e4;
++  f[p + W.SLIP] = -0.9;
++  const lock = contactMix(f, newContactMix());
++  f[p + W.SLIP] = 0.8;
++  const spin = contactMix(f, newContactMix());
++  expect(lock.scrub).toBeGreaterThan(0);
++  expect(spin.scrubHz).toBeGreaterThan(lock.scrubHz);
++});
++it('flat-spot repetition comes from actual loaded wheel speed and vanishes at rest', () => {
++  const f = frame(),
++    o = carBase(0),
++    p = o + WHEEL_BASE;
++  f[p + W.FLAT] = 0.8;
++  expect(contactMix(f, newContactMix()).flatHz).toBeCloseTo(120 / (2 * Math.PI));
++  f[p + W.OMEGA] = 240;
++  expect(contactMix(f, newContactMix()).flatHz).toBeCloseTo(240 / (2 * Math.PI));
++  f[o + F.SPEED] = 0;
++  expect(contactMix(f, newContactMix()).flat).toBe(0);
++});
++it('bottoming and electrical noise require actual contact work and power', () => {
++  const f = frame(),
++    o = carBase(0);
++  expect(contactMix(f, newContactMix()).bottom).toBe(0);
++  expect(contactMix(f, newContactMix()).hybrid).toBe(0);
++  f[o + F.BOTTOM_ENERGY] = 18000;
++  f[o + F.REGEN_POWER] = 100000;
++  const mix = contactMix(f, newContactMix());
++  expect(mix.bottom).toBeGreaterThan(0);
++  expect(mix.hybrid).toBeGreaterThan(0);
++  f[o + F.SPEED] = NaN;
++  expect(() => contactMix(f, newContactMix())).toThrow();
++});
+diff --git a/tests/driver.test.ts b/tests/driver.test.ts
+new file mode 100644
+index 0000000..6955500
+--- /dev/null
++++ b/tests/driver.test.ts
+@@ -0,0 +1,71 @@
++import { describe, expect, it } from 'vitest';
++import * as T from 'three';
++import { ArmPose, DriverActions, DriverRig } from '../src/rendering/driver.ts';
++
++describe('articulated driver', () => {
++  it('maintains fixed limb lengths and reachable wrists through the entire steering range', () => {
++    const steering = new T.Group();
++    steering.position.set(0, 0.115, 0.22);
++    steering.rotation.x = 0.12;
++    const rig = new DriverRig(steering);
++    for (let angle = -1.4; angle <= 1.4; angle += 0.04) {
++      steering.rotation.z = angle;
++      rig.update(10 + angle, 4, 1);
++      const joints = rig.diagnostics();
++      for (const arm of joints) {
++        expect(arm.reachable).toBe(true);
++        expect(arm.upperLength).toBeCloseTo(0.37, 10);
++        expect(arm.lowerLength).toBeCloseTo(0.36, 10);
++        expect(arm.shoulder).toEqual([arm.side * 0.16, 0.015, -0.48]);
++        expect(Math.abs(arm.elbow[0])).toBeLessThan(0.34);
++        expect(arm.elbow.every(Number.isFinite)).toBe(true);
++      }
++    }
++  });
++  it('does not move shoulder anchors with wheel rotation, car position or world orientation', () => {
++    const parent = new T.Group(),
++      steering = new T.Group();
++    steering.position.set(0, 0.115, 0.22);
++    parent.add(steering);
++    const rig = new DriverRig(steering);
++    parent.add(rig.root);
++    parent.position.set(200, 3, -50);
++    parent.rotation.y = 1.9;
++    rig.update(1, 3, 1);
++    const before = rig.diagnostics();
++    steering.rotation.z = 1;
++    rig.update(1.05, 3, 1);
++    const after = rig.diagnostics();
++    expect(after[0].shoulder).toEqual(before[0].shoulder);
++    expect(after[0].wrist).not.toEqual(before[0].wrist);
++  });
++  it('pulls the correct paddle for observed shifts, returns smoothly, and resets on replay seeks', () => {
++    const actions = new DriverActions();
++    actions.sample(4, 3, 1);
++    expect(actions.up).toBe(0);
++    actions.sample(4.02, 4, 1);
++    expect(actions.up).toBe(1);
++    expect(actions.down).toBe(0);
++    actions.sample(4.1, 4, 1);
++    expect(actions.up).toBeCloseTo(0.5);
++    actions.sample(4.12, 3, 2);
++    expect(actions.down).toBe(1);
++    expect(actions.button).toBe(1);
++    actions.sample(1, 2, 0);
++    expect([actions.up, actions.down, actions.button]).toEqual([0, 0, 0]);
++    actions.sample(10, 6, 2);
++    expect(actions.up).toBe(0);
++  });
++  it('reports unreachable targets and handles degenerate elbow poles without NaN', () => {
++    const pose = new ArmPose(),
++      shoulder = new T.Vector3();
++    pose.solve(shoulder, new T.Vector3(0, 0, 10), new T.Vector3(0, 0, 4), 0.37, 0.36);
++    expect(pose.reachable).toBe(false);
++    expect(pose.elbow.length()).toBeCloseTo(0.37, 10);
++    expect(pose.wrist.length()).toBeLessThan(0.73);
++    pose.solve(shoulder, new T.Vector3(), new T.Vector3(), 0.37, 0.36);
++    expect(pose.elbow.toArray().every(Number.isFinite)).toBe(true);
++    expect(() => pose.solve(shoulder, new T.Vector3(NaN), new T.Vector3(), 1, 1)).toThrow();
++    expect(() => pose.solve(shoulder, new T.Vector3(), new T.Vector3(), 0, 1)).toThrow();
++  });
++});
