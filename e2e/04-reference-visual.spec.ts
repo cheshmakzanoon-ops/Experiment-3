@@ -27,6 +27,13 @@ for (const weather of ['clear', 'rain'] as const) {
     expect(result.finite).toBe(true);
     expect(result.width).toBe(1280);
     expect(result.height).toBe(720);
+    expect(result.glError).toBe(0);
+    expect(result.probeSamples.length).toBeGreaterThanOrEqual(6);
+    for (const sample of result.probeSamples) {
+      expect(sample.nonfinite, `HDR cube face ${sample.face}: ${JSON.stringify(sample.hits)}`).toBe(0);
+      expect(Number.isFinite(sample.minimum)).toBe(true);
+      expect(Number.isFinite(sample.maximum)).toBe(true);
+    }
     expect(result.captures).toHaveLength(6);
     for (const capture of result.captures) {
       expect(capture.draws, capture.view).toBeGreaterThan(10);
