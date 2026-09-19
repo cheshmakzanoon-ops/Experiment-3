@@ -1,0 +1,285 @@
+diff --git a/docs/IMPLEMENTATION_MATRIX.md b/docs/IMPLEMENTATION_MATRIX.md
+index c7267ab..43add06 100644
+--- a/docs/IMPLEMENTATION_MATRIX.md
++++ b/docs/IMPLEMENTATION_MATRIX.md
+@@ -107,8 +107,8 @@ This ledger follows all 148 numbered sections of the exact [Pasted markdown(6) d
+ | 101 | DEBUG OVERLAY | F3 now exposes every required numeric category, including per-wheel forces/slip/thermal/wear, body motion/G, aero balance/drag, physical surface cells/rubber and actual AI target/path/decision. Opt-in timestamped worker probe; unsupported GPU timing and unrecorded replay-only extras are labeled honestly. |
+ | 102 | VISUAL DEBUGGING | Actual last-solve contact points, suspension query rays and contact-normal Fz arrows are connected to the opt-in probe. Stale/live overlays are hidden during replay. Other section-102 visualizations are optional and not all are implemented. |
+-| 103 | UNIT TESTS | 348 unit/property/regression tests at the replay/audio/engineering checkpoint: 34 added tests cover presentation clocks, camera audio and read-only engineering inspection. Test count is evidence scope, not universal correctness. |
++| 103 | UNIT TESTS | 350 unit/property/regression tests at the replay/audio/engineering checkpoint: 36 added tests cover presentation clocks, camera audio and read-only engineering inspection. Test count is evidence scope, not universal correctness. |
+ | 104 | PHYSICS PROPERTY TESTS | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+ | 105 | DETERMINISM TEST | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+-| 106 | FRAME-INDEPENDENCE TEST | Continuous effect emission totals across 24/30/60/90/120/144 Hz, accelerated simulation-time playback and frozen-frame equality supplement existing fixed-step determinism/camera regressions. Particle pixel placement is not claimed bit-identical across rates. |
++| 106 | FRAME-INDEPENDENCE TEST | Continuous effect emission totals across 24/30/60/90/120/144 Hz, accelerated simulation-time playback and frozen-frame equality and paused camera pan/inertia regressions supplement existing fixed-step determinism tests. Particle pixel placement is not claimed bit-identical across rates. |
+ | 107 | STRAIGHT-LINE TEST | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+ | 108 | SKIDPAD TEST | Instrumented 80 m skidpad at 15/25/35 m/s using the production vehicle solver; measured lateral G compared with actual speed/radius, radial RMS error and speed tracking. |
+diff --git a/docs/REPLAY_AUDIO_AND_ENGINEERING.md b/docs/REPLAY_AUDIO_AND_ENGINEERING.md
+index 062c53f..9cd54b8 100644
+--- a/docs/REPLAY_AUDIO_AND_ENGINEERING.md
++++ b/docs/REPLAY_AUDIO_AND_ENGINEERING.md
+@@ -28,4 +28,10 @@ advances. Particle placement is not claimed to be bit-identical across render
+ rates, but emission work and simulation-time aging are covered by regressions.
+ 
++A subsequent paused-view check also exposed continued trackside pan/zoom and
++cockpit/chase spring convergence on wall time. Those camera dynamics now consume
++a pause-aware presented-time clock; free-look and camera selection remain usable.
++A native regression exercises the actual TracksideDirector and inertial camera,
++while the full browser replay test requires an unchanged paused listener.
++
+ The audio listener now comes from the actual camera position and camera-right
+ basis. Camera local +X is screen right, unlike this car model's +X-left convention.
+diff --git a/docs/dynamics-benchmark.json b/docs/dynamics-benchmark.json
+index 0168fe3..8eec6f7 100644
+--- a/docs/dynamics-benchmark.json
++++ b/docs/dynamics-benchmark.json
+@@ -1,4 +1,4 @@
+ {
+-  "sourceSHA256": "e634c846513b962df43c5ccfb6c2f15cf87580fa21069e191a0f39d6e766d72b",
++  "sourceSHA256": "5e20e2cf842532bdcd8a5cd9bfb8482cf2e8b67edee549dc93258dab97fb2be2",
+   "fixedDtSeconds": 0.004166666666666667,
+   "fixture": "Isolated analytic runway/skidpad/kerbs with the production Vehicle solver",
+diff --git a/docs/integrated-driving.json b/docs/integrated-driving.json
+index 51fc1da..d0cd6dc 100644
+--- a/docs/integrated-driving.json
++++ b/docs/integrated-driving.json
+@@ -1,4 +1,4 @@
+ {
+-  "sourceSHA256": "06c18de61bbfd3f9e0c310c6e39ee1a10b72701d5f78d7f5607963d26ca9ca3d",
++  "sourceSHA256": "de932511c03ae5baa6416d017c8f4ff54de2f4eee693644acc6c511398be7ad8",
+   "simulationSHA256": "30c155c669e4af3f1d5b2a40ab0ce9acd44d5dc19ee82777df8f6c6bf2149484",
+   "fingerprintVersion": 2,
+diff --git a/docs/scenario-results.json b/docs/scenario-results.json
+index 689c7fb..cda408f 100644
+--- a/docs/scenario-results.json
++++ b/docs/scenario-results.json
+@@ -6,5 +6,5 @@
+     "simulatedSeconds": 320,
+     "cars": 4,
+-    "elapsedSeconds": 12.886688083000001,
++    "elapsedSeconds": 12.465003163,
+     "maxSpeedKmh": 273.7525241448068,
+     "maxLateral": 8.676510391903989,
+@@ -47,5 +47,5 @@
+     "simulatedSeconds": 320,
+     "cars": 4,
+-    "elapsedSeconds": 11.937821735000002,
++    "elapsedSeconds": 11.728825059,
+     "maxSpeedKmh": 271.8375331467494,
+     "maxLateral": 8.90782178695694,
+@@ -88,5 +88,5 @@
+     "simulatedSeconds": 320,
+     "cars": 4,
+-    "elapsedSeconds": 12.099529452000002,
++    "elapsedSeconds": 11.625920206000002,
+     "maxSpeedKmh": 258.0035511152656,
+     "maxLateral": 9.279951269326773,
+diff --git a/e2e/01-worker-portability.spec.ts b/e2e/01-worker-portability.spec.ts
+index b9e70b7..c71a815 100644
+--- a/e2e/01-worker-portability.spec.ts
++++ b/e2e/01-worker-portability.spec.ts
+@@ -74,5 +74,13 @@ test('physics and CSV workers run when the JS bundle is served from a different
+   expect(measured.telemetryRows).toBeGreaterThanOrEqual(60);
+   expect(measured.engineeringSamples).toBeGreaterThanOrEqual(5);
+-  expect(measured.engineeringSamples).toBeLessThanOrEqual(1 + Math.ceil(measured.tick / 12));
++  // Frame and probe responses have independent delivery queues. Verify the
++  // probe's actual tick cadence, not a possibly earlier render-frame timestamp.
++  expect(measured.engineeringSamples).toBeLessThanOrEqual(
++    1 + Math.floor(measured.engineeringTick / 12),
++  );
++  for (let i = 1; i < measured.engineeringTicks.length; i++)
++    expect(measured.engineeringTicks[i] - measured.engineeringTicks[i - 1]).toBeGreaterThanOrEqual(
++      12,
++    );
+   expect(measured.engineeringTick).toBeGreaterThanOrEqual(60);
+   expect(measured.engineeringActive).toBe(true);
+diff --git a/e2e/fixtures/worker-portability.ts b/e2e/fixtures/worker-portability.ts
+index b3c74d3..af0557c 100644
+--- a/e2e/fixtures/worker-portability.ts
++++ b/e2e/fixtures/worker-portability.ts
+@@ -17,4 +17,5 @@ export async function verifyWorkerPortability() {
+   let engineeringTick = -1;
+   let engineeringActive = false;
++  const engineeringTicks: number[] = [];
+   try {
+     const frame = await new Promise<Float32Array>((resolve, reject) => {
+@@ -30,4 +31,5 @@ export async function verifyWorkerPortability() {
+           }
+           engineeringSamples++;
++          engineeringTicks.push(message.sample.tick);
+           engineeringTick = message.sample.tick;
+           engineeringActive = message.sample.aiActive;
+@@ -81,4 +83,5 @@ export async function verifyWorkerPortability() {
+       engineeringTick,
+       engineeringActive,
++      engineeringTicks,
+       csvColumns: header.length,
+       pickupColumns: header.slice(-4),
+diff --git a/src/rendering/camera-dynamics.ts b/src/rendering/camera-dynamics.ts
+index 911857e..e9f57fb 100644
+--- a/src/rendering/camera-dynamics.ts
++++ b/src/rendering/camera-dynamics.ts
+@@ -72,2 +72,20 @@ export class ViewOrientation {
+   }
+ }
++
++/** Camera springs and pan/zoom consume the presented simulation clock. A paused
++ * frame can still change camera mode/free look, but cannot advance its inertia.
++ * Menu orbiting is separate, and seeks establish a new clock baseline. */
++export class CameraClock {
++  private time = NaN;
++  reset() {
++    this.time = NaN;
++  }
++  step(time: number, menu = false) {
++    if (!Number.isFinite(time)) throw new Error('Invalid camera presentation time');
++    const elapsed = time - this.time;
++    this.time = menu ? NaN : time;
++    return !menu && Number.isFinite(elapsed) && elapsed > 0 && elapsed <= 0.5
++      ? Math.min(elapsed, 0.08)
++      : 0;
++  }
++}
+diff --git a/src/rendering/renderer.ts b/src/rendering/renderer.ts
+index 48ee802..5deca73 100644
+--- a/src/rendering/renderer.ts
++++ b/src/rendering/renderer.ts
+@@ -5,5 +5,5 @@ import type { FrameMetrics } from '../core/performance.ts';
+ import type { BuildProgress } from './build-queue.ts';
+ import { TracksideDirector } from './trackside.ts';
+-import { InertialCamera, ViewOrientation } from './camera-dynamics.ts';
++import { CameraClock, InertialCamera, ViewOrientation } from './camera-dynamics.ts';
+ import { ReflectionSystem } from './reflections.ts';
+ import { DebrisView } from './debris.ts';
+@@ -81,4 +81,5 @@ export class RacingRenderer {
+   debug = false;
+   private follow = 0;
++  private cameraClock = new CameraClock();
+   private inertia = new InertialCamera();
+   private viewOrientation = new ViewOrientation();
+@@ -322,4 +323,5 @@ export class RacingRenderer {
+     this.motionBlur.reset();
+     this.audioView.reset();
++    this.cameraClock.reset();
+     const modes: CameraMode[] = ['chase', 'cockpit', 'pod', 'trackside'];
+     this.mode = mode ?? modes[(modes.indexOf(this.mode) + 1) % modes.length];
+@@ -335,4 +337,5 @@ export class RacingRenderer {
+     this.motionBlur.reset();
+     this.audioView.reset();
++    this.cameraClock.reset();
+     this.initialized = false;
+     this.inertia.reset();
+@@ -361,4 +364,6 @@ export class RacingRenderer {
+     this.setCars(b[H.CARS]);
+     this.orbitTime += dt;
++    const presented = this.presented.sample(a, b, alpha);
++    const cameraDt = this.cameraClock.step(presented[H.TIME], menu);
+     const time = b[H.TIME],
+       o = carBase(this.follow);
+@@ -406,5 +411,5 @@ export class RacingRenderer {
+         this.target,
+         this.temporary.set(b[o + F.VX], b[o + F.VY], b[o + F.VZ]),
+-        dt,
++        cameraDt,
+       );
+       this.desired.copy(this.trackside.position);
+@@ -414,14 +419,15 @@ export class RacingRenderer {
+       const seated = this.mode === 'cockpit' || this.mode === 'pod';
+       if (seated) {
+-        this.inertia.step(
+-          dt,
+-          b[o + F.G_LAT],
+-          b[o + F.G_LONG],
+-          b[o + F.G_VERT],
+-          b[o + F.IMPACT],
+-          this.shake,
+-        );
++        if (cameraDt > 0)
++          this.inertia.step(
++            cameraDt,
++            b[o + F.G_LAT],
++            b[o + F.G_LONG],
++            b[o + F.G_VERT],
++            b[o + F.IMPACT],
++            this.shake,
++          );
+         this.inertia.eye(car.root.position, car.root.quaternion, this.mode === 'pod', this.desired);
+-        const orientation = this.viewOrientation.update(car.root.quaternion, dt);
++        const orientation = this.viewOrientation.update(car.root.quaternion, cameraDt);
+         this.direction.set(0, -0.035, 1).applyQuaternion(orientation).normalize();
+         this.gaze.copy(this.desired).addScaledVector(this.direction, 40);
+@@ -452,6 +458,6 @@ export class RacingRenderer {
+       // Critically damped positional camera spring; bounded integration substeps.
+       const omega = 15,
+-        n = Math.ceil(dt * 120),
+-        h = dt / n;
++        n = Math.max(1, Math.ceil(cameraDt * 120)),
++        h = cameraDt / n;
+       for (let k = 0; k < n; k++) {
+         this.velocity.addScaledVector(
+@@ -475,5 +481,5 @@ export class RacingRenderer {
+     this.sun.target.updateMatrixWorld();
+     this.circuit.update(b);
+-    this.effectPlayback.update(this.presented.sample(a, b, alpha), !menu);
++    this.effectPlayback.update(presented, !menu);
+     this.debris.update(b);
+     this.pitCrew.update(b, this.camera.position, !menu);
+diff --git a/tests/camera.test.ts b/tests/camera.test.ts
+index 2dfd677..8ca4ded 100644
+--- a/tests/camera.test.ts
++++ b/tests/camera.test.ts
+@@ -42,2 +42,55 @@ it('uses LOD hysteresis and never reduces the player cockpit', () => {
+   expect(carLod(1000, 2, 'low', true)).toBe(0);
+ });
++
++it('freezes actual trackside gaze and cockpit spring state at a paused presentation time', async () => {
++  const { CameraClock, ViewOrientation } = await import('../src/rendering/camera-dynamics.ts');
++  const { TracksideDirector } = await import('../src/rendering/trackside.ts');
++  const { Track } = await import('../src/simulation/track.ts');
++  const clock = new CameraClock(),
++    director = new TracksideDirector(new Track('clear', true));
++  const position = new Vector3(),
++    velocity = new Vector3(0, 0, 30);
++  const spring = new InertialCamera(),
++    orientation = new ViewOrientation();
++  director.update(20, position, velocity, clock.step(0));
++  position.z = 1;
++  const dt = clock.step(1 / 30);
++  director.update(21, position, velocity, dt);
++  spring.step(dt, 2, -3, 1, 0.2, 1);
++  orientation.update(new Quaternion(), dt);
++  const expected = {
++    gaze: director.gaze.toArray(),
++    fov: director.fov,
++    offset: spring.offset.toArray(),
++    q: orientation.rotation.toArray(),
++  };
++  for (let i = 0; i < 30; i++) {
++    const pausedDt = clock.step(1 / 30);
++    expect(pausedDt).toBe(0);
++    director.update(21, position, velocity, pausedDt);
++    if (pausedDt > 0) spring.step(pausedDt, 2, -3, 1, 0.2, 1);
++    orientation.update(new Quaternion(), pausedDt);
++  }
++  expect({
++    gaze: director.gaze.toArray(),
++    fov: director.fov,
++    offset: spring.offset.toArray(),
++    q: orientation.rotation.toArray(),
++  }).toEqual(expected);
++});
++
++it('camera clock resumes from recorded time and rebaselines menus, seeks and cuts', async () => {
++  const { CameraClock } = await import('../src/rendering/camera-dynamics.ts');
++  const clock = new CameraClock();
++  expect(clock.step(2)).toBe(0);
++  expect(clock.step(2.05)).toBeCloseTo(0.05);
++  expect(clock.step(2.15)).toBe(0.08);
++  expect(clock.step(1)).toBe(0);
++  expect(clock.step(10)).toBe(0);
++  expect(clock.step(10.03, true)).toBe(0);
++  expect(clock.step(10.04)).toBe(0);
++  expect(clock.step(10.07)).toBeCloseTo(0.03);
++  clock.reset();
++  expect(clock.step(10.1)).toBe(0);
++  expect(() => clock.step(NaN)).toThrow();
++});

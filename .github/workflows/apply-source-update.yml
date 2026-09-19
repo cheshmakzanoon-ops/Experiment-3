@@ -8,7 +8,9 @@ permissions:
   contents: read
 concurrency:
   group: apex-source-update
-  cancel-in-progress: false
+  # A newer manifest makes the old candidate ineligible for the final HEAD check.
+  # Cancel obsolete work; every gate and the non-force publication check remain.
+  cancel-in-progress: true
 jobs:
   update:
     if: github.repository == 'cheshmakzanoon-ops/Experiment-3'
