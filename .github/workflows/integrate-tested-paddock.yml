@@ -1,0 +1,47 @@
+name: Publish tested paddock integration
+
+on:
+  push:
+    branches: [main]
+    paths: [.github/workflows/integrate-tested-paddock.yml]
+
+permissions:
+  contents: write
+
+jobs:
+  integrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Restore exact green-PR files
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin integrate-paddock-depth-20260919
+          test "$(git rev-parse origin/integrate-paddock-depth-20260919)" = "65aa63b0edc28434bc2da092b64fe67ad93e5da8"
+          git restore --source=origin/integrate-paddock-depth-20260919 --             src/rendering/circuit.ts             src/rendering/geometry.ts             src/rendering/paddock-detail.ts             tests/paddock-detail.test.ts
+          printf '%s  %s
+'             dc1fd2b37bee6eac7e03563ff12f0ce0bdaee125ffd13c6905dc0b04a265d43b src/rendering/circuit.ts             6533143069a210ed82c53b80803af890b5292fc2a1bf8c8a289fca31e98ecbe0 src/rendering/geometry.ts             893f6be1784d00139dad6c8d3542403f8a460979c1730995338101b3696dcf88 src/rendering/paddock-detail.ts             904b81ba0602ef072547c368ffdd088388415508544b74b560999ca36cf366e8 tests/paddock-detail.test.ts             | sha256sum -c -
+          test "$(sha256sum docs/MASTER_DIRECTIVE.md | cut -d' ' -f1)" = "f508a1b9be8e8a19a2ccc39d744e82d774cf95ecc773c12482efbcb9fb89f75c"
+      - run: npm ci --no-audit --no-fund
+      - run: npm run check
+      - name: Commit exact tested integration and remove this transport workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          test "$(git rev-parse origin/main)" = "$GITHUB_SHA"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm .github/workflows/integrate-tested-paddock.yml
+          git add src/rendering/circuit.ts src/rendering/geometry.ts src/rendering/paddock-detail.ts tests/paddock-detail.test.ts
+          git diff --cached --check
+          git commit -m "feat: publish tested paddock depth and stable batching"
+          git push origin HEAD:main
