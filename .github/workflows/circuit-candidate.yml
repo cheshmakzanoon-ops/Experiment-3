@@ -1,4 +1,4 @@
-name: Circuit candidate validation
+name: Grounded circuit candidate validation
 on:
   push:
     branches: [main]
@@ -19,24 +19,23 @@ jobs:
         with:
           node-version: '22'
           cache: npm
-      - name: Apply exact circuit source after verifying all transport hashes
+      - name: Restore reviewed circuit source and verify the complete grounding patch
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          git fetch --no-tags --depth=1 origin bc3a3113530cd7b0f17e288750a162b4ebe058a8
+          git restore --source=bc3a3113530cd7b0f17e288750a162b4ebe058a8 --worktree --staged README.md docs src tests e2e
           python3 - <<'PY'
           import base64,hashlib,json,lzma,os,pathlib,subprocess,urllib.request
           root='https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3'
-          parts=['07f618e2046c7d3d6349b3c41d997f19e6430533','6008a89ded1778594bdb74e03f6c395415581ce2','936bcc5f3cb558445bd51e0509d313d2f71e4d9f']
-          chunks=[]
-          for sha in parts:
-              request=urllib.request.Request(root+'/git/blobs/'+sha,headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json'})
-              with urllib.request.urlopen(request,timeout=30) as response:data=json.load(response)
-              chunk=base64.b64decode(data['content'])
-              assert hashlib.sha1(b'blob '+str(len(chunk)).encode()+b'\0'+chunk).hexdigest()==sha
-              chunks.append(chunk)
-          patch=lzma.decompress(base64.b64decode(b''.join(chunks),validate=True))
-          assert hashlib.sha256(patch).hexdigest()=='0407c102ee6bde785a08e8c029d1334cd559eb9e4078e8232fe64a74a357148c'
-          path=pathlib.Path(os.environ['RUNNER_TEMP'])/'circuit.patch';path.write_bytes(patch)
+          sha='49afa614e1db2b2131f59260919cf2acdf028e9b'
+          request=urllib.request.Request(root+'/git/blobs/'+sha,headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json'})
+          with urllib.request.urlopen(request,timeout=30) as response:data=json.load(response)
+          encoded=base64.b64decode(data['content'])
+          assert hashlib.sha1(b'blob '+str(len(encoded)).encode()+b'\0'+encoded).hexdigest()==sha
+          patch=lzma.decompress(base64.b64decode(encoded,validate=True))
+          assert hashlib.sha256(patch).hexdigest()=='0cf867b0fa7faf76bbb86dbf77f6fa52e2115cfc0e6df8a6c4ed480b22ad1c29'
+          path=pathlib.Path(os.environ['RUNNER_TEMP'])/'circuit-grounding.patch';path.write_bytes(patch)
           subprocess.run(['git','apply','--check',str(path)],check=True)
           subprocess.run(['git','apply',str(path)],check=True)
           subprocess.run(['git','add','README.md','docs','src','tests','e2e'],check=True)
@@ -60,7 +59,7 @@ jobs:
               with urllib.request.urlopen(request,timeout=30) as response:return json.load(response)
           parent=os.environ['GITHUB_SHA'];base=api('/git/commits/'+parent)['tree']['sha']
           files=subprocess.check_output(['git','diff','--cached','--name-only']).decode().splitlines()
-          expected=['README.md','docs/ASSET_PROVENANCE.md','docs/CIRCUIT_REFERENCE_CONTINUATION.md','docs/IMPLEMENTATION_MATRIX.md','e2e/06-circuit-survey.spec.ts','e2e/fixtures/circuit-survey.ts','src/rendering/circuit-barriers.ts','src/rendering/circuit-finish.ts','src/rendering/circuit.ts','src/rendering/daylight.ts','src/rendering/grandstand.ts','src/rendering/landscape.ts','src/rendering/renderer.ts','src/rendering/surface-detail.ts','tests/circuit-detail.test.ts','tests/daylight-environment.test.ts']
+          expected=['README.md','docs/ASSET_PROVENANCE.md','docs/CIRCUIT_REFERENCE_CONTINUATION.md','docs/IMPLEMENTATION_MATRIX.md','e2e/06-circuit-survey.spec.ts','e2e/fixtures/circuit-survey.ts','src/rendering/circuit-barriers.ts','src/rendering/circuit-finish.ts','src/rendering/circuit.ts','src/rendering/daylight.ts','src/rendering/grandstand.ts','src/rendering/ground-profile.ts','src/rendering/landscape.ts','src/rendering/renderer.ts','src/rendering/surface-detail.ts','tests/circuit-detail.test.ts','tests/daylight-environment.test.ts','tests/reference-rendering.test.ts']
           assert sorted(files)==sorted(expected)
           entries=[];hashes={}
           for path in files:
@@ -69,15 +68,15 @@ jobs:
               assert blob['sha']==hashlib.sha1(b'blob '+str(len(content)).encode()+b'\0'+content).hexdigest()
               entries.append({'path':path,'mode':'100644','type':'blob','sha':blob['sha']})
           tree=api('/git/trees',{'base_tree':base,'tree':entries})['sha']
-          commit=api('/git/commits',{'message':'feat: tested reference-led circuit candidate\n\nProfiled barriers, filtered fencing, original terraced grandstands, surface finish and weather-consistent sky. Strict check and seven focused browser cases passed. Full repository CI and explicit source publication remain separate. No photorealism-parity claim.','tree':tree,'parents':[parent]})['sha']
-          result={'candidate':commit,'tree':tree,'parent':parent,'files':hashes,'expected_unit_cases':538,'focused_browser_cases':7,'full_browser_cases':31,'visual_parity':'NOT achieved'}
+          commit=api('/git/commits',{'message':'feat: tested grounded circuit candidate\n\nProfiled barriers, filtered fencing, original terraced grandstands, surface finish, weather-consistent sky and contact-aligned apron triangles. Strict check and seven focused browser cases passed. Full repository CI and explicit source publication remain separate. No photorealism-parity claim.','tree':tree,'parents':[parent]})['sha']
+          result={'candidate':commit,'tree':tree,'parent':parent,'files':hashes,'expected_unit_cases':541,'focused_browser_cases':7,'full_browser_cases':31,'visual_parity':'NOT achieved'}
           (pathlib.Path(os.environ['RUNNER_TEMP'])/'circuit-candidate.json').write_text(json.dumps(result,indent=2)+'\n')
           print(json.dumps(result,indent=2))
           PY
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: circuit-candidate-validation
+          name: grounded-circuit-candidate-validation
           path: |
             test-results
             playwright-report
