@@ -1,0 +1,779 @@
+diff --git a/e2e/00-marbles.spec.ts b/e2e/00-marbles.spec.ts
+new file mode 100644
+index 0000000..d80afa7
+--- /dev/null
++++ b/e2e/00-marbles.spec.ts
+@@ -0,0 +1,55 @@
++import { expect, test } from '@playwright/test';
++import { build } from 'vite';
++import { resolve } from 'node:path';
++import type { verifyMarbleGPU } from './fixtures/marbles.ts';
++
++test('physical marble pickup drives road texture, individual tire materials and solid particles', async ({
++  page,
++}, info) => {
++  test.setTimeout(60000);
++  const built = await build({
++    configFile: false,
++    logLevel: 'error',
++    build: {
++      write: false,
++      minify: false,
++      lib: { entry: resolve('e2e/fixtures/marbles.ts'), name: 'MarbleOracle', formats: ['iife'] },
++    },
++  });
++  const output = Array.isArray(built) ? built[0] : built;
++  if (!('output' in output)) throw new Error('Missing marble fixture bundle');
++  const chunk = output.output.find((entry) => entry.type === 'chunk');
++  if (!chunk || chunk.type !== 'chunk') throw new Error('Missing marble fixture entry');
++  const errors: string[] = [];
++  page.on('pageerror', (error) => errors.push(error.message));
++  page.on('console', (message) => {
++    if (message.type() === 'error') errors.push(message.text());
++  });
++  await page.setContent('<!doctype html><title>Actual surface and tread GPU oracle</title>');
++  await page.addScriptTag({ content: chunk.code });
++  const measured = await page.evaluate(() =>
++    (
++      window as unknown as { MarbleOracle: { verifyMarbleGPU: typeof verifyMarbleGPU } }
++    ).MarbleOracle.verifyMarbleGPU(),
++  );
++  const { tireImage, ...metrics } = measured;
++  await info.attach('marble-gpu.json', {
++    body: JSON.stringify(metrics, null, 2),
++    contentType: 'application/json',
++  });
++  await info.attach('physical-tire-pickup.png', {
++    body: Buffer.from(tireImage.split(',')[1], 'base64'),
++    contentType: 'image/png',
++  });
++  expect(measured.pickup.every((value) => value > 0)).toBe(true);
++  expect(measured.contamination.every((value) => value > 0)).toBe(true);
++  for (let i = 0; i < 4; i++)
++    expect(measured.uniformCoverage[i]).toBeCloseTo(measured.contamination[i], 5);
++  expect(measured.encodedDensity).toBe(measured.expectedDensity);
++  expect(measured.roadChangedPixels).toBeGreaterThan(100);
++  expect(measured.tireChangedPixels).toBeGreaterThan(30);
++  expect(measured.chipChangedPixels).toBeGreaterThan(5);
++  expect(measured.diagnostics.spawned[measured.marbleKind]).toBeGreaterThan(0);
++  expect(measured.clearDifferences).toBe(0);
++  expect(errors).toEqual([]);
++});
+diff --git a/e2e/01-worker-portability.spec.ts b/e2e/01-worker-portability.spec.ts
+new file mode 100644
+index 0000000..7038975
+--- /dev/null
++++ b/e2e/01-worker-portability.spec.ts
+@@ -0,0 +1,82 @@
++import { expect, test } from '@playwright/test';
++import { build } from 'vite';
++import { resolve } from 'node:path';
++import type { verifyWorkerPortability } from './fixtures/worker-portability.ts';
++
++test('physics and CSV workers run when the JS bundle is served from a different origin', async ({
++  page,
++}, info) => {
++  test.setTimeout(60000);
++  const built = await build({
++    configFile: false,
++    logLevel: 'error',
++    worker: { format: 'es' },
++    build: {
++      write: false,
++      target: 'es2022',
++      lib: {
++        entry: resolve('e2e/fixtures/worker-portability.ts'),
++        name: 'PortabilityOracle',
++        formats: ['iife'],
++      },
++    },
++  });
++  const output = Array.isArray(built) ? built[0] : built;
++  if (!('output' in output)) throw new Error('Missing worker oracle build');
++  const chunk = output.output.find((entry) => entry.type === 'chunk');
++  if (!chunk || chunk.type !== 'chunk') throw new Error('Missing worker oracle entry');
++  const appOrigin = 'https://app.fixture.test';
++  const assetOrigin = 'https://assets.fixture.test';
++  const errors: string[] = [],
++    workers: string[] = [],
++    requests: string[] = [];
++  page.on('pageerror', (error) => errors.push(error.message));
++  page.on('console', (message) => {
++    if (message.type() === 'error') errors.push(message.text());
++  });
++  page.on('worker', (worker) => workers.push(worker.url()));
++  await page.route('**/*', async (route) => {
++    const url = route.request().url();
++    requests.push(url);
++    if (url === appOrigin + '/')
++      await route.fulfill({
++        contentType: 'text/html',
++        body: `<!doctype html><title>Two-origin worker acceptance</title><link rel="icon" href="data:,"><script src="${assetOrigin}/bundle.js" crossorigin="anonymous"></script>`,
++      });
++    else if (url === assetOrigin + '/bundle.js')
++      await route.fulfill({
++        contentType: 'text/javascript',
++        headers: { 'Access-Control-Allow-Origin': appOrigin },
++        body: chunk.code,
++      });
++    else {
++      errors.push('Unexpected HTTP dependency: ' + url);
++      await route.abort();
++    }
++  });
++  await page.goto(appOrigin + '/');
++  const measured = await page.evaluate(() =>
++    (
++      window as unknown as {
++        PortabilityOracle: { verifyWorkerPortability: typeof verifyWorkerPortability };
++      }
++    ).PortabilityOracle.verifyWorkerPortability(),
++  );
++  await expect.poll(() => page.workers().length).toBe(0);
++  await info.attach('worker-portability.json', {
++    body: JSON.stringify({ measured, workers, requests, errors }, null, 2),
++    contentType: 'application/json',
++  });
++  expect(measured.documentOrigin).toBe(appOrigin);
++  expect(measured.tick).toBeGreaterThanOrEqual(130);
++  expect(measured.finite).toBe(true);
++  expect(measured.surfaceCells).toBe(3584);
++  expect(measured.telemetryRows).toBeGreaterThanOrEqual(60);
++  expect(measured.csvColumns).toBe(203);
++  expect(measured.csvExact).toBe(true);
++  expect(measured.pickupColumns).toHaveLength(4);
++  expect(workers).toHaveLength(2);
++  expect(workers.every((url) => url.startsWith('blob:' + appOrigin + '/'))).toBe(true);
++  expect(requests).toEqual([appOrigin + '/', assetOrigin + '/bundle.js']);
++  expect(errors).toEqual([]);
++});
+diff --git a/e2e/application.spec.ts b/e2e/application.spec.ts
+index af14e19..9e7d988 100644
+--- a/e2e/application.spec.ts
++++ b/e2e/application.spec.ts
+@@ -145,6 +145,12 @@ test('recorded telemetry exports and replay leaves live physics paused', async (
+   const csv = (await readFile((await csvDownload.path())!, 'utf8')).trim().split('\n');
+   const columns = csv[0].split(',');
+-  expect(columns).toHaveLength(199);
+-  expect(columns.slice(-2)).toEqual(['wind_x_mps', 'wind_z_mps']);
++  expect(columns).toHaveLength(203);
++  expect(columns.slice(197, 199)).toEqual(['wind_x_mps', 'wind_z_mps']);
++  expect(columns.slice(-4)).toEqual([
++    'marble_pickup_fr_tread_covers',
++    'marble_pickup_fl_tread_covers',
++    'marble_pickup_rr_tread_covers',
++    'marble_pickup_rl_tread_covers',
++  ]);
+   expect(columns).toContain('clutch_torque_Nm');
+   expect(columns).toContain('motor_power_W');
+diff --git a/e2e/fixtures/marbles.ts b/e2e/fixtures/marbles.ts
+new file mode 100644
+index 0000000..40793d5
+--- /dev/null
++++ b/e2e/fixtures/marbles.ts
+@@ -0,0 +1,134 @@
++import * as T from 'three';
++import { Simulation } from '../../src/simulation/world.ts';
++import { DEFAULT_OPTIONS } from '../../src/simulation/config.ts';
++import { F, W, WHEEL_BASE, WHEEL_STRIDE, carBase } from '../../src/simulation/protocol.ts';
++import { CircuitScene } from '../../src/rendering/circuit.ts';
++import { FormulaCar } from '../../src/rendering/car.ts';
++import { Effects, PARTICLE_KIND } from '../../src/rendering/effects.ts';
++
++/** Component GPU oracle, not the full section-146 driving acceptance. A declared
++ * pre-rubbered track fixture exercises the unmodified production physics; clean
++ * comparison images isolate material and particle output, not fake race events. */
++export function verifyMarbleGPU() {
++  const sim = new Simulation({ ...DEFAULT_OPTIONS, mode: 'practice', opponents: 0 });
++  sim.track.marbles.fill(0.75);
++  sim.autoPlayer = true;
++  const initial = sim.makeFrame();
++  for (let tick = 0; tick < 360; tick++) sim.step(1 / 120);
++  const frame = sim.makeFrame(),
++    o = carBase(0);
++  const renderer = new T.WebGLRenderer({ antialias: false, preserveDrawingBuffer: true });
++  renderer.setSize(256, 256);
++  document.body.append(renderer.domElement);
++  const target = new T.WebGLRenderTarget(256, 256),
++    scene = new T.Scene();
++  scene.background = new T.Color(0xb9c4ca);
++  scene.add(new T.HemisphereLight(0xffffff, 0x606060, 3));
++  const camera = new T.PerspectiveCamera(60, 1, 0.05, 1000);
++  const circuit = new CircuitScene(sim.track, true),
++    effects = new Effects(),
++    car = new FormulaCar(0);
++  const geometry = new T.PlaneGeometry(6, 6);
++  geometry.rotateX(-Math.PI / 2);
++  const pos = geometry.getAttribute('position'),
++    uv = new Float32Array(pos.count * 2);
++  for (let i = 0; i < pos.count; i++) {
++    uv[i * 2] = 0.5 + pos.getX(i) / 16;
++    uv[i * 2 + 1] = 0.2 + pos.getZ(i) / sim.track.length;
++  }
++  geometry.setAttribute('trackUV', new T.BufferAttribute(uv, 2));
++  const road = new T.Mesh(geometry, circuit.roadMaterial);
++  scene.add(road);
++  const pixels = () => {
++    const data = new Uint8Array(256 * 256 * 4);
++    renderer.setRenderTarget(target);
++    renderer.render(scene, camera);
++    renderer.readRenderTargetPixels(target, 0, 0, 256, 256, data);
++    return data;
++  };
++  const changed = (a: Uint8Array, b: Uint8Array) => {
++    let n = 0;
++    for (let i = 0; i < a.length; i += 4)
++      if (a[i] !== b[i] || a[i + 1] !== b[i + 1] || a[i + 2] !== b[i + 2]) n++;
++    return n;
++  };
++  try {
++    camera.position.set(0, 3.5, 3.5);
++    camera.lookAt(0, 0, 0);
++    circuit.updateSurface(
++      sim.track.water,
++      sim.track.rubber,
++      new Float32Array(sim.track.marbles.length),
++    );
++    const cleanRoad = pixels();
++    circuit.updateSurface(sim.track.water, sim.track.rubber, sim.track.marbles);
++    const marbleRoad = pixels(),
++      roadChangedPixels = changed(cleanRoad, marbleRoad);
++    const encodedDensity = circuit.stateBytes[2],
++      expectedDensity = Math.round(sim.track.marbles[0] * 255);
++    scene.remove(road);
++    scene.add(car.root);
++    const q = new T.Quaternion(frame[o + F.QX], frame[o + F.QY], frame[o + F.QZ], frame[o + F.QW]);
++    const offset = new T.Vector3(2.3, 0.9, 2.5).applyQuaternion(q);
++    camera.position.set(frame[o] + offset.x, frame[o + 1] + offset.y, frame[o + 2] + offset.z);
++    camera.lookAt(frame[o], frame[o + 1] - 0.2, frame[o + 2]);
++    const clean = frame.slice();
++    for (let wheel = 0; wheel < 4; wheel++) {
++      const p = o + WHEEL_BASE + wheel * WHEEL_STRIDE;
++      clean[p + W.DIRT] = clean[p + W.WEAR] = clean[p + W.BLISTERING] = clean[p + W.GRAINING] = 0;
++    }
++    car.update(clean, clean, o, 1, 1 / 60, 3, false);
++    const cleanTire = pixels();
++    car.update(frame, frame, o, 1, 1 / 60, 3, false);
++    const dirtyTire = pixels();
++    const tireChangedPixels = changed(cleanTire, dirtyTire);
++    const uniformCoverage = car.treads.map((t) => t.condition.value.x);
++    renderer.setRenderTarget(null);
++    renderer.render(scene, camera);
++    const tireImage = renderer.domElement.toDataURL('image/png');
++    scene.remove(car.root);
++    scene.add(effects.group);
++    const blank = pixels();
++    effects.update(initial, 1 / 60);
++    effects.update(frame, 1 / 60);
++    const chips = pixels(),
++      chipChangedPixels = changed(blank, chips);
++    const diagnostics = effects.diagnostics();
++    effects.clear();
++    const clearDifferences = changed(blank, pixels());
++    return {
++      roadChangedPixels,
++      tireChangedPixels,
++      chipChangedPixels,
++      clearDifferences,
++      encodedDensity,
++      expectedDensity,
++      diagnostics,
++      marbleKind: PARTICLE_KIND.MARBLE,
++      uniformCoverage,
++      tireImage,
++      pickup: sim.cars[0].tires.map((t) => t.marblePickup),
++      contamination: sim.cars[0].tires.map((t) => t.dirt),
++      speedMps: sim.cars[0].speed,
++    };
++  } finally {
++    const geometries = new Set<T.BufferGeometry>([geometry]);
++    const materials = new Set<T.Material>([circuit.roadMaterial]);
++    const textures = new Set<T.Texture>([circuit.stateTexture]);
++    for (const root of [scene, car.root, circuit.group, effects.group])
++      root.traverse((object) => {
++        if (!(object instanceof T.Mesh || object instanceof T.Points)) return;
++        geometries.add(object.geometry);
++        for (const material of Array.isArray(object.material) ? object.material : [object.material])
++          materials.add(material);
++      });
++    for (const m of materials)
++      for (const value of Object.values(m)) if (value instanceof T.Texture) textures.add(value);
++    for (const g of geometries) g.dispose();
++    for (const m of materials) m.dispose();
++    for (const t of textures) t.dispose();
++    target.dispose();
++    renderer.dispose();
++    renderer.forceContextLoss();
++  }
++}
+diff --git a/e2e/fixtures/worker-portability.ts b/e2e/fixtures/worker-portability.ts
+new file mode 100644
+index 0000000..d753a4b
+--- /dev/null
++++ b/e2e/fixtures/worker-portability.ts
+@@ -0,0 +1,78 @@
++import PhysicsWorker from '../../src/workers/physics.worker.ts?worker&inline';
++import { TelemetryExport } from '../../src/storage/telemetry-export.ts';
++import { DEFAULT_OPTIONS } from '../../src/simulation/config.ts';
++import { H, type FromWorker } from '../../src/simulation/protocol.ts';
++import { packTelemetry, TELEMETRY_STRIDE } from '../../src/storage/telemetry-schema.ts';
++
++/** Execute the actual physics entry and production CSV export class. The test's
++ * two routed origins only replace HTTP delivery, never worker results. */
++export async function verifyWorkerPortability() {
++  const physics = new PhysicsWorker({ name: 'apex-physics-portability-oracle' });
++  const exporter = new TelemetryExport();
++  let timeout: ReturnType<typeof setTimeout> | undefined;
++  let surfaceCells = 0;
++  let telemetryRows = 0;
++  try {
++    const frame = await new Promise<Float32Array>((resolve, reject) => {
++      timeout = setTimeout(() => reject(new Error('Physics worker did not advance')), 20000);
++      physics.onerror = (event) => reject(new Error(event.message));
++      physics.onmessageerror = () => reject(new Error('Physics message deserialization failed'));
++      physics.onmessage = (event: MessageEvent<FromWorker>) => {
++        const message = event.data;
++        if (message.type === 'error' || message.type === 'recordingWarning') {
++          reject(new Error(message.message));
++        } else if (message.type === 'surface') {
++          if (
++            !message.marbles.every(Number.isFinite) ||
++            message.marbles.length !== message.water.length
++          )
++            reject(new Error('Invalid worker marble surface'));
++          surfaceCells = message.marbles.length;
++        } else if (message.type === 'frame') {
++          const received = new Float32Array(message.buffer);
++          const ready = received[H.TICK] >= 130 && surfaceCells > 0;
++          const saved = ready ? received.slice() : null;
++          physics.postMessage({ type: 'recycle', buffer: message.buffer }, [message.buffer]);
++          if (saved) resolve(saved);
++        } else if (message.type === 'telemetry') {
++          telemetryRows += message.rows;
++          physics.postMessage({ type: 'recycleTelemetry', buffer: message.buffer }, [
++            message.buffer,
++          ]);
++        } else if (message.type === 'replayFrames') {
++          physics.postMessage({ type: 'recycleReplay', buffer: message.buffer }, [message.buffer]);
++        }
++      };
++      physics.postMessage({
++        type: 'init',
++        options: { ...DEFAULT_OPTIONS, mode: 'practice', opponents: 0 },
++      });
++      physics.postMessage({ type: 'autopilot', value: true });
++      physics.postMessage({ type: 'pause', value: false });
++    });
++    clearTimeout(timeout);
++    physics.postMessage({ type: 'pause', value: true });
++    const values = new Float32Array(TELEMETRY_STRIDE);
++    packTelemetry(frame, values, 0);
++    const expected = Array.from(values);
++    const csv = (await (await exporter.export(values, 1)).text()).trim().split('\n');
++    const header = csv[0].split(',');
++    const actual = csv[1].split(',').map(Number);
++    return {
++      documentOrigin: location.origin,
++      tick: frame[H.TICK],
++      finite: frame.every(Number.isFinite),
++      surfaceCells,
++      telemetryRows,
++      csvColumns: header.length,
++      pickupColumns: header.slice(-4),
++      csvExact:
++        expected.length === actual.length &&
++        expected.every((value, index) => value === actual[index]),
++    };
++  } finally {
++    clearTimeout(timeout);
++    physics.terminate();
++    exporter.cancel();
++  }
++}
+diff --git a/tests/marbles.test.ts b/tests/marbles.test.ts
+new file mode 100644
+index 0000000..3104e4b
+--- /dev/null
++++ b/tests/marbles.test.ts
+@@ -0,0 +1,363 @@
++import { createHash } from 'node:crypto';
++import { describe, expect, it } from 'vitest';
++import * as T from 'three';
++import { updateContamination } from '../src/simulation/contamination.ts';
++import {
++  CELL_COLS,
++  MARBLE_CELL_CAPACITY,
++  SURFACE,
++  Track,
++  surfaceSample,
++  trackPoint,
++} from '../src/simulation/track.ts';
++import { makeTire, peakGrip, solveTire } from '../src/simulation/tire.ts';
++import { Vehicle } from '../src/simulation/vehicle.ts';
++import { Simulation } from '../src/simulation/world.ts';
++import { DEFAULT_OPTIONS } from '../src/simulation/config.ts';
++import { CAR_STRIDE, F, H, HEADER, W, WHEEL_BASE, carBase } from '../src/simulation/protocol.ts';
++import { Effects, PARTICLE_KIND } from '../src/rendering/effects.ts';
++import { packTelemetry, CHANNELS, TELEMETRY_STRIDE } from '../src/storage/telemetry-schema.ts';
++import {
++  SessionReplay,
++  type ReplayPage,
++  type ReplayPageStore,
++} from '../src/storage/replay-pages.ts';
++
++const road = () => ({ ...surfaceSample(), marbles: 0.7 });
++function snapshot(time = 0, pickup = 0) {
++  const f = new Float32Array(HEADER + CAR_STRIDE),
++    o = carBase(0);
++  f[H.TIME] = time;
++  f[H.CARS] = 1;
++  f[o + F.QW] = 1;
++  f[o + F.SPEED] = 30;
++  f[o + F.VZ] = 30;
++  f[o + WHEEL_BASE + W.LOAD] = 2200;
++  f[o + F.MARBLE_PICKUP_FR] = pickup;
++  return f;
++}
++function dispose(e: Effects) {
++  e.group.traverse((o) => {
++    if (o instanceof T.Points) {
++      o.geometry.dispose();
++      (o.material as T.Material).dispose();
++    }
++  });
++}
++class Pages implements ReplayPageStore {
++  pages = new Map<number, ReplayPage>();
++  async put(p: ReplayPage) {
++    this.pages.set(p.id, structuredClone(p));
++  }
++  async get(id: number) {
++    return structuredClone(this.pages.get(id)!);
++  }
++  async dispose() {
++    this.pages.clear();
++  }
++}
++
++describe('physical loose rubber and tire contamination', () => {
++  it('accumulates real contamination and retains its grip penalty after returning to clean asphalt', () => {
++    const t = makeTire('medium'),
++      s = road(),
++      clean = surfaceSample();
++    const cleanGrip = peakGrip(t, 2200, clean, 30);
++    for (let i = 0; i < 240; i++) updateContamination(t, s, 2200, 30, 90, 1 / 240);
++    expect(t.dirt).toBeGreaterThan(0.3);
++    expect(t.marblePickup).toBeGreaterThan(t.dirt); // some pickup is simultaneously shed
++    expect(peakGrip(t, 2200, clean, 30)).toBeLessThan(cleanGrip * 0.9);
++    const dirty = t.dirt;
++    for (let i = 0; i < 2400; i++) updateContamination(t, clean, 2200, 30, 90, 1 / 240);
++    expect(t.dirt).toBeLessThan(dirty * 0.5);
++    expect(peakGrip(t, 2200, clean, 30)).toBeGreaterThan(cleanGrip * (1 - 0.34 * dirty));
++  });
++  it('uses exact bounded integration rather than a render-frequency or Euler accumulation', () => {
++    const one = makeTire('medium'),
++      many = makeTire('medium'),
++      s = road();
++    one.dirt = many.dirt = 0.25;
++    updateContamination(one, s, 2200, 40, 120, 2);
++    for (let i = 0; i < 480; i++) updateContamination(many, s, 2200, 40, 120, 1 / 240);
++    expect(many.dirt).toBeCloseTo(one.dirt, 12);
++    expect(many.marblePickup).toBeCloseTo(one.marblePickup, 12);
++    for (let i = 0; i < 4000; i++) updateContamination(many, s, 2200, 80, 240, 1 / 240);
++    expect(many.dirt).toBeGreaterThanOrEqual(0);
++    expect(many.dirt).toBeLessThanOrEqual(1);
++    expect(Number.isFinite(many.marblePickup)).toBe(true);
++    expect(() => updateContamination(many, s, 2200, 40, 120, NaN)).toThrow();
++  });
++  it('does not collect or shed material while airborne or manufacture it under a stationary car', () => {
++    for (const surface of [SURFACE.ASPHALT, SURFACE.GRASS, SURFACE.GRAVEL, SURFACE.PIT]) {
++      const t = makeTire('medium'),
++        s = { ...road(), surface };
++      t.dirt = 0.4;
++      updateContamination(t, s, 0, 80, 240, 1);
++      expect(t.dirt).toBe(0.4);
++      updateContamination(t, s, 2200, 0, 0, 1);
++      expect(t.dirt).toBe(0.4);
++      expect(t.marblePickup).toBe(0);
++    }
++  });
++  it('does not mislabel grass dirt or a pit-lane contact as road-marble pickup', () => {
++    for (const surface of [SURFACE.GRASS, SURFACE.GRAVEL, SURFACE.PIT]) {
++      const t = makeTire('medium'),
++        s = { ...road(), surface };
++      updateContamination(t, s, 2200, 30, 90, 1);
++      expect(t.marblePickup).toBe(0);
++      expect(t.dirt > 0).toBe(surface !== SURFACE.PIT);
++    }
++  });
++  it('handles reverse rolling symmetrically and finite material at extreme exposure', () => {
++    const a = makeTire('medium'),
++      b = makeTire('medium'),
++      s = road();
++    updateContamination(a, s, 2200, 40, 120, 0.5);
++    updateContamination(b, s, 2200, -40, -120, 0.5);
++    expect(a.dirt).toBe(b.dirt);
++    expect(a.marblePickup).toBe(b.marblePickup);
++    const limited = makeTire('medium');
++    s.marbles = 0.00001;
++    updateContamination(limited, s, 2200, 1000, 3000, 10000);
++    expect(limited.marblePickup).toBeLessThanOrEqual(s.marbles * MARBLE_CELL_CAPACITY);
++    expect(limited.dirt).toBeGreaterThanOrEqual(0);
++  });
++  it('runs the contamination model inside the production implicit tire-force solver', () => {
++    const t = makeTire('medium');
++    t.omega = 30 / t.radius;
++    for (let i = 0; i < 120; i++) solveTire(t, 30, 1, 2200, 0, 0, road(), 0, 1 / 240);
++    expect(t.marblePickup).toBeGreaterThan(0.1);
++    expect(t.dirt).toBeGreaterThan(0.1);
++    expect(Number.isFinite(t.fx + t.fy + t.omega + t.surfaceTemp)).toBe(true);
++  });
++  it('depletes the touched cell and does not change a neighbouring cell merely by pickup', () => {
++    const track = new Track('clear', true),
++      cell = CELL_COLS * 10;
++    track.marbles[cell] = 0.7;
++    track.marbles[cell + 1] = 0.3;
++    const before = track.marbles[cell],
++      other = track.marbles[cell + 1];
++    track.interact(cell, 2200, 0, 30, 1 / 240, SURFACE.ASPHALT, 0.25);
++    expect(track.marbles[cell]).toBeCloseTo(before - 0.25 / MARBLE_CELL_CAPACITY, 6);
++    expect(track.marbles[cell + 1]).toBe(other);
++    const rubber = track.rubber.slice(),
++      marbles = track.marbles.slice(),
++      water = track.water.slice();
++    track.interact(cell, 2200, 0, 0, 1);
++    expect(track.rubber).toEqual(rubber);
++    expect(track.marbles).toEqual(marbles);
++    for (const surface of [SURFACE.GRASS, SURFACE.GRAVEL, SURFACE.PIT])
++      track.interact(cell, 2200, 100000, 40, 1, surface, 0.5);
++    expect(track.rubber).toEqual(rubber);
++    expect(track.marbles).toEqual(marbles);
++    expect(track.water).toEqual(water);
++  });
++  it('does not sample clamped asphalt marbles or rubber for grass and pit-lane contacts', () => {
++    const track = new Track('clear', true),
++      p = trackPoint(),
++      s = surfaceSample();
++    track.marbles.fill(0.8);
++    track.rubber.fill(0.7);
++    track.at(550, p);
++    track.sample(p.x + p.nx * (p.width + 6), p.z + p.nz * (p.width + 6), s);
++    expect([SURFACE.GRASS, SURFACE.GRAVEL]).toContain(s.surface);
++    expect(s.marbles).toBe(0);
++    expect(s.rubber).toBe(0);
++    track.at(80, p);
++    track.sample(p.x + p.nx * 22, p.z + p.nz * 22, s);
++    expect(s.surface).toBe(SURFACE.PIT);
++    expect(s.marbles).toBe(0);
++    expect(s.rubber).toBe(0);
++  });
++  it('couples production vehicle contacts, pickup counters and actual track depletion', () => {
++    const track = new Track('clear', true),
++      car = new Vehicle(0);
++    track.marbles.fill(0.7);
++    track.windX = track.windZ = 0;
++    car.place(track, 450);
++    car.body.velocity.set(car.trackPosition.tx * 30, 0, car.trackPosition.tz * 30);
++    for (const t of car.tires) t.omega = 30 / t.radius;
++    const initial = track.marbles.reduce((a, b) => a + b, 0);
++    for (let i = 0; i < 120; i++) car.step(1 / 240, track);
++    expect(car.tires.every((t) => t.marblePickup > 0.1 && t.dirt > 0.1)).toBe(true);
++    expect(track.marbles.reduce((a, b) => a + b, 0)).toBeLessThan(initial);
++    expect(car.body.position.finite() && car.body.velocity.finite()).toBe(true);
++    car.replaceTires('wet');
++    expect(
++      car.tires.every((t) => t.dirt === 0 && t.marblePickup === 0 && t.compound === 'wet'),
++    ).toBe(true);
++  });
++  it('exports all four measured pickup counters without moving existing snapshot offsets', () => {
++    const sim = new Simulation({ ...DEFAULT_OPTIONS, opponents: 0, mode: 'practice' });
++    const out = new Float32Array(TELEMETRY_STRIDE);
++    sim.cars[0].tires.forEach((t, i) => {
++      t.marblePickup = i * 0.25;
++    });
++    const frame = sim.makeFrame();
++    packTelemetry(frame, out, 0);
++    for (const [i, wheel] of ['fr', 'fl', 'rr', 'rl'].entries()) {
++      expect(frame[carBase(0) + F.MARBLE_PICKUP_FR + i]).toBe(i * 0.25);
++      expect(out[CHANNELS.indexOf(`marble_pickup_${wheel}_tread_covers`)]).toBe(i * 0.25);
++    }
++    expect(frame.length).toBe(HEADER + CAR_STRIDE);
++  });
++});
++
++describe('pickup-driven solid particle pool', () => {
++  it.each([24, 30, 60, 120, 144])('emits the same cumulative contact work at %i FPS', (hz) => {
++    const e = new Effects();
++    try {
++      e.update(snapshot(), 1 / hz);
++      for (let i = 1; i <= hz; i++) e.update(snapshot(i / hz, (0.5 * i) / hz), 1 / hz);
++      expect(e.diagnostics().spawned[PARTICLE_KIND.MARBLE]).toBe(160);
++      expect(e.diagnostics().active.reduce((a, b) => a + b)).toBeLessThanOrEqual(
++        e.diagnostics().capacity,
++      );
++    } finally {
++      dispose(e);
++    }
++  });
++  it('cannot manufacture new events by redisplaying a snapshot or moving the brake pedal', () => {
++    const e = new Effects(),
++      f = snapshot(1, 0.5);
++    try {
++      e.update(snapshot(), 0.1);
++      e.update(f, 0.1);
++      const total = e.diagnostics().spawned[PARTICLE_KIND.MARBLE];
++      f[carBase(0) + F.BRAKE] = 1;
++      for (let i = 0; i < 100; i++) e.update(f, 0.01);
++      expect(e.diagnostics().spawned[PARTICLE_KIND.MARBLE]).toBe(total);
++    } finally {
++      dispose(e);
++    }
++  });
++  it('does not produce a catch-up burst after tire replacement, rewind or disabled/replay presentation', () => {
++    const e = new Effects();
++    try {
++      e.update(snapshot(10, 5), 0.1);
++      expect(e.diagnostics().spawned[5]).toBe(0);
++      e.update(snapshot(11, 0), 0.1);
++      expect(e.diagnostics().spawned[5]).toBe(0);
++      e.update(snapshot(2, 9), 0.1);
++      expect(e.diagnostics().spawned[5]).toBe(0);
++      e.enabled = false;
++      e.update(snapshot(3, 10), 0.1);
++      e.enabled = true;
++      e.update(snapshot(4, 10), 0.1);
++      expect(e.diagnostics().spawned[5]).toBe(0);
++      e.update(snapshot(5, 11), 0.1, false);
++      e.update(snapshot(6, 11), 0.1);
++      expect(e.diagnostics().spawned[5]).toBe(0);
++      e.clear();
++      expect(e.diagnostics().active.reduce((a, b) => a + b)).toBe(0);
++    } finally {
++      dispose(e);
++    }
++  });
++  it('does not emit airborne or off-track events even if a stale counter changes', () => {
++    for (const surface of [SURFACE.ASPHALT, SURFACE.GRASS, SURFACE.GRAVEL, SURFACE.PIT]) {
++      const e = new Effects(),
++        f = snapshot(1, 0.5),
++        p = carBase(0) + WHEEL_BASE;
++      try {
++        e.update(snapshot(), 0.1);
++        f[p + W.SURFACE] = surface;
++        if (surface === SURFACE.ASPHALT) f[p + W.LOAD] = 0;
++        e.update(f, 0.1);
++        expect(e.diagnostics().spawned[5]).toBe(0);
++      } finally {
++        dispose(e);
++      }
++    }
++  });
++});
++
++it('uploads zero opacity immediately when particles are cleared on a paused frame', () => {
++  const effects = new Effects();
++  try {
++    effects.update(snapshot(), 0.1);
++    effects.update(snapshot(1, 0.5), 0.1);
++    const points = effects.group.children[0] as T.Points;
++    const opacity = points.geometry.getAttribute('opacity') as T.BufferAttribute;
++    const version = opacity.version;
++    expect(Array.from(opacity.array).some((value) => value > 0)).toBe(true);
++    effects.clear();
++    expect(opacity.version).toBeGreaterThan(version);
++    expect(Array.from(opacity.array).every((value) => value === 0)).toBe(true);
++  } finally {
++    dispose(effects);
++  }
++});
++
++describe('three-channel replay surface history', () => {
++  it('restores historical marble density and per-wheel counters after page eviction and backward seeks', async () => {
++    const store = new Pages(),
++      r = new SessionReplay(1, store, undefined, 2);
++    r.recordSurface(
++      new Float32Array([0.2, 0.4]),
++      new Float32Array([0.3, 0.6]),
++      0,
++      new Float32Array([0.1, 0.7]),
++    );
++    for (let i = 0; i < 20; i++) {
++      if (i === 10)
++        r.recordSurface(
++          new Float32Array([1, 2]),
++          new Float32Array([0.8, 0.9]),
++          i,
++          new Float32Array([0.9, 0.2]),
++        );
++      r.append(snapshot(i, i / 10));
++      await r.settle();
++    }
++    const a = r.makeFrame(),
++      b = r.makeFrame();
++    for (let j = 0; j < 3 && r.sample(15, a, b) === null; j++) await r.settle();
++    expect(r.surfaceState.marbles[0]).toBeCloseTo(0.9, 4);
++    for (let j = 0; j < 3 && r.sample(1, a, b) === null; j++) await r.settle();
++    expect(r.surfaceState.marbles[0]).toBeCloseTo(0.1, 4);
++    expect(r.surfaceState.marbles[1]).toBeCloseTo(0.7, 4);
++    expect(a[carBase(0) + F.MARBLE_PICKUP_FR]).toBeCloseTo(0.1, 6);
++    expect(r.error).toBeNull();
++    await r.dispose();
++  });
++  it.each(['shape', 'nonfinite', 'empty'] as const)(
++    'rejects %s surface input rather than recording fabricated state',
++    async (fault) => {
++      const r = new SessionReplay(1, new Pages());
++      const water = new Float32Array(fault === 'empty' ? 0 : 2),
++        rubber = water.slice();
++      const marble = new Float32Array(fault === 'shape' ? 1 : water.length);
++      if (fault === 'nonfinite') marble[0] = NaN;
++      r.recordSurface(water, rubber, 0, marble);
++      expect(r.error).toContain('Invalid replay surface');
++      await r.dispose();
++    },
++  );
++  it('rejects a corrupted stored surface tuple before exposing it to the renderer', async () => {
++    const store = new Pages(),
++      r = new SessionReplay(1, store, undefined, 2);
++    r.recordSurface(new Float32Array([0]), new Float32Array([0]), 0, new Float32Array([0.4]));
++    for (let i = 0; i < 20; i++) {
++      r.append(snapshot(i));
++      await r.settle();
++    }
++    store.pages.get(0)!.surfaces[0].data = new Uint16Array(2);
++    r.sample(0, r.makeFrame(), r.makeFrame());
++    await r.settle();
++    expect(r.error).toContain('Incompatible replay page');
++    await r.dispose();
++  });
++});
++
++it('appends pickup columns without moving any of the existing 199 CSV fields', () => {
++  expect(createHash('sha256').update(CHANNELS.slice(0, 199).join(',')).digest('hex')).toBe(
++    '204164f2d43580bb44f4ce5735e58106f6bc1908ba48ae5e25ba940d5ef123b3',
++  );
++  expect(CHANNELS.slice(-4)).toEqual([
++    'marble_pickup_fr_tread_covers',
++    'marble_pickup_fl_tread_covers',
++    'marble_pickup_rr_tread_covers',
++    'marble_pickup_rl_tread_covers',
++  ]);
++});
+diff --git a/tests/recording.test.ts b/tests/recording.test.ts
+index 92273ad..25ad1d6 100644
+--- a/tests/recording.test.ts
++++ b/tests/recording.test.ts
+@@ -55,5 +55,5 @@ function pose(i: number) {
+ describe('real-state telemetry', () => {
+   it('has unique named fields and faithfully exports each wheel and hybrid power', async () => {
+-    expect(CHANNELS.length).toBe(199);
++    expect(CHANNELS.length).toBe(203);
+     expect(new Set(CHANNELS).size).toBe(CHANNELS.length);
+     const f = pose(0),
+@@ -70,5 +70,5 @@ describe('real-state telemetry', () => {
+     const text = await telemetryCsv(out, 1).text();
+     expect(text.trim().split('\n')).toHaveLength(2);
+-    expect(text.split('\n')[1].split(',')).toHaveLength(199);
++    expect(text.split('\n')[1].split(',')).toHaveLength(203);
+     out[5] = NaN;
+     expect(() => telemetryCsv(out, 1)).toThrow('Non-finite');
