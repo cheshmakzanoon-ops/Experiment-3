@@ -36,7 +36,12 @@ jobs:
           from pathlib import Path
           temp = Path(os.environ['RUNNER_TEMP'])
           encoded = ''.join(json.loads((temp / 'transfer.json').read_text())['content'].split())
-          payload = gzip.decompress(base64.b64decode(encoded))
+          # Correct two transport transcription errors and restore padding.
+          # The original payload SHA-256 and resulting Git tree remain mandatory.
+          assert len(encoded) == 26652 and encoded[158] == 't' and encoded[275] == 't'
+          encoded = encoded[:275] + 'u' + encoded[276:] + '='
+          encoded = encoded[:158] + encoded[159:]
+          payload = gzip.decompress(base64.b64decode(encoded, validate=True))
           assert hashlib.sha256(payload).hexdigest() == os.environ['PATCH_SHA256'], 'Transfer checksum mismatch'
           (temp / 'wheel.patch').write_bytes(payload)
           PY
