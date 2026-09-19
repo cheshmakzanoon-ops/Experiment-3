@@ -1,4 +1,4 @@
-import { CAR_STRIDE, HEADER, H, PROTOCOL_VERSION } from '../simulation/protocol.ts';
+import { CAR_STRIDE, HEADER, F, H, carBase, PROTOCOL_VERSION } from '../simulation/protocol.ts';
 import { clamp } from '../core/math.ts';
 
 export interface SurfaceRecord {
@@ -85,10 +85,25 @@ export class IndexedReplayStore implements ReplayPageStore {
   }
 }
 
+/** Private-session accidental-corruption witness, not authentication of an
+ * imported replay. Integer-word hashing is spread across capture, so sealing a
+ * multi-megabyte page does not monopolize the input/render thread. */
+const HASH_SEED = 0x811c9dc5;
+function hashWords(
+  words: Uint32Array | Uint16Array,
+  hash = HASH_SEED,
+  start = 0,
+  end = words.length,
+) {
+  for (let i = start; i < end; i++) hash = Math.imul(hash ^ words[i], 0x01000193) >>> 0;
+  return hash;
+}
 interface PageMeta {
   start: number;
   end: number;
   count: number;
+  frameHash: number;
+  surfaces: { time: number; length: number; hash: number }[];
 }
 /** Full-session pose history with bounded resident pages. No scene geometry,
  * textures or game objects are retained. Random seeks never let an old async
@@ -98,6 +113,8 @@ export class SessionReplay {
   readonly stride: number;
   private current: ReplayPage;
   private metadata: PageMeta[] = [];
+  private frameHash = HASH_SEED;
+  private surfaceHashes = new WeakMap<SurfaceRecord, number>();
   private cache = new Map<number, ReplayPage>();
   private pendingReads = new Map<number, Promise<void>>();
   private failedReads = new Set<number>();
@@ -142,9 +159,24 @@ export class SessionReplay {
   }
   append(frame: Float32Array) {
     if (this.closed || this.failure) return;
-    if (frame.length !== this.stride || !frame.every(Number.isFinite)) {
+    if (
+      !(frame instanceof Float32Array) ||
+      frame.length !== this.stride ||
+      !frame.every(Number.isFinite) ||
+      frame[H.CARS] !== this.cars ||
+      frame[H.TIME] < 0 ||
+      frame[H.TIME] < this.lastTime
+    ) {
       this.fail('Invalid replay snapshot');
       return;
+    }
+    for (let id = 0; id < this.cars; id++) {
+      const q = carBase(id) + F.QX;
+      const norm = frame[q] ** 2 + frame[q + 1] ** 2 + frame[q + 2] ** 2 + frame[q + 3] ** 2;
+      if (Math.abs(norm - 1) > 0.001) {
+        this.fail('Invalid replay snapshot: non-unit car orientation');
+        return;
+      }
     }
     const time = frame[H.TIME];
     if (time - this.lastTime < 1 / 15 - 0.001) return;
@@ -152,17 +184,27 @@ export class SessionReplay {
     if (this.failure) return;
     this.lastTime = time;
     this.current.frames.set(frame, this.current.count * this.stride);
+    this.frameHash = hashWords(
+      new Uint32Array(frame.buffer, frame.byteOffset, frame.length),
+      this.frameHash,
+    );
     this.current.count++;
     this.totalCount++;
   }
   recordSurface(water: Float32Array, rubber: Float32Array, time: number, marbles?: Float32Array) {
     if (this.closed || this.failure) return;
     if (
+      !(water instanceof Float32Array) ||
+      !(rubber instanceof Float32Array) ||
       water.length === 0 ||
+      (this.surface !== null && water.length * 3 !== this.surface.data.length) ||
       water.length !== rubber.length ||
       (marbles !== undefined &&
-        (marbles.length !== water.length || !marbles.every(Number.isFinite))) ||
+        (!(marbles instanceof Float32Array) ||
+          marbles.length !== water.length ||
+          !marbles.every(Number.isFinite))) ||
       !Number.isFinite(time) ||
+      time < 0 ||
       !water.every(Number.isFinite) ||
       !rubber.every(Number.isFinite)
     ) {
@@ -177,6 +219,7 @@ export class SessionReplay {
       data[i * 3 + 2] = Math.round(clamp(marbles?.[i] ?? 0, 0, 1) * 65535);
     }
     this.surface = { time, data };
+    this.surfaceHashes.set(this.surface, hashWords(data));
     this.current.surfaces.push(this.surface);
   }
   private seal() {
@@ -189,6 +232,12 @@ export class SessionReplay {
       start: page.frames[H.TIME],
       end: page.frames[(page.count - 1) * this.stride + H.TIME],
       count: page.count,
+      frameHash: this.frameHash,
+      surfaces: page.surfaces.map((record) => ({
+        time: record.time,
+        length: record.data.length,
+        hash: this.surfaceHashes.get(record)!,
+      })),
     });
     this.cache.set(page.id, page);
     this.writing.add(page.id);
@@ -203,6 +252,14 @@ export class SessionReplay {
       }
     });
     this.current = this.page(page.id + 1);
+    this.frameHash = HASH_SEED;
+    // Surface messages can lead a batched pose delivery. Carry the last state
+    // valid at the left endpoint AND every newer keyframe, not just the latest
+    // (possibly future) weather. Records are immutable after capture.
+    const end = this.metadata[page.id].end;
+    let preceding = page.surfaces.length - 1;
+    while (preceding > 0 && page.surfaces[preceding].time > end) preceding--;
+    this.current.surfaces = page.surfaces.slice(Math.max(0, preceding));
     this.trim();
   }
   private trim() {
@@ -234,28 +291,75 @@ export class SessionReplay {
     ) {
       const request = this.store
         .get(id)
-        .then((page) => {
+        .then(async (page) => {
           if (this.closed) return;
           if (
+            !page ||
             page.id !== id ||
             page.version !== PROTOCOL_VERSION ||
             page.stride !== this.stride ||
             page.count !== this.metadata[id]?.count ||
+            !(page.frames instanceof Float32Array) ||
             page.frames.length !== this.stride * this.pageFrames ||
-            !page.frames.subarray(0, page.count * page.stride).every(Number.isFinite) ||
+            page.frames[H.TIME] !== this.metadata[id].start ||
+            page.frames[(page.count - 1) * this.stride + H.TIME] !== this.metadata[id].end ||
             !Array.isArray(page.surfaces) ||
+            page.surfaces.length !== this.metadata[id].surfaces.length ||
             page.surfaces.some(
               (record, index) =>
+                !record ||
                 !Number.isFinite(record.time) ||
+                record.time < 0 ||
                 !(record.data instanceof Uint16Array) ||
                 !record.data.length ||
                 record.data.length % 3 !== 0 ||
+                (this.surface !== null && record.data.length !== this.surface.data.length) ||
                 (index > 0 &&
                   (record.time <= page.surfaces[index - 1].time ||
                     record.data.length !== page.surfaces[0].data.length)),
             )
           )
             throw new Error('Incompatible replay page');
+          let frameHash = HASH_SEED,
+            deadline = performance.now() + 4;
+          const words = new Uint32Array(
+            page.frames.buffer,
+            page.frames.byteOffset,
+            page.frames.length,
+          );
+          for (let i = 0; i < page.count; i++) {
+            const offset = i * this.stride;
+            if (
+              page.frames[offset + H.CARS] !== this.cars ||
+              (i > 0 && page.frames[offset + H.TIME] <= page.frames[offset - this.stride + H.TIME])
+            )
+              throw new Error('Incompatible replay page');
+            for (let field = offset; field < offset + this.stride; field++)
+              if (!Number.isFinite(page.frames[field])) throw new Error('Incompatible replay page');
+            frameHash = hashWords(words, frameHash, offset, offset + this.stride);
+            if (performance.now() >= deadline) {
+              await new Promise<void>((resolve) => setTimeout(resolve, 0));
+              if (this.closed) return;
+              deadline = performance.now() + 4;
+            }
+          }
+          if (frameHash !== this.metadata[id].frameHash)
+            throw new Error('Incompatible replay page: recorded bytes changed');
+          for (let i = 0; i < page.surfaces.length; i++) {
+            const record = page.surfaces[i],
+              witness = this.metadata[id].surfaces[i];
+            if (
+              record.time !== witness.time ||
+              record.data.length !== witness.length ||
+              hashWords(record.data) !== witness.hash
+            )
+              throw new Error('Incompatible replay page: recorded surface changed');
+            if (performance.now() >= deadline) {
+              await new Promise<void>((resolve) => setTimeout(resolve, 0));
+              if (this.closed) return;
+              deadline = performance.now() + 4;
+            }
+          }
           this.cache.set(id, page);
           this.trim();
         })
@@ -309,13 +413,26 @@ export class SessionReplay {
     }
     a.set(page.frames.subarray(left * this.stride, (left + 1) * this.stride));
     b.set(next.frames.subarray(nextIndex * this.stride, (nextIndex + 1) * this.stride));
-    this.selectSurface(page, time);
+    this.selectSurface(page, next, time);
     return clamp((time - a[H.TIME]) / (b[H.TIME] - a[H.TIME] || 1), 0, 1);
   }
-  private selectSurface(page: ReplayPage, time: number) {
+  private selectSurface(page: ReplayPage, next: ReplayPage, time: number) {
     let surface: SurfaceRecord | undefined;
     for (const record of page.surfaces) if (record.time <= time) surface = record;
-    if (!surface || surface === this.decodedSurface) return;
+    if (next !== page)
+      for (const record of next.surfaces)
+        if (record.time <= time && (!surface || record.time > surface.time)) surface = record;
+    if (!surface) {
+      // A backwards seek must never keep a decoded surface from the future.
+      if (this.decodedSurface) {
+        this.decodedSurface = null;
+        this.decodedWater = new Float32Array(0);
+        this.decodedRubber = new Float32Array(0);
+        this.decodedMarbles = new Float32Array(0);
+      }
+      return;
+    }
+    if (surface === this.decodedSurface) return;
     this.decodedSurface = surface;
     const size = surface.data.length / 3;
     if (size !== this.decodedWater.length) {

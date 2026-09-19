@@ -60,3 +60,29 @@ it('routes remapped camera and paddle keys once, retaining unconditional Escape 
   expect(action).toHaveBeenLastCalledWith('pause');
   input.dispose();
 });
+
+it('leaves dialog keys and native Escape cancellation to the dialog owner', () => {
+  const listeners = new Map<string, EventListener>();
+  vi.stubGlobal('window', {
+    addEventListener: (type: string, fn: EventListener) => listeners.set(type, fn),
+    removeEventListener: vi.fn(),
+  });
+  const action = vi.fn(),
+    input = new InputController(structuredClone(DEFAULT_SETTINGS), action);
+  const preventDefault = vi.fn();
+  for (const enabled of [true, false]) {
+    input.setEnabled(enabled);
+    for (const code of ['Escape', 'KeyC', 'KeyT', 'ArrowRight']) {
+      listeners.get('keydown')!({
+        code,
+        repeat: false,
+        target: { matches: () => false, closest: () => ({ open: true }) },
+        preventDefault,
+      } as unknown as Event);
+    }
+  }
+  expect(action).not.toHaveBeenCalled();
+  expect(preventDefault).not.toHaveBeenCalled();
+  expect(input.state.shift).toBe(0);
+  input.dispose();
+});

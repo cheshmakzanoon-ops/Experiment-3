@@ -104,6 +104,7 @@ export class RacingAudio {
   diagnostics() {
     return {
       state: this.context?.state ?? 'uninitialized',
+      playing: this.wasPlaying,
       contactAttenuation: this.contactAttenuation,
       voices: this.engines?.spatial.voices.map((voice) => ({ ...voice })) ?? [],
     };

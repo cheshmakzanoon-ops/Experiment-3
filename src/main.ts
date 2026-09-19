@@ -76,6 +76,7 @@ export class GameApp {
   private replayTime = 0;
   private replayRate = 1;
   private replayPlaying = true;
+  private replaySeekPending = false;
   private replayReturn: State = 'paused';
   private comparison = false;
   private liveSurface: {
@@ -98,11 +99,11 @@ export class GameApp {
       start: (options) => void this.start(options).catch((e) => this.fail(e)),
       apply: (s) => this.applySettings(s),
       seek: (value) => {
-        this.replayTime = value;
-        this.renderer?.reset();
-        this.audio.resetPresentation();
+        this.seekReplay(value);
       },
-      replaySpeed: (value) => (this.replayRate = value),
+      replaySpeed: (value) => {
+        if (Number.isFinite(value)) this.replayRate = clamp(value, 0.25, 2);
+      },
       exportSetup: () =>
         downloadBlob(
           new Blob([JSON.stringify({ version: 1, setup: this.settings.setup }, null, 2)], {
@@ -116,7 +117,7 @@ export class GameApp {
     this.inputPump = new InputPump((dt) => {
       if (this.errorStopped || document.hidden) return;
       if (this.state !== 'driving') {
-        if (this.state === 'replay')
+        if (this.state === 'replay' && !this.ui.telemetryModal.open && !this.ui.modal.open)
           this.input.pollActions(['pause', 'camera', 'replay', 'mute', 'debug']);
         else if (
           this.state === 'paused' &&
@@ -145,7 +146,7 @@ export class GameApp {
       this.renderer?.resize();
     });
     document.addEventListener('visibilitychange', () => {
-      if (document.hidden && this.state === 'driving') this.pause();
+      if (document.hidden) this.suspendPlayback();
     });
     const canvas = document.getElementById('world') as HTMLCanvasElement;
     canvas.addEventListener('webglcontextlost', (e) => {
@@ -420,7 +421,11 @@ export class GameApp {
     this.previousTime = time;
     // Menus and paused telemetry do not need a continuously saturated GPU.
     // Input and worker clocks above remain independent of this presentation cap.
-    const idle = this.state === 'menu' || this.state === 'paused' || this.state === 'results';
+    const idle =
+      this.state === 'menu' ||
+      this.state === 'paused' ||
+      this.state === 'results' ||
+      this.ui.telemetryModal.open;
     if (idle && this.renderedState === this.state && time - this.renderedAt < 1000 / 15) return;
     this.renderedAt = time;
     this.renderedState = this.state;
@@ -428,12 +433,17 @@ export class GameApp {
       b = this.current,
       alpha = clamp((time - this.receivedAt) / Math.max(8, (b[H.TIME] - a[H.TIME]) * 1000), 0, 1);
     if (this.state === 'replay' && this.replay && this.replayA && this.replayB) {
-      const targetTime = this.replayPlaying
-        ? Math.min(
-            this.replay.duration,
-            this.replayTime + Math.min(wallDelta, 0.5) * this.replayRate,
-          )
-        : this.replayTime;
+      const targetTime =
+        this.replayPlaying &&
+        !this.replaySeekPending &&
+        !this.ui.telemetryModal.open &&
+        !this.ui.modal.open &&
+        !document.hidden
+          ? Math.min(
+              this.replay.duration,
+              this.replayTime + Math.min(wallDelta, 0.5) * this.replayRate,
+            )
+          : this.replayTime;
       const fraction = this.replay.sample(targetTime, this.replayA, this.replayB);
       if (fraction === null) {
         this.ui.setText('replayTime', this.replay.error ?? 'BUFFERING RECORDED LAP…');
@@ -441,6 +451,7 @@ export class GameApp {
         return;
       }
       this.replayTime = targetTime;
+      this.replaySeekPending = false;
       if (this.replayTime >= this.replay.duration) this.replayPlaying = false;
       alpha = fraction;
       const surface = this.replay.surfaceState;
@@ -460,11 +471,20 @@ export class GameApp {
       this.ui.setText('replayPlay', this.replayPlaying ? 'PAUSE' : 'PLAY');
     }
     this.renderer.draw(a, b, alpha, dt, this.state === 'menu', this.state === 'replay', wallDelta);
-    if (this.state !== 'menu') this.ui.update(b, this.renderer, this.auto, this.ers);
+    if (this.state !== 'menu')
+      this.ui.update(
+        this.state === 'replay' ? this.renderer.presented.value : b,
+        this.renderer,
+        this.auto,
+        this.ers,
+      );
     this.audio.update(
       this.renderer.presented.value,
       this.renderer.mode === 'cockpit',
-      this.state === 'driving' || (this.state === 'replay' && this.replayPlaying),
+      !this.ui.telemetryModal.open &&
+        !this.ui.modal.open &&
+        !document.hidden &&
+        (this.state === 'driving' || (this.state === 'replay' && this.replayPlaying)),
       this.renderer.audioView.value,
     );
     if (this.ui.telemetryModal.open && this.telemetry) {
@@ -491,6 +511,23 @@ export class GameApp {
       }
     }
   };
+  private suspendPlayback() {
+    if (this.state === 'driving') this.pause();
+    else if (this.state === 'replay') {
+      this.replayPlaying = false;
+      this.audio.stop();
+      this.ui.setText('replayPlay', 'PLAY');
+    }
+  }
+  private seekReplay(value: number) {
+    if (this.state !== 'replay' || !this.replay || !Number.isFinite(value)) return;
+    this.replayTime = clamp(value, 0, this.replay.duration);
+    // Draw the requested position once before advancing, including after an
+    // asynchronous page read. A seek is not a catch-up interval for effects.
+    this.replaySeekPending = true;
+    this.renderer?.reset();
+    this.audio.stop();
+  }
   private pause() {
     if (this.state !== 'driving') return;
     this.performanceCapture.interrupt('Session paused or focus lost');
@@ -503,7 +540,7 @@ export class GameApp {
     this.ui.pause();
   }
   private resume() {
-    if (this.state !== 'paused') return;
+    if (this.state !== 'paused' || this.ui.telemetryModal.open) return;
     this.ui.closeModal();
     this.state = 'driving';
     this.ui.showMode('driving');
@@ -546,14 +583,15 @@ export class GameApp {
     this.ui.telemetryModal.close();
     this.state = 'replay';
     this.appliedReplaySurfaceTime = -Infinity;
-    this.replayTime = 0;
     this.replayPlaying = true;
-    this.renderer?.reset();
+    this.seekReplay(0);
     this.ui.showMode('replay');
     this.input.setEnabled(true);
   }
   private exitReplay() {
     if (this.state !== 'replay') return;
+    this.replayPlaying = false;
+    this.audio.stop();
     this.state = this.replayReturn === 'results' ? 'results' : 'paused';
     if (this.liveSurface)
       this.renderer?.circuit.updateSurface(
@@ -569,6 +607,13 @@ export class GameApp {
   }
   private action(name: string) {
     this.renderedState = null;
+    // Native modal cancellation owns Escape. Background replay/drive actions
+    // cannot also handle that same key and resume or dismiss the parent state.
+    if (
+      this.ui.telemetryModal.open &&
+      ['pause', 'resume', 'replay', 'replayExit', 'replayPlay', 'camera'].includes(name)
+    )
+      return;
     switch (name) {
       case 'pause':
         if (this.state === 'driving') this.pause();
@@ -576,11 +621,11 @@ export class GameApp {
         else if (this.state === 'replay') this.exitReplay();
         break;
       case 'deviceLost':
-        if (this.state === 'driving') this.pause();
+        this.suspendPlayback();
         this.ui.toast(this.input.deviceStatus);
         break;
       case 'blur':
-        if (this.state === 'driving') this.pause();
+        this.suspendPlayback();
         break;
       case 'resume':
         this.resume();
@@ -657,15 +702,18 @@ export class GameApp {
         this.exitReplay();
         break;
       case 'replayPlay':
-        if (this.replay && this.replayTime >= this.replay.duration) this.replayTime = 0;
+        if (this.state !== 'replay') break;
+        if (this.replay && this.replayTime >= this.replay.duration) this.seekReplay(0);
         this.replayPlaying = !this.replayPlaying;
+        if (!this.replayPlaying) this.audio.stop();
         break;
       case 'telemetry':
+        if (this.ui.telemetryModal.open) break;
         if (!this.telemetry) {
           this.ui.toast('Start a session to record telemetry.');
           return;
         }
-        if (this.state === 'driving') this.pause();
+        this.suspendPlayback();
         this.telemetryReturn = this.state;
         this.ui.closeModal();
         this.input.setEnabled(false);
@@ -679,10 +727,13 @@ export class GameApp {
         );
         break;
       case 'telemetryClose':
+        if (!this.ui.telemetryModal.open) break;
         this.ui.telemetryModal.close();
         if (this.telemetryReturn === 'results' && this.current) this.ui.results(this.current);
-        else if (this.telemetryReturn === 'replay') this.input.setEnabled(true);
-        else this.ui.pause();
+        else if (this.telemetryReturn === 'replay') {
+          this.input.setEnabled(true);
+          (document.activeElement as HTMLElement)?.blur();
+        } else this.ui.pause();
         break;
       case 'compare':
         this.comparison = !this.comparison;
@@ -878,10 +929,15 @@ export class GameApp {
       renderer: this.renderer?.stats(),
       visual: visual ? this.renderer?.visualDiagnostics() : null,
       replaySeconds: this.replay?.duration ?? 0,
+      replayStart: this.replay?.start ?? 0,
       replaySamples: this.replay?.count ?? 0,
       replayResidentBytes: this.replay?.bytes ?? 0,
       replayError: this.replay?.error ?? null,
       replayPosition: this.replayTime,
+      replayPlaying: this.replayPlaying,
+      replaySeekPending: this.replaySeekPending,
+      replaySurfaceTime: this.replay?.surfaceState.time ?? -1,
+      telemetryOpen: this.ui.telemetryModal.open,
       recordingWarnings: [...this.recordingWarnings],
       telemetrySamples: this.telemetry?.count ?? 0,
       inputPolls: this.inputPump.ticks,

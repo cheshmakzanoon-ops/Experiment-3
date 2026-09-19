@@ -4,11 +4,11 @@ This checkpoint extends directive sections 53, 67, 80–82, 99, 133–135 and 13
 
 ## Capture and ownership
 
-`TelemetrySampler` runs inside the physics worker. Every second 120 Hz tick captures a 203-channel sample; every eighth tick captures a complete numeric pose snapshot for every car. Rendering never supplies the capture clock. Six transferable telemetry buffers and six pose buffers provide bounded transport queues. Buffers are returned after the main thread copies their contents. A stalled consumer produces an explicit recording-gap warning; no interpolated or invented measurements fill the gap.
+`TelemetrySampler` runs inside the physics worker. Every second 120 Hz tick captures a 211-channel sample; every eighth tick captures a complete numeric pose snapshot for every car. Rendering never supplies the capture clock. Six transferable telemetry buffers and six pose buffers provide bounded transport queues. Buffers are returned after the main thread copies their contents. A stalled consumer produces an explicit recording-gap warning; no interpolated or invented measurements fill the gap.
 
 Telemetry uses a fifteen-minute typed-array ring. Export takes a chronological copy and transfers that copy to a separate formatting worker. Cancellation, worker errors and a thirty-second timeout reject the export. A late old-worker response cannot terminate or download a later session's export.
 
-The current wire format is version 7: sixteen header floats, 224 floats per car, four 24-float wheel records beginning at offset 96, and four eight-float debris records beginning at offset 192. Header slots 14–15 retain world wind in m/s. Version 7 uses previously spare per-car slots 90–93 for cumulative wheel-specific marble pickup. The four CSV pickup columns are appended after all 199 existing columns; a frozen-header hash regression protects those earlier positions. Fields include real motor/regen power, suspension length, tire pressure/radius/puncture, graining/blistering, component health, jack height, penalties and sector state. The internal wheel sequence is **FR, FL, RR, RL**: +Z points toward the nose, +Y up, and +X toward the driver's left. CSV headers and the tire panel follow the actual hub positions.
+The current wire format is version 8: sixteen header floats, 232 floats per car, four 26-float wheel records beginning at offset 96, and four eight-float debris records beginning at offset 200. Header slots 14–15 retain world wind in m/s. Version 7 uses previously spare per-car slots 90–93 for cumulative wheel-specific marble pickup. The four CSV pickup columns are appended after all 199 existing columns; version 8 appends eight actual wheel steering/camber columns after those 203, and a frozen-header hash regression protects those earlier positions. Fields include real motor/regen power, suspension length, tire pressure/radius/puncture, graining/blistering, component health, jack height, penalties and sector state. The internal wheel sequence is **FR, FL, RR, RL**: +Z points toward the nose, +Y up, and +X toward the driver's left. CSV headers and the tire panel follow the actual hub positions.
 
 ## Replay paging
 
@@ -16,7 +16,7 @@ The current wire format is version 7: sixteen header floats, 224 floats per car,
 
 Spatial water/rubber/marble keyframes are recorded at the same simulation times as their original updates. Water is quantized to one micrometre in millimetre units; rubber and marbles to 16-bit normalized coverage. The surface tuple has three channels; old private-session pages are rejected by protocol version rather than misread. Playback chooses the recorded surface, while leaving the current live surface untouched and restoring it when replay closes. Weather is not reconstructed from the final session's wetness.
 
-A seek into an evicted page displays buffering until the requested page is available. Async reads never write directly into the currently rendered frame. Invalid page versions, missing pages, storage quota failures and excessive write backlog surface explicitly. Storage failure stops further archival capture without pretending the whole race was saved. The cache is session-scoped and is cleaned when the session is replaced or disposed; it is not a user-facing permanent replay library. Browser shutdown can interrupt asynchronous cleanup.
+A seek into an evicted page displays buffering until the requested page is available. Async reads never write directly into the currently rendered frame. Invalid page versions, changed frame/surface bytes, incompatible dimensions, missing pages, storage quota failures and excessive write backlog surface explicitly. Storage failure stops further archival capture without pretending the whole race was saved. The cache is session-scoped and is cleaned when the session is replaced or disposed; it is not a user-facing permanent replay library. Browser shutdown can interrupt asynchronous cleanup.
 
 ## Simulation-to-presentation connections
 
@@ -30,7 +30,7 @@ The desktop cockpit HUD moves beside the car instead of covering the physical st
 
 ## Verification boundaries
 
-Historical evidence from the first recording checkpoint: local lint, TypeScript, production build and 107 tests passed during that checkpoint. The three four-car weather scenarios and ten-car physical pit scenario passed; the pit report contains a small contact event, **not zero contact**. The current browser workflow additionally checks real IndexedDB page creation, 203 CSV columns and exact two-tick sample spacing, camera visibility, manual steering, replay/pause safety and the results screen. A browser pass must be read from the workflow for the exact published revision.
+Historical evidence from the first recording checkpoint: local lint, TypeScript, production build and 107 tests passed during that checkpoint. The three four-car weather scenarios and ten-car physical pit scenario passed; the pit report contains a small contact event, **not zero contact**. The current browser workflow additionally checks real IndexedDB page creation, 211 CSV columns and exact two-tick sample spacing, camera visibility, manual steering, replay/pause safety and the results screen. A browser pass must be read from the workflow for the exact published revision.
 
 Later changes added explicit wheel calibration, individual graphics/accessibility controls, marshal rules, dynamics benchmarks and long-run AI evidence. See the coverage ledger and subsystem documents for their actual scope. Target-device profiling, the complete combined scenario and final engineering/player/audiovisual audits are not certified by this recording page. Historical reports without a matching source revision are not current acceptance certificates.
 
@@ -42,3 +42,54 @@ and camera-relative audio without altering archived measurements. Particle aging
 and births follow recorded simulation time, freeze on pause, and reset on seeks.
 Live-only engineering contact/AI probe records are explicitly not substituted
 into replay history. See [the lifecycle and validation contract](REPLAY_AUDIO_AND_ENGINEERING.md).
+
+
+## Continuation from a2195f9: replay integrity and exclusive playback ownership
+
+The source archive was recovered from successful GitHub run `35432049517`; its
+Git tree matched `365c1e1d56ffd321cb5bdbbbb08e3ed4697dbe46` exactly. The original
+59,242-byte directive remains byte-identical. This continuation addresses sections
+80–82, 117, 119–120 and 139 without changing simulation/core physics or wire version 8.
+
+Capture rejects wrong car counts, non-finite/negative/regressing times and invalid
+car orientation quaternions. A session has one fixed spatial grid shape. Sealed
+pages retain independent in-memory witnesses of captured pose words and surface
+keyframe times, lengths and quantized data. Reloaded pages are checked against
+those witnesses before either output frame is touched. These lightweight hashes
+are accidental-corruption checks, **not cryptographic authentication or permission
+to import untrusted replays**. Pose hashing is incremental during capture; surface
+hashes are computed once and retained weakly. Page sealing does not scan megabytes
+of history. Evicted-page validation yields between bounded frame/surface work
+units after roughly four milliseconds, checks disposal after yielding, and keeps
+the existing two-read/four-resident-page limits.
+
+A new page carries the last surface valid at its left boundary plus any later
+keyframes already delivered ahead of the batched poses. Cross-page interpolation
+also considers the next page's eligible surface. Rewinding before the first
+surface clears the decoded state instead of retaining future rain/rubber/marbles.
+No interpolation modifies the captured numeric samples or CSV measurements.
+
+A seek draws its requested position once before advancing, including after an
+asynchronous read. Replay HUD values now use the same interpolated presentation
+frame as the rendered car, rather than the next recorded frame. Telemetry pauses
+replay and mutes audio; returning requires explicit Play. Native dialog Escape
+cannot also resume the live worker or leave replay. Gamepad action polling is
+inactive behind dialogs. Focus loss pauses replay without auto-resuming on focus
+return, and replay exit silences audio immediately. Read-only diagnostics expose
+playback ownership and selected surface time to the browser assertions.
+
+Twenty-two new unit regressions cover corruption, page seams, forward weather
+delivery, rewinding, invalid capture, out-of-order reads, disposal and dialog key
+ownership. Nineteen fail against the recovered pre-change code; the other three
+protect already-correct behavior. The full suite now contains 460 unit tests.
+The new real-application browser case records an actual wet session and checks
+exact first-frame seeking, modal/keyboard isolation, frozen poses, audio state,
+focus interruption, and unchanged live simulation. It joins the existing full
+Chromium suite; it does not replace any previous assertion or use a fake worker.
+Local application navigation returned `ERR_BLOCKED_BY_ADMINISTRATOR`, so that
+full-application gate must be read from the GitHub run for the published revision.
+A local CPU-only seal probe is not representative-hardware or GPU certification.
+
+The complete combined manual section-146 scenario and final independent handling,
+audiovisual and hardware-performance acceptance remain open. This is not a claim
+that adding tests has satisfied every qualitative requirement in the directive.

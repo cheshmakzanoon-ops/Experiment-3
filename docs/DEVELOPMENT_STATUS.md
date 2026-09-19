@@ -184,3 +184,25 @@ without reducing assertions or bypassing the publication gates.
 See `WHEEL_FIDELITY.md` for exact behavior, validation scope, and remaining limits.
 No assertion is made that all 148 sections, all 31 phase gates, representative
 hardware performance or the complete human-perceived section-146 scenario are done.
+
+
+## Continuation from a2195f9: historical replay and playback ownership
+
+The exact tested source artifact for `a2195f928e359f81ffb61664a7c4a9a48d52d228`
+was recovered and its Git tree verified before editing. The preceding wheel
+alignment/protocol-8 changes are preserved. Original Markdown 6 and all 148
+section headings remain unchanged.
+
+This continuation implements independent replay integrity witnesses, incremental
+capture checks without a page-seal hashing hitch, cooperatively validated disk
+reads, correct weather history across page boundaries/rewinds, exact first-seek
+presentation and exclusive dialog/audio/focus ownership. It corrects stale
+protocol-7/203-column recording documentation to protocol 8/211 columns. Twenty-two
+new unit tests and one real-application browser case extend the existing gates.
+See `RECORDING_AND_REPLAY.md` for behavior, regression evidence and limits.
+
+The temporary verification transport workflow is removed from the integrated
+source. Main is advanced only by an ordinary fast-forward to the verified source
+tree; the normal all-suite CI remains the gate for the derived playable build.
+Complete section-146 manual/audiovisual acceptance, representative hardware
+measurements and independent final quality audits are not claimed complete.

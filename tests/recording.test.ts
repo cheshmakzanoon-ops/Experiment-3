@@ -278,3 +278,170 @@ it('keeps powertrain energy, damage and fragment poses connected to serialized s
   expect(sim.cars[0].lostMass).toBe(4.5);
   expect(sim.cars[0].debris.pieces.filter((piece) => piece.active)).toHaveLength(2);
 });
+
+describe('replay integrity and seek ownership', () => {
+  async function archived() {
+    const store = new MemoryPages();
+    const replay = new SessionReplay(1, store, undefined, 2);
+    replay.recordSurface(new Float32Array([0.2]), new Float32Array([0.4]), 0);
+    for (let i = 0; i < 20; i++) {
+      replay.append(pose(i));
+      await replay.settle();
+    }
+    return { store, replay };
+  }
+  it.each([
+    'finite coordinate',
+    'finite surface',
+    'surface timestamp',
+    'surface omission',
+    'surface dimensions',
+    'first timestamp',
+    'last timestamp',
+    'car count',
+    'array type',
+  ])('rejects changed %s in an evicted page before exposing any output', async (fault) => {
+    const { store, replay } = await archived();
+    const page = store.pages.get(0)!;
+    if (fault === 'finite coordinate') page.frames[carBase(0) + F.X] += 1;
+    if (fault === 'finite surface') page.surfaces[0].data[0] += 1;
+    if (fault === 'surface timestamp') page.surfaces[0].time += 1;
+    if (fault === 'surface omission') page.surfaces = [];
+    if (fault === 'surface dimensions') page.surfaces[0].data = new Uint16Array(6);
+    if (fault === 'first timestamp') page.frames[H.TIME] += 0.01;
+    if (fault === 'last timestamp') page.frames[page.stride + H.TIME] += 0.01;
+    if (fault === 'car count') page.frames[H.CARS] = 2;
+    if (fault === 'array type')
+      page.frames = new Float64Array(page.frames) as unknown as Float32Array;
+    const a = replay.makeFrame().fill(-7),
+      b = replay.makeFrame().fill(-9);
+    expect(replay.sample(0, a, b)).toBeNull();
+    await replay.settle();
+    expect(replay.error).toContain('Incompatible replay page');
+    expect(replay.sample(0, a, b)).toBeNull();
+    expect(a.every((value) => value === -7)).toBe(true);
+    expect(b.every((value) => value === -9)).toBe(true);
+    await replay.dispose();
+  });
+  it('retains the previous surface when weather delivery leads a pose batch at a page seam', async () => {
+    const r = new SessionReplay(1, new MemoryPages(), undefined, 2);
+    r.recordSurface(new Float32Array([0.1]), new Float32Array([0.2]), 0);
+    r.append(pose(0));
+    r.append(pose(1));
+    r.recordSurface(new Float32Array([2]), new Float32Array([0.8]), 5.3);
+    r.append(pose(2));
+    r.append(pose(3));
+    await r.settle();
+    const a = r.makeFrame(),
+      b = r.makeFrame();
+    expect(r.sample(2.5 / 15, a, b)).toBeCloseTo(0.5, 3);
+    expect(r.surfaceState.water[0]).toBeCloseTo(0.1, 3);
+    r.append(pose(4));
+    r.append(pose(5));
+    await r.settle();
+    r.sample(4.8 / 15, a, b);
+    expect(r.surfaceState.water[0]).toBe(2);
+    r.sample(2.5 / 15, a, b);
+    expect(r.surfaceState.water[0]).toBeCloseTo(0.1, 3);
+    await r.dispose();
+  });
+  it('selects a surface recorded on the next page inside the interpolation seam', async () => {
+    const r = new SessionReplay(1, new MemoryPages(), undefined, 2);
+    r.recordSurface(new Float32Array([0.1]), new Float32Array([0.2]), 0);
+    for (let i = 0; i < 3; i++) r.append(pose(i));
+    r.recordSurface(new Float32Array([1.5]), new Float32Array([0.6]), 5.1);
+    await r.settle();
+    const a = r.makeFrame(),
+      b = r.makeFrame();
+    expect(r.sample(0.11, a, b)).toBeCloseTo(0.65, 3);
+    expect(r.surfaceState.water[0]).toBe(1.5);
+    r.sample(0.09, a, b);
+    expect(r.surfaceState.water[0]).toBeCloseTo(0.1, 3);
+    await r.dispose();
+  });
+  it('clears a later decoded surface when rewinding before the first recorded surface', async () => {
+    const r = new SessionReplay(1, new MemoryPages());
+    for (let i = 0; i < 5; i++) r.append(pose(i));
+    r.recordSurface(new Float32Array([1]), new Float32Array([0.5]), 5.1);
+    const a = r.makeFrame(),
+      b = r.makeFrame();
+    r.sample(0.2, a, b);
+    expect(r.surfaceState.water[0]).toBe(1);
+    r.sample(0, a, b);
+    expect(r.surfaceState.time).toBe(-1);
+    expect(r.surfaceState.water).toHaveLength(0);
+    expect(r.surfaceState.rubber).toHaveLength(0);
+    expect(r.surfaceState.marbles).toHaveLength(0);
+    await r.dispose();
+  });
+  it.each([
+    'shape',
+    'negative time',
+    'backward time',
+    'car count',
+    'zero quaternion',
+    'non-unit quaternion',
+  ])('stops invalid %s capture explicitly', async (fault) => {
+    const r = new SessionReplay(1, new MemoryPages());
+    r.append(pose(1));
+    const f = pose(2);
+    if (fault === 'shape') f[H.TIME] = NaN;
+    if (fault === 'negative time') f[H.TIME] = -1;
+    if (fault === 'backward time') f[H.TIME] = 5;
+    if (fault === 'car count') f[H.CARS] = 2;
+    if (fault === 'zero quaternion') f[carBase(0) + F.QW] = 0;
+    if (fault === 'non-unit quaternion') f[carBase(0) + F.QW] = 2;
+    r.append(f);
+    expect(r.error).toContain('Invalid replay snapshot');
+    expect(r.count).toBe(1);
+    await r.dispose();
+  });
+  it('rejects surface dimensions changing within a session', async () => {
+    const r = new SessionReplay(1, new MemoryPages());
+    r.recordSurface(new Float32Array([0]), new Float32Array([0]), 0);
+    r.recordSurface(new Float32Array([0, 0]), new Float32Array([0, 0]), 1);
+    expect(r.error).toContain('Invalid replay surface');
+    await r.dispose();
+  });
+  it('never lets an older disk seek overwrite a newer displayed seek', async () => {
+    const { store, replay } = await archived();
+    const releases = new Map<number, (page: ReplayPage) => void>();
+    store.get = (id) => new Promise((resolve) => releases.set(id, resolve));
+    const a = replay.makeFrame(),
+      b = replay.makeFrame();
+    expect(replay.sample(0, a, b)).toBeNull();
+    expect(replay.sample(pose(4)[H.TIME] - replay.start, a, b)).toBeNull();
+    releases.get(2)!(structuredClone(store.pages.get(2)!));
+    // Let only the newer read complete; the old seek is still outstanding.
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(replay.sample(pose(4)[H.TIME] - replay.start, a, b)).not.toBeNull();
+    const shownA = a.slice(),
+      shownB = b.slice();
+    releases.get(0)!(structuredClone(store.pages.get(0)!));
+    await replay.settle();
+    expect(a).toEqual(shownA);
+    expect(b).toEqual(shownB);
+    expect(replay.sample(pose(4)[H.TIME] - replay.start, a, b)).not.toBeNull();
+    expect(a).toEqual(shownA);
+    await replay.dispose();
+  });
+  it('disposes during a pending disk read without resurrecting a frame or cache', async () => {
+    const { store, replay } = await archived();
+    let release!: (page: ReplayPage) => void;
+    store.get = () =>
+      new Promise((resolve) => {
+        release = resolve;
+      });
+    const a = replay.makeFrame().fill(-3),
+      b = replay.makeFrame().fill(-4);
+    replay.sample(0, a, b);
+    const disposing = replay.dispose();
+    release(structuredClone(store.pages.get(0)!));
+    await disposing;
+    expect(replay.sample(0, a, b)).toBeNull();
+    expect(a.every((value) => value === -3)).toBe(true);
+    expect(b.every((value) => value === -4)).toBe(true);
+    expect(store.closed).toBe(true);
+    expect(replay.error).toBeNull();
+  });
+});

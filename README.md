@@ -211,7 +211,7 @@ Experiment-3/
 
 The current source adds a physically open cockpit, live rear-view cameras, carbon/wet-road shaders, a budgeted local reflection probe, spatial circuit culling and three-level car detail. The rendering integration passed seven Chromium workflows before publication in commit `77c4d3b`.
 
-The recording extension captures **203 telemetry channels at 60 Hz** and **all-car pose replay at 15 Hz** from physics ticks, independently of display rate. Replay pages and spatial surface history use a bounded IndexedDB cache; CSV formatting runs in a separate worker. Rendered punctures, suspension damage and detached components consume actual simulation state. Read [recording and replay architecture](docs/RECORDING_AND_REPLAY.md) for storage failure behavior and verification limits. The [telemetry and keyboard interface](docs/TELEMETRY_AND_INPUT_UI.md) adds eight graph groups, complete-lap distance comparison, and conflict-checked remapping for fifteen keyboard actions.
+The recording extension captures **211 telemetry channels at 60 Hz** and **all-car pose replay at 15 Hz** from physics ticks, independently of display rate. Replay pages and spatial surface history use a bounded IndexedDB cache; CSV formatting runs in a separate worker. Rendered punctures, suspension damage and detached components consume actual simulation state. Read [recording and replay architecture](docs/RECORDING_AND_REPLAY.md) for storage failure behavior and verification limits. The [telemetry and keyboard interface](docs/TELEMETRY_AND_INPUT_UI.md) adds eight graph groups, complete-lap distance comparison, and conflict-checked remapping for fifteen keyboard actions.
 
 The original validation results below are historical baseline measurements, not certificates for every later feature.
 
@@ -237,7 +237,7 @@ These JSON files are measured snapshots from the original validation run. Re-run
 
 ### 🎮 Calibrated controls and complete race classification
 
-The new device editor explicitly selects unmapped wheels, captures asymmetric steering and independent throttle/brake/clutch endpoints, configures paddles, and pauses safely on disconnect. Settings migrate to version 3. A finite-inertia friction clutch produces actual free-revving and pedal-controlled torque transfer; the clutch channels are included in the current **203-channel** schema and eight graph groups. These are browser Gamepad inputs, not a claim of native wheel force feedback or hardware certification. See [device calibration and clutch](docs/DEVICE_CALIBRATION_AND_CLUTCH.md).
+The new device editor explicitly selects unmapped wheels, captures asymmetric steering and independent throttle/brake/clutch endpoints, configures paddles, and pauses safely on disconnect. Settings migrate to version 3. A finite-inertia friction clutch produces actual free-revving and pedal-controlled torque transfer; the clutch channels are included in the current **211-channel** schema and eight graph groups. These are browser Gamepad inputs, not a claim of native wheel force feedback or hardware certification. See [device calibration and clutch](docs/DEVICE_CALIBRATION_AND_CLUTCH.md).
 
 Race timing now preserves all three interpolated sectors, checks all four tire footprints against local track width, finishes the entire field including lapped cars, and labels unresolved competitors DNF instead of manufacturing times. The pit controller reserves pedal-response distance and does not reverse into queues. See [race control and pit response](docs/RACE_CONTROL_AND_PIT_RESPONSE.md).
 
@@ -331,7 +331,7 @@ Loose rubber now transfers from actual loaded road cells to individual tires,
 changes lasting grip, and sheds as the tire rolls. Live/replayed cell density
 drives road flecks; individual dirt, wear, blistering and graining drive tread
 materials. Solid pickup chips consume physical cumulative counters rather than
-a throttle/race-time animation. The 203-channel CSV schema preserves all earlier
+a throttle/race-time animation. The 211-channel CSV schema preserves all earlier
 199 column positions.
 
 `npm run test:journey` executes a continuous six-car changing-weather race with

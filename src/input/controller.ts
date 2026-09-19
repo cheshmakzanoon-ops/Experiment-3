@@ -42,6 +42,9 @@ export class InputController {
   }
   private keyDown = (e: KeyboardEvent) => {
     const target = e.target as HTMLElement;
+    // Dialog widgets and native Escape cancellation own their keys even when
+    // the previous driving/replay mode had input enabled.
+    if (e.defaultPrevented || target.closest?.('dialog[open]')) return;
     if (target.matches('input,select,textarea,button') && !this.enabled) return;
     if (!this.enabled && e.code !== 'Escape') return;
     if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Space', 'F3', 'Tab'].includes(e.code))
