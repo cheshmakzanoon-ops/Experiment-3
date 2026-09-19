@@ -1,0 +1,48 @@
+name: Apply preserved local continuation
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/apply-preserved-continuation.yml']
+permissions:
+  contents: write
+concurrency:
+  group: apply-preserved-continuation
+  cancel-in-progress: false
+jobs:
+  apply:
+    if: github.repository == 'cheshmakzanoon-ops/Experiment-3'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Reconstruct, verify and apply preserved commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          test "$(git rev-parse HEAD)" = "$(git rev-parse origin/main)"
+          test "$(git rev-parse HEAD^)" = "fefe92074a2b456473d17e065fb6c2a3dd8087a2"
+          base64 -d .github/preserved-continuation.patch.gz.b64 | gzip -d > "$RUNNER_TEMP/continuation.patch"
+          echo "145e142bdc9dfe5ed029ce3987c781984eb1c2b42b33a217c0f9ea6b64f7e71d  $RUNNER_TEMP/continuation.patch" | sha256sum -c -
+          git apply --check "$RUNNER_TEMP/continuation.patch"
+          git apply "$RUNNER_TEMP/continuation.patch"
+          rm -f .github/preserved-continuation.patch.gz.b64 .github/workflows/apply-preserved-continuation.yml
+          git add -A
+          test "$(git write-tree)" = "ba53fadd70a5ac9fabdd01b80d65aa321f70ef7a"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm run check
+      - name: Commit and push exact verified tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'ChatGPT'
+          git config user.email 'agent@example.invalid'
+          git commit -m "fix: preserve camera continuity, complete controller mappings and gate playable releases" -m "Continue the exact 148-section Pasted markdown(6) directive on top of the published fefe920 baseline. Preserve the concurrent controller and camera recovery, migrate its version-5 mappings to version 6, add held reverse and focus-loss input guards, and interpolate recorded wheel/suspension poses." -m "Keep cockpit transforms stable at slow display rates and exact on pause. Preserve requested versus completed camera/listener state. Replace obsolete patch-transfer and parallel build-only publishing with ordinary source CI and a playable job dependent on every validation gate." -m "Local evidence: 427 tests in 46 files, lint, TypeScript, production build, four real Chromium component tests, complete native physics/journey/rotation/pit/classification checks, and three local publication-shell fixtures passed. Full final-candidate navigation-dependent browser CI is not certified here. Physical core and original directive bytes are unchanged. This is a local implementation checkpoint, not a declaration of complete master acceptance."
+          git push origin HEAD:main
+          echo "Published tree: $(git rev-parse HEAD^{tree})" >> "$GITHUB_STEP_SUMMARY"
