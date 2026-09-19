@@ -16,7 +16,7 @@ export class ReflectionSystem {
   }
   probeUpdates = 0;
   private activePass = false;
-  private clock = 0;
+  private clock = NaN;
   private enabled = false;
   private lastProbe = -Infinity;
   // Alternate completed targets: a scene never samples the cubemap into which
@@ -52,7 +52,22 @@ export class ReflectionSystem {
   quality(value: 'low' | 'medium' | 'high') {
     this.views.quality(value);
   }
+  /** A seek invalidates captured scenery without rebuilding material programs.
+   * Otherwise a probe from a later lap can remain installed until replay time
+   * catches its old timestamp, and mirrors can briefly show the old position. */
+  invalidate() {
+    this.lastProbe = -Infinity;
+    this.views.invalidate();
+  }
   beginFrame(time: number, cockpit: boolean) {
+    if (!Number.isFinite(time)) throw new Error('Invalid reflection presentation time');
+    if (
+      !Number.isFinite(this.clock) ||
+      time < this.clock ||
+      time - this.clock > 2 ||
+      cockpit !== this.enabled
+    )
+      this.invalidate();
     this.clock = time;
     this.enabled = cockpit;
     for (const mirror of this.mirrors) mirror.visible = cockpit;

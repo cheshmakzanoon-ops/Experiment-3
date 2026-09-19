@@ -9,3 +9,7 @@ No external font files, models, textures, online image downloads or sound record
 ## User-provided visual references (2026-09-19)
 
 The F1 25 reference ZIP was inspected as a quality target only. No reference image, commercial-game mesh, livery, UI, recording or extracted texture is bundled or fetched by the app. The replacement body-section geometry, swept wings, APEX UV liveries, procedural foliage atlas and correlated terrain material maps were authored in this repository. See [reference review and validation boundaries](REFERENCE_VISUAL_REVIEW.md) for the archive audit, the excluded unrelated images and the remaining fidelity gap. A visually similar technique is not evidence of ownership of or permission to redistribute third-party source assets.
+
+## Original cockpit detail continuation
+
+`cockpit.ts` authors the mirror housings, rounded apertures, butterfly wheel and printed APEX control panel. `driver-materials.ts` generates two shared 128 × 128 linear normal/roughness maps from deterministic periodic weave functions; no photograph was converted into these textures. Glove reinforcement and seam curves are original geometry. The control lettering uses the browser's system fonts, with no bundled font files. The reference collection supplies qualitative goals, not distributed pixels. No external material library, image-generation output or downloaded PBR asset was added in this continuation.

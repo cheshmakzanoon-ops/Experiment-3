@@ -102,3 +102,14 @@ describe('rear-view camera passes', () => {
     dispose.forEach((spy) => expect(spy).toHaveBeenCalledOnce());
   });
 });
+it('refreshes both fitted mirror feeds immediately after a presentation discontinuity', () => {
+  const { root, mirrors } = fixture(),
+    { renderer } = rendererMock();
+  mirrors.render(renderer as unknown as T.WebGLRenderer, new T.Scene(), root, 0);
+  mirrors.render(renderer as unknown as T.WebGLRenderer, new T.Scene(), root, 0);
+  expect(mirrors.updates).toBe(1);
+  mirrors.invalidate();
+  mirrors.render(renderer as unknown as T.WebGLRenderer, new T.Scene(), root, 0);
+  expect(mirrors.updates).toBe(2);
+  mirrors.dispose();
+});

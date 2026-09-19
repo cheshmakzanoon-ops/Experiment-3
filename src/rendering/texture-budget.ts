@@ -5,6 +5,7 @@ import * as T from 'three';
  * Keep one source canvas so quality can be restored without accumulating copies. */
 export class TextureBudget {
   private assets = new Map<T.CanvasTexture, HTMLCanvasElement>();
+  private detailData = new Set<T.DataTexture>();
   private limit = 512;
   private anisotropy = 8;
   register(root: T.Object3D) {
@@ -12,6 +13,13 @@ export class TextureBudget {
       if (!(object instanceof T.Mesh)) return;
       for (const material of Array.isArray(object.material) ? object.material : [object.material]) {
         for (const value of Object.values(material)) {
+          // Tiny prefiltered fabric maps retain their fixed resolution but obey
+          // the same user-selected filtering budget. Simulation data is excluded.
+          if (value instanceof T.DataTexture && value.userData.surfaceDetail === true) {
+            this.detailData.add(value);
+            value.anisotropy = this.anisotropy;
+            continue;
+          }
           if (!(value instanceof T.CanvasTexture) || value.userData.dynamic) continue;
           if (this.assets.has(value)) continue;
           const source = value.image as HTMLCanvasElement;
@@ -27,6 +35,10 @@ export class TextureBudget {
     this.limit = limit;
     this.anisotropy = anisotropy;
     for (const [texture, source] of this.assets) this.apply(texture, source);
+    for (const texture of this.detailData) {
+      texture.anisotropy = anisotropy;
+      texture.needsUpdate = true;
+    }
   }
   private apply(texture: T.CanvasTexture, source: HTMLCanvasElement) {
     const factor = Math.min(1, this.limit / Math.max(source.width, source.height));
@@ -53,5 +65,6 @@ export class TextureBudget {
   }
   dispose() {
     this.assets.clear();
+    this.detailData.clear();
   }
 }

@@ -34,6 +34,9 @@ export class MirrorViews {
   updates = 0;
   passes = 0;
 
+  invalidate() {
+    this.clock = Infinity;
+  }
   bind(surfaces: readonly T.Mesh[]) {
     if (surfaces.length !== 2) throw new Error('Two mirror surfaces are required');
     this.unbind();

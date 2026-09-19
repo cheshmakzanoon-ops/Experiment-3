@@ -37,7 +37,7 @@ Its central design rule is that a system should change the car, not merely decor
 | 🌦️ | Evolving circuit | Spatial water, rubber, marbles, and temperature; clear, wet, and changing-weather sessions; shared track geometry for visuals and contact queries. |
 | 🤖 | AI and race rules | Shared player/AI physics, speed preview, lane commitment, traffic response, starting lights, ordered lap gates, penalties, classification, and results. |
 | 🔧 | Pit lane and setup | Physically driven pit approach, stopping, tire service, and exit; garage settings for wings, brake bias, differential, suspension, pressures, camber, and toe. |
-| 🎨 | Original presentation | Procedural car and circuit, PBR materials, articulated wheels and suspension, live steering-wheel display, weather effects, and four camera views. |
+| 🎨 | Original presentation | Procedural car and circuit, PBR materials, articulated suspension and driver, fitted live mirrors, shaped steering wheel with recorded-state selectors, weather effects, and four camera views. |
 | 🔊 | Procedural sound | Web Audio engine harmonics, tire/surface noise, wind, weather, impacts, and nearby-car spatial audio. |
 | 📊 | Engineering tools | Telemetry graphs, lap-distance comparison, CSV export, force/debug overlays, and bounded pose replay with seeking and playback-speed controls. |
 | 🎮 | Browser integration | Keyboard, gamepad, and touch controls; optional cockpit mouse look; versioned IndexedDB preferences and best-lap records. |
@@ -45,6 +45,8 @@ Its central design rule is that a system should change the car, not merely decor
 ## 🎛️ Tune the presentation without changing the physics
 
 The garage exposes independent render resolution, real texture-detail limits, shadows, mirror quality, local scene reflections, particles, vegetation, crowds, bloom, FXAA and anisotropic filtering. Presets initialize these controls; individual overrides persist. Patterned flags and high-contrast instruments accompany the existing remapping, calibration and camera-shake controls.
+
+The reference-led cockpit pass adds fitted mirror apertures, a bevelled butterfly wheel, real-state bias/differential/ERS selectors, cloth microdetail, glove reinforcement and seams. Replay seeks invalidate stale mirror/probe imagery without rebuilding material programs. [See the actual scope, tests and graphics cost](docs/COCKPIT_REFERENCE_CONTINUATION.md); this is not a claim of F1 25 visual parity.
 
 Trackside mode uses twenty fixed camera rigs with coverage-based cuts and predictive panning. Keyboard, touch and controller sampling runs on its own 60 Hz timer rather than waiting for a rendered frame. See [presentation and input engineering](docs/PRESENTATION_AND_INPUT.md) for ownership, tests and remaining boundaries.
 
@@ -217,6 +219,8 @@ The original validation results below are historical baseline measurements, not 
 
 ## 🧪 Testing and validation
 
+**Current cockpit continuation:** 527 unit/property/regression tests in 54 files; 29 browser cases in the complete suite. Local lint, strict build and the four focused high-preset reference/articulation and pit-budget cases passed. The normal GitHub workflow separately gates publication on the complete suite and native scenarios. Read [the reproducible evidence and remaining acceptance work](docs/COCKPIT_REFERENCE_CONTINUATION.md). Test counts alone do not certify photorealism or the full master directive.
+
 ```sh
 npm run check            # ESLint + Vitest + TypeScript + Vite production build
 npm run test:physics     # Four-car dry, changing-weather, and wet scenarios
@@ -227,7 +231,7 @@ npm run test:e2e         # Chromium workflows, screenshots, and traces
 
 ### 🔬 Recorded evidence and its limits
 
-The recovered source was checked again on **September 17, 2026**: **49 unit/property tests passed**, along with linting, strict TypeScript checking, and the production build. The live badge above reports GitHub's workflow status separately.
+**Historical foundation checkpoint:** the recovered source was checked on **September 17, 2026**: **49 unit/property tests passed**, along with linting, strict TypeScript checking, and the production build. The live badge above reports GitHub's workflow status separately.
 
 The included [endurance report](docs/endurance-results.json) records **100 dry solo laps**, **two physical pit stops**, approximately **3.424 m maximum non-pit lateral offset**, and intact front-wing/floor health. Its explicitly configured **113 kg starting fuel load** affects real vehicle mass. It is not the short-race menu's standard fuel load.
 

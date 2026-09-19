@@ -1,6 +1,7 @@
 import * as T from 'three';
 import { clamp } from '../core/math.ts';
-import { box, mesh, mergeStatic, tube } from './geometry.ts';
+import { box, mesh, mergeStatic } from './geometry.ts';
+import { driverMaterials } from './driver-materials.ts';
 
 /** Analytic two-bone IK in vehicle-local metres. The pole chooses the elbow's
  * bend plane. Unreachable targets are reported, not hidden by stretching bones. */
@@ -77,6 +78,21 @@ interface Arm {
   paddle: T.Group;
   pose: ArmPose;
 }
+/** Small, deliberate seam curves need fewer segments than car-scale tubing.
+ * The static meshes are merged by material after construction. */
+function seam(parent: T.Object3D, material: T.Material, points: number[][], radius: number) {
+  return mesh(
+    parent,
+    new T.TubeGeometry(
+      new T.CatmullRomCurve3(points.map(([x, y, z]) => new T.Vector3(x, y, z))),
+      12,
+      radius,
+      6,
+      false,
+    ),
+    material,
+  );
+}
 const UPPER = 0.37,
   LOWER = 0.36;
 export class DriverRig {
@@ -88,10 +104,7 @@ export class DriverRig {
   private up = new T.Vector3(0, 1, 0);
   constructor(private steering: T.Group) {
     this.root.name = 'Articulated driver';
-    const suit = new T.MeshStandardMaterial({ color: 0x273d46, roughness: 0.94 });
-    const glove = new T.MeshStandardMaterial({ color: 0xd8d4c5, roughness: 0.91 });
-    const grip = new T.MeshStandardMaterial({ color: 0x222a2a, roughness: 0.97 });
-    const stitch = new T.MeshStandardMaterial({ color: 0x928d7c, roughness: 1 });
+    const { suit, glove, grip, stitch, panel } = driverMaterials();
     const paddleMaterial = new T.MeshStandardMaterial({
       color: 0x59646b,
       metalness: 0.7,
@@ -117,9 +130,46 @@ export class DriverRig {
         -0.022,
       );
       cuff.rotation.x = -0.8;
+      // A restrained back-of-hand reinforcement and a shaped gauntlet add
+      // construction detail without separate animation or changing wrist reach.
+      const reinforcement = mesh(hand, new T.SphereGeometry(1, 20, 14), panel, 0, -0.005, -0.019);
+      reinforcement.scale.set(0.026, 0.039, 0.01);
+      const gauntlet = mesh(
+        hand,
+        new T.CylinderGeometry(0.0285, 0.031, 0.023, 20),
+        glove,
+        0,
+        -0.037,
+        -0.007,
+      );
+      gauntlet.rotation.x = -0.8;
+      for (const edge of [-1, 1])
+        seam(
+          hand,
+          stitch,
+          [
+            [edge * 0.01, 0.025, -0.029],
+            [edge * 0.024, 0.012, -0.026],
+            [edge * 0.024, -0.021, -0.026],
+            [edge * 0.012, -0.039, -0.017],
+          ],
+          0.00065,
+        );
+      // Three short raised grip bars follow the knuckle dome, not a floating badge.
+      for (let bar = 0; bar < 3; bar++)
+        seam(
+          hand,
+          grip,
+          [
+            [-0.012, 0.02 - bar * 0.008, -0.028],
+            [0, 0.021 - bar * 0.008, -0.0295],
+            [0.012, 0.02 - bar * 0.008, -0.028],
+          ],
+          0.0014,
+        );
       for (let finger = 0; finger < 4; finger++) {
         const y = 0.028 - finger * 0.018;
-        tube(
+        seam(
           hand,
           glove,
           [
@@ -130,7 +180,7 @@ export class DriverRig {
           ],
           0.008,
         );
-        tube(
+        seam(
           hand,
           stitch,
           [

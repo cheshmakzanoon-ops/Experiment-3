@@ -1,3 +1,4 @@
+import { addMirrorHousing, apertureGeometry, CockpitControls } from './cockpit.ts';
 import { sculptedLoft, wingElement, aeroPlate } from './bodywork.ts';
 import { flankLivery } from './car-livery.ts';
 import { TireCarcass } from './tire-carcass.ts';
@@ -40,6 +41,7 @@ export class FormulaCar {
   readonly links: { mesh: T.Object3D; anchor: T.Vector3; wheel: number; dy: number }[] = [];
   private suspension: T.InstancedMesh;
   readonly steering = new T.Group();
+  readonly cockpitControls: CockpitControls;
   readonly driver: DriverRig;
   readonly helmet = new T.Group();
   readonly rainLight: T.MeshStandardMaterial;
@@ -221,19 +223,10 @@ export class FormulaCar {
         new T.Vector3(sign * 0.59, 0.29, 0.46),
         0.012,
       );
-      const mirror = mesh(s, new T.SphereGeometry(1, 24, 12), this.paint, sign * 0.64, 0.3, 0.46);
-      mirror.scale.set(0.12, 0.05, 0.075);
-      const glass = mesh(
-        this.root,
-        new T.PlaneGeometry(0.195, 0.069),
-        new T.MeshBasicMaterial({ color: 0xd4dde0 }),
-        sign * 0.64,
-        0.3,
-        0.377,
-      );
-      glass.rotation.y = Math.PI;
-      glass.name = sign < 0 ? 'Right rear-view mirror' : 'Left rear-view mirror';
-      glass.castShadow = false;
+      const glass = addMirrorHousing(s, this.paint, carbon, sign);
+      // Batch the lit shell/bezel with the body, but keep the rear-camera feed
+      // independently owned. attach preserves its housing-space placement.
+      this.root.attach(glass);
       this.mirrors.push(glass);
     }
     rod(s, metal, new T.Vector3(0.055, 0.13, 0.93), new T.Vector3(0.055, 0.52, 0.93), 0.004);
@@ -471,21 +464,7 @@ export class FormulaCar {
     this.root.add(this.steering, this.helmet);
     this.steering.position.set(0, 0.115, 0.22);
     this.steering.rotation.x = 0.12;
-    const steeringMaterial = new T.MeshStandardMaterial({ color: 0x25292b, roughness: 0.78 });
-    tube(
-      this.steering,
-      steeringMaterial,
-      [
-        [-0.17, 0.045, 0],
-        [-0.19, -0.055, 0],
-        [-0.1, -0.095, 0],
-        [0.1, -0.095, 0],
-        [0.19, -0.055, 0],
-        [0.17, 0.045, 0],
-      ],
-      0.022,
-    );
-    box(this.steering, carbon, 0, 0, 0, 0.29, 0.11, 0.04);
+    this.cockpitControls = new CockpitControls(this.steering, carbon);
     this.display = canvasTexture(512, 256, (c) => {
       c.fillStyle = '#0c1212';
       c.fillRect(0, 0, 512, 256);
@@ -495,11 +474,11 @@ export class FormulaCar {
     this.ctx = this.canvas.getContext('2d')!;
     const screen = mesh(
       this.steering,
-      new T.PlaneGeometry(0.17, 0.084),
+      apertureGeometry(0.182, 0.09, 0.004),
       new T.MeshBasicMaterial({ map: this.display }),
       0,
-      0.01,
-      -0.025,
+      0.014,
+      -0.028,
     );
     screen.rotation.y = Math.PI;
     for (let j = 0; j < 10; j++) {
@@ -507,7 +486,7 @@ export class FormulaCar {
         color: j < 5 ? 0x6fec9b : j < 8 ? 0xed6540 : 0xaabef8,
       });
       this.shiftLeds.push(material);
-      box(this.steering, material, -0.071 + j * 0.016, 0.065, -0.018, 0.01, 0.007, 0.003);
+      box(this.steering, material, -0.071 + j * 0.016, 0.074, -0.018, 0.01, 0.005, 0.003);
     }
     for (const sign of [-1, 1]) {
       for (let k = 0; k < 3; k++) {
@@ -515,8 +494,8 @@ export class FormulaCar {
           this.steering,
           new T.CylinderGeometry(0.009, 0.009, 0.009, 12),
           new T.MeshStandardMaterial({ color: [0xe65739, 0x56b8a6, 0xe6c254][k] }),
-          sign * (0.11 + (k % 2) * 0.026),
-          0.018 - k * 0.029,
+          sign * (0.117 + (k % 2) * 0.026),
+          0.037 - k * 0.028,
           -0.027,
         );
         b.rotation.x = Math.PI / 2;
@@ -589,6 +568,7 @@ export class FormulaCar {
     }
     this.steering.rotation.z = -lerp(a[o + F.STEER], b[o + F.STEER], t) * 2.2;
     this.driver.update(time, b[o + F.GEAR], b[o + F.ERS_MODE]);
+    this.cockpitControls.update(b, o);
     this.helmet.visible = !cockpit;
     const compound = Object.values(COMPOUNDS)[Math.round(b[o + F.COMPOUND])] ?? COMPOUNDS.medium;
     for (let i = 0; i < 4; i++) {

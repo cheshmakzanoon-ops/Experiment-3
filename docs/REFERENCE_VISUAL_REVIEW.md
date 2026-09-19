@@ -41,3 +41,7 @@ Current acceptance requires the normal repository CI (unit/build/lint, physics s
 Environment density and authored architecture, ground/vegetation transitions, driver/glove and cockpit detail, mirror framing, surface wear, lighting/exposure balance, atmospheric depth, temporal antialiasing and long-range detail still need reference-led review. The procedural car is not a licensed real-team model or a scanned production asset. A stationary clear/rain pair also cannot establish motion quality, spray readability, consistent lighting around a full lap, rain transitions, night lighting or replay presentation.
 
 The remaining master-directive gates stay open: a complete human-driven section-146 audiovisual scenario, repeated subsystem review, representative hardware performance captures and honest final reporting. Continue from the committed implementation and its evidence rather than converting this document into a completion claim.
+
+## Subsequent cockpit continuation
+
+The complete normal workflow for the renderer milestone, `35446641303` at `e607062`, subsequently passed all jobs, including playable publication. The next [cockpit continuation](COCKPIT_REFERENCE_CONTINUATION.md) preserves that runtime, adds fitted mirrors and real-state controls, and repairs stale reflection history on replay seeks. Its evidence and graphics costs are reported separately rather than retroactively changing the earlier candidate measurements above.

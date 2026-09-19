@@ -93,3 +93,28 @@ it('restores renderer state on failed capture and never publishes an incomplete 
   expect(reflection.probeUpdates).toBe(1);
   reflection.dispose();
 });
+it('recaptures a backward seek immediately instead of keeping a future-lap environment', () => {
+  const reflection = new ReflectionSystem(),
+    { gl } = fixture();
+  const scene = new T.Scene(),
+    car = new T.Group(),
+    material = new T.MeshStandardMaterial();
+  const capture = vi.spyOn(T.CubeCamera.prototype, 'update').mockImplementation(() => undefined);
+  reflection.beginFrame(120, true);
+  reflection.updateProbe(gl, scene, car, [material], true);
+  const future = material.envMap,
+    version = material.version;
+  reflection.beginFrame(20, true);
+  reflection.updateProbe(gl, scene, car, [material], true);
+  expect(capture).toHaveBeenCalledTimes(2);
+  expect(material.envMap).not.toBe(future);
+  expect(material.version).toBe(version);
+  reflection.beginFrame(20, true);
+  reflection.updateProbe(gl, scene, car, [material], true);
+  expect(capture).toHaveBeenCalledTimes(2);
+  reflection.invalidate(); // Explicit same-timestamp reset or source change.
+  reflection.updateProbe(gl, scene, car, [material], true);
+  expect(capture).toHaveBeenCalledTimes(3);
+  expect(() => reflection.beginFrame(NaN, true)).toThrow('Invalid reflection');
+  reflection.dispose();
+});

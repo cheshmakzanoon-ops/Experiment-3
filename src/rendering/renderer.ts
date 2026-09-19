@@ -335,6 +335,7 @@ export class RacingRenderer {
     return this.mode;
   }
   reset() {
+    this.reflection.invalidate();
     this.motionBlur.reset();
     this.audioView.reset();
     this.cameraClock.reset();
@@ -634,6 +635,9 @@ export class RacingRenderer {
       materials = new Set<T.Material>(),
       textures = new Set<T.Texture>();
     this.scene.traverse((o) => {
+      // Instance attributes are owned by the object, not its shared geometry.
+      // Release them before disposing the renderer's WebGL bookkeeping.
+      if (o instanceof T.InstancedMesh) o.dispose();
       if (o instanceof T.Mesh || o instanceof T.Points || o instanceof T.Line) {
         geometries.add(o.geometry);
         for (const m of Array.isArray(o.material) ? o.material : [o.material]) {
