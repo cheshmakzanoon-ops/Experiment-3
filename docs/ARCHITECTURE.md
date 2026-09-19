@@ -36,13 +36,23 @@ act at their application points and generate moments. A body-diagonal inertia
 model and suspension kinematics are reduced approximations, not a multibody car.
 
 Four oriented suspension axes query a BVH triangle contact ribbon. Shared normals
-stabilize triangle seams. Spring, bump/rebound damping, anti-roll and progressive
-bump-stop forces establish wheel loads. Tire forces use nonlinear load-sensitive
-longitudinal/lateral curves and a combined-force limit. Water, compound, load,
+stabilize triangle seams. Both tire slip velocity and reconstructed force use the
+same orthonormal sampled-road basis at each actual ray intersection; suspension
+heave does not become lateral slip. Spring, bump/rebound damping, anti-roll and
+progressive bump-stop forces establish wheel loads. Tire forces use nonlinear
+load-sensitive longitudinal/lateral curves and a combined-force limit. Water, compound, load,
 temperature, pressure, wear, contamination and flat spots affect those forces.
 A backward-Euler angular solve with bisection addresses stiff low-speed wheel
 motion; brake complementarity does not accelerate a stopped wheel backwards.
 The tire coefficients are original approximations, not fitted proprietary data.
+
+Four local floor supports apply unilateral spring/damper and bounded friction
+forces at actual contact points, producing pitch/roll moments and dissipated
+work. Floor abrasion cannot heal existing collision damage. Hard-surface sliding
+work, recorded contact anchors and cumulative counters drive sparks, including
+strikes between displayed snapshots. Soft ground and normal damping do not
+produce metallic sparks. This is a reduced compliant model, not a swept
+deformable chassis; see [road contact and skids](ROAD_CONTACT_AND_SKIDS.md).
 
 Dissipated slip work heats surface and carcass thermal masses. Pressure follows a
 simplified absolute-temperature relation. Brake discs receive friction-brake
@@ -124,8 +134,8 @@ measure real intervals and identify the built source, not a guessed consumer GPU
 
 Articulated wheels, suspension links, driver, steering display, damage, debris and
 pit crew follow state. Pooled spray requires loaded tires, actual water and speed;
-smoke uses tire slip work, sparks use bottom-contact work. Fractional emissions
-avoid losing light rain at high FPS. Weather wind drives rain and entrainment.
+smoke uses tire slip work, sparks use recorded hard-surface sliding work.
+Fractional emissions avoid losing light rain at high FPS. Weather wind drives rain and entrainment.
 The same wind is recorded in replay rather than sampled from a second wall clock.
 Marble pickup is integrated per loaded tire, debits the touched road cell, and
 persists as tread contamination until shed or the tire is physically replaced.
@@ -140,15 +150,17 @@ synthesis is not a professionally recorded layered car-audio library.
 
 ## Persistence, recording and errors
 
-Settings records are version 4 and accept supported earlier versions; IndexedDB's
+Settings records are version 6 and migrate supported versions 1–5; IndexedDB's
 object-store schema version is separately 1. Setup, calibration, bindings and
 graphics are validated. Stored best laps and local preferences require no account
 or network write. There is no full mid-race physics save/restore or cloud sync.
 
-Protocol version 7 uses sixteen header floats and 224 floats per car. Wheel
-records start at offset 96; four debris records start at 192. Telemetry now exports
-203 named channels at 60 Hz into a fifteen-minute ring. Complete all-car numeric
-pose replay is captured at 15 Hz and paged through bounded IndexedDB storage,
+Protocol version 9 uses sixteen header floats and 249 floats per car. Four
+26-float wheel records start at offset 96; four eight-float debris records start
+at 200; seventeen skid-contact values start at 232. Telemetry exports 228 named
+channels at 60 Hz into a fifteen-minute ring. The first 211 column names and
+positions remain unchanged; the seventeen skid channels are appended. Complete
+all-car numeric pose replay is captured at 15 Hz and paged through bounded IndexedDB storage,
 with separately recorded surface state. Playback does not rerun live physics.
 Missing/incompatible pages, storage failures, cancelled exports and backlog are
 reported rather than silently substituted. See [recording/replay](RECORDING_AND_REPLAY.md).
