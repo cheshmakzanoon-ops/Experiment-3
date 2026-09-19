@@ -1,124 +1,245 @@
-diff --git a/docs/IMPLEMENTATION_MATRIX.md b/docs/IMPLEMENTATION_MATRIX.md
-index c7267ab..43add06 100644
---- a/docs/IMPLEMENTATION_MATRIX.md
-+++ b/docs/IMPLEMENTATION_MATRIX.md
-@@ -107,8 +107,8 @@ This ledger follows all 148 numbered sections of the exact [Pasted markdown(6) d
- | 101 | DEBUG OVERLAY | F3 now exposes every required numeric category, including per-wheel forces/slip/thermal/wear, body motion/G, aero balance/drag, physical surface cells/rubber and actual AI target/path/decision. Opt-in timestamped worker probe; unsupported GPU timing and unrecorded replay-only extras are labeled honestly. |
- | 102 | VISUAL DEBUGGING | Actual last-solve contact points, suspension query rays and contact-normal Fz arrows are connected to the opt-in probe. Stale/live overlays are hidden during replay. Other section-102 visualizations are optional and not all are implemented. |
--| 103 | UNIT TESTS | 348 unit/property/regression tests at the replay/audio/engineering checkpoint: 34 added tests cover presentation clocks, camera audio and read-only engineering inspection. Test count is evidence scope, not universal correctness. |
-+| 103 | UNIT TESTS | 350 unit/property/regression tests at the replay/audio/engineering checkpoint: 36 added tests cover presentation clocks, camera audio and read-only engineering inspection. Test count is evidence scope, not universal correctness. |
- | 104 | PHYSICS PROPERTY TESTS | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
- | 105 | DETERMINISM TEST | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
--| 106 | FRAME-INDEPENDENCE TEST | Continuous effect emission totals across 24/30/60/90/120/144 Hz, accelerated simulation-time playback and frozen-frame equality supplement existing fixed-step determinism/camera regressions. Particle pixel placement is not claimed bit-identical across rates. |
-+| 106 | FRAME-INDEPENDENCE TEST | Continuous effect emission totals across 24/30/60/90/120/144 Hz, accelerated simulation-time playback and frozen-frame equality and paused camera pan/inertia regressions supplement existing fixed-step determinism tests. Particle pixel placement is not claimed bit-identical across rates. |
- | 107 | STRAIGHT-LINE TEST | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
- | 108 | SKIDPAD TEST | Instrumented 80 m skidpad at 15/25/35 m/s using the production vehicle solver; measured lateral G compared with actual speed/radius, radial RMS error and speed tracking. |
-diff --git a/docs/REPLAY_AUDIO_AND_ENGINEERING.md b/docs/REPLAY_AUDIO_AND_ENGINEERING.md
-index 062c53f..9cd54b8 100644
---- a/docs/REPLAY_AUDIO_AND_ENGINEERING.md
-+++ b/docs/REPLAY_AUDIO_AND_ENGINEERING.md
-@@ -28,4 +28,10 @@ advances. Particle placement is not claimed to be bit-identical across render
- rates, but emission work and simulation-time aging are covered by regressions.
- 
-+A subsequent paused-view check also exposed continued trackside pan/zoom and
-+cockpit/chase spring convergence on wall time. Those camera dynamics now consume
-+a pause-aware presented-time clock; free-look and camera selection remain usable.
-+A native regression exercises the actual TracksideDirector and inertial camera,
-+while the full browser replay test requires an unchanged paused listener.
+diff --git a/src/input/button-actions.ts b/src/input/button-actions.ts
+new file mode 100644
+--- /dev/null
++++ b/src/input/button-actions.ts
+@@ -0,0 +1,124 @@
++import type { InputMapping } from '../storage/data.ts';
 +
- The audio listener now comes from the actual camera position and camera-right
- basis. Camera local +X is screen right, unlike this car model's +X-left convention.
-diff --git a/docs/dynamics-benchmark.json b/docs/dynamics-benchmark.json
-index 0168fe3..8eec6f7 100644
---- a/docs/dynamics-benchmark.json
-+++ b/docs/dynamics-benchmark.json
-@@ -1,4 +1,4 @@
- {
--  "sourceSHA256": "e634c846513b962df43c5ccfb6c2f15cf87580fa21069e191a0f39d6e766d72b",
-+  "sourceSHA256": "5e20e2cf842532bdcd8a5cd9bfb8482cf2e8b67edee549dc93258dab97fb2be2",
-   "fixedDtSeconds": 0.004166666666666667,
-   "fixture": "Isolated analytic runway/skidpad/kerbs with the production Vehicle solver",
-diff --git a/docs/integrated-driving.json b/docs/integrated-driving.json
-index 51fc1da..d0cd6dc 100644
---- a/docs/integrated-driving.json
-+++ b/docs/integrated-driving.json
-@@ -1,4 +1,4 @@
- {
--  "sourceSHA256": "06c18de61bbfd3f9e0c310c6e39ee1a10b72701d5f78d7f5607963d26ca9ca3d",
-+  "sourceSHA256": "de932511c03ae5baa6416d017c8f4ff54de2f4eee693644acc6c511398be7ad8",
-   "simulationSHA256": "30c155c669e4af3f1d5b2a40ab0ce9acd44d5dc19ee82777df8f6c6bf2149484",
-   "fingerprintVersion": 2,
-diff --git a/docs/scenario-results.json b/docs/scenario-results.json
-index 689c7fb..cda408f 100644
---- a/docs/scenario-results.json
-+++ b/docs/scenario-results.json
-@@ -6,5 +6,5 @@
-     "simulatedSeconds": 320,
-     "cars": 4,
--    "elapsedSeconds": 12.886688083000001,
-+    "elapsedSeconds": 12.465003163,
-     "maxSpeedKmh": 273.7525241448068,
-     "maxLateral": 8.676510391903989,
-@@ -47,5 +47,5 @@
-     "simulatedSeconds": 320,
-     "cars": 4,
--    "elapsedSeconds": 11.937821735000002,
-+    "elapsedSeconds": 11.728825059,
-     "maxSpeedKmh": 271.8375331467494,
-     "maxLateral": 8.90782178695694,
-@@ -88,5 +88,5 @@
-     "simulatedSeconds": 320,
-     "cars": 4,
--    "elapsedSeconds": 12.099529452000002,
-+    "elapsedSeconds": 11.625920206000002,
-     "maxSpeedKmh": 258.0035511152656,
-     "maxLateral": 9.279951269326773,
-diff --git a/e2e/01-worker-portability.spec.ts b/e2e/01-worker-portability.spec.ts
-index b9e70b7..c71a815 100644
---- a/e2e/01-worker-portability.spec.ts
-+++ b/e2e/01-worker-portability.spec.ts
-@@ -74,5 +74,13 @@ test('physics and CSV workers run when the JS bundle is served from a different
-   expect(measured.telemetryRows).toBeGreaterThanOrEqual(60);
-   expect(measured.engineeringSamples).toBeGreaterThanOrEqual(5);
--  expect(measured.engineeringSamples).toBeLessThanOrEqual(1 + Math.ceil(measured.tick / 12));
-+  // Frame and probe responses have independent delivery queues. Verify the
-+  // probe's actual tick cadence, not a possibly earlier render-frame timestamp.
-+  expect(measured.engineeringSamples).toBeLessThanOrEqual(
-+    1 + Math.floor(measured.engineeringTick / 12),
-+  );
-+  for (let i = 1; i < measured.engineeringTicks.length; i++)
-+    expect(measured.engineeringTicks[i] - measured.engineeringTicks[i - 1]).toBeGreaterThanOrEqual(
-+      12,
-+    );
-   expect(measured.engineeringTick).toBeGreaterThanOrEqual(60);
-   expect(measured.engineeringActive).toBe(true);
-diff --git a/e2e/fixtures/worker-portability.ts b/e2e/fixtures/worker-portability.ts
-index b3c74d3..af0557c 100644
---- a/e2e/fixtures/worker-portability.ts
-+++ b/e2e/fixtures/worker-portability.ts
-@@ -17,4 +17,5 @@ export async function verifyWorkerPortability() {
-   let engineeringTick = -1;
-   let engineeringActive = false;
-+  const engineeringTicks: number[] = [];
-   try {
-     const frame = await new Promise<Float32Array>((resolve, reject) => {
-@@ -30,4 +31,5 @@ export async function verifyWorkerPortability() {
-           }
-           engineeringSamples++;
-+          engineeringTicks.push(message.sample.tick);
-           engineeringTick = message.sample.tick;
-           engineeringActive = message.sample.aiActive;
-@@ -81,4 +83,5 @@ export async function verifyWorkerPortability() {
-       engineeringTick,
-       engineeringActive,
-+      engineeringTicks,
-       csvColumns: header.length,
-       pickupColumns: header.slice(-4),
++export const BUTTON_ACTION_LABELS = {
++  pause: 'Pause / resume',
++  camera: 'Cycle camera',
++  ers: 'Hybrid mode',
++  pit: 'Request / cancel pit',
++  replay: 'Open / close replay',
++  telemetry: 'Telemetry',
++  mute: 'Mute',
++  debug: 'Engineering overlay',
++  autopilot: 'AI demonstration',
++} as const;
++export type ButtonAction = keyof typeof BUTTON_ACTION_LABELS;
++export type ButtonActions = Record<ButtonAction, number>;
++export const DEFAULT_BUTTON_ACTIONS: ButtonActions = {
++  pause: 9,
++  camera: 3,
++  ers: 2,
++  pit: -1,
++  replay: -1,
++  telemetry: -1,
++  mute: -1,
++  debug: -1,
++  autopilot: -1,
++};
++export const BUTTON_ACTIONS = Object.keys(BUTTON_ACTION_LABELS) as ButtonAction[];
++export type ActionContext = 'driving' | 'paused' | 'replay' | 'off';
++
++export function occupiedDrivingButtons(mapping: InputMapping) {
++  const buttons = new Map<number, string>();
++  for (const [button, name] of [
++    [mapping.shiftUpButton, 'Upshift'],
++    [mapping.shiftDownButton, 'Downshift'],
++    ...(!mapping.axisPedals
++      ? [
++          [mapping.throttleButton, 'Throttle'],
++          [mapping.brakeButton, 'Brake'],
++        ]
++      : []),
++    ...(mapping.manualClutch && mapping.clutchAxis < 0 ? [[mapping.clutchButton, 'Clutch']] : []),
++  ] as [number, string][])
++    if (button >= 0) buttons.set(button, name);
++  return buttons;
++}
++/** V1–4 had implicit standard-controller actions. Migration preserves the old
++ * driving-button precedence; unmapped wheels do not acquire surprise actions. */
++export function validateButtonActions(
++  value: unknown,
++  mapping: InputMapping,
++  legacy = false,
++): ButtonActions {
++  const defaults = { ...DEFAULT_BUTTON_ACTIONS };
++  if (legacy && mapping.device) for (const key of BUTTON_ACTIONS) defaults[key] = -1;
++  const source = legacy ? defaults : value;
++  if (!source || typeof source !== 'object' || Array.isArray(source))
++    throw new Error('Controller actions must be a button map');
++  const result = {} as ButtonActions,
++    occupied = occupiedDrivingButtons(mapping);
++  for (const key of BUTTON_ACTIONS) {
++    let n = (source as Record<string, unknown>)[key];
++    if (!Number.isInteger(n) || (n as number) < -1 || (n as number) > 127)
++      throw new Error(`${BUTTON_ACTION_LABELS[key]} requires a whole button number from -1 to 127`);
++    if (legacy && occupied.has(n as number)) n = -1;
++    if ((n as number) >= 0 && occupied.has(n as number))
++      throw new Error(
++        `${BUTTON_ACTION_LABELS[key]} conflicts with ${occupied.get(n as number)} on button ${n}`,
++      );
++    result[key] = n as number;
++    if ((n as number) >= 0) occupied.set(n as number, BUTTON_ACTION_LABELS[key]);
++  }
++  return result;
++}
++
++/** Edges survive pause/resume. Held buttons on connect/rebind are baselines, not
++ * commands. Forbidden actions are consumed in menus rather than deferred. */
++export class ControllerActions {
++  private held = new Uint8Array(128);
++  private device = '';
++  private mapping: InputMapping | null = null;
++  poll(
++    pad: Gamepad | null,
++    mapping: InputMapping,
++    context: ActionContext,
++    emit: (action: ButtonAction) => void,
++  ) {
++    const id = pad ? `${pad.index}:${pad.id}` : '';
++    const baseline = id !== this.device || mapping !== this.mapping;
++    this.device = id;
++    this.mapping = mapping;
++    if (!pad) {
++      this.held.fill(0);
++      return;
++    }
++    let dispatched = false;
++    for (let index = 0; index < this.held.length; index++) {
++      const value = pad.buttons[index];
++      const down = !!value && Number.isFinite(value.value) && value.pressed;
++      const edge = down && !this.held[index];
++      this.held[index] = Number(down);
++      if (
++        baseline ||
++        !edge ||
++        context === 'off' ||
++        dispatched ||
++        index === mapping.shiftUpButton ||
++        index === mapping.shiftDownButton ||
++        (!mapping.axisPedals &&
++          (index === mapping.throttleButton || index === mapping.brakeButton)) ||
++        (mapping.manualClutch && mapping.clutchAxis < 0 && index === mapping.clutchButton)
++      )
++        continue;
++      const action = BUTTON_ACTIONS.find((key) => mapping.buttonActions[key] === index);
++      if (
++        !action ||
++        (context === 'paused' && action !== 'pause') ||
++        (context === 'replay' && !['pause', 'camera', 'replay', 'mute', 'debug'].includes(action))
++      )
++        continue;
++      dispatched = true; // One UI transition per sample; other held presses are consumed.
++      emit(action);
++    }
++  }
++}
+diff --git a/src/input/controller.ts b/src/input/controller.ts
+--- a/src/input/controller.ts
++++ b/src/input/controller.ts
+@@ -7,4 +7,5 @@
+ } from './calibration.ts';
+ import { boundAction, isHeld } from './bindings.ts';
++import { ControllerActions, type ActionContext } from './button-actions.ts';
+ import { approach, clamp } from '../core/math.ts';
+ import { controls, type Controls } from '../simulation/config.ts';
+@@ -15,4 +16,5 @@
+   private steering = 0;
+   private previousButtons = new Set<number>();
++  private buttons = new ControllerActions();
+   private enabled = false;
+   private touch = { left: false, right: false, throttle: false, brake: false };
+@@ -105,5 +107,22 @@
+     element.addEventListener('lostpointercapture', release, options);
+   }
++  pollActions(context: ActionContext) {
++    let pad: Gamepad | null = null;
++    try {
++      pad = selectDevice(navigator.getGamepads?.() ?? [], this.settings.mapping.device);
++    } catch (error) {
++      this.deviceStatus = `Gamepad access unavailable: ${String(error)}`;
++    }
++    if (
++      pad &&
++      this.blockedMapping === this.settings.mapping &&
++      this.suppressedDevice === `${pad.index}:${pad.id}`
++    )
++      pad = null;
++    this.buttons.poll(pad, this.settings.mapping, context, this.action);
++  }
+   update(dt: number) {
++    if (!this.enabled) return this.state;
++    this.pollActions('driving');
+     if (!this.enabled) return this.state;
+     const b = this.settings.bindings,
+@@ -179,26 +198,4 @@
+       brake = Math.max(brake, pb);
+       clutch = Math.max(clutch, pc);
+-      if (pad.mapping === 'standard') {
+-        for (const [index, name] of [
+-          [9, 'pause'],
+-          [3, 'camera'],
+-          [2, 'ers'],
+-        ] as const) {
+-          if (
+-            index === m.shiftUpButton ||
+-            index === m.shiftDownButton ||
+-            (m.manualClutch && index === m.clutchButton) ||
+-            (!m.axisPedals && (index === m.throttleButton || index === m.brakeButton))
+-          )
+-            continue;
+-          const down = !!pad.buttons[index]?.pressed;
+-          if (down && !this.previousButtons.has(index)) {
+-            this.action(name);
+-            if (!this.enabled) return this.state;
+-          }
+-          if (down) this.previousButtons.add(index);
+-          else this.previousButtons.delete(index);
+-        }
+-      }
+       for (const [index, direction] of [
+         [m.shiftDownButton, -1],
+diff --git a/src/main.ts b/src/main.ts
+--- a/src/main.ts
++++ b/src/main.ts
+@@ -115,5 +115,17 @@
+     this.input = new InputController(this.settings, (name) => this.action(name));
+     this.inputPump = new InputPump((dt) => {
+-      if (this.state !== 'driving' || this.errorStopped) return;
++      if (this.errorStopped) return;
++      this.input.pollActions(
++        this.state === 'driving'
++          ? 'driving'
++          : this.state === 'replay'
++            ? 'replay'
++            : this.state === 'paused' &&
++                !this.ui.telemetryModal.open &&
++                !document.getElementById('settingsForm')
++              ? 'paused'
++              : 'off',
++      );
++      if (this.state !== 'driving') return;
+       const input = this.input.update(dt);
+       // A device fault may have paused the session during update().
 diff --git a/src/rendering/camera-dynamics.ts b/src/rendering/camera-dynamics.ts
-index 911857e..e9f57fb 100644
 --- a/src/rendering/camera-dynamics.ts
 +++ b/src/rendering/camera-dynamics.ts
-@@ -72,2 +72,20 @@ export class ViewOrientation {
+@@ -65,9 +65,43 @@
+   }
+   update(target: Quaternion, dt: number) {
++    if (
++      !Number.isFinite(dt) ||
++      dt < 0 ||
++      !Number.isFinite(target.x + target.y + target.z + target.w) ||
++      Math.abs(target.lengthSq() - 1) > 0.001
++    )
++      throw new Error('Invalid view orientation');
+     if (!this.initialized) {
+       this.rotation.copy(target);
+       this.initialized = true;
+-    } else this.rotation.slerp(target, 1 - Math.exp(-32 * Math.min(dt, 0.1)));
++    } else if (dt > 0) {
++      this.rotation.slerp(target, -Math.expm1(-32 * Math.min(dt, 0.1)));
++      // Heading lag is a small driver response, not a world-locked view. Even a
++      // slow frame through a hairpin must keep the instruments ahead of the eyes.
++      const lag = this.rotation.angleTo(target);
++      if (lag > 0.04) this.rotation.rotateTowards(target, lag - 0.04);
++      this.rotation.normalize();
++    }
+     return this.rotation;
    }
  }
 +
@@ -127,6 +248,7 @@ index 911857e..e9f57fb 100644
 + * Menu orbiting is separate, and seeks establish a new clock baseline. */
 +export class CameraClock {
 +  private time = NaN;
++  discontinuous = true;
 +  reset() {
 +    this.time = NaN;
 +  }
@@ -134,55 +256,83 @@ index 911857e..e9f57fb 100644
 +    if (!Number.isFinite(time)) throw new Error('Invalid camera presentation time');
 +    const elapsed = time - this.time;
 +    this.time = menu ? NaN : time;
-+    return !menu && Number.isFinite(elapsed) && elapsed > 0 && elapsed <= 0.5
-+      ? Math.min(elapsed, 0.08)
-+      : 0;
++    this.discontinuous = menu || !Number.isFinite(elapsed) || elapsed < 0 || elapsed > 2;
++    // A slow render is not a pause. Springs retain a bounded integration step;
++    // true discontinuities are explicitly rebaselined by the renderer.
++    return !this.discontinuous && elapsed > 0 ? Math.min(elapsed, 0.08) : 0;
 +  }
 +}
+diff --git a/src/rendering/effect-playback.ts b/src/rendering/effect-playback.ts
+--- a/src/rendering/effect-playback.ts
++++ b/src/rendering/effect-playback.ts
+@@ -3,5 +3,7 @@
+ import type { Effects } from './effects.ts';
+ 
+-const MAX_CONTINUOUS_GAP = 0.5;
++// A slow display is not a seek. Integrate up to two observed simulation seconds
++// in at most 60 bounded substeps; explicit seek/reset still discards old trails.
++const MAX_CONTINUOUS_GAP = 2;
+ const MAX_EFFECT_STEP = 1 / 30;
+ /** Visual particle evolution follows the presented simulation clock, in both
 diff --git a/src/rendering/renderer.ts b/src/rendering/renderer.ts
-index 48ee802..5deca73 100644
 --- a/src/rendering/renderer.ts
 +++ b/src/rendering/renderer.ts
-@@ -5,5 +5,5 @@ import type { FrameMetrics } from '../core/performance.ts';
+@@ -5,5 +5,5 @@
  import type { BuildProgress } from './build-queue.ts';
  import { TracksideDirector } from './trackside.ts';
 -import { InertialCamera, ViewOrientation } from './camera-dynamics.ts';
 +import { CameraClock, InertialCamera, ViewOrientation } from './camera-dynamics.ts';
  import { ReflectionSystem } from './reflections.ts';
  import { DebrisView } from './debris.ts';
-@@ -81,4 +81,5 @@ export class RacingRenderer {
+@@ -81,4 +81,5 @@
    debug = false;
    private follow = 0;
 +  private cameraClock = new CameraClock();
    private inertia = new InertialCamera();
    private viewOrientation = new ViewOrientation();
-@@ -322,4 +323,5 @@ export class RacingRenderer {
+@@ -92,4 +93,5 @@
+   engineering: EngineeringSample | null = null;
+   replayView = false;
++  private drawnCamera: CameraMode | null = null;
+   private frameSamples = new Float32Array(300);
+   private sampleIndex = 0;
+@@ -322,6 +324,8 @@
      this.motionBlur.reset();
      this.audioView.reset();
 +    this.cameraClock.reset();
      const modes: CameraMode[] = ['chase', 'cockpit', 'pod', 'trackside'];
      this.mode = mode ?? modes[(modes.indexOf(this.mode) + 1) % modes.length];
-@@ -335,4 +337,5 @@ export class RacingRenderer {
++    this.drawnCamera = null;
+     this.initialized = false;
+     this.inertia.reset();
+@@ -335,4 +339,5 @@
      this.motionBlur.reset();
      this.audioView.reset();
 +    this.cameraClock.reset();
      this.initialized = false;
      this.inertia.reset();
-@@ -361,4 +364,6 @@ export class RacingRenderer {
+@@ -361,4 +366,13 @@
      this.setCars(b[H.CARS]);
      this.orbitTime += dt;
 +    const presented = this.presented.sample(a, b, alpha);
 +    const cameraDt = this.cameraClock.step(presented[H.TIME], menu);
++    if (this.cameraClock.discontinuous) {
++      this.inertia.reset();
++      this.viewOrientation.reset();
++      this.trackside.reset();
++      this.audioView.reset();
++      this.initialized = false;
++    }
      const time = b[H.TIME],
        o = carBase(this.follow);
-@@ -406,5 +411,5 @@ export class RacingRenderer {
+@@ -406,5 +420,5 @@
          this.target,
          this.temporary.set(b[o + F.VX], b[o + F.VY], b[o + F.VZ]),
 -        dt,
 +        cameraDt,
        );
        this.desired.copy(this.trackside.position);
-@@ -414,14 +419,15 @@ export class RacingRenderer {
+@@ -414,14 +428,15 @@
        const seated = this.mode === 'cockpit' || this.mode === 'pod';
        if (seated) {
 -        this.inertia.step(
@@ -207,7 +357,7 @@ index 48ee802..5deca73 100644
 +        const orientation = this.viewOrientation.update(car.root.quaternion, cameraDt);
          this.direction.set(0, -0.035, 1).applyQuaternion(orientation).normalize();
          this.gaze.copy(this.desired).addScaledVector(this.direction, 40);
-@@ -452,6 +458,6 @@ export class RacingRenderer {
+@@ -452,6 +467,6 @@
        // Critically damped positional camera spring; bounded integration substeps.
        const omega = 15,
 -        n = Math.ceil(dt * 120),
@@ -216,70 +366,232 @@ index 48ee802..5deca73 100644
 +        h = cameraDt / n;
        for (let k = 0; k < n; k++) {
          this.velocity.addScaledVector(
-@@ -475,5 +481,5 @@ export class RacingRenderer {
+@@ -475,5 +490,5 @@
      this.sun.target.updateMatrixWorld();
      this.circuit.update(b);
 -    this.effectPlayback.update(this.presented.sample(a, b, alpha), !menu);
 +    this.effectPlayback.update(presented, !menu);
      this.debris.update(b);
      this.pitCrew.update(b, this.camera.position, !menu);
-diff --git a/tests/camera.test.ts b/tests/camera.test.ts
-index 2dfd677..8ca4ded 100644
---- a/tests/camera.test.ts
-+++ b/tests/camera.test.ts
-@@ -42,2 +42,55 @@ it('uses LOD hysteresis and never reduces the player cockpit', () => {
-   expect(carLod(1000, 2, 'low', true)).toBe(0);
- });
-+
-+it('freezes actual trackside gaze and cockpit spring state at a paused presentation time', async () => {
-+  const { CameraClock, ViewOrientation } = await import('../src/rendering/camera-dynamics.ts');
-+  const { TracksideDirector } = await import('../src/rendering/trackside.ts');
-+  const { Track } = await import('../src/simulation/track.ts');
-+  const clock = new CameraClock(),
-+    director = new TracksideDirector(new Track('clear', true));
-+  const position = new Vector3(),
-+    velocity = new Vector3(0, 0, 30);
-+  const spring = new InertialCamera(),
-+    orientation = new ViewOrientation();
-+  director.update(20, position, velocity, clock.step(0));
-+  position.z = 1;
-+  const dt = clock.step(1 / 30);
-+  director.update(21, position, velocity, dt);
-+  spring.step(dt, 2, -3, 1, 0.2, 1);
-+  orientation.update(new Quaternion(), dt);
-+  const expected = {
-+    gaze: director.gaze.toArray(),
-+    fov: director.fov,
-+    offset: spring.offset.toArray(),
-+    q: orientation.rotation.toArray(),
-+  };
-+  for (let i = 0; i < 30; i++) {
-+    const pausedDt = clock.step(1 / 30);
-+    expect(pausedDt).toBe(0);
-+    director.update(21, position, velocity, pausedDt);
-+    if (pausedDt > 0) spring.step(pausedDt, 2, -3, 1, 0.2, 1);
-+    orientation.update(new Quaternion(), pausedDt);
-+  }
-+  expect({
-+    gaze: director.gaze.toArray(),
-+    fov: director.fov,
-+    offset: spring.offset.toArray(),
-+    q: orientation.rotation.toArray(),
-+  }).toEqual(expected);
-+});
-+
-+it('camera clock resumes from recorded time and rebaselines menus, seeks and cuts', async () => {
-+  const { CameraClock } = await import('../src/rendering/camera-dynamics.ts');
-+  const clock = new CameraClock();
-+  expect(clock.step(2)).toBe(0);
-+  expect(clock.step(2.05)).toBeCloseTo(0.05);
-+  expect(clock.step(2.15)).toBe(0.08);
-+  expect(clock.step(1)).toBe(0);
-+  expect(clock.step(10)).toBe(0);
-+  expect(clock.step(10.03, true)).toBe(0);
-+  expect(clock.step(10.04)).toBe(0);
-+  expect(clock.step(10.07)).toBeCloseTo(0.03);
-+  clock.reset();
-+  expect(clock.step(10.1)).toBe(0);
-+  expect(() => clock.step(NaN)).toThrow();
-+});
+@@ -490,4 +505,5 @@
+       this.follow,
+     );
++    this.drawnCamera = this.mode;
+     this.eyeLocal.copy(this.camera.position);
+     car.root.worldToLocal(this.eyeLocal);
+@@ -566,4 +582,5 @@
+       carLods: this.cars.map((car) => car.lodLevel),
+       camera: this.mode,
++      presentedCamera: this.drawnCamera,
+       tracksideRig: this.trackside.activeId,
+       tracksideCuts: this.trackside.cuts,
+diff --git a/src/storage/data.ts b/src/storage/data.ts
+--- a/src/storage/data.ts
++++ b/src/storage/data.ts
+@@ -15,5 +15,11 @@
+   type Quality,
+ } from '../rendering/options.ts';
++import {
++  DEFAULT_BUTTON_ACTIONS,
++  validateButtonActions,
++  type ButtonActions,
++} from '../input/button-actions.ts';
+ export interface InputMapping {
++  buttonActions: ButtonActions;
+   device: DeviceSelection | null;
+   wheelSteering: boolean;
+@@ -37,5 +43,5 @@
+ }
+ export interface Settings {
+-  version: 4;
++  version: 5;
+   graphics: GraphicsOptions;
+   colorblind: boolean;
+@@ -50,5 +56,5 @@
+ }
+ export const DEFAULT_SETTINGS: Settings = {
+-  version: 4,
++  version: 5,
+   graphics: graphicsPreset('medium'),
+   colorblind: false,
+@@ -59,4 +65,5 @@
+   uiScale: 1,
+   mapping: {
++    buttonActions: { ...DEFAULT_BUTTON_ACTIONS },
+     device: null,
+     wheelSteering: false,
+@@ -85,5 +92,5 @@
+   if (!v || typeof v !== 'object') throw new Error('Settings data must be an object');
+   const p = v as Partial<Settings>;
+-  if (![1, 2, 3, 4].includes((v as { version: number }).version))
++  if (![1, 2, 3, 4, 5].includes((v as { version: number }).version))
+     throw new Error('Unsupported settings version');
+   const finite = (x: unknown, f: number, a: number, b: number) =>
+@@ -92,7 +99,7 @@
+   const bindings = validateBindings(p.bindings);
+   const quality = p.quality === 'low' || p.quality === 'high' ? p.quality : 'medium';
+-  return {
+-    version: 4,
+-    graphics: validateGraphics(p.version === 4 ? p.graphics : undefined, quality),
++  const result: Settings = {
++    version: 5,
++    graphics: validateGraphics((p.version as number) >= 4 ? p.graphics : undefined, quality),
+     colorblind: p.colorblind === true,
+     highContrast: p.highContrast === true,
+@@ -104,4 +111,5 @@
+     bindings,
+     mapping: {
++      buttonActions: { ...DEFAULT_BUTTON_ACTIONS },
+       device: validateDevice(m.device),
+       wheelSteering: !!m.wheelSteering,
+@@ -125,4 +133,10 @@
+     },
+   };
++  result.mapping.buttonActions = validateButtonActions(
++    m.buttonActions,
++    result.mapping,
++    (p.version as number) < 5,
++  );
++  return result;
+ }
+ export class SaveStore {
+diff --git a/src/ui/device-calibration.ts b/src/ui/device-calibration.ts
+--- a/src/ui/device-calibration.ts
++++ b/src/ui/device-calibration.ts
+@@ -65,4 +65,6 @@
+         // Do not silently impose Xbox button positions on an unmapped wheel.
+         if (pad && pad.mapping !== 'standard') {
++          for (const input of this.form.querySelectorAll<HTMLInputElement>('[name^="action_"]'))
++            input.value = '-1';
+           for (const name of ['shiftUpButton', 'shiftDownButton'])
+             (form.elements.namedItem(name) as HTMLInputElement).value = '-1';
+diff --git a/src/ui/interface.ts b/src/ui/interface.ts
+--- a/src/ui/interface.ts
++++ b/src/ui/interface.ts
+@@ -1,2 +1,3 @@
++import { BUTTON_ACTIONS, BUTTON_ACTION_LABELS } from '../input/button-actions.ts';
+ import { engineeringReport } from './engineering.ts';
+ import { FLAG, flagLabel, yellowFlag } from '../simulation/marshal.ts';
+@@ -362,5 +363,5 @@
+         .join(
+           '',
+-        )}<b>ESC</b><span>Pause / release mouse look</span><b>DOUBLE CLICK</b><span>Cockpit mouse look</span></div><p>Standard gamepads: left stick, trigger pedals, shoulder shifts, Y camera, X energy, Start pause. Nonstandard wheels require axis mapping in settings. Native wheel force feedback is not implemented.</p><button class="primary" data-action="modalClose">UNDERSTOOD</button>`,
++        )}<b>ESC</b><span>Pause / release mouse look</span><b>DOUBLE CLICK</b><span>Cockpit mouse look</span></div><p>Default standard gamepad: left stick, trigger pedals, shoulder shifts, Y camera, X energy, Start pause/resume. Remap action buttons, pedals and shifts in settings. Nonstandard wheels require explicit device selection and mapping. Native wheel force feedback is not implemented.</p><button class="primary" data-action="modalClose">UNDERSTOOD</button>`,
+     );
+   }
+@@ -455,5 +456,5 @@
+         .join(
+           '',
+-        )}<label class="range-row">Deadzone<output>${settings.mapping.deadzone}</output><input name="deadzone" type="range" min="0" max=".35" step=".01" value="${settings.mapping.deadzone}"></label><label class="range-row">Steering response exponent<output>${settings.mapping.exponent}</output><input name="exponent" type="range" min=".5" max="3" step=".1" value="${settings.mapping.exponent}"></label><div id="deviceCalibration"></div><h3>Keyboard bindings</h3><div class="binding-grid">${Object.entries(
++        )}<label class="range-row">Deadzone<output>${settings.mapping.deadzone}</output><input name="deadzone" type="range" min="0" max=".35" step=".01" value="${settings.mapping.deadzone}"></label><label class="range-row">Steering response exponent<output>${settings.mapping.exponent}</output><input name="exponent" type="range" min=".5" max="3" step=".1" value="${settings.mapping.exponent}"></label><div id="deviceCalibration"></div><h3>Controller actions</h3><p class="small-note">Set -1 to disable. Actions cannot share a shift or active pedal button. Pause/resume remains available without sending pedals while paused.</p><div class="mapping-grid">${BUTTON_ACTIONS.map((key) => `<label>${BUTTON_ACTION_LABELS[key]} button<input type="number" name="action_${key}" required min="-1" max="127" step="1" value="${settings.mapping.buttonActions[key]}"></label>`).join('')}</div><h3>Keyboard bindings</h3><div class="binding-grid">${Object.entries(
+         settings.bindings,
+       )
+@@ -554,4 +555,6 @@
+       this.bindingCapture?.abort();
+       try {
++        for (const key of BUTTON_ACTIONS)
++          next.mapping.buttonActions[key] = Number(value(`action_${key}`));
+         this.deviceCalibration?.apply(next.mapping);
+         this.callbacks.apply(validateSettings(next));
+diff --git a/e2e/01-worker-portability.spec.ts b/e2e/01-worker-portability.spec.ts
+--- a/e2e/01-worker-portability.spec.ts
++++ b/e2e/01-worker-portability.spec.ts
+@@ -74,5 +74,13 @@
+   expect(measured.telemetryRows).toBeGreaterThanOrEqual(60);
+   expect(measured.engineeringSamples).toBeGreaterThanOrEqual(5);
+-  expect(measured.engineeringSamples).toBeLessThanOrEqual(1 + Math.ceil(measured.tick / 12));
++  // Frame and probe responses have independent delivery queues. Verify the
++  // probe's actual tick cadence, not a possibly earlier render-frame timestamp.
++  expect(measured.engineeringSamples).toBeLessThanOrEqual(
++    1 + Math.floor(measured.engineeringTick / 12),
++  );
++  for (let i = 1; i < measured.engineeringTicks.length; i++)
++    expect(measured.engineeringTicks[i] - measured.engineeringTicks[i - 1]).toBeGreaterThanOrEqual(
++      12,
++    );
+   expect(measured.engineeringTick).toBeGreaterThanOrEqual(60);
+   expect(measured.engineeringActive).toBe(true);
+diff --git a/e2e/application.spec.ts b/e2e/application.spec.ts
+--- a/e2e/application.spec.ts
++++ b/e2e/application.spec.ts
+@@ -212,4 +212,8 @@
+   for (let i = 0; i < 3; i++) await page.locator('#replayBar [data-action=camera]').click();
+   await expect.poll(async () => (await diag(page)).renderer?.camera).toBe('trackside');
++  // The request is synchronous; the real camera/listener updates on the next
++  // rendered frame. Require that presentation rather than read the old pod view.
++  await expect.poll(async () => (await diag(page)).renderer?.presentedCamera).toBe('trackside');
++  await expect.poll(async () => (await diag(page)).presentation?.listener.interior).toBe(false);
+   await expect.poll(async () => (await diag(page)).audio.voices.length).toBeGreaterThan(0);
+   const listening = await diag(page);
+diff --git a/e2e/calibration.spec.ts b/e2e/calibration.spec.ts
+--- a/e2e/calibration.spec.ts
++++ b/e2e/calibration.spec.ts
+@@ -31,4 +31,7 @@
+   await page.locator('[name=shiftUpButton]').fill('10');
+   await page.locator('[name=shiftDownButton]').fill('11');
++  await page.locator('[name=action_camera]').fill('3');
++  await page.locator('[name=action_ers]').fill('2');
++  await page.locator('[name=action_pause]').fill('9');
+   await page.locator('[name=axisPedals]').check();
+   await page.locator('[name=wheelSteering]').check();
+@@ -68,4 +71,12 @@
+   await expect(page.locator('[name=manualClutch]')).toBeChecked();
+   await expect(page.locator('[name=shiftUpButton]')).toHaveValue('10');
++  await expect(page.locator('[name=action_camera]')).toHaveValue('3');
++  await expect(page.locator('[name=action_pause]')).toHaveValue('9');
++  // A driving-button conflict must remain visible and leave persisted input intact.
++  await page.locator('[name=action_camera]').fill('10');
++  await page.getByRole('button', { name: 'APPLY & SAVE' }).click();
++  await expect(page.locator('#toast')).toContainText('conflicts');
++  await expect(page.locator('#modal')).toBeVisible();
++  await page.locator('[name=action_camera]').fill('3');
+   await page.getByRole('button', { name: 'Close settings' }).click();
+   await set(0, 0.1);
+@@ -83,4 +94,26 @@
+     })
+     .toBe('driving');
++  const press = async (index: number, down: boolean) =>
++    page.evaluate(
++      ({ index, down }) => {
++        const pad = (window as unknown as { testWheel: { buttons: GamepadButton[] } }).testWheel;
++        pad.buttons[index] = { pressed: down, touched: down, value: Number(down) };
++      },
++      { index, down },
++    );
++  await press(3, true);
++  await expect
++    .poll(() => page.evaluate(() => window.apexDiagnostics().renderer?.presentedCamera))
++    .toBe('cockpit');
++  await press(3, false);
++  await press(9, true);
++  await expect(page.getByRole('button', { name: 'RESUME SESSION' })).toBeVisible();
++  await page.waitForTimeout(100);
++  expect(await page.evaluate(() => window.apexDiagnostics().state)).toBe('paused');
++  await press(9, false);
++  await page.waitForTimeout(60);
++  await press(9, true);
++  await expect.poll(() => page.evaluate(() => window.apexDiagnostics().state)).toBe('driving');
++  await press(9, false);
+   const frame = () => page.evaluate(() => window.apexDiagnostics().frame!);
+   await expect
+diff --git a/e2e/fixtures/worker-portability.ts b/e2e/fixtures/worker-portability.ts
+--- a/e2e/fixtures/worker-portability.ts
++++ b/e2e/fixtures/worker-portability.ts
+@@ -17,4 +17,5 @@
+   let engineeringTick = -1;
+   let engineeringActive = false;
++  const engineeringTicks: number[] = [];
+   try {
+     const frame = await new Promise<Float32Array>((resolve, reject) => {
+@@ -30,4 +31,5 @@
+           }
+           engineeringSamples++;
++          engineeringTicks.push(message.sample.tick);
+           engineeringTick = message.sample.tick;
+           engineeringActive = message.sample.aiActive;
+@@ -81,4 +83,5 @@
+       engineeringTick,
+       engineeringActive,
++      engineeringTicks,
+       csvColumns: header.length,
+       pickupColumns: header.slice(-4),
