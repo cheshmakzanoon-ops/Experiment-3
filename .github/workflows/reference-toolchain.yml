@@ -1,0 +1,31 @@
+name: Reference renderer toolchain
+on:
+  push:
+    branches: [main]
+    paths: [.github/workflows/reference-toolchain.yml]
+permissions:
+  contents: read
+jobs:
+  toolchain:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Export locked public dependencies for offline renderer validation
+        run: |
+          tar -czf "$RUNNER_TEMP/renderer-toolchain.tar.gz" node_modules package-lock.json
+          sha256sum package-lock.json > "$RUNNER_TEMP/renderer-toolchain-lock.txt"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: renderer-toolchain
+          path: |
+            ${{ runner.temp }}/renderer-toolchain.tar.gz
+            ${{ runner.temp }}/renderer-toolchain-lock.txt
+          retention-days: 1
