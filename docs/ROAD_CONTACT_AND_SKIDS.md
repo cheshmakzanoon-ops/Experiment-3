@@ -133,3 +133,30 @@ a report for an older physics hash is not a pass for this revision.
 The single combined human-driven section-146 experience, independent handling
 and audiovisual assessment, representative hardware profiling, and full
 three-pass certification across every subsystem remain open.
+
+## Completed continuation evidence
+
+The checksum-verified candidate tree `a12e347716a00008a596b21120d8558c5aa75277`
+was tested independently in GitHub run `35441759750`: lint, all 497 unit tests,
+strict TypeScript, production build, the new rendered skid-contact test, and the
+existing wet-weather rendering test passed. Both browser cases passed on their
+first attempt without retries or skipped assertions. Runtime changes were then
+published as `7e458fd0fcda1065e3ba2fa71e87e668e21a6d0a`; the temporary candidate
+workflow was removed. These two selected cases do not substitute for the normal
+full browser CI on the final published revision.
+
+A fresh `acceptance.ts 100 10 73021 clear` run completed 100 laps for every car in
+7,040.342 simulated seconds: zero impact, zero off-track time under the declared
+track-width threshold, no retirement, no invalid numeric state, no exhausted
+fuel, no prohibited track/pit stall, and one actual pit stop per car. Minimum
+component health was 1.0 throughout. The fixture initializes 113 kg of fuel before
+running and uses the production AI in practice mode; it is not a human driving
+trial, a rain-endurance result, or representative GPU-performance evidence.
+Its full source fingerprint is
+`09e7f61e495a3c71d7458096365fde473d4c998b391df08be9e6181d84d19a89`, and its
+version-2 simulation fingerprint is
+`dbbe435febb71e818df3298c026f896bae0822be939ba0dd18dfb30df504d1b5`.
+See `acceptance-10cars-100laps-clear-73021.json` for all per-car measurements.
+The refreshed dry pit-service and clear/changeable classification reports are
+also for this implementation. The continuous journey's intentional collision
+remains distinct from the zero-contact endurance and pit-service trials.
