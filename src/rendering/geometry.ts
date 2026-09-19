@@ -125,25 +125,30 @@ export function label(text: string, bg = '#171d21', fg = '#f5eee2', w = 512, h =
 export function batchScene(root: T.Group, preserve: Set<T.Object3D>) {
   root.updateMatrixWorld(true);
   const inverse = root.matrixWorld.clone().invert(),
-    groups = new Map<T.Material, Map<string, T.BufferGeometry[]>>(),
+    groups = new Map<T.Material, Map<string, { geometries: T.BufferGeometry[]; source: T.Mesh }>>(),
     remove: T.Mesh[] = [];
   root.traverse((o) => {
     if (!(o instanceof T.Mesh) || o instanceof T.InstancedMesh || Array.isArray(o.material)) return;
     for (let p: T.Object3D | null = o; p; p = p.parent) if (preserve.has(p)) return;
+    // A hidden ancestor may be revealed later. Do not bake its child into the
+    // visible root and accidentally erase that visibility gate.
+    for (let p = o.parent; p && p !== root; p = p.parent) if (!p.visible) return;
     const geometry = o.geometry.clone().applyMatrix4(inverse.clone().multiply(o.matrixWorld));
-    // Spatial buckets preserve culling. A single material batch spanning the
-    // whole circuit otherwise submits every fence/sign in every camera pass.
+    // Spatial buckets preserve culling. Render ownership is part of the key so
+    // batching cannot silently turn a non-shadow caster into a shadow caster.
     geometry.computeBoundingBox();
     const centre = geometry.boundingBox!.getCenter(new T.Vector3());
-    const cell = `${Math.floor(centre.x / 80)}:${Math.floor(centre.z / 80)}`;
+    const cell =
+      `${Math.floor(centre.x / 80)}:${Math.floor(centre.z / 80)}:` +
+      `${o.castShadow}:${o.receiveShadow}:${o.renderOrder}:${o.layers.mask}:${o.visible}:${o.frustumCulled}`;
     let cells = groups.get(o.material);
     if (!cells) {
       cells = new Map();
       groups.set(o.material, cells);
     }
     const list = cells.get(cell);
-    if (list) list.push(geometry);
-    else cells.set(cell, [geometry]);
+    if (list) list.geometries.push(geometry);
+    else cells.set(cell, { geometries: [geometry], source: o });
     remove.push(o);
   });
   for (const o of remove) {
@@ -151,7 +156,7 @@ export function batchScene(root: T.Group, preserve: Set<T.Object3D>) {
     o.geometry.dispose();
   }
   for (const [material, cells] of groups)
-    for (const geometries of cells.values()) {
+    for (const { geometries, source } of cells.values()) {
       const normalized = geometries.map((g) => {
         const out = g.index ? g.toNonIndexed() : g;
         for (const key of Object.keys(out.attributes))
@@ -159,7 +164,16 @@ export function batchScene(root: T.Group, preserve: Set<T.Object3D>) {
         return out;
       });
       const merged = mergeGeometries(normalized, false);
-      if (merged) mesh(root, merged, material);
+      if (merged) {
+        const batch = mesh(root, merged, material);
+        batch.name = `Static ${source.name || material.name || 'geometry'} batch`;
+        batch.castShadow = source.castShadow;
+        batch.receiveShadow = source.receiveShadow;
+        batch.renderOrder = source.renderOrder;
+        batch.layers.mask = source.layers.mask;
+        batch.visible = source.visible;
+        batch.frustumCulled = source.frustumCulled;
+      }
       for (const g of normalized) g.dispose();
       for (const g of geometries) g.dispose();
     }
