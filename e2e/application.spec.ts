@@ -172,7 +172,7 @@ test('recorded telemetry exports and replay leaves live physics paused', async (
   expect(csvDownload.suggestedFilename()).toBe('apex-telemetry.csv');
   const csv = (await readFile((await csvDownload.path())!, 'utf8')).trim().split('\n');
   const columns = csv[0].split(',');
-  expect(columns).toHaveLength(203);
+  expect(columns).toHaveLength(211);
   expect(columns.slice(197, 199)).toEqual(['wind_x_mps', 'wind_z_mps']);
   expect(columns.slice(-4)).toEqual([
     'marble_pickup_fr_tread_covers',

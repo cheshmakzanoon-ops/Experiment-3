@@ -106,10 +106,14 @@ const wheelUnits: Record<string, string> = {
   RADIUS: 'm',
   SLIP_POWER: 'W',
   LENGTH: 'm',
+  STEER: 'rad',
+  CAMBER: 'rad',
 };
 const nameOf = (key: string, unit: string | undefined) =>
   key.toLowerCase() + (unit ? `_${unit}` : '');
-export const WHEEL_FIELDS = Object.values(W);
+// New channels append after the established CSV contract, never shift old columns.
+const ALIGNMENT_FIELDS: number[] = [W.STEER, W.CAMBER];
+export const WHEEL_FIELDS = Object.values(W).filter((field) => !ALIGNMENT_FIELDS.includes(field));
 export const HEADER_FIELDS = [
   H.TIME,
   H.TICK,
@@ -133,7 +137,9 @@ export const CHANNELS = [
     return nameOf(key, units[key]);
   }),
   ...WHEEL_NAMES.flatMap((wheel) =>
-    Object.keys(W).map((key) => `${wheel}_${nameOf(key, wheelUnits[key])}`),
+    Object.entries(W)
+      .filter(([, field]) => !ALIGNMENT_FIELDS.includes(field))
+      .map(([key]) => `${wheel}_${nameOf(key, wheelUnits[key])}`),
   ),
   'session_time_s',
   'tick',
@@ -151,6 +157,7 @@ export const CHANNELS = [
     const key = Object.entries(F).find(([, value]) => field === value)![0];
     return nameOf(key, units[key]);
   }),
+  ...WHEEL_NAMES.flatMap((wheel) => ['steer_rad', 'camber_rad'].map((key) => `${wheel}_${key}`)),
 ];
 export const TELEMETRY_STRIDE = CHANNELS.length;
 export const TELEMETRY_BATCH_ROWS = 60;
@@ -166,6 +173,9 @@ export function packTelemetry(frame: Float32Array, out: Float32Array, offset: nu
       out[offset++] = frame[base + WHEEL_BASE + wheel * WHEEL_STRIDE + field];
   for (const field of HEADER_FIELDS) out[offset++] = frame[field];
   for (const field of MARBLE_FIELDS) out[offset++] = frame[base + field];
+  for (let wheel = 0; wheel < 4; wheel++)
+    for (const field of ALIGNMENT_FIELDS)
+      out[offset++] = frame[base + WHEEL_BASE + wheel * WHEEL_STRIDE + field];
 }
 
 export function telemetryCsv(values: Float32Array, count: number): Blob {

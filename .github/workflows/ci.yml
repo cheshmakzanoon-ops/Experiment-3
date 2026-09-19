@@ -66,10 +66,14 @@ jobs:
             docs/race-classification.json
           retention-days: 7
   browser:
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
     needs: validate
     runs-on: ubuntu-latest
-    # The full sequential SwiftShader suite measured 17 minutes. Retain every
-    # assertion and its individual timeout; allow the complete job to finish.
+    # Independent runners retain every test/timeout without contending for one
+    # software GPU. Playwright shards the complete suite; no file is filtered.
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
@@ -83,12 +87,12 @@ jobs:
           name: apex-formula-web
           path: dist/
       - run: npx playwright install --with-deps chromium
-      - run: npm run test:e2e
+      - run: npm run test:e2e -- --shard=${{ matrix.shard }}/3
       - name: Browser screenshots and diagnostics
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: browser-validation
+          name: browser-validation-${{ matrix.shard }}-of-3
           path: |
             test-results/
             playwright-report/

@@ -381,7 +381,7 @@ const values = new Float32Array(telemetrySamples.length * TELEMETRY_STRIDE);
 telemetrySamples.forEach((sample, i) => values.set(sample, i * TELEMETRY_STRIDE));
 const csv = (await telemetryCsv(values, telemetrySamples.length).text()).trim().split('\n');
 checks.csvActualState =
-  csv[0].split(',').length === 203 &&
+  csv[0].split(',').length === 211 &&
   csv.length === telemetrySamples.length + 1 &&
   csv
     .slice(1)

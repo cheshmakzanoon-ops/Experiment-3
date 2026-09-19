@@ -166,3 +166,21 @@ The concurrent source publication subsequently passed all its GitHub gates in ru
 That exact committed tree was recovered and verified. It is the parent baseline
 for this local version-6 continuation, not evidence that these additional local
 changes have been pushed or passed the remote browser gate.
+
+## Directive-6 continuation — per-wheel visual/recording fidelity
+
+Recovered the original directive from `Pasted markdown(6).md`; its exact retained
+hash and all 148 headings still match. The starting remote source tree was
+`ba53fadd70a5ac9fabdd01b80d65aa321f70ef7a` at `eba897d16956bd0d83ee78bc72ffc7ecbe6ee49c`,
+confirming the preceding unpushed-local checkpoint had subsequently reached GitHub.
+
+Implemented real per-wheel Ackermann/toe/camber telemetry and replay articulation,
+independent rubber contact-patch geometry without scaling rigid rims/brakes/hubs,
+and matching wishbone attachment transforms. Snapshot protocol 8 and 211-column
+CSV preserve the first 203 column positions. Added regression/unit/GPU oracles;
+complete Playwright coverage is sharded across three independent CI runners,
+without reducing assertions or bypassing the publication gates.
+
+See `WHEEL_FIDELITY.md` for exact behavior, validation scope, and remaining limits.
+No assertion is made that all 148 sections, all 31 phase gates, representative
+hardware performance or the complete human-perceived section-146 scenario are done.

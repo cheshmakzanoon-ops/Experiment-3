@@ -1,11 +1,11 @@
 import type { Controls, SessionOptions } from './config.ts';
 export const HEADER = 16,
-  CAR_STRIDE = 224,
+  CAR_STRIDE = 232,
   WHEEL_BASE = 96,
-  WHEEL_STRIDE = 24,
-  DEBRIS_BASE = 192,
+  WHEEL_STRIDE = 26,
+  DEBRIS_BASE = 200,
   DEBRIS_STRIDE = 8;
-export const PROTOCOL_VERSION = 7;
+export const PROTOCOL_VERSION = 8;
 // +Z is the nose, +Y up and +X the driver's left; negative-X hubs are right-side wheels.
 export const WHEEL_NAMES = ['FR', 'FL', 'RR', 'RL'] as const;
 export const D = { KIND: 0, X: 1, Y: 2, Z: 3, ROTATION: 4, AGE: 5, MASS: 6, ACTIVE: 7 } as const;
@@ -148,6 +148,8 @@ export const W = {
   SUSPENSION_DAMAGE: 21,
   SLIP_POWER: 22,
   LENGTH: 23,
+  STEER: 24,
+  CAMBER: 25,
 } as const;
 export type ToWorker =
   | { type: 'init'; options: SessionOptions }

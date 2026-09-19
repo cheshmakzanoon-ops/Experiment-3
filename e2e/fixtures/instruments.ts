@@ -52,12 +52,17 @@ export function verifyInstrumentCanvas() {
     a[p + W.OMEGA] = b[p + W.OMEGA] = 200;
     a[o + F.STEER] = 0.1;
     b[o + F.STEER] = 0.3;
+    a[p + W.STEER] = 0.12;
+    b[p + W.STEER] = 0.32;
+    a[p + W.CAMBER] = 0.04;
+    b[p + W.CAMBER] = 0.06;
     car.update(a, b, o, 0.5, 1 / 60, 1 + 1 / 30, true);
     const articulated = {
       phase: car.wheelSpins[0].rotation.x,
       hubHeight: car.wheelPivots[0].position.y,
       steer: car.wheelPivots[0].rotation.y,
       steeringWheel: car.steering.rotation.z,
+      camber: car.wheelPivots[0].rotation.z,
     };
     return { first, hitch, gear, paused, rewind, brightPixels, articulated };
   } finally {

@@ -49,7 +49,8 @@ test('actual cockpit canvas refreshes after hitches, shifts and replay rewinds',
   expect(measured.brightPixels).toBeGreaterThan(100);
   expect(measured.articulated.phase).toBeCloseTo(6 + 100 / 15, 5);
   expect(measured.articulated.hubHeight).toBeCloseTo(-0.2, 5);
-  expect(measured.articulated.steer).toBeCloseTo(0.2, 5);
+  expect(measured.articulated.steer).toBeCloseTo(0.22, 5);
+  expect(measured.articulated.camber).toBeCloseTo(-0.05, 5);
   expect(measured.articulated.steeringWheel).toBeCloseTo(-0.44, 5);
   expect(errors).toEqual([]);
   await info.attach('instrument-canvas.json', {

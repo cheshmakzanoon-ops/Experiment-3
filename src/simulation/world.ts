@@ -254,6 +254,8 @@ export class Simulation {
         out[p + W.SUSPENSION_DAMAGE] = c.cornerDamage[i];
         out[p + W.SLIP_POWER] = w.energy;
         out[p + W.LENGTH] = w.length;
+        out[p + W.STEER] = c.wheelSteering[i];
+        out[p + W.CAMBER] = c.wheelCamber[i];
       }
     }
     return out;

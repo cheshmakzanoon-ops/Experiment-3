@@ -1,3 +1,4 @@
+import { TireCarcass } from './tire-carcass.ts';
 import { wheelPhase, wheelTravel } from './wheel-pose.ts';
 import * as T from 'three';
 import { DriverRig } from './driver.ts';
@@ -31,6 +32,7 @@ export class FormulaCar {
   readonly rearWing = new T.Group();
   readonly wheelPivots: T.Group[] = [];
   readonly wheelSpins: T.Group[] = [];
+  readonly carcasses: TireCarcass[] = [];
   readonly discs: T.MeshStandardMaterial[] = [];
   readonly treads: ReturnType<typeof treadMaterial>[] = [];
   readonly rings: T.MeshBasicMaterial[] = [];
@@ -288,21 +290,9 @@ export class FormulaCar {
       this.root.add(pivot);
       this.wheelPivots.push(pivot);
       this.wheelSpins.push(spin);
-      const half = i < 2 ? 0.155 : 0.19,
-        profile = [
-          new T.Vector2(0.245, -half),
-          new T.Vector2(0.306, -half),
-          new T.Vector2(0.331, -half + 0.025),
-          new T.Vector2(0.335, -half + 0.065),
-          new T.Vector2(0.335, half - 0.065),
-          new T.Vector2(0.331, half - 0.025),
-          new T.Vector2(0.306, half),
-          new T.Vector2(0.245, half),
-        ];
+      const half = i < 2 ? 0.155 : 0.19;
       const tread = treadMaterial();
       this.treads.push(tread);
-      const tire = mesh(spin, new T.LatheGeometry(profile, 48), tread.material);
-      tire.rotation.z = Math.PI / 2;
       const wheel = mesh(
         spin,
         new T.CylinderGeometry(0.246, 0.246, half * 2 + 0.002, 40, 1, true),
@@ -312,15 +302,6 @@ export class FormulaCar {
       const ringMaterial = new T.MeshBasicMaterial({ color: COMPOUNDS.medium.color });
       this.rings.push(ringMaterial);
       for (const side of [-1, 1]) {
-        const ring = mesh(
-          spin,
-          new T.TorusGeometry(0.287, 0.005, 6, 48),
-          ringMaterial,
-          side * (half + 0.001),
-          0,
-          0,
-        );
-        ring.rotation.y = Math.PI / 2;
         const rim = mesh(
           spin,
           new T.TorusGeometry(0.24, 0.011, 8, 40),
@@ -379,8 +360,11 @@ export class FormulaCar {
           link.position.copy(end);
           this.links.push({ mesh: link, anchor, wheel: i, dy });
         }
-      // Merge spokes and tire sections while preserving the spin transform.
+      // Batch only the rigid wheel. Rubber must remain independently deformable.
       mergeStatic(spin);
+      const carcass = new TireCarcass(half, tread.material, ringMaterial);
+      this.carcasses.push(carcass);
+      spin.add(carcass.root);
     });
     this.suspension = new T.InstancedMesh(
       new T.CylinderGeometry(0.015, 0.015, 1, 8),
@@ -498,12 +482,11 @@ export class FormulaCar {
       for (let i = 0; i < 4; i++) {
         const p = o + WHEEL_BASE + i * WHEEL_STRIDE;
         reduced.wheels[i].position.y = 0.05 - wheelTravel(a, b, p, t);
-        reduced.wheels[i].scale.set(
-          1,
-          (b[p + W.RADIUS] || 0.335) / 0.335,
-          (b[p + W.RADIUS] || 0.335) / 0.335,
-        );
-        reduced.wheels[i].rotation.y = i < 2 ? lerp(a[o + F.STEER], b[o + F.STEER], t) : 0;
+        const radius = (lerp(a[p + W.RADIUS], b[p + W.RADIUS], t) || 0.335) / 0.335;
+        // The reduced cylinder's axle is local Y; neither rim nor hub scales.
+        reduced.tires[i].scale.set(radius, 1, radius);
+        reduced.wheels[i].rotation.y = lerp(a[p + W.STEER], b[p + W.STEER], t);
+        reduced.wheels[i].rotation.z = -lerp(a[p + W.CAMBER], b[p + W.CAMBER], t);
         reduced.spins[i].rotation.x = wheelPhase(a, b, o, p, t);
       }
       reduced.front.visible = b[o + F.FRONT_HEALTH] > 0.08;
@@ -518,9 +501,10 @@ export class FormulaCar {
       const p = o + WHEEL_BASE + i * WHEEL_STRIDE,
         pivot = this.wheelPivots[i];
       pivot.position.y = 0.05 - wheelTravel(a, b, p, t);
-      pivot.rotation.y =
-        (i < 2 ? lerp(a[o + F.STEER], b[o + F.STEER], t) : 0) +
-        b[p + W.SUSPENSION_DAMAGE] * 0.07 * (i % 2 ? 1 : -1);
+      pivot.rotation.y = lerp(a[p + W.STEER], b[p + W.STEER], t);
+      // Tire-force camber is signed about the rolling direction; the visual
+      // axle uses the opposite local-Z rotation. Negative setup camber leans in.
+      pivot.rotation.z = -lerp(a[p + W.CAMBER], b[p + W.CAMBER], t);
       this.wheelSpins[i].rotation.x = wheelPhase(a, b, o, p, t);
       this.wheelSpins[i].position.x =
         Math.sign(WHEEL_POSITIONS[i][0]) *
@@ -533,15 +517,18 @@ export class FormulaCar {
         b[p + W.BLISTERING],
         b[p + W.GRAINING],
       );
-      const radius = (b[p + W.RADIUS] || 0.335) / 0.335;
-      pivot.scale.z = radius;
-      pivot.scale.y =
-        radius * (1 - 0.025 * clamp(b[p + W.LOAD] / 7000, 0, 1) - b[p + W.FLAT] * 0.02);
+      this.carcasses[i].update(
+        this.wheelSpins[i].rotation.x,
+        lerp(a[p + W.RADIUS], b[p + W.RADIUS], t),
+        lerp(a[p + W.LOAD], b[p + W.LOAD], t),
+        lerp(a[p + W.PRESSURE], b[p + W.PRESSURE], t),
+        lerp(a[p + W.FLAT], b[p + W.FLAT], t),
+      );
     }
     for (let j = 0; j < this.links.length; j++) {
       const link = this.links[j];
-      this.v.copy(this.wheelPivots[link.wheel].position);
-      this.v.y += link.dy;
+      const pivot = this.wheelPivots[link.wheel];
+      this.v.set(0, link.dy, 0).applyQuaternion(pivot.quaternion).add(pivot.position);
       const length = this.v.distanceTo(link.anchor);
       link.mesh.position.copy(this.v).add(link.anchor).multiplyScalar(0.5);
       link.mesh.quaternion.setFromUnitVectors(this.up, this.v.sub(link.anchor).normalize());

@@ -25,6 +25,7 @@ export class ReducedCar {
   readonly root = new T.Group();
   readonly wheels: T.Group[] = [];
   readonly spins: T.Group[] = [];
+  readonly tires: T.Mesh[] = [];
   readonly front = new T.Group();
   readonly rear = new T.Group();
   constructor(level: 1 | 2, paint: T.Material, carbon: T.Material, rubber: T.Material) {
@@ -111,6 +112,7 @@ export class ReducedCar {
         rubber,
       );
       tire.rotation.z = Math.PI / 2;
+      this.tires.push(tire);
       for (const sign of [-1, 1]) {
         const rim = mesh(
           spin,
@@ -122,7 +124,9 @@ export class ReducedCar {
         );
         rim.rotation.z = Math.PI / 2;
       }
+      spin.remove(tire);
       mergeStatic(spin);
+      spin.add(tire);
     }
     mergeStatic(body);
     mergeStatic(this.front);

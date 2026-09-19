@@ -52,16 +52,9 @@ const REPLAY_FIELDS = [
   F.WAKE,
   F.PIT_STOPS,
 ];
-const REPLAY_WHEELS = [
-  W.OMEGA,
-  W.ROTATION,
-  W.COMPRESSION,
-  W.DISC_TEMP,
-  W.LOAD,
-  W.FLAT,
-  W.WATER,
-  W.SLIP,
-];
+// Preserve all tire channels even in the small in-memory diagnostic recorder.
+// The full-session application recorder retains complete versioned snapshots.
+const REPLAY_WHEELS = Object.values(W);
 const RC = REPLAY_FIELDS.length + REPLAY_WHEELS.length * 4;
 /** A bounded 20-minute, 15 Hz pose recorder; camera interpolation stays at display rate.
  * It never retains scene objects or transferable worker buffers. */

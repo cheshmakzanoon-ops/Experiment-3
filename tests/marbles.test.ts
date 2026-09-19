@@ -354,7 +354,7 @@ it('appends pickup columns without moving any of the existing 199 CSV fields', (
   expect(createHash('sha256').update(CHANNELS.slice(0, 199).join(',')).digest('hex')).toBe(
     '204164f2d43580bb44f4ce5735e58106f6bc1908ba48ae5e25ba940d5ef123b3',
   );
-  expect(CHANNELS.slice(-4)).toEqual([
+  expect(CHANNELS.slice(199, 203)).toEqual([
     'marble_pickup_fr_tread_covers',
     'marble_pickup_fl_tread_covers',
     'marble_pickup_rr_tread_covers',

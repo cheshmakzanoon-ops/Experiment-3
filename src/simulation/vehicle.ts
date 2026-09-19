@@ -42,6 +42,9 @@ export class Vehicle {
   readonly origins = WHEEL_POSITIONS.map(() => new Vec3());
   readonly pointVelocities = WHEEL_POSITIONS.map(() => new Vec3());
   readonly normalLoads = new Float64Array(4);
+  /** Actual angles used by the tire solve, retained for telemetry and presentation. */
+  readonly wheelSteering = new Float64Array(4);
+  readonly wheelCamber = new Float64Array(4);
   readonly aero: AeroForces = { front: 0, rear: 0, floor: 0, drag: 0, wake: 0 };
   readonly localVelocity = new Vec3();
   readonly forward = new Vec3(0, 0, 1);
@@ -116,6 +119,7 @@ export class Vehicle {
     this.tires = WHEEL_POSITIONS.map((_, i) =>
       makeTire(compound, i < 2 ? setup.frontPressure : setup.rearPressure),
     );
+    this.updateWheelAlignment();
   }
   place(track: Track, s: number, offset = 0) {
     track.at(s, this.trackPosition);
@@ -145,6 +149,21 @@ export class Vehicle {
     if (predicted > VEHICLE.limiterRPM || (next < 0 && this.speed > 2)) return;
     this.gear = next;
     this.shiftClock = 0.09;
+  }
+  private updateWheelAlignment() {
+    for (let i = 0; i < 4; i++) {
+      const side = i % 2 === 0 ? -1 : 1,
+        toe = (i < 2 ? this.setup.frontToe : this.setup.rearToe) * side,
+        ackermann =
+          i < 2
+            ? Math.atan(
+                (VEHICLE.wheelbase * Math.tan(this.steer)) /
+                  (VEHICLE.wheelbase - WHEEL_POSITIONS[i][0] * Math.tan(this.steer)),
+              )
+            : 0;
+      this.wheelSteering[i] = ackermann + toe + this.cornerDamage[i] * 0.07 * side;
+      this.wheelCamber[i] = (i < 2 ? this.setup.frontCamber : this.setup.rearCamber) * side;
+    }
   }
   step(dt: number, track: Track) {
     const b = this.body;
@@ -284,6 +303,7 @@ export class Vehicle {
       this.normalLoads[i] = Math.max(0, this.normalLoads[i] + antiRoll);
       this.normalLoads[i + 1] = Math.max(0, this.normalLoads[i + 1] - antiRoll);
     }
+    this.updateWheelAlignment();
     let generatorWorkW = 0;
     for (let i = 0; i < 4; i++) {
       this.normalLoads[i] *= 1 - this.cornerDamage[i] * 0.5;
@@ -291,15 +311,7 @@ export class Vehicle {
         s = this.contacts[i],
         hub = this.hubs[i];
       b.orientation.inverseRotate(this.pointVelocities[i], this.localContactVelocity);
-      const toe = (i < 2 ? this.setup.frontToe : this.setup.rearToe) * (i % 2 === 0 ? -1 : 1),
-        ackermann =
-          i < 2
-            ? Math.atan(
-                (VEHICLE.wheelbase * Math.tan(this.steer)) /
-                  (VEHICLE.wheelbase - WHEEL_POSITIONS[i][0] * Math.tan(this.steer)),
-              )
-            : 0,
-        steering = ackermann + toe + this.cornerDamage[i] * 0.07 * (i % 2 ? 1 : -1),
+      const steering = this.wheelSteering[i],
         sn = Math.sin(steering),
         cs = Math.cos(steering),
         long = this.localContactVelocity.x * sn + this.localContactVelocity.z * cs,
@@ -326,7 +338,7 @@ export class Vehicle {
         driven,
         friction + regen,
         s,
-        (i < 2 ? this.setup.frontCamber : this.setup.rearCamber) * (i % 2 === 0 ? -1 : 1),
+        this.wheelCamber[i],
         dt,
         regen,
       );

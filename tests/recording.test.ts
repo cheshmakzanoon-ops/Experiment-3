@@ -54,7 +54,7 @@ function pose(i: number) {
 }
 describe('real-state telemetry', () => {
   it('has unique named fields and faithfully exports each wheel and hybrid power', async () => {
-    expect(CHANNELS.length).toBe(203);
+    expect(CHANNELS.length).toBe(211);
     expect(new Set(CHANNELS).size).toBe(CHANNELS.length);
     const f = pose(0),
       out = new Float32Array(TELEMETRY_STRIDE);
@@ -69,7 +69,7 @@ describe('real-state telemetry', () => {
     expect(out[CHANNELS.indexOf('FL_pressure_kPa')]).toBe(152);
     const text = await telemetryCsv(out, 1).text();
     expect(text.trim().split('\n')).toHaveLength(2);
-    expect(text.split('\n')[1].split(',')).toHaveLength(203);
+    expect(text.split('\n')[1].split(',')).toHaveLength(211);
     out[5] = NaN;
     expect(() => telemetryCsv(out, 1)).toThrow('Non-finite');
     expect(() => telemetryCsv(out, 2)).toThrow('shape');

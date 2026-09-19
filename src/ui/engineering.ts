@@ -55,6 +55,7 @@ export function engineeringReport(
     const p = o + WHEEL_BASE + i * WHEEL_STRIDE;
     lines.push(
       `${WHEEL_NAMES[i]} ${frame[p + W.LOAD].toFixed(0)} / ${frame[p + W.FX].toFixed(0)} / ${frame[p + W.FY].toFixed(0)} / ${frame[p + W.SLIP].toFixed(3)} / ${(frame[p + W.ANGLE] * degrees).toFixed(2)}`,
+      `   STEER ${(frame[p + W.STEER] * degrees).toFixed(2)} deg / CAMBER ${(frame[p + W.CAMBER] * degrees).toFixed(2)} deg`,
       `   TEMP ${frame[p + W.SURFACE_TEMP].toFixed(1)} / ${frame[p + W.CARCASS_TEMP].toFixed(1)} C / WEAR ${(100 * frame[p + W.WEAR]).toFixed(1)}%`,
       `   ${MATERIAL[frame[p + W.SURFACE]] ?? 'UNKNOWN'} / WATER ${frame[p + W.WATER].toFixed(3)} mm / LOAD ${frame[p + W.LOAD] > 1 ? 'CONTACT' : 'AIRBORNE'}`,
     );
