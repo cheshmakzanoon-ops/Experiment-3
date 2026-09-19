@@ -3,6 +3,8 @@ export default defineConfig({
   testDir: './e2e',
   timeout: 180000,
   expect: { timeout: 20000 },
+  // Shard individual isolated cases, not whole files; each runner still uses one GPU.
+  fullyParallel: true,
   workers: 1,
   retries: 0,
   reporter: [['list'], ['html', { open: 'never' }]],

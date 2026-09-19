@@ -174,11 +174,21 @@ test('recorded telemetry exports and replay leaves live physics paused', async (
   const columns = csv[0].split(',');
   expect(columns).toHaveLength(211);
   expect(columns.slice(197, 199)).toEqual(['wind_x_mps', 'wind_z_mps']);
-  expect(columns.slice(-4)).toEqual([
+  expect(columns.slice(199, 203)).toEqual([
     'marble_pickup_fr_tread_covers',
     'marble_pickup_fl_tread_covers',
     'marble_pickup_rr_tread_covers',
     'marble_pickup_rl_tread_covers',
+  ]);
+  expect(columns.slice(203)).toEqual([
+    'FR_steer_rad',
+    'FR_camber_rad',
+    'FL_steer_rad',
+    'FL_camber_rad',
+    'RR_steer_rad',
+    'RR_camber_rad',
+    'RL_steer_rad',
+    'RL_camber_rad',
   ]);
   expect(columns).toContain('clutch_torque_Nm');
   expect(columns).toContain('motor_power_W');
@@ -186,8 +196,11 @@ test('recorded telemetry exports and replay leaves live physics paused', async (
   expect(csv.length).toBeGreaterThan(1320);
   const tickColumn = columns.indexOf('tick');
   const firstTick = Number(csv[1].split(',')[tickColumn]);
-  for (let row = 2; row < csv.length; row++) {
-    expect(Number(csv[row].split(',')[tickColumn]) - firstTick).toBe(2 * (row - 1));
+  for (let row = 1; row < csv.length; row++) {
+    const values = csv[row].split(',').map(Number);
+    expect(values).toHaveLength(211);
+    expect(values.slice(203).every(Number.isFinite)).toBe(true);
+    expect(values[tickColumn] - firstTick).toBe(2 * (row - 1));
   }
   const stopped = await diag(page);
   await page.waitForTimeout(500);
