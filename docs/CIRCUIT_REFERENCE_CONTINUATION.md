@@ -87,3 +87,13 @@ The complete human-driven section-146 scenario and the three full audits in sect
 ## Post-publication fence pass
 
 The follow-up merge preserves the published profiled barriers and filtered catch-fence geometry while carrying forward one non-duplicative optimization from the parallel venue review: transparent double-sided chain-link now uses Three.js `forceSinglePass`, because its analytic wire coverage is symmetric and does not require separate front/back transparency passes. The shader and CPU reference also return the exact mean wire coverage when a pixel footprint spans more than 32 complete periods, avoiding cancellation between large periodic integrals at long distance. The physical barrier envelope, fence dimensions, shadow policy, track contact, and simulation state remain unchanged.
+
+## Paddock depth and batching follow-up
+
+The reference-led venue continuation now adds twelve genuinely open, original pit-garage bays with recessed rear walls, service furniture, glazing, roof equipment and real geometric parallax. This follow-up deliberately preserves the newer barrier, grandstand, ground-profile and catch-fence work rather than stacking the older parallel venue implementation over it. No reference pixels, commercial meshes, brand liveries or extracted assets enter the runtime.
+
+Static scene batching now treats render ownership as part of its merge key: shadow casting/receiving, visibility, render order, layer masks and frustum-culling state survive batching, and children below a hidden ancestor are not flattened into the visible root. Five deterministic regressions cover the garage aperture/depth and these batching invariants.
+
+The reconciled source passed **546 unit tests in 56 files**, ESLint, strict TypeScript and the production build. PR #1 head `65aa63b0edc28434bc2da092b64fe67ad93e5da8` then passed GitHub Actions run `35476640815`: validation, native physics/scenario jobs and all three complete Chromium browser shards. The same four runtime/test files were hash-verified before publication to `main`. Full normal `main` CI remains the publication gate for the tested `playable` snapshot.
+
+This remains an incremental reference-quality improvement. One-to-one F1 25 photorealism, representative-hardware performance, the complete human-driven section-146 scenario, the three final audits and the separate replay producer/consumer archival gap remain unresolved.
