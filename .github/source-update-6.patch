@@ -1,0 +1,90 @@
+diff --git a/docs/IMPLEMENTATION_MATRIX.md b/docs/IMPLEMENTATION_MATRIX.md
+index a11f917..0490c7d 100644
+--- a/docs/IMPLEMENTATION_MATRIX.md
++++ b/docs/IMPLEMENTATION_MATRIX.md
+@@ -26,5 +26,5 @@ This ledger follows all 148 numbered sections of the exact [Pasted markdown(6) d
+ | 20 | TIRE WEAR | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+ | 21 | FLAT SPOTS | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+-| 22 | TIRE CONTAMINATION | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
++| 22 | TIRE CONTAMINATION | Loaded per-wheel exact coverage integration combines loose-ground contamination, road-marble pickup and rolling shedding. Contamination persists on clean asphalt and changes actual tire grip; stationary/airborne contacts do not invent pickup. Reduced calibrated-by-design model, not measured material mass. |
+ | 23 | BRAKE SYSTEM | Front/rear distribution and fade; Sport ABS releases actual friction and regenerative torque together. No detailed hydraulic circuit. |
+ | 24 | BRAKE THERMALS | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+@@ -41,7 +41,7 @@ This ledger follows all 148 numbered sections of the exact [Pasted markdown(6) d
+ | 35 | SURFACE TYPES | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+ | 36 | TRACK SPLINE | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+-| 37 | TRACK SURFACE STATE GRID | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+-| 38 | RUBBERING | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+-| 39 | MARBLES | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
++| 37 | TRACK SURFACE STATE GRID | 512 × 7 physics water/rubber/marble/temperature cells. Version-7 worker and three-channel replay surface records preserve original marble state; existing GPU texture B carries local density. No off-track or pit contact reads/depletes neighboring asphalt rubber/marbles. |
++| 38 | RUBBERING | Loaded moving road contacts lay rubber; a stationary loaded wheel and grass/pit contacts no longer rubber the road edge. Tire-work deposition and rainfall evolution remain approximate. |
++| 39 | MARBLES | Contact-work-generated edge marbles, bounded per-wheel pickup with matching cell depletion, lasting grip loss and recovery, solid state-counter-driven particles, anti-aliased road flecks and tread contamination. Physical/native and GPU regression gates exist; see MARBLES_AND_SURFACE_STATE.md. |
+ | 40 | WATER MODEL | Spatial water from real rain, drainage, evaporation and tire passage. Stable first-order drainage update; stopping rain does not erase wet cells. Reduced surface model, not fluid simulation. |
+ | 41 | AQUAPLANING | Smooth load-, speed-, water- and compound-dependent grip reduction. No random binary aquaplaning; hydrodynamic contact-patch simulation remains outside this reduced model. |
+@@ -61,5 +61,5 @@ This ledger follows all 148 numbered sections of the exact [Pasted markdown(6) d
+ | 55 | PBR | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+ | 56 | CARBON FIBER SHADER | Dedicated band-limited carbon roughness and micro-normal GLSL, browser shader tests passed at the rendering checkpoint. |
+-| 57 | WET ROAD SHADER | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
++| 57 | WET ROAD SHADER | Spatial water/rubber/marbles share the existing surface texture; wet darkening/roughness and anti-aliased loose-rubber flecks use recorded local cells, not a global rain tint. |
+ | 58 | REFLECTIONS | Real mirrors plus double-buffered local probes; source/target separation, failure cleanup and environment-only restoration are tested. No SSR/ray tracing; these are alternatives in the directive. |
+ | 59 | SHADOWS | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+@@ -71,5 +71,5 @@ This ledger follows all 148 numbered sections of the exact [Pasted markdown(6) d
+ | 65 | COCKPIT CAMERA | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+ | 66 | TRACKSIDE CAMERAS | Twenty fixed authored rigs, predictive pan/zoom, track-distance coverage, cut hysteresis and replay-seek resets. Complete-lap unit coverage; final shot-obstruction review remains. |
+-| 67 | PARTICLES | Bounded 1,800-particle pool; fractional emissions, contact/work triggers and simulation wind. CPU production oracles and isolated real-GPU browser fixture; not a fluid solver. |
++| 67 | PARTICLES | One bounded 1,800-particle pool for state-driven spray, smoke, dust, rain, sparks and solid marble chips. Cumulative pickup survives different render rates; rewind/replacement/disabled/stale-frame guards and immediate clear uploads are tested. |
+ | 68 | RAIN SPRAY | Spray requires grounded loaded tires and actual local water/speed, with compound scaling. Wind is recorded simulation state, not a second presentation clock. |
+ | 69 | TIRE SMOKE | Smoke requires grounded tire slip work; a brake pedal or airborne spinning wheel alone does not emit ground smoke. |
+@@ -84,7 +84,7 @@ This ledger follows all 148 numbered sections of the exact [Pasted markdown(6) d
+ | 78 | KEYBOARD STEERING | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+ | 79 | WHEEL INPUT | Explicit device selection, asymmetric steering/pedal calibration, clutch/paddle mapping and disconnect guards. Version-4 profiles preserve earlier calibrations; real hardware certification remains open. |
+-| 80 | TELEMETRY DATA | 199 actual-state telemetry channels at 60 Hz in the physics worker; appended world-wind values preserve earlier column positions. Bounded transport/ring and async CSV export. |
++| 80 | TELEMETRY DATA | 203 actual-state channels at 60 Hz; the first 199 column names/positions are frozen under a hash regression. Four cumulative wheel-pickup columns are appended. Bounded transport/ring and separate CSV-worker export. |
+ | 81 | TELEMETRY UI | Eight selectable graph groups include clutch torque/slip, the requested driver/chassis/tire channels and complete-lap distance comparison; truncated/gapped laps are labelled rather than fabricated. |
+-| 82 | REPLAY SYSTEM | 15 Hz all-car numeric pose pages, bounded resident IndexedDB replay cache, asynchronous seeking, original spatial water/rubber history, explicit recording failures. Permanent replay-library UI is not included. |
++| 82 | REPLAY SYSTEM | 15 Hz all-car numeric pose pages, bounded resident IndexedDB replay cache, asynchronous seeking and original spatial water/rubber/marble history. Version-7 three-channel tuple validation, finite-state validation and explicit failures. No permanent replay-library UI. |
+ | 83 | RACE DIRECTOR | Explicit grid/lights/racing/results states; whole-field chequered classification, lapped finish, penalty ordering, automatic cooldown and explicit timeout DNF. Local single/double-yellow zones, approach braking, blue flags, bounded race-control events, pit-speed enforcement for every car, and reversible no-overtake penalties are implemented and tested. A physical safety-car vehicle is not implemented. |
+ | 84 | START LIGHTS | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+@@ -103,9 +103,9 @@ This ledger follows all 148 numbered sections of the exact [Pasted markdown(6) d
+ | 97 | TEXTURE MANAGEMENT | Actual immutable-canvas texture resampling/restoration, mipmaps and hardware-bounded anisotropy; live displays and data textures excluded. No compressed external asset atlas. |
+ | 98 | ASSET STREAMING | Prioritized cooperative procedural-asset construction: bounded ribbon jobs, separate buildings, real completion progress and cancellation/cleanup. Generated local assets have no external streaming dependency. |
+-| 99 | PHYSICS WORKER | Fixed-step worker and pooled render/telemetry/replay transport. Input polling no longer waits for requestAnimationFrame; stale-input safety remains. Target-hardware profiling is separate. |
++| 99 | PHYSICS WORKER | Physics, AI and capture run in a dedicated worker. Inline Vite worker packaging avoids the external-bundle Worker origin mismatch without moving simulation onto the main thread. Two-origin browser execution is a publication gate. |
+ | 100 | AI WORKER | Strategic/tactical AI runs with the simulation inside the physics worker; a separate worker is an optional candidate, not an implemented independent thread. |
+ | 101 | DEBUG OVERLAY | Actual render/physics/force counters, corrected slowest-one-percent FPS and valid/pending/unsupported GPU query display. No fabricated GPU estimate. |
+ | 102 | VISUAL DEBUGGING | Contact-load arrows and numeric telemetry; not all requested overlays. |
+-| 103 | UNIT TESTS | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
++| 103 | UNIT TESTS | 314 unit/property/regression tests in the marble continuation, including 25 new pickup/surface/particle/replay/schema cases. Counts describe this checkpoint, not universal correctness. |
+ | 104 | PHYSICS PROPERTY TESTS | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+ | 105 | DETERMINISM TEST | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+@@ -119,7 +119,7 @@ This ledger follows all 148 numbered sections of the exact [Pasted markdown(6) d
+ | 113 | DAMAGE TEST | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+ | 114 | WAKE TEST | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+-| 115 | AI TESTS | Current simulation fingerprint e600dbe7cab11… passes ten-car dry 50 laps (seed 4417) and 100 laps (seed 73021), both zero contact and wing/floor damage; all ten cars physically service once in the 100-lap fixture. Reports and limits are recorded in CONSTRUCTION_AND_ENDURANCE.md. |
+-| 116 | RACE TEST | Two ten-car three-lap clear/changing-weather whole-field classification fixtures with pit service and measured sectors. The full manual audiovisual scenario remains separate. |
+-| 117 | PLAYWRIGHT TESTS | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
++| 115 | AI TESTS | Simulation/core fingerprint 30c155c669e4…: new ten-car dry 50-lap and 100-lap results both pass with zero impacts, zero off-track time and minimum component health 1. Exact measured source identities are reported in CONSTRUCTION_AND_ENDURANCE.md; do not substitute a historical fingerprint. |
++| 116 | RACE TEST | Two ten-car three-lap whole-field fixtures remain. A six-car changing-weather continuous input-driven journey now checks lock/recovery, kerb/grass, dirty-tire cleaning, wet service/rejoin, contact/aero damage, classification, replay and CSV without physical-state edits. This is not the full manual audiovisual scenario. |
++| 117 | PLAYWRIGHT TESTS | Existing full-session browser tests plus actual GPU marble/tread/chip readbacks and a two-origin real physics/CSV-worker bootstrap regression. Required GitHub Chromium gate; local WebGL is unavailable. |
+ | 118 | PERFORMANCE REGRESSION | Bounded 5-second warm-up / 30-second real-frame captures, content fingerprint, raw JSON export, recomputed metrics and identity-checked regression CLI. Interrupted/incomparable runs fail closed; no invented consumer-hardware baseline. See PERFORMANCE_VALIDATION.md. |
+ | 119 | ERROR POLICY | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+@@ -131,5 +131,5 @@ This ledger follows all 148 numbered sections of the exact [Pasted markdown(6) d
+ | 125 | DRIVER ANIMATION | Two-bone inverse kinematics fixes shoulders to the body and wrists to the wheel across steering range. Actual gear changes drive up/down paddles; ERS changes move thumbs; replay seeks reset transient actions. |
+ | 126 | VISUAL SUSPENSION | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+-| 127 | TIRE DEFORMATION | Load-driven visual compression and flat-spot term, not full tire deformation geometry. |
++| 127 | TIRE DEFORMATION | Load-driven compression, puncture radius and flat-spot term, not full deformation geometry. Individual dirt/wear/graining/blistering uniforms affect high-detail tread materials; distant LODs omit fine tread detail. |
+ | 128 | TRACK DETAIL DENSITY | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+ | 129 | NO PROCEDURAL SLOP | Controlled original procedural design; final aesthetic judgment still requires visual review. |
+@@ -139,5 +139,5 @@ This ledger follows all 148 numbered sections of the exact [Pasted markdown(6) d
+ | 133 | ACCESSIBILITY | Scalable interface, patterned/text flags, high-contrast instruments, adjustable shake and remapping. Motion-blur strength includes a true zero-cost off mode and never affects the HTML HUD. |
+ | 134 | AUDIO/VISUAL CONNECTION | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+-| 135 | NO DISCONNECTED EFFECTS | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
++| 135 | NO DISCONNECTED EFFECTS | Spray/smoke/sparks consume water, contact and dissipated work. Marble chips consume cumulative physical pickup, and road/tread shaders consume actual live/replayed state. No timer-only pickup emitters. |
+ | 136 | EVENT BUS | Typed worker protocol and explicit callbacks, not a separate generalized event-bus package. |
+ | 137 | CONFIGURATION DATA | Central vehicle/setup data with some renderer/AI constants still local. |
+@@ -150,5 +150,5 @@ This ledger follows all 148 numbered sections of the exact [Pasted markdown(6) d
+ | 144 | COMMENTS | Acceptance target: see actual validation reports and stated limitations; no blanket claim of completion. |
+ | 145 | CODE QUALITY | Acceptance target: see actual validation reports and stated limitations; no blanket claim of completion. |
+-| 146 | FINAL REQUIRED SCENARIO | OPEN: component and browser workflows cover portions; the complete combined final scenario has not passed as one end-to-end acceptance test. |
++| 146 | FINAL REQUIRED SCENARIO | PARTIAL / OPEN: the continuous production-physics/input, numeric replay and CSV portion now has an executable 14-check scenario. Human-perceived handling, camera/UI/audio and presentation must still pass together in the complete final acceptance; separate browser/component checks do not certify it. |
+ | 147 | FINAL QUALITY STANDARD | OPEN: the complete final perceived-physics and visual quality standard is not certified. |
+ | 148 | FINAL OPERATING INSTRUCTION | OPEN: iterative implementation and evidence continue; no full-spec completion declaration. |
