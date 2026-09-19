@@ -1,4 +1,4 @@
-name: Reference renderer toolchain
+name: Reference renderer review
 on:
   push:
     branches: [main]
@@ -6,9 +6,9 @@ on:
 permissions:
   contents: read
 jobs:
-  toolchain:
+  reference:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
         with:
@@ -18,14 +18,14 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci --no-audit --no-fund
-      - name: Export locked public dependencies for offline renderer validation
-        run: |
-          tar -czf "$RUNNER_TEMP/renderer-toolchain.tar.gz" node_modules package-lock.json
-          sha256sum package-lock.json > "$RUNNER_TEMP/renderer-toolchain-lock.txt"
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test e2e/04-reference-visual.spec.ts
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
-          name: renderer-toolchain
+          name: reference-renderer-review
           path: |
-            ${{ runner.temp }}/renderer-toolchain.tar.gz
-            ${{ runner.temp }}/renderer-toolchain-lock.txt
-          retention-days: 1
+            test-results
+            playwright-report
+          retention-days: 7
