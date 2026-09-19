@@ -1,0 +1,34 @@
+name: Recover pinned verification toolchain
+on:
+  push:
+    branches: [main]
+    paths: [.github/workflows/verification-toolchain.yml]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  tooling:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Archive exact locked tooling without credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          tar -czf "$RUNNER_TEMP/node_modules.tar.gz" node_modules
+          sha256sum package-lock.json > "$RUNNER_TEMP/package-lock.sha256"
+          git rev-parse HEAD > "$RUNNER_TEMP/source-commit.txt"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: apex-verification-toolchain
+          path: |
+            ${{ runner.temp }}/node_modules.tar.gz
+            ${{ runner.temp }}/package-lock.sha256
+            ${{ runner.temp }}/source-commit.txt
+          retention-days: 1
