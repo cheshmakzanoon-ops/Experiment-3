@@ -141,7 +141,7 @@ it('places complete trees on the visible ground, outside every nearby racing or 
         ? point.y +
           point.bank * Math.max(-12, Math.min(12, lateral)) -
           0.04 -
-          Math.max(0, Math.abs(lateral) - 15) * 0.045
+          Math.max(0, Math.abs(lateral) - track.boundary(point.s, lateral < 0 ? -1 : 1) - 1) * 0.045
         : terrainHeight(tree.x, tree.z);
     expect(tree.y).toBeCloseTo(y, 7);
     expect(tree.height).toBeGreaterThanOrEqual(6);

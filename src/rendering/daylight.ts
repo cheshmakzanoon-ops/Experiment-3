@@ -22,6 +22,9 @@ export function daylightState(cloud: number, rain: number) {
     environment: 0.28 - cover * 0.07,
     exposure: 0.9 + cover * 0.1,
     turbidity: 2.8 + cover * 5,
+    // Normalize the analytic skydome before the shared scene tone map; keeping
+    // its native radiance washed the entire clear sky and reflected paint white.
+    skyRadiance: 0.32 + cover * 0.2,
     fogDensity: 0.00025 + cover * 0.00012 + precipitation * 0.000024,
   };
 }
@@ -50,6 +53,7 @@ export function shadowAnchor(target: T.Vector3, size: number, halfExtent: number
 // no wall-clock cloud animation that would diverge between pause and replay.
 const cloudFunctions = `
 uniform float cloudCover;
+uniform float skyRadiance;
 float skyHash(vec2 p) { return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }
 float skyNoise(vec2 p) {
   vec2 i=floor(p), f=fract(p); f=f*f*(3.0-2.0*f);
@@ -64,6 +68,7 @@ float skyCloud(vec2 p) {
 export function configureSky(sky: Sky) {
   const material = sky.material;
   material.uniforms.cloudCover = { value: 0 };
+  material.uniforms.skyRadiance = { value: daylightState(0, 0).skyRadiance };
   material.uniforms.sunPosition.value.copy(SUN_OFFSET);
   material.uniforms.rayleigh.value = 2.2;
   material.uniforms.mieCoefficient.value = 0.004;
@@ -83,7 +88,7 @@ export function configureSky(sky: Sky) {
       cloudLight*=1.0-.42*cloudCover;
       retColor=mix(retColor,cloudLight,cover);
       retColor=mix(retColor,vec3(.55,.64,.75),cloudCover*.22);
-      gl_FragColor=vec4(retColor,1.0);
+      gl_FragColor=vec4(retColor * skyRadiance,1.0);
     `,
     );
   material.needsUpdate = true;
@@ -108,14 +113,17 @@ export class SkyEnvironment {
     let next: T.WebGLRenderTarget;
     const previousCover = this.sky.material.uniforms.cloudCover.value;
     const previousTurbidity = this.sky.material.uniforms.turbidity.value;
+    const previousRadiance = this.sky.material.uniforms.skyRadiance.value;
     try {
       // Capture the bin centre so returning to the same weather has the same IBL.
       this.sky.material.uniforms.cloudCover.value = nextBin / 8;
       this.sky.material.uniforms.turbidity.value = daylightState(nextBin / 8, 0).turbidity;
+      this.sky.material.uniforms.skyRadiance.value = daylightState(nextBin / 8, 0).skyRadiance;
       next = generator.fromScene(this.environmentScene, 0.04, 0.1, 700000, { size: 128 });
     } finally {
       this.sky.material.uniforms.cloudCover.value = previousCover;
       this.sky.material.uniforms.turbidity.value = previousTurbidity;
+      this.sky.material.uniforms.skyRadiance.value = previousRadiance;
       generator.dispose();
     }
     const previous = this.current;

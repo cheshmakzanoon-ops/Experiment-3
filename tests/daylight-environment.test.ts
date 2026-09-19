@@ -10,11 +10,16 @@ it('recaptures bounded sky bins, restores live uniforms and disposes replaced ou
   configureSky(sky);
   sky.material.uniforms.cloudCover.value = 0.37;
   sky.material.uniforms.turbidity.value = 4.65;
+  sky.material.uniforms.skyRadiance.value = 0.394;
   const samples: number[] = [],
     outputs: T.WebGLRenderTarget[] = [];
   const render = vi.spyOn(T.PMREMGenerator.prototype, 'fromScene').mockImplementation((scene) => {
     const material = (scene.children[0] as Sky).material;
     samples.push(material.uniforms.cloudCover.value);
+    expect(material.uniforms.skyRadiance.value).toBeCloseTo(
+      0.32 + material.uniforms.cloudCover.value * 0.2,
+      8,
+    );
     const target = new T.WebGLRenderTarget(8, 8);
     outputs.push(target);
     return target;
@@ -36,6 +41,7 @@ it('recaptures bounded sky bins, restores live uniforms and disposes replaced ou
   expect(scene.environment).toBe(outputs[2].texture);
   expect(sky.material.uniforms.cloudCover.value).toBe(0.37);
   expect(sky.material.uniforms.turbidity.value).toBe(4.65);
+  expect(sky.material.uniforms.skyRadiance.value).toBe(0.394);
   expect(generatorDispose).toHaveBeenCalledTimes(3);
   const lastDispose = vi.spyOn(outputs[2], 'dispose');
   environment.dispose();
@@ -63,6 +69,7 @@ it('does not publish a failed sky capture, lose the previous texture or poison i
   expect(dispose).not.toHaveBeenCalled();
   expect(environment.captures).toBe(1);
   expect(sky.material.uniforms.cloudCover.value).toBe(0);
+  expect(sky.material.uniforms.skyRadiance.value).toBe(0.32);
   expect(environment.update(renderer, scene, 0)).toBe(false);
   expect(generatorDispose).toHaveBeenCalledTimes(2);
   expect(() => environment.update(renderer, scene, NaN)).toThrow('Non-finite');

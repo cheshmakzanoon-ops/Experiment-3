@@ -1,3 +1,5 @@
+import { grassApronOffset } from './ground-profile.ts';
+import { inStandFootprint } from './grandstand.ts';
 import * as T from 'three';
 import { Random, clamp } from '../core/math.ts';
 import { Track, trackPoint } from '../simulation/track.ts';
@@ -50,31 +52,12 @@ export function vegetationPlan(track: Track, seed = 7109): TreePlacement[] {
           blocked = true;
       }
     if (blocked) continue;
-    // Keep grandstand roof/service areas clear, including their long ends.
-    for (const [s, sign] of [
-      [450, -1],
-      [780, 1],
-      [1220, -1],
-      [1670, 1],
-      [2210, -1],
-      [2600, 1],
-    ]) {
-      track.at(s, point);
-      const tx = x - point.x - point.nx * sign * (point.width + 28),
-        tz = z - point.z - point.nz * sign * (point.width + 28);
-      if (
-        Math.abs(tx * point.tx + tz * point.tz) < 33 &&
-        Math.abs(tx * point.nx + tz * point.nz) < 15
-      )
-        blocked = true;
-    }
+    // Use the exact same authored site footprint as the structural builder.
+    if (inStandFootprint(track, x, z, 8)) blocked = true;
     if (blocked) continue;
     const y =
       Math.abs(l) <= nearest.width + 38
-        ? nearest.y +
-          nearest.bank * clamp(l, -12, 12) -
-          0.04 -
-          Math.max(0, Math.abs(l) - 15) * 0.045
+        ? nearest.y + nearest.bank * clamp(l, -12, 12) + grassApronOffset(track, nearest.s, l)
         : terrainHeight(x, z);
     const height = 6 + random.next() * 7;
     const tree = {

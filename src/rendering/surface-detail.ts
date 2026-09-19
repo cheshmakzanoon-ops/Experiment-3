@@ -1,3 +1,4 @@
+import { installCircuitFinish, type CircuitFinish } from './circuit-finish.ts';
 import * as T from 'three';
 import { installStableSurfaceBump } from './materials.ts';
 import { Random, clamp } from '../core/math.ts';
@@ -60,7 +61,7 @@ export function surfacePixels(kind: SurfaceKind, size = 512, seed = 1887) {
     }
   return { albedo, height, roughness };
 }
-export function surfaceMaterial(kind: SurfaceKind) {
+export function surfaceMaterial(kind: SurfaceKind, finish?: CircuitFinish) {
   const size = 512,
     data = surfacePixels(kind),
     metres = kind === 'asphalt' ? 0.64 : kind === 'grass' ? 2.5 : kind === 'gravel' ? 0.9 : 3;
@@ -91,5 +92,7 @@ export function surfaceMaterial(kind: SurfaceKind) {
     bumpScale: kind === 'asphalt' ? 0.00045 : kind === 'gravel' ? 0.009 : 0.002,
   });
   installStableSurfaceBump(material);
+  if (finish || kind !== 'gravel')
+    installCircuitFinish(material, finish ?? (kind as CircuitFinish));
   return material;
 }

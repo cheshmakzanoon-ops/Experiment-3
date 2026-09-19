@@ -13,3 +13,7 @@ The F1 25 reference ZIP was inspected as a quality target only. No reference ima
 ## Original cockpit detail continuation
 
 `cockpit.ts` authors the mirror housings, rounded apertures, butterfly wheel and printed APEX control panel. `driver-materials.ts` generates two shared 128 × 128 linear normal/roughness maps from deterministic periodic weave functions; no photograph was converted into these textures. Glove reinforcement and seam curves are original geometry. The control lettering uses the browser's system fonts, with no bundled font files. The reference collection supplies qualitative goals, not distributed pixels. No external material library, image-generation output or downloaded PBR asset was added in this continuation.
+
+## Circuit continuation
+
+Profiled barriers, analytically filtered fence wire, eight grandstand layouts, structural components, seat/crowd instances and decorative construction finishes are original procedural work. No F1 25 image, mesh, brand livery, texture, sound or UI element is imported. The supplied pack remains an external qualitative reference, not a runtime dependency. See [circuit validation and limitations](CIRCUIT_REFERENCE_CONTINUATION.md).

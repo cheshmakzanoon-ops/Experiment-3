@@ -412,6 +412,7 @@ export class RacingRenderer {
     );
     this.sky.material.uniforms.turbidity.value = daylight.turbidity;
     this.sky.material.uniforms.cloudCover.value = daylight.cover;
+    this.sky.material.uniforms.skyRadiance.value = daylight.skyRadiance;
     this.target.copy(car.root.position);
     this.direction.set(0, 0, 1).applyQuaternion(car.root.quaternion);
     if (menu) {

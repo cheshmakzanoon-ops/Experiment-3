@@ -48,6 +48,8 @@ The garage exposes independent render resolution, real texture-detail limits, sh
 
 The reference-led cockpit pass adds fitted mirror apertures, a bevelled butterfly wheel, real-state bias/differential/ERS selectors, cloth microdetail, glove reinforcement and seams. Replay seeks invalidate stale mirror/probe imagery without rebuilding material programs. [See the actual scope, tests and graphics cost](docs/COCKPIT_REFERENCE_CONTINUATION.md); this is not a claim of F1 25 visual parity.
 
+The reference-led circuit pass adds profiled concrete barriers, metre-scaled filtered catch fencing, eight terraced grandstands with structural supports and instanced seating, construction/weathering surface detail, a shared bank-aware grass apron with embedded barrier footings, and weather-consistent sky radiance. [See the circuit evidence and remaining fidelity limits](docs/CIRCUIT_REFERENCE_CONTINUATION.md).
+
 Trackside mode uses twenty fixed camera rigs with coverage-based cuts and predictive panning. Keyboard, touch and controller sampling runs on its own 60 Hz timer rather than waiting for a rendered frame. See [presentation and input engineering](docs/PRESENTATION_AND_INPUT.md) for ownership, tests and remaining boundaries.
 
 ## 🚀 Get started
@@ -219,7 +221,7 @@ The original validation results below are historical baseline measurements, not 
 
 ## 🧪 Testing and validation
 
-**Current cockpit continuation:** 527 unit/property/regression tests in 54 files; 29 browser cases in the complete suite. Local lint, strict build and the four focused high-preset reference/articulation and pit-budget cases passed. The normal GitHub workflow separately gates publication on the complete suite and native scenarios. Read [the reproducible evidence and remaining acceptance work](docs/COCKPIT_REFERENCE_CONTINUATION.md). Test counts alone do not certify photorealism or the full master directive.
+**Current circuit continuation:** 541 unit/property/regression tests in 55 files; 31 browser cases in the complete suite. Local lint, strict build and focused renderer/construction checks are recorded separately from the normal GitHub workflow, which gates publication on the complete suite and native scenarios. Read [the reproducible circuit evidence and remaining acceptance work](docs/CIRCUIT_REFERENCE_CONTINUATION.md). Test counts alone do not certify photorealism or the full master directive.
 
 ```sh
 npm run check            # ESLint + Vitest + TypeScript + Vite production build
