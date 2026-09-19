@@ -1,0 +1,308 @@
+diff --git a/docs/ARCHITECTURE.md b/docs/ARCHITECTURE.md
+index 09fb443..5dedb38 100644
+--- a/docs/ARCHITECTURE.md
++++ b/docs/ARCHITECTURE.md
+@@ -128,4 +128,8 @@ smoke uses tire slip work, sparks use bottom-contact work. Fractional emissions
+ avoid losing light rain at high FPS. Weather wind drives rain and entrainment.
+ The same wind is recorded in replay rather than sampled from a second wall clock.
++Marble pickup is integrated per loaded tire, debits the touched road cell, and
++persists as tread contamination until shed or the tire is physically replaced.
++Cumulative pickup drives solid chips; the shared surface texture and per-wheel
++tread uniforms expose actual local/recorded conditions without new texture churn.
+ 
+ Keyboard, gamepad, touch and explicitly calibrated unmapped-wheel inputs route to
+@@ -142,7 +146,7 @@ graphics are validated. Stored best laps and local preferences require no accoun
+ or network write. There is no full mid-race physics save/restore or cloud sync.
+ 
+-Protocol version 6 uses sixteen header floats and 224 floats per car. Wheel
++Protocol version 7 uses sixteen header floats and 224 floats per car. Wheel
+ records start at offset 96; four debris records start at 192. Telemetry now exports
+-199 named channels at 60 Hz into a fifteen-minute ring. Complete all-car numeric
++203 named channels at 60 Hz into a fifteen-minute ring. Complete all-car numeric
+ pose replay is captured at 15 Hz and paged through bounded IndexedDB storage,
+ with separately recorded surface state. Playback does not rerun live physics.
+diff --git a/docs/CONSTRUCTION_AND_ENDURANCE.md b/docs/CONSTRUCTION_AND_ENDURANCE.md
+index 4e9184e..e0cf6a2 100644
+--- a/docs/CONSTRUCTION_AND_ENDURANCE.md
++++ b/docs/CONSTRUCTION_AND_ENDURANCE.md
+@@ -17,10 +17,12 @@ The complete browser session test also checks that the real renderer reports com
+ ## Long-run AI evidence for the current simulation
+ 
+-The simulation fingerprint is `e600dbe7cab11f3762a35c30697ee6d137fbaf9a6c43c25b1b530e1d744a2c0a`. It covers every source file in `src/simulation/` and `src/core/`, with path and content hashes in deterministic lexical order. The two current reports were rerun after the weather timeline, ABS/regeneration, anti-stall and wet-pit traffic changes. Their complete `src/` fingerprint is `1db6169ec9a928dbbbbc6a28c267fb827a5d4770f49b71f725afc9fd47cd165a`. They are not the earlier 5cc02995 construction-only reports.
++The current simulation/core fingerprint is `30c155c669e4af3f1d5b2a40ab0ce9acd44d5dc19ee82777df8f6c6bf2149484`. It covers every source file in `src/simulation/` and `src/core/`, with path and content hashes in deterministic lexical order. Both reports were rerun after the physical marble pickup, tire-cleaning and true-surface road-interaction changes. They are not the historical weather-only reports.
+ 
+ | Trial | Actual result |
+ |---|---|
+-| Ten cars × 50 dry laps, seed 4417 | All ten completed 50 laps in 3,450.000 simulated seconds; no impact, off-track running or wing/floor damage. Initial fuel was 60.5 kg per car; no service was required in this fixture. |
+-| Ten cars × 100 dry laps, seed 73021 | All ten completed 100 laps in 7,029.683 simulated seconds. Every car completed one physical tire stop; no impact, off-track running or wing/floor damage. Initial fuel was 113 kg per car and affected actual mass throughout. |
++| Ten cars × 50 dry laps, seed 4417 | All ten completed 50 laps in 3,449.775 simulated seconds; no impact, off-track running or wing/floor damage. Initial fuel was 60.5 kg per car; no service was required in this fixture. |
++| Ten cars × 100 dry laps, seed 73021 | All ten completed 100 laps in 7,030.575 simulated seconds. Every car completed one physical tire stop; no impact, off-track running or wing/floor damage. Initial fuel was 113 kg per car and affected actual mass throughout. |
++
++The 50-lap all-source fingerprint is `afe60377eeb6df2d5f9358704350b5a584246b9cb328c9a68f5144e35d31f6c9`. The 100-lap all-source fingerprint is `84ec6525dd513b56a657467708d73f8d3bff088f0c34dc60b3567885464c4568`. Those runs captured their source identities before the later presentation and worker-portability edits. Their **identical simulation/core fingerprint** is still current; the all-source hashes are retained as measured, not relabeled to pretend those runs occurred on a later presentation build.
+ 
+ The reports retain per-car maximum offset, impact count, minimum component health, stall durations, fuel remaining and service count. They are positive evidence for these seeds, grid, setup and weather, not a guarantee of flawless AI under every adversarial condition. Clear and changing-weather whole-field three-lap races, obstruction handling and the simultaneous ten-car service fixture remain separate regressions.
+@@ -28,8 +30,5 @@ The reports retain per-car maximum offset, impact count, minimum component healt
+ The full master directive is still subject to the complete combined scenario, target-device profiling, all specified final audits and further presentation review. Passing these fixtures does not certify AAA presentation or every remaining requirement.
+ 
+-Separate ten-car wet and initially-slick-in-rain service fixtures are now part of the physics CI gate. They pass their declared service/impact thresholds, but contain minor contacts and must not be described as zero-contact endurance. See `wet-pit-results.json` and [weather/braking](WEATHER_AND_BRAKING.md).
++Separate ten-car wet and initially-slick-in-rain service fixtures are part of the physics CI gate. Both pass their declared service/impact thresholds. The wet-tire fixture has zero impacts, while the slick-in-rain fixture contains minor contacts and must not be described as zero-contact endurance. See `wet-pit-results.json` and [weather/braking](WEATHER_AND_BRAKING.md).
+ 
+-The later instrument-freshness/weather-caption follow-up modifies presentation only.
+-Its all-source fingerprint differs, while the simulation/core fingerprint above
+-remains identical. The listed all-source hash identifies the measured weather
+-checkpoint; it is not silently rewritten to describe a later presentation build.
++The new continuous input-driven changing-weather race is a different regression: it intentionally drives across grass and produces a small front-wing impact before finishing. It is not a zero-contact trial. Its launch, wake, braking, contamination, wet pit service, damage, replay and CSV checks are documented in [marbles and surface state](MARBLES_AND_SURFACE_STATE.md) and `integrated-driving.json`.
+diff --git a/docs/DEVELOPMENT_STATUS.md b/docs/DEVELOPMENT_STATUS.md
+index 95efebe..a35b175 100644
+--- a/docs/DEVELOPMENT_STATUS.md
++++ b/docs/DEVELOPMENT_STATUS.md
+@@ -78,2 +78,34 @@ The HUD also distinguishes stopped rainfall from water remaining on the circuit.
+ These are presentation-only changes; the recorded simulation fingerprint and
+ its dry endurance results are unchanged, while the all-source fingerprint differs.
++
++## Continuation from f0d6801 / playable publishing: connected surface state
++
++Recovered **Pasted markdown(6).md** is still the exact 59,242-byte, 148-section
++master directive. Its SHA-256 is
++`f508a1b9be8e8a19a2ccc39d744e82d774cf95ecc773c12482efbcb9fb89f75c`.
++The last application fix was `f0d6801` (cockpit cadence and remaining-water
++labels); `be734336` subsequently changed playable-bundle publishing, not
++completion of the master specification. The temporary dependency-recovery
++workflow used for this continuation was removed after its artifact was recovered.
++
++This continuation closes the previously disconnected marble pickup, tread
++condition, local road visualization and full-session surface-history paths.
++It corrects stationary/off-road rubber deposition, stale paused-particle GPU
++opacity, and the cross-origin worker construction failure for both physics and
++CSV export. It preserves the earlier 199 CSV columns and appends four actual
++per-wheel cumulative pickup channels.
++
++The new continuous driving harness sends only ordinary driver requests into
++production simulation. It covers launch, slip/wake, brake abuse and recovery,
++kerb/grass, dirty-tire cleaning, changing weather, physical tire service and
++rejoin, real front contact damage, whole-field results, historical replay seeks
++and exact-state CSV checks in a single run. Read its declared scope and measured
++`integrated-driving.json`; it is not a substitute for the full audiovisual
++section-146 scenario or human handling assessment.
++
++See [surface integration and evidence](MARBLES_AND_SURFACE_STATE.md) and refreshed
++[endurance evidence](CONSTRUCTION_AND_ENDURANCE.md). The existing full browser
++suite and two new browser oracles must pass before the source publication
++workflow can commit this candidate. Full three-pass project certification,
++representative-device performance and independent visual/audio quality remain
++open rather than silently converted into pass marks.
+diff --git a/docs/DRIVER_STRATEGY_AND_PIT_SERVICE.md b/docs/DRIVER_STRATEGY_AND_PIT_SERVICE.md
+index 250e76e..0258ab2 100644
+--- a/docs/DRIVER_STRATEGY_AND_PIT_SERVICE.md
++++ b/docs/DRIVER_STRATEGY_AND_PIT_SERVICE.md
+@@ -23,5 +23,5 @@ A focused physical regression starts with the previously problematic bay/queue g
+ Each car stores 257 crossing-time samples at equal distances for the current lap and best complete valid lap. The reference uses interpolated physical crossing times, not an invented constant-speed trace derived from the total lap time. Missing samples and invalid laps cannot replace the reference. Stopping adds real elapsed time. A slower accepted trace cannot overwrite an existing faster one.
+ 
+-The HUD and cockpit display show a delta only after a complete valid reference exists. The physical wheel also displays brake bias, power differential setting, deployment mode and battery state; individual shift LEDs follow measured engine RPM. At that checkpoint, protocol version 5 added the service clock, actual delta/reference availability and driver-decision diagnostics. The fixed snapshot stride is 224 floats per car and that checkpoint had 197 uniquely named channels. Weather protocol 6 now appends two wind channels (199 total), retaining the same stride. Recording and replay use the same state.
++The HUD and cockpit display show a delta only after a complete valid reference exists. The physical wheel also displays brake bias, power differential setting, deployment mode and battery state; individual shift LEDs follow measured engine RPM. At that checkpoint, protocol version 5 added the service clock, actual delta/reference availability and driver-decision diagnostics. The fixed snapshot stride is 224 floats per car and that checkpoint had 197 uniquely named channels. Weather protocol 6 appended two wind channels (199 total), retaining the same stride. Current protocol 7 appends four cumulative tire-pickup CSV columns (203 total) without moving any of those existing 199 columns. Recording and replay use the same state.
+ 
+ ## Service visuals are consumers of the physical state
+diff --git a/docs/MARBLES_AND_SURFACE_STATE.md b/docs/MARBLES_AND_SURFACE_STATE.md
+new file mode 100644
+index 0000000..7e5f28d
+--- /dev/null
++++ b/docs/MARBLES_AND_SURFACE_STATE.md
+@@ -0,0 +1,144 @@
++# Connected tire contamination, track state and worker portability
++
++This continuation implements concrete gaps in the unchanged 148-section master
++directive, especially 22, 37–39, 57, 67, 80–82, 99, 103–117 and 133–146. The exact
++original remains `MASTER_DIRECTIVE.md`, protected by a byte-hash and heading test.
++It is not a declaration of complete commercial-game fidelity.
++
++## Physical ownership and units
++
++`contamination.ts` integrates bounded tread coverage under the rates held during
++one physics substep. Road pickup is proportional to local loose-rubber coverage
++and longitudinal speed; rolling sheds contamination. The exact first-order
++coverage update uses `expm1`, avoiding a linear update's subdivision dependence.
++It accounts separately for incoming and shed coverage when both occur. Pickup is
++bounded by available cell coverage. Grass/gravel contamination does not become
++fictional road-marble pickup, and airborne or stationary contact cannot accumulate
++it. The numerical constants are an original reduced model, not measured tire data.
++
++`dirt` remains a dimensionless covered fraction. `marblePickup` counts cumulative
++**tread-cover equivalents** since that tire was fitted. One full cell contains
++100 such equivalents in this model; both collection and cell debit use that same
++conversion. These are not kilograms, and the implementation does not claim a
++mass-calibrated granular-material simulation. Detached render chips are an effect,
++not a second physical material inventory.
++
++The actual `Vehicle` wheel solve measures each tire's counter change and debits
++the actual loaded road cell. Positive slip work still generates edge marbles.
++Loaded moving road contacts lay rubber. Stopped tires no longer manufacture
++rubber merely because they carry weight, and off-road/pit contacts cannot modify
++or sample the adjacent asphalt cell's rubber/marbles through index clamping.
++Contamination continues to reduce tire grip after returning to clean asphalt;
++rotation progressively removes it. The existing physical tire replacement path
++creates clean tires and resets the fitted-tire pickup counter.
++
++## Presentation and recording
++
++The existing 512 × 7 GPU surface texture now uses its blue channel for local
++marble coverage, alongside water/red and rubber/green. No additional texture or
++per-frame texture allocation is introduced. Derivative-filtered road flecks tend
++toward mean coverage at distance rather than shimmer. Each high-detail wheel has
++its own dirt/wear/blister/grain uniform, supplied by the same live or replayed wheel
++state. Its grain pattern is fixed to spinning tread UVs, with mean coverage retained
++when individual grains become sub-pixel. Distant LODs omit fine tread detail.
++
++Marble chips share the existing 1,800-particle pool. A cumulative pickup delta,
++not a pedal, render count or session timer, supplies the birth budget. The visual
++sampling density is 320 chips per coverage equivalent; each wheel can emit at
++most 64 chips per update, dropping overload rather than accumulating an unbounded
++backlog. Repeated snapshots, first observation, rewind, tire replacement and
++disabled/re-enabled effects do not create catch-up bursts. Clearing the pool uploads
++zero opacity immediately, including a paused frame with no subsequent update.
++
++Protocol **7** retains the 224-float car stride and all wheel/debris offsets. Spare
++car slots 90–93 carry FR/FL/RR/RL pickup counters. The four CSV fields are appended
++after the pre-existing 199 columns; a frozen header SHA-256 test protects the old
++positions. The total is 203 actual-state channels at 60 Hz.
++
++The worker sends local marble cells with water/rubber at the existing 2 Hz surface
++cadence. Full-session replay stores three-channel 16-bit water/rubber/marble tuples
++and restores the correct historical cells on backward seeks. New private cache
++pages carry version 7; old/incompatible/corrupt records fail explicitly rather than
++being reinterpreted. Current-page surface bytes are included in the memory counter.
++The incremental raw transfer is 14,336 bytes per surface update and replay storage
++is 7,168 additional bytes per surface record, before object/storage overhead.
++
++## Production worker construction
++
++Both physics and CSV export now use Vite's `?worker&inline` packaging, retaining
++real dedicated workers. A script loaded from an external asset host no longer
++passes that host's worker URL directly into the document's Worker constructor.
++The self-contained worker is created from a document-origin blob URL. This does
++not turn off the same-origin policy or run simulation on the UI thread.
++
++Deployment must still serve the HTML, JavaScript and CSS with correct types and
++asset CORS permissions. A restrictive Content Security Policy must permit the
++intended script/style origins and `blob:` in `worker-src`. This source change alone
++does not retroactively replace an older already-published application bundle.
++
++Reference contracts: Vite's official Features / Web Workers documentation and
++MDN's Worker constructor documentation. The locked Vite 7.1.7 build and the real
++browser oracle are the compatibility gates, rather than an assumed latest API.
++
++## Executable evidence
++
++`tests/marbles.test.ts` adds 25 focused cases. They exercise physical pickup,
++lasting grip, clean-line recovery, exact-rate subdivision, finite local material,
++reverse symmetry, no airborne/stationary pickup, no pit/grass edge contamination,
++actual tire replacement, four telemetry counters, fixed-budget particle emission
++at 24/30/60/120/144 Hz, repeated/rewound/disabled snapshots, immediate GPU-opacity
++clearing, historic page seeks, malformed surface rejection and all 199 prior CSV
++column positions. The checkpoint has 314 total unit/property tests.
++
++`e2e/00-marbles.spec.ts` runs actual Three.js road/tread/particle shaders on a real
++WebGL context, reads changed pixels, checks per-wheel uniforms against unmodified
++production-physics state, and tests a clear without a following frame update. It
++attaches the measured JSON and actual rendered tire image. The declared initial
++marble-filled track is a component fixture, not evidence of a naturally evolved
++whole-race track.
++
++`e2e/01-worker-portability.spec.ts` serves the compiled fixture under a different
++origin from its document, runs the actual physics worker and production CSV
++export class, checks finite advanced snapshots and marble transfers, verifies
++exact CSV values, then requires both workers to terminate. Routing supplies HTTP
++bytes only; worker responses are not mocked. All prior application/browser tests
++remain required, including real IndexedDB and 60 Hz CSV spacing.
++
++`npm run test:journey` adds a continuous six-car changing-weather race to the
++physics gate. The fixed seed, setup and normal input requests exercise launch,
++gears, wake, brake lock/release, kerb/grass, dirty-tire recovery, thermal wear, ERS,
++real intermediate service, rejoin, deliberate glancing contact and classification.
++Read-only evaluation of the same aero function isolates the physically measured
++front-wing damage's downforce/balance consequence; it does not mutate the car or
++claim that a human has perceived understeer. Numeric replay seeks and exact CSV
++checks consume recorded snapshots from that same run. Its page-store adapter is
++in-memory; the separate browser gate covers IndexedDB.
++
++The retained `integrated-driving.json` records 14 named checks, chronology, source
++and script fingerprints, 39,755 telemetry rows and 9,938 replay frames. In that
++run the six cars finished with one tire stop each; the deliberately delayed and
++excursion-driven player was classified one lap down (seven laps versus the
++winner's eight), not relabeled as an eight-lap finisher. Front damage was about
++3.58%, with a matching front-wing downforce loss under the shared read-only aero
++comparison. A lapped finish and intentional impact are expected in this fixture.
++
++Existing dry/changing/rain, wet-pit, marshal, rotational integration, vehicle
++dynamics and whole-field classification gates remain. Dry 50-/100-lap reports
++identify their exact source and simulation/core fingerprints; presentation-only
++edits after a run do not justify relabeling its all-source hash. See
++`CONSTRUCTION_AND_ENDURANCE.md` for the refreshed results.
++
++## Remaining acceptance boundaries
++
++Local lint, TypeScript, production build and native tests can run in this
++workspace; local Chromium cannot create WebGL. Real GPU and complete browser
++acceptance must be read from the GitHub workflow for the published source. The
++source-update workflow refuses to commit/push a candidate if those gates fail.
++A software-rendered CI run is not representative-device frame-rate certification.
++
++The continuous native journey is a substantial connected part of section 146,
++not its whole human-played audiovisual sequence. Camera/UI/audio integration,
++perceived handling and presentation still need the complete combined acceptance.
++Three complete project-wide quality passes, three final independent audits,
++consumer-device performance targets and AAA visual/audio fidelity are not claimed
++by the marble subsystem or its automated tests.
+diff --git a/docs/RECORDING_AND_REPLAY.md b/docs/RECORDING_AND_REPLAY.md
+index 25d4fea..111f61f 100644
+--- a/docs/RECORDING_AND_REPLAY.md
++++ b/docs/RECORDING_AND_REPLAY.md
+@@ -5,9 +5,9 @@ This checkpoint extends directive sections 53, 67, 80–82, 99, 133–135 and 13
+ ## Capture and ownership
+ 
+-`TelemetrySampler` runs inside the physics worker. Every second 120 Hz tick captures a 199-channel sample; every eighth tick captures a complete numeric pose snapshot for every car. Rendering never supplies the capture clock. Six transferable telemetry buffers and six pose buffers provide bounded transport queues. Buffers are returned after the main thread copies their contents. A stalled consumer produces an explicit recording-gap warning; no interpolated or invented measurements fill the gap.
++`TelemetrySampler` runs inside the physics worker. Every second 120 Hz tick captures a 203-channel sample; every eighth tick captures a complete numeric pose snapshot for every car. Rendering never supplies the capture clock. Six transferable telemetry buffers and six pose buffers provide bounded transport queues. Buffers are returned after the main thread copies their contents. A stalled consumer produces an explicit recording-gap warning; no interpolated or invented measurements fill the gap.
+ 
+ Telemetry uses a fifteen-minute typed-array ring. Export takes a chronological copy and transfers that copy to a separate formatting worker. Cancellation, worker errors and a thirty-second timeout reject the export. A late old-worker response cannot terminate or download a later session's export.
+ 
+-The current wire format is version 6: sixteen header floats, 224 floats per car, four 24-float wheel records beginning at offset 96, and four eight-float debris records beginning at offset 192. The two previously unused header slots now retain world wind in m/s; telemetry appends the corresponding named columns. Fields include real motor/regen power, suspension length, tire pressure/radius/puncture, graining/blistering, component health, jack height, penalties and sector state. The internal wheel sequence is **FR, FL, RR, RL**: +Z points toward the nose, +Y up, and +X toward the driver's left. CSV headers and the tire panel follow the actual hub positions.
++The current wire format is version 7: sixteen header floats, 224 floats per car, four 24-float wheel records beginning at offset 96, and four eight-float debris records beginning at offset 192. Header slots 14–15 retain world wind in m/s. Version 7 uses previously spare per-car slots 90–93 for cumulative wheel-specific marble pickup. The four CSV pickup columns are appended after all 199 existing columns; a frozen-header hash regression protects those earlier positions. Fields include real motor/regen power, suspension length, tire pressure/radius/puncture, graining/blistering, component health, jack height, penalties and sector state. The internal wheel sequence is **FR, FL, RR, RL**: +Z points toward the nose, +Y up, and +X toward the driver's left. CSV headers and the tire panel follow the actual hub positions.
+ 
+ ## Replay paging
+@@ -15,5 +15,5 @@ The current wire format is version 6: sixteen header floats, 224 floats per car,
+ `SessionReplay` records numeric state at 15 Hz, not scene objects or GPU resources. Completed 300-frame pages are written to a private IndexedDB session cache. A maximum of four completed resident pages, the current page, and bounded write/read queues prevent memory growth proportional to race duration. Per-page timing metadata supports binary-search seeking. Unit tests retain and seek a 1,266-second recording, including its first frame, beyond the old twenty-minute rolling limit.
+ 
+-Spatial water/rubber keyframes are recorded at the same simulation times as their original updates. Water is quantized to one micrometre in millimetre units; rubber to 16-bit normalized coverage. Playback chooses the recorded surface, while leaving the current live surface untouched and restoring it when replay closes. Weather is not reconstructed from the final session's wetness.
++Spatial water/rubber/marble keyframes are recorded at the same simulation times as their original updates. Water is quantized to one micrometre in millimetre units; rubber and marbles to 16-bit normalized coverage. The surface tuple has three channels; old private-session pages are rejected by protocol version rather than misread. Playback chooses the recorded surface, while leaving the current live surface untouched and restoring it when replay closes. Weather is not reconstructed from the final session's wetness.
+ 
+ A seek into an evicted page displays buffering until the requested page is available. Async reads never write directly into the currently rendered frame. Invalid page versions, missing pages, storage quota failures and excessive write backlog surface explicitly. Storage failure stops further archival capture without pretending the whole race was saved. The cache is session-scoped and is cleaned when the session is replaced or disposed; it is not a user-facing permanent replay library. Browser shutdown can interrupt asynchronous cleanup.
+@@ -23,9 +23,13 @@ A seek into an evicted page displays buffering until the requested page is avail
+ Detached wing fragments now render from physical pool positions. Destroyed wings disappear from attached bodywork; a repaired front wing restores its lost component mass. Physical tire radius, suspension length and per-corner steering damage drive the rendered wheels. Hybrid audio consumes actual motor output instead of inferring it from battery changes. Tire scrub consumes the actual dissipated slip power.
+ 
++Per-wheel tread uniforms consume dirt, wear, blistering and graining from the same live or replayed snapshots. Solid marble chips consume changes in actual cumulative pickup; repeated snapshots, rewinds and tire replacements cannot invent pickup bursts. The third surface texture channel consumes recorded local marble density. See [marble/surface integration](MARBLES_AND_SURFACE_STATE.md).
++
++Both physics and CSV workers are bundled using Vite inline-worker imports. Production worker programs are created from same-document-origin blob URLs, so a CORS-enabled external asset host no longer becomes an illegal Worker constructor origin. This is not a main-thread simulation fallback. Hosts with a restrictive Content Security Policy must allow `blob:` in `worker-src`; scripts/styles still require their normal asset-origin permissions.
++
+ The desktop cockpit HUD moves beside the car instead of covering the physical steering display. Procedural cockpit and environment fidelity remain subjects for the final visual audit.
+ 
+ ## Verification boundaries
+ 
+-Historical evidence from the first recording checkpoint: local lint, TypeScript, production build and 107 tests passed during that checkpoint. The three four-car weather scenarios and ten-car physical pit scenario passed; the pit report contains a small contact event, **not zero contact**. The current browser workflow additionally checks real IndexedDB page creation, 199 CSV columns and exact two-tick sample spacing, camera visibility, manual steering, replay/pause safety and the results screen. A browser pass must be read from the workflow for the exact published revision.
++Historical evidence from the first recording checkpoint: local lint, TypeScript, production build and 107 tests passed during that checkpoint. The three four-car weather scenarios and ten-car physical pit scenario passed; the pit report contains a small contact event, **not zero contact**. The current browser workflow additionally checks real IndexedDB page creation, 203 CSV columns and exact two-tick sample spacing, camera visibility, manual steering, replay/pause safety and the results screen. A browser pass must be read from the workflow for the exact published revision.
+ 
+ Later changes added explicit wheel calibration, individual graphics/accessibility controls, marshal rules, dynamics benchmarks and long-run AI evidence. See the coverage ledger and subsystem documents for their actual scope. Target-device profiling, the complete combined scenario and final engineering/player/audiovisual audits are not certified by this recording page. Historical reports without a matching source revision are not current acceptance certificates.
+diff --git a/docs/WEATHER_AND_BRAKING.md b/docs/WEATHER_AND_BRAKING.md
+index 9e5ab17..2901ba5 100644
+--- a/docs/WEATHER_AND_BRAKING.md
++++ b/docs/WEATHER_AND_BRAKING.md
+@@ -26,5 +26,5 @@ temperature uses exponential relaxation. Water is not cleared when rain stops.
+ Cloud, wind and ambient temperature alter the real surface/aerodynamics and the
+ presentation. Protocol 6 carries wind in the two formerly unused header slots;
+-199-channel telemetry appends `wind_x_mps` and `wind_z_mps` without moving earlier
++At this weather checkpoint, 199-channel telemetry appended `wind_x_mps` and `wind_z_mps` without moving earlier
+ channels. Saved replay snapshots carry the same values.
+ 
+@@ -88,2 +88,4 @@ timeout or failure was removed. The source publisher separately requires lint,
+ unit tests, strict TypeScript, production build, physics, pit/race and real Chromium
+ browser checks before fast-forwarding readable source onto `main`.
++
++The later [marble integration](MARBLES_AND_SURFACE_STATE.md) raises the current schema to 203 channels. Its four appended pickup columns preserve all 199 weather-checkpoint positions.
