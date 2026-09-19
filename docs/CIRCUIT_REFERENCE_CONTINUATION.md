@@ -83,3 +83,7 @@ The Playwright HTML report contains PNGs and JSON measurements. Local Linux repr
 The procedural car still needs stronger silhouette and aero-surface refinement, cockpit anatomy remains simplified, crowds need better silhouettes and variety, ground transitions and terrain need authored depth, and thin distant structures still need temporal-quality review. Full-lap environment density, dynamic rain/spray readability, audio fidelity and representative-hardware performance remain unproven. This pass does not repair the separate replay recording-buffer gap under producer/consumer stalls documented by the preceding milestone.
 
 The complete human-driven section-146 scenario and the three full audits in sections 2 and 141–148 remain open. The separate AppDeploy website is not updated by a GitHub source push alone.
+
+## Post-publication fence pass
+
+The follow-up merge preserves the published profiled barriers and filtered catch-fence geometry while carrying forward one non-duplicative optimization from the parallel venue review: transparent double-sided chain-link now uses Three.js `forceSinglePass`, because its analytic wire coverage is symmetric and does not require separate front/back transparency passes. The shader and CPU reference also return the exact mean wire coverage when a pixel footprint spans more than 32 complete periods, avoiding cancellation between large periodic integrals at long distance. The physical barrier envelope, fence dimensions, shadow policy, track contact, and simulation state remain unchanged.

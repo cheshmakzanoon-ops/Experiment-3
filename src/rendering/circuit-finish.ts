@@ -106,6 +106,9 @@ export function wireCoverage(centre: number, footprint: number, halfWidth = 0.01
     halfWidth >= 0.5
   )
     throw new Error('Invalid fence footprint');
+  // Beyond dozens of complete diamond periods, return the exact mean wire
+  // coverage. This avoids subtracting nearly equal large integrals at distance.
+  if (footprint > 32) return 2 * halfWidth;
   const a = wireIntegral(centre + footprint * 0.5, halfWidth);
   const b = wireIntegral(centre - footprint * 0.5, halfWidth);
   return T.MathUtils.clamp((a - b) / footprint, 0, 1);
@@ -119,6 +122,9 @@ export function catchFenceMaterial() {
     side: T.DoubleSide,
     transparent: true,
     depthWrite: false,
+    // Transparent DoubleSide materials otherwise render separate front/back
+    // passes. Chain-link coverage is symmetric, so one pass is sufficient.
+    forceSinglePass: true,
   });
   material.name = 'Metre-scaled analytically filtered catch fence';
   material.onBeforeCompile = (shader) => {
@@ -136,6 +142,7 @@ export function catchFenceMaterial() {
         }
         float wireCoverage(float x) {
           float w=max(fwidth(x),.0001);
+          if (w>32.0) return .032;
           return clamp((wireIntegral(x+w*.5)-wireIntegral(x-w*.5))/w,0.0,1.0);
         }`,
       )

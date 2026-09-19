@@ -24,6 +24,8 @@ it('analytically filters thin wires rather than aliasing large diamond cells', (
   for (const width of [1, 2, 10, 50])
     for (const x of [-8.7, -0.5, 0, 0.4, 12.2])
       expect(wireCoverage(x, width)).toBeCloseTo(0.032, 8);
+  for (const x of [-1000000.25, -1.1, 0, 7.3, 1000000.75])
+    expect(wireCoverage(x, 64)).toBeCloseTo(0.032, 12);
   for (let i = -200; i <= 200; i++) {
     const x = i * 0.007,
       width = 0.0001 + Math.abs(i) * 0.007;
@@ -102,6 +104,7 @@ it('chunks both fences, never restores opaque shadows on transparent wire covera
     o.geometry.dispose();
   }
   expect(m.fence.depthWrite).toBe(false);
+  expect(m.fence.forceSinglePass).toBe(true);
   Object.values(m).forEach((x) => x.dispose());
 });
 it('composes decorative finish, grazing bump safety and real water without clock uniforms', () => {
