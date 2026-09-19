@@ -216,9 +216,11 @@ export class Vehicle {
     // Automatic anti-stall releases the clutch while braking below idle's
     // wheel-coupled speed. Otherwise the idle governor drives through a light
     // brake pedal until a hard-coded 3 m/s threshold. Manual clutch stays manual.
-    const automaticStop = !this.input.manualClutch && this.throttle < 0.02 && (
-      this.speed < 3 || (this.brake > 0.02 && signedRearOmega * ratio < VEHICLE.idleRPM * Math.PI / 30 * 0.9)
-    );
+    const automaticStop =
+      !this.input.manualClutch &&
+      this.throttle < 0.02 &&
+      (this.speed < 3 ||
+        (this.brake > 0.02 && signedRearOmega * ratio < ((VEHICLE.idleRPM * Math.PI) / 30) * 0.9));
     const wheelTorque = this.clutch.step(
       dt,
       ice + motor - drag,
@@ -310,10 +312,12 @@ export class Vehicle {
       // ABS must release *both* sources of wheel braking. Leaving generator
       // torque untouched can keep a rear wheel locked while friction is released.
       const release = this.assist === 'sport' ? 1 / (1 + Math.max(0, -t.slip - 0.14) * 9) : 1;
-      const friction = Math.max(0, total - (i >= 2 ? regenTorque : 0)) * brakeEfficiency(t.discTemp) * release;
+      const friction =
+        Math.max(0, total - (i >= 2 ? regenTorque : 0)) * brakeEfficiency(t.discTemp) * release;
       const driven =
           i === 2 ? wheelTorque * 0.5 + locking : i === 3 ? wheelTorque * 0.5 - locking : 0,
         regen = i >= 2 ? regenTorque * release : 0;
+      const previousPickup = t.marblePickup;
       solveTire(
         t,
         long,
@@ -339,7 +343,15 @@ export class Vehicle {
         .addScaled(this.wheelRight, t.fy);
       this.point.set(hub.x, s.height, hub.z);
       b.apply(this.force, this.point);
-      track.interact(s.cell, t.load, t.energy, this.speed, dt);
+      track.interact(
+        s.cell,
+        t.load,
+        t.energy,
+        this.speed,
+        dt,
+        s.surface,
+        t.marblePickup - previousPickup,
+      );
     }
     // Actual generator work is limited by the requested power and battery
     // headroom, even if angular speed changed during the implicit wheel solve.

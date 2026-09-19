@@ -127,6 +127,10 @@ pit crew follow state. Pooled spray requires loaded tires, actual water and spee
 smoke uses tire slip work, sparks use bottom-contact work. Fractional emissions
 avoid losing light rain at high FPS. Weather wind drives rain and entrainment.
 The same wind is recorded in replay rather than sampled from a second wall clock.
+Marble pickup is integrated per loaded tire, debits the touched road cell, and
+persists as tread contamination until shed or the tire is physically replaced.
+Cumulative pickup drives solid chips; the shared surface texture and per-wheel
+tread uniforms expose actual local/recorded conditions without new texture churn.
 
 Keyboard, gamepad, touch and explicitly calibrated unmapped-wheel inputs route to
 bounded controls; supported devices may provide vibration. Native wheel force
@@ -141,9 +145,9 @@ object-store schema version is separately 1. Setup, calibration, bindings and
 graphics are validated. Stored best laps and local preferences require no account
 or network write. There is no full mid-race physics save/restore or cloud sync.
 
-Protocol version 6 uses sixteen header floats and 224 floats per car. Wheel
+Protocol version 7 uses sixteen header floats and 224 floats per car. Wheel
 records start at offset 96; four debris records start at 192. Telemetry now exports
-199 named channels at 60 Hz into a fifteen-minute ring. Complete all-car numeric
+203 named channels at 60 Hz into a fifteen-minute ring. Complete all-car numeric
 pose replay is captured at 15 Hz and paged through bounded IndexedDB storage,
 with separately recorded surface state. Playback does not rerun live physics.
 Missing/incompatible pages, storage failures, cancelled exports and backlog are

@@ -16,20 +16,19 @@ The complete browser session test also checks that the real renderer reports com
 
 ## Long-run AI evidence for the current simulation
 
-The simulation fingerprint is `e600dbe7cab11f3762a35c30697ee6d137fbaf9a6c43c25b1b530e1d744a2c0a`. It covers every source file in `src/simulation/` and `src/core/`, with path and content hashes in deterministic lexical order. The two current reports were rerun after the weather timeline, ABS/regeneration, anti-stall and wet-pit traffic changes. Their complete `src/` fingerprint is `1db6169ec9a928dbbbbc6a28c267fb827a5d4770f49b71f725afc9fd47cd165a`. They are not the earlier 5cc02995 construction-only reports.
+The current simulation/core fingerprint is `30c155c669e4af3f1d5b2a40ab0ce9acd44d5dc19ee82777df8f6c6bf2149484`. It covers every source file in `src/simulation/` and `src/core/`, with path and content hashes in deterministic lexical order. Both reports were rerun after the physical marble pickup, tire-cleaning and true-surface road-interaction changes. They are not the historical weather-only reports.
 
 | Trial | Actual result |
 |---|---|
-| Ten cars × 50 dry laps, seed 4417 | All ten completed 50 laps in 3,450.000 simulated seconds; no impact, off-track running or wing/floor damage. Initial fuel was 60.5 kg per car; no service was required in this fixture. |
-| Ten cars × 100 dry laps, seed 73021 | All ten completed 100 laps in 7,029.683 simulated seconds. Every car completed one physical tire stop; no impact, off-track running or wing/floor damage. Initial fuel was 113 kg per car and affected actual mass throughout. |
+| Ten cars × 50 dry laps, seed 4417 | All ten completed 50 laps in 3,449.775 simulated seconds; no impact, off-track running or wing/floor damage. Initial fuel was 60.5 kg per car; no service was required in this fixture. |
+| Ten cars × 100 dry laps, seed 73021 | All ten completed 100 laps in 7,030.575 simulated seconds. Every car completed one physical tire stop; no impact, off-track running or wing/floor damage. Initial fuel was 113 kg per car and affected actual mass throughout. |
+
+The 50-lap all-source fingerprint is `afe60377eeb6df2d5f9358704350b5a584246b9cb328c9a68f5144e35d31f6c9`. The 100-lap all-source fingerprint is `84ec6525dd513b56a657467708d73f8d3bff088f0c34dc60b3567885464c4568`. Those runs captured their source identities before the later presentation and worker-portability edits. Their **identical simulation/core fingerprint** is still current; the all-source hashes are retained as measured, not relabeled to pretend those runs occurred on a later presentation build.
 
 The reports retain per-car maximum offset, impact count, minimum component health, stall durations, fuel remaining and service count. They are positive evidence for these seeds, grid, setup and weather, not a guarantee of flawless AI under every adversarial condition. Clear and changing-weather whole-field three-lap races, obstruction handling and the simultaneous ten-car service fixture remain separate regressions.
 
 The full master directive is still subject to the complete combined scenario, target-device profiling, all specified final audits and further presentation review. Passing these fixtures does not certify AAA presentation or every remaining requirement.
 
-Separate ten-car wet and initially-slick-in-rain service fixtures are now part of the physics CI gate. They pass their declared service/impact thresholds, but contain minor contacts and must not be described as zero-contact endurance. See `wet-pit-results.json` and [weather/braking](WEATHER_AND_BRAKING.md).
+Separate ten-car wet and initially-slick-in-rain service fixtures are part of the physics CI gate. Both pass their declared service/impact thresholds. The wet-tire fixture has zero impacts, while the slick-in-rain fixture contains minor contacts and must not be described as zero-contact endurance. See `wet-pit-results.json` and [weather/braking](WEATHER_AND_BRAKING.md).
 
-The later instrument-freshness/weather-caption follow-up modifies presentation only.
-Its all-source fingerprint differs, while the simulation/core fingerprint above
-remains identical. The listed all-source hash identifies the measured weather
-checkpoint; it is not silently rewritten to describe a later presentation build.
+The new continuous input-driven changing-weather race is a different regression: it intentionally drives across grass and produces a small front-wing impact before finishing. It is not a zero-contact trial. Its launch, wake, braking, contamination, wet pit service, damage, replay and CSV checks are documented in [marbles and surface state](MARBLES_AND_SURFACE_STATE.md) and `integrated-driving.json`.

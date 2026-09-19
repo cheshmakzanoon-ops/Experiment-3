@@ -2,7 +2,7 @@ import * as T from 'three';
 import { DriverRig } from './driver.ts';
 import { serviceWheelOffset } from './pit-crew.ts';
 import { drawSteeringDisplay, shiftLight, SteeringDisplayClock } from './steering-display.ts';
-import { carbonMaterial } from './materials.ts';
+import { carbonMaterial, treadMaterial } from './materials.ts';
 import { ReducedCar, carLod } from './lod.ts';
 import {
   box,
@@ -31,6 +31,7 @@ export class FormulaCar {
   readonly wheelPivots: T.Group[] = [];
   readonly wheelSpins: T.Group[] = [];
   readonly discs: T.MeshStandardMaterial[] = [];
+  readonly treads: ReturnType<typeof treadMaterial>[] = [];
   readonly rings: T.MeshBasicMaterial[] = [];
   readonly links: { mesh: T.Object3D; anchor: T.Vector3; wheel: number; dy: number }[] = [];
   private suspension: T.InstancedMesh;
@@ -297,11 +298,9 @@ export class FormulaCar {
           new T.Vector2(0.306, half),
           new T.Vector2(0.245, half),
         ];
-      const tire = mesh(
-        spin,
-        new T.LatheGeometry(profile, 48),
-        new T.MeshStandardMaterial({ color: 0x191c1d, roughness: 0.9 }),
-      );
+      const tread = treadMaterial();
+      this.treads.push(tread);
+      const tire = mesh(spin, new T.LatheGeometry(profile, 48), tread.material);
       tire.rotation.z = Math.PI / 2;
       const wheel = mesh(
         spin,
@@ -526,6 +525,12 @@ export class FormulaCar {
         serviceWheelOffset(b[o + F.PIT_PHASE], b[o + F.PIT_CLOCK], b[p + W.LOAD]);
       this.discs[i].emissiveIntensity = clamp((b[p + W.DISC_TEMP] - 500) / 450, 0, 2);
       this.rings[i].color.setHex(compound.color);
+      this.treads[i].condition.value.set(
+        b[p + W.DIRT],
+        b[p + W.WEAR],
+        b[p + W.BLISTERING],
+        b[p + W.GRAINING],
+      );
       const radius = (b[p + W.RADIUS] || 0.335) / 0.335;
       pivot.scale.z = radius;
       pivot.scale.y =

@@ -77,3 +77,35 @@ It now consumes snapshot simulation time, with immediate first/shift/rewind upda
 The HUD also distinguishes stopped rainfall from water remaining on the circuit.
 These are presentation-only changes; the recorded simulation fingerprint and
 its dry endurance results are unchanged, while the all-source fingerprint differs.
+
+## Continuation from f0d6801 / playable publishing: connected surface state
+
+Recovered **Pasted markdown(6).md** is still the exact 59,242-byte, 148-section
+master directive. Its SHA-256 is
+`f508a1b9be8e8a19a2ccc39d744e82d774cf95ecc773c12482efbcb9fb89f75c`.
+The last application fix was `f0d6801` (cockpit cadence and remaining-water
+labels); `be734336` subsequently changed playable-bundle publishing, not
+completion of the master specification. The temporary dependency-recovery
+workflow used for this continuation was removed after its artifact was recovered.
+
+This continuation closes the previously disconnected marble pickup, tread
+condition, local road visualization and full-session surface-history paths.
+It corrects stationary/off-road rubber deposition, stale paused-particle GPU
+opacity, and the cross-origin worker construction failure for both physics and
+CSV export. It preserves the earlier 199 CSV columns and appends four actual
+per-wheel cumulative pickup channels.
+
+The new continuous driving harness sends only ordinary driver requests into
+production simulation. It covers launch, slip/wake, brake abuse and recovery,
+kerb/grass, dirty-tire cleaning, changing weather, physical tire service and
+rejoin, real front contact damage, whole-field results, historical replay seeks
+and exact-state CSV checks in a single run. Read its declared scope and measured
+`integrated-driving.json`; it is not a substitute for the full audiovisual
+section-146 scenario or human handling assessment.
+
+See [surface integration and evidence](MARBLES_AND_SURFACE_STATE.md) and refreshed
+[endurance evidence](CONSTRUCTION_AND_ENDURANCE.md). The existing full browser
+suite and two new browser oracles must pass before the source publication
+workflow can commit this candidate. Full three-pass project certification,
+representative-device performance and independent visual/audio quality remain
+open rather than silently converted into pass marks.

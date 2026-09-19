@@ -108,11 +108,13 @@ setInterval(() => {
     }
     if (simulation.tick - lastSurface >= 60) {
       const water = simulation.track.water.slice(),
-        rubber = simulation.track.rubber.slice();
+        rubber = simulation.track.rubber.slice(),
+        marbles = simulation.track.marbles.slice();
       telemetry?.flushReplay();
-      send({ type: 'surface', water, rubber, time: simulation.race.time }, [
+      send({ type: 'surface', water, rubber, marbles, time: simulation.race.time }, [
         water.buffer,
         rubber.buffer,
+        marbles.buffer,
       ]);
       lastSurface = simulation.tick;
     }

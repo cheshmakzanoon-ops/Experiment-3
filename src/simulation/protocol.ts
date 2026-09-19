@@ -5,7 +5,7 @@ export const HEADER = 16,
   WHEEL_STRIDE = 24,
   DEBRIS_BASE = 192,
   DEBRIS_STRIDE = 8;
-export const PROTOCOL_VERSION = 6;
+export const PROTOCOL_VERSION = 7;
 // +Z is the nose, +Y up and +X the driver's left; negative-X hubs are right-side wheels.
 export const WHEEL_NAMES = ['FR', 'FL', 'RR', 'RL'] as const;
 export const D = { KIND: 0, X: 1, Y: 2, Z: 3, ROTATION: 4, AGE: 5, MASS: 6, ACTIVE: 7 } as const;
@@ -118,6 +118,10 @@ export const F = {
   AI_PEDAL_ERROR: 87,
   AI_DEFENDING: 88,
   AI_PACE: 89,
+  MARBLE_PICKUP_FR: 90,
+  MARBLE_PICKUP_FL: 91,
+  MARBLE_PICKUP_RR: 92,
+  MARBLE_PICKUP_RL: 93,
 } as const;
 export const W = {
   OMEGA: 0,
@@ -159,6 +163,12 @@ export type FromWorker =
   | { type: 'telemetry'; buffer: ArrayBuffer; rows: number }
   | { type: 'replayFrames'; buffer: ArrayBuffer; rows: number }
   | { type: 'recordingWarning'; message: string }
-  | { type: 'surface'; water: Float32Array; rubber: Float32Array; time: number }
+  | {
+      type: 'surface';
+      water: Float32Array;
+      rubber: Float32Array;
+      marbles: Float32Array;
+      time: number;
+    }
   | { type: 'error'; message: string };
 export const carBase = (id: number) => HEADER + id * CAR_STRIDE;

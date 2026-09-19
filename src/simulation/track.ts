@@ -1,10 +1,17 @@
 import { TrackContactMesh, kerbHeight } from './contact.ts';
 import { clamp, lerp, mod, smooth, Vec3, TAU } from '../core/math.ts';
 import type { WeatherPreset } from './config.ts';
-import { WeatherTimeline, weatherKeyframes, advanceWater, type WeatherKeyframe } from './weather.ts';
+import {
+  WeatherTimeline,
+  weatherKeyframes,
+  advanceWater,
+  type WeatherKeyframe,
+} from './weather.ts';
 export const TRACK_NAME = 'AUREL / GRAND CIRCUIT',
   CELL_ROWS = 512,
   CELL_COLS = 7;
+// Coverage-index conversion shared by tire pickup and road-cell depletion.
+export const MARBLE_CELL_CAPACITY = 100;
 export const SURFACE = { ASPHALT: 0, PAINT: 1, KERB: 2, GRASS: 3, GRAVEL: 4, PIT: 5 } as const;
 export interface TrackPoint {
   s: number;
@@ -288,8 +295,10 @@ export class Track {
     out.resistance = resistance;
     out.cell = cell;
     out.water = this.water[cell];
-    out.rubber = this.rubber[cell];
-    out.marbles = this.marbles[cell];
+    const onRoad =
+      surface === SURFACE.ASPHALT || surface === SURFACE.PAINT || surface === SURFACE.KERB;
+    out.rubber = onRoad ? this.rubber[cell] : 0;
+    out.marbles = onRoad ? this.marbles[cell] : 0;
     out.temp = this.temperature[cell];
     return out;
   }
@@ -313,10 +322,29 @@ export class Track {
         this.temperature[i] += (target - this.temperature[i]) * -Math.expm1(-0.015 * step);
       }
   }
-  interact(cell: number, load: number, energy: number, speed: number, dt: number) {
-    if (load <= 1) return; // Airborne wheels cannot displace water or lay rubber.
-    this.rubber[cell] = Math.min(1, this.rubber[cell] + (load * 1e-9 + energy * 8e-10) * dt);
+  interact(
+    cell: number,
+    load: number,
+    energy: number,
+    speed: number,
+    dt: number,
+    surface: number = SURFACE.ASPHALT,
+    pickup = 0,
+  ) {
+    if (
+      load <= 1 ||
+      (surface !== SURFACE.ASPHALT && surface !== SURFACE.PAINT && surface !== SURFACE.KERB)
+    )
+      return;
+    // Do not manufacture rubber at a stationary loaded contact or deposit it in
+    // the road's clamped edge cell when the actual wheel is in grass or pits.
+    const movingLoad = load * Math.min(1, Math.abs(speed));
+    this.rubber[cell] = Math.min(1, this.rubber[cell] + (movingLoad * 1e-9 + energy * 8e-10) * dt);
     this.water[cell] = Math.max(0, this.water[cell] - Math.abs(speed) * 0.00025 * dt);
+    this.marbles[cell] = Math.max(
+      0,
+      this.marbles[cell] - Math.max(0, pickup) / MARBLE_CELL_CAPACITY,
+    );
     const c = cell % CELL_COLS,
       edge = cell - c + (c < 3 ? 0 : 6);
     this.marbles[edge] = Math.min(1, this.marbles[edge] + energy * 2e-9 * dt);

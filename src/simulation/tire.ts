@@ -1,6 +1,7 @@
 import { clamp, G, smooth } from '../core/math.ts';
 import { COMPOUNDS, VEHICLE, type Compound } from './config.ts';
-import { SURFACE, type SurfaceSample } from './track.ts';
+import type { SurfaceSample } from './track.ts';
+import { updateContamination } from './contamination.ts';
 export interface Tire {
   compound: Compound;
   omega: number;
@@ -16,6 +17,7 @@ export interface Tire {
   coldPressure: number;
   wear: number;
   dirt: number;
+  marblePickup: number;
   flatSpot: number;
   blistering: number;
   graining: number;
@@ -45,6 +47,7 @@ export function makeTire(compound: Compound, pressure = 155): Tire {
     coldPressure: pressure,
     wear: 0,
     dirt: 0,
+    marblePickup: 0,
     flatSpot: 0,
     blistering: 0,
     graining: 0,
@@ -204,9 +207,7 @@ export function solveTire(
   );
   if (vLong > 12 && t.slip < -0.8 && t.load > 700)
     t.flatSpot = clamp(t.flatSpot + (Math.abs(t.fx * vLong) * dt) / 2e7, 0, 1);
-  if (t.load > 1 && (surface.surface === SURFACE.GRASS || surface.surface === SURFACE.GRAVEL))
-    t.dirt = clamp(t.dirt + 0.35 * dt, 0, 1);
-  else if (t.load > 1) t.dirt = Math.max(0, t.dirt - Math.abs(omega) * 0.0009 * dt);
+  updateContamination(t, surface, t.load, vLong, omega, dt);
   t.discTemp +=
     ((Math.max(0, brake - regen) * Math.abs(omega) -
       (t.discTemp - 24) * (25 + Math.abs(vLong) * 4)) *

@@ -110,6 +110,7 @@ export class SessionReplay {
   private totalCount = 0;
   private decodedWater = new Float32Array(0);
   private decodedRubber = new Float32Array(0);
+  private decodedMarbles = new Float32Array(0);
   private decodedSurface: SurfaceRecord | null = null;
   constructor(
     readonly cars: number,
@@ -154,10 +155,13 @@ export class SessionReplay {
     this.current.count++;
     this.totalCount++;
   }
-  recordSurface(water: Float32Array, rubber: Float32Array, time: number) {
+  recordSurface(water: Float32Array, rubber: Float32Array, time: number, marbles?: Float32Array) {
     if (this.closed || this.failure) return;
     if (
+      water.length === 0 ||
       water.length !== rubber.length ||
+      (marbles !== undefined &&
+        (marbles.length !== water.length || !marbles.every(Number.isFinite))) ||
       !Number.isFinite(time) ||
       !water.every(Number.isFinite) ||
       !rubber.every(Number.isFinite)
@@ -166,10 +170,11 @@ export class SessionReplay {
       return;
     }
     if (this.surface && time <= this.surface.time) return;
-    const data = new Uint16Array(water.length * 2);
+    const data = new Uint16Array(water.length * 3);
     for (let i = 0; i < water.length; i++) {
-      data[i * 2] = Math.round(clamp(water[i], 0, 65.535) * 1000);
-      data[i * 2 + 1] = Math.round(clamp(rubber[i], 0, 1) * 65535);
+      data[i * 3] = Math.round(clamp(water[i], 0, 65.535) * 1000);
+      data[i * 3 + 1] = Math.round(clamp(rubber[i], 0, 1) * 65535);
+      data[i * 3 + 2] = Math.round(clamp(marbles?.[i] ?? 0, 0, 1) * 65535);
     }
     this.surface = { time, data };
     this.current.surfaces.push(this.surface);
@@ -236,7 +241,19 @@ export class SessionReplay {
             page.version !== PROTOCOL_VERSION ||
             page.stride !== this.stride ||
             page.count !== this.metadata[id]?.count ||
-            page.frames.length !== this.stride * this.pageFrames
+            page.frames.length !== this.stride * this.pageFrames ||
+            !page.frames.subarray(0, page.count * page.stride).every(Number.isFinite) ||
+            !Array.isArray(page.surfaces) ||
+            page.surfaces.some(
+              (record, index) =>
+                !Number.isFinite(record.time) ||
+                !(record.data instanceof Uint16Array) ||
+                !record.data.length ||
+                record.data.length % 3 !== 0 ||
+                (index > 0 &&
+                  (record.time <= page.surfaces[index - 1].time ||
+                    record.data.length !== page.surfaces[0].data.length)),
+            )
           )
             throw new Error('Incompatible replay page');
           this.cache.set(id, page);
@@ -300,20 +317,23 @@ export class SessionReplay {
     for (const record of page.surfaces) if (record.time <= time) surface = record;
     if (!surface || surface === this.decodedSurface) return;
     this.decodedSurface = surface;
-    const size = surface.data.length / 2;
+    const size = surface.data.length / 3;
     if (size !== this.decodedWater.length) {
       this.decodedWater = new Float32Array(size);
       this.decodedRubber = new Float32Array(size);
+      this.decodedMarbles = new Float32Array(size);
     }
     for (let i = 0; i < size; i++) {
-      this.decodedWater[i] = surface.data[i * 2] / 1000;
-      this.decodedRubber[i] = surface.data[i * 2 + 1] / 65535;
+      this.decodedWater[i] = surface.data[i * 3] / 1000;
+      this.decodedRubber[i] = surface.data[i * 3 + 1] / 65535;
+      this.decodedMarbles[i] = surface.data[i * 3 + 2] / 65535;
     }
   }
   get surfaceState() {
     return {
       water: this.decodedWater,
       rubber: this.decodedRubber,
+      marbles: this.decodedMarbles,
       time: this.decodedSurface?.time ?? -1,
     };
   }
@@ -337,6 +357,7 @@ export class SessionReplay {
   get bytes() {
     return (
       this.current.frames.byteLength +
+      this.current.surfaces.reduce((sum, record) => sum + record.data.byteLength, 0) +
       [...this.cache.values()].reduce(
         (sum, page) =>
           sum + page.frames.byteLength + page.surfaces.reduce((n, s) => n + s.data.byteLength, 0),

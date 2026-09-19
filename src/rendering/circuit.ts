@@ -36,7 +36,7 @@ export class CircuitScene {
     this.stateTexture = new T.DataTexture(this.stateBytes, CELL_COLS, CELL_ROWS, T.RGBAFormat);
     this.stateTexture.magFilter = T.LinearFilter;
     this.stateTexture.minFilter = T.LinearFilter;
-    this.updateSurface(track.water, track.rubber);
+    this.updateSurface(track.water, track.rubber, track.marbles);
     const rng = new Random(1887);
     const asphalt = canvasTexture(512, 512, (c) => {
       const image = c.createImageData(512, 512);
@@ -274,10 +274,21 @@ export class CircuitScene {
     o.castShadow = false;
     return o;
   }
-  updateSurface(water: Float32Array, rubber: Float32Array) {
+  updateSurface(water: Float32Array, rubber: Float32Array, marbles: Float32Array) {
+    const count = CELL_ROWS * CELL_COLS;
+    if (
+      water.length !== count ||
+      rubber.length !== count ||
+      marbles.length !== count ||
+      !water.every(Number.isFinite) ||
+      !rubber.every(Number.isFinite) ||
+      !marbles.every(Number.isFinite)
+    )
+      throw new Error('Invalid rendered track surface');
     for (let i = 0; i < water.length; i++) {
       this.stateBytes[i * 4] = clamp((water[i] / 2) * 255, 0, 255);
-      this.stateBytes[i * 4 + 1] = rubber[i] * 255;
+      this.stateBytes[i * 4 + 1] = Math.round(clamp(rubber[i], 0, 1) * 255);
+      this.stateBytes[i * 4 + 2] = Math.round(clamp(marbles[i], 0, 1) * 255);
       this.stateBytes[i * 4 + 3] = 255;
     }
     this.stateTexture.needsUpdate = true;

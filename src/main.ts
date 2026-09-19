@@ -1,3 +1,4 @@
+import PhysicsWorker from './workers/physics.worker.ts?worker&inline';
 import './ui/style.css';
 import { PerformanceCapture, type FrameMetrics } from './core/performance.ts';
 declare const __APEX_SOURCE_FINGERPRINT__: string;
@@ -47,8 +48,12 @@ export class GameApp {
   private profileMachine = '';
   private profileWorkload = '';
   private profileMetrics: FrameMetrics = {
-    renderCPUms: 0, physicsMs: 0, drawCalls: 0, triangles: 0,
-    gpuMs: null, gpuSequence: 0,
+    renderCPUms: 0,
+    physicsMs: 0,
+    drawCalls: 0,
+    triangles: 0,
+    gpuMs: null,
+    gpuSequence: 0,
   };
   private savingSettings = false;
   private disposed = false;
@@ -76,7 +81,12 @@ export class GameApp {
   private replayPlaying = true;
   private replayReturn: State = 'paused';
   private comparison = false;
-  private liveSurface: { water: Float32Array; rubber: Float32Array; time: number } | null = null;
+  private liveSurface: {
+    water: Float32Array;
+    rubber: Float32Array;
+    marbles: Float32Array;
+    time: number;
+  } | null = null;
   private appliedReplaySurfaceTime = -Infinity;
   private recordingWarnings: string[] = [];
   private graphClock = 0;
@@ -259,9 +269,7 @@ export class GameApp {
     this.renderer?.reset();
     this.worker?.terminate();
     const generation = ++this.generation;
-    this.worker = new Worker(new URL('./workers/physics.worker.ts', import.meta.url), {
-      type: 'module',
-    });
+    this.worker = new PhysicsWorker({ name: 'apex-physics' });
     this.worker.onerror = (e) => this.fail(new Error(`Physics worker: ${e.message}`));
     this.worker.onmessage = (event: MessageEvent<FromWorker>) => {
       if (generation !== this.generation) return;
@@ -298,10 +306,15 @@ export class GameApp {
         return;
       }
       if (message.type === 'surface') {
-        this.liveSurface = { water: message.water, rubber: message.rubber, time: message.time };
-        this.replay?.recordSurface(message.water, message.rubber, message.time);
+        this.liveSurface = {
+          water: message.water,
+          rubber: message.rubber,
+          marbles: message.marbles,
+          time: message.time,
+        };
+        this.replay?.recordSurface(message.water, message.rubber, message.time, message.marbles);
         if (this.state !== 'replay')
-          this.renderer?.circuit.updateSurface(message.water, message.rubber);
+          this.renderer?.circuit.updateSurface(message.water, message.rubber, message.marbles);
         return;
       }
       this.accept(message.buffer);
@@ -335,8 +348,13 @@ export class GameApp {
     });
     // The initial surface is retained even before the first full recording batch.
     const initialTrack = new Track(this.options.weather);
-    this.liveSurface = { water: initialTrack.water, rubber: initialTrack.rubber, time: 0 };
-    this.replay.recordSurface(initialTrack.water, initialTrack.rubber, 0);
+    this.liveSurface = {
+      water: initialTrack.water,
+      rubber: initialTrack.rubber,
+      marbles: initialTrack.marbles,
+      time: 0,
+    };
+    this.replay.recordSurface(initialTrack.water, initialTrack.rubber, 0, initialTrack.marbles);
     this.telemetry = new TelemetryRecorder();
     this.replayA = this.replay.makeFrame();
     this.replayB = this.replay.makeFrame();
@@ -407,7 +425,7 @@ export class GameApp {
       alpha = fraction;
       const surface = this.replay.surfaceState;
       if (surface.water.length && surface.time !== this.appliedReplaySurfaceTime) {
-        this.renderer.circuit.updateSurface(surface.water, surface.rubber);
+        this.renderer.circuit.updateSurface(surface.water, surface.rubber, surface.marbles);
         this.appliedReplaySurfaceTime = surface.time;
       }
       a = this.replayA;
@@ -517,7 +535,11 @@ export class GameApp {
     if (this.state !== 'replay') return;
     this.state = this.replayReturn === 'results' ? 'results' : 'paused';
     if (this.liveSurface)
-      this.renderer?.circuit.updateSurface(this.liveSurface.water, this.liveSurface.rubber);
+      this.renderer?.circuit.updateSurface(
+        this.liveSurface.water,
+        this.liveSurface.rubber,
+        this.liveSurface.marbles,
+      );
     this.input.setEnabled(false);
     this.renderer?.reset();
     this.ui.showMode(this.state);
@@ -654,7 +676,9 @@ export class GameApp {
         if (this.state !== 'paused') break;
         this.ui.performance(
           `${this.performanceCapture.state.toUpperCase()} · ${this.performanceCapture.count} measured frames${this.performanceCapture.reason ? ` · ${this.performanceCapture.reason}` : ''}`,
-          this.profileMachine, this.profileWorkload, !!this.performanceCapture.report(),
+          this.profileMachine,
+          this.profileWorkload,
+          !!this.performanceCapture.report(),
         );
         break;
       case 'profileStart':
@@ -662,10 +686,11 @@ export class GameApp {
         break;
       case 'profileExport': {
         const report = this.performanceCapture.report();
-        if (report) downloadBlob(
-          new Blob([JSON.stringify(report, null, 2) + '\n'], { type: 'application/json' }),
-          'apex-performance.json',
-        );
+        if (report)
+          downloadBlob(
+            new Blob([JSON.stringify(report, null, 2) + '\n'], { type: 'application/json' }),
+            'apex-performance.json',
+          );
         break;
       }
       case 'reload':
@@ -675,22 +700,38 @@ export class GameApp {
   }
   private startPerformanceCapture() {
     if (this.state !== 'paused' || !this.renderer) return;
-    const machine = (document.getElementById('profileMachine') as HTMLInputElement | null)?.value.trim() ?? '';
-    const workload = (document.getElementById('profileWorkload') as HTMLInputElement | null)?.value.trim() ?? '';
+    const machine =
+      (document.getElementById('profileMachine') as HTMLInputElement | null)?.value.trim() ?? '';
+    const workload =
+      (document.getElementById('profileWorkload') as HTMLInputElement | null)?.value.trim() ?? '';
     const stats = this.renderer.stats();
     try {
-      this.performanceCapture.start({
-        machine, workload, source: __APEX_SOURCE_FINGERPRINT__, browser: navigator.userAgent,
-        configuration: JSON.stringify({
-          session: this.options, camera: stats.camera, auto: this.auto, ers: this.ers,
-          graphics: stats.graphics, width: stats.renderWidth, height: stats.renderHeight,
-          pixelRatio: devicePixelRatio, debug: this.renderer.debug,
-          sound: { volume: this.settings.volume, muted: this.audio.muted },
-          shake: this.settings.shake, uiScale: this.settings.uiScale,
-          gpuTiming: stats.gpuTimerSupported,
-        }),
-      }, performance.now());
-      this.profileMachine = machine; this.profileWorkload = workload;
+      this.performanceCapture.start(
+        {
+          machine,
+          workload,
+          source: __APEX_SOURCE_FINGERPRINT__,
+          browser: navigator.userAgent,
+          configuration: JSON.stringify({
+            session: this.options,
+            camera: stats.camera,
+            auto: this.auto,
+            ers: this.ers,
+            graphics: stats.graphics,
+            width: stats.renderWidth,
+            height: stats.renderHeight,
+            pixelRatio: devicePixelRatio,
+            debug: this.renderer.debug,
+            sound: { volume: this.settings.volume, muted: this.audio.muted },
+            shake: this.settings.shake,
+            uiScale: this.settings.uiScale,
+            gpuTiming: stats.gpuTimerSupported,
+          }),
+        },
+        performance.now(),
+      );
+      this.profileMachine = machine;
+      this.profileWorkload = workload;
       this.resume();
       this.ui.toast('Performance warm-up: 5 seconds, followed by 30 seconds of measured driving.');
     } catch (error) {
@@ -789,8 +830,10 @@ export class GameApp {
     return {
       state: this.state,
       performanceCapture: {
-        state: this.performanceCapture.state, frames: this.performanceCapture.count,
-        elapsedMs: this.performanceCapture.elapsedMs, reason: this.performanceCapture.reason,
+        state: this.performanceCapture.state,
+        frames: this.performanceCapture.count,
+        elapsedMs: this.performanceCapture.elapsedMs,
+        reason: this.performanceCapture.reason,
       },
       auto: this.auto,
       options: this.options,

@@ -1,0 +1,233 @@
+{
+  "sourceSHA256": "c0a5f45e1b476e10747a7ab72d9c8329e9702513881f9b45338ea56ae6e20808",
+  "simulationSHA256": "30c155c669e4af3f1d5b2a40ab0ce9acd44d5dc19ee82777df8f6c6bf2149484",
+  "fingerprintVersion": 2,
+  "scriptSHA256": "1a3176d7a91358d6dd053b08245b85c0c593b223ebe57597c5812c3d877df712",
+  "scope": "Continuous production-physics/input, numeric replay and CSV fixture. NOT the complete manual audiovisual section-146 acceptance.",
+  "fixture": {
+    "seed": 4417,
+    "laps": 8,
+    "cars": 6,
+    "weather": "changeable",
+    "assist": "raw",
+    "brakeBias": 0.66,
+    "dt": 0.008333333333333333,
+    "mutations": "Player control requests only; no poses, forces, health, fuel, lap counters or tire resets.",
+    "replayStore": "in-memory page adapter; IndexedDB and GPU require browser tests"
+  },
+  "passed": true,
+  "failures": [],
+  "checks": {
+    "completeInputSequence": true,
+    "allCarsClassified": true,
+    "launchWheelspin": true,
+    "highSpeedGears": true,
+    "genuineWake": true,
+    "lockAndRecovery": true,
+    "kerbGrassSuspension": true,
+    "retainedDirtThenCleaning": true,
+    "thermalWearAndERS": true,
+    "wetCompoundTransition": true,
+    "physicalFrontDamageAndAeroLoss": true,
+    "telemetryClock": true,
+    "replayActualHistory": true,
+    "csvActualState": true
+  },
+  "seen": {
+    "spin": 12.485555522154048,
+    "wake": 0.38271053898829205,
+    "speed": 70.52912191194795,
+    "gear": 6,
+    "lock": 1,
+    "kerb": 5.608333333333402,
+    "grass": 18.999999999999563,
+    "dirt": 0.9680356963833231,
+    "cleanedDirt": 0.001214597803056171,
+    "compression": 0.07267265356679242,
+    "wear": 0.12875802646770385,
+    "temp": 105.95767413233239,
+    "ers": 100000,
+    "wet": 1.6761872344982944,
+    "changedGrip": 1.9743242937885324,
+    "frontDamage": 0.03584707635007156,
+    "dirtyAirAfterPit": 0.2859018627293571,
+    "maximumImpact": 0.13182215129474006
+  },
+  "events": [
+    {
+      "time": 4.999755748431223,
+      "event": "follow",
+      "s": 2970.3625873085493,
+      "speed": 22.02836955168396,
+      "lateral": -2.682693341635484
+    },
+    {
+      "time": 59.39142241509585,
+      "event": "brake",
+      "s": 2266.8961090597313,
+      "speed": 50.05216389597521,
+      "lateral": 2.9480954099559056
+    },
+    {
+      "time": 59.84142241509621,
+      "event": "release",
+      "s": 2286.668701205286,
+      "speed": 36.9225828130105,
+      "lateral": 3.6874233829781065
+    },
+    {
+      "time": 60.84142241509701,
+      "event": "prepare-excursion",
+      "s": 2322.1590617093316,
+      "speed": 35.55524583966049,
+      "lateral": 4.534724360460649
+    },
+    {
+      "time": 71.99142241510589,
+      "event": "decelerate",
+      "s": 0.30355725471599726,
+      "speed": 55.09830722218057,
+      "lateral": 4.950586815386263
+    },
+    {
+      "time": 73.62475574844052,
+      "event": "grass",
+      "s": 54.07022680691489,
+      "speed": 13.922725974557956,
+      "lateral": 1.1527244673548551
+    },
+    {
+      "time": 87.62475574845166,
+      "event": "return",
+      "s": 181.50969838636092,
+      "speed": 9.146867263562893,
+      "lateral": -14.694804011928664
+    },
+    {
+      "time": 97.62475574845962,
+      "event": "weather",
+      "s": 298.02576587126487,
+      "speed": 11.836474927916756,
+      "lateral": -0.0073081591771404315
+    },
+    {
+      "time": 235.56642241504264,
+      "event": "rejoined",
+      "s": 330.1066355465264,
+      "speed": 12.8280431848033,
+      "lateral": -0.01665229583410631
+    },
+    {
+      "time": 303.36642241498095,
+      "event": "contact",
+      "s": 0.06551755340615273,
+      "speed": 44.389075026773085,
+      "lateral": -0.6342235884441095
+    },
+    {
+      "time": 308.1080890816433,
+      "event": "recover-contact",
+      "s": 97.95620250638194,
+      "speed": 14.787621100480981,
+      "lateral": -18.08989814445768
+    },
+    {
+      "time": 322.1164224149639,
+      "event": "finish",
+      "s": 261.3619218638637,
+      "speed": 11.81725912454344,
+      "lateral": -0.03193852758461549
+    }
+  ],
+  "unlockedSeconds": 11.150000000000007,
+  "damageFrontLoss": 0.035847076350071894,
+  "damageBalanceLoss": 0.006852476882786007,
+  "telemetry": {
+    "rows": 39755,
+    "channels": 203,
+    "verifiedCsvRows": 44,
+    "intervalTicks": 2
+  },
+  "replay": {
+    "frames": 9938,
+    "durationSeconds": 662.4666585251689,
+    "maximumResidentBytes": 12568320,
+    "seeks": [
+      {
+        "index": 43,
+        "time": 660,
+        "tick": 79200,
+        "passed": true
+      },
+      {
+        "index": 12,
+        "time": 195,
+        "tick": 23400,
+        "passed": true
+      },
+      {
+        "index": 0,
+        "time": 15,
+        "tick": 1800,
+        "passed": true
+      },
+      {
+        "index": 24,
+        "time": 375,
+        "tick": 45000,
+        "passed": true
+      }
+    ]
+  },
+  "raceTime": 656.7330890813263,
+  "cars": [
+    {
+      "id": 0,
+      "finishTime": 637.3476340989153,
+      "retired": false,
+      "laps": 7,
+      "pitStops": 1,
+      "frontHealth": 0.9641529236499284
+    },
+    {
+      "id": 1,
+      "finishTime": 622.3755679347058,
+      "retired": false,
+      "laps": 8,
+      "pitStops": 1,
+      "frontHealth": 1
+    },
+    {
+      "id": 2,
+      "finishTime": 646.5800464187853,
+      "retired": false,
+      "laps": 8,
+      "pitStops": 1,
+      "frontHealth": 1
+    },
+    {
+      "id": 3,
+      "finishTime": 626.1416945507842,
+      "retired": false,
+      "laps": 8,
+      "pitStops": 1,
+      "frontHealth": 1
+    },
+    {
+      "id": 4,
+      "finishTime": 656.7257871848321,
+      "retired": false,
+      "laps": 8,
+      "pitStops": 1,
+      "frontHealth": 1
+    },
+    {
+      "id": 5,
+      "finishTime": 642.5344943898494,
+      "retired": false,
+      "laps": 8,
+      "pitStops": 1,
+      "frontHealth": 1
+    }
+  ]
+}

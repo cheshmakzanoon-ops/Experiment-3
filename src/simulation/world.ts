@@ -239,6 +239,7 @@ export class Simulation {
         out[p + W.CARCASS_TEMP] = w.carcassTemp;
         out[p + W.WEAR] = w.wear;
         out[p + W.DIRT] = w.dirt;
+        out[o + F.MARBLE_PICKUP_FR + i] = w.marblePickup;
         out[p + W.COMPRESSION] = w.compression;
         out[p + W.DISC_TEMP] = w.discTemp;
         out[p + W.WATER] = w.water;

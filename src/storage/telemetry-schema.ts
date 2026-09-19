@@ -20,10 +20,20 @@ const priority: number[] = [
   F.FLOOR_HEALTH,
   F.WAKE,
 ];
+const MARBLE_FIELDS: number[] = [
+  F.MARBLE_PICKUP_FR,
+  F.MARBLE_PICKUP_FL,
+  F.MARBLE_PICKUP_RR,
+  F.MARBLE_PICKUP_RL,
+];
 export const TELEMETRY_FIELDS: number[] = [
   ...priority,
   ...Object.values(F).filter(
-    (field) => field !== F.S && field !== F.LAPS && !priority.includes(field),
+    (field) =>
+      field !== F.S &&
+      field !== F.LAPS &&
+      !priority.includes(field) &&
+      !MARBLE_FIELDS.includes(field),
   ),
 ];
 const units: Record<string, string> = {
@@ -72,6 +82,10 @@ const units: Record<string, string> = {
   PIT_CLOCK: 's',
   LAP_DELTA: 's',
   AI_DEFENDING: 'm',
+  MARBLE_PICKUP_FR: 'tread_covers',
+  MARBLE_PICKUP_FL: 'tread_covers',
+  MARBLE_PICKUP_RR: 'tread_covers',
+  MARBLE_PICKUP_RL: 'tread_covers',
   SECTOR_1: 's',
   SECTOR_2: 's',
   SECTOR_3: 's',
@@ -133,6 +147,10 @@ export const CHANNELS = [
   'dropped_wall_time_s',
   'wind_x_mps',
   'wind_z_mps',
+  ...MARBLE_FIELDS.map((field) => {
+    const key = Object.entries(F).find(([, value]) => field === value)![0];
+    return nameOf(key, units[key]);
+  }),
 ];
 export const TELEMETRY_STRIDE = CHANNELS.length;
 export const TELEMETRY_BATCH_ROWS = 60;
@@ -147,6 +165,7 @@ export function packTelemetry(frame: Float32Array, out: Float32Array, offset: nu
     for (const field of WHEEL_FIELDS)
       out[offset++] = frame[base + WHEEL_BASE + wheel * WHEEL_STRIDE + field];
   for (const field of HEADER_FIELDS) out[offset++] = frame[field];
+  for (const field of MARBLE_FIELDS) out[offset++] = frame[base + field];
 }
 
 export function telemetryCsv(values: Float32Array, count: number): Blob {

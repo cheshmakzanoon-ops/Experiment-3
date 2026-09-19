@@ -25,7 +25,7 @@ drainage and evaporation using an exact constant-input first-order step; surface
 temperature uses exponential relaxation. Water is not cleared when rain stops.
 Cloud, wind and ambient temperature alter the real surface/aerodynamics and the
 presentation. Protocol 6 carries wind in the two formerly unused header slots;
-199-channel telemetry appends `wind_x_mps` and `wind_z_mps` without moving earlier
+At this weather checkpoint, 199-channel telemetry appended `wind_x_mps` and `wind_z_mps` without moving earlier
 channels. Saved replay snapshots carry the same values.
 
 The fixed 1,800-particle pool uses loaded-wheel contact, water, speed and compound
@@ -87,3 +87,5 @@ Commit `2791b0e` extends that one job budget to 25 minutes; no assertion, per-te
 timeout or failure was removed. The source publisher separately requires lint,
 unit tests, strict TypeScript, production build, physics, pit/race and real Chromium
 browser checks before fast-forwarding readable source onto `main`.
+
+The later [marble integration](MARBLES_AND_SURFACE_STATE.md) raises the current schema to 203 channels. Its four appended pickup columns preserve all 199 weather-checkpoint positions.

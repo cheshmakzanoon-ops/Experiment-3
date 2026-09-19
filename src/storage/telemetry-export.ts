@@ -1,3 +1,4 @@
+import CsvWorker from '../workers/telemetry.worker.ts?worker&inline';
 /** One cancellable export job. A session transition cannot download a stale
  * previous-session result. Timeout/error rejects the request and frees the worker. */
 export class TelemetryExport {
@@ -11,9 +12,7 @@ export class TelemetryExport {
     return new Promise((resolve, reject) => {
       this.reject = reject;
       try {
-        const worker = new Worker(new URL('../workers/telemetry.worker.ts', import.meta.url), {
-          type: 'module',
-        });
+        const worker = new CsvWorker({ name: 'apex-telemetry-export' });
         this.worker = worker;
         worker.onmessage = (event: MessageEvent<{ id: number; blob?: Blob; error?: string }>) => {
           if (id !== this.sequence || event.data.id !== id) return;
