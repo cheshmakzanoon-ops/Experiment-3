@@ -365,9 +365,20 @@ an opt-in, timestamped worker probe. Unrecorded probe extras are hidden in repla
 [Read the implementation and measured validation scope](docs/REPLAY_AUDIO_AND_ENGINEERING.md).
 The complete master directive is still not declared finished.
 
-Controller action buttons are configurable in **Garage & Settings → Controller
-actions**, including pause/resume, camera, ERS, pits, replay and telemetry.
-Version-5 preferences retain existing calibration and graphics. Slow-display
-cockpit heading now remains bounded relative to the car instead of becoming
-world-locked while physics continues. These improvements do not certify the
-full master directive or a representative-hardware frame-rate target.
+### Camera and controller continuation
+
+The camera now remains aligned through slow rendered turns and publishes its
+completed mode together with its audio listener. Pauses preserve the view exactly.
+Recorded wheel spin, steering and suspension interpolate without the usual wrapped
+phase reversal. Garage settings now remap controller action buttons, validate
+conflicts, and migrate existing preferences to settings version 6. Held buttons
+cannot re-trigger pause/resume or leak drive commands into replay.
+
+The original 148-section directive remains unchanged. The [development status](docs/DEVELOPMENT_STATUS.md)
+and [replay/camera evidence](docs/REPLAY_AUDIO_AND_ENGINEERING.md) distinguish local
+validation from remote publication and the still-open complete final acceptance.
+
+The integrated candidate also removes the obsolete patch-transfer workflow. Normal
+source CI retains the full native and browser gates, and publishes the exact tested
+static artifact only after all gates succeed. This configuration has local fixture
+evidence, not a completed GitHub run for this unpushed candidate.

@@ -95,7 +95,7 @@ export class TracksideDirector {
       this.fov = fov;
       this.cuts++;
     } else {
-      const mix = 1 - Math.exp(-rig.trackingHz * Math.min(dt, 0.2));
+      const mix = -Math.expm1(-rig.trackingHz * dt);
       this.gaze.lerp(this.predicted, mix);
       this.fov += (fov - this.fov) * mix;
     }

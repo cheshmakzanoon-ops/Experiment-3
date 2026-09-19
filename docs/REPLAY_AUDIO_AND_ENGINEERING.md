@@ -76,7 +76,9 @@ It requires live and replay rain/spray, frozen live/replay pauses, a trackside
 listener, replay-speed changes and a still-paused live worker. It uses normal
 settings/buttons and read-only diagnostics, not injected physics poses or fake
 worker responses. The complete Chromium/WebGL suite is a publication gate;
-local Chromium in this workspace can render audio but cannot create WebGL.
+the original recovery environment could render audio but not WebGL. The later
+camera/controller continuation below exercised real software WebGL components,
+while full application navigation remained blocked locally.
 
 ## Pass 3 — Developer inspection and lifecycle refinement
 
@@ -141,56 +143,62 @@ independent handling/presentation review and sections 140–148's final quality
 obligations remain open. Do not infer full completion from unit counts or an
 isolated audio/GPU test.
 
-## Recovery from the failed a18701b publication
+## Failed-candidate recovery: camera clock and rendered-state consistency
 
-Run 35423347163 passed the native gates but failed two browser assertions and
-therefore did **not** commit the readable replay/audio candidate into main. Its
-retained traces identified a real cockpit heading defect and a camera-observation
-race. The source candidate was recovered from that exact run, not reconstructed
-from a summary. The original Markdown 6 hash is unchanged.
+The remote `a18701bbc68053e4bd82d3dc92a8c50703865d39` candidate's source-publication
+run failed. The ordinary CI run at that revision tested the older underlying source,
+not the staged patch's application. Its green status was not publication evidence.
+The retained browser trace showed the wheel display outside the viewport after a
+slow rendered turn and a trackside mode reported before its listener was updated.
 
-The camera clock previously returned zero dt above a half-second gap, freezing
-its heading filter while the car continued turning. Slow displays now receive a
-bounded spring step through two seconds. Genuine discontinuities explicitly
-rebaseline camera springs, trackside tracking and listener velocity. The cockpit
-orientation retains a small filtered response, with remaining angular lag bounded
-to 0.04 radians; it cannot accumulate an off-screen view through a hairpin.
-`presentedCamera` identifies the camera actually drawn, distinct from an immediate
-UI request. The browser test awaits that real presentation before inspecting the
-listener. Instrument visibility and projection thresholds are unchanged.
+The camera clock no longer drops positive observed steps above half a second.
+Analytic spring/orientation filters consume a bounded two-second observed interval;
+trackside exponential convergence uses the same clock. A paused orientation is
+left untouched rather than renormalized on every display frame. The renderer now
+reports the last completed camera mode separately from the requested mode, so
+camera-mode diagnostics cannot get ahead of the actual rendered listener.
 
-Ten new camera regressions cover turning at 0.5, 1, 2, 24, 30, 60, 90, 120 and
-144 FPS, frozen snapshots, discontinuities and invalid rotations. These verify
-numerical presentation behavior, not representative GPU performance.
+`e2e/camera-continuity.spec.ts` advances the unmodified production simulation for
+68 seconds and renders the original car/circuit at one frame per two simulation
+seconds. All observed wheel displays must stay on-screen; pause must preserve
+camera position/orientation exactly, and trackside publication must agree with the
+listener. This is a correctness fixture, not a frame-rate performance measurement.
 
-## Controller remapping and versioned preferences (sections 76, 79, 133, 139)
+Wheel spin and suspension now interpolate between recorded samples in all car
+LODs. A velocity-informed whole-turn lift avoids reversed wheel interpolation at
+wrapped phases; replacement tires and discontinuous samples establish a new
+baseline. The short-interval angular-speed estimate is presentation interpolation,
+not a claim to reconstruct every unrecorded tire acceleration. Original replay and
+CSV data are never modified. The instrument browser test checks actual wheel/hand
+transforms as well as canvas updates; nine new native cases cover wheel phase and
+travel. No simulation or core module is changed by this continuation.
 
-Nine controller actions are editable: pause/resume, camera, ERS, pit request,
-replay, telemetry, mute, engineering and AI demonstration. Pedal, steering,
-clutch and paddle mappings remain separate. Integer button indices are bounded
-from -1 (disabled) through 127; action/action and action/driving-button conflicts
-are rejected before applying or saving. Selecting an unmapped wheel clears the
-implicit standard-pad action defaults so the user explicitly selects its buttons.
+The final local source check and component browser report are recorded separately
+from the full application gate. Local application and two-origin worker navigation
+returned `ERR_BLOCKED_BY_ADMINISTRATOR`; no browser policy was disabled to obtain
+an artificial pass. The available GitHub action set in this continuation did not
+include writes. A local commit/patch is not proof of a remote push or full release.
 
-Settings version 5 preserves v4 graphics and calibrated axes. Legacy auto-selected
-standard controllers retain their prior pause/camera/ERS defaults except where a
-driving binding already owns that button. Explicitly selected legacy devices
-migrate with actions disabled because their mapping type was not persisted;
-calibration and pedal/paddle settings are retained. No unsupported mapping type
-is inferred from a device name. Existing keyboard bindings also remain intact.
+## Integrated-source CI and publication
 
-Action edges are sampled independently of physics and rendering. A held button
-on connect, rebind or pause cannot repeatedly toggle a menu. Paused input accepts
-only a fresh resume edge, never pedals; replay accepts only presentation actions.
-Settings forms and menus consume presses without deferring them into a later
-race. The action runtime checks driving-button ownership without allocating a
-Map on every input poll. Fourteen new tests exercise all nine actions, migration,
-conflict rejection, held-button guards and paused-input isolation. The existing
-custom-wheel browser test now verifies saved action fields, rejection of a real
-paddle conflict, camera switching and controller pause/resume before continuing
-its actual clutch and disconnect checks.
+The source ZIP and commit contain ordinary readable source, not another staged
+patch bundle. Both obsolete staging/parallel-publishing workflows are removed.
+Their native rotation, pit and classification gates move into normal source CI;
+all existing browser assertions remain required. The playable job depends on
+all three validation jobs and copies the already-tested build artifact rather
+than compiling a different candidate. It rejects stale source publication and
+uses an explicit lease on the derived playable branch; main is never force-pushed.
+Three local Git fixtures exercise the exact publishing shell. GitHub event
+execution remains unverified until this candidate can actually be pushed.
 
-The combined candidate has 377 unit/property tests. Lint, TypeScript and production
-build are separate gates; the full browser suite must still pass for publication.
-This does not close the complete human audiovisual scenario, target-hardware
-performance, project-wide three-pass reviews or independent final audits.
+## Concurrent source reconciliation
+
+The later remote staged candidate `6d4a10d` overlaps this recovery. Its actual
+source and tests were inspected, not overwritten from an older snapshot. One
+canonical controller dispatcher now retains its independent held-edge history,
+one-UI-transition limit, mapping identity changes and inactive-menu consumption.
+The new held reverse field uses settings version 6 and preserves version-5
+`buttonActions` values. Additional focus-loss handling rejects unseen held resume
+presses on return. Its quaternion validity/camera-cut protections and actual-drawn
+camera browser assertions remain. The stronger observed-time integration, wheel
+interpolation and full-renderer continuity checks are additive.

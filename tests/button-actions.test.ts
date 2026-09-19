@@ -42,7 +42,7 @@ it('migrates legacy saves without losing graphics/calibration and yields conflic
   const m = old.mapping as typeof DEFAULT_SETTINGS.mapping;
   m.shiftUpButton = 9;
   const result = validateSettings(old);
-  expect(result.version).toBe(5);
+  expect(result.version).toBe(6);
   expect(result.graphics).toEqual(DEFAULT_SETTINGS.graphics);
   expect(result.mapping.buttonActions.pause).toBe(-1);
   expect(result.mapping.buttonActions.camera).toBe(3);
@@ -65,12 +65,12 @@ it('roundtrips every action and rejects malformed or conflicting explicit maps',
     ).toThrow();
   expect(() =>
     validateButtonActions({ ...DEFAULT_BUTTON_ACTIONS, camera: 5 }, settings.mapping),
-  ).toThrow(/Upshift/);
+  ).toThrow(/upshift/);
   expect(() =>
     validateButtonActions({ ...DEFAULT_BUTTON_ACTIONS, camera: 2 }, settings.mapping),
-  ).toThrow(/conflicts/);
+  ).toThrow(/already assigned/);
 });
-it.each(BUTTON_ACTIONS)(
+it.each(BUTTON_ACTIONS.filter((key) => key !== 'reverse'))(
   'remaps %s on nonstandard devices and emits only once per actual press',
   (key) => {
     const f = fixture();

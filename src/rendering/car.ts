@@ -1,3 +1,4 @@
+import { wheelPhase, wheelTravel } from './wheel-pose.ts';
 import * as T from 'three';
 import { DriverRig } from './driver.ts';
 import { serviceWheelOffset } from './pit-crew.ts';
@@ -496,30 +497,31 @@ export class FormulaCar {
       const reduced = this.reduced[this.lodLevel - 1];
       for (let i = 0; i < 4; i++) {
         const p = o + WHEEL_BASE + i * WHEEL_STRIDE;
-        reduced.wheels[i].position.y = 0.05 - (b[p + W.LENGTH] || 0.25);
+        reduced.wheels[i].position.y = 0.05 - wheelTravel(a, b, p, t);
         reduced.wheels[i].scale.set(
           1,
           (b[p + W.RADIUS] || 0.335) / 0.335,
           (b[p + W.RADIUS] || 0.335) / 0.335,
         );
-        reduced.wheels[i].rotation.y = i < 2 ? b[o + F.STEER] : 0;
-        reduced.spins[i].rotation.x = b[p + W.ROTATION];
+        reduced.wheels[i].rotation.y = i < 2 ? lerp(a[o + F.STEER], b[o + F.STEER], t) : 0;
+        reduced.spins[i].rotation.x = wheelPhase(a, b, o, p, t);
       }
       reduced.front.visible = b[o + F.FRONT_HEALTH] > 0.08;
       reduced.rear.visible = b[o + F.REAR_HEALTH] > 0.08;
       return;
     }
-    this.steering.rotation.z = -b[o + F.STEER] * 2.2;
+    this.steering.rotation.z = -lerp(a[o + F.STEER], b[o + F.STEER], t) * 2.2;
     this.driver.update(time, b[o + F.GEAR], b[o + F.ERS_MODE]);
     this.helmet.visible = !cockpit;
     const compound = Object.values(COMPOUNDS)[Math.round(b[o + F.COMPOUND])] ?? COMPOUNDS.medium;
     for (let i = 0; i < 4; i++) {
       const p = o + WHEEL_BASE + i * WHEEL_STRIDE,
         pivot = this.wheelPivots[i];
-      pivot.position.y = 0.05 - (b[p + W.LENGTH] || 0.25);
+      pivot.position.y = 0.05 - wheelTravel(a, b, p, t);
       pivot.rotation.y =
-        (i < 2 ? b[o + F.STEER] : 0) + b[p + W.SUSPENSION_DAMAGE] * 0.07 * (i % 2 ? 1 : -1);
-      this.wheelSpins[i].rotation.x = b[p + W.ROTATION];
+        (i < 2 ? lerp(a[o + F.STEER], b[o + F.STEER], t) : 0) +
+        b[p + W.SUSPENSION_DAMAGE] * 0.07 * (i % 2 ? 1 : -1);
+      this.wheelSpins[i].rotation.x = wheelPhase(a, b, o, p, t);
       this.wheelSpins[i].position.x =
         Math.sign(WHEEL_POSITIONS[i][0]) *
         serviceWheelOffset(b[o + F.PIT_PHASE], b[o + F.PIT_CLOCK], b[p + W.LOAD]);

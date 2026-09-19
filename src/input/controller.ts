@@ -1,4 +1,10 @@
 import {
+  ControllerActions,
+  type ActionContext,
+  driveButtonOwner,
+  type ButtonAction,
+} from './button-actions.ts';
+import {
   calibratedPedal,
   calibratedSteer,
   readAxis,
@@ -6,7 +12,6 @@ import {
   steeringResponse,
 } from './calibration.ts';
 import { boundAction, isHeld } from './bindings.ts';
-import { ControllerActions, type ActionContext } from './button-actions.ts';
 import { approach, clamp } from '../core/math.ts';
 import { controls, type Controls } from '../simulation/config.ts';
 import type { Settings } from '../storage/data.ts';
@@ -15,8 +20,9 @@ export class InputController {
   private keys = new Set<string>();
   private steering = 0;
   private previousButtons = new Set<number>();
-  private buttons = new ControllerActions();
   private enabled = false;
+  private generation = 0;
+  private buttons = new ControllerActions();
   private touch = { left: false, right: false, throttle: false, brake: false };
   gamepadName = 'KEYBOARD';
   deviceStatus = '';
@@ -58,6 +64,8 @@ export class InputController {
   };
   private keyUp = (e: KeyboardEvent) => this.keys.delete(e.code);
   private blur = () => {
+    // Inputs pressed while unfocused are a new baseline, not resume commands.
+    this.buttons.reset();
     this.reset();
     if (this.enabled) this.action('blur');
   };
@@ -83,12 +91,55 @@ export class InputController {
     this.reset();
   }
   reset() {
+    this.generation++;
     this.keys.clear();
     this.steering = 0;
     Object.assign(this.state, controls());
     this.previousButtons.clear();
     this.lastDevice = '';
     this.touch = { left: false, right: false, throttle: false, brake: false };
+  }
+  private observeButtons(pad: Gamepad) {
+    const identity = `${pad.index}:${pad.id}`;
+    if (identity === this.lastDevice) return;
+    // Holding a button through connect/resume cannot manufacture a new edge.
+    this.previousButtons.clear();
+    pad.buttons.forEach((button, index) => {
+      if (button.pressed) this.previousButtons.add(index);
+    });
+    this.lastDevice = identity;
+  }
+  private dispatchButtons(
+    pad: Gamepad,
+    allowed: ActionContext | readonly ButtonAction[] = 'driving',
+  ) {
+    const generation = this.generation;
+    this.buttons.poll(pad, this.settings.mapping, allowed, this.action);
+    return generation === this.generation;
+  }
+  /** Paused/replay UI may poll a small action allowlist without ever reading or
+   * publishing drive axes. Suppressed buttons are still observed, not delayed. */
+  pollActions(allowed: ActionContext | readonly ButtonAction[]) {
+    let pad: Gamepad | null;
+    try {
+      pad = selectDevice(navigator.getGamepads?.() ?? [], this.settings.mapping.device);
+    } catch (error) {
+      this.deviceStatus = `Gamepad access unavailable: ${String(error)}`;
+      return;
+    }
+    if (!pad) {
+      this.lastDevice = '';
+      this.previousButtons.clear();
+      this.buttons.poll(null, this.settings.mapping, allowed, this.action);
+      return;
+    }
+    if (
+      this.blockedMapping === this.settings.mapping &&
+      this.suppressedDevice === `${pad.index}:${pad.id}`
+    )
+      return;
+    this.observeButtons(pad);
+    this.dispatchButtons(pad, allowed);
   }
   bindTouch(element: HTMLElement, action: 'left' | 'right' | 'throttle' | 'brake') {
     const options = { signal: this.touchEvents.signal };
@@ -106,24 +157,7 @@ export class InputController {
     element.addEventListener('pointercancel', release, options);
     element.addEventListener('lostpointercapture', release, options);
   }
-  pollActions(context: ActionContext) {
-    let pad: Gamepad | null = null;
-    try {
-      pad = selectDevice(navigator.getGamepads?.() ?? [], this.settings.mapping.device);
-    } catch (error) {
-      this.deviceStatus = `Gamepad access unavailable: ${String(error)}`;
-    }
-    if (
-      pad &&
-      this.blockedMapping === this.settings.mapping &&
-      this.suppressedDevice === `${pad.index}:${pad.id}`
-    )
-      pad = null;
-    this.buttons.poll(pad, this.settings.mapping, context, this.action);
-  }
   update(dt: number) {
-    if (!this.enabled) return this.state;
-    this.pollActions('driving');
     if (!this.enabled) return this.state;
     const b = this.settings.bindings,
       k = this.keys,
@@ -150,15 +184,7 @@ export class InputController {
     let wheelInput = false;
     if (pad) {
       this.gamepadName = pad.id;
-      const identity = `${pad.index}:${pad.id}`;
-      // A button held while connecting/resuming is not a new paddle press.
-      if (identity !== this.lastDevice) {
-        this.previousButtons.clear();
-        pad.buttons.forEach((button, index) => {
-          if (button.pressed) this.previousButtons.add(index);
-        });
-        this.lastDevice = identity;
-      }
+      this.observeButtons(pad);
       const raw = readAxis(pad, m.steerAxis);
       const sc = m.calibration.steering;
       if (raw === undefined || (sc && sc.axis !== m.steerAxis))
@@ -197,6 +223,7 @@ export class InputController {
       throttle = Math.max(throttle, pt);
       brake = Math.max(brake, pb);
       clutch = Math.max(clutch, pc);
+      if (!this.dispatchButtons(pad)) return this.state;
       for (const [index, direction] of [
         [m.shiftDownButton, -1],
         [m.shiftUpButton, 1],
@@ -230,7 +257,10 @@ export class InputController {
     this.state.brake = brake;
     this.state.clutch = clutch;
     this.state.manualClutch = m.manualClutch;
-    this.state.reverse = isHeld(k, b, 'reverse');
+    const reverse = m.buttonActions.reverse;
+    this.state.reverse =
+      isHeld(k, b, 'reverse') ||
+      !!(pad && reverse >= 0 && !driveButtonOwner(m, reverse) && pad.buttons[reverse]?.pressed);
     return this.state;
   }
   dispose() {

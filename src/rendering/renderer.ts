@@ -92,7 +92,9 @@ export class RacingRenderer {
   readonly engineeringView = new EngineeringView();
   engineering: EngineeringSample | null = null;
   replayView = false;
-  private drawnCamera: CameraMode | null = null;
+  // Requested mode changes on input; diagnostics describe a completed rendered
+  // frame, so camera/listener data cannot claim two different views.
+  private renderedMode: CameraMode | null = null;
   private frameSamples = new Float32Array(300);
   private sampleIndex = 0;
   private sampleCount = 0;
@@ -326,7 +328,6 @@ export class RacingRenderer {
     this.cameraClock.reset();
     const modes: CameraMode[] = ['chase', 'cockpit', 'pod', 'trackside'];
     this.mode = mode ?? modes[(modes.indexOf(this.mode) + 1) % modes.length];
-    this.drawnCamera = null;
     this.initialized = false;
     this.inertia.reset();
     this.viewOrientation.reset();
@@ -504,7 +505,6 @@ export class RacingRenderer {
       !menu && (this.mode === 'cockpit' || this.mode === 'pod'),
       this.follow,
     );
-    this.drawnCamera = this.mode;
     this.eyeLocal.copy(this.camera.position);
     car.root.worldToLocal(this.eyeLocal);
     this.renderer.info.reset();
@@ -523,6 +523,7 @@ export class RacingRenderer {
     } finally {
       this.gpuTimer.end();
     }
+    this.renderedMode = this.mode;
     this.lastRenderCPUms = performance.now() - start;
     this.renderMs = this.renderMs * 0.9 + this.lastRenderCPUms * 0.1;
   }
@@ -580,8 +581,9 @@ export class RacingRenderer {
       renderHeight: this.renderHeight,
       construction: { ...this.circuit.construction.statistics },
       carLods: this.cars.map((car) => car.lodLevel),
-      camera: this.mode,
-      presentedCamera: this.drawnCamera,
+      camera: this.renderedMode,
+      requestedCamera: this.mode,
+      presentedCamera: this.renderedMode,
       tracksideRig: this.trackside.activeId,
       tracksideCuts: this.trackside.cuts,
       cameraLocalPosition: this.eyeLocal.toArray(),

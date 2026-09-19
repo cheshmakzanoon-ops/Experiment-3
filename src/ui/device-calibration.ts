@@ -1,4 +1,9 @@
 import {
+  BUTTON_ACTIONS,
+  BUTTON_ACTION_LABELS,
+  defaultButtonActions,
+} from '../input/button-actions.ts';
+import {
   readAxis,
   selectDevice,
   validatePedal,
@@ -64,12 +69,16 @@ export class DeviceCalibrationPanel {
         this.resetLabels();
         // Do not silently impose Xbox button positions on an unmapped wheel.
         if (pad && pad.mapping !== 'standard') {
-          for (const input of this.form.querySelectorAll<HTMLInputElement>('[name^="action_"]'))
-            input.value = '-1';
           for (const name of ['shiftUpButton', 'shiftDownButton'])
             (form.elements.namedItem(name) as HTMLInputElement).value = '-1';
         }
-        this.status.textContent = 'Device selected. Captures remain unsaved until Apply.';
+        const buttons = defaultButtonActions(!pad || pad.mapping === 'standard');
+        for (const action of BUTTON_ACTIONS) {
+          const field = form.elements.namedItem(`action_${action}`) as HTMLInputElement | null;
+          if (field) field.value = String(buttons[action]);
+        }
+        this.status.textContent =
+          'Device selected. Captures and action bindings remain unsaved until Apply.';
       },
       { signal: this.events.signal },
     );
@@ -211,6 +220,15 @@ export class DeviceCalibrationPanel {
       if (calibration.axis !== axis)
         throw new Error(`${name}: selected axis changed. Reset or recapture its calibration.`);
     }
+    const pad = selectDevice(this.pads(), next.device);
+    if (pad)
+      for (const action of BUTTON_ACTIONS) {
+        const field = this.form.elements.namedItem(`action_${action}`) as HTMLInputElement | null;
+        if (field && Number(field.value) >= pad.buttons.length)
+          throw new Error(
+            `${BUTTON_ACTION_LABELS[action]}: selected device has no button ${field.value}.`,
+          );
+      }
     if (next.shiftDownButton >= 0 && next.shiftDownButton === next.shiftUpButton)
       throw new Error('Upshift and downshift need different buttons.');
   }

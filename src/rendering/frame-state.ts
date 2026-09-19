@@ -1,3 +1,4 @@
+import { wheelPhase } from './wheel-pose.ts';
 import { Quaternion } from 'three';
 import {
   CAR_STRIDE,
@@ -82,7 +83,9 @@ export class PresentedFrame {
       for (let wheel = 0; wheel < 4; wheel++) {
         const p = o + WHEEL_BASE + wheel * WHEEL_STRIDE;
         for (let field = 0; field < WHEEL_STRIDE; field++)
-          if (field !== W.SURFACE && field !== W.PUNCTURED) this.blend(a, b, p + field, alpha);
+          if (field !== W.SURFACE && field !== W.PUNCTURED && field !== W.ROTATION)
+            this.blend(a, b, p + field, alpha);
+        out[p + W.ROTATION] = wheelPhase(a, b, o, p, alpha);
         const counter = o + F.MARBLE_PICKUP_FR + wheel;
         // A replacement tire starts a new counter, not a negative pickup ramp.
         if (b[counter] >= a[counter]) this.blend(a, b, counter, alpha);

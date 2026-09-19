@@ -5,69 +5,91 @@ export const BUTTON_ACTION_LABELS = {
   camera: 'Cycle camera',
   ers: 'Hybrid mode',
   pit: 'Request / cancel pit',
-  replay: 'Open / close replay',
   telemetry: 'Telemetry',
+  replay: 'Replay / exit',
+  autopilot: 'AI demonstration',
   mute: 'Mute',
   debug: 'Engineering overlay',
-  autopilot: 'AI demonstration',
+  reverse: 'Reverse (hold at low speed)',
 } as const;
 export type ButtonAction = keyof typeof BUTTON_ACTION_LABELS;
 export type ButtonActions = Record<ButtonAction, number>;
-export const DEFAULT_BUTTON_ACTIONS: ButtonActions = {
-  pause: 9,
-  camera: 3,
-  ers: 2,
-  pit: -1,
-  replay: -1,
-  telemetry: -1,
-  mute: -1,
-  debug: -1,
-  autopilot: -1,
-};
 export const BUTTON_ACTIONS = Object.keys(BUTTON_ACTION_LABELS) as ButtonAction[];
 export type ActionContext = 'driving' | 'paused' | 'replay' | 'off';
-
-export function occupiedDrivingButtons(mapping: InputMapping) {
-  const buttons = new Map<number, string>();
-  for (const [button, name] of [
-    [mapping.shiftUpButton, 'Upshift'],
-    [mapping.shiftDownButton, 'Downshift'],
-    ...(!mapping.axisPedals
-      ? [
-          [mapping.throttleButton, 'Throttle'],
-          [mapping.brakeButton, 'Brake'],
-        ]
-      : []),
-    ...(mapping.manualClutch && mapping.clutchAxis < 0 ? [[mapping.clutchButton, 'Clutch']] : []),
-  ] as [number, string][])
-    if (button >= 0) buttons.set(button, name);
-  return buttons;
+export const DEFAULT_BUTTON_ACTIONS: ButtonActions = defaultButtonActions(true);
+/** Use the standard layout only when its mapping is known. Legacy explicitly
+ * selected devices migrate unbound because their mapping type was not saved;
+ * the editor can initialize a currently connected standard pad explicitly. */
+export function defaultButtonActions(standard = false): ButtonActions {
+  return {
+    pause: standard ? 9 : -1,
+    camera: standard ? 3 : -1,
+    ers: standard ? 2 : -1,
+    pit: -1,
+    telemetry: -1,
+    replay: -1,
+    autopilot: -1,
+    mute: -1,
+    debug: -1,
+    reverse: -1,
+  };
 }
-/** V1–4 had implicit standard-controller actions. Migration preserves the old
- * driving-button precedence; unmapped wheels do not acquire surprise actions. */
+export function driveButtonOwner(mapping: InputMapping, index: number): string | null {
+  if (index < 0) return null;
+  if (index === mapping.shiftUpButton) return 'upshift';
+  if (index === mapping.shiftDownButton) return 'downshift';
+  if (mapping.manualClutch && mapping.clutchAxis < 0 && index === mapping.clutchButton)
+    return 'clutch';
+  if (!mapping.axisPedals) {
+    if (index === mapping.throttleButton) return 'throttle';
+    if (index === mapping.brakeButton) return 'brake';
+  }
+  return null;
+}
+/** Legacy action conflicts were previously ignored by runtime. Preserve that
+ * behavior by migrating the conflicting action to disabled; never steal a pedal. */
 export function validateButtonActions(
   value: unknown,
   mapping: InputMapping,
   legacy = false,
 ): ButtonActions {
-  const defaults = { ...DEFAULT_BUTTON_ACTIONS };
-  if (legacy && mapping.device) for (const key of BUTTON_ACTIONS) defaults[key] = -1;
-  const source = legacy ? defaults : value;
-  if (!source || typeof source !== 'object' || Array.isArray(source))
-    throw new Error('Controller actions must be a button map');
-  const result = {} as ButtonActions,
-    occupied = occupiedDrivingButtons(mapping);
-  for (const key of BUTTON_ACTIONS) {
-    let n = (source as Record<string, unknown>)[key];
-    if (!Number.isInteger(n) || (n as number) < -1 || (n as number) > 127)
-      throw new Error(`${BUTTON_ACTION_LABELS[key]} requires a whole button number from -1 to 127`);
-    if (legacy && occupied.has(n as number)) n = -1;
-    if ((n as number) >= 0 && occupied.has(n as number))
+  if (!legacy && (!value || typeof value !== 'object' || Array.isArray(value)))
+    throw new Error('Controller action bindings must be an object');
+  const source = legacy
+    ? defaultButtonActions(!mapping.device)
+    : (value as Record<string, unknown>);
+  const result = defaultButtonActions();
+  const occupied = new Map<number, string>();
+  const drive: [number, string][] = [
+    [mapping.shiftUpButton, 'upshift'],
+    [mapping.shiftDownButton, 'downshift'],
+  ];
+  if (!mapping.axisPedals)
+    drive.push([mapping.throttleButton, 'throttle'], [mapping.brakeButton, 'brake']);
+  if (mapping.manualClutch && mapping.clutchAxis < 0) drive.push([mapping.clutchButton, 'clutch']);
+  for (const [index, name] of drive) {
+    if (index < 0) continue;
+    const owner = occupied.get(index);
+    if (owner)
       throw new Error(
-        `${BUTTON_ACTION_LABELS[key]} conflicts with ${occupied.get(n as number)} on button ${n}`,
+        `Button ${index} is already assigned to ${owner}; ${name} needs a different button`,
       );
-    result[key] = n as number;
-    if ((n as number) >= 0) occupied.set(n as number, BUTTON_ACTION_LABELS[key]);
+    occupied.set(index, name);
+  }
+
+  if (!legacy && Object.keys(source).some((key) => !BUTTON_ACTIONS.includes(key as ButtonAction)))
+    throw new Error('Unknown controller action');
+  for (const action of BUTTON_ACTIONS) {
+    const index = source[action];
+    if (typeof index !== 'number' || !Number.isInteger(index) || index < -1 || index > 127)
+      throw new Error(`${BUTTON_ACTION_LABELS[action]}: use a whole button number from -1 to 127`);
+    const owner = driveButtonOwner(mapping, index) ?? occupied.get(index);
+    if (index >= 0 && owner) {
+      if (legacy) continue;
+      throw new Error(`Button ${index} is already assigned to ${owner}`);
+    }
+    result[action] = index;
+    if (index >= 0) occupied.set(index, BUTTON_ACTION_LABELS[action]);
   }
   return result;
 }
@@ -78,10 +100,15 @@ export class ControllerActions {
   private held = new Uint8Array(128);
   private device = '';
   private mapping: InputMapping | null = null;
+  reset() {
+    this.held.fill(0);
+    this.device = '';
+    this.mapping = null;
+  }
   poll(
     pad: Gamepad | null,
     mapping: InputMapping,
-    context: ActionContext,
+    context: ActionContext | readonly ButtonAction[],
     emit: (action: ButtonAction) => void,
   ) {
     const id = pad ? `${pad.index}:${pad.id}` : '';
@@ -113,6 +140,8 @@ export class ControllerActions {
       const action = BUTTON_ACTIONS.find((key) => mapping.buttonActions[key] === index);
       if (
         !action ||
+        action === 'reverse' ||
+        (Array.isArray(context) && !context.includes(action)) ||
         (context === 'paused' && action !== 'pause') ||
         (context === 'replay' && !['pause', 'camera', 'replay', 'mute', 'debug'].includes(action))
       )

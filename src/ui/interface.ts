@@ -362,7 +362,7 @@ export class Interface {
         )
         .join(
           '',
-        )}<b>ESC</b><span>Pause / release mouse look</span><b>DOUBLE CLICK</b><span>Cockpit mouse look</span></div><p>Default standard gamepad: left stick, trigger pedals, shoulder shifts, Y camera, X energy, Start pause/resume. Remap action buttons, pedals and shifts in settings. Nonstandard wheels require explicit device selection and mapping. Native wheel force feedback is not implemented.</p><button class="primary" data-action="modalClose">UNDERSTOOD</button>`,
+        )}<b>ESC</b><span>Pause / release mouse look</span><b>DOUBLE CLICK</b><span>Cockpit mouse look</span></div><p>Standard default: left stick, trigger pedals, shoulder shifts, Y camera, X energy, Start pause/resume. Garage settings remap or disable every action button. Custom wheels require explicit device selection and assignments; no Xbox layout is assumed. Native wheel force feedback is not implemented.</p><button class="primary" data-action="modalClose">UNDERSTOOD</button>`,
     );
   }
   modalContent(html: string) {
@@ -455,7 +455,7 @@ export class Interface {
         )
         .join(
           '',
-        )}<label class="range-row">Deadzone<output>${settings.mapping.deadzone}</output><input name="deadzone" type="range" min="0" max=".35" step=".01" value="${settings.mapping.deadzone}"></label><label class="range-row">Steering response exponent<output>${settings.mapping.exponent}</output><input name="exponent" type="range" min=".5" max="3" step=".1" value="${settings.mapping.exponent}"></label><div id="deviceCalibration"></div><h3>Controller actions</h3><p class="small-note">Set -1 to disable. Actions cannot share a shift or active pedal button. Pause/resume remains available without sending pedals while paused.</p><div class="mapping-grid">${BUTTON_ACTIONS.map((key) => `<label>${BUTTON_ACTION_LABELS[key]} button<input type="number" name="action_${key}" required min="-1" max="127" step="1" value="${settings.mapping.buttonActions[key]}"></label>`).join('')}</div><h3>Keyboard bindings</h3><div class="binding-grid">${Object.entries(
+        )}<label class="range-row">Deadzone<output>${settings.mapping.deadzone}</output><input name="deadzone" type="range" min="0" max=".35" step=".01" value="${settings.mapping.deadzone}"></label><label class="range-row">Steering response exponent<output>${settings.mapping.exponent}</output><input name="exponent" type="range" min=".5" max="3" step=".1" value="${settings.mapping.exponent}"></label><div id="deviceCalibration"></div><h3>Controller action buttons</h3><p class="small-note">Use -1 to disable an action. Buttons cannot share an active pedal, paddle or another action. Pause/resume works from the pause menu; keyboard remains available.</p><div class="mapping-grid">${BUTTON_ACTIONS.map((action) => `<label>${BUTTON_ACTION_LABELS[action]} button<input name="action_${action}" required type="number" min="-1" max="127" step="1" value="${settings.mapping.buttonActions[action]}"></label>`).join('')}</div><h3>Keyboard bindings</h3><div class="binding-grid">${Object.entries(
         settings.bindings,
       )
         .map(
@@ -554,9 +554,9 @@ export class Interface {
         );
       this.bindingCapture?.abort();
       try {
-        for (const key of BUTTON_ACTIONS)
-          next.mapping.buttonActions[key] = Number(value(`action_${key}`));
         this.deviceCalibration?.apply(next.mapping);
+        for (const action of BUTTON_ACTIONS)
+          next.mapping.buttonActions[action] = Number(value(`action_${action}`));
         this.callbacks.apply(validateSettings(next));
       } catch (error) {
         this.toast(`Settings not applied: ${String(error)}`);

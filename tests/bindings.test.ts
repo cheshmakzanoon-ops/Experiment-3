@@ -10,7 +10,7 @@ it('migrates version-one driving keys and provides bindings for every existing a
     version: 1,
     bindings: { throttle: 'KeyI', brake: 'KeyK', left: 'KeyJ', right: 'KeyL' },
   });
-  expect(result.version).toBe(5);
+  expect(result.version).toBe(6);
   expect(result.bindings.throttle).toBe('KeyI');
   expect(result.bindings.shiftUp).toBe('BracketRight');
   expect(result.bindings.camera).toBe('KeyC');

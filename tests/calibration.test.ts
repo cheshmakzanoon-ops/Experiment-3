@@ -76,7 +76,7 @@ describe('device calibration', () => {
       version: 1,
       bindings: { throttle: 'ShiftLeft' },
     });
-    expect(settings.version).toBe(5);
+    expect(settings.version).toBe(6);
     expect(settings.bindings.throttle).toBe('ShiftLeft');
     expect(settings.bindings.clutch).toBe('ShiftRight');
     expect(settings.mapping.manualClutch).toBe(false);

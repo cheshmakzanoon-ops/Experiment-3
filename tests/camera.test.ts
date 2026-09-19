@@ -84,15 +84,46 @@ it('camera clock resumes from recorded time and rebaselines menus, seeks and cut
   const clock = new CameraClock();
   expect(clock.step(2)).toBe(0);
   expect(clock.step(2.05)).toBeCloseTo(0.05);
-  expect(clock.step(2.15)).toBe(0.08);
+  expect(clock.step(2.15)).toBeCloseTo(0.1);
   expect(clock.step(1)).toBe(0);
-  expect(clock.step(10)).toBe(0);
+  expect(clock.step(10)).toBe(2);
   expect(clock.step(10.03, true)).toBe(0);
   expect(clock.step(10.04)).toBe(0);
   expect(clock.step(10.07)).toBeCloseTo(0.03);
   clock.reset();
   expect(clock.step(10.1)).toBe(0);
   expect(() => clock.step(NaN)).toThrow();
+});
+
+// A missed frame is not a teleport. The old >0.5-second guard left the
+// cockpit looking backwards after ordinary slow rendered turns.
+it.each([0.5, 1, 2, 24, 30, 60, 90, 120, 144])(
+  'keeps camera heading current through a changing turn at %i FPS',
+  async (hz) => {
+    const { CameraClock, ViewOrientation } = await import('../src/rendering/camera-dynamics.ts');
+    const clock = new CameraClock(),
+      view = new ViewOrientation();
+    const target = new Quaternion(),
+      up = new Vector3(0, 1, 0);
+    let maxLag = 0;
+    for (let i = 0; i <= hz * 8; i++) {
+      const time = i / hz;
+      target.setFromAxisAngle(up, time * 0.8);
+      view.update(target, clock.step(time));
+      maxLag = Math.max(maxLag, view.rotation.angleTo(target));
+    }
+    expect(maxLag).toBeLessThan(0.03);
+    const held = view.rotation.toArray();
+    for (let i = 0; i < 20; i++) view.update(target, clock.step(8));
+    expect(view.rotation.toArray()).toEqual(held);
+  },
+);
+it('analytic camera inertia is subdivision-independent on a two-second rendered gap', () => {
+  const a = new InertialCamera(),
+    b = new InertialCamera();
+  a.step(2, 3, -4, 1, 0, 1);
+  for (let i = 0; i < 240; i++) b.step(1 / 120, 3, -4, 1, 0, 1);
+  expect(a.offset.distanceTo(b.offset)).toBeLessThan(1e-9);
 });
 
 it.each([0.5, 1, 2, 24, 30, 60, 90, 120, 144])(
@@ -128,7 +159,7 @@ it('distinguishes a discontinuous camera seek from a frozen snapshot and validat
   expect(clock.discontinuous).toBe(false);
   expect(clock.step(1)).toBe(0);
   expect(clock.discontinuous).toBe(false);
-  expect(clock.step(10)).toBe(0);
+  expect(clock.step(10)).toBe(2);
   expect(clock.discontinuous).toBe(true);
   view.reset();
   const q = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.PI);

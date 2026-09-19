@@ -30,12 +30,11 @@ test('custom wheel calibration persists, drives a real clutch and disconnects sa
   await page.locator('[name=clutchAxis]').fill('3');
   await page.locator('[name=shiftUpButton]').fill('10');
   await page.locator('[name=shiftDownButton]').fill('11');
-  await page.locator('[name=action_camera]').fill('3');
-  await page.locator('[name=action_ers]').fill('2');
-  await page.locator('[name=action_pause]').fill('9');
   await page.locator('[name=axisPedals]').check();
   await page.locator('[name=wheelSteering]').check();
   await page.locator('[name=manualClutch]').check();
+  await page.locator('[name=action_camera]').fill('10');
+  await page.locator('[name=action_pause]').fill('9');
   const set = async (axis: number, value: number) =>
     page.evaluate(
       ({ axis, value }) => {
@@ -62,6 +61,10 @@ test('custom wheel calibration persists, drives a real clutch and disconnects sa
     );
   }
   await page.getByRole('button', { name: 'APPLY & SAVE' }).click();
+  await expect(page.locator('#toast')).toContainText('already assigned to upshift');
+  await expect(page.locator('#modal')).toBeVisible();
+  await page.locator('[name=action_camera]').fill('8');
+  await page.getByRole('button', { name: 'APPLY & SAVE' }).click();
   await expect(page.locator('#toast')).toContainText('Preferences saved.');
   await expect(page.locator('#modal')).toBeHidden();
   await page.reload();
@@ -70,14 +73,9 @@ test('custom wheel calibration persists, drives a real clutch and disconnects sa
   await expect(page.getByLabel('Active input device')).toHaveValue('2');
   await expect(page.locator('[name=manualClutch]')).toBeChecked();
   await expect(page.locator('[name=shiftUpButton]')).toHaveValue('10');
-  await expect(page.locator('[name=action_camera]')).toHaveValue('3');
+  await expect(page.locator('[name=action_camera]')).toHaveValue('8');
   await expect(page.locator('[name=action_pause]')).toHaveValue('9');
-  // A driving-button conflict must remain visible and leave persisted input intact.
-  await page.locator('[name=action_camera]').fill('10');
-  await page.getByRole('button', { name: 'APPLY & SAVE' }).click();
-  await expect(page.locator('#toast')).toContainText('conflicts');
-  await expect(page.locator('#modal')).toBeVisible();
-  await page.locator('[name=action_camera]').fill('3');
+  await expect(page.locator('[name=action_ers]')).toHaveValue('-1');
   await page.getByRole('button', { name: 'Close settings' }).click();
   await set(0, 0.1);
   await set(1, -0.7);
@@ -93,28 +91,6 @@ test('custom wheel calibration persists, drives a real clutch and disconnects sa
       timeout: 60000,
     })
     .toBe('driving');
-  const press = async (index: number, down: boolean) =>
-    page.evaluate(
-      ({ index, down }) => {
-        const pad = (window as unknown as { testWheel: { buttons: GamepadButton[] } }).testWheel;
-        pad.buttons[index] = { pressed: down, touched: down, value: Number(down) };
-      },
-      { index, down },
-    );
-  await press(3, true);
-  await expect
-    .poll(() => page.evaluate(() => window.apexDiagnostics().renderer?.presentedCamera))
-    .toBe('cockpit');
-  await press(3, false);
-  await press(9, true);
-  await expect(page.getByRole('button', { name: 'RESUME SESSION' })).toBeVisible();
-  await page.waitForTimeout(100);
-  expect(await page.evaluate(() => window.apexDiagnostics().state)).toBe('paused');
-  await press(9, false);
-  await page.waitForTimeout(60);
-  await press(9, true);
-  await expect.poll(() => page.evaluate(() => window.apexDiagnostics().state)).toBe('driving');
-  await press(9, false);
   const frame = () => page.evaluate(() => window.apexDiagnostics().frame!);
   await expect
     .poll(async () => (await frame())[carBase(0) + F.RPM], { timeout: 60000 })
@@ -125,6 +101,31 @@ test('custom wheel calibration persists, drives a real clutch and disconnects sa
   await expect
     .poll(async () => (await frame())[carBase(0) + F.SPEED], { timeout: 60000 })
     .toBeGreaterThan(5);
+  const press = async (index: number, pressed: boolean) => {
+    await page.evaluate(
+      ({ index, pressed }) => {
+        const pad = (window as unknown as { testWheel: { buttons: GamepadButton[] } }).testWheel;
+        pad.buttons[index] = { pressed, touched: pressed, value: Number(pressed) };
+      },
+      { index, pressed },
+    );
+  };
+  await press(8, true);
+  await expect
+    .poll(() => page.evaluate(() => window.apexDiagnostics().renderer?.camera))
+    .toBe('cockpit');
+  await press(8, false);
+  await press(9, true);
+  await expect(page.getByRole('button', { name: 'RESUME SESSION' })).toBeVisible();
+  await page.waitForTimeout(500);
+  expect(await page.evaluate(() => window.apexDiagnostics().state)).toBe('paused');
+  await press(9, false);
+  await page.waitForTimeout(100);
+  await press(9, true);
+  await expect.poll(() => page.evaluate(() => window.apexDiagnostics().state)).toBe('driving');
+  await page.waitForTimeout(250);
+  expect(await page.evaluate(() => window.apexDiagnostics().state)).toBe('driving');
+  await press(9, false);
   await page.evaluate(() => {
     (window as unknown as { testWheel: { connected: boolean } }).testWheel.connected = false;
   });

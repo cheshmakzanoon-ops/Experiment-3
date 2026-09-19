@@ -114,19 +114,19 @@ export class GameApp {
     });
     this.input = new InputController(this.settings, (name) => this.action(name));
     this.inputPump = new InputPump((dt) => {
-      if (this.errorStopped) return;
-      this.input.pollActions(
-        this.state === 'driving'
-          ? 'driving'
-          : this.state === 'replay'
-            ? 'replay'
-            : this.state === 'paused' &&
-                !this.ui.telemetryModal.open &&
-                !document.getElementById('settingsForm')
-              ? 'paused'
-              : 'off',
-      );
-      if (this.state !== 'driving') return;
+      if (this.errorStopped || document.hidden) return;
+      if (this.state !== 'driving') {
+        if (this.state === 'replay')
+          this.input.pollActions(['pause', 'camera', 'replay', 'mute', 'debug']);
+        else if (
+          this.state === 'paused' &&
+          !this.ui.telemetryModal.open &&
+          document.querySelector('#modal [data-action="resume"]')
+        )
+          this.input.pollActions(['pause']);
+        else this.input.pollActions('off');
+        return;
+      }
       const input = this.input.update(dt);
       // A device fault may have paused the session during update().
       if (this.state !== 'driving') return;

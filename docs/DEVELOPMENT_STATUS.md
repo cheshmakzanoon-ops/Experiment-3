@@ -125,11 +125,44 @@ Chromium/WebGL publication gate, wet replay/CSV checks and physical driving
 journey. Full-project three-pass certification, representative-device performance
 and the complete combined section-146 acceptance remain separate open obligations.
 
-## Recovery and continuation from failed publication a18701b
+## Recovery of a18701b: camera, controller and wheel presentation
 
-The exact failed candidate and traces from run 35423347163 were recovered. Its
-native checks passed but browser checks blocked source publication. The follow-up
-repairs slow-frame cockpit heading, distinguishes requested and drawn camera
-state, and adds nine configurable controller actions with version-5 migration,
-conflict validation and independent pause/resume polling. See
-[recovery, evidence and remaining boundaries](REPLAY_AUDIO_AND_ENGINEERING.md).
+The last remote head was a failed staged update, not an integrated source release.
+This continuation recovered its exact applied source artifact, preserved the original
+Markdown 6 byte hash, corrected slow-frame camera lag and completed-frame listener
+reporting, implemented saved controller-action mappings with version-6 migration,
+and added recorded wheel/suspension interpolation. Pending patch transfer files are
+removed from the integrated local source package, not left as its application.
+
+The unchanged simulation/core identity is still
+`30c155c669e4af3f1d5b2a40ab0ce9acd44d5dc19ee82777df8f6c6bf2149484`.
+See the updated input and replay/audio documents for test scope. A local commit is
+not a remote publication: GitHub write actions were unavailable and a direct push
+requires a working authenticated network connection. The full navigation-dependent
+browser gate and all final section-146/147 acceptance obligations remain open.
+
+Normal source CI now owns the rotation, physical pit and race-classification gates
+formerly duplicated by the patch publisher. The old patch/source publisher and
+parallel build-only playable publisher are removed. A dependent publication job
+requires build, native scenarios and browser success, uses that run's tested
+artifact, skips a stale main revision and uses an explicit lease for the derived
+playable branch. Three local bare-repository fixtures validate artifact contents,
+stale-source exclusion and concurrent-writer protection; they are not remote pushes.
+See `continuation-validation.json` for the exact identities and evidence boundaries.
+
+## Concurrent remote candidate reconciled
+
+During this continuation, remote `main` advanced to
+`6d4a10dcd8f4c749788975cc10097dcbffaffdc2`. Its exact committed archive and
+SHA-verified staged candidate were inspected before integration. The local
+candidate preserves that work's canonical action-map field, independent edge
+tracking, one-transition-per-poll behavior, malformed-quaternion/camera-cut guards
+and browser assertions for actually presented cameras. New settings version 6
+migrates its version-5 assignments rather than introducing incompatible version-5
+save formats. The original physical core and directive remain unchanged.
+
+The concurrent source publication subsequently passed all its GitHub gates in run
+35426415808 and produced `fefe92074a2b456473d17e065fb6c2a3dd8087a2` on main.
+That exact committed tree was recovered and verified. It is the parent baseline
+for this local version-6 continuation, not evidence that these additional local
+changes have been pushed or passed the remote browser gate.
