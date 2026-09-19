@@ -51,6 +51,23 @@ test('browser session, cameras, pause safety, telemetry and replay', async ({ pa
     )
     .toBeGreaterThan(15);
   await page.screenshot({ path: testInfo.outputPath('02-racing.png') });
+  await page.keyboard.press('F3');
+  await expect(page.locator('#debug')).toContainText('AI TARGET PATH');
+  await expect(page.locator('#debug')).toContainText('RUBBER');
+  await expect(page.locator('#debug')).toContainText('Fz N / Fx N / Fy N');
+  await expect.poll(async () => (await diag(page)).engineering?.aiActive).toBe(true);
+  await expect.poll(async () => (await diag(page)).presentation?.engineeringVisible).toBe(true);
+  const engineering = (await diag(page)).engineering!;
+  expect(engineering.wheels).toHaveLength(4);
+  expect(engineering.wheels.some((wheel) => wheel.loadN > 1)).toBe(true);
+  await testInfo.attach('live-engineering.json', {
+    body: JSON.stringify(engineering, null, 2),
+    contentType: 'application/json',
+  });
+  await page.screenshot({ path: testInfo.outputPath('02-engineering.png') });
+  await page.keyboard.press('F3');
+  await expect(page.locator('#debug')).toBeHidden();
+
   await page.keyboard.press('c');
   await expect.poll(async () => (await diag(page)).renderer?.camera).toBe('cockpit');
   await expect.poll(async () => (await diag(page)).renderer?.mirrorUpdates).toBeGreaterThan(2);
@@ -100,7 +117,15 @@ test('recorded telemetry exports and replay leaves live physics paused', async (
   await ready(page);
   await page.getByRole('button', { name: 'GARAGE & SETTINGS', exact: true }).click();
   await page.locator('[name=quality]').selectOption('low');
+  // Keep the inexpensive low preset but explicitly enable the existing particle
+  // control: a zero-density preset cannot prove replay spray/rain works.
+  await page.locator('[name=graphics_particleDensity]').evaluate((element) => {
+    (element as HTMLInputElement).value = '0.4';
+    element.dispatchEvent(new Event('input', { bubbles: true }));
+  });
   await page.getByRole('button', { name: 'APPLY & SAVE' }).click();
+  await page.selectOption('#weather', 'rain');
+  await page.selectOption('#compound', 'wet');
   await begin(page);
   await page.keyboard.press('g');
   await expect
@@ -126,6 +151,9 @@ test('recorded telemetry exports and replay leaves live physics paused', async (
         }
       }),
     )
+    .toBeGreaterThan(0);
+  await expect
+    .poll(async () => (await diag(page)).presentation?.particles.spawned[3])
     .toBeGreaterThan(0);
   await page.keyboard.press('t');
   await expect(page.locator('#telemetryModal')).toBeVisible();
@@ -161,6 +189,11 @@ test('recorded telemetry exports and replay leaves live physics paused', async (
   for (let row = 2; row < csv.length; row++) {
     expect(Number(csv[row].split(',')[tickColumn]) - firstTick).toBe(2 * (row - 1));
   }
+  const stopped = await diag(page);
+  await page.waitForTimeout(500);
+  const stillStopped = await diag(page);
+  expect(stillStopped.presentation!.time).toBe(stopped.presentation!.time);
+  expect(stillStopped.presentation!.particles).toEqual(stopped.presentation!.particles);
   await page.getByRole('button', { name: 'Close telemetry' }).click();
   await page.getByRole('button', { name: 'WATCH REPLAY' }).click();
   await expect(page.locator('#replayBar')).toBeVisible();
@@ -168,6 +201,48 @@ test('recorded telemetry exports and replay leaves live physics paused', async (
   await page.locator('#replaySeek').evaluate((element) => {
     (element as HTMLInputElement).value = '1';
     element.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+  await expect
+    .poll(async () => (await diag(page)).presentation?.particles.spawned[3])
+    .toBeGreaterThan(0);
+  await expect
+    .poll(async () => (await diag(page)).presentation?.particles.spawned[0])
+    .toBeGreaterThan(0);
+  // Camera changes must update the actual audio listener, not the recorded car.
+  for (let i = 0; i < 3; i++) await page.locator('#replayBar [data-action=camera]').click();
+  await expect.poll(async () => (await diag(page)).renderer?.camera).toBe('trackside');
+  // The request is synchronous; the real camera/listener updates on the next
+  // rendered frame. Require that presentation rather than read the old pod view.
+  await expect.poll(async () => (await diag(page)).renderer?.presentedCamera).toBe('trackside');
+  await expect.poll(async () => (await diag(page)).presentation?.listener.interior).toBe(false);
+  await expect.poll(async () => (await diag(page)).audio.voices.length).toBeGreaterThan(0);
+  const listening = await diag(page);
+  expect(listening.presentation!.listener.interior).toBe(false);
+  expect(
+    Math.hypot(
+      listening.presentation!.listener.vx,
+      listening.presentation!.listener.vy,
+      listening.presentation!.listener.vz,
+    ),
+  ).toBeLessThan(0.001);
+  expect(listening.audio.voices.every((voice) => Number.isFinite(voice.pan + voice.doppler))).toBe(
+    true,
+  );
+  await page.locator('#replayPlay').click();
+  await expect(page.locator('#replayPlay')).toHaveText('PLAY');
+  const replayPaused = await diag(page);
+  await page.waitForTimeout(500);
+  const replayStill = await diag(page);
+  expect(replayStill.presentation).toEqual(replayPaused.presentation);
+  expect(replayStill.replayPosition).toBe(replayPaused.replayPosition);
+  await page.locator('#replaySpeed').selectOption('2');
+  await page.locator('#replayPlay').click();
+  await expect
+    .poll(async () => (await diag(page)).replayPosition)
+    .toBeGreaterThan(replayPaused.replayPosition);
+  await testInfo.attach('replay-effects-and-listener.json', {
+    body: JSON.stringify(await diag(page), null, 2),
+    contentType: 'application/json',
   });
   await page.screenshot({ path: testInfo.outputPath('05-replay.png') });
   await page.waitForTimeout(1000);

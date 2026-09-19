@@ -6,6 +6,7 @@ import {
   steeringResponse,
 } from './calibration.ts';
 import { boundAction, isHeld } from './bindings.ts';
+import { ControllerActions, type ActionContext } from './button-actions.ts';
 import { approach, clamp } from '../core/math.ts';
 import { controls, type Controls } from '../simulation/config.ts';
 import type { Settings } from '../storage/data.ts';
@@ -14,6 +15,7 @@ export class InputController {
   private keys = new Set<string>();
   private steering = 0;
   private previousButtons = new Set<number>();
+  private buttons = new ControllerActions();
   private enabled = false;
   private touch = { left: false, right: false, throttle: false, brake: false };
   gamepadName = 'KEYBOARD';
@@ -104,7 +106,24 @@ export class InputController {
     element.addEventListener('pointercancel', release, options);
     element.addEventListener('lostpointercapture', release, options);
   }
+  pollActions(context: ActionContext) {
+    let pad: Gamepad | null = null;
+    try {
+      pad = selectDevice(navigator.getGamepads?.() ?? [], this.settings.mapping.device);
+    } catch (error) {
+      this.deviceStatus = `Gamepad access unavailable: ${String(error)}`;
+    }
+    if (
+      pad &&
+      this.blockedMapping === this.settings.mapping &&
+      this.suppressedDevice === `${pad.index}:${pad.id}`
+    )
+      pad = null;
+    this.buttons.poll(pad, this.settings.mapping, context, this.action);
+  }
   update(dt: number) {
+    if (!this.enabled) return this.state;
+    this.pollActions('driving');
     if (!this.enabled) return this.state;
     const b = this.settings.bindings,
       k = this.keys,
@@ -178,28 +197,6 @@ export class InputController {
       throttle = Math.max(throttle, pt);
       brake = Math.max(brake, pb);
       clutch = Math.max(clutch, pc);
-      if (pad.mapping === 'standard') {
-        for (const [index, name] of [
-          [9, 'pause'],
-          [3, 'camera'],
-          [2, 'ers'],
-        ] as const) {
-          if (
-            index === m.shiftUpButton ||
-            index === m.shiftDownButton ||
-            (m.manualClutch && index === m.clutchButton) ||
-            (!m.axisPedals && (index === m.throttleButton || index === m.brakeButton))
-          )
-            continue;
-          const down = !!pad.buttons[index]?.pressed;
-          if (down && !this.previousButtons.has(index)) {
-            this.action(name);
-            if (!this.enabled) return this.state;
-          }
-          if (down) this.previousButtons.add(index);
-          else this.previousButtons.delete(index);
-        }
-      }
       for (const [index, direction] of [
         [m.shiftDownButton, -1],
         [m.shiftUpButton, 1],

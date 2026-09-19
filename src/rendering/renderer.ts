@@ -1,8 +1,10 @@
+import { EngineeringView } from './engineering-view.ts';
+import type { EngineeringSample } from '../workers/diagnostics.ts';
 import * as T from 'three';
 import type { FrameMetrics } from '../core/performance.ts';
 import type { BuildProgress } from './build-queue.ts';
 import { TracksideDirector } from './trackside.ts';
-import { InertialCamera, ViewOrientation } from './camera-dynamics.ts';
+import { CameraClock, InertialCamera, ViewOrientation } from './camera-dynamics.ts';
 import { ReflectionSystem } from './reflections.ts';
 import { DebrisView } from './debris.ts';
 import { PitCrewView } from './pit-crew.ts';
@@ -26,8 +28,11 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { FormulaCar } from './car.ts';
 import { CircuitScene } from './circuit.ts';
 import { Effects } from './effects.ts';
+import { PresentedFrame } from './frame-state.ts';
+import { EffectPlayback } from './effect-playback.ts';
+import { AudioViewTracker } from '../audio/spatial.ts';
 import { Track } from '../simulation/track.ts';
-import { F, H, WHEEL_BASE, WHEEL_STRIDE, carBase } from '../simulation/protocol.ts';
+import { F, H, carBase } from '../simulation/protocol.ts';
 import { clamp } from '../core/math.ts';
 export type CameraMode = 'chase' | 'cockpit' | 'pod' | 'trackside';
 export type { Quality } from './options.ts';
@@ -37,7 +42,10 @@ export class RacingRenderer {
   readonly camera = new T.PerspectiveCamera(58, 1, 0.045, 7000);
   readonly circuit: CircuitScene;
   readonly cars: FormulaCar[] = [];
+  readonly audioView = new AudioViewTracker();
   readonly effects = new Effects();
+  readonly presented = new PresentedFrame();
+  readonly effectPlayback = new EffectPlayback(this.effects);
   readonly debris = new DebrisView();
   readonly pitCrew = new PitCrewView();
   readonly sun = new T.DirectionalLight(0xffead0, 3.3);
@@ -72,6 +80,7 @@ export class RacingRenderer {
   private lastRenderCPUms = 0;
   debug = false;
   private follow = 0;
+  private cameraClock = new CameraClock();
   private inertia = new InertialCamera();
   private viewOrientation = new ViewOrientation();
   private reflection = new ReflectionSystem();
@@ -80,8 +89,10 @@ export class RacingRenderer {
   private temporary = new T.Vector3();
   private eyeLocal = new T.Vector3();
   private reflectionMaterials: T.MeshStandardMaterial[] = [];
-  private debugGroup = new T.Group();
-  private arrows: T.ArrowHelper[] = [];
+  readonly engineeringView = new EngineeringView();
+  engineering: EngineeringSample | null = null;
+  replayView = false;
+  private drawnCamera: CameraMode | null = null;
   private frameSamples = new Float32Array(300);
   private sampleIndex = 0;
   private sampleCount = 0;
@@ -148,15 +159,15 @@ export class RacingRenderer {
       this.scene.environment = this.env.texture;
     });
     this.trackside = new TracksideDirector(track);
-    this.scene.add(this.circuit.group, this.effects.group, this.debugGroup);
-    for (let i = 0; i < 4; i++) {
-      const a = new T.ArrowHelper(new T.Vector3(0, 1, 0), new T.Vector3(), 1, 0x46ffd1, 0.2, 0.1);
-      this.arrows.push(a);
-      this.debugGroup.add(a);
-    }
+    this.scene.add(this.circuit.group, this.effects.group, this.engineeringView.group);
+
     this.composer = new EffectComposer(this.renderer);
     this.composer.addPass(new RenderPass(this.scene, this.camera));
-    this.motionBlur = new MotionBlurPass(this.scene, this.camera, this.renderer.extensions.has('EXT_color_buffer_float'));
+    this.motionBlur = new MotionBlurPass(
+      this.scene,
+      this.camera,
+      this.renderer.extensions.has('EXT_color_buffer_float'),
+    );
     this.composer.addPass(this.motionBlur);
     this.bloom = new UnrealBloomPass(new T.Vector2(1, 1), 0.1, 0.3, 1.3);
     this.composer.addPass(this.bloom);
@@ -311,8 +322,11 @@ export class RacingRenderer {
   }
   changeCamera(mode?: CameraMode) {
     this.motionBlur.reset();
+    this.audioView.reset();
+    this.cameraClock.reset();
     const modes: CameraMode[] = ['chase', 'cockpit', 'pod', 'trackside'];
     this.mode = mode ?? modes[(modes.indexOf(this.mode) + 1) % modes.length];
+    this.drawnCamera = null;
     this.initialized = false;
     this.inertia.reset();
     this.viewOrientation.reset();
@@ -323,11 +337,13 @@ export class RacingRenderer {
   }
   reset() {
     this.motionBlur.reset();
+    this.audioView.reset();
+    this.cameraClock.reset();
     this.initialized = false;
     this.inertia.reset();
     this.viewOrientation.reset();
     this.trackside.reset();
-    this.effects.clear();
+    this.effectPlayback.reset();
     this.sampleCount = 0;
     this.sampleIndex = 0;
     this.follow = 0;
@@ -349,6 +365,15 @@ export class RacingRenderer {
     this.sampleCount = Math.min(300, this.sampleCount + 1);
     this.setCars(b[H.CARS]);
     this.orbitTime += dt;
+    const presented = this.presented.sample(a, b, alpha);
+    const cameraDt = this.cameraClock.step(presented[H.TIME], menu);
+    if (this.cameraClock.discontinuous) {
+      this.inertia.reset();
+      this.viewOrientation.reset();
+      this.trackside.reset();
+      this.audioView.reset();
+      this.initialized = false;
+    }
     const time = b[H.TIME],
       o = carBase(this.follow);
     for (let id = 0; id < b[H.CARS]; id++) {
@@ -387,14 +412,14 @@ export class RacingRenderer {
         .add(this.target);
       this.gaze
         .copy(this.target)
-        .add(new T.Vector3(-0.8, 0.15, 0).applyQuaternion(car.root.quaternion));
+        .add(this.temporary.set(-0.8, 0.15, 0).applyQuaternion(car.root.quaternion));
       this.camera.fov = 45;
     } else if (this.mode === 'trackside') {
       this.trackside.update(
         b[o + F.S],
         this.target,
         this.temporary.set(b[o + F.VX], b[o + F.VY], b[o + F.VZ]),
-        dt,
+        cameraDt,
       );
       this.desired.copy(this.trackside.position);
       this.gaze.copy(this.trackside.gaze);
@@ -402,16 +427,17 @@ export class RacingRenderer {
     } else {
       const seated = this.mode === 'cockpit' || this.mode === 'pod';
       if (seated) {
-        this.inertia.step(
-          dt,
-          b[o + F.G_LAT],
-          b[o + F.G_LONG],
-          b[o + F.G_VERT],
-          b[o + F.IMPACT],
-          this.shake,
-        );
+        if (cameraDt > 0)
+          this.inertia.step(
+            cameraDt,
+            b[o + F.G_LAT],
+            b[o + F.G_LONG],
+            b[o + F.G_VERT],
+            b[o + F.IMPACT],
+            this.shake,
+          );
         this.inertia.eye(car.root.position, car.root.quaternion, this.mode === 'pod', this.desired);
-        const orientation = this.viewOrientation.update(car.root.quaternion, dt);
+        const orientation = this.viewOrientation.update(car.root.quaternion, cameraDt);
         this.direction.set(0, -0.035, 1).applyQuaternion(orientation).normalize();
         this.gaze.copy(this.desired).addScaledVector(this.direction, 40);
       } else {
@@ -440,8 +466,8 @@ export class RacingRenderer {
       this.camera.position.add(this.temporary.copy(this.target).sub(this.previousAnchor));
       // Critically damped positional camera spring; bounded integration substeps.
       const omega = 15,
-        n = Math.ceil(dt * 120),
-        h = dt / n;
+        n = Math.max(1, Math.ceil(cameraDt * 120)),
+        h = cameraDt / n;
       for (let k = 0; k < n; k++) {
         this.velocity.addScaledVector(
           this.direction.copy(this.desired).sub(this.camera.position),
@@ -463,22 +489,22 @@ export class RacingRenderer {
     this.sun.position.copy(this.target).add(this.temporary.set(-160, 190, -130));
     this.sun.target.updateMatrixWorld();
     this.circuit.update(b);
-    this.effects.update(b, dt, !menu && !replay);
+    this.effectPlayback.update(presented, !menu);
     this.debris.update(b);
     this.pitCrew.update(b, this.camera.position, !menu);
-    this.debugGroup.visible = this.debug;
-    if (this.debug)
-      for (let i = 0; i < 4; i++) {
-        const p = o + WHEEL_BASE + i * WHEEL_STRIDE;
-        this.arrows[i].position
-          .copy(car.wheelPivots[i].position)
-          .applyQuaternion(car.root.quaternion)
-          .add(car.root.position);
-        this.arrows[i].setLength(Math.max(0.03, b[p + 1] / 3500), 0.15, 0.08);
-      }
+    this.replayView = replay;
+    this.engineeringView.update(this.engineering, b[H.TIME], this.debug, replay);
     this.reflection.beginFrame(this.orbitTime, !menu && this.mode === 'cockpit');
     this.scene.updateMatrixWorld(true);
     this.camera.updateMatrixWorld(true);
+    this.audioView.update(
+      this.camera,
+      this.presented.value[H.TIME],
+      this.mode === 'trackside' ? this.trackside.activeId + 1 : 0,
+      !menu && (this.mode === 'cockpit' || this.mode === 'pod'),
+      this.follow,
+    );
+    this.drawnCamera = this.mode;
     this.eyeLocal.copy(this.camera.position);
     car.root.worldToLocal(this.eyeLocal);
     this.renderer.info.reset();
@@ -555,6 +581,7 @@ export class RacingRenderer {
       construction: { ...this.circuit.construction.statistics },
       carLods: this.cars.map((car) => car.lodLevel),
       camera: this.mode,
+      presentedCamera: this.drawnCamera,
       tracksideRig: this.trackside.activeId,
       tracksideCuts: this.trackside.cuts,
       cameraLocalPosition: this.eyeLocal.toArray(),
@@ -567,7 +594,7 @@ export class RacingRenderer {
       gpuTimerSupported: this.gpuTimer.supported,
       fps: this.fps,
       frameMs: this.frameMs,
-      p1FPS: slowTotal ? 1000 * slowCount / slowTotal : 0,
+      p1FPS: slowTotal ? (1000 * slowCount) / slowTotal : 0,
       renderCPUms: this.renderMs,
       drawCalls: info.calls,
       triangles: info.triangles,
@@ -588,7 +615,7 @@ export class RacingRenderer {
       materials = new Set<T.Material>(),
       textures = new Set<T.Texture>();
     this.scene.traverse((o) => {
-      if (o instanceof T.Mesh || o instanceof T.Points) {
+      if (o instanceof T.Mesh || o instanceof T.Points || o instanceof T.Line) {
         geometries.add(o.geometry);
         for (const m of Array.isArray(o.material) ? o.material : [o.material]) {
           materials.add(m);

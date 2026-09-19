@@ -21,3 +21,12 @@ Four rig tests cover fixed limb lengths throughout wheel rotation, anchored shou
 The exact contact graph also runs in a real Chromium `OfflineAudioContext`, not mocked audio nodes. Four one-second, 48 kHz signal fixtures are generated and measured. Grass and gravel produce distinct high-frequency energy; airborne contact is silent; flat-spot sound has nonzero energy; every sample is finite and the measured peak remains below one. The retained report is `contact-audio-signals.json`. Offline rendering tests signal generation, not speakers, subjective sound quality or audiovisual timing in the full game.
 
 The full-game browser workflow additionally checks both arm chains from a rendered cockpit and retains a cockpit screenshot. This checkpoint does not claim all driver-animation, acoustics, device profiling or whole-project audit requirements are finished.
+
+## Camera-relative playback continuation
+
+The actual camera now supplies the listener position, camera-right vector and
+simulation-time velocity. Four stable nearby engines receive distance falloff,
+source/listener Doppler and fade-before-retune transitions; the player's contact
+bus is spatially attenuated. The new real Chromium engine PCM oracle supplements
+the historical contact-signal oracle above. See [replay, audio and engineering](REPLAY_AUDIO_AND_ENGINEERING.md)
+and `spatial-audio-signals.json` for the exact measured source and limits.

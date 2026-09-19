@@ -109,3 +109,27 @@ suite and two new browser oracles must pass before the source publication
 workflow can commit this candidate. Full three-pass project certification,
 representative-device performance and independent visual/audio quality remain
 open rather than silently converted into pass marks.
+
+## Continuation from be8e95a: replay presentation, spatial audio and engineering
+
+The source and original 148-section Markdown 6 were recovered byte-for-byte.
+This continuation repairs replay-disabled and pause-driven particles, connects
+engine selection/stereo/Doppler to the actual camera, and fills the required live
+engineering readouts with genuine physics/AI observations. The debug stream is
+opt-in, bounded and read-only; it does not change the recorded protocol or physics.
+The existing local physics core remains byte-identical to the prior endurance
+checkpoint. See [implementation, tests and three subsystem passes](REPLAY_AUDIO_AND_ENGINEERING.md).
+
+New native tests and real browser PCM signal tests supplement the existing full
+Chromium/WebGL publication gate, wet replay/CSV checks and physical driving
+journey. Full-project three-pass certification, representative-device performance
+and the complete combined section-146 acceptance remain separate open obligations.
+
+## Recovery and continuation from failed publication a18701b
+
+The exact failed candidate and traces from run 35423347163 were recovered. Its
+native checks passed but browser checks blocked source publication. The follow-up
+repairs slow-frame cockpit heading, distinguishes requested and drawn camera
+state, and adds nine configurable controller actions with version-5 migration,
+conflict validation and independent pause/resume polling. See
+[recovery, evidence and remaining boundaries](REPLAY_AUDIO_AND_ENGINEERING.md).

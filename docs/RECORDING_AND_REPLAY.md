@@ -33,3 +33,12 @@ The desktop cockpit HUD moves beside the car instead of covering the physical st
 Historical evidence from the first recording checkpoint: local lint, TypeScript, production build and 107 tests passed during that checkpoint. The three four-car weather scenarios and ten-car physical pit scenario passed; the pit report contains a small contact event, **not zero contact**. The current browser workflow additionally checks real IndexedDB page creation, 203 CSV columns and exact two-tick sample spacing, camera visibility, manual steering, replay/pause safety and the results screen. A browser pass must be read from the workflow for the exact published revision.
 
 Later changes added explicit wheel calibration, individual graphics/accessibility controls, marshal rules, dynamics benchmarks and long-run AI evidence. See the coverage ledger and subsystem documents for their actual scope. Target-device profiling, the complete combined scenario and final engineering/player/audiovisual audits are not certified by this recording page. Historical reports without a matching source revision are not current acceptance certificates.
+
+## Simulation-time effects and camera audio
+
+The replay/audio continuation removes the renderer's replay-only particle
+suppression. A separate reusable interpolated presentation frame drives effects
+and camera-relative audio without altering archived measurements. Particle aging
+and births follow recorded simulation time, freeze on pause, and reset on seeks.
+Live-only engineering contact/AI probe records are explicitly not substituted
+into replay history. See [the lifecycle and validation contract](REPLAY_AUDIO_AND_ENGINEERING.md).

@@ -1,3 +1,8 @@
+import {
+  isEngineeringSample,
+  type ClientMessage,
+  type WorkerMessage,
+} from './workers/diagnostics.ts';
 import PhysicsWorker from './workers/physics.worker.ts?worker&inline';
 import './ui/style.css';
 import { PerformanceCapture, type FrameMetrics } from './core/performance.ts';
@@ -9,15 +14,7 @@ import {
   validateSetup,
   type SessionOptions,
 } from './simulation/config.ts';
-import {
-  F,
-  H,
-  HEADER,
-  CAR_STRIDE,
-  carBase,
-  type FromWorker,
-  type ToWorker,
-} from './simulation/protocol.ts';
+import { F, H, HEADER, CAR_STRIDE, carBase } from './simulation/protocol.ts';
 import { RacingRenderer } from './rendering/renderer.ts';
 import { Interface, shortTime } from './ui/interface.ts';
 import { InputController } from './input/controller.ts';
@@ -102,7 +99,8 @@ export class GameApp {
       apply: (s) => this.applySettings(s),
       seek: (value) => {
         this.replayTime = value;
-        this.renderer?.effects.clear();
+        this.renderer?.reset();
+        this.audio.resetPresentation();
       },
       replaySpeed: (value) => (this.replayRate = value),
       exportSetup: () =>
@@ -116,7 +114,19 @@ export class GameApp {
     });
     this.input = new InputController(this.settings, (name) => this.action(name));
     this.inputPump = new InputPump((dt) => {
-      if (this.state !== 'driving' || this.errorStopped) return;
+      if (this.errorStopped) return;
+      this.input.pollActions(
+        this.state === 'driving'
+          ? 'driving'
+          : this.state === 'replay'
+            ? 'replay'
+            : this.state === 'paused' &&
+                !this.ui.telemetryModal.open &&
+                !document.getElementById('settingsForm')
+              ? 'paused'
+              : 'off',
+      );
+      if (this.state !== 'driving') return;
       const input = this.input.update(dt);
       // A device fault may have paused the session during update().
       if (this.state !== 'driving') return;
@@ -230,7 +240,7 @@ export class GameApp {
     this.ui.showMode('menu');
     this.timer = requestAnimationFrame(this.frame);
   }
-  private post(message: ToWorker, transfer: Transferable[] = []) {
+  private post(message: ClientMessage, transfer: Transferable[] = []) {
     this.worker?.postMessage(message, transfer);
   }
   private async start(options: SessionOptions) {
@@ -268,12 +278,21 @@ export class GameApp {
     this.previous = null;
     this.renderer?.reset();
     this.worker?.terminate();
+    if (this.renderer) this.renderer.engineering = null;
     const generation = ++this.generation;
     this.worker = new PhysicsWorker({ name: 'apex-physics' });
     this.worker.onerror = (e) => this.fail(new Error(`Physics worker: ${e.message}`));
-    this.worker.onmessage = (event: MessageEvent<FromWorker>) => {
+    this.worker.onmessage = (event: MessageEvent<WorkerMessage>) => {
       if (generation !== this.generation) return;
       const message = event.data;
+      if (message.type === 'engineering') {
+        if (!isEngineeringSample(message.sample)) {
+          this.fail(new Error('Invalid engineering response'));
+          return;
+        }
+        if (this.renderer) this.renderer.engineering = message.sample;
+        return;
+      }
       if (message.type === 'error') {
         this.fail(new Error(message.message));
         return;
@@ -329,6 +348,7 @@ export class GameApp {
         );
     }, 15000);
     this.post({ type: 'init', options: this.options });
+    this.post({ type: 'engineering', enabled: this.renderer?.debug ?? false });
     await ready;
     clearTimeout(this.initTimeout);
     if (this.errorStopped || this.disposed || generation !== this.generation) return;
@@ -442,9 +462,10 @@ export class GameApp {
     this.renderer.draw(a, b, alpha, dt, this.state === 'menu', this.state === 'replay', wallDelta);
     if (this.state !== 'menu') this.ui.update(b, this.renderer, this.auto, this.ers);
     this.audio.update(
-      b,
+      this.renderer.presented.value,
       this.renderer.mode === 'cockpit',
       this.state === 'driving' || (this.state === 'replay' && this.replayPlaying),
+      this.renderer.audioView.value,
     );
     if (this.ui.telemetryModal.open && this.telemetry) {
       this.graphClock += dt;
@@ -613,7 +634,11 @@ export class GameApp {
         break;
       case 'debug':
         this.performanceCapture.interrupt('Debug workload changed');
-        if (this.renderer) this.renderer.debug = !this.renderer.debug;
+        if (this.renderer) {
+          this.renderer.debug = !this.renderer.debug;
+          this.renderer.engineering = null;
+          this.post({ type: 'engineering', enabled: this.renderer.debug });
+        }
         break;
       case 'autopilot':
         this.performanceCapture.interrupt('Driver changed');
@@ -829,6 +854,18 @@ export class GameApp {
   diagnostics(visual = false) {
     return {
       state: this.state,
+      audio: this.audio.diagnostics(),
+      engineering: this.renderer?.engineering ?? null,
+      presentation: this.renderer
+        ? {
+            time: this.renderer.presented.value[H.TIME] ?? 0,
+            engineeringVisible: this.renderer.engineeringView.group.visible,
+            elapsed: this.renderer.effectPlayback.elapsed,
+            resets: this.renderer.effectPlayback.resets,
+            listener: { ...this.renderer.audioView.value },
+            particles: this.renderer.effects.diagnostics(),
+          }
+        : null,
       performanceCapture: {
         state: this.performanceCapture.state,
         frames: this.performanceCapture.count,

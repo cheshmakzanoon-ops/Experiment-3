@@ -1,7 +1,8 @@
+import { isEngineeringSample, type WorkerMessage } from '../../src/workers/diagnostics.ts';
 import PhysicsWorker from '../../src/workers/physics.worker.ts?worker&inline';
 import { TelemetryExport } from '../../src/storage/telemetry-export.ts';
 import { DEFAULT_OPTIONS } from '../../src/simulation/config.ts';
-import { H, type FromWorker } from '../../src/simulation/protocol.ts';
+import { H } from '../../src/simulation/protocol.ts';
 import { packTelemetry, TELEMETRY_STRIDE } from '../../src/storage/telemetry-schema.ts';
 
 /** Execute the actual physics entry and production CSV export class. The test's
@@ -12,14 +13,27 @@ export async function verifyWorkerPortability() {
   let timeout: ReturnType<typeof setTimeout> | undefined;
   let surfaceCells = 0;
   let telemetryRows = 0;
+  let engineeringSamples = 0;
+  let engineeringTick = -1;
+  let engineeringActive = false;
+  const engineeringTicks: number[] = [];
   try {
     const frame = await new Promise<Float32Array>((resolve, reject) => {
       timeout = setTimeout(() => reject(new Error('Physics worker did not advance')), 20000);
       physics.onerror = (event) => reject(new Error(event.message));
       physics.onmessageerror = () => reject(new Error('Physics message deserialization failed'));
-      physics.onmessage = (event: MessageEvent<FromWorker>) => {
+      physics.onmessage = (event: MessageEvent<WorkerMessage>) => {
         const message = event.data;
-        if (message.type === 'error' || message.type === 'recordingWarning') {
+        if (message.type === 'engineering') {
+          if (!isEngineeringSample(message.sample)) {
+            reject(new Error('Malformed engineering snapshot'));
+            return;
+          }
+          engineeringSamples++;
+          engineeringTicks.push(message.sample.tick);
+          engineeringTick = message.sample.tick;
+          engineeringActive = message.sample.aiActive;
+        } else if (message.type === 'error' || message.type === 'recordingWarning') {
           reject(new Error(message.message));
         } else if (message.type === 'surface') {
           if (
@@ -48,6 +62,7 @@ export async function verifyWorkerPortability() {
         options: { ...DEFAULT_OPTIONS, mode: 'practice', opponents: 0 },
       });
       physics.postMessage({ type: 'autopilot', value: true });
+      physics.postMessage({ type: 'engineering', enabled: true });
       physics.postMessage({ type: 'pause', value: false });
     });
     clearTimeout(timeout);
@@ -64,6 +79,10 @@ export async function verifyWorkerPortability() {
       finite: frame.every(Number.isFinite),
       surfaceCells,
       telemetryRows,
+      engineeringSamples,
+      engineeringTick,
+      engineeringActive,
+      engineeringTicks,
       csvColumns: header.length,
       pickupColumns: header.slice(-4),
       csvExact:

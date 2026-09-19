@@ -18,7 +18,7 @@ it.each([1, 2, 3])('migrates version %i without losing controls or setup', (vers
     bindings: { ...old.bindings, throttle: 'KeyI' },
   };
   const migrated = validateSettings(saved);
-  expect(migrated.version).toBe(4);
+  expect(migrated.version).toBe(5);
   expect(migrated.graphics).toEqual(graphicsPreset('high'));
   expect(migrated.bindings.throttle).toBe('KeyI');
   expect(migrated.setup).toEqual(old.setup);

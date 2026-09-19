@@ -211,6 +211,20 @@ export class ContactAudio {
     this.lastGear = gear;
     this.lastTime = simTime;
   }
+  /** A seek/pause is not an impact or gear-change event. Cancel old envelopes
+   * before accepting the next recorded baseline, including very short seeks. */
+  reset(time = this.context.currentTime) {
+    if (this.disposed) return;
+    this.lastTime = -1;
+    this.lastImpact = 0;
+    this.lastLoad.fill(0);
+    this.kerbEnvelope = 0;
+    for (const name of ['impact', 'shift'] as const) {
+      const param = this.layers[name].gain.gain;
+      param.cancelScheduledValues(time);
+      param.setValueAtTime(0, time);
+    }
+  }
   private pulse(name: 'impact' | 'shift', level: number, time: number, duration: number) {
     const param = this.layers[name].gain.gain;
     param.cancelScheduledValues(time);

@@ -1,24 +1,26 @@
 import { ContactAudio } from './surface-audio.ts';
-import { F, H, carBase } from '../simulation/protocol.ts';
+import { EngineVoices } from './engine-voices.ts';
+import type { AudioView } from './spatial.ts';
+import { H } from '../simulation/protocol.ts';
 import { clamp, Random } from '../core/math.ts';
-interface Voice {
-  osc: OscillatorNode[];
-  bands: GainNode[];
-  filter: BiquadFilterNode;
-  gain: GainNode;
-  pan: StereoPannerNode;
-}
-/** Original procedural sound. Three harmonic engine bands, load-filtered intake,
- * hybrid whine, wind, tire energy, water and impacts all consume simulation state. */
+
+/** The live context owns the master bus, ambient wind/rain, spatial engine graph
+ * and player contact graph. Rendering supplies the actual listener pose; no
+ * audio output is allowed to modify physics or recorded state. */
 export class RacingAudio {
   private context: AudioContext | null = null;
   private master: GainNode | null = null;
   private compressor: DynamicsCompressorNode | null = null;
-  private voices: Voice[] = [];
+  private engines: EngineVoices | null = null;
   private sources: AudioScheduledSourceNode[] = [];
+  private nodes: AudioNode[] = [];
   private wind: GainNode | null = null;
+  private rain: GainNode | null = null;
+  private contactPan: StereoPannerNode | null = null;
   private contactAudio: ContactAudio | null = null;
-  private last = 0;
+  private last = -Infinity;
+  private wasPlaying = false;
+  private contactAttenuation = 0;
   volume = 0.45;
   muted = false;
   async start() {
@@ -36,142 +38,96 @@ export class RacingAudio {
     this.compressor.attack.value = 0.004;
     this.compressor.release.value = 0.18;
     this.master.connect(this.compressor).connect(ctx.destination);
-    const waves = [0, 1, 2].map((band) => {
-      const real = new Float32Array(40),
-        imag = new Float32Array(40);
-      for (let k = 1; k < 40; k++)
-        imag[k] =
-          (band === 0 ? (k % 2 ? 1 : 0.35) : band === 1 ? (k % 3 ? 0.6 : 1) : 0.65) /
-          k ** (1.8 - band * 0.35);
-      return ctx.createPeriodicWave(real, imag);
-    });
-    for (let i = 0; i < 4; i++) {
-      const gain = ctx.createGain(),
-        filter = ctx.createBiquadFilter(),
-        pan = ctx.createStereoPanner();
-      gain.gain.value = 0;
-      filter.type = 'lowpass';
-      filter.frequency.value = 2200;
-      filter.Q.value = 0.5;
-      gain.connect(filter).connect(pan).connect(this.master);
-      const osc: OscillatorNode[] = [],
-        bands: GainNode[] = [];
-      for (let j = 0; j < 3; j++) {
-        const o = ctx.createOscillator(),
-          g = ctx.createGain();
-        o.setPeriodicWave(waves[j]);
-        g.gain.value = 0;
-        o.connect(g).connect(gain);
-        o.start();
-        this.sources.push(o);
-        osc.push(o);
-        bands.push(g);
-      }
-      this.voices.push({ osc, bands, filter, gain, pan });
-    }
+    this.engines = new EngineVoices(ctx, this.master);
     const random = new Random(331),
-      buffer = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate),
-      data = buffer.getChannelData(0);
+      buffer = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
     let previous = 0;
     for (let i = 0; i < data.length; i++) {
       previous = 0.83 * previous + 0.17 * (random.next() * 2 - 1);
       data[i] = previous * 2;
     }
-    const noise = (type: BiquadFilterType, freq: number, q = 1) => {
-      const source = ctx.createBufferSource();
+    const noise = (type: BiquadFilterType, frequency: number) => {
+      const source = ctx.createBufferSource(),
+        filter = ctx.createBiquadFilter(),
+        gain = ctx.createGain();
       source.buffer = buffer;
       source.loop = true;
-      const f = ctx.createBiquadFilter();
-      f.type = type;
-      f.frequency.value = freq;
-      f.Q.value = q;
-      const gain = ctx.createGain();
+      filter.type = type;
+      filter.frequency.value = frequency;
       gain.gain.value = 0;
-      source.connect(f).connect(gain).connect(this.master!);
+      source.connect(filter).connect(gain).connect(this.master!);
       source.start();
       this.sources.push(source);
+      this.nodes.push(source, filter, gain);
       return gain;
     };
     this.wind = noise('lowpass', 700);
-    this.contactAudio = new ContactAudio(ctx, this.master);
+    this.rain = noise('highpass', 1700);
+    this.contactPan = ctx.createStereoPanner();
+    this.contactPan.connect(this.master);
+    this.nodes.push(this.contactPan, this.master, this.compressor);
+    this.contactAudio = new ContactAudio(ctx, this.contactPan);
     await ctx.resume();
   }
-  update(frame: Float32Array, cockpit: boolean, playing: boolean) {
+  update(frame: Float32Array, cockpit: boolean, playing: boolean, view: AudioView) {
     const ctx = this.context;
     if (!ctx || !this.master || ctx.currentTime - this.last < 0.025) return;
     this.last = ctx.currentTime;
-    const time = ctx.currentTime,
-      b = carBase(0),
-      speed = frame[b + F.SPEED];
-    const set = (p: AudioParam, value: number, t = 0.04) => p.setTargetAtTime(value, time, t);
-    set(this.master.gain, playing && !this.muted ? this.volume * 0.8 : 0, 0.06);
-    if (!playing) return;
-    const neighbors = Array.from({ length: frame[H.CARS] }, (_, id) => id).sort((i, j) => {
-      const a = carBase(i),
-        z = carBase(j);
-      return (
-        Math.hypot(frame[a] - frame[b], frame[a + 2] - frame[b + 2]) -
-        Math.hypot(frame[z] - frame[b], frame[z + 2] - frame[b + 2])
-      );
-    });
-    const yaw = Math.atan2(
-      2 * (frame[b + F.QW] * frame[b + F.QY] + frame[b + F.QX] * frame[b + F.QZ]),
-      1 - 2 * (frame[b + F.QY] ** 2 + frame[b + F.QZ] ** 2),
-    );
-    this.voices.forEach((voice, i) => {
-      const id = neighbors[i];
-      if (id === undefined) {
-        set(voice.gain.gain, 0);
-        return;
-      }
-      const o = carBase(id),
-        rpm = frame[o + F.RPM],
-        load = clamp(Math.abs(frame[o + F.ENGINE_TORQUE]) / 650, 0, 1),
-        dx = frame[o] - frame[b],
-        dz = frame[o + 2] - frame[b + 2],
-        distance = Math.hypot(dx, dz);
-      const radial =
-        distance > 0.1
-          ? ((frame[o + F.VX] - frame[b + F.VX]) * dx + (frame[o + F.VZ] - frame[b + F.VZ]) * dz) /
-            distance
-          : 0;
-      const doppler = clamp(343 / (343 + radial), 0.84, 1.18),
-        base = (rpm / 60) * 3;
-      for (let band = 0; band < 3; band++) {
-        set(voice.osc[band].frequency, Math.max(50, base * [0.5, 1, 2][band] * doppler), 0.035);
-        const centre = [4500, 8500, 12500][band],
-          weight = Math.exp(-(((rpm - centre) / 4300) ** 2));
-        set(voice.bands[band].gain, weight * [0.26, 0.22, 0.085][band] * (0.45 + load * 0.55));
-      }
-      set(voice.gain.gain, id === 0 ? 0.82 : Math.min(0.45, 8 / (distance + 8)));
-      set(
-        voice.pan.pan,
-        id === 0
-          ? 0
-          : clamp((dx * Math.cos(yaw) - dz * Math.sin(yaw)) / Math.max(8, distance), -1, 1),
-      );
-      set(voice.filter.frequency, id === 0 && cockpit ? 1500 + load * 2300 : 2500 + load * 4600);
-    });
-    set(this.wind!.gain, Math.min(0.25, (speed / 100) ** 2 * 0.23));
+    const time = ctx.currentTime;
+    this.master.gain.setTargetAtTime(playing && !this.muted ? this.volume * 0.8 : 0, time, 0.06);
+    if (!playing) {
+      if (this.wasPlaying) this.resetPresentation();
+      this.wasPlaying = false;
+      return;
+    }
+    this.wasPlaying = true;
+    this.engines!.update(frame, view, time);
+    const player = this.engines!.spatial.player;
+    this.contactAttenuation = clamp(player.gain / 0.82, 0, 1);
+    this.contactPan!.pan.setTargetAtTime(player.pan, time, 0.025);
+    this.contactAudio!.output.gain.setTargetAtTime(0.85 * this.contactAttenuation, time, 0.04);
     this.contactAudio!.update(frame, cockpit, time);
+    // Trackside listeners hear ambient wind, not 300 km/h cockpit wind. Rain
+    // remains local to the listener even when the player's contact bus is distant.
+    const airSpeed = Math.hypot(view.vx - frame[H.WIND_X], view.vy, view.vz - frame[H.WIND_Z]);
+    this.wind!.gain.setTargetAtTime(Math.min(0.25, (airSpeed / 100) ** 2 * 0.23), time, 0.04);
+    this.rain!.gain.setTargetAtTime(
+      clamp(frame[H.RAIN] * 0.0025, 0, 0.12) * (1 - this.contactAttenuation) * 0.85,
+      time,
+      0.04,
+    );
+  }
+  resetPresentation() {
+    this.contactAudio?.reset();
+  }
+  diagnostics() {
+    return {
+      state: this.context?.state ?? 'uninitialized',
+      contactAttenuation: this.contactAttenuation,
+      voices: this.engines?.spatial.voices.map((voice) => ({ ...voice })) ?? [],
+    };
   }
   stop() {
     this.master?.gain.setTargetAtTime(0, this.context?.currentTime ?? 0, 0.03);
+    this.resetPresentation();
+    this.wasPlaying = false;
   }
   async dispose() {
     this.contactAudio?.dispose();
     this.contactAudio = null;
-    for (const s of this.sources) {
-      s.stop();
-      s.disconnect();
-    }
-    this.sources = [];
+    this.engines?.dispose();
+    this.engines = null;
+    for (const source of this.sources) source.stop();
+    for (const node of this.nodes) node.disconnect();
+    this.sources.length = this.nodes.length = 0;
     if (this.context) await this.context.close();
     this.context = null;
-    this.voices = [];
     this.master = null;
     this.compressor = null;
-    this.wind = null;
-    this.last = 0;
+    this.wind = this.rain = null;
+    this.contactPan = null;
+    this.last = -Infinity;
+    this.wasPlaying = false;
   }
 }

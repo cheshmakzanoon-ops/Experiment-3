@@ -1,9 +1,11 @@
 /// <reference lib="webworker" />
 import { FixedStepper } from '../core/math.ts';
-import { CAR_STRIDE, HEADER, type FromWorker, type ToWorker } from '../simulation/protocol.ts';
+import { CAR_STRIDE, HEADER } from '../simulation/protocol.ts';
 import { TelemetrySampler } from '../storage/telemetry-sampler.ts';
 import { Simulation } from '../simulation/world.ts';
 import { controls } from '../simulation/config.ts';
+import { EngineeringProbe, type ClientMessage, type WorkerMessage } from './diagnostics.ts';
+const probe = new EngineeringProbe();
 const scope = self as unknown as DedicatedWorkerGlobalScope;
 let simulation: Simulation | null = null,
   paused = true,
@@ -15,18 +17,29 @@ let pool: ArrayBuffer[] = [];
 let telemetry: TelemetrySampler | null = null;
 let lastSent = -1,
   lastSurface = -1;
-const send = (msg: FromWorker, transfer: Transferable[] = []) => scope.postMessage(msg, transfer);
+const send = (msg: WorkerMessage, transfer: Transferable[] = []) =>
+  scope.postMessage(msg, transfer);
+function engineering() {
+  if (!simulation) return;
+  const sample = probe.sample(simulation);
+  if (sample) send({ type: 'engineering', sample });
+}
 function snapshot() {
   if (!simulation || pool.length === 0) return;
   const buffer = pool.pop()!;
   simulation.writeFrame(new Float32Array(buffer), stepMs, clock.droppedSeconds);
   send({ type: 'frame', buffer }, [buffer]);
 }
-scope.onmessage = (event: MessageEvent<ToWorker>) => {
+scope.onmessage = (event: MessageEvent<ClientMessage>) => {
   try {
     const msg = event.data;
     switch (msg.type) {
+      case 'engineering':
+        probe.enable(msg.enabled);
+        engineering();
+        break;
       case 'init':
+        probe.reset();
         simulation = new Simulation(msg.options);
         telemetry = new TelemetrySampler(
           simulation,
@@ -106,6 +119,7 @@ setInterval(() => {
       snapshot();
       lastSent = simulation.tick;
     }
+    engineering();
     if (simulation.tick - lastSurface >= 60) {
       const water = simulation.track.water.slice(),
         rubber = simulation.track.rubber.slice(),

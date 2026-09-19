@@ -64,10 +64,44 @@ export class ViewOrientation {
     this.initialized = false;
   }
   update(target: Quaternion, dt: number) {
+    if (
+      !Number.isFinite(dt) ||
+      dt < 0 ||
+      !Number.isFinite(target.x + target.y + target.z + target.w) ||
+      Math.abs(target.lengthSq() - 1) > 0.001
+    )
+      throw new Error('Invalid view orientation');
     if (!this.initialized) {
       this.rotation.copy(target);
       this.initialized = true;
-    } else this.rotation.slerp(target, 1 - Math.exp(-32 * Math.min(dt, 0.1)));
+    } else if (dt > 0) {
+      this.rotation.slerp(target, -Math.expm1(-32 * Math.min(dt, 0.1)));
+      // Heading lag is a small driver response, not a world-locked view. Even a
+      // slow frame through a hairpin must keep the instruments ahead of the eyes.
+      const lag = this.rotation.angleTo(target);
+      if (lag > 0.04) this.rotation.rotateTowards(target, lag - 0.04);
+      this.rotation.normalize();
+    }
     return this.rotation;
+  }
+}
+
+/** Camera springs and pan/zoom consume the presented simulation clock. A paused
+ * frame can still change camera mode/free look, but cannot advance its inertia.
+ * Menu orbiting is separate, and seeks establish a new clock baseline. */
+export class CameraClock {
+  private time = NaN;
+  discontinuous = true;
+  reset() {
+    this.time = NaN;
+  }
+  step(time: number, menu = false) {
+    if (!Number.isFinite(time)) throw new Error('Invalid camera presentation time');
+    const elapsed = time - this.time;
+    this.time = menu ? NaN : time;
+    this.discontinuous = menu || !Number.isFinite(elapsed) || elapsed < 0 || elapsed > 2;
+    // A slow render is not a pause. Springs retain a bounded integration step;
+    // true discontinuities are explicitly rebaselined by the renderer.
+    return !this.discontinuous && elapsed > 0 ? Math.min(elapsed, 0.08) : 0;
   }
 }

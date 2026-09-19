@@ -1,3 +1,5 @@
+import { BUTTON_ACTIONS, BUTTON_ACTION_LABELS } from '../input/button-actions.ts';
+import { engineeringReport } from './engineering.ts';
 import { FLAG, flagLabel, yellowFlag } from '../simulation/marshal.ts';
 import { presentationControls, bindPresentation, weatherReadout } from './presentation.ts';
 import { DeviceCalibrationPanel } from './device-calibration.ts';
@@ -203,10 +205,7 @@ export class Interface {
     this.get('lapDelta').dataset.ahead = String(frame[o + F.DELTA_VALID] > 0 && delta < 0);
     this.setText('flag', flag);
     this.get('flag').dataset.flag = String(frame[H.FLAG]);
-    this.setText(
-      'weatherLabel',
-      weatherReadout(frame[H.AMBIENT], frame[H.RAIN], frame[H.WATER]),
-    );
+    this.setText('weatherLabel', weatherReadout(frame[H.AMBIENT], frame[H.RAIN], frame[H.WATER]));
     for (const [id, field] of [
       ['lapTime', F.LAP_TIME],
       ['bestLap', F.BEST_LAP],
@@ -299,9 +298,12 @@ export class Interface {
     this.drawMap(frame);
     this.get('debug').hidden = !renderer.debug;
     if (renderer.debug) {
-      const s = renderer.stats();
-      this.get('debug').textContent =
-        `RENDER ${s.fps.toFixed(1)} FPS / ${s.frameMs.toFixed(1)} ms\n1% LOW ${s.p1FPS.toFixed(1)} FPS\nCPU SUBMIT ${s.renderCPUms.toFixed(2)} ms\nPHYSICS ${frame[H.STEP_MS].toFixed(2)} ms / tick\nDRAWS ${s.drawCalls} · TRI ${s.triangles.toLocaleString()}\nWALL TIME DROPPED ${frame[H.DROPPED].toFixed(3)} s\nTICK ${Math.round(frame[H.TICK])}\nFRONT AERO ${frame[o + F.AERO_FRONT].toFixed(0)} N\nREAR AERO ${frame[o + F.AERO_REAR].toFixed(0)} N\nWATER ${frame[H.WATER].toFixed(3)} mm\nWAKE ${(frame[o + F.WAKE] * 100).toFixed(0)}%\nAI TARGET ${(frame[o + F.AI_TARGET] * 3.6).toFixed(0)} km/h\nGPU QUERY ${s.gpuMilliseconds === null ? (s.gpuTimerSupported ? 'PENDING / INVALID' : 'UNSUPPORTED') : `${s.gpuMilliseconds.toFixed(2)} ms`}`;
+      this.get('debug').textContent = engineeringReport(
+        frame,
+        renderer.stats(),
+        renderer.engineering,
+        renderer.replayView,
+      );
     }
   }
   private drawMap(frame: Float32Array) {
@@ -360,7 +362,7 @@ export class Interface {
         )
         .join(
           '',
-        )}<b>ESC</b><span>Pause / release mouse look</span><b>DOUBLE CLICK</b><span>Cockpit mouse look</span></div><p>Standard gamepads: left stick, trigger pedals, shoulder shifts, Y camera, X energy, Start pause. Nonstandard wheels require axis mapping in settings. Native wheel force feedback is not implemented.</p><button class="primary" data-action="modalClose">UNDERSTOOD</button>`,
+        )}<b>ESC</b><span>Pause / release mouse look</span><b>DOUBLE CLICK</b><span>Cockpit mouse look</span></div><p>Default standard gamepad: left stick, trigger pedals, shoulder shifts, Y camera, X energy, Start pause/resume. Remap action buttons, pedals and shifts in settings. Nonstandard wheels require explicit device selection and mapping. Native wheel force feedback is not implemented.</p><button class="primary" data-action="modalClose">UNDERSTOOD</button>`,
     );
   }
   modalContent(html: string) {
@@ -453,7 +455,7 @@ export class Interface {
         )
         .join(
           '',
-        )}<label class="range-row">Deadzone<output>${settings.mapping.deadzone}</output><input name="deadzone" type="range" min="0" max=".35" step=".01" value="${settings.mapping.deadzone}"></label><label class="range-row">Steering response exponent<output>${settings.mapping.exponent}</output><input name="exponent" type="range" min=".5" max="3" step=".1" value="${settings.mapping.exponent}"></label><div id="deviceCalibration"></div><h3>Keyboard bindings</h3><div class="binding-grid">${Object.entries(
+        )}<label class="range-row">Deadzone<output>${settings.mapping.deadzone}</output><input name="deadzone" type="range" min="0" max=".35" step=".01" value="${settings.mapping.deadzone}"></label><label class="range-row">Steering response exponent<output>${settings.mapping.exponent}</output><input name="exponent" type="range" min=".5" max="3" step=".1" value="${settings.mapping.exponent}"></label><div id="deviceCalibration"></div><h3>Controller actions</h3><p class="small-note">Set -1 to disable. Actions cannot share a shift or active pedal button. Pause/resume remains available without sending pedals while paused.</p><div class="mapping-grid">${BUTTON_ACTIONS.map((key) => `<label>${BUTTON_ACTION_LABELS[key]} button<input type="number" name="action_${key}" required min="-1" max="127" step="1" value="${settings.mapping.buttonActions[key]}"></label>`).join('')}</div><h3>Keyboard bindings</h3><div class="binding-grid">${Object.entries(
         settings.bindings,
       )
         .map(
@@ -552,6 +554,8 @@ export class Interface {
         );
       this.bindingCapture?.abort();
       try {
+        for (const key of BUTTON_ACTIONS)
+          next.mapping.buttonActions[key] = Number(value(`action_${key}`));
         this.deviceCalibration?.apply(next.mapping);
         this.callbacks.apply(validateSettings(next));
       } catch (error) {

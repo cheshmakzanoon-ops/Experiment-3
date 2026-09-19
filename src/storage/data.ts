@@ -14,7 +14,13 @@ import {
   type GraphicsOptions,
   type Quality,
 } from '../rendering/options.ts';
+import {
+  DEFAULT_BUTTON_ACTIONS,
+  validateButtonActions,
+  type ButtonActions,
+} from '../input/button-actions.ts';
 export interface InputMapping {
+  buttonActions: ButtonActions;
   device: DeviceSelection | null;
   wheelSteering: boolean;
   saturation: number;
@@ -36,7 +42,7 @@ export interface InputMapping {
   exponent: number;
 }
 export interface Settings {
-  version: 4;
+  version: 5;
   graphics: GraphicsOptions;
   colorblind: boolean;
   highContrast: boolean;
@@ -49,7 +55,7 @@ export interface Settings {
   bindings: Bindings;
 }
 export const DEFAULT_SETTINGS: Settings = {
-  version: 4,
+  version: 5,
   graphics: graphicsPreset('medium'),
   colorblind: false,
   highContrast: false,
@@ -58,6 +64,7 @@ export const DEFAULT_SETTINGS: Settings = {
   shake: 0.35,
   uiScale: 1,
   mapping: {
+    buttonActions: { ...DEFAULT_BUTTON_ACTIONS },
     device: null,
     wheelSteering: false,
     saturation: 1,
@@ -84,16 +91,16 @@ export const DEFAULT_SETTINGS: Settings = {
 export function validateSettings(v: unknown): Settings {
   if (!v || typeof v !== 'object') throw new Error('Settings data must be an object');
   const p = v as Partial<Settings>;
-  if (![1, 2, 3, 4].includes((v as { version: number }).version))
+  if (![1, 2, 3, 4, 5].includes((v as { version: number }).version))
     throw new Error('Unsupported settings version');
   const finite = (x: unknown, f: number, a: number, b: number) =>
     typeof x === 'number' && Number.isFinite(x) ? clamp(x, a, b) : f;
   const m = p.mapping ?? DEFAULT_SETTINGS.mapping;
   const bindings = validateBindings(p.bindings);
   const quality = p.quality === 'low' || p.quality === 'high' ? p.quality : 'medium';
-  return {
-    version: 4,
-    graphics: validateGraphics(p.version === 4 ? p.graphics : undefined, quality),
+  const result: Settings = {
+    version: 5,
+    graphics: validateGraphics((p.version as number) >= 4 ? p.graphics : undefined, quality),
     colorblind: p.colorblind === true,
     highContrast: p.highContrast === true,
     quality,
@@ -103,6 +110,7 @@ export function validateSettings(v: unknown): Settings {
     setup: validateSetup(p.setup ?? DEFAULT_SETUP),
     bindings,
     mapping: {
+      buttonActions: { ...DEFAULT_BUTTON_ACTIONS },
       device: validateDevice(m.device),
       wheelSteering: !!m.wheelSteering,
       saturation: finite(m.saturation, 1, 0.5, 1),
@@ -124,6 +132,12 @@ export function validateSettings(v: unknown): Settings {
       exponent: finite(m.exponent, 1.5, 0.5, 3),
     },
   };
+  result.mapping.buttonActions = validateButtonActions(
+    m.buttonActions,
+    result.mapping,
+    (p.version as number) < 5,
+  );
+  return result;
 }
 export class SaveStore {
   private db: Promise<IDBDatabase> | null = null;

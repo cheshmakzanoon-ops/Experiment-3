@@ -348,3 +348,26 @@ under two distinct test origins and verifies cleanup. Restrictive host policies
 must permit `blob:` workers; no browser security setting is disabled.
 
 Read [the exact subsystem scope and validation boundaries](docs/MARBLES_AND_SURFACE_STATE.md).
+
+### Replay effects, camera audio and engineering inspection
+
+Replays now reconstruct spray, rain, smoke, dust, sparks and pickup effects from
+recorded state rather than suppressing all particles. Paused simulation time
+freezes their births and motion. The active camera controls engine voice selection,
+stereo placement, distance falloff and Doppler; trackside views hear actual passing
+cars instead of a player-locked sound field.
+
+**F3** opens the engineering panel: per-wheel forces/slip/temperature/wear, body
+motion/G, aero balance/drag, actual surface cells/rubber and AI speed/path/decision.
+Physical contact markers, suspension-query rays and normal-load arrows accompany
+an opt-in, timestamped worker probe. Unrecorded probe extras are hidden in replay.
+
+[Read the implementation and measured validation scope](docs/REPLAY_AUDIO_AND_ENGINEERING.md).
+The complete master directive is still not declared finished.
+
+Controller action buttons are configurable in **Garage & Settings → Controller
+actions**, including pause/resume, camera, ERS, pits, replay and telemetry.
+Version-5 preferences retain existing calibration and graphics. Slow-display
+cockpit heading now remains bounded relative to the car instead of becoming
+world-locked while physics continues. These improvements do not certify the
+full master directive or a representative-hardware frame-rate target.

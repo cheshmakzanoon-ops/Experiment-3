@@ -786,7 +786,11 @@ h1 {
   font: 11px/1.65 monospace;
   white-space: pre;
   color: #e3ead7;
-  pointer-events: none;
+  pointer-events: auto;
+  max-height: calc(100vh - 155px);
+  max-width: calc(100vw - 36px);
+  overflow: auto;
+  z-index: 70;
 }
 .toast {
   position: absolute;

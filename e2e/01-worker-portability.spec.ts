@@ -72,6 +72,18 @@ test('physics and CSV workers run when the JS bundle is served from a different 
   expect(measured.finite).toBe(true);
   expect(measured.surfaceCells).toBe(3584);
   expect(measured.telemetryRows).toBeGreaterThanOrEqual(60);
+  expect(measured.engineeringSamples).toBeGreaterThanOrEqual(5);
+  // Frame and probe responses have independent delivery queues. Verify the
+  // probe's actual tick cadence, not a possibly earlier render-frame timestamp.
+  expect(measured.engineeringSamples).toBeLessThanOrEqual(
+    1 + Math.floor(measured.engineeringTick / 12),
+  );
+  for (let i = 1; i < measured.engineeringTicks.length; i++)
+    expect(measured.engineeringTicks[i] - measured.engineeringTicks[i - 1]).toBeGreaterThanOrEqual(
+      12,
+    );
+  expect(measured.engineeringTick).toBeGreaterThanOrEqual(60);
+  expect(measured.engineeringActive).toBe(true);
   expect(measured.csvColumns).toBe(203);
   expect(measured.csvExact).toBe(true);
   expect(measured.pickupColumns).toHaveLength(4);
