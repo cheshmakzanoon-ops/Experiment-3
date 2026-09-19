@@ -34,7 +34,7 @@ A local reflection probe previously compared replay time against the last captur
 
 The local complete `npm run check` passed **527 tests across 54 files**, ESLint, strict TypeScript and production build. The 15 added unit cases cover rounded UVs and shell fit, invalid dimensions, shaped-panel bounds, real control values, stateless seek/pause mapping, deterministic fabric maps, selective texture filtering, mirror invalidation, backward-time probe recapture, batched mirror ownership, instance transforms and conservative rotating-detail bounds. Original tests and their thresholds remain present.
 
-The browser suite now contains **29 cases**. Four focused real Chromium/WebGL2 cases were executed locally at the high preset and 1280 × 720. These ran through Xvfb with software rendering, not a representative gaming GPU:
+The browser suite now contains **29 cases**. Four focused real Chromium/WebGL2 cases were executed locally. The three reference/articulation cases use the shipping renderer at the high preset and 1280 × 720; the existing pit-service case uses its separate 1280 × 800 production-car/crew scene and unchanged draw-call budget. These ran through Xvfb with software rendering, not a representative gaming GPU:
 
 - Existing clear/rain production reference tests passed: 12 images across exterior/cockpit and reflection/bloom transitions; all 24 sampled HDR cubemap faces contained finite RGB values.
 - The new articulation case passed with five captures: neutral, left, right, paused and rewound. Steering and ERS changes entered through the real simulation input. Both rear-camera feeds had image content; wrists stayed reachable with the fixed 0.37/0.36 m arm lengths; selector angles matched recorded channels; source frames were unchanged; browser/WebGL errors were absent.
@@ -46,7 +46,9 @@ The unoptimized candidate passed its three selected browser checks but failed th
 
 The broad local browser attempt also encountered 15 administrator-blocked page navigations and did not establish full application coverage. Those restrictions were not bypassed, and the tests were not rewritten around them. The complete normal GitHub workflow is the environment for those application journeys.
 
-The final normal GitHub workflow remains the publication gate for the whole suite: it must run unit/build/lint, native physics scenarios and all browser shards before copying the tested build to `playable`. Selected local/candidate tests are not a substitute for that result.
+Independent GitHub candidate run **`35450528776` passed** the complete unit/lint/type/build check and all four focused browser cases. Its artifact `cockpit-budget-validation` preserves candidate `7ef3ef21335c25080607d3faa7f360c895b552fe`, exact hashes of all 18 changed files, PNGs and JSON measurements. Every file hash matched the tested local source before runtime publication in `8721bcd5ecc1154facc63d8caf89b36189009328`. The independent captures reproduced the 95-call pit budget, 24 finite HDR faces, recorded instance transforms, zero browser/GL errors and exactly three selector-disposal events. The temporary candidate workflow was removed from the published tree.
+
+The final normal GitHub workflow remains the publication gate for the whole suite: it must run unit/build/lint, native physics scenarios and all browser shards before copying the tested build to `playable`. Selected local/candidate tests are not a substitute for that result. This documentation update changes no runtime, test, dependency, acceptance threshold or workflow.
 
 ## Measured graphics trade-off
 
