@@ -18,7 +18,7 @@ jobs:
         with:
           node-version: '22'
           cache: npm
-      - name: Instrument actual cubemap texels without modifying runtime source
+      - name: Inspect actual HDR cubemap texels
         run: |
           python3 - <<'PY'
           from pathlib import Path
@@ -31,7 +31,7 @@ jobs:
               const target = this.renderTarget;
               for (let face = 0; face < 6; face++) {
                 const bits = new Uint16Array(target.width * target.height * 4);
-                gl.readRenderTargetPixels(target, 0, 0, target.width, target.height, bits, face);
+                (gl as T.WebGLRenderer).readRenderTargetPixels(target, 0, 0, target.width, target.height, bits, face);
                 let nonfinite = 0, maximum = 0, minimum = Infinity;
                 const examples: object[] = [];
                 for (let i = 0; i < bits.length; i++) {
