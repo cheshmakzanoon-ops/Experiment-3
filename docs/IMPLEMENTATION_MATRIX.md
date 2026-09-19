@@ -13,11 +13,11 @@ This ledger follows all 148 numbered sections of the exact [Pasted markdown(6) d
 | 7 | RIGID BODY STATE | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 8 | FORCE ACCUMULATION | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 9 | INTEGRATOR | Semi-implicit translation; implicit body midpoint/Cayley rotation with world-torque half kicks. Free-spin energy/world-momentum and forced-impulse regressions pass. |
-| 10 | WHEEL CONTACT MODEL | BVH triangle ribbon queries along suspension axes, shared seam normals, contact tests; contact-patch/multibody refinement remains. |
+| 10 | WHEEL CONTACT MODEL | Actual BVH suspension-ray intersections; road-tangent velocity and force frames agree on banked surfaces. Contact-patch/multibody refinement remains. |
 | 11 | SUSPENSION CORNER | Spring/damper/ARB/bump stop; no unsprung-body multibody model. |
 | 12 | TIRE MODEL | Nonlinear approximate tire curves; no experimentally fitted commercial tire dataset. |
-| 13 | SLIP RATIO | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
-| 14 | SLIP ANGLE | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+| 13 | SLIP RATIO | Longitudinal contact-point speed is resolved in the same road-tangent basis as applied force; normal heave is excluded. Implicit rolling/slip solver remains. |
+| 14 | SLIP ANGLE | Lateral contact-point speed uses the orthonormal sampled-road frame; banked normal-heave and work-conjugacy regressions cover false slip. |
 | 15 | PACEJKA-LIKE FORCE CURVES | Pacejka-inspired function; not calibrated Magic Formula coefficients. |
 | 16 | LOAD SENSITIVITY | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 17 | COMBINED SLIP | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
@@ -36,7 +36,7 @@ This ledger follows all 148 numbered sections of the exact [Pasted markdown(6) d
 | 30 | AERODYNAMICS | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 31 | AERO MAP | Sampled 2D clearance envelope plus independent pitch calibration; actual chassis floor-station clearance, wing settings, damage and wake feed force accumulation. Original engineering calibration, not measured CFD. |
 | 32 | GROUND EFFECT | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
-| 33 | BOTTOMING | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+| 33 | BOTTOMING | Four local unilateral floor supports generate pitch/roll moments, bounded friction and separate sliding/damping work. Physical abrasion cannot repair prior damage; reduced compliance, not a deforming chassis solver. |
 | 34 | WAKE / DIRTY AIR | Smooth finite 3D wake volume, continuous speed/distance/lateral/vertical boundaries, heading alignment and slipstream drag reduction; regression sweeps cover cutoff continuity. |
 | 35 | SURFACE TYPES | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 36 | TRACK SPLINE | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
@@ -73,7 +73,7 @@ This ledger follows all 148 numbered sections of the exact [Pasted markdown(6) d
 | 67 | PARTICLES | Bounded 1,800-particle pool now advances on presented simulation time in live and replay views. Pauses freeze particles, continuous replay reconstructs contact/weather emissions, and seeks/large gaps clear rather than create teleport trails. Six render-rate and accelerated-playback regressions; see REPLAY_AUDIO_AND_ENGINEERING.md. |
 | 68 | RAIN SPRAY | Spray requires grounded loaded tires and actual local water/speed, with compound scaling. Wind is recorded simulation state, not a second presentation clock. |
 | 69 | TIRE SMOKE | Smoke requires grounded tire slip work; a brake pedal or airborne spinning wheel alone does not emit ground smoke. |
-| 70 | SPARKS | Sparks consume actual bottom-contact work and seeded bounded particles. |
+| 70 | SPARKS | Actual cumulative hard-surface sliding work drives bounded sparks at recorded contact anchors; no metallic emission from soft ground or normal damping alone. Pause, page seeks and low frame rates are tested. |
 | 71 | AUDIO ARCHITECTURE | Original engine/contact/ambient buses now use the actual camera listener, spatially attenuated player contacts and listener-relative wind/rain. Real OfflineAudioContext tests cover both contact and engine graphs. No full acoustic occlusion or per-opponent contact graph. |
 | 72 | ENGINE SOUND | Three RPM/torque bands, four stable camera-selected voices, selection hysteresis and fade-before-retune reassignment. Original synthesis, not extracted samples or certified commercial engine matching. |
 | 73 | TIRE AUDIO | Actual tire slip work sets scrub level; measured slip ratio distinguishes lockup and wheelspin spectra. Loaded flat-spot/puncture repetition follows actual wheel speed. |
@@ -83,7 +83,7 @@ This ledger follows all 148 numbered sections of the exact [Pasted markdown(6) d
 | 77 | GAMEPAD STEERING | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 78 | KEYBOARD STEERING | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
 | 79 | WHEEL INPUT | Explicit wheel/axis/pedal/clutch calibration plus saved action-button remapping. Version-5 migration preserves calibration/graphics, rejects conflicts and never guesses a layout for an explicitly selected legacy wheel. Physical hardware and force-feedback certification remain open. |
-| 80 | TELEMETRY DATA | 211 actual-state channels at 60 Hz; the first 199 column names/positions remain hash-protected, four cumulative wheel-pickup fields follow, then eight actual wheel steering/camber fields. All prior 203 positions are preserved. Bounded transport/ring and separate CSV-worker export. |
+| 80 | TELEMETRY DATA | 228 measured-state channels at 60 Hz; all preceding 211 names/positions are hash-protected. Seventeen appended skid channels carry real loads, power, contact anchors and integrated work. |
 | 81 | TELEMETRY UI | Eight selectable graph groups include clutch torque/slip, the requested driver/chassis/tire channels and complete-lap distance comparison; truncated/gapped laps are labelled rather than fabricated. |
 | 82 | REPLAY SYSTEM | Original 15 Hz numeric poses and spatial surface history, interpolated wheel/camera/effects, guarded random page seeks and independent corruption witnesses. Boundary/rewind surface restoration, exact first-seek presentation, modal/focus/audio ownership and unchanged live-worker state have dedicated tests. See RECORDING_AND_REPLAY.md for validation and non-cryptographic integrity limits. |
 | 83 | RACE DIRECTOR | Explicit grid/lights/racing/results states; whole-field chequered classification, lapped finish, penalty ordering, automatic cooldown and explicit timeout DNF. Local single/double-yellow zones, approach braking, blue flags, bounded race-control events, pit-speed enforcement for every car, and reversible no-overtake penalties are implemented and tested. A physical safety-car vehicle is not implemented. |

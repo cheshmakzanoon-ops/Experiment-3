@@ -1,3 +1,4 @@
+import { K, SKID_BASE } from './protocol.ts';
 import { clamp } from '../core/math.ts';
 import { AIDriver } from './ai.ts';
 import { wakeOverlap } from './aero.ts';
@@ -168,6 +169,25 @@ export class Simulation {
       out[o + F.WAKE] = c.wake;
       out[o + F.SLIP_ENERGY] = c.tires.reduce((sum, w) => sum + w.energy, 0);
       out[o + F.BOTTOM_ENERGY] = c.bottomEnergy;
+      const k = o + SKID_BASE,
+        skid = c.skid;
+      out[k + K.CONTACTS] = skid.contacts;
+      out[k + K.LOAD] = skid.normalLoad;
+      out[k + K.SLIDE_POWER] = skid.slidingPower;
+      out[k + K.DAMPING_POWER] = skid.dampingPower;
+      out[k + K.SPARK_POWER] = skid.sparkPower;
+      out[k + K.SPARK_X] = skid.point.x;
+      out[k + K.SPARK_Y] = skid.point.y;
+      out[k + K.SPARK_Z] = skid.point.z;
+      out[k + K.NORMAL_X] = skid.normal.x;
+      out[k + K.NORMAL_Y] = skid.normal.y;
+      out[k + K.NORMAL_Z] = skid.normal.z;
+      out[k + K.VELOCITY_X] = skid.velocity.x;
+      out[k + K.VELOCITY_Y] = skid.velocity.y;
+      out[k + K.VELOCITY_Z] = skid.velocity.z;
+      out[k + K.SLIDE_WORK] = skid.slidingWorkJ;
+      out[k + K.SPARK_WORK] = skid.sparkWorkJ;
+      out[k + K.TOTAL_WORK] = skid.totalWorkJ;
       out[o + F.IMPACT] = c.impact;
       out[o + F.COMPOUND] = COMPOUND_IDS.indexOf(c.tires[0].compound);
       out[o + F.PIT_STOPS] = c.pitStops;

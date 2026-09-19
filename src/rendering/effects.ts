@@ -1,3 +1,4 @@
+import { K, SKID_BASE } from '../simulation/protocol.ts';
 import * as T from 'three';
 import { Random, clamp } from '../core/math.ts';
 import { F, H, W, WHEEL_BASE, WHEEL_STRIDE, carBase } from '../simulation/protocol.ts';
@@ -34,6 +35,8 @@ export class Effects {
   private q = new T.Quaternion();
   private emission = new Float64Array(12 * 4);
   private sparks = new Float64Array(12);
+  private sparkWork = new Float64Array(12).fill(NaN);
+  private sparkTime = -Infinity;
   private marbleEmission = new Float64Array(48);
   private marblePrevious = new Float64Array(48).fill(NaN);
   private marbleTime = -Infinity;
@@ -156,6 +159,48 @@ export class Effects {
       }
     }
   }
+  private skidSparks(frame: Float32Array, dt: number, emit: boolean, density: number) {
+    const time = frame[H.TIME];
+    if (time === this.sparkTime) return;
+    if (time < this.sparkTime || !emit) {
+      this.sparkWork.fill(NaN);
+      this.sparks.fill(0);
+    }
+    this.sparkTime = time;
+    for (let id = 0; id < Math.min(12, frame[H.CARS]); id++) {
+      const k = carBase(id) + SKID_BASE,
+        work = frame[k + K.SPARK_WORK],
+        previous = this.sparkWork[id];
+      this.sparkWork[id] = work;
+      if (!emit || !Number.isFinite(work + previous) || work < previous) {
+        this.sparks[id] = 0;
+        continue;
+      }
+      // Integrate actual hard-contact sliding work, including a short strike
+      // between two render/replay samples. A first frame or rewind is not work.
+      const power = (work - previous) / dt;
+      this.sparks[id] += clamp((power - 300) / 80, 0, 100) * dt * density;
+      const births = Math.floor(this.sparks[id] + 1e-6);
+      this.sparks[id] = Math.max(0, this.sparks[id] - births);
+      const nx = frame[k + K.NORMAL_X],
+        ny = frame[k + K.NORMAL_Y],
+        nz = frame[k + K.NORMAL_Z];
+      const vx = frame[k + K.VELOCITY_X],
+        vy = frame[k + K.VELOCITY_Y],
+        vz = frame[k + K.VELOCITY_Z];
+      const normalSpeed = vx * nx + vy * ny + vz * nz;
+      for (let i = 0; i < births; i++)
+        this.spawn(
+          frame[k + K.SPARK_X] + nx * 0.005,
+          frame[k + K.SPARK_Y] + ny * 0.005,
+          frame[k + K.SPARK_Z] + nz * 0.005,
+          (vx - normalSpeed * nx) * 0.6 + nx * 1.5,
+          (vy - normalSpeed * ny) * 0.6 + ny * 1.5,
+          (vz - normalSpeed * nz) * 0.6 + nz * 1.5,
+          PARTICLE_KIND.SPARK,
+        );
+    }
+  }
   update(frame: Float32Array, dt: number, emit = true) {
     if (!Number.isFinite(dt) || dt < 0 || dt > 0.25) throw new Error('Invalid particle timestep');
     this.group.visible = this.enabled;
@@ -163,6 +208,7 @@ export class Effects {
       density = clamp(this.density, 0, 1);
     // Even disabled effects observe counters, preventing catch-up clouds on enable.
     this.marblePickup(frame, emit && this.enabled && dt > 0, density);
+    this.skidSparks(frame, dt, emit && this.enabled && dt > 0, density);
     if (!this.enabled || dt === 0) return;
     this.windX = renderWind(frame[H.WIND_X]);
     this.windZ = renderWind(frame[H.WIND_Z]);
@@ -215,22 +261,6 @@ export class Effects {
             );
           }
         }
-        const power = frame[o + F.BOTTOM_ENERGY];
-        if (power > 300) {
-          this.sparks[id] += Math.min(100, (power - 300) / 80) * dt * density;
-          const births = Math.floor(this.sparks[id] + 1e-9);
-          this.sparks[id] = Math.max(0, this.sparks[id] - births);
-          for (let i = 0; i < births; i++)
-            this.spawn(
-              frame[o],
-              frame[o + 1] - 0.42,
-              frame[o + 2],
-              frame[o + F.VX] * 0.6,
-              1.5,
-              frame[o + F.VZ] * 0.6,
-              PARTICLE_KIND.SPARK,
-            );
-        } else this.sparks[id] = 0;
       }
     if (emit && frame[H.RAIN] > 0) {
       const o = carBase(0);
@@ -309,6 +339,8 @@ export class Effects {
     this.alpha.fill(0);
     this.emission.fill(0);
     this.sparks.fill(0);
+    this.sparkWork.fill(NaN);
+    this.sparkTime = -Infinity;
     this.spawned.fill(0);
     this.rainEmission = 0;
     this.marbleEmission.fill(0);

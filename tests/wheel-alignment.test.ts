@@ -1,3 +1,4 @@
+import { K, SKID_BASE, SKID_STRIDE } from '../src/simulation/protocol.ts';
 import { expect, it } from 'vitest';
 import { DEFAULT_OPTIONS, DEFAULT_SETUP, VEHICLE } from '../src/simulation/config.ts';
 import { Simulation } from '../src/simulation/world.ts';
@@ -55,13 +56,15 @@ it('records the exact Ackermann, toe and camber angles used by each physical tir
 it('initial garage snapshots contain alignment and protocol regions never overlap', () => {
   const sim = new Simulation({ ...DEFAULT_OPTIONS, opponents: 11 });
   const frame = sim.makeFrame();
-  expect(PROTOCOL_VERSION).toBe(8);
+  expect(PROTOCOL_VERSION).toBe(9);
   expect(frame.length).toBe(HEADER + CAR_STRIDE * 12);
   expect(new Set(Object.values(W)).size).toBe(Object.keys(W).length);
   expect(Math.max(...Object.values(F))).toBeLessThan(WHEEL_BASE);
   expect(Math.max(...Object.values(W))).toBeLessThan(WHEEL_STRIDE);
   expect(WHEEL_BASE + 4 * WHEEL_STRIDE).toBe(DEBRIS_BASE);
-  expect(DEBRIS_BASE + 4 * DEBRIS_STRIDE).toBe(CAR_STRIDE);
+  expect(DEBRIS_BASE + 4 * DEBRIS_STRIDE).toBe(SKID_BASE);
+  expect(Math.max(...Object.values(K))).toBeLessThan(SKID_STRIDE);
+  expect(SKID_BASE + SKID_STRIDE).toBe(CAR_STRIDE);
   for (let id = 0; id < 12; id++)
     for (let i = 0; i < 4; i++) {
       const p = carBase(id) + WHEEL_BASE + i * WHEEL_STRIDE;
@@ -85,7 +88,7 @@ it('CSV and both replay presentation paths preserve actual per-wheel alignment',
   const presented = new PresentedFrame().sample(a, b, 0.5),
     csv = new Float32Array(CHANNELS.length);
   packTelemetry(b, csv, 0);
-  expect(CHANNELS.length).toBe(211);
+  expect(CHANNELS.length).toBe(228);
   for (let i = 0; i < 4; i++) {
     const p = carBase(0) + WHEEL_BASE + i * WHEEL_STRIDE;
     for (const field of [W.STEER, W.CAMBER]) {

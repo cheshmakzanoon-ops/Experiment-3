@@ -1,3 +1,4 @@
+import { K, SKID_BASE } from '../simulation/protocol.ts';
 import { wheelPhase } from './wheel-pose.ts';
 import { Quaternion } from 'three';
 import {
@@ -37,6 +38,15 @@ const SMOOTH_CAR = [
   F.SLIP_ENERGY,
   F.BOTTOM_ENERGY,
   F.IMPACT,
+] as const;
+const SMOOTH_SKID = [
+  K.LOAD,
+  K.SLIDE_POWER,
+  K.DAMPING_POWER,
+  K.SPARK_POWER,
+  K.SLIDE_WORK,
+  K.SPARK_WORK,
+  K.TOTAL_WORK,
 ] as const;
 const SMOOTH_WEATHER = [H.RAIN, H.CLOUD, H.AMBIENT, H.WIND_X, H.WIND_Z] as const;
 
@@ -80,6 +90,24 @@ export class PresentedFrame {
       out[o + F.QY] = this.qa.y;
       out[o + F.QZ] = this.qa.z;
       out[o + F.QW] = this.qa.w;
+      const skid = o + SKID_BASE;
+      // Cumulative work survives contacts between visual samples. The first
+      // recorded strike already has a real anchor: never blend it from (0,0,0).
+      for (const field of SMOOTH_SKID)
+        if (field < K.SLIDE_WORK || b[skid + field] >= a[skid + field])
+          this.blend(a, b, skid + field, alpha);
+      for (let field = K.SPARK_X as number; field <= K.VELOCITY_Z; field++) {
+        if (a[skid + K.SPARK_WORK] > 0) this.blend(a, b, skid + field, alpha);
+        else out[skid + field] = b[skid + field];
+      }
+      const normalLength = Math.hypot(
+        out[skid + K.NORMAL_X],
+        out[skid + K.NORMAL_Y],
+        out[skid + K.NORMAL_Z],
+      );
+      if (normalLength > 1e-8)
+        for (let field = K.NORMAL_X as number; field <= K.NORMAL_Z; field++)
+          out[skid + field] /= normalLength;
       for (let wheel = 0; wheel < 4; wheel++) {
         const p = o + WHEEL_BASE + wheel * WHEEL_STRIDE;
         for (let field = 0; field < WHEEL_STRIDE; field++)

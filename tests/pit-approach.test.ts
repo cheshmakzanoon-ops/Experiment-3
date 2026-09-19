@@ -36,3 +36,22 @@ it('does not make the car already occupying the entry lane yield back in a circu
   other.lateral = 5.8;
   expect(pitApproachTrafficSpeed(c, [c, other], t, 6)).toBe(Infinity);
 });
+
+it.each([5, 2995])(
+  'does not yield back to a braking follower in the shared approach corridor at station %s',
+  (s) => {
+    const t = new Track(),
+      lead = new Vehicle(0),
+      follower = new Vehicle(1);
+    lead.s = s;
+    lead.lateral = 2.9;
+    lead.speed = 0;
+    follower.s = (s - 5 + t.length) % t.length;
+    follower.lateral = 5.8;
+    follower.speed = 0;
+    expect(pitApproachTrafficSpeed(lead, [lead, follower], t, 2.9)).toBe(Infinity);
+    expect(pitApproachTrafficSpeed(lead, [follower, lead], t, 2.9)).toBe(Infinity);
+    follower.s = (s + 5) % t.length;
+    expect(pitApproachTrafficSpeed(lead, [lead, follower], t, 2.9)).toBe(0);
+  },
+);

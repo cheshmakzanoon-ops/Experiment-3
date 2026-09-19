@@ -1,3 +1,4 @@
+import { K as SKID, SKID_BASE } from '../src/simulation/protocol.ts';
 import assert from 'node:assert/strict';
 import { WeatherTimeline, weatherKeyframes, advanceWater } from '../src/simulation/weather.ts';
 import { Track, surfaceSample } from '../src/simulation/track.ts';
@@ -131,13 +132,16 @@ export const weatherOracles: Record<string, () => void> = {
       e.update(frame, 0.1); assert.equal(e.diagnostics().spawned[K.SMOKE], 0);
     } finally { dispose(e); }
   },
-  'lateral slip work, actual water pickup and bottoming power drive distinct emitters': () => {
+  'lateral slip work, actual water pickup and hard-contact work drive distinct emitters': () => {
     const e = new Effects(), frame = snapshot(), o = carBase(0), p = o + WHEEL_BASE;
     try {
       frame[p + W.LOAD] = 2000; frame[p + W.SLIP_POWER] = 57800;
       e.update(frame, 0.1); assert(e.diagnostics().spawned[K.SMOKE] > 0);
       frame[p + W.WATER] = 1; frame[o + F.COMPOUND] = 4;
       frame[o + F.BOTTOM_ENERGY] = 8300;
+      frame[H.TIME] += 0.1;
+      frame[o + SKID_BASE + SKID.SPARK_WORK] = 830;
+      frame[o + SKID_BASE + SKID.NORMAL_Y] = 1;
       e.update(frame, 0.1); const d = e.diagnostics();
       assert(d.spawned[K.SPRAY] > 0); assert(d.spawned[K.SPARK] > 0);
       assert(d.active.reduce((a, b) => a + b) <= d.capacity);

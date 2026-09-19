@@ -1,3 +1,4 @@
+import { K, SKID_BASE } from '../simulation/protocol.ts';
 import { F, H, W, WHEEL_BASE, WHEEL_STRIDE, WHEEL_NAMES, carBase } from '../simulation/protocol.ts';
 
 // Keep the first three fields and speed/pedal positions stable for graph consumers.
@@ -128,6 +129,22 @@ export const HEADER_FIELDS = [
   H.WIND_X,
   H.WIND_Z,
 ];
+const skidUnits: Record<string, string> = {
+  LOAD: 'N',
+  SLIDE_POWER: 'W',
+  DAMPING_POWER: 'W',
+  SPARK_POWER: 'W',
+  SPARK_X: 'm',
+  SPARK_Y: 'm',
+  SPARK_Z: 'm',
+  VELOCITY_X: 'mps',
+  VELOCITY_Y: 'mps',
+  VELOCITY_Z: 'mps',
+  SLIDE_WORK: 'J',
+  SPARK_WORK: 'J',
+  TOTAL_WORK: 'J',
+};
+export const SKID_FIELDS = Object.values(K);
 export const CHANNELS = [
   'time_s',
   'distance_m',
@@ -158,6 +175,7 @@ export const CHANNELS = [
     return nameOf(key, units[key]);
   }),
   ...WHEEL_NAMES.flatMap((wheel) => ['steer_rad', 'camber_rad'].map((key) => `${wheel}_${key}`)),
+  ...Object.keys(K).map((key) => `skid_${nameOf(key, skidUnits[key])}`),
 ];
 export const TELEMETRY_STRIDE = CHANNELS.length;
 export const TELEMETRY_BATCH_ROWS = 60;
@@ -176,6 +194,7 @@ export function packTelemetry(frame: Float32Array, out: Float32Array, offset: nu
   for (let wheel = 0; wheel < 4; wheel++)
     for (const field of ALIGNMENT_FIELDS)
       out[offset++] = frame[base + WHEEL_BASE + wheel * WHEEL_STRIDE + field];
+  for (const field of SKID_FIELDS) out[offset++] = frame[base + SKID_BASE + field];
 }
 
 export function telemetryCsv(values: Float32Array, count: number): Blob {

@@ -206,3 +206,19 @@ source. Main is advanced only by an ordinary fast-forward to the verified source
 tree; the normal all-suite CI remains the gate for the derived playable build.
 Complete section-146 manual/audiovisual acceptance, representative hardware
 measurements and independent final quality audits are not claimed complete.
+
+## Continuation from 318a170: contact-frame consistency and distributed floor support
+
+The preceding replay continuation is confirmed pushed and fully green in GitHub
+run 35439434324, including all browser shards and tested playable publication.
+This batch preserves the exact 148-section directive and addresses actual tire
+force/velocity frame consistency, local floor contact moments, abrasion, recorded
+hard-contact work and deterministic work-driven spark births. Protocol 9/228
+CSV columns preserve all preceding 211 fields and every per-wheel alignment.
+
+The initial wet-compound service regression exposed a circular pit-approach
+yield/follow relation, now covered by explicit priority tests and the unchanged
+full ten-car service gate. Both diagnostic and paged replay retain skid data.
+The suite contains 497 unit tests and adds a full WebGL contact-effect oracle.
+See ROAD_CONTACT_AND_SKIDS.md for evidence, calibration and remaining boundaries.
+No new blanket claim of final AAA fidelity or section-146 completion is made.

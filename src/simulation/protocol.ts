@@ -1,14 +1,36 @@
 import type { Controls, SessionOptions } from './config.ts';
 export const HEADER = 16,
-  CAR_STRIDE = 232,
+  CAR_STRIDE = 249,
   WHEEL_BASE = 96,
   WHEEL_STRIDE = 26,
   DEBRIS_BASE = 200,
-  DEBRIS_STRIDE = 8;
-export const PROTOCOL_VERSION = 8;
+  DEBRIS_STRIDE = 8,
+  SKID_BASE = 232,
+  SKID_STRIDE = 17;
+export const PROTOCOL_VERSION = 9;
 // +Z is the nose, +Y up and +X the driver's left; negative-X hubs are right-side wheels.
 export const WHEEL_NAMES = ['FR', 'FL', 'RR', 'RL'] as const;
 export const D = { KIND: 0, X: 1, Y: 2, Z: 3, ROTATION: 4, AGE: 5, MASS: 6, ACTIVE: 7 } as const;
+// Appended tail: existing chassis, wheel and debris offsets are unchanged.
+export const K = {
+  CONTACTS: 0,
+  LOAD: 1,
+  SLIDE_POWER: 2,
+  DAMPING_POWER: 3,
+  SPARK_POWER: 4,
+  SPARK_X: 5,
+  SPARK_Y: 6,
+  SPARK_Z: 7,
+  NORMAL_X: 8,
+  NORMAL_Y: 9,
+  NORMAL_Z: 10,
+  VELOCITY_X: 11,
+  VELOCITY_Y: 12,
+  VELOCITY_Z: 13,
+  SLIDE_WORK: 14,
+  SPARK_WORK: 15,
+  TOTAL_WORK: 16,
+} as const;
 export const H = {
   TIME: 0,
   PHASE: 1,

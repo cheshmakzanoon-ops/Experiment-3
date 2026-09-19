@@ -84,7 +84,7 @@ test('physics and CSV workers run when the JS bundle is served from a different 
     );
   expect(measured.engineeringTick).toBeGreaterThanOrEqual(60);
   expect(measured.engineeringActive).toBe(true);
-  expect(measured.csvColumns).toBe(211);
+  expect(measured.csvColumns).toBe(228);
   expect(measured.csvExact).toBe(true);
   expect(measured.pickupColumns).toHaveLength(4);
   expect(workers).toHaveLength(2);

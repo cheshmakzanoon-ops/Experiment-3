@@ -172,7 +172,7 @@ test('recorded telemetry exports and replay leaves live physics paused', async (
   expect(csvDownload.suggestedFilename()).toBe('apex-telemetry.csv');
   const csv = (await readFile((await csvDownload.path())!, 'utf8')).trim().split('\n');
   const columns = csv[0].split(',');
-  expect(columns).toHaveLength(211);
+  expect(columns).toHaveLength(228);
   expect(columns.slice(197, 199)).toEqual(['wind_x_mps', 'wind_z_mps']);
   expect(columns.slice(199, 203)).toEqual([
     'marble_pickup_fr_tread_covers',
@@ -180,7 +180,7 @@ test('recorded telemetry exports and replay leaves live physics paused', async (
     'marble_pickup_rr_tread_covers',
     'marble_pickup_rl_tread_covers',
   ]);
-  expect(columns.slice(203)).toEqual([
+  expect(columns.slice(203, 211)).toEqual([
     'FR_steer_rad',
     'FR_camber_rad',
     'FL_steer_rad',
@@ -190,6 +190,25 @@ test('recorded telemetry exports and replay leaves live physics paused', async (
     'RL_steer_rad',
     'RL_camber_rad',
   ]);
+  expect(columns.slice(211)).toEqual([
+    'skid_contacts',
+    'skid_load_N',
+    'skid_slide_power_W',
+    'skid_damping_power_W',
+    'skid_spark_power_W',
+    'skid_spark_x_m',
+    'skid_spark_y_m',
+    'skid_spark_z_m',
+    'skid_normal_x',
+    'skid_normal_y',
+    'skid_normal_z',
+    'skid_velocity_x_mps',
+    'skid_velocity_y_mps',
+    'skid_velocity_z_mps',
+    'skid_slide_work_J',
+    'skid_spark_work_J',
+    'skid_total_work_J',
+  ]);
   expect(columns).toContain('clutch_torque_Nm');
   expect(columns).toContain('motor_power_W');
   expect(columns).toContain('FL_pressure_kPa');
@@ -198,7 +217,7 @@ test('recorded telemetry exports and replay leaves live physics paused', async (
   const firstTick = Number(csv[1].split(',')[tickColumn]);
   for (let row = 1; row < csv.length; row++) {
     const values = csv[row].split(',').map(Number);
-    expect(values).toHaveLength(211);
+    expect(values).toHaveLength(228);
     expect(values.slice(203).every(Number.isFinite)).toBe(true);
     expect(values[tickColumn] - firstTick).toBe(2 * (row - 1));
   }

@@ -211,7 +211,7 @@ Experiment-3/
 
 The current source adds a physically open cockpit, live rear-view cameras, carbon/wet-road shaders, a budgeted local reflection probe, spatial circuit culling and three-level car detail. The rendering integration passed seven Chromium workflows before publication in commit `77c4d3b`.
 
-The recording extension captures **211 telemetry channels at 60 Hz** and **all-car pose replay at 15 Hz** from physics ticks, independently of display rate. Replay pages and spatial surface history use a bounded IndexedDB cache; CSV formatting runs in a separate worker. Rendered punctures, suspension damage and detached components consume actual simulation state. Read [recording and replay architecture](docs/RECORDING_AND_REPLAY.md) for storage failure behavior and verification limits. The [telemetry and keyboard interface](docs/TELEMETRY_AND_INPUT_UI.md) adds eight graph groups, complete-lap distance comparison, and conflict-checked remapping for fifteen keyboard actions.
+The recording extension captures **228 telemetry channels at 60 Hz** and **all-car pose replay at 15 Hz** from physics ticks, independently of display rate. Replay pages and spatial surface history use a bounded IndexedDB cache; CSV formatting runs in a separate worker. Rendered punctures, suspension damage and detached components consume actual simulation state. Read [recording and replay architecture](docs/RECORDING_AND_REPLAY.md) for storage failure behavior and verification limits. The [telemetry and keyboard interface](docs/TELEMETRY_AND_INPUT_UI.md) adds eight graph groups, complete-lap distance comparison, and conflict-checked remapping for fifteen keyboard actions.
 
 The original validation results below are historical baseline measurements, not certificates for every later feature.
 
@@ -237,7 +237,7 @@ These JSON files are measured snapshots from the original validation run. Re-run
 
 ### 🎮 Calibrated controls and complete race classification
 
-The new device editor explicitly selects unmapped wheels, captures asymmetric steering and independent throttle/brake/clutch endpoints, configures paddles, and pauses safely on disconnect. Settings migrate to version 3. A finite-inertia friction clutch produces actual free-revving and pedal-controlled torque transfer; the clutch channels are included in the current **211-channel** schema and eight graph groups. These are browser Gamepad inputs, not a claim of native wheel force feedback or hardware certification. See [device calibration and clutch](docs/DEVICE_CALIBRATION_AND_CLUTCH.md).
+The new device editor explicitly selects unmapped wheels, captures asymmetric steering and independent throttle/brake/clutch endpoints, configures paddles, and pauses safely on disconnect. Settings migrate to version 3. A finite-inertia friction clutch produces actual free-revving and pedal-controlled torque transfer; the clutch channels are included in the current **228-channel** schema and eight graph groups. These are browser Gamepad inputs, not a claim of native wheel force feedback or hardware certification. See [device calibration and clutch](docs/DEVICE_CALIBRATION_AND_CLUTCH.md).
 
 Race timing now preserves all three interpolated sectors, checks all four tire footprints against local track width, finishes the entire field including lapped cars, and labels unresolved competitors DNF instead of manufacturing times. The pit controller reserves pedal-response distance and does not reverse into queues. See [race control and pit response](docs/RACE_CONTROL_AND_PIT_RESPONSE.md).
 
@@ -382,3 +382,13 @@ The integrated candidate also removes the obsolete patch-transfer workflow. Norm
 source CI retains the full native and browser gates, and publishes the exact tested
 static artifact only after all gates succeed. This configuration has local fixture
 evidence, not a completed GitHub run for this unpushed candidate.
+
+## Road-tangent contact and recorded floor strikes
+
+Wheel slip and force now share a road-tangent frame. Four local floor supports
+create real pitch/roll moments, dissipate sliding/damping work and drive abrasion
+and hard-surface sparks from recorded contact positions. Snapshot protocol 9
+appends 17 skid channels; all previous 211 CSV positions are preserved in the
+228-column export. The wet pit-entry integration also closes a lead/follower
+priority cycle without overriding velocity or weakening the service gate. See
+[contact physics and validation boundaries](docs/ROAD_CONTACT_AND_SKIDS.md).

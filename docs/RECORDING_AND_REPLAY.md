@@ -4,11 +4,11 @@ This checkpoint extends directive sections 53, 67, 80–82, 99, 133–135 and 13
 
 ## Capture and ownership
 
-`TelemetrySampler` runs inside the physics worker. Every second 120 Hz tick captures a 211-channel sample; every eighth tick captures a complete numeric pose snapshot for every car. Rendering never supplies the capture clock. Six transferable telemetry buffers and six pose buffers provide bounded transport queues. Buffers are returned after the main thread copies their contents. A stalled consumer produces an explicit recording-gap warning; no interpolated or invented measurements fill the gap.
+`TelemetrySampler` runs inside the physics worker. Every second 120 Hz tick captures a 228-channel sample; every eighth tick captures a complete numeric pose snapshot for every car. Rendering never supplies the capture clock. Six transferable telemetry buffers and six pose buffers provide bounded transport queues. Buffers are returned after the main thread copies their contents. A stalled consumer produces an explicit recording-gap warning; no interpolated or invented measurements fill the gap.
 
 Telemetry uses a fifteen-minute typed-array ring. Export takes a chronological copy and transfers that copy to a separate formatting worker. Cancellation, worker errors and a thirty-second timeout reject the export. A late old-worker response cannot terminate or download a later session's export.
 
-The current wire format is version 8: sixteen header floats, 232 floats per car, four 26-float wheel records beginning at offset 96, and four eight-float debris records beginning at offset 200. Header slots 14–15 retain world wind in m/s. Version 7 uses previously spare per-car slots 90–93 for cumulative wheel-specific marble pickup. The four CSV pickup columns are appended after all 199 existing columns; version 8 appends eight actual wheel steering/camber columns after those 203, and a frozen-header hash regression protects those earlier positions. Fields include real motor/regen power, suspension length, tire pressure/radius/puncture, graining/blistering, component health, jack height, penalties and sector state. The internal wheel sequence is **FR, FL, RR, RL**: +Z points toward the nose, +Y up, and +X toward the driver's left. CSV headers and the tire panel follow the actual hub positions.
+The current wire format is version 9: sixteen header floats, 249 floats per car, four 26-float wheel records beginning at offset 96, and four eight-float debris records beginning at offset 200. Seventeen skid-contact values follow at offset 232; all earlier per-car offsets remain unchanged. Header slots 14–15 retain world wind in m/s. Version 7 uses previously spare per-car slots 90–93 for cumulative wheel-specific marble pickup. The four CSV pickup columns are appended after all 199 existing columns; version 8 appends eight actual wheel steering/camber columns after those 203, and version 9 appends 17 skid-contact fields after all 211. A frozen-header hash regression protects those earlier positions. Fields include real motor/regen power, suspension length, tire pressure/radius/puncture, graining/blistering, component health, jack height, penalties and sector state. The internal wheel sequence is **FR, FL, RR, RL**: +Z points toward the nose, +Y up, and +X toward the driver's left. CSV headers and the tire panel follow the actual hub positions.
 
 ## Replay paging
 
@@ -30,7 +30,7 @@ The desktop cockpit HUD moves beside the car instead of covering the physical st
 
 ## Verification boundaries
 
-Historical evidence from the first recording checkpoint: local lint, TypeScript, production build and 107 tests passed during that checkpoint. The three four-car weather scenarios and ten-car physical pit scenario passed; the pit report contains a small contact event, **not zero contact**. The current browser workflow additionally checks real IndexedDB page creation, 211 CSV columns and exact two-tick sample spacing, camera visibility, manual steering, replay/pause safety and the results screen. A browser pass must be read from the workflow for the exact published revision.
+Historical evidence from the first recording checkpoint: local lint, TypeScript, production build and 107 tests passed during that checkpoint. The three four-car weather scenarios and ten-car physical pit scenario passed; the pit report contains a small contact event, **not zero contact**. The current browser workflow additionally checks real IndexedDB page creation, 228 CSV columns and exact two-tick sample spacing, camera visibility, manual steering, replay/pause safety and the results screen. A browser pass must be read from the workflow for the exact published revision.
 
 Later changes added explicit wheel calibration, individual graphics/accessibility controls, marshal rules, dynamics benchmarks and long-run AI evidence. See the coverage ledger and subsystem documents for their actual scope. Target-device profiling, the complete combined scenario and final engineering/player/audiovisual audits are not certified by this recording page. Historical reports without a matching source revision are not current acceptance certificates.
 
@@ -93,3 +93,12 @@ A local CPU-only seal probe is not representative-hardware or GPU certification.
 The complete combined manual section-146 scenario and final independent handling,
 audiovisual and hardware-performance acceptance remain open. This is not a claim
 that adding tests has satisfied every qualitative requirement in the directive.
+
+## Protocol-9 contact work
+
+Both replay paths retain actual floor support/load, sliding and damping power,
+hard-contact position/normal/velocity, and cumulative work. Presentation uses
+recorded work changes for sparks, never the current live chassis. See
+[road contact and skid recording](ROAD_CONTACT_AND_SKIDS.md) for the unchanged
+CSV prefix, lifecycle guards and controlled browser experiment. Earlier version-8
+continuation evidence above remains historical rather than a version-9 test pass.

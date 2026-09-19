@@ -1,3 +1,5 @@
+import { RoadContactFrame } from './road-contact.ts';
+import { SkidContact, SKID_CONTACT } from './skid-contact.ts';
 import { MARSHAL, pitSpeedZone } from './marshal.ts';
 import { FrictionClutch } from './clutch.ts';
 import { DebrisPool } from './damage.ts';
@@ -38,9 +40,12 @@ export class Vehicle {
   readonly input: Controls = controls();
   readonly tires: Tire[];
   readonly contacts = WHEEL_POSITIONS.map(() => surfaceSample());
+  readonly contactPoints = WHEEL_POSITIONS.map(() => new Vec3());
   readonly hubs = WHEEL_POSITIONS.map(() => new Vec3());
   readonly origins = WHEEL_POSITIONS.map(() => new Vec3());
   readonly pointVelocities = WHEEL_POSITIONS.map(() => new Vec3());
+  readonly contactFrames = WHEEL_POSITIONS.map(() => new RoadContactFrame());
+  readonly skid = new SkidContact();
   readonly normalLoads = new Float64Array(4);
   /** Actual angles used by the tire solve, retained for telemetry and presentation. */
   readonly wheelSteering = new Float64Array(4);
@@ -101,10 +106,7 @@ export class Vehicle {
   private force = new Vec3();
   private point = new Vec3();
   private localPoint = new Vec3();
-  private localContactVelocity = new Vec3();
   private localAccel = new Vec3();
-  private wheelForward = new Vec3();
-  private wheelRight = new Vec3();
   private relativeAir = new Vec3();
   private surface = surfaceSample();
   private axis = new Vec3();
@@ -284,8 +286,10 @@ export class Vehicle {
       t.length = Math.min(rest + 0.05, Math.max(0.06, length));
       t.compression = Number.isFinite(length) ? Math.max(0, rest - length) : 0;
       hub.copy(origin).addScaled(this.up, -t.length);
-      this.point.set(hub.x, s.height, hub.z);
-      b.pointVelocity(this.point, this.pointVelocities[i]);
+      const contact = this.contactPoints[i];
+      if (Number.isFinite(distance)) contact.copy(origin).addScaled(this.down, distance);
+      else contact.set(hub.x, s.height, hub.z);
+      b.pointVelocity(contact, this.pointVelocities[i]);
       const vertical = this.pointVelocities[i].dot(s.normal),
         spring = i < 2 ? this.setup.frontSpring : this.setup.rearSpring,
         damping = vertical < 0 ? 4800 : 6200,
@@ -308,14 +312,11 @@ export class Vehicle {
     for (let i = 0; i < 4; i++) {
       this.normalLoads[i] *= 1 - this.cornerDamage[i] * 0.5;
       const t = this.tires[i],
-        s = this.contacts[i],
-        hub = this.hubs[i];
-      b.orientation.inverseRotate(this.pointVelocities[i], this.localContactVelocity);
-      const steering = this.wheelSteering[i],
-        sn = Math.sin(steering),
-        cs = Math.cos(steering),
-        long = this.localContactVelocity.x * sn + this.localContactVelocity.z * cs,
-        lat = this.localContactVelocity.x * cs - this.localContactVelocity.z * sn,
+        s = this.contacts[i];
+      const basis = this.contactFrames[i];
+      if (!basis.set(b.orientation, this.wheelSteering[i], s.normal)) this.normalLoads[i] = 0;
+      const long = this.pointVelocities[i].dot(basis.forward),
+        lat = this.pointVelocities[i].dot(basis.lateral),
         total =
           VEHICLE.brakeTorque *
           (i < 2 ? this.setup.brakeBias : 1 - this.setup.brakeBias) *
@@ -343,18 +344,13 @@ export class Vehicle {
         regen,
       );
       generatorWorkW += regen * Math.abs(t.omega);
-      b.orientation.rotate(this.axis.set(sn, 0, cs), this.wheelForward);
-      b.orientation.rotate(this.axis.set(cs, 0, -sn), this.wheelRight);
-      this.wheelForward.addScaled(s.normal, -this.wheelForward.dot(s.normal)).normalize();
-      this.wheelRight.cross(s.normal, this.wheelForward).normalize();
       const rolling = Math.tanh(long * 2) * (s.resistance + (t.punctured ? 0.13 : 0)) * t.load;
       this.force
         .copy(s.normal)
         .scale(t.load)
-        .addScaled(this.wheelForward, t.fx - rolling)
-        .addScaled(this.wheelRight, t.fy);
-      this.point.set(hub.x, s.height, hub.z);
-      b.apply(this.force, this.point);
+        .addScaled(basis.forward, t.fx - rolling)
+        .addScaled(basis.lateral, t.fy);
+      b.apply(this.force, this.contactPoints[i]);
       track.interact(
         s.cell,
         t.load,
@@ -406,14 +402,12 @@ export class Vehicle {
     b.apply(this.force, b.position);
     if (airspeed > 0.01) b.force.addScaled(this.relativeAir, -this.aero.drag / airspeed);
     track.sample(b.position.x, b.position.z, this.surface);
-    const penetration = this.surface.height + 0.43 - b.position.y;
-    if (penetration > 0) {
-      const floorForce = Math.max(0, penetration * 1100000 - b.velocity.y * 14000);
-      b.force.y += floorForce;
-      this.bottomEnergy = floorForce * Math.max(0, -b.velocity.y);
-      if (this.speed > 0.1) b.force.addScaled(b.velocity, (-0.06 * floorForce) / this.speed);
-      this.floorHealth = Math.max(0.25, this.floorHealth - (this.bottomEnergy * dt) / 1e8);
-    }
+    this.bottomEnergy = this.skid.apply(b, track, dt);
+    // Abrasion cannot repair a floor already damaged below the wear limit.
+    this.floorHealth = Math.max(
+      Math.min(0.25, this.floorHealth),
+      this.floorHealth - (this.bottomEnergy * dt) / SKID_CONTACT.wearWorkJ,
+    );
     const jackTarget = this.pitPhase >= 3 && this.pitPhase <= 5 ? 0.19 : 0;
     this.jackHeight = approach(this.jackHeight, jackTarget, dt * 0.16);
     if (this.jackHeight > 0) {

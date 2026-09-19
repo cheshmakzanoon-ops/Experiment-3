@@ -58,7 +58,7 @@ it('reports exact physical contact/AI data and does not reuse writable physics v
   expect(sample.decision).toBe(simulation.ai[0].decision);
   sample.wheels.forEach((w, i) => {
     expect(w.origin).toEqual([c.origins[i].x, c.origins[i].y, c.origins[i].z]);
-    expect(w.contact).toEqual([c.hubs[i].x, c.contacts[i].height, c.hubs[i].z]);
+    expect(w.contact).toEqual([c.contactPoints[i].x, c.contactPoints[i].y, c.contactPoints[i].z]);
     expect(w.normal).toEqual([
       c.contacts[i].normal.x,
       c.contacts[i].normal.y,

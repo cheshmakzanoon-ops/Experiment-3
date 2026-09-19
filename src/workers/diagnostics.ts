@@ -55,11 +55,11 @@ export class EngineeringProbe {
       decision: aiActive ? simulation.ai[0].decision : 'MANUAL INPUT / AI INACTIVE',
       wheels: car.tires.map((tire, i) => {
         const origin = car.origins[i],
-          hub = car.hubs[i],
+          point = car.contactPoints[i],
           contact = car.contacts[i];
         return {
           origin: [origin.x, origin.y, origin.z],
-          contact: [hub.x, contact.height, hub.z],
+          contact: [point.x, point.y, point.z],
           normal: [contact.normal.x, contact.normal.y, contact.normal.z],
           loadN: tire.load,
           surface: contact.surface,

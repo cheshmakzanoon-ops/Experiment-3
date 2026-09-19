@@ -83,7 +83,14 @@ export function pitApproachTrafficSpeed(
     const reserve = 8 + Math.max(car.speed, other.speed) * 0.75;
     const nearer =
       Math.abs(other.lateral - entryOffset) < Math.abs(car.lateral - entryOffset) - 0.5;
-    if (nearer && gap > -reserve && gap < reserve && Math.abs(other.lateral - car.lateral) > 2)
+    const separation = Math.abs(other.lateral - car.lateral);
+    // In the planner's shared following corridor (<3 m), the rear car already
+    // brakes for us. Yielding back to that follower creates a directed cycle:
+    // both targets become zero and stationary-hazard flags sustain the queue.
+    // Keep longitudinal priority here; swept lane-change checks still prohibit
+    // cutting across it. A genuinely separate lane retains entry-lane priority.
+    if (gap < 0 && separation < 3) continue;
+    if (nearer && gap > -reserve && gap < reserve && separation > 2)
       speed = Math.min(speed, Math.max(0, other.speed - 4));
   }
   return speed;
