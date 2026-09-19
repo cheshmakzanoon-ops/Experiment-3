@@ -1,4 +1,4 @@
-name: Reference renderer candidate diagnosis
+name: Reference reflection HDR diagnosis
 on:
   push:
     branches: [main]
@@ -8,63 +8,58 @@ permissions:
 jobs:
   reference:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
-    permissions:
-      contents: write
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+          ref: 1c4df169b6c282fd44af543408d6dceb367dc2f6
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: npm
-      - name: Apply verified candidate and preserve unreferenced diagnostic Git objects
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - name: Instrument actual cubemap texels without modifying runtime source
         run: |
           python3 - <<'PY'
-          import base64, gzip, hashlib, json, os, pathlib, subprocess, urllib.request
-          root='https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3'
-          def api(path,data=None):
-              request=urllib.request.Request(root+path,data=None if data is None else json.dumps(data).encode(),headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','Content-Type':'application/json'},method='GET' if data is None else 'POST')
-              with urllib.request.urlopen(request,timeout=30) as response: return json.load(response)
-          parts=['73b06657bb43391e15e2bfd143600fab91b3faef','98ae317cd820f2b9e4f4783b186da3ec734e4e88','81143502357d9b7a901e6f2c86d4f198af1a767c']
-          encoded=[''.join(api('/git/blobs/'+sha)['content'].split()).rstrip('=') for sha in parts]
-          encoded[2]=encoded[2].replace('309fKfNfN2','309fKfN2')
-          patch=gzip.decompress(base64.b64decode(''.join(encoded)))
-          assert hashlib.sha256(patch).hexdigest()=='2322a3866f6cf29e649b4f8c1f0adc926518ea59f9a7778f7085276f4d878fb5'
-          path=pathlib.Path(os.environ['RUNNER_TEMP'])/'renderer.patch'; path.write_bytes(patch)
-          subprocess.run(['git','apply','--check',str(path)],check=True)
-          subprocess.run(['git','apply',str(path)],check=True)
-          subprocess.run(['git','add','src/rendering','src/shaders','tests/reference-rendering.test.ts','tests/daylight-environment.test.ts'],check=True)
-          subprocess.run(['git','diff','--cached','--check'],check=True)
-          parent=os.environ['GITHUB_SHA']; base=api('/git/commits/'+parent)['tree']['sha']
-          files=subprocess.check_output(['git','diff','--cached','--name-only']).decode().splitlines()
-          assert len(files)==14 and all(p.startswith(('src/rendering/','src/shaders/','tests/')) and '..' not in p for p in files)
-          entries=[]; hashes={}
-          for path in files:
-              content=pathlib.Path(path).read_bytes(); hashes[path]=hashlib.sha256(content).hexdigest()
-              expected=hashlib.sha1(b'blob '+str(len(content)).encode()+b'\0'+content).hexdigest()
-              blob=api('/git/blobs',{'encoding':'base64','content':base64.b64encode(content).decode()})
-              assert blob['sha']==expected
-              entries.append({'path':path,'mode':'100644','type':'blob','sha':blob['sha']})
-          tree=api('/git/trees',{'base_tree':base,'tree':entries})['sha']
-          commit=api('/git/commits',{'message':'wip: preserve renderer candidate for cockpit regression diagnosis\n\nUnreferenced candidate only. CPU suite has passed; full-preset cockpit browser gate failed. Do not publish this snapshot as a working milestone.','tree':tree,'parents':[parent]})['sha']
-          result={'candidate':commit,'tree':tree,'parent':parent,'files':hashes,'validation':'DIAGNOSTIC ONLY; cockpit regression remains open'}
-          output=pathlib.Path(os.environ['RUNNER_TEMP'])/'renderer-candidate.json'; output.write_text(json.dumps(result,indent=2)+'\n')
-          print(json.dumps(result,indent=2))
+          from pathlib import Path
+          p=Path('e2e/fixtures/reference-visual.ts'); s=p.read_text()
+          before="  const renderer = new RacingRenderer(canvas, simulation.track);"
+          instrument='''  const probeSamples: object[] = [];
+            const originalProbe = T.CubeCamera.prototype.update;
+            T.CubeCamera.prototype.update = function(gl, scene) {
+              originalProbe.call(this, gl, scene);
+              const target = this.renderTarget;
+              for (let face = 0; face < 6; face++) {
+                const bits = new Uint16Array(target.width * target.height * 4);
+                gl.readRenderTargetPixels(target, 0, 0, target.width, target.height, bits, face);
+                let nonfinite = 0, maximum = 0, minimum = Infinity;
+                const examples: object[] = [];
+                for (let i = 0; i < bits.length; i++) {
+                  if (i % 4 === 3) continue;
+                  const value = T.DataUtils.fromHalfFloat(bits[i]);
+                  if (!Number.isFinite(value)) {
+                    nonfinite++;
+                    if (examples.length < 8) examples.push({x: (i / 4 | 0) % target.width, y: (i / 4 / target.width | 0), channel: i % 4, bits: bits[i]});
+                  } else { maximum = Math.max(maximum, value); minimum = Math.min(minimum, value); }
+                }
+                probeSamples.push({face, nonfinite, maximum, minimum, examples});
+              }
+            };
+          '''
+          assert before in s;s=s.replace(before,instrument+before)
+          s=s.replace('captures, diagnostics };','captures, diagnostics, probeSamples };')
+          s=s.replace('} finally { renderer.dispose(); canvas.remove(); }','} finally { T.CubeCamera.prototype.update = originalProbe; renderer.dispose(); canvas.remove(); }')
+          p.write_text(s)
           PY
       - run: npm ci --no-audit --no-fund
-      - run: npm run check
+      - run: npm run build
       - run: npx playwright install --with-deps chromium
       - run: npx playwright test e2e/04-reference-visual.spec.ts
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: reference-renderer-diagnosis
+          name: reference-reflection-hdr-diagnosis
           path: |
             test-results
             playwright-report
-            ${{ runner.temp }}/renderer-candidate.json
           retention-days: 7
