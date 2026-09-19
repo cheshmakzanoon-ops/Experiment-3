@@ -1,3 +1,5 @@
+import { sculptedLoft, wingElement, aeroPlate } from './bodywork.ts';
+import { flankLivery } from './car-livery.ts';
 import { TireCarcass } from './tire-carcass.ts';
 import { wheelPhase, wheelTravel } from './wheel-pose.ts';
 import * as T from 'three';
@@ -10,7 +12,6 @@ import {
   box,
   canvasTexture,
   label,
-  loft,
   cockpitShell,
   mergeStatic,
   mesh,
@@ -48,6 +49,7 @@ export class FormulaCar {
   private displayClock = new SteeringDisplayClock();
   private shiftLeds: T.MeshBasicMaterial[] = [];
   readonly paint: T.MeshPhysicalMaterial;
+  readonly reflectivePaint: T.MeshPhysicalMaterial[] = [];
   private qa = new T.Quaternion();
   private qb = new T.Quaternion();
   private v = new T.Vector3();
@@ -58,11 +60,12 @@ export class FormulaCar {
     const s = this.staticBody;
     this.paint = new T.MeshPhysicalMaterial({
       color: LIVERIES[id % LIVERIES.length],
-      metalness: 0.32,
-      roughness: 0.25,
+      metalness: 0.2,
+      roughness: 0.3,
       clearcoat: 1,
       clearcoatRoughness: 0.16,
     });
+    this.reflectivePaint.push(this.paint);
     const carbon = carbonMaterial();
     const dark = new T.MeshStandardMaterial({ color: 0x101416, roughness: 0.75 });
     const metal = new T.MeshStandardMaterial({ color: 0x7c8589, metalness: 0.88, roughness: 0.3 });
@@ -75,7 +78,7 @@ export class FormulaCar {
     // Venturi floor, sculpted monocoque, narrow nose and smoothly undercut sidepods.
     mesh(
       s,
-      loft([
+      sculptedLoft([
         [-2.1, -0.395, 0.42, 0.024],
         [-1.7, -0.385, 0.89, 0.033],
         [-0.65, -0.38, 0.93, 0.035],
@@ -86,7 +89,7 @@ export class FormulaCar {
     );
     mesh(
       s,
-      loft([
+      sculptedLoft([
         [0.4, 0.025, 0.3, 0.17],
         [0.52, 0.025, 0.29, 0.16],
         [1.15, -0.025, 0.23, 0.12],
@@ -100,27 +103,57 @@ export class FormulaCar {
     box(s, dark, 0, -0.24, -0.14, 0.5, 0.08, 1.02);
     box(s, dark, 0, -0.02, -0.6, 0.44, 0.45, 0.09);
     for (const sign of [-1, 1]) {
+      const livery = flankLivery(this.paint, sign, id);
+      this.reflectivePaint.push(livery);
       const pod = mesh(
         s,
-        loft([
-          [-1.75, -0.19, 0.07, 0.12],
-          [-1.35, -0.08, 0.18, 0.24],
-          [-0.8, -0.045, 0.29, 0.235],
-          [-0.2, -0.02, 0.31, 0.19],
-          [0.28, -0.02, 0.25, 0.13],
-          [0.37, -0.03, 0.16, 0.085],
-        ]),
-        this.paint,
+        sculptedLoft(
+          [
+            [-1.75, -0.22, 0.065, 0.08],
+            [-1.35, -0.17, 0.175, 0.145],
+            [-0.8, -0.095, 0.29, 0.17],
+            [-0.2, -0.025, 0.31, 0.17],
+            [0.25, 0.005, 0.28, 0.135],
+            [0.39, 0.025, 0.225, 0.075],
+          ],
+          0.42,
+          0.65,
+        ),
+        livery,
         sign * 0.53,
         0,
         0,
       );
       pod.rotation.z = sign * -0.08;
       const inlet = mesh(s, new T.SphereGeometry(1, 24, 12), dark, sign * 0.55, 0.005, 0.373);
-      inlet.scale.set(0.225, 0.075, 0.014);
+      inlet.scale.set(0.215, 0.06, 0.014);
+      inlet.position.z = 0.399;
+      // A shaped inlet lip, splitter and small fasteners are real close-range geometry.
+      const lip = mesh(s, new T.TorusGeometry(1, 0.035, 8, 40), carbon, sign * 0.55, 0.005, 0.404);
+      lip.scale.set(0.218, 0.063, 0.03);
+      box(s, carbon, sign * 0.55, 0.005, 0.414, 0.405, 0.008, 0.075);
+      for (let j = 0; j < 4; j++) {
+        const bolt = mesh(
+          s,
+          new T.CylinderGeometry(0.003, 0.003, 0.002, 6),
+          metal,
+          sign * (0.41 + j * 0.09),
+          0.119,
+          0.235,
+        );
+        bolt.rotation.x = 0.08;
+      }
       for (let j = 0; j < 8; j++)
-        box(s, carbon, sign * 0.66, 0.145, -0.25 - j * 0.09, 0.2, 0.008, 0.025).rotation.z =
-          sign * 0.14;
+        box(
+          s,
+          carbon,
+          sign * 0.66,
+          0.135 - j * 0.009,
+          -0.25 - j * 0.09,
+          0.18,
+          0.008,
+          0.025,
+        ).rotation.z = sign * 0.14;
       tube(
         s,
         carbon,
@@ -138,7 +171,7 @@ export class FormulaCar {
     }
     mesh(
       s,
-      loft([
+      sculptedLoft([
         [-2.15, -0.11, 0.01, 0.03],
         [-1.65, 0.02, 0.15, 0.15],
         [-1.0, 0.16, 0.235, 0.36],
@@ -204,65 +237,93 @@ export class FormulaCar {
       this.mirrors.push(glass);
     }
     rod(s, metal, new T.Vector3(0.055, 0.13, 0.93), new T.Vector3(0.055, 0.52, 0.93), 0.004);
-    // Multi-element curved wings with endplates and supports.
+    // Swept thin airfoils, open slots and bevelled endplates. The entire wing
+    // remains owned by its existing damage articulation group.
     for (let j = 0; j < 4; j++) {
-      const wing = mesh(
+      mesh(
         this.frontWing,
-        loft([
-          [-0.13, -0.012, 0.004, 0.002],
-          [-0.1, 0.018, 0.76, 0.015],
-          [0, 0.015, 0.96, 0.018],
-          [0.13, -0.014, 0.97, 0.012],
-          [0.18, -0.018, 0.005, 0.001],
-        ]),
+        wingElement(1.94 - j * 0.018, j === 0 ? 0.34 : 0.2, 0.025 + j * 0.007, 0.015, 0.08, 0.028),
         j === 3 ? this.paint : carbon,
         0,
-        -0.32 + j * 0.037,
-        2.28 + j * 0.11,
+        -0.325 + j * 0.043,
+        2.48 - j * 0.14,
       );
-      wing.rotation.x = -0.11;
     }
     for (const sign of [-1, 1]) {
-      const plate = mesh(
+      mesh(
         this.frontWing,
-        loft([
-          [-0.35, 0, 0.012, 0.08],
-          [0, 0.035, 0.012, 0.09],
-          [0.27, 0.04, 0.012, 0.055],
-        ]),
+        aeroPlate(
+          [
+            [2.04, -0.36],
+            [2.64, -0.36],
+            [2.68, -0.22],
+            [2.51, -0.18],
+            [2.11, -0.21],
+            [2.02, -0.29],
+          ],
+          0.018,
+        ),
         this.paint,
-        sign * 0.975,
-        -0.3,
-        2.42,
+        sign * 0.973,
       );
-      plate.rotation.y = sign * 0.06;
+      // Slotted cascade brackets at each outboard flap.
+      for (let j = 0; j < 3; j++)
+        box(
+          this.frontWing,
+          carbon,
+          sign * 0.73,
+          -0.285 + j * 0.043,
+          2.37 - j * 0.14,
+          0.012,
+          0.072,
+          0.08,
+        );
     }
-    for (let j = 0; j < 3; j++)
+    mesh(
+      this.rearWing,
+      wingElement(1.65, 0.42, 0.048, 0.022, 0.025, 0.015),
+      carbon,
+      0,
+      0.49,
+      -1.99,
+    );
+    mesh(
+      this.rearWing,
+      wingElement(1.64, 0.22, 0.045, 0.016, 0.02, 0.012),
+      this.paint,
+      0,
+      0.65,
+      -2.18,
+    );
+    for (const sign of [-1, 1]) {
       mesh(
         this.rearWing,
-        loft([
-          [-0.16, -0.025, 0.01, 0.001],
-          [-0.13, 0.006, 0.81, 0.012],
-          [0.07, 0.018, 0.83, 0.023],
-          [0.19, -0.015, 0.82, 0.007],
-          [0.2, -0.017, 0.01, 0.001],
-        ]),
-        j === 2 ? this.paint : carbon,
-        0,
-        0.45 + j * 0.078,
-        -2.05 + j * 0.04,
+        aeroPlate(
+          [
+            [-2.34, 0.2],
+            [-1.94, 0.18],
+            [-1.75, 0.39],
+            [-1.77, 0.63],
+            [-1.98, 0.72],
+            [-2.31, 0.72],
+          ],
+          0.024,
+        ),
+        this.paint,
+        sign * 0.839,
       );
-    for (const sign of [-1, 1]) {
-      box(this.rearWing, this.paint, sign * 0.84, 0.4, -2.03, 0.035, 0.47, 0.56);
       rod(
         this.rearWing,
         carbon,
         new T.Vector3(sign * 0.24, -0.28, -1.9),
-        new T.Vector3(sign * 0.24, 0.45, -2.06),
-        0.035,
+        new T.Vector3(sign * 0.24, 0.48, -2.04),
+        0.028,
       );
+      for (let j = 0; j < 3; j++)
+        box(this.rearWing, carbon, sign * 0.858, 0.34 + j * 0.047, -2.12, 0.012, 0.009, 0.17);
     }
-    box(s, carbon, 0, -0.16, -2.05, 1.42, 0.025, 0.26);
+    mesh(s, wingElement(1.41, 0.23, 0.018, 0.011, 0.015, 0.008), carbon, 0, -0.12, -2.06);
+    mesh(s, wingElement(1.36, 0.17, 0.018, 0.009, 0.02, 0.009), carbon, 0, -0.05, -2.18);
     const rain = new T.MeshStandardMaterial({
       color: 0x710000,
       emissive: 0xff1b0a,
@@ -360,6 +421,39 @@ export class FormulaCar {
           link.position.copy(end);
           this.links.push({ mesh: link, anchor, wheel: i, dy });
         }
+      // Rigid aero cover and machined hub detail spin with the rim, never with
+      // the deforming contact patch. The compound rings remain on the carcass.
+      const outside = Math.sign(p[0]);
+      const cover = mesh(
+        spin,
+        new T.RingGeometry(0.052, 0.228, 48, 3),
+        carbon,
+        outside * (half + 0.007),
+        0,
+        0,
+      );
+      cover.rotation.y = (outside * Math.PI) / 2;
+      const centreRing = mesh(
+        spin,
+        new T.TorusGeometry(0.049, 0.006, 8, 32),
+        metal,
+        outside * (half + 0.009),
+        0,
+        0,
+      );
+      centreRing.rotation.y = Math.PI / 2;
+      for (let j = 0; j < 10; j++) {
+        const angle = (j / 10) * Math.PI * 2;
+        const fastener = mesh(
+          spin,
+          new T.CylinderGeometry(0.004, 0.004, 0.004, 6),
+          metal,
+          outside * (half + 0.012),
+          Math.cos(angle) * 0.193,
+          Math.sin(angle) * 0.193,
+        );
+        fastener.rotation.z = Math.PI / 2;
+      }
       // Batch only the rigid wheel. Rubber must remain independently deformable.
       mergeStatic(spin);
       const carcass = new TireCarcass(half, tread.material, ringMaterial);

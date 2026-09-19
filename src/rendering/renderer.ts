@@ -1,3 +1,10 @@
+import {
+  configureSky,
+  daylightState,
+  shadowAnchor,
+  SkyEnvironment,
+  SUN_OFFSET,
+} from './daylight.ts';
 import { EngineeringView } from './engineering-view.ts';
 import type { EngineeringSample } from '../workers/diagnostics.ts';
 import * as T from 'three';
@@ -49,7 +56,7 @@ export class RacingRenderer {
   readonly debris = new DebrisView();
   readonly pitCrew = new PitCrewView();
   readonly sun = new T.DirectionalLight(0xffead0, 3.3);
-  private hemisphere = new T.HemisphereLight(0xe7f2ef, 0x737765, 2);
+  private hemisphere = new T.HemisphereLight(0xc3d8f3, 0x33372e, 0.3);
   private sky = new Sky();
   private composer: EffectComposer;
   private bloom: UnrealBloomPass;
@@ -59,7 +66,7 @@ export class RacingRenderer {
   graphics: GraphicsOptions = graphicsPreset('medium');
   private renderWidth = 1;
   private renderHeight = 1;
-  private env: T.WebGLRenderTarget | null = null;
+  private environment: SkyEnvironment;
   private disposed = false;
   private target = new T.Vector3();
   private desired = new T.Vector3();
@@ -128,37 +135,28 @@ export class RacingRenderer {
     this.renderer.shadowMap.type = T.PCFSoftShadowMap;
     this.sky.scale.setScalar(450000);
     this.sky.userData.excludeMotionBlur = true;
-    const u = this.sky.material.uniforms;
-    u.turbidity.value = 5;
-    u.rayleigh.value = 1.8;
-    u.mieCoefficient.value = 0.006;
-    u.mieDirectionalG.value = 0.8;
-    u.sunPosition.value.set(-0.55, 0.35, -0.65);
+    configureSky(this.sky);
+    this.environment = new SkyEnvironment(this.sky);
     this.scene.add(this.sky);
     this.scene.environmentIntensity = 0.7;
     this.scene.fog = new T.FogExp2(0xb9c7c1, 0.00044);
     this.scene.add(this.hemisphere, this.sun, this.sun.target);
-    this.sun.position.set(-160, 190, -130);
+    this.sun.position.copy(SUN_OFFSET);
     this.sun.castShadow = true;
     this.sun.shadow.mapSize.set(2048, 2048);
     Object.assign(this.sun.shadow.camera, {
-      left: -65,
-      right: 65,
-      top: 65,
-      bottom: -65,
+      left: -38,
+      right: 38,
+      top: 38,
+      bottom: -38,
       near: 20,
       far: 500,
     });
-    this.sun.shadow.bias = -0.00012;
-    this.sun.shadow.normalBias = 0.035;
+    this.sun.shadow.bias = -0.000015;
+    this.sun.shadow.normalBias = 0.008;
     this.circuit = new CircuitScene(track, true);
     this.circuit.construction.add('Environment lighting', 1, () => {
-      const envScene = new T.Scene();
-      envScene.add(this.sky.clone());
-      const generator = new T.PMREMGenerator(this.renderer);
-      this.env = generator.fromScene(envScene, 0.04, 0.1, 700000);
-      generator.dispose();
-      this.scene.environment = this.env.texture;
+      this.environment.update(this.renderer, this.scene, 0);
     });
     this.trackside = new TracksideDirector(track);
     this.scene.add(this.circuit.group, this.effects.group, this.engineeringView.group);
@@ -214,7 +212,7 @@ export class RacingRenderer {
       if (car.id === 0) {
         this.reflection.attachMirrors(car.mirrors);
         this.reflection.quality(this.graphics.mirrorQuality);
-        this.reflectionMaterials.push(car.paint, this.circuit.roadMaterial);
+        this.reflectionMaterials.push(...car.reflectivePaint, this.circuit.roadMaterial);
       }
     }
     this.cars.forEach((c, i) => (c.root.visible = i < n));
@@ -395,14 +393,24 @@ export class RacingRenderer {
     }
     const car = this.cars[this.follow],
       speed = b[o + F.SPEED];
-    const cloud = b[H.CLOUD];
-    this.sun.intensity = 3.4 * (1 - cloud * 0.86);
-    this.hemisphere.intensity = 1.65 + cloud * 0.8;
-    this.scene.environmentIntensity = 0.7 - cloud * 0.15;
+    const daylight = daylightState(presented[H.CLOUD], presented[H.RAIN]);
+    this.sun.intensity = daylight.sun;
+    this.hemisphere.intensity = daylight.fill;
+    this.scene.environmentIntensity = daylight.environment;
+    // Explicit local envMaps do not inherit scene.environmentIntensity.
+    // Keep their exposure in the same authored range as the sky environment.
+    for (const material of this.reflectionMaterials)
+      material.envMapIntensity = daylight.environment;
+    this.renderer.toneMappingExposure = daylight.exposure;
     const fog = this.scene.fog as T.FogExp2;
-    fog.density = 0.00042 + b[H.RAIN] * 0.000025;
-    fog.color.setRGB(0.7 - cloud * 0.14, 0.76 - cloud * 0.14, 0.73 - cloud * 0.12);
-    this.sky.material.uniforms.turbidity.value = 5 + cloud * 8;
+    fog.density = daylight.fogDensity;
+    fog.color.setRGB(
+      0.55 - daylight.cover * 0.12,
+      0.65 - daylight.cover * 0.12,
+      0.76 - daylight.cover * 0.12,
+    );
+    this.sky.material.uniforms.turbidity.value = daylight.turbidity;
+    this.sky.material.uniforms.cloudCover.value = daylight.cover;
     this.target.copy(car.root.position);
     this.direction.set(0, 0, 1).applyQuaternion(car.root.quaternion);
     if (menu) {
@@ -486,8 +494,13 @@ export class RacingRenderer {
     }
     this.camera.lookAt(this.gaze);
     this.camera.updateProjectionMatrix();
-    this.sun.target.position.copy(this.target);
-    this.sun.position.copy(this.target).add(this.temporary.set(-160, 190, -130));
+    shadowAnchor(
+      this.target,
+      this.sun.shadow.mapSize.x,
+      this.sun.shadow.camera.right,
+      this.sun.target.position,
+    );
+    this.sun.position.copy(this.sun.target.position).add(SUN_OFFSET);
     this.sun.target.updateMatrixWorld();
     this.circuit.update(b);
     this.effectPlayback.update(presented, !menu);
@@ -510,6 +523,8 @@ export class RacingRenderer {
     this.renderer.info.reset();
     this.gpuTimer.begin();
     try {
+      // Include weather-driven environment captures in real GPU/draw metrics.
+      this.environment.update(this.renderer, this.scene, daylight.cover);
       this.reflection.updateProbe(
         this.renderer,
         this.scene,
@@ -590,6 +605,8 @@ export class RacingRenderer {
       mirrorUpdates: this.reflection.mirrorUpdates,
       mirrorWidth: this.reflection.mirrorWidth,
       reflectionProbeUpdates: this.reflection.probeUpdates,
+      skyEnvironmentUpdates: this.environment.captures,
+      vegetationTrees: this.circuit.vegetationGroup.userData.treeCount,
       localProbeActive: this.reflection.localProbeActive,
       motionBlur: this.motionBlur.diagnostics(),
       gpuMilliseconds: this.gpuTimer.milliseconds,
@@ -629,7 +646,7 @@ export class RacingRenderer {
     for (const m of materials) m.dispose();
     for (const t of textures) t.dispose();
     this.circuit.stateTexture.dispose();
-    this.env?.dispose();
+    this.environment.dispose();
     this.composer.dispose();
     this.renderer.dispose();
   }

@@ -1,6 +1,7 @@
 // R encodes millimetres / 2, G local laid rubber, B local loose marbles. This is the same spatial
 // surface state sent by the simulation worker, not a global rain tint.
 vec4 roadState = texture2D(trackState, vTrackUV);
+roadState.gb *= surfaceDeposits;
 float waterMm = roadState.r * 2.0;
 float wet = smoothstep(0.0, 0.65, waterMm);
 float puddle = smoothstep(0.65, 1.5, waterMm);

@@ -1,6 +1,8 @@
+import { buildVegetation, terrainHeight } from './landscape.ts';
+import { surfaceMaterial } from './surface-detail.ts';
 import * as T from 'three';
 import { BuildQueue } from './build-queue.ts';
-import wetRoad from '../shaders/wetRoad.frag?raw';
+import { installWetRoad } from './materials.ts';
 import { kerbHeight } from '../simulation/contact.ts';
 import { Track, CELL_ROWS, CELL_COLS, trackPoint } from '../simulation/track.ts';
 import { Random, clamp } from '../core/math.ts';
@@ -14,6 +16,7 @@ interface RibbonOptions {
   stripes?: boolean;
   columns?: number;
   road?: boolean;
+  include?: (s: number, lateral: number) => boolean;
 }
 /** All surfaces are constructed from the same metre-valued track queries as physics. */
 export class CircuitScene {
@@ -37,54 +40,11 @@ export class CircuitScene {
     this.stateTexture.magFilter = T.LinearFilter;
     this.stateTexture.minFilter = T.LinearFilter;
     this.updateSurface(track.water, track.rubber, track.marbles);
-    const rng = new Random(1887);
-    const asphalt = canvasTexture(512, 512, (c) => {
-      const image = c.createImageData(512, 512);
-      for (let i = 0; i < image.data.length; i += 4) {
-        const n = 77 + rng.next() * 28;
-        image.data[i] = n;
-        image.data[i + 1] = n + 1;
-        image.data[i + 2] = n + 3;
-        image.data[i + 3] = 255;
-      }
-      c.putImageData(image, 0, 0);
-      for (let i = 0; i < 90; i++) {
-        c.fillStyle = 'rgba(19,20,21,.12)';
-        c.fillRect(rng.next() * 512, rng.next() * 512, 1, 8 + rng.next() * 60);
-      }
-    });
-    asphalt.wrapS = asphalt.wrapT = T.RepeatWrapping;
-    asphalt.anisotropy = 8;
-    this.roadMaterial = new T.MeshStandardMaterial({
-      map: asphalt,
-      color: 0xb2b5b5,
-      roughness: 0.91,
-      metalness: 0.07,
-    });
-    this.roadMaterial.onBeforeCompile = (shader) => {
-      shader.uniforms.trackState = { value: this.stateTexture };
-      shader.vertexShader = shader.vertexShader
-        .replace(
-          '#include <common>',
-          '#include <common>\nattribute vec2 trackUV; varying vec2 vTrackUV;',
-        )
-        .replace('#include <begin_vertex>', '#include <begin_vertex>\nvTrackUV = trackUV;');
-      shader.fragmentShader = shader.fragmentShader.replace(
-        '#include <common>',
-        '#include <common>\nuniform sampler2D trackState; varying vec2 vTrackUV;',
-      );
-      shader.fragmentShader = shader.fragmentShader.replace(
-        '#include <map_fragment>',
-        '#include <map_fragment>\n' + wetRoad,
-      );
-      shader.fragmentShader = shader.fragmentShader.replace(
-        '#include <roughnessmap_fragment>',
-        '#include <roughnessmap_fragment>\nroughnessFactor=mix(roughnessFactor,mix(0.23,0.10,puddle),wet);',
-      );
-    };
-    const grass = new T.MeshStandardMaterial({ color: 0x69734d, roughness: 1 });
+    this.roadMaterial = surfaceMaterial('asphalt');
+    installWetRoad(this.roadMaterial, this.stateTexture, true);
+    const grass = surfaceMaterial('grass');
     const runOff = new T.MeshStandardMaterial({ color: 0x364c44, roughness: 0.93 });
-    const gravel = new T.MeshStandardMaterial({ color: 0xb2a591, roughness: 1 });
+    const gravel = surfaceMaterial('gravel');
     this.queueRibbon(grass, {
       offset: (s, t) => {
         track.at(s, this.temp);
@@ -99,7 +59,11 @@ export class CircuitScene {
         return (t * 2 - 1) * (this.temp.width + 10);
       },
       height: () => -0.027,
-      columns: 4,
+      columns: 12,
+      include: (s, lateral) => {
+        track.at(s, this.temp);
+        return Math.abs(lateral) > this.temp.width + 4 && this.temp.curvature * lateral < -0.009;
+      },
     });
     this.queueRibbon(runOff, {
       offset: (s, t) => {
@@ -145,7 +109,8 @@ export class CircuitScene {
       });
     }
     // Smooth pit road ribbon and its marking; no decorative inaccessible lane.
-    const pitMat = new T.MeshStandardMaterial({ map: asphalt, color: 0xb6b6b0, roughness: 0.83 });
+    const pitMat = surfaceMaterial('asphalt');
+    installWetRoad(pitMat, this.stateTexture, false);
     for (const [start, end] of [
       [track.length - 220, track.length],
       [0, 330],
@@ -174,21 +139,17 @@ export class CircuitScene {
       const pos = terrain.getAttribute('position');
       for (let i = 0; i < pos.count; i++) {
         const x = pos.getX(i),
-          z = pos.getZ(i),
-          dist = Math.hypot(x, z);
-        pos.setY(
-          i,
-          -4 +
-            Math.max(0, dist - 680) * 0.033 * (0.3 + 0.7 * Math.sin(x * 0.004 + z * 0.002) ** 2) +
-            Math.max(0, dist - 1000) * 0.038 * Math.cos(x * 0.003 - z * 0.004) ** 2,
-        );
+          z = pos.getZ(i);
+        pos.setY(i, terrainHeight(x, z));
       }
       terrain.computeVertexNormals();
       mesh(this.group, terrain, new T.MeshStandardMaterial({ color: 0x81836d, roughness: 1 }));
     });
     this.construction.add('Track barriers and fencing', 2, () => this.barriers());
     this.infrastructure();
-    this.construction.add('Background vegetation', 3, () => this.vegetation(rng));
+    this.construction.add('Rule-placed layered foliage', 3, () =>
+      buildVegetation(track, this.vegetationGroup),
+    );
     this.construction.add('Grid and finish markings', 0, () => this.grid());
     this.construction.add('Spatial geometry batches', 4, () => batchScene(this.props, new Set()));
     if (!deferred) this.construction.runSynchronously();
@@ -250,7 +211,7 @@ export class CircuitScene {
           extra = options.height?.(s, l, t) ?? 0;
         vertices.push(p.x + p.nx * l, p.y + p.bank * clamp(l, -12, 12) + extra, p.z + p.nz * l);
         uv.push(l / 5, s / 5);
-        state.push(t, s / this.track.length);
+        state.push(clamp((l / p.width) * 0.5 + 0.5, 0, 1), s / this.track.length);
         const c = Math.floor(s / 3) % 2 === 0 ? new T.Color(0xdc553b) : new T.Color(0xe8e3cf);
         colors.push(c.r, c.g, c.b);
       }
@@ -258,6 +219,9 @@ export class CircuitScene {
     const ascending = options.offset(start, 1) >= options.offset(start, 0);
     for (let i = 0; i < rows; i++)
       for (let j = 0; j < cols; j++) {
+        const centreS = start + ((end - start) * (i + 0.5)) / rows;
+        if (options.include && !options.include(centreS, options.offset(centreS, (j + 0.5) / cols)))
+          continue;
         const a = i * (cols + 1) + j,
           b = a + cols + 1;
         if (ascending) indices.push(a, b, a + 1, b, b + 1, a + 1);
@@ -534,30 +498,6 @@ export class CircuitScene {
       box(tower, glass, 0, 15, 0, 9, 3.5, 9);
       box(tower, roof, 0, 17, 0, 10, 0.25, 10);
     });
-  }
-  private vegetation(random: Random) {
-    const transforms: { s: number; l: number; y: number; sx: number; sy: number; sz: number }[] =
-      [];
-    for (let i = 0; i < 460; i++) {
-      const s = random.next() * this.track.length,
-        side = random.next() < 0.5 ? -1 : 1,
-        l = side * (40 + random.next() * 135);
-      if (s < 300 && l > 0) continue;
-      const size = 3 + random.next() * 5;
-      transforms.push({ s, l, y: size * 0.5 - 1, sx: size * 0.48, sy: size, sz: size * 0.48 });
-    }
-    const trees = this.instance(
-      new T.IcosahedronGeometry(1, 1),
-      new T.MeshStandardMaterial({ color: 0x56623d, roughness: 1 }),
-      transforms,
-      this.vegetationGroup,
-    );
-    trees.userData.fullCount = transforms.length;
-    for (let i = 0; i < transforms.length; i++)
-      trees.setColorAt(
-        i,
-        new T.Color().setHSL(0.19 + random.next() * 0.035, 0.22, 0.29 + random.next() * 0.12),
-      );
   }
   private grid() {
     const paint = new T.MeshBasicMaterial({ color: 0xece9de });
