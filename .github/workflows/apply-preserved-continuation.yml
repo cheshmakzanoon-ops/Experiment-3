@@ -23,12 +23,13 @@ jobs:
           set -euo pipefail
           git fetch origin main
           test "$(git rev-parse HEAD)" = "$(git rev-parse origin/main)"
-          test "$(git rev-parse HEAD^)" = "fefe92074a2b456473d17e065fb6c2a3dd8087a2"
-          base64 -d .github/preserved-continuation.patch.gz.b64 | gzip -d > "$RUNNER_TEMP/continuation.patch"
+          cat             .github/preserved-continuation.part1.b64             .github/preserved-continuation.part2a.b64             .github/preserved-continuation.part2b.b64             .github/preserved-continuation.part3a.b64             .github/preserved-continuation.part3b.b64             .github/preserved-continuation.part4a.b64             .github/preserved-continuation.part4b.b64             > "$RUNNER_TEMP/continuation.b64"
+          echo "2446a096a64322a6b8ce268017d60f419a14f94985b974b6f3e8de645e46f94f  $RUNNER_TEMP/continuation.b64" | sha256sum -c -
+          base64 -d "$RUNNER_TEMP/continuation.b64" | gzip -d > "$RUNNER_TEMP/continuation.patch"
           echo "145e142bdc9dfe5ed029ce3987c781984eb1c2b42b33a217c0f9ea6b64f7e71d  $RUNNER_TEMP/continuation.patch" | sha256sum -c -
           git apply --check "$RUNNER_TEMP/continuation.patch"
           git apply "$RUNNER_TEMP/continuation.patch"
-          rm -f .github/preserved-continuation.patch.gz.b64 .github/workflows/apply-preserved-continuation.yml
+          rm -f             .github/preserved-continuation.part1.b64             .github/preserved-continuation.part2a.b64             .github/preserved-continuation.part2b.b64             .github/preserved-continuation.part3a.b64             .github/preserved-continuation.part3b.b64             .github/preserved-continuation.part4a.b64             .github/preserved-continuation.part4b.b64             .github/workflows/apply-preserved-continuation.yml
           git add -A
           test "$(git write-tree)" = "ba53fadd70a5ac9fabdd01b80d65aa321f70ef7a"
       - uses: actions/setup-node@v4
