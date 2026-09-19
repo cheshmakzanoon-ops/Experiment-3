@@ -2,6 +2,7 @@ import { APRON_COLUMNS, grassApronLateral, grassApronOffset } from './ground-pro
 import { barrierMaterials, buildBarrierChunk } from './circuit-barriers.ts';
 import { installCircuitFinish } from './circuit-finish.ts';
 import { GRANDSTANDS, standMaterials, buildGrandstand } from './grandstand.ts';
+import { buildGarageBay, paddockMaterials } from './paddock-detail.ts';
 import { buildVegetation, terrainHeight } from './landscape.ts';
 import { surfaceMaterial } from './surface-detail.ts';
 import * as T from 'three';
@@ -293,10 +294,8 @@ export class CircuitScene {
     box(g, metal, width * 0.35, -1.1, 0.02, 0.08, 2.5, 0.08);
   }
   private infrastructure() {
-    const concrete = new T.MeshStandardMaterial({ color: 0xc8c7b9, roughness: 0.82 });
-    const dark = new T.MeshStandardMaterial({ color: 0x283736, roughness: 0.68 });
-    const roof = new T.MeshStandardMaterial({ color: 0xaaa99b, metalness: 0.35, roughness: 0.6 });
-    const glass = new T.MeshStandardMaterial({ color: 0x557577, metalness: 0.75, roughness: 0.15 });
+    const paddock = paddockMaterials();
+    const { concrete, steel: dark, cladding: roof, glass } = paddock;
     // Paddock follows the main straight. Each garage has a separate bay and service box.
     for (let i = 0; i < 12; i++) {
       this.construction.add(`Garage ${i + 1} / 12`, 2, () => {
@@ -306,10 +305,7 @@ export class CircuitScene {
         g.position.copy(this.at(s, 35, 0));
         g.rotation.y = Math.atan2(p.tx, p.tz);
         this.props.add(g);
-        box(g, concrete, 0, 3, 0, 13, 6, 8.6);
-        box(g, dark, -6.55, 1.5, 0, 0.04, 2.9, 6.3);
-        box(g, roof, 0, 6.12, 0, 14, 0.24, 9);
-        box(g, glass, -6.59, 4.65, 0, 0.05, 1.6, 7.7);
+        buildGarageBay(g, paddock, i);
         const panel = mesh(
           g,
           new T.PlaneGeometry(7.5, 0.9),
@@ -319,7 +315,6 @@ export class CircuitScene {
           0,
         );
         panel.rotation.y = -Math.PI / 2;
-        for (const z of [-3.4, 3.4]) box(g, concrete, -6.8, 3, z, 0.35, 6, 0.3);
         const boxS = 102 + i * 7,
           mark = this.track.at(boxS, trackPoint());
         const painting = new T.Group();
