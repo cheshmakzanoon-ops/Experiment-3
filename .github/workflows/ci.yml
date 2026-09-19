@@ -47,12 +47,23 @@ jobs:
           cache: npm
       - run: npm ci --no-audit --no-fund
       - run: npm run test:physics
+      - run: node --experimental-transform-types scripts/rotation-benchmark.ts
+      - run: node --experimental-transform-types scripts/pit-integration.ts
+      - run: node --experimental-transform-types scripts/race-classification.ts
       - name: Scenario evidence, including failures
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: physics-scenarios
-          path: docs/scenario-results.json
+          path: |
+            docs/scenario-results.json
+            docs/dynamics-benchmark.json
+            docs/marshal-integration.json
+            docs/wet-pit-results.json
+            docs/integrated-driving.json
+            docs/rotation-benchmark.json
+            docs/pit-integration.json
+            docs/race-classification.json
           retention-days: 7
   browser:
     needs: validate
@@ -82,3 +93,48 @@ jobs:
             test-results/
             playwright-report/
           retention-days: 7
+
+  publish:
+    # Ship exactly the build tested above, never a parallel unvalidated rebuild.
+    needs: [validate, scenarios, browser]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'cheshmakzanoon-ops/Experiment-3'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    concurrency:
+      group: apex-playable-publication
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/download-artifact@v4
+        with:
+          name: apex-formula-web
+          path: dist/
+      - name: Publish tested playable snapshot without overwriting a newer build
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          if test "$(git rev-parse origin/main)" != "$GITHUB_SHA"; then
+            echo 'A newer source commit exists; leaving playable unchanged.' >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          old=$(git ls-remote --heads origin refs/heads/playable | cut -f1)
+          mkdir -p "$RUNNER_TEMP/verified-playable"
+          cp -R dist/. "$RUNNER_TEMP/verified-playable/"
+          find "$RUNNER_TEMP/verified-playable" -type f -name '*.map' -delete
+          printf '%s\n' "$GITHUB_SHA" > "$RUNNER_TEMP/verified-playable/SOURCE_COMMIT.txt"
+          touch "$RUNNER_TEMP/verified-playable/.nojekyll"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git checkout --orphan playable-publish
+          git rm -rf .
+          git clean -fdx
+          cp -R "$RUNNER_TEMP/verified-playable/." .
+          git add -A
+          git commit -m "deploy: tested playable snapshot ${GITHUB_SHA::12}"
+          git push --force-with-lease="refs/heads/playable:$old" origin HEAD:refs/heads/playable
+          echo "Playable source: $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
