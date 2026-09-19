@@ -1,0 +1,134 @@
+diff --git a/docs/IMPLEMENTATION_MATRIX.md b/docs/IMPLEMENTATION_MATRIX.md
+index 43add06..03548cb 100644
+--- a/docs/IMPLEMENTATION_MATRIX.md
++++ b/docs/IMPLEMENTATION_MATRIX.md
+@@ -107,8 +107,8 @@ This ledger follows all 148 numbered sections of the exact [Pasted markdown(6) d
+ | 101 | DEBUG OVERLAY | F3 now exposes every required numeric category, including per-wheel forces/slip/thermal/wear, body motion/G, aero balance/drag, physical surface cells/rubber and actual AI target/path/decision. Opt-in timestamped worker probe; unsupported GPU timing and unrecorded replay-only extras are labeled honestly. |
+ | 102 | VISUAL DEBUGGING | Actual last-solve contact points, suspension query rays and contact-normal Fz arrows are connected to the opt-in probe. Stale/live overlays are hidden during replay. Other section-102 visualizations are optional and not all are implemented. |
+-| 103 | UNIT TESTS | 350 unit/property/regression tests at the replay/audio/engineering checkpoint: 36 added tests cover presentation clocks, camera audio and read-only engineering inspection. Test count is evidence scope, not universal correctness. |
++| 103 | UNIT TESTS | 353 unit/property/regression tests at the replay/audio/engineering checkpoint: 39 added tests cover presentation clocks, camera audio and read-only engineering inspection. Test count is evidence scope, not universal correctness. |
+ | 104 | PHYSICS PROPERTY TESTS | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+ | 105 | DETERMINISM TEST | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+-| 106 | FRAME-INDEPENDENCE TEST | Continuous effect emission totals across 24/30/60/90/120/144 Hz, accelerated simulation-time playback and frozen-frame equality and paused camera pan/inertia regressions supplement existing fixed-step determinism tests. Particle pixel placement is not claimed bit-identical across rates. |
++| 106 | FRAME-INDEPENDENCE TEST | Continuous effect emission totals across 0.5/1/2 and 24/30/60/90/120/144 Hz, accelerated simulation-time playback and frozen-frame equality and paused camera pan/inertia regressions supplement existing fixed-step determinism tests. Particle pixel placement is not claimed bit-identical across rates. |
+ | 107 | STRAIGHT-LINE TEST | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+ | 108 | SKIDPAD TEST | Instrumented 80 m skidpad at 15/25/35 m/s using the production vehicle solver; measured lateral G compared with actual speed/radius, radial RMS error and speed tracking. |
+diff --git a/docs/REPLAY_AUDIO_AND_ENGINEERING.md b/docs/REPLAY_AUDIO_AND_ENGINEERING.md
+index 9cd54b8..212be7e 100644
+--- a/docs/REPLAY_AUDIO_AND_ENGINEERING.md
++++ b/docs/REPLAY_AUDIO_AND_ENGINEERING.md
+@@ -20,6 +20,6 @@ original samples, with their existing protocol version 7 and 203 CSV columns.
+ particle advancement. A frozen simulation cannot manufacture smoke/rain, move
+ particles or age their lifetimes. Continuous updates use at most 1/30-second
+-substeps and trace the emitter through the interpolated trajectory. Seeks,
+-rewinds and gaps above half a second clear the pool rather than connect unrelated
++substeps (at most 60 per update) and trace the emitter through the interpolated trajectory. Seeks,
++rewinds and gaps above two seconds clear the pool rather than connect unrelated
+ locations with a particle trail. The existing 1,800-particle capacity is unchanged.
+ A seek intentionally does not reconstruct every particle born before the seek;
+@@ -113,4 +113,17 @@ browser worker test now also requires real typed engineering responses. The full
+ application test toggles F3, checks live data and retains an engineering screenshot.
+ 
++## Slow-display regression
++
++The first browser candidate exposed a real low-frame-rate failure: treating every
++half-second presentation gap as a seek repeatedly cleared rain and spray on the
++software-rendered runner. The trace recorded approximately one frame per second
++and increasing reset counts with zero particle births. This was not accepted as
++a pass or hidden by disabling effects. The continuous presentation window now
++supports up to two simulation seconds with at most sixty 1/30-second substeps.
++Three new 0.5/1/2 FPS tests require exact cumulative emission totals and nonzero
++live rain/spray, while frozen frames and large seeks retain their safety tests.
++Explicit UI seeks still reset the pool, independently of their time displacement.
++This is bounded visual catch-up, not permission to skip or alter physics ticks.
++
+ ## Scope and retained acceptance boundaries
+ 
+diff --git a/docs/dynamics-benchmark.json b/docs/dynamics-benchmark.json
+index 8eec6f7..a0e11b7 100644
+--- a/docs/dynamics-benchmark.json
++++ b/docs/dynamics-benchmark.json
+@@ -1,4 +1,4 @@
+ {
+-  "sourceSHA256": "5e20e2cf842532bdcd8a5cd9bfb8482cf2e8b67edee549dc93258dab97fb2be2",
++  "sourceSHA256": "6e0c25e98ebee4a410eb79c25370bbf7198a7a8016039e098d4e9a6fc535ef77",
+   "fixedDtSeconds": 0.004166666666666667,
+   "fixture": "Isolated analytic runway/skidpad/kerbs with the production Vehicle solver",
+diff --git a/docs/integrated-driving.json b/docs/integrated-driving.json
+index d0cd6dc..6d86e96 100644
+--- a/docs/integrated-driving.json
++++ b/docs/integrated-driving.json
+@@ -1,4 +1,4 @@
+ {
+-  "sourceSHA256": "de932511c03ae5baa6416d017c8f4ff54de2f4eee693644acc6c511398be7ad8",
++  "sourceSHA256": "51776619c5a9e693d027464ae8ef34b802be489bebe586f356ef03cef414481a",
+   "simulationSHA256": "30c155c669e4af3f1d5b2a40ab0ce9acd44d5dc19ee82777df8f6c6bf2149484",
+   "fingerprintVersion": 2,
+diff --git a/docs/scenario-results.json b/docs/scenario-results.json
+index cda408f..39d6b25 100644
+--- a/docs/scenario-results.json
++++ b/docs/scenario-results.json
+@@ -6,5 +6,5 @@
+     "simulatedSeconds": 320,
+     "cars": 4,
+-    "elapsedSeconds": 12.465003163,
++    "elapsedSeconds": 12.734795914000001,
+     "maxSpeedKmh": 273.7525241448068,
+     "maxLateral": 8.676510391903989,
+@@ -47,5 +47,5 @@
+     "simulatedSeconds": 320,
+     "cars": 4,
+-    "elapsedSeconds": 11.728825059,
++    "elapsedSeconds": 12.00110562,
+     "maxSpeedKmh": 271.8375331467494,
+     "maxLateral": 8.90782178695694,
+@@ -88,5 +88,5 @@
+     "simulatedSeconds": 320,
+     "cars": 4,
+-    "elapsedSeconds": 11.625920206000002,
++    "elapsedSeconds": 11.784270714999998,
+     "maxSpeedKmh": 258.0035511152656,
+     "maxLateral": 9.279951269326773,
+diff --git a/src/rendering/effect-playback.ts b/src/rendering/effect-playback.ts
+index 6cdd941..a82ece8 100644
+--- a/src/rendering/effect-playback.ts
++++ b/src/rendering/effect-playback.ts
+@@ -3,5 +3,7 @@ import { PresentedFrame } from './frame-state.ts';
+ import type { Effects } from './effects.ts';
+ 
+-const MAX_CONTINUOUS_GAP = 0.5;
++// A slow display is not a seek. Integrate up to two observed simulation seconds
++// in at most 60 bounded substeps; explicit seek/reset still discards old trails.
++const MAX_CONTINUOUS_GAP = 2;
+ const MAX_EFFECT_STEP = 1 / 30;
+ /** Visual particle evolution follows the presented simulation clock, in both
+diff --git a/tests/presentation-time.test.ts b/tests/presentation-time.test.ts
+index 1eed45f..24690a7 100644
+--- a/tests/presentation-time.test.ts
++++ b/tests/presentation-time.test.ts
+@@ -169,2 +169,25 @@ it('honors disabled particles immediately even without a new simulation tick', (
+   }
+ });
++
++it.each([0.5, 1, 2])('retains real weather/contact work during %s FPS rendering', (hz) => {
++  const effects = new Effects(),
++    playback = new EffectPlayback(effects);
++  try {
++    for (let i = 0; i <= hz * 4; i++) playback.update(snapshot(i / hz));
++    const measured = effects.diagnostics();
++    expect(playback.elapsed).toBeCloseTo(4, 6);
++    expect(playback.resets).toBe(1);
++    expect(measured.spawned[PARTICLE_KIND.MARBLE]).toBe(640);
++    expect(measured.spawned[PARTICLE_KIND.SPRAY]).toBe(192);
++    expect(measured.spawned[PARTICLE_KIND.RAIN]).toBe(320);
++    expect(measured.active[PARTICLE_KIND.SPRAY]).toBeGreaterThan(0);
++    expect(measured.active[PARTICLE_KIND.RAIN]).toBeGreaterThan(0);
++    const before = measured.spawned;
++    playback.update(snapshot(4));
++    expect(effects.diagnostics().spawned).toEqual(before);
++    playback.update(snapshot(20));
++    expect(effects.diagnostics().spawned.every((n) => n === 0)).toBe(true);
++  } finally {
++    dispose(effects);
++  }
++});
