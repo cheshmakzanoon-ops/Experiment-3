@@ -1,0 +1,144 @@
+diff --git a/README.md b/README.md
+index 93fa273..0e88b5c 100644
+--- a/README.md
++++ b/README.md
+@@ -349,2 +349,18 @@ must permit `blob:` workers; no browser security setting is disabled.
+ 
+ Read [the exact subsystem scope and validation boundaries](docs/MARBLES_AND_SURFACE_STATE.md).
++
++### Replay effects, camera audio and engineering inspection
++
++Replays now reconstruct spray, rain, smoke, dust, sparks and pickup effects from
++recorded state rather than suppressing all particles. Paused simulation time
++freezes their births and motion. The active camera controls engine voice selection,
++stereo placement, distance falloff and Doppler; trackside views hear actual passing
++cars instead of a player-locked sound field.
++
++**F3** opens the engineering panel: per-wheel forces/slip/temperature/wear, body
++motion/G, aero balance/drag, actual surface cells/rubber and AI speed/path/decision.
++Physical contact markers, suspension-query rays and normal-load arrows accompany
++an opt-in, timestamped worker probe. Unrecorded probe extras are hidden in replay.
++
++[Read the implementation and measured validation scope](docs/REPLAY_AUDIO_AND_ENGINEERING.md).
++The complete master directive is still not declared finished.
+diff --git a/docs/DEVELOPMENT_STATUS.md b/docs/DEVELOPMENT_STATUS.md
+index a35b175..3c638c9 100644
+--- a/docs/DEVELOPMENT_STATUS.md
++++ b/docs/DEVELOPMENT_STATUS.md
+@@ -110,2 +110,17 @@ workflow can commit this candidate. Full three-pass project certification,
+ representative-device performance and independent visual/audio quality remain
+ open rather than silently converted into pass marks.
++
++## Continuation from be8e95a: replay presentation, spatial audio and engineering
++
++The source and original 148-section Markdown 6 were recovered byte-for-byte.
++This continuation repairs replay-disabled and pause-driven particles, connects
++engine selection/stereo/Doppler to the actual camera, and fills the required live
++engineering readouts with genuine physics/AI observations. The debug stream is
++opt-in, bounded and read-only; it does not change the recorded protocol or physics.
++The existing local physics core remains byte-identical to the prior endurance
++checkpoint. See [implementation, tests and three subsystem passes](REPLAY_AUDIO_AND_ENGINEERING.md).
++
++New native tests and real browser PCM signal tests supplement the existing full
++Chromium/WebGL publication gate, wet replay/CSV checks and physical driving
++journey. Full-project three-pass certification, representative-device performance
++and the complete combined section-146 acceptance remain separate open obligations.
+diff --git a/docs/DRIVER_AND_CONTACT_AUDIO.md b/docs/DRIVER_AND_CONTACT_AUDIO.md
+index f73b904..c6245d2 100644
+--- a/docs/DRIVER_AND_CONTACT_AUDIO.md
++++ b/docs/DRIVER_AND_CONTACT_AUDIO.md
+@@ -22,2 +22,11 @@ The exact contact graph also runs in a real Chromium `OfflineAudioContext`, not
+ 
+ The full-game browser workflow additionally checks both arm chains from a rendered cockpit and retains a cockpit screenshot. This checkpoint does not claim all driver-animation, acoustics, device profiling or whole-project audit requirements are finished.
++
++## Camera-relative playback continuation
++
++The actual camera now supplies the listener position, camera-right vector and
++simulation-time velocity. Four stable nearby engines receive distance falloff,
++source/listener Doppler and fade-before-retune transitions; the player's contact
++bus is spatially attenuated. The new real Chromium engine PCM oracle supplements
++the historical contact-signal oracle above. See [replay, audio and engineering](REPLAY_AUDIO_AND_ENGINEERING.md)
++and `spatial-audio-signals.json` for the exact measured source and limits.
+diff --git a/docs/IMPLEMENTATION_MATRIX.md b/docs/IMPLEMENTATION_MATRIX.md
+index 0490c7d..c7267ab 100644
+--- a/docs/IMPLEMENTATION_MATRIX.md
++++ b/docs/IMPLEMENTATION_MATRIX.md
+@@ -71,13 +71,13 @@ This ledger follows all 148 numbered sections of the exact [Pasted markdown(6) d
+ | 65 | COCKPIT CAMERA | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+ | 66 | TRACKSIDE CAMERAS | Twenty fixed authored rigs, predictive pan/zoom, track-distance coverage, cut hysteresis and replay-seek resets. Complete-lap unit coverage; final shot-obstruction review remains. |
+-| 67 | PARTICLES | One bounded 1,800-particle pool for state-driven spray, smoke, dust, rain, sparks and solid marble chips. Cumulative pickup survives different render rates; rewind/replacement/disabled/stale-frame guards and immediate clear uploads are tested. |
++| 67 | PARTICLES | Bounded 1,800-particle pool now advances on presented simulation time in live and replay views. Pauses freeze particles, continuous replay reconstructs contact/weather emissions, and seeks/large gaps clear rather than create teleport trails. Six render-rate and accelerated-playback regressions; see REPLAY_AUDIO_AND_ENGINEERING.md. |
+ | 68 | RAIN SPRAY | Spray requires grounded loaded tires and actual local water/speed, with compound scaling. Wind is recorded simulation state, not a second presentation clock. |
+ | 69 | TIRE SMOKE | Smoke requires grounded tire slip work; a brake pedal or airborne spinning wheel alone does not emit ground smoke. |
+ | 70 | SPARKS | Sparks consume actual bottom-contact work and seeded bounded particles. |
+-| 71 | AUDIO ARCHITECTURE | Layered original engine synthesis plus independent actual-contact grass, gravel, kerb, scrub, spray, rain, bottoming, impact and shift buses. Real OfflineAudioContext signal tests cover the contact graph. |
+-| 72 | ENGINE SOUND | Three RPM crossfade bands use distinct harmonic spectra and torque-dependent filtering; original synthesized sound, not licensed engine recordings or certified acoustic matching. |
++| 71 | AUDIO ARCHITECTURE | Original engine/contact/ambient buses now use the actual camera listener, spatially attenuated player contacts and listener-relative wind/rain. Real OfflineAudioContext tests cover both contact and engine graphs. No full acoustic occlusion or per-opponent contact graph. |
++| 72 | ENGINE SOUND | Three RPM/torque bands, four stable camera-selected voices, selection hysteresis and fade-before-retune reassignment. Original synthesis, not extracted samples or certified commercial engine matching. |
+ | 73 | TIRE AUDIO | Actual tire slip work sets scrub level; measured slip ratio distinguishes lockup and wheelspin spectra. Loaded flat-spot/puncture repetition follows actual wheel speed. |
+ | 74 | SURFACE AUDIO | Separate asphalt, grass, gravel and kerb spectra; positive kerb-load changes excite decaying contact pulses. Airborne wheels emit no road/scrub/spray sound. |
+-| 75 | DOPPLER | Approximate stereo/Doppler for nearest engines, not full acoustic propagation. |
++| 75 | DOPPLER | Camera-relative stereo and source/listener radial Doppler, bounded subsonic model, distance falloff and real trackside pass-by PCM tests. Camera cuts reset observer velocity; replay speed does not change the speed-of-sound calculation. No propagation delay/occlusion solver. |
+ | 76 | INPUT PIPELINE | Actual device sampling, calibration, response and simulation input on an independent 60 Hz timer; worker stale-input safety retained. Render-suspension browser regression added. |
+ | 77 | GAMEPAD STEERING | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+@@ -86,5 +86,5 @@ This ledger follows all 148 numbered sections of the exact [Pasted markdown(6) d
+ | 80 | TELEMETRY DATA | 203 actual-state channels at 60 Hz; the first 199 column names/positions are frozen under a hash regression. Four cumulative wheel-pickup columns are appended. Bounded transport/ring and separate CSV-worker export. |
+ | 81 | TELEMETRY UI | Eight selectable graph groups include clutch torque/slip, the requested driver/chassis/tire channels and complete-lap distance comparison; truncated/gapped laps are labelled rather than fabricated. |
+-| 82 | REPLAY SYSTEM | 15 Hz all-car numeric pose pages, bounded resident IndexedDB replay cache, asynchronous seeking and original spatial water/rubber/marble history. Version-7 three-channel tuple validation, finite-state validation and explicit failures. No permanent replay-library UI. |
++| 82 | REPLAY SYSTEM | 15 Hz numeric pose pages and original spatial water/rubber/marble history remain. Recorded contact/weather now drive particles; frozen/rewound/accelerated playback is tested. Optional live engineering probe data is not archived and is explicitly hidden in replay. No permanent replay-library UI. |
+ | 83 | RACE DIRECTOR | Explicit grid/lights/racing/results states; whole-field chequered classification, lapped finish, penalty ordering, automatic cooldown and explicit timeout DNF. Local single/double-yellow zones, approach braking, blue flags, bounded race-control events, pit-speed enforcement for every car, and reversible no-overtake penalties are implemented and tested. A physical safety-car vehicle is not implemented. |
+ | 84 | START LIGHTS | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+@@ -98,5 +98,5 @@ This ledger follows all 148 numbered sections of the exact [Pasted markdown(6) d
+ | 92 | GRAPHICS SETTINGS | Independent physical render scale, texture cap, shadows, mirrors/probes, particle/vegetation density, crowds, bloom, FXAA and anisotropy. Independent bounded motion-blur strength is available, off by default. |
+ | 93 | PERFORMANCE BUDGET | Opt-in real-frame captures include raw renderer CPU, worker-reported tick cost, GPU queries and all-pass counters. Hardware targets remain targets, not certified results. |
+-| 94 | OBJECT ALLOCATION | Pooled snapshots/particles/recorders; small per-tick/per-frame allocations remain. |
++| 94 | OBJECT ALLOCATION | Reusable presentation/interpolation buffers and a fixed four-voice audio selection table avoid new hot-loop sorts. Particle/recording pools remain bounded. Optional engineering copies occur at most 10 Hz only while enabled; small other allocations remain. |
+ | 95 | LOD | Three separate car geometries with hysteresis and articulated wheels; player remains full detail. Track/prop spatial culling is implemented. |
+ | 96 | INSTANCING | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+@@ -105,10 +105,10 @@ This ledger follows all 148 numbered sections of the exact [Pasted markdown(6) d
+ | 99 | PHYSICS WORKER | Physics, AI and capture run in a dedicated worker. Inline Vite worker packaging avoids the external-bundle Worker origin mismatch without moving simulation onto the main thread. Two-origin browser execution is a publication gate. |
+ | 100 | AI WORKER | Strategic/tactical AI runs with the simulation inside the physics worker; a separate worker is an optional candidate, not an implemented independent thread. |
+-| 101 | DEBUG OVERLAY | Actual render/physics/force counters, corrected slowest-one-percent FPS and valid/pending/unsupported GPU query display. No fabricated GPU estimate. |
+-| 102 | VISUAL DEBUGGING | Contact-load arrows and numeric telemetry; not all requested overlays. |
+-| 103 | UNIT TESTS | 314 unit/property/regression tests in the marble continuation, including 25 new pickup/surface/particle/replay/schema cases. Counts describe this checkpoint, not universal correctness. |
++| 101 | DEBUG OVERLAY | F3 now exposes every required numeric category, including per-wheel forces/slip/thermal/wear, body motion/G, aero balance/drag, physical surface cells/rubber and actual AI target/path/decision. Opt-in timestamped worker probe; unsupported GPU timing and unrecorded replay-only extras are labeled honestly. |
++| 102 | VISUAL DEBUGGING | Actual last-solve contact points, suspension query rays and contact-normal Fz arrows are connected to the opt-in probe. Stale/live overlays are hidden during replay. Other section-102 visualizations are optional and not all are implemented. |
++| 103 | UNIT TESTS | 348 unit/property/regression tests at the replay/audio/engineering checkpoint: 34 added tests cover presentation clocks, camera audio and read-only engineering inspection. Test count is evidence scope, not universal correctness. |
+ | 104 | PHYSICS PROPERTY TESTS | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+ | 105 | DETERMINISM TEST | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+-| 106 | FRAME-INDEPENDENCE TEST | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
++| 106 | FRAME-INDEPENDENCE TEST | Continuous effect emission totals across 24/30/60/90/120/144 Hz, accelerated simulation-time playback and frozen-frame equality supplement existing fixed-step determinism/camera regressions. Particle pixel placement is not claimed bit-identical across rates. |
+ | 107 | STRAIGHT-LINE TEST | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+ | 108 | SKIDPAD TEST | Instrumented 80 m skidpad at 15/25/35 m/s using the production vehicle solver; measured lateral G compared with actual speed/radius, radial RMS error and speed tracking. |
+@@ -121,5 +121,5 @@ This ledger follows all 148 numbered sections of the exact [Pasted markdown(6) d
+ | 115 | AI TESTS | Simulation/core fingerprint 30c155c669e4…: new ten-car dry 50-lap and 100-lap results both pass with zero impacts, zero off-track time and minimum component health 1. Exact measured source identities are reported in CONSTRUCTION_AND_ENDURANCE.md; do not substitute a historical fingerprint. |
+ | 116 | RACE TEST | Two ten-car three-lap whole-field fixtures remain. A six-car changing-weather continuous input-driven journey now checks lock/recovery, kerb/grass, dirty-tire cleaning, wet service/rejoin, contact/aero damage, classification, replay and CSV without physical-state edits. This is not the full manual audiovisual scenario. |
+-| 117 | PLAYWRIGHT TESTS | Existing full-session browser tests plus actual GPU marble/tread/chip readbacks and a two-origin real physics/CSV-worker bootstrap regression. Required GitHub Chromium gate; local WebGL is unavailable. |
++| 117 | PLAYWRIGHT TESTS | Full application, real WebGL/shader and two-origin worker tests retained. Added production PCM audio oracle, actual wet replay particles/pause/camera checks and F3 engineering inspection. Read exact GitHub run results for the published source. |
+ | 118 | PERFORMANCE REGRESSION | Bounded 5-second warm-up / 30-second real-frame captures, content fingerprint, raw JSON export, recomputed metrics and identity-checked regression CLI. Interrupted/incomparable runs fail closed; no invented consumer-hardware baseline. See PERFORMANCE_VALIDATION.md. |
+ | 119 | ERROR POLICY | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+@@ -138,6 +138,6 @@ This ledger follows all 148 numbered sections of the exact [Pasted markdown(6) d
+ | 132 | MENU PERFORMANCE | Initial circuit construction yields between prioritized jobs and reports real task completion. Session car/shader preparation remains paused and cooperative. Oversized CPU/GPU work is measured rather than declared instantaneous. |
+ | 133 | ACCESSIBILITY | Scalable interface, patterned/text flags, high-contrast instruments, adjustable shake and remapping. Motion-blur strength includes a true zero-cost off mode and never affects the HTML HUD. |
+-| 134 | AUDIO/VISUAL CONNECTION | Implemented in the corresponding simulation, rendering, input, audio, UI, storage or test module; see architecture and test evidence. |
+-| 135 | NO DISCONNECTED EFFECTS | Spray/smoke/sparks consume water, contact and dissipated work. Marble chips consume cumulative physical pickup, and road/tread shaders consume actual live/replayed state. No timer-only pickup emitters. |
++| 134 | AUDIO/VISUAL CONNECTION | Camera-relative engine and contact audio, body/tire visuals and simulation-clock effects consume actual live or replayed state. Isolated PCM tests plus full-application replay connections; subjective audiovisual quality remains a review obligation. |
++| 135 | NO DISCONNECTED EFFECTS | Particles no longer run on paused wall time or disappear simply because playback is a replay. Discrete state stays discrete; continuous presentation interpolation never feeds physics, recording or CSV. Live-only debug data is never substituted into historical replay. |
+ | 136 | EVENT BUS | Typed worker protocol and explicit callbacks, not a separate generalized event-bus package. |
+ | 137 | CONFIGURATION DATA | Central vehicle/setup data with some renderer/AI constants still local. |
+diff --git a/docs/RECORDING_AND_REPLAY.md b/docs/RECORDING_AND_REPLAY.md
+index 111f61f..0497f62 100644
+--- a/docs/RECORDING_AND_REPLAY.md
++++ b/docs/RECORDING_AND_REPLAY.md
+@@ -34,2 +34,11 @@ Historical evidence from the first recording checkpoint: local lint, TypeScript,
+ 
+ Later changes added explicit wheel calibration, individual graphics/accessibility controls, marshal rules, dynamics benchmarks and long-run AI evidence. See the coverage ledger and subsystem documents for their actual scope. Target-device profiling, the complete combined scenario and final engineering/player/audiovisual audits are not certified by this recording page. Historical reports without a matching source revision are not current acceptance certificates.
++
++## Simulation-time effects and camera audio
++
++The replay/audio continuation removes the renderer's replay-only particle
++suppression. A separate reusable interpolated presentation frame drives effects
++and camera-relative audio without altering archived measurements. Particle aging
++and births follow recorded simulation time, freeze on pause, and reset on seeks.
++Live-only engineering contact/AI probe records are explicitly not substituted
++into replay history. See [the lifecycle and validation contract](REPLAY_AUDIO_AND_ENGINEERING.md).

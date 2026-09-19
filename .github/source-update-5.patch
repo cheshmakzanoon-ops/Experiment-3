@@ -1,0 +1,449 @@
+diff --git a/src/rendering/renderer.ts b/src/rendering/renderer.ts
+index 2c0a8b4..48ee802 100644
+--- a/src/rendering/renderer.ts
++++ b/src/rendering/renderer.ts
+@@ -1,2 +1,4 @@
++import { EngineeringView } from './engineering-view.ts';
++import type { EngineeringSample } from '../workers/diagnostics.ts';
+ import * as T from 'three';
+ import type { FrameMetrics } from '../core/performance.ts';
+@@ -27,6 +29,9 @@ import { FormulaCar } from './car.ts';
+ import { CircuitScene } from './circuit.ts';
+ import { Effects } from './effects.ts';
++import { PresentedFrame } from './frame-state.ts';
++import { EffectPlayback } from './effect-playback.ts';
++import { AudioViewTracker } from '../audio/spatial.ts';
+ import { Track } from '../simulation/track.ts';
+-import { F, H, WHEEL_BASE, WHEEL_STRIDE, carBase } from '../simulation/protocol.ts';
++import { F, H, carBase } from '../simulation/protocol.ts';
+ import { clamp } from '../core/math.ts';
+ export type CameraMode = 'chase' | 'cockpit' | 'pod' | 'trackside';
+@@ -38,5 +43,8 @@ export class RacingRenderer {
+   readonly circuit: CircuitScene;
+   readonly cars: FormulaCar[] = [];
++  readonly audioView = new AudioViewTracker();
+   readonly effects = new Effects();
++  readonly presented = new PresentedFrame();
++  readonly effectPlayback = new EffectPlayback(this.effects);
+   readonly debris = new DebrisView();
+   readonly pitCrew = new PitCrewView();
+@@ -81,6 +89,7 @@ export class RacingRenderer {
+   private eyeLocal = new T.Vector3();
+   private reflectionMaterials: T.MeshStandardMaterial[] = [];
+-  private debugGroup = new T.Group();
+-  private arrows: T.ArrowHelper[] = [];
++  readonly engineeringView = new EngineeringView();
++  engineering: EngineeringSample | null = null;
++  replayView = false;
+   private frameSamples = new Float32Array(300);
+   private sampleIndex = 0;
+@@ -149,13 +158,13 @@ export class RacingRenderer {
+     });
+     this.trackside = new TracksideDirector(track);
+-    this.scene.add(this.circuit.group, this.effects.group, this.debugGroup);
+-    for (let i = 0; i < 4; i++) {
+-      const a = new T.ArrowHelper(new T.Vector3(0, 1, 0), new T.Vector3(), 1, 0x46ffd1, 0.2, 0.1);
+-      this.arrows.push(a);
+-      this.debugGroup.add(a);
+-    }
++    this.scene.add(this.circuit.group, this.effects.group, this.engineeringView.group);
++
+     this.composer = new EffectComposer(this.renderer);
+     this.composer.addPass(new RenderPass(this.scene, this.camera));
+-    this.motionBlur = new MotionBlurPass(this.scene, this.camera, this.renderer.extensions.has('EXT_color_buffer_float'));
++    this.motionBlur = new MotionBlurPass(
++      this.scene,
++      this.camera,
++      this.renderer.extensions.has('EXT_color_buffer_float'),
++    );
+     this.composer.addPass(this.motionBlur);
+     this.bloom = new UnrealBloomPass(new T.Vector2(1, 1), 0.1, 0.3, 1.3);
+@@ -312,4 +321,5 @@ export class RacingRenderer {
+   changeCamera(mode?: CameraMode) {
+     this.motionBlur.reset();
++    this.audioView.reset();
+     const modes: CameraMode[] = ['chase', 'cockpit', 'pod', 'trackside'];
+     this.mode = mode ?? modes[(modes.indexOf(this.mode) + 1) % modes.length];
+@@ -324,9 +334,10 @@ export class RacingRenderer {
+   reset() {
+     this.motionBlur.reset();
++    this.audioView.reset();
+     this.initialized = false;
+     this.inertia.reset();
+     this.viewOrientation.reset();
+     this.trackside.reset();
+-    this.effects.clear();
++    this.effectPlayback.reset();
+     this.sampleCount = 0;
+     this.sampleIndex = 0;
+@@ -388,5 +399,5 @@ export class RacingRenderer {
+       this.gaze
+         .copy(this.target)
+-        .add(new T.Vector3(-0.8, 0.15, 0).applyQuaternion(car.root.quaternion));
++        .add(this.temporary.set(-0.8, 0.15, 0).applyQuaternion(car.root.quaternion));
+       this.camera.fov = 45;
+     } else if (this.mode === 'trackside') {
+@@ -464,20 +475,19 @@ export class RacingRenderer {
+     this.sun.target.updateMatrixWorld();
+     this.circuit.update(b);
+-    this.effects.update(b, dt, !menu && !replay);
++    this.effectPlayback.update(this.presented.sample(a, b, alpha), !menu);
+     this.debris.update(b);
+     this.pitCrew.update(b, this.camera.position, !menu);
+-    this.debugGroup.visible = this.debug;
+-    if (this.debug)
+-      for (let i = 0; i < 4; i++) {
+-        const p = o + WHEEL_BASE + i * WHEEL_STRIDE;
+-        this.arrows[i].position
+-          .copy(car.wheelPivots[i].position)
+-          .applyQuaternion(car.root.quaternion)
+-          .add(car.root.position);
+-        this.arrows[i].setLength(Math.max(0.03, b[p + 1] / 3500), 0.15, 0.08);
+-      }
++    this.replayView = replay;
++    this.engineeringView.update(this.engineering, b[H.TIME], this.debug, replay);
+     this.reflection.beginFrame(this.orbitTime, !menu && this.mode === 'cockpit');
+     this.scene.updateMatrixWorld(true);
+     this.camera.updateMatrixWorld(true);
++    this.audioView.update(
++      this.camera,
++      this.presented.value[H.TIME],
++      this.mode === 'trackside' ? this.trackside.activeId + 1 : 0,
++      !menu && (this.mode === 'cockpit' || this.mode === 'pod'),
++      this.follow,
++    );
+     this.eyeLocal.copy(this.camera.position);
+     car.root.worldToLocal(this.eyeLocal);
+@@ -568,5 +578,5 @@ export class RacingRenderer {
+       fps: this.fps,
+       frameMs: this.frameMs,
+-      p1FPS: slowTotal ? 1000 * slowCount / slowTotal : 0,
++      p1FPS: slowTotal ? (1000 * slowCount) / slowTotal : 0,
+       renderCPUms: this.renderMs,
+       drawCalls: info.calls,
+@@ -589,5 +599,5 @@ export class RacingRenderer {
+       textures = new Set<T.Texture>();
+     this.scene.traverse((o) => {
+-      if (o instanceof T.Mesh || o instanceof T.Points) {
++      if (o instanceof T.Mesh || o instanceof T.Points || o instanceof T.Line) {
+         geometries.add(o.geometry);
+         for (const m of Array.isArray(o.material) ? o.material : [o.material]) {
+diff --git a/src/ui/engineering.ts b/src/ui/engineering.ts
+new file mode 100644
+index 0000000..c685f23
+--- /dev/null
++++ b/src/ui/engineering.ts
+@@ -0,0 +1,81 @@
++import { clamp } from '../core/math.ts';
++import { F, H, W, WHEEL_BASE, WHEEL_STRIDE, WHEEL_NAMES, carBase } from '../simulation/protocol.ts';
++import { engineeringFresh, type EngineeringSample } from '../workers/diagnostics.ts';
++
++interface RenderMetrics {
++  fps: number;
++  frameMs: number;
++  p1FPS: number;
++  renderCPUms: number;
++  drawCalls: number;
++  triangles: number;
++  gpuMilliseconds: number | null;
++  gpuTimerSupported: boolean;
++}
++const MATERIAL = ['ASPHALT', 'PAINT', 'KERB', 'GRASS', 'GRAVEL', 'PIT'];
++const degrees = 180 / Math.PI;
++/** All requested engineering categories. Snapshot and optional probe timestamps
++ * stay explicit; never substitute the live AI/contact record into a replay. */
++export function engineeringReport(
++  frame: Float32Array,
++  render: RenderMetrics,
++  sample: EngineeringSample | null,
++  replay = false,
++) {
++  const o = carBase(0),
++    x = frame[o + F.QX],
++    y = frame[o + F.QY],
++    z = frame[o + F.QZ],
++    w = frame[o + F.QW];
++  const upX = 2 * (x * y - w * z),
++    upY = 1 - 2 * (x * x + z * z),
++    upZ = 2 * (y * z + w * x);
++  const noseY = 2 * (y * z - w * x),
++    leftY = 2 * (x * y + w * z);
++  const pitch = Math.asin(clamp(noseY, -1, 1)) * degrees,
++    roll = Math.atan2(leftY, upY) * degrees,
++    yawRate = (frame[o + F.WX] * upX + frame[o + F.WY] * upY + frame[o + F.WZ] * upZ) * degrees;
++  const front = frame[o + F.AERO_FRONT],
++    rear = frame[o + F.AERO_REAR];
++  const lines = [
++    `ENGINEERING / ${replay ? 'RECORDED SNAPSHOT' : 'LIVE SNAPSHOT'} / F3 TO HIDE`,
++    `TICK ${Math.round(frame[H.TICK])} / ${frame[H.TIME].toFixed(3)} s`,
++    `RENDER ${render.fps.toFixed(1)} FPS / ${render.frameMs.toFixed(2)} ms / 1% LOW ${render.p1FPS.toFixed(1)}`,
++    `CPU SUBMIT ${render.renderCPUms.toFixed(2)} ms / PHYSICS ${frame[H.STEP_MS].toFixed(2)} ms per tick`,
++    `GPU ${render.gpuMilliseconds === null ? (render.gpuTimerSupported ? 'PENDING / INVALID' : 'UNSUPPORTED') : render.gpuMilliseconds.toFixed(2) + ' ms'}`,
++    `DRAWS ${render.drawCalls} / TRIANGLES ${render.triangles} / DROPPED ${frame[H.DROPPED].toFixed(3)} s`,
++    `SPEED ${(frame[o + F.SPEED] * 3.6).toFixed(1)} km/h / YAW RATE ${yawRate.toFixed(2)} deg/s`,
++    `PITCH ${pitch.toFixed(2)} deg / ROLL ${roll.toFixed(2)} deg (left side up +)`,
++    `G LONG ${frame[o + F.G_LONG].toFixed(2)} / LAT ${frame[o + F.G_LAT].toFixed(2)} / VERT ${frame[o + F.G_VERT].toFixed(2)}`,
++    `AERO FRONT ${front.toFixed(0)} N / REAR ${rear.toFixed(0)} N / DRAG ${frame[o + F.DRAG].toFixed(0)} N`,
++    `AERO BALANCE ${front + rear > 1 ? ((100 * front) / (front + rear)).toFixed(1) + '% FRONT' : 'UNLOADED'} / WAKE ${(frame[o + F.WAKE] * 100).toFixed(1)}%`,
++    'WHEEL  Fz N / Fx N / Fy N / SLIP ratio / ANGLE deg',
++  ];
++  for (let i = 0; i < 4; i++) {
++    const p = o + WHEEL_BASE + i * WHEEL_STRIDE;
++    lines.push(
++      `${WHEEL_NAMES[i]} ${frame[p + W.LOAD].toFixed(0)} / ${frame[p + W.FX].toFixed(0)} / ${frame[p + W.FY].toFixed(0)} / ${frame[p + W.SLIP].toFixed(3)} / ${(frame[p + W.ANGLE] * degrees).toFixed(2)}`,
++      `   TEMP ${frame[p + W.SURFACE_TEMP].toFixed(1)} / ${frame[p + W.CARCASS_TEMP].toFixed(1)} C / WEAR ${(100 * frame[p + W.WEAR]).toFixed(1)}%`,
++      `   ${MATERIAL[frame[p + W.SURFACE]] ?? 'UNKNOWN'} / WATER ${frame[p + W.WATER].toFixed(3)} mm / LOAD ${frame[p + W.LOAD] > 1 ? 'CONTACT' : 'AIRBORNE'}`,
++    );
++  }
++  if (engineeringFresh(sample, frame[H.TIME], replay) && sample) {
++    lines.push(
++      `CONTACT/AI PROBE: TICK ${sample.tick} / ${sample.time.toFixed(3)} s / 10 Hz MAX`,
++      ...sample.wheels.map(
++        (wheel, i) =>
++          `${WHEEL_NAMES[i]} CELL ${wheel.cell} / RUBBER ${(wheel.rubber * 100).toFixed(2)}% / MARBLES ${(wheel.marbles * 100).toFixed(2)}%`,
++      ),
++      `AI ${sample.aiActive ? 'ACTIVE' : 'INACTIVE'} / TARGET SPEED ${sample.aiActive ? (sample.targetSpeedMps * 3.6).toFixed(1) + ' km/h' : '—'}`,
++      `AI TARGET PATH ${sample.aiActive ? sample.targetOffsetM.toFixed(2) + ' m lateral offset' : '—'}`,
++      `AI DECISION ${sample.decision}`,
++      'CYAN = SUSPENSION QUERY / AMBER = CONTACT / GREEN = Fz NORMAL',
++    );
++  } else
++    lines.push(
++      replay
++        ? 'CONTACT/AI PROBE NOT RECORDED / LIVE OVERLAYS HIDDEN'
++        : 'CONTACT/AI PROBE WAITING OR STALE / LIVE OVERLAYS HIDDEN',
++    );
++  return lines.join('\n');
++}
+diff --git a/src/ui/interface.ts b/src/ui/interface.ts
+index eeb8ce0..a214edc 100644
+--- a/src/ui/interface.ts
++++ b/src/ui/interface.ts
+@@ -1,2 +1,3 @@
++import { engineeringReport } from './engineering.ts';
+ import { FLAG, flagLabel, yellowFlag } from '../simulation/marshal.ts';
+ import { presentationControls, bindPresentation, weatherReadout } from './presentation.ts';
+@@ -204,8 +205,5 @@ export class Interface {
+     this.setText('flag', flag);
+     this.get('flag').dataset.flag = String(frame[H.FLAG]);
+-    this.setText(
+-      'weatherLabel',
+-      weatherReadout(frame[H.AMBIENT], frame[H.RAIN], frame[H.WATER]),
+-    );
++    this.setText('weatherLabel', weatherReadout(frame[H.AMBIENT], frame[H.RAIN], frame[H.WATER]));
+     for (const [id, field] of [
+       ['lapTime', F.LAP_TIME],
+@@ -300,7 +298,10 @@ export class Interface {
+     this.get('debug').hidden = !renderer.debug;
+     if (renderer.debug) {
+-      const s = renderer.stats();
+-      this.get('debug').textContent =
+-        `RENDER ${s.fps.toFixed(1)} FPS / ${s.frameMs.toFixed(1)} ms\n1% LOW ${s.p1FPS.toFixed(1)} FPS\nCPU SUBMIT ${s.renderCPUms.toFixed(2)} ms\nPHYSICS ${frame[H.STEP_MS].toFixed(2)} ms / tick\nDRAWS ${s.drawCalls} · TRI ${s.triangles.toLocaleString()}\nWALL TIME DROPPED ${frame[H.DROPPED].toFixed(3)} s\nTICK ${Math.round(frame[H.TICK])}\nFRONT AERO ${frame[o + F.AERO_FRONT].toFixed(0)} N\nREAR AERO ${frame[o + F.AERO_REAR].toFixed(0)} N\nWATER ${frame[H.WATER].toFixed(3)} mm\nWAKE ${(frame[o + F.WAKE] * 100).toFixed(0)}%\nAI TARGET ${(frame[o + F.AI_TARGET] * 3.6).toFixed(0)} km/h\nGPU QUERY ${s.gpuMilliseconds === null ? (s.gpuTimerSupported ? 'PENDING / INVALID' : 'UNSUPPORTED') : `${s.gpuMilliseconds.toFixed(2)} ms`}`;
++      this.get('debug').textContent = engineeringReport(
++        frame,
++        renderer.stats(),
++        renderer.engineering,
++        renderer.replayView,
++      );
+     }
+   }
+diff --git a/src/ui/style.css b/src/ui/style.css
+index 8814c67..51795bc 100644
+--- a/src/ui/style.css
++++ b/src/ui/style.css
+@@ -787,5 +787,9 @@ h1 {
+   white-space: pre;
+   color: #e3ead7;
+-  pointer-events: none;
++  pointer-events: auto;
++  max-height: calc(100vh - 155px);
++  max-width: calc(100vw - 36px);
++  overflow: auto;
++  z-index: 70;
+ }
+ .toast {
+diff --git a/src/workers/diagnostics.ts b/src/workers/diagnostics.ts
+new file mode 100644
+index 0000000..53f5082
+--- /dev/null
++++ b/src/workers/diagnostics.ts
+@@ -0,0 +1,128 @@
++import type { Simulation } from '../simulation/world.ts';
++import type { FromWorker, ToWorker } from '../simulation/protocol.ts';
++
++export interface EngineeringWheel {
++  origin: [number, number, number];
++  contact: [number, number, number];
++  normal: [number, number, number];
++  loadN: number;
++  surface: number;
++  cell: number;
++  rubber: number;
++  marbles: number;
++}
++export interface EngineeringSample {
++  time: number;
++  tick: number;
++  car: number;
++  aiActive: boolean;
++  targetSpeedMps: number;
++  targetOffsetM: number;
++  decision: string;
++  wheels: EngineeringWheel[];
++}
++/** Optional debug transport is separate from the fixed-size recorded protocol.
++ * It cannot change input, simulation, telemetry strides or replay versions. */
++export type ClientMessage = ToWorker | { type: 'engineering'; enabled: boolean };
++export type WorkerMessage = FromWorker | { type: 'engineering'; sample: EngineeringSample };
++
++/** Read-only production inspection: four wheels, at most 10 snapshots/s, only
++ * while explicitly enabled. Values are copied from the latest physical solve,
++ * not inferred from decorative meshes or the renderer's initial track object. */
++export class EngineeringProbe {
++  private enabled = false;
++  private lastTick = -Infinity;
++  reset() {
++    this.enabled = false;
++    this.lastTick = -Infinity;
++  }
++  enable(value: boolean) {
++    if (typeof value !== 'boolean') throw new Error('Invalid engineering toggle');
++    this.enabled = value;
++    this.lastTick = -Infinity;
++  }
++  sample(simulation: Simulation): EngineeringSample | null {
++    if (!this.enabled || simulation.tick - this.lastTick < 12) return null;
++    const car = simulation.cars[0];
++    const aiActive = simulation.autoPlayer || car.pitRequested || car.inPit || car.finishTime > 0;
++    const sample: EngineeringSample = {
++      time: simulation.race.time,
++      tick: simulation.tick,
++      car: car.id,
++      aiActive,
++      targetSpeedMps: car.aiTarget,
++      targetOffsetM: car.aiOffset,
++      decision: aiActive ? simulation.ai[0].decision : 'MANUAL INPUT / AI INACTIVE',
++      wheels: car.tires.map((tire, i) => {
++        const origin = car.origins[i],
++          hub = car.hubs[i],
++          contact = car.contacts[i];
++        return {
++          origin: [origin.x, origin.y, origin.z],
++          contact: [hub.x, contact.height, hub.z],
++          normal: [contact.normal.x, contact.normal.y, contact.normal.z],
++          loadN: tire.load,
++          surface: contact.surface,
++          cell: contact.cell,
++          rubber: contact.rubber,
++          marbles: contact.marbles,
++        };
++      }),
++    };
++    if (!isEngineeringSample(sample)) throw new Error('Invalid engineering state');
++    this.lastTick = simulation.tick;
++    return sample;
++  }
++}
++function printableLine(text: string) {
++  for (let i = 0; i < text.length; i++)
++    if (text.charCodeAt(i) < 32 || text.charCodeAt(i) === 127) return false;
++  return true;
++}
++export function isEngineeringSample(value: unknown): value is EngineeringSample {
++  if (!value || typeof value !== 'object') return false;
++  const v = value as EngineeringSample;
++  const vector = (a: unknown) => Array.isArray(a) && a.length === 3 && a.every(Number.isFinite);
++  return (
++    Number.isFinite(v.time) &&
++    v.time >= 0 &&
++    Number.isInteger(v.tick) &&
++    v.tick >= 0 &&
++    v.car === 0 &&
++    typeof v.aiActive === 'boolean' &&
++    Number.isFinite(v.targetSpeedMps) &&
++    Number.isFinite(v.targetOffsetM) &&
++    typeof v.decision === 'string' &&
++    v.decision.length <= 120 &&
++    printableLine(v.decision) &&
++    Array.isArray(v.wheels) &&
++    v.wheels.length === 4 &&
++    v.wheels.every(
++      (w) =>
++        !!w &&
++        vector(w.origin) &&
++        vector(w.contact) &&
++        vector(w.normal) &&
++        Number.isFinite(w.loadN) &&
++        w.loadN >= 0 &&
++        Number.isInteger(w.surface) &&
++        w.surface >= 0 &&
++        w.surface <= 5 &&
++        Number.isInteger(w.cell) &&
++        w.cell >= 0 &&
++        w.cell < 512 * 7 &&
++        Number.isFinite(w.rubber) &&
++        w.rubber >= 0 &&
++        w.rubber <= 1 &&
++        Number.isFinite(w.marbles) &&
++        w.marbles >= 0 &&
++        w.marbles <= 1,
++    )
++  );
++}
++/** Refuse live contact/path overlays over a recorded replay or a newer/old frame.
++ * Debug sampling is asynchronous; display its timestamp rather than claim that
++ * it belongs to the separately transported render snapshot's exact tick. */
++export function engineeringFresh(sample: EngineeringSample | null, time: number, replay: boolean) {
++  return !!sample && !replay && sample.time <= time + 0.05 && time - sample.time <= 0.5;
++}
+diff --git a/src/workers/physics.worker.ts b/src/workers/physics.worker.ts
+index bfde26d..16f4ba9 100644
+--- a/src/workers/physics.worker.ts
++++ b/src/workers/physics.worker.ts
+@@ -1,8 +1,10 @@
+ /// <reference lib="webworker" />
+ import { FixedStepper } from '../core/math.ts';
+-import { CAR_STRIDE, HEADER, type FromWorker, type ToWorker } from '../simulation/protocol.ts';
++import { CAR_STRIDE, HEADER } from '../simulation/protocol.ts';
+ import { TelemetrySampler } from '../storage/telemetry-sampler.ts';
+ import { Simulation } from '../simulation/world.ts';
+ import { controls } from '../simulation/config.ts';
++import { EngineeringProbe, type ClientMessage, type WorkerMessage } from './diagnostics.ts';
++const probe = new EngineeringProbe();
+ const scope = self as unknown as DedicatedWorkerGlobalScope;
+ let simulation: Simulation | null = null,
+@@ -16,5 +18,11 @@ let telemetry: TelemetrySampler | null = null;
+ let lastSent = -1,
+   lastSurface = -1;
+-const send = (msg: FromWorker, transfer: Transferable[] = []) => scope.postMessage(msg, transfer);
++const send = (msg: WorkerMessage, transfer: Transferable[] = []) =>
++  scope.postMessage(msg, transfer);
++function engineering() {
++  if (!simulation) return;
++  const sample = probe.sample(simulation);
++  if (sample) send({ type: 'engineering', sample });
++}
+ function snapshot() {
+   if (!simulation || pool.length === 0) return;
+@@ -23,9 +31,14 @@ function snapshot() {
+   send({ type: 'frame', buffer }, [buffer]);
+ }
+-scope.onmessage = (event: MessageEvent<ToWorker>) => {
++scope.onmessage = (event: MessageEvent<ClientMessage>) => {
+   try {
+     const msg = event.data;
+     switch (msg.type) {
++      case 'engineering':
++        probe.enable(msg.enabled);
++        engineering();
++        break;
+       case 'init':
++        probe.reset();
+         simulation = new Simulation(msg.options);
+         telemetry = new TelemetrySampler(
+@@ -107,4 +120,5 @@ setInterval(() => {
+       lastSent = simulation.tick;
+     }
++    engineering();
+     if (simulation.tick - lastSurface >= 60) {
+       const water = simulation.track.water.slice(),

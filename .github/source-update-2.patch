@@ -1,0 +1,425 @@
+diff --git a/docs/REPLAY_AUDIO_AND_ENGINEERING.md b/docs/REPLAY_AUDIO_AND_ENGINEERING.md
+new file mode 100644
+index 0000000..062c53f
+--- /dev/null
++++ b/docs/REPLAY_AUDIO_AND_ENGINEERING.md
+@@ -0,0 +1,123 @@
++# Replay presentation, camera-relative audio and live engineering inspection
++
++Continuation from `be8e95ae273dde0a06f8c70ae23f88bd0c8cf38c`, against the
++unchanged 148-section `MASTER_DIRECTIVE.md` / original **Pasted markdown(6).md**.
++This closes specific integration gaps in sections 64–75, 82, 94, 101–102,
++106, 117 and 134–146; it is not a whole-project completion certificate.
++
++## Pass 1 — Functional connections
++
++The previous renderer explicitly disabled its particle emitters during replay.
++During live pauses it could also advance and emit particles from a frozen
++snapshot because the presentation used clamped wall time. `PresentedFrame`
++now interpolates continuous effect/audio channels and quaternions in a reusable
++buffer. IDs, surface types, gears, compounds and service states stay discrete.
++A fitted-tire pickup counter reset is not interpolated into a negative ramp.
++This is a presentation-only buffer: physics, CSV and replay pages keep the actual
++original samples, with their existing protocol version 7 and 203 CSV columns.
++
++`EffectPlayback` uses the presented simulation time for both live and replay
++particle advancement. A frozen simulation cannot manufacture smoke/rain, move
++particles or age their lifetimes. Continuous updates use at most 1/30-second
++substeps and trace the emitter through the interpolated trajectory. Seeks,
++rewinds and gaps above half a second clear the pool rather than connect unrelated
++locations with a particle trail. The existing 1,800-particle capacity is unchanged.
++A seek intentionally does not reconstruct every particle born before the seek;
++new emissions reconstruct from the recorded contact/weather state as playback
++advances. Particle placement is not claimed to be bit-identical across render
++rates, but emission work and simulation-time aging are covered by regressions.
++
++The audio listener now comes from the actual camera position and camera-right
++basis. Camera local +X is screen right, unlike this car model's +X-left convention.
++Camera velocity is measured per presented simulation second, not wall second,
++so changing replay speed does not manufacture a supersonic camera. Camera cuts,
++rewinds and discontinuities reset that velocity. Interior engine monitoring stays
++centered without self-Doppler. External voices use both source and listener radial
++velocity, inverse-distance attenuation and a bounded far-distance fade.
++
++Four stable engine voices are selected relative to the camera, with incumbent
++hysteresis. A trackside listener is not forced to retain the distant player car
++at the expense of a nearby opponent. Original three-band RPM/torque synthesis is
++retained. Voice replacement briefly fades before retuning instead of sweeping
++one full-volume engine into another car's pitch. Player contact buses are panned
++and attenuated spatially. Ambient rain remains at the listener; trackside wind
++uses listener air speed rather than the player's racing speed. The simplified
++acoustic model does not simulate buildings, occlusion, propagation delay,
++reflections or a complete per-opponent tire/contact graph.
++
++## Pass 2 — Engineering validation
++
++`tests/presentation-time.test.ts` covers continuous/discrete interpolation,
++quaternion normalization, malformed pairs, six render rates (24/30/60/90/120/144),
++frozen particles, accelerated playback, jumps/rewinds, tire-counter replacement
++and disabling particles on a frame with no simulation advance.
++`tests/spatial-audio.test.ts` covers camera-right signs, source/listener Doppler,
++interior centering, finite/sonic guards, cuts and rewinds, camera-relative voice
++selection, identity retention and reuse of the bounded output objects.
++
++`e2e/spatial-audio.spec.ts` renders the actual production `EngineVoices` graph in
++Chromium's `OfflineAudioContext`. This is not a mock of oscillator or panner nodes.
++Seven one-second, stereo 48 kHz acoustic fixtures check real sample amplitudes,
++frequency ratios, far-distance silence and a moving left-to-right pass-by. The
++prescribed trajectory is an isolated acoustic test, not an invented driving
++result. `spatial-audio-signals.json` retains a measured browser run with the exact
++source/test hashes. It does not certify speaker/headphone quality or subjective
++commercial-engine fidelity.
++
++The full application browser test now records a wet four-car practice session,
++retains actual IndexedDB replay pages and checks all 203 CSV columns/tick spacing.
++It requires live and replay rain/spray, frozen live/replay pauses, a trackside
++listener, replay-speed changes and a still-paused live worker. It uses normal
++settings/buttons and read-only diagnostics, not injected physics poses or fake
++worker responses. The complete Chromium/WebGL suite is a publication gate;
++local Chromium in this workspace can render audio but cannot create WebGL.
++
++## Pass 3 — Developer inspection and lifecycle refinement
++
++F3 now displays the required section-101 categories: render/physics/GPU timing,
++draws/triangles, speed, body-up yaw rate, pitch/roll, all three G components,
++per-wheel Fz/Fx/Fy, slip ratio/angle, surface/carcass temperature, wear, surface
++material/water, aero front/rear/drag/balance and actual AI target speed/path/
++decision. Unknown GPU timing remains explicitly unsupported or pending; it is
++not a CPU-derived fabricated GPU number.
++
++An opt-in `EngineeringProbe` copies the actual last-solve wheel query origins,
++contact locations/normals, contact-cell rubber/marbles and the actual controller's
++AI decision/target offset. It emits at most ten records per simulated second and
++allocates no records while disabled. The asynchronous probe's own tick/time are
++shown separately from the numeric render snapshot. An inactive AI is identified
++as inactive rather than presenting an old target as the human player's intent.
++Cyan query rays, amber contact markers and green normal-load arrows use the
++physical samples. The renderer does not guess a flat-world normal or report
++its original, unchanged visual-track grid as current physical rubber.
++
++These optional inspection records are not in archived replay pages. Live
++contact/path overlays are therefore hidden in replay and on stale/missing probe
++data, rather than misrepresented as recorded history. Core recorded wheel/aero/
++body channels remain inspectable in replay. The debug panel scrolls and can be
++hidden immediately with F3. Geometry, audio nodes and event-history cleanup are
++explicit; unchanged debug samples do not re-upload GPU instance buffers.
++
++`tests/engineering.test.ts` verifies exact source values, copied ownership,
++rate limits, disabled/reset behavior, corrupt input rejection, AI activity,
++complete category formatting, stale/replay exclusion and physical marker/ray
++positions. A paired simulation run is exactly equal with and without the probe,
++including numeric snapshots and water/rubber/marble grids. The existing two-origin
++browser worker test now also requires real typed engineering responses. The full
++application test toggles F3, checks live data and retains an engineering screenshot.
++
++## Scope and retained acceptance boundaries
++
++No file in `src/simulation/` or `src/core/` is changed by this continuation. The
++simulation/core fingerprint remains
++`30c155c669e4af3f1d5b2a40ab0ce9acd44d5dc19ee82777df8f6c6bf2149484`.
++The earlier 50-/100-lap reports remain evidence for that exact physics core and
++their separately recorded all-source identities, not fresh runs of this rendering
++build. Existing physics/journey, rotation, pit and classification gates remain.
++
++These three passes describe the changed subsystems, not three independent audits
++of every file or certification of every master section. The complete combined
++section-146 driving/audiovisual acceptance, representative-hardware performance,
++independent handling/presentation review and sections 140–148's final quality
++obligations remain open. Do not infer full completion from unit counts or an
++isolated audio/GPU test.
+diff --git a/docs/dynamics-benchmark.json b/docs/dynamics-benchmark.json
+index 8521009..0168fe3 100644
+--- a/docs/dynamics-benchmark.json
++++ b/docs/dynamics-benchmark.json
+@@ -1,4 +1,4 @@
+ {
+-  "sourceSHA256": "f0afb2ecb9ab9cea1065623c8d88da8b960ec3695f022e63d4353b03a3a578f0",
++  "sourceSHA256": "e634c846513b962df43c5ccfb6c2f15cf87580fa21069e191a0f39d6e766d72b",
+   "fixedDtSeconds": 0.004166666666666667,
+   "fixture": "Isolated analytic runway/skidpad/kerbs with the production Vehicle solver",
+diff --git a/docs/integrated-driving.json b/docs/integrated-driving.json
+index c557560..51fc1da 100644
+--- a/docs/integrated-driving.json
++++ b/docs/integrated-driving.json
+@@ -1,4 +1,4 @@
+ {
+-  "sourceSHA256": "c0a5f45e1b476e10747a7ab72d9c8329e9702513881f9b45338ea56ae6e20808",
++  "sourceSHA256": "06c18de61bbfd3f9e0c310c6e39ee1a10b72701d5f78d7f5607963d26ca9ca3d",
+   "simulationSHA256": "30c155c669e4af3f1d5b2a40ab0ce9acd44d5dc19ee82777df8f6c6bf2149484",
+   "fingerprintVersion": 2,
+diff --git a/docs/scenario-results.json b/docs/scenario-results.json
+index ef92a7a..689c7fb 100644
+--- a/docs/scenario-results.json
++++ b/docs/scenario-results.json
+@@ -6,5 +6,5 @@
+     "simulatedSeconds": 320,
+     "cars": 4,
+-    "elapsedSeconds": 16.2717102,
++    "elapsedSeconds": 12.886688083000001,
+     "maxSpeedKmh": 273.7525241448068,
+     "maxLateral": 8.676510391903989,
+@@ -47,5 +47,5 @@
+     "simulatedSeconds": 320,
+     "cars": 4,
+-    "elapsedSeconds": 15.673186326000003,
++    "elapsedSeconds": 11.937821735000002,
+     "maxSpeedKmh": 271.8375331467494,
+     "maxLateral": 8.90782178695694,
+@@ -88,5 +88,5 @@
+     "simulatedSeconds": 320,
+     "cars": 4,
+-    "elapsedSeconds": 15.47845129,
++    "elapsedSeconds": 12.099529452000002,
+     "maxSpeedKmh": 258.0035511152656,
+     "maxLateral": 9.279951269326773,
+diff --git a/docs/spatial-audio-signals.json b/docs/spatial-audio-signals.json
+new file mode 100644
+index 0000000..cdd52b8
+--- /dev/null
++++ b/docs/spatial-audio-signals.json
+@@ -0,0 +1,78 @@
++{
++  "scope": "Actual production EngineVoices graph, real local Chromium OfflineAudioContext; isolated controlled acoustic trajectories, not complete audiovisual game acceptance.",
++  "browser": "Chromium 144.0.7559.96 built on Debian GNU/Linux 13 (trixie)",
++  "startTime": "2026-09-19T04:33:59.563Z",
++  "sampleRateHz": 48000,
++  "durationPerFixtureSeconds": 1,
++  "sources": {
++    "src/audio/engine-voices.ts": "67eecb129e1f35ab396c360486b85b74aa3e4e410d920b770e95ec8b7b462812",
++    "src/audio/spatial.ts": "6843dd2be18814a7f6ba83256f40eea98b6abad8d903af6168741789f4d4bf35",
++    "e2e/spatial-audio.spec.ts": "c9c85a66261eb98a11eab4e0af69cdba1ddecda94e0d2791fdfddf67f60fa405"
++  },
++  "passed": true,
++  "signals": {
++    "left": {
++      "left": 0.00845347863412205,
++      "right": 0.00028012164477651976,
++      "crossings": 450,
++      "peak": 0.016897402703762054,
++      "finite": true
++    },
++    "right": {
++      "left": 0.0002801216447232128,
++      "right": 0.008453478631217832,
++      "crossings": 450,
++      "peak": 0.016897402703762054,
++      "finite": true
++    },
++    "rest": {
++      "left": 0.017691038553439363,
++      "right": 0.017691038553439363,
++      "crossings": 450,
++      "peak": 0.035362083464860916,
++      "finite": true
++    },
++    "approach": {
++      "left": 0.017721414108316992,
++      "right": 0.017721414108316992,
++      "crossings": 545,
++      "peak": 0.03538861498236656,
++      "finite": true
++    },
++    "recede": {
++      "left": 0.017653266737350813,
++      "right": 0.017653266737350813,
++      "crossings": 383,
++      "peak": 0.03545685485005379,
++      "finite": true
++    },
++    "distant": {
++      "left": 0,
++      "right": 0,
++      "crossings": 0,
++      "peak": 0,
++      "finite": true
++    },
++    "passby": {
++      "left": 0.02414304369668623,
++      "right": 0.026236799313602125,
++      "crossings": 402,
++      "peak": 0.09914056956768036,
++      "finite": true
++    },
++    "passbyBefore": {
++      "left": 0.020435457678468702,
++      "right": 0.0004534018527522118,
++      "crossings": 402,
++      "peak": 0.09914056956768036,
++      "finite": true
++    },
++    "passbyAfter": {
++      "left": 0.0006564433034963995,
++      "right": 0.023172731700044212,
++      "crossings": 402,
++      "peak": 0.09914056956768036,
++      "finite": true
++    }
++  }
++}
+diff --git a/e2e/01-worker-portability.spec.ts b/e2e/01-worker-portability.spec.ts
+index 7038975..b9e70b7 100644
+--- a/e2e/01-worker-portability.spec.ts
++++ b/e2e/01-worker-portability.spec.ts
+@@ -73,4 +73,8 @@ test('physics and CSV workers run when the JS bundle is served from a different
+   expect(measured.surfaceCells).toBe(3584);
+   expect(measured.telemetryRows).toBeGreaterThanOrEqual(60);
++  expect(measured.engineeringSamples).toBeGreaterThanOrEqual(5);
++  expect(measured.engineeringSamples).toBeLessThanOrEqual(1 + Math.ceil(measured.tick / 12));
++  expect(measured.engineeringTick).toBeGreaterThanOrEqual(60);
++  expect(measured.engineeringActive).toBe(true);
+   expect(measured.csvColumns).toBe(203);
+   expect(measured.csvExact).toBe(true);
+diff --git a/e2e/application.spec.ts b/e2e/application.spec.ts
+index 9e7d988..02d933e 100644
+--- a/e2e/application.spec.ts
++++ b/e2e/application.spec.ts
+@@ -52,4 +52,21 @@ test('browser session, cameras, pause safety, telemetry and replay', async ({ pa
+     .toBeGreaterThan(15);
+   await page.screenshot({ path: testInfo.outputPath('02-racing.png') });
++  await page.keyboard.press('F3');
++  await expect(page.locator('#debug')).toContainText('AI TARGET PATH');
++  await expect(page.locator('#debug')).toContainText('RUBBER');
++  await expect(page.locator('#debug')).toContainText('Fz N / Fx N / Fy N');
++  await expect.poll(async () => (await diag(page)).engineering?.aiActive).toBe(true);
++  await expect.poll(async () => (await diag(page)).presentation?.engineeringVisible).toBe(true);
++  const engineering = (await diag(page)).engineering!;
++  expect(engineering.wheels).toHaveLength(4);
++  expect(engineering.wheels.some((wheel) => wheel.loadN > 1)).toBe(true);
++  await testInfo.attach('live-engineering.json', {
++    body: JSON.stringify(engineering, null, 2),
++    contentType: 'application/json',
++  });
++  await page.screenshot({ path: testInfo.outputPath('02-engineering.png') });
++  await page.keyboard.press('F3');
++  await expect(page.locator('#debug')).toBeHidden();
++
+   await page.keyboard.press('c');
+   await expect.poll(async () => (await diag(page)).renderer?.camera).toBe('cockpit');
+@@ -101,5 +118,13 @@ test('recorded telemetry exports and replay leaves live physics paused', async (
+   await page.getByRole('button', { name: 'GARAGE & SETTINGS', exact: true }).click();
+   await page.locator('[name=quality]').selectOption('low');
++  // Keep the inexpensive low preset but explicitly enable the existing particle
++  // control: a zero-density preset cannot prove replay spray/rain works.
++  await page.locator('[name=graphics_particleDensity]').evaluate((element) => {
++    (element as HTMLInputElement).value = '0.4';
++    element.dispatchEvent(new Event('input', { bubbles: true }));
++  });
+   await page.getByRole('button', { name: 'APPLY & SAVE' }).click();
++  await page.selectOption('#weather', 'rain');
++  await page.selectOption('#compound', 'wet');
+   await begin(page);
+   await page.keyboard.press('g');
+@@ -128,4 +153,7 @@ test('recorded telemetry exports and replay leaves live physics paused', async (
+     )
+     .toBeGreaterThan(0);
++  await expect
++    .poll(async () => (await diag(page)).presentation?.particles.spawned[3])
++    .toBeGreaterThan(0);
+   await page.keyboard.press('t');
+   await expect(page.locator('#telemetryModal')).toBeVisible();
+@@ -162,4 +190,9 @@ test('recorded telemetry exports and replay leaves live physics paused', async (
+     expect(Number(csv[row].split(',')[tickColumn]) - firstTick).toBe(2 * (row - 1));
+   }
++  const stopped = await diag(page);
++  await page.waitForTimeout(500);
++  const stillStopped = await diag(page);
++  expect(stillStopped.presentation!.time).toBe(stopped.presentation!.time);
++  expect(stillStopped.presentation!.particles).toEqual(stopped.presentation!.particles);
+   await page.getByRole('button', { name: 'Close telemetry' }).click();
+   await page.getByRole('button', { name: 'WATCH REPLAY' }).click();
+@@ -170,4 +203,42 @@ test('recorded telemetry exports and replay leaves live physics paused', async (
+     element.dispatchEvent(new Event('input', { bubbles: true }));
+   });
++  await expect
++    .poll(async () => (await diag(page)).presentation?.particles.spawned[3])
++    .toBeGreaterThan(0);
++  await expect
++    .poll(async () => (await diag(page)).presentation?.particles.spawned[0])
++    .toBeGreaterThan(0);
++  // Camera changes must update the actual audio listener, not the recorded car.
++  for (let i = 0; i < 3; i++) await page.locator('#replayBar [data-action=camera]').click();
++  await expect.poll(async () => (await diag(page)).renderer?.camera).toBe('trackside');
++  await expect.poll(async () => (await diag(page)).audio.voices.length).toBeGreaterThan(0);
++  const listening = await diag(page);
++  expect(listening.presentation!.listener.interior).toBe(false);
++  expect(
++    Math.hypot(
++      listening.presentation!.listener.vx,
++      listening.presentation!.listener.vy,
++      listening.presentation!.listener.vz,
++    ),
++  ).toBeLessThan(0.001);
++  expect(listening.audio.voices.every((voice) => Number.isFinite(voice.pan + voice.doppler))).toBe(
++    true,
++  );
++  await page.locator('#replayPlay').click();
++  await expect(page.locator('#replayPlay')).toHaveText('PLAY');
++  const replayPaused = await diag(page);
++  await page.waitForTimeout(500);
++  const replayStill = await diag(page);
++  expect(replayStill.presentation).toEqual(replayPaused.presentation);
++  expect(replayStill.replayPosition).toBe(replayPaused.replayPosition);
++  await page.locator('#replaySpeed').selectOption('2');
++  await page.locator('#replayPlay').click();
++  await expect
++    .poll(async () => (await diag(page)).replayPosition)
++    .toBeGreaterThan(replayPaused.replayPosition);
++  await testInfo.attach('replay-effects-and-listener.json', {
++    body: JSON.stringify(await diag(page), null, 2),
++    contentType: 'application/json',
++  });
+   await page.screenshot({ path: testInfo.outputPath('05-replay.png') });
+   await page.waitForTimeout(1000);
+diff --git a/e2e/fixtures/worker-portability.ts b/e2e/fixtures/worker-portability.ts
+index d753a4b..b3c74d3 100644
+--- a/e2e/fixtures/worker-portability.ts
++++ b/e2e/fixtures/worker-portability.ts
+@@ -1,6 +1,7 @@
++import { isEngineeringSample, type WorkerMessage } from '../../src/workers/diagnostics.ts';
+ import PhysicsWorker from '../../src/workers/physics.worker.ts?worker&inline';
+ import { TelemetryExport } from '../../src/storage/telemetry-export.ts';
+ import { DEFAULT_OPTIONS } from '../../src/simulation/config.ts';
+-import { H, type FromWorker } from '../../src/simulation/protocol.ts';
++import { H } from '../../src/simulation/protocol.ts';
+ import { packTelemetry, TELEMETRY_STRIDE } from '../../src/storage/telemetry-schema.ts';
+ 
+@@ -13,4 +14,7 @@ export async function verifyWorkerPortability() {
+   let surfaceCells = 0;
+   let telemetryRows = 0;
++  let engineeringSamples = 0;
++  let engineeringTick = -1;
++  let engineeringActive = false;
+   try {
+     const frame = await new Promise<Float32Array>((resolve, reject) => {
+@@ -18,7 +22,15 @@ export async function verifyWorkerPortability() {
+       physics.onerror = (event) => reject(new Error(event.message));
+       physics.onmessageerror = () => reject(new Error('Physics message deserialization failed'));
+-      physics.onmessage = (event: MessageEvent<FromWorker>) => {
++      physics.onmessage = (event: MessageEvent<WorkerMessage>) => {
+         const message = event.data;
+-        if (message.type === 'error' || message.type === 'recordingWarning') {
++        if (message.type === 'engineering') {
++          if (!isEngineeringSample(message.sample)) {
++            reject(new Error('Malformed engineering snapshot'));
++            return;
++          }
++          engineeringSamples++;
++          engineeringTick = message.sample.tick;
++          engineeringActive = message.sample.aiActive;
++        } else if (message.type === 'error' || message.type === 'recordingWarning') {
+           reject(new Error(message.message));
+         } else if (message.type === 'surface') {
+@@ -49,4 +61,5 @@ export async function verifyWorkerPortability() {
+       });
+       physics.postMessage({ type: 'autopilot', value: true });
++      physics.postMessage({ type: 'engineering', enabled: true });
+       physics.postMessage({ type: 'pause', value: false });
+     });
+@@ -65,4 +78,7 @@ export async function verifyWorkerPortability() {
+       surfaceCells,
+       telemetryRows,
++      engineeringSamples,
++      engineeringTick,
++      engineeringActive,
+       csvColumns: header.length,
+       pickupColumns: header.slice(-4),
