@@ -47,6 +47,7 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git checkout --orphan playable-publish
           git rm -rf .
+          git clean -fdx
           cp -R "$RUNNER_TEMP/playable/." .
           git add -A
           git commit -m "deploy: playable snapshot ${GITHUB_SHA::12}"
