@@ -1,4 +1,4 @@
-name: Reference renderer candidate review
+name: Reference renderer candidate diagnosis
 on:
   push:
     branches: [main]
@@ -19,21 +19,18 @@ jobs:
         with:
           node-version: '22'
           cache: npm
-      - name: Apply hash-verified renderer candidate without changing any branch
+      - name: Apply verified candidate and preserve unreferenced diagnostic Git objects
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           python3 - <<'PY'
           import base64, gzip, hashlib, json, os, pathlib, subprocess, urllib.request
           root='https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3'
+          def api(path,data=None):
+              request=urllib.request.Request(root+path,data=None if data is None else json.dumps(data).encode(),headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','Content-Type':'application/json'},method='GET' if data is None else 'POST')
+              with urllib.request.urlopen(request,timeout=30) as response: return json.load(response)
           parts=['73b06657bb43391e15e2bfd143600fab91b3faef','98ae317cd820f2b9e4f4783b186da3ec734e4e88','81143502357d9b7a901e6f2c86d4f198af1a767c']
-          encoded=[]
-          for sha in parts:
-              req=urllib.request.Request(root+'/git/blobs/'+sha,headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json'})
-              with urllib.request.urlopen(req,timeout=30) as response: data=json.load(response)
-              encoded.append(''.join(data['content'].split()).rstrip('='))
-          # Restore one transport transcription before decoding. The complete
-          # uncompressed patch hash below is the authority, not this correction.
+          encoded=[''.join(api('/git/blobs/'+sha)['content'].split()).rstrip('=') for sha in parts]
           encoded[2]=encoded[2].replace('309fKfNfN2','309fKfN2')
           patch=gzip.decompress(base64.b64decode(''.join(encoded)))
           assert hashlib.sha256(patch).hexdigest()=='2322a3866f6cf29e649b4f8c1f0adc926518ea59f9a7778f7085276f4d878fb5'
@@ -42,22 +39,6 @@ jobs:
           subprocess.run(['git','apply',str(path)],check=True)
           subprocess.run(['git','add','src/rendering','src/shaders','tests/reference-rendering.test.ts','tests/daylight-environment.test.ts'],check=True)
           subprocess.run(['git','diff','--cached','--check'],check=True)
-          subprocess.run(['git','diff','--cached','--stat'],check=True)
-          PY
-      - run: npm ci --no-audit --no-fund
-      - run: npm run check
-      - run: npx playwright install --with-deps chromium
-      - run: npx playwright test e2e/04-reference-visual.spec.ts
-      - name: Preserve tested Git objects for explicit visual review (no ref updates)
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          python3 - <<'PY'
-          import base64, hashlib, json, os, pathlib, subprocess, urllib.request
-          root='https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3'
-          def api(path,data=None):
-              request=urllib.request.Request(root+path,data=None if data is None else json.dumps(data).encode(),headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','Content-Type':'application/json'},method='GET' if data is None else 'POST')
-              with urllib.request.urlopen(request,timeout=30) as response: return json.load(response)
           parent=os.environ['GITHUB_SHA']; base=api('/git/commits/'+parent)['tree']['sha']
           files=subprocess.check_output(['git','diff','--cached','--name-only']).decode().splitlines()
           assert len(files)==14 and all(p.startswith(('src/rendering/','src/shaders/','tests/')) and '..' not in p for p in files)
@@ -69,15 +50,19 @@ jobs:
               assert blob['sha']==expected
               entries.append({'path':path,'mode':'100644','type':'blob','sha':blob['sha']})
           tree=api('/git/trees',{'base_tree':base,'tree':entries})['sha']
-          commit=api('/git/commits',{'message':'feat: rebuild reference-driven car surfaces, daylight and circuit materials\n\nOriginal bounded body shells, thin swept aero elements, UV-conforming livery, wheel covers, metre-scaled carbon, water-aware asphalt and pit normals, weather-derived lighting and PMREM, light-space shadow anchoring, grounded layered vegetation. Includes 14 new CPU tests and fixed-state browser evidence. Visual parity with F1 25 remains unproven.','tree':tree,'parents':[parent]})['sha']
-          result={'candidate':commit,'tree':tree,'parent':parent,'files':hashes,'unit_tests':511,'visual_tests':2,'visual_parity':'unproven'}
+          commit=api('/git/commits',{'message':'wip: preserve renderer candidate for cockpit regression diagnosis\n\nUnreferenced candidate only. CPU suite has passed; full-preset cockpit browser gate failed. Do not publish this snapshot as a working milestone.','tree':tree,'parents':[parent]})['sha']
+          result={'candidate':commit,'tree':tree,'parent':parent,'files':hashes,'validation':'DIAGNOSTIC ONLY; cockpit regression remains open'}
           output=pathlib.Path(os.environ['RUNNER_TEMP'])/'renderer-candidate.json'; output.write_text(json.dumps(result,indent=2)+'\n')
           print(json.dumps(result,indent=2))
           PY
+      - run: npm ci --no-audit --no-fund
+      - run: npm run check
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test e2e/04-reference-visual.spec.ts
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: reference-renderer-candidate
+          name: reference-renderer-diagnosis
           path: |
             test-results
             playwright-report
