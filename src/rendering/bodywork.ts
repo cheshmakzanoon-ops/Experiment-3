@@ -152,35 +152,87 @@ export function wingElement(
     uvs: number[] = [],
     indices: number[] = [];
   const across = 20,
-    around = 32;
+    around = 32,
+    stride = around + 1;
   for (let i = 0; i <= across; i++) {
     const x = (((i / across) * 2 - 1) * span) / 2,
-      edge = Math.abs(x) / (span / 2);
+      edge = Math.abs(x) / (span / 2),
+      taper = 1 - 0.16 * edge ** 4,
+      localCamber = camber * (1 - 0.18 * edge ** 2);
     for (let j = 0; j <= around; j++) {
-      // Cosine spacing resolves a rounded leading edge and a thin trailing edge.
+      // Cosine spacing resolves a rounded nose; the analytic zero at each end
+      // keeps the two skins coincident even after Float32 conversion.
       const angle = (j / around) * 2 * Math.PI,
-        u = 0.5 - 0.5 * Math.cos(angle);
-      const side = j <= around / 2 ? 1 : -1;
-      const section = thickness * Math.sin(Math.PI * u) ** 0.62 * (1 - u * 0.65);
+        u = 0.5 - 0.5 * Math.cos(angle),
+        side = j <= around / 2 ? 1 : -1,
+        section = thickness * 2.1 * Math.sqrt(u) * (1 - u) * (1 - 0.3 * u);
       positions.push(
         x,
-        4 * camber * u * (1 - u) + side * section - gull * edge ** 2,
-        chord * (0.5 - u) - sweep * edge ** 2,
+        4 * localCamber * u * (1 - u) + side * section - gull * edge ** 2,
+        chord * taper * (0.5 - u) - sweep * edge ** 2,
       );
       uvs.push(i / across, u);
     }
   }
+  // A knife-edge trailing seam must not average the opposing skin normals.
+  // Keep its lower copy separate; the leading UV seam is smoothed below.
+  const lowerTrailing = positions.length / 3;
+  for (let i = 0; i <= across; i++) {
+    const source = i * stride + around / 2;
+    positions.push(...positions.slice(source * 3, source * 3 + 3));
+    uvs.push(i / across, 1);
+  }
   for (let i = 0; i < across; i++)
     for (let j = 0; j < around; j++) {
-      const a = i * (around + 1) + j,
-        b = a + around + 1;
-      indices.push(a, b, a + 1, b, b + 1, a + 1);
+      const a = j === around / 2 ? lowerTrailing + i : i * stride + j,
+        b = j === around / 2 ? lowerTrailing + i + 1 : (i + 1) * stride + j,
+        nextA = i * stride + j + 1,
+        nextB = (i + 1) * stride + j + 1;
+      indices.push(a, b, nextA, b, nextB, nextA);
     }
+  // Cambered sections are concave: a centre fan can cross outside the skin.
+  // Triangulate each actual outline and isolate the cap normals/planar UVs.
+  for (const row of [0, across]) {
+    const base = positions.length / 3,
+      contour: T.Vector2[] = [];
+    for (let j = 0; j < around; j++) {
+      const source = (row * stride + j) * 3,
+        y = positions[source + 1],
+        z = positions[source + 2];
+      positions.push(positions[source], y, z);
+      uvs.push(0.5 + (z + sweep) / chord, 0.5 + (y + gull) / (2 * (Math.abs(camber) + thickness)));
+      contour.push(new T.Vector2(y, z));
+    }
+    for (const [a, b, c] of T.ShapeUtils.triangulateShape(contour, [])) {
+      const ab = contour[b].clone().sub(contour[a]),
+        ac = contour[c].clone().sub(contour[a]),
+        outward = (ab.x * ac.y - ab.y * ac.x) * (row === 0 ? -1 : 1) > 0;
+      if (outward) indices.push(base + a, base + b, base + c);
+      else indices.push(base + a, base + c, base + b);
+    }
+  }
   const geometry = new T.BufferGeometry();
   geometry.setAttribute('position', new T.Float32BufferAttribute(positions, 3));
   geometry.setAttribute('uv', new T.Float32BufferAttribute(uvs, 2));
   geometry.setIndex(indices);
   geometry.computeVertexNormals();
+  const normals = geometry.getAttribute('normal'),
+    average = new T.Vector3();
+  for (let i = 0; i <= across; i++) {
+    const first = i * stride,
+      last = first + around;
+    average
+      .set(
+        normals.getX(first) + normals.getX(last),
+        normals.getY(first) + normals.getY(last),
+        normals.getZ(first) + normals.getZ(last),
+      )
+      .normalize();
+    normals.setXYZ(first, average.x, average.y, average.z);
+    normals.setXYZ(last, average.x, average.y, average.z);
+  }
+  geometry.computeBoundingBox();
+  geometry.computeBoundingSphere();
   return geometry;
 }
 
