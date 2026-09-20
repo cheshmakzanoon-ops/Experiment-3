@@ -81,12 +81,15 @@ export class ReflectionSystem {
     car: T.Object3D,
     materials: readonly T.MeshStandardMaterial[],
     high: boolean,
+    intervalSeconds = 1.5,
   ) {
     if (!high) {
       if (this.probeActive) this.restoreEnvironment();
       return;
     }
-    if (this.activePass || this.clock - this.lastProbe < 1.5) return;
+    if (!Number.isFinite(intervalSeconds) || intervalSeconds < 0.25 || intervalSeconds > 5)
+      throw new Error('Invalid reflection probe interval');
+    if (this.activePass || this.clock - this.lastProbe < intervalSeconds) return;
     const cube = this.cubes[this.nextTarget];
     const visible = car.visible;
     const mirrorVisibility = this.mirrors.map((m) => m.visible);

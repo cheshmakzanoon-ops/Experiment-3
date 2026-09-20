@@ -118,3 +118,24 @@ it('recaptures a backward seek immediately instead of keeping a future-lap envir
   expect(() => reflection.beginFrame(NaN, true)).toThrow('Invalid reflection');
   reflection.dispose();
 });
+
+it('uses a faster bounded local-probe cadence for wet presentation without unbounded recapture', () => {
+  const reflection = new ReflectionSystem(),
+    { gl } = fixture(),
+    scene = new T.Scene(),
+    car = new T.Group(),
+    material = new T.MeshStandardMaterial(),
+    capture = vi.spyOn(T.CubeCamera.prototype, 'update').mockImplementation(() => undefined);
+  reflection.beginFrame(1, false);
+  reflection.updateProbe(gl, scene, car, [material], true, 0.55);
+  reflection.beginFrame(1.4, false);
+  reflection.updateProbe(gl, scene, car, [material], true, 0.55);
+  expect(capture).toHaveBeenCalledTimes(1);
+  reflection.beginFrame(1.56, false);
+  reflection.updateProbe(gl, scene, car, [material], true, 0.55);
+  expect(capture).toHaveBeenCalledTimes(2);
+  expect(() => reflection.updateProbe(gl, scene, car, [material], true, 0.1)).toThrow(
+    'Invalid reflection probe interval',
+  );
+  reflection.dispose();
+});

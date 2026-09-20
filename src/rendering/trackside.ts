@@ -12,7 +12,7 @@ export interface CameraRig {
 }
 // Alternating crane/low platform placements are authored, not random camera
 // teleport offsets. Pit-lane cameras stay across the circuit from the garages.
-const PLATFORMS = [
+export const TRACKSIDE_PLATFORMS = [
   [-1, 5, 43],
   [-1, 3.4, 38],
   [-1, 5, 42],
@@ -35,6 +35,24 @@ const PLATFORMS = [
   [-1, 6, 42],
 ] as const;
 
+export function tracksideRigs(track: Track): readonly CameraRig[] {
+  const p = trackPoint(),
+    spacing = track.length / TRACKSIDE_PLATFORMS.length;
+  return TRACKSIDE_PLATFORMS.map(([side, height, fov], id) => {
+    const centerS = id * spacing;
+    track.at(centerS + spacing * 0.18, p);
+    const offset = side * (p.width + 18);
+    return {
+      id,
+      centerS,
+      coverageM: spacing + 16,
+      position: new Vector3(p.x + p.nx * offset, p.y + height, p.z + p.nz * offset),
+      baseFov: fov,
+      trackingHz: 12,
+    };
+  });
+}
+
 /** Fixed trackside positions plus a predictable pan/zoom director. Replay seeks
  * and camera cuts reset the pan; normal boundary jitter uses coverage hysteresis. */
 export class TracksideDirector {
@@ -47,21 +65,7 @@ export class TracksideDirector {
   fov = 42;
   private previousS = NaN;
   constructor(readonly track: Track) {
-    const p = trackPoint(),
-      spacing = track.length / PLATFORMS.length;
-    this.rigs = PLATFORMS.map(([side, height, fov], id) => {
-      const centerS = id * spacing;
-      track.at(centerS + spacing * 0.18, p);
-      const offset = side * (p.width + 18);
-      return {
-        id,
-        centerS,
-        coverageM: spacing + 16,
-        position: new Vector3(p.x + p.nx * offset, p.y + height, p.z + p.nz * offset),
-        baseFov: fov,
-        trackingHz: 12,
-      };
-    });
+    this.rigs = tracksideRigs(track);
   }
   reset() {
     this.activeId = -1;

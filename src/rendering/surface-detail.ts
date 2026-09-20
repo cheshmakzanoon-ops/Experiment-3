@@ -61,7 +61,11 @@ export function surfacePixels(kind: SurfaceKind, size = 512, seed = 1887) {
     }
   return { albedo, height, roughness };
 }
-export function surfaceMaterial(kind: SurfaceKind, finish?: CircuitFinish) {
+export function surfaceMaterial(
+  kind: SurfaceKind,
+  finish?: CircuitFinish,
+  waterFilm = false,
+): T.MeshStandardMaterial {
   const size = 512,
     data = surfacePixels(kind),
     metres = kind === 'asphalt' ? 0.64 : kind === 'grass' ? 2.5 : kind === 'gravel' ? 0.9 : 3;
@@ -83,14 +87,24 @@ export function surfaceMaterial(kind: SurfaceKind, finish?: CircuitFinish) {
     heights[i * 4] = heights[i * 4 + 1] = heights[i * 4 + 2] = data.height[i];
     heights[i * 4 + 3] = 255;
   }
-  const material = new T.MeshStandardMaterial({
+  const parameters: T.MeshStandardMaterialParameters = {
     map: imageTexture(data.albedo, true),
     bumpMap: imageTexture(heights, false),
     roughnessMap: imageTexture(data.roughness, false),
     roughness: 1,
     metalness: 0,
     bumpScale: kind === 'asphalt' ? 0.00045 : kind === 'gravel' ? 0.009 : 0.002,
-  });
+  };
+  // A physical clearcoat lobe is compiled only for water-film surfaces. The wet-road
+  // shader drives it back to zero on dry cells, so dry asphalt does not become lacquered.
+  const material: T.MeshStandardMaterial = waterFilm
+    ? new T.MeshPhysicalMaterial({
+        ...parameters,
+        clearcoat: 1,
+        clearcoatRoughness: 0.1,
+        ior: 1.333,
+      })
+    : new T.MeshStandardMaterial(parameters);
   installStableSurfaceBump(material);
   if (finish || kind !== 'gravel')
     installCircuitFinish(material, finish ?? (kind as CircuitFinish));

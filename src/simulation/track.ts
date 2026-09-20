@@ -1,4 +1,5 @@
 import { TrackContactMesh, kerbHeight } from './contact.ts';
+import { surfaceDrainageRate } from './surface-drainage.ts';
 import { clamp, lerp, mod, smooth, Vec3, TAU } from '../core/math.ts';
 import type { WeatherPreset } from './config.ts';
 import {
@@ -105,6 +106,7 @@ export class Track {
   readonly rubber = new Float32Array(CELL_ROWS * CELL_COLS);
   readonly marbles = new Float32Array(CELL_ROWS * CELL_COLS);
   readonly temperature = new Float32Array(CELL_ROWS * CELL_COLS);
+  readonly drainage = new Float32Array(CELL_ROWS * CELL_COLS);
   readonly hash = new Map<string, number[]>();
   readonly length: number;
   private contactMesh: TrackContactMesh | null = null;
@@ -182,6 +184,21 @@ export class Track {
         ds;
     }
     Object.assign(this.points[count], this.points[0], { s: this.length });
+    const drainagePoint = trackPoint();
+    for (let row = 0; row < CELL_ROWS; row++) {
+      const s = ((row + 0.5) / CELL_ROWS) * this.length;
+      this.at(s, drainagePoint);
+      for (let col = 0; col < CELL_COLS; col++) {
+        const cell = row * CELL_COLS + col;
+        this.drainage[cell] = surfaceDrainageRate(
+          s,
+          this.length,
+          drainagePoint.bank,
+          drainagePoint.curvature,
+          col,
+        );
+      }
+    }
     for (let i = 0; i < this.water.length; i++) {
       this.temperature[i] = preset === 'rain' ? 22 : 34;
       this.water[i] = preset === 'rain' ? 0.7 + 0.35 * (0.5 + 0.5 * Math.sin(i * 0.27)) : 0;
@@ -314,7 +331,7 @@ export class Track {
         const i = r * CELL_COLS + c,
           depression = 0.65 + 0.35 * Math.sin(r * 0.113 + c * 0.4) ** 2,
           rainfall = (this.rain / 3600) * depression,
-          drainage = 0.002 + (0.003 * Math.abs(c - 3)) / 3,
+          drainage = this.drainage[i],
           evaporation = (1 - this.cloud) * 0.0006;
         this.water[i] = advanceWater(this.water[i], rainfall - evaporation, drainage, step);
         this.rubber[i] = Math.max(0, this.rubber[i] - this.rain * 0.000001 * step);

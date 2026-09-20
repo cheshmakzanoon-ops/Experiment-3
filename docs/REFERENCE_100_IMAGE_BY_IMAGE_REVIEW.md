@@ -35,6 +35,8 @@ Chromium in this environment returns no WebGL2 context. Geometry, settings, DOM,
 
 **Change this pass:** This pass adds a bounded point-cloud view sampled from the actual original circuit/car meshes, including instanced transforms, with a draggable-value split against the same rendered camera. It is real source geometry, not an overlaid reference photograph.
 
+**Phase 27A change:** Phase 27A adds deterministic low/outside drainage grates, marshal shelters, utility cabinets and physical replay-camera sites around the lap. The drain locations share their cadence and side-selection rules with the real surface-water drainage field; replay-camera housings share the exact replay-director positions.
+
 **Inspect:** Reference Review → 001 → INSPECT/OPEN. Use COMPARE GEOMETRY / RENDER; change Survey and Split in Photo Studio. Rendering is not locally GPU-verified.
 
 **Remaining gap / limit:** Not measured LiDAR or a licensed circuit. Sampling is bounded to the selected-car neighbourhood, coloured by height and not a dense physical scan. GPU side-by-side appearance remains unverified here.
@@ -177,11 +179,11 @@ Chromium in this environment returns no WebGL2 context. Geometry, settings, DOM,
 
 **In the game:** Existing weather changes clouds, wet-road response, rain lamps, tires, spray and cockpit droplets from live or recorded weather state.
 
-**Change this pass:** Existing relevant implementation retained after source review; observation/limitations rechecked. No claim of a new unique implementation for this row.
-
 **Inspect:** Reference Review → 010 → the entry's INSPECT/OPEN button. Menu → Heavy rain + Full wet; race or replay, then pause in Photo Studio.
 
-**Remaining gap / limit:** No full screen-space reflection system, ray tracing or commercial volumetric spray/raindrop fidelity.
+**Phase 27A change:** Phase 27A adds spatial-water-driven physical clearcoat, a faster bounded local-reflection cadence when real rain/wheel water is present, and distinct bounded spray-plume/rain-streak particle profiles without changing simulation emission rules.
+
+**Remaining gap / limit:** No full screen-space reflection system, ray tracing, windshield-wiper simulation or commercial volumetric spray/raindrop fidelity.
 
 **Source:** `src/rendering/effects.ts`, `src/rendering/reflections.ts`, `src/rendering/daylight.ts`, `src/rendering/car.ts`, `src/rendering/circuit.ts`, `src/ui/reference-routes.ts`
 
@@ -641,11 +643,11 @@ Chromium in this environment returns no WebGL2 context. Geometry, settings, DOM,
 
 **In the game:** Existing recorded full-field replay, timing tower, car tracking and trackside cameras now also support frozen selectable-car compositions. Added selectable night presentation, instanced floodlight masts, four bounded nearby light sources and an original patterned LED sphere at about 13% of the Aurel lap. This does not change the weather or simulation clock.
 
-**Change this pass:** Existing relevant implementation retained after source review; observation/limitations rechecked. No claim of a new unique implementation for this row.
-
 **Inspect:** Reference Review → 039 → the entry's INSPECT/OPEN button. Drive, pause → Watch Replay; cycle C to trackside; Photo Studio for an intentional wide shot.
 
-**Remaining gap / limit:** Original night illumination and an LED venue motif now exist, but this is not a matched city circuit, the licensed spherical landmark, a 22-car field, scanned scenery or verified commercial-quality night imagery. Actual GPU visual review of this new pass remains outstanding.
+**Phase 27A change:** Phase 27A keeps local scene probes active under night presentation and adds physical replay-camera infrastructure at the exact authored replay-rig positions; the additions are original and do not alter simulation time/weather.
+
+**Remaining gap / limit:** Original night illumination, local reflections and venue/camera infrastructure now exist, but this is not a matched city circuit, licensed landmark, 22-car field, scanned scenery or verified commercial-quality night imagery. Actual GPU visual review remains required.
 
 **Source:** `src/rendering/renderer.ts`, `src/storage/replay-pages.ts`, `src/ui/interface.ts`, `src/ui/reference-routes.ts`, `src/rendering/venue-lighting.ts`, `src/ui/driving-academy.ts`
 
@@ -762,6 +764,8 @@ Chromium in this environment returns no WebGL2 context. Geometry, settings, DOM,
 **In the game:** Existing circuit geometry, braking boards, elevation, grid paint, road rubber, crowds and paddock detailing supply these cues. Photo Studio now exposes adjustable survey/composition views. This pass adds a bounded point-cloud view sampled from the actual original circuit/car meshes, including instanced transforms, with a draggable-value split against the same rendered camera. It is real source geometry, not an overlaid reference photograph.
 
 **Change this pass:** This pass adds a bounded point-cloud view sampled from the actual original circuit/car meshes, including instanced transforms, with a draggable-value split against the same rendered camera. It is real source geometry, not an overlaid reference photograph.
+
+**Phase 27A change:** Phase 27A adds deterministic low/outside drainage grates, marshal shelters, utility cabinets and physical replay-camera sites around the lap. The drain locations share their cadence and side-selection rules with the real surface-water drainage field; replay-camera housings share the exact replay-director positions.
 
 **Inspect:** Reference Review → 046 → INSPECT/OPEN. Use COMPARE GEOMETRY / RENDER; change Survey and Split in Photo Studio. Rendering is not locally GPU-verified.
 
@@ -1117,11 +1121,11 @@ Chromium in this environment returns no WebGL2 context. Geometry, settings, DOM,
 
 **In the game:** Existing weather changes clouds, wet-road response, rain lamps, tires, spray and cockpit droplets from live or recorded weather state.
 
-**Change this pass:** Existing relevant implementation retained after source review; observation/limitations rechecked. No claim of a new unique implementation for this row.
-
 **Inspect:** Reference Review → 068 → the entry's INSPECT/OPEN button. Menu → Heavy rain + Full wet; race or replay, then pause in Photo Studio.
 
-**Remaining gap / limit:** No full screen-space reflection system, ray tracing or commercial volumetric spray/raindrop fidelity.
+**Phase 27A change:** Phase 27A adds spatial-water-driven physical clearcoat, a faster bounded local-reflection cadence when real rain/wheel water is present, and distinct bounded spray-plume/rain-streak particle profiles without changing simulation emission rules.
+
+**Remaining gap / limit:** No full screen-space reflection system, ray tracing, windshield-wiper simulation or commercial volumetric spray/raindrop fidelity.
 
 **Source:** `src/rendering/effects.ts`, `src/rendering/reflections.ts`, `src/rendering/daylight.ts`, `src/rendering/car.ts`, `src/rendering/circuit.ts`, `src/ui/reference-routes.ts`
 
@@ -1297,11 +1301,11 @@ Chromium in this environment returns no WebGL2 context. Geometry, settings, DOM,
 
 **In the game:** Existing weather-responsive lighting/reflections and new photo exposure/lens controls support composition, but not the scene shown. Added selectable night presentation, instanced floodlight masts, four bounded nearby light sources and an original patterned LED sphere at about 13% of the Aurel lap. This does not change the weather or simulation clock.
 
-**Change this pass:** Existing relevant implementation retained after source review; observation/limitations rechecked. No claim of a new unique implementation for this row.
-
 **Inspect:** Reference Review → 079 → the entry's INSPECT/OPEN button. Inspect clear/rain lighting and Photo Studio exposure; this is not a night preset.
 
-**Remaining gap / limit:** Original night illumination and an LED venue motif now exist, but this is not a matched city circuit, the licensed spherical landmark, a 22-car field, scanned scenery or verified commercial-quality night imagery. Actual GPU visual review of this new pass remains outstanding.
+**Phase 27A change:** Phase 27A keeps local scene probes active under night presentation and adds physical replay-camera infrastructure at the exact authored replay-rig positions; the additions are original and do not alter simulation time/weather.
+
+**Remaining gap / limit:** Original night illumination, local reflections and venue/camera infrastructure now exist, but this is not a matched city circuit, licensed landmark, 22-car field, scanned scenery or verified commercial-quality night imagery. Actual GPU visual review remains required.
 
 **Source:** `src/rendering/daylight.ts`, `src/rendering/reflections.ts`, `src/ui/photo-studio.ts`, `src/ui/reference-routes.ts`, `src/rendering/venue-lighting.ts`, `src/rendering/renderer.ts`, `src/ui/driving-academy.ts`
 
@@ -1317,7 +1321,9 @@ Chromium in this environment returns no WebGL2 context. Geometry, settings, DOM,
 
 **Inspect:** Reference Review → 080 → the entry's INSPECT/OPEN button. Inspect clear/rain lighting and Photo Studio exposure; this is not a night preset.
 
-**Remaining gap / limit:** Original night illumination and an LED venue motif now exist, but this is not a matched city circuit, the licensed spherical landmark, a 22-car field, scanned scenery or verified commercial-quality night imagery. Actual GPU visual review of this new pass remains outstanding.
+**Phase 27A change:** Phase 27A keeps local scene probes active under night presentation and adds physical replay-camera infrastructure at the exact authored replay-rig positions; the additions are original and do not alter simulation time/weather.
+
+**Remaining gap / limit:** Original night illumination, local reflections and venue/camera infrastructure now exist, but this is not a matched city circuit, licensed landmark, 22-car field, scanned scenery or verified commercial-quality night imagery. Actual GPU visual review remains required.
 
 **Source:** `src/rendering/daylight.ts`, `src/rendering/reflections.ts`, `src/ui/photo-studio.ts`, `src/ui/reference-routes.ts`, `src/rendering/venue-lighting.ts`, `src/rendering/renderer.ts`, `src/ui/driving-academy.ts`, `src/rendering/photo-camera.ts`
 
@@ -1349,11 +1355,11 @@ Chromium in this environment returns no WebGL2 context. Geometry, settings, DOM,
 
 **In the game:** Existing weather changes clouds, wet-road response, rain lamps, tires, spray and cockpit droplets from live or recorded weather state.
 
-**Change this pass:** Existing relevant implementation retained after source review; observation/limitations rechecked. No claim of a new unique implementation for this row.
-
 **Inspect:** Reference Review → 082 → the entry's INSPECT/OPEN button. Menu → Heavy rain + Full wet; race or replay, then pause in Photo Studio.
 
-**Remaining gap / limit:** No full screen-space reflection system, ray tracing or commercial volumetric spray/raindrop fidelity.
+**Phase 27A change:** Phase 27A adds spatial-water-driven physical clearcoat, a faster bounded local-reflection cadence when real rain/wheel water is present, and distinct bounded spray-plume/rain-streak particle profiles without changing simulation emission rules.
+
+**Remaining gap / limit:** No full screen-space reflection system, ray tracing, windshield-wiper simulation or commercial volumetric spray/raindrop fidelity.
 
 **Source:** `src/rendering/effects.ts`, `src/rendering/reflections.ts`, `src/rendering/daylight.ts`, `src/rendering/car.ts`, `src/rendering/circuit.ts`, `src/ui/reference-routes.ts`
 
@@ -1431,11 +1437,11 @@ Chromium in this environment returns no WebGL2 context. Geometry, settings, DOM,
 
 **In the game:** Existing weather-responsive lighting/reflections and new photo exposure/lens controls support composition, but not the scene shown. Added selectable night presentation, instanced floodlight masts, four bounded nearby light sources and an original patterned LED sphere at about 13% of the Aurel lap. This does not change the weather or simulation clock.
 
-**Change this pass:** Existing relevant implementation retained after source review; observation/limitations rechecked. No claim of a new unique implementation for this row.
-
 **Inspect:** Reference Review → 087 → the entry's INSPECT/OPEN button. Inspect clear/rain lighting and Photo Studio exposure; this is not a night preset.
 
-**Remaining gap / limit:** Original night illumination and an LED venue motif now exist, but this is not a matched city circuit, the licensed spherical landmark, a 22-car field, scanned scenery or verified commercial-quality night imagery. Actual GPU visual review of this new pass remains outstanding.
+**Phase 27A change:** Phase 27A keeps local scene probes active under night presentation and adds physical replay-camera infrastructure at the exact authored replay-rig positions; the additions are original and do not alter simulation time/weather.
+
+**Remaining gap / limit:** Original night illumination, local reflections and venue/camera infrastructure now exist, but this is not a matched city circuit, licensed landmark, 22-car field, scanned scenery or verified commercial-quality night imagery. Actual GPU visual review remains required.
 
 **Source:** `src/rendering/daylight.ts`, `src/rendering/reflections.ts`, `src/ui/photo-studio.ts`, `src/ui/reference-routes.ts`, `src/rendering/venue-lighting.ts`, `src/rendering/renderer.ts`, `src/ui/driving-academy.ts`
 
@@ -1531,11 +1537,11 @@ Chromium in this environment returns no WebGL2 context. Geometry, settings, DOM,
 
 **In the game:** Existing weather changes clouds, wet-road response, rain lamps, tires, spray and cockpit droplets from live or recorded weather state. Added selectable night presentation, instanced floodlight masts, four bounded nearby light sources and an original patterned LED sphere at about 13% of the Aurel lap. This does not change the weather or simulation clock.
 
-**Change this pass:** Existing relevant implementation retained after source review; observation/limitations rechecked. No claim of a new unique implementation for this row.
-
 **Inspect:** Reference Review → 093 → the entry's INSPECT/OPEN button. Menu → Heavy rain + Full wet; race or replay, then pause in Photo Studio.
 
-**Remaining gap / limit:** No full screen-space reflection system, ray tracing or commercial volumetric spray/raindrop fidelity.
+**Phase 27A change:** Phase 27A adds spatial-water-driven physical clearcoat, a faster bounded local-reflection cadence when real rain/wheel water is present, and distinct bounded spray-plume/rain-streak particle profiles without changing simulation emission rules.
+
+**Remaining gap / limit:** No full screen-space reflection system, ray tracing, windshield-wiper simulation or commercial volumetric spray/raindrop fidelity.
 
 **Source:** `src/rendering/effects.ts`, `src/rendering/reflections.ts`, `src/rendering/daylight.ts`, `src/rendering/car.ts`, `src/rendering/circuit.ts`, `src/ui/reference-routes.ts`, `src/rendering/venue-lighting.ts`, `src/rendering/renderer.ts`, `src/ui/driving-academy.ts`
 
@@ -1583,7 +1589,9 @@ Chromium in this environment returns no WebGL2 context. Geometry, settings, DOM,
 
 **Inspect:** Reference Review → 096 → the entry's INSPECT/OPEN button. Menu → Heavy rain + Full wet; race or replay, then pause in Photo Studio.
 
-**Remaining gap / limit:** No full screen-space reflection system, ray tracing or commercial volumetric spray/raindrop fidelity.
+**Phase 27A change:** Phase 27A adds spatial-water-driven physical clearcoat, a faster bounded local-reflection cadence when real rain/wheel water is present, and distinct bounded spray-plume/rain-streak particle profiles without changing simulation emission rules.
+
+**Remaining gap / limit:** No full screen-space reflection system, ray tracing, windshield-wiper simulation or commercial volumetric spray/raindrop fidelity.
 
 **Source:** `src/rendering/effects.ts`, `src/rendering/reflections.ts`, `src/rendering/daylight.ts`, `src/rendering/car.ts`, `src/rendering/circuit.ts`, `src/ui/reference-routes.ts`, `src/rendering/photo-camera.ts`, `src/rendering/renderer.ts`
 

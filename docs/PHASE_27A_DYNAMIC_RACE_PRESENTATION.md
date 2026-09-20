@@ -10,42 +10,32 @@ For that reason this pass starts Phase 27 with **wet-race readability and atmosp
 
 ## Engineering contract
 
-This pass is presentation-only.
+This pass keeps presentation coupled to simulation truth.
 
 - Spray still originates from measured wheel contact state.
 - Emission uses wheel water, normal load, vehicle speed and the selected tire compound.
 - Wake direction is derived from the recorded/rendered vehicle quaternion and existing world velocity; it does not feed back into physics.
 - Weather wind remains the same wind carried by simulation/replay.
 - Rain birth rate remains elapsed-time based rather than frame-count based.
-- No tire, aero, brake, hybrid, collision, AI, race-control, input or weather-evolution coefficient changes.
+- No tire, aero, brake, hybrid, collision, AI, race-control or input coefficient changes are introduced by the particle presentation.
 - Replay and pause continue to own presentation time through the existing effect-playback path.
 
 ## Visual changes
 
 ### Wheel spray
 
-Wet contact now scales the bounded spray rate with measured normal load and forms a rearward plume using the car's actual orientation. Spray retains only a smaller fraction of vehicle translation, receives more of the shared wind field, expands as it ages and falls slightly rather than using the same buoyancy as dust/smoke.
+Wet contact scales the bounded spray rate with measured normal load and forms a rearward plume using the car's actual orientation. Spray retains only a smaller fraction of vehicle translation, receives more of the shared wind field, expands as it ages and falls slightly rather than using the same buoyancy as dust/smoke.
 
 ### Rain, spray and spark silhouettes
 
-The bounded particle pool is unchanged in capacity. A new per-particle shape attribute lets the existing single draw call render:
-
-- elongated narrow rain streaks;
-- broader anisotropic spray droplets/mist;
-- brighter splinter-like sparks;
-- the existing soft dust/smoke treatment;
-- the existing solid marble treatment.
-
-This is one shader/material and one point pool, not a new unbounded effect system.
+The bounded particle pool is unchanged in capacity. A per-particle kind attribute lets the existing single draw call render elongated rain streaks, broader anisotropic spray/mist, brighter spark glints, soft dust/smoke and solid marbles without creating an unbounded effect system.
 
 ### Atmospheric depth
 
-The authored daylight state now exposes finite fog RGB channels in addition to density. Cloud cover retains its established contribution; precipitation additionally cools and darkens distant haze. The renderer consumes those channels directly. Night presentation still uses its separate reversible scene/fog scope.
+The authored daylight state exposes finite fog RGB channels in addition to density. Cloud cover retains its established contribution; precipitation additionally cools and darkens distant haze. The renderer consumes those channels directly. Night presentation still uses its separate reversible scene/fog scope.
 
 ## Validation boundary
 
-The existing browser weather oracle remains the GPU integration gate. It drives an actual wet simulation, renders the particle system, requires visible pixel changes, verifies measured rain births, verifies rain advection against simulation wind, and proves cleanup returns to the blank frame.
+The existing browser weather oracle remains the GPU integration gate. The unit daylight/reference suite requires a maximum-rain storm to have denser fog and lower RGB haze channels than clear weather while every daylight-state value remains finite.
 
-The unit daylight/reference suite additionally requires a maximum-rain storm to have denser fog and lower RGB haze channels than clear weather while every daylight-state value remains finite.
-
-This milestone does **not** certify final photorealism. The next Phase-27 work remains stronger original car silhouette/aero surfaces, driver/cockpit anatomy, authored crowd/terrain depth, and full-lap lighting/temporal review against the supplied references, followed by the complete human-driven section-146 audiovisual acceptance and final audits.
+This milestone does **not** certify final photorealism. The broader Phase-27A continuation is documented in `WET_BROADCAST_FIDELITY_MILESTONE.md`, including physical water-film response, trackside density and remaining GPU/visual acceptance gaps.

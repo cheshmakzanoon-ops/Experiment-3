@@ -83,8 +83,19 @@ export function installWetRoad(
       '#include <normal_fragment_maps>',
       'vec3 dryRoadNormal = normal;\n#include <normal_fragment_maps>\nnormal = normalize(mix(normal, dryRoadNormal, wet * 0.9));',
     );
+    // MeshPhysicalMaterial road ribbons carry a real dielectric water-film lobe.
+    // Dry cells explicitly remove it; standing-water cells sharpen it. Standard
+    // materials compile the same hook with the guarded branch removed.
+    shader.fragmentShader = shader.fragmentShader.replace(
+      '#include <lights_physical_fragment>',
+      `#include <lights_physical_fragment>
+      #ifdef USE_CLEARCOAT
+        material.clearcoat = wet * mix(0.58, 1.0, puddle);
+        material.clearcoatRoughness = mix(0.26, mix(0.105, 0.055, puddle), wet);
+      #endif`,
+    );
   };
-  material.customProgramCacheKey = () => 'apex-physical-asphalt-v2';
+  material.customProgramCacheKey = () => 'apex-physical-asphalt-v3-water-film';
 }
 
 /** At grazing angles, collapsed screen derivatives can make the stock bump

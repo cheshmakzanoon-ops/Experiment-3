@@ -4,12 +4,19 @@ import { installCircuitFinish } from './circuit-finish.ts';
 import { GRANDSTANDS, standMaterials, buildGrandstand } from './grandstand.ts';
 import { buildGarageBay, paddockMaterials } from './paddock-detail.ts';
 import { buildVegetation, terrainHeight } from './landscape.ts';
+import {
+  buildTrackInfrastructure,
+  trackInfrastructurePlan as makeTrackInfrastructurePlan,
+  updateSafetyPanel,
+  type TrackInfrastructurePlan,
+} from './track-infrastructure.ts';
 import { surfaceMaterial } from './surface-detail.ts';
 import * as T from 'three';
 import { BuildQueue } from './build-queue.ts';
 import { installWetRoad } from './materials.ts';
 import { kerbHeight } from '../simulation/contact.ts';
 import { Track, CELL_ROWS, CELL_COLS, trackPoint } from '../simulation/track.ts';
+import { H } from '../simulation/protocol.ts';
 import { clamp } from '../core/math.ts';
 import { batchScene, box, canvasTexture, label, mesh } from './geometry.ts';
 interface RibbonOptions {
@@ -33,6 +40,14 @@ export class CircuitScene {
   readonly roadMaterial: T.MeshStandardMaterial;
   readonly stateBytes = new Uint8Array(CELL_ROWS * CELL_COLS * 4);
   readonly startLamps: T.MeshStandardMaterial[] = [];
+  readonly trackInfrastructure: TrackInfrastructurePlan;
+  readonly safetyPanel = new T.MeshStandardMaterial({
+    color: 0x2a5636,
+    emissive: 0x2a5636,
+    emissiveIntensity: 0.18,
+    roughness: 0.38,
+    metalness: 0.12,
+  });
   private temp = trackPoint();
   readonly construction = new BuildQueue();
   constructor(
@@ -40,12 +55,13 @@ export class CircuitScene {
     deferred = false,
   ) {
     this.group.name = 'Aurel circuit';
+    this.trackInfrastructure = makeTrackInfrastructurePlan(track);
     this.group.add(this.props, this.crowd, this.vegetationGroup);
     this.stateTexture = new T.DataTexture(this.stateBytes, CELL_COLS, CELL_ROWS, T.RGBAFormat);
     this.stateTexture.magFilter = T.LinearFilter;
     this.stateTexture.minFilter = T.LinearFilter;
     this.updateSurface(track.water, track.rubber, track.marbles);
-    this.roadMaterial = surfaceMaterial('asphalt');
+    this.roadMaterial = surfaceMaterial('asphalt', undefined, true);
     installWetRoad(this.roadMaterial, this.stateTexture, true);
     const grass = surfaceMaterial('grass');
     const runOff = surfaceMaterial('asphalt', 'paint');
@@ -118,7 +134,7 @@ export class CircuitScene {
       });
     }
     // Smooth pit road ribbon and its marking; no decorative inaccessible lane.
-    const pitMat = surfaceMaterial('asphalt');
+    const pitMat = surfaceMaterial('asphalt', undefined, true);
     installWetRoad(pitMat, this.stateTexture, false);
     for (const [start, end] of [
       [track.length - 220, track.length],
@@ -167,6 +183,9 @@ export class CircuitScene {
         ),
       );
     this.infrastructure();
+    this.construction.add('Drainage, marshal and replay-camera infrastructure', 3, () =>
+      buildTrackInfrastructure(track, this.props, this.safetyPanel, this.trackInfrastructure),
+    );
     this.construction.add('Rule-placed layered foliage', 3, () =>
       buildVegetation(track, this.vegetationGroup),
     );
@@ -410,6 +429,8 @@ export class CircuitScene {
     line.rotation.set(-Math.PI / 2, 0, -Math.atan2(p.tx, p.tz));
   }
   update(frame: Float32Array) {
-    for (let i = 0; i < 5; i++) this.startLamps[i].emissiveIntensity = i < frame[3] ? 2.5 : 0;
+    for (let i = 0; i < 5; i++)
+      this.startLamps[i].emissiveIntensity = i < frame[H.LIGHTS] ? 2.5 : 0;
+    updateSafetyPanel(this.safetyPanel, frame);
   }
 }

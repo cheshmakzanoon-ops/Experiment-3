@@ -29,14 +29,47 @@ export function captureCircuitSurvey(weather: 'clear' | 'rain') {
   try {
     view.setQuality('high', { ...graphicsPreset('high'), resolutionScale: 1 });
     view.draw(frame, frame, 1, 1 / 60);
-    const surveys = [
-      { name: 'grandstand', eye: [40, -7, 3.0], target: [57, -38, 4.4], fov: 56 },
-      { name: 'barrier', eye: [120, -13, 1.1], target: [143, -19, 1.5], fov: 48 },
-      { name: 'kerb', eye: [552, -7.1, 0.45], target: [573, -8.8, 0.02], fov: 56 },
+    const marshal = view.circuit.trackInfrastructure.marshalPosts[4],
+      replayCamera =
+        view.circuit.trackInfrastructure.cameras.find((site) => site.supported) ??
+        view.circuit.trackInfrastructure.cameras[0],
+      surveys = [
+        { name: 'grandstand', eye: [40, -7, 3.0], target: [57, -38, 4.4], fov: 56 },
+        { name: 'barrier', eye: [120, -13, 1.1], target: [143, -19, 1.5], fov: 48 },
+        { name: 'kerb', eye: [552, -7.1, 0.45], target: [573, -8.8, 0.02], fov: 56 },
+      ];
+    if (!marshal || !replayCamera) throw new Error('Missing track-infrastructure survey site');
+    const worldSurveys = [
+      {
+        name: 'marshal',
+        eye: [marshal.x + 7, marshal.y + 3.4, marshal.z + 7],
+        target: [marshal.x, marshal.y + 1.25, marshal.z],
+        fov: 48,
+      },
+      {
+        name: 'replay-camera',
+        eye: [replayCamera.x + 6, replayCamera.y + 2.7, replayCamera.z + 6],
+        target: [replayCamera.x, replayCamera.cameraY ?? replayCamera.y + 3, replayCamera.z],
+        fov: 44,
+      },
     ];
     for (const survey of surveys) {
       view.camera.position.copy(view.circuit.at(...(survey.eye as [number, number, number])));
       view.camera.lookAt(view.circuit.at(...(survey.target as [number, number, number])));
+      view.camera.fov = survey.fov;
+      view.camera.updateProjectionMatrix();
+      view.renderer.info.reset();
+      view.renderer.render(view.scene, view.camera);
+      images.push({
+        view: survey.name,
+        image: canvas.toDataURL('image/png'),
+        calls: view.renderer.info.render.calls,
+        triangles: view.renderer.info.render.triangles,
+      });
+    }
+    for (const survey of worldSurveys) {
+      view.camera.position.set(...(survey.eye as [number, number, number]));
+      view.camera.lookAt(...(survey.target as [number, number, number]));
       view.camera.fov = survey.fov;
       view.camera.updateProjectionMatrix();
       view.renderer.info.reset();
@@ -63,6 +96,12 @@ export function captureCircuitSurvey(weather: 'clear' | 'rain') {
       glError: view.renderer.getContext().getError(),
       width: canvas.width,
       height: canvas.height,
+      infrastructure: {
+        drains: view.circuit.trackInfrastructure.drains.length,
+        marshalPosts: view.circuit.trackInfrastructure.marshalPosts.length,
+        utilities: view.circuit.trackInfrastructure.utilities.length,
+        cameras: view.circuit.trackInfrastructure.cameras.length,
+      },
     };
   } finally {
     view.dispose();

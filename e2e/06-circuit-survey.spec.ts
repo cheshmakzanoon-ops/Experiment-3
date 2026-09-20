@@ -63,7 +63,13 @@ for (const weather of ['clear', 'rain'] as const) {
     expect(result.width).toBe(1280);
     expect(result.height).toBe(720);
     expect(result.before).toEqual(result.after);
-    expect(result.images).toHaveLength(3);
+    expect(result.images).toHaveLength(5);
+    expect(result.infrastructure).toEqual({
+      drains: 56,
+      marshalPosts: 12,
+      utilities: 13,
+      cameras: 20,
+    });
     for (const image of result.images) {
       expect(image.calls, image.view).toBeGreaterThan(10);
       expect(image.triangles, image.view).toBeGreaterThan(10000);

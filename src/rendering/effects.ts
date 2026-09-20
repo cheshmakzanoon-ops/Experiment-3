@@ -42,7 +42,6 @@ export class Effects {
   private marblePrevious = new Float64Array(48).fill(NaN);
   private marbleTime = -Infinity;
   private solid = new Float32Array(this.count);
-  private shape = new Float32Array(this.count);
   private rainEmission = 0;
   private windX = 0;
   private windZ = 0;
@@ -70,15 +69,15 @@ export class Effects {
       new T.BufferAttribute(this.solid, 1).setUsage(T.DynamicDrawUsage),
     );
     this.geometry.setAttribute(
-      'shape',
-      new T.BufferAttribute(this.shape, 1).setUsage(T.DynamicDrawUsage),
+      'kind',
+      new T.BufferAttribute(this.kind, 1).setUsage(T.DynamicDrawUsage),
     );
     const material = new T.ShaderMaterial({
       transparent: true,
       depthWrite: false,
       vertexColors: true,
-      vertexShader: `attribute float size; attribute float opacity; attribute float solid; attribute float shape; varying float vSolid; varying float vShape; varying float vOpacity; varying vec3 vColor; void main(){vSolid=solid;vShape=shape;vOpacity=opacity;vColor=color;vec4 mv=modelViewMatrix*vec4(position,1.);gl_Position=projectionMatrix*mv;float scale=mix(1.,1.55,step(2.5,vShape)*step(vShape,3.5));gl_PointSize=clamp(size*scale*650./max(1.,-mv.z),1.,100.);}`,
-      fragmentShader: `varying float vSolid;varying float vShape;varying float vOpacity;varying vec3 vColor;void main(){vec2 p=gl_PointCoord*2.-1.;float soft=exp(-dot(p,p)*3.)*(1.-smoothstep(.6,1.,length(p)));float spray=exp(-(p.x*p.x*5.+p.y*p.y*2.1))*(1.-smoothstep(.72,1.,length(p)));float spark=(1.-smoothstep(.18,.9,abs(p.x)+abs(p.y)*.22));float rain=exp(-abs(p.x)*13.)*(1.-smoothstep(.76,1.,abs(p.y)));float a=soft*vOpacity;if(vShape<.5)a=spray*vOpacity;else if(vShape>1.5&&vShape<2.5)a=spark*vOpacity;else if(vShape>2.5&&vShape<3.5)a=rain*vOpacity;a=mix(a,(1.-smoothstep(.55,.75,abs(p.x)+abs(p.y)*.8))*vOpacity,vSolid);if(a<.008)discard;gl_FragColor=vec4(vColor,a);\n#include <tonemapping_fragment>\n#include <colorspace_fragment>}`,
+      vertexShader: `attribute float size; attribute float opacity; attribute float solid; attribute float kind; varying float vSolid; varying float vKind; varying float vOpacity; varying vec3 vColor; void main(){vSolid=solid;vKind=kind;vOpacity=opacity;vColor=color;vec4 mv=modelViewMatrix*vec4(position,1.);gl_Position=projectionMatrix*mv;float scale=vKind<.5?1.35:(vKind>2.5&&vKind<3.5?1.5:1.);gl_PointSize=clamp(size*650.*scale/max(1.,-mv.z),1.,120.);}`,
+      fragmentShader: `varying float vSolid;varying float vKind;varying float vOpacity;varying vec3 vColor;void main(){vec2 p=gl_PointCoord*2.-1.;float a;if(vSolid>.5){a=(1.-smoothstep(.55,.75,abs(p.x)+abs(p.y)*.8))*vOpacity;}else if(vKind<.5){vec2 q=vec2(p.x*.78,(p.y+.16)*1.28);float plume=exp(-dot(q,q)*2.05)*(1.-smoothstep(.72,1.12,length(q)));float mist=exp(-dot(vec2(p.x*.48,(p.y-.22)*1.65),vec2(p.x*.48,(p.y-.22)*1.65))*2.8);a=max(plume,mist*.52)*vOpacity;}else if(vKind>2.5&&vKind<3.5){float streak=(1.-smoothstep(.035,.15,abs(p.x)))*(1.-smoothstep(.78,1.,abs(p.y)));a=streak*vOpacity;}else if(vKind>1.5&&vKind<2.5){float spark=(1.-smoothstep(.04,.18,abs(p.x+p.y*.22)))*(1.-smoothstep(.58,1.,abs(p.y)));a=spark*vOpacity;}else{a=exp(-dot(p,p)*3.)*(1.-smoothstep(.6,1.,length(p)))*vOpacity;}if(a<.008)discard;gl_FragColor=vec4(vColor,a);\n#include <tonemapping_fragment>\n#include <colorspace_fragment>}`,
     });
     const points = new T.Points(this.geometry, material);
     points.frustumCulled = false;
@@ -92,7 +91,6 @@ export class Effects {
     this.kind[i] = kind;
     this.spawned[kind]++;
     this.solid[i] = Number(kind === PARTICLE_KIND.MARBLE);
-    this.shape[i] = kind;
     this.positions[p] = x;
     this.positions[p + 1] = y;
     this.positions[p + 2] = z;
@@ -109,7 +107,7 @@ export class Effects {
       this.gravity[i] = 0;
     } else if (kind === PARTICLE_KIND.SPRAY) {
       this.life[i] = this.maxLife[i] = 0.82 + r.next() * 0.58;
-      this.sizes[i] = 0.16 + r.next() * 0.09;
+      this.sizes[i] = 0.19 + r.next() * 0.11;
       this.gravity[i] = -0.35;
     } else if (kind === PARTICLE_KIND.MARBLE) {
       this.life[i] = this.maxLife[i] = 0.3 + r.next() * 0.15;
@@ -117,8 +115,8 @@ export class Effects {
       this.gravity[i] = -9.80665;
     } else {
       this.life[i] = this.maxLife[i] = 1 + r.next() * 0.7;
-      this.sizes[i] = 0.18;
-      this.gravity[i] = kind === PARTICLE_KIND.SMOKE ? 0.9 : 0.55;
+      this.sizes[i] = kind === PARTICLE_KIND.SMOKE ? 0.24 : 0.18;
+      this.gravity[i] = kind === PARTICLE_KIND.SMOKE ? 0.78 : 0.48;
     }
     const color = COLORS[kind];
     this.colors[p] = color[0];
@@ -248,7 +246,7 @@ export class Effects {
             if (water > 0.04 && speed > 5) {
               const tread =
                 frame[o + F.COMPOUND] === 4 ? 1.15 : frame[o + F.COMPOUND] === 3 ? 1 : 0.8;
-              const loadFactor = clamp(frame[p + W.LOAD] / 3500, 0.35, 1.3);
+              const loadFactor = clamp(frame[p + W.LOAD] / 2500, 0.35, 1.3);
               rate = Math.min(180, speed * water * 2.5 * tread * loadFactor);
               kind = PARTICLE_KIND.SPRAY;
             } else if ((surface === 3 || surface === 4) && speed > 4) {
@@ -326,22 +324,24 @@ export class Effects {
       this.positions[p] += this.velocities[p] * dt;
       this.positions[p + 1] += this.velocities[p + 1] * dt;
       this.positions[p + 2] += this.velocities[p + 2] * dt;
-      const fade = clamp(this.life[i] / this.maxLife[i], 0, 1);
-      const opacity =
+      const visibility =
         this.kind[i] === PARTICLE_KIND.MARBLE
           ? 0.95
           : this.kind[i] === PARTICLE_KIND.SPARK
             ? 0.82
-            : this.kind[i] === PARTICLE_KIND.RAIN
-              ? 0.52
-              : this.kind[i] === PARTICLE_KIND.SPRAY
-                ? 0.44
-                : 0.35;
-      this.alpha[i] = fade * opacity;
-      if (this.kind[i] === PARTICLE_KIND.SPRAY) this.sizes[i] += dt * 0.72;
-      else if (this.gravity[i] > 0.1) this.sizes[i] += dt * 0.6;
+            : this.kind[i] === PARTICLE_KIND.SPRAY
+              ? 0.5
+              : this.kind[i] === PARTICLE_KIND.RAIN
+                ? 0.34
+                : this.kind[i] === PARTICLE_KIND.SMOKE
+                  ? 0.42
+                  : 0.31;
+      this.alpha[i] = clamp(this.life[i] / this.maxLife[i], 0, 1) * visibility;
+      if (this.kind[i] === PARTICLE_KIND.SPRAY) this.sizes[i] += dt * 1.05;
+      else if (this.kind[i] === PARTICLE_KIND.SMOKE) this.sizes[i] += dt * 0.72;
+      else if (this.kind[i] === PARTICLE_KIND.DUST) this.sizes[i] += dt * 0.46;
     }
-    for (const attr of ['position', 'size', 'color', 'opacity', 'solid', 'shape'])
+    for (const attr of ['position', 'size', 'color', 'opacity', 'solid', 'kind'])
       this.geometry.getAttribute(attr).needsUpdate = true;
   }
   diagnostics() {

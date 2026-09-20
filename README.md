@@ -19,21 +19,13 @@
 
 ---
 
-## Phase 27A — wet-race readability and atmospheric depth
+## Phase 27A — wet-race broadcast fidelity and trackside density
 
-The current visual milestone converts existing simulation state into a stronger race-day image instead of adding another disconnected menu feature. Wheel spray now uses measured **water, load, speed, compound and car orientation** to form a longer rearward wake; rain, spray and sparks use distinct GPU point silhouettes rather than the same soft disc; spray lifetime, expansion and opacity are presentation-specific; and precipitation now cools/darkens the distance haze instead of changing density alone.
+The current milestone advances the retained 148-section master directive's graphics-quality pass after the full-race recording-continuity hardening. It targets the most repeated gap in the supplied wet/broadcast reference frames: real-state water-film response, more legible rain/spray structure, and motorsport infrastructure that belongs to the same world as the replay cameras.
 
-This is aimed directly at the supplied wet-cockpit and broadcast/photo cues (especially 039, 075–080, 095 and 096) while preserving the retained master directive's separation between simulation truth and presentation. No tire grip, weather evolution, input, race-control or replay timing coefficients change in this pass. See [the Phase 27A contract](docs/PHASE_27A_DYNAMIC_RACE_PRESENTATION.md).
+The 2.973 km Aurel circuit now carries **56 drainage grates, 12 marshal shelters, 13 utility cabinets and 20 physical replay-camera sites**. The drain cadence/side-selection is shared with the real 512×7 surface-water drainage field, so low/outside cells around those grates physically evacuate water faster; the camera sites reuse the exact positions of the replay director, and marshal LED boards consume the real live/replayed flag channel rather than a decorative timer. The new infrastructure is 5,268 triangles and is spatial/material batched from 323 source mesh instances to 157 draw-owning meshes. Wet asphalt gains an actual spatial-water-driven physical clearcoat lobe; local reflection probes update faster only when real rain/wheel water warrants it; storm precipitation cools/darkens distance haze; and the fixed 1,800-particle pool now forms load-scaled, orientation-aware rearward spray plus separate rain, smoke/dust and spark silhouettes without changing physical weather/tire state.
 
-**Acceptance boundary:** the existing WebGL weather oracle still has to prove real wet-simulation spray/rain/wind output and cleanup, and the daylight suite now checks that storm haze remains finite, denser and visibly darker than clear conditions. This pass improves dynamic readability; it does not certify full AAA parity, the complete human-driven section-146 scenario, or the later car-silhouette/driver/crowd presentation passes.
-
----
-
-## Full-race recording continuity
-
-The current milestone hardens the final-race → replay → telemetry path required by section 146 of the retained 148-section master directive. Physics-worker capture still runs at **60 Hz telemetry / 15 Hz replay**, but the one-second transferable-page reserve now grows on demand from six to a bounded **30 pages per stream** when rendering/UI cannot recycle buffers promptly, then shrinks back to six after recovery. A consumer unavailable beyond that reserve still produces an explicit gap rather than invented history.
-
-The new regression suite preserves every expected telemetry/replay tick through a simulated 20-second consumer stall and adds a real-browser **8.5-second main-thread stall** case. At the maximum twelve-car field, the combined 30-page high-water reserve is about **6.72 MiB**. See [the milestone rationale, memory budget and acceptance boundary](docs/FULL_RACE_CONTINUITY_MILESTONE.md). This removes the archival weakness that had to be cleared before the Phase-27 presentation work above; it does not claim the human-driven section-146 audiovisual scenario or AAA reference quality is complete.
+See [the milestone rationale, measurements, validation and explicit remaining limits](docs/WET_BROADCAST_FIDELITY_MILESTONE.md) and the preserved [dynamic wet-race presentation contract](docs/PHASE_27A_DYNAMIC_RACE_PRESENTATION.md). This is a deliberate Phase-27 step, **not** a claim of SSR/ray tracing, volumetric-fluid spray, scanned venue fidelity or commercial-game visual parity. The preceding [full-race recording-continuity milestone](docs/FULL_RACE_CONTINUITY_MILESTONE.md) remains part of the current foundation.
 
 ---
 

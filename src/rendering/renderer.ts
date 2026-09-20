@@ -54,7 +54,7 @@ import { PresentedFrame } from './frame-state.ts';
 import { EffectPlayback } from './effect-playback.ts';
 import { AudioViewTracker } from '../audio/spatial.ts';
 import { Track } from '../simulation/track.ts';
-import { F, H, carBase } from '../simulation/protocol.ts';
+import { F, H, W, WHEEL_BASE, WHEEL_STRIDE, carBase } from '../simulation/protocol.ts';
 import { clamp } from '../core/math.ts';
 export type CameraMode = 'chase' | 'cockpit' | 'pod' | 'trackside';
 export type { Quality } from './options.ts';
@@ -662,12 +662,17 @@ export class RacingRenderer {
       }
       // Include weather-driven environment captures in real GPU/draw metrics.
       this.environment.update(this.renderer, this.scene, daylight.cover);
+      let wheelWater = 0;
+      for (let wheel = 0; wheel < 4; wheel++)
+        wheelWater = Math.max(wheelWater, b[o + WHEEL_BASE + wheel * WHEEL_STRIDE + W.WATER]);
+      const wetReflection = wheelWater > 0.04 || b[H.RAIN] > 0.01;
       this.reflection.updateProbe(
         this.renderer,
         this.scene,
         car.root,
         this.reflectionMaterials,
-        this.graphics.reflections === 'local' && !menu && !studio && !this.night,
+        this.graphics.reflections === 'local' && !menu && !studio,
+        wetReflection ? 0.55 : 1.5,
       );
       this.reflection.renderMirrors(this.renderer, this.scene, car.root, dt);
       this.motionBlur.setStrength(this.photo ? 0 : this.graphics.motionBlur);
@@ -801,6 +806,12 @@ export class RacingRenderer {
       reflectionProbeUpdates: this.reflection.probeUpdates,
       skyEnvironmentUpdates: this.environment.captures,
       vegetationTrees: this.circuit.vegetationGroup.userData.treeCount,
+      trackInfrastructure: {
+        drains: this.circuit.trackInfrastructure.drains.length,
+        marshalPosts: this.circuit.trackInfrastructure.marshalPosts.length,
+        utilities: this.circuit.trackInfrastructure.utilities.length,
+        cameras: this.circuit.trackInfrastructure.cameras.length,
+      },
       localProbeActive: this.reflection.localProbeActive,
       motionBlur: this.motionBlur.diagnostics(),
       gpuMilliseconds: this.gpuTimer.milliseconds,
