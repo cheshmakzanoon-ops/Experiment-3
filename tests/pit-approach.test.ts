@@ -55,3 +55,18 @@ it.each([5, 2995])(
     expect(pitApproachTrafficSpeed(lead, [lead, follower], t, 2.9)).toBe(0);
   },
 );
+
+it('does not yield to a stationary follower in a separate pit-entry corridor', () => {
+  const t = new Track(),
+    lead = new Vehicle(0),
+    follower = new Vehicle(1);
+  lead.s = 2750;
+  lead.lateral = 2.9;
+  lead.speed = 0;
+  follower.s = 2742;
+  follower.lateral = 5.9;
+  follower.speed = 0;
+  expect(pitApproachTrafficSpeed(lead, [lead, follower], t, 2.9)).toBe(Infinity);
+  follower.speed = 14;
+  expect(pitApproachTrafficSpeed(lead, [lead, follower], t, 2.9)).toBe(10);
+});
