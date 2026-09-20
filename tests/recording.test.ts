@@ -12,11 +12,15 @@ import {
 } from '../src/simulation/protocol.ts';
 import {
   CHANNELS,
+  TELEMETRY_BATCH_ROWS,
   TELEMETRY_STRIDE,
   packTelemetry,
   telemetryCsv,
 } from '../src/storage/telemetry-schema.ts';
-import { TelemetrySampler } from '../src/storage/telemetry-sampler.ts';
+import {
+  RECORDING_TRANSPORT_MAX_PAGES,
+  TelemetrySampler,
+} from '../src/storage/telemetry-sampler.ts';
 import {
   SessionReplay,
   type ReplayPage,
@@ -124,29 +128,107 @@ describe('real-state telemetry', () => {
       expect(warnings).toEqual([]);
     },
   );
-  it('bounds stalled consumer memory and reports gaps instead of inventing samples', () => {
+  it('absorbs a twenty-second consumer stall without losing telemetry or replay cadence', () => {
     const f = pose(0),
-      warnings: string[] = [];
+      warnings: string[] = [],
+      telemetry: ArrayBuffer[] = [],
+      replay: ArrayBuffer[] = [];
     const fake = {
       tick: 0,
       makeFrame: () => f.slice(),
       writeFrame(out: Float32Array) {
         out.set(f);
+        out[H.TICK] = this.tick;
+        out[H.TIME] = this.tick / 120;
       },
     };
-    let delivered = 0;
     const sampler = new TelemetrySampler(
       fake as unknown as Simulation,
-      () => delivered++,
+      (buffer) => telemetry.push(buffer),
       (m) => warnings.push(m),
+      (buffer) => replay.push(buffer),
     );
-    for (let i = 1; i <= 2400; i++) {
+    for (let i = 1; i <= 20 * 120; i++) {
       fake.tick = i;
       sampler.capture();
     }
-    expect(delivered).toBe(6);
-    expect(warnings.some((s) => s.startsWith('Telemetry capture gap'))).toBe(true);
-    expect(warnings.some((s) => s.startsWith('Replay capture gap'))).toBe(true);
+    sampler.flush();
+    sampler.flushReplay();
+    expect(telemetry).toHaveLength(20);
+    expect(replay).toHaveLength(20);
+    const telemetryTicks = telemetry.flatMap((buffer) => {
+      const values = new Float32Array(buffer);
+      return Array.from(
+        { length: TELEMETRY_BATCH_ROWS },
+        (_, row) => values[row * TELEMETRY_STRIDE + CHANNELS.indexOf('tick')],
+      );
+    });
+    const replayTicks = replay.flatMap((buffer) => {
+      const values = new Float32Array(buffer);
+      return Array.from({ length: 15 }, (_, row) => values[row * f.length + H.TICK]);
+    });
+    expect(telemetryTicks).toHaveLength(20 * 60);
+    expect(replayTicks).toHaveLength(20 * 15);
+    expect(telemetryTicks.every((tick, index) => tick === 2 * (index + 1))).toBe(true);
+    expect(replayTicks.every((tick, index) => tick === 8 * (index + 1))).toBe(true);
+    expect(sampler.transportPages).toEqual({
+      telemetry: 20,
+      replay: 20,
+      maximum: RECORDING_TRANSPORT_MAX_PAGES,
+    });
+    expect(warnings).toEqual([]);
+    telemetry.forEach((buffer) => sampler.recycle(buffer));
+    replay.forEach((buffer) => sampler.recycleReplay(buffer));
+    expect(sampler.transportPages).toEqual({
+      telemetry: 6,
+      replay: 6,
+      maximum: RECORDING_TRANSPORT_MAX_PAGES,
+    });
+  });
+
+  it('keeps the elastic recording reserve bounded, reports one gap per stream, and recovers after recycle', () => {
+    const f = pose(0),
+      warnings: string[] = [],
+      telemetry: ArrayBuffer[] = [],
+      replay: ArrayBuffer[] = [];
+    const fake = {
+      tick: 0,
+      makeFrame: () => f.slice(),
+      writeFrame(out: Float32Array) {
+        out.set(f);
+        out[H.TICK] = this.tick;
+        out[H.TIME] = this.tick / 120;
+      },
+    };
+    const sampler = new TelemetrySampler(
+      fake as unknown as Simulation,
+      (buffer) => telemetry.push(buffer),
+      (m) => warnings.push(m),
+      (buffer) => replay.push(buffer),
+    );
+    const stalledSeconds = RECORDING_TRANSPORT_MAX_PAGES + 5;
+    for (let i = 1; i <= stalledSeconds * 120; i++) {
+      fake.tick = i;
+      sampler.capture();
+    }
+    expect(telemetry).toHaveLength(RECORDING_TRANSPORT_MAX_PAGES);
+    expect(replay).toHaveLength(RECORDING_TRANSPORT_MAX_PAGES);
+    expect(warnings.filter((m) => m.startsWith('Telemetry capture gap'))).toHaveLength(1);
+    expect(warnings.filter((m) => m.startsWith('Replay capture gap'))).toHaveLength(1);
+    expect(sampler.transportPages.telemetry).toBe(RECORDING_TRANSPORT_MAX_PAGES);
+    expect(sampler.transportPages.replay).toBe(RECORDING_TRANSPORT_MAX_PAGES);
+
+    // Returning one page from each channel must let capture resume without
+    // allocating above the bounded reserve. The skipped interval stays an
+    // explicit gap rather than being synthesized after the fact.
+    sampler.recycle(telemetry[0]);
+    sampler.recycleReplay(replay[0]);
+    for (let i = stalledSeconds * 120 + 1; i <= (stalledSeconds + 1) * 120; i++) {
+      fake.tick = i;
+      sampler.capture();
+    }
+    expect(telemetry).toHaveLength(RECORDING_TRANSPORT_MAX_PAGES + 1);
+    expect(replay).toHaveLength(RECORDING_TRANSPORT_MAX_PAGES + 1);
     expect(warnings).toHaveLength(2);
   });
   it('keeps batched samples chronological through ring wrap', () => {

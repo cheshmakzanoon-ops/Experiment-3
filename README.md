@@ -19,6 +19,14 @@
 
 ---
 
+## Full-race recording continuity
+
+The current milestone hardens the final-race → replay → telemetry path required by section 146 of the retained 148-section master directive. Physics-worker capture still runs at **60 Hz telemetry / 15 Hz replay**, but the one-second transferable-page reserve now grows on demand from six to a bounded **30 pages per stream** when rendering/UI cannot recycle buffers promptly, then shrinks back to six after recovery. A consumer unavailable beyond that reserve still produces an explicit gap rather than invented history.
+
+The new regression suite preserves every expected telemetry/replay tick through a simulated 20-second consumer stall and adds a real-browser **8.5-second main-thread stall** case. At the maximum twelve-car field, the combined 30-page high-water reserve is about **6.72 MiB**. See [the milestone rationale, memory budget and acceptance boundary](docs/FULL_RACE_CONTINUITY_MILESTONE.md). This removes a known archival weakness before the next large dynamic-graphics/Phase-27 pass; it does not claim the human-driven section-146 audiovisual scenario or AAA reference quality is complete.
+
+---
+
 ## Reference continuation: visible systems, not just an audit
 
 This continuation starts from `c79992a56a08cdfee84732bbc32cac8e0d073085`.

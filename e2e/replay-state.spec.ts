@@ -4,6 +4,7 @@ import { H } from '../src/simulation/protocol.ts';
 test('recorded playback has exclusive modal, seek, audio and focus ownership', async ({
   page,
 }, testInfo) => {
+  test.setTimeout(90000);
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
   page.on('console', (message) => {
@@ -26,6 +27,41 @@ test('recorded playback has exclusive modal, seek, audio and focus ownership', a
   await expect
     .poll(async () => (await diagnostics()).replaySeconds, { timeout: 30000 })
     .toBeGreaterThan(6);
+
+  // The physics worker must retain one-second telemetry/replay pages while the
+  // render/UI thread is genuinely unavailable. This used to exhaust the six
+  // transferable pages and create an archival hole after roughly six seconds.
+  const beforeStall = await diagnostics();
+  const stallMs = 8500;
+  await page.evaluate((duration) => {
+    const end = performance.now() + duration;
+    while (performance.now() < end) {
+      // Deliberately occupy the main thread; the dedicated physics worker must
+      // continue stepping and recording without a recycle response.
+    }
+  }, stallMs);
+  await expect
+    .poll(async () => (await diagnostics()).replaySeconds, { timeout: 30000 })
+    .toBeGreaterThan(beforeStall.replaySeconds + 5);
+  const afterStall = await diagnostics();
+  expect(afterStall.telemetrySamples).toBeGreaterThan(beforeStall.telemetrySamples + 300);
+  expect(afterStall.recordingWarnings).toEqual([]);
+  await testInfo.attach('recording-stall-continuity.json', {
+    body: JSON.stringify(
+      {
+        stallMs,
+        replayBefore: beforeStall.replaySeconds,
+        replayAfter: afterStall.replaySeconds,
+        telemetryBefore: beforeStall.telemetrySamples,
+        telemetryAfter: afterStall.telemetrySamples,
+        warnings: afterStall.recordingWarnings,
+      },
+      null,
+      2,
+    ),
+    contentType: 'application/json',
+  });
+
   await page.keyboard.press('t');
   await expect(page.locator('#telemetryModal')).toBeVisible();
   await page.waitForTimeout(200);
