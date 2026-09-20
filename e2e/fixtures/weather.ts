@@ -37,7 +37,7 @@ export function verifyWeatherGPU() {
       simulationWind: [frame[H.WIND_X], frame[H.WIND_Z]], speedMps: frame[o + F.SPEED] };
   } finally {
     scene.traverse((object) => {
-      if (object instanceof T.Points) { object.geometry.dispose(); (object.material as T.Material).dispose(); }
+      if ((object instanceof T.Points || object instanceof T.Mesh)) { object.geometry.dispose(); (object.material as T.Material).dispose(); }
     });
     target.dispose(); renderer.dispose(); renderer.forceContextLoss();
   }

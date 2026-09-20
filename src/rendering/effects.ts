@@ -3,6 +3,9 @@ import * as T from 'three';
 import { Random, clamp } from '../core/math.ts';
 import { F, H, W, WHEEL_BASE, WHEEL_STRIDE, carBase } from '../simulation/protocol.ts';
 import { renderWind } from '../simulation/weather.ts';
+import { RainStreaks } from './rain-streaks.ts';
+
+export const EFFECT_CAPACITY = { contact: 1200, rain: 600 } as const;
 
 const COLORS = [
   [0.65, 0.73, 0.73],
@@ -17,8 +20,9 @@ export const PARTICLE_KIND = { SPRAY: 0, DUST: 1, SPARK: 2, RAIN: 3, SMOKE: 4, M
  * weather advection consumes the same wind carried by physics and replay. */
 export class Effects {
   readonly group = new T.Group();
-  private count = 1800;
+  private count = EFFECT_CAPACITY.contact + EFFECT_CAPACITY.rain;
   private cursor = 0;
+  private rainCursor = 0;
   private positions = new Float32Array(this.count * 3);
   private velocities = new Float32Array(this.count * 3);
   private life = new Float32Array(this.count);
@@ -42,6 +46,12 @@ export class Effects {
   private marblePrevious = new Float64Array(48).fill(NaN);
   private marbleTime = -Infinity;
   private solid = new Float32Array(this.count);
+  private rain = new RainStreaks(
+    this.positions.subarray(EFFECT_CAPACITY.contact * 3),
+    this.velocities.subarray(EFFECT_CAPACITY.contact * 3),
+    this.alpha.subarray(EFFECT_CAPACITY.contact),
+  );
+  private viewport = new T.Vector4();
   private rainEmission = 0;
   private windX = 0;
   private windZ = 0;
@@ -68,6 +78,8 @@ export class Effects {
       'solid',
       new T.BufferAttribute(this.solid, 1).setUsage(T.DynamicDrawUsage),
     );
+    // Rain cannot overwrite tire/contact trails, even at the 100 mm/h input bound.
+    this.geometry.setDrawRange(0, EFFECT_CAPACITY.contact);
     this.geometry.setAttribute(
       'kind',
       new T.BufferAttribute(this.kind, 1).setUsage(T.DynamicDrawUsage),
@@ -76,18 +88,60 @@ export class Effects {
       transparent: true,
       depthWrite: false,
       vertexColors: true,
-      vertexShader: `attribute float size; attribute float opacity; attribute float solid; attribute float kind; varying float vSolid; varying float vKind; varying float vOpacity; varying vec3 vColor; void main(){vSolid=solid;vKind=kind;vOpacity=opacity;vColor=color;vec4 mv=modelViewMatrix*vec4(position,1.);gl_Position=projectionMatrix*mv;float scale=vKind<.5?1.35:(vKind>2.5&&vKind<3.5?1.5:1.);gl_PointSize=clamp(size*650.*scale/max(1.,-mv.z),1.,120.);}`,
-      fragmentShader: `varying float vSolid;varying float vKind;varying float vOpacity;varying vec3 vColor;void main(){vec2 p=gl_PointCoord*2.-1.;float a;if(vSolid>.5){a=(1.-smoothstep(.55,.75,abs(p.x)+abs(p.y)*.8))*vOpacity;}else if(vKind<.5){vec2 q=vec2(p.x*.78,(p.y+.16)*1.28);float plume=exp(-dot(q,q)*2.05)*(1.-smoothstep(.72,1.12,length(q)));float mist=exp(-dot(vec2(p.x*.48,(p.y-.22)*1.65),vec2(p.x*.48,(p.y-.22)*1.65))*2.8);a=max(plume,mist*.52)*vOpacity;}else if(vKind>2.5&&vKind<3.5){float streak=(1.-smoothstep(.035,.15,abs(p.x)))*(1.-smoothstep(.78,1.,abs(p.y)));a=streak*vOpacity;}else if(vKind>1.5&&vKind<2.5){float spark=(1.-smoothstep(.04,.18,abs(p.x+p.y*.22)))*(1.-smoothstep(.58,1.,abs(p.y)));a=spark*vOpacity;}else{a=exp(-dot(p,p)*3.)*(1.-smoothstep(.6,1.,length(p)))*vOpacity;}if(a<.008)discard;gl_FragColor=vec4(vColor,a);\n#include <tonemapping_fragment>\n#include <colorspace_fragment>}`,
+      fog: true,
+      uniforms: {
+        ...T.UniformsUtils.clone(T.UniformsLib.fog),
+        viewportHeight: { value: 1 },
+      },
+      vertexShader: `
+        attribute float size; attribute float opacity; attribute float solid; attribute float kind;
+        uniform float viewportHeight;
+        varying float vSolid; varying float vKind; varying float vOpacity; varying vec3 vColor;
+        #include <fog_pars_vertex>
+        void main() {
+          vSolid=solid; vKind=kind; vOpacity=opacity; vColor=color;
+          vec4 mvPosition=modelViewMatrix*vec4(position,1.);
+          gl_Position=projectionMatrix*mvPosition;
+          float scale=vKind<.5?1.35:1.;
+          gl_PointSize=clamp(size*scale*projectionMatrix[1][1]*viewportHeight*.5/max(.1,-mvPosition.z),1.,120.);
+          #include <fog_vertex>
+        }`,
+      fragmentShader: `
+        varying float vSolid; varying float vKind; varying float vOpacity; varying vec3 vColor;
+        #include <fog_pars_fragment>
+        void main() {
+          vec2 p=gl_PointCoord*2.-1.;
+          float soft=exp(-dot(p,p)*3.)*(1.-smoothstep(.6,1.,length(p)));
+          vec2 q=vec2(p.x*.78,(p.y+.16)*1.28);
+          float plume=exp(-dot(q,q)*2.05)*(1.-smoothstep(.72,1.12,length(q)));
+          vec2 haze=vec2(p.x*.48,(p.y-.22)*1.65);
+          float spray=max(plume,exp(-dot(haze,haze)*2.8)*.52);
+          float spark=(1.-smoothstep(.04,.18,abs(p.x+p.y*.22)))*(1.-smoothstep(.58,1.,abs(p.y)));
+          float a=(vKind<.5?spray:(vKind>1.5&&vKind<2.5?spark:soft))*vOpacity;
+          a=mix(a,(1.-smoothstep(.55,.75,abs(p.x)+abs(p.y)*.8))*vOpacity,vSolid);
+          if(a<.008)discard;
+          gl_FragColor=vec4(vColor,a);
+          #include <tonemapping_fragment>
+          #include <colorspace_fragment>
+          #include <fog_fragment>
+        }`,
     });
     const points = new T.Points(this.geometry, material);
+    points.name = 'Contact spray, smoke and debris';
     points.frustumCulled = false;
-    this.group.add(points);
+    points.onBeforeRender = (renderer) => {
+      renderer.getCurrentViewport(this.viewport);
+      material.uniforms.viewportHeight.value = Math.max(1, this.viewport.w);
+    };
+    this.group.add(points, this.rain.mesh);
   }
   private spawn(x: number, y: number, z: number, vx: number, vy: number, vz: number, kind: number) {
-    const i = this.cursor,
+    const isRain = kind === PARTICLE_KIND.RAIN;
+    const i = isRain ? EFFECT_CAPACITY.contact + this.rainCursor : this.cursor,
       p = i * 3,
       r = this.random;
-    this.cursor = (this.cursor + 1) % this.count;
+    if (isRain) this.rainCursor = (this.rainCursor + 1) % EFFECT_CAPACITY.rain;
+    else this.cursor = (this.cursor + 1) % EFFECT_CAPACITY.contact;
     this.kind[i] = kind;
     this.spawned[kind]++;
     this.solid[i] = Number(kind === PARTICLE_KIND.MARBLE);
@@ -296,7 +350,9 @@ export class Effects {
       for (let i = 0; i < births; i++)
         this.spawn(
           frame[o] + (r.next() - 0.5) * 40,
-          frame[o + 1] + 4 + r.next() * 18,
+          // Cover eye/road level even when heavy rain recycles this bounded pool
+          // faster than a droplet can fall from the top of the volume.
+          frame[o + 1] + r.next() * 14,
           frame[o + 2] + (r.next() - 0.5) * 40,
           this.windX,
           -15,
@@ -324,25 +380,31 @@ export class Effects {
       this.positions[p] += this.velocities[p] * dt;
       this.positions[p + 1] += this.velocities[p + 1] * dt;
       this.positions[p + 2] += this.velocities[p + 2] * dt;
-      const visibility =
-        this.kind[i] === PARTICLE_KIND.MARBLE
-          ? 0.95
-          : this.kind[i] === PARTICLE_KIND.SPARK
-            ? 0.82
-            : this.kind[i] === PARTICLE_KIND.SPRAY
-              ? 0.5
+      const remaining = clamp(this.life[i] / this.maxLife[i], 0, 1);
+      if (this.kind[i] === PARTICLE_KIND.SPRAY) {
+        const age = this.maxLife[i] - this.life[i];
+        // Soft birth and broadening mist keep a trail legible, not a chain of dots.
+        this.alpha[i] = Math.min(1, age / 0.06) * remaining ** 0.7 * 0.5;
+        this.sizes[i] += dt * 1.05;
+      } else {
+        this.alpha[i] =
+          remaining *
+          (this.kind[i] === PARTICLE_KIND.MARBLE
+            ? 0.95
+            : this.kind[i] === PARTICLE_KIND.SPARK
+              ? 0.82
               : this.kind[i] === PARTICLE_KIND.RAIN
                 ? 0.34
                 : this.kind[i] === PARTICLE_KIND.SMOKE
                   ? 0.42
-                  : 0.31;
-      this.alpha[i] = clamp(this.life[i] / this.maxLife[i], 0, 1) * visibility;
-      if (this.kind[i] === PARTICLE_KIND.SPRAY) this.sizes[i] += dt * 1.05;
-      else if (this.kind[i] === PARTICLE_KIND.SMOKE) this.sizes[i] += dt * 0.72;
-      else if (this.kind[i] === PARTICLE_KIND.DUST) this.sizes[i] += dt * 0.46;
+                  : 0.31);
+        if (this.kind[i] === PARTICLE_KIND.SMOKE) this.sizes[i] += dt * 0.72;
+        else if (this.kind[i] === PARTICLE_KIND.DUST) this.sizes[i] += dt * 0.46;
+      }
     }
     for (const attr of ['position', 'size', 'color', 'opacity', 'solid', 'kind'])
       this.geometry.getAttribute(attr).needsUpdate = true;
+    this.rain.upload();
   }
   diagnostics() {
     const active = [0, 0, 0, 0, 0, 0],
@@ -362,6 +424,8 @@ export class Effects {
       }
     return {
       capacity: this.count,
+      contactCapacity: EFFECT_CAPACITY.contact,
+      rainCapacity: EFFECT_CAPACITY.rain,
       active,
       spawned: Array.from(this.spawned),
       velocityX,
@@ -384,5 +448,6 @@ export class Effects {
     this.marbleTime = -Infinity;
     // A paused/replay-seek frame may have dt=0 and never enter update().
     this.geometry.getAttribute('opacity').needsUpdate = true;
+    this.rain.clear();
   }
 }

@@ -98,9 +98,38 @@ jobs:
             playwright-report/
           retention-days: 7
 
+  wet-presentation:
+    # Early, independently retained GPU evidence for the dynamic presentation pass.
+    # The complete browser suite above still runs unchanged, including these cases.
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - uses: actions/download-artifact@v4
+        with:
+          name: apex-formula-web
+          path: dist/
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e -- e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts
+      - name: Wet presentation screenshots and GPU measurements
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wet-presentation
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 7
+
   publish:
     # Ship exactly the build tested above, never a parallel unvalidated rebuild.
-    needs: [validate, scenarios, browser]
+    needs: [validate, scenarios, browser, wet-presentation]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'cheshmakzanoon-ops/Experiment-3'
     runs-on: ubuntu-latest
     timeout-minutes: 5

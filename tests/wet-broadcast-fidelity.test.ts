@@ -196,15 +196,23 @@ it('scales wet spray with measured wheel load and sends the plume rearward in ca
   );
 });
 
-it('uses distinct screen-space rain streak and expanding spray plume profiles in one bounded pool', () => {
+it('uses distinct projected rain and expanding spray profiles in one partitioned bounded pool', () => {
   const effects = new Effects(),
     points = effects.group.children[0] as T.Points,
     material = points.material as T.ShaderMaterial;
   expect(points.geometry.getAttribute('kind').count).toBe(effects.diagnostics().capacity);
   expect(material.vertexShader).toContain('vKind=kind');
   expect(material.fragmentShader).toContain('float plume=');
-  expect(material.fragmentShader).toContain('float streak=');
-  expect(material.fragmentShader).toContain('vKind>2.5&&vKind<3.5');
+  const rain = effects.group.children[1] as T.Mesh<T.InstancedBufferGeometry, T.ShaderMaterial>;
+  expect(rain.geometry.instanceCount).toBe(effects.diagnostics().rainCapacity);
+  expect(points.geometry.drawRange.count).toBe(effects.diagnostics().contactCapacity);
+  expect(rain.material.vertexShader).toContain('screenMotion');
+  expect(rain.material.fragmentShader).toContain('float taper =');
+  expect(rain.geometry.getAttribute('opacity').array.buffer).toBe(
+    points.geometry.getAttribute('opacity').array.buffer,
+  );
+  rain.geometry.dispose();
+  rain.material.dispose();
   expect(material.fragmentShader).toContain('vKind<.5');
   points.geometry.dispose();
   material.dispose();

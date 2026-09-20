@@ -22,7 +22,7 @@ function snapshot(time: number) {
 }
 function dispose(effects: Effects) {
   effects.group.traverse((object) => {
-    if (object instanceof T.Points) {
+    if (object instanceof T.Points || object instanceof T.Mesh) {
       object.geometry.dispose();
       (object.material as T.Material).dispose();
     }
