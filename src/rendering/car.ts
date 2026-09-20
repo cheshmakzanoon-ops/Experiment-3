@@ -1,6 +1,7 @@
 import { addMirrorHousing, apertureGeometry, CockpitControls } from './cockpit.ts';
 import { sculptedLoft, wingElement, aeroPlate } from './bodywork.ts';
-import { flankLivery } from './car-livery.ts';
+import { flankLivery, repaintFlank } from './car-livery.ts';
+import { validateLivery, type Livery } from '../storage/livery.ts';
 import { TireCarcass } from './tire-carcass.ts';
 import { wheelPhase, wheelTravel } from './wheel-pose.ts';
 import * as T from 'three';
@@ -51,11 +52,36 @@ export class FormulaCar {
   private displayClock = new SteeringDisplayClock();
   private shiftLeds: T.MeshBasicMaterial[] = [];
   readonly paint: T.MeshPhysicalMaterial;
+  readonly accent: T.MeshPhysicalMaterial;
+  readonly identityTexture: T.CanvasTexture;
   readonly reflectivePaint: T.MeshPhysicalMaterial[] = [];
   private qa = new T.Quaternion();
   private qb = new T.Quaternion();
   private v = new T.Vector3();
   private up = new T.Vector3(0, 1, 0);
+  setLivery(value: Livery) {
+    const livery = validateLivery(value);
+    this.paint.color.set(livery.primary);
+    this.accent.color.set(livery.accent);
+    for (const material of this.reflectivePaint) repaintFlank(material, this.id, livery);
+    const canvas = this.identityTexture.image as HTMLCanvasElement;
+    const context = canvas.getContext('2d');
+    if (context) {
+      context.fillStyle = '#f4eddf';
+      context.fillRect(0, 0, canvas.width, canvas.height);
+      context.fillStyle = '#182126';
+      context.textAlign = 'center';
+      context.textBaseline = 'middle';
+      context.font = `800 ${Math.round(canvas.height * 0.54)}px Arial`;
+      context.fillText(
+        `${livery.sponsor} / ${String(livery.number).padStart(2, '0')}`,
+        canvas.width / 2,
+        canvas.height / 2,
+        canvas.width * 0.92,
+      );
+      this.identityTexture.needsUpdate = true;
+    }
+  }
   constructor(readonly id: number) {
     this.root.name = `Formula ${id + 1}`;
     this.root.add(this.staticBody, this.frontWing, this.rearWing);
@@ -77,6 +103,7 @@ export class FormulaCar {
       metalness: 0.18,
       clearcoat: 1,
     });
+    this.accent = ivory;
     // Venturi floor, sculpted monocoque, narrow nose and smoothly undercut sidepods.
     mesh(
       s,
@@ -329,6 +356,8 @@ export class FormulaCar {
       map: label(`APEX / ${String(id + 7).padStart(2, '0')}`, '#182126', '#f4eddf'),
       transparent: false,
     });
+    this.identityTexture = logo.map as T.CanvasTexture;
+    this.identityTexture.userData.dynamic = true;
     const decal = mesh(s, new T.PlaneGeometry(0.35, 0.105), logo, 0, 0.176, 0.74);
     decal.rotation.x = -Math.PI / 2;
     for (const sign of [-1, 1]) {

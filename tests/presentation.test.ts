@@ -95,7 +95,7 @@ it('resizes immutable texture assets but never live displays and can restore res
     width = 1024;
     height = 512;
     getContext() {
-      return { drawImage: vi.fn() };
+      return { drawImage: vi.fn(), clearRect: vi.fn() };
     }
   }
   vi.stubGlobal('HTMLCanvasElement', Canvas);

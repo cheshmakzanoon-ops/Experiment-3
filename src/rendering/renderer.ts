@@ -1,3 +1,5 @@
+import { photoFov, photoOffset, validatePhoto, type PhotoSettings } from './photo-camera.ts';
+import { type Livery } from '../storage/livery.ts';
 import {
   configureSky,
   daylightState,
@@ -77,6 +79,7 @@ export class RacingRenderer {
   private initialized = false;
   private trackside: TracksideDirector;
   mode: CameraMode = 'chase';
+  photo: PhotoSettings | null = null;
   quality: Quality = 'medium';
   shake = 0.35;
   lookX = 0;
@@ -320,6 +323,31 @@ export class RacingRenderer {
     this.renderHeight = actual.y;
     this.fxaa.uniforms.resolution.value.set(1 / actual.x, 1 / actual.y);
   }
+  setLivery(livery: Livery) {
+    const car = this.cars[0];
+    if (!car) return;
+    car.setLivery(livery);
+    for (const material of car.reflectivePaint)
+      if (material.map) this.textures.refresh(material.map);
+    this.reflection.invalidate();
+  }
+  setPhoto(value: PhotoSettings | null, cars = this.cars.length) {
+    this.photo = value ? validatePhoto(value, cars) : null;
+    this.follow = this.photo?.target ?? 0;
+    this.initialized = false;
+    this.motionBlur.reset();
+    this.audioView.reset();
+    this.reflection.invalidate();
+  }
+  /** Called immediately after draw; preserveDrawingBuffer is not required. */
+  capturePhoto(): Promise<Blob> {
+    return new Promise((resolve, reject) => {
+      this.canvas.toBlob(
+        (blob) => (blob ? resolve(blob) : reject(new Error('PNG capture failed'))),
+        'image/png',
+      );
+    });
+  }
   changeCamera(mode?: CameraMode) {
     this.motionBlur.reset();
     this.audioView.reset();
@@ -389,7 +417,7 @@ export class RacingRenderer {
         alpha,
         dt,
         time,
-        !menu && this.mode === 'cockpit' && id === this.follow,
+        !this.photo && !menu && this.mode === 'cockpit' && id === this.follow,
       );
     }
     const car = this.cars[this.follow],
@@ -402,7 +430,7 @@ export class RacingRenderer {
     // Keep their exposure in the same authored range as the sky environment.
     for (const material of this.reflectionMaterials)
       material.envMapIntensity = daylight.environment;
-    this.renderer.toneMappingExposure = daylight.exposure;
+    this.renderer.toneMappingExposure = daylight.exposure * 2 ** (this.photo?.exposure ?? 0);
     const fog = this.scene.fog as T.FogExp2;
     fog.density = daylight.fogDensity;
     fog.color.setRGB(
@@ -415,7 +443,16 @@ export class RacingRenderer {
     this.sky.material.uniforms.skyRadiance.value = daylight.skyRadiance;
     this.target.copy(car.root.position);
     this.direction.set(0, 0, 1).applyQuaternion(car.root.quaternion);
-    if (menu) {
+    if (this.photo) {
+      const offset = photoOffset(this.photo);
+      this.desired
+        .set(...offset)
+        .applyQuaternion(car.root.quaternion)
+        .add(this.target);
+      this.gaze.copy(this.target);
+      this.gaze.y += 0.15;
+      this.camera.fov = photoFov(this.photo.focalLength);
+    } else if (menu) {
       const angle = 0.65 + Math.sin(this.orbitTime * 0.07) * 0.12;
       this.desired
         .set(Math.sin(angle) * 6.8, 2.45, Math.cos(angle) * 6.8)
@@ -467,7 +504,7 @@ export class RacingRenderer {
       }
       this.camera.fov = (this.mode === 'chase' ? 57 : 68) + Math.min(7, speed * 0.075);
     }
-    if (!this.initialized || this.mode !== 'chase' || menu) {
+    if (!this.initialized || this.mode !== 'chase' || menu || this.photo) {
       this.camera.position.copy(this.desired);
       this.velocity.set(0, 0, 0);
       this.initialized = true;
@@ -490,11 +527,12 @@ export class RacingRenderer {
     }
     this.previousAnchor.copy(this.target);
     this.camera.up.set(0, 1, 0);
-    if (!menu && (this.mode === 'cockpit' || this.mode === 'pod')) {
+    if (!this.photo && !menu && (this.mode === 'cockpit' || this.mode === 'pod')) {
       this.temporary.set(0, 1, 0).applyQuaternion(car.root.quaternion);
       this.camera.up.lerp(this.temporary, 0.2).normalize();
     }
     this.camera.lookAt(this.gaze);
+    if (this.photo) this.camera.rotateZ((this.photo.roll * Math.PI) / 180);
     this.camera.updateProjectionMatrix();
     shadowAnchor(
       this.target,
@@ -510,7 +548,7 @@ export class RacingRenderer {
     this.pitCrew.update(b, this.camera.position, !menu);
     this.replayView = replay;
     this.engineeringView.update(this.engineering, b[H.TIME], this.debug, replay);
-    this.reflection.beginFrame(this.orbitTime, !menu && this.mode === 'cockpit');
+    this.reflection.beginFrame(this.orbitTime, !this.photo && !menu && this.mode === 'cockpit');
     this.scene.updateMatrixWorld(true);
     this.camera.updateMatrixWorld(true);
     this.audioView.update(
@@ -535,6 +573,7 @@ export class RacingRenderer {
         this.graphics.reflections === 'local' && !menu,
       );
       this.reflection.renderMirrors(this.renderer, this.scene, car.root, dt);
+      this.motionBlur.setStrength(this.photo ? 0 : this.graphics.motionBlur);
       this.motionBlur.prepareFrame(wallDelta, b[H.TIME]);
       this.composer.render();
     } finally {
@@ -592,6 +631,24 @@ export class RacingRenderer {
     let slowTotal = 0;
     for (let i = sorted.length - slowCount; i < sorted.length; i++) slowTotal += sorted[i];
     return {
+      photo: this.photo ? { ...this.photo } : null,
+      playerPaint: this.cars[0]
+        ? {
+            primary: `#${this.cars[0].paint.color.getHexString()}`,
+            accent: `#${this.cars[0].accent.color.getHexString()}`,
+            flankSizes: this.cars[0].reflectivePaint
+              .filter((m) => m.map)
+              .map((m) => {
+                const image = m.map!.image as HTMLCanvasElement;
+                const pixel = image.getContext('2d')?.getImageData(0, 0, 1, 1).data;
+                return {
+                  width: image.width,
+                  height: image.height,
+                  corner: pixel ? Array.from(pixel) : [],
+                };
+              }),
+          }
+        : null,
       warmupFrames: this.warmupFrames,
       graphics: { ...this.graphics },
       renderWidth: this.renderWidth,

@@ -18,6 +18,33 @@
 
 ---
 
+## Reference-led player tools
+
+The uploaded 100-image pack has now been **reviewed image by image**, with exact filename,
+dimensions, SHA-256, observed content, code ownership, viewing steps and remaining gaps in
+[the complete audit](docs/REFERENCE_100_AUDIT.md). The same numbered index is searchable from
+**Reference Review** in the main menu. This is traceability, not a claim of F1 25/PS5 parity.
+
+| Player-facing addition | Where to use it | Reference cues |
+| --- | --- | --- |
+| Editable on-car livery: two paints, three patterns, original wordmark and number; saved across reload and quality changes | **Photo / Livery** → edit → **Save Livery** | 005, 031, 032, 033 and identity compositions |
+| Frozen-scene photo studio: any car, orbit/elevation/distance, 18–150 mm lens, exposure, roll and actual canvas-only PNG export | Menu, pause or replay → **Photo Studio** | 006, 042, 045, 075–077, 083 and broadcast views |
+| Saved Team HQ: department staffing/capacity, facility upgrades, four fictional driver contracts, calendar and transaction ledger | **Team HQ** → Headquarters / Personnel / Finance | 011–019, 035, 081 |
+| Three timed research studies unlock explicit physics setup presets for the next session | **Team HQ** → Engineering | 012, 014 |
+| Local rivalry, reputation and contextual written briefings from classified manual races | Finish a Grand Prix with opponents → **Team HQ** | 018, limited written counterparts to 020/038/086 |
+
+Photo mode returns to the prior menu, paused session or **paused** replay; it does not secretly
+resume driving. Unsaved paint previews are discarded on return. Team transactions update the
+visible state only after the local save commits. AI demonstration, practice, DNF and solo runs
+are not awarded team-rivalry results. Driver identity affects name/number/payroll, not driving AI.
+
+**Reference integrity:** 050–065 are unrelated article/product images, 048–049 are supplementary
+wheel/pedal product photos, and 15 entries repeat or vary earlier compositions. They are
+explicitly accounted for, not fabricated into 100 unique game features. Reference artwork is
+not redistributed in the application. Important outstanding gaps include real night-city scenes,
+reverse/global time trials, tire-blanket grid preparation, dedicated audio driving assistance and
+animated story/interview scenes. The audit preserves those gaps rather than marking them done.
+
 ## 🏁 What is APEX / Formula?
 
 APEX / Formula is an original, single-player Formula-style racing simulation written in **TypeScript and Three.js**. Drive the fictional **2.973 km Aurel circuit**, race AI opponents, change vehicle setup, manage tires and hybrid energy, react to evolving weather, perform pit stops, and inspect the lap through replay and telemetry.

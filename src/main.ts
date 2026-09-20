@@ -31,10 +31,37 @@ import { TelemetryExport } from './storage/telemetry-export.ts';
 import { SessionReplay } from './storage/replay-pages.ts';
 import { TelemetryRecorder } from './storage/recorders.ts';
 import { clamp } from './core/math.ts';
-type State = 'menu' | 'loading' | 'driving' | 'paused' | 'results' | 'replay';
+import {
+  changeTeam,
+  driverProfile,
+  newTeam,
+  researchSetup,
+  rewardRace,
+  validateTeam,
+  type TeamAction,
+  type TeamState,
+  type ResearchId,
+  type Department,
+  type DriverId,
+} from './storage/team-career.ts';
+import { teamHub, type HubPage } from './ui/team-hub.ts';
+import { PhotoStudio } from './ui/photo-studio.ts';
+import { referenceReview, bindReferenceReview } from './ui/reference-review.ts';
+type State = 'menu' | 'loading' | 'driving' | 'paused' | 'results' | 'replay' | 'photo';
 export class GameApp {
   private track = new Track();
   private ui: Interface;
+  private photoStudio: PhotoStudio;
+  private team: TeamState = newTeam();
+  private teamPage: HubPage = 'overview';
+  private teamBusy = false;
+  private sessionId = '';
+  private usedDemonstration = false;
+  private photoReturn: State = 'menu';
+  private photoReturnHub = false;
+  private frozenPhoto: Float32Array | null = null;
+  private captureRequested = false;
+  private capturingPhoto = false;
   private renderer: RacingRenderer | null = null;
   private input: InputController;
   private audio = new RacingAudio();
@@ -113,6 +140,27 @@ export class GameApp {
         ),
       importSetup: (file) => void this.importSetup(file),
     });
+    this.photoStudio = new PhotoStudio(element, {
+      change: (value) => this.renderer?.setPhoto(value, this.frozenPhoto?.[H.CARS] ?? 1),
+      preview: (value) => this.renderer?.setLivery(value),
+      save: async (value) => {
+        await this.saveTeam(changeTeam(this.team, { type: 'livery', value }));
+      },
+      capture: () => {
+        if (this.state !== 'photo' || this.capturingPhoto || this.captureRequested) return;
+        this.captureRequested = true;
+        this.photoStudio.captureBusy(true);
+      },
+      close: () => this.closePhoto(),
+    });
+    // The studio is not a dialog: own Escape even when a slider/button has focus.
+    element.addEventListener('keydown', (event) => {
+      if (this.state === 'photo' && event.code === 'Escape') {
+        event.preventDefault();
+        event.stopPropagation();
+        this.closePhoto();
+      }
+    });
     this.input = new InputController(this.settings, (name) => this.action(name));
     this.inputPump = new InputPump((dt) => {
       if (this.errorStopped || document.hidden) return;
@@ -183,7 +231,16 @@ export class GameApp {
     } catch (e) {
       this.ui.toast(`Local preferences unavailable: ${e instanceof Error ? e.message : String(e)}`);
     }
+    try {
+      const saved = await this.store.read('team:v1');
+      if (saved) this.team = validateTeam(saved);
+    } catch (e) {
+      this.ui.toast(
+        `Team save unavailable: ${e instanceof Error ? e.message : String(e)}. Starting a temporary team.`,
+      );
+    }
     if (this.disposed) return;
+    this.ui.playerName = driverProfile(this.team).name;
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) this.settings.shake = 0;
     this.input.settings = this.settings;
     this.ui.applyBindings(this.settings.bindings);
@@ -198,6 +255,7 @@ export class GameApp {
     if (!this.renderer || this.disposed || this.errorStopped) return;
     this.renderer.setQuality(this.settings.quality, this.settings.graphics);
     this.renderer.shake = this.settings.shake;
+    this.renderer.setLivery(this.team.livery);
     this.audio.volume = this.settings.volume;
     document.documentElement.style.setProperty('--ui-scale', String(this.settings.uiScale));
     document.documentElement.dataset.colorblind = String(this.settings.colorblind);
@@ -246,6 +304,12 @@ export class GameApp {
   }
   private async start(options: SessionOptions) {
     if (this.state === 'loading' && this.worker) return;
+    this.renderer?.setPhoto(null);
+    this.photoStudio.close();
+    this.frozenPhoto = null;
+    this.captureRequested = false;
+    this.sessionId = crypto.randomUUID();
+    this.usedDemonstration = false;
     this.ui.closeModal();
     this.ui.telemetryModal.close();
     this.performanceCapture.interrupt('Session restarted');
@@ -379,6 +443,7 @@ export class GameApp {
     this.telemetry = new TelemetryRecorder();
     this.replayA = this.replay.makeFrame();
     this.replayB = this.replay.makeFrame();
+    this.renderer.setLivery(this.team.livery);
     this.state = 'driving';
     this.ui.get('loading').hidden = true;
     this.ui.showMode('driving');
@@ -425,6 +490,7 @@ export class GameApp {
       this.state === 'menu' ||
       this.state === 'paused' ||
       this.state === 'results' ||
+      this.state === 'photo' ||
       this.ui.telemetryModal.open;
     if (idle && this.renderedState === this.state && time - this.renderedAt < 1000 / 15) return;
     this.renderedAt = time;
@@ -470,8 +536,37 @@ export class GameApp {
       );
       this.ui.setText('replayPlay', this.replayPlaying ? 'PAUSE' : 'PLAY');
     }
-    this.renderer.draw(a, b, alpha, dt, this.state === 'menu', this.state === 'replay', wallDelta);
-    if (this.state !== 'menu')
+    if (this.state === 'photo' && this.frozenPhoto) {
+      a = this.frozenPhoto;
+      b = this.frozenPhoto;
+      alpha = 0;
+    }
+    this.renderer.draw(
+      a,
+      b,
+      alpha,
+      dt,
+      this.state === 'menu',
+      this.state === 'replay' || (this.state === 'photo' && this.photoReturn === 'replay'),
+      wallDelta,
+    );
+    // Read pixels in the same task as rendering; no permanent preserveDrawingBuffer cost.
+    if (this.state === 'photo' && this.captureRequested) {
+      this.captureRequested = false;
+      this.capturingPhoto = true;
+      void this.renderer
+        .capturePhoto()
+        .then((blob) => {
+          downloadBlob(blob, `apex-photo-${Date.now()}.png`);
+          this.photoStudio.status('PNG exported from the rendered scene.');
+        })
+        .catch((error) => this.photoStudio.status(`Export failed: ${String(error)}`))
+        .finally(() => {
+          this.capturingPhoto = false;
+          this.photoStudio.captureBusy(false);
+        });
+    }
+    if (this.state !== 'menu' && this.state !== 'photo')
       this.ui.update(
         this.state === 'replay' ? this.renderer.presented.value : b,
         this.renderer,
@@ -528,6 +623,104 @@ export class GameApp {
     this.renderer?.reset();
     this.audio.stop();
   }
+  private async saveTeam(next: TeamState) {
+    if (this.teamBusy) throw new Error('A team transaction is already saving.');
+    this.teamBusy = true;
+    try {
+      await this.store.write('team:v1', next);
+      this.team = next;
+      this.renderer?.setLivery(next.livery);
+      this.ui.playerName = driverProfile(next).name;
+    } finally {
+      this.teamBusy = false;
+    }
+  }
+  private openTeam(page: HubPage = this.teamPage) {
+    if (this.state === 'loading' || this.state === 'photo') return;
+    this.suspendPlayback();
+    this.teamPage = page;
+    this.ui.modalContent(teamHub(this.team, page));
+  }
+  private async teamAction(name: string) {
+    const [, command, id, delta] = name.split(':');
+    if (command === 'page') {
+      if (['overview', 'engineering', 'personnel', 'finance'].includes(id))
+        this.openTeam(id as HubPage);
+      return;
+    }
+    if (this.teamBusy || !document.querySelector('.team-hub')) return;
+    const root = document.querySelector<HTMLElement>('.team-hub')!;
+    root.setAttribute('aria-busy', 'true');
+    root
+      .querySelectorAll<HTMLButtonElement>('button')
+      .forEach((button) => (button.disabled = true));
+    const status = root.querySelector('#teamSaveStatus');
+    if (status) status.textContent = 'SAVING TRANSACTION…';
+    try {
+      if (command === 'apply') {
+        const setup = researchSetup(this.team, id as ResearchId, this.settings.setup);
+        const settings = validateSettings({ ...this.settings, setup });
+        await this.store.write('settings', settings);
+        this.settings = settings;
+        this.input.settings = settings;
+        this.ui.toast('Study setup saved for the next session. Inspect it in Garage & Settings.');
+      } else {
+        let action: TeamAction;
+        if (command === 'week') action = { type: 'week' };
+        else if (command === 'staff')
+          action = { type: 'staff', department: id as Department, delta: Number(delta) };
+        else if (command === 'facility')
+          action = { type: 'facility', department: id as Department };
+        else if (command === 'driver') action = { type: 'driver', id: id as DriverId };
+        else if (command === 'research') action = { type: 'research', id: id as ResearchId };
+        else throw new Error('Unknown team action');
+        await this.saveTeam(changeTeam(this.team, action));
+      }
+      if (root.isConnected) this.openTeam(this.teamPage);
+    } catch (error) {
+      if (root.isConnected) this.openTeam(this.teamPage);
+      this.ui.toast(`Team unchanged: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+  private openPhoto() {
+    if (!this.renderer || !this.current || this.state === 'loading' || this.state === 'photo')
+      return;
+    this.photoReturnHub = !!document.querySelector('.team-hub');
+    if (this.state === 'driving') this.pause();
+    this.suspendPlayback();
+    this.photoReturn = this.state;
+    this.performanceCapture.interrupt('Photo studio opened');
+    // Own a copy: queued worker snapshots and replay-page recycling cannot alter the held moment.
+    const displayed = this.renderer.presented.value;
+    this.frozenPhoto = new Float32Array(displayed[H.CARS] > 0 ? displayed : this.current);
+    this.state = 'photo';
+    this.ui.closeModal();
+    this.ui.telemetryModal.close();
+    this.input.setEnabled(false);
+    this.audio.stop();
+    this.post({ type: 'pause', value: true });
+    if (document.pointerLockElement) document.exitPointerLock();
+    this.ui.showMode('photo');
+    this.photoStudio.open(this.team.livery, this.frozenPhoto[H.CARS]);
+  }
+  private closePhoto() {
+    if (this.state !== 'photo') return;
+    this.captureRequested = false;
+    this.photoStudio.close();
+    this.renderer?.setPhoto(null);
+    this.renderer?.setLivery(this.team.livery);
+    this.frozenPhoto = null;
+    this.state = this.photoReturn;
+    this.ui.showMode(this.state);
+    if (this.state === 'paused') this.ui.pause();
+    else if (this.state === 'results' && this.current) this.ui.results(this.current);
+    else if (this.state === 'replay') {
+      this.replayPlaying = false;
+      this.input.setEnabled(true);
+      this.ui.setText('replayPlay', 'PLAY');
+    }
+    if (this.photoReturnHub) this.openTeam();
+  }
   private pause() {
     if (this.state !== 'driving') return;
     this.performanceCapture.interrupt('Session paused or focus lost');
@@ -557,6 +750,20 @@ export class GameApp {
     this.audio.stop();
     this.ui.showMode('results');
     this.ui.results(frame);
+    if (this.options.mode === 'race') {
+      const next = rewardRace(this.team, {
+        session: this.sessionId,
+        position: Math.round(frame[carBase(0) + F.RANK]),
+        cars: Math.round(frame[H.CARS]),
+        classified: frame[carBase(0) + F.FINISH] > 0,
+        demonstration: this.usedDemonstration,
+        penalties: frame[carBase(0) + F.PENALTY],
+      });
+      if (next !== this.team)
+        void this.saveTeam(next)
+          .then(() => this.ui.toast('Classified result added to your Team HQ.'))
+          .catch((error) => this.ui.toast(`Race income not saved: ${String(error)}`));
+    }
     const best = frame[carBase(0) + F.BEST_LAP];
     if (best > 0) {
       const key = `best:AUREL:${this.options.assist}:${this.options.compound}:${this.options.weather}`;
@@ -607,6 +814,15 @@ export class GameApp {
   }
   private action(name: string) {
     this.renderedState = null;
+    if (this.state === 'photo') {
+      if (name === 'pause') this.closePhoto();
+      else if (name === 'deviceLost') this.ui.toast(this.input.deviceStatus);
+      return;
+    }
+    if (name.startsWith('team:')) {
+      void this.teamAction(name);
+      return;
+    }
     // Native modal cancellation owns Escape. Background replay/drive actions
     // cannot also handle that same key and resume or dismiss the parent state.
     if (
@@ -615,6 +831,18 @@ export class GameApp {
     )
       return;
     switch (name) {
+      case 'team':
+        this.openTeam();
+        break;
+      case 'references':
+        this.suspendPlayback();
+        this.ui.closeModal();
+        this.ui.modalContent(referenceReview());
+        bindReferenceReview(this.ui.get('modalContent'));
+        break;
+      case 'photo':
+        this.openPhoto();
+        break;
       case 'pause':
         if (this.state === 'driving') this.pause();
         else if (this.state === 'paused') this.resume();
@@ -640,6 +868,7 @@ export class GameApp {
         this.audio.stop();
         this.ui.showMode('menu');
         this.renderer?.reset();
+        this.renderer?.setLivery(this.team.livery);
         break;
       case 'restart':
         void this.start(this.options).catch((e) => this.fail(e));
@@ -689,6 +918,7 @@ export class GameApp {
         this.performanceCapture.interrupt('Driver changed');
         if (this.state === 'driving') {
           this.auto = !this.auto;
+          this.usedDemonstration ||= this.auto;
           this.post({ type: 'autopilot', value: this.auto });
           this.ui.toast(
             this.auto ? 'AI demonstration enabled. Press G to take control.' : 'You have control.',
@@ -905,6 +1135,10 @@ export class GameApp {
   diagnostics(visual = false) {
     return {
       state: this.state,
+      team: structuredClone(this.team),
+      photoTime: this.frozenPhoto?.[H.TIME] ?? null,
+      teamBusy: this.teamBusy,
+      usedDemonstration: this.usedDemonstration,
       audio: this.audio.diagnostics(),
       engineering: this.renderer?.engineering ?? null,
       presentation: this.renderer

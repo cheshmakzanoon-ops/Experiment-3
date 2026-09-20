@@ -40,6 +40,12 @@ export class TextureBudget {
       texture.needsUpdate = true;
     }
   }
+  /** Repainted source assets keep their registered ownership and budget. */
+  refresh(texture: T.Texture) {
+    if (!(texture instanceof T.CanvasTexture)) return;
+    const source = this.assets.get(texture);
+    if (source) this.apply(texture, source);
+  }
   private apply(texture: T.CanvasTexture, source: HTMLCanvasElement) {
     const factor = Math.min(1, this.limit / Math.max(source.width, source.height));
     const width = Math.max(1, Math.round(source.width * factor));
@@ -57,6 +63,14 @@ export class TextureBudget {
       }
       texture.dispose();
       texture.image = image;
+    }
+    // A same-size budget canvas still needs the new source pixels after editing.
+    const image = texture.image as HTMLCanvasElement;
+    if (image !== source) {
+      const context = image.getContext('2d');
+      if (!context) throw new Error('Texture repaint requires Canvas 2D');
+      context.clearRect(0, 0, image.width, image.height);
+      context.drawImage(source, 0, 0, image.width, image.height);
     }
     texture.anisotropy = this.anisotropy;
     texture.generateMipmaps = true;
