@@ -57,6 +57,7 @@ it.each([5, 2995])(
 );
 
 // Reproduces the rain/drainage queue that previously self-declared a stationary hazard.
+// Moving followers still retain the pre-existing entry-lane priority contract.
 it('does not yield to a stationary follower in a separate pit-entry corridor', () => {
   const t = new Track(),
     lead = new Vehicle(0),
