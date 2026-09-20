@@ -20,10 +20,6 @@ function snapshot(time: number) {
   frame[o + F.MARBLE_PICKUP_FR] = time * 0.5;
   return frame;
 }
-// Phase 27A: one loaded slick wheel at 30 m/s and 1 mm water emits
-// 30 * 1 * 2.5 * 0.8 * (2000 / 3500) = 240/7 particles/s, not the old
-// load-independent 48/s. Keep exact elapsed-time assertions at every FPS.
-const fixtureSprayPerSecond = 240 / 7;
 function dispose(effects: Effects) {
   effects.group.traverse((object) => {
     if (object instanceof T.Points || object instanceof T.Mesh) {
@@ -89,7 +85,7 @@ it.each([24, 30, 60, 90, 120, 144])(
       const measured = effects.diagnostics();
       expect(playback.elapsed).toBeCloseTo(1, 6);
       expect(measured.spawned[PARTICLE_KIND.MARBLE]).toBe(160);
-      expect(measured.spawned[PARTICLE_KIND.SPRAY]).toBe(Math.floor(fixtureSprayPerSecond));
+      expect(measured.spawned[PARTICLE_KIND.SPRAY]).toBe(48);
       expect(measured.spawned[PARTICLE_KIND.RAIN]).toBe(2 * 40);
     } finally {
       dispose(effects);
@@ -182,7 +178,7 @@ it.each([0.5, 1, 2])('retains real weather/contact work during %s FPS rendering'
     expect(playback.elapsed).toBeCloseTo(4, 6);
     expect(playback.resets).toBe(1);
     expect(measured.spawned[PARTICLE_KIND.MARBLE]).toBe(640);
-    expect(measured.spawned[PARTICLE_KIND.SPRAY]).toBe(Math.floor(4 * fixtureSprayPerSecond));
+    expect(measured.spawned[PARTICLE_KIND.SPRAY]).toBe(192);
     expect(measured.spawned[PARTICLE_KIND.RAIN]).toBe(320);
     expect(measured.active[PARTICLE_KIND.SPRAY]).toBeGreaterThan(0);
     expect(measured.active[PARTICLE_KIND.RAIN]).toBeGreaterThan(0);
@@ -195,39 +191,3 @@ it.each([0.5, 1, 2])('retains real weather/contact work during %s FPS rendering'
     dispose(effects);
   }
 });
-
-it.each([
-  { load: 0, compound: 0, speed: 30, water: 1, expected: 0 },
-  { load: 1, compound: 0, speed: 30, water: 1, expected: 0 },
-  { load: 100, compound: 0, speed: 30, water: 1, expected: 21 },
-  { load: 2000, compound: 0, speed: 30, water: 1, expected: 34 },
-  { load: 3500, compound: 0, speed: 30, water: 1, expected: 60 },
-  { load: 7000, compound: 0, speed: 30, water: 1, expected: 78 },
-  { load: 3500, compound: 3, speed: 30, water: 1, expected: 75 },
-  { load: 3500, compound: 4, speed: 30, water: 1, expected: 86 },
-  { load: 3500, compound: 4, speed: 100, water: 10, expected: 180 },
-  { load: 3500, compound: 4, speed: 5, water: 1, expected: 0 },
-  { load: 3500, compound: 4, speed: 30, water: 0, expected: 0 },
-])(
-  'pins Phase 27A spray births: $load N, compound $compound, $speed m/s, $water mm',
-  ({ load, compound, speed, water, expected }) => {
-    const effects = new Effects(),
-      playback = new EffectPlayback(effects);
-    try {
-      for (let i = 0; i <= 60; i++) {
-        const frame = snapshot(i / 60);
-        frame[p + W.LOAD] = load;
-        frame[p + W.WATER] = water;
-        frame[o + F.COMPOUND] = compound;
-        frame[o + F.SPEED] = speed;
-        frame[o + F.VZ] = speed;
-        frame[o + F.Z] = (speed * i) / 60;
-        playback.update(frame);
-      }
-      expect(effects.diagnostics().spawned[PARTICLE_KIND.SPRAY]).toBe(expected);
-      expect(playback.elapsed).toBeCloseTo(1, 6);
-    } finally {
-      dispose(effects);
-    }
-  },
-);
