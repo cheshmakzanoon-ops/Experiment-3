@@ -178,7 +178,9 @@ export function buildTrackInfrastructure(
       color: 0x1c262a,
       metalness: 0.12,
       roughness: 0.08,
-      transmission: 0.08,
+      // A coated camera lens is opaque from the spectator viewpoint. Tiny
+      // lens panes must not trigger a scene-wide transmission render pass.
+      transmission: 0,
       clearcoat: 0.7,
       clearcoatRoughness: 0.1,
     });
@@ -229,16 +231,21 @@ export function buildTrackInfrastructure(
     const cameraHeight = Math.max(1.2, (site.cameraY ?? site.y + 3) - site.y);
     if (site.supported) {
       box(g, concrete, 0, 0.08, 0, 1.3, 0.16, 1.3);
-      box(g, steel, 0, cameraHeight * 0.5, 0, 0.12, cameraHeight, 0.12);
-      box(g, steel, 0, cameraHeight - 0.22, 0, 1.15, 0.12, 1.0);
-      for (const x of [-0.47, 0.47]) box(g, steel, x, cameraHeight - 0.02, 0, 0.055, 0.5, 1.0);
+      // Mount hardware sits outside/behind the actual optical viewpoint.
+      // The old eye intersected both the body and platform handrail.
+      box(g, steel, site.side * 0.7, cameraHeight * 0.5, 0, 0.12, cameraHeight, 0.12);
+      box(g, steel, site.side * 0.7, cameraHeight - 0.50, 0, 1.15, 0.12, 1.0);
+      for (const z of [-0.47, 0.47])
+        box(g, steel, site.side * 0.95, cameraHeight - 0.25, z, 0.65, 0.35, 0.055);
     }
     const camera = new T.Group();
-    camera.position.set(0, cameraHeight + 0.12, 0);
+    camera.position.set(0, cameraHeight, 0);
     camera.rotation.y = site.side > 0 ? Math.PI / 2 : -Math.PI / 2;
     g.add(camera);
-    box(camera, dark, 0, 0, 0, 0.36, 0.26, 0.62);
-    const barrel = mesh(camera, new T.CylinderGeometry(0.1, 0.13, 0.3, 12), lens, 0, 0, -0.44);
+    // Local -Z is the lens direction; all body/barrel geometry stays
+    // behind the lens origin instead of covering its own recorded view.
+    box(camera, dark, 0, 0, 0.58, 0.36, 0.26, 0.62);
+    const barrel = mesh(camera, new T.CylinderGeometry(0.1, 0.13, 0.3, 12), lens, 0, 0, 0.18);
     barrel.rotation.x = Math.PI / 2;
   }
 

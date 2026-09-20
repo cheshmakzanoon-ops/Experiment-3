@@ -310,6 +310,10 @@ export class CockpitControls {
         0.023,
       );
       grip.name = 'Ergonomic suede wheel grip';
+      // TubeGeometry has open ends. Close the grip with rounded suede caps,
+      // rather than exposing a sliced pipe in the driver's close-up view.
+      for (const [x, y] of [[side * 0.17, 0.05], [side * 0.154, -0.081]])
+        mesh(staticParts, new T.SphereGeometry(0.023, 16, 10), rubber, x, y, 0);
       for (let j = 0; j < 3; j++) {
         const bezel = mesh(
           staticParts,

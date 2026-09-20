@@ -1,5 +1,47 @@
 import * as T from 'three';
 import { trackPoint, type Track } from '../simulation/track.ts';
+import { clamp } from '../core/math.ts';
+import { grassApronOffset } from './ground-profile.ts';
+import { inStandFootprint } from './grandstand.ts';
+import { tracksideRigs } from './trackside.ts';
+
+
+export interface VenueLampSite { s: number; side: number; x: number; z: number; baseY: number; topY: number }
+
+/** Keep floodlight columns out of the racing/pit corridor and the authored
+ * broadcast sightlines. Position choices are deterministic, not camera-dependent
+ * teleportation; feet use the same ground query as nearby infrastructure. */
+export function venueLampPlan(track: Track): readonly VenueLampSite[] {
+  const count = Math.ceil(track.length / 90), rigs = tracksideRigs(track), sites: VenueLampSite[] = [];
+  const point = trackPoint(), target = trackPoint();
+  for (let i = 0; i < count; i++) {
+    let best: VenueLampSite | null = null, bestScore = -Infinity;
+    for (const [shift, flip] of [0, 12, -12, 24, -24].flatMap((shift) => [[shift, 1], [shift, -1]])) {
+      const side = (i % 2 ? -1 : 1) * flip;
+      const s = ((i / count * track.length + shift) % track.length + track.length) % track.length;
+      track.at(s, point);
+      const offset = side * (track.boundary(s, side) + 7);
+      const x = point.x + point.nx * offset, z = point.z + point.nz * offset;
+      if (inStandFootprint(track, x, z, 1.5)) continue;
+      let clearance = Infinity;
+      for (const rig of rigs) for (const look of [-0.26, 0, 0.26]) {
+        track.at(rig.centerS + rig.coverageM * look, target);
+        const dx = target.x - rig.position.x, dz = target.z - rig.position.z;
+        const t = clamp(((x - rig.position.x) * dx + (z - rig.position.z) * dz) / (dx * dx + dz * dz), 0, 1);
+        clearance = Math.min(clearance, Math.hypot(x - rig.position.x - t * dx, z - rig.position.z - t * dz));
+      }
+      const baseY = point.y + point.bank * clamp(offset, -12, 12) + grassApronOffset(track, s, offset);
+      const score = clearance - Math.abs(shift) * 0.001 - (flip < 0 ? 0.001 : 0);
+      if (score > bestScore) {
+        best = { s, side, x, z, baseY, topY: point.y + 14 }; bestScore = score;
+      }
+      if (clearance >= 2) break;
+    }
+    if (!best || bestScore < 1) throw new Error(`No clear floodlight site ${i}`);
+    sites.push(best);
+  }
+  return sites;
+}
 
 /** Original circuit illumination. Four fixed-count nearby light sources bound
  * fragment-light cost; visible mast heads remain instanced along the circuit.
@@ -7,6 +49,7 @@ import { trackPoint, type Track } from '../simulation/track.ts';
 export class VenueLighting {
   readonly root = new T.Group();
   readonly lamps: T.InstancedMesh;
+  readonly sites: readonly VenueLampSite[];
   readonly lights: T.PointLight[];
   readonly nightBackground = new T.Color(0x030711);
   private locations: T.Vector3[] = [];
@@ -16,29 +59,26 @@ export class VenueLighting {
   private lampMaterial = new T.MeshBasicMaterial({ color: 0x62666b, toneMapped: false });
   constructor(track: Track) {
     this.root.name = 'Original floodlit circuit and LED sphere · references 039 079 080 087';
-    const count = Math.ceil(track.length / 90);
+    this.sites = venueLampPlan(track);
+    const count = this.sites.length;
     const poles = new T.InstancedMesh(
-      new T.CylinderGeometry(0.12, 0.21, 14, 8),
+      new T.CylinderGeometry(0.12, 0.21, 1, 8),
       new T.MeshStandardMaterial({ color: 0x8d959e, metalness: 0.72, roughness: 0.4 }),
       count,
     );
     this.lamps = new T.InstancedMesh(new T.BoxGeometry(3.2, 0.2, 1.3), this.lampMaterial, count);
     const p = trackPoint(),
       transform = new T.Object3D();
-    for (let i = 0; i < count; i++) {
-      track.at((i / count) * track.length, p);
-      const side = i % 2 ? -1 : 1,
-        offset = side * (p.width + 7);
-      const x = p.x + p.nx * offset,
-        z = p.z + p.nz * offset;
-      transform.position.set(x, p.y + 7, z);
+    for (const [i, site] of this.sites.entries()) {
+      track.at(site.s, p);
+      const height = site.topY - site.baseY;
+      transform.position.set(site.x, site.baseY + height * 0.5, site.z);
       transform.rotation.set(0, Math.atan2(p.tx, p.tz), 0);
-      transform.updateMatrix();
+      transform.scale.set(1, height, 1); transform.updateMatrix();
       poles.setMatrixAt(i, transform.matrix);
-      transform.position.y = p.y + 14;
-      transform.updateMatrix();
+      transform.position.y = site.topY; transform.scale.set(1, 1, 1); transform.updateMatrix();
       this.lamps.setMatrixAt(i, transform.matrix);
-      this.locations.push(new T.Vector3(x, p.y + 12, z));
+      this.locations.push(new T.Vector3(site.x, site.topY - 2, site.z));
     }
     poles.castShadow = false;
     poles.receiveShadow = true;

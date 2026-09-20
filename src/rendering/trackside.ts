@@ -9,6 +9,8 @@ export interface CameraRig {
   position: Vector3;
   baseFov: number;
   trackingHz: number;
+  shot: 'grid-finish' | 'corner' | 'straight' | 'elevated';
+  leadSeconds: number;
 }
 // Alternating crane/low platform placements are authored, not random camera
 // teleport offsets. Pit-lane cameras stay across the circuit from the garages.
@@ -38,7 +40,7 @@ export const TRACKSIDE_PLATFORMS = [
 export function tracksideRigs(track: Track): readonly CameraRig[] {
   const p = trackPoint(),
     spacing = track.length / TRACKSIDE_PLATFORMS.length;
-  return TRACKSIDE_PLATFORMS.map(([side, height, fov], id) => {
+  return TRACKSIDE_PLATFORMS.map(([side, height, fov], id): CameraRig => {
     const centerS = id * spacing;
     track.at(centerS + spacing * 0.18, p);
     const offset = side * (p.width + 18);
@@ -49,8 +51,23 @@ export function tracksideRigs(track: Track): readonly CameraRig[] {
       position: new Vector3(p.x + p.nx * offset, p.y + height, p.z + p.nz * offset),
       baseFov: fov,
       trackingHz: 12,
+      shot: id === 0 ? 'grid-finish' : Math.abs(p.curvature) > 0.012 ? 'corner' : height >= 6 ? 'elevated' : 'straight',
+      leadSeconds: Math.abs(p.curvature) > 0.012 ? 0.08 : 0.14,
     };
   });
+}
+
+/** A complete car fits within a 3.1 m bounding sphere. Reserve composition
+ * room on the smaller screen axis, including narrow/portrait viewports. */
+export function tracksideFraming(distanceM: number, baseFov: number, aspect = 16 / 9) {
+  if (!Number.isFinite(distanceM) || distanceM <= 0 || !Number.isFinite(baseFov) ||
+    !Number.isFinite(aspect) || aspect <= 0) throw new Error('Invalid trackside framing');
+  const smallAxis = Math.min(1, aspect);
+  const radius = Math.asin(Math.min(0.98, 3.1 / Math.max(3.2, distanceM)));
+  const required = 2 * Math.atan(Math.tan(radius / 0.72) / smallAxis) * 180 / Math.PI;
+  const fov = clamp(Math.max(baseFov * Math.sqrt(40 / Math.max(20, distanceM)), required), 24, 55);
+  const half = Math.atan(Math.tan(fov * Math.PI / 360) * smallAxis);
+  return { fov, gazeAllowance: Math.max(0, half * 0.78 - radius), fits: radius < half };
 }
 
 /** Fixed trackside positions plus a predictable pan/zoom director. Replay seeks
@@ -60,18 +77,23 @@ export class TracksideDirector {
   readonly position = new Vector3();
   readonly gaze = new Vector3();
   private predicted = new Vector3();
+  private targetDirection = new Vector3();
+  private viewDirection = new Vector3();
+  framingFits = true;
   activeId = -1;
   cuts = 0;
   fov = 42;
   private previousS = NaN;
+  private previousAspect = NaN;
   constructor(readonly track: Track) {
     this.rigs = tracksideRigs(track);
   }
   reset() {
     this.activeId = -1;
     this.previousS = NaN;
+    this.previousAspect = NaN;
   }
-  update(s: number, target: Vector3, velocity: Vector3, dt: number) {
+  update(s: number, target: Vector3, velocity: Vector3, dt: number, aspect = 16 / 9) {
     if (
       !Number.isFinite(
         s + dt + target.x + target.y + target.z + velocity.x + velocity.y + velocity.z,
@@ -89,22 +111,51 @@ export class TracksideDirector {
     if (id < 0 || seek || distance(s, this.rigs[id].centerS) > this.rigs[id].coverageM / 2)
       id = Math.round(s / spacing) % this.rigs.length;
     const cut = id !== this.activeId || seek;
+    const resized = aspect !== this.previousAspect;
     const rig = this.rigs[id];
     this.position.copy(rig.position);
-    this.predicted.copy(target).addScaledVector(velocity, 0.12);
     const distanceM = this.position.distanceTo(target);
-    const fov = clamp(rig.baseFov * Math.sqrt(40 / Math.max(20, distanceM)), 24, 55);
-    if (cut) {
+    const framing = tracksideFraming(Math.max(0.001, distanceM), rig.baseFov, aspect);
+    this.framingFits = framing.fits;
+    const speed = velocity.length();
+    const lead = Math.min(rig.leadSeconds,
+      distanceM * Math.tan(framing.gazeAllowance * 0.6) / Math.max(0.001, speed));
+    this.predicted.copy(target).addScaledVector(velocity, lead);
+    const fov = framing.fov;
+    if (cut || resized) {
       this.gaze.copy(this.predicted);
       this.fov = fov;
-      this.cuts++;
+      if (cut) this.cuts++;
     } else {
       const mix = -Math.expm1(-rig.trackingHz * dt);
       this.gaze.lerp(this.predicted, mix);
       this.fov += (fov - this.fov) * mix;
     }
+    // Pan filtering must not push a close, fast car outside the frame. Clamp
+    // the optical direction to a safe cone; never translate the physical rig.
+    if (cut || resized || dt > 0) {
+      // The actual filtered FOV, not a second distance-scaled FOV, owns the cone.
+      const half = Math.atan(Math.tan(this.fov * Math.PI / 360) * Math.min(1, aspect));
+      const radius = Math.asin(Math.min(0.98, 3.1 / Math.max(3.2, distanceM)));
+      const allowed = Math.max(0, half * 0.78 - radius);
+      this.framingFits = radius < half;
+      this.targetDirection.copy(target).sub(this.position).normalize();
+      this.viewDirection.copy(this.gaze).sub(this.position).normalize();
+      const dot = clamp(this.targetDirection.dot(this.viewDirection), -1, 1);
+      const angle = Math.acos(dot);
+      if (angle > allowed + 1e-8) {
+        if (dot < -0.9999 || allowed === 0) this.gaze.copy(target);
+        else {
+          const fraction = allowed / angle, sine = Math.sin(angle);
+          this.gaze.copy(this.targetDirection).multiplyScalar(Math.sin((1 - fraction) * angle) / sine)
+            .addScaledVector(this.viewDirection, Math.sin(fraction * angle) / sine)
+            .multiplyScalar(distanceM).add(this.position);
+        }
+      }
+    }
     this.activeId = id;
     this.previousS = s;
+    this.previousAspect = aspect;
     return this;
   }
 }

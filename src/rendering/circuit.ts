@@ -1,3 +1,6 @@
+import { serviceSitePlan } from './venue-service-plan.ts';
+import { buildServiceAreas } from './venue-service.ts';
+import type { CrowdCluster } from './crowd.ts';
 import { APRON_COLUMNS, grassApronLateral, grassApronOffset } from './ground-profile.ts';
 import { barrierMaterials, buildBarrierChunk } from './circuit-barriers.ts';
 import { installCircuitFinish } from './circuit-finish.ts';
@@ -34,6 +37,7 @@ interface RibbonOptions {
 export class CircuitScene {
   readonly group = new T.Group();
   readonly crowd = new T.Group();
+  readonly crowdClusters: CrowdCluster[] = [];
   readonly props = new T.Group();
   readonly vegetationGroup = new T.Group();
   readonly stateTexture: T.DataTexture;
@@ -41,6 +45,7 @@ export class CircuitScene {
   readonly stateBytes = new Uint8Array(CELL_ROWS * CELL_COLS * 4);
   readonly startLamps: T.MeshStandardMaterial[] = [];
   readonly trackInfrastructure: TrackInfrastructurePlan;
+  readonly serviceSites: ReturnType<typeof serviceSitePlan>;
   readonly safetyPanel = new T.MeshStandardMaterial({
     color: 0x2a5636,
     emissive: 0x2a5636,
@@ -56,6 +61,7 @@ export class CircuitScene {
   ) {
     this.group.name = 'Aurel circuit';
     this.trackInfrastructure = makeTrackInfrastructurePlan(track);
+    this.serviceSites = serviceSitePlan(track);
     this.group.add(this.props, this.crowd, this.vegetationGroup);
     this.stateTexture = new T.DataTexture(this.stateBytes, CELL_COLS, CELL_ROWS, T.RGBAFormat);
     this.stateTexture.magFilter = T.LinearFilter;
@@ -161,14 +167,17 @@ export class CircuitScene {
     this.construction.add('Distant terrain', 3, () => {
       const terrain = new T.PlaneGeometry(5500, 5500, 96, 96);
       terrain.rotateX(-Math.PI / 2);
-      const pos = terrain.getAttribute('position');
+      const pos = terrain.getAttribute('position'), terrainUV = terrain.getAttribute('uv');
       for (let i = 0; i < pos.count; i++) {
         const x = pos.getX(i),
           z = pos.getZ(i);
         pos.setY(i, terrainHeight(x, z));
+        // Match the apron's metre-scaled original grass and world-space finish,
+        // instead of a flat beige horizon with a hard material boundary.
+        terrainUV.setXY(i, x / 5, z / 5);
       }
       terrain.computeVertexNormals();
-      mesh(this.group, terrain, new T.MeshStandardMaterial({ color: 0x81836d, roughness: 1 }));
+      mesh(this.group, terrain, grass);
     });
     const barriers = barrierMaterials();
     const spans = Math.ceil(track.length / 80);
@@ -186,8 +195,11 @@ export class CircuitScene {
     this.construction.add('Drainage, marshal and replay-camera infrastructure', 3, () =>
       buildTrackInfrastructure(track, this.props, this.safetyPanel, this.trackInfrastructure),
     );
+    this.construction.add('Authored service areas', 2, () =>
+      buildServiceAreas(this.props, this.serviceSites),
+    );
     this.construction.add('Rule-placed layered foliage', 3, () =>
-      buildVegetation(track, this.vegetationGroup),
+      buildVegetation(track, this.vegetationGroup, this.serviceSites),
     );
     this.construction.add('Grid and finish markings', 0, () => this.grid());
     this.construction.add('Spatial geometry batches', 4, () => batchScene(this.props, new Set()));
@@ -348,7 +360,7 @@ export class CircuitScene {
     const stands = standMaterials();
     for (const site of GRANDSTANDS)
       this.construction.add(`Detailed grandstand at ${site.s} m`, 3, () =>
-        buildGrandstand(this.track, this.props, this.crowd, site, stands),
+        buildGrandstand(this.track, this.props, this.crowd, site, stands, this.crowdClusters),
       );
     this.construction.add('Signs, gantry and control tower', 2, () => {
       this.sign('APEX  /  FORMULA', 360, -19, 18, 2);

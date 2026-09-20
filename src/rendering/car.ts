@@ -1,3 +1,4 @@
+import { addTailMechanicalDetail, addWheelMechanicalDetail, buildHelmet, openFrontCap, addSidepodDuct } from './car-mechanical-detail.ts';
 import { addMirrorHousing, apertureGeometry, CockpitControls } from './cockpit.ts';
 import { sculptedLoft, wingElement, aeroPlate } from './bodywork.ts';
 import { flankLivery, repaintFlank } from './car-livery.ts';
@@ -136,7 +137,7 @@ export class FormulaCar {
       this.reflectivePaint.push(livery);
       const pod = mesh(
         s,
-        sculptedLoft(
+        openFrontCap(sculptedLoft(
           [
             [-1.75, -0.22, 0.065, 0.08],
             [-1.35, -0.17, 0.175, 0.145],
@@ -147,20 +148,14 @@ export class FormulaCar {
           ],
           0.42,
           0.65,
-        ),
+        )),
         livery,
         sign * 0.53,
         0,
         0,
       );
       pod.rotation.z = sign * -0.08;
-      const inlet = mesh(s, new T.SphereGeometry(1, 24, 12), dark, sign * 0.55, 0.005, 0.373);
-      inlet.scale.set(0.215, 0.06, 0.014);
-      inlet.position.z = 0.399;
-      // A shaped inlet lip, splitter and small fasteners are real close-range geometry.
-      const lip = mesh(s, new T.TorusGeometry(1, 0.035, 8, 40), carbon, sign * 0.55, 0.005, 0.404);
-      lip.scale.set(0.218, 0.063, 0.03);
-      box(s, carbon, sign * 0.55, 0.005, 0.414, 0.405, 0.008, 0.075);
+      addSidepodDuct(s, sign, { carbon, dark, metal, paint: this.paint });
       for (let j = 0; j < 4; j++) {
         const bolt = mesh(
           s,
@@ -425,8 +420,10 @@ export class FormulaCar {
         emissive: 0xff4d08,
       });
       this.discs.push(discMaterial);
+      const carrierDetails = new T.Group();
+      pivot.add(carrierDetails);
       const disc = mesh(
-        pivot,
+        carrierDetails,
         new T.CylinderGeometry(0.21, 0.21, 0.014, 40),
         discMaterial,
         0,
@@ -434,7 +431,7 @@ export class FormulaCar {
         0,
       );
       disc.rotation.z = Math.PI / 2;
-      box(pivot, dark, 0, 0.05, -0.19, 0.11, 0.14, 0.055);
+      box(carrierDetails, dark, 0, 0.05, -0.19, 0.11, 0.14, 0.055);
       for (const dy of [-0.075, 0.055])
         for (const dz of [-0.3, 0.3]) {
           const anchor = new T.Vector3(Math.sign(p[0]) * 0.26, dy + 0.03, p[2] + dz),
@@ -476,6 +473,8 @@ export class FormulaCar {
         );
         fastener.rotation.z = Math.PI / 2;
       }
+      addWheelMechanicalDetail(carrierDetails, spin, outside, half, { carbon, dark, metal, paint: this.paint });
+      mergeStatic(carrierDetails);
       // Batch only the rigid wheel. Rubber must remain independently deformable.
       mergeStatic(spin);
       const carcass = new TireCarcass(half, tread.material, ringMaterial);
@@ -533,17 +532,8 @@ export class FormulaCar {
     this.driver = new DriverRig(this.steering);
     this.root.add(this.driver.root);
 
-    const head = mesh(this.helmet, new T.SphereGeometry(0.137, 32, 24), ivory, 0, 0.29, -0.38);
-    head.scale.set(1, 1.08, 0.99);
-    const visor = mesh(
-      this.helmet,
-      new T.SphereGeometry(0.14, 32, 12, 0, Math.PI, Math.PI * 0.32, Math.PI * 0.28),
-      new T.MeshPhysicalMaterial({ color: 0x253b45, metalness: 0.88, roughness: 0.08 }),
-      0,
-      0.3,
-      -0.374,
-    );
-    visor.rotation.y = Math.PI / 2;
+    buildHelmet(this.helmet, { carbon, dark, metal, paint: ivory });
+    addTailMechanicalDetail(s, { carbon, dark, metal, paint: this.paint });
     mergeStatic(s);
     mergeStatic(this.frontWing);
     mergeStatic(this.rearWing);
@@ -596,7 +586,11 @@ export class FormulaCar {
       return;
     }
     this.steering.rotation.z = -lerp(a[o + F.STEER], b[o + F.STEER], t) * 2.2;
-    this.driver.update(time, b[o + F.GEAR], b[o + F.ERS_MODE]);
+    this.driver.update(time, b[o + F.GEAR], b[o + F.ERS_MODE],
+      lerp(a[o + F.G_LAT], b[o + F.G_LAT], t),
+      lerp(a[o + F.G_LONG], b[o + F.G_LONG], t),
+      lerp(a[o + F.G_VERT], b[o + F.G_VERT], t));
+    this.helmet.rotation.set(this.driver.headPitch, 0, this.driver.headRoll);
     this.cockpitControls.update(b, o);
     this.helmet.visible = !cockpit;
     const compound = Object.values(COMPOUNDS)[Math.round(b[o + F.COMPOUND])] ?? COMPOUNDS.medium;

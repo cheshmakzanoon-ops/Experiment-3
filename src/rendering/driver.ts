@@ -1,7 +1,8 @@
 import * as T from 'three';
 import { clamp } from '../core/math.ts';
-import { box, mesh, mergeStatic } from './geometry.ts';
+import { box, mesh } from './geometry.ts';
 import { driverMaterials } from './driver-materials.ts';
+import { buildGlove, buildDriverTorso, driverBodyPose, sleeveGeometry } from './driver-anatomy.ts';
 
 /** Analytic two-bone IK in vehicle-local metres. The pole chooses the elbow's
  * bend plane. Unreachable targets are reported, not hidden by stretching bones. */
@@ -69,6 +70,7 @@ export class DriverActions {
 interface Arm {
   side: number;
   shoulder: T.Vector3;
+  index: T.Group;
   pole: T.Vector3;
   hand: T.Group;
   upper: T.Mesh;
@@ -78,33 +80,26 @@ interface Arm {
   paddle: T.Group;
   pose: ArmPose;
 }
-/** Small, deliberate seam curves need fewer segments than car-scale tubing.
- * The static meshes are merged by material after construction. */
-function seam(parent: T.Object3D, material: T.Material, points: number[][], radius: number) {
-  return mesh(
-    parent,
-    new T.TubeGeometry(
-      new T.CatmullRomCurve3(points.map(([x, y, z]) => new T.Vector3(x, y, z))),
-      12,
-      radius,
-      6,
-      false,
-    ),
-    material,
-  );
-}
 const UPPER = 0.37,
   LOWER = 0.36;
 export class DriverRig {
   readonly root = new T.Group();
   readonly actions = new DriverActions();
   private readonly arms: Arm[] = [];
+  readonly body = new T.Group();
+  headRoll = 0;
+  headPitch = 0;
+  private bodyPose = { compression: 0, headRoll: 0, headPitch: 0 };
   private target = new T.Vector3();
   private delta = new T.Vector3();
   private up = new T.Vector3(0, 1, 0);
   constructor(private steering: T.Group) {
     this.root.name = 'Articulated driver';
-    const { suit, glove, grip, stitch, panel } = driverMaterials();
+    const materials = driverMaterials();
+    const { suit } = materials;
+    this.body.name = 'Restrained driver torso';
+    this.root.add(this.body);
+    buildDriverTorso(this.body, materials);
     const paddleMaterial = new T.MeshStandardMaterial({
       color: 0x59646b,
       metalness: 0.7,
@@ -113,102 +108,21 @@ export class DriverRig {
     for (const side of [-1, 1]) {
       const shoulder = new T.Vector3(side * 0.16, 0.015, -0.48);
       const pole = new T.Vector3(side * 0.24, -0.32, -0.23);
-      const hand = new T.Group();
-      hand.name = side < 0 ? 'Right glove' : 'Left glove';
+      const { root: hand, thumb, index } = buildGlove(side, materials);
       hand.position.set(side * 0.178, -0.009, -0.01);
       steering.add(hand);
-      const palm = mesh(hand, new T.SphereGeometry(1, 20, 14), glove);
-      palm.scale.set(0.031, 0.05, 0.026);
-      const pad = mesh(hand, new T.SphereGeometry(1, 16, 12), grip, 0, -0.002, 0.017);
-      pad.scale.set(0.025, 0.044, 0.016);
-      const cuff = mesh(
-        hand,
-        new T.CylinderGeometry(0.028, 0.034, 0.05, 16),
-        suit,
-        0,
-        -0.051,
-        -0.022,
-      );
-      cuff.rotation.x = -0.8;
-      // A restrained back-of-hand reinforcement and a shaped gauntlet add
-      // construction detail without separate animation or changing wrist reach.
-      const reinforcement = mesh(hand, new T.SphereGeometry(1, 20, 14), panel, 0, -0.005, -0.019);
-      reinforcement.scale.set(0.026, 0.039, 0.01);
-      const gauntlet = mesh(
-        hand,
-        new T.CylinderGeometry(0.0285, 0.031, 0.023, 20),
-        glove,
-        0,
-        -0.037,
-        -0.007,
-      );
-      gauntlet.rotation.x = -0.8;
-      for (const edge of [-1, 1])
-        seam(
-          hand,
-          stitch,
-          [
-            [edge * 0.01, 0.025, -0.029],
-            [edge * 0.024, 0.012, -0.026],
-            [edge * 0.024, -0.021, -0.026],
-            [edge * 0.012, -0.039, -0.017],
-          ],
-          0.00065,
-        );
-      // Three short raised grip bars follow the knuckle dome, not a floating badge.
-      for (let bar = 0; bar < 3; bar++)
-        seam(
-          hand,
-          grip,
-          [
-            [-0.012, 0.02 - bar * 0.008, -0.028],
-            [0, 0.021 - bar * 0.008, -0.0295],
-            [0.012, 0.02 - bar * 0.008, -0.028],
-          ],
-          0.0014,
-        );
-      for (let finger = 0; finger < 4; finger++) {
-        const y = 0.028 - finger * 0.018;
-        seam(
-          hand,
-          glove,
-          [
-            [side * 0.012, y, -0.022],
-            [side * 0.033, y, -0.007],
-            [side * 0.028, y - 0.002, 0.022],
-            [side * 0.004, y - 0.004, 0.032],
-          ],
-          0.008,
-        );
-        seam(
-          hand,
-          stitch,
-          [
-            [side * 0.01, y + 0.006, -0.028],
-            [side * 0.027, y + 0.005, -0.016],
-            [side * 0.036, y + 0.004, 0.001],
-          ],
-          0.0012,
-        );
-      }
-      const thumb = new T.Group();
-      const thumbMesh = mesh(thumb, new T.CapsuleGeometry(0.01, 0.025, 5, 12), glove, 0, 0.014, 0);
-      thumbMesh.rotation.z = side * 0.55;
-      thumb.position.set(-side * 0.024, 0.017, -0.012);
-      // Merge the static glove, retaining the independently moving thumb.
-      mergeStatic(hand);
-      hand.add(thumb);
       const paddle = new T.Group();
       paddle.name = side < 0 ? 'Upshift paddle' : 'Downshift paddle';
       paddle.position.set(side * 0.104, 0, 0.041);
       box(paddle, paddleMaterial, side * 0.017, 0, 0, 0.031, 0.087, 0.006);
       steering.add(paddle);
-      const upper = mesh(this.root, new T.CylinderGeometry(0.045, 0.053, 1, 16), suit);
-      const lower = mesh(this.root, new T.CylinderGeometry(0.03, 0.042, 1, 16), suit);
+      const upper = mesh(this.root, sleeveGeometry(true), suit);
+      const lower = mesh(this.root, sleeveGeometry(false), suit);
       const elbow = mesh(this.root, new T.SphereGeometry(0.045, 16, 12), suit);
       this.arms.push({
         side,
         shoulder,
+        index,
         pole,
         hand,
         upper,
@@ -231,7 +145,12 @@ export class DriverRig {
     );
     mesh.scale.y = length;
   }
-  update(time: number, gear: number, mode: number) {
+  update(time: number, gear: number, mode: number, lateralG = 0, longitudinalG = 0, verticalG = 1) {
+    const pose = driverBodyPose(lateralG, longitudinalG, verticalG, this.bodyPose);
+    this.body.scale.y = 1 - pose.compression;
+    this.body.position.y = 0.015 * pose.compression;
+    this.headRoll = pose.headRoll;
+    this.headPitch = pose.headPitch;
     this.actions.sample(time, gear, mode);
     this.steering.updateMatrix();
     for (const arm of this.arms) {
@@ -246,6 +165,7 @@ export class DriverRig {
       arm.elbow.position.copy(arm.pose.elbow);
       const pull = arm.side < 0 ? this.actions.up : this.actions.down;
       arm.paddle.rotation.y = -arm.side * pull * 0.18;
+      arm.index.position.z = pull * 0.0025;
       arm.thumb.rotation.z = arm.side * this.actions.button * 0.2;
     }
   }

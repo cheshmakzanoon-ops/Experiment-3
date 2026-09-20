@@ -1,5 +1,7 @@
 # Specification coverage ledger
 
+**20 September 2026 — Phase 27C increment:** See [the implementation, source-bound evidence and remaining acceptance](PHASE_27C_FULL_LAP_COHESION.md). Car/driver, seated crowds, service areas and camera/lighting changes advance the existing partial presentation requirements; they do not close any final-quality gate. The counts and measurements in older rows describe their original checkpoints. Seven additional unit wrappers and five browser tests are supplied; the normal complete runners have not been locally certified for this increment.
+
 This ledger follows all 148 numbered sections of the exact [Pasted markdown(6) directive](MASTER_DIRECTIVE.md), retained verbatim in this repository. “Implemented” means a concrete code path exists; it does **not** certify every aspirational fidelity or performance statement in that section. Approximate/partial sections explicitly state the boundary.
 
 Current circuit continuation: **541 unit cases / 55 files; 31 browser cases**. See [scope, measured costs and open gates](CIRCUIT_REFERENCE_CONTINUATION.md). Prior milestone reports retain their historical measurements.

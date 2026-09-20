@@ -1,3 +1,4 @@
+import { serviceSitePlan, inServiceFootprint, type ServiceSite } from './venue-service-plan.ts';
 import { grassApronOffset } from './ground-profile.ts';
 import { inStandFootprint } from './grandstand.ts';
 import * as T from 'three';
@@ -24,7 +25,7 @@ export interface TreePlacement {
 }
 /** Planting rules use the NEAREST segment, not just the segment that generated
  * a candidate. This also excludes an adjacent return straight and the paddock. */
-export function vegetationPlan(track: Track, seed = 7109): TreePlacement[] {
+export function vegetationPlan(track: Track, seed = 7109, services: readonly ServiceSite[] = serviceSitePlan(track)): TreePlacement[] {
   const random = new Random(seed),
     result: TreePlacement[] = [],
     point = trackPoint(),
@@ -53,7 +54,7 @@ export function vegetationPlan(track: Track, seed = 7109): TreePlacement[] {
       }
     if (blocked) continue;
     // Use the exact same authored site footprint as the structural builder.
-    if (inStandFootprint(track, x, z, 8)) blocked = true;
+    if (inStandFootprint(track, x, z, 8) || inServiceFootprint(services, x, z, 8)) blocked = true;
     if (blocked) continue;
     const y =
       Math.abs(l) <= nearest.width + 38
@@ -167,8 +168,8 @@ function treeGeometry() {
   wood.forEach((g) => g.dispose());
   return { leafGeometry, trunkGeometry };
 }
-export function buildVegetation(track: Track, group: T.Group) {
-  const placements = vegetationPlan(track),
+export function buildVegetation(track: Track, group: T.Group, services: readonly ServiceSite[] = serviceSitePlan(track)) {
+  const placements = vegetationPlan(track, 7109, services),
     buckets = new Map<string, TreePlacement[]>();
   for (const tree of placements) {
     const key = `${Math.floor(tree.x / 80)}:${Math.floor(tree.z / 80)}`,

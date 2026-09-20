@@ -19,6 +19,10 @@
 
 ---
 
+## Phase 27C — cohesion increment (acceptance open)
+
+The [Phase 27C implementation and evidence report](docs/PHASE_27C_FULL_LAP_COHESION.md) records original car/driver detail, seated crowd LODs, six grounded service areas, terrain material continuity, and full-lap camera/lighting review. It includes correction of camera self-obstruction and unnecessary lens transmission. Seven focused native groups, eight existing native physics/race scripts and 81 isolated circuit GPU captures passed their stated checks. The full installed-toolchain build/CI, hardware performance and final visual acceptance remain **unverified/open**; this is not a completed Phase 27C or Steam-ready release. Historical test counts below are historical, not certification of this source increment.
+
 ## Phase 27A — wet-race broadcast fidelity and trackside density
 
 The current milestone advances the retained 148-section master directive's graphics-quality pass after the full-race recording-continuity hardening. It targets the most repeated gap in the supplied wet/broadcast reference frames: real-state water-film response, more legible rain/spray structure, and motorsport infrastructure that belongs to the same world as the replay cameras.

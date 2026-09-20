@@ -534,6 +534,7 @@ export class RacingRenderer {
         this.target,
         this.temporary.set(b[o + F.VX], b[o + F.VY], b[o + F.VZ]),
         cameraDt,
+        this.camera.aspect,
       );
       this.desired.copy(this.trackside.position);
       this.gaze.copy(this.trackside.gaze);
@@ -609,6 +610,9 @@ export class RacingRenderer {
     this.sun.position.copy(this.sun.target.position).add(SUN_OFFSET);
     this.sun.target.updateMatrixWorld();
     this.circuit.update(b);
+    if (this.circuit.crowd.visible)
+      for (const cluster of this.circuit.crowdClusters)
+        cluster.update(presented[H.TIME], this.camera.position, presented[H.RAIN]);
     this.effectPlayback.update(presented, !menu);
     this.debris.update(b);
     this.pitCrew.update(presented, this.camera.position, !menu && !studio);
@@ -846,6 +850,10 @@ export class RacingRenderer {
       if (o instanceof T.InstancedMesh) o.dispose();
       if (o instanceof T.Mesh || o instanceof T.Points || o instanceof T.Line) {
         geometries.add(o.geometry);
+        if (o instanceof T.Mesh) {
+          if (o.customDepthMaterial) materials.add(o.customDepthMaterial);
+          if (o.customDistanceMaterial) materials.add(o.customDistanceMaterial);
+        }
         for (const m of Array.isArray(o.material) ? o.material : [o.material]) {
           materials.add(m);
           for (const value of Object.values(m)) if (value instanceof T.Texture) textures.add(value);

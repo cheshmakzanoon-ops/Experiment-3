@@ -1,3 +1,4 @@
+import { CrowdCluster } from './crowd.ts';
 import { grassApronOffset } from './ground-profile.ts';
 import * as T from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
@@ -73,6 +74,7 @@ export function buildGrandstand(
   crowd: T.Group,
   site: StandSite,
   m: ReturnType<typeof standMaterials>,
+  clusters?: CrowdCluster[],
 ) {
   const frame = standFrame(track, site),
     root = new T.Group();
@@ -170,12 +172,6 @@ export function buildGrandstand(
   ];
   const seatGeometry = mergeGeometries(seatParts, false)!;
   seatParts.forEach((g) => g.dispose());
-  const humanParts = [
-    new T.CapsuleGeometry(0.115, 0.22, 2, 6).translate(0, 0.3, 0),
-    new T.SphereGeometry(0.092, 6, 5).translate(-0.015, 0.61, 0),
-  ];
-  const personGeometry = mergeGeometries(humanParts, false)!;
-  humanParts.forEach((g) => g.dispose());
   const seatPalette = [0xa33c35, 0x8b3431, 0xe0dcd0, 0x394e53];
   const personPalette = [0x535b5c, 0xc7b69b, 0x323f51, 0xab4030, 0x3f665a, 0x88867d];
   for (let row = 0; row < rows; row++)
@@ -225,14 +221,18 @@ export function buildGrandstand(
   peopleRoot.position.copy(root.position);
   peopleRoot.rotation.copy(root.rotation);
   crowd.add(peopleRoot);
-  install(
-    personGeometry,
-    m.people,
-    spectators,
-    bodyColors,
-    peopleRoot,
-    `Seated spectators ${site.s}m`,
-  );
+  // Retain occupancy, aisles and clothing selections. Spatial chunks avoid a
+  // single giant crowd bounding box; per-chunk LOD does not rebuild spectators.
+  const ordering = spectators.map((matrix, i) => ({ matrix, color: bodyColors[i] }))
+    .sort((a, b) => a.matrix.elements[14] - b.matrix.elements[14]);
+  ordering.forEach((entry, i) => { spectators[i] = entry.matrix; bodyColors[i] = entry.color; });
+  const chunkSize = 128;
+  for (let offset = 0; offset < spectators.length; offset += chunkSize) {
+    const cluster = new CrowdCluster(spectators.slice(offset, offset + chunkSize),
+      bodyColors.slice(offset, offset + chunkSize), 821 + Math.round(site.s) + offset, m.people);
+    peopleRoot.add(cluster.root);
+    clusters?.push(cluster);
+  }
   // All corners are measured against the nearest corridor, not just the centre.
   let clearance = Infinity;
   for (const u of [-1.9, 11])
