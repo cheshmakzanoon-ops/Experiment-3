@@ -90,7 +90,11 @@ export function pitApproachTrafficSpeed(
     // Keep longitudinal priority here; swept lane-change checks still prohibit
     // cutting across it. A genuinely separate lane retains entry-lane priority.
     if (gap < 0 && separation < 3) continue;
-    if (nearer && gap > -reserve && gap < reserve && separation > 2)
+    // Only a car physically ahead can claim pit-entry priority. Treating a
+    // side-by-side or slightly-behind car as higher priority lets a pack of
+    // requested cars mutually yield forever in heavy rain, where lower grip
+    // keeps them inside the reserve window much longer.
+    if (nearer && gap > 1.5 && gap < reserve && separation > 2)
       speed = Math.min(speed, Math.max(0, other.speed - 4));
   }
   return speed;
