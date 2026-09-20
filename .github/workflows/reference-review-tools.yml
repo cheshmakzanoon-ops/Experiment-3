@@ -1,0 +1,29 @@
+name: Reference review toolchain
+on:
+  push:
+    paths: [.github/workflows/reference-review-tools.yml]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  tools:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Preserve locked local validation toolchain
+        run: |
+          tar -czf "$RUNNER_TEMP/reference-node-modules.tar.gz" node_modules
+          sha256sum package-lock.json > "$RUNNER_TEMP/reference-lock.sha256"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: reference-review-toolchain
+          path: |
+            ${{ runner.temp }}/reference-node-modules.tar.gz
+            ${{ runner.temp }}/reference-lock.sha256
+          retention-days: 1
