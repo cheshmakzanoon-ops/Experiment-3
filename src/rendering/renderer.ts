@@ -503,11 +503,7 @@ export class RacingRenderer {
     this.renderer.toneMappingExposure = daylight.exposure * 2 ** (this.photo?.exposure ?? 0);
     const fog = this.scene.fog as T.FogExp2;
     fog.density = daylight.fogDensity;
-    fog.color.setRGB(
-      0.55 - daylight.cover * 0.12,
-      0.65 - daylight.cover * 0.12,
-      0.76 - daylight.cover * 0.12,
-    );
+    fog.color.setRGB(daylight.fogRed, daylight.fogGreen, daylight.fogBlue);
     this.sky.material.uniforms.turbidity.value = daylight.turbidity;
     this.sky.material.uniforms.cloudCover.value = daylight.cover;
     this.sky.material.uniforms.skyRadiance.value = daylight.skyRadiance;

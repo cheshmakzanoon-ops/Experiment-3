@@ -103,6 +103,12 @@ it('reduces direct sunlight with recorded cloud cover and bounds adverse weather
     expect(state.sun).toBeGreaterThan(0);
   }
   expect(daylightState(-1, -1)).toEqual(daylightState(0, 0));
+  const clear = daylightState(0, 0);
+  const storm = daylightState(1, 60);
+  expect(storm.fogDensity).toBeGreaterThan(clear.fogDensity);
+  expect(storm.fogRed).toBeLessThan(clear.fogRed);
+  expect(storm.fogGreen).toBeLessThan(clear.fogGreen);
+  expect(storm.fogBlue).toBeLessThan(clear.fogBlue);
   expect(() => daylightState(NaN, 0)).toThrow();
   const sky = new Sky();
   configureSky(sky);

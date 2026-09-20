@@ -19,11 +19,21 @@
 
 ---
 
+## Phase 27A — wet-race readability and atmospheric depth
+
+The current visual milestone converts existing simulation state into a stronger race-day image instead of adding another disconnected menu feature. Wheel spray now uses measured **water, load, speed, compound and car orientation** to form a longer rearward wake; rain, spray and sparks use distinct GPU point silhouettes rather than the same soft disc; spray lifetime, expansion and opacity are presentation-specific; and precipitation now cools/darkens the distance haze instead of changing density alone.
+
+This is aimed directly at the supplied wet-cockpit and broadcast/photo cues (especially 039, 075–080, 095 and 096) while preserving the retained master directive's separation between simulation truth and presentation. No tire grip, weather evolution, input, race-control or replay timing coefficients change in this pass. See [the Phase 27A contract](docs/PHASE_27A_DYNAMIC_RACE_PRESENTATION.md).
+
+**Acceptance boundary:** the existing WebGL weather oracle still has to prove real wet-simulation spray/rain/wind output and cleanup, and the daylight suite now checks that storm haze remains finite, denser and visibly darker than clear conditions. This pass improves dynamic readability; it does not certify full AAA parity, the complete human-driven section-146 scenario, or the later car-silhouette/driver/crowd presentation passes.
+
+---
+
 ## Full-race recording continuity
 
 The current milestone hardens the final-race → replay → telemetry path required by section 146 of the retained 148-section master directive. Physics-worker capture still runs at **60 Hz telemetry / 15 Hz replay**, but the one-second transferable-page reserve now grows on demand from six to a bounded **30 pages per stream** when rendering/UI cannot recycle buffers promptly, then shrinks back to six after recovery. A consumer unavailable beyond that reserve still produces an explicit gap rather than invented history.
 
-The new regression suite preserves every expected telemetry/replay tick through a simulated 20-second consumer stall and adds a real-browser **8.5-second main-thread stall** case. At the maximum twelve-car field, the combined 30-page high-water reserve is about **6.72 MiB**. See [the milestone rationale, memory budget and acceptance boundary](docs/FULL_RACE_CONTINUITY_MILESTONE.md). This removes a known archival weakness before the next large dynamic-graphics/Phase-27 pass; it does not claim the human-driven section-146 audiovisual scenario or AAA reference quality is complete.
+The new regression suite preserves every expected telemetry/replay tick through a simulated 20-second consumer stall and adds a real-browser **8.5-second main-thread stall** case. At the maximum twelve-car field, the combined 30-page high-water reserve is about **6.72 MiB**. See [the milestone rationale, memory budget and acceptance boundary](docs/FULL_RACE_CONTINUITY_MILESTONE.md). This removes the archival weakness that had to be cleared before the Phase-27 presentation work above; it does not claim the human-driven section-146 audiovisual scenario or AAA reference quality is complete.
 
 ---
 

@@ -14,7 +14,8 @@ const lightUp = lightForward.clone().cross(lightRight).normalize();
 export function daylightState(cloud: number, rain: number) {
   if (![cloud, rain].every(Number.isFinite)) throw new Error('Non-finite daylight state');
   const cover = clamp(cloud, 0, 1),
-    precipitation = clamp(rain, 0, 60);
+    precipitation = clamp(rain, 0, 60),
+    storm = precipitation / 60;
   return {
     cover,
     sun: 4.2 * (1 - 0.94 * cover ** 1.45),
@@ -25,7 +26,10 @@ export function daylightState(cloud: number, rain: number) {
     // Normalize the analytic skydome before the shared scene tone map; keeping
     // its native radiance washed the entire clear sky and reflected paint white.
     skyRadiance: 0.32 + cover * 0.2,
-    fogDensity: 0.00025 + cover * 0.00012 + precipitation * 0.000024,
+    fogDensity: 0.00025 + cover * 0.00012 + precipitation * 0.000026,
+    fogRed: 0.55 - cover * 0.12 - storm * 0.06,
+    fogGreen: 0.65 - cover * 0.12 - storm * 0.055,
+    fogBlue: 0.76 - cover * 0.12 - storm * 0.045,
   };
 }
 
