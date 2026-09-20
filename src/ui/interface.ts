@@ -429,7 +429,9 @@ export class Interface {
     const setupRows = (Object.keys(DEFAULT_SETUP) as (keyof Setup)[])
       .map((key) => {
         const [min, max] = SETUP_LIMITS[key],
-          step = max > 1000 ? 1000 : max > 100 ? 1 : max <= 0.01 ? 0.0005 : 0.001;
+          // Preserve valid saved/research values such as a 16,500 N/m anti-roll bar.
+          // A 1,000-unit slider step silently snaps those values when the garage opens.
+          step = max > 1000 ? 500 : max > 100 ? 1 : max <= 0.01 ? 0.0005 : 0.001;
         return `<label class="range-row">${descriptions[key]}<output>${settings.setup[key]}</output><input name="${key}" data-setup type="range" min="${min}" max="${max}" step="${step}" value="${settings.setup[key]}"></label>`;
       })
       .join('');
