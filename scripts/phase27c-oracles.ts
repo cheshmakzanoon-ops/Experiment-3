@@ -122,13 +122,18 @@ export function verifyCrowdContract() {
     assert.deepEqual([...a.uniforms.crowdClock.value.toArray(), a.uniforms.crowdMotion.value], before);
     for (const distance of [0, 50, 120, 260, 230, 100, 80]) {
       a.update(12, new T.Vector3(distance, 2, 3), 24);
-      assert.equal(a.levels.filter((mesh) => mesh.visible).length, 1);
+      const active = a.levels.filter((mesh) => mesh.visible).length;
+      assert(active >= 1 && active <= 2);
+      for (const value of phase.array) {
+        const rank = Math.min(0.9999999, value / (Math.PI * 2));
+        assert.equal(a.lodRanges.filter((range) => rank >= range.x && rank < range.y).length, 1);
+      }
     }
     assert.equal(crowdDetail(105, 0), 0); assert.equal(crowdDetail(95, 1), 1);
     assert.equal(crowdDetail(235, 1), 1); assert.equal(crowdDetail(220, 2), 2);
     assert.throws(() => crowdDetail(NaN, 0));
     return { triangles: counts, phaseCount: 128, boundedInstances: matrices.length,
-      sharedStorage: true, singleVisibleLevel: true, pauseAndRewindUniforms: true };
+      sharedStorage: true, exclusiveSpectatorLod: true, maximumActiveLevels: 2, pauseAndRewindUniforms: true };
   } finally { dispose(a.root); dispose(b.root); material.dispose(); }
 }
 

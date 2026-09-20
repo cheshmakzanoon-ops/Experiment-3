@@ -1,6 +1,6 @@
 import * as T from 'three';
 import { clamp } from '../core/math.ts';
-import { box, mesh } from './geometry.ts';
+import { mesh } from './geometry.ts';
 import { driverMaterials } from './driver-materials.ts';
 import { buildGlove, buildDriverTorso, driverBodyPose, sleeveGeometry } from './driver-anatomy.ts';
 
@@ -87,6 +87,9 @@ export class DriverRig {
   readonly actions = new DriverActions();
   private readonly arms: Arm[] = [];
   readonly body = new T.Group();
+  readonly paddles: T.InstancedMesh;
+  private paddleMatrix = new T.Matrix4();
+  private paddleOffset = new T.Matrix4();
   headRoll = 0;
   headPitch = 0;
   private bodyPose = { compression: 0, headRoll: 0, headPitch: 0 };
@@ -114,7 +117,6 @@ export class DriverRig {
       const paddle = new T.Group();
       paddle.name = side < 0 ? 'Upshift paddle' : 'Downshift paddle';
       paddle.position.set(side * 0.104, 0, 0.041);
-      box(paddle, paddleMaterial, side * 0.017, 0, 0, 0.031, 0.087, 0.006);
       steering.add(paddle);
       const upper = mesh(this.root, sleeveGeometry(true), suit);
       const lower = mesh(this.root, sleeveGeometry(false), suit);
@@ -133,7 +135,18 @@ export class DriverRig {
         pose: new ArmPose(),
       });
     }
+    // Keep both pivot frames for actual independent shift action. Only the
+    // identical solid paddle surfaces share a GPU submission.
+    this.paddles = new T.InstancedMesh(new T.BoxGeometry(0.031, 0.087, 0.006), paddleMaterial, 2);
+    this.paddles.name = 'Independent shift paddles (one submission)';
+    this.paddles.castShadow = true; this.paddles.receiveShadow = true;
+    this.paddles.instanceMatrix.setUsage(T.DynamicDrawUsage);
+    steering.add(this.paddles);
     this.update(0, 1, 1);
+    this.paddles.computeBoundingBox(); this.paddles.computeBoundingSphere();
+    // Full permitted 0.18-radian pull moves the outer edge by < 6 mm.
+    this.paddles.boundingBox!.expandByScalar(0.01);
+    this.paddles.boundingSphere!.radius += 0.01;
   }
   private segment(mesh: T.Mesh, from: T.Vector3, to: T.Vector3) {
     this.delta.copy(to).sub(from);
@@ -153,7 +166,7 @@ export class DriverRig {
     this.headPitch = pose.headPitch;
     this.actions.sample(time, gear, mode);
     this.steering.updateMatrix();
-    for (const arm of this.arms) {
+    for (const [index, arm] of this.arms.entries()) {
       // Wrist is the cuff's car-local anchor, transformed by the actual wheel.
       this.target
         .copy(arm.hand.position)
@@ -165,9 +178,13 @@ export class DriverRig {
       arm.elbow.position.copy(arm.pose.elbow);
       const pull = arm.side < 0 ? this.actions.up : this.actions.down;
       arm.paddle.rotation.y = -arm.side * pull * 0.18;
+      arm.paddle.updateMatrix();
+      this.paddleOffset.makeTranslation(arm.side * 0.017, 0, 0);
+      this.paddles.setMatrixAt(index, this.paddleMatrix.copy(arm.paddle.matrix).multiply(this.paddleOffset));
       arm.index.position.z = pull * 0.0025;
       arm.thumb.rotation.z = arm.side * this.actions.button * 0.2;
     }
+    this.paddles.instanceMatrix.needsUpdate = true;
   }
   diagnostics() {
     return this.arms.map((arm) => ({

@@ -40,7 +40,7 @@ export function standFrame(track: Track, site: StandSite) {
       );
   return { x, z, y: base + 0.35, yaw: Math.atan2(p.tx, p.tz), ground };
 }
-export function inStandFootprint(track: Track, x: number, z: number, padding = 3) {
+export function inStandFootprint(track: Track, x: number, z: number, padding = 3, endPadding = padding) {
   for (const site of GRANDSTANDS) {
     const p = track.at(site.s, trackPoint()),
       l = site.side * (track.boundary(site.s, site.side) + 7);
@@ -48,7 +48,7 @@ export function inStandFootprint(track: Track, x: number, z: number, padding = 3
       dz = z - p.z - p.nz * l;
     const u = (dx * p.nx + dz * p.nz) * site.side,
       v = dx * p.tx + dz * p.tz;
-    if (u > -2 - padding && u < 11 + padding && Math.abs(v) < site.length / 2 + padding)
+    if (u > -2 - padding && u < 11 + padding && Math.abs(v) < site.length / 2 + endPadding)
       return true;
   }
   return false;

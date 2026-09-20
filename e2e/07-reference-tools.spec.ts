@@ -105,6 +105,12 @@ test('reference tools: headquarters operations commit real economy and setup cha
   await ready(page);
   await page.getByRole('button', { name: 'TEAM HQ', exact: true }).click();
   await expect(page.locator('.team-hub')).toBeVisible();
+  await expect.poll(async () => (await diag(page)).presentation?.menuCovered).toBe(true);
+  const covered = await diag(page);
+  await page.waitForTimeout(250);
+  const heldBackdrop = await diag(page);
+  expect(heldBackdrop.presentation!.frames).toBe(covered.presentation!.frames);
+  expect(heldBackdrop.inputPolls).toBeGreaterThan(covered.inputPolls);
   await evidence(page, info, '03-headquarters');
   await page.getByRole('button', { name: 'Engineering', exact: true }).click();
   await page.getByRole('button', { name: 'COMMISSION STUDY' }).first().click();
@@ -129,7 +135,9 @@ test('reference tools: headquarters operations commit real economy and setup cha
   await expect(page.locator('.team-ledger')).toContainText('Mika Sato: signing fee');
   await expect(page.locator('.team-ledger')).toContainText('engineering: recruitment');
   await evidence(page, info, '06-saved-finance-ledger');
-  const saved = (await diag(page)).team;
+  const afterTransactions = await diag(page);
+  expect(afterTransactions.presentation!.frames).toBe(heldBackdrop.presentation!.frames);
+  const saved = afterTransactions.team;
   await page.reload();
   await expect(page.locator('#menu')).toBeVisible({ timeout: 90000 });
   expect((await diag(page)).team).toEqual(saved);
@@ -222,4 +230,25 @@ test('reference tools: every supplied number is searchable with duplicates and e
   await evidence(page, info, '09-mobile-reference-review');
   const fits = await page.locator('#modal').evaluate((e) => e.scrollWidth <= e.clientWidth + 1);
   expect(fits).toBe(true);
+});
+
+
+test('covered menu redraws once on resize and resumes after closing without freezing photo mode', async ({ page }) => {
+  await ready(page);
+  await page.getByRole('button', { name: 'TEAM HQ', exact: true }).click();
+  await expect.poll(async () => (await diag(page)).presentation?.menuCovered).toBe(true);
+  const held = (await diag(page)).presentation!.frames;
+  await page.setViewportSize({ width: 1200, height: 800 });
+  await expect.poll(async () => (await diag(page)).presentation!.frames).toBe(held + 1);
+  await page.waitForTimeout(250);
+  expect((await diag(page)).presentation!.frames).toBe(held + 1);
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#modal')).toBeHidden();
+  await expect.poll(async () => (await diag(page)).presentation!.frames).toBeGreaterThan(held + 1);
+  await page.getByRole('button', { name: 'PHOTO / LIVERY', exact: true }).click();
+  await expect(page.locator('#photoStudio')).toBeVisible();
+  const photo = await diag(page);
+  await input(page, '#photo-elevation', '40');
+  await expect.poll(async () => (await diag(page)).presentation!.frames).toBeGreaterThan(photo.presentation!.frames);
+  expect((await diag(page)).state).toBe('photo');
 });

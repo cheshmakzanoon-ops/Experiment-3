@@ -1,6 +1,7 @@
 import { Vector3 } from 'three';
 import { clamp, mod } from '../core/math.ts';
 import { Track, trackPoint } from '../simulation/track.ts';
+import { inStandFootprint } from './grandstand.ts';
 
 export interface CameraRig {
   id: number;
@@ -43,7 +44,13 @@ export function tracksideRigs(track: Track): readonly CameraRig[] {
   return TRACKSIDE_PLATFORMS.map(([side, height, fov], id): CameraRig => {
     const centerS = id * spacing;
     track.at(centerS + spacing * 0.18, p);
-    const offset = side * (p.width + 18);
+    let offset = side * (p.width + 18);
+    // Old lens sites were underneath or beside stand canopies. Author a permanent
+    // front-walkway pedestal, outside the protected road and in front of the
+    // canopy edge. The visible infrastructure consumes this SAME site; never
+    // hide the stand or move a camera dynamically to mask an obstruction.
+    if (inStandFootprint(track, p.x + p.nx * offset, p.z + p.nz * offset, 1.2, 22))
+      offset = side * (track.boundary(centerS + spacing * 0.18, side) + 3.4);
     return {
       id,
       centerS,

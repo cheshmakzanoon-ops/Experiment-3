@@ -52,13 +52,13 @@ test('actual unloaded pit-service snapshot renders mechanics and removed wheels'
       window as unknown as { PitScene: { renderPitScene: typeof renderPitScene } }
     ).PitScene.renderPitScene(values);
   }, Array.from(frame));
-  expect(result.crews).toBe(1);
-  expect(result.wheelOffsets.every((value) => Math.abs(value) > 0.4)).toBe(true);
-  expect(result.drawCalls).toBeLessThan(100);
   await page.screenshot({ path: info.outputPath('physical-pit-service.png') });
   await info.attach('service-snapshot.json', {
     body: JSON.stringify({ result, frame: Array.from(frame) }, null, 2),
     contentType: 'application/json',
   });
+  expect(result.crews).toBe(1);
+  expect(result.wheelOffsets.every((value) => Math.abs(value) > 0.4)).toBe(true);
+  expect(result.drawCalls).toBeLessThan(100);
   expect(errors).toEqual([]);
 });

@@ -64,13 +64,34 @@ export function verifyInstrumentCanvas() {
       steeringWheel: car.steering.rotation.z,
       camber: car.wheelPivots[0].rotation.z,
     };
-    return { first, hitch, gear, paused, rewind, brightPixels, articulated };
+    const transform = new T.Matrix4(), colour = new T.Color();
+    const poses = (mesh: T.InstancedMesh) => Array.from({ length: mesh.count }, (_, i) => {
+      mesh.getMatrixAt(i, transform);
+      return new T.Vector3().setFromMatrixPosition(transform).toArray();
+    });
+    const colours = (mesh: T.InstancedMesh) => Array.from({ length: mesh.count }, (_, i) => {
+      mesh.getColorAt(i, colour); return colour.getHex();
+    });
+    frame[o + F.RPM] = 0; update(3, 2, 20);
+    const off = colours(car.shiftLeds);
+    frame[o + F.RPM] = 15000; update(3.1, 2, 20);
+    const on = colours(car.shiftLeds), version = car.shiftLeds.instanceColor!.version;
+    update(3.1, 2, 20);
+    const controls = {
+      ledPositions: poses(car.shiftLeds), buttonPositions: poses(car.wheelButtons),
+      buttonColours: colours(car.wheelButtons), off, on,
+      pausedUpload: car.shiftLeds.instanceColor!.version === version,
+      instancedDraws: 3, ledCount: car.shiftLeds.count, buttonCount: car.wheelButtons.count,
+      paddleCount: car.driver.paddles.count,
+    };
+    return { first, hitch, gear, paused, rewind, brightPixels, articulated, controls };
   } finally {
     context.fillText = original;
     const geometry = new Set<T.BufferGeometry>(),
       materials = new Set<T.Material>(),
       textures = new Set<T.Texture>();
     car.root.traverse((object) => {
+      if (object instanceof T.InstancedMesh) object.dispose();
       if (!(object instanceof T.Mesh)) return;
       geometry.add(object.geometry);
       for (const material of Array.isArray(object.material) ? object.material : [object.material]) {

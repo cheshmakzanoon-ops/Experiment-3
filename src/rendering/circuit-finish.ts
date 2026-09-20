@@ -2,6 +2,14 @@ import * as T from 'three';
 
 export type CircuitFinish = 'asphalt' | 'grass' | 'concrete' | 'paint' | 'kerb';
 
+/** Screen-space footprint in noise cells per pixel. Keep resolved construction
+ * detail; converge to its mean before a pixel samples multiple unrelated cells. */
+export function finishDetailWeight(footprint: number) {
+  if (!Number.isFinite(footprint) || footprint < 0) throw new Error('Invalid finish footprint');
+  const t = T.MathUtils.clamp((footprint - 0.35) / 0.9, 0, 1);
+  return 1 - t * t * (3 - 2 * t);
+}
+
 // World-space fields survive 80 m ribbon boundaries and texture-quality changes.
 // These are construction/weathering details, never fabricated session rubber,
 // water, marbles or physical bumps. Those remain owned by the simulation grid.
@@ -14,6 +22,11 @@ float finishNoise(vec2 p) {
   return mix(mix(finishHash(i),finishHash(i+vec2(1,0)),f.x),
     mix(finishHash(i+vec2(0,1)),finishHash(i+vec2(1,1)),f.x),f.y);
 }
+float finishFilteredNoise(vec2 p) {
+  float footprint=max(length(dFdx(p)),length(dFdy(p)));
+  float weight=1.0-smoothstep(.35,1.25,footprint);
+  return mix(.5,finishNoise(p),weight);
+}
 float finishLine(float x, float width) {
   float aa=max(fwidth(x),.0001);
   return 1.0-smoothstep(width-aa,width+aa,abs(x));
@@ -21,23 +34,26 @@ float finishLine(float x, float width) {
 `;
 const finishes: Record<CircuitFinish, string> = {
   asphalt: `
-    float broad=finishNoise(vFinishWorld.xz*.11);
-    float medium=finishNoise(vFinishWorld.xz*1.7);
+    float broad=finishFilteredNoise(vFinishWorld.xz*.11);
+    float medium=finishFilteredNoise(vFinishWorld.xz*1.7);
     diffuseColor.rgb *= .9 + broad*.16 + medium*.05;
     // A restrained longitudinal paving join, not a painted racing line.
     float join=finishLine(mod(vFinishMetres.x+1.7,3.6)-1.8,.014);
     diffuseColor.rgb *= 1.0-.17*join;
   `,
   grass: `
-    float broad=finishNoise(vFinishWorld.xz*.085);
-    float patches=finishNoise(vFinishWorld.xz*.58);
+    float broad=finishFilteredNoise(vFinishWorld.xz*.085);
+    float patches=finishFilteredNoise(vFinishWorld.xz*.58);
     float dry=smoothstep(.43,.72,broad*.7+patches*.3);
     diffuseColor.rgb *= mix(vec3(.66,.81,.57),vec3(1.28,1.12,.78),dry);
     diffuseColor.rgb *= .82+.28*patches;
+    // Broad vegetation/soil regions survive distance without subpixel speckle.
+    // Shared world coordinates keep the terrain/apron boundary continuous.
+    diffuseColor.rgb *= .92+.16*finishFilteredNoise(vFinishWorld.xz*.006);
   `,
   concrete: `
-    float grain=finishNoise(vFinishMetres*vec2(47.0,9.0));
-    float streak=finishNoise(vFinishMetres*vec2(7.0,.3));
+    float grain=finishFilteredNoise(vFinishMetres*vec2(47.0,9.0));
+    float streak=finishFilteredNoise(vFinishMetres*vec2(7.0,.3));
     float dampFoot=1.0-smoothstep(.03,.42,vFinishMetres.y);
     diffuseColor.rgb *= .84+.12*grain-.10*streak-.18*dampFoot;
     float formTie=length(vec2(mod(vFinishMetres.x+.95,1.9)-.95,
@@ -45,17 +61,17 @@ const finishes: Record<CircuitFinish, string> = {
     diffuseColor.rgb *= 1.0-.3*finishLine(formTie,.018);
   `,
   paint: `
-    float grit=finishNoise(vFinishWorld.xz*24.0);
-    float wear=finishNoise(vFinishWorld.xz*.72);
+    float grit=finishFilteredNoise(vFinishWorld.xz*24.0);
+    float wear=finishFilteredNoise(vFinishWorld.xz*.72);
     diffuseColor.rgb *= .82+.16*grit+.05*wear;
   `,
   kerb: `
     float aa=max(length(fwidth(vFinishWorld.xz*33.0)),.001);
-    float chips=smoothstep(.65,.79,finishNoise(vFinishWorld.xz*33.0));
+    float chips=smoothstep(.65,.79,finishFilteredNoise(vFinishWorld.xz*33.0));
     chips=mix(chips,.045,smoothstep(.3,1.5,aa));
     float joints=finishLine(mod(vFinishMetres.y+1.5,3.0)-1.5,.012);
     diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.19,.18,.16),chips*.55);
-    diffuseColor.rgb *= (1.0-joints*.32) * (.84+.16*finishNoise(vFinishWorld.xz*1.4));
+    diffuseColor.rgb *= (1.0-joints*.32) * (.84+.16*finishFilteredNoise(vFinishWorld.xz*1.4));
   `,
 };
 
@@ -87,7 +103,7 @@ export function installCircuitFinish(material: T.MeshStandardMaterial, kind: Cir
       .replace('#include <common>', '#include <common>\n' + noise)
       .replace('#include <map_fragment>', '#include <map_fragment>\n' + finishes[kind]);
   };
-  material.customProgramCacheKey = () => `${baseKey}:circuit-finish-v1:${kind}`;
+  material.customProgramCacheKey = () => `${baseKey}:circuit-finish-v2-filtered:${kind}`;
   material.name = `Original ${kind} construction finish`;
 }
 

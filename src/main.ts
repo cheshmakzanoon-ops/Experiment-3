@@ -101,6 +101,8 @@ export class GameApp {
   private previousTime = 0;
   private renderedAt = 0;
   private renderedState: State | null = null;
+  private menuCovered = false;
+  private presentationFrames = 0;
   private timer = 0;
   private generation = 0;
   private replay: SessionReplay | null = null;
@@ -204,6 +206,7 @@ export class GameApp {
     window.addEventListener('resize', () => {
       this.performanceCapture.interrupt('Viewport changed');
       this.renderer?.resize();
+      this.renderedState = null; // A covered menu still needs one resized frame.
     });
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) this.suspendPlayback();
@@ -501,6 +504,14 @@ export class GameApp {
     const wallDelta = Math.max(0.001, (time - (this.previousTime || time - 16)) / 1000),
       dt = clamp(wallDelta, 0.001, 0.08);
     this.previousTime = time;
+    // A modal owns the menu: keep the last fully rendered backdrop instead of
+    // re-submitting an orbiting scene behind every HQ/settings interaction.
+    // On software GPUs the nominal 15 FPS cap cannot help when ONE frame takes
+    // seconds. Input pumping, DOM transactions and saves remain independent.
+    // Photo/replay/driving are deliberately excluded; resize/settings invalidate.
+    const covered = this.state === 'menu' && this.ui.modal.open;
+    if (covered && this.menuCovered && this.renderedState === this.state) return;
+    this.menuCovered = covered;
     // Menus and paused telemetry do not need a continuously saturated GPU.
     // Input and worker clocks above remain independent of this presentation cap.
     const idle =
@@ -567,6 +578,7 @@ export class GameApp {
       this.state === 'replay' || (this.state === 'photo' && this.photoReturn === 'replay'),
       wallDelta,
     );
+    this.presentationFrames++;
     // Read pixels in the same task as rendering; no permanent preserveDrawingBuffer cost.
     if (this.state === 'photo' && this.captureRequested) {
       this.captureRequested = false;
@@ -875,7 +887,10 @@ export class GameApp {
     this.ui.toast(`Reference ${String(id).padStart(3, '0')}: ${route.instruction}`);
   }
   private action(name: string) {
-    this.renderedState = null;
+    // Team transactions only change modal DOM and next-session data. They must
+    // not restart the expensive covered backdrop after every saved transaction.
+    if (!(this.state === 'menu' && this.ui.modal.open && name.startsWith('team:')))
+      this.renderedState = null;
     if (this.state === 'photo') {
       if (name === 'pause') this.closePhoto();
       else if (name === 'deviceLost') this.ui.toast(this.input.deviceStatus);
@@ -1201,6 +1216,7 @@ export class GameApp {
     this.input.settings = settings;
     this.ui.applyBindings(settings.bindings);
     this.renderer?.setQuality(settings.quality, settings.graphics);
+    this.renderedState = null;
     if (this.renderer) {
       this.renderer.shake = settings.shake;
       this.renderer.colorblind = settings.colorblind;
@@ -1271,6 +1287,8 @@ export class GameApp {
       presentation: this.renderer
         ? {
             time: this.renderer.presented.value[H.TIME] ?? 0,
+            frames: this.presentationFrames,
+            menuCovered: this.menuCovered,
             engineeringVisible: this.renderer.engineeringView.group.visible,
             elapsed: this.renderer.effectPlayback.elapsed,
             resets: this.renderer.effectPlayback.resets,

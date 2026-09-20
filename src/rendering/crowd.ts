@@ -54,6 +54,29 @@ export function spectatorGeometry(detail: CrowdDetail) {
 interface CrowdUniforms {
   crowdClock: { value: T.Vector2 };
   crowdMotion: { value: number };
+  crowdLodRange?: { value: T.Vector2 };
+}
+
+/** A spatial, not time-integrated handoff. Every spectator has one stable rank
+ * and is rendered at exactly one LOD even inside a transition band. Individual
+ * silhouettes switch at different distances instead of an entire stand popping.
+ * Rewinds and paused camera movement do not accumulate a fading animation. */
+export function crowdLodRanges(distance: number, out: readonly T.Vector2[]) {
+  if (!Number.isFinite(distance) || distance < 0 || out.length !== 3)
+    throw new Error('Invalid crowd handoff');
+  out.forEach((range) => range.set(0, 0));
+  const smooth = (start: number, end: number) => {
+    const t = clamp((distance - start) / (end - start), 0, 1);
+    return t * t * (3 - 2 * t);
+  };
+  if (distance < 108) {
+    const weight = smooth(92, 108);
+    out[0].set(weight, 1); out[1].set(0, weight);
+  } else {
+    const weight = smooth(218, 242);
+    out[1].set(weight, 1); out[2].set(0, weight);
+  }
+  return out;
 }
 const deform = `
 attribute float crowdJoint;
@@ -83,11 +106,19 @@ export function installCrowdShader(material: T.Material, uniforms: CrowdUniforms
     if (!shader.vertexShader.includes('#include <begin_vertex>'))
       throw new Error('Crowd shader position hook missing');
     Object.assign(shader.uniforms, uniforms);
-    shader.vertexShader = deform + (colour ? 'attribute float skinMask;\nattribute vec3 spectatorSkin;\n' : '') + shader.vertexShader;
+    shader.uniforms.crowdLodRange = uniforms.crowdLodRange ?? { value: new T.Vector2(0, 1) };
+    shader.vertexShader = 'varying float vCrowdRank;\n' + deform + (colour ? 'attribute float skinMask;\nattribute vec3 spectatorSkin;\n' : '') + shader.vertexShader;
     shader.vertexShader = shader.vertexShader.replace('#include <begin_vertex>',
-      'vec3 transformed = crowdTurn() * (position - crowdPivot()) + crowdPivot();');
+      'vCrowdRank = min(.9999999, spectatorPhase / 6.28318530718);\nvec3 transformed = crowdTurn() * (position - crowdPivot()) + crowdPivot();');
     shader.vertexShader = shader.vertexShader.replace('#include <beginnormal_vertex>',
       '#include <beginnormal_vertex>\nobjectNormal = crowdTurn() * objectNormal;');
+    // Complementary half-open ranges use the same rank in colour AND depth.
+    // No transparent sorting, alpha blend, wall time or camera-facing shadow trick.
+    if (!shader.fragmentShader.includes('#include <alphatest_fragment>'))
+      throw new Error('Crowd shader coverage hook missing');
+    shader.fragmentShader = 'uniform vec2 crowdLodRange; varying float vCrowdRank;\n' + shader.fragmentShader;
+    shader.fragmentShader = shader.fragmentShader.replace('#include <alphatest_fragment>',
+      '#include <alphatest_fragment>\nif (vCrowdRank < crowdLodRange.x || vCrowdRank >= crowdLodRange.y) discard;');
     if (colour) {
       if (!shader.vertexShader.includes('#include <color_vertex>'))
         throw new Error('Crowd shader colour hook missing');
@@ -95,7 +126,7 @@ export function installCrowdShader(material: T.Material, uniforms: CrowdUniforms
         '#include <color_vertex>\nvColor.rgb = mix(vColor.rgb, spectatorSkin, skinMask);');
     }
   };
-  material.customProgramCacheKey = () => `apex-seated-crowd-v1-${colour ? 'colour' : 'depth'}`;
+  material.customProgramCacheKey = () => `apex-seated-crowd-v2-ranked-${colour ? 'colour' : 'depth'}`;
 }
 
 export function crowdDetail(distance: number, previous: CrowdDetail): CrowdDetail {
@@ -106,13 +137,14 @@ export function crowdDetail(distance: number, previous: CrowdDetail): CrowdDetai
   return distance < 100 ? 0 : distance < 230 ? 1 : 2;
 }
 
-/** A bounded, spatially culled seating cluster has one draw-owning mesh at a
- * time. It shares its instance storage across the three geometry levels. */
+/** A spatially culled cluster shares all instance storage across its levels.
+ * One draw outside handoff bands, two only within a band, never three. */
 export class CrowdCluster {
   readonly root = new T.Group();
   readonly levels: readonly T.InstancedMesh[];
   readonly uniforms: CrowdUniforms = { crowdClock: { value: new T.Vector2() }, crowdMotion: { value: 0 } };
   level: CrowdDetail = 0;
+  readonly lodRanges = [new T.Vector2(0, 1), new T.Vector2(), new T.Vector2()];
   private centre = new T.Vector3();
   private localCentre = new T.Vector3();
   constructor(matrices: readonly T.Matrix4[], colors: readonly T.Color[], seed: number,
@@ -133,14 +165,13 @@ export class CrowdCluster {
       this.localCentre.add(new T.Vector3().setFromMatrixPosition(matrices[i]));
     }
     this.localCentre.multiplyScalar(1 / matrices.length);
-    const colorMaterial = material.clone();
-    colorMaterial.vertexColors = true;
-    installCrowdShader(colorMaterial, this.uniforms, true);
-    const depth = new T.MeshDepthMaterial({ depthPacking: T.RGBADepthPacking });
-    installCrowdShader(depth, this.uniforms, false);
     const phases = new T.InstancedBufferAttribute(phase, 1), skins = new T.InstancedBufferAttribute(skin, 3);
     const levels: T.InstancedMesh[] = [];
     for (const level of [0, 1, 2] as const) {
+      const colorMaterial = material.clone(); colorMaterial.vertexColors = true;
+      const depth = new T.MeshDepthMaterial({ depthPacking: T.RGBADepthPacking });
+      const uniforms = { ...this.uniforms, crowdLodRange: { value: this.lodRanges[level] } };
+      installCrowdShader(colorMaterial, uniforms, true); installCrowdShader(depth, uniforms, false);
       const geometry = spectatorGeometry(level);
       geometry.setAttribute('spectatorPhase', phases);
       geometry.setAttribute('spectatorSkin', skins);
@@ -167,7 +198,8 @@ export class CrowdCluster {
     this.centre.copy(this.localCentre).applyMatrix4(this.root.matrixWorld);
     const distance = this.centre.distanceTo(camera);
     this.level = crowdDetail(distance, this.level);
-    this.levels.forEach((mesh, i) => { mesh.visible = i === this.level; });
+    crowdLodRanges(distance, this.lodRanges);
+    this.levels.forEach((mesh, i) => { mesh.visible = this.lodRanges[i].y > this.lodRanges[i].x; });
     // Both frequencies wrap at their own complete cycle, avoiding a long-race
     // float-time jump. The exact same replay timestamp restores the same pose.
     const cycle = Math.PI * 2;

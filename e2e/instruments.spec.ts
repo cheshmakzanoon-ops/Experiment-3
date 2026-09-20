@@ -52,6 +52,22 @@ test('actual cockpit canvas refreshes after hitches, shifts and replay rewinds',
   expect(measured.articulated.steer).toBeCloseTo(0.22, 5);
   expect(measured.articulated.camber).toBeCloseTo(-0.05, 5);
   expect(measured.articulated.steeringWheel).toBeCloseTo(-0.44, 5);
+  expect(measured.controls.ledCount).toBe(10);
+  expect(measured.controls.buttonCount).toBe(6);
+  expect(measured.controls.paddleCount).toBe(2);
+  expect(measured.controls.pausedUpload).toBe(true);
+  expect(measured.controls.off).toEqual(Array(10).fill(0x20292a));
+  expect(measured.controls.on).toEqual(Array.from({ length: 10 }, (_, i) => i < 5 ? 0x6fec9b : i < 8 ? 0xed6540 : 0xaabef8));
+  expect(measured.controls.buttonColours).toEqual([0xe65739, 0x56b8a6, 0xe6c254, 0xe65739, 0x56b8a6, 0xe6c254]);
+  measured.controls.ledPositions.forEach((p, i) => {
+    expect(p[0]).toBeCloseTo(-0.071 + i * 0.016, 6);
+    expect(p[1]).toBeCloseTo(0.074, 6); expect(p[2]).toBeCloseTo(-0.018, 6);
+  });
+  measured.controls.buttonPositions.forEach((p, i) => {
+    const k = i % 3, side = i < 3 ? -1 : 1;
+    expect(p[0]).toBeCloseTo(side * (0.117 + (k % 2) * 0.026), 6);
+    expect(p[1]).toBeCloseTo(0.037 - k * 0.028, 6); expect(p[2]).toBeCloseTo(-0.027, 6);
+  });
   expect(errors).toEqual([]);
   await info.attach('instrument-canvas.json', {
     body: JSON.stringify(measured),

@@ -45,7 +45,20 @@ export function capturePhase27Crowd() {
     const memoryBefore = { ...renderer.info.memory };
     capture('crowd-repeat', 0);
     const memoryAfter = { ...renderer.info.memory };
-    return { captures, glError: renderer.getContext().getError(), pauseExact: first === pause,
+    // Exercise the real shader masks at the same close-up camera. The supplied
+    // LOD camera is a controlled test input, not a claimed full-race screenshot.
+    const handoff = (distance: number) => {
+      crowd.update(2, new T.Vector3(0.98 + distance, 0.79, 0), 0);
+      renderer.info.reset(); renderer.render(scene, camera);
+      const image = canvas.toDataURL('image/png');
+      captures.push({ view: `crowd-handoff-${distance}`, image,
+        triangles: renderer.info.render.triangles, draws: renderer.info.render.calls });
+      return { distance, image, activeLevels: crowd.levels.filter((m) => m.visible).length,
+        ranges: crowd.lodRanges.map((range) => range.toArray()) };
+    };
+    const blend = handoff(100), far = handoff(300), returnBlend = handoff(100);
+    return { captures, handoff: { activeLevels: blend.activeLevels, farLevels: far.activeLevels,
+      rewindExact: blend.image === returnBlend.image, ranges: blend.ranges }, glError: renderer.getContext().getError(), pauseExact: first === pause,
       rewindExact: first === rewind, visibleMovement: first !== moved, memoryBefore, memoryAfter,
       nearTriangles: crowd.levels[0].geometry.getIndex()!.count / 3,
       midTriangles: crowd.levels[1].geometry.getIndex()!.count / 3,

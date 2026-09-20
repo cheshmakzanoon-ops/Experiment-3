@@ -51,7 +51,9 @@ export class FormulaCar {
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
   private displayClock = new SteeringDisplayClock();
-  private shiftLeds: T.MeshBasicMaterial[] = [];
+  readonly shiftLeds: T.InstancedMesh;
+  readonly wheelButtons: T.InstancedMesh;
+  private indicatorColor = new T.Color();
   readonly paint: T.MeshPhysicalMaterial;
   readonly accent: T.MeshPhysicalMaterial;
   readonly identityTexture: T.CanvasTexture;
@@ -509,25 +511,37 @@ export class FormulaCar {
       -0.028,
     );
     screen.rotation.y = Math.PI;
+    // Identical controls share geometry/material submissions, not state. Each
+    // LED retains its own linear-space colour and each button its exact pose.
+    this.shiftLeds = new T.InstancedMesh(
+      new T.BoxGeometry(0.01, 0.005, 0.003), new T.MeshBasicMaterial(), 10,
+    );
+    this.shiftLeds.name = 'Individual RPM LEDs (one submission)';
+    this.wheelButtons = new T.InstancedMesh(
+      new T.CylinderGeometry(0.009, 0.009, 0.009, 12), new T.MeshStandardMaterial(), 6,
+    );
+    this.wheelButtons.name = 'Original wheel buttons (one submission)';
+    const indicator = new T.Object3D();
     for (let j = 0; j < 10; j++) {
-      const material = new T.MeshBasicMaterial({
-        color: j < 5 ? 0x6fec9b : j < 8 ? 0xed6540 : 0xaabef8,
-      });
-      this.shiftLeds.push(material);
-      box(this.steering, material, -0.071 + j * 0.016, 0.074, -0.018, 0.01, 0.005, 0.003);
+      indicator.position.set(-0.071 + j * 0.016, 0.074, -0.018);
+      indicator.updateMatrix();
+      this.shiftLeds.setMatrixAt(j, indicator.matrix);
+      this.shiftLeds.setColorAt(j, this.indicatorColor.setHex(j < 5 ? 0x6fec9b : j < 8 ? 0xed6540 : 0xaabef8));
     }
-    for (const sign of [-1, 1]) {
-      for (let k = 0; k < 3; k++) {
-        const b = mesh(
-          this.steering,
-          new T.CylinderGeometry(0.009, 0.009, 0.009, 12),
-          new T.MeshStandardMaterial({ color: [0xe65739, 0x56b8a6, 0xe6c254][k] }),
-          sign * (0.117 + (k % 2) * 0.026),
-          0.037 - k * 0.028,
-          -0.027,
-        );
-        b.rotation.x = Math.PI / 2;
-      }
+    this.shiftLeds.instanceColor!.setUsage(T.DynamicDrawUsage);
+    let button = 0;
+    indicator.rotation.x = Math.PI / 2;
+    for (const sign of [-1, 1]) for (let k = 0; k < 3; k++) {
+      indicator.position.set(sign * (0.117 + (k % 2) * 0.026), 0.037 - k * 0.028, -0.027);
+      indicator.updateMatrix();
+      this.wheelButtons.setMatrixAt(button, indicator.matrix);
+      this.wheelButtons.setColorAt(button++, this.indicatorColor.setHex([0xe65739, 0x56b8a6, 0xe6c254][k]));
+    }
+    for (const controls of [this.shiftLeds, this.wheelButtons]) {
+      controls.castShadow = true;
+      controls.receiveShadow = true;
+      controls.computeBoundingBox(); controls.computeBoundingSphere();
+      this.steering.add(controls);
     }
     this.driver = new DriverRig(this.steering);
     this.root.add(this.driver.root);
@@ -643,10 +657,11 @@ export class FormulaCar {
       b[o + F.BRAKE] > 0.1 ? 2.5 : Math.sin(time * 12) > 0 ? 1.4 : 0.1;
     if (this.id === 0 && this.displayClock.due(b[H.TIME], b[o + F.GEAR])) {
       drawSteeringDisplay(this.ctx, b, o);
-      for (let j = 0; j < this.shiftLeds.length; j++)
-        this.shiftLeds[j].color.setHex(
+      for (let j = 0; j < this.shiftLeds.count; j++)
+        this.shiftLeds.setColorAt(j, this.indicatorColor.setHex(
           shiftLight(b[o + F.RPM], j) ? (j < 5 ? 0x6fec9b : j < 8 ? 0xed6540 : 0xaabef8) : 0x20292a,
-        );
+        ));
+      this.shiftLeds.instanceColor!.needsUpdate = true;
       this.display.needsUpdate = true;
     }
   }
