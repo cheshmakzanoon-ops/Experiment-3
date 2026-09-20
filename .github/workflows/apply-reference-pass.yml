@@ -1,20 +1,22 @@
 name: Apply reference pass
 on:
   push:
-    branches: [main]
+    branches:
+      - main
 
 permissions:
   contents: write
 
 jobs:
-  apply-reference-pass:
-    if: github.event.head_commit.message == 'chore: stage exact reference pass for publication'
+  apply:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Apply exact tested patch and clean staging files
+
+      - name: Apply verified reference pass
         shell: bash
         run: |
           set -euo pipefail
@@ -25,5 +27,9 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit -m "feat: implement reference-driven academy, guidance, grid preparation and night showroom"
-          test "$(git rev-parse HEAD^{tree})" = "5fa0c3ec2c4e24fc075c9109eaae7de41f4952ff"
+          actual_tree="$(git rev-parse HEAD^{tree})"
+          expected_tree="5fa0c3ec2c4e24fc075c9109eaae7de41f4952ff"
+          echo "Expected tree: $expected_tree"
+          echo "Actual tree:   $actual_tree"
+          test "$actual_tree" = "$expected_tree"
           git push origin HEAD:main
