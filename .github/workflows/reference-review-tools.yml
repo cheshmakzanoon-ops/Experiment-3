@@ -11,19 +11,25 @@ jobs:
     timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: npm
       - run: npm ci --no-audit --no-fund
-      - name: Preserve locked local validation toolchain
+      - name: Preserve locked local validation toolchain and exact source
         run: |
           tar -czf "$RUNNER_TEMP/reference-node-modules.tar.gz" node_modules
           sha256sum package-lock.json > "$RUNNER_TEMP/reference-lock.sha256"
+          git bundle create "$RUNNER_TEMP/reference-source.bundle" --all
+          git rev-parse HEAD > "$RUNNER_TEMP/reference-source.sha"
       - uses: actions/upload-artifact@v4
         with:
           name: reference-review-toolchain
           path: |
             ${{ runner.temp }}/reference-node-modules.tar.gz
             ${{ runner.temp }}/reference-lock.sha256
+            ${{ runner.temp }}/reference-source.bundle
+            ${{ runner.temp }}/reference-source.sha
           retention-days: 1
