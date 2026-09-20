@@ -136,6 +136,14 @@ test('reference tools: headquarters operations commit real economy and setup cha
   await page.getByRole('button', { name: 'GARAGE & SETTINGS', exact: true }).click();
   expect(await page.locator('[name="diffPower"]').inputValue()).toBe('0.34');
   expect(await page.locator('[name="rearARB"]').inputValue()).toBe('16500');
+  // Merely opening and saving the garage must not overwrite an off-step study value.
+  await page.getByRole('button', { name: 'APPLY & SAVE' }).click();
+  await expect(page.locator('#modal')).toBeHidden();
+  await page.reload();
+  await expect(page.locator('#menu')).toBeVisible({ timeout: 90000 });
+  await page.getByRole('button', { name: 'GARAGE & SETTINGS', exact: true }).click();
+  await expect(page.locator('[name="rearARB"]')).toHaveValue('16500');
+  await expect(page.locator('[name="diffPower"]')).toHaveValue('0.34');
   expect(errors).toEqual([]);
 });
 

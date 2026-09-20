@@ -124,7 +124,9 @@ setInterval(() => {
       const water = simulation.track.water.slice(),
         rubber = simulation.track.rubber.slice(),
         marbles = simulation.track.marbles.slice();
-      telemetry?.flushReplay();
+      // Surface keyframes are independently timestamped. Flushing replay here
+      // would send half-empty pages every 0.5 s and halve the configured stall reserve.
+      // SessionReplay carries leading surface keyframes across pose-page boundaries.
       send({ type: 'surface', water, rubber, marbles, time: simulation.race.time }, [
         water.buffer,
         rubber.buffer,

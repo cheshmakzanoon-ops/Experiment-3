@@ -36,6 +36,13 @@ export const shortTime = (seconds: number) =>
   `${Math.floor(seconds / 60)}:${Math.floor(seconds % 60)
     .toString()
     .padStart(2, '0')}`;
+/** Keep useful slider increments without rounding a valid researched/imported setup. */
+export function setupControlStep(key: keyof Setup, value: number): number | 'any' {
+  const [min, max] = SETUP_LIMITS[key];
+  const preferred = max > 1000 ? 500 : max > 100 ? 1 : max <= 0.01 ? 0.0005 : 0.001;
+  const steps = (value - min) / preferred;
+  return Math.abs(steps - Math.round(steps)) < 1e-9 ? preferred : 'any';
+}
 interface Callbacks {
   action: (name: string) => void;
   start: (options: SessionOptions) => void;
@@ -429,9 +436,7 @@ export class Interface {
     const setupRows = (Object.keys(DEFAULT_SETUP) as (keyof Setup)[])
       .map((key) => {
         const [min, max] = SETUP_LIMITS[key],
-          // Preserve valid saved/research values such as a 16,500 N/m anti-roll bar.
-          // A 1,000-unit slider step silently snaps those values when the garage opens.
-          step = max > 1000 ? 500 : max > 100 ? 1 : max <= 0.01 ? 0.0005 : 0.001;
+          step = setupControlStep(key, settings.setup[key]);
         return `<label class="range-row">${descriptions[key]}<output>${settings.setup[key]}</output><input name="${key}" data-setup type="range" min="${min}" max="${max}" step="${step}" value="${settings.setup[key]}"></label>`;
       })
       .join('');

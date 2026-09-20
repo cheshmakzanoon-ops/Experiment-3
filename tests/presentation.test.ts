@@ -4,6 +4,8 @@ import { graphicsPreset, validateGraphics, bufferSize } from '../src/rendering/o
 import { DEFAULT_SETTINGS, validateSettings } from '../src/storage/data.ts';
 import { InputPump } from '../src/input/pump.ts';
 import { TextureBudget } from '../src/rendering/texture-budget.ts';
+import { setupControlStep } from '../src/ui/interface.ts';
+import type { Setup } from '../src/simulation/config.ts';
 
 afterEach(() => {
   vi.useRealTimers();
@@ -119,3 +121,21 @@ it('resizes immutable texture assets but never live displays and can restore res
   expect(map.anisotropy).toBe(16);
   budget.dispose();
 });
+
+it.each<[keyof Setup, number, number | 'any']>([
+  ['rearARB', 16500, 500],
+  ['rearARB', 16750, 'any'],
+  ['frontSpring', 115250, 'any'],
+  ['frontPressure', 151.25, 'any'],
+  ['frontRide', 0.06725, 'any'],
+  ['frontToe', -0.00123, 'any'],
+  ['rearARB', 21000, 500],
+  ['frontPressure', 155, 1],
+  ['diffPower', 0.34, 0.001],
+  ['frontToe', -0.001, 0.0005],
+])(
+  'preserves the setup value %s=%s instead of snapping it on opening the garage',
+  (key, value, step) => {
+    expect(setupControlStep(key, value)).toBe(step);
+  },
+);

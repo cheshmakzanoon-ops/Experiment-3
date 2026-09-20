@@ -1,6 +1,10 @@
 import { expect, test } from '@playwright/test';
 import { F, carBase } from '../src/simulation/protocol.ts';
 
+// This suite verifies controls, not pixel fidelity. Keep software-GPU raster work
+// bounded; the dedicated visual suites retain their full-resolution settings.
+test.use({ viewport: { width: 960, height: 600 } });
+
 test('custom wheel calibration persists, drives a real clutch and disconnects safely', async ({
   page,
 }) => {
@@ -23,6 +27,7 @@ test('custom wheel calibration persists, drives a real clutch and disconnects sa
   await page.goto('/');
   await expect(page.locator('#loading')).toBeHidden({ timeout: 60000 });
   await page.getByRole('button', { name: 'GARAGE & SETTINGS', exact: true }).click();
+  await page.locator('[name=quality]').selectOption('low');
   await page.getByLabel('Active input device').selectOption('2');
   await page.locator('[name=steerAxis]').fill('0');
   await page.locator('[name=throttleAxis]').fill('1');
@@ -70,6 +75,7 @@ test('custom wheel calibration persists, drives a real clutch and disconnects sa
   await page.reload();
   await expect(page.locator('#loading')).toBeHidden({ timeout: 60000 });
   await page.getByRole('button', { name: 'GARAGE & SETTINGS', exact: true }).click();
+  await expect(page.locator('[name=quality]')).toHaveValue('low');
   await expect(page.getByLabel('Active input device')).toHaveValue('2');
   await expect(page.locator('[name=manualClutch]')).toBeChecked();
   await expect(page.locator('[name=shiftUpButton]')).toHaveValue('10');

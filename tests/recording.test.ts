@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import {
   H,
   F,
@@ -526,4 +526,65 @@ describe('replay integrity and seek ownership', () => {
     expect(store.closed).toBe(true);
     expect(replay.error).toBeNull();
   });
+});
+
+it('retains the real worker recording cadence during a 24-second consumer stall with surface updates', async () => {
+  const { DEFAULT_OPTIONS } = await import('../src/simulation/config.ts');
+  type Message = import('../src/workers/diagnostics.ts').WorkerMessage;
+  type Request = import('../src/workers/diagnostics.ts').ClientMessage;
+  const messages: Message[] = [];
+  let now = 0;
+  let pump: (() => void) | undefined;
+  const scope = {
+    onmessage: null as ((event: { data: Request }) => void) | null,
+    postMessage(message: Message, transfer: Transferable[] = []) {
+      // Real transfers detach the worker's pages; none are returned during the stall.
+      messages.push(structuredClone(message, { transfer }));
+    },
+  };
+  const clock = vi.spyOn(performance, 'now').mockImplementation(() => now);
+  vi.stubGlobal('self', scope);
+  vi.stubGlobal('setInterval', (callback: () => void) => {
+    pump = callback;
+    return 1;
+  });
+  try {
+    await import('../src/workers/physics.worker.ts');
+    scope.onmessage!({
+      data: { type: 'init', options: { ...DEFAULT_OPTIONS, opponents: 0, mode: 'practice' } },
+    });
+    scope.onmessage!({ data: { type: 'pause', value: false } });
+    expect(pump).toBeDefined();
+    for (now = 10; now <= 24000; now += 10) pump!();
+    scope.onmessage!({ data: { type: 'pause', value: true } });
+    const warnings = messages.filter(
+      (message) => message.type === 'recordingWarning' || message.type === 'error',
+    );
+    expect(warnings).toEqual([]);
+    const surfaces = messages.filter((message) => message.type === 'surface');
+    expect(surfaces.length).toBeGreaterThanOrEqual(47);
+    const replayTicks: number[] = [];
+    const telemetryTicks: number[] = [];
+    for (const message of messages) {
+      if (message.type === 'replayFrames') {
+        const frames = new Float32Array(message.buffer);
+        for (let row = 0; row < message.rows; row++)
+          replayTicks.push(frames[row * (HEADER + CAR_STRIDE) + H.TICK]);
+      } else if (message.type === 'telemetry') {
+        const values = new Float32Array(message.buffer);
+        for (let row = 0; row < message.rows; row++)
+          telemetryTicks.push(values[row * TELEMETRY_STRIDE + CHANNELS.indexOf('tick')]);
+      }
+    }
+    expect(replayTicks.length).toBeGreaterThanOrEqual(359);
+    expect(messages.filter((message) => message.type === 'replayFrames')).toHaveLength(
+      Math.ceil(replayTicks.length / 15),
+    );
+    expect(telemetryTicks.length).toBeGreaterThanOrEqual(1439);
+    expect(replayTicks.every((tick, i) => tick === 8 * (i + 1))).toBe(true);
+    expect(telemetryTicks.every((tick, i) => tick === 2 * (i + 1))).toBe(true);
+  } finally {
+    clock.mockRestore();
+    vi.unstubAllGlobals();
+  }
 });
