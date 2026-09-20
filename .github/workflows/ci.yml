@@ -1,0 +1,173 @@
+name: Build and validation
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm run check
+      - name: Static application build
+        uses: actions/upload-artifact@v4
+        with:
+          name: apex-formula-web
+          path: dist/
+          retention-days: 7
+      - name: Preserve exact committed source
+        shell: bash
+        run: |
+          git archive --format=tar.gz HEAD > "$RUNNER_TEMP/apex-source.tar.gz"
+          git rev-parse HEAD > "$RUNNER_TEMP/source-commit.txt"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: apex-source
+          path: |
+            ${{ runner.temp }}/apex-source.tar.gz
+            ${{ runner.temp }}/source-commit.txt
+          retention-days: 7
+  scenarios:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm run test:physics
+      - run: node --experimental-transform-types scripts/rotation-benchmark.ts
+      - run: node --experimental-transform-types scripts/pit-integration.ts
+      - run: node --experimental-transform-types scripts/race-classification.ts
+      - name: Scenario evidence, including failures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: physics-scenarios
+          path: |
+            docs/scenario-results.json
+            docs/dynamics-benchmark.json
+            docs/marshal-integration.json
+            docs/wet-pit-results.json
+            docs/integrated-driving.json
+            docs/rotation-benchmark.json
+            docs/pit-integration.json
+            docs/race-classification.json
+          retention-days: 7
+  browser:
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
+    needs: validate
+    runs-on: ubuntu-latest
+    # Independent runners retain every test/timeout without contending for one
+    # software GPU. Playwright shards the complete suite; no file is filtered.
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - uses: actions/download-artifact@v4
+        with:
+          name: apex-formula-web
+          path: dist/
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e -- --shard=${{ matrix.shard }}/3
+      - name: Browser screenshots and diagnostics
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: browser-validation-${{ matrix.shard }}-of-3
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 7
+
+  wet-presentation:
+    # Early, independently retained GPU evidence for the dynamic presentation pass.
+    # The complete browser suite above still runs unchanged, including these cases.
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - uses: actions/download-artifact@v4
+        with:
+          name: apex-formula-web
+          path: dist/
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e -- e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts
+      - name: Wet presentation screenshots and GPU measurements
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wet-presentation
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 7
+
+  publish:
+    # Ship exactly the build tested above, never a parallel unvalidated rebuild.
+    needs: [validate, scenarios, browser, wet-presentation]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'cheshmakzanoon-ops/Experiment-3'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    concurrency:
+      group: apex-playable-publication
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/download-artifact@v4
+        with:
+          name: apex-formula-web
+          path: dist/
+      - name: Publish tested playable snapshot without overwriting a newer build
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          if test "$(git rev-parse origin/main)" != "$GITHUB_SHA"; then
+            echo 'A newer source commit exists; leaving playable unchanged.' >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          old=$(git ls-remote --heads origin refs/heads/playable | cut -f1)
+          mkdir -p "$RUNNER_TEMP/verified-playable"
+          cp -R dist/. "$RUNNER_TEMP/verified-playable/"
+          find "$RUNNER_TEMP/verified-playable" -type f -name '*.map' -delete
+          printf '%s\n' "$GITHUB_SHA" > "$RUNNER_TEMP/verified-playable/SOURCE_COMMIT.txt"
+          touch "$RUNNER_TEMP/verified-playable/.nojekyll"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git checkout --orphan playable-publish
+          git rm -rf .
+          git clean -fdx
+          cp -R "$RUNNER_TEMP/verified-playable/." .
+          git add -A
+          git commit -m "deploy: tested playable snapshot ${GITHUB_SHA::12}"
+          git push --force-with-lease="refs/heads/playable:$old" origin HEAD:refs/heads/playable
+          echo "Playable source: $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"

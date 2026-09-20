@@ -1,0 +1,149 @@
+{
+  "sourceSHA256": "608ad964f2df2c8b4a09dd3c19f01ddc0879ae1f6fe8bc6d1d267c9416cb75af",
+  "fixedDtSeconds": 0.004166666666666667,
+  "fixture": "Isolated analytic runway/skidpad/kerbs with the production Vehicle solver",
+  "passed": true,
+  "cases": [
+    {
+      "name": "braking-100kmh",
+      "passed": true,
+      "measurements": {
+        "distanceM": 18.95201431515368,
+        "stopSeconds": 1.4416666666666667,
+        "lateralDriftM": 0,
+        "minimumSlip": -1,
+        "peakLoadN": 4189.30890898149,
+        "discTemperaturesC": [
+          317.76870711274034,
+          317.76870711274034,
+          317.39914958361,
+          317.39914958361
+        ]
+      }
+    },
+    {
+      "name": "braking-200kmh",
+      "passed": true,
+      "measurements": {
+        "distanceM": 54.75449769273168,
+        "stopSeconds": 2.3333333333333335,
+        "lateralDriftM": 0,
+        "minimumSlip": -1,
+        "peakLoadN": 7799.782575873205,
+        "discTemperaturesC": [
+          324.25461037550053,
+          324.25461037550053,
+          321.32079660839617,
+          321.32079660839617
+        ]
+      }
+    },
+    {
+      "name": "braking-300kmh",
+      "passed": true,
+      "measurements": {
+        "distanceM": 96.91749003003986,
+        "stopSeconds": 2.9375,
+        "lateralDriftM": 0,
+        "minimumSlip": -1,
+        "peakLoadN": 12441.258989718983,
+        "discTemperaturesC": [
+          346.65326432236697,
+          346.65326432236697,
+          331.9005171501438,
+          331.9005171501438
+        ]
+      }
+    },
+    {
+      "name": "braking-speed-order",
+      "passed": true,
+      "measurements": [
+        18.95201431515368,
+        54.75449769273168,
+        96.91749003003986
+      ]
+    },
+    {
+      "name": "skidpad-15mps",
+      "passed": true,
+      "measurements": {
+        "commandedSpeedMps": 15,
+        "meanSpeedMps": 15.042890727274987,
+        "radialRmsErrorM": 0.04416288772641555,
+        "measuredLateralG": 0.2885934475599593,
+        "kinematicLateralG": 0.28859695955290776
+      }
+    },
+    {
+      "name": "skidpad-25mps",
+      "passed": true,
+      "measurements": {
+        "commandedSpeedMps": 25,
+        "meanSpeedMps": 24.978364225002025,
+        "radialRmsErrorM": 0.33832658473383764,
+        "measuredLateralG": 0.7917727500229184,
+        "kinematicLateralG": 0.7919258717119512
+      }
+    },
+    {
+      "name": "skidpad-35mps",
+      "passed": true,
+      "measurements": {
+        "commandedSpeedMps": 35,
+        "meanSpeedMps": 34.75766508212833,
+        "radialRmsErrorM": 1.2207670651947187,
+        "measuredLateralG": 1.515010350984358,
+        "kinematicLateralG": 1.5167479909683523
+      }
+    },
+    {
+      "name": "slalom-repeated-steering",
+      "passed": true,
+      "measurements": {
+        "cyclePeakYawRadps": [
+          0.20034707711764146,
+          0.20019191916930276,
+          0.20019259352432425,
+          0.20019216950289262,
+          0.2001925262390642,
+          0.20019291627151328
+        ],
+        "recoveredYawRadps": 0.00000114208664875144
+      }
+    },
+    {
+      "name": "low-kerb",
+      "passed": true,
+      "measurements": {
+        "peakCompressionM": 0.02758449856692491,
+        "peakLoadN": 3903.3788216774615,
+        "peakVerticalG": 0.244319415956081,
+        "skidWorkJ": 0,
+        "finalHeightM": 0.5176572814463617
+      }
+    },
+    {
+      "name": "high-kerb",
+      "passed": true,
+      "measurements": {
+        "peakCompressionM": 0.03749042735535896,
+        "peakLoadN": 5981.017723969262,
+        "peakVerticalG": 0.4501851766880506,
+        "skidWorkJ": 0,
+        "finalHeightM": 0.5176573168166201
+      }
+    },
+    {
+      "name": "sausage-kerb",
+      "passed": true,
+      "measurements": {
+        "peakCompressionM": 0.045744892343143495,
+        "peakLoadN": 7727.206695571044,
+        "peakVerticalG": 0.7625687273183489,
+        "skidWorkJ": 0,
+        "finalHeightM": 0.5176573780934997
+      }
+    }
+  ]
+}
