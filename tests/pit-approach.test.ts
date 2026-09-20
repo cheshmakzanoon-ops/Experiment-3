@@ -56,7 +56,7 @@ it.each([5, 2995])(
   },
 );
 
-it('does not yield to a stationary follower in a separate pit-entry corridor', () => {
+// Reproduces the rain/drainage queue that previously self-declared a stationary hazard.\nit('does not yield to a stationary follower in a separate pit-entry corridor', () => {
   const t = new Track(),
     lead = new Vehicle(0),
     follower = new Vehicle(1);
