@@ -4,12 +4,13 @@ import type { Simulation } from '../simulation/world.ts';
 /**
  * Recording pages are exactly one second of data (60 telemetry rows or
  * 15 replay snapshots). Start small, then grow only when the browser has not
- * recycled transferred pages quickly enough. Thirty pages absorbs a long
- * render/main-thread hitch while keeping the worst-case 12-car transport
- * reserve below ~7 MiB across telemetry + replay.
+ * recycled transferred pages quickly enough. Sixty pages absorbs a long
+ * render/main-thread hitch and slow GitHub-hosted software rendering without
+ * compromising capture continuity; the reserve remains bounded and is released
+ * back toward the six-page steady-state pool after recycling.
  */
 export const RECORDING_TRANSPORT_INITIAL_PAGES = 6;
-export const RECORDING_TRANSPORT_MAX_PAGES = 30;
+export const RECORDING_TRANSPORT_MAX_PAGES = 60;
 
 class ElasticTransferPool {
   private readonly pool: Float32Array[] = [];
@@ -55,7 +56,7 @@ class ElasticTransferPool {
 
 /** Captures every second physics tick, irrespective of snapshot recycling or
  * render FPS. One-second transferable pages begin with a six-second reserve and
- * can grow to a bounded thirty-second reserve when the main thread is stalled.
+ * can grow to a bounded sixty-second reserve when the main thread is stalled.
  * If the consumer remains unavailable beyond that reserve, the gap is reported
  * explicitly rather than fabricating a continuous capture. */
 export class TelemetrySampler {
