@@ -1,0 +1,80 @@
+name: One-time main-only branch cleanup
+on:
+  push:
+    branches: [main]
+    paths: [.github/workflows/main-only-cleanup.yml]
+permissions:
+  contents: read
+jobs:
+  cleanup:
+    if: github.repository == 'cheshmakzanoon-ops/Experiment-3' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    concurrency:
+      group: apex-playable-publication
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Verify all source work is retained and preserve recovery history
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = 'cheshmakzanoon-ops/Experiment-3'
+          git fetch --no-tags origin '+refs/heads/*:refs/remotes/origin/*'
+          test "$(git ls-remote --symref origin HEAD | head -1 | cut -f1)" = 'ref: refs/heads/main'
+          test "$(git rev-parse origin/main)" = "$GITHUB_SHA"
+          git merge-base --is-ancestor 6927fa5a68a82b4fb0b8e385da5ab1032efbe623 origin/main
+          declare -A expected=(
+            [appdeploy-snapshot]=3dfdfbcaeb7f65bc8ebe95dee3f62ea8e78b4d53
+            [integrate-paddock-depth-20260919]=65aa63b0edc28434bc2da092b64fe67ad93e5da8
+            [playable]=3b4020017fdc95a7252c1301412cae06cce35597
+          )
+          for branch in "${!expected[@]}"; do
+            test "$(git rev-parse "origin/$branch")" = "${expected[$branch]}"
+          done
+          # A reversed patch check proves the entire integration change already
+          # exists in main; filenames alone are not proof of integration.
+          git diff --binary --full-index fbb5e242bb2405a150b1a7d2a16ddcb79d3f61bf 65aa63b0edc28434bc2da092b64fe67ad93e5da8 > "$RUNNER_TEMP/paddock-integrated.patch"
+          git apply --reverse --check "$RUNNER_TEMP/paddock-integrated.patch"
+          for branch in appdeploy-snapshot playable; do
+            source=$(git show "origin/$branch:SOURCE_COMMIT.txt")
+            [[ "$source" =~ ^[0-9a-f]{40}$ ]]
+            git merge-base --is-ancestor "$source" origin/main
+            # These refs must contain compiled output only, never unique source.
+            while IFS= read -r path; do
+              case "$path" in .nojekyll|SOURCE_COMMIT.txt|assets|icon.svg|index.html) ;; *) echo "Unexpected snapshot path: $path" >&2; exit 1 ;; esac
+            done < <(git ls-tree --name-only "origin/$branch")
+            printf '%s source %s is retained in main\n' "$branch" "$source"
+          done
+          git bundle create "$RUNNER_TEMP/experiment-3-before-branch-cleanup.bundle" refs/remotes/origin/main refs/remotes/origin/appdeploy-snapshot refs/remotes/origin/integrate-paddock-depth-20260919 refs/remotes/origin/playable
+          git bundle verify "$RUNNER_TEMP/experiment-3-before-branch-cleanup.bundle"
+          git ls-remote --heads origin > "$RUNNER_TEMP/branch-heads-before.txt"
+      - name: Save recovery bundle before deleting any branch
+        uses: actions/upload-artifact@v4
+        with:
+          name: branch-cleanup-recovery
+          path: |
+            ${{ runner.temp }}/experiment-3-before-branch-cleanup.bundle
+            ${{ runner.temp }}/branch-heads-before.txt
+            ${{ runner.temp }}/paddock-integrated.patch
+          retention-days: 90
+          if-no-files-found: error
+      - name: Delete only the three verified obsolete refs
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git ls-remote --symref origin HEAD | head -1 | cut -f1)" = 'ref: refs/heads/main'
+          test "$(git ls-remote --heads origin refs/heads/main | cut -f1)" = "$GITHUB_SHA"
+          # Explicit leases reject concurrent edits; no wildcard deletion,
+          # history rewrite, default-branch change or protection bypass.
+          git push \
+            --force-with-lease=refs/heads/appdeploy-snapshot:3dfdfbcaeb7f65bc8ebe95dee3f62ea8e78b4d53 \
+            --force-with-lease=refs/heads/integrate-paddock-depth-20260919:65aa63b0edc28434bc2da092b64fe67ad93e5da8 \
+            --force-with-lease=refs/heads/playable:3b4020017fdc95a7252c1301412cae06cce35597 \
+            origin :refs/heads/appdeploy-snapshot :refs/heads/integrate-paddock-depth-20260919 :refs/heads/playable
+          test "$(git ls-remote --heads origin | cut -f2)" = 'refs/heads/main'
+          echo 'Verified: main is the only remote branch. Source was preserved; recovery history is attached to this run.' >> "$GITHUB_STEP_SUMMARY"
