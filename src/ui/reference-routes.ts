@@ -21,12 +21,42 @@ export function referenceRoute(entry: ReferenceEntry): ReferenceRoute | null {
       instruction:
         'Connect a supported device and use input calibration. Product photographs are not game assets; those physical peripherals were not tested here.',
     };
+  if ([1, 46].includes(id))
+    return {
+      destination: 'photo',
+      label: 'COMPARE GEOMETRY / RENDER',
+      photo: {
+        backdrop: 'circuit',
+        survey: 'split',
+        split: 0.5,
+        azimuth: 42,
+        elevation: 42,
+        distance: 30,
+        focalLength: 30,
+      },
+      instruction:
+        'The left half samples the actual original circuit meshes into a bounded point cloud. The right half uses the same camera and rendered scene. This is NOT measured LiDAR, an imported scan, or a licensed circuit.',
+    };
+  if ([11, 16, 81, 86].includes(id))
+    return {
+      destination: 'photo',
+      label: 'INSPECT ORIGINAL 3D HEADQUARTERS',
+      photo: {
+        backdrop: 'headquarters',
+        azimuth: 28,
+        elevation: 17,
+        distance: 17,
+        focalLength: 30,
+      },
+      instruction:
+        'Original inspectable workshop/atrium: glass elevation, mezzanine, stairs and rails, tool benches, lounge furniture, plants and overhead lighting. This is a procedural scene, not the licensed headquarters or an acted interview. Team HQ holds the working management controls.',
+    };
   if (id === 40)
     return {
       destination: 'settings',
       label: 'INSPECT ACCESSIBILITY SETTINGS',
       instruction:
-        'Existing colour-accessible presentation, contrast, device calibration and bindings are available here. The reference audio-driving cue system is still a documented gap.',
+        'Find Audio driving cues: independently enable brake, stereo turn, gear, track-limit and wrong-way tones, adjust lookahead/volume and preview. Apply to persist. Only live human driving emits advice; this is not blind-driving certification.',
     };
   if (id === 47)
     return {

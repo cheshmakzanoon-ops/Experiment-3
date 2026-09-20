@@ -1,3 +1,10 @@
+import {
+  CueSynth,
+  DrivingCueDirector,
+  validateDrivingAudio,
+  type DrivingAudioSettings,
+} from './driving-cues.ts';
+import type { Track } from '../simulation/track.ts';
 import { ContactAudio } from './surface-audio.ts';
 import { EngineVoices } from './engine-voices.ts';
 import type { AudioView } from './spatial.ts';
@@ -9,6 +16,36 @@ import { clamp, Random } from '../core/math.ts';
  * audio output is allowed to modify physics or recorded state. */
 export class RacingAudio {
   private context: AudioContext | null = null;
+  private cueDirector: DrivingCueDirector | null = null;
+  private cueSettings = validateDrivingAudio(null);
+  private cueSynth: CueSynth | null = null;
+  private previewSynth: CueSynth | null = null;
+  private lastPreview = -Infinity;
+  configureDriving(track: Track, settings: DrivingAudioSettings) {
+    if (this.cueDirector?.track !== track) this.cueDirector = new DrivingCueDirector(track);
+    this.cueSettings = validateDrivingAudio(settings);
+    this.cueDirector.reset();
+    this.cueSynth?.silence();
+  }
+  async previewDriving(settings: DrivingAudioSettings) {
+    await this.start();
+    const ctx = this.context;
+    if (!ctx || !this.previewSynth || this.muted || ctx.currentTime - this.lastPreview < 0.8)
+      return;
+    this.lastPreview = ctx.currentTime;
+    const p = validateDrivingAudio(settings),
+      invert = p.invertStereo ? -1 : 1;
+    for (const [offset, frequency, pan] of [
+      [0, 660, -0.85],
+      [0.25, 800, 0],
+      [0.5, 660, 0.85],
+    ])
+      this.previewSynth.play(
+        { kind: 'turn', frequency, pan: pan * invert, duration: 0.15 },
+        ctx.currentTime + offset,
+        p.volume * this.volume * 0.8,
+      );
+  }
   private master: GainNode | null = null;
   private compressor: DynamicsCompressorNode | null = null;
   private engines: EngineVoices | null = null;
@@ -39,6 +76,8 @@ export class RacingAudio {
     this.compressor.release.value = 0.18;
     this.master.connect(this.compressor).connect(ctx.destination);
     this.engines = new EngineVoices(ctx, this.master);
+    this.cueSynth = new CueSynth(ctx, this.master);
+    this.previewSynth = new CueSynth(ctx, this.compressor);
     const random = new Random(331),
       buffer = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
     const data = buffer.getChannelData(0);
@@ -70,11 +109,25 @@ export class RacingAudio {
     this.contactAudio = new ContactAudio(ctx, this.contactPan);
     await ctx.resume();
   }
-  update(frame: Float32Array, cockpit: boolean, playing: boolean, view: AudioView) {
+  update(
+    frame: Float32Array,
+    cockpit: boolean,
+    playing: boolean,
+    view: AudioView,
+    liveHuman = false,
+  ) {
     const ctx = this.context;
     if (!ctx || !this.master || ctx.currentTime - this.last < 0.025) return;
     this.last = ctx.currentTime;
     const time = ctx.currentTime;
+    const cue = this.cueDirector?.sample(
+      frame,
+      playing && liveHuman && !this.muted,
+      time,
+      this.cueSettings,
+    );
+    if (cue) this.cueSynth?.play(cue, time, this.cueSettings.volume);
+    if (!playing || !liveHuman || this.muted) this.cueSynth?.silence();
     this.master.gain.setTargetAtTime(playing && !this.muted ? this.volume * 0.8 : 0, time, 0.06);
     if (!playing) {
       if (this.wasPlaying) this.resetPresentation();
@@ -105,16 +158,27 @@ export class RacingAudio {
     return {
       state: this.context?.state ?? 'uninitialized',
       playing: this.wasPlaying,
+      drivingCues: {
+        enabled: this.cueSettings.enabled,
+        last: this.cueDirector?.lastKind ?? null,
+        emitted: this.cueDirector?.emitted ?? 0,
+      },
       contactAttenuation: this.contactAttenuation,
       voices: this.engines?.spatial.voices.map((voice) => ({ ...voice })) ?? [],
     };
   }
   stop() {
+    this.cueDirector?.reset();
+    this.cueSynth?.silence();
+    this.previewSynth?.silence();
     this.master?.gain.setTargetAtTime(0, this.context?.currentTime ?? 0, 0.03);
     this.resetPresentation();
     this.wasPlaying = false;
   }
   async dispose() {
+    this.cueSynth?.dispose();
+    this.previewSynth?.dispose();
+    this.cueSynth = this.previewSynth = null;
     this.contactAudio?.dispose();
     this.contactAudio = null;
     this.engines?.dispose();

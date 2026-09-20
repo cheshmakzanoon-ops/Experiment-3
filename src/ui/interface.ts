@@ -1,3 +1,5 @@
+import { audioAccessibility, readDrivingAudio } from './audio-accessibility.ts';
+import type { DrivingAudioSettings } from '../audio/driving-cues.ts';
 import { nearbyTraffic } from './proximity.ts';
 import { BUTTON_ACTIONS, BUTTON_ACTION_LABELS } from '../input/button-actions.ts';
 import { engineeringReport } from './engineering.ts';
@@ -42,6 +44,7 @@ interface Callbacks {
   replaySpeed: (value: number) => void;
   exportSetup: () => void;
   importSetup: (file: File) => void;
+  previewAudio?: (settings: DrivingAudioSettings) => void;
 }
 export class Interface {
   readonly menu: HTMLElement;
@@ -442,7 +445,7 @@ export class Interface {
         )
         .join(
           '',
-        )}<h3>Input mapping</h3><p class="small-note">Axis and button numbers are zero-based. Keyboard always remains available.</p><div class="mapping-grid">${[
+        )}${audioAccessibility(settings.drivingAudio)}<h3>Input mapping</h3><p class="small-note">Axis and button numbers are zero-based. Keyboard always remains available.</p><div class="mapping-grid">${[
         ['steerAxis', 'Steer axis'],
         ['throttleAxis', 'Throttle axis'],
         ['brakeAxis', 'Brake axis'],
@@ -487,6 +490,8 @@ export class Interface {
     );
     (form.elements.namedItem('quality') as HTMLSelectElement).value = settings.quality;
     const graphics = bindPresentation(form, settings);
+    form.querySelector<HTMLButtonElement>('#previewDrivingAudio')!.onclick = () =>
+      this.callbacks.previewAudio?.(readDrivingAudio(form));
     form.addEventListener('input', (e) => {
       const input = e.target as HTMLInputElement;
       const output = input.parentElement?.querySelector('output');
@@ -539,6 +544,7 @@ export class Interface {
       const next = structuredClone(settings);
       next.quality = value('quality') as Settings['quality'];
       next.graphics = graphics();
+      next.drivingAudio = readDrivingAudio(form);
       next.colorblind = (form.elements.namedItem('colorblind') as HTMLInputElement).checked;
       next.highContrast = (form.elements.namedItem('highContrast') as HTMLInputElement).checked;
       for (const key of ['volume', 'shake', 'uiScale'] as const) next[key] = Number(value(key));

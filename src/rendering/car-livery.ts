@@ -1,6 +1,21 @@
 import * as T from 'three';
 import { canvasTexture } from './geometry.ts';
-import type { Livery } from '../storage/livery.ts';
+import type { DecalSlot, Livery } from '../storage/livery.ts';
+/** The flank UV has a signed orientation on each side. Coordinates are in the
+ * same rotated panel space as the original wordmark, not screen-space overlays. */
+export function drawDecal(context: CanvasRenderingContext2D, decal: DecalSlot, side: number) {
+  context.save();
+  context.translate((side > 0 ? 0.25 : 0.75) * 1024, 440);
+  context.rotate(side > 0 ? Math.PI / 2 : -Math.PI / 2);
+  context.translate(decal.x * 320, decal.y * 90);
+  context.rotate((decal.rotation * Math.PI) / 180);
+  context.fillStyle = decal.color;
+  context.textAlign = 'center';
+  context.textBaseline = 'middle';
+  context.font = `800 ${32 * decal.scale}px Arial`;
+  context.fillText(decal.text, 0, 0, 190 * decal.scale);
+  context.restore();
+}
 const sourceCanvases = new WeakMap<T.Texture, HTMLCanvasElement>();
 
 /** Paint into the original UV canvas so quality changes never restore a stale livery. */
@@ -51,6 +66,8 @@ function drawFlank(
   context.font = '800 49px Arial';
   context.fillText(String(livery?.number ?? id + 7).padStart(2, '0'), 0, 0);
   context.restore();
+  for (const decal of livery?.decals ?? [])
+    if ((decal.side === 'left') === side > 0) drawDecal(context, decal, side);
 }
 /** Original marks on a UV-conforming skin, never extracted reference artwork. */
 export function flankLivery(paint: T.MeshPhysicalMaterial, side: number, id: number) {

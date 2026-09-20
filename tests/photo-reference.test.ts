@@ -18,7 +18,7 @@ describe('photo camera and safe original livery', () => {
     expect(validatePhoto({ target: 10 }, NaN).target).toBe(0);
     expect(
       Object.entries(validatePhoto({ focalLength: NaN, roll: -Infinity }))
-        .filter(([key]) => key !== 'backdrop')
+        .filter(([key]) => !['backdrop', 'depthOfField', 'focusMode', 'survey'].includes(key))
         .every(([, value]) => Number.isFinite(value)),
     ).toBe(true);
   });

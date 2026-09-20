@@ -1,4 +1,9 @@
 import {
+  DEFAULT_DRIVING_AUDIO,
+  validateDrivingAudio,
+  type DrivingAudioSettings,
+} from '../audio/driving-cues.ts';
+import {
   defaultButtonActions,
   validateButtonActions,
   type ButtonActions,
@@ -48,6 +53,7 @@ export interface Settings {
   highContrast: boolean;
   quality: Quality;
   volume: number;
+  drivingAudio: DrivingAudioSettings;
   shake: number;
   uiScale: number;
   mapping: InputMapping;
@@ -61,6 +67,7 @@ export const DEFAULT_SETTINGS: Settings = {
   highContrast: false,
   quality: 'medium',
   volume: 0.45,
+  drivingAudio: { ...DEFAULT_DRIVING_AUDIO },
   shake: 0.35,
   uiScale: 1,
   mapping: {
@@ -105,6 +112,7 @@ export function validateSettings(v: unknown): Settings {
     highContrast: p.highContrast === true,
     quality,
     volume: finite(p.volume, 0.45, 0, 1),
+    drivingAudio: validateDrivingAudio(p.drivingAudio),
     shake: finite(p.shake, 0.35, 0, 1),
     uiScale: finite(p.uiScale, 1, 0.8, 1.35),
     setup: validateSetup(p.setup ?? DEFAULT_SETUP),

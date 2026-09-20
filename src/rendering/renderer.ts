@@ -1,8 +1,17 @@
+import { HeadquartersStage } from './headquarters-stage.ts';
+import { BokehPass } from 'three/addons/postprocessing/BokehPass.js';
+import { GeometrySurvey } from './geometry-survey.ts';
 import { DrivingGuide } from './driving-guide.ts';
 import { GridPreparationView } from './grid-preparation.ts';
 import { PhotoStage, ScenePresentationScope } from './photo-stage.ts';
 import { VenueLighting } from './venue-lighting.ts';
-import { photoFov, photoOffset, validatePhoto, type PhotoSettings } from './photo-camera.ts';
+import {
+  photoLens,
+  photoFov,
+  photoOffset,
+  validatePhoto,
+  type PhotoSettings,
+} from './photo-camera.ts';
 import { type Livery } from '../storage/livery.ts';
 import {
   configureSky,
@@ -63,6 +72,7 @@ export class RacingRenderer {
   readonly pitCrew = new PitCrewView();
   readonly gridPreparation = new GridPreparationView();
   readonly photoStage = new PhotoStage();
+  private headquarters: HeadquartersStage | null = null;
   private scenePresentation = new ScenePresentationScope(this.scene);
   private nightFog = new T.Color(0x111b2c);
   readonly guide: DrivingGuide;
@@ -74,6 +84,8 @@ export class RacingRenderer {
   private sky = new Sky();
   private composer: EffectComposer;
   private bloom: UnrealBloomPass;
+  private photoFocus: BokehPass | null = null;
+  private geometrySurvey: GeometrySurvey | null = null;
   private motionBlur: MotionBlurPass;
   private fxaa = new ShaderPass(FXAAShader);
   private textures = new TextureBudget();
@@ -352,7 +364,31 @@ export class RacingRenderer {
     this.reflection.invalidate();
   }
   setPhoto(value: PhotoSettings | null, cars = this.cars.length) {
+    const previous = this.photo;
     this.photo = value ? validatePhoto(value, cars) : null;
+    if (this.photo?.backdrop === 'headquarters' && !this.headquarters) {
+      this.headquarters = new HeadquartersStage();
+      this.scene.add(this.headquarters.root);
+      this.textures.register(this.headquarters.root);
+      this.textures.configure(
+        this.graphics.textureSize,
+        Math.min(this.graphics.anisotropy, this.renderer.capabilities.getMaxAnisotropy()),
+      );
+    }
+    if (this.photo?.depthOfField && !this.photoFocus) {
+      this.photoFocus = new BokehPass(
+        this.scene,
+        this.camera,
+        photoLens(this.photo, this.photo.distance),
+      );
+      this.composer.insertPass(this.photoFocus, 1);
+    }
+    if (this.photoFocus) this.photoFocus.enabled = !!this.photo?.depthOfField;
+    if (this.photo && this.photo.survey !== 'off') {
+      this.geometrySurvey ??= new GeometrySurvey();
+      if (!previous || previous.survey === 'off' || previous.target !== this.photo.target)
+        this.geometrySurvey.dirty = true;
+    }
     this.follow = this.photo?.target ?? 0;
     this.initialized = false;
     this.motionBlur.reset();
@@ -443,7 +479,7 @@ export class RacingRenderer {
     const car = this.cars[this.follow],
       speed = b[o + F.SPEED];
     const daylight = daylightState(presented[H.CLOUD], presented[H.RAIN]);
-    const studio = this.photo?.backdrop === 'studio';
+    const studio = !!this.photo && this.photo.backdrop !== 'circuit';
     if (this.night && !studio) {
       daylight.sun = 0.16;
       daylight.fill = 0.11;
@@ -602,12 +638,15 @@ export class RacingRenderer {
     car.root.worldToLocal(this.eyeLocal);
     this.renderer.info.reset();
     this.gpuTimer.begin();
+    const originalOverride = this.scene.overrideMaterial;
     try {
       if (studio) {
         const road = this.circuit.track.at(presented[o + F.S], { ...this.circuit.track.points[0] });
-        this.photoStage.position(car.root, road.y);
-        this.scenePresentation.begin(this.photoStage.background, true);
-        this.scenePresentation.visibilityFor(this.photoStage.root, true);
+        const stage =
+          this.photo?.backdrop === 'headquarters' ? this.headquarters! : this.photoStage;
+        stage.position(car.root, road.y);
+        this.scenePresentation.begin(stage.background, true);
+        this.scenePresentation.visibilityFor(stage.root, true);
         for (const group of [
           this.circuit.group,
           this.sky,
@@ -637,8 +676,31 @@ export class RacingRenderer {
       this.reflection.renderMirrors(this.renderer, this.scene, car.root, dt);
       this.motionBlur.setStrength(this.photo ? 0 : this.graphics.motionBlur);
       this.motionBlur.prepareFrame(wallDelta, b[H.TIME]);
+      if (this.photoFocus?.enabled && this.photo) {
+        // Optical-axis depth, rather than Euclidean distance, matches the depth shader.
+        this.camera.updateMatrixWorld();
+        const depth = -this.temporary.copy(this.gaze).applyMatrix4(this.camera.matrixWorldInverse)
+          .z;
+        const lens = photoLens(this.photo, depth);
+        for (const key of ['focus', 'aperture', 'maxblur'] as const)
+          this.photoFocus.materialBokeh.uniforms[key].value = lens[key];
+      }
       this.composer.render();
+      if (this.photo && this.photo.survey !== 'off' && this.geometrySurvey) {
+        if (this.geometrySurvey.dirty)
+          this.geometrySurvey.rebuild(
+            [this.circuit.group, ...this.cars.filter((c) => c.root.visible).map((c) => c.root)],
+            car.root.position,
+          );
+        this.geometrySurvey.render(
+          this.renderer,
+          this.camera,
+          this.photo.survey === 'points' ? 1 : this.photo.split,
+        );
+      }
     } finally {
+      // BokehPass temporarily installs a depth override; restore even on GPU failure.
+      this.scene.overrideMaterial = originalOverride;
       this.scenePresentation.restore();
       this.gpuTimer.end();
     }
@@ -695,6 +757,16 @@ export class RacingRenderer {
     for (let i = sorted.length - slowCount; i < sorted.length; i++) slowTotal += sorted[i];
     return {
       photo: this.photo ? { ...this.photo } : null,
+      geometrySurvey: {
+        count: this.geometrySurvey?.count ?? 0,
+        candidates: this.geometrySurvey?.candidates ?? 0,
+        active: !!this.photo && this.photo.survey !== 'off',
+        source: 'rendered geometry; not LiDAR',
+      },
+      photoFocus: {
+        enabled: this.photoFocus?.enabled ?? false,
+        focus: this.photoFocus?.materialBokeh.uniforms.focus.value ?? null,
+      },
       night: this.night,
       guide: this.guide.diagnostics(),
       gridPreparation: this.gridPreparation.diagnostics(),
@@ -753,6 +825,8 @@ export class RacingRenderer {
     this.reflection.dispose();
     this.gpuTimer.dispose();
     this.motionBlur.dispose();
+    this.photoFocus?.dispose();
+    this.geometrySurvey?.dispose();
     this.bloom.dispose();
     this.fxaa.dispose();
     this.textures.dispose();

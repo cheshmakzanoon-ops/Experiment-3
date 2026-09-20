@@ -1,3 +1,4 @@
+import { DecalEditor } from './decal-editor.ts';
 import { DEFAULT_PHOTO, validatePhoto, type PhotoSettings } from '../rendering/photo-camera.ts';
 import { LIVERY_PRESETS, validateLivery, type Livery } from '../storage/livery.ts';
 import { escapeHtml } from './team-hub.ts';
@@ -15,6 +16,9 @@ const sliders = [
   ['focalLength', 'FOCAL LENGTH', 18, 150, 1, ' mm'],
   ['exposure', 'EXPOSURE', -2, 2, 0.05, ' EV'],
   ['roll', 'ROLL', -45, 45, 1, '°'],
+  ['focusDistance', 'MANUAL FOCUS DISTANCE', 0.5, 250, 0.1, ' m'],
+  ['fStop', 'APERTURE', 1.4, 22, 0.1, ' f'],
+  ['split', 'SURVEY SPLIT', 0.1, 0.9, 0.01, ''],
 ] as const;
 export class PhotoStudio {
   readonly element = document.createElement('section');
@@ -22,6 +26,7 @@ export class PhotoStudio {
   private cars = 1;
   private generation = 0;
   private saving = false;
+  private decalEditor: DecalEditor | null = null;
   constructor(
     root: HTMLElement,
     private callbacks: PhotoCallbacks,
@@ -37,16 +42,23 @@ export class PhotoStudio {
           {
             ...this.settings,
             [input.dataset.photo]:
-              input.dataset.photo === 'backdrop' ? input.value : Number(input.value),
+              input.type === 'checkbox'
+                ? input.checked
+                : ['backdrop', 'focusMode', 'survey'].includes(input.dataset.photo)
+                  ? input.value
+                  : Number(input.value),
           },
           this.cars,
         );
         this.callbacks.change(this.settings);
+        (this.element.querySelector('#photo-survey') as HTMLSelectElement).value =
+          this.settings.survey;
         const output = this.element.querySelector<HTMLOutputElement>(`output[for="${input.id}"]`);
         if (output) output.value = input.value;
         this.element.querySelector<HTMLElement>('#photoLivery')!.hidden =
           this.settings.target !== 0;
-      } else if (input.closest('#photoLivery')) this.callbacks.preview(this.readLivery());
+      } else if (input.closest('#photoLivery') && !input.closest('#decalEditor'))
+        this.callbacks.preview(this.readLivery());
     });
     this.element.addEventListener('change', (e) => {
       const select = e.target as HTMLSelectElement;
@@ -99,13 +111,17 @@ export class PhotoStudio {
     this.cars = Math.max(1, Math.min(12, cars));
     this.settings = { ...DEFAULT_PHOTO };
     this.element.classList.remove('clean-frame');
-    this.element.innerHTML = `<header class="photo-title"><span class="eyebrow">APEX / PHOTO STUDIO</span><h2>Hold the moment.</h2><p>FROZEN SIMULATION · ORIGINAL GAME RENDER</p></header><div class="photo-top-actions"><button data-photo-action="clean">CLEAN FRAME</button><button data-photo-action="close">RETURN / ESC</button></div><aside class="photo-drawer" aria-label="Photo studio controls"><h3>Compose</h3><label>SETTING<select id="photoBackdrop" data-photo="backdrop"><option value="circuit">ON CIRCUIT</option><option value="studio">DARK SHOWROOM</option></select></label><label>SUBJECT<select id="photoTarget" data-photo="target">${Array.from({ length: this.cars }, (_, id) => `<option value="${id}">${id === 0 ? 'YOUR CAR' : `CAR ${id + 1}`}</option>`).join('')}</select></label>${sliders.map(([key, title, min, max, step, unit]) => `<label for="photo-${key}">${title}<span><output for="photo-${key}">${this.settings[key]}</output>${unit}</span></label><input id="photo-${key}" data-photo="${key}" aria-label="${title}" type="range" min="${min}" max="${max}" step="${step}" value="${this.settings[key]}">`).join('')}<p class="photo-help">Lens framing uses a 24 mm vertical film gate. Exposure adjusts the actual renderer. No artificial depth of field or shutter blur is claimed.</p><div class="photo-buttons"><button data-photo-action="reset">RESET CAMERA</button><button class="primary" id="capturePhoto" data-photo-action="capture">DOWNLOAD PNG</button></div><form id="photoLivery"><h3>Make it yours.</h3><label>STUDIO PRESET<select id="liveryPreset"><option value="">CUSTOM</option>${Object.keys(
+    this.element.innerHTML = `<header class="photo-title"><span class="eyebrow">APEX / PHOTO STUDIO</span><h2>Hold the moment.</h2><p>FROZEN SIMULATION · ORIGINAL GAME RENDER</p></header><div class="photo-top-actions"><button data-photo-action="clean">CLEAN FRAME</button><button data-photo-action="close">RETURN / ESC</button></div><aside class="photo-drawer" aria-label="Photo studio controls"><h3>Compose</h3><label>SETTING<select id="photoBackdrop" data-photo="backdrop"><option value="circuit">ON CIRCUIT</option><option value="studio">DARK SHOWROOM</option><option value="headquarters">TEAM WORKSHOP / ATRIUM</option></select></label><label>SUBJECT<select id="photoTarget" data-photo="target">${Array.from({ length: this.cars }, (_, id) => `<option value="${id}">${id === 0 ? 'YOUR CAR' : `CAR ${id + 1}`}</option>`).join('')}</select></label>${sliders.map(([key, title, min, max, step, unit]) => `<label for="photo-${key}">${title}<span><output for="photo-${key}">${this.settings[key]}</output>${unit}</span></label><input id="photo-${key}" data-photo="${key}" aria-label="${title}" type="range" min="${min}" max="${max}" step="${step}" value="${this.settings[key]}">`).join('')}<label class="check"><input data-photo="depthOfField" id="photo-depthOfField" type="checkbox">DEPTH OF FIELD</label><label>FOCUS<select data-photo="focusMode" id="photo-focusMode"><option value="subject">FOLLOW SUBJECT DEPTH</option><option value="manual">MANUAL DISTANCE</option></select></label><label>GEOMETRY SURVEY<select data-photo="survey" id="photo-survey"><option value="off">NORMAL RENDER</option><option value="split">POINTS / RENDER SPLIT</option><option value="points">POINT CLOUD ONLY</option></select></label><p class="photo-help">24 mm vertical film gate. Depth-based bokeh is an artistic approximation, not lens-calibrated shutter accumulation. Survey points are sampled from this original circuit geometry, NOT imported LiDAR or reference pixels. Survey is circuit-only.</p><div class="photo-buttons"><button data-photo-action="reset">RESET CAMERA</button><button class="primary" id="capturePhoto" data-photo-action="capture">DOWNLOAD PNG</button></div><form id="photoLivery"><h3>Make it yours.</h3><label>STUDIO PRESET<select id="liveryPreset"><option value="">CUSTOM</option>${Object.keys(
       LIVERY_PRESETS,
     )
       .map((key) => `<option value="${key}">${key.toUpperCase()}</option>`)
       .join(
         '',
-      )}</select></label><div class="livery-paints"><label>BODY<input id="liveryPrimary" type="color" value="${livery.primary}"></label><label>ACCENT<input id="liveryAccent" type="color" value="${livery.accent}"></label><label>NUMBER<input id="liveryNumber" type="number" min="1" max="99" value="${livery.number}" required></label></div><label>WORDMARK<input id="liverySponsor" maxlength="14" value="${escapeHtml(livery.sponsor)}" required></label><label>GRAPHIC<select id="liveryPattern"><option value="sweep">SWEEP</option><option value="split">SPLIT</option><option value="minimal">MINIMAL</option></select></label><button type="submit" id="saveLivery">SAVE LIVERY</button><p class="photo-help">Changes preview immediately. Save to keep them; unsaved edits are discarded on return.</p></form><p id="photoStatus" role="status">PNG contains the game canvas only, without menus or reference artwork.</p></aside>`;
+      )}</select></label><div class="livery-paints"><label>BODY<input id="liveryPrimary" type="color" value="${livery.primary}"></label><label>ACCENT<input id="liveryAccent" type="color" value="${livery.accent}"></label><label>NUMBER<input id="liveryNumber" type="number" min="1" max="99" value="${livery.number}" required></label></div><label>WORDMARK<input id="liverySponsor" maxlength="14" value="${escapeHtml(livery.sponsor)}" required></label><label>GRAPHIC<select id="liveryPattern"><option value="sweep">SWEEP</option><option value="split">SPLIT</option><option value="minimal">MINIMAL</option></select></label><section id="decalEditor" aria-label="Decal placement editor"></section><button type="submit" id="saveLivery">SAVE LIVERY</button><p class="photo-help">Changes preview immediately. Save to keep them; unsaved edits are discarded on return.</p></form><p id="photoStatus" role="status">PNG contains the game canvas only, without menus or reference artwork.</p></aside>`;
+    this.decalEditor = new DecalEditor(
+      this.element.querySelector<HTMLElement>('#decalEditor')!,
+      () => this.callbacks.preview(this.readLivery()),
+    );
     this.fillLivery(livery);
     this.element.hidden = false;
     this.callbacks.change(this.settings);
@@ -117,6 +133,11 @@ export class PhotoStudio {
     this.callbacks.change(this.settings);
   }
   private fillCamera() {
+    (this.element.querySelector('#photo-depthOfField') as HTMLInputElement).checked =
+      this.settings.depthOfField;
+    (this.element.querySelector('#photo-focusMode') as HTMLSelectElement).value =
+      this.settings.focusMode;
+    (this.element.querySelector('#photo-survey') as HTMLSelectElement).value = this.settings.survey;
     (this.element.querySelector('#photoBackdrop') as HTMLSelectElement).value =
       this.settings.backdrop;
     for (const [key] of sliders) {
@@ -132,6 +153,7 @@ export class PhotoStudio {
     this.element.querySelector<HTMLElement>('#photoLivery')!.hidden = this.settings.target !== 0;
   }
   private fillLivery(value: Livery) {
+    this.decalEditor?.load(value.decals);
     for (const key of ['primary', 'accent', 'number', 'sponsor', 'pattern'] as const) {
       const id = 'livery' + key[0].toUpperCase() + key.slice(1);
       (this.element.querySelector(`#${id}`) as HTMLInputElement | HTMLSelectElement).value = String(
@@ -142,6 +164,7 @@ export class PhotoStudio {
   private readLivery(): Livery {
     const value = (id: string) => (this.element.querySelector(`#${id}`) as HTMLInputElement).value;
     return validateLivery({
+      decals: this.decalEditor?.value(),
       primary: value('liveryPrimary'),
       accent: value('liveryAccent'),
       number: Number(value('liveryNumber')),

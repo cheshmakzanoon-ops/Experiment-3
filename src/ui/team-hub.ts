@@ -16,6 +16,23 @@ export const escapeHtml = (value: string) =>
 const money = (value: number) => `${value < 0 ? '−' : ''}¤${Math.abs(value).toLocaleString('en')}`;
 const button = (label: string, action: string, disabled = false) =>
   `<button data-action="${action}" ${disabled ? 'disabled' : ''}>${label}</button>`;
+export function teamCalendar(team: TeamState): string {
+  const budget = weeklyBudget(team),
+    rate = team.workforce.engineering >= 16 ? 2 : 1;
+  return `<section class="team-calendar" aria-label="Team operating calendar"><span class="eyebrow">NEXT FOUR WEEKS / CURRENT STAFFING FORECAST</span><div>${[
+    1, 2, 3, 4,
+  ]
+    .filter((offset) => team.week + offset <= 10000)
+    .map((offset) => {
+      const studies = team.research.filter(
+        (r) => r.remaining > 0 && Math.ceil(r.remaining / rate) === offset,
+      );
+      return `<article><b>WEEK ${team.week + offset}</b><span>Partnership ${money(budget.income)}</span><span>Payroll + facility ${money(-(budget.payroll + budget.overhead))}</span><strong>NET ${money(budget.net)}</strong>${studies.map((r) => `<small>${escapeHtml(RESEARCH.find((study) => study.id === r.id)!.name)} / DUE</small>`).join('')}</article>`;
+    })
+    .join(
+      '',
+    )}</div><p>Projection only, not an already booked transaction. Hiring, contracts and facility changes alter this forecast. Advance a week to commit actual income, costs and study progress.</p></section>`;
+}
 export function teamHub(team: TeamState, page: HubPage): string {
   const budget = weeklyBudget(team),
     driver = driverProfile(team);
@@ -30,7 +47,7 @@ export function teamHub(team: TeamState, page: HubPage): string {
     content = `
     <div class="team-hero"><div><span class="eyebrow">TEAM PRINCIPAL / WEEK ${team.week}</span><h3>Build something<br>worth racing.</h3><p>${escapeHtml(team.briefing)}</p></div><div class="team-identity" style="--team-paint:${team.livery.primary};--team-accent:${team.livery.accent}"><strong>${String(team.livery.number).padStart(2, '0')}</strong><span>${escapeHtml(team.livery.sponsor)}</span><small>${driver.name.toUpperCase()}</small></div></div>
     <div class="team-stats"><div><small>AVAILABLE FUNDS</small><strong>${money(team.balance)}</strong></div><div><small>NEXT WEEK / NET</small><strong>${money(budget.net)}</strong></div><div><small>REPUTATION</small><strong>${team.reputation}<em> / 100</em></strong></div></div>
-    <section class="team-rival"><div><span class="eyebrow">LOCAL RIVALRY / ${team.rounds} CLASSIFIED ROUNDS</span><h4>${escapeHtml(team.livery.sponsor)} <b>${team.points}</b> <small>vs</small> MERIDIAN <b>${team.rivalPoints}</b></h4><p>Manual Grand Prix finishes against at least one opponent earn points and workshop income. AI demonstration and practice do not. Meridian is a simulated local rival, not an online player.</p></div><meter min="0" max="${Math.max(1, team.points + team.rivalPoints)}" value="${team.points}" aria-label="Your share of rivalry points"></meter></section>
+    ${teamCalendar(team)}<section class="team-rival"><div><span class="eyebrow">LOCAL RIVALRY / ${team.rounds} CLASSIFIED ROUNDS</span><h4>${escapeHtml(team.livery.sponsor)} <b>${team.points}</b> <small>vs</small> MERIDIAN <b>${team.rivalPoints}</b></h4><p>Manual Grand Prix finishes against at least one opponent earn points and workshop income. AI demonstration and practice do not. Meridian is a simulated local rival, not an online player.</p></div><meter min="0" max="${Math.max(1, team.points + team.rivalPoints)}" value="${team.points}" aria-label="Your share of rivalry points"></meter></section>
     <div class="team-actions">${button('ADVANCE ONE WEEK', 'team:week')}${button('EDIT LIVERY / PHOTO STUDIO', 'photo')}${button('100-IMAGE REFERENCE REVIEW', 'references')}</div>
     <p class="team-footnote">Original single-circuit management loop. Fictional credits and drivers; not a replica of licensed My Team, a real financial model, or a multi-season campaign.</p>`;
   if (page === 'engineering')
@@ -64,5 +81,5 @@ export function teamHub(team: TeamState, page: HubPage): string {
       .join(
         '',
       )}</tbody></table><div class="team-actions">${button(`ADVANCE WEEK / ${money(budget.net)} NET`, 'team:week')}</div>`;
-  return `<div class="team-hub" data-team-page="${page}"><header><div><span class="eyebrow">APEX / TEAM OPERATIONS</span><h2>Headquarters</h2></div>${button('CLOSE', 'modalClose')}</header><nav aria-label="Team departments">${navigation.map(([id, label]) => `<button data-action="team:page:${id}" aria-pressed="${page === id}">${label}</button>`).join('')}</nav><div class="team-content">${content}</div><p class="team-save" role="status" id="teamSaveStatus">LOCAL SAVE · WEEK ${team.week} · ${money(team.balance)}</p></div>`;
+  return `<div class="team-hub" data-team-page="${page}"><header><div><span class="eyebrow">APEX / TEAM OPERATIONS</span><h2>Headquarters</h2></div>${button('CLOSE', 'modalClose')}</header><nav aria-label="Team departments">${navigation.map(([id, label]) => `<button data-action="team:page:${id}" aria-pressed="${page === id}">${label}</button>`).join('')}</nav><div class="team-actions">${button('VISIT 3D WORKSHOP', 'workshop')}</div><div class="team-content">${content}</div><p class="team-save" role="status" id="teamSaveStatus">LOCAL SAVE · WEEK ${team.week} · ${money(team.balance)}</p></div>`;
 }

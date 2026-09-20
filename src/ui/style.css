@@ -2188,3 +2188,126 @@ html[data-colorblind='true'] #flag[data-flag='4']::before {
     right: 20%;
   }
 }
+
+/* Reference-driven tools: shared native controls; no bundled source photographs. */
+#decalEditor {
+  border-top: 1px solid #40505a;
+  margin-top: 20px;
+  padding-top: 18px;
+}
+#decalEditor h4 {
+  margin: 0 0 14px;
+  font-size: 14px;
+}
+#decalEditor label {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+#decalEditor label > input:not([type='checkbox']),
+#decalEditor label > select {
+  width: 100%;
+}
+#decalEditor input[type='range'] {
+  width: 100%;
+}
+#decalMap {
+  background: #0b1720;
+  border: 1px solid #39515a;
+  padding: 8px;
+  border-radius: 5px;
+  margin: 12px 0;
+}
+#decalMap svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+#decalMap small {
+  font-size: 9px;
+  letter-spacing: 0.05em;
+  color: #bcd0d4;
+}
+.audio-accessibility {
+  border: 1px solid #405c66;
+  padding: 14px;
+  border-radius: 6px;
+  margin: 18px 0;
+}
+.audio-accessibility legend {
+  font-size: 11px;
+  padding: 0 6px;
+  letter-spacing: 0.07em;
+}
+.photo-drawer .check {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+}
+.photo-drawer .check input {
+  width: auto;
+}
+.photo-drawer input:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.team-calendar {
+  margin: 20px 0;
+  padding: 18px;
+  border: 1px solid #3b5660;
+  border-radius: 8px;
+  background: #10252c;
+}
+.team-calendar > div {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-top: 14px;
+}
+.team-calendar article {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: #17303a;
+  border-top: 2px solid #b7885c;
+  border-radius: 4px;
+}
+.team-calendar article b {
+  color: #e4c5a3;
+  font-size: 12px;
+}
+.team-calendar article span {
+  color: #b5c9cc;
+  font-size: 11px;
+  line-height: 1.5;
+}
+.team-calendar article strong {
+  color: #e5eeeb;
+  font-size: 13px;
+}
+.team-calendar article small {
+  padding: 6px;
+  background: #28534e;
+  color: #d3f0df;
+}
+.team-calendar p {
+  font-size: 11px;
+  color: #a8bfc3;
+  line-height: 1.6;
+  margin-bottom: 0;
+}
+@media (max-width: 800px) {
+  .team-calendar > div {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 480px) {
+  .team-calendar > div {
+    grid-template-columns: 1fr;
+  }
+}

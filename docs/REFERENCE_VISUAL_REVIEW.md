@@ -1,3 +1,5 @@
+> Subsequent review: see [100-image source-verified pass](REFERENCE_100_IMAGE_BY_IMAGE_REVIEW.md) and [validation results](REFERENCE_100_PASS_VALIDATION.md). The historical observations and missing-feature notes below may be superseded there.
+
 # Reference-driven visual continuation — 2026-09-19
 
 ## Scope and source of truth

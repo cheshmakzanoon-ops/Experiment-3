@@ -138,6 +138,11 @@ export class GameApp {
       replaySpeed: (value) => {
         if (Number.isFinite(value)) this.replayRate = clamp(value, 0.25, 2);
       },
+      previewAudio: (settings) => {
+        void this.audio
+          .previewDriving(settings)
+          .catch((error) => this.ui.toast(`Audio preview unavailable: ${String(error)}`));
+      },
       exportSetup: () =>
         downloadBlob(
           new Blob([JSON.stringify({ version: 1, setup: this.settings.setup }, null, 2)], {
@@ -265,6 +270,7 @@ export class GameApp {
     this.renderer.colorblind = this.settings.colorblind;
     this.renderer.setLivery(this.team.livery);
     this.audio.volume = this.settings.volume;
+    this.audio.configureDriving(this.track, this.settings.drivingAudio);
     document.documentElement.style.setProperty('--ui-scale', String(this.settings.uiScale));
     document.documentElement.dataset.colorblind = String(this.settings.colorblind);
     document.documentElement.dataset.highContrast = String(this.settings.highContrast);
@@ -601,6 +607,7 @@ export class GameApp {
         !document.hidden &&
         (this.state === 'driving' || (this.state === 'replay' && this.replayPlaying)),
       this.renderer.audioView.value,
+      this.state === 'driving' && !this.auto,
     );
     if (this.ui.telemetryModal.open && this.telemetry) {
       this.graphClock += dt;
@@ -942,6 +949,17 @@ export class GameApp {
         this.ui.modalContent(referenceReview());
         bindReferenceReview(this.ui.get('modalContent'));
         break;
+      case 'workshop':
+        this.openPhoto();
+        if (!this.photoStudio.element.hidden)
+          this.photoStudio.compose({
+            backdrop: 'headquarters',
+            azimuth: 28,
+            elevation: 17,
+            distance: 17,
+            focalLength: 30,
+          });
+        break;
       case 'photo':
         this.openPhoto();
         break;
@@ -1188,6 +1206,7 @@ export class GameApp {
       this.renderer.colorblind = settings.colorblind;
     }
     this.audio.volume = settings.volume;
+    this.audio.configureDriving(this.track, settings.drivingAudio);
     document.documentElement.style.setProperty('--ui-scale', String(settings.uiScale));
     document.documentElement.dataset.colorblind = String(settings.colorblind);
     document.documentElement.dataset.highContrast = String(settings.highContrast);

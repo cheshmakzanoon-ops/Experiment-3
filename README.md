@@ -450,3 +450,9 @@ appends 17 skid channels; all previous 211 CSV positions are preserved in the
 228-column export. The wet pit-entry integration also closes a lead/follower
 priority cycle without overriding velocity or weakening the service gate. See
 [contact physics and validation boundaries](docs/ROAD_CONTACT_AND_SKIDS.md).
+
+## 100-image reference depth pass
+
+The [individual image review](docs/REFERENCE_100_IMAGE_BY_IMAGE_REVIEW.md) rechecks every numbered file against its original hash. New runtime work adds ten independent flank-text decals, opt-in photo focus, a real mesh-derived point-cloud/render comparison, advisory audio-driving cues, an original inspectable 3D workshop/atrium and a four-week team-economy calendar. Open **Reference Review** for individual inspection routes. These are original implementations, not copied reference artwork or a claim of commercial-game parity.
+
+Run `npm run test:reference-ui` for real browser DOM, Canvas2D texture and OfflineAudioContext evidence; `CHROMIUM_PATH` selects an installed browser and `REFERENCE_EVIDENCE_DIR` selects its output directory. This is explicitly **not** the GPU gameplay suite. See [validation](docs/REFERENCE_100_PASS_VALIDATION.md) for measured results and the WebGL2 limitation.
