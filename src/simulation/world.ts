@@ -74,9 +74,10 @@ export class Simulation {
     this.tick++;
     for (let i = 0; i < this.cars.length; i++) {
       const c = this.cars[i];
-      if (i > 0 || this.autoPlayer || c.pitRequested || c.inPit || c.finishTime > 0)
+      if (i > 0 || this.autoPlayer || c.pitRequested || c.inPit || c.finishTime > 0) {
+        this.race.laps[i].assisted = true;
         this.ai[i].update(dt, this.track, this.cars, this.race);
-      else if (this.race.phase === PHASE.LIGHTS && c.input.throttle === 0) c.input.brake = 1;
+      } else if (this.race.phase === PHASE.LIGHTS && c.input.throttle === 0) c.input.brake = 1;
       c.wake = 0;
       for (const other of this.cars)
         if (other !== c)
@@ -208,6 +209,8 @@ export class Simulation {
       out[o + F.SECTOR_2] = t.sectors[1] || t.lastSectors[1];
       out[o + F.SECTOR_3] = t.sectors[2] || t.lastSectors[2];
       out[o + F.LAP_VALID] = Number(t.valid);
+      out[o + F.LAST_LAP_VALID] = Number(t.lastValid && t.lastPenalty === 0);
+      out[o + F.LAST_LAP_ASSISTED] = Number(t.lastAssisted);
       out[o + F.WARNINGS] = t.warnings;
       out[o + F.PIT_YIELDING] = Number(c.pitYielding);
       out[o + F.RETIRED] = Number(c.retired);

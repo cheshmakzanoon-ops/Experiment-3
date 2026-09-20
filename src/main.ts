@@ -47,6 +47,11 @@ import {
 import { teamHub, type HubPage } from './ui/team-hub.ts';
 import { PhotoStudio } from './ui/photo-studio.ts';
 import { referenceReview, bindReferenceReview } from './ui/reference-review.ts';
+import { REFERENCES } from './ui/reference-catalogue.ts';
+import { referenceRoute } from './ui/reference-routes.ts';
+import { drivingAcademy, academyConfirmation, programmeHud } from './ui/driving-academy.ts';
+import { PracticeProgramme } from './simulation/practice-programme.ts';
+import type { GuideMode } from './rendering/driving-guide.ts';
 type State = 'menu' | 'loading' | 'driving' | 'paused' | 'results' | 'replay' | 'photo';
 export class GameApp {
   private track = new Track();
@@ -57,6 +62,8 @@ export class GameApp {
   private teamBusy = false;
   private sessionId = '';
   private usedDemonstration = false;
+  private programme = new PracticeProgramme();
+  private inspectedReference: number | null = null;
   private photoReturn: State = 'menu';
   private photoReturnHub = false;
   private frozenPhoto: Float32Array | null = null;
@@ -255,6 +262,7 @@ export class GameApp {
     if (!this.renderer || this.disposed || this.errorStopped) return;
     this.renderer.setQuality(this.settings.quality, this.settings.graphics);
     this.renderer.shake = this.settings.shake;
+    this.renderer.colorblind = this.settings.colorblind;
     this.renderer.setLivery(this.team.livery);
     this.audio.volume = this.settings.volume;
     document.documentElement.style.setProperty('--ui-scale', String(this.settings.uiScale));
@@ -302,8 +310,10 @@ export class GameApp {
   private post(message: ClientMessage, transfer: Transferable[] = []) {
     this.worker?.postMessage(message, transfer);
   }
-  private async start(options: SessionOptions) {
+  private async start(options: SessionOptions, programme = false) {
     if (this.state === 'loading' && this.worker) return;
+    if (programme) this.programme.start();
+    else this.programme.stop();
     this.renderer?.setPhoto(null);
     this.photoStudio.close();
     this.frozenPhoto = null;
@@ -464,6 +474,7 @@ export class GameApp {
     this.current = next;
     this.receivedAt = performance.now();
     if (this.state === 'driving') {
+      this.programme.observe(next);
       if (next[H.PHASE] === 3) this.finish(next);
     }
     if (this.readyResolve) {
@@ -573,6 +584,15 @@ export class GameApp {
         this.auto,
         this.ers,
       );
+    const programmeText = programmeHud(this.programme.progress(), this.state === 'replay');
+    this.ui.get('programmeHud').hidden = !programmeText;
+    this.ui.setText('programmeHud', programmeText);
+    const guide = this.renderer.guide;
+    this.ui.get('guideReadout').hidden = guide.mesh.count === 0 || this.state === 'photo';
+    this.ui.setText(
+      'guideReadout',
+      `ADVISORY · ${guide.cue.toUpperCase()} · ${Math.round(guide.targetSpeed * 3.6)} KM/H`,
+    );
     this.audio.update(
       this.renderer.presented.value,
       this.renderer.mode === 'cockpit',
@@ -812,11 +832,68 @@ export class GameApp {
     if (this.state === 'results' && this.current) this.ui.results(this.current);
     else this.ui.pause();
   }
+  private openAcademy() {
+    this.suspendPlayback();
+    this.ui.closeModal();
+    this.ui.modalContent(
+      drivingAcademy(
+        this.programme.progress(),
+        this.renderer?.guide.mode ?? 'off',
+        this.renderer?.night ?? false,
+      ),
+    );
+  }
+  private inspectReference(id: number) {
+    const entry = REFERENCES.find((item) => item.id === id);
+    if (!entry) return;
+    const route = referenceRoute(entry);
+    if (!route) return;
+    this.inspectedReference = id;
+    if (route.night !== undefined && this.renderer) this.renderer.night = route.night;
+    if (route.destination === 'photo') {
+      this.openPhoto();
+      if (this.state === 'photo') {
+        this.photoStudio.compose(route.photo ?? {});
+        this.photoStudio.status(
+          `REFERENCE ${String(id).padStart(3, '0')} · ${entry.title}. ${route.instruction}`,
+        );
+      }
+    } else if (route.destination === 'academy') this.openAcademy();
+    else if (route.destination === 'team') this.openTeam(route.hub);
+    else {
+      this.suspendPlayback();
+      if (route.destination === 'settings') this.ui.settings(this.settings);
+      else this.ui.controls(this.settings.bindings);
+    }
+    this.ui.toast(`Reference ${String(id).padStart(3, '0')}: ${route.instruction}`);
+  }
   private action(name: string) {
     this.renderedState = null;
     if (this.state === 'photo') {
       if (name === 'pause') this.closePhoto();
       else if (name === 'deviceLost') this.ui.toast(this.input.deviceStatus);
+      return;
+    }
+    if (name.startsWith('reference:')) {
+      this.inspectReference(Number(name.slice(10)));
+      return;
+    }
+    if (name.startsWith('guide:')) {
+      const mode = name.slice(6);
+      if (this.renderer && ['off', 'corners', 'full'].includes(mode)) {
+        this.performanceCapture.interrupt('Driving guide changed');
+        this.renderer.guide.mode = mode as GuideMode;
+        this.openAcademy();
+      }
+      return;
+    }
+    if (name === 'lighting:day' || name === 'lighting:night') {
+      if (this.renderer) {
+        this.performanceCapture.interrupt('Circuit lighting changed');
+        this.renderer.night = name === 'lighting:night';
+        this.renderer.reset();
+        this.openAcademy();
+      }
       return;
     }
     if (name.startsWith('team:')) {
@@ -831,6 +908,31 @@ export class GameApp {
     )
       return;
     switch (name) {
+      case 'academy':
+        this.openAcademy();
+        break;
+      case 'academy:start':
+        this.suspendPlayback();
+        this.ui.modalContent(academyConfirmation());
+        break;
+      case 'academy:confirm':
+        if (this.renderer) this.renderer.guide.mode = 'full';
+        void this.start(
+          {
+            ...this.options,
+            mode: 'practice',
+            opponents: 0,
+            weather: 'clear',
+            compound: 'medium',
+            laps: 5,
+          },
+          true,
+        ).catch((error) => this.fail(error));
+        break;
+      case 'academy:stop':
+        this.programme.stop();
+        this.openAcademy();
+        break;
       case 'team':
         this.openTeam();
         break;
@@ -863,6 +965,7 @@ export class GameApp {
         this.ui.closeModal();
         this.ui.telemetryModal.close();
         this.state = 'menu';
+        this.programme.stop();
         this.post({ type: 'pause', value: true });
         this.input.setEnabled(false);
         this.audio.stop();
@@ -1080,7 +1183,10 @@ export class GameApp {
     this.input.settings = settings;
     this.ui.applyBindings(settings.bindings);
     this.renderer?.setQuality(settings.quality, settings.graphics);
-    if (this.renderer) this.renderer.shake = settings.shake;
+    if (this.renderer) {
+      this.renderer.shake = settings.shake;
+      this.renderer.colorblind = settings.colorblind;
+    }
     this.audio.volume = settings.volume;
     document.documentElement.style.setProperty('--ui-scale', String(settings.uiScale));
     document.documentElement.dataset.colorblind = String(settings.colorblind);
@@ -1139,6 +1245,8 @@ export class GameApp {
       photoTime: this.frozenPhoto?.[H.TIME] ?? null,
       teamBusy: this.teamBusy,
       usedDemonstration: this.usedDemonstration,
+      practiceProgramme: this.programme.progress(),
+      inspectedReference: this.inspectedReference,
       audio: this.audio.diagnostics(),
       engineering: this.renderer?.engineering ?? null,
       presentation: this.renderer

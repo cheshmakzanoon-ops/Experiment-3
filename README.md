@@ -1,6 +1,7 @@
 <div align="center">
 
 # 🏎️ APEX / Formula
+
 ### A browser racing simulator built around the engineering underneath the lap.
 
 **Original cars. Original circuit. Coupled physics, race systems, telemetry, and procedural presentation.**
@@ -18,6 +19,30 @@
 
 ---
 
+## Reference continuation: visible systems, not just an audit
+
+This continuation starts from `c79992a56a08cdfee84732bbc32cac8e0d073085`.
+The [individual implementation report](docs/REFERENCE_100_IMPLEMENTATION_PASS.md) records all **100 visually reviewed images**, their exact hashes, the existing game counterpart, this continuation's changes, and unresolved gaps. **82 racing-related frames + 2 hardware photographs + 16 unrelated exclusions** is not 100 independent completed features. All 84 applicable entries have a native inspection action; inspection routing is not a visual-parity certificate.
+
+Open **Reference Review**, expand a numbered entry and use its **OPEN / INSPECT** button. New work includes:
+
+| Reference cues                             | Native addition                                                                        | How to inspect                                                                                       |
+| ------------------------------------------ | -------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| 005 / 026 / 031                            | Real dark livery showroom with floor, podium, softboxes and reversible scene state     | Photo / Livery → Setting → Dark showroom                                                             |
+| 034 / 037 / 070 / 072 / 074 / 089 / 097    | Conservative road-centre chevrons with cyclic braking advice and wet/yellow reductions | Driving Academy → Guidance → Corners / Full                                                          |
+| 037 and objective-driven racing references | Five-attempt consistency programme with a real banker lap and measured grades          | Driving Academy → Start new session → explicit replacement confirmation                              |
+| 047                                        | Suspension-hub tyre blankets, straps and withdrawing preparation staff                 | Reference 047 from the menu preview, or the first moments of a Grand Prix                            |
+| 025 / 039 / 079 / 080 / 087                | Original floodlit night presentation and patterned LED sphere                          | Driving Academy → Night; the landmark is near 13% of the Aurel lap                                   |
+| 028 / 032 / 085 and close-duel views       | Left/right near-car and overlap arrows                                                 | Drive alongside another car; arrows use relative physical positions and reject different road levels |
+
+Guidance never writes steering, brake or throttle commands. The five-attempt programme uses **completed-lap validity, penalties and AI participation from the physics worker**, not UI guesses or render counts. Replays/photographs cannot award attempts. Switching night or showroom is presentation only, without secretly changing weather, grip or simulation time. A new programme uses dry, solo, medium-tyre practice and requires confirmation before replacing a session/replay. The programme and guide/night selections are session-local; saved team/livery data is unchanged.
+
+The snapshot protocol is now **10**, using previously reserved fields 94–95 for completed-lap validity and AI-assistance evidence. Frame size remains 249 floats per car, and both replay paths preserve those discrete fields. The established 228-column telemetry CSV remains unchanged.
+
+**Validation boundary:** new unit tests cover geometry, bounds, read-only state, real lap crossings, worker metadata, replay preservation and scene restoration. `e2e/08-reference-implementation.spec.ts` exercises real game integration on a WebGL-enabled browser. The authoring environment reports WebGL2 unavailable and local navigation blocked by administrator policy; DOM-only screenshots are not production-render evidence. Full visual acceptance remains required. No supplied screenshots, publisher logos, real-person portraits or editorial overlays are shipped as game textures.
+
+Remaining gaps include the reference title's narrative cinematics, online/friends leaderboards, audio driving accessibility, advanced multi-slot decal editing, exact licensed venues/vehicles, and commercial-quality photoreal rendering. Do not mark those complete merely because a neighbouring cue or inspection button exists.
+
 ## Reference-led player tools
 
 The uploaded 100-image pack has now been **reviewed image by image**, with exact filename,
@@ -25,13 +50,13 @@ dimensions, SHA-256, observed content, code ownership, viewing steps and remaini
 [the complete audit](docs/REFERENCE_100_AUDIT.md). The same numbered index is searchable from
 **Reference Review** in the main menu. This is traceability, not a claim of F1 25/PS5 parity.
 
-| Player-facing addition | Where to use it | Reference cues |
-| --- | --- | --- |
-| Editable on-car livery: two paints, three patterns, original wordmark and number; saved across reload and quality changes | **Photo / Livery** → edit → **Save Livery** | 005, 031, 032, 033 and identity compositions |
-| Frozen-scene photo studio: any car, orbit/elevation/distance, 18–150 mm lens, exposure, roll and actual canvas-only PNG export | Menu, pause or replay → **Photo Studio** | 006, 042, 045, 075–077, 083 and broadcast views |
-| Saved Team HQ: department staffing/capacity, facility upgrades, four fictional driver contracts, calendar and transaction ledger | **Team HQ** → Headquarters / Personnel / Finance | 011–019, 035, 081 |
-| Three timed research studies unlock explicit physics setup presets for the next session | **Team HQ** → Engineering | 012, 014 |
-| Local rivalry, reputation and contextual written briefings from classified manual races | Finish a Grand Prix with opponents → **Team HQ** | 018, limited written counterparts to 020/038/086 |
+| Player-facing addition                                                                                                           | Where to use it                                  | Reference cues                                   |
+| -------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ | ------------------------------------------------ |
+| Editable on-car livery: two paints, three patterns, original wordmark and number; saved across reload and quality changes        | **Photo / Livery** → edit → **Save Livery**      | 005, 031, 032, 033 and identity compositions     |
+| Frozen-scene photo studio: any car, orbit/elevation/distance, 18–150 mm lens, exposure, roll and actual canvas-only PNG export   | Menu, pause or replay → **Photo Studio**         | 006, 042, 045, 075–077, 083 and broadcast views  |
+| Saved Team HQ: department staffing/capacity, facility upgrades, four fictional driver contracts, calendar and transaction ledger | **Team HQ** → Headquarters / Personnel / Finance | 011–019, 035, 081                                |
+| Three timed research studies unlock explicit physics setup presets for the next session                                          | **Team HQ** → Engineering                        | 012, 014                                         |
+| Local rivalry, reputation and contextual written briefings from classified manual races                                          | Finish a Grand Prix with opponents → **Team HQ** | 018, limited written counterparts to 020/038/086 |
 
 Photo mode returns to the prior menu, paused session or **paused** replay; it does not secretly
 resume driving. Unsaved paint previews are discarded on return. Team transactions update the
@@ -55,19 +80,19 @@ Its central design rule is that a system should change the car, not merely decor
 
 ## ✨ What you can explore
 
-| | System | What is implemented |
-|---|---|---|
-| 🏎️ | Vehicle dynamics | Six-degree-of-freedom chassis, four suspension contacts, nonlinear load-sensitive tire forces, combined slip, and forces applied at physical attachment points. |
-| 🛞 | Tires and brakes | Soft, medium, hard, intermediate, and wet compounds; surface/carcass temperature, pressure, wear, contamination, flat spots, brake heat, and fade. |
-| ⚡ | Powertrain | Torque-curve engine, eight forward gears, automatic/manual shifting, reverse, limited-slip differential approximation, fuel consumption, hybrid deployment, and regeneration. |
-| 🌬️ | Aerodynamics | Separate front wing, rear wing, floor, and drag terms; ride-height response, ground-effect choking, dirty air, slipstream, and damage-sensitive loads. |
-| 🌦️ | Evolving circuit | Spatial water, rubber, marbles, and temperature; clear, wet, and changing-weather sessions; shared track geometry for visuals and contact queries. |
-| 🤖 | AI and race rules | Shared player/AI physics, speed preview, lane commitment, traffic response, starting lights, ordered lap gates, penalties, classification, and results. |
-| 🔧 | Pit lane and setup | Physically driven pit approach, stopping, tire service, and exit; garage settings for wings, brake bias, differential, suspension, pressures, camber, and toe. |
-| 🎨 | Original presentation | Procedural car and circuit, PBR materials, articulated suspension and driver, fitted live mirrors, shaped steering wheel with recorded-state selectors, weather effects, and four camera views. |
-| 🔊 | Procedural sound | Web Audio engine harmonics, tire/surface noise, wind, weather, impacts, and nearby-car spatial audio. |
-| 📊 | Engineering tools | Telemetry graphs, lap-distance comparison, CSV export, force/debug overlays, and bounded pose replay with seeking and playback-speed controls. |
-| 🎮 | Browser integration | Keyboard, gamepad, and touch controls; optional cockpit mouse look; versioned IndexedDB preferences and best-lap records. |
+|     | System                | What is implemented                                                                                                                                                                             |
+| --- | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 🏎️  | Vehicle dynamics      | Six-degree-of-freedom chassis, four suspension contacts, nonlinear load-sensitive tire forces, combined slip, and forces applied at physical attachment points.                                 |
+| 🛞  | Tires and brakes      | Soft, medium, hard, intermediate, and wet compounds; surface/carcass temperature, pressure, wear, contamination, flat spots, brake heat, and fade.                                              |
+| ⚡  | Powertrain            | Torque-curve engine, eight forward gears, automatic/manual shifting, reverse, limited-slip differential approximation, fuel consumption, hybrid deployment, and regeneration.                   |
+| 🌬️  | Aerodynamics          | Separate front wing, rear wing, floor, and drag terms; ride-height response, ground-effect choking, dirty air, slipstream, and damage-sensitive loads.                                          |
+| 🌦️  | Evolving circuit      | Spatial water, rubber, marbles, and temperature; clear, wet, and changing-weather sessions; shared track geometry for visuals and contact queries.                                              |
+| 🤖  | AI and race rules     | Shared player/AI physics, speed preview, lane commitment, traffic response, starting lights, ordered lap gates, penalties, classification, and results.                                         |
+| 🔧  | Pit lane and setup    | Physically driven pit approach, stopping, tire service, and exit; garage settings for wings, brake bias, differential, suspension, pressures, camber, and toe.                                  |
+| 🎨  | Original presentation | Procedural car and circuit, PBR materials, articulated suspension and driver, fitted live mirrors, shaped steering wheel with recorded-state selectors, weather effects, and four camera views. |
+| 🔊  | Procedural sound      | Web Audio engine harmonics, tire/surface noise, wind, weather, impacts, and nearby-car spatial audio.                                                                                           |
+| 📊  | Engineering tools     | Telemetry graphs, lap-distance comparison, CSV export, force/debug overlays, and bounded pose replay with seeking and playback-speed controls.                                                  |
+| 🎮  | Browser integration   | Keyboard, gamepad, and touch controls; optional cockpit mouse look; versioned IndexedDB preferences and best-lap records.                                                                       |
 
 ## 🎛️ Tune the presentation without changing the physics
 
@@ -105,23 +130,23 @@ The production output is in `dist/`. Deploy that directory to a static HTTPS hos
 
 ## 🎮 Controls
 
-| Input | Action |
-|---|---|
-| **W / ↑** | Throttle |
-| **S / ↓ / Space** | Brake |
-| **A, D / ←, →** | Steer |
-| **[ / ]** | Downshift / upshift; switches to manual shifting |
-| **B + throttle** | Reverse when nearly stationary |
-| **C** | Cycle chase, cockpit, pod, and trackside cameras |
-| **P** | Request/cancel a pit stop; automatic approach, service, and exit |
-| **E** | Cycle harvest, balanced, and attack hybrid modes |
-| **G** | Toggle AI demonstration driving |
-| **T** | Telemetry and CSV export |
-| **R** | Replay |
-| **F3** | Engineering overlay and contact-load arrows |
-| **M** | Mute |
-| **Escape** | Pause and release cockpit mouse look |
-| **Double-click in cockpit** | Optional mouse look |
+| Input                       | Action                                                           |
+| --------------------------- | ---------------------------------------------------------------- |
+| **W / ↑**                   | Throttle                                                         |
+| **S / ↓ / Space**           | Brake                                                            |
+| **A, D / ←, →**             | Steer                                                            |
+| **[ / ]**                   | Downshift / upshift; switches to manual shifting                 |
+| **B + throttle**            | Reverse when nearly stationary                                   |
+| **C**                       | Cycle chase, cockpit, pod, and trackside cameras                 |
+| **P**                       | Request/cancel a pit stop; automatic approach, service, and exit |
+| **E**                       | Cycle harvest, balanced, and attack hybrid modes                 |
+| **G**                       | Toggle AI demonstration driving                                  |
+| **T**                       | Telemetry and CSV export                                         |
+| **R**                       | Replay                                                           |
+| **F3**                      | Engineering overlay and contact-load arrows                      |
+| **M**                       | Mute                                                             |
+| **Escape**                  | Pause and release cockpit mouse look                             |
+| **Double-click in cockpit** | Optional mouse look                                              |
 
 Standard gamepads use the left stick and triggers, with shoulder-button manual shifting. Automatic shifting remains active until a manual shift is requested; restarting the session restores it.
 
@@ -131,20 +156,20 @@ Choose **Sport** for filtered steering, traction control, and ABS, or **Unassist
 
 Versions below are pinned in [`package.json`](package.json) and [`package-lock.json`](package-lock.json).
 
-| Layer | Technology | Responsibility |
-|---|---|---|
-| Language | **TypeScript 5.9.3** | Strictly typed simulation state, browser integration, and worker messages. |
-| Rendering | **Three.js 0.180.0 / WebGL2** | Scene, procedural geometry, PBR materials, shadows, environment, and postprocessing. |
-| Build | **Vite 7.1.7** | Development server, production bundling, worker compilation, and static output. |
-| Simulation concurrency | **Web Workers** | Dedicated fixed-step simulation, isolated from rendering. |
-| Data transport | **Typed arrays / transferable ArrayBuffers** | Reusable snapshot buffers and compact simulation-to-renderer data. |
-| Audio | **Web Audio API** | Synthesized vehicle, tire, surface, weather, and impact sound. |
-| Input | **Keyboard / Gamepad / Pointer APIs** | Input filtering, device controls, touch interaction, and optional pointer lock. |
-| Persistence | **IndexedDB** | Versioned preferences, setup-related data, and best-lap records. |
-| Unit testing | **Vitest 3.2.4** | Physics relationships, determinism, race logic, recording, and geometry tests. |
-| Browser testing | **Playwright 1.55.1** | Chromium workflows, screenshots, traces, and console/error checks. |
-| Code quality | **ESLint 9.36.0 / Prettier 3.6.2** | Linting, TypeScript-aware rules, and consistent formatting. |
-| Automation | **GitHub Actions** | Clean install, lint/test/build checks, simulation scenarios, and browser artifacts. |
+| Layer                  | Technology                                   | Responsibility                                                                       |
+| ---------------------- | -------------------------------------------- | ------------------------------------------------------------------------------------ |
+| Language               | **TypeScript 5.9.3**                         | Strictly typed simulation state, browser integration, and worker messages.           |
+| Rendering              | **Three.js 0.180.0 / WebGL2**                | Scene, procedural geometry, PBR materials, shadows, environment, and postprocessing. |
+| Build                  | **Vite 7.1.7**                               | Development server, production bundling, worker compilation, and static output.      |
+| Simulation concurrency | **Web Workers**                              | Dedicated fixed-step simulation, isolated from rendering.                            |
+| Data transport         | **Typed arrays / transferable ArrayBuffers** | Reusable snapshot buffers and compact simulation-to-renderer data.                   |
+| Audio                  | **Web Audio API**                            | Synthesized vehicle, tire, surface, weather, and impact sound.                       |
+| Input                  | **Keyboard / Gamepad / Pointer APIs**        | Input filtering, device controls, touch interaction, and optional pointer lock.      |
+| Persistence            | **IndexedDB**                                | Versioned preferences, setup-related data, and best-lap records.                     |
+| Unit testing           | **Vitest 3.2.4**                             | Physics relationships, determinism, race logic, recording, and geometry tests.       |
+| Browser testing        | **Playwright 1.55.1**                        | Chromium workflows, screenshots, traces, and console/error checks.                   |
+| Code quality           | **ESLint 9.36.0 / Prettier 3.6.2**           | Linting, TypeScript-aware rules, and consistent formatting.                          |
+| Automation             | **GitHub Actions**                           | Clean install, lint/test/build checks, simulation scenarios, and browser artifacts.  |
 
 Three.js is the only direct runtime npm dependency. The simulation does not depend on a heavyweight game engine or a separate physics engine.
 
@@ -286,13 +311,13 @@ See the [148-section coverage ledger](docs/IMPLEMENTATION_MATRIX.md) before trea
 
 ## 📚 Documentation
 
-| Document | Contents |
-|---|---|
-| [⚙️ Architecture](docs/ARCHITECTURE.md) | Coordinate system, SI units, ownership, numerical methods, approximations, lifecycle, and errors. |
-| [🧩 Specification coverage](docs/IMPLEMENTATION_MATRIX.md) | Section-by-section implementation status and explicit omissions. |
-| [🎨 Asset provenance](docs/ASSET_PROVENANCE.md) | Original procedural content and third-party dependency boundaries. |
-| [🏁 Endurance results](docs/endurance-results.json) | Recorded 100-lap dry single-car measurements. |
-| [🌦️ Scenario results](docs/scenario-results.json) | Recorded dry, changing-weather, and wet four-car measurements. |
+| Document                                                   | Contents                                                                                          |
+| ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| [⚙️ Architecture](docs/ARCHITECTURE.md)                    | Coordinate system, SI units, ownership, numerical methods, approximations, lifecycle, and errors. |
+| [🧩 Specification coverage](docs/IMPLEMENTATION_MATRIX.md) | Section-by-section implementation status and explicit omissions.                                  |
+| [🎨 Asset provenance](docs/ASSET_PROVENANCE.md)            | Original procedural content and third-party dependency boundaries.                                |
+| [🏁 Endurance results](docs/endurance-results.json)        | Recorded 100-lap dry single-car measurements.                                                     |
+| [🌦️ Scenario results](docs/scenario-results.json)          | Recorded dry, changing-weather, and wet four-car measurements.                                    |
 
 ---
 

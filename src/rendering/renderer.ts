@@ -1,3 +1,7 @@
+import { DrivingGuide } from './driving-guide.ts';
+import { GridPreparationView } from './grid-preparation.ts';
+import { PhotoStage, ScenePresentationScope } from './photo-stage.ts';
+import { VenueLighting } from './venue-lighting.ts';
 import { photoFov, photoOffset, validatePhoto, type PhotoSettings } from './photo-camera.ts';
 import { type Livery } from '../storage/livery.ts';
 import {
@@ -57,6 +61,14 @@ export class RacingRenderer {
   readonly effectPlayback = new EffectPlayback(this.effects);
   readonly debris = new DebrisView();
   readonly pitCrew = new PitCrewView();
+  readonly gridPreparation = new GridPreparationView();
+  readonly photoStage = new PhotoStage();
+  private scenePresentation = new ScenePresentationScope(this.scene);
+  private nightFog = new T.Color(0x111b2c);
+  readonly guide: DrivingGuide;
+  readonly venueLighting: VenueLighting;
+  night = false;
+  colorblind = false;
   readonly sun = new T.DirectionalLight(0xffead0, 3.3);
   private hemisphere = new T.HemisphereLight(0xc3d8f3, 0x33372e, 0.3);
   private sky = new Sky();
@@ -129,6 +141,14 @@ export class RacingRenderer {
       powerPreference: 'high-performance',
     });
     this.gpuTimer = new GpuTimer(context);
+    this.guide = new DrivingGuide(track);
+    this.venueLighting = new VenueLighting(track);
+    this.scene.add(
+      this.guide.mesh,
+      this.gridPreparation.root,
+      this.photoStage.root,
+      this.venueLighting.root,
+    );
     this.scene.add(this.debris.mesh, this.pitCrew.root);
     this.renderer.info.autoReset = false;
     this.renderer.outputColorSpace = T.SRGBColorSpace;
@@ -423,6 +443,20 @@ export class RacingRenderer {
     const car = this.cars[this.follow],
       speed = b[o + F.SPEED];
     const daylight = daylightState(presented[H.CLOUD], presented[H.RAIN]);
+    const studio = this.photo?.backdrop === 'studio';
+    if (this.night && !studio) {
+      daylight.sun = 0.16;
+      daylight.fill = 0.11;
+      daylight.environment = 0.035;
+      daylight.exposure = 1.12;
+      daylight.fogDensity *= 0.75;
+    }
+    if (studio) {
+      daylight.sun = 1.4;
+      daylight.fill = 0.25;
+      daylight.environment = 0.3;
+    }
+    this.venueLighting.update(this.night && !studio, car.root.position);
     this.sun.intensity = daylight.sun;
     this.hemisphere.intensity = daylight.fill;
     this.scene.environmentIntensity = daylight.environment;
@@ -545,7 +579,13 @@ export class RacingRenderer {
     this.circuit.update(b);
     this.effectPlayback.update(presented, !menu);
     this.debris.update(b);
-    this.pitCrew.update(b, this.camera.position, !menu);
+    this.pitCrew.update(presented, this.camera.position, !menu && !studio);
+    this.gridPreparation.update(
+      presented,
+      this.camera.position,
+      (!menu || !!this.photo) && !studio,
+    );
+    this.guide.update(presented, !menu && !this.photo, this.colorblind);
     this.replayView = replay;
     this.engineeringView.update(this.engineering, b[H.TIME], this.debug, replay);
     this.reflection.beginFrame(this.orbitTime, !this.photo && !menu && this.mode === 'cockpit');
@@ -563,6 +603,28 @@ export class RacingRenderer {
     this.renderer.info.reset();
     this.gpuTimer.begin();
     try {
+      if (studio) {
+        const road = this.circuit.track.at(presented[o + F.S], { ...this.circuit.track.points[0] });
+        this.photoStage.position(car.root, road.y);
+        this.scenePresentation.begin(this.photoStage.background, true);
+        this.scenePresentation.visibilityFor(this.photoStage.root, true);
+        for (const group of [
+          this.circuit.group,
+          this.sky,
+          this.venueLighting.root,
+          this.effects.group,
+          this.debris.mesh,
+          this.gridPreparation.root,
+          this.pitCrew.root,
+          this.engineeringView.group,
+        ])
+          this.scenePresentation.visibilityFor(group, false);
+        for (const other of this.cars)
+          if (other !== car) this.scenePresentation.visibilityFor(other.root, false);
+      } else if (this.night) {
+        this.scenePresentation.begin(this.venueLighting.nightBackground, false, this.nightFog);
+        this.scenePresentation.visibilityFor(this.sky, false);
+      }
       // Include weather-driven environment captures in real GPU/draw metrics.
       this.environment.update(this.renderer, this.scene, daylight.cover);
       this.reflection.updateProbe(
@@ -570,13 +632,14 @@ export class RacingRenderer {
         this.scene,
         car.root,
         this.reflectionMaterials,
-        this.graphics.reflections === 'local' && !menu,
+        this.graphics.reflections === 'local' && !menu && !studio && !this.night,
       );
       this.reflection.renderMirrors(this.renderer, this.scene, car.root, dt);
       this.motionBlur.setStrength(this.photo ? 0 : this.graphics.motionBlur);
       this.motionBlur.prepareFrame(wallDelta, b[H.TIME]);
       this.composer.render();
     } finally {
+      this.scenePresentation.restore();
       this.gpuTimer.end();
     }
     this.renderedMode = this.mode;
@@ -632,6 +695,10 @@ export class RacingRenderer {
     for (let i = sorted.length - slowCount; i < sorted.length; i++) slowTotal += sorted[i];
     return {
       photo: this.photo ? { ...this.photo } : null,
+      night: this.night,
+      guide: this.guide.diagnostics(),
+      gridPreparation: this.gridPreparation.diagnostics(),
+      venueLighting: this.venueLighting.diagnostics(),
       playerPaint: this.cars[0]
         ? {
             primary: `#${this.cars[0].paint.color.getHexString()}`,

@@ -17,7 +17,9 @@ describe('photo camera and safe original livery', () => {
     );
     expect(validatePhoto({ target: 10 }, NaN).target).toBe(0);
     expect(
-      Object.values(validatePhoto({ focalLength: NaN, roll: -Infinity })).every(Number.isFinite),
+      Object.entries(validatePhoto({ focalLength: NaN, roll: -Infinity }))
+        .filter(([key]) => key !== 'backdrop')
+        .every(([, value]) => Number.isFinite(value)),
     ).toBe(true);
   });
   it('makes a long lens narrower and keeps orbit distance independent of azimuth', () => {

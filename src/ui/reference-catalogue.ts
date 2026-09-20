@@ -26,13 +26,13 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://www.playstation.com/en-ca/games/f1/',
     title: 'Circuit scan comparison',
     observation:
-      'Split image contrasts point-cloud survey geometry with the finished straight: grid markings, curb edges, fence posts, spectator structures and city scale.',
+      'A vertical split compares point-cloud survey data with a rendered boulevard: painted grid boxes, concrete walls, yellow-green kerbs, fence posts, canopies, trees and a bridge establish the circuit corridor.',
     group: 'circuit',
     status: 'partial',
     duplicateOf: null,
     implementation:
       'Existing circuit geometry, braking boards, elevation, grid paint, road rubber, crowds and paddock detailing supply these cues. Photo Studio now exposes adjustable survey/composition views.',
-    view: 'Enter a session; use C for pod/trackside, or Pause → Photo Studio and raise elevation/distance.',
+    view: "Reference Review → 001 → the entry's INSPECT/OPEN button. Enter a session; use C for pod/trackside, or Pause → Photo Studio and raise elevation/distance.",
     gap: 'Aurel is an original procedural circuit, not LiDAR-surveyed Silverstone or a geometrically matched licensed track.',
     code: [
       'src/rendering/circuit.ts',
@@ -40,6 +40,7 @@ export const REFERENCES: readonly ReferenceEntry[] = [
       'src/rendering/circuit-finish.ts',
       'src/rendering/grandstand.ts',
       'src/rendering/circuit-barriers.ts',
+      'src/ui/reference-routes.ts',
     ],
   },
   {
@@ -51,15 +52,20 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://www.playstation.com/en-ca/games/f1/',
     title: 'Side-on panning car',
     observation:
-      'Low side profile emphasizes layered wings, distinct tire sidewalls, wheel rotation and a horizontally streaked background.',
+      'A low front-three-quarter panning view of a red open-wheel car shows multi-element front wings, exposed suspension, soft-compound red sidewalls and dense grandstands streaked by motion.',
     group: 'motion',
     status: 'partial',
     duplicateOf: null,
     implementation:
       'Existing depth-aware motion blur and rotating wheel assemblies supply speed cues. The photo camera adds deliberate composition, but freezes temporal blur.',
-    view: 'Garage → rendering controls for live motion blur; watch replay in trackside view.',
+    view: "Reference Review → 002 → the entry's INSPECT/OPEN button. Garage → rendering controls for live motion blur; watch replay in trackside view.",
     gap: 'A frozen photograph has no adjustable photographic shutter, wheel-exposure accumulation or background tracking blur.',
-    code: ['src/rendering/motion-blur.ts', 'src/rendering/car.ts', 'src/rendering/wheel-pose.ts'],
+    code: [
+      'src/rendering/motion-blur.ts',
+      'src/rendering/car.ts',
+      'src/rendering/wheel-pose.ts',
+      'src/ui/reference-routes.ts',
+    ],
   },
   {
     id: 3,
@@ -70,13 +76,13 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://www.playstation.com/en-ca/games/f1/',
     title: 'Working cockpit wheel',
     observation:
-      'The wheel carries a compact display, labeled colored rotary controls and buttons; gloved hands sit inside a carbon-lined cockpit beneath the halo.',
+      'The driver-eye cockpit has a central halo pillar and curved arch, gloved hands on a turned wheel, gear 8 on the physical display, coloured controls and two mirror views down a fenced corridor.',
     group: 'cockpit',
     status: 'cue-present',
     duplicateOf: null,
     implementation:
       'Existing physical cockpit, wheel controls, live display, gloves/arms, halo and true rear-view render targets supply the onboard cues.',
-    view: 'Drive and cycle C to cockpit or pod; double-click cockpit for mouse look. Pause → Photo Studio for close inspection.',
+    view: "Reference Review → 003 → the entry's INSPECT/OPEN button. Drive and cycle C to cockpit or pod; double-click cockpit for mouse look. Pause → Photo Studio for close inspection.",
     gap: 'No claim of scanned licensed cockpit geometry, face/suit parity, or pixel-matched street-circuit scenery.',
     code: [
       'src/rendering/cockpit.ts',
@@ -84,6 +90,7 @@ export const REFERENCES: readonly ReferenceEntry[] = [
       'src/rendering/mirrors.ts',
       'src/rendering/driver.ts',
       'src/rendering/renderer.ts',
+      'src/ui/reference-routes.ts',
     ],
   },
   {
@@ -95,15 +102,15 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://www.playstation.com/en-ca/games/f1/',
     title: 'Wheel-change pit choreography',
     observation:
-      'Mechanics converge on four corners while front and rear jack operators lift the car; the wheel exchange is a sequence, not decorative standing people.',
+      'A pit service surrounds all four wheels with mechanics, wheel guns and replacement tyres, while front and rear jacks establish a coordinated vehicle-lift and release sequence.',
     group: 'pit',
     status: 'partial',
     duplicateOf: null,
     implementation:
       'Existing staged approach, jack lift, corner crew, wheel exchange and release sequence are driven by actual pit-service state; the HUD reports progress.',
-    view: 'Drive, request a stop with P, follow pit entry, then replay or photograph the service.',
+    view: "Reference Review → 004 → the entry's INSPECT/OPEN button. Drive, request a stop with P, follow pit entry, then replay or photograph the service.",
     gap: 'Crew models remain procedural; animation, density and licensed pit-box artwork do not match commercial reference fidelity.',
-    code: ['src/rendering/pit-crew.ts', 'src/ui/interface.ts'],
+    code: ['src/rendering/pit-crew.ts', 'src/ui/interface.ts', 'src/ui/reference-routes.ts'],
   },
   {
     id: 5,
@@ -114,13 +121,13 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://www.playstation.com/en-ca/games/f1/',
     title: 'Livery showroom',
     observation:
-      'A dark neutral car presentation isolates the body graphics, paint finish and selectable visual identity.',
+      'A white/yellow car stands in a nearly black showroom. Controlled highlights reveal body curvature, layered aero and slick tyre lettering without circuit scenery competing with the livery.',
     group: 'livery',
     status: 'enhanced',
     duplicateOf: null,
     implementation:
-      'Added editable body/accent paint, race number, sanitized wordmark, three flank patterns and four presets. Changes repaint the actual car and persist across reload, session start and texture-quality changes.',
-    view: 'Menu → Photo / Livery; edit, Save Livery, return and race. Inspect the same paint on circuit.',
+      'Added editable body/accent paint, race number, sanitized wordmark, three flank patterns and four presets. Changes repaint the actual car and persist across reload, session start and texture-quality changes. Added a native dark showroom: a level podium, floor, rim light, softbox geometry and fill lights isolate the actual editable car. Scene visibility and fog are restored after every render, including failures.',
+    view: "Reference Review → 005 → the entry's INSPECT/OPEN button. Menu → Photo / Livery; edit, Save Livery, return and race. Inspect the same paint on circuit.",
     gap: 'No arbitrary uploaded image decals, UV dragging, licensed sponsor catalogue or multi-slot placement editor.',
     code: [
       'src/storage/livery.ts',
@@ -128,6 +135,9 @@ export const REFERENCES: readonly ReferenceEntry[] = [
       'src/rendering/car.ts',
       'src/rendering/texture-budget.ts',
       'src/ui/photo-studio.ts',
+      'src/ui/reference-routes.ts',
+      'src/rendering/photo-stage.ts',
+      'src/rendering/renderer.ts',
     ],
   },
   {
@@ -139,19 +149,23 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://www.playstation.com/en-ca/games/f1/',
     title: 'High-angle curb duel',
     observation:
-      'Two cars run close together beside red, white and green curb paint. The high view exposes front-wing width, suspension and spacing.',
+      'An elevated diagonal view places purple/yellow and white/red cars side by side next to red-white-green kerbing. Wheel spacing, front-wing width and speed-blurred ground carry the composition.',
     group: 'photo',
     status: 'enhanced',
     duplicateOf: null,
     implementation:
-      'Added a real frozen-scene studio: car selection, orbit, elevation, distance, 18–150 mm lens, exposure, roll, clean view and canvas-only PNG export.',
-    view: 'Menu / Pause / Replay → Photo Studio; compose, Download PNG, Return. Race/replay remains safely paused.',
+      'Added a real frozen-scene studio: car selection, orbit, elevation, distance, 18–150 mm lens, exposure, roll, clean view and canvas-only PNG export. Added left/right near-car arrows from actual relative positions and heading, with stronger overlap treatment, a vertical separation gate and colour-accessible presentation. Retired cars and other road levels are suppressed.',
+    view: "Reference Review → 006 → the entry's INSPECT/OPEN button. Menu / Pause / Replay → Photo Studio; compose, Download PNG, Return. Race/replay remains safely paused.",
     gap: 'No depth-of-field, shutter-accumulation blur, night-city recreation or unrestricted free-fly collision system.',
     code: [
       'src/rendering/photo-camera.ts',
       'src/rendering/renderer.ts',
       'src/ui/photo-studio.ts',
       'src/main.ts',
+      'src/ui/reference-routes.ts',
+      'src/ui/proximity.ts',
+      'src/ui/interface.ts',
+      'src/ui/style.css',
     ],
   },
   {
@@ -163,13 +177,13 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://www.playstation.com/en-ca/games/f1/',
     title: 'Dense elevated race pack',
     observation:
-      'A multi-car field climbs through a corner with grandstands, catch fencing and layered distant spectators framing the road.',
+      'A dense rear-view race pack climbs beside grass, catch fences, tiered stands and trees. Rear suspension, diffusers and tyre stripes remain readable at several distances.',
     group: 'circuit',
     status: 'partial',
     duplicateOf: null,
     implementation:
       'Existing circuit geometry, braking boards, elevation, grid paint, road rubber, crowds and paddock detailing supply these cues. Photo Studio now exposes adjustable survey/composition views.',
-    view: 'Enter a session; use C for pod/trackside, or Pause → Photo Studio and raise elevation/distance.',
+    view: "Reference Review → 007 → the entry's INSPECT/OPEN button. Enter a session; use C for pod/trackside, or Pause → Photo Studio and raise elevation/distance.",
     gap: 'Aurel is an original procedural circuit, not LiDAR-surveyed Silverstone or a geometrically matched licensed track.',
     code: [
       'src/rendering/circuit.ts',
@@ -177,6 +191,7 @@ export const REFERENCES: readonly ReferenceEntry[] = [
       'src/rendering/circuit-finish.ts',
       'src/rendering/grandstand.ts',
       'src/rendering/circuit-barriers.ts',
+      'src/ui/reference-routes.ts',
     ],
   },
   {
@@ -188,13 +203,13 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://www.playstation.com/en-ca/games/f1/',
     title: 'Pod camera down the straight',
     observation:
-      'Forward-facing halo/pod view preserves the wheel, tires, driver helmet edge and a car ahead; mirrors and track furniture provide distance cues.',
+      "An elevated onboard camera looks over the driver's helmet, halo, mirrors and exposed front tyres toward another car. Grid paint and rubber darkening organize the long straight.",
     group: 'cockpit',
     status: 'cue-present',
     duplicateOf: null,
     implementation:
       'Existing physical cockpit, wheel controls, live display, gloves/arms, halo and true rear-view render targets supply the onboard cues.',
-    view: 'Drive and cycle C to cockpit or pod; double-click cockpit for mouse look. Pause → Photo Studio for close inspection.',
+    view: "Reference Review → 008 → the entry's INSPECT/OPEN button. Drive and cycle C to cockpit or pod; double-click cockpit for mouse look. Pause → Photo Studio for close inspection.",
     gap: 'No claim of scanned licensed cockpit geometry, face/suit parity, or pixel-matched street-circuit scenery.',
     code: [
       'src/rendering/cockpit.ts',
@@ -202,6 +217,7 @@ export const REFERENCES: readonly ReferenceEntry[] = [
       'src/rendering/mirrors.ts',
       'src/rendering/driver.ts',
       'src/rendering/renderer.ts',
+      'src/ui/reference-routes.ts',
     ],
   },
   {
@@ -213,19 +229,20 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://www.playstation.com/en-ca/games/f1/',
     title: 'Helmet and halo close-up',
     observation:
-      'A very close view emphasizes the helmet visor, cockpit rim, halo paint, fabric and carbon-material contrast.',
+      'A tight driver close-up shows a reflective helmet visor, gloves, carbon cockpit edge, halo and a small identity decal. It is a material/occupancy reference, not evidence for identifying the person.',
     group: 'driver',
     status: 'partial',
     duplicateOf: null,
     implementation:
       'Existing visor/glove/fabric/carbon details can now be inspected with user-controlled focal length and orbit.',
-    view: 'Photo Studio → short distance, side orbit and longer lens; cockpit view for hands.',
+    view: "Reference Review → 009 → the entry's INSPECT/OPEN button. Photo Studio → short distance, side orbit and longer lens; cockpit view for hands.",
     gap: 'No scanned head meshes, licensed helmets or cinematic character close-up parity.',
     code: [
       'src/rendering/driver.ts',
       'src/rendering/driver-materials.ts',
       'src/rendering/surface-detail.ts',
       'src/ui/photo-studio.ts',
+      'src/ui/reference-routes.ts',
     ],
   },
   {
@@ -237,13 +254,13 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://www.playstation.com/en-ca/games/f1/',
     title: 'Wet rear three-quarter view',
     observation:
-      'A blue-banded wet tire, red rear lamp, mist plume and damp track reflections communicate rain without relying on a weather label.',
+      'A wet rear-three-quarter car view contains blue wet-compound stripes, tread grooves, tyre spray, a red rain light, dark reflective asphalt and an overcast tree-lined background.',
     group: 'wet',
     status: 'cue-present',
     duplicateOf: null,
     implementation:
       'Existing weather changes clouds, wet-road response, rain lamps, tires, spray and cockpit droplets from live or recorded weather state.',
-    view: 'Menu → Heavy rain + Full wet; race or replay, then pause in Photo Studio.',
+    view: "Reference Review → 010 → the entry's INSPECT/OPEN button. Menu → Heavy rain + Full wet; race or replay, then pause in Photo Studio.",
     gap: 'No full screen-space reflection system, ray tracing or commercial volumetric spray/raindrop fidelity.',
     code: [
       'src/rendering/effects.ts',
@@ -251,6 +268,7 @@ export const REFERENCES: readonly ReferenceEntry[] = [
       'src/rendering/daylight.ts',
       'src/rendering/car.ts',
       'src/rendering/circuit.ts',
+      'src/ui/reference-routes.ts',
     ],
   },
   {
@@ -262,15 +280,20 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://www.ea.com/games/f1/f1-25/news/f1-25-career-deep-dive',
     title: 'Team headquarters exterior',
     observation:
-      'An office-like team campus with planted grounds and human-scale entrances establishes an identity beyond the circuit.',
+      'A team headquarters exterior uses large glazed openings, panelled facade layers, planters, trees and people to establish an occupied facility rather than a flat menu background.',
     group: 'hq',
     status: 'partial',
     duplicateOf: null,
     implementation:
       'Added a functional original Team HQ interface linked to funds, staff, facilities, contracts, research and calendar. Existing circuit paddock adds architectural depth.',
-    view: 'Menu → Team HQ → Headquarters, Personnel or Finance.',
+    view: "Reference Review → 011 → the entry's INSPECT/OPEN button. Menu → Team HQ → Headquarters, Personnel or Finance.",
     gap: 'This is a management interface, not a walkable headquarters campus or a modeled suspended-car atrium.',
-    code: ['src/ui/team-hub.ts', 'src/storage/team-career.ts', 'src/rendering/paddock-detail.ts'],
+    code: [
+      'src/ui/team-hub.ts',
+      'src/storage/team-career.ts',
+      'src/rendering/paddock-detail.ts',
+      'src/ui/reference-routes.ts',
+    ],
   },
   {
     id: 12,
@@ -281,19 +304,20 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://www.ea.com/games/f1/f1-25/news/f1-25-career-deep-dive',
     title: 'Engineering department menu',
     observation:
-      'Research, development, upgrade assignment, history, component management and a facility panel share a clear department navigation system.',
+      'The engineering screen overlays a workshop with a raised car, tools, monitors and staff. Department navigation, research phases and progress controls connect the environment to facility management.',
     group: 'engineering',
     status: 'enhanced',
     duplicateOf: null,
     implementation:
       'Added priced, timed studies with a one-active-study limit and staffing-dependent completion. Completed studies unlock explicit setup changes saved for the next session.',
-    view: 'Team HQ → Engineering → Commission; advance weeks; Apply to next session; inspect Garage setup.',
+    view: "Reference Review → 012 → the entry's INSPECT/OPEN button. Team HQ → Engineering → Commission; advance weeks; Apply to next session; inspect Garage setup.",
     gap: 'Research is a three-study local setup loop, not a full component development tree, manufacturing/history system or invisible car-stat upgrade.',
     code: [
       'src/storage/team-career.ts',
       'src/ui/team-hub.ts',
       'src/main.ts',
       'src/simulation/config.ts',
+      'src/ui/reference-routes.ts',
     ],
   },
   {
@@ -305,19 +329,20 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://www.ea.com/games/f1/f1-25/news/f1-25-career-deep-dive',
     title: 'Personnel department menu',
     observation:
-      'Driver and workforce decisions appear inside a team-office context with department navigation and facility access.',
+      'The personnel screen presents a furnished staff lounge with chairs, tables and people behind department navigation, driver management and workforce/facility controls.',
     group: 'personnel',
     status: 'enhanced',
     duplicateOf: null,
     implementation:
       'Added four fictional driver contracts, salary/signing costs, player name/number identity, department workforce/capacity and facility upgrades with saved transactions.',
-    view: 'Team HQ → Personnel → recruit/reassign, upgrade a department or sign a driver.',
+    view: "Reference Review → 013 → the entry's INSPECT/OPEN button. Team HQ → Personnel → recruit/reassign, upgrade a department or sign a driver.",
     gap: 'No licensed portraits or historical icons, driver skill simulation, rendered office/people, or workforce-driven pit-speed bonus.',
     code: [
       'src/storage/team-career.ts',
       'src/ui/team-hub.ts',
       'src/main.ts',
       'src/ui/interface.ts',
+      'src/ui/reference-routes.ts',
     ],
   },
   {
@@ -329,19 +354,20 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://www.ea.com/games/f1/f1-25/news/f1-25-career-deep-dive',
     title: 'Workforce economics screen',
     observation:
-      'Capacity, staff allocation, staffing costs, research-time changes and income effects are visible together rather than hidden in tooltips.',
+      'The workforce screen separates engineering, personnel and corporate departments, showing allocation limits, salaries, income/resource effects and time-related management decisions.',
     group: 'personnel',
     status: 'enhanced',
     duplicateOf: null,
     implementation:
       'Added four fictional driver contracts, salary/signing costs, player name/number identity, department workforce/capacity and facility upgrades with saved transactions.',
-    view: 'Team HQ → Personnel → recruit/reassign, upgrade a department or sign a driver.',
+    view: "Reference Review → 014 → the entry's INSPECT/OPEN button. Team HQ → Personnel → recruit/reassign, upgrade a department or sign a driver.",
     gap: 'No licensed portraits or historical icons, driver skill simulation, rendered office/people, or workforce-driven pit-speed bonus.',
     code: [
       'src/storage/team-career.ts',
       'src/ui/team-hub.ts',
       'src/main.ts',
       'src/ui/interface.ts',
+      'src/ui/reference-routes.ts',
     ],
   },
   {
@@ -353,15 +379,20 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://www.ea.com/games/f1/f1-25/news/f1-25-career-deep-dive',
     title: 'Team finance ledger',
     observation:
-      'Balance, income, outgoings and driver contracts are organized as inspectable financial information.',
+      'The finance screen combines account balance, cost-cap information, historical financial changes and contract cards; weekly and seasonal values need actual recorded transactions.',
     group: 'finance',
     status: 'enhanced',
     duplicateOf: null,
     implementation:
       'Added a bounded saved ledger with real income, payroll, facility and transaction deductions. Invalid/insolvent actions leave state unchanged.',
-    view: 'Team HQ → Finance; inspect ledger before/after hiring, research and advancing a week.',
+    view: "Reference Review → 015 → the entry's INSPECT/OPEN button. Team HQ → Finance; inspect ledger before/after hiring, research and advancing a week.",
     gap: 'Fictional local credits only; no real money, full financial forecast model or sponsor-negotiation system.',
-    code: ['src/storage/team-career.ts', 'src/ui/team-hub.ts', 'src/storage/data.ts'],
+    code: [
+      'src/storage/team-career.ts',
+      'src/ui/team-hub.ts',
+      'src/storage/data.ts',
+      'src/ui/reference-routes.ts',
+    ],
   },
   {
     id: 16,
@@ -372,15 +403,20 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://www.ea.com/games/f1/f1-25/news/f1-25-career-deep-dive',
     title: 'Headquarters atrium',
     observation:
-      'An architectural interior suspends a show car above meeting areas and staff circulation, with daylight and material depth.',
+      'A two-storey headquarters atrium includes a display car, stair, railings, glazed upper rooms, people, work tables, sofas and plants. Multiple depth layers are visible.',
     group: 'hq',
     status: 'partial',
     duplicateOf: null,
     implementation:
       'Added a functional original Team HQ interface linked to funds, staff, facilities, contracts, research and calendar. Existing circuit paddock adds architectural depth.',
-    view: 'Menu → Team HQ → Headquarters, Personnel or Finance.',
+    view: "Reference Review → 016 → the entry's INSPECT/OPEN button. Menu → Team HQ → Headquarters, Personnel or Finance.",
     gap: 'This is a management interface, not a walkable headquarters campus or a modeled suspended-car atrium.',
-    code: ['src/ui/team-hub.ts', 'src/storage/team-career.ts', 'src/rendering/paddock-detail.ts'],
+    code: [
+      'src/ui/team-hub.ts',
+      'src/storage/team-career.ts',
+      'src/rendering/paddock-detail.ts',
+      'src/ui/reference-routes.ts',
+    ],
   },
   {
     id: 17,
@@ -391,19 +427,20 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://www.ea.com/games/f1/f1-25/news/f1-25-career-deep-dive',
     title: 'Driver roster comparison',
     observation:
-      'Two driver cards show ratings and recognizable suit/helmet identity, supporting a choice between people rather than an anonymous number.',
+      'A driver-selection layout compares two suited driver figures, their numerical attributes and selection controls. An original driver roster is a counterpart; real likenesses are not required.',
     group: 'personnel',
     status: 'enhanced',
     duplicateOf: null,
     implementation:
       'Added four fictional driver contracts, salary/signing costs, player name/number identity, department workforce/capacity and facility upgrades with saved transactions.',
-    view: 'Team HQ → Personnel → recruit/reassign, upgrade a department or sign a driver.',
+    view: "Reference Review → 017 → the entry's INSPECT/OPEN button. Team HQ → Personnel → recruit/reassign, upgrade a department or sign a driver.",
     gap: 'No licensed portraits or historical icons, driver skill simulation, rendered office/people, or workforce-driven pit-speed bonus.',
     code: [
       'src/storage/team-career.ts',
       'src/ui/team-hub.ts',
       'src/main.ts',
       'src/ui/interface.ts',
+      'src/ui/reference-routes.ts',
     ],
   },
   {
@@ -415,15 +452,20 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://www.ea.com/games/f1/f1-25/news/f1-25-career-deep-dive',
     title: 'Team rivalry screen',
     observation:
-      'Two teams are compared through scores, rivalry intensity and fan reputation, with a visible direction of progress.',
+      'A rivalry screen compares two scores, a future race target, rivalry intensity and fan/reward information. It depicts explicit opponent progression, not just a generic results table.',
     group: 'rivalry',
     status: 'enhanced',
     duplicateOf: null,
     implementation:
       'Added local team points/reputation and a visible fictional Meridian rivalry, updated only by classified manual Grand Prix results with opponents.',
-    view: 'Finish a manual race against opponents → Team HQ. AI-demonstration sessions earn no team result.',
+    view: "Reference Review → 018 → the entry's INSPECT/OPEN button. Finish a manual race against opponents → Team HQ. AI-demonstration sessions earn no team result.",
     gap: 'Meridian scoring is a disclosed local model, not an online competitor or relationship/event-driven campaign rivalry.',
-    code: ['src/storage/team-career.ts', 'src/main.ts', 'src/ui/team-hub.ts'],
+    code: [
+      'src/storage/team-career.ts',
+      'src/main.ts',
+      'src/ui/team-hub.ts',
+      'src/ui/reference-routes.ts',
+    ],
   },
   {
     id: 19,
@@ -434,19 +476,20 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://www.ea.com/games/f1/f1-25/news/f1-25-career-deep-dive',
     title: 'Driver icon selection',
     observation:
-      'A driver-market or legacy-driver selection grid uses individual portraits and metadata as a hiring surface.',
+      'A driver market presents a grid of portrait cards, selectable driver options and season/mode context. The screen depends on a real roster and meaningful selection outcomes.',
     group: 'personnel',
     status: 'enhanced',
     duplicateOf: null,
     implementation:
       'Added four fictional driver contracts, salary/signing costs, player name/number identity, department workforce/capacity and facility upgrades with saved transactions.',
-    view: 'Team HQ → Personnel → recruit/reassign, upgrade a department or sign a driver.',
+    view: "Reference Review → 019 → the entry's INSPECT/OPEN button. Team HQ → Personnel → recruit/reassign, upgrade a department or sign a driver.",
     gap: 'No licensed portraits or historical icons, driver skill simulation, rendered office/people, or workforce-driven pit-speed bonus.',
     code: [
       'src/storage/team-career.ts',
       'src/ui/team-hub.ts',
       'src/main.ts',
       'src/ui/interface.ts',
+      'src/ui/reference-routes.ts',
     ],
   },
   {
@@ -458,15 +501,20 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://www.ea.com/en/games/f1/f1-25/news/f1-25-braking-point',
     title: 'Media-pen interview',
     observation:
-      'A driver is surrounded by cameras and press-area graphics, suggesting a post-race presentation scene.',
+      'A media interview focuses on a suited, capped driver while photographers and a sponsor-style backdrop are defocused behind the subject. This is a human-animation and presentation reference.',
     group: 'media',
     status: 'partial',
     duplicateOf: null,
     implementation:
       'HQ briefing text now reacts to hiring, research and classified outcomes; existing paddock camera/crew props contribute trackside context.',
-    view: 'Read Headquarters briefing after a completed study or race.',
+    view: "Reference Review → 020 → the entry's INSPECT/OPEN button. Read Headquarters briefing after a completed study or race.",
     gap: 'No animated press interview, dialogue choice, voice acting, presenters or cinematic media scene is implemented.',
-    code: ['src/ui/team-hub.ts', 'src/storage/team-career.ts', 'src/rendering/paddock-detail.ts'],
+    code: [
+      'src/ui/team-hub.ts',
+      'src/storage/team-career.ts',
+      'src/rendering/paddock-detail.ts',
+      'src/ui/reference-routes.ts',
+    ],
   },
   {
     id: 21,
@@ -477,13 +525,13 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://www.ea.com/en/games/f1/f1-25/news/f1-25-braking-point',
     title: 'Helmet-led title graphic',
     observation:
-      'A promotional title composition combines a helmet/cockpit close-up with the game identity; it is not an in-race interface.',
+      'A promotional helmet close-up uses visor reflections, dramatic lighting and title graphics. The typography and likeness are marketing content, not separate vehicle-physics requirements.',
     group: 'identity',
     status: 'partial',
     duplicateOf: null,
     implementation:
       'Original APEX/team wordmark, driver monograms, selected race number and car livery form a coherent in-game identity; existing rivals retain their own liveries.',
-    view: 'Team HQ → Personnel; Photo / Livery → save identity; return to driving and inspect the tower/car.',
+    view: "Reference Review → 021 → the entry's INSPECT/OPEN button. Team HQ → Personnel; Photo / Livery → save identity; return to driving and inspect the tower/car.",
     gap: 'No licensed driver likeness, commercial title artwork, suit editor or portrait/cutscene replication.',
     code: [
       'src/storage/team-career.ts',
@@ -491,6 +539,7 @@ export const REFERENCES: readonly ReferenceEntry[] = [
       'src/ui/team-hub.ts',
       'src/rendering/car-livery.ts',
       'src/ui/interface.ts',
+      'src/ui/reference-routes.ts',
     ],
   },
   {
@@ -502,19 +551,20 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://www.ea.com/en/games/f1/f1-25/news/f1-25-tips-and-tricks',
     title: 'Front three-quarter cornering',
     observation:
-      'The car loads its outside tires near a curb; front suspension, aero surfaces and the low nose remain readable in motion.',
+      'A low red-car front-three-quarter panning composition emphasizes stacked front-wing elements, suspension rods, the front tyre and kerb/barrier motion streaks.',
     group: 'mechanical',
     status: 'cue-present',
     duplicateOf: null,
     implementation:
       'Existing multi-element aero, suspension links, steering/camber and compliant tire posing expose loaded-car detail. Photo Studio now supports inspection angles.',
-    view: 'Drive over a curb, pause, select a low three-quarter Photo Studio composition.',
+    view: "Reference Review → 022 → the entry's INSPECT/OPEN button. Drive over a curb, pause, select a low three-quarter Photo Studio composition.",
     gap: 'No claim of matching a specific manufacturer model or PS5 material/animation quality.',
     code: [
       'src/rendering/bodywork.ts',
       'src/rendering/car.ts',
       'src/rendering/wheel-pose.ts',
       'src/rendering/tire-carcass.ts',
+      'src/ui/reference-routes.ts',
     ],
   },
   {
@@ -526,15 +576,15 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://www.ea.com/en/games/f1/f1-25/news/f1-25-tips-and-tricks',
     title: 'Tutorial composite: driver and rig',
     observation:
-      'A vertical social-video layout includes a presenter in a simulator and driver imagery. The presenter is editorial packaging, not game content.',
+      'A tutorial composite combines a physical sim rig or presenter area with driver-career portrait selection. Its editorial layout should not be mistaken for a single native gameplay scene.',
     group: 'tutorial',
     status: 'partial',
     duplicateOf: null,
     implementation:
       'Existing controls, calibration, setup and assist explanations provide an in-game learning route. Editorial presenters are intentionally not inserted as game assets.',
-    view: 'Menu → Controls or Garage & Settings; choose practice to learn inputs.',
+    view: "Reference Review → 023 → the entry's INSPECT/OPEN button. Menu → Controls or Garage & Settings; choose practice to learn inputs.",
     gap: 'No embedded presenter video, voiced tutorial campaign or exact vertical social-media layout.',
-    code: ['src/ui/interface.ts', 'src/ui/presentation.ts'],
+    code: ['src/ui/interface.ts', 'src/ui/presentation.ts', 'src/ui/reference-routes.ts'],
   },
   {
     id: 24,
@@ -545,15 +595,20 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://www.ea.com/en/games/f1/f1-25/news/f1-25-tips-and-tricks',
     title: 'Tutorial composite: chase telemetry',
     observation:
-      'The gameplay portion shows a chase straight with prominent circular speed/gear/energy information; a presenter occupies another region.',
+      'A chase-view tutorial drives down a palm-lined straight with classification, large gear/speed readouts and battery information. The presenter/tutorial overlay is separate from the game HUD.',
     group: 'hud',
     status: 'cue-present',
     duplicateOf: null,
     implementation:
       'Existing timing tower, minimap, deltas, fuel/energy/tire readouts, proximity presentation and live setup fields cover the main driving information hierarchy.',
-    view: 'Drive/practice; cycle camera, press E for energy, inspect HUD and Garage setup.',
+    view: "Reference Review → 024 → the entry's INSPECT/OPEN button. Drive/practice; cycle camera, press E for energy, inspect HUD and Garage setup.",
     gap: 'HUD layout is original; not every referenced multifunction popup or exact circular instrument layout is replicated.',
-    code: ['src/ui/interface.ts', 'src/ui/presentation.ts', 'src/rendering/steering-display.ts'],
+    code: [
+      'src/ui/interface.ts',
+      'src/ui/presentation.ts',
+      'src/rendering/steering-display.ts',
+      'src/ui/reference-routes.ts',
+    ],
   },
   {
     id: 25,
@@ -564,15 +619,23 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://www.ea.com/en/games/f1/f1-25/news/f1-25-tips-and-tricks',
     title: 'Tutorial composite: energy controls',
     observation:
-      'A cockpit street-racing view highlights an energy meter with an editorial arrow. The arrow is a teaching overlay, not a physical asset.',
+      'A night-street onboard tutorial shows an opponent, gear/battery readouts and an editorial arrow. Night illumination and cockpit telemetry are actual cues; the added arrow is editorial.',
     group: 'hud',
     status: 'cue-present',
     duplicateOf: null,
     implementation:
-      'Existing timing tower, minimap, deltas, fuel/energy/tire readouts, proximity presentation and live setup fields cover the main driving information hierarchy.',
-    view: 'Drive/practice; cycle camera, press E for energy, inspect HUD and Garage setup.',
+      'Existing timing tower, minimap, deltas, fuel/energy/tire readouts, proximity presentation and live setup fields cover the main driving information hierarchy. Added selectable night presentation, instanced floodlight masts, four bounded nearby light sources and an original patterned LED sphere at about 13% of the Aurel lap. This does not change the weather or simulation clock.',
+    view: "Reference Review → 025 → the entry's INSPECT/OPEN button. Drive/practice; cycle camera, press E for energy, inspect HUD and Garage setup.",
     gap: 'HUD layout is original; not every referenced multifunction popup or exact circular instrument layout is replicated.',
-    code: ['src/ui/interface.ts', 'src/ui/presentation.ts', 'src/rendering/steering-display.ts'],
+    code: [
+      'src/ui/interface.ts',
+      'src/ui/presentation.ts',
+      'src/rendering/steering-display.ts',
+      'src/ui/reference-routes.ts',
+      'src/rendering/venue-lighting.ts',
+      'src/rendering/renderer.ts',
+      'src/ui/driving-academy.ts',
+    ],
   },
   {
     id: 26,
@@ -583,15 +646,23 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://www.ea.com/en/games/f1/f1-25/news/f1-25-tips-and-tricks',
     title: 'Tutorial composite: assist settings',
     observation:
-      'A menu segment explains vehicle or assist categories while a presenter remains visible. The actionable reference is a legible settings hierarchy.',
+      'The livery tutorial displays an orange car against a studio setting with selectable categories, patterns and colour controls. Editing must change the car, not merely a thumbnail.',
     group: 'settings',
     status: 'cue-present',
     duplicateOf: null,
     implementation:
-      'Existing saved assists, bindings, custom-device calibration and graphics controls provide real configuration rather than static option cards.',
-    view: 'Menu → Garage & Settings; change, Apply & Save, then reload.',
+      'Existing saved assists, bindings, custom-device calibration and graphics controls provide real configuration rather than static option cards. Added a native dark showroom: a level podium, floor, rim light, softbox geometry and fill lights isolate the actual editable car. Scene visibility and fog are restored after every render, including failures.',
+    view: "Reference Review → 026 → the entry's INSPECT/OPEN button. Menu → Garage & Settings; change, Apply & Save, then reload.",
     gap: 'Vehicle-series selection and the reference video presenter are not game features here.',
-    code: ['src/ui/interface.ts', 'src/ui/device-calibration.ts', 'src/ui/presentation.ts'],
+    code: [
+      'src/ui/interface.ts',
+      'src/ui/device-calibration.ts',
+      'src/ui/presentation.ts',
+      'src/ui/reference-routes.ts',
+      'src/rendering/photo-stage.ts',
+      'src/rendering/renderer.ts',
+      'src/ui/photo-studio.ts',
+    ],
   },
   {
     id: 27,
@@ -602,13 +673,13 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://www.ea.com/en/games/f1/f1-25/news/f1-25-tips-and-tricks',
     title: 'Tutorial composite: narrow-street cockpit',
     observation:
-      'The cockpit follows another car through close urban barriers. The host panel should not be mistaken for a missing game feature.',
+      'An onboard city-circuit tutorial shows timing gaps, a classification tower and a gear-5 driving HUD beside tightly enclosed scenery; editorial framing surrounds the gameplay.',
     group: 'cockpit',
     status: 'cue-present',
     duplicateOf: null,
     implementation:
       'Existing physical cockpit, wheel controls, live display, gloves/arms, halo and true rear-view render targets supply the onboard cues.',
-    view: 'Drive and cycle C to cockpit or pod; double-click cockpit for mouse look. Pause → Photo Studio for close inspection.',
+    view: "Reference Review → 027 → the entry's INSPECT/OPEN button. Drive and cycle C to cockpit or pod; double-click cockpit for mouse look. Pause → Photo Studio for close inspection.",
     gap: 'No claim of scanned licensed cockpit geometry, face/suit parity, or pixel-matched street-circuit scenery.',
     code: [
       'src/rendering/cockpit.ts',
@@ -616,6 +687,7 @@ export const REFERENCES: readonly ReferenceEntry[] = [
       'src/rendering/mirrors.ts',
       'src/rendering/driver.ts',
       'src/rendering/renderer.ts',
+      'src/ui/reference-routes.ts',
     ],
   },
   {
@@ -627,13 +699,13 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://www.ea.com/en/games/f1/f1-25/news/f1-25-tips-and-tricks',
     title: 'Tutorial composite: braking reference',
     observation:
-      'The onboard view highlights a 100-metre braking board and usable roadside distance cues.',
+      'A driver looks right from the cockpit toward a nearby rival. The wheel/halo, working mirror and a 100-metre braking board remain visible and establish spatial awareness.',
     group: 'circuit',
     status: 'partial',
     duplicateOf: null,
     implementation:
-      'Existing circuit geometry, braking boards, elevation, grid paint, road rubber, crowds and paddock detailing supply these cues. Photo Studio now exposes adjustable survey/composition views.',
-    view: 'Enter a session; use C for pod/trackside, or Pause → Photo Studio and raise elevation/distance.',
+      'Existing circuit geometry, braking boards, elevation, grid paint, road rubber, crowds and paddock detailing supply these cues. Photo Studio now exposes adjustable survey/composition views. Added left/right near-car arrows from actual relative positions and heading, with stronger overlap treatment, a vertical separation gate and colour-accessible presentation. Retired cars and other road levels are suppressed.',
+    view: "Reference Review → 028 → the entry's INSPECT/OPEN button. Enter a session; use C for pod/trackside, or Pause → Photo Studio and raise elevation/distance.",
     gap: 'Aurel is an original procedural circuit, not LiDAR-surveyed Silverstone or a geometrically matched licensed track.',
     code: [
       'src/rendering/circuit.ts',
@@ -641,6 +713,10 @@ export const REFERENCES: readonly ReferenceEntry[] = [
       'src/rendering/circuit-finish.ts',
       'src/rendering/grandstand.ts',
       'src/rendering/circuit-barriers.ts',
+      'src/ui/reference-routes.ts',
+      'src/ui/proximity.ts',
+      'src/ui/interface.ts',
+      'src/ui/style.css',
     ],
   },
   {
@@ -652,15 +728,20 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://www.ea.com/en/games/f1/f1-25/news/f1-25-tips-and-tricks',
     title: 'Tutorial composite: corner exit',
     observation:
-      'Chase view shows corner exit, curb use and a colored racing line. The instruction layer sits outside the game scene.',
+      'A chase camera follows a car through a kerbed bend. The rear assembly, charging/ERS readout, gear 6 and peripheral circuit detail combine racing presentation with live data.',
     group: 'hud',
     status: 'cue-present',
     duplicateOf: null,
     implementation:
       'Existing timing tower, minimap, deltas, fuel/energy/tire readouts, proximity presentation and live setup fields cover the main driving information hierarchy.',
-    view: 'Drive/practice; cycle camera, press E for energy, inspect HUD and Garage setup.',
+    view: "Reference Review → 029 → the entry's INSPECT/OPEN button. Drive/practice; cycle camera, press E for energy, inspect HUD and Garage setup.",
     gap: 'HUD layout is original; not every referenced multifunction popup or exact circular instrument layout is replicated.',
-    code: ['src/ui/interface.ts', 'src/ui/presentation.ts', 'src/rendering/steering-display.ts'],
+    code: [
+      'src/ui/interface.ts',
+      'src/ui/presentation.ts',
+      'src/rendering/steering-display.ts',
+      'src/ui/reference-routes.ts',
+    ],
   },
   {
     id: 30,
@@ -671,13 +752,13 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://www.ea.com/en/games/f1/f1-25/news/f1-25-tips-and-tricks',
     title: 'Tutorial composite: wheel and horizon',
     observation:
-      'The useful gameplay crop is a forward cockpit view with a wheel gear readout, road horizon and nearby structures.',
+      'A close onboard view makes the physical wheel display, gear 6, coloured controls and gloved hands prominent inside a carbon-lined halo cockpit.',
     group: 'cockpit',
     status: 'cue-present',
     duplicateOf: null,
     implementation:
       'Existing physical cockpit, wheel controls, live display, gloves/arms, halo and true rear-view render targets supply the onboard cues.',
-    view: 'Drive and cycle C to cockpit or pod; double-click cockpit for mouse look. Pause → Photo Studio for close inspection.',
+    view: "Reference Review → 030 → the entry's INSPECT/OPEN button. Drive and cycle C to cockpit or pod; double-click cockpit for mouse look. Pause → Photo Studio for close inspection.",
     gap: 'No claim of scanned licensed cockpit geometry, face/suit parity, or pixel-matched street-circuit scenery.',
     code: [
       'src/rendering/cockpit.ts',
@@ -685,6 +766,7 @@ export const REFERENCES: readonly ReferenceEntry[] = [
       'src/rendering/mirrors.ts',
       'src/rendering/driver.ts',
       'src/rendering/renderer.ts',
+      'src/ui/reference-routes.ts',
     ],
   },
   {
@@ -696,13 +778,13 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://www.ea.com/en/games/f1/f1-25/features/customisation',
     title: 'Editable sidepod sponsor slots',
     observation:
-      'A decal selector shows a specific car region and selectable placements, requiring a visual edit that survives leaving the editor.',
+      'A decal editor shows roughly ten sponsor slots, placement markers, a carousel, race number 86 and a multicolour flank. This is more capable than a single editable wordmark.',
     group: 'livery',
-    status: 'enhanced',
+    status: 'partial',
     duplicateOf: null,
     implementation:
-      'Added editable body/accent paint, race number, sanitized wordmark, three flank patterns and four presets. Changes repaint the actual car and persist across reload, session start and texture-quality changes.',
-    view: 'Menu → Photo / Livery; edit, Save Livery, return and race. Inspect the same paint on circuit.',
+      'Added editable body/accent paint, race number, sanitized wordmark, three flank patterns and four presets. Changes repaint the actual car and persist across reload, session start and texture-quality changes. Added a native dark showroom: a level podium, floor, rim light, softbox geometry and fill lights isolate the actual editable car. Scene visibility and fog are restored after every render, including failures.',
+    view: "Reference Review → 031 → the entry's INSPECT/OPEN button. Menu → Photo / Livery; edit, Save Livery, return and race. Inspect the same paint on circuit.",
     gap: 'No arbitrary uploaded image decals, UV dragging, licensed sponsor catalogue or multi-slot placement editor.',
     code: [
       'src/storage/livery.ts',
@@ -710,6 +792,9 @@ export const REFERENCES: readonly ReferenceEntry[] = [
       'src/rendering/car.ts',
       'src/rendering/texture-budget.ts',
       'src/ui/photo-studio.ts',
+      'src/ui/reference-routes.ts',
+      'src/rendering/photo-stage.ts',
+      'src/rendering/renderer.ts',
     ],
   },
   {
@@ -721,13 +806,13 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://www.ea.com/en/games/f1/f1-25/features/customisation',
     title: 'Side-by-side numbered cars',
     observation:
-      'Different numbers and colors distinguish nearby cars; the side mirrors reflect spatially meaningful racing context.',
+      'A white/blue/yellow rival with number 34 runs close beside a side-looking cockpit camera. A custom number and paint must remain readable on an actual nearby car.',
     group: 'identity',
     status: 'partial',
     duplicateOf: null,
     implementation:
-      'Original APEX/team wordmark, driver monograms, selected race number and car livery form a coherent in-game identity; existing rivals retain their own liveries.',
-    view: 'Team HQ → Personnel; Photo / Livery → save identity; return to driving and inspect the tower/car.',
+      'Original APEX/team wordmark, driver monograms, selected race number and car livery form a coherent in-game identity; existing rivals retain their own liveries. Added left/right near-car arrows from actual relative positions and heading, with stronger overlap treatment, a vertical separation gate and colour-accessible presentation. Retired cars and other road levels are suppressed.',
+    view: "Reference Review → 032 → the entry's INSPECT/OPEN button. Team HQ → Personnel; Photo / Livery → save identity; return to driving and inspect the tower/car.",
     gap: 'No licensed driver likeness, commercial title artwork, suit editor or portrait/cutscene replication.',
     code: [
       'src/storage/team-career.ts',
@@ -735,6 +820,9 @@ export const REFERENCES: readonly ReferenceEntry[] = [
       'src/ui/team-hub.ts',
       'src/rendering/car-livery.ts',
       'src/ui/interface.ts',
+      'src/ui/reference-routes.ts',
+      'src/ui/proximity.ts',
+      'src/ui/style.css',
     ],
   },
   {
@@ -746,13 +834,13 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://www.ea.com/en/games/f1/f1-25/features/customisation',
     title: 'Customized livery on circuit',
     observation:
-      'The custom paint treatment is visible in actual track lighting and motion, not only a static customization thumbnail.',
+      'A white/blue/yellow livery with wordmarks is framed beside multi-rail Armco, catch fencing and grass; the image connects car identity to real circuit-side depth.',
     group: 'livery',
     status: 'enhanced',
     duplicateOf: null,
     implementation:
-      'Added editable body/accent paint, race number, sanitized wordmark, three flank patterns and four presets. Changes repaint the actual car and persist across reload, session start and texture-quality changes.',
-    view: 'Menu → Photo / Livery; edit, Save Livery, return and race. Inspect the same paint on circuit.',
+      'Added editable body/accent paint, race number, sanitized wordmark, three flank patterns and four presets. Changes repaint the actual car and persist across reload, session start and texture-quality changes. Added a native dark showroom: a level podium, floor, rim light, softbox geometry and fill lights isolate the actual editable car. Scene visibility and fog are restored after every render, including failures.',
+    view: "Reference Review → 033 → the entry's INSPECT/OPEN button. Menu → Photo / Livery; edit, Save Livery, return and race. Inspect the same paint on circuit.",
     gap: 'No arbitrary uploaded image decals, UV dragging, licensed sponsor catalogue or multi-slot placement editor.',
     code: [
       'src/storage/livery.ts',
@@ -760,6 +848,9 @@ export const REFERENCES: readonly ReferenceEntry[] = [
       'src/rendering/car.ts',
       'src/rendering/texture-budget.ts',
       'src/ui/photo-studio.ts',
+      'src/ui/reference-routes.ts',
+      'src/rendering/photo-stage.ts',
+      'src/rendering/renderer.ts',
     ],
   },
   {
@@ -771,15 +862,26 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://www.pushsquare.com/reviews/ps5/ea-sports-f1-25',
     title: 'Backmarker objective overlay',
     observation:
-      'An overtaking task sits alongside position tower, gaps, subtitles and a high-gear wheel readout.',
+      'A story-race HUD specifies overtaking a backmarker and then winning, with laps remaining, gap information, radio context and a coloured driving line on the road.',
     group: 'objectives',
     status: 'partial',
     duplicateOf: null,
     implementation:
-      'Existing positions, race-control messages, lap targets and deltas support racing; new HQ briefing/points supply a persistent local goal.',
-    view: 'Run Grand Prix for position/lap goals; practice for delta; read Team HQ race briefing.',
+      'Existing positions, race-control messages, lap targets and deltas support racing; new HQ briefing/points supply a persistent local goal. Added switchable road-centre driving chevrons with a closed-loop braking envelope, wet-surface and yellow-flag reductions, colour-accessible palettes and a text/silhouette cue; no automatic steering or physics input is applied. Added a five-attempt consistency programme: the first valid human lap locks a target, subsequent real crossings receive grades, and completed-lap worker metadata excludes invalid, penalized or AI-assisted results. Replays cannot award attempts.',
+    view: "Reference Review → 034 → the entry's INSPECT/OPEN button. Run Grand Prix for position/lap goals; practice for delta; read Team HQ race briefing.",
     gap: 'No scripted overtake-backmarker/hold-position scenario engine or story subtitles matching these images.',
-    code: ['src/ui/interface.ts', 'src/simulation/race.ts', 'src/storage/team-career.ts'],
+    code: [
+      'src/ui/interface.ts',
+      'src/simulation/race.ts',
+      'src/storage/team-career.ts',
+      'src/ui/reference-routes.ts',
+      'src/rendering/driving-guide.ts',
+      'src/ui/driving-academy.ts',
+      'src/main.ts',
+      'src/simulation/practice-programme.ts',
+      'src/simulation/protocol.ts',
+      'src/simulation/world.ts',
+    ],
   },
   {
     id: 35,
@@ -790,15 +892,15 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://www.pushsquare.com/reviews/ps5/ea-sports-f1-25',
     title: 'Headquarters calendar',
     observation:
-      'An advance-time control links the calendar to incoming funds, expenses and driver or department tasks.',
+      'The headquarters hub displays calendar/week context, income and costs, current tasks and the next race day over a reception/facility scene. Time advancement should have consequences.',
     group: 'calendar',
     status: 'enhanced',
     duplicateOf: null,
     implementation:
       'Added explicit one-week advancement charging payroll/overhead, crediting partnership income and completing research, with transaction persistence before UI confirmation.',
-    view: 'Team HQ → Advance one week; inspect Finance and Engineering.',
+    view: "Reference Review → 035 → the entry's INSPECT/OPEN button. Team HQ → Advance one week; inspect Finance and Engineering.",
     gap: 'No multirace world calendar, date-based travel or full career-event scheduling.',
-    code: ['src/storage/team-career.ts', 'src/ui/team-hub.ts'],
+    code: ['src/storage/team-career.ts', 'src/ui/team-hub.ts', 'src/ui/reference-routes.ts'],
   },
   {
     id: 36,
@@ -809,15 +911,23 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://www.pushsquare.com/reviews/ps5/ea-sports-f1-25',
     title: 'Chase vehicle-management panel',
     observation:
-      'A chase race combines the minimap, position, gear/speed and a multifunction panel for tire, fuel and energy management.',
+      'A practice chase view crosses green-yellow kerbing and grid paint with a DRS distance and a multifunction display for fuel, front brake bias, differential and ERS.',
     group: 'hud',
     status: 'cue-present',
     duplicateOf: null,
     implementation:
-      'Existing timing tower, minimap, deltas, fuel/energy/tire readouts, proximity presentation and live setup fields cover the main driving information hierarchy.',
-    view: 'Drive/practice; cycle camera, press E for energy, inspect HUD and Garage setup.',
+      'Existing timing tower, minimap, deltas, fuel/energy/tire readouts, proximity presentation and live setup fields cover the main driving information hierarchy. Added switchable road-centre driving chevrons with a closed-loop braking envelope, wet-surface and yellow-flag reductions, colour-accessible palettes and a text/silhouette cue; no automatic steering or physics input is applied.',
+    view: "Reference Review → 036 → the entry's INSPECT/OPEN button. Drive/practice; cycle camera, press E for energy, inspect HUD and Garage setup.",
     gap: 'HUD layout is original; not every referenced multifunction popup or exact circular instrument layout is replicated.',
-    code: ['src/ui/interface.ts', 'src/ui/presentation.ts', 'src/rendering/steering-display.ts'],
+    code: [
+      'src/ui/interface.ts',
+      'src/ui/presentation.ts',
+      'src/rendering/steering-display.ts',
+      'src/ui/reference-routes.ts',
+      'src/rendering/driving-guide.ts',
+      'src/ui/driving-academy.ts',
+      'src/main.ts',
+    ],
   },
   {
     id: 37,
@@ -828,15 +938,26 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://www.pushsquare.com/reviews/ps5/ea-sports-f1-25',
     title: 'Practice target and delta',
     observation:
-      'A practice screen presents objectives, a live time delta, a racing line and DRS/straight context alongside the wheel display.',
+      'A practice programme presents five labelled attempts with star-like outcome indicators, a target/delta and on-track guidance. Its progress should come from measured performance, not clicks.',
     group: 'practice',
     status: 'partial',
     duplicateOf: null,
     implementation:
-      'Existing free practice, personal lap timing/delta, racing guidance and recorded-lap comparison supply measurable driving feedback.',
-    view: 'Menu → Free practice; drive a lap; open telemetry and compare laps.',
-    gap: 'No rendered ghost car, dedicated practice-program scoring, reverse track or online time-trial board.',
-    code: ['src/ui/interface.ts', 'src/storage/recorders.ts', 'src/simulation/race.ts'],
+      'Existing free practice, personal lap timing/delta, racing guidance and recorded-lap comparison supply measurable driving feedback. Added switchable road-centre driving chevrons with a closed-loop braking envelope, wet-surface and yellow-flag reductions, colour-accessible palettes and a text/silhouette cue; no automatic steering or physics input is applied. Added a five-attempt consistency programme: the first valid human lap locks a target, subsequent real crossings receive grades, and completed-lap worker metadata excludes invalid, penalized or AI-assisted results. Replays cannot award attempts.',
+    view: "Reference Review → 037 → the entry's INSPECT/OPEN button. Menu → Free practice; drive a lap; open telemetry and compare laps.",
+    gap: "Five measured attempts and advisory guidance now exist. This is not the reference game's complete practice programme, ghost system, commercial coaching logic, star artwork or validated optimum racing line.",
+    code: [
+      'src/ui/interface.ts',
+      'src/storage/recorders.ts',
+      'src/simulation/race.ts',
+      'src/ui/reference-routes.ts',
+      'src/rendering/driving-guide.ts',
+      'src/ui/driving-academy.ts',
+      'src/main.ts',
+      'src/simulation/practice-programme.ts',
+      'src/simulation/protocol.ts',
+      'src/simulation/world.ts',
+    ],
   },
   {
     id: 38,
@@ -847,15 +968,15 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://www.pushsquare.com/reviews/ps5/ea-sports-f1-25',
     title: 'Letterboxed story dialogue',
     observation:
-      'Two rendered characters speak in a cinematic, letterboxed scene with subtitles. This implies narrative production, not just a racing HUD.',
+      'A letterboxed narrative conversation shows two people with subtitles. This requires original character staging, dialogue and animation to reproduce as a game system.',
     group: 'story',
     status: 'partial',
     duplicateOf: null,
     implementation:
       'Added contextual original written briefings after driver/research/race changes. This is a limited management presentation, not an equivalent cinematic.',
-    view: 'Team HQ → read the current briefing.',
+    view: "Reference Review → 038 → the entry's INSPECT/OPEN button. Team HQ → read the current briefing.",
     gap: 'The two-character animated story scene, voice acting, facial animation and narrative campaign are not implemented.',
-    code: ['src/storage/team-career.ts', 'src/ui/team-hub.ts'],
+    code: ['src/storage/team-career.ts', 'src/ui/team-hub.ts', 'src/ui/reference-routes.ts'],
   },
   {
     id: 39,
@@ -866,15 +987,22 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://www.thumbculture.co.uk/f1-25-ps5-review',
     title: 'Broadcast wide field',
     observation:
-      'A distant replay angle captures a full field on broad colored runoff with a full position tower.',
+      'A night broadcast angle shows a full field, timing tower, replay treatment, floodlights and coloured run-off. The density and venue are distinct from a small daytime test circuit.',
     group: 'broadcast',
-    status: 'enhanced',
+    status: 'partial',
     duplicateOf: null,
     implementation:
-      'Existing recorded full-field replay, timing tower, car tracking and trackside cameras now also support frozen selectable-car compositions.',
-    view: 'Drive, pause → Watch Replay; cycle C to trackside; Photo Studio for an intentional wide shot.',
-    gap: 'No exact television graphics package, human commentary or automatic editorial shot director.',
-    code: ['src/rendering/renderer.ts', 'src/storage/replay-pages.ts', 'src/ui/interface.ts'],
+      'Existing recorded full-field replay, timing tower, car tracking and trackside cameras now also support frozen selectable-car compositions. Added selectable night presentation, instanced floodlight masts, four bounded nearby light sources and an original patterned LED sphere at about 13% of the Aurel lap. This does not change the weather or simulation clock.',
+    view: "Reference Review → 039 → the entry's INSPECT/OPEN button. Drive, pause → Watch Replay; cycle C to trackside; Photo Studio for an intentional wide shot.",
+    gap: 'Original night illumination and an LED venue motif now exist, but this is not a matched city circuit, the licensed spherical landmark, a 22-car field, scanned scenery or verified commercial-quality night imagery. Actual GPU visual review of this new pass remains outstanding.',
+    code: [
+      'src/rendering/renderer.ts',
+      'src/storage/replay-pages.ts',
+      'src/ui/interface.ts',
+      'src/ui/reference-routes.ts',
+      'src/rendering/venue-lighting.ts',
+      'src/ui/driving-academy.ts',
+    ],
   },
   {
     id: 40,
@@ -885,15 +1013,20 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://www.thumbculture.co.uk/f1-25-ps5-review',
     title: 'Audio driving-assistance settings',
     observation:
-      'Dedicated controls cover braking cues/frequency, steering panning, track limits, turn guidance and wrong-way assistance.',
+      'An accessibility settings screen provides audio driving cues for gears, wrong-way travel, track limits and corners, with volume, stereo panning, preview and lookahead controls.',
     group: 'accessibility',
     status: 'partial',
     duplicateOf: null,
     implementation:
       'Existing input remapping, contrast/color-vision options, UI scale and audio controls provide some accessibility foundations.',
-    view: 'Garage & Settings → presentation, audio and device bindings.',
-    gap: 'Dedicated braking/steering/turn/wrong-way sonification assistance from this screen is not implemented; ordinary race audio is not a substitute.',
-    code: ['src/ui/presentation.ts', 'src/ui/device-calibration.ts', 'src/audio/engine.ts'],
+    view: "Reference Review → 040 → the entry's INSPECT/OPEN button. Garage & Settings → presentation, audio and device bindings.",
+    gap: 'Optional audio-driving cues with per-event settings, stereo previews and configurable lookahead are still missing. Existing visual accessibility and device mapping must not be represented as that audio system.',
+    code: [
+      'src/ui/presentation.ts',
+      'src/ui/device-calibration.ts',
+      'src/audio/engine.ts',
+      'src/ui/reference-routes.ts',
+    ],
   },
   {
     id: 41,
@@ -904,15 +1037,20 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://www.thumbculture.co.uk/f1-25-ps5-review',
     title: 'Gravel incident and dust',
     observation:
-      'A yawed car in a gravel escape produces a dust cloud; the background buildings and track edge remain spatially consistent.',
+      'Two cars in a gravel incident produce dust and visible debris, with fencing and industrial buildings behind them. These effects should follow contact and surface state.',
     group: 'effects',
     status: 'cue-present',
     duplicateOf: null,
     implementation:
       'Existing contact-state dust, gravel/spark/debris effects and damage respond to actual off-track/contact events and recorded replay state.',
-    view: 'Drive onto gravel; review recorded incident from trackside or Photo Studio.',
+    view: "Reference Review → 041 → the entry's INSPECT/OPEN button. Drive onto gravel; review recorded incident from trackside or Photo Studio.",
     gap: 'Procedural particle density and damage deformation do not match the reference cinematic quality.',
-    code: ['src/rendering/effects.ts', 'src/rendering/debris.ts', 'src/simulation/collision.ts'],
+    code: [
+      'src/rendering/effects.ts',
+      'src/rendering/debris.ts',
+      'src/simulation/collision.ts',
+      'src/ui/reference-routes.ts',
+    ],
   },
   {
     id: 42,
@@ -923,19 +1061,20 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://www.thumbculture.co.uk/f1-25-ps5-review',
     title: 'Telephoto straight composition',
     observation:
-      'Two cars, longitudinal rubber marks, grid paint and distant roadside barriers are compressed by a long-lens viewpoint.',
+      'An elevated broadcast view looks down a pit straight with two cars, painted grid boxes, rubbered asphalt, pit-wall structures and a long architectural corridor.',
     group: 'photo',
     status: 'enhanced',
     duplicateOf: null,
     implementation:
       'Added a real frozen-scene studio: car selection, orbit, elevation, distance, 18–150 mm lens, exposure, roll, clean view and canvas-only PNG export.',
-    view: 'Menu / Pause / Replay → Photo Studio; compose, Download PNG, Return. Race/replay remains safely paused.',
+    view: "Reference Review → 042 → the entry's INSPECT/OPEN button. Menu / Pause / Replay → Photo Studio; compose, Download PNG, Return. Race/replay remains safely paused.",
     gap: 'No depth-of-field, shutter-accumulation blur, night-city recreation or unrestricted free-fly collision system.',
     code: [
       'src/rendering/photo-camera.ts',
       'src/rendering/renderer.ts',
       'src/ui/photo-studio.ts',
       'src/main.ts',
+      'src/ui/reference-routes.ts',
     ],
   },
   {
@@ -947,15 +1086,20 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://www.techradar.com/gaming/f1-25-review',
     title: 'Media-pen interview repeat',
     observation:
-      'The composition repeats the press-driver scene, including camera operators and backdrop; it is not a new independent gameplay system.',
+      'A tighter variant of reference 020 again emphasizes an interview subject, photographers, shallow focus and a media backdrop rather than another independent driving feature.',
     group: 'media',
     status: 'partial',
     duplicateOf: 20,
     implementation:
       'HQ briefing text now reacts to hiring, research and classified outcomes; existing paddock camera/crew props contribute trackside context.',
-    view: 'Read Headquarters briefing after a completed study or race.',
+    view: "Reference Review → 043 → the entry's INSPECT/OPEN button. Read Headquarters briefing after a completed study or race.",
     gap: 'No animated press interview, dialogue choice, voice acting, presenters or cinematic media scene is implemented.',
-    code: ['src/ui/team-hub.ts', 'src/storage/team-career.ts', 'src/rendering/paddock-detail.ts'],
+    code: [
+      'src/ui/team-hub.ts',
+      'src/storage/team-career.ts',
+      'src/rendering/paddock-detail.ts',
+      'src/ui/reference-routes.ts',
+    ],
   },
   {
     id: 44,
@@ -965,13 +1109,14 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sha256: '2612e8f5d8bc10ec9a00e8b84fd5f57852e5711b543c50ed4d3dd812b259f636',
     sourcePage: 'https://www.techradar.com/gaming/f1-25-review',
     title: 'Elevated pack repeat',
-    observation: 'The composition repeats the crowded uphill corner and spectator layering.',
+    observation:
+      'A cropped variant of reference 007 repeats rear-view traffic, layered fencing, grandstands, tyres and elevation in a dense field.',
     group: 'circuit',
     status: 'partial',
     duplicateOf: 7,
     implementation:
       'Existing circuit geometry, braking boards, elevation, grid paint, road rubber, crowds and paddock detailing supply these cues. Photo Studio now exposes adjustable survey/composition views.',
-    view: 'Enter a session; use C for pod/trackside, or Pause → Photo Studio and raise elevation/distance.',
+    view: "Reference Review → 044 → the entry's INSPECT/OPEN button. Enter a session; use C for pod/trackside, or Pause → Photo Studio and raise elevation/distance.",
     gap: 'Aurel is an original procedural circuit, not LiDAR-surveyed Silverstone or a geometrically matched licensed track.',
     code: [
       'src/rendering/circuit.ts',
@@ -979,6 +1124,7 @@ export const REFERENCES: readonly ReferenceEntry[] = [
       'src/rendering/circuit-finish.ts',
       'src/rendering/grandstand.ts',
       'src/rendering/circuit-barriers.ts',
+      'src/ui/reference-routes.ts',
     ],
   },
   {
@@ -989,19 +1135,24 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sha256: 'cea59e74486237b44761ef3368334785e57f6686f3b1e53215accaccc8b3a28d',
     sourcePage: 'https://www.techradar.com/gaming/f1-25-review',
     title: 'Overhead curb duel repeat',
-    observation: 'The composition repeats the high-angle two-car curb encounter.',
+    observation:
+      'A variant of reference 006 repeats the elevated side-by-side duel, coloured kerb and motion-blurred road, rather than supplying an additional independent system.',
     group: 'photo',
     status: 'enhanced',
     duplicateOf: 6,
     implementation:
-      'Added a real frozen-scene studio: car selection, orbit, elevation, distance, 18–150 mm lens, exposure, roll, clean view and canvas-only PNG export.',
-    view: 'Menu / Pause / Replay → Photo Studio; compose, Download PNG, Return. Race/replay remains safely paused.',
+      'Added a real frozen-scene studio: car selection, orbit, elevation, distance, 18–150 mm lens, exposure, roll, clean view and canvas-only PNG export. Added left/right near-car arrows from actual relative positions and heading, with stronger overlap treatment, a vertical separation gate and colour-accessible presentation. Retired cars and other road levels are suppressed.',
+    view: "Reference Review → 045 → the entry's INSPECT/OPEN button. Menu / Pause / Replay → Photo Studio; compose, Download PNG, Return. Race/replay remains safely paused.",
     gap: 'No depth-of-field, shutter-accumulation blur, night-city recreation or unrestricted free-fly collision system.',
     code: [
       'src/rendering/photo-camera.ts',
       'src/rendering/renderer.ts',
       'src/ui/photo-studio.ts',
       'src/main.ts',
+      'src/ui/reference-routes.ts',
+      'src/ui/proximity.ts',
+      'src/ui/interface.ts',
+      'src/ui/style.css',
     ],
   },
   {
@@ -1013,13 +1164,13 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://www.techradar.com/gaming/f1-25-review',
     title: 'Circuit scan split repeat',
     observation:
-      'The composition repeats the point-cloud-to-finished-circuit comparison, which does not establish that this repository has survey data.',
+      'A variant of reference 001 repeats the survey-versus-render comparison, roadside alignment, barrier heights and painted grid geometry.',
     group: 'circuit',
     status: 'partial',
     duplicateOf: 1,
     implementation:
       'Existing circuit geometry, braking boards, elevation, grid paint, road rubber, crowds and paddock detailing supply these cues. Photo Studio now exposes adjustable survey/composition views.',
-    view: 'Enter a session; use C for pod/trackside, or Pause → Photo Studio and raise elevation/distance.',
+    view: "Reference Review → 046 → the entry's INSPECT/OPEN button. Enter a session; use C for pod/trackside, or Pause → Photo Studio and raise elevation/distance.",
     gap: 'Aurel is an original procedural circuit, not LiDAR-surveyed Silverstone or a geometrically matched licensed track.',
     code: [
       'src/rendering/circuit.ts',
@@ -1027,6 +1178,7 @@ export const REFERENCES: readonly ReferenceEntry[] = [
       'src/rendering/circuit-finish.ts',
       'src/rendering/grandstand.ts',
       'src/rendering/circuit-barriers.ts',
+      'src/ui/reference-routes.ts',
     ],
   },
   {
@@ -1038,15 +1190,22 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://www.techradar.com/gaming/f1-25-review',
     title: 'Pre-grid tire preparation',
     observation:
-      'Mechanics work around a stationary car fitted with tire blankets, showing a preparation phase distinct from the racing pit stop.',
+      'A pre-grid car wears tyre blankets while mechanics stand or kneel around it. Warmers, temporary equipment and the front-wing area distinguish preparation from active pit service.',
     group: 'pregrid',
     status: 'partial',
     duplicateOf: null,
     implementation:
-      'The game has functional pit crew, grid staging and starting prompts, distinct from the new team-management workforce.',
-    view: 'Start Grand Prix for the staged grid; request a pit stop to inspect crew.',
-    gap: 'Separate pre-grid tire blankets, detachable covers and grid-mechanic preparation animation are not implemented.',
-    code: ['src/rendering/pit-crew.ts', 'src/rendering/paddock-detail.ts', 'src/ui/interface.ts'],
+      'The game has functional pit crew, grid staging and starting prompts, distinct from the new team-management workforce. Added four suspension-hub-aligned tyre blankets, retaining straps and two original preparation staff per car. Blankets withdraw before the first red light and staff clear before the second; pause/replay uses recorded time and nothing remains on the racing grid.',
+    view: "Reference Review → 047 → the entry's INSPECT/OPEN button. Start Grand Prix for the staged grid; request a pit stop to inspect crew.",
+    gap: 'The preparation people and blanket motion are procedural, not commercial-quality scans or full hand animations. Blanket visuals do not add a physical preheating model; no PS5 visual equivalence is claimed.',
+    code: [
+      'src/rendering/pit-crew.ts',
+      'src/rendering/paddock-detail.ts',
+      'src/ui/interface.ts',
+      'src/ui/reference-routes.ts',
+      'src/rendering/grid-preparation.ts',
+      'src/rendering/renderer.ts',
+    ],
   },
   {
     id: 48,
@@ -1057,15 +1216,15 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://www.techradar.com/gaming/f1-25-review',
     title: 'Wheel and three-pedal hardware',
     observation:
-      'A commercial steering-wheel base, rim and pedal set is a product photograph, not a gameplay capture.',
+      'A physical steering-wheel and three-pedal product bundle is photographed on a blue background. It informs calibration expectations, not a circuit object or proof of hardware support.',
     group: 'hardware',
     status: 'supplementary',
     duplicateOf: null,
     implementation:
       'Supplementary evidence for existing explicit steering/pedal axis calibration and button mapping; a physical product photo is not a scene requirement.',
-    view: 'Garage & Settings → select and calibrate a connected custom device.',
+    view: "Reference Review → 048 → the entry's INSPECT/OPEN button. Garage & Settings → select and calibrate a connected custom device.",
     gap: 'No wheel hardware was tested in this environment; native force feedback is not implemented.',
-    code: ['src/input/controller.ts', 'src/ui/device-calibration.ts'],
+    code: ['src/input/controller.ts', 'src/ui/device-calibration.ts', 'src/ui/reference-routes.ts'],
   },
   {
     id: 49,
@@ -1076,15 +1235,15 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://www.techradar.com/gaming/f1-25-review',
     title: 'Two wheel-and-pedal products',
     observation:
-      'A side-by-side peripheral comparison depicts physical input hardware, not an F1 game scene.',
+      'Two physical steering-wheel/pedal bundles appear on an orange background. Their compatibility and force-feedback behaviour cannot be inferred from the photograph.',
     group: 'hardware',
     status: 'supplementary',
     duplicateOf: null,
     implementation:
       'Supplementary evidence for existing explicit steering/pedal axis calibration and button mapping; a physical product photo is not a scene requirement.',
-    view: 'Garage & Settings → select and calibrate a connected custom device.',
+    view: "Reference Review → 049 → the entry's INSPECT/OPEN button. Garage & Settings → select and calibrate a connected custom device.",
     gap: 'No wheel hardware was tested in this environment; native force feedback is not implemented.',
-    code: ['src/input/controller.ts', 'src/ui/device-calibration.ts'],
+    code: ['src/input/controller.ts', 'src/ui/device-calibration.ts', 'src/ui/reference-routes.ts'],
   },
   {
     id: 50,
@@ -1094,7 +1253,8 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sha256: '4f20142be0052bea19a231daa5d4f2a5632e4cc0c73e7a35ce3f88910eefbd43',
     sourcePage: 'https://www.techradar.com/gaming/f1-25-review',
     title: 'Unrelated dark fantasy character',
-    observation: 'The image depicts a dark fantasy/horror character rather than Formula racing.',
+    observation:
+      'An unrelated medieval action-game scene with torch-lit combat appears in the archive. It contains no identifiable requirement for this formula-racing game.',
     group: 'excluded',
     status: 'excluded',
     duplicateOf: null,
@@ -1113,7 +1273,7 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://www.techradar.com/gaming/f1-25-review',
     title: 'Unrelated science-fiction shooter tile',
     observation:
-      'A science-fiction shooter/article image has no direct motorsport implementation requirement.',
+      'An unrelated shooter promotional scene depicts armed characters and an explosion with editorial graphics; it is contamination in a motorsport reference set.',
     group: 'excluded',
     status: 'excluded',
     duplicateOf: null,
@@ -1132,7 +1292,7 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://www.techradar.com/gaming/f1-25-review',
     title: 'Unrelated event announcement',
     observation:
-      'An event-sign graphic for Summer Game Fest 2026 is article-navigation material, not the reference racing game.',
+      'An exterior event sign for Summer Game Fest 2026 is unrelated to formula racing. The event branding is not a game-feature requirement.',
     group: 'excluded',
     status: 'excluded',
     duplicateOf: null,
@@ -1150,7 +1310,8 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sha256: '133579c3f492894f25b34110c499be802ca9703897b1cee735487c24e3e50279',
     sourcePage: 'https://www.techradar.com/gaming/f1-25-review',
     title: 'Unrelated water-racing article image',
-    observation: 'A water or hovercraft racing landscape belongs to a different game context.',
+    observation:
+      'Unrelated science-fiction pod-racing artwork has an editorial event graphic. Its vehicles and fictional environment do not belong to the provided formula-car target.',
     group: 'excluded',
     status: 'excluded',
     duplicateOf: null,
@@ -1168,7 +1329,8 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sha256: '56927f54b11ff982cba8078bc64f990d43abbd59f74bac2ddbfe3541d255e64c',
     sourcePage: 'https://www.techradar.com/gaming/f1-25-review',
     title: 'Unrelated anime portrait',
-    observation: 'A stylized anime character portrait has no identifiable racing-game content.',
+    observation:
+      'An unrelated anime/fantasy character with horns appears against a stylized background. No formula-racing feature can be grounded in this image.',
     group: 'excluded',
     status: 'excluded',
     duplicateOf: null,
@@ -1186,7 +1348,8 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sha256: '101850b5cab3947332c5fdf7eb466d1f423f613fa2b22ac15ad10c2bb82855cc',
     sourcePage: 'https://www.techradar.com/gaming/f1-25-review',
     title: 'Unrelated creature close-up',
-    observation: 'An alien or monster close-up is unrelated film/game imagery.',
+    observation:
+      'An unrelated alien-creature horror close-up appears in the pack. It is excluded rather than translated into a racing asset.',
     group: 'excluded',
     status: 'excluded',
     duplicateOf: null,
@@ -1204,7 +1367,8 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sha256: '65d8886f794b9640ce4d32cd33099f508f15cc46337ac4650f8262d608d6b895',
     sourcePage: 'https://www.techradar.com/gaming/f1-25-review',
     title: 'Unrelated fantasy combat artwork',
-    observation: 'Fantasy-combat key art has no direct connection to this racing simulation.',
+    observation:
+      'An unrelated fantasy combat scene includes serpentine enemies and a lightning-like weapon effect; it is not evidence for racing physics or presentation.',
     group: 'excluded',
     status: 'excluded',
     duplicateOf: null,
@@ -1223,7 +1387,7 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://www.techradar.com/gaming/f1-25-review',
     title: 'Unrelated demon fantasy artwork',
     observation:
-      'A demon/fantasy image is unrelated article artwork, not a missing car, track or menu.',
+      'Unrelated demon/fantasy promotional artwork supplies no motorsport requirement and is retained only as an explicitly excluded audit entry.',
     group: 'excluded',
     status: 'excluded',
     duplicateOf: null,
@@ -1241,7 +1405,8 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sha256: '5a2c523e967761716e4fea374fe1fd9937c85e9bc8f9838bebdeba3173b2bba9',
     sourcePage: 'https://www.techradar.com/gaming/f1-25-review',
     title: 'Unrelated computer product',
-    observation: 'A small desktop/gaming-device product photograph is hardware editorial imagery.',
+    observation:
+      'An unrelated small cube-shaped computer/console and controller product photograph is not a car, circuit, racing interface or supported wheel/pedal test.',
     group: 'excluded',
     status: 'excluded',
     duplicateOf: null,
@@ -1259,7 +1424,8 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sha256: 'f62a4557ec9e953410b32ba093d79b3bf88c97c641f03d5bfced3a4f822b29cb',
     sourcePage: 'https://www.techradar.com/gaming/f1-25-review',
     title: 'Unrelated fantasy landscape',
-    observation: 'The fantasy game landscape is unrelated to the reference racing title.',
+    observation:
+      'An unrelated third-person fantasy landscape with a magical tower is not a circuit environment reference and is excluded from implementation claims.',
     group: 'excluded',
     status: 'excluded',
     duplicateOf: null,
@@ -1277,7 +1443,8 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sha256: 'fd42c0787195dcf07c6f1389af0eae601b2777587851fed73ce8d9f56bda29ca',
     sourcePage: 'https://www.techradar.com/gaming/f1-25-review',
     title: 'Unrelated portal-and-warrior artwork',
-    observation: 'Fantasy portal/warrior key art is not an in-game motorsport scene.',
+    observation:
+      'Unrelated sword-hero artwork uses a magical circular portal composition. It does not describe the requested formula-racing game.',
     group: 'excluded',
     status: 'excluded',
     duplicateOf: null,
@@ -1295,7 +1462,8 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sha256: '74d0e0781ea62543a0651b7a545d24ff65d813523c1e00f290f1e23ba1f2e95f',
     sourcePage: 'https://www.techradar.com/gaming/f1-25-review',
     title: 'Unrelated smartphone photograph',
-    observation: 'Two phones are shown as consumer-electronics products.',
+    observation:
+      'A smartphone product photograph is unrelated to the supplied racing reference objective; it is not evidence that the game has a particular mobile UI.',
     group: 'excluded',
     status: 'excluded',
     duplicateOf: null,
@@ -1313,7 +1481,8 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sha256: '4e0fee52d767cd0fc4244e1057ea0e42c742d8faea7bc438293fe2cc6589e73e',
     sourcePage: 'https://www.techradar.com/gaming/f1-25-review',
     title: 'Unrelated camera product',
-    observation: 'A mirrorless-camera product photograph is not a photo-mode screenshot.',
+    observation:
+      "A camera-body product photograph does not show the racing game's photo mode or rendering. It is excluded rather than counted as an implemented feature.",
     group: 'excluded',
     status: 'excluded',
     duplicateOf: null,
@@ -1331,7 +1500,8 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sha256: '276461c001951ef8c0fa36aaa950e206dbe3e069f66d3af87ce419395a4a0875',
     sourcePage: 'https://www.techradar.com/gaming/f1-25-review',
     title: 'Unrelated hooded anime character',
-    observation: 'A hooded stylized character belongs to unrelated entertainment artwork.',
+    observation:
+      'An unrelated hooded anime character is promotional character artwork, not a driver or racing-system requirement.',
     group: 'excluded',
     status: 'excluded',
     duplicateOf: null,
@@ -1350,7 +1520,7 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://www.techradar.com/gaming/f1-25-review',
     title: 'Unrelated long-lens camera',
     observation:
-      'A camera and telephoto lens are consumer-photography hardware, not a rendered racing camera.',
+      'A camera-lens product photograph is not an in-game optical effect demonstration and is excluded from racing coverage counts.',
     group: 'excluded',
     status: 'excluded',
     duplicateOf: null,
@@ -1368,7 +1538,8 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sha256: '0da73201701b18c84038b4945aae26285edeed7e20d54dd50a57d476063275d4',
     sourcePage: 'https://www.techradar.com/gaming/f1-25-review',
     title: 'Unrelated 3D printer product',
-    observation: 'A multicolor 3D printer is shown as a hardware product.',
+    observation:
+      'A 3D-printer/filament product photograph is unrelated to formula racing and has no implementation counterpart in the game.',
     group: 'excluded',
     status: 'excluded',
     duplicateOf: null,
@@ -1387,19 +1558,20 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://www.techradar.com/gaming/f1-25-review',
     title: 'Close curb pack with different title marking',
     observation:
-      'Formula cars run tightly beside turquoise/orange runoff. The wall branding appears to say F1 26; the supplied filename is not proof of F1 25 or PS5 provenance.',
+      'A yellow/black lead car crosses raised red-white kerbing and turquoise run-off with two pursuers, palms, fencing and architecture. Low front framing stresses aero clearance and traffic depth.',
     group: 'mechanical',
     status: 'cue-present',
     duplicateOf: null,
     implementation:
       'Existing multi-element aero, suspension links, steering/camber and compliant tire posing expose loaded-car detail. Photo Studio now supports inspection angles.',
-    view: 'Drive over a curb, pause, select a low three-quarter Photo Studio composition.',
+    view: "Reference Review → 066 → the entry's INSPECT/OPEN button. Drive over a curb, pause, select a low three-quarter Photo Studio composition.",
     gap: 'No claim of matching a specific manufacturer model or PS5 material/animation quality.',
     code: [
       'src/rendering/bodywork.ts',
       'src/rendering/car.ts',
       'src/rendering/wheel-pose.ts',
       'src/rendering/tire-carcass.ts',
+      'src/ui/reference-routes.ts',
     ],
   },
   {
@@ -1411,13 +1583,14 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage:
       'https://www.topgear.com/car-news/gaming/we-tried-beating-last-years-silverstone-pole-time-f1-25-driving-it-backwards',
     title: 'Pod straight composition repeat',
-    observation: 'The composition repeats the forward pod/halo straight view.',
+    observation:
+      'A high onboard view looks over gloves, wheel, halo, mirrors and an opponent along a pit straight; strong peripheral speed blur contrasts with readable near-car geometry.',
     group: 'cockpit',
     status: 'cue-present',
     duplicateOf: 8,
     implementation:
       'Existing physical cockpit, wheel controls, live display, gloves/arms, halo and true rear-view render targets supply the onboard cues.',
-    view: 'Drive and cycle C to cockpit or pod; double-click cockpit for mouse look. Pause → Photo Studio for close inspection.',
+    view: "Reference Review → 067 → the entry's INSPECT/OPEN button. Drive and cycle C to cockpit or pod; double-click cockpit for mouse look. Pause → Photo Studio for close inspection.",
     gap: 'No claim of scanned licensed cockpit geometry, face/suit parity, or pixel-matched street-circuit scenery.',
     code: [
       'src/rendering/cockpit.ts',
@@ -1425,6 +1598,7 @@ export const REFERENCES: readonly ReferenceEntry[] = [
       'src/rendering/mirrors.ts',
       'src/rendering/driver.ts',
       'src/rendering/renderer.ts',
+      'src/ui/reference-routes.ts',
     ],
   },
   {
@@ -1436,13 +1610,14 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage:
       'https://www.topgear.com/car-news/gaming/we-tried-beating-last-years-silverstone-pole-time-f1-25-driving-it-backwards',
     title: 'Wet rear view repeat',
-    observation: 'The composition repeats the wet blue-banded-tire rear three-quarter scene.',
+    observation:
+      'A wet rear-three-quarter yellow/purple car shows grooved blue-marked tyres, spray, a red rain light and dark wet road against trees, repeating the wet-racing motif of reference 010.',
     group: 'wet',
     status: 'cue-present',
     duplicateOf: 10,
     implementation:
       'Existing weather changes clouds, wet-road response, rain lamps, tires, spray and cockpit droplets from live or recorded weather state.',
-    view: 'Menu → Heavy rain + Full wet; race or replay, then pause in Photo Studio.',
+    view: "Reference Review → 068 → the entry's INSPECT/OPEN button. Menu → Heavy rain + Full wet; race or replay, then pause in Photo Studio.",
     gap: 'No full screen-space reflection system, ray tracing or commercial volumetric spray/raindrop fidelity.',
     code: [
       'src/rendering/effects.ts',
@@ -1450,6 +1625,7 @@ export const REFERENCES: readonly ReferenceEntry[] = [
       'src/rendering/daylight.ts',
       'src/rendering/car.ts',
       'src/rendering/circuit.ts',
+      'src/ui/reference-routes.ts',
     ],
   },
   {
@@ -1462,15 +1638,15 @@ export const REFERENCES: readonly ReferenceEntry[] = [
       'https://www.topgear.com/car-news/gaming/we-tried-beating-last-years-silverstone-pole-time-f1-25-driving-it-backwards',
     title: 'Reverse-layout leaderboard',
     observation:
-      'A reverse Silverstone selection shows global/friends lap rankings and flags for assists or setups.',
+      'A circuit leaderboard separates global/friends-style results, rank, time, date, team and setup/assist indicators, including a reversed-layout marker. Local lap timing alone is not this online service.',
     group: 'leaderboard',
     status: 'partial',
     duplicateOf: null,
     implementation:
       'Existing per-assist/compound/weather local best-lap storage provides a narrow timing foundation only.',
-    view: 'Complete a session and inspect local best-lap information.',
+    view: "Reference Review → 069 → the entry's INSPECT/OPEN button. Complete a session and inspect local best-lap information.",
     gap: 'Reverse Silverstone, global/friends networking, leaderboard validation and ghost downloads are absent. Do not mark this image complete.',
-    code: ['src/storage/data.ts', 'src/ui/interface.ts'],
+    code: ['src/storage/data.ts', 'src/ui/interface.ts', 'src/ui/reference-routes.ts'],
   },
   {
     id: 70,
@@ -1482,15 +1658,23 @@ export const REFERENCES: readonly ReferenceEntry[] = [
       'https://www.topgear.com/car-news/gaming/we-tried-beating-last-years-silverstone-pole-time-f1-25-driving-it-backwards',
     title: 'Onboard setup-management panel',
     observation:
-      'A live solo cockpit view shows a delta and selectable brake-bias/differential parameters.',
+      'A time-trial cockpit combines gear 6, a full battery, a physical steering display, a green live delta, best-time comparison and brake-bias/differential controls with dashed road guidance.',
     group: 'hud',
     status: 'cue-present',
     duplicateOf: null,
     implementation:
-      'Existing timing tower, minimap, deltas, fuel/energy/tire readouts, proximity presentation and live setup fields cover the main driving information hierarchy.',
-    view: 'Drive/practice; cycle camera, press E for energy, inspect HUD and Garage setup.',
+      'Existing timing tower, minimap, deltas, fuel/energy/tire readouts, proximity presentation and live setup fields cover the main driving information hierarchy. Added switchable road-centre driving chevrons with a closed-loop braking envelope, wet-surface and yellow-flag reductions, colour-accessible palettes and a text/silhouette cue; no automatic steering or physics input is applied.',
+    view: "Reference Review → 070 → the entry's INSPECT/OPEN button. Drive/practice; cycle camera, press E for energy, inspect HUD and Garage setup.",
     gap: 'HUD layout is original; not every referenced multifunction popup or exact circular instrument layout is replicated.',
-    code: ['src/ui/interface.ts', 'src/ui/presentation.ts', 'src/rendering/steering-display.ts'],
+    code: [
+      'src/ui/interface.ts',
+      'src/ui/presentation.ts',
+      'src/rendering/steering-display.ts',
+      'src/ui/reference-routes.ts',
+      'src/rendering/driving-guide.ts',
+      'src/ui/driving-academy.ts',
+      'src/main.ts',
+    ],
   },
   {
     id: 71,
@@ -1501,15 +1685,16 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage:
       'https://www.topgear.com/car-news/gaming/we-tried-beating-last-years-silverstone-pole-time-f1-25-driving-it-backwards',
     title: 'Pit-stop composition repeat',
-    observation: 'The composition repeats the coordinated multi-mechanic wheel change.',
+    observation:
+      'A purple/yellow car receives four-corner pit service from suited and helmeted mechanics using wheel guns, replacement tyres and coordinated handling around the pit box.',
     group: 'pit',
     status: 'partial',
     duplicateOf: 4,
     implementation:
       'Existing staged approach, jack lift, corner crew, wheel exchange and release sequence are driven by actual pit-service state; the HUD reports progress.',
-    view: 'Drive, request a stop with P, follow pit entry, then replay or photograph the service.',
+    view: "Reference Review → 071 → the entry's INSPECT/OPEN button. Drive, request a stop with P, follow pit entry, then replay or photograph the service.",
     gap: 'Crew models remain procedural; animation, density and licensed pit-box artwork do not match commercial reference fidelity.',
-    code: ['src/rendering/pit-crew.ts', 'src/ui/interface.ts'],
+    code: ['src/rendering/pit-crew.ts', 'src/ui/interface.ts', 'src/ui/reference-routes.ts'],
   },
   {
     id: 72,
@@ -1521,15 +1706,23 @@ export const REFERENCES: readonly ReferenceEntry[] = [
       'https://www.topgear.com/car-news/gaming/we-tried-beating-last-years-silverstone-pole-time-f1-25-driving-it-backwards',
     title: 'Solo tight-corner delta',
     observation:
-      'A low-gear onboard corner uses timing/ghost information, racing-line guidance and a legible wheel display.',
+      'A turning time-trial onboard view shows gear 3, battery state, a green delta, comparison/ghost timing information and clearly bounded run-off around the bend.',
     group: 'practice',
     status: 'partial',
     duplicateOf: null,
     implementation:
-      'Existing free practice, personal lap timing/delta, racing guidance and recorded-lap comparison supply measurable driving feedback.',
-    view: 'Menu → Free practice; drive a lap; open telemetry and compare laps.',
+      'Existing free practice, personal lap timing/delta, racing guidance and recorded-lap comparison supply measurable driving feedback. Added switchable road-centre driving chevrons with a closed-loop braking envelope, wet-surface and yellow-flag reductions, colour-accessible palettes and a text/silhouette cue; no automatic steering or physics input is applied.',
+    view: "Reference Review → 072 → the entry's INSPECT/OPEN button. Menu → Free practice; drive a lap; open telemetry and compare laps.",
     gap: 'No rendered ghost car, dedicated practice-program scoring, reverse track or online time-trial board.',
-    code: ['src/ui/interface.ts', 'src/storage/recorders.ts', 'src/simulation/race.ts'],
+    code: [
+      'src/ui/interface.ts',
+      'src/storage/recorders.ts',
+      'src/simulation/race.ts',
+      'src/ui/reference-routes.ts',
+      'src/rendering/driving-guide.ts',
+      'src/ui/driving-academy.ts',
+      'src/main.ts',
+    ],
   },
   {
     id: 73,
@@ -1540,19 +1733,21 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage:
       'https://www.topgear.com/car-news/gaming/we-tried-beating-last-years-silverstone-pole-time-f1-25-driving-it-backwards',
     title: 'Helmet detail repeat',
-    observation: 'The composition repeats the close helmet, halo and cockpit material shot.',
+    observation:
+      'A tight side view of helmet, visor, halo, gloves and coloured wheel buttons includes a driver identity/country decal. The material arrangement matters; the person is not identified.',
     group: 'driver',
     status: 'partial',
     duplicateOf: 9,
     implementation:
       'Existing visor/glove/fabric/carbon details can now be inspected with user-controlled focal length and orbit.',
-    view: 'Photo Studio → short distance, side orbit and longer lens; cockpit view for hands.',
+    view: "Reference Review → 073 → the entry's INSPECT/OPEN button. Photo Studio → short distance, side orbit and longer lens; cockpit view for hands.",
     gap: 'No scanned head meshes, licensed helmets or cinematic character close-up parity.',
     code: [
       'src/rendering/driver.ts',
       'src/rendering/driver-materials.ts',
       'src/rendering/surface-detail.ts',
       'src/ui/photo-studio.ts',
+      'src/ui/reference-routes.ts',
     ],
   },
   {
@@ -1565,15 +1760,23 @@ export const REFERENCES: readonly ReferenceEntry[] = [
       'https://www.topgear.com/car-news/gaming/we-tried-beating-last-years-silverstone-pole-time-f1-25-driving-it-backwards',
     title: 'Solo fast-straight timing',
     observation:
-      'A high-speed straight view combines a timing delta with detailed stands, fencing and roadside structures.',
+      'A fast onboard straight shows gear 8, full battery, a negative green delta, white guidance chevrons and a large grandstand on the right.',
     group: 'practice',
     status: 'partial',
     duplicateOf: null,
     implementation:
-      'Existing free practice, personal lap timing/delta, racing guidance and recorded-lap comparison supply measurable driving feedback.',
-    view: 'Menu → Free practice; drive a lap; open telemetry and compare laps.',
+      'Existing free practice, personal lap timing/delta, racing guidance and recorded-lap comparison supply measurable driving feedback. Added switchable road-centre driving chevrons with a closed-loop braking envelope, wet-surface and yellow-flag reductions, colour-accessible palettes and a text/silhouette cue; no automatic steering or physics input is applied.',
+    view: "Reference Review → 074 → the entry's INSPECT/OPEN button. Menu → Free practice; drive a lap; open telemetry and compare laps.",
     gap: 'No rendered ghost car, dedicated practice-program scoring, reverse track or online time-trial board.',
-    code: ['src/ui/interface.ts', 'src/storage/recorders.ts', 'src/simulation/race.ts'],
+    code: [
+      'src/ui/interface.ts',
+      'src/storage/recorders.ts',
+      'src/simulation/race.ts',
+      'src/ui/reference-routes.ts',
+      'src/rendering/driving-guide.ts',
+      'src/ui/driving-academy.ts',
+      'src/main.ts',
+    ],
   },
   {
     id: 75,
@@ -1584,19 +1787,20 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://traxion.gg/how-to-take-great-photos-in-f1-25/',
     title: 'Photo-mode tutorial title',
     observation:
-      'A tutorial title sits over a panning car photograph. Its actionable requirement is a usable capture/composition tool.',
+      'A photo tutorial cover places a side-panning red car behind large editorial text. The photography/composition is relevant; copying the title card is not an in-game feature.',
     group: 'photo',
     status: 'enhanced',
     duplicateOf: null,
     implementation:
       'Added a real frozen-scene studio: car selection, orbit, elevation, distance, 18–150 mm lens, exposure, roll, clean view and canvas-only PNG export.',
-    view: 'Menu / Pause / Replay → Photo Studio; compose, Download PNG, Return. Race/replay remains safely paused.',
+    view: "Reference Review → 075 → the entry's INSPECT/OPEN button. Menu / Pause / Replay → Photo Studio; compose, Download PNG, Return. Race/replay remains safely paused.",
     gap: 'No depth-of-field, shutter-accumulation blur, night-city recreation or unrestricted free-fly collision system.',
     code: [
       'src/rendering/photo-camera.ts',
       'src/rendering/renderer.ts',
       'src/ui/photo-studio.ts',
       'src/main.ts',
+      'src/ui/reference-routes.ts',
     ],
   },
   {
@@ -1608,19 +1812,20 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://traxion.gg/how-to-take-great-photos-in-f1-25/',
     title: 'Sweeping elevated photo composition',
     observation:
-      'A trackside photograph frames the winding road, elevation, grandstands and background scale as a single composition.',
+      'A wide landscape photograph frames a rear-view car low in the image beneath a steep climbing curve, tiered grandstands and black-red-yellow kerbs/run-off.',
     group: 'photo',
     status: 'enhanced',
     duplicateOf: null,
     implementation:
       'Added a real frozen-scene studio: car selection, orbit, elevation, distance, 18–150 mm lens, exposure, roll, clean view and canvas-only PNG export.',
-    view: 'Menu / Pause / Replay → Photo Studio; compose, Download PNG, Return. Race/replay remains safely paused.',
+    view: "Reference Review → 076 → the entry's INSPECT/OPEN button. Menu / Pause / Replay → Photo Studio; compose, Download PNG, Return. Race/replay remains safely paused.",
     gap: 'No depth-of-field, shutter-accumulation blur, night-city recreation or unrestricted free-fly collision system.',
     code: [
       'src/rendering/photo-camera.ts',
       'src/rendering/renderer.ts',
       'src/ui/photo-studio.ts',
       'src/main.ts',
+      'src/ui/reference-routes.ts',
     ],
   },
   {
@@ -1632,19 +1837,20 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://traxion.gg/how-to-take-great-photos-in-f1-25/',
     title: 'Low front mechanical photograph',
     observation:
-      'A close front three-quarter image exposes front-wing elements, suspension links, tire shape and curb contact.',
+      'A low front close-up catches a car unloading or lifting its wheels over a kerb. Exposed suspension, floor carbon, wing clearance, helmet and fencing make contact geometry visible.',
     group: 'photo',
     status: 'enhanced',
     duplicateOf: null,
     implementation:
       'Added a real frozen-scene studio: car selection, orbit, elevation, distance, 18–150 mm lens, exposure, roll, clean view and canvas-only PNG export.',
-    view: 'Menu / Pause / Replay → Photo Studio; compose, Download PNG, Return. Race/replay remains safely paused.',
+    view: "Reference Review → 077 → the entry's INSPECT/OPEN button. Menu / Pause / Replay → Photo Studio; compose, Download PNG, Return. Race/replay remains safely paused.",
     gap: 'No depth-of-field, shutter-accumulation blur, night-city recreation or unrestricted free-fly collision system.',
     code: [
       'src/rendering/photo-camera.ts',
       'src/rendering/renderer.ts',
       'src/ui/photo-studio.ts',
       'src/main.ts',
+      'src/ui/reference-routes.ts',
     ],
   },
   {
@@ -1656,15 +1862,20 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://traxion.gg/how-to-take-great-photos-in-f1-25/',
     title: 'Panned side photograph',
     observation:
-      'A low side view separates the focused car silhouette from blurred background and rotating wheels.',
+      'A rear-side panning view shows scuffed/dirty bodywork and floor edges, rotating tyres and a streaked crowd. Surface wear and photographic motion are separate cues.',
     group: 'motion',
     status: 'partial',
     duplicateOf: null,
     implementation:
       'Existing depth-aware motion blur and rotating wheel assemblies supply speed cues. The photo camera adds deliberate composition, but freezes temporal blur.',
-    view: 'Garage → rendering controls for live motion blur; watch replay in trackside view.',
+    view: "Reference Review → 078 → the entry's INSPECT/OPEN button. Garage → rendering controls for live motion blur; watch replay in trackside view.",
     gap: 'A frozen photograph has no adjustable photographic shutter, wheel-exposure accumulation or background tracking blur.',
-    code: ['src/rendering/motion-blur.ts', 'src/rendering/car.ts', 'src/rendering/wheel-pose.ts'],
+    code: [
+      'src/rendering/motion-blur.ts',
+      'src/rendering/car.ts',
+      'src/rendering/wheel-pose.ts',
+      'src/ui/reference-routes.ts',
+    ],
   },
   {
     id: 79,
@@ -1675,15 +1886,23 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://traxion.gg/how-to-take-great-photos-in-f1-25/',
     title: 'Night circuit with illuminated sphere',
     observation:
-      'A large glowing sphere or screen landmark and floodlit racing infrastructure define a nighttime urban scene.',
+      'A night racing photograph includes a large emissive spherical venue landmark, floodlights, fencing and a low rear-three-quarter car. An original landmark is distinct from an exact venue recreation.',
     group: 'night',
     status: 'partial',
     duplicateOf: null,
     implementation:
-      'Existing weather-responsive lighting/reflections and new photo exposure/lens controls support composition, but not the scene shown.',
-    view: 'Inspect clear/rain lighting and Photo Studio exposure; this is not a night preset.',
-    gap: 'True night lighting, floodlights/neon, the giant illuminated sphere and a matching urban circuit are not implemented.',
-    code: ['src/rendering/daylight.ts', 'src/rendering/reflections.ts', 'src/ui/photo-studio.ts'],
+      'Existing weather-responsive lighting/reflections and new photo exposure/lens controls support composition, but not the scene shown. Added selectable night presentation, instanced floodlight masts, four bounded nearby light sources and an original patterned LED sphere at about 13% of the Aurel lap. This does not change the weather or simulation clock.',
+    view: "Reference Review → 079 → the entry's INSPECT/OPEN button. Inspect clear/rain lighting and Photo Studio exposure; this is not a night preset.",
+    gap: 'Original night illumination and an LED venue motif now exist, but this is not a matched city circuit, the licensed spherical landmark, a 22-car field, scanned scenery or verified commercial-quality night imagery. Actual GPU visual review of this new pass remains outstanding.',
+    code: [
+      'src/rendering/daylight.ts',
+      'src/rendering/reflections.ts',
+      'src/ui/photo-studio.ts',
+      'src/ui/reference-routes.ts',
+      'src/rendering/venue-lighting.ts',
+      'src/rendering/renderer.ts',
+      'src/ui/driving-academy.ts',
+    ],
   },
   {
     id: 80,
@@ -1694,15 +1913,23 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://traxion.gg/how-to-take-great-photos-in-f1-25/',
     title: 'Night reflective bodywork detail',
     observation:
-      'Neon-lit paint, close helmet/sidepod surfaces and wheel motion carry a nighttime reflective material treatment.',
+      'A tight night front-side panning view picks up artificial-light reflections on bodywork and decals, with wheel blur and neon-like background streaks.',
     group: 'night',
     status: 'partial',
     duplicateOf: null,
     implementation:
-      'Existing weather-responsive lighting/reflections and new photo exposure/lens controls support composition, but not the scene shown.',
-    view: 'Inspect clear/rain lighting and Photo Studio exposure; this is not a night preset.',
-    gap: 'True night lighting, floodlights/neon, the giant illuminated sphere and a matching urban circuit are not implemented.',
-    code: ['src/rendering/daylight.ts', 'src/rendering/reflections.ts', 'src/ui/photo-studio.ts'],
+      'Existing weather-responsive lighting/reflections and new photo exposure/lens controls support composition, but not the scene shown. Added selectable night presentation, instanced floodlight masts, four bounded nearby light sources and an original patterned LED sphere at about 13% of the Aurel lap. This does not change the weather or simulation clock.',
+    view: "Reference Review → 080 → the entry's INSPECT/OPEN button. Inspect clear/rain lighting and Photo Studio exposure; this is not a night preset.",
+    gap: 'Original night illumination and an LED venue motif now exist, but this is not a matched city circuit, the licensed spherical landmark, a 22-car field, scanned scenery or verified commercial-quality night imagery. Actual GPU visual review of this new pass remains outstanding.',
+    code: [
+      'src/rendering/daylight.ts',
+      'src/rendering/reflections.ts',
+      'src/ui/photo-studio.ts',
+      'src/ui/reference-routes.ts',
+      'src/rendering/venue-lighting.ts',
+      'src/rendering/renderer.ts',
+      'src/ui/driving-academy.ts',
+    ],
   },
   {
     id: 81,
@@ -1713,15 +1940,20 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://gamingbolt.com/f1-25-review-re-inventing-the-wheel',
     title: 'Headquarters atrium repeat',
     observation:
-      'The composition repeats the suspended show-car atrium and staff/meeting interior.',
+      'A repeated headquarters atrium view shows two levels, people, display-car presentation, stairs and furnishings, reinforcing the spatial facility reference from 016.',
     group: 'hq',
     status: 'partial',
     duplicateOf: 16,
     implementation:
       'Added a functional original Team HQ interface linked to funds, staff, facilities, contracts, research and calendar. Existing circuit paddock adds architectural depth.',
-    view: 'Menu → Team HQ → Headquarters, Personnel or Finance.',
+    view: "Reference Review → 081 → the entry's INSPECT/OPEN button. Menu → Team HQ → Headquarters, Personnel or Finance.",
     gap: 'This is a management interface, not a walkable headquarters campus or a modeled suspended-car atrium.',
-    code: ['src/ui/team-hub.ts', 'src/storage/team-career.ts', 'src/rendering/paddock-detail.ts'],
+    code: [
+      'src/ui/team-hub.ts',
+      'src/storage/team-career.ts',
+      'src/rendering/paddock-detail.ts',
+      'src/ui/reference-routes.ts',
+    ],
   },
   {
     id: 82,
@@ -1731,13 +1963,14 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sha256: 'a473af1d332b3edf91b3d370f447d66dda4fd624bfe4ebce1454a42c6a710dce',
     sourcePage: 'https://gamingbolt.com/f1-25-review-re-inventing-the-wheel',
     title: 'Wet rear scene repeat',
-    observation: 'The composition repeats the same rain-light, spray and wet-tire rear view.',
+    observation:
+      'A repeated wet rear view shows spray, blue tyre markings, a rain light and reflective road; it reinforces 010/068 rather than introducing another weather model.',
     group: 'wet',
     status: 'cue-present',
     duplicateOf: 10,
     implementation:
       'Existing weather changes clouds, wet-road response, rain lamps, tires, spray and cockpit droplets from live or recorded weather state.',
-    view: 'Menu → Heavy rain + Full wet; race or replay, then pause in Photo Studio.',
+    view: "Reference Review → 082 → the entry's INSPECT/OPEN button. Menu → Heavy rain + Full wet; race or replay, then pause in Photo Studio.",
     gap: 'No full screen-space reflection system, ray tracing or commercial volumetric spray/raindrop fidelity.',
     code: [
       'src/rendering/effects.ts',
@@ -1745,6 +1978,7 @@ export const REFERENCES: readonly ReferenceEntry[] = [
       'src/rendering/daylight.ts',
       'src/rendering/car.ts',
       'src/rendering/circuit.ts',
+      'src/ui/reference-routes.ts',
     ],
   },
   {
@@ -1755,19 +1989,24 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sha256: '409a5b1da61e5c57938089a6251c0e2f0c28ac2bc3e06596923bb4980125f4b3',
     sourcePage: 'https://gamingbolt.com/f1-25-review-re-inventing-the-wheel',
     title: 'Curb duel repeat',
-    observation: 'The composition repeats the overhead close two-car duel.',
+    observation:
+      'Another elevated side-by-side car composition repeats the duel, wheel spacing and coloured kerb cues in 006/045.',
     group: 'photo',
     status: 'enhanced',
     duplicateOf: 6,
     implementation:
-      'Added a real frozen-scene studio: car selection, orbit, elevation, distance, 18–150 mm lens, exposure, roll, clean view and canvas-only PNG export.',
-    view: 'Menu / Pause / Replay → Photo Studio; compose, Download PNG, Return. Race/replay remains safely paused.',
+      'Added a real frozen-scene studio: car selection, orbit, elevation, distance, 18–150 mm lens, exposure, roll, clean view and canvas-only PNG export. Added left/right near-car arrows from actual relative positions and heading, with stronger overlap treatment, a vertical separation gate and colour-accessible presentation. Retired cars and other road levels are suppressed.',
+    view: "Reference Review → 083 → the entry's INSPECT/OPEN button. Menu / Pause / Replay → Photo Studio; compose, Download PNG, Return. Race/replay remains safely paused.",
     gap: 'No depth-of-field, shutter-accumulation blur, night-city recreation or unrestricted free-fly collision system.',
     code: [
       'src/rendering/photo-camera.ts',
       'src/rendering/renderer.ts',
       'src/ui/photo-studio.ts',
       'src/main.ts',
+      'src/ui/reference-routes.ts',
+      'src/ui/proximity.ts',
+      'src/ui/interface.ts',
+      'src/ui/style.css',
     ],
   },
   {
@@ -1779,13 +2018,13 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://www.gamescreed.com/reviews/f1-25-review/',
     title: 'Another-series cockpit',
     observation:
-      'An onboard image includes another racing-series identity, with gloved steering, halo and mirrors behind a lead car.',
+      'A junior-formula onboard race shows a turned steering wheel, gloved hands, gear 2, halo/mirrors, classification and opponent labels. A generic formula car is not a separate junior-series vehicle model.',
     group: 'cockpit',
     status: 'cue-present',
     duplicateOf: null,
     implementation:
       'Existing physical cockpit, wheel controls, live display, gloves/arms, halo and true rear-view render targets supply the onboard cues.',
-    view: 'Drive and cycle C to cockpit or pod; double-click cockpit for mouse look. Pause → Photo Studio for close inspection.',
+    view: "Reference Review → 084 → the entry's INSPECT/OPEN button. Drive and cycle C to cockpit or pod; double-click cockpit for mouse look. Pause → Photo Studio for close inspection.",
     gap: 'No claim of scanned licensed cockpit geometry, face/suit parity, or pixel-matched street-circuit scenery.',
     code: [
       'src/rendering/cockpit.ts',
@@ -1793,6 +2032,7 @@ export const REFERENCES: readonly ReferenceEntry[] = [
       'src/rendering/mirrors.ts',
       'src/rendering/driver.ts',
       'src/rendering/renderer.ts',
+      'src/ui/reference-routes.ts',
     ],
   },
   {
@@ -1804,15 +2044,22 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://www.gamescreed.com/reviews/f1-25-review/',
     title: 'Chase traffic proximity',
     observation:
-      'A close chase battle uses proximity direction, competitor names, tower and vehicle telemetry to communicate overlap.',
+      'A chase view in traffic includes a red side-proximity arrow, a field minimap and gear-5/battery HUD. The proximity cue should reflect actual nearby cars, not leaderboard order.',
     group: 'hud',
-    status: 'cue-present',
+    status: 'partial',
     duplicateOf: null,
     implementation:
-      'Existing timing tower, minimap, deltas, fuel/energy/tire readouts, proximity presentation and live setup fields cover the main driving information hierarchy.',
-    view: 'Drive/practice; cycle camera, press E for energy, inspect HUD and Garage setup.',
-    gap: 'HUD layout is original; not every referenced multifunction popup or exact circular instrument layout is replicated.',
-    code: ['src/ui/interface.ts', 'src/ui/presentation.ts', 'src/rendering/steering-display.ts'],
+      'Existing timing tower, minimap, deltas, fuel/energy/tire readouts, proximity presentation and live setup fields cover the main driving information hierarchy. Added left/right near-car arrows from actual relative positions and heading, with stronger overlap treatment, a vertical separation gate and colour-accessible presentation. Retired cars and other road levels are suppressed.',
+    view: "Reference Review → 085 → the entry's INSPECT/OPEN button. Drive/practice; cycle camera, press E for energy, inspect HUD and Garage setup.",
+    gap: 'Actual side-proximity arrows and field minimap are present, but exact HUD artwork, commercial AI racecraft and image-level rendering equivalence remain unverified.',
+    code: [
+      'src/ui/interface.ts',
+      'src/ui/presentation.ts',
+      'src/rendering/steering-display.ts',
+      'src/ui/reference-routes.ts',
+      'src/ui/proximity.ts',
+      'src/ui/style.css',
+    ],
   },
   {
     id: 86,
@@ -1823,15 +2070,20 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://www.gamescreed.com/reviews/f1-25-review/',
     title: 'Garage team-launch interview',
     observation:
-      'Presenters and a car share a garage presentation scene with lower-third identification/subtitle elements.',
+      'A showroom conversation stages three people beside a purple car with speaker identification and subtitles. It is a narrative scene, not simply a team-management form.',
     group: 'media',
     status: 'partial',
     duplicateOf: null,
     implementation:
       'HQ briefing text now reacts to hiring, research and classified outcomes; existing paddock camera/crew props contribute trackside context.',
-    view: 'Read Headquarters briefing after a completed study or race.',
+    view: "Reference Review → 086 → the entry's INSPECT/OPEN button. Read Headquarters briefing after a completed study or race.",
     gap: 'No animated press interview, dialogue choice, voice acting, presenters or cinematic media scene is implemented.',
-    code: ['src/ui/team-hub.ts', 'src/storage/team-career.ts', 'src/rendering/paddock-detail.ts'],
+    code: [
+      'src/ui/team-hub.ts',
+      'src/storage/team-career.ts',
+      'src/rendering/paddock-detail.ts',
+      'src/ui/reference-routes.ts',
+    ],
   },
   {
     id: 87,
@@ -1842,15 +2094,23 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://www.maxi-geek.com/con/f1-25-review',
     title: 'Night sphere and rear car',
     observation:
-      'A rear three-quarter car is framed beside a giant bright sphere, grandstands and urban floodlighting.',
+      'Another night view places a glowing spherical landmark behind tyres, rubbered asphalt, fencing, stands and a purple/yellow car, reinforcing the venue motif of 079.',
     group: 'night',
     status: 'partial',
     duplicateOf: null,
     implementation:
-      'Existing weather-responsive lighting/reflections and new photo exposure/lens controls support composition, but not the scene shown.',
-    view: 'Inspect clear/rain lighting and Photo Studio exposure; this is not a night preset.',
-    gap: 'True night lighting, floodlights/neon, the giant illuminated sphere and a matching urban circuit are not implemented.',
-    code: ['src/rendering/daylight.ts', 'src/rendering/reflections.ts', 'src/ui/photo-studio.ts'],
+      'Existing weather-responsive lighting/reflections and new photo exposure/lens controls support composition, but not the scene shown. Added selectable night presentation, instanced floodlight masts, four bounded nearby light sources and an original patterned LED sphere at about 13% of the Aurel lap. This does not change the weather or simulation clock.',
+    view: "Reference Review → 087 → the entry's INSPECT/OPEN button. Inspect clear/rain lighting and Photo Studio exposure; this is not a night preset.",
+    gap: 'Original night illumination and an LED venue motif now exist, but this is not a matched city circuit, the licensed spherical landmark, a 22-car field, scanned scenery or verified commercial-quality night imagery. Actual GPU visual review of this new pass remains outstanding.',
+    code: [
+      'src/rendering/daylight.ts',
+      'src/rendering/reflections.ts',
+      'src/ui/photo-studio.ts',
+      'src/ui/reference-routes.ts',
+      'src/rendering/venue-lighting.ts',
+      'src/rendering/renderer.ts',
+      'src/ui/driving-academy.ts',
+    ],
   },
   {
     id: 88,
@@ -1861,13 +2121,13 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://www.maxi-geek.com/con/f1-25-review',
     title: 'Cockpit looking toward paddock',
     observation:
-      'An off-center cockpit composition emphasizes glove and wheel surfaces, a metallic halo, rear-view mirror and paddock structures.',
+      'A right-looking cockpit close-up reveals live wheel controls, gold-toned/carbon halo, a mirror and pit-wall/garage surroundings, emphasizing orientation and near-car readability.',
     group: 'cockpit',
     status: 'cue-present',
     duplicateOf: null,
     implementation:
       'Existing physical cockpit, wheel controls, live display, gloves/arms, halo and true rear-view render targets supply the onboard cues.',
-    view: 'Drive and cycle C to cockpit or pod; double-click cockpit for mouse look. Pause → Photo Studio for close inspection.',
+    view: "Reference Review → 088 → the entry's INSPECT/OPEN button. Drive and cycle C to cockpit or pod; double-click cockpit for mouse look. Pause → Photo Studio for close inspection.",
     gap: 'No claim of scanned licensed cockpit geometry, face/suit parity, or pixel-matched street-circuit scenery.',
     code: [
       'src/rendering/cockpit.ts',
@@ -1875,6 +2135,7 @@ export const REFERENCES: readonly ReferenceEntry[] = [
       'src/rendering/mirrors.ts',
       'src/rendering/driver.ts',
       'src/rendering/renderer.ts',
+      'src/ui/reference-routes.ts',
     ],
   },
   {
@@ -1886,15 +2147,26 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://www.maxi-geek.com/con/f1-25-review',
     title: 'Tree-lined objective straight',
     observation:
-      'A chase straight shows hold-position instructions, remaining laps, a tower and a high gear alongside dense roadside trees.',
+      'A story-race objective asks the driver to hold position while a fault is addressed, followed by a win target and lap limit. A green driving line, gaps and minimap support the mission.',
     group: 'objectives',
     status: 'partial',
     duplicateOf: null,
     implementation:
-      'Existing positions, race-control messages, lap targets and deltas support racing; new HQ briefing/points supply a persistent local goal.',
-    view: 'Run Grand Prix for position/lap goals; practice for delta; read Team HQ race briefing.',
+      'Existing positions, race-control messages, lap targets and deltas support racing; new HQ briefing/points supply a persistent local goal. Added switchable road-centre driving chevrons with a closed-loop braking envelope, wet-surface and yellow-flag reductions, colour-accessible palettes and a text/silhouette cue; no automatic steering or physics input is applied. Added a five-attempt consistency programme: the first valid human lap locks a target, subsequent real crossings receive grades, and completed-lap worker metadata excludes invalid, penalized or AI-assisted results. Replays cannot award attempts.',
+    view: "Reference Review → 089 → the entry's INSPECT/OPEN button. Run Grand Prix for position/lap goals; practice for delta; read Team HQ race briefing.",
     gap: 'No scripted overtake-backmarker/hold-position scenario engine or story subtitles matching these images.',
-    code: ['src/ui/interface.ts', 'src/simulation/race.ts', 'src/storage/team-career.ts'],
+    code: [
+      'src/ui/interface.ts',
+      'src/simulation/race.ts',
+      'src/storage/team-career.ts',
+      'src/ui/reference-routes.ts',
+      'src/rendering/driving-guide.ts',
+      'src/ui/driving-academy.ts',
+      'src/main.ts',
+      'src/simulation/practice-programme.ts',
+      'src/simulation/protocol.ts',
+      'src/simulation/world.ts',
+    ],
   },
   {
     id: 90,
@@ -1904,15 +2176,21 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sha256: '214e81eef68a83613725c336e50c111cf3f74ff3a24da3278ecd15d29e73e98a',
     sourcePage: 'https://www.cgmagonline.com/review/game/ea-sports-f1-25-ps5-review/',
     title: 'Side-panning composition repeat',
-    observation: 'The composition repeats the side-profile car photograph with motion streaking.',
+    observation:
+      'A red car is photographed from the front three-quarter angle on a pit straight, with paint catchlights, body decals, wheel motion and architectural depth behind it.',
     group: 'motion',
     status: 'partial',
     duplicateOf: 2,
     implementation:
       'Existing depth-aware motion blur and rotating wheel assemblies supply speed cues. The photo camera adds deliberate composition, but freezes temporal blur.',
-    view: 'Garage → rendering controls for live motion blur; watch replay in trackside view.',
+    view: "Reference Review → 090 → the entry's INSPECT/OPEN button. Garage → rendering controls for live motion blur; watch replay in trackside view.",
     gap: 'A frozen photograph has no adjustable photographic shutter, wheel-exposure accumulation or background tracking blur.',
-    code: ['src/rendering/motion-blur.ts', 'src/rendering/car.ts', 'src/rendering/wheel-pose.ts'],
+    code: [
+      'src/rendering/motion-blur.ts',
+      'src/rendering/car.ts',
+      'src/rendering/wheel-pose.ts',
+      'src/ui/reference-routes.ts',
+    ],
   },
   {
     id: 91,
@@ -1923,13 +2201,13 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://www.cgmagonline.com/review/game/ea-sports-f1-25-ps5-review/',
     title: 'Driver identity portrait',
     observation:
-      'A commercial portrait uses a red suit/team identity and promotional lighting; it is not evidence of a playable character system.',
+      'A promotional portrait of a real person in a red racing suit uses a bright yellow graphic background. An original team identity can echo the format without reproducing or identifying the person.',
     group: 'identity',
     status: 'partial',
     duplicateOf: null,
     implementation:
-      'Original APEX/team wordmark, driver monograms, selected race number and car livery form a coherent in-game identity; existing rivals retain their own liveries.',
-    view: 'Team HQ → Personnel; Photo / Livery → save identity; return to driving and inspect the tower/car.',
+      'Original APEX/team wordmark, driver monograms, selected race number and car livery form a coherent in-game identity; existing rivals retain their own liveries. Added a native dark showroom: a level podium, floor, rim light, softbox geometry and fill lights isolate the actual editable car. Scene visibility and fog are restored after every render, including failures.',
+    view: "Reference Review → 091 → the entry's INSPECT/OPEN button. Team HQ → Personnel; Photo / Livery → save identity; return to driving and inspect the tower/car.",
     gap: 'No licensed driver likeness, commercial title artwork, suit editor or portrait/cutscene replication.',
     code: [
       'src/storage/team-career.ts',
@@ -1937,6 +2215,10 @@ export const REFERENCES: readonly ReferenceEntry[] = [
       'src/ui/team-hub.ts',
       'src/rendering/car-livery.ts',
       'src/ui/interface.ts',
+      'src/ui/reference-routes.ts',
+      'src/rendering/photo-stage.ts',
+      'src/rendering/renderer.ts',
+      'src/ui/photo-studio.ts',
     ],
   },
   {
@@ -1947,15 +2229,16 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sha256: '08c70107d31a87e41ee2d8107dd689d762546a9a5dcaa67b113b9e1e53a473e5',
     sourcePage: 'https://gamecritics.com/c-j-salcedo/f1-25-review/',
     title: 'Pit-stop action repeat',
-    observation: 'The composition repeats the jack, wheel exchange and crew choreography.',
+    observation:
+      'A repeated purple/yellow pit-service view reinforces the wheel-exchange choreography, crew positions and equipment visible in 071.',
     group: 'pit',
     status: 'partial',
     duplicateOf: 4,
     implementation:
       'Existing staged approach, jack lift, corner crew, wheel exchange and release sequence are driven by actual pit-service state; the HUD reports progress.',
-    view: 'Drive, request a stop with P, follow pit entry, then replay or photograph the service.',
+    view: "Reference Review → 092 → the entry's INSPECT/OPEN button. Drive, request a stop with P, follow pit entry, then replay or photograph the service.",
     gap: 'Crew models remain procedural; animation, density and licensed pit-box artwork do not match commercial reference fidelity.',
-    code: ['src/rendering/pit-crew.ts', 'src/ui/interface.ts'],
+    code: ['src/rendering/pit-crew.ts', 'src/ui/interface.ts', 'src/ui/reference-routes.ts'],
   },
   {
     id: 93,
@@ -1966,13 +2249,13 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://www.noobfeed.com/reviews/f1-25-review',
     title: 'Rainy cockpit in close traffic',
     observation:
-      'A dark wet cockpit follows traffic through spray, with rain-obscured viewing and a visible halo silhouette.',
+      'A real sim-rig photograph shows hands on a wheel and pedals beneath a curved monitor displaying wet night traffic. Physical device calibration, field of view and game rendering are separate concerns.',
     group: 'wet',
-    status: 'cue-present',
+    status: 'partial',
     duplicateOf: null,
     implementation:
-      'Existing weather changes clouds, wet-road response, rain lamps, tires, spray and cockpit droplets from live or recorded weather state.',
-    view: 'Menu → Heavy rain + Full wet; race or replay, then pause in Photo Studio.',
+      'Existing weather changes clouds, wet-road response, rain lamps, tires, spray and cockpit droplets from live or recorded weather state. Added selectable night presentation, instanced floodlight masts, four bounded nearby light sources and an original patterned LED sphere at about 13% of the Aurel lap. This does not change the weather or simulation clock.',
+    view: "Reference Review → 093 → the entry's INSPECT/OPEN button. Menu → Heavy rain + Full wet; race or replay, then pause in Photo Studio.",
     gap: 'No full screen-space reflection system, ray tracing or commercial volumetric spray/raindrop fidelity.',
     code: [
       'src/rendering/effects.ts',
@@ -1980,6 +2263,10 @@ export const REFERENCES: readonly ReferenceEntry[] = [
       'src/rendering/daylight.ts',
       'src/rendering/car.ts',
       'src/rendering/circuit.ts',
+      'src/ui/reference-routes.ts',
+      'src/rendering/venue-lighting.ts',
+      'src/rendering/renderer.ts',
+      'src/ui/driving-academy.ts',
     ],
   },
   {
@@ -1991,15 +2278,20 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://www.joinsteer.com/',
     title: 'Five-light race start',
     observation:
-      'An onboard starting grid shows five red lamps, a clutch engagement prompt and cars staged ahead.',
+      'A cockpit grid start shows five red lights, manual-clutch/optimal-RPM prompts, neutral gear, a full battery and surrounding cars visible through mirrors and the halo.',
     group: 'start',
     status: 'cue-present',
     duplicateOf: null,
     implementation:
       'Existing staged race grid, start-light state, clutch input and race-start timing implement the visible starting interaction.',
-    view: 'Start Grand Prix; use the configured clutch/control scheme and watch the five-light sequence.',
+    view: "Reference Review → 094 → the entry's INSPECT/OPEN button. Start Grand Prix; use the configured clutch/control scheme and watch the five-light sequence.",
     gap: 'Procedural grid atmosphere, crew density and licensed starting environment remain different.',
-    code: ['src/ui/interface.ts', 'src/input/controller.ts', 'src/simulation/race.ts'],
+    code: [
+      'src/ui/interface.ts',
+      'src/input/controller.ts',
+      'src/simulation/race.ts',
+      'src/ui/reference-routes.ts',
+    ],
   },
   {
     id: 95,
@@ -2010,15 +2302,15 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://www.onpsx.de/',
     title: 'Cockpit pit-service timing',
     observation:
-      'The driver sees wheel-changing activity, a stop timer, pit-lane boxes and a turn-in or service classification display.',
+      'A cockpit pit-stop view includes working crew, pit-lane/stop timing, a turn-in quality message and estimated service duration. These metrics should come from real service events.',
     group: 'pit',
     status: 'partial',
     duplicateOf: null,
     implementation:
       'Existing staged approach, jack lift, corner crew, wheel exchange and release sequence are driven by actual pit-service state; the HUD reports progress.',
-    view: 'Drive, request a stop with P, follow pit entry, then replay or photograph the service.',
+    view: "Reference Review → 095 → the entry's INSPECT/OPEN button. Drive, request a stop with P, follow pit entry, then replay or photograph the service.",
     gap: 'Crew models remain procedural; animation, density and licensed pit-box artwork do not match commercial reference fidelity.',
-    code: ['src/rendering/pit-crew.ts', 'src/ui/interface.ts'],
+    code: ['src/rendering/pit-crew.ts', 'src/ui/interface.ts', 'src/ui/reference-routes.ts'],
   },
   {
     id: 96,
@@ -2029,13 +2321,13 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://vandal.elespanol.com/analisis/ps5/f1-25/198717',
     title: 'Overcast wet cockpit',
     observation:
-      'Moisture, softened reflections and a car ahead frame gloved steering beneath overcast spectator infrastructure.',
+      'An onboard view centers a detailed physical wheel LCD, coloured rotaries, gloves and halo, with an overcast circuit, grandstands and an opponent pack outside.',
     group: 'wet',
     status: 'cue-present',
     duplicateOf: null,
     implementation:
       'Existing weather changes clouds, wet-road response, rain lamps, tires, spray and cockpit droplets from live or recorded weather state.',
-    view: 'Menu → Heavy rain + Full wet; race or replay, then pause in Photo Studio.',
+    view: "Reference Review → 096 → the entry's INSPECT/OPEN button. Menu → Heavy rain + Full wet; race or replay, then pause in Photo Studio.",
     gap: 'No full screen-space reflection system, ray tracing or commercial volumetric spray/raindrop fidelity.',
     code: [
       'src/rendering/effects.ts',
@@ -2043,6 +2335,7 @@ export const REFERENCES: readonly ReferenceEntry[] = [
       'src/rendering/daylight.ts',
       'src/rendering/car.ts',
       'src/rendering/circuit.ts',
+      'src/ui/reference-routes.ts',
     ],
   },
   {
@@ -2054,15 +2347,26 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://www.playstation4hry.cz/',
     title: 'Undulating guided racing',
     observation:
-      'The onboard road rises/falls through a green racing line with a gap objective, minimap, mirrors and large grandstands.',
+      'A leading cockpit view combines a win objective, lap 14/18, a gap/laps-left readout, minimap, road guidance, gear 6, battery information and a mirror bar against wooded hills.',
     group: 'objectives',
     status: 'partial',
     duplicateOf: null,
     implementation:
-      'Existing positions, race-control messages, lap targets and deltas support racing; new HQ briefing/points supply a persistent local goal.',
-    view: 'Run Grand Prix for position/lap goals; practice for delta; read Team HQ race briefing.',
+      'Existing positions, race-control messages, lap targets and deltas support racing; new HQ briefing/points supply a persistent local goal. Added switchable road-centre driving chevrons with a closed-loop braking envelope, wet-surface and yellow-flag reductions, colour-accessible palettes and a text/silhouette cue; no automatic steering or physics input is applied. Added a five-attempt consistency programme: the first valid human lap locks a target, subsequent real crossings receive grades, and completed-lap worker metadata excludes invalid, penalized or AI-assisted results. Replays cannot award attempts.',
+    view: "Reference Review → 097 → the entry's INSPECT/OPEN button. Run Grand Prix for position/lap goals; practice for delta; read Team HQ race briefing.",
     gap: 'No scripted overtake-backmarker/hold-position scenario engine or story subtitles matching these images.',
-    code: ['src/ui/interface.ts', 'src/simulation/race.ts', 'src/storage/team-career.ts'],
+    code: [
+      'src/ui/interface.ts',
+      'src/simulation/race.ts',
+      'src/storage/team-career.ts',
+      'src/ui/reference-routes.ts',
+      'src/rendering/driving-guide.ts',
+      'src/ui/driving-academy.ts',
+      'src/main.ts',
+      'src/simulation/practice-programme.ts',
+      'src/simulation/protocol.ts',
+      'src/simulation/world.ts',
+    ],
   },
   {
     id: 98,
@@ -2072,13 +2376,14 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sha256: '0701ee824b1c3fb6ed3f87752570da77d1621ad60e4e5d0cb7de30acf4250caf',
     sourcePage: 'https://gamingbolt.com/f1-25-review-re-inventing-the-wheel',
     title: 'Race-pack curve repeat',
-    observation: 'The composition repeats the dense elevated corner with layered spectators.',
+    observation:
+      'A repeated rear-view blue-car race pack returns to kerbs, grandstands, fences, suspension detail and dense traffic as in 007/044.',
     group: 'circuit',
     status: 'partial',
     duplicateOf: 7,
     implementation:
       'Existing circuit geometry, braking boards, elevation, grid paint, road rubber, crowds and paddock detailing supply these cues. Photo Studio now exposes adjustable survey/composition views.',
-    view: 'Enter a session; use C for pod/trackside, or Pause → Photo Studio and raise elevation/distance.',
+    view: "Reference Review → 098 → the entry's INSPECT/OPEN button. Enter a session; use C for pod/trackside, or Pause → Photo Studio and raise elevation/distance.",
     gap: 'Aurel is an original procedural circuit, not LiDAR-surveyed Silverstone or a geometrically matched licensed track.',
     code: [
       'src/rendering/circuit.ts',
@@ -2086,6 +2391,7 @@ export const REFERENCES: readonly ReferenceEntry[] = [
       'src/rendering/circuit-finish.ts',
       'src/rendering/grandstand.ts',
       'src/rendering/circuit-barriers.ts',
+      'src/ui/reference-routes.ts',
     ],
   },
   {
@@ -2097,13 +2403,13 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://www.thumbculture.co.uk/f1-25-ps5-review',
     title: 'Driver portrait title variation',
     observation:
-      'A variation of the portrait at 091 adds game-title marketing. It is not a second distinct driver gameplay mechanic.',
+      "A repeated promotional portrait adds game-title/publisher branding to the red-suit/yellow-background layout. Marketing logos and a real person's likeness are not shipped as game assets.",
     group: 'identity',
     status: 'partial',
     duplicateOf: 91,
     implementation:
-      'Original APEX/team wordmark, driver monograms, selected race number and car livery form a coherent in-game identity; existing rivals retain their own liveries.',
-    view: 'Team HQ → Personnel; Photo / Livery → save identity; return to driving and inspect the tower/car.',
+      'Original APEX/team wordmark, driver monograms, selected race number and car livery form a coherent in-game identity; existing rivals retain their own liveries. Added a native dark showroom: a level podium, floor, rim light, softbox geometry and fill lights isolate the actual editable car. Scene visibility and fog are restored after every render, including failures.',
+    view: "Reference Review → 099 → the entry's INSPECT/OPEN button. Team HQ → Personnel; Photo / Livery → save identity; return to driving and inspect the tower/car.",
     gap: 'No licensed driver likeness, commercial title artwork, suit editor or portrait/cutscene replication.',
     code: [
       'src/storage/team-career.ts',
@@ -2111,6 +2417,10 @@ export const REFERENCES: readonly ReferenceEntry[] = [
       'src/ui/team-hub.ts',
       'src/rendering/car-livery.ts',
       'src/ui/interface.ts',
+      'src/ui/reference-routes.ts',
+      'src/rendering/photo-stage.ts',
+      'src/rendering/renderer.ts',
+      'src/ui/photo-studio.ts',
     ],
   },
   {
@@ -2122,13 +2432,13 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     sourcePage: 'https://www.ea.com/games/f1/f1-25/news/f1-25-career-deep-dive',
     title: 'Helmet and title identity montage',
     observation:
-      'The final promotional montage combines close helmet/halo/car detail with a game title.',
+      'A promotional close front-side/onboard view of a pink/blue car shows helmet, halo, mirror, nearby traffic and branding overlays. Original car geometry and photo composition are the applicable cues.',
     group: 'identity',
     status: 'partial',
     duplicateOf: null,
     implementation:
       'Original APEX/team wordmark, driver monograms, selected race number and car livery form a coherent in-game identity; existing rivals retain their own liveries.',
-    view: 'Team HQ → Personnel; Photo / Livery → save identity; return to driving and inspect the tower/car.',
+    view: "Reference Review → 100 → the entry's INSPECT/OPEN button. Team HQ → Personnel; Photo / Livery → save identity; return to driving and inspect the tower/car.",
     gap: 'No licensed driver likeness, commercial title artwork, suit editor or portrait/cutscene replication.',
     code: [
       'src/storage/team-career.ts',
@@ -2136,6 +2446,7 @@ export const REFERENCES: readonly ReferenceEntry[] = [
       'src/ui/team-hub.ts',
       'src/rendering/car-livery.ts',
       'src/ui/interface.ts',
+      'src/ui/reference-routes.ts',
     ],
   },
 ];

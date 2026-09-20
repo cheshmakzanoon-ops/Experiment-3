@@ -7,6 +7,7 @@ export interface PhotoSettings {
   exposure: number;
   roll: number;
   target: number;
+  backdrop: 'circuit' | 'studio';
 }
 export const DEFAULT_PHOTO: Readonly<PhotoSettings> = Object.freeze({
   azimuth: 38,
@@ -16,6 +17,7 @@ export const DEFAULT_PHOTO: Readonly<PhotoSettings> = Object.freeze({
   exposure: 0,
   roll: 0,
   target: 0,
+  backdrop: 'circuit',
 });
 export function validatePhoto(value: unknown, cars = 1): PhotoSettings {
   const p = value && typeof value === 'object' ? (value as Partial<PhotoSettings>) : {};
@@ -30,6 +32,7 @@ export function validatePhoto(value: unknown, cars = 1): PhotoSettings {
     exposure: finite(p.exposure, 0, -2, 2),
     roll: finite(p.roll, 0, -45, 45),
     target: Math.round(finite(p.target, 0, 0, count - 1)),
+    backdrop: p.backdrop === 'studio' ? 'studio' : 'circuit',
   };
 }
 /** Vertical field of view for a 24 mm-high full-frame sensor; units are degrees. */

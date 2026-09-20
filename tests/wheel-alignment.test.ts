@@ -56,7 +56,7 @@ it('records the exact Ackermann, toe and camber angles used by each physical tir
 it('initial garage snapshots contain alignment and protocol regions never overlap', () => {
   const sim = new Simulation({ ...DEFAULT_OPTIONS, opponents: 11 });
   const frame = sim.makeFrame();
-  expect(PROTOCOL_VERSION).toBe(9);
+  expect(PROTOCOL_VERSION).toBe(10);
   expect(frame.length).toBe(HEADER + CAR_STRIDE * 12);
   expect(new Set(Object.values(W)).size).toBe(Object.keys(W).length);
   expect(Math.max(...Object.values(F))).toBeLessThan(WHEEL_BASE);

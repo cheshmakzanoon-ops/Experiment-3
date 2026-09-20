@@ -27,6 +27,9 @@ const MARBLE_FIELDS: number[] = [
   F.MARBLE_PICKUP_RR,
   F.MARBLE_PICKUP_RL,
 ];
+// Completed-lap evidence belongs to the full snapshot/replay protocol. Exclude
+// newly reserved fields from the historical 228-column telemetry CSV contract.
+const LAP_EVIDENCE_FIELDS: number[] = [F.LAST_LAP_VALID, F.LAST_LAP_ASSISTED];
 export const TELEMETRY_FIELDS: number[] = [
   ...priority,
   ...Object.values(F).filter(
@@ -34,7 +37,8 @@ export const TELEMETRY_FIELDS: number[] = [
       field !== F.S &&
       field !== F.LAPS &&
       !priority.includes(field) &&
-      !MARBLE_FIELDS.includes(field),
+      !MARBLE_FIELDS.includes(field) &&
+      !LAP_EVIDENCE_FIELDS.includes(field),
   ),
 ];
 const units: Record<string, string> = {

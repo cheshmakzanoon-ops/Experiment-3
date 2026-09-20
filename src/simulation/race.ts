@@ -29,6 +29,10 @@ export class LapTracker {
   lastCrossingTime = 0;
   crossedFinish = false;
   lastValid = false;
+  assisted = false;
+  lastAssisted = false;
+  lastPenalty = 0;
+  private penaltyAtLapStart = 0;
   readonly lastSectors = [0, 0, 0];
   readonly reference: LapReference;
   constructor(
@@ -68,10 +72,14 @@ export class LapTracker {
             this.lastSectors[1] = this.sectors[1];
             this.lastSectors[2] = crossing - this.sectorStart;
             this.lastValid = this.valid;
+            this.lastAssisted = this.assisted;
+            this.lastPenalty = this.penalty - this.penaltyAtLapStart;
             const improved = this.valid && (this.best === 0 || this.last < this.best);
             this.reference.finish(this.last, improved);
             if (improved) this.best = this.last;
           }
+          this.assisted = false;
+          this.penaltyAtLapStart = this.penalty;
           this.active = true;
           this.valid = !offTrack;
           this.lapStart = crossing;

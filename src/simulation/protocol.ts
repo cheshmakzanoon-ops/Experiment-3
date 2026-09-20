@@ -7,7 +7,7 @@ export const HEADER = 16,
   DEBRIS_STRIDE = 8,
   SKID_BASE = 232,
   SKID_STRIDE = 17;
-export const PROTOCOL_VERSION = 9;
+export const PROTOCOL_VERSION = 10;
 // +Z is the nose, +Y up and +X the driver's left; negative-X hubs are right-side wheels.
 export const WHEEL_NAMES = ['FR', 'FL', 'RR', 'RL'] as const;
 export const D = { KIND: 0, X: 1, Y: 2, Z: 3, ROTATION: 4, AGE: 5, MASS: 6, ACTIVE: 7 } as const;
@@ -144,6 +144,9 @@ export const F = {
   MARBLE_PICKUP_FL: 91,
   MARBLE_PICKUP_RR: 92,
   MARBLE_PICKUP_RL: 93,
+  // Previously reserved chassis slots. Persist exact crossing eligibility.
+  LAST_LAP_VALID: 94,
+  LAST_LAP_ASSISTED: 95,
 } as const;
 export const W = {
   OMEGA: 0,

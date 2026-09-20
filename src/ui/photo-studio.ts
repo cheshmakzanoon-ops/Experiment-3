@@ -34,7 +34,11 @@ export class PhotoStudio {
       const input = e.target as HTMLInputElement;
       if (input.dataset.photo) {
         this.settings = validatePhoto(
-          { ...this.settings, [input.dataset.photo]: Number(input.value) },
+          {
+            ...this.settings,
+            [input.dataset.photo]:
+              input.dataset.photo === 'backdrop' ? input.value : Number(input.value),
+          },
           this.cars,
         );
         this.callbacks.change(this.settings);
@@ -95,7 +99,7 @@ export class PhotoStudio {
     this.cars = Math.max(1, Math.min(12, cars));
     this.settings = { ...DEFAULT_PHOTO };
     this.element.classList.remove('clean-frame');
-    this.element.innerHTML = `<header class="photo-title"><span class="eyebrow">APEX / PHOTO STUDIO</span><h2>Hold the moment.</h2><p>FROZEN SIMULATION · ORIGINAL GAME RENDER</p></header><div class="photo-top-actions"><button data-photo-action="clean">CLEAN FRAME</button><button data-photo-action="close">RETURN / ESC</button></div><aside class="photo-drawer" aria-label="Photo studio controls"><h3>Compose</h3><label>SUBJECT<select id="photoTarget" data-photo="target">${Array.from({ length: this.cars }, (_, id) => `<option value="${id}">${id === 0 ? 'YOUR CAR' : `CAR ${id + 1}`}</option>`).join('')}</select></label>${sliders.map(([key, title, min, max, step, unit]) => `<label for="photo-${key}">${title}<span><output for="photo-${key}">${this.settings[key]}</output>${unit}</span></label><input id="photo-${key}" data-photo="${key}" aria-label="${title}" type="range" min="${min}" max="${max}" step="${step}" value="${this.settings[key]}">`).join('')}<p class="photo-help">Lens framing uses a 24 mm vertical film gate. Exposure adjusts the actual renderer. No artificial depth of field or shutter blur is claimed.</p><div class="photo-buttons"><button data-photo-action="reset">RESET CAMERA</button><button class="primary" id="capturePhoto" data-photo-action="capture">DOWNLOAD PNG</button></div><form id="photoLivery"><h3>Make it yours.</h3><label>STUDIO PRESET<select id="liveryPreset"><option value="">CUSTOM</option>${Object.keys(
+    this.element.innerHTML = `<header class="photo-title"><span class="eyebrow">APEX / PHOTO STUDIO</span><h2>Hold the moment.</h2><p>FROZEN SIMULATION · ORIGINAL GAME RENDER</p></header><div class="photo-top-actions"><button data-photo-action="clean">CLEAN FRAME</button><button data-photo-action="close">RETURN / ESC</button></div><aside class="photo-drawer" aria-label="Photo studio controls"><h3>Compose</h3><label>SETTING<select id="photoBackdrop" data-photo="backdrop"><option value="circuit">ON CIRCUIT</option><option value="studio">DARK SHOWROOM</option></select></label><label>SUBJECT<select id="photoTarget" data-photo="target">${Array.from({ length: this.cars }, (_, id) => `<option value="${id}">${id === 0 ? 'YOUR CAR' : `CAR ${id + 1}`}</option>`).join('')}</select></label>${sliders.map(([key, title, min, max, step, unit]) => `<label for="photo-${key}">${title}<span><output for="photo-${key}">${this.settings[key]}</output>${unit}</span></label><input id="photo-${key}" data-photo="${key}" aria-label="${title}" type="range" min="${min}" max="${max}" step="${step}" value="${this.settings[key]}">`).join('')}<p class="photo-help">Lens framing uses a 24 mm vertical film gate. Exposure adjusts the actual renderer. No artificial depth of field or shutter blur is claimed.</p><div class="photo-buttons"><button data-photo-action="reset">RESET CAMERA</button><button class="primary" id="capturePhoto" data-photo-action="capture">DOWNLOAD PNG</button></div><form id="photoLivery"><h3>Make it yours.</h3><label>STUDIO PRESET<select id="liveryPreset"><option value="">CUSTOM</option>${Object.keys(
       LIVERY_PRESETS,
     )
       .map((key) => `<option value="${key}">${key.toUpperCase()}</option>`)
@@ -107,7 +111,14 @@ export class PhotoStudio {
     this.callbacks.change(this.settings);
     this.element.querySelector<HTMLButtonElement>('[data-photo-action="close"]')?.focus();
   }
+  compose(value: Partial<PhotoSettings>) {
+    this.settings = validatePhoto({ ...this.settings, ...value }, this.cars);
+    this.fillCamera();
+    this.callbacks.change(this.settings);
+  }
   private fillCamera() {
+    (this.element.querySelector('#photoBackdrop') as HTMLSelectElement).value =
+      this.settings.backdrop;
     for (const [key] of sliders) {
       (this.element.querySelector(`#photo-${key}`) as HTMLInputElement).value = String(
         this.settings[key],
@@ -118,7 +129,7 @@ export class PhotoStudio {
     (this.element.querySelector('#photoTarget') as HTMLSelectElement).value = String(
       this.settings.target,
     );
-    this.element.querySelector<HTMLElement>('#photoLivery')!.hidden = false;
+    this.element.querySelector<HTMLElement>('#photoLivery')!.hidden = this.settings.target !== 0;
   }
   private fillLivery(value: Livery) {
     for (const key of ['primary', 'accent', 'number', 'sponsor', 'pattern'] as const) {
