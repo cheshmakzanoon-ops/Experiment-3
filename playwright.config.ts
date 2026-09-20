@@ -1,8 +1,10 @@
 import { defineConfig } from '@playwright/test';
 export default defineConfig({
   testDir: './e2e',
-  timeout: 180000,
-  expect: { timeout: 20000 },
+  // GitHub-hosted SwiftShader can drop below 1 FPS on the full fidelity scene.
+  // Keep the assertions intact, but budget for real GPU-backed frames to arrive.
+  timeout: 300000,
+  expect: { timeout: 60000 },
   // Shard individual isolated cases, not whole files; each runner still uses one GPU.
   fullyParallel: true,
   workers: 1,

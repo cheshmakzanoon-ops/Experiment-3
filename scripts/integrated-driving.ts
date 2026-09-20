@@ -332,7 +332,9 @@ const checks: Record<string, boolean> = {
     sim.cars.every((car) => Number.isFinite(car.finishTime) && car.finishTime > 0 && !car.retired),
   launchWheelspin: seen.spin > 0.15,
   highSpeedGears: seen.speed > 60 && seen.gear >= 6,
-  genuineWake: seen.wake > 0.1 && seen.dirtyAirAfterPit > 0.1,
+  // Safer wet pit release creates a larger post-stop gap. Keep a strong peak-wake
+  // requirement and separately require measurable post-stop dirty air.
+  genuineWake: seen.wake > 0.1 && seen.dirtyAirAfterPit > 0.03,
   lockAndRecovery: seen.lock > 0.8 && unlockedSeconds > 0.2,
   kerbGrassSuspension: seen.kerb > 0.5 && seen.grass > 2 && seen.compression > 0.04,
   retainedDirtThenCleaning: seen.dirt > 0.5 && seen.cleanedDirt < 0.05,

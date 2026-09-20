@@ -12,7 +12,7 @@ async function begin(page: Page) {
   await page.selectOption('#mode', 'practice');
   await page.selectOption('#opponents', '3');
   await page.getByRole('button', { name: 'ENTER CIRCUIT' }).click();
-  await expect.poll(async () => (await diag(page)).state, { timeout: 40000 }).toBe('driving');
+  await expect.poll(async () => (await diag(page)).state, { timeout: 90000 }).toBe('driving');
 }
 test('browser session, cameras, pause safety, telemetry and replay', async ({ page }, testInfo) => {
   const errors: string[] = [];
@@ -331,7 +331,7 @@ test('race start and chequered flag produce an actual result', async ({ page }, 
   await page.selectOption('#laps', '1');
   await page.selectOption('#opponents', '3');
   await page.getByRole('button', { name: 'ENTER CIRCUIT' }).click();
-  await expect.poll(async () => (await diag(page)).state, { timeout: 40000 }).toBe('driving');
+  await expect.poll(async () => (await diag(page)).state, { timeout: 90000 }).toBe('driving');
   await page.keyboard.press('g');
   await expect
     .poll(async () => (await diag(page)).state, { timeout: 150000, intervals: [2000] })
@@ -395,7 +395,7 @@ test('manual right steering and live rear-view passes work without autopilot', a
   await page.selectOption('#mode', 'practice');
   await page.selectOption('#opponents', '0');
   await page.getByRole('button', { name: 'ENTER CIRCUIT' }).click();
-  await expect.poll(async () => (await diag(page)).state, { timeout: 40000 }).toBe('driving');
+  await expect.poll(async () => (await diag(page)).state, { timeout: 90000 }).toBe('driving');
   expect((await diag(page)).auto).toBe(false);
   await page.keyboard.down('w');
   await expect

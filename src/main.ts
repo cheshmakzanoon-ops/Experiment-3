@@ -427,7 +427,7 @@ export class GameApp {
             'Physics worker did not initialize. Check that module workers are supported by the browser.',
           ),
         );
-    }, 15000);
+    }, 45000);
     this.post({ type: 'init', options: this.options });
     this.post({ type: 'engineering', enabled: this.renderer?.debug ?? false });
     await ready;

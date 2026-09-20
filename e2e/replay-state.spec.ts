@@ -4,7 +4,7 @@ import { H } from '../src/simulation/protocol.ts';
 test('recorded playback has exclusive modal, seek, audio and focus ownership', async ({
   page,
 }, testInfo) => {
-  test.setTimeout(90000);
+  test.setTimeout(300000);
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
   page.on('console', (message) => {
@@ -22,7 +22,9 @@ test('recorded playback has exclusive modal, seek, audio and focus ownership', a
   await page.selectOption('#weather', 'rain');
   await page.selectOption('#compound', 'wet');
   await page.getByRole('button', { name: 'ENTER CIRCUIT' }).click();
-  await expect.poll(async () => (await diagnostics()).state).toBe('driving');
+  await expect
+    .poll(async () => (await diagnostics()).state, { timeout: 90000 })
+    .toBe('driving');
   await page.keyboard.press('g');
   await expect
     .poll(async () => (await diagnostics()).replaySeconds, { timeout: 30000 })

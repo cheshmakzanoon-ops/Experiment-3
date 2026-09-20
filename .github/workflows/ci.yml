@@ -74,7 +74,8 @@ jobs:
     runs-on: ubuntu-latest
     # Independent runners retain every test/timeout without contending for one
     # software GPU. Playwright shards the complete suite; no file is filtered.
-    timeout-minutes: 25
+    # Full software-WebGL validation can exceed 25 minutes even when tests are progressing.
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
