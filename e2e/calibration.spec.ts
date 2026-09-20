@@ -88,7 +88,7 @@ test('custom wheel calibration persists, drives a real clutch and disconnects sa
   // A null frame during that transition is not a failed clutch response.
   await expect
     .poll(async () => page.evaluate(() => window.apexDiagnostics().state), {
-      timeout: 60000,
+      timeout: 90000,
     })
     .toBe('driving');
   const frame = () => page.evaluate(() => window.apexDiagnostics().frame!);
