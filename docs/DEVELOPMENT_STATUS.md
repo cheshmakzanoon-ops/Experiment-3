@@ -236,3 +236,15 @@ All ten workstreams have implementation work, but the complete Phase 27E quality
 gate, independent 100-image visual acceptance, full human-driven Section 146,
 representative hardware, current-commit full browser CI and Steam readiness are
 not declared complete. Existing master/requirement ledgers remain authoritative.
+
+## Phase 27F continuation from ea08a67
+
+The base's complete CI is green. This source increment advances car/floor/cover
+LODs, helmet form, instanced crowds/planting, the night dome, solid-occluder-aware
+broadcast choices and bounded real session/game-audio/hardware observations.
+See [Phase 27F scope, measured validation and remaining acceptance](PHASE_27F_ACCEPTANCE_CONTINUATION.md).
+Do not transfer the base's CI PASS to this candidate. Real Windows/wheel data,
+the continuous human Section 146 run, complete 100-image human acceptance and
+candidate-specific full application CI remain open. The owner's next scope is
+continued game development, including more modes and at least 16 distinct maps,
+not an automatic transition to Steam packaging.

@@ -1,3 +1,4 @@
+import { reviewHardware } from '../ui/review-hardware.ts';
 import type { ReviewFrame } from './presentation-review.ts';
 import { HeadquartersStage } from './headquarters-stage.ts';
 import { BokehPass } from 'three/addons/postprocessing/BokehPass.js';
@@ -194,7 +195,9 @@ export class RacingRenderer {
     this.circuit.construction.add('Environment lighting', 1, () => {
       this.environment.update(this.renderer, this.scene, 0);
     });
-    this.trackside = new TracksideDirector(track);
+    this.trackside = new TracksideDirector(track, (from, to) =>
+      this.circuit.sightlines.blocked(from, to),
+    );
     this.scene.add(this.circuit.group, this.effects.group, this.engineeringView.group);
 
     this.composer = new EffectComposer(this.renderer);
@@ -507,6 +510,7 @@ export class RacingRenderer {
     this.sky.material.uniforms.turbidity.value = daylight.turbidity;
     this.sky.material.uniforms.cloudCover.value = daylight.cover;
     this.sky.material.uniforms.skyRadiance.value = daylight.skyRadiance;
+    this.sky.material.uniforms.nightAmount.value = this.night && !studio ? 1 : 0;
     this.target.copy(car.root.position);
     this.direction.set(0, 0, 1).applyQuaternion(car.root.quaternion);
     if (this.photo) {
@@ -664,10 +668,10 @@ export class RacingRenderer {
           if (other !== car) this.scenePresentation.visibilityFor(other.root, false);
       } else if (this.night) {
         this.scenePresentation.begin(this.venueLighting.nightBackground, false, this.nightFog);
-        this.scenePresentation.visibilityFor(this.sky, false);
+        // Retain the real skydome and its recorded-cloud night shader.
       }
       // Include weather-driven environment captures in real GPU/draw metrics.
-      this.environment.update(this.renderer, this.scene, daylight.cover);
+      this.environment.update(this.renderer, this.scene, daylight.cover, this.night && !studio);
       let wheelWater = 0;
       for (let wheel = 0; wheel < 4; wheel++)
         wheelWater = Math.max(wheelWater, b[o + WHEEL_BASE + wheel * WHEEL_STRIDE + W.WATER]);
@@ -714,6 +718,9 @@ export class RacingRenderer {
     this.renderedMode = this.mode;
     this.lastRenderCPUms = performance.now() - start;
     this.renderMs = this.renderMs * 0.9 + this.lastRenderCPUms * 0.1;
+  }
+  reviewHardware() {
+    return reviewHardware(this.renderer.getContext());
   }
   visualDiagnostics() {
     const car = this.cars[this.follow];
@@ -845,6 +852,9 @@ export class RacingRenderer {
       presentedCamera: this.renderedMode,
       tracksideRig: this.trackside.activeId,
       tracksideCuts: this.trackside.cuts,
+      broadcastOccluded: this.trackside.occluded,
+      broadcastVisibilityCuts: this.trackside.visibilityCuts,
+      broadcastSolidOccluders: this.circuit.sightlines.count,
       broadcastSubjectRadius: this.trackside.subjectRadius,
       cameraLocalPosition: this.eyeLocal.toArray(),
       mirrorUpdates: this.reflection.mirrorUpdates,

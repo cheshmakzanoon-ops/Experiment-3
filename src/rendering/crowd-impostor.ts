@@ -71,6 +71,8 @@ export function installCrowdImpostorShader(material: T.MeshStandardMaterial, ran
       diffuseColor.a *= 1.-smoothstep(-aa,aa,shape);
       float headMask = 1.-smoothstep(-aa,aa,head);
       diffuseColor.rgb = mix(diffuseColor.rgb, vSkin, headMask);
+      float scalp = headMask * smoothstep(.66,.69,p.y);
+      diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.025,.018,.012),scalp);
       if(p.y < .15) diffuseColor.rgb *= vec3(.22,.25,.28);`,
     );
     shader.fragmentShader = shader.fragmentShader.replace(
@@ -80,5 +82,5 @@ export function installCrowdImpostorShader(material: T.MeshStandardMaterial, ran
       #include <alphatest_fragment>`,
     );
   };
-  material.customProgramCacheKey = () => 'apex-seated-impostor-v1';
+  material.customProgramCacheKey = () => 'apex-seated-impostor-v2-scalp';
 }

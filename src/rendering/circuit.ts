@@ -1,3 +1,4 @@
+import { BroadcastSightlines } from './broadcast-sightlines.ts';
 import { serviceSitePlan } from './venue-service-plan.ts';
 import { buildServiceAreas } from './venue-service.ts';
 import type { CrowdCluster } from './crowd.ts';
@@ -39,6 +40,7 @@ export class CircuitScene {
   readonly crowd = new T.Group();
   readonly crowdClusters: CrowdCluster[] = [];
   readonly props = new T.Group();
+  readonly sightlines = new BroadcastSightlines();
   readonly vegetationGroup = new T.Group();
   readonly stateTexture: T.DataTexture;
   readonly roadMaterial: T.MeshStandardMaterial;
@@ -167,7 +169,8 @@ export class CircuitScene {
     this.construction.add('Distant terrain', 3, () => {
       const terrain = new T.PlaneGeometry(5500, 5500, 96, 96);
       terrain.rotateX(-Math.PI / 2);
-      const pos = terrain.getAttribute('position'), terrainUV = terrain.getAttribute('uv');
+      const pos = terrain.getAttribute('position'),
+        terrainUV = terrain.getAttribute('uv');
       for (let i = 0; i < pos.count; i++) {
         const x = pos.getX(i),
           z = pos.getZ(i);
@@ -196,7 +199,7 @@ export class CircuitScene {
       buildTrackInfrastructure(track, this.props, this.safetyPanel, this.trackInfrastructure),
     );
     this.construction.add('Authored service areas', 2, () =>
-      buildServiceAreas(this.props, this.serviceSites),
+      buildServiceAreas(this.props, this.serviceSites, this.sightlines),
     );
     this.construction.add('Rule-placed layered foliage', 3, () =>
       buildVegetation(track, this.vegetationGroup, this.serviceSites),
@@ -360,7 +363,15 @@ export class CircuitScene {
     const stands = standMaterials();
     for (const site of GRANDSTANDS)
       this.construction.add(`Detailed grandstand at ${site.s} m`, 3, () =>
-        buildGrandstand(this.track, this.props, this.crowd, site, stands, this.crowdClusters),
+        buildGrandstand(
+          this.track,
+          this.props,
+          this.crowd,
+          site,
+          stands,
+          this.crowdClusters,
+          this.sightlines,
+        ),
       );
     this.construction.add('Signs, gantry and control tower', 2, () => {
       this.sign('APEX  /  FORMULA', 360, -19, 18, 2);

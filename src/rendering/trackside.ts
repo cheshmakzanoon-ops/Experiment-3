@@ -159,19 +159,25 @@ export class TracksideDirector {
   private targetDirection = new Vector3();
   private viewDirection = new Vector3();
   framingFits = true;
+  occluded = false;
+  visibilityCuts = 0;
   subjectRadius = 3.1;
   activeId = -1;
   cuts = 0;
   fov = 42;
   private previousS = NaN;
   private previousAspect = NaN;
-  constructor(readonly track: Track) {
+  constructor(
+    readonly track: Track,
+    private readonly blocked?: (from: Vector3, to: Vector3) => boolean,
+  ) {
     this.rigs = tracksideRigs(track);
   }
   reset() {
     this.activeId = -1;
     this.previousS = NaN;
     this.previousAspect = NaN;
+    this.occluded = false;
   }
   update(s: number, target: Vector3, velocity: Vector3, dt: number, aspect = 16 / 9, radius = 3.1) {
     if (
@@ -190,6 +196,23 @@ export class TracksideDirector {
     let id = this.activeId;
     if (id < 0 || seek || distance(s, this.rigs[id].centerS) > this.rigs[id].coverageM / 2)
       id = Math.round(s / spacing) % this.rigs.length;
+    this.occluded = this.blocked?.(this.rigs[id].position, target) ?? false;
+    if (this.occluded) {
+      // Only choose existing neighbouring physical rigs. Never move a camera
+      // through scenery or hide an occluder to manufacture a clear shot.
+      const candidates = [-1, 1, -2, 2].map((offset) => mod(id + offset, this.rigs.length));
+      candidates.sort(
+        (a, b) => distance(s, this.rigs[a].centerS) - distance(s, this.rigs[b].centerS) || a - b,
+      );
+      const replacement = candidates.find(
+        (candidate) => !this.blocked!(this.rigs[candidate].position, target),
+      );
+      if (replacement !== undefined) {
+        id = replacement;
+        this.occluded = false;
+        if (id !== this.activeId) this.visibilityCuts++;
+      }
+    }
     const cut = id !== this.activeId || seek;
     const resized = aspect !== this.previousAspect;
     const rig = this.rigs[id];
@@ -249,6 +272,7 @@ export class TracksideDirector {
         }
       }
     }
+    this.framingFits = this.framingFits && !this.occluded;
     this.activeId = id;
     this.previousS = s;
     this.previousAspect = aspect;

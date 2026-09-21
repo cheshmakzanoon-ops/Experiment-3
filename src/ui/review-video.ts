@@ -1,3 +1,5 @@
+import type { ReviewAudioSource } from '../audio/review-tap.ts';
+
 /** Optional local video evidence. No microphone, network upload or retained
  * object URL. Encoder frames may be coalesced; requests are not encoded-frame
  * counts. Separate JSON timings retain every observed application render. */
@@ -7,12 +9,15 @@ export class ReviewVideo {
   private chunks: Blob[] = [];
   private bytes = 0;
   private stream: MediaStream | null = null;
+  private audio: ReviewAudioSource | null = null;
+  private audioCaptured = false;
+  private audioRequested = false;
   state: 'idle' | 'recording' | 'stopping' | 'ready' | 'unavailable' = 'idle';
   reason: string | null = null;
   requestedFrames = 0;
   blob: Blob | null = null;
   static readonly maximumBytes = 64 * 1024 * 1024;
-  start(canvas: HTMLCanvasElement) {
+  start(canvas: HTMLCanvasElement, audio?: ReviewAudioSource) {
     if (this.state === 'recording' || this.state === 'stopping')
       throw new Error('Video is still active');
     this.chunks = [];
@@ -20,18 +25,28 @@ export class ReviewVideo {
     this.requestedFrames = 0;
     this.blob = null;
     this.reason = null;
+    this.audio = audio ?? null;
+    this.audioCaptured = false;
+    this.audioRequested = !!audio;
     try {
       if (typeof MediaRecorder === 'undefined' || typeof canvas.captureStream !== 'function')
         throw new Error('Canvas video recording is not supported');
-      const mimeType = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'].find(
-        (mime) => MediaRecorder.isTypeSupported(mime),
-      );
+      const formats = audio
+        ? ['video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm']
+        : ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'];
+      const mimeType = formats.find((mime) => MediaRecorder.isTypeSupported(mime));
       if (!mimeType) throw new Error('No WebM encoder is available');
       this.stream = canvas.captureStream(0);
       const track = this.stream.getVideoTracks()[0];
       if (!track || !('requestFrame' in track) || typeof track.requestFrame !== 'function')
         throw new Error('Manual canvas frame capture is not supported');
       this.track = track as typeof this.track;
+      if (audio) {
+        const tracks = audio.stream.getAudioTracks();
+        if (tracks.length !== 1 || tracks[0].readyState !== 'live')
+          throw new Error('Game audio capture has no live stereo track');
+        this.stream.addTrack(tracks[0]);
+      }
       const recorder = new MediaRecorder(this.stream, { mimeType, videoBitsPerSecond: 3_000_000 });
       this.recorder = recorder;
       recorder.ondataavailable = ({ data }) => {
@@ -58,6 +73,7 @@ export class ReviewVideo {
       };
       recorder.start(1000);
       this.state = 'recording';
+      this.audioCaptured = !!audio;
     } catch (error) {
       this.releaseTracks();
       this.recorder = null;
@@ -92,7 +108,10 @@ export class ReviewVideo {
       bytes: this.blob?.size ?? this.bytes,
       maximumBytes: ReviewVideo.maximumBytes,
       encodedFrameCount: null,
-      capturesAudio: false,
+      capturesAudio: this.audioCaptured,
+      audioRequested: this.audioRequested,
+      audioSource: this.audioCaptured ? 'game-post-compressor-bus' : null,
+      microphone: false,
     };
   }
   dispose() {
@@ -110,10 +129,13 @@ export class ReviewVideo {
     this.requestedFrames = 0;
     this.reason = null;
     this.state = 'idle';
+    this.audioCaptured = this.audioRequested = false;
   }
   private releaseTracks() {
     this.stream?.getTracks().forEach((track) => track.stop());
     this.stream = null;
     this.track = null;
+    this.audio?.release();
+    this.audio = null;
   }
 }

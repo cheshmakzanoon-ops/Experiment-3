@@ -15,6 +15,24 @@ export function terrainHeight(x: number, z: number) {
     Math.max(0, distance - 1000) * 0.038 * Math.cos(x * 0.003 - z * 0.004) ** 2
   );
 }
+/** Distinct planting character along the existing original circuit. These are
+ * landscaping zones, NOT additional tracks or a claim of botanical simulation. */
+export const PLANTING_ZONES = Object.freeze([
+  { endFraction: 0.14, canopyRatio: 0.64, species: 'upright' },
+  { endFraction: 0.34, canopyRatio: 0.84, species: 'broadleaf' },
+  { endFraction: 0.55, canopyRatio: 1.0, species: 'spreading' },
+  { endFraction: 0.76, canopyRatio: 1.13, species: 'open-crown' },
+  { endFraction: 1, canopyRatio: 0.84, species: 'broadleaf' },
+] as const);
+export function plantingCharacter(s: number, length: number) {
+  if (!Number.isFinite(s + length) || length <= 0) throw new Error('Invalid planting station');
+  const fraction = (((s % length) + length) % length) / length;
+  return PLANTING_ZONES.find((zone) => fraction < zone.endFraction)!;
+}
+export function foliageTile(ratio: number) {
+  if (!Number.isFinite(ratio) || ratio <= 0) throw new Error('Invalid canopy aspect');
+  return ratio < 0.73 ? 1 : ratio < 0.93 ? 0 : ratio < 1.065 ? 2 : 3;
+}
 export interface TreePlacement {
   x: number;
   y: number;
@@ -25,7 +43,11 @@ export interface TreePlacement {
 }
 /** Planting rules use the NEAREST segment, not just the segment that generated
  * a candidate. This also excludes an adjacent return straight and the paddock. */
-export function vegetationPlan(track: Track, seed = 7109, services: readonly ServiceSite[] = serviceSitePlan(track)): TreePlacement[] {
+export function vegetationPlan(
+  track: Track,
+  seed = 7109,
+  services: readonly ServiceSite[] = serviceSitePlan(track),
+): TreePlacement[] {
   const random = new Random(seed),
     result: TreePlacement[] = [],
     point = trackPoint(),
@@ -66,7 +88,9 @@ export function vegetationPlan(track: Track, seed = 7109, services: readonly Ser
       y,
       z,
       height,
-      width: height * (0.72 + random.next() * 0.3),
+      width:
+        height *
+        (plantingCharacter(nearest.s, track.length).canopyRatio + (random.next() - 0.5) * 0.04),
       yaw: random.next() * Math.PI * 2,
     };
     result.push(tree);
@@ -80,48 +104,105 @@ export function vegetationPlan(track: Track, seed = 7109, services: readonly Ser
 
 /** Authored alpha foliage atlas with branch structure and separate small leaves.
  * No photograph, commercial texture or pre-lit impostor is embedded. */
-function foliageAtlas() {
-  const random = new Random(8231),
-    size = 512;
+export function foliageAtlas() {
+  const size = 512,
+    tileSize = size / 2;
+  // Four distinct silhouettes occupy the SAME 512px resource. A gutter prevents
+  // mip/filter bleed; leaf count is unchanged from the original one-tree atlas.
   return canvasTexture(size, size, (context) => {
     context.clearRect(0, 0, size, size);
-    const clusters = [
-      [0.5, 0.2, 0.18, 0.16],
-      [0.32, 0.39, 0.24, 0.21],
-      [0.69, 0.4, 0.23, 0.23],
-      [0.47, 0.59, 0.32, 0.27],
-      [0.24, 0.68, 0.16, 0.15],
-      [0.76, 0.67, 0.15, 0.17],
+    const variants = [
+      [
+        [0.5, 0.2, 0.18, 0.16],
+        [0.32, 0.39, 0.24, 0.21],
+        [0.69, 0.4, 0.23, 0.23],
+        [0.47, 0.59, 0.32, 0.27],
+        [0.24, 0.68, 0.16, 0.15],
+        [0.76, 0.67, 0.15, 0.17],
+      ],
+      [
+        [0.5, 0.16, 0.19, 0.12],
+        [0.43, 0.32, 0.24, 0.18],
+        [0.57, 0.47, 0.25, 0.19],
+        [0.46, 0.62, 0.25, 0.2],
+        [0.52, 0.76, 0.2, 0.12],
+      ],
+      [
+        [0.45, 0.26, 0.21, 0.14],
+        [0.28, 0.39, 0.22, 0.17],
+        [0.72, 0.41, 0.24, 0.18],
+        [0.44, 0.57, 0.29, 0.2],
+        [0.24, 0.63, 0.18, 0.13],
+        [0.79, 0.64, 0.14, 0.11],
+      ],
+      [
+        [0.43, 0.19, 0.15, 0.12],
+        [0.23, 0.37, 0.17, 0.14],
+        [0.74, 0.34, 0.19, 0.15],
+        [0.5, 0.49, 0.18, 0.17],
+        [0.32, 0.67, 0.2, 0.15],
+        [0.76, 0.67, 0.15, 0.16],
+      ],
     ];
-    context.strokeStyle = '#494b31';
-    context.lineWidth = 4;
-    for (const [cx, cy] of clusters) {
-      context.beginPath();
-      context.moveTo(256, 500);
-      context.quadraticCurveTo(260, 330, cx * size, cy * size);
-      context.stroke();
-    }
-    for (let i = 0; i < 4600; i++) {
-      const c = clusters[i % clusters.length],
-        angle = random.next() * Math.PI * 2,
-        radius = Math.sqrt(random.next());
-      const x = (c[0] + Math.cos(angle) * c[2] * radius) * size,
-        y = (c[1] + Math.sin(angle) * c[3] * radius) * size;
-      const light = random.next();
-      context.fillStyle = `rgb(${48 + light * 35},${65 + light * 38},${27 + light * 23})`;
-      context.beginPath();
-      context.ellipse(
-        x,
-        y,
-        2 + random.next() * 4,
-        1.1 + random.next() * 1.8,
-        angle,
-        0,
-        Math.PI * 2,
-      );
-      context.fill();
+    for (let tile = 0; tile < 4; tile++) {
+      const random = new Random(8231 + tile * 391),
+        clusters = variants[tile];
+      context.save();
+      context.translate((tile % 2) * tileSize + 3, Math.floor(tile / 2) * tileSize + 3);
+      context.scale((tileSize - 6) / size, (tileSize - 6) / size);
+      context.strokeStyle = '#494b31';
+      context.lineWidth = 5;
+      for (const [cx, cy] of clusters) {
+        context.beginPath();
+        context.moveTo(256, 500);
+        context.quadraticCurveTo(260, 330, cx * size, cy * size);
+        context.stroke();
+      }
+      for (let i = 0; i < 1150; i++) {
+        const c = clusters[i % clusters.length],
+          angle = random.next() * Math.PI * 2,
+          radius = Math.sqrt(random.next()),
+          light = random.next();
+        const x = (c[0] + Math.cos(angle) * c[2] * radius) * size,
+          y = (c[1] + Math.sin(angle) * c[3] * radius) * size;
+        context.fillStyle = `rgb(${48 + light * 35},${65 + light * 38},${27 + light * 23})`;
+        context.beginPath();
+        context.ellipse(
+          x,
+          y,
+          4 + random.next() * 6,
+          2.2 + random.next() * 3.6,
+          angle,
+          0,
+          Math.PI * 2,
+        );
+        context.fill();
+      }
+      context.restore();
     }
   });
+}
+
+/** Infer an immutable atlas tile from the authored width/height ratio already
+ * stored in each instance matrix. Colour, depth and point-shadow materials use
+ * this SAME UV mapping; no new per-instance buffer or draw submission is needed. */
+export function installFoliageAtlas(material: T.Material) {
+  material.onBeforeCompile = (shader) => {
+    shader.vertexShader = shader.vertexShader.replace(
+      '#include <uv_vertex>',
+      `
+      #include <uv_vertex>
+      #if defined(USE_INSTANCING) && defined(USE_MAP)
+        float crownRatio=length(instanceMatrix[0].xyz)/max(.000001,length(instanceMatrix[1].xyz));
+        float tile=crownRatio<.73?1.0:(crownRatio<.93?0.0:(crownRatio<1.065?2.0:3.0));
+        // Canvas rows are top-down, texture V is bottom-up.
+        vec2 atlasOffset=vec2(mod(tile,2.0),1.0-floor(tile/2.0))*.5;
+        vMapUv=atlasOffset+vec2(3.0/512.0)+vMapUv*(.5-6.0/512.0);
+      #endif
+    `,
+    );
+  };
+  material.customProgramCacheKey = () => 'four-original-planting-crowns-v1';
 }
 function treeGeometry() {
   const leaves: T.BufferGeometry[] = [];
@@ -168,7 +249,11 @@ function treeGeometry() {
   wood.forEach((g) => g.dispose());
   return { leafGeometry, trunkGeometry };
 }
-export function buildVegetation(track: Track, group: T.Group, services: readonly ServiceSite[] = serviceSitePlan(track)) {
+export function buildVegetation(
+  track: Track,
+  group: T.Group,
+  services: readonly ServiceSite[] = serviceSitePlan(track),
+) {
   const placements = vegetationPlan(track, 7109, services),
     buckets = new Map<string, TreePlacement[]>();
   for (const tree of placements) {
@@ -184,7 +269,21 @@ export function buildVegetation(track: Track, group: T.Group, services: readonly
     alphaTest: 0.45,
     roughness: 1,
   });
-  foliage.name = 'Original layered broadleaf foliage';
+  foliage.name = 'Original four-character planted foliage';
+  installFoliageAtlas(foliage);
+  const depth = new T.MeshDepthMaterial({
+    depthPacking: T.RGBADepthPacking,
+    map: foliage.map,
+    alphaTest: foliage.alphaTest,
+    side: T.DoubleSide,
+  });
+  const distance = new T.MeshDistanceMaterial({
+    map: foliage.map,
+    alphaTest: foliage.alphaTest,
+    side: T.DoubleSide,
+  });
+  installFoliageAtlas(depth);
+  installFoliageAtlas(distance);
   const bark = new T.MeshStandardMaterial({ color: 0x655e49, roughness: 1 });
   const transform = new T.Object3D(),
     color = new T.Color();
@@ -196,6 +295,10 @@ export function buildVegetation(track: Track, group: T.Group, services: readonly
       const instances = new T.InstancedMesh(geometry, material, trees.length);
       instances.name = `${material === foliage ? 'Canopy' : 'Branches'} ${key}`;
       instances.userData.fullCount = trees.length;
+      if (material === foliage) {
+        instances.customDepthMaterial = depth;
+        instances.customDistanceMaterial = distance;
+      }
       instances.castShadow = true;
       instances.receiveShadow = true;
       trees.forEach((tree, i) => {

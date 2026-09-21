@@ -79,6 +79,7 @@ export function shadowAnchor(target: T.Vector3, size: number, halfExtent: number
 const cloudFunctions = `
 uniform float cloudCover;
 uniform float skyRadiance;
+uniform float nightAmount;
 float skyHash(vec2 p) { return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }
 float skyNoise(vec2 p) {
   vec2 i=floor(p), f=fract(p); f=f*f*(3.0-2.0*f);
@@ -93,6 +94,7 @@ float skyCloud(vec2 p) {
 export function configureSky(sky: Sky) {
   const material = sky.material;
   material.uniforms.cloudCover = { value: 0 };
+  material.uniforms.nightAmount = { value: 0 };
   material.uniforms.skyRadiance = { value: daylightState(0, 0).skyRadiance };
   material.uniforms.sunPosition.value.copy(SUN_OFFSET);
   material.uniforms.rayleigh.value = 2.2;
@@ -113,7 +115,25 @@ export function configureSky(sky: Sky) {
       cloudLight*=1.0-.42*cloudCover;
       retColor=mix(retColor,cloudLight,cover);
       retColor=mix(retColor,vec3(.55,.64,.75),cloudCover*.22);
-      gl_FragColor=vec4(retColor * skyRadiance,1.0);
+      // The night dome shares the same stationary cloud field, not a daylight
+      // texture behind a black background. This is an authored fictional night
+      // sky, not an astronomical moon/date model or measured photometry.
+      vec3 radiance=retColor * skyRadiance;
+      if(nightAmount>0.5) {
+        float elevation=max(0.0,direction.y);
+        float horizon=pow(1.0-clamp(elevation,0.0,1.0),3.0);
+        vec3 nightSky=mix(vec3(.008,.014,.029),vec3(.035,.039,.052),horizon);
+        float moonCos=dot(direction,vSunDirection);
+        float moonEdge=max(fwidth(moonCos),.0000007);
+        float moon=smoothstep(.999989-moonEdge,.999989+moonEdge,moonCos);
+        float halo=pow(max(0.0,moonCos),96.0)*.012;
+        nightSky+=vec3(.43,.46,.48)*(moon+halo)*(1.0-cover);
+        vec3 nightCloud=mix(vec3(.012,.017,.027),vec3(.040,.044,.052),
+          clamp(.4+(field-edge)*2.0+.35*max(0.0,moonCos),0.0,1.0));
+        nightSky=mix(nightSky,nightCloud,cover);
+        radiance=mix(vec3(.01,.014,.026),nightSky,smoothstep(-.05,.10,direction.y));
+      }
+      gl_FragColor=vec4(radiance,1.0);
     `,
     );
   material.needsUpdate = true;
@@ -125,28 +145,33 @@ export function configureSky(sky: Sky) {
 export class SkyEnvironment {
   private current: T.WebGLRenderTarget | null = null;
   private bin = -1;
+  private night = false;
   captures = 0;
   private environmentScene = new T.Scene();
   constructor(private sky: Sky) {
     this.environmentScene.add(sky.clone());
   }
-  update(renderer: T.WebGLRenderer, scene: T.Scene, cover: number) {
+  update(renderer: T.WebGLRenderer, scene: T.Scene, cover: number, night = false) {
     if (!Number.isFinite(cover)) throw new Error('Non-finite sky coverage');
+    if (typeof night !== 'boolean') throw new Error('Invalid sky mode');
     const nextBin = Math.round(clamp(cover, 0, 1) * 8);
-    if (nextBin === this.bin) return false;
+    if (nextBin === this.bin && night === this.night) return false;
     const generator = new T.PMREMGenerator(renderer);
     let next: T.WebGLRenderTarget;
     const previousCover = this.sky.material.uniforms.cloudCover.value;
+    const previousNight = this.sky.material.uniforms.nightAmount.value;
     const previousTurbidity = this.sky.material.uniforms.turbidity.value;
     const previousRadiance = this.sky.material.uniforms.skyRadiance.value;
     try {
       // Capture the bin centre so returning to the same weather has the same IBL.
       this.sky.material.uniforms.cloudCover.value = nextBin / 8;
+      this.sky.material.uniforms.nightAmount.value = night ? 1 : 0;
       this.sky.material.uniforms.turbidity.value = daylightState(nextBin / 8, 0).turbidity;
       this.sky.material.uniforms.skyRadiance.value = daylightState(nextBin / 8, 0).skyRadiance;
       next = generator.fromScene(this.environmentScene, 0.04, 0.1, 700000, { size: 128 });
     } finally {
       this.sky.material.uniforms.cloudCover.value = previousCover;
+      this.sky.material.uniforms.nightAmount.value = previousNight;
       this.sky.material.uniforms.turbidity.value = previousTurbidity;
       this.sky.material.uniforms.skyRadiance.value = previousRadiance;
       generator.dispose();
@@ -155,6 +180,7 @@ export class SkyEnvironment {
     scene.environment = next.texture;
     this.current = next;
     this.bin = nextBin;
+    this.night = night;
     this.captures++;
     previous?.dispose();
     return true;

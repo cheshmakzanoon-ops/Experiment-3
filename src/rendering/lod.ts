@@ -1,4 +1,5 @@
-import { sculptedLoft } from './bodywork.ts';
+import { floorGeometry, wheelCoverGeometry } from './car-floor.ts';
+import { sculptedLoft, wingElement, aeroPlate } from './bodywork.ts';
 import { NOSE_SECTIONS, POD_SECTIONS, ENGINE_SECTIONS } from './car-surfaces.ts';
 import * as T from 'three';
 import { loft, mesh, box, mergeStatic, tube } from './geometry.ts';
@@ -34,19 +35,7 @@ export class ReducedCar {
     const sides = level === 1 ? 12 : 8;
     const body = new T.Group();
     this.root.add(body, this.front, this.rear);
-    mesh(
-      body,
-      loft(
-        [
-          [-2.1, -0.36, 0.55, 0.025],
-          [-1, -0.34, 0.9, 0.035],
-          [0.4, -0.34, 0.82, 0.025],
-          [1.4, -0.32, 0.22, 0.02],
-        ],
-        sides,
-      ),
-      carbon,
-    );
+    mesh(body, floorGeometry(level === 1 ? 'mid' : 'far'), carbon);
     // Share the hero envelopes. Lower tessellation must not restore the old
     // swollen sidepod or broad nose when an opponent crosses its LOD threshold.
     const detail = level === 1 ? 'mid' : 'far';
@@ -72,12 +61,72 @@ export class ReducedCar {
         side * 0.53,
       );
       pod.rotation.z = side * -0.08;
-      box(this.front, paint, side * 0.96, -0.28, 2.45, 0.035, 0.15, 0.5);
-      box(this.rear, paint, side * 0.83, 0.42, -2.04, 0.035, 0.43, 0.51);
+      mesh(
+        this.front,
+        aeroPlate(
+          [
+            [2.04, -0.36],
+            [2.64, -0.36],
+            [2.68, -0.22],
+            [2.51, -0.18],
+            [2.11, -0.21],
+            [2.02, -0.29],
+          ],
+          0.018,
+        ),
+        paint,
+        side * 0.973,
+      );
+      mesh(
+        this.rear,
+        aeroPlate(
+          [
+            [-2.34, 0.2],
+            [-1.94, 0.18],
+            [-1.75, 0.39],
+            [-1.77, 0.63],
+            [-1.98, 0.72],
+            [-2.31, 0.72],
+          ],
+          0.024,
+        ),
+        paint,
+        side * 0.839,
+      );
     }
-    for (let i = 0; i < (level === 1 ? 3 : 1); i++)
-      box(this.front, carbon, 0, -0.29 + i * 0.04, 2.4 + i * 0.09, 1.93, 0.028, 0.25);
-    box(this.rear, paint, 0, 0.58, -2.02, 1.66, 0.05, 0.38);
+    for (let i = 0; i < 4; i++)
+      mesh(
+        this.front,
+        wingElement(
+          1.94 - i * 0.018,
+          i === 0 ? 0.34 : 0.2,
+          0.025 + i * 0.007,
+          0.015,
+          0.08,
+          0.028,
+          detail,
+        ),
+        i === 3 ? paint : carbon,
+        0,
+        -0.325 + i * 0.043,
+        2.48 - i * 0.14,
+      );
+    mesh(
+      this.rear,
+      wingElement(1.65, 0.42, 0.048, 0.022, 0.025, 0.015, detail),
+      carbon,
+      0,
+      0.49,
+      -1.99,
+    );
+    mesh(
+      this.rear,
+      wingElement(1.64, 0.22, 0.045, 0.016, 0.02, 0.012, detail),
+      paint,
+      0,
+      0.65,
+      -2.18,
+    );
     box(this.rear, carbon, 0, 0.02, -1.99, 0.055, 0.95, 0.05);
     if (level === 1) {
       tube(
@@ -121,6 +170,15 @@ export class ReducedCar {
         );
         rim.rotation.z = Math.PI / 2;
       }
+      const cover = mesh(
+        spin,
+        wheelCoverGeometry(detail),
+        carbon,
+        Math.sign(p[0]) * ((i < 2 ? 0.155 : 0.19) + 0.014),
+        0,
+        0,
+      );
+      cover.rotation.y = (Math.sign(p[0]) * Math.PI) / 2;
       spin.remove(tire);
       mergeStatic(spin);
       spin.add(tire);

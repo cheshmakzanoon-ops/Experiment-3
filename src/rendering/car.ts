@@ -1,3 +1,4 @@
+import { floorGeometry, wheelCoverGeometry } from './car-floor.ts';
 import { rearSignalIntensity } from './rear-signal.ts';
 import {
   NOSE_SECTIONS,
@@ -126,17 +127,7 @@ export class FormulaCar {
     installPaintFinish(ivory);
     this.accent = ivory;
     // Venturi floor, sculpted monocoque, narrow nose and smoothly undercut sidepods.
-    mesh(
-      s,
-      sculptedLoft([
-        [-2.1, -0.395, 0.42, 0.024],
-        [-1.7, -0.385, 0.89, 0.033],
-        [-0.65, -0.38, 0.93, 0.035],
-        [0.25, -0.38, 0.78, 0.03],
-        [0.9, -0.35, 0.36, 0.02],
-      ]),
-      carbon,
-    );
+    mesh(s, floorGeometry(), carbon);
     mesh(s, sculptedLoft(NOSE_SECTIONS, 0, 0.32), this.paint);
     mesh(s, cockpitShell(), this.paint);
     box(s, dark, 0, -0.24, -0.14, 0.5, 0.08, 1.02);
@@ -458,14 +449,7 @@ export class FormulaCar {
       // Rigid aero cover and machined hub detail spin with the rim, never with
       // the deforming contact patch. The compound rings remain on the carcass.
       const outside = Math.sign(p[0]);
-      const cover = mesh(
-        spin,
-        new T.RingGeometry(0.052, 0.228, 48, 3),
-        carbon,
-        outside * (half + 0.014),
-        0,
-        0,
-      );
+      const cover = mesh(spin, wheelCoverGeometry(), carbon, outside * (half + 0.014), 0, 0);
       cover.rotation.y = (outside * Math.PI) / 2;
       const centreRing = mesh(
         spin,

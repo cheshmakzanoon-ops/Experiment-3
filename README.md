@@ -485,3 +485,13 @@ a session and select FULL-LAP VISUAL REVIEW for actual frame observations.
 Read [Phase 27E scope, measurements, reproduction and outstanding acceptance](docs/PHASE_27E_PRESENTATION_ACCEPTANCE.md)
 before treating any screenshot, passing test or local capture as commercial
 visual parity, representative hardware evidence or Steam-release acceptance.
+
+### Phase 27F development candidate
+
+Shared floor/diffuser and wheel-cover LODs, an original shaped helmet, crowd and
+planting refinements, a cloudy night dome, solid-aware broadcast framing, and
+bounded session/audio/hardware evidence are implemented in the Phase 27F source
+increment. See [measurements, reproduction and open acceptance](docs/PHASE_27F_ACCEPTANCE_CONTINUATION.md).
+This is not complete 148-section/reference acceptance or a Steam-ready build.
+More modes, stronger models/atmosphere and at least 16 genuine maps remain open;
+Steam productization is not automatically the next milestone.

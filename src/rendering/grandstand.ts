@@ -1,3 +1,4 @@
+import type { BroadcastSightlines } from './broadcast-sightlines.ts';
 import { CrowdCluster } from './crowd.ts';
 import { grassApronOffset } from './ground-profile.ts';
 import * as T from 'three';
@@ -40,7 +41,13 @@ export function standFrame(track: Track, site: StandSite) {
       );
   return { x, z, y: base + 0.35, yaw: Math.atan2(p.tx, p.tz), ground };
 }
-export function inStandFootprint(track: Track, x: number, z: number, padding = 3, endPadding = padding) {
+export function inStandFootprint(
+  track: Track,
+  x: number,
+  z: number,
+  padding = 3,
+  endPadding = padding,
+) {
   for (const site of GRANDSTANDS) {
     const p = track.at(site.s, trackPoint()),
       l = site.side * (track.boundary(site.s, site.side) + 7);
@@ -75,6 +82,7 @@ export function buildGrandstand(
   site: StandSite,
   m: ReturnType<typeof standMaterials>,
   clusters?: CrowdCluster[],
+  sightlines?: BroadcastSightlines,
 ) {
   const frame = standFrame(track, site),
     root = new T.Group();
@@ -139,6 +147,7 @@ export function buildGrandstand(
   // One thin pitched roof per stand with a separate shaded soffit.
   const roof = box(root, m.roof, side * 4.5, 6.58, 0, 12.8, 0.12, L + 1.5);
   roof.rotation.z = side * 0.166;
+  sightlines?.add(roof);
   const lining = new T.PlaneGeometry(12.8, L + 1.5).rotateX(Math.PI / 2).rotateZ(side * 0.166);
   mesh(root, lining, m.underside, side * 4.5, 6.5, 0).name = 'Shaded canopy lining';
   for (const u of [-1.75, 10.75])
@@ -223,13 +232,21 @@ export function buildGrandstand(
   crowd.add(peopleRoot);
   // Retain occupancy, aisles and clothing selections. Spatial chunks avoid a
   // single giant crowd bounding box; per-chunk LOD does not rebuild spectators.
-  const ordering = spectators.map((matrix, i) => ({ matrix, color: bodyColors[i] }))
+  const ordering = spectators
+    .map((matrix, i) => ({ matrix, color: bodyColors[i] }))
     .sort((a, b) => a.matrix.elements[14] - b.matrix.elements[14]);
-  ordering.forEach((entry, i) => { spectators[i] = entry.matrix; bodyColors[i] = entry.color; });
+  ordering.forEach((entry, i) => {
+    spectators[i] = entry.matrix;
+    bodyColors[i] = entry.color;
+  });
   const chunkSize = 128;
   for (let offset = 0; offset < spectators.length; offset += chunkSize) {
-    const cluster = new CrowdCluster(spectators.slice(offset, offset + chunkSize),
-      bodyColors.slice(offset, offset + chunkSize), 821 + Math.round(site.s) + offset, m.people);
+    const cluster = new CrowdCluster(
+      spectators.slice(offset, offset + chunkSize),
+      bodyColors.slice(offset, offset + chunkSize),
+      821 + Math.round(site.s) + offset,
+      m.people,
+    );
     peopleRoot.add(cluster.root);
     clusters?.push(cluster);
   }

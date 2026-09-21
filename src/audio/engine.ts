@@ -1,3 +1,4 @@
+import { ReviewAudioTap } from './review-tap.ts';
 import {
   CueSynth,
   DrivingCueDirector,
@@ -16,6 +17,13 @@ import { clamp, Random } from '../core/math.ts';
  * audio output is allowed to modify physics or recorded state. */
 export class RacingAudio {
   private context: AudioContext | null = null;
+  private reviewTap: ReviewAudioTap | null = null;
+  captureOutput() {
+    if (!this.context || !this.compressor) throw new Error('Game audio is not initialized');
+    this.reviewTap?.release();
+    this.reviewTap = new ReviewAudioTap(this.context, this.compressor);
+    return this.reviewTap;
+  }
   private cueDirector: DrivingCueDirector | null = null;
   private cueSettings = validateDrivingAudio(null);
   private cueSynth: CueSynth | null = null;
@@ -176,6 +184,8 @@ export class RacingAudio {
     this.wasPlaying = false;
   }
   async dispose() {
+    this.reviewTap?.release();
+    this.reviewTap = null;
     this.cueSynth?.dispose();
     this.previewSynth?.dispose();
     this.cueSynth = this.previewSynth = null;

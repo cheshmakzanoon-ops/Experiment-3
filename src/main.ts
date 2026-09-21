@@ -1,3 +1,5 @@
+import { SessionReview } from './core/session-review.ts';
+import { ReviewInputEvidence, type ReviewHardware } from './ui/review-hardware.ts';
 import {
   PresentationReview,
   matchesReviewWeather,
@@ -88,6 +90,9 @@ export class GameApp {
   private presentationReview = new PresentationReview();
   private reviewMetrics = reviewFrame();
   private reviewVideo = new ReviewVideo();
+  private sessionReview = new SessionReview();
+  private reviewInputs = new ReviewInputEvidence();
+  private reviewMachineEvidence: ReviewHardware | null = null;
   private performanceCapture = new PerformanceCapture();
   private profileMachine = '';
   private profileWorkload = '';
@@ -142,6 +147,7 @@ export class GameApp {
   private readyResolve: (() => void) | null = null;
   private initTimeout = 0;
   constructor() {
+    window.addEventListener('keydown', this.reviewKeyboard);
     const element = document.getElementById('app')!;
     this.ui = new Interface(element, this.track, {
       action: (name) => this.action(name),
@@ -511,6 +517,16 @@ export class GameApp {
   }
   private frame = (time: number) => {
     this.timer = requestAnimationFrame(this.frame);
+    this.sessionReview.observe(performance.now(), {
+      state: this.state,
+      sessionId: this.sessionId,
+      sessionMode: this.options.mode,
+      autopilot: this.auto || this.usedDemonstration,
+      camera: this.renderer?.mode ?? null,
+      telemetryOpen: this.ui.telemetryModal.open,
+      visible: !document.hidden,
+      frame: this.current,
+    });
     if (
       this.errorStopped ||
       this.state === 'loading' ||
@@ -603,6 +619,7 @@ export class GameApp {
       else {
         this.renderer.readReviewMetrics(this.reviewMetrics);
         this.presentationReview.record(performance.now(), this.reviewMetrics);
+        this.reviewInputs.sample(performance.now(), () => navigator.getGamepads?.() ?? []);
         this.reviewVideo.frame();
         if (!this.presentationReview.active) {
           this.reviewVideo.stop();
@@ -959,6 +976,8 @@ export class GameApp {
     this.ui.toast(`Reference ${String(id).padStart(3, '0')}: ${route.instruction}`);
   }
   private action(name: string) {
+    // Names are application action identifiers, not typed widget contents.
+    this.sessionReview.event(performance.now(), 'action', name);
     // Team transactions only change modal DOM and next-session data. They must
     // not restart the expensive covered backdrop after every saved transaction.
     if (!(this.state === 'menu' && this.ui.modal.open && name.startsWith('team:')))
@@ -1197,6 +1216,48 @@ export class GameApp {
       case 'csv':
         void this.exportTelemetry();
         break;
+      case 'sessionReview':
+        if (this.state === 'driving') this.pause();
+        this.ui.sessionReview(
+          `${this.sessionReview.state.toUpperCase()} · ${this.sessionReview.count} worker snapshots · ${this.sessionReview.reason}`,
+          this.sessionReview.active,
+          this.state === 'menu',
+          !!this.sessionReview.report(),
+        );
+        break;
+      case 'sessionReviewStart':
+        try {
+          this.sessionReview.start(
+            {
+              source: __APEX_SOURCE_FINGERPRINT__,
+              machine: (this.ui.get('sessionReviewMachine') as HTMLInputElement).value.trim(),
+              reviewer: (this.ui.get('sessionReviewer') as HTMLInputElement).value.trim(),
+              startedAt: new Date().toISOString(),
+            },
+            performance.now(),
+            this.state,
+          );
+          this.ui.closeModal();
+          this.ui.toast(
+            'Session evidence armed. Choose a race and drive. This does not record startup or certify Section 146.',
+          );
+        } catch (error) {
+          this.ui.toast(error instanceof Error ? error.message : String(error));
+        }
+        break;
+      case 'sessionReviewStop':
+        this.sessionReview.stop('Reviewer stopped observations');
+        this.action('sessionReview');
+        break;
+      case 'sessionReviewExport': {
+        const report = this.sessionReview.report();
+        if (report)
+          downloadBlob(
+            new Blob([JSON.stringify(report) + '\n'], { type: 'application/json' }),
+            `apex-session146-${report.identity.source.slice(0, 12)}.json`,
+          );
+        break;
+      }
       case 'visualReview':
         if (this.state === 'driving') this.pause();
         if (this.state !== 'paused') break;
@@ -1220,6 +1281,8 @@ export class GameApp {
                   ...report,
                   budget: reviewBudget(report),
                   video: this.reviewVideo.diagnostics(),
+                  hardware: this.reviewMachineEvidence,
+                  inputObservations: this.reviewInputs.report(),
                 }) + '\n',
               ],
               { type: 'application/json' },
@@ -1262,6 +1325,10 @@ export class GameApp {
         break;
     }
   }
+  private readonly reviewKeyboard = (event: KeyboardEvent) => {
+    if (this.presentationReview.active && this.state === 'driving' && !this.ui.modal.open)
+      this.reviewInputs.keyboard(event.isTrusted);
+  };
   private interruptReview(reason: string) {
     this.presentationReview.interrupt(reason);
     this.reviewVideo.stop();
@@ -1277,6 +1344,8 @@ export class GameApp {
         | 'full-lap'
         | 'timed-scene';
       const videoRequested = (this.ui.get('reviewVideo') as HTMLInputElement).checked;
+      const audioRequested = (this.ui.get('reviewAudio') as HTMLInputElement).checked;
+      if (audioRequested && !videoRequested) throw new Error('Enable video to include game audio');
       const stats = this.renderer.stats(),
         frame = this.renderer.presented.value;
       if (!matchesReviewWeather(workload, frame[H.RAIN], frame[H.CLOUD], this.renderer.night))
@@ -1284,6 +1353,8 @@ export class GameApp {
       const followedCar = this.renderer.reviewCar(),
         b = carBase(followedCar);
       this.renderer.readReviewMetrics(this.reviewMetrics);
+      this.reviewInputs.clear();
+      this.reviewMachineEvidence = this.renderer.reviewHardware();
       this.presentationReview.start(
         {
           source: __APEX_SOURCE_FINGERPRINT__,
@@ -1313,6 +1384,7 @@ export class GameApp {
             sound: { volume: this.settings.volume, muted: this.audio.muted },
             gpuTiming: stats.gpuTimerSupported,
             videoRequested,
+            audioRequested,
           }),
         },
         performance.now(),
@@ -1320,7 +1392,11 @@ export class GameApp {
       );
       this.performanceCapture.interrupt('Presentation review started; separate benchmark required');
       this.reviewVideo.dispose();
-      if (videoRequested) this.reviewVideo.start(this.renderer.canvas);
+      if (videoRequested)
+        this.reviewVideo.start(
+          this.renderer.canvas,
+          audioRequested ? this.audio.captureOutput() : undefined,
+        );
       this.profileMachine = machine;
       this.resume();
       this.ui.toast(
@@ -1328,6 +1404,7 @@ export class GameApp {
           'Review recording: drive the lap, or complete the selected 30-second scene.',
       );
     } catch (error) {
+      this.interruptReview('Review setup failed');
       this.ui.toast(error instanceof Error ? error.message : String(error));
     }
   }
@@ -1457,6 +1534,7 @@ export class GameApp {
   }
   private fail(error: unknown) {
     if (this.errorStopped) return;
+    this.sessionReview.stop('Application error', true);
     this.performanceCapture.interrupt('Application error');
     this.interruptReview('Application error');
     this.errorStopped = true;
@@ -1490,6 +1568,11 @@ export class GameApp {
             particles: this.renderer.effects.diagnostics(),
           }
         : null,
+      sessionReview: {
+        state: this.sessionReview.state,
+        snapshots: this.sessionReview.count,
+        reason: this.sessionReview.reason,
+      },
       presentationReview: {
         state: this.presentationReview.state,
         frames: this.presentationReview.count,
@@ -1524,6 +1607,8 @@ export class GameApp {
     };
   }
   dispose() {
+    window.removeEventListener('keydown', this.reviewKeyboard);
+    this.sessionReview.stop('Application disposed', true);
     if (this.disposed) return;
     this.performanceCapture.interrupt('Application disposed');
     this.interruptReview('Application disposed');

@@ -1,3 +1,4 @@
+import type { BroadcastSightlines } from './broadcast-sightlines.ts';
 import * as T from 'three';
 import { box, mesh, mergeStatic, rod } from './geometry.ts';
 import { sculptedLoft } from './bodywork.ts';
@@ -64,7 +65,11 @@ export function serviceAccessGeometry(site: ServiceSite) {
 
 /** Parked original maintenance/recovery equipment. The vehicles are scene
  * assets, not a safety-car system or operational recovery simulation. */
-export function buildServiceAreas(parent: T.Group, sites: readonly ServiceSite[]) {
+export function buildServiceAreas(
+  parent: T.Group,
+  sites: readonly ServiceSite[],
+  sightlines?: BroadcastSightlines,
+) {
   const asphalt = new T.MeshStandardMaterial({ color: 0x414747, roughness: 0.96 });
   const concrete = new T.MeshStandardMaterial({ color: 0x8b8c82, roughness: 0.92 });
   const paint = new T.MeshStandardMaterial({ color: 0xe4ddd0, roughness: 0.42, metalness: 0.16 });
@@ -81,6 +86,7 @@ export function buildServiceAreas(parent: T.Group, sites: readonly ServiceSite[]
   const result: T.Group[] = [];
   for (const site of sites) {
     const root = new T.Group();
+    const solids: T.Mesh[] = [];
     root.name = `Aurel ${site.kind} service area ${site.s}m`;
     root.position.set(site.x, site.y, site.z);
     root.rotation.y = site.yaw;
@@ -113,7 +119,7 @@ export function buildServiceAreas(parent: T.Group, sites: readonly ServiceSite[]
     const truck = new T.Group();
     truck.position.set(-2.45, 0.035, 0);
     box(truck, dark, 0, 0.59, 0, 1.96, 0.2, 5.9);
-    mesh(truck, roundedBox(2.12, 1.48, 1.75, 0.11), paint, 0, 1.49, 1.77);
+    solids.push(mesh(truck, roundedBox(2.12, 1.48, 1.75, 0.11), paint, 0, 1.49, 1.77));
     const windscreen = mesh(truck, roundedBox(1.74, 0.64, 0.025, 0.045), glass, 0, 1.79, 2.676);
     windscreen.rotation.x = -0.05;
     for (const side of [-1, 1]) {
@@ -170,7 +176,7 @@ export function buildServiceAreas(parent: T.Group, sites: readonly ServiceSite[]
       );
       const winch = mesh(truck, new T.CylinderGeometry(0.13, 0.13, 0.45, 12), dark, 0, 1.21, 0.18);
       winch.rotation.z = Math.PI / 2;
-    } else mesh(truck, roundedBox(2.13, 1.65, 3.35, 0.08), paint, 0, 1.64, -0.91);
+    } else solids.push(mesh(truck, roundedBox(2.13, 1.65, 3.35, 0.08), paint, 0, 1.64, -0.91));
     root.add(truck);
     // Equipment shelter: open frontage, visible rack depth and practical storage.
     box(root, concrete, 2.4, 0.08, -3.8, 3.9, 0.16, 4.4);
@@ -178,6 +184,7 @@ export function buildServiceAreas(parent: T.Group, sites: readonly ServiceSite[]
       for (const z of [-5.7, -1.9]) box(root, metal, x, 1.42, z, 0.09, 2.7, 0.09);
     const roof = box(root, paint, 2.4, 2.86, -3.8, 3.85, 0.12, 4.3);
     roof.rotation.x = 0.045;
+    solids.push(roof);
     // Roof drainage leads to a grated channel, beside a raised pedestrian route.
     box(root, metal, 2.4, 2.79, -1.64, 3.9, 0.07, 0.09);
     rod(root, metal, new T.Vector3(4.19, 2.79, -1.64), new T.Vector3(4.19, 0.15, -1.64), 0.032);
@@ -191,13 +198,13 @@ export function buildServiceAreas(parent: T.Group, sites: readonly ServiceSite[]
     }
     // Workshop facade and service cabinet belong to the shelter, not scattered
     // independently over the terrain. Existing material batches are reused.
-    box(root, paint, 4.16, 1.41, -3.9, 0.065, 2.62, 3.55);
+    solids.push(box(root, paint, 4.16, 1.41, -3.9, 0.065, 2.62, 3.55));
     for (let j = 0; j < 10; j++)
       box(root, metal, 4.205, 1.41, -5.43 + j * 0.34, 0.024, 2.61, 0.035);
     box(root, metal, 1.1, 0.62, -6.47, 0.88, 1.16, 0.47);
     box(root, dark, 1.1, 0.65, -6.215, 0.66, 0.66, 0.012);
     rod(root, metal, new T.Vector3(1.1, 1.14, -6.5), new T.Vector3(1.1, 1.14, -5.77), 0.027);
-    box(root, metal, 2.4, 1.4, -5.7, 3.4, 2.6, 0.07);
+    solids.push(box(root, metal, 2.4, 1.4, -5.7, 3.4, 2.6, 0.07));
     for (const y of [0.46, 1.16, 1.86]) {
       box(root, metal, 2.55, y, -4.97, 2.7, 0.06, 0.9);
       for (let i = 0; i < 3; i++)
@@ -214,6 +221,8 @@ export function buildServiceAreas(parent: T.Group, sites: readonly ServiceSite[]
       box(root, dark, 1.1 + i * 0.9, 0.055, 4.2, 0.4, 0.06, 0.4);
       mesh(root, new T.ConeGeometry(0.16, 0.52, 8), orange, 1.1 + i * 0.9, 0.34, 4.2);
     }
+    parent.add(root);
+    solids.forEach((solid) => sightlines?.add(solid));
     mergeStatic(root);
     root.userData.service = {
       kind: site.kind,

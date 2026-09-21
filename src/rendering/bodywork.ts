@@ -188,19 +188,21 @@ export function wingElement(
   thickness: number,
   sweep = 0.08,
   gull = 0.03,
+  detail: 'high' | 'mid' | 'far' = 'high',
 ) {
   if (
     ![span, chord, camber, thickness, sweep, gull].every(Number.isFinite) ||
     span <= 0 ||
     chord <= 0 ||
-    thickness <= 0
+    thickness <= 0 ||
+    !['high', 'mid', 'far'].includes(detail)
   )
     throw new Error('Invalid airfoil dimensions');
   const positions: number[] = [],
     uvs: number[] = [],
     indices: number[] = [];
-  const across = 20,
-    around = 32,
+  const across = detail === 'high' ? 20 : detail === 'mid' ? 10 : 4,
+    around = detail === 'high' ? 32 : detail === 'mid' ? 16 : 8,
     stride = around + 1;
   for (let i = 0; i <= across; i++) {
     const x = (((i / across) * 2 - 1) * span) / 2,

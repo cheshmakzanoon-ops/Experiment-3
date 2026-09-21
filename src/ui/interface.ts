@@ -83,7 +83,7 @@ export class Interface {
     <div class="form-row"><label>WEATHER<select id="weather"><option value="clear">Clear / Dry</option><option value="changeable">Dry → Rain</option><option value="rain">Heavy rain</option></select></label><label>GRID<select id="opponents"><option value="0">Solo</option><option value="3">4 cars</option><option value="7" selected>8 cars</option><option value="11">12 cars</option></select></label></div>
     <div class="form-row"><label>TIRES<select id="compound"><option value="soft">Soft</option><option value="medium" selected>Medium</option><option value="hard">Hard</option><option value="intermediate">Intermediate</option><option value="wet">Full wet</option></select></label><label>CONTROL<select id="assist"><option value="sport">Sport / ABS + TC</option><option value="raw">Unassisted</option></select></label></div>
     <button class="primary enter" type="submit">ENTER CIRCUIT <span>↗</span></button>
-   </form><div class="menu-actions"><button data-action="settings">GARAGE & SETTINGS</button><button data-action="controls">CONTROLS</button><button data-action="team">TEAM HQ</button><button data-action="photo">PHOTO / LIVERY</button><button data-action="references">REFERENCE REVIEW</button><button data-action="academy">DRIVING ACADEMY</button></div>
+   </form><div class="menu-actions"><button data-action="settings">GARAGE & SETTINGS</button><button data-action="controls">CONTROLS</button><button data-action="team">TEAM HQ</button><button data-action="photo">PHOTO / LIVERY</button><button data-action="references">REFERENCE REVIEW</button><button data-action="sessionReview">SESSION 146 EVIDENCE</button><button data-action="academy">DRIVING ACADEMY</button></div>
    <p class="menu-note">WASD / ARROWS TO DRIVE · GAMEPAD SUPPORTED<br>G TO WATCH THE AI DRIVE YOUR CAR</p></div>
    <div class="car-label"><span>APX–01</span><b>FORMULA / HYBRID</b><div>770 KG DRY · 8 SPEED · 4 MJ ERS</div></div>
    <footer class="menu-footer"><span><b>${(track.length / 1000).toFixed(3)}</b> KM CIRCUIT</span><span><b>120</b> HZ SIMULATION</span><span><b>240</b> HZ TIRE SOLVE</span><span>ENGINEERING BUILD / 0.1</span></footer>
@@ -358,7 +358,7 @@ export class Interface {
   }
   pause() {
     this.modalContent(
-      `<span class="eyebrow">SESSION SUSPENDED</span><h2>Hold your line.</h2><p>Simulation and race time are paused.</p><div class="dialog-buttons"><button class="primary" data-action="resume">RESUME SESSION</button><button data-action="settings">GARAGE & SETTINGS</button><button data-action="replay">WATCH REPLAY</button><button data-action="photo">PHOTO STUDIO</button><button data-action="academy">ACADEMY</button><button data-action="team">TEAM HQ</button><button data-action="performance">PERFORMANCE CAPTURE</button><button data-action="visualReview">FULL-LAP VISUAL REVIEW</button><button data-action="restart">RESTART SESSION</button><button data-action="menu">RETURN TO PADDOCK</button></div>`,
+      `<span class="eyebrow">SESSION SUSPENDED</span><h2>Hold your line.</h2><p>Simulation and race time are paused.</p><div class="dialog-buttons"><button class="primary" data-action="resume">RESUME SESSION</button><button data-action="settings">GARAGE & SETTINGS</button><button data-action="replay">WATCH REPLAY</button><button data-action="photo">PHOTO STUDIO</button><button data-action="academy">ACADEMY</button><button data-action="team">TEAM HQ</button><button data-action="performance">PERFORMANCE CAPTURE</button><button data-action="visualReview">FULL-LAP VISUAL REVIEW</button><button data-action="sessionReview">SESSION 146 EVIDENCE</button><button data-action="restart">RESTART SESSION</button><button data-action="menu">RETURN TO PADDOCK</button></div>`,
     );
   }
   performance(status: string, machine: string, workload: string, exportable: boolean) {
@@ -374,17 +374,27 @@ export class Interface {
     (this.get('profileMachine') as HTMLInputElement).value = machine;
     (this.get('profileWorkload') as HTMLInputElement).value = workload;
   }
+  sessionReview(status: string, active: boolean, atMenu: boolean, exportable: boolean) {
+    this
+      .modalContent(`<span class="eyebrow">PHASE 27F / WHOLE SESSION</span><h2>Section 146 observations.</h2>
+      <p id="sessionReviewStatus"></p><p>Arm from the paddock before choosing a race. Drive the complete master scenario, finish, view results, watch replay and inspect telemetry. This observes the real application states and worker snapshots; it never drives or modifies the simulation.</p>
+      <label>REVIEWER<input id="sessionReviewer" maxlength="80" /></label><label>COMPUTER / POWER PROFILE<input id="sessionReviewMachine" maxlength="80" /></label>
+      <p>At most 2 samples/second, 14,400 snapshots and 4,096 events. Autopilot, restarts, visibility loss and mid-race pauses remain explicit. This is not every physics tick or an audiovisual recording: retain an external uninterrupted recording from application launch and use the separate lap recorder for targeted game-audio clips. All Section 146 perceptual and human acceptance remains unverified.</p>
+      <div class="dialog-buttons"><button data-action="sessionReviewStart" ${!active && atMenu ? '' : 'disabled'}>ARM FROM PADDOCK</button><button data-action="sessionReviewStop" ${active ? '' : 'disabled'}>STOP OBSERVATIONS</button><button data-action="sessionReviewExport" ${exportable ? '' : 'disabled'}>EXPORT SESSION JSON</button><button data-action="sessionReview">REFRESH STATUS</button><button data-action="modalClose">BACK</button></div>`);
+    this.get('sessionReviewStatus').textContent = status;
+  }
   presentationReview(status: string, machine: string, exportable: boolean, videoReady: boolean) {
     this
-      .modalContent(`<span class="eyebrow">PHASE 27E / EVIDENCE</span><h2>Review the complete lap.</h2>
+      .modalContent(`<span class="eyebrow">PHASE 27F / EVIDENCE</span><h2>Review the complete lap.</h2>
       <p id="visualReviewStatus"></p>
       <p>Use the current session and camera. A full lap ends only after a complete forward circuit traversal and a real lap-counter increase. The 30-second mode covers grid/pit scenes without claiming a full lap.</p>
       <label>COMPUTER / POWER PROFILE<input id="reviewMachine" maxlength="80" placeholder="e.g. laptop-plugged-in / GPU model" /></label>
       <label>WORKLOAD<select id="reviewWorkload"><option value="clear-day">Clear day</option><option value="overcast-day">Overcast day</option><option value="wet-day">Wet day</option><option value="wet-night">Wet night</option><option value="grid-start">Grid start</option><option value="pit-service">Pit service</option><option value="other">Other / changing weather</option></select></label>
       <label>CAPTURE<select id="reviewMode"><option value="full-lap">Full lap</option><option value="timed-scene">30-second scene</option></select></label>
-      <label><input id="reviewVideo" type="checkbox" /> ALSO RECORD LOCAL SILENT VIDEO (64 MiB maximum)</label>
-      <p>Repeat clear, overcast, wet and wet-night sessions with cockpit, chase, pod and broadcast cameras. Choose the weather label matching the actual session; this tool never changes weather or drives the car. Changing settings, pausing or losing focus interrupts the evidence. Video adds encoding cost and can coalesce frames; JSON retains every observed rendered-frame interval. No GPU VRAM or physical-controller certification is inferred.</p>
-      <div class="dialog-buttons"><button class="primary" data-action="reviewStart">RESUME & RECORD REVIEW</button><button data-action="reviewExport" ${exportable ? '' : 'disabled'}>EXPORT FRAME JSON</button><button data-action="reviewVideoExport" ${videoReady ? '' : 'disabled'}>EXPORT SILENT WEBM</button><button data-action="visualReview">REFRESH EVIDENCE STATUS</button><button data-action="modalClose">BACK</button></div>`);
+      <label><input id="reviewVideo" type="checkbox" /> ALSO RECORD LOCAL VIDEO (64 MiB maximum)</label>
+      <label><input id="reviewAudio" type="checkbox" /> INCLUDE GAME AUDIO (not microphone audio)</label>
+      <p>Repeat clear, overcast, wet and wet-night sessions with cockpit, chase, pod and broadcast cameras. Choose the weather label matching the actual session; this tool never changes weather or drives the car. Changing settings, pausing or losing focus interrupts the evidence. Video adds encoding cost and can coalesce frames; JSON retains every observed rendered-frame interval. The local export includes browser-reported platform/GPU strings, available JavaScript heap size, and controller-axis ranges (no typed text or microphone). Missing values stay unmeasured. No GPU VRAM or physical-controller certification is inferred.</p>
+      <div class="dialog-buttons"><button class="primary" data-action="reviewStart">RESUME & RECORD REVIEW</button><button data-action="reviewExport" ${exportable ? '' : 'disabled'}>EXPORT FRAME JSON</button><button data-action="reviewVideoExport" ${videoReady ? '' : 'disabled'}>EXPORT WEBM</button><button data-action="visualReview">REFRESH EVIDENCE STATUS</button><button data-action="modalClose">BACK</button></div>`);
     this.get('visualReviewStatus').textContent = status;
     (this.get('reviewMachine') as HTMLInputElement).value = machine;
   }
