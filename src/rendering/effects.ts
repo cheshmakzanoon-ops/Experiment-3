@@ -111,8 +111,7 @@ export class Effects {
           if(kind<.5) { vOpacity=0.; gl_Position=vec4(2.,2.,2.,1.); gl_PointSize=1.; return; }
           vec4 mvPosition=modelViewMatrix*vec4(position,1.);
           gl_Position=projectionMatrix*mvPosition;
-          float scale=vKind<.5?1.35:1.;
-          gl_PointSize=clamp(size*scale*projectionMatrix[1][1]*viewportHeight*.5/max(.1,-mvPosition.z),1.,120.);
+          gl_PointSize=clamp(size*projectionMatrix[1][1]*viewportHeight*.5/max(.1,-mvPosition.z),1.,120.);
           #include <fog_vertex>
         }`,
       fragmentShader: `
@@ -121,12 +120,8 @@ export class Effects {
         void main() {
           vec2 p=gl_PointCoord*2.-1.;
           float soft=exp(-dot(p,p)*3.)*(1.-smoothstep(.6,1.,length(p)));
-          vec2 q=vec2(p.x*.78,(p.y+.16)*1.28);
-          float plume=exp(-dot(q,q)*2.05)*(1.-smoothstep(.72,1.12,length(q)));
-          vec2 haze=vec2(p.x*.48,(p.y-.22)*1.65);
-          float spray=max(plume,exp(-dot(haze,haze)*2.8)*.52);
           float spark=(1.-smoothstep(.04,.18,abs(p.x+p.y*.22)))*(1.-smoothstep(.58,1.,abs(p.y)));
-          float a=(vKind<.5?spray:(vKind>1.5&&vKind<2.5?spark:soft))*vOpacity;
+          float a=(vKind>1.5&&vKind<2.5?spark:soft)*vOpacity;
           a=mix(a,(1.-smoothstep(.55,.75,abs(p.x)+abs(p.y)*.8))*vOpacity,vSolid);
           if(a<.008)discard;
           gl_FragColor=vec4(vColor,a);
@@ -136,7 +131,7 @@ export class Effects {
         }`,
     });
     const points = new T.Points(this.geometry, material);
-    points.name = 'Contact spray, smoke and debris';
+    points.name = 'Contact smoke, sparks and debris';
     points.frustumCulled = false;
     points.onBeforeRender = (renderer) => {
       renderer.getCurrentViewport(this.viewport);

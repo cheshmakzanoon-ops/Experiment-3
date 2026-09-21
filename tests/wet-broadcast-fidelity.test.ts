@@ -202,7 +202,15 @@ it('uses distinct projected rain and expanding spray profiles in one partitioned
     material = points.material as T.ShaderMaterial;
   expect(points.geometry.getAttribute('kind').count).toBe(effects.diagnostics().capacity);
   expect(material.vertexShader).toContain('vKind=kind');
-  expect(material.fragmentShader).toContain('float plume=');
+  // Spray moved from capped point sprites into world-sized instanced quads.
+  const spray = effects.group.getObjectByName('Lit wheel-water spray clouds') as T.Mesh<T.InstancedBufferGeometry, T.ShaderMaterial>;
+  expect(spray.geometry.instanceCount).toBe(effects.diagnostics().contactCapacity);
+  expect(spray.geometry.index!.count).toBe(6);
+  expect(spray.material.lights).toBe(true);
+  expect(spray.material.fog).toBe(true);
+  expect(spray.geometry.getAttribute('opacity').array.buffer).toBe(points.geometry.getAttribute('opacity').array.buffer);
+  expect(spray.geometry.getAttribute('center').array.buffer).toBe(points.geometry.getAttribute('position').array.buffer);
+  expect(spray.geometry.getAttribute('size').array.buffer).toBe(points.geometry.getAttribute('size').array.buffer);
   const rain = effects.group.children[1] as T.Mesh<T.InstancedBufferGeometry, T.ShaderMaterial>;
   expect(rain.geometry.instanceCount).toBe(effects.diagnostics().rainCapacity);
   expect(points.geometry.drawRange.count).toBe(effects.diagnostics().contactCapacity);
@@ -213,7 +221,8 @@ it('uses distinct projected rain and expanding spray profiles in one partitioned
   );
   rain.geometry.dispose();
   rain.material.dispose();
-  expect(material.fragmentShader).toContain('vKind<.5');
+  expect(material.vertexShader).toMatch(/if\s*\(\s*kind\s*<\s*0?\.5\s*\)/);
+  spray.geometry.dispose(); spray.material.dispose();
   points.geometry.dispose();
   material.dispose();
 });

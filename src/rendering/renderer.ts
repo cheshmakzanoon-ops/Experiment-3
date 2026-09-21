@@ -15,7 +15,7 @@ import {
 import { type Livery } from '../storage/livery.ts';
 import {
   configureSky,
-  daylightState,
+  circuitLightState,
   shadowAnchor,
   SkyEnvironment,
   SUN_OFFSET,
@@ -478,15 +478,10 @@ export class RacingRenderer {
     }
     const car = this.cars[this.follow],
       speed = b[o + F.SPEED];
-    const daylight = daylightState(presented[H.CLOUD], presented[H.RAIN]);
     const studio = !!this.photo && this.photo.backdrop !== 'circuit';
-    if (this.night && !studio) {
-      daylight.sun = 0.16;
-      daylight.fill = 0.11;
-      daylight.environment = 0.035;
-      daylight.exposure = 1.12;
-      daylight.fogDensity *= 0.75;
-    }
+    const daylight = circuitLightState(presented[H.CLOUD], presented[H.RAIN], this.night && !studio);
+    if (this.night && !studio)
+      this.nightFog.setRGB(daylight.fogRed, daylight.fogGreen, daylight.fogBlue);
     if (studio) {
       daylight.sun = 1.4;
       daylight.fill = 0.25;
@@ -612,7 +607,7 @@ export class RacingRenderer {
     this.circuit.update(b);
     if (this.circuit.crowd.visible)
       for (const cluster of this.circuit.crowdClusters)
-        cluster.update(presented[H.TIME], this.camera.position, presented[H.RAIN]);
+        cluster.update(presented[H.TIME], this.camera.position, presented[H.RAIN], presented);
     this.effectPlayback.update(presented, !menu);
     this.debris.update(b);
     this.pitCrew.update(presented, this.camera.position, !menu && !studio);

@@ -6,7 +6,7 @@ import { Effects } from '../../src/rendering/effects.ts';
 import { EffectPlayback } from '../../src/rendering/effect-playback.ts';
 import { VenueLighting } from '../../src/rendering/venue-lighting.ts';
 import { TracksideDirector } from '../../src/rendering/trackside.ts';
-import { configureSky, daylightState, shadowAnchor, SkyEnvironment, SUN_OFFSET } from '../../src/rendering/daylight.ts';
+import { configureSky, circuitLightState, shadowAnchor, SkyEnvironment, SUN_OFFSET } from '../../src/rendering/daylight.ts';
 import { Simulation } from '../../src/simulation/world.ts';
 import { DEFAULT_OPTIONS } from '../../src/simulation/config.ts';
 import { F, H, carBase } from '../../src/simulation/protocol.ts';
@@ -83,8 +83,7 @@ class VenueSurvey {
     this.car.update(frame, frame, base, 1, 0, frame[H.TIME], false);
     this.circuit.updateSurface(sample.water, sample.rubber, sample.marbles); this.circuit.update(frame);
     this.playback.reset(); sample.history.forEach((state) => this.playback.update(state));
-    const light = daylightState(frame[H.CLOUD], frame[H.RAIN]);
-    if (this.options.night) { light.sun = 0.16; light.fill = 0.11; light.environment = 0.035; light.exposure = 1.12; }
+    const light = circuitLightState(frame[H.CLOUD], frame[H.RAIN], this.options.night);
     this.sun.intensity = light.sun; this.fill.intensity = light.fill;
     this.scene.environmentIntensity = light.environment; this.renderer.toneMappingExposure = light.exposure;
     this.sky.material.uniforms.turbidity.value = light.turbidity;
@@ -94,7 +93,6 @@ class VenueSurvey {
     this.scene.background = this.options.night ? this.venue.nightBackground : null;
     (this.scene.fog as T.FogExp2).color.setRGB(light.fogRed, light.fogGreen, light.fogBlue);
     (this.scene.fog as T.FogExp2).density = light.fogDensity;
-    if (this.options.night) { (this.scene.fog as T.FogExp2).color.setHex(0x080f19); (this.scene.fog as T.FogExp2).density *= 0.75; }
     this.director.reset();
     this.director.update(frame[base + F.S], this.car.root.position,
       new T.Vector3(frame[base + F.VX], frame[base + F.VY], frame[base + F.VZ]), 0, this.camera.aspect);
@@ -113,7 +111,7 @@ class VenueSurvey {
       this.camera.position.copy(this.circuit.at(785, 4, 3)); this.camera.lookAt(anchor); this.camera.fov = 58;
     }
     this.camera.updateProjectionMatrix(); this.camera.updateMatrixWorld(true);
-    for (const cluster of this.circuit.crowdClusters) cluster.update(frame[H.TIME], this.camera.position, frame[H.RAIN]);
+    for (const cluster of this.circuit.crowdClusters) cluster.update(frame[H.TIME], this.camera.position, frame[H.RAIN], frame);
     this.venue.update(this.options.night, anchor);
     shadowAnchor(anchor, 2048, 65, this.sun.target.position);
     this.sun.position.copy(this.sun.target.position).add(SUN_OFFSET); this.sun.target.updateMatrixWorld();
@@ -132,7 +130,7 @@ class VenueSurvey {
       speedKmh: frame[base + F.SPEED] * 3.6, activeCamera: this.director.activeId,
       sourceUnchanged: frame.every((v, i) => v === before[i]), waterUnchanged,
       glError: this.renderer.getContext().getError(),
-      crowds: this.circuit.crowdClusters.reduce((counts, c) => { counts[c.level]++; return counts; }, [0, 0, 0]),
+      crowds: this.circuit.crowdClusters.reduce((counts, c) => { counts[c.level]++; return counts; }, [0, 0, 0, 0]),
       effects: this.effects.diagnostics() };
   }
   dispose() {

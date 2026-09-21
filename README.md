@@ -19,6 +19,10 @@
 
 ---
 
+## Phase 27D — spectator and night-presentation continuation
+
+The [continuation report](docs/PHASE_27D_PRESENTATION_CONTINUATION.md) records a fourth, two-triangle distant-crowd representation, snapshot-driven spectator reactions, a shared circuit-night profile and stronger real-renderer regression coverage. It builds on `537491b4`, preserving the already-published CI repairs, lit spray and continuous four-source floodlights. The locked-toolchain check passes 728 unit cases, lint, type checking and production build. The occupied-grandstand component comparison removes 16.42% of submitted triangles with three extra handoff draws; this is not a hardware FPS claim. Final graphics, full application/hardware validation and Steam acceptance remain open. Older report counts below describe their original checkpoints.
+
 ## Phase 27C — cohesion increment (acceptance open)
 
 The [Phase 27C implementation and evidence report](docs/PHASE_27C_FULL_LAP_COHESION.md) records original car/driver detail, seated crowd LODs, six grounded service areas, terrain material continuity, and full-lap camera/lighting review. It includes correction of camera self-obstruction and unnecessary lens transmission. Seven focused native groups, eight existing native physics/race scripts and 81 isolated circuit GPU captures passed their stated checks. The full installed-toolchain build/CI, hardware performance and final visual acceptance remain **unverified/open**; this is not a completed Phase 27C or Steam-ready release. Historical test counts below are historical, not certification of this source increment.

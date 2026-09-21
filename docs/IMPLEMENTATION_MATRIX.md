@@ -1,5 +1,7 @@
 # Specification coverage ledger
 
+**21 September 2026 — Phase 27D continuation:** [Scope and measured evidence](PHASE_27D_PRESENTATION_CONTINUATION.md). Adds distant spectator impostors, presented-state reactions and shared night lighting on top of `537491b4`; does not upgrade final visual/commercial acceptance. The full local check passes 728 unit cases in 69 files plus lint, type checking and build. Complete browser/hardware acceptance remains separately tracked; historical counts below are not current certification.
+
 **20 September 2026 — Phase 27C increment:** See [the implementation, source-bound evidence and remaining acceptance](PHASE_27C_FULL_LAP_COHESION.md). Car/driver, seated crowds, service areas and camera/lighting changes advance the existing partial presentation requirements; they do not close any final-quality gate. The counts and measurements in older rows describe their original checkpoints. Seven additional unit wrappers and five browser tests are supplied; the normal complete runners have not been locally certified for this increment.
 
 This ledger follows all 148 numbered sections of the exact [Pasted markdown(6) directive](MASTER_DIRECTIVE.md), retained verbatim in this repository. “Implemented” means a concrete code path exists; it does **not** certify every aspirational fidelity or performance statement in that section. Approximate/partial sections explicitly state the boundary.

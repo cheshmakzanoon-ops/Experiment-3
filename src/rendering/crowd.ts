@@ -1,12 +1,14 @@
 import * as T from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { clamp } from '../core/math.ts';
+import { crowdResponse } from './crowd-response.ts';
+import { installCrowdImpostorShader, spectatorImpostorGeometry } from './crowd-impostor.ts';
 
-export type CrowdDetail = 0 | 1 | 2;
+export type CrowdDetail = 0 | 1 | 2 | 3;
 
 /** Seated people face local -X. Hip height is the seat plane; feet terminate
  * at -0.30 m, on the existing grandstand deck rather than floating over it. */
-export function spectatorGeometry(detail: CrowdDetail) {
+export function spectatorGeometry(detail: Exclude<CrowdDetail, 3>) {
   if (![0, 1, 2].includes(detail)) throw new Error('Invalid crowd detail');
   const parts: T.BufferGeometry[] = [];
   const segments = detail === 0 ? 8 : detail === 1 ? 6 : 4;
@@ -54,6 +56,7 @@ export function spectatorGeometry(detail: CrowdDetail) {
 interface CrowdUniforms {
   crowdClock: { value: T.Vector2 };
   crowdMotion: { value: number };
+  crowdReaction?: { value: T.Vector2 };
   crowdLodRange?: { value: T.Vector2 };
 }
 
@@ -62,7 +65,7 @@ interface CrowdUniforms {
  * silhouettes switch at different distances instead of an entire stand popping.
  * Rewinds and paused camera movement do not accumulate a fading animation. */
 export function crowdLodRanges(distance: number, out: readonly T.Vector2[]) {
-  if (!Number.isFinite(distance) || distance < 0 || out.length !== 3)
+  if (!Number.isFinite(distance) || distance < 0 || out.length !== 4)
     throw new Error('Invalid crowd handoff');
   out.forEach((range) => range.set(0, 0));
   const smooth = (start: number, end: number) => {
@@ -72,9 +75,12 @@ export function crowdLodRanges(distance: number, out: readonly T.Vector2[]) {
   if (distance < 108) {
     const weight = smooth(92, 108);
     out[0].set(weight, 1); out[1].set(0, weight);
-  } else {
+  } else if (distance < 242) {
     const weight = smooth(218, 242);
     out[1].set(weight, 1); out[2].set(0, weight);
+  } else {
+    const weight = smooth(420, 480);
+    out[2].set(weight, 1); out[3].set(0, weight);
   }
   return out;
 }
@@ -83,10 +89,16 @@ attribute float crowdJoint;
 attribute float spectatorPhase;
 uniform vec2 crowdClock;
 uniform float crowdMotion;
+uniform vec2 crowdReaction;
 mat3 crowdTurn() {
   float wave = (sin(crowdClock.x + spectatorPhase) * 0.7
     + sin(crowdClock.y + spectatorPhase * 1.73) * 0.3) * crowdMotion;
   float angle = crowdJoint > 2.5 ? wave * 0.075 : wave * 0.035;
+  if (crowdJoint > .5 && crowdJoint < 2.5) {
+    float participant = smoothstep(.18,.5,fract(spectatorPhase * 2.17));
+    float gesture = .86 + .14 * sin(crowdClock.x * 3. + spectatorPhase * 1.9);
+    angle -= participant * (crowdReaction.x * .82 * gesture + crowdReaction.y * .48);
+  }
   if (crowdJoint < 0.5) angle = 0.0;
   float c = cos(angle), s = sin(angle);
   if (crowdJoint > 2.5) return mat3(c,0.,-s, 0.,1.,0., s,0.,c);
@@ -106,6 +118,7 @@ export function installCrowdShader(material: T.Material, uniforms: CrowdUniforms
     if (!shader.vertexShader.includes('#include <begin_vertex>'))
       throw new Error('Crowd shader position hook missing');
     Object.assign(shader.uniforms, uniforms);
+    shader.uniforms.crowdReaction = uniforms.crowdReaction ?? { value: new T.Vector2() };
     shader.uniforms.crowdLodRange = uniforms.crowdLodRange ?? { value: new T.Vector2(0, 1) };
     shader.vertexShader = 'varying float vCrowdRank;\n' + deform + (colour ? 'attribute float skinMask;\nattribute vec3 spectatorSkin;\n' : '') + shader.vertexShader;
     shader.vertexShader = shader.vertexShader.replace('#include <begin_vertex>',
@@ -126,15 +139,16 @@ export function installCrowdShader(material: T.Material, uniforms: CrowdUniforms
         '#include <color_vertex>\nvColor.rgb = mix(vColor.rgb, spectatorSkin, skinMask);');
     }
   };
-  material.customProgramCacheKey = () => `apex-seated-crowd-v2-ranked-${colour ? 'colour' : 'depth'}`;
+  material.customProgramCacheKey = () => `apex-seated-crowd-v3-response-${colour ? 'colour' : 'depth'}`;
 }
 
 export function crowdDetail(distance: number, previous: CrowdDetail): CrowdDetail {
   if (!Number.isFinite(distance) || distance < 0) throw new Error('Invalid crowd distance');
   if (previous === 0 && distance < 108) return 0;
   if (previous === 1 && distance > 92 && distance < 242) return 1;
-  if (previous === 2 && distance > 218) return 2;
-  return distance < 100 ? 0 : distance < 230 ? 1 : 2;
+  if (previous === 2 && distance > 218 && distance < 480) return 2;
+  if (previous === 3 && distance > 420) return 3;
+  return distance < 100 ? 0 : distance < 230 ? 1 : distance < 450 ? 2 : 3;
 }
 
 /** A spatially culled cluster shares all instance storage across its levels.
@@ -142,9 +156,10 @@ export function crowdDetail(distance: number, previous: CrowdDetail): CrowdDetai
 export class CrowdCluster {
   readonly root = new T.Group();
   readonly levels: readonly T.InstancedMesh[];
-  readonly uniforms: CrowdUniforms = { crowdClock: { value: new T.Vector2() }, crowdMotion: { value: 0 } };
+  readonly uniforms = { crowdClock: { value: new T.Vector2() }, crowdMotion: { value: 0 },
+    crowdReaction: { value: new T.Vector2() } };
   level: CrowdDetail = 0;
-  readonly lodRanges = [new T.Vector2(0, 1), new T.Vector2(), new T.Vector2()];
+  readonly lodRanges = [new T.Vector2(0, 1), new T.Vector2(), new T.Vector2(), new T.Vector2()];
   private centre = new T.Vector3();
   private localCentre = new T.Vector3();
   constructor(matrices: readonly T.Matrix4[], colors: readonly T.Color[], seed: number,
@@ -167,12 +182,13 @@ export class CrowdCluster {
     this.localCentre.multiplyScalar(1 / matrices.length);
     const phases = new T.InstancedBufferAttribute(phase, 1), skins = new T.InstancedBufferAttribute(skin, 3);
     const levels: T.InstancedMesh[] = [];
-    for (const level of [0, 1, 2] as const) {
+    for (const level of [0, 1, 2, 3] as const) {
       const colorMaterial = material.clone(); colorMaterial.vertexColors = true;
-      const depth = new T.MeshDepthMaterial({ depthPacking: T.RGBADepthPacking });
+      const depth = level === 3 ? undefined : new T.MeshDepthMaterial({ depthPacking: T.RGBADepthPacking });
       const uniforms = { ...this.uniforms, crowdLodRange: { value: this.lodRanges[level] } };
-      installCrowdShader(colorMaterial, uniforms, true); installCrowdShader(depth, uniforms, false);
-      const geometry = spectatorGeometry(level);
+      if (level === 3) installCrowdImpostorShader(colorMaterial, this.lodRanges[level]);
+      else { installCrowdShader(colorMaterial, uniforms, true); installCrowdShader(depth!, uniforms, false); }
+      const geometry = level === 3 ? spectatorImpostorGeometry() : spectatorGeometry(level);
       geometry.setAttribute('spectatorPhase', phases);
       geometry.setAttribute('spectatorSkin', skins);
       const people = new T.InstancedMesh(geometry, colorMaterial, matrices.length);
@@ -181,22 +197,26 @@ export class CrowdCluster {
         people.instanceColor = levels[0].instanceColor;
       } else matrices.forEach((matrix, i) => { people.setMatrixAt(i, matrix); people.setColorAt(i, colors[i]); });
       people.name = `${this.root.name} detail ${level}`;
-      people.castShadow = true; people.receiveShadow = true;
+      people.castShadow = level !== 3; people.receiveShadow = true;
       people.customDepthMaterial = depth;
       people.visible = level === 0;
       people.computeBoundingBox(); people.computeBoundingSphere();
-      // Shoulder/head motion is bounded to < 3 cm; retain a 5 cm guard.
-      people.boundingBox!.expandByScalar(0.05); people.boundingSphere!.radius += 0.05;
+      // Raised forearms move by at most 32 cm; the card may rotate about its
+      // seat. Keep both in the culling volume without changing seat transforms.
+      const guard = 0.35;
+      people.boundingBox!.expandByScalar(guard); people.boundingSphere!.radius += guard;
       levels.push(people); this.root.add(people);
     }
     this.levels = levels;
   }
-  update(time: number, camera: T.Vector3, rain: number) {
+  update(time: number, camera: T.Vector3, rain: number, frame?: Float32Array) {
     if (!Number.isFinite(time) || !Number.isFinite(rain) ||
       !Number.isFinite(camera.x + camera.y + camera.z)) throw new Error('Invalid crowd presentation');
     this.root.updateWorldMatrix(true, false);
     this.centre.copy(this.localCentre).applyMatrix4(this.root.matrixWorld);
     const distance = this.centre.distanceTo(camera);
+    crowdResponse(frame, this.centre, this.uniforms.crowdReaction.value)
+      .multiplyScalar(clamp((180 - distance) / 50, 0, 1) * (1 - clamp(rain / 60, 0, .4)));
     this.level = crowdDetail(distance, this.level);
     crowdLodRanges(distance, this.lodRanges);
     this.levels.forEach((mesh, i) => { mesh.visible = this.lodRanges[i].y > this.lodRanges[i].x; });

@@ -33,6 +33,19 @@ export function daylightState(cloud: number, rain: number) {
   };
 }
 
+/** Shared circuit/night profile for the renderer and its evidence fixtures.
+ * This is authored exposure, not a claim of calibrated real-world photometry.
+ * Keep a low ambient floor so unlit carbon remains readable between mast pools. */
+export function circuitLightState(cloud: number, rain: number, night = false) {
+  const light = daylightState(cloud, rain);
+  if (night) Object.assign(light, {
+    sun: 0.11, fill: 0.20, environment: 0.07, exposure: 1.08,
+    fogDensity: light.fogDensity * 0.75,
+    fogRed: 0.008, fogGreen: 0.014, fogBlue: 0.030,
+  });
+  return light;
+}
+
 /** Snap in LIGHT space, not world X/Z. The rotation is fixed, so translation
  * smaller than one shadow texel cannot swim across static geometry. */
 export function shadowAnchor(target: T.Vector3, size: number, halfExtent: number, out: T.Vector3) {
