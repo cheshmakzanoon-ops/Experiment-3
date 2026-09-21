@@ -5,7 +5,7 @@ import carbonRoughness from '../shaders/carbon.frag?raw';
 import carbonNormal from '../shaders/carbon-normal.frag?raw';
 
 export function carbonMaterial() {
-  const material = new MeshStandardMaterial({ color: 0x121719, metalness: 0.16, roughness: 0.48 });
+  const material = new MeshStandardMaterial({ color: 0x15191c, metalness: 0.08, roughness: 0.42 });
   material.onBeforeCompile = (shader) => {
     shader.vertexShader = shader.vertexShader
       .replace('#include <common>', '#include <common>\nvarying vec2 vCarbonUv;')
@@ -24,7 +24,7 @@ export function carbonMaterial() {
         '#include <normal_fragment_maps>\n' + carbonNormal,
       );
   };
-  material.customProgramCacheKey = () => 'apex-metre-carbon-v2';
+  material.customProgramCacheKey = () => 'apex-metre-carbon-v3-twill';
   return material;
 }
 

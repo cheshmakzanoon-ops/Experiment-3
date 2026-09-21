@@ -105,3 +105,54 @@ export function wheelCoverGeometry(detail: CarDetail = 'high') {
   g.computeBoundingSphere();
   return g;
 }
+
+/** Thin closed fences sit on the shared floor skin. They replace cylindrical
+ * edge rails and detached diffuser boxes while retaining the same LOD envelope. */
+export function floorFenceGeometry(across: number, start: number, end: number, height: number) {
+  if (
+    !Number.isFinite(across) ||
+    Math.abs(across) > 1 ||
+    !Number.isFinite(height) ||
+    height <= 0 ||
+    height > 0.2 ||
+    !Number.isInteger(start) ||
+    !Number.isInteger(end) ||
+    start < 0 ||
+    end >= FLOOR_STATIONS.length ||
+    end <= start
+  )
+    throw new Error('Invalid floor fence');
+  const p: number[] = [],
+    uv: number[] = [],
+    ix: number[] = [];
+  for (let row = start; row <= end; row++) {
+    const v = floorPoint(row, across, true);
+    const rise = height * (row === end ? 0.2 : row === start ? 0.65 : 1);
+    for (const [x, y] of [
+      [-0.003, 0],
+      [0.003, 0],
+      [0.003, rise],
+      [-0.003, rise],
+    ]) {
+      p.push(v.x + x, v.y + y, v.z);
+      uv.push((row - start) / (end - start), y === 0 ? 0 : 1);
+    }
+    if (row < end) {
+      const a = (row - start) * 4;
+      for (let j = 0; j < 4; j++) {
+        const k = (j + 1) % 4;
+        ix.push(a + j, a + k, a + 4 + j, a + k, a + 4 + k, a + 4 + j);
+      }
+    }
+  }
+  const last = (end - start) * 4;
+  ix.push(0, 2, 1, 0, 3, 2, last, last + 1, last + 2, last, last + 2, last + 3);
+  const g = new T.BufferGeometry();
+  g.setAttribute('position', new T.Float32BufferAttribute(p, 3));
+  g.setAttribute('uv', new T.Float32BufferAttribute(uv, 2));
+  g.setIndex(ix);
+  g.computeVertexNormals();
+  g.computeBoundingBox();
+  g.computeBoundingSphere();
+  return g;
+}

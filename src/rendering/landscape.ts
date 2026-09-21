@@ -1,3 +1,5 @@
+import { terrainHeight } from './terrain-profile.ts';
+import { districtPlan, inDistrictFootprint } from './venue-districts.ts';
 import { serviceSitePlan, inServiceFootprint, type ServiceSite } from './venue-service-plan.ts';
 import { grassApronOffset } from './ground-profile.ts';
 import { inStandFootprint } from './grandstand.ts';
@@ -7,14 +9,7 @@ import { Track, trackPoint } from '../simulation/track.ts';
 import { canvasTexture } from './geometry.ts';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
-export function terrainHeight(x: number, z: number) {
-  const distance = Math.hypot(x, z);
-  return (
-    -4 +
-    Math.max(0, distance - 680) * 0.033 * (0.3 + 0.7 * Math.sin(x * 0.004 + z * 0.002) ** 2) +
-    Math.max(0, distance - 1000) * 0.038 * Math.cos(x * 0.003 - z * 0.004) ** 2
-  );
-}
+export { terrainHeight } from './terrain-profile.ts';
 /** Distinct planting character along the existing original circuit. These are
  * landscaping zones, NOT additional tracks or a claim of botanical simulation. */
 export const PLANTING_ZONES = Object.freeze([
@@ -53,6 +48,7 @@ export function vegetationPlan(
     point = trackPoint(),
     nearest = trackPoint();
   const occupied = new Map<string, TreePlacement[]>();
+  const districts = districtPlan(track, services);
   for (let attempt = 0; attempt < 1800 && result.length < 650; attempt++) {
     track.at(random.next() * track.length, point);
     const lateral = (random.next() < 0.5 ? -1 : 1) * (43 + random.next() * 155);
@@ -76,7 +72,12 @@ export function vegetationPlan(
       }
     if (blocked) continue;
     // Use the exact same authored site footprint as the structural builder.
-    if (inStandFootprint(track, x, z, 8) || inServiceFootprint(services, x, z, 8)) blocked = true;
+    if (
+      inStandFootprint(track, x, z, 8) ||
+      inServiceFootprint(services, x, z, 8) ||
+      inDistrictFootprint(districts, x, z, 8)
+    )
+      blocked = true;
     if (blocked) continue;
     const y =
       Math.abs(l) <= nearest.width + 38

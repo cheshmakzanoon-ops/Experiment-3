@@ -1,3 +1,9 @@
+import {
+  tailoredCrewGeometry,
+  crewHelmetGeometry,
+  crewGloveGeometry,
+  installCrewFabric,
+} from './crew-geometry.ts';
 import * as T from 'three';
 import { clamp, smooth } from '../core/math.ts';
 import { F, H, W, WHEEL_BASE, WHEEL_STRIDE, carBase } from '../simulation/protocol.ts';
@@ -29,20 +35,23 @@ export class PitCrewView {
   private direction = new T.Vector3();
   private vertical = new T.Vector3(0, 1, 0);
   private counts = [0, 0, 0, 0];
+  private morph: T.Mesh;
+  private actorColor = new T.Color();
+  private actorIndex = 0;
   activeCrews = 0;
   constructor() {
     this.cloth = new T.InstancedMesh(
-      new T.CylinderGeometry(1, 1, 1, 12),
-      new T.MeshStandardMaterial({ color: 0x294851, roughness: 0.94 }),
+      tailoredCrewGeometry(),
+      installCrewFabric(new T.MeshStandardMaterial({ color: 0xffffff, roughness: 0.94 })),
       12 * 48,
     );
     this.heads = new T.InstancedMesh(
-      new T.SphereGeometry(1, 16, 12),
-      new T.MeshStandardMaterial({ color: 0xd6d2bc, roughness: 0.5 }),
+      crewHelmetGeometry(),
+      new T.MeshStandardMaterial({ color: 0xffffff, vertexColors: true, roughness: 0.36 }),
       12 * 6,
     );
     this.gloves = new T.InstancedMesh(
-      new T.SphereGeometry(1, 12, 8),
+      crewGloveGeometry(),
       new T.MeshStandardMaterial({ color: 0x151d1f, roughness: 0.96 }),
       12 * 12,
     );
@@ -51,6 +60,8 @@ export class PitCrewView {
       new T.MeshStandardMaterial({ color: 0x8b9697, metalness: 0.75, roughness: 0.35 }),
       12 * 14,
     );
+    this.morph = new T.Mesh(this.cloth.geometry, this.cloth.material);
+    this.cloth.setMorphAt(0, this.morph);
     this.root.add(this.cloth, this.heads, this.gloves, this.tools);
     this.root.name = 'Physical pit service crew';
     for (const batch of [this.cloth, this.heads, this.gloves, this.tools]) {
@@ -76,7 +87,13 @@ export class PitCrewView {
     this.transform.scale.set(sx, sy, sz);
     this.transform.updateMatrix();
     this.transform.matrix.premultiply(this.car.matrix);
-    batch.setMatrixAt(this.counts[index]++, this.transform.matrix);
+    const instance = this.counts[index]++;
+    batch.setMatrixAt(instance, this.transform.matrix);
+    if (index === 0) {
+      this.morph.morphTargetInfluences![0] = 0;
+      batch.setMorphAt(instance, this.morph);
+      batch.setColorAt(instance, this.actorColor);
+    }
   }
   private segment(
     batch: T.InstancedMesh,
@@ -101,7 +118,13 @@ export class PitCrewView {
     this.transform.scale.set(radius, length, radius);
     this.transform.updateMatrix();
     this.transform.matrix.premultiply(this.car.matrix);
-    batch.setMatrixAt(this.counts[index]++, this.transform.matrix);
+    const instance = this.counts[index]++;
+    batch.setMatrixAt(instance, this.transform.matrix);
+    if (index === 0) {
+      this.morph.morphTargetInfluences![0] = radius >= 0.1 ? 1 : 0;
+      batch.setMorphAt(instance, this.morph);
+      batch.setColorAt(instance, this.actorColor);
+    }
   }
   update(frame: Float32Array, camera: T.Vector3, visible = true) {
     this.counts.fill(0);
@@ -118,6 +141,8 @@ export class PitCrewView {
       const floor = -0.43 - frame[o + F.JACK_HEIGHT];
       const clock = frame[o + F.PIT_CLOCK];
       for (let wheel = 0; wheel < 4; wheel++) {
+        this.actorIndex = id * 6 + wheel;
+        this.actorColor.setHex([0x294851, 0x35545a, 0x29414d, 0x3b5056][this.actorIndex % 4]);
         const [hubX, , hubZ] = WHEEL_POSITIONS[wheel],
           side = Math.sign(hubX),
           p = o + WHEEL_BASE + wheel * WHEEL_STRIDE;
@@ -201,6 +226,7 @@ export class PitCrewView {
         );
       }
       for (const end of [-1, 1]) {
+        this.actorColor.setHex(end < 0 ? 0x334b54 : 0x3b5356);
         const z = end * 2.9,
           x = end * 0.12;
         this.segment(this.cloth, 0, x, floor + 0.62, z, x, floor + 1.17, z - end * 0.2, 0.14);
@@ -269,6 +295,8 @@ export class PitCrewView {
         throw new Error('Pit crew capacity exceeded');
       batch.count = this.counts[index];
       batch.instanceMatrix.needsUpdate = true;
+      if (batch.instanceColor) batch.instanceColor.needsUpdate = true;
+      if (batch.morphTexture) batch.morphTexture.needsUpdate = true;
     }
   }
 }

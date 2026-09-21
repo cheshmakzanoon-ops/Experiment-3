@@ -1,34 +1,39 @@
 import * as T from 'three';
-import { sampleBody, type BodySection, type LoftOpening } from './bodywork.ts';
+import { sampleBody, sculptedLoft, type BodySection, type LoftOpening } from './bodywork.ts';
 
 /** Original Aurel body envelopes. These shape the rendering, not aerodynamic
  * force coefficients or physical wheel hardpoints. Dimensions are metres. */
 export const NOSE_SECTIONS: readonly BodySection[] = Object.freeze([
   [0.4, 0.025, 0.3, 0.17],
-  [0.58, 0.026, 0.288, 0.158],
-  [1.12, -0.012, 0.231, 0.119],
-  [1.58, -0.07, 0.171, 0.091],
-  [2.03, -0.148, 0.109, 0.065],
-  [2.38, -0.22, 0.077, 0.032],
-  [2.55, -0.256, 0.049, 0.019],
-  [2.6, -0.266, 0.016, 0.008],
+  [0.7, 0.028, 0.264, 0.146],
+  [1.12, 0.012, 0.202, 0.112],
+  [1.5, -0.056, 0.15, 0.074],
+  [1.85, -0.12, 0.135, 0.057],
+  [2.15, -0.151, 0.124, 0.047],
+  [2.34, -0.178, 0.102, 0.04],
+  [2.42, -0.186, 0.08, 0.028],
+  [2.435, -0.186, 0.067, 0.024],
 ]);
 export const POD_SECTIONS: readonly BodySection[] = Object.freeze([
-  [-1.75, -0.257, 0.032, 0.036],
-  [-1.4, -0.224, 0.132, 0.086],
-  [-0.91, -0.153, 0.244, 0.134],
-  [-0.38, -0.062, 0.301, 0.154],
-  [0.06, -0.015, 0.307, 0.158],
-  [0.26, 0.012, 0.27, 0.127],
+  [-1.8, -0.275, 0.08, 0.055],
+  [-1.58, -0.232, 0.17, 0.09],
+  [-1.25, -0.19, 0.246, 0.11],
+  [-0.9, -0.128, 0.3, 0.125],
+  [-0.5, -0.065, 0.32, 0.148],
+  [-0.1, -0.015, 0.324, 0.165],
+  [0.2, 0.04, 0.29, 0.112],
+  [0.36, 0.035, 0.24, 0.076],
   [0.39, 0.025, 0.225, 0.075],
 ]);
 export const ENGINE_SECTIONS: readonly BodySection[] = Object.freeze([
-  [-2.15, -0.11, 0.015, 0.032],
-  [-1.82, -0.04, 0.106, 0.104],
-  [-1.42, 0.07, 0.156, 0.189],
-  [-1.01, 0.202, 0.212, 0.292],
-  [-0.73, 0.295, 0.166, 0.425],
-  [-0.55, 0.36, 0.09, 0.27],
+  [-2.15, -0.12, 0.027, 0.036],
+  [-1.9, -0.095, 0.09, 0.091],
+  [-1.55, -0.01, 0.135, 0.155],
+  [-1.2, 0.066, 0.19, 0.196],
+  [-0.92, 0.132, 0.23, 0.232],
+  [-0.75, 0.225, 0.15, 0.343],
+  [-0.62, 0.34, 0.1, 0.36],
+  [-0.54, 0.43, 0.095, 0.28],
 ]);
 export const POD_OPENINGS: readonly LoftOpening[] = Object.freeze(
   Array.from({ length: 8 }, (_, i) =>
@@ -143,4 +148,38 @@ export function suspensionMount(wheelX: number, wheelZ: number, dy: number, dz: 
     front ? 0.32 : 0.18,
     0.002,
   );
+}
+
+export const POD_UNDERCUT = 0.48;
+export const POD_FLATTEN = 0.88;
+/** The deck has an authored longitudinal downwash channel between its raised
+ * shoulders. Both cooling apertures and all LODs use the same surface function. */
+function podChannel(z: number, u: number) {
+  const length = T.MathUtils.clamp((z + 1.65) / 1.75, 0, 1);
+  return -0.041 * Math.sin(Math.PI * length) ** 2 * Math.exp(-(((u - 0.5) / 0.088) ** 2));
+}
+export function shapePodSurface(geometry: T.BufferGeometry) {
+  const p = geometry.getAttribute('position'),
+    uv = geometry.getAttribute('uv');
+  for (let i = 0; i < p.count; i++) p.setY(i, p.getY(i) + podChannel(p.getZ(i), uv.getX(i)));
+  geometry.computeVertexNormals();
+  geometry.computeBoundingBox();
+  geometry.computeBoundingSphere();
+  return geometry;
+}
+export function sidepodShell(detail: 'high' | 'mid' | 'far' = 'high', openings = true) {
+  return shapePodSurface(
+    sculptedLoft(POD_SECTIONS, POD_UNDERCUT, POD_FLATTEN, openings ? POD_OPENINGS : [], detail),
+  );
+}
+export function sidepodPatch(area: LoftOpening, offset: number) {
+  const geometry = bodySurfacePatch(POD_SECTIONS, area, POD_UNDERCUT, POD_FLATTEN, offset, 4, 8);
+  const p = geometry.getAttribute('position'),
+    uv = geometry.getAttribute('uv');
+  for (let i = 0; i < p.count; i++) {
+    const u = T.MathUtils.lerp(area.u0, area.u1, 1 - uv.getX(i));
+    p.setY(i, p.getY(i) + podChannel(p.getZ(i), u));
+  }
+  geometry.computeVertexNormals();
+  return geometry;
 }

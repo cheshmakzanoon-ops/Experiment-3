@@ -1,3 +1,4 @@
+import { tireProfile } from './tire-profile.ts';
 import * as T from 'three';
 import { clamp } from '../core/math.ts';
 import { mesh } from './geometry.ts';
@@ -30,16 +31,7 @@ export class TireCarcass {
   private lastRadius = NaN;
   private lastDeflection = NaN;
   constructor(half: number, tread: T.Material, marking: T.Material) {
-    const profile = [
-      new T.Vector2(BEAD, -half),
-      new T.Vector2(0.306, -half),
-      new T.Vector2(0.331, -half + 0.025),
-      new T.Vector2(NOMINAL, -half + 0.065),
-      new T.Vector2(NOMINAL, half - 0.065),
-      new T.Vector2(0.331, half - 0.025),
-      new T.Vector2(0.306, half),
-      new T.Vector2(BEAD, half),
-    ];
+    const profile = tireProfile(half);
     mesh(this.root, new T.LatheGeometry(profile, 48).rotateZ(Math.PI / 2), tread);
     const rings = [-1, 1].map((side) =>
       new T.TorusGeometry(0.287, 0.005, 6, 48)

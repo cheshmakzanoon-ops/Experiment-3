@@ -1,3 +1,4 @@
+import { HAND_ANCHOR } from './wheel-grip.ts';
 import * as T from 'three';
 import { clamp } from '../core/math.ts';
 import { mesh } from './geometry.ts';
@@ -112,7 +113,7 @@ export class DriverRig {
       const shoulder = new T.Vector3(side * 0.16, 0.015, -0.48);
       const pole = new T.Vector3(side * 0.24, -0.32, -0.23);
       const { root: hand, thumb, index } = buildGlove(side, materials);
-      hand.position.set(side * 0.178, -0.009, -0.01);
+      hand.position.set(side * HAND_ANCHOR.x, HAND_ANCHOR.y, HAND_ANCHOR.z);
       steering.add(hand);
       const paddle = new T.Group();
       paddle.name = side < 0 ? 'Upshift paddle' : 'Downshift paddle';
@@ -139,11 +140,13 @@ export class DriverRig {
     // identical solid paddle surfaces share a GPU submission.
     this.paddles = new T.InstancedMesh(new T.BoxGeometry(0.031, 0.087, 0.006), paddleMaterial, 2);
     this.paddles.name = 'Independent shift paddles (one submission)';
-    this.paddles.castShadow = true; this.paddles.receiveShadow = true;
+    this.paddles.castShadow = true;
+    this.paddles.receiveShadow = true;
     this.paddles.instanceMatrix.setUsage(T.DynamicDrawUsage);
     steering.add(this.paddles);
     this.update(0, 1, 1);
-    this.paddles.computeBoundingBox(); this.paddles.computeBoundingSphere();
+    this.paddles.computeBoundingBox();
+    this.paddles.computeBoundingSphere();
     // Full permitted 0.18-radian pull moves the outer edge by < 6 mm.
     this.paddles.boundingBox!.expandByScalar(0.01);
     this.paddles.boundingSphere!.radius += 0.01;
@@ -180,7 +183,10 @@ export class DriverRig {
       arm.paddle.rotation.y = -arm.side * pull * 0.18;
       arm.paddle.updateMatrix();
       this.paddleOffset.makeTranslation(arm.side * 0.017, 0, 0);
-      this.paddles.setMatrixAt(index, this.paddleMatrix.copy(arm.paddle.matrix).multiply(this.paddleOffset));
+      this.paddles.setMatrixAt(
+        index,
+        this.paddleMatrix.copy(arm.paddle.matrix).multiply(this.paddleOffset),
+      );
       arm.index.position.z = pull * 0.0025;
       arm.thumb.rotation.z = arm.side * this.actions.button * 0.2;
     }

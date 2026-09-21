@@ -248,3 +248,17 @@ the continuous human Section 146 run, complete 100-image human acceptance and
 candidate-specific full application CI remain open. The owner's next scope is
 continued game development, including more modes and at least 16 distinct maps,
 not an automatic transition to Steam packaging.
+
+
+## Phase 27G continuation from e02f383
+
+Phase 27F's exact full workflow completed successfully before this art work.
+The continuation restructures shared car silhouettes/material ownership, hand
+contacts, local circuit districts and human presentation, and adds coherent
+sunset lighting, actual-event reference watches, direct UV-guide editing and an
+original silent captioned team briefing. See
+[27G implementation and open acceptance](PHASE_27G_IMPLEMENTATION_AND_ACCEPTANCE.md).
+Do not inherit the base's CI status or treat an event predicate/component render
+as final visual acceptance. Human Section 146, physical Windows/controller/wheel
+measurements, complete reference acceptance and candidate-specific full CI remain
+open. The later multi-car/mode/sixteen-map programme is not implemented here.

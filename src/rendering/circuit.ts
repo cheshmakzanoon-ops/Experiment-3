@@ -1,3 +1,5 @@
+import { MarshalStaffView } from './marshal-staff.ts';
+import { districtPlan, buildDistricts } from './venue-districts.ts';
 import { BroadcastSightlines } from './broadcast-sightlines.ts';
 import { serviceSitePlan } from './venue-service-plan.ts';
 import { buildServiceAreas } from './venue-service.ts';
@@ -39,6 +41,7 @@ export class CircuitScene {
   readonly group = new T.Group();
   readonly crowd = new T.Group();
   readonly crowdClusters: CrowdCluster[] = [];
+  readonly staff: MarshalStaffView;
   readonly props = new T.Group();
   readonly sightlines = new BroadcastSightlines();
   readonly vegetationGroup = new T.Group();
@@ -48,6 +51,7 @@ export class CircuitScene {
   readonly startLamps: T.MeshStandardMaterial[] = [];
   readonly trackInfrastructure: TrackInfrastructurePlan;
   readonly serviceSites: ReturnType<typeof serviceSitePlan>;
+  readonly districts: ReturnType<typeof districtPlan>;
   readonly safetyPanel = new T.MeshStandardMaterial({
     color: 0x2a5636,
     emissive: 0x2a5636,
@@ -63,7 +67,10 @@ export class CircuitScene {
   ) {
     this.group.name = 'Aurel circuit';
     this.trackInfrastructure = makeTrackInfrastructurePlan(track);
+    this.staff = new MarshalStaffView(this.trackInfrastructure.marshalPosts);
+    this.crowd.add(this.staff.root);
     this.serviceSites = serviceSitePlan(track);
+    this.districts = districtPlan(track, this.serviceSites);
     this.group.add(this.props, this.crowd, this.vegetationGroup);
     this.stateTexture = new T.DataTexture(this.stateBytes, CELL_COLS, CELL_ROWS, T.RGBAFormat);
     this.stateTexture.magFilter = T.LinearFilter;
@@ -200,6 +207,9 @@ export class CircuitScene {
     );
     this.construction.add('Authored service areas', 2, () =>
       buildServiceAreas(this.props, this.serviceSites, this.sightlines),
+    );
+    this.construction.add('Four authored Aurel districts', 3, () =>
+      buildDistricts(this.props, this.districts, this.sightlines),
     );
     this.construction.add('Rule-placed layered foliage', 3, () =>
       buildVegetation(track, this.vegetationGroup, this.serviceSites),

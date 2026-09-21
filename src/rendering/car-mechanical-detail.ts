@@ -1,5 +1,6 @@
 import { helmetShell, helmetPatch, helmetPoint } from './helmet-shell.ts';
 import * as T from 'three';
+import { bodySurface, POD_SECTIONS, POD_UNDERCUT, POD_FLATTEN } from './car-surfaces.ts';
 import { sculptedLoft } from './bodywork.ts';
 import { mesh, mergeStatic, rod } from './geometry.ts';
 
@@ -190,35 +191,72 @@ export function openFrontCap(geometry: T.BufferGeometry) {
   return geometry;
 }
 
-export function addSidepodDuct(parent: T.Group, side: number, m: MechanicalMaterials) {
+/** An annular, manufactured lip follows the exact terminal sidepod section.
+ * Its inset wall terminates at a real recessed cooling matrix, not at a black
+ * cap flush with the body. This geometry is shared by all vehicle LODs. */
+export function sidepodDuctGeometry(segments = 40) {
+  if (!Number.isInteger(segments) || segments < 8 || segments > 80 || segments % 4 !== 0)
+    throw new Error('Invalid inlet tessellation');
+  const positions: number[] = [],
+    uv: number[] = [],
+    indices: number[] = [];
+  for (let ring = 0; ring < 3; ring++) {
+    for (let j = 0; j <= segments; j++) {
+      const p = bodySurface(POD_SECTIONS, 0.39, j / segments, POD_UNDERCUT, POD_FLATTEN);
+      if (ring > 0) {
+        p.x *= ring === 1 ? 0.95 : 0.85;
+        p.y = 0.025 + (p.y - 0.025) * (ring === 1 ? 0.8 : 0.7);
+      }
+      positions.push(p.x, p.y, ring < 2 ? 0.391 : 0.224);
+      uv.push(j / segments, ring / 2);
+    }
+  }
+  for (let ring = 0; ring < 2; ring++)
+    for (let j = 0; j < segments; j++) {
+      const a = ring * (segments + 1) + j,
+        b = a + segments + 1;
+      // Looking from the front, the lip faces +Z and the duct normals face inward.
+      indices.push(a, a + 1, b, a + 1, b + 1, b);
+    }
+  const g = new T.BufferGeometry();
+  g.setAttribute('position', new T.Float32BufferAttribute(positions, 3));
+  g.setAttribute('uv', new T.Float32BufferAttribute(uv, 2));
+  g.setIndex(indices);
+  g.computeVertexNormals();
+  g.computeBoundingBox();
+  g.computeBoundingSphere();
+  return g;
+}
+export function addSidepodDuct(
+  parent: T.Group,
+  side: number,
+  m: MechanicalMaterials,
+  detail: 'high' | 'mid' | 'far' = 'high',
+) {
+  if ((side !== -1 && side !== 1) || !['high', 'mid', 'far'].includes(detail))
+    throw new Error('Invalid inlet assembly');
   const root = new T.Group();
-  root.name = 'Recessed original sidepod inlet';
+  root.name = 'Conformal lip and recessed cooling matrix';
   root.position.set(side * 0.53, 0, 0);
   root.rotation.z = side * -0.08;
-  const inner = m.dark.clone();
-  inner.side = T.BackSide;
-  const duct = new T.CylinderGeometry(1, 0.84, 0.17, 32, 1, true);
-  duct.rotateX(Math.PI / 2);
-  duct.scale(0.216, 0.065, 1);
-  mesh(root, duct, inner, 0, 0.025, 0.306);
-  const lip = mesh(root, new T.TorusGeometry(1, 0.031, 8, 40), m.carbon, 0, 0.025, 0.394);
-  lip.scale.set(0.222, 0.072, 0.032);
-  const radiator = mesh(root, new T.CircleGeometry(1, 32), m.dark, 0, 0.025, 0.224);
-  radiator.scale.set(0.186, 0.056, 1);
-  for (let i = -2; i <= 2; i++) {
-    const extent = 0.33 * Math.sqrt(1 - (i / 3) ** 2);
-    const fin = mesh(
-      root,
-      new T.BoxGeometry(extent, 0.003, 0.005),
-      m.metal,
-      0,
-      0.025 + i * 0.017,
-      0.229,
-    );
-    fin.name = 'Recessed cooling matrix';
+  const segments = detail === 'high' ? 40 : detail === 'mid' ? 12 : 8;
+  mesh(root, sidepodDuctGeometry(segments), m.carbon);
+  const outline = new T.Shape();
+  for (let j = 0; j <= segments; j++) {
+    const p = bodySurface(POD_SECTIONS, 0.39, j / segments, POD_UNDERCUT, POD_FLATTEN);
+    const x = p.x * 0.85,
+      y = 0.025 + (p.y - 0.025) * 0.7;
+    if (j === 0) outline.moveTo(x, y);
+    else outline.lineTo(x, y);
   }
-  const divider = mesh(root, new T.BoxGeometry(0.42, 0.008, 0.1), m.carbon, 0, 0.025, 0.353);
-  divider.name = 'Inlet divider';
+  outline.closePath();
+  mesh(root, new T.ShapeGeometry(outline), m.dark, 0, 0, 0.2235);
+  if (detail !== 'far')
+    for (let i = -2; i <= 2; i++) {
+      const extent = 0.31 * Math.sqrt(1 - (i / 3.2) ** 2);
+      mesh(root, new T.BoxGeometry(extent, 0.0018, 0.003), m.metal, 0, 0.025 + i * 0.014, 0.227);
+    }
+  mesh(root, new T.BoxGeometry(0.34, 0.005, 0.11), m.carbon, 0, 0.025, 0.327);
   mergeStatic(root);
   parent.add(root);
   return root;

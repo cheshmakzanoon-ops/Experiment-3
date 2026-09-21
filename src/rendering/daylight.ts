@@ -4,9 +4,24 @@ import { clamp } from '../core/math.ts';
 
 /** One world-space sun direction for the visible disk, illumination and shadows. */
 export const SUN_OFFSET = Object.freeze(new T.Vector3(-160, 190, -130));
-const lightForward = SUN_OFFSET.clone().normalize();
-const lightRight = new T.Vector3(0, 1, 0).cross(lightForward).normalize();
-const lightUp = lightForward.clone().cross(lightRight).normalize();
+export const SUNSET_OFFSET = Object.freeze(new T.Vector3(-215, 28, -150));
+export type LightingMode = 'day' | 'sunset' | 'night';
+export function lightingMode(value: boolean | LightingMode): LightingMode {
+  if (value === true) return 'night';
+  if (value === false) return 'day';
+  if (value === 'day' || value === 'sunset' || value === 'night') return value;
+  throw new Error('Invalid circuit lighting mode');
+}
+export function lightingDirection(mode: boolean | LightingMode) {
+  return lightingMode(mode) === 'sunset' ? SUNSET_OFFSET : SUN_OFFSET;
+}
+function basis(direction: T.Vector3) {
+  const forward = direction.clone().normalize(),
+    right = new T.Vector3(0, 1, 0).cross(forward).normalize();
+  return { forward, right, up: forward.clone().cross(right).normalize() };
+}
+const dayBasis = basis(SUN_OFFSET),
+  sunsetBasis = basis(SUNSET_OFFSET);
 
 /** Authored daylight response, not measured exposure/meteorological calibration.
  * Diffuse fill is deliberately subordinate to direct light: the previous bright
@@ -36,9 +51,27 @@ export function daylightState(cloud: number, rain: number) {
 /** Shared circuit/night profile for the renderer and its evidence fixtures.
  * This is authored exposure, not a claim of calibrated real-world photometry.
  * Keep a low ambient floor so unlit carbon remains readable between mast pools. */
-export function circuitLightState(cloud: number, rain: number, night = false) {
+export function circuitLightState(
+  cloud: number,
+  rain: number,
+  value: boolean | LightingMode = false,
+) {
   const light = daylightState(cloud, rain);
-  if (night)
+  const mode = lightingMode(value);
+  if (mode === 'sunset')
+    Object.assign(light, {
+      sun: 2.8 * (1 - light.cover * 0.88),
+      fill: 0.27 + light.cover * 0.2,
+      environment: 0.24 - light.cover * 0.06,
+      exposure: 1.01 - light.cover * 0.03,
+      turbidity: 5.6 + light.cover * 3,
+      skyRadiance: 0.26 + light.cover * 0.12,
+      fogDensity: light.fogDensity * 1.18,
+      fogRed: 0.55 - light.cover * 0.11,
+      fogGreen: 0.37 + light.cover * 0.02,
+      fogBlue: 0.31 + light.cover * 0.06,
+    });
+  if (mode === 'night')
     Object.assign(light, {
       // Broad wet/cloud response is immutable for a given snapshot. No automatic
       // exposure reacts to the camera, car colour, or entry into a light pool.
@@ -56,13 +89,24 @@ export function circuitLightState(cloud: number, rain: number, night = false) {
 
 /** Snap in LIGHT space, not world X/Z. The rotation is fixed, so translation
  * smaller than one shadow texel cannot swim across static geometry. */
-export function shadowAnchor(target: T.Vector3, size: number, halfExtent: number, out: T.Vector3) {
+export function shadowAnchor(
+  target: T.Vector3,
+  size: number,
+  halfExtent: number,
+  out: T.Vector3,
+  mode: boolean | LightingMode = false,
+) {
   if (
     ![target.x, target.y, target.z, size, halfExtent].every(Number.isFinite) ||
     size < 1 ||
     halfExtent <= 0
   )
     throw new Error('Invalid shadow grid');
+  const {
+    forward: lightForward,
+    right: lightRight,
+    up: lightUp,
+  } = lightingMode(mode) === 'sunset' ? sunsetBasis : dayBasis;
   const texel = (2 * halfExtent) / size;
   const x = target.dot(lightRight),
     y = target.dot(lightUp),
@@ -80,6 +124,7 @@ const cloudFunctions = `
 uniform float cloudCover;
 uniform float skyRadiance;
 uniform float nightAmount;
+uniform float sunsetAmount;
 float skyHash(vec2 p) { return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }
 float skyNoise(vec2 p) {
   vec2 i=floor(p), f=fract(p); f=f*f*(3.0-2.0*f);
@@ -95,6 +140,7 @@ export function configureSky(sky: Sky) {
   const material = sky.material;
   material.uniforms.cloudCover = { value: 0 };
   material.uniforms.nightAmount = { value: 0 };
+  material.uniforms.sunsetAmount = { value: 0 };
   material.uniforms.skyRadiance = { value: daylightState(0, 0).skyRadiance };
   material.uniforms.sunPosition.value.copy(SUN_OFFSET);
   material.uniforms.rayleigh.value = 2.2;
@@ -113,12 +159,17 @@ export function configureSky(sky: Sky) {
       vec3 cloudLight=mix(vec3(.39,.46,.55),vec3(1.35,1.42,1.48),
         clamp(.48+(field-edge)*3.0+.22*max(0.0,dot(direction,vSunDirection)),0.0,1.0));
       cloudLight*=1.0-.42*cloudCover;
+      cloudLight=mix(cloudLight,cloudLight*vec3(1.35,.84,.63),sunsetAmount*(1.-cloudCover*.60));
       retColor=mix(retColor,cloudLight,cover);
       retColor=mix(retColor,vec3(.55,.64,.75),cloudCover*.22);
       // The night dome shares the same stationary cloud field, not a daylight
       // texture behind a black background. This is an authored fictional night
       // sky, not an astronomical moon/date model or measured photometry.
       vec3 radiance=retColor * skyRadiance;
+      if(sunsetAmount>0.5) {
+        float haze=pow(1.-clamp(direction.y,0.,1.),4.0);
+        radiance=mix(radiance,vec3(.38,.19,.12),haze*.15*(1.-cloudCover*.5));
+      }
       if(nightAmount>0.5) {
         float elevation=max(0.0,direction.y);
         float horizon=pow(1.0-clamp(elevation,0.0,1.0),3.0);
@@ -145,33 +196,52 @@ export function configureSky(sky: Sky) {
 export class SkyEnvironment {
   private current: T.WebGLRenderTarget | null = null;
   private bin = -1;
-  private night = false;
+  private mode: LightingMode = 'day';
   captures = 0;
   private environmentScene = new T.Scene();
   constructor(private sky: Sky) {
     this.environmentScene.add(sky.clone());
   }
-  update(renderer: T.WebGLRenderer, scene: T.Scene, cover: number, night = false) {
+  update(
+    renderer: T.WebGLRenderer,
+    scene: T.Scene,
+    cover: number,
+    value: boolean | LightingMode = false,
+  ) {
     if (!Number.isFinite(cover)) throw new Error('Non-finite sky coverage');
-    if (typeof night !== 'boolean') throw new Error('Invalid sky mode');
+    const mode = lightingMode(value);
     const nextBin = Math.round(clamp(cover, 0, 1) * 8);
-    if (nextBin === this.bin && night === this.night) return false;
+    if (nextBin === this.bin && mode === this.mode) return false;
     const generator = new T.PMREMGenerator(renderer);
     let next: T.WebGLRenderTarget;
     const previousCover = this.sky.material.uniforms.cloudCover.value;
     const previousNight = this.sky.material.uniforms.nightAmount.value;
+    const previousSunset = this.sky.material.uniforms.sunsetAmount.value;
+    const previousSun = this.sky.material.uniforms.sunPosition.value.clone() as T.Vector3;
     const previousTurbidity = this.sky.material.uniforms.turbidity.value;
     const previousRadiance = this.sky.material.uniforms.skyRadiance.value;
     try {
       // Capture the bin centre so returning to the same weather has the same IBL.
       this.sky.material.uniforms.cloudCover.value = nextBin / 8;
-      this.sky.material.uniforms.nightAmount.value = night ? 1 : 0;
-      this.sky.material.uniforms.turbidity.value = daylightState(nextBin / 8, 0).turbidity;
-      this.sky.material.uniforms.skyRadiance.value = daylightState(nextBin / 8, 0).skyRadiance;
+      this.sky.material.uniforms.nightAmount.value = mode === 'night' ? 1 : 0;
+      this.sky.material.uniforms.sunsetAmount.value = mode === 'sunset' ? 1 : 0;
+      this.sky.material.uniforms.sunPosition.value.copy(lightingDirection(mode));
+      this.sky.material.uniforms.turbidity.value = circuitLightState(
+        nextBin / 8,
+        0,
+        mode,
+      ).turbidity;
+      this.sky.material.uniforms.skyRadiance.value = circuitLightState(
+        nextBin / 8,
+        0,
+        mode,
+      ).skyRadiance;
       next = generator.fromScene(this.environmentScene, 0.04, 0.1, 700000, { size: 128 });
     } finally {
       this.sky.material.uniforms.cloudCover.value = previousCover;
       this.sky.material.uniforms.nightAmount.value = previousNight;
+      this.sky.material.uniforms.sunsetAmount.value = previousSunset;
+      this.sky.material.uniforms.sunPosition.value.copy(previousSun);
       this.sky.material.uniforms.turbidity.value = previousTurbidity;
       this.sky.material.uniforms.skyRadiance.value = previousRadiance;
       generator.dispose();
@@ -180,7 +250,7 @@ export class SkyEnvironment {
     scene.environment = next.texture;
     this.current = next;
     this.bin = nextBin;
-    this.night = night;
+    this.mode = mode;
     this.captures++;
     previous?.dispose();
     return true;

@@ -1,3 +1,4 @@
+import { lightingMode, type LightingMode } from './daylight.ts';
 import { summarizePerformance, type FrameMetrics } from '../core/performance.ts';
 
 export const REVIEW_LIMIT = 30000;
@@ -38,6 +39,7 @@ export const REVIEW_WORKLOADS = [
   'overcast-day',
   'wet-day',
   'wet-night',
+  'sunset',
   'grid-start',
   'pit-service',
   'other',
@@ -158,18 +160,21 @@ export function matchesReviewWeather(
   workload: ReviewWorkload,
   rain: number,
   cloud: number,
-  night: boolean,
+  value: boolean | LightingMode,
 ) {
+  const mode = lightingMode(value);
   if (![rain, cloud].every(Number.isFinite) || rain < 0 || cloud < 0 || cloud > 1) return false;
   switch (workload) {
     case 'clear-day':
-      return !night && rain === 0 && cloud < 0.5;
+      return mode === 'day' && rain === 0 && cloud < 0.5;
     case 'overcast-day':
-      return !night && rain === 0 && cloud >= 0.5;
+      return mode === 'day' && rain === 0 && cloud >= 0.5;
     case 'wet-day':
-      return !night && rain > 0;
+      return mode === 'day' && rain > 0;
     case 'wet-night':
-      return night && rain > 0;
+      return mode === 'night' && rain > 0;
+    case 'sunset':
+      return mode === 'sunset';
     default:
       return true;
   }

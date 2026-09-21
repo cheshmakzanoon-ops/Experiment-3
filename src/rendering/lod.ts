@@ -1,8 +1,12 @@
-import { floorGeometry, wheelCoverGeometry } from './car-floor.ts';
-import { sculptedLoft, wingElement, aeroPlate } from './bodywork.ts';
-import { NOSE_SECTIONS, POD_SECTIONS, ENGINE_SECTIONS } from './car-surfaces.ts';
+import { mirrorShellGeometry, apertureGeometry } from './cockpit.ts';
+import { addSafetyCell, addAirbox, buildWing, reducedTireGeometry } from './car-architecture.ts';
+import { helmetShell, helmetPatch } from './helmet-shell.ts';
+import { openFrontCap, addSidepodDuct } from './car-mechanical-detail.ts';
+import { floorGeometry, floorFenceGeometry, wheelCoverGeometry } from './car-floor.ts';
+import { sculptedLoft } from './bodywork.ts';
+import { NOSE_SECTIONS, sidepodShell, ENGINE_SECTIONS } from './car-surfaces.ts';
 import * as T from 'three';
-import { loft, mesh, box, mergeStatic, tube } from './geometry.ts';
+import { cockpitShell, mesh, mergeStatic, rod } from './geometry.ts';
 import { WHEEL_POSITIONS } from '../simulation/vehicle.ts';
 
 export function carLod(
@@ -36,113 +40,54 @@ export class ReducedCar {
     const body = new T.Group();
     this.root.add(body, this.front, this.rear);
     mesh(body, floorGeometry(level === 1 ? 'mid' : 'far'), carbon);
+    for (const side of [-1, 1]) {
+      mesh(body, floorFenceGeometry(side * 0.97, 0, 5, 0.042), carbon);
+      for (const across of [0.25, 0.5, 0.76])
+        mesh(body, floorFenceGeometry(side * across, 0, 2, 0.082), carbon);
+    }
     // Share the hero envelopes. Lower tessellation must not restore the old
     // swollen sidepod or broad nose when an opponent crosses its LOD threshold.
     const detail = level === 1 ? 'mid' : 'far';
     mesh(body, sculptedLoft(NOSE_SECTIONS, 0, 0.32, [], detail), paint);
-    mesh(body, sculptedLoft(ENGINE_SECTIONS, 0, 0.18, [], detail), paint);
-    mesh(
-      body,
-      loft(
-        [
-          [-0.72, 0.03, 0.285, 0.18],
-          [-0.05, 0.04, 0.29, 0.15],
-          [0.4, 0.025, 0.3, 0.17],
-        ],
-        sides,
-      ),
-      paint,
-    );
+    mesh(body, openFrontCap(sculptedLoft(ENGINE_SECTIONS, 0, 0.18, [], detail)), paint);
+    addAirbox(body, paint, carbon, rubber, detail);
+    mesh(body, cockpitShell(detail), paint);
     for (const side of [-1, 1]) {
-      const pod = mesh(
-        body,
-        sculptedLoft(POD_SECTIONS, 0.58, 0.65, [], detail),
-        paint,
-        side * 0.53,
-      );
+      const pod = mesh(body, openFrontCap(sidepodShell(detail, false)), paint, side * 0.53);
       pod.rotation.z = side * -0.08;
-      mesh(
-        this.front,
-        aeroPlate(
-          [
-            [2.04, -0.36],
-            [2.64, -0.36],
-            [2.68, -0.22],
-            [2.51, -0.18],
-            [2.11, -0.21],
-            [2.02, -0.29],
-          ],
-          0.018,
-        ),
-        paint,
-        side * 0.973,
-      );
-      mesh(
-        this.rear,
-        aeroPlate(
-          [
-            [-2.34, 0.2],
-            [-1.94, 0.18],
-            [-1.75, 0.39],
-            [-1.77, 0.63],
-            [-1.98, 0.72],
-            [-2.31, 0.72],
-          ],
-          0.024,
-        ),
-        paint,
-        side * 0.839,
-      );
+      addSidepodDuct(body, side, { carbon, dark: rubber, metal: carbon, paint }, detail);
     }
-    for (let i = 0; i < 4; i++)
-      mesh(
-        this.front,
-        wingElement(
-          1.94 - i * 0.018,
-          i === 0 ? 0.34 : 0.2,
-          0.025 + i * 0.007,
-          0.015,
-          0.08,
-          0.028,
-          detail,
-        ),
-        i === 3 ? paint : carbon,
-        0,
-        -0.325 + i * 0.043,
-        2.48 - i * 0.14,
+    buildWing(this.front, 'front', detail, paint, carbon);
+    buildWing(this.rear, 'rear', detail, paint, carbon);
+    addSafetyCell(body, carbon, detail);
+    for (const side of [-1, 1]) {
+      mesh(body, mirrorShellGeometry(), paint, side * 0.64, 0.3, 0.43);
+      const glass = mesh(
+        body,
+        apertureGeometry(0.192, 0.072, 0.018),
+        rubber,
+        side * 0.64,
+        0.3,
+        0.388,
       );
-    mesh(
-      this.rear,
-      wingElement(1.65, 0.42, 0.048, 0.022, 0.025, 0.015, detail),
-      carbon,
-      0,
-      0.49,
-      -1.99,
-    );
-    mesh(
-      this.rear,
-      wingElement(1.64, 0.22, 0.045, 0.016, 0.02, 0.012, detail),
-      paint,
-      0,
-      0.65,
-      -2.18,
-    );
-    box(this.rear, carbon, 0, 0.02, -1.99, 0.055, 0.95, 0.05);
-    if (level === 1) {
-      tube(
+      glass.rotation.y = Math.PI;
+      rod(
         body,
         carbon,
-        [
-          [-0.3, 0.24, -0.5],
-          [-0.3, 0.54, 0.2],
-          [0, 0.54, 0.65],
-          [0.3, 0.54, 0.2],
-          [0.3, 0.24, -0.5],
-        ],
-        0.033,
+        new T.Vector3(side * 0.29, 0.13, 0.36),
+        new T.Vector3(side * 0.59, 0.29, 0.46),
+        0.012,
       );
-      box(body, carbon, 0, 0.35, 0.64, 0.055, 0.4, 0.055);
     }
+    mesh(body, helmetShell(), paint, 0, 0.29, -0.38);
+    mesh(
+      body,
+      helmetPatch(-0.033, 0.043, 0.095, Math.PI - 0.095, 0.003, 4, 16),
+      rubber,
+      0,
+      0.29,
+      -0.38,
+    );
     for (let i = 0; i < 4; i++) {
       const p = WHEEL_POSITIONS[i],
         wheel = new T.Group(),
@@ -152,11 +97,7 @@ export class ReducedCar {
       this.root.add(wheel);
       this.wheels.push(wheel);
       this.spins.push(spin);
-      const tire = mesh(
-        spin,
-        new T.CylinderGeometry(0.335, 0.335, i < 2 ? 0.31 : 0.38, sides),
-        rubber,
-      );
+      const tire = mesh(spin, reducedTireGeometry(i < 2 ? 0.31 : 0.38, detail), rubber);
       tire.rotation.z = Math.PI / 2;
       this.tires.push(tire);
       for (const sign of [-1, 1]) {

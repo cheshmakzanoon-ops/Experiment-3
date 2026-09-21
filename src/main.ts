@@ -1,3 +1,5 @@
+import { ReferenceSessionReview, referenceSessionPanel } from './ui/reference-session.ts';
+import { escapeHtml } from './ui/team-hub.ts';
 import { SessionReview } from './core/session-review.ts';
 import { ReviewInputEvidence, type ReviewHardware } from './ui/review-hardware.ts';
 import {
@@ -55,6 +57,7 @@ import {
   type Department,
   type DriverId,
 } from './storage/team-career.ts';
+import { TeamMediaView } from './ui/team-media.ts';
 import { teamHub, type HubPage } from './ui/team-hub.ts';
 import { PhotoStudio } from './ui/photo-studio.ts';
 import { referenceReview, bindReferenceReview } from './ui/reference-review.ts';
@@ -70,12 +73,14 @@ export class GameApp {
   private photoStudio: PhotoStudio;
   private team: TeamState = newTeam();
   private teamPage: HubPage = 'overview';
+  private mediaView: TeamMediaView | null = null;
   private teamBusy = false;
   private sessionId = '';
   private usedDemonstration = false;
   private programme = new PracticeProgramme();
   private inspectedReference: number | null = null;
   private referenceEvidence = ReferenceEvidenceStore.browser();
+  private referenceSession: ReferenceSessionReview;
   private photoReturn: State = 'menu';
   private photoReturnHub = false;
   private frozenPhoto: Float32Array | null = null;
@@ -173,6 +178,11 @@ export class GameApp {
         ),
       importSetup: (file) => void this.importSetup(file),
     });
+    this.referenceSession = new ReferenceSessionReview(
+      element,
+      __APEX_SOURCE_FINGERPRINT__,
+      this.referenceEvidence,
+    );
     this.photoStudio = new PhotoStudio(element, {
       change: (value) => this.renderer?.setPhoto(value, this.frozenPhoto?.[H.CARS] ?? 1),
       preview: (value) => this.renderer?.setLivery(value),
@@ -488,6 +498,8 @@ export class GameApp {
     this.replayB = this.replay.makeFrame();
     this.renderer.setLivery(this.team.livery);
     this.state = 'driving';
+    const referenceCamera = this.referenceSession.beginSession(this.sessionId);
+    if (referenceCamera) this.renderer.changeCamera(referenceCamera);
     this.ui.get('loading').hidden = true;
     this.ui.showMode('driving');
     this.input.setEnabled(true);
@@ -612,6 +624,18 @@ export class GameApp {
       this.state === 'replay' || (this.state === 'photo' && this.photoReturn === 'replay'),
       wallDelta,
     );
+    if (
+      (this.state === 'driving' || this.state === 'replay') &&
+      !document.hidden &&
+      !this.ui.modal.open &&
+      !this.ui.telemetryModal.open
+    )
+      this.referenceSession.sample(
+        this.renderer,
+        this.sessionId,
+        this.state === 'replay',
+        this.usedDemonstration || this.auto,
+      );
     this.presentationFrames++;
     if (this.presentationReview.active) {
       if (this.state !== 'driving' || document.hidden)
@@ -650,6 +674,7 @@ export class GameApp {
         view: JSON.stringify({
           photo: this.renderer.photo,
           night: this.renderer.night,
+          lighting: this.renderer.lighting,
           cloud: this.renderer.presented.value[H.CLOUD],
           rain: this.renderer.presented.value[H.RAIN],
           cameraPosition: this.renderer.camera.position.toArray(),
@@ -731,6 +756,7 @@ export class GameApp {
     }
   };
   private suspendPlayback() {
+    this.referenceSession.interrupt('Playback suspended.');
     if (this.state === 'driving') this.pause();
     else if (this.state === 'replay') {
       this.replayPlaying = false;
@@ -757,6 +783,24 @@ export class GameApp {
       this.ui.playerName = driverProfile(next).name;
     } finally {
       this.teamBusy = false;
+    }
+  }
+  private openMedia() {
+    if (this.state === 'loading' || this.state === 'photo') return;
+    this.suspendPlayback();
+    this.mediaView?.dispose();
+    this.mediaView = null;
+    this.ui.modalContent('<div id="teamMediaMount"></div>');
+    try {
+      this.mediaView = new TeamMediaView(
+        this.ui.get('modalContent').querySelector<HTMLElement>('#teamMediaMount')!,
+        this.team,
+        matchMedia('(prefers-reduced-motion: reduce)').matches,
+      );
+    } catch (error) {
+      this.ui.modalContent(
+        `<section class="reference-event-config"><h2>Briefing unavailable</h2><p>${escapeHtml(error instanceof Error ? error.message : String(error))}</p><p>Your race and saved team have not changed.</p><button data-action="team">RETURN TO TEAM HQ</button></section>`,
+      );
     }
   }
   private openTeam(page: HubPage = this.teamPage) {
@@ -849,6 +893,7 @@ export class GameApp {
   }
   private pause() {
     if (this.state !== 'driving') return;
+    this.referenceSession.interrupt('Session paused or focus lost.');
     this.performanceCapture.interrupt('Session paused or focus lost');
     this.interruptReview('Session paused or focus lost');
     this.state = 'paused';
@@ -948,6 +993,7 @@ export class GameApp {
         this.programme.progress(),
         this.renderer?.guide.mode ?? 'off',
         this.renderer?.night ?? false,
+        this.renderer?.lighting ?? 'day',
       ),
     );
   }
@@ -958,7 +1004,18 @@ export class GameApp {
     if (!route) return;
     this.inspectedReference = id;
     if (route.night !== undefined && this.renderer) this.renderer.night = route.night;
-    if (route.destination === 'photo') {
+    if (route.destination === 'media') this.openMedia();
+    else if (route.destination === 'event') {
+      this.suspendPlayback();
+      this.ui.modalContent(
+        referenceSessionPanel(id, this.state === 'paused' || this.state === 'replay'),
+      );
+    } else if (route.destination === 'gap') {
+      this.suspendPlayback();
+      this.ui.modalContent(
+        `<section class="reference-event-config"><span class="eyebrow">REFERENCE ${id} / OPEN REQUIREMENT</span><h2>${escapeHtml(entry.title)}</h2><p>${escapeHtml(route.instruction)}</p><p>${escapeHtml(entry.gap)}</p><button data-action="references">RETURN TO ALL 100 FINDINGS</button></section>`,
+      );
+    } else if (route.destination === 'photo') {
       this.openPhoto();
       if (this.state === 'photo') {
         this.photoStudio.compose(route.photo ?? {});
@@ -976,6 +1033,9 @@ export class GameApp {
     this.ui.toast(`Reference ${String(id).padStart(3, '0')}: ${route.instruction}`);
   }
   private action(name: string) {
+    // Modal-owned GPU scenes never outlive a navigation or native Escape.
+    this.mediaView?.dispose();
+    this.mediaView = null;
     // Names are application action identifiers, not typed widget contents.
     this.sessionReview.event(performance.now(), 'action', name);
     // Team transactions only change modal DOM and next-session data. They must
@@ -985,6 +1045,49 @@ export class GameApp {
     if (this.state === 'photo') {
       if (name === 'pause') this.closePhoto();
       else if (name === 'deviceLost') this.ui.toast(this.input.deviceStatus);
+      return;
+    }
+    if (name.startsWith('eventReview:')) {
+      const [, command, rawId] = name.split(':');
+      try {
+        if (command === 'arm' && this.renderer) {
+          const active = this.state === 'paused' || this.state === 'replay';
+          const camera = this.referenceSession.arm(
+            Number(rawId),
+            active ? this.sessionId : null,
+            this.state === 'replay',
+          );
+          this.renderer.changeCamera(camera);
+          this.ui.closeModal();
+          if (this.state === 'paused') this.resume();
+          else if (this.state === 'replay') {
+            this.replayPlaying = true;
+            this.input.setEnabled(true);
+          } else
+            this.ui.toast(
+              'Reference watch armed for the next session. Choose its actual weather and opponents.',
+            );
+        } else if (command === 'image') this.referenceSession.exportImage();
+        else if (command === 'export') this.referenceSession.exportReport();
+        else if (command === 'close') this.referenceSession.clear();
+      } catch (error) {
+        this.ui.toast(error instanceof Error ? error.message : String(error));
+      }
+      return;
+    }
+    if (name.startsWith('eventReference:')) {
+      const id = Number(name.slice('eventReference:'.length));
+      try {
+        const panel = referenceSessionPanel(
+          id,
+          this.state === 'paused' || this.state === 'replay' || this.state === 'driving',
+        );
+        this.inspectedReference = id;
+        this.suspendPlayback();
+        this.ui.modalContent(panel);
+      } catch (error) {
+        this.ui.toast(error instanceof Error ? error.message : String(error));
+      }
       return;
     }
     if (name.startsWith('reference:')) {
@@ -1001,11 +1104,12 @@ export class GameApp {
       }
       return;
     }
-    if (name === 'lighting:day' || name === 'lighting:night') {
+    if (name === 'lighting:day' || name === 'lighting:sunset' || name === 'lighting:night') {
       if (this.renderer) {
         this.performanceCapture.interrupt('Circuit lighting changed');
         this.interruptReview('Circuit lighting changed');
-        this.renderer.night = name === 'lighting:night';
+        this.renderer.lighting =
+          name === 'lighting:sunset' ? 'sunset' : name === 'lighting:night' ? 'night' : 'day';
         this.renderer.reset();
         this.openAcademy();
       }
@@ -1047,6 +1151,9 @@ export class GameApp {
       case 'academy:stop':
         this.programme.stop();
         this.openAcademy();
+        break;
+      case 'teamMedia':
+        this.openMedia();
         break;
       case 'team':
         this.openTeam();
@@ -1092,6 +1199,7 @@ export class GameApp {
         this.resume();
         break;
       case 'menu':
+        this.referenceSession.interrupt('Returned to the paddock.');
         this.performanceCapture.interrupt('Returned to paddock');
         this.interruptReview('Returned to paddock');
         this.ui.closeModal();
@@ -1121,6 +1229,7 @@ export class GameApp {
         else if (this.state === 'results' && this.current) this.ui.results(this.current);
         break;
       case 'camera':
+        this.referenceSession.interrupt('Camera changed.');
         this.performanceCapture.interrupt('Camera changed');
         this.interruptReview('Camera changed');
         this.renderer?.changeCamera();
@@ -1348,7 +1457,7 @@ export class GameApp {
       if (audioRequested && !videoRequested) throw new Error('Enable video to include game audio');
       const stats = this.renderer.stats(),
         frame = this.renderer.presented.value;
-      if (!matchesReviewWeather(workload, frame[H.RAIN], frame[H.CLOUD], this.renderer.night))
+      if (!matchesReviewWeather(workload, frame[H.RAIN], frame[H.CLOUD], this.renderer.lighting))
         throw new Error('The workload label does not match the current weather/night state');
       const followedCar = this.renderer.reviewCar(),
         b = carBase(followedCar);
@@ -1378,6 +1487,7 @@ export class GameApp {
             height: stats.renderHeight,
             pixelRatio: devicePixelRatio,
             night: this.renderer.night,
+            lighting: this.renderer.lighting,
             shake: this.settings.shake,
             debug: this.renderer.debug,
             guide: stats.guide,
@@ -1533,6 +1643,7 @@ export class GameApp {
     }
   }
   private fail(error: unknown) {
+    this.referenceSession?.interrupt('Application error.');
     if (this.errorStopped) return;
     this.sessionReview.stop('Application error', true);
     this.performanceCapture.interrupt('Application error');
@@ -1573,6 +1684,7 @@ export class GameApp {
         snapshots: this.sessionReview.count,
         reason: this.sessionReview.reason,
       },
+      referenceEvent: this.referenceSession.watch.report(),
       presentationReview: {
         state: this.presentationReview.state,
         frames: this.presentationReview.count,
@@ -1621,6 +1733,8 @@ export class GameApp {
     cancelAnimationFrame(this.timer);
     clearTimeout(this.initTimeout);
     this.worker?.terminate();
+    this.mediaView?.dispose();
+    this.referenceSession.dispose();
     this.input.dispose();
     this.renderer?.dispose();
     void this.audio.dispose().catch((e) => console.warn('Audio cleanup:', e));

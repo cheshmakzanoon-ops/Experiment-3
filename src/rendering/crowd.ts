@@ -58,7 +58,7 @@ export function spectatorGeometry(detail: Exclude<CrowdDetail, 3>) {
     torsoPositions.setX(i, torsoPositions.getX(i) + (y - 0.3) * 0.1);
     torsoPositions.setZ(
       i,
-      torsoPositions.getZ(i) * (0.89 + 0.11 * T.MathUtils.smoothstep(t, -0.6, 0.45)),
+      torsoPositions.getZ(i) * (0.86 + 0.16 * Math.exp(-(((t - 0.53) / 0.25) ** 2))),
     );
   }
   torso.computeVertexNormals();
@@ -152,6 +152,10 @@ mat3 crowdTurn() {
   if (crowdJoint > .5 && crowdJoint < 2.5) {
     float participant = smoothstep(.18,.5,fract(spectatorPhase * 2.17));
     float gesture = .86 + .14 * sin(crowdClock.x * 3. + spectatorPhase * 1.9);
+    // Stable one-arm/both-arm cohorts, not twelve thousand synchronized poses.
+    float handChoice=fract(spectatorPhase*4.13);
+    float activeHand=handChoice<.34 ? step(1.5,crowdJoint) : handChoice<.68 ? 1.-step(1.5,crowdJoint) : 1.;
+    participant*=activeHand;
     angle -= participant * (crowdReaction.x * .82 * gesture + crowdReaction.y * .48);
   }
   if (crowdJoint < 0.5) angle = 0.0;
@@ -204,6 +208,12 @@ export function installCrowdShader(material: T.Material, uniforms: CrowdUniforms
       shader.vertexShader = shader.vertexShader.replace(
         '#include <color_vertex>',
         `#include <color_vertex>
+float style=fract(spectatorPhase*3.47);
+float torsoPanel=step(.35,position.y)*step(position.y,.40)*(1.-step(.5,crowdJoint));
+float sleevePanel=step(.5,crowdJoint)*(1.-step(2.5,crowdJoint))*step(.31,position.y);
+float cloth=1.-step(.5,skinMask);
+vColor.rgb=mix(vColor.rgb,vColor.rgb*.4,cloth*torsoPanel*step(.34,style));
+vColor.rgb=mix(vColor.rgb,vec3(.74,.72,.64),cloth*sleevePanel*step(.68,style));
 vColor.rgb = mix(vColor.rgb, spectatorSkin, clamp(skinMask,0.0,1.0));
 vec3 hair = mix(vec3(0.012,0.008,0.006), vec3(0.15,0.078,0.025),fract(spectatorPhase*1.31));
 vColor.rgb = mix(vColor.rgb,hair,step(1.5,skinMask));`,
@@ -211,7 +221,7 @@ vColor.rgb = mix(vColor.rgb,hair,step(1.5,skinMask));`,
     }
   };
   material.customProgramCacheKey = () =>
-    `apex-seated-crowd-v4-contours-${colour ? 'colour' : 'depth'}`;
+    `apex-seated-crowd-v5-contours-${colour ? 'colour' : 'depth'}`;
 }
 
 export function crowdDetail(distance: number, previous: CrowdDetail): CrowdDetail {

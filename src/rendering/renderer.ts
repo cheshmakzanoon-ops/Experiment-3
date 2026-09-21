@@ -1,5 +1,6 @@
 import { reviewHardware } from '../ui/review-hardware.ts';
 import type { ReviewFrame } from './presentation-review.ts';
+import { photoSubject } from './photo-subject.ts';
 import { HeadquartersStage } from './headquarters-stage.ts';
 import { BokehPass } from 'three/addons/postprocessing/BokehPass.js';
 import { GeometrySurvey } from './geometry-survey.ts';
@@ -21,6 +22,9 @@ import {
   shadowAnchor,
   SkyEnvironment,
   SUN_OFFSET,
+  lightingDirection,
+  lightingMode,
+  type LightingMode,
 } from './daylight.ts';
 import { EngineeringView } from './engineering-view.ts';
 import type { EngineeringSample } from '../workers/diagnostics.ts';
@@ -79,7 +83,20 @@ export class RacingRenderer {
   private nightFog = new T.Color(0x111b2c);
   readonly guide: DrivingGuide;
   readonly venueLighting: VenueLighting;
-  night = false;
+  private lightingMode: LightingMode = 'day';
+  get lighting(): LightingMode {
+    return this.lightingMode;
+  }
+  set lighting(value: LightingMode) {
+    this.lightingMode = lightingMode(value);
+  }
+  // Legacy inspection routes retain their boolean day/night contract.
+  get night() {
+    return this.lightingMode === 'night';
+  }
+  set night(value: boolean) {
+    this.lightingMode = lightingMode(value);
+  }
   colorblind = false;
   readonly sun = new T.DirectionalLight(0xffead0, 3.3);
   private hemisphere = new T.HemisphereLight(0xc3d8f3, 0x33372e, 0.3);
@@ -483,11 +500,8 @@ export class RacingRenderer {
     const car = this.cars[this.follow],
       speed = b[o + F.SPEED];
     const studio = !!this.photo && this.photo.backdrop !== 'circuit';
-    const daylight = circuitLightState(
-      presented[H.CLOUD],
-      presented[H.RAIN],
-      this.night && !studio,
-    );
+    const illumination: LightingMode = studio ? 'day' : this.lighting;
+    const daylight = circuitLightState(presented[H.CLOUD], presented[H.RAIN], illumination);
     if (this.night && !studio)
       this.nightFog.setRGB(daylight.fogRed, daylight.fogGreen, daylight.fogBlue);
     if (studio) {
@@ -495,7 +509,14 @@ export class RacingRenderer {
       daylight.fill = 0.25;
       daylight.environment = 0.3;
     }
-    this.venueLighting.update(this.night && !studio, car.root.position);
+    this.venueLighting.update(
+      illumination !== 'day',
+      car.root.position,
+      illumination === 'sunset' ? 0.18 : 1,
+    );
+    this.sun.color.setHex(
+      illumination === 'sunset' ? 0xffb76d : illumination === 'night' ? 0xc5d4ee : 0xffead0,
+    );
     this.sun.intensity = daylight.sun;
     this.hemisphere.intensity = daylight.fill;
     this.scene.environmentIntensity = daylight.environment;
@@ -510,17 +531,20 @@ export class RacingRenderer {
     this.sky.material.uniforms.turbidity.value = daylight.turbidity;
     this.sky.material.uniforms.cloudCover.value = daylight.cover;
     this.sky.material.uniforms.skyRadiance.value = daylight.skyRadiance;
-    this.sky.material.uniforms.nightAmount.value = this.night && !studio ? 1 : 0;
+    this.sky.material.uniforms.nightAmount.value = illumination === 'night' ? 1 : 0;
+    this.sky.material.uniforms.sunsetAmount.value = illumination === 'sunset' ? 1 : 0;
+    this.sky.material.uniforms.sunPosition.value.copy(lightingDirection(illumination));
     this.target.copy(car.root.position);
     this.direction.set(0, 0, 1).applyQuaternion(car.root.quaternion);
     if (this.photo) {
       const offset = photoOffset(this.photo);
+      // Read actual articulated world transforms after this snapshot's car update.
+      // A close helmet photograph must orbit the helmet, not the chassis centre.
+      photoSubject(car, this.photo.focusSubject, this.gaze);
       this.desired
-        .set(...offset)
+        .set(offset[0], offset[1] - 0.15, offset[2])
         .applyQuaternion(car.root.quaternion)
-        .add(this.target);
-      this.gaze.copy(this.target);
-      this.gaze.y += 0.15;
+        .add(this.gaze);
       this.camera.fov = photoFov(this.photo.focalLength);
     } else if (menu) {
       const angle = 0.65 + Math.sin(this.orbitTime * 0.07) * 0.12;
@@ -611,10 +635,16 @@ export class RacingRenderer {
       this.sun.shadow.mapSize.x,
       this.sun.shadow.camera.right,
       this.sun.target.position,
+      illumination,
     );
-    this.sun.position.copy(this.sun.target.position).add(SUN_OFFSET);
+    this.sun.position.copy(this.sun.target.position).add(lightingDirection(illumination));
     this.sun.target.updateMatrixWorld();
     this.circuit.update(b);
+    this.circuit.staff.update(
+      presented,
+      this.camera.position,
+      this.circuit.crowd.visible && !studio && !menu,
+    );
     if (this.circuit.crowd.visible)
       for (const cluster of this.circuit.crowdClusters)
         cluster.update(presented[H.TIME], this.camera.position, presented[H.RAIN], presented);
@@ -671,7 +701,7 @@ export class RacingRenderer {
         // Retain the real skydome and its recorded-cloud night shader.
       }
       // Include weather-driven environment captures in real GPU/draw metrics.
-      this.environment.update(this.renderer, this.scene, daylight.cover, this.night && !studio);
+      this.environment.update(this.renderer, this.scene, daylight.cover, illumination);
       let wheelWater = 0;
       for (let wheel = 0; wheel < 4; wheel++)
         wheelWater = Math.max(wheelWater, b[o + WHEEL_BASE + wheel * WHEEL_STRIDE + W.WATER]);
@@ -861,6 +891,7 @@ export class RacingRenderer {
       mirrorWidth: this.reflection.mirrorWidth,
       reflectionProbeUpdates: this.reflection.probeUpdates,
       skyEnvironmentUpdates: this.environment.captures,
+      lighting: this.lighting,
       vegetationTrees: this.circuit.vegetationGroup.userData.treeCount,
       trackInfrastructure: {
         drains: this.circuit.trackInfrastructure.drains.length,

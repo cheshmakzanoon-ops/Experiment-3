@@ -7,6 +7,8 @@ export interface PhotoSettings {
   exposure: number;
   roll: number;
   target: number;
+  /** 0 whole car, 1 helmet, 2 controls, 3 front wheel, 4 front wing, 5 rear aero, 6 HQ arrival. */
+  focusSubject: number;
   backdrop: 'circuit' | 'studio' | 'headquarters';
   depthOfField: boolean;
   focusMode: 'subject' | 'manual';
@@ -23,6 +25,7 @@ export const DEFAULT_PHOTO: Readonly<PhotoSettings> = Object.freeze({
   exposure: 0,
   roll: 0,
   target: 0,
+  focusSubject: 0,
   backdrop: 'circuit',
   depthOfField: false,
   focusMode: 'subject',
@@ -44,6 +47,7 @@ export function validatePhoto(value: unknown, cars = 1): PhotoSettings {
     exposure: finite(p.exposure, 0, -2, 2),
     roll: finite(p.roll, 0, -45, 45),
     target: Math.round(finite(p.target, 0, 0, count - 1)),
+    focusSubject: Math.round(finite(p.focusSubject, 0, 0, 6)),
     backdrop: p.backdrop === 'studio' || p.backdrop === 'headquarters' ? p.backdrop : 'circuit',
     depthOfField: p.depthOfField === true,
     focusMode: p.focusMode === 'manual' ? 'manual' : 'subject',

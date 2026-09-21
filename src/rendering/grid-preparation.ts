@@ -1,3 +1,4 @@
+import { tailoredCrewGeometry, crewHelmetGeometry, installCrewFabric } from './crew-geometry.ts';
 import * as T from 'three';
 import { clamp } from '../core/math.ts';
 import { F, H, W, WHEEL_BASE, WHEEL_STRIDE, carBase } from '../simulation/protocol.ts';
@@ -32,20 +33,32 @@ export class GridPreparationView {
       96,
     );
     this.bodies = new T.InstancedMesh(
-      new T.CylinderGeometry(0.18, 0.15, 0.72, 10),
-      new T.MeshStandardMaterial({ color: 0x26474f, roughness: 0.95 }),
+      tailoredCrewGeometry().scale(0.16, 0.72, 0.16),
+      installCrewFabric(new T.MeshStandardMaterial({ color: 0x26474f, roughness: 0.95 })),
       24,
     );
     this.helmets = new T.InstancedMesh(
-      new T.SphereGeometry(0.13, 12, 10),
-      new T.MeshStandardMaterial({ color: 0xd3d9da, metalness: 0.15, roughness: 0.4 }),
+      crewHelmetGeometry().scale(0.12, 0.135, 0.12),
+      new T.MeshStandardMaterial({
+        color: 0xffffff,
+        vertexColors: true,
+        metalness: 0.05,
+        roughness: 0.36,
+      }),
       24,
     );
     this.limbs = new T.InstancedMesh(
-      new T.CylinderGeometry(0.065, 0.075, 0.62, 8),
-      new T.MeshStandardMaterial({ color: 0x26474f, roughness: 0.95 }),
+      tailoredCrewGeometry().scale(0.072, 0.62, 0.072),
+      installCrewFabric(new T.MeshStandardMaterial({ color: 0x26474f, roughness: 0.95 })),
       96,
     );
+    const bodyGeometry = this.bodies.geometry;
+    // Morph coordinates precede the constructor's scale; bake the chest pose explicitly.
+    bodyGeometry.setAttribute('position', bodyGeometry.morphAttributes.position![0].clone());
+    bodyGeometry.setAttribute('normal', bodyGeometry.morphAttributes.normal![0].clone());
+    bodyGeometry.morphAttributes = {};
+    bodyGeometry.scale(0.16, 0.72, 0.16);
+    this.limbs.geometry.morphAttributes = {};
     this.root.name = 'Grid tire blankets and preparation staff · reference 047';
     this.root.add(this.blankets, this.straps, this.bodies, this.helmets, this.limbs);
     for (const mesh of [this.blankets, this.straps, this.bodies, this.helmets, this.limbs]) {

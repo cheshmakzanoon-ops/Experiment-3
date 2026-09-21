@@ -1,3 +1,5 @@
+import { installCrewFabric } from './crew-geometry.ts';
+import { ForegroundPerson } from './foreground-person.ts';
 import * as T from 'three';
 import { box, mesh, rod, mergeStatic, canvasTexture } from './geometry.ts';
 
@@ -116,6 +118,67 @@ export class HeadquartersStage {
         rod(shell, timber, new T.Vector3(x, 0.55, z), plant.position, 0.015);
       }
     }
+    // Forecourt and glazed public elevation form an actual exterior arrival,
+    // not a workshop photograph routed under an exterior reference label.
+    box(shell, concrete, 0, -0.2, 18, 46, 0.25, 24);
+    box(shell, timber, 0, 5.75, 11.6, 35, 0.25, 5.1);
+    box(shell, steel, 0, 5.58, 13.9, 35, 0.16, 0.11);
+    for (const x of [-16, -10, -4, 4, 10, 16]) {
+      box(shell, steel, x, 2.78, 10.7, 0.16, 5.55, 0.16);
+      if (Math.abs(x) > 4)
+        box(shell, glass, x + (x < 0 ? 2.8 : -2.8), 2.78, 10.72, 5.4, 5.25, 0.03);
+    }
+    // Central entry remains genuinely open; glazing does not cut the car scene.
+    for (const side of [-1, 1]) {
+      box(shell, concrete, side * 14.5, 0.28, 18.7, 2.3, 0.55, 12);
+      box(shell, timber, side * 10.3, 0.46, 17.3, 2.8, 0.1, 0.7);
+      for (const dx of [-1.1, 1.1])
+        box(shell, steel, side * 10.3 + dx, 0.22, 17.3, 0.09, 0.44, 0.62);
+      for (let j = 0; j < 5; j++) {
+        const z = 14 + j * 2.15;
+        const bush = mesh(shell, new T.SphereGeometry(1, 12, 8), leaves, side * 14.5, 0.89, z);
+        bush.scale.set(0.84, 0.53, 0.73);
+      }
+      for (const z of [13, 18, 23]) {
+        box(shell, steel, side * 6.2, 0.46, z, 0.1, 0.92, 0.1);
+        box(shell, glow, side * 6.2, 0.85, z, 0.115, 0.1, 0.115);
+      }
+    }
+    for (let x = -6; x <= 6; x += 0.8) box(shell, alloy, x, 0.012, 16, 0.009, 0.014, 12);
+    for (let z = 11; z < 27; z += 0.8) box(shell, alloy, 0, 0.012, z, 12, 0.014, 0.009);
+    // Static HQ residents share three material batches. Preserve their authored
+    // colours in vertex data instead of retaining a material set per resident.
+    const peopleMaterials = [
+      new T.MeshStandardMaterial({ vertexColors: true, roughness: 0.34 }),
+      new T.MeshStandardMaterial({ vertexColors: true, roughness: 0.6 }),
+      installCrewFabric(new T.MeshStandardMaterial({ vertexColors: true, roughness: 0.92 })),
+    ];
+    for (const [id, x, z, angle] of [
+      [0, -5, 13.2, 0.35],
+      [1, 8, 2, -0.65],
+      [2, 6.3, 8.1, -1.1],
+    ]) {
+      const person = new ForegroundPerson(id, id === 0 ? 'driver' : 'engineer');
+      person.root.position.set(x, 0, z);
+      person.root.rotation.y = angle;
+      person.pose(id * 1.7, false, 0.1);
+      const oldMaterials = new Set<T.Material>();
+      person.root.traverse((object) => {
+        if (!(object instanceof T.Mesh)) return;
+        const original = object.material as T.MeshStandardMaterial;
+        oldMaterials.add(original);
+        const positions = object.geometry.getAttribute('position');
+        const colours = new Float32Array(positions.count * 3);
+        for (let i = 0; i < positions.count; i++)
+          colours.set([original.color.r, original.color.g, original.color.b], i * 3);
+        object.geometry.setAttribute('color', new T.BufferAttribute(colours, 3));
+        object.material =
+          peopleMaterials[original.roughness < 0.5 ? 0 : original.roughness < 0.8 ? 1 : 2];
+      });
+      oldMaterials.forEach((m) => m.dispose());
+      mergeStatic(person.root);
+      shell.add(person.root);
+    }
     for (const x of [-7, 0, 7])
       for (const z of [-5, 4]) box(shell, glow, x, 8.55, z, 5.5, 0.055, 0.18);
     if (withLettering) {
@@ -131,6 +194,7 @@ export class HeadquartersStage {
       });
       const sign = new T.MeshBasicMaterial({ map });
       mesh(shell, new T.PlaneGeometry(8, 2), sign, 5.2, 6.65, -13.77);
+      mesh(shell, new T.PlaneGeometry(9.4, 2.35), sign, 0, 7.2, 10.82);
     }
     mergeStatic(shell);
     for (const [x, z, color] of [

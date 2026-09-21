@@ -1,3 +1,4 @@
+import type { LightingMode } from '../rendering/daylight.ts';
 import type { GuideMode } from '../rendering/driving-guide.ts';
 import type { PracticeProgress } from '../simulation/practice-programme.ts';
 import { escapeHtml } from './team-hub.ts';
@@ -6,10 +7,15 @@ export function programmeTime(seconds: number) {
     ? `${Math.floor(seconds / 60)}:${(seconds % 60).toFixed(3).padStart(6, '0')}`
     : '—';
 }
-export function drivingAcademy(progress: PracticeProgress, guide: GuideMode, night: boolean) {
+export function drivingAcademy(
+  progress: PracticeProgress,
+  guide: GuideMode,
+  night: boolean,
+  illumination: LightingMode = night ? 'night' : 'day',
+) {
   return `<section class="driving-academy"><header><div><span class="eyebrow">DRIVING ACADEMY / REFERENCES 034 · 037 · 070 · 072 · 074 · 089 · 097</span><h2>Find your repeatable lap.</h2></div><button data-action="modalClose">CLOSE</button></header>
   <p>A five-attempt consistency programme, measured at actual start/finish crossings. Your first clean, human-driven lap locks the target. Subsequent attempts earn gold at or below it, silver within 2%, or bronze within 5%.</p>
-  <div class="academy-controls"><fieldset><legend>ON-TRACK GUIDANCE</legend>${(['off', 'corners', 'full'] as const).map((mode) => `<button data-action="guide:${mode}" aria-pressed="${guide === mode}">${mode.toUpperCase()}</button>`).join('')}<p>Road-centre chevrons estimate braking from the circuit geometry. This is not an optimal racing line, collision avoidance or automatic steering. Yellow flags and wet surfaces lower the advisory speed; traffic always has priority.</p></fieldset><fieldset><legend>CIRCUIT LIGHTING</legend><button data-action="lighting:day" aria-pressed="${!night}">DAY</button><button data-action="lighting:night" aria-pressed="${night}">NIGHT</button><p>Original floodlights and a trackside LED landmark. Presentation only: selecting night does not secretly change weather, tyre temperature, grip or the simulation clock.</p></fieldset></div>
+  <div class="academy-controls"><fieldset><legend>ON-TRACK GUIDANCE</legend>${(['off', 'corners', 'full'] as const).map((mode) => `<button data-action="guide:${mode}" aria-pressed="${guide === mode}">${mode.toUpperCase()}</button>`).join('')}<p>Road-centre chevrons estimate braking from the circuit geometry. This is not an optimal racing line, collision avoidance or automatic steering. Yellow flags and wet surfaces lower the advisory speed; traffic always has priority.</p></fieldset><fieldset><legend>CIRCUIT LIGHTING</legend><button data-action="lighting:day" aria-pressed="${illumination === 'day'}">DAY</button><button data-action="lighting:sunset" aria-pressed="${illumination === 'sunset'}">SUNSET</button><button data-action="lighting:night" aria-pressed="${night}">NIGHT</button><p>A low warm sun with matching shadows and environment reflections at sunset; original floodlights and a trackside LED landmark at night. Presentation only: selecting night does not secretly change weather, tyre temperature, grip or the simulation clock.</p></fieldset></div>
   <p class="academy-warning">Traffic awareness: left/right arrows show nearby cars using their physical positions and your heading. A larger arrow indicates overlap. They are warnings, not permission to change lanes.</p>
   <div class="academy-score"><span>${progress.finished ? 'COMPLETE' : progress.active ? 'IN PROGRESS' : 'READY TO START'}</span><strong>${progress.attempts.length} / 5</strong><label>LOCKED TARGET <b>${programmeTime(progress.target)}</b></label></div>
   <ol class="academy-attempts">${Array.from({ length: 5 }, (_, index) => {

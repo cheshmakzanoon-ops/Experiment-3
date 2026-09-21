@@ -5,35 +5,61 @@ import { grassApronOffset } from './ground-profile.ts';
 import { inStandFootprint } from './grandstand.ts';
 import { tracksideRigs } from './trackside.ts';
 
-
-export interface VenueLampSite { s: number; side: number; x: number; z: number; baseY: number; topY: number }
+export interface VenueLampSite {
+  s: number;
+  side: number;
+  x: number;
+  z: number;
+  baseY: number;
+  topY: number;
+}
 
 /** Keep floodlight columns out of the racing/pit corridor and the authored
  * broadcast sightlines. Position choices are deterministic, not camera-dependent
  * teleportation; feet use the same ground query as nearby infrastructure. */
 export function venueLampPlan(track: Track): readonly VenueLampSite[] {
-  const count = Math.ceil(track.length / 90), rigs = tracksideRigs(track), sites: VenueLampSite[] = [];
-  const point = trackPoint(), target = trackPoint();
+  const count = Math.ceil(track.length / 90),
+    rigs = tracksideRigs(track),
+    sites: VenueLampSite[] = [];
+  const point = trackPoint(),
+    target = trackPoint();
   for (let i = 0; i < count; i++) {
-    let best: VenueLampSite | null = null, bestScore = -Infinity;
-    for (const [shift, flip] of [0, 12, -12, 24, -24].flatMap((shift) => [[shift, 1], [shift, -1]])) {
+    let best: VenueLampSite | null = null,
+      bestScore = -Infinity;
+    for (const [shift, flip] of [0, 12, -12, 24, -24].flatMap((shift) => [
+      [shift, 1],
+      [shift, -1],
+    ])) {
       const side = (i % 2 ? -1 : 1) * flip;
-      const s = ((i / count * track.length + shift) % track.length + track.length) % track.length;
+      const s =
+        ((((i / count) * track.length + shift) % track.length) + track.length) % track.length;
       track.at(s, point);
       const offset = side * (track.boundary(s, side) + 7);
-      const x = point.x + point.nx * offset, z = point.z + point.nz * offset;
+      const x = point.x + point.nx * offset,
+        z = point.z + point.nz * offset;
       if (inStandFootprint(track, x, z, 1.5)) continue;
       let clearance = Infinity;
-      for (const rig of rigs) for (const look of [-0.26, 0, 0.26]) {
-        track.at(rig.centerS + rig.coverageM * look, target);
-        const dx = target.x - rig.position.x, dz = target.z - rig.position.z;
-        const t = clamp(((x - rig.position.x) * dx + (z - rig.position.z) * dz) / (dx * dx + dz * dz), 0, 1);
-        clearance = Math.min(clearance, Math.hypot(x - rig.position.x - t * dx, z - rig.position.z - t * dz));
-      }
-      const baseY = point.y + point.bank * clamp(offset, -12, 12) + grassApronOffset(track, s, offset);
+      for (const rig of rigs)
+        for (const look of [-0.26, 0, 0.26]) {
+          track.at(rig.centerS + rig.coverageM * look, target);
+          const dx = target.x - rig.position.x,
+            dz = target.z - rig.position.z;
+          const t = clamp(
+            ((x - rig.position.x) * dx + (z - rig.position.z) * dz) / (dx * dx + dz * dz),
+            0,
+            1,
+          );
+          clearance = Math.min(
+            clearance,
+            Math.hypot(x - rig.position.x - t * dx, z - rig.position.z - t * dz),
+          );
+        }
+      const baseY =
+        point.y + point.bank * clamp(offset, -12, 12) + grassApronOffset(track, s, offset);
       const score = clearance - Math.abs(shift) * 0.001 - (flip < 0 ? 0.001 : 0);
       if (score > bestScore) {
-        best = { s, side, x, z, baseY, topY: point.y + 14 }; bestScore = score;
+        best = { s, side, x, z, baseY, topY: point.y + 14 };
+        bestScore = score;
       }
       if (clearance >= 2) break;
     }
@@ -86,9 +112,12 @@ export class VenueLighting {
       const height = site.topY - site.baseY;
       transform.position.set(site.x, site.baseY + height * 0.5, site.z);
       transform.rotation.set(0, Math.atan2(p.tx, p.tz), 0);
-      transform.scale.set(1, height, 1); transform.updateMatrix();
+      transform.scale.set(1, height, 1);
+      transform.updateMatrix();
       poles.setMatrixAt(i, transform.matrix);
-      transform.position.y = site.topY; transform.scale.set(1, 1, 1); transform.updateMatrix();
+      transform.position.y = site.topY;
+      transform.scale.set(1, 1, 1);
+      transform.updateMatrix();
       this.lamps.setMatrixAt(i, transform.matrix);
       this.locations.push(new T.Vector3(site.x, site.topY - 2, site.z));
     }
@@ -127,7 +156,9 @@ export class VenueLighting {
     material.customProgramCacheKey = () => 'apex-original-led-bands-v1';
     this.root.add(this.display);
   }
-  update(night: boolean, anchor: T.Vector3) {
+  update(night: boolean, anchor: T.Vector3, strength = 1) {
+    if (!Number.isFinite(strength) || strength < 0 || strength > 1)
+      throw new Error('Invalid venue light strength');
     this.lampMaterial.color.setHex(night ? 0xebf5ff : 0x62666b);
     this.distances.fill(Infinity);
     this.nearest.fill(-1);
@@ -148,9 +179,12 @@ export class VenueLighting {
     this.lights.forEach((light, index) => {
       const position = this.locations[this.nearest[index]];
       if (position) light.position.copy(position);
-      light.intensity = night && position
-        ? VENUE_LIGHT_INTENSITY * venueLightWeight(Math.sqrt(this.distances[index]), boundary)
-        : 0;
+      light.intensity =
+        night && position
+          ? VENUE_LIGHT_INTENSITY *
+            strength *
+            venueLightWeight(Math.sqrt(this.distances[index]), boundary)
+          : 0;
       light.visible = night && !!position;
     });
     (this.display.material as T.MeshBasicMaterial).color.setScalar(night ? 2.2 : 0.6);

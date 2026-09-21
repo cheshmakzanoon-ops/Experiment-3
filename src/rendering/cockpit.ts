@@ -1,7 +1,10 @@
+import { sculptedLoft } from './bodywork.ts';
+import { wheelGripGeometry } from './wheel-grip.ts';
+import { installManufacturingFinish } from './manufacturing.ts';
 import * as T from 'three';
 import { clamp } from '../core/math.ts';
 import { F } from '../simulation/protocol.ts';
-import { box, canvasTexture, mesh, mergeStatic, tube } from './geometry.ts';
+import { box, canvasTexture, mesh, mergeStatic } from './geometry.ts';
 
 /** Rounded planar apertures use normalized UVs, not ShapeGeometry's metre UVs.
  * A render-target image must fill the aperture exactly once at every quality. */
@@ -53,6 +56,21 @@ function plate(shape: T.Shape, depth: number, bevel: number) {
   return g;
 }
 
+export function mirrorShellGeometry() {
+  return sculptedLoft(
+    [
+      [-0.033, 0, 0.1195, 0.05],
+      [-0.019, 0, 0.1195, 0.05],
+      [0.016, 0, 0.11, 0.046],
+      [0.053, 0, 0.077, 0.032],
+      [0.077, 0, 0.031, 0.015],
+      [0.084, 0, 0.008, 0.004],
+    ],
+    0,
+    0.88,
+  );
+}
+
 /** A flat rear aperture with its own raised bezel; unlike an ellipsoid housing,
  * every corner of the glass is supported rather than floating outside the shell. */
 export function addMirrorHousing(
@@ -66,7 +84,7 @@ export function addMirrorHousing(
   root.name = side < 0 ? 'Right mirror housing' : 'Left mirror housing';
   root.position.set(side * 0.64, 0.3, 0.43);
   parent.add(root);
-  mesh(root, plate(roundedAperture(0.235, 0.096, 0.03), 0.062, 0.004), paint);
+  mesh(root, mirrorShellGeometry(), paint);
   mesh(root, plate(roundedAperture(0.219, 0.08, 0.023), 0.006, 0.002), carbon, 0, 0, -0.036);
   const surface = mesh(
     root,
@@ -261,8 +279,14 @@ export class CockpitControls {
     steering.add(staticParts);
     const face = mesh(staticParts, steeringFaceGeometry(), carbon);
     face.name = 'Bevelled butterfly steering body';
-    const alloy = new T.MeshStandardMaterial({ color: 0x909a9e, metalness: 0.86, roughness: 0.34 });
-    const rubber = new T.MeshStandardMaterial({ color: 0x131a1d, roughness: 0.91 });
+    const alloy = installManufacturingFinish(
+      new T.MeshStandardMaterial({ color: 0x909a9e, metalness: 0.86, roughness: 0.34 }),
+      'turned-alloy',
+    );
+    const rubber = installManufacturingFinish(
+      new T.MeshStandardMaterial({ color: 0x131a1d, roughness: 0.91 }),
+      'suede',
+    );
     const knurl = new T.MeshStandardMaterial({ color: 0x38494e, metalness: 0.6, roughness: 0.43 });
     const marker = new T.MeshStandardMaterial({ color: 0xe2ddc6, roughness: 0.58 });
     const label = mesh(
@@ -298,21 +322,14 @@ export class CockpitControls {
     this.selectorBank = new RotarySelectors(steering, knurl, rubber, marker);
     this.selectors = this.selectorBank.selectors;
     for (const side of [-1, 1]) {
-      const grip = tube(
-        staticParts,
-        rubber,
-        [
-          [side * 0.17, 0.05, 0],
-          [side * 0.185, 0.011, -0.002],
-          [side * 0.18, -0.046, 0],
-          [side * 0.154, -0.081, 0],
-        ],
-        0.023,
-      );
+      const grip = mesh(staticParts, wheelGripGeometry(side), rubber);
       grip.name = 'Ergonomic suede wheel grip';
       // TubeGeometry has open ends. Close the grip with rounded suede caps,
       // rather than exposing a sliced pipe in the driver's close-up view.
-      for (const [x, y] of [[side * 0.17, 0.05], [side * 0.154, -0.081]])
+      for (const [x, y] of [
+        [side * 0.17, 0.05],
+        [side * 0.154, -0.081],
+      ])
         mesh(staticParts, new T.SphereGeometry(0.023, 16, 10), rubber, x, y, 0);
       for (let j = 0; j < 3; j++) {
         const bezel = mesh(

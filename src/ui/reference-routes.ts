@@ -1,8 +1,9 @@
+import { referenceEvent } from '../rendering/reference-events.ts';
 import type { PhotoSettings } from '../rendering/photo-camera.ts';
 import type { HubPage } from './team-hub.ts';
 import type { ReferenceEntry } from './reference-catalogue.ts';
 export interface ReferenceRoute {
-  destination: 'photo' | 'academy' | 'settings' | 'team' | 'controls';
+  destination: 'photo' | 'academy' | 'settings' | 'team' | 'controls' | 'event' | 'gap' | 'media';
   label: string;
   instruction: string;
   photo?: Partial<PhotoSettings>;
@@ -14,7 +15,45 @@ export interface ReferenceRoute {
 export function referenceRoute(entry: ReferenceEntry): ReferenceRoute | null {
   const id = entry.id;
   if (entry.status === 'excluded') return null;
-  if ([48, 49, 93].includes(id))
+  if ([20, 38, 43, 86].includes(id))
+    return {
+      destination: 'media',
+      label: 'WATCH ORIGINAL TEAM BRIEFING',
+      instruction:
+        'Two original articulated people, directed cameras and timed captions present your real local team state. This is a scripted silent briefing, not a copied interview, a branching story campaign or approved human likeness fidelity.',
+    };
+  const event = referenceEvent(id);
+  // Preserve the existing held-grid photographic route. A separate live-event
+  // action remains available when preparation must be observed in a session.
+  if (event && id !== 47)
+    return {
+      destination: 'event',
+      label: `WATCH REAL ${event.kind.toUpperCase()}`,
+      instruction: event.instruction,
+    };
+  if ([26, 70].includes(id))
+    return {
+      destination: 'settings',
+      label: id === 26 ? 'OPEN ASSIST & CONTROL SETTINGS' : 'OPEN VEHICLE SETUP',
+      instruction:
+        'Inspect the actual saved assist, controller and next-session setup controls. A showroom photograph is not this interface.',
+    };
+  if (id === 69)
+    return {
+      destination: 'gap',
+      label: 'INSPECT UNIMPLEMENTED ONLINE / REVERSE REQUIREMENT',
+      instruction:
+        'This reference requires online/friends records and a validated reverse circuit. The local practice programme is not either system. No matching implementation or acceptance is claimed.',
+    };
+  if (id === 33)
+    return {
+      destination: 'photo',
+      label: 'INSPECT SAVED LIVERY ON CIRCUIT',
+      photo: { backdrop: 'circuit', azimuth: 90, elevation: 9, distance: 8, focalLength: 55 },
+      instruction:
+        'The current car wears its actual livery on the existing circuit. Save, return to racing and reload to verify persistence; this route does not substitute a showroom.',
+    };
+  if ([48, 49].includes(id))
     return {
       destination: 'settings',
       label: 'OPEN DEVICE CALIBRATION',
@@ -37,13 +76,44 @@ export function referenceRoute(entry: ReferenceEntry): ReferenceRoute | null {
       instruction:
         'The left half samples the actual original circuit meshes into a bounded point cloud. The right half uses the same camera and rendered scene. This is NOT measured LiDAR, an imported scan, or a licensed circuit.',
     };
+  if ([9, 21, 73, 91, 99, 100].includes(id))
+    return {
+      destination: 'photo',
+      label: 'INSPECT DRIVER / HELMET DETAIL',
+      photo: {
+        backdrop: 'circuit',
+        focusSubject: 1,
+        azimuth: -32,
+        elevation: 8,
+        distance: 2.3,
+        focalLength: 85,
+      },
+      instruction:
+        'The camera orbits the actual articulated helmet and visor, not a distant car-centred orbit. This is an original driver detail, not a copied portrait or an accepted identity/title layout.',
+    };
+  if (id === 77)
+    return {
+      destination: 'photo',
+      label: 'INSPECT FRONT WHEEL / AERO',
+      photo: {
+        backdrop: 'circuit',
+        focusSubject: 3,
+        azimuth: 35,
+        elevation: 5,
+        distance: 2.3,
+        focalLength: 48,
+      },
+      instruction:
+        'A dedicated low camera follows the real wheel/upright. Mechanical proportions and contact appearance still need visual comparison.',
+    };
   if ([11, 16, 81, 86].includes(id))
     return {
       destination: 'photo',
       label: 'INSPECT ORIGINAL 3D HEADQUARTERS',
       photo: {
         backdrop: 'headquarters',
-        azimuth: 28,
+        focusSubject: id === 11 ? 6 : 0,
+        azimuth: id === 11 ? -18 : 28,
         elevation: 17,
         distance: 17,
         focalLength: 30,
@@ -66,14 +136,14 @@ export function referenceRoute(entry: ReferenceEntry): ReferenceRoute | null {
       instruction:
         'Grid blankets and staff are visible only at preparation time. The menu preview shows that initial state; a live-session photo preserves its real phase rather than inventing a grid.',
     };
-  if ([34, 37, 69, 70, 72, 74, 85, 89, 97].includes(id))
+  if ([34, 37, 72, 74, 89, 97].includes(id))
     return {
       destination: 'academy',
       label: 'OPEN DRIVING ACADEMY',
       instruction:
         'Enable the advisory guide, start a measured five-attempt programme, or review its actual lap results. Scripted story chapters and online leaderboards remain unimplemented.',
     };
-  if ([25, 39, 79, 80, 87].includes(id))
+  if ([25, 79, 80, 87].includes(id))
     return {
       destination: 'academy',
       label: 'INSPECT NIGHT LIGHTING',

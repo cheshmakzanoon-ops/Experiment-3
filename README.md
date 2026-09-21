@@ -1,3 +1,13 @@
+## Phase 27G development candidate
+
+The current continuation implements shared second-generation car geometry/materials,
+grip-anchored hands, authored Aurel districts, updated pit/crowd/staff models,
+sunset lighting, snapshot-qualified reference event capture, direct text-decal
+positioning and an original captioned Team HQ scene. See
+[implementation, resource ownership and open acceptance](docs/PHASE_27G_IMPLEMENTATION_AND_ACCEPTANCE.md).
+This is **not final-art acceptance, all-100 parity, complete Section 146 or Steam
+readiness**. The original master specification remains authoritative.
+
 <div align="center">
 
 # 🏎️ APEX / Formula

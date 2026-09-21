@@ -389,7 +389,7 @@ export class Interface {
       <p id="visualReviewStatus"></p>
       <p>Use the current session and camera. A full lap ends only after a complete forward circuit traversal and a real lap-counter increase. The 30-second mode covers grid/pit scenes without claiming a full lap.</p>
       <label>COMPUTER / POWER PROFILE<input id="reviewMachine" maxlength="80" placeholder="e.g. laptop-plugged-in / GPU model" /></label>
-      <label>WORKLOAD<select id="reviewWorkload"><option value="clear-day">Clear day</option><option value="overcast-day">Overcast day</option><option value="wet-day">Wet day</option><option value="wet-night">Wet night</option><option value="grid-start">Grid start</option><option value="pit-service">Pit service</option><option value="other">Other / changing weather</option></select></label>
+      <label>WORKLOAD<select id="reviewWorkload"><option value="clear-day">Clear day</option><option value="overcast-day">Overcast day</option><option value="wet-day">Wet day</option><option value="wet-night">Wet night</option><option value="sunset">Sunset</option><option value="grid-start">Grid start</option><option value="pit-service">Pit service</option><option value="other">Other / changing weather</option></select></label>
       <label>CAPTURE<select id="reviewMode"><option value="full-lap">Full lap</option><option value="timed-scene">30-second scene</option></select></label>
       <label><input id="reviewVideo" type="checkbox" /> ALSO RECORD LOCAL VIDEO (64 MiB maximum)</label>
       <label><input id="reviewAudio" type="checkbox" /> INCLUDE GAME AUDIO (not microphone audio)</label>

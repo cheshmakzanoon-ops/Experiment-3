@@ -181,34 +181,72 @@ export function batchScene(root: T.Group, preserve: Set<T.Object3D>) {
 
 /** Monocoque shell below an actual open cockpit. The upper arc is deliberately
  * absent, not hidden by material tricks. +Z remains the vehicle nose direction. */
-export function cockpitShell() {
+export function cockpitShell(detail: 'high' | 'mid' | 'far' = 'high') {
+  if (!['high', 'mid', 'far'].includes(detail)) throw new Error('Invalid cockpit detail');
+  // z, width, rim height, cavity depth. The old four-ring open sheet left an
+  // unmodelled gap below its padded rim and vanished at the distant LOD.
   const sections = [
-    [-0.8, -0.01, 0.29, 0.25],
-    [-0.3, 0.02, 0.33, 0.25],
-    [0.1, 0.02, 0.33, 0.2],
-    [0.4, 0.025, 0.3, 0.17],
+    [-0.8, 0.287, 0.228, 0.465],
+    [-0.63, 0.319, 0.218, 0.466],
+    [-0.3, 0.326, 0.203, 0.455],
+    [0.0, 0.33, 0.184, 0.428],
+    [0.22, 0.316, 0.159, 0.385],
+    [0.4, 0.296, 0.135, 0.342],
   ];
-  const sides = 32,
-    positions: number[] = [],
+  const sides = detail === 'high' ? 32 : detail === 'mid' ? 16 : 8;
+  const rows: number[][] = [];
+  const subdivisions = detail === 'high' ? 4 : detail === 'mid' ? 2 : 1;
+  for (let i = 0; i < sections.length - 1; i++)
+    for (let j = 0; j < subdivisions; j++)
+      rows.push(
+        sections[i].map((v, axis) => T.MathUtils.lerp(v, sections[i + 1][axis], j / subdivisions)),
+      );
+  rows.push(sections.at(-1)!);
+  const positions: number[] = [],
     uv: number[] = [],
-    indices: number[] = [];
-  for (let row = 0; row < sections.length; row++) {
-    const [z, y, width, height] = sections[row];
-    for (let j = 0; j <= sides; j++) {
-      const angle = Math.PI - 0.25 + ((Math.PI + 0.5) * j) / sides;
-      positions.push(Math.cos(angle) * width, y + Math.sin(angle) * height, z);
-      uv.push(j / sides, row / (sections.length - 1));
-      if (row < sections.length - 1 && j < sides) {
-        const a = row * (sides + 1) + j,
-          b = a + sides + 1;
-        indices.push(a, a + 1, b, a + 1, b + 1, b);
+    index: number[] = [];
+  for (const inside of [false, true])
+    for (const [z, width, rim, depth] of rows)
+      for (let j = 0; j <= sides; j++) {
+        const a = Math.PI + (j / sides) * Math.PI;
+        positions.push(
+          Math.cos(a) * (width - (inside ? 0.019 : 0)),
+          rim + Math.sin(a) * (depth - (inside ? 0.019 : 0)),
+          z,
+        );
+        uv.push(j / sides, (z + 0.8) / 1.2);
       }
+  const stride = sides + 1,
+    skin = rows.length * stride;
+  for (let row = 0; row < rows.length - 1; row++)
+    for (let j = 0; j < sides; j++) {
+      const a = row * stride + j,
+        b = a + stride;
+      index.push(a, a + 1, b, a + 1, b + 1, b);
+      index.push(a + skin, b + skin, a + 1 + skin, a + 1 + skin, b + skin, b + 1 + skin);
     }
+  const rim = (a: number, b: number) => {
+    const base = positions.length / 3;
+    for (const v of [a, b, b + skin, a + skin]) {
+      positions.push(...positions.slice(v * 3, v * 3 + 3));
+      uv.push(v === a || v === a + skin ? 0 : 1, v >= skin ? 1 : 0);
+    }
+    index.push(base, base + 1, base + 2, base, base + 2, base + 3);
+  };
+  for (let j = 0; j < sides; j++) {
+    rim(j + 1, j);
+    rim((rows.length - 1) * stride + j, (rows.length - 1) * stride + j + 1);
+  }
+  for (let row = 0; row < rows.length - 1; row++) {
+    rim(row * stride, (row + 1) * stride);
+    rim((row + 1) * stride + sides, row * stride + sides);
   }
   const geometry = new T.BufferGeometry();
   geometry.setAttribute('position', new T.Float32BufferAttribute(positions, 3));
   geometry.setAttribute('uv', new T.Float32BufferAttribute(uv, 2));
-  geometry.setIndex(indices);
+  geometry.setIndex(index);
   geometry.computeVertexNormals();
+  geometry.computeBoundingBox();
+  geometry.computeBoundingSphere();
   return geometry;
 }

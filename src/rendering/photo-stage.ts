@@ -14,6 +14,9 @@ export class PhotoStage {
       new T.MeshStandardMaterial({ color: 0x131b29, metalness: 0.3, roughness: 0.48 }),
     );
     floor.rotation.x = -Math.PI / 2;
+    // The podium top is y=0. Keep the surrounding floor below its base;
+    // coplanar surfaces here caused full-screen radial depth fighting.
+    floor.position.y = -0.102;
     floor.receiveShadow = true;
     const podium = new T.Mesh(
       new T.CylinderGeometry(4.8, 4.9, 0.1, 96),

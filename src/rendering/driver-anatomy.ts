@@ -1,3 +1,5 @@
+import { fingerGripCurve } from './wheel-grip.ts';
+import { bodySurfacePatch } from './car-surfaces.ts';
 import { sculptedLoft } from './bodywork.ts';
 import * as T from 'three';
 import { mesh, mergeStatic, tube } from './geometry.ts';
@@ -10,15 +12,7 @@ type Materials = ReturnType<typeof driverMaterials>;
 export function fingerGeometry(side: number, finger: number) {
   if ((side !== -1 && side !== 1) || !Number.isInteger(finger) || finger < 0 || finger > 3)
     throw new Error('Invalid glove finger');
-  const y = 0.028 - finger * 0.018;
-  const reach = [1, 1.06, 0.98, 0.82][finger];
-  const curve = new T.CatmullRomCurve3([
-    new T.Vector3(side * 0.008, y, -0.022),
-    new T.Vector3(side * 0.029 * reach, y + 0.001, -0.019),
-    new T.Vector3(side * 0.038 * reach, y, 0.002),
-    new T.Vector3(side * 0.028 * reach, y - 0.002, 0.028),
-    new T.Vector3(side * 0.007 * reach, y - 0.004, 0.034),
-  ]);
+  const curve = fingerGripCurve(side, finger);
   const steps = 20,
     sides = 16;
   const geometry = new T.TubeGeometry(curve, steps, 1, sides, false);
@@ -95,12 +89,37 @@ export function buildGlove(side: number, m: Materials) {
     thumb = new T.Group();
   root.name = side < 0 ? 'Right anatomical glove' : 'Left anatomical glove';
   root.add(fixed);
-  const palm = mesh(fixed, new T.SphereGeometry(1, 24, 16), m.glove);
-  palm.scale.set(0.029, 0.049, 0.024);
-  const pad = mesh(fixed, new T.SphereGeometry(1, 16, 12), m.grip, 0, -0.003, 0.017);
-  pad.scale.set(0.023, 0.04, 0.011);
-  const back = mesh(fixed, new T.SphereGeometry(1, 20, 14), m.panel, 0, -0.003, -0.02);
-  back.scale.set(0.025, 0.039, 0.008);
+  const palmSections = [
+    [-0.053, 0.003, 0.014, 0.01],
+    [-0.041, 0.002, 0.021, 0.016],
+    [-0.012, 0.001, 0.028, 0.022],
+    [0.013, 0, 0.029, 0.023],
+    [0.037, 0.003, 0.025, 0.019],
+    [0.045, 0.004, 0.017, 0.012],
+  ] as const;
+  const palmGeometry = sculptedLoft(palmSections, 0, 0.45);
+  palmGeometry.rotateX(-Math.PI / 2);
+  mesh(fixed, palmGeometry, m.glove);
+  const back = bodySurfacePatch(
+    palmSections,
+    { z0: -0.036, z1: 0.031, u0: 0.3, u1: 0.7 },
+    0,
+    0.45,
+    0.0008,
+    12,
+    16,
+  );
+  back.rotateX(-Math.PI / 2);
+  mesh(fixed, back, m.panel);
+  const palmGrip = bodySurfacePatch(
+    palmSections,
+    { z0: -0.031, z1: 0.024, u0: 0.04, u1: 0.23 },
+    0,
+    0.45,
+    0.0008,
+  );
+  palmGrip.rotateX(-Math.PI / 2);
+  mesh(fixed, palmGrip, m.grip);
   const cuff = mesh(
     fixed,
     new T.CylinderGeometry(0.028, 0.033, 0.044, 16),
@@ -125,7 +144,7 @@ export function buildGlove(side: number, m: Materials) {
   });
   mesh(
     fixed,
-    new T.TubeGeometry(new T.CatmullRomCurve3(seamPoints, true), 40, 0.0006, 5, true),
+    new T.TubeGeometry(new T.CatmullRomCurve3(seamPoints, true), 40, 0.00035, 5, true),
     m.stitch,
   );
   for (let finger = 0; finger < 4; finger++) {
@@ -178,6 +197,17 @@ export function sleeveGeometry(upper: boolean) {
   // The flattened sleeve cross-section has volume, rather than looking like a
   // pipe at the wrist. Bone length/IK are still owned by DriverRig.
   geometry.scale(1.06, 1, 0.91);
+  const p = geometry.getAttribute('position');
+  for (let i = 0; i < p.count; i++) {
+    const y = p.getY(i),
+      x = p.getX(i),
+      z = p.getZ(i);
+    const angle = Math.atan2(z, x),
+      joint = Math.exp(-(((y + 0.18) / 0.17) ** 2));
+    const crease =
+      1 + joint * (0.035 * Math.sin(y * 39 + angle * 2) + 0.018 * Math.sin(y * 67 - angle));
+    p.setXYZ(i, x * crease, y, z * crease);
+  }
   geometry.computeVertexNormals();
   return geometry;
 }

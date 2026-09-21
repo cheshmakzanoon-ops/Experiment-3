@@ -1,14 +1,21 @@
-import { floorGeometry, wheelCoverGeometry } from './car-floor.ts';
+import { installManufacturingFinish, ventilatedBrakeGeometry } from './manufacturing.ts';
+import { addSafetyCell, addAirbox, buildWing } from './car-architecture.ts';
+import { floorGeometry, floorFenceGeometry, wheelCoverGeometry } from './car-floor.ts';
 import { rearSignalIntensity } from './rear-signal.ts';
 import {
   NOSE_SECTIONS,
-  POD_SECTIONS,
+  sidepodShell,
+  sidepodPatch,
   ENGINE_SECTIONS,
   POD_OPENINGS,
   bodySurfacePatch,
   suspensionMount,
 } from './car-surfaces.ts';
-import { installPaintFinish } from './paint-finish.ts';
+import {
+  installPaintFinish,
+  installPaintObservation,
+  setPaintObservation,
+} from './paint-finish.ts';
 import {
   addTailMechanicalDetail,
   addWheelMechanicalDetail,
@@ -17,7 +24,7 @@ import {
   addSidepodDuct,
 } from './car-mechanical-detail.ts';
 import { addMirrorHousing, apertureGeometry, CockpitControls } from './cockpit.ts';
-import { sculptedLoft, wingElement, aeroPlate } from './bodywork.ts';
+import { sculptedLoft, wingElement } from './bodywork.ts';
 import { flankLivery, repaintFlank } from './car-livery.ts';
 import { validateLivery, type Livery } from '../storage/livery.ts';
 import { TireCarcass } from './tire-carcass.ts';
@@ -28,16 +35,7 @@ import { serviceWheelOffset } from './pit-crew.ts';
 import { drawSteeringDisplay, shiftLight, SteeringDisplayClock } from './steering-display.ts';
 import { carbonMaterial, treadMaterial } from './materials.ts';
 import { ReducedCar, carLod } from './lod.ts';
-import {
-  box,
-  canvasTexture,
-  label,
-  cockpitShell,
-  mergeStatic,
-  mesh,
-  rod,
-  tube,
-} from './geometry.ts';
+import { box, canvasTexture, label, cockpitShell, mergeStatic, mesh, rod } from './geometry.ts';
 import { COMPOUNDS, LIVERIES } from '../simulation/config.ts';
 import { F, H, W, WHEEL_BASE, WHEEL_STRIDE } from '../simulation/protocol.ts';
 import { WHEEL_POSITIONS } from '../simulation/vehicle.ts';
@@ -55,6 +53,7 @@ export class FormulaCar {
   readonly wheelSpins: T.Group[] = [];
   readonly carcasses: TireCarcass[] = [];
   readonly discs: T.MeshStandardMaterial[] = [];
+  readonly brakeRotors: T.Mesh[] = [];
   readonly treads: ReturnType<typeof treadMaterial>[] = [];
   readonly rings: T.MeshBasicMaterial[] = [];
   readonly links: { mesh: T.Object3D; anchor: T.Vector3; wheel: number; dy: number }[] = [];
@@ -117,7 +116,10 @@ export class FormulaCar {
     this.reflectivePaint.push(this.paint);
     const carbon = carbonMaterial();
     const dark = new T.MeshStandardMaterial({ color: 0x101416, roughness: 0.75 });
-    const metal = new T.MeshStandardMaterial({ color: 0x7c8589, metalness: 0.88, roughness: 0.3 });
+    const metal = installManufacturingFinish(
+      new T.MeshStandardMaterial({ color: 0x7c8589, metalness: 0.88, roughness: 0.3 }),
+      'turned-alloy',
+    );
     const ivory = new T.MeshPhysicalMaterial({
       color: 0xe7e1d2,
       roughness: 0.3,
@@ -135,14 +137,7 @@ export class FormulaCar {
     for (const sign of [-1, 1]) {
       const livery = flankLivery(this.paint, sign, id);
       this.reflectivePaint.push(livery);
-      const pod = mesh(
-        s,
-        openFrontCap(sculptedLoft(POD_SECTIONS, 0.58, 0.65, POD_OPENINGS)),
-        livery,
-        sign * 0.53,
-        0,
-        0,
-      );
+      const pod = mesh(s, openFrontCap(sidepodShell()), livery, sign * 0.53, 0, 0);
       pod.rotation.z = sign * -0.08;
       addSidepodDuct(s, sign, { carbon, dark, metal, paint: this.paint });
       for (let j = 0; j < 4; j++) {
@@ -159,79 +154,16 @@ export class FormulaCar {
       // Actual holes in the livery shell, with recessed dark interior skins.
       // The inset shares the pod transform and is batched with existing carbon.
       for (const opening of POD_OPENINGS) {
-        const recess = mesh(
-          s,
-          bodySurfacePatch(POD_SECTIONS, opening, 0.58, 0.65, -0.008, 1, 6),
-          carbon,
-          sign * 0.53,
-          0,
-          0,
-        );
+        const recess = mesh(s, sidepodPatch(opening, -0.008), carbon, sign * 0.53, 0, 0);
         recess.rotation.z = sign * -0.08;
       }
-      tube(
-        s,
-        carbon,
-        [
-          [sign * 0.85, -0.355, 0.4],
-          [sign * 0.92, -0.34, -0.4],
-          [sign * 0.89, -0.31, -1.25],
-          [sign * 0.67, -0.3, -1.8],
-        ],
-        0.012,
-      );
-      for (let j = 0; j < 5; j++)
-        box(s, carbon, sign * (0.15 + j * 0.12), -0.32, -2.01, 0.018, 0.17, 0.42).rotation.x =
-          -0.18;
+      mesh(s, floorFenceGeometry(sign * 0.97, 0, 5, 0.042), carbon);
+      for (const across of [0.25, 0.5, 0.76])
+        mesh(s, floorFenceGeometry(sign * across, 0, 2, 0.082), carbon);
     }
-    mesh(s, sculptedLoft(ENGINE_SECTIONS, 0, 0.18), this.paint);
-    const intake = mesh(s, new T.TorusGeometry(0.105, 0.035, 12, 32), carbon, 0, 0.61, -0.65);
-    intake.scale.set(0.78, 1, 1);
-    mesh(
-      s,
-      aeroPlate(
-        [
-          [-1.94, -0.002],
-          [-1.46, 0.18],
-          [-0.82, 0.67],
-          [-0.78, 0.7],
-          [-1.16, 0.53],
-          [-1.9, 0.19],
-        ],
-        0.012,
-      ),
-      carbon,
-    );
-    // Open cockpit surround and halo. The centre post is a real mesh, not a HUD overlay.
-    tube(
-      s,
-      carbon,
-      [
-        [-0.29, 0.14, 0.36],
-        [-0.34, 0.2, 0],
-        [-0.32, 0.23, -0.5],
-        [0, 0.27, -0.65],
-        [0.32, 0.23, -0.5],
-        [0.34, 0.2, 0],
-        [0.29, 0.14, 0.36],
-      ],
-      0.05,
-    );
-    tube(
-      s,
-      carbon,
-      [
-        [-0.31, 0.24, -0.55],
-        [-0.33, 0.51, -0.28],
-        [-0.25, 0.57, 0.31],
-        [0, 0.55, 0.66],
-        [0.25, 0.57, 0.31],
-        [0.33, 0.51, -0.28],
-        [0.31, 0.24, -0.55],
-      ],
-      0.033,
-    );
-    rod(s, carbon, new T.Vector3(0, 0.15, 0.63), new T.Vector3(0, 0.55, 0.66), 0.03);
+    mesh(s, openFrontCap(sculptedLoft(ENGINE_SECTIONS, 0, 0.18)), this.paint);
+    addAirbox(s, this.paint, carbon, dark, 'high');
+    addSafetyCell(s, carbon, 'high');
     for (const sign of [-1, 1]) {
       rod(
         s,
@@ -247,91 +179,8 @@ export class FormulaCar {
       this.mirrors.push(glass);
     }
     rod(s, metal, new T.Vector3(0.055, 0.13, 0.93), new T.Vector3(0.055, 0.52, 0.93), 0.004);
-    // Swept thin airfoils, open slots and bevelled endplates. The entire wing
-    // remains owned by its existing damage articulation group.
-    for (let j = 0; j < 4; j++) {
-      mesh(
-        this.frontWing,
-        wingElement(1.94 - j * 0.018, j === 0 ? 0.34 : 0.2, 0.025 + j * 0.007, 0.015, 0.08, 0.028),
-        j === 3 ? this.paint : carbon,
-        0,
-        -0.325 + j * 0.043,
-        2.48 - j * 0.14,
-      );
-    }
-    for (const sign of [-1, 1]) {
-      mesh(
-        this.frontWing,
-        aeroPlate(
-          [
-            [2.04, -0.36],
-            [2.64, -0.36],
-            [2.68, -0.22],
-            [2.51, -0.18],
-            [2.11, -0.21],
-            [2.02, -0.29],
-          ],
-          0.018,
-        ),
-        this.paint,
-        sign * 0.973,
-      );
-      // Slotted cascade brackets at each outboard flap.
-      for (let j = 0; j < 3; j++)
-        box(
-          this.frontWing,
-          carbon,
-          sign * 0.73,
-          -0.285 + j * 0.043,
-          2.37 - j * 0.14,
-          0.012,
-          0.072,
-          0.08,
-        );
-    }
-    mesh(
-      this.rearWing,
-      wingElement(1.65, 0.42, 0.048, 0.022, 0.025, 0.015),
-      carbon,
-      0,
-      0.49,
-      -1.99,
-    );
-    mesh(
-      this.rearWing,
-      wingElement(1.64, 0.22, 0.045, 0.016, 0.02, 0.012),
-      this.paint,
-      0,
-      0.65,
-      -2.18,
-    );
-    for (const sign of [-1, 1]) {
-      mesh(
-        this.rearWing,
-        aeroPlate(
-          [
-            [-2.34, 0.2],
-            [-1.94, 0.18],
-            [-1.75, 0.39],
-            [-1.77, 0.63],
-            [-1.98, 0.72],
-            [-2.31, 0.72],
-          ],
-          0.024,
-        ),
-        this.paint,
-        sign * 0.839,
-      );
-      rod(
-        this.rearWing,
-        carbon,
-        new T.Vector3(sign * 0.24, -0.28, -1.9),
-        new T.Vector3(sign * 0.24, 0.48, -2.04),
-        0.028,
-      );
-      for (let j = 0; j < 3; j++)
-        box(this.rearWing, carbon, sign * 0.858, 0.34 + j * 0.047, -2.12, 0.012, 0.009, 0.17);
-    }
+    buildWing(this.frontWing, 'front', 'high', this.paint, carbon);
+    buildWing(this.rearWing, 'rear', 'high', this.paint, carbon);
     mesh(s, wingElement(1.41, 0.23, 0.018, 0.011, 0.015, 0.008), carbon, 0, -0.12, -2.06);
     mesh(s, wingElement(1.36, 0.17, 0.018, 0.009, 0.02, 0.009), carbon, 0, -0.05, -2.18);
     const rain = new T.MeshStandardMaterial({
@@ -359,9 +208,19 @@ export class FormulaCar {
       bodySurfacePatch(NOSE_SECTIONS, { z0: 0.7, z1: 0.815, u0: 0.365, u1: 0.635 }, 0, 0.32),
       logo,
     );
-    for (const sign of [-1, 1]) {
-      const stripe = box(s, ivory, sign * 0.32, 0.04, 0.4, 0.024, 0.04, 0.9);
-      stripe.rotation.y = sign * 0.09;
+    for (const side of [-1, 1]) {
+      const u = side < 0 ? 0.66 : 0.326;
+      mesh(
+        s,
+        bodySurfacePatch(
+          NOSE_SECTIONS,
+          { z0: 0.44, z1: 1.42, u0: u, u1: u + 0.014 },
+          0,
+          0.32,
+          0.0016,
+        ),
+        ivory,
+      );
     }
     // Wheels use articulated pivots; tire geometry follows load-compression telemetry.
     WHEEL_POSITIONS.forEach((p, i) => {
@@ -417,24 +276,20 @@ export class FormulaCar {
           );
         }
       }
-      const discMaterial = new T.MeshStandardMaterial({
-        color: 0x4b4a45,
-        metalness: 0.6,
-        roughness: 0.6,
-        emissive: 0xff4d08,
-      });
+      const discMaterial = installManufacturingFinish(
+        new T.MeshStandardMaterial({
+          color: 0x4b4a45,
+          metalness: 0.05,
+          roughness: 0.6,
+          emissive: 0xff4d08,
+        }),
+        'carbon-ceramic',
+      );
       this.discs.push(discMaterial);
       const carrierDetails = new T.Group();
       pivot.add(carrierDetails);
-      const disc = mesh(
-        carrierDetails,
-        new T.CylinderGeometry(0.21, 0.21, 0.014, 40),
-        discMaterial,
-        0,
-        0,
-        0,
-      );
-      disc.rotation.z = Math.PI / 2;
+      const disc = mesh(pivot, ventilatedBrakeGeometry(), discMaterial, 0, 0, 0);
+      this.brakeRotors.push(disc);
       box(carrierDetails, dark, 0, 0.05, -0.19, 0.11, 0.14, 0.055);
       for (const dy of [-0.075, 0.055])
         for (const dz of [-0.3, 0.3]) {
@@ -486,7 +341,7 @@ export class FormulaCar {
       spin.add(carcass.root);
     });
     this.suspension = new T.InstancedMesh(
-      new T.CylinderGeometry(0.015, 0.015, 1, 8),
+      new T.CylinderGeometry(0.015, 0.015, 1, 8).scale(1.5, 1, 0.6),
       carbon,
       this.links.length,
     );
@@ -574,6 +429,8 @@ export class FormulaCar {
       reduced.root.visible = false;
       this.root.add(reduced.root);
     }
+    for (const material of [...this.reflectivePaint, this.accent])
+      installPaintObservation(material);
   }
   setLod(distance: number, quality: 'low' | 'medium' | 'high', player: boolean) {
     this.lodLevel = carLod(distance, this.lodLevel, quality, player);
@@ -597,6 +454,18 @@ export class FormulaCar {
     this.qa.set(a[o + F.QX], a[o + F.QY], a[o + F.QZ], a[o + F.QW]);
     this.qb.set(b[o + F.QX], b[o + F.QY], b[o + F.QZ], b[o + F.QW]);
     this.root.quaternion.copy(this.qa).slerp(this.qb, t);
+    let contactWater = 0;
+    for (let i = 0; i < 4; i++) {
+      const w = o + WHEEL_BASE + i * WHEEL_STRIDE;
+      if (b[w + W.LOAD] > 20) contactWater += Math.max(0, b[w + W.WATER]) / 4;
+    }
+    const wetPaint = Math.max(
+      clamp(b[H.RAIN] / 14, 0, 1),
+      clamp((contactWater * Math.abs(b[o + F.SPEED])) / 25, 0, 1),
+    );
+    for (const material of this.reflectivePaint)
+      setPaintObservation(material, wetPaint, b[o + F.FRONT_HEALTH], b[o + F.REAR_HEALTH]);
+    setPaintObservation(this.accent, wetPaint, b[o + F.FRONT_HEALTH], b[o + F.REAR_HEALTH]);
     if (this.lodLevel > 0) {
       const reduced = this.reduced[this.lodLevel - 1];
       for (let i = 0; i < 4; i++) {
@@ -638,6 +507,7 @@ export class FormulaCar {
       this.wheelSpins[i].position.x =
         Math.sign(WHEEL_POSITIONS[i][0]) *
         serviceWheelOffset(b[o + F.PIT_PHASE], b[o + F.PIT_CLOCK], b[p + W.LOAD]);
+      this.brakeRotors[i].rotation.x = this.wheelSpins[i].rotation.x;
       this.discs[i].emissiveIntensity = clamp((b[p + W.DISC_TEMP] - 500) / 450, 0, 2);
       this.rings[i].color.setHex(compound.color);
       this.treads[i].condition.value.set(

@@ -2339,3 +2339,48 @@ html[data-colorblind='true'] #flag[data-flag='4']::before {
   display: inline-block;
   margin-left: 0.5rem;
 }
+
+/* Source-aware scene review: compact while driving; never steals pointer input
+   from the racing canvas except for its explicit export/close controls. */
+.reference-live {position:fixed;right:22px;top:105px;z-index:12;max-width:330px;width:calc(100vw - 44px);padding:14px 16px;background:rgba(12,23,29,.94);border-left:3px solid #be9f70;box-shadow:0 8px 32px #0005;pointer-events:none;display:grid;gap:7px;box-sizing:border-box;}
+.reference-live[hidden], [data-mode="photo"] .reference-live, [data-mode="loading"] .reference-live {display:none;}
+.reference-live b {font-size:10px;letter-spacing:.12em;color:#e8d4b0;}
+.reference-live output {font-size:12px;line-height:1.45;color:#f0f1e9;}
+.reference-live small {font-size:10px;line-height:1.45;color:#a7b9bc;}
+.reference-live > div {display:flex;gap:7px;pointer-events:auto;}
+.reference-live button {min-height:34px;padding:6px 12px;font-size:10px;}
+.reference-event-config {max-width:880px;}
+.reference-event-config header {display:flex;justify-content:space-between;gap:16px;align-items:start;}
+.reference-event-config h2 {font-size:clamp(23px,4vw,38px);line-height:1.15;max-width:640px;overflow-wrap:anywhere;}
+.event-requirements {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:#425258;margin:24px 0;}
+.event-requirements article {background:#16262d;padding:18px;display:grid;gap:9px;overflow-wrap:anywhere;}
+.event-requirements small {font-size:10px;color:#a4babf;letter-spacing:.1em;}
+.event-requirements b {font-size:15px;color:#efdbc0;}
+.event-scope {border-top:1px solid #3b5158;border-bottom:1px solid #3b5158;padding:18px 0;margin:24px 0;}
+.reference-event-config p {font-size:14px;line-height:1.65;}
+@media(max-width:600px) {.reference-live {right:10px;top:auto;bottom:105px;width:240px;padding:10px;}.event-requirements {grid-template-columns:1fr;}.event-requirements article {grid-template-columns:1fr 1fr;padding:12px;}}
+
+#decalMap svg { touch-action: none; width: 100%; display: block; }
+#decalMap [data-decal-id] { cursor: grab; outline: none; }
+#decalMap [data-decal-id]:focus rect { stroke: #fff; stroke-width: 3; }
+
+.team-media { max-width: 1120px; margin: auto; min-width: 0; }
+.team-media > header { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+.team-media h2 { font-size: clamp(26px, 5vw, 42px); margin: 10px 0; }
+.media-scope { max-width: 76ch; color: #bdccce; line-height: 1.65; }
+.media-frame { position: relative; background: #182128; border: 1px solid #405058; overflow: hidden; border-radius: 5px; }
+.media-frame canvas { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; }
+.media-caption { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, #0e1824ed 24%); padding: 40px 26px 20px; color: #fff4e5; }
+.media-caption span { display: block; font-size: 11px; letter-spacing: .16em; color: #a7d4d5; font-weight: 800; }
+.media-caption p { margin: 8px 0 0; font-size: clamp(14px, 1.7vw, 18px); line-height: 1.55; max-width: 78ch; }
+.media-brand { position: absolute; top: 18px; left: 22px; font-size: 15px; font-weight: 850; color: #fff6e8; }
+.media-brand b { display: block; font-size: 10px; color: #a7d4d5; margin-top: 5px; letter-spacing: .15em; }
+.media-controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 15px 0; }
+.media-controls label { flex: 1; min-width: 180px; font-size: 10px; letter-spacing: .1em; }
+.media-controls input { width: 100%; min-height: 30px; }
+.media-controls button { min-height: 42px; }
+.team-media details { padding: 18px 0; border-top: 1px solid #405058; }
+.team-media li { margin: 12px 0; line-height: 1.65; padding-left: 8px; }
+.team-media li b { color: #a7d4d5; display: block; font-size: 11px; letter-spacing: .1em; }
+.team-media [data-media-status] { color: #bdccce; line-height: 1.5; }
+@media(max-width: 640px) { .media-caption { position: static; padding: 18px; background: #12212b; } .media-brand { top: 8px; left: 10px; font-size: 11px; } .media-brand b { font-size: 9px; } }
