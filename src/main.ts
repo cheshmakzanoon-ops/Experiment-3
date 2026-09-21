@@ -1,4 +1,13 @@
 import {
+  PresentationReview,
+  matchesReviewWeather,
+  reviewFrame,
+  reviewBudget,
+  type ReviewWorkload,
+} from './rendering/presentation-review.ts';
+import { ReviewVideo } from './ui/review-video.ts';
+import { ReferenceEvidenceStore, referenceCapture } from './ui/reference-evidence.ts';
+import {
   isEngineeringSample,
   type ClientMessage,
   type WorkerMessage,
@@ -64,6 +73,7 @@ export class GameApp {
   private usedDemonstration = false;
   private programme = new PracticeProgramme();
   private inspectedReference: number | null = null;
+  private referenceEvidence = ReferenceEvidenceStore.browser();
   private photoReturn: State = 'menu';
   private photoReturnHub = false;
   private frozenPhoto: Float32Array | null = null;
@@ -75,6 +85,9 @@ export class GameApp {
   private store = new SaveStore();
   private exporter = new TelemetryExport();
   private exporting = false;
+  private presentationReview = new PresentationReview();
+  private reviewMetrics = reviewFrame();
+  private reviewVideo = new ReviewVideo();
   private performanceCapture = new PerformanceCapture();
   private profileMachine = '';
   private profileWorkload = '';
@@ -165,6 +178,9 @@ export class GameApp {
         this.captureRequested = true;
         this.photoStudio.captureBusy(true);
       },
+      unlinkReference: () => {
+        this.inspectedReference = null;
+      },
       close: () => this.closePhoto(),
     });
     // The studio is not a dialog: own Escape even when a slider/button has focus.
@@ -205,6 +221,7 @@ export class GameApp {
       );
     window.addEventListener('resize', () => {
       this.performanceCapture.interrupt('Viewport changed');
+      this.interruptReview('Viewport changed');
       this.renderer?.resize();
       this.renderedState = null; // A covered menu still needs one resized frame.
     });
@@ -332,6 +349,7 @@ export class GameApp {
     this.ui.closeModal();
     this.ui.telemetryModal.close();
     this.performanceCapture.interrupt('Session restarted');
+    this.interruptReview('Session restarted');
     this.state = 'loading';
     this.ui.showMode('loading');
     this.ui.loading('Preparing grid, race timing and recording buffers…');
@@ -579,15 +597,64 @@ export class GameApp {
       wallDelta,
     );
     this.presentationFrames++;
+    if (this.presentationReview.active) {
+      if (this.state !== 'driving' || document.hidden)
+        this.interruptReview('Capture left visible live driving');
+      else {
+        this.renderer.readReviewMetrics(this.reviewMetrics);
+        this.presentationReview.record(performance.now(), this.reviewMetrics);
+        this.reviewVideo.frame();
+        if (!this.presentationReview.active) {
+          this.reviewVideo.stop();
+          this.ui.toast(
+            `Visual review ${this.presentationReview.state}. Pause → Full-lap visual review → Export evidence.`,
+          );
+        }
+      }
+    }
     // Read pixels in the same task as rendering; no permanent preserveDrawingBuffer cost.
     if (this.state === 'photo' && this.captureRequested) {
       this.captureRequested = false;
       this.capturingPhoto = true;
+      // Freeze identity in the same task as the rendered pixels. Later async
+      // encoding/digest work cannot attach a different frame or selected image.
+      const referenceId = this.inspectedReference;
+      const filename =
+        referenceId === null
+          ? `apex-photo-${Date.now()}.png`
+          : `apex-reference-${String(referenceId).padStart(3, '0')}-${__APEX_SOURCE_FINGERPRINT__.slice(0, 12)}-${Date.now()}.png`;
+      const captureMeta = {
+        source: __APEX_SOURCE_FINGERPRINT__,
+        imageFile: filename,
+        capturedAt: new Date().toISOString(),
+        simulationTime: this.renderer.presented.value[H.TIME],
+        width: this.renderer.canvas.width,
+        height: this.renderer.canvas.height,
+        view: JSON.stringify({
+          photo: this.renderer.photo,
+          night: this.renderer.night,
+          cloud: this.renderer.presented.value[H.CLOUD],
+          rain: this.renderer.presented.value[H.RAIN],
+          cameraPosition: this.renderer.camera.position.toArray(),
+          cameraQuaternion: this.renderer.camera.quaternion.toArray(),
+          replay: this.photoReturn === 'replay',
+          sourceState: this.photoReturn,
+        }),
+      };
       void this.renderer
         .capturePhoto()
-        .then((blob) => {
-          downloadBlob(blob, `apex-photo-${Date.now()}.png`);
-          this.photoStudio.status('PNG exported from the rendered scene.');
+        .then(async (blob) => {
+          downloadBlob(blob, filename);
+          if (referenceId !== null) {
+            this.referenceEvidence.capture(
+              referenceId,
+              await referenceCapture(blob, referenceId, captureMeta),
+            );
+            this.photoStudio.status(
+              this.referenceEvidence.persistenceError ??
+                `PNG exported and hashed for reference ${referenceId}. Visual acceptance remains a separate comparison.`,
+            );
+          } else this.photoStudio.status('PNG exported from the rendered scene.');
         })
         .catch((error) => this.photoStudio.status(`Export failed: ${String(error)}`))
         .finally(() => {
@@ -636,6 +703,7 @@ export class GameApp {
     if (this.performanceCapture.active) {
       if (this.state !== 'driving' || document.hidden) {
         this.performanceCapture.interrupt('Capture left visible live driving');
+        this.interruptReview('Capture left visible live driving');
       } else {
         this.renderer.readPerformanceMetrics(this.profileMetrics);
         this.profileMetrics.physicsMs = b[H.STEP_MS];
@@ -729,6 +797,7 @@ export class GameApp {
     this.suspendPlayback();
     this.photoReturn = this.state;
     this.performanceCapture.interrupt('Photo studio opened');
+    this.interruptReview('Photo studio opened');
     // Own a copy: queued worker snapshots and replay-page recycling cannot alter the held moment.
     const displayed = this.renderer.presented.value;
     this.frozenPhoto = new Float32Array(displayed[H.CARS] > 0 ? displayed : this.current);
@@ -741,6 +810,7 @@ export class GameApp {
     if (document.pointerLockElement) document.exitPointerLock();
     this.ui.showMode('photo');
     this.photoStudio.open(this.team.livery, this.frozenPhoto[H.CARS]);
+    this.photoStudio.reference(this.inspectedReference);
   }
   private closePhoto() {
     if (this.state !== 'photo') return;
@@ -763,6 +833,7 @@ export class GameApp {
   private pause() {
     if (this.state !== 'driving') return;
     this.performanceCapture.interrupt('Session paused or focus lost');
+    this.interruptReview('Session paused or focus lost');
     this.state = 'paused';
     this.post({ type: 'pause', value: true });
     this.input.setEnabled(false);
@@ -783,6 +854,7 @@ export class GameApp {
   }
   private finish(frame: Float32Array) {
     this.performanceCapture.interrupt('Session finished');
+    this.interruptReview('Session finished');
     this.state = 'results';
     this.post({ type: 'pause', value: true });
     this.input.setEnabled(false);
@@ -904,6 +976,7 @@ export class GameApp {
       const mode = name.slice(6);
       if (this.renderer && ['off', 'corners', 'full'].includes(mode)) {
         this.performanceCapture.interrupt('Driving guide changed');
+        this.interruptReview('Driving guide changed');
         this.renderer.guide.mode = mode as GuideMode;
         this.openAcademy();
       }
@@ -912,6 +985,7 @@ export class GameApp {
     if (name === 'lighting:day' || name === 'lighting:night') {
       if (this.renderer) {
         this.performanceCapture.interrupt('Circuit lighting changed');
+        this.interruptReview('Circuit lighting changed');
         this.renderer.night = name === 'lighting:night';
         this.renderer.reset();
         this.openAcademy();
@@ -961,8 +1035,13 @@ export class GameApp {
       case 'references':
         this.suspendPlayback();
         this.ui.closeModal();
-        this.ui.modalContent(referenceReview());
-        bindReferenceReview(this.ui.get('modalContent'));
+        this.ui.modalContent(
+          referenceReview({ source: __APEX_SOURCE_FINGERPRINT__, store: this.referenceEvidence }),
+        );
+        bindReferenceReview(this.ui.get('modalContent'), {
+          source: __APEX_SOURCE_FINGERPRINT__,
+          store: this.referenceEvidence,
+        });
         break;
       case 'workshop':
         this.openPhoto();
@@ -995,6 +1074,7 @@ export class GameApp {
         break;
       case 'menu':
         this.performanceCapture.interrupt('Returned to paddock');
+        this.interruptReview('Returned to paddock');
         this.ui.closeModal();
         this.ui.telemetryModal.close();
         this.state = 'menu';
@@ -1023,6 +1103,7 @@ export class GameApp {
         break;
       case 'camera':
         this.performanceCapture.interrupt('Camera changed');
+        this.interruptReview('Camera changed');
         this.renderer?.changeCamera();
         break;
       case 'pit':
@@ -1039,11 +1120,13 @@ export class GameApp {
         break;
       case 'mute':
         this.performanceCapture.interrupt('Audio workload changed');
+        this.interruptReview('Audio workload changed');
         this.audio.muted = !this.audio.muted;
         this.ui.toast(this.audio.muted ? 'Audio muted.' : 'Audio enabled.');
         break;
       case 'debug':
         this.performanceCapture.interrupt('Debug workload changed');
+        this.interruptReview('Debug workload changed');
         if (this.renderer) {
           this.renderer.debug = !this.renderer.debug;
           this.renderer.engineering = null;
@@ -1052,6 +1135,7 @@ export class GameApp {
         break;
       case 'autopilot':
         this.performanceCapture.interrupt('Driver changed');
+        this.interruptReview('Driver changed');
         if (this.state === 'driving') {
           this.auto = !this.auto;
           this.usedDemonstration ||= this.auto;
@@ -1113,6 +1197,44 @@ export class GameApp {
       case 'csv':
         void this.exportTelemetry();
         break;
+      case 'visualReview':
+        if (this.state === 'driving') this.pause();
+        if (this.state !== 'paused') break;
+        this.ui.presentationReview(
+          `${this.presentationReview.state.toUpperCase()} · ${this.presentationReview.count} frames · ${Math.round(this.presentationReview.progressM)} m${this.presentationReview.reason ? ` · ${this.presentationReview.reason}` : ''} · VIDEO ${this.reviewVideo.state}${this.reviewVideo.reason ? ` · ${this.reviewVideo.reason}` : ''}`,
+          this.profileMachine,
+          !this.presentationReview.active && this.presentationReview.count > 0,
+          !!this.reviewVideo.blob,
+        );
+        break;
+      case 'reviewStart':
+        this.startPresentationReview();
+        break;
+      case 'reviewExport': {
+        const report = this.presentationReview.report();
+        if (report)
+          downloadBlob(
+            new Blob(
+              [
+                JSON.stringify({
+                  ...report,
+                  budget: reviewBudget(report),
+                  video: this.reviewVideo.diagnostics(),
+                }) + '\n',
+              ],
+              { type: 'application/json' },
+            ),
+            `apex-review-${report.context.workload}-${report.context.camera}-${report.context.source.slice(0, 12)}.json`,
+          );
+        break;
+      }
+      case 'reviewVideoExport':
+        if (this.reviewVideo.blob)
+          downloadBlob(
+            this.reviewVideo.blob,
+            `apex-review-${__APEX_SOURCE_FINGERPRINT__.slice(0, 12)}.webm`,
+          );
+        break;
       case 'performance':
         if (this.state === 'driving') this.pause();
         if (this.state !== 'paused') break;
@@ -1140,6 +1262,75 @@ export class GameApp {
         break;
     }
   }
+  private interruptReview(reason: string) {
+    this.presentationReview.interrupt(reason);
+    this.reviewVideo.stop();
+  }
+  private startPresentationReview() {
+    if (this.state !== 'paused' || !this.renderer) return;
+    try {
+      if (this.reviewVideo.state === 'stopping')
+        throw new Error('Video is finalizing; refresh its status before starting another review');
+      const machine = (this.ui.get('reviewMachine') as HTMLInputElement).value.trim();
+      const workload = (this.ui.get('reviewWorkload') as HTMLSelectElement).value as ReviewWorkload;
+      const mode = (this.ui.get('reviewMode') as HTMLSelectElement).value as
+        | 'full-lap'
+        | 'timed-scene';
+      const videoRequested = (this.ui.get('reviewVideo') as HTMLInputElement).checked;
+      const stats = this.renderer.stats(),
+        frame = this.renderer.presented.value;
+      if (!matchesReviewWeather(workload, frame[H.RAIN], frame[H.CLOUD], this.renderer.night))
+        throw new Error('The workload label does not match the current weather/night state');
+      const followedCar = this.renderer.reviewCar(),
+        b = carBase(followedCar);
+      this.renderer.readReviewMetrics(this.reviewMetrics);
+      this.presentationReview.start(
+        {
+          source: __APEX_SOURCE_FINGERPRINT__,
+          machine,
+          browser: navigator.userAgent,
+          workload,
+          mode,
+          videoRequested,
+          camera: this.renderer.mode,
+          trackLength: this.track.length,
+          startS: frame[b + F.S],
+          startLaps: frame[b + F.LAPS],
+          startTime: frame[H.TIME],
+          followedCar,
+          configuration: JSON.stringify({
+            session: this.options,
+            auto: this.auto,
+            ers: this.ers,
+            graphics: stats.graphics,
+            width: stats.renderWidth,
+            height: stats.renderHeight,
+            pixelRatio: devicePixelRatio,
+            night: this.renderer.night,
+            shake: this.settings.shake,
+            debug: this.renderer.debug,
+            guide: stats.guide,
+            sound: { volume: this.settings.volume, muted: this.audio.muted },
+            gpuTiming: stats.gpuTimerSupported,
+            videoRequested,
+          }),
+        },
+        performance.now(),
+        this.reviewMetrics.gpuSequence,
+      );
+      this.performanceCapture.interrupt('Presentation review started; separate benchmark required');
+      this.reviewVideo.dispose();
+      if (videoRequested) this.reviewVideo.start(this.renderer.canvas);
+      this.profileMachine = machine;
+      this.resume();
+      this.ui.toast(
+        this.reviewVideo.reason ??
+          'Review recording: drive the lap, or complete the selected 30-second scene.',
+      );
+    } catch (error) {
+      this.ui.toast(error instanceof Error ? error.message : String(error));
+    }
+  }
   private startPerformanceCapture() {
     if (this.state !== 'paused' || !this.renderer) return;
     const machine =
@@ -1148,6 +1339,7 @@ export class GameApp {
       (document.getElementById('profileWorkload') as HTMLInputElement | null)?.value.trim() ?? '';
     const stats = this.renderer.stats();
     try {
+      this.interruptReview('Independent performance benchmark started');
       this.performanceCapture.start(
         {
           machine,
@@ -1212,6 +1404,7 @@ export class GameApp {
       submit.textContent = 'SAVING…';
     }
     this.performanceCapture.interrupt('Settings changed');
+    this.interruptReview('Settings changed');
     this.settings = settings;
     this.input.settings = settings;
     this.ui.applyBindings(settings.bindings);
@@ -1265,6 +1458,7 @@ export class GameApp {
   private fail(error: unknown) {
     if (this.errorStopped) return;
     this.performanceCapture.interrupt('Application error');
+    this.interruptReview('Application error');
     this.errorStopped = true;
     clearTimeout(this.initTimeout);
     this.worker?.terminate();
@@ -1296,6 +1490,13 @@ export class GameApp {
             particles: this.renderer.effects.diagnostics(),
           }
         : null,
+      presentationReview: {
+        state: this.presentationReview.state,
+        frames: this.presentationReview.count,
+        progressM: this.presentationReview.progressM,
+        reason: this.presentationReview.reason,
+        video: this.reviewVideo.diagnostics(),
+      },
       performanceCapture: {
         state: this.performanceCapture.state,
         frames: this.performanceCapture.count,
@@ -1325,6 +1526,8 @@ export class GameApp {
   dispose() {
     if (this.disposed) return;
     this.performanceCapture.interrupt('Application disposed');
+    this.interruptReview('Application disposed');
+    this.reviewVideo.dispose();
     this.disposed = true;
     this.generation++;
     this.exporter.cancel();

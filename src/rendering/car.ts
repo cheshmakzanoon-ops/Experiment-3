@@ -1,4 +1,20 @@
-import { addTailMechanicalDetail, addWheelMechanicalDetail, buildHelmet, openFrontCap, addSidepodDuct } from './car-mechanical-detail.ts';
+import { rearSignalIntensity } from './rear-signal.ts';
+import {
+  NOSE_SECTIONS,
+  POD_SECTIONS,
+  ENGINE_SECTIONS,
+  POD_OPENINGS,
+  bodySurfacePatch,
+  suspensionMount,
+} from './car-surfaces.ts';
+import { installPaintFinish } from './paint-finish.ts';
+import {
+  addTailMechanicalDetail,
+  addWheelMechanicalDetail,
+  buildHelmet,
+  openFrontCap,
+  addSidepodDuct,
+} from './car-mechanical-detail.ts';
 import { addMirrorHousing, apertureGeometry, CockpitControls } from './cockpit.ts';
 import { sculptedLoft, wingElement, aeroPlate } from './bodywork.ts';
 import { flankLivery, repaintFlank } from './car-livery.ts';
@@ -91,11 +107,12 @@ export class FormulaCar {
     const s = this.staticBody;
     this.paint = new T.MeshPhysicalMaterial({
       color: LIVERIES[id % LIVERIES.length],
-      metalness: 0.2,
-      roughness: 0.3,
+      metalness: 0.06,
+      roughness: 0.34,
       clearcoat: 1,
       clearcoatRoughness: 0.16,
     });
+    installPaintFinish(this.paint);
     this.reflectivePaint.push(this.paint);
     const carbon = carbonMaterial();
     const dark = new T.MeshStandardMaterial({ color: 0x101416, roughness: 0.75 });
@@ -106,6 +123,7 @@ export class FormulaCar {
       metalness: 0.18,
       clearcoat: 1,
     });
+    installPaintFinish(ivory);
     this.accent = ivory;
     // Venturi floor, sculpted monocoque, narrow nose and smoothly undercut sidepods.
     mesh(
@@ -119,18 +137,7 @@ export class FormulaCar {
       ]),
       carbon,
     );
-    mesh(
-      s,
-      sculptedLoft([
-        [0.4, 0.025, 0.3, 0.17],
-        [0.52, 0.025, 0.29, 0.16],
-        [1.15, -0.025, 0.23, 0.12],
-        [1.9, -0.14, 0.115, 0.075],
-        [2.45, -0.235, 0.075, 0.025],
-        [2.55, -0.24, 0.004, 0.005],
-      ]),
-      this.paint,
-    );
+    mesh(s, sculptedLoft(NOSE_SECTIONS, 0, 0.32), this.paint);
     mesh(s, cockpitShell(), this.paint);
     box(s, dark, 0, -0.24, -0.14, 0.5, 0.08, 1.02);
     box(s, dark, 0, -0.02, -0.6, 0.44, 0.45, 0.09);
@@ -139,18 +146,7 @@ export class FormulaCar {
       this.reflectivePaint.push(livery);
       const pod = mesh(
         s,
-        openFrontCap(sculptedLoft(
-          [
-            [-1.75, -0.22, 0.065, 0.08],
-            [-1.35, -0.17, 0.175, 0.145],
-            [-0.8, -0.095, 0.29, 0.17],
-            [-0.2, -0.025, 0.31, 0.17],
-            [0.25, 0.005, 0.28, 0.135],
-            [0.39, 0.025, 0.225, 0.075],
-          ],
-          0.42,
-          0.65,
-        )),
+        openFrontCap(sculptedLoft(POD_SECTIONS, 0.58, 0.65, POD_OPENINGS)),
         livery,
         sign * 0.53,
         0,
@@ -169,17 +165,19 @@ export class FormulaCar {
         );
         bolt.rotation.x = 0.08;
       }
-      for (let j = 0; j < 8; j++)
-        box(
+      // Actual holes in the livery shell, with recessed dark interior skins.
+      // The inset shares the pod transform and is batched with existing carbon.
+      for (const opening of POD_OPENINGS) {
+        const recess = mesh(
           s,
+          bodySurfacePatch(POD_SECTIONS, opening, 0.58, 0.65, -0.008, 1, 6),
           carbon,
-          sign * 0.66,
-          0.135 - j * 0.009,
-          -0.25 - j * 0.09,
-          0.18,
-          0.008,
-          0.025,
-        ).rotation.z = sign * 0.14;
+          sign * 0.53,
+          0,
+          0,
+        );
+        recess.rotation.z = sign * -0.08;
+      }
       tube(
         s,
         carbon,
@@ -195,20 +193,24 @@ export class FormulaCar {
         box(s, carbon, sign * (0.15 + j * 0.12), -0.32, -2.01, 0.018, 0.17, 0.42).rotation.x =
           -0.18;
     }
-    mesh(
-      s,
-      sculptedLoft([
-        [-2.15, -0.11, 0.01, 0.03],
-        [-1.65, 0.02, 0.15, 0.15],
-        [-1.0, 0.16, 0.235, 0.36],
-        [-0.72, 0.3, 0.17, 0.43],
-        [-0.55, 0.36, 0.09, 0.27],
-      ]),
-      this.paint,
-    );
+    mesh(s, sculptedLoft(ENGINE_SECTIONS, 0, 0.18), this.paint);
     const intake = mesh(s, new T.TorusGeometry(0.105, 0.035, 12, 32), carbon, 0, 0.61, -0.65);
     intake.scale.set(0.78, 1, 1);
-    box(s, carbon, 0, 0.3, -1.22, 0.018, 0.42, 1.05);
+    mesh(
+      s,
+      aeroPlate(
+        [
+          [-1.94, -0.002],
+          [-1.46, 0.18],
+          [-0.82, 0.67],
+          [-0.78, 0.7],
+          [-1.16, 0.53],
+          [-1.9, 0.19],
+        ],
+        0.012,
+      ),
+      carbon,
+    );
     // Open cockpit surround and halo. The centre post is a real mesh, not a HUD overlay.
     tube(
       s,
@@ -349,14 +351,23 @@ export class FormulaCar {
     this.rainLight = rain;
     box(s, rain, 0, -0.23, -2.28, 0.095, 0.065, 0.02);
     // Original car identity and livery: small, deliberate markings on bodywork.
-    const logo = new T.MeshBasicMaterial({
-      map: label(`APEX / ${String(id + 7).padStart(2, '0')}`, '#182126', '#f4eddf'),
-      transparent: false,
-    });
+    const logo = installPaintFinish(
+      new T.MeshPhysicalMaterial({
+        map: label(`APEX / ${String(id + 7).padStart(2, '0')}`, '#182126', '#f4eddf'),
+        roughness: 0.34,
+        metalness: 0.06,
+        clearcoat: 1,
+        clearcoatRoughness: 0.16,
+      }),
+    );
+    this.reflectivePaint.push(logo);
     this.identityTexture = logo.map as T.CanvasTexture;
     this.identityTexture.userData.dynamic = true;
-    const decal = mesh(s, new T.PlaneGeometry(0.35, 0.105), logo, 0, 0.176, 0.74);
-    decal.rotation.x = -Math.PI / 2;
+    mesh(
+      s,
+      bodySurfacePatch(NOSE_SECTIONS, { z0: 0.7, z1: 0.815, u0: 0.365, u1: 0.635 }, 0, 0.32),
+      logo,
+    );
     for (const sign of [-1, 1]) {
       const stripe = box(s, ivory, sign * 0.32, 0.04, 0.4, 0.024, 0.04, 0.9);
       stripe.rotation.y = sign * 0.09;
@@ -436,12 +447,14 @@ export class FormulaCar {
       box(carrierDetails, dark, 0, 0.05, -0.19, 0.11, 0.14, 0.055);
       for (const dy of [-0.075, 0.055])
         for (const dz of [-0.3, 0.3]) {
-          const anchor = new T.Vector3(Math.sign(p[0]) * 0.26, dy + 0.03, p[2] + dz),
+          const anchor = suspensionMount(p[0], p[2], dy, dz),
             end = new T.Vector3(p[0], -0.183 + dy, p[2]);
           const link = new T.Object3D();
           link.position.copy(end);
           this.links.push({ mesh: link, anchor, wheel: i, dy });
         }
+      // The opaque cover sits OUTSIDE the spoke envelope (8mm rod radius),
+      // rather than intersecting it and exposing a false spoked-cover pattern.
       // Rigid aero cover and machined hub detail spin with the rim, never with
       // the deforming contact patch. The compound rings remain on the carcass.
       const outside = Math.sign(p[0]);
@@ -449,7 +462,7 @@ export class FormulaCar {
         spin,
         new T.RingGeometry(0.052, 0.228, 48, 3),
         carbon,
-        outside * (half + 0.007),
+        outside * (half + 0.014),
         0,
         0,
       );
@@ -458,7 +471,7 @@ export class FormulaCar {
         spin,
         new T.TorusGeometry(0.049, 0.006, 8, 32),
         metal,
-        outside * (half + 0.009),
+        outside * (half + 0.018),
         0,
         0,
       );
@@ -469,13 +482,18 @@ export class FormulaCar {
           spin,
           new T.CylinderGeometry(0.004, 0.004, 0.004, 6),
           metal,
-          outside * (half + 0.012),
+          outside * (half + 0.021),
           Math.cos(angle) * 0.193,
           Math.sin(angle) * 0.193,
         );
         fastener.rotation.z = Math.PI / 2;
       }
-      addWheelMechanicalDetail(carrierDetails, spin, outside, half, { carbon, dark, metal, paint: this.paint });
+      addWheelMechanicalDetail(carrierDetails, spin, outside, half, {
+        carbon,
+        dark,
+        metal,
+        paint: this.paint,
+      });
       mergeStatic(carrierDetails);
       // Batch only the rigid wheel. Rubber must remain independently deformable.
       mergeStatic(spin);
@@ -514,11 +532,15 @@ export class FormulaCar {
     // Identical controls share geometry/material submissions, not state. Each
     // LED retains its own linear-space colour and each button its exact pose.
     this.shiftLeds = new T.InstancedMesh(
-      new T.BoxGeometry(0.01, 0.005, 0.003), new T.MeshBasicMaterial(), 10,
+      new T.BoxGeometry(0.01, 0.005, 0.003),
+      new T.MeshBasicMaterial(),
+      10,
     );
     this.shiftLeds.name = 'Individual RPM LEDs (one submission)';
     this.wheelButtons = new T.InstancedMesh(
-      new T.CylinderGeometry(0.009, 0.009, 0.009, 12), new T.MeshStandardMaterial(), 6,
+      new T.CylinderGeometry(0.009, 0.009, 0.009, 12),
+      new T.MeshStandardMaterial(),
+      6,
     );
     this.wheelButtons.name = 'Original wheel buttons (one submission)';
     const indicator = new T.Object3D();
@@ -526,21 +548,29 @@ export class FormulaCar {
       indicator.position.set(-0.071 + j * 0.016, 0.074, -0.018);
       indicator.updateMatrix();
       this.shiftLeds.setMatrixAt(j, indicator.matrix);
-      this.shiftLeds.setColorAt(j, this.indicatorColor.setHex(j < 5 ? 0x6fec9b : j < 8 ? 0xed6540 : 0xaabef8));
+      this.shiftLeds.setColorAt(
+        j,
+        this.indicatorColor.setHex(j < 5 ? 0x6fec9b : j < 8 ? 0xed6540 : 0xaabef8),
+      );
     }
     this.shiftLeds.instanceColor!.setUsage(T.DynamicDrawUsage);
     let button = 0;
     indicator.rotation.x = Math.PI / 2;
-    for (const sign of [-1, 1]) for (let k = 0; k < 3; k++) {
-      indicator.position.set(sign * (0.117 + (k % 2) * 0.026), 0.037 - k * 0.028, -0.027);
-      indicator.updateMatrix();
-      this.wheelButtons.setMatrixAt(button, indicator.matrix);
-      this.wheelButtons.setColorAt(button++, this.indicatorColor.setHex([0xe65739, 0x56b8a6, 0xe6c254][k]));
-    }
+    for (const sign of [-1, 1])
+      for (let k = 0; k < 3; k++) {
+        indicator.position.set(sign * (0.117 + (k % 2) * 0.026), 0.037 - k * 0.028, -0.027);
+        indicator.updateMatrix();
+        this.wheelButtons.setMatrixAt(button, indicator.matrix);
+        this.wheelButtons.setColorAt(
+          button++,
+          this.indicatorColor.setHex([0xe65739, 0x56b8a6, 0xe6c254][k]),
+        );
+      }
     for (const controls of [this.shiftLeds, this.wheelButtons]) {
       controls.castShadow = true;
       controls.receiveShadow = true;
-      controls.computeBoundingBox(); controls.computeBoundingSphere();
+      controls.computeBoundingBox();
+      controls.computeBoundingSphere();
       this.steering.add(controls);
     }
     this.driver = new DriverRig(this.steering);
@@ -600,10 +630,14 @@ export class FormulaCar {
       return;
     }
     this.steering.rotation.z = -lerp(a[o + F.STEER], b[o + F.STEER], t) * 2.2;
-    this.driver.update(time, b[o + F.GEAR], b[o + F.ERS_MODE],
+    this.driver.update(
+      time,
+      b[o + F.GEAR],
+      b[o + F.ERS_MODE],
       lerp(a[o + F.G_LAT], b[o + F.G_LAT], t),
       lerp(a[o + F.G_LONG], b[o + F.G_LONG], t),
-      lerp(a[o + F.G_VERT], b[o + F.G_VERT], t));
+      lerp(a[o + F.G_VERT], b[o + F.G_VERT], t),
+    );
     this.helmet.rotation.set(this.driver.headPitch, 0, this.driver.headRoll);
     this.cockpitControls.update(b, o);
     this.helmet.visible = !cockpit;
@@ -653,14 +687,25 @@ export class FormulaCar {
     this.frontWing.scale.x = 0.35 + 0.65 * b[o + F.FRONT_HEALTH];
     this.frontWing.rotation.z = (1 - b[o + F.FRONT_HEALTH]) * 0.12;
     this.rearWing.rotation.z = (1 - b[o + F.REAR_HEALTH]) * 0.09;
-    this.rainLight.emissiveIntensity =
-      b[o + F.BRAKE] > 0.1 ? 2.5 : Math.sin(time * 12) > 0 ? 1.4 : 0.1;
+    this.rainLight.emissiveIntensity = rearSignalIntensity(
+      lerp(a[o + F.BRAKE], b[o + F.BRAKE], t),
+      lerp(a[H.TIME], b[H.TIME], t),
+    );
     if (this.id === 0 && this.displayClock.due(b[H.TIME], b[o + F.GEAR])) {
       drawSteeringDisplay(this.ctx, b, o);
       for (let j = 0; j < this.shiftLeds.count; j++)
-        this.shiftLeds.setColorAt(j, this.indicatorColor.setHex(
-          shiftLight(b[o + F.RPM], j) ? (j < 5 ? 0x6fec9b : j < 8 ? 0xed6540 : 0xaabef8) : 0x20292a,
-        ));
+        this.shiftLeds.setColorAt(
+          j,
+          this.indicatorColor.setHex(
+            shiftLight(b[o + F.RPM], j)
+              ? j < 5
+                ? 0x6fec9b
+                : j < 8
+                  ? 0xed6540
+                  : 0xaabef8
+              : 0x20292a,
+          ),
+        );
       this.shiftLeds.instanceColor!.needsUpdate = true;
       this.display.needsUpdate = true;
     }

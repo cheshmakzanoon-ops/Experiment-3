@@ -1,3 +1,4 @@
+import type { ReviewFrame } from './presentation-review.ts';
 import { HeadquartersStage } from './headquarters-stage.ts';
 import { BokehPass } from 'three/addons/postprocessing/BokehPass.js';
 import { GeometrySurvey } from './geometry-survey.ts';
@@ -25,7 +26,7 @@ import type { EngineeringSample } from '../workers/diagnostics.ts';
 import * as T from 'three';
 import type { FrameMetrics } from '../core/performance.ts';
 import type { BuildProgress } from './build-queue.ts';
-import { TracksideDirector } from './trackside.ts';
+import { TracksideDirector, broadcastRadius } from './trackside.ts';
 import { CameraClock, InertialCamera, ViewOrientation } from './camera-dynamics.ts';
 import { ReflectionSystem } from './reflections.ts';
 import { DebrisView } from './debris.ts';
@@ -479,7 +480,11 @@ export class RacingRenderer {
     const car = this.cars[this.follow],
       speed = b[o + F.SPEED];
     const studio = !!this.photo && this.photo.backdrop !== 'circuit';
-    const daylight = circuitLightState(presented[H.CLOUD], presented[H.RAIN], this.night && !studio);
+    const daylight = circuitLightState(
+      presented[H.CLOUD],
+      presented[H.RAIN],
+      this.night && !studio,
+    );
     if (this.night && !studio)
       this.nightFog.setRGB(daylight.fogRed, daylight.fogGreen, daylight.fogBlue);
     if (studio) {
@@ -525,11 +530,12 @@ export class RacingRenderer {
       this.camera.fov = 45;
     } else if (this.mode === 'trackside') {
       this.trackside.update(
-        b[o + F.S],
+        presented[o + F.S],
         this.target,
-        this.temporary.set(b[o + F.VX], b[o + F.VY], b[o + F.VZ]),
+        this.temporary.set(presented[o + F.VX], presented[o + F.VY], presented[o + F.VZ]),
         cameraDt,
         this.camera.aspect,
+        broadcastRadius(presented, this.follow),
       );
       this.desired.copy(this.trackside.position);
       this.gaze.copy(this.trackside.gaze);
@@ -609,6 +615,7 @@ export class RacingRenderer {
       for (const cluster of this.circuit.crowdClusters)
         cluster.update(presented[H.TIME], this.camera.position, presented[H.RAIN], presented);
     this.effectPlayback.update(presented, !menu);
+    this.effects.setSignalLights(presented, !studio);
     this.debris.update(b);
     this.pitCrew.update(presented, this.camera.position, !menu && !studio);
     this.gridPreparation.update(
@@ -747,6 +754,45 @@ export class RacingRenderer {
     target.gpuMs = this.gpuTimer.milliseconds;
     target.gpuSequence = this.gpuTimer.sampleSequence;
   }
+  /** Cheap opt-in review counters. Frame identity comes from the SAME presented
+   * snapshot/camera used by audio, car lights, spray and replay presentation. */
+  readReviewMetrics(target: ReviewFrame) {
+    this.readPerformanceMetrics(target);
+    const frame = this.presented.value,
+      b = carBase(this.follow);
+    target.physicsMs = frame[H.STEP_MS];
+    target.time = frame[H.TIME];
+    target.s = frame[b + F.S];
+    target.laps = frame[b + F.LAPS];
+    target.x = this.camera.position.x;
+    target.y = this.camera.position.y;
+    target.z = this.camera.position.z;
+    target.qx = this.camera.quaternion.x;
+    target.qy = this.camera.quaternion.y;
+    target.qz = this.camera.quaternion.z;
+    target.qw = this.camera.quaternion.w;
+    target.fov = this.camera.fov;
+    target.rig = this.mode === 'trackside' ? this.trackside.activeId : -1;
+    target.exposure = this.renderer.toneMappingExposure;
+    target.textures = this.renderer.info.memory.textures;
+    target.geometries = this.renderer.info.memory.geometries;
+    target.programs = this.renderer.info.programs?.length ?? 0;
+    target.nearCars = target.midCars = target.farCars = 0;
+    for (const car of this.cars) {
+      if (!car.root.visible) continue;
+      if (car.lodLevel === 0) target.nearCars++;
+      else if (car.lodLevel === 1) target.midCars++;
+      else target.farCars++;
+    }
+    target.rain = frame[H.RAIN];
+    target.cloud = frame[H.CLOUD];
+    target.water = frame[H.WATER];
+    target.mirrors = this.reflection.mirrorUpdates;
+    target.probes = this.reflection.probeUpdates;
+  }
+  reviewCar() {
+    return this.follow;
+  }
   stats() {
     const info = this.renderer.info.render;
     const sorted = Array.from(this.frameSamples.subarray(0, this.sampleCount)).sort(
@@ -776,7 +822,7 @@ export class RacingRenderer {
             primary: `#${this.cars[0].paint.color.getHexString()}`,
             accent: `#${this.cars[0].accent.color.getHexString()}`,
             flankSizes: this.cars[0].reflectivePaint
-              .filter((m) => m.map)
+              .filter((m) => m.map && m.userData.liverySide !== undefined)
               .map((m) => {
                 const image = m.map!.image as HTMLCanvasElement;
                 const pixel = image.getContext('2d')?.getImageData(0, 0, 1, 1).data;
@@ -799,6 +845,7 @@ export class RacingRenderer {
       presentedCamera: this.renderedMode,
       tracksideRig: this.trackside.activeId,
       tracksideCuts: this.trackside.cuts,
+      broadcastSubjectRadius: this.trackside.subjectRadius,
       cameraLocalPosition: this.eyeLocal.toArray(),
       mirrorUpdates: this.reflection.mirrorUpdates,
       mirrorWidth: this.reflection.mirrorWidth,

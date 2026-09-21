@@ -1,6 +1,7 @@
 import { Vector3 } from 'three';
 import { clamp, mod } from '../core/math.ts';
 import { Track, trackPoint } from '../simulation/track.ts';
+import { F, H, HEADER, CAR_STRIDE, carBase } from '../simulation/protocol.ts';
 import { inStandFootprint } from './grandstand.ts';
 
 export interface CameraRig {
@@ -10,6 +11,7 @@ export interface CameraRig {
   position: Vector3;
   baseFov: number;
   trackingHz: number;
+  zoomHz: number;
   shot: 'grid-finish' | 'corner' | 'straight' | 'elevated';
   leadSeconds: number;
 }
@@ -38,6 +40,46 @@ export const TRACKSIDE_PLATFORMS = [
   [-1, 6, 42],
 ] as const;
 
+export const BROADCAST_STYLES = Object.freeze({
+  'grid-finish': { panHz: 12, zoomHz: 7, leadSeconds: 0.1 },
+  corner: { panHz: 11, zoomHz: 6, leadSeconds: 0.08 },
+  straight: { panHz: 9, zoomHz: 5, leadSeconds: 0.16 },
+  elevated: { panHz: 7, zoomHz: 4, leadSeconds: 0.12 },
+});
+
+/** Widen for nearby moving battle participants without a nearest-car identity
+ * switch. Weight reaches exactly zero at 16m. The followed car remains the
+ * optical subject; portrait/close views may fall back to single-car framing. */
+export function broadcastRadius(frame: Float32Array, followed: number) {
+  const cars = frame[H.CARS];
+  if (
+    !Number.isInteger(cars) ||
+    cars < 1 ||
+    cars > 12 ||
+    !Number.isInteger(followed) ||
+    followed < 0 ||
+    followed >= cars ||
+    frame.length < HEADER + cars * CAR_STRIDE
+  )
+    throw new Error('Invalid broadcast frame');
+  const o = carBase(followed);
+  let radius = 3.1;
+  for (let id = 0; id < cars; id++) {
+    const b = carBase(id);
+    if (id === followed || frame[b + F.RETIRED] || frame[b + F.IN_PIT]) continue;
+    const d = Math.hypot(
+      frame[b + F.X] - frame[o + F.X],
+      frame[b + F.Y] - frame[o + F.Y],
+      frame[b + F.Z] - frame[o + F.Z],
+    );
+    if (!Number.isFinite(d)) throw new Error('Invalid broadcast participant');
+    const t = clamp((16 - d) / 8, 0, 1),
+      weight = t * t * (3 - 2 * t);
+    radius = Math.max(radius, 3.1 + d * weight);
+  }
+  return radius;
+}
+
 export function tracksideRigs(track: Track): readonly CameraRig[] {
   const p = trackPoint(),
     spacing = track.length / TRACKSIDE_PLATFORMS.length;
@@ -51,30 +93,60 @@ export function tracksideRigs(track: Track): readonly CameraRig[] {
     // hide the stand or move a camera dynamically to mask an obstruction.
     if (inStandFootprint(track, p.x + p.nx * offset, p.z + p.nz * offset, 1.2, 22))
       offset = side * (track.boundary(centerS + spacing * 0.18, side) + 3.4);
+    const shot: CameraRig['shot'] =
+      id === 0
+        ? 'grid-finish'
+        : Math.abs(p.curvature) > 0.012
+          ? 'corner'
+          : height >= 6
+            ? 'elevated'
+            : 'straight';
+    const style = BROADCAST_STYLES[shot];
     return {
       id,
       centerS,
       coverageM: spacing + 16,
       position: new Vector3(p.x + p.nx * offset, p.y + height, p.z + p.nz * offset),
       baseFov: fov,
-      trackingHz: 12,
-      shot: id === 0 ? 'grid-finish' : Math.abs(p.curvature) > 0.012 ? 'corner' : height >= 6 ? 'elevated' : 'straight',
-      leadSeconds: Math.abs(p.curvature) > 0.012 ? 0.08 : 0.14,
+      trackingHz: style.panHz,
+      zoomHz: style.zoomHz,
+      shot,
+      leadSeconds: style.leadSeconds,
     };
   });
 }
 
 /** A complete car fits within a 3.1 m bounding sphere. Reserve composition
  * room on the smaller screen axis, including narrow/portrait viewports. */
-export function tracksideFraming(distanceM: number, baseFov: number, aspect = 16 / 9) {
-  if (!Number.isFinite(distanceM) || distanceM <= 0 || !Number.isFinite(baseFov) ||
-    !Number.isFinite(aspect) || aspect <= 0) throw new Error('Invalid trackside framing');
+export function tracksideFraming(
+  distanceM: number,
+  baseFov: number,
+  aspect = 16 / 9,
+  subjectRadius = 3.1,
+) {
+  if (
+    !Number.isFinite(distanceM) ||
+    distanceM <= 0 ||
+    !Number.isFinite(baseFov) ||
+    !Number.isFinite(aspect) ||
+    aspect <= 0 ||
+    !Number.isFinite(subjectRadius) ||
+    subjectRadius < 3.1
+  )
+    throw new Error('Invalid trackside framing');
   const smallAxis = Math.min(1, aspect);
-  const radius = Math.asin(Math.min(0.98, 3.1 / Math.max(3.2, distanceM)));
-  const required = 2 * Math.atan(Math.tan(radius / 0.72) / smallAxis) * 180 / Math.PI;
+  const radius = Math.asin(
+    Math.min(0.98, subjectRadius / Math.max(subjectRadius + 0.1, distanceM)),
+  );
+  const required = (2 * Math.atan(Math.tan(radius / 0.72) / smallAxis) * 180) / Math.PI;
   const fov = clamp(Math.max(baseFov * Math.sqrt(40 / Math.max(20, distanceM)), required), 24, 55);
-  const half = Math.atan(Math.tan(fov * Math.PI / 360) * smallAxis);
-  return { fov, gazeAllowance: Math.max(0, half * 0.78 - radius), fits: radius < half };
+  const half = Math.atan(Math.tan((fov * Math.PI) / 360) * smallAxis);
+  return {
+    fov,
+    minimumFov: Math.min(55, required),
+    gazeAllowance: Math.max(0, half * 0.78 - radius),
+    fits: radius < half,
+  };
 }
 
 /** Fixed trackside positions plus a predictable pan/zoom director. Replay seeks
@@ -87,6 +159,7 @@ export class TracksideDirector {
   private targetDirection = new Vector3();
   private viewDirection = new Vector3();
   framingFits = true;
+  subjectRadius = 3.1;
   activeId = -1;
   cuts = 0;
   fov = 42;
@@ -100,7 +173,7 @@ export class TracksideDirector {
     this.previousS = NaN;
     this.previousAspect = NaN;
   }
-  update(s: number, target: Vector3, velocity: Vector3, dt: number, aspect = 16 / 9) {
+  update(s: number, target: Vector3, velocity: Vector3, dt: number, aspect = 16 / 9, radius = 3.1) {
     if (
       !Number.isFinite(
         s + dt + target.x + target.y + target.z + velocity.x + velocity.y + velocity.z,
@@ -122,11 +195,18 @@ export class TracksideDirector {
     const rig = this.rigs[id];
     this.position.copy(rig.position);
     const distanceM = this.position.distanceTo(target);
-    const framing = tracksideFraming(Math.max(0.001, distanceM), rig.baseFov, aspect);
+    let framing = tracksideFraming(Math.max(0.001, distanceM), rig.baseFov, aspect, radius);
+    this.subjectRadius = radius;
+    if (!framing.fits && radius > 3.1) {
+      this.subjectRadius = 3.1;
+      framing = tracksideFraming(Math.max(0.001, distanceM), rig.baseFov, aspect);
+    }
     this.framingFits = framing.fits;
     const speed = velocity.length();
-    const lead = Math.min(rig.leadSeconds,
-      distanceM * Math.tan(framing.gazeAllowance * 0.6) / Math.max(0.001, speed));
+    const lead = Math.min(
+      rig.leadSeconds,
+      (distanceM * Math.tan(framing.gazeAllowance * 0.6)) / Math.max(0.001, speed),
+    );
     this.predicted.copy(target).addScaledVector(velocity, lead);
     const fov = framing.fov;
     if (cut || resized) {
@@ -136,14 +216,19 @@ export class TracksideDirector {
     } else {
       const mix = -Math.expm1(-rig.trackingHz * dt);
       this.gaze.lerp(this.predicted, mix);
-      this.fov += (fov - this.fov) * mix;
+      this.fov += (fov - this.fov) * -Math.expm1(-rig.zoomHz * dt);
+      // Widen immediately when required for safety; tighten with the authored
+      // lens rate. No lag-induced cropping on a fast approach.
+      this.fov = Math.max(framing.minimumFov, this.fov);
     }
     // Pan filtering must not push a close, fast car outside the frame. Clamp
     // the optical direction to a safe cone; never translate the physical rig.
     if (cut || resized || dt > 0) {
       // The actual filtered FOV, not a second distance-scaled FOV, owns the cone.
-      const half = Math.atan(Math.tan(this.fov * Math.PI / 360) * Math.min(1, aspect));
-      const radius = Math.asin(Math.min(0.98, 3.1 / Math.max(3.2, distanceM)));
+      const half = Math.atan(Math.tan((this.fov * Math.PI) / 360) * Math.min(1, aspect));
+      const radius = Math.asin(
+        Math.min(0.98, this.subjectRadius / Math.max(this.subjectRadius + 0.1, distanceM)),
+      );
       const allowed = Math.max(0, half * 0.78 - radius);
       this.framingFits = radius < half;
       this.targetDirection.copy(target).sub(this.position).normalize();
@@ -153,10 +238,14 @@ export class TracksideDirector {
       if (angle > allowed + 1e-8) {
         if (dot < -0.9999 || allowed === 0) this.gaze.copy(target);
         else {
-          const fraction = allowed / angle, sine = Math.sin(angle);
-          this.gaze.copy(this.targetDirection).multiplyScalar(Math.sin((1 - fraction) * angle) / sine)
+          const fraction = allowed / angle,
+            sine = Math.sin(angle);
+          this.gaze
+            .copy(this.targetDirection)
+            .multiplyScalar(Math.sin((1 - fraction) * angle) / sine)
             .addScaledVector(this.viewDirection, Math.sin(fraction * angle) / sine)
-            .multiplyScalar(distanceM).add(this.position);
+            .multiplyScalar(distanceM)
+            .add(this.position);
         }
       }
     }

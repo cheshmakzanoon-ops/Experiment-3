@@ -38,11 +38,19 @@ export function daylightState(cloud: number, rain: number) {
  * Keep a low ambient floor so unlit carbon remains readable between mast pools. */
 export function circuitLightState(cloud: number, rain: number, night = false) {
   const light = daylightState(cloud, rain);
-  if (night) Object.assign(light, {
-    sun: 0.11, fill: 0.20, environment: 0.07, exposure: 1.08,
-    fogDensity: light.fogDensity * 0.75,
-    fogRed: 0.008, fogGreen: 0.014, fogBlue: 0.030,
-  });
+  if (night)
+    Object.assign(light, {
+      // Broad wet/cloud response is immutable for a given snapshot. No automatic
+      // exposure reacts to the camera, car colour, or entry into a light pool.
+      sun: 0.105 * (1 - light.cover * 0.55),
+      fill: 0.205 + light.cover * 0.025,
+      environment: 0.07 + light.cover * 0.01,
+      exposure: 1.06 - clamp(rain, 0, 60) * 0.001,
+      fogDensity: light.fogDensity * 0.75,
+      fogRed: 0.01 + light.cover * 0.002,
+      fogGreen: 0.014 + light.cover * 0.003,
+      fogBlue: 0.026 + light.cover * 0.002,
+    });
   return light;
 }
 

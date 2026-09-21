@@ -1,3 +1,5 @@
+import { sculptedLoft } from './bodywork.ts';
+import { NOSE_SECTIONS, POD_SECTIONS, ENGINE_SECTIONS } from './car-surfaces.ts';
 import * as T from 'three';
 import { loft, mesh, box, mergeStatic, tube } from './geometry.ts';
 import { WHEEL_POSITIONS } from '../simulation/vehicle.ts';
@@ -45,36 +47,31 @@ export class ReducedCar {
       ),
       carbon,
     );
+    // Share the hero envelopes. Lower tessellation must not restore the old
+    // swollen sidepod or broad nose when an opponent crosses its LOD threshold.
+    const detail = level === 1 ? 'mid' : 'far';
+    mesh(body, sculptedLoft(NOSE_SECTIONS, 0, 0.32, [], detail), paint);
+    mesh(body, sculptedLoft(ENGINE_SECTIONS, 0, 0.18, [], detail), paint);
     mesh(
       body,
       loft(
         [
-          [-1.8, -0.02, 0.12, 0.11],
-          [-0.6, 0.12, 0.28, 0.37],
-          [0.45, 0.01, 0.3, 0.19],
-          [1.8, -0.14, 0.12, 0.07],
-          [2.5, -0.24, 0.04, 0.018],
+          [-0.72, 0.03, 0.285, 0.18],
+          [-0.05, 0.04, 0.29, 0.15],
+          [0.4, 0.025, 0.3, 0.17],
         ],
         sides,
       ),
       paint,
     );
     for (const side of [-1, 1]) {
-      mesh(
+      const pod = mesh(
         body,
-        loft(
-          [
-            [-1.7, -0.13, 0.08, 0.11],
-            [-0.85, -0.05, 0.29, 0.23],
-            [0.25, -0.01, 0.26, 0.13],
-          ],
-          sides,
-        ),
+        sculptedLoft(POD_SECTIONS, 0.58, 0.65, [], detail),
         paint,
         side * 0.53,
-        0,
-        0,
       );
+      pod.rotation.z = side * -0.08;
       box(this.front, paint, side * 0.96, -0.28, 2.45, 0.035, 0.15, 0.5);
       box(this.rear, paint, side * 0.83, 0.42, -2.04, 0.035, 0.43, 0.51);
     }

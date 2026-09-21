@@ -7,6 +7,7 @@ interface PhotoCallbacks {
   preview(livery: Livery): void;
   save(livery: Livery): Promise<void>;
   capture(): void;
+  unlinkReference?(): void;
   close(): void;
 }
 const sliders = [
@@ -73,7 +74,10 @@ export class PhotoStudio {
       const action = button.dataset.photoAction;
       if (action === 'close') this.callbacks.close();
       else if (action === 'capture') this.callbacks.capture();
-      else if (action === 'reset') {
+      else if (action === 'unlinkReference') {
+        this.callbacks.unlinkReference?.();
+        this.reference(null);
+      } else if (action === 'reset') {
         this.settings = { ...DEFAULT_PHOTO };
         this.callbacks.change(this.settings);
         this.fillCamera();
@@ -111,7 +115,7 @@ export class PhotoStudio {
     this.cars = Math.max(1, Math.min(12, cars));
     this.settings = { ...DEFAULT_PHOTO };
     this.element.classList.remove('clean-frame');
-    this.element.innerHTML = `<header class="photo-title"><span class="eyebrow">APEX / PHOTO STUDIO</span><h2>Hold the moment.</h2><p>FROZEN SIMULATION · ORIGINAL GAME RENDER</p></header><div class="photo-top-actions"><button data-photo-action="clean">CLEAN FRAME</button><button data-photo-action="close">RETURN / ESC</button></div><aside class="photo-drawer" aria-label="Photo studio controls"><h3>Compose</h3><label>SETTING<select id="photoBackdrop" data-photo="backdrop"><option value="circuit">ON CIRCUIT</option><option value="studio">DARK SHOWROOM</option><option value="headquarters">TEAM WORKSHOP / ATRIUM</option></select></label><label>SUBJECT<select id="photoTarget" data-photo="target">${Array.from({ length: this.cars }, (_, id) => `<option value="${id}">${id === 0 ? 'YOUR CAR' : `CAR ${id + 1}`}</option>`).join('')}</select></label>${sliders.map(([key, title, min, max, step, unit]) => `<label for="photo-${key}">${title}<span><output for="photo-${key}">${this.settings[key]}</output>${unit}</span></label><input id="photo-${key}" data-photo="${key}" aria-label="${title}" type="range" min="${min}" max="${max}" step="${step}" value="${this.settings[key]}">`).join('')}<label class="check"><input data-photo="depthOfField" id="photo-depthOfField" type="checkbox">DEPTH OF FIELD</label><label>FOCUS<select data-photo="focusMode" id="photo-focusMode"><option value="subject">FOLLOW SUBJECT DEPTH</option><option value="manual">MANUAL DISTANCE</option></select></label><label>GEOMETRY SURVEY<select data-photo="survey" id="photo-survey"><option value="off">NORMAL RENDER</option><option value="split">POINTS / RENDER SPLIT</option><option value="points">POINT CLOUD ONLY</option></select></label><p class="photo-help">24 mm vertical film gate. Depth-based bokeh is an artistic approximation, not lens-calibrated shutter accumulation. Survey points are sampled from this original circuit geometry, NOT imported LiDAR or reference pixels. Survey is circuit-only.</p><div class="photo-buttons"><button data-photo-action="reset">RESET CAMERA</button><button class="primary" id="capturePhoto" data-photo-action="capture">DOWNLOAD PNG</button></div><form id="photoLivery"><h3>Make it yours.</h3><label>STUDIO PRESET<select id="liveryPreset"><option value="">CUSTOM</option>${Object.keys(
+    this.element.innerHTML = `<header class="photo-title"><span class="eyebrow">APEX / PHOTO STUDIO</span><h2>Hold the moment.</h2><p>FROZEN SIMULATION · ORIGINAL GAME RENDER</p></header><div class="photo-top-actions"><button data-photo-action="clean">CLEAN FRAME</button><button data-photo-action="close">RETURN / ESC</button></div><aside class="photo-drawer" aria-label="Photo studio controls"><h3>Compose</h3><label>SETTING<select id="photoBackdrop" data-photo="backdrop"><option value="circuit">ON CIRCUIT</option><option value="studio">DARK SHOWROOM</option><option value="headquarters">TEAM WORKSHOP / ATRIUM</option></select></label><label>SUBJECT<select id="photoTarget" data-photo="target">${Array.from({ length: this.cars }, (_, id) => `<option value="${id}">${id === 0 ? 'YOUR CAR' : `CAR ${id + 1}`}</option>`).join('')}</select></label>${sliders.map(([key, title, min, max, step, unit]) => `<label for="photo-${key}">${title}<span><output for="photo-${key}">${this.settings[key]}</output>${unit}</span></label><input id="photo-${key}" data-photo="${key}" aria-label="${title}" type="range" min="${min}" max="${max}" step="${step}" value="${this.settings[key]}">`).join('')}<label class="check"><input data-photo="depthOfField" id="photo-depthOfField" type="checkbox">DEPTH OF FIELD</label><label>FOCUS<select data-photo="focusMode" id="photo-focusMode"><option value="subject">FOLLOW SUBJECT DEPTH</option><option value="manual">MANUAL DISTANCE</option></select></label><label>GEOMETRY SURVEY<select data-photo="survey" id="photo-survey"><option value="off">NORMAL RENDER</option><option value="split">POINTS / RENDER SPLIT</option><option value="points">POINT CLOUD ONLY</option></select></label><p class="photo-help">24 mm vertical film gate. Depth-based bokeh is an artistic approximation, not lens-calibrated shutter accumulation. Survey points are sampled from this original circuit geometry, NOT imported LiDAR or reference pixels. Survey is circuit-only.</p><p id="photoReference" class="photo-help"></p><button id="unlinkReference" data-photo-action="unlinkReference" hidden>UNLINK REFERENCE</button><div class="photo-buttons"><button data-photo-action="reset">RESET CAMERA</button><button class="primary" id="capturePhoto" data-photo-action="capture">DOWNLOAD PNG</button></div><form id="photoLivery"><h3>Make it yours.</h3><label>STUDIO PRESET<select id="liveryPreset"><option value="">CUSTOM</option>${Object.keys(
       LIVERY_PRESETS,
     )
       .map((key) => `<option value="${key}">${key.toUpperCase()}</option>`)
@@ -126,6 +130,16 @@ export class PhotoStudio {
     this.element.hidden = false;
     this.callbacks.change(this.settings);
     this.element.querySelector<HTMLButtonElement>('[data-photo-action="close"]')?.focus();
+  }
+  reference(id: number | null) {
+    const label = this.element.querySelector<HTMLElement>('#photoReference');
+    const unlink = this.element.querySelector<HTMLButtonElement>('#unlinkReference');
+    if (label)
+      label.textContent =
+        id === null
+          ? 'Unlinked PNG export: no reference comparison will be replaced.'
+          : `Reference ${String(id).padStart(3, '0')} linked: each new PNG replaces its capture, not its human comparison.`;
+    if (unlink) unlink.hidden = id === null;
   }
   compose(value: Partial<PhotoSettings>) {
     this.settings = validatePhoto({ ...this.settings, ...value }, this.cars);

@@ -474,3 +474,14 @@ priority cycle without overriding velocity or weakening the service gate. See
 The [individual image review](docs/REFERENCE_100_IMAGE_BY_IMAGE_REVIEW.md) rechecks every numbered file against its original hash. New runtime work adds ten independent flank-text decals, opt-in photo focus, a real mesh-derived point-cloud/render comparison, advisory audio-driving cues, an original inspectable 3D workshop/atrium and a four-week team-economy calendar. Open **Reference Review** for individual inspection routes. These are original implementations, not copied reference artwork or a claim of commercial-game parity.
 
 Run `npm run test:reference-ui` for real browser DOM, Canvas2D texture and OfflineAudioContext evidence; `CHROMIUM_PATH` selects an installed browser and `REFERENCE_EVIDENCE_DIR` selects its output directory. This is explicitly **not** the GPU gameplay suite. See [validation](docs/REFERENCE_100_PASS_VALIDATION.md) for measured results and the WebGL2 limitation.
+
+### Phase 27E presentation and evidence continuation
+
+Original car/cockpit/service-area detail, snapshot-lit wet spray and broadcast
+framing now accompany source-linked PNG/reference decisions and optional full-lap
+frame/video recording. Open Reference Review for numbered comparisons, or pause
+a session and select FULL-LAP VISUAL REVIEW for actual frame observations.
+
+Read [Phase 27E scope, measurements, reproduction and outstanding acceptance](docs/PHASE_27E_PRESENTATION_ACCEPTANCE.md)
+before treating any screenshot, passing test or local capture as commercial
+visual parity, representative hardware evidence or Steam-release acceptance.

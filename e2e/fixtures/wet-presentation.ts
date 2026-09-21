@@ -160,13 +160,26 @@ export async function captureWetRace() {
     const held = renderer.effects.diagnostics(),
       copy = frame.slice();
     for (const view of ['chase', 'cockpit', 'trackside'] as const) {
-      renderer.changeCamera(view);
-      for (let i = 0; i < 2; i++) renderer.draw(frame, frame, 1, 1 / 60, false);
-      captures.push({
-        view,
-        image: canvas.toDataURL('image/png'),
-        draws: renderer.renderer.info.render.calls,
-        triangles: renderer.renderer.info.render.triangles,
+      // A non-preserved drawing buffer is cleared after browser composition.
+      // Own the render + readback in one animation frame, as the application
+      // does, instead of racing timer-driven GPU work against the compositor.
+      // Keep both held draws, all quality settings, and the image assertions.
+      await new Promise<void>((resolve, reject) => {
+        requestAnimationFrame(() => {
+          try {
+            renderer.changeCamera(view);
+            for (let i = 0; i < 2; i++) renderer.draw(frame, frame, 1, 1 / 60, false);
+            captures.push({
+              view,
+              image: canvas.toDataURL('image/png'),
+              draws: renderer.renderer.info.render.calls,
+              triangles: renderer.renderer.info.render.triangles,
+            });
+            resolve();
+          } catch (error) {
+            reject(error);
+          }
+        });
       });
     }
     const after = renderer.effects.diagnostics();

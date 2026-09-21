@@ -222,3 +222,17 @@ full ten-car service gate. Both diagnostic and paged replay retain skid data.
 The suite contains 497 unit tests and adds a full WebGL contact-effect oracle.
 See ROAD_CONTACT_AND_SKIDS.md for evidence, calibration and remaining boundaries.
 No new blanket claim of final AAA fidelity or section-146 completion is made.
+
+## Phase 27E continuation from 6279ac7
+
+The car/body/material, close driver, authored service-area, wet/night and broadcast
+presentation paths now have further original detail and regression coverage.
+Source-identified PNG/reference decisions, raw full-lap frame observations,
+optional silent video and a strict evidence verifier are connected to the app.
+The capture tools do not approve their own art or certify hardware. See
+[Phase 27E implementation, measurements and remaining acceptance](PHASE_27E_PRESENTATION_ACCEPTANCE.md).
+
+All ten workstreams have implementation work, but the complete Phase 27E quality
+gate, independent 100-image visual acceptance, full human-driven Section 146,
+representative hardware, current-commit full browser CI and Steam readiness are
+not declared complete. Existing master/requirement ledgers remain authoritative.

@@ -358,7 +358,7 @@ export class Interface {
   }
   pause() {
     this.modalContent(
-      `<span class="eyebrow">SESSION SUSPENDED</span><h2>Hold your line.</h2><p>Simulation and race time are paused.</p><div class="dialog-buttons"><button class="primary" data-action="resume">RESUME SESSION</button><button data-action="settings">GARAGE & SETTINGS</button><button data-action="replay">WATCH REPLAY</button><button data-action="photo">PHOTO STUDIO</button><button data-action="academy">ACADEMY</button><button data-action="team">TEAM HQ</button><button data-action="performance">PERFORMANCE CAPTURE</button><button data-action="restart">RESTART SESSION</button><button data-action="menu">RETURN TO PADDOCK</button></div>`,
+      `<span class="eyebrow">SESSION SUSPENDED</span><h2>Hold your line.</h2><p>Simulation and race time are paused.</p><div class="dialog-buttons"><button class="primary" data-action="resume">RESUME SESSION</button><button data-action="settings">GARAGE & SETTINGS</button><button data-action="replay">WATCH REPLAY</button><button data-action="photo">PHOTO STUDIO</button><button data-action="academy">ACADEMY</button><button data-action="team">TEAM HQ</button><button data-action="performance">PERFORMANCE CAPTURE</button><button data-action="visualReview">FULL-LAP VISUAL REVIEW</button><button data-action="restart">RESTART SESSION</button><button data-action="menu">RETURN TO PADDOCK</button></div>`,
     );
   }
   performance(status: string, machine: string, workload: string, exportable: boolean) {
@@ -373,6 +373,20 @@ export class Interface {
     this.get('profileStatus').textContent = status;
     (this.get('profileMachine') as HTMLInputElement).value = machine;
     (this.get('profileWorkload') as HTMLInputElement).value = workload;
+  }
+  presentationReview(status: string, machine: string, exportable: boolean, videoReady: boolean) {
+    this
+      .modalContent(`<span class="eyebrow">PHASE 27E / EVIDENCE</span><h2>Review the complete lap.</h2>
+      <p id="visualReviewStatus"></p>
+      <p>Use the current session and camera. A full lap ends only after a complete forward circuit traversal and a real lap-counter increase. The 30-second mode covers grid/pit scenes without claiming a full lap.</p>
+      <label>COMPUTER / POWER PROFILE<input id="reviewMachine" maxlength="80" placeholder="e.g. laptop-plugged-in / GPU model" /></label>
+      <label>WORKLOAD<select id="reviewWorkload"><option value="clear-day">Clear day</option><option value="overcast-day">Overcast day</option><option value="wet-day">Wet day</option><option value="wet-night">Wet night</option><option value="grid-start">Grid start</option><option value="pit-service">Pit service</option><option value="other">Other / changing weather</option></select></label>
+      <label>CAPTURE<select id="reviewMode"><option value="full-lap">Full lap</option><option value="timed-scene">30-second scene</option></select></label>
+      <label><input id="reviewVideo" type="checkbox" /> ALSO RECORD LOCAL SILENT VIDEO (64 MiB maximum)</label>
+      <p>Repeat clear, overcast, wet and wet-night sessions with cockpit, chase, pod and broadcast cameras. Choose the weather label matching the actual session; this tool never changes weather or drives the car. Changing settings, pausing or losing focus interrupts the evidence. Video adds encoding cost and can coalesce frames; JSON retains every observed rendered-frame interval. No GPU VRAM or physical-controller certification is inferred.</p>
+      <div class="dialog-buttons"><button class="primary" data-action="reviewStart">RESUME & RECORD REVIEW</button><button data-action="reviewExport" ${exportable ? '' : 'disabled'}>EXPORT FRAME JSON</button><button data-action="reviewVideoExport" ${videoReady ? '' : 'disabled'}>EXPORT SILENT WEBM</button><button data-action="visualReview">REFRESH EVIDENCE STATUS</button><button data-action="modalClose">BACK</button></div>`);
+    this.get('visualReviewStatus').textContent = status;
+    (this.get('reviewMachine') as HTMLInputElement).value = machine;
   }
   controls(bindings: Bindings) {
     this.modalContent(

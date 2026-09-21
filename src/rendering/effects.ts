@@ -439,6 +439,13 @@ export class Effects {
       windZ: this.windZ,
     };
   }
+  /** Number of actual presented rear signals in the bounded spray light field. */
+  get signalSourceCount() {
+    return this.spray.signals.count.value;
+  }
+  setSignalLights(frame: Float32Array, enabled: boolean) {
+    this.spray.signals.update(frame, enabled && this.enabled);
+  }
   clear() {
     this.life.fill(0);
     this.alpha.fill(0);

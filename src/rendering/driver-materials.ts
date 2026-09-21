@@ -66,7 +66,7 @@ export function driverMaterials() {
   };
   return {
     suit: fabric('Original teal woven driver suit', 0x283f46),
-    glove: fabric('Original warm-grey woven glove', 0xb9b7a9),
+    glove: fabric('Original sage woven glove', 0x8eaaa8),
     panel: fabric('Original dark glove reinforcement', 0x394b4e),
     grip: new T.MeshStandardMaterial({
       name: 'Matte silicone glove grip',

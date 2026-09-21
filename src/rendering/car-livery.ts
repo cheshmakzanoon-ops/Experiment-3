@@ -1,3 +1,4 @@
+import { installPaintFinish } from './paint-finish.ts';
 import * as T from 'three';
 import { canvasTexture } from './geometry.ts';
 import type { DecalSlot, Livery } from '../storage/livery.ts';
@@ -72,6 +73,8 @@ function drawFlank(
 /** Original marks on a UV-conforming skin, never extracted reference artwork. */
 export function flankLivery(paint: T.MeshPhysicalMaterial, side: number, id: number) {
   const material = paint.clone();
+  delete material.userData.aurelPaintFinish;
+  installPaintFinish(material);
   material.color.set(0xffffff);
   material.map = canvasTexture(1024, 1024, (context) =>
     drawFlank(context, paint.color.getStyle(), side, id),

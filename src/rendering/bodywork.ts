@@ -2,6 +2,13 @@ import * as T from 'three';
 import { clamp } from '../core/math.ts';
 
 export type BodySection = readonly [z: number, y: number, halfWidth: number, halfHeight: number];
+export interface LoftOpening {
+  readonly z0: number;
+  readonly z1: number;
+  readonly u0: number;
+  readonly u1: number;
+}
+
 /** Smooth, bounded longitudinal interpolation. Shape dimensions never overshoot
  * their authored envelopes; unlike an unconstrained spline this cannot create
  * inverted sidepods or a negative-width nose between narrow control sections. */
@@ -45,7 +52,13 @@ export function sampleBody(sections: readonly BodySection[], z: number): BodySec
 /** Near-car shell. Cross-section flattening and a narrower ventral section give
  * the sidepod a real undercut instead of an inflated ellipsoid. Endcaps are
  * separate vertices so they cannot round the silhouette into the adjoining skin. */
-export function sculptedLoft(sections: readonly BodySection[], undercut = 0, flatten = 0) {
+export function sculptedLoft(
+  sections: readonly BodySection[],
+  undercut = 0,
+  flatten = 0,
+  openings: readonly LoftOpening[] = [],
+  detail: 'high' | 'mid' | 'far' = 'high',
+) {
   sampleBody(sections, sections[0]?.[0] ?? 0);
   if (
     ![undercut, flatten].every(Number.isFinite) ||
@@ -55,10 +68,37 @@ export function sculptedLoft(sections: readonly BodySection[], undercut = 0, fla
     flatten > 0.9
   )
     throw new Error('Invalid body cross-section');
-  const rows: BodySection[] = [],
-    sides = 40;
+  if (!['high', 'mid', 'far'].includes(detail)) throw new Error('Invalid body detail');
+  for (const hole of openings) {
+    if (
+      ![hole.z0, hole.z1, hole.u0, hole.u1].every(Number.isFinite) ||
+      hole.z0 <= sections[0][0] ||
+      hole.z1 >= sections.at(-1)![0] ||
+      hole.z0 >= hole.z1 ||
+      hole.u0 <= 0 ||
+      hole.u1 >= 1 ||
+      hole.u0 >= hole.u1
+    )
+      throw new Error('Loft opening must lie strictly inside the shell');
+  }
+  const rows: BodySection[] = [];
+  // Aperture edges are explicit grid boundaries, not removed triangles selected
+  // by an approximate centroid. The unchanged default keeps the old topology.
+  const radial = detail === 'high' ? 40 : detail === 'mid' ? 12 : 8;
+  const us = [
+    ...new Set([
+      ...Array.from({ length: radial + 1 }, (_, j) => j / radial),
+      ...openings.flatMap((h) => [h.u0, h.u1]),
+    ]),
+  ].sort((a, b) => a - b);
+  const sides = us.length - 1;
   for (let i = 0; i < sections.length - 1; i++) {
-    const subdivisions = clamp(Math.ceil((sections[i + 1][0] - sections[i][0]) * 12), 3, 10);
+    const subdivisions =
+      detail === 'high'
+        ? clamp(Math.ceil((sections[i + 1][0] - sections[i][0]) * 12), 3, 10)
+        : detail === 'mid'
+          ? clamp(Math.ceil((sections[i + 1][0] - sections[i][0]) * 3), 1, 4)
+          : 1;
     for (let j = 0; j < subdivisions; j++)
       rows.push(
         sampleBody(
@@ -68,6 +108,11 @@ export function sculptedLoft(sections: readonly BodySection[], undercut = 0, fla
       );
   }
   rows.push(sections.at(-1)!);
+  if (openings.length) {
+    for (const z of openings.flatMap((h) => [h.z0, h.z1]))
+      if (!rows.some((r) => Math.abs(r[0] - z) < 1e-9)) rows.push(sampleBody(sections, z));
+    rows.sort((a, b) => a[0] - b[0]);
+  }
   const positions: number[] = [],
     uvs: number[] = [],
     indices: number[] = [];
@@ -75,7 +120,7 @@ export function sculptedLoft(sections: readonly BodySection[], undercut = 0, fla
     span = sections.at(-1)![0] - start;
   for (const [z, y, w, h] of rows)
     for (let j = 0; j <= sides; j++) {
-      const angle = (j / sides) * Math.PI * 2 - Math.PI / 2,
+      const angle = us[j] * Math.PI * 2 - Math.PI / 2,
         sn = Math.sin(angle),
         cs = Math.cos(angle);
       const lower = clamp((-sn - 0.05) / 0.85, 0, 1);
@@ -84,10 +129,13 @@ export function sculptedLoft(sections: readonly BodySection[], undercut = 0, fla
         y + Math.sign(sn) * Math.abs(sn) ** (1 - flatten * 0.5) * h,
         z,
       );
-      uvs.push(j / sides, (z - start) / span);
+      uvs.push(us[j], (z - start) / span);
     }
   for (let i = 0; i < rows.length - 1; i++)
     for (let j = 0; j < sides; j++) {
+      const midZ = (rows[i][0] + rows[i + 1][0]) / 2,
+        midU = (us[j] + us[j + 1]) / 2;
+      if (openings.some((h) => midZ > h.z0 && midZ < h.z1 && midU > h.u0 && midU < h.u1)) continue;
       const a = i * (sides + 1) + j,
         b = a + sides + 1;
       indices.push(a, a + 1, b, a + 1, b + 1, b);
