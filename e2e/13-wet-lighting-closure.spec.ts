@@ -30,6 +30,7 @@ test('lit spray follows scene lights, projected wake, pause, clear and near-plan
   for (const name of ['unlit', 'non-spray-excluded', 'near-plane', 'cleared', 'fogged', 'occluded'])
     expect(shot(name).pixels, name).toBe(0);
   expect(result.pauseExact).toBe(true); expect(result.restoreExact).toBe(true);
+  expect(result.axialMaxDifference).toBeLessThanOrEqual(2);
   expect(result.after).toEqual(result.before);
   expect(result.captures.every((s) => s.draws === (s.view === 'occluded' ? 2 : 1))).toBe(true);
   expect(await page.locator('canvas').count()).toBe(0);

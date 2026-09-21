@@ -42,6 +42,14 @@ export function captureWetLightingClosure() {
   capture('day-horizontal-wake');
   velocities.set([0, 4, 0]); spray.upload(); capture('day-vertical-wake');
   const held = capture('held'); const repeated = capture('held-repeat');
+  velocities.set([0, 0, 0]); spray.upload(); capture('axial-zero');
+  const axialPixels = bytes.slice(); let axialMaxDifference = 0;
+  for (const [view, speed] of [['axial-positive', 0.002], ['axial-negative', -0.002]] as const) {
+    velocities.set([speed, 0, 0]); spray.upload(); capture(view);
+    for (let i = 0; i < bytes.length; i++)
+      axialMaxDifference = Math.max(axialMaxDifference, Math.abs(bytes[i] - axialPixels[i]));
+  }
+  velocities.set([0, 4, 0]); spray.upload();
   scene.fog = new T.Fog(0x000000, 0, 2); capture('fogged'); scene.fog = null;
   const blocker = new T.Mesh(new T.PlaneGeometry(5, 5), new T.MeshBasicMaterial({ color: 0x000000 }));
   blocker.position.set(0, 1, 1); scene.add(blocker); capture('occluded');
@@ -59,7 +67,7 @@ export function captureWetLightingClosure() {
   opacity.fill(0); spray.clear(); capture('cleared');
   const glError = renderer.getContext().getError();
   disposePhase27Scene(scene); renderer.dispose(); canvas.remove();
-  return { captures, glError, before, after,
+  return { captures, glError, before, after, axialMaxDifference,
     pauseExact: held.image === repeated.image, restoreExact: held.image === restored.image };
 }
 

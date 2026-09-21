@@ -47,13 +47,14 @@ export class SprayClouds {
         varying vec2 vUv;
         varying float vOpacity;
         varying float vVariation;
+        varying float vAnisotropy;
         varying vec3 vLight;
         #include <common>
         #include <lights_pars_begin>
         #include <fog_pars_vertex>
         void main() {
           vUv=position.xy; vVariation=variation;
-          vOpacity=0.0; vLight=vec3(0.0);
+          vOpacity=0.0; vLight=vec3(0.0); vAnisotropy=0.0;
           vec4 mvPosition=modelViewMatrix*vec4(center,1.0);
           #include <fog_vertex>
           float depth=-mvPosition.z;
@@ -70,7 +71,10 @@ export class SprayClouds {
           vec2 along=speed>0.001?projected/speed:vec2(0.0,1.0);
           vec2 across=vec2(along.y,-along.x);
           float radius=max(0.01,size)*0.72;
-          float stretch=1.35+min(0.75,speed*0.035);
+          // A wake viewed along its motion has no defined screen-space axis.
+          // Collapse to a radial footprint before that axis can flip or spin.
+          float stretch=1.0+min(1.1,speed*0.12);
+          vAnisotropy=smoothstep(0.05,1.0,speed);
           mvPosition.xy+=radius*(across*position.x+along*position.y*stretch);
           gl_Position=projectionMatrix*mvPosition;
           // Use the scene's real light state. Unlike the old unlit point color,
@@ -95,6 +99,7 @@ export class SprayClouds {
         varying vec2 vUv;
         varying float vOpacity;
         varying float vVariation;
+        varying float vAnisotropy;
         varying vec3 vLight;
         #include <fog_pars_fragment>
         void main() {
@@ -104,7 +109,8 @@ export class SprayClouds {
           float skew=(vVariation-0.5)*0.42;
           vec2 core=vec2(p.x+skew*p.y,p.y*1.10);
           vec2 shoulder=vec2((p.x-skew)*1.35,(p.y+0.24)*0.86);
-          float density=0.62*exp(-dot(core,core)*3.6)+0.38*exp(-dot(shoulder,shoulder)*4.2);
+          float lobes=0.62*exp(-dot(core,core)*3.6)+0.38*exp(-dot(shoulder,shoulder)*4.2);
+          float density=mix(exp(-dot(p,p)*3.6),lobes,vAnisotropy);
           density*=1.0-smoothstep(0.48,1.0,max(abs(p.x),abs(p.y)));
           // Optical-depth alpha composes into a continuous cloud. This remains
           // bounded billboards, not a claim of volumetric multiple scattering.
