@@ -111,7 +111,10 @@ export class SprayClouds {
           vec2 shoulder=vec2((p.x-skew)*1.35,(p.y+0.24)*0.86);
           float lobes=0.62*exp(-dot(core,core)*3.6)+0.38*exp(-dot(shoulder,shoulder)*4.2);
           float density=mix(exp(-dot(p,p)*3.6),lobes,vAnisotropy);
-          density*=1.0-smoothstep(0.48,1.0,max(abs(p.x),abs(p.y)));
+          // The cutoff must become radial as well; a square cutoff still
+          // rotates visibly when near-axial motion changes to a diagonal.
+          float edge=mix(length(p),max(abs(p.x),abs(p.y)),vAnisotropy);
+          density*=1.0-smoothstep(0.48,1.0,edge);
           // Optical-depth alpha composes into a continuous cloud. This remains
           // bounded billboards, not a claim of volumetric multiple scattering.
           float alpha=1.0-exp(-density*vOpacity*1.25);

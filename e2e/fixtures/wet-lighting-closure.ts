@@ -44,8 +44,12 @@ export function captureWetLightingClosure() {
   const held = capture('held'); const repeated = capture('held-repeat');
   velocities.set([0, 0, 0]); spray.upload(); capture('axial-zero');
   const axialPixels = bytes.slice(); let axialMaxDifference = 0;
-  for (const [view, speed] of [['axial-positive', 0.002], ['axial-negative', -0.002]] as const) {
-    velocities.set([speed, 0, 0]); spray.upload(); capture(view);
+  for (const [view, vx, vy] of [
+    ['axial-positive', 0.002, 0], ['axial-negative', -0.002, 0],
+    ['axial-diagonal-ne', 0.002, 0.002], ['axial-diagonal-sw', -0.002, -0.002],
+    ['axial-diagonal-nw', -0.002, 0.002], ['axial-diagonal-se', 0.002, -0.002],
+  ] as const) {
+    velocities.set([vx, vy, 0]); spray.upload(); capture(view);
     for (let i = 0; i < bytes.length; i++)
       axialMaxDifference = Math.max(axialMaxDifference, Math.abs(bytes[i] - axialPixels[i]));
   }
