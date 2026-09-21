@@ -68,10 +68,14 @@ export class CircuitScene {
     this.group.name = 'Aurel circuit';
     this.trackInfrastructure = makeTrackInfrastructurePlan(track);
     this.staff = new MarshalStaffView(this.trackInfrastructure.marshalPosts);
-    this.crowd.add(this.staff.root);
     this.serviceSites = serviceSitePlan(track);
     this.districts = districtPlan(track, this.serviceSites);
     this.group.add(this.props, this.crowd, this.vegetationGroup);
+    // Dynamic trackside staff geometry exists immediately, but it must enter the
+    // scene through the same cooperative construction queue as every other
+    // circuit mesh. This keeps a deferred CircuitScene genuinely empty until
+    // construction starts while preserving identical final synchronous output.
+    this.construction.add('Trackside marshal staff', 1, () => this.crowd.add(this.staff.root));
     this.stateTexture = new T.DataTexture(this.stateBytes, CELL_COLS, CELL_ROWS, T.RGBAFormat);
     this.stateTexture.magFilter = T.LinearFilter;
     this.stateTexture.minFilter = T.LinearFilter;

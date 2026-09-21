@@ -22,15 +22,17 @@ export function referenceRoute(entry: ReferenceEntry): ReferenceRoute | null {
       instruction:
         'Two original articulated people, directed cameras and timed captions present your real local team state. This is a scripted silent briefing, not a copied interview, a branching story campaign or approved human likeness fidelity.',
     };
-  const event = referenceEvent(id);
-  // Preserve the existing held-grid photographic route. A separate live-event
-  // action remains available when preparation must be observed in a session.
-  if (event && id !== 47)
+  // Reference Review exposes actual race-event watches as a separate action.
+  // Keep the primary inspect route stable so a new event witness never replaces
+  // the established photo/settings/team workspace used for image comparison.
+  if (id === 93) {
+    const event = referenceEvent(id)!;
     return {
       destination: 'event',
       label: `WATCH REAL ${event.kind.toUpperCase()}`,
       instruction: event.instruction,
     };
+  }
   if ([26, 70].includes(id))
     return {
       destination: 'settings',

@@ -140,6 +140,8 @@ describe('27G reference events are actual read-only conditions, not route labels
   it('routes 093 to wet cockpit, 026 to assists, 070 to setup and does not invent network features', () => {
     expect(referenceEvent(93)).toMatchObject({ kind: 'wet-traffic', camera: 'cockpit' });
     expect(referenceRoute(REFERENCES[92])!.destination).toBe('event');
+    expect(referenceRoute(REFERENCES[1])!.destination).toBe('photo');
+    expect(referenceEvent(2)).toMatchObject({ kind: 'motion', camera: 'trackside' });
     expect(referenceRoute(REFERENCES[25])!.destination).toBe('settings');
     expect(referenceRoute(REFERENCES[69])!.destination).toBe('settings');
     expect(referenceRoute(REFERENCES[68])!.destination).toBe('gap');
