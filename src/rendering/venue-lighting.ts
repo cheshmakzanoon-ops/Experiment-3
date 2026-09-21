@@ -46,6 +46,18 @@ export function venueLampPlan(track: Track): readonly VenueLampSite[] {
 /** Original circuit illumination. Four fixed-count nearby light sources bound
  * fragment-light cost; visible mast heads remain instanced along the circuit.
  * This is an art-directed night view, not a time-of-day/weather simulation. */
+export const VENUE_LIGHT_INTENSITY = 1800;
+
+/** Four live lamp slots, with the fourth-nearest site's contribution fading to
+ * zero at the selection boundary. Tied sites therefore exchange at zero energy,
+ * not in a flash. Pure spatial weighting makes pause and seeks order-independent. */
+export function venueLightWeight(distance: number, boundary: number) {
+  if (!Number.isFinite(distance) || !Number.isFinite(boundary) || distance < 0 || boundary <= 0)
+    return 0;
+  const t = clamp((boundary - distance) / Math.min(24, boundary * 0.45), 0, 1);
+  return t * t * (3 - 2 * t);
+}
+
 export class VenueLighting {
   readonly root = new T.Group();
   readonly lamps: T.InstancedMesh;
@@ -132,10 +144,13 @@ export class VenueLighting {
           break;
         }
     });
+    const boundary = Math.sqrt(this.distances[3]);
     this.lights.forEach((light, index) => {
       const position = this.locations[this.nearest[index]];
       if (position) light.position.copy(position);
-      light.intensity = night && position ? 450 : 0;
+      light.intensity = night && position
+        ? VENUE_LIGHT_INTENSITY * venueLightWeight(Math.sqrt(this.distances[index]), boundary)
+        : 0;
       light.visible = night && !!position;
     });
     (this.display.material as T.MeshBasicMaterial).color.setScalar(night ? 2.2 : 0.6);
@@ -143,7 +158,9 @@ export class VenueLighting {
   diagnostics() {
     return {
       masts: this.locations.length,
-      nearbyLights: this.lights.filter((light) => light.intensity > 0).length,
+      nearbyLights: this.lights.filter((light) => light.visible).length,
+      lightIntensity: this.lights.map((light) => light.intensity),
+      lightSites: Array.from(this.nearest),
     };
   }
 }

@@ -4,6 +4,7 @@ import { Random, clamp } from '../core/math.ts';
 import { F, H, W, WHEEL_BASE, WHEEL_STRIDE, carBase } from '../simulation/protocol.ts';
 import { renderWind } from '../simulation/weather.ts';
 import { RainStreaks } from './rain-streaks.ts';
+import { SprayClouds } from './spray-clouds.ts';
 
 export const EFFECT_CAPACITY = { contact: 1200, rain: 600 } as const;
 
@@ -50,6 +51,13 @@ export class Effects {
     this.positions.subarray(EFFECT_CAPACITY.contact * 3),
     this.velocities.subarray(EFFECT_CAPACITY.contact * 3),
     this.alpha.subarray(EFFECT_CAPACITY.contact),
+  );
+  private spray = new SprayClouds(
+    this.positions.subarray(0, EFFECT_CAPACITY.contact * 3),
+    this.velocities.subarray(0, EFFECT_CAPACITY.contact * 3),
+    this.sizes.subarray(0, EFFECT_CAPACITY.contact),
+    this.alpha.subarray(0, EFFECT_CAPACITY.contact),
+    this.kind.subarray(0, EFFECT_CAPACITY.contact),
   );
   private viewport = new T.Vector4();
   private rainEmission = 0;
@@ -100,6 +108,7 @@ export class Effects {
         #include <fog_pars_vertex>
         void main() {
           vSolid=solid; vKind=kind; vOpacity=opacity; vColor=color;
+          if(kind<.5) { vOpacity=0.; gl_Position=vec4(2.,2.,2.,1.); gl_PointSize=1.; return; }
           vec4 mvPosition=modelViewMatrix*vec4(position,1.);
           gl_Position=projectionMatrix*mvPosition;
           float scale=vKind<.5?1.35:1.;
@@ -133,7 +142,7 @@ export class Effects {
       renderer.getCurrentViewport(this.viewport);
       material.uniforms.viewportHeight.value = Math.max(1, this.viewport.w);
     };
-    this.group.add(points, this.rain.mesh);
+    this.group.add(points, this.rain.mesh, this.spray.mesh);
   }
   private spawn(x: number, y: number, z: number, vx: number, vy: number, vz: number, kind: number) {
     const isRain = kind === PARTICLE_KIND.RAIN;
@@ -405,6 +414,7 @@ export class Effects {
     for (const attr of ['position', 'size', 'color', 'opacity', 'solid', 'kind'])
       this.geometry.getAttribute(attr).needsUpdate = true;
     this.rain.upload();
+    this.spray.upload();
   }
   diagnostics() {
     const active = [0, 0, 0, 0, 0, 0],
@@ -449,5 +459,6 @@ export class Effects {
     // A paused/replay-seek frame may have dt=0 and never enter update().
     this.geometry.getAttribute('opacity').needsUpdate = true;
     this.rain.clear();
+    this.spray.clear();
   }
 }
