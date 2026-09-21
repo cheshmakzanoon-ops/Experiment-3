@@ -1,0 +1,235 @@
+name: Phase 27G guarded candidate
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/phase27g-candidate.json
+      - .github/workflows/phase27g-candidate.yml
+permissions:
+  contents: read
+concurrency:
+  group: phase27g-candidate
+  cancel-in-progress: false
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Apply exact source candidate with content and ancestry guards
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import base64,hashlib,json,os,pathlib,subprocess,urllib.request
+          manifest=json.loads(pathlib.Path('.github/phase27g-candidate.json').read_text())
+          base=manifest['base']
+          assert base=='b7d89dac7343d8a5c7f446f1ad0255c93d6ea058'
+          subprocess.run(['git','merge-base','--is-ancestor',base,'HEAD'],check=True)
+          stage={'.github/phase27g-candidate.json','.github/workflows/phase27g-candidate.yml'}
+          changes=set(subprocess.check_output(['git','diff','--name-only',base,'HEAD'],text=True).splitlines())
+          assert changes<=stage,('Concurrent source changes must be reconciled',sorted(changes-stage))
+          allowed={'src','tests','e2e','docs'}
+          def safe(name):
+              p=pathlib.PurePosixPath(name)
+              assert not p.is_absolute() and '..' not in p.parts
+              assert p.parts[0] in allowed or name=='README.md'
+              assert not name.startswith('src/simulation/') and name!='docs/MASTER_DIRECTIVE.md'
+              return pathlib.Path(name)
+          for name,sha in manifest['files'].items():
+              p=safe(name)
+              assert not p.exists(),('Refuse to overwrite a new-file collision',name)
+              req=urllib.request.Request(f'https://api.github.com/repos/{os.environ["GITHUB_REPOSITORY"]}/git/blobs/{sha}',headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json'})
+              with urllib.request.urlopen(req,timeout=30) as r: value=json.load(r)
+              data=base64.b64decode(value['content'])
+              assert hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()==sha
+              p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes(data)
+          for edit in manifest['edits']:
+              p=safe(edit['path']);text=p.read_text()
+              assert text.count(edit['old'])==edit['count'],('Exact source edit guard failed',edit['path'],edit['old'][:100],text.count(edit['old']))
+              p.write_text(text.replace(edit['old'],edit['new']))
+          for path in stage:pathlib.Path(path).unlink()
+          pathlib.Path(os.environ['RUNNER_TEMP'],'candidate-files.json').write_text(json.dumps(sorted(set(manifest['files'])|{e['path'] for e in manifest['edits']})))
+          print('Applied',len(manifest['files']),'source files and',len(manifest['edits']),'guarded edits; no simulation or existing CI edits')
+          PY
+      - run: npm ci --no-audit --no-fund
+      - name: Format only changed TypeScript
+        run: |
+          node --input-type=module - <<'JS'
+          import fs from 'node:fs';import cp from 'node:child_process';
+          const files=JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP+'/candidate-files.json','utf8')).filter(x=>x.endsWith('.ts'));
+          cp.execFileSync('node',['node_modules/prettier/bin/prettier.cjs','--write',...files],{stdio:'inherit'});
+          JS
+      - name: Full lint, unit tests, TypeScript and production build
+        run: npm run check
+      - name: Seal the tested source tree
+        run: |
+          set -euo pipefail
+          git diff --exit-code b7d89dac7343d8a5c7f446f1ad0255c93d6ea058 -- docs/MASTER_DIRECTIVE.md package-lock.json src/simulation .github/workflows/ci.yml
+          git add -A
+          git write-tree > "$RUNNER_TEMP/tested-tree.txt"
+          git archive --format=tar.gz "$(cat "$RUNNER_TEMP/tested-tree.txt")" > "$RUNNER_TEMP/candidate-source.tar.gz"
+          git diff --cached --stat
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase27g-candidate-source
+          path: |
+            ${{ runner.temp }}/candidate-source.tar.gz
+            ${{ runner.temp }}/tested-tree.txt
+          retention-days: 7
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase27g-candidate-web
+          path: dist/
+          retention-days: 7
+          if-no-files-found: error
+  scenarios:
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: phase27g-candidate-source
+          path: ${{ runner.temp }}/candidate
+      - run: tar -xzf "$RUNNER_TEMP/candidate/candidate-source.tar.gz"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm run test:physics
+      - run: node --experimental-transform-types scripts/rotation-benchmark.ts
+      - run: node --experimental-transform-types scripts/pit-integration.ts
+      - run: node --experimental-transform-types scripts/race-classification.ts
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase27g-candidate-physics
+          path: docs/*.json
+          retention-days: 7
+  browser:
+    needs: prepare
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: phase27g-candidate-source
+          path: ${{ runner.temp }}/candidate
+      - run: tar -xzf "$RUNNER_TEMP/candidate/candidate-source.tar.gz"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - uses: actions/download-artifact@v4
+        with:
+          name: phase27g-candidate-web
+          path: dist/
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e -- --shard=${{ matrix.shard }}/3
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase27g-candidate-browser-${{ matrix.shard }}
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 7
+  wet-presentation:
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: phase27g-candidate-source
+          path: ${{ runner.temp }}/candidate
+      - run: tar -xzf "$RUNNER_TEMP/candidate/candidate-source.tar.gz"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - uses: actions/download-artifact@v4
+        with:
+          name: phase27g-candidate-web
+          path: dist/
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e -- e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase27g-candidate-wet
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 7
+  seal:
+    needs: [prepare, scenarios, browser, wet-presentation]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/download-artifact@v4
+        with:
+          name: phase27g-candidate-source
+          path: ${{ runner.temp }}/candidate
+      - name: Store tested Git objects without moving any branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git ls-files -z | xargs -0 rm --
+          tar -xzf "$RUNNER_TEMP/candidate/candidate-source.tar.gz"
+          git add -A
+          test "$(git write-tree)" = "$(cat "$RUNNER_TEMP/candidate/tested-tree.txt")"
+          python - <<'PY'
+          import base64,json,os,pathlib,subprocess,urllib.request
+          repo=os.environ['GITHUB_REPOSITORY'];parent=os.environ['GITHUB_SHA']
+          def git(*args):return subprocess.check_output(['git',*args],text=True).strip()
+          def api(method,path,data=None):
+              request=urllib.request.Request('https://api.github.com/repos/'+repo+path,data=json.dumps(data).encode() if data is not None else None,method=method,headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','Content-Type':'application/json'})
+              with urllib.request.urlopen(request,timeout=45) as response:return json.load(response)
+          assert api('GET','/git/ref/heads/main')['object']['sha']==parent,'Main advanced; do not publish stale work'
+          tree=git('write-tree');entries=[]
+          for path in git('diff','--cached','--name-only','HEAD').splitlines():
+              row=subprocess.run(['git','ls-files','-s','--',path],capture_output=True,text=True,check=True).stdout.strip()
+              if not row:
+                  entries.append({'path':path,'mode':'100644','type':'blob','sha':None});continue
+              mode,sha,_=row.split()[:3]
+              blob=api('POST','/git/blobs',{'encoding':'base64','content':base64.b64encode(pathlib.Path(path).read_bytes()).decode()})
+              assert blob['sha']==sha,(path,'blob mismatch')
+              entries.append({'path':path,'mode':mode,'type':'blob','sha':sha})
+          remote=api('POST','/git/trees',{'base_tree':git('rev-parse','HEAD^{tree}'),'tree':entries})
+          assert remote['sha']==tree,'Remote tree differs from the tested tree'
+          commit=api('POST','/git/commits',{'message':'feat: advance Phase 27G atmosphere, race framing and full-tab evidence\n\nPublish the exact candidate tree that passed full lint, unit, type, build, native, browser-shard and wet-presentation gates. Preserve separate human/hardware/art acceptance and the original master directive.','tree':tree,'parents':[parent]})
+          result={'validated_commit':commit['sha'],'tested_tree':tree,'parent':parent,'workflow_run':os.environ['GITHUB_RUN_ID'],'branch_updated':False}
+          pathlib.Path(os.environ['RUNNER_TEMP'],'validated-candidate.json').write_text(json.dumps(result,indent=2)+'\n')
+          print('VALIDATED_CANDIDATE',json.dumps(result))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase27g-validated-commit
+          path: ${{ runner.temp }}/validated-candidate.json
+          retention-days: 7
+          if-no-files-found: error
