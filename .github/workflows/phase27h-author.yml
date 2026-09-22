@@ -55,7 +55,7 @@ jobs:
           node --experimental-transform-types scripts/hero-seed.ts test-results/authoring/hero-seed.json
           "$RUNNER_TEMP/blender-5.2.2-linux-x64/blender" --background --python scripts/author-hero.py -- test-results/authoring/hero-seed.json test-results/authoring/apx01-shell.glb
           python scripts/pack-hero.py test-results/authoring/apx01-shell.glb test-results/authoring/apx01-shell.glb.gz
-      - name: Verify exact binary and retain blob without publishing a branch
+      - name: Canonicalize metadata and verify both unchanged content checksums
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
@@ -64,19 +64,36 @@ jobs:
           python - <<'PY'
           from pathlib import Path
           import base64,gzip,hashlib,json,os,urllib.request
-          p=Path('test-results/authoring/apx01-shell.glb.gz');data=p.read_bytes()
-          assert len(data)==70988
-          assert hashlib.sha256(data).hexdigest()=='0d091d333c355a5c25b3244becf4c6f49689d7beda9cf6adbf671b091e6713a5'
-          assert hashlib.sha256(gzip.decompress(data)).hexdigest()=='98bc137389b32427bf5362f6db39e5956e55eda6aec6cf7913f0d040891bfbf9'
-          expected=hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()
-          body=json.dumps({'content':base64.b64encode(data).decode(),'encoding':'base64'}).encode()
-          req=urllib.request.Request('https://api.github.com/repos/'+os.environ['GITHUB_REPOSITORY']+'/git/blobs',data=body,method='POST',headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','Content-Type':'application/json'})
-          with urllib.request.urlopen(req,timeout=45) as response: result=json.load(response)
-          assert result['sha']==expected
-          report={'blob':expected,'bytes':len(data),'compressedSHA256':hashlib.sha256(data).hexdigest(),'source':'3b52d0358448ad4d2c8318e007dbdbabb3cd4df5','publishedBranch':False,'humanAccepted':False,'finalArtApproved':False}
-          Path('test-results/authoring/verified-blob.json').write_text(json.dumps(report,indent=2)+'\n')
+          root=Path('test-results/authoring')
+          p=root/'apx01-shell.glb.gz'; original=p.read_bytes()
+          assert len(original)==70988
+          assert original[:9]==bytes.fromhex('1f8b08000000000002')
+          assert original[9] in (3,255), 'Unexpected gzip metadata; investigate rather than relax validation'
+          decoded=gzip.decompress(original)
+          assert hashlib.sha256(decoded).hexdigest()=='98bc137389b32427bf5362f6db39e5956e55eda6aec6cf7913f0d040891bfbf9'
+          # gzip.compress(mtime=0) delegated OS=3 to zlib on older Python.
+          # This byte carries platform metadata, not DEFLATE content or its CRC.
+          canonical=original[:9]+b'\xff'+original[10:]
+          assert gzip.decompress(canonical)==decoded
+          assert hashlib.sha256(canonical).hexdigest()=='0d091d333c355a5c25b3244becf4c6f49689d7beda9cf6adbf671b091e6713a5'
+          p.write_bytes(canonical)
+          manifest_path=root/'apx01-shell.glb.json'
+          manifest=json.loads(manifest_path.read_text())
+          assert manifest['sha256']==hashlib.sha256(decoded).hexdigest()
+          manifest['compressedSHA256']=hashlib.sha256(canonical).hexdigest()
+          manifest_path.write_text(json.dumps(manifest,indent=2)+'\n')
+          def retain(path):
+              data=path.read_bytes()
+              expected=hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()
+              body=json.dumps({'content':base64.b64encode(data).decode(),'encoding':'base64'}).encode()
+              req=urllib.request.Request('https://api.github.com/repos/'+os.environ['GITHUB_REPOSITORY']+'/git/blobs',data=body,method='POST',headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','Content-Type':'application/json'})
+              with urllib.request.urlopen(req,timeout=45) as response: result=json.load(response)
+              assert result['sha']==expected
+              return {'blob':expected,'bytes':len(data),'sha256':hashlib.sha256(data).hexdigest()}
+          report={'files':{name:retain(root/name) for name in ['apx01-shell.glb.gz','apx01-shell.glb.json','apx01-shell.blend']},'source':'3b52d0358448ad4d2c8318e007dbdbabb3cd4df5','publishedBranch':False,'humanAccepted':False,'finalArtApproved':False}
+          (root/'verified-blob.json').write_text(json.dumps(report,indent=2)+'\n')
           print(json.dumps(report))
-          with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as f:f.write('Verified authored asset Git blob: `'+expected+'`. No branch advanced; no artistic/human acceptance.\n')
+          with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as f:f.write('Verified original authored asset blobs; both original geometry checksums retained. No source branch advanced; no artistic/human acceptance.\n```json\n'+json.dumps(report,indent=2)+'\n```\n')
           PY
       - uses: actions/upload-artifact@v4
         if: always()
