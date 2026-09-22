@@ -22,14 +22,14 @@ jobs:
         with:
           node-version: '22'
           cache: npm
-      - name: Apply exact source candidate with content and ancestry guards
+      - name: Recover exact retained modules and guarded supporting changes
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
           python - <<'PY'
-          import base64,hashlib,json,os,pathlib,subprocess,urllib.request
+          import base64,hashlib,json,os,pathlib,runpy,subprocess,time,urllib.request
           manifest=json.loads(pathlib.Path('.github/phase27g-candidate.json').read_text())
           base=manifest['base']
           assert base=='b7d89dac7343d8a5c7f446f1ad0255c93d6ea058'
@@ -37,9 +37,27 @@ jobs:
           stage={'.github/phase27g-candidate.json','.github/workflows/phase27g-candidate.yml'}
           changes=set(subprocess.check_output(['git','diff','--name-only',base,'HEAD'],text=True).splitlines())
           assert changes<=stage,('Concurrent source changes must be reconciled',sorted(changes-stage))
-          assert manifest['files']['src/rendering/driver-tailoring.ts']=='6a2829044ee0118125697d8f0a5e1fc556cf8f43'
-          manifest['files']['src/rendering/driver-tailoring.ts']='8aef54b6a31882311b9334469c355d5ea2edc70f'
-          manifest['files']['tests/phase27g-seams.test.ts']='b7629a81db85246ef49a21bc99b455bc4b0eb11d'
+          manifest['files'].update({
+            'src/rendering/adaptive-exposure.ts':'fd7d4734a135eaf46c0c0133064128a612dc7cf2',
+            'src/rendering/frame-capture.ts':'2dc65073127bd11577b37483e4201ef62463bc36',
+            'src/rendering/driver-tailoring.ts':'d24906e05fa9b5be153dba3385bd83314be05f48',
+            'src/rendering/race-composition.ts':'d6b9a13a2f13b124a7635a0fb0d8a37995ae68c8',
+            'src/rendering/local-atmosphere.ts':'217e70ca4f09a3306202ae3104ec9d35770cbf4e',
+            'src/ui/tab-evidence.ts':'f8e41bf3492b0daf36ba1e3754aa0e57463fb237',
+            'tests/phase27g-seams.test.ts':'b7629a81db85246ef49a21bc99b455bc4b0eb11d',
+          })
+          def blob(sha):
+              request=urllib.request.Request(f'https://api.github.com/repos/{os.environ["GITHUB_REPOSITORY"]}/git/blobs/{sha}',headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json'})
+              for attempt in range(3):
+                  try:
+                      with urllib.request.urlopen(request,timeout=45) as r: value=json.load(r)
+                      break
+                  except Exception:
+                      if attempt==2: raise
+                      time.sleep(2**attempt)
+              data=base64.b64decode(value['content'])
+              assert hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()==sha,('Blob identity mismatch',sha)
+              return data
           allowed={'src','tests','e2e','docs'}
           def safe(name):
               p=pathlib.PurePosixPath(name)
@@ -49,12 +67,9 @@ jobs:
               return pathlib.Path(name)
           for name,sha in manifest['files'].items():
               p=safe(name)
-              assert not p.exists(),('Refuse to overwrite a new-file collision',name)
-              req=urllib.request.Request(f'https://api.github.com/repos/{os.environ["GITHUB_REPOSITORY"]}/git/blobs/{sha}',headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json'})
-              with urllib.request.urlopen(req,timeout=30) as r: value=json.load(r)
-              data=base64.b64decode(value['content'])
-              assert hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()==sha
-              p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes(data)
+              assert not p.exists(),('New-file collision',name)
+              p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes(blob(sha))
+              print('Verified retained candidate blob',name,sha)
           for edit in manifest['edits']:
               p=safe(edit['path']);text=p.read_text()
               assert text.count(edit['old'])==edit['count'],('Exact source edit guard failed',edit['path'],edit['old'][:100],text.count(edit['old']))
@@ -64,19 +79,15 @@ jobs:
               assert text.count(old)==1,('Recorder fixture repair guard failed',old)
               text=text.replace(old,new)
           p.write_text(text)
+          index=pathlib.Path(os.environ['RUNNER_TEMP'],'candidate-files.json')
+          index.write_text(json.dumps(sorted(set(manifest['files'])|{e['path'] for e in manifest['edits']})))
+          recovery=pathlib.Path(os.environ['RUNNER_TEMP'],'post-recovery.py')
+          recovery.write_bytes(blob('7d0cfb57c0d2f2b0abfbb05712a0ec8d49681fae'))
+          runpy.run_path(str(recovery),run_name='__main__')
           for path in stage:pathlib.Path(path).unlink()
-          pathlib.Path(os.environ['RUNNER_TEMP'],'candidate-files.json').write_text(json.dumps(sorted(set(manifest['files'])|{e['path'] for e in manifest['edits']})))
-          print('Applied',len(manifest['files']),'source files and',len(manifest['edits']),'guarded edits; no simulation or existing CI edits')
+          print('Recovered candidate; no phase acceptance or prior full-tree identity is inferred')
           PY
       - run: npm ci --no-audit --no-fund
-      - name: Archive installed locked dependencies for local verification
-        run: tar -czf "$RUNNER_TEMP/phase27g-toolchain.tar.gz" node_modules package-lock.json
-      - uses: actions/upload-artifact@v4
-        with:
-          name: phase27g-toolchain
-          path: ${{ runner.temp }}/phase27g-toolchain.tar.gz
-          retention-days: 1
-          if-no-files-found: error
       - name: Format only changed TypeScript
         run: |
           node --input-type=module - <<'JS'
@@ -96,6 +107,7 @@ jobs:
           git write-tree > "$RUNNER_TEMP/tested-tree.txt"
           git archive --format=tar.gz "$(cat "$RUNNER_TEMP/tested-tree.txt")" > "$RUNNER_TEMP/candidate-source.tar.gz"
           git diff --cached --stat
+          echo "CANDIDATE_TREE=$(cat "$RUNNER_TEMP/tested-tree.txt")"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -241,7 +253,7 @@ jobs:
               entries.append({'path':path,'mode':mode,'type':'blob','sha':sha})
           remote=api('POST','/git/trees',{'base_tree':git('rev-parse','HEAD^{tree}'),'tree':entries})
           assert remote['sha']==tree,'Remote tree differs from the tested tree'
-          commit=api('POST','/git/commits',{'message':'feat: advance Phase 27G atmosphere, race framing and full-tab evidence\n\nPublish the exact candidate tree that passed full lint, unit, type, build, native, browser-shard and wet-presentation gates. Preserve separate human/hardware/art acceptance and the original master directive.','tree':tree,'parents':[parent]})
+          commit=api('POST','/git/commits',{'message':'feat: publish recovered Phase 27G presentation and evidence continuation\n\nIntegrate retained exposure, atmosphere, race-composition, sleeve, PNG and tab-recording fixes with recovered native photo-camera and LOD support. Validate this exact reconstructed tree with full lint, unit, type, build, native, browser-shard and wet-presentation gates. Preserve original physics, lockfile, master directive and open visual/human/hardware acceptance.','tree':tree,'parents':[parent]})
           result={'validated_commit':commit['sha'],'tested_tree':tree,'parent':parent,'workflow_run':os.environ['GITHUB_RUN_ID'],'branch_updated':False}
           pathlib.Path(os.environ['RUNNER_TEMP'],'validated-candidate.json').write_text(json.dumps(result,indent=2)+'\n')
           print('VALIDATED_CANDIDATE',json.dumps(result))
