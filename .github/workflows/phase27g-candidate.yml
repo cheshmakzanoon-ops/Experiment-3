@@ -37,6 +37,9 @@ jobs:
           stage={'.github/phase27g-candidate.json','.github/workflows/phase27g-candidate.yml'}
           changes=set(subprocess.check_output(['git','diff','--name-only',base,'HEAD'],text=True).splitlines())
           assert changes<=stage,('Concurrent source changes must be reconciled',sorted(changes-stage))
+          assert manifest['files']['src/rendering/driver-tailoring.ts']=='6a2829044ee0118125697d8f0a5e1fc556cf8f43'
+          manifest['files']['src/rendering/driver-tailoring.ts']='8aef54b6a31882311b9334469c355d5ea2edc70f'
+          manifest['files']['tests/phase27g-seams.test.ts']='b7629a81db85246ef49a21bc99b455bc4b0eb11d'
           allowed={'src','tests','e2e','docs'}
           def safe(name):
               p=pathlib.PurePosixPath(name)
@@ -56,7 +59,6 @@ jobs:
               p=safe(edit['path']);text=p.read_text()
               assert text.count(edit['old'])==edit['count'],('Exact source edit guard failed',edit['path'],edit['old'][:100],text.count(edit['old']))
               p.write_text(text.replace(edit['old'],edit['new']))
-          # Retain the test's real recorder lifecycle assertions without aliasing this.
           p=pathlib.Path('tests/tab-evidence.test.ts');text=p.read_text()
           for old,new in [('let instance: FakeRecorder | undefined;','const instances: FakeRecorder[] = [];'),('constructor(){instance=this;}','constructor(){instances.push(this);}'),('recorder:()=>instance!','recorder:()=>instances[instances.length-1]!')]:
               assert text.count(old)==1,('Recorder fixture repair guard failed',old)
@@ -67,6 +69,14 @@ jobs:
           print('Applied',len(manifest['files']),'source files and',len(manifest['edits']),'guarded edits; no simulation or existing CI edits')
           PY
       - run: npm ci --no-audit --no-fund
+      - name: Archive installed locked dependencies for local verification
+        run: tar -czf "$RUNNER_TEMP/phase27g-toolchain.tar.gz" node_modules package-lock.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase27g-toolchain
+          path: ${{ runner.temp }}/phase27g-toolchain.tar.gz
+          retention-days: 1
+          if-no-files-found: error
       - name: Format only changed TypeScript
         run: |
           node --input-type=module - <<'JS'
