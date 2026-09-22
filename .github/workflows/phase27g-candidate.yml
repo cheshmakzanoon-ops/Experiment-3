@@ -84,6 +84,13 @@ jobs:
           recovery=pathlib.Path(os.environ['RUNNER_TEMP'],'post-recovery.py')
           recovery.write_bytes(blob('7d0cfb57c0d2f2b0abfbb05712a0ec8d49681fae'))
           runpy.run_path(str(recovery),run_name='__main__')
+          # PhotoSettings.view is an enum. Preserve the numeric bounds checks
+          # and add explicit enum/fallback regressions to the recovered source.
+          photo_test=pathlib.Path('tests/photo-reference.test.ts')
+          data=photo_test.read_bytes()
+          assert hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()=='40bcd2731107200bbb5a889172642f221d46de97','Photo test changed; reconcile before replacing it'
+          photo_test.write_bytes(blob('a226207cc01407f9957270c9464ab4d4d3d24fd8'))
+          index.write_text(json.dumps(sorted(set(json.loads(index.read_text()))|{'tests/photo-reference.test.ts'})))
           for path in stage:pathlib.Path(path).unlink()
           print('Recovered candidate; no phase acceptance or prior full-tree identity is inferred')
           PY
