@@ -1,0 +1,26 @@
+name: Verified asset authoring toolchain
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [.github/workflows/asset-authoring-toolchain.yml]
+permissions:
+  contents: read
+jobs:
+  toolchain:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Download and verify pinned official Blender
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 2 --max-time 240 'https://download.blender.org/release/Blender5.2/blender-5.2.2-linux-x64.tar.xz' -o "$RUNNER_TEMP/blender-5.2.2-linux-x64.tar.xz"
+          echo '84098912789dc450e95697c4184fb8a90acbe5111c2ba4aede3fecb57806a168  '"$RUNNER_TEMP/blender-5.2.2-linux-x64.tar.xz" | sha256sum --check
+      - uses: actions/upload-artifact@v4
+        with:
+          name: blender-5.2.2-verified-development-toolchain
+          path: ${{ runner.temp }}/blender-5.2.2-linux-x64.tar.xz
+          retention-days: 1
+          compression-level: 0
+          if-no-files-found: error
