@@ -56,6 +56,12 @@ jobs:
               p=safe(edit['path']);text=p.read_text()
               assert text.count(edit['old'])==edit['count'],('Exact source edit guard failed',edit['path'],edit['old'][:100],text.count(edit['old']))
               p.write_text(text.replace(edit['old'],edit['new']))
+          # Retain the test's real recorder lifecycle assertions without aliasing this.
+          p=pathlib.Path('tests/tab-evidence.test.ts');text=p.read_text()
+          for old,new in [('let instance: FakeRecorder | undefined;','const instances: FakeRecorder[] = [];'),('constructor(){instance=this;}','constructor(){instances.push(this);}'),('recorder:()=>instance!','recorder:()=>instances[instances.length-1]!')]:
+              assert text.count(old)==1,('Recorder fixture repair guard failed',old)
+              text=text.replace(old,new)
+          p.write_text(text)
           for path in stage:pathlib.Path(path).unlink()
           pathlib.Path(os.environ['RUNNER_TEMP'],'candidate-files.json').write_text(json.dumps(sorted(set(manifest['files'])|{e['path'] for e in manifest['edits']})))
           print('Applied',len(manifest['files']),'source files and',len(manifest['edits']),'guarded edits; no simulation or existing CI edits')
@@ -70,15 +76,18 @@ jobs:
           JS
       - name: Full lint, unit tests, TypeScript and production build
         run: npm run check
-      - name: Seal the tested source tree
+      - name: Preserve exact reconstructed source, including a failed candidate
+        if: always()
         run: |
           set -euo pipefail
+          test -f "$RUNNER_TEMP/candidate-files.json"
           git diff --exit-code b7d89dac7343d8a5c7f446f1ad0255c93d6ea058 -- docs/MASTER_DIRECTIVE.md package-lock.json src/simulation .github/workflows/ci.yml
           git add -A
           git write-tree > "$RUNNER_TEMP/tested-tree.txt"
           git archive --format=tar.gz "$(cat "$RUNNER_TEMP/tested-tree.txt")" > "$RUNNER_TEMP/candidate-source.tar.gz"
           git diff --cached --stat
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: phase27g-candidate-source
           path: |
