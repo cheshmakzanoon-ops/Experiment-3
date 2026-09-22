@@ -1,5 +1,7 @@
 ## Phase 27G development candidate
 
+The closure continuation adds measured adaptive exposure, local weather haze, complete-group broadcast framing, revised sleeve/safety-cell geometry, same-task PNG ownership and explicit full-tab recording to disk. See [closure implementation and remaining independent acceptance](docs/PHASE_27G_CLOSURE_EVIDENCE.md).
+
 The current continuation implements shared second-generation car geometry/materials,
 grip-anchored hands, authored Aurel districts, updated pit/crowd/staff models,
 sunset lighting, snapshot-qualified reference event capture, direct text-decal

@@ -341,10 +341,11 @@ export class FormulaCar {
       spin.add(carcass.root);
     });
     this.suspension = new T.InstancedMesh(
-      new T.CylinderGeometry(0.015, 0.015, 1, 8).scale(1.5, 1, 0.6),
+      new T.CylinderGeometry(0.013, 0.017, 1, 8).scale(1.8, 1, 0.45),
       carbon,
       this.links.length,
     );
+    this.suspension.name = 'Shared articulated suspension';
     this.suspension.castShadow = true;
     this.root.add(this.suspension);
     // Driver and steering assembly; hands are attached to the rotating wheel.
@@ -420,7 +421,7 @@ export class FormulaCar {
     mergeStatic(s);
     mergeStatic(this.frontWing);
     mergeStatic(this.rearWing);
-    const highChildren = [...this.root.children];
+    const highChildren = [...this.root.children].filter((child) => child !== this.suspension);
     this.root.add(this.highDetail);
     this.highDetail.add(...highChildren);
     for (const level of [1, 2] as const) {
@@ -477,9 +478,17 @@ export class FormulaCar {
         reduced.wheels[i].rotation.y = lerp(a[p + W.STEER], b[p + W.STEER], t);
         reduced.wheels[i].rotation.z = -lerp(a[p + W.CAMBER], b[p + W.CAMBER], t);
         reduced.spins[i].rotation.x = wheelPhase(a, b, o, p, t);
+        reduced.spins[i].position.x =
+          Math.sign(WHEEL_POSITIONS[i][0]) *
+          serviceWheelOffset(b[o + F.PIT_PHASE], b[o + F.PIT_CLOCK], b[p + W.LOAD]);
+        reduced.brakes[i].rotation.x = reduced.spins[i].rotation.x;
       }
       reduced.front.visible = b[o + F.FRONT_HEALTH] > 0.08;
       reduced.rear.visible = b[o + F.REAR_HEALTH] > 0.08;
+      reduced.front.scale.x = 0.35 + 0.65 * b[o + F.FRONT_HEALTH];
+      reduced.front.rotation.z = (1 - b[o + F.FRONT_HEALTH]) * 0.12;
+      reduced.rear.rotation.z = (1 - b[o + F.REAR_HEALTH]) * 0.09;
+      this.updateSuspension(reduced.wheels);
       return;
     }
     this.steering.rotation.z = -lerp(a[o + F.STEER], b[o + F.STEER], t) * 2.2;
@@ -524,18 +533,7 @@ export class FormulaCar {
         lerp(a[p + W.FLAT], b[p + W.FLAT], t),
       );
     }
-    for (let j = 0; j < this.links.length; j++) {
-      const link = this.links[j];
-      const pivot = this.wheelPivots[link.wheel];
-      this.v.set(0, link.dy, 0).applyQuaternion(pivot.quaternion).add(pivot.position);
-      const length = this.v.distanceTo(link.anchor);
-      link.mesh.position.copy(this.v).add(link.anchor).multiplyScalar(0.5);
-      link.mesh.quaternion.setFromUnitVectors(this.up, this.v.sub(link.anchor).normalize());
-      link.mesh.scale.y = length;
-      link.mesh.updateMatrix();
-      this.suspension.setMatrixAt(j, link.mesh.matrix);
-    }
-    this.suspension.instanceMatrix.needsUpdate = true;
+    this.updateSuspension(this.wheelPivots);
     this.frontWing.visible = b[o + F.FRONT_HEALTH] > 0.08;
     this.rearWing.visible = b[o + F.REAR_HEALTH] > 0.08;
     this.frontWing.scale.x = 0.35 + 0.65 * b[o + F.FRONT_HEALTH];
@@ -563,5 +561,22 @@ export class FormulaCar {
       this.shiftLeds.instanceColor!.needsUpdate = true;
       this.display.needsUpdate = true;
     }
+  }
+  private updateSuspension(pivots: readonly T.Group[]) {
+    for (let j = 0; j < this.links.length; j++) {
+      const link = this.links[j];
+      const pivot = pivots[link.wheel];
+      this.v.set(0, link.dy, 0).applyQuaternion(pivot.quaternion).add(pivot.position);
+      const length = this.v.distanceTo(link.anchor);
+      link.mesh.position.copy(this.v).add(link.anchor).multiplyScalar(0.5);
+      link.mesh.quaternion.setFromUnitVectors(this.up, this.v.sub(link.anchor).normalize());
+      link.mesh.scale.y = length;
+      link.mesh.updateMatrix();
+      this.suspension.setMatrixAt(j, link.mesh.matrix);
+    }
+    this.suspension.instanceMatrix.needsUpdate = true;
+    // Bounds follow articulated endpoints; stale instance bounds must not cull links.
+    this.suspension.computeBoundingBox();
+    this.suspension.computeBoundingSphere();
   }
 }

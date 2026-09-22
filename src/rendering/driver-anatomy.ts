@@ -1,3 +1,4 @@
+import { tailoredSleeve } from './driver-tailoring.ts';
 import { fingerGripCurve } from './wheel-grip.ts';
 import { bodySurfacePatch } from './car-surfaces.ts';
 import { sculptedLoft } from './bodywork.ts';
@@ -23,7 +24,9 @@ export function fingerGeometry(side: number, finger: number) {
   for (let row = 0; row <= steps; row++) {
     const u = row / steps;
     curve.getPointAt(u, centre);
-    const radius = (0.0088 - u * 0.0034) * (1 + 0.11 * Math.sin(u * Math.PI * 3) ** 8);
+    const capU = Math.max(0, (u - 0.8) / 0.2);
+    const roundTip = Math.sqrt(Math.max(0.0025, 1 - capU * capU));
+    const radius = (0.0088 - u * 0.0034) * (1 + 0.11 * Math.sin(u * Math.PI * 3) ** 8) * roundTip;
     for (let j = 0; j <= sides; j++) {
       const index = row * (sides + 1) + j;
       position.setXYZ(
@@ -184,32 +187,7 @@ export function buildGlove(side: number, m: Materials) {
 /** A one-metre sleeve is scaled ONLY along its bone axis by the IK rig. The
  * restrained folds are modelled, not a screen-space normal/noise animation. */
 export function sleeveGeometry(upper: boolean) {
-  const bottom = upper ? 0.052 : 0.041,
-    top = upper ? 0.044 : 0.029;
-  const points = [new T.Vector2(0, -0.5)];
-  for (let i = 0; i <= 20; i++) {
-    const u = i / 20;
-    const fold = 1 + 0.04 * Math.sin(u * Math.PI * 8) * Math.sin(u * Math.PI) ** 2;
-    points.push(new T.Vector2((bottom + (top - bottom) * u) * fold, u - 0.5));
-  }
-  points.push(new T.Vector2(0, 0.5));
-  const geometry = new T.LatheGeometry(points, 20);
-  // The flattened sleeve cross-section has volume, rather than looking like a
-  // pipe at the wrist. Bone length/IK are still owned by DriverRig.
-  geometry.scale(1.06, 1, 0.91);
-  const p = geometry.getAttribute('position');
-  for (let i = 0; i < p.count; i++) {
-    const y = p.getY(i),
-      x = p.getX(i),
-      z = p.getZ(i);
-    const angle = Math.atan2(z, x),
-      joint = Math.exp(-(((y + 0.18) / 0.17) ** 2));
-    const crease =
-      1 + joint * (0.035 * Math.sin(y * 39 + angle * 2) + 0.018 * Math.sin(y * 67 - angle));
-    p.setXYZ(i, x * crease, y, z * crease);
-  }
-  geometry.computeVertexNormals();
-  return geometry;
+  return tailoredSleeve(upper);
 }
 
 /** A woven webbing strip with real thickness and a curved path over the chest.

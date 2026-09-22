@@ -1,3 +1,4 @@
+import { capSafetyTube } from './driver-tailoring.ts';
 import { bodySurface, ENGINE_SECTIONS } from './car-surfaces.ts';
 import { tireProfile } from './tire-profile.ts';
 import * as T from 'three';
@@ -151,12 +152,14 @@ export const ENGINE_FIN: readonly (readonly [number, number])[] = Object.freeze(
 ]);
 function curveMesh(points: typeof HALO_POINTS, radius: number, detail: CarDetail) {
   const curve = new T.CatmullRomCurve3(points.map((v) => new T.Vector3(...v)));
-  return new T.TubeGeometry(
-    curve,
-    detail === 'high' ? 64 : detail === 'mid' ? 32 : 16,
-    radius,
-    detail === 'high' ? 12 : 8,
-    false,
+  return capSafetyTube(
+    new T.TubeGeometry(
+      curve,
+      detail === 'high' ? 64 : detail === 'mid' ? 32 : 16,
+      radius,
+      detail === 'high' ? 12 : 8,
+      false,
+    ),
   );
 }
 export function addSafetyCell(parent: T.Group, carbon: T.Material, detail: CarDetail) {

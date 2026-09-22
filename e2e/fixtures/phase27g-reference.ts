@@ -1,3 +1,4 @@
+import { captureRenderedCanvas } from '../../src/rendering/frame-capture.ts';
 import { RacingRenderer } from '../../src/rendering/renderer.ts';
 import { Track } from '../../src/simulation/track.ts';
 import { graphicsPreset } from '../../src/rendering/options.ts';
@@ -145,21 +146,21 @@ export async function capture(id: number, record: RecordedEvent) {
   const r = renderer,
     interfaceView = ui,
     c = canvas;
+  const tick = () => new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+  const warm = frames.slice(-3);
+  for (let i = 0; i < warm.length; i++) {
+    await tick();
+    const previous = warm[Math.max(0, i - 1)],
+      next = warm[i];
+    r.draw(previous, next, 1, Math.max(0, next[H.TIME] - previous[H.TIME]), false, true);
+    interfaceView.update(next, r, true, 1);
+  }
+  for (let i = 0; i < 3; i++) interfaceView.update(frame, r, true, 1);
+  await tick();
+  r.draw(frame, frame, 1, 0, false, true);
   const measured = await new Promise<Record<string, unknown>>((resolve, reject) =>
     requestAnimationFrame(() => {
       try {
-        const warm = frames.slice(-3);
-        for (let i = 0; i < warm.length; i++) {
-          const previous = warm[Math.max(0, i - 1)],
-            next = warm[i];
-          r.draw(previous, next, 1, Math.max(0, next[H.TIME] - previous[H.TIME]), false, true);
-          interfaceView.update(next, r, true, 1);
-        }
-        // Update secondary canvases before the final render/readback task.
-        // The encoded PNG, rather than a later canvas copy, is the tested image.
-        for (let i = 0; i < 3; i++) interfaceView.update(frame, r, true, 1);
-        // Hold the exact final state for a reliable same-task PNG readback.
-        r.draw(frame, frame, 1, 0, false, true);
         r.draw(frame, frame, 1, 0, false, true);
         const gl = r.renderer.getContext();
         const centralPixel = new Uint8Array(4);
@@ -178,7 +179,12 @@ export async function capture(id: number, record: RecordedEvent) {
           width: c.width,
           height: c.height,
         };
-        resolve({ ...state, png: c.toDataURL('image/png') });
+        void captureRenderedCanvas(c).then((blob) => {
+          const reader = new FileReader();
+          reader.onerror = () => reject(new Error('PNG data URL encoding failed'));
+          reader.onload = () => resolve({ ...state, png: String(reader.result) });
+          reader.readAsDataURL(blob);
+        }, reject);
       } catch (e) {
         reject(e);
       }
@@ -220,7 +226,7 @@ export async function capture(id: number, record: RecordedEvent) {
     observation,
     requirement: rule,
     interfaceKind,
-    camera: rule?.camera ?? (r.photo ? 'photo' : r.mode),
+    camera: r.photo ? r.photo.view : r.mode,
     photo: r.photo,
     lighting: r.lighting,
     stats: { draws: r.stats().drawCalls, triangles: r.stats().triangles },

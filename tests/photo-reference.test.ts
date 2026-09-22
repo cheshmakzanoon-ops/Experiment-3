@@ -18,7 +18,9 @@ describe('photo camera and safe original livery', () => {
     expect(validatePhoto({ target: 10 }, NaN).target).toBe(0);
     expect(
       Object.entries(validatePhoto({ focalLength: NaN, roll: -Infinity }))
-        .filter(([key]) => !['backdrop', 'depthOfField', 'focusMode', 'survey'].includes(key))
+        .filter(
+          ([key]) => !['backdrop', 'depthOfField', 'focusMode', 'survey', 'view'].includes(key),
+        )
         .every(([, value]) => Number.isFinite(value)),
     ).toBe(true);
   });
@@ -86,5 +88,53 @@ describe('individually traceable reference inventory', () => {
     expect(html.match(/data-reference=/g)).toHaveLength(100);
     expect(html).not.toContain('<img');
     expect(html).toContain('not pixel parity');
+  });
+});
+
+// Native views are a closed enum, not numeric camera measurements. Keep the
+// original finite-number guard above and check the enum separately.
+describe('native photo-view validation', () => {
+  it.each(['orbit', 'cockpit', 'pod', 'chase', 'trackside'] as const)(
+    'keeps %s on the circuit and uses orbit for both showrooms',
+    (view) => {
+      const request = { ...DEFAULT_PHOTO, view, focalLength: NaN, roll: -Infinity };
+      const before = { ...request };
+      expect(validatePhoto(request)).toEqual({ ...DEFAULT_PHOTO, view });
+      for (const backdrop of ['studio', 'headquarters'] as const)
+        expect(validatePhoto({ ...request, backdrop })).toEqual({
+          ...DEFAULT_PHOTO,
+          backdrop,
+          view: 'orbit',
+        });
+      expect(request).toEqual(before);
+    },
+  );
+  it('rejects malformed and inherited-name view values without coercion', () => {
+    for (const view of [undefined, null, true, 0, NaN, {}, [], 'unknown', '__proto__', 'toString'])
+      expect(validatePhoto({ view })).toEqual(DEFAULT_PHOTO);
+  });
+  it('defaults every numeric field for non-finite or non-numeric input', () => {
+    const numericKeys = [
+      'azimuth',
+      'elevation',
+      'distance',
+      'focalLength',
+      'exposure',
+      'roll',
+      'target',
+      'focusSubject',
+      'focusDistance',
+      'fStop',
+      'split',
+    ];
+    expect(
+      Object.entries(DEFAULT_PHOTO)
+        .filter(([, value]) => typeof value === 'number')
+        .map(([key]) => key),
+    ).toEqual(numericKeys);
+    for (const invalid of [NaN, Infinity, -Infinity, '1', null, undefined, {}, [], true])
+      expect(
+        validatePhoto(Object.fromEntries(numericKeys.map((key) => [key, invalid])), 12),
+      ).toEqual(DEFAULT_PHOTO);
   });
 });

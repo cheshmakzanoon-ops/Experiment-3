@@ -1,3 +1,4 @@
+import { TabEvidence } from './ui/tab-evidence.ts';
 import { ReferenceSessionReview, referenceSessionPanel } from './ui/reference-session.ts';
 import { escapeHtml } from './ui/team-hub.ts';
 import { SessionReview } from './core/session-review.ts';
@@ -96,6 +97,7 @@ export class GameApp {
   private reviewMetrics = reviewFrame();
   private reviewVideo = new ReviewVideo();
   private sessionReview = new SessionReview();
+  private tabEvidence = new TabEvidence(__APEX_SOURCE_FINGERPRINT__);
   private reviewInputs = new ReviewInputEvidence();
   private reviewMachineEvidence: ReviewHardware | null = null;
   private performanceCapture = new PerformanceCapture();
@@ -1038,6 +1040,7 @@ export class GameApp {
     this.mediaView = null;
     // Names are application action identifiers, not typed widget contents.
     this.sessionReview.event(performance.now(), 'action', name);
+    this.tabEvidence.observe('action', name);
     // Team transactions only change modal DOM and next-session data. They must
     // not restart the expensive covered backdrop after every saved transaction.
     if (!(this.state === 'menu' && this.ui.modal.open && name.startsWith('team:')))
@@ -1333,6 +1336,7 @@ export class GameApp {
           this.state === 'menu',
           !!this.sessionReview.report(),
         );
+        this.tabEvidence.mount(this.ui.get('modalContent'));
         break;
       case 'sessionReviewStart':
         try {
@@ -1646,6 +1650,10 @@ export class GameApp {
     this.referenceSession?.interrupt('Application error.');
     if (this.errorStopped) return;
     this.sessionReview.stop('Application error', true);
+    this.tabEvidence.observe(
+      'application-error',
+      error instanceof Error ? error.message : String(error),
+    );
     this.performanceCapture.interrupt('Application error');
     this.interruptReview('Application error');
     this.errorStopped = true;
@@ -1684,6 +1692,7 @@ export class GameApp {
         snapshots: this.sessionReview.count,
         reason: this.sessionReview.reason,
       },
+      tabEvidence: this.tabEvidence.report(),
       referenceEvent: this.referenceSession.watch.report(),
       presentationReview: {
         state: this.presentationReview.state,
@@ -1721,6 +1730,7 @@ export class GameApp {
   dispose() {
     window.removeEventListener('keydown', this.reviewKeyboard);
     this.sessionReview.stop('Application disposed', true);
+    this.tabEvidence.dispose();
     if (this.disposed) return;
     this.performanceCapture.interrupt('Application disposed');
     this.interruptReview('Application disposed');

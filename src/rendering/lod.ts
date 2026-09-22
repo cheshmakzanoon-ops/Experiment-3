@@ -33,6 +33,7 @@ export class ReducedCar {
   readonly wheels: T.Group[] = [];
   readonly spins: T.Group[] = [];
   readonly tires: T.Mesh[] = [];
+  readonly brakes: T.Mesh[] = [];
   readonly front = new T.Group();
   readonly rear = new T.Group();
   constructor(level: 1 | 2, paint: T.Material, carbon: T.Material, rubber: T.Material) {
@@ -94,6 +95,24 @@ export class ReducedCar {
         spin = new T.Group();
       wheel.position.set(p[0], -0.2, p[2]);
       wheel.add(spin);
+      // A closed low-detail annular rotor is owned by the upright, not the
+      // removable wheel. It remains visible through the real service sequence.
+      const brakeShape = new T.Shape();
+      brakeShape.absarc(0, 0, 0.209, 0, Math.PI * 2, false);
+      const bore = new T.Path();
+      bore.absarc(0, 0, 0.084, 0, Math.PI * 2, true);
+      brakeShape.holes.push(bore);
+      const brakeGeometry = new T.ExtrudeGeometry(brakeShape, {
+        depth: 0.014,
+        bevelEnabled: false,
+        curveSegments: sides / 2,
+        steps: 1,
+      });
+      brakeGeometry.translate(0, 0, -0.007);
+      brakeGeometry.rotateY(Math.PI / 2);
+      const brake = mesh(wheel, brakeGeometry, carbon);
+      brake.name = 'Upright-owned reduced brake';
+      this.brakes.push(brake);
       this.root.add(wheel);
       this.wheels.push(wheel);
       this.spins.push(spin);

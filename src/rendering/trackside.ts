@@ -179,7 +179,15 @@ export class TracksideDirector {
     this.previousAspect = NaN;
     this.occluded = false;
   }
-  update(s: number, target: Vector3, velocity: Vector3, dt: number, aspect = 16 / 9, radius = 3.1) {
+  update(
+    s: number,
+    target: Vector3,
+    velocity: Vector3,
+    dt: number,
+    aspect = 16 / 9,
+    radius = 3.1,
+    strictRadius = false,
+  ) {
     if (
       !Number.isFinite(
         s + dt + target.x + target.y + target.z + velocity.x + velocity.y + velocity.z,
@@ -213,6 +221,39 @@ export class TracksideDirector {
         if (id !== this.activeId) this.visibilityCuts++;
       }
     }
+    if (
+      strictRadius &&
+      radius > 3.1 &&
+      !tracksideFraming(
+        Math.max(0.001, this.rigs[id].position.distanceTo(target)),
+        this.rigs[id].baseFov,
+        aspect,
+        radius,
+      ).fits
+    ) {
+      // A real pack requires a suitable physical camera, not a secretly reduced
+      // bounding sphere. Prefer the nearest unobstructed authored rig that fits.
+      const candidates = this.rigs.map((r) => r.id).filter((candidate) => candidate !== id);
+      candidates.sort(
+        (a, b) => distance(s, this.rigs[a].centerS) - distance(s, this.rigs[b].centerS) || a - b,
+      );
+      const replacement = candidates.find((candidate) => {
+        const rig = this.rigs[candidate];
+        return (
+          !(this.blocked?.(rig.position, target) ?? false) &&
+          tracksideFraming(
+            Math.max(0.001, rig.position.distanceTo(target)),
+            rig.baseFov,
+            aspect,
+            radius,
+          ).fits
+        );
+      });
+      if (replacement !== undefined) {
+        id = replacement;
+        this.occluded = false;
+      }
+    }
     const cut = id !== this.activeId || seek;
     const resized = aspect !== this.previousAspect;
     const rig = this.rigs[id];
@@ -220,7 +261,7 @@ export class TracksideDirector {
     const distanceM = this.position.distanceTo(target);
     let framing = tracksideFraming(Math.max(0.001, distanceM), rig.baseFov, aspect, radius);
     this.subjectRadius = radius;
-    if (!framing.fits && radius > 3.1) {
+    if (!framing.fits && radius > 3.1 && !strictRadius) {
       this.subjectRadius = 3.1;
       framing = tracksideFraming(Math.max(0.001, distanceM), rig.baseFov, aspect);
     }

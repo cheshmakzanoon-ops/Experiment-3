@@ -1,5 +1,7 @@
 import { clamp } from '../core/math.ts';
+export type PhotoView = 'orbit' | 'cockpit' | 'pod' | 'chase' | 'trackside';
 export interface PhotoSettings {
+  view: PhotoView;
   azimuth: number;
   elevation: number;
   distance: number;
@@ -18,6 +20,7 @@ export interface PhotoSettings {
   split: number;
 }
 export const DEFAULT_PHOTO: Readonly<PhotoSettings> = Object.freeze({
+  view: 'orbit',
   azimuth: 38,
   elevation: 12,
   distance: 8.5,
@@ -40,6 +43,12 @@ export function validatePhoto(value: unknown, cars = 1): PhotoSettings {
     typeof v === 'number' && Number.isFinite(v) ? clamp(v, min, max) : fallback;
   const count = Number.isFinite(cars) ? clamp(Math.floor(cars), 1, 12) : 1;
   return {
+    view:
+      p.backdrop !== 'studio' &&
+      p.backdrop !== 'headquarters' &&
+      (p.view === 'cockpit' || p.view === 'pod' || p.view === 'chase' || p.view === 'trackside')
+        ? p.view
+        : 'orbit',
     azimuth: finite(p.azimuth, 38, -180, 180),
     elevation: finite(p.elevation, 12, 0, 75),
     distance: finite(p.distance, 8.5, 2, 45),

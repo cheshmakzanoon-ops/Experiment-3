@@ -174,6 +174,22 @@ export function referenceRoute(entry: ReferenceEntry): ReferenceRoute | null {
       instruction:
         'Use a real session for grid launch, cockpit mirrors and pit service. Request a stop using the mapped PIT action; crew animation follows actual service state.',
     };
+  if ([3, 27, 28, 30, 84, 88, 96].includes(id))
+    return {
+      destination: 'photo',
+      label: 'INSPECT NATIVE COCKPIT',
+      photo: { backdrop: 'circuit', view: 'cockpit' },
+      instruction:
+        'The actual driver-eye transform, steering display, hands and mirrors are retained. This held photograph does not create missing weather, traffic or HTML HUD evidence.',
+    };
+  if ([8, 67].includes(id))
+    return {
+      destination: 'photo',
+      label: 'INSPECT NATIVE POD CAMERA',
+      photo: { backdrop: 'circuit', view: 'pod' },
+      instruction:
+        'Uses the actual pod-camera transform and optics in the current scene, not an exterior orbit.',
+    };
   const photo: Partial<PhotoSettings> = [5, 26, 31, 33, 91, 99].includes(id)
     ? { backdrop: 'studio', azimuth: 60, elevation: 12, distance: 10, focalLength: 48 }
     : [1, 6, 45, 46, 76, 83].includes(id)

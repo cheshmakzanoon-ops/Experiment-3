@@ -42,6 +42,8 @@ const ranges: [keyof GraphicsOptions, string, number, number, number][] = [
 const checks: [keyof GraphicsOptions, string][] = [
   ['crowd', 'Grandstand crowd'],
   ['bloom', 'Bloom post-processing'],
+  ['autoExposure', 'Adaptive exposure (measured scene luminance)'],
+  ['localFog', 'Weather-driven low-lying haze'],
   ['antialias', 'FXAA anti-aliasing'],
 ];
 export function presentationControls(settings: Settings) {
@@ -79,7 +81,13 @@ export function weatherReadout(ambientC: number, rainMmHr: number, meanWaterMm: 
   if (![ambientC, rainMmHr, meanWaterMm].every(Number.isFinite) || rainMmHr < 0 || meanWaterMm < 0)
     return 'WEATHER DATA UNAVAILABLE';
   const rain = rainMmHr > 0.01 ? `RAIN ${rainMmHr.toFixed(1)} MM/H · ` : '';
-  const surface = meanWaterMm >= 0.04 ? `TRACK AVG ${meanWaterMm.toFixed(2)} MM WATER`
-    : meanWaterMm > 0.001 ? 'DAMP TRACK' : rainMmHr > 0.01 ? 'TRACK WETTING' : 'DRY TRACK';
+  const surface =
+    meanWaterMm >= 0.04
+      ? `TRACK AVG ${meanWaterMm.toFixed(2)} MM WATER`
+      : meanWaterMm > 0.001
+        ? 'DAMP TRACK'
+        : rainMmHr > 0.01
+          ? 'TRACK WETTING'
+          : 'DRY TRACK';
   return `${Math.round(ambientC)}°C / ${rain}${surface}`;
 }
