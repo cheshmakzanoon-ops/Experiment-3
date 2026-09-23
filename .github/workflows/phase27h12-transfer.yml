@@ -1,0 +1,159 @@
+name: Transfer saved Phase 27H.1-27H.2 Git objects
+'on':
+  push:
+    branches: [main]
+    paths: [.github/workflows/phase27h12-transfer.yml]
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: phase27h12-saved-source-transfer
+  cancel-in-progress: false
+jobs:
+  transfer:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          artifact-ids: '10772033068'
+          run-id: 35908675367
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/source
+          merge-multiple: true
+      - uses: actions/download-artifact@v4
+        with:
+          artifact-ids: '10772222817'
+          run-id: 35908675367
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/web
+          merge-multiple: true
+      - name: Upload exact saved source objects without changing main
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PYTHON'
+          import base64, datetime, gzip, hashlib, json, os, pathlib, shutil, subprocess, tarfile, urllib.request
+          root = pathlib.Path.cwd()
+          tmp = pathlib.Path(os.environ['RUNNER_TEMP'])
+          base = 'a8bddb59acc9f3905a60e30b12fa27116e9aff0b'
+          base_tree = 'b91b5a606d1f8622d44efc15837ece14e4bef6ed'
+          target = '32387a2d17515d1eef6edcdcf8ad24ca0f7ec2d3'
+          original_commit = '6664d6ffb96e0f11db4ded07ad5fb47827e52292'
+          workflow = '.github/workflows/phase27h12-transfer.yml'
+          assert os.environ['GITHUB_REPOSITORY'] == 'cheshmakzanoon-ops/Experiment-3'
+          api_root = 'https://api.github.com/repos/' + os.environ['GITHUB_REPOSITORY']
+          def api(path, body=None):
+              data = None if body is None else json.dumps(body).encode()
+              request = urllib.request.Request(api_root + path, data=data, headers={
+                  'Authorization': 'Bearer ' + os.environ['GH_TOKEN'],
+                  'Accept': 'application/vnd.github+json', 'Content-Type': 'application/json'})
+              with urllib.request.urlopen(request, timeout=60) as response:
+                  return json.load(response)
+          def git(*args):
+              return subprocess.check_output(['git', *args], text=True).strip()
+          def sha256(path):
+              return hashlib.sha256(path.read_bytes()).hexdigest()
+          assert api('/git/ref/heads/main')['object']['sha'] == os.environ['GITHUB_SHA'], 'Concurrent changes require reconciliation'
+          assert git('rev-parse', base + '^{tree}') == base_tree
+          assert git('diff', '--name-only', base, 'HEAD') == workflow
+          archive = tmp / 'source' / 'source.tar.gz'
+          assert sha256(archive) == 'c7456dd488dd4d6bd0a39990f0a41dd025619ff42abeca65782d754a39624b90'
+          blob = api('/git/blobs/0e6f7a68ffed8387bea230626317e887cbed4d36')
+          packed = base64.b64decode(blob['content'])
+          assert hashlib.sha256(packed).hexdigest() == '28d7b2c061c4f22c070dda41eed8e459adc890264890840714966054dca39f45'
+          patch = gzip.decompress(packed)
+          assert hashlib.sha256(patch).hexdigest() == '6d5a431752d5a7186575a8f037db051cc0ee808876d329257f48e9ad2e205aed'
+          patch_path = tmp / 'publication.patch'
+          patch_path.write_bytes(patch)
+          for name in subprocess.check_output(['git', 'ls-files', '-z']).decode().split('\0'):
+              if name:
+                  (root / name).unlink()
+          with tarfile.open(archive) as source:
+              for item in source.getmembers():
+                  parts = pathlib.PurePosixPath(item.name).parts
+                  assert not item.name.startswith('/') and '..' not in parts and '.git' not in parts
+                  assert item.isfile() or item.isdir(), item.name
+              source.extractall(root, filter='data')
+          subprocess.run(['git', 'apply', '--check', str(patch_path)], check=True)
+          subprocess.run(['git', 'apply', str(patch_path)], check=True)
+          web = tmp / 'web'
+          manifest = json.loads((web / 'BUILD.json').read_text())
+          fingerprint = '2e7e670d92eff961c813bc758c034ef4c1800bd5ea348b3ec9dbe3a4400d3e97'
+          assert manifest['sourceFingerprint'] == fingerprint
+          for name, digest in manifest['files'].items():
+              assert sha256(web / name) == digest, name
+          shutil.rmtree(root / 'playable')
+          shutil.copytree(web, root / 'playable', ignore=shutil.ignore_patterns('*.map'))
+          local_manifest = {
+              'sourceFingerprint': fingerprint,
+              'upstreamBase': base,
+              'recoveredCandidateTree': 'dde0af3df3a09dcb4ddc83a376e88ad245e7250c',
+              'recoveredRun': 35902628261,
+              'carCaptureRun': 35907335064,
+              'files': {name: digest for name, digest in manifest['files'].items() if not name.endswith('.map')},
+              'acceptance': {
+                  'lintUnitTypesBuild': 'PASS', 'nativeScenarios': 'PASS',
+                  'driverBrowserRerun': 'OPEN', 'completeBrowserSuite': 'OPEN',
+                  'publicDeploymentVerified': False, 'finalArtApproved': False,
+                  'physicalHardwareApproved': False}}
+          (root / 'playable/BUILD.json').write_text(json.dumps(local_manifest, indent=2) + '\n')
+          subprocess.run(['git', 'add', '-A'], check=True)
+          assert git('write-tree') == target, 'Source differs from the saved local commit'
+          subprocess.run(['git', 'diff', '--cached', '--quiet', base, '--',
+              'src/simulation', 'src/workers', 'src/storage', 'src/input', 'src/audio',
+              'src/core', '.github/workflows/ci.yml', 'package-lock.json',
+              'docs/MASTER_DIRECTIVE.md'], check=True)
+          assert sha256(root / 'docs/MASTER_DIRECTIVE.md') == 'f508a1b9be8e8a19a2ccc39d744e82d774cf95ecc773c12482efbcb9fb89f75c'
+          paths = git('diff', '--cached', '--name-only', base).splitlines()
+          entries = []
+          uploaded = set()
+          for name in paths:
+              p = root / name
+              if not p.exists():
+                  entries.append({'path': name, 'mode': '100644', 'type': 'blob', 'sha': None})
+                  continue
+              assert p.is_file() and not p.is_symlink(), name
+              data = p.read_bytes()
+              oid = hashlib.sha1(b'blob ' + str(len(data)).encode() + b'\0' + data).hexdigest()
+              if oid not in uploaded:
+                  saved = api('/git/blobs', {'content': base64.b64encode(data).decode(), 'encoding': 'base64'})
+                  assert saved['sha'] == oid, name
+                  uploaded.add(oid)
+              entries.append({'path': name, 'mode': '100644', 'type': 'blob', 'sha': oid})
+          tree = api('/git/trees', {'base_tree': base_tree, 'tree': entries})
+          assert tree['sha'] == target, 'GitHub tree differs from the saved source'
+          message = ('fix: recover 27H.1-27H.2 source and repair traced browser contracts\n\n'
+              'Retain the exact authored Blender driver and integrate its normal source files. '
+              'Correct the decorative-button accessible name and signed opposite-side camera angle, '
+              'preserve all acceptance assertions, and keep GPU readback out of input polling. '
+              'Preserve concurrent upstream workflow changes. Retain the matching offline playable candidate.\n\n'
+              'Local lint, 941 unit tests, TypeScript, build and eight native scenario scripts pass. '
+              'Normal local application navigation is blocked by browser policy. Full driver/browser '
+              'acceptance and public deployment remain open; this commit is not a release certification.\n')
+          identity = {'name': 'ChatGPT', 'email': 'chatgpt@users.noreply.github.com',
+              'date': datetime.datetime.fromtimestamp(1790191715, datetime.timezone.utc).isoformat()}
+          commit = api('/git/commits', {'message': message, 'tree': target, 'parents': [base],
+              'author': identity, 'committer': identity})
+          assert commit['sha'] == original_commit, 'Original saved commit identity differs'
+          assert api('/git/ref/heads/main')['object']['sha'] == os.environ['GITHUB_SHA'], 'Concurrent changes require reconciliation'
+          report = {'uploadedCommit': commit['sha'], 'tree': target, 'base': base,
+              'stagingCommit': os.environ['GITHUB_SHA'], 'changedPaths': paths,
+              'sourceFingerprint': fingerprint, 'mainAdvanced': False,
+              'driverAcceptance': 'OPEN; preceding hosted run failed',
+              'completeBrowserSuite': 'OPEN', 'publicDeployment': False}
+          (tmp / 'published-objects.json').write_text(json.dumps(report, indent=2) + '\n')
+          print(json.dumps(report, indent=2))
+          PYTHON
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase27h12-published-objects
+          path: ${{ runner.temp }}/published-objects.json
+          retention-days: 30
+          if-no-files-found: error
