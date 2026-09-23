@@ -1,4 +1,5 @@
 import { menuPreview } from './rendering/menu-preview.ts';
+import { shouldDrawReplay } from './rendering/replay-presentation.ts';
 import { TabEvidence } from './ui/tab-evidence.ts';
 import { ReferenceSessionReview, referenceSessionPanel } from './ui/reference-session.ts';
 import { escapeHtml } from './ui/team-hub.ts';
@@ -522,6 +523,19 @@ export class GameApp {
     const wallDelta = Math.max(0.001, (time - (this.previousTime || time - 16)) / 1000),
       dt = clamp(wallDelta, 0.001, 0.08);
     this.previousTime = time;
+    // Telemetry/settings own a replay's last presented frame immediately, even
+    // on the first callback after opening. Paused replay redraws only for a seek
+    // or explicit camera/resize invalidation; keep the wall clock current above.
+    if (
+      this.state === 'replay' &&
+      !shouldDrawReplay({
+        playing: this.replayPlaying,
+        seekPending: this.replaySeekPending,
+        covered: this.ui.telemetryModal.open || this.ui.modal.open,
+        invalidated: this.renderedState !== this.state,
+      })
+    )
+      return;
     // A modal owns the menu: keep the last fully rendered backdrop instead of
     // re-submitting an orbiting scene behind every HQ/settings interaction.
     // On software GPUs the nominal 15 FPS cap cannot help when ONE frame takes

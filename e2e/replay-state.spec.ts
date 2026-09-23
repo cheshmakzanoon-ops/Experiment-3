@@ -94,7 +94,13 @@ test('recorded playback has exclusive modal, seek, audio and focus ownership', a
   await expect.poll(async () => (await diagnostics()).audio.playing).toBe(false);
   const modal = await diagnostics();
   await page.waitForTimeout(500);
-  const modalAfter = await diagnostics();
+  const modalAfter = await page.evaluate(async () => {
+    // Prove callbacks actually ran while the dialog owned the frozen backdrop;
+    // a wall-clock sleep alone can miss the bug on a slow software GPU.
+    for (let i = 0; i < 4; i++)
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    return window.apexDiagnostics();
+  });
   expect(modalAfter.replayPosition).toBe(modal.replayPosition);
   expect(modalAfter.presentation).toEqual(modal.presentation);
   expect(modalAfter.frame).toEqual(live.frame);
@@ -129,7 +135,16 @@ test('recorded playback has exclusive modal, seek, audio and focus ownership', a
     element.dispatchEvent(new Event('input', { bubbles: true }));
   });
   await expect.poll(async () => (await diagnostics()).replaySeekPending).toBe(false);
-  expect((await diagnostics()).replaySurfaceTime).toBe(0);
+  const held = await diagnostics();
+  const heldAfter = await page.evaluate(async () => {
+    for (let i = 0; i < 4; i++)
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    return window.apexDiagnostics();
+  });
+  expect(heldAfter.presentation).toEqual(held.presentation);
+  expect(heldAfter.frame).toEqual(live.frame);
+  expect(heldAfter.replayPosition).toBe(0);
+  expect(heldAfter.replaySurfaceTime).toBe(0);
   expect((await diagnostics()).frame![H.TICK]).toBe(live.frame![H.TICK]);
   expect((await diagnostics()).recordingWarnings).toEqual([]);
   await page.screenshot({ path: testInfo.outputPath('replay-first-frame.png') });

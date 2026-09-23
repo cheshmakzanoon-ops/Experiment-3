@@ -910,6 +910,14 @@ export class RacingRenderer {
     return {
       authoredBodywork: this.heroShells?.diagnostics() ?? null,
       authoredDriver: this.driverAsset?.diagnostics() ?? null,
+      // CPU-only snapshot of the actual posed rig. Inspecting limb coupling must
+      // not raycast the complete hero car or synchronously read mirror pixels.
+      driverPose: {
+        car: this.follow,
+        time: this.presented.value[H.TIME],
+        wheelRadians: this.cars[this.follow].steering.rotation.z,
+        arms: this.cars[this.follow].driver.diagnostics(),
+      },
       photo: this.photo ? { ...this.photo } : null,
       geometrySurvey: {
         count: this.geometrySurvey?.count ?? 0,

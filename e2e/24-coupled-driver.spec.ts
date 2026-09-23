@@ -10,10 +10,10 @@ test('27H.2 normal application: coupled driver survives both locks, countersteer
   test.setTimeout(420000);
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
-  // State polling must not force synchronous mirror-pixel readback: on a software
-  // GPU that blocks the input pump and trips the unchanged stale-input safeguard.
+  // Driver-pose evidence is CPU-only and comes from the actual presented rig.
+  // Mirror pixels/raycast visibility have separate tests; reading them here
+  // stalls the software GPU and input pump without testing another driver rule.
   const diagnostics = () => page.evaluate(() => window.apexDiagnostics());
-  const visualDiagnostics = () => page.evaluate(() => window.apexDiagnostics(true));
   await page.goto('/');
   await expect(page.locator('#menu')).toBeVisible({ timeout: 90000 });
   expect((await diagnostics()).renderer?.authoredDriver).toMatchObject({
@@ -44,9 +44,12 @@ test('27H.2 normal application: coupled driver survives both locks, countersteer
     await expect
       .poll(async () => ((await diagnostics()).frame?.[carBase(0) + F.STEER] ?? 0) * direction)
       .toBeGreaterThan(0.3);
-    const pose = await visualDiagnostics();
-    expect(pose.visual?.driver).toHaveLength(2);
-    for (const arm of pose.visual!.driver) {
+    await expect
+      .poll(async () => ((await diagnostics()).renderer?.driverPose.wheelRadians ?? 0) * -direction)
+      .toBeGreaterThan(0.3 * 2.2);
+    const pose = await diagnostics();
+    expect(pose.renderer?.driverPose.arms).toHaveLength(2);
+    for (const arm of pose.renderer!.driverPose.arms) {
       expect(arm.authoredSkin).toBe(true);
       expect(arm.reachable).toBe(true);
       expect(arm.upperLength).toBeCloseTo(0.37, 6);
@@ -72,7 +75,7 @@ test('27H.2 normal application: coupled driver survives both locks, countersteer
     await page.keyboard.press('c');
     await expect.poll(async () => (await diagnostics()).renderer?.camera).toBe(camera);
     expect(
-      (await visualDiagnostics()).visual!.driver.every((a) => a.authoredSkin && a.reachable),
+      (await diagnostics()).renderer!.driverPose.arms.every((a) => a.authoredSkin && a.reachable),
     ).toBe(true);
     await info.attach(`27h2-moving-${camera}.png`, {
       body: await page.screenshot(),
@@ -92,12 +95,14 @@ test('27H.2 normal application: coupled driver survives both locks, countersteer
     }, seconds);
     await expect.poll(async () => (await diagnostics()).replaySeekPending).toBe(false);
     await expect.poll(async () => (await diagnostics()).replayPosition).toBe(seconds);
-    return visualDiagnostics();
+    return diagnostics();
   };
   const first = await seek(0.75);
   const forward = await seek(4.5);
   const rewind = await seek(0.75);
-  expect(rewind.visual?.driver).toEqual(first.visual?.driver);
+  expect(rewind.renderer?.driverPose.arms).toEqual(first.renderer?.driverPose.arms);
+  expect(rewind.renderer?.driverPose.time).toBe(first.renderer?.driverPose.time);
+  expect(forward.renderer?.driverPose.time).toBeGreaterThan(first.renderer!.driverPose.time);
   expect(rewind.frame?.[H.TICK]).toBe(paused.frame?.[H.TICK]);
   expect(rewind.renderer?.authoredDriver?.sha256).toBe(manifest.sha256);
   expect(rewind.recordingWarnings).toEqual([]);
