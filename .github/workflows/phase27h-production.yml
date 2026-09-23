@@ -1,47 +1,316 @@
-name: Phase 27H production validation
-on:
-  workflow_dispatch:
+name: Phase 27H.1-27H.2 exact implementation validation
+'on':
   push:
-    branches: [main]
-    paths: [.github/workflows/phase27h-production.yml]
+    branches:
+    - main
+    paths:
+    - .github/workflows/phase27h-production.yml
 permissions:
   contents: read
 concurrency:
-  group: phase27h-production-validation
-  cancel-in-progress: true
+  group: phase27h12-exact-candidate
+  cancel-in-progress: false
+env:
+  BASE_COMMIT: 50d13c9b54700ca283c3e2ae1af5e32baf6dd105
+  BASE_TREE: d7c7b9168d1ac33db288fc0f677185ca144d0b40
+  EXPECTED_FINGERPRINT: 000e18cb6968c1afb624f8f277eb22f9b908a0b42671a763bf3eccd7a1aa22ca
 jobs:
-  source-and-toolchain:
+  prepare:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
+    outputs:
+      tree: ${{ steps.archive.outputs.tree }}
     steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: npm
-      - name: Install the locked game dependencies
-        run: npm ci --no-audit --no-fund
-      - name: Archive exact source and development dependencies
-        shell: bash
-        run: |
-          set -euo pipefail
-          git archive --format=tar.gz HEAD > "$RUNNER_TEMP/phase27h-source.tar.gz"
-          tar -czf "$RUNNER_TEMP/phase27h-node-modules.tar.gz" node_modules
-          printf '%s\n' "$(git rev-parse HEAD)" > "$RUNNER_TEMP/phase27h-source-commit.txt"
-          cd "$RUNNER_TEMP"
-          sha256sum phase27h-source.tar.gz phase27h-node-modules.tar.gz > phase27h-checksums.txt
-      - uses: actions/upload-artifact@v4
-        with:
-          name: phase27h-production-development-inputs
-          path: |
-            ${{ runner.temp }}/phase27h-source.tar.gz
-            ${{ runner.temp }}/phase27h-node-modules.tar.gz
-            ${{ runner.temp }}/phase27h-source-commit.txt
-            ${{ runner.temp }}/phase27h-checksums.txt
-          retention-days: 3
-          compression-level: 0
-          if-no-files-found: error
-      - name: Verify baseline code, contracts, and production build
-        run: npm run check
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        persist-credentials: false
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+        cache: npm
+    - name: Recover checksum-verified implementation
+      run: |-
+        python - <<'PYTHON'
+        import pathlib, subprocess, os, hashlib
+        base=os.environ['BASE_COMMIT']
+        parts=[f'.github/phase27h-driver-{i}.part' for i in range(3)]
+        workflow='.github/workflows/phase27h-production.yml'
+        subprocess.run(['git','merge-base','--is-ancestor',base,'HEAD'],check=True)
+        assert subprocess.check_output(['git','rev-parse',base+'^{tree}'],text=True).strip()==os.environ['BASE_TREE']
+        changes=subprocess.check_output(['git','diff','--name-only',base,'HEAD'],text=True).splitlines()
+        assert changes==parts+[workflow], ('Concurrent source changes must be reconciled',changes)
+        packed=b''.join(pathlib.Path(p).read_bytes() for p in parts)
+        assert hashlib.sha256(packed).hexdigest()=='7842b6fd34a3b1991e4e9d35bf580de74ba83929d272b57083907a8fd34b8e35'
+        p=pathlib.Path(os.environ['RUNNER_TEMP'])/'driver.br';p.write_bytes(packed)
+        patch=subprocess.check_output(['node','-e',"process.stdout.write(require('node:zlib').brotliDecompressSync(require('node:fs').readFileSync(process.argv[1])))",str(p)])
+        assert hashlib.sha256(patch).hexdigest()=='69598c377d428ffb47d2fc423fe4827916e3dd905336167d81c8f63ea96ae9b3'
+        p=p.with_suffix('.patch');p.write_bytes(patch)
+        for part in parts:pathlib.Path(part).unlink()
+        subprocess.run(['git','checkout',base,'--',workflow],check=True)
+        subprocess.run(['git','apply','--check',str(p)],check=True)
+        subprocess.run(['git','apply',str(p)],check=True)
+        PYTHON
+    - name: Rebuild and verify the original Blender character
+      run: |-
+        set -euo pipefail
+        curl --fail --location --retry 3 https://download.blender.org/release/Blender5.2/blender-5.2.2-linux-x64.tar.xz -o "$RUNNER_TEMP/blender.tar.xz"
+        echo "84098912789dc450e95697c4184fb8a90acbe5111c2ba4aede3fecb57806a168  $RUNNER_TEMP/blender.tar.xz" | sha256sum --check --strict
+        tar -xJf "$RUNNER_TEMP/blender.tar.xz" -C "$RUNNER_TEMP"
+        "$RUNNER_TEMP/blender-5.2.2-linux-x64/blender" --background -t 4 --python-exit-code 1 --python scripts/author-driver.py
+        python - <<'PYTHON'
+        import pathlib,hashlib,json,gzip
+        p=pathlib.Path('src/rendering/apx01-driver.glb.gz');packed=p.read_bytes();raw=gzip.decompress(packed)
+        assert len(packed)==208514 and hashlib.sha256(packed).hexdigest()=='83b7b360a8785a58233196768102698aae1e4a36317c80e0fdbbfb6f62bda667'
+        assert len(raw)==488080 and hashlib.sha256(raw).hexdigest()=='feee0e185e93799e66f8a1f939d9d3bf3c717b7a93e5af1cd74702ff9c2a0e81'
+        assert pathlib.Path('scripts/apx01-driver.blend').stat().st_size>10000
+        for name,digest in {'docs/MASTER_DIRECTIVE.md':'f508a1b9be8e8a19a2ccc39d744e82d774cf95ecc773c12482efbcb9fb89f75c','package-lock.json':'0ee732475bc70f3bec4bfa7787f904d51bc28c185534dff3762f2d18801bbc59'}.items():
+         assert hashlib.sha256(pathlib.Path(name).read_bytes()).hexdigest()==digest,name
+        PYTHON
+        node --experimental-transform-types scripts/phase27h-matrix.ts --write
+        node --experimental-transform-types --input-type=module -e "import {sourceFingerprint} from './scripts/phase27h-matrix.ts'; if(sourceFingerprint(process.cwd())!==process.env.EXPECTED_FINGERPRINT) throw new Error('Source fingerprint mismatch');"
+    - run: npm ci --no-audit --no-fund
+    - run: npm run check
+    - name: Retain exact tested source
+      run: |
+        set -euo pipefail
+        node --experimental-transform-types scripts/phase27h-matrix.ts --check
+        git add -A
+        git diff --cached --quiet "$BASE_COMMIT" -- src/simulation/ .github/workflows/ci.yml package-lock.json docs/MASTER_DIRECTIVE.md
+        TREE=$(git write-tree)
+        echo "tree=$TREE" >> "$GITHUB_OUTPUT"
+        git archive --format=tar.gz "$TREE" > "$RUNNER_TEMP/source.tar.gz"
+        printf '%s\n' "$TREE" > "$RUNNER_TEMP/source-tree.txt"
+        printf '%s\n' "$EXPECTED_FINGERPRINT" > "$RUNNER_TEMP/source-fingerprint.txt"
+        git diff --cached --stat "$BASE_COMMIT"
+      id: archive
+    - uses: actions/upload-artifact@v4
+      with:
+        name: phase27h12-source
+        path: |-
+          ${{ runner.temp }}/source.tar.gz
+          ${{ runner.temp }}/source-tree.txt
+          ${{ runner.temp }}/source-fingerprint.txt
+        retention-days: 7
+        if-no-files-found: error
+    - uses: actions/upload-artifact@v4
+      with:
+        name: phase27h12-web
+        path: dist/
+        retention-days: 7
+        if-no-files-found: error
+  browser:
+    needs: prepare
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      TARGET_TREE: ${{ needs.prepare.outputs.tree }}
+    strategy:
+      fail-fast: false
+      matrix:
+        shard:
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+        - 6
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        persist-credentials: false
+    - uses: actions/download-artifact@v4
+      with:
+        name: phase27h12-source
+        path: ${{ runner.temp }}/source
+    - name: Restore exact candidate, including editable Blender source
+      run: |
+        set -euo pipefail
+        rm .github/phase27h-driver-{0,1,2}.part
+        tar -xzf "$RUNNER_TEMP/source/source.tar.gz"
+        git add -A
+        test "$(git write-tree)" = "$TARGET_TREE"
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+        cache: npm
+    - run: npm ci --no-audit --no-fund
+    - uses: actions/download-artifact@v4
+      with:
+        name: phase27h12-web
+        path: dist/
+    - run: npx playwright install --with-deps chromium
+    - run: npm run test:e2e -- --shard=${{ matrix.shard }}/6
+    - uses: actions/upload-artifact@v4
+      with:
+        name: phase27h12-browser-${{ matrix.shard }}
+        path: |-
+          test-results/
+          playwright-report/
+        retention-days: 7
+        if-no-files-found: error
+      if: always()
+  presentation:
+    needs: prepare
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      TARGET_TREE: ${{ needs.prepare.outputs.tree }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+        - name: whole-car
+          spec: e2e/23-apx01-views.spec.ts
+        - name: driver
+          spec: e2e/24-coupled-driver.spec.ts
+        - name: wet
+          spec: e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        persist-credentials: false
+    - uses: actions/download-artifact@v4
+      with:
+        name: phase27h12-source
+        path: ${{ runner.temp }}/source
+    - name: Restore exact candidate, including editable Blender source
+      run: |
+        set -euo pipefail
+        rm .github/phase27h-driver-{0,1,2}.part
+        tar -xzf "$RUNNER_TEMP/source/source.tar.gz"
+        git add -A
+        test "$(git write-tree)" = "$TARGET_TREE"
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+        cache: npm
+    - run: npm ci --no-audit --no-fund
+    - uses: actions/download-artifact@v4
+      with:
+        name: phase27h12-web
+        path: dist/
+    - run: npx playwright install --with-deps chromium
+    - run: npm run test:e2e -- ${{ matrix.spec }}
+    - uses: actions/upload-artifact@v4
+      with:
+        name: phase27h12-${{ matrix.name }}
+        path: |-
+          test-results/
+          playwright-report/
+        retention-days: 7
+        if-no-files-found: error
+      if: always()
+  scenarios:
+    needs: prepare
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      TARGET_TREE: ${{ needs.prepare.outputs.tree }}
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        persist-credentials: false
+    - uses: actions/download-artifact@v4
+      with:
+        name: phase27h12-source
+        path: ${{ runner.temp }}/source
+    - name: Restore exact candidate, including editable Blender source
+      run: |
+        set -euo pipefail
+        rm .github/phase27h-driver-{0,1,2}.part
+        tar -xzf "$RUNNER_TEMP/source/source.tar.gz"
+        git add -A
+        test "$(git write-tree)" = "$TARGET_TREE"
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+        cache: npm
+    - run: npm ci --no-audit --no-fund
+    - run: npm run test:physics
+    - run: node --experimental-transform-types scripts/rotation-benchmark.ts
+    - run: node --experimental-transform-types scripts/pit-integration.ts
+    - run: node --experimental-transform-types scripts/race-classification.ts
+    - uses: actions/upload-artifact@v4
+      with:
+        name: phase27h12-scenarios
+        path: |-
+          docs/scenario-results.json
+          docs/dynamics-benchmark.json
+          docs/marshal-integration.json
+          docs/wet-pit-results.json
+          docs/integrated-driving.json
+          docs/rotation-benchmark.json
+          docs/pit-integration.json
+          docs/race-classification.json
+        retention-days: 7
+        if-no-files-found: error
+      if: always()
+  seal:
+    needs:
+    - prepare
+    - browser
+    - presentation
+    - scenarios
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      TARGET_TREE: ${{ needs.prepare.outputs.tree }}
+    permissions:
+      contents: write
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        persist-credentials: false
+    - uses: actions/download-artifact@v4
+      with:
+        name: phase27h12-source
+        path: ${{ runner.temp }}/source
+    - name: Restore exact tested tree
+      run: |
+        set -euo pipefail
+        rm .github/phase27h-driver-{0,1,2}.part
+        tar -xzf "$RUNNER_TEMP/source/source.tar.gz"
+        git add -A
+        test "$(git write-tree)" = "$TARGET_TREE"
+    - name: Retain verified commit; do not advance a branch
+      run: |-
+        python - <<'PYTHON'
+        import base64, hashlib, json, os, pathlib, subprocess, urllib.request
+        base=os.environ['BASE_COMMIT'];target=os.environ['TARGET_TREE'];staging=os.environ['GITHUB_SHA']
+        root='https://api.github.com/repos/'+os.environ['GITHUB_REPOSITORY']
+        def request(path,body=None):
+         data=None if body is None else json.dumps(body).encode()
+         req=urllib.request.Request(root+path,data=data,headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','Content-Type':'application/json'})
+         with urllib.request.urlopen(req,timeout=60) as response:return json.load(response)
+        assert request('/git/ref/heads/main')['object']['sha']==staging,'Concurrent source changes must be reconciled'
+        assert subprocess.check_output(['git','write-tree'],text=True).strip()==target
+        paths=subprocess.check_output(['git','diff','--cached','--name-only',base],text=True).splitlines()
+        assert set(paths)==set(['docs/ASSET_PROVENANCE.md', 'docs/PHASE_27H12_IMPLEMENTATION.md', 'docs/PHASE_27H1_IMPLEMENTATION.md', 'e2e/22-apx01-assembly.spec.ts', 'e2e/23-apx01-views.spec.ts', 'e2e/24-coupled-driver.spec.ts', 'e2e/fixtures/apx01-assembly.ts', 'scripts/apx01-inspect.mjs', 'scripts/apx01-inspect.py', 'scripts/author-driver.py', 'src/rendering/apx01-driver.manifest.json', 'src/rendering/car-mechanical-detail.ts', 'src/rendering/car.ts', 'src/rendering/driver-anatomy.ts', 'src/rendering/driver-asset.ts', 'src/rendering/driver-controls.ts', 'src/rendering/driver-restraints.ts', 'src/rendering/driver.ts', 'src/rendering/photo-stage.ts', 'src/rendering/reflections.ts', 'src/rendering/renderer.ts', 'tests/driver-asset.test.ts', 'tests/driver-controls.test.ts', 'tests/reflections.test.ts', 'scripts/apx01-driver.blend', 'src/rendering/apx01-driver.glb.gz', 'docs/PHASE_27H_MATRIX.md']),paths
+        entries=[]
+        for name in paths:
+         p=pathlib.Path(name);assert p.is_file() and not p.is_symlink(),name
+         data=p.read_bytes();expected=hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()
+         remote=request('/git/blobs',{'content':base64.b64encode(data).decode(),'encoding':'base64'})
+         assert remote['sha']==expected,name
+         entries.append({'path':name,'mode':'100644','type':'blob','sha':expected})
+        tree=request('/git/trees',{'base_tree':os.environ['BASE_TREE'],'tree':entries})
+        assert tree['sha']==target,'Remote tree differs from tested source'
+        message='feat(rendering): integrate coupled Blender driver and close whole-car view defects (27H.1-27H.2)\n\nAuthor a bounded 9-joint character asset with continuous IK-driven sleeves, sculpted suit, opposed thumbs and fitted gauntlets. Connect shift-finger deformation to the actual paddle pivot and conform six-point restraints and helmet tethers to moving anatomy. Preserve whole-car steering, physical suspension, wheel motion, damage and mirrors. Separate studio softboxes from inspection cameras without weakening empty-image rejection. Validate exact authored bytes, full unit/build/physics/browser suites, normal-game multi-view exports, cockpit countersteering and replay seeks. Retain editable Blender source and honest reference/final-art/hardware boundaries.'
+        commit=request('/git/commits',{'message':message,'tree':target,'parents':[staging]})
+        report={'commit':commit['sha'],'tree':target,'base':base,'staging':staging,'workflowRun':os.environ['GITHUB_RUN_ID'],'files':paths,'sourceFingerprint':os.environ['EXPECTED_FINGERPRINT'],'branchAdvanced':False,'humanApproved':False,'physicalHardwareApproved':False,'finalArtApproved':False,'allReferenceParity':False}
+        (pathlib.Path(os.environ['RUNNER_TEMP'])/'phase27h12-sealed.json').write_text(json.dumps(report,indent=2)+'\n')
+        print(json.dumps(report,indent=2))
+        PYTHON
+      env:
+        GH_TOKEN: ${{ github.token }}
+    - uses: actions/upload-artifact@v4
+      with:
+        name: phase27h12-sealed
+        path: ${{ runner.temp }}/phase27h12-sealed.json
+        retention-days: 7
+        if-no-files-found: error
