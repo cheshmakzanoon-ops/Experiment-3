@@ -1,4 +1,4 @@
-name: Live playable F1 preview
+name: Publish playable static F1 bundle
 
 on:
   push:
@@ -6,17 +6,17 @@ on:
       - '.github/workflows/live-preview.yml'
 
 permissions:
-  contents: read
-  statuses: write
+  contents: write
 
 jobs:
-  preview:
+  publish:
     runs-on: ubuntu-24.04
-    timeout-minutes: 355
-
+    timeout-minutes: 20
     steps:
       - name: Checkout current main
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -24,110 +24,48 @@ jobs:
           node-version: '22.12.0'
           cache: npm
 
-      - name: Install and build current game
+      - name: Build current F1 game
+        shell: bash
         run: |
           set -euo pipefail
           npm ci
           npm run build
 
-      - name: Start static production server
+      - name: Stage browser-ready static bundle
         shell: bash
         run: |
           set -euo pipefail
-          nohup python3 -m http.server 4173 --bind 0.0.0.0 --directory dist \
-            > /tmp/apex-static.log 2>&1 &
-          server_pid=$!
-          echo "SERVER_PID=$server_pid" >> "$GITHUB_ENV"
+          rm -rf playable
+          mkdir -p playable
+          cp -R dist/. playable/
+          find playable -type f -name '*.map' -delete
 
-          for i in {1..30}; do
-            if curl -fsS http://127.0.0.1:4173/ >/dev/null; then
-              exit 0
-            fi
-            sleep 1
-          done
+          # Remove temporary deployment experiments from the source tree.
+          rm -f .github/workflows/live-preview.yml
+          rm -f .github/workflows/pages.yml
 
-          cat /tmp/apex-static.log
-          exit 1
+          test -f playable/index.html
+          test -n "$(find playable/assets -maxdepth 1 -type f -name 'index-*.js' -print -quit)"
+          test -n "$(find playable/assets -maxdepth 1 -type f -name 'three-*.js' -print -quit)"
+          test -n "$(find playable/assets -maxdepth 1 -type f -name 'apx01-shell*.gz' -print -quit)"
+          git diff --check
 
-      - name: Open public HTTPS tunnel
-        shell: bash
-        env:
-          GH_TOKEN: \${{ github.token }}
-        run: |
-          set -euo pipefail
-
-          nohup ssh -T \
-            -o StrictHostKeyChecking=no \
-            -o UserKnownHostsFile=/dev/null \
-            -o ServerAliveInterval=30 \
-            -o ServerAliveCountMax=3 \
-            -o ExitOnForwardFailure=yes \
-            -R 80:127.0.0.1:4173 \
-            nokey@localhost.run \
-            > /tmp/localhost-run.log 2>&1 &
-          tunnel_pid=$!
-          echo "TUNNEL_PID=$tunnel_pid" >> "$GITHUB_ENV"
-
-          url=""
-          for i in {1..90}; do
-            url="$(grep -oE 'https://[-a-zA-Z0-9.]+(lhr[.]life|localhost[.]run)' /tmp/localhost-run.log \
-              | grep -vE '^https://(admin[.])?localhost[.]run/?$' \
-              | head -n1 || true)"
-            if [ -n "$url" ]; then
-              break
-            fi
-            if ! kill -0 "$tunnel_pid" 2>/dev/null; then
-              cat /tmp/localhost-run.log
-              exit 1
-            fi
-            sleep 1
-          done
-
-          if [ -z "$url" ]; then
-            cat /tmp/localhost-run.log
-            exit 1
-          fi
-
-          public_ok=0
-          for i in {1..30}; do
-            if curl -fsS "$url/" >/dev/null; then
-              public_ok=1
-              break
-            fi
-            sleep 2
-          done
-          test "$public_ok" = "1"
-
-          payload="$(jq -n --arg url "$url" '{
-            state: "success",
-            target_url: $url,
-            description: "Playable current F1 preview",
-            context: "live-preview"
-          }')"
-
-          curl -fsS -X POST \
-            -H "Authorization: Bearer $GH_TOKEN" \
-            -H "Accept: application/vnd.github+json" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            "https://api.github.com/repos/\${GITHUB_REPOSITORY}/statuses/\${GITHUB_SHA}" \
-            -d "$payload" >/dev/null
-
-          echo "LIVE_URL=$url" >> "$GITHUB_ENV"
-          echo "### Playable F1 preview" >> "$GITHUB_STEP_SUMMARY"
-          echo "$url" >> "$GITHUB_STEP_SUMMARY"
-          echo "Live URL: $url"
-
-      - name: Keep preview online
+      - name: Commit static playable bundle to main
         shell: bash
         run: |
           set -euo pipefail
-          echo "Serving $LIVE_URL"
+          git config user.name OpenAI
+          git config user.email noreply@openai.com
+          git add -A playable .github/workflows/live-preview.yml .github/workflows/pages.yml
+          git commit -m "build: publish browser-ready playable F1 bundle"             -m "Generate the static Vite production output from the current F1 main tree, retain only runtime assets (no source maps), and remove temporary deployment-helper workflows. Game source and simulation behavior are unchanged."
+          git push origin HEAD:main
+          echo "PUBLISHED_SHA=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
 
-          while kill -0 "$SERVER_PID" 2>/dev/null && kill -0 "$TUNNEL_PID" 2>/dev/null; do
-            sleep 30
-          done
-
-          echo "Preview process exited unexpectedly"
-          cat /tmp/apex-static.log || true
-          cat /tmp/localhost-run.log || true
-          exit 1
+      - name: Verify CDN source files exist at published commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          test "$(git rev-parse origin/main)" = "$PUBLISHED_SHA"
+          test -f playable/index.html
+          echo "Published static bundle at $PUBLISHED_SHA"
