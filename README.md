@@ -31,6 +31,16 @@ readiness**. The original master specification remains authoritative.
 
 ---
 
+## Phase 27H — authored bodywork and evidence-bound closure
+
+The actual renderer now loads the retained Blender-exported nose, engine-cover
+and sidepod skins with byte-integrity checks, owned geometry and live livery UVs.
+IK-driven elbow cloth and revised glove cross sections preserve the existing
+simulation/steering anchors. See [implementation and explicit open gates](docs/PHASE_27H_IMPLEMENTATION.md)
+and [the exact 148-section / 100-reference acceptance matrix](docs/PHASE_27H_MATRIX.md).
+This is an implementation increment, **not final-art acceptance, all-image parity,
+physical Windows/wheel validation, completed Section 146 or Steam readiness**.
+
 ## Phase 27D — spectator and night-presentation continuation
 
 The [continuation report](docs/PHASE_27D_PRESENTATION_CONTINUATION.md) records a fourth, two-triangle distant-crowd representation, snapshot-driven spectator reactions, a shared circuit-night profile and stronger real-renderer regression coverage. It builds on `537491b4`, preserving the already-published CI repairs, lit spray and continuous four-source floodlights. The locked-toolchain check passes 728 unit cases, lint, type checking and production build. The occupied-grandstand component comparison removes 16.42% of submitted triangles with three extra handoff draws; this is not a hardware FPS claim. Final graphics, full application/hardware validation and Steam acceptance remain open. Older report counts below describe their original checkpoints.

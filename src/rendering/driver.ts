@@ -1,3 +1,4 @@
+import { ElbowSleeve } from './elbow-sleeve.ts';
 import { HAND_ANCHOR } from './wheel-grip.ts';
 import * as T from 'three';
 import { clamp } from '../core/math.ts';
@@ -76,7 +77,7 @@ interface Arm {
   hand: T.Group;
   upper: T.Mesh;
   lower: T.Mesh;
-  elbow: T.Mesh;
+  elbow: T.Mesh<ElbowSleeve>;
   thumb: T.Group;
   paddle: T.Group;
   pose: ArmPose;
@@ -121,7 +122,7 @@ export class DriverRig {
       steering.add(paddle);
       const upper = mesh(this.root, sleeveGeometry(true), suit);
       const lower = mesh(this.root, sleeveGeometry(false), suit);
-      const elbow = mesh(this.root, new T.SphereGeometry(0.045, 16, 12), suit);
+      const elbow = mesh(this.root, new ElbowSleeve(), suit) as T.Mesh<ElbowSleeve>;
       this.arms.push({
         side,
         shoulder,
@@ -179,6 +180,7 @@ export class DriverRig {
       this.segment(arm.upper, arm.shoulder, arm.pose.elbow);
       this.segment(arm.lower, arm.pose.elbow, arm.pose.wrist);
       arm.elbow.position.copy(arm.pose.elbow);
+      arm.elbow.geometry.pose(arm.shoulder, arm.pose.elbow, arm.pose.wrist);
       const pull = arm.side < 0 ? this.actions.up : this.actions.down;
       arm.paddle.rotation.y = -arm.side * pull * 0.18;
       arm.paddle.updateMatrix();

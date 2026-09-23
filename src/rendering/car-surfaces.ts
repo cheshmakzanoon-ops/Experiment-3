@@ -5,9 +5,9 @@ import { sampleBody, sculptedLoft, type BodySection, type LoftOpening } from './
  * force coefficients or physical wheel hardpoints. Dimensions are metres. */
 export const NOSE_SECTIONS: readonly BodySection[] = Object.freeze([
   [0.4, 0.025, 0.3, 0.17],
-  [0.7, 0.028, 0.264, 0.146],
-  [1.12, 0.012, 0.202, 0.112],
-  [1.5, -0.056, 0.15, 0.074],
+  [0.7, 0.035, 0.28, 0.151],
+  [1.12, 0.019, 0.224, 0.118],
+  [1.5, -0.046, 0.165, 0.082],
   [1.85, -0.12, 0.135, 0.057],
   [2.15, -0.151, 0.124, 0.047],
   [2.34, -0.178, 0.102, 0.04],
@@ -16,10 +16,10 @@ export const NOSE_SECTIONS: readonly BodySection[] = Object.freeze([
 ]);
 export const POD_SECTIONS: readonly BodySection[] = Object.freeze([
   [-1.8, -0.275, 0.08, 0.055],
-  [-1.58, -0.232, 0.17, 0.09],
-  [-1.25, -0.19, 0.246, 0.11],
-  [-0.9, -0.128, 0.3, 0.125],
-  [-0.5, -0.065, 0.32, 0.148],
+  [-1.58, -0.214, 0.183, 0.096],
+  [-1.25, -0.175, 0.257, 0.123],
+  [-0.9, -0.105, 0.305, 0.14],
+  [-0.5, -0.042, 0.326, 0.16],
   [-0.1, -0.015, 0.324, 0.165],
   [0.2, 0.04, 0.29, 0.112],
   [0.36, 0.035, 0.24, 0.076],

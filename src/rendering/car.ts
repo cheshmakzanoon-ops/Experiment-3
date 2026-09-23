@@ -1,3 +1,4 @@
+import type { HeroShells } from './hero-shells.ts';
 import { installManufacturingFinish, ventilatedBrakeGeometry } from './manufacturing.ts';
 import { addSafetyCell, addAirbox, buildWing } from './car-architecture.ts';
 import { floorGeometry, floorFenceGeometry, wheelCoverGeometry } from './car-floor.ts';
@@ -101,8 +102,12 @@ export class FormulaCar {
       this.identityTexture.needsUpdate = true;
     }
   }
-  constructor(readonly id: number) {
+  constructor(
+    readonly id: number,
+    hero?: HeroShells,
+  ) {
     this.root.name = `Formula ${id + 1}`;
+    this.root.userData.authoredBodywork = hero?.diagnostics() ?? null;
     this.root.add(this.staticBody, this.frontWing, this.rearWing);
     const s = this.staticBody;
     this.paint = new T.MeshPhysicalMaterial({
@@ -130,14 +135,21 @@ export class FormulaCar {
     this.accent = ivory;
     // Venturi floor, sculpted monocoque, narrow nose and smoothly undercut sidepods.
     mesh(s, floorGeometry(), carbon);
-    mesh(s, sculptedLoft(NOSE_SECTIONS, 0, 0.32), this.paint);
+    mesh(s, hero?.copy('nose') ?? sculptedLoft(NOSE_SECTIONS, 0, 0.32), this.paint);
     mesh(s, cockpitShell(), this.paint);
     box(s, dark, 0, -0.24, -0.14, 0.5, 0.08, 1.02);
     box(s, dark, 0, -0.02, -0.6, 0.44, 0.45, 0.09);
     for (const sign of [-1, 1]) {
       const livery = flankLivery(this.paint, sign, id);
       this.reflectivePaint.push(livery);
-      const pod = mesh(s, openFrontCap(sidepodShell()), livery, sign * 0.53, 0, 0);
+      const pod = mesh(
+        s,
+        hero?.copy('sidepod') ?? openFrontCap(sidepodShell()),
+        livery,
+        sign * 0.53,
+        0,
+        0,
+      );
       pod.rotation.z = sign * -0.08;
       addSidepodDuct(s, sign, { carbon, dark, metal, paint: this.paint });
       for (let j = 0; j < 4; j++) {
@@ -161,7 +173,11 @@ export class FormulaCar {
       for (const across of [0.25, 0.5, 0.76])
         mesh(s, floorFenceGeometry(sign * across, 0, 2, 0.082), carbon);
     }
-    mesh(s, openFrontCap(sculptedLoft(ENGINE_SECTIONS, 0, 0.18)), this.paint);
+    mesh(
+      s,
+      hero?.copy('engine') ?? openFrontCap(sculptedLoft(ENGINE_SECTIONS, 0, 0.18)),
+      this.paint,
+    );
     addAirbox(s, this.paint, carbon, dark, 'high');
     addSafetyCell(s, carbon, 'high');
     for (const sign of [-1, 1]) {

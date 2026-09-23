@@ -32,7 +32,9 @@ export function fingerGeometry(side: number, finger: number) {
       position.setXYZ(
         index,
         centre.x + (position.getX(index) - centre.x) * radius,
-        centre.y + (position.getY(index) - centre.y) * radius,
+        // A gloved finger is flattened across the knuckle, not a round hose.
+        // Its existing X/Z grip contact curve remains unchanged.
+        centre.y + (position.getY(index) - centre.y) * radius * (0.82 + 0.1 * u),
         centre.z + (position.getZ(index) - centre.z) * radius,
       );
     }

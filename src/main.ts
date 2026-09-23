@@ -1,3 +1,4 @@
+import { menuPreview } from './rendering/menu-preview.ts';
 import { TabEvidence } from './ui/tab-evidence.ts';
 import { ReferenceSessionReview, referenceSessionPanel } from './ui/reference-session.ts';
 import { escapeHtml } from './ui/team-hub.ts';
@@ -28,7 +29,7 @@ import {
   validateSetup,
   type SessionOptions,
 } from './simulation/config.ts';
-import { F, H, HEADER, CAR_STRIDE, carBase } from './simulation/protocol.ts';
+import { F, H, carBase } from './simulation/protocol.ts';
 import { RacingRenderer } from './rendering/renderer.ts';
 import { Interface, shortTime } from './ui/interface.ts';
 import { InputController } from './input/controller.ts';
@@ -312,38 +313,7 @@ export class GameApp {
     document.documentElement.style.setProperty('--ui-scale', String(this.settings.uiScale));
     document.documentElement.dataset.colorblind = String(this.settings.colorblind);
     document.documentElement.dataset.highContrast = String(this.settings.highContrast);
-    const preview = new Float32Array(HEADER + CAR_STRIDE);
-    const p = this.track.at(this.track.length - 32, {
-        s: 0,
-        x: 0,
-        y: 0,
-        z: 0,
-        tx: 0,
-        tz: 1,
-        nx: 1,
-        nz: 0,
-        curvature: 0,
-        width: 8,
-        bank: 0,
-        gradient: 0,
-      }),
-      yaw = Math.atan2(p.tx, p.tz);
-    preview[H.CARS] = 1;
-    preview[H.LENGTH] = this.track.length;
-    preview[H.AMBIENT] = 24;
-    preview[H.CLOUD] = 0.12;
-    const o = carBase(0);
-    preview[o] = p.x;
-    preview[o + 1] = p.y + 0.516;
-    preview[o + 2] = p.z;
-    preview[o + F.QY] = Math.sin(yaw / 2);
-    preview[o + F.QW] = Math.cos(yaw / 2);
-    preview[o + F.GEAR] = 1;
-    preview[o + F.RPM] = 4200;
-    preview[o + F.FUEL] = 24;
-    preview[o + F.BATTERY] = 3.2e6;
-    preview[o + F.FRONT_HEALTH] = preview[o + F.REAR_HEALTH] = preview[o + F.FLOOR_HEALTH] = 1;
-    preview[o + F.COMPOUND] = 1;
+    const preview = menuPreview(this.track);
     this.current = preview;
     this.previous = preview;
     this.state = 'menu';

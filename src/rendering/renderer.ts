@@ -1,3 +1,4 @@
+import { loadHeroShells, type HeroShells } from './hero-shells.ts';
 import { AdaptiveExposurePass } from './adaptive-exposure.ts';
 import { LocalAtmosphere } from './local-atmosphere.ts';
 import { RaceComposition } from './race-composition.ts';
@@ -120,6 +121,7 @@ export class RacingRenderer {
   private renderHeight = 1;
   private environment: SkyEnvironment;
   private disposed = false;
+  private heroShells: HeroShells | null = null;
   private target = new T.Vector3();
   private desired = new T.Vector3();
   private velocity = new T.Vector3();
@@ -260,6 +262,12 @@ export class RacingRenderer {
       renderer.setCars(1),
     );
     try {
+      progress({ completed: 0, total: 1, fraction: 0, label: 'Loading Blender-authored bodywork' });
+      renderer.heroShells = await loadHeroShells(cancelled);
+      if (cancelled()) {
+        renderer.dispose();
+        return null;
+      }
       if (!(await renderer.circuit.construction.run(progress, cancelled))) {
         renderer.dispose();
         return null;
@@ -268,12 +276,13 @@ export class RacingRenderer {
       return renderer;
     } catch (error) {
       renderer.dispose();
+      if (cancelled()) return null;
       throw error;
     }
   }
   setCars(n: number) {
     while (this.cars.length < n) {
-      const car = new FormulaCar(this.cars.length);
+      const car = new FormulaCar(this.cars.length, this.heroShells ?? undefined);
       this.cars.push(car);
       this.scene.add(car.root);
       this.textures.register(car.root);
@@ -828,6 +837,7 @@ export class RacingRenderer {
       screenVisible,
       wheelProjection: wheel.toArray(),
       driver: car.driver.diagnostics(),
+      authoredBodywork: this.heroShells?.diagnostics() ?? null,
       pitCrews: this.pitCrew.activeCrews,
       haloProjection: halo.toArray(),
       mirrors: this.reflection.diagnostics(this.renderer),
@@ -890,6 +900,7 @@ export class RacingRenderer {
     let slowTotal = 0;
     for (let i = sorted.length - slowCount; i < sorted.length; i++) slowTotal += sorted[i];
     return {
+      authoredBodywork: this.heroShells?.diagnostics() ?? null,
       photo: this.photo ? { ...this.photo } : null,
       geometrySurvey: {
         count: this.geometrySurvey?.count ?? 0,
@@ -970,6 +981,7 @@ export class RacingRenderer {
   dispose() {
     if (this.disposed) return;
     this.disposed = true;
+    this.heroShells?.dispose();
     this.reflection.dispose();
     this.gpuTimer.dispose();
     this.motionBlur.dispose();
