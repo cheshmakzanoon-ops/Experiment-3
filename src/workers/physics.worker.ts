@@ -24,9 +24,12 @@ function engineering() {
   const sample = probe.sample(simulation);
   if (sample) send({ type: 'engineering', sample });
 }
-function snapshot() {
-  if (!simulation || pool.length === 0) return;
-  const buffer = pool.pop()!;
+function snapshot(required = false) {
+  if (!simulation || (pool.length === 0 && !required)) return;
+  // A paused consumer may still hold every transferable frame. Only an explicit
+  // pause barrier may allocate one final snapshot; normal frame delivery stays pooled.
+  const buffer =
+    pool.pop() ?? new ArrayBuffer((HEADER + simulation.cars.length * CAR_STRIDE) * 4);
   simulation.writeFrame(new Float32Array(buffer), stepMs, clock.droppedSeconds);
   send({ type: 'frame', buffer }, [buffer]);
 }
@@ -64,6 +67,11 @@ scope.onmessage = (event: MessageEvent<ClientMessage>) => {
         lastInput = performance.now();
         break;
       case 'pause':
+        if (
+          msg.sequence !== undefined &&
+          (!Number.isSafeInteger(msg.sequence) || msg.sequence < 1)
+        )
+          throw new Error('Invalid worker pause sequence');
         paused = msg.value;
         previous = performance.now();
         lastInput = previous;
@@ -71,8 +79,12 @@ scope.onmessage = (event: MessageEvent<ClientMessage>) => {
           telemetry?.flush();
           telemetry?.flushReplay();
           simulation?.setInput(controls());
-          snapshot();
+          snapshot(true);
         }
+        // Dedicated-worker messages retain this ordering: recording flushes,
+        // final paused snapshot, then the matching low-frequency receipt.
+        if (simulation && msg.sequence !== undefined)
+          send({ type: 'pauseState', sequence: msg.sequence, value: paused, tick: simulation.tick });
         break;
       case 'pit':
         simulation?.requestPit();

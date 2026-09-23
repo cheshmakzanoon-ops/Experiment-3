@@ -111,7 +111,14 @@ test('27H.2 normal application: coupled driver survives both locks, countersteer
   }
   await page.keyboard.press('Escape');
   await expect(page.getByRole('button', { name: 'RESUME SESSION', exact: true })).toBeVisible();
+  // Menu visibility is immediate; use the worker's ordered final-frame receipt
+  // before comparing its frozen tick through forward/backward replay seeks.
+  await expect
+    .poll(async () => (await diagnostics()).workerPause)
+    .toMatchObject({ pending: false, paused: true });
   const paused = await diagnostics();
+  expect(paused.workerPause.tick).not.toBeNull();
+  expect(paused.frame?.[H.TICK]).toBe(Math.fround(paused.workerPause.tick!));
   await page.getByRole('button', { name: 'WATCH REPLAY', exact: true }).click();
   await expect(page.locator('#replayBar')).toBeVisible();
   if ((await diagnostics()).replayPlaying) await page.locator('#replayPlay').click();

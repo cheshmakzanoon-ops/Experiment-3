@@ -23,8 +23,58 @@ export interface EngineeringSample {
 }
 /** Optional debug transport is separate from the fixed-size recorded protocol.
  * It cannot change input, simulation, telemetry strides or replay versions. */
-export type ClientMessage = ToWorker | { type: 'engineering'; enabled: boolean };
-export type WorkerMessage = FromWorker | { type: 'engineering'; sample: EngineeringSample };
+export interface PauseReceipt {
+  type: 'pauseState';
+  sequence: number;
+  value: boolean;
+  tick: number;
+}
+export type ClientMessage =
+  | Exclude<ToWorker, { type: 'pause' }>
+  | { type: 'pause'; value: boolean; sequence?: number }
+  | { type: 'engineering'; enabled: boolean };
+export type WorkerMessage =
+  | FromWorker
+  | PauseReceipt
+  | { type: 'engineering'; sample: EngineeringSample };
+
+/** The menu can open immediately, before the worker has processed pause.
+ * A receipt is a FIFO barrier after the final frame and recording flushes, not
+ * an estimate based on elapsed time or several coincidentally equal ticks. */
+export class PauseHandshake {
+  private sequence = 0;
+  private acknowledged = 0;
+  private requested = true;
+  private paused = true;
+  private tick: number | null = null;
+  request(value: boolean) {
+    this.requested = value;
+    this.tick = null;
+    return { type: 'pause' as const, value, sequence: ++this.sequence };
+  }
+  accept(receipt: PauseReceipt, frameTick: number | undefined) {
+    // A quick resume or another pause may supersede an in-flight receipt.
+    if (receipt.sequence !== this.sequence || receipt.value !== this.requested) return false;
+    if (!Number.isSafeInteger(receipt.tick) || receipt.tick < 0)
+      throw new Error('Invalid worker pause tick');
+    // Frame ticks are transported in the existing Float32 protocol. Preserve
+    // its precision rather than inventing a second recording representation.
+    if (receipt.value && frameTick !== Math.fround(receipt.tick))
+      throw new Error('Worker pause acknowledged before its final frame');
+    this.acknowledged = receipt.sequence;
+    this.paused = receipt.value;
+    this.tick = receipt.tick;
+    return true;
+  }
+  status() {
+    return {
+      pending: this.acknowledged !== this.sequence,
+      paused: this.paused,
+      tick: this.tick,
+      sequence: this.sequence,
+    };
+  }
+}
 
 /** Read-only production inspection: four wheels, at most 10 snapshots/s, only
  * while explicitly enabled. Values are copied from the latest physical solve,

@@ -66,8 +66,12 @@ test('recorded playback has exclusive modal, seek, audio and focus ownership', a
 
   await page.keyboard.press('t');
   await expect(page.locator('#telemetryModal')).toBeVisible();
-  await page.waitForTimeout(200);
+  await expect
+    .poll(async () => (await diagnostics()).workerPause)
+    .toMatchObject({ pending: false, paused: true });
   const live = await diagnostics();
+  expect(live.workerPause.tick).not.toBeNull();
+  expect(live.frame?.[H.TICK]).toBe(Math.fround(live.workerPause.tick!));
   await page.keyboard.press('Escape');
   await expect(page.locator('#telemetryModal')).not.toBeVisible();
   await expect(page.getByRole('button', { name: 'RESUME SESSION' })).toBeVisible();

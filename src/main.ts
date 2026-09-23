@@ -16,6 +16,7 @@ import { ReviewVideo } from './ui/review-video.ts';
 import { ReferenceEvidenceStore, referenceCapture } from './ui/reference-evidence.ts';
 import {
   isEngineeringSample,
+  PauseHandshake,
   type ClientMessage,
   type WorkerMessage,
 } from './workers/diagnostics.ts';
@@ -322,8 +323,13 @@ export class GameApp {
     this.ui.showMode('menu');
     this.timer = requestAnimationFrame(this.frame);
   }
+  private workerPause = new PauseHandshake();
   private post(message: ClientMessage, transfer: Transferable[] = []) {
-    this.worker?.postMessage(message, transfer);
+    if (!this.worker) return;
+    this.worker.postMessage(
+      message.type === 'pause' ? this.workerPause.request(message.value) : message,
+      transfer,
+    );
   }
   private async start(options: SessionOptions, programme = false) {
     if (this.state === 'loading' && this.worker) return;
@@ -371,11 +377,20 @@ export class GameApp {
     this.worker?.terminate();
     if (this.renderer) this.renderer.engineering = null;
     const generation = ++this.generation;
+    this.workerPause = new PauseHandshake();
     this.worker = new PhysicsWorker({ name: 'apex-physics' });
     this.worker.onerror = (e) => this.fail(new Error(`Physics worker: ${e.message}`));
     this.worker.onmessage = (event: MessageEvent<WorkerMessage>) => {
       if (generation !== this.generation) return;
       const message = event.data;
+      if (message.type === 'pauseState') {
+        try {
+          this.workerPause.accept(message, this.current?.[H.TICK]);
+        } catch (error) {
+          this.fail(error);
+        }
+        return;
+      }
       if (message.type === 'engineering') {
         if (!isEngineeringSample(message.sample)) {
           this.fail(new Error('Invalid engineering response'));
@@ -1651,6 +1666,7 @@ export class GameApp {
   diagnostics(visual = false) {
     return {
       state: this.state,
+      workerPause: this.workerPause.status(),
       team: structuredClone(this.team),
       photoTime: this.frozenPhoto?.[H.TIME] ?? null,
       teamBusy: this.teamBusy,
