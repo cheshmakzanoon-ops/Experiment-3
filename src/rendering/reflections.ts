@@ -1,5 +1,6 @@
 import * as T from 'three';
 import { MirrorViews } from './mirrors.ts';
+import { STUDIO_REFLECTION_LAYER } from './photo-stage.ts';
 
 /** Coordinates recursive render passes. Mirrors render actual rear-facing camera feeds, and are hidden during other mirror/probe passes to prevent cycles. */
 export class ReflectionSystem {
@@ -29,7 +30,13 @@ export class ReflectionSystem {
         minFilter: T.LinearMipmapLinearFilter,
       }),
   );
-  private cubes = this.cubeTargets.map((target) => new T.CubeCamera(0.1, 1600, target));
+  private cubes = this.cubeTargets.map((target) => {
+    const camera = new T.CubeCamera(0.1, 1600, target);
+    // CubeCamera's six face cameras share this Layers object. Preserve layer 0
+    // scenery and include lighting cards without exposing them to driving views.
+    camera.layers.enable(STUDIO_REFLECTION_LAYER);
+    return camera;
+  });
   private nextTarget = 0;
   private originalMaps = new Map<T.MeshStandardMaterial, T.Texture | null>();
   private probeActive = false;

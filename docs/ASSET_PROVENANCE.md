@@ -17,3 +17,14 @@ The F1 25 reference ZIP was inspected as a quality target only. No reference ima
 ## Circuit continuation
 
 Profiled barriers, analytically filtered fence wire, eight grandstand layouts, structural components, seat/crowd instances and decorative construction finishes are original procedural work. No F1 25 image, mesh, brand livery, texture, sound or UI element is imported. The supplied pack remains an external qualitative reference, not a runtime dependency. See [circuit validation and limitations](CIRCUIT_REFERENCE_CONTINUATION.md).
+
+## Phase 27H.2 original seated driver
+
+`author-driver.py` and `apx01-driver.blend` are original Blender-authored suit
+geometry, vertex-colour panels, UVs and nine named skin joints. Their runtime GLB
+contains no imported human scan, real-person likeness, external texture, font or
+animation. The suit reuses the repository's deterministic woven-fabric normal
+and roughness resources. Gauntlets, thumbs, paddle blanks, fitted six-point
+restraints and helmet tethers are original metre-space geometry. See
+`PHASE_27H12_IMPLEMENTATION.md` and the hash-pinned driver manifest. Blender is an
+authoring tool, not a shipped runtime dependency.

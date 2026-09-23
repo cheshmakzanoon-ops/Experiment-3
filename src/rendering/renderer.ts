@@ -1,3 +1,4 @@
+import { loadDriverAsset, type DriverAsset } from './driver-asset.ts';
 import { loadHeroShells, type HeroShells } from './hero-shells.ts';
 import { AdaptiveExposurePass } from './adaptive-exposure.ts';
 import { LocalAtmosphere } from './local-atmosphere.ts';
@@ -122,6 +123,7 @@ export class RacingRenderer {
   private environment: SkyEnvironment;
   private disposed = false;
   private heroShells: HeroShells | null = null;
+  private driverAsset: DriverAsset | null = null;
   private target = new T.Vector3();
   private desired = new T.Vector3();
   private velocity = new T.Vector3();
@@ -264,6 +266,7 @@ export class RacingRenderer {
     try {
       progress({ completed: 0, total: 1, fraction: 0, label: 'Loading Blender-authored bodywork' });
       renderer.heroShells = await loadHeroShells(cancelled);
+      renderer.driverAsset = await loadDriverAsset(cancelled);
       if (cancelled()) {
         renderer.dispose();
         return null;
@@ -282,7 +285,11 @@ export class RacingRenderer {
   }
   setCars(n: number) {
     while (this.cars.length < n) {
-      const car = new FormulaCar(this.cars.length, this.heroShells ?? undefined);
+      const car = new FormulaCar(
+        this.cars.length,
+        this.heroShells ?? undefined,
+        this.driverAsset ?? undefined,
+      );
       this.cars.push(car);
       this.scene.add(car.root);
       this.textures.register(car.root);
@@ -838,6 +845,7 @@ export class RacingRenderer {
       wheelProjection: wheel.toArray(),
       driver: car.driver.diagnostics(),
       authoredBodywork: this.heroShells?.diagnostics() ?? null,
+      authoredDriver: this.driverAsset?.diagnostics() ?? null,
       pitCrews: this.pitCrew.activeCrews,
       haloProjection: halo.toArray(),
       mirrors: this.reflection.diagnostics(this.renderer),
@@ -901,6 +909,7 @@ export class RacingRenderer {
     for (let i = sorted.length - slowCount; i < sorted.length; i++) slowTotal += sorted[i];
     return {
       authoredBodywork: this.heroShells?.diagnostics() ?? null,
+      authoredDriver: this.driverAsset?.diagnostics() ?? null,
       photo: this.photo ? { ...this.photo } : null,
       geometrySurvey: {
         count: this.geometrySurvey?.count ?? 0,
@@ -982,6 +991,7 @@ export class RacingRenderer {
     if (this.disposed) return;
     this.disposed = true;
     this.heroShells?.dispose();
+    this.driverAsset?.dispose();
     this.reflection.dispose();
     this.gpuTimer.dispose();
     this.motionBlur.dispose();
@@ -994,7 +1004,9 @@ export class RacingRenderer {
     const geometries = new Set<T.BufferGeometry>(),
       materials = new Set<T.Material>(),
       textures = new Set<T.Texture>();
+    const skeletons = new Set<T.Skeleton>();
     this.scene.traverse((o) => {
+      if (o instanceof T.SkinnedMesh) skeletons.add(o.skeleton);
       // Instance attributes are owned by the object, not its shared geometry.
       // Release them before disposing the renderer's WebGL bookkeeping.
       if (o instanceof T.InstancedMesh) o.dispose();
@@ -1010,6 +1022,7 @@ export class RacingRenderer {
         }
       }
     });
+    for (const skeleton of skeletons) skeleton.dispose();
     for (const g of geometries) g.dispose();
     for (const m of materials) m.dispose();
     for (const t of textures) t.dispose();

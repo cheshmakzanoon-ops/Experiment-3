@@ -1,9 +1,10 @@
+import { addSeatedRestraints } from './driver-restraints.ts';
 import { tailoredSleeve } from './driver-tailoring.ts';
 import { fingerGripCurve } from './wheel-grip.ts';
 import { bodySurfacePatch } from './car-surfaces.ts';
 import { sculptedLoft } from './bodywork.ts';
 import * as T from 'three';
-import { mesh, mergeStatic, tube } from './geometry.ts';
+import { mesh, mergeStatic } from './geometry.ts';
 import type { driverMaterials } from './driver-materials.ts';
 
 type Materials = ReturnType<typeof driverMaterials>;
@@ -125,24 +126,42 @@ export function buildGlove(side: number, m: Materials) {
   );
   palmGrip.rotateX(-Math.PI / 2);
   mesh(fixed, palmGrip, m.grip);
-  const cuff = mesh(
-    fixed,
-    new T.CylinderGeometry(0.028, 0.033, 0.044, 16),
-    m.suit,
+  // A fitted, flattened gauntlet overlaps the suit's wrist anchor. It is not
+  // a rigid circular pipe around an otherwise anatomical palm.
+  const cuffGeometry = sculptedLoft(
+    [
+      [-0.043, 0, 0.0275, 0.023],
+      [-0.033, 0, 0.03, 0.025],
+      [-0.011, 0.001, 0.032, 0.026],
+      [0.005, 0.002, 0.025, 0.02],
+      [0.018, 0.003, 0.02, 0.014],
+    ],
     0,
-    -0.052,
-    -0.022,
+    0.3,
   );
+  cuffGeometry.rotateX(-Math.PI / 2);
+  const cuff = mesh(fixed, cuffGeometry, m.glove, 0, -0.035, -0.02);
   cuff.rotation.x = -0.8;
   const cuffBand = mesh(
     fixed,
-    new T.TorusGeometry(0.0285, 0.0016, 6, 24),
-    m.stitch,
+    new T.TorusGeometry(0.0288, 0.0013, 6, 32),
+    m.panel,
     0,
-    -0.0367,
-    -0.0378,
+    -0.05,
+    -0.035,
   );
+  cuffBand.scale.y = 0.87;
   cuffBand.rotation.x = Math.PI / 2 - 0.8;
+  const closure = mesh(
+    fixed,
+    new T.CapsuleGeometry(0.006, 0.029, 4, 12),
+    m.panel,
+    side * 0.026,
+    -0.036,
+    -0.026,
+  );
+  closure.rotation.z = side * 0.24;
+  closure.scale.z = 0.38;
   const seamPoints = Array.from({ length: 17 }, (_, i) => {
     const a = (i / 16) * Math.PI * 2;
     return new T.Vector3(Math.cos(a) * 0.023, -0.003 + Math.sin(a) * 0.036, -0.0233);
@@ -164,23 +183,41 @@ export function buildGlove(side: number, m: Materials) {
     );
     knuckle.scale.set(0.009, 0.006, 0.003);
   }
-  // An opposed thumb, with a padded base and two distinct phalanges.
-  const thumbBase = mesh(thumb, new T.SphereGeometry(1, 16, 12), m.glove);
-  thumbBase.scale.set(0.013, 0.018, 0.012);
-  const tip = mesh(
+  // One continuous opposed thumb with a flattened distal pad, rather than a
+  // sphere glued to a capsule. Its base remains buried in the palm while the
+  // tip rests on the real wheel-button row.
+  const thumbProfile = [
+    [0, -0.016],
+    [0.009, -0.014],
+    [0.013, -0.006],
+    [0.013, 0.005],
+    [0.011, 0.015],
+    [0.009, 0.025],
+    [0.007, 0.033],
+    [0.003, 0.038],
+    [0, 0.039],
+  ].map((p) => new T.Vector2(p[0], p[1]));
+  const thumbSurface = new T.LatheGeometry(thumbProfile, 24);
+  const tp = thumbSurface.getAttribute('position');
+  for (let i = 0; i < tp.count; i++) {
+    const y = tp.getY(i),
+      u = T.MathUtils.smoothstep(y, -0.01, 0.037);
+    tp.setXYZ(i, tp.getX(i) - side * 0.012 * u, y, tp.getZ(i) * 0.82 + 0.007 * u);
+  }
+  thumbSurface.computeVertexNormals();
+  mesh(thumb, thumbSurface, m.glove);
+  const tipGrip = mesh(
     thumb,
-    new T.CapsuleGeometry(0.008, 0.019, 4, 12),
-    m.glove,
-    -side * 0.004,
-    0.022,
-    0.005,
+    new T.SphereGeometry(1, 16, 10),
+    m.grip,
+    -side * 0.0105,
+    0.028,
+    0.014,
   );
-  tip.rotation.z = -side * 0.26;
-  const tipGrip = mesh(thumb, new T.SphereGeometry(1, 12, 8), m.grip, -side * 0.006, 0.029, 0.012);
-  tipGrip.scale.set(0.006, 0.011, 0.003);
-  thumb.position.set(-side * 0.021, 0.017, -0.01);
+  tipGrip.scale.set(0.006, 0.008, 0.0015);
+  thumb.position.set(-side * 0.023, -0.004, -0.035);
   mergeStatic(fixed);
-  mergeStatic(index);
+  // The one index mesh retains its topology for anchored paddle articulation.
   mergeStatic(thumb);
   root.add(index, thumb);
   return { root, thumb, index };
@@ -256,7 +293,7 @@ export function harnessRibbon(points: readonly T.Vector3[], width: number) {
   return g;
 }
 
-export function buildDriverTorso(parent: T.Group, m: Materials) {
+export function buildDriverTorso(parent: T.Group, m: Materials, includeSuit = true) {
   const torso = sculptedLoft(
     [
       [-0.28, 0.485, 0.102, 0.064],
@@ -270,23 +307,25 @@ export function buildDriverTorso(parent: T.Group, m: Materials) {
     0.35,
   );
   torso.rotateX(-Math.PI / 2);
-  mesh(parent, torso, m.suit);
-  const neck = mesh(
-    parent,
-    new T.CylinderGeometry(0.061, 0.07, 0.058, 24),
-    m.panel,
+  if (includeSuit) mesh(parent, torso, m.suit);
+  else torso.dispose();
+  const neckGeometry = sculptedLoft(
+    [
+      [0.094, 0.424, 0.069, 0.057],
+      [0.118, 0.416, 0.065, 0.057],
+      [0.149, 0.411, 0.061, 0.054],
+      [0.177, 0.407, 0.059, 0.051],
+    ],
     0,
-    0.119,
-    -0.41,
+    0.2,
   );
-  neck.rotation.x = -0.17;
+  neckGeometry.rotateX(-Math.PI / 2);
+  mesh(parent, neckGeometry, m.panel);
   const collar = mesh(parent, new T.TorusGeometry(0.071, 0.008, 8, 32), m.suit, 0, 0.094, -0.417);
   collar.rotation.x = Math.PI / 2 - 0.17;
-  // A restrained shoulder/neck support occupies the gap under the helmet.
-  // The clavicle silhouette rises medially without moving either IK hardpoint.
-  tube(
-    parent,
-    m.grip,
+  // Moulded neck restraint: a flat laminated yoke, not an inflatable-looking
+  // cylindrical collar. Its two wings sit beneath the shoulder webbing.
+  const yokePath = new T.CatmullRomCurve3(
     [
       [-0.108, 0.05, -0.393],
       [-0.105, 0.103, -0.439],
@@ -295,9 +334,37 @@ export function buildDriverTorso(parent: T.Group, m: Materials) {
       [0.065, 0.119, -0.484],
       [0.105, 0.103, -0.439],
       [0.108, 0.05, -0.393],
-    ],
-    0.019,
+    ].map((p) => new T.Vector3(...p)),
   );
+  const yoke = new T.TubeGeometry(yokePath, 48, 1, 12, false);
+  const yp = yoke.getAttribute('position'),
+    c = new T.Vector3(),
+    tangent = new T.Vector3(),
+    across = new T.Vector3(),
+    normal = new T.Vector3();
+  for (let row = 0; row <= 48; row++) {
+    const t = row / 48;
+    yokePath.getPointAt(t, c);
+    yokePath.getTangentAt(t, tangent);
+    across.set(0, 1, 0).cross(tangent).normalize();
+    normal.crossVectors(tangent, across).normalize();
+    for (let j = 0; j <= 12; j++) {
+      const a = (j / 12) * Math.PI * 2;
+      yp.setXYZ(
+        row * 13 + j,
+        c.x + across.x * Math.cos(a) * 0.026 + normal.x * Math.sin(a) * 0.005,
+        c.y + across.y * Math.cos(a) * 0.026 + normal.y * Math.sin(a) * 0.005,
+        c.z + across.z * Math.cos(a) * 0.026 + normal.z * Math.sin(a) * 0.005,
+      );
+    }
+  }
+  yoke.computeVertexNormals();
+  mesh(parent, yoke, m.grip);
+  if (!includeSuit) {
+    addSeatedRestraints(parent, m.grip, m.stitch);
+    mergeStatic(parent);
+    return;
+  }
   for (const side of [-1, 1]) {
     const path = [
       [side * 0.111, 0.039, -0.504],

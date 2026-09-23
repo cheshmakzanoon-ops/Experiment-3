@@ -1,3 +1,4 @@
+import { helmetTetherPost } from './driver-restraints.ts';
 import { helmetShell, helmetPatch, helmetPoint } from './helmet-shell.ts';
 import * as T from 'three';
 import { bodySurface, POD_SECTIONS, POD_UNDERCUT, POD_FLATTEN } from './car-surfaces.ts';
@@ -160,6 +161,37 @@ export function buildHelmet(parent: T.Group, m: MechanicalMaterials) {
       0.025,
     );
     hinge.rotation.z = Math.PI / 2;
+  }
+  for (const side of [-1, 1]) {
+    const p = helmetTetherPost(side);
+    const socket = mesh(
+      parent,
+      new T.CylinderGeometry(0.007, 0.009, 0.006, 16),
+      m.metal,
+      p.x,
+      p.y,
+      p.z,
+    );
+    socket.rotation.z = Math.PI / 2;
+    const button = mesh(
+      parent,
+      new T.SphereGeometry(0.004, 12, 8),
+      m.dark,
+      p.x + side * 0.003,
+      p.y,
+      p.z,
+    );
+    button.scale.x = 0.6;
+    const tab = mesh(
+      parent,
+      new T.CapsuleGeometry(0.003, 0.012, 3, 8),
+      m.metal,
+      side * 0.129,
+      0.089,
+      0.067,
+    );
+    tab.rotation.z = side * 0.4;
+    tab.scale.z = 0.4;
   }
   const seal = mesh(parent, new T.TorusGeometry(0.073, 0.012, 8, 24), m.dark, 0, 0.005, 0.006);
   seal.rotation.x = Math.PI / 2;

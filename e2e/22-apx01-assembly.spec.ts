@@ -4,6 +4,7 @@ import { createHash } from 'node:crypto';
 import { build } from 'vite';
 import { resolve } from 'node:path';
 import manifest from '../src/rendering/apx01-shell.manifest.json' with { type: 'json' };
+import driverManifest from '../src/rendering/apx01-driver.manifest.json' with { type: 'json' };
 import type * as Probe from './fixtures/apx01-assembly.ts';
 test('27H.1 CPU component: complete car preserves physical motion, live materials, pit/damage ownership and replay', async ({
   page,
@@ -50,16 +51,20 @@ test('27H.1 CPU component: complete car preserves physical motion, live material
   });
   await page.addScriptTag({ content: chunk.code });
   const base64 = (await readFile('src/rendering/apx01-shell.glb.gz')).toString('base64');
+  const driverBytes = (await readFile('src/rendering/apx01-driver.glb.gz')).toString('base64');
   const report = await page.evaluate(
-    async (b) =>
+    async ([b, d]) =>
       (window as unknown as { APXAssemblyProbe: typeof Probe }).APXAssemblyProbe.exercise(
         Array.from(atob(b), (c) => c.charCodeAt(0)),
+        Array.from(atob(d), (c) => c.charCodeAt(0)),
       ),
-    base64,
+    [base64, driverBytes],
   );
   expect(report.parts).toBe(41);
   expect(report.assetSHA256).toBe(manifest.sha256);
   expect(report.poses).toBe(68);
+  expect(report.driver?.sha256).toBe(driverManifest.sha256);
+  expect(report.driver?.skinnedSleeves).toBe(2);
   expect(report.physicalStateUnchanged).toBe(true);
   expect(report.finalArtApproved).toBe(false);
   const reportPath = info.outputPath('27h1-actual-car-cpu-report.json');

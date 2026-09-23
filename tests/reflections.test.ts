@@ -1,6 +1,7 @@
 import { afterEach, expect, it, vi } from 'vitest';
 import * as T from 'three';
 import { ReflectionSystem } from '../src/rendering/reflections.ts';
+import { PhotoStage, STUDIO_REFLECTION_LAYER } from '../src/rendering/photo-stage.ts';
 
 afterEach(() => vi.restoreAllMocks());
 function fixture() {
@@ -138,4 +139,39 @@ it('uses a faster bounded local-probe cadence for wet presentation without unbou
     'Invalid reflection probe interval',
   );
   reflection.dispose();
+});
+
+it('keeps studio softboxes in every probe face but out of all ordinary camera views', () => {
+  const stage = new PhotoStage(),
+    view = new T.PerspectiveCamera();
+  const cards = stage.root.children.filter((o) => o.name === 'Reflection-only studio softbox');
+  expect(cards).toHaveLength(2);
+  for (const card of cards) {
+    expect(card.layers.isEnabled(STUDIO_REFLECTION_LAYER)).toBe(true);
+    expect(view.layers.test(card.layers)).toBe(false);
+  }
+  // Lights and podium still appear on the ordinary scene layer.
+  for (const child of stage.root.children.filter((o) => !cards.includes(o)))
+    expect(view.layers.test(child.layers)).toBe(true);
+  const reflection = new ReflectionSystem(),
+    { gl } = fixture();
+  const update = vi.spyOn(T.CubeCamera.prototype, 'update').mockImplementation(function (
+    this: T.CubeCamera,
+  ) {
+    expect(this.children).toHaveLength(6);
+    for (const face of this.children) {
+      expect(face.layers.test(view.layers)).toBe(true);
+      for (const card of cards) expect(face.layers.test(card.layers)).toBe(true);
+    }
+  });
+  reflection.beginFrame(1, false);
+  reflection.updateProbe(gl, new T.Scene(), new T.Group(), [], true);
+  expect(update).toHaveBeenCalledOnce();
+  reflection.dispose();
+  stage.root.traverse((o) => {
+    if (o instanceof T.Mesh) {
+      o.geometry.dispose();
+      (o.material as T.Material).dispose();
+    }
+  });
 });

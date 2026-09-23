@@ -52,18 +52,28 @@ try {
   });
   await page.addScriptTag({ content: chunk.code });
   const bytes = (await readFile('src/rendering/apx01-shell.glb.gz')).toString('base64');
+  const driver = (await readFile('src/rendering/apx01-driver.glb.gz')).toString('base64');
+  const check = process.argv[3] === '--validate';
+  const pose = check ? 0 : Number(process.argv[3] ?? 0);
+  if (!Number.isFinite(pose)) throw new Error('Invalid driver inspection pose');
   // JSON serialization happens inside Chromium to avoid a huge CDP property tree.
   const json = await page.evaluate(
-    async (b) =>
+    async ([b, d, p, validate]) =>
       JSON.stringify(
-        await window.APXAssemblyProbe.exportGeometry(Array.from(atob(b), (c) => c.charCodeAt(0))),
+        await window.APXAssemblyProbe[validate ? 'exercise' : 'exportGeometry'](
+          Array.from(atob(b), (c) => c.charCodeAt(0)),
+          Array.from(atob(d), (c) => c.charCodeAt(0)),
+          p,
+        ),
       ),
-    bytes,
+    [bytes, driver, pose, check],
   );
   await mkdir(dirname(destination), { recursive: true });
   await writeFile(destination, json);
   console.log(
-    `Exported ${JSON.parse(json).length} visible runtime meshes to ${destination}. CPU inspection only.`,
+    check
+      ? `Verified actual car and driver: ${json}`
+      : `Exported ${JSON.parse(json).length} visible runtime meshes to ${destination}. CPU inspection only.`,
   );
 } finally {
   await browser.close();

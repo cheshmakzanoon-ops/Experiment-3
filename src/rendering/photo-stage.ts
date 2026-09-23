@@ -1,5 +1,8 @@
 import * as T from 'three';
 
+/** Visible to environment probes, never an opaque wall in an inspection view. */
+export const STUDIO_REFLECTION_LAYER = 1;
+
 /** Original neutral studio, not a screenshot backdrop. A world-space stage
  * follows the frozen subject; all visibility/lighting changes are restored by
  * the renderer after each studio render. It never moves the simulated car. */
@@ -38,6 +41,8 @@ export class PhotoStage {
         new T.BoxGeometry(0.08, 3.5, 4.8),
         new T.MeshBasicMaterial({ color: side < 0 ? 0xb6dcff : 0xffecd0 }),
       );
+      strip.name = 'Reflection-only studio softbox';
+      strip.layers.set(STUDIO_REFLECTION_LAYER);
       strip.position.set(side * 7, 2.8, -0.6);
       strip.rotation.z = side * -0.16;
       const fill = new T.PointLight(side < 0 ? 0xb6dcff : 0xffecd0, 55, 24, 2);

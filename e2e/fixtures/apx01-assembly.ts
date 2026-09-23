@@ -3,6 +3,7 @@
  * A separate normal-application capture remains mandatory for visual acceptance. */
 import * as T from 'three';
 import { FormulaCar } from '../../src/rendering/car.ts';
+import { DriverAsset } from '../../src/rendering/driver-asset.ts';
 import { HeroShells } from '../../src/rendering/hero-shells.ts';
 import { Simulation } from '../../src/simulation/world.ts';
 import { DEFAULT_OPTIONS } from '../../src/simulation/config.ts';
@@ -19,6 +20,7 @@ function release(root: T.Object3D) {
     materials = new Set<T.Material>(),
     textures = new Set<T.Texture>();
   root.traverse((o) => {
+    if (o instanceof T.SkinnedMesh) o.skeleton.dispose();
     if (o instanceof T.Mesh) {
       geometries.add(o.geometry);
       for (const m of Array.isArray(o.material) ? o.material : [o.material]) materials.add(m);
@@ -41,11 +43,14 @@ function visibleTriangles(root: T.Object3D) {
   });
   return triangles;
 }
-export async function exercise(bytes: number[]) {
+export async function exercise(bytes: number[], driverBytes?: number[]) {
   const hero = await HeroShells.decode(new Uint8Array(bytes)),
     diagnostics = hero.diagnostics();
-  const car = new FormulaCar(0, hero);
+  const driver = driverBytes ? await DriverAsset.decode(new Uint8Array(driverBytes)) : undefined;
+  const driverDiagnostics = driver?.diagnostics();
+  const car = new FormulaCar(0, hero, driver);
   hero.dispose();
+  driver?.dispose();
   const simulation = new Simulation({ ...DEFAULT_OPTIONS, opponents: 0 }),
     frame = simulation.makeFrame(),
     o = carBase(0);
@@ -83,6 +88,7 @@ export async function exercise(bytes: number[]) {
       assert(car.lodLevel === level, 'Unexpected LOD transition');
       for (let step = 0; step < 17; step++) {
         frame[H.TIME] = step * 0.033;
+        frame[o + F.STEER] = -0.38 + (0.76 * step) / 16;
         frame[o + F.FRONT_HEALTH] = frame[o + F.REAR_HEALTH] = 1;
         for (let i = 0; i < 4; i++) {
           const w = o + WHEEL_BASE + i * WHEEL_STRIDE;
@@ -97,6 +103,12 @@ export async function exercise(bytes: number[]) {
         const start = performance.now();
         draw();
         updateMs.push(performance.now() - start);
+        if (driverBytes) {
+          assert(
+            car.driver.diagnostics().every((a) => a.authoredSkin && a.reachable),
+            'Authored skin lost physical steering contact',
+          );
+        }
         for (let j = 0; j < car.links.length; j++) {
           const link = car.links[j],
             w = o + WHEEL_BASE + link.wheel * WHEEL_STRIDE,
@@ -187,6 +199,7 @@ export async function exercise(bytes: number[]) {
     return {
       kind: 'CPU component / no WebGL visual acceptance',
       parts: diagnostics.partCount,
+      driver: driverDiagnostics,
       assetSHA256: diagnostics.sha256,
       poses: updateMs.length,
       suspensionEndpointsChecked: updateMs.length * car.links.length * 2,
@@ -211,16 +224,19 @@ export async function exercise(bytes: number[]) {
 }
 
 /** Export actual posed runtime geometry for a separately labelled CPU inspection. */
-export async function exportGeometry(bytes: number[]) {
+export async function exportGeometry(bytes: number[], driverBytes?: number[], pose = 0) {
   const hero = await HeroShells.decode(new Uint8Array(bytes));
-  const car = new FormulaCar(0, hero);
+  const driver = driverBytes ? await DriverAsset.decode(new Uint8Array(driverBytes)) : undefined;
+  const car = new FormulaCar(0, hero, driver);
   hero.dispose();
+  driver?.dispose();
   const simulation = new Simulation({ ...DEFAULT_OPTIONS, opponents: 0 });
   const state = simulation.makeFrame();
   const o = carBase(0);
   state[o + F.X] = state[o + F.Z] = state[o + F.QX] = state[o + F.QY] = state[o + F.QZ] = 0;
   state[o + F.QW] = 1;
   state[o + F.Y] = 0.518;
+  state[o + F.STEER] = pose;
   car.update(state, state, o, 1, 0, 0, false);
   const output: unknown[] = [];
   car.root.updateMatrixWorld(true);
@@ -228,8 +244,39 @@ export async function exportGeometry(bytes: number[]) {
     if (!(child instanceof T.Mesh)) return;
     const base = child.geometry;
     const add = (world: T.Matrix4, instanceColor?: T.Color) => {
-      const g = base.clone().applyMatrix4(world),
-        p = g.getAttribute('position'),
+      const g = base.clone();
+      if (child instanceof T.SkinnedMesh) {
+        child.skeleton.update();
+        const position = g.getAttribute('position'),
+          normal = g.getAttribute('normal'),
+          joints = base.getAttribute('skinIndex'),
+          weights = base.getAttribute('skinWeight');
+        const v = new T.Vector3(),
+          matrix = new T.Matrix4(),
+          weighted = new T.Matrix4(),
+          normalMatrix = new T.Matrix3();
+        for (let i = 0; i < position.count; i++) {
+          v.fromBufferAttribute(position, i);
+          child.applyBoneTransform(i, v);
+          position.setXYZ(i, v.x, v.y, v.z);
+          weighted.elements.fill(0);
+          for (let j = 0; j < 4; j++) {
+            const b = joints.getComponent(i, j),
+              weight = weights.getComponent(i, j);
+            matrix.multiplyMatrices(
+              child.skeleton.bones[b].matrixWorld,
+              child.skeleton.boneInverses[b],
+            );
+            for (let k = 0; k < 16; k++) weighted.elements[k] += matrix.elements[k] * weight;
+          }
+          matrix.copy(child.bindMatrixInverse).multiply(weighted).multiply(child.bindMatrix);
+          normalMatrix.setFromMatrix4(matrix);
+          v.fromBufferAttribute(normal, i).applyMatrix3(normalMatrix).normalize();
+          normal.setXYZ(i, v.x, v.y, v.z);
+        }
+      }
+      g.applyMatrix4(world);
+      const p = g.getAttribute('position'),
         n = g.getAttribute('normal'),
         uv = g.getAttribute('uv');
       const mat = child.material as T.MeshStandardMaterial;
@@ -241,6 +288,14 @@ export async function exportGeometry(bytes: number[]) {
         position: [...p.array],
         normal: [...n.array],
         uv: uv ? [...uv.array] : undefined,
+        vertexColors:
+          mat.vertexColors && g.getAttribute('color')
+            ? Array.from({ length: g.getAttribute('color').count }, (_, i) => {
+                const c = g.getAttribute('color');
+                return [c.getX(i), c.getY(i), c.getZ(i)];
+              }).flat()
+            : undefined,
+        colorSize: 3,
         index: g.index ? [...g.index.array] : Array.from({ length: p.count }, (_, i) => i),
         material: {
           color: (instanceColor ?? mat.color)?.toArray() ?? [0.05, 0.05, 0.05],

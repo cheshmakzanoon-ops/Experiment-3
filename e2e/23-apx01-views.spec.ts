@@ -5,6 +5,8 @@ import manifest from '../src/rendering/apx01-shell.manifest.json' with { type: '
 for (const view of [
   { name: 'front', azimuth: 0 },
   { name: 'side', azimuth: 90 },
+  // The UI uses signed degrees: -90 is the same view as 270, without range clamping.
+  { name: 'opposite-side', azimuth: -90 },
   { name: 'rear', azimuth: 180 },
   { name: 'three-quarter', azimuth: 38 },
 ] as const)
@@ -35,10 +37,22 @@ for (const view of [
       exposure: 0,
       roll: 0,
     })) {
-      await page.locator(`#photo-${key}`).evaluate((element, value) => {
+      const input = page.locator(`#photo-${key}`);
+      const limits = await input.evaluate((element) => {
+        const slider = element as HTMLInputElement;
+        return { min: Number(slider.min), max: Number(slider.max) };
+      });
+      expect(value, `${key} must be inside the native slider range`).toBeGreaterThanOrEqual(
+        limits.min,
+      );
+      expect(value, `${key} must be inside the native slider range`).toBeLessThanOrEqual(
+        limits.max,
+      );
+      await input.evaluate((element, value) => {
         (element as HTMLInputElement).value = String(value);
         element.dispatchEvent(new Event('input', { bubbles: true }));
       }, value);
+      await expect(input).toHaveValue(String(value));
     }
     await expect
       .poll(

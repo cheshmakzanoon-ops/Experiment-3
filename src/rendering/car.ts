@@ -1,4 +1,5 @@
 import { mountAuthoredWing, mountAuthoredWheel, uprightSocketX } from './car-assembly.ts';
+import type { DriverAsset } from './driver-asset.ts';
 import type { HeroShells } from './hero-shells.ts';
 import { installManufacturingFinish, ventilatedBrakeGeometry } from './manufacturing.ts';
 import { addSafetyCell, addAirbox, buildWing } from './car-architecture.ts';
@@ -109,6 +110,7 @@ export class FormulaCar {
   constructor(
     readonly id: number,
     hero?: HeroShells,
+    driverAsset?: DriverAsset,
   ) {
     this.root.name = `Formula ${id + 1}`;
     this.root.userData.authoredBodywork = hero?.diagnostics() ?? null;
@@ -492,7 +494,7 @@ export class FormulaCar {
       controls.computeBoundingSphere();
       this.steering.add(controls);
     }
-    this.driver = new DriverRig(this.steering);
+    this.driver = new DriverRig(this.steering, driverAsset);
     this.root.add(this.driver.root);
 
     buildHelmet(this.helmet, { carbon, dark, metal, paint: ivory });

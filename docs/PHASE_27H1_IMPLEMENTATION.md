@@ -148,3 +148,10 @@ stationary and moving, including steering, kerbs, braking, damage and replay.
 Execute all unchanged browser shards and wet-presentation checks. Resolve any
 observed defects before approving final art. Neither successful import nor these
 CPU-only renders closes that gate. This does not start 27H.2–27H.6 or Phase 28.
+
+## Subsequent coupled-driver continuation
+
+`PHASE_27H12_IMPLEMENTATION.md` records the later 27H.1/27H.2 continuation from
+`50d13c9`: separate Blender skin support, cockpit/driver construction, normal-game
+view regression repair and coupled mechanical verification. The car-only scope
+and limitations above describe this earlier implementation, not the later work.

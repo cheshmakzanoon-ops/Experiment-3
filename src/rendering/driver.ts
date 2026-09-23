@@ -1,3 +1,6 @@
+import { HelmetTethers } from './driver-restraints.ts';
+import { ShiftFinger, shiftPaddleGeometry, PADDLE_PULL } from './driver-controls.ts';
+import type { DriverAsset, DriverSkin } from './driver-asset.ts';
 import { ElbowSleeve } from './elbow-sleeve.ts';
 import { HAND_ANCHOR } from './wheel-grip.ts';
 import * as T from 'three';
@@ -73,11 +76,12 @@ interface Arm {
   side: number;
   shoulder: T.Vector3;
   index: T.Group;
+  shiftFinger: ShiftFinger;
   pole: T.Vector3;
   hand: T.Group;
-  upper: T.Mesh;
-  lower: T.Mesh;
-  elbow: T.Mesh<ElbowSleeve>;
+  upper?: T.Mesh;
+  lower?: T.Mesh;
+  elbow?: T.Mesh<ElbowSleeve>;
   thumb: T.Group;
   paddle: T.Group;
   pose: ArmPose;
@@ -87,9 +91,11 @@ const UPPER = 0.37,
 export class DriverRig {
   readonly root = new T.Group();
   readonly actions = new DriverActions();
+  readonly skin: DriverSkin | undefined;
   private readonly arms: Arm[] = [];
   readonly body = new T.Group();
   readonly paddles: T.InstancedMesh;
+  readonly tethers: HelmetTethers;
   private paddleMatrix = new T.Matrix4();
   private paddleOffset = new T.Matrix4();
   headRoll = 0;
@@ -98,13 +104,23 @@ export class DriverRig {
   private target = new T.Vector3();
   private delta = new T.Vector3();
   private up = new T.Vector3(0, 1, 0);
-  constructor(private steering: T.Group) {
+  constructor(
+    private steering: T.Group,
+    asset?: DriverAsset,
+  ) {
     this.root.name = 'Articulated driver';
     const materials = driverMaterials();
     const { suit } = materials;
+    this.tethers = new HelmetTethers(materials.grip);
+    this.root.add(this.tethers.root);
     this.body.name = 'Restrained driver torso';
     this.root.add(this.body);
-    buildDriverTorso(this.body, materials);
+    this.skin = asset?.instantiate(suit);
+    buildDriverTorso(this.body, materials, !this.skin);
+    if (this.skin) {
+      this.body.add(this.skin.torso);
+      this.root.add(this.skin.root);
+    }
     const paddleMaterial = new T.MeshStandardMaterial({
       color: 0x59646b,
       metalness: 0.7,
@@ -120,13 +136,16 @@ export class DriverRig {
       paddle.name = side < 0 ? 'Upshift paddle' : 'Downshift paddle';
       paddle.position.set(side * 0.104, 0, 0.041);
       steering.add(paddle);
-      const upper = mesh(this.root, sleeveGeometry(true), suit);
-      const lower = mesh(this.root, sleeveGeometry(false), suit);
-      const elbow = mesh(this.root, new ElbowSleeve(), suit) as T.Mesh<ElbowSleeve>;
+      const upper = this.skin ? undefined : mesh(this.root, sleeveGeometry(true), suit);
+      const lower = this.skin ? undefined : mesh(this.root, sleeveGeometry(false), suit);
+      const elbow = this.skin
+        ? undefined
+        : (mesh(this.root, new ElbowSleeve(), suit) as T.Mesh<ElbowSleeve>);
       this.arms.push({
         side,
         shoulder,
         index,
+        shiftFinger: new ShiftFinger((index.children[0] as T.Mesh).geometry, side),
         pole,
         hand,
         upper,
@@ -139,7 +158,7 @@ export class DriverRig {
     }
     // Keep both pivot frames for actual independent shift action. Only the
     // identical solid paddle surfaces share a GPU submission.
-    this.paddles = new T.InstancedMesh(new T.BoxGeometry(0.031, 0.087, 0.006), paddleMaterial, 2);
+    this.paddles = new T.InstancedMesh(shiftPaddleGeometry(), paddleMaterial, 2);
     this.paddles.name = 'Independent shift paddles (one submission)';
     this.paddles.castShadow = true;
     this.paddles.receiveShadow = true;
@@ -148,9 +167,9 @@ export class DriverRig {
     this.update(0, 1, 1);
     this.paddles.computeBoundingBox();
     this.paddles.computeBoundingSphere();
-    // Full permitted 0.18-radian pull moves the outer edge by < 6 mm.
-    this.paddles.boundingBox!.expandByScalar(0.01);
-    this.paddles.boundingSphere!.radius += 0.01;
+    // Full pull is bounded by the farthest shelf vertex, not the old narrow blank.
+    this.paddles.boundingBox!.expandByScalar(0.014);
+    this.paddles.boundingSphere!.radius += 0.014;
   }
   private segment(mesh: T.Mesh, from: T.Vector3, to: T.Vector3) {
     this.delta.copy(to).sub(from);
@@ -168,6 +187,7 @@ export class DriverRig {
     this.body.position.y = 0.015 * pose.compression;
     this.headRoll = pose.headRoll;
     this.headPitch = pose.headPitch;
+    this.tethers.update(this.headPitch, this.headRoll);
     this.actions.sample(time, gear, mode);
     this.steering.updateMatrix();
     for (const [index, arm] of this.arms.entries()) {
@@ -177,26 +197,40 @@ export class DriverRig {
         .add(this.delta.set(0, -0.043, -0.038))
         .applyMatrix4(this.steering.matrix);
       arm.pose.solve(arm.shoulder, this.target, arm.pole, UPPER, LOWER);
-      this.segment(arm.upper, arm.shoulder, arm.pose.elbow);
-      this.segment(arm.lower, arm.pose.elbow, arm.pose.wrist);
-      arm.elbow.position.copy(arm.pose.elbow);
-      arm.elbow.geometry.pose(arm.shoulder, arm.pose.elbow, arm.pose.wrist);
+      if (this.skin)
+        this.skin.pose(
+          arm.side,
+          arm.shoulder,
+          arm.pose.elbow,
+          arm.pose.wrist,
+          this.steering.quaternion,
+        );
+      else {
+        this.segment(arm.upper!, arm.shoulder, arm.pose.elbow);
+        this.segment(arm.lower!, arm.pose.elbow, arm.pose.wrist);
+        arm.elbow!.position.copy(arm.pose.elbow);
+        arm.elbow!.geometry.pose(arm.shoulder, arm.pose.elbow, arm.pose.wrist);
+      }
       const pull = arm.side < 0 ? this.actions.up : this.actions.down;
-      arm.paddle.rotation.y = -arm.side * pull * 0.18;
+      arm.paddle.rotation.y = pull === 0 ? -arm.side * 0 : arm.side * pull * PADDLE_PULL;
       arm.paddle.updateMatrix();
       this.paddleOffset.makeTranslation(arm.side * 0.017, 0, 0);
       this.paddles.setMatrixAt(
         index,
         this.paddleMatrix.copy(arm.paddle.matrix).multiply(this.paddleOffset),
       );
-      arm.index.position.z = pull * 0.0025;
-      arm.thumb.rotation.z = arm.side * this.actions.button * 0.2;
+      arm.shiftFinger.pose(pull);
+      // The thumb presses the adjacent middle wheel button along its real face
+      // normal. Its broad base stays nested in the palm throughout the stroke.
+      arm.thumb.position.z = -0.035 + this.actions.button * 0.0035;
+      arm.thumb.rotation.z = arm.side * this.actions.button * 0.035;
     }
     this.paddles.instanceMatrix.needsUpdate = true;
   }
   diagnostics() {
     return this.arms.map((arm) => ({
       side: arm.side,
+      authoredSkin: Boolean(this.skin),
       shoulder: arm.shoulder.toArray(),
       elbow: arm.pose.elbow.toArray(),
       wrist: arm.pose.wrist.toArray(),
