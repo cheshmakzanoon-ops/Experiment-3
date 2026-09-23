@@ -1,0 +1,302 @@
+name: Phase 27H exact candidate validation
+'on':
+  push:
+    branches:
+    - main
+    paths:
+    - .github/workflows/phase27h-verified.yml
+permissions:
+  contents: read
+concurrency:
+  group: phase27h-exact-candidate
+  cancel-in-progress: true
+env:
+  BASE_COMMIT: a7985160731d668c3e6c8e35e1d0040c11caf731
+  BASE_TREE: d2562149bc047f59aab168dcdae554b0bc314313
+  TARGET_TREE: 3b3349ca9213450075b7184b801b6b675ba49943
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        persist-credentials: false
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+        cache: npm
+    - name: Reconstruct checksum-guarded environment candidate
+      run: |-
+        python - <<'PYTHON'
+        import pathlib, subprocess, os, hashlib
+        base=os.environ['BASE_COMMIT']; target=os.environ['TARGET_TREE']
+        stage=['.github/phase27h-landmark.br','.github/workflows/phase27h-verified.yml']
+        subprocess.run(['git','merge-base','--is-ancestor',base,'HEAD'],check=True)
+        assert subprocess.check_output(['git','rev-parse',base+'^{tree}'],text=True).strip()==os.environ['BASE_TREE']
+        changes=subprocess.check_output(['git','diff','--name-only',base,'HEAD'],text=True).splitlines()
+        assert changes==stage, ('Concurrent source changes must be reconciled',changes)
+        packed=pathlib.Path(stage[0]).read_bytes()
+        assert hashlib.sha1(b'blob '+str(len(packed)).encode()+b'\0'+packed).hexdigest()=='b56e3b4683a9ecaffd418ed659a98a29dbdaf41e'
+        patch=subprocess.check_output(['node','-e',"process.stdout.write(require('node:zlib').brotliDecompressSync(require('node:fs').readFileSync(process.argv[1])))",stage[0]])
+        assert hashlib.sha256(patch).hexdigest()=='b0983e68c687e34bb46c8cfb1918e6fb9b7dbda973024af1a987aaf5a65a2922'
+        path=pathlib.Path(os.environ['RUNNER_TEMP'])/'landmark.patch';path.write_bytes(patch)
+        for name in stage:pathlib.Path(name).unlink()
+        subprocess.run(['git','apply','--check',str(path)],check=True)
+        subprocess.run(['git','apply',str(path)],check=True)
+        for name, digest in {'docs/MASTER_DIRECTIVE.md':'f508a1b9be8e8a19a2ccc39d744e82d774cf95ecc773c12482efbcb9fb89f75c','package-lock.json':'0ee732475bc70f3bec4bfa7787f904d51bc28c185534dff3762f2d18801bbc59'}.items():
+            assert hashlib.sha256(pathlib.Path(name).read_bytes()).hexdigest()==digest, name
+        subprocess.run(['node','--experimental-transform-types','scripts/phase27h-matrix.ts','--write'],check=True)
+        subprocess.run(['git','add','-A'],check=True)
+        actual=subprocess.check_output(['git','write-tree'],text=True).strip()
+        assert actual==target, ('Exact candidate tree mismatch',actual)
+        assert not subprocess.check_output(['git','diff','--cached',base,'--','src/simulation/','.github/workflows/ci.yml','package-lock.json','docs/MASTER_DIRECTIVE.md']), 'Immutable simulation and gates changed'
+        print('EXACT ENVIRONMENT CANDIDATE',actual)
+        PYTHON
+    - run: npm ci --no-audit --no-fund
+    - run: npm run check
+    - name: Archive exact tested source
+      run: |-
+        node --experimental-transform-types scripts/phase27h-matrix.ts --check
+        node --experimental-transform-types scripts/phase27h-matrix.ts --json test-results/phase27h-matrix.json
+        git add -A
+        test "$(git write-tree)" = "$TARGET_TREE"
+        git archive --format=tar.gz "$TARGET_TREE" > "$RUNNER_TEMP/source.tar.gz"
+    - uses: actions/upload-artifact@v4
+      with:
+        name: phase27h-source
+        path: ${{ runner.temp }}/source.tar.gz
+        retention-days: 7
+        if-no-files-found: error
+    - uses: actions/upload-artifact@v4
+      with:
+        name: phase27h-web
+        path: dist/
+        retention-days: 7
+        if-no-files-found: error
+  presentation-smoke:
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        persist-credentials: false
+    - uses: actions/download-artifact@v4
+      with:
+        name: phase27h-source
+        path: ${{ runner.temp }}/source
+    - name: Restore exact tested game source
+      run: |-
+        tar -xzf "$RUNNER_TEMP/source/source.tar.gz"
+        rm .github/workflows/phase27h-verified.yml .github/phase27h-landmark.br
+        git add -A
+        test "$(git write-tree)" = "$TARGET_TREE"
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+        cache: npm
+    - run: npm ci --no-audit --no-fund
+    - uses: actions/download-artifact@v4
+      with:
+        name: phase27h-web
+        path: dist/
+    - run: npx playwright install --with-deps chromium
+    - run: npm run test:e2e -- e2e/20-phase27h.spec.ts e2e/21-venue-landmark.spec.ts
+    - uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: phase27h-presentation
+        path: |-
+          test-results/
+          playwright-report/
+        retention-days: 7
+  scenarios:
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        persist-credentials: false
+    - uses: actions/download-artifact@v4
+      with:
+        name: phase27h-source
+        path: ${{ runner.temp }}/source
+    - name: Restore exact tested game source
+      run: |-
+        tar -xzf "$RUNNER_TEMP/source/source.tar.gz"
+        rm .github/workflows/phase27h-verified.yml .github/phase27h-landmark.br
+        git add -A
+        test "$(git write-tree)" = "$TARGET_TREE"
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+        cache: npm
+    - run: npm ci --no-audit --no-fund
+    - run: npm run test:physics
+    - run: node --experimental-transform-types scripts/rotation-benchmark.ts
+    - run: node --experimental-transform-types scripts/pit-integration.ts
+    - run: node --experimental-transform-types scripts/race-classification.ts
+    - run: npm run test:endurance -- 100
+    - uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: phase27h-scenarios
+        path: |-
+          docs/*-results.json
+          docs/*-benchmark.json
+          docs/*-integration.json
+          docs/integrated-driving.json
+          docs/race-classification.json
+        retention-days: 7
+  browser:
+    needs:
+    - prepare
+    - presentation-smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        shard:
+        - 1
+        - 2
+        - 3
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        persist-credentials: false
+    - uses: actions/download-artifact@v4
+      with:
+        name: phase27h-source
+        path: ${{ runner.temp }}/source
+    - name: Restore exact tested game source
+      run: |-
+        tar -xzf "$RUNNER_TEMP/source/source.tar.gz"
+        rm .github/workflows/phase27h-verified.yml .github/phase27h-landmark.br
+        git add -A
+        test "$(git write-tree)" = "$TARGET_TREE"
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+        cache: npm
+    - run: npm ci --no-audit --no-fund
+    - uses: actions/download-artifact@v4
+      with:
+        name: phase27h-web
+        path: dist/
+    - run: npx playwright install --with-deps chromium
+    - run: npm run test:e2e -- --shard=${{ matrix.shard }}/3
+    - uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: phase27h-browser-${{ matrix.shard }}
+        path: |-
+          test-results/
+          playwright-report/
+        retention-days: 7
+  wet-presentation:
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        persist-credentials: false
+    - uses: actions/download-artifact@v4
+      with:
+        name: phase27h-source
+        path: ${{ runner.temp }}/source
+    - name: Restore exact tested game source
+      run: |-
+        tar -xzf "$RUNNER_TEMP/source/source.tar.gz"
+        rm .github/workflows/phase27h-verified.yml .github/phase27h-landmark.br
+        git add -A
+        test "$(git write-tree)" = "$TARGET_TREE"
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+        cache: npm
+    - run: npm ci --no-audit --no-fund
+    - uses: actions/download-artifact@v4
+      with:
+        name: phase27h-web
+        path: dist/
+    - run: npx playwright install --with-deps chromium
+    - run: npm run test:e2e -- e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts
+    - uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: phase27h-wet
+        path: |-
+          test-results/
+          playwright-report/
+        retention-days: 7
+  seal:
+    needs:
+    - prepare
+    - presentation-smoke
+    - scenarios
+    - browser
+    - wet-presentation
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        persist-credentials: false
+    - uses: actions/download-artifact@v4
+      with:
+        name: phase27h-source
+        path: ${{ runner.temp }}/source
+    - name: Restore exact tested game source
+      run: |-
+        tar -xzf "$RUNNER_TEMP/source/source.tar.gz"
+        rm .github/workflows/phase27h-verified.yml .github/phase27h-landmark.br
+        git add -A
+        test "$(git write-tree)" = "$TARGET_TREE"
+    - name: Retain verified commit without advancing any branch
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |-
+        python - <<'PYTHON'
+        import base64, hashlib, json, os, pathlib, subprocess, urllib.request
+        base=os.environ['BASE_COMMIT'];target=os.environ['TARGET_TREE'];staging=os.environ['GITHUB_SHA']
+        root='https://api.github.com/repos/'+os.environ['GITHUB_REPOSITORY']
+        def request(path,body=None):
+            data=None if body is None else json.dumps(body).encode()
+            req=urllib.request.Request(root+path,data=data,headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','Content-Type':'application/json'})
+            with urllib.request.urlopen(req,timeout=60) as response:return json.load(response)
+        assert request('/git/ref/heads/main')['object']['sha']==staging, 'Concurrent source changes must be reconciled'
+        assert subprocess.check_output(['git','write-tree'],text=True).strip()==target
+        paths=subprocess.check_output(['git','diff','--cached','--name-only',base],text=True).splitlines()
+        entries=[]
+        for name in paths:
+            p=pathlib.Path(name);assert p.is_file() and not p.is_symlink(),name
+            data=p.read_bytes();expected=hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()
+            remote=request('/git/blobs',{'content':base64.b64encode(data).decode(),'encoding':'base64'})
+            assert remote['sha']==expected,name
+            entries.append({'path':name,'mode':'100644','type':'blob','sha':expected})
+        tree=request('/git/trees',{'base_tree':os.environ['BASE_TREE'],'tree':entries})
+        assert tree['sha']==target,'Remote tree differs from tested source'
+        message='feat: ground Aurel event hall and validate original day-night presentation\n\nReplace the floating unlit landmark with a terrain-seated facade, structural ring, shared vegetation clearance and production broadcast occluders. Use daylight-responsive LED panels without expanding the four-light budget. Retain actual game noon/sunset/night captures and full existing validation gates. Keep all-reference, final-art, human Section 146 and physical Windows hardware acceptance explicitly open.'
+        commit=request('/git/commits',{'message':message,'tree':target,'parents':[staging]})
+        report={'commit':commit['sha'],'tree':target,'base':base,'staging':staging,'workflowRun':os.environ['GITHUB_RUN_ID'],'files':paths,'sourceFingerprint':'a1140e05aac89f119e23d64100a9cb1b4d86499e490a7e87d5030a0238cc1129','branchAdvanced':False,'humanApproved':False,'physicalHardwareApproved':False,'finalArtApproved':False,'allReferenceParity':False}
+        (pathlib.Path(os.environ['RUNNER_TEMP'])/'phase27h-sealed.json').write_text(json.dumps(report,indent=2)+'\n')
+        print(json.dumps(report,indent=2))
+        PYTHON
+    - uses: actions/upload-artifact@v4
+      with:
+        name: phase27h-sealed
+        path: ${{ runner.temp }}/phase27h-sealed.json
+        retention-days: 30
+        if-no-files-found: error
