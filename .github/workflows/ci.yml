@@ -83,10 +83,55 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci --no-audit --no-fund
-      - uses: actions/download-artifact@v4
+      # Retry only artifact transport. A third failure remains a hard failure;
+      # no build is regenerated and no browser assertion is retried or skipped.
+      - name: Download tested build (attempt 1 of 3)
+        id: download_web_1
+        continue-on-error: true
+        uses: actions/download-artifact@v4
         with:
           name: apex-formula-web
           path: dist/
+      - name: Clear partial download and back off before retry 2
+        if: steps.download_web_1.outcome == 'failure'
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo '::warning::Build artifact download failed; retrying the same run artifact.'
+          rm -rf -- dist/
+          sleep 5
+      - name: Download tested build (attempt 2 of 3)
+        id: download_web_2
+        if: steps.download_web_1.outcome == 'failure'
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: apex-formula-web
+          path: dist/
+      - name: Clear partial download and back off before retry 3
+        if: steps.download_web_2.outcome == 'failure'
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo '::warning::Build artifact download failed twice; making the final attempt.'
+          rm -rf -- dist/
+          sleep 15
+      - name: Download tested build (final attempt)
+        id: download_web_3
+        if: steps.download_web_2.outcome == 'failure'
+        uses: actions/download-artifact@v4
+        with:
+          name: apex-formula-web
+          path: dist/
+      - name: Require downloaded build before continuing
+        shell: bash
+        env:
+          DOWNLOAD_SUCCEEDED: ${{ steps.download_web_1.outcome == 'success' || steps.download_web_2.outcome == 'success' || steps.download_web_3.outcome == 'success' }}
+        run: |
+          set -euo pipefail
+          test "$DOWNLOAD_SUCCEEDED" = true
+          test -s dist/index.html
+          test -d dist/assets
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e -- --shard=${{ matrix.shard }}/3
       - name: Browser screenshots and diagnostics
@@ -112,10 +157,55 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci --no-audit --no-fund
-      - uses: actions/download-artifact@v4
+      # Retry only artifact transport. A third failure remains a hard failure;
+      # no build is regenerated and no browser assertion is retried or skipped.
+      - name: Download tested build (attempt 1 of 3)
+        id: download_web_1
+        continue-on-error: true
+        uses: actions/download-artifact@v4
         with:
           name: apex-formula-web
           path: dist/
+      - name: Clear partial download and back off before retry 2
+        if: steps.download_web_1.outcome == 'failure'
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo '::warning::Build artifact download failed; retrying the same run artifact.'
+          rm -rf -- dist/
+          sleep 5
+      - name: Download tested build (attempt 2 of 3)
+        id: download_web_2
+        if: steps.download_web_1.outcome == 'failure'
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: apex-formula-web
+          path: dist/
+      - name: Clear partial download and back off before retry 3
+        if: steps.download_web_2.outcome == 'failure'
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo '::warning::Build artifact download failed twice; making the final attempt.'
+          rm -rf -- dist/
+          sleep 15
+      - name: Download tested build (final attempt)
+        id: download_web_3
+        if: steps.download_web_2.outcome == 'failure'
+        uses: actions/download-artifact@v4
+        with:
+          name: apex-formula-web
+          path: dist/
+      - name: Require downloaded build before continuing
+        shell: bash
+        env:
+          DOWNLOAD_SUCCEEDED: ${{ steps.download_web_1.outcome == 'success' || steps.download_web_2.outcome == 'success' || steps.download_web_3.outcome == 'success' }}
+        run: |
+          set -euo pipefail
+          test "$DOWNLOAD_SUCCEEDED" = true
+          test -s dist/index.html
+          test -d dist/assets
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e -- e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts
       - name: Wet presentation screenshots and GPU measurements
@@ -144,10 +234,55 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: actions/download-artifact@v4
+      # Retry only artifact transport. A third failure remains a hard failure;
+      # no build is regenerated and no browser assertion is retried or skipped.
+      - name: Download tested build (attempt 1 of 3)
+        id: download_web_1
+        continue-on-error: true
+        uses: actions/download-artifact@v4
         with:
           name: apex-formula-web
           path: dist/
+      - name: Clear partial download and back off before retry 2
+        if: steps.download_web_1.outcome == 'failure'
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo '::warning::Build artifact download failed; retrying the same run artifact.'
+          rm -rf -- dist/
+          sleep 5
+      - name: Download tested build (attempt 2 of 3)
+        id: download_web_2
+        if: steps.download_web_1.outcome == 'failure'
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: apex-formula-web
+          path: dist/
+      - name: Clear partial download and back off before retry 3
+        if: steps.download_web_2.outcome == 'failure'
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo '::warning::Build artifact download failed twice; making the final attempt.'
+          rm -rf -- dist/
+          sleep 15
+      - name: Download tested build (final attempt)
+        id: download_web_3
+        if: steps.download_web_2.outcome == 'failure'
+        uses: actions/download-artifact@v4
+        with:
+          name: apex-formula-web
+          path: dist/
+      - name: Require downloaded build before continuing
+        shell: bash
+        env:
+          DOWNLOAD_SUCCEEDED: ${{ steps.download_web_1.outcome == 'success' || steps.download_web_2.outcome == 'success' || steps.download_web_3.outcome == 'success' }}
+        run: |
+          set -euo pipefail
+          test "$DOWNLOAD_SUCCEEDED" = true
+          test -s dist/index.html
+          test -d dist/assets
       - name: Prepare tested main-branch release artifact
         id: release
         shell: bash
