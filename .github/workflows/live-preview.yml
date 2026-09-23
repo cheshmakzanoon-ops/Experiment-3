@@ -29,20 +29,20 @@ jobs:
           npm ci
           npm run build
 
-      - name: Start local production preview
+      - name: Start static production server
         shell: bash
         run: |
           set -euo pipefail
-          nohup npm run preview -- --host 0.0.0.0 --port 4173 --strictPort > /tmp/apex-vite.log 2>&1 &
+          nohup python3 -m http.server 4173 --bind 0.0.0.0 --directory dist > /tmp/apex-static.log 2>&1 &
           pid=$!
-          echo "VITE_PID=$pid" >> "$GITHUB_ENV"
+          echo "SERVER_PID=$pid" >> "$GITHUB_ENV"
           for i in {1..30}; do
             if curl -fsS http://127.0.0.1:4173/ >/dev/null; then
               exit 0
             fi
             sleep 1
           done
-          cat /tmp/apex-vite.log
+          cat /tmp/apex-static.log
           exit 1
 
       - name: Open public Cloudflare Quick Tunnel
@@ -72,25 +72,6 @@ jobs:
             exit 1
           fi
 
-          host="${url#https://}"
-
-          # Preserve Vite's host-header protection: allow only this one generated
-          # tunnel hostname rather than disabling allowedHosts globally.
-          kill "$VITE_PID"
-          wait "$VITE_PID" 2>/dev/null || true
-          : > /tmp/apex-vite.log
-          nohup env __VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS="$host"             npm run preview -- --host 0.0.0.0 --port 4173 --strictPort             > /tmp/apex-vite.log 2>&1 &
-          vite_pid=$!
-          echo "VITE_PID=$vite_pid" >> "$GITHUB_ENV"
-
-          for i in {1..30}; do
-            if curl -fsS http://127.0.0.1:4173/ >/dev/null; then
-              break
-            fi
-            sleep 1
-          done
-          curl -fsS http://127.0.0.1:4173/ >/dev/null
-
           for i in {1..30}; do
             if curl -fsS "$url/" >/dev/null; then
               public_ok=1
@@ -118,10 +99,10 @@ jobs:
         run: |
           set -euo pipefail
           echo "Serving $LIVE_URL"
-          while kill -0 "$VITE_PID" 2>/dev/null && kill -0 "$CF_PID" 2>/dev/null; do
+          while kill -0 "$SERVER_PID" 2>/dev/null && kill -0 "$CF_PID" 2>/dev/null; do
             sleep 30
           done
           echo "Preview process exited unexpectedly"
-          cat /tmp/apex-vite.log || true
+          cat /tmp/apex-static.log || true
           cat /tmp/cloudflared.log || true
           exit 1
