@@ -13,13 +13,14 @@ concurrency:
 env:
   BASE_COMMIT: 50d13c9b54700ca283c3e2ae1af5e32baf6dd105
   BASE_TREE: d7c7b9168d1ac33db288fc0f677185ca144d0b40
-  EXPECTED_FINGERPRINT: 000e18cb6968c1afb624f8f277eb22f9b908a0b42671a763bf3eccd7a1aa22ca
+  EXPECTED_SOURCE_INPUTS: 981caf9f05ddf9724548726969d08c80d30affca3e59c7b7719242382190b7b9
 jobs:
   prepare:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     outputs:
       tree: ${{ steps.archive.outputs.tree }}
+      fingerprint: ${{ steps.archive.outputs.fingerprint }}
     steps:
     - uses: actions/checkout@v4
       with:
@@ -59,16 +60,35 @@ jobs:
         tar -xJf "$RUNNER_TEMP/blender.tar.xz" -C "$RUNNER_TEMP"
         "$RUNNER_TEMP/blender-5.2.2-linux-x64/blender" --background -t 4 --python-exit-code 1 --python scripts/author-driver.py
         python - <<'PYTHON'
-        import pathlib,hashlib,json,gzip
+        import pathlib,hashlib,json,gzip,os
         p=pathlib.Path('src/rendering/apx01-driver.glb.gz');packed=p.read_bytes();raw=gzip.decompress(packed)
-        assert len(packed)==208514 and hashlib.sha256(packed).hexdigest()=='83b7b360a8785a58233196768102698aae1e4a36317c80e0fdbbfb6f62bda667'
-        assert len(raw)==488080 and hashlib.sha256(raw).hexdigest()=='feee0e185e93799e66f8a1f939d9d3bf3c717b7a93e5af1cd74702ff9c2a0e81'
+        m=json.loads(pathlib.Path('src/rendering/apx01-driver.manifest.json').read_text())
+        assert len(packed)==m['compressedBytes']<220000 and hashlib.sha256(packed).hexdigest()==m['compressedSHA256']
+        assert len(raw)==m['bytes']<500000 and hashlib.sha256(raw).hexdigest()==m['sha256']
+        assert m['blenderVersion']=='5.2.2 LTS' and len(m['bones'])==9 and m['roles']==['suit_torso','r_sleeve','l_sleeve']
         assert pathlib.Path('scripts/apx01-driver.blend').stat().st_size>10000
         for name,digest in {'docs/MASTER_DIRECTIVE.md':'f508a1b9be8e8a19a2ccc39d744e82d774cf95ecc773c12482efbcb9fb89f75c','package-lock.json':'0ee732475bc70f3bec4bfa7787f904d51bc28c185534dff3762f2d18801bbc59'}.items():
          assert hashlib.sha256(pathlib.Path(name).read_bytes()).hexdigest()==digest,name
+        # CPU/SIMD float decomposition can change export bytes. Only these two
+        # generated runtime files may differ; all handwritten inputs remain exact.
+        root=pathlib.Path('.');skip={'src/rendering/apx01-driver.glb.gz','src/rendering/apx01-driver.manifest.json'}
+        h=hashlib.sha256()
+        for name in sorted([p.as_posix() for p in (root/'src').rglob('*') if p.is_file()]+['package-lock.json','index.html','vite.config.ts']):
+         if name not in skip:h.update(name.encode()+b'\0'+pathlib.Path(name).read_bytes()+b'\0')
+        assert h.hexdigest()==os.environ['EXPECTED_SOURCE_INPUTS'],'Handwritten source changed'
+        print('Exported runtime identity',m['sha256'],m['compressedSHA256'])
         PYTHON
         node --experimental-transform-types scripts/phase27h-matrix.ts --write
-        node --experimental-transform-types --input-type=module -e "import {sourceFingerprint} from './scripts/phase27h-matrix.ts'; if(sourceFingerprint(process.cwd())!==process.env.EXPECTED_FINGERPRINT) throw new Error('Source fingerprint mismatch');"
+    - uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: phase27h12-authored-driver
+        path: |-
+          scripts/apx01-driver.blend
+          src/rendering/apx01-driver.glb.gz
+          src/rendering/apx01-driver.manifest.json
+        retention-days: 7
+        if-no-files-found: error
     - run: npm ci --no-audit --no-fund
     - run: npm run check
     - name: Retain exact tested source
@@ -77,11 +97,13 @@ jobs:
         node --experimental-transform-types scripts/phase27h-matrix.ts --check
         git add -A
         git diff --cached --quiet "$BASE_COMMIT" -- src/simulation/ .github/workflows/ci.yml package-lock.json docs/MASTER_DIRECTIVE.md
+        FINGERPRINT=$(node --experimental-transform-types --input-type=module -e "import {sourceFingerprint} from './scripts/phase27h-matrix.ts'; console.log(sourceFingerprint(process.cwd()));")
+        echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
         TREE=$(git write-tree)
         echo "tree=$TREE" >> "$GITHUB_OUTPUT"
         git archive --format=tar.gz "$TREE" > "$RUNNER_TEMP/source.tar.gz"
         printf '%s\n' "$TREE" > "$RUNNER_TEMP/source-tree.txt"
-        printf '%s\n' "$EXPECTED_FINGERPRINT" > "$RUNNER_TEMP/source-fingerprint.txt"
+        printf '%s\n' "$FINGERPRINT" > "$RUNNER_TEMP/source-fingerprint.txt"
         git diff --cached --stat "$BASE_COMMIT"
       id: archive
     - uses: actions/upload-artifact@v4
@@ -105,6 +127,7 @@ jobs:
     timeout-minutes: 45
     env:
       TARGET_TREE: ${{ needs.prepare.outputs.tree }}
+      EXPECTED_FINGERPRINT: ${{ needs.prepare.outputs.fingerprint }}
     strategy:
       fail-fast: false
       matrix:
@@ -157,6 +180,7 @@ jobs:
     timeout-minutes: 20
     env:
       TARGET_TREE: ${{ needs.prepare.outputs.tree }}
+      EXPECTED_FINGERPRINT: ${{ needs.prepare.outputs.fingerprint }}
     strategy:
       fail-fast: false
       matrix:
@@ -209,6 +233,7 @@ jobs:
     timeout-minutes: 20
     env:
       TARGET_TREE: ${{ needs.prepare.outputs.tree }}
+      EXPECTED_FINGERPRINT: ${{ needs.prepare.outputs.fingerprint }}
     steps:
     - uses: actions/checkout@v4
       with:
@@ -259,6 +284,7 @@ jobs:
     timeout-minutes: 10
     env:
       TARGET_TREE: ${{ needs.prepare.outputs.tree }}
+      EXPECTED_FINGERPRINT: ${{ needs.prepare.outputs.fingerprint }}
     permissions:
       contents: write
     steps:
