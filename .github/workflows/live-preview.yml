@@ -57,7 +57,58 @@ jobs:
 
           url=""
           for i in {1..90}; do
-            url="$(grep -oE 'https://[-a-zA-Z0-9.]+(lhr\.life|localhost\.run)' /tmp/localhost-run.log | head -n1 || true)"
+            url="$(grep -oE 'https://[-a-zA-Z0-9.]+(lhr\.life|localhost\.run)' /tmp/localhost-run.log | grep -vE '^https://(admin\.)?localhost\.run
+            if [ -n "$url" ]; then
+              break
+            fi
+            if ! kill -0 "$tunnel_pid" 2>/dev/null; then
+              cat /tmp/localhost-run.log
+              exit 1
+            fi
+            sleep 1
+          done
+
+          if [ -z "$url" ]; then
+            cat /tmp/localhost-run.log
+            exit 1
+          fi
+
+          public_ok=0
+          for i in {1..30}; do
+            if curl -fsS "$url/" >/dev/null; then
+              public_ok=1
+              break
+            fi
+            sleep 2
+          done
+          test "$public_ok" = "1"
+
+          payload="$(jq -n --arg url "$url" '{
+            state: "success",
+            target_url: $url,
+            description: "Playable current F1 preview",
+            context: "live-preview"
+          }')"
+          curl -fsS -X POST             -H "Authorization: Bearer $GH_TOKEN"             -H "Accept: application/vnd.github+json"             -H "X-GitHub-Api-Version: 2022-11-28"             "https://api.github.com/repos/${GITHUB_REPOSITORY}/statuses/${GITHUB_SHA}"             -d "$payload" >/dev/null
+
+          echo "LIVE_URL=$url" >> "$GITHUB_ENV"
+          echo "### Playable F1 preview" >> "$GITHUB_STEP_SUMMARY"
+          echo "$url" >> "$GITHUB_STEP_SUMMARY"
+          echo "Live URL: $url"
+
+      - name: Keep preview online
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Serving $LIVE_URL"
+          while kill -0 "$SERVER_PID" 2>/dev/null && kill -0 "$TUNNEL_PID" 2>/dev/null; do
+            sleep 30
+          done
+          echo "Preview process exited unexpectedly"
+          cat /tmp/apex-static.log || true
+          cat /tmp/localhost-run.log || true
+          exit 1
+ | head -n1 || true)"
             if [ -n "$url" ]; then
               break
             fi
