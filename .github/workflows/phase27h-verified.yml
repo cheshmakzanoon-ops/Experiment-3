@@ -1,0 +1,289 @@
+name: Phase 27H exact candidate validation
+'on':
+  push:
+    branches:
+    - main
+    paths:
+    - .github/workflows/phase27h-verified.yml
+permissions:
+  contents: read
+concurrency:
+  group: phase27h-exact-candidate
+  cancel-in-progress: false
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        persist-credentials: false
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+        cache: npm
+    - name: Recover content-addressed candidate with exact-tree guards
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        python - <<'PY'
+        import base64, hashlib, json, os, pathlib, subprocess, time, urllib.request
+        base = 'edc2a8d644c67e313d9f599ba4ee738586431915'
+        expected_tree = 'fea467fc250b519b5f81176fcf97a5d66bbd08cc'
+        stage = '.github/workflows/phase27h-verified.yml'
+        subprocess.run(['git','merge-base','--is-ancestor',base,'HEAD'],check=True)
+        changes = subprocess.check_output(['git','diff','--name-only',base,'HEAD'],text=True).splitlines()
+        assert changes == [stage], ('Concurrent source changes require reconciliation', changes)
+        assert subprocess.check_output(['git','rev-parse',base+'^{tree}'],text=True).strip() == '09659d0870c53c7ea09d39605cbae2df13b04873'
+        def blob(sha):
+            req = urllib.request.Request('https://api.github.com/repos/'+os.environ['GITHUB_REPOSITORY']+'/git/blobs/'+sha, headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json'})
+            for attempt in range(3):
+                try:
+                    with urllib.request.urlopen(req,timeout=60) as response: value=json.load(response)
+                    break
+                except Exception:
+                    if attempt == 2: raise
+                    time.sleep(2**attempt)
+            data = base64.b64decode(value['content'], validate=False)
+            assert hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest() == sha, ('Blob identity',sha)
+            return data
+        parts = ['a39f55f3171c4f764b65c9db190cf2a283e9e186','21171fc2c5e12eadeb64f0fba31983225d4e6e57','af9403f7be03c46013566fc8251976b6734dcc88']
+        data = b''.join(blob(sha) for sha in parts)
+        assert hashlib.sha256(data).hexdigest() == 'dc84bf3ed6ed1db0a5232c9f0d8bbee91337e5305a3a62b871007656b788c113'
+        temp = pathlib.Path(os.environ['RUNNER_TEMP'])
+        packed = temp/'phase27h.br'; packed.write_bytes(data)
+        raw = subprocess.check_output(['node','-e',"process.stdout.write(require('node:zlib').brotliDecompressSync(require('node:fs').readFileSync(process.argv[1])))",str(packed)])
+        payload = json.loads(raw)
+        assert payload['schema'] == 1 and payload['base'] == base and payload['targetTree'] == expected_tree
+        patch = temp/'phase27h.patch'; patch.write_text(payload['patch'])
+        subprocess.run(['git','apply','--check',str(patch)],check=True)
+        subprocess.run(['git','apply',str(patch)],check=True)
+        def new_path(name):
+            p = pathlib.PurePosixPath(name)
+            assert not p.is_absolute() and '..' not in p.parts and p.parts[0] in {'src','scripts','tests','e2e','docs'}
+            assert not name.startswith('src/simulation/') and name != 'docs/MASTER_DIRECTIVE.md'
+            path = pathlib.Path(name)
+            assert not path.exists(), ('New-file collision',name)
+            path.parent.mkdir(parents=True,exist_ok=True)
+            return path
+        for name, content in payload['files'].items(): new_path(name).write_text(content)
+        for name, sha in payload['binaries'].items(): new_path(name).write_bytes(blob(sha))
+        pathlib.Path(stage).unlink()
+        for name, expected in {'docs/MASTER_DIRECTIVE.md':'f508a1b9be8e8a19a2ccc39d744e82d774cf95ecc773c12482efbcb9fb89f75c','package-lock.json':'0ee732475bc70f3bec4bfa7787f904d51bc28c185534dff3762f2d18801bbc59'}.items():
+            assert hashlib.sha256(pathlib.Path(name).read_bytes()).hexdigest() == expected, name
+        subprocess.run(['node','--experimental-transform-types','scripts/phase27h-matrix.ts','--write'],check=True)
+        subprocess.run(['git','add','-A'],check=True)
+        actual = subprocess.check_output(['git','write-tree'],text=True).strip()
+        assert actual == expected_tree, ('Candidate tree mismatch',actual)
+        print('EXACT CANDIDATE TREE',actual)
+        PY
+    - run: npm ci --no-audit --no-fund
+    - run: npm run check
+    - name: Verify and archive the tested source
+      run: |
+        node --experimental-transform-types scripts/phase27h-matrix.ts --check
+        node --experimental-transform-types scripts/phase27h-matrix.ts --json test-results/phase27h-matrix.json
+        git add -A
+        test "$(git write-tree)" = fea467fc250b519b5f81176fcf97a5d66bbd08cc
+        git archive --format=tar.gz fea467fc250b519b5f81176fcf97a5d66bbd08cc > "$RUNNER_TEMP/source.tar.gz"
+    - uses: actions/upload-artifact@v4
+      with:
+        name: phase27h-source
+        path: ${{ runner.temp }}/source.tar.gz
+        retention-days: 7
+        if-no-files-found: error
+    - uses: actions/upload-artifact@v4
+      with:
+        name: phase27h-web
+        path: dist/
+        retention-days: 7
+        if-no-files-found: error
+  scenarios:
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        persist-credentials: false
+    - uses: actions/download-artifact@v4
+      with:
+        name: phase27h-source
+        path: ${{ runner.temp }}/phase27h-source
+    - name: Restore the exact candidate, not staging code
+      run: |
+        tar -xzf "$RUNNER_TEMP/phase27h-source/source.tar.gz"
+        rm .github/workflows/phase27h-verified.yml
+        git add -A
+        test "$(git write-tree)" = fea467fc250b519b5f81176fcf97a5d66bbd08cc
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+        cache: npm
+    - run: npm ci --no-audit --no-fund
+    - run: npm run test:physics
+    - run: node --experimental-transform-types scripts/rotation-benchmark.ts
+    - run: node --experimental-transform-types scripts/pit-integration.ts
+    - run: node --experimental-transform-types scripts/race-classification.ts
+    - uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: phase27h-scenarios
+        path: |-
+          docs/*-results.json
+          docs/*-benchmark.json
+          docs/*-integration.json
+          docs/integrated-driving.json
+          docs/race-classification.json
+        retention-days: 7
+  browser:
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        shard:
+        - 1
+        - 2
+        - 3
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        persist-credentials: false
+    - uses: actions/download-artifact@v4
+      with:
+        name: phase27h-source
+        path: ${{ runner.temp }}/phase27h-source
+    - name: Restore the exact candidate, not staging code
+      run: |
+        tar -xzf "$RUNNER_TEMP/phase27h-source/source.tar.gz"
+        rm .github/workflows/phase27h-verified.yml
+        git add -A
+        test "$(git write-tree)" = fea467fc250b519b5f81176fcf97a5d66bbd08cc
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+        cache: npm
+    - run: npm ci --no-audit --no-fund
+    - uses: actions/download-artifact@v4
+      with:
+        name: phase27h-web
+        path: dist/
+    - run: npx playwright install --with-deps chromium
+    - run: npm run test:e2e -- --shard=${{ matrix.shard }}/3
+    - uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: phase27h-browser-${{ matrix.shard }}
+        path: |-
+          test-results/
+          playwright-report/
+        retention-days: 7
+  wet-presentation:
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        persist-credentials: false
+    - uses: actions/download-artifact@v4
+      with:
+        name: phase27h-source
+        path: ${{ runner.temp }}/phase27h-source
+    - name: Restore the exact candidate, not staging code
+      run: |
+        tar -xzf "$RUNNER_TEMP/phase27h-source/source.tar.gz"
+        rm .github/workflows/phase27h-verified.yml
+        git add -A
+        test "$(git write-tree)" = fea467fc250b519b5f81176fcf97a5d66bbd08cc
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+        cache: npm
+    - run: npm ci --no-audit --no-fund
+    - uses: actions/download-artifact@v4
+      with:
+        name: phase27h-web
+        path: dist/
+    - run: npx playwright install --with-deps chromium
+    - run: npm run test:e2e -- e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts
+    - uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: phase27h-wet
+        path: |-
+          test-results/
+          playwright-report/
+        retention-days: 7
+  seal:
+    needs:
+    - prepare
+    - scenarios
+    - browser
+    - wet-presentation
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        persist-credentials: false
+    - uses: actions/download-artifact@v4
+      with:
+        name: phase27h-source
+        path: ${{ runner.temp }}/phase27h-source
+    - name: Restore the exact candidate, not staging code
+      run: |
+        tar -xzf "$RUNNER_TEMP/phase27h-source/source.tar.gz"
+        rm .github/workflows/phase27h-verified.yml
+        git add -A
+        test "$(git write-tree)" = fea467fc250b519b5f81176fcf97a5d66bbd08cc
+    - name: Retain verified Git objects; never move a branch automatically
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        python - <<'PY'
+        import base64, hashlib, json, os, pathlib, subprocess, time, urllib.request
+        base='edc2a8d644c67e313d9f599ba4ee738586431915'
+        expected_tree='fea467fc250b519b5f81176fcf97a5d66bbd08cc'
+        staging=os.environ['GITHUB_SHA']
+        root='https://api.github.com/repos/'+os.environ['GITHUB_REPOSITORY']
+        def request(path, body=None):
+            data=None if body is None else json.dumps(body).encode()
+            req=urllib.request.Request(root+path,data=data,headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','Content-Type':'application/json'})
+            with urllib.request.urlopen(req,timeout=60) as response: return json.load(response)
+        assert request('/git/ref/heads/main')['object']['sha'] == staging, 'Newer main must be reconciled; no source publication'
+        subprocess.run(['git','add','-A'],check=True)
+        actual=subprocess.check_output(['git','write-tree'],text=True).strip()
+        assert actual==expected_tree, ('Sealed tree mismatch',actual)
+        paths=subprocess.check_output(['git','diff','--cached','--name-only',base],text=True).splitlines()
+        entries=[]
+        for name in paths:
+            p=pathlib.Path(name)
+            assert p.is_file() and not p.is_symlink(), name
+            data=p.read_bytes(); expected=hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()
+            remote=request('/git/blobs',{'content':base64.b64encode(data).decode(),'encoding':'base64'})
+            assert remote['sha']==expected,(name,remote)
+            entries.append({'path':name,'mode':'100644','type':'blob','sha':expected})
+        tree=request('/git/trees',{'base_tree':'09659d0870c53c7ea09d39605cbae2df13b04873','tree':entries})
+        assert tree['sha']==expected_tree, ('Remote tree mismatch',tree)
+        message='feat: integrate Phase 27H authored bodywork and evidence-bound acceptance\n\nLoad verified Blender-exported original car skins in the real renderer, preserve live physics and livery ownership, replace elbow joint beads with deforming cloth, and add the clause-specific 148-section/100-reference acceptance matrix. Validate the exact source tree with full lint, unit, build, native scenarios, all browser shards and wet-presentation gates. Preserve explicit final-art, all-reference, human Section 146, physical Windows hardware and Steam acceptance gaps.'
+        commit=request('/git/commits',{'message':message,'tree':expected_tree,'parents':[staging]})
+        report={'commit':commit['sha'],'tree':expected_tree,'base':base,'staging':staging,'workflowRun':os.environ['GITHUB_RUN_ID'],'files':paths,'sourceFingerprint':'3266c8efcea51ad5ab14946a1f07645a52014b5fae04d6b60747f6e3fe11dbef','branchAdvanced':False,'humanApproved':False,'physicalHardwareApproved':False,'finalArtApproved':False,'allReferenceParity':False}
+        out=pathlib.Path(os.environ['RUNNER_TEMP'])/'phase27h-sealed.json';out.write_text(json.dumps(report,indent=2)+'\n')
+        print(json.dumps(report,indent=2))
+        PY
+    - uses: actions/upload-artifact@v4
+      with:
+        name: phase27h-sealed
+        path: ${{ runner.temp }}/phase27h-sealed.json
+        if-no-files-found: error
+        retention-days: 30
