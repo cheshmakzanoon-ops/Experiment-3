@@ -30,9 +30,14 @@ export class TireCarcass {
   private lastPhase = NaN;
   private lastRadius = NaN;
   private lastDeflection = NaN;
-  constructor(half: number, tread: T.Material, marking: T.Material) {
+  constructor(
+    half: number,
+    tread: T.Material,
+    marking: T.Material,
+    ownedRubber?: T.BufferGeometry,
+  ) {
     const profile = tireProfile(half);
-    mesh(this.root, new T.LatheGeometry(profile, 48).rotateZ(Math.PI / 2), tread);
+    mesh(this.root, ownedRubber ?? new T.LatheGeometry(profile, 48).rotateZ(Math.PI / 2), tread);
     const rings = [-1, 1].map((side) =>
       new T.TorusGeometry(0.287, 0.005, 6, 48)
         .rotateY(Math.PI / 2)

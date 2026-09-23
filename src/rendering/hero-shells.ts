@@ -1,9 +1,11 @@
 import * as T from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import manifest from './apx01-shell.manifest.json' with { type: 'json' };
+import assembly from './apx01-assembly.json' with { type: 'json' };
 
-export type HeroPart = 'nose' | 'engine' | 'sidepod';
-const PARTS: readonly HeroPart[] = ['nose', 'engine', 'sidepod'];
+export type HeroPart = keyof typeof assembly.parts;
+export const HERO_PARTS = Object.freeze(Object.keys(assembly.parts) as HeroPart[]);
+const PARTS = HERO_PARTS;
 const abortError = () => new DOMException('Bodywork loading cancelled', 'AbortError');
 const digest = async (bytes: Uint8Array<ArrayBuffer>) =>
   Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)))
@@ -23,7 +25,12 @@ export function bakeHeroGeometry(mesh: T.Mesh): T.BufferGeometry {
       ['uv', 2],
     ] as const) {
       const attribute = source.getAttribute(name);
-      if (!attribute || attribute.itemSize !== size || attribute.count > 16384)
+      if (
+        !attribute ||
+        attribute.itemSize !== size ||
+        attribute.count > assembly.maxVerticesPerPart ||
+        attribute.count < 3
+      )
         throw new Error(`Invalid authored ${name} attribute`);
       const data = new Float32Array(attribute.count * size);
       for (let i = 0; i < attribute.count; i++) {
@@ -35,13 +42,23 @@ export function bakeHeroGeometry(mesh: T.Mesh): T.BufferGeometry {
       out.setAttribute(name, new T.BufferAttribute(data, size));
     }
     const index = source.getIndex();
-    if (!index || index.count % 3 || index.count > 65535)
+    if (!index || index.count % 3 || index.count > assembly.maxIndicesPerPart || index.count < 3)
       throw new Error('Invalid authored triangle topology');
     const count = out.getAttribute('position').count;
     if (['normal', 'uv'].some((name) => out.getAttribute(name).count !== count))
       throw new Error('Mismatched authored attributes');
     for (let i = 0; i < index.count; i++)
-      if (index.getX(i) >= count) throw new Error('Authored index out of bounds');
+      if (!Number.isInteger(index.getX(i)) || index.getX(i) < 0 || index.getX(i) >= count)
+        throw new Error('Authored index out of bounds');
+    if (
+      !mesh.matrixWorld.elements.every(Number.isFinite) ||
+      mesh.matrixWorld.determinant() <= 1e-12
+    )
+      throw new Error('Invalid authored transform');
+    const normals = out.getAttribute('normal');
+    for (let i = 0; i < normals.count; i++)
+      if (Math.hypot(normals.getX(i), normals.getY(i), normals.getZ(i)) < 1e-8)
+        throw new Error('Zero authored surface normal');
     out.setIndex(index.clone());
     out.applyMatrix4(mesh.matrixWorld);
     out.normalizeNormals();
@@ -54,9 +71,9 @@ export function bakeHeroGeometry(mesh: T.Mesh): T.BufferGeometry {
       box.max.y > 1 ||
       box.min.z < -3 ||
       box.max.z > 3 ||
-      Math.max(Math.abs(box.min.x), Math.abs(box.max.x)) > 1
+      Math.max(Math.abs(box.min.x), Math.abs(box.max.x)) > 1.02
     )
-      throw new Error('Authored skin exceeds the chassis envelope');
+      throw new Error('Authored assembly exceeds the chassis envelope');
     return out;
   } catch (error) {
     out.dispose();
@@ -64,20 +81,183 @@ export function bakeHeroGeometry(mesh: T.Mesh): T.BufferGeometry {
   }
 }
 
+interface HeroDocument {
+  buffers?: { byteLength?: number; uri?: string }[];
+  bufferViews?: { buffer?: number; byteLength?: number; byteOffset?: number }[];
+  images?: unknown[];
+  textures?: unknown[];
+  samplers?: unknown[];
+  animations?: unknown[];
+  skins?: unknown[];
+  cameras?: unknown[];
+  extensionsUsed?: string[];
+  extensionsRequired?: string[];
+  nodes?: {
+    mesh?: number;
+    children?: unknown[];
+    camera?: number;
+    extras?: { apex_role?: string; apex_material?: string };
+  }[];
+  meshes?: {
+    primitives?: {
+      mode?: number;
+      material?: number;
+      indices?: number;
+      attributes?: Record<string, number>;
+      targets?: unknown[];
+      extensions?: object;
+    }[];
+  }[];
+  materials?: { name?: string }[];
+  accessors?: { count?: number; sparse?: object }[];
+  scenes?: { nodes?: number[] }[];
+  scene?: number;
+}
+/** Only the checked-in mechanical assembly is accepted, not arbitrary glTF.
+ * Materials are bounded named slots, rebound to live paint/rubber/brake state.
+ * Rigged humans, embedded/external images and animation need a separate loader. */
+export function validateHeroDocument(value: unknown): void {
+  if (!value || typeof value !== 'object') throw new Error('Invalid authored glTF document');
+  const j = value as HeroDocument;
+  const fail = () => {
+    throw new Error('Authored assembly violates its static role/material contract');
+  };
+  if (
+    ['images', 'textures', 'samplers', 'animations', 'skins', 'cameras'].some((key) =>
+      Boolean((j[key as keyof HeroDocument] as unknown[] | undefined)?.length),
+    )
+  )
+    fail();
+  if (
+    !Array.isArray(j.buffers) ||
+    j.buffers.length !== 1 ||
+    j.buffers[0].uri ||
+    !Number.isInteger(j.buffers[0].byteLength) ||
+    j.buffers[0].byteLength! <= 0 ||
+    j.buffers[0].byteLength! > assembly.maxRawBytes
+  )
+    fail();
+  if (
+    !Array.isArray(j.nodes) ||
+    j.nodes.length !== PARTS.length ||
+    !Array.isArray(j.meshes) ||
+    j.meshes.length !== PARTS.length ||
+    !Array.isArray(j.materials) ||
+    j.materials.length > 8 ||
+    !Array.isArray(j.accessors) ||
+    !Array.isArray(j.bufferViews)
+  )
+    fail();
+  const extensions = [...(j.extensionsUsed ?? []), ...(j.extensionsRequired ?? [])];
+  if (extensions.some((e) => !['KHR_mesh_quantization', 'KHR_materials_clearcoat'].includes(e)))
+    fail();
+  if (
+    j.scene !== 0 ||
+    j.scenes?.length !== 1 ||
+    j.scenes[0].nodes?.length !== PARTS.length ||
+    new Set(j.scenes[0].nodes).size !== PARTS.length ||
+    j.scenes[0].nodes.some((n) => !Number.isInteger(n) || n < 0 || n >= PARTS.length)
+  )
+    fail();
+  const seen = new Set<string>(),
+    meshIds = new Set<number>();
+  for (const node of j.nodes!) {
+    const role = node.extras?.apex_role as HeroPart;
+    if (
+      !PARTS.includes(role) ||
+      seen.has(role) ||
+      node.extras?.apex_material !== assembly.parts[role] ||
+      node.children?.length ||
+      node.camera !== undefined ||
+      !Number.isInteger(node.mesh) ||
+      node.mesh! < 0 ||
+      node.mesh! >= PARTS.length ||
+      meshIds.has(node.mesh!)
+    )
+      fail();
+    seen.add(role);
+    meshIds.add(node.mesh!);
+    const primitives = j.meshes![node.mesh!]!.primitives;
+    if (primitives?.length !== 1) fail();
+    const p = primitives![0];
+    if (
+      (p.mode !== undefined && p.mode !== 4) ||
+      p.targets?.length ||
+      p.extensions ||
+      !Number.isInteger(p.material) ||
+      p.material! < 0 ||
+      j.materials![p.material!]?.name !== `APX / ${assembly.parts[role]}` ||
+      !p.attributes ||
+      Object.keys(p.attributes).sort().join(',') !== 'NORMAL,POSITION,TEXCOORD_0' ||
+      !Number.isInteger(p.indices)
+    )
+      fail();
+    const indices = j.accessors![p.indices!];
+    if (
+      !indices ||
+      !Number.isInteger(indices.count) ||
+      indices.count! < 3 ||
+      indices.count! % 3 ||
+      indices.count! > assembly.maxIndicesPerPart
+    )
+      fail();
+    for (const index of Object.values(p.attributes!)) {
+      const a = j.accessors![index];
+      if (
+        !Number.isInteger(index) ||
+        !a ||
+        !Number.isInteger(a.count) ||
+        a.count! < 3 ||
+        a.count! > assembly.maxVerticesPerPart ||
+        a.sparse
+      )
+        fail();
+    }
+  }
+  for (const view of j.bufferViews!)
+    if (
+      view.buffer !== 0 ||
+      !Number.isInteger(view.byteLength) ||
+      view.byteLength! < 0 ||
+      !Number.isInteger(view.byteOffset ?? 0) ||
+      (view.byteOffset ?? 0) < 0 ||
+      (view.byteOffset ?? 0) + view.byteLength! > j.buffers![0].byteLength!
+    )
+      fail();
+}
+
 /** Per-renderer prototypes; never a global cache. Every car receives an owned
  * clone, allowing existing material batching/disposal and independent liveries. */
 export class HeroShells {
   private disposed = false;
   private constructor(private readonly parts: Map<HeroPart, T.BufferGeometry>) {}
-  copy(part: HeroPart) {
+  copy(part: HeroPart, side: -1 | 1 = 1) {
     if (this.disposed) throw new Error('Authored bodywork already disposed');
     const geometry = this.parts.get(part);
-    if (!geometry) throw new Error(`Missing authored skin ${part}`);
-    return geometry.clone();
+    if (!geometry) throw new Error(`Missing authored part ${part}`);
+    if (side !== -1 && side !== 1) throw new Error('Invalid authored handedness');
+    const result = geometry.clone();
+    result.userData.apxPart = part;
+    if (side === -1) {
+      // Reflection changes handedness. Reverse triangles as well as positions
+      // and normals, otherwise one side renders inside-out or disappears.
+      result.scale(-1, 1, 1);
+      const index = result.index!;
+      for (let i = 0; i < index.count; i += 3) {
+        const b = index.getX(i + 1);
+        index.setX(i + 1, index.getX(i + 2));
+        index.setX(i + 2, b);
+      }
+      result.computeBoundingBox();
+      result.computeBoundingSphere();
+    }
+    return result;
   }
   diagnostics() {
     return {
-      revision: 'APX-01 / 27H',
+      revision: assembly.revision,
+      partCount: this.parts.size,
+      materialBindings: assembly.parts,
       sha256: manifest.sha256,
       compressedBytes: manifest.compressedBytes,
       loaded: !this.disposed,
@@ -122,15 +302,7 @@ export class HeroShells {
     const json = JSON.parse(
       new TextDecoder().decode(bytes.subarray(20, 20 + view.getUint32(12, true))),
     );
-    if (
-      json.images?.length ||
-      json.animations?.length ||
-      json.skins?.length ||
-      json.buffers?.length !== 1 ||
-      json.buffers.some((b: { uri?: string }) => b.uri) ||
-      json.meshes?.length !== 3
-    )
-      throw new Error('Authored bodywork must be three self-contained static skins');
+    validateHeroDocument(json);
     const gltf = await new GLTFLoader().parseAsync(
       bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength),
       '',
@@ -142,11 +314,19 @@ export class HeroShells {
       gltf.scene.traverse((object) => {
         if (!(object instanceof T.Mesh)) return;
         const role = object.userData.apex_role as HeroPart;
-        if (!PARTS.includes(role) || parts.has(role) || object instanceof T.SkinnedMesh)
-          throw new Error('Unexpected authored bodywork role');
+        if (
+          !PARTS.includes(role) ||
+          parts.has(role) ||
+          object instanceof T.SkinnedMesh ||
+          object.userData.apex_material !== assembly.parts[role]
+        )
+          throw new Error('Unexpected authored assembly role or material');
         parts.set(role, bakeHeroGeometry(object));
       });
       if (PARTS.some((part) => !parts.has(part))) throw new Error('Incomplete authored bodywork');
+      const triangles = [...parts.values()].reduce((sum, g) => sum + g.index!.count / 3, 0);
+      if (triangles > assembly.maxTriangles)
+        throw new Error('Authored assembly triangle budget exceeded');
       return new HeroShells(parts);
     } catch (error) {
       for (const part of parts.values()) part.dispose();

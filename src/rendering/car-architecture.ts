@@ -24,49 +24,49 @@ export const FRONT_SURFACES: readonly WingSurface[] = Object.freeze(
   [
     {
       span: 1.965,
-      chord: 0.32,
+      chord: 0.29,
       camber: 0.009,
       thickness: 0.01,
-      sweep: 0.105,
+      sweep: 0.01,
       gull: 0.018,
       y: -0.319,
-      z: 2.47,
+      z: 2.575,
       incidence: 0.04,
       painted: true,
     },
     {
       span: 1.947,
-      chord: 0.225,
+      chord: 0.216,
       camber: 0.017,
       thickness: 0.008,
-      sweep: 0.116,
+      sweep: 0,
       gull: 0.016,
-      y: -0.293,
-      z: 2.3,
+      y: -0.278,
+      z: 2.478,
       incidence: 0.12,
       painted: false,
     },
     {
       span: 1.925,
-      chord: 0.208,
+      chord: 0.175,
       camber: 0.021,
       thickness: 0.008,
-      sweep: 0.13,
+      sweep: -0.012,
       gull: 0.01,
-      y: -0.25,
-      z: 2.145,
+      y: -0.225,
+      z: 2.383,
       incidence: 0.2,
       painted: false,
     },
     {
       span: 1.9,
-      chord: 0.187,
+      chord: 0.141,
       camber: 0.025,
       thickness: 0.008,
-      sweep: 0.145,
+      sweep: -0.019,
       gull: 0.002,
-      y: -0.196,
-      z: 2.0,
+      y: -0.16,
+      z: 2.297,
       incidence: 0.28,
       painted: true,
     },
@@ -100,17 +100,55 @@ export const REAR_SURFACES: readonly WingSurface[] = Object.freeze(
     },
   ].map((surface) => Object.freeze(surface)),
 );
+// The previous 1.76 m trailing endplate entered the tyre at axle Z=1.82.
+// This compact envelope clears full physical steering lock without moving the axle.
 export const FRONT_ENDPLATE: readonly (readonly [number, number])[] = Object.freeze([
-  [1.76, -0.322],
-  [2.49, -0.359],
-  [2.62, -0.339],
-  [2.66, -0.29],
-  [2.64, -0.224],
-  [2.53, -0.2],
-  [2.18, -0.175],
-  [1.9, -0.113],
-  [1.79, -0.171],
+  [2.235, -0.31],
+  [2.6, -0.35],
+  [2.74, -0.328],
+  [2.755, -0.285],
+  [2.73, -0.225],
+  [2.63, -0.198],
+  [2.4, -0.105],
+  [2.245, -0.095],
+  [2.225, -0.15],
 ]);
+/** Front nose pylons terminate inside the nose and mainplane, not in a slot. */
+export const FRONT_PYLON: readonly (readonly [number, number])[] = Object.freeze([
+  [2.47, -0.318],
+  [2.57, -0.316],
+  [2.42, -0.25],
+  [2.36, -0.216],
+  [2.3, -0.204],
+  [2.275, -0.212],
+  [2.34, -0.261],
+]);
+/** Evaluate the actual inclined airfoil, including spanwise taper and gull. */
+export function wingSurfacePoint(d: WingSurface, x: number, u: number, side: -1 | 1) {
+  const edge = Math.abs(x) / (d.span / 2),
+    taper = 1 - 0.16 * edge ** 4;
+  const y =
+    4 * d.camber * (1 - 0.18 * edge ** 2) * u * (1 - u) +
+    side * d.thickness * 2.1 * Math.sqrt(u) * (1 - u) * (1 - 0.3 * u) -
+    d.gull * edge ** 2;
+  const z = d.chord * taper * (0.5 - u) - d.sweep * edge ** 2;
+  return [
+    d.z + y * Math.sin(d.incidence) + z * Math.cos(d.incidence),
+    d.y + y * Math.cos(d.incidence) - z * Math.sin(d.incidence),
+  ] as const;
+}
+export const FRONT_SPACERS = Object.freeze(
+  FRONT_SURFACES.slice(1).map((d, i) => {
+    const [z0, y0] = wingSurfacePoint(FRONT_SURFACES[i], 0.73, 0.6, 1);
+    const [z1, y1] = wingSurfacePoint(d, 0.73, 0.28, -1);
+    return [
+      [z0 - 0.012, y0 - 0.001],
+      [z0 + 0.012, y0 - 0.001],
+      [z1 + 0.012, y1 + 0.001],
+      [z1 - 0.012, y1 + 0.001],
+    ] as const;
+  }),
+);
 export const REAR_ENDPLATE: readonly (readonly [number, number])[] = Object.freeze([
   [-2.32, 0.23],
   [-2.15, 0.194],
@@ -140,16 +178,20 @@ export const COCKPIT_RIM: readonly (readonly [number, number, number])[] = Objec
   [0.34, 0.2, 0],
   [0.29, 0.14, 0.36],
 ]);
+// Seat the entire lower edge in the engine cover. A disconnected interpolation
+// between two distant points previously floated above the down-swept body.
 export const ENGINE_FIN: readonly (readonly [number, number])[] = Object.freeze([
-  [-1.94, -0.005],
-  [-1.57, 0.153],
-  [-1.14, 0.315],
-  [-0.8, 0.585],
-  [-0.76, 0.633],
-  [-1.04, 0.447],
-  [-1.43, 0.264],
-  [-1.94, 0.113],
+  [-1.94, 0.115],
+  [-1.58, 0.27],
+  [-1.14, 0.425],
+  [-0.92, 0.51],
+  [-0.76, 0.64],
+  ...Array.from({ length: 41 }, (_, i) => {
+    const z = -0.76 - (1.18 * i) / 40;
+    return [z, bodySurface(ENGINE_SECTIONS, z, 0.5, 0, 0.18).y - 0.004] as const;
+  }),
 ]);
+
 function curveMesh(points: typeof HALO_POINTS, radius: number, detail: CarDetail) {
   const curve = new T.CatmullRomCurve3(points.map((v) => new T.Vector3(...v)));
   return capSafetyTube(
@@ -196,40 +238,9 @@ export function buildWing(
       side * (end === 'front' ? 0.984 : 0.839),
     );
     if (end === 'front') {
-      // Thin swept supports replace protruding rectangular cascade blocks.
-      for (let i = 0; i < 3; i++) {
-        const d = FRONT_SURFACES[i + 1],
-          before = FRONT_SURFACES[i];
-        mesh(
-          parent,
-          aeroPlate(
-            [
-              [before.z - 0.09, before.y + 0.006],
-              [before.z - 0.048, before.y + 0.006],
-              [d.z + 0.067, d.y + 0.022],
-              [d.z + 0.034, d.y + 0.022],
-            ],
-            0.008,
-          ),
-          carbon,
-          side * 0.73,
-        );
-      }
-      // The nose joins the second element via two actual vertical pylons.
-      mesh(
-        parent,
-        aeroPlate(
-          [
-            [2.16, -0.289],
-            [2.29, -0.292],
-            [2.3, -0.181],
-            [2.16, -0.166],
-          ],
-          0.017,
-        ),
-        carbon,
-        side * 0.083,
-      );
+      for (const outline of FRONT_SPACERS)
+        mesh(parent, aeroPlate(outline, 0.008), carbon, side * 0.73);
+      mesh(parent, aeroPlate(FRONT_PYLON, 0.017), carbon, side * 0.083);
     } else {
       rod(
         parent,

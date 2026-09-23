@@ -1,3 +1,4 @@
+import { mountAuthoredWing, mountAuthoredWheel, uprightSocketX } from './car-assembly.ts';
 import type { HeroShells } from './hero-shells.ts';
 import { installManufacturingFinish, ventilatedBrakeGeometry } from './manufacturing.ts';
 import { addSafetyCell, addAirbox, buildWing } from './car-architecture.ts';
@@ -57,7 +58,8 @@ export class FormulaCar {
   readonly brakeRotors: T.Mesh[] = [];
   readonly treads: ReturnType<typeof treadMaterial>[] = [];
   readonly rings: T.MeshBasicMaterial[] = [];
-  readonly links: { mesh: T.Object3D; anchor: T.Vector3; wheel: number; dy: number }[] = [];
+  readonly links: { mesh: T.Object3D; anchor: T.Vector3; wheel: number; dy: number; dx: number }[] =
+    [];
   private suspension: T.InstancedMesh;
   readonly steering = new T.Group();
   readonly cockpitControls: CockpitControls;
@@ -78,7 +80,9 @@ export class FormulaCar {
   private qa = new T.Quaternion();
   private qb = new T.Quaternion();
   private v = new T.Vector3();
-  private up = new T.Vector3(0, 1, 0);
+  private linkChord = new T.Vector3();
+  private linkThickness = new T.Vector3();
+  private linkBasis = new T.Matrix4();
   setLivery(value: Livery) {
     const livery = validateLivery(value);
     this.paint.color.set(livery.primary);
@@ -134,11 +138,17 @@ export class FormulaCar {
     installPaintFinish(ivory);
     this.accent = ivory;
     // Venturi floor, sculpted monocoque, narrow nose and smoothly undercut sidepods.
-    mesh(s, floorGeometry(), carbon);
+    mesh(s, hero?.copy('floor') ?? floorGeometry(), carbon);
+    if (hero) mesh(s, hero.copy('floor_edges'), carbon);
     mesh(s, hero?.copy('nose') ?? sculptedLoft(NOSE_SECTIONS, 0, 0.32), this.paint);
-    mesh(s, cockpitShell(), this.paint);
-    box(s, dark, 0, -0.24, -0.14, 0.5, 0.08, 1.02);
-    box(s, dark, 0, -0.02, -0.6, 0.44, 0.45, 0.09);
+    mesh(s, hero?.copy('monocoque') ?? cockpitShell(), this.paint);
+    if (hero) {
+      mesh(s, hero.copy('seat_shell'), carbon);
+      mesh(s, hero.copy('seat_padding'), dark);
+    } else {
+      box(s, dark, 0, -0.24, -0.14, 0.5, 0.08, 1.02);
+      box(s, dark, 0, -0.02, -0.6, 0.44, 0.45, 0.09);
+    }
     for (const sign of [-1, 1]) {
       const livery = flankLivery(this.paint, sign, id);
       this.reflectivePaint.push(livery);
@@ -169,17 +179,26 @@ export class FormulaCar {
         const recess = mesh(s, sidepodPatch(opening, -0.008), carbon, sign * 0.53, 0, 0);
         recess.rotation.z = sign * -0.08;
       }
-      mesh(s, floorFenceGeometry(sign * 0.97, 0, 5, 0.042), carbon);
-      for (const across of [0.25, 0.5, 0.76])
-        mesh(s, floorFenceGeometry(sign * across, 0, 2, 0.082), carbon);
+      if (!hero) {
+        mesh(s, floorFenceGeometry(sign * 0.97, 0, 5, 0.042), carbon);
+        for (const across of [0.25, 0.5, 0.76])
+          mesh(s, floorFenceGeometry(sign * across, 0, 2, 0.082), carbon);
+      }
     }
     mesh(
       s,
       hero?.copy('engine') ?? openFrontCap(sculptedLoft(ENGINE_SECTIONS, 0, 0.18)),
       this.paint,
     );
-    addAirbox(s, this.paint, carbon, dark, 'high');
-    addSafetyCell(s, carbon, 'high');
+    if (hero) {
+      mesh(s, hero.copy('airbox_paint'), this.paint);
+      mesh(s, hero.copy('airbox_carbon'), carbon);
+      mesh(s, hero.copy('airbox_dark'), dark);
+      mesh(s, hero.copy('safety'), carbon);
+    } else {
+      addAirbox(s, this.paint, carbon, dark, 'high');
+      addSafetyCell(s, carbon, 'high');
+    }
     for (const sign of [-1, 1]) {
       rod(
         s,
@@ -188,17 +207,24 @@ export class FormulaCar {
         new T.Vector3(sign * 0.59, 0.29, 0.46),
         0.012,
       );
-      const glass = addMirrorHousing(s, this.paint, carbon, sign);
+      const glass = addMirrorHousing(s, this.paint, carbon, sign, hero?.copy('mirror_shell'));
       // Batch the lit shell/bezel with the body, but keep the rear-camera feed
       // independently owned. attach preserves its housing-space placement.
       this.root.attach(glass);
       this.mirrors.push(glass);
     }
     rod(s, metal, new T.Vector3(0.055, 0.13, 0.93), new T.Vector3(0.055, 0.52, 0.93), 0.004);
-    buildWing(this.frontWing, 'front', 'high', this.paint, carbon);
-    buildWing(this.rearWing, 'rear', 'high', this.paint, carbon);
-    mesh(s, wingElement(1.41, 0.23, 0.018, 0.011, 0.015, 0.008), carbon, 0, -0.12, -2.06);
-    mesh(s, wingElement(1.36, 0.17, 0.018, 0.009, 0.02, 0.009), carbon, 0, -0.05, -2.18);
+    if (hero) {
+      const materials = { paint: this.paint, carbon, metal, dark };
+      mountAuthoredWing(this.frontWing, hero, 'front', materials);
+      mountAuthoredWing(this.rearWing, hero, 'rear', materials);
+      mesh(s, hero.copy('beam'), carbon);
+    } else {
+      buildWing(this.frontWing, 'front', 'high', this.paint, carbon);
+      buildWing(this.rearWing, 'rear', 'high', this.paint, carbon);
+      mesh(s, wingElement(1.41, 0.23, 0.018, 0.011, 0.015, 0.008), carbon, 0, -0.12, -2.06);
+      mesh(s, wingElement(1.36, 0.17, 0.018, 0.009, 0.02, 0.009), carbon, 0, -0.05, -2.18);
+    }
     const rain = new T.MeshStandardMaterial({
       color: 0x710000,
       emissive: 0xff1b0a,
@@ -250,46 +276,48 @@ export class FormulaCar {
       const half = i < 2 ? 0.155 : 0.19;
       const tread = treadMaterial();
       this.treads.push(tread);
-      const wheel = mesh(
-        spin,
-        new T.CylinderGeometry(0.246, 0.246, half * 2 + 0.002, 40, 1, true),
-        dark,
-      );
-      wheel.rotation.z = Math.PI / 2;
       const ringMaterial = new T.MeshBasicMaterial({ color: COMPOUNDS.medium.color });
       this.rings.push(ringMaterial);
-      for (const side of [-1, 1]) {
-        const rim = mesh(
+      if (!hero) {
+        const wheel = mesh(
           spin,
-          new T.TorusGeometry(0.24, 0.011, 8, 40),
-          metal,
-          side * (half + 0.002),
-          0,
-          0,
+          new T.CylinderGeometry(0.246, 0.246, half * 2 + 0.002, 40, 1, true),
+          dark,
         );
-        rim.rotation.y = Math.PI / 2;
-        const hub = mesh(
-          spin,
-          new T.CylinderGeometry(0.046, 0.052, 0.027, 12),
-          metal,
-          side * (half + 0.008),
-          0,
-          0,
-        );
-        hub.rotation.z = Math.PI / 2;
-        for (let k = 0; k < 10; k++) {
-          const a = (k / 10) * Math.PI * 2;
-          rod(
+        wheel.rotation.z = Math.PI / 2;
+        for (const side of [-1, 1]) {
+          const rim = mesh(
             spin,
+            new T.TorusGeometry(0.24, 0.011, 8, 40),
             metal,
-            new T.Vector3(side * (half + 0.001), Math.sin(a) * 0.052, Math.cos(a) * 0.052),
-            new T.Vector3(
-              side * (half + 0.001),
-              Math.sin(a + 0.13) * 0.23,
-              Math.cos(a + 0.13) * 0.23,
-            ),
-            0.008,
+            side * (half + 0.002),
+            0,
+            0,
           );
+          rim.rotation.y = Math.PI / 2;
+          const hub = mesh(
+            spin,
+            new T.CylinderGeometry(0.046, 0.052, 0.027, 12),
+            metal,
+            side * (half + 0.008),
+            0,
+            0,
+          );
+          hub.rotation.z = Math.PI / 2;
+          for (let k = 0; k < 10; k++) {
+            const a = (k / 10) * Math.PI * 2;
+            rod(
+              spin,
+              metal,
+              new T.Vector3(side * (half + 0.001), Math.sin(a) * 0.052, Math.cos(a) * 0.052),
+              new T.Vector3(
+                side * (half + 0.001),
+                Math.sin(a + 0.13) * 0.23,
+                Math.cos(a + 0.13) * 0.23,
+              ),
+              0.008,
+            );
+          }
         }
       }
       const discMaterial = installManufacturingFinish(
@@ -304,60 +332,95 @@ export class FormulaCar {
       this.discs.push(discMaterial);
       const carrierDetails = new T.Group();
       pivot.add(carrierDetails);
-      const disc = mesh(pivot, ventilatedBrakeGeometry(), discMaterial, 0, 0, 0);
+      const disc = mesh(
+        pivot,
+        hero?.copy('brake_rotor') ?? ventilatedBrakeGeometry(),
+        discMaterial,
+        0,
+        0,
+        0,
+      );
+      if (hero) {
+        // The bell is rotor-owned: spins with the disc, never leaves with a
+        // withdrawn rim during the real pit service state.
+        mesh(disc, hero.copy(i < 2 ? 'front_hat' : 'rear_hat', p[0] < 0 ? -1 : 1), metal);
+      }
       this.brakeRotors.push(disc);
-      box(carrierDetails, dark, 0, 0.05, -0.19, 0.11, 0.14, 0.055);
+      if (!hero) box(carrierDetails, dark, 0, 0.05, -0.19, 0.11, 0.14, 0.055);
       for (const dy of [-0.075, 0.055])
         for (const dz of [-0.3, 0.3]) {
           const anchor = suspensionMount(p[0], p[2], dy, dz),
             end = new T.Vector3(p[0], -0.183 + dy, p[2]);
           const link = new T.Object3D();
           link.position.copy(end);
-          this.links.push({ mesh: link, anchor, wheel: i, dy });
+          this.links.push({
+            mesh: link,
+            anchor,
+            wheel: i,
+            dy,
+            dx: hero ? uprightSocketX(i < 2, p[0] < 0 ? -1 : 1) : 0,
+          });
         }
       // The opaque cover sits OUTSIDE the spoke envelope (8mm rod radius),
       // rather than intersecting it and exposing a false spoked-cover pattern.
       // Rigid aero cover and machined hub detail spin with the rim, never with
       // the deforming contact patch. The compound rings remain on the carcass.
       const outside = Math.sign(p[0]);
-      const cover = mesh(spin, wheelCoverGeometry(), carbon, outside * (half + 0.014), 0, 0);
-      cover.rotation.y = (outside * Math.PI) / 2;
-      const centreRing = mesh(
-        spin,
-        new T.TorusGeometry(0.049, 0.006, 8, 32),
-        metal,
-        outside * (half + 0.018),
-        0,
-        0,
-      );
-      centreRing.rotation.y = Math.PI / 2;
-      for (let j = 0; j < 10; j++) {
-        const angle = (j / 10) * Math.PI * 2;
-        const fastener = mesh(
+      if (hero) {
+        mountAuthoredWheel(
+          carrierDetails,
           spin,
-          new T.CylinderGeometry(0.004, 0.004, 0.004, 6),
-          metal,
-          outside * (half + 0.021),
-          Math.cos(angle) * 0.193,
-          Math.sin(angle) * 0.193,
+          hero,
+          i < 2 ? 'front' : 'rear',
+          outside < 0 ? -1 : 1,
+          { carbon, dark, metal, paint: this.paint },
         );
-        fastener.rotation.z = Math.PI / 2;
+      } else {
+        const cover = mesh(spin, wheelCoverGeometry(), carbon, outside * (half + 0.014), 0, 0);
+        cover.rotation.y = (outside * Math.PI) / 2;
+        const centreRing = mesh(
+          spin,
+          new T.TorusGeometry(0.049, 0.006, 8, 32),
+          metal,
+          outside * (half + 0.018),
+          0,
+          0,
+        );
+        centreRing.rotation.y = Math.PI / 2;
+        for (let j = 0; j < 10; j++) {
+          const angle = (j / 10) * Math.PI * 2;
+          const fastener = mesh(
+            spin,
+            new T.CylinderGeometry(0.004, 0.004, 0.004, 6),
+            metal,
+            outside * (half + 0.021),
+            Math.cos(angle) * 0.193,
+            Math.sin(angle) * 0.193,
+          );
+          fastener.rotation.z = Math.PI / 2;
+        }
+        addWheelMechanicalDetail(carrierDetails, spin, outside, half, {
+          carbon,
+          dark,
+          metal,
+          paint: this.paint,
+        });
       }
-      addWheelMechanicalDetail(carrierDetails, spin, outside, half, {
-        carbon,
-        dark,
-        metal,
-        paint: this.paint,
-      });
       mergeStatic(carrierDetails);
       // Batch only the rigid wheel. Rubber must remain independently deformable.
       mergeStatic(spin);
-      const carcass = new TireCarcass(half, tread.material, ringMaterial);
+      const carcass = new TireCarcass(
+        half,
+        tread.material,
+        ringMaterial,
+        hero?.copy(i < 2 ? 'tire_front' : 'tire_rear'),
+      );
       this.carcasses.push(carcass);
       spin.add(carcass.root);
     });
     this.suspension = new T.InstancedMesh(
-      new T.CylinderGeometry(0.013, 0.017, 1, 8).scale(1.8, 1, 0.45),
+      hero?.copy('suspension_link') ??
+        new T.CylinderGeometry(0.013, 0.017, 1, 8).scale(1.8, 1, 0.45),
       carbon,
       this.links.length,
     );
@@ -433,7 +496,11 @@ export class FormulaCar {
     this.root.add(this.driver.root);
 
     buildHelmet(this.helmet, { carbon, dark, metal, paint: ivory });
-    addTailMechanicalDetail(s, { carbon, dark, metal, paint: this.paint });
+    if (hero) {
+      mesh(s, hero.copy('tail_carbon'), carbon);
+      mesh(s, hero.copy('tail_alloy'), metal);
+      mesh(s, hero.copy('tail_dark'), dark);
+    } else addTailMechanicalDetail(s, { carbon, dark, metal, paint: this.paint });
     mergeStatic(s);
     mergeStatic(this.frontWing);
     mergeStatic(this.rearWing);
@@ -582,10 +649,19 @@ export class FormulaCar {
     for (let j = 0; j < this.links.length; j++) {
       const link = this.links[j];
       const pivot = pivots[link.wheel];
-      this.v.set(0, link.dy, 0).applyQuaternion(pivot.quaternion).add(pivot.position);
+      this.v.set(link.dx, link.dy, 0).applyQuaternion(pivot.quaternion).add(pivot.position);
       const length = this.v.distanceTo(link.anchor);
       link.mesh.position.copy(this.v).add(link.anchor).multiplyScalar(0.5);
-      link.mesh.quaternion.setFromUnitVectors(this.up, this.v.sub(link.anchor).normalize());
+      this.v.sub(link.anchor).normalize();
+      // Local Y spans the joints. Align the aerofoil chord with car-forward
+      // projected perpendicular to that span, rather than rolling it upright.
+      this.linkChord.set(0, 0, 1).addScaledVector(this.v, -this.v.z);
+      if (this.linkChord.lengthSq() < 1e-10)
+        this.linkChord.set(1, 0, 0).addScaledVector(this.v, -this.v.x);
+      this.linkChord.normalize();
+      this.linkThickness.crossVectors(this.linkChord, this.v).normalize();
+      this.linkBasis.makeBasis(this.linkChord, this.v, this.linkThickness);
+      link.mesh.quaternion.setFromRotationMatrix(this.linkBasis);
       link.mesh.scale.y = length;
       link.mesh.updateMatrix();
       this.suspension.setMatrixAt(j, link.mesh.matrix);

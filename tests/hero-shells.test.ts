@@ -5,6 +5,7 @@ import * as T from 'three';
 import { HeroShells, bakeHeroGeometry, loadHeroShells } from '../src/rendering/hero-shells.ts';
 import { sculptedLoft } from '../src/rendering/bodywork.ts';
 import { NOSE_SECTIONS, ENGINE_SECTIONS, sidepodShell } from '../src/rendering/car-surfaces.ts';
+import manifest from '../src/rendering/apx01-shell.manifest.json';
 import { openFrontCap } from '../src/rendering/car-mechanical-detail.ts';
 
 const compressed = new Uint8Array(
@@ -163,7 +164,7 @@ describe('27H real Blender glTF integration', () => {
     await expect(
       loadHeroShells(
         () => false,
-        (async () => new Response(new Uint8Array(130000))) as typeof fetch,
+        (async () => new Response(new Uint8Array(manifest.bytes + 1))) as typeof fetch,
       ),
     ).rejects.toThrow('budget');
   });

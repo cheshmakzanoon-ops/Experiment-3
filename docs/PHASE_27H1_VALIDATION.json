@@ -1,0 +1,111 @@
+{
+  "phase": "27H.1 only",
+  "baseCommit": "3de67663f5d6461c29129e16bdcbd6f91c630935",
+  "scope": "Coherent APX-01 mechanical assembly; no simulation, driver rebuild, environment, crew, mode or engine change.",
+  "nativeSource": "scripts/apx01-assembly.blend",
+  "nativeSHA256": "0f1728899b8420cd6712e15415861f1e68ba24a80e952780924a037e49929096",
+  "assetSHA256": "23fe974bfcea494d01cd11550698afd39b4f65f0806515bec76452251a53756c",
+  "assetCompressedSHA256": "37b7dda8707a4248562a6e5ac68295447a4e8dd0095363d2e9f220acec86dfcf",
+  "prototypeParts": 41,
+  "prototypeTriangles": 102551,
+  "compressedBytes": 1142562,
+  "rawBytes": 2331204,
+  "checks": {
+    "lint": "PASS",
+    "unitTests": {
+      "files": 92,
+      "passed": 932,
+      "newAssemblyTests": 38
+    },
+    "typescript": "PASS",
+    "productionBuild": "PASS",
+    "nativeDeterministicReexport": "PASS: gzip and manifest byte-identical",
+    "cpuBrowserIntegration": {
+      "kind": "CPU component / no WebGL visual acceptance",
+      "parts": 41,
+      "assetSHA256": "23fe974bfcea494d01cd11550698afd39b4f65f0806515bec76452251a53756c",
+      "poses": 68,
+      "suspensionEndpointsChecked": 2176,
+      "geometryBytes": 18648332,
+      "lod": [
+        {
+          "level": 0,
+          "visibleTriangles": 202124
+        },
+        {
+          "level": 1,
+          "visibleTriangles": 22101
+        },
+        {
+          "level": 2,
+          "visibleTriangles": 16505
+        },
+        {
+          "level": 0,
+          "visibleTriangles": 202124
+        }
+      ],
+      "updateMs": {
+        "median": 4.300000000279397,
+        "p95": 12.899999999906868
+      },
+      "physicalStateUnchanged": true,
+      "steeringTravelCamber": true,
+      "pitOwnership": true,
+      "damage": true,
+      "brakeHeat": true,
+      "livePaintAndMirrors": true,
+      "replay": true,
+      "finalArtApproved": false
+    },
+    "isolatedRendererImport": "PASS: no URL resolution or fetching",
+    "physicsScenarios": "PASS: validation, dynamics, race control, wet pits and integrated journey",
+    "acceptanceMatrix": {
+      "status": "PASS: regenerated source/file hashes; no acceptance status promoted",
+      "sourceFingerprint": "ccaa1775c58b8f45555419c5680c2d3776929e14f8f8d86f43088b6dd6b48493",
+      "directiveRows": 148,
+      "referenceRows": 100,
+      "required": {
+        "PASS": 0,
+        "PARTIAL": 230,
+        "FAIL": 2
+      },
+      "excluded": 16
+    },
+    "additionalScenarios": "PASS: rotation conservation benchmark, ten-car pit integration, clear/changeable race classification"
+  },
+  "blocked": {
+    "normalApplication": "ERR_BLOCKED_BY_ADMINISTRATOR at http://127.0.0.1:4173/ before application startup",
+    "webGL": "Context creation unavailable in managed Chromium; no policy was changed",
+    "fullBrowserShards": "NOT RUN here",
+    "targetHardware": "NOT RUN"
+  },
+  "visualEvidence": {
+    "type": "CPU Blender re-renders of actual FormulaCar geometry and transforms, not screenshots of the running application",
+    "lighting": "Neutral inspection stage; Three.js shader/postprocessing/weather not reproduced",
+    "views": [
+      "front",
+      "rear",
+      "side",
+      "three-quarter",
+      "front-mechanical",
+      "rear-mechanical"
+    ],
+    "viewSHA256": {
+      "front.png": "e108f36097bdf5bfd62c92954af98fd9fd5d05fdbe7678f1e726f30620eea548",
+      "rear.png": "a8cb346d037302ee492d83cc9dafd534b532a549ad16cd6c2392c4cfed0329f5",
+      "side.png": "8d2c884a1bdecf5876cc93af32e496b3c484f5b161427598e700730ea889f822",
+      "three-quarter.png": "4fa57fdb58ec6f748c650ef594846a658b3ee781ffe98f4a57b400b38f7c0c78",
+      "front-mechanical.png": "8123af96854dd0167ae2e158f4dea654b0951c6bd293507714106f3c4ccab37d",
+      "rear-mechanical.png": "b262b183c6c75bc0df522d6330427eba5d4c14b4ac57ae88f613705fb0bdd1f1"
+    }
+  },
+  "finalArtApproved": false,
+  "normalGameVisualAcceptance": false,
+  "referenceParityClaimed": false,
+  "notes": [
+    "Hosted CPU timings include concurrent validation/rendering and do not establish target-machine frame rate.",
+    "Phase 27H.2+ and the global 248-row acceptance matrix are not completed by this car-only work.",
+    "A local commit and its delivery artifacts are not proof of a remote push."
+  ]
+}

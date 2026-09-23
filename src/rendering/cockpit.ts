@@ -78,13 +78,14 @@ export function addMirrorHousing(
   paint: T.Material,
   carbon: T.Material,
   side: number,
+  ownedHousing?: T.BufferGeometry,
 ) {
   if (side !== -1 && side !== 1) throw new Error('Invalid mirror side');
   const root = new T.Group();
   root.name = side < 0 ? 'Right mirror housing' : 'Left mirror housing';
   root.position.set(side * 0.64, 0.3, 0.43);
   parent.add(root);
-  mesh(root, mirrorShellGeometry(), paint);
+  mesh(root, ownedHousing ?? mirrorShellGeometry(), paint);
   mesh(root, plate(roundedAperture(0.219, 0.08, 0.023), 0.006, 0.002), carbon, 0, 0, -0.036);
   const surface = mesh(
     root,

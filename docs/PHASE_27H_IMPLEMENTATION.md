@@ -1,5 +1,7 @@
 # Phase 27H — authored bodywork and evidence-bound closure
 
+> Historical 27H increment. The later car-only mechanical assembly and its still-open visual acceptance are recorded in [PHASE_27H1_IMPLEMENTATION.md](PHASE_27H1_IMPLEMENTATION.md). Original acceptance claims below are not upgraded by that work.
+
 This is an implementation increment, **not completion of 27H.0–27H.9**, not F1 25 parity and not commercial-release approval. The unchanged 148-section master directive and the original 100-image archive remain authoritative. Missing features and absent human/hardware evidence must not be relabelled as accepted.
 
 For the subsequent import regression, executed continuation checks and publication boundary, see [the import repair report](PHASE_27H_IMPORT_REPAIR.md).

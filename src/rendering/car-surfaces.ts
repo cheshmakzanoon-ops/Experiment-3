@@ -4,7 +4,8 @@ import { sampleBody, sculptedLoft, type BodySection, type LoftOpening } from './
 /** Original Aurel body envelopes. These shape the rendering, not aerodynamic
  * force coefficients or physical wheel hardpoints. Dimensions are metres. */
 export const NOSE_SECTIONS: readonly BodySection[] = Object.freeze([
-  [0.4, 0.025, 0.3, 0.17],
+  [0.32, -0.004, 0.305, 0.211],
+  [0.45, 0.014, 0.299, 0.183],
   [0.7, 0.035, 0.28, 0.151],
   [1.12, 0.019, 0.224, 0.118],
   [1.5, -0.046, 0.165, 0.082],

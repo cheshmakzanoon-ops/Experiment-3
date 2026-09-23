@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { build } from 'vite';
+import manifest from '../src/rendering/apx01-shell.manifest.json' with { type: 'json' };
 import { F, H, carBase } from '../src/simulation/protocol.ts';
 
 test('27H: actual application loads the authored GLB and retains frozen native views and live paint', async ({
@@ -15,12 +16,12 @@ test('27H: actual application loads the authored GLB and retains frozen native v
   expect(initial.frame![carBase(0) + F.S]).toBeCloseTo(initial.frame![H.LENGTH] - 32, 3);
   expect(initial.renderer?.authoredBodywork).toMatchObject({
     loaded: true,
-    compressedBytes: 70988,
+    revision: 'APX-01 / 27H.1',
+    partCount: 41,
+    compressedBytes: manifest.compressedBytes,
     finalArtApproved: false,
   });
-  expect(initial.renderer!.authoredBodywork!.sha256).toBe(
-    '98bc137389b32427bf5362f6db39e5956e55eda6aec6cf7913f0d040891bfbf9',
-  );
+  expect(initial.renderer!.authoredBodywork!.sha256).toBe(manifest.sha256);
   await page.getByRole('button', { name: 'PHOTO / LIVERY', exact: true }).click();
   await expect(page.locator('#photoStudio')).toBeVisible();
   await page.locator('#photoBackdrop').selectOption('studio');
