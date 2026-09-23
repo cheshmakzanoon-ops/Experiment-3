@@ -1,5 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
+import { build } from 'vite';
 import { F, H, carBase } from '../src/simulation/protocol.ts';
 
 test('27H: actual application loads the authored GLB and retains frozen native views and live paint', async ({
@@ -64,4 +66,51 @@ test('27H: a missing authored asset fails explicitly rather than claiming a proc
   await page.goto('/');
   await expect(page.locator('#errorMessage')).toBeVisible({ timeout: 90000 });
   await expect(page.locator('#errorMessage')).toContainText(/bodywork/i);
+});
+
+test('27H: isolated renderer imports do not resolve an asset URL or fetch bodywork', async ({
+  page,
+}) => {
+  const bundle = await build({
+    configFile: false,
+    logLevel: 'error',
+    build: {
+      write: false,
+      lib: {
+        entry: resolve('src/rendering/hero-shells.ts'),
+        name: 'APEXHeroImportProbe',
+        formats: ['iife'],
+      },
+    },
+  });
+  const output = Array.isArray(bundle) ? bundle[0] : bundle;
+  if (!('output' in output)) throw new Error('Missing authored bodywork bundle');
+  const chunk = output.output.find((item) => item.type === 'chunk');
+  if (!chunk || chunk.type !== 'chunk') throw new Error('Missing authored bodywork entry');
+  const errors: string[] = [],
+    requests: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  page.on('request', (request) => requests.push(request.url()));
+  // The geometry probes intentionally have an opaque document URL, not the
+  // application origin. Importing geometry must not start asset acquisition.
+  await page.setContent('<!doctype html><title>Bodywork import isolation</title>');
+  await page.addScriptTag({ content: chunk.code });
+  const state = await page.evaluate(() => {
+    const api = (
+      window as unknown as {
+        APEXHeroImportProbe?: {
+          HeroShells?: unknown;
+          bakeHeroGeometry?: unknown;
+          loadHeroShells?: unknown;
+        };
+      }
+    ).APEXHeroImportProbe;
+    return {
+      href: location.href,
+      exports: [typeof api?.HeroShells, typeof api?.bakeHeroGeometry, typeof api?.loadHeroShells],
+    };
+  });
+  expect(state).toEqual({ href: 'about:blank', exports: ['function', 'function', 'function'] });
+  expect(errors).toEqual([]);
+  expect(requests).toEqual([]);
 });

@@ -2,6 +2,8 @@
 
 This is an implementation increment, **not completion of 27H.0–27H.9**, not F1 25 parity and not commercial-release approval. The unchanged 148-section master directive and the original 100-image archive remain authoritative. Missing features and absent human/hardware evidence must not be relabelled as accepted.
 
+For the subsequent import regression, executed continuation checks and publication boundary, see [the import repair report](PHASE_27H_IMPORT_REPAIR.md).
+
 ## Delivered runtime changes
 
 The running application's asynchronous renderer now loads three original APX-01 body skins exported from the retained native Blender scene. Nose, engine cover and sidepod profiles have revised surface proportions and 1.2 mm manufactured edge bevels. The actual .blend is `scripts/apx01-shell.blend`; this is not a photograph, an extracted commercial car or a whole-car final-art replacement. The mirrored sidepods continue to receive independent live livery materials. Wings, suspension hardpoints, wheel pose, driver, damage and mirrors remain independently owned by the existing game.

@@ -1,7 +1,58 @@
-import { describe, expect, it } from 'vitest';
-import { build } from 'vite';
-import { resolve } from 'node:path';
+import { describe, expect, it, vi } from 'vitest';
 import { runInNewContext } from 'node:vm';
+import { resolve } from 'node:path';
+import { build } from 'vite';
+
+it('imports the real browser bodywork bundle without resolving URLs or starting acquisition', async () => {
+  const bundled = await build({
+    configFile: false,
+    logLevel: 'error',
+    build: {
+      write: false,
+      lib: {
+        entry: resolve('src/rendering/hero-shells.ts'),
+        name: 'HeroImportProbe',
+        formats: ['iife'],
+      },
+    },
+  });
+  const output = Array.isArray(bundled) ? bundled[0] : bundled;
+  if (!('output' in output)) throw new Error('Missing bodywork library output');
+  const chunk = output.output.find((item) => item.type === 'chunk');
+  if (!chunk || chunk.type !== 'chunk') throw new Error('Missing bodywork entry');
+  const fetcher = vi.fn(),
+    setTimer = vi.fn(() => 1),
+    clearTimer = vi.fn();
+  const context = {
+    document: { baseURI: 'about:blank', currentScript: null },
+    URL,
+    DOMException,
+    AbortController,
+    fetch: fetcher,
+    setTimeout: setTimer,
+    setInterval: setTimer,
+    clearTimeout: clearTimer,
+    clearInterval: clearTimer,
+    HeroImportProbe: undefined as
+      | undefined
+      | {
+          HeroShells: unknown;
+          bakeHeroGeometry: unknown;
+          loadHeroShells: (cancelled: () => boolean) => Promise<unknown>;
+        },
+  };
+  runInNewContext(chunk.code, context, { timeout: 5000 });
+  const api = context.HeroImportProbe;
+  expect(typeof api?.HeroShells).toBe('function');
+  expect(typeof api?.bakeHeroGeometry).toBe('function');
+  expect(typeof api?.loadHeroShells).toBe('function');
+  expect(fetcher).not.toHaveBeenCalled();
+  expect(setTimer).not.toHaveBeenCalled();
+  // A cancelled load must not try to resolve a URL against about:blank either.
+  await expect(api!.loadHeroShells(() => true)).rejects.toThrow('Bodywork loading cancelled');
+  expect(fetcher).not.toHaveBeenCalled();
+  expect(clearTimer).toHaveBeenCalledTimes(2);
+});
 
 /** Regression for the real library/IIFE route used by the existing GPU probes.
  * This executes Vite's output, not a source-string assertion or mocked renderer.
