@@ -45,33 +45,35 @@ jobs:
           cat /tmp/apex-static.log
           exit 1
 
-      - name: Open public Cloudflare Quick Tunnel
+      - name: Open public HTTPS tunnel
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          curl --fail --location --retry 5 --retry-delay 2             -o /tmp/cloudflared             https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64
-          chmod +x /tmp/cloudflared
-
-          nohup /tmp/cloudflared tunnel --no-autoupdate --url http://127.0.0.1:4173             > /tmp/cloudflared.log 2>&1 &
-          cf_pid=$!
-          echo "CF_PID=$cf_pid" >> "$GITHUB_ENV"
+          nohup ssh             -o StrictHostKeyChecking=no             -o UserKnownHostsFile=/dev/null             -o ServerAliveInterval=30             -o ServerAliveCountMax=3             -o ExitOnForwardFailure=yes             -R 80:127.0.0.1:4173             localhost.run             > /tmp/localhost-run.log 2>&1 &
+          tunnel_pid=$!
+          echo "TUNNEL_PID=$tunnel_pid" >> "$GITHUB_ENV"
 
           url=""
           for i in {1..90}; do
-            url="$(grep -oE 'https://[-a-z0-9]+\.trycloudflare\.com' /tmp/cloudflared.log | head -n1 || true)"
+            url="$(grep -oE 'https://[-a-zA-Z0-9.]+(lhr\.life|localhost\.run)' /tmp/localhost-run.log | head -n1 || true)"
             if [ -n "$url" ]; then
               break
+            fi
+            if ! kill -0 "$tunnel_pid" 2>/dev/null; then
+              cat /tmp/localhost-run.log
+              exit 1
             fi
             sleep 1
           done
 
           if [ -z "$url" ]; then
-            cat /tmp/cloudflared.log
+            cat /tmp/localhost-run.log
             exit 1
           fi
 
+          public_ok=0
           for i in {1..30}; do
             if curl -fsS "$url/" >/dev/null; then
               public_ok=1
@@ -79,7 +81,7 @@ jobs:
             fi
             sleep 2
           done
-          test "${public_ok:-0}" = "1"
+          test "$public_ok" = "1"
 
           payload="$(jq -n --arg url "$url" '{
             state: "success",
@@ -99,10 +101,10 @@ jobs:
         run: |
           set -euo pipefail
           echo "Serving $LIVE_URL"
-          while kill -0 "$SERVER_PID" 2>/dev/null && kill -0 "$CF_PID" 2>/dev/null; do
+          while kill -0 "$SERVER_PID" 2>/dev/null && kill -0 "$TUNNEL_PID" 2>/dev/null; do
             sleep 30
           done
           echo "Preview process exited unexpectedly"
           cat /tmp/apex-static.log || true
-          cat /tmp/cloudflared.log || true
+          cat /tmp/localhost-run.log || true
           exit 1
