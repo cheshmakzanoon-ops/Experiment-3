@@ -9,7 +9,7 @@ permissions:
   contents: read
 concurrency:
   group: phase27h-exact-candidate
-  cancel-in-progress: false
+  cancel-in-progress: true
 jobs:
   prepare:
     runs-on: ubuntu-latest
@@ -30,7 +30,7 @@ jobs:
         python - <<'PY'
         import base64, hashlib, json, os, pathlib, subprocess, time, urllib.request
         base = 'edc2a8d644c67e313d9f599ba4ee738586431915'
-        expected_tree = 'fea467fc250b519b5f81176fcf97a5d66bbd08cc'
+        expected_tree = 'f9ccf5b8799ea5aede45ed1fc2d357c74880553b'
         stage = '.github/workflows/phase27h-verified.yml'
         subprocess.run(['git','merge-base','--is-ancestor',base,'HEAD'],check=True)
         changes = subprocess.check_output(['git','diff','--name-only',base,'HEAD'],text=True).splitlines()
@@ -55,7 +55,7 @@ jobs:
         packed = temp/'phase27h.br'; packed.write_bytes(data)
         raw = subprocess.check_output(['node','-e',"process.stdout.write(require('node:zlib').brotliDecompressSync(require('node:fs').readFileSync(process.argv[1])))",str(packed)])
         payload = json.loads(raw)
-        assert payload['schema'] == 1 and payload['base'] == base and payload['targetTree'] == expected_tree
+        assert payload['schema'] == 1 and payload['base'] == base and payload['targetTree'] == 'fea467fc250b519b5f81176fcf97a5d66bbd08cc'
         patch = temp/'phase27h.patch'; patch.write_text(payload['patch'])
         subprocess.run(['git','apply','--check',str(patch)],check=True)
         subprocess.run(['git','apply',str(patch)],check=True)
@@ -75,7 +75,19 @@ jobs:
         subprocess.run(['node','--experimental-transform-types','scripts/phase27h-matrix.ts','--write'],check=True)
         subprocess.run(['git','add','-A'],check=True)
         actual = subprocess.check_output(['git','write-tree'],text=True).strip()
-        assert actual == expected_tree, ('Candidate tree mismatch',actual)
+        assert actual == 'fea467fc250b519b5f81176fcf97a5d66bbd08cc', ('Original candidate tree mismatch',actual)
+        correction = temp/'showroom.br'
+        correction.write_bytes(blob('98ee57f0f78f1c9589693b50df3e8d675a72c998'))
+        fixed = json.loads(subprocess.check_output(['node','-e',"process.stdout.write(require('node:zlib').brotliDecompressSync(require('node:fs').readFileSync(process.argv[1])))",str(correction)]))
+        assert fixed['baseTree'] == actual and fixed['targetTree'] == expected_tree
+        assert fixed['sourceFingerprint'] == '074d0ff43ef69b6ca1eb4464164f409ba0e3ca7541fb41e13bd974ccb9e5372c'
+        correction_patch = temp/'showroom.patch'; correction_patch.write_text(fixed['patch'])
+        subprocess.run(['git','apply','--check',str(correction_patch)],check=True)
+        subprocess.run(['git','apply',str(correction_patch)],check=True)
+        subprocess.run(['node','--experimental-transform-types','scripts/phase27h-matrix.ts','--write'],check=True)
+        subprocess.run(['git','add','-A'],check=True)
+        actual = subprocess.check_output(['git','write-tree'],text=True).strip()
+        assert actual == expected_tree, ('Corrected candidate tree mismatch',actual)
         print('EXACT CANDIDATE TREE',actual)
         PY
     - run: npm ci --no-audit --no-fund
@@ -85,8 +97,8 @@ jobs:
         node --experimental-transform-types scripts/phase27h-matrix.ts --check
         node --experimental-transform-types scripts/phase27h-matrix.ts --json test-results/phase27h-matrix.json
         git add -A
-        test "$(git write-tree)" = fea467fc250b519b5f81176fcf97a5d66bbd08cc
-        git archive --format=tar.gz fea467fc250b519b5f81176fcf97a5d66bbd08cc > "$RUNNER_TEMP/source.tar.gz"
+        test "$(git write-tree)" = f9ccf5b8799ea5aede45ed1fc2d357c74880553b
+        git archive --format=tar.gz f9ccf5b8799ea5aede45ed1fc2d357c74880553b > "$RUNNER_TEMP/source.tar.gz"
     - uses: actions/upload-artifact@v4
       with:
         name: phase27h-source
@@ -117,7 +129,7 @@ jobs:
         tar -xzf "$RUNNER_TEMP/phase27h-source/source.tar.gz"
         rm .github/workflows/phase27h-verified.yml
         git add -A
-        test "$(git write-tree)" = fea467fc250b519b5f81176fcf97a5d66bbd08cc
+        test "$(git write-tree)" = f9ccf5b8799ea5aede45ed1fc2d357c74880553b
     - uses: actions/setup-node@v4
       with:
         node-version: '22'
@@ -163,7 +175,7 @@ jobs:
         tar -xzf "$RUNNER_TEMP/phase27h-source/source.tar.gz"
         rm .github/workflows/phase27h-verified.yml
         git add -A
-        test "$(git write-tree)" = fea467fc250b519b5f81176fcf97a5d66bbd08cc
+        test "$(git write-tree)" = f9ccf5b8799ea5aede45ed1fc2d357c74880553b
     - uses: actions/setup-node@v4
       with:
         node-version: '22'
@@ -201,7 +213,7 @@ jobs:
         tar -xzf "$RUNNER_TEMP/phase27h-source/source.tar.gz"
         rm .github/workflows/phase27h-verified.yml
         git add -A
-        test "$(git write-tree)" = fea467fc250b519b5f81176fcf97a5d66bbd08cc
+        test "$(git write-tree)" = f9ccf5b8799ea5aede45ed1fc2d357c74880553b
     - uses: actions/setup-node@v4
       with:
         node-version: '22'
@@ -245,7 +257,7 @@ jobs:
         tar -xzf "$RUNNER_TEMP/phase27h-source/source.tar.gz"
         rm .github/workflows/phase27h-verified.yml
         git add -A
-        test "$(git write-tree)" = fea467fc250b519b5f81176fcf97a5d66bbd08cc
+        test "$(git write-tree)" = f9ccf5b8799ea5aede45ed1fc2d357c74880553b
     - name: Retain verified Git objects; never move a branch automatically
       env:
         GH_TOKEN: ${{ github.token }}
@@ -253,7 +265,7 @@ jobs:
         python - <<'PY'
         import base64, hashlib, json, os, pathlib, subprocess, time, urllib.request
         base='edc2a8d644c67e313d9f599ba4ee738586431915'
-        expected_tree='fea467fc250b519b5f81176fcf97a5d66bbd08cc'
+        expected_tree='f9ccf5b8799ea5aede45ed1fc2d357c74880553b'
         staging=os.environ['GITHUB_SHA']
         root='https://api.github.com/repos/'+os.environ['GITHUB_REPOSITORY']
         def request(path, body=None):
@@ -275,9 +287,9 @@ jobs:
             entries.append({'path':name,'mode':'100644','type':'blob','sha':expected})
         tree=request('/git/trees',{'base_tree':'09659d0870c53c7ea09d39605cbae2df13b04873','tree':entries})
         assert tree['sha']==expected_tree, ('Remote tree mismatch',tree)
-        message='feat: integrate Phase 27H authored bodywork and evidence-bound acceptance\n\nLoad verified Blender-exported original car skins in the real renderer, preserve live physics and livery ownership, replace elbow joint beads with deforming cloth, and add the clause-specific 148-section/100-reference acceptance matrix. Validate the exact source tree with full lint, unit, build, native scenarios, all browser shards and wet-presentation gates. Preserve explicit final-art, all-reference, human Section 146, physical Windows hardware and Steam acceptance gaps.'
+        message='feat: integrate Phase 27H authored bodywork and evidence-bound acceptance\n\nLoad verified Blender-exported original car skins in the real renderer, preserve live physics and livery ownership, replace elbow joint beads with deforming cloth, add the clause-specific 148-section/100-reference acceptance matrix, and fix showroom tyre burial by initializing the exact preview track coordinate and wheel ride height. Validate the exact source tree with full lint, unit, build, native scenarios, all browser shards and wet-presentation gates. Preserve explicit final-art, all-reference, human Section 146, physical Windows hardware and Steam acceptance gaps.'
         commit=request('/git/commits',{'message':message,'tree':expected_tree,'parents':[staging]})
-        report={'commit':commit['sha'],'tree':expected_tree,'base':base,'staging':staging,'workflowRun':os.environ['GITHUB_RUN_ID'],'files':paths,'sourceFingerprint':'3266c8efcea51ad5ab14946a1f07645a52014b5fae04d6b60747f6e3fe11dbef','branchAdvanced':False,'humanApproved':False,'physicalHardwareApproved':False,'finalArtApproved':False,'allReferenceParity':False}
+        report={'commit':commit['sha'],'tree':expected_tree,'base':base,'staging':staging,'workflowRun':os.environ['GITHUB_RUN_ID'],'files':paths,'sourceFingerprint':'074d0ff43ef69b6ca1eb4464164f409ba0e3ca7541fb41e13bd974ccb9e5372c','branchAdvanced':False,'humanApproved':False,'physicalHardwareApproved':False,'finalArtApproved':False,'allReferenceParity':False}
         out=pathlib.Path(os.environ['RUNNER_TEMP'])/'phase27h-sealed.json';out.write_text(json.dumps(report,indent=2)+'\n')
         print(json.dumps(report,indent=2))
         PY
