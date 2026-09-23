@@ -33,8 +33,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          nohup npm run preview -- --host 0.0.0.0 --port 4173 > /tmp/apex-vite.log 2>&1 &
-          echo "VITE_PID=$!" >> "$GITHUB_ENV"
+          nohup npm run preview -- --host 0.0.0.0 --port 4173 --strictPort > /tmp/apex-vite.log 2>&1 &
+          pid=$!
+          echo "VITE_PID=$pid" >> "$GITHUB_ENV"
           for i in {1..30}; do
             if curl -fsS http://127.0.0.1:4173/ >/dev/null; then
               exit 0
@@ -54,7 +55,8 @@ jobs:
           chmod +x /tmp/cloudflared
 
           nohup /tmp/cloudflared tunnel --no-autoupdate --url http://127.0.0.1:4173             > /tmp/cloudflared.log 2>&1 &
-          echo "CF_PID=$!" >> "$GITHUB_ENV"
+          cf_pid=$!
+          echo "CF_PID=$cf_pid" >> "$GITHUB_ENV"
 
           url=""
           for i in {1..90}; do
@@ -70,7 +72,33 @@ jobs:
             exit 1
           fi
 
-          curl -fsS --retry 15 --retry-delay 2 "$url/" >/dev/null
+          host="${url#https://}"
+
+          # Preserve Vite's host-header protection: allow only this one generated
+          # tunnel hostname rather than disabling allowedHosts globally.
+          kill "$VITE_PID"
+          wait "$VITE_PID" 2>/dev/null || true
+          : > /tmp/apex-vite.log
+          nohup env __VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS="$host"             npm run preview -- --host 0.0.0.0 --port 4173 --strictPort             > /tmp/apex-vite.log 2>&1 &
+          vite_pid=$!
+          echo "VITE_PID=$vite_pid" >> "$GITHUB_ENV"
+
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:4173/ >/dev/null; then
+              break
+            fi
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:4173/ >/dev/null
+
+          for i in {1..30}; do
+            if curl -fsS "$url/" >/dev/null; then
+              public_ok=1
+              break
+            fi
+            sleep 2
+          done
+          test "${public_ok:-0}" = "1"
 
           payload="$(jq -n --arg url "$url" '{
             state: "success",
