@@ -1,0 +1,47 @@
+name: Phase 27H production validation
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [.github/workflows/phase27h-production.yml]
+permissions:
+  contents: read
+concurrency:
+  group: phase27h-production-validation
+  cancel-in-progress: true
+jobs:
+  source-and-toolchain:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install the locked game dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Archive exact source and development dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          git archive --format=tar.gz HEAD > "$RUNNER_TEMP/phase27h-source.tar.gz"
+          tar -czf "$RUNNER_TEMP/phase27h-node-modules.tar.gz" node_modules
+          printf '%s\n' "$(git rev-parse HEAD)" > "$RUNNER_TEMP/phase27h-source-commit.txt"
+          cd "$RUNNER_TEMP"
+          sha256sum phase27h-source.tar.gz phase27h-node-modules.tar.gz > phase27h-checksums.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase27h-production-development-inputs
+          path: |
+            ${{ runner.temp }}/phase27h-source.tar.gz
+            ${{ runner.temp }}/phase27h-node-modules.tar.gz
+            ${{ runner.temp }}/phase27h-source-commit.txt
+            ${{ runner.temp }}/phase27h-checksums.txt
+          retention-days: 3
+          compression-level: 0
+          if-no-files-found: error
+      - name: Verify baseline code, contracts, and production build
+        run: npm run check
