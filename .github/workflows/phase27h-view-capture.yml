@@ -1,0 +1,33 @@
+name: Phase 27H normal application visual baseline
+on:
+  push:
+    branches: [main]
+    paths: [.github/workflows/phase27h-view-capture.yml]
+permissions:
+  contents: read
+jobs:
+  normal-game-views:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - name: Capture actual startup, complete car and native cockpit views
+        run: npm run test:e2e -- e2e/20-phase27h.spec.ts e2e/23-apx01-views.spec.ts
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase27h-normal-game-baseline
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 14
+          if-no-files-found: error
