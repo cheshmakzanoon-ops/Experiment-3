@@ -1,0 +1,99 @@
+name: Live playable F1 preview
+
+on:
+  push:
+    paths:
+      - '.github/workflows/live-preview.yml'
+
+permissions:
+  contents: read
+  statuses: write
+
+jobs:
+  preview:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    steps:
+      - name: Checkout current main
+        uses: actions/checkout@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.12.0'
+          cache: npm
+
+      - name: Install and build current game
+        run: |
+          set -euo pipefail
+          npm ci
+          npm run build
+
+      - name: Start local production preview
+        shell: bash
+        run: |
+          set -euo pipefail
+          nohup npm run preview -- --host 0.0.0.0 --port 4173 > /tmp/apex-vite.log 2>&1 &
+          echo "VITE_PID=$!" >> "$GITHUB_ENV"
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:4173/ >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/apex-vite.log
+          exit 1
+
+      - name: Open public Cloudflare Quick Tunnel
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 5 --retry-delay 2             -o /tmp/cloudflared             https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64
+          chmod +x /tmp/cloudflared
+
+          nohup /tmp/cloudflared tunnel --no-autoupdate --url http://127.0.0.1:4173             > /tmp/cloudflared.log 2>&1 &
+          echo "CF_PID=$!" >> "$GITHUB_ENV"
+
+          url=""
+          for i in {1..90}; do
+            url="$(grep -oE 'https://[-a-z0-9]+\.trycloudflare\.com' /tmp/cloudflared.log | head -n1 || true)"
+            if [ -n "$url" ]; then
+              break
+            fi
+            sleep 1
+          done
+
+          if [ -z "$url" ]; then
+            cat /tmp/cloudflared.log
+            exit 1
+          fi
+
+          curl -fsS --retry 15 --retry-delay 2 "$url/" >/dev/null
+
+          payload="$(jq -n --arg url "$url" '{
+            state: "success",
+            target_url: $url,
+            description: "Playable current F1 preview",
+            context: "live-preview"
+          }')"
+          curl -fsS -X POST             -H "Authorization: Bearer $GH_TOKEN"             -H "Accept: application/vnd.github+json"             -H "X-GitHub-Api-Version: 2022-11-28"             "https://api.github.com/repos/${GITHUB_REPOSITORY}/statuses/${GITHUB_SHA}"             -d "$payload" >/dev/null
+
+          echo "LIVE_URL=$url" >> "$GITHUB_ENV"
+          echo "### Playable F1 preview" >> "$GITHUB_STEP_SUMMARY"
+          echo "$url" >> "$GITHUB_STEP_SUMMARY"
+          echo "Live URL: $url"
+
+      - name: Keep preview online
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Serving $LIVE_URL"
+          while kill -0 "$VITE_PID" 2>/dev/null && kill -0 "$CF_PID" 2>/dev/null; do
+            sleep 30
+          done
+          echo "Preview process exited unexpectedly"
+          cat /tmp/apex-vite.log || true
+          cat /tmp/cloudflared.log || true
+          exit 1
