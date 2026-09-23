@@ -14,8 +14,37 @@ test('27H.2 normal application: coupled driver survives both locks, countersteer
   // Mirror pixels/raycast visibility have separate tests; reading them here
   // stalls the software GPU and input pump without testing another driver rule.
   const diagnostics = () => page.evaluate(() => window.apexDiagnostics());
+  const captures: { name: string; milliseconds: number; bytes: number }[] = [];
+  // Capture Chromium's existing viewport surface, without Playwright's redundant
+  // page-wide caret/style preparation and explicit clip/viewport recalculation.
+  // Full-resolution lossless PNGs and the continuous video are both retained.
+  // Readiness is established from the real presented camera/rig below, not sleeps.
+  const capture = async (name: string) => {
+    const started = performance.now();
+    const session = await page.context().newCDPSession(page);
+    try {
+      const { data } = await session.send('Page.captureScreenshot', {
+        format: 'png',
+        fromSurface: true,
+        captureBeyondViewport: false,
+        optimizeForSpeed: true,
+      });
+      const image = Buffer.from(data, 'base64');
+      const viewport = page.viewportSize()!;
+      expect(image.length).toBeGreaterThan(10000);
+      expect(image.subarray(0, 8).toString('hex')).toBe('89504e470d0a1a0a');
+      expect(image.toString('ascii', 12, 16)).toBe('IHDR');
+      expect(image.readUInt32BE(16)).toBe(viewport.width);
+      expect(image.readUInt32BE(20)).toBe(viewport.height);
+      captures.push({ name, milliseconds: performance.now() - started, bytes: image.length });
+      await info.attach(name, { body: image, contentType: 'image/png' });
+    } finally {
+      await session.detach();
+    }
+  };
   await page.goto('/');
   await expect(page.locator('#menu')).toBeVisible({ timeout: 90000 });
+  await page.evaluate(() => document.fonts.ready.then(() => undefined));
   expect((await diagnostics()).renderer?.authoredDriver).toMatchObject({
     loaded: true,
     sha256: manifest.sha256,
@@ -32,6 +61,7 @@ test('27H.2 normal application: coupled driver survives both locks, countersteer
   await expect.poll(async () => (await diagnostics()).state, { timeout: 90000 }).toBe('driving');
   await page.keyboard.press('c');
   await expect.poll(async () => (await diagnostics()).renderer?.camera).toBe('cockpit');
+  await expect.poll(async () => (await diagnostics()).renderer?.presentedCamera).toBe('cockpit');
   await page.keyboard.down('s');
   const poses: unknown[] = [];
   for (const [key, direction] of [
@@ -57,10 +87,9 @@ test('27H.2 normal application: coupled driver survives both locks, countersteer
       expect([...arm.shoulder, ...arm.elbow, ...arm.wrist].every(Number.isFinite)).toBe(true);
     }
     poses.push(pose);
-    await info.attach(`27h2-cockpit-${poses.length}-${key}.png`, {
-      body: await page.screenshot(),
-      contentType: 'image/png',
-    });
+    await test.step(`Capture cockpit lock ${poses.length}: ${key}`, () =>
+      capture(`27h2-cockpit-${poses.length}-${key}.png`),
+    );
     await page.keyboard.up(key);
   }
   await page.keyboard.up('s');
@@ -74,13 +103,11 @@ test('27H.2 normal application: coupled driver survives both locks, countersteer
   for (const camera of ['pod', 'trackside', 'chase']) {
     await page.keyboard.press('c');
     await expect.poll(async () => (await diagnostics()).renderer?.camera).toBe(camera);
+    await expect.poll(async () => (await diagnostics()).renderer?.presentedCamera).toBe(camera);
     expect(
       (await diagnostics()).renderer!.driverPose.arms.every((a) => a.authoredSkin && a.reachable),
     ).toBe(true);
-    await info.attach(`27h2-moving-${camera}.png`, {
-      body: await page.screenshot(),
-      contentType: 'image/png',
-    });
+    await test.step(`Capture moving ${camera} view`, () => capture(`27h2-moving-${camera}.png`));
   }
   await page.keyboard.press('Escape');
   await expect(page.getByRole('button', { name: 'RESUME SESSION', exact: true })).toBeVisible();
@@ -106,12 +133,10 @@ test('27H.2 normal application: coupled driver survives both locks, countersteer
   expect(rewind.frame?.[H.TICK]).toBe(paused.frame?.[H.TICK]);
   expect(rewind.renderer?.authoredDriver?.sha256).toBe(manifest.sha256);
   expect(rewind.recordingWarnings).toEqual([]);
-  await info.attach('27h2-external-replay-rewind.png', {
-    body: await page.screenshot(),
-    contentType: 'image/png',
-  });
+  await test.step('Capture the rewound replay', () => capture('27h2-external-replay-rewind.png'));
+  expect(captures).toHaveLength(8);
   await info.attach('27h2-coupled-normal-game-evidence.json', {
-    body: JSON.stringify({ poses, paused, first, forward, rewind }, null, 2),
+    body: JSON.stringify({ poses, paused, first, forward, rewind, captures }, null, 2),
     contentType: 'application/json',
   });
   expect(errors).toEqual([]);

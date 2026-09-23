@@ -69,12 +69,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3]
+        shard: [1, 2, 3, 4, 5, 6, 7, 8]
     needs: validate
     runs-on: ubuntu-latest
     # Independent runners retain every test/timeout without contending for one
     # software GPU. Playwright shards the complete suite; no file is filtered.
-    # Full software-WebGL validation can exceed 25 minutes even when tests are progressing.
+    # Eight independent partitions retain every case while surfacing regressions sooner.
+    # Each runner keeps one worker and the existing per-test and job limits.
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
@@ -133,12 +134,12 @@ jobs:
           test -s dist/index.html
           test -d dist/assets
       - run: npx playwright install --with-deps chromium
-      - run: npm run test:e2e -- --shard=${{ matrix.shard }}/3
+      - run: npm run test:e2e -- --shard=${{ matrix.shard }}/${{ strategy.job-total }}
       - name: Browser screenshots and diagnostics
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: browser-validation-${{ matrix.shard }}-of-3
+          name: browser-validation-${{ matrix.shard }}-of-${{ strategy.job-total }}
           path: |
             test-results/
             playwright-report/
