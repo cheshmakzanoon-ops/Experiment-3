@@ -13,6 +13,7 @@ jobs:
   preview:
     runs-on: ubuntu-24.04
     timeout-minutes: 355
+
     steps:
       - name: Checkout current main
         uses: actions/checkout@v6
@@ -33,31 +34,45 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          nohup python3 -m http.server 4173 --bind 0.0.0.0 --directory dist > /tmp/apex-static.log 2>&1 &
-          pid=$!
-          echo "SERVER_PID=$pid" >> "$GITHUB_ENV"
+          nohup python3 -m http.server 4173 --bind 0.0.0.0 --directory dist \
+            > /tmp/apex-static.log 2>&1 &
+          server_pid=$!
+          echo "SERVER_PID=$server_pid" >> "$GITHUB_ENV"
+
           for i in {1..30}; do
             if curl -fsS http://127.0.0.1:4173/ >/dev/null; then
               exit 0
             fi
             sleep 1
           done
+
           cat /tmp/apex-static.log
           exit 1
 
       - name: Open public HTTPS tunnel
         shell: bash
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: \${{ github.token }}
         run: |
           set -euo pipefail
-          nohup ssh             -o StrictHostKeyChecking=no             -o UserKnownHostsFile=/dev/null             -o ServerAliveInterval=30             -o ServerAliveCountMax=3             -o ExitOnForwardFailure=yes             -R 80:127.0.0.1:4173             localhost.run             > /tmp/localhost-run.log 2>&1 &
+
+          nohup ssh -T \
+            -o StrictHostKeyChecking=no \
+            -o UserKnownHostsFile=/dev/null \
+            -o ServerAliveInterval=30 \
+            -o ServerAliveCountMax=3 \
+            -o ExitOnForwardFailure=yes \
+            -R 80:127.0.0.1:4173 \
+            nokey@localhost.run \
+            > /tmp/localhost-run.log 2>&1 &
           tunnel_pid=$!
           echo "TUNNEL_PID=$tunnel_pid" >> "$GITHUB_ENV"
 
           url=""
           for i in {1..90}; do
-            url="$(grep -oE 'https://[-a-zA-Z0-9.]+(lhr\.life|localhost\.run)' /tmp/localhost-run.log | grep -vE '^https://(admin\.)?localhost\.run
+            url="$(grep -oE 'https://[-a-zA-Z0-9.]+(lhr[.]life|localhost[.]run)' /tmp/localhost-run.log \
+              | grep -vE '^https://(admin[.])?localhost[.]run/?$' \
+              | head -n1 || true)"
             if [ -n "$url" ]; then
               break
             fi
@@ -89,7 +104,13 @@ jobs:
             description: "Playable current F1 preview",
             context: "live-preview"
           }')"
-          curl -fsS -X POST             -H "Authorization: Bearer $GH_TOKEN"             -H "Accept: application/vnd.github+json"             -H "X-GitHub-Api-Version: 2022-11-28"             "https://api.github.com/repos/${GITHUB_REPOSITORY}/statuses/${GITHUB_SHA}"             -d "$payload" >/dev/null
+
+          curl -fsS -X POST \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/\${GITHUB_REPOSITORY}/statuses/\${GITHUB_SHA}" \
+            -d "$payload" >/dev/null
 
           echo "LIVE_URL=$url" >> "$GITHUB_ENV"
           echo "### Playable F1 preview" >> "$GITHUB_STEP_SUMMARY"
@@ -101,60 +122,11 @@ jobs:
         run: |
           set -euo pipefail
           echo "Serving $LIVE_URL"
+
           while kill -0 "$SERVER_PID" 2>/dev/null && kill -0 "$TUNNEL_PID" 2>/dev/null; do
             sleep 30
           done
-          echo "Preview process exited unexpectedly"
-          cat /tmp/apex-static.log || true
-          cat /tmp/localhost-run.log || true
-          exit 1
- | head -n1 || true)"
-            if [ -n "$url" ]; then
-              break
-            fi
-            if ! kill -0 "$tunnel_pid" 2>/dev/null; then
-              cat /tmp/localhost-run.log
-              exit 1
-            fi
-            sleep 1
-          done
 
-          if [ -z "$url" ]; then
-            cat /tmp/localhost-run.log
-            exit 1
-          fi
-
-          public_ok=0
-          for i in {1..30}; do
-            if curl -fsS "$url/" >/dev/null; then
-              public_ok=1
-              break
-            fi
-            sleep 2
-          done
-          test "$public_ok" = "1"
-
-          payload="$(jq -n --arg url "$url" '{
-            state: "success",
-            target_url: $url,
-            description: "Playable current F1 preview",
-            context: "live-preview"
-          }')"
-          curl -fsS -X POST             -H "Authorization: Bearer $GH_TOKEN"             -H "Accept: application/vnd.github+json"             -H "X-GitHub-Api-Version: 2022-11-28"             "https://api.github.com/repos/${GITHUB_REPOSITORY}/statuses/${GITHUB_SHA}"             -d "$payload" >/dev/null
-
-          echo "LIVE_URL=$url" >> "$GITHUB_ENV"
-          echo "### Playable F1 preview" >> "$GITHUB_STEP_SUMMARY"
-          echo "$url" >> "$GITHUB_STEP_SUMMARY"
-          echo "Live URL: $url"
-
-      - name: Keep preview online
-        shell: bash
-        run: |
-          set -euo pipefail
-          echo "Serving $LIVE_URL"
-          while kill -0 "$SERVER_PID" 2>/dev/null && kill -0 "$TUNNEL_PID" 2>/dev/null; do
-            sleep 30
-          done
           echo "Preview process exited unexpectedly"
           cat /tmp/apex-static.log || true
           cat /tmp/localhost-run.log || true
