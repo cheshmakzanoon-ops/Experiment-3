@@ -45,6 +45,7 @@ import { DebrisView } from './debris.ts';
 import { PitCrewView } from './pit-crew.ts';
 import { MotionBlurPass } from './motion-blur.ts';
 import { GpuTimer } from './gpu-timer.ts';
+import { GpuFrameGate } from './gpu-frame-gate.ts';
 import { TextureBudget } from './texture-budget.ts';
 import {
   graphicsPreset,
@@ -150,6 +151,7 @@ export class RacingRenderer {
   private viewOrientation = new ViewOrientation();
   private reflection = new ReflectionSystem();
   private gpuTimer: GpuTimer;
+  private gpuFrames: GpuFrameGate;
   private previousAnchor = new T.Vector3();
   private temporary = new T.Vector3();
   private eyeLocal = new T.Vector3();
@@ -184,6 +186,7 @@ export class RacingRenderer {
       powerPreference: 'high-performance',
     });
     this.gpuTimer = new GpuTimer(context);
+    this.gpuFrames = new GpuFrameGate(context);
     this.atmosphere = new LocalAtmosphere(track);
     this.guide = new DrivingGuide(track);
     this.venueLighting = new VenueLighting(track);
@@ -451,6 +454,10 @@ export class RacingRenderer {
     this.motionBlur.reset();
     this.audioView.reset();
     this.reflection.invalidate();
+  }
+  /** Called by the application's RAF loop before mutating presentation state. */
+  canSubmitFrame(): boolean {
+    return this.gpuFrames.ready();
   }
   /** Called immediately after draw; preserveDrawingBuffer is not required. */
   capturePhoto(): Promise<Blob> {
@@ -813,6 +820,7 @@ export class RacingRenderer {
       this.scenePresentation.restore();
       this.gpuTimer.end();
     }
+    this.gpuFrames.submittedFrame();
     this.renderedMode = cameraMode;
     this.lastRenderCPUms = performance.now() - start;
     this.renderMs = this.renderMs * 0.9 + this.lastRenderCPUms * 0.1;
@@ -1012,6 +1020,7 @@ export class RacingRenderer {
       automaticExposure: this.exposure.diagnostics(),
       localAtmosphere: this.atmosphere.diagnostics(),
       raceComposition: this.composition.diagnostics(),
+      gpuFrameQueue: this.gpuFrames.diagnostics(),
       gpuMilliseconds: this.gpuTimer.milliseconds,
       gpuTimerSupported: this.gpuTimer.supported,
       fps: this.fps,
@@ -1032,6 +1041,7 @@ export class RacingRenderer {
     this.pitCrew.dispose();
     this.reflection.dispose();
     this.gpuTimer.dispose();
+    this.gpuFrames.dispose();
     this.motionBlur.dispose();
     this.exposure.dispose();
     this.photoFocus?.dispose();

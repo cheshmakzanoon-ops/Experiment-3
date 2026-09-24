@@ -535,7 +535,8 @@ export class GameApp {
       !this.previous
     )
       return;
-    const wallDelta = Math.max(0.001, (time - (this.previousTime || time - 16)) / 1000),
+    const previousTime = this.previousTime;
+    const wallDelta = Math.max(0.001, (time - (previousTime || time - 16)) / 1000),
       dt = clamp(wallDelta, 0.001, 0.08);
     this.previousTime = time;
     // Telemetry/settings own a replay's last presented frame immediately, even
@@ -559,6 +560,19 @@ export class GameApp {
     const covered = this.state === 'menu' && this.ui.modal.open;
     if (covered && this.menuCovered && this.renderedState === this.state) return;
     this.menuCovered = covered;
+    // Do not queue seconds of obsolete full-quality frames on a slow GPU.
+    // Leave the worker/input pump independent, and retain elapsed presentation
+    // time while a draw is deferred. Covered replay/menu returns above still
+    // refresh the wall clock so closing a dialog cannot catch up hidden time.
+    try {
+      if (!this.renderer.canSubmitFrame()) {
+        this.previousTime = previousTime;
+        return;
+      }
+    } catch (error) {
+      this.fail(error);
+      return;
+    }
     // Menus and paused telemetry do not need a continuously saturated GPU.
     // Input and worker clocks above remain independent of this presentation cap.
     const idle =
