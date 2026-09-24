@@ -28,3 +28,13 @@ and roughness resources. Gauntlets, thumbs, paddle blanks, fitted six-point
 restraints and helmet tethers are original metre-space geometry. See
 `PHASE_27H12_IMPLEMENTATION.md` and the hash-pinned driver manifest. Blender is an
 authoring tool, not a shipped runtime dependency.
+
+## Phase 27H.3 retained Aurel people
+
+The authored people source and exchange files already present at `ee4fc48` are
+preserved byte-for-byte. The normal pit-service and grandstand paths now use
+that source's exported geometry, not independent primitive stand-ins. Analytic
+bone poses, prop contacts, clothing cohorts and the two-triangle far impostor
+are original runtime work. See `PHASE_27H3_IMPLEMENTATION.md` for file ownership,
+LOD budgets, tests and the outstanding normal-game visual acceptance. No new
+external models, textures, scans, fonts or recordings are included.

@@ -50,6 +50,8 @@ export function renderPitScene(values: number[]) {
     jack: frame[o + F.JACK_HEIGHT],
     speed: frame[o + F.SPEED],
     crews: crew.activeCrews,
+    people: crew.summary(),
+    glError: renderer.getContext().getError(),
     wheelOffsets: car.wheelSpins.map((wheel) => wheel.position.x),
     drawCalls: renderer.info.render.calls,
     triangles: renderer.info.render.triangles,

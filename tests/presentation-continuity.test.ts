@@ -113,7 +113,7 @@ describe('Presentation continuation: distant spectators', () => {
       material,
     );
     try {
-      expect(crowd.levels.map((m) => m.geometry.index!.count / 3)).toEqual([600, 360, 120, 2]);
+      expect(crowd.levels.map((m) => m.geometry.index!.count / 3)).toEqual([2296, 1328, 638, 2]);
       for (const mesh of crowd.levels) {
         expect(mesh.instanceMatrix).toBe(crowd.levels[0].instanceMatrix);
         expect(mesh.instanceColor).toBe(crowd.levels[0].instanceColor);

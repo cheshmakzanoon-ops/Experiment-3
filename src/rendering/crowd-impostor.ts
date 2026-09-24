@@ -3,7 +3,7 @@ import * as T from 'three';
 /** Original analytic seated-person card, not a photograph or licensed atlas.
  * Only used beyond the geometric LODs, where a person occupies a few pixels. */
 export function spectatorImpostorGeometry() {
-  const geometry = new T.PlaneGeometry(0.58, 1.02).translate(0, 0.21, 0);
+  const geometry = new T.PlaneGeometry(0.66, 1.72).translate(0, 0.53, 0);
   geometry.computeBoundingBox();
   geometry.computeBoundingSphere();
   return geometry;
@@ -19,14 +19,14 @@ export function installCrowdImpostorShader(material: T.MeshStandardMaterial, ran
   material.onBeforeCompile = (shader) => {
     shader.uniforms.crowdLodRange = { value: range };
     shader.vertexShader =
-      `attribute float spectatorPhase; attribute vec3 spectatorSkin;
+      `attribute float spectatorPhase; attribute vec3 spectatorSkin; attribute vec4 spectatorStyle; varying vec4 vSpectatorStyle;
       varying float vCrowdRank; varying vec2 vPerson; varying vec3 vSkin;
       ` + shader.vertexShader;
     shader.vertexShader = shader.vertexShader.replace(
       '#include <begin_vertex>',
       `
       #include <begin_vertex>
-      vPerson = position.xy; vSkin = spectatorSkin;
+      vPerson = position.xy; vSkin = spectatorSkin; vSpectatorStyle = spectatorStyle;
       vCrowdRank = min(.9999999, spectatorPhase / 6.28318530718);`,
     );
     shader.vertexShader = shader.vertexShader.replace(
@@ -51,7 +51,7 @@ export function installCrowdImpostorShader(material: T.MeshStandardMaterial, ran
     );
     shader.fragmentShader =
       `uniform vec2 crowdLodRange; varying float vCrowdRank;
-      varying vec2 vPerson; varying vec3 vSkin;
+      varying vec2 vPerson; varying vec3 vSkin; varying vec4 vSpectatorStyle;
       float personEllipse(vec2 p, vec2 centre, vec2 radius) {
         return (length((p-centre)/radius)-1.) * min(radius.x,radius.y);
       }
@@ -61,19 +61,23 @@ export function installCrowdImpostorShader(material: T.MeshStandardMaterial, ran
       `
       #include <color_fragment>
       vec2 p = vPerson;
-      float head = personEllipse(p,vec2(0.,.615),vec2(.086,.106));
-      float torso = personEllipse(p,vec2(0.,.32),vec2(.163,.228));
-      float lap = personEllipse(p,vec2(0.,.085),vec2(.215,.083));
-      float leftLeg = personEllipse(p,vec2(-.105,-.095),vec2(.068,.19));
-      float rightLeg = personEllipse(p,vec2(.105,-.095),vec2(.068,.19));
+      p.x /= vSpectatorStyle.x;
+      if (p.y > .1) p.y = .1 + (p.y-.1) / vSpectatorStyle.y;
+      float stand = vSpectatorStyle.z;
+      float rise = stand * .53;
+      float head = personEllipse(p,vec2(0.,.615+rise),vec2(.086,.106));
+      float torso = personEllipse(p,vec2(0.,.32+rise),vec2(.163,.228));
+      float lap = personEllipse(p,vec2(0.,.085+rise),vec2(.215,.083));
+      float leftLeg = personEllipse(p,vec2(-.105,-.095+stand*.2),vec2(.068,.19+stand*.2));
+      float rightLeg = personEllipse(p,vec2(.105,-.095+stand*.2),vec2(.068,.19+stand*.2));
       float shape = min(head,min(torso,min(lap,min(leftLeg,rightLeg))));
       float aa = max(fwidth(shape),.0001);
       diffuseColor.a *= 1.-smoothstep(-aa,aa,shape);
       float headMask = 1.-smoothstep(-aa,aa,head);
       diffuseColor.rgb = mix(diffuseColor.rgb, vSkin, headMask);
-      float scalp = headMask * smoothstep(.66,.69,p.y);
+      float scalp = headMask * smoothstep(.66+rise,.69+rise,p.y);
       diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.025,.018,.012),scalp);
-      if(p.y < .15) diffuseColor.rgb *= vec3(.22,.25,.28);`,
+      if(p.y < .15+rise) diffuseColor.rgb *= vec3(.22,.25,.28);`,
     );
     shader.fragmentShader = shader.fragmentShader.replace(
       '#include <alphatest_fragment>',
@@ -82,5 +86,5 @@ export function installCrowdImpostorShader(material: T.MeshStandardMaterial, ran
       #include <alphatest_fragment>`,
     );
   };
-  material.customProgramCacheKey = () => 'apex-seated-impostor-v2-scalp';
+  material.customProgramCacheKey = () => 'apex-authored-impostor-v3-standing';
 }

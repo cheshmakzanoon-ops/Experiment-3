@@ -1,3 +1,4 @@
+import { PEOPLE_ASSET } from './people-asset.ts';
 import { loadDriverAsset, type DriverAsset } from './driver-asset.ts';
 import { loadHeroShells, type HeroShells } from './hero-shells.ts';
 import { AdaptiveExposurePass } from './adaptive-exposure.ts';
@@ -846,6 +847,20 @@ export class RacingRenderer {
       driver: car.driver.diagnostics(),
       authoredBodywork: this.heroShells?.diagnostics() ?? null,
       authoredDriver: this.driverAsset?.diagnostics() ?? null,
+      // Bounded CPU summary; no texture readback or per-person geometry walk.
+      pitPersonnel: this.pitCrew.summary(),
+      crowdPersonnel: {
+        ...PEOPLE_ASSET,
+        clusters: this.circuit.crowdClusters.length,
+        population: this.circuit.crowdClusters.reduce((n, c) => n + c.levels[0].count, 0),
+        // LOD selections, not a claim that off-frustum instances were drawn.
+        selectedByLevel: [0, 1, 2, 3].map((level) =>
+          this.circuit.crowdClusters.reduce(
+            (n, c) => n + (c.levels[level].visible ? c.levels[level].count : 0),
+            0,
+          ),
+        ),
+      },
       pitCrews: this.pitCrew.activeCrews,
       haloProjection: halo.toArray(),
       mirrors: this.reflection.diagnostics(this.renderer),
@@ -910,6 +925,20 @@ export class RacingRenderer {
     return {
       authoredBodywork: this.heroShells?.diagnostics() ?? null,
       authoredDriver: this.driverAsset?.diagnostics() ?? null,
+      // Bounded CPU summary; no texture readback or per-person geometry walk.
+      pitPersonnel: this.pitCrew.summary(),
+      crowdPersonnel: {
+        ...PEOPLE_ASSET,
+        clusters: this.circuit.crowdClusters.length,
+        population: this.circuit.crowdClusters.reduce((n, c) => n + c.levels[0].count, 0),
+        // LOD selections, not a claim that off-frustum instances were drawn.
+        selectedByLevel: [0, 1, 2, 3].map((level) =>
+          this.circuit.crowdClusters.reduce(
+            (n, c) => n + (c.levels[level].visible ? c.levels[level].count : 0),
+            0,
+          ),
+        ),
+      },
       // CPU-only snapshot of the actual posed rig. Inspecting limb coupling must
       // not raycast the complete hero car or synchronously read mirror pixels.
       driverPose: {
@@ -1000,6 +1029,7 @@ export class RacingRenderer {
     this.disposed = true;
     this.heroShells?.dispose();
     this.driverAsset?.dispose();
+    this.pitCrew.dispose();
     this.reflection.dispose();
     this.gpuTimer.dispose();
     this.motionBlur.dispose();

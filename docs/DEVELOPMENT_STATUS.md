@@ -262,3 +262,14 @@ Do not inherit the base's CI status or treat an event predicate/component render
 as final visual acceptance. Human Section 146, physical Windows/controller/wheel
 measurements, complete reference acceptance and candidate-specific full CI remain
 open. The later multi-car/mode/sixteen-map programme is not implemented here.
+
+## Phase 27H.3 continuation from ee4fc48
+
+Integrated the retained Blender people meshes into actual pit-service and
+spectator rendering: fifteen state-driven crew roles, fitted prop contacts,
+shared instanced bone/shadow transforms, authored crowd LODs and deterministic
+seated/standing clothing cohorts. See `PHASE_27H3_IMPLEMENTATION.md`. This is a
+local implementation checkpoint; source publication, full current-source
+browser CI and normal-game artistic/hardware acceptance must be independently
+verified. The earlier green driver repair is not automatically evidence for
+this newer source or the baseline's later capture-timeout run.

@@ -23,7 +23,7 @@ it('keeps loaded wheels attached and aligns removal/install with the service pha
   expect(serviceWheelOffset(6, 5.2, 0)).toBe(0);
   expect(() => serviceWheelOffset(3, NaN, 0)).toThrow();
 });
-it('bounds all twelve pit crews to four instanced draw batches with finite transforms', () => {
+it('bounds twelve authored fifteen-person crews to seven draw batches with finite transforms', () => {
   const frame = new Float32Array(HEADER + 12 * CAR_STRIDE);
   frame[H.CARS] = 12;
   for (let i = 0; i < 12; i++) {
@@ -40,7 +40,8 @@ it('bounds all twelve pit crews to four instanced draw batches with finite trans
   const crew = new PitCrewView();
   crew.update(frame, new T.Vector3());
   expect(crew.activeCrews).toBe(12);
-  expect(crew.root.children).toHaveLength(4);
+  expect(crew.activeActors).toBe(180);
+  expect(crew.root.children).toHaveLength(7);
   for (const object of crew.root.children) {
     const batch = object as T.InstancedMesh;
     expect(batch.count).toBeGreaterThan(0);

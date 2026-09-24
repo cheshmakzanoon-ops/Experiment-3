@@ -58,6 +58,13 @@ test('actual unloaded pit-service snapshot renders mechanics and removed wheels'
     contentType: 'application/json',
   });
   expect(result.crews).toBe(1);
+  expect(result.people.actors).toBe(15);
+  expect(result.people.unreachableArms).toBe(0);
+  expect(result.people.maxWristError).toBeLessThan(0.00001);
+  expect(result.people.maxGripError).toBeLessThan(0.00001);
+  expect(result.people.activeDrawBatches).toBeLessThanOrEqual(7);
+  expect(result.people.finalArtApproved).toBe(false);
+  expect(result.glError).toBe(0);
   expect(result.wheelOffsets.every((value) => Math.abs(value) > 0.4)).toBe(true);
   expect(result.drawCalls).toBeLessThan(100);
   expect(errors).toEqual([]);

@@ -105,7 +105,7 @@ export function verifyCrowdContract() {
     try { finiteGeometry(g); assert(g.boundingBox!.min.y >= -0.300001); return g.getIndex()!.count / 3; }
     finally { g.dispose(); }
   });
-  assert.deepEqual(counts, [600, 360, 120]);
+  assert.deepEqual(counts, [2296, 1328, 638]);
   const matrices = Array.from({ length: 128 }, (_, i) => new T.Matrix4().makeTranslation((i % 8) * 0.98, 0, Math.floor(i / 8) * 0.65));
   const colours = matrices.map(() => new T.Color(0x428675)), material = new T.MeshStandardMaterial();
   const a = new CrowdCluster(matrices, colours, 821, material), b = new CrowdCluster(matrices, colours, 821, material);

@@ -198,11 +198,19 @@ export function buildGrandstand(
       instances.push(dummy.matrix.clone());
       const band = Math.floor((col + row * 2) / 12) % seatPalette.length;
       colors.push(new T.Color(seatPalette[band]));
-      if (random.next() < 0.73) {
+      // Stable neighbouring cohorts leave believable patches of empty seats,
+      // rather than an identical occupancy wall or independent confetti noise.
+      // Seat matrices and the protected stair aisles are never displaced.
+      const cohort = new Random(
+        821 + Math.round(site.s) + Math.floor(col / 5) * 113 + Math.floor(row / 2) * 7919,
+      );
+      const density = 0.56 + cohort.next() * 0.25 + (1 - row / (rows - 1)) * 0.1;
+      const groupColour = Math.floor(cohort.next() * personPalette.length);
+      if (random.next() < density) {
         spectators.push(dummy.matrix.clone());
-        bodyColors.push(
-          new T.Color(personPalette[Math.floor(random.next() * personPalette.length)]),
-        );
+        const colour =
+          random.next() < 0.6 ? groupColour : Math.floor(random.next() * personPalette.length);
+        bodyColors.push(new T.Color(personPalette[colour]));
       }
     }
   const install = (
@@ -230,7 +238,7 @@ export function buildGrandstand(
   peopleRoot.position.copy(root.position);
   peopleRoot.rotation.copy(root.rotation);
   crowd.add(peopleRoot);
-  // Retain occupancy, aisles and clothing selections. Spatial chunks avoid a
+  // Retain the authored occupancy, aisles and cohort selections. Spatial chunks avoid a
   // single giant crowd bounding box; per-chunk LOD does not rebuild spectators.
   const ordering = spectators
     .map((matrix, i) => ({ matrix, color: bodyColors[i] }))
