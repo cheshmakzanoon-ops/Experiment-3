@@ -34,13 +34,22 @@ jobs:
           printf '%s  blender.tar.xz\n' "$expected" | sha256sum -c -
           tar -xf blender.tar.xz
           echo "$RUNNER_TEMP/blender-4.5.1-linux-x64" >> "$GITHUB_PATH"
+      - name: Correct the Blender vector-property spelling in the authored source
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('scripts/author-people.py')
+          source = p.read_text()
+          source = source.replace('axis.length_squared()', 'axis.length_squared')
+          p.write_text(source)
+          PY
       - name: Author editable human meshes and matching runtime data
         run: blender --background --python-exit-code 1 --python scripts/author-people.py
       - name: Preserve authored outputs and locked local validation dependencies
         shell: bash
         run: |
           set -euo pipefail
-          tar -czf "$RUNNER_TEMP/aurel-people-assets.tar.gz" scripts/aurel-people.blend src/rendering/aurel-people.glb.gz src/rendering/aurel-people.geometry.json src/rendering/aurel-people.manifest.json
+          tar -czf "$RUNNER_TEMP/aurel-people-assets.tar.gz" scripts/author-people.py scripts/aurel-people.blend src/rendering/aurel-people.glb.gz src/rendering/aurel-people.geometry.json src/rendering/aurel-people.manifest.json
           tar -czf "$RUNNER_TEMP/aurel-locked-node.tar.gz" node_modules
       - uses: actions/upload-artifact@v4
         with:
@@ -58,7 +67,7 @@ jobs:
           test "$(git rev-parse origin/main)" = "$GITHUB_SHA"
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add scripts/aurel-people.blend src/rendering/aurel-people.glb.gz src/rendering/aurel-people.geometry.json src/rendering/aurel-people.manifest.json
+          git add scripts/author-people.py scripts/aurel-people.blend src/rendering/aurel-people.glb.gz src/rendering/aurel-people.geometry.json src/rendering/aurel-people.manifest.json
           if git diff --cached --quiet; then exit 0; fi
           git commit -m 'art: retain Blender-authored Aurel crew and spectator meshes'
           git push origin HEAD:main
