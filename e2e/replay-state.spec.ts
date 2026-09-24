@@ -82,16 +82,46 @@ test('recorded playback has exclusive modal, seek, audio and focus ownership', a
 
   // A seek while playing must display its exact requested point once, not
   // silently add the next wall interval before drawing the first sample.
-  const sought = await page.evaluate(async () => {
+  // A callback is not a submitted frame: GPU backpressure or an asynchronous
+  // replay page read may defer it. Observe every callback in-page so we capture
+  // the FIRST submitted seek frame, without polling past it into playback.
+  const seekObservation = await page.evaluate(async () => {
     const seek = document.getElementById('replaySeek') as HTMLInputElement;
+    const before = window.apexDiagnostics();
+    const framesBefore = before.presentation!.frames;
     seek.value = '0.75';
     seek.dispatchEvent(new Event('input', { bubbles: true }));
-    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
-    return window.apexDiagnostics();
+    const deadline = performance.now() + 60000;
+    let callbacks = 0;
+    return new Promise<{
+      first: ReturnType<typeof window.apexDiagnostics>;
+      framesBefore: number;
+      callbacks: number;
+    }>((resolve, reject) => {
+      const observe = () => {
+        const first = window.apexDiagnostics();
+        callbacks++;
+        if (first.presentation!.frames !== framesBefore || !first.replaySeekPending) {
+          resolve({ first, framesBefore, callbacks });
+          return;
+        }
+        if (first.replayError || performance.now() >= deadline) {
+          reject(new Error(first.replayError ?? 'No replay seek frame within 60 seconds'));
+          return;
+        }
+        requestAnimationFrame(observe);
+      };
+      requestAnimationFrame(observe);
+    });
   });
+  const sought = seekObservation.first;
+  expect(seekObservation.callbacks).toBeGreaterThan(0);
+  expect(sought.presentation!.frames).toBe(seekObservation.framesBefore + 1);
   expect(sought.replaySeekPending).toBe(false);
+  expect(sought.replayPlaying).toBe(true);
   expect(sought.replayPosition).toBe(0.75);
   expect(sought.presentation!.time).toBeCloseTo(sought.replayStart + 0.75, 5);
+  expect(sought.frame).toEqual(live.frame);
 
   await page.keyboard.press('t');
   await expect(page.locator('#telemetryModal')).toBeVisible();
@@ -154,7 +184,7 @@ test('recorded playback has exclusive modal, seek, audio and focus ownership', a
   await page.screenshot({ path: testInfo.outputPath('replay-first-frame.png') });
   await testInfo.attach('replay-ownership.json', {
     body: JSON.stringify(
-      { sought, modal, modalAfter, blurred, final: await diagnostics() },
+      { seekObservation, sought, modal, modalAfter, blurred, final: await diagnostics() },
       null,
       2,
     ),
