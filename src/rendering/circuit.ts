@@ -222,6 +222,20 @@ export class CircuitScene {
     this.construction.add('Spatial geometry batches', 4, () => batchScene(this.props, new Set()));
     if (!deferred) this.construction.runSynchronously();
   }
+  /** Read-only identity of constructed groups, not planned sites or an art approval.
+   * Groups survive static batching; no mesh traversal or GPU readback is needed. */
+  environmentDiagnostics() {
+    const districts = this.props.children
+      .filter((group) => group.userData.architecture !== undefined)
+      .map((group) => ({
+        name: group.name,
+        kind: String(group.userData.architecture.kind),
+        revision: String(group.userData.architecture.revision),
+        position: group.position.toArray(),
+        finalArtApproved: false,
+      }));
+    return { source: 'constructed-runtime-groups', districts, finalArtApproved: false };
+  }
   private queueRibbon(material: T.Material, options: RibbonOptions) {
     const start = options.start ?? 0;
     const end = options.end ?? this.track.length;

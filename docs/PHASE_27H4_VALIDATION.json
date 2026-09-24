@@ -1,0 +1,201 @@
+{
+  "schema": 1,
+  "phase": "27H.4 implementation checkpoint, NOT final-art acceptance",
+  "baseCommit": "e8b15af44c3a6d2bd10419001e79801968dca3c3",
+  "sourceFingerprint": "32dea52158ad54d588f259fc2780a7a5b271f0bbf116442de0456d91e098cf06",
+  "localChecks": {
+    "lint": {
+      "exitCode": 0,
+      "seconds": 13.47,
+      "command": [
+        "npm",
+        "run",
+        "lint"
+      ]
+    },
+    "unit": {
+      "exitCode": 0,
+      "seconds": 114.65,
+      "command": [
+        "./node_modules/.bin/vitest",
+        "run",
+        "--maxWorkers=2"
+      ]
+    },
+    "build": {
+      "exitCode": 0,
+      "seconds": 17.04,
+      "command": [
+        "npm",
+        "run",
+        "build"
+      ]
+    },
+    "matrix": {
+      "exitCode": 0,
+      "seconds": 0.49,
+      "command": [
+        "node",
+        "--experimental-transform-types",
+        "scripts/phase27h-matrix.ts",
+        "--check"
+      ]
+    }
+  },
+  "unitTests": {
+    "files": 100,
+    "passed": 998,
+    "failed": 0,
+    "newEnvironmentAndLandmarkCases": 28
+  },
+  "nativeShaders": {
+    "renderer": "llvmpipe (LLVM 19.1.7, 256 bits)",
+    "programs": [
+      {
+        "program": "landmark-instanced-fog-shadows",
+        "compiledAndLinked": true
+      },
+      {
+        "program": "landmark-regional-fog",
+        "compiledAndLinked": true
+      },
+      {
+        "program": "landmark-standard",
+        "compiledAndLinked": true
+      },
+      {
+        "program": "metal-instanced-fog-shadows",
+        "compiledAndLinked": true
+      },
+      {
+        "program": "metal-regional-fog",
+        "compiledAndLinked": true
+      },
+      {
+        "program": "metal-standard",
+        "compiledAndLinked": true
+      },
+      {
+        "program": "paving-instanced-fog-shadows",
+        "compiledAndLinked": true
+      },
+      {
+        "program": "paving-regional-fog",
+        "compiledAndLinked": true
+      },
+      {
+        "program": "paving-standard",
+        "compiledAndLinked": true
+      },
+      {
+        "program": "stone-instanced-fog-shadows",
+        "compiledAndLinked": true
+      },
+      {
+        "program": "stone-regional-fog",
+        "compiledAndLinked": true
+      },
+      {
+        "program": "stone-standard",
+        "compiledAndLinked": true
+      },
+      {
+        "program": "timber-instanced-fog-shadows",
+        "compiledAndLinked": true
+      },
+      {
+        "program": "timber-regional-fog",
+        "compiledAndLinked": true
+      },
+      {
+        "program": "timber-standard",
+        "compiledAndLinked": true
+      }
+    ],
+    "glError": 0,
+    "normalBrowserProof": false
+  },
+  "preservation": {
+    "filesChecked": 102,
+    "allUnchanged": true,
+    "scope": "simulation, inputs, audio, workers, storage, car/driver/people assets, Blender sources, dependencies, directive and workflows"
+  },
+  "sceneGraphComparison": {
+    "method": "Production CircuitScene + VenueLighting with native 2D canvas. All scene nodes counted, including inactive LODs. No cars, GPU timing, mirror/shadow passes, or hardware frame-rate claim.",
+    "baseline": {
+      "draws": 1324,
+      "triangles": 16397308,
+      "geometryBytes": 51568768
+    },
+    "candidate": {
+      "draws": 1402,
+      "triangles": 16474460,
+      "geometryBytes": 58701128
+    },
+    "delta": {
+      "draws": 78,
+      "triangles": 77152,
+      "geometryBytes": 7132360
+    },
+    "districts": {
+      "club": {
+        "triangles": 9794,
+        "meshes": 191,
+        "batchedDraws": 23,
+        "geometryBytes": 940224
+      },
+      "terrace": {
+        "triangles": 30902,
+        "meshes": 497,
+        "batchedDraws": 17,
+        "geometryBytes": 2966592
+      },
+      "works": {
+        "triangles": 10890,
+        "meshes": 326,
+        "batchedDraws": 26,
+        "geometryBytes": 1045440
+      },
+      "concourse": {
+        "triangles": 9174,
+        "meshes": 139,
+        "batchedDraws": 22,
+        "geometryBytes": 880704
+      }
+    },
+    "cpuFrustumSurvey": {
+      "samples": 32,
+      "baselinePeakMeshes": 752,
+      "candidatePeakMeshes": 787,
+      "baselineMeanMeshes": 345.21875,
+      "candidateMeanMeshes": 363.9375,
+      "note": "Initial construction state, not running-game submissions; no hardware acceptance."
+    }
+  },
+  "numericScenarios": {
+    "status": "Eight scripts passed during implementation against unchanged simulation sources. The raw results retain their recorded fingerprints; they are NOT evidence of graphical closure. See delivery evidence archive."
+  },
+  "normalApplication": {
+    "status": "BLOCKED",
+    "test": "e2e/26-aurel-environment.spec.ts",
+    "error": "page.goto: net::ERR_BLOCKED_BY_ADMINISTRATOR at http://127.0.0.1:4173/",
+    "passed": false
+  },
+  "hostedCI": "Required on this candidate; baseline CI does not approve these changes.",
+  "finalArtApproved": false,
+  "acceptanceMatrix": {
+    "required": {
+      "PASS": 0,
+      "PARTIAL": 230,
+      "FAIL": 2
+    },
+    "excluded": 16
+  },
+  "open": [
+    "Normal-game full lap and pit approach video",
+    "All-reference discrepancy review",
+    "Representative hardware frame-time and VRAM measurements",
+    "Current-source complete hosted CI",
+    "27H.5 and 27H.6 acceptance work"
+  ]
+}

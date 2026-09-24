@@ -1,3 +1,4 @@
+import { landmarkSitePlan, inLandmarkFootprint } from './venue-landmark.ts';
 import { terrainHeight } from './terrain-profile.ts';
 import { districtPlan, inDistrictFootprint } from './venue-districts.ts';
 import { serviceSitePlan, inServiceFootprint, type ServiceSite } from './venue-service-plan.ts';
@@ -49,6 +50,7 @@ export function vegetationPlan(
     nearest = trackPoint();
   const occupied = new Map<string, TreePlacement[]>();
   const districts = districtPlan(track, services);
+  const landmark = landmarkSitePlan(track, services, districts);
   for (let attempt = 0; attempt < 1800 && result.length < 650; attempt++) {
     track.at(random.next() * track.length, point);
     const lateral = (random.next() < 0.5 ? -1 : 1) * (43 + random.next() * 155);
@@ -75,7 +77,8 @@ export function vegetationPlan(
     if (
       inStandFootprint(track, x, z, 8) ||
       inServiceFootprint(services, x, z, 8) ||
-      inDistrictFootprint(districts, x, z, 8)
+      inDistrictFootprint(districts, x, z, 8) ||
+      inLandmarkFootprint(landmark, x, z, 8)
     )
       blocked = true;
     if (blocked) continue;

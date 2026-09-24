@@ -1,3 +1,5 @@
+import { buildVenueLandmark, type LandmarkSite } from './venue-landmark.ts';
+import type { BroadcastSightlines } from './broadcast-sightlines.ts';
 import * as T from 'three';
 import { trackPoint, type Track } from '../simulation/track.ts';
 import { clamp } from '../core/math.ts';
@@ -93,7 +95,10 @@ export class VenueLighting {
   private locations: T.Vector3[] = [];
   private nearest = new Int32Array(4).fill(-1);
   private distances = new Float64Array(4);
-  private display: T.Mesh;
+  private display: T.Mesh<T.SphereGeometry, T.MeshStandardMaterial>;
+  readonly landmarkSite: LandmarkSite;
+  private readonly landmarkSolids: T.Mesh[];
+  private readonly sightlineOwners = new WeakSet<BroadcastSightlines>();
   private lampMaterial = new T.MeshBasicMaterial({ color: 0x62666b, toneMapped: false });
   constructor(track: Track) {
     this.root.name = 'Original floodlit circuit and LED sphere · references 039 079 080 087';
@@ -127,35 +132,21 @@ export class VenueLighting {
     this.lamps.computeBoundingSphere();
     this.lights = Array.from({ length: 4 }, () => new T.PointLight(0xd9e8ff, 0, 135, 2));
     this.root.add(poles, this.lamps, ...this.lights);
-    track.at(track.length * 0.13, p);
-    this.display = new T.Mesh(
-      new T.SphereGeometry(21, 48, 24),
-      new T.MeshBasicMaterial({ color: 0x428da5 }),
-    );
-    this.display.name = 'Original LED venue landmark (not a recreation of a licensed building)';
-    this.display.position.set(p.x + p.nx * 72, p.y + 28, p.z + p.nz * 72);
-    const material = this.display.material as T.MeshBasicMaterial;
-    material.onBeforeCompile = (shader) => {
-      shader.vertexShader =
-        'varying vec3 vLedPosition;\n' +
-        shader.vertexShader.replace(
-          '#include <begin_vertex>',
-          '#include <begin_vertex>\nvLedPosition = position;',
-        );
-      shader.fragmentShader =
-        'varying vec3 vLedPosition;\n' +
-        shader.fragmentShader.replace(
-          '#include <color_fragment>',
-          `#include <color_fragment>
-        float bands = smoothstep(.28,.32,fract(vLedPosition.y*.115+vLedPosition.x*.035));
-        float dots = .78+.22*step(.25,fract(vLedPosition.y*3.0));
-        diffuseColor.rgb *= mix(vec3(.2,.65,1.),vec3(1.,.35,.13),bands)*dots;
-      `,
-        );
-    };
-    material.customProgramCacheKey = () => 'apex-original-led-bands-v1';
-    this.root.add(this.display);
+    const landmark = buildVenueLandmark(track);
+    this.display = landmark.display;
+    this.landmarkSite = landmark.site;
+    this.landmarkSolids = landmark.solids;
+    this.root.add(this.display, landmark.structure);
   }
+
+  /** Same static building bounds consumed by the real broadcast director.
+   * Capture once per owner after parenting; no camera-dependent moving props. */
+  registerSightlines(sightlines: BroadcastSightlines) {
+    if (this.sightlineOwners.has(sightlines)) return;
+    for (const mesh of this.landmarkSolids) sightlines.add(mesh);
+    this.sightlineOwners.add(sightlines);
+  }
+
   update(night: boolean, anchor: T.Vector3, strength = 1) {
     if (!Number.isFinite(strength) || strength < 0 || strength > 1)
       throw new Error('Invalid venue light strength');
@@ -187,11 +178,12 @@ export class VenueLighting {
           : 0;
       light.visible = night && !!position;
     });
-    (this.display.material as T.MeshBasicMaterial).color.setScalar(night ? 2.2 : 0.6);
+    this.display.material.emissiveIntensity = night ? 1.6 * strength : 0.015;
   }
   diagnostics() {
     return {
       masts: this.locations.length,
+      landmark: { ...this.landmarkSite, emission: this.display.material.emissiveIntensity },
       nearbyLights: this.lights.filter((light) => light.visible).length,
       lightIntensity: this.lights.map((light) => light.intensity),
       lightSites: Array.from(this.nearest),

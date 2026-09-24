@@ -1,3 +1,4 @@
+import { installVenueFinish } from './venue-materials.ts';
 import type { BroadcastSightlines } from './broadcast-sightlines.ts';
 import { CrowdCluster } from './crowd.ts';
 import { grassApronOffset } from './ground-profile.ts';
@@ -61,7 +62,7 @@ export function inStandFootprint(
   return false;
 }
 export function standMaterials() {
-  return {
+  const materials = {
     concrete: new T.MeshStandardMaterial({ color: 0x878880, roughness: 0.93 }),
     steel: new T.MeshStandardMaterial({ color: 0x454e51, metalness: 0.72, roughness: 0.45 }),
     roof: new T.MeshStandardMaterial({ color: 0xc6c9c7, metalness: 0.42, roughness: 0.58 }),
@@ -74,6 +75,10 @@ export function standMaterials() {
       side: T.DoubleSide,
     }),
   };
+  installVenueFinish(materials.concrete, 'stone');
+  installVenueFinish(materials.steel, 'metal');
+  installVenueFinish(materials.roof, 'metal');
+  return materials;
 }
 export function buildGrandstand(
   track: Track,

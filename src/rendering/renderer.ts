@@ -225,10 +225,15 @@ export class RacingRenderer {
     this.sun.shadow.bias = -0.000015;
     this.sun.shadow.normalBias = 0.008;
     this.circuit = new CircuitScene(track, true);
+    this.circuit.construction.add('Event hall broadcast bounds', 1, () =>
+      this.venueLighting.registerSightlines(this.circuit.sightlines),
+    );
     this.circuit.construction.add('Environment lighting', 1, () => {
       this.environment.update(this.renderer, this.scene, 0);
     });
-    this.circuit.construction.add('Local weather materials', 1, () =>
+    // Bind after every static venue task and spatial batching; early binding
+    // misses the district, grandstand, foliage and infrastructure materials.
+    this.circuit.construction.add('Local weather materials', 5, () =>
       this.atmosphere.install(this.scene),
     );
     this.trackside = new TracksideDirector(track, (from, to) =>
@@ -970,6 +975,7 @@ export class RacingRenderer {
       guide: this.guide.diagnostics(),
       gridPreparation: this.gridPreparation.diagnostics(),
       venueLighting: this.venueLighting.diagnostics(),
+      environmentAssets: this.circuit.environmentDiagnostics(),
       playerPaint: this.cars[0]
         ? {
             primary: `#${this.cars[0].paint.color.getHexString()}`,

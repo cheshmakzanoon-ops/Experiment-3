@@ -231,9 +231,11 @@ own(
 );
 own(
   '128-129',
-  r('circuit circuit-barriers venue-districts venue-service landscape grandstand'),
-  t('phase27g-venue circuit-detail paddock-detail'),
-  e('06-circuit-survey 18-phase27g'),
+  r(
+    'circuit circuit-barriers track-infrastructure venue-districts venue-architecture venue-materials venue-plaza venue-landmark venue-service landscape grandstand',
+  ),
+  t('phase27g-venue circuit-detail paddock-detail aurel-environment venue-landmark'),
+  e('06-circuit-survey 18-phase27g 26-aurel-environment'),
 );
 own(
   '130',

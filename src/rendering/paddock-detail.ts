@@ -1,10 +1,11 @@
+import { installVenueFinish } from './venue-materials.ts';
 import * as T from 'three';
 import { box, rod } from './geometry.ts';
 
 /** Original paddock materials. These are authored presentation values, not
  * scanned assets or measurements copied from a commercial racing title. */
 export function paddockMaterials() {
-  return {
+  const materials = {
     concrete: new T.MeshStandardMaterial({ color: 0xb5b7ac, roughness: 0.93 }),
     steel: new T.MeshStandardMaterial({ color: 0x505b5d, metalness: 0.62, roughness: 0.49 }),
     cladding: new T.MeshStandardMaterial({ color: 0xcdd2ce, metalness: 0.38, roughness: 0.5 }),
@@ -16,6 +17,10 @@ export function paddockMaterials() {
     }),
     interior: new T.MeshStandardMaterial({ color: 0x303936, roughness: 0.88 }),
   };
+  installVenueFinish(materials.concrete, 'stone');
+  installVenueFinish(materials.steel, 'metal');
+  installVenueFinish(materials.cladding, 'metal');
+  return materials;
 }
 export type PaddockMaterials = ReturnType<typeof paddockMaterials>;
 

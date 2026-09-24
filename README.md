@@ -1,5 +1,7 @@
 ## Phase 27G development candidate
 
+**Latest environment checkpoint — 27H.4:** constructed Aurel districts, terrain-graded plazas, slotted drainage, retained event-hall integration and late-bound regional weather. See [implementation and open gates](docs/PHASE_27H4_IMPLEMENTATION.md) and [local validation](docs/PHASE_27H4_VALIDATION.json). This is not full-lap art or Steam-release acceptance.
+
 The closure continuation adds measured adaptive exposure, local weather haze, complete-group broadcast framing, revised sleeve/safety-cell geometry, same-task PNG ownership and explicit full-tab recording to disk. See [closure implementation and remaining independent acceptance](docs/PHASE_27G_CLOSURE_EVIDENCE.md).
 
 The current continuation implements shared second-generation car geometry/materials,

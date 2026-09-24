@@ -1,3 +1,4 @@
+import { installVenueFinish } from './venue-materials.ts';
 import type { BroadcastSightlines } from './broadcast-sightlines.ts';
 import * as T from 'three';
 import { box, mesh, mergeStatic, rod } from './geometry.ts';
@@ -83,6 +84,8 @@ export function buildServiceAreas(
   });
   const orange = new T.MeshStandardMaterial({ color: 0xcb6527, roughness: 0.62 });
   const line = new T.MeshStandardMaterial({ color: 0xddcc8a, roughness: 0.88 });
+  installVenueFinish(concrete, 'stone');
+  installVenueFinish(metal, 'metal');
   const result: T.Group[] = [];
   for (const site of sites) {
     const root = new T.Group();

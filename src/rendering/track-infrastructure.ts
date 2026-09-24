@@ -4,7 +4,9 @@ import { FLAG } from '../simulation/marshal.ts';
 import { H } from '../simulation/protocol.ts';
 import { Track, trackPoint } from '../simulation/track.ts';
 import { drainSide, drainStations } from '../simulation/surface-drainage.ts';
-import { box, mesh } from './geometry.ts';
+import { box, mesh, rod } from './geometry.ts';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { installVenueFinish } from './venue-materials.ts';
 import { grassApronOffset } from './ground-profile.ts';
 import { inStandFootprint } from './grandstand.ts';
 import { tracksideRigs } from './trackside.ts';
@@ -135,6 +137,42 @@ export function trackInfrastructurePlan(track: Track): TrackInfrastructurePlan {
   return { drains, marshalPosts, utilities, cameras };
 }
 
+/** Real slotted grates, conformed vertex-by-vertex to both camber and grade.
+ * Only the visible finish changes: the original drain stations and tyre-contact
+ * surface are retained. The recessed bed sits just above the existing surface. */
+export function drainGratingGeometry(track: Track, site: TrackDetailSite) {
+  if (site.kind !== 'drain' || ![site.x, site.y, site.z, site.yaw].every(Number.isFinite))
+    throw new Error('Invalid drain grating site');
+  const parts: T.BufferGeometry[] = [];
+  for (const side of [-1, 1]) {
+    parts.push(new T.BoxGeometry(0.035, 0.018, 1.65).translate(side * 0.1925, 0.013, 0));
+    parts.push(new T.BoxGeometry(0.35, 0.018, 0.035).translate(0, 0.013, side * 0.8075));
+  }
+  for (let i = 0; i < 14; i++)
+    parts.push(
+      new T.BoxGeometry(0.35, 0.015, 0.037).translate(0, 0.0145, -0.742 + i * (1.484 / 13)),
+    );
+  const grate = mergeGeometries(parts, false)!;
+  parts.forEach((p) => p.dispose());
+  const bed = new T.BoxGeometry(0.405, 0.008, 1.635).translate(0, 0.003, 0);
+  for (const geometry of [grate, bed]) {
+    const positions = geometry.getAttribute('position'),
+      c = Math.cos(site.yaw),
+      n = Math.sin(site.yaw);
+    for (let i = 0; i < positions.count; i++) {
+      const x = positions.getX(i),
+        z = positions.getZ(i);
+      const worldX = site.x + c * x + n * z,
+        worldZ = site.z - n * x + c * z;
+      positions.setY(i, positions.getY(i) + groundHeight(track, worldX, worldZ) - site.y);
+    }
+    geometry.computeVertexNormals();
+    geometry.computeBoundingBox();
+    geometry.computeBoundingSphere();
+  }
+  return { grate, bed };
+}
+
 export function safetyPanelAppearance(flag: number) {
   switch (flag) {
     case FLAG.YELLOW:
@@ -185,12 +223,19 @@ export function buildTrackInfrastructure(
       clearcoatRoughness: 0.1,
     });
 
-  const drainGeometry = new T.BoxGeometry(0.42, 0.025, 1.65);
+  installVenueFinish(concrete, 'stone');
+  installVenueFinish(steel, 'metal');
   for (const site of plan.drains) {
-    const drain = mesh(parent, drainGeometry, dark);
-    placeRoot(drain, site);
-    drain.position.y += 0.012;
-    drain.name = `Low-edge drainage ${Math.round(site.s)}m`;
+    const { grate, bed } = drainGratingGeometry(track, site);
+    for (const [geometry, material, name] of [
+      [grate, steel, 'Slotted drainage grate'],
+      [bed, dark, 'Recessed drain bed'],
+    ] as const) {
+      const drain = mesh(parent, geometry, material);
+      placeRoot(drain, site);
+      drain.name = `${name} ${Math.round(site.s)}m`;
+      drain.castShadow = false;
+    }
   }
 
   for (const [index, site] of plan.marshalPosts.entries()) {
@@ -202,6 +247,18 @@ export function buildTrackInfrastructure(
     box(g, concrete, 0, 0.09, 0, 3.1, 0.18, 2.5);
     box(g, safety, site.side * 1.35, 1.25, 0, 0.12, 2.35, 2.5);
     box(g, steel, 0, 2.42, 0, 3.2, 0.14, 2.65);
+    for (const z of [-1.325, 1.325]) {
+      box(g, steel, 0, 2.35, z, 3.25, 0.21, 0.055);
+      rod(
+        g,
+        steel,
+        new T.Vector3(site.side * 1.4, 2.34, z),
+        new T.Vector3(site.side * 1.4, 0.19, z),
+        0.027,
+      );
+    }
+    for (let z = -0.9; z <= 0.9; z += 0.3)
+      box(g, dark, site.side * 1.42, 2.04, z, 0.025, 0.085, 0.16);
     box(g, steel, -site.side * 1.16, 1.18, -1.02, 0.09, 2.25, 0.09);
     box(g, steel, -site.side * 1.16, 1.18, 1.02, 0.09, 2.25, 0.09);
     box(g, dark, site.side * 0.88, 0.72, -0.62, 0.48, 1.3, 0.58);
@@ -221,6 +278,15 @@ export function buildTrackInfrastructure(
     box(g, concrete, 0, 0.06, 0, 0.95, 0.12, 0.72);
     box(g, steel, 0, 0.68, 0, 0.72, 1.2, 0.52);
     box(g, dark, -0.37, 0.78, 0.08, 0.015, 0.42, 0.22);
+    box(g, dark, 0, 0.69, -0.269, 0.62, 1.07, 0.016);
+    box(g, steel, 0, 0.69, -0.282, 0.027, 1.07, 0.023);
+    for (const y of [0.25, 0.72, 1.14]) {
+      box(g, steel, -0.305, y, -0.291, 0.038, 0.065, 0.042);
+      box(g, steel, 0.305, y, -0.291, 0.038, 0.065, 0.042);
+    }
+    for (let y = 0.96; y < 1.22; y += 0.065) box(g, steel, 0.15, y, -0.289, 0.22, 0.028, 0.023);
+    rod(g, dark, new T.Vector3(0.23, 0.13, -0.33), new T.Vector3(0.23, 0.62, -0.33), 0.018);
+    box(g, dark, 0.12, 0.71, -0.312, 0.035, 0.16, 0.038);
   }
 
   for (const site of plan.cameras) {
@@ -234,7 +300,7 @@ export function buildTrackInfrastructure(
       // Mount hardware sits outside/behind the actual optical viewpoint.
       // The old eye intersected both the body and platform handrail.
       box(g, steel, site.side * 0.7, cameraHeight * 0.5, 0, 0.12, cameraHeight, 0.12);
-      box(g, steel, site.side * 0.7, cameraHeight - 0.50, 0, 1.15, 0.12, 1.0);
+      box(g, steel, site.side * 0.7, cameraHeight - 0.5, 0, 1.15, 0.12, 1.0);
       for (const z of [-0.47, 0.47])
         box(g, steel, site.side * 0.95, cameraHeight - 0.25, z, 0.65, 0.35, 0.055);
     }
