@@ -197,7 +197,7 @@ def spectator(detail):
             axis=Vector(b)-Vector(a);axis2=Vector(d)-Vector(c);rot=axis.rotation_difference(axis2)
             start=len(g.v)
             for i,p in enumerate(s.v):
-                t=clamp((Vector(p)-Vector(a)).dot(axis)/axis.length_squared());q=rot@(Vector(p)-Vector(mix(a,b,t)))+Vector(mix(c,d,t))
+                t=clamp((Vector(p)-Vector(a)).dot(axis)/axis.length_squared);q=rot@(Vector(p)-Vector(mix(a,b,t)))+Vector(mix(c,d,t))
                 g.vertex(p,s.c[i],standing=tuple(q),cloth=1)
             g.f.extend(tuple(start+k for k in f) for f in s.f)
         g.box((-.31,-.2745,side*.09),(.17,.051,.084),DARK)
