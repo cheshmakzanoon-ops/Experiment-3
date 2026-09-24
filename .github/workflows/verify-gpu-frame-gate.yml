@@ -1,0 +1,74 @@
+name: Verify bounded GPU frame submissions
+on:
+  push:
+    branches: [main]
+    paths: [.github/workflows/verify-gpu-frame-gate.yml]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 379a6add2686f9f0bea5dfa1bdba3c52effc2920
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Apply exact bounded-GPU candidate without advancing a branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import base64, gzip, hashlib, pathlib, subprocess
+          encoded = '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'
+          patch = gzip.decompress(base64.b64decode(encoded))
+          assert hashlib.sha256(patch).hexdigest() == '9d853fd29fe48f154f3c1bbcbec7a1972704662dde5964175477dc0950b7070b'
+          subprocess.run(['git', 'apply', '--check', '-'], input=patch, check=True)
+          subprocess.run(['git', 'apply', '-'], input=patch, check=True)
+          subprocess.run(['git', 'add', 'src/main.ts', 'src/rendering/renderer.ts', 'src/rendering/gpu-frame-gate.ts', 'tests/gpu-frame-gate.test.ts'], check=True)
+          tree = subprocess.check_output(['git', 'write-tree'], text=True).strip()
+          assert tree == 'af58d91089ef990b2c7739b4a3722d167fff15c8', tree
+          pathlib.Path('candidate-tree.txt').write_text(tree + '\n')
+          PY
+      - run: npm ci --no-audit --no-fund
+      - name: Retain locked dependencies for this repair session
+        run: tar -czf "$RUNNER_TEMP/gpu-verification-dependencies.tar.gz" node_modules
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gpu-verification-dependencies
+          path: ${{ runner.temp }}/gpu-verification-dependencies.tar.gz
+          retention-days: 1
+      - name: Lint, all unit tests, TypeScript and exact production build
+        run: npm run check
+      - run: npx playwright install --with-deps chromium
+      - name: Unchanged driver acceptance twice with zero retries
+        run: npm run test:e2e -- e2e/24-coupled-driver.spec.ts --repeat-each=2
+      - name: Store the verified source tree only; do not advance a branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python - <<'PY'
+          import json, pathlib, subprocess
+          paths = ['src/main.ts', 'src/rendering/renderer.ts', 'src/rendering/gpu-frame-gate.ts', 'tests/gpu-frame-gate.test.ts']
+          payload = {'base_tree':'c84e0b9d2facd5cd8c666387cd8d11c0edcacbc7', 'tree':[{'path':p, 'mode':'100644', 'type':'blob', 'content':pathlib.Path(p).read_text()} for p in paths]}
+          result = json.loads(subprocess.check_output(['gh','api','repos/cheshmakzanoon-ops/Experiment-3/git/trees','--input','-'], input=json.dumps(payload), text=True))
+          assert result['sha'] == 'af58d91089ef990b2c7739b4a3722d167fff15c8', result['sha']
+          pathlib.Path('verified-tree.json').write_text(json.dumps({'tree':result['sha'],'base':'379a6add2686f9f0bea5dfa1bdba3c52effc2920','branchAdvanced':False},indent=2))
+          PY
+      - name: Retain verification evidence including failures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gpu-frame-gate-verification
+          path: |
+            candidate-tree.txt
+            verified-tree.json
+            test-results/
+            playwright-report/
+          retention-days: 7
