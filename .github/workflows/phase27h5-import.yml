@@ -1,0 +1,116 @@
+name: Verified 27H.5 source import
+on:
+  push:
+    branches: [main]
+    paths: [.github/workflows/phase27h5-import.yml, '.github/phase27h5-import-*.part']
+permissions:
+  contents: read
+concurrency:
+  group: phase27h5-verified-import
+  cancel-in-progress: false
+jobs:
+  verify-and-retain:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    env:
+      BASE: 85d215fff2a761c9a0e1f9f05b9dd62b7b6ef263
+      BASE_TREE: 1252518b5d00dc7f9cc0e45a5505505862976805
+      TARGET_TREE: 0f311ab1a414686c77d462ecaf37da046462f8d9
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Reconstruct only the exact reconciled candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib, os, pathlib, subprocess
+          root=pathlib.Path.cwd()
+          def git(*args): return subprocess.check_output(['git',*args],text=True).strip()
+          stage=[f'.github/phase27h5-import-{i}.part' for i in range(4)]+['.github/workflows/phase27h5-import.yml']
+          subprocess.run(['git','merge-base','--is-ancestor',os.environ['BASE'],'HEAD'],check=True)
+          assert git('rev-parse',os.environ['BASE']+'^{tree}')==os.environ['BASE_TREE']
+          assert git('diff','--name-only',os.environ['BASE'],'HEAD').splitlines()==sorted(stage), 'Concurrent changes require reconciliation'
+          packed=b''.join((root/name).read_bytes() for name in stage[:4])
+          assert hashlib.sha256(packed).hexdigest()=='bc3862953f679de331a94549f26db5591016ca090153ca8960a611f710e41565'
+          patch=subprocess.check_output(['node','-e',"let a=[];process.stdin.on('data',d=>a.push(d)).on('end',()=>process.stdout.write(require('node:zlib').brotliDecompressSync(Buffer.concat(a))))"],input=packed)
+          assert hashlib.sha256(patch).hexdigest()=='7f481eedfff676f2541540e71f4a5fa5601e1d7ffe8af380bfbf4d091c8d6e69'
+          path=pathlib.Path(os.environ['RUNNER_TEMP'])/'reconciled.patch';path.write_bytes(patch)
+          for name in stage: (root/name).unlink()
+          subprocess.run(['git','apply','--check',str(path)],check=True)
+          subprocess.run(['git','apply',str(path)],check=True)
+          subprocess.run(['git','add','-A'],check=True)
+          assert git('write-tree')==os.environ['TARGET_TREE'], 'Reconstructed source tree mismatch'
+          protected=['src/simulation/','src/workers/','src/input/','src/storage/','src/audio/','.github/','package.json','package-lock.json','docs/MASTER_DIRECTIVE.md','playwright.config.ts','vitest.config.ts']
+          assert not git('diff','--cached',os.environ['BASE'],'--',*protected), 'Protected simulation or gates changed'
+          print('Verified candidate tree',os.environ['TARGET_TREE'])
+          PY
+      - run: npm ci --no-audit --no-fund
+      - run: npm run check
+      - run: node --experimental-transform-types scripts/phase27h-matrix.ts --check
+      - run: npx playwright install --with-deps chromium
+      - name: Verify repaired weather and existing GPU contracts
+        run: npm run test:e2e -- e2e/weather.spec.ts e2e/27-visual-coherence.spec.ts --grep 'actual wet simulation|27H.5 GPU'
+      - name: Retain exact Git objects without advancing any branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import base64, hashlib, json, os, pathlib, subprocess, time, urllib.request, urllib.error
+          repo='cheshmakzanoon-ops/Experiment-3'
+          assert os.environ['GITHUB_REPOSITORY']==repo
+          def git(*args): return subprocess.check_output(['git',*args],text=True).strip()
+          target=os.environ['TARGET_TREE']
+          assert git('write-tree')==target
+          def post(path,body):
+              data=json.dumps(body).encode()
+              for attempt in range(3):
+                  request=urllib.request.Request('https://api.github.com/repos/'+repo+path,data=data,method='POST',headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','Content-Type':'application/json'})
+                  try:
+                      with urllib.request.urlopen(request,timeout=45) as response: return json.load(response)
+                  except urllib.error.HTTPError as error:
+                      if error.code not in (429,500,502,503,504) or attempt==2: raise
+                  except urllib.error.URLError:
+                      if attempt==2: raise
+                  time.sleep(2**attempt)
+          changes=[]
+          for path in git('diff','--cached','--name-only',os.environ['BASE']).splitlines():
+              data=pathlib.Path(path).read_bytes()
+              expected=hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()
+              actual=post('/git/blobs',{'content':base64.b64encode(data).decode(),'encoding':'base64'})['sha']
+              assert actual==expected, path
+              mode=git('ls-files','--stage','--',path).split()[0]
+              changes.append({'path':path,'mode':mode,'type':'blob','sha':actual})
+          actual=post('/git/trees',{'base_tree':os.environ['BASE_TREE'],'tree':changes})['sha']
+          assert actual==target, 'Published object tree mismatch'
+          report={'tree':actual,'base':os.environ['BASE'],'files':len(changes),'branchAdvanced':False,'checks':'npm check, exact matrix, weather GPU and coherence GPU passed','remaining':'Full normal hosted CI, human footage and hardware acceptance'}
+          output=pathlib.Path(os.environ['RUNNER_TEMP'])/'verified-import.json';output.write_text(json.dumps(report,indent=2)+'\n')
+          print(json.dumps(report))
+          subprocess.run(['git','archive','--format=tar.gz','--output='+os.environ['RUNNER_TEMP']+'/reconciled-source.tar.gz',target],check=True)
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: verified-27h5-import
+          path: |
+            ${{ runner.temp }}/verified-import.json
+            ${{ runner.temp }}/reconciled-source.tar.gz
+          retention-days: 14
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: verified-27h5-import-browser
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 14
