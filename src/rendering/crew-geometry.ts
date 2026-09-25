@@ -88,6 +88,7 @@ export function crewGloveGeometry() {
 /** Shared low-cost garment finish: filtered warp detail and shoulder stitching,
  * not painted illumination. Colour is selected per actual actor, not per frame. */
 export function installCrewFabric(material: T.MeshStandardMaterial) {
+  material.userData.weatherSurface = 'fabric';
   material.onBeforeCompile = (shader) => {
     shader.vertexShader = shader.vertexShader
       .replace('#include <common>', '#include <common>\nvarying vec3 vCrewLocal;')

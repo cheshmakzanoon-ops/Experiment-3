@@ -1,3 +1,4 @@
+import { roadWeatherUniform } from './weather-presentation.ts';
 import { MeshStandardMaterial, Vector4, ShaderChunk, type DataTexture } from 'three';
 import wetRoad from '../shaders/wetRoad.frag?raw';
 import treadShader from '../shaders/tread.frag?raw';
@@ -57,19 +58,25 @@ export function installWetRoad(
   deposits: boolean,
 ) {
   const previous = material.onBeforeCompile;
+  const previousKey = material.customProgramCacheKey();
+  const weather = roadWeatherUniform(material);
   material.onBeforeCompile = (shader, renderer) => {
     previous.call(material, shader, renderer);
+    shader.uniforms.roadWeather = weather;
     shader.uniforms.trackState = { value: stateTexture };
     shader.uniforms.surfaceDeposits = { value: deposits ? 1 : 0 };
     shader.vertexShader = shader.vertexShader
       .replace(
         '#include <common>',
-        '#include <common>\nattribute vec2 trackUV; varying vec2 vTrackUV;',
+        '#include <common>\nattribute vec2 trackUV; varying vec2 vTrackUV; varying vec2 vRoadMetres;',
       )
-      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvTrackUV = trackUV;');
+      .replace(
+        '#include <begin_vertex>',
+        '#include <begin_vertex>\nvTrackUV = trackUV; vRoadMetres = uv * 5.0;',
+      );
     shader.fragmentShader = shader.fragmentShader.replace(
       '#include <common>',
-      '#include <common>\nuniform sampler2D trackState; uniform float surfaceDeposits; varying vec2 vTrackUV;',
+      '#include <common>\nuniform sampler2D trackState; uniform float surfaceDeposits; uniform vec4 roadWeather; varying vec2 vTrackUV; varying vec2 vRoadMetres;',
     );
     shader.fragmentShader = shader.fragmentShader.replace(
       '#include <map_fragment>',
@@ -81,7 +88,28 @@ export function installWetRoad(
     );
     shader.fragmentShader = shader.fragmentShader.replace(
       '#include <normal_fragment_maps>',
-      'vec3 dryRoadNormal = normal;\n#include <normal_fragment_maps>\nnormal = normalize(mix(normal, dryRoadNormal, wet * 0.9));',
+      `vec3 dryRoadNormal = normal;
+      #include <normal_fragment_maps>
+      normal = normalize(mix(normal, dryRoadNormal, wet * 0.9));
+      // Small filtered ripple slopes use presented simulation time and rain.
+      // Dry cells and rain-free standing water do not animate independently.
+      vec2 roadRippleP = vRoadMetres * vec2(19.,23.);
+      float roadRippleResolved = 1.-smoothstep(.5,2.,length(fwidth(roadRippleP)));
+      float roadRippleGain = puddle * min(1.,roadWeather.x/18.) * roadRippleResolved * .009;
+      vec2 roadRipple = vec2(sin(roadRippleP.x + roadRippleP.y*.37 - roadWeather.y*7. + roadWeather.z*.07),
+        cos(roadRippleP.y - roadRippleP.x*.23 - roadWeather.y*9. + roadWeather.w*.07));
+      vec3 roadRippleX = mat3(viewMatrix)*vec3(1.,0.,0.);
+      vec3 roadRippleZ = mat3(viewMatrix)*vec3(0.,0.,1.);
+      vec3 roadRippleSlope = roadRippleX*roadRipple.x + roadRippleZ*roadRipple.y;
+      normal = normalize(normal + roadRippleGain*(roadRippleSlope-normal*dot(normal,roadRippleSlope)));`,
+    );
+    shader.fragmentShader = shader.fragmentShader.replace(
+      '#include <clearcoat_normal_fragment_maps>',
+      `#include <clearcoat_normal_fragment_maps>
+      #ifdef USE_CLEARCOAT
+        clearcoatNormal = normalize(clearcoatNormal + roadRippleGain *
+          (roadRippleSlope - clearcoatNormal * dot(clearcoatNormal, roadRippleSlope)));
+      #endif`,
     );
     // MeshPhysicalMaterial road ribbons carry a real dielectric water-film lobe.
     // Dry cells explicitly remove it; standing-water cells sharpen it. Standard
@@ -92,10 +120,13 @@ export function installWetRoad(
       #ifdef USE_CLEARCOAT
         material.clearcoat = wet * mix(0.58, 1.0, puddle);
         material.clearcoatRoughness = mix(0.26, mix(0.105, 0.055, puddle), wet);
+        // Rain-disturbed film broadens the highlight instead of making every wet
+        // cell a perfect mirror. Existing cell water alone still owns coverage.
+        material.clearcoatRoughness += min(1.,roadWeather.x/18.)*puddle*.045;
       #endif`,
     );
   };
-  material.customProgramCacheKey = () => 'apex-physical-asphalt-v3-water-film';
+  material.customProgramCacheKey = () => `${previousKey}|apex-physical-asphalt-v4-snapshot-ripples`;
 }
 
 /** At grazing angles, collapsed screen derivatives can make the stock bump

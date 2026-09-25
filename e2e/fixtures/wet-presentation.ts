@@ -20,7 +20,9 @@ export function verifyRainStreakGPU() {
     velocity = new Float32Array([0, -15, 0]),
     alpha = new Float32Array([0.8]);
   const rain = new RainStreaks(centers, velocity, alpha);
-  scene.add(rain.mesh);
+  // Rain now receives the scene's lights, like wheel spray. Explicit light is
+  // necessary for a projection/occlusion fixture, not an emissive-rain fallback.
+  scene.add(rain.mesh, new T.HemisphereLight(0xffffff, 0xffffff, 1.6));
   const target = new T.WebGLRenderTarget(256, 256);
   const blank = new Uint8Array(256 * 256 * 4),
     pixels = new Uint8Array(blank.length);

@@ -1,3 +1,5 @@
+import { WeatherPresentation } from './weather-presentation.ts';
+import { applyCircuitLightPalette } from './lighting-coherence.ts';
 import { PEOPLE_ASSET } from './people-asset.ts';
 import { loadDriverAsset, type DriverAsset } from './driver-asset.ts';
 import { loadHeroShells, type HeroShells } from './hero-shells.ts';
@@ -112,6 +114,7 @@ export class RacingRenderer {
   private composer: EffectComposer;
   private exposure = new AdaptiveExposurePass();
   private atmosphere: LocalAtmosphere;
+  private weatherPresentation = new WeatherPresentation();
   private composition = new RaceComposition();
   private bloom: UnrealBloomPass;
   private photoFocus: BokehPass | null = null;
@@ -233,9 +236,10 @@ export class RacingRenderer {
     });
     // Bind after every static venue task and spatial batching; early binding
     // misses the district, grandstand, foliage and infrastructure materials.
-    this.circuit.construction.add('Local weather materials', 5, () =>
-      this.atmosphere.install(this.scene),
-    );
+    this.circuit.construction.add('Local weather materials', 5, () => {
+      this.weatherPresentation.install(this.scene);
+      this.atmosphere.install(this.scene);
+    });
     this.trackside = new TracksideDirector(track, (from, to) =>
       this.circuit.sightlines.blocked(from, to),
     );
@@ -302,6 +306,7 @@ export class RacingRenderer {
       this.cars.push(car);
       this.scene.add(car.root);
       this.textures.register(car.root);
+      this.weatherPresentation.install(car.root);
       this.atmosphere.install(car.root);
       if (car.id === 0) {
         this.reflection.attachMirrors(car.mirrors);
@@ -470,7 +475,7 @@ export class RacingRenderer {
     return captureRenderedCanvas(this.canvas);
   }
   changeCamera(mode?: CameraMode) {
-    this.exposure.reset();
+    // The meter invalidates old-view reads while preserving adapted brightness.
     this.composition.reset();
     this.motionBlur.reset();
     this.audioView.reset();
@@ -523,7 +528,7 @@ export class RacingRenderer {
     const presented = this.presented.sample(a, b, alpha);
     const cameraDt = this.cameraClock.step(presented[H.TIME], menu && !this.photo);
     if (this.cameraClock.discontinuous) {
-      this.exposure.reset();
+      // Exposure owns its own simulation clock and camera-cut generation.
       this.composition.reset();
       this.inertia.reset();
       this.viewOrientation.reset();
@@ -569,9 +574,7 @@ export class RacingRenderer {
       car.root.position,
       illumination === 'sunset' ? 0.18 : 1,
     );
-    this.sun.color.setHex(
-      illumination === 'sunset' ? 0xffb76d : illumination === 'night' ? 0xc5d4ee : 0xffead0,
-    );
+    applyCircuitLightPalette(this.sun, this.hemisphere, daylight.cover, illumination);
     this.sun.intensity = daylight.sun;
     this.hemisphere.intensity = daylight.fill;
     this.scene.environmentIntensity = daylight.environment;
@@ -707,6 +710,7 @@ export class RacingRenderer {
     this.sun.target.updateMatrixWorld();
     this.circuit.update(b);
     this.atmosphere.update(presented, this.graphics.localFog && !studio);
+    this.weatherPresentation.update(presented, !studio);
     this.circuit.staff.update(
       presented,
       this.camera.position,
@@ -728,7 +732,7 @@ export class RacingRenderer {
     this.replayView = replay;
     this.engineeringView.update(this.engineering, b[H.TIME], this.debug, replay);
     this.reflection.beginFrame(
-      this.orbitTime,
+      menu ? this.orbitTime : presented[H.TIME],
       (!this.photo || this.photo.view === 'cockpit') &&
         (!menu || !!this.photo) &&
         cameraMode === 'cockpit',
@@ -1025,6 +1029,7 @@ export class RacingRenderer {
       motionBlur: this.motionBlur.diagnostics(),
       automaticExposure: this.exposure.diagnostics(),
       localAtmosphere: this.atmosphere.diagnostics(),
+      weatherPresentation: this.weatherPresentation.diagnostics(),
       raceComposition: this.composition.diagnostics(),
       gpuFrameQueue: this.gpuFrames.diagnostics(),
       gpuMilliseconds: this.gpuTimer.milliseconds,
@@ -1050,6 +1055,7 @@ export class RacingRenderer {
     this.gpuFrames.dispose();
     this.motionBlur.dispose();
     this.exposure.dispose();
+    this.weatherPresentation.dispose();
     this.photoFocus?.dispose();
     this.geometrySurvey?.dispose();
     this.bloom.dispose();

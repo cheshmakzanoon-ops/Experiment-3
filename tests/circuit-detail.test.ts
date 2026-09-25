@@ -107,7 +107,7 @@ it('chunks both fences, never restores opaque shadows on transparent wire covera
   expect(m.fence.forceSinglePass).toBe(true);
   Object.values(m).forEach((x) => x.dispose());
 });
-it('composes decorative finish, grazing bump safety and real water without clock uniforms', () => {
+it('composes decorative finish, grazing bump safety and real water with snapshot-owned ripples', () => {
   const material = new T.MeshStandardMaterial(),
     state = new T.DataTexture();
   installStableSurfaceBump(material);
@@ -117,13 +117,15 @@ it('composes decorative finish, grazing bump safety and real water without clock
     uniforms: {},
     vertexShader: T.ShaderLib.standard.vertexShader,
     fragmentShader: T.ShaderLib.standard.fragmentShader,
-  };
-  material.onBeforeCompile(shader as T.WebGLProgramParametersWithUniforms, {} as T.WebGLRenderer);
+  } as T.WebGLProgramParametersWithUniforms;
+  material.onBeforeCompile(shader, {} as T.WebGLRenderer);
   expect(shader.fragmentShader).toContain('if (abs(fDet) < 1e-7) return surf_norm');
   expect(shader.fragmentShader).toContain('uniform sampler2D trackState');
   expect(shader.fragmentShader).toContain('vec4 roadState = texture2D(trackState, vTrackUV)');
   expect(shader.fragmentShader.match(/varying vec3 vFinishWorld;/g)).toHaveLength(1);
-  expect(Object.keys(shader.uniforms)).toEqual(['trackState', 'surfaceDeposits']);
+  expect(Object.keys(shader.uniforms)).toEqual(['roadWeather', 'trackState', 'surfaceDeposits']);
+  expect(shader.uniforms.roadWeather.value.toArray()).toEqual([0, 0, 0, 0]);
+  expect(shader.uniforms.trackState.value).toBe(state);
   material.dispose();
   state.dispose();
 });

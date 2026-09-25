@@ -105,6 +105,7 @@ export function surfaceMaterial(
         ior: 1.333,
       })
     : new T.MeshStandardMaterial(parameters);
+  material.userData.weatherSurface = kind === 'asphalt' ? 'paving' : kind;
   installStableSurfaceBump(material);
   if (finish || kind !== 'gravel')
     installCircuitFinish(material, finish ?? (kind as CircuitFinish));

@@ -77,6 +77,7 @@ const finishes: Record<CircuitFinish, string> = {
 
 /** Compose rather than replace the stable bump and live water material hooks. */
 export function installCircuitFinish(material: T.MeshStandardMaterial, kind: CircuitFinish) {
+  material.userData.weatherSurface = kind === 'asphalt' ? 'paving' : kind;
   const previous = material.onBeforeCompile;
   const previousKey = material.customProgramCacheKey.bind(material);
   // Capture now: the default key is onBeforeCompile.toString() and must not

@@ -42,6 +42,50 @@ export function pocketDensity(p: FogPocket, x: number, y: number, z: number) {
   return Math.exp(-3 * r2) * Math.exp(-Math.max(0, y - p.floor) / p.scaleHeight);
 }
 
+const GAUSS = [
+  [0.019855071751, 0.050614268145],
+  [0.101666761293, 0.111190517227],
+  [0.237233795042, 0.156853322939],
+  [0.408282678752, 0.181341891689],
+  [0.591717321248, 0.181341891689],
+  [0.762766204958, 0.156853322939],
+  [0.898333238707, 0.111190517227],
+  [0.980144928249, 0.050614268145],
+] as const;
+/** CPU counterpart of the localized ray integral. Sampling the entire ray at
+ * only three positions can miss a narrow pocket behind a long broadcast shot.
+ * Restrict quadrature to each pocket's support instead; work remains bounded. */
+export function fogSegmentIntegral(pockets: readonly FogPocket[], from: T.Vector3, to: T.Vector3) {
+  if (![...from.toArray(), ...to.toArray()].every(Number.isFinite))
+    throw new Error('Invalid fog ray');
+  const dx = to.x - from.x,
+    dy = to.y - from.y,
+    dz = to.z - from.z;
+  const lateral2 = dx * dx + dz * dz,
+    length = Math.hypot(dx, dy, dz);
+  let integral = 0;
+  for (const p of pockets) {
+    pocketDensity(p, from.x, from.y, from.z); // Validate even a non-intersecting pocket.
+    let begin = 0,
+      end = 1;
+    if (lateral2 > 1e-10) {
+      const centre = ((p.x - from.x) * dx + (p.z - from.z) * dz) / lateral2;
+      const span = (2 * p.radius) / Math.sqrt(lateral2);
+      begin = Math.max(0, centre - span);
+      end = Math.min(1, centre + span);
+    }
+    if (end <= begin) continue;
+    for (const [node, weight] of GAUSS) {
+      const t = begin + (end - begin) * node;
+      integral +=
+        (end - begin) *
+        weight *
+        pocketDensity(p, from.x + dx * t, from.y + dy * t, from.z + dz * t);
+    }
+  }
+  return length * integral;
+}
+
 /** Analytic local height haze evaluated along the visible fragment's sightline.
  * This is depth-aware single-scattering-style attenuation, not a volumetric
  * shadow simulation. It has no meshes, new draw calls or independent weather. */
@@ -141,6 +185,30 @@ export class LocalAtmosphere {
             vec3 vertical = exp(-max(vec3(0.),vec3(p.y)-apexFogFloors)*apexFogHeights);
             return dot(lateral,vertical);
           }
+          float apexPocketDensity(vec3 p, vec4 volume, float inverseHeight) {
+            vec2 delta=p.xz-volume.xy;
+            return exp(-3.*dot(delta,delta)*volume.z) *
+              exp(-max(0.,p.y-volume.w)*inverseHeight);
+          }
+          float apexPocketIntegral(vec3 origin, vec3 ray, vec4 volume, float inverseHeight) {
+            float lateral2=dot(ray.xz,ray.xz), begin=0., end=1.;
+            if(lateral2>1.e-10) {
+              float centre=dot(volume.xy-origin.xz,ray.xz)/lateral2;
+              float span=2.*inversesqrt(volume.z*lateral2);
+              begin=max(0.,centre-span); end=min(1.,centre+span);
+            }
+            if(end<=begin) return 0.;
+            vec3 start=origin+ray*begin, segment=ray*(end-begin);
+            return (end-begin)*(
+              apexPocketDensity(start+segment*0.019855071751,volume,inverseHeight)*0.050614268145 +
+              apexPocketDensity(start+segment*0.101666761293,volume,inverseHeight)*0.111190517227 +
+              apexPocketDensity(start+segment*0.237233795042,volume,inverseHeight)*0.156853322939 +
+              apexPocketDensity(start+segment*0.408282678752,volume,inverseHeight)*0.181341891689 +
+              apexPocketDensity(start+segment*0.591717321248,volume,inverseHeight)*0.181341891689 +
+              apexPocketDensity(start+segment*0.762766204958,volume,inverseHeight)*0.156853322939 +
+              apexPocketDensity(start+segment*0.898333238707,volume,inverseHeight)*0.111190517227 +
+              apexPocketDensity(start+segment*0.980144928249,volume,inverseHeight)*0.050614268145);
+          }
         #endif`,
         )
         .replace(
@@ -151,17 +219,17 @@ export class LocalAtmosphere {
             if (apexLocalSigma > 0.) {
               vec3 apexRay = vApexFogWorld-cameraPosition;
               float apexLength = length(apexRay);
-              // Three-point Gauss-Legendre quadrature along actual visible depth.
-              float apexIntegral = apexLocalDensity(cameraPosition+apexRay*.1127016654)*.2777777778
-                + apexLocalDensity(cameraPosition+apexRay*.5)*.4444444444
-                + apexLocalDensity(cameraPosition+apexRay*.8872983346)*.2777777778;
+              // Localized quadrature keeps narrow haze visible from distant cameras.
+              float apexIntegral = apexPocketIntegral(cameraPosition,apexRay,apexFogVolumes[0],apexFogHeights.x)
+                + apexPocketIntegral(cameraPosition,apexRay,apexFogVolumes[1],apexFogHeights.y)
+                + apexPocketIntegral(cameraPosition,apexRay,apexFogVolumes[2],apexFogHeights.z);
               float apexFog = 1.-exp(-min(8.,apexLocalSigma*apexLength*apexIntegral));
               gl_FragColor.rgb = mix(gl_FragColor.rgb,fogColor,apexFog);
             }
           #endif`,
         );
     };
-    material.customProgramCacheKey = () => key + '|apex-local-atmosphere-v1';
+    material.customProgramCacheKey = () => key + '|apex-local-atmosphere-v2-localized-ray';
     material.needsUpdate = true;
   }
   diagnostics() {

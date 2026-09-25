@@ -62,6 +62,7 @@ export function driverMaterials() {
       metalness: 0,
     });
     material.name = name;
+    material.userData.weatherSurface = 'fabric';
     return material;
   };
   return {

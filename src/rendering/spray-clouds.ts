@@ -1,3 +1,4 @@
+import { precipitationLighting } from './precipitation-light.ts';
 import { RearSignalField } from './rear-signal.ts';
 import * as T from 'three';
 
@@ -76,6 +77,7 @@ export class SprayClouds {
         #include <common>
         #include <lights_pars_begin>
         #include <fog_pars_vertex>
+        ${precipitationLighting}
         void main() {
           vUv=position.xy; vVariation=variation;
           vOpacity=0.0; vLight=vec3(0.0); vAnisotropy=0.0;
@@ -103,20 +105,7 @@ export class SprayClouds {
           gl_Position=projectionMatrix*mvPosition;
           // Use the scene's real light state. Unlike the old unlit point color,
           // spray cannot remain luminous when the venue lights are switched off.
-          vec3 energy=ambientLightColor;
-          #if NUM_HEMI_LIGHTS > 0
-          for(int i=0;i<NUM_HEMI_LIGHTS;i++)
-            energy+=0.35*(hemisphereLights[i].skyColor+hemisphereLights[i].groundColor);
-          #endif
-          #if NUM_DIR_LIGHTS > 0
-          for(int i=0;i<NUM_DIR_LIGHTS;i++) energy+=0.22*directionalLights[i].color;
-          #endif
-          #if NUM_POINT_LIGHTS > 0
-          for(int i=0;i<NUM_POINT_LIGHTS;i++) {
-            float d=length(pointLights[i].position-(modelViewMatrix*vec4(center,1.0)).xyz);
-            energy+=0.22*pointLights[i].color*getDistanceAttenuation(d,pointLights[i].distance,pointLights[i].decay);
-          }
-          #endif
+          vec3 energy=precipitationEnergy((modelViewMatrix*vec4(center,1.0)).xyz);
           vLight=vec3(0.65,0.73,0.73)*energy;
           vec3 worldCenter=(modelMatrix*vec4(center,1.0)).xyz;
           for(int i=0;i<12;i++) {

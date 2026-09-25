@@ -34,6 +34,7 @@ export class AdaptiveExposurePass extends Pass {
   });
   private readonly quad = new FullScreenQuad(this.material);
   private time = 0;
+  private viewIdentity = '';
   private lastSample = -Infinity;
   private baseExposure = 1;
   private active = false;
@@ -52,6 +53,18 @@ export class AdaptiveExposurePass extends Pass {
       throw new Error('Invalid base exposure');
     if (this.active !== (active && !this.disposed)) this.reset();
     const generation = this.adaptation.generation;
+    const sameLighting =
+      identity.includes(':') && identity.split(':')[0] === this.viewIdentity.split(':')[0];
+    if (
+      this.active &&
+      active &&
+      identity !== this.viewIdentity &&
+      sameLighting &&
+      time >= this.time &&
+      time - this.time <= 2
+    )
+      this.adaptation.reframe(identity);
+    this.viewIdentity = identity;
     this.time = time;
     this.baseExposure = baseExposure;
     this.active = active && !this.disposed;
@@ -121,6 +134,7 @@ export class AdaptiveExposurePass extends Pass {
   }
   reset() {
     this.adaptation.reset();
+    this.viewIdentity = '';
     this.lastSample = -Infinity;
   }
   diagnostics() {

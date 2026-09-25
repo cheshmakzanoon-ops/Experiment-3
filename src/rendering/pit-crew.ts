@@ -110,6 +110,7 @@ export class PitCrewView {
         vertexColors: true,
         roughness: 0.9,
       });
+      material.userData.weatherSurface = 'fabric';
       installCrewSkin(material, this.bones, ACTORS, true);
       const batch = new T.InstancedMesh(g, material, ACTORS);
       const depth = new T.MeshDepthMaterial({ depthPacking: T.RGBADepthPacking });

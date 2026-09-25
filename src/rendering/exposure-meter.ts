@@ -51,11 +51,21 @@ export class ExposureAdaptation {
     this.identity = '';
     this.generation++;
   }
+  /** Camera cuts discard asynchronous samples of the old view, not the viewer's
+   * already adapted exposure. A seek still resets through step's time checks. */
+  reframe(identity: string) {
+    if (!identity) throw new Error('Invalid exposure view identity');
+    this.identity = identity;
+    this.targetEV = this.ev;
+    this.samples = 0;
+    this.generation++;
+  }
   step(time: number, identity: string, active: boolean) {
     if (!Number.isFinite(time) || time < 0 || !identity) throw new Error('Invalid exposure clock');
     if (
       identity !== this.identity ||
-      (Number.isFinite(this.previousTime) && time < this.previousTime)
+      (Number.isFinite(this.previousTime) &&
+        (time < this.previousTime || time - this.previousTime > 2))
     ) {
       this.reset();
       this.identity = identity;

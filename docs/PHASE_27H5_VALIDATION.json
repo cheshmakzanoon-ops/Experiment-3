@@ -1,0 +1,114 @@
+{
+  "schema": 1,
+  "phase": "27H.5 implementation and regression checkpoint; not final-art or hardware acceptance",
+  "baseCommit": "a3bb756414cb1c1e5e0d5b926cc8c1c7379acbd3",
+  "sourceFingerprint": "d80d646096ab52306ffd610a1a249d38116c327e91c968e7e713680058027700",
+  "localChecks": {
+    "lint": "PASS",
+    "strictTypeScript": "PASS",
+    "productionBuild": "PASS",
+    "unit": {
+      "files": 101,
+      "passed": 1025,
+      "failed": 0,
+      "newCases": 27
+    },
+    "matrixRegeneration": "PASS; no acceptance upgrades",
+    "numericalReports": [
+      {
+        "file": "dynamics-benchmark.json",
+        "passed": true,
+        "sha256": "7f4d116fac610cd616dbdb8d5a6964b4ed28d5d4013c6774733fd58bbb821cf9"
+      },
+      {
+        "file": "integrated-driving.json",
+        "passed": true,
+        "sha256": "a1eae4cdeca4696979b3b859a25b62f0320934e6944cbc82af0f90db314bf850"
+      },
+      {
+        "file": "marshal-integration.json",
+        "passed": true,
+        "sha256": "40cb6139b0f18fbc0d5b7daba7337805621c50f7c850362f8a3e656d8183f804"
+      },
+      {
+        "file": "pit-integration.json",
+        "passed": true,
+        "sha256": "afb1ab677bb9c6ad41c64a4b35c65bc3b97026a12737526f8faaa5dae02fa693"
+      },
+      {
+        "file": "race-classification.json",
+        "passed": true,
+        "sha256": "a685f08be184eed586635e3cae316b816b7e04d2835d66f612d817c3a5d4486c"
+      },
+      {
+        "file": "rotation-benchmark.json",
+        "passed": true,
+        "sha256": "6cbf8fc9c288499353d9e96c012ca5461c757dcd89c995b8d4262ab33e1e319c"
+      },
+      {
+        "file": "scenario-results.json",
+        "passed": true,
+        "sha256": "f39b166ed54118610bafa07a969f2d9e216d4ab69f5ad12a2bf541d4c585601e"
+      },
+      {
+        "file": "wet-pit-results.json",
+        "passed": true,
+        "sha256": "144e7cfeb417889f2422c1aacf47a4beab746e2dedfa61d23ad1bb8b9980d9b9"
+      }
+    ]
+  },
+  "nativeShaders": {
+    "renderer": "llvmpipe (LLVM 19.1.7, 256 bits)",
+    "version": "OpenGL ES 3.2 Mesa 25.0.7-2",
+    "compiledAndLinkedPrograms": 15,
+    "normalBrowserProof": false
+  },
+  "preservation": {
+    "filesChecked": 83,
+    "allUnchanged": true,
+    "scope": "physics/core/input/storage/workers/audio, authored assets and Blender sources, dependency lock, directive and CI/configuration",
+    "acceptanceLedger": "Only candidate source/file hashes refreshed; all 248 dispositions retained."
+  },
+  "browserTests": {
+    "newCases": 5,
+    "gpuFixture": "Five lighting/weather material conditions; dry/wet/hold/rewind; non-emissive rain and point-light response; constant resource count. ISOLATED fixture.",
+    "normalApplication": [
+      "clear-day/cockpit/full lap",
+      "sunset/pod/full lap",
+      "wet-day/chase/full lap",
+      "wet-night/trackside/full lap"
+    ],
+    "localAttempt": {
+      "passed": false,
+      "gpuFixture": "Error creating WebGL context",
+      "normalApplication": "ERR_BLOCKED_BY_ADMINISTRATOR at http://127.0.0.1:4173/",
+      "videoDependency": "Existing system ffmpeg supplied at the local Playwright cache path; no repository dependency changed."
+    },
+    "hostedCI": "Required for this candidate; consult the exact published commit run, not the baseline run."
+  },
+  "budgets": {
+    "newGeometry": 0,
+    "newTextureResources": 0,
+    "newLiveLights": 0,
+    "newRenderPasses": 0,
+    "fogQuadrature": "Up to eight samples per existing pocket, only with nonzero local density. Additional fragment ALU requires hardware measurement.",
+    "reflectionRefresh": "Existing double-buffer cube pass additionally recaptures on environment-map identity change, including paused lighting changes. No continuously varying-intensity trigger.",
+    "hardwareFrameRateClaim": false
+  },
+  "limitations": [
+    "Non-road dampness uses rain plus recorded mean track water, not local off-track water, roof occlusion or fabric saturation.",
+    "Rain/spray lighting uses bounded single-scattering-style gains; no volumetric shadow or calibrated photometric claim.",
+    "Pure overcast is covered by the isolated material fixture; no invented pure-overcast session mode or complete normal-game overcast lap is claimed.",
+    "Actual full-lap images/videos and all-reference discrepancies still need inspection on the published revision.",
+    "Physical Windows target-hardware, controller/wheel, VRAM and frame-time acceptance remain open."
+  ],
+  "acceptance": {
+    "required": {
+      "PASS": 0,
+      "PARTIAL": 230,
+      "FAIL": 2
+    },
+    "excludedReferences": 16,
+    "finalArtApproved": false
+  }
+}

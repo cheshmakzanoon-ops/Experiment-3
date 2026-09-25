@@ -121,6 +121,7 @@ export function venueMaterials() {
     interior: new T.MeshStandardMaterial({ color: 0x414b47, roughness: 0.89 }),
     fabric: new T.MeshStandardMaterial({ color: 0xd3c8ad, roughness: 0.94, side: T.DoubleSide }),
   };
+  materials.fabric.userData.weatherSurface = 'fabric';
   for (const [role, material] of Object.entries(materials)) material.name = `Aurel venue / ${role}`;
   return materials;
 }

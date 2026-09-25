@@ -1,3 +1,4 @@
+import { precipitationLighting } from './precipitation-light.ts';
 import * as T from 'three';
 
 /** Bounded, velocity-aligned rain, independent of the GPU's point-size limit.
@@ -37,7 +38,9 @@ export class RainStreaks {
       transparent: true,
       depthWrite: false,
       fog: true,
+      lights: true,
       uniforms: {
+        ...T.UniformsUtils.clone(T.UniformsLib.lights),
         ...T.UniformsUtils.clone(T.UniformsLib.fog),
         viewportSize: { value: new T.Vector2(1, 1) },
         nearPlane: { value: 0.1 },
@@ -50,10 +53,15 @@ export class RainStreaks {
         uniform float nearPlane;
         varying vec2 vUv;
         varying float vOpacity;
+        varying vec3 vRainLight;
+        #include <common>
+        #include <lights_pars_begin>
         #include <fog_pars_vertex>
+        ${precipitationLighting}
         void main() {
           vUv = position.xy;
           vOpacity = opacity;
+          vRainLight = vec3(0.);
           vec4 mvPosition = modelViewMatrix * vec4(center, 1.0);
           #include <fog_vertex>
           // No screen-filling streaks from particles crossing/behind the near plane.
@@ -62,6 +70,7 @@ export class RainStreaks {
             gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
             return;
           }
+          vRainLight = vec3(.66,.76,.85)*precipitationEnergy(mvPosition.xyz);
           vec4 clip = projectionMatrix * mvPosition;
           vec4 motion = projectionMatrix * modelViewMatrix * vec4(velocity, 0.0);
           // Derivative of perspective division: includes a velocity along view Z.
@@ -80,13 +89,14 @@ export class RainStreaks {
       fragmentShader: `
         varying vec2 vUv;
         varying float vOpacity;
+        varying vec3 vRainLight;
         #include <fog_pars_fragment>
         void main() {
           float edge = 1.0 - smoothstep(0.12, 1.0, abs(vUv.x));
           float taper = 1.0 - smoothstep(0.35, 1.0, abs(vUv.y));
           float alpha = vOpacity * edge * taper;
           if (alpha < 0.004) discard;
-          gl_FragColor = vec4(0.66, 0.76, 0.85, alpha);
+          gl_FragColor = vec4(vRainLight, alpha);
           #include <tonemapping_fragment>
           #include <colorspace_fragment>
           #include <fog_fragment>
