@@ -63,6 +63,7 @@ export function driverMaterials() {
     });
     material.name = name;
     material.userData.weatherSurface = 'fabric';
+    material.userData.weatherExposure = 0.32;
     return material;
   };
   return {

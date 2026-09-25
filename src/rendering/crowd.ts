@@ -1,3 +1,4 @@
+import { tagWeatherSurface } from './weather-presentation.ts';
 import * as T from 'three';
 import { peopleGeometry, PEOPLE_ASSET } from './people-asset.ts';
 import { clamp } from '../core/math.ts';
@@ -128,7 +129,7 @@ export function installCrowdShader(material: T.Material, uniforms: CrowdUniforms
     shader.vertexShader =
       'varying float vCrowdRank;\n' +
       deform +
-      (colour ? 'attribute vec3 spectatorSkin;\n' : '') +
+      (colour ? 'attribute vec3 spectatorSkin; varying float vCrowdCloth;\n' : '') +
       shader.vertexShader;
     shader.vertexShader = shader.vertexShader.replace(
       '#include <begin_vertex>',
@@ -157,6 +158,7 @@ objectNormal = crowdTurn() * normalize(objectNormal);`,
       '#include <alphatest_fragment>\nif (vCrowdRank < crowdLodRange.x || vCrowdRank >= crowdLodRange.y || vCrowdAccessory < .5) discard;',
     );
     if (colour) {
+      shader.fragmentShader = 'varying float vCrowdCloth;\n' + shader.fragmentShader;
       if (!shader.vertexShader.includes('#include <color_vertex>'))
         throw new Error('Crowd shader colour hook missing');
       shader.vertexShader = shader.vertexShader.replace(
@@ -166,6 +168,7 @@ float style=fract(spectatorPhase*3.47);
 float torsoPanel=step(.35,position.y)*step(position.y,.40)*(1.-step(.5,crowdJoint));
 float sleevePanel=step(.5,crowdJoint)*(1.-step(2.5,crowdJoint))*step(.31,position.y);
 float cloth=1.-step(.5,skinMask);
+vCrowdCloth=cloth;
 vColor.rgb=mix(vColor.rgb,vColor.rgb*.4,cloth*torsoPanel*step(.34,style));
 vColor.rgb=mix(vColor.rgb,vec3(.74,.72,.64),cloth*sleevePanel*step(.68,style));
 vColor.rgb = mix(vColor.rgb, spectatorSkin, clamp(skinMask,0.0,1.0));
@@ -175,7 +178,7 @@ vColor.rgb = mix(vColor.rgb,hair,step(1.5,skinMask));`,
     }
   };
   material.customProgramCacheKey = () =>
-    `apex-authored-crowd-v6-cohorts-${colour ? 'colour' : 'depth'}`;
+    `apex-authored-crowd-v7-clothing-${colour ? 'colour' : 'depth'}`;
 }
 
 export function crowdDetail(distance: number, previous: CrowdDetail): CrowdDetail {
@@ -237,6 +240,9 @@ export class CrowdCluster {
     for (const level of [0, 1, 2, 3] as const) {
       const colorMaterial = material.clone();
       colorMaterial.vertexColors = true;
+      // Authored partial shelter, not ray-traced rain occlusion. The existing
+      // skin/head masks keep faces out of the cloth response at every LOD.
+      tagWeatherSurface(colorMaterial, 'fabric', 0.25, level === 3 ? 'impostor' : 'spectator');
       const depth =
         level === 3 ? undefined : new T.MeshDepthMaterial({ depthPacking: T.RGBADepthPacking });
       const distanceMaterial = level === 3 ? undefined : new T.MeshDistanceMaterial();

@@ -20,7 +20,7 @@ export class ReflectionSystem {
   private clock = NaN;
   private enabled = false;
   private lastProbe = -Infinity;
-  private capturedEnvironment: T.Texture | null = null;
+  private capturedEnvironment: object | null = null;
   // Alternate completed targets: a scene never samples the cubemap into which
   // it is currently rendering. Material programs stay stable between captures.
   private cubeTargets = [0, 1].map(
@@ -100,7 +100,9 @@ export class ReflectionSystem {
     // A paused lighting/weather-bin change must not retain a daytime cubemap.
     // PMREM identity changes discretely, unlike continuously changing exposure:
     // keying on intensity would force an expensive capture on every wet frame.
-    const environmentChanged = scene.environment !== this.capturedEnvironment;
+    const environmentIdentity: object | null =
+      scene.environment?.userData.aurelSkyEpoch ?? scene.environment;
+    const environmentChanged = environmentIdentity !== this.capturedEnvironment;
     if (this.activePass || (!environmentChanged && this.clock - this.lastProbe < intervalSeconds))
       return;
     const cube = this.cubes[this.nextTarget];
@@ -127,7 +129,7 @@ export class ReflectionSystem {
       cube.update(renderer, scene);
       this.probeUpdates++;
       this.lastProbe = this.clock;
-      this.capturedEnvironment = scene.environment;
+      this.capturedEnvironment = environmentIdentity;
     } finally {
       car.visible = visible;
       renderer.shadowMap.autoUpdate = shadows;

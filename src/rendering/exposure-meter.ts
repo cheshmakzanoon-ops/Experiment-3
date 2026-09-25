@@ -4,6 +4,7 @@ export const METER_LOG_MIN = -12;
 export const METER_LOG_RANGE = 24;
 export interface ExposureObservation {
   logLuminance: number;
+  highlightLogLuminance: number;
   validPixels: number;
   trimmedPixels: number;
 }
@@ -24,16 +25,23 @@ export function readExposureMeter(pixels: Uint8Array): ExposureObservation | nul
     upper = count - Math.floor(count * 0.1);
   let cursor = 0,
     sum = 0,
-    kept = 0;
+    kept = 0,
+    highlightBin = -1;
   for (let bin = 0; bin < 256; bin++) {
     const next = cursor + histogram[bin];
+    if (highlightBin < 0 && next >= Math.ceil(count * 0.9)) highlightBin = bin;
     const weight = Math.max(0, Math.min(next, upper) - Math.max(cursor, lower));
     sum += weight * (METER_LOG_MIN + (bin / 255) * METER_LOG_RANGE);
     kept += weight;
     cursor = next;
   }
   return kept
-    ? { logLuminance: sum / kept, validPixels: count, trimmedPixels: count - kept }
+    ? {
+        logLuminance: sum / kept,
+        highlightLogLuminance: METER_LOG_MIN + (highlightBin / 255) * METER_LOG_RANGE,
+        validPixels: count,
+        trimmedPixels: count - kept,
+      }
     : null;
 }
 
@@ -80,13 +88,27 @@ export class ExposureAdaptation {
     }
     return active ? 2 ** this.ev : 1;
   }
-  observe(logLuminance: number, baseExposure: number, generation: number) {
+  observe(
+    logLuminance: number,
+    baseExposure: number,
+    generation: number,
+    highlightLogLuminance?: number,
+  ) {
     if (!Number.isFinite(logLuminance) || !Number.isFinite(baseExposure) || baseExposure <= 0)
       throw new Error('Invalid photometric observation');
+    if (highlightLogLuminance !== undefined && !Number.isFinite(highlightLogLuminance))
+      throw new Error('Invalid highlight observation');
     if (generation !== this.generation) return false;
     // Authored day/night exposure remains the artistic baseline. Adaptation is
     // deliberately restrained: never turn a night scene into daylight.
-    this.targetEV = Math.max(-0.7, Math.min(0.85, Math.log2(0.22 / baseExposure) - logLuminance));
+    const middleGrey = Math.log2(0.22 / baseExposure) - logLuminance;
+    // A small glint stays outside the 90th percentile. A broad bright region
+    // limits adaptation without resetting exposure on camera changes.
+    const highlight =
+      highlightLogLuminance === undefined
+        ? middleGrey
+        : Math.log2(1.6 / baseExposure) - highlightLogLuminance;
+    this.targetEV = Math.max(-0.7, Math.min(0.85, middleGrey, highlight));
     this.samples++;
     return true;
   }

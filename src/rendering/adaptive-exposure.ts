@@ -111,7 +111,13 @@ export class AdaptiveExposurePass extends Pass {
         .then(() => {
           if (this.disposed || !this.active || generation !== this.adaptation.generation) return;
           const observation = readExposureMeter(pixels);
-          if (observation) this.adaptation.observe(observation.logLuminance, base, generation);
+          if (observation)
+            this.adaptation.observe(
+              observation.logLuminance,
+              base,
+              generation,
+              observation.highlightLogLuminance,
+            );
         })
         .catch((error: unknown) => {
           if (!this.disposed) {

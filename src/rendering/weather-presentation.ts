@@ -12,7 +12,8 @@ export type WeatherSurface =
   | 'kerb'
   | 'grass'
   | 'gravel'
-  | 'fabric';
+  | 'fabric'
+  | 'foliage';
 /** Art response, not a second water simulation. Porous surfaces darken but retain
  * broad highlights; cloth/vegetation never acquire a glass-like coat. */
 export const WEATHER_SURFACES: Readonly<Record<WeatherSurface, readonly [number, number]>> = {
@@ -26,6 +27,7 @@ export const WEATHER_SURFACES: Readonly<Record<WeatherSurface, readonly [number,
   grass: [0.16, 0.78],
   gravel: [0.25, 0.62],
   fabric: [0.15, 0.78],
+  foliage: [0.1, 0.56],
 };
 const roads = new WeakMap<T.Material, { value: T.Vector4 }>();
 /** Each road material owns a small uniform; its spatial water still comes from
@@ -57,6 +59,29 @@ export function weatherSurface(material: T.Material): WeatherSurface | null {
     : null;
 }
 
+export type WeatherMask = 'uniform' | 'spectator' | 'impostor';
+/** Assign explicit exposure and coverage before shader installation. Shelter is
+ * an authored approximation, never a claim of simulated fabric saturation. */
+export function tagWeatherSurface<M extends T.Material>(
+  material: M,
+  role: WeatherSurface,
+  exposure = 1,
+  mask: WeatherMask = 'uniform',
+): M {
+  if (
+    !Object.hasOwn(WEATHER_SURFACES, role) ||
+    !Number.isFinite(exposure) ||
+    exposure < 0 ||
+    exposure > 1 ||
+    !['uniform', 'spectator', 'impostor'].includes(mask)
+  )
+    throw new Error('Invalid weather surface coverage');
+  material.userData.weatherSurface = role;
+  material.userData.weatherExposure = exposure;
+  material.userData.weatherMask = mask;
+  return material;
+}
+
 /** One snapshot observation shared by explicit outdoor material roles. No
  * geometry, textures, lights, render passes, allocations per frame or writes
  * back to simulation. Previous material hooks and instance/skin normals survive. */
@@ -78,6 +103,17 @@ export class WeatherPresentation {
     const role = weatherSurface(material);
     if (!role || this.installed.has(material) || !(material instanceof T.MeshStandardMaterial))
       return;
+    const exposure: unknown = material.userData.weatherExposure ?? 1;
+    const mask: unknown = material.userData.weatherMask ?? 'uniform';
+    if (
+      typeof exposure !== 'number' ||
+      !Number.isFinite(exposure) ||
+      exposure < 0 ||
+      exposure > 1 ||
+      typeof mask !== 'string' ||
+      !['uniform', 'spectator', 'impostor'].includes(mask)
+    )
+      throw new Error('Invalid installed weather surface coverage');
     this.installed.add(material);
     this.counts[role] = (this.counts[role] ?? 0) + 1;
     const previous = material.onBeforeCompile,
@@ -86,6 +122,29 @@ export class WeatherPresentation {
     material.onBeforeCompile = (shader, renderer) => {
       previous.call(material, shader, renderer);
       shader.uniforms.aurelSurfaceWeather = this.surface;
+      if (mask !== 'uniform') {
+        // The preceding crowd hook owns these masks. In the far impostor the
+        // head mask is defined AFTER color_fragment, so weather must run only
+        // after the entire color/roughness chain, before physical lighting.
+        const coverage = mask === 'spectator' ? 'vCrowdCloth' : '(1.-headMask)';
+        if (
+          !shader.fragmentShader.includes(
+            mask === 'spectator' ? 'varying float vCrowdCloth;' : 'float headMask =',
+          )
+        )
+          throw new Error('Missing authored crowd weather mask');
+        shader.fragmentShader = shader.fragmentShader
+          .replace('#include <common>', '#include <common>\nuniform vec4 aurelSurfaceWeather;')
+          .replace(
+            '#include <lights_physical_fragment>',
+            `
+            float surfaceWet = aurelSurfaceWeather.x * ${(0.55 * exposure).toFixed(6)} * clamp(${coverage},0.,1.);
+            diffuseColor.rgb *= 1.-surfaceWet*${darkening.toFixed(3)};
+            roughnessFactor = mix(roughnessFactor, min(roughnessFactor, ${wetRoughness.toFixed(3)}), surfaceWet);
+            #include <lights_physical_fragment>`,
+          );
+        return;
+      }
       shader.vertexShader = shader.vertexShader
         .replace(
           '#include <common>',
@@ -126,7 +185,7 @@ export class WeatherPresentation {
           float weatherBroad = sin(vWeatherWorld.x*.73 + sin(vWeatherWorld.z*.37)) *
             sin(vWeatherWorld.z*.51 + vWeatherWorld.y*.23);
           float weatherResolved = 1.-smoothstep(.5,2.,length(fwidth(vWeatherWorld)));
-          float surfaceWet = aurelSurfaceWeather.x * weatherExposure *
+          float surfaceWet = aurelSurfaceWeather.x * weatherExposure * ${exposure.toFixed(6)} *
             (.94 + .06*weatherBroad*weatherResolved);
           diffuseColor.rgb *= 1.-surfaceWet*${darkening.toFixed(3)};`,
         )
@@ -136,7 +195,8 @@ export class WeatherPresentation {
           roughnessFactor = mix(roughnessFactor, min(roughnessFactor, ${wetRoughness.toFixed(3)}), surfaceWet);`,
         );
     };
-    material.customProgramCacheKey = () => `${key}|aurel-snapshot-dampness-v1:${role}`;
+    material.customProgramCacheKey = () =>
+      `${key}|aurel-snapshot-dampness-v2:${role}:${exposure}:${mask}`;
     material.needsUpdate = true;
   }
   update(frame: Float32Array, enabled = true) {

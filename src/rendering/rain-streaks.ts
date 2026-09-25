@@ -102,6 +102,7 @@ export class RainStreaks {
           #include <fog_fragment>
         }`,
     });
+    this.material.userData.localWeatherPosition = 'position';
     this.mesh = new T.Mesh(this.geometry, this.material);
     this.mesh.name = 'Velocity-aligned rain streaks';
     this.mesh.frustumCulled = false;

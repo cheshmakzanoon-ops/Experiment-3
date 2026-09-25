@@ -117,7 +117,7 @@ export class LocalAtmosphere {
   }
   install(root: T.Object3D) {
     root.traverse((object) => {
-      if (!(object instanceof T.Mesh)) return;
+      if (!(object instanceof T.Mesh || object instanceof T.Points)) return;
       for (const m of Array.isArray(object.material) ? object.material : [object.material])
         this.installMaterial(m);
     });
@@ -128,10 +128,14 @@ export class LocalAtmosphere {
       !(
         material instanceof T.MeshStandardMaterial ||
         material instanceof T.MeshLambertMaterial ||
-        material instanceof T.MeshPhongMaterial
+        material instanceof T.MeshPhongMaterial ||
+        (material instanceof T.ShaderMaterial &&
+          ['position', 'center'].includes(material.userData.localWeatherPosition as string))
       )
     )
       return;
+    const particle = material instanceof T.ShaderMaterial;
+    const position = particle ? (material.userData.localWeatherPosition as string) : 'transformed';
     this.installed.add(material);
     this.materialCount++;
     const previous = material.onBeforeCompile;
@@ -156,13 +160,17 @@ export class LocalAtmosphere {
           `
           #include <fog_vertex>
           #ifdef USE_FOG
-            vec4 apexFogPosition = vec4(transformed,1.);
-            #ifdef USE_BATCHING
+            vec4 apexFogPosition = vec4(${position},1.);
+            ${
+              particle
+                ? ''
+                : `#ifdef USE_BATCHING
               apexFogPosition = batchingMatrix * apexFogPosition;
             #endif
             #ifdef USE_INSTANCING
               apexFogPosition = instanceMatrix * apexFogPosition;
-            #endif
+            #endif`
+            }
             vApexFogWorld = (modelMatrix * apexFogPosition).xyz;
           #endif`,
         );

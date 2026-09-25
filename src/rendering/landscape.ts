@@ -1,3 +1,4 @@
+import { tagWeatherSurface } from './weather-presentation.ts';
 import { landmarkSitePlan, inLandmarkFootprint } from './venue-landmark.ts';
 import { terrainHeight } from './terrain-profile.ts';
 import { districtPlan, inDistrictFootprint } from './venue-districts.ts';
@@ -275,6 +276,7 @@ export function buildVegetation(
   });
   foliage.name = 'Original four-character planted foliage';
   installFoliageAtlas(foliage);
+  tagWeatherSurface(foliage, 'foliage');
   const depth = new T.MeshDepthMaterial({
     depthPacking: T.RGBADepthPacking,
     map: foliage.map,
@@ -288,7 +290,10 @@ export function buildVegetation(
   });
   installFoliageAtlas(depth);
   installFoliageAtlas(distance);
-  const bark = new T.MeshStandardMaterial({ color: 0x655e49, roughness: 1 });
+  const bark = tagWeatherSurface(
+    new T.MeshStandardMaterial({ color: 0x655e49, roughness: 1 }),
+    'timber',
+  );
   const transform = new T.Object3D(),
     color = new T.Color();
   for (const [key, trees] of buckets)

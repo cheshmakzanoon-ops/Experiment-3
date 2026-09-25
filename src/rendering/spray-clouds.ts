@@ -158,6 +158,7 @@ export class SprayClouds {
     this.material.uniforms.signalCount = this.signals.count;
     this.material.uniforms.signalPositions = { value: this.signals.positions };
     this.material.uniforms.signalDirections = { value: this.signals.directions };
+    this.material.userData.localWeatherPosition = 'center';
     this.mesh = new T.Mesh(this.geometry, this.material);
     this.mesh.name = 'Lit wheel-water spray clouds';
     this.mesh.frustumCulled = false;

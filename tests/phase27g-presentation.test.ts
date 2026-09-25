@@ -1,3 +1,4 @@
+import { skyRendererDouble } from './sky-renderer-double.ts';
 import { afterEach, expect, it, vi } from 'vitest';
 import * as T from 'three';
 import { Sky } from 'three/addons/objects/Sky.js';
@@ -84,7 +85,7 @@ it('separates day/sunset/night environment identities and restores live uniforms
   });
   vi.spyOn(T.PMREMGenerator.prototype, 'dispose').mockImplementation(() => {});
   const env = new SkyEnvironment(sky),
-    renderer = { compile: vi.fn() } as unknown as T.WebGLRenderer,
+    renderer = skyRendererDouble().renderer,
     scene = new T.Scene();
   for (const mode of ['day', 'sunset', 'night', 'sunset'] as const)
     expect(env.update(renderer, scene, 0.5, mode)).toBe(true);

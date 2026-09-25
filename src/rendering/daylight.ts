@@ -1,5 +1,6 @@
 import * as T from 'three';
 import type { Sky } from 'three/addons/objects/Sky.js';
+import { FullScreenQuad } from 'three/addons/postprocessing/Pass.js';
 import { clamp } from '../core/math.ts';
 
 /** One world-space sun direction for the visible disk, illumination and shadows. */
@@ -73,8 +74,8 @@ export function circuitLightState(
     });
   if (mode === 'night')
     Object.assign(light, {
-      // Broad wet/cloud response is immutable for a given snapshot. No automatic
-      // exposure reacts to the camera, car colour, or entry into a light pool.
+      // Broad wet/cloud baseline is immutable for a given snapshot. The separate
+      // bounded photometric pass can adapt without turning night into daylight.
       sun: 0.105 * (1 - light.cover * 0.55),
       fill: 0.205 + light.cover * 0.025,
       environment: 0.07 + light.cover * 0.01,
@@ -190,17 +191,182 @@ export function configureSky(sky: Sky) {
   material.needsUpdate = true;
 }
 
-/** Own the complete PMREM output and replace it only after a successful capture.
- * Weather bins avoid per-frame GPU allocation. Rewinds pick the correct bin on
- * their first frame, rather than reflecting the sky from the future. */
+/** Piecewise-linear radiance between neighbouring, identically packed PMREMs.
+ * Coverage and interpolation are functions of this snapshot, not wall time. */
+export function skyBlendPlan(cover: number) {
+  if (!Number.isFinite(cover)) throw new Error('Non-finite sky coverage');
+  const value = clamp(cover, 0, 1),
+    position = value * 8;
+  return {
+    cover: value,
+    lower: Math.floor(position),
+    upper: Math.ceil(position),
+    weight: position % 1,
+  };
+}
+
+/** No colour conversion or tone map here: the two sources are linear HDR CubeUV
+ * atlases of the same size, and their mip tiles must retain their packed layout. */
+export function skyBlendMaterial() {
+  return new T.RawShaderMaterial({
+    name: 'Snapshot-linear sky radiance',
+    glslVersion: T.GLSL3,
+    depthTest: false,
+    depthWrite: false,
+    blending: T.NoBlending,
+    toneMapped: false,
+    uniforms: {
+      lowSky: { value: null as T.Texture | null },
+      highSky: { value: null as T.Texture | null },
+      skyWeight: { value: 0 },
+    },
+    vertexShader: `precision highp float;
+      in vec3 position; in vec2 uv; out vec2 atlasUV;
+      void main() { atlasUV=uv; gl_Position=vec4(position,1.); }`,
+    fragmentShader: `precision highp float;
+      precision highp sampler2D;
+      uniform sampler2D lowSky; uniform sampler2D highSky; uniform float skyWeight;
+      in vec2 atlasUV; out vec4 radiance;
+      void main() { radiance=mix(texture(lowSky,atlasUV),texture(highSky,atlasUV),skyWeight); }`,
+  });
+}
+
+/** Protect the caller even when capture/blend throws partway through a pass. */
+function preserveSkyRenderState(renderer: T.WebGLRenderer) {
+  const target = renderer.getRenderTarget(),
+    face = renderer.getActiveCubeFace(),
+    mip = renderer.getActiveMipmapLevel(),
+    viewport = renderer.getViewport(new T.Vector4()),
+    scissor = renderer.getScissor(new T.Vector4()),
+    scissorTest = renderer.getScissorTest(),
+    xr = renderer.xr.enabled,
+    autoClear = renderer.autoClear,
+    toneMapping = renderer.toneMapping;
+  return () => {
+    renderer.xr.enabled = xr;
+    renderer.autoClear = autoClear;
+    renderer.toneMapping = toneMapping;
+    renderer.setViewport(viewport);
+    renderer.setScissor(scissor);
+    renderer.setScissorTest(scissorTest);
+    // Restore the target LAST. Its viewport/scissor are already physical
+    // pixels; applying canvas-logical dimensions after binding it would scale
+    // them again on high-DPI displays and crop a caller's offscreen pass.
+    renderer.setRenderTarget(target, face, mip);
+  };
+}
+
+/** At most two neighbouring sky captures and two reusable blend outputs are
+ * retained. PMREM is captured only at a bin/mode change; a changing fractional
+ * cover costs one small atlas blend, not a six-face recapture. A held frame costs
+ * neither. Rewind reconstructs the requested sky immediately. */
 export class SkyEnvironment {
-  private current: T.WebGLRenderTarget | null = null;
-  private bin = -1;
+  private cached = new Map<number, T.WebGLRenderTarget>();
+  private cover = NaN;
   private mode: LightingMode = 'day';
-  captures = 0;
   private environmentScene = new T.Scene();
+  private blend = skyBlendMaterial();
+  private quad = new FullScreenQuad(this.blend);
+  private outputs: T.WebGLRenderTarget[] = [];
+  private nextOutput = 0;
+  private publishedScene: T.Scene | null = null;
+  private publishedTexture: T.Texture | null = null;
+  captures = 0;
+  blends = 0;
+  probeRefreshNeeded = false;
+  private epoch: object = {};
   constructor(private sky: Sky) {
     this.environmentScene.add(sky.clone());
+  }
+  private capture(renderer: T.WebGLRenderer, bin: number, mode: LightingMode) {
+    const restore = preserveSkyRenderState(renderer);
+    let generator: T.PMREMGenerator | undefined;
+    const uniforms = this.sky.material.uniforms;
+    const previous = {
+      cover: uniforms.cloudCover.value,
+      night: uniforms.nightAmount.value,
+      sunset: uniforms.sunsetAmount.value,
+      sun: uniforms.sunPosition.value.clone() as T.Vector3,
+      turbidity: uniforms.turbidity.value,
+      radiance: uniforms.skyRadiance.value,
+    };
+    try {
+      generator = new T.PMREMGenerator(renderer);
+      const light = circuitLightState(bin / 8, 0, mode);
+      uniforms.cloudCover.value = bin / 8;
+      uniforms.nightAmount.value = mode === 'night' ? 1 : 0;
+      uniforms.sunsetAmount.value = mode === 'sunset' ? 1 : 0;
+      uniforms.sunPosition.value.copy(lightingDirection(mode));
+      uniforms.turbidity.value = light.turbidity;
+      uniforms.skyRadiance.value = light.skyRadiance;
+      const target = generator.fromScene(this.environmentScene, 0.04, 0.1, 700000, { size: 128 });
+      this.captures++;
+      return target;
+    } finally {
+      uniforms.cloudCover.value = previous.cover;
+      uniforms.nightAmount.value = previous.night;
+      uniforms.sunsetAmount.value = previous.sunset;
+      uniforms.sunPosition.value.copy(previous.sun);
+      uniforms.turbidity.value = previous.turbidity;
+      uniforms.skyRadiance.value = previous.radiance;
+      try {
+        generator?.dispose();
+      } finally {
+        restore();
+      }
+    }
+  }
+  private interpolate(
+    renderer: T.WebGLRenderer,
+    low: T.WebGLRenderTarget,
+    high: T.WebGLRenderTarget,
+    weight: number,
+  ) {
+    if (
+      low.width !== high.width ||
+      low.height !== high.height ||
+      low.texture.type !== high.texture.type ||
+      low.texture.colorSpace !== high.texture.colorSpace
+    )
+      throw new Error('Mismatched sky radiance atlases');
+    if (!this.outputs.length) {
+      this.outputs = [0, 1].map(() => {
+        const target = new T.WebGLRenderTarget(low.width, low.height, {
+          type: low.texture.type,
+          minFilter: T.LinearFilter,
+          magFilter: T.LinearFilter,
+          depthBuffer: false,
+          stencilBuffer: false,
+          generateMipmaps: false,
+        });
+        target.texture.mapping = T.CubeUVReflectionMapping;
+        target.texture.colorSpace = low.texture.colorSpace;
+        target.texture.name = 'Continuous recorded-weather sky';
+        return target;
+      });
+    }
+    const output = this.outputs[this.nextOutput];
+    if (output.width !== low.width || output.height !== low.height)
+      throw new Error('Sky atlas layout changed');
+    const restore = preserveSkyRenderState(renderer);
+    try {
+      renderer.xr.enabled = false;
+      renderer.autoClear = true;
+      renderer.setRenderTarget(output);
+      renderer.setScissorTest(false);
+      this.blend.uniforms.lowSky.value = low.texture;
+      this.blend.uniforms.highSky.value = high.texture;
+      this.blend.uniforms.skyWeight.value = weight;
+      this.quad.render(renderer);
+      this.blends++;
+    } finally {
+      this.blend.uniforms.lowSky.value = this.blend.uniforms.highSky.value = null;
+      restore();
+    }
+    // Never overwrite the published atlas: a failed blend keeps the last
+    // complete image intact, and the next attempt reuses only the spare output.
+    this.nextOutput = 1 - this.nextOutput;
+    return output.texture;
   }
   update(
     renderer: T.WebGLRenderer,
@@ -208,56 +374,79 @@ export class SkyEnvironment {
     cover: number,
     value: boolean | LightingMode = false,
   ) {
-    if (!Number.isFinite(cover)) throw new Error('Non-finite sky coverage');
-    const mode = lightingMode(value);
-    const nextBin = Math.round(clamp(cover, 0, 1) * 8);
-    if (nextBin === this.bin && mode === this.mode) return false;
-    const generator = new T.PMREMGenerator(renderer);
-    let next: T.WebGLRenderTarget;
-    const previousCover = this.sky.material.uniforms.cloudCover.value;
-    const previousNight = this.sky.material.uniforms.nightAmount.value;
-    const previousSunset = this.sky.material.uniforms.sunsetAmount.value;
-    const previousSun = this.sky.material.uniforms.sunPosition.value.clone() as T.Vector3;
-    const previousTurbidity = this.sky.material.uniforms.turbidity.value;
-    const previousRadiance = this.sky.material.uniforms.skyRadiance.value;
+    const plan = skyBlendPlan(cover),
+      mode = lightingMode(value);
+    this.probeRefreshNeeded = false;
+    if (plan.cover === this.cover && mode === this.mode) return false;
+    const candidates = new Map<number, T.WebGLRenderTarget>();
+    const created: T.WebGLRenderTarget[] = [];
+    let texture: T.Texture;
     try {
-      // Capture the bin centre so returning to the same weather has the same IBL.
-      this.sky.material.uniforms.cloudCover.value = nextBin / 8;
-      this.sky.material.uniforms.nightAmount.value = mode === 'night' ? 1 : 0;
-      this.sky.material.uniforms.sunsetAmount.value = mode === 'sunset' ? 1 : 0;
-      this.sky.material.uniforms.sunPosition.value.copy(lightingDirection(mode));
-      this.sky.material.uniforms.turbidity.value = circuitLightState(
-        nextBin / 8,
-        0,
-        mode,
-      ).turbidity;
-      this.sky.material.uniforms.skyRadiance.value = circuitLightState(
-        nextBin / 8,
-        0,
-        mode,
-      ).skyRadiance;
-      next = generator.fromScene(this.environmentScene, 0.04, 0.1, 700000, { size: 128 });
-    } finally {
-      this.sky.material.uniforms.cloudCover.value = previousCover;
-      this.sky.material.uniforms.nightAmount.value = previousNight;
-      this.sky.material.uniforms.sunsetAmount.value = previousSunset;
-      this.sky.material.uniforms.sunPosition.value.copy(previousSun);
-      this.sky.material.uniforms.turbidity.value = previousTurbidity;
-      this.sky.material.uniforms.skyRadiance.value = previousRadiance;
-      generator.dispose();
+      for (const bin of new Set([plan.lower, plan.upper])) {
+        let target = mode === this.mode ? this.cached.get(bin) : undefined;
+        if (!target) {
+          target = this.capture(renderer, bin, mode);
+          created.push(target);
+        }
+        candidates.set(bin, target);
+      }
+      const low = candidates.get(plan.lower)!;
+      const high = candidates.get(plan.upper)!;
+      texture =
+        plan.lower === plan.upper
+          ? low.texture
+          : this.interpolate(renderer, low, high, plan.weight);
+    } catch (error) {
+      created.forEach((target) => target.dispose());
+      throw error;
     }
-    const previous = this.current;
-    scene.environment = next.texture;
-    this.current = next;
-    this.bin = nextBin;
+    // Publish before retiring old resources. A disposal listener must not send
+    // an already published complete target down the failed-capture cleanup path.
+    const retired = this.cached;
+    // A stable epoch lets local reflections honor their normal capture interval
+    // while fractional-cloud atlas outputs alternate. Hard changes invalidate
+    // immediately, including when the simulation is paused.
+    const hardChange =
+      !Number.isFinite(this.cover) ||
+      mode !== this.mode ||
+      Math.abs(plan.cover - this.cover) > 0.25;
+    if (hardChange) this.epoch = {};
+    texture.userData.aurelSkyEpoch = this.epoch;
+    scene.environment = texture;
+    this.publishedScene = scene;
+    this.publishedTexture = texture;
+    // Moving clouds must not force a local six-face reflection every frame.
+    // Large weather jumps, mode switches and explicit seeks still invalidate it.
+    this.probeRefreshNeeded = hardChange;
+    this.cover = plan.cover;
     this.mode = mode;
-    this.captures++;
-    previous?.dispose();
+    this.cached = candidates;
+    for (const [bin, target] of retired) if (candidates.get(bin) !== target) target.dispose();
     return true;
   }
+  diagnostics() {
+    return {
+      captures: this.captures,
+      blends: this.blends,
+      cover: this.cover,
+      mode: this.mode,
+      cachedBins: [...this.cached.keys()],
+      retainedTargets: this.cached.size + this.outputs.length,
+      interpolation: 'linear-HDR-CubeUV',
+      independentAnimation: false,
+    };
+  }
   dispose() {
-    this.current?.dispose();
-    this.current = null;
-    this.bin = -1;
+    if (this.publishedScene?.environment === this.publishedTexture)
+      this.publishedScene.environment = null;
+    for (const target of this.cached.values()) target.dispose();
+    this.cached.clear();
+    this.outputs.forEach((target) => target.dispose());
+    this.outputs.length = 0;
+    this.blend.dispose();
+    this.quad.dispose();
+    this.cover = NaN;
+    this.publishedScene = null;
+    this.publishedTexture = null;
   }
 }

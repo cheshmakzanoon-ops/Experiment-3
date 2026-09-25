@@ -1,3 +1,4 @@
+import { skyRendererDouble } from './sky-renderer-double.ts';
 import { afterEach, expect, it, vi } from 'vitest';
 import * as T from 'three';
 import { Sky } from 'three/addons/objects/Sky.js';
@@ -20,12 +21,12 @@ it('captures independent day/night environment identities and restores the live 
   vi.spyOn(T.PMREMGenerator.prototype, 'dispose').mockImplementation(() => {});
   const env = new SkyEnvironment(sky),
     scene = new T.Scene(),
-    renderer = { compile: vi.fn() } as unknown as T.WebGLRenderer;
+    renderer = skyRendererDouble().renderer;
   expect(env.update(renderer, scene, 0.6, false)).toBe(true);
   expect(env.update(renderer, scene, 0.6, true)).toBe(true);
   expect(env.update(renderer, scene, 0.6, true)).toBe(false);
   expect(env.update(renderer, scene, 0.6, false)).toBe(true);
-  expect(modes).toEqual([0, 1, 0]);
+  expect(modes).toEqual([0, 0, 1, 1, 0, 0]);
   expect(sky.material.uniforms.nightAmount.value).toBe(1);
   const before = scene.environment;
   vi.spyOn(T.PMREMGenerator.prototype, 'fromScene').mockImplementationOnce(() => {
@@ -34,7 +35,7 @@ it('captures independent day/night environment identities and restores the live 
   expect(() => env.update(renderer, scene, 0.6, true)).toThrow('Failed night');
   expect(scene.environment).toBe(before);
   expect(sky.material.uniforms.nightAmount.value).toBe(1);
-  expect(env.captures).toBe(3);
+  expect(env.captures).toBe(6);
   env.dispose();
   expect(disposals.every((dispose) => dispose.mock.calls.length === 1)).toBe(true);
   sky.geometry.dispose();

@@ -5,6 +5,7 @@ import { F, H, W, WHEEL_BASE, WHEEL_STRIDE, carBase } from '../simulation/protoc
 import { renderWind } from '../simulation/weather.ts';
 import { RainStreaks } from './rain-streaks.ts';
 import { SprayClouds } from './spray-clouds.ts';
+import { precipitationLighting } from './precipitation-light.ts';
 
 export const EFFECT_CAPACITY = { contact: 1200, rain: 600 } as const;
 
@@ -97,11 +98,16 @@ export class Effects {
       depthWrite: false,
       vertexColors: true,
       fog: true,
+      lights: true,
       uniforms: {
         ...T.UniformsUtils.clone(T.UniformsLib.fog),
+        ...T.UniformsUtils.clone(T.UniformsLib.lights),
         viewportHeight: { value: 1 },
       },
       vertexShader: `
+        #include <common>
+        #include <lights_pars_begin>
+        ${precipitationLighting}
         attribute float size; attribute float opacity; attribute float solid; attribute float kind;
         uniform float viewportHeight;
         varying float vSolid; varying float vKind; varying float vOpacity; varying vec3 vColor;
@@ -110,6 +116,7 @@ export class Effects {
           vSolid=solid; vKind=kind; vOpacity=opacity; vColor=color;
           if(kind<.5) { vOpacity=0.; gl_Position=vec4(2.,2.,2.,1.); gl_PointSize=1.; return; }
           vec4 mvPosition=modelViewMatrix*vec4(position,1.);
+          if(!(kind>1.5&&kind<2.5)) vColor*=particleEnergy(mvPosition.xyz,0.);
           gl_Position=projectionMatrix*mvPosition;
           gl_PointSize=clamp(size*projectionMatrix[1][1]*viewportHeight*.5/max(.1,-mvPosition.z),1.,120.);
           #include <fog_vertex>
@@ -130,6 +137,7 @@ export class Effects {
           #include <fog_fragment>
         }`,
     });
+    material.userData.localWeatherPosition = 'position';
     const points = new T.Points(this.geometry, material);
     points.name = 'Contact smoke, sparks and debris';
     points.frustumCulled = false;

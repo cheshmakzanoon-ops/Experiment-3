@@ -1,3 +1,4 @@
+import { skyRendererDouble } from './sky-renderer-double.ts';
 import { afterEach, expect, it, vi } from 'vitest';
 import * as T from 'three';
 import { Sky } from 'three/addons/objects/Sky.js';
@@ -5,7 +6,7 @@ import { SkyEnvironment, configureSky } from '../src/rendering/daylight.ts';
 import { installWetRoad, installStableSurfaceBump } from '../src/rendering/materials.ts';
 
 afterEach(() => vi.restoreAllMocks());
-it('recaptures bounded sky bins, restores live uniforms and disposes replaced outputs exactly once', () => {
+it('interpolates bounded sky bins, restores live uniforms and disposes replaced outputs exactly once', () => {
   const sky = new Sky();
   configureSky(sky);
   sky.material.uniforms.cloudCover.value = 0.37;
@@ -25,25 +26,28 @@ it('recaptures bounded sky bins, restores live uniforms and disposes replaced ou
     return target;
   });
   const generatorDispose = vi.spyOn(T.PMREMGenerator.prototype, 'dispose');
-  // PMREM's constructor only compiles a null initial material; capture is mocked
-  // here. The browser fixture separately exercises actual shader/GPU behavior.
-  const renderer = { compile: () => {} } as unknown as T.WebGLRenderer;
+  // Capture/rasterization are mocked here; retained targets, blend calls and
+  // restoration are real production logic. Browser GPU evidence is separate.
+  const renderer = skyRendererDouble().renderer;
   const scene = new T.Scene(),
     environment = new SkyEnvironment(sky);
   expect(environment.update(renderer, scene, 0.36)).toBe(true);
   const disposeFirst = vi.spyOn(outputs[0], 'dispose');
-  expect(environment.update(renderer, scene, 0.38)).toBe(false);
+  expect(environment.update(renderer, scene, 0.36)).toBe(false);
+  expect(environment.update(renderer, scene, 0.37)).toBe(true);
+  expect(render).toHaveBeenCalledTimes(2);
   expect(environment.update(renderer, scene, 0.8)).toBe(true);
   expect(disposeFirst).toHaveBeenCalledTimes(1);
   expect(environment.update(renderer, scene, 0.36)).toBe(true);
-  expect(samples).toEqual([0.375, 0.75, 0.375]);
-  expect(render).toHaveBeenCalledTimes(3);
-  expect(scene.environment).toBe(outputs[2].texture);
+  expect(samples).toEqual([0.25, 0.375, 0.75, 0.875, 0.25, 0.375]);
+  expect(render).toHaveBeenCalledTimes(6);
+  expect(scene.environment?.mapping).toBe(T.CubeUVReflectionMapping);
+  expect(environment.diagnostics().retainedTargets).toBe(4);
   expect(sky.material.uniforms.cloudCover.value).toBe(0.37);
   expect(sky.material.uniforms.turbidity.value).toBe(4.65);
   expect(sky.material.uniforms.skyRadiance.value).toBe(0.394);
-  expect(generatorDispose).toHaveBeenCalledTimes(3);
-  const lastDispose = vi.spyOn(outputs[2], 'dispose');
+  expect(generatorDispose).toHaveBeenCalledTimes(6);
+  const lastDispose = vi.spyOn(outputs[5], 'dispose');
   environment.dispose();
   environment.dispose();
   expect(lastDispose).toHaveBeenCalledTimes(1);
@@ -57,7 +61,7 @@ it('does not publish a failed sky capture, lose the previous texture or poison i
     dispose = vi.spyOn(output, 'dispose');
   const capture = vi.spyOn(T.PMREMGenerator.prototype, 'fromScene').mockReturnValue(output);
   const generatorDispose = vi.spyOn(T.PMREMGenerator.prototype, 'dispose');
-  const renderer = { compile: () => {} } as unknown as T.WebGLRenderer;
+  const renderer = skyRendererDouble().renderer;
   const scene = new T.Scene(),
     environment = new SkyEnvironment(sky);
   environment.update(renderer, scene, 0);
