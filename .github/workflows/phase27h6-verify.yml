@@ -1,0 +1,117 @@
+name: Verified 27H.6 candidate
+on:
+  push:
+    branches: [main]
+    paths: [.github/workflows/phase27h6-verify.yml, '.github/phase27h6-import.*.br']
+permissions:
+  contents: read
+concurrency:
+  group: phase27h6-verified-candidate
+  cancel-in-progress: false
+jobs:
+  validate-candidate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    permissions:
+      contents: write
+    env:
+      BASE: 12f38b1917a1ad398fc6ef3aa92c7c479a8f948d
+      BASE_TREE: 0f311ab1a414686c77d462ecaf37da046462f8d9
+      TARGET_TREE: 90a5fbd3c5f90b7003033289cd45a8ee0353e4a9
+      CI: 'true'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Reconstruct and verify the exact candidate without advancing a branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib, os, pathlib, subprocess
+          def git(*args): return subprocess.check_output(['git',*args],text=True).strip()
+          stage=[f'.github/phase27h6-import.{i}.br' for i in range(4)]+['.github/workflows/phase27h6-verify.yml']
+          assert git('rev-parse','HEAD^')==os.environ['BASE'], 'Concurrent changes require reconciliation'
+          assert git('rev-parse',os.environ['BASE']+'^{tree}')==os.environ['BASE_TREE']
+          assert git('diff','--name-only',os.environ['BASE'],'HEAD').splitlines()==sorted(stage)
+          packed=b''.join(pathlib.Path(name).read_bytes() for name in stage[:4])
+          assert hashlib.sha256(packed).hexdigest()=='9e7efb4001b126381cfc494930b9104a869be8e2e1c020191dc0eb34ec08e478'
+          patch=subprocess.check_output(['node','-e',"let a=[];process.stdin.on('data',d=>a.push(d)).on('end',()=>process.stdout.write(require('node:zlib').brotliDecompressSync(Buffer.concat(a))))"],input=packed)
+          assert hashlib.sha256(patch).hexdigest()=='eb3d2a132ffccdc67c9e559f1387a2ec5b70e078ccaf78c8b8e56f1385eaa347'
+          path=pathlib.Path(os.environ['RUNNER_TEMP'])/'candidate.patch';path.write_bytes(patch)
+          subprocess.run(['git','read-tree','--reset','-u',os.environ['BASE']],check=True)
+          subprocess.run(['git','apply','--index','--binary',str(path)],check=True)
+          subprocess.run(['node','--experimental-transform-types','scripts/phase27h-matrix.ts','--write'],check=True)
+          subprocess.run(['git','add','docs/PHASE_27H_MATRIX.md'],check=True)
+          assert git('write-tree')==os.environ['TARGET_TREE'], 'Source tree mismatch'
+          protected=['src/simulation/','src/workers/','src/input/','src/storage/','src/audio/','.github/','package.json','package-lock.json','docs/MASTER_DIRECTIVE.md','playwright.config.ts','vitest.config.ts']
+          assert not git('diff','--cached',os.environ['BASE'],'--',*protected), 'Protected code or gates changed'
+          print('Verified candidate tree',os.environ['TARGET_TREE'])
+          PY
+      - run: npm ci --no-audit --no-fund
+      - run: npm run check
+      - run: node --experimental-transform-types scripts/phase27h-matrix.ts --check
+      - name: Retain verified Git objects without moving any branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import base64, hashlib, json, os, pathlib, subprocess, time, urllib.request, urllib.error
+          repo='cheshmakzanoon-ops/Experiment-3'
+          assert os.environ['GITHUB_REPOSITORY']==repo
+          def git(*args): return subprocess.check_output(['git',*args],text=True).strip()
+          target=os.environ['TARGET_TREE']
+          assert git('write-tree')==target
+          def post(path,body):
+              data=json.dumps(body).encode()
+              for attempt in range(3):
+                  request=urllib.request.Request('https://api.github.com/repos/'+repo+path,data=data,method='POST',headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','Content-Type':'application/json'})
+                  try:
+                      with urllib.request.urlopen(request,timeout=45) as response: return json.load(response)
+                  except urllib.error.HTTPError as error:
+                      if error.code not in (429,500,502,503,504) or attempt==2: raise
+                  except urllib.error.URLError:
+                      if attempt==2: raise
+                  time.sleep(2**attempt)
+          changes=[]
+          for path in git('diff','--cached','--name-only',os.environ['BASE']).splitlines():
+              data=pathlib.Path(path).read_bytes()
+              expected=hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()
+              actual=post('/git/blobs',{'content':base64.b64encode(data).decode(),'encoding':'base64'})['sha']
+              assert actual==expected, path
+              changes.append({'path':path,'mode':git('ls-files','--stage','--',path).split()[0],'type':'blob','sha':actual})
+          actual=post('/git/trees',{'base_tree':os.environ['BASE_TREE'],'tree':changes})['sha']
+          assert actual==target, 'Published object tree mismatch'
+          report={'tree':actual,'base':os.environ['BASE'],'files':len(changes),'branchAdvanced':False,'checks':'npm check and exact matrix passed; browser steps follow'}
+          out=pathlib.Path(os.environ['RUNNER_TEMP']);(out/'verified-objects.json').write_text(json.dumps(report,indent=2)+'\n')
+          subprocess.run(['git','archive','--format=tar.gz','--output='+str(out/'candidate-source.tar.gz'),target],check=True)
+          print(json.dumps(report))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase27h6-verified-source
+          path: |
+            ${{ runner.temp }}/verified-objects.json
+            ${{ runner.temp }}/candidate-source.tar.gz
+            ${{ runner.temp }}/candidate.patch
+          retention-days: 14
+          if-no-files-found: error
+      - run: npx playwright install --with-deps chromium
+      - name: Real populated start, wet following, pit service, replay and GPU contracts
+        run: npm run test:e2e -- e2e/28-race-pit-presentation.spec.ts e2e/weather.spec.ts e2e/27-visual-coherence.spec.ts --grep '27H\.6|27H\.5 GPU|actual wet simulation'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase27h6-browser-evidence
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 14
+          if-no-files-found: warn
