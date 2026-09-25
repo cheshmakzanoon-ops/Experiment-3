@@ -1,0 +1,189 @@
+name: Reconciled 27H.6 preflight
+on:
+  push:
+    branches: [main]
+    paths: ['.github/phase27h6-reconcile.*.b64', '.github/workflows/phase27h6-reconcile.yml']
+permissions:
+  contents: read
+concurrency:
+  group: phase27h6-reconciliation
+  cancel-in-progress: false
+env:
+  BASE: 12f38b1917a1ad398fc6ef3aa92c7c479a8f948d
+  BASE_TREE: 0f311ab1a414686c77d462ecaf37da046462f8d9
+  TARGET_TREE: d280b1573638e3001abf06d6cc84e73376addb0e
+  CI: 'true'
+jobs:
+  prepare:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    outputs:
+      candidate: ${{ steps.objects.outputs.candidate }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 4
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Reconstruct both candidates and enforce exact source identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import base64, hashlib, os, pathlib, subprocess
+          def git(*args): return subprocess.check_output(['git',*args],text=True).strip()
+          old=[f'.github/phase27h6-import.{i}.br' for i in range(4)]
+          new=[f'.github/phase27h6-reconcile.{i}.b64' for i in range(5)]
+          helpers=['.github/workflows/phase27h6-verify.yml','.github/workflows/phase27h6-toolchain.yml','.github/workflows/phase27h6-reconcile.yml']
+          assert git('rev-parse','HEAD^')=='ea14df73fa5d2558a81b197f7ba8171b194fb472', 'Concurrent work requires reconciliation'
+          assert git('diff','--name-only',os.environ['BASE'],'HEAD').splitlines()==sorted(old+new+helpers)
+          assert git('rev-parse',os.environ['BASE']+'^{tree}')==os.environ['BASE_TREE']
+          packed=b''.join(pathlib.Path(p).read_bytes() for p in old)
+          delta=base64.b64decode(b''.join(pathlib.Path(p).read_bytes() for p in new),validate=True)
+          assert hashlib.sha256(packed).hexdigest()=='9e7efb4001b126381cfc494930b9104a869be8e2e1c020191dc0eb34ec08e478'
+          assert hashlib.sha256(delta).hexdigest()=='599ebf904c90bf96db92f30de2fc39afbff4e82528f5fc02aaa4b57d81fd5c78'
+          def unpack(data): return subprocess.check_output(['node','-e',"let a=[];process.stdin.on('data',d=>a.push(d)).on('end',()=>process.stdout.write(require('node:zlib').brotliDecompressSync(Buffer.concat(a))))"],input=data)
+          patches=[unpack(packed),unpack(delta)]
+          hashes=['eb3d2a132ffccdc67c9e559f1387a2ec5b70e078ccaf78c8b8e56f1385eaa347','a26f40ced38afdc768a44a2da58a12fcf412344768558d2dc67dc14f4bbc381e']
+          targets=['90a5fbd3c5f90b7003033289cd45a8ee0353e4a9',os.environ['TARGET_TREE']]
+          subprocess.run(['git','read-tree','--reset','-u',os.environ['BASE']],check=True)
+          for index,(patch,digest,target) in enumerate(zip(patches,hashes,targets)):
+              assert hashlib.sha256(patch).hexdigest()==digest
+              p=pathlib.Path(os.environ['RUNNER_TEMP'])/f'candidate-{index}.patch';p.write_bytes(patch)
+              subprocess.run(['git','apply','--index','--binary',str(p)],check=True)
+              subprocess.run(['node','--experimental-transform-types','scripts/phase27h-matrix.ts','--write'],check=True)
+              subprocess.run(['git','add','docs/PHASE_27H_MATRIX.md'],check=True)
+              assert git('write-tree')==target, 'Reconstructed source mismatch'
+          protected=['src/simulation/','src/workers/','src/input/','src/storage/','src/audio/','src/assets/','.github/','package.json','package-lock.json','docs/MASTER_DIRECTIVE.md','playwright.config.ts','vitest.config.ts']
+          assert not git('diff','--cached',os.environ['BASE'],'--',*protected), 'Protected source or existing gates changed'
+          subprocess.run(['git','diff','--cached','--check'],check=True)
+          print('Exact reconciled tree:',git('write-tree'))
+          PY
+      - run: npm ci --no-audit --no-fund
+      - run: npm run check
+      - run: node --experimental-transform-types scripts/phase27h-matrix.ts --check
+      - name: Retain verified source and commit without advancing any branch
+        id: objects
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import base64, hashlib, json, os, pathlib, subprocess, time, urllib.request, urllib.error
+          repo='cheshmakzanoon-ops/Experiment-3'
+          assert os.environ['GITHUB_REPOSITORY']==repo
+          def git(*args): return subprocess.check_output(['git',*args],text=True).strip()
+          target=os.environ['TARGET_TREE'];assert git('write-tree')==target
+          def post(path,body):
+              for attempt in range(3):
+                  request=urllib.request.Request('https://api.github.com/repos/'+repo+path,data=json.dumps(body).encode(),method='POST',headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','Content-Type':'application/json'})
+                  try:
+                      with urllib.request.urlopen(request,timeout=45) as response: return json.load(response)
+                  except urllib.error.HTTPError as error:
+                      if error.code not in (429,500,502,503,504) or attempt==2: raise
+                  except urllib.error.URLError:
+                      if attempt==2: raise
+                  time.sleep(2**attempt)
+          changes=[]
+          for path in git('diff','--cached','--name-only',os.environ['BASE']).splitlines():
+              data=pathlib.Path(path).read_bytes()
+              expected=hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()
+              actual=post('/git/blobs',{'content':base64.b64encode(data).decode(),'encoding':'base64'})['sha']
+              assert actual==expected,path
+              changes.append({'path':path,'mode':git('ls-files','--stage','--',path).split()[0],'type':'blob','sha':actual})
+          actual=post('/git/trees',{'base_tree':os.environ['BASE_TREE'],'tree':changes})['sha']
+          assert actual==target
+          message='feat: reconcile 27H.6 racing presentation and repair replay startup\n\nPreserve both saved and staged candidates: adaptive HUD, event-qualified race captures, solid broadcast occluders, conforming damp roads and full pit-crew framing. Repair initial grid observation and early replay seek bounds. Calibrate diagnostic-only normal output without changing production shading or relaxing assertions.\n\nExact source passes lint, 1090 unit tests, strict TypeScript, production build and matrix verification. Hosted preflight results are attached to the associated workflow; publication and final visual/hardware acceptance remain separate. Remove temporary reconciliation/import/toolchain files from this tree. No force update, engine change, dependency change or weakened original CI gate.'
+          commit=post('/git/commits',{'message':message,'tree':target,'parents':[os.environ['GITHUB_SHA']]})['sha']
+          report={'candidate':commit,'tree':target,'parent':os.environ['GITHUB_SHA'],'files':len(changes),'branchAdvanced':False}
+          out=pathlib.Path(os.environ['RUNNER_TEMP']);(out/'candidate.json').write_text(json.dumps(report,indent=2)+'\n')
+          subprocess.run(['git','archive','--format=tar.gz','--output='+str(out/'candidate-source.tar.gz'),target],check=True)
+          with open(os.environ['GITHUB_OUTPUT'],'a') as f: f.write('candidate='+commit+'\n')
+          print(json.dumps(report))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase27h6-reconciled-source
+          path: |
+            ${{ runner.temp }}/candidate.json
+            ${{ runner.temp }}/candidate-source.tar.gz
+            ${{ runner.temp }}/candidate-*.patch
+          if-no-files-found: error
+          retention-days: 14
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase27h6-reconciled-web
+          path: dist/
+          if-no-files-found: error
+          retention-days: 7
+  browser:
+    needs: prepare
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4, 5, 6, 7, 8]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.prepare.outputs.candidate }}
+          persist-credentials: false
+      - run: test "$(git rev-parse HEAD^{tree})" = "$TARGET_TREE"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - uses: actions/download-artifact@v4
+        with:
+          name: phase27h6-reconciled-web
+          path: dist/
+      - run: npx playwright install --with-deps chromium
+      - name: Both retained race suites and GPU contracts with original assertions
+        run: npm run test:e2e -- e2e/28-race-hud-layout.spec.ts e2e/28-race-pit-presentation.spec.ts e2e/29-populated-race-review.spec.ts e2e/weather.spec.ts e2e/27-visual-coherence.spec.ts --grep '27H\.6|27H\.5 GPU|actual wet simulation' --shard=${{ matrix.shard }}/8
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase27h6-reconciled-browser-${{ matrix.shard }}
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 14
+  scenarios:
+    needs: prepare
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.prepare.outputs.candidate }}
+          persist-credentials: false
+      - run: test "$(git rev-parse HEAD^{tree})" = "$TARGET_TREE"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm run test:physics
+      - run: node --experimental-transform-types scripts/rotation-benchmark.ts
+      - run: node --experimental-transform-types scripts/pit-integration.ts
+      - run: node --experimental-transform-types scripts/race-classification.ts
+      - run: node --experimental-transform-types scripts/phase27h6-racing.ts
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase27h6-reconciled-scenarios
+          path: |
+            docs/*results.json
+            docs/*benchmark.json
+            docs/*integration.json
+            docs/integrated-driving.json
+            docs/race-classification.json
+          retention-days: 14
