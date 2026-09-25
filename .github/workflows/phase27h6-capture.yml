@@ -9,8 +9,8 @@ concurrency:
   group: phase27h6-capture-workloads
   cancel-in-progress: false
 env:
-  BASE: a0c9211a2a673bbe9811787c5e0fa8108bd9b509
-  BASE_TREE: 6bbf79ca9129be100fbb1b2a115f5bde0bbd4fd2
+  BASE: ea334048d277b256336c009ddcf643ceba605d8d
+  BASE_TREE: 9f6b69b11d501c8cafe411189fd1768ec3279edd
   CI: 'true'
 jobs:
   prepare:
@@ -30,7 +30,7 @@ jobs:
         with:
           node-version: '22'
           cache: npm
-      - name: Apply the exact menu repair to the reconciled source
+      - name: Apply exact capture fixes to the menu-repaired source
         shell: bash
         run: |
           set -euo pipefail
@@ -38,13 +38,13 @@ jobs:
           import base64, hashlib, os, pathlib, subprocess, zlib
           def git(*args): return subprocess.check_output(['git',*args],text=True).strip()
           assert os.environ['GITHUB_REPOSITORY']=='cheshmakzanoon-ops/Experiment-3'
-          assert git('rev-parse','HEAD^')=='8c6f0ee191c157a81dfee651d24f960e900fcc78', 'Concurrent changes require reconciliation'
+          assert git('rev-parse','HEAD^')=='b4b9a7ba71385fa1d6ac8fc1c18aff6faad55f36', 'Concurrent changes require reconciliation'
           paths=['.github/phase27h6-capture.b64','.github/workflows/phase27h6-capture.yml']
           assert git('diff','--name-only','HEAD^','HEAD').splitlines()==paths
           packed=base64.b64decode(pathlib.Path(paths[0]).read_bytes(),validate=True)
-          assert hashlib.sha256(packed).hexdigest()=='d8609effd395491f7725df9e6abfc5aa3ff49beaef07594d12b1d2bd478ceabb'
+          assert hashlib.sha256(packed).hexdigest()=='b3474ae2fcb9e98489cc4a6c5cf5779ac7245d13368bf4dc0d31060f8414c917'
           patch=zlib.decompress(packed)
-          assert hashlib.sha256(patch).hexdigest()=='3dbd31da4a721d22887829068b1d55d80f04272e175f19534882f4701ecfd44c'
+          assert hashlib.sha256(patch).hexdigest()=='6d462507f84b43d9194bc71ac5b0b4750c99661ca3d8f686115888e434e0b050'
           p=pathlib.Path(os.environ['RUNNER_TEMP'])/'menu-repair.patch';p.write_bytes(patch)
           subprocess.run(['git','fetch','--depth=1','origin',os.environ['BASE']],check=True)
           assert git('rev-parse',os.environ['BASE']+'^{tree}')==os.environ['BASE_TREE']
@@ -52,7 +52,7 @@ jobs:
           subprocess.run(['git','apply','--index',str(p)],check=True)
           subprocess.run(['node','--experimental-transform-types','scripts/phase27h-matrix.ts','--write'],check=True)
           subprocess.run(['git','add','docs/PHASE_27H_MATRIX.md'],check=True)
-          allowed=['docs/PHASE_27H6_MENU_REPAIR.md','docs/PHASE_27H_MATRIX.md','e2e/30-menu-access.spec.ts','e2e/fixtures/menu-access.ts','src/ui/style.css']
+          allowed=['docs/PHASE_27H6_CAPTURE_REPAIR.md', 'docs/PHASE_27H_MATRIX.md', 'e2e/28-race-pit-presentation.spec.ts', 'e2e/29-populated-race-review.spec.ts', 'src/main.ts', 'src/rendering/effect-playback.ts', 'src/rendering/renderer.ts', 'tests/presentation-time.test.ts']
           assert git('diff','--cached','--name-only',os.environ['BASE']).splitlines()==allowed
           assert git('rev-parse',':src/ui/style.css')=='5afca70227d88a545a57b5f1c753a8993224ab44'
           subprocess.run(['git','diff','--cached','--check'],check=True)
@@ -94,7 +94,7 @@ jobs:
               assert actual==expected,path
               changes.append({'path':path,'mode':git('ls-files','--stage','--',path).split()[0],'type':'blob','sha':actual})
           actual=post('/git/trees',{'base_tree':os.environ['BASE_TREE'],'tree':changes})['sha'];assert actual==tree
-          message='feat: activate reconciled 27H.6 racing presentation with accessible menus\n\nRetain all changes from candidate a0c9211, including both saved and staged implementations. Bound and scroll the real menu between the masthead and footer so the 640x400 workload and short player windows can reach every action. Add seven-size production-Interface keyboard, wheel, settings and action checks plus a normal-application persisted-settings and paused-grid regression. No forced clicks, event injection, relaxed assertions, reduced opponents, hidden source replacement or force push.\n\nThe exact source passed lint, unit tests, strict TypeScript, production build, matrix verification and fast menu regressions before this object was created. Full hosted browser/numerical validation is recorded in the originating preflight and must be reviewed before branch activation. Original CI workflows, simulation, input, storage, audio, authored assets and dependencies are retained. Temporary staging helpers are absent from this game tree. Final art, physical hardware and Steam acceptance remain separate.'
+          message='feat: activate reconciled 27H.6 racing presentation and repair slow-frame effects\n\nRetain all changes from candidate ea33404, including both saved and staged implementations and the accessible menu. Separate CSS viewport and actual drawing-buffer assertions without changing quality. Keep weather/contact effects visible when a live GPU frame spans more than two simulation seconds: reconstruct only the recent two-second visual window in at most sixty substeps, seed cumulative work at that boundary, and expose omitted time. Replay discontinuities, rewind, explicit reset, inactive views and pauses preserve their existing semantics. Add six regression cases for bounded live work, immutable snapshots, dry/disabled effects and reset ownership. Do not change the default-quality wet-night test, its opponents, real following/spray predicates or any timeout.\n\nThe exact source passed lint, unit tests, strict TypeScript, production build, matrix verification and both menu browser regressions before this object was created. Full hosted browser and numerical validation are recorded in the originating preflight and must pass before branch activation. Original CI workflows, simulation, input, storage, audio, authored assets and dependencies are retained. Temporary staging helpers are absent from this game tree. Final art, physical hardware and Steam acceptance remain separate.'
           commit=post('/git/commits',{'message':message,'tree':tree,'parents':[os.environ['GITHUB_SHA']]})['sha']
           report={'candidate':commit,'tree':tree,'parent':os.environ['GITHUB_SHA'],'base':os.environ['BASE'],'changedFiles':changes,'branchAdvanced':False}
           out=pathlib.Path(os.environ['RUNNER_TEMP']);(out/'candidate.json').write_text(json.dumps(report,indent=2)+'\n')
