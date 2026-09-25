@@ -9,8 +9,9 @@ concurrency:
   group: phase27h6-capture-workloads
   cancel-in-progress: false
 env:
-  BASE: ea334048d277b256336c009ddcf643ceba605d8d
-  BASE_TREE: 9f6b69b11d501c8cafe411189fd1768ec3279edd
+  BASE: d3305aba4feabe48ab5c9edecc39861c3ce982d6
+  BASE_TREE: 98f2e144e805e548916e85daf92c3cdde282e820
+  TARGET_TREE: ef8999a836a1817b723c9714e723ae7ff8d22f2c
   CI: 'true'
 jobs:
   prepare:
@@ -20,7 +21,6 @@ jobs:
       contents: write
     outputs:
       candidate: ${{ steps.objects.outputs.candidate }}
-      tree: ${{ steps.objects.outputs.tree }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -30,7 +30,7 @@ jobs:
         with:
           node-version: '22'
           cache: npm
-      - name: Apply exact capture fixes to the menu-repaired source
+      - name: Recover the exact reconciled candidate and saved menu development
         shell: bash
         run: |
           set -euo pipefail
@@ -38,33 +38,32 @@ jobs:
           import base64, hashlib, os, pathlib, subprocess, zlib
           def git(*args): return subprocess.check_output(['git',*args],text=True).strip()
           assert os.environ['GITHUB_REPOSITORY']=='cheshmakzanoon-ops/Experiment-3'
-          assert git('rev-parse','HEAD^')=='b4b9a7ba71385fa1d6ac8fc1c18aff6faad55f36', 'Concurrent changes require reconciliation'
+          assert git('rev-parse','HEAD^')=='63c3e44bc58261537004fcbc002c7a65f8c69331', 'Concurrent changes require reconciliation'
           paths=['.github/phase27h6-capture.b64','.github/workflows/phase27h6-capture.yml']
           assert git('diff','--name-only','HEAD^','HEAD').splitlines()==paths
           packed=base64.b64decode(pathlib.Path(paths[0]).read_bytes(),validate=True)
-          assert hashlib.sha256(packed).hexdigest()=='b3474ae2fcb9e98489cc4a6c5cf5779ac7245d13368bf4dc0d31060f8414c917'
+          assert hashlib.sha256(packed).hexdigest()=='52c3e88b222f05bb62849c3b0284e0a8b4e6f6affc5ab3be4c7035836afefb32'
           patch=zlib.decompress(packed)
-          assert hashlib.sha256(patch).hexdigest()=='6d462507f84b43d9194bc71ac5b0b4750c99661ca3d8f686115888e434e0b050'
-          p=pathlib.Path(os.environ['RUNNER_TEMP'])/'menu-repair.patch';p.write_bytes(patch)
+          assert hashlib.sha256(patch).hexdigest()=='d0cf2dd5c0106e7c94b16c9f9280d869aae8e94a8c5975c7f1a3ff6af474b787'
+          p=pathlib.Path(os.environ['RUNNER_TEMP'])/'publication-repair.patch';p.write_bytes(patch)
           subprocess.run(['git','fetch','--depth=1','origin',os.environ['BASE']],check=True)
           assert git('rev-parse',os.environ['BASE']+'^{tree}')==os.environ['BASE_TREE']
           subprocess.run(['git','read-tree','--reset','-u',os.environ['BASE']],check=True)
           subprocess.run(['git','apply','--index',str(p)],check=True)
           subprocess.run(['node','--experimental-transform-types','scripts/phase27h-matrix.ts','--write'],check=True)
           subprocess.run(['git','add','docs/PHASE_27H_MATRIX.md'],check=True)
-          allowed=['docs/PHASE_27H6_CAPTURE_REPAIR.md', 'docs/PHASE_27H_MATRIX.md', 'e2e/28-race-pit-presentation.spec.ts', 'e2e/29-populated-race-review.spec.ts', 'src/main.ts', 'src/rendering/effect-playback.ts', 'src/rendering/renderer.ts', 'tests/presentation-time.test.ts']
-          assert git('diff','--cached','--name-only',os.environ['BASE']).splitlines()==allowed
-          assert git('rev-parse',':src/ui/style.css')=='5afca70227d88a545a57b5f1c753a8993224ab44'
+          assert git('diff','--cached','--name-only',os.environ['BASE']).splitlines()==['docs/PHASE_27H6_PUBLICATION.md', 'docs/PHASE_27H_MATRIX.md', 'e2e/28-race-hud-layout.spec.ts', 'e2e/28-race-pit-presentation.spec.ts', 'e2e/29-populated-race-review.spec.ts', 'e2e/fixtures/race-hud-layout.ts', 'src/ui/interface.ts', 'src/ui/style.css']
+          assert git('write-tree')==os.environ['TARGET_TREE'], 'Reconstructed source mismatch'
           subprocess.run(['git','diff','--cached','--check'],check=True)
-          print('Candidate tree:',git('write-tree'))
+          print('Exact candidate tree:',git('write-tree'))
           PY
       - run: npm ci --no-audit --no-fund
       - run: npm run check
       - run: node --experimental-transform-types scripts/phase27h-matrix.ts --check
       - run: npx playwright install --with-deps chromium
-      - name: Fast production-menu regression before race workloads
-        run: npm run test:e2e -- e2e/30-menu-access.spec.ts
-      - name: Retain checked candidate without advancing a branch
+      - name: Production menu regressions before long racing workloads
+        run: npm run test:e2e -- e2e/28-race-hud-layout.spec.ts e2e/30-menu-access.spec.ts
+      - name: Store the checked candidate without moving main
         id: objects
         env:
           GH_TOKEN: ${{ github.token }}
@@ -86,20 +85,20 @@ jobs:
                   except urllib.error.URLError:
                       if attempt==2: raise
                   time.sleep(2**attempt)
-          tree=git('write-tree');changes=[]
+          tree=git('write-tree');assert tree==os.environ['TARGET_TREE'];changes=[]
           for path in git('diff','--cached','--name-only',os.environ['BASE']).splitlines():
               data=subprocess.check_output(['git','show',':'+path])
               expected=hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()
               actual=post('/git/blobs',{'content':base64.b64encode(data).decode(),'encoding':'base64'})['sha']
               assert actual==expected,path
               changes.append({'path':path,'mode':git('ls-files','--stage','--',path).split()[0],'type':'blob','sha':actual})
-          actual=post('/git/trees',{'base_tree':os.environ['BASE_TREE'],'tree':changes})['sha'];assert actual==tree
-          message='feat: activate reconciled 27H.6 racing presentation and repair slow-frame effects\n\nRetain all changes from candidate ea33404, including both saved and staged implementations and the accessible menu. Separate CSS viewport and actual drawing-buffer assertions without changing quality. Keep weather/contact effects visible when a live GPU frame spans more than two simulation seconds: reconstruct only the recent two-second visual window in at most sixty substeps, seed cumulative work at that boundary, and expose omitted time. Replay discontinuities, rewind, explicit reset, inactive views and pauses preserve their existing semantics. Add six regression cases for bounded live work, immutable snapshots, dry/disabled effects and reset ownership. Do not change the default-quality wet-night test, its opponents, real following/spray predicates or any timeout.\n\nThe exact source passed lint, unit tests, strict TypeScript, production build, matrix verification and both menu browser regressions before this object was created. Full hosted browser and numerical validation are recorded in the originating preflight and must pass before branch activation. Original CI workflows, simulation, input, storage, audio, authored assets and dependencies are retained. Temporary staging helpers are absent from this game tree. Final art, physical hardware and Steam acceptance remain separate.'
+          assert post('/git/trees',{'base_tree':os.environ['BASE_TREE'],'tree':changes})['sha']==tree
+          message='feat: publish reconciled 27H.6 and recover saved menu navigation\n\nRetain d3305ab presentation and all saved 9961d93 menu behavior, both sets of regression coverage, bounded live effects and exact render-buffer checks. Use the existing 50 percent render-scale setting for the software-GPU cockpit workload while retaining its real mirrors, all eight cars, full rain/spray and unchanged event/continuity thresholds. Persist diagnostics for interrupted recordings. No force update, hidden quality change, weakened race criteria or unrelated project content.\n\nCandidate identity and complete CI are verified by the originating guarded publication workflow. Source upload is not activation: main advances only after every candidate job succeeds. Original simulation, input, storage, audio, assets, dependencies and CI remain unchanged. Final-art, hardware and Steam acceptance remain open.'
           commit=post('/git/commits',{'message':message,'tree':tree,'parents':[os.environ['GITHUB_SHA']]})['sha']
           report={'candidate':commit,'tree':tree,'parent':os.environ['GITHUB_SHA'],'base':os.environ['BASE'],'changedFiles':changes,'branchAdvanced':False}
           out=pathlib.Path(os.environ['RUNNER_TEMP']);(out/'candidate.json').write_text(json.dumps(report,indent=2)+'\n')
           subprocess.run(['git','archive','--format=tar.gz','--output='+str(out/'candidate-source.tar.gz'),tree],check=True)
-          with open(os.environ['GITHUB_OUTPUT'],'a') as f: f.write('candidate='+commit+'\ntree='+tree+'\n')
+          with open(os.environ['GITHUB_OUTPUT'],'a') as f:f.write('candidate='+commit+'\n')
           print(json.dumps(report))
           PY
       - uses: actions/upload-artifact@v4
@@ -116,7 +115,7 @@ jobs:
           path: |
             ${{ runner.temp }}/candidate.json
             ${{ runner.temp }}/candidate-source.tar.gz
-            ${{ runner.temp }}/menu-repair.patch
+            ${{ runner.temp }}/publication-repair.patch
           if-no-files-found: error
           retention-days: 14
       - uses: actions/upload-artifact@v4
@@ -133,8 +132,6 @@ jobs:
         shard: [1, 2, 3, 4, 5, 6, 7, 8]
     runs-on: ubuntu-24.04
     timeout-minutes: 45
-    env:
-      TARGET_TREE: ${{ needs.prepare.outputs.tree }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -151,7 +148,7 @@ jobs:
           name: phase27h6-capture-web
           path: dist/
       - run: npx playwright install --with-deps chromium
-      - name: Complete unchanged browser suite and menu regressions
+      - name: Complete browser suite, including all retained tests
         run: npm run test:e2e -- --shard=${{ matrix.shard }}/8
       - uses: actions/upload-artifact@v4
         if: always()
@@ -161,12 +158,40 @@ jobs:
             test-results/
             playwright-report/
           retention-days: 14
+  wet_following:
+    needs: prepare
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.prepare.outputs.candidate }}
+          persist-credentials: false
+      - run: test "$(git rev-parse HEAD^{tree})" = "$TARGET_TREE"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - uses: actions/download-artifact@v4
+        with:
+          name: phase27h6-capture-web
+          path: dist/
+      - run: npx playwright install --with-deps chromium
+      - name: Independent reproduction of the previously failing cockpit workload
+        run: npm run test:e2e -- e2e/29-populated-race-review.spec.ts --grep 'wet-following day'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase27h6-wet-following-repeat
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 14
   scenarios:
     needs: prepare
     runs-on: ubuntu-24.04
     timeout-minutes: 15
-    env:
-      TARGET_TREE: ${{ needs.prepare.outputs.tree }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -194,3 +219,109 @@ jobs:
             docs/integrated-driving.json
             docs/race-classification.json
           retention-days: 14
+  publish:
+    needs: [prepare, browser, scenarios, wet_following]
+    if: ${{ needs.prepare.result == 'success' && needs.browser.result == 'success' && needs.scenarios.result == 'success' && needs.wet_following.result == 'success' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      actions: write
+    env:
+      CANDIDATE: ${{ needs.prepare.outputs.candidate }}
+    steps:
+      - name: Publish exact validated candidate and verify main
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, os, pathlib, re, time, urllib.request, urllib.error
+
+          REPO = 'cheshmakzanoon-ops/Experiment-3'
+
+          def activate(api, expected, candidate, tree):
+              for value in (expected, candidate, tree):
+                  if not re.fullmatch('[a-f0-9]{40}', value):
+                      raise ValueError('Invalid Git identity')
+              commit = api('GET', '/git/commits/' + candidate)
+              if commit['tree']['sha'] != tree or [p['sha'] for p in commit['parents']] != [expected]:
+                  raise RuntimeError('Candidate identity or parent changed')
+              # A lost PATCH response must be resolved by reading the branch, not by a
+              # force update or constructing another commit. A concurrent writer aborts.
+              last_error = None
+              for attempt in range(3):
+                  current = api('GET', '/git/ref/heads/main')['object']['sha']
+                  if current == candidate:
+                      return {'published': True, 'commit': candidate, 'tree': tree, 'parent': expected}
+                  if current != expected:
+                      raise RuntimeError('Concurrent main change; refusing publication: ' + current)
+                  try:
+                      api('PATCH', '/git/refs/heads/main', {'sha': candidate, 'force': False})
+                  except (urllib.error.URLError, TimeoutError) as error:
+                      last_error = error
+                  observed = api('GET', '/git/ref/heads/main')['object']['sha']
+                  if observed == candidate:
+                      return {'published': True, 'commit': candidate, 'tree': tree, 'parent': expected}
+                  if observed != expected:
+                      raise RuntimeError('Concurrent main change after publication request: ' + observed)
+              raise RuntimeError('Publication was not confirmed') from last_error
+
+          def main():
+              if os.environ.get('GITHUB_REPOSITORY') != REPO:
+                  raise RuntimeError('Wrong repository')
+              def api(method, path, body=None):
+                  request = urllib.request.Request(
+                      'https://api.github.com/repos/' + REPO + path,
+                      data=None if body is None else json.dumps(body).encode(), method=method,
+                      headers={'Authorization': 'Bearer ' + os.environ['GH_TOKEN'],
+                               'Accept': 'application/vnd.github+json',
+                               'Content-Type': 'application/json'})
+                  with urllib.request.urlopen(request, timeout=45) as response:
+                      raw = response.read()
+                      return json.loads(raw) if raw else {}
+              report = {'published': False, 'ordinaryCIRequested': False}
+              out = pathlib.Path(os.environ['RUNNER_TEMP']) / 'publication.json'
+              try:
+                  report.update(activate(api, os.environ['GITHUB_SHA'], os.environ['CANDIDATE'], os.environ['TARGET_TREE']))
+                  out.write_text(json.dumps(report, indent=2) + '\n')
+                  # GITHUB_TOKEN pushes do not create another push-triggered workflow.
+                  # workflow_dispatch is the documented exception. Avoid duplicate dispatch
+                  # on retry when an exact-source run is already visible.
+                  path = '/actions/workflows/ci.yml/runs?head_sha=' + report['commit'] + '&event=workflow_dispatch&per_page=10'
+                  runs = api('GET', path)['workflow_runs']
+                  if not runs:
+                      api('POST', '/actions/workflows/ci.yml/dispatches', {'ref': 'main'})
+                      report['ordinaryCIRequested'] = True
+                      for _ in range(12):
+                          time.sleep(5)
+                          runs = api('GET', path)['workflow_runs']
+                          if runs:
+                              break
+                  if not runs:
+                      raise RuntimeError('Published, but ordinary CI dispatch is not yet visible')
+                  exact = [r for r in runs if r['head_sha'] == report['commit']]
+                  if not exact:
+                      raise RuntimeError('Ordinary CI source mismatch')
+                  report['ordinaryCIRequested'] = True
+                  report['ordinaryCIRun'] = exact[0]['id']
+                  report['ordinaryCIURL'] = exact[0]['html_url']
+                  if api('GET', '/git/ref/heads/main')['object']['sha'] != report['commit']:
+                      raise RuntimeError('main changed after verified publication')
+                  with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as f:
+                      f.write('## Verified publication\n\nCommit: `' + report['commit'] + '`\n\nTree: `' + report['tree'] + '`\n\nAll candidate validation jobs passed. Main read-back matched. Ordinary CI: ' + report['ordinaryCIURL'] + '\n')
+              finally:
+                  out.write_text(json.dumps(report, indent=2) + '\n')
+                  print(json.dumps(report))
+
+          if __name__ == '__main__':
+              main()
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase27h6-publication-result
+          path: ${{ runner.temp }}/publication.json
+          if-no-files-found: error
+          retention-days: 30
