@@ -1,0 +1,35 @@
+name: Recover locked 27H.6 validation toolchain
+on:
+  push:
+    branches: [main]
+    paths: [.github/workflows/phase27h6-toolchain.yml]
+permissions:
+  contents: read
+jobs:
+  locked-toolchain:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 12f38b1917a1ad398fc6ef3aa92c7c479a8f948d
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Preserve exact dependencies for offline validation
+        shell: bash
+        run: |
+          set -euo pipefail
+          sha256sum package-lock.json > "$RUNNER_TEMP/toolchain-lock.sha256"
+          tar -czf "$RUNNER_TEMP/locked-node-modules.tar.gz" node_modules
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase27h6-locked-toolchain
+          path: |
+            ${{ runner.temp }}/toolchain-lock.sha256
+            ${{ runner.temp }}/locked-node-modules.tar.gz
+          retention-days: 2
+          if-no-files-found: error
