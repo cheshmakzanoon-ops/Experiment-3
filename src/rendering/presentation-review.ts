@@ -1,3 +1,13 @@
+import {
+  RaceReviewEvents,
+  RACE_REVIEW_COLUMNS,
+  raceReviewFrame,
+  raceReviewValues,
+  restoreRaceReviewFrame,
+  validRaceReviewFrame,
+  isRacingWorkload,
+  type RaceReviewFrame,
+} from './race-review.ts';
 import { lightingMode, type LightingMode } from './daylight.ts';
 import { summarizePerformance, type FrameMetrics } from '../core/performance.ts';
 
@@ -42,6 +52,8 @@ export const REVIEW_WORKLOADS = [
   'sunset',
   'grid-start',
   'pit-service',
+  'close-racing',
+  'wet-following',
   'other',
 ] as const;
 export type ReviewWorkload = (typeof REVIEW_WORKLOADS)[number];
@@ -60,9 +72,11 @@ export interface ReviewContext {
   startTime: number;
   followedCar: number;
   videoRequested: boolean;
+  /** Absent only in legacy captures. New application captures always request it. */
+  racingEvidence?: 1;
 }
 /** Reused by the renderer; no stats() snapshot or per-frame scene traversal. */
-export interface ReviewFrame extends FrameMetrics {
+export interface ReviewFrame extends FrameMetrics, RaceReviewFrame {
   time: number;
   s: number;
   laps: number;
@@ -90,6 +104,7 @@ export interface ReviewFrame extends FrameMetrics {
 }
 export function reviewFrame(): ReviewFrame {
   return {
+    ...raceReviewFrame(),
     renderCPUms: 0,
     physicsMs: 0,
     drawCalls: 0,
@@ -152,7 +167,9 @@ function validateContext(c: ReviewContext) {
     !Number.isInteger(c.followedCar) ||
     c.followedCar < 0 ||
     c.followedCar >= 12 ||
-    typeof c.videoRequested !== 'boolean'
+    typeof c.videoRequested !== 'boolean' ||
+    (c.racingEvidence !== undefined && c.racingEvidence !== 1) ||
+    (['close-racing', 'wet-following'].includes(c.workload) && c.racingEvidence !== 1)
   )
     throw new Error('Invalid presentation review identity');
 }
@@ -169,6 +186,8 @@ export function matchesReviewWeather(
       return mode === 'day' && rain === 0 && cloud < 0.5;
     case 'overcast-day':
       return mode === 'day' && rain === 0 && cloud >= 0.5;
+    case 'wet-following':
+      return rain > 0;
     case 'wet-day':
       return mode === 'day' && rain > 0;
     case 'wet-night':
@@ -190,6 +209,12 @@ export interface PresentationReport {
   progressM: number;
   evidence: 'rendered-frame-observations-not-visual-acceptance';
   summary: ReturnType<typeof summarizePresentation>;
+  racing?: {
+    version: 1;
+    columns: typeof RACE_REVIEW_COLUMNS;
+    rows: number[][];
+    summary: ReturnType<RaceReviewEvents['summary']>;
+  };
 }
 const percentile = (values: number[], fraction: number) =>
   values.length ? values.sort((a, b) => a - b)[Math.ceil(values.length * fraction) - 1] : null;
@@ -269,6 +294,11 @@ export class PresentationReview {
   private previousLaps = 0;
   private previousProgressTime = 0;
   private lastGPU = 0;
+  private racingData: Float64Array | null = null;
+  private racingEvents = new RaceReviewEvents();
+  get racing() {
+    return this.identity?.racingEvidence ? this.racingEvents.summary(this.identity.workload) : null;
+  }
   get active() {
     return this.state === 'recording';
   }
@@ -292,6 +322,9 @@ export class PresentationReview {
     this.progressM = 0;
     this.elapsedMs = 0;
     this.lastGPU = initialGPUSequence;
+    this.racingEvents = new RaceReviewEvents();
+    if (context.racingEvidence)
+      this.racingData ??= new Float64Array(REVIEW_LIMIT * RACE_REVIEW_COLUMNS.length);
   }
   interrupt(reason: string) {
     if (!this.active) return;
@@ -303,6 +336,7 @@ export class PresentationReview {
     const c = this.identity!,
       data = this.data!;
     if (
+      (c.racingEvidence === 1 && !validRaceReviewFrame(frame, c.followedCar)) ||
       !Number.isFinite(now) ||
       now <= this.previousAt ||
       Object.entries(frame).some(([key, value]) => key !== 'gpuMs' && !Number.isFinite(value)) ||
@@ -404,6 +438,10 @@ export class PresentationReview {
     data[p + 27] = frame.water;
     data[p + 28] = frame.mirrors;
     data[p + 29] = frame.probes;
+    if (c.racingEvidence) {
+      this.racingData!.set(raceReviewValues(frame), this.count * RACE_REVIEW_COLUMNS.length);
+      this.racingEvents.observe(frame.time, frame.rain, frame.water, frame);
+    }
     this.count++;
     this.progressM += ds;
     this.elapsedMs += delta;
@@ -413,10 +451,22 @@ export class PresentationReview {
     this.previousTime = frame.time;
     this.previousLaps = frame.laps;
     this.lastGPU = Math.max(this.lastGPU, frame.gpuSequence);
-    if (c.mode === 'full-lap' && this.progressM >= c.trackLength && frame.laps > c.startLaps)
+    const eventQualified = !c.racingEvidence || this.racingEvents.qualified(c.workload);
+    if (
+      eventQualified &&
+      c.mode === 'full-lap' &&
+      this.progressM >= c.trackLength &&
+      frame.laps > c.startLaps
+    )
       this.state = 'complete';
-    if (c.mode === 'timed-scene' && this.elapsedMs >= 30000) this.state = 'complete';
-    if (this.active && this.elapsedMs >= 600000) this.interrupt('Ten-minute review limit reached');
+    if (eventQualified && c.mode === 'timed-scene' && this.elapsedMs >= 30000)
+      this.state = 'complete';
+    if (this.active && this.elapsedMs >= 600000)
+      this.interrupt(
+        !eventQualified && isRacingWorkload(c.workload)
+          ? 'Ten-minute review limit reached without the required racing event'
+          : 'Ten-minute review limit reached',
+      );
   }
   report(): PresentationReport | null {
     if (!this.identity || (this.state !== 'complete' && this.state !== 'interrupted')) return null;
@@ -425,6 +475,23 @@ export class PresentationReview {
     );
     return {
       version: 1,
+      ...(this.identity.racingEvidence
+        ? {
+            racing: {
+              version: 1 as const,
+              columns: RACE_REVIEW_COLUMNS,
+              rows: Array.from({ length: this.count }, (_, i) =>
+                Array.from(
+                  this.racingData!.subarray(
+                    i * RACE_REVIEW_COLUMNS.length,
+                    (i + 1) * RACE_REVIEW_COLUMNS.length,
+                  ),
+                ),
+              ),
+              summary: this.racingEvents.summary(this.identity.workload),
+            },
+          }
+        : {}),
       state: this.state,
       reason: this.reason,
       context: { ...this.identity },
@@ -451,6 +518,15 @@ export function readPresentationReport(value: unknown): PresentationReport {
   )
     throw new Error('Invalid presentation report schema');
   summarizePresentation(input.rows);
+  if (input.context?.racingEvidence) {
+    if (
+      input.racing?.version !== 1 ||
+      JSON.stringify(input.racing.columns) !== JSON.stringify(RACE_REVIEW_COLUMNS) ||
+      !Array.isArray(input.racing.rows) ||
+      input.racing.rows.length !== input.rows.length
+    )
+      throw new Error('Missing or mismatched racing observations');
+  } else if (input.racing !== undefined) throw new Error('Undeclared racing observations');
   const review = new PresentationReview();
   review.start(input.context, 0);
   let now = 0,
@@ -489,6 +565,7 @@ export function readPresentationReport(value: unknown): PresentationReport {
     f.water = row[27];
     f.mirrors = row[28];
     f.probes = row[29];
+    if (input.context.racingEvidence) restoreRaceReviewFrame(input.racing!.rows[review.count], f);
     review.record(now, f);
   }
   if (review.count !== input.rows.length)
@@ -515,7 +592,11 @@ export const REVIEW_TARGETS = Object.freeze({
 export function reviewBudget(value: PresentationReport) {
   const report = readPresentationReport(value),
     s = report.summary;
-  const enough = report.state === 'complete' && s.samples >= 300 && s.elapsedMs >= 10000;
+  const enough =
+    report.state === 'complete' &&
+    s.samples >= 300 &&
+    s.elapsedMs >= 10000 &&
+    (!isRacingWorkload(report.context.workload) || report.racing?.summary.qualified === true);
   const checks = (Object.keys(REVIEW_TARGETS) as (keyof typeof REVIEW_TARGETS)[]).map((key) => {
     const observed = s[key],
       available = enough && observed !== null && (key !== 'p99GPUms' || s.gpuSamples >= 100);

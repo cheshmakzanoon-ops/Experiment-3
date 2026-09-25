@@ -1,3 +1,4 @@
+import { buildGantrySolids, buildControlTowerSolids } from './race-structures.ts';
 import { MarshalStaffView } from './marshal-staff.ts';
 import { districtPlan, buildDistricts } from './venue-districts.ts';
 import { BroadcastSightlines } from './broadcast-sightlines.ts';
@@ -414,8 +415,7 @@ export class CircuitScene {
       gantry.position.copy(this.at(0, 0));
       gantry.rotation.y = Math.atan2(p.tx, p.tz);
       this.props.add(gantry);
-      box(gantry, dark, 0, 6, 0, 22, 1.3, 0.5);
-      for (const side of [-1, 1]) box(gantry, concrete, side * 10.8, 3, 0, 0.5, 6, 0.5);
+      buildGantrySolids(gantry, dark, concrete, this.sightlines);
       const banner = mesh(
         gantry,
         new T.PlaneGeometry(14, 1),
@@ -445,9 +445,7 @@ export class CircuitScene {
       const tower = new T.Group();
       tower.position.copy(this.at(235, 38));
       this.props.add(tower);
-      box(tower, concrete, 0, 8, 0, 7, 16, 7);
-      box(tower, glass, 0, 15, 0, 9, 3.5, 9);
-      box(tower, roof, 0, 17, 0, 10, 0.25, 10);
+      buildControlTowerSolids(tower, concrete, glass, roof, this.sightlines);
     });
   }
   private grid() {

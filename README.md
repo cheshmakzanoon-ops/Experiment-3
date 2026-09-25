@@ -1,6 +1,15 @@
-## Phase 27G development candidate
+## Phase 27H.6 development candidate
 
-**Latest environment checkpoint — 27H.4:** constructed Aurel districts, terrain-graded plazas, slotted drainage, retained event-hall integration and late-bound regional weather. See [implementation and open gates](docs/PHASE_27H4_IMPLEMENTATION.md) and [local validation](docs/PHASE_27H4_VALIDATION.json). This is not full-lap art or Steam-release acceptance.
+**Latest implementation checkpoint — 27H.6:** unobstructed wide-view telemetry,
+scroll-safe populated standings, solid-structure broadcast occlusion, and
+sequence-qualified grid/close-racing/wet-following/pit captures, conforming damp
+asphalt, complete pit-crew framing and bounded pose reuse. See also
+[reconciliation and current validation](docs/PHASE_27H6_RECONCILIATION.md). See
+[implemented scope and independent open gates](docs/PHASE_27H6_IMPLEMENTATION.md)
+and [validation](docs/PHASE_27H6_VALIDATION.json). This is a tested source
+candidate, not final-art, target-hardware, hosted-CI or Steam acceptance.
+
+**Retained environment checkpoint — 27H.4:** constructed Aurel districts, terrain-graded plazas, slotted drainage, retained event-hall integration and late-bound regional weather. See [implementation and open gates](docs/PHASE_27H4_IMPLEMENTATION.md) and [local validation](docs/PHASE_27H4_VALIDATION.json). This is not full-lap art or Steam-release acceptance.
 
 The closure continuation adds measured adaptive exposure, local weather haze, complete-group broadcast framing, revised sleeve/safety-cell geometry, same-task PNG ownership and explicit full-tab recording to disk. See [closure implementation and remaining independent acceptance](docs/PHASE_27G_CLOSURE_EVIDENCE.md).
 

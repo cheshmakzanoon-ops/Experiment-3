@@ -1,4 +1,4 @@
-import { expect, it } from 'vitest';
+import { expect, it, vi } from 'vitest';
 import * as T from 'three';
 import { CAR_STRIDE, F, H, HEADER, W, WHEEL_BASE, carBase } from '../src/simulation/protocol.ts';
 import { PresentedFrame } from '../src/rendering/frame-state.ts';
@@ -186,6 +186,106 @@ it.each([0.5, 1, 2])('retains real weather/contact work during %s FPS rendering'
     playback.update(snapshot(4));
     expect(effects.diagnostics().spawned).toEqual(before);
     playback.update(snapshot(20));
+    expect(effects.diagnostics().spawned.every((n) => n === 0)).toBe(true);
+  } finally {
+    dispose(effects);
+  }
+});
+
+it.each([2.5, 3.25, 10, 50])(
+  'bounds a %s-second live GPU stall without extinguishing measured rain and spray',
+  (gap) => {
+    const effects = new Effects(),
+      playback = new EffectPlayback(effects),
+      initial = snapshot(0),
+      current = snapshot(gap),
+      original = current.slice(),
+      update = vi.spyOn(effects, 'update');
+    try {
+      playback.update(initial, true, true);
+      update.mockClear();
+      playback.update(current, true, true);
+      expect(update.mock.calls).toHaveLength(61);
+      expect(update.mock.calls[0][1]).toBe(0);
+      expect(update.mock.calls[0][2]).toBe(false);
+      expect(update.mock.calls.slice(1).every((call) => call[1] <= 1 / 30)).toBe(true);
+      expect(update.mock.calls.reduce((sum, call) => sum + call[1], 0)).toBeCloseTo(2, 8);
+      expect(playback.elapsed).toBeCloseTo(2);
+      expect(playback.omittedSeconds).toBeCloseTo(gap - 2);
+      expect(playback.boundedCatchups).toBe(1);
+      expect(playback.resets).toBe(1);
+      const measured = effects.diagnostics();
+      expect(measured.spawned[PARTICLE_KIND.MARBLE]).toBe(320);
+      expect(measured.spawned[PARTICLE_KIND.SPRAY]).toBe(96);
+      expect(measured.spawned[PARTICLE_KIND.RAIN]).toBe(160);
+      expect(measured.active[PARTICLE_KIND.SPRAY]).toBeGreaterThan(0);
+      expect(measured.active[PARTICLE_KIND.RAIN]).toBeGreaterThan(0);
+      expect(current).toEqual(original);
+      expect(initial).toEqual(snapshot(0));
+      update.mockClear();
+      playback.update(current, true, true);
+      expect(update).not.toHaveBeenCalled();
+      expect(effects.diagnostics()).toEqual(measured);
+      playback.update(snapshot(gap * 2), true, true);
+      expect(playback.elapsed).toBeCloseTo(4);
+      expect(playback.omittedSeconds).toBeCloseTo((gap - 2) * 2);
+      expect(playback.boundedCatchups).toBe(2);
+      expect(effects.diagnostics().active[PARTICLE_KIND.SPRAY]).toBeGreaterThan(0);
+    } finally {
+      update.mockRestore();
+      dispose(effects);
+    }
+  },
+);
+
+it('keeps rewind, explicit reset, replay gaps and inactive views separate from live catch-up', () => {
+  const effects = new Effects(),
+    playback = new EffectPlayback(effects);
+  try {
+    playback.update(snapshot(0), true, true);
+    playback.update(snapshot(3), true, true);
+    expect(playback.boundedCatchups).toBe(1);
+    playback.update(snapshot(1), true, true);
+    expect(effects.diagnostics().active.every((n) => n === 0)).toBe(true);
+    playback.update(snapshot(1.25), true, true);
+    expect(effects.diagnostics().active[PARTICLE_KIND.SPRAY]).toBeGreaterThan(0);
+    playback.reset();
+    playback.update(snapshot(30), true, true);
+    expect(playback.boundedCatchups).toBe(0);
+    expect(playback.omittedSeconds).toBe(0);
+    expect(effects.diagnostics().spawned.every((n) => n === 0)).toBe(true);
+    playback.update(snapshot(30.25), true, true);
+    playback.update(snapshot(35), true, false);
+    expect(effects.diagnostics().active.every((n) => n === 0)).toBe(true);
+    playback.update(snapshot(38), true, true);
+    expect(effects.diagnostics().active[PARTICLE_KIND.SPRAY]).toBeGreaterThan(0);
+    playback.update(snapshot(38), false, true);
+    expect(effects.group.visible).toBe(false);
+    expect(effects.diagnostics().active.every((n) => n === 0)).toBe(true);
+    playback.update(snapshot(45), true, true);
+    expect(effects.diagnostics().spawned.every((n) => n === 0)).toBe(true);
+  } finally {
+    dispose(effects);
+  }
+});
+
+it('does not fabricate rain or contact spray for dry or disabled long-gap live observations', () => {
+  const effects = new Effects(),
+    playback = new EffectPlayback(effects),
+    dry = (time: number) => {
+      const frame = snapshot(time);
+      frame[H.RAIN] = 0;
+      frame[p + W.WATER] = 0;
+      frame[p + W.LOAD] = 0;
+      return frame;
+    };
+  try {
+    playback.update(dry(0), true, true);
+    playback.update(dry(4), true, true);
+    expect(effects.diagnostics().spawned.every((n) => n === 0)).toBe(true);
+    effects.enabled = false;
+    playback.update(snapshot(8), true, true);
+    expect(effects.group.visible).toBe(false);
     expect(effects.diagnostics().spawned.every((n) => n === 0)).toBe(true);
   } finally {
     dispose(effects);

@@ -1,3 +1,4 @@
+import { PitComposition } from './pit-presentation.ts';
 import { Vector3 } from 'three';
 import { F, H, HEADER, CAR_STRIDE, carBase } from '../simulation/protocol.ts';
 
@@ -9,6 +10,7 @@ export class RaceComposition {
   radius = 3.1;
   kind: 'single' | 'battle' | 'pack' | 'pit' | 'finish' | 'grid' = 'single';
   participants: number[] = [];
+  private readonly pit = new PitComposition();
   private positions: Vector3[] = Array.from({ length: 12 }, () => new Vector3());
   reset() {
     this.participants = [];
@@ -46,7 +48,11 @@ export class RaceComposition {
         : frame[H.PHASE] < 2
           ? 'grid'
           : 'single';
-    if (this.kind === 'pit' || frame[o + F.RETIRED]) return this;
+    if (this.kind === 'pit') {
+      this.radius = this.pit.apply(frame, o, this.target);
+      return this;
+    }
+    if (frame[o + F.RETIRED]) return this;
     let totalWeight = 1;
     const selected: { id: number; distance: number; weight: number }[] = [];
     for (let id = 0; id < count; id++) {

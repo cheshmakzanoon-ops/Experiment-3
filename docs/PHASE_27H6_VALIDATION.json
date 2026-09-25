@@ -1,0 +1,371 @@
+{
+  "savedCandidate": {
+    "schema": 1,
+    "phase": "27H.6 populated-race presentation candidate; acceptance remains open",
+    "baseCommit": "12f38b1917a1ad398fc6ef3aa92c7c479a8f948d",
+    "baseTree": "0f311ab1a414686c77d462ecaf37da046462f8d9",
+    "sourceFingerprint": "494a9d67e8e42f37de113560b04ac2abc63b3017d7824752b9b8b087688fe04c",
+    "localChecks": {
+      "lint": "PASS",
+      "strictTypeScript": "PASS",
+      "productionBuild": "PASS",
+      "unit": {
+        "files": 104,
+        "passed": 1083,
+        "failed": 0,
+        "newCases": 42,
+        "workers": 2
+      },
+      "matrix": "PASS, all 248 dispositions retained",
+      "checkLogSHA256": "5707f8762cb32bd8a47c1e4896507b358aa48b631332ddba46ca40ed89b8f486"
+    },
+    "numericalReports": [
+      {
+        "file": "dynamics-benchmark.json",
+        "commandExit": 0,
+        "sha256": "1f98a94d4908228aa89c467b543f3109a58f9cbcf0913919c8f34e07cf6aaff9"
+      },
+      {
+        "file": "integrated-driving.json",
+        "commandExit": 0,
+        "sha256": "59376a4fcb26627302c9645379c794b97b339217a5578ede99795481e56b14ef"
+      },
+      {
+        "file": "marshal-integration.json",
+        "commandExit": 0,
+        "sha256": "40cb6139b0f18fbc0d5b7daba7337805621c50f7c850362f8a3e656d8183f804"
+      },
+      {
+        "file": "pit-integration.json",
+        "commandExit": 0,
+        "sha256": "afb1ab677bb9c6ad41c64a4b35c65bc3b97026a12737526f8faaa5dae02fa693"
+      },
+      {
+        "file": "race-classification.json",
+        "commandExit": 0,
+        "sha256": "a685f08be184eed586635e3cae316b816b7e04d2835d66f612d817c3a5d4486c"
+      },
+      {
+        "file": "rotation-benchmark.json",
+        "commandExit": 0,
+        "sha256": "6cbf8fc9c288499353d9e96c012ca5461c757dcd89c995b8d4262ab33e1e319c"
+      },
+      {
+        "file": "scenario-results.json",
+        "commandExit": 0,
+        "sha256": "d1e3b2987348a9e201702acd416a464abe59b2f6f78a1eef6f22feda900e4d6e"
+      },
+      {
+        "file": "wet-pit-results.json",
+        "commandExit": 0,
+        "sha256": "144e7cfeb417889f2422c1aacf47a4beab746e2dedfa61d23ad1bb8b9980d9b9"
+      }
+    ],
+    "populatedSimulation": {
+      "boundary": "Numerical simulation and rendering-component observations only. No WebGL draw or physical-hardware timing.",
+      "passed": true,
+      "reports": [
+        {
+          "workload": "grid-start",
+          "passed": true,
+          "simulationSeconds": 30.00833333333227,
+          "cars": 12,
+          "maximumLeaderSpray": 0,
+          "maximumCrew": 0,
+          "stages": [],
+          "summary": {
+            "qualified": true,
+            "gridLaunched": true,
+            "closeSeconds": 4.599999904632568,
+            "wetFollowingSeconds": 0,
+            "pitStage": "unseen",
+            "visualAccepted": false,
+            "boundary": "Presented-state events; leader-attributed spray is not proof of visible spray or human driving."
+          }
+        },
+        {
+          "workload": "close-racing",
+          "passed": true,
+          "simulationSeconds": 35.341666666665304,
+          "cars": 8,
+          "maximumLeaderSpray": 0,
+          "maximumCrew": 0,
+          "stages": [],
+          "summary": {
+            "qualified": true,
+            "gridLaunched": true,
+            "closeSeconds": 5,
+            "wetFollowingSeconds": 0,
+            "pitStage": "unseen",
+            "visualAccepted": false,
+            "boundary": "Presented-state events; leader-attributed spray is not proof of visible spray or human driving."
+          }
+        },
+        {
+          "workload": "wet-following",
+          "passed": true,
+          "simulationSeconds": 41.57499999999828,
+          "cars": 8,
+          "maximumLeaderSpray": 192,
+          "maximumCrew": 0,
+          "stages": [],
+          "summary": {
+            "qualified": true,
+            "gridLaunched": true,
+            "closeSeconds": 22.166667938232422,
+            "wetFollowingSeconds": 3,
+            "pitStage": "unseen",
+            "visualAccepted": false,
+            "boundary": "Presented-state events; leader-attributed spray is not proof of visible spray or human driving."
+          }
+        },
+        {
+          "workload": "pit-service",
+          "passed": true,
+          "simulationSeconds": 116.30833333337196,
+          "cars": 8,
+          "maximumLeaderSpray": 0,
+          "maximumCrew": 15,
+          "stages": [
+            {
+              "time": 72.70833587646484,
+              "stage": "entry",
+              "stops": 0
+            },
+            {
+              "time": 97.80833435058594,
+              "stage": "service",
+              "stops": 0
+            },
+            {
+              "time": 100.80833435058594,
+              "stage": "released",
+              "stops": 1
+            },
+            {
+              "time": 116.30833435058594,
+              "stage": "exit",
+              "stops": 1
+            }
+          ],
+          "summary": {
+            "qualified": true,
+            "gridLaunched": true,
+            "closeSeconds": 25.96666717529297,
+            "wetFollowingSeconds": 0,
+            "pitStage": "exit",
+            "visualAccepted": false,
+            "boundary": "Presented-state events; leader-attributed spray is not proof of visible spray or human driving."
+          }
+        }
+      ]
+    },
+    "browser": {
+      "domOnly": {
+        "passed": true,
+        "layoutCombinations": 36,
+        "viewports": [
+          "1440x800",
+          "1440x900",
+          "1920x1080"
+        ],
+        "cameras": [
+          "pod",
+          "chase"
+        ],
+        "uiScales": [
+          0.8,
+          1,
+          1.35
+        ],
+        "additionalChecks": [
+          "all 12 standings retained",
+          "native scrolling",
+          "navigation keydowns isolated and keyup releases preserved",
+          "Escape propagation"
+        ],
+        "logSHA256": "3422ae3ed8203b419a17d2846e83f4b88c908a34368a797ae52b182c659f45e4",
+        "gameplayOr3DProof": false
+      },
+      "ordinaryApplication": {
+        "newCases": 5,
+        "locallyPassed": 0,
+        "attempted": "grid-start",
+        "result": "ERR_BLOCKED_BY_ADMINISTRATOR at page.goto(http://127.0.0.1:4173/)",
+        "remainingCases": "Not run locally; normal hosted CI required",
+        "fixtureQuality": "Low preset; wet cases explicitly restore particle density=1 through settings",
+        "capture": "Playwright full-tab video, PNG stage captures, real application frame JSON and recorded replay",
+        "logSHA256": "a2b9278a5c7792259651401efb8bb5d9ed13255e24d6d08d87c8d818a953b3a0",
+        "overrides": "No simulation/pose/clock/completion injection"
+      },
+      "dependencyNote": "The initial missing Playwright FFmpeg executable was supplied from installed system FFmpeg at the local cache path. No lock/dependency/workflow or browser policy was changed."
+    },
+    "preservation": {
+      "baseCommit": "12f38b1917a1ad398fc6ef3aa92c7c479a8f948d",
+      "baselineFiles": 503,
+      "unchangedFiles": 492,
+      "allProtectedBytesEqual": true,
+      "intentionallyChangedBaselineFiles": [
+        "README.md",
+        "docs/PHASE_27H_MATRIX.md",
+        "scripts/phase27h-scope.ts",
+        "src/main.ts",
+        "src/rendering/circuit.ts",
+        "src/rendering/effects.ts",
+        "src/rendering/pit-crew.ts",
+        "src/rendering/presentation-review.ts",
+        "src/rendering/renderer.ts",
+        "src/ui/interface.ts",
+        "src/ui/style.css"
+      ]
+    },
+    "referenceReview": {
+      "archiveSHA256": "4a3934002ee98335764b37a01c6ceb2a781857c117757080b453010894a510be",
+      "selectedEntries": [
+        2,
+        3,
+        4,
+        8,
+        10,
+        32,
+        85,
+        97
+      ],
+      "baselineRun": 36123363094,
+      "baselineArtifacts": [
+        10859801855,
+        10859852830
+      ],
+      "all100ReviewedThisPass": false,
+      "baselineFootageIsCandidateProof": false
+    },
+    "budgets": {
+      "additionalGeometry": 0,
+      "additionalTextures": 0,
+      "additionalShaders": 0,
+      "additionalRenderPasses": 0,
+      "additionalStaticOccluders": 5,
+      "particleOwnerCPUBytes": 1800,
+      "maxRacingCompanionCPUBytes": 4080000,
+      "extraCPUWork": "Five additional static OBB tests in existing broadcast selection; opt-in same-frame rival/crew/emitter observations",
+      "hardwareFrameRateClaim": false,
+      "gpuVRAMMeasured": false
+    },
+    "acceptance": {
+      "required": {
+        "PASS": 0,
+        "PARTIAL": 230,
+        "FAIL": 2
+      },
+      "excludedReferences": 16,
+      "finalArtApproved": false,
+      "hardwareApproved": false,
+      "section146Approved": false,
+      "steamReady": false
+    },
+    "deliveryBoundary": "This file records local validation, not remote publication. Verify the delivery manifest and exact GitHub commit CI independently.",
+    "openGates": [
+      "Remote publication and exact-source hosted CI",
+      "Five new ordinary-application browser cases",
+      "New gameplay footage/reference inspection and subsequent visible defect corrections",
+      "Representative physical hardware/controller measurements and matched performance comparison",
+      "Final art, Section 146 and Steam acceptance"
+    ]
+  },
+  "stagedCandidate": {
+    "phase": "27H.6",
+    "baselineCommit": "12f38b1917a1ad398fc6ef3aa92c7c479a8f948d",
+    "sourceFingerprint": "0516b2d43ce2356f12ec36f325fd7b0f332fd5b3b1ac977382293106f1c802ff",
+    "local": {
+      "check": {
+        "passed": true,
+        "unitTests": 1048,
+        "testFiles": 103,
+        "lint": true,
+        "strictTypeScript": true,
+        "productionBuild": true
+      },
+      "matrix": {
+        "passed": true,
+        "directiveRows": 148,
+        "referenceRows": 100,
+        "required": {
+          "PASS": 0,
+          "PARTIAL": 230,
+          "FAIL": 2
+        },
+        "excluded": 16
+      },
+      "numericalScenarios": {
+        "passed": true,
+        "commands": [
+          "npm run test:physics",
+          "node --experimental-transform-types scripts/rotation-benchmark.ts",
+          "node --experimental-transform-types scripts/pit-integration.ts",
+          "node --experimental-transform-types scripts/race-classification.ts"
+        ],
+        "scenarioScripts": 8
+      },
+      "additionalEightCarPitProbe": {
+        "simulatedSeconds": 116.29166666670528,
+        "stops": 1,
+        "maximumImpact": 0,
+        "phases": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "boundary": "Numerical simulation, not ordinary browser input or rendered evidence"
+      },
+      "webgl": {
+        "available": false,
+        "browser": "Local Chromium 144; normal project launch arguments",
+        "passed": false,
+        "boundary": "Hosted production-browser validation remains separate"
+      }
+    },
+    "hostedEvidence": {
+      "baselineRun": "36123363094",
+      "candidate": "Consult exact published source normal CI; baseline artifacts are not relabelled",
+      "newTests": "e2e/28-race-pit-presentation.spec.ts"
+    },
+    "independentAcceptance": {
+      "physicalHardware": false,
+      "finalArt": false,
+      "allReferences": false,
+      "section146HumanDrive": false,
+      "steamReady": false
+    },
+    "preservation": {
+      "directiveSha256": "f508a1b9be8e8a19a2ccc39d744e82d774cf95ecc773c12482efbcb9fb89f75c",
+      "dependencyLockSha256": "0ee732475bc70f3bec4bfa7787f904d51bc28c185534dff3762f2d18801bbc59",
+      "simulationInputsStorageWorkersAudioAuthoredAssetsAndOriginalWorkflows": "unchanged"
+    },
+    "externalEvidence": {
+      "h6-matrix.json": "38c0480220cd50cebe8645c6ae373af8a7e5da5d8189a2990ebcfc1fda482757",
+      "scenario-results.json": "42fdae31df3e2de1b5b076bd8fcf1792cba772d4381b5208ffb3d54752d20564",
+      "h6-pit-benchmark.json": "a5c0802eaee22c98dac13f74ace479f8ad10740728b473fc36e2b4dc4cbc0eaa",
+      "wet-pit-results.json": "144e7cfeb417889f2422c1aacf47a4beab746e2dedfa61d23ad1bb8b9980d9b9",
+      "marshal-integration.json": "40cb6139b0f18fbc0d5b7daba7337805621c50f7c850362f8a3e656d8183f804",
+      "h6-grid-probe.log": "caef7155deb9e724fec2142ccfdf8902b53b2a9fb3a7ec442d83497ce96aafa7",
+      "h6-local-browser.json": "06542337c00d95f5023f955fb144d9036e797e10cd401f0092573df8ab6427db",
+      "h6-check.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "race-classification.json": "a685f08be184eed586635e3cae316b816b7e04d2835d66f612d817c3a5d4486c",
+      "integrated-driving.json": "80f85e424372d80b681e54c88481ace873a2d3a4c6df1d5191ef25b961a26ce2",
+      "build-h6-bench.mjs": "ed9fdf67cfcd714748ddad47f2cf7f9223d6c18799b05c27de123fbdb01f66bd",
+      "h6-physics.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "h6-pit-bench.mjs": "a3a45a9734190a52ad5e8faf4b0089ba58949bf2699db455292c4fad78db0acc",
+      "h6-check.log": "83c5ee7092a980553581492ce6a03117785d1b806cad95083ee0a143daf153d5",
+      "h6-physics.log": "225f885a83b64e14d54820fe296f62536177e6a853b88afa2f1ba36b0a8ec5ae",
+      "h6-pit-probe.log": "a04dfd46cbbf343a76ad1ce16b74636906166ec5fa6c5c6ad05df19521f44349",
+      "dynamics-benchmark.json": "66503dc3f72934846997ba027b964eb28d247b8cb30c4c22a0e6b0477e4a7b55",
+      "h6-final-matrix.log": "1312ccee915b0b6b357e9602e05692815f440b61186bfff1c53038214242ba41",
+      "h6-wet-probe.log": "3bba12db35c17f89b0d1a0c8189d90f1a6171a2b1b3b8378b464f40b4e01aa96"
+    }
+  },
+  "integration": "See PHASE_27H6_RECONCILIATION.md. Historical records are not relabelled as this build."
+}

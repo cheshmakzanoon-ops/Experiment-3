@@ -84,13 +84,16 @@ export function installWetRoad(
     );
     shader.fragmentShader = shader.fragmentShader.replace(
       '#include <roughnessmap_fragment>',
-      '#include <roughnessmap_fragment>\nroughnessFactor=mix(roughnessFactor,mix(0.27,0.095,puddle),wet);',
+      '#include <roughnessmap_fragment>\nroughnessFactor=mix(roughnessFactor,mix(0.48,0.095,puddle),wet);',
     );
     shader.fragmentShader = shader.fragmentShader.replace(
       '#include <normal_fragment_maps>',
       `vec3 dryRoadNormal = normal;
       #include <normal_fragment_maps>
-      normal = normalize(mix(normal, dryRoadNormal, wet * 0.9));
+      // A thin damp film follows aggregate. Only deep standing water levels it.
+      // Flattening every wet cell by 90% erased the road in low-angle race views.
+      normal = normalize(mix(normal, dryRoadNormal, wet * mix(0.35, 0.9, puddle)));
+      vec3 roadFilmNormal = normal;
       // Small filtered ripple slopes use presented simulation time and rain.
       // Dry cells and rain-free standing water do not animate independently.
       vec2 roadRippleP = vRoadMetres * vec2(19.,23.);
@@ -107,6 +110,9 @@ export function installWetRoad(
       '#include <clearcoat_normal_fragment_maps>',
       `#include <clearcoat_normal_fragment_maps>
       #ifdef USE_CLEARCOAT
+        // The thin coat conforms to the SAME retained surface normal. Standing
+        // water tends to the geometric plane; apply the ripple exactly once.
+        clearcoatNormal = normalize(mix(roadFilmNormal, clearcoatNormal, puddle));
         clearcoatNormal = normalize(clearcoatNormal + roadRippleGain *
           (roadRippleSlope - clearcoatNormal * dot(clearcoatNormal, roadRippleSlope)));
       #endif`,
@@ -119,14 +125,14 @@ export function installWetRoad(
       `#include <lights_physical_fragment>
       #ifdef USE_CLEARCOAT
         material.clearcoat = wet * mix(0.58, 1.0, puddle);
-        material.clearcoatRoughness = mix(0.26, mix(0.105, 0.055, puddle), wet);
+        material.clearcoatRoughness = mix(0.26, mix(0.22, 0.055, puddle), wet);
         // Rain-disturbed film broadens the highlight instead of making every wet
         // cell a perfect mirror. Existing cell water alone still owns coverage.
         material.clearcoatRoughness += min(1.,roadWeather.x/18.)*puddle*.045;
       #endif`,
     );
   };
-  material.customProgramCacheKey = () => `${previousKey}|apex-physical-asphalt-v4-snapshot-ripples`;
+  material.customProgramCacheKey = () => `${previousKey}|apex-physical-asphalt-v5-conforming-film`;
 }
 
 /** At grazing angles, collapsed screen derivatives can make the stock bump

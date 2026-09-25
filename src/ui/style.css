@@ -139,7 +139,7 @@ p {
   font-size: 26px;
 }
 .masthead {
-  height: 97px;
+  height: var(--menu-header-height, 97px);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -161,6 +161,9 @@ p {
   color: #f4f0dc;
 }
 .menu {
+  --menu-header-height: 97px;
+  --menu-footer-height: 74px;
+  --menu-content-top: 15%;
   height: 100%;
   background: linear-gradient(
     90deg,
@@ -173,9 +176,19 @@ p {
 .menu-body {
   position: absolute;
   left: 4.2%;
-  top: 15%;
+  top: max(var(--menu-content-top), calc(var(--menu-header-height) + 12px));
+  bottom: calc(var(--menu-footer-height) + 12px);
   width: 400px;
   max-width: 39vw;
+  /* The canvas/app are fixed: only this bounded, focusable region should scroll.
+     Pointer events are required on its empty space for native wheel/touch input. */
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scroll-padding-block: 8px;
+  scrollbar-width: thin;
+  padding: 4px 8px 12px 4px;
+  pointer-events: auto;
 }
 .eyebrow {
   font-size: 10px;
@@ -281,7 +294,7 @@ h1 {
   bottom: 0;
   left: 4.2%;
   right: 4.2%;
-  height: 74px;
+  height: var(--menu-footer-height, 74px);
   border-top: 1px solid #d8d7be40;
   display: flex;
   align-items: center;
@@ -1050,8 +1063,10 @@ dialog:has(#settingsForm) {
   font-size: 9px;
 }
 @media (min-width: 1700px) {
+  .menu {
+    --menu-content-top: 19%;
+  }
   .menu-body {
-    top: 19%;
     width: 450px;
     max-width: 42vw;
   }
@@ -1076,11 +1091,10 @@ dialog:has(#settingsForm) {
   }
 }
 @media (max-height: 750px) {
-  .masthead {
-    height: 70px;
-  }
-  .menu-body {
-    top: 13%;
+  .menu {
+    --menu-header-height: 70px;
+    --menu-footer-height: 47px;
+    --menu-content-top: 13%;
   }
   h1 {
     font-size: 35px;
@@ -1099,9 +1113,6 @@ dialog:has(#settingsForm) {
   }
   .menu-note {
     margin-top: 12px;
-  }
-  .menu-footer {
-    height: 47px;
   }
   .enter {
     min-height: 44px;
@@ -1196,13 +1207,15 @@ dialog:has(#settingsForm) {
 }
 @media (max-width: 680px) {
   .menu {
+    --menu-header-height: 70px;
+    --menu-footer-height: 50px;
+    --menu-content-top: 13%;
     background: linear-gradient(90deg, #111e24f5, #111e24bd 60%, #111e2455);
   }
   .menu-body {
     width: auto;
     max-width: 93vw;
     right: 5%;
-    top: 13%;
     left: 5%;
   }
   .menu-body h1 {
@@ -1218,7 +1231,6 @@ dialog:has(#settingsForm) {
     display: none;
   }
   .menu-footer {
-    height: 50px;
     gap: 15px;
   }
   .menu-footer b {
@@ -1233,7 +1245,6 @@ dialog:has(#settingsForm) {
   .masthead {
     left: 5%;
     right: 5%;
-    height: 70px;
   }
   .menu-actions {
     margin-top: 10px;
@@ -2384,3 +2395,66 @@ html[data-colorblind='true'] #flag[data-flag='4']::before {
 .team-media li b { color: #a7d4d5; display: block; font-size: 11px; letter-spacing: .1em; }
 .team-media [data-media-status] { color: #bdccce; line-height: 1.5; }
 @media(max-width: 640px) { .media-caption { position: static; padding: 18px; background: #12212b; } .media-brand { top: 8px; left: 10px; font-size: 11px; } .media-brand b { font-size: 9px; } }
+
+/* Wide racing views keep the complete telemetry out of the lower-centre car
+   silhouette. The compact two-column strip uses otherwise empty sky space;
+   narrower/touch layouts and the existing cockpit layout remain unchanged. */
+@media (min-width: 1400px) and (min-height: 800px) {
+  .hud:is([data-camera='pod'], [data-camera='chase']) .instruments {
+    top: 105px;
+    bottom: auto;
+    width: 510px;
+    display: grid;
+    grid-auto-flow: dense;
+    grid-template-columns: 326px 184px;
+    transform-origin: top center;
+  }
+  .hud:is([data-camera='pod'], [data-camera='chase'])
+    .instruments
+    > :is(.programme-hud, .guide-readout, .rev-lights) {
+    grid-column: 1 / -1;
+  }
+  .hud:is([data-camera='pod'], [data-camera='chase']) .dash-main {
+    grid-column: 1;
+    padding-bottom: 8px;
+  }
+  .hud:is([data-camera='pod'], [data-camera='chase']) .pedals {
+    grid-column: 1;
+  }
+  .hud:is([data-camera='pod'], [data-camera='chase']) .resources {
+    grid-column: 2;
+    grid-row: span 2;
+    flex-direction: column;
+    justify-content: center;
+    gap: 12px;
+    border-top: 0;
+    border-left: 1px solid #75877955;
+  }
+  /* The lights stay distinct from the telemetry, including academy guidance. */
+  .hud:is([data-camera='pod'], [data-camera='chase']) .start-sequence {
+    top: calc(125px + 210px * var(--scale));
+  }
+}
+
+/* Keep all real standings in the document without letting a twelve-car grid
+   paint over the map. Small viewports retain a native keyboard/mouse scroller. */
+@media (min-width: 1400px) and (min-height: 800px) {
+  .hud .timing {
+    max-height: max(120px, calc((100vh - 205px) / var(--scale) - 256px));
+    overflow-y: auto;
+    pointer-events: auto;
+    scrollbar-width: thin;
+    overscroll-behavior: contain;
+  }
+  .hud .tower-row {
+    height: clamp(18px, calc(((100vh - 205px) / var(--scale) - 296px) / var(--grid-rows, 12)), 32px);
+  }
+  .hud .timing:focus-visible {
+    outline: 2px solid #ddd7bb;
+    outline-offset: 3px;
+  }
+}
+
+.menu-body :is(button, input, select) {
+  scroll-margin-block: 8px;
+}

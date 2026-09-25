@@ -1,3 +1,4 @@
+import { PitPoseCache } from './pit-presentation.ts';
 import { PitMachinery } from './pit-machinery.ts';
 import * as T from 'three';
 import { clamp, smooth } from '../core/math.ts';
@@ -90,6 +91,7 @@ export class PitCrewView {
   private readonly rotation = new T.Quaternion();
   private readonly actorWorld = new T.Matrix4();
   private readonly records: ActorEvidence[] = [];
+  private readonly cache = new PitPoseCache();
   private actorSlot = 0;
   activeCrews = 0;
   activeActors = 0;
@@ -290,6 +292,7 @@ export class PitCrewView {
       !Number.isFinite(camera.x + camera.y + camera.z)
     )
       throw new Error('Invalid pit crew frame');
+    if (!this.cache.prepare(frame, camera, visible)) return;
     for (const batch of this.batches) batch.count = 0;
     this.records.length = 0;
     this.actorSlot = this.activeActors = this.activeCrews = 0;
@@ -299,7 +302,7 @@ export class PitCrewView {
         clock = frame[o + F.PIT_CLOCK];
       if (!Number.isFinite(phase + clock + frame[o + F.SPEED]))
         throw new Error('Invalid pit crew state');
-      if (phase < 2 || phase > 5 || Math.abs(frame[o + F.SPEED]) > 0.5) continue;
+      if (this.cache.levels[id] < 0) continue;
       this.car.position.set(frame[o + F.X], frame[o + F.Y], frame[o + F.Z]);
       const distance = this.car.position.distanceTo(camera);
       if (distance > 160) continue;
@@ -482,14 +485,32 @@ export class PitCrewView {
       this.person(id, 'release', -1, signX + 0.42, floor, signZ, -Math.PI / 2, 0.84, 0.08, detail);
     }
     this.machinery.update(this.activeCrews);
-    this.bones.needsUpdate = true;
-    this.slots.forEach((slot) => {
-      slot.needsUpdate = true;
+    this.root.visible = this.activeCrews > 0;
+    if (this.activeActors) this.bones.needsUpdate = true;
+    this.slots.forEach((slot, i) => {
+      slot.clearUpdateRanges();
+      if (this.cloth[i].count) {
+        slot.addUpdateRange(0, this.cloth[i].count);
+        slot.needsUpdate = true;
+      }
     });
     for (const batch of this.batches) {
+      batch.instanceMatrix.clearUpdateRanges();
+      batch.instanceColor?.clearUpdateRanges();
+      if (!batch.count) continue;
+      batch.instanceMatrix.addUpdateRange(0, batch.count * 16);
       batch.instanceMatrix.needsUpdate = true;
-      if (batch.instanceColor) batch.instanceColor.needsUpdate = true;
+      if (batch.instanceColor) {
+        batch.instanceColor.addUpdateRange(0, batch.count * 3);
+        batch.instanceColor.needsUpdate = true;
+      }
     }
+    this.cache.commit();
+  }
+  actorCountFor(car: number) {
+    let count = 0;
+    for (const record of this.records) if (record.car === car) count++;
+    return count;
   }
   summary() {
     let unreachableArms = 0,
@@ -502,6 +523,8 @@ export class PitCrewView {
     }
     return {
       ...PEOPLE_ASSET,
+      poseBuilds: this.cache.builds,
+      poseReuses: this.cache.reuses,
       crews: this.activeCrews,
       actors: this.activeActors,
       nearActors: this.cloth[0].count,
@@ -517,6 +540,8 @@ export class PitCrewView {
   diagnostics() {
     return {
       ...PEOPLE_ASSET,
+      poseBuilds: this.cache.builds,
+      poseReuses: this.cache.reuses,
       crews: this.activeCrews,
       actors: this.activeActors,
       activeDrawBatches: this.root.children.filter((b) => (b as T.InstancedMesh).count > 0).length,

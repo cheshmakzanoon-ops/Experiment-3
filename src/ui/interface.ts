@@ -45,7 +45,7 @@ export function setupControlStep(key: keyof Setup, value: number): number | 'any
 }
 interface Callbacks {
   action: (name: string) => void;
-  start: (options: SessionOptions) => void;
+  start: (options: SessionOptions, holdOnGrid?: boolean) => void;
   apply: (settings: Settings) => void;
   seek: (value: number) => void;
   replaySpeed: (value: number) => void;
@@ -77,12 +77,13 @@ export class Interface {
   <div id="loading" class="loading"><div class="brand">APEX<span>/ FORMULA</span></div><p id="loadingText">Preparing circuit and car systems…</p><div class="loader"><i></i></div></div>
   <section id="menu" class="menu" hidden>
    <header class="masthead"><div class="brand">APEX<span>/ FORMULA</span></div><span class="edition">ORIGINAL MOTORSPORT SIMULATION <b>01 / AUREL</b></span></header>
-   <div class="menu-body"><div class="eyebrow"><i></i> AUREL · GRAND CIRCUIT</div><h1>EVERY INPUT.<br>EVERY FORCE.</h1><p class="intro">Four contact patches. One racing line.<br>Find the limit between them.</p>
+   <div class="menu-body" tabindex="0" role="region" aria-label="Race setup and tools"><div class="eyebrow"><i></i> AUREL · GRAND CIRCUIT</div><h1>EVERY INPUT.<br>EVERY FORCE.</h1><p class="intro">Four contact patches. One racing line.<br>Find the limit between them.</p>
    <form id="sessionForm" class="session-form">
     <div class="form-row"><label>SESSION<select id="mode"><option value="race">Grand Prix</option><option value="practice">Free practice</option></select></label><label>DISTANCE<select id="laps"><option value="1">1 lap · Sprint</option><option value="3" selected>3 laps · Standard</option><option value="5">5 laps</option><option value="10">10 laps</option></select></label></div>
     <div class="form-row"><label>WEATHER<select id="weather"><option value="clear">Clear / Dry</option><option value="changeable">Dry → Rain</option><option value="rain">Heavy rain</option></select></label><label>GRID<select id="opponents"><option value="0">Solo</option><option value="3">4 cars</option><option value="7" selected>8 cars</option><option value="11">12 cars</option></select></label></div>
     <div class="form-row"><label>TIRES<select id="compound"><option value="soft">Soft</option><option value="medium" selected>Medium</option><option value="hard">Hard</option><option value="intermediate">Intermediate</option><option value="wet">Full wet</option></select></label><label>CONTROL<select id="assist"><option value="sport">Sport / ABS + TC</option><option value="raw">Unassisted</option></select></label></div>
     <button class="primary enter" type="submit">ENTER CIRCUIT <span aria-hidden="true">↗</span></button>
+    <button class="enter" type="submit" name="prepareGrid" value="yes">PREPARE GRID <span>START PAUSED</span></button>
    </form><div class="menu-actions"><button data-action="settings">GARAGE & SETTINGS</button><button data-action="controls">CONTROLS</button><button data-action="team">TEAM HQ</button><button data-action="photo">PHOTO / LIVERY</button><button data-action="references">REFERENCE REVIEW</button><button data-action="sessionReview">SESSION 146 EVIDENCE</button><button data-action="academy">DRIVING ACADEMY</button></div>
    <p class="menu-note">WASD / ARROWS TO DRIVE · GAMEPAD SUPPORTED<br>G TO WATCH THE AI DRIVE YOUR CAR</p></div>
    <div class="car-label"><span>APX–01</span><b>FORMULA / HYBRID</b><div>770 KG DRY · 8 SPEED · 4 MJ ERS</div></div>
@@ -90,7 +91,7 @@ export class Interface {
   </section>
   <section id="hud" class="hud" hidden>
    <div class="hud-top"><div class="brand small">APEX<span>/ LIVE</span></div><div class="session-status"><span id="lapLabel">LAP 1 / 3</span><b id="flag">GRID</b><span id="weatherLabel">24°C / DRY</span></div><button class="icon-button" data-action="pause" aria-label="Pause session">Ⅱ</button></div>
-   <aside class="timing"><div class="panel-heading">CLASSIFICATION <span>LIVE</span></div><div id="tower"></div></aside>
+   <aside class="timing" tabindex="0" aria-label="Live race classification"><div class="panel-heading">CLASSIFICATION <span>LIVE</span></div><div id="tower"></div></aside>
    <div class="lap-panel"><label class="lap-delta">DELTA TO BEST<span id="lapDelta">—</span></label><label class="lap-current">CURRENT LAP<b id="lapTime">—:——.———</b></label><label>PERSONAL BEST<span id="bestLap">—:——.———</span></label><label>LAST LAP<span id="lastLap">—:——.———</span></label></div>
    <div id="startSequence" class="start-sequence" hidden><div id="lights">${'<i></i>'.repeat(5)}</div><span id="startText">BUILD REVS. HOLD THE BRAKE.</span></div>
    <div class="proximity proximity-left" id="proximityLeft" hidden><b>◀</b><span>CAR LEFT</span></div><div class="proximity proximity-right" id="proximityRight" hidden><b>▶</b><span>CAR RIGHT</span></div>
@@ -124,6 +125,27 @@ export class Interface {
       const button = (e.target as HTMLElement).closest<HTMLElement>('[data-action]');
       if (button) this.callbacks.action(button.dataset.action!);
     });
+    // Preserve the browser's scrolling/focus behavior without delivering scroll
+    // navigation keys to the window-level driving shortcuts. Keyup still releases
+    // previously held driving input; controls retain their native key handling.
+    const menuBody = this.menu.querySelector<HTMLElement>('.menu-body')!;
+    menuBody.addEventListener('keydown', (event) => {
+      if (
+        event.target === menuBody &&
+        ['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End'].includes(event.key)
+      )
+        event.stopPropagation();
+    });
+    // Native standings scrolling must not also steer the car through window
+    // keydown listeners. Keyup still propagates to release any held drive input.
+    this.element.querySelector('.timing')!.addEventListener('keydown', (event) => {
+      if (
+        ['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End'].includes(
+          (event as KeyboardEvent).key,
+        )
+      )
+        event.stopPropagation();
+    });
     this.modal.addEventListener('cancel', (e) => {
       e.preventDefault();
       this.callbacks.action('modalClose');
@@ -144,7 +166,9 @@ export class Interface {
         compound: select('compound') as SessionOptions['compound'],
         assist: select('assist') as SessionOptions['assist'],
       };
-      this.callbacks.start(this.options);
+      // Preparation is presentation/session control, not a physics option or save.
+      const submitter = (e as SubmitEvent).submitter as HTMLButtonElement | null;
+      this.callbacks.start(this.options, submitter?.name === 'prepareGrid');
     });
     this.get('weather').addEventListener('change', () => {
       if ((this.get('weather') as HTMLSelectElement).value === 'rain')
@@ -293,11 +317,13 @@ export class Interface {
       this.lastAnnounced = message;
     }
     const tower = this.get('tower');
-    if (tower.children.length !== frame[H.CARS])
+    if (tower.children.length !== frame[H.CARS]) {
+      this.hud.style.setProperty('--grid-rows', String(frame[H.CARS]));
       tower.innerHTML = Array.from(
         { length: frame[H.CARS] },
         () => '<div class="tower-row"><b></b><i></i><span></span><small></small></div>',
       ).join('');
+    }
     const order = Array.from({ length: frame[H.CARS] }, (_, id) => id).sort(
       (a, b) => frame[carBase(a) + F.RANK] - frame[carBase(b) + F.RANK],
     );
@@ -358,7 +384,7 @@ export class Interface {
   }
   pause() {
     this.modalContent(
-      `<span class="eyebrow">SESSION SUSPENDED</span><h2>Hold your line.</h2><p>Simulation and race time are paused.</p><div class="dialog-buttons"><button class="primary" data-action="resume">RESUME SESSION</button><button data-action="settings">GARAGE & SETTINGS</button><button data-action="replay">WATCH REPLAY</button><button data-action="photo">PHOTO STUDIO</button><button data-action="academy">ACADEMY</button><button data-action="team">TEAM HQ</button><button data-action="performance">PERFORMANCE CAPTURE</button><button data-action="visualReview">FULL-LAP VISUAL REVIEW</button><button data-action="sessionReview">SESSION 146 EVIDENCE</button><button data-action="restart">RESTART SESSION</button><button data-action="menu">RETURN TO PADDOCK</button></div>`,
+      `<span class="eyebrow">SESSION SUSPENDED</span><h2>Hold your line.</h2><p>Simulation and race time are paused.</p><div class="dialog-buttons"><button class="primary" data-action="resume">RESUME SESSION</button><button data-action="settings">GARAGE & SETTINGS</button><button data-action="camera">CHANGE CAMERA</button><button data-action="autopilot">TOGGLE AI DEMONSTRATION</button><button data-action="replay">WATCH REPLAY</button><button data-action="photo">PHOTO STUDIO</button><button data-action="academy">ACADEMY</button><button data-action="team">TEAM HQ</button><button data-action="performance">PERFORMANCE CAPTURE</button><button data-action="visualReview">FULL-LAP VISUAL REVIEW</button><button data-action="sessionReview">SESSION 146 EVIDENCE</button><button data-action="restart">RESTART SESSION</button><button data-action="menu">RETURN TO PADDOCK</button></div>`,
     );
   }
   performance(status: string, machine: string, workload: string, exportable: boolean) {
@@ -387,10 +413,10 @@ export class Interface {
     this
       .modalContent(`<span class="eyebrow">PHASE 27F / EVIDENCE</span><h2>Review the complete lap.</h2>
       <p id="visualReviewStatus"></p>
-      <p>Use the current session and camera. A full lap ends only after a complete forward circuit traversal and a real lap-counter increase. The 30-second mode covers grid/pit scenes without claiming a full lap.</p>
+      <p>Use the current session and camera. A full lap ends only after a complete forward circuit traversal and a real lap-counter increase. Timed scenes last at least 30 seconds. Racing workloads also require observed events: a populated start, five seconds beside the same rival, three seconds behind a moving car in wet spray, or pit entry through jacked service and exit. A label or timer alone cannot complete them.</p>
       <label>COMPUTER / POWER PROFILE<input id="reviewMachine" maxlength="80" placeholder="e.g. laptop-plugged-in / GPU model" /></label>
-      <label>WORKLOAD<select id="reviewWorkload"><option value="clear-day">Clear day</option><option value="overcast-day">Overcast day</option><option value="wet-day">Wet day</option><option value="wet-night">Wet night</option><option value="sunset">Sunset</option><option value="grid-start">Grid start</option><option value="pit-service">Pit service</option><option value="other">Other / changing weather</option></select></label>
-      <label>CAPTURE<select id="reviewMode"><option value="full-lap">Full lap</option><option value="timed-scene">30-second scene</option></select></label>
+      <label>WORKLOAD<select id="reviewWorkload"><option value="clear-day">Clear day</option><option value="overcast-day">Overcast day</option><option value="wet-day">Wet day</option><option value="wet-night">Wet night</option><option value="sunset">Sunset</option><option value="grid-start">Grid start</option><option value="pit-service">Pit entry, service and exit</option><option value="close-racing">Close racing</option><option value="wet-following">Wet following with emitted spray</option><option value="other">Other / changing weather</option></select></label>
+      <label>CAPTURE<select id="reviewMode"><option value="full-lap">Full lap</option><option value="timed-scene">Timed scene (30 seconds minimum)</option></select></label>
       <label><input id="reviewVideo" type="checkbox" /> ALSO RECORD LOCAL VIDEO (64 MiB maximum)</label>
       <label><input id="reviewAudio" type="checkbox" /> INCLUDE GAME AUDIO (not microphone audio)</label>
       <p>Repeat clear, overcast, wet and wet-night sessions with cockpit, chase, pod and broadcast cameras. Choose the weather label matching the actual session; this tool never changes weather or drives the car. Changing settings, pausing or losing focus interrupts the evidence. Video adds encoding cost and can coalesce frames; JSON retains every observed rendered-frame interval. The local export includes browser-reported platform/GPU strings, available JavaScript heap size, and controller-axis ranges (no typed text or microphone). Missing values stay unmeasured. No GPU VRAM or physical-controller certification is inferred.</p>

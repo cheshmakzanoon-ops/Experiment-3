@@ -1,3 +1,4 @@
+import { readRaceReviewFrame } from './race-review.ts';
 import { WeatherPresentation } from './weather-presentation.ts';
 import { applyCircuitLightPalette } from './lighting-coherence.ts';
 import { PEOPLE_ASSET } from './people-asset.ts';
@@ -44,7 +45,7 @@ import { TracksideDirector } from './trackside.ts';
 import { CameraClock, InertialCamera, ViewOrientation } from './camera-dynamics.ts';
 import { ReflectionSystem } from './reflections.ts';
 import { DebrisView } from './debris.ts';
-import { PitCrewView } from './pit-crew.ts';
+import { PitCrewView, serviceWheelOffset } from './pit-crew.ts';
 import { MotionBlurPass } from './motion-blur.ts';
 import { GpuTimer } from './gpu-timer.ts';
 import { GpuFrameGate } from './gpu-frame-gate.ts';
@@ -719,7 +720,7 @@ export class RacingRenderer {
     if (this.circuit.crowd.visible)
       for (const cluster of this.circuit.crowdClusters)
         cluster.update(presented[H.TIME], this.camera.position, presented[H.RAIN], presented);
-    this.effectPlayback.update(presented, !menu);
+    this.effectPlayback.update(presented, !menu, !replay);
     this.effects.setSignalLights(presented, !studio);
     this.debris.update(b);
     this.pitCrew.update(presented, this.camera.position, !menu && !studio);
@@ -927,6 +928,8 @@ export class RacingRenderer {
     target.water = frame[H.WATER];
     target.mirrors = this.reflection.mirrorUpdates;
     target.probes = this.reflection.probeUpdates;
+    readRaceReviewFrame(frame, this.follow, 0, this.pitCrew.actorCountFor(this.follow), target);
+    target.sprayParticles = this.effects.activeSprayCountFor(target.leader);
   }
   reviewCar() {
     return this.follow;
@@ -953,6 +956,23 @@ export class RacingRenderer {
           this.circuit.crowdClusters.reduce(
             (n, c) => n + (c.levels[level].visible ? c.levels[level].count : 0),
             0,
+          ),
+        ),
+      },
+      // Read-only presented state, not the newer live-worker frame during replay.
+      pitState: {
+        car: this.follow,
+        time: this.presented.value[H.TIME],
+        phase: this.presented.value[carBase(this.follow) + F.PIT_PHASE],
+        clock: this.presented.value[carBase(this.follow) + F.PIT_CLOCK],
+        speed: this.presented.value[carBase(this.follow) + F.SPEED],
+        inPit: this.presented.value[carBase(this.follow) + F.IN_PIT],
+        jackHeight: this.presented.value[carBase(this.follow) + F.JACK_HEIGHT],
+        wheelOffsets: [0, 1, 2, 3].map((wheel) =>
+          serviceWheelOffset(
+            this.presented.value[carBase(this.follow) + F.PIT_PHASE],
+            this.presented.value[carBase(this.follow) + F.PIT_CLOCK],
+            this.presented.value[carBase(this.follow) + WHEEL_BASE + wheel * WHEEL_STRIDE + W.LOAD],
           ),
         ),
       },
@@ -1012,6 +1032,7 @@ export class RacingRenderer {
       broadcastVisibilityCuts: this.trackside.visibilityCuts,
       broadcastSolidOccluders: this.circuit.sightlines.count,
       broadcastSubjectRadius: this.trackside.subjectRadius,
+      broadcastFramingFits: this.trackside.framingFits,
       cameraLocalPosition: this.eyeLocal.toArray(),
       mirrorUpdates: this.reflection.mirrorUpdates,
       mirrorWidth: this.reflection.mirrorWidth,

@@ -293,17 +293,51 @@ own(
   t('physics acceptance-matrix'),
   e('15-review-journey 20-phase27h'),
 );
+// 27H.6 counterpart/coverage links, not acceptance receipts. Extend only the
+// independently applicable rows; never mutate arrays shared by range owners.
+function extend(ids: number[], source: string[], tests: string[], render: string[]) {
+  for (const id of ids) {
+    const prior = owners.get(id);
+    if (!prior) throw new Error(`Missing section ${id}`);
+    owners.set(id, {
+      source: [...new Set([...prior.source, ...source])],
+      tests: [...new Set([...prior.tests, ...tests])],
+      render: [...new Set([...prior.render, ...render])],
+    });
+  }
+}
+extend(
+  [66],
+  r('race-structures broadcast-sightlines'),
+  t('race-structures'),
+  e('29-populated-race-review'),
+);
+extend(
+  [67, 68, 84, 87, 88, 93, 94],
+  r('race-review presentation-review'),
+  t('race-review'),
+  e('29-populated-race-review'),
+);
+extend([90], ['src/ui/interface.ts', 'src/ui/style.css'], [], e('28-race-hud-layout'));
+extend([54, 56, 57, 58, 122], r('materials'), t('phase27h6'), e('28-race-pit-presentation'));
+extend(
+  [63, 64, 65, 66, 87, 88, 96],
+  r('pit-presentation pit-crew pit-machinery race-composition'),
+  t('phase27h6'),
+  e('28-race-pit-presentation'),
+);
+extend([93, 94, 118, 146], [], [], e('28-race-pit-presentation'));
 export const SECTION_OWNERS: ReadonlyMap<number, SectionOwner> = owners;
 
 export const REFERENCE_CHECKS: Record<string, string[]> = {
   circuit: e('06-circuit-survey'),
   motion: e('motion 20-phase27h'),
   cockpit: e('05-cockpit-detail 20-phase27h'),
-  pit: e('pit-presentation'),
+  pit: e('pit-presentation 29-populated-race-review 28-race-pit-presentation'),
   livery: e('07-reference-tools 09-reference-depth'),
   photo: e('09-reference-depth 20-phase27h'),
   driver: e('11-phase27c 20-phase27h'),
-  wet: e('00-wet-presentation weather'),
+  wet: e('00-wet-presentation weather 29-populated-race-review 28-race-pit-presentation'),
   hq: e('09-reference-depth 18-phase27g'),
   engineering: e('07-reference-tools'),
   personnel: e('07-reference-tools 18-phase27g'),
@@ -313,19 +347,19 @@ export const REFERENCE_CHECKS: Record<string, string[]> = {
   identity: e('07-reference-tools 18-phase27g'),
   mechanical: e('02-wheel-fidelity 10-aero-surface 20-phase27h'),
   tutorial: e('08-reference-implementation'),
-  hud: e('instruments presentation'),
+  hud: e('instruments presentation 28-race-hud-layout'),
   settings: e('presentation 09-reference-depth'),
   objectives: e('08-reference-implementation'),
   calendar: e('07-reference-tools'),
   practice: e('08-reference-implementation'),
   story: e('18-phase27g'),
-  broadcast: e('camera-continuity'),
+  broadcast: e('camera-continuity 29-populated-race-review 28-race-pit-presentation'),
   accessibility: e('09-reference-depth'),
   effects: e('03-skid-contact'),
   pregrid: e('08-reference-implementation'),
   hardware: e('calibration'),
   leaderboard: [],
-  night: e('08-reference-implementation 18-phase27g'),
-  start: e('application'),
+  night: e('08-reference-implementation 18-phase27g 28-race-pit-presentation'),
+  start: e('application 29-populated-race-review 28-race-pit-presentation'),
   excluded: [],
 };

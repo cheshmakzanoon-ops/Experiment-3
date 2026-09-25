@@ -34,6 +34,7 @@ export class Effects {
   private alpha = new Float32Array(this.count);
   private gravity = new Float32Array(this.count);
   private kind = new Uint8Array(this.count);
+  private owners = new Int8Array(this.count).fill(-1);
   private spawned = new Float64Array(6);
   private geometry = new T.BufferGeometry();
   private random = new Random(65012);
@@ -147,7 +148,16 @@ export class Effects {
     };
     this.group.add(points, this.rain.mesh, this.spray.mesh);
   }
-  private spawn(x: number, y: number, z: number, vx: number, vy: number, vz: number, kind: number) {
+  private spawn(
+    x: number,
+    y: number,
+    z: number,
+    vx: number,
+    vy: number,
+    vz: number,
+    kind: number,
+    owner = -1,
+  ) {
     const isRain = kind === PARTICLE_KIND.RAIN;
     const i = isRain ? EFFECT_CAPACITY.contact + this.rainCursor : this.cursor,
       p = i * 3,
@@ -155,6 +165,7 @@ export class Effects {
     if (isRain) this.rainCursor = (this.rainCursor + 1) % EFFECT_CAPACITY.rain;
     else this.cursor = (this.cursor + 1) % EFFECT_CAPACITY.contact;
     this.kind[i] = kind;
+    this.owners[i] = owner;
     this.spawned[kind]++;
     this.solid[i] = Number(kind === PARTICLE_KIND.MARBLE);
     this.positions[p] = x;
@@ -348,6 +359,7 @@ export class Effects {
                 ? frame[o + F.VZ] * 0.16 + this.wake.z * speed * 0.2 + this.windZ * 0.84
                 : frame[o + F.VZ] * 0.25 + this.windZ * 0.75,
               kind,
+              id,
             );
           }
         }
@@ -419,6 +431,22 @@ export class Effects {
     this.rain.upload();
     this.spray.upload();
   }
+  /** The selected emitter's live, nontransparent pool entries. This does not
+   * imply they are in the camera frustum or visible through occluding geometry. */
+  activeSprayCountFor(car: number) {
+    if (!this.enabled || !this.group.visible || !Number.isInteger(car) || car < 0 || car >= 12)
+      return 0;
+    let active = 0;
+    for (let i = 0; i < EFFECT_CAPACITY.contact; i++)
+      if (
+        this.life[i] > 0 &&
+        this.alpha[i] > 0 &&
+        this.kind[i] === PARTICLE_KIND.SPRAY &&
+        this.owners[i] === car
+      )
+        active++;
+    return active;
+  }
   diagnostics() {
     const active = [0, 0, 0, 0, 0, 0],
       velocityX = [0, 0, 0, 0, 0, 0],
@@ -456,6 +484,7 @@ export class Effects {
   }
   clear() {
     this.life.fill(0);
+    this.owners.fill(-1);
     this.alpha.fill(0);
     this.emission.fill(0);
     this.sparks.fill(0);

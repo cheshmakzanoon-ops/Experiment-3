@@ -155,7 +155,7 @@ objectNormal=machineBasis*objectNormal;`,
           );
         }
     this.count = slot;
-    this.transforms.needsUpdate = true;
+    if (crews) this.transforms.needsUpdate = true;
     this.geometry.setDrawRange(0, crews * this.indicesPerCrew);
   }
   dispose() {

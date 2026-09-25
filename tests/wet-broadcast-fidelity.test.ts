@@ -152,11 +152,11 @@ it('adds a water-film clearcoat lobe on physical wet asphalt while keeping dry c
   material.onBeforeCompile(shader as T.WebGLProgramParametersWithUniforms, {} as T.WebGLRenderer);
   expect(shader.fragmentShader).toContain('material.clearcoat = wet * mix(0.58, 1.0, puddle)');
   expect(shader.fragmentShader).toContain(
-    'material.clearcoatRoughness = mix(0.26, mix(0.105, 0.055, puddle), wet)',
+    'material.clearcoatRoughness = mix(0.26, mix(0.22, 0.055, puddle), wet)',
   );
   expect(shader.fragmentShader).toContain('roughnessFactor=mix');
   expect(shader.fragmentShader).toContain(
-    'normal = normalize(mix(normal, dryRoadNormal, wet * 0.9))',
+    'normal = normalize(mix(normal, dryRoadNormal, wet * mix(0.35, 0.9, puddle)))',
   );
   expect(shader.uniforms).toHaveProperty('trackState');
   material.dispose();

@@ -161,7 +161,8 @@ export class GameApp {
     const element = document.getElementById('app')!;
     this.ui = new Interface(element, this.track, {
       action: (name) => this.action(name),
-      start: (options) => void this.start(options).catch((e) => this.fail(e)),
+      start: (options, holdOnGrid) =>
+        void this.start(options, false, holdOnGrid).catch((e) => this.fail(e)),
       apply: (s) => this.applySettings(s),
       seek: (value) => {
         this.seekReplay(value);
@@ -331,7 +332,7 @@ export class GameApp {
       transfer,
     );
   }
-  private async start(options: SessionOptions, programme = false) {
+  private async start(options: SessionOptions, programme = false, holdOnGrid = false) {
     if (this.state === 'loading' && this.worker) return;
     if (programme) this.programme.start();
     else this.programme.stop();
@@ -490,6 +491,16 @@ export class GameApp {
     if (referenceCamera) this.renderer.changeCamera(referenceCamera);
     this.ui.get('loading').hidden = true;
     this.ui.showMode('driving');
+    // Retain the real paused grid snapshot before the worker is released.
+    // A slow first rendered frame must not erase the start-light phase.
+    this.observeSession();
+    // A normal paddock action lets the player prepare cameras, controls and
+    // recording before the real countdown. The initialized worker stays paused;
+    // no elapsed race time, injected snapshot or alternate simulation is used.
+    if (holdOnGrid) {
+      this.pause();
+      return;
+    }
     this.input.setEnabled(true);
     (document.activeElement as HTMLElement)?.blur();
     this.post({ type: 'pause', value: false });
@@ -508,6 +519,7 @@ export class GameApp {
     this.receivedAt = performance.now();
     if (this.state === 'driving') {
       this.programme.observe(next);
+      this.observeSession();
       if (next[H.PHASE] === 3) this.finish(next);
     }
     if (this.readyResolve) {
@@ -515,8 +527,7 @@ export class GameApp {
       this.readyResolve = null;
     }
   }
-  private frame = (time: number) => {
-    this.timer = requestAnimationFrame(this.frame);
+  private observeSession() {
     this.sessionReview.observe(performance.now(), {
       state: this.state,
       sessionId: this.sessionId,
@@ -527,6 +538,10 @@ export class GameApp {
       visible: !document.hidden,
       frame: this.current,
     });
+  }
+  private frame = (time: number) => {
+    this.timer = requestAnimationFrame(this.frame);
+    this.observeSession();
     if (
       this.errorStopped ||
       this.state === 'loading' ||
@@ -924,6 +939,9 @@ export class GameApp {
     this.ui.closeModal();
     this.state = 'driving';
     this.ui.showMode('driving');
+    // Retain the real paused grid snapshot before the worker is released.
+    // A slow first rendered frame must not erase the start-light phase.
+    this.observeSession();
     this.input.setEnabled(true);
     this.post({ type: 'input', input: controls() });
     this.post({ type: 'pause', value: false });
@@ -980,6 +998,12 @@ export class GameApp {
     this.appliedReplaySurfaceTime = -Infinity;
     this.replayPlaying = true;
     this.seekReplay(0);
+    // Set the real range before exposing the controls. The first GPU frame
+    // may be deferred; the HTML default max=1 would clamp early seeks.
+    const seek = this.ui.get('replaySeek') as HTMLInputElement;
+    seek.max = String(this.replay.duration);
+    seek.value = '0';
+    this.ui.setText('replayPlay', 'PAUSE');
     this.ui.showMode('replay');
     this.input.setEnabled(true);
   }
@@ -1280,7 +1304,7 @@ export class GameApp {
       case 'autopilot':
         this.performanceCapture.interrupt('Driver changed');
         this.interruptReview('Driver changed');
-        if (this.state === 'driving') {
+        if (this.state === 'driving' || this.state === 'paused') {
           this.auto = !this.auto;
           this.usedDemonstration ||= this.auto;
           this.post({ type: 'autopilot', value: this.auto });
@@ -1489,6 +1513,7 @@ export class GameApp {
           workload,
           mode,
           videoRequested,
+          racingEvidence: 1,
           camera: this.renderer.mode,
           trackLength: this.track.length,
           startS: frame[b + F.S],
@@ -1528,7 +1553,7 @@ export class GameApp {
       this.resume();
       this.ui.toast(
         this.reviewVideo.reason ??
-          'Review recording: drive the lap, or complete the selected 30-second scene.',
+          'Review recording: complete the traversal and selected racing event; timed scenes run for at least 30 seconds.',
       );
     } catch (error) {
       this.interruptReview('Review setup failed');
@@ -1697,6 +1722,8 @@ export class GameApp {
             engineeringVisible: this.renderer.engineeringView.group.visible,
             elapsed: this.renderer.effectPlayback.elapsed,
             resets: this.renderer.effectPlayback.resets,
+            boundedCatchups: this.renderer.effectPlayback.boundedCatchups,
+            omittedSeconds: this.renderer.effectPlayback.omittedSeconds,
             listener: { ...this.renderer.audioView.value },
             particles: this.renderer.effects.diagnostics(),
           }
@@ -1709,6 +1736,7 @@ export class GameApp {
       tabEvidence: this.tabEvidence.report(),
       referenceEvent: this.referenceSession.watch.report(),
       presentationReview: {
+        racing: this.presentationReview.racing,
         state: this.presentationReview.state,
         frames: this.presentationReview.count,
         progressM: this.presentationReview.progressM,

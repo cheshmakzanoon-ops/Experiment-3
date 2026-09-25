@@ -95,7 +95,7 @@ it('shares actual water channels and normal flattening without inventing pit rub
     expect(shader.uniforms.trackState.value).toBe(state);
     expect(shader.uniforms.surfaceDeposits.value).toBe(deposits ? 1 : 0);
     expect(shader.fragmentShader).toContain('roadState.gb *= surfaceDeposits');
-    expect(shader.fragmentShader).toContain('mix(normal, dryRoadNormal, wet * 0.9)');
+    expect(shader.fragmentShader).toContain('mix(normal, dryRoadNormal, wet * mix(0.35, 0.9, puddle))');
     expect(shader.fragmentShader).toContain('#include <normal_fragment_maps>');
     material.dispose();
   }
