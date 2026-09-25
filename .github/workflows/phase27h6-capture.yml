@@ -6,12 +6,12 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: phase27h6-capture-workloads
+  group: phase27h6-capture-${{ github.sha }}
   cancel-in-progress: false
 env:
-  BASE: d3305aba4feabe48ab5c9edecc39861c3ce982d6
-  BASE_TREE: 98f2e144e805e548916e85daf92c3cdde282e820
-  TARGET_TREE: ef8999a836a1817b723c9714e723ae7ff8d22f2c
+  BASE: cb91f83817d09a090a440c25f794b7e2acf0b197
+  BASE_TREE: ef8999a836a1817b723c9714e723ae7ff8d22f2c
+  TARGET_TREE: 1884a7a62e4d9c01437b93cd0901d1b8faa5d0fe
   CI: 'true'
 jobs:
   prepare:
@@ -30,7 +30,7 @@ jobs:
         with:
           node-version: '22'
           cache: npm
-      - name: Recover the exact reconciled candidate and saved menu development
+      - name: Verify the corrected explicit workload contract
         shell: bash
         run: |
           set -euo pipefail
@@ -38,13 +38,13 @@ jobs:
           import base64, hashlib, os, pathlib, subprocess, zlib
           def git(*args): return subprocess.check_output(['git',*args],text=True).strip()
           assert os.environ['GITHUB_REPOSITORY']=='cheshmakzanoon-ops/Experiment-3'
-          assert git('rev-parse','HEAD^')=='63c3e44bc58261537004fcbc002c7a65f8c69331', 'Concurrent changes require reconciliation'
+          assert git('rev-parse','HEAD^')=='4d3f715deae813392d0989090d749bc50f7a9621', 'Concurrent changes require reconciliation'
           paths=['.github/phase27h6-capture.b64','.github/workflows/phase27h6-capture.yml']
           assert git('diff','--name-only','HEAD^','HEAD').splitlines()==paths
           packed=base64.b64decode(pathlib.Path(paths[0]).read_bytes(),validate=True)
-          assert hashlib.sha256(packed).hexdigest()=='52c3e88b222f05bb62849c3b0284e0a8b4e6f6affc5ab3be4c7035836afefb32'
+          assert hashlib.sha256(packed).hexdigest()=='9b085d08e49d00245d874ee15a7b4314650873485094d2ad99254f8721e8d2ca'
           patch=zlib.decompress(packed)
-          assert hashlib.sha256(patch).hexdigest()=='d0cf2dd5c0106e7c94b16c9f9280d869aae8e94a8c5975c7f1a3ff6af474b787'
+          assert hashlib.sha256(patch).hexdigest()=='b16aed22f5b5cd27c299fc4af23386d1c2d80efaa68dbf43d777d808fee15f71'
           p=pathlib.Path(os.environ['RUNNER_TEMP'])/'publication-repair.patch';p.write_bytes(patch)
           subprocess.run(['git','fetch','--depth=1','origin',os.environ['BASE']],check=True)
           assert git('rev-parse',os.environ['BASE']+'^{tree}')==os.environ['BASE_TREE']
@@ -52,7 +52,7 @@ jobs:
           subprocess.run(['git','apply','--index',str(p)],check=True)
           subprocess.run(['node','--experimental-transform-types','scripts/phase27h-matrix.ts','--write'],check=True)
           subprocess.run(['git','add','docs/PHASE_27H_MATRIX.md'],check=True)
-          assert git('diff','--cached','--name-only',os.environ['BASE']).splitlines()==['docs/PHASE_27H6_PUBLICATION.md', 'docs/PHASE_27H_MATRIX.md', 'e2e/28-race-hud-layout.spec.ts', 'e2e/28-race-pit-presentation.spec.ts', 'e2e/29-populated-race-review.spec.ts', 'e2e/fixtures/race-hud-layout.ts', 'src/ui/interface.ts', 'src/ui/style.css']
+          assert git('diff','--cached','--name-only',os.environ['BASE']).splitlines()==['docs/PHASE_27H6_PUBLICATION.md', 'e2e/29-populated-race-review.spec.ts']
           assert git('write-tree')==os.environ['TARGET_TREE'], 'Reconstructed source mismatch'
           subprocess.run(['git','diff','--cached','--check'],check=True)
           print('Exact candidate tree:',git('write-tree'))
@@ -93,7 +93,7 @@ jobs:
               assert actual==expected,path
               changes.append({'path':path,'mode':git('ls-files','--stage','--',path).split()[0],'type':'blob','sha':actual})
           assert post('/git/trees',{'base_tree':os.environ['BASE_TREE'],'tree':changes})['sha']==tree
-          message='feat: publish reconciled 27H.6 and recover saved menu navigation\n\nRetain d3305ab presentation and all saved 9961d93 menu behavior, both sets of regression coverage, bounded live effects and exact render-buffer checks. Use the existing 50 percent render-scale setting for the software-GPU cockpit workload while retaining its real mirrors, all eight cars, full rain/spray and unchanged event/continuity thresholds. Persist diagnostics for interrupted recordings. No force update, hidden quality change, weakened race criteria or unrelated project content.\n\nCandidate identity and complete CI are verified by the originating guarded publication workflow. Source upload is not activation: main advances only after every candidate job succeeds. Original simulation, input, storage, audio, assets, dependencies and CI remain unchanged. Final-art, hardware and Steam acceptance remain open.'
+          message='feat: publish validated 27H.6 with exact workload configuration\n\nRetain d3305ab presentation and all saved 9961d93 menu behavior, both sets of regression coverage, bounded live effects and exact render-buffer checks. Use the existing 50 percent render-scale setting for the software-GPU cockpit workload while retaining its real mirrors, all eight cars, full rain/spray and unchanged event/continuity thresholds. Persist diagnostics for interrupted recordings. No force update, hidden quality change, weakened race criteria or unrelated project content.\n\nCandidate identity and complete CI are verified by the originating guarded publication workflow. Source upload is not activation: main advances only after every candidate job succeeds. Original simulation, input, storage, audio, assets, dependencies and CI remain unchanged. Final-art, hardware and Steam acceptance remain open.'
           commit=post('/git/commits',{'message':message,'tree':tree,'parents':[os.environ['GITHUB_SHA']]})['sha']
           report={'candidate':commit,'tree':tree,'parent':os.environ['GITHUB_SHA'],'base':os.environ['BASE'],'changedFiles':changes,'branchAdvanced':False}
           out=pathlib.Path(os.environ['RUNNER_TEMP']);(out/'candidate.json').write_text(json.dumps(report,indent=2)+'\n')
