@@ -273,6 +273,10 @@ describe('qualifying the existing presentation capture', () => {
   it.each([
     'missing-entry',
     'missing-removal',
+    'early-removal-frame',
+    'missing-installation',
+    'loaded-installation',
+    'wrong-installation-crew',
     'loaded-wheels',
     'wrong-crew',
     'missing-release',
@@ -340,12 +344,17 @@ function pitSequence(problem = '') {
   f.speed = 0;
   add();
   f.pitPhase = 3;
-  f.jackHeight = 0.2;
+  // Exact kind of missed interval in hosted run 36220062871: phase 3 alone
+  // cannot stand in for an actually raised/unloaded wheel-removal observation.
+  f.jackHeight = problem === 'early-removal-frame' ? 0.0573333315551281 : 0.2;
   f.unloadedWheels = problem === 'loaded-wheels' ? 0 : 4;
   f.crewActors = problem === 'wrong-crew' ? 0 : 15;
   if (problem !== 'missing-removal') add();
   f.pitPhase = 4;
-  add();
+  f.jackHeight = 0.2;
+  if (problem === 'loaded-installation') f.unloadedWheels = 0;
+  if (problem === 'wrong-installation-crew') f.crewActors = 0;
+  if (problem !== 'missing-installation') add();
   f.pitPhase = 6;
   f.pitStops = problem === 'wrong-stop' ? 2 : 1;
   f.speed = 12;

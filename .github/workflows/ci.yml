@@ -223,7 +223,13 @@ jobs:
     # Ship exactly the build tested above, never a parallel unvalidated rebuild.
     # Main is the only source branch; compiled builds are artifacts, not branches.
     needs: [validate, scenarios, browser, wet-presentation]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'cheshmakzanoon-ops/Experiment-3'
+    # Manual validation of the current main must produce the SAME gated artifact.
+    # Keep success() and all needs: a dispatch never bypasses a failed test.
+    if: >-
+      success() &&
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
+      github.ref == 'refs/heads/main' &&
+      github.repository == 'cheshmakzanoon-ops/Experiment-3'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:

@@ -70,7 +70,8 @@ for (const drive of drives)
     // These NEW cases include a real lap to the legal pit entry and the existing
     // ten-minute recorder ceiling. Existing CI budgets/retries/assertions remain.
     test.setTimeout(780000);
-    const resolutionScale = drive.camera === 'cockpit' ? 0.5 : 0.75;
+    const resolutionScale =
+      drive.camera === 'cockpit' || drive.workload === 'pit-service' ? 0.5 : 0.75;
     const errors: string[] = [];
     page.on('pageerror', (e) => errors.push(e.message));
     page.on('console', (m) => {
@@ -84,17 +85,19 @@ for (const drive of drives)
       .getByRole('button', { name: 'GARAGE & SETTINGS', exact: true })
       .click({ timeout: 15000 });
     await page.locator('[name=quality]').selectOption('low');
-    if (drive.weather === 'rain') {
-      // Low disables particles. Explicitly restore real rain/spray through its
-      // normal control, otherwise a wet-following capture cannot qualify.
+    if (drive.weather === 'rain' || resolutionScale === 0.5) {
       await page.locator('.presentation-details > summary').click();
-      await page.locator('[name=graphics_particleDensity]').press('End');
-      await expect(page.locator('[name=graphics_particleDensity]')).toHaveValue('1');
-      if (drive.camera === 'cockpit') {
-        // Both real mirrors remain enabled. On the recorded software-GPU trace,
-        // cockpit passes pushed adjacent frames past the event recorder's 1s
-        // continuity limit. Reduce ONLY the existing render-scale setting; do
-        // not invent intermediate evidence, weaken duration gates or remove cars.
+      if (drive.weather === 'rain') {
+        // Low disables particles; real leader-attributed spray must remain present.
+        await page.locator('[name=graphics_particleDensity]').press('End');
+        await expect(page.locator('[name=graphics_particleDensity]')).toHaveValue('1');
+      }
+      if (resolutionScale === 0.5) {
+        // Run 36220062871 presented removal at clock 1.167 with a 0.057m jack,
+        // then installation at 2.383: it never rendered qualifying raised removal.
+        // Reduce ONLY the documented functional workload's existing render scale.
+        // Keep every car, all 15 crew, service timings and qualification thresholds.
+        // The separate default-quality full-lap/pit presentation suite is unchanged.
         await page.locator('[name=graphics_resolutionScale]').press('Home');
         await expect(page.locator('[name=graphics_resolutionScale]')).toHaveValue('0.5');
       }
@@ -154,8 +157,8 @@ for (const drive of drives)
     await page
       .locator('#reviewMachine')
       .fill(
-        drive.camera === 'cockpit'
-          ? 'Hosted 640x400 Low + 50% render + full spray; software GPU only'
+        resolutionScale === 0.5
+          ? `Hosted 640x400 Low + 50% render + ${drive.weather === 'rain' ? 'full spray' : 'full crew'}; software GPU only`
           : 'Hosted 640x400 Low + workload particles; software GPU only',
       );
     await page.selectOption('#reviewWorkload', drive.workload);
@@ -164,15 +167,48 @@ for (const drive of drives)
     await expect.poll(async () => (await diag(page)).presentationReview.state).toBe('recording');
     if (drive.workload === 'pit-service') await page.keyboard.press('p');
     const seen = new Set<string>();
+    // Bounded diagnostics from the already-read presented state. Never mix the
+    // newer worker snapshot with rendered pit evidence, or force extra GPU draws.
+    const pitSamples: {
+      time: number;
+      phase: number;
+      clock: number;
+      jackHeight: number;
+      speed: number;
+      totalCrewActors: number;
+    }[] = [];
+    let lastPitTime = -1;
     await expect
       .poll(
         async () => {
           const d = await diag(page),
             r = d.presentationReview;
           if (errors.length) throw new Error(errors.join('\n'));
+          const pit = d.renderer?.pitState;
+          if (
+            drive.workload === 'pit-service' &&
+            pit &&
+            pit.inPit &&
+            pit.time !== lastPitTime &&
+            pitSamples.length < 512
+          ) {
+            lastPitTime = pit.time;
+            pitSamples.push({
+              time: pit.time,
+              phase: pit.phase,
+              clock: pit.clock,
+              jackHeight: pit.jackHeight,
+              speed: pit.speed,
+              totalCrewActors: d.renderer?.pitPersonnel.actors ?? 0,
+            });
+          }
           if (r.state === 'interrupted') {
             await info.attach('interrupted-race-diagnostics.json', {
               body: JSON.stringify(d, null, 2),
+              contentType: 'application/json',
+            });
+            await info.attach('presented-pit-observations.json', {
+              body: JSON.stringify(pitSamples, null, 2),
               contentType: 'application/json',
             });
             throw new Error(r.reason ?? 'Review interrupted');
