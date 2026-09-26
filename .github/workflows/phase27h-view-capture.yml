@@ -1,33 +1,256 @@
-name: Phase 27H normal application visual baseline
+name: Full-race graphics exact-candidate preflight
 on:
   push:
     branches: [main]
     paths: [.github/workflows/phase27h-view-capture.yml]
+  workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  group: full-race-graphics-${{ github.sha }}
+  cancel-in-progress: false
+env:
+  BASE: 3433982cb4097b40f88108228bd981932486e9d1
+  HELPER: .github/workflows/phase27h-view-capture.yml
+  EXPECTED_SOURCE: cd07369858e08aced6359ecd9bac1cac2cffb4504105b8e42b51e40ad7b69e06
 jobs:
-  normal-game-views:
+  prepare:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
+    outputs:
+      tree: ${{ steps.identity.outputs.tree }}
     steps:
       - uses: actions/checkout@v4
         with:
+          fetch-depth: 0
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: npm
+      - name: Reconstruct the checked source without activating it
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse "$BASE^{tree}")" = e99e6ee11b5e325d82cca0ecb9ef85b9f99678a1
+          git merge-base --is-ancestor "$BASE" HEAD
+          test "$(git diff --name-only "$BASE" HEAD)" = "$HELPER"
+          git restore --source="$BASE" --staged --worktree -- "$HELPER"
+          python - <<'PY'
+          import base64,gzip,hashlib,json,os,pathlib,time,urllib.request,urllib.error
+          chunks=['96f8d9ca0ac10be21be2d33e5e36cf93e479af40','ce5013483d8c3b0b2a0203de948b50cc15e7e7f0','053452527816c3803f1578505552c2cd00861b6e','5903cf36245e08d4f2814d3d0a511f13c0c88a17','278e4640710cc7d66677c476653213d1947dee29','91f93c6244fcd9ce822584d77037afbfa1b701b1','0ef3f509e67d2fbfd387346eae3f6be4f4bf5073','d23764d4d01a6179b96f3d0d1523d7065a4583d1']
+          data=b''
+          for sha in chunks:
+              url=f'https://api.github.com/repos/{os.environ["GITHUB_REPOSITORY"]}/git/blobs/{sha}'
+              req=urllib.request.Request(url,headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json'})
+              for attempt in range(4):
+                  try:
+                      with urllib.request.urlopen(req,timeout=60) as response: result=json.load(response)
+                      break
+                  except urllib.error.HTTPError as e:
+                      if e.code not in (429,500,502,503,504) or attempt==3: raise
+                      time.sleep(2**attempt)
+                  except (urllib.error.URLError,TimeoutError):
+                      if attempt==3: raise
+                      time.sleep(2**attempt)
+              assert result['encoding']=='base64'
+              raw=base64.b64decode(result['content'])
+              assert hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()==sha
+              data+=raw
+          patch=gzip.decompress(data)
+          assert hashlib.sha256(patch).hexdigest()=='c95661c09fa6c8cd2434e3f71905da458e8f1aee50765c9f38fbf8ac6d94efc8'
+          pathlib.Path(os.environ['RUNNER_TEMP'],'source.patch').write_bytes(patch)
+          PY
+          git apply --index "$RUNNER_TEMP/source.patch"
       - run: npm ci --no-audit --no-fund
-      - run: npm run build
+      - name: Install the pinned original Blender toolchain
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP"
+          curl --fail --location --retry 3 --max-time 240 -o blender.tar.xz https://download.blender.org/release/Blender5.2/blender-5.2.2-linux-x64.tar.xz
+          printf '%s  blender.tar.xz\n' '84098912789dc450e95697c4184fb8a90acbe5111c2ba4aede3fecb57806a168' | sha256sum -c -
+          tar -xf blender.tar.xz
+          echo "$RUNNER_TEMP/blender-5.2.2-linux-x64" >> "$GITHUB_PATH"
+      - name: Reproduce editable driver and people assets
+        run: |
+          set -euo pipefail
+          blender --background --python-exit-code 1 --python scripts/author-driver.py
+          blender --background --python-exit-code 1 --python scripts/author-people.py
+          rm -f scripts/apx01-driver.blend1 scripts/aurel-people.blend1
+          printf '%s  %s\n' '07ce4820536f6599051f3c2d5e1f56919a4083f75471bfe0ea97d4a5b82264f7' src/rendering/apx01-driver.glb.gz '4171901f74d0bfaa9bcb13977d4c3f69d76b026d756797433ad79a60541db5c7' src/rendering/aurel-people.geometry.json | sha256sum -c -
+          node --experimental-transform-types scripts/phase27h-matrix.ts --write
+      - name: Lint, complete unit suite, types, build and matrix
+        run: |
+          set -euo pipefail
+          npm run check
+          node --experimental-transform-types scripts/phase27h-matrix.ts --check
+          grep -rl -- "$EXPECTED_SOURCE" dist/assets/*.js > "$RUNNER_TEMP/source-identity-files.txt"
+      - name: Freeze the exact candidate and preservation checks
+        id: identity
+        run: |
+          set -euo pipefail
+          git add scripts/apx01-driver.blend scripts/aurel-people.blend src/rendering/apx01-driver.glb.gz src/rendering/apx01-driver.manifest.json src/rendering/aurel-people.geometry.json src/rendering/aurel-people.glb.gz src/rendering/aurel-people.manifest.json docs/PHASE_27H_MATRIX.md
+          git diff --exit-code
+          git diff --cached --exit-code "$BASE" -- src/simulation src/workers src/input src/storage src/audio package.json package-lock.json vite.config.ts playwright.config.ts .github/workflows/ci.yml docs/MASTER_DIRECTIVE.md "$HELPER" src/rendering/apx01-shell.glb.gz scripts/apx01-assembly.blend
+          tree=$(git write-tree)
+          echo "tree=$tree" >> "$GITHUB_OUTPUT"
+          printf '%s\n' "$tree" > "$RUNNER_TEMP/candidate-tree.txt"
+          printf '%s\n' "$EXPECTED_SOURCE" > "$RUNNER_TEMP/source-fingerprint.txt"
+          git archive --format=tar.gz "$tree" > "$RUNNER_TEMP/candidate-source.tar.gz"
+          sha256sum "$RUNNER_TEMP/candidate-source.tar.gz" > "$RUNNER_TEMP/candidate-source.sha256"
+          git diff --cached --stat "$BASE" > "$RUNNER_TEMP/candidate-diff.txt"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: full-race-candidate-source
+          path: |
+            ${{ runner.temp }}/candidate-source.tar.gz
+            ${{ runner.temp }}/candidate-tree.txt
+            ${{ runner.temp }}/candidate-source.sha256
+            ${{ runner.temp }}/candidate-diff.txt
+            ${{ runner.temp }}/source-fingerprint.txt
+          retention-days: 14
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: full-race-candidate-web
+          path: dist/
+          retention-days: 14
+          if-no-files-found: error
+  browser:
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4, 5, 6, 7, 8]
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: full-race-candidate-source
+          path: ${{ runner.temp }}/candidate
+      - name: Extract only the prepared candidate
+        run: tar -xzf "$RUNNER_TEMP/candidate/candidate-source.tar.gz"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - uses: actions/download-artifact@v4
+        with:
+          name: full-race-candidate-web
+          path: dist/
       - run: npx playwright install --with-deps chromium
-      - name: Capture actual startup, complete car and native cockpit views
-        run: npm run test:e2e -- e2e/20-phase27h.spec.ts e2e/23-apx01-views.spec.ts
+      - run: npm run test:e2e -- --shard=${{ matrix.shard }}/8
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: phase27h-normal-game-baseline
+          name: full-race-browser-${{ matrix.shard }}
           path: |
             test-results/
             playwright-report/
+          retention-days: 14
+          if-no-files-found: error
+  scenarios:
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: full-race-candidate-source
+          path: ${{ runner.temp }}/candidate
+      - run: tar -xzf "$RUNNER_TEMP/candidate/candidate-source.tar.gz"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: All numerical and populated-racing checks
+        run: |
+          set -euo pipefail
+          npm run test:physics
+          node --experimental-transform-types scripts/rotation-benchmark.ts
+          node --experimental-transform-types scripts/pit-integration.ts
+          node --experimental-transform-types scripts/race-classification.ts
+          node --experimental-transform-types scripts/phase27h6-racing.ts
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: full-race-numerical
+          path: docs/*.json
+          retention-days: 14
+  candidate:
+    needs: [prepare, browser, scenarios]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: full-race-candidate-source
+          path: ${{ runner.temp }}/candidate
+      - name: Publish immutable tested objects, without advancing main
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERIFIED_TREE: ${{ needs.prepare.outputs.tree }}
+          PREREQUISITES: ${{ toJSON(needs) }}
+        run: |
+          set -euo pipefail
+          tar -xzf "$RUNNER_TEMP/candidate/candidate-source.tar.gz"
+          git add -A
+          test "$(git write-tree)" = "$VERIFIED_TREE"
+          python - <<'PY'
+          import base64,datetime,hashlib,json,os,pathlib,subprocess,time,urllib.request,urllib.error
+          needs=json.loads(os.environ['PREREQUISITES'])
+          assert all(item['result']=='success' for item in needs.values())
+          repo=os.environ['GITHUB_REPOSITORY']; stage=os.environ['GITHUB_SHA']; tree=os.environ['VERIFIED_TREE']
+          assert repo=='cheshmakzanoon-ops/Experiment-3'
+          def api(path,body=None):
+              data=None if body is None else json.dumps(body).encode()
+              req=urllib.request.Request('https://api.github.com/repos/'+repo+'/'+path,data=data,headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','Content-Type':'application/json'})
+              for attempt in range(5):
+                  try:
+                      with urllib.request.urlopen(req,timeout=90) as response: return json.load(response)
+                  except urllib.error.HTTPError as e:
+                      if e.code not in (429,500,502,503,504) or attempt==4: raise
+                      time.sleep(2**attempt)
+                  except (urllib.error.URLError,TimeoutError):
+                      if attempt==4: raise
+                      time.sleep(2**attempt)
+          def git(*args):return subprocess.check_output(['git',*args])
+          assert api('git/ref/heads/main')['object']['sha']==stage, 'Main changed; no stale publication'
+          base_tree=api('git/commits/'+stage)['tree']['sha']
+          paths=git('diff','--cached','--name-only','-z','HEAD').decode().split('\0')
+          elements=[]
+          for path in filter(None,paths):
+              raw=pathlib.Path(path).read_bytes()
+              expected=hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()
+              uploaded=api('git/blobs',{'content':base64.b64encode(raw).decode(),'encoding':'base64'})['sha']
+              assert uploaded==expected, 'Blob identity mismatch: '+path
+              elements.append({'path':path,'mode':'100644','type':'blob','sha':uploaded})
+          uploaded_tree=api('git/trees',{'base_tree':base_tree,'tree':elements})['sha']
+          assert uploaded_tree==tree, 'Published tree is not the tested tree'
+          identity={'name':'github-actions[bot]','email':'41898282+github-actions[bot]@users.noreply.github.com','date':'2026-09-26T02:00:00Z'}
+          message='feat: finish integrated race presentation with authored cloth and swept spray\n\nRefine actual seated suit and crew shoulders, parent-conformal car patches, lit fabric and full-lap ground variation. Preserve simulation, inputs, audio, storage, car hardpoints, dependencies and original CI. Retain 16 new regressions and complete exact-tree browser and numerical validation. Physical hardware, human final-art and Steam acceptance remain independent.'
+          commit=api('git/commits',{'message':message,'tree':tree,'parents':[stage],'author':identity,'committer':identity})['sha']
+          check=api('git/commits/'+commit)
+          assert check['tree']['sha']==tree and [p['sha'] for p in check['parents']]==[stage]
+          assert api('git/ref/heads/main')['object']['sha']==stage, 'Main changed; candidate remains inactive'
+          report={'commit':commit,'tree':tree,'parent':stage,'sourceFingerprint':os.environ['EXPECTED_SOURCE'],'run':os.environ['GITHUB_RUN_ID'],'activated':False,'allCandidateJobs':'success','humanHardwareAcceptance':'open'}
+          pathlib.Path(os.environ['RUNNER_TEMP'],'candidate-publication.json').write_text(json.dumps(report,indent=2)+'\n')
+          with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as f:f.write('Exact tested candidate objects: `'+commit+'`. Main is unchanged. Activation requires independent read-back and non-force publication.\n')
+          print(json.dumps(report,indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: full-race-candidate-publication
+          path: ${{ runner.temp }}/candidate-publication.json
           retention-days: 14
           if-no-files-found: error
