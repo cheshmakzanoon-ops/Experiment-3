@@ -84,7 +84,23 @@ for (const method of ['signalGPU', 'crewGPU', 'canopyGPU'] as const) {
       const front = find('canopy-corrected-front'),
         back = find('canopy-corrected-back');
       expect(front.nonzero).toBeGreaterThan(100);
-      expect(front.hash).toBe(back.hash);
+      if (!('comparisons' in result)) throw new Error('Missing pixel comparisons');
+      const difference = result.comparisons.find((c) => c.name === 'canopy-corrected');
+      expect(difference).toBeDefined();
+      // Winding reversal moved eight channels by one 8-bit code value in the
+      // inspected failure artifact. Bound EVERY channel, not an image average,
+      // and require exactly preserved coverage plus an exact normal witness.
+      expect(difference!.maxChannelDelta).toBeLessThanOrEqual(1);
+      expect(difference!.coverageDifferences).toBe(0);
+      expect(find('canopy-corrected-normal-front').hash).toBe(
+        find('canopy-corrected-normal-back').hash,
+      );
+      expect(find('canopy-corrected-normal-front').hash).toBe(
+        find('canopy-control-normal-front').hash,
+      );
+      expect(find('canopy-control-normal-front').hash).not.toBe(
+        find('canopy-control-normal-back').hash,
+      );
       expect(find('canopy-control-front').hash).not.toBe(find('canopy-control-back').hash);
       expect(front.hash).toBe(find('canopy-control-front').hash);
       expect(front.calls).toBe(back.calls);

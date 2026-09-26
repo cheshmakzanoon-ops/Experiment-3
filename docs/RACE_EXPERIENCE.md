@@ -80,3 +80,23 @@ Normal-resolution candidate footage still requires review. A complete manual rac
 physical controller/wheel acceptance, representative CPU/GPU frame-time and memory
 profiling, broad character final art, and subjective handling quality remain open.
 No physics adjustment is justified merely to make software-rendered CI run faster.
+
+## GPU-oracle follow-up
+
+Run `36267919231` on `9347f0f` passed the rear-signal and crew GPU cases, and
+all thirteen other cases in browser shard 6, including manual steering and
+high-quality application rendering. The new canopy whole-image hash assertion
+failed. Inspection of its raw PNGs found identical 29,696-pixel coverage and only
+eight changed RGB channel values, each by one RGBA8 code; aggregate RGB energy
+changed from 6,197,263 to 6,197,265. The uncorrected back-facing control was black.
+That run is retained as a failure, not retroactively described as green.
+
+The follow-up leaves every runtime file unchanged. The lit comparison now bounds
+every channel to at most one 8-bit code and requires identical visible coverage,
+rather than treating triangle-winding rasterization rounding as a lighting fault.
+An additional normal-output pass observes the actual post-hook shader normal:
+corrected front/back must match exactly, the front must match the unchanged
+control, and the uncorrected front/back must differ. Six unit cases verify the
+pixel comparator detects isolated larger errors and coverage loss without hiding
+them in a frame-wide average. Complete ordinary CI remains required for the new
+commit; this is not a relaxation of full-game, handling or hardware acceptance.

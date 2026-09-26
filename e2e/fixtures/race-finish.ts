@@ -15,6 +15,7 @@ import {
   carBase,
 } from '../../src/simulation/protocol.ts';
 import { disposePhase27Scene } from './phase27c-resources.ts';
+import { pixelDifference } from './pixel-difference.ts';
 
 /** Controlled production-component comparisons, not an ordinary driven race.
  * Existing full-game dry/sunset/wet/day/night tests remain the integration gate. */
@@ -56,7 +57,7 @@ function studio() {
     renderer.dispose();
     renderer.domElement.remove();
   };
-  return { renderer, scene, camera, capture, dispose };
+  return { renderer, scene, camera, capture, pixels: () => data.slice(), dispose };
 }
 function frame(clock = 0) {
   const result = new Float32Array(HEADER + CAR_STRIDE);
@@ -190,7 +191,7 @@ export function crewGPU() {
   }
 }
 export function canopyGPU() {
-  const { renderer, scene, camera, capture, dispose } = studio();
+  const { renderer, scene, camera, capture, pixels, dispose } = studio();
   const plantation = new T.Group();
   buildVegetation(new Track(), plantation);
   const leaf = plantation.children.find(
@@ -225,25 +226,42 @@ export function canopyGPU() {
     cacheKey = material.customProgramCacheKey();
   const correction = 'normal *= faceDirection;\n  nonPerturbedNormal = normal;';
   const captures = [];
+  const comparisons = [];
   try {
-    for (const enabled of [false, true]) {
-      material.onBeforeCompile = (s, r) => {
-        callback.call(material, s, r);
-        if (!enabled) {
-          if (!s.fragmentShader.includes(correction))
-            throw new Error('Missing canopy normal correction');
-          s.fragmentShader = s.fragmentShader.replace(correction, '');
-        }
-      };
-      material.customProgramCacheKey = () => cacheKey + (enabled ? '-candidate' : '-control');
-      material.needsUpdate = true;
-      geometry.index!.array.set(front);
-      geometry.index!.needsUpdate = true;
-      captures.push(capture(`canopy-${enabled ? 'corrected' : 'control'}-front`));
-      reverse();
-      captures.push(capture(`canopy-${enabled ? 'corrected' : 'control'}-back`));
+    // Keep the production lit comparison, then independently observe its actual
+    // post-hook normal. Changing triangle winding can change the final texture
+    // sample's 8-bit rounding; that must not hide an inverted lighting normal.
+    for (const observation of ['lit', 'normal'] as const) {
+      for (const enabled of [false, true]) {
+        material.onBeforeCompile = (s, r) => {
+          callback.call(material, s, r);
+          if (!enabled) {
+            if (!s.fragmentShader.includes(correction))
+              throw new Error('Missing canopy normal correction');
+            s.fragmentShader = s.fragmentShader.replace(correction, '');
+          }
+          if (observation === 'normal') {
+            const output = '#include <opaque_fragment>';
+            if (!s.fragmentShader.includes(output)) throw new Error('Missing normal readback hook');
+            s.fragmentShader = s.fragmentShader.replace(
+              output,
+              `${output}\ngl_FragColor = vec4(normal * .5 + .5, 1.);`,
+            );
+          }
+        };
+        const name = `canopy-${enabled ? 'corrected' : 'control'}${observation === 'normal' ? '-normal' : ''}`;
+        material.customProgramCacheKey = () => `${cacheKey}-${name}`;
+        material.needsUpdate = true;
+        geometry.index!.array.set(front);
+        geometry.index!.needsUpdate = true;
+        captures.push(capture(`${name}-front`));
+        const frontPixels = pixels();
+        reverse();
+        captures.push(capture(`${name}-back`));
+        comparisons.push({ name, ...pixelDifference(frontPixels, pixels()) });
+      }
     }
-    return { captures, glError: renderer.getContext().getError() };
+    return { captures, comparisons, glError: renderer.getContext().getError() };
   } finally {
     // The test card shares the production material and atlas, not its geometry.
     scene.remove(card);
