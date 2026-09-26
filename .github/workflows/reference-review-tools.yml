@@ -137,12 +137,18 @@ jobs:
           path: ${{ runner.temp }}/exact-candidate.tar.gz
           if-no-files-found: error
           retention-days: 14
+      - name: Preserve regenerated asset bytes for exact comparison
+        if: always()
+        run: |
+          tar -czf "$RUNNER_TEMP/asset-reproduction.tar.gz" scripts/apx01-driver.blend scripts/aurel-people.blend src/rendering/apx01-driver.glb.gz src/rendering/apx01-driver.manifest.json src/rendering/aurel-people.glb.gz src/rendering/aurel-people.geometry.json src/rendering/aurel-people.manifest.json
       - name: Preserve identity diagnostics
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: exact-saved-identity
-          path: ${{ runner.temp }}/asset-identity.json
+          path: |
+            ${{ runner.temp }}/asset-identity.json
+            ${{ runner.temp }}/asset-reproduction.tar.gz
           retention-days: 14
   publish:
     needs: prepare
