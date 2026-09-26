@@ -1,4 +1,5 @@
 import * as T from 'three';
+import { visibleReducedWheelPivots } from './visible-wheel-pivots.ts';
 import { FormulaCar } from '../../src/rendering/car.ts';
 import { TireCarcass } from '../../src/rendering/tire-carcass.ts';
 import { treadMaterial } from '../../src/rendering/materials.ts';
@@ -156,14 +157,7 @@ export function verifyWheelFidelity() {
     for (const distance of [100, 1000]) {
       car.setLod(distance, 'medium', false);
       car.update(a, b, o, 0.5, 1 / 60, a[H.TIME], false);
-      const visible = car.root.children.find(
-        (child) => child.visible && child !== car.root.children[0],
-      );
-      // Reduced wheel groups are direct children with one spinning sub-group.
-      const wheels =
-        visible?.children.filter(
-          (child) => child instanceof T.Group && child.children.some((c) => c instanceof T.Group),
-        ) ?? [];
+      const wheels = visibleReducedWheelPivots(car.root);
       lods.push({
         level: car.lodLevel,
         wheels: wheels.map((w) => ({
