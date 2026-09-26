@@ -1,10 +1,11 @@
 import * as T from 'three';
+import { PERIODIC_COVERAGE_GLSL } from './periodic-coverage.ts';
 
 export type VenueFinish = 'stone' | 'timber' | 'metal' | 'paving';
 const FINISH_ID: Record<VenueFinish, number> = { stone: 0, timber: 1, metal: 2, paving: 3 };
 
 /** Metre-scaled finish survives spatial batching and instancing. Filtered joints
- * disappear below a pixel; no baked lighting, extra texture or animation clock. */
+ * converge to their coverage below a pixel; no baked lighting, extra texture or animation clock. */
 export function installVenueFinish(material: T.MeshStandardMaterial, finish: VenueFinish) {
   if (!Object.hasOwn(FINISH_ID, finish)) throw new Error('Unknown venue finish');
   if (material.userData.venueFinish !== undefined)
@@ -30,6 +31,7 @@ export function installVenueFinish(material: T.MeshStandardMaterial, finish: Ven
         '#include <common>',
         `#include <common>
         varying vec3 vVenueWorld;
+        ${PERIODIC_COVERAGE_GLSL}
         float venueHash(vec2 p) {
           return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
         }
@@ -53,22 +55,31 @@ export function installVenueFinish(material: T.MeshStandardMaterial, finish: Ven
           float grain = sin(q.y*23. + venueNoise(q*.9)*4.);
           float filtered = 1.-smoothstep(.7, 2.5, fwidth(q.y*23.));
           mottling += grain*.035*filtered;
-          vec2 grid = q*vec2(5.,.18);`
+          vec2 grid = q*vec2(5.,.18);
+          vec2 footprint = max(fwidth(grid), vec2(.00001));`
               : finish === 'metal'
                 ? `
-          vec2 grid = q*vec2(2.5,.5);`
+          vec2 grid = q*vec2(2.5,.5);
+          vec2 footprint = max(fwidth(grid), vec2(.00001));`
                 : finish === 'paving'
                   ? `
           vec2 grid = q/vec2(.6,.9);
+          vec2 footprint = max(fwidth(grid), vec2(.00001));
           grid.x += mod(floor(grid.y), 2.)*.5;`
                   : `
           vec2 grid = q/vec2(.85,.32);
+          vec2 footprint = max(fwidth(grid), vec2(.00001));
           grid.x += mod(floor(grid.y), 2.)*.5;`
           }
-          vec2 footprint = max(fwidth(grid), vec2(.001));
-          vec2 edge = abs(fract(grid+.5)-.5);
-          vec2 joint = 1.-smoothstep(vec2(.014), vec2(.014)+footprint, edge);
-          seam = max(joint.x,joint.y) * (1.-smoothstep(.25,.9,max(footprint.x,footprint.y)));
+          float horizontal = apexStripeCoverage(grid.y, footprint.y, .014);
+          float vertical = apexStripeCoverage(grid.x, footprint.x, .014);
+          // Once a pixel spans rows, phase-average both brick offsets instead
+          // of differentiating the discontinuous stagger or erasing the joints.
+          ${finish === 'stone' || finish === 'paving' ? `
+          float otherRow = apexStripeCoverage(grid.x + .5, footprint.x, .014);
+          vertical = mix(vertical, (vertical + otherRow) * .5, smoothstep(.25, 1., footprint.y));
+          ` : ''}
+          seam = 1. - (1. - horizontal) * (1. - vertical);
           return vec2(1.+mottling-seam*.14, mottling*.4+seam*.06);
         }`,
       )
@@ -82,7 +93,7 @@ export function installVenueFinish(material: T.MeshStandardMaterial, finish: Ven
       );
   };
   material.customProgramCacheKey = () =>
-    `${previousKey}:aurel-metric-finish-v1:${FINISH_ID[finish]}`;
+    `${previousKey}:aurel-metric-finish-v1:coverage-v2:${FINISH_ID[finish]}`;
   return material;
 }
 

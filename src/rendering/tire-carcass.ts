@@ -1,4 +1,5 @@
 import { tireProfile } from './tire-profile.ts';
+import { bindTireSurface } from './tire-finish.ts';
 import * as T from 'three';
 import { clamp } from '../core/math.ts';
 import { mesh } from './geometry.ts';
@@ -37,7 +38,9 @@ export class TireCarcass {
     ownedRubber?: T.BufferGeometry,
   ) {
     const profile = tireProfile(half);
-    mesh(this.root, ownedRubber ?? new T.LatheGeometry(profile, 48).rotateZ(Math.PI / 2), tread);
+    const rubber = ownedRubber ?? new T.LatheGeometry(profile, 48).rotateZ(Math.PI / 2);
+    bindTireSurface(rubber);
+    mesh(this.root, rubber, tread);
     const rings = [-1, 1].map((side) =>
       new T.TorusGeometry(0.287, 0.005, 6, 48)
         .rotateY(Math.PI / 2)

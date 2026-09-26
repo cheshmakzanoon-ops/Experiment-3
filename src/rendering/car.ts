@@ -31,6 +31,7 @@ import { sculptedLoft, wingElement } from './bodywork.ts';
 import { flankLivery, repaintFlank } from './car-livery.ts';
 import { validateLivery, type Livery } from '../storage/livery.ts';
 import { TireCarcass } from './tire-carcass.ts';
+import { bindTireSurface, tireWetAppearance } from './tire-finish.ts';
 import { wheelPhase, wheelTravel } from './wheel-pose.ts';
 import * as T from 'three';
 import { DriverRig } from './driver.ts';
@@ -43,6 +44,7 @@ import { COMPOUNDS, LIVERIES } from '../simulation/config.ts';
 import { F, H, W, WHEEL_BASE, WHEEL_STRIDE } from '../simulation/protocol.ts';
 import { WHEEL_POSITIONS } from '../simulation/vehicle.ts';
 import { clamp, lerp } from '../core/math.ts';
+const COMPOUND_STYLES = Object.values(COMPOUNDS);
 export class FormulaCar {
   readonly root = new T.Group();
   readonly mirrors: T.Mesh[] = [];
@@ -58,7 +60,7 @@ export class FormulaCar {
   readonly discs: T.MeshStandardMaterial[] = [];
   readonly brakeRotors: T.Mesh[] = [];
   readonly treads: ReturnType<typeof treadMaterial>[] = [];
-  readonly rings: T.MeshBasicMaterial[] = [];
+  readonly rings: T.MeshStandardMaterial[] = [];
   readonly links: { mesh: T.Object3D; anchor: T.Vector3; wheel: number; dy: number; dx: number }[] =
     [];
   private suspension: T.InstancedMesh;
@@ -284,9 +286,12 @@ export class FormulaCar {
       this.wheelPivots.push(pivot);
       this.wheelSpins.push(spin);
       const half = i < 2 ? 0.155 : 0.19;
-      const tread = treadMaterial();
+      const tread = treadMaterial(half);
       this.treads.push(tread);
-      const ringMaterial = new T.MeshBasicMaterial({ color: COMPOUNDS.medium.color });
+      const ringMaterial = new T.MeshStandardMaterial({
+        color: COMPOUNDS.medium.color,
+        roughness: 0.82,
+      });
       this.rings.push(ringMaterial);
       if (!hero) {
         const wheel = mesh(
@@ -521,6 +526,10 @@ export class FormulaCar {
     this.highDetail.add(...highChildren);
     for (const level of [1, 2] as const) {
       const reduced = new ReducedCar(level, this.paint, carbon, dark, flankMaterials);
+      for (let i = 0; i < 4; i++) {
+        bindTireSurface(reduced.tires[i].geometry, 'y');
+        reduced.tires[i].material = this.treads[i].material;
+      }
       this.reduced.push(reduced);
       reduced.root.visible = false;
       this.root.add(reduced.root);
@@ -568,6 +577,28 @@ export class FormulaCar {
       lerp(a[o + F.BRAKE], b[o + F.BRAKE], t),
       lerp(a[H.TIME], b[H.TIME], t),
     );
+    // Every visible representation shares this wheel's live material. Observe
+    // snapshots before any LOD return; pit swaps and replay seeks cannot leave
+    // reduced tyres clean/slick while the near representation is worn or wet.
+    const compoundIndex = Math.round(b[o + F.COMPOUND]);
+    const compound = COMPOUND_STYLES[compoundIndex] ?? COMPOUNDS.medium;
+    for (let i = 0; i < 4; i++) {
+      const p = o + WHEEL_BASE + i * WHEEL_STRIDE;
+      this.rings[i].color.setHex(compound.color);
+      this.treads[i].condition.value.set(
+        b[p + W.DIRT],
+        b[p + W.WEAR],
+        b[p + W.BLISTERING],
+        b[p + W.GRAINING],
+      );
+      this.treads[i].surface.value.x = tireWetAppearance(
+        b[H.RAIN],
+        b[p + W.WATER],
+        b[p + W.LOAD],
+        b[o + F.SPEED],
+      );
+      this.treads[i].surface.value.y = compoundIndex === 3 ? 1 : compoundIndex === 4 ? 2 : 0;
+    }
     if (this.lodLevel > 0) {
       const reduced = this.reduced[this.lodLevel - 1];
       for (let i = 0; i < 4; i++) {
@@ -604,7 +635,6 @@ export class FormulaCar {
     this.helmet.rotation.set(this.driver.headPitch, 0, this.driver.headRoll);
     this.cockpitControls.update(b, o);
     this.helmet.visible = !cockpit;
-    const compound = Object.values(COMPOUNDS)[Math.round(b[o + F.COMPOUND])] ?? COMPOUNDS.medium;
     for (let i = 0; i < 4; i++) {
       const p = o + WHEEL_BASE + i * WHEEL_STRIDE,
         pivot = this.wheelPivots[i];
@@ -619,13 +649,6 @@ export class FormulaCar {
         serviceWheelOffset(b[o + F.PIT_PHASE], b[o + F.PIT_CLOCK], b[p + W.LOAD]);
       this.brakeRotors[i].rotation.x = this.wheelSpins[i].rotation.x;
       this.discs[i].emissiveIntensity = clamp((b[p + W.DISC_TEMP] - 500) / 450, 0, 2);
-      this.rings[i].color.setHex(compound.color);
-      this.treads[i].condition.value.set(
-        b[p + W.DIRT],
-        b[p + W.WEAR],
-        b[p + W.BLISTERING],
-        b[p + W.GRAINING],
-      );
       this.carcasses[i].update(
         this.wheelSpins[i].rotation.x,
         lerp(a[p + W.RADIUS], b[p + W.RADIUS], t),

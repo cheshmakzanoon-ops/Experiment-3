@@ -1,3 +1,4 @@
+import { PERIODIC_COVERAGE_GLSL } from './periodic-coverage.ts';
 import * as T from 'three';
 
 export type CircuitFinish = 'asphalt' | 'grass' | 'concrete' | 'paint' | 'kerb';
@@ -14,6 +15,7 @@ export function finishDetailWeight(footprint: number) {
 // These are construction/weathering details, never fabricated session rubber,
 // water, marbles or physical bumps. Those remain owned by the simulation grid.
 const noise = `
+${PERIODIC_COVERAGE_GLSL}
 varying vec3 vFinishWorld;
 varying vec2 vFinishMetres;
 float finishHash(vec2 p) { return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }
@@ -38,7 +40,8 @@ const finishes: Record<CircuitFinish, string> = {
     float medium=finishFilteredNoise(vFinishWorld.xz*1.7);
     diffuseColor.rgb *= .9 + broad*.16 + medium*.05;
     // A restrained longitudinal paving join, not a painted racing line.
-    float join=finishLine(mod(vFinishMetres.x+1.7,3.6)-1.8,.014);
+    float joinPhase=(vFinishMetres.x-.1)/3.6;
+    float join=apexStripeCoverage(joinPhase,fwidth(joinPhase),.014/3.6);
     diffuseColor.rgb *= 1.0-.17*join;
   `,
   grass: `
@@ -70,7 +73,8 @@ const finishes: Record<CircuitFinish, string> = {
     float aa=max(length(fwidth(vFinishWorld.xz*33.0)),.001);
     float chips=smoothstep(.65,.79,finishFilteredNoise(vFinishWorld.xz*33.0));
     chips=mix(chips,.045,smoothstep(.3,1.5,aa));
-    float joints=finishLine(mod(vFinishMetres.y+1.5,3.0)-1.5,.012);
+    float jointPhase=vFinishMetres.y/3.0;
+    float joints=apexStripeCoverage(jointPhase,fwidth(jointPhase),.012/3.0);
     diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.19,.18,.16),chips*.55);
     diffuseColor.rgb *= (1.0-joints*.32) * (.84+.16*finishFilteredNoise(vFinishWorld.xz*1.4));
   `,
@@ -106,7 +110,7 @@ export function installCircuitFinish(material: T.MeshStandardMaterial, kind: Cir
       .replace('#include <map_fragment>', '#include <map_fragment>\n' + finishes[kind]);
   };
   material.customProgramCacheKey = () =>
-    `${baseKey}:circuit-finish-v2-filtered:${kind}${kind === 'grass' ? ':regional-soil-v1' : ''}`;
+    `${baseKey}:circuit-finish-v2-filtered:periodic-joints-v1:${kind}${kind === 'grass' ? ':regional-soil-v1' : ''}`;
   material.name = `Original ${kind} construction finish`;
 }
 
