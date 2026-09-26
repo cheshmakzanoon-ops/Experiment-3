@@ -66,3 +66,19 @@ Normal-resolution whole-lap footage, broad car/cockpit/people art approval, a
 continuous human-driven race and representative hardware measurements remain open.
 Do not deploy the historical checked-in `playable/`. Publish only the ordinary
 CI release for the exact successful source SHA and verify deployed identity.
+
+## Browser-fixture origin correction
+
+The first hosted run, `36279391565` for `8bb1d388`, passed all 1,153 unit
+cases, strict TypeScript/build, native simulation scenarios and wet-presentation
+checks. The new material browser fixture failed before rendering: its opaque
+blank document lacked `crypto.subtle`, so the retained authored-asset integrity
+check could not run. The failed screenshot, trace and report are retained in that
+run's `browser-validation-6-of-8` artifact; it is not a passing material receipt.
+
+The follow-up serves only the isolated fixture document at the ordinary test
+server's loopback origin. It asserts and records actual secure-context/WebCrypto
+availability before invoking the unchanged authored-asset decoder. It does not
+mock the hash, bypass asset integrity, start a hidden game, change a shader, relax
+pixel/resource checks, or alter the workflow. The follow-up's complete hosted
+suite must pass independently; the old run cannot certify the repaired fixture.

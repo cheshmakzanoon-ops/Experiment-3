@@ -14,7 +14,25 @@ test('production tyre states survive every LOD and metric venues render without 
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
   page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()); });
-  await page.setContent('<!doctype html><title>Controlled race surface inspection</title>');
+  // Asset integrity uses the browser's real WebCrypto API. An opaque blank
+  // document does not expose it; an ordinary loopback origin does. Intercept
+  // this test-only document so the full game and its workers never start here.
+  await page.route('**/__e2e_race_surface.html', (route) => route.fulfill({
+    status: 200,
+    contentType: 'text/html',
+    body: '<!doctype html><title>Controlled race surface inspection</title><link rel="icon" href="data:,">',
+  }));
+  await page.goto('/__e2e_race_surface.html');
+  const integrityContext = await page.evaluate(() => ({
+    origin: location.origin,
+    secure: window.isSecureContext,
+    digestAvailable: typeof crypto.subtle?.digest === 'function',
+  }));
+  await info.attach('asset-integrity-origin.json', {
+    body: JSON.stringify(integrityContext, null, 2), contentType: 'application/json',
+  });
+  expect(integrityContext.secure).toBe(true);
+  expect(integrityContext.digestAvailable).toBe(true);
   await page.addScriptTag({ content: chunk.code });
   const result = await page.evaluate((bytes) =>
     (window as unknown as { RaceSurfaceProbe: typeof Probe }).RaceSurfaceProbe.raceSurfaceGPU(bytes),
