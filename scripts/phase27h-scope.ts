@@ -327,6 +327,38 @@ extend(
   e('28-race-pit-presentation'),
 );
 extend([93, 94, 118, 146], [], [], e('28-race-pit-presentation'));
+// Graphics continuation: exact existing source and new regression ownership only.
+// These links do not create render/human/hardware acceptance receipts.
+extend(
+  [54, 56, 57, 58, 122],
+  r('materials paint-finish circuit-finish'),
+  t('graphics-continuity'),
+  e('28-race-pit-presentation'),
+);
+extend(
+  [93, 94, 95, 96, 98, 123],
+  r('geometry car lod'),
+  t('graphics-continuity'),
+  e('22-apx01-assembly'),
+);
+extend(
+  [124, 125],
+  r('cockpit driver-materials driver-asset'),
+  t('graphics-continuity driver-asset'),
+  e('24-coupled-driver'),
+);
+extend(
+  [63, 64, 65, 88],
+  r('crew-geometry people-asset'),
+  t('people'),
+  e('25-people 28-race-pit-presentation'),
+);
+extend(
+  [128, 129],
+  r('circuit-finish geometry'),
+  t('graphics-continuity circuit-detail'),
+  e('06-circuit-survey'),
+);
 export const SECTION_OWNERS: ReadonlyMap<number, SectionOwner> = owners;
 
 export const REFERENCE_CHECKS: Record<string, string[]> = {

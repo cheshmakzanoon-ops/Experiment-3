@@ -42,11 +42,12 @@ const finishes: Record<CircuitFinish, string> = {
     diffuseColor.rgb *= 1.0-.17*join;
   `,
   grass: `
-    float broad=finishFilteredNoise(vFinishWorld.xz*.085);
-    float patches=finishFilteredNoise(vFinishWorld.xz*.58);
-    float dry=smoothstep(.43,.72,broad*.7+patches*.3);
-    diffuseColor.rgb *= mix(vec3(.66,.81,.57),vec3(1.28,1.12,.78),dry);
-    diffuseColor.rgb *= .82+.28*patches;
+    // Regional soil/moisture variation, not high-contrast camouflage patches.
+    float broad=finishFilteredNoise(vFinishWorld.xz*.018);
+    float patches=finishFilteredNoise(vFinishWorld.xz*.48);
+    float dry=smoothstep(.36,.80,broad*.85+patches*.15);
+    diffuseColor.rgb *= mix(vec3(.80,.88,.70),vec3(1.12,1.04,.85),dry);
+    diffuseColor.rgb *= .93+.10*patches;
     // Broad vegetation/soil regions survive distance without subpixel speckle.
     // Shared world coordinates keep the terrain/apron boundary continuous.
     diffuseColor.rgb *= .92+.16*finishFilteredNoise(vFinishWorld.xz*.006);
@@ -104,7 +105,8 @@ export function installCircuitFinish(material: T.MeshStandardMaterial, kind: Cir
       .replace('#include <common>', '#include <common>\n' + noise)
       .replace('#include <map_fragment>', '#include <map_fragment>\n' + finishes[kind]);
   };
-  material.customProgramCacheKey = () => `${baseKey}:circuit-finish-v2-filtered:${kind}`;
+  material.customProgramCacheKey = () =>
+    `${baseKey}:circuit-finish-v2-filtered:${kind}${kind === 'grass' ? ':regional-soil-v1' : ''}`;
   material.name = `Original ${kind} construction finish`;
 }
 

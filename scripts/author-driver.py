@@ -119,6 +119,9 @@ for side,label in [(-1,'R'),(1,'L')]:
     s,e,w=joints(side); upper=(e-s).normalized(); lower=(w-e).normalized()
     across=upper.cross(lower).normalized()
     if across.x<0:across.negate()
+    # Compression belongs to the inside of the seated elbow, not a stack of
+    # concentric corrugations around the whole sleeve. Hardpoints stay unchanged.
+    inside=(s+w-e*2).normalized()
     verts=[];faces=[];uv=[];col=[];weights=[];rows=72;sides=32
     for row in range(rows+1):
         distance=(UPPER+LOWER)*row/rows
@@ -127,11 +130,11 @@ for side,label in [(-1,'R'),(1,'L')]:
         turn=smooth((distance-(UPPER-.075))/.15)
         tangent=upper.lerp(lower,turn).normalized();depth=across.cross(tangent).normalized()
         if distance<=UPPER:
-            rx=mix(.055,.043,smooth(f));rz=mix(.048,.039,smooth(f))
-            rx+=.009*math.sin(math.pi*f)**2
+            rx=mix(.055,.041,smooth(f));rz=mix(.048,.038,smooth(f))
+            rx+=.010*math.sin(math.pi*f)**2
         else:
-            rx=mix(.043,.027,smooth(f));rz=mix(.039,.026,smooth(f))
-            rx+=.006*math.sin(math.pi*f)**2
+            rx=mix(.041,.027,smooth(f));rz=mix(.038,.026,smooth(f))
+            rx+=.007*math.sin(math.pi*f)**2
         # Root weighting stays inside the broad deltoid; elbow receives its own
         # rotation instead of collapsing under opposing linear skin weights.
         root_mix=1-smooth(distance/.072)
@@ -144,14 +147,19 @@ for side,label in [(-1,'R'),(1,'L')]:
         for j in range(sides+1):
             angle=(j%sides)/sides*math.tau;ca=math.cos(angle);sa=math.sin(angle)
             joint=math.exp(-((distance-UPPER)/.105)**2)
-            fan=(.0013*math.sin(distance*118+ca*1.7)+.00065*math.sin(distance*191-sa*2))*joint
+            compression=max(0.,(across*ca+depth*sa).dot(inside))**2
+            fan=(.0018*math.sin(distance*118+ca*1.7)+.00065*math.sin(distance*191-sa*2))*joint*(.2+.8*compression)
             seam=.00065*math.exp(-(math.sin(angle-.65)/.09)**2)*math.sin(math.pi*row/rows)**2
             p=centre+across*(ca*(rx+fan+seam))+depth*(sa*(rz+fan))
             verts.append(tuple(p));uv.append((j/sides,row/rows*2));weights.append(blend.copy())
             panel=smooth((math.cos(angle-side*.5)-.3)/.4)*smooth((distance-.12)/.15)
             cream=smooth((.13-distance)/.09)
-            colour=Vector((.22,.35,.36)).lerp(Vector((.018,.039,.052)),panel*.85)
+            colour=Vector((.25,.38,.40)).lerp(Vector((.027,.051,.065)),panel*.82)
             colour=colour.lerp(Vector((.68,.70,.62)),cream*.85)
+            # A stitched forearm panel has an actual bounded cloth colour, not
+            # an emissive highlight; it follows the same skinned vertices.
+            panel_edge=math.exp(-((distance-.57)/.011)**2)*(1-panel)*.36
+            colour=colour.lerp(Vector((.61,.66,.61)),panel_edge)
             stitch=math.exp(-(math.sin(angle-.65)/.028)**2)*.5
             colour=colour.lerp(Vector((.58,.62,.56)),stitch)
             col.append(tuple(colour))
@@ -175,7 +183,7 @@ for obj in list(bpy.data.objects):
         n=sum((normals[i] for i in ids),Vector()).normalized()
         for i in ids:normals[i]=n
     obj.data.normals_split_custom_set_from_vertices(normals);obj.select_set(False)
-rig['apex_character_revision']='27H.2-seated-suit-1'
+rig['apex_character_revision']='27H-graphics-closure-seated-suit-2'
 rig['apex_driver_bones']=','.join(BONES)
 # Retain the editable source, with named vertex groups and no baked pose.
 bpy.ops.wm.save_as_mainfile(filepath=str(ROOT/'scripts/apx01-driver.blend'),compress=True)
@@ -185,7 +193,7 @@ bpy.ops.export_scene.gltf(filepath=str(raw),export_format='GLB',export_animation
                          export_normals=True,export_all_influences=False)
 blob=raw.read_bytes();packed=bytearray(gzip.compress(blob,compresslevel=9,mtime=0));packed[9]=255
 (OUT/'apx01-driver.glb.gz').write_bytes(packed);raw.unlink()
-manifest={'revision':'27H.2-seated-suit-1','bytes':len(blob),'sha256':hashlib.sha256(blob).hexdigest(),
+manifest={'revision':'27H-graphics-closure-seated-suit-2','bytes':len(blob),'sha256':hashlib.sha256(blob).hexdigest(),
           'compressedBytes':len(packed),'compressedSHA256':hashlib.sha256(packed).hexdigest(),
           'bones':BONES,'roles':['suit_torso','r_sleeve','l_sleeve'],'rest':rest,'torsoProfile':profile,
           'maxVertices':18000,'maxTriangles':20000,'maxRawBytes':1500000,'blenderVersion':bpy.app.version_string}

@@ -1,6 +1,6 @@
 """Author original Aurel people in Blender; no third-party art is an input.
 
-Blender 4.5.1: blender -b --python-exit-code 1 --python scripts/author-people.py
+Pinned Blender toolchain: blender -b --python-exit-code 1 --python scripts/author-people.py
 The editable .blend and GLB exchange file contain exactly the same local meshes
 as the compact, rounded geometry table used by the synchronous Three.js factory.
 This avoids making component tests use a different model from application startup.
@@ -106,7 +106,7 @@ def body(sides):
     g.box((.10,1.32,.143),(.083,.039,.006),TRIM,1)
     for side in [-1,1]:
         arm=3 if side<0 else 6;thigh=9 if side<0 else 12
-        g.loft([((side*.245,y,z),rx,rz,smooth((1.14-y)/.15)) for y,z,rx,rz in [(1.462,0,.05,.054),(1.43,0,.083,.083),(1.35,0,.087,.081),(1.20,-.004,.073,.067),(1.105,-.005,.066,.062),(1.07,0,.065,.06),(.99,.001,.06,.053),(.84,0,.05,.045),(.745,0,.041,.038)]][::-1],sides,WHITE,arm,arm+1,fold=.028)
+        g.loft([((side*.245,y,z),rx,rz,smooth((1.14-y)/.15)) for y,z,rx,rz in [(1.462,0,.05,.054),(1.43,0,.080,.080),(1.35,0,.081,.078),(1.20,-.004,.073,.067),(1.105,-.005,.066,.062),(1.07,0,.065,.06),(.99,.001,.06,.053),(.84,0,.05,.045),(.745,0,.041,.038)]][::-1],sides,WHITE,arm,arm+1,fold=.028)
         g.loft([((side*.245,.731,0),.043,.04,0),((side*.245,.773,0),.047,.043,0)],sides,DARK,arm+1,cloth=0)
         g.loft([((side*.092,y,z),rx,rz,smooth((.51-y)/.13)) for y,z,rx,rz in [(.055,.035,.045,.048),(.12,.025,.055,.058),(.26,.011,.064,.062),(.405,0,.073,.069),(.46,0,.074,.07),(.52,0,.078,.074),(.70,0,.10,.09),(.88,0,.105,.106)]],sides,WHITE,thigh,thigh+1,fold=.022)
         g.box((side*.092,.47,.067),(.122,.15,.022),DARK,thigh+1)
@@ -115,10 +115,34 @@ def body(sides):
         g.loft([((side*.092,.008,.078),.065,.142,0),((side*.092,.026,.078),.067,.145,0)],sides,(.055,.057,.06),thigh+2,cloth=0)
         if fine:
             for j in range(3): g.box((side*.092,.103,.115+j*.018),(.075,.004,.004),TRIM,thigh+2)
+    # Original garment pattern is baked as vertex colour on the same skin.
+    # Keep every joint, cuff, sole and prop contact unchanged. This adds no
+    # runtime material, texture, triangle or animation clock.
+    for i,(x,y,z) in enumerate(g.v):
+        if not g.mask[i]: continue
+        shoulder=smooth((y-1.355)/.06)*(1-smooth((y-1.46)/.05))
+        side_panel=smooth((abs(x)-.135)/.075)*(1-smooth((abs(x)-.235)/.025))
+        waist=smooth((1.14-y)/.12)*smooth((y-.79)/.1)
+        cuff_panel=math.exp(-((y-.88)/.045)**2)*smooth((abs(x)-.2)/.02)
+        seam=math.exp(-((y-1.365)/.008)**2)*smooth((abs(z)-.055)/.035)
+        colour=Vector(g.c[i])*(1.-.26*side_panel*(1-shoulder)-.12*waist)
+        colour=colour.lerp(Vector((.88,.87,.77)),shoulder*.46+seam*.22)
+        colour=colour.lerp(Vector((.23,.31,.34)),cuff_panel*.55)
+        g.c[i]=tuple(colour)
     return g
 
 def helmet():
-    g=Shape();g.ellipsoid((0,0,0),(.117,.143,.132),(.81,.82,.77),segments=24,rings=16)
+    g=Shape();rows=[]
+    # Retain the exact topology and outer safety envelope of the old shell,
+    # but shape the rear crown and lower jaw independently rather than using
+    # a sphere. The separate visor, chin guard and headset keep their contacts.
+    for r in range(17):
+        a=math.pi*r/16; radial=max(.001,math.sin(a)); y=-math.cos(a)*.143
+        jaw=math.exp(-((y+.085)/.049)**2)
+        crown=math.exp(-((y-.085)/.05)**2)
+        rows.append(((0,y,.011*jaw-.004*crown),.117*radial*(1-.035*jaw),
+                     .132*radial*(1-.12*jaw-.035*crown),0))
+    g.loft(rows,24,(.81,.82,.77),cloth=0)
     # Visor follows the face rather than clipping into a sphere; lower chin guard.
     g.loft([((0,y,z),rx,rz,0) for y,z,rx,rz in [(-.071,.048,.083,.082),(-.047,.066,.106,.079),(.016,.065,.11,.078),(.057,.047,.099,.076)]],24,(.024,.045,.058),cloth=0)
     g.loft([((0,-.116,.058),.072,.062,0),((0,-.088,.071),.09,.076,0),((0,-.065,.083),.088,.058,0)],20,(.71,.75,.75),cloth=0)

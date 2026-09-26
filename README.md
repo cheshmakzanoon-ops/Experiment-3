@@ -1,3 +1,13 @@
+## Graphics-continuity correction candidate
+
+The current continuation retains indexed static geometry, preserves live liveries
+at every car LOD, refines the authored seated driver and pit garments, improves
+cockpit control legends, and filters wet highlights and circuit ground variation.
+See [implemented scope and measured costs](docs/GRAPHICS_CONTINUATION.md) and
+[exact validation boundaries](docs/GRAPHICS_CONTINUATION_VALIDATION.json).
+This is **not** final-art, physical-hardware, full-race human or Steam acceptance;
+source publication and public deployment must be verified independently.
+
 ## Phase 27H.6 development candidate
 
 **Latest implementation checkpoint — 27H.6:** unobstructed wide-view telemetry,

@@ -127,46 +127,50 @@ export function steeringFaceGeometry() {
 
 /** Opaque labels are part of an original machined faceplate, not a cloned game
  * UI. A single atlas is shared by the static legends and the knob tick scales. */
-function controlLegends() {
-  return canvasTexture(1024, 384, (c) => {
-    c.fillStyle = '#151e22';
-    c.fillRect(0, 0, 1024, 384);
-    c.strokeStyle = '#91a09f';
-    c.lineWidth = 2;
-    c.textAlign = 'center';
-    c.textBaseline = 'middle';
-    for (const [x, label] of [
-      [237, 'BIAS'],
-      [512, 'ENERGY'],
-      [787, 'DIFF'],
-    ] as const) {
-      c.font = '600 18px Arial';
-      c.fillStyle = '#cad2ca';
-      c.fillText(label, x, 25);
-      for (let i = 0; i <= 10; i++) {
-        const a = Math.PI * (0.75 + i * 0.15);
-        const r = 70,
-          outer = i % 5 === 0 ? 85 : 79;
-        c.beginPath();
-        c.moveTo(x + Math.cos(a) * r, 119 + Math.sin(a) * r);
-        c.lineTo(x + Math.cos(a) * outer, 119 + Math.sin(a) * outer);
-        c.stroke();
-      }
-      c.font = '15px monospace';
-      c.fillText('−', x - 74, 184);
-      c.fillText('+', x + 74, 184);
+export const COCKPIT_LEGEND_FONT_PX = 30;
+export function drawControlLegends(c: CanvasRenderingContext2D) {
+  c.fillStyle = '#151e22';
+  c.fillRect(0, 0, 1024, 384);
+  c.strokeStyle = '#91a09f';
+  c.lineWidth = 2;
+  c.textAlign = 'center';
+  c.textBaseline = 'middle';
+  for (const [x, label] of [
+    [237, 'BIAS'],
+    [512, 'ENERGY'],
+    [787, 'DIFF'],
+  ] as const) {
+    c.font = `700 ${COCKPIT_LEGEND_FONT_PX}px Arial`;
+    c.fillStyle = '#e1e6de';
+    c.fillText(label, x, 16);
+    for (let i = 0; i <= 10; i++) {
+      const a = Math.PI * (0.75 + i * 0.15);
+      const r = 70,
+        outer = i % 5 === 0 ? 85 : 79;
+      c.beginPath();
+      c.moveTo(x + Math.cos(a) * r, 119 + Math.sin(a) * r);
+      c.lineTo(x + Math.cos(a) * outer, 119 + Math.sin(a) * outer);
+      c.stroke();
     }
-    c.fillStyle = '#9db2ae';
-    c.font = '600 22px Arial';
-    c.fillText('APEX  /  RACE SYSTEMS', 512, 269);
-    c.font = '15px monospace';
-    c.fillText('A-07   •   CONTROL UNIT', 512, 308);
-    c.strokeStyle = '#bd8056';
-    c.beginPath();
-    c.moveTo(215, 231);
-    c.lineTo(809, 231);
-    c.stroke();
-  });
+    c.font = '600 24px monospace';
+    c.fillText('−', x - 74, 184);
+    c.fillText('+', x + 74, 184);
+  }
+  c.fillStyle = '#9db2ae';
+  c.font = '600 22px Arial';
+  c.fillText('APEX  /  RACE SYSTEMS', 512, 269);
+  c.font = '600 24px monospace';
+  c.fillText('A-07   •   CONTROL UNIT', 512, 308);
+  c.strokeStyle = '#bd8056';
+  c.beginPath();
+  c.moveTo(215, 231);
+  c.lineTo(809, 231);
+  c.stroke();
+}
+function controlLegends() {
+  const texture = canvasTexture(1024, 384, drawControlLegends);
+  texture.name = 'Original readable selector legends';
+  return texture;
 }
 /** The printed panel follows the lower wheel silhouette. A rectangular decal
  * would extend beyond its curved corners and turn the outline into a slab. */
@@ -288,7 +292,7 @@ export class CockpitControls {
       new T.MeshStandardMaterial({ color: 0x131a1d, roughness: 0.91 }),
       'suede',
     );
-    const knurl = new T.MeshStandardMaterial({ color: 0x38494e, metalness: 0.6, roughness: 0.43 });
+    const knurl = new T.MeshStandardMaterial({ color: 0x52656b, metalness: 0.45, roughness: 0.48 });
     const marker = new T.MeshStandardMaterial({ color: 0xe2ddc6, roughness: 0.58 });
     const label = mesh(
       staticParts,

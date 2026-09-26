@@ -9,6 +9,7 @@ import { Simulation } from '../../src/simulation/world.ts';
 import { DEFAULT_OPTIONS } from '../../src/simulation/config.ts';
 import { F, H, W, WHEEL_BASE, WHEEL_STRIDE, carBase } from '../../src/simulation/protocol.ts';
 import { WHEEL_POSITIONS } from '../../src/simulation/vehicle.ts';
+import { TextureBudget } from '../../src/rendering/texture-budget.ts';
 import { DEFAULT_LIVERY } from '../../src/storage/livery.ts';
 function assert(ok: boolean, message: string): asserts ok {
   if (!ok) throw new Error(message);
@@ -175,6 +176,61 @@ export async function exercise(bytes: number[], driverBytes?: number[]) {
     assert(car.helmet.visible, 'External helmet did not return');
     car.setLivery({ ...DEFAULT_LIVERY, primary: '#285c89', accent: '#e9ddbb' });
     assert(car.paint.color.getHexString() === '285c89', 'Paint binding disconnected');
+    const flanks = car.reflectivePaint.filter(
+      (m) => m.userData.liverySide === -1 || m.userData.liverySide === 1,
+    );
+    assert(
+      flanks.length === 2 && flanks.every((m) => m.map instanceof T.CanvasTexture),
+      'Missing original signed livery',
+    );
+    const textures = flanks.map((m) => m.map!);
+    const textureBudget = new TextureBudget();
+    try {
+      textureBudget.register(car.root);
+      for (const limit of [256, 1024, 512]) {
+        textureBudget.configure(limit, 4);
+        car.setLivery({
+          ...DEFAULT_LIVERY,
+          primary: '#285c89',
+          accent: '#e9ddbb',
+          sponsor: 'AUREL',
+          pattern: 'split',
+        });
+        textures.forEach((texture) => textureBudget.refresh(texture));
+        for (const distance of [0, 90, 250, 0]) {
+          car.setLod(distance, 'high', false);
+          draw();
+          const seen = new Set<T.Material>();
+          car.root.traverseVisible((node) => {
+            if (
+              node instanceof T.Mesh &&
+              !Array.isArray(node.material) &&
+              flanks.includes(node.material as T.MeshPhysicalMaterial)
+            )
+              seen.add(node.material);
+          });
+          assert(seen.size === 2, 'Reduced car lost a live signed livery');
+          flanks.forEach((material, i) => {
+            assert(material.map === textures[i], 'LOD allocated a replacement livery');
+            const image = material.map!.image as HTMLCanvasElement;
+            assert(
+              image.width === limit && image.height === limit,
+              'Livery ignored selected texture budget',
+            );
+            const context = image.getContext('2d');
+            assert(Boolean(context), 'Missing livery canvas');
+            const pixel = context!.getImageData(4, 4, 1, 1).data;
+            assert(
+              pixel[0] === 40 && pixel[1] === 92 && pixel[2] === 137,
+              'Reduced livery restored stale paint',
+            );
+          });
+        }
+      }
+    } finally {
+      textureBudget.dispose();
+    }
+
     assert(
       car.mirrors.length === 2 && car.mirrors.every((m) => Boolean(m.parent)),
       'Live mirrors lost',
@@ -215,6 +271,7 @@ export async function exercise(bytes: number[], driverBytes?: number[]) {
       damage: true,
       brakeHeat: true,
       livePaintAndMirrors: true,
+      signedLiveryAcrossAllLodsAndTextureBudgets: true,
       replay: true,
       finalArtApproved: false,
     };

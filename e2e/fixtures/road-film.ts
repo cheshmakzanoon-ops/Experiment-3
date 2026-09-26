@@ -55,7 +55,9 @@ export function roadFilmGPU() {
       `#include <colorspace_fragment>
       // Encode small production-normal deviations above the 8-bit readback floor.
       // This affects only the diagnostic view, never the physical material.
-      if (filmDiagnostic > 0.5) gl_FragColor = vec4(
+      if (filmDiagnostic > 3.5) gl_FragColor = vec4(material.clearcoatF0 * 8.0, 1.0);
+      else if (filmDiagnostic > 2.5) gl_FragColor = vec4(vec3(material.clearcoatRoughness), 1.0);
+      else if (filmDiagnostic > 0.5) gl_FragColor = vec4(
         ((filmDiagnostic > 1.5 ? clearcoatNormal : normal) - nonPerturbedNormal) * 16.0 + 0.5, 1.0);`,
     );
   };
@@ -100,6 +102,7 @@ export function roadFilmGPU() {
       saturated,
       detail,
       energy,
+      mean: energy / (count * 3 * 255),
       hash: hash >>> 0,
       image: renderer.domElement.toDataURL('image/png'),
     };
@@ -113,6 +116,9 @@ export function roadFilmGPU() {
     const dampCoat = capture('damp-conforming-coat-normal', 0.35, 2);
     const puddleCoat = capture('standing-water-coat-normal', 1.8, 2);
     const restored = capture('damp-restored-coat-normal', 0.35, 2);
+    const filmFresnel = capture('water-film-normal-incidence-reflectance', 1.8, 4);
+    const dampRoughness = capture('damp-effective-coat-roughness', 0.35, 3);
+    const puddleRoughness = capture('standing-water-effective-coat-roughness', 1.8, 3);
     for (const [name, amount] of [
       ['dry', 0],
       ['damp', 0.35],
@@ -128,6 +134,9 @@ export function roadFilmGPU() {
       dampCoat,
       puddleCoat,
       restored,
+      filmFresnel,
+      dampRoughness,
+      puddleRoughness,
       captures,
       before,
       after: { ...renderer.info.memory },

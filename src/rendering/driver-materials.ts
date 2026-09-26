@@ -52,13 +52,13 @@ export function driverMaterials() {
   };
   const normalMap = data(pixels.normal, 'normal'),
     roughnessMap = data(pixels.roughness, 'roughness');
-  const fabric = (name: string, color: number) => {
+  const fabric = (name: string, color: number, roughness: number, yarnRelief: number) => {
     const material = new T.MeshStandardMaterial({
       color,
       normalMap,
-      normalScale: new T.Vector2(0.3, 0.3),
+      normalScale: new T.Vector2(yarnRelief, yarnRelief),
       roughnessMap,
-      roughness: 1,
+      roughness,
       metalness: 0,
     });
     material.name = name;
@@ -67,9 +67,11 @@ export function driverMaterials() {
     return material;
   };
   return {
-    suit: fabric('Original teal woven driver suit', 0x283f46),
-    glove: fabric('Original sage woven glove', 0x8eaaa8),
-    panel: fabric('Original dark glove reinforcement', 0x394b4e),
+    // Coarse fire-suit yarn, finer glove textile, and a flat reinforcement panel
+    // share the same mipmapped fields. No emissive fill or extra lighting is used.
+    suit: fabric('Original teal woven driver suit', 0x283f46, 0.98, 0.3),
+    glove: fabric('Original sage woven glove', 0x8eaaa8, 0.86, 0.2),
+    panel: fabric('Original dark glove reinforcement', 0x4e6262, 0.93, 0.1),
     grip: new T.MeshStandardMaterial({
       name: 'Matte silicone glove grip',
       color: 0x1c2326,

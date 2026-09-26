@@ -89,7 +89,10 @@ export function crewGloveGeometry() {
  * not painted illumination. Colour is selected per actual actor, not per frame. */
 export function installCrewFabric(material: T.MeshStandardMaterial) {
   material.userData.weatherSurface = 'fabric';
-  material.onBeforeCompile = (shader) => {
+  const previous = material.onBeforeCompile,
+    key = material.customProgramCacheKey();
+  material.onBeforeCompile = (shader, renderer) => {
+    previous.call(material, shader, renderer);
     shader.vertexShader = shader.vertexShader
       .replace('#include <common>', '#include <common>\nvarying vec3 vCrewLocal;')
       .replace('#include <begin_vertex>', '#include <begin_vertex>\nvCrewLocal=position;');
@@ -98,10 +101,12 @@ export function installCrewFabric(material: T.MeshStandardMaterial) {
       .replace(
         '#include <roughnessmap_fragment>',
         `#include <roughnessmap_fragment>
-      float weavePhase=vCrewLocal.y*200.;float resolved=1.-smoothstep(.5,2.,fwidth(weavePhase));
-      roughnessFactor=clamp(roughnessFactor+sin(weavePhase)*resolved*.035,.8,1.);`,
+      vec2 weavePhase=vCrewLocal.xy*vec2(310.,270.);
+      vec2 resolved=1.-smoothstep(vec2(.5),vec2(2.),fwidth(weavePhase));
+      float weave=sin(weavePhase.x)*sin(weavePhase.y)*resolved.x*resolved.y;
+      roughnessFactor=clamp(roughnessFactor+weave*.025,.8,1.);`,
       );
   };
-  material.customProgramCacheKey = () => 'aurel-tailored-crew-v1';
+  material.customProgramCacheKey = () => `${key}|aurel-tailored-crew-v2-filtered-weave`;
   return material;
 }

@@ -36,7 +36,13 @@ export class ReducedCar {
   readonly brakes: T.Mesh[] = [];
   readonly front = new T.Group();
   readonly rear = new T.Group();
-  constructor(level: 1 | 2, paint: T.Material, carbon: T.Material, rubber: T.Material) {
+  constructor(
+    level: 1 | 2,
+    paint: T.Material,
+    carbon: T.Material,
+    rubber: T.Material,
+    flanks: readonly [T.Material, T.Material] = [paint, paint],
+  ) {
     const sides = level === 1 ? 12 : 8;
     const body = new T.Group();
     this.root.add(body, this.front, this.rear);
@@ -54,7 +60,15 @@ export class ReducedCar {
     addAirbox(body, paint, carbon, rubber, detail);
     mesh(body, cockpitShell(detail), paint);
     for (const side of [-1, 1]) {
-      const pod = mesh(body, openFrontCap(sidepodShell(detail, false)), paint, side * 0.53);
+      // The same signed-UV materials are shared with LOD0. Repainting and texture
+      // quality changes therefore reach every distance level without new maps,
+      // cloned materials or a stale, unmarked opponent at the handoff.
+      const pod = mesh(
+        body,
+        openFrontCap(sidepodShell(detail, false)),
+        flanks[side < 0 ? 0 : 1],
+        side * 0.53,
+      );
       pod.rotation.z = side * -0.08;
       addSidepodDuct(body, side, { carbon, dark: rubber, metal: carbon, paint }, detail);
     }

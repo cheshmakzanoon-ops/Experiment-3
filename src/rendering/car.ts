@@ -151,8 +151,12 @@ export class FormulaCar {
       box(s, dark, 0, -0.24, -0.14, 0.5, 0.08, 1.02);
       box(s, dark, 0, -0.02, -0.6, 0.44, 0.45, 0.09);
     }
+    const flankMaterials: [T.MeshPhysicalMaterial, T.MeshPhysicalMaterial] = [
+      flankLivery(this.paint, -1, id),
+      flankLivery(this.paint, 1, id),
+    ];
     for (const sign of [-1, 1]) {
-      const livery = flankLivery(this.paint, sign, id);
+      const livery = flankMaterials[sign < 0 ? 0 : 1];
       this.reflectivePaint.push(livery);
       const pod = mesh(
         s,
@@ -510,7 +514,7 @@ export class FormulaCar {
     this.root.add(this.highDetail);
     this.highDetail.add(...highChildren);
     for (const level of [1, 2] as const) {
-      const reduced = new ReducedCar(level, this.paint, carbon, dark);
+      const reduced = new ReducedCar(level, this.paint, carbon, dark, flankMaterials);
       this.reduced.push(reduced);
       reduced.root.visible = false;
       this.root.add(reduced.root);

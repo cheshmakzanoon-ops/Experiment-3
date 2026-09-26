@@ -515,6 +515,14 @@ test('27H.6 GPU material: a damp film retains aggregate while deep standing wate
   expect(result.damp.detail).toBeGreaterThan(result.puddle.detail * 2);
   expect(result.dampCoat.detail).toBeGreaterThan(result.puddleCoat.detail + 1);
   expect(result.dampCoat.hash).toBe(result.restored.hash);
+  // Observe the compiled physical material, not only a shader-string assertion.
+  // Eightfold diagnostic encoding resolves water's ~2% F0 in 8-bit pixels.
+  const waterF0 = ((1.333 - 1) / (1.333 + 1)) ** 2;
+  expect(Math.abs(result.filmFresnel.mean / 8 - waterF0)).toBeLessThan(1 / (255 * 8));
+  expect(result.dampRoughness.mean).toBeGreaterThan(result.puddleRoughness.mean);
+  expect(result.puddleRoughness.mean).toBeGreaterThanOrEqual(0.0525 - 1 / 255);
+  expect(result.dampRoughness.saturated).toBe(0);
+  expect(result.puddleRoughness.saturated).toBe(0);
   expect(result.before).toEqual(result.after);
   expect(
     new Set(result.captures.filter((c) => c.name.startsWith('held-')).map((c) => c.hash)).size,

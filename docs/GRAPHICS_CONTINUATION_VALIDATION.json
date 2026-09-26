@@ -1,0 +1,381 @@
+{
+  "schema": 1,
+  "recordedAt": "2026-09-26T02:08:41.758715Z",
+  "repository": "cheshmakzanoon-ops/Experiment-3",
+  "branch": "main",
+  "gameplayBaseline": "c7a430442ff5d3aceda78fdb708c007dfbdbf6f1",
+  "publicationAncestor": "ea114ce31bd544490d3a9084faaeceb95be30f43",
+  "implementationCommit": "41ebeb3e805fa5b082dbc3b8b72c6961b464dec8",
+  "runtimeSourceFingerprint": "7f1f7ce34c9624fd80d100391ebfcb275e8e5c6908ef7dc404f50bc3d3bb2033",
+  "scope": "Implemented correction batch within, not completion of, the full A-H graphics milestone",
+  "toolchain": {
+    "node": "v22.16.0",
+    "chromium": "144.0.7559.96",
+    "renderer": "SwiftShader software GPU",
+    "blender": "5.2.2",
+    "dependencyLockSHA256": "0ee732475bc70f3bec4bfa7787f904d51bc28c185534dff3762f2d18801bbc59"
+  },
+  "checks": {
+    "localLintUnitsTypesBuild": {
+      "status": "PASS",
+      "unitTests": 1107,
+      "testFiles": 106,
+      "log": "logs/apex-final-check-3.log",
+      "note": "An earlier run exposed one newly added whitespace-sensitive assertion; corrected without weakening an existing test. Original failed log retained."
+    },
+    "nativeScenarios": {
+      "status": "PASS",
+      "count": 8,
+      "reportsDirectory": "numerical",
+      "historicalRepositoryReportsUnchanged": true
+    },
+    "populatedRaceComponents": {
+      "status": "PASS",
+      "count": 4,
+      "workloads": [
+        "12-car grid",
+        "8-car close racing",
+        "8-car wet following",
+        "8-car complete legal pit service and exit"
+      ],
+      "report": "numerical/populated-racing.json",
+      "scope": "Actual numerical simulation and rendering-component state, not browser gameplay or hardware timing"
+    },
+    "browserComponentSubset": {
+      "initialPassed": 39,
+      "initialFailed": 2,
+      "selectedCases": 41,
+      "isolatedRerunsPassed": 2,
+      "allSelectedCasesHavePassingExecution": true,
+      "cleanSingleRun": false,
+      "fullApplicationSuite": false,
+      "settingsOrAssertionsRelaxed": false,
+      "initialLog": "logs/apex-component-regression.log",
+      "reruns": [
+        {
+          "case": "wet race presentation survives moving frames and held chase, cockpit and trackside review",
+          "status": "PASS",
+          "seconds": 49.0,
+          "log": "logs/apex-wet-original-repeat.log"
+        },
+        {
+          "case": "publication: native photographs retain driving optics and suspension remains articulated at every LOD",
+          "status": "PASS",
+          "seconds": 36.1,
+          "log": "logs/apex-native-optics-original-repeat.log"
+        }
+      ],
+      "note": "Initial failures reached the unchanged 300-second limit. Separate reruns passed; no definitive root-cause attribution. One earlier repeat command selected zero tests due an anchored full-title filter and is not counted as execution."
+    },
+    "matchedAuthoredComponents": {
+      "status": "PASS",
+      "viewsPerRevision": 9,
+      "actualCarAndDriverDecoders": true,
+      "sourceUnchanged": true,
+      "heldStateExact": true,
+      "glErrors": 0,
+      "scope": "Isolated direct-scene renders, no normal game UI/workers/live mirrors or full postprocessing"
+    },
+    "matchedCircuitSurvey": {
+      "status": "PASS",
+      "viewsPerRevision": 27,
+      "sameDrawAndSubmittedTriangleCounts": true,
+      "conditions": "clear daylight",
+      "scope": "Existing direct-scene fixture, including its legacy car, not authored-car or application acceptance"
+    },
+    "additionalCircuitConditions": {
+      "status": "PASS",
+      "viewsPerCondition": 27,
+      "conditions": [
+        "clear day",
+        "rain day",
+        "rain night"
+      ],
+      "scope": "Original circuit GPU fixtures from the 41-case subset; not continuous browser driving"
+    },
+    "productionRoadMaterial": {
+      "status": "PASS",
+      "compiledWaterFilmMeasured": true,
+      "diagnosticNormalsUnchanged": true,
+      "resourcesStable": true,
+      "scope": "Isolated GPU material measurement, not proof all full-scene glare is resolved"
+    },
+    "normalApplicationStartup": {
+      "status": "BLOCKED",
+      "error": "ERR_BLOCKED_BY_ADMINISTRATOR",
+      "log": "logs/apex-candidate-normal-startup.log",
+      "passed": false,
+      "navigationPolicyBypassed": false
+    },
+    "exactCandidateHostedCI": {
+      "status": "NOT_RUN",
+      "passed": false
+    },
+    "physicalHardwareFrameTime": {
+      "status": "NOT_MEASURED",
+      "passed": false
+    },
+    "humanDrivingWheelAndSection146": {
+      "status": "NOT_PERFORMED",
+      "passed": false
+    },
+    "finalArtAndAllReferenceParity": {
+      "status": "OPEN",
+      "passed": false
+    },
+    "sourcePublication": {
+      "status": "NOT_PUBLISHED_BY_THIS_TASK",
+      "lastObservedRemote": "ea114ce31bd544490d3a9084faaeceb95be30f43",
+      "localCommitsPresent": true,
+      "note": "Read-only connector and unavailable direct Git transport. No remote write or deployment is inferred from other concurrent commits."
+    },
+    "liveDeployment": {
+      "status": "NOT_DEPLOYED_BY_THIS_TASK",
+      "verified": false
+    },
+    "compiledPayload": {
+      "status": "PRESERVED",
+      "directory": "playable",
+      "sameAsActualDistWithoutSourceMaps": true,
+      "deployed": false,
+      "manifest": "playable/BUILD.json"
+    }
+  },
+  "metrics": {
+    "carGeometryBytes": {
+      "before": 19427768,
+      "after": 8095232,
+      "reductionPercent": 58.33164159670838
+    },
+    "circuitGeometryBackingBytes": {
+      "before": 58190616,
+      "after": 54241888,
+      "reductionPercent": 6.785850144635008,
+      "includesInactiveLODs": true
+    },
+    "carVisibleTriangles": [
+      216516,
+      22101,
+      16505
+    ],
+    "carTriangleCountsUnchanged": true,
+    "circuitStoredTriangles": 1137116,
+    "circuitTriangleCountsUnchanged": true,
+    "processRAMOrVRAMMeasured": false,
+    "hardwareFPSClaimed": false,
+    "possibleAdditionalDrawBatchesPerReducedCar": 2
+  },
+  "protected": {
+    "count": 62,
+    "allUnchanged": true,
+    "report": "protected-source.json",
+    "concurrentWorkflowChangesPreserved": true
+  },
+  "references": {
+    "reviewed": [
+      "R003",
+      "R004",
+      "R010",
+      "R039"
+    ],
+    "newAll100Review": false,
+    "artworkShipped": false
+  },
+  "matrix": {
+    "required": {
+      "PASS": 0,
+      "PARTIAL": 230,
+      "FAIL": 2
+    },
+    "excludedReferences": 16,
+    "newApprovals": 0
+  },
+  "assets": [
+    {
+      "path": "scripts/apx01-driver.blend",
+      "baselineBytes": 336641,
+      "candidateBytes": 337956,
+      "baselineSHA256": "31c2d2f09ec0d98f500688ad8fa2b122b837fac660ac851e6247aa692cbb1db1",
+      "candidateSHA256": "95c6ef9c245f5c9efd6a467d13facf2c2fcc38ca67f5cf661d9a981087f10766"
+    },
+    {
+      "path": "scripts/aurel-people.blend",
+      "baselineBytes": 433726,
+      "candidateBytes": 417827,
+      "baselineSHA256": "ab496109ff8970ddf794502624889af48f2d0eda76821fbdf89ad23d74c08df4",
+      "candidateSHA256": "12e34a06120dee0be5f0b7949536ac7ec0eb62106e10f492dfa06b90fadbc426"
+    },
+    {
+      "path": "src/rendering/apx01-driver.glb.gz",
+      "baselineBytes": 208511,
+      "candidateBytes": 209237,
+      "baselineSHA256": "05971613b7e5ce1736f35d0284e1d2f122d2381879364808d09e109d407cb175",
+      "candidateSHA256": "78ec35b01e101f13c9bec33da7a5dfc0d16291f66665e0172972f60df2a8d574"
+    },
+    {
+      "path": "src/rendering/apx01-driver.manifest.json",
+      "baselineBytes": 1870,
+      "candidateBytes": 1885,
+      "baselineSHA256": "ba0321b44b083170e08befd3125418d9f01459fd2657a87dfc0d6a182f9e313b",
+      "candidateSHA256": "14df9d6dcaf1b4cbecade7e22b0592e94e37f5fb17b3406cc1ed91badce8e74e"
+    },
+    {
+      "path": "src/rendering/aurel-people.glb.gz",
+      "baselineBytes": 183891,
+      "candidateBytes": 192530,
+      "baselineSHA256": "0f9118edf0fd32b3f802c3d99df93b0652c7909b456e53c48c10adf14f5c5cab",
+      "candidateSHA256": "564d7dc5a5740eb3fb5337c1ae74a8296f90a361fe9358dc0c93e4f05ab4aa95"
+    },
+    {
+      "path": "src/rendering/aurel-people.geometry.json",
+      "baselineBytes": 946961,
+      "candidateBytes": 955035,
+      "baselineSHA256": "d23371fa5c1b0e499925add5c98e80b0de4062155f3a2e032d45e10f6308f165",
+      "candidateSHA256": "5e89e8b5e949972032298064636106a31aac740f12d0c9f82d8abc37e7afa61c"
+    },
+    {
+      "path": "src/rendering/aurel-people.manifest.json",
+      "baselineBytes": 653,
+      "candidateBytes": 653,
+      "baselineSHA256": "185066d539150f832d684d6e9fb69ad2954637f8ff6f47cf295076120ef33aa1",
+      "candidateSHA256": "2d08ae3d2ce2fbc8daccb8c21338d7cc33837ac8e2feb1b923e4dc8b2cc1596a"
+    }
+  ],
+  "evidence": [
+    {
+      "path": "logs/apex-baseline-check.log",
+      "sha256": "a4d58d7583313341e9622c65c06940b6cdcaf802214669452fef4c1b4f3a180b",
+      "bytes": 21730
+    },
+    {
+      "path": "logs/apex-final-check.log",
+      "sha256": "46ee9d58b546bbc2a9670ea1471de5abb95d900e8463598f09196740311fde5f",
+      "bytes": 35946
+    },
+    {
+      "path": "logs/apex-final-check-2.log",
+      "sha256": "af5cef6f124f5c1850d3a524c589de9463ddf24c55052f4b9c77df5f25d8aacc",
+      "bytes": 21842
+    },
+    {
+      "path": "logs/apex-native-scenarios.log",
+      "sha256": "7903ce13d263a8ac969fcd015ebb5c5bcec3046d3a77374e9aa8af64e2274bf3",
+      "bytes": 23883
+    },
+    {
+      "path": "logs/apex-populated-numerical.log",
+      "sha256": "4f3236d902f45511556757cb99b01ea0fe264402cae28f37a51ca329fd0fad0c",
+      "bytes": 1986
+    },
+    {
+      "path": "logs/apex-component-regression.log",
+      "sha256": "3dddfd606d0674e5ab300d498472d24ef5aaf833a71d36474292735cdc741b26",
+      "bytes": 9703
+    },
+    {
+      "path": "logs/apex-wet-isolated-repeat.log",
+      "sha256": "3365d4e0c29d237c5ee4ee6f5a42152f259029fddb32b7aa34693d6f0c72d2b3",
+      "bytes": 434
+    },
+    {
+      "path": "logs/apex-wet-original-repeat.log",
+      "sha256": "61ba49c7441bd38a41f07defad7b111945c71052db4db1094ea6d4f24f02663b",
+      "bytes": 476
+    },
+    {
+      "path": "logs/apex-native-optics-original-repeat.log",
+      "sha256": "51ad8a4f53513515620272b504188508fbff29c0dd442c315406e8dd5630b6e8",
+      "bytes": 505
+    },
+    {
+      "path": "logs/apex-candidate-normal-startup.log",
+      "sha256": "16c4c4f1b82809610662288ddda80612b2dcfedeefe0e091157f2620352e64a1",
+      "bytes": 2884
+    },
+    {
+      "path": "logs/apex-candidate-gpu.log",
+      "sha256": "99167b3029ea5c4f4b8259906276ad261af85ca91366d0d3c59befcb9552b7bf",
+      "bytes": 577
+    },
+    {
+      "path": "logs/apex-final-art.log",
+      "sha256": "60a0c865c10c7e33f091a89eda88df8052defd59ec03689386c0ba496b710ab4",
+      "bytes": 130
+    },
+    {
+      "path": "logs/apex-final-road.log",
+      "sha256": "8783ba4b0ebe266dd2573c0b8b84cea5402969eac37438d7f265b64076fcfbab",
+      "bytes": 1432
+    },
+    {
+      "path": "logs/apex-final-car.log",
+      "sha256": "2e2e11f3389975e5b050a0b99156ddcc8a8245ab4f07a4ddea0d0a1b59d578ff",
+      "bytes": 936
+    },
+    {
+      "path": "logs/apex-push-attempt-1.log",
+      "sha256": "97a61b4bd649db7f7494159c04cd30b544d43befd8842be5af0e1d5bb29dc9ee",
+      "bytes": 118
+    },
+    {
+      "path": "logs/apex-push-attempt-2.log",
+      "sha256": "528215b960fb3a858371b4e312b0037bdf4cde5bc71bbb36d3673205ec79e65b",
+      "bytes": 164
+    },
+    {
+      "path": "baseline-car-gpu/report.json",
+      "sha256": "bcdc1a946707327cc344dbd16d348fed94c83be29699c20ab5719309122f2f47",
+      "bytes": 1307
+    },
+    {
+      "path": "baseline-resources-gpu/report.json",
+      "sha256": "8462dbd29eb5259c1afd1c65019a0091e2403dce0baf50a19b06ecd9c592b75e",
+      "bytes": 440
+    },
+    {
+      "path": "baseline-road-gpu/report.json",
+      "sha256": "6007ce44fe7e8859494c00caf92efcdf744df5a4af195bcf0126f4fd340c02b1",
+      "bytes": 4751
+    },
+    {
+      "path": "baseline-art-gpu/report.json",
+      "sha256": "7d51ca52f05388d4b4ba77852e97d9b313551c346345eac96acee7dc63d9f977",
+      "bytes": 3861
+    },
+    {
+      "path": "baseline-venue-gpu/report.json",
+      "sha256": "ce97bef8c0539687c79352b42067e4961390b2a7f088f384035541ed0571a32c",
+      "bytes": 33849
+    },
+    {
+      "path": "candidate-car-gpu/report.json",
+      "sha256": "c6f8b94f7e9254e82dad140f975c435d4a4bac109aa23e0ddd93e87b2c3a645a",
+      "bytes": 1364
+    },
+    {
+      "path": "candidate-resources-gpu/report.json",
+      "sha256": "2ec9c6dad9cb0fb9785d23a9b1deb2be10cf622a2759798a8d3504a98724636a",
+      "bytes": 412
+    },
+    {
+      "path": "candidate-road-gpu/report.json",
+      "sha256": "2aee708081b2841bdcd4f3769cf7a707f138275a0a533f4e4e5ae9816556757c",
+      "bytes": 6950
+    },
+    {
+      "path": "candidate-art-gpu/report.json",
+      "sha256": "0c84564c410fc64528cf493694df659728c0085db906784f57e380f5336130c0",
+      "bytes": 3833
+    },
+    {
+      "path": "candidate-venue-gpu/report.json",
+      "sha256": "656363b6296b2fe08ee42869b9a97675708c339d24394055ec1bd7abfc794381",
+      "bytes": 33766
+    },
+    {
+      "path": "logs/apex-final-check-3.log",
+      "sha256": "1a35a5f8f8a219fd22843a7998716e0e4c2c8e510d95d11608f5839ddbb852bf",
+      "bytes": 22009
+    }
+  ]
+}

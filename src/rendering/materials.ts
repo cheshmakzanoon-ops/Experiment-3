@@ -5,6 +5,11 @@ import treadShader from '../shaders/tread.frag?raw';
 import carbonRoughness from '../shaders/carbon.frag?raw';
 import carbonNormal from '../shaders/carbon-normal.frag?raw';
 
+// Approximate visible-light water IOR used only by the presentation lobe.
+// The physical track-water field and tire equations are untouched.
+export const ROAD_FILM_IOR = 1.333;
+export const ROAD_FILM_F0 = ((ROAD_FILM_IOR - 1) / (ROAD_FILM_IOR + 1)) ** 2;
+
 export function carbonMaterial() {
   const material = new MeshStandardMaterial({ color: 0x15191c, metalness: 0.08, roughness: 0.42 });
   material.onBeforeCompile = (shader) => {
@@ -125,14 +130,27 @@ export function installWetRoad(
       `#include <lights_physical_fragment>
       #ifdef USE_CLEARCOAT
         material.clearcoat = wet * mix(0.58, 1.0, puddle);
+        // Stock clearcoat represents a 1.5-IOR varnish. This lobe is water,
+        // whose normal-incidence Fresnel response is approximately half as large.
+        material.clearcoatF0 = vec3(${ROAD_FILM_F0.toFixed(9)});
         material.clearcoatRoughness = mix(0.26, mix(0.22, 0.055, puddle), wet);
         // Rain-disturbed film broadens the highlight instead of making every wet
         // cell a perfect mirror. Existing cell water alone still owns coverage.
         material.clearcoatRoughness += min(1.,roadWeather.x/18.)*puddle*.045;
+        // Do not erase Three's geometric specular filtering when replacing its
+        // coat roughness. Add bounded normal-footprint variance for unresolved
+        // aggregate/ripples; no frame history, exposure trick or extra sampling.
+        vec3 filmDx = dFdx(clearcoatNormal), filmDy = dFdy(clearcoatNormal);
+        float filmVariance = min(.02, .25 * (dot(filmDx,filmDx) + dot(filmDy,filmDy)));
+        float filmAlpha = material.clearcoatRoughness * material.clearcoatRoughness;
+        material.clearcoatRoughness = min(1., max(
+          material.clearcoatRoughness + geometryRoughness,
+          sqrt(sqrt(filmAlpha * filmAlpha + filmVariance))));
       #endif`,
     );
   };
-  material.customProgramCacheKey = () => `${previousKey}|apex-physical-asphalt-v5-conforming-film`;
+  material.customProgramCacheKey = () =>
+    `${previousKey}|apex-physical-asphalt-v5-conforming-film|water-fresnel-footprint-v1`;
 }
 
 /** At grazing angles, collapsed screen derivatives can make the stock bump

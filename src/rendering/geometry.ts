@@ -65,32 +65,57 @@ export function tube(parent: T.Object3D, m: T.Material, points: number[][], r = 
     m,
   );
 }
-/** Merge only a deliberately static group; preserve every articulated part outside it. */
+/** Merge only a deliberately static group; preserve every articulated part outside it.
+ * Keep indexed vertices: expanding every triangle used several times the geometry
+ * storage for each complete car. Inputs are cloned before transform/normalization;
+ * a failed merge leaves the original group usable and releases temporary buffers. */
 export function mergeStatic(group: T.Group) {
   group.updateMatrixWorld(true);
   const inverse = group.matrixWorld.clone().invert();
   const groups = new Map<T.Material, T.BufferGeometry[]>();
-  group.traverse((o) => {
-    if (o instanceof T.Mesh && !Array.isArray(o.material)) {
-      const g = o.geometry.clone().applyMatrix4(inverse.clone().multiply(o.matrixWorld));
+  const temporary: T.BufferGeometry[] = [];
+  const merged: { material: T.Material; geometry: T.BufferGeometry }[] = [];
+  try {
+    group.traverse((o) => {
+      if (!(o instanceof T.Mesh) || Array.isArray(o.material)) return;
+      const g = o.geometry.clone();
+      temporary.push(g);
+      g.applyMatrix4(inverse.clone().multiply(o.matrixWorld));
+      // An unindexed input already has a distinct vertex per corner. Giving it
+      // a sequential index preserves every UV/normal seam; never weld by position.
+      if (!g.index) {
+        const count = g.getAttribute('position').count;
+        const indices = count > 65535 ? new Uint32Array(count) : new Uint16Array(count);
+        for (let i = 0; i < count; i++) indices[i] = i;
+        g.setIndex(new T.BufferAttribute(indices, 1));
+      }
       const list = groups.get(o.material);
       if (list) list.push(g);
       else groups.set(o.material, [g]);
+    });
+    for (const [material, geometries] of groups) {
+      const geometry = mergeGeometries(geometries, false);
+      if (!geometry) throw new Error('Static geometry has incompatible attributes');
+      geometry.computeBoundingBox();
+      geometry.computeBoundingSphere();
+      merged.push({ material, geometry });
     }
-  });
+  } catch (error) {
+    for (const item of merged) item.geometry.dispose();
+    throw error;
+  } finally {
+    for (const g of temporary) g.dispose();
+  }
   const original = [...group.children];
   group.clear();
-  for (const [m, geometries] of groups) {
-    const merged = mergeGeometries(
-      geometries.map((g) => (g.index ? g.toNonIndexed() : g)),
-      false,
-    );
-    if (merged) mesh(group, merged, m);
-    for (const g of geometries) g.dispose();
-  }
+  for (const { material, geometry } of merged) mesh(group, geometry, material);
+  const disposed = new Set<T.BufferGeometry>();
   for (const o of original)
     o.traverse((n) => {
-      if (n instanceof T.Mesh) n.geometry.dispose();
+      if (n instanceof T.Mesh && !disposed.has(n.geometry)) {
+        disposed.add(n.geometry);
+        n.geometry.dispose();
+      }
     });
 }
 export function canvasTexture(
@@ -151,32 +176,56 @@ export function batchScene(root: T.Group, preserve: Set<T.Object3D>) {
     else cells.set(cell, { geometries: [geometry], source: o });
     remove.push(o);
   });
-  for (const o of remove) {
-    o.removeFromParent();
-    o.geometry.dispose();
-  }
-  for (const [material, cells] of groups)
-    for (const { geometries, source } of cells.values()) {
-      const normalized = geometries.map((g) => {
-        const out = g.index ? g.toNonIndexed() : g;
-        for (const key of Object.keys(out.attributes))
-          if (!['position', 'normal', 'uv'].includes(key)) out.deleteAttribute(key);
-        return out;
-      });
-      const merged = mergeGeometries(normalized, false);
-      if (merged) {
-        const batch = mesh(root, merged, material);
-        batch.name = `Static ${source.name || material.name || 'geometry'} batch`;
-        batch.castShadow = source.castShadow;
-        batch.receiveShadow = source.receiveShadow;
-        batch.renderOrder = source.renderOrder;
-        batch.layers.mask = source.layers.mask;
-        batch.visible = source.visible;
-        batch.frustumCulled = source.frustumCulled;
+  // Seal all batches before removing source meshes. Indexed clones preserve the
+  // exact triangle corners while avoiding repeated static vertex storage.
+  const batches: { material: T.Material; geometry: T.BufferGeometry; source: T.Mesh }[] = [];
+  try {
+    for (const [material, cells] of groups)
+      for (const { geometries, source } of cells.values()) {
+        for (const geometry of geometries) {
+          // Retain the existing static-scene attribute contract. Animated and
+          // instanced roots remain outside this batching path.
+          for (const key of Object.keys(geometry.attributes))
+            if (!['position', 'normal', 'uv'].includes(key)) geometry.deleteAttribute(key);
+          if (!geometry.index) {
+            const count = geometry.getAttribute('position').count;
+            const index = count > 65535 ? new Uint32Array(count) : new Uint16Array(count);
+            for (let i = 0; i < count; i++) index[i] = i;
+            geometry.setIndex(new T.BufferAttribute(index, 1));
+          }
+        }
+        const geometry = mergeGeometries(geometries, false);
+        if (!geometry) throw new Error('Static scene has incompatible attributes');
+        geometry.computeBoundingBox();
+        geometry.computeBoundingSphere();
+        batches.push({ material, geometry, source });
       }
-      for (const g of normalized) g.dispose();
-      for (const g of geometries) g.dispose();
+  } catch (error) {
+    for (const batch of batches) batch.geometry.dispose();
+    throw error;
+  } finally {
+    for (const cells of groups.values())
+      for (const { geometries } of cells.values())
+        for (const geometry of geometries) geometry.dispose();
+  }
+  const disposed = new Set<T.BufferGeometry>();
+  for (const object of remove) {
+    object.removeFromParent();
+    if (!disposed.has(object.geometry)) {
+      disposed.add(object.geometry);
+      object.geometry.dispose();
     }
+  }
+  for (const { material, geometry, source } of batches) {
+    const batch = mesh(root, geometry, material);
+    batch.name = `Static ${source.name || material.name || 'geometry'} batch`;
+    batch.castShadow = source.castShadow;
+    batch.receiveShadow = source.receiveShadow;
+    batch.renderOrder = source.renderOrder;
+    batch.layers.mask = source.layers.mask;
+    batch.visible = source.visible;
+    batch.frustumCulled = source.frustumCulled;
+  }
 }
 
 /** Monocoque shell below an actual open cockpit. The upper arc is deliberately

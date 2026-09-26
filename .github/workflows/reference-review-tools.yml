@@ -1,4 +1,4 @@
-name: Verify exact publication and run complete CI
+name: Reference review workbench
 on:
   push:
     branches: [main]
@@ -6,55 +6,38 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
-  actions: write
+concurrency:
+  group: reference-review-workbench
+  cancel-in-progress: false
 jobs:
-  verify-publication:
-    runs-on: ubuntu-24.04
-    timeout-minutes: 5
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
-      - name: Verify exact published child and dispatch unchanged complete CI
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Preserve reproducible offline review tools
+        shell: bash
         run: |
-          python - <<'PY'
-          import json,os,pathlib,time,urllib.request,urllib.error
-          repo='cheshmakzanoon-ops/Experiment-3'
-          assert os.environ['GITHUB_REPOSITORY']==repo
-          expected='aa3ae9f5baa8216a8356bddcbffd388df865e438'
-          stage=os.environ['GITHUB_SHA']
-          def api(path,body=None):
-              data=None if body is None else json.dumps(body).encode()
-              for attempt in range(4):
-                  req=urllib.request.Request('https://api.github.com/repos/'+repo+'/'+path,data=data,headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','Content-Type':'application/json'})
-                  try:
-                      with urllib.request.urlopen(req,timeout=30) as response:
-                          raw=response.read()
-                          return json.loads(raw) if raw else None
-                  except urllib.error.HTTPError as error:
-                      if error.code not in (429,500,502,503,504) or attempt==3:raise
-                  except (urllib.error.URLError,TimeoutError):
-                      if attempt==3:raise
-                  time.sleep(2**attempt)
-          checked=api('actions/jobs/108341947010')
-          assert checked['run_id']==36219500141 and checked['status']=='completed' and checked['conclusion']=='success'
-          deadline=time.monotonic()+180
-          while True:
-              head=api('git/ref/heads/main')['object']['sha']
-              if head!=stage:break
-              assert time.monotonic()<deadline,'Publication has not advanced main; no premature success'
-              time.sleep(3)
-          commit=api('git/commits/'+head)
-          assert commit['tree']['sha']==expected and [p['sha'] for p in commit['parents']]==[stage],'Different source or concurrent update; do not certify it'
-          api('actions/workflows/ci.yml/dispatches',{'ref':'main'})
-          result={'mainPublished':True,'commit':head,'tree':expected,'savedLocalCommit':'0498c0dfa2d452c20f2ecad73f38a33e4b04554a','preparationRun':36219500141,'completeCIRequested':True}
-          print(json.dumps(result,indent=2))
-          pathlib.Path(os.environ['RUNNER_TEMP'],'publication.json').write_text(json.dumps(result,indent=2)+'\n')
-          with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as out:
-              out.write('Published exact saved graphics development: '+head+'\nVerified complete tree: '+expected+'\nFull original ci.yml explicitly requested; no browser or numerical checks removed.\n')
-          PY
+          set -euo pipefail
+          git archive --format=tar.gz HEAD > "$RUNNER_TEMP/apex-source.tar.gz"
+          git rev-parse HEAD > "$RUNNER_TEMP/source-commit.txt"
+          tar -czf "$RUNNER_TEMP/apex-dependencies.tar.gz" node_modules
+          sha256sum package-lock.json > "$RUNNER_TEMP/dependency-lock.sha256"
       - uses: actions/upload-artifact@v4
         with:
-          name: exact-saved-publication
-          path: ${{ runner.temp }}/publication.json
-          if-no-files-found: error
-          retention-days: 14
+          name: reference-review-workbench
+          path: |
+            ${{ runner.temp }}/apex-source.tar.gz
+            ${{ runner.temp }}/source-commit.txt
+            ${{ runner.temp }}/apex-dependencies.tar.gz
+            ${{ runner.temp }}/dependency-lock.sha256
+          retention-days: 3
+      - name: Lint, unit tests and production build
+        run: npm run check
+# Phase 27H: refresh the source-matched workbench without changing game behavior.
+# Full-race continuation: refresh the unchanged locked tools from c7a4304.

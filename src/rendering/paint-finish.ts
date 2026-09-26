@@ -71,7 +71,7 @@ export function installPaintObservation(material: MeshPhysicalMaterial) {
         '#include <lights_physical_fragment>',
         `#include <lights_physical_fragment>
         #ifdef USE_CLEARCOAT
-          material.clearcoatRoughness=mix(material.clearcoatRoughness,.075,paintObservation.x);
+          material.clearcoatRoughness=min(1.,mix(material.clearcoatRoughness,.075+geometryRoughness,paintObservation.x));
           material.roughness=mix(material.roughness,material.roughness*.86,paintObservation.x);
         #endif
       `,
@@ -86,6 +86,6 @@ export function installPaintObservation(material: MeshPhysicalMaterial) {
       `,
       );
   };
-  material.customProgramCacheKey = () => `${previousKey}|snapshot-wet-component-damage-v1`;
+  material.customProgramCacheKey = () => `${previousKey}|snapshot-wet-component-damage-v2-filtered`;
   return material;
 }
