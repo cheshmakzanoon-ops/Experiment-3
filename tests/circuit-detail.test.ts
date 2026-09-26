@@ -123,7 +123,13 @@ it('composes decorative finish, grazing bump safety and real water with snapshot
   expect(shader.fragmentShader).toContain('uniform sampler2D trackState');
   expect(shader.fragmentShader).toContain('vec4 roadState = texture2D(trackState, vTrackUV)');
   expect(shader.fragmentShader.match(/varying vec3 vFinishWorld;/g)).toHaveLength(1);
-  expect(Object.keys(shader.uniforms)).toEqual(['roadWeather', 'trackState', 'surfaceDeposits']);
+  expect(Object.keys(shader.uniforms)).toEqual([
+    'roadWeather',
+    'trackState',
+    'surfaceDeposits',
+    'roadLampRadius',
+  ]);
+  expect(shader.uniforms.roadLampRadius.value).toBe(0);
   expect(shader.uniforms.roadWeather.value.toArray()).toEqual([0, 0, 0, 0]);
   expect(shader.uniforms.trackState.value).toBe(state);
   material.dispose();

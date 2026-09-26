@@ -12,6 +12,9 @@ export class RaceComposition {
   participants: number[] = [];
   private readonly pit = new PitComposition();
   private positions: Vector3[] = Array.from({ length: 12 }, () => new Vector3());
+  get visibility() {
+    return this.kind === 'pit' && this.pit.active ? this.pit.visibility : undefined;
+  }
   reset() {
     this.participants = [];
     this.radius = 3.1;

@@ -1,3 +1,11 @@
+## Aurel race-readability candidate
+
+Compact-screen telemetry, full-service camera sightline probes and bounded
+wet-floodlight highlights extend the existing game. See
+[implementation and remaining gates](docs/RACE_READABILITY.md) and
+[executed validation](docs/RACE_READABILITY_VALIDATION.json).
+This is not final-art, target-hardware, hosted-CI or public-deployment approval.
+
 ## Graphics-continuity correction candidate
 
 The current continuation retains indexed static geometry, preserves live liveries

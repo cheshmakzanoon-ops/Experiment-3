@@ -21,14 +21,25 @@ export function pitServiceActive(phase: number, clock: number, speed: number) {
 /** Car-local envelope for all fifteen actors, carried tyres, jacks and release
  * sign throughout service. Tested against the actual skinned/instanced vertices,
  * not only character roots. Includes the car without moving or hiding anything. */
+export const PIT_CREW_MAX_DISTANCE = 160;
+
 export const PIT_SERVICE_CENTER = Object.freeze(new Vector3(0.3, 0.3, 0));
 export const PIT_SERVICE_HALF_EXTENTS = Object.freeze(new Vector3(4.05, 1.15, 3.85));
 export const PIT_SERVICE_RADIUS = PIT_SERVICE_HALF_EXTENTS.length();
 
 export class PitComposition {
+  /** Centre plus these eight world-space envelope corners are tested against
+   * real solid scenery. They are conservative sightline probes, not pixel proof. */
+  readonly visibility = {
+    points: Array.from({ length: 8 }, () => new Vector3()),
+    anchor: new Vector3(),
+    maxDistance: PIT_CREW_MAX_DISTANCE,
+  };
+  active = false;
   private readonly rotation = new Quaternion();
   private readonly offset = new Vector3();
   apply(frame: Float32Array, o: number, target: Vector3) {
+    this.active = false;
     const phase = frame[o + F.PIT_PHASE],
       speed = frame[o + F.SPEED];
     pitServiceActive(phase, frame[o + F.PIT_CLOCK], speed);
@@ -42,7 +53,22 @@ export class PitComposition {
       throw new Error('Invalid pit composition transform');
     this.rotation.normalize();
     this.offset.copy(PIT_SERVICE_CENTER).applyQuaternion(this.rotation);
+    this.visibility.anchor.copy(target);
     target.addScaledVector(this.offset, weight);
+    // Start subject-wide checks only when actors are actually eligible. Approach
+    // zoom still follows the existing continuous speed function unchanged.
+    this.active = pitServiceActive(phase, frame[o + F.PIT_CLOCK], speed);
+    if (this.active) {
+      for (let index = 0; index < 8; index++)
+        this.visibility.points[index]
+          .set(
+            (index & 4 ? 1 : -1) * PIT_SERVICE_HALF_EXTENTS.x,
+            (index & 2 ? 1 : -1) * PIT_SERVICE_HALF_EXTENTS.y,
+            (index & 1 ? 1 : -1) * PIT_SERVICE_HALF_EXTENTS.z,
+          )
+          .applyQuaternion(this.rotation)
+          .add(target);
+    }
     return 3.1 + (PIT_SERVICE_RADIUS - 3.1) * weight;
   }
 }
@@ -85,7 +111,7 @@ export class PitPoseCache {
       if (!pitServiceActive(phase, clock, speed)) continue;
       this.position.set(frame[o + F.X], frame[o + F.Y], frame[o + F.Z]);
       const distance = this.position.distanceTo(camera);
-      if (distance > 160) continue;
+      if (distance > PIT_CREW_MAX_DISTANCE) continue;
       const level = distance < 45 ? 0 : 1;
       this.levels[id] = level;
       this.next[n++] = id;

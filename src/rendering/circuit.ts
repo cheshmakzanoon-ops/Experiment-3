@@ -1,3 +1,4 @@
+import { VENUE_LAMP_RADIUS } from './light-footprint.ts';
 import { buildGantrySolids, buildControlTowerSolids } from './race-structures.ts';
 import { MarshalStaffView } from './marshal-staff.ts';
 import { districtPlan, buildDistricts } from './venue-districts.ts';
@@ -82,7 +83,7 @@ export class CircuitScene {
     this.stateTexture.minFilter = T.LinearFilter;
     this.updateSurface(track.water, track.rubber, track.marbles);
     this.roadMaterial = surfaceMaterial('asphalt', undefined, true);
-    installWetRoad(this.roadMaterial, this.stateTexture, true);
+    installWetRoad(this.roadMaterial, this.stateTexture, true, VENUE_LAMP_RADIUS);
     const grass = surfaceMaterial('grass');
     const runOff = surfaceMaterial('asphalt', 'paint');
     runOff.color.setHex(0x8aa58d);
@@ -155,7 +156,7 @@ export class CircuitScene {
     }
     // Smooth pit road ribbon and its marking; no decorative inaccessible lane.
     const pitMat = surfaceMaterial('asphalt', undefined, true);
-    installWetRoad(pitMat, this.stateTexture, false);
+    installWetRoad(pitMat, this.stateTexture, false, VENUE_LAMP_RADIUS);
     for (const [start, end] of [
       [track.length - 220, track.length],
       [0, 330],

@@ -6,6 +6,7 @@ import {
   PitPoseCache,
   PIT_SERVICE_CENTER,
   PIT_SERVICE_RADIUS,
+  PIT_SERVICE_HALF_EXTENTS,
   pitServiceActive,
 } from '../src/rendering/pit-presentation.ts';
 import { RaceComposition } from '../src/rendering/race-composition.ts';
@@ -217,7 +218,13 @@ describe('27H.6 service composition and bounded pose reuse', () => {
     const instance = new T.Matrix4(),
       bone = new T.Matrix4(),
       point = new T.Vector3(),
-      posed = new T.Vector3();
+      posed = new T.Vector3(),
+      extent = new T.Vector3();
+    const observe = (point: T.Vector3, center: T.Vector3) => {
+      extent.x = Math.max(extent.x, Math.abs(point.x - center.x));
+      extent.y = Math.max(extent.y, Math.abs(point.y - center.y));
+      extent.z = Math.max(extent.z, Math.abs(point.z - center.z));
+    };
     try {
       for (const length of [0.14, 0.25, 0.34])
         for (const clock of [0, 0.8, 1.8, 2.2, 3.45, 3.5, 4.6, 5.19]) {
@@ -235,6 +242,7 @@ describe('27H.6 service composition and bounded pose reuse', () => {
                 if (slots.getX(vertex) >= mesh.count) continue;
                 instance.fromArray(mesh.instanceMatrix.array, slots.getX(vertex) * 16);
                 point.fromBufferAttribute(position, vertex).applyMatrix4(instance);
+                observe(point, center);
                 expect(point.distanceTo(center), `machine ${clock}/${vertex}`).toBeLessThanOrEqual(
                   PIT_SERVICE_RADIUS,
                 );
@@ -263,6 +271,7 @@ describe('27H.6 service composition and bounded pose reuse', () => {
                   point.copy(posed);
                 } else point.fromBufferAttribute(position, vertex);
                 point.applyMatrix4(instance);
+                observe(point, center);
                 expect(point.distanceTo(center), `${clock}/${actor}/${vertex}`).toBeLessThanOrEqual(
                   PIT_SERVICE_RADIUS,
                 );
@@ -270,8 +279,57 @@ describe('27H.6 service composition and bounded pose reuse', () => {
             }
           }
         }
+      // The corner sightline probes additionally require an actual box bound,
+      // not merely a sphere containing vertices outside one of its box faces.
+      expect(extent.x).toBeLessThanOrEqual(PIT_SERVICE_HALF_EXTENTS.x);
+      expect(extent.y).toBeLessThanOrEqual(PIT_SERVICE_HALF_EXTENTS.y);
+      expect(extent.z).toBeLessThanOrEqual(PIT_SERVICE_HALF_EXTENTS.z);
     } finally {
       release(view);
+    }
+  });
+  it('retains the complete service envelope in all twelve real pit bays without culling its crew', () => {
+    const track = new Track(),
+      p = trackPoint(),
+      c = new RaceComposition();
+    const camera = new T.PerspectiveCamera(),
+      projected = new T.Vector3();
+    for (let bay = 0; bay < 12; bay++) {
+      const s = 102 + bay * 7,
+        f = frame(),
+        o = carBase(0);
+      track.at(s, p);
+      f[o + F.S] = s;
+      f[o + F.X] = p.x + p.nx * 24.1;
+      f[o + F.Y] = p.y + 0.6;
+      f[o + F.Z] = p.z + p.nz * 24.1;
+      const rotation = new T.Quaternion().setFromAxisAngle(
+        new T.Vector3(0, 1, 0),
+        Math.atan2(p.tx, p.tz),
+      );
+      f[o + F.QY] = rotation.y;
+      f[o + F.QW] = rotation.w;
+      c.update(f, 0);
+      for (const aspect of [16 / 9, 1, 9 / 16, 21 / 9]) {
+        const director = new TracksideDirector(track);
+        director.update(s, c.target, c.velocity, 0, aspect, c.radius, true, c.visibility);
+        expect(director.framingFits, `${bay}/${aspect}`).toBe(true);
+        expect(director.subjectWithinRange).toBe(true);
+        expect(director.position.distanceTo(c.visibility!.anchor)).toBeLessThanOrEqual(
+          c.visibility!.maxDistance,
+        );
+        camera.position.copy(director.position);
+        camera.lookAt(director.gaze);
+        camera.aspect = aspect;
+        camera.fov = director.fov;
+        camera.updateProjectionMatrix();
+        camera.updateMatrixWorld(true);
+        for (const point of c.visibility!.points) {
+          projected.copy(point).project(camera);
+          expect(Math.abs(projected.x), `${bay}/${aspect}: x`).toBeLessThan(1);
+          expect(Math.abs(projected.y), `${bay}/${aspect}: y`).toBeLessThan(1);
+        }
+      }
     }
   });
   it('frames the complete service from physical rigs, including portrait views, with reversible approach/release', () => {
@@ -300,7 +358,9 @@ describe('27H.6 service composition and bounded pose reuse', () => {
     expect(f).toEqual(before);
     for (const aspect of [16 / 9, 1, 9 / 16]) {
       const director = new TracksideDirector(track);
-      director.update(70, c.target, c.velocity, 0, aspect, c.radius, true);
+      director.update(70, c.target, c.velocity, 0, aspect, c.radius, true, c.visibility);
+      expect(director.subjectWithinRange).toBe(true);
+      expect(director.subjectSampleCount).toBe(9);
       expect(director.framingFits).toBe(true);
       expect(director.subjectRadius).toBe(PIT_SERVICE_RADIUS);
     }

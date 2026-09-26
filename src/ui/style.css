@@ -2396,32 +2396,37 @@ html[data-colorblind='true'] #flag[data-flag='4']::before {
 .team-media [data-media-status] { color: #bdccce; line-height: 1.5; }
 @media(max-width: 640px) { .media-caption { position: static; padding: 18px; background: #12212b; } .media-brand { top: 8px; left: 10px; font-size: 11px; } .media-brand b { font-size: 9px; } }
 
-/* Wide racing views keep the complete telemetry out of the lower-centre car
-   silhouette. The compact two-column strip uses otherwise empty sky space;
-   narrower/touch layouts and the existing cockpit layout remain unchanged. */
-@media (min-width: 1400px) and (min-height: 800px) {
-  .hud:is([data-camera='pod'], [data-camera='chase']) .instruments {
+/* Desktop racing cameras share a compact telemetry band above the driving
+   sightline. Use real layout widths (not a reduced accessibility scale); keep
+   every readout and leave the lower-centre car/steering display unobstructed. */
+@media (min-width: 1280px) and (min-height: 680px) {
+  .hud {
+    --tower-top: 95px;
+    --map-bottom: 90px;
+  }
+  .hud[data-camera] .instruments {
+    left: 50%;
     top: 105px;
     bottom: auto;
     width: 510px;
     display: grid;
     grid-auto-flow: dense;
     grid-template-columns: 326px 184px;
+    transform: translateX(-50%) scale(var(--scale));
     transform-origin: top center;
   }
-  .hud:is([data-camera='pod'], [data-camera='chase'])
-    .instruments
-    > :is(.programme-hud, .guide-readout, .rev-lights) {
+  .hud[data-camera] .instruments > :is(.programme-hud, .guide-readout, .rev-lights) {
     grid-column: 1 / -1;
   }
-  .hud:is([data-camera='pod'], [data-camera='chase']) .dash-main {
+  .hud[data-camera] .dash-main {
     grid-column: 1;
     padding-bottom: 8px;
+    min-width: 0;
   }
-  .hud:is([data-camera='pod'], [data-camera='chase']) .pedals {
+  .hud[data-camera] .pedals {
     grid-column: 1;
   }
-  .hud:is([data-camera='pod'], [data-camera='chase']) .resources {
+  .hud[data-camera] .resources {
     grid-column: 2;
     grid-row: span 2;
     flex-direction: column;
@@ -2429,29 +2434,74 @@ html[data-colorblind='true'] #flag[data-flag='4']::before {
     gap: 12px;
     border-top: 0;
     border-left: 1px solid #75877955;
+    min-width: 0;
   }
-  /* The lights stay distinct from the telemetry, including academy guidance. */
-  .hud:is([data-camera='pod'], [data-camera='chase']) .start-sequence {
+  .hud[data-camera] .start-sequence {
     top: calc(125px + 210px * var(--scale));
   }
-}
-
-/* Keep all real standings in the document without letting a twelve-car grid
-   paint over the map. Small viewports retain a native keyboard/mouse scroller. */
-@media (min-width: 1400px) and (min-height: 800px) {
+  /* Real rows remain readable and keyboard-scrollable, including a full grid.
+     The measured map envelope, not a fixed row count, owns the available height. */
   .hud .timing {
-    max-height: max(120px, calc((100vh - 205px) / var(--scale) - 256px));
+    max-height: max(
+      100px,
+      calc((100vh - var(--tower-top) - var(--map-bottom) - 16px) / var(--scale) - 240px)
+    );
     overflow-y: auto;
     pointer-events: auto;
     scrollbar-width: thin;
     overscroll-behavior: contain;
   }
-  .hud .tower-row {
-    height: clamp(18px, calc(((100vh - 205px) / var(--scale) - 296px) / var(--grid-rows, 12)), 32px);
+  .hud .timing .panel-heading {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: #142023;
   }
   .hud .timing:focus-visible {
     outline: 2px solid #ddd7bb;
     outline-offset: 3px;
+  }
+}
+
+/* Laptop layouts reserve both side panels BEFORE allocating the centre band.
+   Scaling still obeys the player's setting; text is not shrunk or removed.
+   The narrowest supported combination is 1280px at UI scale 1.35. */
+@media (min-width: 1280px) and (min-height: 680px) and (max-width: 1399px),
+  (min-width: 1280px) and (min-height: 680px) and (max-height: 799px) {
+  .hud .timing,
+  .hud .lap-panel {
+    width: 210px;
+  }
+  .hud[data-camera] .instruments {
+    width: min(510px, calc((100vw - 84px) / var(--scale) - 420px));
+    grid-template-columns: minmax(0, 1fr) 158px;
+  }
+  .hud .tower-row {
+    gap: 8px;
+  }
+  .hud[data-camera] .instruments {
+    top: 90px;
+  }
+  .hud[data-camera] .start-sequence {
+    top: calc(110px + 210px * var(--scale));
+  }
+  .hud .lap-panel {
+    padding-inline: 12px;
+  }
+}
+@media (min-width: 1280px) and (min-height: 680px) and (max-height: 750px) {
+  .hud {
+    --tower-top: 79px;
+    --map-bottom: 60px;
+  }
+  .hud[data-camera] .instruments {
+    top: 90px;
+  }
+  .hud[data-camera] .dash-main {
+    padding-bottom: 6px;
+  }
+  .hud[data-camera] .start-sequence {
+    top: calc(110px + 210px * var(--scale));
   }
 }
 

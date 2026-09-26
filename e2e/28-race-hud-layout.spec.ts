@@ -4,7 +4,7 @@ import { resolve } from 'node:path';
 import { readFile } from 'node:fs/promises';
 import type { raceHudLayout, gridPreparationControls } from './fixtures/race-hud-layout.ts';
 
-test('27H.6 DOM-only: wide pod/chase telemetry clears the car, lights and side panels', async ({
+test('27H.6 DOM-only: compact and wide telemetry clears the car, lights and side panels', async ({
   page,
 }, info) => {
   const bundled = await build({
@@ -30,11 +30,15 @@ test('27H.6 DOM-only: wide pod/chase telemetry clears the car, lights and side p
   await page.addScriptTag({ content: script.code });
   const measurements = [];
   for (const viewport of [
+    { width: 1280, height: 680 },
+    { width: 1280, height: 720 },
+    { width: 1280, height: 900 },
+    { width: 1366, height: 768 },
     { width: 1440, height: 800 },
     { width: 1440, height: 900 },
     { width: 1920, height: 1080 },
   ])
-    for (const camera of ['pod', 'chase'] as const)
+    for (const camera of ['cockpit', 'pod', 'chase', 'trackside'] as const)
       for (const scale of [0.8, 1, 1.35])
         for (const guidance of [false, true]) {
           await page.setViewportSize(viewport);
@@ -75,9 +79,9 @@ test('27H.6 DOM-only: wide pod/chase telemetry clears the car, lights and side p
           await expect(page.locator('#rpm')).toBeVisible();
           measurements.push({ viewport, camera, scale, guidance, rectangles });
         }
-  // The smallest wide layout scrolls all twelve real rows without sending
+  // The smallest compact layout scrolls all twelve real rows without sending
   // navigation keydowns to the driving listener; keyup must still release it.
-  await page.setViewportSize({ width: 1440, height: 800 });
+  await page.setViewportSize({ width: 1280, height: 680 });
   await page.evaluate(() => {
     (
       window as unknown as { RaceHudFixture: { raceHudLayout: typeof raceHudLayout } }
@@ -103,6 +107,50 @@ test('27H.6 DOM-only: wide pod/chase telemetry clears the car, lights and side p
   await expect(page.locator('#keyEvents')).toHaveText(
     'keyup:End;keyup:ArrowUp;keydown:Escape;keyup:Escape;',
   );
+  // Resize the SAME production UI after scrolling. Retained rows and sticky
+  // heading remain reachable; a stylesheet breakpoint must not rebuild a race.
+  for (const viewport of [
+    { width: 1920, height: 1080 },
+    { width: 1366, height: 768 },
+    { width: 1280, height: 720 },
+    { width: 1280, height: 680 },
+  ]) {
+    await page.setViewportSize(viewport);
+    await timing.focus();
+    await page.keyboard.press('End');
+    // Native End scrolling is asynchronous; wait for its geometric result,
+    // rather than measuring the first animation frame after the key event.
+    await expect
+      .poll(() =>
+        timing.evaluate(
+          (e) =>
+            e.querySelector('.tower-row:last-child')!.getBoundingClientRect().bottom -
+            e.getBoundingClientRect().bottom,
+        ),
+      )
+      .toBeLessThanOrEqual(1);
+    const bounds = await timing.evaluate((e) => {
+      const r = e.getBoundingClientRect(),
+        header = e.querySelector('.panel-heading')!.getBoundingClientRect(),
+        last = e.querySelector('.tower-row:last-child')!.getBoundingClientRect(),
+        map = document.querySelector('.minimap')!.getBoundingClientRect();
+      return {
+        top: r.top,
+        bottom: r.bottom,
+        headerTop: header.top,
+        lastTop: last.top,
+        lastBottom: last.bottom,
+        mapTop: map.top,
+      };
+    });
+    expect(bounds.headerTop).toBeGreaterThanOrEqual(bounds.top);
+    expect(bounds.lastTop).toBeGreaterThan(bounds.top);
+    expect(bounds.lastBottom).toBeLessThanOrEqual(bounds.bottom + 1);
+    expect(bounds.bottom).toBeLessThan(bounds.mapTop);
+    await expect(page.locator('.tower-row')).toHaveCount(12);
+    await page.keyboard.press('Home');
+    await expect.poll(() => timing.evaluate((e) => e.scrollTop)).toBe(0);
+  }
   await info.attach('27h6-hud-layout-observations.json', {
     body: JSON.stringify(
       {

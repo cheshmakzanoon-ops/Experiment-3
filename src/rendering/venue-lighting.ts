@@ -1,3 +1,4 @@
+import { VENUE_LAMP_WIDTH, VENUE_LAMP_DEPTH } from './light-footprint.ts';
 import { buildVenueLandmark, type LandmarkSite } from './venue-landmark.ts';
 import type { BroadcastSightlines } from './broadcast-sightlines.ts';
 import * as T from 'three';
@@ -109,7 +110,11 @@ export class VenueLighting {
       new T.MeshStandardMaterial({ color: 0x8d959e, metalness: 0.72, roughness: 0.4 }),
       count,
     );
-    this.lamps = new T.InstancedMesh(new T.BoxGeometry(3.2, 0.2, 1.3), this.lampMaterial, count);
+    this.lamps = new T.InstancedMesh(
+      new T.BoxGeometry(VENUE_LAMP_WIDTH, 0.2, VENUE_LAMP_DEPTH),
+      this.lampMaterial,
+      count,
+    );
     const p = trackPoint(),
       transform = new T.Object3D();
     for (const [i, site] of this.sites.entries()) {

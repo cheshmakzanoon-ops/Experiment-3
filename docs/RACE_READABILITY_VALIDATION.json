@@ -1,0 +1,344 @@
+{
+  "schemaVersion": 1,
+  "recordedAtUtc": "2026-09-26T13:20:46.477403+00:00",
+  "scope": "Aurel race-readability source increment; not final-art, full-race human, hardware, deployment, or Steam acceptance",
+  "baseCommit": "610e21a090b0094ff69129f1d490b5389272972f",
+  "baseTree": "ba43c4065728f0caa43ddc6e6bd22026c92347e2",
+  "runtimeSourceFingerprint": "22acb9523024cbb27be0ad13bcc9c4f1644c26c34c753ebc983cdf4dd3ec0f9e",
+  "masterDirectiveSha256": "f508a1b9be8e8a19a2ccc39d744e82d774cf95ecc773c12482efbcb9fb89f75c",
+  "baselineEvidence": {
+    "workflowRun": 36235425777,
+    "sourceArtifact": 10903878085,
+    "sourceArchiveSha256": "f641d889429f0d6d15e9653f01933ee254f263d3be91ba54d29071554f284559",
+    "browserArtifact": 10904278818,
+    "browserArchiveSha256": "ff452fd4537843536c5eb4b1d01b5547ce6db98167d360f97d531515ffde18d4",
+    "boundary": "Previously successful exact-baseline CI and inspected baseline captures, not candidate CI or gameplay."
+  },
+  "dependencyEvidence": {
+    "workflowRun": 36235425806,
+    "artifact": 10903848056,
+    "archiveSha256": "f896a9fd7a01c1b5893cb975de2b5610e7f8331006ae92bd1c59b4fd87aa8618",
+    "lockfileSha256": "0ee732475bc70f3bec4bfa7787f904d51bc28c185534dff3762f2d18801bbc59",
+    "status": "Restored exact locked public dependencies; package files unchanged."
+  },
+  "localChecks": {
+    "lint": {
+      "status": "PASS",
+      "command": "npm run lint"
+    },
+    "unit": {
+      "status": "PASS",
+      "command": "npx vitest run --maxWorkers=2",
+      "files": 107,
+      "tests": 1125
+    },
+    "typescriptAndProductionBuild": {
+      "status": "PASS",
+      "command": "npm run build",
+      "warnings": [
+        "Existing Vite chunk-size warnings above 500 kB retained."
+      ]
+    },
+    "browserDom": {
+      "status": "PASS",
+      "command": "CHROMIUM_PATH=/usr/bin/chromium npm run test:e2e -- e2e/28-race-hud-layout.spec.ts",
+      "cases": 7,
+      "hudCombinations": 168,
+      "viewportSizes": [
+        "1280x680",
+        "1280x720",
+        "1280x900",
+        "1366x768",
+        "1440x800",
+        "1440x900",
+        "1920x1080"
+      ],
+      "cameras": [
+        "cockpit",
+        "pod",
+        "chase",
+        "trackside"
+      ],
+      "scales": [
+        0.8,
+        1,
+        1.35
+      ],
+      "menuViewports": 6,
+      "resizeAndKeyboardScroll": "PASS on same mounted Interface; keydown containment, keyup release and Escape propagation retained",
+      "boundary": "Production Interface/CSS DOM fixtures, not ordinary gameplay, 3D rendering, or controller/wheel validation."
+    },
+    "nativeScenarios": {
+      "status": "PASS",
+      "results": [
+        {
+          "script": "validate",
+          "exitCode": 0,
+          "seconds": 57.003500468000084
+        },
+        {
+          "script": "dynamics-benchmark",
+          "exitCode": 0,
+          "seconds": 1.8879999390001103
+        },
+        {
+          "script": "marshal-integration",
+          "exitCode": 0,
+          "seconds": 2.0976342830001613
+        },
+        {
+          "script": "wet-pit-integration",
+          "exitCode": 0,
+          "seconds": 79.55325443299989
+        },
+        {
+          "script": "integrated-driving",
+          "exitCode": 0,
+          "seconds": 68.36837942800003
+        },
+        {
+          "script": "rotation-benchmark",
+          "exitCode": 0,
+          "seconds": 0.4365724899998895
+        },
+        {
+          "script": "pit-integration",
+          "exitCode": 0,
+          "seconds": 29.701209540000036
+        },
+        {
+          "script": "race-classification",
+          "exitCode": 0,
+          "seconds": 71.05945350899992
+        },
+        {
+          "script": "phase27h6-racing",
+          "exitCode": 0,
+          "seconds": 28.159922198000004
+        },
+        {
+          "script": "phase27h-matrix",
+          "exitCode": 0,
+          "seconds": 0.2713313209999342
+        }
+      ],
+      "boundary": "Nine numerical/simulation scripts plus requirement-matrix check; execution durations are wall times, not FPS."
+    },
+    "shaderCompiler": {
+      "status": "PASS",
+      "compiledStages": 8,
+      "linkedPrograms": 4,
+      "driver": "llvmpipe (LLVM 19.1.7, 256 bits)",
+      "api": "4.5 (Core Profile) Mesa 25.0.7-2",
+      "permutations": "Physical and standard materials, each with zero or four point lights; four-point variants also include two spot lights and one sun. Actual expanded production shader hooks and pinned Three.js loop expansion.",
+      "boundary": "Native Mesa shader compiler; not WebGL/gameplay/physical-hardware acceptance"
+    },
+    "pitGeometry": "Existing actual skinned/instanced 24-pose envelope checks strengthened to cover axis-aligned bounds; twelve real pit bays at four aspect ratios retain full framing and crew range.",
+    "whitespace": {
+      "status": "PASS",
+      "command": "git diff --check"
+    }
+  },
+  "iterationNotes": [
+    "Initial uniform-list regression failed after adding roadLampRadius; exact expected keys and explicit zero-default assertion were updated.",
+    "Initial compact HUD geometry reproduced an overlap at 1280x680; actual padding was corrected without lowering the layout thresholds.",
+    "Native End-key scrolling required awaiting its geometric result after resize; final tests poll the existing bounds instead of using arbitrary sleeps.",
+    "Initial matrix check reported stale source identity; regenerated using its retained script without promoting any acceptance rows.",
+    "Final recorded suites passed after these corrections; this is not a claim that the first attempted suite was green."
+  ],
+  "preservation": {
+    "verifiedFiles": 64,
+    "manifest": "validation/preserved-source.json",
+    "unchanged": [
+      "Master directive",
+      "simulation, input, audio, worker and storage modules",
+      "authored assets",
+      "locked dependency files",
+      "GitHub workflows",
+      "historical native reports in docs"
+    ],
+    "matrix": {
+      "directiveRows": 148,
+      "referenceRows": 100,
+      "required": {
+        "PASS": 0,
+        "PARTIAL": 230,
+        "FAIL": 2
+      },
+      "excludedReferences": 16
+    },
+    "playableDirectory": "Historical tracked build preserved. Separate delivery web-build is the exact new dist build, not a deployment."
+  },
+  "openGates": {
+    "browserGpuPixelAssertions": "NOT EXECUTED successfully: local Chromium WebGL2 unavailable. New point-light controls need a permitted WebGL-capable runner.",
+    "ordinaryAppJourney": "NOT VERIFIED: normal navigation returned ERR_BLOCKED_BY_ADMINISTRATOR; no policy bypass used.",
+    "candidateHostedCi": "NOT VERIFIED; baseline run is not candidate evidence.",
+    "sourcePublication": "NOT VERIFIED by this record; inspect the actual remote branch separately.",
+    "publicDeployment": "NOT VERIFIED.",
+    "fullSceneVisualApproval": "OPEN: fresh candidate pit and matched full-lap dry/sunset/wet-day/wet-night footage required.",
+    "hardwareAndHuman": "OPEN: target-machine frame-time comparison, human full-race driving, controllers/wheels, and Section 146."
+  },
+  "externalEvidenceDirectory": "Delivery validation/ (paths below relative to that directory)",
+  "externalEvidence": {
+    "candidate-1280x720-chase.png": {
+      "bytes": 107991,
+      "sha256": "ba1f95913e7aedf9dd0745843c613c9addcaabb20fb393ed76187ff000943818"
+    },
+    "candidate-1366x768-chase.png": {
+      "bytes": 120554,
+      "sha256": "e479e95944ce714c4c292b809f47c6bde6bf5c3a6d908d441ee7ef7106ae18b5"
+    },
+    "candidate-hud.json": {
+      "bytes": 117169,
+      "sha256": "d7fade5c4f804dfbdd3a0421cbdfc2ec36cc0ef3a14ab0574e2ccfebd9de4ef4"
+    },
+    "final-check.log": {
+      "bytes": 24021,
+      "sha256": "0877af7dd92109096f122d2f1cc5ada6f1ad5e0414433f8deadaaa48ce560631"
+    },
+    "final-hud-browser.log": {
+      "bytes": 940,
+      "sha256": "9c23a6cf3dd63b5a4eacedbae5f732e5e564ca3ad6397f3153fb3fad96439805"
+    },
+    "hud-168-observations.json": {
+      "bytes": 205022,
+      "sha256": "b2e1c08424c9430a6955dc5369801541e5581477c157b60f3bb407e539285076"
+    },
+    "matrix-final.log": {
+      "bytes": 450,
+      "sha256": "b4e33cd86c39a5ac30bb0b2ea06ffe9a373b473af3b0a6503880dddfa530acbb"
+    },
+    "native/dynamics-benchmark.json": {
+      "bytes": 3961,
+      "sha256": "f1a3ae878c78c54f9af0927279a3a077bc210fade0bf237d2231a62a7ce5b439"
+    },
+    "native/dynamics-benchmark.log": {
+      "bytes": 2669,
+      "sha256": "1a8150f20555ab19efcd9b1f2195c3612023042c8788acd97ad1998587ff3076"
+    },
+    "native/integrated-driving.json": {
+      "bytes": 5803,
+      "sha256": "627759ed3c98a96d9e593b11dc094d49bc1433cc3dce8ad93f02308c5a13f04e"
+    },
+    "native/integrated-driving.log": {
+      "bytes": 9648,
+      "sha256": "7c63ff7aeac2a9e57215c474558477c919659860e2eebaee01ab0ddecf56780f"
+    },
+    "native/marshal-integration.json": {
+      "bytes": 829,
+      "sha256": "40cb6139b0f18fbc0d5b7daba7337805621c50f7c850362f8a3e656d8183f804"
+    },
+    "native/marshal-integration.log": {
+      "bytes": 765,
+      "sha256": "48688286711154d616cf672f3473f47190d43483b3d74b7212cf10cd9c11fd45"
+    },
+    "native/matrix-refresh.log": {
+      "bytes": 449,
+      "sha256": "1ca4e4f038b96cbf278917850ac6614d36f89411e2e5a925933fd95a283017a6"
+    },
+    "native/matrix.json": {
+      "bytes": 693911,
+      "sha256": "255cbc0755eba1af53e2dbb62f81195a269e5f086cabe95f3c1be8d1278143e1"
+    },
+    "native/phase27h-matrix.log": {
+      "bytes": 450,
+      "sha256": "a20beff915fffac144de0be8675699e3b6e49c4d24e78b64e092adb65fb5db15"
+    },
+    "native/phase27h6-racing.json": {
+      "bytes": 2787,
+      "sha256": "cce2b1432a4e55aa6a6cd4a5fe835c3104bf0acf10a3e881a10a47ffb7cb5f69"
+    },
+    "native/phase27h6-racing.log": {
+      "bytes": 1973,
+      "sha256": "0721565724ee63ec35d2726fe842e1c3d170c55767f82d8d39906a6ad993ea08"
+    },
+    "native/pit-integration.json": {
+      "bytes": 1895,
+      "sha256": "afb1ab677bb9c6ad41c64a4b35c65bc3b97026a12737526f8faaa5dae02fa693"
+    },
+    "native/pit-integration.log": {
+      "bytes": 1312,
+      "sha256": "23294b504a750e7c14a26ff3bd0ee58ea1137f4bb207101befc5118b54f6f168"
+    },
+    "native/race-classification.json": {
+      "bytes": 7072,
+      "sha256": "a685f08be184eed586635e3cae316b816b7e04d2835d66f612d817c3a5d4486c"
+    },
+    "native/race-classification.log": {
+      "bytes": 4014,
+      "sha256": "5b42b07fa506d5565c101c837f76c499d4f96d097fe3c7d4f1a180a8506edf15"
+    },
+    "native/results.json": {
+      "bytes": 964,
+      "sha256": "0a3d9723941eacf28404d89cf51e9d5adaa97f90e98ce4ef04fedeb6329d69ad"
+    },
+    "native/rotation-benchmark.json": {
+      "bytes": 1181,
+      "sha256": "6cbf8fc9c288499353d9e96c012ca5461c757dcd89c995b8d4262ab33e1e319c"
+    },
+    "native/rotation-benchmark.log": {
+      "bytes": 1083,
+      "sha256": "25118195516e6bd3ef5768410b7877350248693668b8b9228956e8dff3e79ce8"
+    },
+    "native/scenario-results.json": {
+      "bytes": 1974,
+      "sha256": "7c0788a08927de6eb676974c0f02b06550c3fc167058c313d83f2f07cfca74a7"
+    },
+    "native/validate.log": {
+      "bytes": 1382,
+      "sha256": "50b328a11e4f110a1992e288e993b2d2bc328c828ebc8bf7aa07e7de3dfe6d82"
+    },
+    "native/wet-pit-integration.log": {
+      "bytes": 2323,
+      "sha256": "370857c3f559f14cfdbbfca63fc4b6b221ef22dd9d51802e4206851ec851b7d5"
+    },
+    "native/wet-pit-results.json": {
+      "bytes": 4120,
+      "sha256": "144e7cfeb417889f2422c1aacf47a4beab746e2dedfa61d23ad1bb8b9980d9b9"
+    },
+    "native-shader-compile.json": {
+      "bytes": 1671,
+      "sha256": "34fb40a0264162e998932c4dc3a8807b00c8f56818d71bb5d63f69ec5064879a"
+    },
+    "preserved-source.json": {
+      "bytes": 9083,
+      "sha256": "713e8ce5243534cc9fe0b8e50b4c85433c90e0957952df20524b43d3bfcc5171"
+    },
+    "shaders/road-physical-0-point.frag": {
+      "bytes": 75063,
+      "sha256": "93055651cebcac131d8d4bc8958d8a53ab51c741ce623435ec84b5e97547a5a0"
+    },
+    "shaders/road-physical-0-point.vert": {
+      "bytes": 18503,
+      "sha256": "9d78f641a345e1279d9f8b6417cc5bfcbb45c5db421eb6fadf79d5f2e53dda45"
+    },
+    "shaders/road-physical-4-point.frag": {
+      "bytes": 81623,
+      "sha256": "4dda1a23a404dba103ad25096b7a2bf89b3d748fee769eb49b4ab75dcd9e4e5e"
+    },
+    "shaders/road-physical-4-point.vert": {
+      "bytes": 18503,
+      "sha256": "f5745796e6eae431ff06364e3ba640fbc133b3241b00146df0e933ce39aafbc2"
+    },
+    "shaders/road-standard-0-point.frag": {
+      "bytes": 75042,
+      "sha256": "b2569101101cdf82800b25f679d96e0d4ac684ae273ed66d3411c0ef15d43291"
+    },
+    "shaders/road-standard-0-point.vert": {
+      "bytes": 18482,
+      "sha256": "149b49cbcda3b2a6d674b809532f8ad766b123d94571c08d8188fd1ffe082329"
+    },
+    "shaders/road-standard-4-point.frag": {
+      "bytes": 81602,
+      "sha256": "1d528c0e5e6579694ee86f2c63237181a4614987b3126167532effb1179ab554"
+    },
+    "shaders/road-standard-4-point.vert": {
+      "bytes": 18482,
+      "sha256": "06120138b22e1a02e9a77c3d29aee5d86fc5be06b3a7d0365bf156bf1bea010b"
+    },
+    "webgl-capability.json": {
+      "bytes": 408,
+      "sha256": "038bcf7667c484e041976fea2d2a32129c1bd0f0d8080f5e47f173090a311acc"
+    }
+  }
+}

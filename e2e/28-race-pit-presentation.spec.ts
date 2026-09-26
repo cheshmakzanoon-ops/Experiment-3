@@ -412,6 +412,11 @@ test('27H.6 populated pit journey: approach, real service, exit and complete rep
   const service = await read(page);
   expect(service.renderer?.raceComposition.kind).toBe('pit');
   expect(service.renderer!.broadcastSubjectRadius).toBeCloseTo(PIT_SERVICE_RADIUS, 6);
+  expect(service.renderer!.broadcastSubjectSampleCount).toBe(9);
+  expect(service.renderer!.broadcastSubjectWithinRange).toBe(true);
+  // Boundaries are probes, not an artistic approval or proof of every actor pixel.
+  expect(service.renderer!.broadcastVisibleSubjectSamples).toBeGreaterThan(0);
+  expect(service.renderer!.broadcastVisibleSubjectSamples).toBeLessThanOrEqual(9);
   expect(service.renderer?.pitState.phase).toBe(3);
   expect(Math.max(...service.renderer!.pitState.wheelOffsets)).toBeGreaterThan(0);
   await image(page, info, 'pit-removal-full-crew');
@@ -523,6 +528,12 @@ test('27H.6 GPU material: a damp film retains aggregate while deep standing wate
   expect(result.puddleRoughness.mean).toBeGreaterThanOrEqual(0.0525 - 1 / 255);
   expect(result.dampRoughness.saturated).toBe(0);
   expect(result.puddleRoughness.saturated).toBe(0);
+  const footprint = result.lampFootprint;
+  expect(footprint.dryPoint.hash).toBe(footprint.dryFinite.hash);
+  expect(footprint.wetPoint.hash).not.toBe(footprint.wetFinite.hash);
+  expect(footprint.finiteRoughness.mean).toBeGreaterThan(footprint.pointRoughness.mean + 1 / 255);
+  expect(footprint.finiteRoughness.mean).toBeLessThan(0.33);
+  expect(footprint.restoredRoughness.hash).toBe(footprint.pointRoughness.hash);
   expect(result.before).toEqual(result.after);
   expect(
     new Set(result.captures.filter((c) => c.name.startsWith('held-')).map((c) => c.hash)).size,

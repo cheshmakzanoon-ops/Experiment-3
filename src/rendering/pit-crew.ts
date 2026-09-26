@@ -1,4 +1,4 @@
-import { PitPoseCache } from './pit-presentation.ts';
+import { PIT_CREW_MAX_DISTANCE, PitPoseCache } from './pit-presentation.ts';
 import { PitMachinery } from './pit-machinery.ts';
 import * as T from 'three';
 import { clamp, smooth } from '../core/math.ts';
@@ -305,7 +305,7 @@ export class PitCrewView {
       if (this.cache.levels[id] < 0) continue;
       this.car.position.set(frame[o + F.X], frame[o + F.Y], frame[o + F.Z]);
       const distance = this.car.position.distanceTo(camera);
-      if (distance > 160) continue;
+      if (distance > PIT_CREW_MAX_DISTANCE) continue;
       this.car.quaternion.set(frame[o + F.QX], frame[o + F.QY], frame[o + F.QZ], frame[o + F.QW]);
       if (
         !Number.isFinite(

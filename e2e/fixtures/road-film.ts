@@ -1,3 +1,4 @@
+import { VENUE_LAMP_RADIUS } from '../../src/rendering/light-footprint.ts';
 import * as T from 'three';
 import { installWetRoad, installStableSurfaceBump } from '../../src/rendering/materials.ts';
 
@@ -15,7 +16,12 @@ export function roadFilmGPU() {
   camera.lookAt(0, 0, 0);
   const sun = new T.DirectionalLight(0xffffff, 3);
   sun.position.set(-2, 3, -4);
-  scene.add(sun, new T.HemisphereLight(0xbad8ed, 0x434844, 0.5));
+  const sky = new T.HemisphereLight(0xbad8ed, 0x434844, 0.5);
+  // Compile the actual four-light production path even while intensity is zero.
+  // Co-located lamps isolate lobe size from nearest-site switching in this probe.
+  const lamps = Array.from({ length: 4 }, () => new T.PointLight(0xd9e8ff, 0, 135, 2));
+  for (const lamp of lamps) lamp.position.set(0, 6, -5);
+  scene.add(sun, sky, ...lamps);
   const heights = new Uint8Array(64 * 64 * 4);
   for (let y = 0; y < 64; y++)
     for (let x = 0; x < 64; x++) {
@@ -42,10 +48,21 @@ export function roadFilmGPU() {
   installWetRoad(material, water, true);
   const original = material.onBeforeCompile,
     key = material.customProgramCacheKey();
-  const diagnostic = { value: 0 };
+  const diagnostic = { value: 0 },
+    lampRadius = { value: 0 };
   material.onBeforeCompile = (shader, gl) => {
     original.call(material, shader, gl);
     shader.uniforms.filmDiagnostic = diagnostic;
+    shader.uniforms.roadLampRadius = lampRadius;
+    shader.fragmentShader = shader.fragmentShader
+      .replace(
+        '#include <lights_physical_fragment>',
+        'float observedLampRoughness = 0.;\n#include <lights_physical_fragment>',
+      )
+      .replace(
+        'material.clearcoatRoughness = savedRoadCoatRoughness;',
+        'observedLampRoughness = material.clearcoatRoughness;\nmaterial.clearcoatRoughness = savedRoadCoatRoughness;',
+      );
     shader.fragmentShader = shader.fragmentShader.replace(
       '#include <common>',
       '#include <common>\nuniform float filmDiagnostic;',
@@ -55,7 +72,8 @@ export function roadFilmGPU() {
       `#include <colorspace_fragment>
       // Encode small production-normal deviations above the 8-bit readback floor.
       // This affects only the diagnostic view, never the physical material.
-      if (filmDiagnostic > 3.5) gl_FragColor = vec4(material.clearcoatF0 * 8.0, 1.0);
+      if (filmDiagnostic > 4.5) gl_FragColor = vec4(vec3(observedLampRoughness), 1.0);
+      else if (filmDiagnostic > 3.5) gl_FragColor = vec4(material.clearcoatF0 * 8.0, 1.0);
       else if (filmDiagnostic > 2.5) gl_FragColor = vec4(vec3(material.clearcoatRoughness), 1.0);
       else if (filmDiagnostic > 0.5) gl_FragColor = vec4(
         ((filmDiagnostic > 1.5 ? clearcoatNormal : normal) - nonPerturbedNormal) * 16.0 + 0.5, 1.0);`,
@@ -125,6 +143,28 @@ export function roadFilmGPU() {
       ['standing-water', 1.8],
     ] as const)
       capture(`physical-${name}`, amount, 0);
+    sun.intensity = sky.intensity = 0;
+    for (const lamp of lamps) lamp.intensity = 25;
+    const dryPoint = capture('physical-dry-point-lamp', 0, 0);
+    lampRadius.value = VENUE_LAMP_RADIUS;
+    const dryFinite = capture('physical-dry-finite-lamp', 0, 0);
+    lampRadius.value = 0;
+    const wetPoint = capture('physical-wet-point-lamp', 1.8, 0);
+    lampRadius.value = VENUE_LAMP_RADIUS;
+    const wetFinite = capture('physical-wet-finite-lamp', 1.8, 0);
+    // Read the actual per-point-light material, then its restored post-light value.
+    // Remove bump only for this coefficient control, never for physical captures.
+    material.bumpScale = 0;
+    lampRadius.value = 0;
+    const pointRoughness = capture('point-lamp-coat-roughness', 1.8, 5);
+    lampRadius.value = VENUE_LAMP_RADIUS;
+    const finiteRoughness = capture('finite-lamp-coat-roughness', 1.8, 5);
+    const restoredRoughness = capture('post-lamp-restored-coat-roughness', 1.8, 3);
+    material.bumpScale = 0.18;
+    lampRadius.value = 0;
+    for (const lamp of lamps) lamp.intensity = 0;
+    sun.intensity = 3;
+    sky.intensity = 0.5;
     const before = { ...renderer.info.memory };
     for (let i = 0; i < 12; i++) capture(`held-${i}`, 0.35, 0);
     return {
@@ -137,6 +177,15 @@ export function roadFilmGPU() {
       filmFresnel,
       dampRoughness,
       puddleRoughness,
+      lampFootprint: {
+        dryPoint,
+        dryFinite,
+        wetPoint,
+        wetFinite,
+        pointRoughness,
+        finiteRoughness,
+        restoredRoughness,
+      },
       captures,
       before,
       after: { ...renderer.info.memory },

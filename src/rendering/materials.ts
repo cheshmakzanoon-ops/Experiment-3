@@ -1,3 +1,4 @@
+import { LIGHT_FOOTPRINT_GLSL } from './light-footprint.ts';
 import { roadWeatherUniform } from './weather-presentation.ts';
 import { MeshStandardMaterial, Vector4, ShaderChunk, type DataTexture } from 'three';
 import wetRoad from '../shaders/wetRoad.frag?raw';
@@ -61,7 +62,9 @@ export function installWetRoad(
   material: MeshStandardMaterial,
   stateTexture: DataTexture,
   deposits: boolean,
+  lampRadius = 0,
 ) {
+  if (!Number.isFinite(lampRadius) || lampRadius < 0) throw new Error('Invalid road lamp radius');
   const previous = material.onBeforeCompile;
   const previousKey = material.customProgramCacheKey();
   const weather = roadWeatherUniform(material);
@@ -70,6 +73,7 @@ export function installWetRoad(
     shader.uniforms.roadWeather = weather;
     shader.uniforms.trackState = { value: stateTexture };
     shader.uniforms.surfaceDeposits = { value: deposits ? 1 : 0 };
+    shader.uniforms.roadLampRadius = { value: lampRadius };
     shader.vertexShader = shader.vertexShader
       .replace(
         '#include <common>',
@@ -81,7 +85,8 @@ export function installWetRoad(
       );
     shader.fragmentShader = shader.fragmentShader.replace(
       '#include <common>',
-      '#include <common>\nuniform sampler2D trackState; uniform float surfaceDeposits; uniform vec4 roadWeather; varying vec2 vTrackUV; varying vec2 vRoadMetres;',
+      '#include <common>\nuniform sampler2D trackState; uniform float surfaceDeposits; uniform vec4 roadWeather; uniform float roadLampRadius; varying vec2 vTrackUV; varying vec2 vRoadMetres;\n' +
+        LIGHT_FOOTPRINT_GLSL,
     );
     shader.fragmentShader = shader.fragmentShader.replace(
       '#include <map_fragment>',
@@ -148,9 +153,33 @@ export function installWetRoad(
           sqrt(sqrt(filmAlpha * filmAlpha + filmVariance))));
       #endif`,
     );
+    // The four circuit point lights stand in for luminous 3.2 x 1.3 m boards.
+    // Broaden ONLY their water-coat lobe, then restore material state before the
+    // next light / sun / environment contribution. No new light or render pass,
+    // global exposure adjustment, or change to dry asphalt and physical water.
+    const direct =
+      'RE_Direct( directLight, geometryPosition, geometryNormal, geometryViewDir, geometryClearcoatNormal, material, reflectedLight );';
+    const pointLighting = ShaderChunk.lights_fragment_begin.replace(
+      direct,
+      `{
+      #ifdef USE_CLEARCOAT
+        float savedRoadCoatRoughness = material.clearcoatRoughness;
+        if (wet > 0.) material.clearcoatRoughness = apexLightFootprintRoughness(
+          material.clearcoatRoughness, length(pointLight.position - geometryPosition), roadLampRadius);
+      #endif
+      ${direct}
+      #ifdef USE_CLEARCOAT
+        material.clearcoatRoughness = savedRoadCoatRoughness;
+      #endif
+    }`,
+    );
+    shader.fragmentShader = shader.fragmentShader.replace(
+      '#include <lights_fragment_begin>',
+      pointLighting,
+    );
   };
   material.customProgramCacheKey = () =>
-    `${previousKey}|apex-physical-asphalt-v5-conforming-film|water-fresnel-footprint-v1`;
+    `${previousKey}|apex-physical-asphalt-v5-conforming-film|water-fresnel-footprint-v1|venue-lamp-footprint-v1`;
 }
 
 /** At grazing angles, collapsed screen derivatives can make the stock bump

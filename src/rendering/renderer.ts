@@ -625,6 +625,7 @@ export class RacingRenderer {
         this.camera.aspect,
         composition.radius,
         true,
+        composition.visibility,
       );
       this.desired.copy(this.trackside.position);
       this.gaze.copy(this.trackside.gaze);
@@ -1033,6 +1034,9 @@ export class RacingRenderer {
       broadcastSolidOccluders: this.circuit.sightlines.count,
       broadcastSubjectRadius: this.trackside.subjectRadius,
       broadcastFramingFits: this.trackside.framingFits,
+      broadcastVisibleSubjectSamples: this.trackside.subjectVisibleSamples,
+      broadcastSubjectSampleCount: this.trackside.subjectSampleCount,
+      broadcastSubjectWithinRange: this.trackside.subjectWithinRange,
       cameraLocalPosition: this.eyeLocal.toArray(),
       mirrorUpdates: this.reflection.mirrorUpdates,
       mirrorWidth: this.reflection.mirrorWidth,

@@ -4,6 +4,14 @@ import { Track, trackPoint } from '../simulation/track.ts';
 import { F, H, HEADER, CAR_STRIDE, carBase } from '../simulation/protocol.ts';
 import { inStandFootprint } from './grandstand.ts';
 
+export interface BroadcastSubjectVisibility {
+  /** At most eight finite world-space subject-boundary points. */
+  readonly points: readonly Vector3[];
+  /** Actual actor culling anchor, not the offset optical target. */
+  readonly anchor: Vector3;
+  readonly maxDistance: number;
+}
+
 export interface CameraRig {
   id: number;
   centerS: number;
@@ -162,6 +170,9 @@ export class TracksideDirector {
   occluded = false;
   visibilityCuts = 0;
   subjectRadius = 3.1;
+  subjectVisibleSamples = 1;
+  subjectSampleCount = 1;
+  subjectWithinRange = true;
   activeId = -1;
   cuts = 0;
   fov = 42;
@@ -178,6 +189,8 @@ export class TracksideDirector {
     this.previousS = NaN;
     this.previousAspect = NaN;
     this.occluded = false;
+    this.subjectVisibleSamples = this.subjectSampleCount = 1;
+    this.subjectWithinRange = true;
   }
   update(
     s: number,
@@ -187,6 +200,7 @@ export class TracksideDirector {
     aspect = 16 / 9,
     radius = 3.1,
     strictRadius = false,
+    visibility?: BroadcastSubjectVisibility,
   ) {
     if (
       !Number.isFinite(
@@ -204,56 +218,127 @@ export class TracksideDirector {
     let id = this.activeId;
     if (id < 0 || seek || distance(s, this.rigs[id].centerS) > this.rigs[id].coverageM / 2)
       id = Math.round(s / spacing) % this.rigs.length;
-    this.occluded = this.blocked?.(this.rigs[id].position, target) ?? false;
-    if (this.occluded) {
-      // Only choose existing neighbouring physical rigs. Never move a camera
-      // through scenery or hide an occluder to manufacture a clear shot.
-      const candidates = [-1, 1, -2, 2].map((offset) => mod(id + offset, this.rigs.length));
-      candidates.sort(
-        (a, b) => distance(s, this.rigs[a].centerS) - distance(s, this.rigs[b].centerS) || a - b,
-      );
-      const replacement = candidates.find(
-        (candidate) => !this.blocked!(this.rigs[candidate].position, target),
-      );
-      if (replacement !== undefined) {
-        id = replacement;
-        this.occluded = false;
-        if (id !== this.activeId) this.visibilityCuts++;
-      }
-    }
-    if (
-      strictRadius &&
-      radius > 3.1 &&
-      !tracksideFraming(
-        Math.max(0.001, this.rigs[id].position.distanceTo(target)),
-        this.rigs[id].baseFov,
-        aspect,
-        radius,
-      ).fits
-    ) {
-      // A real pack requires a suitable physical camera, not a secretly reduced
-      // bounding sphere. Prefer the nearest unobstructed authored rig that fits.
-      const candidates = this.rigs.map((r) => r.id).filter((candidate) => candidate !== id);
-      candidates.sort(
-        (a, b) => distance(s, this.rigs[a].centerS) - distance(s, this.rigs[b].centerS) || a - b,
-      );
-      const replacement = candidates.find((candidate) => {
-        const rig = this.rigs[candidate];
-        return (
-          !(this.blocked?.(rig.position, target) ?? false) &&
-          tracksideFraming(
-            Math.max(0.001, rig.position.distanceTo(target)),
-            rig.baseFov,
-            aspect,
-            radius,
-          ).fits
+    const requestedId = id;
+    this.subjectSampleCount = 1;
+    this.subjectVisibleSamples = 1;
+    this.subjectWithinRange = true;
+    if (visibility) {
+      if (
+        visibility.points.length > 8 ||
+        !Number.isFinite(visibility.maxDistance) ||
+        visibility.maxDistance <= 0 ||
+        ![visibility.anchor.x, visibility.anchor.y, visibility.anchor.z].every(Number.isFinite) ||
+        visibility.points.some((p) => ![p.x, p.y, p.z].every(Number.isFinite))
+      )
+        throw new Error('Invalid broadcast subject visibility');
+      this.subjectSampleCount += visibility.points.length;
+      const inRange = (candidate: number) =>
+        this.rigs[candidate].position.distanceTo(visibility.anchor) <= visibility.maxDistance;
+      const fits = (candidate: number) =>
+        tracksideFraming(
+          Math.max(0.001, this.rigs[candidate].position.distanceTo(target)),
+          this.rigs[candidate].baseFov,
+          aspect,
+          radius,
+        ).fits;
+      // Prefer a previously chosen service lens while its physical view remains
+      // suitable. A stopped car must not cut back and forth at a road-sector edge.
+      if (!seek && this.activeId >= 0 && inRange(this.activeId) && fits(this.activeId))
+        id = this.activeId;
+      const samples = (candidate: number) => {
+        const from = this.rigs[candidate].position;
+        const centre = !(this.blocked?.(from, target) ?? false);
+        let visible = 0;
+        for (const point of visibility.points)
+          if (!(this.blocked?.(from, point) ?? false)) visible++;
+        // The optical centre outweighs every boundary probe combined. Never
+        // trade a hidden car for merely visible empty corners of the envelope.
+        return {
+          centre,
+          visible: visible + Number(centre),
+          score: visible + (centre ? this.subjectSampleCount : 0),
+        };
+      };
+      let best = samples(id),
+        selected = id;
+      const usable = inRange(id) && fits(id);
+      if (!usable || best.visible < this.subjectSampleCount) {
+        let bestScore = usable ? best.score : -1;
+        const candidates = this.rigs.map((rig) => rig.id).filter((candidate) => candidate !== id);
+        candidates.sort(
+          (a, b) => distance(s, this.rigs[a].centerS) - distance(s, this.rigs[b].centerS) || a - b,
         );
-      });
-      if (replacement !== undefined) {
-        id = replacement;
-        this.occluded = false;
+        for (const candidate of candidates) {
+          // A distant lens which fits a sphere but culls all fifteen mechanics
+          // is not a valid service camera. Keep the real crew visibility limit.
+          if (!inRange(candidate) || !fits(candidate)) continue;
+          const current = samples(candidate);
+          if (current.score > bestScore) {
+            selected = candidate;
+            best = current;
+            bestScore = current.score;
+          }
+          if (best.visible === this.subjectSampleCount) break;
+        }
+      }
+      id = selected;
+      this.subjectVisibleSamples = best.visible;
+      this.subjectWithinRange = inRange(id);
+      this.occluded = !best.centre;
+      if (id !== requestedId && id !== this.activeId) this.visibilityCuts++;
+    } else {
+      this.occluded = this.blocked?.(this.rigs[id].position, target) ?? false;
+      if (this.occluded) {
+        // Only choose existing neighbouring physical rigs. Never move a camera
+        // through scenery or hide an occluder to manufacture a clear shot.
+        const candidates = [-1, 1, -2, 2].map((offset) => mod(id + offset, this.rigs.length));
+        candidates.sort(
+          (a, b) => distance(s, this.rigs[a].centerS) - distance(s, this.rigs[b].centerS) || a - b,
+        );
+        const replacement = candidates.find(
+          (candidate) => !this.blocked!(this.rigs[candidate].position, target),
+        );
+        if (replacement !== undefined) {
+          id = replacement;
+          this.occluded = false;
+          if (id !== this.activeId) this.visibilityCuts++;
+        }
+      }
+      if (
+        strictRadius &&
+        radius > 3.1 &&
+        !tracksideFraming(
+          Math.max(0.001, this.rigs[id].position.distanceTo(target)),
+          this.rigs[id].baseFov,
+          aspect,
+          radius,
+        ).fits
+      ) {
+        // A real pack requires a suitable physical camera, not a secretly reduced
+        // bounding sphere. Prefer the nearest unobstructed authored rig that fits.
+        const candidates = this.rigs.map((r) => r.id).filter((candidate) => candidate !== id);
+        candidates.sort(
+          (a, b) => distance(s, this.rigs[a].centerS) - distance(s, this.rigs[b].centerS) || a - b,
+        );
+        const replacement = candidates.find((candidate) => {
+          const rig = this.rigs[candidate];
+          return (
+            !(this.blocked?.(rig.position, target) ?? false) &&
+            tracksideFraming(
+              Math.max(0.001, rig.position.distanceTo(target)),
+              rig.baseFov,
+              aspect,
+              radius,
+            ).fits
+          );
+        });
+        if (replacement !== undefined) {
+          id = replacement;
+          this.occluded = false;
+        }
       }
     }
+    if (!visibility) this.subjectVisibleSamples = Number(!this.occluded);
     const cut = id !== this.activeId || seek;
     const resized = aspect !== this.previousAspect;
     const rig = this.rigs[id];
@@ -261,7 +346,7 @@ export class TracksideDirector {
     const distanceM = this.position.distanceTo(target);
     let framing = tracksideFraming(Math.max(0.001, distanceM), rig.baseFov, aspect, radius);
     this.subjectRadius = radius;
-    if (!framing.fits && radius > 3.1 && !strictRadius) {
+    if (!framing.fits && radius > 3.1 && !strictRadius && !visibility) {
       this.subjectRadius = 3.1;
       framing = tracksideFraming(Math.max(0.001, distanceM), rig.baseFov, aspect);
     }
@@ -313,7 +398,7 @@ export class TracksideDirector {
         }
       }
     }
-    this.framingFits = this.framingFits && !this.occluded;
+    this.framingFits = this.framingFits && !this.occluded && this.subjectWithinRange;
     this.activeId = id;
     this.previousS = s;
     this.previousAspect = aspect;
