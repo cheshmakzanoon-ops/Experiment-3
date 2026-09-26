@@ -1,4 +1,4 @@
-name: Publish exact saved graphics development
+name: Verify exact publication and run complete CI
 on:
   push:
     branches: [main]
@@ -6,154 +6,55 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
-concurrency:
-  group: apex-exact-saved-publication
-  cancel-in-progress: false
-env:
-  BASE: ea114ce31bd544490d3a9084faaeceb95be30f43
-  EXPECTED_TREE: aa3ae9f5baa8216a8356bddcbffd388df865e438
-  EXPECTED_SOURCE: 7f1f7ce34c9624fd80d100391ebfcb275e8e5c6908ef7dc404f50bc3d3bb2033
+  actions: write
 jobs:
-  prepare:
+  verify-publication:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
-    permissions:
-      contents: read
-      actions: read
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          persist-credentials: false
-      - name: Verify completed exact-source preparation
+      - name: Verify exact published child and dispatch unchanged complete CI
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          set -euo pipefail
-          test "$(git rev-parse "$BASE^{tree}")" = d863499424396622aa93cc6dfac2698a868ac2ea
-          test "$(git diff --name-only "$BASE" HEAD)" = .github/workflows/reference-review-tools.yml
-          python - <<'PYCODE'
-          import json,os,urllib.request
-          assert os.environ['GITHUB_REPOSITORY']=='cheshmakzanoon-ops/Experiment-3'
-          url='https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/actions/jobs/108341947010'
-          request=urllib.request.Request(url,headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json'})
-          with urllib.request.urlopen(request,timeout=60) as response:job=json.load(response)
-          assert job['run_id']==36219500141 and job['status']=='completed' and job['conclusion']=='success'
-          required={'Recover exact saved source patch','Recover original asset bytes without running authoring code','Validate exact source and reproduce exact saved build','Archive verified candidate'}
-          steps={s['name']:s for s in job['steps']}
-          assert all(steps[name]['conclusion']=='success' for name in required)
-          print('Exact source, binary assets, build, full unit suite and numerical validation verified by completed job.')
-          PYCODE
-      - uses: actions/download-artifact@v4
-        with:
-          name: exact-saved-candidate
-          run-id: 36219500141
-          github-token: ${{ github.token }}
-          path: ${{ runner.temp }}/verified
-      - name: Verify complete candidate tree without executing candidate code
-        run: |
-          set -euo pipefail
-          git rm -r --quiet -- .
-          python - <<'PYCODE'
-          import os,pathlib,tarfile
-          archive=pathlib.Path(os.environ['RUNNER_TEMP'],'verified','exact-candidate.tar.gz')
-          with tarfile.open(archive,'r:gz') as tar:
-              members=tar.getmembers()
-              assert len(members)<1000
-              for m in members:
-                  p=pathlib.PurePosixPath(m.name)
-                  assert not p.is_absolute() and '..' not in p.parts and '.git' not in p.parts
-                  assert m.isdir() or m.isfile()
-                  assert m.size<=16*1024*1024
-              tar.extractall('.',filter='data')
-          PYCODE
-          git add -A
-          test "$(git write-tree)" = "$EXPECTED_TREE"
-      - uses: actions/upload-artifact@v4
-        with:
-          name: exact-saved-candidate
-          path: ${{ runner.temp }}/verified/exact-candidate.tar.gz
-          if-no-files-found: error
-          retention-days: 14
-  publish:
-    needs: prepare
-    runs-on: ubuntu-24.04
-    timeout-minutes: 10
-    permissions:
-      contents: write
-      actions: write
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          persist-credentials: false
-      - uses: actions/download-artifact@v4
-        with:
-          name: exact-saved-candidate
-          path: ${{ runner.temp }}/verified
-      - name: Load verified source without executing its code
-        run: |
-          set -euo pipefail
-          git rm -r --quiet -- .
-          tar -xzf "$RUNNER_TEMP/verified/exact-candidate.tar.gz"
-          git add -A
-          test "$(git write-tree)" = "$EXPECTED_TREE"
-      - name: Publish exact tree with guarded non-force update
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
           python - <<'PY'
-          import base64,hashlib,json,os,time,urllib.request,urllib.error
-          REPO='cheshmakzanoon-ops/Experiment-3'
-          assert os.environ['GITHUB_REPOSITORY']==REPO
-          def api(path,body=None,method=None):
+          import json,os,pathlib,time,urllib.request,urllib.error
+          repo='cheshmakzanoon-ops/Experiment-3'
+          assert os.environ['GITHUB_REPOSITORY']==repo
+          expected='aa3ae9f5baa8216a8356bddcbffd388df865e438'
+          stage=os.environ['GITHUB_SHA']
+          def api(path,body=None):
               data=None if body is None else json.dumps(body).encode()
-              for attempt in range(5):
-                  request=urllib.request.Request('https://api.github.com/repos/'+REPO+'/'+path,data=data,method=method,headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','Content-Type':'application/json','X-GitHub-Api-Version':'2022-11-28'})
+              for attempt in range(4):
+                  req=urllib.request.Request('https://api.github.com/repos/'+repo+'/'+path,data=data,headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','Content-Type':'application/json'})
                   try:
-                      with urllib.request.urlopen(request,timeout=90) as response:
+                      with urllib.request.urlopen(req,timeout=30) as response:
                           raw=response.read()
                           return json.loads(raw) if raw else None
                   except urllib.error.HTTPError as error:
-                      if error.code not in (429,500,502,503,504) or attempt==4: raise
+                      if error.code not in (429,500,502,503,504) or attempt==3:raise
                   except (urllib.error.URLError,TimeoutError):
-                      if attempt==4: raise
+                      if attempt==3:raise
                   time.sleep(2**attempt)
-          def blobsha(raw):
-              return hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()
-          def upload(raw):
-              expected=blobsha(raw)
-              actual=api('git/blobs',{'encoding':'base64','content':base64.b64encode(raw).decode()})['sha']
-              assert actual==expected
-              return actual
-          import pathlib,subprocess
-          stage=os.environ['GITHUB_SHA'];expected=os.environ['EXPECTED_TREE']
-          def git(*args):return subprocess.check_output(['git',*args]).decode().strip()
-          assert git('write-tree')==expected
-          assert api('git/ref/heads/main')['object']['sha']==stage,'Main changed; refusing stale publication'
-          treebase=api('git/commits/'+stage)['tree']['sha'];entries=[]
-          for name in filter(None,git('diff','--cached','--no-renames','--name-only','-z','HEAD').split('\0')):
-              p=pathlib.Path(name)
-              entries.append({'path':name,'mode':'100644','type':'blob','sha':upload(p.read_bytes()) if p.exists() else None})
-          tree=api('git/trees',{'base_tree':treebase,'tree':entries})['sha'];assert tree==expected
-          commit=api('git/commits',{'message':'feat: publish exact saved graphics-continuity development\n\nPublish all saved changes from local 0498c0dfa2d452c20f2ecad73f38a33e4b04554a, with byte-identical source, authored assets and compiled playable. Verified tree aa3ae9f5baa8216a8356bddcbffd388df865e438. Preserve existing workflows, simulation, input, storage and concurrent main history. No force update. Human, hardware, final-art and website acceptance remain separate.','tree':tree,'parents':[stage]})['sha']
-          assert api('git/ref/heads/main')['object']['sha']==stage
-          try:api('git/refs/heads/main',{'sha':commit,'force':False},'PATCH')
-          except Exception:
-              if api('git/ref/heads/main')['object']['sha']!=commit:raise
-          assert api('git/ref/heads/main')['object']['sha']==commit
-          assert api('git/commits/'+commit)['tree']['sha']==expected
-          result={'commit':commit,'tree':tree,'source':os.environ['EXPECTED_SOURCE'],'savedLocalCommit':'0498c0dfa2d452c20f2ecad73f38a33e4b04554a','mainPublished':True}
-          pathlib.Path(os.environ['RUNNER_TEMP'],'publication.json').write_text(json.dumps(result,indent=2))
-          print(json.dumps(result,indent=2))
-          with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as out:out.write('Published exact saved graphics source: '+commit+'\nTree: '+tree+'\n')
+          checked=api('actions/jobs/108341947010')
+          assert checked['run_id']==36219500141 and checked['status']=='completed' and checked['conclusion']=='success'
+          deadline=time.monotonic()+180
+          while True:
+              head=api('git/ref/heads/main')['object']['sha']
+              if head!=stage:break
+              assert time.monotonic()<deadline,'Publication has not advanced main; no premature success'
+              time.sleep(3)
+          commit=api('git/commits/'+head)
+          assert commit['tree']['sha']==expected and [p['sha'] for p in commit['parents']]==[stage],'Different source or concurrent update; do not certify it'
           api('actions/workflows/ci.yml/dispatches',{'ref':'main'})
-          print('Requested complete ordinary CI on published main. Publication used GITHUB_TOKEN to avoid unrelated legacy asset regeneration.')
+          result={'mainPublished':True,'commit':head,'tree':expected,'savedLocalCommit':'0498c0dfa2d452c20f2ecad73f38a33e4b04554a','preparationRun':36219500141,'completeCIRequested':True}
+          print(json.dumps(result,indent=2))
+          pathlib.Path(os.environ['RUNNER_TEMP'],'publication.json').write_text(json.dumps(result,indent=2)+'\n')
+          with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as out:
+              out.write('Published exact saved graphics development: '+head+'\nVerified complete tree: '+expected+'\nFull original ci.yml explicitly requested; no browser or numerical checks removed.\n')
           PY
       - uses: actions/upload-artifact@v4
-        if: always()
         with:
           name: exact-saved-publication
           path: ${{ runner.temp }}/publication.json
+          if-no-files-found: error
           retention-days: 14
