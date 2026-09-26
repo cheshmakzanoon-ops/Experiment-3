@@ -1,4 +1,4 @@
-name: Reference review workbench
+name: Publish exact saved graphics development
 on:
   push:
     branches: [main]
@@ -7,37 +7,222 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: reference-review-workbench
+  group: apex-exact-saved-publication
   cancel-in-progress: false
+env:
+  BASE: ea114ce31bd544490d3a9084faaeceb95be30f43
+  EXPECTED_TREE: aa3ae9f5baa8216a8356bddcbffd388df865e438
+  EXPECTED_SOURCE: 7f1f7ce34c9624fd80d100391ebfcb275e8e5c6908ef7dc404f50bc3d3bb2033
 jobs:
-  review:
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
+  prepare:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '22.16.0'
           cache: npm
-      - run: npm ci --no-audit --no-fund
-      - name: Preserve reproducible offline review tools
-        shell: bash
+      - name: Recover exact saved source patch
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          git archive --format=tar.gz HEAD > "$RUNNER_TEMP/apex-source.tar.gz"
-          git rev-parse HEAD > "$RUNNER_TEMP/source-commit.txt"
-          tar -czf "$RUNNER_TEMP/apex-dependencies.tar.gz" node_modules
-          sha256sum package-lock.json > "$RUNNER_TEMP/dependency-lock.sha256"
+          test "$(git rev-parse "$BASE^{tree}")" = d863499424396622aa93cc6dfac2698a868ac2ea
+          test "$(git diff --name-only "$BASE" HEAD)" = .github/workflows/reference-review-tools.yml
+          git restore --source="$BASE" --staged --worktree .github/workflows/reference-review-tools.yml
+          cat > "$RUNNER_TEMP/publish_api.py" <<'PY'
+          import base64,hashlib,json,os,time,urllib.request,urllib.error
+          REPO='cheshmakzanoon-ops/Experiment-3'
+          assert os.environ['GITHUB_REPOSITORY']==REPO
+          def api(path,body=None,method=None):
+              data=None if body is None else json.dumps(body).encode()
+              for attempt in range(5):
+                  request=urllib.request.Request('https://api.github.com/repos/'+REPO+'/'+path,data=data,method=method,headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','Content-Type':'application/json','X-GitHub-Api-Version':'2022-11-28'})
+                  try:
+                      with urllib.request.urlopen(request,timeout=90) as response:
+                          raw=response.read()
+                          return json.loads(raw) if raw else None
+                  except urllib.error.HTTPError as error:
+                      if error.code not in (429,500,502,503,504) or attempt==4: raise
+                  except (urllib.error.URLError,TimeoutError):
+                      if attempt==4: raise
+                  time.sleep(2**attempt)
+          def blobsha(raw):
+              return hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()
+          PY
+          PYTHONPATH="$RUNNER_TEMP" python - <<'PY'
+          import base64,gzip,hashlib,os,pathlib,subprocess
+          from publish_api import api,blobsha
+          chunks=['64ffc485e91976bae84438ecbd67119f6d4e8922','6c401bda6b289e66e04a94b3caf3316420d2a408','e1f0943956aad561188c88ba2c7e9f5f6efcab4b','0e156b52a67c54464e3d3c7717a8dddbbdc7c624','57939f106f984433045b094f45e914a4bb96aec9','637e480e25aa929de118ffb152c69b0665a10f43','059d446d2ad0d01a60f0d3102c3d0078b8e75065']
+          data=b''
+          for i,sha in enumerate(chunks):
+              obj=api('git/blobs/'+sha)
+              raw=base64.b64decode(obj['content'])
+              assert blobsha(raw)==sha
+              if i==4:
+                  tail=base64.b64decode(api('git/blobs/ec1de9d2723a9f430338b4cdf18f156944b05126')['content'])
+                  assert blobsha(tail)=='ec1de9d2723a9f430338b4cdf18f156944b05126'
+                  raw=raw[:3400]+tail
+                  assert blobsha(raw)=='4fb6cb6acfbdc1944fc16f9ae0885658c60eb813'
+              data+=raw
+          assert hashlib.sha256(data).hexdigest()=='9ea831885c8f3f3a43a0dc6b5ffeb1736e5e2fc5ead8d685e17470cc5fb63445'
+          subprocess.run(['git','apply','--index','-'],input=gzip.decompress(data),check=True)
+          print('Exact saved source patch recovered and verified.')
+          PY
+      - name: Install pinned authoring toolchain
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 --max-time 240 -o "$RUNNER_TEMP/blender.tar.xz" https://download.blender.org/release/Blender5.2/blender-5.2.2-linux-x64.tar.xz
+          echo '84098912789dc450e95697c4184fb8a90acbe5111c2ba4aede3fecb57806a168  '"$RUNNER_TEMP/blender.tar.xz" | sha256sum -c -
+          tar -xf "$RUNNER_TEMP/blender.tar.xz" -C "$RUNNER_TEMP"
+          echo "$RUNNER_TEMP/blender-5.2.2-linux-x64" >> "$GITHUB_PATH"
+      - name: Recover and verify authored binary assets
+        run: |
+          set -euo pipefail
+          HOME=/home/oai blender --factory-startup --background --python-exit-code 1 --python scripts/author-driver.py
+          HOME=/home/oai blender --factory-startup --background --python-exit-code 1 --python scripts/author-people.py
+          rm -f scripts/apx01-driver.blend1 scripts/aurel-people.blend1
+          PYTHONPATH="$RUNNER_TEMP" python - <<'PY'
+          import json,os,pathlib
+          from publish_api import blobsha
+          expected={'scripts/apx01-driver.blend':'ec549e5894f988f199c9ccb7e66e7d90323be299','scripts/aurel-people.blend':'708d384dae69994686deb6e86e612957272f6251','src/rendering/apx01-driver.glb.gz':'d107f2a1714a14ed55f3e7b2a634f6f13bd3e3c2','src/rendering/apx01-driver.manifest.json':'d7626ae2816511c9149b5e0f1f8e27284719f9c5','src/rendering/aurel-people.geometry.json':'26f96700970a99f7e8b9c27f6b29bcc1b07fc644','src/rendering/aurel-people.glb.gz':'0c9b54d1ee93a4baaaad032b6ee13d4f861db21d','src/rendering/aurel-people.manifest.json':'d4bd43f5059b0d6e614fa37c0e041ac93c6f80e9'}
+          report=[]
+          for name,wanted in expected.items():
+              raw=pathlib.Path(name).read_bytes();actual=blobsha(raw)
+              report.append({'path':name,'expected':wanted,'actual':actual,'matches':actual==wanted})
+          print(json.dumps(report,indent=2))
+          pathlib.Path(os.environ['RUNNER_TEMP'],'asset-identity.json').write_text(json.dumps(report,indent=2))
+          assert all(r['matches'] for r in report),'Generated bytes differ: preserve originals; do not activate another tree.'
+          PY
+      - name: Validate exact source and reproduce exact saved build
+        run: |
+          set -euo pipefail
+          npm ci --no-audit --no-fund
+          node --experimental-transform-types scripts/phase27h-matrix.ts --write
+          npm run check
+          node --experimental-transform-types scripts/phase27h-matrix.ts --check
+          python - <<'PY'
+          import hashlib,json,pathlib,shutil,os
+          root=pathlib.Path.cwd();h=hashlib.sha256()
+          paths=list((root/'src').rglob('*'))+[root/'package-lock.json',root/'index.html',root/'vite.config.ts']
+          for p in sorted(p for p in paths if p.is_file()):h.update(p.relative_to(root).as_posix().encode()+b'\0'+p.read_bytes()+b'\0')
+          assert h.hexdigest()==os.environ['EXPECTED_SOURCE']
+          target=root/'playable';report=json.loads((target/'BUILD.json').read_text())
+          for name,expected in report['files'].items():
+              p=target/name if name=='SOURCE_FINGERPRINT.txt' else root/'dist'/name
+              assert p.is_file() and hashlib.sha256(p.read_bytes()).hexdigest()==expected,'Saved build mismatch: '+name
+          old=(target/'BUILD.json').read_bytes();identity=(target/'SOURCE_FINGERPRINT.txt').read_bytes()
+          shutil.rmtree(target);shutil.copytree(root/'dist',target,ignore=shutil.ignore_patterns('*.map'))
+          (target/'BUILD.json').write_bytes(old);(target/'SOURCE_FINGERPRINT.txt').write_bytes(identity)
+          assert set(p.relative_to(target).as_posix() for p in target.rglob('*') if p.is_file())==set(report['files'])|{'BUILD.json'}
+          PY
+          git add -A
+          test "$(git write-tree)" = "$EXPECTED_TREE"
+          npm run test:physics
+          node --experimental-transform-types scripts/rotation-benchmark.ts
+          node --experimental-transform-types scripts/pit-integration.ts
+          node --experimental-transform-types scripts/race-classification.ts
+          node --experimental-transform-types scripts/phase27h6-racing.ts
+          git restore --worktree -- docs
+          git diff --exit-code
+      - name: Archive verified candidate
+        run: git archive --format=tar.gz "$EXPECTED_TREE" > "$RUNNER_TEMP/exact-candidate.tar.gz"
       - uses: actions/upload-artifact@v4
         with:
-          name: reference-review-workbench
-          path: |
-            ${{ runner.temp }}/apex-source.tar.gz
-            ${{ runner.temp }}/source-commit.txt
-            ${{ runner.temp }}/apex-dependencies.tar.gz
-            ${{ runner.temp }}/dependency-lock.sha256
-          retention-days: 3
-      - name: Lint, unit tests and production build
-        run: npm run check
-# Phase 27H: refresh the source-matched workbench without changing game behavior.
-# Full-race continuation: refresh the unchanged locked tools from c7a4304.
+          name: exact-saved-candidate
+          path: ${{ runner.temp }}/exact-candidate.tar.gz
+          if-no-files-found: error
+          retention-days: 14
+      - name: Preserve identity diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: exact-saved-identity
+          path: ${{ runner.temp }}/asset-identity.json
+          retention-days: 14
+  publish:
+    needs: prepare
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      actions: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: exact-saved-candidate
+          path: ${{ runner.temp }}/verified
+      - name: Load verified source without executing its code
+        run: |
+          set -euo pipefail
+          git rm -r --quiet -- .
+          tar -xzf "$RUNNER_TEMP/verified/exact-candidate.tar.gz"
+          git add -A
+          test "$(git write-tree)" = "$EXPECTED_TREE"
+      - name: Publish exact tree with guarded non-force update
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import base64,hashlib,json,os,time,urllib.request,urllib.error
+          REPO='cheshmakzanoon-ops/Experiment-3'
+          assert os.environ['GITHUB_REPOSITORY']==REPO
+          def api(path,body=None,method=None):
+              data=None if body is None else json.dumps(body).encode()
+              for attempt in range(5):
+                  request=urllib.request.Request('https://api.github.com/repos/'+REPO+'/'+path,data=data,method=method,headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','Content-Type':'application/json','X-GitHub-Api-Version':'2022-11-28'})
+                  try:
+                      with urllib.request.urlopen(request,timeout=90) as response:
+                          raw=response.read()
+                          return json.loads(raw) if raw else None
+                  except urllib.error.HTTPError as error:
+                      if error.code not in (429,500,502,503,504) or attempt==4: raise
+                  except (urllib.error.URLError,TimeoutError):
+                      if attempt==4: raise
+                  time.sleep(2**attempt)
+          def blobsha(raw):
+              return hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()
+          def upload(raw):
+              expected=blobsha(raw)
+              actual=api('git/blobs',{'encoding':'base64','content':base64.b64encode(raw).decode()})['sha']
+              assert actual==expected
+              return actual
+          import pathlib,subprocess
+          stage=os.environ['GITHUB_SHA'];expected=os.environ['EXPECTED_TREE']
+          def git(*args):return subprocess.check_output(['git',*args]).decode().strip()
+          assert git('write-tree')==expected
+          assert api('git/ref/heads/main')['object']['sha']==stage,'Main changed; refusing stale publication'
+          treebase=api('git/commits/'+stage)['tree']['sha'];entries=[]
+          for name in filter(None,git('diff','--cached','--name-only','-z','HEAD').split('\0')):
+              p=pathlib.Path(name)
+              entries.append({'path':name,'mode':'100644','type':'blob','sha':upload(p.read_bytes()) if p.exists() else None})
+          tree=api('git/trees',{'base_tree':treebase,'tree':entries})['sha'];assert tree==expected
+          commit=api('git/commits',{'message':'feat: publish exact saved graphics-continuity development\n\nPublish all saved changes from local 0498c0dfa2d452c20f2ecad73f38a33e4b04554a, with byte-identical source, authored assets and compiled playable. Verified tree aa3ae9f5baa8216a8356bddcbffd388df865e438. Preserve existing workflows, simulation, input, storage and concurrent main history. No force update. Human, hardware, final-art and website acceptance remain separate.','tree':tree,'parents':[stage]})['sha']
+          assert api('git/ref/heads/main')['object']['sha']==stage
+          try:api('git/refs/heads/main',{'sha':commit,'force':False},'PATCH')
+          except Exception:
+              if api('git/ref/heads/main')['object']['sha']!=commit:raise
+          assert api('git/ref/heads/main')['object']['sha']==commit
+          assert api('git/commits/'+commit)['tree']['sha']==expected
+          result={'commit':commit,'tree':tree,'source':os.environ['EXPECTED_SOURCE'],'savedLocalCommit':'0498c0dfa2d452c20f2ecad73f38a33e4b04554a','mainPublished':True}
+          pathlib.Path(os.environ['RUNNER_TEMP'],'publication.json').write_text(json.dumps(result,indent=2))
+          print(json.dumps(result,indent=2))
+          with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as out:out.write('Published exact saved graphics source: '+commit+'\nTree: '+tree+'\n')
+          api('actions/workflows/ci.yml/dispatches',{'ref':'main'})
+          print('Requested complete ordinary CI on published main. Publication used GITHUB_TOKEN to avoid unrelated legacy asset regeneration.')
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: exact-saved-publication
+          path: ${{ runner.temp }}/publication.json
+          retention-days: 14
