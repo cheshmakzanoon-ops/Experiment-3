@@ -15,212 +15,65 @@ env:
   EXPECTED_SOURCE: 7f1f7ce34c9624fd80d100391ebfcb275e8e5c6908ef7dc404f50bc3d3bb2033
 jobs:
   prepare:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
     permissions:
       contents: read
       actions: read
-    runs-on: ubuntu-24.04
-    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           persist-credentials: false
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22.16.0'
-          cache: npm
-      - name: Recover exact saved source patch
+      - name: Verify completed exact-source preparation
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           test "$(git rev-parse "$BASE^{tree}")" = d863499424396622aa93cc6dfac2698a868ac2ea
           test "$(git diff --name-only "$BASE" HEAD)" = .github/workflows/reference-review-tools.yml
-          git restore --source="$BASE" --staged --worktree .github/workflows/reference-review-tools.yml
-          cat > "$RUNNER_TEMP/publish_api.py" <<'PY'
-          import base64,hashlib,json,os,time,urllib.request,urllib.error
-          REPO='cheshmakzanoon-ops/Experiment-3'
-          assert os.environ['GITHUB_REPOSITORY']==REPO
-          def api(path,body=None,method=None):
-              data=None if body is None else json.dumps(body).encode()
-              for attempt in range(5):
-                  request=urllib.request.Request('https://api.github.com/repos/'+REPO+'/'+path,data=data,method=method,headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','Content-Type':'application/json','X-GitHub-Api-Version':'2022-11-28'})
-                  try:
-                      with urllib.request.urlopen(request,timeout=90) as response:
-                          raw=response.read()
-                          return json.loads(raw) if raw else None
-                  except urllib.error.HTTPError as error:
-                      if error.code not in (429,500,502,503,504) or attempt==4: raise
-                  except (urllib.error.URLError,TimeoutError):
-                      if attempt==4: raise
-                  time.sleep(2**attempt)
-          def blobsha(raw):
-              return hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()
-          PY
-          PYTHONPATH="$RUNNER_TEMP" python - <<'PY'
-          import base64,gzip,hashlib,os,pathlib,subprocess
-          from publish_api import api,blobsha
-          chunks=['64ffc485e91976bae84438ecbd67119f6d4e8922','6c401bda6b289e66e04a94b3caf3316420d2a408','e1f0943956aad561188c88ba2c7e9f5f6efcab4b','0e156b52a67c54464e3d3c7717a8dddbbdc7c624','57939f106f984433045b094f45e914a4bb96aec9','637e480e25aa929de118ffb152c69b0665a10f43','059d446d2ad0d01a60f0d3102c3d0078b8e75065']
-          data=b''
-          for i,sha in enumerate(chunks):
-              obj=api('git/blobs/'+sha)
-              raw=base64.b64decode(obj['content'])
-              assert blobsha(raw)==sha
-              if i==4:
-                  tail=base64.b64decode(api('git/blobs/ec1de9d2723a9f430338b4cdf18f156944b05126')['content'])
-                  assert blobsha(tail)=='ec1de9d2723a9f430338b4cdf18f156944b05126'
-                  raw=raw[:3400]+tail
-                  assert blobsha(raw)=='4fb6cb6acfbdc1944fc16f9ae0885658c60eb813'
-              data+=raw
-          assert hashlib.sha256(data).hexdigest()=='9ea831885c8f3f3a43a0dc6b5ffeb1736e5e2fc5ead8d685e17470cc5fb63445'
-          subprocess.run(['git','apply','--index','-'],input=gzip.decompress(data),check=True)
-          print('Exact saved source patch recovered and verified.')
-          PY
-      - name: Download fixed asset comparison input
-        uses: actions/download-artifact@v4
+          python - <<'PYCODE'
+          import json,os,urllib.request
+          assert os.environ['GITHUB_REPOSITORY']=='cheshmakzanoon-ops/Experiment-3'
+          url='https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/actions/jobs/108341947010'
+          request=urllib.request.Request(url,headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json'})
+          with urllib.request.urlopen(request,timeout=60) as response:job=json.load(response)
+          assert job['run_id']==36219500141 and job['status']=='completed' and job['conclusion']=='success'
+          required={'Recover exact saved source patch','Recover original asset bytes without running authoring code','Validate exact source and reproduce exact saved build','Archive verified candidate'}
+          steps={s['name']:s for s in job['steps']}
+          assert all(steps[name]['conclusion']=='success' for name in required)
+          print('Exact source, binary assets, build, full unit suite and numerical validation verified by completed job.')
+          PYCODE
+      - uses: actions/download-artifact@v4
         with:
-          name: exact-saved-identity
-          run-id: 36218400041
+          name: exact-saved-candidate
+          run-id: 36219500141
           github-token: ${{ github.token }}
-          path: ${{ runner.temp }}/asset-input
-      - name: Install isolated pinned compression support
-        run: python -m pip install --disable-pip-version-check --no-deps --target "$RUNNER_TEMP/zstd" zstandard==0.24.0
-      - name: Recover original asset bytes without running authoring code
-        env:
-          GH_TOKEN: ${{ github.token }}
+          path: ${{ runner.temp }}/verified
+      - name: Verify complete candidate tree without executing candidate code
         run: |
           set -euo pipefail
-          PYTHONPATH="$RUNNER_TEMP/zstd:$RUNNER_TEMP" python - <<'PY'
-          import base64,gzip,hashlib,io,json,lzma,os,pathlib,subprocess,tarfile
-          import zstandard as zstd
-          from publish_api import api,blobsha
-
-          expected={'scripts/apx01-driver.blend':'ec549e5894f988f199c9ccb7e66e7d90323be299','scripts/aurel-people.blend':'708d384dae69994686deb6e86e612957272f6251','src/rendering/apx01-driver.glb.gz':'d107f2a1714a14ed55f3e7b2a634f6f13bd3e3c2','src/rendering/apx01-driver.manifest.json':'d7626ae2816511c9149b5e0f1f8e27284719f9c5','src/rendering/aurel-people.geometry.json':'26f96700970a99f7e8b9c27f6b29bcc1b07fc644','src/rendering/aurel-people.glb.gz':'0c9b54d1ee93a4baaaad032b6ee13d4f861db21d','src/rendering/aurel-people.manifest.json':'d4bd43f5059b0d6e614fa37c0e041ac93c6f80e9'}
-          archive=pathlib.Path(os.environ['RUNNER_TEMP'],'asset-input','asset-reproduction.tar.gz')
-          assert hashlib.sha256(archive.read_bytes()).hexdigest()=='ebf40cf35b054158153a351330b8e22cc8d88841aaf11b066035d0c4abd8b2bd'
+          git rm -r --quiet -- .
+          python - <<'PYCODE'
+          import os,pathlib,tarfile
+          archive=pathlib.Path(os.environ['RUNNER_TEMP'],'verified','exact-candidate.tar.gz')
           with tarfile.open(archive,'r:gz') as tar:
               members=tar.getmembers()
-              assert len(members)==len(expected) and {m.name for m in members}==set(expected)
+              assert len(members)<1000
               for m in members:
-                  assert m.isfile() and 0<m.size<8*1024*1024
-                  if m.name.endswith('apx01-driver.manifest.json'):continue
-                  raw=tar.extractfile(m).read();assert len(raw)==m.size
-                  pathlib.Path(m.name).write_bytes(raw)
-          chunks=['a919a3399c83eab1a60dfca9e8ba0cd2320fc607','4001d3a8cedf018e20ba1782cef052f90f9e32f3','1c9bba4b0a50fc9d5720c8a22c4aa4a780c02728','b6f0878c9674dc9b9ef6265536691b2b38ebcf58','113661b0ff0d555145d3a41b74136d249343abf6','006b4d029992001b9b7a5f59db8ddf63883d25ea','0e54438efaf5d34f59946afb7f2c8b473d7da01b','43ce8d3ac82e4faadc8b04a5ec932927125205ed','ef7704d18ca78d13a88591787905dde9c0750529','57dd980114434c841a6bea2ab976c8395ba8efd2','c2fb293e23fdd9645a0b9d252b3ab3b5a65f3e5d','b97100eb823fc9994bb6ed7d069ffaf578a31450']
-          data=b''
-          for sha in chunks:
-              obj=api('git/blobs/'+sha);assert obj['encoding']=='base64'
-              raw=base64.b64decode(obj['content']);assert blobsha(raw)==sha
-              data+=raw
-          assert len(data)==45164 and hashlib.sha256(data).hexdigest()=='6ee3f128ab958e73a334accf2f36a026fb3d0321552fb675f8e42364c0cc5835'
-          files=[
-           {'path':'scripts/apx01-driver.blend','offset':0,'size':6128,'oldSHA':'e32c77c6f4332f6cf17588c22fec9e19f1565ce6','rawBefore':'00d68ed9464cfc84dbedf211b4cb1c4e4b0c0e21ae685162c33d9af3af3778c3','rawAfter':'259f3f9ed40fae2cacc080c2ac986ffb87cde9238c20855c586f916aa938ea79','bytes':2198958,'frames':[67137,1997185,134636],'tail':'5e2a4d182100000004070000410601007c33040081791e007bed0000ec0d02000300000000b1ea928f'},
-           {'path':'scripts/aurel-people.blend','offset':6128,'size':38632,'oldSHA':'4767733472b73dbec4f886b6c3a3dcba0c65edc1','rawBefore':'598453721968a33c029f777ea832c41dc8b235ef36e8a649b3719384b6f473f1','rawAfter':'b4faed548edfd5efef118c0dc4d91ac6cbe575cfe80a402d3d7544f963582474','bytes':2133433,'frames':[67137,1931660,134636],'tail':'5e2a4d182100000004070000410601007b6b05008c791d007bed0000ec0d02000300000000b1ea928f'},
-           {'path':'src/rendering/apx01-driver.glb.gz','offset':44760,'size':404,'oldSHA':'32249bec31dadc3043b93629ffbb3fc82f335f9a','rawBefore':'68bef42e0c2721dddfcb41e343de65030de3a1f535e86a4f9bf00d7678868b1a','rawAfter':'712ac9b8fe5128acec8250459177d5a3bce07a531d8a3c93aff80d642b57f87f','bytes':488092}
-          ]
-
-          def apply_delta(old,d):
-              pos=0
-              def number():
-                  nonlocal pos
-                  assert pos+8<=len(d)
-                  x=int.from_bytes(d[pos:pos+8],'little');pos+=8
-                  return -(x&((1<<63)-1)) if x&(1<<63) else x
-              size=number();assert 0<size<8*1024*1024
-              out=bytearray();op=0;steps=0
-              while len(out)<size:
-                  n,m,j=number(),number(),number();steps+=1
-                  assert steps<100000 and n>=0 and m>=0
-                  assert len(out)+n+m<=size and pos+n+m<=len(d)
-                  for v in d[pos:pos+n]:
-                      out.append((v+(old[op] if 0<=op<len(old) else 0))&255);op+=1
-                  pos+=n;out.extend(d[pos:pos+m]);pos+=m;op+=j
-              assert len(out)==size and pos==len(d)
-              return bytes(out)
-
-          assert zstd.ZSTD_VERSION==(1,5,7)
-          for f in files:
-              p=pathlib.Path(f['path']);packed=p.read_bytes()
-              assert blobsha(packed)==f['oldSHA'],f['path']
-              if f.get('frames'):
-                  with zstd.ZstdDecompressor().stream_reader(io.BytesIO(packed),read_across_frames=True) as reader:
-                      old=reader.read(8*1024*1024+1)
-              else:old=gzip.decompress(packed)
-              assert len(old)<8*1024*1024 and hashlib.sha256(old).hexdigest()==f['rawBefore']
-              decoder=lzma.LZMADecompressor();delta=decoder.decompress(data[f['offset']:f['offset']+f['size']],max_length=8*1024*1024)
-              assert decoder.eof and not decoder.unused_data
-              raw=apply_delta(old,delta)
-              assert len(raw)==f['bytes'] and hashlib.sha256(raw).hexdigest()==f['rawAfter']
-              if f.get('frames'):
-                  assert sum(f['frames'])==len(raw)
-                  parts=[];offset=0
-                  for size in f['frames']:
-                      parts.append(zstd.ZstdCompressor(level=3,write_content_size=True,write_checksum=False,write_dict_id=False).compress(raw[offset:offset+size]));offset+=size
-                  restored=b''.join(parts)+bytes.fromhex(f['tail'])
-              else:
-                  restored=bytearray(gzip.compress(raw,compresslevel=9,mtime=0));restored[9]=255;restored=bytes(restored)
-              assert blobsha(restored)==expected[f['path']],'Exact packed asset mismatch: '+f['path']
-              p.write_bytes(restored)
-          report=[]
-          for name,wanted in expected.items():
-              actual=blobsha(pathlib.Path(name).read_bytes())
-              report.append({'path':name,'expected':wanted,'actual':actual,'matches':actual==wanted})
-          print(json.dumps(report,indent=2))
-          pathlib.Path(os.environ['RUNNER_TEMP'],'asset-identity.json').write_text(json.dumps(report,indent=2))
-          assert all(r['matches'] for r in report),'Do not activate different asset bytes'
-          print('Every saved authored asset recovered byte-for-byte; no authoring code executed.')
-          PY
-      - name: Validate exact source and reproduce exact saved build
-        run: |
-          set -euo pipefail
-          npm ci --no-audit --no-fund
-          node --experimental-transform-types scripts/phase27h-matrix.ts --write
-          npm run check
-          node --experimental-transform-types scripts/phase27h-matrix.ts --check
-          python - <<'PY'
-          import hashlib,json,pathlib,shutil,os
-          root=pathlib.Path.cwd();h=hashlib.sha256()
-          paths=list((root/'src').rglob('*'))+[root/'package-lock.json',root/'index.html',root/'vite.config.ts']
-          for p in sorted(p for p in paths if p.is_file()):h.update(p.relative_to(root).as_posix().encode()+b'\0'+p.read_bytes()+b'\0')
-          assert h.hexdigest()==os.environ['EXPECTED_SOURCE']
-          target=root/'playable';report=json.loads((target/'BUILD.json').read_text())
-          for name,expected in report['files'].items():
-              p=target/name if name=='SOURCE_FINGERPRINT.txt' else root/'dist'/name
-              assert p.is_file() and hashlib.sha256(p.read_bytes()).hexdigest()==expected,'Saved build mismatch: '+name
-          old=(target/'BUILD.json').read_bytes();identity=(target/'SOURCE_FINGERPRINT.txt').read_bytes()
-          shutil.rmtree(target);shutil.copytree(root/'dist',target,ignore=shutil.ignore_patterns('*.map'))
-          (target/'BUILD.json').write_bytes(old);(target/'SOURCE_FINGERPRINT.txt').write_bytes(identity)
-          assert set(p.relative_to(target).as_posix() for p in target.rglob('*') if p.is_file())==set(report['files'])|{'BUILD.json'}
-          PY
+                  p=pathlib.PurePosixPath(m.name)
+                  assert not p.is_absolute() and '..' not in p.parts and '.git' not in p.parts
+                  assert m.isdir() or m.isfile()
+                  assert m.size<=16*1024*1024
+              tar.extractall('.',filter='data')
+          PYCODE
           git add -A
           test "$(git write-tree)" = "$EXPECTED_TREE"
-          npm run test:physics
-          node --experimental-transform-types scripts/rotation-benchmark.ts
-          node --experimental-transform-types scripts/pit-integration.ts
-          node --experimental-transform-types scripts/race-classification.ts
-          node --experimental-transform-types scripts/phase27h6-racing.ts
-          git restore --worktree -- docs
-          git diff --exit-code
-      - name: Archive verified candidate
-        run: git archive --format=tar.gz "$EXPECTED_TREE" > "$RUNNER_TEMP/exact-candidate.tar.gz"
       - uses: actions/upload-artifact@v4
         with:
           name: exact-saved-candidate
-          path: ${{ runner.temp }}/exact-candidate.tar.gz
+          path: ${{ runner.temp }}/verified/exact-candidate.tar.gz
           if-no-files-found: error
-          retention-days: 14
-      - name: Preserve reconstructed asset bytes for exact comparison
-        if: always()
-        run: |
-          tar -czf "$RUNNER_TEMP/asset-reproduction.tar.gz" scripts/apx01-driver.blend scripts/aurel-people.blend src/rendering/apx01-driver.glb.gz src/rendering/apx01-driver.manifest.json src/rendering/aurel-people.glb.gz src/rendering/aurel-people.geometry.json src/rendering/aurel-people.manifest.json
-      - name: Preserve identity diagnostics
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: exact-saved-identity
-          path: |
-            ${{ runner.temp }}/asset-identity.json
-            ${{ runner.temp }}/asset-reproduction.tar.gz
           retention-days: 14
   publish:
     needs: prepare
@@ -280,7 +133,7 @@ jobs:
           assert git('write-tree')==expected
           assert api('git/ref/heads/main')['object']['sha']==stage,'Main changed; refusing stale publication'
           treebase=api('git/commits/'+stage)['tree']['sha'];entries=[]
-          for name in filter(None,git('diff','--cached','--name-only','-z','HEAD').split('\0')):
+          for name in filter(None,git('diff','--cached','--no-renames','--name-only','-z','HEAD').split('\0')):
               p=pathlib.Path(name)
               entries.append({'path':name,'mode':'100644','type':'blob','sha':upload(p.read_bytes()) if p.exists() else None})
           tree=api('git/trees',{'base_tree':treebase,'tree':entries})['sha'];assert tree==expected
