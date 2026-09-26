@@ -12,13 +12,14 @@ concurrency:
 env:
   BASE: 3433982cb4097b40f88108228bd981932486e9d1
   HELPER: .github/workflows/phase27h-view-capture.yml
-  EXPECTED_SOURCE: cd07369858e08aced6359ecd9bac1cac2cffb4504105b8e42b51e40ad7b69e06
+  LOCAL_SOURCE: cd07369858e08aced6359ecd9bac1cac2cffb4504105b8e42b51e40ad7b69e06
 jobs:
   prepare:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     outputs:
       tree: ${{ steps.identity.outputs.tree }}
+      source: ${{ steps.identity.outputs.source }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -78,14 +79,42 @@ jobs:
           blender --background --python-exit-code 1 --python scripts/author-driver.py
           blender --background --python-exit-code 1 --python scripts/author-people.py
           rm -f scripts/apx01-driver.blend1 scripts/aurel-people.blend1
-          printf '%s  %s\n' '07ce4820536f6599051f3c2d5e1f56919a4083f75471bfe0ea97d4a5b82264f7' src/rendering/apx01-driver.glb.gz '4171901f74d0bfaa9bcb13977d4c3f69d76b026d756797433ad79a60541db5c7' src/rendering/aurel-people.geometry.json | sha256sum -c -
+          printf '%s  %s\n' '4171901f74d0bfaa9bcb13977d4c3f69d76b026d756797433ad79a60541db5c7' src/rendering/aurel-people.geometry.json | sha256sum -c -
+          python - <<'PY'
+          import gzip,hashlib,json,os,pathlib
+          root=pathlib.Path.cwd(); m=json.loads((root/'src/rendering/apx01-driver.manifest.json').read_text())
+          packed=(root/'src/rendering/apx01-driver.glb.gz').read_bytes(); raw=gzip.decompress(packed)
+          assert m['revision']=='full-race-seated-suit-2' and len(m['bones'])==9 and len(m['roles'])==3
+          assert len(raw)==m['bytes'] and hashlib.sha256(raw).hexdigest()==m['sha256']
+          assert len(packed)==m['compressedBytes'] and hashlib.sha256(packed).hexdigest()==m['compressedSHA256']
+          h=hashlib.sha256()
+          paths=list((root/'src').rglob('*'))+[root/'package-lock.json',root/'index.html',root/'vite.config.ts']
+          for path in sorted(p for p in paths if p.is_file()):
+              h.update(path.relative_to(root).as_posix().encode()+b'\0'+path.read_bytes()+b'\0')
+          source=h.hexdigest()
+          with open(os.environ['GITHUB_ENV'],'a') as f:f.write('CANDIDATE_SOURCE='+source+'\n')
+          print(json.dumps({'hostedSource':source,'localSource':os.environ['LOCAL_SOURCE'],'hostedDriver':m},indent=2))
+          PY
           node --experimental-transform-types scripts/phase27h-matrix.ts --write
       - name: Lint, complete unit suite, types, build and matrix
         run: |
           set -euo pipefail
           npm run check
           node --experimental-transform-types scripts/phase27h-matrix.ts --check
-          grep -rl -- "$EXPECTED_SOURCE" dist/assets/*.js > "$RUNNER_TEMP/source-identity-files.txt"
+          grep -rl -- "$CANDIDATE_SOURCE" dist/assets/*.js > "$RUNNER_TEMP/source-identity-files.txt"
+      - name: Preserve the same tested build in the existing playable directory
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json,os,pathlib,shutil
+          source=pathlib.Path('dist'); target=pathlib.Path('playable')
+          shutil.rmtree(target); shutil.copytree(source,target,ignore=shutil.ignore_patterns('*.map'))
+          (target/'SOURCE_FINGERPRINT.txt').write_text(os.environ['CANDIDATE_SOURCE']+'\n')
+          files={p.relative_to(target).as_posix():hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(target.rglob('*')) if p.is_file()}
+          report={'sourceFingerprint':os.environ['CANDIDATE_SOURCE'],'upstreamBase':os.environ['BASE'],'preflightRun':os.environ['GITHUB_RUN_ID'],'files':files,'acceptance':{'finalArtApproved':False,'physicalHardwareApproved':False,'publicDeploymentVerified':False},'note':'Exact production output used by this candidate browser suite. Consult its completed run and published main separately.'}
+          (target/'BUILD.json').write_text(json.dumps(report,indent=2)+'\n')
+          PY
+          git add -A playable
       - name: Freeze the exact candidate and preservation checks
         id: identity
         run: |
@@ -95,8 +124,9 @@ jobs:
           git diff --cached --exit-code "$BASE" -- src/simulation src/workers src/input src/storage src/audio package.json package-lock.json vite.config.ts playwright.config.ts .github/workflows/ci.yml docs/MASTER_DIRECTIVE.md "$HELPER" src/rendering/apx01-shell.glb.gz scripts/apx01-assembly.blend
           tree=$(git write-tree)
           echo "tree=$tree" >> "$GITHUB_OUTPUT"
+          echo "source=$CANDIDATE_SOURCE" >> "$GITHUB_OUTPUT"
           printf '%s\n' "$tree" > "$RUNNER_TEMP/candidate-tree.txt"
-          printf '%s\n' "$EXPECTED_SOURCE" > "$RUNNER_TEMP/source-fingerprint.txt"
+          printf '%s\n' "$CANDIDATE_SOURCE" > "$RUNNER_TEMP/source-fingerprint.txt"
           git archive --format=tar.gz "$tree" > "$RUNNER_TEMP/candidate-source.tar.gz"
           sha256sum "$RUNNER_TEMP/candidate-source.tar.gz" > "$RUNNER_TEMP/candidate-source.sha256"
           git diff --cached --stat "$BASE" > "$RUNNER_TEMP/candidate-diff.txt"
@@ -200,9 +230,11 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           VERIFIED_TREE: ${{ needs.prepare.outputs.tree }}
+          VERIFIED_SOURCE: ${{ needs.prepare.outputs.source }}
           PREREQUISITES: ${{ toJSON(needs) }}
         run: |
           set -euo pipefail
+          rm -rf playable
           tar -xzf "$RUNNER_TEMP/candidate/candidate-source.tar.gz"
           git add -A
           test "$(git write-tree)" = "$VERIFIED_TREE"
@@ -230,6 +262,9 @@ jobs:
           paths=git('diff','--cached','--name-only','-z','HEAD').decode().split('\0')
           elements=[]
           for path in filter(None,paths):
+              if not pathlib.Path(path).exists():
+                  elements.append({'path':path,'mode':'100644','type':'blob','sha':None})
+                  continue
               raw=pathlib.Path(path).read_bytes()
               expected=hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()
               uploaded=api('git/blobs',{'content':base64.b64encode(raw).decode(),'encoding':'base64'})['sha']
@@ -243,7 +278,7 @@ jobs:
           check=api('git/commits/'+commit)
           assert check['tree']['sha']==tree and [p['sha'] for p in check['parents']]==[stage]
           assert api('git/ref/heads/main')['object']['sha']==stage, 'Main changed; candidate remains inactive'
-          report={'commit':commit,'tree':tree,'parent':stage,'sourceFingerprint':os.environ['EXPECTED_SOURCE'],'run':os.environ['GITHUB_RUN_ID'],'activated':False,'allCandidateJobs':'success','humanHardwareAcceptance':'open'}
+          report={'commit':commit,'tree':tree,'parent':stage,'sourceFingerprint':os.environ['VERIFIED_SOURCE'],'run':os.environ['GITHUB_RUN_ID'],'activated':False,'allCandidateJobs':'success','humanHardwareAcceptance':'open'}
           pathlib.Path(os.environ['RUNNER_TEMP'],'candidate-publication.json').write_text(json.dumps(report,indent=2)+'\n')
           with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as f:f.write('Exact tested candidate objects: `'+commit+'`. Main is unchanged. Activation requires independent read-back and non-force publication.\n')
           print(json.dumps(report,indent=2))
