@@ -6,6 +6,7 @@ import { serviceSitePlan, inServiceFootprint, type ServiceSite } from './venue-s
 import { grassApronOffset } from './ground-profile.ts';
 import { inStandFootprint } from './grandstand.ts';
 import * as T from 'three';
+import { installCanopyNormals } from './canopy-normals.ts';
 import { Random, clamp } from '../core/math.ts';
 import { Track, trackPoint } from '../simulation/track.ts';
 import { canvasTexture } from './geometry.ts';
@@ -208,6 +209,9 @@ export function installFoliageAtlas(material: T.Material) {
     );
   };
   material.customProgramCacheKey = () => 'four-original-planting-crowns-v1';
+  // These normals describe a crown volume, not individual two-sided leaves.
+  // Depth/distance passes keep exactly the same atlas and alpha coverage.
+  if (material instanceof T.MeshStandardMaterial) installCanopyNormals(material);
 }
 function treeGeometry() {
   const leaves: T.BufferGeometry[] = [];

@@ -67,6 +67,7 @@ export class FormulaCar {
   readonly driver: DriverRig;
   readonly helmet = new T.Group();
   readonly rainLight: T.MeshStandardMaterial;
+  readonly rearSignal: T.Mesh;
   readonly display: T.CanvasTexture;
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
@@ -237,7 +238,10 @@ export class FormulaCar {
       emissiveIntensity: 0.4,
     });
     this.rainLight = rain;
-    box(s, rain, 0, -0.23, -2.28, 0.095, 0.065, 0.02);
+    // One physical lamp survives bodywork LOD switches. Its local anchor also
+    // drives RearSignalField; a low-detail car must not leave a phantom lit plume.
+    this.rearSignal = box(this.root, rain, 0, -0.23, -2.28, 0.095, 0.065, 0.02);
+    this.rearSignal.name = 'Recorded rear signal';
     // Original car identity and livery: small, deliberate markings on bodywork.
     const logo = installPaintFinish(
       new T.MeshPhysicalMaterial({
@@ -510,7 +514,9 @@ export class FormulaCar {
     mergeStatic(s);
     mergeStatic(this.frontWing);
     mergeStatic(this.rearWing);
-    const highChildren = [...this.root.children].filter((child) => child !== this.suspension);
+    const highChildren = [...this.root.children].filter(
+      (child) => child !== this.suspension && child !== this.rearSignal,
+    );
     this.root.add(this.highDetail);
     this.highDetail.add(...highChildren);
     for (const level of [1, 2] as const) {
@@ -556,6 +562,12 @@ export class FormulaCar {
     for (const material of this.reflectivePaint)
       setPaintObservation(material, wetPaint, b[o + F.FRONT_HEALTH], b[o + F.REAR_HEALTH]);
     setPaintObservation(this.accent, wetPaint, b[o + F.FRONT_HEALTH], b[o + F.REAR_HEALTH]);
+    // Update before the reduced-car return, using recorded interpolation rather
+    // than a render timer. Pauses, seeks and hysteretic LOD handoffs stay in phase.
+    this.rainLight.emissiveIntensity = rearSignalIntensity(
+      lerp(a[o + F.BRAKE], b[o + F.BRAKE], t),
+      lerp(a[H.TIME], b[H.TIME], t),
+    );
     if (this.lodLevel > 0) {
       const reduced = this.reduced[this.lodLevel - 1];
       for (let i = 0; i < 4; i++) {
@@ -628,10 +640,6 @@ export class FormulaCar {
     this.frontWing.scale.x = 0.35 + 0.65 * b[o + F.FRONT_HEALTH];
     this.frontWing.rotation.z = (1 - b[o + F.FRONT_HEALTH]) * 0.12;
     this.rearWing.rotation.z = (1 - b[o + F.REAR_HEALTH]) * 0.09;
-    this.rainLight.emissiveIntensity = rearSignalIntensity(
-      lerp(a[o + F.BRAKE], b[o + F.BRAKE], t),
-      lerp(a[H.TIME], b[H.TIME], t),
-    );
     if (this.id === 0 && this.displayClock.due(b[H.TIME], b[o + F.GEAR])) {
       drawSteeringDisplay(this.ctx, b, o);
       for (let j = 0; j < this.shiftLeds.count; j++)

@@ -1,4 +1,5 @@
 import * as T from 'three';
+import { crewSuitFragment, crewSuitVertex, CREW_SUIT_VARYINGS } from './crew-suit.ts';
 import { clamp } from '../core/math.ts';
 import { CREW_BONES, CREW_REST } from './people-asset.ts';
 
@@ -152,7 +153,7 @@ attribute vec4 crewWeight;
 attribute float crewSlot;
 uniform sampler2D crewBones;
 uniform float crewRows;
-${colour ? 'attribute float crewCloth; varying float vCrewCloth; varying vec3 vCrewPattern;' : ''}
+${colour ? 'attribute float crewCloth; ' + CREW_SUIT_VARYINGS : ''}
 mat4 crewBone(float joint) {
   float row = (crewSlot + .5) / crewRows;
   float column = joint * 4.;
@@ -172,11 +173,16 @@ mat4 crewBone(float joint) {
     );
     shader.vertexShader = shader.vertexShader.replace(
       '#include <begin_vertex>',
-      `vec3 transformed = (crewTransform * vec4(position,1.)).xyz;${colour ? '\nvCrewCloth=crewCloth; vCrewPattern=position;' : ''}`,
+      `vec3 transformed = (crewTransform * vec4(position,1.)).xyz;${colour ? crewSuitVertex : ''}`,
     );
     if (colour) {
-      shader.fragmentShader =
-        'varying float vCrewCloth; varying vec3 vCrewPattern;\n' + shader.fragmentShader;
+      shader.fragmentShader = CREW_SUIT_VARYINGS + '\n' + shader.fragmentShader;
+      if (!shader.fragmentShader.includes('#include <color_fragment>'))
+        throw new Error('Crew suit colour hook missing');
+      shader.fragmentShader = shader.fragmentShader.replace(
+        '#include <color_fragment>',
+        '#include <color_fragment>\n' + crewSuitFragment,
+      );
       shader.fragmentShader = shader.fragmentShader.replace(
         '#include <roughnessmap_fragment>',
         `#include <roughnessmap_fragment>
@@ -186,6 +192,6 @@ roughnessFactor = mix(.58,.88+sin(weave)*resolved*.035,vCrewCloth);`,
       );
     }
   };
-  material.customProgramCacheKey = () => `aurel-authored-instance-skin-v1-${colour}`;
+  material.customProgramCacheKey = () => `aurel-authored-instance-skin-v2-tailoring-${colour}`;
   return material;
 }
