@@ -212,6 +212,7 @@ it('keeps actual apron triangles beneath both barrier footings and below the gra
   const scene = Object.assign(Object.create(CircuitScene.prototype), {
     track,
     group: new T.Group(),
+    surfaces: new T.Group(),
   }) as CircuitScene;
   for (const start of [120, 715, 1500, 2100]) {
     const material = new T.MeshStandardMaterial({ side: T.DoubleSide });
@@ -248,6 +249,6 @@ it('keeps actual apron triangles beneath both barrier footings and below the gra
       }
     strip.geometry.dispose();
     material.dispose();
-    scene.group.remove(strip);
+    scene.surfaces.remove(strip);
   }
 });

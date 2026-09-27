@@ -1,0 +1,132 @@
+{
+  "baselineCommit": "b2ddae3d13f5c02c807830c3b03e351f39f2a485",
+  "baselineTree": "2c3ef04359f9bdb716c8584a3245e2a7591b34aa",
+  "baselineSuccessfulCI": 36316614930,
+  "runtimeSourceSHA256": "1e35113e0822bbcbd9b6122c72fa75047b14a9ce926923bc037b17846e1c700a",
+  "unchangedSimulationSHA256": "0dfddbb3fd97a279d2c9875bb9d03af86c583f17fbb75641176b428d469afe3c",
+  "local": {
+    "unitTests": 1193,
+    "unitFiles": 118,
+    "lint": "pass",
+    "typecheck": "pass",
+    "productionBuild": "pass",
+    "domBrowserTests": 8,
+    "gpu": "unavailable: WebGL2 context null; no local GPU pass",
+    "dependencyRecovery": "CI workbench node_modules with identical package-lock; offline npm ci was unavailable"
+  },
+  "native": {
+    "physics": "pass",
+    "dynamics": "pass",
+    "marshal": "pass",
+    "wetPit": "pass",
+    "integratedDriving": "pass",
+    "rotation": "pass",
+    "tenCarPitService": "pass",
+    "clearAndChangeableClassification": "pass"
+  },
+  "localCircuitTraversal": {
+    "scope": "Actual CircuitScene CPU transform traversal only; no GPU, vehicles or full-application FPS",
+    "nodes": 1395,
+    "counts": [
+      {
+        "cached": false,
+        "visits": 1585
+      },
+      {
+        "cached": true,
+        "visits": 190
+      }
+    ],
+    "matricesEqual": true,
+    "timings": [
+      {
+        "cached": false,
+        "millisecondsPerSceneUpdate": 0.32916666666666666
+      },
+      {
+        "cached": true,
+        "millisecondsPerSceneUpdate": 0.0199999999992239
+      },
+      {
+        "cached": true,
+        "millisecondsPerSceneUpdate": 0.02666666666821887
+      },
+      {
+        "cached": false,
+        "millisecondsPerSceneUpdate": 0.280833333331005
+      },
+      {
+        "cached": false,
+        "millisecondsPerSceneUpdate": 0.15916666666744278
+      },
+      {
+        "cached": true,
+        "millisecondsPerSceneUpdate": 0.017500000000776103
+      },
+      {
+        "cached": true,
+        "millisecondsPerSceneUpdate": 0.01583333333255723
+      },
+      {
+        "cached": false,
+        "millisecondsPerSceneUpdate": 0.16916666666511446
+      },
+      {
+        "cached": false,
+        "millisecondsPerSceneUpdate": 0.16833333333100503
+      },
+      {
+        "cached": true,
+        "millisecondsPerSceneUpdate": 0.017500000000776103
+      },
+      {
+        "cached": true,
+        "millisecondsPerSceneUpdate": 0.01583333333255723
+      },
+      {
+        "cached": false,
+        "millisecondsPerSceneUpdate": 0.17250000000155222
+      },
+      {
+        "cached": false,
+        "millisecondsPerSceneUpdate": 0.1625
+      },
+      {
+        "cached": true,
+        "millisecondsPerSceneUpdate": 0.018333333334885536
+      },
+      {
+        "cached": true,
+        "millisecondsPerSceneUpdate": 0.016666666666666666
+      },
+      {
+        "cached": false,
+        "millisecondsPerSceneUpdate": 0.1574999999992239
+      }
+    ]
+  },
+  "newHostedBrowserChecks": [
+    "e2e/35-aurel-race-quality.spec.ts: controlled asset-loaded cache pixel identity and dusk comparison",
+    "e2e/36-compact-race-journey.spec.ts: ordinary eight-car drive, performance export and replay"
+  ],
+  "independentGates": [
+    "Exact resulting commit full ordinary CI",
+    "Public deployment matching successful CI bytes",
+    "Uninterrupted human Section 146 audiovisual scenario",
+    "Representative physical GPU/controller/wheel measurements",
+    "Full-lap final art and complete reference acceptance"
+  ],
+  "claims": {
+    "fullGameFPSImprovement": false,
+    "GPUVRAMMeasured": false,
+    "humanSection146Completed": false,
+    "AAAOrReferenceParity": false
+  },
+  "evidenceSHA256": {
+    "baseline-check.log": "abc45f9562c7781263067c2754dce5061bd5110fe20fc402d08d700d10c284e4",
+    "candidate-check-2.log": "52881985eb467c595f45e9546214f4394e6e993370ffc384bd47e728dc5c09c1",
+    "wide-compact-layout.log": "55c65be24e1eb2cd791cae2f5846c0ee9e81c2a7e694246ffa33691d451a155c",
+    "native-journey.log": "072c37439314ccaba890d04db918fbe9a2ab79d74c08611582386782016cf8fa",
+    "native-service-classification.log": "14bbaef815349c2c239f2cdc46d203184a0bc8a0bb503a538987279d924792b5"
+  }
+}

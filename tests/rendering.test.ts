@@ -10,6 +10,7 @@ describe('Visible geometry agrees with the physical surface', () => {
     const scene = Object.assign(Object.create(CircuitScene.prototype), {
       track,
       group: new T.Group(),
+      surfaces: new T.Group(),
     }) as CircuitScene;
     const strip = scene.ribbon(new T.MeshStandardMaterial(), {
       start: 20,

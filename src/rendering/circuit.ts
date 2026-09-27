@@ -1,3 +1,4 @@
+import { StaticTransformGroup } from './static-transform-group.ts';
 import { VENUE_LAMP_RADIUS } from './light-footprint.ts';
 import { buildGantrySolids, buildControlTowerSolids } from './race-structures.ts';
 import { MarshalStaffView } from './marshal-staff.ts';
@@ -44,9 +45,10 @@ export class CircuitScene {
   readonly crowd = new T.Group();
   readonly crowdClusters: CrowdCluster[] = [];
   readonly staff: MarshalStaffView;
-  readonly props = new T.Group();
+  readonly props = new StaticTransformGroup();
+  readonly surfaces = new StaticTransformGroup();
   readonly sightlines = new BroadcastSightlines();
-  readonly vegetationGroup = new T.Group();
+  readonly vegetationGroup = new StaticTransformGroup();
   readonly stateTexture: T.DataTexture;
   readonly roadMaterial: T.MeshStandardMaterial;
   readonly stateBytes = new Uint8Array(CELL_ROWS * CELL_COLS * 4);
@@ -72,7 +74,8 @@ export class CircuitScene {
     this.staff = new MarshalStaffView(this.trackInfrastructure.marshalPosts);
     this.serviceSites = serviceSitePlan(track);
     this.districts = districtPlan(track, this.serviceSites);
-    this.group.add(this.props, this.crowd, this.vegetationGroup);
+    this.group.add(this.props, this.crowd, this.vegetationGroup, this.surfaces);
+    this.surfaces.name = 'Immutable circuit surfaces and barriers';
     // Dynamic trackside staff geometry exists immediately, but it must enter the
     // scene through the same cooperative construction queue as every other
     // circuit mesh. This keeps a deferred CircuitScene genuinely empty until
@@ -193,7 +196,7 @@ export class CircuitScene {
         terrainUV.setXY(i, x / 5, z / 5);
       }
       terrain.computeVertexNormals();
-      mesh(this.group, terrain, grass);
+      mesh(this.surfaces, terrain, grass);
     });
     const barriers = barrierMaterials();
     const spans = Math.ceil(track.length / 80);
@@ -201,7 +204,7 @@ export class CircuitScene {
       this.construction.add('Profiled barriers and filtered catch fencing', 2, () =>
         buildBarrierChunk(
           track,
-          this.group,
+          this.surfaces,
           (track.length * i) / spans,
           (track.length * (i + 1)) / spans,
           barriers,
@@ -222,6 +225,11 @@ export class CircuitScene {
     );
     this.construction.add('Grid and finish markings', 0, () => this.grid());
     this.construction.add('Spatial geometry batches', 4, () => batchScene(this.props, new Set()));
+    this.construction.add('Seal static venue transforms', 6, () => {
+      this.props.sealTransforms();
+      this.surfaces.sealTransforms();
+      this.vegetationGroup.sealTransforms();
+    });
     if (!deferred) this.construction.runSynchronously();
   }
   /** Read-only identity of constructed groups, not planned sites or an art approval.
@@ -318,7 +326,7 @@ export class CircuitScene {
     if (options.stripes) g.setAttribute('color', new T.Float32BufferAttribute(colors, 3));
     g.setIndex(indices);
     g.computeVertexNormals();
-    const o = mesh(this.group, g, material);
+    const o = mesh(this.surfaces, g, material);
     o.castShadow = false;
     return o;
   }

@@ -158,6 +158,7 @@ it('maps pit wetness to the same clamped lateral cells used by physical surface 
     scene = Object.assign(Object.create(CircuitScene.prototype), {
       track,
       group: new T.Group(),
+      surfaces: new T.Group(),
     }) as CircuitScene;
   const road = scene.ribbon(new T.MeshStandardMaterial(), {
     start: 50,

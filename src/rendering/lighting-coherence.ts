@@ -10,7 +10,7 @@ const direct = {
 };
 const diffuse = {
   day: new T.Color(0xc3d8f3),
-  sunset: new T.Color(0xd5bdad),
+  sunset: new T.Color(0xbccde6),
   night: new T.Color(0x9eaec8),
 };
 const ground = {

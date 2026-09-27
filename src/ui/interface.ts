@@ -1,3 +1,4 @@
+import { installCompactRaceHud } from './compact-race-hud.ts';
 import { audioAccessibility, readDrivingAudio } from './audio-accessibility.ts';
 import type { DrivingAudioSettings } from '../audio/driving-cues.ts';
 import { nearbyTraffic } from './proximity.ts';
@@ -121,6 +122,7 @@ export class Interface {
     this.map = this.get('minimap') as HTMLCanvasElement;
     this.graph = this.get('graph') as HTMLCanvasElement;
     this.replayBar = this.get('replayBar');
+    installCompactRaceHud(this.hud);
     element.addEventListener('click', (e) => {
       const button = (e.target as HTMLElement).closest<HTMLElement>('[data-action]');
       if (button) this.callbacks.action(button.dataset.action!);

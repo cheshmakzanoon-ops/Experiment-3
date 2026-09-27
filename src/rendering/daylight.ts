@@ -62,8 +62,11 @@ export function circuitLightState(
   if (mode === 'sunset')
     Object.assign(light, {
       sun: 2.8 * (1 - light.cover * 0.88),
-      fill: 0.27 + light.cover * 0.2,
-      environment: 0.24 - light.cover * 0.06,
+      // The low sun cannot illuminate horizontal road/upper cockpit surfaces
+      // as strongly as the daytime key. Retain a distinct, cooler skylight floor
+      // instead of compensating with global exposure (which clips the warm key).
+      fill: 0.5 + light.cover * 0.1,
+      environment: 0.28 - light.cover * 0.07,
       exposure: 1.01 - light.cover * 0.03,
       turbidity: 5.6 + light.cover * 3,
       skyRadiance: 0.26 + light.cover * 0.12,
