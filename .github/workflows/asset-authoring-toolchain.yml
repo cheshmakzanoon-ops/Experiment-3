@@ -1,27 +1,125 @@
-name: Verified asset authoring toolchain
+name: Verify authored character continuation
 on:
-  workflow_dispatch:
   push:
     branches: [main]
     paths: [.github/workflows/asset-authoring-toolchain.yml]
+  workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  group: authored-character-continuation
+  cancel-in-progress: false
 jobs:
-  toolchain:
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
+  prepare:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    permissions:
+      contents: write
     steps:
-      - name: Download and verify pinned official Blender
-        shell: bash
-        run: |
-          set -euo pipefail
-          curl --fail --location --retry 2 --max-time 240 'https://download.blender.org/release/Blender5.2/blender-5.2.2-linux-x64.tar.xz' -o "$RUNNER_TEMP/blender-5.2.2-linux-x64.tar.xz"
-          echo '84098912789dc450e95697c4184fb8a90acbe5111c2ba4aede3fecb57806a168  '"$RUNNER_TEMP/blender-5.2.2-linux-x64.tar.xz" | sha256sum --check
-      - uses: actions/upload-artifact@v4
+      - uses: actions/checkout@v4
         with:
-          name: blender-5.2.2-verified-development-toolchain
-          path: ${{ runner.temp }}/blender-5.2.2-linux-x64.tar.xz
-          retention-days: 1
-          compression-level: 0
+          ref: f341dd6e7ede5c2039ddf6ad1b6e9b6a71ae4361
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Recover checksum-bound source changes without moving a branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/evidence"
+          python - <<'PY'
+          import base64,gzip,hashlib,json,os,subprocess,urllib.request
+          chunks=['2a73e62677253a642b9ea33c2752d00c861517c7','8f15217f8172a70ff773d13c9e827aea4eba71f4','bc3c07e1b531322ce36cee5ee6be59ef448d3735','d0fdd96cfdf5d3198cd45f249e3de4732e671f28']
+          data=b''
+          for sha in chunks:
+              req=urllib.request.Request('https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/git/blobs/'+sha,headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json'})
+              with urllib.request.urlopen(req,timeout=60) as response: blob=json.load(response)
+              part=base64.b64decode(blob['content'])
+              assert hashlib.sha1(b'blob '+str(len(part)).encode()+b'\0'+part).hexdigest()==sha
+              data+=part
+          assert hashlib.sha256(data).hexdigest()=='37a78e4af734a74cb34c33ba1d47605b79a6853c81dc86528860edaa7502bee3'
+          patch=gzip.decompress(data)
+          assert hashlib.sha256(patch).hexdigest()=='ee7c661479679a30d335212e1224412a099811f28d2bbb27f91e92f255a77bab'
+          subprocess.run(['git','apply','--index','-'],input=patch,check=True)
+          PY
+      - name: Install exact verified Blender
+        run: |
+          curl --fail --location --retry 3 --max-time 240 -o "$RUNNER_TEMP/blender.tar.xz" https://download.blender.org/release/Blender5.2/blender-5.2.2-linux-x64.tar.xz
+          echo '84098912789dc450e95697c4184fb8a90acbe5111c2ba4aede3fecb57806a168  '"$RUNNER_TEMP/blender.tar.xz" | sha256sum --check
+          tar -xf "$RUNNER_TEMP/blender.tar.xz" -C "$RUNNER_TEMP"
+          echo "$RUNNER_TEMP/blender-5.2.2-linux-x64" >> "$GITHUB_PATH"
+      - name: Author editable driver and crew, verify the actual game bytes
+        run: |
+          blender --background --python-exit-code 1 --python scripts/author-driver.py | tee "$RUNNER_TEMP/evidence/driver-author.log"
+          blender --background --python-exit-code 1 --python scripts/author-people.py | tee "$RUNNER_TEMP/evidence/crew-author.log"
+          python - <<'PY'
+          import hashlib,pathlib
+          expected={'apx01-driver.glb.gz':'19bcb63e4b0f7d6773f7c66956247a36850078fbbbf955abd0a8d6968300e4c9','apx01-driver.manifest.json':'d6bc3fdbe84d665ca3c7ab3e8e577a91e8eaaf1c829bd9e028c54463a65312e2','aurel-people.glb.gz':'a250145579eecfcad0e7538aab6b25a9a8ce8de255a907db5fa3f4db9d915be1','aurel-people.geometry.json':'b3909a6c5b6bd82f09cb8562cdc891886b663be3522c6d816c4cfd8af748a9b5','aurel-people.manifest.json':'8a8949b8eccb0226f45c35f2d8875b858a4cc9c35a11ec3b84f3d4a8f39cce66'}
+          for name,sha in expected.items():
+              actual=hashlib.sha256(pathlib.Path('src/rendering',name).read_bytes()).hexdigest()
+              assert actual==sha,(name,actual,sha)
+              print(name,actual)
+          PY
+      - name: Full local-equivalent source gate
+        run: npm run check | tee "$RUNNER_TEMP/evidence/check.log"
+      - name: Preserve exact candidate and stage Git objects only
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python - <<'PY'
+          import base64,hashlib,json,os,pathlib,subprocess,time,urllib.request
+          paths=['.github/workflows/people-assets.yml','README.md','docs/CHARACTER_QUALITY.md','e2e/33-character-quality.spec.ts','e2e/fixtures/character-quality.ts','scripts/author-driver.py','scripts/author-people.py','src/rendering/cockpit.ts','src/rendering/crew-geometry.ts','src/rendering/driver-anatomy.ts','src/rendering/driver-materials.ts','src/rendering/pit-crew.ts','tests/character-quality.test.ts','tests/graphics-continuity.test.ts','scripts/apx01-driver.blend','scripts/aurel-people.blend','src/rendering/apx01-driver.glb.gz','src/rendering/apx01-driver.manifest.json','src/rendering/aurel-people.glb.gz','src/rendering/aurel-people.geometry.json','src/rendering/aurel-people.manifest.json']
+          subprocess.run(['git','add','--',*paths],check=True)
+          observed=subprocess.check_output(['git','diff','--cached','--name-only']).decode().splitlines()
+          assert set(observed)==set(paths),(observed,paths)
+          evidence=pathlib.Path(os.environ['RUNNER_TEMP'])/'evidence'
+          def api(endpoint,payload):
+              body=json.dumps(payload).encode()
+              for attempt in range(3):
+                  try:
+                      req=urllib.request.Request('https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/git/'+endpoint,data=body,headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','Content-Type':'application/json'},method='POST')
+                      with urllib.request.urlopen(req,timeout=90) as r: return json.load(r)
+                  except Exception:
+                      if attempt==2: raise
+                      time.sleep(2**attempt)
+          entries=[];manifest=[]
+          for path in paths:
+              raw=pathlib.Path(path).read_bytes()
+              expected=hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()
+              blob=api('blobs',{'content':base64.b64encode(raw).decode(),'encoding':'base64'})
+              assert blob['sha']==expected,(path,blob['sha'],expected)
+              entries.append({'path':path,'mode':'100644','type':'blob','sha':expected})
+              manifest.append({'path':path,'sha':expected,'sha256':hashlib.sha256(raw).hexdigest(),'bytes':len(raw)})
+          local=subprocess.check_output(['git','write-tree']).decode().strip()
+          tree=api('trees',{'base_tree':'701f04ac0b1f4867965265bf735c402e086002a5','tree':entries})
+          assert tree['sha']==local,(tree['sha'],local)
+          (evidence/'prepared-tree.json').write_text(json.dumps({'baseline':'f341dd6e7ede5c2039ddf6ad1b6e9b6a71ae4361','tree':local,'entries':entries,'files':manifest,'scope':'Git objects staged only; no commit/ref update and no final acceptance claimed'},indent=2)+'\n')
+          subprocess.run(['git','archive','--format=tar.gz','--output='+str(evidence/'candidate-source.tar.gz'),local],check=True)
+          print('Verified candidate tree:',local)
+          PY
+      - name: Install ordinary Chromium dependencies
+        run: npx playwright install --with-deps chromium
+      - name: Candidate production GPU and ordinary application driver journeys
+        env:
+          PLAYWRIGHT_HTML_OUTPUT_DIR: ${{ runner.temp }}/evidence/candidate-report
+        run: npx playwright test e2e/33-character-quality.spec.ts e2e/24-coupled-driver.spec.ts e2e/30-race-finish.spec.ts --output="$RUNNER_TEMP/evidence/candidate-results" | tee "$RUNNER_TEMP/evidence/candidate-browser.log"
+      - name: Matched baseline complete-car GPU inspection
+        if: success() || failure()
+        env:
+          PLAYWRIGHT_HTML_OUTPUT_DIR: ${{ runner.temp }}/evidence/baseline-report
+        run: |
+          test -f "$RUNNER_TEMP/evidence/prepared-tree.json"
+          git restore --source=f341dd6e7ede5c2039ddf6ad1b6e9b6a71ae4361 --worktree -- src/rendering
+          npm run build
+          npx playwright test e2e/33-character-quality.spec.ts --grep 'driver production' --output="$RUNNER_TEMP/evidence/baseline-results" | tee "$RUNNER_TEMP/evidence/baseline-browser.log"
+      - name: Retain candidate, before/after pictures, logs and failures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: authored-character-candidate
+          path: ${{ runner.temp }}/evidence/
+          retention-days: 7
           if-no-files-found: error
-# Full-race continuation: reuse the original verified authoring toolchain.
