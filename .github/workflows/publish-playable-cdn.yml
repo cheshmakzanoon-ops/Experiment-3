@@ -1,0 +1,56 @@
+name: Publish playable CDN build
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'docs/**'
+      - '**/*.md'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: playable-cdn
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Build exact main source
+        run: |
+          npm ci --no-audit --no-fund
+          npm run build
+          find dist -type f -name '*.map' -delete
+          test -s dist/index.html
+          test -s dist/models/supplied-player.glb.gz
+          echo '269b4d94c07602582070f1f48bc2e3a778f62d2e1cfcc26b021f52f79ad5ef3a  dist/models/supplied-player.glb.gz' | sha256sum --check
+          printf '%s\n' "$GITHUB_SHA" > dist/SOURCE_COMMIT.txt
+          touch dist/.nojekyll
+
+      - name: Publish immutable static build branch
+        run: |
+          rm -rf "$RUNNER_TEMP/apex-dist"
+          mkdir -p "$RUNNER_TEMP/apex-dist"
+          cp -a dist/. "$RUNNER_TEMP/apex-dist/"
+          git config user.name 'cheshmakzanoon-ops'
+          git config user.email 'cheshmakzanoon@gmail.com'
+          git switch --orphan playable-cdn
+          git rm -rf . || true
+          find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+          cp -a "$RUNNER_TEMP/apex-dist/." .
+          git add -A
+          git commit -m "deploy: playable $GITHUB_SHA"
+          git push --force origin HEAD:playable-cdn
