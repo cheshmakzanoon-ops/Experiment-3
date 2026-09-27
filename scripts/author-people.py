@@ -34,13 +34,33 @@ class Shape:
         self.v.append(p);self.c.append(color);self.j.append([bones[0],bones[1],0,0]);self.w.append([1-weight,weight,0,0]);self.mask.append(cloth)
         self.joint.append(joint);self.skin.append(skin);self.accessory.append(accessory);self.stand.append(standing or p)
         return len(self.v)-1
-    def loft(self,rows,sides=16,color=WHITE,bone=0,nextbone=None,joint=0,skin=0,cloth=1,accessory=0,standing=None,fold=0.):
+    def loft(self,rows,sides=16,color=WHITE,bone=0,nextbone=None,joint=0,skin=0,cloth=1,accessory=0,standing=None,fold=0.,tailoring=None):
         # Rows are (centre, width-X, depth-Z, skin blend); explicit garment pattern.
+        # More stations at the near LOD retain an identical bind skeleton.
+        # The physical crease phase is shared across LODs, not driven by row ID.
+        if tailoring:
+            original=rows;rows=[]; subdivisions=3 if sides>=16 else 2
+            for a,b in zip(original,original[1:]):
+                for step in range(subdivisions):
+                    t=step/subdivisions;f=smooth(t)
+                    rows.append((mix(a[0],b[0],t),a[1]*(1-f)+b[1]*f,a[2]*(1-f)+b[2]*f,a[3]*(1-t)+b[3]*t))
+            rows.append(original[-1])
         start=len(self.v)
         for i,(p,rx,rz,w) in enumerate(rows):
             for k in range(sides):
                 a=2*math.pi*k/sides; f=1+fold*math.sin(a*7+i*2.3)*math.sin(math.pi*i/(len(rows)-1))**2
-                q=(p[0]+rx*math.cos(a)*f,p[1],p[2]+rz*math.sin(a)*f)
+                radial=0.
+                if tailoring:
+                    envelope=math.sin(math.pi*i/(len(rows)-1))**2
+                    joint={'torso':1.04,'sleeve':1.07,'leg':.46}[tailoring]
+                    crease=math.exp(-((p[1]-joint)/(.09 if tailoring!='torso' else .13))**2)
+                    # Compression fans gather on the flexing inner surface; long
+                    # outer panels remain taut rather than accordion-corrugated.
+                    inner=max(0.,-math.sin(a))**2
+                    radial=envelope*(.0030*crease*(.18+.82*inner)*math.sin(p[1]*104+math.cos(a)*2.1)
+                        +.0010*(1-crease)*math.sin(a*5+p[1]*8))
+                    f=1.
+                q=(p[0]+(rx*f+radial)*math.cos(a),p[1],p[2]+(rz*f+radial)*math.sin(a))
                 c=color
                 if cloth and abs(math.cos(a))>.94: c=tuple(t*.47 for t in color)
                 self.vertex(q,c,(bone,bone if nextbone is None else nextbone),w,cloth,joint,skin,accessory,standing(q) if standing else None)
@@ -98,7 +118,7 @@ class Shape:
 def body(sides):
     g=Shape(); fine=sides>=16
     profile=[(.755,.149,.105),(.84,.17,.127),(.94,.151,.119),(1.02,.158,.12),(1.15,.185,.147),(1.29,.228,.145),(1.40,.257,.119),(1.465,.213,.092),(1.51,.071,.064)]
-    g.loft([((0,y,0),x,z,smooth((y-.86)/.18)) for y,x,z in profile],sides,WHITE,0,1,fold=.018)
+    g.loft([((0,y,0),x,z,smooth((y-.86)/.18)) for y,x,z in profile],sides,WHITE,0,1,fold=.018,tailoring='torso')
     # Collar, zip, radio pouch and shoulder reinforcements are true geometry.
     g.loft([((0,1.49,0),.078,.07,0),((0,1.536,0),.073,.063,0)],sides,DARK,1,cloth=0)
     g.box((0,1.255,.149),(.008,.33,.005),TRIM,1)
@@ -106,9 +126,9 @@ def body(sides):
     g.box((.10,1.32,.143),(.083,.039,.006),TRIM,1)
     for side in [-1,1]:
         arm=3 if side<0 else 6;thigh=9 if side<0 else 12
-        g.loft([((side*.245,y,z),rx,rz,smooth((1.14-y)/.15)) for y,z,rx,rz in [(1.462,0,.05,.054),(1.43,0,.080,.080),(1.35,0,.081,.078),(1.20,-.004,.073,.067),(1.105,-.005,.066,.062),(1.07,0,.065,.06),(.99,.001,.06,.053),(.84,0,.05,.045),(.745,0,.041,.038)]][::-1],sides,WHITE,arm,arm+1,fold=.028)
+        g.loft([((side*.245,y,z),rx,rz,smooth((1.14-y)/.15)) for y,z,rx,rz in [(1.462,0,.05,.054),(1.43,0,.080,.080),(1.35,0,.081,.078),(1.20,-.004,.073,.067),(1.105,-.005,.066,.062),(1.07,0,.065,.06),(.99,.001,.06,.053),(.84,0,.05,.045),(.745,0,.041,.038)]][::-1],sides,WHITE,arm,arm+1,fold=.028,tailoring='sleeve')
         g.loft([((side*.245,.731,0),.043,.04,0),((side*.245,.773,0),.047,.043,0)],sides,DARK,arm+1,cloth=0)
-        g.loft([((side*.092,y,z),rx,rz,smooth((.51-y)/.13)) for y,z,rx,rz in [(.055,.035,.045,.048),(.12,.025,.055,.058),(.26,.011,.064,.062),(.405,0,.073,.069),(.46,0,.074,.07),(.52,0,.078,.074),(.70,0,.10,.09),(.88,0,.105,.106)]],sides,WHITE,thigh,thigh+1,fold=.022)
+        g.loft([((side*.092,y,z),rx,rz,smooth((.51-y)/.13)) for y,z,rx,rz in [(.055,.035,.045,.048),(.12,.025,.055,.058),(.26,.011,.064,.062),(.405,0,.073,.069),(.46,0,.074,.07),(.52,0,.078,.074),(.70,0,.10,.09),(.88,0,.105,.106)]],sides,WHITE,thigh,thigh+1,fold=.022,tailoring='leg')
         g.box((side*.092,.47,.067),(.122,.15,.022),DARK,thigh+1)
         # Ankle collar, reinforced heel, round toe and separate rubber outsole.
         g.loft([((side*.092,y,z),rx,rz,0) for y,z,rx,rz in [(.005,.078,.063,.14),(.026,.078,.068,.148),(.075,.063,.062,.137),(.118,.035,.051,.077),(.17,.014,.049,.051)]],sides,DARK,thigh+2,cloth=0)
@@ -143,9 +163,41 @@ def helmet():
         rows.append(((0,y,.011*jaw-.004*crown),.117*radial*(1-.035*jaw),
                      .132*radial*(1-.12*jaw-.035*crown),0))
     g.loft(rows,24,(.81,.82,.77),cloth=0)
-    # Visor follows the face rather than clipping into a sphere; lower chin guard.
-    g.loft([((0,y,z),rx,rz,0) for y,z,rx,rz in [(-.071,.048,.083,.082),(-.047,.066,.106,.079),(.016,.065,.11,.078),(.057,.047,.099,.076)]],24,(.024,.045,.058),cloth=0)
-    g.loft([((0,-.116,.058),.072,.062,0),((0,-.088,.071),.09,.076,0),((0,-.065,.083),.088,.058,0)],20,(.71,.75,.75),cloth=0)
+    # A bounded front-only lens; a full 360-degree visor loft wrapped the rear
+    # of the old shell and obscured the brow/jaw separation in close pit views.
+    start=len(g.v); lens_rows=8; lens_sides=24
+    def lens_point(u,v,offset=0.):
+        y=-.051+v*.094
+        phi=.15+u*(math.pi-.30)
+        k=0
+        while k<len(rows)-2 and y>rows[k+1][0][1]:k+=1
+        a,b=rows[k],rows[k+1];t=(y-a[0][1])/(b[0][1]-a[0][1])
+        rx=a[1]*(1-t)+b[1]*t;rz=a[2]*(1-t)+b[2]*t
+        cz=a[0][2]*(1-t)+b[0][2]*t
+        return ((rx+.0035+offset)*math.cos(phi),y,cz+(rz+.0035+offset)*math.sin(phi))
+    for layer in [0,1]:
+        for row in range(lens_rows+1):
+            for col in range(lens_sides+1):
+                g.vertex(lens_point(col/lens_sides,row/lens_rows, -.0018 if layer else 0),
+                         (.019,.033,.041),cloth=0)
+    stride=lens_sides+1;layer_size=stride*(lens_rows+1)
+    for row in range(lens_rows):
+        for col in range(lens_sides):
+            q=start+row*stride+col;r=q+stride
+            g.f.extend([(q,q+1,r),(q+1,r+1,r),
+                        (q+layer_size,r+layer_size,q+1+layer_size),
+                        (q+1+layer_size,r+layer_size,r+1+layer_size)])
+    perimeter=list(range(stride))+[row*stride+lens_sides for row in range(1,lens_rows+1)]+list(range(lens_rows*stride+lens_sides-1,lens_rows*stride-1,-1))+[row*stride for row in range(lens_rows-1,0,-1)]
+    for i,k in enumerate(perimeter):
+        n=perimeter[(i+1)%len(perimeter)];a=start+k;b=start+n
+        g.f.extend([(a,b,a+layer_size),(b,b+layer_size,a+layer_size)])
+    for v in [0,1]:
+        g.tube([lens_point(i/24,v,.0012) for i in range(25)],.0018,6,DARK)
+    # Shaped chin guard keeps the lower silhouette and leaves the lens gasket visible.
+    g.loft([((0,-.116,.058),.072,.062,0),((0,-.088,.071),.09,.076,0),((0,-.059,.079),.088,.069,0)],20,(.71,.75,.75),cloth=0)
+    # Two recessed-looking intake strips with raised rims; no downloaded logos.
+    for side in [-1,1]:
+        g.box((side*.041,-.087,.140),(.039,.008,.003),DARK)
     for side in [-1,1]:
         g.ellipsoid((side*.117,-.003,0),(.013,.041,.041),DARK,segments=12,rings=8)
         g.ellipsoid((side*.128,0,.015),(.004,.012,.012),TRIM,segments=8,rings=6)
@@ -300,7 +352,7 @@ path=OUT/'aurel-people.glb'
 bpy.ops.export_scene.gltf(filepath=str(path),export_format='GLB',export_yup=True,export_animations=False,export_extras=True)
 raw=path.read_bytes();compressed=gzip.compress(raw,compresslevel=9,mtime=0);(OUT/'aurel-people.glb.gz').write_bytes(compressed);path.unlink()
 text=json.dumps(result,separators=(',',':'))+'\n';(OUT/'aurel-people.geometry.json').write_text(text)
-manifest={'version':1,'generator':result['generator'],'source':'scripts/author-people.py','editable':'scripts/aurel-people.blend',
+manifest={'version':1,'generator':result['generator'],'source':'scripts/author-people.py','sourceSHA256':hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),'editable':'scripts/aurel-people.blend',
           'exchangeSha256':hashlib.sha256(raw).hexdigest(),'exchangeCompressedBytes':len(compressed),
           'runtimeSha256':hashlib.sha256(text.encode()).hexdigest(),'runtimeBytes':len(text.encode()),
           'triangles':{k:v['triangles'] for k,v in result['meshes'].items()},'finalArtApproved':False}

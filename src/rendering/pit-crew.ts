@@ -20,6 +20,7 @@ import {
   peopleGeometry,
   leftCrewGloveGeometry,
 } from './people-asset.ts';
+import { installCrewHelmetFinish } from './crew-geometry.ts';
 import { CrewPose, installCrewSkin } from './crew-pose.ts';
 
 /** Removal requires an unloaded hub. These offsets are also consumed by the
@@ -126,6 +127,7 @@ export class PitCrewView {
     };
     this.cloth = [makeCloth('crew_high', 0), makeCloth('crew_mid', 1)];
     this.heads = this.batch(peopleGeometry('helmet'), ACTORS, 0.35, 0.08);
+    installCrewHelmetFinish(this.heads.material as T.MeshStandardMaterial);
     this.gloves = [
       this.batch(leftCrewGloveGeometry(), ACTORS, 0.85),
       this.batch(peopleGeometry('glove'), ACTORS, 0.85),

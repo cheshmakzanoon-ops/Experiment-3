@@ -128,44 +128,39 @@ export function steeringFaceGeometry() {
 /** Opaque labels are part of an original machined faceplate, not a cloned game
  * UI. A single atlas is shared by the static legends and the knob tick scales. */
 export const COCKPIT_LEGEND_FONT_PX = 30;
+export const SELECTOR_Y = -0.061;
+/** The calibrated scales use the same angle endpoints as controlAngles.
+ * Metre-to-atlas conversion avoids elliptical numbers and misplaced ticks on
+ * the wide, short physical label panel. Only the three existing controls exist. */
 export function drawControlLegends(c: CanvasRenderingContext2D) {
-  c.fillStyle = '#151e22';
+  c.fillStyle = '#111c20';
   c.fillRect(0, 0, 1024, 384);
-  c.strokeStyle = '#91a09f';
-  c.lineWidth = 2;
   c.textAlign = 'center';
   c.textBaseline = 'middle';
-  for (const [x, label] of [
-    [237, 'BIAS'],
-    [512, 'ENERGY'],
-    [787, 'DIFF'],
-  ] as const) {
-    c.font = `700 ${COCKPIT_LEGEND_FONT_PX}px Arial`;
-    c.fillStyle = '#e1e6de';
-    c.fillText(label, x, 16);
-    for (let i = 0; i <= 10; i++) {
-      const a = Math.PI * (0.75 + i * 0.15);
-      const r = 70,
-        outer = i % 5 === 0 ? 85 : 79;
+  const sx = 1024 / 0.272,
+    sy = 384 / 0.086;
+  const cy = (0.5 - (SELECTOR_Y + 0.072) / 0.086) * 384;
+  for (const [i, label] of ['BIAS', 'ENERGY', 'DIFF'].entries()) {
+    const x = 512 + (i - 1) * 0.073 * sx;
+    const limit = i === 1 ? Math.PI * 0.6 : Math.PI * 0.75;
+    const ticks = i === 1 ? 2 : 10;
+    c.strokeStyle = ['#d9c187', '#8bbbaa', '#d0d7d2'][i];
+    c.lineWidth = 2.8;
+    for (let tick = 0; tick <= ticks; tick++) {
+      const angle = -limit + (tick / ticks) * limit * 2 - Math.PI / 2;
+      const r0 = tick % 5 === 0 || i === 1 ? 0.0205 : 0.022;
       c.beginPath();
-      c.moveTo(x + Math.cos(a) * r, 119 + Math.sin(a) * r);
-      c.lineTo(x + Math.cos(a) * outer, 119 + Math.sin(a) * outer);
+      c.moveTo(x + Math.cos(angle) * r0 * sx, cy + Math.sin(angle) * r0 * sy);
+      c.lineTo(x + Math.cos(angle) * 0.0243 * sx, cy + Math.sin(angle) * 0.0243 * sy);
       c.stroke();
     }
-    c.font = '600 24px monospace';
-    c.fillText('−', x - 74, 184);
-    c.fillText('+', x + 74, 184);
+    c.fillStyle = '#e1e6de';
+    c.font = `700 ${COCKPIT_LEGEND_FONT_PX}px Arial`;
+    c.fillText(label, x, 314);
+    c.font = '600 21px monospace';
+    c.fillStyle = '#adbbb4';
+    c.fillText(['48–68', '0 / 1 / 2', '0–100'][i], x, 351);
   }
-  c.fillStyle = '#9db2ae';
-  c.font = '600 22px Arial';
-  c.fillText('APEX  /  RACE SYSTEMS', 512, 269);
-  c.font = '600 24px monospace';
-  c.fillText('A-07   •   CONTROL UNIT', 512, 308);
-  c.strokeStyle = '#bd8056';
-  c.beginPath();
-  c.moveTo(215, 231);
-  c.lineTo(809, 231);
-  c.stroke();
 }
 function controlLegends() {
   const texture = canvasTexture(1024, 384, drawControlLegends);
@@ -209,6 +204,64 @@ export function controlAngles(
     (clamp(differential, 0, 1) - 0.5) * Math.PI * 1.5,
   );
 }
+/** Closed machined ring with an actual bore; the scale is visible between
+ * the small dial and this bezel, not painted over a solid disc. */
+export function selectorBezelGeometry() {
+  const shape = new T.Shape();
+  shape.absarc(0, 0, 0.027, 0, Math.PI * 2, false);
+  const hole = new T.Path();
+  hole.absarc(0, 0, 0.0254, 0, Math.PI * 2, true);
+  shape.holes.push(hole);
+  const g = new T.ExtrudeGeometry(shape, {
+    depth: 0.002,
+    bevelEnabled: true,
+    bevelSize: 0.00025,
+    bevelThickness: 0.00025,
+    bevelSegments: 2,
+    steps: 1,
+    curveSegments: 24,
+  });
+  g.translate(0, 0, -0.001);
+  g.computeBoundingBox();
+  g.computeBoundingSphere();
+  g.name = 'Bored selector scale bezel';
+  return g;
+}
+/** Radiused selector cap, closed at both ends; the 16 retained grip ribs and
+ * existing instanced transform bank articulate with this single shared blank. */
+export function selectorCapGeometry() {
+  return new T.LatheGeometry(
+    [
+      [0, -0.007],
+      [0.0155, -0.007],
+      [0.0173, -0.0063],
+      [0.018, -0.0047],
+      [0.018, 0.0035],
+      [0.0174, 0.0055],
+      [0.015, 0.007],
+      [0, 0.007],
+    ].map(([r, y]) => new T.Vector2(r, y)),
+    32,
+  );
+}
+export function displaySurroundGeometry() {
+  const shape = roundedAperture(0.199, 0.107, 0.009);
+  const hole = new T.Path(roundedAperture(0.185, 0.093, 0.005).getPoints(12).reverse());
+  shape.holes.push(hole);
+  const g = new T.ExtrudeGeometry(shape, {
+    depth: 0.006,
+    bevelEnabled: true,
+    bevelSize: 0.0007,
+    bevelThickness: 0.0007,
+    bevelSegments: 3,
+    steps: 1,
+    curveSegments: 12,
+  });
+  g.translate(0, 0, -0.003);
+  g.computeBoundingBox();
+  g.computeBoundingSphere();
+  return g;
+}
 /** Three independently rotating dials share three material draw calls. Logical
  * frames are retained for articulation; the GPU instances consume those same
  * matrices. Bounds include every permitted Z rotation, not just the rest pose. */
@@ -217,7 +270,7 @@ export class RotarySelectors {
   readonly meshes: T.InstancedMesh[] = [];
   constructor(parent: T.Group, knurl: T.Material, rubber: T.Material, marker: T.Material) {
     const template = new T.Group();
-    const cap = mesh(template, new T.CylinderGeometry(0.015, 0.018, 0.014, 24), knurl);
+    const cap = mesh(template, selectorCapGeometry(), knurl);
     cap.rotation.x = Math.PI / 2;
     for (let tooth = 0; tooth < 16; tooth++) {
       const a = (tooth / 16) * Math.PI * 2;
@@ -233,12 +286,13 @@ export class RotarySelectors {
       );
       ridge.rotation.z = -a;
     }
-    box(template, marker, 0, 0.008, -0.008, 0.0025, 0.009, 0.001);
+    box(template, knurl, 0, 0.001, -0.008, 0.006, 0.022, 0.002);
+    box(template, marker, 0, 0.008, -0.0095, 0.0025, 0.01, 0.001);
     mergeStatic(template);
     for (let i = 0; i < 3; i++) {
       const knob = new T.Group();
       knob.name = ['Brake bias selector', 'ERS selector', 'Differential selector'][i];
-      knob.position.set((i - 1) * -0.073, -0.056, -0.025);
+      knob.position.set((i - 1) * -0.073, SELECTOR_Y, -0.025);
       parent.add(knob);
       this.selectors.push(knob);
     }
@@ -253,7 +307,7 @@ export class RotarySelectors {
       // The geometry's off-centre indicator also orbits. Enclose the full orbit
       // plus the outer dial spacing to keep both view and shadow culling valid.
       instanced.boundingSphere = new T.Sphere(
-        new T.Vector3(0, -0.056, -0.025),
+        new T.Vector3(0, SELECTOR_Y, -0.025),
         0.073 + local.center.length() + local.radius,
       );
       instanced.boundingBox = instanced.boundingSphere.getBoundingBox(new T.Box3());
@@ -304,14 +358,7 @@ export class CockpitControls {
     );
     label.rotation.y = Math.PI;
     // Display surround has a three-dimensional rubber seal, recessed screen and screws.
-    mesh(
-      staticParts,
-      plate(roundedAperture(0.199, 0.107, 0.009), 0.011, 0.002),
-      rubber,
-      0,
-      0.014,
-      -0.02,
-    );
+    mesh(staticParts, displaySurroundGeometry(), rubber, 0, 0.014, -0.02);
     for (const x of [-0.089, 0.089])
       for (const y of [-0.035, 0.063]) {
         const bolt = mesh(
@@ -324,6 +371,8 @@ export class CockpitControls {
         );
         bolt.rotation.x = Math.PI / 2;
       }
+    for (let i = 0; i < 3; i++)
+      mesh(staticParts, selectorBezelGeometry(), alloy, (i - 1) * -0.073, SELECTOR_Y, -0.02);
     this.selectorBank = new RotarySelectors(steering, knurl, rubber, marker);
     this.selectors = this.selectorBank.selectors;
     for (const side of [-1, 1]) {

@@ -1,7 +1,7 @@
 import { addSeatedRestraints } from './driver-restraints.ts';
 import { tailoredSleeve } from './driver-tailoring.ts';
 import { fingerGripCurve } from './wheel-grip.ts';
-import { bodySurfacePatch } from './car-surfaces.ts';
+import { bodySurface, bodySurfacePatch } from './car-surfaces.ts';
 import { sculptedLoft } from './bodywork.ts';
 import * as T from 'three';
 import { mesh, mergeStatic } from './geometry.ts';
@@ -88,44 +88,59 @@ export function fingerGeometry(side: number, finger: number) {
   return geometry;
 }
 
+/** The dorsal shell sits behind the suede, not inside its cylinder. Finger
+ * contact curves and the articulated distal index remain independent. The
+ * proximal rows enter this continuous metacarpal volume instead of appearing
+ * as four disconnected horizontal tubes in the driver's view. */
+export const GLOVE_PALM_SECTIONS = Object.freeze([
+  [-0.055, 0.032, 0.016, 0.01],
+  [-0.043, 0.03, 0.021, 0.012],
+  [-0.015, 0.028, 0.029, 0.016],
+  [0.014, 0.026, 0.031, 0.014],
+  [0.032, 0.024, 0.03, 0.012],
+  [0.045, 0.022, 0.021, 0.01],
+] as const);
+export function glovePalmGeometry() {
+  const g = sculptedLoft(GLOVE_PALM_SECTIONS, 0, 0.45);
+  g.rotateX(-Math.PI / 2);
+  g.name = 'Continuous dorsal glove shell';
+  return g;
+}
 export function buildGlove(side: number, m: Materials) {
+  if (side !== -1 && side !== 1) throw new Error('Invalid glove handedness');
   const root = new T.Group(),
     fixed = new T.Group(),
     index = new T.Group(),
     thumb = new T.Group();
   root.name = side < 0 ? 'Right anatomical glove' : 'Left anatomical glove';
   root.add(fixed);
-  const palmSections = [
-    [-0.053, 0.003, 0.014, 0.01],
-    [-0.041, 0.002, 0.021, 0.016],
-    [-0.012, 0.001, 0.028, 0.022],
-    [0.013, 0, 0.029, 0.023],
-    [0.037, 0.003, 0.025, 0.019],
-    [0.045, 0.004, 0.017, 0.012],
-  ] as const;
-  const palmGeometry = sculptedLoft(palmSections, 0, 0.45);
-  palmGeometry.rotateX(-Math.PI / 2);
-  mesh(fixed, palmGeometry, m.glove);
+  mesh(fixed, glovePalmGeometry(), m.glove);
   const back = bodySurfacePatch(
-    palmSections,
-    { z0: -0.036, z1: 0.031, u0: 0.3, u1: 0.7 },
+    GLOVE_PALM_SECTIONS,
+    { z0: -0.04, z1: 0.027, u0: 0.38, u1: 0.62 },
     0,
     0.45,
-    0.0008,
-    12,
+    0.0006,
     16,
+    12,
   );
   back.rotateX(-Math.PI / 2);
   mesh(fixed, back, m.panel);
-  const palmGrip = bodySurfacePatch(
-    palmSections,
-    { z0: -0.031, z1: 0.024, u0: 0.04, u1: 0.23 },
-    0,
-    0.45,
-    0.0008,
-  );
-  palmGrip.rotateX(-Math.PI / 2);
-  mesh(fixed, palmGrip, m.grip);
+  // Paired sewn welts are evaluated on the actual dorsal surface. A planar
+  // loop at the old depth would now disappear inside the palm or float above it.
+  for (const u of [0.377, 0.623]) {
+    const points = Array.from({ length: 25 }, (_, i) =>
+      bodySurface(GLOVE_PALM_SECTIONS, -0.04 + (i / 24) * 0.067, u, 0, 0.45, 0.0009).applyAxisAngle(
+        new T.Vector3(1, 0, 0),
+        -Math.PI / 2,
+      ),
+    );
+    mesh(
+      fixed,
+      new T.TubeGeometry(new T.CatmullRomCurve3(points), 24, 0.00028, 5, false),
+      m.stitch,
+    );
+  }
   // A fitted, flattened gauntlet overlaps the suit's wrist anchor. It is not
   // a rigid circular pipe around an otherwise anatomical palm.
   const cuffGeometry = sculptedLoft(
@@ -162,26 +177,9 @@ export function buildGlove(side: number, m: Materials) {
   );
   closure.rotation.z = side * 0.24;
   closure.scale.z = 0.38;
-  const seamPoints = Array.from({ length: 17 }, (_, i) => {
-    const a = (i / 16) * Math.PI * 2;
-    return new T.Vector3(Math.cos(a) * 0.023, -0.003 + Math.sin(a) * 0.036, -0.0233);
-  });
-  mesh(
-    fixed,
-    new T.TubeGeometry(new T.CatmullRomCurve3(seamPoints, true), 40, 0.00035, 5, true),
-    m.stitch,
-  );
   for (let finger = 0; finger < 4; finger++) {
+    // Keep the original near-grip and paddle contacts, including index topology.
     mesh(finger === 0 ? index : fixed, fingerGeometry(side, finger), m.glove);
-    const knuckle = mesh(
-      fixed,
-      new T.SphereGeometry(1, 12, 8),
-      m.panel,
-      side * 0.018,
-      0.028 - finger * 0.018,
-      -0.024,
-    );
-    knuckle.scale.set(0.009, 0.006, 0.003);
   }
   // One continuous opposed thumb with a flattened distal pad, rather than a
   // sphere glued to a capsule. Its base remains buried in the palm while the

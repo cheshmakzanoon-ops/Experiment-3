@@ -1,11 +1,16 @@
-name: Author original Aurel people assets
+name: Verify original driver and Aurel people assets
 on:
   push:
     branches: [main]
-    paths: [scripts/author-people.py, .github/workflows/people-assets.yml]
+    paths:
+      - scripts/author-driver.py
+      - scripts/author-people.py
+      - src/rendering/apx01-driver.*
+      - src/rendering/aurel-people.*
+      - .github/workflows/people-assets.yml
   workflow_dispatch:
 permissions:
-  contents: write
+  contents: read
 concurrency:
   group: aurel-people-authoring
   cancel-in-progress: false
@@ -15,60 +20,43 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: npm
       - run: npm ci --no-audit --no-fund
-      - name: Install checksum-verified Blender 4.5.1
+      - name: Install the exact checksum-verified authoring toolchain
         shell: bash
         run: |
           set -euo pipefail
           cd "$RUNNER_TEMP"
-          curl --fail --location --retry 3 -o blender.tar.xz https://download.blender.org/release/Blender4.5/blender-4.5.1-linux-x64.tar.xz
-          curl --fail --location --retry 3 -o blender.sha256 https://download.blender.org/release/Blender4.5/blender-4.5.1.sha256
-          expected=$(grep 'blender-4.5.1-linux-x64.tar.xz$' blender.sha256 | awk '{print $1}')
-          test "${#expected}" = 64
-          printf '%s  blender.tar.xz\n' "$expected" | sha256sum -c -
+          curl --fail --location --retry 3 --max-time 240 -o blender.tar.xz https://download.blender.org/release/Blender5.2/blender-5.2.2-linux-x64.tar.xz
+          echo '84098912789dc450e95697c4184fb8a90acbe5111c2ba4aede3fecb57806a168  blender.tar.xz' | sha256sum --check
           tar -xf blender.tar.xz
-          echo "$RUNNER_TEMP/blender-4.5.1-linux-x64" >> "$GITHUB_PATH"
-      - name: Correct the Blender vector-property spelling in the authored source
+          echo "$RUNNER_TEMP/blender-5.2.2-linux-x64" >> "$GITHUB_PATH"
+      - name: Regenerate from the committed authors without rewriting their source
         run: |
-          python - <<'PY'
-          from pathlib import Path
-          p = Path('scripts/author-people.py')
-          source = p.read_text()
-          source = source.replace('axis.length_squared()', 'axis.length_squared')
-          p.write_text(source)
-          PY
-      - name: Author editable human meshes and matching runtime data
-        run: blender --background --python-exit-code 1 --python scripts/author-people.py
-      - name: Preserve authored outputs and locked local validation dependencies
-        shell: bash
+          blender --background --python-exit-code 1 --python scripts/author-driver.py
+          blender --background --python-exit-code 1 --python scripts/author-people.py
+      - name: Require byte-identical game assets and source-bound manifests
         run: |
-          set -euo pipefail
-          tar -czf "$RUNNER_TEMP/aurel-people-assets.tar.gz" scripts/author-people.py scripts/aurel-people.blend src/rendering/aurel-people.glb.gz src/rendering/aurel-people.geometry.json src/rendering/aurel-people.manifest.json
-          tar -czf "$RUNNER_TEMP/aurel-locked-node.tar.gz" node_modules
-      - uses: actions/upload-artifact@v4
+          git diff --exit-code -- scripts/author-driver.py scripts/author-people.py src/rendering/apx01-driver.glb.gz src/rendering/apx01-driver.manifest.json src/rendering/aurel-people.glb.gz src/rendering/aurel-people.geometry.json src/rendering/aurel-people.manifest.json
+          npx vitest run tests/driver-asset.test.ts tests/people.test.ts tests/character-quality.test.ts
+      - name: Preserve editable outputs for inspection, never auto-push replacements
+        if: always()
+        uses: actions/upload-artifact@v4
         with:
           name: aurel-people-authoring
           path: |
-            ${{ runner.temp }}/aurel-people-assets.tar.gz
-            ${{ runner.temp }}/aurel-locked-node.tar.gz
+            scripts/apx01-driver.blend
+            scripts/aurel-people.blend
+            src/rendering/apx01-driver.glb.gz
+            src/rendering/apx01-driver.manifest.json
+            src/rendering/aurel-people.glb.gz
+            src/rendering/aurel-people.geometry.json
+            src/rendering/aurel-people.manifest.json
           retention-days: 7
           if-no-files-found: error
-      - name: Commit only generated people assets without overwriting concurrent work
-        shell: bash
-        run: |
-          set -euo pipefail
-          git fetch origin main
-          test "$(git rev-parse origin/main)" = "$GITHUB_SHA"
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add scripts/author-people.py scripts/aurel-people.blend src/rendering/aurel-people.glb.gz src/rendering/aurel-people.geometry.json src/rendering/aurel-people.manifest.json
-          if git diff --cached --quiet; then exit 0; fi
-          git commit -m 'art: retain Blender-authored Aurel crew and spectator meshes'
-          git push origin HEAD:main
-          test "$(git ls-remote origin refs/heads/main | cut -f1)" = "$(git rev-parse HEAD)"
+# Editable .blend files include host/project metadata; runtime GLB, geometry and
+# manifests must be byte-identical. This read-only job cannot race a main update
+# or replace accepted 5.2.2 assets with the former 4.5.1 export on an author edit.

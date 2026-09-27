@@ -110,3 +110,32 @@ export function installCrewFabric(material: T.MeshStandardMaterial) {
   material.customProgramCacheKey = () => `${key}|aurel-tailored-crew-v2-filtered-weave`;
   return material;
 }
+
+/** The authored lens vertices have a dedicated blue-black pigment. Read that
+ * immutable attribute before instance tint; shell, headset and visor can then
+ * retain separate roughness in the same existing head submission. */
+export function installCrewHelmetFinish(material: T.MeshStandardMaterial) {
+  if (material.userData.authoredHelmetFinish) return material;
+  material.userData.authoredHelmetFinish = true;
+  const previous = material.onBeforeCompile,
+    key = material.customProgramCacheKey();
+  material.onBeforeCompile = (shader, renderer) => {
+    previous.call(material, shader, renderer);
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <common>', '#include <common>\nvarying float vCrewLens;')
+      .replace(
+        '#include <begin_vertex>',
+        `#include <begin_vertex>
+        vCrewLens=(1.-step(.021,color.r))*step(.030,color.g)*step(.039,color.b);`,
+      );
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <common>', '#include <common>\nvarying float vCrewLens;')
+      .replace(
+        '#include <roughnessmap_fragment>',
+        `#include <roughnessmap_fragment>
+        roughnessFactor=mix(roughnessFactor,.17,clamp(vCrewLens,0.,1.));`,
+      );
+  };
+  material.customProgramCacheKey = () => `${key}|aurel-authored-helmet-lens-v1`;
+  return material;
+}

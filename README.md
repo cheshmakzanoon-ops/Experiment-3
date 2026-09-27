@@ -1,3 +1,9 @@
+## Driver and service-character construction
+
+Continuous glove backs, authored suit folds, inset wheel controls and fitted crew
+visors extend the existing Three.js race. See [scope, measured component costs and
+independent acceptance gates](docs/CHARACTER_QUALITY.md).
+
 ## Aurel race-readability candidate
 
 Compact-screen telemetry, full-service camera sightline probes and bounded

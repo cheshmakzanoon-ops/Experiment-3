@@ -285,7 +285,14 @@ it('keeps readable selector labels in the existing bounded atlas, without changi
     },
   };
   drawControlLegends(context as unknown as CanvasRenderingContext2D);
-  expect(labels.slice(0, 3).map((x) => x.text)).toEqual(['BIAS', '−', '+']);
+  expect(labels.map((x) => x.text)).toEqual([
+    'BIAS',
+    '48–68',
+    'ENERGY',
+    '0 / 1 / 2',
+    'DIFF',
+    '0–100',
+  ]);
   const headings = labels.filter((x) => ['BIAS', 'ENERGY', 'DIFF'].includes(x.text));
   expect(headings).toHaveLength(3);
   for (const heading of headings)

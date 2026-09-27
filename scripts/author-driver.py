@@ -131,10 +131,12 @@ for side,label in [(-1,'R'),(1,'L')]:
         tangent=upper.lerp(lower,turn).normalized();depth=across.cross(tangent).normalized()
         if distance<=UPPER:
             rx=mix(.055,.041,smooth(f));rz=mix(.048,.038,smooth(f))
-            rx+=.010*math.sin(math.pi*f)**2
+            rx+=.014*math.sin(math.pi*f)**2
+            rz+=.003*math.sin(math.pi*f)**2
         else:
             rx=mix(.041,.027,smooth(f));rz=mix(.038,.026,smooth(f))
-            rx+=.007*math.sin(math.pi*f)**2
+            rx+=.011*math.sin(math.pi*f)**2
+            rz+=.002*math.sin(math.pi*f)**2
         # Root weighting stays inside the broad deltoid; elbow receives its own
         # rotation instead of collapsing under opposing linear skin weights.
         root_mix=1-smooth(distance/.072)
@@ -148,13 +150,19 @@ for side,label in [(-1,'R'),(1,'L')]:
             angle=(j%sides)/sides*math.tau;ca=math.cos(angle);sa=math.sin(angle)
             joint=math.exp(-((distance-UPPER)/.105)**2)
             compression=max(0.,(across*ca+depth*sa).dot(inside))**2
-            fan=(.0018*math.sin(distance*118+ca*1.7)+.00065*math.sin(distance*191-sa*2))*joint*(.2+.8*compression)
+            # Compression fans cross the inside elbow; tension ridges run along
+            # the outer forearm. Both die away at shoulder/cuff hardpoints.
+            envelope=math.sin(math.pi*row/rows)**2
+            fan=(.0031*math.sin(distance*118+ca*1.7)+.0009*math.sin(distance*191-sa*2))*joint*(.15+.85*compression)
+            fan+=.0011*math.sin(angle*5+distance*11)*envelope*(1-joint)*smooth((distance-.38)/.16)
+            # Short knitted cuff ribs, with an unchanged terminal ring.
+            fan+=.0012*math.sin(distance*360)*math.exp(-((distance-.689)/.025)**2)*envelope
             seam=.00065*math.exp(-(math.sin(angle-.65)/.09)**2)*math.sin(math.pi*row/rows)**2
             p=centre+across*(ca*(rx+fan+seam))+depth*(sa*(rz+fan))
             verts.append(tuple(p));uv.append((j/sides,row/rows*2));weights.append(blend.copy())
             panel=smooth((math.cos(angle-side*.5)-.3)/.4)*smooth((distance-.12)/.15)
             cream=smooth((.13-distance)/.09)
-            colour=Vector((.25,.38,.40)).lerp(Vector((.027,.051,.065)),panel*.82)
+            colour=Vector((.11,.195,.215)).lerp(Vector((.027,.051,.065)),panel*.82)
             colour=colour.lerp(Vector((.68,.70,.62)),cream*.85)
             # A stitched forearm panel has an actual bounded cloth colour, not
             # an emissive highlight; it follows the same skinned vertices.
@@ -183,17 +191,100 @@ for obj in list(bpy.data.objects):
         n=sum((normals[i] for i in ids),Vector()).normalized()
         for i in ids:normals[i]=n
     obj.data.normals_split_custom_set_from_vertices(normals);obj.select_set(False)
-rig['apex_character_revision']='27H-graphics-closure-seated-suit-2'
+rig['apex_character_revision']='27H-cockpit-tailoring-seated-suit-3'
 rig['apex_driver_bones']=','.join(BONES)
+def canonical_driver_glb(blob):
+    """Remove host-SIMD joint decomposition noise without rounding mesh data.
+
+    Only joint rotations/scales are canonicalized (1e-6 before quaternion
+    normalization). Matching inverse bind matrices are recomputed in Python's
+    double precision, then written as glTF float32. Positions, normals, colours,
+    UVs, indices, weights, joint indices and literal translations are untouched.
+    """
+    import json, math, struct
+    if len(blob)<28 or struct.unpack_from('<III',blob)!=(0x46546c67,2,len(blob)):
+        raise ValueError('Expected a complete GLB 2 container')
+    size,kind=struct.unpack_from('<II',blob,12)
+    if kind!=0x4e4f534a: raise ValueError('Expected JSON first')
+    document=json.loads(blob[20:20+size])
+    start=20+size
+    n,kind=struct.unpack_from('<II',blob,start)
+    if kind!=0x004e4942 or start+8+n!=len(blob): raise ValueError('Expected one BIN chunk')
+    data=bytearray(blob[start+8:])
+    nodes=document['nodes'];parents={}
+    for i,node in enumerate(nodes):
+        for child in node.get('children',[]):
+            if child in parents: raise ValueError('Joint graph has multiple parents')
+            parents[child]=i
+    identity=[[float(r==c) for c in range(4)] for r in range(4)]
+    def multiply(a,b):
+        return [[sum(a[r][k]*b[k][c] for k in range(4)) for c in range(4)] for r in range(4)]
+    def local(node):
+        if 'matrix' in node: raise ValueError('Driver rig requires explicit TRS')
+        x,y,z,w=node.get('rotation',[0.,0.,0.,1.]);sx,sy,sz=node.get('scale',[1.,1.,1.])
+        tx,ty,tz=node.get('translation',[0.,0.,0.])
+        return [[(1-2*(y*y+z*z))*sx,2*(x*y-z*w)*sy,2*(x*z+y*w)*sz,tx],
+                [2*(x*y+z*w)*sx,(1-2*(x*x+z*z))*sy,2*(y*z-x*w)*sz,ty],
+                [2*(x*z-y*w)*sx,2*(y*z+x*w)*sy,(1-2*(x*x+y*y))*sz,tz],
+                [0.,0.,0.,1.]]
+    joints={i for skin in document['skins'] for i in skin['joints']}
+    for i in joints:
+        node=nodes[i]
+        if 'rotation' in node:
+            q=[round(float(v),6) for v in node['rotation']]
+            length=math.sqrt(sum(v*v for v in q))
+            if not math.isfinite(length) or length<.99: raise ValueError('Invalid joint quaternion')
+            node['rotation']=[v/length for v in q]
+        if 'scale' in node:
+            node['scale']=[round(float(v),6) for v in node['scale']]
+            if any(not math.isfinite(v) or v<=0 for v in node['scale']): raise ValueError('Invalid joint scale')
+    cache={};visiting=set()
+    def world(i):
+        if i in cache:return cache[i]
+        if i in visiting:raise ValueError('Cyclic joint graph')
+        visiting.add(i)
+        matrix=multiply(world(parents[i]) if i in parents else identity,local(nodes[i]))
+        visiting.remove(i);cache[i]=matrix
+        return matrix
+    def inverse(matrix):
+        a=[row[:]+identity[r][:] for r,row in enumerate(matrix)]
+        for c in range(4):
+            pivot=max(range(c,4),key=lambda r:abs(a[r][c]))
+            if abs(a[pivot][c])<1e-12:raise ValueError('Singular bind matrix')
+            a[c],a[pivot]=a[pivot],a[c]
+            divisor=a[c][c];a[c]=[v/divisor for v in a[c]]
+            for r in range(4):
+                if r!=c:
+                    factor=a[r][c];a[r]=[v-factor*w for v,w in zip(a[r],a[c])]
+        return [row[4:] for row in a]
+    for skin in document['skins']:
+        accessor=document['accessors'][skin['inverseBindMatrices']]
+        view=document['bufferViews'][accessor['bufferView']]
+        if accessor['componentType']!=5126 or accessor['type']!='MAT4' or accessor['count']!=len(skin['joints']) or 'sparse' in accessor or view.get('byteStride',64)!=64 or view.get('buffer',0)!=0:
+            raise ValueError('Unexpected inverse-bind storage')
+        offset=view.get('byteOffset',0)+accessor.get('byteOffset',0)
+        if offset+64*accessor['count']>len(data):raise ValueError('Bind storage exceeds BIN')
+        for index,joint in enumerate(skin['joints']):
+            matrix=inverse(world(joint));values=[matrix[r][c] for c in range(4) for r in range(4)]
+            original=struct.unpack_from('<16f',data,offset+index*64)
+            if max(abs(a-b) for a,b in zip(original,values))>2e-6:
+                raise ValueError('Canonicalization exceeds the driver bind precision budget')
+            struct.pack_into('<16f',data,offset+index*64,*values)
+    encoded=json.dumps(document,separators=(',',':'),ensure_ascii=False,allow_nan=False).encode()
+    encoded+=b' '*((-len(encoded))%4)
+    return (struct.pack('<III',0x46546c67,2,28+len(encoded)+len(data))+
+            struct.pack('<II',len(encoded),0x4e4f534a)+encoded+
+            struct.pack('<II',len(data),0x004e4942)+data)
+
 # Retain the editable source, with named vertex groups and no baked pose.
 bpy.ops.wm.save_as_mainfile(filepath=str(ROOT/'scripts/apx01-driver.blend'),compress=True)
 raw=OUT/'apx01-driver.glb'
 bpy.ops.export_scene.gltf(filepath=str(raw),export_format='GLB',export_animations=False,export_skins=True,
                          export_yup=True,export_extras=True,export_materials='EXPORT',export_texcoords=True,
                          export_normals=True,export_all_influences=False)
-blob=raw.read_bytes();packed=bytearray(gzip.compress(blob,compresslevel=9,mtime=0));packed[9]=255
+blob=canonical_driver_glb(raw.read_bytes());packed=bytearray(gzip.compress(blob,compresslevel=9,mtime=0));packed[9]=255
 (OUT/'apx01-driver.glb.gz').write_bytes(packed);raw.unlink()
-manifest={'revision':'27H-graphics-closure-seated-suit-2','bytes':len(blob),'sha256':hashlib.sha256(blob).hexdigest(),
+manifest={'sourceSHA256':hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),'revision':'27H-cockpit-tailoring-seated-suit-3','bytes':len(blob),'sha256':hashlib.sha256(blob).hexdigest(),
           'compressedBytes':len(packed),'compressedSHA256':hashlib.sha256(packed).hexdigest(),
           'bones':BONES,'roles':['suit_torso','r_sleeve','l_sleeve'],'rest':rest,'torsoProfile':profile,
           'maxVertices':18000,'maxTriangles':20000,'maxRawBytes':1500000,'blenderVersion':bpy.app.version_string}
