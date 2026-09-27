@@ -19,14 +19,21 @@ jobs:
           fetch-depth: 1
       - name: Receive hash-pinned player changes without overwriting concurrent edits
         env:
-          TRANSFER_URL: 'https://sdmntprnorthcentralus.oaiusercontent.com/files/00000000-69bc-822f-ba04-704a7c263c68/raw?se=2026-09-27T19%3A53%3A50Z&sp=r&sv=2026-02-06&sr=b&scid=03f8ea63-0c01-596f-8cf8-44bc0399d31b&skoid=fae15675-a81a-44b5-9d8c-d8445a7c26a2&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-09-27T15%3A24%3A17Z&ske=2026-09-28T15%3A24%3A17Z&sks=b&skv=2026-02-06&sig=x01yHkSUezW0Q%2BbknPpvF2me9cC7Tq/AUl3txmFDSGg%3D'
+          TRANSFER_URL: 'https://sdmntprnorthcentralus.oaiusercontent.com/files/00000000-8ebc-822f-a2c4-005b69da59b2/raw?se=2026-09-27T19%3A58%3A02Z&sp=r&sv=2026-02-06&sr=b&scid=c3551fe6-eb18-542e-a982-88470f72e353&skoid=fae15675-a81a-44b5-9d8c-d8445a7c26a2&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-09-27T18%3A13%3A25Z&ske=2026-09-28T18%3A13%3A25Z&sks=b&skv=2026-02-06&sig=rXJmAFgxXpOa1pbqTicCK5hjEM3W5XljMDTDWP9HsPM%3D'
         run: |
           python - <<'PY'
-          import hashlib, json, os, pathlib, urllib.request, zipfile
+          import hashlib, json, os, pathlib, urllib.request, urllib.error, zipfile, shutil
           url = os.environ['TRANSFER_URL']
-          print('::add-mask::' + url)
+          print('::add-mask::' + url, flush=True)
           archive = pathlib.Path(os.environ['RUNNER_TEMP']) / 'supplied-player-transfer.zip'
-          urllib.request.urlretrieve(url, archive)
+          request = urllib.request.Request(url, headers={'User-Agent': 'Experiment3-Authorized-Asset-Import/1.0', 'Accept': 'application/zip, application/octet-stream'})
+          try:
+              with urllib.request.urlopen(request, timeout=120) as response, archive.open('wb') as out:
+                  shutil.copyfileobj(response, out)
+          except urllib.error.HTTPError as error:
+              print('Asset download HTTP status:', error.code)
+              print('Asset download response:', error.read(4096).decode('utf-8', errors='replace').replace(url, '[redacted asset URL]'))
+              raise SystemExit(1)
           assert archive.stat().st_size == 36368632
           assert hashlib.sha256(archive.read_bytes()).hexdigest() == 'fc32ab8fc6b098a100321531bcef72cf36efa6d856ca4d706f675d1ef8c87f37'
           allowed = {'README.md', 'docs/SUPPLIED_PLAYER.md', 'docs/SUPPLIED_PLAYER_BUILD.json', 'scripts/build-supplied-player.py', 'src/rendering/car.ts', 'src/rendering/renderer.ts', 'src/rendering/photo-subject.ts', 'src/rendering/supplied-player.ts', 'src/rendering/supplied-player.manifest.json', 'public/models/supplied-player.glb.gz', 'tests/supplied-player.test.ts', 'e2e/24-coupled-driver.spec.ts', 'e2e/39-supplied-player.spec.ts', 'e2e/fixtures/supplied-player.ts'}
@@ -56,6 +63,7 @@ jobs:
           cache: npm
       - run: npm ci --no-audit --no-fund
       - name: Lint, all unit tests and production build
+        shell: bash
         run: npm run check 2>&1 | tee "$RUNNER_TEMP/player-checks.log"
       - name: Install browser
         run: npx playwright install --with-deps chromium
