@@ -412,6 +412,12 @@ test('27H.6 populated pit journey: approach, real service, exit and complete rep
   const service = await read(page);
   expect(service.renderer?.raceComposition.kind).toBe('pit');
   expect(service.renderer!.broadcastSubjectRadius).toBeCloseTo(PIT_SERVICE_RADIUS, 6);
+  // Read the lens actually used for this recorded service, not only a geometric
+  // fits flag. Telephoto inspection must also retain the authored near cloth.
+  expect(service.renderer!.broadcastSubjectScreenFraction).toBeGreaterThan(0.68);
+  expect(service.renderer!.broadcastSubjectScreenFraction).toBeLessThanOrEqual(0.73);
+  expect(service.renderer!.pitPersonnel.nearActors).toBeGreaterThanOrEqual(15);
+  expect(service.renderer!.broadcastFov).toBeLessThan(24);
   expect(service.renderer!.broadcastSubjectSampleCount).toBe(9);
   expect(service.renderer!.broadcastSubjectWithinRange).toBe(true);
   // Boundaries are probes, not an artistic approval or proof of every actor pixel.

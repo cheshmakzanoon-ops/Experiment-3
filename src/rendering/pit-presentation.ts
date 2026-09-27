@@ -73,6 +73,27 @@ export class PitComposition {
   }
 }
 
+/** Keep the authored near cloth when a distant service is optically enlarged.
+ * Physical culling still uses metres. The equivalent distance is normalized to
+ * the existing 58-degree driving lens and never reduces traditional detail. */
+export function pitCrewDetail(distance: number, fov = 58, aspect = 16 / 9): 0 | 1 {
+  if (
+    !Number.isFinite(distance) ||
+    distance < 0 ||
+    !Number.isFinite(fov) ||
+    fov <= 0 ||
+    fov >= 180 ||
+    !Number.isFinite(aspect) ||
+    aspect <= 0
+  )
+    throw new Error('Invalid pit crew lens');
+  const magnificationScale = Math.min(
+    1,
+    (Math.tan((fov * Math.PI) / 360) * Math.min(1, aspect)) / Math.tan((58 * Math.PI) / 360),
+  );
+  return distance * magnificationScale < 45 ? 0 : 1;
+}
+
 const TRANSFORM = [F.X, F.Y, F.Z, F.QX, F.QY, F.QZ, F.QW, F.JACK_HEIGHT] as const;
 const CAPACITY = 12;
 /** Exact, bounded comparison of the values consumed by crew poses. Inactive
@@ -88,7 +109,8 @@ export class PitPoseCache {
   private readonly position = new Vector3();
   builds = 0;
   reuses = 0;
-  prepare(frame: Float32Array, camera: Vector3, visible: boolean) {
+  prepare(frame: Float32Array, camera: Vector3, visible: boolean, fov = 58, aspect = 16 / 9) {
+    pitCrewDetail(0, fov, aspect); // Reject invalid optics even with no active crew.
     const count = frame[H.CARS];
     if (
       !Number.isInteger(count) ||
@@ -112,7 +134,7 @@ export class PitPoseCache {
       this.position.set(frame[o + F.X], frame[o + F.Y], frame[o + F.Z]);
       const distance = this.position.distanceTo(camera);
       if (distance > PIT_CREW_MAX_DISTANCE) continue;
-      const level = distance < 45 ? 0 : 1;
+      const level = pitCrewDetail(distance, fov, aspect);
       this.levels[id] = level;
       this.next[n++] = id;
       this.next[n++] = level;

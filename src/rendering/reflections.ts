@@ -39,21 +39,44 @@ export class ReflectionSystem {
     return camera;
   });
   private nextTarget = 0;
-  private originalMaps = new Map<T.MeshStandardMaterial, T.Texture | null>();
+  private originalMaps = new Map<
+    T.MeshStandardMaterial,
+    {
+      texture: T.Texture | null;
+      intensity: number;
+    }
+  >();
+  private capturedCar: T.Object3D | null = null;
   private probeActive = false;
   get localProbeActive() {
     return this.probeActive;
   }
   private restoreEnvironment() {
-    for (const [material, texture] of this.originalMaps) {
-      material.envMap = texture;
+    for (const [material, original] of this.originalMaps) {
+      material.envMap = original.texture;
+      material.envMapIntensity = original.intensity;
       material.needsUpdate = true;
     }
     this.originalMaps.clear();
     this.probeActive = false;
+    this.capturedCar = null;
     this.lastProbe = -Infinity;
   }
+  /** Sky-only IBL uses the authored gain. A completed local cubemap already
+   * contains lit scene radiance, so applying that gain again also darkens every
+   * lamp and lit building (by 12.5x on an overcast night). Keep the fallback gain
+   * current while a probe owns the map, and restore it on disable/subject change. */
+  setSkyIntensity(materials: readonly T.MeshStandardMaterial[], intensity: number) {
+    if (!Number.isFinite(intensity) || intensity < 0)
+      throw new Error('Invalid sky environment intensity');
+    for (const material of materials) {
+      const original = this.originalMaps.get(material);
+      if (original) original.intensity = intensity;
+      material.envMapIntensity = original ? 1 : intensity;
+    }
+  }
   attachMirrors(surfaces: readonly T.Mesh[]) {
+    for (const mirror of this.surfaces) mirror.visible = false;
     this.surfaces = [...surfaces];
     this.views.bind(surfaces);
   }
@@ -90,13 +113,25 @@ export class ReflectionSystem {
     materials: readonly T.MeshStandardMaterial[],
     high: boolean,
     intervalSeconds = 1.5,
+    skyScale?: { value: number },
   ) {
+    if (this.activePass) return;
     if (!high) {
       if (this.probeActive) this.restoreEnvironment();
       return;
     }
     if (!Number.isFinite(intervalSeconds) || intervalSeconds < 0.25 || intervalSeconds > 5)
       throw new Error('Invalid reflection probe interval');
+    if (
+      skyScale &&
+      (!Number.isFinite(skyScale.value) ||
+        !Number.isFinite(scene.environmentIntensity) ||
+        scene.environmentIntensity < 0)
+    )
+      throw new Error('Invalid probe sky radiance');
+    // Photo/replay inspection can select another real car at the SAME instant.
+    // Never keep the first car's map owners or let cadence retain its location.
+    if (this.capturedCar && this.capturedCar !== car) this.restoreEnvironment();
     // A paused lighting/weather-bin change must not retain a daytime cubemap.
     // PMREM identity changes discretely, unlike continuously changing exposure:
     // keying on intensity would force an expensive capture on every wet frame.
@@ -116,21 +151,47 @@ export class ReflectionSystem {
     const scissor = renderer.getScissor(new T.Vector4());
     const scissorTest = renderer.getScissorTest();
     const xr = renderer.xr.enabled;
+    const priorSkyScale = skyScale?.value;
+    const mipmaps = cube.renderTarget.texture.generateMipmaps;
+    // Capture one scene-radiance bounce, not a history of previously captured
+    // reflections. In particular, the wet road must not feed the prior probe
+    // back into the next one: that made identical replay seeks history-dependent.
+    const previousMaps = [...this.originalMaps].map(([material, original]) => ({
+      material,
+      original,
+      texture: material.envMap,
+      intensity: material.envMapIntensity,
+    }));
     this.activePass = true;
     try {
       this.mirrors.forEach((mirror) => {
         mirror.visible = false;
       });
       car.visible = false;
+      for (const { material, original } of previousMaps) {
+        material.envMap = original.texture;
+        material.envMapIntensity = original.intensity;
+      }
       renderer.shadowMap.autoUpdate = false;
       renderer.setScissorTest(false);
+      // Scale only the visible skydome contribution by the sky IBL gain.
+      // Lit scenery/emissive objects are already radiance and remain unscaled.
+      // The ordinary visible sky is restored even if a cube face throws.
+      if (skyScale) skyScale.value = scene.environmentIntensity;
       cube.position.copy(car.position);
       cube.position.y += 1.5;
       cube.update(renderer, scene);
       this.probeUpdates++;
       this.lastProbe = this.clock;
       this.capturedEnvironment = environmentIdentity;
+      this.capturedCar = car;
     } finally {
+      if (skyScale) skyScale.value = priorSkyScale!;
+      cube.renderTarget.texture.generateMipmaps = mipmaps;
+      for (const { material, texture, intensity } of previousMaps) {
+        material.envMap = texture;
+        material.envMapIntensity = intensity;
+      }
       car.visible = visible;
       renderer.shadowMap.autoUpdate = shadows;
       renderer.xr.enabled = xr;
@@ -148,10 +209,14 @@ export class ReflectionSystem {
     const texture = this.cubeTargets[this.nextTarget].texture;
     for (const material of materials) {
       if (!this.originalMaps.has(material)) {
-        this.originalMaps.set(material, material.envMap);
+        this.originalMaps.set(material, {
+          texture: material.envMap,
+          intensity: material.envMapIntensity,
+        });
         material.needsUpdate = true;
       }
       material.envMap = texture;
+      material.envMapIntensity = 1;
     }
     this.probeActive = true;
     this.nextTarget = 1 - this.nextTarget;

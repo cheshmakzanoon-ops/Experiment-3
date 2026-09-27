@@ -175,3 +175,128 @@ it('keeps studio softboxes in every probe face but out of all ordinary camera vi
     }
   });
 });
+
+it('preserves completed scene radiance and restores the latest sky fallback gain', () => {
+  const reflection = new ReflectionSystem(),
+    { gl } = fixture(),
+    scene = new T.Scene();
+  const car = new T.Group(),
+    original = new T.Texture();
+  const material = new T.MeshStandardMaterial({ envMap: original, envMapIntensity: 0.08 });
+  vi.spyOn(T.CubeCamera.prototype, 'update').mockImplementation(() => undefined);
+  reflection.beginFrame(10, false);
+  reflection.setSkyIntensity([material], 0.08);
+  reflection.updateProbe(gl, scene, car, [material], true);
+  const map = material.envMap;
+  expect(material.envMapIntensity).toBe(1);
+  reflection.setSkyIntensity([material], 0.07);
+  expect(material.envMapIntensity).toBe(1);
+  expect(material.envMap).toBe(map);
+  reflection.updateProbe(gl, scene, car, [material], false);
+  expect(material.envMap).toBe(original);
+  expect(material.envMapIntensity).toBe(0.07);
+  reflection.dispose();
+  material.dispose();
+  original.dispose();
+});
+it('captures no previous local bounce and restores sky, maps and mipmaps after a failed face', () => {
+  const reflection = new ReflectionSystem(),
+    { gl } = fixture(),
+    scene = new T.Scene();
+  scene.environmentIntensity = 0.08;
+  const car = new T.Group(),
+    material = new T.MeshStandardMaterial({ envMapIntensity: 0.08 });
+  const sky = { value: 1 };
+  let broken: T.Texture | undefined;
+  const capture = vi.spyOn(T.CubeCamera.prototype, 'update').mockImplementation(function (
+    this: T.CubeCamera,
+  ) {
+    expect(sky.value).toBe(0.08);
+    expect(material.envMap).toBe(null);
+    expect(material.envMapIntensity).toBe(0.08);
+  });
+  reflection.beginFrame(10, false);
+  reflection.updateProbe(gl, scene, car, [material], true, 0.55, sky);
+  const complete = material.envMap;
+  expect(sky.value).toBe(1);
+  capture.mockImplementation(function (this: T.CubeCamera) {
+    expect(material.envMap).toBe(null);
+    expect(sky.value).toBe(0.08);
+    broken = this.renderTarget.texture;
+    this.renderTarget.texture.generateMipmaps = false;
+    throw new Error('partial cube');
+  });
+  reflection.beginFrame(11, false);
+  expect(() => reflection.updateProbe(gl, scene, car, [material], true, 0.55, sky)).toThrow(
+    'partial cube',
+  );
+  expect(material.envMap).toBe(complete);
+  expect(material.envMapIntensity).toBe(1);
+  expect(sky.value).toBe(1);
+  expect(broken!.generateMipmaps).toBe(true);
+  expect(car.visible).toBe(true);
+  expect(reflection.probeUpdates).toBe(1);
+  reflection.dispose();
+  material.dispose();
+});
+it('transfers the real probe subject at a held instant and releases former material owners', () => {
+  const reflection = new ReflectionSystem(),
+    { gl } = fixture(),
+    scene = new T.Scene();
+  const a = new T.Group(),
+    b = new T.Group(),
+    ma = new T.MeshStandardMaterial(),
+    mb = new T.MeshStandardMaterial(),
+    road = new T.MeshStandardMaterial();
+  const positions: number[] = [];
+  a.position.x = 5;
+  b.position.x = 50;
+  vi.spyOn(T.CubeCamera.prototype, 'update').mockImplementation(function (this: T.CubeCamera) {
+    positions.push(this.position.x);
+  });
+  reflection.beginFrame(10, false);
+  reflection.setSkyIntensity([ma, road], 0.08);
+  reflection.updateProbe(gl, scene, a, [ma, road], true);
+  reflection.setSkyIntensity([mb, road], 0.07);
+  reflection.updateProbe(gl, scene, b, [mb, road], true);
+  expect(positions).toEqual([5, 50]);
+  expect(ma.envMap).toBe(null);
+  expect(ma.envMapIntensity).toBe(0.08);
+  expect(mb.envMap).not.toBe(null);
+  expect(road.envMap).toBe(mb.envMap);
+  expect(mb.envMapIntensity).toBe(1);
+  expect(road.envMapIntensity).toBe(1);
+  reflection.updateProbe(gl, scene, b, [mb, road], true);
+  expect(positions).toHaveLength(2);
+  reflection.dispose();
+  expect(mb.envMapIntensity).toBe(0.07);
+  expect(road.envMapIntensity).toBe(0.07);
+  for (const material of [ma, mb, road]) material.dispose();
+});
+it('rejects invalid gains and restores original mirrors when their real owner changes', () => {
+  const reflection = new ReflectionSystem(),
+    { gl } = fixture(),
+    scene = new T.Scene();
+  const make = () => [new T.Mesh(), new T.Mesh()],
+    a = make(),
+    b = make();
+  const originals = a.map((m) => m.material);
+  reflection.attachMirrors(a);
+  reflection.beginFrame(10, true);
+  reflection.attachMirrors(b);
+  for (let i = 0; i < 2; i++) {
+    expect(a[i].material).toBe(originals[i]);
+    expect(a[i].visible).toBe(false);
+  }
+  expect(reflection.mirrors).toEqual(b);
+  for (const gain of [-1, NaN, Infinity])
+    expect(() => reflection.setSkyIntensity([], gain)).toThrow('Invalid sky environment intensity');
+  expect(() =>
+    reflection.updateProbe(gl, scene, new T.Group(), [], true, 0.55, { value: NaN }),
+  ).toThrow('Invalid probe sky radiance');
+  reflection.dispose();
+  for (const mesh of [...a, ...b]) {
+    mesh.geometry.dispose();
+    (mesh.material as T.Material).dispose();
+  }
+});

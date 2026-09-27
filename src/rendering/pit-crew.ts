@@ -282,7 +282,7 @@ export class PitCrewView {
     });
     this.activeActors++;
   }
-  update(frame: Float32Array, camera: T.Vector3, visible = true) {
+  update(frame: Float32Array, camera: T.Vector3, visible = true, fov = 58, aspect = 16 / 9) {
     const count = frame[H.CARS];
     if (
       !Number.isInteger(count) ||
@@ -292,7 +292,7 @@ export class PitCrewView {
       !Number.isFinite(camera.x + camera.y + camera.z)
     )
       throw new Error('Invalid pit crew frame');
-    if (!this.cache.prepare(frame, camera, visible)) return;
+    if (!this.cache.prepare(frame, camera, visible, fov, aspect)) return;
     for (const batch of this.batches) batch.count = 0;
     this.records.length = 0;
     this.actorSlot = this.activeActors = this.activeCrews = 0;
@@ -321,7 +321,7 @@ export class PitCrewView {
       this.car.updateMatrix();
       this.activeCrews++;
       const floor = -0.43 - frame[o + F.JACK_HEIGHT],
-        detail = distance < 45 ? 0 : 1;
+        detail = this.cache.levels[id] as 0 | 1;
       const clear = phase === 5 ? smooth(3.7, 5.1, clock) * 0.44 : 0;
       for (let wheel = 0; wheel < 4; wheel++) {
         const [hubX, , hubZ] = WHEEL_POSITIONS[wheel],

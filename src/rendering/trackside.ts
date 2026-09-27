@@ -27,7 +27,9 @@ export interface CameraRig {
 // teleport offsets. Pit-lane cameras stay across the circuit from the garages.
 export const TRACKSIDE_PLATFORMS = [
   [-1, 5, 43],
-  [-1, 3.4, 38],
+  // Pit-facing pedestal clears the actual 3.8 m fence crown across all bays.
+  // Circuit infrastructure is built from this same permanent authored site.
+  [-1, 4.9, 38],
   [-1, 5, 42],
   [1, 7, 36],
   [-1, 4, 42],
@@ -131,6 +133,7 @@ export function tracksideFraming(
   baseFov: number,
   aspect = 16 / 9,
   subjectRadius = 3.1,
+  service = false,
 ) {
   if (
     !Number.isFinite(distanceM) ||
@@ -147,7 +150,13 @@ export function tracksideFraming(
     Math.min(0.98, subjectRadius / Math.max(subjectRadius + 0.1, distanceM)),
   );
   const required = (2 * Math.atan(Math.tan(radius / 0.72) / smallAxis) * 180) / Math.PI;
-  const fov = clamp(Math.max(baseFov * Math.sqrt(40 / Math.max(20, distanceM)), required), 24, 55);
+  // A stopped service is the crew envelope, not a wide establishing shot.
+  // The old 24-degree floor left a legal distant lens showing mostly scenery.
+  // Reserve the same 28% angular margin, but let the existing physical rig use
+  // a telephoto lens. Ordinary moving-car and pack compositions stay unchanged.
+  const fov = service
+    ? clamp(required, 4, 55)
+    : clamp(Math.max(baseFov * Math.sqrt(40 / Math.max(20, distanceM)), required), 24, 55);
   const half = Math.atan(Math.tan((fov * Math.PI) / 360) * smallAxis);
   return {
     fov,
@@ -170,6 +179,7 @@ export class TracksideDirector {
   occluded = false;
   visibilityCuts = 0;
   subjectRadius = 3.1;
+  subjectScreenFraction = 0;
   subjectVisibleSamples = 1;
   subjectSampleCount = 1;
   subjectWithinRange = true;
@@ -178,6 +188,7 @@ export class TracksideDirector {
   fov = 42;
   private previousS = NaN;
   private previousAspect = NaN;
+  private previousService = false;
   constructor(
     readonly track: Track,
     private readonly blocked?: (from: Vector3, to: Vector3) => boolean,
@@ -188,6 +199,8 @@ export class TracksideDirector {
     this.activeId = -1;
     this.previousS = NaN;
     this.previousAspect = NaN;
+    this.previousService = false;
+    this.subjectScreenFraction = 0;
     this.occluded = false;
     this.subjectVisibleSamples = this.subjectSampleCount = 1;
     this.subjectWithinRange = true;
@@ -240,6 +253,7 @@ export class TracksideDirector {
           this.rigs[candidate].baseFov,
           aspect,
           radius,
+          true,
         ).fits;
       // Prefer a previously chosen service lens while its physical view remains
       // suitable. A stopped car must not cut back and forth at a road-sector edge.
@@ -340,11 +354,21 @@ export class TracksideDirector {
     }
     if (!visibility) this.subjectVisibleSamples = Number(!this.occluded);
     const cut = id !== this.activeId || seek;
-    const resized = aspect !== this.previousAspect;
+    // A held replay may change composition without advancing the camera clock.
+    // Present the requested lens immediately, rather than retaining a wide lens
+    // forever until the player resumes. A moving sequence keeps its zoom rate.
+    const resized =
+      aspect !== this.previousAspect || (dt === 0 && !!visibility !== this.previousService);
     const rig = this.rigs[id];
     this.position.copy(rig.position);
     const distanceM = this.position.distanceTo(target);
-    let framing = tracksideFraming(Math.max(0.001, distanceM), rig.baseFov, aspect, radius);
+    let framing = tracksideFraming(
+      Math.max(0.001, distanceM),
+      rig.baseFov,
+      aspect,
+      radius,
+      !!visibility,
+    );
     this.subjectRadius = radius;
     if (!framing.fits && radius > 3.1 && !strictRadius && !visibility) {
       this.subjectRadius = 3.1;
@@ -402,6 +426,14 @@ export class TracksideDirector {
     this.activeId = id;
     this.previousS = s;
     this.previousAspect = aspect;
+    this.previousService = !!visibility;
+    // Projected sphere diameter / smaller viewport dimension. This is a bound
+    // occupancy witness, not a claim that every enclosed actor pixel is visible.
+    const angularRadius = Math.asin(
+      Math.min(0.98, this.subjectRadius / Math.max(this.subjectRadius + 0.1, distanceM)),
+    );
+    this.subjectScreenFraction =
+      Math.tan(angularRadius) / (Math.tan((this.fov * Math.PI) / 360) * Math.min(1, aspect));
     return this;
   }
 }

@@ -159,7 +159,8 @@ export class RacingRenderer {
   private previousAnchor = new T.Vector3();
   private temporary = new T.Vector3();
   private eyeLocal = new T.Vector3();
-  private reflectionMaterials: T.MeshStandardMaterial[] = [];
+  private reflectionMaterials: T.MeshStandardMaterial[][] = [];
+  private reflectionFollow = -1;
   readonly engineeringView = new EngineeringView();
   engineering: EngineeringSample | null = null;
   replayView = false;
@@ -309,10 +310,11 @@ export class RacingRenderer {
       this.textures.register(car.root);
       this.weatherPresentation.install(car.root);
       this.atmosphere.install(car.root);
+      this.reflectionMaterials.push([...car.reflectivePaint, this.circuit.roadMaterial]);
       if (car.id === 0) {
         this.reflection.attachMirrors(car.mirrors);
         this.reflection.quality(this.graphics.mirrorQuality);
-        this.reflectionMaterials.push(...car.reflectivePaint, this.circuit.roadMaterial);
+        this.reflectionFollow = 0;
       }
     }
     this.cars.forEach((c, i) => (c.root.visible = i < n));
@@ -560,6 +562,12 @@ export class RacingRenderer {
     }
     const car = this.cars[this.follow],
       speed = b[o + F.SPEED];
+    const reflectionMaterials = this.reflectionMaterials[this.follow];
+    if (this.reflectionFollow !== this.follow) {
+      this.reflection.attachMirrors(car.mirrors);
+      this.reflection.invalidate();
+      this.reflectionFollow = this.follow;
+    }
     const studio = !!this.photo && this.photo.backdrop !== 'circuit';
     const illumination: LightingMode = studio ? 'day' : this.lighting;
     const daylight = circuitLightState(presented[H.CLOUD], presented[H.RAIN], illumination);
@@ -579,10 +587,8 @@ export class RacingRenderer {
     this.sun.intensity = daylight.sun;
     this.hemisphere.intensity = daylight.fill;
     this.scene.environmentIntensity = daylight.environment;
-    // Explicit local envMaps do not inherit scene.environmentIntensity.
-    // Keep their exposure in the same authored range as the sky environment.
-    for (const material of this.reflectionMaterials)
-      material.envMapIntensity = daylight.environment;
+    // Sky fallback and already-lit local radiance have different gains.
+    this.reflection.setSkyIntensity(reflectionMaterials, daylight.environment);
     this.renderer.toneMappingExposure = daylight.exposure * 2 ** (this.photo?.exposure ?? 0);
     const fog = this.scene.fog as T.FogExp2;
     fog.density = daylight.fogDensity;
@@ -724,7 +730,13 @@ export class RacingRenderer {
     this.effectPlayback.update(presented, !menu, !replay);
     this.effects.setSignalLights(presented, !studio);
     this.debris.update(b);
-    this.pitCrew.update(presented, this.camera.position, !menu && !studio);
+    this.pitCrew.update(
+      presented,
+      this.camera.position,
+      !menu && !studio,
+      this.camera.fov,
+      this.camera.aspect,
+    );
     this.gridPreparation.update(
       presented,
       this.camera.position,
@@ -788,9 +800,10 @@ export class RacingRenderer {
         this.renderer,
         this.scene,
         car.root,
-        this.reflectionMaterials,
+        reflectionMaterials,
         this.graphics.reflections === 'local' && !menu && !studio,
         wetReflection ? 0.55 : 1.5,
+        this.sky.material.uniforms.probeSkyIntensity,
       );
       this.reflection.renderMirrors(this.renderer, this.scene, car.root, dt);
       this.motionBlur.setStrength(this.photo ? 0 : this.graphics.motionBlur);
@@ -1033,6 +1046,8 @@ export class RacingRenderer {
       broadcastVisibilityCuts: this.trackside.visibilityCuts,
       broadcastSolidOccluders: this.circuit.sightlines.count,
       broadcastSubjectRadius: this.trackside.subjectRadius,
+      broadcastFov: this.trackside.fov,
+      broadcastSubjectScreenFraction: this.trackside.subjectScreenFraction,
       broadcastFramingFits: this.trackside.framingFits,
       broadcastVisibleSubjectSamples: this.trackside.subjectVisibleSamples,
       broadcastSubjectSampleCount: this.trackside.subjectSampleCount,
@@ -1051,6 +1066,9 @@ export class RacingRenderer {
         cameras: this.circuit.trackInfrastructure.cameras.length,
       },
       localProbeActive: this.reflection.localProbeActive,
+      reflectionSubject: this.reflectionFollow,
+      reflectionIntensity: this.reflectionMaterials[this.follow]?.[0]?.envMapIntensity ?? null,
+      visibleSkyIntensity: this.sky.material.uniforms.probeSkyIntensity.value,
       motionBlur: this.motionBlur.diagnostics(),
       automaticExposure: this.exposure.diagnostics(),
       localAtmosphere: this.atmosphere.diagnostics(),

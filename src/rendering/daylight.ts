@@ -124,6 +124,7 @@ export function shadowAnchor(
 const cloudFunctions = `
 uniform float cloudCover;
 uniform float skyRadiance;
+uniform float probeSkyIntensity;
 uniform float nightAmount;
 uniform float sunsetAmount;
 float skyHash(vec2 p) { return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }
@@ -143,6 +144,9 @@ export function configureSky(sky: Sky) {
   material.uniforms.nightAmount = { value: 0 };
   material.uniforms.sunsetAmount = { value: 0 };
   material.uniforms.skyRadiance = { value: daylightState(0, 0).skyRadiance };
+  // One in the visible sky/PMREM. The local scene probe temporarily applies the
+  // authored IBL gain here, without attenuating captured lamps a second time.
+  material.uniforms.probeSkyIntensity = { value: 1 };
   material.uniforms.sunPosition.value.copy(SUN_OFFSET);
   material.uniforms.rayleigh.value = 2.2;
   material.uniforms.mieCoefficient.value = 0.004;
@@ -185,7 +189,7 @@ export function configureSky(sky: Sky) {
         nightSky=mix(nightSky,nightCloud,cover);
         radiance=mix(vec3(.01,.014,.026),nightSky,smoothstep(-.05,.10,direction.y));
       }
-      gl_FragColor=vec4(radiance,1.0);
+      gl_FragColor=vec4(radiance * probeSkyIntensity,1.0);
     `,
     );
   material.needsUpdate = true;
