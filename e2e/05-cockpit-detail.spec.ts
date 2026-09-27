@@ -69,7 +69,8 @@ test('detailed cockpit retains physical steering, recorded selectors, pause and 
       instances.matrices.forEach((m, i) => {
         expect(Math.atan2(m[1], m[0])).toBeCloseTo(c.dialAngles[i], 6);
         expect(m[12]).toBeCloseTo((i - 1) * -0.073, 6);
-        expect(m[13]).toBeCloseTo(-0.056, 6);
+        // The authored bezel clearance moves all three selectors down 5 mm.
+        expect(m[13]).toBeCloseTo(-0.061, 6);
         expect(m[14]).toBeCloseTo(-0.025, 6);
       });
     }
