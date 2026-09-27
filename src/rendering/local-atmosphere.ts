@@ -42,6 +42,45 @@ export function pocketDensity(p: FogPocket, x: number, y: number, z: number) {
   return Math.exp(-3 * r2) * Math.exp(-Math.max(0, y - p.floor) / p.scaleHeight);
 }
 
+/** Sum of omitted optical depth is bounded by this value across all pockets.
+ * Since |exp(-a)-exp(-b)| <= |a-b| for nonnegative depths, the same bound
+ * applies to normalized transmittance, independent of the background colour. */
+export const LOCAL_FOG_OPTICAL_ERROR = 0.000001;
+
+/** Conservative tail bound for the SAME clipped ray interval as the quadrature.
+ * The independent minima of lateral radius and height may occur at different
+ * positions; their product still overestimates every sample, never the reverse. */
+export function fogPocketOpticalBound(p: FogPocket, from: T.Vector3, to: T.Vector3, sigma: number) {
+  pocketDensity(p, from.x, from.y, from.z);
+  if (![to.x, to.y, to.z, sigma].every(Number.isFinite) || sigma < 0)
+    throw new Error('Invalid fog optical bound');
+  const dx = to.x - from.x,
+    dy = to.y - from.y,
+    dz = to.z - from.z;
+  const lateral2 = dx * dx + dz * dz,
+    length = Math.hypot(dx, dy, dz);
+  let begin = 0,
+    end = 1,
+    centre = 0;
+  if (lateral2 > 1e-10) {
+    centre = ((p.x - from.x) * dx + (p.z - from.z) * dz) / lateral2;
+    const span = (2 * p.radius) / Math.sqrt(lateral2);
+    begin = Math.max(0, centre - span);
+    end = Math.min(1, centre + span);
+  }
+  if (end <= begin) return 0;
+  const t = Math.max(begin, Math.min(end, centre));
+  const x = from.x + dx * t - p.x,
+    z = from.z + dz * t - p.z;
+  const height = Math.max(0, Math.min(from.y + dy * begin, from.y + dy * end) - p.floor);
+  return (
+    sigma *
+    length *
+    (end - begin) *
+    Math.exp((-3 * (x * x + z * z)) / (p.radius * p.radius) - height / p.scaleHeight)
+  );
+}
+
 const GAUSS = [
   [0.019855071751, 0.050614268145],
   [0.101666761293, 0.111190517227],
@@ -92,6 +131,8 @@ export function fogSegmentIntegral(pockets: readonly FogPocket[], from: T.Vector
 export class LocalAtmosphere {
   readonly pockets: readonly FogPocket[];
   readonly sigma = { value: 0 };
+  // A zero budget is the exact original quadrature control for GPU comparisons.
+  readonly tailError = { value: LOCAL_FOG_OPTICAL_ERROR / 3 };
   private readonly volumes: { value: T.Vector4[] };
   private readonly heights: { value: T.Vector3 };
   private readonly floors: { value: T.Vector3 };
@@ -143,6 +184,7 @@ export class LocalAtmosphere {
     material.onBeforeCompile = (shader, renderer) => {
       previous.call(material, shader, renderer);
       shader.uniforms.apexLocalSigma = this.sigma;
+      shader.uniforms.apexLocalTailError = this.tailError;
       shader.uniforms.apexFogVolumes = this.volumes;
       shader.uniforms.apexFogHeights = this.heights;
       shader.uniforms.apexFogFloors = this.floors;
@@ -182,6 +224,7 @@ export class LocalAtmosphere {
         #ifdef USE_FOG
           varying vec3 vApexFogWorld;
           uniform float apexLocalSigma;
+          uniform float apexLocalTailError;
           uniform vec4 apexFogVolumes[3];
           uniform vec3 apexFogHeights;
           uniform vec3 apexFogFloors;
@@ -198,14 +241,23 @@ export class LocalAtmosphere {
             return exp(-3.*dot(delta,delta)*volume.z) *
               exp(-max(0.,p.y-volume.w)*inverseHeight);
           }
-          float apexPocketIntegral(vec3 origin, vec3 ray, vec4 volume, float inverseHeight) {
-            float lateral2=dot(ray.xz,ray.xz), begin=0., end=1.;
+          float apexPocketIntegral(vec3 origin, vec3 ray, float rayLength, vec4 volume, float inverseHeight) {
+            float lateral2=dot(ray.xz,ray.xz), begin=0., end=1., centre=0.;
             if(lateral2>1.e-10) {
-              float centre=dot(volume.xy-origin.xz,ray.xz)/lateral2;
+              centre=dot(volume.xy-origin.xz,ray.xz)/lateral2;
               float span=2.*inversesqrt(volume.z*lateral2);
               begin=max(0.,centre-span); end=min(1.,centre+span);
             }
             if(end<=begin) return 0.;
+            // Most full-lap rays miss these low-lying districts. Reject only a
+            // provably invisible Gaussian tail; never cull by camera distance.
+            if(apexLocalTailError>0.) {
+              vec2 closest=origin.xz+ray.xz*clamp(centre,begin,end)-volume.xy;
+              float minHeight=max(0.,min(origin.y+ray.y*begin,origin.y+ray.y*end)-volume.w);
+              float apexOpticalBound=apexLocalSigma*rayLength*(end-begin)*
+                exp(-3.*dot(closest,closest)*volume.z-minHeight*inverseHeight);
+              if(apexOpticalBound<=apexLocalTailError) return 0.;
+            }
             vec3 start=origin+ray*begin, segment=ray*(end-begin);
             return (end-begin)*(
               apexPocketDensity(start+segment*0.019855071751,volume,inverseHeight)*0.050614268145 +
@@ -228,16 +280,17 @@ export class LocalAtmosphere {
               vec3 apexRay = vApexFogWorld-cameraPosition;
               float apexLength = length(apexRay);
               // Localized quadrature keeps narrow haze visible from distant cameras.
-              float apexIntegral = apexPocketIntegral(cameraPosition,apexRay,apexFogVolumes[0],apexFogHeights.x)
-                + apexPocketIntegral(cameraPosition,apexRay,apexFogVolumes[1],apexFogHeights.y)
-                + apexPocketIntegral(cameraPosition,apexRay,apexFogVolumes[2],apexFogHeights.z);
+              float apexIntegral = apexPocketIntegral(cameraPosition,apexRay,apexLength,apexFogVolumes[0],apexFogHeights.x)
+                + apexPocketIntegral(cameraPosition,apexRay,apexLength,apexFogVolumes[1],apexFogHeights.y)
+                + apexPocketIntegral(cameraPosition,apexRay,apexLength,apexFogVolumes[2],apexFogHeights.z);
               float apexFog = 1.-exp(-min(8.,apexLocalSigma*apexLength*apexIntegral));
               gl_FragColor.rgb = mix(gl_FragColor.rgb,fogColor,apexFog);
             }
           #endif`,
         );
     };
-    material.customProgramCacheKey = () => key + '|apex-local-atmosphere-v2-localized-ray';
+    material.customProgramCacheKey = () =>
+      key + '|apex-local-atmosphere-v3-bounded-ray:' + position;
     material.needsUpdate = true;
   }
   diagnostics() {

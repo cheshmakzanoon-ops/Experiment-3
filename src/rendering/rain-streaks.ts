@@ -102,7 +102,9 @@ export class RainStreaks {
           #include <fog_fragment>
         }`,
     });
-    this.material.userData.localWeatherPosition = 'position';
+    // The quad's position is only a template corner. Haze follows the actual
+    // drop centre, just as lighting and depth already do.
+    this.material.userData.localWeatherPosition = 'center';
     this.mesh = new T.Mesh(this.geometry, this.material);
     this.mesh.name = 'Velocity-aligned rain streaks';
     this.mesh.frustumCulled = false;

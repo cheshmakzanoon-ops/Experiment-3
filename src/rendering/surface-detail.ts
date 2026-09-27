@@ -1,3 +1,4 @@
+import { AsphaltAggregate } from './asphalt-aggregate.ts';
 import { installCircuitFinish, type CircuitFinish } from './circuit-finish.ts';
 import * as T from 'three';
 import { installStableSurfaceBump } from './materials.ts';
@@ -21,6 +22,8 @@ export function surfacePixels(kind: SurfaceKind, size = 512, seed = 1887) {
   const albedo = new Uint8ClampedArray(size * size * 4),
     roughness = new Uint8ClampedArray(albedo.length);
   const base = palette[kind];
+  const aggregate = kind === 'asphalt' ? new AsphaltAggregate(seed) : null;
+  const stone = new Float64Array(3);
   const noise = new Float32Array(64 * 64);
   for (let i = 0; i < noise.length; i++) noise[i] = random.next();
   const field = (x: number, y: number, period: number) => {
@@ -44,15 +47,23 @@ export function surfacePixels(kind: SurfaceKind, size = 512, seed = 1887) {
         field((x / size) * 17, (y / size) * 17, 17) * 0.3 +
         field((x / size) * 53, (y / size) * 53, 53) * 0.15 -
         0.5;
-      const h = clamp(0.4 + grain * 0.4 + broad * 0.08, 0, 1);
+      if (aggregate) aggregate.sample((x + 0.5) / size, (y + 0.5) / size, stone);
+      const h = clamp(
+        aggregate
+          ? 0.2 + stone[1] * 0.54 + (grain - 0.5) * 0.035 + broad * 0.04
+          : 0.4 + grain * 0.4 + broad * 0.08,
+        0,
+        1,
+      );
       height[at] = Math.round(h * 255);
-      const variation =
-        kind === 'grass'
+      const variation = aggregate
+        ? stone[0] * 16 - 6 + (stone[2] - 0.5) * stone[0] * 12 + (grain - 0.5) * 12 + broad * 4
+        : kind === 'grass'
           ? (grain - 0.5) * 44 + broad * 10
           : kind === 'gravel'
             ? (grain - 0.5) * 57 + broad * 9
             : (grain - 0.5) * 26 + broad * 4;
-      const r = kind === 'asphalt' ? 188 + grain * 43 : 224 + grain * 24;
+      const r = aggregate ? 188 + stone[0] * 32 + grain * 9 : 224 + grain * 24;
       for (let c = 0; c < 3; c++) {
         albedo[at * 4 + c] = base[c] + variation;
         roughness[at * 4 + c] = r;
