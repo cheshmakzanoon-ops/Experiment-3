@@ -149,10 +149,11 @@ objectNormal=machineBasis*objectNormal;`,
       for (const { mesh, perCrew } of this.sources)
         for (let i = 0; i < perCrew; i++) {
           const offset = (crew * perCrew + i) * 16;
-          this.instanceMatrix.array.set(
-            mesh.instanceMatrix.array.subarray(offset, offset + 16),
-            slot++ * 16,
-          );
+          const target = slot++ * 16;
+          // Copy the same float32 values without allocating a temporary view
+          // for every tool at every moving service snapshot.
+          for (let j = 0; j < 16; j++)
+            this.instanceMatrix.array[target + j] = mesh.instanceMatrix.array[offset + j];
         }
     this.count = slot;
     if (crews) this.transforms.needsUpdate = true;

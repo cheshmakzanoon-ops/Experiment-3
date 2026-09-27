@@ -1,3 +1,4 @@
+import { detailDistance } from './view-detail.ts';
 import { tagWeatherSurface } from './weather-presentation.ts';
 import * as T from 'three';
 import { peopleGeometry, PEOPLE_ASSET } from './people-asset.ts';
@@ -284,7 +285,14 @@ export class CrowdCluster {
     }
     this.levels = levels;
   }
-  update(time: number, camera: T.Vector3, rain: number, frame?: Float32Array) {
+  update(
+    time: number,
+    camera: T.Vector3,
+    rain: number,
+    frame?: Float32Array,
+    fov = 58,
+    aspect = 16 / 9,
+  ) {
     if (
       !Number.isFinite(time) ||
       !Number.isFinite(rain) ||
@@ -294,11 +302,14 @@ export class CrowdCluster {
     this.root.updateWorldMatrix(true, false);
     this.centre.copy(this.localCentre).applyMatrix4(this.root.matrixWorld);
     const distance = this.centre.distanceTo(camera);
+    const visualDistance = detailDistance(distance, fov, aspect);
+    // Traffic relevance stays in world metres. Only mesh selection follows
+    // magnification, so zooming cannot invent a distant crowd reaction.
     crowdResponse(frame, this.centre, this.uniforms.crowdReaction.value).multiplyScalar(
       clamp((180 - distance) / 50, 0, 1) * (1 - clamp(rain / 60, 0, 0.4)),
     );
-    this.level = crowdDetail(distance, this.level);
-    crowdLodRanges(distance, this.lodRanges);
+    this.level = crowdDetail(visualDistance, this.level);
+    crowdLodRanges(visualDistance, this.lodRanges);
     this.levels.forEach((mesh, i) => {
       mesh.visible = this.lodRanges[i].y > this.lodRanges[i].x;
     });

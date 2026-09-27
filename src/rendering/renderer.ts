@@ -1,3 +1,4 @@
+import { detailDistance } from './view-detail.ts';
 import { readRaceReviewFrame } from './race-review.ts';
 import { WeatherPresentation } from './weather-presentation.ts';
 import { applyCircuitLightPalette } from './lighting-coherence.ts';
@@ -541,27 +542,22 @@ export class RacingRenderer {
     }
     const time = b[H.TIME],
       o = carBase(this.follow);
-    for (let id = 0; id < b[H.CARS]; id++) {
-      const base = carBase(id);
-      const distance = this.temporary
-        .set(b[base + F.X], b[base + F.Y], b[base + F.Z])
-        .distanceTo(this.camera.position);
-      this.cars[id].setLod(distance, this.quality, id === this.follow);
-      this.cars[id].update(
-        a,
-        b,
-        carBase(id),
-        alpha,
-        dt,
-        time,
-        (!this.photo || this.photo.view === 'cockpit') &&
-          (!menu || !!this.photo) &&
-          cameraMode === 'cockpit' &&
-          id === this.follow,
-      );
-    }
     const car = this.cars[this.follow],
       speed = b[o + F.SPEED];
+    // The followed car always uses the near mesh. Its articulated subject is
+    // needed to solve this frame's camera; every car is posed exactly once.
+    car.setLod(0, this.quality, true);
+    car.update(
+      a,
+      b,
+      o,
+      alpha,
+      dt,
+      time,
+      (!this.photo || this.photo.view === 'cockpit') &&
+        (!menu || !!this.photo) &&
+        cameraMode === 'cockpit',
+    );
     const reflectionMaterials = this.reflectionMaterials[this.follow];
     if (this.reflectionFollow !== this.follow) {
       this.reflection.attachMirrors(car.mirrors);
@@ -707,6 +703,22 @@ export class RacingRenderer {
     this.camera.lookAt(this.gaze);
     if (this.photo) this.camera.rotateZ((this.photo.roll * Math.PI) / 180);
     this.camera.updateProjectionMatrix();
+    // A replay cut, follow change or photo lens must use the NEW view, not
+    // last frame's camera. Choose the representation before posing it, since
+    // reduced cars update only their active wheel/suspension representation.
+    for (let id = 0; id < b[H.CARS]; id++) {
+      if (id === this.follow) continue;
+      const base = carBase(id);
+      const distance = this.temporary
+        .set(presented[base + F.X], presented[base + F.Y], presented[base + F.Z])
+        .distanceTo(this.camera.position);
+      this.cars[id].setLod(
+        detailDistance(distance, this.camera.fov, this.camera.aspect),
+        this.quality,
+        false,
+      );
+      this.cars[id].update(a, b, base, alpha, dt, time, false);
+    }
     shadowAnchor(
       this.target,
       this.sun.shadow.mapSize.x,
@@ -726,7 +738,14 @@ export class RacingRenderer {
     );
     if (this.circuit.crowd.visible)
       for (const cluster of this.circuit.crowdClusters)
-        cluster.update(presented[H.TIME], this.camera.position, presented[H.RAIN], presented);
+        cluster.update(
+          presented[H.TIME],
+          this.camera.position,
+          presented[H.RAIN],
+          presented,
+          this.camera.fov,
+          this.camera.aspect,
+        );
     this.effectPlayback.update(presented, !menu, !replay);
     this.effects.setSignalLights(presented, !studio);
     this.debris.update(b);

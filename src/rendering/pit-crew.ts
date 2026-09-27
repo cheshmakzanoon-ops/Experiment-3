@@ -91,7 +91,29 @@ export class PitCrewView {
   private readonly local = new T.Vector3();
   private readonly rotation = new T.Quaternion();
   private readonly actorWorld = new T.Matrix4();
-  private readonly records: ActorEvidence[] = [];
+  private readonly records: ActorEvidence[] = Array.from({ length: ACTORS }, () => ({
+    car: -1,
+    role: 'gun',
+    wheel: -1,
+    reachable: [false, false],
+    wristError: 0,
+    gripError: 0,
+    floorY: 0,
+    root: new Array<number>(16).fill(0),
+  }));
+  // Local scratch values have disjoint lifetimes from person/hand/propAt.
+  // They never escape into a diagnostic snapshot or another renderer instance.
+  private readonly point = new T.Vector3();
+  private readonly socket = new T.Vector3();
+  private readonly center = new T.Vector3();
+  private readonly bar = new T.Vector3();
+  private readonly endA = new T.Vector3();
+  private readonly endB = new T.Vector3();
+  private readonly toolRotation = new T.Quaternion();
+  private readonly handRotation = new T.Quaternion();
+  private readonly quarterTurn = new T.Quaternion().setFromAxisAngle(FORWARD, Math.PI / 2);
+  private readonly gunSupportTurn = new T.Quaternion().setFromAxisAngle(UP, -Math.PI / 2);
+  private readonly gunMatrix = new T.Matrix4();
   private readonly cache = new PitPoseCache();
   private actorSlot = 0;
   activeCrews = 0;
@@ -116,6 +138,13 @@ export class PitCrewView {
       material.userData.weatherSurface = 'fabric';
       installCrewSkin(material, this.bones, ACTORS, true);
       const batch = new T.InstancedMesh(g, material, ACTORS);
+      // setColorAt otherwise creates this attribute at the first live stop and
+      // changes Three's instancingColor shader variant after prepare() compiled
+      // the empty crew. Allocate the same white-initialized buffer while loading.
+      batch.instanceColor = new T.InstancedBufferAttribute(
+        new Float32Array(ACTORS * 3).fill(1),
+        3,
+      ).setUsage(T.DynamicDrawUsage);
       const depth = new T.MeshDepthMaterial({ depthPacking: T.RGBADepthPacking });
       installCrewSkin(depth, this.bones, ACTORS, false);
       batch.customDepthMaterial = depth;
@@ -272,16 +301,16 @@ export class PitCrewView {
       );
     }
     // Small CPU witnesses are retained for inspection; they are not art approval.
-    this.records.push({
-      car,
-      role,
-      wheel,
-      reachable: [...this.pose.reachable],
-      wristError,
-      gripError,
-      floorY: floor,
-      root: this.actorWorld.toArray(),
-    });
+    const record = this.records[this.activeActors];
+    record.car = car;
+    record.role = role;
+    record.wheel = wheel;
+    record.reachable[0] = this.pose.reachable[0];
+    record.reachable[1] = this.pose.reachable[1];
+    record.wristError = wristError;
+    record.gripError = gripError;
+    record.floorY = floor;
+    this.actorWorld.toArray(record.root);
     this.activeActors++;
   }
   update(frame: Float32Array, camera: T.Vector3, visible = true, fov = 58, aspect = 16 / 9) {
@@ -296,7 +325,6 @@ export class PitCrewView {
       throw new Error('Invalid pit crew frame');
     if (!this.cache.prepare(frame, camera, visible, fov, aspect)) return;
     for (const batch of this.batches) batch.count = 0;
-    this.records.length = 0;
     this.actorSlot = this.activeActors = this.activeCrews = 0;
     for (let id = 0; id < count && visible; id++) {
       const o = carBase(id),
@@ -343,18 +371,18 @@ export class PitCrewView {
               : phase === 5
                 ? smooth(3.5, 3.9, clock)
                 : 0;
-        const socket = new T.Vector3(hubX + side * (0.21 + 0.28 * gunAway + clear), hubY, hubZ);
-        const gunRotation = new T.Quaternion().setFromAxisAngle(UP, yaw);
-        const gunMatrix = this.propAt(this.guns, socket, gunRotation).clone();
+        const socket = this.socket.set(hubX + side * (0.21 + 0.28 * gunAway + clear), hubY, hubZ);
+        const gunRotation = this.toolRotation.setFromAxisAngle(UP, yaw);
+        const gunMatrix = this.gunMatrix.copy(this.propAt(this.guns, socket, gunRotation));
         this.hand(
           0,
-          new T.Vector3(0, -0.083, -0.203).applyMatrix4(gunMatrix),
-          gunRotation.clone().multiply(new T.Quaternion().setFromAxisAngle(FORWARD, Math.PI / 2)),
+          this.point.set(0, -0.083, -0.203).applyMatrix4(gunMatrix),
+          this.handRotation.copy(gunRotation).multiply(this.quarterTurn),
         );
         this.hand(
           1,
-          new T.Vector3(0, 0, -0.1).applyMatrix4(gunMatrix),
-          gunRotation.clone().multiply(new T.Quaternion().setFromAxisAngle(UP, -Math.PI / 2)),
+          this.point.set(0, 0, -0.1).applyMatrix4(gunMatrix),
+          this.handRotation.copy(gunRotation).multiply(this.gunSupportTurn),
         );
         this.person(
           id,
@@ -388,19 +416,22 @@ export class PitCrewView {
                 ? 1
                 : 1 - smooth(2.2, 2.9, clock);
           const transferOffset = (install && phase < 4) || (!install && phase >= 4) ? 0.48 : off;
-          const center = new T.Vector3(
+          const center = this.center.set(
             hubX + side * (0.98 + clear),
             floor + 0.41,
             hubZ + station * 0.8,
           );
-          center.lerp(new T.Vector3(hubX + side * (0.21 + transferOffset), hubY, hubZ), engagement);
+          center.lerp(
+            this.point.set(hubX + side * (0.21 + transferOffset), hubY, hubZ),
+            engagement,
+          );
           const hasSpare = install ? phase < 4 : phase >= 4;
           if (hasSpare) this.propAt(this.tires, center);
           // Hands touch the sidewall at two points on the carried/working wheel.
           const actorX = center.x + side * (0.45 - 0.05 * engagement),
             actorZ = center.z + station * (0.3 + 0.5 * engagement);
           const actorYaw = Math.atan2(center.x - actorX, center.z - actorZ);
-          const q = new T.Quaternion().setFromAxisAngle(UP, actorYaw);
+          const q = this.toolRotation.setFromAxisAngle(UP, actorYaw);
           for (let hand = 0; hand < 2; hand++) {
             // Approach-side grips: a mechanic beside a tyre cannot reach its
             // opposite fore/aft edge through the wheel. Slide along the real
@@ -409,9 +440,11 @@ export class PitCrewView {
             const workAngle = station * (hand === 0 ? 0.6 : 1.25);
             const angle = carryAngle + (workAngle - carryAngle) * engagement;
             const radius = Math.hypot(0.26, 0.12);
-            const grip = center
-              .clone()
-              .add(new T.Vector3(side * 0.1, Math.cos(angle) * radius, Math.sin(angle) * radius));
+            const grip = this.point.set(
+              center.x + side * 0.1,
+              center.y + Math.cos(angle) * radius,
+              center.z + Math.sin(angle) * radius,
+            );
             this.hand(hand, grip, q);
           }
           const workingHip = clamp(hubY - floor + 0.04, 0.24, 0.43);
@@ -432,27 +465,27 @@ export class PitCrewView {
       }
       for (const end of [-1, 1]) {
         const lift = clamp(frame[o + F.JACK_HEIGHT], 0, 0.22);
-        const jack = new T.Vector3(0, floor, end * 2.05);
+        const jack = this.point.set(0, floor, end * 2.05);
         this.propAt(
           this.jacks,
           jack,
-          new T.Quaternion().setFromAxisAngle(UP, end > 0 ? Math.PI : 0),
+          this.toolRotation.setFromAxisAngle(UP, end > 0 ? Math.PI : 0),
         );
-        const base = new T.Vector3(0, floor + 0.23, end * 2.05);
-        const top = new T.Vector3(0, floor + 0.23 + lift, end * 2.05);
+        const base = this.endA.set(0, floor + 0.23, end * 2.05);
+        const top = this.endB.set(0, floor + 0.23 + lift, end * 2.05);
         this.tube(base, top, 1.9);
-        const bar = new T.Vector3(0, floor + 0.9 - lift, end * 2.76);
-        this.tube(new T.Vector3(0, floor + 0.09, end * 2.05), bar);
+        const bar = this.bar.set(0, floor + 0.9 - lift, end * 2.76);
+        this.tube(this.point.set(0, floor + 0.09, end * 2.05), bar);
         this.tube(
-          bar.clone().add(new T.Vector3(-0.17, 0, 0)),
-          bar.clone().add(new T.Vector3(0.17, 0, 0)),
+          this.endA.set(bar.x - 0.17, bar.y, bar.z),
+          this.endB.set(bar.x + 0.17, bar.y, bar.z),
         );
         const yaw = end > 0 ? Math.PI : 0,
-          q = new T.Quaternion().setFromAxisAngle(UP, yaw);
+          q = this.toolRotation.setFromAxisAngle(UP, yaw);
         for (let h = 0; h < 2; h++)
           this.hand(
             h,
-            bar.clone().add(new T.Vector3((h ? 1 : -1) * (end > 0 ? -1 : 1) * 0.12, 0, 0)),
+            this.point.set(bar.x + (h ? 1 : -1) * (end > 0 ? -1 : 1) * 0.12, bar.y, bar.z),
             q,
           );
         this.person(
@@ -471,18 +504,18 @@ export class PitCrewView {
       }
       const signX = 2.7 + clear,
         signZ = 2.7;
-      const q = new T.Quaternion().setFromAxisAngle(UP, -Math.PI / 2);
-      const grip = new T.Vector3(signX, floor + 0.96, signZ - 0.2);
+      const q = this.toolRotation.setFromAxisAngle(UP, -Math.PI / 2);
+      const grip = this.center.set(signX, floor + 0.96, signZ - 0.2);
       this.tube(
-        grip.clone().add(new T.Vector3(0, -0.36, 0)),
-        grip.clone().add(new T.Vector3(0, 0.48, 0)),
+        this.endA.set(grip.x, grip.y - 0.36, grip.z),
+        this.endB.set(grip.x, grip.y + 0.48, grip.z),
       );
-      this.propAt(this.signals, grip.clone().add(new T.Vector3(0, 0.48, 0)), q);
+      this.propAt(this.signals, this.endB, q);
       for (let h = 0; h < 2; h++)
         this.hand(
           h,
-          grip.clone().add(new T.Vector3(0, h * 0.12, 0)),
-          q.clone().multiply(new T.Quaternion().setFromAxisAngle(FORWARD, Math.PI / 2)),
+          this.point.set(grip.x, grip.y + h * 0.12, grip.z),
+          this.handRotation.copy(q).multiply(this.quarterTurn),
         );
       this.person(id, 'release', -1, signX + 0.42, floor, signZ, -Math.PI / 2, 0.84, 0.08, detail);
     }
@@ -511,15 +544,16 @@ export class PitCrewView {
   }
   actorCountFor(car: number) {
     let count = 0;
-    for (const record of this.records) if (record.car === car) count++;
+    for (let i = 0; i < this.activeActors; i++) if (this.records[i].car === car) count++;
     return count;
   }
   summary() {
     let unreachableArms = 0,
       maxWristError = 0,
       maxGripError = 0;
-    for (const record of this.records) {
-      unreachableArms += record.reachable.filter((r) => !r).length;
+    for (let i = 0; i < this.activeActors; i++) {
+      const record = this.records[i];
+      unreachableArms += Number(!record.reachable[0]) + Number(!record.reachable[1]);
       maxWristError = Math.max(maxWristError, record.wristError);
       maxGripError = Math.max(maxGripError, record.gripError);
     }
@@ -550,7 +584,11 @@ export class PitCrewView {
       boneTextureBytes: this.boneData.byteLength,
       machineryTextureBytes: this.machinery.instanceMatrix.array.byteLength,
       counts: this.batches.map((b) => b.count),
-      roles: this.records.map((r) => ({ ...r, root: [...r.root], reachable: [...r.reachable] })),
+      roles: this.records.slice(0, this.activeActors).map((r) => ({
+        ...r,
+        root: [...r.root],
+        reachable: [...r.reachable],
+      })),
     };
   }
   /** The renderer's general traversal owns geometry/material disposal. */

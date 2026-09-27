@@ -402,3 +402,82 @@ describe('27H.6 conforming wet road film', () => {
     }
   });
 });
+
+it('reuses bounded service witnesses without leaking inactive roles or mutable diagnostics', () => {
+  const view = new PitCrewView(),
+    other = new PitCrewView(),
+    camera = new T.Vector3();
+  // Structural allocation contract: the pool is private and per view; external
+  // inspection must still return detached snapshots, not these reusable slots.
+  type Pool = { records: { root: number[]; reachable: boolean[] }[] };
+  const slots = (view as unknown as Pool).records.slice();
+  const second = (other as unknown as Pool).records;
+  try {
+    expect(slots).toHaveLength(12 * 15);
+    expect(slots[0]).not.toBe(second[0]);
+    const f = frame(1.8);
+    view.update(f, camera);
+    other.update(f, camera);
+    const report = view.diagnostics(),
+      original = JSON.stringify(report);
+    for (const clock of [0, 0.8, 1.8, 2.2, 3.45, 3.5, 4.6, 5.19, 1.8]) {
+      view.update(frame(clock), camera);
+      const records = (view as unknown as Pool).records;
+      records.forEach((r, i) => {
+        expect(r).toBe(slots[i]);
+        expect(r.root).toBe(slots[i].root);
+      });
+      expect(view.diagnostics().roles).toHaveLength(15);
+      expect(JSON.stringify(report)).toBe(original);
+    }
+    report.roles[0].root[0] = 12345;
+    report.roles[0].reachable[0] = false;
+    expect(view.diagnostics().roles[0].root[0]).not.toBe(12345);
+    expect(other.diagnostics().roles).toEqual(view.diagnostics().roles);
+    view.update(f, camera, false);
+    expect(view.actorCountFor(0)).toBe(0);
+    expect(view.diagnostics().roles).toEqual([]);
+    expect(view.summary().unreachableArms).toBe(0);
+    view.update(f, camera);
+    expect(view.actorCountFor(0)).toBe(15);
+    expect(view.diagnostics().roles).toEqual(other.diagnostics().roles);
+  } finally {
+    release(view);
+    release(other);
+  }
+});
+
+it('prepares both cloth colour variants before service without changing visibility or buffer ownership', () => {
+  const view = new PitCrewView(),
+    camera = new T.Vector3(0, 3, 70);
+  const cloth = view.root.children.slice(0, 2) as T.InstancedMesh[];
+  const colours = cloth.map((mesh) => mesh.instanceColor!);
+  try {
+    for (const [i, mesh] of cloth.entries()) {
+      expect(mesh.count).toBe(0);
+      expect(colours[i]).toBeInstanceOf(T.InstancedBufferAttribute);
+      expect(colours[i].count).toBe(180);
+      expect(colours[i].itemSize).toBe(3);
+      expect(colours[i].usage).toBe(T.DynamicDrawUsage);
+      expect(Array.from(colours[i].array).every((v) => v === 1)).toBe(true);
+    }
+    expect(colours[0]).not.toBe(colours[1]);
+    expect(view.activeActors).toBe(0);
+    for (const lens of [58, 20, 58, 20]) {
+      for (const clock of [0.04, 1.8, 2.8, 4.6, 1.8]) {
+        const f = frame(clock),
+          original = f.slice();
+        view.update(f, camera, true, lens);
+        expect(view.activeActors).toBe(15);
+        expect(cloth.reduce((n, mesh) => n + mesh.count, 0)).toBe(15);
+        cloth.forEach((mesh, i) => expect(mesh.instanceColor).toBe(colours[i]));
+        expect(f).toEqual(original);
+      }
+    }
+    view.update(frame(), camera, false);
+    expect(view.activeActors).toBe(0);
+    cloth.forEach((mesh, i) => expect(mesh.instanceColor).toBe(colours[i]));
+  } finally {
+    release(view);
+  }
+});

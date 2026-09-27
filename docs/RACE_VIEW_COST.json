@@ -1,0 +1,110 @@
+{
+  "scope": "Controlled Node CPU service updates; not full-scene GPU or target-hardware FPS",
+  "node": "v22.16.0",
+  "platform": "linux",
+  "arch": "x64",
+  "baselineBundleSHA256": "0cb1a41748dc5573bc36b868bf06e900415d797012c6263536b6e154b1f02c1b",
+  "candidateSourceSHA256": "4500e2d59b7866d786979b95e05b0cacc5dfc0eba6aeb0e47bce9c7ffdcc631e",
+  "colourBufferWarmup": "Both baseline and candidate near/mid attributes warmed before state comparisons",
+  "samplingIntervalBytes": 4096,
+  "framesPerTimingRun": 620,
+  "alternatingTimingRuns": 8,
+  "rows": [
+    {
+      "crews": 1,
+      "actors": 15,
+      "verifiedStates": 23,
+      "stateSHA256": "099c6c6fb12aead8db809aa50beb5d3c2d62d67dff35d5aed215a460d2a0f92d",
+      "baselineMsPerUpdate": 0.25737821774193526,
+      "candidateMsPerUpdate": 0.24319109677419326,
+      "baselineSampledAllocatedBytesPerUpdate": 72815.50967741935,
+      "candidateSampledAllocatedBytesPerUpdate": 50750.72258064516,
+      "timingsMs": [
+        [
+          0.24310965483870947,
+          0.25809789193548377,
+          0.2599988822580643,
+          0.2585340677419349,
+          0.2566585435483867,
+          0.2630821645161287,
+          0.25566880806451636,
+          0.2564737064516125
+        ],
+        [
+          0.24067887580645148,
+          0.23518086290322565,
+          0.24391971935483855,
+          0.24842888870967772,
+          0.2489068354838713,
+          0.2573858274193548,
+          0.240684593548387,
+          0.242462474193548
+        ]
+      ]
+    },
+    {
+      "crews": 8,
+      "actors": 120,
+      "verifiedStates": 23,
+      "stateSHA256": "0367bc1701fcb1b43032b1ad17a732959c0e5ef1283aa3f8f3e90cae52025079",
+      "baselineMsPerUpdate": 1.9941335967741936,
+      "candidateMsPerUpdate": 1.9183882338709664,
+      "baselineSampledAllocatedBytesPerUpdate": 587481.0451612903,
+      "candidateSampledAllocatedBytesPerUpdate": 397445.07096774195,
+      "timingsMs": [
+        [
+          1.9936489870967746,
+          1.9638743741935492,
+          1.9682108838709669,
+          2.024325033870968,
+          1.9946182064516125,
+          2.009018253225804,
+          1.9783036145161297,
+          1.9981942112903197
+        ],
+        [
+          1.9132381661290339,
+          1.908952812903226,
+          1.9164322064516133,
+          1.9036554983870966,
+          1.9368004887096768,
+          1.9203442612903194,
+          1.9848444419354858,
+          1.9311761790322577
+        ]
+      ]
+    },
+    {
+      "crews": 12,
+      "actors": 180,
+      "verifiedStates": 23,
+      "stateSHA256": "d0134243898c4b7da69e729d1f8a199944ccd4998352734d1ffe400f101f2637",
+      "baselineMsPerUpdate": 3.0461779483870957,
+      "candidateMsPerUpdate": 2.930500820967744,
+      "baselineSampledAllocatedBytesPerUpdate": 874653.5741935484,
+      "candidateSampledAllocatedBytesPerUpdate": 600471.0322580645,
+      "timingsMs": [
+        [
+          2.955133582258068,
+          3.0648113564516075,
+          3.009760690322582,
+          3.027544540322584,
+          3.0962361080645238,
+          3.0676298177419437,
+          2.928111924193546,
+          3.105348930645156
+        ],
+        [
+          2.9504786499999973,
+          2.926362059677429,
+          2.963881541935482,
+          2.9628512951613013,
+          2.9326295290322553,
+          2.9283721129032325,
+          2.9282041419354727,
+          2.89669048387097
+        ]
+      ]
+    }
+  ]
+}
