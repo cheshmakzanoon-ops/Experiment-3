@@ -9,7 +9,12 @@ silent procedural-car fallback when this required asset is absent or corrupt.
 
 The existing simulation remains authoritative. Its 3.44 m wheelbase and 1.66 m
 track are unchanged. Four independent hubs follow recorded suspension travel,
-steering and camber; their spin and pit-service offsets come from the same
+steering and camber. The source wheel-centre datum is translated by -0.25 m
+into the physics chassis frame; hub updates compensate by +0.25 m before
+subtracting the recorded absolute suspension length. Camera sockets receive
+that body offset once. This keeps the exterior, cockpit, wheel arches and
+physics-contact hubs aligned rather than leaving the body floating above tires.
+Their spin and pit-service offsets come from the same
 presentation snapshots as the rest of the game. Wing visibility follows damage.
 
 The source R06 IK has been sampled into an authored steering clip, bounded to
@@ -25,6 +30,13 @@ screen receives the existing live instrument canvas. The existing rear-view
 render targets bind to the imported mirror surfaces. Photo-detail focus uses the
 new head, display and wheel anchors. Imported paint participates in local
 reflection capture, while the provided RB19 livery is preserved.
+
+The RB19 carbon and tire grayscale height images are explicitly interpreted as
+bump maps (0.15 mm carbon, 0.4 mm rubber amplitudes), not tangent-space RGB normal
+maps. The ten affected material bindings retain the original image and UV
+transforms. The R06 cockpit's genuine normal maps remain normal maps. This
+runtime adaptation is required because the Blender exporter wrote source
+Bump-node images into glTF normalTexture slots; the binary remains hash-pinned.
 
 Use the game's existing camera-cycle control (C) to switch from chase to cockpit,
 then pod, trackside and back to chase. No new game engine, simulation branch or

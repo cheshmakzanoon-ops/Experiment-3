@@ -9,6 +9,8 @@ import {
   loadSuppliedPlayer,
   SuppliedPlayerAsset,
   SuppliedPlayer,
+  restoreSuppliedHeightMap,
+  PLAYER_SUSPENSION_DATUM,
 } from '../src/rendering/supplied-player.ts';
 import manifest from '../src/rendering/supplied-player.manifest.json' with { type: 'json' };
 import {
@@ -197,6 +199,52 @@ function fixture() {
 }
 
 describe('supplied player presentation', () => {
+  it('restores only the known scalar height textures, preserving real R06 normals and UVs', () => {
+    for (const name of ['carbon_twill_height', 'tyre_scrub_height_16bit']) {
+      const texture = new T.Texture();
+      texture.name = name;
+      texture.repeat.set(7, 11);
+      const material = new T.MeshStandardMaterial({ normalMap: texture });
+      expect(restoreSuppliedHeightMap(material)).toBe(true);
+      expect(material.normalMap).toBeNull();
+      expect(material.bumpMap).toBe(texture);
+      expect(material.bumpScale).toBeGreaterThan(0);
+      expect(material.bumpScale).toBeLessThan(0.001);
+      expect(texture.repeat.toArray()).toEqual([7, 11]);
+      expect(texture.colorSpace).toBe(T.NoColorSpace);
+      expect(restoreSuppliedHeightMap(material)).toBe(false);
+    }
+    const genuine = new T.Texture();
+    genuine.name = 'Suit_Normal_2K';
+    const material = new T.MeshStandardMaterial({ normalMap: genuine });
+    expect(restoreSuppliedHeightMap(material)).toBe(false);
+    expect(material.normalMap).toBe(genuine);
+    expect(material.bumpMap).toBeNull();
+  });
+  it('converts the body datum without shifting any physics wheel hub or double-offsetting cameras', () => {
+    const { player, frame, o } = fixture();
+    const before = frame.slice();
+    for (let i = 0; i < 4; i++)
+      frame[o + WHEEL_BASE + i * WHEEL_STRIDE + W.LENGTH] = 0.21 + i * 0.015;
+    const lengths = frame.slice();
+    player.update(frame, frame, o, 1, true);
+    expect(player.root.position.y).toBe(-PLAYER_SUSPENSION_DATUM);
+    player.wheels.forEach((wheel, i) => {
+      expect(wheel.getWorldPosition(new T.Vector3()).y).toBeCloseTo(
+        0.05 - frame[o + WHEEL_BASE + i * WHEEL_STRIDE + W.LENGTH],
+        6,
+      );
+    });
+    expect(player.eye.y).toBeCloseTo(manifest.sockets.eye[1] - PLAYER_SUSPENSION_DATUM, 6);
+    expect(player.pod.y).toBeCloseTo(manifest.sockets.pod[1] - PLAYER_SUSPENSION_DATUM, 6);
+    expect(player.steering.y).toBeCloseTo(
+      manifest.sockets.steering[1] - PLAYER_SUSPENSION_DATUM,
+      6,
+    );
+    expect(frame).toEqual(lengths);
+    frame.set(before);
+    player.disposeAnimation();
+  });
   it('moves real wheel anchors and hides only the head in POV', () => {
     const { player, frame, o, steering } = fixture();
     frame[o + F.STEER] = 0.2;

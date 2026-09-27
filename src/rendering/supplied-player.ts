@@ -8,6 +8,30 @@ import { serviceWheelOffset } from './pit-crew.ts';
 import { rearSignalIntensity } from './rear-signal.ts';
 import manifest from './supplied-player.manifest.json' with { type: 'json' };
 
+/** The Blender assembly uses the nominal wheel-centre datum, while the
+ * simulation publishes absolute suspension lengths below chassis hardpoints. */
+export const PLAYER_SUSPENSION_DATUM = 0.25;
+
+/** These two source images are scalar height, not tangent-space RGB normals.
+ * Preserve their UV transforms and restore the source Bump-node interpretation.
+ * Other R06 normal maps are genuine normal maps and must remain untouched. */
+export function restoreSuppliedHeightMap(material: T.MeshStandardMaterial) {
+  const texture = material.normalMap;
+  const scale =
+    texture?.name === 'carbon_twill_height'
+      ? 0.00015
+      : texture?.name === 'tyre_scrub_height_16bit'
+        ? 0.0004
+        : null;
+  if (scale === null || !texture) return false;
+  texture.colorSpace = T.NoColorSpace;
+  material.bumpMap = texture;
+  material.bumpScale = scale;
+  material.normalMap = null;
+  material.needsUpdate = true;
+  return true;
+}
+
 const aborted = () => new DOMException('Player model loading cancelled', 'AbortError');
 const hash = async (bytes: Uint8Array<ArrayBuffer>) =>
   Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)))
@@ -255,12 +279,14 @@ export class SuppliedPlayer {
   private readonly lcd: T.Mesh;
   private readonly screenPoint = new T.Vector3();
   private disposed = false;
+  private heightMapsRestored = 0;
   private readonly bones = new Map<string, T.Bone>();
   constructor(
     readonly root: T.Group,
     clips: T.AnimationClip[],
     display: T.CanvasTexture,
   ) {
+    root.position.y = -PLAYER_SUSPENSION_DATUM;
     const node = (name: string) => {
       const value = root.getObjectByName(name);
       if (!value) throw new Error(`Missing supplied player node: ${name}`);
@@ -283,6 +309,8 @@ export class SuppliedPlayer {
     this.eye = new T.Vector3(...(manifest.sockets.eye as [number, number, number]));
     this.pod = new T.Vector3(...(manifest.sockets.pod as [number, number, number]));
     this.steering = new T.Vector3(...(manifest.sockets.steering as [number, number, number]));
+    // Public sockets are in the enclosing car/chassis frame, not asset-local.
+    for (const socket of [this.eye, this.pod, this.steering]) socket.add(root.position);
     this.lcd = firstMesh('PLAYER_LCD');
     // Blender/glTF UVs are already top-down; unlike the legacy procedural plane,
     // an assigned CanvasTexture must not flip them a second time.
@@ -305,6 +333,7 @@ export class SuppliedPlayer {
         for (const m of Array.isArray(o.material) ? o.material : [o.material]) {
           if (!(m instanceof T.MeshStandardMaterial) || seen.has(m)) continue;
           seen.add(m);
+          if (restoreSuppliedHeightMap(m)) this.heightMapsRestored++;
           if (
             m instanceof T.MeshPhysicalMaterial &&
             (m.name.startsWith('Paint |') ||
@@ -332,7 +361,9 @@ export class SuppliedPlayer {
   }
   headWorld(out: T.Vector3) {
     const head = this.bones.get('head');
-    return head ? head.getWorldPosition(out) : this.root.localToWorld(out.copy(this.eye));
+    return head
+      ? head.getWorldPosition(out)
+      : this.root.localToWorld(out.copy(this.eye).sub(this.root.position));
   }
   screenWorld(out: T.Vector3) {
     out.copy(this.screenPoint);
@@ -350,7 +381,8 @@ export class SuppliedPlayer {
     });
     for (let i = 0; i < 4; i++) {
       const p = o + WHEEL_BASE + i * WHEEL_STRIDE;
-      this.wheels[i].position.y = 0.05 - wheelTravel(a, b, p, t);
+      // Root carries the nominal datum; keep world hubs identical to physics.
+      this.wheels[i].position.y = 0.05 + PLAYER_SUSPENSION_DATUM - wheelTravel(a, b, p, t);
       this.wheels[i].rotation.y = lerp(a[p + W.STEER], b[p + W.STEER], t);
       this.wheels[i].rotation.z = -lerp(a[p + W.CAMBER], b[p + W.CAMBER], t);
       this.spins[i].rotation.x = wheelPhase(a, b, o, p, t);
@@ -408,6 +440,11 @@ export class SuppliedPlayer {
       steeringTime: this.action.time,
       eye: this.eye.toArray(),
       pod: this.pod.toArray(),
+      suspensionDatum: PLAYER_SUSPENSION_DATUM,
+      heightMapsRestored: this.heightMapsRestored,
+      chassisWheelCenters: this.wheels.map((w) =>
+        w.position.clone().add(this.root.position).toArray(),
+      ),
       wheelCenters: this.wheels.map((w) => w.position.toArray()),
       finalArtApproved: false,
     };

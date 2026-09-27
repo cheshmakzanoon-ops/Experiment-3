@@ -68,6 +68,13 @@ test('supplied RB19 and R06: actual binary fit, both locks, POV, T-cam and rewin
   for (const c of result.results) {
     expect(c.diagnostics.sha256).toBe(manifest.sha256);
     expect(c.diagnostics.joints).toBe(manifest.joints);
+    expect(c.diagnostics.heightMapsRestored).toBe(10);
+    expect(c.diagnostics.suspensionDatum).toBe(0.25);
+    c.diagnostics.chassisWheelCenters.forEach((hub, i) => {
+      expect(hub[1]).toBeCloseTo(0.05 - c.suspension[i], 5);
+      expect(c.wheelWorld[i][1]).toBeCloseTo(c.chassisY + hub[1], 5);
+    });
+    expect(c.diagnostics.eye[1]).toBeCloseTo(manifest.sockets.eye[1] - 0.25, 6);
     expect(c.diagnostics.headVisible).toBe(c.mode !== 'cockpit');
     expect(c.triangles).toBeGreaterThan(100000);
     expect(c.image.length).toBeGreaterThan(30000);

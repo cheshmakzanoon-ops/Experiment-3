@@ -4,7 +4,7 @@ import { loadSuppliedPlayer } from '../../src/rendering/supplied-player.ts';
 import { drawSteeringDisplay } from '../../src/rendering/steering-display.ts';
 import { Simulation } from '../../src/simulation/world.ts';
 import { controls, DEFAULT_OPTIONS } from '../../src/simulation/config.ts';
-import { carBase, F } from '../../src/simulation/protocol.ts';
+import { carBase, F, W, WHEEL_BASE, WHEEL_STRIDE } from '../../src/simulation/protocol.ts';
 
 /** Uses the shipped binary, its actual skeleton, and production simulation
  * snapshots. This studio fixture verifies fit/rig, not a full-lap FPS target. */
@@ -35,8 +35,9 @@ export async function captureSuppliedPlayer(url: string) {
   environment.dispose();
   pmrem.dispose();
   scene.environment = env.texture;
-  scene.add(player.root);
-  player.root.position.y = 0.3;
+  const chassis = new T.Group();
+  chassis.add(player.root);
+  scene.add(chassis);
   const hemi = new T.HemisphereLight(0xd5e5ff, 0x676356, 2);
   scene.add(hemi);
   const sun = new T.DirectionalLight(0xfff3e3, 3.2);
@@ -94,12 +95,19 @@ export async function captureSuppliedPlayer(url: string) {
   ] as const) {
     drawSteeringDisplay(lcd.getContext('2d')!, frame, o);
     texture.needsUpdate = true;
+    // Match the production renderer's chassis/asset hierarchy. Normalize only
+    // terrain elevation, never overwrite the imported asset's suspension datum.
+    const suspension = frame[o + WHEEL_BASE + W.LENGTH];
+    const radius = frame[o + WHEEL_BASE + W.RADIUS];
+    chassis.position.y = suspension + radius - 0.05;
     player.update(frame, frame, o, 1, mode === 'cockpit');
+    camera.fov = mode === 'exterior' ? 44 : 68;
+    camera.updateProjectionMatrix();
     if (mode === 'exterior') {
-      camera.position.set(4, 2.3, 6.2);
-      camera.lookAt(0, 0.5, 0);
+      camera.position.set(3.7, 2, 5.5);
+      camera.lookAt(0, 0.43, 0);
     } else {
-      camera.position.copy(mode === 'pod' ? player.pod : player.eye).add(player.root.position);
+      camera.position.copy(mode === 'pod' ? player.pod : player.eye).add(chassis.position);
       camera.lookAt(camera.position.clone().add(new T.Vector3(0, -0.035, 1)));
     }
     camera.updateMatrixWorld();
@@ -110,6 +118,9 @@ export async function captureSuppliedPlayer(url: string) {
       mode,
       image: canvas.toDataURL('image/png'),
       screen: screen.toArray(),
+      suspension: [0, 1, 2, 3].map((i) => frame[o + WHEEL_BASE + i * WHEEL_STRIDE + W.LENGTH]),
+      wheelWorld: player.wheels.map((wheel) => wheel.getWorldPosition(new T.Vector3()).toArray()),
+      chassisY: chassis.position.y,
       steer: frame[o + F.STEER],
       diagnostics: player.diagnostics(),
       pose: player.driverPose(),
