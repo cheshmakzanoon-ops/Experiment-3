@@ -118,6 +118,7 @@ test('normal-resolution eight-car night inspection follows the selected car and 
     .poll(async () => (await read(page)).workerPause)
     .toMatchObject({ pending: false, paused: true });
   await page.locator('#modal [data-action="academy"]').click();
+  const daytime = await read(page);
   await page.locator('#modal [data-action="lighting:night"]').click();
   await expect.poll(async () => (await read(page)).renderer?.lighting).toBe('night');
   await page.locator('#modal [data-action="modalClose"]').click();
@@ -125,6 +126,16 @@ test('normal-resolution eight-car night inspection follows the selected car and 
   await expect.poll(async () => (await read(page)).state).toBe('photo');
   await page.selectOption('#photo-view', 'chase');
   await expect.poll(async () => (await read(page)).renderer?.localProbeActive).toBe(true);
+  // Requested lighting changes before the GPU can present it. The first capture
+  // must witness actual night lamps and a fresh scene probe, not a daytime buffer
+  // carrying a newly selected 'night' label while the render queue is busy.
+  await expect
+    .poll(async () => (await read(page)).presentation?.frames ?? 0)
+    .toBeGreaterThan(daytime.presentation!.frames);
+  await expect.poll(async () => (await read(page)).renderer?.venueLighting.nearbyLights).toBe(4);
+  await expect
+    .poll(async () => (await read(page)).renderer?.reflectionProbeUpdates ?? 0)
+    .toBeGreaterThan(daytime.renderer!.reflectionProbeUpdates);
   const first = await read(page);
   expect(first.renderer!.graphics.resolutionScale).toBe(1);
   expect(first.renderer!.reflectionIntensity).toBe(1);

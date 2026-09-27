@@ -139,3 +139,47 @@ This continuation's local `npm run check` passed: 113 test files / 1,167 unit
 cases, lint, strict TypeScript and the production build. This count belongs to
 the preparation repair, not to the earlier failed hosted run. The Vite warning
 about large existing application chunks remains; no performance limit was raised.
+
+## Render-qualified replay inspection
+
+The preparation repair `e38559e6` passed both wet-following views, all four
+normal-resolution full-lap views and browser shards 1–7 in run `36289477897`.
+The full run still failed on the populated pit replay's displaced-wheel check.
+Its preserved shard-8 artifact is `10921954885`, SHA-256
+`dc9f0e007d6d6769079d74954e2525038ccea4f8e03be4b7431ebac4b6f00c21`.
+
+The coarse session recorder's last phase-3 row was simulation time 116.866669,
+service clock 1.4 seconds. The actual replay had a 0.094667-metre jack height and
+692–841 N remaining wheel loads. Zero outward wheel offsets were correct: the
+real presentation prohibits removal above 50 N. A phase label alone therefore
+was not a valid locator for this assertion. The trace also shows the seek range
+acknowledging its position while the last rendered view still showed pit exit.
+
+The existing replay helper now waits for the requested absolute time to be
+presented, rather than treating range acknowledgement as a rendered receipt.
+The pit journey uses a decoded phase-3 clock to locate interior removal (2.0 s)
+and installation (2.6 s) inside the same actual recorded service. These are
+ordinary UI seek requests, not replacement snapshots or animation overrides.
+The removal-offset assertion is retained and installation additionally requires
+phase 4 with displaced wheels. Full crew, magnified lens, framing, pose reuse,
+held/rewound equality, all cameras and no-error assertions remain unchanged.
+Three regressions preserve the failing loaded sample, prove cadence-independent
+clock anchoring, and reject corrupt or nonservice anchors. Loaded hubs still
+cannot move even at the selected later clock.
+
+Image inspection also rejected the first `night-eight-car-local-reflections.png`
+from the preceding captures as a night-art receipt: its requested mode was night,
+but its busy render queue still displayed daytime. Later selected-car/return
+images were night views. The existing photo test now requires an advanced
+presentation frame, four actually active night lights and a refreshed reflection
+probe before taking that first image. No runtime or default quality is changed.
+
+These test-only corrections preserve every game asset, shader, physics value,
+workload resolution, opponent count, threshold, timeout, retry and CI dependency.
+Their own full hosted suite and deployment must pass independently. Human art,
+continuous manual Section 146 and representative physical hardware remain open.
+
+Local `npm run check` for these corrections passed 114 test files / 1,170 unit
+cases, lint, strict TypeScript and the production build. The seven production
+files remain byte-identical to the preceding candidate; browser-test correctness
+and complete source-specific CI still require a new hosted run.

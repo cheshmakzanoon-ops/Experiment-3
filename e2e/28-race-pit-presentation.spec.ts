@@ -5,6 +5,7 @@ import { readPresentationReport } from '../src/rendering/presentation-review.ts'
 import { readPerformanceReport } from '../src/core/performance.ts';
 import type { SessionReviewReport } from '../src/core/session-review.ts';
 import { PIT_SERVICE_RADIUS } from '../src/rendering/pit-presentation.ts';
+import { recordedPitMoment } from './fixtures/pit-replay-selection.ts';
 
 test.use({ video: { mode: 'on', size: { width: 960, height: 600 } } });
 const machine = 'Hosted Chromium software GPU; not physical hardware acceptance';
@@ -211,6 +212,12 @@ async function seek(page: Page, seconds: number) {
   }, seconds);
   await expect.poll(async () => (await read(page)).replaySeekPending).toBe(false);
   await expect.poll(async () => (await read(page)).replayPosition).toBe(requested);
+  // The range can acknowledge before a GPU-deferred frame is submitted. Observe
+  // the decoded/presented replay, not the still-paused live worker's d.frame.
+  const absoluteTime = (await read(page)).replayStart + requested;
+  await expect
+    .poll(async () => (await read(page)).renderer?.pitState.time)
+    .toBeCloseTo(absoluteTime, 3);
   return read(page);
 }
 
@@ -402,10 +409,22 @@ test('27H.6 populated pit journey: approach, real service, exit and complete rep
   // playback slider uses seconds relative to replay.start, not wall time.
   const removal = report.rows.filter((row) => row[phaseColumn] === 3);
   expect(removal.length).toBeGreaterThan(0);
-  const removalTime = removal[removal.length - 1][timeColumn];
-  const installTime = report.rows.find((row) => row[phaseColumn] === 4)![timeColumn];
+  const anchorTime = removal[removal.length - 1][timeColumn];
   await replay(page);
   const startTime = (await read(page)).replayStart;
+  const anchor = await seek(page, anchorTime - startTime);
+  expect(anchor.renderer?.pitState.phase).toBe(3);
+  const removalTime = recordedPitMoment(anchor.renderer!.pitState, 'removal'),
+    installTime = recordedPitMoment(anchor.renderer!.pitState, 'installation');
+  await info.attach('27h6-pit-replay-selection.json', {
+    body: JSON.stringify({
+      anchorTime,
+      observed: anchor.renderer!.pitState,
+      removalTime,
+      installTime,
+    }),
+    contentType: 'application/json',
+  });
   const held = await seek(page, removalTime - startTime);
   await expect.poll(async () => (await read(page)).renderer?.pitPersonnel.actors).toBe(15);
   await expect.poll(async () => (await read(page)).renderer?.broadcastFramingFits).toBe(true);
@@ -441,7 +460,9 @@ test('27H.6 populated pit journey: approach, real service, exit and complete rep
   expect(redrawn.replayPosition).toBe(held.replayPosition);
   expect(redrawn.frame?.[H.TICK]).toBe(held.frame?.[H.TICK]);
   await page.setViewportSize(viewport);
-  await seek(page, installTime - startTime);
+  const installation = await seek(page, installTime - startTime);
+  expect(installation.renderer?.pitState.phase).toBe(4);
+  expect(Math.max(...installation.renderer!.pitState.wheelOffsets)).toBeGreaterThan(0);
   await image(page, info, 'pit-installation-full-crew');
   const rewind = await seek(page, removalTime - startTime);
   expect(rewind.renderer?.pitState).toEqual(held.renderer?.pitState);
