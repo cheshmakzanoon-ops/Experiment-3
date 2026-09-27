@@ -1,0 +1,32 @@
+name: Supplied player asset toolchain
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [.github/workflows/player-asset-toolchain.yml]
+permissions:
+  contents: read
+jobs:
+  toolchain:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Package exact locked dependencies for offline model integration checks
+        run: |
+          tar -czf "$RUNNER_TEMP/player-node-toolchain.tar.gz" node_modules
+          sha256sum package-lock.json > "$RUNNER_TEMP/player-toolchain-lock.sha256"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: supplied-player-locked-node-toolchain
+          path: |
+            ${{ runner.temp }}/player-node-toolchain.tar.gz
+            ${{ runner.temp }}/player-toolchain-lock.sha256
+          retention-days: 1
+          compression-level: 0
+          if-no-files-found: error
