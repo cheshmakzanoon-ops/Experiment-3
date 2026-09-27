@@ -130,28 +130,118 @@ export async function captureSuppliedPlayer(url: string) {
     });
     await new Promise((resolve) => setTimeout(resolve, 0));
   }
+  // All detail levels use the same mesh identities, material objects and rig.
+  // Compare them at a demanding close exterior view before testing resource reuse.
+  camera.fov = 44;
+  camera.position.set(3.7, 2, 5.5);
+  camera.lookAt(0, 0.43, 0);
+  camera.updateProjectionMatrix();
+  player.update(neutral, neutral, o, 1, false);
+  const pose = player.driverPose();
+  const identity = new Map<
+    T.Mesh,
+    {
+      material: T.Material | T.Material[];
+      position: T.BufferAttribute | T.InterleavedBufferAttribute;
+    }
+  >();
+  player.root.traverse((object) => {
+    if (object instanceof T.Mesh)
+      identity.set(object, {
+        material: object.material,
+        position: object.geometry.getAttribute('position'),
+      });
+  });
+  const size = renderer.getDrawingBufferSize(new T.Vector2());
+  const readPixels = () => {
+    const data = new Uint8Array(size.x * size.y * 4);
+    const gl = renderer.getContext();
+    gl.readPixels(0, 0, size.x, size.y, gl.RGBA, gl.UNSIGNED_BYTE, data);
+    return data;
+  };
+  const lodReview = [];
+  let reference: Uint8Array | undefined;
+  for (const [label, level, quality, exact] of [
+    ['original-close', 0, 'high', false],
+    ['efficient-close', 0, 'low', false],
+    ['medium-detail', 1, 'medium', false],
+    ['distant-detail', 2, 'low', false],
+    ['original-restored', 0, 'low', true],
+  ] as const) {
+    player.lods!.setLevel(level, quality, exact);
+    player.update(neutral, neutral, o, 1, false);
+    renderer.render(scene, camera);
+    const current = readPixels();
+    reference ??= current;
+    let sum = 0,
+      max = 0;
+    for (let i = 0; i < current.length; i++) {
+      const delta = Math.abs(current[i] - reference[i]);
+      sum += delta;
+      max = Math.max(max, delta);
+    }
+    lodReview.push({
+      label,
+      lod: player.lods!.diagnostics(),
+      triangles: renderer.info.render.triangles,
+      calls: renderer.info.render.calls,
+      meanChannelDelta: sum / current.length,
+      maxChannelDelta: max,
+      image: canvas.toDataURL('image/png'),
+      pose: player.driverPose(),
+      resources: { ...renderer.info.memory, programs: renderer.info.programs?.length ?? 0 },
+      identityRetained: [...identity].every(
+        ([mesh, value]) =>
+          mesh.material === value.material &&
+          mesh.geometry.getAttribute('position') === value.position,
+      ),
+    });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  }
+  const warmedResources = {
+    ...renderer.info.memory,
+    programs: renderer.info.programs?.length ?? 0,
+  };
+  for (let i = 0; i < 6; i++) {
+    player.lods!.setLevel(i % 3, 'low');
+    player.update(neutral, neutral, o, 1, false);
+    renderer.render(scene, camera);
+  }
+  const reusedResources = {
+    ...renderer.info.memory,
+    programs: renderer.info.programs?.length ?? 0,
+  };
+  const poseRetained = JSON.stringify(pose) === JSON.stringify(player.driverPose());
   const glError = renderer.getContext().getError();
   const sourceUnchanged = [neutral, left, right].every((f, i) =>
     f.every((v, j) => v === sourceFrames[i][j]),
   );
   player.disposeAnimation();
-  const geometries = new Set<T.BufferGeometry>(),
+  const disposalGeometries = new Set<T.BufferGeometry>(),
     materials = new Set<T.Material>(),
     textures = new Set<T.Texture>();
   scene.traverse((o) => {
     if (o instanceof T.Mesh) {
-      geometries.add(o.geometry);
+      disposalGeometries.add(o.geometry);
       for (const m of Array.isArray(o.material) ? o.material : [o.material]) {
         materials.add(m);
         for (const v of Object.values(m)) if (v instanceof T.Texture) textures.add(v);
       }
     }
   });
-  geometries.forEach((g) => g.dispose());
+  disposalGeometries.forEach((g) => g.dispose());
   materials.forEach((m) => m.dispose());
   textures.forEach((t) => t.dispose());
   env.dispose();
   renderer.dispose();
   asset.dispose();
-  return { results, glError, sourceUnchanged };
+  return {
+    results,
+    lodReview,
+    warmedResources,
+    reusedResources,
+    poseRetained,
+    glError,
+    sourceUnchanged,
+  };
 }

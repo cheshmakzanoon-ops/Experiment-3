@@ -43,14 +43,21 @@ test('supplied RB19 and R06: actual binary fit, both locks, POV, T-cam and rewin
       new URL('/models/supplied-player.glb.gz', location.href).href,
     ),
   );
-  for (const c of result.results)
+  for (const c of [
+    ...result.results,
+    ...result.lodReview.map((row) => ({ ...row, name: row.label })),
+  ])
     await info.attach(`${c.name}.png`, {
       body: Buffer.from(c.image.split(',')[1], 'base64'),
       contentType: 'image/png',
     });
   await info.attach('supplied-player-verification.json', {
     body: JSON.stringify(
-      { ...result, results: result.results.map(({ image: _image, ...c }) => c) },
+      {
+        ...result,
+        results: result.results.map(({ image: _image, ...c }) => c),
+        lodReview: result.lodReview.map(({ image: _image, ...c }) => c),
+      },
       null,
       2,
     ),
@@ -95,6 +102,26 @@ test('supplied RB19 and R06: actual binary fit, both locks, POV, T-cam and rewin
       hand.forEach((v, j) => expect(Math.abs(v - neutral.handInWheel[i][j])).toBeLessThan(0.025)),
     );
   }
+  expect(result.poseRetained).toBe(true);
+  expect(result.reusedResources).toEqual(result.warmedResources);
+  expect(result.lodReview.map((row) => row.lod.tier)).toEqual([0, 1, 2, 3, 0]);
+  for (const row of result.lodReview) {
+    expect(row.identityRetained).toBe(true);
+    expect(row.pose).toEqual(result.lodReview[0].pose);
+    expect(row.image.length).toBeGreaterThan(30000);
+    expect(row.calls).toBe(result.lodReview[0].calls);
+  }
+  for (const row of result.lodReview.slice(1, 4)) {
+    const saved = result.lodReview[0].lod.triangles - row.lod.triangles;
+    expect(saved).toBeGreaterThan(result.lodReview[0].lod.triangles * 0.3);
+    // Transparent two-sided decals incur an unchanged extra render pass.
+    // Measure the exact removed triangles, not a ratio diluted by that overhead.
+    expect(result.lodReview[0].triangles - row.triangles).toBe(saved);
+  }
+  // Sub-millimetre simplifier tolerances are not by themselves visual proof.
+  // The close view must retain its appearance, and exact mode must restore pixels.
+  expect(result.lodReview[1].meanChannelDelta).toBeLessThan(2);
+  expect(result.lodReview[4].maxChannelDelta).toBe(0);
   expect(left.diagnostics.steeringTime).not.toBe(right.diagnostics.steeringTime);
   expect(left.pose.arms).not.toEqual(right.pose.arms);
   expect(paused.pose).toEqual(right.pose);

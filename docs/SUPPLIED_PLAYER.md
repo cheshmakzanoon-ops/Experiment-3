@@ -95,8 +95,11 @@ The legacy body/driver validators remain intact for AI and their own fixtures.
 These sources are artistic reconstructions, not measured RB19 engineering CAD.
 This integration does not certify 1:1 accuracy, final art, commercial rights to
 team/sponsor marks, Steam readiness, or a physical-hardware FPS target. The
-player keeps a high-detail representation at every distance; the imported
-livery is fixed, and the older livery editor does not recolor its baked decals.
+player now selects source-preserving runtime detail tiers with the existing
+camera-distance hysteresis. High-quality close-ups and Photo Studio retain all
+source triangles; other tiers preserve the same vertices, materials and skeleton.
+See [generation, measured budgets and validation](SUPPLIED_PLAYER_RUNTIME.md).
+The imported livery is fixed, and the older livery editor does not recolor its baked decals.
 The source DRS pivot is preserved but remains closed: no new DRS physics or
 control feature is claimed. Existing AI-specific clothing and LOD evidence is
 not evidence for this new player model. Separate hosted browser and full-race

@@ -548,10 +548,16 @@ export class FormulaCar {
       this.root.userData.suppliedPlayer = this.suppliedPlayer.diagnostics();
     }
   }
-  setLod(distance: number, quality: 'low' | 'medium' | 'high', player: boolean) {
+  setLod(
+    distance: number,
+    quality: 'low' | 'medium' | 'high',
+    player: boolean,
+    exactClose = false,
+  ) {
     if (this.suppliedPlayer) {
       // Never let an old procedural LOD reappear in replay, menu or photo mode.
-      this.lodLevel = 0;
+      this.lodLevel = carLod(distance, this.lodLevel, quality, player);
+      this.suppliedPlayer.lods?.setLevel(this.lodLevel, quality, exactClose);
       this.highDetail.visible = false;
       this.reduced.forEach((car) => {
         car.root.visible = false;

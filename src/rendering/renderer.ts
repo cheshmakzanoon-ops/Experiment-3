@@ -556,7 +556,7 @@ export class RacingRenderer {
       speed = b[o + F.SPEED];
     // The followed car always uses the near mesh. Its articulated subject is
     // needed to solve this frame's camera; every car is posed exactly once.
-    car.setLod(0, this.quality, true);
+    car.setLod(0, this.quality, true, !!this.photo);
     car.update(
       a,
       b,
@@ -901,11 +901,13 @@ export class RacingRenderer {
       0.001,
       distance + 0.005,
     );
-    const visibleHit = ray.intersectObject(car.root, true).find((hit) => {
-      for (let object: T.Object3D | null = hit.object; object; object = object.parent)
-        if (!object.visible) return false;
-      return true;
-    });
+    const visibleHit = ray
+      .intersectObject(car.suppliedPlayer?.root ?? car.root, true)
+      .find((hit) => {
+        for (let object: T.Object3D | null = hit.object; object; object = object.parent)
+          if (!object.visible) return false;
+        return true;
+      });
     const screenVisible = !!visibleHit && visibleHit.distance >= distance - 0.008;
     wheel.project(this.camera);
     const halo = new T.Vector3(0, 0.35, 0.64);

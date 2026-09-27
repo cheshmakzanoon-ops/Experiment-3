@@ -345,3 +345,85 @@ export async function fullSceneFogGPU(mode: FogView) {
     canvas.remove();
   }
 }
+
+/** Independent scalar/product-exponential control for the vectorized production
+ * quadrature. The control changes only that helper, never geometry or weather. */
+export function fogQuadratureGPU() {
+  const { renderer, scene, camera, draw, dispose } = studio();
+  const atmosphere = new LocalAtmosphere(new Track());
+  const p = atmosphere.pockets[0];
+  const candidate = new T.MeshStandardMaterial({ color: 0xffffff, roughness: 1 });
+  const control = candidate.clone();
+  atmosphere.installMaterial(candidate);
+  atmosphere.installMaterial(control);
+  const compiled = control.onBeforeCompile;
+  const key = control.customProgramCacheKey();
+  control.onBeforeCompile = (shader, renderer) => {
+    compiled.call(control, shader, renderer);
+    const pattern = /float apexPocketSamples\([\s\S]*?(?=float apexPocketIntegral)/;
+    if (!pattern.test(shader.fragmentShader))
+      throw new Error('Missing production quadrature helper');
+    shader.fragmentShader = shader.fragmentShader.replace(
+      pattern,
+      `
+      float scalarDensity(vec3 position, vec4 volume, float inverseHeight) {
+        vec2 delta=position.xz-volume.xy;
+        return exp(-3.*dot(delta,delta)*volume.z)*exp(-max(0.,position.y-volume.w)*inverseHeight);
+      }
+      float apexPocketSamples(vec3 start, vec3 segment, vec4 volume, float inverseHeight, vec4 nodes, vec4 weights) {
+        return scalarDensity(start+segment*nodes.x,volume,inverseHeight)*weights.x+
+          scalarDensity(start+segment*nodes.y,volume,inverseHeight)*weights.y+
+          scalarDensity(start+segment*nodes.z,volume,inverseHeight)*weights.z+
+          scalarDensity(start+segment*nodes.w,volume,inverseHeight)*weights.w;
+      }
+    `,
+    );
+  };
+  control.customProgramCacheKey = () => key + '|independent-scalar-control';
+  const geometry = new T.PlaneGeometry(360, 100);
+  const plane = new T.Mesh(geometry, candidate);
+  scene.add(plane);
+  scene.fog = new T.Fog(0x182e46, 100000, 200000);
+  atmosphere.sigma.value = 0.00275;
+  // Disable tail pruning to exercise all eight original quadrature nodes.
+  atmosphere.tailError.value = 0;
+  const rows = [];
+  try {
+    for (const mode of ['low', 'high', 'long'] as const) {
+      const target = new T.Vector3(p.x + (mode === 'long' ? 400 : 100), p.floor + 1, p.z);
+      if (mode === 'low') camera.position.set(p.x - 110, p.floor + 2, p.z + 60);
+      else if (mode === 'high') camera.position.set(p.x, p.floor + 180, p.z + 220);
+      else camera.position.set(p.x - 1400, p.floor + 3, p.z);
+      camera.lookAt(target);
+      plane.position.copy(target);
+      plane.lookAt(camera.position);
+      plane.material = control;
+      const reference = draw();
+      plane.material = candidate;
+      const actual = draw(),
+        held = draw();
+      atmosphere.sigma.value = 0;
+      const disabled = draw();
+      atmosphere.sigma.value = 0.00275;
+      rows.push({
+        mode,
+        comparison: difference(reference.pixels, actual.pixels),
+        held: difference(actual.pixels, held.pixels),
+        negative: difference(actual.pixels, disabled.pixels),
+        image: actual.image,
+        calls: actual.calls,
+      });
+    }
+    return {
+      rows,
+      glError: renderer.getContext().getError(),
+      scope:
+        'Scalar versus vectorized production fog quadrature; component validation, not race FPS',
+    };
+  } finally {
+    geometry.dispose();
+    candidate.dispose();
+    control.dispose();
+    dispose();
+  }
+}

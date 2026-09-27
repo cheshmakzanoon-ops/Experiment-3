@@ -236,10 +236,13 @@ export class LocalAtmosphere {
             vec3 vertical = exp(-max(vec3(0.),vec3(p.y)-apexFogFloors)*apexFogHeights);
             return dot(lateral,vertical);
           }
-          float apexPocketDensity(vec3 p, vec4 volume, float inverseHeight) {
-            vec2 delta=p.xz-volume.xy;
-            return exp(-3.*dot(delta,delta)*volume.z) *
-              exp(-max(0.,p.y-volume.w)*inverseHeight);
+          // Four quadrature nodes at once. Combine lateral/height exponents:
+          // exp(a)*exp(b) == exp(a+b), without changing the density model.
+          float apexPocketSamples(vec3 start, vec3 segment, vec4 volume, float inverseHeight, vec4 nodes, vec4 weights) {
+            vec4 dx=vec4(start.x-volume.x)+segment.x*nodes;
+            vec4 dz=vec4(start.z-volume.y)+segment.z*nodes;
+            vec4 height=max(vec4(0.),vec4(start.y-volume.w)+segment.y*nodes)*inverseHeight;
+            return dot(exp(-3.*(dx*dx+dz*dz)*volume.z-height),weights);
           }
           float apexPocketIntegral(vec3 origin, vec3 ray, float rayLength, vec4 volume, float inverseHeight) {
             float lateral2=dot(ray.xz,ray.xz), begin=0., end=1., centre=0.;
@@ -260,14 +263,13 @@ export class LocalAtmosphere {
             }
             vec3 start=origin+ray*begin, segment=ray*(end-begin);
             return (end-begin)*(
-              apexPocketDensity(start+segment*0.019855071751,volume,inverseHeight)*0.050614268145 +
-              apexPocketDensity(start+segment*0.101666761293,volume,inverseHeight)*0.111190517227 +
-              apexPocketDensity(start+segment*0.237233795042,volume,inverseHeight)*0.156853322939 +
-              apexPocketDensity(start+segment*0.408282678752,volume,inverseHeight)*0.181341891689 +
-              apexPocketDensity(start+segment*0.591717321248,volume,inverseHeight)*0.181341891689 +
-              apexPocketDensity(start+segment*0.762766204958,volume,inverseHeight)*0.156853322939 +
-              apexPocketDensity(start+segment*0.898333238707,volume,inverseHeight)*0.111190517227 +
-              apexPocketDensity(start+segment*0.980144928249,volume,inverseHeight)*0.050614268145);
+              apexPocketSamples(start,segment,volume,inverseHeight,
+                vec4(0.019855071751,0.101666761293,0.237233795042,0.408282678752),
+                vec4(0.050614268145,0.111190517227,0.156853322939,0.181341891689)) +
+              apexPocketSamples(start,segment,volume,inverseHeight,
+                vec4(0.591717321248,0.762766204958,0.898333238707,0.980144928249),
+                vec4(0.181341891689,0.156853322939,0.111190517227,0.050614268145)));
+
           }
         #endif`,
         )
@@ -290,7 +292,7 @@ export class LocalAtmosphere {
         );
     };
     material.customProgramCacheKey = () =>
-      key + '|apex-local-atmosphere-v3-bounded-ray:' + position;
+      key + '|apex-local-atmosphere-v4-vector-quadrature:' + position;
     material.needsUpdate = true;
   }
   diagnostics() {

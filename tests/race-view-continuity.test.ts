@@ -177,7 +177,7 @@ describe('current-view detail and deterministic presentation', () => {
         expect(car.update).toHaveBeenCalledTimes(1);
         expect(car.setLod).toHaveBeenCalledTimes(1);
       }
-      expect(cars[follow].setLod.mock.calls[0].slice(1)).toEqual(['high', true]);
+      expect(cars[follow].setLod.mock.calls[0].slice(1)).toEqual(['high', true, false]);
       const distance = cars[opponent].setLod.mock.calls[0][0];
       expect(distance).toBeCloseTo(Math.hypot(0.4, 0.2), 12);
       expect(cars[opponent].update).toHaveBeenCalledWith(

@@ -1,4 +1,5 @@
 import * as T from 'three';
+import { loadPlayerLods, SuppliedPlayerLods, type PlayerLodData } from './supplied-player-lods.ts';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { clamp, lerp } from '../core/math.ts';
 import { F, H, W, WHEEL_BASE, WHEEL_STRIDE } from '../simulation/protocol.ts';
@@ -195,19 +196,27 @@ export class SuppliedPlayerAsset {
   private constructor(
     private prototype: T.Group | null,
     private clips: T.AnimationClip[],
+    private lods: SuppliedPlayerLods,
   ) {}
   take(display: T.CanvasTexture) {
     if (!this.prototype)
       throw new Error('Supplied player asset has already been claimed or disposed');
-    const player = new SuppliedPlayer(this.prototype, this.clips, display);
+    const player = new SuppliedPlayer(this.prototype, this.clips, display, this.lods);
     this.prototype = null; // RacingRenderer's normal scene disposal now owns it.
     return player;
   }
   dispose() {
-    if (this.prototype) release(this.prototype);
+    if (this.prototype) {
+      this.lods.dispose();
+      release(this.prototype);
+    }
     this.prototype = null;
   }
-  static async decode(input: Uint8Array<ArrayBuffer>, signal?: AbortSignal) {
+  static async decode(
+    input: Uint8Array<ArrayBuffer>,
+    signal?: AbortSignal,
+    loadLods?: () => Promise<PlayerLodData>,
+  ) {
     if (signal?.aborted) throw aborted();
     let bytes = input;
     if (
@@ -235,6 +244,9 @@ export class SuppliedPlayerAsset {
     validateSuppliedPlayerDocument(
       JSON.parse(new TextDecoder().decode(bytes.subarray(20, 20 + len))),
     );
+    if (!loadLods) throw new Error('Missing required supplied player LOD data');
+    const lodData = await loadLods();
+    if (signal?.aborted) throw aborted();
     const gltf = await new GLTFLoader().parseAsync(
       bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength),
       '',
@@ -252,7 +264,12 @@ export class SuppliedPlayerAsset {
           if (o instanceof T.SkinnedMesh) o.frustumCulled = false;
         }
       });
-      return new SuppliedPlayerAsset(gltf.scene, gltf.animations);
+      const lods = new SuppliedPlayerLods(
+        gltf.scene,
+        (mesh) => gltf.parser.associations.get(mesh),
+        lodData,
+      );
+      return new SuppliedPlayerAsset(gltf.scene, gltf.animations, lods);
     } catch (error) {
       release(gltf.scene);
       throw error;
@@ -285,6 +302,7 @@ export class SuppliedPlayer {
     readonly root: T.Group,
     clips: T.AnimationClip[],
     display: T.CanvasTexture,
+    readonly lods?: SuppliedPlayerLods,
   ) {
     root.position.y = -PLAYER_SUSPENSION_DATUM;
     const node = (name: string) => {
@@ -433,7 +451,8 @@ export class SuppliedPlayer {
       loaded: !this.disposed,
       revision: manifest.revision,
       sha256: manifest.sha256,
-      triangles: manifest.triangles,
+      triangles: this.lods?.diagnostics().triangles ?? manifest.triangles,
+      lod: this.lods?.diagnostics() ?? null,
       compressedBytes: manifest.compressedBytes,
       joints: manifest.joints,
       headVisible: this.heads.some((h) => h.visible),
@@ -450,6 +469,7 @@ export class SuppliedPlayer {
     };
   }
   disposeAnimation() {
+    this.lods?.dispose();
     this.mixer.stopAllAction();
     this.mixer.uncacheRoot(this.root);
     this.disposed = true;
@@ -499,7 +519,16 @@ export async function loadSuppliedPlayer(
       input.set(chunk, offset);
       offset += chunk.length;
     }
-    asset = await SuppliedPlayerAsset.decode(input, controller.signal);
+    asset = await SuppliedPlayerAsset.decode(input, controller.signal, () =>
+      loadPlayerLods(
+        new URL(
+          'supplied-player-lods.bin.gz',
+          url ?? new URL('./models/supplied-player.glb.gz', document.baseURI),
+        ).href,
+        controller.signal,
+        fetcher,
+      ),
+    );
     if (cancelled() || controller.signal.aborted) throw aborted();
     return asset;
   } catch (error) {

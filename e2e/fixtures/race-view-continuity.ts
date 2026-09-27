@@ -83,7 +83,9 @@ export async function raceViewContinuity() {
       // Read the posed active wheels, not just the visibility flags. A late LOD
       // swap after update() can otherwise display an unposed representation.
       const wheels = view.cars.map((c) => {
-        const active = c.lodLevel ? visibleReducedWheelPivots(c.root) : c.wheelPivots;
+        const active =
+          c.suppliedPlayer?.wheels ??
+          (c.lodLevel ? visibleReducedWheelPivots(c.root) : c.wheelPivots);
         return active.map((w) => w.position.toArray());
       });
       return {

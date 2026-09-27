@@ -208,8 +208,20 @@ describe('optical-error-bounded local weather', () => {
     expect(fog.materialCount).toBe(1);
     expect(s.uniforms.apexLocalTailError).toBe(fog.tailError);
     expect(s.fragmentShader).toContain('apexOpticalBound<=apexLocalTailError');
-    expect(s.fragmentShader.match(/apexPocketDensity\(start\+segment/g)).toHaveLength(8);
-    expect(key).toContain('v3-bounded-ray:transformed');
+    expect(s.fragmentShader.match(/apexPocketSamples\(start,segment/g)).toHaveLength(2);
+    // Two vec4 batches preserve all eight original Gauss nodes and weights.
+    for (const node of [
+      '0.019855071751',
+      '0.101666761293',
+      '0.237233795042',
+      '0.408282678752',
+      '0.591717321248',
+      '0.762766204958',
+      '0.898333238707',
+      '0.980144928249',
+    ])
+      expect(s.fragmentShader).toContain(node);
+    expect(key).toContain('v4-vector-quadrature:transformed');
     fog.tailError.value = 0;
     expect(s.uniforms.apexLocalTailError.value).toBe(0);
     expect(m.customProgramCacheKey()).toBe(key);

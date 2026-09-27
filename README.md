@@ -5,7 +5,10 @@ cockpit/driver. This includes steering-linked hands, live wheel instruments,
 source-aligned cockpit/T-cam views, animated wheels and replay-derived poses.
 The engine stays Three.js and AI opponents retain their original models.
 See [asset provenance, controls, validation and remaining limits](docs/SUPPLIED_PLAYER.md).
-The first load now includes a 36 MB required player-model download.
+The first load includes the 36 MB required player model plus a 4.6 MB integrity-checked
+index-only detail package. High-quality close-ups and Photo Studio retain the
+original model; lower presets and distant views use reduced index sets on the
+same rig and materials. See [runtime tiers and validation boundaries](docs/SUPPLIED_PLAYER_RUNTIME.md).
 
 ## Driver and service-character construction
 

@@ -1,3 +1,4 @@
+import suppliedManifest from '../src/rendering/supplied-player.manifest.json' with { type: 'json' };
 import { readFile } from 'node:fs/promises';
 import { test, expect, type Page } from '@playwright/test';
 import { F, H, carBase } from '../src/simulation/protocol.ts';
@@ -73,17 +74,28 @@ test('browser session, cameras, pause safety, telemetry and replay', async ({ pa
   await expect.poll(async () => (await diag(page)).renderer?.mirrorUpdates).toBeGreaterThan(2);
   const visual = await page.evaluate(() => window.apexDiagnostics(true));
   const eye = visual.renderer!.cameraLocalPosition;
-  expect(visual.visual!.driver).toHaveLength(2);
-  for (const arm of visual.visual!.driver) {
-    expect(arm.reachable).toBe(true);
-    expect(arm.upperLength).toBeCloseTo(0.37, 6);
-    expect(arm.lowerLength).toBeCloseTo(0.36, 6);
+  const supplied = visual.renderer!.suppliedPlayer;
+  expect(supplied).toMatchObject({
+    loaded: true,
+    sha256: suppliedManifest.sha256,
+    joints: 58,
+    headVisible: false,
+  });
+  const rig = visual.renderer!.driverPose.suppliedRig;
+  expect(rig?.arms).toHaveLength(2);
+  for (const arm of rig!.arms) {
+    expect(arm.authoredSkin).toBe(true);
+    for (const joint of [arm.shoulder, arm.elbow, arm.wrist])
+      expect(joint?.length === 3 && joint.every(Number.isFinite)).toBe(true);
   }
-  expect(Math.abs(eye[0])).toBeLessThan(0.06);
-  expect(eye[1]).toBeGreaterThan(0.35);
-  expect(eye[1]).toBeLessThan(0.48);
-  expect(eye[2]).toBeGreaterThan(-0.56);
-  expect(eye[2]).toBeLessThan(-0.4);
+  // The source socket is in the asset frame. Subtract the chassis datum once;
+  // allow only the production inertial camera's small, physically driven offset.
+  const expectedEye = [...suppliedManifest.sockets.eye];
+  expectedEye[1] -= 0.25;
+  expectedEye.forEach((value, axis) => {
+    expect(supplied!.eye[axis]).toBeCloseTo(value, 6);
+    expect(Math.abs(eye[axis] - value)).toBeLessThan(axis === 1 ? 0.03 : 0.05);
+  });
   expect(visual.visual!.screenVisible).toBe(true);
   expect(Math.abs(visual.visual!.wheelProjection[0])).toBeLessThan(1);
   expect(Math.abs(visual.visual!.wheelProjection[1])).toBeLessThan(1);
