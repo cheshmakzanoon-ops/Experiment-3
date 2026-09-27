@@ -28,25 +28,26 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci --no-audit --no-fund
-      - name: Recover checksum-bound source changes without moving a branch
+      - name: Recover checksum-bound source and canonical bind repair
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           mkdir -p "$RUNNER_TEMP/evidence"
           python - <<'PY'
           import base64,gzip,hashlib,json,os,subprocess,urllib.request
-          chunks=['2a73e62677253a642b9ea33c2752d00c861517c7','8f15217f8172a70ff773d13c9e827aea4eba71f4','bc3c07e1b531322ce36cee5ee6be59ef448d3735','d0fdd96cfdf5d3198cd45f249e3de4732e671f28']
-          data=b''
-          for sha in chunks:
+          def get(sha):
               req=urllib.request.Request('https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/git/blobs/'+sha,headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json'})
               with urllib.request.urlopen(req,timeout=60) as response: blob=json.load(response)
               part=base64.b64decode(blob['content'])
               assert hashlib.sha1(b'blob '+str(len(part)).encode()+b'\0'+part).hexdigest()==sha
-              data+=part
-          assert hashlib.sha256(data).hexdigest()=='37a78e4af734a74cb34c33ba1d47605b79a6853c81dc86528860edaa7502bee3'
-          patch=gzip.decompress(data)
-          assert hashlib.sha256(patch).hexdigest()=='ee7c661479679a30d335212e1224412a099811f28d2bbb27f91e92f255a77bab'
-          subprocess.run(['git','apply','--index','-'],input=patch,check=True)
+              return part
+          plans=[(['2a73e62677253a642b9ea33c2752d00c861517c7','8f15217f8172a70ff773d13c9e827aea4eba71f4','bc3c07e1b531322ce36cee5ee6be59ef448d3735','d0fdd96cfdf5d3198cd45f249e3de4732e671f28'],'37a78e4af734a74cb34c33ba1d47605b79a6853c81dc86528860edaa7502bee3','ee7c661479679a30d335212e1224412a099811f28d2bbb27f91e92f255a77bab'),(['2f47b20e022c9b5f8898d9da720d1825e9d7c690'],'e40f2972ca4842dfd12629660ec2d6afc7c6321c8f62a7180db7b803925a8e75','b7e0f6c7e9a17ffbb08887a35212a913d39cad5757a8f767ea4102b561bee2a6')]
+          for chunks,packed_sha,patch_sha in plans:
+              data=b''.join(get(sha) for sha in chunks)
+              assert hashlib.sha256(data).hexdigest()==packed_sha
+              patch=gzip.decompress(data)
+              assert hashlib.sha256(patch).hexdigest()==patch_sha
+              subprocess.run(['git','apply','--index','-'],input=patch,check=True)
           PY
       - name: Install exact verified Blender
         run: |
@@ -54,10 +55,18 @@ jobs:
           echo '84098912789dc450e95697c4184fb8a90acbe5111c2ba4aede3fecb57806a168  '"$RUNNER_TEMP/blender.tar.xz" | sha256sum --check
           tar -xf "$RUNNER_TEMP/blender.tar.xz" -C "$RUNNER_TEMP"
           echo "$RUNNER_TEMP/blender-5.2.2-linux-x64" >> "$GITHUB_PATH"
-      - name: Author editable driver and crew
+      - name: Author editable driver and crew and require exact game bytes
         run: |
           blender --background --python-exit-code 1 --python scripts/author-driver.py | tee "$RUNNER_TEMP/evidence/driver-author.log"
           blender --background --python-exit-code 1 --python scripts/author-people.py | tee "$RUNNER_TEMP/evidence/crew-author.log"
+          python - <<'PY'
+          import hashlib,pathlib
+          expected={'apx01-driver.glb.gz':'aa0d5f326e4cee1cde72e369ceec44d038a4ecdfb338dcadd6bbfab4940b8f31','apx01-driver.manifest.json':'dfbf9e9d016a098b2a8f245c42d83bd5406f557651e66be9938cd670e6830b2f','aurel-people.glb.gz':'a250145579eecfcad0e7538aab6b25a9a8ce8de255a907db5fa3f4db9d915be1','aurel-people.geometry.json':'b3909a6c5b6bd82f09cb8562cdc891886b663be3522c6d816c4cfd8af748a9b5','aurel-people.manifest.json':'8a8949b8eccb0226f45c35f2d8875b858a4cc9c35a11ec3b84f3d4a8f39cce66'}
+          for name,sha in expected.items():
+              actual=hashlib.sha256(pathlib.Path('src/rendering',name).read_bytes()).hexdigest()
+              assert actual==sha,(name,actual,sha)
+              print(name,actual)
+          PY
       - name: Preserve complete candidate before network staging or browser checks
         run: |
           python - <<'PY'
@@ -74,18 +83,10 @@ jobs:
               entries.append({'path':path,'mode':'100644','type':'blob','sha':sha})
               manifest.append({'path':path,'sha':sha,'sha256':hashlib.sha256(raw).hexdigest(),'bytes':len(raw)})
           local=subprocess.check_output(['git','write-tree']).decode().strip()
-          (evidence/'prepared-tree.json').write_text(json.dumps({'baseline':'f341dd6e7ede5c2039ddf6ad1b6e9b6a71ae4361','tree':local,'entries':entries,'files':manifest,'scope':'Unpublished candidate. Export discrepancy and browser results require independent inspection.'},indent=2)+'\n')
+          (evidence/'prepared-tree.json').write_text(json.dumps({'baseline':'f341dd6e7ede5c2039ddf6ad1b6e9b6a71ae4361','tree':local,'entries':entries,'files':manifest,'scope':'Unpublished candidate with byte-identical game assets. Browser checks remain independent.'},indent=2)+'\n')
           subprocess.run(['git','archive','--format=tar.gz','--output='+str(evidence/'candidate-source.tar.gz'),local],check=True)
           print('Preserved local candidate tree:',local)
           PY
-      - uses: actions/upload-artifact@v4
-        with:
-          name: authored-character-source
-          path: |
-            ${{ runner.temp }}/evidence/prepared-tree.json
-            ${{ runner.temp }}/evidence/candidate-source.tar.gz
-          retention-days: 7
-          if-no-files-found: error
       - name: Stage ordinary source blobs where the job token permits
         env:
           GH_TOKEN: ${{ github.token }}
@@ -113,6 +114,15 @@ jobs:
               finally:
                   (evidence/'object-staging.json').write_text(json.dumps(result,indent=2)+'\n')
           PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: authored-character-source
+          path: |
+            ${{ runner.temp }}/evidence/prepared-tree.json
+            ${{ runner.temp }}/evidence/object-staging.json
+            ${{ runner.temp }}/evidence/candidate-source.tar.gz
+          retention-days: 7
+          if-no-files-found: error
       - name: Full source gate
         run: npm run check | tee "$RUNNER_TEMP/evidence/check.log"
       - name: Install ordinary Chromium dependencies
