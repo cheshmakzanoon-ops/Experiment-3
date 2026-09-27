@@ -105,3 +105,39 @@ yields occur outside the synchronized measurement intervals and do not step the
 simulation. Each case must finish within the existing test limit; neither the
 normal CI job limits nor any existing application test is changed. The resulting
 source revision still requires its own complete ordinary CI and exact deployment.
+
+## Completed-draw timing correction
+
+The per-view split at `e7d3d692b01d0410fb27d6a43c1f6712919ed04c` did not
+close the gate. Ordinary run `36327666769` passed seven browser partitions,
+validation, scenarios and wet presentation. Browser job `108644018334` passed
+14 cases, including the grid and low-district comparisons, but both high- and
+long-district comparisons exceeded 300 seconds. Publication correctly stayed
+blocked. The failed traces and their timings remain historical evidence.
+
+The fixture's assumed completion barrier was wrong: Chromium's WebGL `finish()`
+[deliberately calls Flush, not Finish](https://chromium.googlesource.com/chromium/src/+/HEAD/third_party/blink/renderer/modules/webgl/webgl_rendering_context_base.cc).
+Those earlier `synchronizedRenderMs` values therefore measure neither completed
+draws nor GPU execution. They must not be reused as a speedup claim. The new
+test-only helper reads one RGBA8 pixel into the same four-byte CPU buffer after
+each measured draw. Its interval includes command submission, completion and
+the readback round trip, and is explicitly not GPU-only time or game FPS.
+
+Both uniform settings already receive completed full-frame pixel comparisons
+before sampling and use the same shader program. Removing only the redundant
+unmeasured draw before each sample changes 20 direct scene renders to 12 per
+view while retaining all eight measured draws, the alternating order, all four
+views, original assets, eight cars, resolution, shadows, full-frame comparisons,
+resource assertions and unchanged test timeout. It changes no production byte.
+Six unit cases cover draw/readback ordering, buffer reuse, context loss,
+malformed scratch, operation failures and invalid clocks. Browser assertions now
+also verify the completion method, exact sample order and finite durations.
+
+The recovery environment provides WebGL2 in headed Chromium under Xvfb, but
+ordinary localhost navigation is blocked by administrator policy. Offline
+component diagnostics are separate: about:blank uses Vite-inlined actual assets
+and Node SHA-256 for integrity, without network navigation. Such diagnostics
+cannot certify same-origin loading, the normal application or consumer hardware.
+The resulting source still requires complete ordinary hosted CI. AppDeploy also
+reported its daily deployment-credit limit, resetting at 2026-09-28 00:00 UTC;
+no public update or quota bypass is claimed.

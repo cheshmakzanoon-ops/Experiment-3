@@ -25,8 +25,8 @@ test.beforeAll(async () => {
   code = chunk.code;
 });
 // Keep all four full-scene views and all eight timing samples per view. Each
-// case gets the unchanged ordinary timeout, rather than putting 80 synchronized
-// software-GPU renders into one indivisible five-minute browser call.
+// case gets the unchanged ordinary timeout. The fixture warms both uniform
+// settings during its pixel comparisons, then measures eight completed draws.
 const cases: {
   method: 'roadMaterialGPU' | 'rainFogGPU' | 'fullSceneFogGPU';
   mode?: Probe.FogView;
@@ -79,6 +79,7 @@ for (const { method, mode } of cases) {
     expect(errors).toEqual([]);
     expect(report.glError).toBe(0);
     if ('observations' in report) {
+      expect(report.timingCompletion).toBe('rgba8-cpu-readback-1x1');
       expect(report.sourceUnchanged).toBe(true);
       expect(report.authored).toMatchObject({ loaded: true, sha256: manifest.sha256, joints: 9 });
       expect(report.sigma).toBeGreaterThan(0);
@@ -96,6 +97,20 @@ for (const { method, mode } of cases) {
         expect(row.timings).toHaveLength(8);
         expect(row.timings.filter((t) => t.bounded)).toHaveLength(4);
         expect(row.timings.filter((t) => !t.bounded)).toHaveLength(4);
+        expect(row.timings.map((t) => t.bounded)).toEqual([
+          false,
+          true,
+          true,
+          false,
+          false,
+          true,
+          true,
+          false,
+        ]);
+        for (const timing of row.timings) {
+          expect(Number.isFinite(timing.synchronizedRenderMs)).toBe(true);
+          expect(timing.synchronizedRenderMs).toBeGreaterThanOrEqual(0);
+        }
       }
     } else {
       expect(report.before).toEqual(report.after);

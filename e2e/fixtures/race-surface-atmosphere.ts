@@ -3,6 +3,7 @@
 import * as T from 'three';
 import { surfaceMaterial, surfacePixels } from '../../src/rendering/surface-detail.ts';
 import { legacySurfacePixels } from './race-surface-control.ts';
+import { completedDrawMilliseconds } from './completed-draw.ts';
 import { LocalAtmosphere, LOCAL_FOG_OPTICAL_ERROR } from '../../src/rendering/local-atmosphere.ts';
 import { RainStreaks } from '../../src/rendering/rain-streaks.ts';
 import { RacingRenderer } from '../../src/rendering/renderer.ts';
@@ -294,18 +295,22 @@ export async function fullSceneFogGPU(mode: FogView) {
       draw();
       const held = pixels(renderer);
       const timings: { bounded: boolean; synchronizedRenderMs: number }[] = [];
-      // Synchronous completion is explicitly a test measurement, never a call
-      // added to the game's render loop. No speed threshold hides noisy hosts.
+      const completionPixel = new Uint8Array(4);
+      // The reference, candidate and held captures already completed both uniform
+      // settings with CPU readbacks. They share one compiled shader. Do not add a
+      // redundant warmup draw before every sample. Retain all eight measured
+      // full-scene draws, alternating order, with an actual completion witness.
+      // No speed threshold hides noisy hosts; the ordinary test timeout remains.
       for (let round = 0; round < 4; round++) {
         await progress(`timing-pair-${round + 1}`);
         for (const bounded of round % 2 ? [true, false] : [false, true]) {
           atmosphere.tailError.value = bounded ? LOCAL_FOG_OPTICAL_ERROR / 3 : 0;
-          draw();
-          renderer.getContext().finish();
-          const start = performance.now();
-          draw();
-          renderer.getContext().finish();
-          timings.push({ bounded, synchronizedRenderMs: performance.now() - start });
+          const synchronizedRenderMs = completedDrawMilliseconds(
+            renderer.getContext(),
+            draw,
+            completionPixel,
+          );
+          timings.push({ bounded, synchronizedRenderMs });
         }
       }
       atmosphere.tailError.value = LOCAL_FOG_OPTICAL_ERROR / 3;
@@ -326,7 +331,8 @@ export async function fullSceneFogGPU(mode: FogView) {
     await progress('complete');
     return {
       scope:
-        'Controlled asset-loaded full-scene ray comparisons; synchronized render time is not game FPS or consumer-GPU time',
+        'Controlled asset-loaded full-scene ray comparisons; completed draw plus one-pixel CPU readback is not game FPS or GPU-only time',
+      timingCompletion: 'rgba8-cpu-readback-1x1' as const,
       sourceUnchanged: frame.every((v, i) => Object.is(v, original[i])),
       authored: view.stats().authoredDriver,
       sigma: atmosphere.sigma.value,
