@@ -1,3 +1,4 @@
+import { loadSuppliedPlayer, type SuppliedPlayerAsset } from './supplied-player.ts';
 import { detailDistance } from './view-detail.ts';
 import { readRaceReviewFrame } from './race-review.ts';
 import { WeatherPresentation } from './weather-presentation.ts';
@@ -131,6 +132,7 @@ export class RacingRenderer {
   private disposed = false;
   private heroShells: HeroShells | null = null;
   private driverAsset: DriverAsset | null = null;
+  private suppliedPlayerAsset: SuppliedPlayerAsset | null = null;
   private target = new T.Vector3();
   private desired = new T.Vector3();
   private velocity = new T.Vector3();
@@ -283,6 +285,13 @@ export class RacingRenderer {
       progress({ completed: 0, total: 1, fraction: 0, label: 'Loading Blender-authored bodywork' });
       renderer.heroShells = await loadHeroShells(cancelled);
       renderer.driverAsset = await loadDriverAsset(cancelled);
+      progress({
+        completed: 0,
+        total: 1,
+        fraction: 0,
+        label: 'Loading your RB19 car and R06 driver/cockpit',
+      });
+      renderer.suppliedPlayerAsset = await loadSuppliedPlayer(cancelled);
       if (cancelled()) {
         renderer.dispose();
         return null;
@@ -305,6 +314,7 @@ export class RacingRenderer {
         this.cars.length,
         this.heroShells ?? undefined,
         this.driverAsset ?? undefined,
+        this.cars.length === 0 ? (this.suppliedPlayerAsset ?? undefined) : undefined,
       );
       this.cars.push(car);
       this.scene.add(car.root);
@@ -644,12 +654,20 @@ export class RacingRenderer {
             b[o + F.IMPACT],
             this.shake,
           );
-        this.inertia.eye(
-          car.root.position,
-          car.root.quaternion,
-          cameraMode === 'pod',
-          this.desired,
-        );
+        if (car.suppliedPlayer) {
+          this.desired
+            .copy(cameraMode === 'pod' ? car.suppliedPlayer.pod : car.suppliedPlayer.eye)
+            .add(this.inertia.offset)
+            .applyQuaternion(car.root.quaternion)
+            .add(car.root.position);
+        } else {
+          this.inertia.eye(
+            car.root.position,
+            car.root.quaternion,
+            cameraMode === 'pod',
+            this.desired,
+          );
+        }
         const orientation = this.viewOrientation.update(car.root.quaternion, cameraDt);
         this.direction.set(0, -0.035, 1).applyQuaternion(orientation).normalize();
         this.gaze.copy(this.desired).addScaledVector(this.direction, 40);
@@ -874,7 +892,8 @@ export class RacingRenderer {
   visualDiagnostics() {
     const car = this.cars[this.follow];
     const wheel = new T.Vector3(0, 0.01, -0.025);
-    car.steering.localToWorld(wheel);
+    if (car.suppliedPlayer) car.suppliedPlayer.screenWorld(wheel);
+    else car.steering.localToWorld(wheel);
     const distance = wheel.distanceTo(this.camera.position);
     const ray = new T.Raycaster(
       this.camera.position,
@@ -898,6 +917,7 @@ export class RacingRenderer {
       driver: car.driver.diagnostics(),
       authoredBodywork: this.heroShells?.diagnostics() ?? null,
       authoredDriver: this.driverAsset?.diagnostics() ?? null,
+      suppliedPlayer: car.suppliedPlayer?.diagnostics() ?? null,
       // Bounded CPU summary; no texture readback or per-person geometry walk.
       pitPersonnel: this.pitCrew.summary(),
       crowdPersonnel: {
@@ -978,6 +998,7 @@ export class RacingRenderer {
     return {
       authoredBodywork: this.heroShells?.diagnostics() ?? null,
       authoredDriver: this.driverAsset?.diagnostics() ?? null,
+      suppliedPlayer: this.cars[0]?.suppliedPlayer?.diagnostics() ?? null,
       // Bounded CPU summary; no texture readback or per-person geometry walk.
       pitPersonnel: this.pitCrew.summary(),
       crowdPersonnel: {
@@ -1009,13 +1030,17 @@ export class RacingRenderer {
           ),
         ),
       },
-      // CPU-only snapshot of the actual posed rig. Inspecting limb coupling must
-      // not raycast the complete hero car or synchronously read mirror pixels.
+      // CPU-only rig diagnostics. suppliedRig is the active R06 player skeleton;
+      // arms retains the legacy AI format and is not player evidence when suppliedRig is present.
+      // Neither path raycasts the car or synchronously reads mirror pixels.
       driverPose: {
         car: this.follow,
         time: this.presented.value[H.TIME],
-        wheelRadians: this.cars[this.follow].steering.rotation.z,
+        wheelRadians:
+          this.cars[this.follow].suppliedPlayer?.driverPose().wheelRadians ??
+          this.cars[this.follow].steering.rotation.z,
         arms: this.cars[this.follow].driver.diagnostics(),
+        suppliedRig: this.cars[this.follow].suppliedPlayer?.driverPose() ?? null,
       },
       photo: this.photo ? { ...this.photo } : null,
       geometrySurvey: {
@@ -1111,6 +1136,8 @@ export class RacingRenderer {
     this.disposed = true;
     this.heroShells?.dispose();
     this.driverAsset?.dispose();
+    this.suppliedPlayerAsset?.dispose();
+    this.cars.forEach((car) => car.suppliedPlayer?.disposeAnimation());
     this.pitCrew.dispose();
     this.reflection.dispose();
     this.gpuTimer.dispose();
@@ -1147,7 +1174,10 @@ export class RacingRenderer {
     for (const skeleton of skeletons) skeleton.dispose();
     for (const g of geometries) g.dispose();
     for (const m of materials) m.dispose();
-    for (const t of textures) t.dispose();
+    for (const t of textures) {
+      t.dispose();
+      if (typeof ImageBitmap !== 'undefined' && t.image instanceof ImageBitmap) t.image.close();
+    }
     this.circuit.stateTexture.dispose();
     this.environment.dispose();
     this.composer.dispose();

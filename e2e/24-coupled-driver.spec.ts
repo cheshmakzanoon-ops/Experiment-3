@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { F, H, carBase } from '../src/simulation/protocol.ts';
-import manifest from '../src/rendering/apx01-driver.manifest.json' with { type: 'json' };
+import manifest from '../src/rendering/supplied-player.manifest.json' with { type: 'json' };
 
 test.use({ video: { mode: 'on', size: { width: 960, height: 600 } } });
 
@@ -45,11 +45,10 @@ test('27H.2 normal application: coupled driver survives both locks, countersteer
   await page.goto('/');
   await expect(page.locator('#menu')).toBeVisible({ timeout: 90000 });
   await page.evaluate(() => document.fonts.ready.then(() => undefined));
-  expect((await diagnostics()).renderer?.authoredDriver).toMatchObject({
+  expect((await diagnostics()).renderer?.suppliedPlayer).toMatchObject({
     loaded: true,
     sha256: manifest.sha256,
-    skinnedSleeves: 2,
-    joints: 9,
+    joints: manifest.joints,
     finalArtApproved: false,
   });
   await page.selectOption('#mode', 'practice');
@@ -76,20 +75,20 @@ test('27H.2 normal application: coupled driver survives both locks, countersteer
       .toBeGreaterThan(0.3);
     await expect
       .poll(async () => ((await diagnostics()).renderer?.driverPose.wheelRadians ?? 0) * -direction)
-      .toBeGreaterThan(0.3 * 2.2);
+      .toBeGreaterThan(0.5);
     const pose = await diagnostics();
-    expect(pose.renderer?.driverPose.arms).toHaveLength(2);
-    for (const arm of pose.renderer!.driverPose.arms) {
+    expect(pose.renderer?.driverPose.suppliedRig?.arms).toHaveLength(2);
+    for (const arm of pose.renderer!.driverPose.suppliedRig!.arms) {
       expect(arm.authoredSkin).toBe(true);
-      expect(arm.reachable).toBe(true);
-      expect(arm.upperLength).toBeCloseTo(0.37, 6);
-      expect(arm.lowerLength).toBeCloseTo(0.36, 6);
-      expect([...arm.shoulder, ...arm.elbow, ...arm.wrist].every(Number.isFinite)).toBe(true);
+      expect(arm.source).toBe(manifest.revision);
+      expect(arm.shoulder).not.toBeNull();
+      expect(arm.elbow).not.toBeNull();
+      expect(arm.wrist).not.toBeNull();
+      expect([...arm.shoulder!, ...arm.elbow!, ...arm.wrist!].every(Number.isFinite)).toBe(true);
     }
     poses.push(pose);
     await test.step(`Capture cockpit lock ${poses.length}: ${key}`, () =>
-      capture(`27h2-cockpit-${poses.length}-${key}.png`),
-    );
+      capture(`27h2-cockpit-${poses.length}-${key}.png`));
     await page.keyboard.up(key);
   }
   await page.keyboard.up('s');
@@ -105,7 +104,9 @@ test('27H.2 normal application: coupled driver survives both locks, countersteer
     await expect.poll(async () => (await diagnostics()).renderer?.camera).toBe(camera);
     await expect.poll(async () => (await diagnostics()).renderer?.presentedCamera).toBe(camera);
     expect(
-      (await diagnostics()).renderer!.driverPose.arms.every((a) => a.authoredSkin && a.reachable),
+      (await diagnostics()).renderer!.driverPose.suppliedRig!.arms.every(
+        (a) => a.authoredSkin && a.wrist?.every(Number.isFinite),
+      ),
     ).toBe(true);
     await test.step(`Capture moving ${camera} view`, () => capture(`27h2-moving-${camera}.png`));
   }
@@ -134,11 +135,11 @@ test('27H.2 normal application: coupled driver survives both locks, countersteer
   const first = await seek(0.75);
   const forward = await seek(4.5);
   const rewind = await seek(0.75);
-  expect(rewind.renderer?.driverPose.arms).toEqual(first.renderer?.driverPose.arms);
+  expect(rewind.renderer?.driverPose.suppliedRig).toEqual(first.renderer?.driverPose.suppliedRig);
   expect(rewind.renderer?.driverPose.time).toBe(first.renderer?.driverPose.time);
   expect(forward.renderer?.driverPose.time).toBeGreaterThan(first.renderer!.driverPose.time);
   expect(rewind.frame?.[H.TICK]).toBe(paused.frame?.[H.TICK]);
-  expect(rewind.renderer?.authoredDriver?.sha256).toBe(manifest.sha256);
+  expect(rewind.renderer?.suppliedPlayer?.sha256).toBe(manifest.sha256);
   expect(rewind.recordingWarnings).toEqual([]);
   await test.step('Capture the rewound replay', () => capture('27h2-external-replay-rewind.png'));
   expect(captures).toHaveLength(8);
@@ -158,5 +159,17 @@ test('27H.2 normal application rejects a missing driver without silently display
   await page.goto('/');
   await expect(page.locator('#errorMessage')).toBeVisible({ timeout: 90000 });
   await expect(page.locator('#errorMessage')).toContainText(/driver/i);
+  await expect(page.locator('#menu')).not.toBeVisible();
+});
+
+test('normal application rejects a missing supplied player without falling back to legacy geometry', async ({
+  page,
+}) => {
+  await page.route('**/models/supplied-player.glb.gz*', (route) =>
+    route.fulfill({ status: 404, body: 'Supplied model unavailable' }),
+  );
+  await page.goto('/');
+  await expect(page.locator('#errorMessage')).toBeVisible({ timeout: 90000 });
+  await expect(page.locator('#errorMessage')).toContainText(/supplied player/i);
   await expect(page.locator('#menu')).not.toBeVisible();
 });

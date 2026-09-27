@@ -2,13 +2,19 @@ import * as T from 'three';
 import type { FormulaCar } from './car.ts';
 /** Snapshot-derived world-space focus anchors. No physical pose is changed. */
 export function photoSubject(
-  car: Pick<FormulaCar, 'root' | 'helmet' | 'steering' | 'wheelPivots'>,
+  car: Pick<FormulaCar, 'root' | 'helmet' | 'steering' | 'wheelPivots'> &
+    Partial<Pick<FormulaCar, 'suppliedPlayer'>>,
   subject: number,
   out: T.Vector3,
 ) {
   if (!Number.isInteger(subject) || subject < 0 || subject > 6)
     throw new Error('Invalid photographic detail');
   car.root.updateWorldMatrix(true, true);
+  if (car.suppliedPlayer) {
+    if (subject === 1) return car.suppliedPlayer.headWorld(out);
+    if (subject === 2) return car.suppliedPlayer.screenWorld(out);
+    if (subject === 3) return car.suppliedPlayer.wheels[0].getWorldPosition(out);
+  }
   if (subject === 1) return car.helmet.localToWorld(out.set(0, 0.12, 0.02));
   if (subject === 2) return car.steering.localToWorld(out.set(0, 0.025, 0));
   if (subject === 3) {

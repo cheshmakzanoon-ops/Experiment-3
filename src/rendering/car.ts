@@ -1,3 +1,4 @@
+import type { SuppliedPlayer, SuppliedPlayerAsset } from './supplied-player.ts';
 import { mountAuthoredWing, mountAuthoredWheel, uprightSocketX } from './car-assembly.ts';
 import type { DriverAsset } from './driver-asset.ts';
 import type { HeroShells } from './hero-shells.ts';
@@ -47,6 +48,7 @@ import { clamp, lerp } from '../core/math.ts';
 const COMPOUND_STYLES = Object.values(COMPOUNDS);
 export class FormulaCar {
   readonly root = new T.Group();
+  readonly suppliedPlayer: SuppliedPlayer | null;
   readonly mirrors: T.Mesh[] = [];
   readonly staticBody = new T.Group();
   private highDetail = new T.Group();
@@ -114,6 +116,7 @@ export class FormulaCar {
     readonly id: number,
     hero?: HeroShells,
     driverAsset?: DriverAsset,
+    suppliedAsset?: SuppliedPlayerAsset,
   ) {
     this.root.name = `Formula ${id + 1}`;
     this.root.userData.authoredBodywork = hero?.diagnostics() ?? null;
@@ -536,8 +539,26 @@ export class FormulaCar {
     }
     for (const material of [...this.reflectivePaint, this.accent])
       installPaintObservation(material);
+    this.suppliedPlayer = id === 0 && suppliedAsset ? suppliedAsset.take(this.display) : null;
+    if (this.suppliedPlayer) {
+      for (const child of this.root.children) child.visible = false;
+      this.root.add(this.suppliedPlayer.root);
+      this.reflectivePaint.push(...this.suppliedPlayer.reflectivePaint);
+      this.mirrors.splice(0, this.mirrors.length, ...this.suppliedPlayer.mirrors);
+      this.root.userData.suppliedPlayer = this.suppliedPlayer.diagnostics();
+    }
   }
   setLod(distance: number, quality: 'low' | 'medium' | 'high', player: boolean) {
+    if (this.suppliedPlayer) {
+      // Never let an old procedural LOD reappear in replay, menu or photo mode.
+      this.lodLevel = 0;
+      this.highDetail.visible = false;
+      this.reduced.forEach((car) => {
+        car.root.visible = false;
+      });
+      this.suppliedPlayer.root.visible = true;
+      return;
+    }
     this.lodLevel = carLod(distance, this.lodLevel, quality, player);
     this.highDetail.visible = this.lodLevel === 0;
     this.reduced.forEach((car, index) => (car.root.visible = this.lodLevel === index + 1));
@@ -559,6 +580,14 @@ export class FormulaCar {
     this.qa.set(a[o + F.QX], a[o + F.QY], a[o + F.QZ], a[o + F.QW]);
     this.qb.set(b[o + F.QX], b[o + F.QY], b[o + F.QZ], b[o + F.QW]);
     this.root.quaternion.copy(this.qa).slerp(this.qb, t);
+    if (this.suppliedPlayer) {
+      if (this.displayClock.due(b[H.TIME], b[o + F.GEAR])) {
+        drawSteeringDisplay(this.ctx, b, o);
+        this.display.needsUpdate = true;
+      }
+      this.suppliedPlayer.update(a, b, o, t, cockpit);
+      return;
+    }
     let contactWater = 0;
     for (let i = 0; i < 4; i++) {
       const w = o + WHEEL_BASE + i * WHEEL_STRIDE;
