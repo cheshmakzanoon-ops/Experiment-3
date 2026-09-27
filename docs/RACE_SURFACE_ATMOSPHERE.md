@@ -24,7 +24,7 @@ The old recipe is retained only in the test fixture, not shipped in the game.
 Rain's regional haze previously sampled each billboard's template corner near
 its mesh origin, although depth and lighting already used the real drop centre.
 The local-weather hook now uses that centre as well. The shader cache key includes
-the injected position expression so the two paths cannot alias a compiled shader.
+ the injected position expression so the two paths cannot alias a compiled shader.
 Rain count, velocity, opacity, lighting, depth and simulation are unchanged.
 
 Local height fog now rejects only a Gaussian tail whose conservative optical-depth
@@ -58,10 +58,11 @@ physical scale, registered maps, unchanged other surfaces, malformed inputs,
 rain-coordinate regression. The original master directive and dependency lock
 remain unchanged. The build retains its existing large-bundle warning.
 
-`e2e/37-race-surface-atmosphere.spec.ts` adds three real-GPU comparisons: actual
+`e2e/37-race-surface-atmosphere.spec.ts` adds six real-GPU cases: actual
 road materials against the old texel recipe; production rain with an explicitly
-exaggerated fog strength to expose the coordinate error; and the asset-loaded
-full scene at grid, low district, high district and distant district views.
+exaggerated fog strength to expose the coordinate error; and four independent
+asset-loaded full-scene cases at grid, low district, high district and distant
+district views. Every view retains four alternating timing pairs.
 They require unchanged resources/draw counts, exact held/restored pixels and at
 most one 8-bit channel step against the original fog integral. Synchronized
 render measurements alternate control/candidate order, but no speed threshold
@@ -85,3 +86,22 @@ The uninterrupted human Section 146 audiovisual drive, physical Windows/controll
 wheel measurements, subjective handling/audio review and broad final-art approval
 remain separate. This source does not manufacture acceptance receipts or declare
 all 148 directive sections and all references complete.
+
+## Hosted fixture reconciliation
+
+Source `365c6d473e930f8efc1e116ba60d4c5b05fed2fd`, ordinary run `36325914641`,
+passed the road-material and real-drop-coordinate comparisons. The road preserved
+one draw, two triangles, three textures and exact held/restored pixels; the rain
+control preserved its instance bytes and resources and exposed the wrong-coordinate
+case. The separate four-view full-scene helper exceeded the unchanged 300-second
+test timeout. That is a real failed case, not a passing release or a reason to
+waive the full-scene comparison.
+
+The replacement splits those four views into four independently declared tests.
+It retains the same complete renderer, eight-car snapshot, 640x400 resolution,
+medium features, 512px shadows, four alternating timing pairs per view, optical
+comparison bound, held/restored checks and source/resource assertions. Diagnostic
+yields occur outside the synchronized measurement intervals and do not step the
+simulation. Each case must finish within the existing test limit; neither the
+normal CI job limits nor any existing application test is changed. The resulting
+source revision still requires its own complete ordinary CI and exact deployment.

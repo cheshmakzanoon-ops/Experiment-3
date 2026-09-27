@@ -210,7 +210,18 @@ export function rainFogGPU() {
   }
 }
 
-export async function fullSceneFogGPU() {
+export type FogView = 'populated-grid' | 'low-district' | 'high-district' | 'long-district';
+
+export async function fullSceneFogGPU(mode: FogView) {
+  if (!['populated-grid', 'low-district', 'high-district', 'long-district'].includes(mode))
+    throw new Error('Unknown full-scene fog view');
+  const progress = async (stage: string) => {
+    console.info('Full-scene fog comparison', mode, stage);
+    // Let the browser present diagnostic progress between held renders. This
+    // fixture owns no animation loop and never advances its physical snapshot.
+    await new Promise<void>((resolve) => setTimeout(resolve, 0));
+  };
+  await progress('constructing');
   const sim = new Simulation({ ...DEFAULT_OPTIONS, mode: 'race', opponents: 7, weather: 'rain' });
   const frame = sim.makeFrame(),
     original = frame.slice();
@@ -224,6 +235,7 @@ export async function fullSceneFogGPU() {
     () => false,
   );
   if (!view) throw new Error('Renderer construction cancelled');
+  await progress('asset-loaded');
   // Fixture-only access to the owned uniform, never a new runtime control/UI.
   const atmosphere = (view as unknown as { atmosphere: LocalAtmosphere }).atmosphere;
   try {
@@ -250,12 +262,8 @@ export async function fullSceneFogGPU() {
     const p = atmosphere.pockets[0];
     const savedPosition = camera.position.clone(),
       savedQuaternion = camera.quaternion.clone();
-    for (const mode of [
-      'populated-grid',
-      'low-district',
-      'high-district',
-      'long-district',
-    ] as const) {
+    {
+      await progress('reference-and-held-comparisons');
       if (mode === 'populated-grid') {
         camera.position.copy(savedPosition);
         camera.quaternion.copy(savedQuaternion);
@@ -288,7 +296,8 @@ export async function fullSceneFogGPU() {
       const timings: { bounded: boolean; synchronizedRenderMs: number }[] = [];
       // Synchronous completion is explicitly a test measurement, never a call
       // added to the game's render loop. No speed threshold hides noisy hosts.
-      for (let round = 0; round < 4; round++)
+      for (let round = 0; round < 4; round++) {
+        await progress(`timing-pair-${round + 1}`);
         for (const bounded of round % 2 ? [true, false] : [false, true]) {
           atmosphere.tailError.value = bounded ? LOCAL_FOG_OPTICAL_ERROR / 3 : 0;
           draw();
@@ -298,6 +307,7 @@ export async function fullSceneFogGPU() {
           renderer.getContext().finish();
           timings.push({ bounded, synchronizedRenderMs: performance.now() - start });
         }
+      }
       atmosphere.tailError.value = LOCAL_FOG_OPTICAL_ERROR / 3;
       draw();
       observations.push({
@@ -313,6 +323,7 @@ export async function fullSceneFogGPU() {
         timings,
       });
     }
+    await progress('complete');
     return {
       scope:
         'Controlled asset-loaded full-scene ray comparisons; synchronized render time is not game FPS or consumer-GPU time',

@@ -24,8 +24,22 @@ test.beforeAll(async () => {
   if (!chunk || chunk.type !== 'chunk') throw new Error('Missing race-surface code');
   code = chunk.code;
 });
-for (const method of ['roadMaterialGPU', 'rainFogGPU', 'fullSceneFogGPU'] as const) {
-  test(`race surface and atmosphere: ${method} preserves production resources and negative controls`, async ({
+// Keep all four full-scene views and all eight timing samples per view. Each
+// case gets the unchanged ordinary timeout, rather than putting 80 synchronized
+// software-GPU renders into one indivisible five-minute browser call.
+const cases: {
+  method: 'roadMaterialGPU' | 'rainFogGPU' | 'fullSceneFogGPU';
+  mode?: Probe.FogView;
+}[] = [
+  { method: 'roadMaterialGPU' },
+  { method: 'rainFogGPU' },
+  { method: 'fullSceneFogGPU', mode: 'populated-grid' },
+  { method: 'fullSceneFogGPU', mode: 'low-district' },
+  { method: 'fullSceneFogGPU', mode: 'high-district' },
+  { method: 'fullSceneFogGPU', mode: 'long-district' },
+];
+for (const { method, mode } of cases) {
+  test(`race surface and atmosphere: ${method}${mode ? ` ${mode}` : ''} preserves production resources and negative controls`, async ({
     page,
   }, info) => {
     const errors: string[] = [];
@@ -43,16 +57,22 @@ for (const method of ['roadMaterialGPU', 'rainFogGPU', 'fullSceneFogGPU'] as con
     await page.goto('/race-surface-fixture');
     await page.addScriptTag({ content: code });
     const report = await page.evaluate(
-      async (method) =>
-        (window as unknown as { RaceSurfaceProbe: typeof Probe }).RaceSurfaceProbe[method](),
-      method,
+      async ({ method, mode }) => {
+        const probe = (window as unknown as { RaceSurfaceProbe: typeof Probe }).RaceSurfaceProbe;
+        if (method === 'fullSceneFogGPU') {
+          if (!mode) throw new Error('Missing declared full-scene fog view');
+          return probe.fullSceneFogGPU(mode);
+        }
+        return probe[method]();
+      },
+      { method, mode },
     );
     for (const [name, image] of Object.entries(report.images))
       await info.attach(`${name}.png`, {
         body: Buffer.from(image.split(',')[1], 'base64'),
         contentType: 'image/png',
       });
-    await info.attach(`${method}.json`, {
+    await info.attach(`${method}${mode ? `-${mode}` : ''}.json`, {
       body: JSON.stringify(report, (k, v) => (k === 'images' ? undefined : v), 2),
       contentType: 'application/json',
     });
@@ -62,7 +82,8 @@ for (const method of ['roadMaterialGPU', 'rainFogGPU', 'fullSceneFogGPU'] as con
       expect(report.sourceUnchanged).toBe(true);
       expect(report.authored).toMatchObject({ loaded: true, sha256: manifest.sha256, joints: 9 });
       expect(report.sigma).toBeGreaterThan(0);
-      expect(report.observations).toHaveLength(4);
+      expect(report.observations).toHaveLength(1);
+      expect(report.observations[0].mode).toBe(mode);
       for (const row of report.observations) {
         // The analytical budget is 1e-6 optical depth. Quantization may change
         // a boundary channel by one code value, but not hide a visible patch.
@@ -73,6 +94,8 @@ for (const method of ['roadMaterialGPU', 'rainFogGPU', 'fullSceneFogGPU'] as con
         expect(row.before, row.mode).toEqual(row.after);
         expect(row.calls, row.mode).toBeGreaterThan(0);
         expect(row.timings).toHaveLength(8);
+        expect(row.timings.filter((t) => t.bounded)).toHaveLength(4);
+        expect(row.timings.filter((t) => !t.bounded)).toHaveLength(4);
       }
     } else {
       expect(report.before).toEqual(report.after);
