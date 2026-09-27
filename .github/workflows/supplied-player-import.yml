@@ -1,0 +1,86 @@
+name: Validate and publish supplied player
+on:
+  push:
+    branches: [main]
+    paths: [.github/workflows/supplied-player-import.yml]
+permissions:
+  contents: write
+concurrency:
+  group: supplied-player-publication
+  cancel-in-progress: false
+jobs:
+  validate-and-publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
+      - name: Receive hash-pinned player changes without overwriting concurrent edits
+        env:
+          TRANSFER_URL: 'https://sdmntprnorthcentralus.oaiusercontent.com/files/00000000-69bc-822f-ba04-704a7c263c68/raw?se=2026-09-27T19%3A53%3A50Z&sp=r&sv=2026-02-06&sr=b&scid=03f8ea63-0c01-596f-8cf8-44bc0399d31b&skoid=fae15675-a81a-44b5-9d8c-d8445a7c26a2&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-09-27T15%3A24%3A17Z&ske=2026-09-28T15%3A24%3A17Z&sks=b&skv=2026-02-06&sig=x01yHkSUezW0Q%2BbknPpvF2me9cC7Tq/AUl3txmFDSGg%3D'
+        run: |
+          python - <<'PY'
+          import hashlib, json, os, pathlib, urllib.request, zipfile
+          url = os.environ['TRANSFER_URL']
+          print('::add-mask::' + url)
+          archive = pathlib.Path(os.environ['RUNNER_TEMP']) / 'supplied-player-transfer.zip'
+          urllib.request.urlretrieve(url, archive)
+          assert archive.stat().st_size == 36368632
+          assert hashlib.sha256(archive.read_bytes()).hexdigest() == 'fc32ab8fc6b098a100321531bcef72cf36efa6d856ca4d706f675d1ef8c87f37'
+          allowed = {'README.md', 'docs/SUPPLIED_PLAYER.md', 'docs/SUPPLIED_PLAYER_BUILD.json', 'scripts/build-supplied-player.py', 'src/rendering/car.ts', 'src/rendering/renderer.ts', 'src/rendering/photo-subject.ts', 'src/rendering/supplied-player.ts', 'src/rendering/supplied-player.manifest.json', 'public/models/supplied-player.glb.gz', 'tests/supplied-player.test.ts', 'e2e/24-coupled-driver.spec.ts', 'e2e/39-supplied-player.spec.ts', 'e2e/fixtures/supplied-player.ts'}
+          with zipfile.ZipFile(archive) as z:
+              assert set(z.namelist()) == allowed | {'TRANSFER_MANIFEST.json'}
+              assert len(z.namelist()) == len(allowed) + 1
+              manifest = json.loads(z.read('TRANSFER_MANIFEST.json'))
+              assert {f['path'] for f in manifest['files']} == allowed
+              pending = []
+              for f in manifest['files']:
+                  p = pathlib.Path(f['path'])
+                  assert not p.is_symlink()
+                  current = hashlib.sha256(p.read_bytes()).hexdigest() if p.exists() else None
+                  assert current == f['originalSHA256'], 'Concurrent file change: ' + str(p)
+                  data = z.read(f['path'])
+                  assert len(data) == f['bytes'] and hashlib.sha256(data).hexdigest() == f['sha256']
+                  pending.append((p, data))
+              for p, data in pending:
+                  p.parent.mkdir(parents=True, exist_ok=True)
+                  p.write_bytes(data)
+          pathlib.Path(os.environ['RUNNER_TEMP'], 'player-paths').write_bytes(b'\0'.join(p.encode() for p in sorted(allowed)) + b'\0')
+          print('Verified and applied 14 player integration files; originals matched.')
+          PY
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Lint, all unit tests and production build
+        run: npm run check 2>&1 | tee "$RUNNER_TEMP/player-checks.log"
+      - name: Install browser
+        run: npx playwright install --with-deps chromium
+      - name: Actual model and normal application browser checks
+        run: npx playwright test e2e/39-supplied-player.spec.ts e2e/24-coupled-driver.spec.ts
+      - name: Commit and fast-forward main only after validation
+        run: |
+          git fetch origin main
+          test "$(git rev-parse HEAD)" = "$(git rev-parse origin/main)" || { echo 'Main moved during validation; refusing overwrite.'; exit 1; }
+          git config user.name 'cheshmakzanoon-ops'
+          git config user.email 'cheshmakzanoon@gmail.com'
+          git add --pathspec-from-file="$RUNNER_TEMP/player-paths" --pathspec-file-nul
+          git diff --cached --check
+          git commit -m 'feat: integrate supplied RB19 car and R06 cockpit driver as the main player'
+          git push origin HEAD:main
+          git rev-parse HEAD | tee "$RUNNER_TEMP/published-player-commit.txt"
+          echo 'Published supplied player car, cockpit, driver and POV to main.' >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: supplied-player-validation
+          path: |
+            playwright-report/
+            test-results/
+            ${{ runner.temp }}/player-checks.log
+            ${{ runner.temp }}/published-player-commit.txt
+          retention-days: 7
+          if-no-files-found: warn
