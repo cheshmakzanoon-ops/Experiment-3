@@ -17,26 +17,21 @@ jobs:
         with:
           ref: main
           fetch-depth: 1
-      - name: Receive hash-pinned player changes without overwriting concurrent edits
+      - name: Receive hash-pinned rendering corrections without overwriting concurrent edits
         env:
-          TRANSFER_URL: 'https://sdmntprnorthcentralus.oaiusercontent.com/files/00000000-8ebc-822f-a2c4-005b69da59b2/raw?se=2026-09-27T19%3A58%3A02Z&sp=r&sv=2026-02-06&sr=b&scid=c3551fe6-eb18-542e-a982-88470f72e353&skoid=fae15675-a81a-44b5-9d8c-d8445a7c26a2&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-09-27T18%3A13%3A25Z&ske=2026-09-28T18%3A13%3A25Z&sks=b&skv=2026-02-06&sig=rXJmAFgxXpOa1pbqTicCK5hjEM3W5XljMDTDWP9HsPM%3D'
+          TRANSFER_URL: 'https://sdmntprnorthcentralus.oaiusercontent.com/files/00000000-1178-822f-8b5b-81bfb75314fa/raw?se=2026-09-27T20%3A17%3A04Z&sp=r&sv=2026-02-06&sr=b&scid=6f8b79df-3add-53cc-b7db-32fdd6864040&skoid=fae15675-a81a-44b5-9d8c-d8445a7c26a2&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-09-27T12%3A13%3A31Z&ske=2026-09-28T12%3A13%3A31Z&sks=b&skv=2026-02-06&sig=oqR6J8wvU9yscJ/onCA68ejoXpmVDYai3gzhtgnesq4%3D'
         run: |
           python - <<'PY'
-          import hashlib, json, os, pathlib, urllib.request, urllib.error, zipfile, shutil
+          import hashlib, json, os, pathlib, urllib.request, zipfile, shutil
           url = os.environ['TRANSFER_URL']
           print('::add-mask::' + url, flush=True)
           archive = pathlib.Path(os.environ['RUNNER_TEMP']) / 'supplied-player-transfer.zip'
           request = urllib.request.Request(url, headers={'User-Agent': 'Experiment3-Authorized-Asset-Import/1.0', 'Accept': 'application/zip, application/octet-stream'})
-          try:
-              with urllib.request.urlopen(request, timeout=120) as response, archive.open('wb') as out:
-                  shutil.copyfileobj(response, out)
-          except urllib.error.HTTPError as error:
-              print('Asset download HTTP status:', error.code)
-              print('Asset download response:', error.read(4096).decode('utf-8', errors='replace').replace(url, '[redacted asset URL]'))
-              raise SystemExit(1)
-          assert archive.stat().st_size == 36368632
-          assert hashlib.sha256(archive.read_bytes()).hexdigest() == 'fc32ab8fc6b098a100321531bcef72cf36efa6d856ca4d706f675d1ef8c87f37'
-          allowed = {'README.md', 'docs/SUPPLIED_PLAYER.md', 'docs/SUPPLIED_PLAYER_BUILD.json', 'scripts/build-supplied-player.py', 'src/rendering/car.ts', 'src/rendering/renderer.ts', 'src/rendering/photo-subject.ts', 'src/rendering/supplied-player.ts', 'src/rendering/supplied-player.manifest.json', 'public/models/supplied-player.glb.gz', 'tests/supplied-player.test.ts', 'e2e/24-coupled-driver.spec.ts', 'e2e/39-supplied-player.spec.ts', 'e2e/fixtures/supplied-player.ts'}
+          with urllib.request.urlopen(request, timeout=120) as response, archive.open('wb') as out:
+              shutil.copyfileobj(response, out)
+          assert archive.stat().st_size == 18304
+          assert hashlib.sha256(archive.read_bytes()).hexdigest() == 'ecad1ddf844b167b0c016c4883f05a368114e9d590c23fd7f8711f6a8227e4b5'
+          allowed = {'src/rendering/supplied-player.ts', 'tests/supplied-player.test.ts', 'e2e/fixtures/supplied-player.ts', 'e2e/39-supplied-player.spec.ts', 'docs/SUPPLIED_PLAYER.md'}
           with zipfile.ZipFile(archive) as z:
               assert set(z.namelist()) == allowed | {'TRANSFER_MANIFEST.json'}
               assert len(z.namelist()) == len(allowed) + 1
@@ -55,7 +50,7 @@ jobs:
                   p.parent.mkdir(parents=True, exist_ok=True)
                   p.write_bytes(data)
           pathlib.Path(os.environ['RUNNER_TEMP'], 'player-paths').write_bytes(b'\0'.join(p.encode() for p in sorted(allowed)) + b'\0')
-          print('Verified and applied 14 player integration files; originals matched.')
+          print('Verified and applied five rendering correction files; originals matched.')
           PY
       - uses: actions/setup-node@v4
         with:
@@ -67,8 +62,17 @@ jobs:
         run: npm run check 2>&1 | tee "$RUNNER_TEMP/player-checks.log"
       - name: Install browser
         run: npx playwright install --with-deps chromium
-      - name: Actual model and normal application browser checks
-        run: npx playwright test e2e/39-supplied-player.spec.ts e2e/24-coupled-driver.spec.ts
+      - name: Actual model surface and fit captures
+        run: npx playwright test e2e/39-supplied-player.spec.ts
+      - name: Preserve model inspection evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: supplied-player-corrected-studio
+          path: playwright-report/
+          retention-days: 7
+      - name: Normal application input, POV, cameras, failure and replay checks
+        run: npx playwright test e2e/24-coupled-driver.spec.ts
       - name: Commit and fast-forward main only after validation
         run: |
           git fetch origin main
@@ -77,14 +81,13 @@ jobs:
           git config user.email 'cheshmakzanoon@gmail.com'
           git add --pathspec-from-file="$RUNNER_TEMP/player-paths" --pathspec-file-nul
           git diff --cached --check
-          git commit -m 'feat: integrate supplied RB19 car and R06 cockpit driver as the main player'
+          git commit -m 'fix: restore player height textures and align chassis suspension datum'
           git push origin HEAD:main
           git rev-parse HEAD | tee "$RUNNER_TEMP/published-player-commit.txt"
-          echo 'Published supplied player car, cockpit, driver and POV to main.' >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: supplied-player-validation
+          name: supplied-player-corrected-validation
           path: |
             playwright-report/
             test-results/
