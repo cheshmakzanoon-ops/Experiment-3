@@ -1,56 +1,93 @@
 name: Publish playable CDN build
 
 on:
-  push:
+  workflow_run:
+    workflows: [Build and validation]
+    types: [completed]
     branches: [main]
-    paths-ignore:
-      - 'docs/**'
-      - '**/*.md'
-  workflow_dispatch:
 
 permissions:
-  contents: write
+  actions: read
+  contents: read
 
 concurrency:
   group: playable-cdn
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   publish:
+    # Never accept PR artifacts, another repository, or an unsuccessful run.
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == 'main' &&
+      github.event.workflow_run.head_repository.full_name == github.repository &&
+      (github.event.workflow_run.event == 'push' ||
+       github.event.workflow_run.event == 'workflow_dispatch')
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 10
+    permissions:
+      actions: read
+      contents: write
+    env:
+      VALIDATED_SHA: ${{ github.event.workflow_run.head_sha }}
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ github.event.workflow_run.head_sha }}
           fetch-depth: 1
-
-      - uses: actions/setup-node@v4
+      - name: Reject superseded source before downloading
+        id: source
+        shell: bash
+        run: |
+          set -euo pipefail
+          current=$(git ls-remote origin refs/heads/main | cut -f1)
+          if test "$current" != "$VALIDATED_SHA"; then
+            echo 'ready=false' >> "$GITHUB_OUTPUT"
+            echo 'A newer main commit exists; retaining the previous playable build.' >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo 'ready=true' >> "$GITHUB_OUTPUT"
+          fi
+      - name: Download the release that passed every validation job
+        if: steps.source.outputs.ready == 'true'
+        uses: actions/download-artifact@v4
         with:
-          node-version: '22'
-          cache: npm
-
-      - name: Build exact main source
+          name: apex-formula-release
+          path: ${{ runner.temp }}/validated-playable
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ github.event.workflow_run.id }}
+      - name: Verify source identity and publish without rebuilding
+        if: steps.source.outputs.ready == 'true'
+        shell: bash
         run: |
-          npm ci --no-audit --no-fund
-          npm run build
-          find dist -type f -name '*.map' -delete
-          test -s dist/index.html
-          test -s dist/models/supplied-player.glb.gz
-          echo '269b4d94c07602582070f1f48bc2e3a778f62d2e1cfcc26b021f52f79ad5ef3a  dist/models/supplied-player.glb.gz' | sha256sum --check
-          printf '%s\n' "$GITHUB_SHA" > dist/SOURCE_COMMIT.txt
-          touch dist/.nojekyll
-
-      - name: Publish immutable static build branch
-        run: |
-          rm -rf "$RUNNER_TEMP/apex-dist"
-          mkdir -p "$RUNNER_TEMP/apex-dist"
-          cp -a dist/. "$RUNNER_TEMP/apex-dist/"
+          set -euo pipefail
+          release="$RUNNER_TEMP/validated-playable"
+          test "$(cat "$release/SOURCE_COMMIT.txt")" = "$VALIDATED_SHA"
+          test -s "$release/index.html"
+          test -s "$release/models/supplied-player.glb.gz"
+          node --input-type=module - "$release" <<'NODE'
+          import { readFileSync } from 'node:fs';
+          import { createHash } from 'node:crypto';
+          const manifest = JSON.parse(readFileSync('src/rendering/supplied-player.manifest.json', 'utf8'));
+          const bytes = readFileSync(`${process.argv[2]}/models/supplied-player.glb.gz`);
+          if (bytes.length !== manifest.compressedBytes || createHash('sha256').update(bytes).digest('hex') !== manifest.compressedSHA256) {
+            throw new Error('Validated release player asset does not match its source manifest');
+          }
+          NODE
+          current=$(git ls-remote origin refs/heads/main | cut -f1)
+          if test "$current" != "$VALIDATED_SHA"; then
+            echo 'Source advanced during download; no publication performed.' >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          # This is the existing compiled CDN branch, never a source branch.
+          # Append a commit so publishing cannot silently overwrite another writer.
+          git fetch --depth=1 origin playable-cdn
+          git switch --detach FETCH_HEAD
+          git rm -rf --ignore-unmatch .
+          cp -a "$release/." .
           git config user.name 'cheshmakzanoon-ops'
           git config user.email 'cheshmakzanoon@gmail.com'
-          git switch --orphan playable-cdn
-          git rm -rf . || true
-          find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
-          cp -a "$RUNNER_TEMP/apex-dist/." .
           git add -A
-          git commit -m "deploy: playable $GITHUB_SHA"
-          git push --force origin HEAD:playable-cdn
+          git commit -m "deploy: validated playable $VALIDATED_SHA"
+          git push origin HEAD:refs/heads/playable-cdn
+          echo "Published exact validated source: $VALIDATED_SHA" >> "$GITHUB_STEP_SUMMARY"
