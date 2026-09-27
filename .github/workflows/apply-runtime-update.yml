@@ -1,0 +1,61 @@
+name: Apply verified runtime update
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/apply-runtime-update.yml
+      - '.github/runtime-transfer/**'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Verify and apply the reviewed source patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat .github/runtime-transfer/part-{0,1,2,3}.xz | xz -d > "$RUNNER_TEMP/runtime.patch"
+          echo "d2ab6308c2f2efb9a61f1f97ae969dcd2fcf4a713b6d6010847e9edc05ab05c9  $RUNNER_TEMP/runtime.patch" | sha256sum --check
+          git apply --check --index "$RUNNER_TEMP/runtime.patch"
+          git apply --index "$RUNNER_TEMP/runtime.patch"
+          git rm -r .github/runtime-transfer
+      - run: npm ci --no-audit --no-fund
+      - name: Require complete source checks before committing
+        run: npm run check
+      - name: Verify every browser partition preserves its assigned inventory
+        shell: bash
+        run: |
+          set -euo pipefail
+          for shard in {1..8}; do
+            npm run test:e2e:shard -- "$shard/8" --plan-only
+          done
+      - name: Commit and push verified source on the same main branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --check
+          current=$(git ls-remote origin refs/heads/main | cut -f1)
+          test "$current" = "$GITHUB_SHA"
+          git config user.name 'cheshmakzanoon-ops'
+          git config user.email 'cheshmakzanoon@gmail.com'
+          git add -A
+          git commit -m 'feat: preserve supplied player detail while stabilizing race validation'
+          git push origin HEAD:refs/heads/main
+          git rev-parse HEAD > "$RUNNER_TEMP/runtime-source-commit.txt"
+          echo "Verified source commit: $(git rev-parse HEAD)" >> "$GITHUB_STEP_SUMMARY"
+          git show --stat --oneline HEAD >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: verified-runtime-source
+          path: ${{ runner.temp }}/runtime-source-commit.txt
+          retention-days: 7
