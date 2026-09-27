@@ -72,10 +72,9 @@ jobs:
         shard: [1, 2, 3, 4, 5, 6, 7, 8]
     needs: validate
     runs-on: ubuntu-latest
-    # Independent runners retain every test/timeout without contending for one
-    # software GPU. Playwright shards the complete suite; no file is filtered.
-    # Eight independent partitions retain every case while surfacing regressions sooner.
-    # Each runner keeps one worker and the existing per-test and job limits.
+    # Enumerate the full suite, balance long race cases, then verify the selected
+    # IDs against Playwright itself. Every case belongs to exactly one partition;
+    # serial groups remain intact. Workers and all timeouts stay unchanged.
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
@@ -134,7 +133,7 @@ jobs:
           test -s dist/index.html
           test -d dist/assets
       - run: npx playwright install --with-deps chromium
-      - run: npm run test:e2e -- --shard=${{ matrix.shard }}/${{ strategy.job-total }}
+      - run: npm run test:e2e:shard -- ${{ matrix.shard }}/${{ strategy.job-total }}
       - name: Browser screenshots and diagnostics
         uses: actions/upload-artifact@v4
         if: always()
@@ -143,6 +142,7 @@ jobs:
           path: |
             test-results/
             playwright-report/
+            browser-shard-plan.json
           retention-days: 7
 
   wet-presentation:
@@ -221,7 +221,7 @@ jobs:
 
   publish:
     # Ship exactly the build tested above, never a parallel unvalidated rebuild.
-    # Main is the only source branch; compiled builds are artifacts, not branches.
+    # The CDN workflow consumes this gated artifact, not an independent build.
     needs: [validate, scenarios, browser, wet-presentation]
     # Manual validation of the current main must produce the SAME gated artifact.
     # Keep success() and all needs: a dispatch never bypasses a failed test.

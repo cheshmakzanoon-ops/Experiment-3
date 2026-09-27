@@ -64,14 +64,18 @@ jobs:
           release="$RUNNER_TEMP/validated-playable"
           test "$(cat "$release/SOURCE_COMMIT.txt")" = "$VALIDATED_SHA"
           test -s "$release/index.html"
-          test -s "$release/models/supplied-player.glb.gz"
           node --input-type=module - "$release" <<'NODE'
           import { readFileSync } from 'node:fs';
           import { createHash } from 'node:crypto';
-          const manifest = JSON.parse(readFileSync('src/rendering/supplied-player.manifest.json', 'utf8'));
-          const bytes = readFileSync(`${process.argv[2]}/models/supplied-player.glb.gz`);
-          if (bytes.length !== manifest.compressedBytes || createHash('sha256').update(bytes).digest('hex') !== manifest.compressedSHA256) {
-            throw new Error('Validated release player asset does not match its source manifest');
+          for (const [manifestPath, asset] of [
+            ['src/rendering/supplied-player.manifest.json', 'supplied-player.glb.gz'],
+            ['src/rendering/supplied-player-lods.manifest.json', 'supplied-player-lods.bin.gz'],
+          ]) {
+            const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
+            const bytes = readFileSync(`${process.argv[2]}/models/${asset}`);
+            if (bytes.length !== manifest.compressedBytes || createHash('sha256').update(bytes).digest('hex') !== manifest.compressedSHA256) {
+              throw new Error(`Validated release asset does not match its source manifest: ${asset}`);
+            }
           }
           NODE
           current=$(git ls-remote origin refs/heads/main | cut -f1)
@@ -88,6 +92,10 @@ jobs:
           git config user.name 'cheshmakzanoon-ops'
           git config user.email 'cheshmakzanoon@gmail.com'
           git add -A
+          if git diff --cached --quiet; then
+            echo "Validated source is already published: $VALIDATED_SHA" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
           git commit -m "deploy: validated playable $VALIDATED_SHA"
           git push origin HEAD:refs/heads/playable-cdn
           echo "Published exact validated source: $VALIDATED_SHA" >> "$GITHUB_STEP_SUMMARY"
