@@ -94,3 +94,48 @@ Historical acceptance-matrix rows are not promoted by these changes. Review the
 new full-game pit and night captures before artistic acceptance; complete human
 race, broad car/people/venue final art and physical-hardware measurements remain
 open. Deploy only the exact successful ordinary-CI build, never tracked `playable/`.
+
+## Hosted review continuation — prepare wet recording before grid release
+
+Run `36285091223` for `2bf2f1cd` passed build/unit checks, physics scenarios,
+wet presentation, browser shards 1–7, all four normal-resolution full-lap lighting
+journeys, the populated pit journey and the new local-radiance/subject tests.
+The full run nevertheless **failed**: the daylight cockpit wet-following review
+ended with `Session finished` before its strict event sequence qualified.
+Its best run was 2.9491958618164062 seconds, not the required three seconds.
+The failed `browser-validation-8-of-8` artifact (`10921565039`, SHA-256
+`f8fa2412295323563f88bc31a58fbfab5e9629e660d8ba45b575251efb2abbbc`)
+retains the video, trace, screenshot and interruption diagnostics. It is not
+promoted to a passing release receipt.
+
+The trace exposes nondeterministic preparation: the test entered a running race,
+then enabled AI after lights-out (the first observed AI-enabled frame is at
+6.583333 seconds), changed cameras, and began recording at about 7.85 seconds.
+Renderer startup and test action latency had already changed the physical race.
+
+Both wet-following views now use the existing **PREPARE GRID START PAUSED** UI.
+AI, the selected camera, and night lighting are prepared before release; actual
+worker time/tick must remain zero through preparation and its PNG capture. The
+recorder starts before the ordinary resume action. The first live diagnostic is
+still attached, but its extra synchronous screenshot moves to the paused grid;
+continuous live video and qualified/complete images remain. Exported reports
+must independently prove a recorded grid launch and at least three seconds of
+same-leader, loaded-contact-water, real-emitted-spray following.
+
+No runtime, shader, geometry, physics, frame protocol, render resolution, car
+count, service timing, qualification threshold, timeout, retry count, dependency
+or workflow is changed by this preparation repair. The same five workloads and
+all other browser gates remain. Normal-resolution footage is still independent
+of this 640x400 functional workload (320x200 buffer for cockpit).
+
+Three new production-simulation/component regressions start the real eight-car
+wet race before release and sample it at 2 Hz, 1.5 Hz and irregular subsecond
+intervals. Physics still advances at 120 Hz. Each qualifies real following before
+60 simulated seconds, rejects held-frame progress, and rejects a control with no
+leader spray. These are not WebGL or consumer-hardware tests. The repaired
+source requires its own complete hosted run and exact-release deployment.
+
+This continuation's local `npm run check` passed: 113 test files / 1,167 unit
+cases, lint, strict TypeScript and the production build. This count belongs to
+the preparation repair, not to the earlier failed hosted run. The Vite warning
+about large existing application chunks remains; no performance limit was raised.

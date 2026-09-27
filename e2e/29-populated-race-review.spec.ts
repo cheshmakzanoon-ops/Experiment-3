@@ -110,20 +110,34 @@ for (const drive of drives)
     await page.selectOption('#weather', drive.weather);
     await page.selectOption('#compound', drive.weather === 'rain' ? 'wet' : 'medium');
     const grid = drive.workload === 'grid-start';
+    // A running start lets browser loading/camera setup delay the player's AI
+    // beyond lights-out, changing the physical field before recording begins.
+    // Prepare wet following through the existing paused-grid UI, just like the
+    // grid workload. Never reposition cars, slow simulation or relax qualification.
+    const pausedStart = grid || drive.workload === 'wet-following';
     await page
       .getByRole('button', {
-        name: grid ? 'PREPARE GRID START PAUSED' : 'ENTER CIRCUIT',
+        name: pausedStart ? 'PREPARE GRID START PAUSED' : 'ENTER CIRCUIT',
         exact: true,
       })
       .click();
     await expect
       .poll(async () => (await diag(page)).state, { timeout: 90000 })
-      .toBe(grid ? 'paused' : 'driving');
-    if (grid) {
+      .toBe(pausedStart ? 'paused' : 'driving');
+    if (pausedStart) {
       await expect
         .poll(async () => (await diag(page)).workerPause)
         .toMatchObject({ pending: false, paused: true });
       await page.getByRole('button', { name: 'TOGGLE AI DEMONSTRATION', exact: true }).click();
+      for (let i = 0; i < 4 && (await diag(page)).renderer?.camera !== drive.camera; i++) {
+        await page.getByRole('button', { name: 'CHANGE CAMERA', exact: true }).click();
+        await expect
+          .poll(async () => {
+            const r = (await diag(page)).renderer;
+            return r?.presentedCamera === r?.requestedCamera;
+          })
+          .toBe(true);
+      }
       await expect
         .poll(async () => (await diag(page)).renderer?.presentedCamera)
         .toBe(drive.camera);
@@ -152,7 +166,24 @@ for (const drive of drives)
     expect(before.renderer?.graphics.particleDensity).toBe(drive.weather === 'rain' ? 1 : 0);
     expect(before.renderer?.presentedCamera).toBe(drive.camera);
     expect(before.renderer?.graphics.resolutionScale).toBe(resolutionScale);
-    if (drive.workload === 'grid-start') expect(before.frame![H.PHASE]).toBeLessThan(2);
+    if (pausedStart) {
+      expect(before.state).toBe('paused');
+      expect(before.workerPause).toMatchObject({ pending: false, paused: true });
+      expect(before.frame![H.TIME]).toBe(0);
+      expect(before.frame![H.TICK]).toBe(0);
+      expect(before.frame![H.PHASE]).toBeLessThan(2);
+      // Capture the cold scene before release rather than synchronously grabbing
+      // a PNG during the first advancing following sequence. Continuous video
+      // still covers the entire live run and qualified/complete PNGs are retained.
+      await capture(page, info, `${drive.workload}-${drive.lighting}-prepared-grid`);
+      const held = await diag(page);
+      expect(held.frame![H.TIME]).toBe(before.frame![H.TIME]);
+      expect(held.frame![H.TICK]).toBe(before.frame![H.TICK]);
+      await info.attach(`27h6-${drive.workload}-${drive.lighting}-prepared-grid.json`, {
+        body: JSON.stringify(held, null, 2),
+        contentType: 'application/json',
+      });
+    }
     await page.getByRole('button', { name: 'FULL-LAP VISUAL REVIEW', exact: true }).click();
     await page
       .locator('#reviewMachine')
@@ -222,7 +253,8 @@ for (const drive of drives)
                 : 'running';
           if (stage && !seen.has(stage)) {
             seen.add(stage);
-            await capture(page, info, `${drive.workload}-${drive.lighting}-${stage}`);
+            if (drive.workload !== 'wet-following' || stage !== 'running')
+              await capture(page, info, `${drive.workload}-${drive.lighting}-${stage}`);
             await info.attach(`27h6-${drive.workload}-${drive.lighting}-${stage}.json`, {
               body: JSON.stringify(d, null, 2),
               contentType: 'application/json',
@@ -267,6 +299,11 @@ for (const drive of drives)
     expect(buffer).toEqual({ width: configuration.width, height: configuration.height });
     expect(configuration.session.opponents).toBe(Number(drive.opponents));
     expect(configuration.graphics.particleDensity).toBe(drive.weather === 'rain' ? 1 : 0);
+    if (pausedStart) expect(report.context.startTime).toBe(0);
+    if (drive.workload === 'wet-following') {
+      expect(report.racing!.summary.gridLaunched).toBe(true);
+      expect(report.racing!.summary.wetFollowingSeconds).toBeGreaterThanOrEqual(3);
+    }
     if (drive.workload === 'pit-service') expect(report.racing!.summary.pitStage).toBe('exit');
     await info.attach(`27h6-${drive.workload}-${drive.lighting}-frame-report.json`, {
       body: raw,
