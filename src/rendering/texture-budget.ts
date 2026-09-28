@@ -1,9 +1,12 @@
 import * as T from 'three';
+import { ImportedTextureBudget } from './imported-texture-budget.ts';
 
-/** Resample immutable generated canvas assets only. Dynamic cockpit displays,
+/** Resample generated canvases and opted-in immutable supplied-player maps.
+ * Dynamic cockpit displays,
  * simulation state textures and render targets must retain their own ownership.
  * Keep one source canvas so quality can be restored without accumulating copies. */
 export class TextureBudget {
+  private readonly imported = new ImportedTextureBudget();
   private assets = new Map<T.CanvasTexture, HTMLCanvasElement>();
   private detailData = new Set<T.DataTexture>();
   private limit = 512;
@@ -13,6 +16,10 @@ export class TextureBudget {
       if (!(object instanceof T.Mesh)) return;
       for (const material of Array.isArray(object.material) ? object.material : [object.material]) {
         for (const value of Object.values(material)) {
+          if (value instanceof T.Texture && value.userData.suppliedPlayerTexture === true) {
+            this.imported.register(value);
+            continue;
+          }
           // Tiny prefiltered fabric maps retain their fixed resolution but obey
           // the same user-selected filtering budget. Simulation data is excluded.
           if (value instanceof T.DataTexture && value.userData.surfaceDetail === true) {
@@ -34,6 +41,7 @@ export class TextureBudget {
     if (limit === this.limit && anisotropy === this.anisotropy) return;
     this.limit = limit;
     this.anisotropy = anisotropy;
+    this.imported.configure(limit, anisotropy);
     for (const [texture, source] of this.assets) this.apply(texture, source);
     for (const texture of this.detailData) {
       texture.anisotropy = anisotropy;
@@ -78,6 +86,7 @@ export class TextureBudget {
     texture.needsUpdate = true;
   }
   dispose() {
+    this.imported.dispose();
     this.assets.clear();
     this.detailData.clear();
   }

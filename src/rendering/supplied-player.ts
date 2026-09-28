@@ -1,4 +1,5 @@
 import * as T from 'three';
+import { configureSuppliedMaterial } from './supplied-player-materials.ts';
 import { loadPlayerLods, SuppliedPlayerLods, type PlayerLodData } from './supplied-player-lods.ts';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { clamp, lerp } from '../core/math.ts';
@@ -352,6 +353,7 @@ export class SuppliedPlayer {
           if (!(m instanceof T.MeshStandardMaterial) || seen.has(m)) continue;
           seen.add(m);
           if (restoreSuppliedHeightMap(m)) this.heightMapsRestored++;
+          configureSuppliedMaterial(m);
           if (
             m instanceof T.MeshPhysicalMaterial &&
             (m.name.startsWith('Paint |') ||

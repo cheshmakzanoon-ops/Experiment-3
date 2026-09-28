@@ -1,3 +1,4 @@
+import { frontToBackOpaque } from './opaque-order.ts';
 import { loadSuppliedPlayer, type SuppliedPlayerAsset } from './supplied-player.ts';
 import { detailDistance } from './view-detail.ts';
 import { readRaceReviewFrame } from './race-review.ts';
@@ -206,6 +207,7 @@ export class RacingRenderer {
     );
     this.scene.add(this.debris.mesh, this.pitCrew.root);
     this.renderer.info.autoReset = false;
+    this.renderer.setOpaqueSort(frontToBackOpaque);
     this.renderer.outputColorSpace = T.SRGBColorSpace;
     this.renderer.toneMapping = T.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 1.05;

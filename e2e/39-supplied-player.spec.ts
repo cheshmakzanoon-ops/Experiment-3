@@ -114,11 +114,11 @@ test('supplied RB19 and R06: actual binary fit, both locks, POV, T-cam and rewin
   for (const row of result.lodReview.slice(1, 4)) {
     const saved = result.lodReview[0].lod.triangles - row.lod.triangles;
     expect(saved).toBeGreaterThan(result.lodReview[0].lod.triangles * 0.3);
-    // Transparent two-sided decals incur an unchanged extra render pass.
-    // Measure the exact removed triangles, not a ratio diluted by that overhead.
+    // Decal geometry and material passes are identical across every tier.
+    // Count the exact submitted triangles removed, not merely a manifest ratio.
     expect(result.lodReview[0].triangles - row.triangles).toBe(saved);
   }
-  // Sub-millimetre simplifier tolerances are not by themselves visual proof.
+  // Object-space simplifier tolerances are not by themselves visual proof.
   // The close view must retain its appearance, and exact mode must restore pixels.
   expect(result.lodReview[1].meanChannelDelta).toBeLessThan(2);
   expect(result.lodReview[4].maxChannelDelta).toBe(0);

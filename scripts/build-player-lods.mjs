@@ -68,9 +68,9 @@ let indexOffset = 0;
 // Near is for lower graphics presets only. High/inspection keeps the original.
 // Error is an object-space simplifier tolerance, not a measured surface-deviation or visual-parity certificate.
 const levels = [
-  { name: 'efficient-close', ratio: 0.28, error: 0.00035 },
-  { name: 'medium', ratio: 0.13, error: 0.0015 },
-  { name: 'distant', ratio: 0.045, error: 0.006 },
+  { name: 'efficient-close', ratio: 0.15, error: 0.002 },
+  { name: 'medium', ratio: 0.075, error: 0.006 },
+  { name: 'distant', ratio: 0.025, error: 0.012 },
 ];
 for (let mesh = 0; mesh < document.meshes.length; mesh++) {
   let meshBefore = 0,

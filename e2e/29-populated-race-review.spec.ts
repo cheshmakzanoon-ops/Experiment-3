@@ -109,12 +109,10 @@ for (const drive of drives)
     await page.selectOption('#opponents', drive.opponents);
     await page.selectOption('#weather', drive.weather);
     await page.selectOption('#compound', drive.weather === 'rain' ? 'wet' : 'medium');
-    const grid = drive.workload === 'grid-start';
-    // A running start lets browser loading/camera setup delay the player's AI
-    // beyond lights-out, changing the physical field before recording begins.
-    // Prepare wet following through the existing paused-grid UI, just like the
-    // grid workload. Never reposition cars, slow simulation or relax qualification.
-    const pausedStart = grid || drive.workload === 'wet-following';
+    // All event reviews begin from the ordinary held grid. A running start lets
+    // slow browser setup advance the opponents before the player's AI and camera
+    // are ready. No vehicle is repositioned and simulation timing is unchanged.
+    const pausedStart = true;
     await page
       .getByRole('button', {
         name: pausedStart ? 'PREPARE GRID START PAUSED' : 'ENTER CIRCUIT',
