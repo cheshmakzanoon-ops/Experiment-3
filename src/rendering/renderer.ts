@@ -64,7 +64,7 @@ import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { FXAAShader } from 'three/addons/shaders/FXAAShader.js';
 import { Sky } from 'three/addons/objects/Sky.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
-import { PlayerScenePass } from './player-depth-pass.ts';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { FormulaCar } from './car.ts';
@@ -116,7 +116,6 @@ export class RacingRenderer {
   private hemisphere = new T.HemisphereLight(0xc3d8f3, 0x33372e, 0.3);
   private sky = new Sky();
   private composer: EffectComposer;
-  private scenePass = new PlayerScenePass(this.scene, this.camera);
   private exposure = new AdaptiveExposurePass();
   private atmosphere: LocalAtmosphere;
   private weatherPresentation = new WeatherPresentation();
@@ -254,7 +253,7 @@ export class RacingRenderer {
     this.scene.add(this.circuit.group, this.effects.group, this.engineeringView.group);
 
     this.composer = new EffectComposer(this.renderer);
-    this.composer.addPass(this.scenePass);
+    this.composer.addPass(new RenderPass(this.scene, this.camera));
     this.composer.addPass(this.exposure);
     this.motionBlur = new MotionBlurPass(
       this.scene,
@@ -321,7 +320,6 @@ export class RacingRenderer {
       );
       this.cars.push(car);
       this.scene.add(car.root);
-      if (car.suppliedPlayer) this.scenePass.playerDepth.register(car.suppliedPlayer.root);
       this.textures.register(car.root);
       this.weatherPresentation.install(car.root);
       this.atmosphere.install(car.root);
@@ -1125,7 +1123,6 @@ export class RacingRenderer {
       weatherPresentation: this.weatherPresentation.diagnostics(),
       raceComposition: this.composition.diagnostics(),
       gpuFrameQueue: this.gpuFrames.diagnostics(),
-      playerDepthCandidates: this.scenePass.playerDepth.eligibleMeshes,
       gpuMilliseconds: this.gpuTimer.milliseconds,
       gpuTimerSupported: this.gpuTimer.supported,
       fps: this.fps,
@@ -1187,7 +1184,6 @@ export class RacingRenderer {
     }
     this.circuit.stateTexture.dispose();
     this.environment.dispose();
-    this.scenePass.dispose();
     this.composer.dispose();
     this.renderer.dispose();
   }

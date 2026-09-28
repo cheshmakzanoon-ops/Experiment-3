@@ -54,7 +54,7 @@ the synchronous pixel readback rather than assuming `gl.finish()` alone blocks
 Chromium until rasterization completes. Revalidation of this correction is a
 separate gate; previous green groups are evidence only for their own commit.
 
-## Opaque player depth continuation
+## Evaluated opaque player depth candidate (not enabled in production)
 
 The completed run `36406024237` on `d09367e` was not green: clear-day
 full-lap presentation recorded six frames, and the close-racing and wet-day
@@ -62,8 +62,8 @@ following recordings ended without qualifying their events. Source checks,
 physics scenarios, wet presentation and five browser shards passed. The sky
 sort correction alone did not close the race-presentation gate.
 
-`PlayerScenePass` now primes opaque depth from the actual imported player
-before ordinary scene shading. It uses the current geometry tier, skin/morph
+`PlayerScenePass` was evaluated as a candidate that primes opaque depth from
+the actual imported player before ordinary scene shading. It uses the current geometry tier, skin/morph
 state and transforms; it does not clone or move the car or change its materials,
 textures, lighting, animation, camera or physical clock. Only unconditional
 opaque, double-sided depth-writing surfaces qualify. Transparent decals, visor,
@@ -87,8 +87,47 @@ exact restored-texture pixels and checks bounded warmed resources. Its old
 image-error thresholds remain unchanged. The early wet-presentation job now
 also executes this fixture; all eight complete browser shards remain required.
 
-This is a performance candidate, not a measured device-FPS improvement. Its
-additional vertex submission trades work for hidden-fragment rejection; the
-new source's GPU timings and full-race recordings determine acceptance. No
+This experiment is not a measured device-FPS improvement. Its additional
+vertex submission trades work for hidden-fragment rejection. The measured
+studio result below rejects enabling it in normal rendering. No
 frame-count/event threshold, simulation clock, source-model hash, resolution,
 quality setting, retry count or timeout was relaxed.
+
+## Measured rejection and zero-coverage decal continuation
+
+The early GPU job of run `36413727893` on `147df1d` passed all four cases,
+including original-vs-primed front/rear/cockpit pixels, exact restored-texture
+pixels and bounded resources. Within that same runner and fixture, primed
+submission was slower, not faster:
+
+| View    | Ordinary sorted frame (ms) | Primed frame (ms) |
+| ------- | -------------------------: | ----------------: |
+| Front   |                     2664.9 |            3345.4 |
+| Rear    |                     2768.4 |            3477.7 |
+| Cockpit |                     2297.1 |            2766.9 |
+
+These synchronized studio samples include CPU work, GPU waiting and pixel
+readback; they are not full-race FPS or physical-device measurements. The
+roughly 20–26% regression rejects this candidate for normal rendering. The
+production `RacingRenderer` is restored byte-for-byte to its pre-depth source.
+The experiment and independent tests remain as a benchmark only; bundling the
+normal application does not import `PlayerScenePass` or pay for its geometry
+submission, layer walk, material or registry.
+
+Named, non-depth-writing, normally alpha-blended supplied decal sheets now
+skip lighting only when their sampled coverage is exactly zero. All positive
+filtered alpha values, source maps/UVs, geometry, shading and blend/depth
+policies remain intact. No binary, LOD tolerance or source asset hash changes.
+Stencil-writing, alpha-to-coverage, alpha-hashed, alpha-tested, transmission,
+custom/additive blend and non-decal materials are excluded. Existing material
+hooks are chained once; each material retains an opt-out oracle uniform.
+
+Four unit cases cover the shader stage, unchanged alpha policies, hook/cache
+identity and unsupported materials. The actual-binary GPU fixture explicitly
+disables the new coverage optimization for its original/sorted oracle, then
+enables it for a separate image/timing comparison at unchanged geometry and
+quality. It retains the rejected depth path as a labelled comparison, but
+restores the ordinary path for texture-budget and resource tests. This
+coverage continuation requires its own passing hosted image/race checks; the
+preceding depth job is not acceptance of a different source. No test
+threshold, capture requirement, clock, timeout, retry or release gate is relaxed.

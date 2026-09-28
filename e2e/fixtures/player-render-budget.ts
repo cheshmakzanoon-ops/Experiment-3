@@ -3,6 +3,7 @@ import { Sky } from 'three/addons/objects/Sky.js';
 import { configureSky } from '../../src/rendering/daylight.ts';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { loadSuppliedPlayer } from '../../src/rendering/supplied-player.ts';
+import { suppliedDecalCoverageControl } from '../../src/rendering/supplied-player-materials.ts';
 import { TextureBudget } from '../../src/rendering/texture-budget.ts';
 import { PlayerScenePass } from '../../src/rendering/player-depth-pass.ts';
 import { frontToBackOpaque } from '../../src/rendering/opaque-order.ts';
@@ -143,6 +144,10 @@ export async function playerRenderBudget() {
   try {
     for (const view of ['front', 'rear', 'cockpit'] as const) {
       scenePass.depthEnabled = false;
+      decals.forEach((m) => {
+        const control = suppliedDecalCoverageControl(m);
+        if (control) control.value = false;
+      });
       player.update(frame, frame, o, 1, view === 'cockpit');
       camera.fov = view === 'cockpit' ? 68 : 44;
       if (view === 'cockpit') {
@@ -171,9 +176,16 @@ export async function playerRenderBudget() {
       renderer.setOpaqueSort(frontToBackOpaque);
       shot();
       const sorted = shot();
+      decals.forEach((m) => {
+        const control = suppliedDecalCoverageControl(m);
+        if (control) control.value = true;
+      });
+      shot();
+      const coverage = shot();
       scenePass.depthEnabled = true;
       shot();
       const primed = shot();
+      scenePass.depthEnabled = false;
       budget.configure(256, 2);
       shot();
       const low = shot();
@@ -189,12 +201,14 @@ export async function playerRenderBudget() {
         view,
         decalDelta: delta(original.pixels, singlePass.pixels),
         opaqueDelta: delta(singlePass.pixels, sorted.pixels),
-        depthDelta: delta(sorted.pixels, primed.pixels),
-        restoredDelta: delta(primed.pixels, restored.pixels),
+        coverageDelta: delta(sorted.pixels, coverage.pixels),
+        depthDelta: delta(coverage.pixels, primed.pixels),
+        restoredDelta: delta(coverage.pixels, restored.pixels),
         lowMaps,
         original: { ...original, pixels: undefined },
         singlePass: { ...singlePass, pixels: undefined },
         sorted: { ...sorted, pixels: undefined },
+        coverage: { ...coverage, pixels: undefined },
         primed: { ...primed, pixels: undefined },
         low: { ...low, pixels: undefined },
         restored: { ...restored, pixels: undefined },
@@ -226,6 +240,7 @@ export async function playerRenderBudget() {
       sourceUnchanged: frame.every((v, i) => v === saved[i]),
       maps: maps.size,
       decalMaterials: decals.size,
+      coverageMaterials: [...decals].filter((m) => suppliedDecalCoverageControl(m)).length,
       displayUnchanged: display.image === displayCanvas && display.image.width === 512,
       glError: gl.getError(),
       timingScope: 'synchronised studio frame CPU + GPU wait, not device FPS',

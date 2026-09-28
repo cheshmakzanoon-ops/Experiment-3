@@ -41,7 +41,15 @@ test('supplied player: actual surface-pass pixels and bounded restorable importe
     ).PlayerBudgetProbe.playerRenderBudget(),
   );
   for (const row of report.rows) {
-    for (const key of ['original', 'singlePass', 'sorted', 'primed', 'low', 'restored'] as const)
+    for (const key of [
+      'original',
+      'singlePass',
+      'sorted',
+      'coverage',
+      'primed',
+      'low',
+      'restored',
+    ] as const)
       await info.attach(`${row.view}-${key}.png`, {
         body: Buffer.from(row[key].image.split(',')[1], 'base64'),
         contentType: 'image/png',
@@ -56,6 +64,7 @@ test('supplied player: actual surface-pass pixels and bounded restorable importe
   expect(report.sourceUnchanged).toBe(true);
   expect(report.maps).toBeGreaterThan(40);
   expect(report.decalMaterials).toBeGreaterThan(20);
+  expect(report.coverageMaterials).toBe(report.decalMaterials);
   expect(report.mapsRestored).toBe(true);
   expect(report.sourcesRestored).toBe(true);
   expect(report.displayUnchanged).toBe(true);
@@ -64,6 +73,9 @@ test('supplied player: actual surface-pass pixels and bounded restorable importe
   for (const row of report.rows) {
     expect(row.decalDelta.mean, row.view).toBeLessThan(0.5);
     expect(row.opaqueDelta.mean, row.view).toBeLessThan(0.05);
+    expect(row.coverageDelta.mean, row.view).toBeLessThan(0.05);
+    expect(row.coverage.calls, row.view).toBe(row.sorted.calls);
+    expect(row.coverage.triangles, row.view).toBe(row.sorted.triangles);
     expect(row.depthDelta.mean, row.view).toBeLessThan(0.05);
     expect(row.primed.depthCandidates, row.view).toBeGreaterThan(0);
     expect(row.primed.calls, row.view).toBeGreaterThan(row.sorted.calls);
