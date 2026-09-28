@@ -3,6 +3,7 @@ import { Sky } from 'three/addons/objects/Sky.js';
 import { configureSky } from '../../src/rendering/daylight.ts';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { loadSuppliedPlayer } from '../../src/rendering/supplied-player.ts';
+import { suppliedShaderWorkControl } from '../../src/rendering/supplied-shader-work.ts';
 import { suppliedDecalCoverageControl } from '../../src/rendering/supplied-player-materials.ts';
 import { TextureBudget } from '../../src/rendering/texture-budget.ts';
 import { frontToBackOpaque } from '../../src/rendering/opaque-order.ts';
@@ -74,10 +75,12 @@ export async function playerRenderBudget() {
     o = carBase(0);
   chassis.position.y = frame[o + WHEEL_BASE + W.LENGTH] + frame[o + WHEEL_BASE + W.RADIUS] - 0.05;
   const maps = new Set<T.Texture>(),
-    decals = new Set<T.Material>();
+    decals = new Set<T.Material>(),
+    optimized = new Set<T.Material>();
   player.root.traverse((object) => {
     if (!(object instanceof T.Mesh)) return;
     for (const m of Array.isArray(object.material) ? object.material : [object.material]) {
+      if (suppliedShaderWorkControl(m)) optimized.add(m);
       if (m.name.startsWith('Decal |') && m.transparent && m.side === T.DoubleSide) decals.add(m);
       for (const v of Object.values(m))
         if (v instanceof T.Texture && v.userData.suppliedPlayerTexture === true) maps.add(v);
@@ -135,6 +138,9 @@ export async function playerRenderBudget() {
   });
   try {
     for (const view of ['front', 'rear', 'cockpit'] as const) {
+      optimized.forEach((m) => {
+        suppliedShaderWorkControl(m)!.value = false;
+      });
       decals.forEach((m) => {
         const control = suppliedDecalCoverageControl(m);
         if (control) control.value = false;
@@ -173,6 +179,11 @@ export async function playerRenderBudget() {
       });
       shot();
       const coverage = shot();
+      optimized.forEach((m) => {
+        suppliedShaderWorkControl(m)!.value = true;
+      });
+      shot();
+      const shaderWork = shot();
       budget.configure(256, 2);
       shot();
       const low = shot();
@@ -190,12 +201,14 @@ export async function playerRenderBudget() {
         opaqueDelta: delta(singlePass.pixels, sorted.pixels),
         coverageDelta: delta(sorted.pixels, coverage.pixels),
         restoredDelta: delta(coverage.pixels, restored.pixels),
+        shaderWorkDelta: delta(coverage.pixels, shaderWork.pixels),
         lowMaps,
         original: { ...original, pixels: undefined },
         singlePass: { ...singlePass, pixels: undefined },
         sorted: { ...sorted, pixels: undefined },
         coverage: { ...coverage, pixels: undefined },
         low: { ...low, pixels: undefined },
+        shaderWork: { ...shaderWork, pixels: undefined },
         restored: { ...restored, pixels: undefined },
       });
       await new Promise((resolve) => setTimeout(resolve, 0));
@@ -224,6 +237,7 @@ export async function playerRenderBudget() {
       sourcesRestored,
       sourceUnchanged: frame.every((v, i) => v === saved[i]),
       maps: maps.size,
+      shaderWorkMaterials: optimized.size,
       decalMaterials: decals.size,
       coverageMaterials: [...decals].filter((m) => suppliedDecalCoverageControl(m)).length,
       displayUnchanged: display.image === displayCanvas && display.image.width === 512,

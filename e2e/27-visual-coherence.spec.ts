@@ -183,6 +183,12 @@ test.describe('27H.5 ordinary application full-lap evidence', () => {
         )
         .toBe('complete');
       const complete = await read();
+      // Retain the presented-frame/GPU evidence even when the next assertion
+      // fails; previously the eight-frame failures never reached JSON export.
+      await info.attach(`27h5-${drive.workload}-completion-diagnostics.json`, {
+        body: JSON.stringify(complete, null, 2),
+        contentType: 'application/json',
+      });
       expect(complete.presentationReview.progressM).toBeGreaterThanOrEqual(
         complete.frame![H.LENGTH],
       );

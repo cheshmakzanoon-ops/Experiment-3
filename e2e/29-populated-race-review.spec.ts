@@ -160,6 +160,7 @@ for (const drive of drives)
       await page.locator('#modal [data-action="modalClose"]').click();
     }
     const before = await diag(page);
+    expect(before.renderer?.warmupPitPasses).toBeGreaterThanOrEqual(2);
     expect(before.frame![H.CARS]).toBe(Number(drive.opponents) + 1);
     expect(before.renderer?.graphics.particleDensity).toBe(drive.weather === 'rain' ? 1 : 0);
     expect(before.renderer?.presentedCamera).toBe(drive.camera);

@@ -1,3 +1,4 @@
+import { warmPitMaterials } from './pit-material-warmup.ts';
 import { frontToBackOpaque } from './opaque-order.ts';
 import { loadSuppliedPlayer, type SuppliedPlayerAsset } from './supplied-player.ts';
 import { detailDistance } from './view-detail.ts';
@@ -333,6 +334,31 @@ export class RacingRenderer {
     this.cars.forEach((c, i) => (c.root.visible = i < n));
   }
   warmupFrames = 0;
+  warmupPitPasses = 0;
+  async waitForPreparedFrame(cancelled: () => boolean, yieldFrame: () => Promise<void>) {
+    const deadline = performance.now() + 45000;
+    while (!cancelled() && !this.gpuFrames.ready()) {
+      if (performance.now() >= deadline) throw new Error('Presentation warmup GPU did not complete');
+      await yieldFrame();
+    }
+  }
+  async warmPitPresentation(
+    frame: Float32Array,
+    cancelled: () => boolean,
+    yieldFrame: () => Promise<void>,
+  ) {
+    this.warmupPitPasses += await warmPitMaterials({
+      renderer: this.renderer,
+      scene: this.scene,
+      camera: this.camera,
+      crew: this.pitCrew,
+      frame,
+      submitted: () => this.gpuFrames.submittedFrame(),
+      ready: () => this.gpuFrames.ready(),
+      cancelled,
+      yieldFrame,
+    });
+  }
   /** Build the grid and warm real GPU paths while the physics worker is paused.
    * Yield between car construction and shader stages so progress can repaint.
    * No recording sample or race time is invented during loading. */
@@ -373,7 +399,15 @@ export class RacingRenderer {
         this.changeCamera(mode);
         this.draw(frame, frame, 1, 1 / 120, false, true);
         this.warmupFrames++;
+        if (mode === 'chase') {
+          progress('Warming offscreen pit-service materials…');
+          await this.warmPitPresentation(frame, cancelled, yieldFrame);
+          if (cancelled()) return false;
+        }
         await this.renderer.compileAsync(this.scene, this.camera);
+        // Shader linking alone does not finish GPU uploads or the warmup draw.
+        // Keep the worker paused until its actual submission has completed.
+        await this.waitForPreparedFrame(cancelled, yieldFrame);
         if (cancelled()) return false;
       }
     } finally {
@@ -1080,6 +1114,7 @@ export class RacingRenderer {
           }
         : null,
       warmupFrames: this.warmupFrames,
+      warmupPitPasses: this.warmupPitPasses,
       graphics: { ...this.graphics },
       renderWidth: this.renderWidth,
       renderHeight: this.renderHeight,

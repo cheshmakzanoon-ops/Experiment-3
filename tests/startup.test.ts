@@ -13,6 +13,12 @@ function fixture() {
     camera: {},
     mode: 'pod',
     warmupFrames: 0,
+    waitForPreparedFrame: vi.fn(async () => {
+      calls.push('gpu-ready');
+    }),
+    warmPitPresentation: vi.fn(async () => {
+      calls.push('pit-materials');
+    }),
     setCars(n: number) {
       while (this.cars.length < n) this.cars.push({ update: vi.fn() });
       calls.push(`cars:${n}`);
@@ -57,6 +63,9 @@ it('yields construction, compiles and warms camera passes without modifying simu
   expect(target.cars).toHaveLength(3);
   expect(target.renderer.compileAsync).toHaveBeenCalledTimes(3);
   expect(target.draw).toHaveBeenCalledTimes(2);
+  expect(target.waitForPreparedFrame).toHaveBeenCalledTimes(2);
+  expect(target.warmPitPresentation).toHaveBeenCalledTimes(1);
+  expect(calls.indexOf('pit-materials')).toBeGreaterThan(calls.indexOf('draw'));
   expect(target.mode).toBe('pod');
   expect(target.warmupFrames).toBe(2);
   expect(sample[H.TICK]).toBe(0);

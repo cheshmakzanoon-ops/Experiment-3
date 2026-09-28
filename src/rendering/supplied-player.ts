@@ -1,4 +1,5 @@
 import * as T from 'three';
+import { installSuppliedShaderWork } from './supplied-shader-work.ts';
 import { configureSuppliedMaterial } from './supplied-player-materials.ts';
 import { loadPlayerLods, SuppliedPlayerLods, type PlayerLodData } from './supplied-player-lods.ts';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -354,6 +355,7 @@ export class SuppliedPlayer {
           seen.add(m);
           if (restoreSuppliedHeightMap(m)) this.heightMapsRestored++;
           configureSuppliedMaterial(m);
+          installSuppliedShaderWork(m);
           if (
             m instanceof T.MeshPhysicalMaterial &&
             (m.name.startsWith('Paint |') ||
