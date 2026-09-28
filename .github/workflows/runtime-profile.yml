@@ -1,0 +1,114 @@
+name: Runtime frame investigation
+on:
+  push:
+    branches: [main]
+    paths: [.github/workflows/runtime-profile.yml]
+permissions:
+  contents: read
+jobs:
+  profile:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build
+      - name: Measure original runtime paths without mutating production
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('e2e/fixtures/player-render-budget.ts').read_text()
+          a=p.index('    for (const view of ')
+          b=p.index('  } finally {',a)
+          section='''
+              player.update(frame, frame, o, 1, true);
+              camera.fov = 68;
+              camera.position.copy(player.eye).add(chassis.position);
+              camera.lookAt(camera.position.clone().add(new T.Vector3(0,-0.035,1)));
+              camera.updateProjectionMatrix();
+              renderer.setOpaqueSort(frontToBackOpaque);
+              budget.configure(256,2);
+              player.lods!.setLevel(0,'low');
+              const measure = (label: string) => {
+                shot(); const r=shot();
+                const row={label,ms:r.synchronizedFrameMs,calls:r.calls,triangles:r.triangles};
+                console.log('PROFILE '+JSON.stringify(row)); rows.push(row);
+              };
+              measure('low-cockpit-640x400');
+              renderer.setSize(16,10);
+              measure('low-cockpit-16x10');
+              renderer.setSize(640,400);
+              const basic = new T.MeshBasicMaterial({color:0x888888,side:T.DoubleSide});
+              scene.overrideMaterial=basic;
+              measure('low-cockpit-basic');
+              scene.overrideMaterial=null;
+              const meshes: T.Mesh[]=[];
+              player.root.traverse(ob=>{if(ob instanceof T.Mesh)meshes.push(ob)});
+              const states=meshes.map(m=>m.visible);
+              meshes.forEach(m=>{if(m instanceof T.SkinnedMesh)m.visible=false;});
+              measure('low-cockpit-no-skin');
+              meshes.forEach((m,i)=>m.visible=states[i]);
+              meshes.forEach(m=>{if(!(m instanceof T.SkinnedMesh))m.visible=false;});
+              measure('low-cockpit-no-static');
+              meshes.forEach((m,i)=>m.visible=states[i]);
+              player.lods!.setLevel(0,'high');
+              measure('high-cockpit');
+              renderer.setSize(16,10);
+              measure('high-cockpit-16x10');
+              renderer.setSize(640,400);
+              player.lods!.setLevel(0,'low');
+              player.update(frame,frame,o,1,false);
+              camera.position.copy(player.pod).add(chassis.position);
+              camera.lookAt(camera.position.clone().add(new T.Vector3(0,-0.09,1)));
+              camera.updateProjectionMatrix();
+              measure('low-pod');
+              const ranked=meshes.filter(m=>m.visible).sort((a,b)=>(b.geometry.index?.count??0)-(a.geometry.index?.count??0));
+              for(const m of ranked.slice(0,12)){
+                const visible=m.visible;m.visible=false;
+                measure('without-'+m.name+'-'+(Array.isArray(m.material)?m.material[0].name:m.material.name));
+                m.visible=visible;
+              }
+              measure('low-pod-restored');
+              return {rows,glError:gl.getError()};
+          '''
+          p=p[:a]+section+p[b:]
+          p=p.replace('new Uint8Array(640 * 400 * 4)','new Uint8Array(gl.drawingBufferWidth * gl.drawingBufferHeight * 4)').replace('gl.readPixels(0, 0, 640, 400,','gl.readPixels(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight,')
+          Path('e2e/fixtures/runtime-profile.ts').write_text(p)
+          PY
+          cat > runtime-profile.mjs <<'JS'
+          import { build, preview } from 'vite';
+          import { chromium } from 'playwright';
+          import { writeFileSync } from 'node:fs';
+          const result=await build({configFile:false,logLevel:'error',build:{write:false,lib:{entry:'e2e/fixtures/runtime-profile.ts',name:'Probe',formats:['iife']}}});
+          const output=(Array.isArray(result)?result[0]:result).output.find(x=>x.type==='chunk').code;
+          const server=await preview({preview:{port:4173}});
+          const browser=await chromium.launch({args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
+          const page=await browser.newPage();
+          page.setDefaultTimeout(600000);
+          page.on('console',m=>console.log(m.text()));
+          page.on('pageerror',e=>console.error(e));
+          try {
+            await page.route('**/runtime-profile',r=>r.fulfill({contentType:'text/html',body:'<!doctype html><title>Runtime measurement</title>'}));
+            await page.goto('http://127.0.0.1:4173/runtime-profile');
+            await page.addScriptTag({content:output});
+            const report=await page.evaluate(()=>window.Probe.playerRenderBudget());
+            writeFileSync('runtime-profile.json',JSON.stringify(report,null,2));
+            if(report.glError!==0)throw new Error('GPU measurement error');
+          } finally {await browser.close();await new Promise(r=>server.httpServer.close(r));}
+          JS
+          node runtime-profile.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: runtime-profile-evidence
+          path: runtime-profile.json
+          retention-days: 2
