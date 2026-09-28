@@ -25,7 +25,7 @@ jobs:
       - name: Apply the fixed hash-verified source patch
         shell: bash
         env:
-          EXPECTED_TREE: '5bb96a80fd4803c4c34c0fc3ff2a5603a9b19398'
+          EXPECTED_TREE: '383e11ec49e760e59de01954b2730989ba888c34'
           PATCH_SHA256: '958432fb3148b4ab4b7eb2c610363630568194c42a17ce072234d56ccacc8e3d'
         run: |
           set -euo pipefail
@@ -49,9 +49,9 @@ jobs:
           source = path.read_text()
           old = 'material.onBeforeRender.apply(material, [] as unknown as Parameters<typeof material.onBeforeRender>);'
           new = 'material.onBeforeRender(...([] as unknown as Parameters<typeof material.onBeforeRender>));'
-          if source.count(old) != 2:
-              raise SystemExit('Unexpected test invocation source')
-          path.write_text(source.replace(old, new))
+          if source.count(old) != 2 or source.count('material.roughnessMap.source') != 1:
+              raise SystemExit('Unexpected regression test source')
+          path.write_text(source.replace(old, new).replace('material.roughnessMap.source', 'material.roughnessMap!.source'))
           PYCODE
           git add tests/supplied-shader-work.test.ts
           git rm -- .github/workflows/apply-full-race-continuation.yml
@@ -67,7 +67,7 @@ jobs:
       - name: Commit and fast-forward the verified tree
         shell: bash
         env:
-          EXPECTED_TREE: '5bb96a80fd4803c4c34c0fc3ff2a5603a9b19398'
+          EXPECTED_TREE: '383e11ec49e760e59de01954b2730989ba888c34'
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
