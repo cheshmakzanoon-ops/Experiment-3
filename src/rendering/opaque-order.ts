@@ -6,10 +6,18 @@ export interface OpaqueItem {
   groupOrder: number;
   renderOrder: number;
   z: number;
-  material: { id: number };
+  material: { id: number; name?: string };
   id: number;
 }
 export function frontToBackOpaque(a: OpaqueItem, b: OpaqueItem): number {
+  // Three's analytic SkyShader writes camera-far depth with depthWrite=false.
+  // Its object origin is NOT its raster depth. Place it last even when its
+  // centre projects in front of nearby geometry; covered sky fragments can
+  // then fail depth before running the atmospheric/cloud shader. Transparency
+  // remains a separate later pass; no shader, radiance or depth state changes.
+  const skyA = a.material.name === 'SkyShader';
+  const skyB = b.material.name === 'SkyShader';
+  if (skyA !== skyB) return skyA ? 1 : -1;
   return (
     a.groupOrder - b.groupOrder ||
     a.renderOrder - b.renderOrder ||

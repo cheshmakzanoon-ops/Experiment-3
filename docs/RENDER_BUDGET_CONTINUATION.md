@@ -33,3 +33,23 @@ implementation boundaries and specific rendered-image gates. A source push does
 not prove a live deployment: the publisher must consume the exact successful
 release artifact and confirm its source identifier. Physical target-hardware
 profiling, manual driving and final visual acceptance remain separate gates.
+
+## Hosted continuation and sky overdraw correction
+
+Run `36402694133` passed the actual supplied-player LOD image checks, the new
+imported-texture/material GPU image comparison, both wet-following workloads,
+the pit-service sequence and the sunset/night full-lap group. Close-racing and
+the clear-day cockpit full-lap gate still failed, so this is not all-green
+acceptance. The latter captured only eight rendered frames; its diagnostic
+reported about 9.57 seconds for its last software-GPU frame, not hardware FPS.
+
+The analytic sky now renders after all opaque objects while retaining its
+original far-depth vertex shader, depth test, non-writing depth policy and
+radiance. Opaque cockpit/road/building depth can reject hidden sky fragments;
+transparent surfaces still render afterward. The existing supplied-player GPU
+fixture additionally compares sky-first and sky-last images with identical
+geometry, maps and lighting. No view resolution, scene content, test threshold,
+physics clock, review qualifier or timeout was changed. Its timing now includes
+the synchronous pixel readback rather than assuming `gl.finish()` alone blocks
+Chromium until rasterization completes. Revalidation of this correction is a
+separate gate; previous green groups are evidence only for their own commit.

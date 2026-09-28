@@ -1,4 +1,6 @@
 import * as T from 'three';
+import { Sky } from 'three/addons/objects/Sky.js';
+import { configureSky } from '../../src/rendering/daylight.ts';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { loadSuppliedPlayer } from '../../src/rendering/supplied-player.ts';
 import { TextureBudget } from '../../src/rendering/texture-budget.ts';
@@ -52,6 +54,11 @@ export async function playerRenderBudget() {
   );
   floor.rotation.x = -Math.PI / 2;
   scene.add(floor);
+  const sky = new Sky();
+  configureSky(sky);
+  sky.scale.setScalar(450000);
+  sky.material.uniforms.cloudCover.value = 0.35;
+  scene.add(sky);
   const camera = new T.PerspectiveCamera(44, 1.6, 0.025, 100);
   const sim = new Simulation({
     ...DEFAULT_OPTIONS,
@@ -96,9 +103,10 @@ export async function playerRenderBudget() {
     const start = performance.now();
     renderer.render(scene, camera);
     gl.finish();
-    const synchronizedFrameMs = performance.now() - start;
     const pixels = new Uint8Array(640 * 400 * 4);
     gl.readPixels(0, 0, 640, 400, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+    // Include the actual readback: Chromium may defer work past gl.finish().
+    const synchronizedFrameMs = performance.now() - start;
     return {
       pixels,
       synchronizedFrameMs,
@@ -134,6 +142,9 @@ export async function playerRenderBudget() {
         camera.lookAt(0, 0.43, 0);
       }
       camera.updateProjectionMatrix();
+      // Force the unoptimized sky-first order as an independent pixel oracle.
+      // Production instead places its unchanged far-depth sky after opaques.
+      sky.renderOrder = -1;
       renderer.setOpaqueSort(null);
       decals.forEach((m) => {
         m.forceSinglePass = false;
@@ -145,6 +156,7 @@ export async function playerRenderBudget() {
       });
       shot();
       const singlePass = shot();
+      sky.renderOrder = 0;
       renderer.setOpaqueSort(frontToBackOpaque);
       shot();
       const sorted = shot();
