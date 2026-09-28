@@ -7,7 +7,9 @@ import {
   parsePlayerLods,
   loadPlayerLods,
   SuppliedPlayerLods,
+  type PlayerLodRow,
 } from '../src/rendering/supplied-player-lods.ts';
+import cacheAudit from '../docs/PLAYER_INDEX_CACHE_AUDIT.json' with { type: 'json' };
 import manifest from '../src/rendering/supplied-player-lods.manifest.json' with { type: 'json' };
 
 const packed = readFileSync(
@@ -20,6 +22,37 @@ const source = gunzipSync(
 const jsonLength = source.readUInt32LE(12);
 const document = JSON.parse(source.subarray(20, 20 + jsonLength).toString());
 const bin = source.subarray(28 + jsonLength);
+function sourceIndices(mesh: number, primitive: number) {
+  const prim = document.meshes[mesh].primitives[primitive];
+  const a = document.accessors[prim.indices],
+    v = document.bufferViews[a.bufferView];
+  const offset = (v.byteOffset ?? 0) + (a.byteOffset ?? 0);
+  return Uint32Array.from({ length: a.count }, (_, i) =>
+    a.componentType === 5123 ? bin.readUInt16LE(offset + i * 2) : bin.readUInt32LE(offset + i * 4),
+  );
+}
+function triangleTriples(indices: Uint32Array) {
+  const counts = new Map<string, number>();
+  for (let i = 0; i < indices.length; i += 3) {
+    const key = `${indices[i]},${indices[i + 1]},${indices[i + 2]}`;
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+  return counts;
+}
+function mutateHeader(change: (rows: PlayerLodRow[]) => void) {
+  const copy = raw.slice(),
+    view = new DataView(copy.buffer),
+    length = view.getUint32(4, true);
+  const header = JSON.parse(new TextDecoder().decode(copy.subarray(8, 8 + length)));
+  change(header.rows);
+  const text = new TextEncoder().encode(JSON.stringify(header));
+  // Keep the original byte length so malformed ranges cannot be rejected only
+  // by the transport-length gate. JSON accepts this trailing space padding.
+  expect(text.length).toBeLessThanOrEqual(length);
+  copy.fill(32, 8, 8 + length);
+  copy.set(text, 8);
+  return copy;
+}
 function fixture() {
   const root = new T.Group();
   const material = new T.MeshBasicMaterial();
@@ -85,8 +118,22 @@ describe('supplied player index-only LODs', () => {
         /^(Paint|Tyre|Composite) \|/.test(material.name ?? '')
       ) {
         protectedCount++;
-        for (const level of row.levels)
-          expect(level).toEqual({ offset: -1, count: row.originalCount, error: 0 });
+        const original = sourceIndices(row.mesh, row.primitive);
+        const triples = triangleTriples(original),
+          seen = new Set<number>();
+        for (const level of row.levels) {
+          expect(level.count).toBe(row.originalCount);
+          expect(level.error).toBe(0);
+          if (material.alphaMode === 'BLEND') expect(level.offset).toBe(-1);
+          if (level.offset >= 0 && !seen.has(level.offset)) {
+            // Serialization may reorder opaque triangles, but no triangle,
+            // winding, duplicate, seam vertex or source ID may change.
+            expect(
+              triangleTriples(data.indices.subarray(level.offset, level.offset + level.count)),
+            ).toEqual(triples);
+            seen.add(level.offset);
+          }
+        }
       }
     }
     expect(protectedCount).toBeGreaterThan(60);
@@ -165,6 +212,85 @@ describe('supplied player index-only LODs', () => {
     mesh.geometry.setAttribute('position', old);
     originals.forEach((g) => g.dispose());
     material.dispose();
+  });
+  it('retains the exact baseline oriented-triangle fingerprint across all 516 primitive tiers', () => {
+    const data = parsePlayerLods(raw),
+      records: string[] = [];
+    for (const row of data.rows.values()) {
+      const source = sourceIndices(row.mesh, row.primitive);
+      for (const [i, level] of row.levels.entries()) {
+        const indices =
+          level.offset < 0
+            ? source
+            : data.indices.subarray(level.offset, level.offset + level.count);
+        const triples: number[][] = [];
+        for (let t = 0; t < indices.length; t += 3)
+          triples.push([indices[t], indices[t + 1], indices[t + 2]]);
+        triples.sort((a, b) => a[0] - b[0] || a[1] - b[1] || a[2] - b[2]);
+        const bytes = Buffer.alloc(indices.byteLength);
+        triples.forEach((triangle, t) =>
+          triangle.forEach((v, j) => bytes.writeUInt32LE(v, (t * 3 + j) * 4)),
+        );
+        records.push(
+          `${row.mesh}:${row.primitive}:${i + 1}:${createHash('sha256').update(bytes).digest('hex')}`,
+        );
+      }
+    }
+    expect(records).toHaveLength(cacheAudit.verifiedPrimitiveTiers);
+    expect(createHash('sha256').update(records.join('\n')).digest('hex')).toBe(
+      cacheAudit.canonicalTriangleSHA256,
+    );
+    expect(manifest.sourceSHA256).toBe(cacheAudit.sourceSHA256);
+    expect(manifest.compressedSHA256).toBe(cacheAudit.candidateCompressedSHA256);
+  });
+  it('aliases only complete earlier ranges of the same primitive and reuses their geometry owner', () => {
+    const data = parsePlayerLods(raw);
+    const { root, keys, originals, material } = fixture();
+    const lods = new SuppliedPlayerLods(root, (m) => keys.get(m), data);
+    lods.setLevel(0, 'low');
+    const first = root.children.map((m) => (m as T.Mesh).geometry);
+    lods.setLevel(1, 'low');
+    let reused = 0;
+    root.children.forEach((child, i) => {
+      const key = keys.get(child as T.Mesh)!;
+      const row = data.rows.get(`${key.meshes}:${key.primitives}`)!;
+      if (row.levels[0].offset >= 0 && row.levels[0].offset === row.levels[1].offset) {
+        reused++;
+        expect((child as T.Mesh).geometry).toBe(first[i]);
+      }
+    });
+    expect(reused).toBeGreaterThan(20);
+    lods.dispose();
+    originals.forEach((g) => g.dispose());
+    material.dispose();
+  });
+  it('rejects partial, mismatched and cross-primitive range aliases independently of byte length', () => {
+    const rowWithAlias = (rows: PlayerLodRow[]) =>
+      rows.find((r) => r.levels[0].offset > 10 && r.levels[1].offset === r.levels[0].offset)!;
+    expect(() =>
+      parsePlayerLods(
+        mutateHeader((rows) => {
+          const r = rowWithAlias(rows);
+          r.levels[1].offset -= 3;
+        }),
+      ),
+    ).toThrow('Invalid supplied player LOD contract');
+    expect(() =>
+      parsePlayerLods(
+        mutateHeader((rows) => {
+          const r = rowWithAlias(rows);
+          r.levels[1].count -= 3;
+        }),
+      ),
+    ).toThrow('Invalid supplied player LOD contract');
+    expect(() =>
+      parsePlayerLods(
+        mutateHeader((rows) => {
+          const r = rowWithAlias(rows);
+          r.levels[0].offset = 0;
+        }),
+      ),
+    ).toThrow('Invalid supplied player LOD contract');
   });
   it('bounds transport and rejects corruption rather than accepting a fallback', async () => {
     const signal = new AbortController().signal;

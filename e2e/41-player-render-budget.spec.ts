@@ -41,15 +41,7 @@ test('supplied player: actual surface-pass pixels and bounded restorable importe
     ).PlayerBudgetProbe.playerRenderBudget(),
   );
   for (const row of report.rows) {
-    for (const key of [
-      'original',
-      'singlePass',
-      'sorted',
-      'coverage',
-      'primed',
-      'low',
-      'restored',
-    ] as const)
+    for (const key of ['original', 'singlePass', 'sorted', 'coverage', 'low', 'restored'] as const)
       await info.attach(`${row.view}-${key}.png`, {
         body: Buffer.from(row[key].image.split(',')[1], 'base64'),
         contentType: 'image/png',
@@ -76,10 +68,6 @@ test('supplied player: actual surface-pass pixels and bounded restorable importe
     expect(row.coverageDelta.mean, row.view).toBeLessThan(0.05);
     expect(row.coverage.calls, row.view).toBe(row.sorted.calls);
     expect(row.coverage.triangles, row.view).toBe(row.sorted.triangles);
-    expect(row.depthDelta.mean, row.view).toBeLessThan(0.05);
-    expect(row.primed.depthCandidates, row.view).toBeGreaterThan(0);
-    expect(row.primed.calls, row.view).toBeGreaterThan(row.sorted.calls);
-    expect(row.primed.triangles, row.view).toBeGreaterThan(row.sorted.triangles);
     expect(row.restoredDelta.max, row.view).toBe(0);
     expect(row.original.calls).toBeGreaterThanOrEqual(row.singlePass.calls);
     expect(row.original.triangles).toBeGreaterThanOrEqual(row.singlePass.triangles);

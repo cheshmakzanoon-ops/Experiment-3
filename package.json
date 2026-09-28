@@ -26,7 +26,7 @@
     "test:journey": "node --experimental-transform-types scripts/integrated-driving.ts",
     "test:reference-ui": "node scripts/reference-ui-check.mjs",
     "test:phase27c": "node --experimental-transform-types scripts/phase27c-verify.ts",
-    "generate:player-lods": "node scripts/build-player-lods.mjs",
+    "generate:player-lods": "node --experimental-strip-types scripts/build-player-lods.mjs",
     "prebuild": "npm run generate:player-lods",
     "predev": "npm run generate:player-lods",
     "pretest": "npm run generate:player-lods",

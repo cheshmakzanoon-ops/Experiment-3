@@ -6,7 +6,8 @@ import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { gzipSync, gunzipSync } from 'node:zlib';
 import { fileURLToPath } from 'node:url';
-import { MeshoptSimplifier as simplifier } from 'meshoptimizer';
+import { MeshoptSimplifier as simplifier, MeshoptEncoder as encoder } from 'meshoptimizer';
+import { orderOpaqueTriangles, fifoVertexMisses } from './player-index-cache.ts';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const source = JSON.parse(
@@ -21,6 +22,7 @@ if (sha(packed) !== source.compressedSHA256) throw new Error('Wrong player sourc
 const existing = existsSync(manifestPath) ? JSON.parse(readFileSync(manifestPath, 'utf8')) : null;
 if (
   !update &&
+  existing?.version === 2 &&
   existing?.sourceSHA256 === source.sha256 &&
   existsSync(outputPath) &&
   sha(readFileSync(outputPath)) === existing.compressedSHA256
@@ -60,10 +62,11 @@ function accessor(id) {
     }
   return result;
 }
-await simplifier.ready;
+await Promise.all([simplifier.ready, encoder.ready]);
 const rows = [],
   chunks = [],
-  counts = [0, 0, 0, 0];
+  counts = [0, 0, 0, 0],
+  cacheMisses = [0, 1, 2].map(() => ({ before: 0, after: 0 }));
 let indexOffset = 0;
 // Near is for lower graphics presets only. High/inspection keeps the original.
 // Error is an object-space simplifier tolerance, not a measured surface-deviation or visual-parity certificate.
@@ -111,6 +114,9 @@ for (let mesh = 0; mesh < document.meshes.length; mesh++) {
         }
     }
     const row = { mesh, primitive, vertices: count, originalCount: indices.length, levels: [] };
+    // Share repeated ranges only within this primitive, never between unrelated
+    // source attributes. Protected livery support is stored once for all tiers.
+    const ranges = new Map();
     counts[0] += indices.length / 3;
     meshBefore += indices.length / 3;
     for (let level = 0; level < levels.length; level++) {
@@ -146,14 +152,30 @@ for (let mesh = 0; mesh < document.meshes.length; mesh++) {
         error > spec.error * 1.001
       )
         throw new Error('Invalid simplification result');
-      const exact = reduced.length === indices.length;
-      row.levels.push({ offset: exact ? -1 : indexOffset, count: reduced.length, error });
-      if (!exact) {
-        const bytes = Buffer.alloc(reduced.byteLength);
-        reduced.forEach((v, i) => bytes.writeUInt32LE(v, i * 4));
-        chunks.push(bytes);
-        indexOffset += reduced.length;
+      const materialOpaque = !material.alphaMode || material.alphaMode === 'OPAQUE';
+      const ordered = materialOpaque ? orderOpaqueTriangles(reduced, count) : reduced;
+      if (materialOpaque) {
+        cacheMisses[level].before += fifoVertexMisses(reduced, count);
+        cacheMisses[level].after += fifoVertexMisses(ordered, count);
       }
+      const exact = ordered.length === indices.length && ordered.every((v, i) => v === indices[i]);
+      let offset = -1;
+      if (!exact) {
+        const bytes = Buffer.alloc(ordered.byteLength);
+        ordered.forEach((v, i) => bytes.writeUInt32LE(v, i * 4));
+        const key = sha(bytes),
+          previous = ranges.get(key);
+        if (previous) {
+          if (!previous.bytes.equals(bytes)) throw new Error('Index range digest collision');
+          offset = previous.offset;
+        } else {
+          offset = indexOffset;
+          ranges.set(key, { offset, bytes });
+          chunks.push(bytes);
+          indexOffset += ordered.length;
+        }
+      }
+      row.levels.push({ offset, count: ordered.length, error });
       counts[level + 1] += reduced.length / 3;
       if (level === 0) meshAfter += reduced.length / 3;
     }
@@ -161,9 +183,9 @@ for (let mesh = 0; mesh < document.meshes.length; mesh++) {
   }
   console.log(`mesh ${mesh}: ${meshBefore} -> ${meshAfter} near triangles`);
 }
-const header = Buffer.from(JSON.stringify({ version: 1, sourceSHA256: source.sha256, rows }));
+const header = Buffer.from(JSON.stringify({ version: 2, sourceSHA256: source.sha256, rows }));
 const prefix = Buffer.alloc(8);
-prefix.write('PLD1');
+prefix.write('PLD2');
 prefix.writeUInt32LE(header.length, 4);
 const bytes = Buffer.concat([
   prefix,
@@ -173,9 +195,9 @@ const bytes = Buffer.concat([
 ]);
 const compressed = gzipSync(bytes, { level: 9 });
 const result = {
-  version: 1,
+  version: 2,
   generator:
-    'meshoptimizer@0.25.0 / exact livery surfaces, locked boundaries and skin-weight seams',
+    'meshoptimizer@0.25.0 / exact livery surfaces, locked seams, opaque triangle cache order',
   sourceSHA256: source.sha256,
   sha256: sha(bytes),
   compressedSHA256: sha(compressed),
@@ -183,6 +205,7 @@ const result = {
   compressedBytes: compressed.length,
   primitives: rows.length,
   triangles: counts,
+  cacheModel: { name: 'FIFO-16 vertex misses, not hardware timings', levels: cacheMisses },
   levels,
 };
 if (!update && JSON.stringify(result) !== JSON.stringify(existing))

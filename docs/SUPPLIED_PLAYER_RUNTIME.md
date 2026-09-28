@@ -1,162 +1,124 @@
 # Supplied-player runtime tiers and validation gate
 
-## Scope
+## Preserved source
 
-This increment keeps Three.js, the current simulation, source RB19/R06 binary,
-texture/material identity, suspension datum, camera sockets and snapshot-driven
-steering/replay animation. It does not replace the supplied player with a legacy
-car or claim final art, physical-hardware frame rates, or Steam acceptance.
+The game remains Three.js with the existing simulation and supplied RB19/R06
+assembly. Suspension datum, camera sockets, source livery/materials and
+snapshot-driven steering, pause and replay animation are retained. No legacy
+fallback, physical-device FPS, final art, commercial rights or Steam acceptance
+is claimed by this integration.
 
-## Source-preserving geometry
+The decompressed source GLB remains SHA-256
+`013a47f059bf34a0a28bd31ae8f407f07ed6e2b55755753aed9a942c895e132b`.
+`npm run generate:player-lods` uses the exact hash-pinned source and existing
+`meshoptimizer@0.25.0` dependency. Its index-only derivative is generated before
+development, unit tests and build, not committed as another model binary.
 
-`npm run generate:player-lods` derives three index-only tiers from the exact
-hash-pinned `public/models/supplied-player.glb.gz`. The original remains unchanged.
-The generator runs before development, unit tests and builds. Its output is a
-build asset, not another large binary committed to source history.
+| Representation | Triangles | Selection |
+| --- | ---: | --- |
+| Original | 1,455,118 | High-quality followed car and exact close inspection |
+| Efficient close | 855,654 | Low/medium-quality followed car |
+| Medium distance | 814,806 | Existing camera-distance LOD 1 |
+| Distant | 797,386 | Existing camera-distance LOD 2 |
 
-| Representation  | Triangles | Selection                                            |
-| --------------- | --------: | ---------------------------------------------------- |
-| Original        | 1,455,118 | High-quality followed car and close photo inspection |
-| Efficient close |   855,654 | Low/medium-quality followed car                      |
-| Medium distance |   814,806 | Existing camera-distance LOD 1                       |
-| Distant         |   797,386 | Existing camera-distance LOD 2                       |
+## Geometry and PLD2 ownership
 
-The build-time simplifier is pinned to `meshoptimizer@0.25.0`. Each of the 172
-material primitives is processed separately. Borders and changes in skin
-weights/joint indices are locked. All layered decals and their painted,
-composite and tire support surfaces retain exact original indices, as do the
-display, mirrors and small detail primitives. This explicitly prevents the
-decal/surface intersections seen in an earlier, rejected simplification. Source vertex attributes, normals,
-UVs, morph attributes, materials, bones and animation are not rewritten.
-Error tolerances are simplifier estimates in source units, not surveyed surface
-accuracy or a substitute for visual review. Material primitives are deliberately
-not merged because doing so here would risk changing material and rig identity.
+Each of the 172 material primitives is processed separately. Borders and
+skin-weight/joint seams are locked. Layered decals and their painted, composite
+and tire support surfaces retain the exact original triangles, as do display,
+mirrors and small details. Source vertices, normals, UVs, morph attributes,
+materials, bones and animations are not rewritten. The existing simplification
+tolerances are estimates, not measured surface accuracy or visual approval.
 
-The geometry wrappers share immutable vertex attributes and own only reduced
-index buffers. Tier changes allocate nothing per frame and retain the existing
-logical distance hysteresis. The owner restores source geometry before disposing
-all derivative wrappers; original resources remain owned by the normal scene.
+PLD2 additionally reorders opaque triangles for vertex locality and inverts the
+encoder's vertex remap so all source attributes keep their original indices.
+Transparent order is unchanged. All 516 primitive/tier oriented-triangle
+multisets and simplification errors match the PLD1 baseline. The compact
+`PLAYER_INDEX_CACHE_AUDIT.json` pins the aggregate baseline fingerprint; a test
+independently reconstructs it from the actual generated package.
 
-The generated package is 3,906,174 bytes compressed (10,746,828 bytes decoded).
-This is an **additional download**, not a claim of reduced loading time or texture
-memory. Source and derivative hashes, primitive coverage, index ranges, budgets,
-bounded downloads and cancellation are checked before use. Both explicit gzip
-files and transparently HTTP-decompressed responses are supported. Missing or
-corrupt required data stops loading instead of displaying a different car.
+Identical complete index ranges may be shared only within the same primitive.
+The parser rejects cross-primitive aliases, overlaps, incorrect counts, forward
+references and out-of-range indices. Geometry wrappers share immutable vertex
+attributes, reuse identical tier index ranges, and allocate nothing on a tier
+switch. Original distance hysteresis is retained. Teardown restores original
+geometry and releases each derivative owner once before ordinary scene disposal.
 
-A deliberate source change requires rebuilding with `--update-manifest`,
-reviewing the resulting geometry/images and committing the new manifest together
-with the approved source. Normal builds refuse a different derived hash.
+The package is 4,213,368 bytes compressed, 13,037,000 bytes decoded: 307,194 more
+compressed bytes than PLD1. It is an additional download, not a claim of reduced
+load time or original texture memory. Source/derivative digests, byte bounds,
+primitive coverage and cancellation are checked before use. Both explicit gzip
+and transparently HTTP-decompressed responses are supported. Missing/corrupt
+required data stops loading rather than showing a different car.
 
-## Runtime and regression repairs
+A deliberate source/derivative change requires `--update-manifest`, geometry
+and image review, and the corresponding manifest/source commit. Normal builds
+reject a different derived digest. The deterministic FIFO-16 model changes
+near-tier opaque misses from 992,010 to 622,914 (37.2%) without removing a
+triangle. This diagnostic is not measured hardware performance.
 
-The camera-switch fixture now measures active supplied wheels rather than hidden
-legacy wheels. Its original distance/long-lens assertions remain intact; the
-player now genuinely changes detail instead of having its expected result
-weakened. The general cockpit test uses the source eye socket with the chassis
-offset applied once and verifies the active 58-joint rig, screen and mirrors.
-Screen-visibility raycasts no longer traverse the hidden legacy player model.
+## Runtime corrections and material budgets
 
-Local fog retains all eight Gauss nodes and weights and the same optical tail
-bound. Two vectorized batches combine the lateral/height exponential instead of
-repeating scalar products. An independent scalar GPU control verifies pixel
-agreement for low, high and long rays, including a fog-disabled negative control.
-No existing full-scene atmosphere samples or resource/image assertions were
-removed, and no per-test or job timeout was raised.
+Camera-switch validation measures active supplied wheels, not hidden legacy
+wheels, and retains distance/long-lens assertions. Cockpit checks use the actual
+eye socket with the chassis offset applied once, the 58-joint rig, screen and
+mirrors. Screen raycasts do not traverse the hidden legacy player model.
 
-## Complete browser coverage
+Fog retains all eight Gauss nodes, weights and optical tail bound. Two vector
+batches combine lateral/height exponentials; independent scalar GPU controls
+check low/high/long rays and fog-disabled output. Full-scene samples and image
+or resource assertions are retained, with no increased timeout.
 
-`npm run test:e2e:shard -- 1/8` enumerates the locked Playwright suite, assigns each
-case exactly once using explicit scheduling estimates and keeps serial suites
-atomic. It re-enumerates the actual CLI selection and rejects missing, duplicate
-or additional cases before execution. Every worker retains one browser worker,
-zero retries and the existing assertion/time budgets. `browser-shard-plan.json`
-is retained with that worker's screenshots/traces, including failures.
+Named `Decal |` surface sheets use one double-sided submission, not separate
+front/back passes; visor/transparent volumes are excluded. Opaque sorting is
+front-to-back within explicit artist orders, with the unchanged analytic sky
+last. Transparent ordering remains unchanged. Exactly zero sampled decal
+coverage skips physical shading only on normally blended, non-depth-writing
+sheets; every positive filtered edge remains. The independent GPU oracle can
+disable this optimization without changing maps, alpha or geometry.
 
-The estimates balance long race cases that previously accumulated in the last
-partition; they are not hardware timing measurements. `--plan-only` verifies
-selection without claiming that tests ran. A runner-contract change fails closed.
+Texture controls include actual immutable glTF maps. Low/medium budgets resample
+from original images; 1024 restores the original ImageBitmap. Each shared image
+owns at most one reduced canvas. Source objects isolate unregistered clones;
+original orientation, UV transforms, color space, pixels and source identity
+are restored on teardown. Dynamic wheel displays, simulation data, reflections
+and unmarked textures are excluded. No KTX2 or smaller source download is claimed.
 
-## Publication
+The evaluated extra player depth pass was slower in the same hosted benchmark
+and has been removed. Production uses the original single scene submission.
+See `RENDER_BUDGET_CONTINUATION.md` for measurements and experiment boundaries.
 
-The CDN workflow no longer rebuilds or publishes on an unvalidated push. It only
-accepts a successful main-branch Build and validation run from this repository,
-downloads that run's gated `apex-formula-release`, verifies its source identifier
-and both player asset hashes, and rejects superseded source. Publication appends
-to the existing compiled CDN branch without force-pushing source or deployment
-history. Repeating the same release is a no-op.
+## Complete browser and publication gates
 
-## September 28 render-cost continuation
+`npm run test:e2e:shard -- 1/8` enumerates the locked Playwright suite, assigns
+each case exactly once with serial groups intact, then rechecks the actual CLI
+selection for omissions or duplicates. Each runner keeps one worker, zero
+retries and unchanged time limits. The retained `browser-shard-plan.json` and
+screenshots/traces include failures. Scheduling estimates are not hardware
+measurements; `--plan-only` does not assert that any test ran.
 
-The preceding source at `52e4b221` had successful geometry, camera and fog
-regressions but not a green full-browser run (`36358747179`). Close-racing,
-wet-following and pit-service event reviews ended without qualification, and
-one full-lap review had only seven presented frames. The pit trace measured
-668.69 ms GPU time at 320 x 200 and showed raised removal at simulation time
-102.533 followed by repair at 105.003, missing installation. These are recorded
-software-GPU measurements, not the user's hardware or proof of a physics fault.
-The detector correctly rejects a service stage that was never actually rendered.
+Populated event reviews prepare the real paused grid before enabling AI,
+camera and recording; slow UI setup must not release opponents before the
+player. No physics timing, service duration, car position, event qualifier,
+retry or timeout was changed to obtain passing captures.
 
-This continuation retains the exact supplied source and protected layered
-surfaces. Revised derivative tolerances reduce efficient-close geometry from
-998,950 to 855,654 triangles. Index selection does not alter rig weights, vertex
-attributes, livery UVs, display/mirror geometry or the original high-detail tier.
-The existing close-view pixel-error gate remains unchanged and must pass on the
-new derivative; mathematical tolerances alone are not art acceptance.
+The CDN publisher accepts only a successful main-branch Build and validation
+run from this repository, consumes its gated `apex-formula-release`, checks
+source identity and both player hashes, and rejects superseded source. It does
+not rebuild on an unvalidated push. Publication appends to the existing compiled
+CDN branch without force-pushing source/deployment history; a repeated identical
+release is a no-op.
 
-Named transparent `Decal |` sheets now use Three.js `forceSinglePass`. This
-removes the redundant separate back/front submission without removing either
-side, changing alpha blending, or applying the rule to a visor/transparent
-volume. Opaque rendering prioritizes front-to-back depth rejection within the
-existing explicit group/render orders; transparent sorting is unchanged.
+## Acceptance boundaries
 
-The existing texture-size/filter controls now include the actual immutable glTF
-maps. Low and medium budgets resample from the retained original, while the
-1024 setting restores its original ImageBitmap (all shipped maps are at most
-1024 pixels). Each shared source owns at most one current reduced canvas.
-Separate Source objects prevent budget changes from mutating loader-owned maps
-or unregistered clones. Original pixels, glTF orientation, UV transforms,
-colour-space bindings, and source identity are restored on teardown. Dynamic
-wheel displays, simulation data, reflection targets and unmarked textures are
-excluded. No KTX2 compression or reduced original download is claimed.
+Actual-binary GPU tests cover source fit, steering, camera anchors, both locks,
+pause/rewind, LOD pixels, material/rig identity, exact restored full-detail pixels
+and stable warmed resources. Separate full-scene fog, application, telemetry,
+replay and complete-race recordings remain mandatory. Component screenshots,
+a source push or older green counts cannot certify the new full build.
 
-All populated event reviews now prepare the actual paused grid before enabling
-AI/camera/recording, so slow interface setup cannot release opponents before
-the player. No simulation timing, service duration, car position, event
-qualification threshold, retry count, or test timeout is changed.
-
-`tests/imported-render-budget.test.ts` checks ownership, restoration, opt-in
-boundaries, material scope and stable opaque ordering. The added real-binary
-`e2e/41-player-render-budget.spec.ts` compares old/new decal passes and opaque
-ordering in front, rear and cockpit views, exercises Low/High texture changes,
-checks exact restored pixels and bounded warmed resources, and attaches images
-and synchronized studio-frame timings. Those timings include CPU and GPU wait;
-they are not full-race FPS. Existing complete-race/event tests remain required.
-
-## Evidence and independent remaining gates
-
-The following component evidence describes the preceding checkpoint, not
-certification of the September 28 continuation. The exact new commit's complete
-Build and validation result remains authoritative.
-
-At authoring time, focused local browser runs passed the two camera-continuity
-cases, the expanded supplied-player case and the independent fog-quadrature
-case. The expanded player case captures all original fit/steering/camera/rewind
-views and five LOD comparisons. It checks retained mesh/material/rig identity,
-actual submitted triangle reduction, exact full-detail pixel restoration and
-stable warmed resource counts through repeated tier changes.
-
-The component screenshots were reviewed, including original/efficient exterior,
-cockpit and distant detail. These studio views are not a full-race art approval.
-The original high- and long-distance full-scene fog cases completed within their
-existing 300-second limits with vectorized fog. The general browser session,
-cameras, pause, telemetry and replay case also passed in an isolated local run. Full source validation, the full eight-way
-hosted browser run and the ensuing publisher must be checked on the final commit,
-not inferred from these focused checks. The CI result is authoritative for that
-commit; old checkpoint test totals are not current certification.
-
-Physical target-hardware profiling, human manual full-race acceptance and final
-visual polish remain independent requirements. In particular, a software GPU
-trace must not be presented as the user's frame rate. The new geometry counts do
-not certify a 60 FPS target, lower draw calls, compressed textures, DRS behavior,
-editable baked decals, or commercial rights to the supplied team markings.
+The final commit's CI result is authoritative for hosted acceptance. Physical
+target-hardware profiling, manual full-race driving and final visual polish are
+independent gates. Software-GPU timing is not the user's frame rate. Geometry
+counts do not certify 60 FPS, fewer draw calls, compressed textures, DRS,
+editable baked decals or commercial rights to team/sponsor markings.

@@ -1,11 +1,11 @@
 {
-  "version": 1,
-  "generator": "meshoptimizer@0.25.0 / exact livery surfaces, locked boundaries and skin-weight seams",
+  "version": 2,
+  "generator": "meshoptimizer@0.25.0 / exact livery surfaces, locked seams, opaque triangle cache order",
   "sourceSHA256": "013a47f059bf34a0a28bd31ae8f407f07ed6e2b55755753aed9a942c895e132b",
-  "sha256": "f82870f476864c30311be52fe91431425a1f6186ffb19c8587a5326c5ccd5e8f",
-  "compressedSHA256": "d24bdd24dcdc6224577e1bb0e3c32be9eee6cf04f2f39a71c69f691084e9d56d",
-  "bytes": 10746828,
-  "compressedBytes": 3906174,
+  "sha256": "2bcd661c78be3df21090c042c43ffd2fb828b9db42465d1fd4111fac8d48437d",
+  "compressedSHA256": "1553e32eef4a6f89d02fb8f44a45f000620ee8539466d41704654e5f5dd09b58",
+  "bytes": 13037000,
+  "compressedBytes": 4213368,
   "primitives": 172,
   "triangles": [
     1455118,
@@ -13,6 +13,23 @@
     814806,
     797386
   ],
+  "cacheModel": {
+    "name": "FIFO-16 vertex misses, not hardware timings",
+    "levels": [
+      {
+        "before": 992010,
+        "after": 622914
+      },
+      {
+        "before": 952099,
+        "after": 595999
+      },
+      {
+        "before": 933925,
+        "after": 583328
+      }
+    ]
+  },
   "levels": [
     {
       "name": "efficient-close",

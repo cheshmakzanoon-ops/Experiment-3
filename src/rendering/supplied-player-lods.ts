@@ -33,7 +33,7 @@ const integer = (v: number, min: number, max: number) =>
 export function parsePlayerLods(bytes: Uint8Array<ArrayBuffer>): PlayerLodData {
   if (bytes.length !== manifest.bytes || bytes.length < 8) fail();
   const v = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-  if (v.getUint32(0, true) !== 0x31444c50) fail();
+  if (v.getUint32(0, true) !== 0x32444c50) fail();
   const length = v.getUint32(4, true);
   if (length < 1 || length > 100000 || length > bytes.length - 8) fail();
   const start = 8 + Math.ceil(length / 4) * 4;
@@ -44,7 +44,7 @@ export function parsePlayerLods(bytes: Uint8Array<ArrayBuffer>): PlayerLodData {
     rows?: PlayerLodRow[];
   };
   if (
-    data.version !== 1 ||
+    data.version !== 2 ||
     data.sourceSHA256 !== manifest.sourceSHA256 ||
     !Array.isArray(data.rows) ||
     data.rows.length !== manifest.primitives
@@ -70,6 +70,7 @@ export function parsePlayerLods(bytes: Uint8Array<ArrayBuffer>): PlayerLodData {
     const key = `${row.mesh}:${row.primitive}`;
     if (rows.has(key)) fail();
     counts[0] += row.originalCount / 3;
+    const ranges = new Map<number, number>();
     row.levels.forEach((level, i) => {
       if (
         !level ||
@@ -83,9 +84,17 @@ export function parsePlayerLods(bytes: Uint8Array<ArrayBuffer>): PlayerLodData {
       if (level.offset === -1) {
         if (level.count !== row.originalCount || level.error !== 0) fail();
       } else {
-        if (level.offset !== next || next + level.count > indices.length) fail();
-        for (let j = next; j < next + level.count; j++) if (indices[j] >= row.vertices) fail();
-        next += level.count;
+        if (!integer(level.offset, 0, indices.length - level.count)) fail();
+        if (ranges.has(level.offset)) {
+          // Only a complete earlier range of this SAME primitive may be reused.
+          // Partial overlaps, forward aliases and cross-primitive aliases fail.
+          if (ranges.get(level.offset) !== level.count) fail();
+        } else {
+          if (level.offset !== next) fail();
+          for (let j = next; j < next + level.count; j++) if (indices[j] >= row.vertices) fail();
+          ranges.set(level.offset, level.count);
+          next += level.count;
+        }
       }
       counts[i + 1] += level.count / 3;
     });
@@ -169,12 +178,20 @@ export class SuppliedPlayerLods {
         if (!row) return fail();
         used.add(key);
         const geometries = [original];
+        const shared = new Map<number, T.BufferGeometry>();
         for (const level of row.levels) {
           if (level.offset < 0) {
             geometries.push(original);
             continue;
           }
+          const reused = shared.get(level.offset);
+          if (reused) {
+            if (reused.index?.count !== level.count) fail();
+            geometries.push(reused);
+            continue;
+          }
           const geometry = new T.BufferGeometry();
+          shared.set(level.offset, geometry);
           this.owned.add(geometry);
           for (const [name, attribute] of Object.entries(original.attributes))
             geometry.setAttribute(name, attribute);
