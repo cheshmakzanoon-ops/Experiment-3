@@ -1,6 +1,15 @@
 import * as T from 'three';
 import type { PitCrewView } from './pit-crew.ts';
-import { CAR_STRIDE, HEADER, F, H, W, WHEEL_BASE, WHEEL_STRIDE, carBase } from '../simulation/protocol.ts';
+import {
+  CAR_STRIDE,
+  HEADER,
+  F,
+  H,
+  W,
+  WHEEL_BASE,
+  WHEEL_STRIDE,
+  carBase,
+} from '../simulation/protocol.ts';
 
 export interface PitMaterialWarmup {
   renderer: T.WebGLRenderer;
@@ -20,10 +29,16 @@ export interface PitMaterialWarmup {
 export async function warmPitMaterials(options: PitMaterialWarmup): Promise<number> {
   const { renderer, scene, camera, crew, frame, submitted, ready, cancelled, yieldFrame } = options;
   const count = frame[H.CARS];
-  if (!Number.isInteger(count) || count < 1 || count > 12 || frame.length < HEADER + count * CAR_STRIDE)
+  if (
+    !Number.isInteger(count) ||
+    count < 1 ||
+    count > 12 ||
+    frame.length < HEADER + count * CAR_STRIDE
+  )
     throw new Error('Invalid pit material warmup frame');
   if (cancelled()) return 0;
-  const staging = frame.slice(), o = carBase(0);
+  const staging = frame.slice(),
+    o = carBase(0);
   for (let id = 0; id < count; id++) {
     const base = carBase(id);
     staging[base + F.IN_PIT] = 0;
@@ -44,6 +59,12 @@ export async function warmPitMaterials(options: PitMaterialWarmup): Promise<numb
   target.texture.generateMipmaps = false;
   const probe = new T.Vector3(staging[o + F.X], staging[o + F.Y], staging[o + F.Z]);
   let passes = 0;
+  // Preserve the scene's lights, fog and environment (and therefore the real
+  // material program keys), but do not submit the player/circuit again merely
+  // to warm crew layouts. Layer masks are restored synchronously before yielding.
+  const crewObjects = new Set<T.Object3D>();
+  crew.root.traverse((object) => crewObjects.add(object));
+  const excluded = new Map<T.Object3D, number>();
   try {
     for (const distance of [0, 60]) {
       if (cancelled()) break;
@@ -51,12 +72,15 @@ export async function warmPitMaterials(options: PitMaterialWarmup): Promise<numb
       // loss or cancellation during an awaited RAF never observes this target
       // or a staging pose as the renderer's ordinary state.
       const previousTarget = renderer.getRenderTarget();
-      const face = renderer.getActiveCubeFace(), mip = renderer.getActiveMipmapLevel();
+      const face = renderer.getActiveCubeFace(),
+        mip = renderer.getActiveMipmapLevel();
       const viewport = renderer.getViewport(new T.Vector4());
       const scissor = renderer.getScissor(new T.Vector4());
       const scissorTest = renderer.getScissorTest();
-      const xr = renderer.xr.enabled, autoClear = renderer.autoClear;
-      const shadowAuto = renderer.shadowMap.autoUpdate, shadowNeeds = renderer.shadowMap.needsUpdate;
+      const xr = renderer.xr.enabled,
+        autoClear = renderer.autoClear;
+      const shadowAuto = renderer.shadowMap.autoUpdate,
+        shadowNeeds = renderer.shadowMap.needsUpdate;
       const visibility = crew.root.visible;
       try {
         renderer.xr.enabled = false;
@@ -71,10 +95,25 @@ export async function warmPitMaterials(options: PitMaterialWarmup): Promise<numb
         probe.x = staging[o + F.X] + distance;
         // Fixed optics select near/mid layouts; the real camera never moves.
         crew.update(staging, probe, true, 58, 16 / 9);
+        // A zero draw layer excludes a surface without hiding child lights.
+        scene.traverse((object) => {
+          if (
+            !crewObjects.has(object) &&
+            (object instanceof T.Mesh ||
+              object instanceof T.Line ||
+              object instanceof T.Points ||
+              object instanceof T.Sprite)
+          ) {
+            excluded.set(object, object.layers.mask);
+            object.layers.mask = 0;
+          }
+        });
         renderer.render(scene, camera);
         submitted();
         passes++;
       } finally {
+        for (const [object, mask] of excluded) object.layers.mask = mask;
+        excluded.clear();
         try {
           crew.update(frame, camera.position, visibility, camera.fov, camera.aspect);
         } finally {
@@ -91,7 +130,8 @@ export async function warmPitMaterials(options: PitMaterialWarmup): Promise<numb
       }
       const deadline = performance.now() + 45000;
       while (!cancelled() && !ready()) {
-        if (performance.now() >= deadline) throw new Error('Pit material warmup GPU did not complete');
+        if (performance.now() >= deadline)
+          throw new Error('Pit material warmup GPU did not complete');
         await yieldFrame();
       }
     }

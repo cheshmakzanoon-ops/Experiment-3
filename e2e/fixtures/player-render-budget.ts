@@ -74,10 +74,12 @@ export async function playerRenderBudget() {
     saved = frame.slice(),
     o = carBase(0);
   chassis.position.y = frame[o + WHEEL_BASE + W.LENGTH] + frame[o + WHEEL_BASE + W.RADIUS] - 0.05;
+  const skins: T.SkinnedMesh[] = [];
   const maps = new Set<T.Texture>(),
     decals = new Set<T.Material>(),
     optimized = new Set<T.Material>();
   player.root.traverse((object) => {
+    if (object instanceof T.SkinnedMesh) skins.push(object);
     if (!(object instanceof T.Mesh)) return;
     for (const m of Array.isArray(object.material) ? object.material : [object.material]) {
       if (suppliedShaderWorkControl(m)) optimized.add(m);
@@ -138,6 +140,9 @@ export async function playerRenderBudget() {
   });
   try {
     for (const view of ['front', 'rear', 'cockpit'] as const) {
+      skins.forEach((mesh) => {
+        mesh.frustumCulled = false;
+      });
       optimized.forEach((m) => {
         suppliedShaderWorkControl(m)!.value = false;
       });
@@ -184,6 +189,11 @@ export async function playerRenderBudget() {
       });
       shot();
       const shaderWork = shot();
+      skins.forEach((mesh) => {
+        mesh.frustumCulled = true;
+      });
+      shot();
+      const culled = shot();
       budget.configure(256, 2);
       shot();
       const low = shot();
@@ -202,6 +212,7 @@ export async function playerRenderBudget() {
         coverageDelta: delta(sorted.pixels, coverage.pixels),
         restoredDelta: delta(coverage.pixels, restored.pixels),
         shaderWorkDelta: delta(coverage.pixels, shaderWork.pixels),
+        cullingDelta: delta(shaderWork.pixels, culled.pixels),
         lowMaps,
         original: { ...original, pixels: undefined },
         singlePass: { ...singlePass, pixels: undefined },
@@ -209,6 +220,7 @@ export async function playerRenderBudget() {
         coverage: { ...coverage, pixels: undefined },
         low: { ...low, pixels: undefined },
         shaderWork: { ...shaderWork, pixels: undefined },
+        culled: { ...culled, pixels: undefined },
         restored: { ...restored, pixels: undefined },
       });
       await new Promise((resolve) => setTimeout(resolve, 0));
@@ -238,6 +250,7 @@ export async function playerRenderBudget() {
       sourceUnchanged: frame.every((v, i) => v === saved[i]),
       maps: maps.size,
       shaderWorkMaterials: optimized.size,
+      skinBounds: player.skinBounds.diagnostics(),
       decalMaterials: decals.size,
       coverageMaterials: [...decals].filter((m) => suppliedDecalCoverageControl(m)).length,
       displayUnchanged: display.image === displayCanvas && display.image.width === 512,

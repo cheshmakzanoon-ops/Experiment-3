@@ -1,3 +1,4 @@
+import { compileSceneTarget, PreparationTrace } from './preparation.ts';
 import { warmPitMaterials } from './pit-material-warmup.ts';
 import { frontToBackOpaque } from './opaque-order.ts';
 import { loadSuppliedPlayer, type SuppliedPlayerAsset } from './supplied-player.ts';
@@ -333,12 +334,14 @@ export class RacingRenderer {
     }
     this.cars.forEach((c, i) => (c.root.visible = i < n));
   }
+  readonly preparation = new PreparationTrace();
   warmupFrames = 0;
   warmupPitPasses = 0;
   async waitForPreparedFrame(cancelled: () => boolean, yieldFrame: () => Promise<void>) {
     const deadline = performance.now() + 45000;
     while (!cancelled() && !this.gpuFrames.ready()) {
-      if (performance.now() >= deadline) throw new Error('Presentation warmup GPU did not complete');
+      if (performance.now() >= deadline)
+        throw new Error('Presentation warmup GPU did not complete');
       await yieldFrame();
     }
   }
@@ -369,54 +372,63 @@ export class RacingRenderer {
     yieldFrame: () => Promise<void> = () =>
       new Promise((resolve) => requestAnimationFrame(() => resolve())),
   ) {
-    const total = frame[H.CARS];
-    if (!Number.isInteger(total) || total < 1 || total > 12) throw new Error('Invalid warmup grid');
-    for (let n = this.cars.length + 1; n <= total; n++) {
-      if (cancelled()) return false;
-      progress(`Building original Formula car ${n} / ${total}…`);
-      this.setCars(n);
-      await yieldFrame();
-    }
-    if (cancelled()) return false;
-    this.setCars(total);
-    for (let i = 0; i < total; i++)
-      this.cars[i].update(frame, frame, carBase(i), 1, 1 / 120, frame[H.TIME], false);
-    progress('Compiling circuit and vehicle materials…');
-    await yieldFrame();
-    if (cancelled()) return false;
-    await this.renderer.compileAsync(this.scene, this.camera);
-    if (cancelled()) return false;
-    const camera = this.mode;
-    try {
-      for (const mode of ['chase', 'cockpit'] as const) {
-        progress(
-          mode === 'chase'
-            ? 'Warming shadows and scene reflections…'
-            : 'Warming cockpit, mirrors and post-processing…',
-        );
-        await yieldFrame();
+    return this.preparation.run(progress, async (progress) => {
+      const total = frame[H.CARS];
+      if (!Number.isInteger(total) || total < 1 || total > 12)
+        throw new Error('Invalid warmup grid');
+      for (let n = this.cars.length + 1; n <= total; n++) {
         if (cancelled()) return false;
-        this.changeCamera(mode);
-        this.draw(frame, frame, 1, 1 / 120, false, true);
-        this.warmupFrames++;
-        if (mode === 'chase') {
-          progress('Warming offscreen pit-service materials…');
-          await this.warmPitPresentation(frame, cancelled, yieldFrame);
+        progress(`Building original Formula car ${n} / ${total}…`);
+        this.setCars(n);
+        await yieldFrame();
+      }
+      if (cancelled()) return false;
+      this.setCars(total);
+      for (let i = 0; i < total; i++)
+        this.cars[i].update(frame, frame, carBase(i), 1, 1 / 120, frame[H.TIME], false);
+      progress('Compiling circuit and vehicle materials…');
+      await yieldFrame();
+      if (cancelled()) return false;
+      await compileSceneTarget(this.renderer, this.scene, this.camera, this.composer.readBuffer);
+      if (cancelled()) return false;
+      const camera = this.mode;
+      try {
+        for (const mode of ['chase', 'cockpit'] as const) {
+          progress(
+            mode === 'chase'
+              ? 'Warming shadows and scene reflections…'
+              : 'Warming cockpit, mirrors and post-processing…',
+          );
+          await yieldFrame();
+          if (cancelled()) return false;
+          this.changeCamera(mode);
+          this.draw(frame, frame, 1, 1 / 120, false, true);
+          this.warmupFrames++;
+          if (mode === 'chase') {
+            progress('Warming offscreen pit-service materials…');
+            await this.warmPitPresentation(frame, cancelled, yieldFrame);
+            if (cancelled()) return false;
+          }
+          await compileSceneTarget(
+            this.renderer,
+            this.scene,
+            this.camera,
+            this.composer.readBuffer,
+          );
+          // Shader linking alone does not finish GPU uploads or the warmup draw.
+          // Keep the worker paused until its actual submission has completed.
+          progress(`Waiting for completed ${mode} GPU work…`);
+          await this.waitForPreparedFrame(cancelled, yieldFrame);
           if (cancelled()) return false;
         }
-        await this.renderer.compileAsync(this.scene, this.camera);
-        // Shader linking alone does not finish GPU uploads or the warmup draw.
-        // Keep the worker paused until its actual submission has completed.
-        await this.waitForPreparedFrame(cancelled, yieldFrame);
-        if (cancelled()) return false;
+      } finally {
+        if (!cancelled()) {
+          this.changeCamera(camera);
+          this.reset();
+        }
       }
-    } finally {
-      if (!cancelled()) {
-        this.changeCamera(camera);
-        this.reset();
-      }
-    }
-    return true;
+      return true;
+    });
   }
   setQuality(q: Quality, options: GraphicsOptions = graphicsPreset(q)) {
     this.quality = q;
@@ -1115,6 +1127,7 @@ export class RacingRenderer {
         : null,
       warmupFrames: this.warmupFrames,
       warmupPitPasses: this.warmupPitPasses,
+      preparation: this.preparation.snapshot(),
       graphics: { ...this.graphics },
       renderWidth: this.renderWidth,
       renderHeight: this.renderHeight,

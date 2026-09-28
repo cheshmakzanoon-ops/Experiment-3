@@ -41,7 +41,16 @@ test('supplied player: actual surface-pass pixels and bounded restorable importe
     ).PlayerBudgetProbe.playerRenderBudget(),
   );
   for (const row of report.rows) {
-    for (const key of ['original', 'singlePass', 'sorted', 'coverage', 'shaderWork', 'low', 'restored'] as const)
+    for (const key of [
+      'original',
+      'singlePass',
+      'sorted',
+      'coverage',
+      'shaderWork',
+      'culled',
+      'low',
+      'restored',
+    ] as const)
       await info.attach(`${row.view}-${key}.png`, {
         body: Buffer.from(row[key].image.split(',')[1], 'base64'),
         contentType: 'image/png',
@@ -56,6 +65,8 @@ test('supplied player: actual surface-pass pixels and bounded restorable importe
   expect(report.sourceUnchanged).toBe(true);
   expect(report.maps).toBeGreaterThan(40);
   expect(report.shaderWorkMaterials).toBeGreaterThan(20);
+  expect(report.skinBounds.meshes).toBe(61);
+  expect(report.skinBounds.fallbacks).toBe(0);
   expect(report.decalMaterials).toBeGreaterThan(20);
   expect(report.coverageMaterials).toBe(report.decalMaterials);
   expect(report.mapsRestored).toBe(true);
@@ -71,6 +82,9 @@ test('supplied player: actual surface-pass pixels and bounded restorable importe
     expect(row.coverage.triangles, row.view).toBe(row.sorted.triangles);
     expect(row.restoredDelta.max, row.view).toBe(0);
     expect(row.shaderWorkDelta.max, row.view).toBe(0);
+    expect(row.cullingDelta.max, row.view).toBe(0);
+    expect(row.culled.calls, row.view).toBeLessThanOrEqual(row.shaderWork.calls);
+    expect(row.culled.triangles, row.view).toBeLessThanOrEqual(row.shaderWork.triangles);
     expect(row.shaderWork.calls, row.view).toBe(row.coverage.calls);
     expect(row.shaderWork.triangles, row.view).toBe(row.coverage.triangles);
     expect(row.original.calls).toBeGreaterThanOrEqual(row.singlePass.calls);

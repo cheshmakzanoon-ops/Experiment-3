@@ -1,15 +1,18 @@
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import * as T from 'three';
-import { installSuppliedShaderWork, suppliedShaderWorkControl } from '../src/rendering/supplied-shader-work.ts';
+import {
+  installSuppliedShaderWork,
+  suppliedShaderWorkControl,
+} from '../src/rendering/supplied-shader-work.ts';
 
-function compile(material: T.Material) {
+function compile(material: T.Material, maxVertexUniforms = 1024) {
   const shader = {
     uniforms: {},
     vertexShader: T.ShaderLib.physical.vertexShader,
     fragmentShader: T.ShaderLib.physical.fragmentShader,
   } as T.WebGLProgramParametersWithUniforms;
-  material.onBeforeCompile(shader, {} as T.WebGLRenderer);
+  material.onBeforeCompile(shader, { capabilities: { maxVertexUniforms } } as T.WebGLRenderer);
   return shader;
 }
 
@@ -33,7 +36,10 @@ describe('source-preserving supplied shader work', () => {
       for (let entry = 0; entry < 16; entry++) {
         const matrices = weights.map((_, bone) => Math.sin(sample + entry * 13 + bone * 0.7));
         const original = weights.reduce((sum, weight, i) => sum + matrices[i] * weight, 0);
-        const reduced = weights.reduce((sum, weight, i) => sum + (weight === 0 ? 0 : matrices[i]) * weight, 0);
+        const reduced = weights.reduce(
+          (sum, weight, i) => sum + (weight === 0 ? 0 : matrices[i]) * weight,
+          0,
+        );
         assert.equal(reduced, original);
       }
     }
@@ -43,7 +49,8 @@ describe('source-preserving supplied shader work', () => {
     const material = new T.MeshPhysicalMaterial({ roughnessMap: texture, metalnessMap: texture });
     const before = texture.toJSON();
     installSuppliedShaderWork(material);
-    const shader = compile(material), control = suppliedShaderWorkControl(material)!;
+    const shader = compile(material),
+      control = suppliedShaderWorkControl(material)!;
     assert.ok(shader.fragmentShader.includes('(apexShaderWork && apexPackedORM) ? texelRoughness'));
     assert.ok(shader.fragmentShader.includes('texture2D( metalnessMap, vMetalnessMapUv )'));
     assert.equal(shader.uniforms.apexShaderWork, control);
@@ -70,7 +77,8 @@ describe('source-preserving supplied shader work', () => {
     const texture = new T.Texture();
     const material = new T.MeshPhysicalMaterial({ roughnessMap: texture, metalnessMap: texture });
     installSuppliedShaderWork(material);
-    const shader = compile(material), key = material.customProgramCacheKey();
+    const shader = compile(material),
+      key = material.customProgramCacheKey();
     material.customProgramCacheKey = () => key;
     material.metalnessMap = texture.clone();
     material.onBeforeRender(...([] as unknown as Parameters<typeof material.onBeforeRender>));
@@ -82,10 +90,14 @@ describe('source-preserving supplied shader work', () => {
   it('chains hooks exactly once and keeps a stable independent control without new textures', () => {
     const material = new T.MeshPhysicalMaterial();
     let calls = 0;
-    material.onBeforeCompile = (shader) => { calls++; shader.fragmentShader += '\n// source hook'; };
+    material.onBeforeCompile = (shader) => {
+      calls++;
+      shader.fragmentShader += '\n// source hook';
+    };
     material.customProgramCacheKey = () => 'original-policy';
     installSuppliedShaderWork(material);
-    const key = material.customProgramCacheKey(), hook = material.onBeforeCompile;
+    const key = material.customProgramCacheKey(),
+      hook = material.onBeforeCompile;
     const control = suppliedShaderWorkControl(material);
     installSuppliedShaderWork(material);
     assert.equal(material.onBeforeCompile, hook);
@@ -96,15 +108,56 @@ describe('source-preserving supplied shader work', () => {
     assert.equal(calls, 1);
     assert.equal(suppliedShaderWorkControl(new T.MeshBasicMaterial()), null);
   });
+  it('uses the exact float32 bone palette only within the hardware uniform budget', () => {
+    const bones = Array.from({ length: 58 }, () => new T.Bone());
+    const skeleton = new T.Skeleton(bones),
+      material = new T.MeshPhysicalMaterial();
+    skeleton.update();
+    installSuppliedShaderWork(material, skeleton);
+    const shader = compile(material);
+    assert.ok(shader.vertexShader.includes('uniform mat4 apexBonePalette[58]'));
+    assert.ok(shader.vertexShader.includes('if (apexShaderWork) return apexBonePalette[int(i)]'));
+    assert.ok(shader.vertexShader.includes('return apexTextureBoneMatrix(i)'));
+    assert.ok(shader.vertexShader.includes('texelFetch( boneTexture'));
+    assert.equal(shader.uniforms.apexBonePalette.value.buffer, skeleton.boneMatrices.buffer);
+    assert.equal(shader.uniforms.apexBonePalette.value.length, 58 * 16);
+    const small = compile(material, 256);
+    assert.ok(small.vertexShader.includes('#include <skinning_pars_vertex>'));
+    assert.equal(small.uniforms.apexBonePalette, undefined);
+  });
+  it('tracks Three’s padded bone texture storage without copying or allocating per frame', () => {
+    const skeleton = new T.Skeleton(Array.from({ length: 58 }, () => new T.Bone()));
+    const material = new T.MeshPhysicalMaterial();
+    installSuppliedShaderWork(material, skeleton);
+    const shader = compile(material);
+    skeleton.computeBoneTexture();
+    skeleton.update();
+    material.onBeforeRender(...([] as unknown as Parameters<typeof material.onBeforeRender>));
+    const view = shader.uniforms.apexBonePalette.value as Float32Array;
+    assert.equal(view.buffer, skeleton.boneMatrices.buffer);
+    assert.equal(view.length, 58 * 16);
+    skeleton.bones[0].position.x = 1.25;
+    skeleton.bones[0].updateMatrixWorld();
+    skeleton.update();
+    material.onBeforeRender(...([] as unknown as Parameters<typeof material.onBeforeRender>));
+    assert.equal(shader.uniforms.apexBonePalette.value, view);
+    assert.equal(view[12], skeleton.boneMatrices[12]);
+    skeleton.dispose();
+  });
   it('does not replace a custom metalness stage or reuse a missing roughness lookup', () => {
     const texture = new T.Texture();
     const material = new T.MeshPhysicalMaterial({ roughnessMap: texture, metalnessMap: texture });
     material.onBeforeCompile = (shader) => {
-      shader.fragmentShader = shader.fragmentShader.replace('#include <roughnessmap_fragment>', 'float roughnessFactor = 0.5;');
+      shader.fragmentShader = shader.fragmentShader.replace(
+        '#include <roughnessmap_fragment>',
+        'float roughnessFactor = 0.5;',
+      );
     };
     installSuppliedShaderWork(material);
     const shader = compile(material);
     assert.ok(shader.fragmentShader.includes('#include <metalnessmap_fragment>'));
-    assert.ok(!shader.fragmentShader.includes('(apexShaderWork && apexPackedORM) ? texelRoughness'));
+    assert.ok(
+      !shader.fragmentShader.includes('(apexShaderWork && apexPackedORM) ? texelRoughness'),
+    );
   });
 });

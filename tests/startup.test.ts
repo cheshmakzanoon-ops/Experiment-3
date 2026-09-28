@@ -1,9 +1,12 @@
+import * as T from 'three';
+import { PreparationTrace } from '../src/rendering/preparation.ts';
 import { expect, it, vi } from 'vitest';
 import { RacingRenderer } from '../src/rendering/renderer.ts';
 import { CAR_STRIDE, HEADER, H } from '../src/simulation/protocol.ts';
 
 function fixture() {
   const calls: string[] = [];
+  let bound: T.WebGLRenderTarget | null = null;
   const sample = new Float32Array(HEADER + CAR_STRIDE * 3);
   sample[H.CARS] = 3;
   sample[H.TIME] = 0;
@@ -12,6 +15,8 @@ function fixture() {
     scene: {},
     camera: {},
     mode: 'pod',
+    preparation: new PreparationTrace(),
+    composer: { readBuffer: new T.WebGLRenderTarget(8, 8, { type: T.HalfFloatType }) },
     warmupFrames: 0,
     waitForPreparedFrame: vi.fn(async () => {
       calls.push('gpu-ready');
@@ -24,7 +29,20 @@ function fixture() {
       calls.push(`cars:${n}`);
     },
     renderer: {
+      getRenderTarget: () => bound,
+      getActiveCubeFace: () => 0,
+      getActiveMipmapLevel: () => 0,
+      getViewport: (v: T.Vector4) => v.set(0, 0, 100, 100),
+      getScissor: (v: T.Vector4) => v.set(0, 0, 100, 100),
+      getScissorTest: () => false,
+      setRenderTarget: (value: T.WebGLRenderTarget | null) => {
+        bound = value;
+      },
+      setViewport: vi.fn(),
+      setScissor: vi.fn(),
+      setScissorTest: vi.fn(),
       compileAsync: vi.fn(async () => {
+        expect(bound).toBe(target.composer.readBuffer);
         calls.push('compile');
       }),
     },
@@ -68,6 +86,8 @@ it('yields construction, compiles and warms camera passes without modifying simu
   expect(calls.indexOf('pit-materials')).toBeGreaterThan(calls.indexOf('draw'));
   expect(target.mode).toBe('pod');
   expect(target.warmupFrames).toBe(2);
+  expect(target.preparation.snapshot()?.status).toBe('complete');
+  expect(target.renderer.getRenderTarget()).toBeNull();
   expect(sample[H.TICK]).toBe(0);
   expect(calls.indexOf('compile')).toBeGreaterThan(calls.indexOf('cars:3'));
   expect(calls.indexOf('draw')).toBeGreaterThan(calls.indexOf('compile'));
@@ -86,6 +106,7 @@ it('stops cancelled construction before touching any further GPU resources', asy
   );
   expect(result).toBe(false);
   expect(target.cars).toHaveLength(1);
+  expect(target.preparation.snapshot()?.status).toBe('cancelled');
   expect(target.draw).not.toHaveBeenCalled();
   expect(target.renderer.compileAsync).not.toHaveBeenCalled();
 });
@@ -101,6 +122,8 @@ it('a shader failure rejects initialization instead of starting unprepared gamep
       async () => undefined,
     ),
   ).rejects.toThrow('Shader failure');
+  expect(target.preparation.snapshot()?.error).toBe('Shader failure');
+  expect(target.renderer.getRenderTarget()).toBeNull();
   expect(target.draw).not.toHaveBeenCalled();
 });
 it('restores the selected camera when a GPU warmup pass throws', async () => {

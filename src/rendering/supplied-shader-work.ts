@@ -9,15 +9,30 @@ export function suppliedShaderWorkControl(material: T.Material) {
 /** Preserve every source attribute and lighting operation. Zero-weight skin
  * influences contribute exactly zero; a shared packed glTF roughness/metalness
  * texture has the same sampler, UV transform and lookup in both stages. */
-export function installSuppliedShaderWork(material: T.MeshStandardMaterial) {
+export function installSuppliedShaderWork(material: T.MeshStandardMaterial, skeleton?: T.Skeleton) {
   if (controls.has(material)) return;
   const enabled = { value: true };
   const previous = material.onBeforeCompile;
   const beforeRender = material.onBeforeRender;
   const packed = { value: false };
-  const sharesPackedMap = () => material.roughnessMap !== null && material.roughnessMap === material.metalnessMap;
+  // This material belongs to the single supplied player's immutable rig. A
+  // uniform palette avoids four texture fetches per active influence while
+  // retaining the exact float32 matrices and the original texture oracle.
+  const boneCount = skeleton?.bones.length ?? 0;
+  const palette = { value: skeleton?.boneMatrices.subarray(0, boneCount * 16) };
+  const updatePalette = () => {
+    if (
+      skeleton &&
+      (palette.value?.buffer !== skeleton.boneMatrices.buffer ||
+        palette.value?.byteOffset !== skeleton.boneMatrices.byteOffset)
+    )
+      palette.value = skeleton.boneMatrices.subarray(0, boneCount * 16);
+  };
+  const sharesPackedMap = () =>
+    material.roughnessMap !== null && material.roughnessMap === material.metalnessMap;
   material.onBeforeRender = (...args) => {
     beforeRender.apply(material, args);
+    updatePalette();
     // Later weather hooks may capture a static cache-key suffix. Even in a
     // reused program, separately transformed maps must retain separate reads.
     packed.value = sharesPackedMap();
@@ -26,6 +41,35 @@ export function installSuppliedShaderWork(material: T.MeshStandardMaterial) {
   controls.set(material, enabled);
   material.onBeforeCompile = (shader, renderer) => {
     previous.call(material, shader, renderer);
+    const pars = '#include <skinning_pars_vertex>';
+    if (
+      boneCount > 0 &&
+      boneCount <= 64 &&
+      renderer.capabilities?.maxVertexUniforms >= boneCount * 4 + 128 &&
+      shader.vertexShader.includes(pars)
+    ) {
+      const signature = 'mat4 getBoneMatrix( const in float i ) {';
+      if (!T.ShaderChunk.skinning_pars_vertex.includes(signature))
+        throw new Error('Unsupported supplied bone palette shader');
+      const originalSkin = T.ShaderChunk.skinning_pars_vertex.replace(
+        signature,
+        'mat4 apexTextureBoneMatrix( const in float i ) {',
+      );
+      shader.vertexShader = shader.vertexShader.replace(
+        pars,
+        originalSkin +
+          `
+#ifdef USE_SKINNING
+uniform mat4 apexBonePalette[${boneCount}];
+mat4 getBoneMatrix( const in float i ) {
+  if (apexShaderWork) return apexBonePalette[int(i)];
+  return apexTextureBoneMatrix(i);
+}
+#endif`,
+      );
+      updatePalette();
+      shader.uniforms.apexBonePalette = palette;
+    }
     const skin = '#include <skinbase_vertex>';
     if (shader.vertexShader.includes(skin)) {
       // Keep the original weighted additions downstream, including zero and
@@ -78,7 +122,7 @@ export function installSuppliedShaderWork(material: T.MeshStandardMaterial) {
   // Map identity can change without changing Three's USE_*MAP defines. A new
   // compile must never reuse the packed branch for independently transformed maps.
   material.customProgramCacheKey = () =>
-    `${key}:supplied-shader-work-v1:${
+    `${key}:supplied-shader-work-v2:${boneCount}:${
       material.roughnessMap !== null && material.roughnessMap === material.metalnessMap
     }`;
   material.needsUpdate = true;

@@ -1,3 +1,4 @@
+import { SuppliedSkinBounds } from './supplied-skin-bounds.ts';
 import * as T from 'three';
 import { installSuppliedShaderWork } from './supplied-shader-work.ts';
 import { configureSuppliedMaterial } from './supplied-player-materials.ts';
@@ -296,6 +297,7 @@ export class SuppliedPlayer {
   private readonly compound: T.MeshStandardMaterial[] = [];
   private readonly rubber: { material: T.MeshStandardMaterial; roughness: number }[] = [];
   private readonly lcd: T.Mesh;
+  readonly skinBounds: SuppliedSkinBounds;
   private readonly screenPoint = new T.Vector3();
   private disposed = false;
   private heightMapsRestored = 0;
@@ -345,6 +347,19 @@ export class SuppliedPlayer {
     original.forEach((m) => m.dispose());
     this.lcd.geometry.computeBoundingBox();
     this.lcd.geometry.boundingBox!.getCenter(this.screenPoint);
+    // A palette can be shared by multiple primitives only when all skinned
+    // uses have the same skeleton. Ordinary non-skinned uses compile without it.
+    const materialSkeletons = new Map<T.Material, T.Skeleton | null>();
+    root.traverse((object) => {
+      if (!(object instanceof T.SkinnedMesh)) return;
+      for (const material of Array.isArray(object.material) ? object.material : [object.material]) {
+        const previous = materialSkeletons.get(material);
+        materialSkeletons.set(
+          material,
+          previous === undefined || previous === object.skeleton ? object.skeleton : null,
+        );
+      }
+    });
     const seen = new Set<T.Material>();
     root.traverse((o) => {
       if (o.name.startsWith('PLAYER_HEAD')) this.heads.push(o);
@@ -355,7 +370,7 @@ export class SuppliedPlayer {
           seen.add(m);
           if (restoreSuppliedHeightMap(m)) this.heightMapsRestored++;
           configureSuppliedMaterial(m);
-          installSuppliedShaderWork(m);
+          installSuppliedShaderWork(m, materialSkeletons.get(m) ?? undefined);
           if (
             m instanceof T.MeshPhysicalMaterial &&
             (m.name.startsWith('Paint |') ||
@@ -380,6 +395,7 @@ export class SuppliedPlayer {
     this.action.time = steeringSample(0, clip.duration);
     this.mixer.update(0);
     root.updateMatrixWorld(true);
+    this.skinBounds = new SuppliedSkinBounds(root);
   }
   headWorld(out: T.Vector3) {
     const head = this.bones.get('head');
@@ -429,6 +445,7 @@ export class SuppliedPlayer {
       );
     });
     this.root.updateMatrixWorld(true);
+    this.skinBounds.invalidate();
   }
   driverPose() {
     this.root.updateWorldMatrix(true, true);
@@ -465,6 +482,7 @@ export class SuppliedPlayer {
       pod: this.pod.toArray(),
       suspensionDatum: PLAYER_SUSPENSION_DATUM,
       heightMapsRestored: this.heightMapsRestored,
+      skinBounds: this.skinBounds.diagnostics(),
       chassisWheelCenters: this.wheels.map((w) =>
         w.position.clone().add(this.root.position).toArray(),
       ),
@@ -473,6 +491,7 @@ export class SuppliedPlayer {
     };
   }
   disposeAnimation() {
+    this.skinBounds.dispose();
     this.lods?.dispose();
     this.mixer.stopAllAction();
     this.mixer.uncacheRoot(this.root);
