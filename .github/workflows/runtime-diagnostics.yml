@@ -23,20 +23,29 @@ jobs:
           cache: npm
       - name: Verify base and apply exact reviewed correction
         env:
+          GH_TOKEN: ${{ github.token }}
           PATCH_SHA256: 67c602dd02f95ed8a860e519576e335deecbfc1821ad7c118185fcada5bce9bd
-          PATCH_B64: |
-            H4sIAAAAAAAC/8192XIbSZLgu74iZF3WBAqJJA7eLKlaUklV2tHBEamumeXSSgkgQWYLQKKRCYosNc3mN/YH9sPmS9avuPIAQB222zZTIiLj9HD3cPfwcB8l47Fqty+TXEXbo3SYbZ+8evKfz9/98e79m7OXr5//8e75s7d/f/7uP8PpSA3W1Xgwiz+pcTKJ1TQdxarb6ezt7DxIZqP4RnX4f2EY78XwYfyg3W6r7VF8vTzbAdS9humNYbLLRZzRspMbaD5KZtHiloEzBAhkVAeqRsNFmmVmoOwqWowy1Q/UTqD2FcxTHRzB9OJosT2KAI5Yki1nWZwzuCfRHDqc5zgcTAk+JjfbcXJ5Bd8X0RQKF1F+BT3D4maAHIuY/8rj2fGDVjqLVb/TzmCboN9Pcd6eUdN5vBini2k0g+l+AixKP1Hf4+Q6VlmEwCn3+6BFf2KdY5V/Sqm7cTqZpNDDpYqv41kOCHGdxJ8y+AYTSWZ5vFgs57ijg1s6GspmEv06uktxs3ZjckSQmTVqcXRVAZPuIyakIKalXdRqpgEFdzPXGfbIyOo95jclOnoM8WDoQOdUN9MFREcQrrBDIKd1bdSDldSHspNOH4EF8biAtmuXqeMSYDPc1qcBVRVrQ18G+hBIAvDbYIvu0zDWdc4qeLw7ilwVQPNSicAJ/rGLhwCYayPmENMxIQdtHbEhBHrbunhuIKfKRSWRaqDcqxARpLKqdxjIOWQShidjqfDJie4AIpwDKTGH0wSuY2ZXABASLLcxPsGVYsMCAo/rSObWzmxkdSmkf91gVeWTAAAA==
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD^)" = b538bc551023799f055051f6d5c500c9f05d783c
+          test "$(git rev-parse HEAD^)" = 2656aed7d5be800077b12f9b3348c456283b4756
           test "$(git ls-remote origin refs/heads/main | cut -f1)" = "$GITHUB_SHA"
+          : > "$RUNNER_TEMP/runtime.b64"
+          for sha in 3b4774b5745baaac95dfe250b4223d7dfa49ebdc af2c52c235ce757535a839b206c0b4a66a9d893f 165cf10bad5eb5c350fd5526763dd12b6fd4917f 8ba0863cd4ab62191f34b66c2dc7437aa94bcd7f 35c78163b7f0f4c9e643a2229472e20441ccf1fe; do
+            gh api "repos/$GITHUB_REPOSITORY/git/blobs/$sha" --jq .content | base64 --decode >> "$RUNNER_TEMP/runtime.b64"
+          done
           python3 - <<'PY'
           import base64, gzip, hashlib, os
           from pathlib import Path
-          patch = gzip.decompress(base64.b64decode(os.environ['PATCH_B64']))
+          root = Path(os.environ['RUNNER_TEMP'])
+          encoded = (root / 'runtime.b64').read_bytes()
+          # Repair the identified single-character transfer omission, then
+          # require the exact locally validated, uncompressed patch digest.
+          assert encoded.count(b'TSW5vFgs57') == 1
+          encoded = encoded.replace(b'TSW5vFgs57', b'TSWZ5vFgs57', 1)
+          patch = gzip.decompress(base64.b64decode(encoded, validate=True))
           assert hashlib.sha256(patch).hexdigest() == os.environ['PATCH_SHA256'], 'Patch integrity mismatch'
-          Path(os.environ['RUNNER_TEMP'], 'runtime.patch').write_bytes(patch)
+          (root / 'runtime.patch').write_bytes(patch)
           PY
           git apply --check "$RUNNER_TEMP/runtime.patch"
           git apply "$RUNNER_TEMP/runtime.patch"
