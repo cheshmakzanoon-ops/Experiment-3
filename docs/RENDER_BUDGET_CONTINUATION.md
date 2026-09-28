@@ -53,3 +53,42 @@ physics clock, review qualifier or timeout was changed. Its timing now includes
 the synchronous pixel readback rather than assuming `gl.finish()` alone blocks
 Chromium until rasterization completes. Revalidation of this correction is a
 separate gate; previous green groups are evidence only for their own commit.
+
+## Opaque player depth continuation
+
+The completed run `36406024237` on `d09367e` was not green: clear-day
+full-lap presentation recorded six frames, and the close-racing and wet-day
+following recordings ended without qualifying their events. Source checks,
+physics scenarios, wet presentation and five browser shards passed. The sky
+sort correction alone did not close the race-presentation gate.
+
+`PlayerScenePass` now primes opaque depth from the actual imported player
+before ordinary scene shading. It uses the current geometry tier, skin/morph
+state and transforms; it does not clone or move the car or change its materials,
+textures, lighting, animation, camera or physical clock. Only unconditional
+opaque, double-sided depth-writing surfaces qualify. Transparent decals, visor,
+cutouts, displaced surfaces, transmission and alternate depth/stencil policies
+stay on their ordinary path. Eligible mesh candidates are reported separately
+from actual draw calls; the renderer's triangle/call totals include the extra
+submission rather than hiding its cost.
+
+The pass clears its target once, disables shadow-map updates for depth-only
+submission, and restores camera/mesh layers, background, override material,
+clear flags and shadow-update ownership even on failure. Three.js background
+colour clears cannot discard the primed depth. Override/masked/depth-preserving
+passes use the previous RenderPass unchanged. Disposal frees only the owned
+depth material, not the source geometry, materials, skeleton or textures.
+
+Six unit regressions cover conservative selection, actual-resource identity,
+material changes, pass ordering, opt-out conditions and failure cleanup. The
+existing actual-binary GPU fixture additionally compares ordinary and primed
+front/rear/cockpit images, requires a real extra geometry submission, retains
+exact restored-texture pixels and checks bounded warmed resources. Its old
+image-error thresholds remain unchanged. The early wet-presentation job now
+also executes this fixture; all eight complete browser shards remain required.
+
+This is a performance candidate, not a measured device-FPS improvement. Its
+additional vertex submission trades work for hidden-fragment rejection; the
+new source's GPU timings and full-race recordings determine acceptance. No
+frame-count/event threshold, simulation clock, source-model hash, resolution,
+quality setting, retry count or timeout was relaxed.

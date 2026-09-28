@@ -4,6 +4,7 @@ import { configureSky } from '../../src/rendering/daylight.ts';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { loadSuppliedPlayer } from '../../src/rendering/supplied-player.ts';
 import { TextureBudget } from '../../src/rendering/texture-budget.ts';
+import { PlayerScenePass } from '../../src/rendering/player-depth-pass.ts';
 import { frontToBackOpaque } from '../../src/rendering/opaque-order.ts';
 import { Simulation } from '../../src/simulation/world.ts';
 import { DEFAULT_OPTIONS } from '../../src/simulation/config.ts';
@@ -99,9 +100,17 @@ export async function playerRenderBudget() {
   budget.configure(1024, 16);
   budget.register(player.root);
   const gl = renderer.getContext();
+  const scenePass = new PlayerScenePass(scene, camera);
+  scenePass.playerDepth.register(player.root);
+  scenePass.renderToScreen = true;
+  scenePass.depthEnabled = false;
+  // RenderPass ignores these buffers when rendering to the screen.
+  const unusedBuffer = new T.WebGLRenderTarget(1, 1);
+  renderer.info.autoReset = false;
   const shot = () => {
     const start = performance.now();
-    renderer.render(scene, camera);
+    renderer.info.reset();
+    scenePass.render(renderer, unusedBuffer, unusedBuffer, 0, false);
     gl.finish();
     const pixels = new Uint8Array(640 * 400 * 4);
     gl.readPixels(0, 0, 640, 400, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
@@ -110,6 +119,7 @@ export async function playerRenderBudget() {
     return {
       pixels,
       synchronizedFrameMs,
+      depthCandidates: scenePass.playerDepth.eligibleMeshes,
       calls: renderer.info.render.calls,
       triangles: renderer.info.render.triangles,
       image: renderer.domElement.toDataURL('image/png'),
@@ -132,6 +142,7 @@ export async function playerRenderBudget() {
   });
   try {
     for (const view of ['front', 'rear', 'cockpit'] as const) {
+      scenePass.depthEnabled = false;
       player.update(frame, frame, o, 1, view === 'cockpit');
       camera.fov = view === 'cockpit' ? 68 : 44;
       if (view === 'cockpit') {
@@ -160,6 +171,9 @@ export async function playerRenderBudget() {
       renderer.setOpaqueSort(frontToBackOpaque);
       shot();
       const sorted = shot();
+      scenePass.depthEnabled = true;
+      shot();
+      const primed = shot();
       budget.configure(256, 2);
       shot();
       const low = shot();
@@ -175,11 +189,13 @@ export async function playerRenderBudget() {
         view,
         decalDelta: delta(original.pixels, singlePass.pixels),
         opaqueDelta: delta(singlePass.pixels, sorted.pixels),
-        restoredDelta: delta(sorted.pixels, restored.pixels),
+        depthDelta: delta(sorted.pixels, primed.pixels),
+        restoredDelta: delta(primed.pixels, restored.pixels),
         lowMaps,
         original: { ...original, pixels: undefined },
         singlePass: { ...singlePass, pixels: undefined },
         sorted: { ...sorted, pixels: undefined },
+        primed: { ...primed, pixels: undefined },
         low: { ...low, pixels: undefined },
         restored: { ...restored, pixels: undefined },
       });
@@ -216,6 +232,8 @@ export async function playerRenderBudget() {
     };
   } finally {
     budget.dispose();
+    scenePass.dispose();
+    unusedBuffer.dispose();
     player.disposeAnimation();
     const geometries = new Set<T.BufferGeometry>(),
       materials = new Set<T.Material>(),
