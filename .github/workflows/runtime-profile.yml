@@ -1,4 +1,4 @@
-name: Runtime frame investigation
+name: Verify and publish static range correction
 on:
   push:
     branches: [main]
@@ -6,110 +6,118 @@ on:
 permissions:
   contents: read
 jobs:
-  profile:
+  apply:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
+    permissions:
+      contents: write
+      actions: write
     steps:
       - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: npm
       - run: npm ci --no-audit --no-fund
-      - run: npx playwright install --with-deps chromium
-      - run: npm run build
-      - name: Measure original runtime paths without mutating production
+      - name: Apply independently hash-verified runtime files
+        env:
+          GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
           python3 - <<'PY'
+          import base64, hashlib, json, os, subprocess
           from pathlib import Path
-          p=Path('e2e/fixtures/player-render-budget.ts').read_text()
-          a=p.index('    for (const view of ')
-          b=p.index('  } finally {',a)
-          section='''
-              player.update(frame, frame, o, 1, true);
-              camera.fov = 68;
-              camera.position.copy(player.eye).add(chassis.position);
-              camera.lookAt(camera.position.clone().add(new T.Vector3(0,-0.035,1)));
-              camera.updateProjectionMatrix();
-              renderer.setOpaqueSort(frontToBackOpaque);
-              budget.configure(256,2);
-              player.lods!.setLevel(0,'low');
-              const measure = (label: string) => {
-                shot(); const r=shot();
-                const row={label,ms:r.synchronizedFrameMs,calls:r.calls,triangles:r.triangles};
-                console.log('PROFILE '+JSON.stringify(row)); rows.push(row);
-              };
-              measure('low-cockpit-640x400');
-              renderer.setSize(16,10);
-              measure('low-cockpit-16x10');
-              renderer.setSize(640,400);
-              const basic = new T.MeshBasicMaterial({color:0x888888,side:T.DoubleSide});
-              scene.overrideMaterial=basic;
-              measure('low-cockpit-basic');
-              scene.overrideMaterial=null;
-              const meshes: T.Mesh[]=[];
-              player.root.traverse(ob=>{if(ob instanceof T.Mesh)meshes.push(ob)});
-              const states=meshes.map(m=>m.visible);
-              meshes.forEach(m=>{if(m instanceof T.SkinnedMesh)m.visible=false;});
-              measure('low-cockpit-no-skin');
-              meshes.forEach((m,i)=>m.visible=states[i]);
-              meshes.forEach(m=>{if(!(m instanceof T.SkinnedMesh))m.visible=false;});
-              measure('low-cockpit-no-static');
-              meshes.forEach((m,i)=>m.visible=states[i]);
-              player.lods!.setLevel(0,'high');
-              measure('high-cockpit');
-              renderer.setSize(16,10);
-              measure('high-cockpit-16x10');
-              renderer.setSize(640,400);
-              player.lods!.setLevel(0,'low');
-              player.update(frame,frame,o,1,false);
-              camera.position.copy(player.pod).add(chassis.position);
-              camera.lookAt(camera.position.clone().add(new T.Vector3(0,-0.09,1)));
-              camera.updateProjectionMatrix();
-              measure('low-pod');
-              const ranked=meshes.filter(m=>m.visible).sort((a,b)=>(b.geometry.index?.count??0)-(a.geometry.index?.count??0));
-              for(const m of ranked.slice(0,12)){
-                const visible=m.visible;m.visible=false;
-                measure('without-'+m.name+'-'+(Array.isArray(m.material)?m.material[0].name:m.material.name));
-                m.visible=visible;
-              }
-              measure('low-pod-restored');
-              return {rows,glError:gl.getError()};
-          '''
-          p=p[:a]+section+p[b:]
-          p=p.replace('new Uint8Array(640 * 400 * 4)','new Uint8Array(gl.drawingBufferWidth * gl.drawingBufferHeight * 4)').replace('gl.readPixels(0, 0, 640, 400,','gl.readPixels(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight,')
-          Path('e2e/fixtures/runtime-profile.ts').write_text(p)
+          def blob(data):
+              return hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()
+          for path, sha in {
+              'src/rendering/supplied-draw-ranges.ts':'ace81e05999c8d0ddd4e44b9d2ee10cac951e2fc',
+              'tests/supplied-draw-ranges.test.ts':'a11fdb32503e9efd273a7061888e2d5acda60475',
+          }.items():
+              assert not Path(path).exists(), path
+              response=json.loads(subprocess.check_output(['gh','api',f'repos/{os.environ["GITHUB_REPOSITORY"]}/git/blobs/{sha}']))
+              raw=base64.b64decode(response['content'])
+              assert blob(raw)==sha, path
+              Path(path).write_bytes(raw)
+          edits={
+              'src/rendering/supplied-player-lods.ts':('4108939e0ba07c3ca81ca572301cc406ccc82d2f','1365555b9b3927e0fb91e3b51662fc6bff7caf57',[
+                  ("import * as T from 'three';", "import * as T from 'three';\nimport { SuppliedDrawRanges } from './supplied-draw-ranges.ts';"),
+                  ('  private tier = 0;', '  readonly drawRanges?: SuppliedDrawRanges;\n  private tier = 0;'),
+                  ('      if (used.size !== manifest.primitives) fail();', '      if (used.size !== manifest.primitives) fail();\n      this.drawRanges = new SuppliedDrawRanges(this.bindings);'),
+                  ('      disposed: this.disposed,','      disposed: this.disposed,\n      drawRanges: this.drawRanges?.diagnostics() ?? null,'),
+                  ('    // Restore original ownership','    this.drawRanges?.dispose();\n    // Restore original ownership'),
+              ]),
+              'e2e/fixtures/player-render-budget.ts':('40827fd256b08f9438a0f98124da1d27ca4576d9','2ff0540ce63d6e0f3042943d92b97781612b8a42',[
+                  ("    for (const view of ['front', 'rear', 'cockpit'] as const) {", "    for (const view of ['front', 'rear', 'cockpit'] as const) {\n      player.lods!.drawRanges!.enabled = false;"),
+                  ('      const culled = shot();','      const culled = shot();\n      player.lods!.drawRanges!.enabled = true;\n      shot();\n      const ranged = shot();'),
+                  ('        cullingDelta: delta(shaderWork.pixels, culled.pixels),','        cullingDelta: delta(shaderWork.pixels, culled.pixels),\n        rangeDelta: delta(culled.pixels, ranged.pixels),\n        ranged: { ...ranged, pixels: undefined },'),
+              ]),
+              'e2e/41-player-render-budget.spec.ts':('ab60a32c6b8e99286d7f5038c768026f0d9416ff','8d37f046d070db19615b73800bc4923f4b0fe327',[
+                  ("      'culled',", "      'culled',\n      'ranged',"),
+                  ('    expect(row.cullingDelta.max, row.view).toBe(0);', "    expect(row.cullingDelta.max, row.view).toBe(0);\n    expect(row.rangeDelta.max, row.view).toBe(0);\n    expect(row.ranged.calls, row.view).toBeLessThanOrEqual(row.culled.calls);\n    expect(row.ranged.triangles, row.view).toBeLessThanOrEqual(row.culled.triangles);\n    if (row.view === 'cockpit')\n      expect(row.ranged.triangles).toBeLessThan(row.culled.triangles * 0.85);"),
+              ]),
+          }
+          for path,(old_sha,new_sha,replacements) in edits.items():
+              p=Path(path); raw=p.read_bytes()
+              assert blob(raw)==old_sha, path
+              text=raw.decode()
+              for old,new in replacements:
+                  assert text.count(old)==1,(path,old)
+                  text=text.replace(old,new)
+              raw=text.encode();assert blob(raw)==new_sha,path
+              p.write_bytes(raw)
+          report=Path('docs/RENDER_BUDGET_CONTINUATION.md')
+          report.write_text(report.read_text()+'''
+          ## Static draw-range continuation
+
+          The remaining failures on `ad99b6c7` include sparse full-lap observations and
+          unqualified close-racing/wet-following sequences. Read-only investigation run
+          `36494318155` measured 2665.4 ms for the supplied Low cockpit at 640x400 versus
+          1066.7 ms at 16x10 with the same 668110 submitted triangles. A diagnostic basic
+          material measured 313.5 ms; that material substitution is NOT used in the game.
+          These are synchronized isolated software-GPU samples, not target-hardware FPS.
+
+          The continuation conservatively trims only wholly off-frustum prefixes and
+          suffixes of static primitive index streams. All visible triangles and intervening
+          indices keep their original order, attributes, maps and material shading. Bounds
+          are prepared for the existing representations; no new GPU buffer or draw call is
+          introduced. Each main, mirror and shadow camera computes its own range, restored
+          immediately after submission. Skinning, morphs, instancing, displacement, custom
+          shader materials, modified attributes and authored draw ranges retain their
+          untrimmed path. Disposal restores callbacks without disposing source geometry.
+
+          Eight focused unit cases cover these boundaries. The existing actual-binary
+          player GPU fixture additionally requires exact unchanged front/rear/cockpit
+          pixels, unchanged resource ownership and fewer submitted cockpit triangles.
+          The five full-race failures, all eight browser shards, existing sample/event
+          thresholds, zero retries, physics and successful-artifact publication remain
+          independent mandatory gates. A source commit does not claim those gates passed.
+          The temporary investigation workflow is removed with the runtime publication.
+          ''')
+          assert blob(report.read_bytes())=='d18dbca19fb9482b9c19d2ad5729532e42459afa'
+          Path('.github/workflows/runtime-profile.yml').unlink()
           PY
-          cat > runtime-profile.mjs <<'JS'
-          import { build, preview } from 'vite';
-          import { chromium } from 'playwright';
-          import { writeFileSync } from 'node:fs';
-          const result=await build({configFile:false,logLevel:'error',build:{write:false,lib:{entry:'e2e/fixtures/runtime-profile.ts',name:'Probe',formats:['iife']}}});
-          const output=(Array.isArray(result)?result[0]:result).output.find(x=>x.type==='chunk').code;
-          const server=await preview({preview:{host:'127.0.0.1',port:4173,strictPort:true}});
-          const browser=await chromium.launch({args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
-          const page=await browser.newPage();
-          page.setDefaultTimeout(600000);
-          page.on('console',m=>console.log(m.text()));
-          page.on('pageerror',e=>console.error(e));
-          page.on('requestfailed',r=>console.error(r.url(),r.failure()));
-          try {
-            await page.route('**/runtime-profile',r=>r.fulfill({contentType:'text/html',body:'<!doctype html><title>Runtime measurement</title>'}));
-            await page.goto('http://127.0.0.1:4173/runtime-profile');
-            await page.addScriptTag({content:output});
-            const report=await page.evaluate(()=>window.Probe.playerRenderBudget());
-            writeFileSync('runtime-profile.json',JSON.stringify(report,null,2));
-            if(report.glError!==0)throw new Error('GPU measurement error');
-          } finally {await browser.close();await new Promise(r=>server.httpServer.close(r));}
-          JS
-          node runtime-profile.mjs
+          git diff --exit-code -- src/simulation .github/workflows/ci.yml .github/workflows/publish-playable-cdn.yml
+          git diff --check
+      - name: Validate the actual runtime correction before committing
+        run: npm run check
+      - name: Commit without overwriting concurrent work and dispatch complete release validation
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git ls-remote origin refs/heads/main | cut -f1)" = "$GITHUB_SHA"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/rendering/supplied-draw-ranges.ts tests/supplied-draw-ranges.test.ts src/rendering/supplied-player-lods.ts e2e/fixtures/player-render-budget.ts e2e/41-player-render-budget.spec.ts docs/RENDER_BUDGET_CONTINUATION.md .github/workflows/runtime-profile.yml
+          git commit -m 'perf: trim off-frustum supplied-player ranges without changing visible geometry'
+          git push origin HEAD:main
+          git rev-parse HEAD > published-source.txt
+          gh workflow run ci.yml --ref main
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: runtime-profile-evidence
-          path: runtime-profile.json
-          retention-days: 2
+          name: static-range-publication
+          path: published-source.txt
+          retention-days: 7
