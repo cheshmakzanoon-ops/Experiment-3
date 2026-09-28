@@ -1,0 +1,30 @@
+name: Review repair toolchain
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/review-repair-toolchain.yml']
+permissions:
+  contents: read
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Preserve locked dependencies for offline diagnosis
+        run: |
+          sha256sum package-lock.json > toolchain-lock.sha256
+          tar -czf "$RUNNER_TEMP/review-toolchain.tar.gz" node_modules package-lock.json toolchain-lock.sha256
+      - uses: actions/upload-artifact@v4
+        with:
+          name: review-repair-toolchain
+          path: ${{ runner.temp }}/review-toolchain.tar.gz
+          retention-days: 1
+          if-no-files-found: error
