@@ -90,12 +90,13 @@ jobs:
           import { writeFileSync } from 'node:fs';
           const result=await build({configFile:false,logLevel:'error',build:{write:false,lib:{entry:'e2e/fixtures/runtime-profile.ts',name:'Probe',formats:['iife']}}});
           const output=(Array.isArray(result)?result[0]:result).output.find(x=>x.type==='chunk').code;
-          const server=await preview({preview:{port:4173}});
+          const server=await preview({preview:{host:'127.0.0.1',port:4173,strictPort:true}});
           const browser=await chromium.launch({args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
           const page=await browser.newPage();
           page.setDefaultTimeout(600000);
           page.on('console',m=>console.log(m.text()));
           page.on('pageerror',e=>console.error(e));
+          page.on('requestfailed',r=>console.error(r.url(),r.failure()));
           try {
             await page.route('**/runtime-profile',r=>r.fulfill({contentType:'text/html',body:'<!doctype html><title>Runtime measurement</title>'}));
             await page.goto('http://127.0.0.1:4173/runtime-profile');
