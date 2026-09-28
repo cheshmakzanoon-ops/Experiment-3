@@ -140,6 +140,7 @@ export async function playerRenderBudget() {
   });
   try {
     for (const view of ['front', 'rear', 'cockpit'] as const) {
+      player.lods!.drawRanges!.enabled = false;
       skins.forEach((mesh) => {
         mesh.frustumCulled = false;
       });
@@ -194,6 +195,9 @@ export async function playerRenderBudget() {
       });
       shot();
       const culled = shot();
+      player.lods!.drawRanges!.enabled = true;
+      shot();
+      const ranged = shot();
       budget.configure(256, 2);
       shot();
       const low = shot();
@@ -213,6 +217,8 @@ export async function playerRenderBudget() {
         restoredDelta: delta(coverage.pixels, restored.pixels),
         shaderWorkDelta: delta(coverage.pixels, shaderWork.pixels),
         cullingDelta: delta(shaderWork.pixels, culled.pixels),
+        rangeDelta: delta(culled.pixels, ranged.pixels),
+        ranged: { ...ranged, pixels: undefined },
         lowMaps,
         original: { ...original, pixels: undefined },
         singlePass: { ...singlePass, pixels: undefined },

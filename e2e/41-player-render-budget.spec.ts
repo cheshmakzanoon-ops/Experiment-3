@@ -48,6 +48,7 @@ test('supplied player: actual surface-pass pixels and bounded restorable importe
       'coverage',
       'shaderWork',
       'culled',
+      'ranged',
       'low',
       'restored',
     ] as const)
@@ -83,6 +84,11 @@ test('supplied player: actual surface-pass pixels and bounded restorable importe
     expect(row.restoredDelta.max, row.view).toBe(0);
     expect(row.shaderWorkDelta.max, row.view).toBe(0);
     expect(row.cullingDelta.max, row.view).toBe(0);
+    expect(row.rangeDelta.max, row.view).toBe(0);
+    expect(row.ranged.calls, row.view).toBeLessThanOrEqual(row.culled.calls);
+    expect(row.ranged.triangles, row.view).toBeLessThanOrEqual(row.culled.triangles);
+    if (row.view === 'cockpit')
+      expect(row.ranged.triangles).toBeLessThan(row.culled.triangles * 0.85);
     expect(row.culled.calls, row.view).toBeLessThanOrEqual(row.shaderWork.calls);
     expect(row.culled.triangles, row.view).toBeLessThanOrEqual(row.shaderWork.triangles);
     expect(row.shaderWork.calls, row.view).toBe(row.coverage.calls);

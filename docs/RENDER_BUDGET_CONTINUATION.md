@@ -82,3 +82,29 @@ Node/unit results are not WebGL evidence. Physical target-hardware profiling,
 human driving and final full-race visual acceptance remain separate. A source
 push is not a live deployment: publication must consume its successful release
 artifact and verify the source identifier, never a parallel or failed build.
+
+## Static draw-range continuation
+
+The remaining failures on `ad99b6c7` include sparse full-lap observations and
+unqualified close-racing/wet-following sequences. Read-only investigation run
+`36494318155` measured 2665.4 ms for the supplied Low cockpit at 640x400 versus
+1066.7 ms at 16x10 with the same 668110 submitted triangles. A diagnostic basic
+material measured 313.5 ms; that material substitution is NOT used in the game.
+These are synchronized isolated software-GPU samples, not target-hardware FPS.
+
+The continuation conservatively trims only wholly off-frustum prefixes and
+suffixes of static primitive index streams. All visible triangles and intervening
+indices keep their original order, attributes, maps and material shading. Bounds
+are prepared for the existing representations; no new GPU buffer or draw call is
+introduced. Each main, mirror and shadow camera computes its own range, restored
+immediately after submission. Skinning, morphs, instancing, displacement, custom
+shader materials, modified attributes and authored draw ranges retain their
+untrimmed path. Disposal restores callbacks without disposing source geometry.
+
+Eight focused unit cases cover these boundaries. The existing actual-binary
+player GPU fixture additionally requires exact unchanged front/rear/cockpit
+pixels, unchanged resource ownership and fewer submitted cockpit triangles.
+The five full-race failures, all eight browser shards, existing sample/event
+thresholds, zero retries, physics and successful-artifact publication remain
+independent mandatory gates. A source commit does not claim those gates passed.
+The temporary investigation workflow is removed with the runtime publication.

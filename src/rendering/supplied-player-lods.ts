@@ -1,4 +1,5 @@
 import * as T from 'three';
+import { SuppliedDrawRanges } from './supplied-draw-ranges.ts';
 import manifest from './supplied-player-lods.manifest.json' with { type: 'json' };
 import sourceManifest from './supplied-player.manifest.json' with { type: 'json' };
 
@@ -153,6 +154,7 @@ export async function loadPlayerLods(url: string, signal: AbortSignal, fetcher =
 export class SuppliedPlayerLods {
   private readonly bindings: { mesh: T.Mesh; geometries: T.BufferGeometry[] }[] = [];
   private readonly owned = new Set<T.BufferGeometry>();
+  readonly drawRanges?: SuppliedDrawRanges;
   private tier = 0;
   private disposed = false;
   constructor(
@@ -210,6 +212,7 @@ export class SuppliedPlayerLods {
         this.bindings.push({ mesh: object, geometries });
       });
       if (used.size !== manifest.primitives) fail();
+      this.drawRanges = new SuppliedDrawRanges(this.bindings);
     } catch (error) {
       this.dispose();
       throw error;
@@ -232,10 +235,12 @@ export class SuppliedPlayerLods {
       sharedAttributes: true,
       ownedGeometries: this.owned.size,
       disposed: this.disposed,
+      drawRanges: this.drawRanges?.diagnostics() ?? null,
     };
   }
   dispose() {
     if (this.disposed) return;
+    this.drawRanges?.dispose();
     // Restore original ownership before RacingRenderer traverses/disposes scene resources.
     for (const { mesh, geometries } of this.bindings) mesh.geometry = geometries[0];
     this.owned.forEach((geometry) => geometry.dispose());
