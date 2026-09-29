@@ -9,7 +9,7 @@ on:
 permissions:
   contents: write
 concurrency:
-  group: a33-candidate
+  group: a33-candidate-mesa
   cancel-in-progress: false
 jobs:
   validate:
@@ -17,6 +17,9 @@ jobs:
     timeout-minutes: 30
     env:
       CI: 'true'
+      APEX_BROWSER_BACKEND: mesa
+      LIBGL_ALWAYS_SOFTWARE: 'true'
+      GALLIUM_DRIVER: llvmpipe
     steps:
       - uses: actions/checkout@v4
         with:
@@ -59,24 +62,30 @@ jobs:
       - name: Generate retained Blender source and both exchange/runtime exports
         run: |
           set -euo pipefail
-          mkdir -p test-results/a33-authoring
-          "$RUNNER_TEMP/blender-5.2.2-linux-x64/blender" --background --factory-startup --python-exit-code 1 --python scripts/author-a33-spare-wheel-set.py | tee test-results/a33-authoring/blender.log
+          "$RUNNER_TEMP/blender-5.2.2-linux-x64/blender" --background --factory-startup --python-exit-code 1 --python scripts/author-a33-spare-wheel-set.py | tee "$RUNNER_TEMP/a33-blender.log"
           python - <<'PY'
           import json, os
           from pathlib import Path
           local=json.loads((Path(os.environ['RUNNER_TEMP'])/'a33-local-manifest.json').read_text())
           hosted=json.loads(Path('src/rendering/a33-spare-wheel-set.manifest.json').read_text())
           evidence={'runtimeEqual':local['runtimeSha256']==hosted['runtimeSha256'],'glbEqual':local['sha256']==hosted['sha256'],'local':local,'hosted':hosted}
-          Path('test-results/a33-authoring/reproduction.json').write_text(json.dumps(evidence,indent=2))
+          (Path(os.environ['RUNNER_TEMP'])/'a33-reproduction.json').write_text(json.dumps(evidence,indent=2))
           assert evidence['runtimeEqual'], 'Hosted runtime meshes differ from the inspected local meshes'
           assert evidence['glbEqual'], 'Hosted exchange export differs from the inspected local GLB'
           PY
       - name: Full lint, unit and build regression gate
-        run: npm run check
-      - name: Install browser
-        run: npx playwright install --with-deps chromium
+        run: |
+          set -euo pipefail
+          npm run check | tee "$RUNNER_TEMP/a33-fullcheck.log"
+      - name: Install browser and Mesa display
+        run: |
+          npx playwright install --with-deps chromium
+          sudo apt-get update
+          sudo apt-get install -y xvfb libgl1-mesa-dri libegl-mesa0 mesa-utils
       - name: A33 normal startup, real-service motion, replay and lighting surveys
-        run: npm run test:e2e -- e2e/a33-spare-wheel-set.spec.ts e2e/pit-presentation.spec.ts e2e/43-hero-garage.spec.ts
+        env:
+          PLAYWRIGHT_JSON_OUTPUT_NAME: a33-browser-results.json
+        run: xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e -- e2e/a33-spare-wheel-set.spec.ts e2e/pit-presentation.spec.ts e2e/43-hero-garage.spec.ts --reporter=line,json,html
       - name: Store validated immutable Git blobs only; never update refs
         env:
           GH_TOKEN: ${{ github.token }}
@@ -85,7 +94,9 @@ jobs:
           import fs from 'node:fs';
           import {createHash} from 'node:crypto';
           const base=JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP+'/a33-base.json','utf8'));
-          const result={base,run:process.env.GITHUB_RUN_ID,refMutation:false,files:[]};
+          const browser=JSON.parse(fs.readFileSync('a33-browser-results.json','utf8'));
+          if(browser.stats.unexpected || browser.stats.skipped || browser.stats.flaky || browser.stats.expected!==9) throw Error('A33 requires all nine browser cases without skips or retries');
+          const result={base,run:process.env.GITHUB_RUN_ID,refMutation:false,browser:browser.stats,files:[]};
           for(const path of Object.keys(base.files)) {
             const data=fs.readFileSync(path);
             const sha=createHash('sha1').update(Buffer.from(`blob ${data.length}\0`)).update(data).digest('hex');
@@ -98,6 +109,13 @@ jobs:
           fs.writeFileSync('test-results/a33-git-blobs.json',JSON.stringify(result,null,2));
           console.log(JSON.stringify(result,null,2));
           JS
+      - name: Restore authoring and baseline receipts after browser output cleanup
+        if: always()
+        run: |
+          mkdir -p test-results/a33-authoring
+          for file in a33-base.json a33-blender.log a33-reproduction.json a33-fullcheck.log; do
+            if [ -f "$RUNNER_TEMP/$file" ]; then cp "$RUNNER_TEMP/$file" test-results/a33-authoring/; fi
+          done
       - name: Retain source, contracts and rendered evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -109,6 +127,7 @@ jobs:
             public/models/aurel-a33-spare-wheel-set.glb
             src/rendering/a33-spare-wheel-set.*
             docs/A33_SPARE_WHEEL_HANDLING_SET.md
+            a33-browser-results.json
             test-results/
             playwright-report/
             browser-backend.json
