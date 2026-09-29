@@ -156,6 +156,11 @@ export class PitPoseCache {
           throw new Error('Invalid crew wheel contact');
         this.next[n++] = length;
         this.next[n++] = load;
+        for (const field of [W.STEER, W.CAMBER]) {
+          const value = frame[p + field];
+          if (!Number.isFinite(value)) throw new Error('Invalid crew wheel orientation');
+          this.next[n++] = value;
+        }
       }
     }
     let same = n === this.length;

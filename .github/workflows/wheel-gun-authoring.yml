@@ -1,0 +1,48 @@
+name: A31 wheel-gun authoring verification
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - scripts/author-wheel-gun.py
+      - scripts/verify-wheel-gun.py
+      - scripts/aurel-wheel-gun.blend
+      - public/models/aurel-wheel-gun.glb
+      - src/rendering/wheel-gun*.ts
+      - src/rendering/wheel-gun.manifest.json
+      - .github/workflows/wheel-gun-authoring.yml
+permissions:
+  contents: read
+jobs:
+  author:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Verify retained source and export
+        run: python scripts/verify-wheel-gun.py
+      - name: Install checksum-pinned Blender
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 2 --max-time 240 'https://download.blender.org/release/Blender5.2/blender-5.2.2-linux-x64.tar.xz' -o "$RUNNER_TEMP/blender.tar.xz"
+          echo '84098912789dc450e95697c4184fb8a90acbe5111c2ba4aede3fecb57806a168  '"$RUNNER_TEMP/blender.tar.xz" | sha256sum --check
+          tar -xJf "$RUNNER_TEMP/blender.tar.xz" -C "$RUNNER_TEMP"
+      - name: Reopen retained source and verify packed material pixels
+        run: '"$RUNNER_TEMP/blender-5.2.2-linux-x64/blender" --background --factory-startup --python-exit-code 1 --python scripts/author-wheel-gun.py -- --check-source'
+      - name: Independently regenerate without overwriting approved inputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$RUNNER_TEMP/blender-5.2.2-linux-x64/blender" --background --factory-startup --python-exit-code 1 --python scripts/author-wheel-gun.py -- --output-root "$RUNNER_TEMP/a31-regenerated"
+          cmp public/models/aurel-wheel-gun.glb "$RUNNER_TEMP/a31-regenerated/public/models/aurel-wheel-gun.glb"
+          cmp src/rendering/wheel-gun.manifest.json "$RUNNER_TEMP/a31-regenerated/src/rendering/wheel-gun.manifest.json"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: a31-independent-authoring
+          path: ${{ runner.temp }}/a31-regenerated/
+          retention-days: 7
+          if-no-files-found: error

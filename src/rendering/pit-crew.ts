@@ -1,3 +1,5 @@
+import { type WheelGunBatches, WHEEL_GUN } from './wheel-gun.ts';
+import type { WheelGunFit } from './wheel-gun-contact.ts';
 import { A33WheelBatches, a33GripX } from './a33-spare-wheel-set.ts';
 import { PIT_CREW_MAX_DISTANCE, PitPoseCache } from './pit-presentation.ts';
 import { PitMachinery } from './pit-machinery.ts';
@@ -75,7 +77,12 @@ export class PitCrewView {
   private readonly jacks: T.InstancedMesh;
   private readonly handles: T.InstancedMesh;
   private readonly signals: T.InstancedMesh;
-  private readonly machinery: PitMachinery;
+  private machinery: PitMachinery;
+  wheelGuns: WheelGunBatches | null = null;
+  private readonly gunFits: WheelGunFit[][] = [];
+  private readonly wheelRotation = new T.Quaternion();
+  private readonly wheelEuler = new T.Euler();
+  private readonly gunYaw = new T.Quaternion();
   private readonly batches: readonly T.InstancedMesh[];
   private readonly slots: readonly [T.InstancedBufferAttribute, T.InstancedBufferAttribute];
   private readonly pose = new CrewPose();
@@ -209,6 +216,32 @@ export class PitCrewView {
     }
     this.root.add(this.machinery);
   }
+  setWheelGunFits(car: number, fits: WheelGunFit[]) {
+    if (fits.length !== 4 || car < 0 || car >= MAX_PIT_CREWS)
+      throw new Error('Invalid wheel-gun fit registration');
+    this.gunFits[car] = fits;
+  }
+  installWheelGuns(guns: WheelGunBatches) {
+    if (this.wheelGuns || this.cache.builds)
+      throw new Error('A31 must be installed before crew warmup');
+    const previous = this.machinery;
+    this.machinery = new PitMachinery(
+      [
+        { mesh: this.jacks, perCrew: 2 },
+        { mesh: this.handles, perCrew: 7 },
+        { mesh: this.signals, perCrew: 1 },
+      ],
+      MAX_PIT_CREWS,
+    );
+    this.root.remove(previous);
+    previous.dispose();
+    previous.geometry.dispose();
+    previous.material.dispose();
+    previous.customDepthMaterial?.dispose();
+    previous.customDistanceMaterial?.dispose();
+    this.wheelGuns = guns;
+    this.root.add(this.machinery, ...guns.batches);
+  }
   private batch(geometry: T.BufferGeometry, count: number, roughness: number, metalness = 0) {
     return new T.InstancedMesh(
       geometry,
@@ -323,7 +356,11 @@ export class PitCrewView {
       !Number.isFinite(camera.x + camera.y + camera.z)
     )
       throw new Error('Invalid pit crew frame');
-    if (!this.cache.prepare(frame, camera, visible, fov, aspect)) return;
+    if (!this.cache.prepare(frame, camera, visible, fov, aspect)) {
+      this.wheelGuns?.setView(camera, fov, aspect);
+      return;
+    }
+    this.wheelGuns?.begin();
     this.spareWheels.begin();
     for (const batch of this.batches) batch.count = 0;
     this.actorSlot = this.activeActors = this.activeCrews = 0;
@@ -374,15 +411,34 @@ export class PitCrewView {
                 : 0;
         const socket = this.socket.set(hubX + side * (0.21 + 0.28 * gunAway + clear), hubY, hubZ);
         const gunRotation = this.toolRotation.setFromAxisAngle(UP, yaw);
+        const fit = this.gunFits[id]?.[wheel];
+        if (this.wheelGuns && fit) {
+          this.wheelEuler.set(0, frame[p + W.STEER], -frame[p + W.CAMBER]);
+          this.wheelRotation.setFromEuler(this.wheelEuler);
+          this.point
+            .set(side * (fit.axial + 0.28 * gunAway + clear), 0, 0)
+            .applyQuaternion(this.wheelRotation);
+          socket.set(hubX, hubY, hubZ).add(this.point);
+          gunRotation.copy(this.wheelRotation).multiply(this.gunYaw.setFromAxisAngle(UP, yaw));
+        }
         const gunMatrix = this.gunMatrix.copy(this.propAt(this.guns, socket, gunRotation));
+        const actuated =
+          phase === 3 && clock < 1 ? 1 : phase === 4 && clock >= 3.05 && clock < 3.4 ? 1 : 0;
+        // The nut is not independently simulated: keep its socket stationary
+        // while engaged, rather than inventing an RPM/rotation through the nut.
+        this.wheelGuns?.put(this.matrix, actuated, 0, fit?.socketScale ?? 1);
         this.hand(
           0,
-          this.point.set(0, -0.083, -0.203).applyMatrix4(gunMatrix),
+          this.point
+            .fromArray(WHEEL_GUN.sockets.SOCKET_HAND_PRIMARY.position)
+            .applyMatrix4(gunMatrix),
           this.handRotation.copy(gunRotation).multiply(this.quarterTurn),
         );
         this.hand(
           1,
-          this.point.set(0, 0, -0.1).applyMatrix4(gunMatrix),
+          this.point
+            .fromArray(WHEEL_GUN.sockets.SOCKET_HAND_SUPPORT.position)
+            .applyMatrix4(gunMatrix),
           this.handRotation.copy(gunRotation).multiply(this.gunSupportTurn),
         );
         this.person(
@@ -518,6 +574,7 @@ export class PitCrewView {
       this.person(id, 'release', -1, signX + 0.42, floor, signZ, -Math.PI / 2, 0.84, 0.08, detail);
     }
     this.spareWheels.finish();
+    this.wheelGuns?.setView(camera, fov, aspect);
     this.machinery.update(this.activeCrews);
     this.root.visible = this.activeCrews > 0;
     if (this.activeActors) this.bones.needsUpdate = true;
@@ -559,6 +616,7 @@ export class PitCrewView {
     return {
       ...PEOPLE_ASSET,
       spareWheels: this.spareWheels.diagnostics(),
+      wheelGuns: this.wheelGuns?.diagnostics() ?? null,
       poseBuilds: this.cache.builds,
       poseReuses: this.cache.reuses,
       crews: this.activeCrews,
@@ -577,6 +635,7 @@ export class PitCrewView {
     return {
       ...PEOPLE_ASSET,
       spareWheels: this.spareWheels.diagnostics(),
+      wheelGuns: this.wheelGuns?.diagnostics() ?? null,
       poseBuilds: this.cache.builds,
       poseReuses: this.cache.reuses,
       crews: this.activeCrews,

@@ -1,3 +1,5 @@
+import { loadWheelGuns, WheelGunStorage } from './wheel-gun.ts';
+import { measureWheelGunFits } from './wheel-gun-contact.ts';
 import { loadPitWallStation } from './pit-wall-station.ts';
 import { loadHeroGarage } from './hero-garage.ts';
 import { loadTyreBlankets } from './tyre-blankets.ts';
@@ -139,6 +141,7 @@ export class RacingRenderer {
   private heroShells: HeroShells | null = null;
   private driverAsset: DriverAsset | null = null;
   private suppliedPlayerAsset: SuppliedPlayerAsset | null = null;
+  wheelGunStorage: WheelGunStorage | null = null;
   private target = new T.Vector3();
   private desired = new T.Vector3();
   private velocity = new T.Vector3();
@@ -321,6 +324,13 @@ export class RacingRenderer {
         label: 'Loading Aurel pit-wall command station',
       });
       renderer.circuit.pitWallStation = await loadPitWallStation(cancelled);
+      progress({ completed: 0, total: 1, fraction: 0, label: 'Loading A31 authored wheel guns' });
+      renderer.pitCrew.installWheelGuns(await loadWheelGuns(cancelled));
+      renderer.textures.register(renderer.pitCrew.root);
+      renderer.wheelGunStorage = new WheelGunStorage(
+        renderer.pitCrew.wheelGuns!.prototype,
+        renderer.circuit.heroGarage.root,
+      );
       if (cancelled()) {
         renderer.dispose();
         return null;
@@ -346,6 +356,7 @@ export class RacingRenderer {
         this.cars.length === 0 ? (this.suppliedPlayerAsset ?? undefined) : undefined,
       );
       this.cars.push(car);
+      this.pitCrew.setWheelGunFits(car.id, measureWheelGunFits(car));
       this.scene.add(car.root);
       this.textures.register(car.root);
       this.weatherPresentation.install(car.root);
@@ -795,6 +806,7 @@ export class RacingRenderer {
     if (this.photo) this.camera.rotateZ((this.photo.roll * Math.PI) / 180);
     this.camera.updateProjectionMatrix();
     this.circuit.heroGarage?.update(this.camera, this.quality, illumination);
+    this.wheelGunStorage?.update(this.camera);
     this.circuit.tyreBlankets?.update(this.camera, this.quality, illumination);
     if (this.circuit.heroGarage)
       this.circuit.tyreBlankets?.alignGarageWheels(this.circuit.heroGarage.spareWheelStorage);
