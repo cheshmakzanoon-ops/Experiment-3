@@ -1,4 +1,4 @@
-name: A31 isolated authoring workspace
+name: A31 isolated browser toolchain
 on:
   push:
     branches: [main]
@@ -18,16 +18,13 @@ jobs:
         with:
           node-version: '22.16.0'
       - run: npm ci
-      - name: Package credential-free local authoring workspace
-        shell: bash
-        run: |
-          set -euo pipefail
-          git rev-parse HEAD > A31_WORKSPACE_BASE.txt
-          tar --exclude='./.git' --exclude='./node_modules/.cache' -czf "$RUNNER_TEMP/a31-workspace.tar.gz" .
+      - run: npx playwright install chromium
+      - name: Package repository-pinned browsers without credentials
+        run: tar -C "$HOME/.cache/ms-playwright" -czf "$RUNNER_TEMP/a31-browsers.tar.gz" .
       - uses: actions/upload-artifact@v4
         with:
-          name: a31-local-authoring-workspace
-          path: ${{ runner.temp }}/a31-workspace.tar.gz
+          name: a31-pinned-browsers
+          path: ${{ runner.temp }}/a31-browsers.tar.gz
           retention-days: 1
           compression-level: 0
           if-no-files-found: error
