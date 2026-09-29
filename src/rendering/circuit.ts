@@ -1,3 +1,4 @@
+import { HERO_GARAGE, type HeroGarage } from './hero-garage.ts';
 import { StaticTransformGroup } from './static-transform-group.ts';
 import { VENUE_LAMP_RADIUS } from './light-footprint.ts';
 import { buildGantrySolids, buildControlTowerSolids } from './race-structures.ts';
@@ -41,6 +42,7 @@ interface RibbonOptions {
 }
 /** All surfaces are constructed from the same metre-valued track queries as physics. */
 export class CircuitScene {
+  heroGarage: HeroGarage | null = null;
   readonly group = new T.Group();
   readonly crowd = new T.Group();
   readonly crowdClusters: CrowdCluster[] = [];
@@ -224,7 +226,9 @@ export class CircuitScene {
       buildVegetation(track, this.vegetationGroup, this.serviceSites),
     );
     this.construction.add('Grid and finish markings', 0, () => this.grid());
-    this.construction.add('Spatial geometry batches', 4, () => batchScene(this.props, new Set()));
+    this.construction.add('Spatial geometry batches', 4, () =>
+      batchScene(this.props, new Set(this.heroGarage ? [this.heroGarage.root] : [])),
+    );
     this.construction.add('Seal static venue transforms', 6, () => {
       this.props.sealTransforms();
       this.surfaces.sealTransforms();
@@ -244,7 +248,12 @@ export class CircuitScene {
         position: group.position.toArray(),
         finalArtApproved: false,
       }));
-    return { source: 'constructed-runtime-groups', districts, finalArtApproved: false };
+    return {
+      source: 'constructed-runtime-groups',
+      districts,
+      garage: this.heroGarage?.diagnostics() ?? null,
+      finalArtApproved: false,
+    };
   }
   private queueRibbon(material: T.Material, options: RibbonOptions) {
     const start = options.start ?? 0;
@@ -377,16 +386,22 @@ export class CircuitScene {
         g.position.copy(this.at(s, 35, 0));
         g.rotation.y = Math.atan2(p.tx, p.tz);
         this.props.add(g);
-        buildGarageBay(g, paddock, i);
-        const panel = mesh(
-          g,
-          new T.PlaneGeometry(7.5, 0.9),
-          new T.MeshStandardMaterial({ map: label(`AUREL  ${String(i + 1).padStart(2, '0')}`) }),
-          -6.62,
-          3.5,
-          0,
-        );
-        panel.rotation.y = -Math.PI / 2;
+        const authored = this.heroGarage && i === HERO_GARAGE.bayIndex;
+        if (authored) {
+          g.name = `Authored garage bay ${i + 1}`;
+          g.add(this.heroGarage!.root);
+        } else buildGarageBay(g, paddock, i);
+        if (!authored) {
+          const panel = mesh(
+            g,
+            new T.PlaneGeometry(7.5, 0.9),
+            new T.MeshStandardMaterial({ map: label(`AUREL  ${String(i + 1).padStart(2, '0')}`) }),
+            -6.62,
+            3.5,
+            0,
+          );
+          panel.rotation.y = -Math.PI / 2;
+        }
         const boxS = 102 + i * 7,
           mark = this.track.at(boxS, trackPoint());
         const painting = new T.Group();

@@ -1,0 +1,45 @@
+name: A22 garage integration validation
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/garage-validation.yml
+      - src/rendering/hero-garage*
+      - src/rendering/circuit.ts
+      - src/rendering/renderer.ts
+      - public/models/aurel-hero-garage-bay.glb
+      - e2e/43-hero-garage.spec.ts
+      - e2e/fixtures/hero-garage.ts
+      - tests/hero-garage.test.ts
+permissions:
+  contents: read
+jobs:
+  garage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      APEX_BROWSER_BACKEND: mesa
+      LIBGL_ALWAYS_SOFTWARE: 'true'
+      GALLIUM_DRIVER: llvmpipe
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm test -- tests/hero-garage.test.ts
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: sudo apt-get update && sudo apt-get install -y xvfb libgl1-mesa-dri libegl-mesa0 mesa-utils
+      - name: Normal application startup and three real-circuit lighting surveys
+        run: xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e -- e2e/43-hero-garage.spec.ts e2e/26-aurel-environment.spec.ts
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: a22-garage-validation
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7

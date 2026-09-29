@@ -1,3 +1,4 @@
+import { loadHeroGarage } from './hero-garage.ts';
 import { compileSceneTarget, PreparationTrace } from './preparation.ts';
 import { warmPitMaterials } from './pit-material-warmup.ts';
 import { frontToBackOpaque } from './opaque-order.ts';
@@ -296,6 +297,13 @@ export class RacingRenderer {
         label: 'Loading your RB19 car and R06 driver/cockpit',
       });
       renderer.suppliedPlayerAsset = await loadSuppliedPlayer(cancelled);
+      progress({
+        completed: 0,
+        total: 1,
+        fraction: 0,
+        label: 'Loading authored Aurel working garage',
+      });
+      renderer.circuit.heroGarage = await loadHeroGarage(cancelled);
       if (cancelled()) {
         renderer.dispose();
         return null;
@@ -769,6 +777,7 @@ export class RacingRenderer {
     this.camera.lookAt(this.gaze);
     if (this.photo) this.camera.rotateZ((this.photo.roll * Math.PI) / 180);
     this.camera.updateProjectionMatrix();
+    this.circuit.heroGarage?.update(this.camera, this.quality, illumination);
     // A replay cut, follow change or photo lens must use the NEW view, not
     // last frame's camera. Choose the representation before posing it, since
     // reduced cars update only their active wheel/suspension representation.
@@ -1189,6 +1198,8 @@ export class RacingRenderer {
     this.heroShells?.dispose();
     this.driverAsset?.dispose();
     this.suppliedPlayerAsset?.dispose();
+    if (this.circuit.heroGarage && !this.circuit.heroGarage.root.parent)
+      this.circuit.heroGarage.dispose();
     this.cars.forEach((car) => car.suppliedPlayer?.disposeAnimation());
     this.pitCrew.dispose();
     this.reflection.dispose();
