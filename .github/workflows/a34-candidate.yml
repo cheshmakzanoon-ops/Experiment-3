@@ -51,7 +51,7 @@ jobs:
               assert not Path(name).exists(), 'Another agent already owns '+name
               Path(name).parent.mkdir(parents=True,exist_ok=True)
               Path(name).write_text(text,encoding='utf-8')
-          for patch_sha in ['b15955dba5f268277bb272d27ff65ff70ce9ae9d','ff69e4bb9b6b61e8a17151186e517940b04b4a28','d4ec0bbfeef838965b527ea2e6f3f96a6a25ec39']:
+          for patch_sha in ['b15955dba5f268277bb272d27ff65ff70ce9ae9d','ff69e4bb9b6b61e8a17151186e517940b04b4a28','d4ec0bbfeef838965b527ea2e6f3f96a6a25ec39','bd1de6d93847f40c5167d64b91ca53eb8225f900']:
               req=urllib.request.Request('https://api.github.com/repos/'+os.environ['GITHUB_REPOSITORY']+'/git/blobs/'+patch_sha,headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json'})
               with urllib.request.urlopen(req,timeout=60) as r: obj=json.load(r)
               data=base64.b64decode(obj['content'])
@@ -71,6 +71,11 @@ jobs:
                   for key,value in patch['expectations'].items():
                       assert len(value)==64 and all(c in '0123456789abcdef' for c in value)
                       bundle[key]=value
+          # Extend the owned integration hook against the concurrently landed A33.
+          bundle['apply'] += '''\nchange('src/rendering/renderer.ts',
+              '    this.circuit.tyreBlankets?.update(this.camera, this.quality, illumination);',
+              '    this.circuit.tyreBlankets?.update(this.camera, this.quality, illumination);\\n    if (this.circuit.heroGarage) this.circuit.tyreBlankets?.alignGarageWheels(this.circuit.heroGarage.spareWheelStorage);')
+          '''
           script=Path(os.environ['RUNNER_TEMP'])/'a34-apply.py'
           script.write_text(bundle['apply'],encoding='utf-8')
           subprocess.run(['python',str(script)],check=True)
@@ -121,10 +126,10 @@ jobs:
           JS
       - run: npx playwright install --with-deps chromium
       - run: sudo apt-get update && sudo apt-get install -y xvfb libgl1-mesa-dri libegl-mesa0 mesa-utils python3-pil
-      - name: Normal startup and real-circuit A34, A22 and A24 browser regression
+      - name: Normal startup and real-circuit A34, A33, A22 and A24 regression
         env:
           PLAYWRIGHT_JSON_OUTPUT_NAME: a34-browser-results.json
-        run: xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e -- e2e/a34-tyre-blankets.spec.ts e2e/43-hero-garage.spec.ts e2e/44-pit-wall-station.spec.ts --reporter=line,json
+        run: xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e -- e2e/a34-tyre-blankets.spec.ts e2e/43-hero-garage.spec.ts e2e/44-pit-wall-station.spec.ts e2e/a33-spare-wheel-set.spec.ts --reporter=line,json
       - name: Record durable actual-game image evidence
         shell: bash
         run: |
