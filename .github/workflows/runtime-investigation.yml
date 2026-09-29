@@ -1,108 +1,37 @@
-name: Runtime GPU investigation
+name: Runtime exact candidate validation
 on:
   push:
     branches: [main]
     paths: [.github/workflows/runtime-investigation.yml]
 permissions:
-  contents: read
+  contents: write
+  actions: write
+concurrency:
+  group: runtime-exact-candidate
+  cancel-in-progress: true
+env:
+  BASE_COMMIT: ca10afc209fc009ea41aaef36bbe466e2e3bf48a
+  TARGET_TREE: 5a0f52336e1fa6f95d0a999c609b34bb037eca29
 jobs:
-  investigate:
+  validate-and-publish-source:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
         with:
-          persist-credentials: false
+          fetch-depth: 3
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: npm
-      - run: npm ci --no-audit --no-fund
-      - name: Preserve locked offline toolchain
-        run: tar -czf "$RUNNER_TEMP/runtime-toolchain.tar.gz" node_modules
-      - uses: actions/upload-artifact@v4
-        with:
-          name: runtime-toolchain
-          path: ${{ runner.temp }}/runtime-toolchain.tar.gz
-          retention-days: 1
-      - run: npm run build
-      - run: npx playwright install --with-deps chromium
-      - name: Install read-only diagnostic fixture
+      - name: Reconstruct exact source correction with concurrent-change guard
         shell: bash
         run: |
-          cat > e2e/fixtures/runtime-investigation.ts <<'EOF'
-          import * as T from 'three';
-          import { RacingRenderer } from '../../src/rendering/renderer.ts';
-          import { Simulation } from '../../src/simulation/world.ts';
-          import { DEFAULT_OPTIONS } from '../../src/simulation/config.ts';
-          export async function investigate() {
-            const canvas = document.createElement('canvas');
-            canvas.style.width='640px'; canvas.style.height='400px'; document.body.append(canvas);
-            const sim = new Simulation({...DEFAULT_OPTIONS, mode:'race', opponents:7, weather:'clear', seed:711});
-            const view = await RacingRenderer.create(canvas, sim.track, () => {}, () => false);
-            if (!view) throw new Error('No renderer');
-            view.setQuality('low'); view.setCars(8); view.changeCamera('pod');
-            const frame=sim.makeFrame(); view.draw(frame,frame,1,1/120,false,true);
-            const renderer=view.renderer, gl=renderer.getContext();
-            const target=new T.WebGLRenderTarget(480,300,{type:T.HalfFloatType});
-            const source=new Uint16Array(480*300*4);
-            const sample=()=>{
-              const start=performance.now(); renderer.info.reset(); renderer.setRenderTarget(target);
-              renderer.render(view.scene,view.camera);
-              renderer.readRenderTargetPixels(target,0,0,480,300,source);
-              return {ms:performance.now()-start,calls:renderer.info.render.calls,triangles:renderer.info.render.triangles};
-            };
-            const player=view.cars[0].suppliedPlayer!;
-            const meshes:T.Mesh[]=[]; player.root.traverse(o=>{if(o instanceof T.Mesh) meshes.push(o);});
-            const standard=new Set<T.MeshStandardMaterial>();
-            meshes.forEach(o=>{for(const m of Array.isArray(o.material)?o.material:[o.material]) if(m instanceof T.MeshStandardMaterial) standard.add(m);});
-            const rows:any[]=[];
-            const measure=(name:string)=>{sample(); const a=sample(),b=sample(); rows.push({name,a,b}); console.log('GPU_COST '+JSON.stringify(rows.at(-1)));};
-            try {
-              for(const camera of ['pod','cockpit'] as const){
-                view.changeCamera(camera); view.draw(frame,frame,1,1/120,false,true);
-                measure(camera+':baseline');
-                player.root.visible=false; measure(camera+':no-player'); player.root.visible=true;
-                const skin=meshes.filter(m=>m instanceof T.SkinnedMesh), masks=skin.map(m=>m.layers.mask);
-                skin.forEach(m=>m.layers.mask=0); measure(camera+':no-skin'); skin.forEach((m,i)=>m.layers.mask=masks[i]);
-                const basic=new T.MeshBasicMaterial({color:0x777777,side:T.DoubleSide});
-                const old=meshes.map(m=>m.material); meshes.forEach(m=>m.material=basic); measure(camera+':basic-player'); meshes.forEach((m,i)=>m.material=old[i]); basic.dispose();
-                const normal=[...standard].map(m=>({m,bump:m.bumpMap,normal:m.normalMap}));
-                normal.forEach(({m})=>{m.bumpMap=null;m.normalMap=null;m.needsUpdate=true;}); measure(camera+':no-player-bump');
-                normal.forEach(({m,bump,normal})=>{m.bumpMap=bump;m.normalMap=normal;m.needsUpdate=true;});
-                const anis=[...standard].filter(m=>m instanceof T.MeshPhysicalMaterial).map(m=>({m:m as T.MeshPhysicalMaterial,a:(m as T.MeshPhysicalMaterial).anisotropy}));
-                anis.forEach(({m})=>{m.anisotropy=0;m.needsUpdate=true;}); measure(camera+':no-player-anisotropy'); anis.forEach(({m,a})=>{m.anisotropy=a;m.needsUpdate=true;});
-                measure(camera+':restored');
-              }
-              return {rows,error:gl.getError(),scope:'isolated held full-scene main pass; diagnostic removals never ship'};
-            } finally {renderer.setRenderTarget(null);target.dispose();view.dispose();}
-          }
-          EOF
-          cat > e2e/runtime-investigation.spec.ts <<'EOF'
-          import {test,expect} from '@playwright/test';
-          import {build} from 'vite';
-          import {resolve} from 'node:path';
-          test('held full-scene GPU cost breakdown',async({page},info)=>{
-            test.setTimeout(540000);
-            const b=await build({configFile:false,logLevel:'error',build:{write:false,lib:{entry:resolve('e2e/fixtures/runtime-investigation.ts'),name:'RuntimeInvestigation',formats:['iife']}}});
-            const r=Array.isArray(b)?b[0]:b;
-            if(!('output' in r)) throw new Error('No bundle');
-            const chunk=r.output.find(o=>o.type==='chunk'); if(!chunk||chunk.type!=='chunk')throw new Error('No chunk');
-            await page.route('**/runtime-probe',r=>r.fulfill({contentType:'text/html',body:'<!doctype html><title>GPU cost investigation</title>'}));
-            page.on('console',m=>{if(m.text().startsWith('GPU_COST '))console.log(m.text());});
-            await page.goto('/runtime-probe'); await page.addScriptTag({content:chunk.code});
-            const report=await page.evaluate(()=> (window as any).RuntimeInvestigation.investigate());
-            console.log('GPU_REPORT '+JSON.stringify(report));
-            await info.attach('gpu-costs.json',{body:JSON.stringify(report,null,2),contentType:'application/json'});
-            expect(report.error).toBe(0);
-          });
-          EOF
-      - run: npm run test:e2e -- e2e/runtime-investigation.spec.ts
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: runtime-investigation
-          path: |
-            test-results/
-            playwright-report/
-          retention-days: 3
+          python - <<'PY'
+          import os, pathlib, subprocess, hashlib, gzip, base64
+          base=os.environ['BASE_COMMIT']
+          stage='.github/workflows/runtime-investigation.yml'
+          assert subprocess.check_output(['git','rev-parse',base+'^{tree}'],text=True).strip()=='7a04f7b2ab3bbecb8296110efabf249bdfb8aa4e'
+          assert subprocess.check_output(['git','diff','--name-only',base,'HEAD'],text=True).splitlines()==[stage], 'Concurrent source changes require reconciliation'
+          encoded='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?'
+          PY
