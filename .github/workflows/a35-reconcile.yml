@@ -6,6 +6,9 @@ on:
 permissions:
   contents: read
   actions: read
+concurrency:
+  group: a35-final-reconciliation
+  cancel-in-progress: true
 jobs:
   reconcile:
     runs-on: ubuntu-latest
@@ -34,14 +37,16 @@ jobs:
           files={'.github/workflows/a35-authoring.yml':'9816b3550dbc4708e063b21645adea3d5c0e434c','docs/A35_TYRE_TROLLEYS_RACKS.md':'24cc08000e5b5ab2f55f61b18edf07609cb401ec','e2e/a35-tyre-trolleys-racks.spec.ts':'2e05e747194a2fc3db294ce599aeb2fe1f44c8f4','e2e/fixtures/tyre-trolleys-racks.ts':'23d925ba57022fad173994779b85d32d75a8e46f','public/models/aurel-tyre-trolleys-racks.glb':'94ca8313aacd36a9d91a4231f983a43b25e66f9b','scripts/aurel-tyre-trolleys-racks.blend':'fcca21ba4ebdaead2d3f847354a30749c4a680e3','scripts/author-tyre-trolleys-racks.py':'fda3160efa1af9134fd90ab36e87147f28951aad','src/rendering/tyre-trolleys-racks.manifest.json':'a0c213810a22ee060c1dd1f02d252e34e2743fc7','src/rendering/tyre-trolleys-racks.ts':'ecdb6f2d8995724a8d376dfcfb226d5d2b74e63d','tests/tyre-trolleys-racks.test.ts':'d6d7f54fe975b166a7475aec8bebbecf52b3a088'}
           base=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()
           base_tree=subprocess.check_output(['git','rev-parse','HEAD^{tree}'],text=True).strip()
-          for name,sha in files.items():
-              p=Path(name);assert not p.exists(),'Concurrent A35 owner: '+name
+          def blob(sha):
               req=urllib.request.Request('https://api.github.com/repos/'+os.environ['GITHUB_REPOSITORY']+'/git/blobs/'+sha,headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json'})
               with urllib.request.urlopen(req,timeout=90) as r: doc=json.load(r)
               raw=base64.b64decode(doc['content'])
-              assert hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()==sha,name
-              p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes(raw)
-          edits=[["import { loadPitWallStation } from './pit-wall-station.ts';","import {\n  loadTyreEquipment,\n  installTyreEquipment,\n  type TyreEquipmentKit,\n} from './tyre-trolleys-racks.ts';\nimport { loadPitWallStation } from './pit-wall-station.ts';"],["  private suppliedPlayerAsset: SuppliedPlayerAsset | null = null;","  private suppliedPlayerAsset: SuppliedPlayerAsset | null = null;\n  tyreEquipment: TyreEquipmentKit | null = null;"],["      renderer.circuit.pitWallStation = await loadPitWallStation(cancelled);","      renderer.circuit.pitWallStation = await loadPitWallStation(cancelled);\n      // A35 owns its instancing/LODs outside destructive static prop batching.\n      progress({ completed: 0, total: 1, fraction: 0, label: 'Loading Aurel tyre logistics' });\n      renderer.tyreEquipment = await loadTyreEquipment(cancelled);\n      installTyreEquipment(renderer.tyreEquipment, track);\n      renderer.circuit.group.add(renderer.tyreEquipment.root);"],["    this.circuit.heroGarage?.update(this.camera, this.quality, illumination);","    this.circuit.heroGarage?.update(this.camera, this.quality, illumination);\n    this.tyreEquipment?.update(this.camera, this.quality);"],["      environmentAssets: this.circuit.environmentDiagnostics(),","      environmentAssets: {\n        ...this.circuit.environmentDiagnostics(),\n        tyreEquipment: this.tyreEquipment?.diagnostics() ?? null,\n      },"],["    this.suppliedPlayerAsset?.dispose();","    this.suppliedPlayerAsset?.dispose();\n    this.tyreEquipment?.dispose();"]]
+              assert hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()==sha
+              return raw
+          for name,sha in files.items():
+              p=Path(name);assert not p.exists(),'Concurrent A35 owner: '+name
+              p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes(blob(sha))
+          edits=json.loads(blob('893229e3a9e40ff752a8748cc1f012d6364305ad'))['edits']
           p=Path('src/rendering/renderer.ts');text=p.read_text();before=hashlib.sha256(text.encode()).hexdigest()
           for old,new in edits:
               assert text.count(old)==1,'Concurrent hook changed: '+old
@@ -65,21 +70,32 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           /usr/bin/python3 - <<'PY'
-          import base64,hashlib,io,json,os,re,subprocess,urllib.request,zipfile
+          import base64,hashlib,io,json,os,re,urllib.request,zipfile
           from pathlib import Path
           from PIL import Image,ImageDraw
           api='https://api.github.com/repos/'+os.environ['GITHUB_REPOSITORY']
           headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json'}
           req=urllib.request.Request(api+'/actions/artifacts/11045453878/zip',headers=headers)
-          with urllib.request.urlopen(req,timeout=90) as response: archive=zipfile.ZipFile(io.BytesIO(response.read()))
-          # These nine actual-circuit images belong to the exact binary from run 36593534419.
+          with urllib.request.urlopen(req,timeout=90) as response: raw=response.read()
+          assert hashlib.sha256(raw).hexdigest()=='dc6dd9d4e5db528609bdbc9faa7814a9962804c649ec096bb9d1d0c2a78cbe62'
+          archive=zipfile.ZipFile(io.BytesIO(raw))
+          reports=[n for n in archive.namelist() if n.endswith('/a35-browser-results.json')]
+          assert len(reports)==1
+          shots={}
+          def collect(x):
+              if isinstance(x,dict):
+                  if x.get('contentType')=='image/png' and x.get('name','').startswith('a35-') and x.get('body'):
+                      shots[x['name']]=base64.b64decode(x['body'])
+                  for v in x.values(): collect(v)
+              elif isinstance(x,list):
+                  for v in x: collect(v)
+          collect(json.loads(archive.read(reports[0])))
+          assert len(shots)==9
           sheet=Image.new('RGB',(1280,1215),(245,245,245));draw=ImageDraw.Draw(sheet)
           draw.text((16,16),'A35 | ACTUAL CIRCUIT SURVEY | day / sunset / rainy night | run 36593534419',fill=(15,15,15))
           for row,light in enumerate(['day','sunset','night']):
               for col,view in enumerate(['loaded-trolley','full-rack']):
-                  names=[n for n in archive.namelist() if n.endswith('/a35-'+light+'-'+view+'.png')]
-                  assert len(names)==1,names
-                  image=Image.open(io.BytesIO(archive.read(names[0]))).convert('RGB').resize((640,360),Image.Resampling.LANCZOS)
+                  image=Image.open(io.BytesIO(shots['a35-'+light+'-'+view+'.png'])).convert('RGB').resize((640,360),Image.Resampling.LANCZOS)
                   y=45+row*390;sheet.paste(image,(col*640,y));draw.text((col*640+12,y+367),light+' / '+view,fill=(15,15,15))
           sheet.save('docs/A35_GAMEPLAY_CONTACT_SHEET.jpg',quality=90)
           base=json.loads(Path('a35-reconcile-base.json').read_text())
