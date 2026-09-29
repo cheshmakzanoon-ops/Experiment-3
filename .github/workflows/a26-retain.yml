@@ -1,0 +1,132 @@
+name: A26 candidate validation and blob retention
+on:
+  push:
+    branches: [main]
+    paths: [.github/workflows/a26-retain.yml, .github/a26-transfer-*.b64]
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Recover only the reviewed A26 candidate paths
+        shell: bash
+        run: |
+          python - <<'PY'
+          import base64,hashlib,json,lzma,subprocess
+          from pathlib import Path
+          encoded=''.join(Path(f'.github/a26-transfer-{i}.b64').read_text().strip() for i in range(3))
+          raw=lzma.decompress(base64.b64decode(encoded,validate=True))
+          assert hashlib.sha256(raw).hexdigest()=='c1cd0a8b424a2a55dba962df4b92e16926363d739695ac7a6d8166ccdbf6895f'
+          files=json.loads(raw)
+          allowed={'scripts/author-overhead-garage-service-rig.py','src/rendering/overhead-garage-service-rig.ts','src/rendering/hero-garage.ts','tests/overhead-garage-service-rig.test.ts','e2e/fixtures/a26-overhead-services.ts','e2e/a26-overhead-garage-service-rig.spec.ts','docs/A26_OVERHEAD_GARAGE_SERVICE_RIG.md','.github/workflows/a26-authoring.yml'}
+          assert set(files)==allowed
+          shared='src/rendering/hero-garage.ts'
+          assert subprocess.check_output(['git','hash-object',shared],text=True).strip()=='4852a8adaf2c033a5e60b5a436cac2e9de0d8358', 'Concurrent garage edit requires explicit reconciliation'
+          for name,text in files.items():
+              p=Path(name)
+              if name!=shared: assert not p.exists(), 'Another agent already owns '+name
+              p.parent.mkdir(parents=True,exist_ok=True)
+              p.write_text(text)
+          Path('a26-candidate-paths.json').write_text(json.dumps(sorted(files)))
+          PY
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Pinned Blender 5.2.2
+        run: |
+          curl --fail --location --retry 2 --max-time 240 https://download.blender.org/release/Blender5.2/blender-5.2.2-linux-x64.tar.xz -o "$RUNNER_TEMP/blender.tar.xz"
+          echo '84098912789dc450e95697c4184fb8a90acbe5111c2ba4aede3fecb57806a168  '"$RUNNER_TEMP/blender.tar.xz" | sha256sum --check
+          tar -xJf "$RUNNER_TEMP/blender.tar.xz" -C "$RUNNER_TEMP"
+      - name: Author and compare the exact inspected GLB
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$RUNNER_TEMP/blender-5.2.2-linux-x64/blender" --background --factory-startup --python scripts/author-overhead-garage-service-rig.py | tee "$RUNNER_TEMP/a26-author.log"
+          echo '3d55c84acd0e275434b4babb570d4d7c36b721d7919b27213fd1bb81051977be  public/models/aurel-overhead-garage-service-rig.glb' | sha256sum --check
+      - name: Complete project lint unit and build gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run check 2>&1 | tee "$RUNNER_TEMP/a26-check.log"
+      - run: npx playwright install --with-deps chromium
+      - name: Real production entry and A26 plus A22 browser surveys
+        shell: bash
+        env:
+          APEX_BROWSER_BACKEND: swiftshader
+          PLAYWRIGHT_JSON_OUTPUT_FILE: ${{ runner.temp }}/a26-browser.json
+        run: |
+          set -euo pipefail
+          npm run test:e2e -- e2e/a26-overhead-garage-service-rig.spec.ts e2e/43-hero-garage.spec.ts --reporter=list,json 2>&1 | tee "$RUNNER_TEMP/a26-browser.log"
+      - name: Record success and retain exact Git blobs without moving a branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          python - <<'PY'
+          import base64,hashlib,json,os,re,urllib.request
+          from pathlib import Path
+          temp=Path(os.environ['RUNNER_TEMP'])
+          browser=json.loads((temp/'a26-browser.json').read_text())
+          stats=browser['stats']
+          assert stats['expected']==9 and stats['unexpected']==0 and stats['flaky']==0 and stats['skipped']==0, stats
+          text=re.sub(r'\x1b\[[0-9;]*m','',(temp/'a26-check.log').read_text())
+          unit=int(re.search(r'Tests\s+(\d+) passed',text).group(1))
+          unitfiles=int(re.search(r'Test Files\s+(\d+) passed',text).group(1))
+          manifest=json.loads(Path('src/rendering/overhead-garage-service-rig.manifest.json').read_text())
+          evidence={p.stem:json.loads(p.read_text()) for p in Path('test-results/a26-evidence').glob('*.json')}
+          assert set(evidence)=={'day','sunset','wet-day','wet-night'}
+          for item in evidence.values():
+              assert item['sourceUnchanged'] and item['waterUnchanged']
+              assert item['before']==item['after'] and all(n==0 for n in item['errors'])
+          backend=json.loads(Path('browser-backend.json').read_text())
+          validation={'assetId':'A26','revision':manifest['revision'],'runId':int(os.environ['GITHUB_RUN_ID']),'sourceBaseline':os.environ['GITHUB_SHA'],'unitTests':unit,'unitFiles':unitfiles,'lint':'passed','typecheck':'passed','productionBuild':'passed','browserStats':stats,'backend':backend,'glbSHA256':manifest['sha256'],'glbBytes':manifest['bytes'],'triangles':manifest['triangles'],'exportMatchesLocalInspection':True,'centralPassageIntersections':0,'conditions':evidence,'physicalHardwareValidated':False,'finalArtApproved':False,'scope':'Scripted moving actual-circuit surveys and production startup/practice entry; not driven-lap or cockpit-camera approval.'}
+          receipt='docs/A26_OVERHEAD_GARAGE_SERVICE_RIG_VALIDATION.json'
+          Path(receipt).write_text(json.dumps(validation,indent=2)+'\n')
+          doc=Path('docs/A26_OVERHEAD_GARAGE_SERVICE_RIG.md')
+          doc.write_text(doc.read_text()+f"\n## Hosted integration receipt\n\nGitHub Actions run `{os.environ['GITHUB_RUN_ID']}` rebuilt the exact locally inspected GLB,\npassed the complete lint/typecheck/build gate with {unit} tests in {unitfiles} files, and passed\nall nine A26/A22 browser cases with no retries, skips or flaky results. The machine receipt is\n`docs/A26_OVERHEAD_GARAGE_SERVICE_RIG_VALIDATION.json`. Screenshots, logs and exact assets\nare retained by the run. The observed SwiftShader adapter is software, not hardware approval.\n")
+          names=json.loads(Path('a26-candidate-paths.json').read_text())+['scripts/aurel-overhead-garage-service-rig.blend','public/models/aurel-overhead-garage-service-rig.glb','src/rendering/overhead-garage-service-rig.manifest.json',receipt]
+          report={'source':os.environ['GITHUB_SHA'],'runId':int(os.environ['GITHUB_RUN_ID']),'files':{},'branchUpdated':False}
+          for name in names:
+              data=Path(name).read_bytes()
+              body=json.dumps({'content':base64.b64encode(data).decode(),'encoding':'base64'}).encode()
+              req=urllib.request.Request('https://api.github.com/repos/'+os.environ['GITHUB_REPOSITORY']+'/git/blobs',data=body,method='POST',headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','Content-Type':'application/json'})
+              with urllib.request.urlopen(req,timeout=90) as r: blob=json.load(r)
+              expected=hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()
+              assert blob['sha']==expected
+              report['files'][name]={'blob':expected,'bytes':len(data),'sha256':hashlib.sha256(data).hexdigest()}
+          Path('a26-authored-blobs.json').write_text(json.dumps(report,indent=2)+'\n')
+          print(json.dumps(report,indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: a26-candidate-evidence
+          retention-days: 7
+          if-no-files-found: error
+          path: |
+            scripts/author-overhead-garage-service-rig.py
+            scripts/aurel-overhead-garage-service-rig.blend
+            public/models/aurel-overhead-garage-service-rig.glb
+            src/rendering/overhead-garage-service-rig.*
+            src/rendering/hero-garage.ts
+            tests/overhead-garage-service-rig.test.ts
+            e2e/fixtures/a26-overhead-services.ts
+            e2e/a26-overhead-garage-service-rig.spec.ts
+            docs/A26_OVERHEAD_GARAGE_SERVICE_RIG*
+            .github/workflows/a26-authoring.yml
+            a26-authored-blobs.json
+            browser-backend.json
+            test-results
+            ${{ runner.temp }}/a26-author.log
+            ${{ runner.temp }}/a26-check.log
+            ${{ runner.temp }}/a26-browser.json
+            ${{ runner.temp }}/a26-browser.log
