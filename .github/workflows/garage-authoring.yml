@@ -1,0 +1,83 @@
+name: Aurel garage asset authoring
+on:
+  workflow_dispatch:
+    inputs:
+      author:
+        description: Build and retain the authored garage assets
+        type: boolean
+        default: false
+permissions:
+  contents: read
+jobs:
+  author:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Preserve exact development dependencies for offline validation
+        if: ${{ !inputs.author }}
+        run: |
+          tar -czf "$RUNNER_TEMP/garage-node-modules.tar.gz" node_modules
+          cp package-lock.json "$RUNNER_TEMP/garage-package-lock.json"
+      - uses: actions/upload-artifact@v4
+        if: ${{ !inputs.author }}
+        with:
+          name: garage-offline-development-dependencies
+          path: |
+            ${{ runner.temp }}/garage-node-modules.tar.gz
+            ${{ runner.temp }}/garage-package-lock.json
+          retention-days: 1
+          if-no-files-found: error
+      - name: Install pinned Blender
+        if: ${{ inputs.author }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 2 --max-time 240 'https://download.blender.org/release/Blender5.2/blender-5.2.2-linux-x64.tar.xz' -o "$RUNNER_TEMP/blender.tar.xz"
+          echo '84098912789dc450e95697c4184fb8a90acbe5111c2ba4aede3fecb57806a168  '"$RUNNER_TEMP/blender.tar.xz" | sha256sum --check
+          tar -xJf "$RUNNER_TEMP/blender.tar.xz" -C "$RUNNER_TEMP"
+      - name: Author Blender source and game exports
+        if: ${{ inputs.author }}
+        run: '"$RUNNER_TEMP/blender-5.2.2-linux-x64/blender" --background --factory-startup --python scripts/author-garage.py'
+      - name: Retain binary Git blobs without changing any branch
+        if: ${{ inputs.author }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import base64,hashlib,json,os,urllib.request
+          names=['scripts/aurel-hero-garage-bay.blend','public/models/aurel-hero-garage-bay.glb','src/rendering/hero-garage.manifest.json']
+          report={'source':os.environ['GITHUB_SHA'],'files':{},'branchUpdated':False}
+          for name in names:
+              data=Path(name).read_bytes()
+              body=json.dumps({'content':base64.b64encode(data).decode(),'encoding':'base64'}).encode()
+              req=urllib.request.Request('https://api.github.com/repos/'+os.environ['GITHUB_REPOSITORY']+'/git/blobs',data=body,method='POST',headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','Content-Type':'application/json'})
+              with urllib.request.urlopen(req,timeout=90) as r: blob=json.load(r)
+              expected=hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()
+              assert blob['sha']==expected
+              report['files'][name]={'blob':expected,'bytes':len(data),'sha256':hashlib.sha256(data).hexdigest()}
+          Path('garage-authored-blobs.json').write_text(json.dumps(report,indent=2)+'\n')
+          print(json.dumps(report,indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: ${{ inputs.author && always() }}
+        with:
+          name: aurel-authored-garage
+          path: |
+            scripts/aurel-hero-garage-bay.blend
+            public/models/aurel-hero-garage-bay.glb
+            src/rendering/hero-garage.manifest.json
+            garage-authored-blobs.json
+          retention-days: 7
+          if-no-files-found: error
