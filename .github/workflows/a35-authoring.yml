@@ -1,0 +1,61 @@
+name: A35 tyre logistics authoring check
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - scripts/author-tyre-trolleys-racks.py
+      - scripts/aurel-tyre-trolleys-racks.blend
+      - public/models/aurel-tyre-trolleys-racks.glb
+      - src/rendering/tyre-trolleys-racks.manifest.json
+      - .github/workflows/a35-authoring.yml
+permissions:
+  contents: read
+jobs:
+  author:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Verify committed receipt before regeneration
+        run: |
+          python - <<'PY'
+          import json, hashlib
+          from pathlib import Path
+          p=Path('src/rendering/tyre-trolleys-racks.manifest.json')
+          m=json.loads(p.read_text())
+          for path, key in [(m['author'],'sourceSHA256'),(m['editable'],'blendSHA256'),('public/'+m['url'],'sha256')]:
+              assert hashlib.sha256(Path(path).read_bytes()).hexdigest()==m[key],path
+          Path('/tmp/a35-committed.json').write_text(p.read_text())
+          PY
+      - name: Pinned Blender 5.2.2 LTS
+        run: |
+          curl --fail --location --retry 3 https://download.blender.org/release/Blender5.2/blender-5.2.2-linux-x64.tar.xz -o /tmp/blender.tar.xz
+          echo '84098912789dc450e95697c4184fb8a90acbe5111c2ba4aede3fecb57806a168  /tmp/blender.tar.xz' | sha256sum -c -
+          mkdir /tmp/a35-blender
+          tar -xJf /tmp/blender.tar.xz -C /tmp/a35-blender --strip-components=1
+      - name: Regenerate without publishing or changing branch refs
+        run: /tmp/a35-blender/blender -b -t 2 --factory-startup --python-exit-code 1 --python scripts/author-tyre-trolleys-racks.py
+      - name: Compare contracts and retain exact-byte outcome
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          old=json.loads(Path('/tmp/a35-committed.json').read_text())
+          new=json.loads(Path('src/rendering/tyre-trolleys-racks.manifest.json').read_text())
+          fields=['assetId','revision','sourceSHA256','materials','images','meshes','nodes','templates','sockets','tyreRadius','halfWidths','maxBounds','capacity','casterCount','brakedCasterCount']
+          mismatches=[key for key in fields if old[key]!=new[key]]
+          report={'structuralMismatches':mismatches,'exactGLBReproduced':old['sha256']==new['sha256'],'committedGLB':old['sha256'],'regeneratedGLB':new['sha256'],'blendByteIdentityRequired':False,'publishesChanges':False}
+          Path('a35-reproduction.json').write_text(json.dumps(report,indent=2)+'\n')
+          print(json.dumps(report))
+          assert not mismatches,mismatches
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: a35-authoring-receipt
+          path: a35-reproduction.json
+          if-no-files-found: error
+          retention-days: 7

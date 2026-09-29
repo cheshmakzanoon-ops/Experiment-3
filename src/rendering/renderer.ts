@@ -1,5 +1,10 @@
 import { loadWheelGuns, WheelGunStorage } from './wheel-gun.ts';
 import { measureWheelGunFits } from './wheel-gun-contact.ts';
+import {
+  loadTyreEquipment,
+  installTyreEquipment,
+  type TyreEquipmentKit,
+} from './tyre-trolleys-racks.ts';
 import { loadPitWallStation } from './pit-wall-station.ts';
 import { loadHeroGarage } from './hero-garage.ts';
 import { loadTyreBlankets } from './tyre-blankets.ts';
@@ -141,6 +146,7 @@ export class RacingRenderer {
   private heroShells: HeroShells | null = null;
   private driverAsset: DriverAsset | null = null;
   private suppliedPlayerAsset: SuppliedPlayerAsset | null = null;
+  tyreEquipment: TyreEquipmentKit | null = null;
   wheelGunStorage: WheelGunStorage | null = null;
   private target = new T.Vector3();
   private desired = new T.Vector3();
@@ -324,6 +330,11 @@ export class RacingRenderer {
         label: 'Loading Aurel pit-wall command station',
       });
       renderer.circuit.pitWallStation = await loadPitWallStation(cancelled);
+      // A35 owns its instancing/LODs outside destructive static prop batching.
+      progress({ completed: 0, total: 1, fraction: 0, label: 'Loading Aurel tyre logistics' });
+      renderer.tyreEquipment = await loadTyreEquipment(cancelled);
+      installTyreEquipment(renderer.tyreEquipment, track);
+      renderer.circuit.group.add(renderer.tyreEquipment.root);
       progress({ completed: 0, total: 1, fraction: 0, label: 'Loading A31 authored wheel guns' });
       renderer.pitCrew.installWheelGuns(await loadWheelGuns(cancelled));
       renderer.textures.register(renderer.pitCrew.root);
@@ -806,6 +817,7 @@ export class RacingRenderer {
     if (this.photo) this.camera.rotateZ((this.photo.roll * Math.PI) / 180);
     this.camera.updateProjectionMatrix();
     this.circuit.heroGarage?.update(this.camera, this.quality, illumination);
+    this.tyreEquipment?.update(this.camera, this.quality);
     this.wheelGunStorage?.update(this.camera);
     this.circuit.tyreBlankets?.update(this.camera, this.quality, illumination);
     if (this.circuit.heroGarage)
@@ -1156,7 +1168,10 @@ export class RacingRenderer {
       guide: this.guide.diagnostics(),
       gridPreparation: this.gridPreparation.diagnostics(),
       venueLighting: this.venueLighting.diagnostics(),
-      environmentAssets: this.circuit.environmentDiagnostics(),
+      environmentAssets: {
+        ...this.circuit.environmentDiagnostics(),
+        tyreEquipment: this.tyreEquipment?.diagnostics() ?? null,
+      },
       playerPaint: this.cars[0]
         ? {
             primary: `#${this.cars[0].paint.color.getHexString()}`,
@@ -1240,6 +1255,7 @@ export class RacingRenderer {
     this.heroShells?.dispose();
     this.driverAsset?.dispose();
     this.suppliedPlayerAsset?.dispose();
+    this.tyreEquipment?.dispose();
     if (this.circuit.heroGarage && !this.circuit.heroGarage.root.parent)
       this.circuit.heroGarage.dispose();
     if (this.circuit.pitWallStation && !this.circuit.pitWallStation.root.parent)
