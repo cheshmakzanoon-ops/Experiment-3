@@ -7,6 +7,10 @@ on:
       - .github/workflows/a31-candidate.yml
       - .github/a31-candidate-*.b64
       - .github/a31-apply.py
+      - .github/a31-fixups.py
+concurrency:
+  group: a31-wheel-gun-candidate
+  cancel-in-progress: true
 permissions:
   contents: read
 jobs:
@@ -26,6 +30,7 @@ jobs:
         run: |
           git rev-parse HEAD > "$RUNNER_TEMP/a31-base.txt"
           python .github/a31-apply.py
+          python .github/a31-fixups.py
       - name: Install checksum-pinned Blender
         shell: bash
         run: |
@@ -33,14 +38,15 @@ jobs:
           curl --fail --location --retry 2 --max-time 240 'https://download.blender.org/release/Blender5.2/blender-5.2.2-linux-x64.tar.xz' -o "$RUNNER_TEMP/blender.tar.xz"
           echo '84098912789dc450e95697c4184fb8a90acbe5111c2ba4aede3fecb57806a168  '"$RUNNER_TEMP/blender.tar.xz" | sha256sum --check
           tar -xJf "$RUNNER_TEMP/blender.tar.xz" -C "$RUNNER_TEMP"
-      - name: Regenerate and require the exact locally inspected GLB identity
+      - name: Require exact GLB identity and reopen the actual saved source
         shell: bash
         run: |
           set -euo pipefail
           cp src/rendering/wheel-gun.manifest.json "$RUNNER_TEMP/a31-expected.json"
-          "$RUNNER_TEMP/blender-5.2.2-linux-x64/blender" --background --factory-startup --python scripts/author-wheel-gun.py
+          "$RUNNER_TEMP/blender-5.2.2-linux-x64/blender" --background --factory-startup --python-exit-code 1 --python scripts/author-wheel-gun.py
           python scripts/verify-wheel-gun.py
           cmp "$RUNNER_TEMP/a31-expected.json" src/rendering/wheel-gun.manifest.json
+          "$RUNNER_TEMP/blender-5.2.2-linux-x64/blender" --background --factory-startup --python-exit-code 1 --python scripts/author-wheel-gun.py -- --check-source
       - uses: actions/setup-node@v4
         with:
           node-version: '22.16.0'
