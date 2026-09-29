@@ -44,7 +44,7 @@ jobs:
           JS
           git fetch --no-tags origin 51466782bf02e7e9e98fde53fabdf8fee89afcbf --depth=1
           python <<'PY'
-          import json, os, pathlib, subprocess
+          import json, os, pathlib, re, subprocess
           root=pathlib.Path.cwd(); tmp=pathlib.Path(os.environ['RUNNER_TEMP'])
           p=json.loads((tmp/'a32-payload.json').read_text())
           allowed={'scripts/author-a32-pit-jacks.py','src/rendering/a32-pit-jacks.ts','tests/a32-pit-jacks.test.ts','e2e/a32-pit-jacks.spec.ts','e2e/fixtures/a32-pit-jacks.ts','docs/A32_FRONT_REAR_JACKS.md'}
@@ -54,16 +54,25 @@ jobs:
           before={f:git('rev-parse','HEAD:'+f) for f in sorted(modified|{'.github/workflows/a32-jacks-authoring.yml'})}
           (tmp/'a32-evidence/preimages.json').write_text(json.dumps({'head':git('rev-parse','HEAD'),'blobs':before},indent=2)+'\n')
           (tmp/'a32.patch').write_text(p['patch'])
-          subprocess.run(['git','apply','--3way','--index',str(tmp/'a32.patch')],check=True)
+          applied=subprocess.run(['git','apply','--3way','--index',str(tmp/'a32.patch')])
+          if applied.returncode:
+              conflicts=git('diff','--name-only','--diff-filter=U').splitlines()
+              assert conflicts==['src/rendering/pit-crew.ts'], 'Unexpected shared-file conflict; stop rather than overwrite'
+              f=root/conflicts[0]; text=f.read_text()
+              m=re.match(r'\A<<<<<<< ours\n(.*?)=======\n(.*?)>>>>>>> theirs\n',text,re.S)
+              assert m and m.group(1)=="import { A33WheelBatches, a33GripX } from './a33-spare-wheel-set.ts';\n" and m.group(2)=="import type { A32PitJacks } from './a32-pit-jacks.ts';\n", 'Only the inspected independent import insertion may be combined'
+              text=m.group(1)+m.group(2)+text[m.end():]
+              assert not any(marker in text for marker in ['<<<<<<<','=======','>>>>>>>'])
+              f.write_text(text); subprocess.run(['git','add',str(f)],check=True)
           assert set(git('diff','--cached','--name-only').splitlines())==modified
           for f, text in p['files'].items():
               path=root/f
               assert not path.exists(), 'Candidate path already exists: '+f
               path.write_text(text)
-          print('Applied A32-only candidate; no branch reference updated.')
+          print('Applied A32-only candidate, preserving A33; no branch reference updated.')
           PY
-          gh api "repos/$GITHUB_REPOSITORY/git/blobs/651b2798f52f3779bff3cdc5b30d8fb61b47a6cb" --jq .content | base64 -d > "$RUNNER_TEMP/a32-corrections.patch"
-          echo '0d32eb9dc17c7ad530c1633297ea434906f168e50ae7df24fbfab5662d356d7b  '"$RUNNER_TEMP/a32-corrections.patch" | sha256sum -c
+          gh api "repos/$GITHUB_REPOSITORY/git/blobs/f6331debab5909ace30ac635b6aa633e4a8c8b75" --jq .content | base64 -d > "$RUNNER_TEMP/a32-corrections.patch"
+          echo '642636f0a6aeffa2e06c395ffe1858a2661718fd7a829d84dda5ea1eac82e46e  '"$RUNNER_TEMP/a32-corrections.patch" | sha256sum -c
           git apply "$RUNNER_TEMP/a32-corrections.patch"
       - name: Pinned Blender
         shell: bash
@@ -82,11 +91,11 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - name: Install verified Mesa renderer
         run: sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb
-      - name: Real-circuit A32 browser validation
+      - name: Real-circuit A32 and A33 browser validation
         shell: bash
         run: |
           set -euo pipefail
-          xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e -- e2e/a32-pit-jacks.spec.ts 2>&1 | tee "$RUNNER_TEMP/a32-evidence/browser.log"
+          xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e -- e2e/a32-pit-jacks.spec.ts e2e/a33-spare-wheel-set.spec.ts 2>&1 | tee "$RUNNER_TEMP/a32-evidence/browser.log"
       - name: Retain validated Git objects without changing any branch
         env:
           GH_TOKEN: ${{ github.token }}
@@ -94,7 +103,7 @@ jobs:
         run: |
           set -euo pipefail
           python <<'PY'
-          import base64, hashlib, json, os, pathlib, urllib.request
+          import base64, hashlib, io, json, os, pathlib, re, shutil, urllib.request, zipfile
           tmp=pathlib.Path(os.environ['RUNNER_TEMP']); root=pathlib.Path.cwd()
           p=json.loads((tmp/'a32-payload.json').read_text())
           outputs=['scripts/a32-pit-jacks.blend','public/models/a32-pit-jacks.glb','src/rendering/a32-pit-jacks.manifest.json']
@@ -102,6 +111,33 @@ jobs:
           workflow='.github/workflows/a32-jacks-authoring.yml'
           (root/workflow).write_text(p['finalWorkflow'])
           files=sorted(list(p['files'])+p['modified']+outputs+[workflow])
+          # Retain actual browser evidence, not Blender studio renders or invented results.
+          html=(root/'playwright-report/index.html').read_text()
+          encoded=html.rsplit('data:application/zip;base64,',1)[1].split('</script>',1)[0]
+          reportzip=zipfile.ZipFile(io.BytesIO(base64.b64decode(encoded)))
+          attachments={}
+          def collect(value):
+              if isinstance(value,dict):
+                  if value.get('name','').startswith('a32-') and (value.get('body') or value.get('path')): attachments[value['name']]=value
+                  for child in value.values(): collect(child)
+              elif isinstance(value,list):
+                  for child in value: collect(child)
+          for name in reportzip.namelist():
+              if name.endswith('.json'): collect(json.loads(reportzip.read(name)))
+          survey=json.loads(attachments['a32-real-circuit.json']['body'])
+          evidence=[]
+          for source,destination in [('a32-day-front-contact.png','docs/a32-front-contact.png'),('a32-day-rear-contact.png','docs/a32-rear-contact.png'),('a32-night-service-assembly.png','docs/a32-night-service.png')]:
+              path=attachments[source]['path']; assert re.fullmatch(r'data/[0-9a-f]+\.png',path)
+              assert not (root/destination).exists()
+              shutil.copy2(root/'playwright-report'/path,root/destination)
+              evidence.append({'path':destination,'sha256':hashlib.sha256((root/destination).read_bytes()).hexdigest()}); files.append(destination)
+          clean=lambda text:re.sub(r'\x1b\[[0-9;]*m','',text)
+          checks=clean((tmp/'a32-evidence/check.log').read_text()); browser=clean((tmp/'a32-evidence/browser.log').read_text())
+          unit=re.search(r'Tests\s+(\d+) passed',checks); passed=re.search(r'(\d+) passed \(',browser)
+          assert unit and passed
+          validation={'assetId':'A32','run':os.environ['GITHUB_RUN_ID'],'preimages':json.loads((tmp/'a32-evidence/preimages.json').read_text()),'unitTestsPassed':int(unit.group(1)),'browserTestsPassed':int(passed.group(1)),'lint':'passed','typecheck':'passed','build':'passed','manifest':json.loads((root/outputs[2]).read_text()),'evidence':evidence,'stages':[{'phase':r['phase'],'clock':r['clock'],'height':r['height'],'speed':r['speed'],'jacks':len(r['contacts']),'unreachableArms':r['summary']['unreachableArms'],'maxGripError':r['summary']['maxGripError'],'maxWristError':r['summary']['maxWristError']} for r in survey['stages']],'memoryBefore':survey['before'],'memoryAfter':survey['after'],'heldUploads':[survey['uploads'],survey['pausedUploads']],'rewindRestored':survey['restored'],'frameUnchanged':survey['frameUnchanged'],'waterUnchanged':survey['waterUnchanged'],'glError':survey['glError'],'finalArtApproved':False,'boundary':survey['boundary'],'exportReproduction':'Hosted export is the chosen validated artifact. Local export 8853c1754304d014f062be11eb83a26e2236fc401a6e71f07e9376cc787030bb differs in packing; universal cross-host byte identity is not claimed.'}
+          receiptpath='docs/A32_VALIDATION.json'; assert not (root/receiptpath).exists()
+          (root/receiptpath).write_text(json.dumps(validation,indent=2)+'\n'); files.append(receiptpath)
           objects=[]
           for name in files:
               raw=(root/name).read_bytes()
@@ -111,7 +147,7 @@ jobs:
               with urllib.request.urlopen(request,timeout=120) as response: result=json.load(response)
               assert result['sha']==expected
               objects.append({'path':name,'mode':'100644','type':'blob','sha':expected,'sha256':hashlib.sha256(raw).hexdigest(),'bytes':len(raw)})
-          receipt={'run':os.environ['GITHUB_RUN_ID'],'preimages':json.loads((tmp/'a32-evidence/preimages.json').read_text()),'objects':objects,'check':'passed','browser':'passed','finalArtApproved':False}
+          receipt={'run':os.environ['GITHUB_RUN_ID'],'preimages':validation['preimages'],'objects':objects,'check':'passed','browser':'passed','finalArtApproved':False}
           (tmp/'a32-evidence/receipt.json').write_text(json.dumps(receipt,indent=2)+'\n')
           print(json.dumps(receipt,indent=2))
           PY
@@ -125,7 +161,7 @@ jobs:
           payload=tmp/'a32-payload.json'
           if payload.exists():
               p=json.loads(payload.read_text())
-              for name in list(p['files'])+p['modified']+p['outputs']+['.github/workflows/a32-jacks-authoring.yml']:
+              for name in list(p['files'])+p['modified']+p['outputs']+['.github/workflows/a32-jacks-authoring.yml','docs/A32_VALIDATION.json','docs/a32-front-contact.png','docs/a32-rear-contact.png','docs/a32-night-service.png']:
                   src=pathlib.Path(name)
                   if src.exists():
                       dest=out/'candidate'/name; dest.parent.mkdir(parents=True,exist_ok=True); shutil.copy2(src,dest)
