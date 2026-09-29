@@ -1,4 +1,4 @@
-name: A35 validated publication candidate
+name: A35 validated publication candidate v2
 on:
   push:
     branches: [main]
@@ -18,6 +18,7 @@ jobs:
       APEX_BROWSER_BACKEND: mesa
       LIBGL_ALWAYS_SOFTWARE: 'true'
       GALLIUM_DRIVER: llvmpipe
+      PLAYWRIGHT_JSON_OUTPUT_FILE: a35-browser-results.json
     steps:
       - uses: actions/checkout@v4
         with:
@@ -101,40 +102,44 @@ jobs:
         run: npm run check
       - run: npx playwright install --with-deps chromium
       - run: sudo apt-get update && sudo apt-get install -y xvfb libgl1-mesa-dri libegl-mesa0 mesa-utils
-      - name: A35 startup and actual-circuit views plus A22 and A24 regressions
-        run: xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e -- e2e/a35-tyre-trolleys-racks.spec.ts e2e/43-hero-garage.spec.ts e2e/44-pit-wall-station.spec.ts
-      - name: Upload validated Git objects only; never advance a branch
+      - name: A35 startup and actual-circuit views plus A22, A24 and A33 regressions
+        run: xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e -- e2e/a35-tyre-trolleys-racks.spec.ts e2e/43-hero-garage.spec.ts e2e/44-pit-wall-station.spec.ts e2e/a33-spare-wheel-set.spec.ts --reporter=line,html,json
+      - name: Retain exact validated files and upload blobs; no tree or branch writes
         env:
           A35_TOKEN: ${{ github.token }}
         run: |
           python - <<'PY'
-          import base64, hashlib, json, os, subprocess, time, urllib.request
+          import base64, hashlib, json, os, subprocess, time, urllib.request, urllib.error
           from pathlib import Path
           receipt=json.loads(Path('/tmp/a35-candidate-base.json').read_text())
-          api='https://api.github.com/repos/'+os.environ['GITHUB_REPOSITORY']
-          def post(route,body):
-              request=urllib.request.Request(api+route,data=json.dumps(body).encode(),method='POST',headers={'Authorization':'Bearer '+os.environ['A35_TOKEN'],'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28','Content-Type':'application/json'})
-              for attempt in range(3):
-                  try:
-                      with urllib.request.urlopen(request,timeout=90) as r:return json.load(r)
-                  except Exception:
-                      if attempt==2: raise
-                      time.sleep(2**attempt)
+          report=json.loads(Path('a35-browser-results.json').read_text())
+          stats=report['stats']
+          assert stats['unexpected']==0 and stats['flaky']==0 and stats['skipped']==0,stats
           entries=[]; files={}
           for name in receipt['paths']:
               raw=Path(name).read_bytes()
               sha=hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()
-              remote=post('/git/blobs',{'encoding':'base64','content':base64.b64encode(raw).decode()})
-              assert remote['sha']==sha,name
               entries.append({'path':name,'mode':'100644','type':'blob','sha':sha})
               files[name]={'gitBlob':sha,'sha256':hashlib.sha256(raw).hexdigest(),'bytes':len(raw)}
-          for name in ['.github/workflows/a35-candidate.yml']:
-              entries.append({'path':name,'mode':'100644','type':'blob','sha':None})
-          tree=post('/git/trees',{'base_tree':receipt['baseTree'],'tree':entries})
-          receipt.update({'tree':tree['sha'],'entries':entries,'files':files,'runId':os.environ['GITHUB_RUN_ID'],'validation':{'npmRunCheck':'passed','browserCases':12,'browserRetries':0,'browserBackend':'mesa','finalArtApproved':False}})
+          entries.append({'path':'.github/workflows/a35-candidate.yml','mode':'100644','type':'blob','sha':None})
+          receipt.update({'entries':entries,'files':files,'runId':os.environ['GITHUB_RUN_ID'],'validation':{'npmRunCheck':'passed','browserStats':stats,'browserBackend':'mesa','finalArtApproved':False},'blobsUploaded':False})
+          Path('a35-candidate-receipt.json').write_text(json.dumps(receipt,indent=2)+'\n')
+          subprocess.run(['tar','-czf',os.environ['RUNNER_TEMP']+'/a35-validated-files.tar.gz',*receipt['paths']],check=True)
+          api='https://api.github.com/repos/'+os.environ['GITHUB_REPOSITORY']
+          for name,info in files.items():
+              raw=Path(name).read_bytes()
+              body={'encoding':'base64','content':base64.b64encode(raw).decode()}
+              req=urllib.request.Request(api+'/git/blobs',data=json.dumps(body).encode(),method='POST',headers={'Authorization':'Bearer '+os.environ['A35_TOKEN'],'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28','Content-Type':'application/json'})
+              try:
+                  with urllib.request.urlopen(req,timeout=90) as r: remote=json.load(r)
+              except urllib.error.HTTPError as e:
+                  print('BLOB_UPLOAD_ERROR',name,e.code,e.read().decode());raise
+              assert remote['sha']==info['gitBlob'],name
+              print('A35_BLOB',name,remote['sha'])
+              time.sleep(.3)
+          receipt['blobsUploaded']=True
           Path('a35-candidate-receipt.json').write_text(json.dumps(receipt,indent=2)+'\n')
           print(json.dumps(receipt))
-          subprocess.run(['tar','-czf',os.environ['RUNNER_TEMP']+'/a35-validated-files.tar.gz',*receipt['paths']],check=True)
           PY
       - uses: actions/upload-artifact@v4
         if: always()
@@ -143,6 +148,7 @@ jobs:
           path: |
             a35-candidate-receipt.json
             a35-export-comparison.json
+            a35-browser-results.json
             browser-backend.json
             playwright-report/
             test-results/
