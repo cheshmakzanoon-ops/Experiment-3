@@ -1,0 +1,203 @@
+name: A32 exact delivery publication
+on:
+  push:
+    branches: [main]
+    paths: [.github/workflows/a32-publication.yml]
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: a32-exact-delivery-publication
+  cancel-in-progress: false
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      APEX_BROWSER_BACKEND: mesa
+      LIBGL_ALWAYS_SOFTWARE: 'true'
+      GALLIUM_DRIVER: llvmpipe
+    steps:
+      - name: Prepare an ephemeral encrypted transfer
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m venv "$RUNNER_TEMP/a32-transfer-env"
+          "$RUNNER_TEMP/a32-transfer-env/bin/pip" -q install cryptography
+          "$RUNNER_TEMP/a32-transfer-env/bin/python" - <<'PY'
+          import os,json,base64,urllib.request
+          from pathlib import Path
+          from cryptography.hazmat.primitives.asymmetric import rsa
+          from cryptography.hazmat.primitives import serialization
+          root=Path(os.environ['RUNNER_TEMP'])
+          key=rsa.generate_private_key(public_exponent=65537,key_size=2048)
+          private=root/'a32-transfer-private.pem'
+          private.write_bytes(key.private_bytes(serialization.Encoding.PEM,serialization.PrivateFormat.PKCS8,serialization.NoEncryption()))
+          private.chmod(0o600)
+          public=key.public_key().public_bytes(serialization.Encoding.PEM,serialization.PublicFormat.SubjectPublicKeyInfo).decode()
+          body=json.dumps({'assetId':'A32','runId':os.environ['GITHUB_RUN_ID'],'publicKey':public})+'\n'
+          endpoint='https://api.github.com/repos/'+os.environ['GITHUB_REPOSITORY']+'/contents/.github/a32-transfer-public-key.json'
+          headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'}
+          payload={'message':'build(a32): publish ephemeral transfer public key','content':base64.b64encode(body.encode()).decode(),'branch':'main'}
+          try:
+              with urllib.request.urlopen(urllib.request.Request(endpoint,headers=headers)) as response: existing=json.load(response)
+              payload['sha']=existing['sha']
+          except urllib.error.HTTPError as e:
+              if e.code!=404: raise
+          with urllib.request.urlopen(urllib.request.Request(endpoint,data=json.dumps(payload).encode(),headers=headers,method='PUT')) as response: json.load(response)
+          print('A32 transfer public key ready for run '+os.environ['GITHUB_RUN_ID'])
+          PY
+      - name: Receive and verify the exact delivery archive
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$RUNNER_TEMP/a32-transfer-env/bin/python" - <<'PY'
+          import os,json,base64,urllib.request,urllib.error,urllib.parse,time,hashlib
+          from pathlib import Path
+          from cryptography.hazmat.primitives import serialization,hashes
+          from cryptography.hazmat.primitives.asymmetric import padding
+          from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+          root=Path(os.environ['RUNNER_TEMP']); run=os.environ['GITHUB_RUN_ID']
+          key=serialization.load_pem_private_key((root/'a32-transfer-private.pem').read_bytes(),password=None)
+          endpoint='https://api.github.com/repos/'+os.environ['GITHUB_REPOSITORY']+'/contents/.github/a32-transfer-payload.json?ref=main'
+          headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json'}
+          deadline=time.monotonic()+600
+          while time.monotonic()<deadline:
+              try:
+                  with urllib.request.urlopen(urllib.request.Request(endpoint,headers=headers)) as response: doc=json.load(response)
+                  payload=json.loads(base64.b64decode(doc['content']))
+                  if payload.get('runId')==run: break
+              except urllib.error.HTTPError as e:
+                  if e.code!=404: raise
+              time.sleep(4)
+          else: raise RuntimeError('No A32 transfer received for this run')
+          aes=key.decrypt(base64.b64decode(payload['key']),padding.OAEP(mgf=padding.MGF1(algorithm=hashes.SHA256()),algorithm=hashes.SHA256(),label=None))
+          plain=AESGCM(aes).decrypt(base64.b64decode(payload['nonce']),base64.b64decode(payload['ciphertext']),run.encode())
+          request=json.loads(plain); url=request['url']
+          parsed=urllib.parse.urlparse(url)
+          if parsed.scheme!='https' or not parsed.hostname.endswith('.oaiusercontent.com'): raise RuntimeError('Unexpected transfer provider')
+          print('::add-mask::'+url,flush=True)
+          with urllib.request.urlopen(url,timeout=90) as response: raw=response.read(29406940)
+          expected='bd157797daa9adaef4ab75be1a4328984cfeb8cd7880dfcf621c6a5de5560bef'
+          if len(raw)!=29406939 or hashlib.sha256(raw).hexdigest()!=expected: raise RuntimeError('A32 delivery integrity failure')
+          (root/'a32-original-delivery.zip').write_bytes(raw)
+          (root/'a32-transfer-private.pem').unlink()
+          print('Verified original A32 package: 29406939 bytes, SHA256 '+expected)
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: a32-original-delivery
+          path: ${{ runner.temp }}/a32-original-delivery.zip
+          retention-days: 7
+          compression-level: 0
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Apply only the original A32 delta onto current main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags --depth=1 origin 7760d1c54ae45d5e8bdce86b6987cbeb64f09f75
+          git rev-parse HEAD > "$RUNNER_TEMP/a32-validation-base.txt"
+          python3 - <<'PY'
+          import os,json,zipfile,hashlib
+          from pathlib import Path,PurePosixPath
+          root=Path(os.environ['RUNNER_TEMP'])
+          with zipfile.ZipFile(root/'a32-original-delivery.zip') as z:
+              meta=json.loads(z.read('DELIVERY.json'))
+              if len(meta['sourceFiles'])!=18: raise RuntimeError('Unexpected A32 change scope')
+              for path,digest in meta['sourceFiles'].items():
+                  p=PurePosixPath(path)
+                  if p.is_absolute() or '..' in p.parts: raise RuntimeError('Unsafe A32 path')
+                  if hashlib.sha256(z.read('source/'+path)).hexdigest()!=digest: raise RuntimeError('Original source mismatch: '+path)
+              (root/'a32-original-metadata.json').write_text(json.dumps(meta))
+              (root/'a32-delivery.patch').write_bytes(z.read('a32-front-rear-jacks.patch'))
+          PY
+          git apply --3way --index "$RUNNER_TEMP/a32-delivery.patch"
+          python3 - <<'PY'
+          import os,json,subprocess,hashlib
+          from pathlib import Path
+          root=Path(os.environ['RUNNER_TEMP']); meta=json.loads((root/'a32-original-metadata.json').read_text())
+          paths=subprocess.check_output(['git','diff','--cached','--name-only'],text=True).splitlines()
+          if set(paths)!=set(meta['sourceFiles']): raise RuntimeError('A32 staged scope differs from the delivered patch')
+          shared={'src/rendering/pit-crew.ts','src/rendering/renderer.ts','src/rendering/pit-presentation.ts'}
+          for path,digest in meta['sourceFiles'].items():
+              if path not in shared and hashlib.sha256(Path(path).read_bytes()).hexdigest()!=digest: raise RuntimeError('A32 source bytes changed: '+path)
+          print('Retained all original asset/source bytes; three shared runtime paths use three-way reconciliation.')
+          PY
+          git diff --cached --stat
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Full source validation on reconciled main
+        shell: bash
+        run: set -o pipefail; npm run check 2>&1 | tee "$RUNNER_TEMP/a32-source-check.log"
+      - run: npx playwright install --with-deps chromium
+      - run: sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb
+      - name: Normal application and native-texture assembly browser validation
+        shell: bash
+        run: |
+          set -o pipefail
+          xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e -- e2e/a32-pit-jacks.spec.ts e2e/a32-pit-jacks-offline.spec.ts 2>&1 | tee "$RUNNER_TEMP/a32-browser-check.log"
+      - name: Retain validated Git objects without moving main
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import os,json,base64,hashlib,subprocess,urllib.request,datetime
+          from pathlib import Path
+          root=Path(os.environ['RUNNER_TEMP']); meta=json.loads((root/'a32-original-metadata.json').read_text())
+          paths=list(meta['sourceFiles']); base=(root/'a32-validation-base.txt').read_text().strip()
+          merged=[]
+          for path,digest in meta['sourceFiles'].items():
+              data=Path(path).read_bytes()
+              staged=subprocess.check_output(['git','show',':'+path])
+              if data!=staged: raise RuntimeError('Validated source was mutated after staging: '+path)
+              if hashlib.sha256(data).hexdigest()!=digest: merged.append(path)
+          report={'assetId':'A32','originalLocalCommit':meta['localCommit'],'originalUpstreamBase':meta['upstreamBase'],'validatedBase':base,'runId':int(os.environ['GITHUB_RUN_ID']),'runUrl':'https://github.com/'+os.environ['GITHUB_REPOSITORY']+'/actions/runs/'+os.environ['GITHUB_RUN_ID'],'recordedAt':datetime.datetime.now(datetime.timezone.utc).isoformat(),'originalDeliverySHA256':'bd157797daa9adaef4ab75be1a4328984cfeb8cd7880dfcf621c6a5de5560bef','exactOriginalAssetBytes':True,'reconciledSharedFiles':merged,'sourceValidation':'npm run check passed','browserValidation':'normal application and offline native-texture suites passed','historicalReceipt':'A32_VALIDATION.json records the earlier offline-only, unpushed checkpoint; this receipt records hosted pre-publication validation.','finalArtApproved':False,'externalDeployment':'not performed','phase6ReleaseChoreography':'still outstanding'}
+          publication=Path('docs/A32_PUBLICATION.json'); publication.write_text(json.dumps(report,indent=2)+'\n'); paths.append(str(publication))
+          subprocess.run(['git','add','--',str(publication)],check=True)
+          staged=subprocess.check_output(['git','diff','--cached','--name-only'],text=True).splitlines()
+          if set(staged)!=set(paths): raise RuntimeError('Unexpected files staged for A32 publication')
+          headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28','Content-Type':'application/json'}
+          entries=[]
+          for path in paths:
+              data=Path(path).read_bytes(); expected=hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()
+              req=urllib.request.Request('https://api.github.com/repos/'+os.environ['GITHUB_REPOSITORY']+'/git/blobs',data=json.dumps({'encoding':'base64','content':base64.b64encode(data).decode()}).encode(),headers=headers,method='POST')
+              with urllib.request.urlopen(req,timeout=90) as response: blob=json.load(response)
+              if blob['sha']!=expected: raise RuntimeError('Retained Git blob identity mismatch: '+path)
+              entries.append({'path':path,'mode':'100644','type':'blob','sha':blob['sha'],'sha256':hashlib.sha256(data).hexdigest(),'bytes':len(data)})
+          receipt={'base':base,'runId':os.environ['GITHUB_RUN_ID'],'files':entries,'unpublishedUntilExternalRefUpdate':True}
+          (root/'a32-retained-blobs.json').write_text(json.dumps(receipt,indent=2)+'\n')
+          (root/'a32-ready.patch').write_bytes(subprocess.check_output(['git','diff','--cached','--binary','--full-index']))
+          print(json.dumps(receipt,indent=2))
+          PY
+      - name: Keep validation and failure evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: a32-publication-evidence
+          path: |
+            ${{ runner.temp }}/a32-retained-blobs.json
+            ${{ runner.temp }}/a32-ready.patch
+            ${{ runner.temp }}/a32-validation-base.txt
+            ${{ runner.temp }}/a32-source-check.log
+            ${{ runner.temp }}/a32-browser-check.log
+            test-results/
+            playwright-report/
+            browser-backend.json
+          retention-days: 7
+      - name: Remove private transfer key
+        if: always()
+        shell: bash
+        run: rm -f -- "$RUNNER_TEMP/a32-transfer-private.pem"
