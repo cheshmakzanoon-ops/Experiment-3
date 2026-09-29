@@ -1,0 +1,186 @@
+name: A31 verified wheel-gun publication
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [.github/workflows/a31-publish.yml]
+concurrency:
+  group: a31-wheel-gun-publication
+  cancel-in-progress: false
+permissions:
+  contents: write
+  actions: read
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      APEX_BROWSER_BACKEND: mesa
+      LIBGL_ALWAYS_SOFTWARE: 'true'
+      GALLIUM_DRIVER: llvmpipe
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Require the successful hash-pinned candidate run
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api repos/cheshmakzanoon-ops/Experiment-3/actions/runs/36598980773 > "$RUNNER_TEMP/a31-validation-run.json"
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          r=json.loads(Path(os.environ['RUNNER_TEMP'],'a31-validation-run.json').read_text())
+          assert r['conclusion']=='success' and r['status']=='completed'
+          assert r['head_sha']=='257d8eba0d2b7e615803abcc5038995908cec8df'
+          assert r['repository']['full_name']=='cheshmakzanoon-ops/Experiment-3'
+          print('Verified successful source candidate:',r['id'],r['head_sha'])
+          PY
+      - uses: actions/download-artifact@v4
+        with:
+          name: a31-candidate-evidence
+          run-id: 36598980773
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/a31-validated
+      - name: Apply exact tested binary patch without replacing concurrent work
+        shell: bash
+        run: |
+          set -euo pipefail
+          git rev-parse HEAD > "$RUNNER_TEMP/a31-publication-base.txt"
+          python - <<'PY'
+          import hashlib,json,os,subprocess
+          from pathlib import Path
+          evidence=Path(os.environ['RUNNER_TEMP'],'a31-validated')
+          patches=list(evidence.rglob('a31-candidate.patch'))
+          assert len(patches)==1
+          patch=patches[0]
+          assert hashlib.sha256(patch.read_bytes()).hexdigest()=='25c2c2b1e7bdaa142d59f7408ad6c885aefc8824d9f7820f41bd027b2b4b10c8'
+          owned={'.github/workflows/wheel-gun-authoring.yml','docs/A31_WHEEL_GUN.md','e2e/a31-wheel-gun.spec.ts','e2e/fixtures/a31-wheel-gun.ts','public/models/aurel-wheel-gun.glb','scripts/aurel-wheel-gun.blend','scripts/author-wheel-gun.py','scripts/verify-wheel-gun.py','src/rendering/pit-crew.ts','src/rendering/pit-presentation.ts','src/rendering/renderer.ts','src/rendering/wheel-gun-contact.ts','src/rendering/wheel-gun.manifest.json','src/rendering/wheel-gun.ts','tests/wheel-gun.test.ts'}
+          receipts=list(evidence.rglob('a31-owned.json'));assert len(receipts)==1
+          assert set(json.loads(receipts[0].read_text()))==owned
+          subprocess.run(['git','apply','--3way','--index',str(patch)],check=True)
+          assert not subprocess.check_output(['git','diff','--name-only','--diff-filter=U']).strip()
+          p=Path('.github/workflows/wheel-gun-authoring.yml');s=p.read_text()
+          old='--background --factory-startup --python scripts/author-wheel-gun.py';assert s.count(old)==1
+          s=s.replace(old,'--background --factory-startup --python-exit-code 1 --python scripts/author-wheel-gun.py')
+          anchor='      - name: Independently regenerate without overwriting approved inputs\n';assert s.count(anchor)==1
+          s=s.replace(anchor,'''      - name: Reopen retained source and verify packed material pixels
+                  run: '"$RUNNER_TEMP/blender-5.2.2-linux-x64/blender" --background --factory-startup --python-exit-code 1 --python scripts/author-wheel-gun.py -- --check-source'
+          '''+anchor)
+          p.write_text(s)
+          p=Path('e2e/fixtures/a31-wheel-gun.ts');s=p.read_text()
+          anchor='    }\n    const first = new Float32Array(samples[0]);';assert s.count(anchor)==1
+          extra='''      if (i === 2) {
+                  // Keep the full crew visible; inspect the real tool from both sides.
+                  for (const contactWheel of [0, 1]) {
+                    view.pitCrew.wheelGuns!.socketTransform(contactWheel, 'SOCKET_WHEEL_NUT', gunMatrix);
+                    for (const lateral of [-1, 1]) {
+                      view.camera.position.set(lateral * 0.48, 0.19, -0.16).applyMatrix4(gunMatrix);
+                      view.camera.lookAt(target.set(0, -0.025, -0.155).applyMatrix4(gunMatrix));
+                      view.camera.fov = 49;
+                      view.camera.updateProjectionMatrix();
+                      view.pitCrew.update(frame, view.camera.position, true, 49, 1280 / 720);
+                      view.renderer.info.reset();
+                      view.renderer.render(view.scene, view.camera);
+                      images.push({
+                        name: `contact-wheel-${contactWheel}-side-${lateral < 0 ? 'a' : 'b'}`,
+                        image: canvas.toDataURL('image/png'),
+                        calls: view.renderer.info.render.calls,
+                        triangles: view.renderer.info.render.triangles,
+                      });
+                    }
+                  }
+                }
+          '''
+          s=s.replace(anchor,extra+anchor);p.write_text(s)
+          p=Path('e2e/a31-wheel-gun.spec.ts');s=p.read_text();old='expect(report.images).toHaveLength(5);';assert s.count(old)==1
+          p.write_text(s.replace(old,'expect(report.images).toHaveLength(9);'))
+          temporary={'.github/a31-candidate-0.b64','.github/a31-candidate-1.b64','.github/a31-candidate-2.b64','.github/a31-apply.py','.github/a31-fixups.py','.github/workflows/a31-candidate.yml','.github/workflows/a31-workspace.yml','.github/workflows/a31-publish.yml'}
+          subprocess.run(['git','rm','--ignore-unmatch','--',*sorted(temporary)],check=True)
+          Path(os.environ['RUNNER_TEMP'],'a31-publication-paths.json').write_text(json.dumps({'owned':sorted(owned),'temporary':sorted(temporary)}))
+          PY
+      - name: Install checksum-pinned Blender and verify the retained source
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 2 --max-time 240 'https://download.blender.org/release/Blender5.2/blender-5.2.2-linux-x64.tar.xz' -o "$RUNNER_TEMP/blender.tar.xz"
+          echo '84098912789dc450e95697c4184fb8a90acbe5111c2ba4aede3fecb57806a168  '"$RUNNER_TEMP/blender.tar.xz" | sha256sum --check
+          tar -xJf "$RUNNER_TEMP/blender.tar.xz" -C "$RUNNER_TEMP"
+          python scripts/verify-wheel-gun.py
+          "$RUNNER_TEMP/blender-5.2.2-linux-x64/blender" --background --factory-startup --python-exit-code 1 --python scripts/author-wheel-gun.py -- --check-source
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Format only the changed A31 test files and workflow
+        run: npx prettier --write e2e/fixtures/a31-wheel-gun.ts e2e/a31-wheel-gun.spec.ts .github/workflows/wheel-gun-authoring.yml
+      - name: Full lint, unit and production build gates
+        run: npm run check
+      - run: npx playwright install --with-deps chromium
+      - name: Actual service contact captures and adjacent A22 A24 A33 regression
+        run: xvfb-run -a npx playwright test e2e/a31-wheel-gun.spec.ts e2e/43-hero-garage.spec.ts e2e/44-pit-wall-station.spec.ts e2e/a33-spare-wheel-set.spec.ts
+      - name: Commit only A31 and publish with non-forced concurrent-safe retry
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os,subprocess
+          from pathlib import Path
+          run=os.environ['GITHUB_RUN_ID']
+          p=Path('docs/A31_WHEEL_GUN.md')
+          p.write_text(p.read_text()+f'''\n## Hosted validation receipt\n\nCandidate run `36598980773` passed full lint, TypeScript, the production build, all 1,350 unit tests and 16 browser cases covering A31/A22/A24/A33, with no retries or skips. It reproduced GLB SHA-256 `55be98828d4d84152a2b82edf797315b2fb1ea2c3a16f09ef6a9fd457b9a1b93` exactly and reopened the retained Blender source to verify every packed PBR pixel.\n\nPublication run `{run}` rechecks the saved source, full project checks and the same 16 browser cases against the publication checkout. Its A31 surveys additionally capture both sides of both front-wheel tools; the wide service cameras can be occluded by adjacent crew and are retained as contextual views, not treated as proof of unobstructed hand contact. No crew is hidden for the additional captures. The renderer is hosted Mesa/llvmpipe software rendering, not physical-hardware FPS certification. Final hand-contact art approval remains open.\n\nThe production source/GLB are ordinary Git binaries. Temporary candidate transfer files and write-enabled A31 helper workflows are removed after validation. The retained authoring workflow is read-only.\n''')
+          data=json.loads(Path(os.environ['RUNNER_TEMP'],'a31-publication-paths.json').read_text())
+          subprocess.run(['git','add','--',*data['owned']],check=True)
+          changed=set(subprocess.check_output(['git','diff','--cached','--name-only']).decode().splitlines())
+          assert changed<=set(data['owned']+data['temporary']),changed
+          assert not subprocess.check_output(['git','diff','--name-only','--diff-filter=U']).strip()
+          subprocess.run(['git','diff','--cached','--check'],check=True)
+          print('A31 publication scope:',*sorted(changed),sep='\n')
+          PY
+          git config user.name 'cheshmakzanoon-ops'
+          git config user.email '318354914+cheshmakzanoon-ops@users.noreply.github.com'
+          base="$(git rev-parse HEAD)"
+          git commit -m 'feat(a31): integrate authored wheel-gun with verified pit contact and replay' -m 'Retain editable Blender source, self-contained three-LOD GLB, exact integrity manifest, six contact sockets, instanced service tools and shared worktop placement. Preserve adjacent A22/A24/A33/A34 and all car/physics assets. Validate full project checks and actual day/sunset/rainy-night browser surveys; retain finalArtApproved=false. Remove temporary A31 transfer/publication helpers.'
+          for attempt in 1 2 3; do
+            git fetch origin main
+            latest="$(git rev-parse origin/main)"
+            if [ "$latest" != "$base" ]; then
+              git diff --name-only "$base" "$latest" > "$RUNNER_TEMP/a31-concurrent-paths.txt"
+              git rebase origin/main
+              if grep -Eqv '^(docs/|3dmodels\.md$|README\.md$|\.github/)' "$RUNNER_TEMP/a31-concurrent-paths.txt"; then
+                npm ci --no-audit --no-fund
+                npm run check
+                xvfb-run -a npx playwright test e2e/a31-wheel-gun.spec.ts e2e/43-hero-garage.spec.ts e2e/44-pit-wall-station.spec.ts e2e/a33-spare-wheel-set.spec.ts
+              fi
+              base="$latest"
+            fi
+            if git push origin HEAD:main; then
+              git rev-parse HEAD > "$RUNNER_TEMP/a31-published-commit.txt"
+              git fetch origin main
+              git merge-base --is-ancestor HEAD origin/main
+              git show --stat --oneline HEAD
+              git archive --format=tar.gz HEAD > "$RUNNER_TEMP/a31-published-source.tar.gz"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo 'Concurrent publication did not complete; no forced update attempted.' >&2
+          exit 1
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: a31-publication-evidence
+          path: |
+            scripts/aurel-wheel-gun.blend
+            public/models/aurel-wheel-gun.glb
+            src/rendering/wheel-gun.manifest.json
+            docs/A31_WHEEL_GUN.md
+            playwright-report/
+            test-results/
+            ${{ runner.temp }}/a31-publication-base.txt
+            ${{ runner.temp }}/a31-published-commit.txt
+            ${{ runner.temp }}/a31-published-source.tar.gz
+          retention-days: 7
+          if-no-files-found: error
