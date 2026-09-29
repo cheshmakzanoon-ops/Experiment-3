@@ -18,7 +18,7 @@ jobs:
           node-version: '22.16.0'
           cache: npm
       - run: npm ci
-      - name: Archive source and installed test dependencies, excluding credentials
+      - name: Archive current source and dependencies without credentials
         run: |
           git rev-parse HEAD > a26-workspace-base.txt
           tar --exclude=.git --exclude=playable --exclude=test-results --exclude=playwright-report -czf "$RUNNER_TEMP/a26-workspace.tar.gz" .
@@ -26,5 +26,5 @@ jobs:
         with:
           name: a26-offline-workspace
           path: ${{ runner.temp }}/a26-workspace.tar.gz
-          retention-days: 1
+          retention-days: 3
           if-no-files-found: error
