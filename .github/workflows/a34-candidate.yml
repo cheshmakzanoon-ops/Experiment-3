@@ -51,6 +51,21 @@ jobs:
               assert not Path(name).exists(), 'Another agent already owns '+name
               Path(name).parent.mkdir(parents=True,exist_ok=True)
               Path(name).write_text(text,encoding='utf-8')
+          for patch_sha in ['b15955dba5f268277bb272d27ff65ff70ce9ae9d']:
+              req=urllib.request.Request('https://api.github.com/repos/'+os.environ['GITHUB_REPOSITORY']+'/git/blobs/'+patch_sha,headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json'})
+              with urllib.request.urlopen(req,timeout=60) as r: obj=json.load(r)
+              data=base64.b64decode(obj['content'])
+              assert hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()==patch_sha
+              patch=json.loads(data)
+              assert patch['schema']==1
+              for e in patch['edits']:
+                  assert e['path'] in allowed
+                  p=Path(e['path']); text=p.read_text()
+                  assert hashlib.sha256(text.encode()).hexdigest()==e['beforeSHA256']
+                  assert text.count(e['old'])==1
+                  text=text.replace(e['old'],e['new'])
+                  assert hashlib.sha256(text.encode()).hexdigest()==e['afterSHA256']
+                  p.write_text(text,encoding='utf-8')
           script=Path(os.environ['RUNNER_TEMP'])/'a34-apply.py'
           script.write_text(bundle['apply'],encoding='utf-8')
           subprocess.run(['python',str(script)],check=True)
@@ -81,6 +96,8 @@ jobs:
       - run: npm ci --no-audit --no-fund
       - name: Format only A34 and its narrow integration hooks
         run: npx prettier --write src/rendering/tyre-blankets.ts src/rendering/tyre-blankets.manifest.json tests/tyre-blankets.test.ts e2e/fixtures/tyre-blankets.ts e2e/a34-tyre-blankets.spec.ts src/rendering/circuit.ts src/rendering/renderer.ts
+      - name: A34 early type and focused geometry gate
+        run: npx tsc --noEmit && npm test -- tests/tyre-blankets.test.ts
       - name: Complete lint, unit and production build gate
         run: npm run check
       - name: Khronos glTF validation in a temporary dependency directory
@@ -138,7 +155,11 @@ jobs:
           /usr/bin/python3 - <<'PY'
           from pathlib import Path
           import base64,io
-          from PIL import Image
+          try:
+              from PIL import Image
+          except ImportError:
+              print('No thumbnails: validation stopped before imaging dependencies were installed.')
+              raise SystemExit(0)
           for path in sorted(Path('test-results').rglob('*.png')):
               if 'a34-' not in path.name: continue
               im=Image.open(path).convert('RGB');im.thumbnail((480,270))
