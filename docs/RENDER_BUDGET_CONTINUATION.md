@@ -108,3 +108,44 @@ The five full-race failures, all eight browser shards, existing sample/event
 thresholds, zero retries, physics and successful-artifact publication remain
 independent mandatory gates. A source commit does not claim those gates passed.
 The temporary investigation workflow is removed with the runtime publication.
+
+## Ordered visible-index compaction
+
+Continuation from `ca10afc209fc009ea41aaef36bbe466e2e3bf48a`.
+Read-only hosted investigation `36501936475` isolated the held eight-car main
+pass at 480x300. The restored Low pod samples were 942.5/951.2 ms and cockpit
+samples 1169.9/1168.9 ms. Removing the player diagnostically reduced those scenes
+to about 420–435 ms; removing bump maps or anisotropy did not close the gap.
+These are software-renderer CPU + GPU-wait/readback samples, not device FPS.
+None of the diagnostic material substitutions or object removals is shipped.
+
+The continuation extends conservative static range culling to wholly invisible
+interior blocks. Surviving source indices are copied in original order, including
+transparent sheets. A camera-specific selection never changes vertex attributes,
+skinning, UVs, material shading, winding, LOD policy or the original model. The
+source index and draw range are restored immediately after each main/shadow
+submission. The independent prefix/suffix-only path remains available to tests.
+
+Each used geometry/context owns at most one additional index-only GPU buffer;
+identical selections are not uploaded again. CPU scratch arrays are also bounded
+by the original index count. COPY_WRITE uploads preserve the external binding
+and do not invalidate Three's element/vertex-array cache. Allocation failure
+retains the original range; context loss invalidates handles; teardown removes
+listeners, restores interrupted draws and releases owned buffers once. No new
+vertex buffer, geometry object, material or draw call is introduced by compaction.
+Changed source attributes, deformation, unusual ranges and unsupported materials
+retain the existing conservative fallback.
+
+Nine new unit cases cover exact ordered copies, held reuse, camera changes,
+independent contexts, allocation failure, context restoration and teardown.
+The existing supplied-player pixel oracle retains every original assertion and
+adds a separate compacted comparison. An additional held production-grid oracle
+requires identical HDR channels for pod, cockpit and trackside views, unchanged
+calls and snapshots, fewer submitted cockpit/pod indices and stable warmed
+buffers. It supplements both the early GPU job and complete browser suite; it
+does not replace live race qualification or normal-resolution checks.
+
+Only executed results for the final source establish acceptance. Seven baseline
+browser failures remain open until the unchanged full suite proves otherwise.
+No event threshold, timeout, retry, opponent count, physics clock, visual-quality
+setting or successful-artifact publication condition is relaxed by this change.

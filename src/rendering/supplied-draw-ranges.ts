@@ -1,4 +1,5 @@
 import * as T from 'three';
+import { CompactIndexBuffers } from './compact-index-buffer.ts';
 
 interface RangeBounds {
   index: T.BufferAttribute;
@@ -6,6 +7,10 @@ interface RangeBounds {
   indexVersion: number;
   positionVersion: number;
   boxes: T.Box3[];
+  selected?: Uint8Array;
+  compacted?: Uint32Array;
+  compactedCount?: number;
+  revision: number;
 }
 const TRIANGLES_PER_BLOCK = 128;
 const BLOCK = TRIANGLES_PER_BLOCK * 3;
@@ -14,11 +19,15 @@ const version = (a: T.BufferAttribute | T.InterleavedBufferAttribute) =>
 
 /** Trim only wholly off-frustum prefixes/suffixes of static triangle streams.
  * The remaining contiguous range preserves every index, winding and ordering.
- * No vertices, materials, index buffers or draw calls are added. In particular,
+ * The optional compact path also rejects invisible interior blocks using owned
+ * index-only buffers. No vertices, materials or draw calls are added. In particular,
  * transparent triangles are never sorted, and shadow/mirror cameras own their
  * own range. Original ranges are restored immediately after each submission. */
 export class SuppliedDrawRanges {
   enabled = true;
+  /** Independent prefix/suffix-only baseline for GPU comparison. */
+  compact = false;
+  private readonly buffers = new CompactIndexBuffers();
   private readonly bounds = new Map<T.BufferGeometry, RangeBounds>();
   private readonly restore: (() => void)[] = [];
   private disposed = false;
@@ -27,7 +36,11 @@ export class SuppliedDrawRanges {
   private readonly point = new T.Vector3();
   private submissions = 0;
   private omittedIndices = 0;
-  constructor(bindings: readonly { mesh: T.Mesh; geometries: readonly T.BufferGeometry[] }[]) {
+  constructor(
+    bindings: readonly { mesh: T.Mesh; geometries: readonly T.BufferGeometry[] }[],
+    compact = false,
+  ) {
+    this.compact = compact;
     for (const { mesh, geometries } of bindings) {
       // Skinned, instanced and morphing geometry needs deformation-aware bounds;
       // retain the existing full submission for those paths.
@@ -38,13 +51,24 @@ export class SuppliedDrawRanges {
         after = mesh.onAfterRender;
       const beforeShadow = mesh.onBeforeShadow,
         afterShadow = mesh.onAfterShadow;
-      let held: { geometry: T.BufferGeometry; start: number; count: number } | null = null;
+      let held: {
+        geometry: T.BufferGeometry;
+        index: T.BufferAttribute | null;
+        start: number;
+        count: number;
+      } | null = null;
       const reset = () => {
         if (!held) return;
+        held.geometry.setIndex(held.index);
         held.geometry.setDrawRange(held.start, held.count);
         held = null;
       };
-      const select = (camera: T.Camera, geometry: T.BufferGeometry, material: T.Material) => {
+      const select = (
+        renderer: T.WebGLRenderer,
+        camera: T.Camera,
+        geometry: T.BufferGeometry,
+        material: T.Material,
+      ) => {
         reset();
         if (!this.enabled || this.disposed || camera instanceof T.ArrayCamera) return;
         // Unknown vertex programs or displacement may move an otherwise rejected
@@ -93,14 +117,56 @@ export class SuppliedDrawRanges {
         const lo = Math.min(first * BLOCK, b.index.count);
         const hi = last < first ? lo : Math.min((last + 1) * BLOCK, b.index.count);
         this.submissions++;
+        // Remove wholly invisible interior blocks too, copying surviving source
+        // indices in exactly the same order. No spatial reordering, simplification
+        // or backface guess is made, including on transparent surface sheets.
+        if (this.compact && last > first && typeof renderer.getContext === 'function') {
+          if (!b.selected) b.selected = new Uint8Array(b.boxes.length).fill(2);
+          let changed = false,
+            visibleCount = 0;
+          for (let i = 0; i < b.boxes.length; i++) {
+            const visible =
+              i >= first && i <= last && this.frustum.intersectsBox(b.boxes[i]) ? 1 : 0;
+            if (b.selected[i] !== visible) changed = true;
+            b.selected[i] = visible;
+            if (visible) visibleCount += Math.min(BLOCK, b.index.count - i * BLOCK);
+          }
+          if (visibleCount < hi - lo) {
+            if (!b.compacted) b.compacted = new Uint32Array(b.index.count);
+            if (changed || b.compactedCount !== visibleCount) {
+              let cursor = 0;
+              for (let i = first; i <= last; i++) {
+                if (!b.selected[i]) continue;
+                const end = Math.min((i + 1) * BLOCK, b.index.count);
+                for (let j = i * BLOCK; j < end; j++) b.compacted[cursor++] = b.index.getX(j);
+              }
+              b.compactedCount = visibleCount;
+              b.revision++;
+            }
+            const compacted = this.buffers.get(
+              renderer.getContext(),
+              b,
+              b.compacted,
+              visibleCount,
+              b.revision,
+            );
+            if (compacted) {
+              held = { geometry, index: geometry.index, start, count };
+              geometry.setIndex(compacted);
+              geometry.setDrawRange(0, visibleCount);
+              this.omittedIndices += b.index.count - visibleCount;
+              return;
+            }
+          }
+        }
         this.omittedIndices += b.index.count - (hi - lo);
         if (hi - lo === b.index.count) return;
-        held = { geometry, start, count };
+        held = { geometry, index: geometry.index, start, count };
         geometry.setDrawRange(lo, hi - lo);
       };
       mesh.onBeforeRender = (...args) => {
         before.apply(mesh, args);
-        select(args[2], args[3], args[4]);
+        select(args[0], args[2], args[3], args[4]);
       };
       mesh.onAfterRender = (...args) => {
         reset();
@@ -108,7 +174,7 @@ export class SuppliedDrawRanges {
       };
       mesh.onBeforeShadow = (...args) => {
         beforeShadow.apply(mesh, args);
-        select(args[3], args[4], args[5]);
+        select(args[0], args[3], args[4], args[5]);
       };
       mesh.onAfterShadow = (...args) => {
         reset();
@@ -129,6 +195,9 @@ export class SuppliedDrawRanges {
       position = geometry.getAttribute('position');
     if (
       !index ||
+      index.itemSize !== 1 ||
+      index.normalized ||
+      !(index.array instanceof Uint16Array || index.array instanceof Uint32Array) ||
       index.count < BLOCK * 2 ||
       index.count % 3 ||
       !position ||
@@ -159,6 +228,7 @@ export class SuppliedDrawRanges {
       indexVersion: version(index),
       positionVersion: version(position),
       boxes,
+      revision: 0,
     });
   }
   diagnostics() {
@@ -167,6 +237,7 @@ export class SuppliedDrawRanges {
       geometries: this.bounds.size,
       submissions: this.submissions,
       omittedTriangles: this.omittedIndices / 3,
+      compacted: this.buffers.diagnostics(),
     };
   }
   dispose() {
@@ -174,6 +245,7 @@ export class SuppliedDrawRanges {
     for (const restore of this.restore) restore();
     this.restore.length = 0;
     this.bounds.clear();
+    this.buffers.dispose();
     this.disposed = true;
   }
 }

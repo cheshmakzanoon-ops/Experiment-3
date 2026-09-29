@@ -195,9 +195,13 @@ export async function playerRenderBudget() {
       });
       shot();
       const culled = shot();
+      player.lods!.drawRanges!.compact = false;
       player.lods!.drawRanges!.enabled = true;
       shot();
       const ranged = shot();
+      player.lods!.drawRanges!.compact = true;
+      shot();
+      const compacted = shot();
       budget.configure(256, 2);
       shot();
       const low = shot();
@@ -219,6 +223,8 @@ export async function playerRenderBudget() {
         cullingDelta: delta(shaderWork.pixels, culled.pixels),
         rangeDelta: delta(culled.pixels, ranged.pixels),
         ranged: { ...ranged, pixels: undefined },
+        compactionDelta: delta(ranged.pixels, compacted.pixels),
+        compacted: { ...compacted, pixels: undefined },
         lowMaps,
         original: { ...original, pixels: undefined },
         singlePass: { ...singlePass, pixels: undefined },
@@ -232,6 +238,7 @@ export async function playerRenderBudget() {
       await new Promise((resolve) => setTimeout(resolve, 0));
     }
     const warmed = resourceCount();
+    const compactedWarmed = player.lods!.drawRanges!.diagnostics().compacted;
     for (let i = 0; i < 6; i++) {
       budget.configure(i % 2 ? 1024 : 256, i % 2 ? 16 : 2);
       shot();
@@ -251,6 +258,8 @@ export async function playerRenderBudget() {
       rows,
       warmed,
       reused,
+      compactedWarmed,
+      compactedReused: player.lods!.drawRanges!.diagnostics().compacted,
       mapsRestored,
       sourcesRestored,
       sourceUnchanged: frame.every((v, i) => v === saved[i]),

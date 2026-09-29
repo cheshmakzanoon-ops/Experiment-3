@@ -212,7 +212,7 @@ export class SuppliedPlayerLods {
         this.bindings.push({ mesh: object, geometries });
       });
       if (used.size !== manifest.primitives) fail();
-      this.drawRanges = new SuppliedDrawRanges(this.bindings);
+      this.drawRanges = new SuppliedDrawRanges(this.bindings, true);
     } catch (error) {
       this.dispose();
       throw error;
