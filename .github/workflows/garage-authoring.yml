@@ -1,11 +1,11 @@
 name: Aurel garage asset authoring
 on:
   workflow_dispatch:
-    inputs:
-      author:
-        description: Build and retain the authored garage assets
-        type: boolean
-        default: false
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/garage-authoring.yml
+      - scripts/author-garage.py
 permissions:
   contents: read
 jobs:
@@ -24,12 +24,12 @@ jobs:
           cache: npm
       - run: npm ci --no-audit --no-fund
       - name: Preserve exact development dependencies for offline validation
-        if: ${{ !inputs.author }}
+        if: ${{ hashFiles('scripts/author-garage.py') == '' }}
         run: |
           tar -czf "$RUNNER_TEMP/garage-node-modules.tar.gz" node_modules
           cp package-lock.json "$RUNNER_TEMP/garage-package-lock.json"
       - uses: actions/upload-artifact@v4
-        if: ${{ !inputs.author }}
+        if: ${{ hashFiles('scripts/author-garage.py') == '' }}
         with:
           name: garage-offline-development-dependencies
           path: |
@@ -38,7 +38,7 @@ jobs:
           retention-days: 1
           if-no-files-found: error
       - name: Install pinned Blender
-        if: ${{ inputs.author }}
+        if: ${{ hashFiles('scripts/author-garage.py') != '' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -46,10 +46,10 @@ jobs:
           echo '84098912789dc450e95697c4184fb8a90acbe5111c2ba4aede3fecb57806a168  '"$RUNNER_TEMP/blender.tar.xz" | sha256sum --check
           tar -xJf "$RUNNER_TEMP/blender.tar.xz" -C "$RUNNER_TEMP"
       - name: Author Blender source and game exports
-        if: ${{ inputs.author }}
+        if: ${{ hashFiles('scripts/author-garage.py') != '' }}
         run: '"$RUNNER_TEMP/blender-5.2.2-linux-x64/blender" --background --factory-startup --python scripts/author-garage.py'
       - name: Retain binary Git blobs without changing any branch
-        if: ${{ inputs.author }}
+        if: ${{ hashFiles('scripts/author-garage.py') != '' }}
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
@@ -71,7 +71,7 @@ jobs:
           print(json.dumps(report,indent=2))
           PY
       - uses: actions/upload-artifact@v4
-        if: ${{ inputs.author && always() }}
+        if: ${{ hashFiles('scripts/author-garage.py') != '' && always() }}
         with:
           name: aurel-authored-garage
           path: |
