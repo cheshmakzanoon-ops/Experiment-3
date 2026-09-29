@@ -1,0 +1,106 @@
+name: A31 wheel-gun candidate validation
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/a31-candidate.yml
+      - .github/a31-candidate-*.b64
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      APEX_BROWSER_BACKEND: mesa
+      LIBGL_ALWAYS_SOFTWARE: 'true'
+      GALLIUM_DRIVER: llvmpipe
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Recover hash-pinned isolated source and merge only A31 integration
+        shell: bash
+        run: |
+          set -euo pipefail
+          git rev-parse HEAD > "$RUNNER_TEMP/a31-base.txt"
+          python - <<'PY'
+          import base64, hashlib, json, lzma, os, subprocess
+          from pathlib import Path
+          raw=base64.b64decode(''.join(Path(f'.github/a31-candidate-{i}.b64').read_text().strip() for i in range(3)),validate=True)
+          assert hashlib.sha256(raw).hexdigest()=='d58200ae56b6eb64ca5c571c02217951ac0e09c875d20f944295a3358b691f6a','Candidate transfer hash mismatch'
+          data=json.loads(lzma.decompress(raw))
+          allowed={'scripts/author-wheel-gun.py','scripts/verify-wheel-gun.py','src/rendering/wheel-gun.ts','src/rendering/wheel-gun-contact.ts','src/rendering/wheel-gun.manifest.json','tests/wheel-gun.test.ts','e2e/a31-wheel-gun.spec.ts','e2e/fixtures/a31-wheel-gun.ts','docs/A31_WHEEL_GUN.md','.github/workflows/wheel-gun-authoring.yml'}
+          assert set(data['files'])==allowed
+          for name,text in data['files'].items():
+              p=Path(name)
+              assert not p.exists(),f'A31 path already exists: {name}'
+              p.parent.mkdir(parents=True,exist_ok=True); p.write_text(text)
+          patch=Path(os.environ['RUNNER_TEMP'])/'a31-shared.patch'
+          patch.write_text(data['patch'])
+          subprocess.run(['git','apply','--3way','--index',str(patch)],check=True)
+          Path(os.environ['RUNNER_TEMP'],'a31-owned.json').write_text(json.dumps(sorted(allowed|{'src/rendering/pit-crew.ts','src/rendering/pit-presentation.ts','src/rendering/renderer.ts','scripts/aurel-wheel-gun.blend','public/models/aurel-wheel-gun.glb'})))
+          PY
+      - name: Install checksum-pinned Blender
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 2 --max-time 240 'https://download.blender.org/release/Blender5.2/blender-5.2.2-linux-x64.tar.xz' -o "$RUNNER_TEMP/blender.tar.xz"
+          echo '84098912789dc450e95697c4184fb8a90acbe5111c2ba4aede3fecb57806a168  '"$RUNNER_TEMP/blender.tar.xz" | sha256sum --check
+          tar -xJf "$RUNNER_TEMP/blender.tar.xz" -C "$RUNNER_TEMP"
+      - name: Regenerate and require the exact locally inspected GLB identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp src/rendering/wheel-gun.manifest.json "$RUNNER_TEMP/a31-expected.json"
+          "$RUNNER_TEMP/blender-5.2.2-linux-x64/blender" --background --factory-startup --python scripts/author-wheel-gun.py
+          python scripts/verify-wheel-gun.py
+          cmp "$RUNNER_TEMP/a31-expected.json" src/rendering/wheel-gun.manifest.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Full lint, unit and production build gates
+        run: npm run check
+      - run: npx playwright install --with-deps chromium
+      - name: Actual A31 service and adjacent asset browser regression
+        run: xvfb-run -a npx playwright test e2e/a31-wheel-gun.spec.ts e2e/43-hero-garage.spec.ts e2e/44-pit-wall-station.spec.ts e2e/a33-spare-wheel-set.spec.ts
+      - name: Preserve exact reviewed candidate patch and source
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os,subprocess
+          from pathlib import Path
+          paths=json.loads(Path(os.environ['RUNNER_TEMP'],'a31-owned.json').read_text())
+          subprocess.run(['git','add','--',*paths],check=True)
+          assert not subprocess.check_output(['git','diff','--name-only','--diff-filter=U']).strip()
+          changed=set(subprocess.check_output(['git','diff','--cached','--name-only']).decode().splitlines())
+          assert changed<=set(paths),changed-set(paths)
+          Path(os.environ['RUNNER_TEMP'],'a31-candidate.patch').write_bytes(subprocess.check_output(['git','diff','--cached','--binary','HEAD']))
+          tree=subprocess.check_output(['git','write-tree']).decode().strip()
+          with Path(os.environ['RUNNER_TEMP'],'a31-candidate-source.tar.gz').open('wb') as f:
+              subprocess.run(['git','archive','--format=tar.gz',tree],stdout=f,check=True)
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: a31-candidate-evidence
+          path: |
+            scripts/aurel-wheel-gun.blend
+            public/models/aurel-wheel-gun.glb
+            src/rendering/wheel-gun.manifest.json
+            docs/A31_WHEEL_GUN.md
+            test-results/
+            playwright-report/
+            ${{ runner.temp }}/a31-base.txt
+            ${{ runner.temp }}/a31-owned.json
+            ${{ runner.temp }}/a31-expected.json
+            ${{ runner.temp }}/a31-shared.patch
+            ${{ runner.temp }}/a31-candidate.patch
+            ${{ runner.temp }}/a31-candidate-source.tar.gz
+          retention-days: 7
+          if-no-files-found: error
