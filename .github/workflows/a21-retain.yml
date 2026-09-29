@@ -11,7 +11,7 @@ concurrency:
 jobs:
   candidate:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 35
     permissions:
       contents: write
     env:
@@ -26,15 +26,14 @@ jobs:
         with:
           node-version: '22'
           cache: npm
-      - name: Reconcile validated A21 files with latest concurrent integration
+      - name: Recover A21 and verify the exact reviewed concurrent reconciliation
         env:
           GH_TOKEN: ${{ github.token }}
+        shell: bash
         run: |
           python - <<'PY'
-          import base64,hashlib,json,os,subprocess,urllib.request
+          import base64,hashlib,json,os,re,subprocess,urllib.request
           from pathlib import Path,PurePosixPath
-          # Exact objects retained only after successful full check and 13 browser
-          # cases in run 36591448916. No arbitrary remote program is executed.
           files={
             '.github/workflows/pit-building-authoring.yml':'4921dae5756c9251fde08c9ce9c9218e1a3ebe92',
             '3dmodels.md':'3b054098f5372e48599f9263ff3eb4dc89c478f3',
@@ -52,49 +51,104 @@ jobs:
             'src/rendering/renderer.ts':'45a8507469a6ffffb1347aa34c7f445bbbd7ea30',
             'tests/pit-building-frontage.test.ts':'a3199a089865bc05f8377f7c7546989d10b6cf9b',
             'tests/race-view-continuity.test.ts':'d55ccfbac41dd2720b53b2d4e67ac44fa83a905d'}
-          base={
+          ancestor={
             '3dmodels.md':'4c2b00206a0abd20300b9dc2d946bd2813d71cd7',
             'docs/ASSET_PROVENANCE.md':'d8819d224b9409076fcca4803b1346d5e8d848b9',
             'src/rendering/circuit.ts':'43875eceedfc4d22031b73d5fec6f8624ede6431',
             'src/rendering/renderer.ts':'937ba6aae892906a480b82ef2e38f040a5085e1f',
             'tests/race-view-continuity.test.ts':'5fc91041f65134ee4ef875f8d3c0f4887acda2fe'}
+          before={
+            '3dmodels.md':'825520ff530cee32c529225935f42387e986b6c9',
+            'docs/ASSET_PROVENANCE.md':'fa19c60e6fa6401249899370b601715e28db4fcf',
+            'src/rendering/circuit.ts':'0dc421cfa4e60f5a6b7eedd5a4595e383f3582f9',
+            'src/rendering/renderer.ts':'898c93fbbda932e53a611bf48d9c3328b433bb22',
+            'tests/race-view-continuity.test.ts':'5fc91041f65134ee4ef875f8d3c0f4887acda2fe'}
+          expected={**files,
+            '3dmodels.md':'99c46bbd74bf737f63a3534182de6ea9e6af7665',
+            'docs/A21_HERO_PIT_BUILDING.md':'662ff7294e77d43efe117bd33e48ad230e7bedd8',
+            'docs/ASSET_PROVENANCE.md':'5a2d8ef0ad82d53d435d2caf0021d2414c0d5980',
+            'e2e/45-a21-pit-building-frontage.spec.ts':'ffba0bc63b86ae167daab7a9ad932e3758ac0e0f',
+            'src/rendering/circuit.ts':'bc9e4c9bd5f592655a0ab73c4f01068f7882fef5',
+            'src/rendering/renderer.ts':'55cadeb7ca289a7b93630053a79d937657ace792',
+            'tests/race-view-continuity.test.ts':'d55ccfbac41dd2720b53b2d4e67ac44fa83a905d'}
           def gitsha(data):
               return hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()
           def fetch(sha):
               request=urllib.request.Request('https://api.github.com/repos/'+os.environ['GITHUB_REPOSITORY']+'/git/blobs/'+sha,headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json'})
-              with urllib.request.urlopen(request,timeout=90) as response: result=json.load(response)
-              data=base64.b64decode(result['content'])
+              with urllib.request.urlopen(request,timeout=90) as response: value=json.load(response)
+              data=base64.b64decode(value['content'])
               assert gitsha(data)==sha
               return data
-          before={name:gitsha(Path(name).read_bytes()) for name in base}
+          tracked=subprocess.check_output(['git','ls-files','-z']).decode().split('\0')
+          protected={n:gitsha(Path(n).read_bytes()) for n in tracked if n and n not in before}
+          for name,sha in before.items():
+              assert gitsha(Path(name).read_bytes())==sha, 'Concurrent baseline changed: '+name
           temporary=Path(os.environ['RUNNER_TEMP'])
           for name,sha in files.items():
               path=PurePosixPath(name)
               assert not path.is_absolute() and '..' not in path.parts and '.git' not in path.parts
-              data=fetch(sha)
-              target=Path(name)
-              if name in base:
-                  ancestor=temporary/'a21-base';incoming=temporary/'a21-incoming'
-                  ancestor.write_bytes(fetch(base[name]));incoming.write_bytes(data)
-                  result=subprocess.run(['git','merge-file','-p',str(target),str(ancestor),str(incoming)],capture_output=True)
-                  if result.returncode:
-                      print(result.stdout.decode(errors='replace'))
-                      raise RuntimeError('A21 conflict requires explicit reconciliation: '+name)
-                  target.write_bytes(result.stdout)
+              target=Path(name);data=fetch(sha)
+              if name in ancestor:
+                  old=temporary/'a21-base';incoming=temporary/'a21-incoming'
+                  old.write_bytes(fetch(ancestor[name]));incoming.write_bytes(data)
+                  result=subprocess.run(['git','merge-file','-p',str(target),str(old),str(incoming)],capture_output=True)
+                  assert result.returncode in (0,1,2,3), result.stderr
+                  def resolve(match):
+                      left,right=match.group(1),match.group(2)
+                      assert name in ('docs/ASSET_PROVENANCE.md','src/rendering/circuit.ts','src/rendering/renderer.ts')
+                      if name.endswith('circuit.ts') and '[this.heroGarage?.root' in left:
+                          return '          [\n            this.heroGarage?.root,\n            this.tyreBlankets?.root,\n            this.pitWallStation?.root,\n            this.pitBuildingFrontage?.root,\n          ].filter(\n'
+                      return left+right
+                  text=re.sub(r'^<<<<<<< [^\n]*\n(.*?)^=======\n(.*?)^>>>>>>> [^\n]*\n',resolve,result.stdout.decode(),flags=re.M|re.S)
+                  assert not re.search(r'^(<<<<<<<|=======|>>>>>>>)',text,re.M)
+                  if name.endswith('circuit.ts'):
+                      text=text.replace('          ].filter(\n            (o): o is T.Group => !!o,\n          ),','          ].filter((o): o is T.Group => !!o),')
+                  target.write_text(text)
               else:
                   assert not target.exists(), 'A21 path already exists: '+name
                   target.parent.mkdir(parents=True,exist_ok=True);target.write_bytes(data)
-          assert hashlib.sha256(Path('public/models/aurel-hero-pit-building-frontage.glb').read_bytes()).hexdigest()=='e9f4710bd48b8e6d3d1aa4a09e5341ec0a568d56e0e08169333da77033723f6f'
-          Path('a21-candidate.json').write_text(json.dumps({'baseCommit':'5dff567a03dd478e418c3fee2fff4317148ba422','validatedSource':'c29d8cfd45cc07b49959c2a616f470e032d0bfa2','preMergeBlobSHA':before,'files':list(files)},indent=2)+'\n')
-          print('Verified and reconciled A21 files without restoring old shared snapshots')
+          path=Path('e2e/45-a21-pit-building-frontage.spec.ts');text=path.read_text()
+          marker="  await page.selectOption('#mode', 'practice');"
+          addition="""  // A21 is integrated on top of the concurrent A31/A33/A34 work, not an old
+            // renderer snapshot. Check all neighboring runtime registrations together.
+            const neighbors = (state: typeof loaded) => {
+              expect(state.renderer?.pitPersonnel.wheelGuns).toMatchObject({ assetId: 'A31' });
+              expect(state.renderer?.pitPersonnel.spareWheels).toMatchObject({ assetId: 'A33' });
+              expect(state.renderer?.environmentAssets.garage?.spareWheels).toMatchObject({
+                assetId: 'A33',
+                instances: 4,
+              });
+              expect(state.renderer?.environmentAssets.tyreBlankets).toMatchObject({
+                assetId: 'A34',
+                loaded: true,
+                heatingSimulation: false,
+              });
+            };
+            neighbors(loaded);
+          """
+          # YAML block indentation is removed before Python parses this string.
+          assert text.count(marker)==1
+          path.write_text(text.replace(marker,addition+marker).replace('  const paused = await read();','  const paused = await read();\n  neighbors(paused);'))
+          path=Path('docs/A21_HERO_PIT_BUILDING.md');text=path.read_text()
+          addition='### Resumed concurrent integration\n\nThe interrupted candidate is reconciled with `6994593659cc64f1420b1ce47cebb53e17acf164`, which includes A31 wheel guns, A33 spare wheels and A34 tyre blankets. The shared renderer retains their imports, loading, worktop storage, blanket/wheel alignment, updates and disposal. A21 startup assertions check these registrations both before practice entry and after pausing. The A31/A33/A34 asset payloads, authoring files, tests and simulation code are not replaced.\n\nPublication includes only A21-owned files and the five listed shared-file changes. The temporary A21 candidate workflow is removed in the final commit; other agents\' workflow files remain untouched. Validation reports identify the exact source and candidate blob hashes rather than claiming an old candidate is the current `main`.\n\n'
+          path.write_text(text.replace('## Remaining acceptance',addition+'## Remaining acceptance'))
+          for name,sha in expected.items():
+              actual=gitsha(Path(name).read_bytes())
+              assert actual==sha, 'Reviewed output differs: '+name+' '+actual+' != '+sha
+          for name,sha in protected.items():
+              assert gitsha(Path(name).read_bytes())==sha, 'Unrelated file changed: '+name
+          Path('a21-candidate.json').write_text(json.dumps({'baseCommit':'6994593659cc64f1420b1ce47cebb53e17acf164','preMergeBlobSHA':before,'files':list(files),'expectedBlobs':expected,'protectedBlobs':protected},indent=2)+'\n')
+          print('Exact A21 reconciliation verified; protected files:',len(protected))
           PY
-      - run: npm ci --no-audit --no-fund
-      - run: npm run check
+      - name: Full lint, unit tests and build
+        shell: bash
+        run: set -o pipefail; npm ci --no-audit --no-fund && npm run check 2>&1 | tee a21-check.log
       - run: npx playwright install --with-deps chromium
       - run: sudo apt-get update && sudo apt-get install -y xvfb libgl1-mesa-dri libegl-mesa0 mesa-utils
-      - name: A21 four lighting surveys, startup, retained A22/A24, and A33 integration
-        run: xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e -- e2e/45-a21-pit-building-frontage.spec.ts e2e/43-hero-garage.spec.ts e2e/44-pit-wall-station.spec.ts e2e/a33-spare-wheel-set.spec.ts
-      - name: Retain verified Git objects without updating any branch
+      - name: A21, A22, A24, A31, A33 and A34 browser regressions
+        shell: bash
+        run: set -o pipefail; xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e -- e2e/45-a21-pit-building-frontage.spec.ts e2e/43-hero-garage.spec.ts e2e/44-pit-wall-station.spec.ts e2e/a31-wheel-gun.spec.ts e2e/a33-spare-wheel-set.spec.ts e2e/a34-tyre-blankets.spec.ts 2>&1 | tee a21-browser.log
+      - name: Retain verified Git objects without updating a branch
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -106,9 +160,10 @@ jobs:
           report={'source':os.environ['GITHUB_SHA'],'baseCommit':candidate['baseCommit'],'preMergeBlobSHA':candidate['preMergeBlobSHA'],'files':{},'branchUpdated':False}
           for name in names:
               data=Path(name).read_bytes()
+              sha=hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()
+              assert sha==candidate['expectedBlobs'][name]
               request=urllib.request.Request('https://api.github.com/repos/'+os.environ['GITHUB_REPOSITORY']+'/git/blobs',data=json.dumps({'content':base64.b64encode(data).decode(),'encoding':'base64'}).encode(),method='POST',headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','Content-Type':'application/json'})
               with urllib.request.urlopen(request,timeout=90) as response: result=json.load(response)
-              sha=hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()
               assert result['sha']==sha
               report['files'][name]={'blob':sha,'bytes':len(data),'sha256':hashlib.sha256(data).hexdigest()}
           Path('a21-retained-blobs.json').write_text(json.dumps(report,indent=2)+'\n')
@@ -124,6 +179,8 @@ jobs:
             a21-retained-blobs.json
             a21-validated-source.tar.gz
             a21-candidate.json
+            a21-check.log
+            a21-browser.log
             playwright-report/
             test-results/
           retention-days: 7
