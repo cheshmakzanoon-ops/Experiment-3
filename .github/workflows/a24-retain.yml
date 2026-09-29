@@ -69,6 +69,21 @@ jobs:
           tar -xJf "$RUNNER_TEMP/blender.tar.xz" -C "$RUNNER_TEMP"
       - name: Author editable source and reproduce runtime model
         run: '"$RUNNER_TEMP/blender-5.2.2-linux-x64/blender" --background --factory-startup --python scripts/author-pit-wall.py'
+      - name: Preserve exported sections for cross-host comparison
+        run: |
+          python - <<'PY'
+          import hashlib,json,struct
+          from pathlib import Path
+          b=Path('public/models/aurel-pit-wall-command-station.glb').read_bytes()
+          n=struct.unpack_from('<I',b,12)[0]
+          d=json.loads(b[20:20+n])
+          Path('a24-export-document.json').write_text(json.dumps(d,indent=2)+'\n')
+          binary=b[28+n:]
+          print('GLB',len(b),'JSON',n,'BIN',len(binary),'BIN SHA256',hashlib.sha256(binary).hexdigest())
+          for i,v in enumerate(d['bufferViews']):
+              x=binary[v.get('byteOffset',0):v.get('byteOffset',0)+v['byteLength']]
+              print(i,v.get('byteOffset',0),v['byteLength'],hashlib.sha256(x).hexdigest())
+          PY
       - name: Verify independently authored export
         run: |
           python - <<'PY'
@@ -116,6 +131,10 @@ jobs:
           path: |
             a24-retained-blobs.json
             a24-candidate-source.tar.gz
+            a24-export-document.json
+            scripts/aurel-pit-wall-command-station.blend
+            public/models/aurel-pit-wall-command-station.glb
+            src/rendering/pit-wall-station.manifest.json
             playwright-report/
             test-results/
           retention-days: 7
