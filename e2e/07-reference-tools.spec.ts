@@ -174,6 +174,11 @@ test('reference tools: race and replay photo transitions freeze the displayed fr
   await expect
     .poll(async () => (await diag(page)).frame![carBase(0) + F.SPEED], { timeout: 90000 })
     .toBeGreaterThan(8);
+  // Reaching 8 m/s does not guarantee enterReplay's one-second recording minimum.
+  // Wait on recorded simulation time before pausing, not wall time or car speed.
+  await expect
+    .poll(async () => (await diag(page)).replaySeconds, { timeout: 90000 })
+    .toBeGreaterThan(1);
   await page.keyboard.press('Escape');
   await page.getByRole('button', { name: 'PHOTO STUDIO', exact: true }).click();
   await expect.poll(async () => (await diag(page)).state).toBe('photo');

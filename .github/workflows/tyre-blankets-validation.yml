@@ -1,0 +1,63 @@
+name: A34 integration and replay validation
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/tyre-blankets-validation.yml
+      - src/rendering/tyre-blankets*
+      - public/models/aurel-tyre-blankets-and-controllers.glb
+      - tests/tyre-blankets.test.ts
+      - e2e/a34-tyre-blankets.spec.ts
+      - e2e/fixtures/tyre-blankets.ts
+      - e2e/07-reference-tools.spec.ts
+permissions:
+  contents: read
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      APEX_BROWSER_BACKEND: mesa
+      LIBGL_ALWAYS_SOFTWARE: 'true'
+      GALLIUM_DRIVER: llvmpipe
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Lint, unit tests, types and production build
+        run: npm run check
+      - run: npx playwright install --with-deps chromium
+      - name: Install software graphics and virtual display
+        run: sudo apt-get install -y xvfb libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils
+      - name: Repeat real photo/replay transitions without retries
+        run: >-
+          xvfb-run -a -s '-screen 0 1920x1080x24'
+          npm run test:e2e -- e2e/07-reference-tools.spec.ts
+          --grep 'race and replay photo transitions'
+          --repeat-each=3 --retries=0 --reporter=line
+          --output=test-results/a34-replay
+      - name: A34 and neighbouring garage assets in the actual circuit
+        run: >-
+          xvfb-run -a -s '-screen 0 1920x1080x24'
+          npm run test:e2e -- e2e/a34-tyre-blankets.spec.ts
+          e2e/a33-spare-wheel-set.spec.ts e2e/43-hero-garage.spec.ts
+          e2e/44-pit-wall-station.spec.ts --retries=0 --reporter=line
+          --output=test-results/a34-assets
+      - name: Require validation to leave tracked source and assets unchanged
+        run: git diff --exit-code
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: a34-integration-and-replay-evidence
+          path: |
+            test-results/a34-replay/
+            test-results/a34-assets/
+            browser-backend.json
+          retention-days: 7
+          if-no-files-found: error
