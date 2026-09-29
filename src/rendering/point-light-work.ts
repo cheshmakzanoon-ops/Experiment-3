@@ -29,6 +29,25 @@ export function guardZeroPointLights(source: string) {
   );
 }
 
+/** The physical direct-light body contains arithmetic only: shadow/texture
+ * sampling already happened in its caller. Exact-zero incident radiance cannot
+ * change any diffuse, specular, coat or sheen accumulator. Keeping this guard
+ * inside the function leaves all texture derivatives and source-light setup
+ * untouched, including finite-distance cutoff and fully shadowed fragments. */
+export function guardZeroDirectRadiance(source: string) {
+  const marker = 'void RE_Direct_Physical(';
+  const start = source.indexOf(marker);
+  if (start < 0) return source;
+  const brace = source.indexOf('{', start);
+  if (brace < 0 || source.indexOf(marker, start + marker.length) >= 0)
+    throw new Error('Unsupported physical direct-light shader layout');
+  return (
+    source.slice(0, brace + 1) +
+    '\nif (apexPointLightWork && all(equal(directLight.color, vec3(0.0)))) return;' +
+    source.slice(brace + 1)
+  );
+}
+
 export function installPointLightWork(material: T.Material) {
   if (!(material instanceof T.MeshStandardMaterial) || controls.has(material)) return;
   const control = { value: true };
@@ -38,15 +57,17 @@ export function installPointLightWork(material: T.Material) {
   material.onBeforeCompile = (shader, renderer) => {
     previous.call(material, shader, renderer);
     const original = shader.fragmentShader;
-    const expanded = original.replace(
-      '#include <lights_fragment_begin>',
-      T.ShaderChunk.lights_fragment_begin,
-    );
-    const guarded = guardZeroPointLights(expanded);
+    const expanded = original
+      .replace('#include <lights_fragment_begin>', T.ShaderChunk.lights_fragment_begin)
+      .replace(
+        '#include <lights_physical_pars_fragment>',
+        T.ShaderChunk.lights_physical_pars_fragment,
+      );
+    const guarded = guardZeroDirectRadiance(guardZeroPointLights(expanded));
     if (guarded === expanded) return; // A custom material owns a different lighting path.
     shader.fragmentShader = 'uniform bool apexPointLightWork;\n' + guarded;
     shader.uniforms.apexPointLightWork = control;
   };
-  material.customProgramCacheKey = () => key + '|exact-zero-point-light-v1';
+  material.customProgramCacheKey = () => key + '|exact-zero-radiance-v2';
   material.needsUpdate = true;
 }

@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import * as T from 'three';
 import {
   guardZeroPointLights,
+  guardZeroDirectRadiance,
   installPointLightWork,
   pointLightWorkControl,
 } from '../src/rendering/point-light-work.ts';
@@ -17,6 +18,32 @@ const compile = (m: T.Material) => {
 };
 
 describe('exact-zero point-light shader work', () => {
+  it('skips only the arithmetic direct body for exact-zero incident radiance', () => {
+    const source = T.ShaderChunk.lights_physical_pars_fragment;
+    const branch = '\nif (apexPointLightWork && all(equal(directLight.color, vec3(0.0)))) return;';
+    const guarded = guardZeroDirectRadiance(source);
+    expect(guarded.replace(branch, '')).toBe(source);
+    expect(guarded.split(branch)).toHaveLength(2);
+    expect(guarded.indexOf(branch)).toBeGreaterThan(guarded.indexOf('void RE_Direct_Physical('));
+    expect(guarded.indexOf(branch)).toBeLessThan(
+      guarded.indexOf(
+        'vec3 irradiance = dotNL * directLight.color;',
+        guarded.indexOf('void RE_Direct_Physical('),
+      ),
+    );
+    const start = source.indexOf('void RE_Direct_Physical(');
+    const body = source.slice(start, source.indexOf('void RE_IndirectDiffuse_Physical(', start));
+    expect(body).not.toMatch(/texture|dFdx|dFdy|fwidth/);
+    expect(guardZeroDirectRadiance('custom shader')).toBe('custom shader');
+  });
+  it('retains both controls together in the same compiled physical shader', () => {
+    const material = new T.MeshPhysicalMaterial();
+    installPointLightWork(material);
+    const shader = compile(material);
+    expect(shader.fragmentShader).toContain('all(equal(directLight.color, vec3(0.0)))');
+    expect(shader.fragmentShader).toContain('any(notEqual(pointLight.color, vec3(0.0)))');
+    expect(shader.uniforms.apexPointLightWork).toBe(pointLightWorkControl(material));
+  });
   it('guards only the point loop without changing its calculations or other light types', () => {
     const source = T.ShaderChunk.lights_fragment_begin;
     const result = guardZeroPointLights(source);

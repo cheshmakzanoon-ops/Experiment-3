@@ -152,18 +152,23 @@ setting or successful-artifact publication condition is relaxed by this change.
 
 ## Zero-radiance point-light work
 
-The production scene retains four point-light slots even in daylight. The
-locked Three.js lighting chunk still evaluates their attenuation and physical
-BRDF when their RGB radiance is exactly zero. A uniform branch now excludes only
-that exact-zero calculation; every nonzero value, including arbitrarily faint
-or signed components, runs the original complete body. Light count, positions,
-intensities, falloff, shadows, material adjustments and night transitions are
-unchanged. No approximate cutoff or image-quality setting is introduced.
+Daylight hides the venue lights; it does not submit four zero-intensity point
+lights to the renderer. Sunset/night retain four visible slots, with at least
+the boundary slot at exactly zero intensity. The locked Three.js lighting chunk
+still evaluates a submitted zero-radiance slot's attenuation and physical BRDF.
+A uniform branch excludes only that exact-zero calculation. Separately, an
+exact-zero incident-radiance guard inside the arithmetic-only physical direct
+function skips zero diffuse/specular/coat/sheen contributions after the caller
+has already computed attenuation and shadows. This preserves all texture and
+shadow sampling, including their derivatives. Every nonzero component, however
+faint or signed, executes the original body. Light count, positions, intensities,
+falloff, material adjustments and transitions are unchanged. No approximate
+cutoff, facing-angle test or image-quality setting is introduced.
 
 Installation occurs with the existing scene-wide weather/material setup, with
 idempotent per-material ownership and an independent same-program opt-out.
 Standard/physical materials are eligible; custom lighting programs are left
-untouched. Six focused unit tests retain the original unrolled calculation,
+untouched. Eight focused unit tests retain the original unrolled calculation,
 custom road-lobe work, hook chaining and exact-zero boundary. The full-scene
 GPU fixture additionally compares every HDR channel with the branch disabled
 and enabled under day, sunset and night, preserving active night lights and
