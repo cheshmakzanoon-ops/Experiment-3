@@ -1,0 +1,530 @@
+{
+  "assetId": "A26",
+  "revision": "aurel-overhead-service-rig-r01",
+  "runId": 36637889921,
+  "sourceBaseline": "6071a3454a401bdc6b4fef7a67821580b7a4ab8a",
+  "unitTests": 1371,
+  "unitFiles": 142,
+  "lint": "passed",
+  "typecheck": "passed",
+  "productionBuild": "passed",
+  "browserStats": {
+    "startTime": "2026-09-29T22:15:59.472Z",
+    "duration": 862720.7019999999,
+    "expected": 9,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "backend": {
+    "requested": "swiftshader",
+    "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+    "vendor": "Google Inc. (Google)",
+    "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+    "pixel": [
+      64,
+      128,
+      191,
+      255
+    ],
+    "error": 0,
+    "softwareRendererDetected": true,
+    "physicalHardwareValidated": false
+  },
+  "glbSHA256": "bb1ddeeb93f563056d15ccfe8525ea9203a4e7cd87721186b959489050d66424",
+  "glbBytes": 4275788,
+  "blendSHA256": "442ae018355a3ee181d8983f5db7e7b1598a406e9d788adcf65dfd9f339a753d",
+  "triangles": {
+    "0": 37932,
+    "1": 19632,
+    "2": 3264
+  },
+  "localExportSHA256": "e9910a3392beb9534ff4c76cadaaa282dbe599c30937e74c4dd89176720c5068",
+  "exportMatchesLocalBytes": false,
+  "crossHostByteIdenticalClaim": false,
+  "centralPassageIntersections": 0,
+  "a35PlacementEnvelopeIntersections": 0,
+  "a35PlacementBaseline": "a5f420a88e42fced894dae3f92ffbcad1541333c",
+  "powerStationRiseMetres": 0.65,
+  "conditions": {
+    "wet-night": {
+      "lighting": "night",
+      "wet": true,
+      "images": [
+        {
+          "view": "entrance-services",
+          "addedCalls": 8,
+          "triangles": 2374782
+        },
+        {
+          "view": "reels",
+          "addedCalls": 8,
+          "triangles": 2360234
+        },
+        {
+          "view": "rear-to-front",
+          "addedCalls": 8,
+          "triangles": 2574534
+        },
+        {
+          "view": "move-6",
+          "addedCalls": 0,
+          "triangles": 52060286
+        },
+        {
+          "view": "move-12",
+          "addedCalls": 0,
+          "triangles": 66358834
+        }
+      ],
+      "errors": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "before": {
+        "geometries": 1113,
+        "textures": 95
+      },
+      "after": {
+        "geometries": 1113,
+        "textures": 95
+      },
+      "lights": 8,
+      "garage": {
+        "assetId": "A22",
+        "overheadServices": {
+          "assetId": "A26",
+          "revision": "aurel-overhead-service-rig-r01",
+          "sha256": "bb1ddeeb93f563056d15ccfe8525ea9203a4e7cd87721186b959489050d66424",
+          "loaded": true,
+          "attached": true,
+          "lod": 0,
+          "triangles": 37932,
+          "sockets": [
+            "SOCKET_A26_REEL_1",
+            "SOCKET_A26_AIR_DROP",
+            "SOCKET_A26_REEL_2",
+            "SOCKET_A26_FLUID_DROP",
+            "SOCKET_A26_REEL_3",
+            "SOCKET_A26_POWER_DROP",
+            "SOCKET_A26_FRONT_SERVICE",
+            "SOCKET_A26_REAR_SERVICE"
+          ],
+          "lightingHousings": 8,
+          "reels": 3,
+          "finalArtApproved": false
+        },
+        "spareWheels": {
+          "assetId": "A33",
+          "revision": "aurel-a33-r01",
+          "finalArtApproved": false,
+          "instances": 4,
+          "capacity": 4,
+          "activeBatches": 1,
+          "lodCounts": [
+            4,
+            0,
+            0
+          ],
+          "triangles": 48192,
+          "atlasBytes": 393216
+        },
+        "revision": "aurel-garage-r01",
+        "sha256": "653b922595533be6cda5bda1f96b90e738d6eac3f403e0dc37f6437f30383ff0",
+        "bay": 5,
+        "lod": 0,
+        "triangles": 39444,
+        "sockets": [
+          "SOCKET_CAR",
+          "SOCKET_FRONT_JACK",
+          "SOCKET_TYRE_FL",
+          "SOCKET_TYRE_FR",
+          "SOCKET_TYRE_RL",
+          "SOCKET_TYRE_RR",
+          "SOCKET_ENGINEER_01",
+          "SOCKET_ENGINEER_02",
+          "SOCKET_CREW"
+        ],
+        "loaded": true,
+        "finalArtApproved": false
+      },
+      "sourceUnchanged": true,
+      "waterUnchanged": true,
+      "boundary": "Actual CircuitScene scripted moving survey; no cockpit repair, driven lap or physical-hardware certification."
+    },
+    "sunset": {
+      "lighting": "sunset",
+      "wet": false,
+      "images": [
+        {
+          "view": "entrance-services",
+          "addedCalls": 8,
+          "triangles": 2373990
+        },
+        {
+          "view": "reels",
+          "addedCalls": 8,
+          "triangles": 2359442
+        },
+        {
+          "view": "rear-to-front",
+          "addedCalls": 8,
+          "triangles": 2573742
+        },
+        {
+          "view": "move-6",
+          "addedCalls": 0,
+          "triangles": 52043654
+        },
+        {
+          "view": "move-12",
+          "addedCalls": 0,
+          "triangles": 66337450
+        }
+      ],
+      "errors": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "before": {
+        "geometries": 1113,
+        "textures": 95
+      },
+      "after": {
+        "geometries": 1113,
+        "textures": 95
+      },
+      "lights": 8,
+      "garage": {
+        "assetId": "A22",
+        "overheadServices": {
+          "assetId": "A26",
+          "revision": "aurel-overhead-service-rig-r01",
+          "sha256": "bb1ddeeb93f563056d15ccfe8525ea9203a4e7cd87721186b959489050d66424",
+          "loaded": true,
+          "attached": true,
+          "lod": 0,
+          "triangles": 37932,
+          "sockets": [
+            "SOCKET_A26_REEL_1",
+            "SOCKET_A26_AIR_DROP",
+            "SOCKET_A26_REEL_2",
+            "SOCKET_A26_FLUID_DROP",
+            "SOCKET_A26_REEL_3",
+            "SOCKET_A26_POWER_DROP",
+            "SOCKET_A26_FRONT_SERVICE",
+            "SOCKET_A26_REAR_SERVICE"
+          ],
+          "lightingHousings": 8,
+          "reels": 3,
+          "finalArtApproved": false
+        },
+        "spareWheels": {
+          "assetId": "A33",
+          "revision": "aurel-a33-r01",
+          "finalArtApproved": false,
+          "instances": 4,
+          "capacity": 4,
+          "activeBatches": 1,
+          "lodCounts": [
+            4,
+            0,
+            0
+          ],
+          "triangles": 48192,
+          "atlasBytes": 393216
+        },
+        "revision": "aurel-garage-r01",
+        "sha256": "653b922595533be6cda5bda1f96b90e738d6eac3f403e0dc37f6437f30383ff0",
+        "bay": 5,
+        "lod": 0,
+        "triangles": 39444,
+        "sockets": [
+          "SOCKET_CAR",
+          "SOCKET_FRONT_JACK",
+          "SOCKET_TYRE_FL",
+          "SOCKET_TYRE_FR",
+          "SOCKET_TYRE_RL",
+          "SOCKET_TYRE_RR",
+          "SOCKET_ENGINEER_01",
+          "SOCKET_ENGINEER_02",
+          "SOCKET_CREW"
+        ],
+        "loaded": true,
+        "finalArtApproved": false
+      },
+      "sourceUnchanged": true,
+      "waterUnchanged": true,
+      "boundary": "Actual CircuitScene scripted moving survey; no cockpit repair, driven lap or physical-hardware certification."
+    },
+    "wet-day": {
+      "lighting": "day",
+      "wet": true,
+      "images": [
+        {
+          "view": "entrance-services",
+          "addedCalls": 8,
+          "triangles": 2374782
+        },
+        {
+          "view": "reels",
+          "addedCalls": 8,
+          "triangles": 2360234
+        },
+        {
+          "view": "rear-to-front",
+          "addedCalls": 8,
+          "triangles": 2574534
+        },
+        {
+          "view": "move-6",
+          "addedCalls": 0,
+          "triangles": 52060286
+        },
+        {
+          "view": "move-12",
+          "addedCalls": 0,
+          "triangles": 66358834
+        }
+      ],
+      "errors": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "before": {
+        "geometries": 1113,
+        "textures": 95
+      },
+      "after": {
+        "geometries": 1113,
+        "textures": 95
+      },
+      "lights": 8,
+      "garage": {
+        "assetId": "A22",
+        "overheadServices": {
+          "assetId": "A26",
+          "revision": "aurel-overhead-service-rig-r01",
+          "sha256": "bb1ddeeb93f563056d15ccfe8525ea9203a4e7cd87721186b959489050d66424",
+          "loaded": true,
+          "attached": true,
+          "lod": 0,
+          "triangles": 37932,
+          "sockets": [
+            "SOCKET_A26_REEL_1",
+            "SOCKET_A26_AIR_DROP",
+            "SOCKET_A26_REEL_2",
+            "SOCKET_A26_FLUID_DROP",
+            "SOCKET_A26_REEL_3",
+            "SOCKET_A26_POWER_DROP",
+            "SOCKET_A26_FRONT_SERVICE",
+            "SOCKET_A26_REAR_SERVICE"
+          ],
+          "lightingHousings": 8,
+          "reels": 3,
+          "finalArtApproved": false
+        },
+        "spareWheels": {
+          "assetId": "A33",
+          "revision": "aurel-a33-r01",
+          "finalArtApproved": false,
+          "instances": 4,
+          "capacity": 4,
+          "activeBatches": 1,
+          "lodCounts": [
+            4,
+            0,
+            0
+          ],
+          "triangles": 48192,
+          "atlasBytes": 393216
+        },
+        "revision": "aurel-garage-r01",
+        "sha256": "653b922595533be6cda5bda1f96b90e738d6eac3f403e0dc37f6437f30383ff0",
+        "bay": 5,
+        "lod": 0,
+        "triangles": 39444,
+        "sockets": [
+          "SOCKET_CAR",
+          "SOCKET_FRONT_JACK",
+          "SOCKET_TYRE_FL",
+          "SOCKET_TYRE_FR",
+          "SOCKET_TYRE_RL",
+          "SOCKET_TYRE_RR",
+          "SOCKET_ENGINEER_01",
+          "SOCKET_ENGINEER_02",
+          "SOCKET_CREW"
+        ],
+        "loaded": true,
+        "finalArtApproved": false
+      },
+      "sourceUnchanged": true,
+      "waterUnchanged": true,
+      "boundary": "Actual CircuitScene scripted moving survey; no cockpit repair, driven lap or physical-hardware certification."
+    },
+    "day": {
+      "lighting": "day",
+      "wet": false,
+      "images": [
+        {
+          "view": "entrance-services",
+          "addedCalls": 8,
+          "triangles": 2374782
+        },
+        {
+          "view": "reels",
+          "addedCalls": 8,
+          "triangles": 2360234
+        },
+        {
+          "view": "rear-to-front",
+          "addedCalls": 8,
+          "triangles": 2574534
+        },
+        {
+          "view": "move-6",
+          "addedCalls": 0,
+          "triangles": 52060286
+        },
+        {
+          "view": "move-12",
+          "addedCalls": 0,
+          "triangles": 66358834
+        }
+      ],
+      "errors": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "before": {
+        "geometries": 1113,
+        "textures": 95
+      },
+      "after": {
+        "geometries": 1113,
+        "textures": 95
+      },
+      "lights": 8,
+      "garage": {
+        "assetId": "A22",
+        "overheadServices": {
+          "assetId": "A26",
+          "revision": "aurel-overhead-service-rig-r01",
+          "sha256": "bb1ddeeb93f563056d15ccfe8525ea9203a4e7cd87721186b959489050d66424",
+          "loaded": true,
+          "attached": true,
+          "lod": 0,
+          "triangles": 37932,
+          "sockets": [
+            "SOCKET_A26_REEL_1",
+            "SOCKET_A26_AIR_DROP",
+            "SOCKET_A26_REEL_2",
+            "SOCKET_A26_FLUID_DROP",
+            "SOCKET_A26_REEL_3",
+            "SOCKET_A26_POWER_DROP",
+            "SOCKET_A26_FRONT_SERVICE",
+            "SOCKET_A26_REAR_SERVICE"
+          ],
+          "lightingHousings": 8,
+          "reels": 3,
+          "finalArtApproved": false
+        },
+        "spareWheels": {
+          "assetId": "A33",
+          "revision": "aurel-a33-r01",
+          "finalArtApproved": false,
+          "instances": 4,
+          "capacity": 4,
+          "activeBatches": 1,
+          "lodCounts": [
+            4,
+            0,
+            0
+          ],
+          "triangles": 48192,
+          "atlasBytes": 393216
+        },
+        "revision": "aurel-garage-r01",
+        "sha256": "653b922595533be6cda5bda1f96b90e738d6eac3f403e0dc37f6437f30383ff0",
+        "bay": 5,
+        "lod": 0,
+        "triangles": 39444,
+        "sockets": [
+          "SOCKET_CAR",
+          "SOCKET_FRONT_JACK",
+          "SOCKET_TYRE_FL",
+          "SOCKET_TYRE_FR",
+          "SOCKET_TYRE_RL",
+          "SOCKET_TYRE_RR",
+          "SOCKET_ENGINEER_01",
+          "SOCKET_ENGINEER_02",
+          "SOCKET_CREW"
+        ],
+        "loaded": true,
+        "finalArtApproved": false
+      },
+      "sourceUnchanged": true,
+      "waterUnchanged": true,
+      "boundary": "Actual CircuitScene scripted moving survey; no cockpit repair, driven lap or physical-hardware certification."
+    }
+  },
+  "physicalHardwareValidated": false,
+  "finalArtApproved": false,
+  "scope": "Scripted moving actual-circuit surveys and production startup/practice entry; not driven-lap or cockpit-camera approval."
+}

@@ -1,3 +1,4 @@
+import { loadOverheadServiceRig, type OverheadServiceRig } from './overhead-garage-service-rig.ts';
 import { A33GarageStorage } from './a33-spare-wheel-set.ts';
 import * as T from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -95,6 +96,7 @@ export function garageLod(
 
 /** One owned, non-animated bay. Race state, collisions and car spawn are untouched. */
 export class HeroGarage {
+  overhead: OverheadServiceRig | null = null;
   readonly spareWheelStorage: A33GarageStorage;
   readonly levels: T.Object3D[];
   private readonly lamps: T.MeshStandardMaterial[] = [];
@@ -146,6 +148,7 @@ export class HeroGarage {
       camera.aspect,
     );
     this.spareWheelStorage.update(camera);
+    this.overhead?.updateLighting(lighting);
     for (const lamp of this.lamps)
       lamp.emissiveIntensity = lighting === 'night' ? 2.2 : lighting === 'sunset' ? 1.1 : 0.5;
   }
@@ -163,6 +166,7 @@ export class HeroGarage {
   diagnostics() {
     return {
       assetId: 'A22',
+      overheadServices: this.overhead?.diagnostics(this.level) ?? null,
       spareWheels: this.spareWheelStorage.wheels.diagnostics(),
       revision: manifest.revision,
       sha256: manifest.sha256,
@@ -178,6 +182,7 @@ export class HeroGarage {
   dispose() {
     if (this.disposed) return;
     this.disposed = true;
+    this.overhead?.dispose();
     const geometries = new Set<T.BufferGeometry>(),
       materials = new Set<T.Material>(),
       textures = new Set<T.Texture>();
@@ -271,6 +276,12 @@ export async function loadHeroGarage(
     if (size !== bytes.length) throw new Error('Truncated garage download');
     if (cancelled() || controller.signal.aborted) throw aborted();
     garage = await decodeHeroGarage(bytes);
+    garage.overhead = await loadOverheadServiceRig(
+      () => cancelled() || controller.signal.aborted,
+      undefined,
+      fetcher,
+    );
+    garage.overhead.attachTo(garage.root, garage.levels);
     if (cancelled() || controller.signal.aborted) throw aborted();
     return garage;
   } catch (error) {
