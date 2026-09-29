@@ -338,7 +338,8 @@ describe('27H.3 real service-state rig and prop contacts', () => {
       view.update(original, camera);
       const first = read();
       expect(view.activeActors).toBe(180);
-      expect(view.summary().activeDrawBatches).toBeLessThanOrEqual(7);
+      // A33 adds one submitted wheel LOD when near and mid crews coexist.
+      expect(view.summary().activeDrawBatches).toBeLessThanOrEqual(8);
       expect(view.summary().boneTextureBytes).toBe(172800);
       expect(atlas(view).image.width).toBe(60);
       expect(atlas(view).image.height).toBe(180);

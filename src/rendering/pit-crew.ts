@@ -1,3 +1,4 @@
+import { A33WheelBatches, a33GripX } from './a33-spare-wheel-set.ts';
 import { PIT_CREW_MAX_DISTANCE, PitPoseCache } from './pit-presentation.ts';
 import { PitMachinery } from './pit-machinery.ts';
 import * as T from 'three';
@@ -70,7 +71,7 @@ export class PitCrewView {
   private readonly heads: T.InstancedMesh;
   private readonly gloves: readonly [T.InstancedMesh, T.InstancedMesh];
   private readonly guns: T.InstancedMesh;
-  private readonly tires: T.InstancedMesh;
+  readonly spareWheels = new A33WheelBatches(MAX_PIT_CREWS * 8);
   private readonly jacks: T.InstancedMesh;
   private readonly handles: T.InstancedMesh;
   private readonly signals: T.InstancedMesh;
@@ -162,7 +163,6 @@ export class PitCrewView {
       this.batch(peopleGeometry('glove'), ACTORS, 0.85),
     ];
     this.guns = this.batch(peopleGeometry('wheel_gun'), MAX_PIT_CREWS * 4, 0.37, 0.55);
-    this.tires = this.batch(peopleGeometry('spare_tire'), MAX_PIT_CREWS * 8, 0.9);
     this.jacks = this.batch(peopleGeometry('jack_base'), MAX_PIT_CREWS * 2, 0.4, 0.65);
     this.handles = this.batch(
       new T.CylinderGeometry(0.018, 0.018, 1, 10),
@@ -182,7 +182,7 @@ export class PitCrewView {
       this.heads,
       ...this.gloves,
       this.guns,
-      this.tires,
+      ...this.spareWheels.batches,
       this.jacks,
       this.handles,
       this.signals,
@@ -324,6 +324,7 @@ export class PitCrewView {
     )
       throw new Error('Invalid pit crew frame');
     if (!this.cache.prepare(frame, camera, visible, fov, aspect)) return;
+    this.spareWheels.begin();
     for (const batch of this.batches) batch.count = 0;
     this.actorSlot = this.activeActors = this.activeCrews = 0;
     for (let id = 0; id < count && visible; id++) {
@@ -421,12 +422,9 @@ export class PitCrewView {
             floor + 0.41,
             hubZ + station * 0.8,
           );
-          center.lerp(
-            this.point.set(hubX + side * (0.21 + transferOffset), hubY, hubZ),
-            engagement,
-          );
+          center.lerp(this.point.set(hubX + side * transferOffset, hubY, hubZ), engagement);
           const hasSpare = install ? phase < 4 : phase >= 4;
-          if (hasSpare) this.propAt(this.tires, center);
+          if (hasSpare) this.spareWheels.putCarLocal(wheel, center, this.car.matrix, detail);
           // Hands touch the sidewall at two points on the carried/working wheel.
           const actorX = center.x + side * (0.45 - 0.05 * engagement),
             actorZ = center.z + station * (0.3 + 0.5 * engagement);
@@ -441,7 +439,7 @@ export class PitCrewView {
             const angle = carryAngle + (workAngle - carryAngle) * engagement;
             const radius = Math.hypot(0.26, 0.12);
             const grip = this.point.set(
-              center.x + side * 0.1,
+              center.x + side * a33GripX(wheel, radius),
               center.y + Math.cos(angle) * radius,
               center.z + Math.sin(angle) * radius,
             );
@@ -519,6 +517,7 @@ export class PitCrewView {
         );
       this.person(id, 'release', -1, signX + 0.42, floor, signZ, -Math.PI / 2, 0.84, 0.08, detail);
     }
+    this.spareWheels.finish();
     this.machinery.update(this.activeCrews);
     this.root.visible = this.activeCrews > 0;
     if (this.activeActors) this.bones.needsUpdate = true;
@@ -559,6 +558,7 @@ export class PitCrewView {
     }
     return {
       ...PEOPLE_ASSET,
+      spareWheels: this.spareWheels.diagnostics(),
       poseBuilds: this.cache.builds,
       poseReuses: this.cache.reuses,
       crews: this.activeCrews,
@@ -576,6 +576,7 @@ export class PitCrewView {
   diagnostics() {
     return {
       ...PEOPLE_ASSET,
+      spareWheels: this.spareWheels.diagnostics(),
       poseBuilds: this.cache.builds,
       poseReuses: this.cache.reuses,
       crews: this.activeCrews,

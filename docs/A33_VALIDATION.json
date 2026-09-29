@@ -1,0 +1,142 @@
+{
+  "schema": 1,
+  "assetId": "A33",
+  "revision": "aurel-a33-r01",
+  "candidateBase": "0ad7649c2f71fa9cdcbeebbcea8f664b02bb238e",
+  "candidateRunId": 36590294593,
+  "artifactId": 11043498805,
+  "candidateBranchMutations": false,
+  "localCheck": {
+    "lint": "passed",
+    "unitTestFiles": 138,
+    "unitTestCases": 1331,
+    "productionBuild": "passed"
+  },
+  "localIsolatedMesaPit": {
+    "passed": 1,
+    "skipped": 0,
+    "failed": 0
+  },
+  "localFullBrowser": "Localhost navigation was blocked by browser policy; not used as full-game acceptance.",
+  "hostedCheck": {
+    "lint": "passed",
+    "unitTestFiles": 138,
+    "unitTestCases": 1331,
+    "productionBuild": "passed"
+  },
+  "hostedBrowser": {
+    "startTime": "2026-09-29T15:30:22.418Z",
+    "duration": 259936.00900000002,
+    "expected": 9,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "observedBackend": {
+    "requested": "mesa",
+    "renderer": "ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)",
+    "vendor": "Google Inc. (Mesa)",
+    "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+    "pixel": [
+      64,
+      128,
+      191,
+      255
+    ],
+    "error": 0,
+    "softwareRendererDetected": true,
+    "physicalHardwareValidated": false
+  },
+  "localHostedGLBMatch": true,
+  "localHostedRuntimeMatch": true,
+  "reviewedInGameImageCount": 15,
+  "scenes": [
+    {
+      "lighting": "day",
+      "physicallyProducedServiceFrames": 17,
+      "allocationsBefore": {
+        "geometries": 952,
+        "textures": 132
+      },
+      "allocationsAfter": {
+        "geometries": 952,
+        "textures": 132
+      },
+      "sourceUnchanged": true,
+      "rewindSame": true,
+      "heldUploadStable": true,
+      "webGLError": 0,
+      "maximumUnreachableArms": 0,
+      "maximumWristErrorMetres": 9.222205069512407e-16,
+      "maximumGripErrorMetres": 2.2247786310271853e-16
+    },
+    {
+      "lighting": "sunset",
+      "physicallyProducedServiceFrames": 17,
+      "allocationsBefore": {
+        "geometries": 960,
+        "textures": 132
+      },
+      "allocationsAfter": {
+        "geometries": 960,
+        "textures": 132
+      },
+      "sourceUnchanged": true,
+      "rewindSame": true,
+      "heldUploadStable": true,
+      "webGLError": 0,
+      "maximumUnreachableArms": 0,
+      "maximumWristErrorMetres": 9.222205069512407e-16,
+      "maximumGripErrorMetres": 2.2247786310271853e-16
+    },
+    {
+      "lighting": "night",
+      "physicallyProducedServiceFrames": 17,
+      "allocationsBefore": {
+        "geometries": 952,
+        "textures": 132
+      },
+      "allocationsAfter": {
+        "geometries": 952,
+        "textures": 132
+      },
+      "sourceUnchanged": true,
+      "rewindSame": true,
+      "heldUploadStable": true,
+      "webGLError": 0,
+      "maximumUnreachableArms": 0,
+      "maximumWristErrorMetres": 9.222205069512407e-16,
+      "maximumGripErrorMetres": 2.2247786310271853e-16
+    }
+  ],
+  "selectedExports": [
+    {
+      "path": "scripts/aurel-a33-spare-wheel-set.blend",
+      "sha": "810f3e080990019adcf0399d4ad42441cb71c3f5",
+      "bytes": 1202771,
+      "sha256": "6601da63a1514ef8e1831537c891f750a20fb872e3b07eb00ed9223d5fbf2523"
+    },
+    {
+      "path": "public/models/aurel-a33-spare-wheel-set.glb",
+      "sha": "431d673c1bc9f1889b5bb89dc51814afcd835ec6",
+      "bytes": 1277208,
+      "sha256": "b503f23627b92e42eca43a08b77e966bdf77491234c2d3a27e39dc75eaa6427c"
+    },
+    {
+      "path": "src/rendering/a33-spare-wheel-set.geometry.json",
+      "sha": "8f13fd7282418bc8e6eca025d9db2a3afc14a2ab",
+      "bytes": 1506220,
+      "sha256": "a4ddaeebaa4f8099724a384b28fa9badd4460886bfe1cef2618b41a66e42c93b"
+    }
+  ],
+  "finalArtApproved": false,
+  "physicalHardwareFPSCertified": false,
+  "humanDrivenFullLapReviewed": false,
+  "externalSiteRedeployed": false,
+  "remainingArtNotes": [
+    "Garage lighting and subtle rubber surface readability need further art review.",
+    "Existing release-operator/fence overlap and wider pit choreography are outside the wheel asset scope; no track or collision geometry was changed.",
+    "Final supplied-player visual matching, tyre-condition continuity, cockpit framing and representative-hardware profiling remain separate acceptance work."
+  ],
+  "scope": "First integrated A33 asset revision; not a claim that unrelated hosted main CI or full-game final art gates are complete."
+}

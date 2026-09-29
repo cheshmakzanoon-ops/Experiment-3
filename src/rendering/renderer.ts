@@ -210,6 +210,7 @@ export class RacingRenderer {
       this.venueLighting.root,
     );
     this.scene.add(this.debris.mesh, this.pitCrew.root);
+    this.textures.register(this.pitCrew.root);
     this.renderer.info.autoReset = false;
     this.renderer.setOpaqueSort(frontToBackOpaque);
     this.renderer.outputColorSpace = T.SRGBColorSpace;

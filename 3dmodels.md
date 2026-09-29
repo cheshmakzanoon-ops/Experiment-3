@@ -22,6 +22,7 @@ Priority:
 |---|---|---|
 | A22 | One working garage, bay 05; retained Blender source, GLB and three LODs. | Final art review, cockpit repair and further environmental refinement remain. See [A22 notes](docs/A22_HERO_GARAGE.md). |
 | A24 | One four-position pit-wall station, eight snapshot-driven screens, three LODs and 17 future interaction sockets. | Characters, collision/safety-wall behavior and final art/hardware approval remain separate. See [A24 notes](docs/A24_PIT_WALL_STATION.md). |
+| A33 | Front/rear spare-wheel handling set, three LODs, sixteen sockets, state-driven carrying and four stored wheels in A22. | Final art, detailed exchange/condition continuity and representative-hardware approval remain. See [A33 notes](docs/A33_SPARE_WHEEL_HANDLING_SET.md). |
 
 An integrated revision is not final approval and does not complete related asset-family rows.
 

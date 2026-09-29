@@ -23,7 +23,7 @@ it('keeps loaded wheels attached and aligns removal/install with the service pha
   expect(serviceWheelOffset(6, 5.2, 0)).toBe(0);
   expect(() => serviceWheelOffset(3, NaN, 0)).toThrow();
 });
-it('bounds twelve authored fifteen-person crews to seven draw batches with finite transforms', () => {
+it('bounds twelve authored fifteen-person crews and three allocated A33 LODs with finite transforms', () => {
   const frame = new Float32Array(HEADER + 12 * CAR_STRIDE);
   frame[H.CARS] = 12;
   for (let i = 0; i < 12; i++) {
@@ -41,10 +41,12 @@ it('bounds twelve authored fifteen-person crews to seven draw batches with finit
   crew.update(frame, new T.Vector3());
   expect(crew.activeCrews).toBe(12);
   expect(crew.activeActors).toBe(180);
-  expect(crew.root.children).toHaveLength(7);
+  expect(crew.root.children).toHaveLength(9);
+  expect(crew.summary().activeDrawBatches).toBeLessThanOrEqual(8);
   for (const object of crew.root.children) {
     const batch = object as T.InstancedMesh;
-    expect(batch.count).toBeGreaterThan(0);
+    if (object.userData.assetId === 'A33') expect(batch.count).toBeGreaterThanOrEqual(0);
+    else expect(batch.count).toBeGreaterThan(0);
     expect(batch.count).toBeLessThanOrEqual(batch.instanceMatrix.count);
     expect([...batch.instanceMatrix.array].every(Number.isFinite)).toBe(true);
   }

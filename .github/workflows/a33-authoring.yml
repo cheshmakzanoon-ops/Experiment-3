@@ -1,0 +1,63 @@
+name: A33 spare-wheel source and export validation
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/a33-authoring.yml
+      - scripts/author-a33-spare-wheel-set.py
+      - scripts/aurel-a33-spare-wheel-set.blend
+      - public/models/aurel-a33-spare-wheel-set.glb
+      - src/rendering/a33-spare-wheel-set.*
+      - tests/a33-spare-wheel-set.test.ts
+permissions:
+  contents: read
+jobs:
+  reproduce:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+          cache: npm
+      - run: npm ci
+      - name: Save the reviewed export receipt
+        run: cp src/rendering/a33-spare-wheel-set.manifest.json "$RUNNER_TEMP/a33-reviewed.json"
+      - name: Install checksum-pinned Blender
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 2 --max-time 240 'https://download.blender.org/release/Blender5.2/blender-5.2.2-linux-x64.tar.xz' -o "$RUNNER_TEMP/blender.tar.xz"
+          echo '84098912789dc450e95697c4184fb8a90acbe5111c2ba4aede3fecb57806a168  '"$RUNNER_TEMP/blender.tar.xz" | sha256sum --check
+          tar -xJf "$RUNNER_TEMP/blender.tar.xz" -C "$RUNNER_TEMP"
+      - name: Reproduce both geometry representations
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$RUNNER_TEMP/blender-5.2.2-linux-x64/blender" --background --factory-startup --python-exit-code 1 --python scripts/author-a33-spare-wheel-set.py
+          python - <<'PY'
+          import hashlib, json, os
+          from pathlib import Path
+          expected=json.loads((Path(os.environ['RUNNER_TEMP'])/'a33-reviewed.json').read_text())
+          actual=json.loads(Path('src/rendering/a33-spare-wheel-set.manifest.json').read_text())
+          assert actual==expected, 'Regenerated A33 differs from the reviewed receipt'
+          for path,key in [('public/models/aurel-a33-spare-wheel-set.glb','sha256'),('src/rendering/a33-spare-wheel-set.geometry.json','runtimeSha256')]:
+              assert hashlib.sha256(Path(path).read_bytes()).hexdigest()==expected[key]
+          print('A33_GLTF_AND_RUNTIME_REPRODUCED', expected['sha256'],expected['runtimeSha256'])
+          PY
+      - name: Verify sockets, dimensions, LODs, contacts and resource ownership
+        run: npm test -- tests/a33-spare-wheel-set.test.ts tests/people.test.ts tests/hero-garage.test.ts
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: a33-reproduced-source
+          path: |
+            scripts/aurel-a33-spare-wheel-set.blend
+            public/models/aurel-a33-spare-wheel-set.glb
+            src/rendering/a33-spare-wheel-set.manifest.json
+          if-no-files-found: error
+          retention-days: 7

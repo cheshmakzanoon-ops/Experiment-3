@@ -1,3 +1,4 @@
+import { A33GarageStorage } from './a33-spare-wheel-set.ts';
 import * as T from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import manifest from './hero-garage.manifest.json' with { type: 'json' };
@@ -94,6 +95,7 @@ export function garageLod(
 
 /** One owned, non-animated bay. Race state, collisions and car spawn are untouched. */
 export class HeroGarage {
+  readonly spareWheelStorage: A33GarageStorage;
   readonly levels: T.Object3D[];
   private readonly lamps: T.MeshStandardMaterial[] = [];
   private readonly localBounds = new T.Box3();
@@ -131,6 +133,7 @@ export class HeroGarage {
     });
     root.name = 'Aurel hero working garage / A22';
     root.userData.heroGarage = { revision: manifest.revision, assetId: 'A22' };
+    this.spareWheelStorage = new A33GarageStorage(root);
   }
   /** Called once for the main view; mirrors reuse a stable representation. */
   update(camera: T.PerspectiveCamera, quality: Quality, lighting: 'day' | 'sunset' | 'night') {
@@ -142,6 +145,7 @@ export class HeroGarage {
       camera.fov,
       camera.aspect,
     );
+    this.spareWheelStorage.update(camera);
     for (const lamp of this.lamps)
       lamp.emissiveIntensity = lighting === 'night' ? 2.2 : lighting === 'sunset' ? 1.1 : 0.5;
   }
@@ -159,6 +163,7 @@ export class HeroGarage {
   diagnostics() {
     return {
       assetId: 'A22',
+      spareWheels: this.spareWheelStorage.wheels.diagnostics(),
       revision: manifest.revision,
       sha256: manifest.sha256,
       bay: manifest.bayIndex + 1,
@@ -177,6 +182,7 @@ export class HeroGarage {
       materials = new Set<T.Material>(),
       textures = new Set<T.Texture>();
     this.root.traverse((o) => {
+      if (o instanceof T.InstancedMesh) o.dispose();
       if (!(o instanceof T.Mesh)) return;
       geometries.add(o.geometry);
       for (const m of Array.isArray(o.material) ? o.material : [o.material]) {
