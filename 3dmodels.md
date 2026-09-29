@@ -16,6 +16,15 @@ Priority:
 - **P2** — second production wave; adds density, variety and believable operations.
 - **P3** — later/conditional presentation asset.
 
+## Integrated asset revisions
+
+| Asset | Integrated scope | Remaining acceptance |
+|---|---|---|
+| A22 | One working garage, bay 05; retained Blender source, GLB and three LODs. | Final art review, cockpit repair and further environmental refinement remain. See [A22 notes](docs/A22_HERO_GARAGE.md). |
+| A24 | One four-position pit-wall station, eight snapshot-driven screens, three LODs and 17 future interaction sockets. | Characters, collision/safety-wall behavior and final art/hardware approval remain separate. See [A24 notes](docs/A24_PIT_WALL_STATION.md). |
+
+An integrated revision is not final approval and does not complete related asset-family rows.
+
 ---
 
 ## P0 — Cockpit view repair before new cockpit art

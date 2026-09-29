@@ -1,3 +1,4 @@
+import { PitWallStation, pitWallPlacement } from './pit-wall-station.ts';
 import { HERO_GARAGE, type HeroGarage } from './hero-garage.ts';
 import { StaticTransformGroup } from './static-transform-group.ts';
 import { VENUE_LAMP_RADIUS } from './light-footprint.ts';
@@ -43,6 +44,7 @@ interface RibbonOptions {
 /** All surfaces are constructed from the same metre-valued track queries as physics. */
 export class CircuitScene {
   heroGarage: HeroGarage | null = null;
+  pitWallStation: PitWallStation | null = null;
   readonly group = new T.Group();
   readonly crowd = new T.Group();
   readonly crowdClusters: CrowdCluster[] = [];
@@ -227,7 +229,12 @@ export class CircuitScene {
     );
     this.construction.add('Grid and finish markings', 0, () => this.grid());
     this.construction.add('Spatial geometry batches', 4, () =>
-      batchScene(this.props, new Set(this.heroGarage ? [this.heroGarage.root] : [])),
+      batchScene(
+        this.props,
+        new Set(
+          [this.heroGarage?.root, this.pitWallStation?.root].filter((o): o is T.Group => !!o),
+        ),
+      ),
     );
     this.construction.add('Seal static venue transforms', 6, () => {
       this.props.sealTransforms();
@@ -252,6 +259,7 @@ export class CircuitScene {
       source: 'constructed-runtime-groups',
       districts,
       garage: this.heroGarage?.diagnostics() ?? null,
+      pitWall: this.pitWallStation?.diagnostics() ?? null,
       finalArtApproved: false,
     };
   }
@@ -413,6 +421,15 @@ export class CircuitScene {
         box(painting, yellow, 0, 0, 2.5, 2.9, 0.012, 0.08);
       });
     }
+    this.construction.add('A24 pit-wall command station', 2, () => {
+      if (!this.pitWallStation) return;
+      const site = pitWallPlacement(this.track);
+      const root = this.pitWallStation.root;
+      root.position.set(site.x, site.y, site.z);
+      root.rotation.y = site.yaw;
+      root.userData.placement = site;
+      this.props.add(root);
+    });
     const stands = standMaterials();
     for (const site of GRANDSTANDS)
       this.construction.add(`Detailed grandstand at ${site.s} m`, 3, () =>

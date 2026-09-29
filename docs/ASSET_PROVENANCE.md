@@ -38,3 +38,12 @@ bone poses, prop contacts, clothing cohorts and the two-triangle far impostor
 are original runtime work. See `PHASE_27H3_IMPLEMENTATION.md` for file ownership,
 LOD budgets, tests and the outstanding normal-game visual acceptance. No new
 external models, textures, scans, fonts or recordings are included.
+
+## A24 original pit-wall command station
+
+`author-pit-wall.py` retains the original geometry, original packed micro-normal
+map, converted built-in text and named placement sockets. Its Blender source and
+GLB contain no imported stock art, commercial-game geometry, logo, human scan,
+font file or photographic texture. Runtime screen pixels are drawn from the
+actual presented session/replay snapshot; no fictional telemetry recording is
+included. See [A24 scope and acceptance](A24_PIT_WALL_STATION.md).

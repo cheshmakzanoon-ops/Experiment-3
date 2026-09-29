@@ -1,3 +1,4 @@
+import { loadPitWallStation } from './pit-wall-station.ts';
 import { loadHeroGarage } from './hero-garage.ts';
 import { compileSceneTarget, PreparationTrace } from './preparation.ts';
 import { warmPitMaterials } from './pit-material-warmup.ts';
@@ -304,6 +305,13 @@ export class RacingRenderer {
         label: 'Loading authored Aurel working garage',
       });
       renderer.circuit.heroGarage = await loadHeroGarage(cancelled);
+      progress({
+        completed: 0,
+        total: 1,
+        fraction: 0,
+        label: 'Loading Aurel pit-wall command station',
+      });
+      renderer.circuit.pitWallStation = await loadPitWallStation(cancelled);
       if (cancelled()) {
         renderer.dispose();
         return null;
@@ -778,6 +786,14 @@ export class RacingRenderer {
     if (this.photo) this.camera.rotateZ((this.photo.roll * Math.PI) / 180);
     this.camera.updateProjectionMatrix();
     this.circuit.heroGarage?.update(this.camera, this.quality, illumination);
+    this.circuit.pitWallStation?.update(
+      this.camera,
+      this.quality,
+      illumination,
+      presented,
+      this.photo ? 'HELD' : replay ? 'REPLAY' : menu ? 'STANDBY' : 'LIVE',
+      !studio,
+    );
     // A replay cut, follow change or photo lens must use the NEW view, not
     // last frame's camera. Choose the representation before posing it, since
     // reduced cars update only their active wheel/suspension representation.
@@ -1200,6 +1216,8 @@ export class RacingRenderer {
     this.suppliedPlayerAsset?.dispose();
     if (this.circuit.heroGarage && !this.circuit.heroGarage.root.parent)
       this.circuit.heroGarage.dispose();
+    if (this.circuit.pitWallStation && !this.circuit.pitWallStation.root.parent)
+      this.circuit.pitWallStation.dispose();
     this.cars.forEach((car) => car.suppliedPlayer?.disposeAnimation());
     this.pitCrew.dispose();
     this.reflection.dispose();
