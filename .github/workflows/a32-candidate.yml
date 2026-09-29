@@ -8,7 +8,7 @@ permissions:
   contents: write
 concurrency:
   group: a32-candidate-validation
-  cancel-in-progress: false
+  cancel-in-progress: true
 jobs:
   validate:
     runs-on: ubuntu-latest
@@ -62,9 +62,9 @@ jobs:
               path.write_text(text)
           print('Applied A32-only candidate; no branch reference updated.')
           PY
-          gh api "repos/$GITHUB_REPOSITORY/git/blobs/4510393630d9094ef4362f493a71ad9da64a3629" --jq .content | base64 -d > "$RUNNER_TEMP/a32-rolling.patch"
-          echo '059358a523ba3606eb34ae7c7db93f83606b48302a5434ad125a5f8a9c9c2e14  '"$RUNNER_TEMP/a32-rolling.patch" | sha256sum -c
-          git apply "$RUNNER_TEMP/a32-rolling.patch"
+          gh api "repos/$GITHUB_REPOSITORY/git/blobs/651b2798f52f3779bff3cdc5b30d8fb61b47a6cb" --jq .content | base64 -d > "$RUNNER_TEMP/a32-corrections.patch"
+          echo '0d32eb9dc17c7ad530c1633297ea434906f168e50ae7df24fbfab5662d356d7b  '"$RUNNER_TEMP/a32-corrections.patch" | sha256sum -c
+          git apply "$RUNNER_TEMP/a32-corrections.patch"
       - name: Pinned Blender
         shell: bash
         run: |
