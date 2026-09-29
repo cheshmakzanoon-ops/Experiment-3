@@ -1,5 +1,6 @@
 import { loadWheelGuns, WheelGunStorage } from './wheel-gun.ts';
 import { measureWheelGunFits } from './wheel-gun-contact.ts';
+import { loadPitBuildingFrontage } from './pit-building-frontage.ts';
 import {
   loadTyreEquipment,
   installTyreEquipment,
@@ -342,6 +343,13 @@ export class RacingRenderer {
         renderer.pitCrew.wheelGuns!.prototype,
         renderer.circuit.heroGarage.root,
       );
+      progress({
+        completed: 0,
+        total: 1,
+        fraction: 0,
+        label: 'Loading Aurel pit-building frontage',
+      });
+      renderer.circuit.pitBuildingFrontage = await loadPitBuildingFrontage(cancelled);
       if (cancelled()) {
         renderer.dispose();
         return null;
@@ -822,6 +830,7 @@ export class RacingRenderer {
     this.circuit.tyreBlankets?.update(this.camera, this.quality, illumination);
     if (this.circuit.heroGarage)
       this.circuit.tyreBlankets?.alignGarageWheels(this.circuit.heroGarage.spareWheelStorage);
+    this.circuit.pitBuildingFrontage?.update(this.camera, this.quality, illumination);
     this.circuit.pitWallStation?.update(
       this.camera,
       this.quality,
@@ -1260,6 +1269,8 @@ export class RacingRenderer {
       this.circuit.heroGarage.dispose();
     if (this.circuit.pitWallStation && !this.circuit.pitWallStation.root.parent)
       this.circuit.pitWallStation.dispose();
+    if (this.circuit.pitBuildingFrontage && !this.circuit.pitBuildingFrontage.root.parent)
+      this.circuit.pitBuildingFrontage.dispose();
     this.cars.forEach((car) => car.suppliedPlayer?.disposeAnimation());
     this.pitCrew.dispose();
     this.reflection.dispose();

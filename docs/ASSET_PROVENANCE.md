@@ -51,3 +51,13 @@ included. See [A24 scope and acceptance](A24_PIT_WALL_STATION.md).
 ## A34 original thermal blankets and controllers
 
 `scripts/author-tyre-blankets.py` authors fitted and opened front/rear covers, folded blankets, controllers and a cable coil from original metre-space geometry. The retained Blender source and GLB use original periodic weave pixels and converted built-in lettering, not downloaded meshes, photographic textures, logos or font files. The fit target is the existing APX spare-wheel envelope, not a dimensional claim about the supplied RB19. Runtime displays remain STANDBY; no synthetic temperature data or tyre-heating physics is introduced. See [A34 production notes](A34_TYRE_BLANKETS.md).
+
+## A21 original pit-building frontage
+
+`author-pit-building-frontage.py` authors the original structural frontage, gallery,
+canopy sections, exterior stair-core shells and original packed micro-surface maps.
+The retained Blender source and GLB contain no imported scans, photographs, stock
+geometry, commercial-game meshes, team logos or external font files. Built-in text
+is converted to mesh. Forty-three sockets are placement metadata only. Existing
+A22, A24, car, cockpit and driver payloads are unchanged. See [A21 scope, integration
+and validation boundaries](A21_HERO_PIT_BUILDING.md).

@@ -1,3 +1,4 @@
+import { type PitBuildingFrontage } from './pit-building-frontage.ts';
 import { PitWallStation, pitWallPlacement } from './pit-wall-station.ts';
 import { HERO_GARAGE, type HeroGarage } from './hero-garage.ts';
 import type { TyreBlanketSet } from './tyre-blankets.ts';
@@ -46,6 +47,7 @@ interface RibbonOptions {
 export class CircuitScene {
   heroGarage: HeroGarage | null = null;
   tyreBlankets: TyreBlanketSet | null = null;
+  pitBuildingFrontage: PitBuildingFrontage | null = null;
   pitWallStation: PitWallStation | null = null;
   readonly group = new T.Group();
   readonly crowd = new T.Group();
@@ -234,9 +236,12 @@ export class CircuitScene {
       batchScene(
         this.props,
         new Set(
-          [this.heroGarage?.root, this.tyreBlankets?.root, this.pitWallStation?.root].filter(
-            (o): o is T.Group => !!o,
-          ),
+          [
+            this.heroGarage?.root,
+            this.tyreBlankets?.root,
+            this.pitWallStation?.root,
+            this.pitBuildingFrontage?.root,
+          ].filter((o): o is T.Group => !!o),
         ),
       ),
     );
@@ -265,6 +270,7 @@ export class CircuitScene {
       garage: this.heroGarage?.diagnostics() ?? null,
       tyreBlankets: this.tyreBlankets?.diagnostics() ?? null,
       pitWall: this.pitWallStation?.diagnostics() ?? null,
+      frontage: this.pitBuildingFrontage?.diagnostics() ?? null,
       finalArtApproved: false,
     };
   }
@@ -427,6 +433,11 @@ export class CircuitScene {
         box(painting, yellow, 0, 0, 2.5, 2.9, 0.012, 0.08);
       });
     }
+    this.construction.add('A21 hero pit-building frontage', 2, () => {
+      if (!this.pitBuildingFrontage) return;
+      this.props.add(this.pitBuildingFrontage.root);
+      this.pitBuildingFrontage.place(this.track, this.sightlines);
+    });
     this.construction.add('A24 pit-wall command station', 2, () => {
       if (!this.pitWallStation) return;
       const site = pitWallPlacement(this.track);

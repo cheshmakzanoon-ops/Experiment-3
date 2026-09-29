@@ -1,0 +1,54 @@
+name: A21 pit-building source and export verification
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/pit-building-authoring.yml
+      - scripts/author-pit-building-frontage.py
+      - src/rendering/pit-building-layout.ts
+      - src/rendering/pit-building-frontage.manifest.json
+permissions:
+  contents: read
+jobs:
+  author:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Retain committed geometry contract
+        run: cp src/rendering/pit-building-frontage.manifest.json "$RUNNER_TEMP/a21-committed.json"
+      - name: Install checksum-pinned authoring Blender
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 2 --max-time 240 'https://download.blender.org/release/Blender5.2/blender-5.2.2-linux-x64.tar.xz' -o "$RUNNER_TEMP/blender.tar.xz"
+          echo '84098912789dc450e95697c4184fb8a90acbe5111c2ba4aede3fecb57806a168  '"$RUNNER_TEMP/blender.tar.xz" | sha256sum --check
+          tar -xJf "$RUNNER_TEMP/blender.tar.xz" -C "$RUNNER_TEMP"
+      - name: Rebuild original A21 geometry
+        run: '"$RUNNER_TEMP/blender-5.2.2-linux-x64/blender" --background --factory-startup --python scripts/author-pit-building-frontage.py'
+      - name: Require exact source and runtime integrity
+        run: |
+          python - <<'PY'
+          import hashlib,json,os
+          from pathlib import Path
+          expected=json.loads((Path(os.environ['RUNNER_TEMP'])/'a21-committed.json').read_text())
+          actual=json.loads(Path('src/rendering/pit-building-frontage.manifest.json').read_text())
+          assert expected==actual, 'A21 regeneration differs; review the retained candidate instead of overwriting release assets'
+          assert hashlib.sha256(Path('public/'+expected['url']).read_bytes()).hexdigest()==expected['sha256']
+          print('A21 runtime export reproduced:',expected['sha256'])
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: a21-authored-source
+          path: |
+            scripts/aurel-hero-pit-building-frontage.blend
+            public/models/aurel-hero-pit-building-frontage.glb
+            src/rendering/pit-building-frontage.manifest.json
+          retention-days: 7
+          if-no-files-found: error

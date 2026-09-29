@@ -120,10 +120,23 @@ describe('current-view detail and deterministic presentation', () => {
         expect(currentCamera).toBe(camera);
         expect(currentCamera.position.toArray()).toEqual([60, 0.4, 0.2]);
       });
+      const frontageUpdate = vi.fn((currentCamera: T.PerspectiveCamera) => {
+        expect(currentCamera).toBe(camera);
+        expect(currentCamera.position.toArray()).toEqual([60, 0.4, 0.2]);
+        expect(currentCamera.projectionMatrix.elements).toEqual(
+          new T.PerspectiveCamera(
+            currentCamera.fov,
+            currentCamera.aspect,
+            currentCamera.near,
+            currentCamera.far,
+          ).projectionMatrix.elements,
+        );
+      });
       const fixture = {
         circuit: {
           heroGarage: { update: garageUpdate },
           pitWallStation: { update: stationUpdate },
+          pitBuildingFrontage: { update: frontageUpdate },
         },
         frameMs: 16,
         frameSamples: new Float32Array(300),
@@ -195,6 +208,10 @@ describe('current-view detail and deterministic presentation', () => {
       ).toThrow(stop);
       expect(camera.position.toArray()).toEqual([60, 0.4, 0.2]);
       expect(garageUpdate).toHaveBeenCalledExactlyOnceWith(camera, 'high', 'day');
+      expect(frontageUpdate).toHaveBeenCalledExactlyOnceWith(camera, 'high', 'day');
+      expect(frontageUpdate.mock.invocationCallOrder[0]).toBeLessThan(
+        stationUpdate.mock.invocationCallOrder[0],
+      );
       expect(stationUpdate).toHaveBeenCalledExactlyOnceWith(
         camera,
         'high',
