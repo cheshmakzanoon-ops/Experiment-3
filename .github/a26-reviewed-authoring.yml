@@ -1,0 +1,61 @@
+name: A26 overhead service rig verification
+on:
+  push:
+    branches: [main]
+    paths:
+      - scripts/author-overhead-garage-service-rig.py
+      - scripts/aurel-overhead-garage-service-rig.blend
+      - public/models/aurel-overhead-garage-service-rig.glb
+      - src/rendering/overhead-garage-service-rig.manifest.json
+      - .github/workflows/a26-authoring.yml
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install verified Blender archive
+        run: |
+          curl -fL --retry 2 --max-time 240 https://download.blender.org/release/Blender5.2/blender-5.2.2-linux-x64.tar.xz -o "$RUNNER_TEMP/blender.tar.xz"
+          echo "84098912789dc450e95697c4184fb8a90acbe5111c2ba4aede3fecb57806a168  $RUNNER_TEMP/blender.tar.xz" | sha256sum -c
+          tar -xJf "$RUNNER_TEMP/blender.tar.xz" -C "$RUNNER_TEMP"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Verify retained bytes before rebuilding
+        run: |
+          cp src/rendering/overhead-garage-service-rig.manifest.json "$RUNNER_TEMP/a26-expected.json"
+          npm test -- tests/overhead-garage-service-rig.test.ts tests/hero-garage.test.ts
+      - name: Rebuild and check geometry without claiming cross-host byte equality
+        run: |
+          "$RUNNER_TEMP/blender-5.2.2-linux-x64/blender" -b --factory-startup --python scripts/author-overhead-garage-service-rig.py
+          python - <<'PYTHON'
+          import hashlib,json,os
+          from pathlib import Path
+          expected=json.loads((Path(os.environ['RUNNER_TEMP'])/'a26-expected.json').read_text())
+          actual=json.loads(Path('src/rendering/overhead-garage-service-rig.manifest.json').read_text())
+          for key in expected:
+              if key not in ['sha256','bytes']:
+                  assert actual[key]==expected[key], 'A26 regenerated contract differs: '+key
+          assert actual['bytes']<8*1024*1024
+          assert hashlib.sha256(Path('public/'+actual['url']).read_bytes()).hexdigest()==actual['sha256']
+          report={'retainedSHA256':expected['sha256'],'regeneratedSHA256':actual['sha256'],
+                  'byteIdentical':actual['sha256']==expected['sha256'],'structuralContract':'passed',
+                  'policy':'Exact shipped integrity remains mandatory; cross-host identical export is not claimed.'}
+          Path('a26-regeneration.json').write_text(json.dumps(report,indent=2)+'\n')
+          print(json.dumps(report))
+          PYTHON
+          npm test -- tests/overhead-garage-service-rig.test.ts tests/hero-garage.test.ts
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: a26-authoring-receipt
+          path: a26-regeneration.json
+          if-no-files-found: warn
+          retention-days: 7
