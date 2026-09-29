@@ -1,3 +1,5 @@
+import { loadPitJacks } from './a32-pit-jacks.ts';
+import { measurePitJackFits } from './a32-jack-contact.ts';
 import { loadWheelGuns, WheelGunStorage } from './wheel-gun.ts';
 import { measureWheelGunFits } from './wheel-gun-contact.ts';
 import { loadPitBuildingFrontage } from './pit-building-frontage.ts';
@@ -338,6 +340,8 @@ export class RacingRenderer {
       renderer.circuit.group.add(renderer.tyreEquipment.root);
       progress({ completed: 0, total: 1, fraction: 0, label: 'Loading A31 authored wheel guns' });
       renderer.pitCrew.installWheelGuns(await loadWheelGuns(cancelled));
+      progress({ completed: 0, total: 1, fraction: 0, label: 'Loading A32 front and rear jacks' });
+      renderer.pitCrew.installPitJacks(await loadPitJacks(cancelled));
       renderer.textures.register(renderer.pitCrew.root);
       renderer.wheelGunStorage = new WheelGunStorage(
         renderer.pitCrew.wheelGuns!.prototype,
@@ -376,6 +380,7 @@ export class RacingRenderer {
       );
       this.cars.push(car);
       this.pitCrew.setWheelGunFits(car.id, measureWheelGunFits(car));
+      if (this.pitCrew.pitJacks) this.pitCrew.setPitJackFits(car.id, measurePitJackFits(car));
       this.scene.add(car.root);
       this.textures.register(car.root);
       this.weatherPresentation.install(car.root);

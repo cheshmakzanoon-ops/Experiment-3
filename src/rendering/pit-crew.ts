@@ -1,3 +1,5 @@
+import { type PitJackBatches } from './a32-pit-jacks.ts';
+import { A32JackPose, type PitJackFits } from './a32-jack-pose.ts';
 import { type WheelGunBatches, WHEEL_GUN } from './wheel-gun.ts';
 import type { WheelGunFit } from './wheel-gun-contact.ts';
 import { A33WheelBatches, a33GripX } from './a33-spare-wheel-set.ts';
@@ -79,6 +81,9 @@ export class PitCrewView {
   private readonly signals: T.InstancedMesh;
   private machinery: PitMachinery;
   wheelGuns: WheelGunBatches | null = null;
+  pitJacks: PitJackBatches | null = null;
+  private readonly jackPose = new A32JackPose();
+  private readonly jackFits: PitJackFits[] = [];
   private readonly gunFits: WheelGunFit[][] = [];
   private readonly wheelRotation = new T.Quaternion();
   private readonly wheelEuler = new T.Euler();
@@ -221,14 +226,38 @@ export class PitCrewView {
       throw new Error('Invalid wheel-gun fit registration');
     this.gunFits[car] = fits;
   }
+  setPitJackFits(car: number, fits: PitJackFits) {
+    if (
+      !Number.isInteger(car) ||
+      car < 0 ||
+      car >= MAX_PIT_CREWS ||
+      ![...fits.front, ...fits.rear].every(Number.isFinite)
+    )
+      throw new Error('Invalid A32 fit registration');
+    this.jackFits[car] = fits;
+  }
+  installPitJacks(jacks: PitJackBatches) {
+    if (this.pitJacks || this.cache.builds)
+      throw new Error('A32 must be installed before crew warmup');
+    this.pitJacks = jacks;
+    this.rebuildMachinery();
+    this.root.add(...jacks.batches);
+  }
   installWheelGuns(guns: WheelGunBatches) {
     if (this.wheelGuns || this.cache.builds)
       throw new Error('A31 must be installed before crew warmup');
+    this.wheelGuns = guns;
+    this.rebuildMachinery();
+    this.root.add(...guns.batches);
+  }
+  /** Installation order is irrelevant: retain the other agent's tool family. */
+  private rebuildMachinery() {
     const previous = this.machinery;
     this.machinery = new PitMachinery(
       [
-        { mesh: this.jacks, perCrew: 2 },
-        { mesh: this.handles, perCrew: 7 },
+        ...(this.wheelGuns ? [] : [{ mesh: this.guns, perCrew: 4 }]),
+        ...(this.pitJacks ? [] : [{ mesh: this.jacks, perCrew: 2 }]),
+        { mesh: this.handles, perCrew: this.pitJacks ? 1 : 7 },
         { mesh: this.signals, perCrew: 1 },
       ],
       MAX_PIT_CREWS,
@@ -239,8 +268,7 @@ export class PitCrewView {
     previous.material.dispose();
     previous.customDepthMaterial?.dispose();
     previous.customDistanceMaterial?.dispose();
-    this.wheelGuns = guns;
-    this.root.add(this.machinery, ...guns.batches);
+    this.root.add(this.machinery);
   }
   private batch(geometry: T.BufferGeometry, count: number, roughness: number, metalness = 0) {
     return new T.InstancedMesh(
@@ -358,9 +386,11 @@ export class PitCrewView {
       throw new Error('Invalid pit crew frame');
     if (!this.cache.prepare(frame, camera, visible, fov, aspect)) {
       this.wheelGuns?.setView(camera, fov, aspect);
+      this.pitJacks?.setView(camera, fov, aspect);
       return;
     }
     this.wheelGuns?.begin();
+    this.pitJacks?.begin();
     this.spareWheels.begin();
     for (const batch of this.batches) batch.count = 0;
     this.actorSlot = this.activeActors = this.activeCrews = 0;
@@ -518,6 +548,30 @@ export class PitCrewView {
         }
       }
       for (const end of [-1, 1]) {
+        if (this.pitJacks) {
+          const role = end > 0 ? 'front' : 'rear';
+          const fits = this.jackFits[id];
+          if (!fits) throw new Error('A32 missing measured car fit');
+          const pose = this.jackPose.set(role, fits[role], floor);
+          this.pitJacks.put(role, pose, this.car.matrix);
+          for (let hand = 0; hand < 2; hand++)
+            this.hand(hand, pose.grips[hand], pose.handOrientation);
+          const gripHeight = pose.grips[0].y - floor;
+          this.person(
+            id,
+            end > 0 ? 'front-jack' : 'rear-jack',
+            -1,
+            0,
+            floor,
+            pose.grips[0].z + end * 0.37,
+            end > 0 ? Math.PI : 0,
+            clamp(gripHeight + 0.015, 0.28, 0.69),
+            0.52,
+            detail,
+            0.14,
+          );
+          continue;
+        }
         const lift = clamp(frame[o + F.JACK_HEIGHT], 0, 0.22);
         const jack = this.point.set(0, floor, end * 2.05);
         this.propAt(
@@ -575,6 +629,7 @@ export class PitCrewView {
     }
     this.spareWheels.finish();
     this.wheelGuns?.setView(camera, fov, aspect);
+    this.pitJacks?.setView(camera, fov, aspect);
     this.machinery.update(this.activeCrews);
     this.root.visible = this.activeCrews > 0;
     if (this.activeActors) this.bones.needsUpdate = true;
@@ -617,6 +672,7 @@ export class PitCrewView {
       ...PEOPLE_ASSET,
       spareWheels: this.spareWheels.diagnostics(),
       wheelGuns: this.wheelGuns?.diagnostics() ?? null,
+      pitJacks: this.pitJacks?.diagnostics() ?? null,
       poseBuilds: this.cache.builds,
       poseReuses: this.cache.reuses,
       crews: this.activeCrews,
@@ -636,6 +692,7 @@ export class PitCrewView {
       ...PEOPLE_ASSET,
       spareWheels: this.spareWheels.diagnostics(),
       wheelGuns: this.wheelGuns?.diagnostics() ?? null,
+      pitJacks: this.pitJacks?.diagnostics() ?? null,
       poseBuilds: this.cache.builds,
       poseReuses: this.cache.reuses,
       crews: this.activeCrews,

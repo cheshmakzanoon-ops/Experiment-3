@@ -24,7 +24,7 @@ export function pitServiceActive(phase: number, clock: number, speed: number) {
 export const PIT_CREW_MAX_DISTANCE = 160;
 
 export const PIT_SERVICE_CENTER = Object.freeze(new Vector3(0.3, 0.3, 0));
-export const PIT_SERVICE_HALF_EXTENTS = Object.freeze(new Vector3(4.05, 1.15, 3.85));
+export const PIT_SERVICE_HALF_EXTENTS = Object.freeze(new Vector3(4.05, 1.15, 4.45));
 export const PIT_SERVICE_RADIUS = PIT_SERVICE_HALF_EXTENTS.length();
 
 export class PitComposition {
