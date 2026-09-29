@@ -1,0 +1,32 @@
+name: A33 isolated authoring workspace
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [.github/workflows/a33-workspace.yml]
+permissions:
+  contents: read
+jobs:
+  workspace:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+          cache: npm
+      - run: npm ci
+      - name: Retain source and pinned dependencies for isolated A33 verification
+        run: |
+          set -euo pipefail
+          git rev-parse HEAD > A33_WORKSPACE_SHA.txt
+          tar --exclude=.git --exclude=playable -czf "$RUNNER_TEMP/a33-workspace.tar.gz" .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: a33-isolated-workspace
+          path: ${{ runner.temp }}/a33-workspace.tar.gz
+          if-no-files-found: error
+          retention-days: 1
