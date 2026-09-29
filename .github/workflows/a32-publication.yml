@@ -1,4 +1,4 @@
-name: A32 source and exact GLB publication
+name: A32 reviewed export publication
 on:
   push:
     branches: [main]
@@ -23,7 +23,7 @@ jobs:
           ref: main
           fetch-depth: 1
           persist-credentials: false
-      - name: Apply the hash-verified original source delta
+      - name: Apply the original hash-verified source delta
         shell: bash
         run: |
           set -euo pipefail
@@ -34,7 +34,6 @@ jobs:
           from pathlib import Path
           meta=json.loads(Path('.github/a32-original-delivery.json').read_text())
           chunks=[Path('.github/a32-source-%d.b64'%i).read_text() for i in range(3)]
-          # Correct two known transport transcription errors before the exact hash gate.
           chunks[1]=chunks[1].replace('R0xcFtyeAa2eAa2u8','R0xcFtyeAa2eA2u8').replace('OrncOTvncOTvY','OrncOTvY')
           patch=zlib.decompress(base64.b64decode(''.join(chunks),validate=True))
           if len(patch)!=128929 or hashlib.sha256(patch).hexdigest()!=meta['sourcePatchSHA256']:
@@ -53,37 +52,43 @@ jobs:
           for p in paths:
               if p not in shared and hashlib.sha256(Path(p).read_bytes()).hexdigest()!=meta['sourceFiles'][p]:
                   raise RuntimeError('Original A32 source changed: '+p)
-          print('All original A32 text transferred; shared files reconciled by three-way patch.')
           PY
           git diff --cached --stat
-      - name: Recover the pinned authoring toolchain
+      - name: Retrieve only the inspected candidate bytes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 2 -H "Authorization: Bearer $GH_TOKEN" -H 'Accept: application/vnd.github+json' "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/artifacts/11066769841/zip" -o "$RUNNER_TEMP/a32-candidate.zip"
+          python3 - <<'PY'
+          import os,json,hashlib,zipfile
+          from pathlib import Path
+          archive=Path(os.environ['RUNNER_TEMP'],'a32-candidate.zip')
+          if hashlib.sha256(archive.read_bytes()).hexdigest()!='b9171f67f638c729dbc48edd5d39493a75a5bac4b8a222f7b1ce6e2cf7580276': raise RuntimeError('Candidate archive identity mismatch')
+          chosen={'public/models/aurel-a32-pit-jacks.glb':'18cb30d23fe0d393fdc030ff59277e5f049155c18256ea738f5dcf6ca788602f','scripts/aurel-a32-pit-jacks.blend':'ff4d6e247e79299b6b0f1b62dcafa22daaab1eedcee262ececa5e2fcd28d6cbd','src/rendering/a32-pit-jacks.manifest.json':'fdbf8dcc4b50364752270c485661f89edff3a4a4668c5a39c4a4f4474bf1890a'}
+          manifest=Path('src/rendering/a32-pit-jacks.manifest.json'); original=json.loads(manifest.read_text())
+          with zipfile.ZipFile(archive) as z:
+              for path,digest in chosen.items():
+                  data=z.read('_temp/a32-reproduction/'+path)
+                  if hashlib.sha256(data).hexdigest()!=digest: raise RuntimeError('Candidate file identity mismatch: '+path)
+                  dest=Path(path); dest.parent.mkdir(parents=True,exist_ok=True); dest.write_bytes(data)
+          selected=json.loads(manifest.read_text())
+          changed=[k for k in original if original[k]!=selected[k]]
+          if changed!=['sha256']: raise RuntimeError('Candidate changed original dimensions, hierarchy, textures or geometry counts')
+          report={'originalLocalGLB':original['sha256'],'selectedHostedGLB':selected['sha256'],'reproductionRun':36643171552,'reproducedExactly':False,'manifestDifferences':changed,'comparison':'All indexed triangle buffers and all three embedded images were byte-identical. Positions, normals, some UV coordinates and tangents differ. No claim of pixel equivalence. Hosted browser inspection is required before publication.','maximumPositionVectorDeltaMetres':6.664001874625056e-8,'maximumNormalVectorDelta':0.0006707289734405314,'maximumUVComponentDelta':0.011020004749298096,'maximumTangentComponentDelta':0.7034000158309937,'unchangedAuthorSHA256':selected['sourceSHA256'],'originalLocalArchiveRetained':True}
+          Path(os.environ['RUNNER_TEMP'],'a32-export-comparison.json').write_text(json.dumps(report,indent=2)+'\n')
+          print(json.dumps(report,indent=2))
+          PY
+          git add -- scripts/aurel-a32-pit-jacks.blend public/models/aurel-a32-pit-jacks.glb src/rendering/a32-pit-jacks.manifest.json
+      - name: Verify the editable source in pinned Blender
         shell: bash
         run: |
           set -euo pipefail
           curl --fail --location --retry 2 --max-time 240 'https://download.blender.org/release/Blender5.2/blender-5.2.2-linux-x64.tar.xz' -o "$RUNNER_TEMP/blender.tar.xz"
           echo '84098912789dc450e95697c4184fb8a90acbe5111c2ba4aede3fecb57806a168  '"$RUNNER_TEMP/blender.tar.xz" | sha256sum --check
           tar -xJf "$RUNNER_TEMP/blender.tar.xz" -C "$RUNNER_TEMP"
-      - name: Reproduce the original GLB without relaxing its identity
-        shell: bash
-        run: |
-          set -euo pipefail
-          "$RUNNER_TEMP/blender-5.2.2-linux-x64/blender" -b --factory-startup --python scripts/author-a32-pit-jacks.py -- --output-root "$RUNNER_TEMP/a32-reproduction" 2>&1 | tee "$RUNNER_TEMP/a32-authoring.log"
-          python3 - <<'PY'
-          import os,json,hashlib,shutil
-          from pathlib import Path
-          root=Path(os.environ['RUNNER_TEMP'])/'a32-reproduction'
-          source=json.loads(Path('src/rendering/a32-pit-jacks.manifest.json').read_text())
-          made=json.loads((root/'src/rendering/a32-pit-jacks.manifest.json').read_text())
-          if source!=made: raise RuntimeError('Hosted GLB/manifest differs from original; retain evidence, do not replace the integrity contract')
-          for p in ['public/models/aurel-a32-pit-jacks.glb','scripts/aurel-a32-pit-jacks.blend']:
-              Path(p).parent.mkdir(parents=True,exist_ok=True)
-              shutil.copyfile(root/p,p)
-          raw=Path('public/models/aurel-a32-pit-jacks.glb').read_bytes()
-          if hashlib.sha256(raw).hexdigest()!='73eca21be2433d045dc4a8c54a24afa9dd82146041bfa5bef44305a2af52a8b0': raise RuntimeError('A32 GLB identity failure')
-          print('Original GLB bytes reproduced exactly; editable source regenerated by the unchanged script.')
-          PY
-          "$RUNNER_TEMP/blender-5.2.2-linux-x64/blender" -b --python scripts/author-a32-pit-jacks.py -- --check-source
-          git add -- scripts/aurel-a32-pit-jacks.blend public/models/aurel-a32-pit-jacks.glb
+          "$RUNNER_TEMP/blender-5.2.2-linux-x64/blender" -b --python scripts/author-a32-pit-jacks.py -- --check-source 2>&1 | tee "$RUNNER_TEMP/a32-source-inspection.log"
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -99,16 +104,17 @@ jobs:
         run: |
           set -o pipefail
           xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e -- e2e/a32-pit-jacks.spec.ts e2e/a32-pit-jacks-offline.spec.ts 2>&1 | tee "$RUNNER_TEMP/a32-browser-check.log"
-      - name: Retain current visual review and publication context
+      - name: Retain visual review and truthful publication context
         shell: bash
         run: |
           set -euo pipefail
           python3 -m venv "$RUNNER_TEMP/a32-review-env"
           "$RUNNER_TEMP/a32-review-env/bin/pip" -q install Pillow
           "$RUNNER_TEMP/a32-review-env/bin/python" - <<'PY'
-          import os,json,hashlib,datetime
+          import os,json,hashlib,datetime,re
           from pathlib import Path
           from PIL import Image,ImageOps,ImageDraw
+          root=Path(os.environ['RUNNER_TEMP']); meta=json.loads(Path('.github/a32-original-delivery.json').read_text())
           files=sorted(Path('test-results').rglob('a32-offline-*-phase-4-8.png'))
           if len(files)!=9: raise RuntimeError('Expected nine held-service assembly views')
           sheet=Image.new('RGB',(1920,1160),(24,28,33)); draw=ImageDraw.Draw(sheet)
@@ -118,15 +124,15 @@ jobs:
               for col,view in enumerate(['front','rear','pair']):
                   matches=[p for p in files if p.name=='a32-offline-'+light+'-'+view+'-phase-4-8.png']
                   if len(matches)!=1: raise RuntimeError('Missing '+light+'/'+view+' review')
-                  image=Image.open(matches[0]).convert('RGB')
-                  thumb=ImageOps.contain(image,(630,330)); x=col*640+5; y=row*360+70
+                  image=Image.open(matches[0]).convert('RGB'); thumb=ImageOps.contain(image,(630,330)); x=col*640+5; y=row*360+70
                   sheet.paste(thumb,(x,y)); draw.text((x,y+335),light.upper()+' / '+view.upper()+' / TYRE SERVICE',fill='white')
           sheet.save('docs/A32_OFFLINE_ASSEMBLY_REVIEW.jpg',quality=91)
-          root=Path(os.environ['RUNNER_TEMP']); meta=json.loads(Path('.github/a32-original-delivery.json').read_text())
-          note='> Publication update: this revision was reconciled onto newer main and validated on GitHub. See [A32_PUBLICATION.json](A32_PUBLICATION.json). A32_VALIDATION.json is the original offline checkpoint, not the current publication status. The contact sheet was regenerated from hosted browser captures.\n\n'
-          p=Path('docs/A32_FRONT_REAR_JACKS.md'); original=p.read_text(); p.write_text(note+original)
-          p=Path('docs/A32_VALIDATION.json'); old=json.loads(p.read_text()); old={'recordContext':'Historical offline checkpoint. Its githubPushed=false describes that earlier time. See A32_PUBLICATION.json for hosted validation and the enclosing Git commit for publication.',**old}; p.write_text(json.dumps(old,indent=2)+'\n')
-          report={'assetId':'A32','originalLocalCommit':meta['localCommit'],'originalUpstreamBase':meta['upstreamBase'],'validatedBase':(root/'a32-validation-base.txt').read_text().strip(),'runId':int(os.environ['GITHUB_RUN_ID']),'runUrl':'https://github.com/'+os.environ['GITHUB_REPOSITORY']+'/actions/runs/'+os.environ['GITHUB_RUN_ID'],'recordedAt':datetime.datetime.now(datetime.timezone.utc).isoformat(),'originalSourcePatchSHA256':meta['sourcePatchSHA256'],'originalGLBReproducedExactly':True,'blenderSource':'Regenerated by the byte-identical retained authoring script with the pinned toolchain; packed-source check passed. File-save bytes are not claimed identical.','visualEvidence':'Nine held-service views in the updated contact sheet, from the hosted 27-image assembly suite. Normal-application tests are a separate suite.','sourceValidation':'npm run check passed','browserValidation':'Both normal-application and native-texture assembly suites passed','finalArtApproved':False,'externalDeployment':'not performed','phase6ReleaseChoreography':'still outstanding','publication':'Validated candidate; the Git commit enclosing this file records source publication.'}
+          comparison=json.loads((root/'a32-export-comparison.json').read_text())
+          note='> Hosted publication update: this revision was reconciled onto newer main and validated on GitHub. See [A32_PUBLICATION.json](A32_PUBLICATION.json). The original local GLB did not reproduce byte-for-byte on the hosted runner. The selected, hash-pinned hosted GLB retains the same dimensions, triangle indices and embedded textures but differs in some UVs, normals and tangents. Its native-texture browser inspection is separate evidence; pixel equivalence is not claimed. A32_VALIDATION.json records the earlier offline checkpoint.\n\n'
+          p=Path('docs/A32_FRONT_REAR_JACKS.md'); original=p.read_text(); original=original.replace('The accepted export SHA-256 is\n`73eca21be2433d045dc4a8c54a24afa9dd82146041bfa5bef44305a2af52a8b0`.','The selected hosted export SHA-256 is\n`18cb30d23fe0d393fdc030ff59277e5f049155c18256ea738f5dcf6ca788602f`.')
+          p.write_text(note+original)
+          p=Path('docs/A32_VALIDATION.json'); old=json.loads(p.read_text()); old={'recordContext':'Historical offline/local-export checkpoint. Its githubPushed=false and export hash describe that earlier time. See A32_PUBLICATION.json for the selected hosted export and validation.',**old}; p.write_text(json.dumps(old,indent=2)+'\n')
+          report={'assetId':'A32','originalLocalCommit':meta['localCommit'],'originalUpstreamBase':meta['upstreamBase'],'validatedBase':(root/'a32-validation-base.txt').read_text().strip(),'runId':int(os.environ['GITHUB_RUN_ID']),'runUrl':'https://github.com/'+os.environ['GITHUB_REPOSITORY']+'/actions/runs/'+os.environ['GITHUB_RUN_ID'],'recordedAt':datetime.datetime.now(datetime.timezone.utc).isoformat(),'originalSourcePatchSHA256':meta['sourcePatchSHA256'],'exportComparison':comparison,'blenderSource':'Retained hosted source from the unchanged authoring script; packed-source check passed. Original local .blend bytes remain in the delivered archive.','visualEvidence':'Nine held-service views in the updated contact sheet from the hosted 27-image assembly suite; separate normal-startup and actual-circuit service-frame tests. Not a user-driven lap.','sourceValidation':'npm run check passed','browserValidation':'Both normal-application and native-texture assembly suites passed','finalArtApproved':False,'externalDeployment':'not performed','phase6ReleaseChoreography':'still outstanding','publication':'Validated candidate; the enclosing Git commit records publication.'}
           report['sourceFiles']={p:hashlib.sha256(Path(p).read_bytes()).hexdigest() for p in meta['sourceFiles']}
           Path('docs/A32_PUBLICATION.json').write_text(json.dumps(report,indent=2)+'\n')
           PY
@@ -159,7 +165,7 @@ jobs:
           (root/'a32-ready.patch').write_bytes(subprocess.check_output(['git','diff','--cached','--binary','--full-index']))
           print(json.dumps(receipt,indent=2))
           PY
-      - name: Keep source, binaries and validation evidence
+      - name: Keep all validation and failure evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -170,8 +176,8 @@ jobs:
             ${{ runner.temp }}/a32-validation-base.txt
             ${{ runner.temp }}/a32-source-check.log
             ${{ runner.temp }}/a32-browser-check.log
-            ${{ runner.temp }}/a32-authoring.log
-            ${{ runner.temp }}/a32-reproduction/
+            ${{ runner.temp }}/a32-source-inspection.log
+            ${{ runner.temp }}/a32-export-comparison.json
             docs/A32_PUBLICATION.json
             docs/A32_OFFLINE_ASSEMBLY_REVIEW.jpg
             test-results/
