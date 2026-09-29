@@ -187,3 +187,43 @@ and only then uploads through COPY_WRITE_BUFFER. Later revisions never touch
 the element binding. Unit mocks now enforce that restriction, including an
 explicit negative control for the rejected COPY-first sequence. The unchanged
 exact-pixel and GL-error browser oracles must pass before any acceptance claim.
+
+
+## Full-race software-backend validation
+
+The repaired compaction path passed the real SwiftShader studio, full-grid,
+wet/spray and resource checks in run `36505476737` (`1a4eb612`). All compared
+studio pixels and full-grid HDR channels were unchanged, with GL error zero.
+Held grid pod triangles fell from 1,161,369 to 1,034,521; cockpit triangles fell
+from 1,108,827 to 991,067. Same-run timings improved only modestly: this is not a
+claimed large gameplay speedup. The unchanged clear-day full-lap case still
+recorded six frames on that backend, below its existing greater-than-ten gate.
+
+Investigation `36506970876` (`5da095ef`) ran the original studio and full-grid
+pixel/resource oracles unchanged using Playwright's same locked Chromium and
+Mesa llvmpipe (LLVM 20.1.2, 256 bits) through ANGLE OpenGL on a virtual X display.
+Both passed, including exact day/sunset/night HDR equality and GL error zero.
+Its held low-grid cockpit sample was 260.4 ms versus 1142.3 ms in the earlier
+SwiftShader run. These are different hosted runs and software drivers, not a
+same-device game optimization benchmark or a hardware FPS guarantee. No source
+assets, scene dimensions, quality settings or material features were reduced.
+
+The complete eight browser partitions now explicitly select Mesa software
+rendering. The independent SwiftShader wet/player/full-scene GPU gate remains
+mandatory for release. The same 132 existing browser cases are enumerated and
+assigned exactly once with original workers, zero retries, all image/event/sample
+assertions, viewport settings, physics clocks and timeouts unchanged. Mesa does
+not turn failed reviews into passes; the original live sequences must qualify.
+
+A global setup observes the actual adapter and verifies a real WebGL2 framebuffer
+before tests run. It rejects missing WebGL2 and silent fallback to SwiftShader
+when Mesa was requested, and retains `browser-backend.json` beside the normal
+shard diagnostics. Unknown backend names fail instead of selecting a default.
+Local runs still default to the previous SwiftShader configuration. Hardware
+reports already identify llvmpipe as software and never certify a physical GPU.
+
+This backend selection addresses the validation environment's inability to
+observe continuous full-fidelity races; it is not a replacement for optimizing
+and profiling the game on the user's hardware. Only a successful complete run
+of the final source may publish its exact validated artifact. The investigation
+workflow is removed; no diagnostic fixture or substitute material ships.

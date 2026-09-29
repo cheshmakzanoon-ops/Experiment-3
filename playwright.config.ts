@@ -1,8 +1,11 @@
-import { defineConfig } from '@playwright/test';
+import { defineConfig, chromium } from '@playwright/test';
+import { browserBackend } from './scripts/browser-backend.ts';
+const backend = browserBackend(process.env.APEX_BROWSER_BACKEND);
 export default defineConfig({
   testDir: './e2e',
-  // GitHub-hosted SwiftShader can drop below 1 FPS on the full fidelity scene.
-  // Keep the assertions intact, but budget for real GPU-backed frames to arrive.
+  globalSetup: './scripts/browser-backend-setup.ts',
+  // Keep every original workload, deadline and assertion. Hosted full-race jobs
+  // select verified Mesa; the independent SwiftShader GPU job remains required.
   timeout: 300000,
   expect: { timeout: 60000 },
   // Shard individual isolated cases, not whole files; each runner still uses one GPU.
@@ -15,9 +18,12 @@ export default defineConfig({
     viewport: { width: 1440, height: 900 },
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
+    headless: backend.headless,
     launchOptions: {
-      executablePath: process.env.CHROMIUM_PATH || undefined,
-      args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'],
+      executablePath:
+        process.env.CHROMIUM_PATH ||
+        (backend.name === 'mesa' ? chromium.executablePath() : undefined),
+      args: backend.args,
     },
   },
   webServer: {
