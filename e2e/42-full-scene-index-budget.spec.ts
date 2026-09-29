@@ -50,6 +50,16 @@ test('production grid index compaction preserves every held HDR channel and boun
   expect(report.glError).toBe(0);
   expect(report.sourceUnchanged).toBe(true);
   expect(report.rows).toHaveLength(3);
+  expect(report.lightingMaterials).toBeGreaterThan(100);
+  expect(report.lightingRows).toHaveLength(3);
+  for (const row of report.lightingRows) {
+    expect(row.differentChannels, row.lighting).toBe(0);
+    expect(row.after.calls, row.lighting).toBe(row.before.calls);
+    expect(row.after.triangles, row.lighting).toBe(row.before.triangles);
+    expect(row.intensities).toHaveLength(4);
+    if (row.lighting === 'day') expect(row.intensities.every((value) => value === 0)).toBe(true);
+    if (row.lighting === 'night') expect(row.intensities.some((value) => value > 0)).toBe(true);
+  }
   for (const row of report.rows) {
     expect(row.differentChannels, row.camera).toBe(0);
     expect(row.repeatDifferentChannels, row.camera).toBe(0);

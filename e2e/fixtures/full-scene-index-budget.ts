@@ -1,4 +1,5 @@
 import * as T from 'three';
+import { pointLightWorkControl } from '../../src/rendering/point-light-work.ts';
 import { RacingRenderer } from '../../src/rendering/renderer.ts';
 import { Simulation } from '../../src/simulation/world.ts';
 import { DEFAULT_OPTIONS } from '../../src/simulation/config.ts';
@@ -71,8 +72,41 @@ export async function fullSceneIndexBudget() {
         reused,
       });
     }
+    const lightingRows = [];
+    const lightingControls = new Set<{ value: boolean }>();
+    view.scene.traverse((object) => {
+      if (!(object instanceof T.Mesh)) return;
+      for (const material of Array.isArray(object.material) ? object.material : [object.material]) {
+        const control = pointLightWorkControl(material);
+        if (control) lightingControls.add(control);
+      }
+    });
+    for (const lighting of ['day', 'sunset', 'night'] as const) {
+      renderer.setRenderTarget(null);
+      view.lighting = lighting;
+      view.changeCamera('cockpit');
+      view.draw(frame, frame, 1, 1 / 120, false, true);
+      for (const control of lightingControls) control.value = false;
+      sample();
+      const before = sample();
+      for (const control of lightingControls) control.value = true;
+      sample();
+      const after = sample();
+      let differentChannels = 0;
+      for (let i = 0; i < before.pixels.length; i++)
+        if (before.pixels[i] !== after.pixels[i]) differentChannels++;
+      lightingRows.push({
+        lighting,
+        before: { ...before, pixels: undefined },
+        after: { ...after, pixels: undefined },
+        differentChannels,
+        intensities: view.venueLighting.lights.map((light) => light.intensity),
+      });
+    }
     return {
       rows,
+      lightingRows,
+      lightingMaterials: lightingControls.size,
       glError: renderer.getContext().getError(),
       sourceUnchanged: frame.every((n, i) => n === saved[i]),
       scope: 'held production eight-car main pass at 480x300; not live race or target-device FPS',

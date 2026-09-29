@@ -10,8 +10,10 @@ interface Context {
   lost: () => void;
 }
 
-/** Owned index-only buffers. COPY_WRITE_BUFFER does not change Three's cached
- * vertex-array/element bindings. Neither source indices nor vertex attributes
+/** Owned index-only buffers. A buffer must first bind as ELEMENT_ARRAY_BUFFER:
+ * first binding to COPY_WRITE_BUFFER instead permanently types it as other data
+ * in WebGL 2. Restore the current VAO's element binding before returning; later
+ * COPY_WRITE_BUFFER uploads never touch that binding. Neither source indices nor vertex attributes
  * are uploaded or modified here. A context loss invalidates all owned handles;
  * the next submission recreates them from the retained CPU selection. */
 export class CompactIndexBuffers {
@@ -41,12 +43,22 @@ export class CompactIndexBuffers {
     }
     let stream = context.streams.get(key);
     if (stream?.revision === revision) return stream.attribute as unknown as T.BufferAttribute;
-    // Preserve external COPY_WRITE users, without touching the currently bound
-    // VAO. WebGLRenderer's GLBufferAttribute path owns the subsequent index bind.
+    // Preserve external COPY_WRITE users. A new buffer also temporarily touches
+    // the current VAO to establish its element-array type, then restores it.
+    // WebGLRenderer's GLBufferAttribute path owns the subsequent drawing bind.
     const previous = gl.getParameter(gl.COPY_WRITE_BUFFER_BINDING) as WebGLBuffer | null;
     const buffer = stream?.buffer ?? gl.createBuffer();
     if (!buffer) return null; // Keep the original conservative range on allocation failure.
     try {
+      if (!stream) {
+        const element = gl.getParameter(gl.ELEMENT_ARRAY_BUFFER_BINDING) as WebGLBuffer | null;
+        try {
+          gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffer);
+        } finally {
+          // Do not leave Three's cached VAO with a different element binding.
+          if (!gl.isContextLost()) gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, element);
+        }
+      }
       gl.bindBuffer(gl.COPY_WRITE_BUFFER, buffer);
       if (!stream) {
         gl.bufferData(gl.COPY_WRITE_BUFFER, indices.byteLength, gl.DYNAMIC_DRAW);

@@ -6,21 +6,35 @@ import { SuppliedDrawRanges } from '../src/rendering/supplied-draw-ranges.ts';
 function context() {
   const canvas = new EventTarget();
   let bound: WebGLBuffer | null = { external: true } as WebGLBuffer;
+  let element: WebGLBuffer | null = { externalElement: true } as WebGLBuffer;
   let lost = false;
   const data = new Map<WebGLBuffer, Uint32Array>();
+  const types = new Map<WebGLBuffer, 'element' | 'other'>([
+    [bound, 'other'],
+    [element, 'element'],
+  ]);
   const gl = {
     canvas,
+    ELEMENT_ARRAY_BUFFER: 34963,
+    ELEMENT_ARRAY_BUFFER_BINDING: 34965,
     COPY_WRITE_BUFFER: 36663,
     COPY_WRITE_BUFFER_BINDING: 36663,
     BUFFER_SIZE: 34660,
     DYNAMIC_DRAW: 35048,
     UNSIGNED_INT: 5125,
     isContextLost: () => lost,
-    getParameter: vi.fn(() => bound),
+    getParameter: vi.fn((target: number) => (target === 34965 ? element : bound)),
     getBufferParameter: vi.fn(() => data.get(bound!)?.byteLength ?? 0),
     createBuffer: vi.fn(() => ({}) as WebGLBuffer),
-    bindBuffer: vi.fn((_target: number, buffer: WebGLBuffer | null) => {
-      bound = buffer;
+    bindBuffer: vi.fn((target: number, buffer: WebGLBuffer | null) => {
+      if (buffer) {
+        const type = types.get(buffer);
+        if (target === 34963 && type === 'other')
+          throw new Error('INVALID_OPERATION: other data cannot become an element buffer');
+        if (!type) types.set(buffer, target === 34963 ? 'element' : 'other');
+      }
+      if (target === 34963) element = buffer;
+      else bound = buffer;
     }),
     bufferData: vi.fn((_target: number, bytes: number) => {
       data.set(bound!, new Uint32Array(bytes / 4));
@@ -37,6 +51,7 @@ function context() {
     calls: gl,
     data,
     binding: () => bound,
+    elementBinding: () => element,
     lose: () => {
       lost = true;
       data.clear();
@@ -82,7 +97,8 @@ describe('exact ordered supplied index compaction', () => {
       index = f.geometry.index!,
       original = index.array.slice(),
       position = f.geometry.attributes.position;
-    const binding = f.binding();
+    const binding = f.binding(),
+      element = f.elementBinding();
     f.before();
     expect(f.geometry.drawRange).toEqual({ start: 0, count: 384 * 3 });
     const attr = f.geometry.index as unknown as T.GLBufferAttribute;
@@ -98,9 +114,14 @@ describe('exact ordered supplied index compaction', () => {
     expect(f.material.transparent).toBe(true);
     expect(f.material.side).toBe(T.DoubleSide);
     expect(f.binding()).toBe(binding);
-    expect(f.calls.bindBuffer.mock.calls.every((call) => call[0] === f.gl.COPY_WRITE_BUFFER)).toBe(
-      true,
-    );
+    expect(f.elementBinding()).toBe(element);
+    expect(f.calls.bindBuffer.mock.calls.slice(0, 2)).toEqual([
+      [f.gl.ELEMENT_ARRAY_BUFFER, attr.buffer],
+      [f.gl.ELEMENT_ARRAY_BUFFER, element],
+    ]);
+    expect(
+      f.calls.bindBuffer.mock.calls.slice(2).every((call) => call[0] === f.gl.COPY_WRITE_BUFFER),
+    ).toBe(true);
     f.after();
     expect(f.geometry.index).toBe(index);
     expect(f.geometry.drawRange).toEqual({ start: 0, count: Infinity });
@@ -176,6 +197,41 @@ describe('exact ordered supplied index compaction', () => {
 });
 
 describe('compacted GPU buffer ownership', () => {
+  it('establishes the element type before copy uploads and keeps both external bindings', () => {
+    const c = context(),
+      pool = new CompactIndexBuffers(),
+      key = {};
+    const copy = c.binding(),
+      element = c.elementBinding();
+    const attr = pool.get(
+      c.gl,
+      key,
+      new Uint32Array([0, 1, 2]),
+      3,
+      1,
+    ) as unknown as T.GLBufferAttribute;
+    expect(c.binding()).toBe(copy);
+    expect(c.elementBinding()).toBe(element);
+    // Model the real indexed draw: this would throw for a COPY-first buffer.
+    expect(() => c.gl.bindBuffer(c.gl.ELEMENT_ARRAY_BUFFER, attr.buffer)).not.toThrow();
+    c.gl.bindBuffer(c.gl.ELEMENT_ARRAY_BUFFER, element);
+    const calls = c.calls.bindBuffer.mock.calls.length;
+    pool.get(c.gl, key, new Uint32Array([2, 1, 0]), 3, 2);
+    expect(
+      c.calls.bindBuffer.mock.calls
+        .slice(calls)
+        .every(([target]) => target === c.gl.COPY_WRITE_BUFFER),
+    ).toBe(true);
+    expect(c.binding()).toBe(copy);
+    expect(c.elementBinding()).toBe(element);
+    pool.dispose();
+  });
+  it('rejects the former COPY-first initialization in the state model', () => {
+    const c = context(),
+      buffer = c.gl.createBuffer();
+    c.gl.bindBuffer(c.gl.COPY_WRITE_BUFFER, buffer);
+    expect(() => c.gl.bindBuffer(c.gl.ELEMENT_ARRAY_BUFFER, buffer)).toThrow('INVALID_OPERATION');
+  });
   it('separates contexts and keys while retaining one buffer per stream', () => {
     const pool = new CompactIndexBuffers(),
       a = context(),
@@ -211,12 +267,14 @@ describe('compacted GPU buffer ownership', () => {
   it('restores external binding and deletes a failed allocation without publishing it', () => {
     const pool = new CompactIndexBuffers(),
       c = context(),
-      previous = c.binding();
+      previous = c.binding(),
+      previousElement = c.elementBinding();
     c.calls.getBufferParameter.mockReturnValueOnce(0);
     expect(() => pool.get(c.gl, {}, new Uint32Array([1, 2, 3]), 3, 1)).toThrow(
       'Unable to allocate',
     );
     expect(c.binding()).toBe(previous);
+    expect(c.elementBinding()).toBe(previousElement);
     expect(c.calls.deleteBuffer).toHaveBeenCalledTimes(1);
     expect(pool.diagnostics().buffers).toBe(0);
     pool.dispose();

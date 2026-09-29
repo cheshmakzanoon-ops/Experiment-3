@@ -1,4 +1,5 @@
 import * as T from 'three';
+import { installPointLightWork } from './point-light-work.ts';
 import { H } from '../simulation/protocol.ts';
 import { Track, trackPoint } from '../simulation/track.ts';
 
@@ -175,6 +176,7 @@ export class LocalAtmosphere {
       )
     )
       return;
+    installPointLightWork(material);
     const particle = material instanceof T.ShaderMaterial;
     const position = particle ? (material.userData.localWeatherPosition as string) : 'transformed';
     this.installed.add(material);

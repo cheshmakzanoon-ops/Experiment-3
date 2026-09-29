@@ -149,3 +149,36 @@ Only executed results for the final source establish acceptance. Seven baseline
 browser failures remain open until the unchanged full suite proves otherwise.
 No event threshold, timeout, retry, opponent count, physics clock, visual-quality
 setting or successful-artifact publication condition is relaxed by this change.
+
+## Zero-radiance point-light work
+
+The production scene retains four point-light slots even in daylight. The
+locked Three.js lighting chunk still evaluates their attenuation and physical
+BRDF when their RGB radiance is exactly zero. A uniform branch now excludes only
+that exact-zero calculation; every nonzero value, including arbitrarily faint
+or signed components, runs the original complete body. Light count, positions,
+intensities, falloff, shadows, material adjustments and night transitions are
+unchanged. No approximate cutoff or image-quality setting is introduced.
+
+Installation occurs with the existing scene-wide weather/material setup, with
+idempotent per-material ownership and an independent same-program opt-out.
+Standard/physical materials are eligible; custom lighting programs are left
+untouched. Six focused unit tests retain the original unrolled calculation,
+custom road-lobe work, hook chaining and exact-zero boundary. The full-scene
+GPU fixture additionally compares every HDR channel with the branch disabled
+and enabled under day, sunset and night, preserving active night lights and
+all original geometry tests. Measurements belong to the executed hosted report,
+not a speedup inferred from shader source.
+
+### Initial buffer typing correction
+
+Hosted run `36503964596` caught WebGL INVALID_OPERATION (1282) and changed
+image channels in the new compaction path. Its timing reductions are invalid
+performance evidence: failed indexed draws omitted visible geometry. A buffer
+first bound to COPY_WRITE_BUFFER is typed as other data by WebGL 2 and cannot
+subsequently bind as an element array. The correction first establishes the
+element-array type, immediately restores the current VAO's element binding,
+and only then uploads through COPY_WRITE_BUFFER. Later revisions never touch
+the element binding. Unit mocks now enforce that restriction, including an
+explicit negative control for the rejected COPY-first sequence. The unchanged
+exact-pixel and GL-error browser oracles must pass before any acceptance claim.
