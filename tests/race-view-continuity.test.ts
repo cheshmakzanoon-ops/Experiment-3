@@ -103,7 +103,21 @@ describe('current-view detail and deterministic presentation', () => {
         setLod: vi.fn(),
         update: vi.fn(),
       }));
+      const garageUpdate = vi.fn((currentCamera: T.PerspectiveCamera) => {
+        // Sample during dispatch so later mutations cannot hide a stale view.
+        expect(currentCamera).toBe(camera);
+        expect(currentCamera.position.toArray()).toEqual([60, 0.4, 0.2]);
+        expect(currentCamera.projectionMatrix.elements).toEqual(
+          new T.PerspectiveCamera(
+            currentCamera.fov,
+            currentCamera.aspect,
+            currentCamera.near,
+            currentCamera.far,
+          ).projectionMatrix.elements,
+        );
+      });
       const fixture = {
+        circuit: { heroGarage: { update: garageUpdate } },
         frameMs: 16,
         frameSamples: new Float32Array(300),
         sampleIndex: 0,
@@ -173,6 +187,13 @@ describe('current-view detail and deterministic presentation', () => {
         ),
       ).toThrow(stop);
       expect(camera.position.toArray()).toEqual([60, 0.4, 0.2]);
+      expect(garageUpdate).toHaveBeenCalledExactlyOnceWith(camera, 'high', 'day');
+      expect(garageUpdate.mock.invocationCallOrder[0]).toBeGreaterThan(
+        cars[follow].update.mock.invocationCallOrder[0],
+      );
+      expect(garageUpdate.mock.invocationCallOrder[0]).toBeLessThan(
+        cars[opponent].setLod.mock.invocationCallOrder[0],
+      );
       for (const car of cars) {
         expect(car.update).toHaveBeenCalledTimes(1);
         expect(car.setLod).toHaveBeenCalledTimes(1);
