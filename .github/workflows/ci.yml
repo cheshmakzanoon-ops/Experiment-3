@@ -219,7 +219,7 @@ jobs:
           test -s dist/index.html
           test -d dist/assets
       - run: npx playwright install --with-deps chromium
-      - run: npm run test:e2e -- e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts e2e/41-player-render-budget.spec.ts e2e/42-full-scene-index-budget.spec.ts
+      - run: npm run test:e2e -- e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts e2e/41-player-render-budget.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/30-race-finish.spec.ts
       - name: Wet and supplied-player presentation screenshots and GPU measurements
         if: always()
         uses: actions/upload-artifact@v4

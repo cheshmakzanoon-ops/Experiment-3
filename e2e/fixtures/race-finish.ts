@@ -49,6 +49,7 @@ function studio() {
       nonzero,
       calls: renderer.info.render.calls,
       triangles: renderer.info.render.triangles,
+      frontFace: gl.getParameter(gl.FRONT_FACE) as number,
       image: renderer.domElement.toDataURL('image/png'),
     };
   };
@@ -212,25 +213,61 @@ export function canopyGPU() {
   scene.add(key);
   camera.position.set(0, 0, 3.2);
   camera.lookAt(0, 0, 0);
-  const front = geometry.index!.array.slice();
-  const reverse = () => {
-    const index = geometry.index!;
-    for (let i = 0; i < index.count; i += 3) {
-      const value = index.getX(i);
-      index.setX(i, index.getX(i + 2));
-      index.setX(i + 2, value);
+  const position = geometry.getAttribute('position'),
+    frontPositions = position.array.slice(),
+    frontNormals = normal.array.slice(),
+    frontIndices = geometry.index!.array.slice(),
+    uv = geometry.getAttribute('uv'),
+    frontUVs = uv.array.slice();
+  // Reverse declared front-facing orientation through the normal renderer path,
+  // not primitive reindexing. Opposite local/object X reflections retain exactly
+  // the same ordered world vertices, authored normals and atlas coordinates.
+  // Reindexing also perturbed Mesa's alpha-edge interpolation, so it did not
+  // isolate the normal correction from the unrelated texture sampling control.
+  const setFacing = (back: boolean) => {
+    const sign = back ? -1 : 1;
+    for (let i = 0; i < position.count; i++) {
+      position.setX(i, frontPositions[i * 3] * sign);
+      normal.setX(i, frontNormals[i * 3] * sign);
     }
-    index.needsUpdate = true;
+    position.needsUpdate = normal.needsUpdate = true;
+    card.scale.x = sign;
+    card.updateMatrixWorld(true);
+    const normalMatrix = new T.Matrix3().getNormalMatrix(card.matrixWorld);
+    let maximumWorldPositionDelta = 0,
+      maximumWorldNormalDelta = 0;
+    for (let i = 0; i < position.count; i++) {
+      const world = new T.Vector3().fromBufferAttribute(position, i).applyMatrix4(card.matrixWorld);
+      const authored = new T.Vector3().fromArray(frontPositions, i * 3);
+      const worldNormal = new T.Vector3()
+        .fromBufferAttribute(normal, i)
+        .applyNormalMatrix(normalMatrix);
+      const authoredNormal = new T.Vector3().fromArray(frontNormals, i * 3).normalize();
+      maximumWorldPositionDelta = Math.max(maximumWorldPositionDelta, world.distanceTo(authored));
+      maximumWorldNormalDelta = Math.max(
+        maximumWorldNormalDelta,
+        worldNormal.distanceTo(authoredNormal),
+      );
+    }
+    return {
+      back,
+      matrixDeterminant: card.matrixWorld.determinant(),
+      maximumWorldPositionDelta,
+      maximumWorldNormalDelta,
+      indicesUnchanged: frontIndices.every((value, i) => geometry.index!.getX(i) === value),
+      uvUnchanged: frontUVs.every((value, i) => uv.array[i] === value),
+    };
   };
   const callback = material.onBeforeCompile,
     cacheKey = material.customProgramCacheKey();
   const correction = 'normal *= faceDirection;\n  nonPerturbedNormal = normal;';
   const captures = [];
   const comparisons = [];
+  const facingChecks = [];
   try {
-    // Keep the production lit comparison, then independently observe its actual
-    // post-hook normal. Changing triangle winding can change the final texture
-    // sample's 8-bit rounding; that must not hide an inverted lighting normal.
+    // Keep production texture/alpha/shading and every original pixel assertion.
+    // The normal witness and disabled-correction negative control must still
+    // distinguish front/back lighting while projected coverage remains exact.
     for (const observation of ['lit', 'normal'] as const) {
       for (const enabled of [false, true]) {
         material.onBeforeCompile = (s, r) => {
@@ -252,16 +289,15 @@ export function canopyGPU() {
         const name = `canopy-${enabled ? 'corrected' : 'control'}${observation === 'normal' ? '-normal' : ''}`;
         material.customProgramCacheKey = () => `${cacheKey}-${name}`;
         material.needsUpdate = true;
-        geometry.index!.array.set(front);
-        geometry.index!.needsUpdate = true;
+        facingChecks.push(setFacing(false));
         captures.push(capture(`${name}-front`));
         const frontPixels = pixels();
-        reverse();
+        facingChecks.push(setFacing(true));
         captures.push(capture(`${name}-back`));
         comparisons.push({ name, ...pixelDifference(frontPixels, pixels()) });
       }
     }
-    return { captures, comparisons, glError: renderer.getContext().getError() };
+    return { captures, comparisons, facingChecks, glError: renderer.getContext().getError() };
   } finally {
     // The test card shares the production material and atlas, not its geometry.
     scene.remove(card);

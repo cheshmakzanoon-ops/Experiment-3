@@ -84,12 +84,24 @@ for (const method of ['signalGPU', 'crewGPU', 'canopyGPU'] as const) {
       const front = find('canopy-corrected-front'),
         back = find('canopy-corrected-back');
       expect(front.nonzero).toBeGreaterThan(100);
-      if (!('comparisons' in result)) throw new Error('Missing pixel comparisons');
+      if (!('comparisons' in result) || !('facingChecks' in result))
+        throw new Error('Missing pixel/facing comparisons');
+      expect(result.facingChecks).toHaveLength(8);
+      for (const control of result.facingChecks) {
+        expect(control.matrixDeterminant).toBe(control.back ? -1 : 1);
+        expect(control.maximumWorldPositionDelta).toBe(0);
+        expect(control.maximumWorldNormalDelta).toBe(0);
+        expect(control.indicesUnchanged).toBe(true);
+        expect(control.uvUnchanged).toBe(true);
+      }
+      // Observe the actual GL winding convention, not merely a requested flag.
+      expect(front.frontFace).toBe(0x0901); // CCW
+      expect(back.frontFace).toBe(0x0900); // CW
       const difference = result.comparisons.find((c) => c.name === 'canopy-corrected');
       expect(difference).toBeDefined();
-      // Winding reversal moved eight channels by one 8-bit code value in the
-      // inspected failure artifact. Bound EVERY channel, not an image average,
-      // and require exactly preserved coverage plus an exact normal witness.
+      // Retain the original one-code-value bound on EVERY lit channel, exact
+      // alpha coverage and the exact independent post-hook normal witness.
+      // No threshold, texture, alpha test or negative control is relaxed.
       expect(difference!.maxChannelDelta).toBeLessThanOrEqual(1);
       expect(difference!.coverageDifferences).toBe(0);
       expect(find('canopy-corrected-normal-front').hash).toBe(
