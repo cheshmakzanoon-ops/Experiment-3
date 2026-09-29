@@ -51,7 +51,7 @@ jobs:
               assert not Path(name).exists(), 'Another agent already owns '+name
               Path(name).parent.mkdir(parents=True,exist_ok=True)
               Path(name).write_text(text,encoding='utf-8')
-          for patch_sha in ['b15955dba5f268277bb272d27ff65ff70ce9ae9d']:
+          for patch_sha in ['b15955dba5f268277bb272d27ff65ff70ce9ae9d','ff69e4bb9b6b61e8a17151186e517940b04b4a28','d4ec0bbfeef838965b527ea2e6f3f96a6a25ec39']:
               req=urllib.request.Request('https://api.github.com/repos/'+os.environ['GITHUB_REPOSITORY']+'/git/blobs/'+patch_sha,headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json'})
               with urllib.request.urlopen(req,timeout=60) as r: obj=json.load(r)
               data=base64.b64decode(obj['content'])
@@ -66,6 +66,11 @@ jobs:
                   text=text.replace(e['old'],e['new'])
                   assert hashlib.sha256(text.encode()).hexdigest()==e['afterSHA256']
                   p.write_text(text,encoding='utf-8')
+              if 'expectations' in patch:
+                  assert set(patch['expectations'])=={'expectedSource','expectedGLB'}
+                  for key,value in patch['expectations'].items():
+                      assert len(value)==64 and all(c in '0123456789abcdef' for c in value)
+                      bundle[key]=value
           script=Path(os.environ['RUNNER_TEMP'])/'a34-apply.py'
           script.write_text(bundle['apply'],encoding='utf-8')
           subprocess.run(['python',str(script)],check=True)
@@ -99,7 +104,8 @@ jobs:
       - name: A34 early type and focused geometry gate
         run: npx tsc --noEmit && npm test -- tests/tyre-blankets.test.ts
       - name: Complete lint, unit and production build gate
-        run: npm run check
+        shell: bash
+        run: set -o pipefail; npm run check 2>&1 | tee a34-check.log
       - name: Khronos glTF validation in a temporary dependency directory
         shell: bash
         run: |
@@ -119,22 +125,46 @@ jobs:
         env:
           PLAYWRIGHT_JSON_OUTPUT_NAME: a34-browser-results.json
         run: xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e -- e2e/a34-tyre-blankets.spec.ts e2e/43-hero-garage.spec.ts e2e/44-pit-wall-station.spec.ts --reporter=line,json
+      - name: Record durable actual-game image evidence
+        shell: bash
+        run: |
+          /usr/bin/python3 - <<'PY'
+          from pathlib import Path
+          from PIL import Image, ImageDraw, ImageFont
+          root=Path('test-results')
+          sheet=Image.new('RGB',(1280,1232),(245,245,245))
+          draw=ImageDraw.Draw(sheet)
+          try: font=ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',19)
+          except OSError: font=ImageFont.load_default()
+          draw.text((16,14),'A34 | ACTUAL CIRCUIT SURVEY / final art approval remains open',fill=(20,20,20),font=font)
+          for row,light in enumerate(['day','sunset','night']):
+              for col,view in enumerate(['garage-wide','controller-detail' if light=='night' else 'fitted-front-detail']):
+                  paths=list(root.rglob('a34-'+light+'-'+view+'.png'))
+                  assert len(paths)==1,paths
+                  image=Image.open(paths[0]).convert('RGB').resize((640,360),Image.Resampling.LANCZOS)
+                  y=56+row*392
+                  sheet.paste(image,(col*640,y))
+                  draw.text((col*640+12,y+365),('rainy night' if light=='night' else light)+' / '+view,fill=(20,20,20),font=font)
+          sheet.save('docs/A34_GAMEPLAY_CONTACT_SHEET.jpg',quality=90)
+          PY
       - name: Retain verified Git objects without updating any branch
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           python - <<'PY'
-          import base64,hashlib,json,os,tarfile,urllib.request
+          import base64,hashlib,json,os,re,tarfile,urllib.request
           from pathlib import Path
           bundle=json.loads(Path('a34-candidate.json').read_text())
           base=json.loads(Path('a34-base.json').read_text())
           browser=json.loads(Path('a34-browser-results.json').read_text())
           validator=json.loads(Path('a34-gltf-validation.json').read_text())
           assert browser['stats']['unexpected']==0 and browser['stats']['skipped']==0 and browser['stats']['flaky']==0
-          receipt={'assetId':'A34','candidateBase':base['commit'],'runId':os.environ['GITHUB_RUN_ID'],'localHostedGLBMatch':True,'fullCheck':'passed','browser':browser['stats'],'gltf':validator['issues'],'finalArtApproved':False,'hardwareFPSCertified':False,'drivenLapReview':False}
+          check=re.sub(r'\x1b\[[0-9;]*m','',Path('a34-check.log').read_text())
+          unit=int(re.search(r'Tests\s+(\d+) passed',check).group(1))
+          receipt={'unitTestsPassed':unit,'evidence':'docs/A34_GAMEPLAY_CONTACT_SHEET.jpg','assetId':'A34','candidateBase':base['commit'],'runId':os.environ['GITHUB_RUN_ID'],'localHostedGLBMatch':True,'fullCheck':'passed','browser':browser['stats'],'gltf':validator['issues'],'finalArtApproved':False,'hardwareFPSCertified':False,'drivenLapReview':False}
           Path('docs/A34_VALIDATION.json').write_text(json.dumps(receipt,indent=2)+'\n')
-          names=sorted(set(bundle['files'])|set(base['files'])|{'scripts/aurel-tyre-blankets-and-controllers.blend','public/models/aurel-tyre-blankets-and-controllers.glb','src/rendering/tyre-blankets.manifest.json','docs/A34_VALIDATION.json'})
+          names=sorted(set(bundle['files'])|set(base['files'])|{'scripts/aurel-tyre-blankets-and-controllers.blend','public/models/aurel-tyre-blankets-and-controllers.glb','src/rendering/tyre-blankets.manifest.json','docs/A34_VALIDATION.json','docs/A34_GAMEPLAY_CONTACT_SHEET.jpg'})
           report={'base':base,'runId':os.environ['GITHUB_RUN_ID'],'files':{},'branchUpdated':False}
           for name in names:
               data=Path(name).read_bytes()
@@ -148,30 +178,14 @@ jobs:
               for name in names: archive.add(name,arcname=name)
           print('A34_RETAINED_BEGIN\n'+json.dumps(report,indent=2)+'\nA34_RETAINED_END')
           PY
-      - name: Emit actual in-game thumbnail evidence
-        if: always()
-        shell: bash
-        run: |
-          /usr/bin/python3 - <<'PY'
-          from pathlib import Path
-          import base64,io
-          try:
-              from PIL import Image
-          except ImportError:
-              print('No thumbnails: validation stopped before imaging dependencies were installed.')
-              raise SystemExit(0)
-          for path in sorted(Path('test-results').rglob('*.png')):
-              if 'a34-' not in path.name: continue
-              im=Image.open(path).convert('RGB');im.thumbnail((480,270))
-              stream=io.BytesIO();im.save(stream,'JPEG',quality=35)
-              print('A34_VISUAL',str(path),base64.b64encode(stream.getvalue()).decode())
-          PY
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: a34-candidate-evidence
           path: |
             a34-base.json
+            a34-check.log
+            docs/A34_GAMEPLAY_CONTACT_SHEET.jpg
             a34-retained-blobs.json
             a34-candidate-source.tar.gz
             a34-browser-results.json
