@@ -1,0 +1,108 @@
+name: Runtime GPU investigation
+on:
+  push:
+    branches: [main]
+    paths: [.github/workflows/runtime-investigation.yml]
+permissions:
+  contents: read
+jobs:
+  investigate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Preserve locked offline toolchain
+        run: tar -czf "$RUNNER_TEMP/runtime-toolchain.tar.gz" node_modules
+      - uses: actions/upload-artifact@v4
+        with:
+          name: runtime-toolchain
+          path: ${{ runner.temp }}/runtime-toolchain.tar.gz
+          retention-days: 1
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - name: Install read-only diagnostic fixture
+        shell: bash
+        run: |
+          cat > e2e/fixtures/runtime-investigation.ts <<'EOF'
+          import * as T from 'three';
+          import { RacingRenderer } from '../../src/rendering/renderer.ts';
+          import { Simulation } from '../../src/simulation/world.ts';
+          import { DEFAULT_OPTIONS } from '../../src/simulation/config.ts';
+          export async function investigate() {
+            const canvas = document.createElement('canvas');
+            canvas.style.width='640px'; canvas.style.height='400px'; document.body.append(canvas);
+            const sim = new Simulation({...DEFAULT_OPTIONS, mode:'race', opponents:7, weather:'clear', seed:711});
+            const view = await RacingRenderer.create(canvas, sim.track, () => {}, () => false);
+            if (!view) throw new Error('No renderer');
+            view.setQuality('low'); view.setCars(8); view.changeCamera('pod');
+            const frame=sim.makeFrame(); view.draw(frame,frame,1,1/120,false,true);
+            const renderer=view.renderer, gl=renderer.getContext();
+            const target=new T.WebGLRenderTarget(480,300,{type:T.HalfFloatType});
+            const source=new Uint16Array(480*300*4);
+            const sample=()=>{
+              const start=performance.now(); renderer.info.reset(); renderer.setRenderTarget(target);
+              renderer.render(view.scene,view.camera);
+              renderer.readRenderTargetPixels(target,0,0,480,300,source);
+              return {ms:performance.now()-start,calls:renderer.info.render.calls,triangles:renderer.info.render.triangles};
+            };
+            const player=view.cars[0].suppliedPlayer!;
+            const meshes:T.Mesh[]=[]; player.root.traverse(o=>{if(o instanceof T.Mesh) meshes.push(o);});
+            const standard=new Set<T.MeshStandardMaterial>();
+            meshes.forEach(o=>{for(const m of Array.isArray(o.material)?o.material:[o.material]) if(m instanceof T.MeshStandardMaterial) standard.add(m);});
+            const rows:any[]=[];
+            const measure=(name:string)=>{sample(); const a=sample(),b=sample(); rows.push({name,a,b}); console.log('GPU_COST '+JSON.stringify(rows.at(-1)));};
+            try {
+              for(const camera of ['pod','cockpit'] as const){
+                view.changeCamera(camera); view.draw(frame,frame,1,1/120,false,true);
+                measure(camera+':baseline');
+                player.root.visible=false; measure(camera+':no-player'); player.root.visible=true;
+                const skin=meshes.filter(m=>m instanceof T.SkinnedMesh), masks=skin.map(m=>m.layers.mask);
+                skin.forEach(m=>m.layers.mask=0); measure(camera+':no-skin'); skin.forEach((m,i)=>m.layers.mask=masks[i]);
+                const basic=new T.MeshBasicMaterial({color:0x777777,side:T.DoubleSide});
+                const old=meshes.map(m=>m.material); meshes.forEach(m=>m.material=basic); measure(camera+':basic-player'); meshes.forEach((m,i)=>m.material=old[i]); basic.dispose();
+                const normal=[...standard].map(m=>({m,bump:m.bumpMap,normal:m.normalMap}));
+                normal.forEach(({m})=>{m.bumpMap=null;m.normalMap=null;m.needsUpdate=true;}); measure(camera+':no-player-bump');
+                normal.forEach(({m,bump,normal})=>{m.bumpMap=bump;m.normalMap=normal;m.needsUpdate=true;});
+                const anis=[...standard].filter(m=>m instanceof T.MeshPhysicalMaterial).map(m=>({m:m as T.MeshPhysicalMaterial,a:(m as T.MeshPhysicalMaterial).anisotropy}));
+                anis.forEach(({m})=>{m.anisotropy=0;m.needsUpdate=true;}); measure(camera+':no-player-anisotropy'); anis.forEach(({m,a})=>{m.anisotropy=a;m.needsUpdate=true;});
+                measure(camera+':restored');
+              }
+              return {rows,error:gl.getError(),scope:'isolated held full-scene main pass; diagnostic removals never ship'};
+            } finally {renderer.setRenderTarget(null);target.dispose();view.dispose();}
+          }
+          EOF
+          cat > e2e/runtime-investigation.spec.ts <<'EOF'
+          import {test,expect} from '@playwright/test';
+          import {build} from 'vite';
+          import {resolve} from 'node:path';
+          test('held full-scene GPU cost breakdown',async({page},info)=>{
+            test.setTimeout(540000);
+            const b=await build({configFile:false,logLevel:'error',build:{write:false,lib:{entry:resolve('e2e/fixtures/runtime-investigation.ts'),name:'RuntimeInvestigation',formats:['iife']}}});
+            const r=Array.isArray(b)?b[0]:b;
+            if(!('output' in r)) throw new Error('No bundle');
+            const chunk=r.output.find(o=>o.type==='chunk'); if(!chunk||chunk.type!=='chunk')throw new Error('No chunk');
+            await page.route('**/runtime-probe',r=>r.fulfill({contentType:'text/html',body:'<!doctype html><title>GPU cost investigation</title>'}));
+            page.on('console',m=>{if(m.text().startsWith('GPU_COST '))console.log(m.text());});
+            await page.goto('/runtime-probe'); await page.addScriptTag({content:chunk.code});
+            const report=await page.evaluate(()=> (window as any).RuntimeInvestigation.investigate());
+            console.log('GPU_REPORT '+JSON.stringify(report));
+            await info.attach('gpu-costs.json',{body:JSON.stringify(report,null,2),contentType:'application/json'});
+            expect(report.error).toBe(0);
+          });
+          EOF
+      - run: npm run test:e2e -- e2e/runtime-investigation.spec.ts
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: runtime-investigation
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 3
