@@ -1,0 +1,116 @@
+name: A33 candidate authoring and WebGL validation
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/a33-candidate.yml
+      - .github/a33-candidate.*.b64
+permissions:
+  contents: write
+concurrency:
+  group: a33-candidate
+  cancel-in-progress: false
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      CI: 'true'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+          cache: npm
+      - name: Apply the hash-checked A33-only candidate without altering branch refs
+        run: |
+          node --input-type=module <<'JS'
+          import fs from 'node:fs';
+          import {brotliDecompressSync} from 'node:zlib';
+          import {createHash} from 'node:crypto';
+          import {execFileSync} from 'node:child_process';
+          const data = [0,1,2,3,4].map(i=>fs.readFileSync(`.github/a33-candidate.${i}.b64`,'utf8')).join('');
+          const patch = brotliDecompressSync(Buffer.from(data,'base64'));
+          if(createHash('sha256').update(patch).digest('hex')!=='05abacc542e80ac3ac2b022d4047098cd74a27301dee9d64ccc81335569c17be') throw Error('A33 candidate transfer hash mismatch');
+          const files = ['3dmodels.md','docs/A33_SPARE_WHEEL_HANDLING_SET.md','e2e/a33-spare-wheel-set.spec.ts','e2e/fixtures/a33-spare-wheel-set.ts','scripts/author-a33-spare-wheel-set.py','src/rendering/a33-spare-wheel-set.manifest.json','src/rendering/a33-spare-wheel-set.ts','tests/a33-spare-wheel-set.test.ts','src/rendering/hero-garage.ts','src/rendering/pit-crew.ts','src/rendering/renderer.ts','tests/people.test.ts','tests/pit-presentation.test.ts','scripts/aurel-a33-spare-wheel-set.blend','public/models/aurel-a33-spare-wheel-set.glb','src/rendering/a33-spare-wheel-set.geometry.json'];
+          const changed = [...patch.toString().matchAll(/^diff --git a\/(.+) b\/(.+)$/gm)];
+          if(changed.length!==13 || changed.some(m=>m[1]!==m[2] || !files.includes(m[1]))) throw Error('A33 patch exceeds owned paths');
+          const git=(...args)=>execFileSync('git',args,{encoding:'utf8'}).trim();
+          const base={commit:git('rev-parse','HEAD'),tree:git('rev-parse','HEAD^{tree}'),files:{}};
+          for(const path of files){const row=git('ls-tree','HEAD','--',path);base.files[path]=row?row.split(/\s+/)[2]:null;}
+          fs.writeFileSync(process.env.RUNNER_TEMP+'/a33-base.json',JSON.stringify(base,null,2));
+          fs.writeFileSync(process.env.RUNNER_TEMP+'/a33.patch',patch);
+          execFileSync('git',['apply','--check',process.env.RUNNER_TEMP+'/a33.patch'],{stdio:'inherit'});
+          execFileSync('git',['apply',process.env.RUNNER_TEMP+'/a33.patch'],{stdio:'inherit'});
+          fs.copyFileSync('src/rendering/a33-spare-wheel-set.manifest.json',process.env.RUNNER_TEMP+'/a33-local-manifest.json');
+          JS
+      - run: npm ci
+      - name: Install checksum-pinned Blender
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 2 --max-time 240 'https://download.blender.org/release/Blender5.2/blender-5.2.2-linux-x64.tar.xz' -o "$RUNNER_TEMP/blender.tar.xz"
+          echo '84098912789dc450e95697c4184fb8a90acbe5111c2ba4aede3fecb57806a168  '"$RUNNER_TEMP/blender.tar.xz" | sha256sum --check
+          tar -xJf "$RUNNER_TEMP/blender.tar.xz" -C "$RUNNER_TEMP"
+      - name: Generate retained Blender source and both exchange/runtime exports
+        run: |
+          set -euo pipefail
+          mkdir -p test-results/a33-authoring
+          "$RUNNER_TEMP/blender-5.2.2-linux-x64/blender" --background --factory-startup --python-exit-code 1 --python scripts/author-a33-spare-wheel-set.py | tee test-results/a33-authoring/blender.log
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          local=json.loads((Path(os.environ['RUNNER_TEMP'])/'a33-local-manifest.json').read_text())
+          hosted=json.loads(Path('src/rendering/a33-spare-wheel-set.manifest.json').read_text())
+          evidence={'runtimeEqual':local['runtimeSha256']==hosted['runtimeSha256'],'glbEqual':local['sha256']==hosted['sha256'],'local':local,'hosted':hosted}
+          Path('test-results/a33-authoring/reproduction.json').write_text(json.dumps(evidence,indent=2))
+          assert evidence['runtimeEqual'], 'Hosted runtime meshes differ from the inspected local meshes'
+          assert evidence['glbEqual'], 'Hosted exchange export differs from the inspected local GLB'
+          PY
+      - name: Full lint, unit and build regression gate
+        run: npm run check
+      - name: Install browser
+        run: npx playwright install --with-deps chromium
+      - name: A33 normal startup, real-service motion, replay and lighting surveys
+        run: npm run test:e2e -- e2e/a33-spare-wheel-set.spec.ts e2e/pit-presentation.spec.ts e2e/43-hero-garage.spec.ts
+      - name: Store validated immutable Git blobs only; never update refs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          node --input-type=module <<'JS'
+          import fs from 'node:fs';
+          import {createHash} from 'node:crypto';
+          const base=JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP+'/a33-base.json','utf8'));
+          const result={base,run:process.env.GITHUB_RUN_ID,refMutation:false,files:[]};
+          for(const path of Object.keys(base.files)) {
+            const data=fs.readFileSync(path);
+            const sha=createHash('sha1').update(Buffer.from(`blob ${data.length}\0`)).update(data).digest('hex');
+            const response=await fetch(`https://api.github.com/repos/${process.env.GITHUB_REPOSITORY}/git/blobs`,{method:'POST',headers:{Authorization:`Bearer ${process.env.GH_TOKEN}`,Accept:'application/vnd.github+json','Content-Type':'application/json','X-GitHub-Api-Version':'2022-11-28'},body:JSON.stringify({content:data.toString('base64'),encoding:'base64'})});
+            if(!response.ok) throw Error(`Git blob failed for ${path}: ${response.status}`);
+            const stored=await response.json();
+            if(stored.sha!==sha) throw Error('Git blob identity mismatch');
+            result.files.push({path,mode:'100644',type:'blob',sha,bytes:data.length,sha256:createHash('sha256').update(data).digest('hex')});
+          }
+          fs.writeFileSync('test-results/a33-git-blobs.json',JSON.stringify(result,null,2));
+          console.log(JSON.stringify(result,null,2));
+          JS
+      - name: Retain source, contracts and rendered evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: a33-candidate-evidence
+          path: |
+            scripts/author-a33-spare-wheel-set.py
+            scripts/aurel-a33-spare-wheel-set.blend
+            public/models/aurel-a33-spare-wheel-set.glb
+            src/rendering/a33-spare-wheel-set.*
+            docs/A33_SPARE_WHEEL_HANDLING_SET.md
+            test-results/
+            playwright-report/
+            browser-backend.json
+          if-no-files-found: error
+          retention-days: 7
