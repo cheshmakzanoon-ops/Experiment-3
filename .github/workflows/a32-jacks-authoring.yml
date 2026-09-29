@@ -1,0 +1,42 @@
+name: A32 jack authoring
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [.github/workflows/a32-jacks-authoring.yml]
+permissions:
+  contents: read
+concurrency:
+  group: a32-jacks-authoring
+  cancel-in-progress: false
+jobs:
+  source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+          cache: npm
+      - run: npm ci
+      - name: Retain credential-free source and pinned dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          git rev-parse HEAD > "$RUNNER_TEMP/A32_BASE_SHA.txt"
+          tar --exclude='./.git/config' --exclude='./.git/logs' --exclude='./node_modules' -czf "$RUNNER_TEMP/a32-source.tgz" .
+          tar -czf "$RUNNER_TEMP/a32-dependencies.tgz" node_modules
+          sha256sum "$RUNNER_TEMP/a32-source.tgz" "$RUNNER_TEMP/a32-dependencies.tgz"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: a32-authoring-inputs
+          path: |
+            ${{ runner.temp }}/a32-source.tgz
+            ${{ runner.temp }}/a32-dependencies.tgz
+            ${{ runner.temp }}/A32_BASE_SHA.txt
+          retention-days: 2
+          compression-level: 0
+          if-no-files-found: error
