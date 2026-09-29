@@ -47,3 +47,7 @@ GLB contain no imported stock art, commercial-game geometry, logo, human scan,
 font file or photographic texture. Runtime screen pixels are drawn from the
 actual presented session/replay snapshot; no fictional telemetry recording is
 included. See [A24 scope and acceptance](A24_PIT_WALL_STATION.md).
+
+## A34 original thermal blankets and controllers
+
+`scripts/author-tyre-blankets.py` authors fitted and opened front/rear covers, folded blankets, controllers and a cable coil from original metre-space geometry. The retained Blender source and GLB use original periodic weave pixels and converted built-in lettering, not downloaded meshes, photographic textures, logos or font files. The fit target is the existing APX spare-wheel envelope, not a dimensional claim about the supplied RB19. Runtime displays remain STANDBY; no synthetic temperature data or tyre-heating physics is introduced. See [A34 production notes](A34_TYRE_BLANKETS.md).

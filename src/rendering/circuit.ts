@@ -1,5 +1,6 @@
 import { PitWallStation, pitWallPlacement } from './pit-wall-station.ts';
 import { HERO_GARAGE, type HeroGarage } from './hero-garage.ts';
+import type { TyreBlanketSet } from './tyre-blankets.ts';
 import { StaticTransformGroup } from './static-transform-group.ts';
 import { VENUE_LAMP_RADIUS } from './light-footprint.ts';
 import { buildGantrySolids, buildControlTowerSolids } from './race-structures.ts';
@@ -44,6 +45,7 @@ interface RibbonOptions {
 /** All surfaces are constructed from the same metre-valued track queries as physics. */
 export class CircuitScene {
   heroGarage: HeroGarage | null = null;
+  tyreBlankets: TyreBlanketSet | null = null;
   pitWallStation: PitWallStation | null = null;
   readonly group = new T.Group();
   readonly crowd = new T.Group();
@@ -232,7 +234,9 @@ export class CircuitScene {
       batchScene(
         this.props,
         new Set(
-          [this.heroGarage?.root, this.pitWallStation?.root].filter((o): o is T.Group => !!o),
+          [this.heroGarage?.root, this.tyreBlankets?.root, this.pitWallStation?.root].filter(
+            (o): o is T.Group => !!o,
+          ),
         ),
       ),
     );
@@ -259,6 +263,7 @@ export class CircuitScene {
       source: 'constructed-runtime-groups',
       districts,
       garage: this.heroGarage?.diagnostics() ?? null,
+      tyreBlankets: this.tyreBlankets?.diagnostics() ?? null,
       pitWall: this.pitWallStation?.diagnostics() ?? null,
       finalArtApproved: false,
     };
@@ -398,6 +403,7 @@ export class CircuitScene {
         if (authored) {
           g.name = `Authored garage bay ${i + 1}`;
           g.add(this.heroGarage!.root);
+          if (this.tyreBlankets) g.add(this.tyreBlankets.root);
         } else buildGarageBay(g, paddock, i);
         if (!authored) {
           const panel = mesh(

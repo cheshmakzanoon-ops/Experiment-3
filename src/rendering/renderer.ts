@@ -1,5 +1,6 @@
 import { loadPitWallStation } from './pit-wall-station.ts';
 import { loadHeroGarage } from './hero-garage.ts';
+import { loadTyreBlankets } from './tyre-blankets.ts';
 import { compileSceneTarget, PreparationTrace } from './preparation.ts';
 import { warmPitMaterials } from './pit-material-warmup.ts';
 import { frontToBackOpaque } from './opaque-order.ts';
@@ -306,6 +307,13 @@ export class RacingRenderer {
         label: 'Loading authored Aurel working garage',
       });
       renderer.circuit.heroGarage = await loadHeroGarage(cancelled);
+      progress({
+        completed: 0,
+        total: 1,
+        fraction: 0,
+        label: 'Loading A34 tyre blankets and controllers',
+      });
+      renderer.circuit.tyreBlankets = await loadTyreBlankets(cancelled);
       progress({
         completed: 0,
         total: 1,
@@ -787,6 +795,9 @@ export class RacingRenderer {
     if (this.photo) this.camera.rotateZ((this.photo.roll * Math.PI) / 180);
     this.camera.updateProjectionMatrix();
     this.circuit.heroGarage?.update(this.camera, this.quality, illumination);
+    this.circuit.tyreBlankets?.update(this.camera, this.quality, illumination);
+    if (this.circuit.heroGarage)
+      this.circuit.tyreBlankets?.alignGarageWheels(this.circuit.heroGarage.spareWheelStorage);
     this.circuit.pitWallStation?.update(
       this.camera,
       this.quality,
@@ -1212,6 +1223,8 @@ export class RacingRenderer {
   dispose() {
     if (this.disposed) return;
     this.disposed = true;
+    if (this.circuit.tyreBlankets && !this.circuit.tyreBlankets.root.parent)
+      this.circuit.tyreBlankets.dispose();
     this.heroShells?.dispose();
     this.driverAsset?.dispose();
     this.suppliedPlayerAsset?.dispose();

@@ -274,3 +274,7 @@ The immediate high-value asset groups are:
 8. Aurel landmark refinement
 9. support vehicles and paddock logistics
 10. optional celebration/race-state assets after the main race presentation is strong
+
+## A34 authored revision 01
+
+A34 now supplies nine original Blender-authored blanket/controller/cable variants and a socket-aligned, material-batched arrangement in A22 bay 05. Editable source, self-contained GLB, three LODs, integrity manifest and focused tests are retained. This is not heating simulation, A33 wheel handling, final-art approval or cockpit-camera repair. See [A34 scope and validation](docs/A34_TYRE_BLANKETS.md).
