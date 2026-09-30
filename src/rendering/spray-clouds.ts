@@ -2,9 +2,12 @@ import { precipitationLighting } from './precipitation-light.ts';
 import { RearSignalField } from './rear-signal.ts';
 import * as T from 'three';
 
-/** One instanced draw over Effects' existing contact pool. This changes only
- * presentation: wheel water/load, births, advection and lifetime still belong
- * to Effects and its recorded simulation-time playback. No second emitter. */
+/** One instanced draw over Effects' existing contact pool for every soft
+ * volume: wheel-water spray, tyre smoke and off-track dust. This changes only
+ * presentation: wheel water/load, slip work, births, advection and lifetime
+ * still belong to Effects and its recorded simulation-time playback. Quads are
+ * sized in metres (not clamped GL points) and fade analytically where they meet
+ * the ground under their birth, avoiding hard intersection lines. */
 export class SprayClouds {
   readonly signals = new RearSignalField();
   readonly geometry = new T.InstancedBufferGeometry();
@@ -16,6 +19,7 @@ export class SprayClouds {
     sizes: Float32Array,
     opacity: Float32Array,
     kinds: Uint8Array,
+    floors: Float32Array = new Float32Array(opacity.length).fill(-1e6),
   ) {
     const count = opacity.length;
     if (
@@ -23,7 +27,8 @@ export class SprayClouds {
       positions.length !== count * 3 ||
       velocities.length !== count * 3 ||
       sizes.length !== count ||
-      kinds.length !== count
+      kinds.length !== count ||
+      floors.length !== count
     )
       throw new Error('Spray instance arrays must have matching nonzero lengths');
     this.geometry.setAttribute(
@@ -37,6 +42,7 @@ export class SprayClouds {
       ['size', sizes, 1],
       ['opacity', opacity, 1],
       ['kind', kinds, 1],
+      ['floor', floors, 1],
     ] as const)
       this.geometry.setAttribute(
         name,
@@ -68,8 +74,10 @@ export class SprayClouds {
         attribute float opacity;
         attribute float kind;
         attribute float variation;
+        attribute float floor;
         uniform float nearPlane;
         varying vec2 vUv;
+        varying float vGround;
         varying float vOpacity;
         varying float vVariation;
         varying float vAnisotropy;
@@ -80,12 +88,13 @@ export class SprayClouds {
         ${precipitationLighting}
         void main() {
           vUv=position.xy; vVariation=variation;
-          vOpacity=0.0; vLight=vec3(0.0); vAnisotropy=0.0;
+          vOpacity=0.0; vLight=vec3(0.0); vAnisotropy=0.0; vGround=1.0;
           vec4 mvPosition=modelViewMatrix*vec4(center,1.0);
           #include <fog_vertex>
           float depth=-mvPosition.z;
           float nearFade=smoothstep(max(0.2,nearPlane*1.5),max(0.8,nearPlane*4.0),depth);
-          if(kind>0.5 || opacity<=0.0 || nearFade<=0.0) {
+          bool spray=kind<0.5, dust=kind>0.5&&kind<1.5, smoke=kind>3.5&&kind<4.5;
+          if(!(spray||dust||smoke) || opacity<=0.0 || nearFade<=0.0) {
             gl_Position=vec4(2.0,2.0,2.0,1.0); return;
           }
           vOpacity=opacity*nearFade;
@@ -101,12 +110,23 @@ export class SprayClouds {
           // Collapse to a radial footprint before that axis can flip or spin.
           float stretch=1.0+min(1.1,speed*0.12);
           vAnisotropy=smoothstep(0.05,1.0,speed);
-          mvPosition.xy+=radius*(across*position.x+along*position.y*stretch);
+          vec2 offset=radius*(across*position.x+along*position.y*stretch);
+          mvPosition.xy+=offset;
           gl_Position=projectionMatrix*mvPosition;
+          // World height of this corner above the ground at the puff's birth:
+          // the quad dissolves into the road instead of cutting it. The view
+          // rotation is orthonormal, so its transpose maps the offset to world.
+          float cornerY=(modelMatrix*vec4(center,1.0)).y+(transpose(mat3(viewMatrix))*vec3(offset,0.0)).y;
+          vGround=(cornerY-floor)/max(0.05,radius*0.55);
           // Use the scene's real light state. Unlike the old unlit point color,
           // spray cannot remain luminous when the venue lights are switched off.
           vec3 energy=precipitationEnergy((modelViewMatrix*vec4(center,1.0)).xyz);
-          vLight=vec3(0.65,0.73,0.73)*energy;
+          vLight=(spray?vec3(0.65,0.73,0.73):dust?vec3(0.5,0.42,0.3):vec3(0.8,0.8,0.78))*energy;
+          // A diffuse volume cannot be brighter than a fully lit white card;
+          // an unbounded nearby floodlight otherwise blooms a puff into a
+          // glowing block. Smoke and dust stay radial (no wake anisotropy).
+          vLight=min(vLight,vec3(1.6));
+          if(!spray) { vAnisotropy=0.0; return; }
           vec3 worldCenter=(modelMatrix*vec4(center,1.0)).xyz;
           for(int i=0;i<12;i++) {
             if(i>=signalCount) break;
@@ -116,6 +136,7 @@ export class SprayClouds {
             float attenuation=exp(-d2*0.35)*rear;
             vLight+=vec3(0.34,0.004,0.001)*signalPositions[i].w*attenuation;
           }
+          vLight=min(vLight,vec3(2.2,1.6,1.6));
         }`,
       fragmentShader: `
         varying vec2 vUv;
@@ -123,6 +144,7 @@ export class SprayClouds {
         varying float vVariation;
         varying float vAnisotropy;
         varying vec3 vLight;
+        varying float vGround;
         #include <fog_pars_fragment>
         void main() {
           // A connected dense core, entrained mist and filtered turbulent
@@ -145,7 +167,7 @@ export class SprayClouds {
           density*=1.0-smoothstep(0.48,1.0,edge);
           // Optical-depth alpha composes into a continuous cloud. This remains
           // bounded billboards, not a claim of volumetric multiple scattering.
-          float alpha=1.0-exp(-density*vOpacity*1.25);
+          float alpha=(1.0-exp(-density*vOpacity*1.25))*smoothstep(0.0,1.0,vGround);
           if(alpha<0.003) discard;
           gl_FragColor=vec4(vLight,alpha);
           #include <tonemapping_fragment>
@@ -161,13 +183,14 @@ export class SprayClouds {
     this.material.userData.localWeatherPosition = 'center';
     this.mesh = new T.Mesh(this.geometry, this.material);
     this.mesh.name = 'Lit wheel-water spray clouds';
+    this.mesh.userData.kinds = ['spray', 'dust', 'smoke'];
     this.mesh.frustumCulled = false;
     this.mesh.onBeforeRender = (_renderer, _scene, camera) => {
       this.material.uniforms.nearPlane.value = 'near' in camera ? camera.near : 0.1;
     };
   }
   upload() {
-    for (const name of ['center', 'velocity', 'size', 'opacity', 'kind'])
+    for (const name of ['center', 'velocity', 'size', 'opacity', 'kind', 'floor'])
       this.geometry.getAttribute(name).needsUpdate = true;
   }
   clear() {

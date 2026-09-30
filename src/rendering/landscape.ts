@@ -108,13 +108,121 @@ export function vegetationPlan(
   return result;
 }
 
-/** Authored alpha foliage atlas with branch structure and separate small leaves.
- * No photograph, commercial texture or pre-lit impostor is embedded. */
+/** A58/A54 grove and treeline layer. Separate from the near-track planting
+ * plan (whose count and corridor rules are unchanged): overlapping clumps of
+ * trees between ~90 m and ~520 m from the circuit, and a broken ridge treeline
+ * on the rising ground beyond the venue. Clumping, species mixing and gaps
+ * create depth; nothing is placed inside a structure footprint or near the
+ * racing, pit or service corridors. */
+export interface GrovePlan {
+  groves: TreePlacement[];
+  treeline: TreePlacement[];
+}
+export function grovePlan(
+  track: Track,
+  seed = 40913,
+  services: readonly ServiceSite[] = serviceSitePlan(track),
+): GrovePlan {
+  const random = new Random(seed),
+    point = trackPoint(),
+    nearest = trackPoint();
+  const districts = districtPlan(track, services);
+  const landmark = landmarkSitePlan(track, services, districts);
+  const blocked = (x: number, z: number, margin: number) => {
+    const l = track.nearest(x, z, nearest);
+    if (Math.abs(l) < track.boundary(nearest.s, l < 0 ? -1 : 1) + 60) return true;
+    return (
+      inStandFootprint(track, x, z, margin) ||
+      inServiceFootprint(services, x, z, margin) ||
+      inDistrictFootprint(districts, x, z, margin) ||
+      inLandmarkFootprint(landmark, x, z, margin)
+    );
+  };
+  const occupied = new Map<string, TreePlacement[]>();
+  const spaced = (x: number, z: number, spacing: number) => {
+    const cx = Math.floor(x / 8),
+      cz = Math.floor(z / 8);
+    for (let dx = -1; dx <= 1; dx++)
+      for (let dz = -1; dz <= 1; dz++)
+        if (
+          occupied
+            .get(`${cx + dx}:${cz + dz}`)
+            ?.some((tree) => Math.hypot(x - tree.x, z - tree.z) < spacing)
+        )
+          return false;
+    return true;
+  };
+  const place = (list: TreePlacement[], tree: TreePlacement) => {
+    list.push(tree);
+    const key = `${Math.floor(tree.x / 8)}:${Math.floor(tree.z / 8)}`,
+      cell = occupied.get(key);
+    if (cell) cell.push(tree);
+    else occupied.set(key, [tree]);
+  };
+  const groves: TreePlacement[] = [];
+  for (let attempt = 0; attempt < 220 && groves.length < 900; attempt++) {
+    track.at(random.next() * track.length, point);
+    const lateral = (random.next() < 0.5 ? -1 : 1) * (90 + random.next() * 430);
+    const gx = point.x + point.nx * lateral,
+      gz = point.z + point.nz * lateral;
+    if (blocked(gx, gz, 25)) continue;
+    const conifer = random.next() < 0.28;
+    // Dense clumps: overlapping crowns read as woodland, not scattered specimens.
+    const radius = 9 + random.next() * 16,
+      members = 7 + Math.floor(random.next() * 14);
+    for (let m = 0; m < members && groves.length < 900; m++) {
+      const a = random.next() * Math.PI * 2,
+        r = radius * Math.sqrt(random.next());
+      const x = gx + Math.cos(a) * r,
+        z = gz + Math.sin(a) * r;
+      if (blocked(x, z, 10) || !spaced(x, z, conifer ? 3.2 : 4.2)) continue;
+      const height = conifer ? 10 + random.next() * 8 : 7 + random.next() * 8;
+      place(groves, {
+        x,
+        y: terrainHeight(x, z),
+        z,
+        height,
+        width: height * (conifer ? 0.34 + random.next() * 0.1 : 0.8 + random.next() * 0.26),
+        yaw: random.next() * Math.PI * 2,
+      });
+    }
+  }
+  // Broken treeline on the foothills: two jittered rows with noise gaps.
+  const treeline: TreePlacement[] = [];
+  for (let row = 0; row < 2; row++)
+    for (let a = 0; a < Math.PI * 2; a += 9.5 / (760 + row * 70)) {
+      const gap = Math.sin(a * 7 + row) * Math.sin(a * 3.3 + 1.7);
+      if (gap > 0.35) continue;
+      const radius = 760 + row * 70 + (random.next() - 0.5) * 40;
+      const x = Math.cos(a) * radius,
+        z = Math.sin(a) * radius;
+      if (blocked(x, z, 20) || !spaced(x, z, 5)) continue;
+      const height = 9 + random.next() * 9;
+      place(treeline, {
+        x,
+        y: terrainHeight(x, z),
+        z,
+        height,
+        width: height * (0.55 + random.next() * 0.45),
+        yaw: random.next() * Math.PI * 2,
+      });
+    }
+  return { groves, treeline };
+}
+
+/** Authored alpha foliage atlas with branch structure, a shaded inner crown
+ * mass and several thousand small leaves per silhouette. Leaves are lit by an
+ * authored sky/sun gradient across each cluster (lighter crowns, darker
+ * undersides and interior) so the crown reads as a volume instead of a flat
+ * blotch. No photograph, commercial texture or pre-lit impostor is embedded. */
+export const FOLIAGE_ATLAS_SIZE = 1024;
 export function foliageAtlas() {
-  const size = 512,
-    tileSize = size / 2;
-  // Four distinct silhouettes occupy the SAME 512px resource. A gutter prevents
-  // mip/filter bleed; leaf count is unchanged from the original one-tree atlas.
+  const size = FOLIAGE_ATLAS_SIZE,
+    tileSize = size / 2,
+    unit = 512;
+  // Four distinct silhouettes occupy the SAME resource. A gutter prevents
+  // mip/filter bleed. Cluster layouts are unchanged; tile choice still follows
+  // each placement's authored crown aspect.
   return canvasTexture(size, size, (context) => {
     context.clearRect(0, 0, size, size);
     const variants = [
@@ -154,31 +262,68 @@ export function foliageAtlas() {
       const random = new Random(8231 + tile * 391),
         clusters = variants[tile];
       context.save();
-      context.translate((tile % 2) * tileSize + 3, Math.floor(tile / 2) * tileSize + 3);
-      context.scale((tileSize - 6) / size, (tileSize - 6) / size);
-      context.strokeStyle = '#494b31';
-      context.lineWidth = 5;
+      context.translate((tile % 2) * tileSize + 4, Math.floor(tile / 2) * tileSize + 4);
+      context.scale((tileSize - 8) / unit, (tileSize - 8) / unit);
+      // Branch skeleton: a trunk fork into each cluster, with lateral twigs.
+      context.strokeStyle = '#3f3a2b';
+      context.lineCap = 'round';
       for (const [cx, cy] of clusters) {
+        context.lineWidth = 6;
         context.beginPath();
-        context.moveTo(256, 500);
-        context.quadraticCurveTo(260, 330, cx * size, cy * size);
+        context.moveTo(256, 505);
+        context.quadraticCurveTo(250 + (cx - 0.5) * 60, 360, cx * unit, cy * unit);
         context.stroke();
+        context.lineWidth = 2.2;
+        for (let t = 0; t < 3; t++) {
+          const a = random.next() * Math.PI * 2;
+          context.beginPath();
+          context.moveTo(cx * unit, cy * unit);
+          context.lineTo(cx * unit + Math.cos(a) * 34, cy * unit + Math.sin(a) * 26);
+          context.stroke();
+        }
       }
-      for (let i = 0; i < 1150; i++) {
+      // Inner crown mass: dark, partly transparent so gaps remain between clusters.
+      for (const [cx, cy, rx, ry] of clusters) {
+        const g = context.createRadialGradient(
+          cx * unit,
+          cy * unit,
+          0,
+          cx * unit,
+          cy * unit,
+          Math.max(rx, ry) * unit,
+        );
+        g.addColorStop(0, 'rgba(22,34,14,0.95)');
+        g.addColorStop(0.72, 'rgba(26,39,16,0.85)');
+        g.addColorStop(1, 'rgba(26,39,16,0)');
+        context.fillStyle = g;
+        context.beginPath();
+        context.ellipse(cx * unit, cy * unit, rx * unit * 0.86, ry * unit * 0.84, 0, 0, Math.PI * 2);
+        context.fill();
+      }
+      // Leaves, back to front: lower/inner leaves darker, upper rim brighter.
+      const leaves = 2600;
+      for (let i = 0; i < leaves; i++) {
         const c = clusters[i % clusters.length],
           angle = random.next() * Math.PI * 2,
           radius = Math.sqrt(random.next()),
-          light = random.next();
-        const x = (c[0] + Math.cos(angle) * c[2] * radius) * size,
-          y = (c[1] + Math.sin(angle) * c[3] * radius) * size;
-        context.fillStyle = `rgb(${48 + light * 35},${65 + light * 38},${27 + light * 23})`;
+          hue = random.next();
+        const dx = Math.cos(angle) * radius,
+          dy = Math.sin(angle) * radius;
+        // -1 underside .. +1 sunlit top of the cluster, plus rim brightening.
+        const facing = -dy * 0.75 + radius * 0.35 + (random.next() - 0.5) * 0.35;
+        const depth = i / leaves; // later leaves sit in front
+        const light = Math.min(1, Math.max(0, 0.42 + facing * 0.45 + depth * 0.22));
+        const r = 34 + light * 58 + hue * 16,
+          gr = 52 + light * 66 + hue * 8,
+          b = 20 + light * 26 - hue * 6;
+        context.fillStyle = `rgb(${r | 0},${gr | 0},${b | 0})`;
         context.beginPath();
         context.ellipse(
-          x,
-          y,
-          4 + random.next() * 6,
-          2.2 + random.next() * 3.6,
-          angle,
+          (c[0] + dx * c[2]) * unit,
+          (c[1] + dy * c[3]) * unit,
+          2.6 + random.next() * 4.2,
+          1.5 + random.next() * 2.4,
+          angle + random.next(),
           0,
           Math.PI * 2,
         );
@@ -203,30 +348,35 @@ export function installFoliageAtlas(material: T.Material) {
         float tile=crownRatio<.73?1.0:(crownRatio<.93?0.0:(crownRatio<1.065?2.0:3.0));
         // Canvas rows are top-down, texture V is bottom-up.
         vec2 atlasOffset=vec2(mod(tile,2.0),1.0-floor(tile/2.0))*.5;
-        vMapUv=atlasOffset+vec2(3.0/512.0)+vMapUv*(.5-6.0/512.0);
+        vMapUv=atlasOffset+vec2(4.0/1024.0)+vMapUv*(.5-8.0/1024.0);
       #endif
     `,
     );
   };
-  material.customProgramCacheKey = () => 'four-original-planting-crowns-v1';
+  material.customProgramCacheKey = () => 'four-original-planting-crowns-v2';
   // These normals describe a crown volume, not individual two-sided leaves.
   // Depth/distance passes keep exactly the same atlas and alpha coverage.
   if (material instanceof T.MeshStandardMaterial) installCanopyNormals(material);
 }
 function treeGeometry() {
   const leaves: T.BufferGeometry[] = [];
+  // Three large crossed cards define the crown silhouette from any side.
   for (let i = 0; i < 3; i++) {
-    const card = new T.PlaneGeometry(0.78, 0.8, 2, 3);
+    const card = new T.PlaneGeometry(0.8, 0.82, 2, 3);
     card.translate(0, 0.6, 0);
     card.rotateY((i * Math.PI) / 3);
     leaves.push(card);
   }
-  for (let i = 0; i < 7; i++) {
+  // Twelve smaller, tilted cards on a golden-angle spiral at three heights fill
+  // the crown volume and break the single-blob outline into lobes.
+  for (let i = 0; i < 12; i++) {
     const angle = i * 2.399963,
-      card = new T.PlaneGeometry(0.48, 0.53, 2, 2);
-    card.rotateX(-0.16);
+      tier = i % 3,
+      radius = 0.16 + (tier === 1 ? 0.08 : 0.03),
+      card = new T.PlaneGeometry(0.44 - tier * 0.04, 0.48 - tier * 0.05, 2, 2);
+    card.rotateX(-0.22 + tier * 0.12);
     card.rotateY(angle);
-    card.translate(Math.cos(angle) * 0.18, 0.55 + (i % 3) * 0.075, Math.sin(angle) * 0.18);
+    card.translate(Math.cos(angle) * radius, 0.42 + tier * 0.17, Math.sin(angle) * radius);
     leaves.push(card);
   }
   const leafGeometry = mergeGeometries(leaves, false)!;
@@ -256,22 +406,32 @@ function treeGeometry() {
   }
   const trunkGeometry = mergeGeometries(wood, false)!;
   wood.forEach((g) => g.dispose());
-  return { leafGeometry, trunkGeometry };
+  // Distant treeline crowns: the three silhouette cards only (no trunk).
+  const distant: T.BufferGeometry[] = [];
+  for (let i = 0; i < 3; i++)
+    distant.push(
+      new T.PlaneGeometry(0.86, 0.9, 1, 2)
+        .translate(0, 0.55, 0)
+        .rotateY((i * Math.PI) / 3),
+    );
+  const distantLeafGeometry = mergeGeometries(distant, false)!;
+  distant.forEach((g) => g.dispose());
+  const dn = distantLeafGeometry.getAttribute('normal'),
+    dp = distantLeafGeometry.getAttribute('position');
+  for (let i = 0; i < dp.count; i++) {
+    v.set(dp.getX(i), Math.max(0.1, (dp.getY(i) - 0.45) * 0.6), dp.getZ(i)).normalize();
+    dn.setXYZ(i, v.x, v.y, v.z);
+  }
+  return { leafGeometry, trunkGeometry, distantLeafGeometry };
 }
 export function buildVegetation(
   track: Track,
   group: T.Group,
   services: readonly ServiceSite[] = serviceSitePlan(track),
 ) {
-  const placements = vegetationPlan(track, 7109, services),
-    buckets = new Map<string, TreePlacement[]>();
-  for (const tree of placements) {
-    const key = `${Math.floor(tree.x / 80)}:${Math.floor(tree.z / 80)}`,
-      bucket = buckets.get(key);
-    if (bucket) bucket.push(tree);
-    else buckets.set(key, [tree]);
-  }
-  const { leafGeometry, trunkGeometry } = treeGeometry();
+  const placements = vegetationPlan(track, 7109, services);
+  const { groves, treeline } = grovePlan(track, 40913, services);
+  const { leafGeometry, trunkGeometry, distantLeafGeometry } = treeGeometry();
   const foliage = new T.MeshStandardMaterial({
     map: foliageAtlas(),
     side: T.DoubleSide,
@@ -300,32 +460,82 @@ export function buildVegetation(
   );
   const transform = new T.Object3D(),
     color = new T.Color();
-  for (const [key, trees] of buckets)
-    for (const [geometry, material] of [
+  /** One instanced draw per (bucket, part). Larger buckets for distant layers
+   * trade a little off-screen vertex work for far fewer draw submissions. */
+  const install = (
+    trees: readonly TreePlacement[],
+    bucketSize: number,
+    parts: readonly (readonly [T.BufferGeometry, T.Material])[],
+    label: string,
+    shadows: boolean,
+    tint: (i: number, out: T.Color) => T.Color,
+  ) => {
+    const buckets = new Map<string, TreePlacement[]>();
+    for (const tree of trees) {
+      const key = `${Math.floor(tree.x / bucketSize)}:${Math.floor(tree.z / bucketSize)}`,
+        bucket = buckets.get(key);
+      if (bucket) bucket.push(tree);
+      else buckets.set(key, [tree]);
+    }
+    for (const [key, list] of buckets)
+      for (const [geometry, material] of parts) {
+        const instances = new T.InstancedMesh(geometry, material, list.length);
+        instances.name = `${label} ${material === bark ? 'branches' : 'canopy'} ${key}`;
+        if (label === 'Near') instances.name = `${material === bark ? 'Branches' : 'Canopy'} ${key}`;
+        instances.userData.fullCount = list.length;
+        if (material === foliage) {
+          instances.customDepthMaterial = depth;
+          instances.customDistanceMaterial = distance;
+        }
+        instances.castShadow = shadows;
+        instances.receiveShadow = true;
+        list.forEach((tree, i) => {
+          transform.position.set(tree.x, tree.y, tree.z);
+          transform.rotation.set(0, tree.yaw, 0);
+          transform.scale.set(tree.width, tree.height, tree.width);
+          transform.updateMatrix();
+          instances.setMatrixAt(i, transform.matrix);
+          instances.setColorAt(i, tint(i, color));
+        });
+        instances.computeBoundingBox();
+        instances.computeBoundingSphere();
+        group.add(instances);
+      }
+  };
+  // 160 m buckets: frustum culling still rejects most of the lap, while the
+  // draw count is roughly a quarter of the former 80 m grid.
+  install(
+    placements,
+    160,
+    [
       [leafGeometry, foliage],
       [trunkGeometry, bark],
-    ] as const) {
-      const instances = new T.InstancedMesh(geometry, material, trees.length);
-      instances.name = `${material === foliage ? 'Canopy' : 'Branches'} ${key}`;
-      instances.userData.fullCount = trees.length;
-      if (material === foliage) {
-        instances.customDepthMaterial = depth;
-        instances.customDistanceMaterial = distance;
-      }
-      instances.castShadow = true;
-      instances.receiveShadow = true;
-      trees.forEach((tree, i) => {
-        transform.position.set(tree.x, tree.y, tree.z);
-        transform.rotation.set(0, tree.yaw, 0);
-        transform.scale.set(tree.width, tree.height, tree.width);
-        transform.updateMatrix();
-        instances.setMatrixAt(i, transform.matrix);
-        color.setRGB(0.83 + (i % 5) * 0.025, 0.86 + (i % 7) * 0.018, 0.75 + (i % 3) * 0.05);
-        instances.setColorAt(i, color);
-      });
-      instances.computeBoundingBox();
-      instances.computeBoundingSphere();
-      group.add(instances);
-    }
+    ],
+    'Near',
+    true,
+    (i, out) => out.setRGB(0.83 + (i % 5) * 0.025, 0.86 + (i % 7) * 0.018, 0.75 + (i % 3) * 0.05),
+  );
+  // Groves sit beyond the moving shadow frustum; they receive but never cast.
+  install(
+    groves,
+    240,
+    [
+      [leafGeometry, foliage],
+      [trunkGeometry, bark],
+    ],
+    'Grove',
+    false,
+    (i, out) => out.setRGB(0.76 + (i % 6) * 0.03, 0.82 + (i % 5) * 0.025, 0.7 + (i % 4) * 0.04),
+  );
+  install(
+    treeline,
+    700,
+    [[distantLeafGeometry, foliage]],
+    'Treeline',
+    false,
+    (i, out) => out.setRGB(0.72 + (i % 5) * 0.03, 0.8 + (i % 4) * 0.03, 0.72 + (i % 3) * 0.04),
+  );
   group.userData.treeCount = placements.length;
+  group.userData.groveTrees = groves.length;
+  group.userData.treelineTrees = treeline.length;
 }

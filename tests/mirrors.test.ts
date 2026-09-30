@@ -113,3 +113,23 @@ it('refreshes both fitted mirror feeds immediately after a presentation disconti
   expect(mirrors.updates).toBe(2);
   mirrors.dispose();
 });
+describe('rear-view detail exclusions', () => {
+  it('hides excluded roots for both passes and restores them after a failure', () => {
+    const { root, mirrors } = fixture();
+    const crowd = new T.Group(),
+      crew = new T.Group();
+    crew.visible = false;
+    mirrors.exclusions = [crowd, crew];
+    let observed = 0;
+    const { renderer } = rendererMock(() => {
+      expect([crowd.visible, crew.visible]).toEqual([false, false]);
+      if (++observed === 2) throw new Error('second pass lost');
+    });
+    expect(() =>
+      mirrors.render(renderer as unknown as T.WebGLRenderer, new T.Scene(), root, 0.1),
+    ).toThrow('second pass lost');
+    expect(observed).toBe(2);
+    expect([crowd.visible, crew.visible]).toEqual([true, false]);
+    mirrors.dispose();
+  });
+});

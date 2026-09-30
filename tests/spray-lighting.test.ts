@@ -33,7 +33,8 @@ describe('lit spray and spatial floodlight continuity', () => {
     effects.clear();
     expect(alpha.version).toBeGreaterThan(before);
     expect(Array.from(alpha.array).every((v) => v === 0)).toBe(true);
-    expect(effects.diagnostics().capacity).toBe(1800);
+    expect(effects.diagnostics().capacity).toBe(EFFECT_CAPACITY.contact + EFFECT_CAPACITY.rain);
+    expect(EFFECT_CAPACITY).toEqual({ contact: 3600, rain: 600 });
     dispose(effects.group);
   });
   it('rejects inconsistent shared-array shapes', () => {

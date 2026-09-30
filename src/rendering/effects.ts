@@ -7,7 +7,17 @@ import { RainStreaks } from './rain-streaks.ts';
 import { SprayClouds } from './spray-clouds.ts';
 import { precipitationLighting } from './precipitation-light.ts';
 
-export const EFFECT_CAPACITY = { contact: 1200, rain: 600 } as const;
+// Eight to twelve cars in heavy rain sustain several thousand live spray puffs
+// (about 1.5 s each). A smaller pool recycled plumes before they finished,
+// breaking every wake into a chain of separate blobs.
+export const EFFECT_CAPACITY = { contact: 3600, rain: 600 } as const;
+/** Rear tyres and the diffuser throw most of the water; the front tyres'
+ * spray is partly contained by the wheel wake and bodywork. The shares average
+ * to one, so a car's total measured-water emission is unchanged. */
+export const SPRAY_AXLE_SHARE = Object.freeze({ front: 0.5, rear: 1.5 });
+/** Share of rear-tyre spray births lifted from the diffuser exit as the
+ * central rooster tail rather than from the contact patch. */
+export const DIFFUSER_PLUME_SHARE = 0.3;
 
 const COLORS = [
   [0.65, 0.73, 0.73],
@@ -49,6 +59,8 @@ export class Effects {
   private marblePrevious = new Float64Array(48).fill(NaN);
   private marbleTime = -Infinity;
   private solid = new Float32Array(this.count);
+  /** Ground height under each soft puff's birth, for analytic ground fading. */
+  private floors = new Float32Array(this.count);
   private rain = new RainStreaks(
     this.positions.subarray(EFFECT_CAPACITY.contact * 3),
     this.velocities.subarray(EFFECT_CAPACITY.contact * 3),
@@ -60,6 +72,7 @@ export class Effects {
     this.sizes.subarray(0, EFFECT_CAPACITY.contact),
     this.alpha.subarray(0, EFFECT_CAPACITY.contact),
     this.kind.subarray(0, EFFECT_CAPACITY.contact),
+    this.floors.subarray(0, EFFECT_CAPACITY.contact),
   );
   private viewport = new T.Vector4();
   private rainEmission = 0;
@@ -116,7 +129,8 @@ export class Effects {
         #include <fog_pars_vertex>
         void main() {
           vSolid=solid; vKind=kind; vOpacity=opacity; vColor=color;
-          if(kind<.5) { vOpacity=0.; gl_Position=vec4(2.,2.,2.,1.); gl_PointSize=1.; return; }
+          // Spray, dust and smoke are drawn as lit quads by SprayClouds.
+          if(kind<1.5||(kind>3.5&&kind<4.5)) { vOpacity=0.; gl_Position=vec4(2.,2.,2.,1.); gl_PointSize=1.; return; }
           vec4 mvPosition=modelViewMatrix*vec4(position,1.);
           if(!(kind>1.5&&kind<2.5)) vColor*=particleEnergy(mvPosition.xyz,0.);
           gl_Position=projectionMatrix*mvPosition;
@@ -178,6 +192,7 @@ export class Effects {
     vz: number,
     kind: number,
     owner = -1,
+    floor = y,
   ) {
     const isRain = kind === PARTICLE_KIND.RAIN;
     const i = isRain ? EFFECT_CAPACITY.contact + this.rainCursor : this.cursor,
@@ -189,6 +204,7 @@ export class Effects {
     this.owners[i] = owner;
     this.spawned[kind]++;
     this.solid[i] = Number(kind === PARTICLE_KIND.MARBLE);
+    this.floors[i] = floor;
     this.positions[p] = x;
     this.positions[p + 1] = y;
     this.positions[p + 2] = z;
@@ -204,8 +220,8 @@ export class Effects {
       this.sizes[i] = 0.17 + r.next() * 0.08;
       this.gravity[i] = 0;
     } else if (kind === PARTICLE_KIND.SPRAY) {
-      this.life[i] = this.maxLife[i] = 0.82 + r.next() * 0.58;
-      this.sizes[i] = 0.19 + r.next() * 0.11;
+      this.life[i] = this.maxLife[i] = 1.1 + r.next() * 0.8;
+      this.sizes[i] = 0.3 + r.next() * 0.15;
       this.gravity[i] = -0.35;
     } else if (kind === PARTICLE_KIND.MARBLE) {
       this.life[i] = this.maxLife[i] = 0.3 + r.next() * 0.15;
@@ -345,7 +361,9 @@ export class Effects {
               const tread =
                 frame[o + F.COMPOUND] === 4 ? 1.15 : frame[o + F.COMPOUND] === 3 ? 1 : 0.8;
               const loadFactor = clamp(frame[p + W.LOAD] / 2500, 0.35, 1.3);
-              rate = Math.min(180, speed * water * 2.5 * tread * loadFactor);
+              rate =
+                Math.min(180, speed * water * 2.5 * tread * loadFactor) *
+                (wheel < 2 ? SPRAY_AXLE_SHARE.front : SPRAY_AXLE_SHARE.rear);
               kind = PARTICLE_KIND.SPRAY;
             } else if ((surface === 3 || surface === 4) && speed > 4) {
               rate = speed * 1.7;
@@ -364,10 +382,18 @@ export class Effects {
           const births = Math.floor(this.emission[slot] + 1e-9);
           this.emission[slot] = Math.max(0, this.emission[slot] - births);
           for (let birth = 0; birth < births; birth++) {
-            this.v
-              .set(wheel % 2 === 0 ? -0.83 : 0.83, -0.37, wheel < 2 ? 1.82 : -1.62)
-              .applyQuaternion(this.q);
             const spray = kind === PARTICLE_KIND.SPRAY;
+            // Deterministic slot phase, not an extra random draw: the diffuser
+            // share is taken from the same measured rear-tyre birth count.
+            const plume =
+              spray && wheel >= 2 && ((this.spawned[PARTICLE_KIND.SPRAY] * 0.618034) % 1) < DIFFUSER_PLUME_SHARE;
+            this.v
+              .set(
+                plume ? (wheel % 2 === 0 ? -0.18 : 0.18) : wheel % 2 === 0 ? -0.83 : 0.83,
+                plume ? -0.12 : -0.37,
+                plume ? -2.35 : wheel < 2 ? 1.82 : -1.62,
+              )
+              .applyQuaternion(this.q);
             this.spawn(
               frame[o] + this.v.x,
               frame[o + 1] + this.v.y,
@@ -375,12 +401,14 @@ export class Effects {
               spray
                 ? frame[o + F.VX] * 0.16 + this.wake.x * speed * 0.2 + this.windX * 0.84
                 : frame[o + F.VX] * 0.25 + this.windX * 0.75,
-              spray ? 1.15 + r.next() * 1.4 : 1 + r.next(),
+              spray ? (plume ? 2.2 + r.next() * 1.3 : 1.15 + r.next() * 1.4) : 1 + r.next(),
               spray
                 ? frame[o + F.VZ] * 0.16 + this.wake.z * speed * 0.2 + this.windZ * 0.84
                 : frame[o + F.VZ] * 0.25 + this.windZ * 0.75,
               kind,
               id,
+              // Ground under the diffuser exit, below the plume's birth height.
+              frame[o + 1] - 0.37,
             );
           }
         }
@@ -429,8 +457,9 @@ export class Effects {
       if (this.kind[i] === PARTICLE_KIND.SPRAY) {
         const age = this.maxLife[i] - this.life[i];
         // Soft birth and broadening mist keep a trail legible, not a chain of dots.
-        this.alpha[i] = Math.min(1, age / 0.06) * remaining ** 0.7 * 0.5;
-        this.sizes[i] += dt * 1.05;
+        // Larger, fainter puffs overlap into one continuous plume.
+        this.alpha[i] = Math.min(1, age / 0.08) * remaining ** 0.75 * 0.36;
+        this.sizes[i] += dt * 1.6;
       } else {
         this.alpha[i] =
           remaining *
@@ -443,8 +472,8 @@ export class Effects {
                 : this.kind[i] === PARTICLE_KIND.SMOKE
                   ? 0.42
                   : 0.31);
-        if (this.kind[i] === PARTICLE_KIND.SMOKE) this.sizes[i] += dt * 0.72;
-        else if (this.kind[i] === PARTICLE_KIND.DUST) this.sizes[i] += dt * 0.46;
+        if (this.kind[i] === PARTICLE_KIND.SMOKE) this.sizes[i] += dt * 0.95;
+        else if (this.kind[i] === PARTICLE_KIND.DUST) this.sizes[i] += dt * 0.6;
       }
     }
     for (const attr of ['position', 'size', 'color', 'opacity', 'solid', 'kind'])

@@ -300,3 +300,38 @@ it('rejects invalid gains and restores original mirrors when their real owner ch
     (mesh.material as T.Material).dispose();
   }
 });
+it('omits excluded roots from every probe face and restores them, even after a failed face', () => {
+  const reflection = new ReflectionSystem(),
+    { gl } = fixture();
+  const scene = new T.Scene(),
+    car = new T.Group(),
+    rival = new T.Group(),
+    crowd = new T.Group(),
+    hiddenAlready = new T.Group();
+  hiddenAlready.visible = false;
+  reflection.probeExclusions = [rival, crowd, hiddenAlready];
+  const update = vi.spyOn(T.CubeCamera.prototype, 'update').mockImplementation(() => {
+    expect([car.visible, rival.visible, crowd.visible, hiddenAlready.visible]).toEqual([
+      false,
+      false,
+      false,
+      false,
+    ]);
+  });
+  reflection.beginFrame(1, false);
+  reflection.updateProbe(gl, scene, car, [], true);
+  expect(update).toHaveBeenCalledOnce();
+  expect([car.visible, rival.visible, crowd.visible, hiddenAlready.visible]).toEqual([
+    true,
+    true,
+    true,
+    false,
+  ]);
+  update.mockImplementation(() => {
+    throw new Error('face lost');
+  });
+  reflection.beginFrame(3, false);
+  expect(() => reflection.updateProbe(gl, scene, car, [], true)).toThrow('face lost');
+  expect([rival.visible, crowd.visible, hiddenAlready.visible]).toEqual([true, true, false]);
+  reflection.dispose();
+});

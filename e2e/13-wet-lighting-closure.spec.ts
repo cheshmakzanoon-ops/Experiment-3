@@ -29,6 +29,8 @@ test('lit spray follows scene lights, projected wake, pause, clear and near-plan
   expect(shot('under-floodlight').energy).toBeGreaterThan(1000);
   for (const name of ['unlit', 'non-spray-excluded', 'near-plane', 'cleared', 'fogged', 'occluded'])
     expect(shot(name).pixels, name).toBe(0);
+  for (const name of ['dust-rendered', 'smoke-rendered'])
+    expect(shot(name).pixels, name).toBeGreaterThan(100);
   expect(result.pauseExact).toBe(true); expect(result.restoreExact).toBe(true);
   expect(result.axialMaxDifference).toBeLessThanOrEqual(2);
   expect(result.after).toEqual(result.before);

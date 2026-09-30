@@ -6,7 +6,8 @@ import { clamp } from '../core/math.ts';
 const direct = {
   day: new T.Color(0xffead0),
   sunset: new T.Color(0xffb76d),
-  night: new T.Color(0xc5d4ee),
+  // Metal-halide floodlight white, only slightly cool.
+  night: new T.Color(0xe2e9f6),
 };
 const diffuse = {
   day: new T.Color(0xc3d8f3),

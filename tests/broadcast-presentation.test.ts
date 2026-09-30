@@ -113,9 +113,14 @@ describe('broadcast colour grade', () => {
         expect(channel).toBeLessThan(1.15);
       }
     }
-    // Studio photographs stay clean.
-    expect(GRADE_PROFILES.studio.grain).toBe(0);
-    expect(GRADE_PROFILES.studio.fringe).toBe(0);
+    // No gameplay or studio profile disguises aliasing or weak textures with
+    // grain, lens fringe or unsharp masking; vignetting stays light.
+    for (const profile of Object.values(GRADE_PROFILES)) {
+      expect(profile.grain).toBe(0);
+      expect(profile.fringe).toBe(0);
+      expect(profile.sharpen).toBe(0);
+      expect(profile.vignette).toBeLessThanOrEqual(0.2);
+    }
   });
   it('derives grain from presented simulation time, so held frames are identical', () => {
     const pass = new BroadcastGradePass();

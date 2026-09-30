@@ -1,7 +1,7 @@
 import { PERIODIC_COVERAGE_GLSL } from './periodic-coverage.ts';
 import * as T from 'three';
 
-export type CircuitFinish = 'asphalt' | 'grass' | 'concrete' | 'paint' | 'kerb';
+export type CircuitFinish = 'asphalt' | 'grass' | 'terrain' | 'concrete' | 'paint' | 'kerb';
 
 /** Screen-space footprint in noise cells per pixel. Keep resolved construction
  * detail; converge to its mean before a pixel samples multiple unrelated cells. */
@@ -47,6 +47,9 @@ const finishes: Record<CircuitFinish, string> = {
     diffuseColor.rgb *= 1.0-.17*join;
   `,
   grass: `
+    // Irrigated circuit turf: shift the shared olive texels greener (linear
+    // ratios of sRGB 80/104/48 over the texture's 89/101/53 mean).
+    diffuseColor.rgb *= vec3(.79,1.066,.8);
     // Regional soil/moisture variation, not high-contrast camouflage patches.
     float broad=finishFilteredNoise(vFinishWorld.xz*.018);
     float patches=finishFilteredNoise(vFinishWorld.xz*.48);
@@ -56,6 +59,33 @@ const finishes: Record<CircuitFinish, string> = {
     // Broad vegetation/soil regions survive distance without subpixel speckle.
     // Shared world coordinates keep the terrain/apron boundary continuous.
     diffuseColor.rgb *= .92+.16*finishFilteredNoise(vFinishWorld.xz*.006);
+    // Mown bands parallel to the circuit edge (ribbon U is lateral metres).
+    // A filtered triangle wave keeps band edges stable in motion; the bands
+    // converge to their mean before one pixel spans a band, and fade out before
+    // the apron's outer edge so they never meet the unmown terrain as a seam.
+    float mowPhase=abs(vFinishMetres.x)/9.0;
+    float mowTri=abs(fract(mowPhase)-.5)*4.0-1.0;
+    float mowAA=fwidth(mowPhase)*4.0+.03;
+    float mowBand=smoothstep(-mowAA,mowAA,mowTri);
+    float mowResolved=(1.0-smoothstep(.25,.9,mowAA))*(1.0-smoothstep(26.0,38.0,abs(vFinishMetres.x)));
+    diffuseColor.rgb *= mix(1.0,mix(.9,1.08,mowBand),mowResolved);
+  `,
+  terrain: `
+    // Distant landform shading from the world normal and elevation: lush
+    // lowland, drier scrub on high ground, exposed rock on steep faces.
+    float tBroad=finishFilteredNoise(vFinishWorld.xz*.0045);
+    float tDetail=finishFilteredNoise(vFinishWorld.xz*.037);
+    float tFine=finishFilteredNoise(vFinishWorld.xz*.21);
+    float slope=1.0-clamp(normalize(vFinishNormal).y,0.0,1.0);
+    float elevation=vFinishWorld.y;
+    diffuseColor.rgb *= .9+.18*tBroad;
+    float dryLand=smoothstep(14.0,95.0,elevation+(tBroad-.5)*40.0);
+    diffuseColor.rgb=mix(diffuseColor.rgb,diffuseColor.rgb*vec3(1.22,1.05,.72),dryLand*.8);
+    float scrub=smoothstep(.12,.3,slope+(tDetail-.5)*.18)*(1.0-dryLand*.4);
+    diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.055,.068,.035)*(.8+.4*tFine),scrub*.55);
+    float rock=smoothstep(.34,.56,slope+(tDetail-.5)*.22)+smoothstep(150.0,240.0,elevation)*.45;
+    vec3 stone=mix(vec3(.19,.18,.16),vec3(.31,.29,.25),tFine)*(.82+.3*tDetail);
+    diffuseColor.rgb=mix(diffuseColor.rgb,stone,clamp(rock,0.0,1.0));
   `,
   concrete: `
     float grain=finishFilteredNoise(vFinishMetres*vec2(47.0,9.0));
@@ -84,7 +114,8 @@ const finishes: Record<CircuitFinish, string> = {
 
 /** Compose rather than replace the stable bump and live water material hooks. */
 export function installCircuitFinish(material: T.MeshStandardMaterial, kind: CircuitFinish) {
-  material.userData.weatherSurface = kind === 'asphalt' ? 'paving' : kind;
+  material.userData.weatherSurface =
+    kind === 'asphalt' ? 'paving' : kind === 'terrain' ? 'grass' : kind;
   const previous = material.onBeforeCompile;
   const previousKey = material.customProgramCacheKey.bind(material);
   // Capture now: the default key is onBeforeCompile.toString() and must not
@@ -95,9 +126,16 @@ export function installCircuitFinish(material: T.MeshStandardMaterial, kind: Cir
     shader.vertexShader = shader.vertexShader
       .replace(
         '#include <common>',
-        '#include <common>\nvarying vec3 vFinishWorld; varying vec2 vFinishMetres;',
+        '#include <common>\nvarying vec3 vFinishWorld; varying vec2 vFinishMetres;' +
+          (kind === 'terrain' ? ' varying vec3 vFinishNormal;' : ''),
       )
       .replace('#include <begin_vertex>', '#include <begin_vertex>\nvFinishMetres=uv*5.0;')
+      .replace(
+        '#include <beginnormal_vertex>',
+        kind === 'terrain'
+          ? '#include <beginnormal_vertex>\nvFinishNormal=normalize(mat3(modelMatrix)*objectNormal);'
+          : '#include <beginnormal_vertex>',
+      )
       .replace(
         '#include <project_vertex>',
         `#include <project_vertex>
@@ -108,11 +146,14 @@ export function installCircuitFinish(material: T.MeshStandardMaterial, kind: Cir
         vFinishWorld=(modelMatrix*finishPosition).xyz;`,
       );
     shader.fragmentShader = shader.fragmentShader
-      .replace('#include <common>', '#include <common>\n' + noise)
+      .replace(
+        '#include <common>',
+        '#include <common>\n' + noise + (kind === 'terrain' ? 'varying vec3 vFinishNormal;\n' : ''),
+      )
       .replace('#include <map_fragment>', '#include <map_fragment>\n' + finishes[kind]);
   };
   material.customProgramCacheKey = () =>
-    `${baseKey}:circuit-finish-v2-filtered:periodic-joints-v1:${kind}${kind === 'grass' ? ':regional-soil-v1' : ''}`;
+    `${baseKey}:circuit-finish-v2-filtered:periodic-joints-v1:${kind}${kind === 'grass' ? ':regional-soil-v1:mown-v1' : kind === 'terrain' ? ':landform-v1' : ''}`;
   material.name = `Original ${kind} construction finish`;
 }
 

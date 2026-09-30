@@ -55,7 +55,7 @@ it.each([24, 60, 144])(
         playback.update(frame);
       }
       const d = effects.diagnostics();
-      expect(d.capacity).toBe(1800);
+      expect(d.capacity).toBe(4200);
       expect(d.contactCapacity + d.rainCapacity).toBe(d.capacity);
       expect(d.active[PARTICLE_KIND.SPRAY]).toBe(EFFECT_CAPACITY.contact);
       expect(d.active[PARTICLE_KIND.RAIN]).toBe(EFFECT_CAPACITY.rain);

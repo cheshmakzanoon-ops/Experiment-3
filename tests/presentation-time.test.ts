@@ -3,7 +3,7 @@ import * as T from 'three';
 import { CAR_STRIDE, F, H, HEADER, W, WHEEL_BASE, carBase } from '../src/simulation/protocol.ts';
 import { PresentedFrame } from '../src/rendering/frame-state.ts';
 import { EffectPlayback } from '../src/rendering/effect-playback.ts';
-import { Effects, PARTICLE_KIND } from '../src/rendering/effects.ts';
+import { Effects, PARTICLE_KIND, SPRAY_AXLE_SHARE } from '../src/rendering/effects.ts';
 const o = carBase(0),
   p = o + WHEEL_BASE;
 function snapshot(time: number) {
@@ -85,7 +85,8 @@ it.each([24, 30, 60, 90, 120, 144])(
       const measured = effects.diagnostics();
       expect(playback.elapsed).toBeCloseTo(1, 6);
       expect(measured.spawned[PARTICLE_KIND.MARBLE]).toBe(160);
-      expect(measured.spawned[PARTICLE_KIND.SPRAY]).toBe(48);
+      // Only the front-right wheel is wet here; front tyres carry the front axle share.
+      expect(measured.spawned[PARTICLE_KIND.SPRAY]).toBe(48 * SPRAY_AXLE_SHARE.front);
       expect(measured.spawned[PARTICLE_KIND.RAIN]).toBe(2 * 40);
     } finally {
       dispose(effects);
@@ -178,7 +179,7 @@ it.each([0.5, 1, 2])('retains real weather/contact work during %s FPS rendering'
     expect(playback.elapsed).toBeCloseTo(4, 6);
     expect(playback.resets).toBe(1);
     expect(measured.spawned[PARTICLE_KIND.MARBLE]).toBe(640);
-    expect(measured.spawned[PARTICLE_KIND.SPRAY]).toBe(192);
+    expect(measured.spawned[PARTICLE_KIND.SPRAY]).toBe(192 * SPRAY_AXLE_SHARE.front);
     expect(measured.spawned[PARTICLE_KIND.RAIN]).toBe(320);
     expect(measured.active[PARTICLE_KIND.SPRAY]).toBeGreaterThan(0);
     expect(measured.active[PARTICLE_KIND.RAIN]).toBeGreaterThan(0);
@@ -216,7 +217,7 @@ it.each([2.5, 3.25, 10, 50])(
       expect(playback.resets).toBe(1);
       const measured = effects.diagnostics();
       expect(measured.spawned[PARTICLE_KIND.MARBLE]).toBe(320);
-      expect(measured.spawned[PARTICLE_KIND.SPRAY]).toBe(96);
+      expect(measured.spawned[PARTICLE_KIND.SPRAY]).toBe(96 * SPRAY_AXLE_SHARE.front);
       expect(measured.spawned[PARTICLE_KIND.RAIN]).toBe(160);
       expect(measured.active[PARTICLE_KIND.SPRAY]).toBeGreaterThan(0);
       expect(measured.active[PARTICLE_KIND.RAIN]).toBeGreaterThan(0);

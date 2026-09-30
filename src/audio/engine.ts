@@ -8,6 +8,7 @@ import {
 import type { Track } from '../simulation/track.ts';
 import { ContactAudio } from './surface-audio.ts';
 import { EngineVoices } from './engine-voices.ts';
+import { PowerUnitAudio } from './power-unit.ts';
 import type { AudioView } from './spatial.ts';
 import { H } from '../simulation/protocol.ts';
 import { clamp, Random } from '../core/math.ts';
@@ -63,6 +64,7 @@ export class RacingAudio {
   private rain: GainNode | null = null;
   private contactPan: StereoPannerNode | null = null;
   private contactAudio: ContactAudio | null = null;
+  private powerUnit: PowerUnitAudio | null = null;
   private last = -Infinity;
   private wasPlaying = false;
   private contactAttenuation = 0;
@@ -115,6 +117,8 @@ export class RacingAudio {
     this.contactPan.connect(this.master);
     this.nodes.push(this.contactPan, this.master, this.compressor);
     this.contactAudio = new ContactAudio(ctx, this.contactPan);
+    // Player power-unit character shares the contact bus stereo position.
+    this.powerUnit = new PowerUnitAudio(ctx, this.contactPan);
     await ctx.resume();
   }
   update(
@@ -149,6 +153,7 @@ export class RacingAudio {
     this.contactPan!.pan.setTargetAtTime(player.pan, time, 0.025);
     this.contactAudio!.output.gain.setTargetAtTime(0.85 * this.contactAttenuation, time, 0.04);
     this.contactAudio!.update(frame, cockpit, time);
+    this.powerUnit!.update(frame, 0, time, this.contactAttenuation, cockpit);
     // Trackside listeners hear ambient wind, not 300 km/h cockpit wind. Rain
     // remains local to the listener even when the player's contact bus is distant.
     const airSpeed = Math.hypot(view.vx - frame[H.WIND_X], view.vy, view.vz - frame[H.WIND_Z]);
@@ -161,6 +166,7 @@ export class RacingAudio {
   }
   resetPresentation() {
     this.contactAudio?.reset();
+    this.powerUnit?.reset();
   }
   diagnostics() {
     return {
@@ -172,6 +178,7 @@ export class RacingAudio {
         emitted: this.cueDirector?.emitted ?? 0,
       },
       contactAttenuation: this.contactAttenuation,
+      powerUnit: this.powerUnit ? { ...this.powerUnit.mix, bursts: this.powerUnit.bursts } : null,
       voices: this.engines?.spatial.voices.map((voice) => ({ ...voice })) ?? [],
     };
   }
@@ -191,6 +198,8 @@ export class RacingAudio {
     this.cueSynth = this.previewSynth = null;
     this.contactAudio?.dispose();
     this.contactAudio = null;
+    this.powerUnit?.dispose();
+    this.powerUnit = null;
     this.engines?.dispose();
     this.engines = null;
     for (const source of this.sources) source.stop();

@@ -221,7 +221,12 @@ it('uses distinct projected rain and expanding spray profiles in one partitioned
   );
   rain.geometry.dispose();
   rain.material.dispose();
-  expect(material.vertexShader).toMatch(/if\s*\(\s*kind\s*<\s*0?\.5\s*\)/);
+  // Every soft volume (spray 0, dust 1, smoke 4) is hidden from the capped
+  // point sprites and drawn by the metre-sized, ground-faded quads instead.
+  expect(material.vertexShader).toMatch(/if\(kind<1\.5\|\|\(kind>3\.5&&kind<4\.5\)\)/);
+  expect(spray.material.vertexShader).toMatch(/spray=kind<0\.5, dust=kind>0\.5&&kind<1\.5, smoke=kind>3\.5&&kind<4\.5/);
+  expect(spray.material.fragmentShader).toContain('smoothstep(0.0,1.0,vGround)');
+  expect(spray.geometry.getAttribute('floor').count).toBe(effects.diagnostics().contactCapacity);
   spray.geometry.dispose(); spray.material.dispose();
   points.geometry.dispose();
   material.dispose();

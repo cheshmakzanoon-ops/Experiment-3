@@ -25,7 +25,9 @@ export interface GraphicsOptions {
 }
 export function graphicsPreset(quality: Quality): GraphicsOptions {
   return {
-    resolutionScale: quality === 'high' ? 1.25 : quality === 'low' ? 0.75 : 1,
+    // Native resolution with 4x MSAA and specular AA is the 1080p/60 High
+    // target. Supersampling beyond 1.0 remains a manual slider for faster GPUs.
+    resolutionScale: quality === 'low' ? 0.75 : 1,
     textureSize: quality === 'low' ? 256 : quality === 'high' ? 1024 : 512,
     shadowSize: quality === 'low' ? 0 : quality === 'high' ? 2048 : 1024,
     reflections: quality === 'high' ? 'local' : 'environment',

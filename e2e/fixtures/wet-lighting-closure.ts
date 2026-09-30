@@ -60,7 +60,11 @@ export function captureWetLightingClosure() {
   scene.remove(blocker); blocker.geometry.dispose(); blocker.material.dispose();
   sun.intensity = 0; fill.intensity = 0; lamp.intensity = 0; capture('unlit');
   lamp.intensity = 1800; capture('under-floodlight');
-  kinds[0] = 1; spray.upload(); capture('non-spray-excluded');
+  // Soft volumes (spray 0, dust 1, smoke 4) share this renderer; sparks (2)
+  // and every other kind stay on their own point pass and must draw nothing here.
+  kinds[0] = 1; spray.upload(); capture('dust-rendered');
+  kinds[0] = 4; spray.upload(); capture('smoke-rendered');
+  kinds[0] = 2; spray.upload(); capture('non-spray-excluded');
   kinds[0] = 0; positions.set([0, 1, 5.95]); spray.upload(); capture('near-plane');
   positions.set([0, 1, 0]); velocities.set([0, 4, 0]);
   sun.intensity = 4.2; fill.intensity = 0.4; lamp.intensity = 0;

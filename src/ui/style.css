@@ -3414,6 +3414,28 @@ dialog footer {
   color: #fff;
 }
 
+/* ---------- In-race restraint ---------- */
+/* Panels over the live WebGL canvas must not re-blur the scene every frame:
+   a backdrop filter there costs compositor GPU time at 60 Hz. A denser
+   translucent gradient reads the same. Menus, dialogs and replay keep blur. */
+.hud .timing,
+.hud .lap-panel,
+.hud .car-status,
+.hud .instruments {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  background: linear-gradient(160deg, rgba(14, 18, 24, 0.84), rgba(8, 11, 15, 0.7) 45%);
+}
+/* Key hints recede while driving; hover or keyboard focus restores them. */
+[data-mode='driving'] .hud-actions {
+  opacity: 0.3;
+  transition: opacity 0.25s;
+}
+[data-mode='driving'] .hud-actions:hover,
+[data-mode='driving'] .hud-actions:focus-within {
+  opacity: 1;
+}
+
 /* ---------- Accessibility layers keep precedence ---------- */
 html[data-high-contrast='true'] .hud .timing,
 html[data-high-contrast='true'] .hud .car-status,

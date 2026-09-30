@@ -17,49 +17,53 @@ export interface GradeProfile {
 }
 export const GRADE_PROFILES: Readonly<Record<LightingMode | 'studio', Readonly<GradeProfile>>> =
   Object.freeze({
+    // Grading only shapes tone and colour. Grain, lens fringe and unsharp
+    // masking are zero in every gameplay profile: they must never be used to
+    // hide aliasing or weak texture detail. The fields stay for explicit,
+    // user-chosen photo looks and are validated by the same shader.
     day: {
-      contrast: 0.22,
-      saturation: 1.08,
-      vibrance: 0.22,
-      shadowTint: [0.97, 1.0, 1.045],
-      highlightTint: [1.035, 1.005, 0.965],
-      vignette: 0.3,
-      fringe: 0.0011,
-      grain: 0.022,
-      sharpen: 0.32,
-    },
-    sunset: {
-      contrast: 0.2,
-      saturation: 1.1,
-      vibrance: 0.18,
-      shadowTint: [0.95, 0.98, 1.07],
-      highlightTint: [1.06, 1.0, 0.92],
-      vignette: 0.36,
-      fringe: 0.0012,
-      grain: 0.026,
-      sharpen: 0.3,
-    },
-    night: {
       contrast: 0.16,
-      saturation: 1.04,
-      vibrance: 0.12,
-      shadowTint: [0.95, 0.99, 1.08],
-      highlightTint: [1.03, 1.0, 0.95],
-      vignette: 0.4,
-      fringe: 0.0013,
-      grain: 0.034,
-      sharpen: 0.26,
-    },
-    studio: {
-      contrast: 0.14,
-      saturation: 1.03,
-      vibrance: 0.1,
-      shadowTint: [1, 1, 1.02],
-      highlightTint: [1.01, 1, 0.99],
-      vignette: 0.22,
+      saturation: 1.06,
+      vibrance: 0.16,
+      shadowTint: [0.98, 1.0, 1.03],
+      highlightTint: [1.025, 1.005, 0.975],
+      vignette: 0.12,
       fringe: 0,
       grain: 0,
-      sharpen: 0.24,
+      sharpen: 0,
+    },
+    sunset: {
+      contrast: 0.16,
+      saturation: 1.08,
+      vibrance: 0.14,
+      shadowTint: [0.96, 0.985, 1.05],
+      highlightTint: [1.05, 1.0, 0.93],
+      vignette: 0.15,
+      fringe: 0,
+      grain: 0,
+      sharpen: 0,
+    },
+    night: {
+      contrast: 0.12,
+      saturation: 1.03,
+      vibrance: 0.1,
+      shadowTint: [0.96, 0.99, 1.06],
+      highlightTint: [1.025, 1.0, 0.96],
+      vignette: 0.16,
+      fringe: 0,
+      grain: 0,
+      sharpen: 0,
+    },
+    studio: {
+      contrast: 0.12,
+      saturation: 1.02,
+      vibrance: 0.08,
+      shadowTint: [1, 1, 1.02],
+      highlightTint: [1.01, 1, 0.99],
+      vignette: 0.1,
+      fringe: 0,
+      grain: 0,
+      sharpen: 0,
     },
   });
 
@@ -95,19 +99,28 @@ const fragmentShader = /* glsl */ `
     float radius2 = dot(centre, centre);
     // Lateral lens fringe grows with the square of the field radius.
     vec2 shift = centre * radius2 * fringe * 4.0;
-    vec3 color = vec3(
-      texture2D(tDiffuse, vUv + shift).r,
-      texture2D(tDiffuse, vUv).g,
-      texture2D(tDiffuse, vUv - shift).b);
-    // Luma-only unsharp mask restores texture detail softened by FXAA/upsampling.
-    vec2 texel = 1.0 / resolution;
-    vec3 blur = texture2D(tDiffuse, vUv + vec2(texel.x, 0.0)).rgb +
-      texture2D(tDiffuse, vUv - vec2(texel.x, 0.0)).rgb +
-      texture2D(tDiffuse, vUv + vec2(0.0, texel.y)).rgb +
-      texture2D(tDiffuse, vUv - vec2(0.0, texel.y)).rgb;
+    // Optional effects are skipped entirely at zero (uniform, coherent branches).
+    vec3 color;
+    if (fringe > 0.0) {
+      // Lateral lens fringe grows with the square of the field radius.
+      vec2 shift = centre * radius2 * fringe * 4.0;
+      color = vec3(
+        texture2D(tDiffuse, vUv + shift).r,
+        texture2D(tDiffuse, vUv).g,
+        texture2D(tDiffuse, vUv - shift).b);
+    } else {
+      color = texture2D(tDiffuse, vUv).rgb;
+    }
     const vec3 lumaWeights = vec3(0.2126, 0.7152, 0.0722);
-    float detail = dot(color - blur * 0.25, lumaWeights);
-    color += clamp(detail * sharpen, -0.06, 0.06);
+    if (sharpen > 0.0) {
+      vec2 texel = 1.0 / resolution;
+      vec3 blur = texture2D(tDiffuse, vUv + vec2(texel.x, 0.0)).rgb +
+        texture2D(tDiffuse, vUv - vec2(texel.x, 0.0)).rgb +
+        texture2D(tDiffuse, vUv + vec2(0.0, texel.y)).rgb +
+        texture2D(tDiffuse, vUv - vec2(0.0, texel.y)).rgb;
+      float detail = dot(color - blur * 0.25, lumaWeights);
+      color += clamp(detail * sharpen, -0.06, 0.06);
+    }
     color = clamp(color, 0.0, 1.0);
     // Filmic S-curve around display mid-grey.
     vec3 s = color * color * (3.0 - 2.0 * color);
@@ -123,15 +136,17 @@ const fragmentShader = /* glsl */ `
     // Optical vignette.
     float falloff = smoothstep(0.85, 0.18, radius2 * (1.0 + 0.35 * resolution.x / resolution.y));
     color *= mix(1.0 - vignette, 1.0, falloff);
-    // Luminance-weighted grain, seeded by presented simulation time only.
-    float n = grainHash(vUv * resolution + seed * 91.7) - 0.5;
-    color += n * grain * (1.0 - luma * 0.7);
+    // Optional luminance-weighted grain, seeded by presented simulation time only.
+    if (grain > 0.0) {
+      float n = grainHash(vUv * resolution + seed * 91.7) - 0.5;
+      color += n * grain * (1.0 - luma * 0.7);
+    }
     gl_FragColor = vec4(clamp(color, 0.0, 1.0), 1.0);
   }
 `;
 
-/** Final display-space grade after tone mapping and FXAA. The HTML HUD is not
- * part of the canvas, so interface text never receives grain or fringe. */
+/** Final display-space grade after tone mapping (and FXAA when MSAA is off).
+ * The HTML HUD is not part of the canvas and never receives any grading. */
 export class BroadcastGradePass extends Pass {
   private material: T.ShaderMaterial;
   private quad: FullScreenQuad;

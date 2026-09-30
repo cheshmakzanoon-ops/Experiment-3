@@ -33,6 +33,9 @@ export class MirrorViews {
   private period = 1 / 15;
   updates = 0;
   passes = 0;
+  /** Roots hidden during both mirror passes (restored afterwards). */
+  exclusions: T.Object3D[] = [];
+  private exclusionVisibility: boolean[] = [];
 
   invalidate() {
     this.clock = Infinity;
@@ -94,6 +97,11 @@ export class MirrorViews {
       this.visible[i] = s.visible;
       s.visible = false;
     });
+    this.exclusionVisibility.length = 0;
+    for (const root of this.exclusions) {
+      this.exclusionVisibility.push(root.visible);
+      root.visible = false;
+    }
     // Hide both mirror planes for both passes: no texture feedback or recursion.
     // Reuse the main-view shadow map rather than rendering it twice more.
     renderer.shadowMap.autoUpdate = false;
@@ -116,6 +124,9 @@ export class MirrorViews {
       renderer.shadowMap.needsUpdate = shadowNeeded;
       this.surfaces.forEach((s, i) => {
         s.visible = this.visible[i];
+      });
+      this.exclusions.forEach((root, i) => {
+        if (i < this.exclusionVisibility.length) root.visible = this.exclusionVisibility[i];
       });
     }
   }

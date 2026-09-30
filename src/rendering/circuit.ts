@@ -84,6 +84,9 @@ export class CircuitScene {
     this.districts = districtPlan(track, this.serviceSites);
     this.group.add(this.props, this.crowd, this.vegetationGroup, this.surfaces);
     this.surfaces.name = 'Immutable circuit surfaces and barriers';
+    this.vegetationGroup.name = 'Planting, groves and treelines';
+    this.crowd.name = 'Spectators and marshal staff';
+    this.props.name = 'Venue props and structures';
     // Dynamic trackside staff geometry exists immediately, but it must enter the
     // scene through the same cooperative construction queue as every other
     // circuit mesh. This keeps a deferred CircuitScene genuinely empty until
@@ -191,7 +194,8 @@ export class CircuitScene {
     }
     // Surface colour below the horizon: track ribbons cover the actual collision elevation.
     this.construction.add('Distant terrain', 3, () => {
-      const terrain = new T.PlaneGeometry(5500, 5500, 96, 96);
+      // 34 m cells resolve the ridged range's crests at horizon distance.
+      const terrain = new T.PlaneGeometry(5500, 5500, 160, 160);
       terrain.rotateX(-Math.PI / 2);
       const pos = terrain.getAttribute('position'),
         terrainUV = terrain.getAttribute('uv');
@@ -204,7 +208,8 @@ export class CircuitScene {
         terrainUV.setXY(i, x / 5, z / 5);
       }
       terrain.computeVertexNormals();
-      mesh(this.surfaces, terrain, grass);
+      // Same original grass texels, plus slope/elevation landform shading.
+      mesh(this.surfaces, terrain, surfaceMaterial('grass', 'terrain'));
     });
     const barriers = barrierMaterials();
     const spans = Math.ceil(track.length / 80);

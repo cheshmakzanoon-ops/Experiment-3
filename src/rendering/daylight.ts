@@ -79,12 +79,15 @@ export function circuitLightState(
     });
   if (mode === 'night')
     Object.assign(light, {
-      // Broad wet/cloud baseline is immutable for a given snapshot. The separate
-      // bounded photometric pass can adapt without turning night into daylight.
-      sun: 0.105 * (1 - light.cover * 0.55),
-      fill: 0.205 + light.cover * 0.025,
+      // Floodlit circuit: the directional key stands for the aggregate of the
+      // circuit's floodlight masts (still well below overcast daylight), and
+      // the skylight fill is low so the surroundings fall away to dark instead
+      // of the whole scene reading as a flat blue-grey. The bounded photometric
+      // pass can adapt without turning night into daylight.
+      sun: 0.3 * (1 - light.cover * 0.55),
+      fill: 0.085 + light.cover * 0.03,
       environment: 0.07 + light.cover * 0.01,
-      exposure: 1.06 - clamp(rain, 0, 60) * 0.001,
+      exposure: 1.12 - clamp(rain, 0, 60) * 0.001,
       fogDensity: light.fogDensity * 0.75,
       fogRed: 0.01 + light.cover * 0.002,
       fogGreen: 0.014 + light.cover * 0.003,

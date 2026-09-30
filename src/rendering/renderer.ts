@@ -85,6 +85,9 @@ import { BroadcastGradePass } from './broadcast-grade.ts';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { FormulaCar } from './car.ts';
+import { attachDrawLedger, type DrawLedger } from './draw-ledger.ts';
+import { installSpecularAntialiasing } from './specular-aa.ts';
+import { renderCensus, cubeCensusCameras } from './render-census.ts';
 import { CircuitScene } from './circuit.ts';
 import { Effects } from './effects.ts';
 import { PresentedFrame } from './frame-state.ts';
@@ -94,6 +97,20 @@ import { Track } from '../simulation/track.ts';
 import { F, H, W, WHEEL_BASE, WHEEL_STRIDE, carBase } from '../simulation/protocol.ts';
 import { clamp } from '../core/math.ts';
 export type CameraMode = 'chase' | 'cockpit' | 'pod' | 'trackside';
+/** Chase rig in metres, m/s and vertical-FOV degrees. */
+export const CHASE = Object.freeze({
+  height: 1.95,
+  heightPerMS: 0.003,
+  distance: 5.7,
+  distancePerMS: 0.0065,
+  lookAhead: 10,
+  lookLift: 0.42,
+  fov: 58,
+  fovGain: 6,
+});
+/** T-cam lift above the authored pod socket and its downward gaze slope. */
+export const TCAM_LIFT_M = 0.09;
+export const TCAM_PITCH = -0.06;
 export type { Quality } from './options.ts';
 export class RacingRenderer {
   readonly renderer: T.WebGLRenderer;
@@ -145,6 +162,7 @@ export class RacingRenderer {
   private motionBlur: MotionBlurPass;
   private fxaa = new ShaderPass(FXAAShader);
   private textures = new TextureBudget();
+  private drawLedger: DrawLedger;
   graphics: GraphicsOptions = graphicsPreset('medium');
   private renderWidth = 1;
   private renderHeight = 1;
@@ -186,6 +204,8 @@ export class RacingRenderer {
   private eyeLocal = new T.Vector3();
   private reflectionMaterials: T.MeshStandardMaterial[][] = [];
   private reflectionFollow = -1;
+  private probeHidden: T.Object3D[] = [];
+  private mirrorHidden: T.Object3D[] = [];
   readonly engineeringView = new EngineeringView();
   engineering: EngineeringSample | null = null;
   replayView = false;
@@ -200,6 +220,8 @@ export class RacingRenderer {
     track: Track,
     deferred = false,
   ) {
+    // Before any material program compiles (idempotent, shared chunk).
+    installSpecularAntialiasing();
     const context = canvas.getContext('webgl2', {
       antialias: true,
       alpha: false,
@@ -216,6 +238,7 @@ export class RacingRenderer {
       powerPreference: 'high-performance',
     });
     this.gpuTimer = new GpuTimer(context);
+    this.drawLedger = attachDrawLedger(this.renderer);
     this.gpuFrames = new GpuFrameGate(context);
     this.atmosphere = new LocalAtmosphere(track);
     this.guide = new DrivingGuide(track);
@@ -516,8 +539,10 @@ export class RacingRenderer {
     }
     this.bloom.enabled = g.bloom;
     this.motionBlur.setStrength(g.motionBlur);
-    this.fxaa.enabled = g.antialias;
     this.scenePass.setSamples(Math.min(g.msaa, this.renderer.capabilities.maxSamples));
+    // FXAA only substitutes for missing multisampling. Applying it on top of
+    // resolved MSAA blurs texture detail, which then invites artificial sharpening.
+    this.fxaa.enabled = g.antialias && this.scenePass.samples === 0;
     this.scenePass.ambientOcclusion = g.ambientOcclusion;
     this.grade.enabled = g.filmGrade;
     this.circuit.crowd.visible = g.crowd;
@@ -778,7 +803,13 @@ export class RacingRenderer {
         if (car.suppliedPlayer) {
           if (cameraMode === 'cockpit')
             cockpitEye(car.suppliedPlayer.eye, this.inertia.offset, this.desired);
-          else this.desired.copy(car.suppliedPlayer.pod).add(this.inertia.offset);
+          // T-cam: sit slightly above the authored airbox socket so the
+          // helmet crown occupies the lower edge rather than the lower fifth.
+          else
+            this.desired
+              .copy(car.suppliedPlayer.pod)
+              .add(this.inertia.offset)
+              .add(this.temporary.set(0, TCAM_LIFT_M, 0));
           this.desired.applyQuaternion(car.root.quaternion).add(car.root.position);
         } else {
           this.inertia.eye(
@@ -790,16 +821,22 @@ export class RacingRenderer {
         }
         const orientation = this.viewOrientation.update(car.root.quaternion, cameraDt);
         if (cameraMode === 'cockpit' && car.suppliedPlayer) cockpitDirection(this.direction);
-        else this.direction.set(0, -0.035, 1);
+        else this.direction.set(0, cameraMode === 'pod' ? TCAM_PITCH : -0.035, 1);
         this.direction.applyQuaternion(orientation).normalize();
         this.gaze.copy(this.desired).addScaledVector(this.direction, 40);
       } else {
+        // Close, low chase framing: the car fills more of the lower centre and
+        // the horizon sits nearer mid-frame, as in modern broadcast-style games.
         this.desired
-          .set(0, 2.5 + speed * 0.004, -6.7 - speed * 0.009)
+          .set(
+            0,
+            CHASE.height + speed * CHASE.heightPerMS,
+            -CHASE.distance - speed * CHASE.distancePerMS,
+          )
           .applyQuaternion(car.root.quaternion)
           .add(this.target);
-        this.gaze.copy(this.target).addScaledVector(this.direction, 8);
-        this.gaze.y += 0.3;
+        this.gaze.copy(this.target).addScaledVector(this.direction, CHASE.lookAhead);
+        this.gaze.y += CHASE.lookLift;
       }
       if (this.lookX || this.lookY) {
         this.direction
@@ -810,7 +847,9 @@ export class RacingRenderer {
       this.camera.fov =
         cameraMode === 'cockpit' && car.suppliedPlayer
           ? COCKPIT_FRAMING.verticalFov
-          : (cameraMode === 'chase' ? 57 : 68) + Math.min(7, speed * 0.075);
+          : cameraMode === 'chase'
+            ? CHASE.fov + Math.min(CHASE.fovGain, speed * 0.06)
+            : 68 + Math.min(7, speed * 0.075);
     }
     if (!this.initialized || cameraMode !== 'chase' || menu || this.photo) {
       this.camera.position.copy(this.desired);
@@ -940,6 +979,7 @@ export class RacingRenderer {
     this.eyeLocal.copy(this.camera.position);
     car.root.worldToLocal(this.eyeLocal);
     this.renderer.info.reset();
+    this.drawLedger.begin();
     this.gpuTimer.begin();
     const originalOverride = this.scene.overrideMaterial;
     try {
@@ -968,11 +1008,14 @@ export class RacingRenderer {
         // Retain the real skydome and its recorded-cloud night shader.
       }
       // Include weather-driven environment captures in real GPU/draw metrics.
+      this.drawLedger.mark('environment');
       this.environment.update(this.renderer, this.scene, daylight.cover, illumination);
       let wheelWater = 0;
       for (let wheel = 0; wheel < 4; wheel++)
         wheelWater = Math.max(wheelWater, b[o + WHEEL_BASE + wheel * WHEEL_STRIDE + W.WATER]);
       const wetReflection = wheelWater > 0.04 || b[H.RAIN] > 0.01;
+      this.refreshReflectionExclusions(car);
+      this.drawLedger.mark('probe');
       this.reflection.updateProbe(
         this.renderer,
         this.scene,
@@ -982,7 +1025,9 @@ export class RacingRenderer {
         wetReflection ? 0.55 : 1.5,
         this.sky.material.uniforms.probeSkyIntensity,
       );
+      this.drawLedger.mark('mirrors');
       this.reflection.renderMirrors(this.renderer, this.scene, car.root, dt);
+      this.drawLedger.mark('other');
       this.motionBlur.setStrength(this.photo ? 0 : this.graphics.motionBlur);
       this.motionBlur.prepareFrame(wallDelta, b[H.TIME]);
       if (this.photoFocus?.enabled && this.photo) {
@@ -1003,7 +1048,9 @@ export class RacingRenderer {
         this.graphics.autoExposure && !this.photo && !menu,
       );
       this.grade.apply(studio ? 'studio' : illumination, presented[H.TIME]);
+      this.drawLedger.mark('composer');
       this.composer.render();
+      this.drawLedger.mark('other');
       if (this.photo && this.photo.survey !== 'off' && this.geometrySurvey) {
         if (this.geometrySurvey.dirty)
           this.geometrySurvey.rebuild(
@@ -1021,11 +1068,42 @@ export class RacingRenderer {
       this.scene.overrideMaterial = originalOverride;
       this.scenePresentation.restore();
       this.gpuTimer.end();
+      this.drawLedger.end();
     }
     this.gpuFrames.submittedFrame();
     this.renderedMode = cameraMode;
     this.lastRenderCPUms = performance.now() - start;
     this.renderMs = this.renderMs * 0.9 + this.lastRenderCPUms * 0.1;
+  }
+  /** Rebuilt in place each frame (no allocation): the car set, follow target
+   * and lazily loaded pit kits can change between frames. */
+  private refreshReflectionExclusions(subject: FormulaCar) {
+    const smallDetail = [
+      this.pitCrew.root,
+      this.gridPreparation.root,
+      this.debris.mesh,
+      this.guide.mesh,
+      this.engineeringView.group,
+      this.circuit.crowd,
+      this.tyreEquipment?.root,
+      this.circuit.tyreBlankets?.root,
+      this.wheelGunStorage?.root,
+    ];
+    const probe = this.probeHidden,
+      mirror = this.mirrorHidden;
+    probe.length = 0;
+    mirror.length = 0;
+    for (const root of smallDetail)
+      if (root) {
+        probe.push(root);
+        mirror.push(root);
+      }
+    // Mirrors keep rival cars and spray; the probe (paint/wet-road reflection
+    // at 128 px) keeps static scenery only. The subject car is hidden by the probe itself.
+    probe.push(this.effects.group);
+    for (const other of this.cars) if (other !== subject) probe.push(other.root);
+    this.reflection.probeExclusions = probe;
+    this.reflection.mirrorExclusions = mirror;
   }
   reviewHardware() {
     return reviewHardware(this.renderer.getContext());
@@ -1076,6 +1154,21 @@ export class RacingRenderer {
         ),
       },
       pitCrews: this.pitCrew.activeCrews,
+      // Draw-submission estimates by owner group for the main view, the local
+      // probe's six faces and the two mirror cameras (profiling aid).
+      census: (() => {
+        const roots = [this.circuit.group, this.circuit.props, this.circuit.surfaces];
+        const probeCameras = cubeCensusCameras(
+          car.root.position.clone().add(new T.Vector3(0, 1.5, 0)),
+          1600,
+          this.reflection.probeLayers,
+        );
+        return {
+          main: renderCensus(this.scene, [this.camera], roots).slice(0, 24),
+          probe: renderCensus(this.scene, probeCameras, roots).slice(0, 24),
+          mirrors: renderCensus(this.scene, this.reflection.mirrorCameras, roots).slice(0, 24),
+        };
+      })(),
       haloProjection: halo.toArray(),
       mirrors: this.reflection.diagnostics(this.renderer),
       particles: this.effects.diagnostics(),
@@ -1277,6 +1370,8 @@ export class RacingRenderer {
       renderCPUms: this.renderMs,
       drawCalls: info.calls,
       triangles: info.triangles,
+      // Per-phase attribution of the same completed frame's counters.
+      drawBreakdown: this.drawLedger.snapshot(),
       textures: this.renderer.info.memory.textures,
       geometries: this.renderer.info.memory.geometries,
     };

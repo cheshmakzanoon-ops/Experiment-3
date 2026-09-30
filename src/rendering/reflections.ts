@@ -15,7 +15,20 @@ export class ReflectionSystem {
   get mirrors() {
     return this.surfaces;
   }
+  /** Layer mask used by the local probe's cube cameras. */
+  get probeLayers() {
+    return this.cubes[0].layers;
+  }
+  /** The actual rear-facing mirror cameras (profiling and census). */
+  get mirrorCameras(): readonly T.Camera[] {
+    return this.views.cameras;
+  }
   probeUpdates = 0;
+  /** Roots omitted from the local probe (other cars, people, particles, small
+   * props): at 128 px per face they are a few texels but cost one draw each
+   * per face. Visibility is restored even if a face throws. */
+  probeExclusions: T.Object3D[] = [];
+  private exclusionVisibility: boolean[] = [];
   private activePass = false;
   private clock = NaN;
   private enabled = false;
@@ -106,6 +119,13 @@ export class ReflectionSystem {
   renderMirrors(renderer: T.WebGLRenderer, scene: T.Scene, root: T.Object3D, dt: number) {
     if (this.enabled && !this.activePass) this.views.render(renderer, scene, root, dt);
   }
+  /** Roots omitted from the rear-view feeds (spectators, pit people, props). */
+  set mirrorExclusions(roots: T.Object3D[]) {
+    this.views.exclusions = roots;
+  }
+  get mirrorExclusions() {
+    return this.views.exclusions;
+  }
   updateProbe(
     renderer: T.WebGLRenderer,
     scene: T.Scene,
@@ -168,6 +188,11 @@ export class ReflectionSystem {
         mirror.visible = false;
       });
       car.visible = false;
+      this.exclusionVisibility.length = 0;
+      for (const root of this.probeExclusions) {
+        this.exclusionVisibility.push(root.visible);
+        root.visible = false;
+      }
       for (const { material, original } of previousMaps) {
         material.envMap = original.texture;
         material.envMapIntensity = original.intensity;
@@ -193,6 +218,9 @@ export class ReflectionSystem {
         material.envMapIntensity = intensity;
       }
       car.visible = visible;
+      this.probeExclusions.forEach((root, i) => {
+        if (i < this.exclusionVisibility.length) root.visible = this.exclusionVisibility[i];
+      });
       renderer.shadowMap.autoUpdate = shadows;
       renderer.xr.enabled = xr;
       renderer.setRenderTarget(target, face, mip);
