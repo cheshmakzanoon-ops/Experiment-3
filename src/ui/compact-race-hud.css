@@ -35,9 +35,18 @@
     letter-spacing: 0.04em;
     min-width: 0;
   }
+  /* The broadcast skin gives desktop session cells 8px vertical padding.
+     Compact mode stacks weather below lap/flag, so inheriting that padding
+     exceeds --race-header and overlaps the telemetry. Keep both rows inside
+     the compact envelope without hiding values or reducing the UI scale. */
+  .hud .session-status > span {
+    padding: 0;
+    line-height: 1.2;
+  }
   .hud .session-status > b {
     padding: 4px 7px;
     font-size: calc(8px * var(--scale));
+    line-height: 1.2;
   }
   .hud #weatherLabel {
     display: block;
@@ -211,6 +220,11 @@
   }
   .hud .race-info-panels .lap-panel b {
     font-size: calc(24px * var(--scale));
+  }
+  .hud .race-info-panels .minimap canvas {
+    width: min(235px, 100%);
+    height: auto;
+    margin: auto;
   }
   .hud .start-sequence {
     top: calc(var(--race-header) + 80px * var(--scale));
