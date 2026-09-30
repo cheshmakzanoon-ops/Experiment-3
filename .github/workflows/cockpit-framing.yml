@@ -1,0 +1,37 @@
+name: Cockpit framing evidence
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/cockpit-framing.yml
+      - src/rendering/camera-dynamics.ts
+      - src/rendering/cockpit-framing.ts
+      - src/rendering/renderer.ts
+      - e2e/p0-cockpit-framing.spec.ts
+      - e2e/fixtures/cockpit-framing.ts
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test e2e/p0-cockpit-framing.spec.ts
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: p0-cockpit-framing
+          path: |
+            test-results/
+            playwright-report/
+            browser-backend.json
+          retention-days: 7
