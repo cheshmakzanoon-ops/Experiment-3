@@ -40,16 +40,18 @@ test('P0 actual supplied cockpit, full circuit and camera framing evidence', asy
       window as unknown as { CockpitSurvey: { cockpitFramingSurvey: typeof cockpitFramingSurvey } }
     ).CockpitSurvey.cockpitFramingSurvey(),
   );
-  await info.attach('p0-cockpit.png', {
-    body: Buffer.from(report.image.split(',')[1], 'base64'),
-    contentType: 'image/png',
-  });
+  for (const row of report.rows) {
+    await info.attach(`p0-${row.name}.png`, {
+      body: Buffer.from(row.image.split(',')[1], 'base64'),
+      contentType: 'image/png',
+    });
+    expect(row.visual.suppliedPlayer).not.toBeNull();
+    expect(row.camera.position.every(Number.isFinite)).toBe(true);
+    expect(row.image.length).toBeGreaterThan(10000);
+  }
   await info.attach('p0-cockpit.json', {
     body: JSON.stringify(report, (key, value) => (key === 'image' ? undefined : value), 2),
     contentType: 'application/json',
   });
   expect(errors).toEqual([]);
-  expect(report.visual.suppliedPlayer).not.toBeNull();
-  expect(report.camera.position.every(Number.isFinite)).toBe(true);
-  expect(report.image.length).toBeGreaterThan(10000);
 });
