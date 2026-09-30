@@ -112,6 +112,7 @@ export class Effects {
         attribute float size; attribute float opacity; attribute float solid; attribute float kind;
         uniform float viewportHeight;
         varying float vSolid; varying float vKind; varying float vOpacity; varying vec3 vColor;
+        varying float vSeed;
         #include <fog_pars_vertex>
         void main() {
           vSolid=solid; vKind=kind; vOpacity=opacity; vColor=color;
@@ -120,14 +121,34 @@ export class Effects {
           if(!(kind>1.5&&kind<2.5)) vColor*=particleEnergy(mvPosition.xyz,0.);
           gl_Position=projectionMatrix*mvPosition;
           gl_PointSize=clamp(size*projectionMatrix[1][1]*viewportHeight*.5/max(.1,-mvPosition.z),1.,120.);
+          // A puff crossing the lens becomes a translucent screen-filling disc;
+          // dissolve soft volumes before they reach the camera.
+          if(kind>2.5||kind<1.5) vOpacity*=smoothstep(.9,3.2,-mvPosition.z);
+          vSeed=fract(dot(position,vec3(12.9898,78.233,37.719)));
           #include <fog_vertex>
         }`,
       fragmentShader: `
         varying float vSolid; varying float vKind; varying float vOpacity; varying vec3 vColor;
+        varying float vSeed;
         #include <fog_pars_fragment>
+        float puffNoise(vec2 q) {
+          vec2 i=floor(q), f=fract(q); f=f*f*(3.-2.*f);
+          float a=fract(sin(dot(i,vec2(127.1,311.7)))*43758.5453);
+          float b=fract(sin(dot(i+vec2(1,0),vec2(127.1,311.7)))*43758.5453);
+          float c=fract(sin(dot(i+vec2(0,1),vec2(127.1,311.7)))*43758.5453);
+          float d=fract(sin(dot(i+vec2(1,1),vec2(127.1,311.7)))*43758.5453);
+          return mix(mix(a,b,f.x),mix(c,d,f.x),f.y);
+        }
         void main() {
           vec2 p=gl_PointCoord*2.-1.;
-          float soft=exp(-dot(p,p)*3.)*(1.-smoothstep(.6,1.,length(p)));
+          // Billowed, per-particle turbulent edge rather than a perfect disc.
+          // Sample on the unit circle so the lobes are radial, never grid-aligned.
+          float r=length(p);
+          vec2 d=p/max(r,.0001);
+          vec2 q=d*1.9+vSeed*17.;
+          float billow=puffNoise(q)*.62+puffNoise(q*2.3+3.7+r*1.4)*.38;
+          float soft=exp(-dot(p,p)*2.6)*(1.-smoothstep(.45,1.,length(p)+(billow-.5)*.55));
+          soft*=.55+.6*billow;
           float spark=(1.-smoothstep(.04,.18,abs(p.x+p.y*.22)))*(1.-smoothstep(.58,1.,abs(p.y)));
           float a=(vKind>1.5&&vKind<2.5?spark:soft)*vOpacity;
           a=mix(a,(1.-smoothstep(.55,.75,abs(p.x)+abs(p.y)*.8))*vOpacity,vSolid);

@@ -1,0 +1,200 @@
+import * as T from 'three';
+import { Pass, FullScreenQuad } from 'three/addons/postprocessing/Pass.js';
+import type { LightingMode } from './daylight.ts';
+
+/** Authored display-referred grade per circuit lighting profile. These are
+ * look-development values, not a calibrated camera or broadcast LUT. */
+export interface GradeProfile {
+  contrast: number;
+  saturation: number;
+  vibrance: number;
+  shadowTint: readonly [number, number, number];
+  highlightTint: readonly [number, number, number];
+  vignette: number;
+  fringe: number;
+  grain: number;
+  sharpen: number;
+}
+export const GRADE_PROFILES: Readonly<Record<LightingMode | 'studio', Readonly<GradeProfile>>> =
+  Object.freeze({
+    day: {
+      contrast: 0.22,
+      saturation: 1.08,
+      vibrance: 0.22,
+      shadowTint: [0.97, 1.0, 1.045],
+      highlightTint: [1.035, 1.005, 0.965],
+      vignette: 0.3,
+      fringe: 0.0011,
+      grain: 0.022,
+      sharpen: 0.32,
+    },
+    sunset: {
+      contrast: 0.2,
+      saturation: 1.1,
+      vibrance: 0.18,
+      shadowTint: [0.95, 0.98, 1.07],
+      highlightTint: [1.06, 1.0, 0.92],
+      vignette: 0.36,
+      fringe: 0.0012,
+      grain: 0.026,
+      sharpen: 0.3,
+    },
+    night: {
+      contrast: 0.16,
+      saturation: 1.04,
+      vibrance: 0.12,
+      shadowTint: [0.95, 0.99, 1.08],
+      highlightTint: [1.03, 1.0, 0.95],
+      vignette: 0.4,
+      fringe: 0.0013,
+      grain: 0.034,
+      sharpen: 0.26,
+    },
+    studio: {
+      contrast: 0.14,
+      saturation: 1.03,
+      vibrance: 0.1,
+      shadowTint: [1, 1, 1.02],
+      highlightTint: [1.01, 1, 0.99],
+      vignette: 0.22,
+      fringe: 0,
+      grain: 0,
+      sharpen: 0.24,
+    },
+  });
+
+/** CPU reference of the shader's tone curve; used by tests and documentation. */
+export function gradeCurve(value: number, contrast: number) {
+  if (!Number.isFinite(value) || !Number.isFinite(contrast)) throw new Error('Invalid grade input');
+  const x = T.MathUtils.clamp(value, 0, 1);
+  const s = x * x * (3 - 2 * x);
+  return x + (s - x) * T.MathUtils.clamp(contrast, 0, 1);
+}
+
+const fragmentShader = /* glsl */ `
+  uniform sampler2D tDiffuse;
+  uniform vec2 resolution;
+  uniform float seed;
+  uniform float contrast;
+  uniform float saturation;
+  uniform float vibrance;
+  uniform vec3 shadowTint;
+  uniform vec3 highlightTint;
+  uniform float vignette;
+  uniform float fringe;
+  uniform float grain;
+  uniform float sharpen;
+  varying vec2 vUv;
+  float grainHash(vec2 p) {
+    vec3 q = fract(vec3(p.xyx) * 0.1031);
+    q += dot(q, q.yzx + 33.33);
+    return fract((q.x + q.y) * q.z);
+  }
+  void main() {
+    vec2 centre = vUv - 0.5;
+    float radius2 = dot(centre, centre);
+    // Lateral lens fringe grows with the square of the field radius.
+    vec2 shift = centre * radius2 * fringe * 4.0;
+    vec3 color = vec3(
+      texture2D(tDiffuse, vUv + shift).r,
+      texture2D(tDiffuse, vUv).g,
+      texture2D(tDiffuse, vUv - shift).b);
+    // Luma-only unsharp mask restores texture detail softened by FXAA/upsampling.
+    vec2 texel = 1.0 / resolution;
+    vec3 blur = texture2D(tDiffuse, vUv + vec2(texel.x, 0.0)).rgb +
+      texture2D(tDiffuse, vUv - vec2(texel.x, 0.0)).rgb +
+      texture2D(tDiffuse, vUv + vec2(0.0, texel.y)).rgb +
+      texture2D(tDiffuse, vUv - vec2(0.0, texel.y)).rgb;
+    const vec3 lumaWeights = vec3(0.2126, 0.7152, 0.0722);
+    float detail = dot(color - blur * 0.25, lumaWeights);
+    color += clamp(detail * sharpen, -0.06, 0.06);
+    color = clamp(color, 0.0, 1.0);
+    // Filmic S-curve around display mid-grey.
+    vec3 s = color * color * (3.0 - 2.0 * color);
+    color = mix(color, s, contrast);
+    float luma = dot(color, lumaWeights);
+    // Split tone: cool shade, warm key light.
+    color *= mix(shadowTint, highlightTint, smoothstep(0.08, 0.75, luma));
+    // Vibrance lifts muted colours without clipping already-saturated liveries.
+    float maxC = max(color.r, max(color.g, color.b)), minC = min(color.r, min(color.g, color.b));
+    float chroma = maxC - minC;
+    float satBoost = saturation * (1.0 + vibrance * (1.0 - smoothstep(0.0, 0.55, chroma)));
+    color = mix(vec3(luma), color, satBoost);
+    // Optical vignette.
+    float falloff = smoothstep(0.85, 0.18, radius2 * (1.0 + 0.35 * resolution.x / resolution.y));
+    color *= mix(1.0 - vignette, 1.0, falloff);
+    // Luminance-weighted grain, seeded by presented simulation time only.
+    float n = grainHash(vUv * resolution + seed * 91.7) - 0.5;
+    color += n * grain * (1.0 - luma * 0.7);
+    gl_FragColor = vec4(clamp(color, 0.0, 1.0), 1.0);
+  }
+`;
+
+/** Final display-space grade after tone mapping and FXAA. The HTML HUD is not
+ * part of the canvas, so interface text never receives grain or fringe. */
+export class BroadcastGradePass extends Pass {
+  private material: T.ShaderMaterial;
+  private quad: FullScreenQuad;
+  profile: LightingMode | 'studio' = 'day';
+  constructor() {
+    super();
+    this.material = new T.ShaderMaterial({
+      name: 'APEX broadcast colour grade',
+      vertexShader:
+        'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',
+      fragmentShader,
+      uniforms: {
+        tDiffuse: { value: null },
+        resolution: { value: new T.Vector2(1, 1) },
+        seed: { value: 0 },
+        contrast: { value: 0 },
+        saturation: { value: 1 },
+        vibrance: { value: 0 },
+        shadowTint: { value: new T.Vector3(1, 1, 1) },
+        highlightTint: { value: new T.Vector3(1, 1, 1) },
+        vignette: { value: 0 },
+        fringe: { value: 0 },
+        grain: { value: 0 },
+        sharpen: { value: 0 },
+      },
+      depthTest: false,
+      depthWrite: false,
+      blending: T.NoBlending,
+      toneMapped: false,
+    });
+    this.quad = new FullScreenQuad(this.material);
+    this.apply('day');
+  }
+  /** Seed must come from presented state so pause, photo and replay hold grain. */
+  apply(profile: LightingMode | 'studio', seed = 0) {
+    this.profile = profile;
+    const p = GRADE_PROFILES[profile];
+    const u = this.material.uniforms;
+    u.contrast.value = p.contrast;
+    u.saturation.value = p.saturation;
+    u.vibrance.value = p.vibrance;
+    (u.shadowTint.value as T.Vector3).set(...p.shadowTint);
+    (u.highlightTint.value as T.Vector3).set(...p.highlightTint);
+    u.vignette.value = p.vignette;
+    u.fringe.value = p.fringe;
+    u.grain.value = p.grain;
+    u.sharpen.value = p.sharpen;
+    u.seed.value = Number.isFinite(seed) ? seed % 97 : 0;
+  }
+  override setSize(width: number, height: number) {
+    this.material.uniforms.resolution.value.set(Math.max(1, width), Math.max(1, height));
+  }
+  override render(
+    renderer: T.WebGLRenderer,
+    writeBuffer: T.WebGLRenderTarget,
+    readBuffer: T.WebGLRenderTarget,
+  ) {
+    this.material.uniforms.tDiffuse.value = readBuffer.texture;
+    renderer.setRenderTarget(this.renderToScreen ? null : writeBuffer);
+    this.quad.render(renderer);
+  }
+  override dispose() {
+    this.material.dispose();
+    this.quad.dispose();
+  }
+}

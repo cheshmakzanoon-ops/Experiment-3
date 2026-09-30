@@ -21,6 +21,8 @@ import {
   type WorkerMessage,
 } from './workers/diagnostics.ts';
 import PhysicsWorker from './workers/physics.worker.ts?worker&inline';
+import '@fontsource-variable/saira/wdth.css';
+import '@fontsource-variable/saira/wdth-italic.css';
 import './ui/style.css';
 import { PerformanceCapture, type FrameMetrics } from './core/performance.ts';
 declare const __APEX_SOURCE_FINGERPRINT__: string;

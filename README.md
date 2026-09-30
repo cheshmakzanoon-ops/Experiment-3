@@ -1,3 +1,10 @@
+## Broadcast presentation pass
+
+Multisampled scene rendering with depth-only ambient obscurance, broadcast colour
+grading, bloom on Medium and above, a deeper sky and asphalt, and a new race HUD /
+paddock identity built on a bundled Saira typeface (position badge, flag strip,
+rev lights, timing tower). See [audit findings, changes and validation](docs/BROADCAST_PRESENTATION.md).
+
 ## Player car: supplied RB19 + R06 driver/cockpit
 
 The main player now uses the combined user-supplied RB19 car and R06 seated

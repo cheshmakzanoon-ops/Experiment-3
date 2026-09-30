@@ -2508,3 +2508,951 @@ html[data-colorblind='true'] #flag[data-flag='4']::before {
 .menu-body :is(button, input, select) {
   scroll-margin-block: 8px;
 }
+
+/* ==========================================================================
+   APEX BROADCAST SKIN
+   A single visual identity for the race HUD, paddock menu and dialogs.
+   Geometry contracts above (tower/map envelopes, telemetry band, compact
+   panels) are preserved: this layer owns type, colour, surfaces and shape.
+   ========================================================================== */
+:root {
+  --font-display: 'Saira Variable', 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  --font-data: 'Saira Variable', 'Roboto Mono', 'Menlo', monospace;
+  --apex-flame: #ff5a2a;
+  --apex-flame-hot: #ff7a45;
+  --apex-ink: #07090c;
+  --apex-glass: rgba(8, 11, 15, 0.74);
+  --apex-glass-strong: rgba(7, 9, 13, 0.9);
+  --apex-edge: rgba(255, 255, 255, 0.09);
+  --apex-text: #f5f6f7;
+  --apex-dim: #8d96a0;
+  --apex-green: #2bea7f;
+  --apex-purple: #b45cff;
+  --apex-yellow: #ffd21f;
+  --apex-red: #ff2d3a;
+  --apex-blue: #4d7dff;
+  --apex-cut: 12px;
+  --accent: var(--apex-flame);
+  font-family: var(--font-display);
+  color: var(--apex-text);
+  background: var(--apex-ink);
+}
+body {
+  font-family: var(--font-display);
+  -webkit-font-smoothing: antialiased;
+}
+button {
+  font-family: var(--font-display);
+  font-stretch: 105%;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: var(--apex-text);
+  transition:
+    background 0.14s,
+    border-color 0.14s,
+    color 0.14s,
+    box-shadow 0.14s;
+}
+button:hover {
+  background: rgba(255, 255, 255, 0.11);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+button:focus-visible,
+select:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--apex-flame-hot);
+  outline-offset: 2px;
+}
+select,
+input[type='number'] {
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--apex-text);
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.28);
+}
+select {
+  appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--apex-flame) 50%),
+    linear-gradient(135deg, var(--apex-flame) 50%, transparent 50%);
+  background-position:
+    calc(100% - 17px) 50%,
+    calc(100% - 12px) 50%;
+  background-size: 5px 5px;
+  background-repeat: no-repeat;
+}
+select:hover {
+  border-bottom-color: var(--apex-flame);
+}
+select option {
+  background: #11151b;
+  color: var(--apex-text);
+}
+label {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-stretch: 95%;
+  color: var(--apex-dim);
+  letter-spacing: 0.16em;
+}
+.primary {
+  background: linear-gradient(100deg, var(--apex-flame), #ff3d2e);
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 10px 30px -12px rgba(255, 70, 40, 0.8);
+}
+.primary:hover {
+  background: linear-gradient(100deg, var(--apex-flame-hot), #ff5244);
+  border-color: transparent;
+  box-shadow: 0 12px 34px -10px rgba(255, 80, 45, 0.95);
+}
+
+/* ---------- Brand ---------- */
+.brand {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 900;
+  font-stretch: 125%;
+  letter-spacing: -0.02em;
+  color: #fff;
+}
+.brand span {
+  font-family: var(--font-display);
+  font-style: normal;
+  font-weight: 700;
+  font-stretch: 100%;
+  letter-spacing: 0.3em;
+  color: rgba(255, 255, 255, 0.62);
+  padding-left: 12px;
+  border-left: 3px solid var(--apex-flame);
+}
+
+/* ---------- Loading ---------- */
+.loading {
+  background:
+    radial-gradient(ellipse at 50% 120%, rgba(255, 90, 42, 0.22), transparent 60%),
+    repeating-linear-gradient(115deg, transparent 0 22px, rgba(255, 255, 255, 0.018) 22px 24px),
+    #06080b;
+}
+.loading .brand {
+  font-size: clamp(56px, 9vw, 112px);
+}
+.loading p {
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.6);
+}
+.loader {
+  width: 320px;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.1);
+  transform: skewX(-24deg);
+}
+.loader i {
+  background: linear-gradient(90deg, transparent, var(--apex-flame), #fff);
+}
+
+/* ---------- Paddock menu ---------- */
+.menu {
+  background:
+    linear-gradient(
+      90deg,
+      rgba(5, 7, 10, 0.96),
+      rgba(6, 8, 11, 0.9) 26%,
+      rgba(6, 8, 11, 0.35) 50%,
+      rgba(6, 8, 11, 0) 70%
+    ),
+    linear-gradient(0deg, rgba(5, 7, 10, 0.75), transparent 22%);
+}
+.masthead,
+.menu-footer {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+.edition {
+  font-weight: 600;
+  letter-spacing: 0.26em;
+  color: rgba(255, 255, 255, 0.55);
+}
+.edition b {
+  color: #fff;
+  font-stretch: 115%;
+  letter-spacing: 0.2em;
+}
+.eyebrow {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  color: var(--apex-flame-hot);
+  text-transform: uppercase;
+}
+.eyebrow i {
+  width: 18px;
+  height: 3px;
+  vertical-align: middle;
+  transform: skewX(-24deg);
+}
+h1 {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 900;
+  font-stretch: 118%;
+  letter-spacing: -0.03em;
+  line-height: 0.92;
+  text-transform: uppercase;
+  background: linear-gradient(180deg, #fff 55%, #b9c0c8);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.intro {
+  color: rgba(255, 255, 255, 0.66);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+.session-form label {
+  color: rgba(255, 255, 255, 0.5);
+}
+.enter {
+  clip-path: polygon(0 0, 100% 0, calc(100% - var(--apex-cut)) 100%, 0 100%);
+  font-size: 13px;
+  font-stretch: 112%;
+  font-style: italic;
+  letter-spacing: 0.16em;
+  padding-right: calc(var(--apex-cut) + 14px);
+}
+.enter span {
+  font-style: normal;
+  font-size: 22px;
+}
+.enter:not(.primary) span {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: rgba(255, 255, 255, 0.6);
+}
+.enter.primary {
+  min-height: 58px;
+}
+.menu-actions button {
+  background: rgba(255, 255, 255, 0.035);
+  border: 0;
+  border-left: 2px solid rgba(255, 255, 255, 0.22);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: rgba(255, 255, 255, 0.82);
+  text-align: left;
+  padding: 10px 12px;
+}
+.menu-actions button {
+  flex: 1 1 auto;
+  min-height: 36px;
+  white-space: nowrap;
+  font-size: 10px;
+}
+.menu-actions button:hover {
+  background: rgba(255, 90, 42, 0.16);
+  border-left-color: var(--apex-flame);
+  color: #fff;
+}
+.menu-note {
+  color: rgba(255, 255, 255, 0.45);
+  letter-spacing: 0.18em;
+}
+.car-label {
+  border-left: 0;
+  padding-left: 0;
+  text-align: right;
+  text-shadow: 0 2px 22px rgba(0, 0, 0, 0.7);
+}
+.car-label > span {
+  font-style: italic;
+  font-weight: 900;
+  font-stretch: 125%;
+  font-size: clamp(44px, 5vw, 76px);
+  letter-spacing: -0.02em;
+  line-height: 0.95;
+}
+.car-label > b {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 5px 12px 5px 14px;
+  background: var(--apex-flame);
+  color: #fff;
+  font-stretch: 110%;
+  letter-spacing: 0.24em;
+  clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
+}
+.car-label > div {
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  color: rgba(255, 255, 255, 0.7);
+}
+.menu-footer {
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 600;
+  letter-spacing: 0.2em;
+}
+.menu-footer b {
+  font-style: italic;
+  font-weight: 800;
+  font-stretch: 118%;
+  font-size: 18px;
+  color: #fff;
+  letter-spacing: 0;
+}
+
+/* ---------- Race HUD: shared surfaces ---------- */
+.hud {
+  font-family: var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+.hud-top:before {
+  background: linear-gradient(rgba(4, 6, 9, 0.72), transparent);
+}
+.hud .timing,
+.hud .lap-panel,
+.hud .car-status,
+.hud .instruments,
+.replay-bar {
+  background: linear-gradient(160deg, rgba(20, 25, 32, 0.8), var(--apex-glass) 40%);
+  -webkit-backdrop-filter: blur(10px) saturate(1.3);
+  backdrop-filter: blur(10px) saturate(1.3);
+  box-shadow:
+    inset 0 1px 0 var(--apex-edge),
+    0 18px 40px -18px rgba(0, 0, 0, 0.65);
+}
+.panel-heading {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 800;
+  font-stretch: 112%;
+  letter-spacing: 0.18em;
+  color: #fff;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.panel-heading > span {
+  font-style: normal;
+  letter-spacing: 0.18em;
+  color: var(--apex-flame-hot);
+}
+.hud .timing .panel-heading {
+  /* Opaque: a translucent sticky header over a filtered scroller stops Chromium
+     routing keyboard scrolling to the classification list. */
+  background: linear-gradient(100deg, #5b2618, #0c0f14 60%);
+}
+
+/* Session strip */
+.session-status {
+  gap: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-stretch: 108%;
+  letter-spacing: 0.16em;
+}
+.session-status > span {
+  padding: 8px 16px;
+  background: var(--apex-glass);
+  color: rgba(255, 255, 255, 0.86);
+}
+.session-status > #lapLabel {
+  font-style: italic;
+  font-weight: 800;
+  color: #fff;
+  clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%);
+  padding-left: 22px;
+}
+.session-status > #weatherLabel {
+  clip-path: polygon(0 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+  padding-right: 24px;
+  font-weight: 600;
+}
+.session-status > b {
+  padding: 8px 18px;
+  font-style: italic;
+  font-weight: 900;
+  font-stretch: 112%;
+  letter-spacing: 0.18em;
+  background: var(--apex-green);
+  color: #03170b;
+  box-shadow: 0 0 22px -4px rgba(43, 234, 127, 0.6);
+}
+.session-status > b[data-flag='1'] {
+  background: var(--apex-yellow);
+  color: #1d1600;
+  box-shadow: 0 0 22px -4px rgba(255, 210, 31, 0.65);
+}
+.session-status > b[data-flag='2'] {
+  background: #fff;
+  color: #0a0c10;
+}
+.session-status > b[data-flag='3'] {
+  background: var(--apex-yellow);
+  color: #1d1600;
+}
+.session-status > b[data-flag='4'] {
+  background: var(--apex-blue);
+  color: #fff;
+}
+.icon-button {
+  background: var(--apex-glass);
+  border-color: rgba(255, 255, 255, 0.16);
+  clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%);
+}
+.race-message {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 800;
+  font-stretch: 110%;
+  letter-spacing: 0.16em;
+  padding: 5px 18px;
+  background: linear-gradient(90deg, transparent, rgba(6, 8, 11, 0.8) 18%, rgba(6, 8, 11, 0.8) 82%, transparent);
+  text-shadow: none;
+}
+
+/* Position badge */
+.position-badge {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  padding: 2px 16px 2px 12px;
+  background: #fff;
+  color: #07090c;
+  clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
+  font-style: italic;
+  line-height: 1;
+}
+.position-badge b {
+  font-size: 30px;
+  font-weight: 900;
+  font-stretch: 118%;
+  letter-spacing: -0.02em;
+}
+.position-badge span {
+  font-size: 12px;
+  font-weight: 800;
+  color: #59616b;
+  letter-spacing: 0.04em;
+}
+
+/* Classification tower */
+.hud .timing {
+  /* The keyboard-scrollable list keeps a plain translucent surface. */
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  background: rgba(8, 11, 15, 0.84);
+  border-top: 0;
+  box-shadow:
+    inset 3px 0 0 var(--apex-flame),
+    inset 0 1px 0 var(--apex-edge),
+    0 18px 40px -18px rgba(0, 0, 0, 0.65);
+}
+.tower-row {
+  gap: 9px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.045);
+  font-family: var(--font-display);
+}
+.tower-row:nth-child(even) {
+  background: rgba(255, 255, 255, 0.022);
+}
+.tower-row > b {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 800;
+  font-stretch: 112%;
+  font-size: 13px;
+  color: #fff;
+  min-width: 22px;
+  text-align: center;
+}
+.tower-row > i {
+  width: 4px;
+  height: 16px;
+  transform: skewX(-18deg);
+}
+.tower-row > span {
+  font-weight: 700;
+  font-stretch: 106%;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.9);
+}
+.tower-row > small {
+  font-weight: 600;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: var(--apex-dim);
+}
+.tower-row.player {
+  background: linear-gradient(90deg, var(--apex-flame), #d9361f);
+  color: #fff;
+}
+.tower-row.player > b,
+.tower-row.player > span,
+.tower-row.player > small {
+  color: #fff;
+}
+.tower-row.player > i {
+  background: #fff !important;
+}
+
+/* Lap timing panel */
+.hud .lap-panel {
+  border-top: 0;
+  box-shadow:
+    inset 0 3px 0 rgba(255, 255, 255, 0.85),
+    inset 0 1px 0 var(--apex-edge),
+    0 18px 40px -18px rgba(0, 0, 0, 0.65);
+}
+.lap-panel label {
+  font-weight: 700;
+  font-stretch: 100%;
+  letter-spacing: 0.18em;
+  color: var(--apex-dim);
+}
+.lap-panel b {
+  font-family: var(--font-data);
+  font-style: italic;
+  font-weight: 800;
+  font-stretch: 112%;
+  letter-spacing: 0;
+  color: #fff;
+}
+.lap-panel span {
+  font-family: var(--font-data);
+  font-weight: 700;
+  font-stretch: 108%;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.92);
+}
+#lapDelta {
+  font-style: italic;
+  font-weight: 800;
+  padding: 1px 8px;
+}
+#lapDelta[data-ahead='true'] {
+  color: #03170b;
+  background: var(--apex-green);
+}
+#lapDelta[data-ahead='false'] {
+  color: #fff;
+  background: rgba(255, 45, 58, 0.85);
+}
+#lapDelta[data-ahead='none'] {
+  color: var(--apex-dim);
+  background: transparent;
+}
+
+/* Telemetry blade */
+.hud .instruments {
+  border-bottom: 0;
+  box-shadow:
+    inset 0 -3px 0 var(--apex-flame),
+    inset 0 1px 0 var(--apex-edge),
+    0 22px 48px -20px rgba(0, 0, 0, 0.75);
+}
+.rev-lights {
+  gap: 5px;
+}
+.rev-lights i {
+  height: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  transform: skewX(-28deg);
+}
+.rev-lights .lit {
+  background: var(--apex-green);
+  box-shadow: 0 0 10px rgba(43, 234, 127, 0.75);
+}
+.rev-lights .lit:nth-child(n + 9) {
+  background: var(--apex-red);
+  box-shadow: 0 0 10px rgba(255, 45, 58, 0.8);
+}
+.rev-lights .lit:nth-child(n + 13) {
+  background: var(--apex-blue);
+  box-shadow: 0 0 12px rgba(77, 125, 255, 0.9);
+}
+.rev-lights .lit:nth-child(n + 15) {
+  background: #d7c2ff;
+  box-shadow: 0 0 14px rgba(180, 92, 255, 0.95);
+}
+.dash-main b {
+  font-family: var(--font-data);
+  font-style: italic;
+  font-weight: 800;
+  font-stretch: 115%;
+}
+.dash-main span {
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  color: var(--apex-dim);
+}
+.gear {
+  border-right: 0;
+  background: #fff;
+  color: #07090c;
+  padding: 0 14px 0 12px;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  clip-path: polygon(7px 0, 100% 0, calc(100% - 7px) 100%, 0 100%);
+}
+.gear > b {
+  color: #07090c;
+  font-weight: 900;
+}
+.gear > span {
+  color: #59616b !important;
+}
+.speed > b {
+  color: #fff;
+  letter-spacing: -0.02em;
+  text-shadow: 0 0 24px rgba(255, 255, 255, 0.12);
+}
+.engine b {
+  font-weight: 700;
+  font-stretch: 108%;
+  color: rgba(255, 255, 255, 0.92);
+}
+.engine strong {
+  display: inline-block;
+  padding: 2px 8px;
+  font-weight: 800;
+  font-style: italic;
+  letter-spacing: 0.16em;
+  color: #1d1600;
+  background: var(--apex-yellow);
+  clip-path: polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%);
+}
+.engine strong[data-mode='HARVEST'] {
+  background: var(--apex-blue);
+  color: #fff;
+}
+.engine strong[data-mode='ATTACK'] {
+  background: var(--apex-purple);
+  color: #fff;
+}
+.pedals label,
+.resources label {
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: var(--apex-dim);
+}
+.meter {
+  height: 4px;
+  background: rgba(255, 255, 255, 0.09);
+  transform: skewX(-24deg);
+}
+.meter i {
+  background: var(--apex-green);
+  box-shadow: 0 0 8px rgba(43, 234, 127, 0.55);
+}
+#brakeBar {
+  background: var(--apex-red);
+  box-shadow: 0 0 8px rgba(255, 45, 58, 0.6);
+}
+#batteryBar {
+  background: linear-gradient(90deg, #ffb01f, var(--apex-yellow));
+  box-shadow: 0 0 8px rgba(255, 210, 31, 0.55);
+}
+.resources {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+.resources b {
+  font-family: var(--font-data);
+  font-style: italic;
+  font-weight: 800;
+  font-stretch: 110%;
+  color: #fff;
+}
+
+/* Vehicle state */
+.hud .car-status {
+  box-shadow:
+    inset 0 3px 0 rgba(255, 255, 255, 0.18),
+    inset 0 1px 0 var(--apex-edge),
+    0 18px 40px -18px rgba(0, 0, 0, 0.65);
+}
+.tires > div {
+  border-left: 0;
+  padding: 6px 8px 6px 10px;
+  background: rgba(255, 255, 255, 0.035);
+  box-shadow: inset 3px 0 0 var(--tire, var(--apex-green));
+  position: relative;
+}
+.tires > div::after {
+  content: '';
+  position: absolute;
+  right: 6px;
+  top: 7px;
+  width: 7px;
+  height: 16px;
+  border-radius: 3px;
+  border: 2px solid var(--tire, var(--apex-green));
+  box-shadow: 0 0 10px -2px var(--tire, var(--apex-green));
+}
+.tires label {
+  letter-spacing: 0.2em;
+  color: var(--apex-dim);
+}
+.tires b {
+  font-family: var(--font-data);
+  font-style: italic;
+  font-weight: 800;
+  font-stretch: 110%;
+  color: #fff;
+}
+.tires span {
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.85);
+}
+.tires small {
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--apex-dim);
+}
+.health {
+  border-top-color: rgba(255, 255, 255, 0.08);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--apex-dim);
+}
+.health b {
+  font-family: var(--font-data);
+  font-style: italic;
+  font-weight: 800;
+  color: #fff;
+}
+
+/* Track map */
+.minimap > span {
+  font-weight: 700;
+  font-style: italic;
+  letter-spacing: 0.26em;
+  color: rgba(255, 255, 255, 0.75);
+}
+.minimap canvas {
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.55));
+}
+
+/* Start lights */
+.start-sequence > div {
+  background: linear-gradient(180deg, #14181e, #07090c);
+  border: 0;
+  box-shadow:
+    inset 0 1px 0 var(--apex-edge),
+    0 24px 60px -20px rgba(0, 0, 0, 0.9);
+  clip-path: polygon(14px 0, 100% 0, calc(100% - 14px) 100%, 0 100%);
+  padding-inline: 38px;
+}
+.start-sequence i {
+  background: radial-gradient(circle at 40% 35%, #3a1c1c, #150a0a 70%);
+  border: 2px solid #26181a;
+}
+.start-sequence i.lit {
+  background: radial-gradient(circle at 40% 35%, #ffd0c8, #ff2d3a 45%, #a30f18);
+  border-color: #ff5a60;
+  box-shadow:
+    0 0 26px rgba(255, 45, 58, 0.9),
+    0 0 60px rgba(255, 45, 58, 0.45);
+}
+.start-sequence > span {
+  font-style: italic;
+  font-weight: 800;
+  font-stretch: 112%;
+  letter-spacing: 0.24em;
+}
+
+/* Proximity */
+.proximity {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+}
+
+/* Action keys */
+.hud-actions button {
+  background: var(--apex-glass);
+  border: 0;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.16);
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: rgba(255, 255, 255, 0.85);
+  clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%);
+  padding-inline: 14px;
+}
+.hud-actions button:hover {
+  border-bottom-color: var(--apex-flame);
+  color: #fff;
+}
+.hud-actions kbd {
+  display: inline-block;
+  min-width: 17px;
+  padding: 1px 4px;
+  margin-right: 6px;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-style: normal;
+  color: #07090c;
+  background: #fff;
+  text-align: center;
+}
+
+/* Replay */
+.replay-bar {
+  border: 0;
+  box-shadow:
+    inset 0 2px 0 var(--apex-flame),
+    0 18px 40px -18px rgba(0, 0, 0, 0.7);
+}
+.replay-tag {
+  padding: 5px 12px;
+  background: var(--apex-flame);
+  color: #fff;
+  font-style: italic;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%);
+}
+.replay-bar span {
+  font-family: var(--font-data);
+  font-weight: 700;
+}
+
+/* Toast */
+.toast {
+  font-family: var(--font-display);
+  font-weight: 600;
+  background: rgba(8, 11, 15, 0.94);
+  color: #fff;
+  border-left: 4px solid var(--apex-flame);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+/* ---------- Dialogs ---------- */
+dialog {
+  background:
+    linear-gradient(160deg, rgba(26, 31, 39, 0.97), rgba(9, 12, 16, 0.98) 55%);
+  color: var(--apex-text);
+  border: 0;
+  box-shadow:
+    inset 0 3px 0 var(--apex-flame),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.07),
+    0 40px 120px rgba(0, 0, 0, 0.7);
+}
+dialog::backdrop {
+  background: rgba(3, 5, 8, 0.68);
+  backdrop-filter: blur(8px) saturate(0.8);
+}
+dialog h2 {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 900;
+  font-stretch: 115%;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+}
+dialog p {
+  color: rgba(255, 255, 255, 0.64);
+}
+dialog footer {
+  border-top-color: rgba(255, 255, 255, 0.1);
+}
+.dialog-buttons button {
+  border: 0;
+  border-left: 3px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.04);
+  letter-spacing: 0.16em;
+}
+.dialog-buttons button:hover {
+  border-left-color: var(--apex-flame);
+  background: rgba(255, 90, 42, 0.14);
+}
+.dialog-buttons button.primary {
+  border-left-color: #fff;
+  background: linear-gradient(100deg, var(--apex-flame), #ff3d2e);
+}
+.settings-columns h3 {
+  font-style: italic;
+  font-weight: 800;
+  font-stretch: 112%;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+.range-row output,
+.control-grid b {
+  font-family: var(--font-data);
+  font-weight: 700;
+  color: var(--apex-flame-hot);
+}
+.results th {
+  color: var(--apex-dim);
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  border-bottom-color: rgba(255, 255, 255, 0.18);
+}
+.results td {
+  font-weight: 600;
+  border-bottom-color: rgba(255, 255, 255, 0.06);
+}
+.results td:first-child {
+  font-style: italic;
+  font-weight: 900;
+  font-stretch: 115%;
+}
+.results .you {
+  background: linear-gradient(90deg, var(--apex-flame), #d9361f);
+  color: #fff;
+}
+
+/* ---------- Accessibility layers keep precedence ---------- */
+html[data-high-contrast='true'] .hud .timing,
+html[data-high-contrast='true'] .hud .car-status,
+html[data-high-contrast='true'] .hud .instruments,
+html[data-high-contrast='true'] .hud .lap-panel {
+  background: #05070a;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  color: #fff;
+  box-shadow: inset 0 0 0 1px #fff;
+}
+html[data-high-contrast='true'] .tower-row > small,
+html[data-high-contrast='true'] .lap-panel label,
+html[data-high-contrast='true'] .dash-main span {
+  color: #fff;
+}
+@media (prefers-reduced-transparency: reduce) {
+  .hud .timing,
+  .hud .lap-panel,
+  .hud .car-status,
+  .hud .instruments {
+    background: #07090c;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+@media (max-width: 1279px), (max-height: 679px) {
+  .position-badge {
+    padding: 1px 12px 1px 9px;
+  }
+  .position-badge b {
+    font-size: 20px;
+  }
+  .position-badge span {
+    font-size: 9px;
+  }
+}
+@media (max-width: 680px) {
+  .position-badge span {
+    display: none;
+  }
+}

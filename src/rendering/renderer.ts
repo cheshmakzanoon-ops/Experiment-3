@@ -80,7 +80,8 @@ import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { FXAAShader } from 'three/addons/shaders/FXAAShader.js';
 import { Sky } from 'three/addons/objects/Sky.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
-import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { SceneAmbientPass } from './scene-ambient-pass.ts';
+import { BroadcastGradePass } from './broadcast-grade.ts';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { FormulaCar } from './car.ts';
@@ -137,6 +138,8 @@ export class RacingRenderer {
   private weatherPresentation = new WeatherPresentation();
   private composition = new RaceComposition();
   private bloom: UnrealBloomPass;
+  private scenePass: SceneAmbientPass;
+  private grade = new BroadcastGradePass();
   private photoFocus: BokehPass | null = null;
   private geometrySurvey: GeometrySurvey | null = null;
   private motionBlur: MotionBlurPass;
@@ -272,7 +275,10 @@ export class RacingRenderer {
     this.scene.add(this.circuit.group, this.effects.group, this.engineeringView.group);
 
     this.composer = new EffectComposer(this.renderer);
-    this.composer.addPass(new RenderPass(this.scene, this.camera));
+    // One multisampled scene draw with a float depth attachment feeds contact
+    // obscurance; it replaces RenderPass without a second geometry pass.
+    this.scenePass = new SceneAmbientPass(this.scene, this.camera, this.graphics.msaa);
+    this.composer.addPass(this.scenePass);
     this.composer.addPass(this.exposure);
     this.motionBlur = new MotionBlurPass(
       this.scene,
@@ -280,10 +286,13 @@ export class RacingRenderer {
       this.renderer.extensions.has('EXT_color_buffer_float'),
     );
     this.composer.addPass(this.motionBlur);
-    this.bloom = new UnrealBloomPass(new T.Vector2(1, 1), 0.1, 0.3, 1.3);
+    // Linear-HDR threshold above sunlit white paint and smoke: only speculars,
+    // lamps and the sun disc bloom, never road markings or diffuse volumes.
+    this.bloom = new UnrealBloomPass(new T.Vector2(1, 1), 0.3, 0.55, 3.6);
     this.composer.addPass(this.bloom);
     this.composer.addPass(new OutputPass());
     this.composer.addPass(this.fxaa);
+    this.composer.addPass(this.grade);
     if (!deferred) {
       this.circuit.construction.runSynchronously();
       this.textures.register(this.circuit.group);
@@ -508,6 +517,9 @@ export class RacingRenderer {
     this.bloom.enabled = g.bloom;
     this.motionBlur.setStrength(g.motionBlur);
     this.fxaa.enabled = g.antialias;
+    this.scenePass.setSamples(Math.min(g.msaa, this.renderer.capabilities.maxSamples));
+    this.scenePass.ambientOcclusion = g.ambientOcclusion;
+    this.grade.enabled = g.filmGrade;
     this.circuit.crowd.visible = g.crowd;
     this.circuit.vegetationGroup.traverse((object) => {
       if (object instanceof T.InstancedMesh)
@@ -990,6 +1002,7 @@ export class RacingRenderer {
         daylight.exposure * 2 ** (this.photo?.exposure ?? 0),
         this.graphics.autoExposure && !this.photo && !menu,
       );
+      this.grade.apply(studio ? 'studio' : illumination, presented[H.TIME]);
       this.composer.render();
       if (this.photo && this.photo.survey !== 'off' && this.geometrySurvey) {
         if (this.geometrySurvey.dirty)
@@ -1249,6 +1262,8 @@ export class RacingRenderer {
       reflectionIntensity: this.reflectionMaterials[this.follow]?.[0]?.envMapIntensity ?? null,
       visibleSkyIntensity: this.sky.material.uniforms.probeSkyIntensity.value,
       motionBlur: this.motionBlur.diagnostics(),
+      scenePass: this.scenePass.diagnostics(),
+      grade: this.grade.enabled ? this.grade.profile : 'off',
       automaticExposure: this.exposure.diagnostics(),
       localAtmosphere: this.atmosphere.diagnostics(),
       weatherPresentation: this.weatherPresentation.diagnostics(),
@@ -1293,6 +1308,8 @@ export class RacingRenderer {
     this.geometrySurvey?.dispose();
     this.bloom.dispose();
     this.fxaa.dispose();
+    this.scenePass.dispose();
+    this.grade.dispose();
     this.textures.dispose();
     const geometries = new Set<T.BufferGeometry>(),
       materials = new Set<T.Material>(),

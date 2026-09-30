@@ -75,9 +75,9 @@ export class Interface {
     private callbacks: Callbacks,
   ) {
     element.innerHTML = `
-  <div id="loading" class="loading"><div class="brand">APEX<span>/ FORMULA</span></div><p id="loadingText">Preparing circuit and car systems…</p><div class="loader"><i></i></div></div>
+  <div id="loading" class="loading"><div class="brand">APEX<span>FORMULA</span></div><p id="loadingText">Preparing circuit and car systems…</p><div class="loader"><i></i></div></div>
   <section id="menu" class="menu" hidden>
-   <header class="masthead"><div class="brand">APEX<span>/ FORMULA</span></div><span class="edition">ORIGINAL MOTORSPORT SIMULATION <b>01 / AUREL</b></span></header>
+   <header class="masthead"><div class="brand">APEX<span>FORMULA</span></div><span class="edition">ORIGINAL MOTORSPORT SIMULATION <b>01 / AUREL</b></span></header>
    <div class="menu-body" tabindex="0" role="region" aria-label="Race setup and tools"><div class="eyebrow"><i></i> AUREL · GRAND CIRCUIT</div><h1>EVERY INPUT.<br>EVERY FORCE.</h1><p class="intro">Four contact patches. One racing line.<br>Find the limit between them.</p>
    <form id="sessionForm" class="session-form">
     <div class="form-row"><label>SESSION<select id="mode"><option value="race">Grand Prix</option><option value="practice">Free practice</option></select></label><label>DISTANCE<select id="laps"><option value="1">1 lap · Sprint</option><option value="3" selected>3 laps · Standard</option><option value="5">5 laps</option><option value="10">10 laps</option></select></label></div>
@@ -91,7 +91,7 @@ export class Interface {
    <footer class="menu-footer"><span><b>${(track.length / 1000).toFixed(3)}</b> KM CIRCUIT</span><span><b>120</b> HZ SIMULATION</span><span><b>240</b> HZ TIRE SOLVE</span><span>ENGINEERING BUILD / 0.1</span></footer>
   </section>
   <section id="hud" class="hud" hidden>
-   <div class="hud-top"><div class="brand small">APEX<span>/ LIVE</span></div><div class="session-status"><span id="lapLabel">LAP 1 / 3</span><b id="flag">GRID</b><span id="weatherLabel">24°C / DRY</span></div><button class="icon-button" data-action="pause" aria-label="Pause session">Ⅱ</button></div>
+   <div class="hud-top"><div class="brand small">APEX<span>LIVE</span></div><div class="position-badge" role="status" aria-label="Race position"><b id="positionBadge">P1</b><span id="positionField">/ 1</span></div><div class="session-status"><span id="lapLabel">LAP 1 / 3</span><b id="flag">GRID</b><span id="weatherLabel">24°C / DRY</span></div><button class="icon-button" data-action="pause" aria-label="Pause session">Ⅱ</button></div>
    <aside class="timing" tabindex="0" aria-label="Live race classification"><div class="panel-heading">CLASSIFICATION <span>LIVE</span></div><div id="tower"></div></aside>
    <div class="lap-panel"><label class="lap-delta">DELTA TO BEST<span id="lapDelta">—</span></label><label class="lap-current">CURRENT LAP<b id="lapTime">—:——.———</b></label><label>PERSONAL BEST<span id="bestLap">—:——.———</span></label><label>LAST LAP<span id="lastLap">—:——.———</span></label></div>
    <div id="startSequence" class="start-sequence" hidden><div id="lights">${'<i></i>'.repeat(5)}</div><span id="startText">BUILD REVS. HOLD THE BRAKE.</span></div>
@@ -249,7 +249,7 @@ export class Interface {
       'lapDelta',
       frame[o + F.DELTA_VALID] ? `${delta >= 0 ? '+' : ''}${delta.toFixed(3)} S` : '—',
     );
-    this.get('lapDelta').dataset.ahead = String(frame[o + F.DELTA_VALID] > 0 && delta < 0);
+    this.get('lapDelta').dataset.ahead = frame[o + F.DELTA_VALID] > 0 ? String(delta < 0) : 'none';
     this.setText('flag', flag);
     this.get('flag').dataset.flag = String(frame[H.FLAG]);
     this.setText('weatherLabel', weatherReadout(frame[H.AMBIENT], frame[H.RAIN], frame[H.WATER]));
@@ -264,7 +264,9 @@ export class Interface {
     this.get('brakeBar').style.width = `${frame[o + F.BRAKE] * 100}%`;
     this.get('throttleBar').style.width = `${frame[o + F.THROTTLE] * 100}%`;
     this.get('batteryBar').style.width = `${frame[o + F.BATTERY] / 4e4}%`;
-    this.setText('ersMode', ['HARVEST', 'BALANCED', 'ATTACK'][ers]);
+    const ersMode = ['HARVEST', 'BALANCED', 'ATTACK'][ers] ?? 'BALANCED';
+    this.setText('ersMode', ersMode);
+    this.get('ersMode').dataset.mode = ersMode;
     this.setText('tireCompound', compound.toUpperCase());
     this.setText('autoLabel', auto ? 'AI ON' : 'AI OFF');
     this.setText('cameraLabel', renderer.mode.toUpperCase());
@@ -329,6 +331,8 @@ export class Interface {
     const order = Array.from({ length: frame[H.CARS] }, (_, id) => id).sort(
       (a, b) => frame[carBase(a) + F.RANK] - frame[carBase(b) + F.RANK],
     );
+    this.setText('positionBadge', `P${order.indexOf(0) + 1}`);
+    this.setText('positionField', `/ ${frame[H.CARS]}`);
     order.forEach((id, rank) => {
       const e = tower.children[rank] as HTMLElement,
         p = carBase(id);
@@ -362,26 +366,45 @@ export class Interface {
     c.clearRect(0, 0, 250, 240);
     const x = (v: number) => 125 + v * 0.24,
       z = (v: number) => 125 - v * 0.23;
+    const trace = () => {
+      c.beginPath();
+      this.track.points.forEach((p, i) => {
+        if (i === 0) c.moveTo(x(p.x), z(p.z));
+        else c.lineTo(x(p.x), z(p.z));
+      });
+      c.closePath();
+    };
     c.lineJoin = 'round';
-    c.lineWidth = 4;
-    c.strokeStyle = '#9ca9a0';
-    c.beginPath();
-    this.track.points.forEach((p, i) => {
-      if (i === 0) c.moveTo(x(p.x), z(p.z));
-      else c.lineTo(x(p.x), z(p.z));
-    });
+    c.lineCap = 'round';
+    // Broadcast map: dark casing, bright ribbon, then the start/finish mark.
+    trace();
+    c.lineWidth = 9;
+    c.strokeStyle = 'rgba(4, 6, 9, 0.78)';
     c.stroke();
+    c.lineWidth = 3.4;
+    c.strokeStyle = 'rgba(255, 255, 255, 0.92)';
+    c.stroke();
+    const [a, b] = this.track.points;
+    if (a && b) {
+      const angle = Math.atan2(z(b.z) - z(a.z), x(b.x) - x(a.x)) + Math.PI / 2;
+      c.save();
+      c.translate(x(a.x), z(a.z));
+      c.rotate(angle);
+      c.fillStyle = '#ff5a2a';
+      c.fillRect(-7, -1.6, 14, 3.2);
+      c.restore();
+    }
     for (let i = frame[H.CARS] - 1; i >= 0; i--) {
       const p = carBase(i);
+      const px = x(frame[p]),
+        pz = z(frame[p + 2]);
       c.beginPath();
-      c.fillStyle = i === 0 ? '#fff1cf' : `#${LIVERIES[i].toString(16).padStart(6, '0')}`;
-      c.arc(x(frame[p]), z(frame[p + 2]), i === 0 ? 5 : 3.2, 0, Math.PI * 2);
+      c.arc(px, pz, i === 0 ? 6.2 : 4, 0, Math.PI * 2);
+      c.fillStyle = i === 0 ? '#ff5a2a' : `#${LIVERIES[i].toString(16).padStart(6, '0')}`;
       c.fill();
-      if (i === 0) {
-        c.strokeStyle = '#ee6947';
-        c.lineWidth = 2;
-        c.stroke();
-      }
+      c.lineWidth = i === 0 ? 2.2 : 1.4;
+      c.strokeStyle = i === 0 ? '#ffffff' : 'rgba(4, 6, 9, 0.9)';
+      c.stroke();
     }
   }
   pause() {
@@ -493,7 +516,7 @@ export class Interface {
       })
       .join('');
     this.modalContent(
-      `<header><div><span class="eyebrow">GARAGE / PREFERENCES</span><h2>Make it yours.</h2></div><button data-action="modalClose" aria-label="Close settings">✕</button></header><form id="settingsForm"><div class="settings-columns"><section><h3>Presentation</h3><label>RENDER QUALITY<select name="quality"><option value="low">Low · No shadows / crowd / particles</option><option value="medium">Medium · Balanced</option><option value="high">High · Bloom / higher resolution</option></select></label>${presentationControls(settings)}${[
+      `<header><div><span class="eyebrow">GARAGE / PREFERENCES</span><h2>Make it yours.</h2></div><button data-action="modalClose" aria-label="Close settings">✕</button></header><form id="settingsForm"><div class="settings-columns"><section><h3>Presentation</h3><label>RENDER QUALITY<select name="quality"><option value="low">Low · No shadows / crowd / particles</option><option value="medium">Medium · 2× MSAA / AO / bloom</option><option value="high">High · 4× MSAA / local reflections / higher resolution</option></select></label>${presentationControls(settings)}${[
         ['volume', 'Volume', 0, 1, 0.01],
         ['shake', 'Camera vibration', 0, 1, 0.01],
         ['uiScale', 'Interface scale', 0.8, 1.35, 0.05],

@@ -38,7 +38,9 @@ const finishes: Record<CircuitFinish, string> = {
   asphalt: `
     float broad=finishFilteredNoise(vFinishWorld.xz*.11);
     float medium=finishFilteredNoise(vFinishWorld.xz*1.7);
-    diffuseColor.rgb *= .9 + broad*.16 + medium*.05;
+    float repair=finishFilteredNoise(vFinishWorld.xz*.035+vec2(3.1,7.9));
+    // Darker, richer binder with sealed repair patches and fine tonal break-up.
+    diffuseColor.rgb *= (.8 + broad*.2 + medium*.07) * mix(1.0,.86,smoothstep(.62,.78,repair));
     // A restrained longitudinal paving join, not a painted racing line.
     float joinPhase=(vFinishMetres.x-.1)/3.6;
     float join=apexStripeCoverage(joinPhase,fwidth(joinPhase),.014/3.6);

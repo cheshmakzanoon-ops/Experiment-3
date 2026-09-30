@@ -38,14 +38,16 @@ export function daylightState(cloud: number, rain: number) {
     fill: 0.26 + cover * 0.34,
     environment: 0.28 - cover * 0.07,
     exposure: 0.9 + cover * 0.1,
-    turbidity: 2.8 + cover * 5,
+    turbidity: 2.3 + cover * 5.5,
     // Normalize the analytic skydome before the shared scene tone map; keeping
     // its native radiance washed the entire clear sky and reflected paint white.
     skyRadiance: 0.32 + cover * 0.2,
-    fogDensity: 0.00025 + cover * 0.00012 + precipitation * 0.000026,
-    fogRed: 0.55 - cover * 0.12 - storm * 0.06,
-    fogGreen: 0.65 - cover * 0.12 - storm * 0.055,
-    fogBlue: 0.76 - cover * 0.12 - storm * 0.045,
+    // Clear-air aerial perspective stays blue rather than milky white; cloud
+    // and rain still thicken and grey it.
+    fogDensity: 0.000205 + cover * 0.00016 + precipitation * 0.000026,
+    fogRed: 0.5 - cover * 0.07 - storm * 0.06,
+    fogGreen: 0.61 - cover * 0.08 - storm * 0.055,
+    fogBlue: 0.77 - cover * 0.1 - storm * 0.045,
   };
 }
 
@@ -151,14 +153,19 @@ export function configureSky(sky: Sky) {
   // authored IBL gain here, without attenuating captured lamps a second time.
   material.uniforms.probeSkyIntensity = { value: 1 };
   material.uniforms.sunPosition.value.copy(SUN_OFFSET);
-  material.uniforms.rayleigh.value = 2.2;
-  material.uniforms.mieCoefficient.value = 0.004;
+  material.uniforms.rayleigh.value = 2.9;
+  material.uniforms.mieCoefficient.value = 0.0032;
   material.uniforms.mieDirectionalG.value = 0.82;
   material.fragmentShader = material.fragmentShader
     .replace('void main() {', cloudFunctions + '\nvoid main() {')
     .replace(
       'gl_FragColor = vec4( retColor, 1.0 );',
       `
+      // Deepen the clear zenith: the analytic dome alone reads as a pale haze
+      // once normalized for the shared tone map. The horizon keeps its glow.
+      float zenith=smoothstep(.04,.62,direction.y)*(1.-cloudCover);
+      float skyLuma=dot(retColor,vec3(.2126,.7152,.0722));
+      retColor=mix(retColor,mix(vec3(skyLuma),retColor,1.45)*vec3(.86,.93,1.08),zenith*(1.-sunsetAmount)*.8);
       vec2 cloudUV=direction.xz/(max(direction.y,0.0)+0.24)*2.1+vec2(4.7,1.3);
       float field=skyCloud(cloudUV);
       float cover=smoothstep(.76-.64*cloudCover,.92-.57*cloudCover,field);

@@ -16,6 +16,12 @@ export interface GraphicsOptions {
   motionBlur: number;
   antialias: boolean;
   anisotropy: 1 | 2 | 4 | 8 | 16;
+  /** Hardware multisampling of the linear scene target (0 disables). */
+  msaa: 0 | 2 | 4;
+  /** Depth-only screen-space ambient obscurance, composited with the scene pass. */
+  ambientOcclusion: boolean;
+  /** Display-referred broadcast grade: contrast, vignette, lens fringe and grain. */
+  filmGrade: boolean;
 }
 export function graphicsPreset(quality: Quality): GraphicsOptions {
   return {
@@ -27,12 +33,15 @@ export function graphicsPreset(quality: Quality): GraphicsOptions {
     particleDensity: quality === 'low' ? 0 : quality === 'high' ? 1 : 0.65,
     vegetationDensity: quality === 'low' ? 0.5 : 1,
     crowd: quality !== 'low',
-    bloom: quality === 'high',
+    bloom: quality !== 'low',
     autoExposure: quality !== 'low',
     localFog: quality !== 'low',
     motionBlur: 0,
     antialias: true,
     anisotropy: quality === 'low' ? 2 : quality === 'high' ? 16 : 8,
+    msaa: quality === 'low' ? 0 : quality === 'high' ? 4 : 2,
+    ambientOcclusion: quality !== 'low',
+    filmGrade: true,
   };
 }
 export function validateGraphics(value: unknown, quality: Quality): GraphicsOptions {
@@ -58,6 +67,10 @@ export function validateGraphics(value: unknown, quality: Quality): GraphicsOpti
     motionBlur: number(p.motionBlur, fallback.motionBlur, 0, 0.6),
     antialias: typeof p.antialias === 'boolean' ? p.antialias : fallback.antialias,
     anisotropy: choice(p.anisotropy, [1, 2, 4, 8, 16], fallback.anisotropy),
+    msaa: choice(p.msaa, [0, 2, 4], fallback.msaa),
+    ambientOcclusion:
+      typeof p.ambientOcclusion === 'boolean' ? p.ambientOcclusion : fallback.ambientOcclusion,
+    filmGrade: typeof p.filmGrade === 'boolean' ? p.filmGrade : fallback.filmGrade,
   };
 }
 /** Render and post-processing use the same physical-pixel budget. */

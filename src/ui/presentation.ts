@@ -32,6 +32,7 @@ const choices: [keyof GraphicsOptions, string, (string | number)[], string[]][] 
     ['128 px / 10 Hz', '256 px / 15 Hz', '512 px / 30 Hz'],
   ],
   ['anisotropy', 'Anisotropic filtering', [1, 2, 4, 8, 16], ['1×', '2×', '4×', '8×', '16×']],
+  ['msaa', 'Multisample anti-aliasing', [0, 2, 4], ['Off', '2× MSAA', '4× MSAA']],
 ];
 const ranges: [keyof GraphicsOptions, string, number, number, number][] = [
   ['resolutionScale', 'Render resolution scale', 0.5, 1.5, 0.05],
@@ -45,6 +46,8 @@ const checks: [keyof GraphicsOptions, string][] = [
   ['autoExposure', 'Adaptive exposure (measured scene luminance)'],
   ['localFog', 'Weather-driven low-lying haze'],
   ['antialias', 'FXAA anti-aliasing'],
+  ['ambientOcclusion', 'Ambient occlusion (contact shading)'],
+  ['filmGrade', 'Broadcast colour grade, vignette and film grain'],
 ];
 export function presentationControls(settings: Settings) {
   return `<details class="presentation-details"><summary>Individual graphics controls</summary><p class="small-note">Presets reset these controls. Individual changes apply on save. Lower resolutions reduce GPU work; barriers and timing signs are never removed.</p>${choices.map(([key, label, values, labels]) => `<label>${label}<select name="graphics_${key}">${values.map((value, i) => `<option value="${value}">${labels[i]}</option>`).join('')}</select></label>`).join('')}${ranges.map(([key, label, min, max, step]) => `<label class="range-row">${label}<output></output><input name="graphics_${key}" type="range" min="${min}" max="${max}" step="${step}"></label>`).join('')}${checks.map(([key, label]) => `<label class="check"><input type="checkbox" name="graphics_${key}">${label}</label>`).join('')}</details><h3>Accessibility</h3><label class="check"><input name="colorblind" type="checkbox" ${settings.colorblind ? 'checked' : ''}>Patterned flags (colorblind-friendly)</label><label class="check"><input name="highContrast" type="checkbox" ${settings.highContrast ? 'checked' : ''}>High-contrast instruments</label><p class="small-note">Flags always include text. Camera movement and interface scale can be adjusted below.</p>`;
