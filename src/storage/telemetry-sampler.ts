@@ -10,6 +10,8 @@ import type { Simulation } from '../simulation/world.ts';
  * back toward the six-page steady-state pool after recycling.
  */
 export const RECORDING_TRANSPORT_INITIAL_PAGES = 6;
+/** Replay snapshots are captured every eighth 120 Hz tick (15 Hz). */
+export const REPLAY_TICKS = 8;
 export const RECORDING_TRANSPORT_MAX_PAGES = 60;
 
 class ElasticTransferPool {
@@ -87,7 +89,7 @@ export class TelemetrySampler {
     if (tick % 2 || tick === this.lastTick) return;
     this.lastTick = tick;
     this.simulation.writeFrame(this.scratch, stepMs, droppedSeconds);
-    if (tick % 8 === 0) this.captureReplay();
+    if (tick % REPLAY_TICKS === 0) this.captureReplay();
     this.page ??= this.telemetryPool.acquire();
     if (!this.page) {
       if (!this.warned)

@@ -50,7 +50,8 @@ test('27H.6 menu access: real interface keeps all actions reachable with mouse a
     expect(bounds!.y).toBeGreaterThanOrEqual(header!.y + header!.height);
     expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(footer!.y);
     const controls = page.locator('#menu select, #menu button');
-    await page.locator('#mode').focus();
+    // The circuit selector is the first control.
+    await page.locator('#circuit').focus();
     for (let i = 0; i < (await controls.count()); i++) {
       const active = page.locator('#menu :focus');
       await expect(active).toHaveCount(1);
@@ -67,7 +68,7 @@ test('27H.6 menu access: real interface keeps all actions reachable with mouse a
       await expect.poll(() => body.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
     }
     const buttons = page.locator('#menu .menu-actions button');
-    await expect(buttons).toHaveCount(7);
+    await expect(buttons).toHaveCount(8);
     for (const button of await buttons.all()) {
       const action = await button.getAttribute('data-action');
       await button.click();

@@ -2,6 +2,7 @@ import { expect, it, vi } from 'vitest';
 import { PauseHandshake, type ClientMessage, type WorkerMessage } from '../src/workers/diagnostics.ts';
 import { DEFAULT_OPTIONS } from '../src/simulation/config.ts';
 import { F, H, carBase } from '../src/simulation/protocol.ts';
+import { REPLAY_TICKS } from '../src/storage/telemetry-sampler.ts';
 
 it('does not acknowledge pause before its exact final frame and ignores superseded receipts', () => {
   const pause = new PauseHandshake();
@@ -140,7 +141,12 @@ it('delivers every player pit-service phase even while the consumer holds every 
         if (message.type === 'frame') seen.add(new Float32Array(message.buffer)[carBase(0) + F.PIT_PHASE]);
     }
     expect([...seen].sort()).toEqual([0, 1, 2, 3, 4, 5, 6]);
-    expect(messages.filter((message) => message.type === 'frame').length).toBeLessThanOrEqual(5 + 6);
+    const frames = messages.filter((message) => message.type === 'frame');
+    expect(frames.length).toBeLessThanOrEqual(5 + 6);
+    // Beyond the five pooled frames, each forced frame lies on a recorded
+    // replay tick, so its evidence time can be sought exactly in the replay.
+    for (const frame of frames.slice(5))
+      if (frame.type === 'frame') expect(new Float32Array(frame.buffer)[H.TICK] % REPLAY_TICKS).toBe(0);
     expect(messages.filter((message) => message.type === 'error')).toEqual([]);
   } finally {
     clock.mockRestore();

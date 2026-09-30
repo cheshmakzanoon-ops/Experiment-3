@@ -1,7 +1,7 @@
 /// <reference lib="webworker" />
 import { FixedStepper } from '../core/math.ts';
 import { CAR_STRIDE, HEADER } from '../simulation/protocol.ts';
-import { TelemetrySampler } from '../storage/telemetry-sampler.ts';
+import { REPLAY_TICKS, TelemetrySampler } from '../storage/telemetry-sampler.ts';
 import { Simulation } from '../simulation/world.ts';
 import { controls } from '../simulation/config.ts';
 import { EngineeringProbe, type ClientMessage, type WorkerMessage } from './diagnostics.ts';
@@ -129,9 +129,11 @@ setInterval(() => {
       telemetry?.capture(stepMs, clock.droppedSeconds);
       // Service phases last 0.8-1.7 s. A stalled consumer (every pooled frame
       // held) or a starved worker batch must not skip one, so each player
-      // transition is delivered at the tick it occurs.
+      // phase is delivered once, on its first tick that is also a recorded
+      // replay frame (every REPLAY_TICKS). Evidence rows can then be located
+      // exactly in the replay, which a mid-interval tick could not be.
       const pitPhase = simulation!.cars[0].pitPhase;
-      if (pitPhase !== lastPitPhase) {
+      if (pitPhase !== lastPitPhase && simulation!.tick % REPLAY_TICKS === 0) {
         lastPitPhase = pitPhase;
         snapshot(true);
         lastSent = simulation!.tick;
