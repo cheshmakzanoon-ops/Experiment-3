@@ -110,3 +110,23 @@ it('retains a final classification snapshot once even between scheduled samples'
   expect(report.rows[1][report.columns.indexOf('player_finish')]).toBe(1);
   expect(report.events.filter((e) => e.kind === 'results-snapshot')).toHaveLength(1);
 });
+
+it('retains rapid pit phase transitions between scheduled telemetry samples', () => {
+  const review = new SessionReview(),
+    o = observation(),
+    pitPhaseIndex = carBase(0) + F.PIT_PHASE;
+  review.start(identity, 0, 'menu');
+  for (let phase = 1; phase <= 6; phase++) {
+    o.frame![H.TIME] = phase / 10;
+    o.frame![pitPhaseIndex] = phase;
+    review.observe((phase - 1) * 75, o);
+  }
+  // Unchanged telemetry remains throttled even after a transition snapshot.
+  o.frame![H.TIME] = 0.7;
+  review.observe(450, o);
+  review.stop('Pit fixture finished');
+  const report = review.report()!,
+    column = report.columns.indexOf('player_pit_phase');
+  expect(report.rows.map((row) => row[column])).toEqual([1, 2, 3, 4, 5, 6]);
+  expect(report.rows).toHaveLength(6);
+});

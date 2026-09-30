@@ -98,9 +98,11 @@ const label = (v: string, n: number) =>
   v.length <= n &&
   !Array.from(v).some((c) => c.charCodeAt(0) < 32);
 /** Whole-session read-only evidence, including menu/results/replay/telemetry.
- * Raw accepted worker snapshots are sampled at up to 2Hz for two hours. These
- * are not every physics tick, a frame-rate benchmark, or a substitute for a
- * human's continuous audiovisual drive. No stage is automatically accepted. */
+ * Raw accepted worker snapshots are sampled at up to 2Hz for two hours, while
+ * authoritative pit-phase transitions and the final classification snapshot
+ * are retained between scheduled samples. This is not a frame-rate benchmark
+ * or a substitute for a human's continuous audiovisual drive. No stage is
+ * automatically accepted. */
 export class SessionReview {
   static readonly maximumRows = 14400;
   static readonly maximumEvents = 4096;
@@ -110,6 +112,7 @@ export class SessionReview {
   private origin = 0;
   private clock = 0;
   private last = -Infinity;
+  private lastPitPhase: number | null = null;
   private sessionId: string | null = null;
   private rows: number[][] = [];
   private events: SessionReviewReport['events'] = [];
@@ -139,6 +142,7 @@ export class SessionReview {
     this.identity = { ...identity };
     this.origin = this.clock = now;
     this.last = -Infinity;
+    this.lastPitPhase = null;
     this.sessionId = null;
     this.rows = [];
     this.events = [];
@@ -205,15 +209,21 @@ export class SessionReview {
       this.stop('Session restarted during the recorded journey', true);
       return;
     }
-    if (!finalSnapshot && now - this.last < 500) return;
-    if (this.rows.length >= SessionReview.maximumRows) {
-      this.stop('Snapshot capacity reached', true);
-      return;
-    }
     const f = o.frame,
       b = carBase(0);
     if (f.length < HEADER + CAR_STRIDE || !Number.isInteger(f[H.CARS]) || f[H.CARS] < 1) {
       this.stop('Invalid accepted worker snapshot', true);
+      return;
+    }
+    // Pit-service phases can be shorter than the normal 500 ms evidence
+    // cadence. Retain each observed transition so a completed stop cannot lose
+    // an authoritative removal or installation phase solely to sample timing.
+    const pitPhase = f[b + F.PIT_PHASE],
+      pitPhaseChanged = this.lastPitPhase !== null && pitPhase !== this.lastPitPhase;
+    this.lastPitPhase = pitPhase;
+    if (!finalSnapshot && !pitPhaseChanged && now - this.last < 500) return;
+    if (this.rows.length >= SessionReview.maximumRows) {
+      this.stop('Snapshot capacity reached', true);
       return;
     }
     const row = [
