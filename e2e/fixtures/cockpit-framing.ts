@@ -6,7 +6,7 @@ import { F, H, W, WHEEL_BASE, WHEEL_STRIDE, carBase } from '../../src/simulation
 import { captureRenderedCanvas } from '../../src/rendering/frame-capture.ts';
 import { COCKPIT_FRAMING } from '../../src/rendering/cockpit-framing.ts';
 
-interface CockpitSurveyRow {
+export interface CockpitSurveyRow {
   name: string;
   width: number;
   height: number;
@@ -32,7 +32,10 @@ interface CockpitSurveyRow {
 
 /** Production loader, original binary/skeleton, full circuit and unmodified
  * simulation snapshots. These are real GPU frames, not a target-hardware FPS test. */
-export async function cockpitFramingSurvey() {
+export async function cockpitFramingSurvey(
+  group: 'framing' | 'controls' | 'driving' | 'weather',
+  onRow?: (row: CockpitSurveyRow) => Promise<void>,
+) {
   const simulation = new Simulation({ ...DEFAULT_OPTIONS, mode: 'practice', opponents: 0 });
   const canvas = document.createElement('canvas');
   canvas.style.cssText = 'width:1280px;height:720px';
@@ -130,81 +133,91 @@ export async function cockpitFramingSurvey() {
       image: encoded,
     };
     rows.push(row);
+    await onRow?.(row);
     return row;
   };
   try {
     for (let i = 0; i < 120; i++) simulation.step(1 / 120);
     const neutral = simulation.makeFrame();
-    for (const [label, width, height] of [
-      ['16-9', 1280, 720],
-      ['4-3', 1024, 768],
-      ['16-10', 1440, 900],
-      ['21-9', 1680, 720],
-    ] as const)
-      await capture(`neutral-${label}`, neutral, width, height);
-    simulation.setInput({ ...controls(), steer: 1, brake: 1 });
-    for (let i = 0; i < 120; i++) simulation.step(1 / 120);
-    await capture('left-lock', simulation.makeFrame());
-    simulation.setInput({ ...controls(), steer: -1, brake: 1 });
-    for (let i = 0; i < 120; i++) simulation.step(1 / 120);
-    const right = simulation.makeFrame();
-    await capture('right-lock', right);
-    await capture('paused', right);
-    await capture('rewound', neutral, 1280, 720, true);
-    simulation.autoPlayer = true;
-    for (let i = 0; i < 120 * 24; i++) {
-      simulation.step(1 / 120);
-      if (i % 240 === 239) {
+    if (group === 'framing') {
+      for (const [label, width, height] of [
+        ['16-9', 1280, 720],
+        ['4-3', 1024, 768],
+        ['16-10', 1440, 900],
+        ['21-9', 1680, 720],
+      ] as const)
+        await capture(`neutral-${label}`, neutral, width, height);
+    }
+    if (group === 'controls') {
+      simulation.setInput({ ...controls(), steer: 1, brake: 1 });
+      for (let i = 0; i < 120; i++) simulation.step(1 / 120);
+      await capture('left-lock', simulation.makeFrame());
+      simulation.setInput({ ...controls(), steer: -1, brake: 1 });
+      for (let i = 0; i < 120; i++) simulation.step(1 / 120);
+      const right = simulation.makeFrame();
+      await capture('right-lock', right);
+      await capture('paused', right);
+      await capture('rewound', neutral, 1280, 720, true);
+    }
+    if (group === 'driving') {
+      simulation.autoPlayer = true;
+      for (let i = 0; i < 120 * 24; i++) {
+        simulation.step(1 / 120);
+        if (i % 240 === 239) {
+          const frame = simulation.makeFrame();
+          renderer.draw(frame, frame, 1, 1 / 60, false, false, 1 / 60);
+        }
+      }
+      await capture('moving', simulation.makeFrame());
+      simulation.autoPlayer = false;
+      simulation.setInput({ ...controls(), brake: 1 });
+      for (let i = 0; i < 45; i++) {
+        simulation.step(1 / 120);
         const frame = simulation.makeFrame();
-        renderer.draw(frame, frame, 1, 1 / 60, false, false, 1 / 60);
+        if (i % 15 === 14) renderer.draw(frame, frame, 1, 1 / 60, false, false, 1 / 60);
       }
+      await capture('braking', simulation.makeFrame());
+      const kerbSim = new Simulation({ ...DEFAULT_OPTIONS, mode: 'practice', opponents: 0 });
+      let kerb: Float32Array | null = null;
+      for (let i = 0; i < 120 * 12; i++) {
+        const speed = kerbSim.cars[0].speed;
+        kerbSim.setInput({
+          ...controls(),
+          throttle: Math.max(0, Math.min(0.6, (12 - speed) * 0.15)),
+          brake: Math.max(0, Math.min(0.6, (speed - 12) * 0.15)),
+          steer: i > 360 ? -0.09 : 0,
+        });
+        kerbSim.step(1 / 120);
+        const frame = kerbSim.makeFrame();
+        if ([0, 1, 2, 3].some((i) => frame[o + WHEEL_BASE + i * WHEEL_STRIDE + W.SURFACE] === 2)) {
+          kerb = frame;
+          break;
+        }
+      }
+      if (!kerb) throw new Error('No actual kerb contact in P0 drive');
+      await capture('kerb-contact', kerb);
     }
-    await capture('moving', simulation.makeFrame());
-    simulation.autoPlayer = false;
-    simulation.setInput({ ...controls(), brake: 1 });
-    for (let i = 0; i < 45; i++) {
-      simulation.step(1 / 120);
-      const frame = simulation.makeFrame();
-      if (i % 15 === 14) renderer.draw(frame, frame, 1, 1 / 60, false, false, 1 / 60);
-    }
-    await capture('braking', simulation.makeFrame());
-    const kerbSim = new Simulation({ ...DEFAULT_OPTIONS, mode: 'practice', opponents: 0 });
-    let kerb: Float32Array | null = null;
-    for (let i = 0; i < 120 * 12; i++) {
-      const speed = kerbSim.cars[0].speed;
-      kerbSim.setInput({
-        ...controls(),
-        throttle: Math.max(0, Math.min(0.6, (12 - speed) * 0.15)),
-        brake: Math.max(0, Math.min(0.6, (speed - 12) * 0.15)),
-        steer: i > 360 ? -0.09 : 0,
+    if (group === 'weather') {
+      renderer.lighting = 'sunset';
+      await capture('sunset', neutral);
+      renderer.lighting = 'night';
+      await capture('night', neutral);
+      const wet = new Simulation({
+        ...DEFAULT_OPTIONS,
+        mode: 'practice',
+        opponents: 0,
+        weather: 'rain',
+        compound: 'wet',
       });
-      kerbSim.step(1 / 120);
-      const frame = kerbSim.makeFrame();
-      if ([0, 1, 2, 3].some((i) => frame[o + WHEEL_BASE + i * WHEEL_STRIDE + W.SURFACE] === 2)) {
-        kerb = frame;
-        break;
-      }
+      wet.autoPlayer = true;
+      for (let i = 0; i < 120 * 6; i++) wet.step(1 / 120);
+      renderer.circuit.updateSurface(wet.track.water, wet.track.rubber, wet.track.marbles);
+      await capture('wet-night', wet.makeFrame());
+      renderer.changeCamera('pod');
+      await capture('pod-retained', neutral);
     }
-    if (!kerb) throw new Error('No actual kerb contact in P0 drive');
-    await capture('kerb-contact', kerb);
-    renderer.lighting = 'sunset';
-    await capture('sunset', neutral);
-    renderer.lighting = 'night';
-    await capture('night', neutral);
-    const wet = new Simulation({
-      ...DEFAULT_OPTIONS,
-      mode: 'practice',
-      opponents: 0,
-      weather: 'rain',
-      compound: 'wet',
-    });
-    wet.autoPlayer = true;
-    for (let i = 0; i < 120 * 6; i++) wet.step(1 / 120);
-    renderer.circuit.updateSurface(wet.track.water, wet.track.rubber, wet.track.marbles);
-    await capture('wet-night', wet.makeFrame());
-    renderer.changeCamera('pod');
-    await capture('pod-retained', neutral);
     return {
+      group,
       rows,
       calibration: COCKPIT_FRAMING,
       sourceEye,
