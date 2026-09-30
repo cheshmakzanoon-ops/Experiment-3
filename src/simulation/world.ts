@@ -4,7 +4,15 @@ import { clamp } from '../core/math.ts';
 import { AIDriver } from './ai.ts';
 import { wakeOverlap } from './aero.ts';
 import { CollisionSolver } from './collision.ts';
-import { COMPOUNDS, type Controls, type SessionOptions, validateOptions } from './config.ts';
+import {
+  COMPOUNDS,
+  alternateDryCompound,
+  mandatoryStopSatisfied,
+  racingSession,
+  type Controls,
+  type SessionOptions,
+  validateOptions,
+} from './config.ts';
 import {
   CAR_STRIDE,
   DEBRIS_BASE,
@@ -39,18 +47,28 @@ export class Simulation {
       undefined,
       circuitDefinition(this.options.circuit),
     );
-    this.cars = Array.from({ length: this.options.opponents + 1 }, (_, i) => {
+    const count = this.options.opponents + 1,
+      grid = this.options.grid,
+      length = this.track.length;
+    // Qualifying releases the field spread around the lap, so every car has an
+    // out-lap and clear track; a race uses the staggered grid in `grid` order.
+    const spacing = Math.min(420, (length - 400) / count);
+    this.cars = Array.from({ length: count }, (_, i) => {
       const c = new Vehicle(i, this.options.compound, this.options.setup, this.options.assist);
-      c.place(
-        this.track,
-        this.track.length - 32 - Math.floor(i / 2) * 10,
-        i % 2 === 0 ? -2.2 : 2.2,
-      );
+      const slot = grid ? grid.indexOf(i) : i;
+      if (this.options.mode === 'qualifying')
+        c.place(this.track, length - 32 - (slot + 1) * spacing, 0);
+      else
+        c.place(this.track, length - 32 - Math.floor(slot / 2) * 10, slot % 2 === 0 ? -2.2 : 2.2);
       return c;
     });
     this.ai = this.cars.map((c) => new AIDriver(c, 0.92 + (c.id % 4) * 0.014, this.options.seed));
     this.race = new RaceDirector(this.cars, this.track, this.options);
-    if (this.options.mode === 'practice') {
+    if (this.options.mode === 'endurance')
+      // Enough fuel for the distance plus a margin: real mass, no refuelling.
+      for (const c of this.cars)
+        c.fuel = Math.max(c.fuel, this.options.laps * (length / 1000) * 0.37 + 4);
+    if (!racingSession(this.options.mode)) {
       this.race.phase = PHASE.RACING;
       this.race.time = this.race.greenAt;
     }
@@ -74,7 +92,9 @@ export class Simulation {
         ? 'wet'
         : this.track.meanWater() > 0.3
           ? 'intermediate'
-          : 'medium';
+          : this.options.mode === 'endurance' && !mandatoryStopSatisfied(c.compoundsUsed)
+            ? alternateDryCompound(c.tires[0].compound)
+            : 'medium';
   }
   step(dt: number) {
     this.tick++;

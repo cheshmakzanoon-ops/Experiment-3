@@ -114,9 +114,15 @@ export const VEHICLE = {
 export interface SessionOptions {
   /** Original circuit; Aurel when absent (older saves and callers). */
   circuit?: CircuitId;
-  mode: 'race' | 'practice';
+  /** Time Trial is a solo practice session whose valid laps set a saved ghost.
+   * Qualifying spreads the field around the lap for an out-lap and
+   * QUALIFYING_TIMED_LAPS timed laps; its classification is the race grid.
+   * Endurance is a long race with the mandatory two-compound stop rule. */
+  mode: 'race' | 'practice' | 'time-trial' | 'qualifying' | 'endurance';
   laps: number;
   opponents: number;
+  /** Starting order as car ids, pole first. Absent: car order (player on pole). */
+  grid?: number[];
   weather: WeatherPreset;
   assist: Assist;
   compound: Compound;
@@ -133,14 +139,55 @@ export const DEFAULT_OPTIONS: SessionOptions = {
   setup: { ...DEFAULT_SETUP },
   seed: 73021,
 };
+export const QUALIFYING_TIMED_LAPS = 2;
+export const ENDURANCE_MAX_LAPS = 30;
+/** Sessions that start from the lights and classify by finishing order. */
+export function racingSession(mode: SessionOptions['mode']) {
+  return mode === 'race' || mode === 'endurance';
+}
+/** Endurance rule: a dry race must use at least two different dry compounds
+ * (one real stop). Running intermediates or wets satisfies it. */
+export const MANDATORY_STOP_PENALTY_SECONDS = 30;
+export function mandatoryStopSatisfied(used: ReadonlySet<Compound>) {
+  let dry = 0;
+  for (const compound of used) {
+    if (compound === 'intermediate' || compound === 'wet') return true;
+    dry++;
+  }
+  return dry >= 2;
+}
+/** A different dry compound for the mandatory stop. */
+export function alternateDryCompound(current: Compound): Compound {
+  return current === 'medium' ? 'hard' : 'medium';
+}
+/** A grid must name every car exactly once; anything else is ignored. */
+function validGrid(value: unknown, cars: number): number[] | null {
+  if (!Array.isArray(value) || value.length !== cars) return null;
+  const seen = new Set<number>();
+  for (const id of value) {
+    if (!Number.isInteger(id) || id < 0 || id >= cars || seen.has(id)) return null;
+    seen.add(id);
+  }
+  return [...value];
+}
 export function validateOptions(v: unknown): SessionOptions {
   if (!v || typeof v !== 'object') throw new Error('Invalid session options');
   const o = v as Partial<SessionOptions>;
+  const opponents =
+    o.mode === 'time-trial' ? 0 : clamp(Math.round(Number(o.opponents) || 0), 0, 11);
+  const grid = validGrid(o.grid, opponents + 1);
   return {
     circuit: circuitDefinition(o.circuit).id,
-    mode: o.mode === 'practice' ? 'practice' : 'race',
-    laps: clamp(Math.round(Number(o.laps) || 3), 1, 10),
-    opponents: clamp(Math.round(Number(o.opponents) || 0), 0, 11),
+    mode:
+      o.mode === 'practice' ||
+      o.mode === 'time-trial' ||
+      o.mode === 'qualifying' ||
+      o.mode === 'endurance'
+        ? o.mode
+        : 'race',
+    laps: clamp(Math.round(Number(o.laps) || 3), 1, o.mode === 'endurance' ? ENDURANCE_MAX_LAPS : 10),
+    opponents,
+    ...(grid ? { grid } : {}),
     weather: o.weather === 'rain' || o.weather === 'changeable' ? o.weather : 'clear',
     assist: o.assist === 'raw' ? 'raw' : 'sport',
     compound: o.compound && Object.hasOwn(COMPOUNDS, o.compound) ? o.compound : 'medium',

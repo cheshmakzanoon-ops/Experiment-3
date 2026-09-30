@@ -18,6 +18,8 @@ import { frontToBackOpaque } from './opaque-order.ts';
 import { loadSuppliedPlayer, type SuppliedPlayerAsset } from './supplied-player.ts';
 import { detailDistance } from './view-detail.ts';
 import { readRaceReviewFrame } from './race-review.ts';
+import { GhostCar } from './ghost-car.ts';
+import { ghostPose, type GhostPose } from '../core/ghost-lap.ts';
 import { WeatherPresentation } from './weather-presentation.ts';
 import { applyCircuitLightPalette } from './lighting-coherence.ts';
 import { PEOPLE_ASSET } from './people-asset.ts';
@@ -121,6 +123,10 @@ export class RacingRenderer {
   readonly audioView = new AudioViewTracker();
   readonly effects = new Effects();
   readonly presented = new PresentedFrame();
+  /** Time Trial ghost, built on first use; posed from setGhost() each frame. */
+  private ghost: GhostCar | null = null;
+  private ghostPose: GhostPose = ghostPose();
+  private ghostActive = false;
   readonly effectPlayback = new EffectPlayback(this.effects);
   readonly debris = new DebrisView();
   readonly pitCrew = new PitCrewView();
@@ -402,6 +408,20 @@ export class RacingRenderer {
       if (cancelled()) return null;
       throw error;
     }
+  }
+  /** Show the saved personal-best lap at this pose, or hide it (null). */
+  setGhost(pose: GhostPose | null) {
+    this.ghostActive = !!pose;
+    if (!pose) return;
+    Object.assign(this.ghostPose, pose);
+    if (!this.ghost) {
+      this.ghost = new GhostCar(this.heroShells ?? undefined);
+      this.scene.add(this.ghost.root);
+      this.textures.register(this.ghost.root);
+    }
+  }
+  ghostVisible() {
+    return this.ghost?.visible ?? false;
   }
   setCars(n: number) {
     while (this.cars.length < n) {
@@ -916,6 +936,13 @@ export class RacingRenderer {
       );
       this.cars[id].update(a, b, base, alpha, dt, time, false);
     }
+    this.ghost?.update(
+      this.ghostActive && !replay && !menu && !this.photo ? this.ghostPose : null,
+      this.camera,
+      this.quality,
+      time,
+      dt,
+    );
     shadowAnchor(
       this.target,
       this.sun.shadow.mapSize.x,
@@ -1102,6 +1129,10 @@ export class RacingRenderer {
     // at 128 px) keeps static scenery only. The subject car is hidden by the probe itself.
     probe.push(this.effects.group);
     for (const other of this.cars) if (other !== subject) probe.push(other.root);
+    if (this.ghost) {
+      probe.push(this.ghost.root);
+      mirror.push(this.ghost.root);
+    }
     this.reflection.probeExclusions = probe;
     this.reflection.mirrorExclusions = mirror;
   }
@@ -1397,6 +1428,7 @@ export class RacingRenderer {
     if (this.circuit.pitBuildingFrontage && !this.circuit.pitBuildingFrontage.root.parent)
       this.circuit.pitBuildingFrontage.dispose();
     this.cars.forEach((car) => car.suppliedPlayer?.disposeAnimation());
+    this.ghost?.dispose();
     this.pitCrew.dispose();
     this.reflection.dispose();
     this.gpuTimer.dispose();

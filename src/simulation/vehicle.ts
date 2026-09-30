@@ -99,6 +99,8 @@ export class Vehicle {
   pitClock = 0;
   pitStops = 0;
   nextCompound: Compound = 'medium';
+  /** Every compound this car has run in the session (mandatory stop rule). */
+  readonly compoundsUsed = new Set<Compound>();
   aiTarget = 0;
   aiOffset = 0;
   retired = false;
@@ -121,6 +123,7 @@ export class Vehicle {
     this.tires = WHEEL_POSITIONS.map((_, i) =>
       makeTire(compound, i < 2 ? setup.frontPressure : setup.rearPressure),
     );
+    this.compoundsUsed.add(compound);
     this.updateWheelAlignment();
   }
   place(track: Track, s: number, offset = 0) {
@@ -135,6 +138,7 @@ export class Vehicle {
     this.lateral = offset;
   }
   replaceTires(compound: Compound) {
+    this.compoundsUsed.add(compound);
     for (let i = 0; i < 4; i++)
       this.tires[i] = makeTire(
         compound,

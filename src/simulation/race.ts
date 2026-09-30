@@ -2,7 +2,13 @@ import { LapReference } from './lap-reference.ts';
 import { MarshalControl } from './marshal.ts';
 import { safePitRelease } from './pit-safety.ts';
 import { mod, Random } from '../core/math.ts';
-import type { SessionOptions } from './config.ts';
+import {
+  MANDATORY_STOP_PENALTY_SECONDS,
+  QUALIFYING_TIMED_LAPS,
+  mandatoryStopSatisfied,
+  racingSession,
+  type SessionOptions,
+} from './config.ts';
 import type { Vehicle } from './vehicle.ts';
 import type { Track } from './track.ts';
 export const PHASE = { GRID: 0, LIGHTS: 1, RACING: 2, FINISHED: 3 } as const;
@@ -212,7 +218,27 @@ export class RaceDirector {
         lap.update(c.s, this.raceTime, outside);
       }
     }
-    if (this.options.mode === 'race') {
+    if (this.options.mode === 'qualifying') {
+      // Each car's session ends as it completes its timed laps; it then cools
+      // down. A car that never completes them is retired after the grace time.
+      for (let i = 0; i < this.cars.length; i++) {
+        const car = this.cars[i],
+          lap = this.laps[i];
+        if (car.finishTime || car.retired) continue;
+        if (lap.crossedFinish && lap.completed >= QUALIFYING_TIMED_LAPS) {
+          car.finishTime = lap.lastCrossingTime;
+          if (this.finishStartedAt < 0) this.finishStartedAt = lap.lastCrossingTime;
+        } else if (
+          this.finishStartedAt >= 0 &&
+          this.raceTime - this.finishStartedAt >= FINISH_GRACE_SECONDS
+        )
+          car.retired = true;
+      }
+      if (this.cars.every((c) => c.finishTime > 0 || c.retired)) {
+        this.control.settlePending(this.cars);
+        this.phase = PHASE.FINISHED;
+      }
+    } else if (racingSession(this.options.mode)) {
       // Resolve the first finisher by interpolated crossing time, not array order.
       if (this.finishStartedAt < 0) {
         let earliest = Infinity;
@@ -230,8 +256,12 @@ export class RaceDirector {
             !car.retired &&
             lap.crossedFinish &&
             lap.lastCrossingTime >= this.finishStartedAt - 1e-8
-          )
+          ) {
             car.finishTime = lap.lastCrossingTime + lap.penalty;
+            // Endurance: finishing without the mandatory stop costs time.
+            if (this.options.mode === 'endurance' && !mandatoryStopSatisfied(car.compoundsUsed))
+              this.penalize(i, MANDATORY_STOP_PENALTY_SECONDS, 'MANDATORY_STOP');
+          }
           else if (!car.finishTime && this.raceTime - this.finishStartedAt >= FINISH_GRACE_SECONDS)
             car.retired = true; // Explicit DNF, never a manufactured finishing time.
         }
@@ -244,6 +274,14 @@ export class RaceDirector {
     this.order.sort((a, b) => {
       const ca = this.cars[a],
         cb = this.cars[b];
+      if (this.options.mode === 'qualifying') {
+        // Fastest valid lap; cars without one follow by track progress.
+        const ba = this.laps[a].best,
+          bb = this.laps[b].best;
+        if (ba && bb) return ba - bb || a - b;
+        if (ba || bb) return ba ? -1 : 1;
+        return this.laps[b].distance - this.laps[a].distance || a - b;
+      }
       const difference = this.laps[b].completed - this.laps[a].completed;
       if (difference) return difference;
       if (ca.finishTime && cb.finishTime) return ca.finishTime - cb.finishTime || a - b;
@@ -266,7 +304,11 @@ export class RaceDirector {
           ? 'PIT LANE · 80 KM/H'
           : this.laps[0].outsideEpisode
             ? 'TRACK LIMITS · LAP INVALID'
-            : 'GREEN FLAG';
+            : this.options.mode === 'endurance' &&
+                !mandatoryStopSatisfied(this.cars[0].compoundsUsed) &&
+                this.options.laps - this.laps[0].completed <= 3
+              ? 'MANDATORY STOP OUTSTANDING · +30 S AT THE FLAG'
+              : 'GREEN FLAG';
   }
 }
 /** Service requires physically reaching the box and stopping; never teleports. */

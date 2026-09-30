@@ -1,5 +1,10 @@
 import { approach, clamp, mod, Random } from '../core/math.ts';
-import { COMPOUNDS, type Controls } from './config.ts';
+import {
+  COMPOUNDS,
+  alternateDryCompound,
+  mandatoryStopSatisfied,
+  type Controls,
+} from './config.ts';
 import { FLAG, yellowFlag } from './marshal.ts';
 import type { RaceDirector } from './race.ts';
 import type { Track } from './track.ts';
@@ -110,6 +115,10 @@ export class DefensiveLine {
 
 /** Strategic decisions read real battery, tire, weather and traffic state.
  * Traits adjust risk, requests and decisions, never physical tire coefficients. */
+/** Lap after which an endurance car makes its mandatory stop. */
+export function plannedStopLap(laps: number, tireManagement: number) {
+  return Math.max(1, Math.min(laps - 2, Math.round(laps * (0.3 + 0.3 * tireManagement))));
+}
 export class DriverBrain {
   ers: 0 | 1 | 2 = 1;
   pace = 1;
@@ -194,10 +203,31 @@ export class DriverBrain {
       const compound = car.tires[0].compound;
       const wrongWet = water > 0.18 && compound !== 'intermediate' && compound !== 'wet';
       const wrongDry = water < 0.05 && (compound === 'intermediate' || compound === 'wet');
-      if (wrongWet || wrongDry || punctured || wear > 0.64 + 0.05 * (1 - traits.tireManagement)) {
+      // Endurance: one planned stop onto a different dry compound, in a window
+      // set by the driver's tyre management (kinder drivers stop later).
+      const lap = race.laps[car.id];
+      const mandatory =
+        race.options.mode === 'endurance' &&
+        !mandatoryStopSatisfied(car.compoundsUsed) &&
+        lap.completed >= plannedStopLap(race.options.laps, traits.tireManagement) &&
+        lap.completed < race.options.laps - 1;
+      if (
+        wrongWet ||
+        wrongDry ||
+        punctured ||
+        mandatory ||
+        wear > 0.64 + 0.05 * (1 - traits.tireManagement)
+      ) {
         car.pitRequested = true;
-        car.nextCompound = water > 0.9 ? 'wet' : water > 0.16 ? 'intermediate' : 'medium';
-        this.decision = 'STRATEGY / PIT';
+        car.nextCompound =
+          water > 0.9
+            ? 'wet'
+            : water > 0.16
+              ? 'intermediate'
+              : race.options.mode === 'endurance' && !mandatoryStopSatisfied(car.compoundsUsed)
+                ? alternateDryCompound(compound)
+                : 'medium';
+        this.decision = mandatory ? 'STRATEGY / MANDATORY STOP' : 'STRATEGY / PIT';
       }
     }
     this.errors.sample(

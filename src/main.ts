@@ -31,12 +31,33 @@ import { circuitDefinition, type CircuitId } from './simulation/circuits.ts';
 import {
   controls,
   DEFAULT_OPTIONS,
+  racingSession,
   validateSetup,
   type SessionOptions,
 } from './simulation/config.ts';
 import { F, H, carBase } from './simulation/protocol.ts';
 import { RacingRenderer } from './rendering/renderer.ts';
-import { Interface, shortTime } from './ui/interface.ts';
+import { Interface, lapTime, shortTime } from './ui/interface.ts';
+import {
+  GhostPlayer,
+  GhostRecorder,
+  ghostKey,
+  ghostPose,
+  validateGhost,
+  type GhostLap,
+} from './core/ghost-lap.ts';
+import {
+  CHAMPIONSHIP_KEY,
+  complete,
+  newChampionship,
+  nextRound,
+  qualifyingGrid,
+  raceResult,
+  recordRound,
+  standings,
+  validateChampionship,
+  type Championship,
+} from './core/championship.ts';
 import { InputController } from './input/controller.ts';
 import { InputPump } from './input/pump.ts';
 import { RacingAudio } from './audio/engine.ts';
@@ -97,6 +118,13 @@ export class GameApp {
   private input: InputController;
   private audio = new RacingAudio();
   private store = new SaveStore();
+  /** Time Trial: records the player's laps and plays the saved PB as a ghost. */
+  private ghostRecorder: GhostRecorder | null = null;
+  private ghostPlayer: GhostPlayer | null = null;
+  private readonly ghostPoseScratch = ghostPose();
+  /** Saved championship, and the calendar round the current weekend belongs to. */
+  private championship: Championship | null = null;
+  private championshipRound = -1;
   private exporter = new TelemetryExport();
   private exporting = false;
   private presentationReview = new PresentationReview();
@@ -164,8 +192,12 @@ export class GameApp {
     const element = document.getElementById('app')!;
     this.ui = new Interface(element, this.track, {
       action: (name) => this.action(name),
-      start: (options, holdOnGrid) =>
-        void this.start(options, false, holdOnGrid).catch((e) => this.fail(e)),
+      start: (options, holdOnGrid) => {
+        // A session started from the paddock form is outside the championship.
+        this.championshipRound = -1;
+        this.ui.championshipNote = '';
+        void this.start(options, false, holdOnGrid).catch((e) => this.fail(e));
+      },
       apply: (s) => this.applySettings(s),
       seek: (value) => {
         this.seekReplay(value);
@@ -326,6 +358,11 @@ export class GameApp {
         `Team save unavailable: ${e instanceof Error ? e.message : String(e)}. Starting a temporary team.`,
       );
     }
+    try {
+      this.championship = validateChampionship(await this.store.read(CHAMPIONSHIP_KEY));
+    } catch (e) {
+      this.ui.toast(`Championship save unavailable: ${e instanceof Error ? e.message : String(e)}`);
+    }
     if (this.disposed) return;
     this.ui.playerName = driverProfile(this.team).name;
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) this.settings.shake = 0;
@@ -383,7 +420,13 @@ export class GameApp {
     if (this.disposed) return;
     const circuit = circuitDefinition(options.circuit).id;
     if (!(await this.switchCircuit(circuit)) || this.disposed) return;
-    this.options = { ...options, circuit, setup: { ...this.settings.setup } };
+    this.options = {
+      ...options,
+      circuit,
+      // Time Trial is a solo session: the worker validates the same rule.
+      opponents: options.mode === 'time-trial' ? 0 : options.opponents,
+      setup: { ...this.settings.setup },
+    };
     this.ui.options = this.options;
     this.auto = false;
     this.ers = 1;
@@ -510,6 +553,8 @@ export class GameApp {
     this.replayA = this.replay.makeFrame();
     this.replayB = this.replay.makeFrame();
     this.renderer.setLivery(this.team.livery);
+    await this.prepareTimeTrial(generation);
+    if (this.errorStopped || this.disposed || generation !== this.generation) return;
     this.state = 'driving';
     const referenceCamera = this.referenceSession.beginSession(this.sessionId);
     if (referenceCamera) this.renderer.changeCamera(referenceCamera);
@@ -530,6 +575,81 @@ export class GameApp {
     this.post({ type: 'pause', value: false });
     this.inputPump.poll();
   }
+  /** Load this circuit's saved personal-best ghost for a Time Trial session. */
+  private async prepareTimeTrial(generation: number) {
+    this.ghostRecorder = null;
+    this.ghostPlayer = null;
+    this.ui.timeTrial = null;
+    this.renderer?.setGhost(null);
+    if (this.options.mode !== 'time-trial') return;
+    const circuit = this.track.circuit.id,
+      length = this.track.length;
+    this.ghostRecorder = new GhostRecorder({
+      circuit,
+      trackLength: length,
+      assist: this.options.assist,
+      compound: this.options.compound,
+      weather: this.options.weather,
+    });
+    let saved: GhostLap | null = null;
+    try {
+      saved = validateGhost(await this.store.read(ghostKey(circuit)), circuit, length);
+    } catch (error) {
+      this.ui.toast(`Saved ghost unavailable: ${String(error)}`);
+    }
+    if (generation !== this.generation) return;
+    this.ghostPlayer = saved ? new GhostPlayer(saved) : null;
+    this.ui.timeTrial = { best: saved?.lapTime ?? 0, delta: null };
+    this.ui.toast(
+      saved
+        ? `TIME TRIAL · PERSONAL BEST ${lapTime(saved.lapTime)} · GHOST LOADED`
+        : 'TIME TRIAL · SET A VALID LAP TO SAVE YOUR GHOST',
+    );
+  }
+  /** Offer each completed lap; keep it only if it beats the saved ghost. */
+  private observeTimeTrial(frame: Float32Array) {
+    if (!this.ghostRecorder) return;
+    const lap = this.ghostRecorder.observe(frame, !this.auto);
+    const trial = this.ui.timeTrial;
+    if (trial) {
+      const o = carBase(0),
+        running = frame[o + F.LAP_TIME] > 0 && frame[o + F.IN_PIT] === 0;
+      trial.delta =
+        this.ghostPlayer && running
+          ? this.ghostPlayer.delta(frame[o + F.S], frame[o + F.LAP_TIME])
+          : null;
+    }
+    if (!lap || (this.ghostPlayer && lap.lapTime >= this.ghostPlayer.lap.lapTime)) return;
+    const improvement = this.ghostPlayer ? this.ghostPlayer.lap.lapTime - lap.lapTime : 0;
+    this.ghostPlayer = new GhostPlayer(lap);
+    if (trial) trial.best = lap.lapTime;
+    const circuit = lap.circuit;
+    void this.store
+      .write(ghostKey(circuit), lap)
+      .then(() =>
+        this.ui.toast(
+          `PERSONAL BEST ${lapTime(lap.lapTime)}${improvement > 0 ? ` · −${improvement.toFixed(3)} S` : ''} · GHOST SAVED`,
+        ),
+      )
+      .catch((error) => this.ui.toast(`Ghost not saved: ${String(error)}`));
+  }
+  /** Pose the ghost at the presented lap time (same interpolation as the car). */
+  private presentGhost(a: Float32Array, b: Float32Array, alpha: number) {
+    if (!this.renderer) return;
+    const player = this.ghostPlayer;
+    if (!player || (this.state !== 'driving' && this.state !== 'paused')) {
+      this.renderer.setGhost(null);
+      return;
+    }
+    const o = carBase(0),
+      from = a[o + F.LAP_TIME],
+      to = b[o + F.LAP_TIME];
+    // A lap reset between snapshots starts the ghost again at the line.
+    const time = to >= from ? from + (to - from) * alpha : to;
+    const shown =
+      time > 0 && b[o + F.IN_PIT] === 0 && player.poseAt(time, this.ghostPoseScratch);
+    this.renderer.setGhost(shown ? this.ghostPoseScratch : null);
+  }
   private accept(buffer: ArrayBuffer) {
     const next = new Float32Array(buffer);
     if (this.current) {
@@ -543,6 +663,7 @@ export class GameApp {
     this.receivedAt = performance.now();
     if (this.state === 'driving') {
       this.programme.observe(next);
+      this.observeTimeTrial(next);
       this.observeSession();
       if (next[H.PHASE] === 3) this.finish(next);
     }
@@ -669,6 +790,7 @@ export class GameApp {
       b = this.frozenPhoto;
       alpha = 0;
     }
+    this.presentGhost(a, b, alpha);
     this.renderer.draw(
       a,
       b,
@@ -857,6 +979,69 @@ export class GameApp {
       );
     }
   }
+  private async saveChampionship(next: Championship) {
+    await this.store.write(CHAMPIONSHIP_KEY, next);
+    this.championship = next;
+  }
+  /** Qualifying for the next calendar round, with the championship field. */
+  private startChampionshipRound() {
+    const c = this.championship,
+      round = c ? nextRound(c) : null;
+    if (!c || !round) {
+      this.ui.toast('No championship round remains. Start a new championship.');
+      return;
+    }
+    this.championshipRound = c.results.length;
+    this.ui.championshipNote = `CHAMPIONSHIP · ROUND ${this.championshipRound + 1} OF ${c.rounds.length} · QUALIFYING SETS THE GRID`;
+    void this.start({
+      ...DEFAULT_OPTIONS,
+      assist: this.ui.options.assist,
+      compound: round.weather === 'rain' ? 'wet' : this.ui.options.compound,
+      circuit: round.circuit,
+      weather: round.weather,
+      laps: round.laps,
+      opponents: c.cars - 1,
+      mode: 'qualifying',
+      seed: 7919 * (this.championshipRound + 1),
+    }).catch((e) => this.fail(e));
+  }
+  /** Race from the grid the qualifying session just classified. */
+  private startWeekendRace() {
+    if (this.state !== 'results' || this.options.mode !== 'qualifying' || !this.current) return;
+    const grid = qualifyingGrid(this.current);
+    if (this.championshipRound >= 0 && this.championship)
+      this.ui.championshipNote = `CHAMPIONSHIP · ROUND ${this.championshipRound + 1} OF ${this.championship.rounds.length} · RACE FROM P${grid.indexOf(0) + 1}`;
+    void this.start({ ...this.options, mode: 'race', grid }).catch((e) => this.fail(e));
+  }
+  /** Score a finished championship race from its actual classification. */
+  private recordChampionshipRace(frame: Float32Array) {
+    const c = this.championship;
+    if (
+      this.options.mode !== 'race' ||
+      !c ||
+      this.championshipRound < 0 ||
+      this.championshipRound !== c.results.length ||
+      nextRound(c)?.circuit !== this.options.circuit
+    )
+      return;
+    const cars = Math.round(frame[H.CARS]);
+    const grid = this.options.grid ?? Array.from({ length: cars }, (_, i) => i);
+    let next: Championship;
+    try {
+      next = recordRound(c, raceResult(frame, grid, this.usedDemonstration, this.sessionId));
+    } catch (error) {
+      this.ui.toast(`Championship result not recorded: ${String(error)}`);
+      return;
+    }
+    const before = standings(c).find((s) => s.id === 0)!.points;
+    const table = standings(next);
+    const mine = table.findIndex((s) => s.id === 0);
+    this.ui.championshipNote = `CHAMPIONSHIP · ROUND ${next.results.length} OF ${next.rounds.length} · +${table[mine].points - before} PTS · P${mine + 1} IN STANDINGS${complete(next) ? ' · SEASON COMPLETE' : ''}`;
+    this.championshipRound = -1;
+    void this.saveChampionship(next).catch((error) =>
+      this.ui.toast(`Championship not saved: ${String(error)}`),
+    );
+  }
   private openTeam(page: HubPage = this.teamPage) {
     if (this.state === 'loading' || this.state === 'photo') return;
     this.suspendPlayback();
@@ -979,8 +1164,9 @@ export class GameApp {
     this.input.setEnabled(false);
     this.audio.stop();
     this.ui.showMode('results');
+    this.recordChampionshipRace(frame);
     this.ui.results(frame);
-    if (this.options.mode === 'race') {
+    if (racingSession(this.options.mode)) {
       const next = rewardRace(this.team, {
         session: this.sessionId,
         position: Math.round(frame[carBase(0) + F.RANK]),
@@ -1223,6 +1409,22 @@ export class GameApp {
         break;
       case 'team':
         this.openTeam();
+        break;
+      case 'championship':
+        if (this.state === 'loading') break;
+        this.suspendPlayback();
+        this.ui.championship(this.championship);
+        break;
+      case 'championship:new':
+        void this.saveChampionship(newChampionship(8))
+          .then(() => this.ui.championship(this.championship))
+          .catch((error) => this.ui.toast(`Championship not saved: ${String(error)}`));
+        break;
+      case 'championship:start':
+        this.startChampionshipRound();
+        break;
+      case 'weekendRace':
+        this.startWeekendRace();
         break;
       case 'references':
         this.suspendPlayback();
@@ -1776,6 +1978,11 @@ export class GameApp {
         reason: this.performanceCapture.reason,
       },
       auto: this.auto,
+      timeTrial: {
+        ghostLap: this.ghostPlayer?.lap.lapTime ?? 0,
+        ghostVisible: this.renderer?.ghostVisible() ?? false,
+        delta: this.ui.timeTrial?.delta ?? null,
+      },
       options: this.options,
       frame: this.current ? Array.from(this.current) : null,
       renderer: this.renderer?.stats(),

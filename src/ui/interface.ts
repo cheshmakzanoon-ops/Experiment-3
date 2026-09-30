@@ -21,14 +21,32 @@ import {
   DEFAULT_SETUP,
   DRIVERS,
   LIVERIES,
+  QUALIFYING_TIMED_LAPS,
   SETUP_LIMITS,
+  racingSession,
   type SessionOptions,
   type Setup,
 } from '../simulation/config.ts';
 import { F, H, W, WHEEL_BASE, WHEEL_STRIDE, WHEEL_NAMES, carBase } from '../simulation/protocol.ts';
 import { type Track } from '../simulation/track.ts';
-import { CIRCUIT_IDS, type CircuitId } from '../simulation/circuits.ts';
+import { CIRCUIT_IDS, circuitDefinition, type CircuitId } from '../simulation/circuits.ts';
+import {
+  DEFAULT_CALENDAR,
+  complete,
+  nextRound,
+  qualifyingGrid,
+  standings,
+  type Championship,
+} from '../core/championship.ts';
 
+const HTML_ESCAPES: Record<string, string> = {
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#39;',
+};
+const escapeHtml = (text: string) => text.replace(/[&<>"']/g, (c) => HTML_ESCAPES[c]);
 /** Menu labels for each original circuit (lengths are asserted in tests). */
 export const CIRCUIT_MENU_LABELS: Readonly<Record<CircuitId, string>> = Object.freeze({
   aurel: 'Aurel Grand Circuit · 2.97 km',
@@ -95,6 +113,8 @@ export class Interface {
   private bindingCapture: AbortController | null = null;
   playerName = DRIVERS[0];
   options: SessionOptions = { ...DEFAULT_OPTIONS };
+  /** Time Trial: saved personal best (0 when none) and the live ghost delta. */
+  timeTrial: { best: number; delta: number | null } | null = null;
   constructor(
     readonly element: HTMLElement,
     public track: Track,
@@ -107,12 +127,12 @@ export class Interface {
    <div class="menu-body" tabindex="0" role="region" aria-label="Race setup and tools"><div class="eyebrow"><i></i> <span id="circuitEyebrow">AUREL · GRAND CIRCUIT</span></div><h1>EVERY INPUT.<br>EVERY FORCE.</h1><p class="intro">Four contact patches. One racing line.<br>Find the limit between them.</p>
    <form id="sessionForm" class="session-form">
     <div class="form-row"><label>CIRCUIT<select id="circuit">${CIRCUIT_IDS.map((id) => `<option value="${id}">${CIRCUIT_MENU_LABELS[id]}</option>`).join('')}</select></label></div>
-    <div class="form-row"><label>SESSION<select id="mode"><option value="race">Grand Prix</option><option value="practice">Free practice</option></select></label><label>DISTANCE<select id="laps"><option value="1">1 lap · Sprint</option><option value="3" selected>3 laps · Standard</option><option value="5">5 laps</option><option value="10">10 laps</option></select></label></div>
+    <div class="form-row"><label>SESSION<select id="mode"><option value="race">Grand Prix</option><option value="practice">Free practice</option><option value="time-trial">Time trial · ghost</option><option value="qualifying">Race weekend · qualifying</option><option value="endurance">Endurance · mandatory stop</option></select></label><label>DISTANCE<select id="laps"><option value="1">1 lap · Sprint</option><option value="3" selected>3 laps · Standard</option><option value="5">5 laps</option><option value="10">10 laps</option><option value="15">15 laps · Endurance</option><option value="25">25 laps · Endurance</option></select></label></div>
     <div class="form-row"><label>WEATHER<select id="weather"><option value="clear">Clear / Dry</option><option value="changeable">Dry → Rain</option><option value="rain">Heavy rain</option></select></label><label>GRID<select id="opponents"><option value="0">Solo</option><option value="3">4 cars</option><option value="7" selected>8 cars</option><option value="11">12 cars</option></select></label></div>
     <div class="form-row"><label>TIRES<select id="compound"><option value="soft">Soft</option><option value="medium" selected>Medium</option><option value="hard">Hard</option><option value="intermediate">Intermediate</option><option value="wet">Full wet</option></select></label><label>CONTROL<select id="assist"><option value="sport">Sport / ABS + TC</option><option value="raw">Unassisted</option></select></label></div>
     <button class="primary enter" type="submit">ENTER CIRCUIT <span aria-hidden="true">↗</span></button>
     <button class="enter" type="submit" name="prepareGrid" value="yes">PREPARE GRID <span>START PAUSED</span></button>
-   </form><div class="menu-actions"><button data-action="settings">GARAGE & SETTINGS</button><button data-action="controls">CONTROLS</button><button data-action="team">TEAM HQ</button><button data-action="photo">PHOTO / LIVERY</button><button data-action="references">REFERENCE REVIEW</button><button data-action="sessionReview">SESSION 146 EVIDENCE</button><button data-action="academy">DRIVING ACADEMY</button></div>
+   </form><div class="menu-actions"><button data-action="settings">GARAGE & SETTINGS</button><button data-action="controls">CONTROLS</button><button data-action="championship">CHAMPIONSHIP</button><button data-action="team">TEAM HQ</button><button data-action="photo">PHOTO / LIVERY</button><button data-action="references">REFERENCE REVIEW</button><button data-action="sessionReview">SESSION 146 EVIDENCE</button><button data-action="academy">DRIVING ACADEMY</button></div>
    <p class="menu-note">WASD / ARROWS TO DRIVE · GAMEPAD SUPPORTED<br>G TO WATCH THE AI DRIVE YOUR CAR</p></div>
    <div class="car-label"><span>APX–01</span><b>FORMULA / HYBRID</b><div>770 KG DRY · 8 SPEED · 4 MJ ERS</div></div>
    <footer class="menu-footer"><span><b id="circuitLength">${(track.length / 1000).toFixed(3)}</b> KM CIRCUIT</span><span><b>120</b> HZ SIMULATION</span><span><b>240</b> HZ TIRE SOLVE</span><span>ENGINEERING BUILD / 0.1</span></footer>
@@ -120,7 +140,7 @@ export class Interface {
   <section id="hud" class="hud" hidden>
    <div class="hud-top"><div class="brand small">APEX<span>LIVE</span></div><div class="position-badge" role="status" aria-label="Race position"><b id="positionBadge">P1</b><span id="positionField">/ 1</span></div><div class="session-status"><span id="lapLabel">LAP 1 / 3</span><b id="flag">GRID</b><span id="weatherLabel">24°C / DRY</span></div><button class="icon-button" data-action="pause" aria-label="Pause session">Ⅱ</button></div>
    <aside class="timing" tabindex="0" aria-label="Live race classification"><div class="panel-heading">CLASSIFICATION <span>LIVE</span></div><div id="tower"></div></aside>
-   <div class="lap-panel"><label class="lap-delta">DELTA TO BEST<span id="lapDelta">—</span></label><label class="lap-current">CURRENT LAP<b id="lapTime">—:——.———</b></label><label>PERSONAL BEST<span id="bestLap">—:——.———</span></label><label>LAST LAP<span id="lastLap">—:——.———</span></label></div>
+   <div class="lap-panel"><label class="lap-delta"><i id="lapDeltaLabel">DELTA TO BEST</i><span id="lapDelta">—</span></label><label class="lap-current">CURRENT LAP<b id="lapTime">—:——.———</b></label><label>PERSONAL BEST<span id="bestLap">—:——.———</span></label><label>LAST LAP<span id="lastLap">—:——.———</span></label></div>
    <div id="startSequence" class="start-sequence" hidden><div id="lights">${'<i></i>'.repeat(5)}</div><span id="startText">BUILD REVS. HOLD THE BRAKE.</span></div>
    <div class="proximity proximity-left" id="proximityLeft" hidden><b>◀</b><span>CAR LEFT</span></div><div class="proximity proximity-right" id="proximityRight" hidden><b>▶</b><span>CAR RIGHT</span></div>
    <div class="race-message" id="raceMessage" role="status" aria-live="polite"></div>
@@ -191,7 +211,7 @@ export class Interface {
         circuit: select('circuit') as CircuitId,
         mode: select('mode') as SessionOptions['mode'],
         laps: Number(select('laps')),
-        opponents: Number(select('opponents')),
+        opponents: select('mode') === 'time-trial' ? 0 : Number(select('opponents')),
         weather: select('weather') as SessionOptions['weather'],
         compound: select('compound') as SessionOptions['compound'],
         assist: select('assist') as SessionOptions['assist'],
@@ -203,6 +223,17 @@ export class Interface {
     this.get('weather').addEventListener('change', () => {
       if ((this.get('weather') as HTMLSelectElement).value === 'rain')
         (this.get('compound') as HTMLSelectElement).value = 'wet';
+    });
+    // Time Trial is solo and open-ended: the field and distance do not apply.
+    this.get('mode').addEventListener('change', () => {
+      const mode = (this.get('mode') as HTMLSelectElement).value,
+        laps = this.get('laps') as HTMLSelectElement,
+        trial = mode === 'time-trial';
+      (this.get('opponents') as HTMLSelectElement).disabled = trial;
+      laps.disabled = trial;
+      // Endurance distances apply only to endurance; other races stop at 10.
+      if (mode === 'endurance' && Number(laps.value) < 15) laps.value = '15';
+      else if (mode !== 'endurance' && Number(laps.value) > 10) laps.value = '10';
     });
     this.get('replaySeek').addEventListener('input', (e) =>
       this.callbacks.seek(Number((e.target as HTMLInputElement).value)),
@@ -269,15 +300,26 @@ export class Interface {
     this.setText('rpm', Math.round(frame[o + F.RPM]).toLocaleString('en'));
     this.setText(
       'lapLabel',
-      `${this.options.mode === 'practice' ? 'PRACTICE / LAP' : 'LAP'} ${Math.min(this.options.laps, Math.round(frame[o + F.LAPS]) + 1)}${this.options.mode === 'race' ? ' / ' + this.options.laps : ''}`,
+      racingSession(this.options.mode)
+        ? `${this.options.mode === 'endurance' ? 'ENDURANCE / ' : ''}LAP ${Math.min(this.options.laps, Math.round(frame[o + F.LAPS]) + 1)} / ${this.options.laps}`
+        : this.options.mode === 'qualifying'
+          ? `QUALIFYING / ${
+              frame[o + F.FINISH] > 0
+                ? 'COMPLETE'
+                : frame[o + F.LAP_TIME] > 0
+                  ? `LAP ${Math.min(QUALIFYING_TIMED_LAPS, Math.round(frame[o + F.LAPS]) + 1)} / ${QUALIFYING_TIMED_LAPS}`
+                  : 'OUT LAP'
+            }`
+          : `${this.options.mode === 'time-trial' ? 'TIME TRIAL' : 'PRACTICE'} / LAP ${Math.round(frame[o + F.LAPS]) + 1}`,
     );
     const flag = frame[H.PHASE] < 2 ? 'GRID' : flagLabel(frame[H.FLAG]);
-    const delta = frame[o + F.LAP_DELTA];
-    this.setText(
-      'lapDelta',
-      frame[o + F.DELTA_VALID] ? `${delta >= 0 ? '+' : ''}${delta.toFixed(3)} S` : '—',
-    );
-    this.get('lapDelta').dataset.ahead = frame[o + F.DELTA_VALID] > 0 ? String(delta < 0) : 'none';
+    // Time Trial compares against the saved personal-best ghost when one exists.
+    const trial = this.options.mode === 'time-trial' ? this.timeTrial : null;
+    const deltaValid = trial ? trial.delta !== null : frame[o + F.DELTA_VALID] > 0;
+    const delta = trial ? (trial.delta ?? 0) : frame[o + F.LAP_DELTA];
+    this.setText('lapDeltaLabel', trial?.best ? 'DELTA TO PB' : 'DELTA TO BEST');
+    this.setText('lapDelta', deltaValid ? `${delta >= 0 ? '+' : ''}${delta.toFixed(3)} S` : '—');
+    this.get('lapDelta').dataset.ahead = deltaValid ? String(delta < 0) : 'none';
     this.setText('flag', flag);
     this.get('flag').dataset.flag = String(frame[H.FLAG]);
     this.setText('weatherLabel', weatherReadout(frame[H.AMBIENT], frame[H.RAIN], frame[H.WATER]));
@@ -287,6 +329,8 @@ export class Interface {
       ['lastLap', F.LAST_LAP],
     ] as const)
       this.setText(id, lapTime(frame[o + field]));
+    if (trial?.best && !(frame[o + F.BEST_LAP] > 0 && frame[o + F.BEST_LAP] < trial.best))
+      this.setText('bestLap', lapTime(trial.best));
     this.setText('battery', `${Math.round(frame[o + F.BATTERY] / 4e4)}%`);
     this.setText('fuel', `${frame[o + F.FUEL].toFixed(1)} KG`);
     this.get('brakeBar').style.width = `${frame[o + F.BRAKE] * 100}%`;
@@ -706,7 +750,13 @@ export class Interface {
       }
     };
   }
+  /** Championship line under a race classification (set by the application). */
+  championshipNote = '';
   results(frame: Float32Array) {
+    if (this.options.mode === 'qualifying') {
+      this.qualifyingResults(frame);
+      return;
+    }
     const rows = Array.from({ length: frame[H.CARS] }, (_, id) => id)
       .sort((a, b) => frame[carBase(a) + F.RANK] - frame[carBase(b) + F.RANK])
       .map((id, index) => {
@@ -715,7 +765,54 @@ export class Interface {
       })
       .join('');
     this.modalContent(
-      `<span class="eyebrow">CHEQUERED FLAG / SESSION CLASSIFICATION</span><h2>${frame[carBase(0) + F.FINISH] > 0 ? 'Across the line.' : 'Session ended.'}</h2><p>Final classification by completed laps and penalty-adjusted time. DNF cars have no invented finish time.</p><table class="results"><thead><tr><th>POS</th><th>DRIVER</th><th>LAPS</th><th>TIME + PEN.</th><th>BEST LAP</th><th>PEN.</th></tr></thead><tbody>${rows}</tbody></table><div class="dialog-buttons inline"><button class="primary" data-action="replay">WATCH REPLAY</button><button data-action="telemetry">TELEMETRY</button><button data-action="photo">PHOTO STUDIO</button><button data-action="academy">ACADEMY</button><button data-action="team">TEAM HQ</button><button data-action="restart">RACE AGAIN</button><button data-action="menu">PADDOCK</button></div>`,
+      `<span class="eyebrow">CHEQUERED FLAG / SESSION CLASSIFICATION</span><h2>${frame[carBase(0) + F.FINISH] > 0 ? 'Across the line.' : 'Session ended.'}</h2><p>Final classification by completed laps and penalty-adjusted time. DNF cars have no invented finish time.</p><table class="results"><thead><tr><th>POS</th><th>DRIVER</th><th>LAPS</th><th>TIME + PEN.</th><th>BEST LAP</th><th>PEN.</th></tr></thead><tbody>${rows}</tbody></table>${this.championshipNote ? `<p class="championship-note">${escapeHtml(this.championshipNote)}</p>` : ''}<div class="dialog-buttons inline"><button class="primary" data-action="replay">WATCH REPLAY</button><button data-action="telemetry">TELEMETRY</button>${this.championshipNote ? '<button data-action="championship">STANDINGS</button>' : ''}<button data-action="photo">PHOTO STUDIO</button><button data-action="academy">ACADEMY</button><button data-action="team">TEAM HQ</button><button data-action="restart">RACE AGAIN</button><button data-action="menu">PADDOCK</button></div>`,
+    );
+  }
+  /** Qualifying classification: the fastest valid lap sets the race grid. */
+  qualifyingResults(frame: Float32Array) {
+    const grid = qualifyingGrid(frame),
+      pole = frame[carBase(grid[0]) + F.BEST_LAP];
+    const rows = grid
+      .map((id, index) => {
+        const best = frame[carBase(id) + F.BEST_LAP];
+        const gap = best > 0 && pole > 0 && index > 0 ? `+${(best - pole).toFixed(3)}` : '';
+        return `<tr${id === 0 ? ' class="you"' : ''}><td>${index + 1}</td><td>${id === 0 ? escapeHtml(this.playerName) : DRIVERS[id]}</td><td>${best > 0 ? lapTime(best) : 'NO TIME'}</td><td>${gap}</td></tr>`;
+      })
+      .join('');
+    const position = grid.indexOf(0) + 1;
+    this.modalContent(
+      `<span class="eyebrow">QUALIFYING / CLASSIFICATION</span><h2>${position === 1 ? 'Pole position.' : `P${position} on the grid.`}</h2><p>Fastest valid lap sets the starting order. Invalid or penalised laps do not count.</p><table class="results"><thead><tr><th>POS</th><th>DRIVER</th><th>BEST LAP</th><th>GAP</th></tr></thead><tbody>${rows}</tbody></table>${this.championshipNote ? `<p class="championship-note">${escapeHtml(this.championshipNote)}</p>` : ''}<div class="dialog-buttons inline"><button class="primary" data-action="weekendRace">START RACE FROM THIS GRID</button><button data-action="replay">WATCH REPLAY</button><button data-action="telemetry">TELEMETRY</button><button data-action="menu">PADDOCK</button></div>`,
+    );
+  }
+  /** Championship standings and calendar. */
+  championship(c: Championship | null) {
+    if (!c) {
+      this.modalContent(
+        `<span class="eyebrow">CHAMPIONSHIP</span><h2>A season of race weekends.</h2><p>${DEFAULT_CALENDAR.length} rounds across the original circuits. Each weekend is qualifying, which sets the grid, and then the race. Points go to the top ten finishers (25-18-15-12-10-8-6-4-2-1). Progress is saved on this device.</p><div class="dialog-buttons inline"><button class="primary" data-action="championship:new">START NEW CHAMPIONSHIP</button><button data-action="modalClose">CLOSE</button></div>`,
+      );
+      return;
+    }
+    const table = standings(c);
+    const rows = table
+      .map(
+        (s, index) =>
+          `<tr${s.id === 0 ? ' class="you"' : ''}><td>${index + 1}</td><td>${s.id === 0 ? escapeHtml(this.playerName) : DRIVERS[s.id]}</td><td>${s.points}</td><td>${s.wins}</td><td>${s.finishes.map((p) => (p ? `P${p}` : 'DNF')).join(' · ') || '—'}</td></tr>`,
+      )
+      .join('');
+    const calendar = c.rounds
+      .map((r, i) => {
+        const done = c.results[i];
+        const status = done
+          ? `P${done.order.indexOf(0) + 1}${done.retired.includes(0) ? ' (DNF)' : ''}${done.demonstration ? ' · AI DEMO' : ''}`
+          : i === c.results.length
+            ? 'NEXT'
+            : '';
+        return `<li${i === c.results.length ? ' class="next"' : ''}><b>R${i + 1}</b> ${circuitDefinition(r.circuit).name} · ${r.weather.toUpperCase()} · ${r.laps} LAPS <span>${status}</span></li>`;
+      })
+      .join('');
+    const round = nextRound(c);
+    this.modalContent(
+      `<span class="eyebrow">CHAMPIONSHIP / ROUND ${Math.min(c.results.length + 1, c.rounds.length)} OF ${c.rounds.length}</span><h2>${complete(c) ? `Champion: ${table[0].id === 0 ? escapeHtml(this.playerName) : DRIVERS[table[0].id]}.` : 'Standings.'}</h2><ol class="championship-calendar">${calendar}</ol><table class="results"><thead><tr><th>POS</th><th>DRIVER</th><th>PTS</th><th>WINS</th><th>RESULTS</th></tr></thead><tbody>${rows}</tbody></table><div class="dialog-buttons inline">${round ? `<button class="primary" data-action="championship:start">START ROUND ${c.results.length + 1} · QUALIFYING</button>` : ''}<button data-action="championship:new">NEW CHAMPIONSHIP</button><button data-action="modalClose">CLOSE</button></div>`,
     );
   }
   error(error: string) {
