@@ -1,3 +1,4 @@
+import { cockpitEye, cockpitDirection, COCKPIT_FRAMING } from './cockpit-framing.ts';
 import { loadPitJacks } from './a32-pit-jacks.ts';
 import { measurePitJackFits } from './a32-jack-contact.ts';
 import { loadWheelGuns, WheelGunStorage } from './wheel-gun.ts';
@@ -763,11 +764,10 @@ export class RacingRenderer {
             this.shake,
           );
         if (car.suppliedPlayer) {
-          this.desired
-            .copy(cameraMode === 'pod' ? car.suppliedPlayer.pod : car.suppliedPlayer.eye)
-            .add(this.inertia.offset)
-            .applyQuaternion(car.root.quaternion)
-            .add(car.root.position);
+          if (cameraMode === 'cockpit')
+            cockpitEye(car.suppliedPlayer.eye, this.inertia.offset, this.desired);
+          else this.desired.copy(car.suppliedPlayer.pod).add(this.inertia.offset);
+          this.desired.applyQuaternion(car.root.quaternion).add(car.root.position);
         } else {
           this.inertia.eye(
             car.root.position,
@@ -777,7 +777,9 @@ export class RacingRenderer {
           );
         }
         const orientation = this.viewOrientation.update(car.root.quaternion, cameraDt);
-        this.direction.set(0, -0.035, 1).applyQuaternion(orientation).normalize();
+        if (cameraMode === 'cockpit' && car.suppliedPlayer) cockpitDirection(this.direction);
+        else this.direction.set(0, -0.035, 1);
+        this.direction.applyQuaternion(orientation).normalize();
         this.gaze.copy(this.desired).addScaledVector(this.direction, 40);
       } else {
         this.desired
@@ -793,7 +795,10 @@ export class RacingRenderer {
           .applyQuaternion(car.root.quaternion);
         this.gaze.copy(this.desired).addScaledVector(this.direction, 30);
       }
-      this.camera.fov = (cameraMode === 'chase' ? 57 : 68) + Math.min(7, speed * 0.075);
+      this.camera.fov =
+        cameraMode === 'cockpit' && car.suppliedPlayer
+          ? COCKPIT_FRAMING.verticalFov
+          : (cameraMode === 'chase' ? 57 : 68) + Math.min(7, speed * 0.075);
     }
     if (!this.initialized || cameraMode !== 'chase' || menu || this.photo) {
       this.camera.position.copy(this.desired);

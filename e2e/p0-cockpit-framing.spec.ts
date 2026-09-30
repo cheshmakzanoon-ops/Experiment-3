@@ -47,11 +47,30 @@ test('P0 actual supplied cockpit, full circuit and camera framing evidence', asy
     });
     expect(row.visual.suppliedPlayer).not.toBeNull();
     expect(row.camera.position.every(Number.isFinite)).toBe(true);
+    expect(row.nearIntersections, row.name).toEqual([]);
+    if (row.name !== 'pod-retained') {
+      expect(row.camera.fov, row.name).toBe(report.calibration.verticalFov);
+      expect(row.visual.screenVisible, row.name).toBe(true);
+      expect(Math.abs(row.visual.wheelProjection[0]), row.name).toBeLessThan(0.15);
+      expect(row.visual.wheelProjection[1], row.name).toBeGreaterThan(-0.8);
+      expect(row.visual.wheelProjection[1], row.name).toBeLessThan(0);
+    }
     expect(row.image.length).toBeGreaterThan(10000);
   }
   await info.attach('p0-cockpit.json', {
     body: JSON.stringify(report, (key, value) => (key === 'image' ? undefined : value), 2),
     contentType: 'application/json',
   });
+  expect(report.sourceFramesUnchanged).toBe(true);
+  expect(report.sourceEyeRetained).toBe(true);
+  expect(report.glError).toBe(0);
+  expect(report.rows.find((row) => row.name === 'kerb-contact')!.surface).toContain(2);
+  expect(report.rows.find((row) => row.name === 'wet-night')!.rain).toBeGreaterThan(0);
+  expect(report.rows.find((row) => row.name === 'moving')!.speed).toBeGreaterThan(10);
+  const right = report.rows.find((row) => row.name === 'right-lock')!;
+  expect(report.rows.find((row) => row.name === 'paused')!.camera).toEqual(right.camera);
+  expect(report.rows.find((row) => row.name === 'pod-retained')!.camera.fov).toBeGreaterThan(
+    report.calibration.verticalFov,
+  );
   expect(errors).toEqual([]);
 });

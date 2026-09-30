@@ -1,3 +1,4 @@
+import { COCKPIT_FRAMING } from '../src/rendering/cockpit-framing.ts';
 import suppliedManifest from '../src/rendering/supplied-player.manifest.json' with { type: 'json' };
 import { readFile } from 'node:fs/promises';
 import { test, expect, type Page } from '@playwright/test';
@@ -88,13 +89,16 @@ test('browser session, cameras, pause safety, telemetry and replay', async ({ pa
     for (const joint of [arm.shoulder, arm.elbow, arm.wrist])
       expect(joint?.length === 3 && joint.every(Number.isFinite)).toBe(true);
   }
-  // The source socket is in the asset frame. Subtract the chassis datum once;
-  // allow only the production inertial camera's small, physically driven offset.
+  // Source socket receives the chassis datum once. Presentation adds the
+  // independently calibrated seat offset and its explicit inertial envelope.
   const expectedEye = [...suppliedManifest.sockets.eye];
   expectedEye[1] -= 0.25;
   expectedEye.forEach((value, axis) => {
     expect(supplied!.eye[axis]).toBeCloseTo(value, 6);
-    expect(Math.abs(eye[axis] - value)).toBeLessThan(axis === 1 ? 0.03 : 0.05);
+    const calibrated = value + COCKPIT_FRAMING.eyeOffset[axis];
+    expect(Math.abs(eye[axis] - calibrated)).toBeLessThanOrEqual(
+      COCKPIT_FRAMING.motionLimit[axis] + 1e-6,
+    );
   });
   expect(visual.visual!.screenVisible).toBe(true);
   expect(Math.abs(visual.visual!.wheelProjection[0])).toBeLessThan(1);

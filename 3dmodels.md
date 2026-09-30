@@ -32,6 +32,8 @@ An integrated revision is not final approval and does not complete related asset
 
 ## P0 — Cockpit view repair before new cockpit art
 
+A first camera-only calibration is implemented and under the permanent production-renderer evidence gate. The source socket and supplied meshes remain unchanged. See [P0 framing evidence](docs/P0_COCKPIT_FRAMING.md); final visual approval is still open.
+
 The existing 3D cockpit should be retained, but its first-person presentation needs correction.
 
 Required work:
