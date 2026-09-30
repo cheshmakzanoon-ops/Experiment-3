@@ -13,14 +13,16 @@ test('27H.4 normal startup constructs the upgraded districts and retained event 
   const read = () => page.evaluate(() => window.apexDiagnostics());
   const loaded = await read();
   const environment = loaded.renderer?.environmentAssets;
-  expect(environment?.source).toBe('constructed-runtime-groups');
-  expect(environment?.districts.map((d) => d.kind)).toEqual([
+  if (!environment?.frontage)
+    throw new Error('A21 frontage diagnostics are unavailable at startup');
+  expect(environment.source).toBe('constructed-runtime-groups');
+  expect(environment.districts.map((d) => d.kind)).toEqual([
     'club',
     'terrace',
     'works',
     'concourse',
   ]);
-  for (const district of environment!.districts) {
+  for (const district of environment.districts) {
     expect(district.revision).toBe('27H.4-constructed-venue-v1');
     expect(district.position.every(Number.isFinite)).toBe(true);
     expect(district.finalArtApproved).toBe(false);
@@ -36,7 +38,34 @@ test('27H.4 normal startup constructs the upgraded districts and retained event 
     .poll(async () => (await read()).workerPause)
     .toMatchObject({ pending: false, paused: true });
   const paused = await read();
-  expect(paused.renderer?.environmentAssets).toEqual(environment);
+  const pausedEnvironment = paused.renderer?.environmentAssets;
+  if (!pausedEnvironment?.frontage)
+    throw new Error('A21 frontage diagnostics are unavailable after practice entry');
+
+  // Entering the circuit moves the camera from the menu framing and therefore
+  // legitimately changes A21's distance-based LODs. Keep every static asset
+  // identity field strict while accepting only the documented dynamic counters.
+  expect(pausedEnvironment).toEqual({
+    ...environment,
+    frontage: {
+      ...environment.frontage,
+      chunks: environment.frontage.chunks.map((chunk) => ({
+        ...chunk,
+        lod: expect.any(Number),
+        triangles: expect.any(Number),
+      })),
+      triangles: expect.any(Number),
+    },
+  });
+  for (const chunk of pausedEnvironment.frontage.chunks) {
+    expect(Number.isInteger(chunk.lod)).toBe(true);
+    expect(chunk.lod).toBeGreaterThanOrEqual(0);
+    expect(chunk.lod).toBeLessThanOrEqual(2);
+    expect(chunk.triangles).toBeGreaterThan(0);
+  }
+  expect(pausedEnvironment.frontage.triangles).toBe(
+    pausedEnvironment.frontage.chunks.reduce((total, chunk) => total + chunk.triangles, 0),
+  );
   await info.attach('27h4-normal-startup.json', {
     body: JSON.stringify(
       {
