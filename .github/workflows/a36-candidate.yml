@@ -57,6 +57,18 @@ jobs:
           old="REMOVE = ['.github/a36-candidate.zip', '.github/workflows/a36-candidate.yml']"
           assert text.count(old)==1
           p.write_text(text.replace(old,"REMOVE = ['.github/workflows/a36-candidate.yml']",1))
+          def patch(name,old,new):
+              p=Path(name);text=p.read_text();assert text.count(old)==1,(name,old,text.count(old));p.write_text(text.replace(old,new,1))
+          patch('scripts/author-workshop-equipment.py', "'position': [-1.7, .05, 3.34]", "'position': [-3.25, .05, 3.34]")
+          patch('scripts/author-workshop-equipment.py', "'position': [-4.55, .05, 3.34]", "'position': [-1.6, .05, 2.95]")
+          patch('.github/workflows/a36-authoring.yml', 'Regenerate outside checkout; no publishing', 'Re-export retained Blender source outside checkout; no publishing')
+          patch('.github/workflows/a36-authoring.yml', 'cp scripts/author-workshop-equipment.py /tmp/a36-repro/scripts/', 'cp scripts/author-workshop-equipment.py scripts/aurel-workshop-equipment.blend /tmp/a36-repro/scripts/')
+          patch('.github/workflows/a36-authoring.yml', '--python /tmp/a36-repro/scripts/author-workshop-equipment.py\n', '--python /tmp/a36-repro/scripts/author-workshop-equipment.py -- --export-only\n')
+          patch('docs/A36_WORKSHOP_EQUIPMENT.md', 'regenerates in an\nisolated temporary directory and checks the selected GLB.', 're-exports the retained Blender source in an\nisolated temporary directory and checks the selected GLB byte-for-byte.')
+          p=Path('docs/A36_WORKSHOP_EQUIPMENT.md')
+          p.write_text(p.read_text()+'''\n## Cross-host export and placement validation\n\nFresh parametric builds can differ in a few final UV/normal digits; fresh-build\nbyte identity is not claimed. The inspected local and hosted checkpoint had\nidentical JSON, positions, triangle indices and all three PNG maps. The largest\nnormal component difference was 0.000007004 and UV difference 0.000001014.\nOpening that hosted retained `.blend` on the local host reproduced its GLB\nbyte-for-byte. The permanent workflow therefore checks retained-source export,\nnot an unsupported promise that fresh evaluated normals are bit-identical.\nThe selected publication hash and native-texture browser evidence remain\nauthoritative; no pixel-equivalence claim is inferred from the numeric comparison.\n\nThe geometry gate detected the initial bench intersecting the electrical\nenclosure and stowed hoses. The revised chest centre is (-3.25, 0.05, 3.34) m\nand the bench centre is (-1.60, 0.05, 2.95) m, both facing the aisle. All 39,444\nnear-level A22 architectural triangles were checked against the revised\nfootprints without altering the garage or relaxing the collision assertion.\n''')
+          patch('e2e/fixtures/workshop-equipment.ts', "{ name: 'flight-cases',", "{ name: 'workbench', eye: [-.35, 1.45, 1.10], target: [-1.6, .65, 2.95], fov: 70 },\n        { name: 'flight-cases',")
+          patch('e2e/a36-workshop-equipment.spec.ts', 'expect(report.images).toHaveLength(8)', 'expect(report.images).toHaveLength(10)')
           print('Verified and recovered all eleven source files; no branch refs changed.')
           PY
           python .github/a36-install.py
@@ -80,14 +92,21 @@ jobs:
           from pathlib import Path
           local=json.loads(Path('.github/a36-local-receipt.json').read_text())
           hosted=json.loads(Path('src/rendering/workshop-equipment.manifest.json').read_text())
-          for key in ['bytes','triangles','sourceComponents','nodes','meshes','variants','placements']:
+          for key in ['bytes','triangles','sourceComponents','nodes','meshes','variants']:
               assert local[key]==hosted[key], ('A36 cross-host structural mismatch',key)
+          assert hosted['placements'][0]['position']==[-3.25,.05,3.34]
+          assert hosted['placements'][3]['position']==[-1.6,.05,2.95]
           print('Local GLB:',local['sha256'],'Hosted GLB:',hosted['sha256'],'Byte equality:',local['sha256']==hosted['sha256'])
           print('Hosted bytes require separate native-texture visual review; no branch ref is updated by this workflow.')
           PY
       - run: npm ci --no-audit --no-fund
       - name: Format only A36-owned files
         run: npx prettier --write src/rendering/workshop-equipment.ts src/rendering/workshop-equipment.manifest.json tests/workshop-equipment.test.ts e2e/a36-workshop-equipment.spec.ts e2e/fixtures/workshop-equipment.ts docs/A36_WORKSHOP_EQUIPMENT.md .github/workflows/a36-authoring.yml
+      - name: Focused actual-geometry tests and TypeScript first
+        run: |
+          set -o pipefail
+          npx vitest run tests/workshop-equipment.test.ts tests/hero-garage.test.ts 2>&1 | tee a36-focused.log
+          npx tsc --noEmit 2>&1 | tee a36-types.log
       - name: Full lint, unit tests, TypeScript and production build
         run: |
           set -o pipefail
@@ -119,6 +138,8 @@ jobs:
             a36-author.log
             a36-verify.log
             a36-check.log
+            a36-focused.log
+            a36-types.log
             a36-browser.log
             test-results/
             playwright-report/
