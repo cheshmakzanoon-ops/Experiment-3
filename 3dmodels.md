@@ -282,3 +282,8 @@ The immediate high-value asset groups are:
 ## A34 authored revision 01
 
 A34 now supplies nine original Blender-authored blanket/controller/cable variants and a socket-aligned, material-batched arrangement in A22 bay 05. Editable source, self-contained GLB, three LODs, integrity manifest and focused tests are retained. This is not heating simulation, A33 wheel handling, final-art approval or cockpit-camera repair. See [A34 scope and validation](docs/A34_TYRE_BLANKETS.md).
+
+
+## A36 authored revision 01
+
+A36 supplies an original rolling seven-drawer tool chest, medium and large flight cases, and a freestanding workbench. Four garage-local placements in A22 bay 05 share one PBR atlas and three batched LODs. Editable Blender source, self-contained GLB, footprint/transport/ownership tests and production-factory browser surveys are retained. These are parked visual props, not live drawer interaction, crew animation, collision changes, cockpit repair or final-art approval. See [A36 scope and validation](docs/A36_WORKSHOP_EQUIPMENT.md).

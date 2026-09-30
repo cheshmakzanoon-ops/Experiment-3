@@ -1,3 +1,4 @@
+import { loadWorkshopEquipment, type WorkshopEquipment } from './workshop-equipment.ts';
 import { loadOverheadServiceRig, type OverheadServiceRig } from './overhead-garage-service-rig.ts';
 import { A33GarageStorage } from './a33-spare-wheel-set.ts';
 import * as T from 'three';
@@ -96,6 +97,7 @@ export function garageLod(
 
 /** One owned, non-animated bay. Race state, collisions and car spawn are untouched. */
 export class HeroGarage {
+  workshop: WorkshopEquipment | null = null;
   overhead: OverheadServiceRig | null = null;
   readonly spareWheelStorage: A33GarageStorage;
   readonly levels: T.Object3D[];
@@ -167,6 +169,7 @@ export class HeroGarage {
     return {
       assetId: 'A22',
       overheadServices: this.overhead?.diagnostics(this.level) ?? null,
+      workshop: this.workshop?.diagnostics(this.level) ?? null,
       spareWheels: this.spareWheelStorage.wheels.diagnostics(),
       revision: manifest.revision,
       sha256: manifest.sha256,
@@ -183,6 +186,7 @@ export class HeroGarage {
     if (this.disposed) return;
     this.disposed = true;
     this.overhead?.dispose();
+    this.workshop?.dispose();
     const geometries = new Set<T.BufferGeometry>(),
       materials = new Set<T.Material>(),
       textures = new Set<T.Texture>();
@@ -282,6 +286,12 @@ export async function loadHeroGarage(
       fetcher,
     );
     garage.overhead.attachTo(garage.root, garage.levels);
+    garage.workshop = await loadWorkshopEquipment(
+      () => cancelled() || controller.signal.aborted,
+      undefined,
+      fetcher,
+    );
+    garage.workshop.attachTo(garage.root, garage.levels);
     if (cancelled() || controller.signal.aborted) throw aborted();
     return garage;
   } catch (error) {

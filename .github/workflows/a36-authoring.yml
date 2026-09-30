@@ -1,0 +1,61 @@
+name: A36 workshop equipment authoring validation
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - scripts/author-workshop-equipment.py
+      - scripts/verify-workshop-equipment.py
+      - scripts/aurel-workshop-equipment.blend
+      - public/models/aurel-workshop-equipment.glb
+      - src/rendering/workshop-equipment*
+      - src/rendering/hero-garage.ts
+      - tests/workshop-equipment.test.ts
+      - e2e/a36-workshop-equipment.spec.ts
+      - e2e/fixtures/workshop-equipment.ts
+      - .github/workflows/a36-authoring.yml
+permissions:
+  contents: read
+jobs:
+  author-and-validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      APEX_BROWSER_BACKEND: mesa
+      LIBGL_ALWAYS_SOFTWARE: 'true'
+      GALLIUM_DRIVER: llvmpipe
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: python scripts/verify-workshop-equipment.py
+      - name: Pinned Blender
+        run: |
+          curl --fail --location --retry 3 https://download.blender.org/release/Blender5.2/blender-5.2.2-linux-x64.tar.xz -o /tmp/blender.tar.xz
+          echo '84098912789dc450e95697c4184fb8a90acbe5111c2ba4aede3fecb57806a168  /tmp/blender.tar.xz' | sha256sum -c -
+          mkdir /tmp/a36-blender
+          tar -xJf /tmp/blender.tar.xz -C /tmp/a36-blender --strip-components=1
+      - name: Re-export retained Blender source outside checkout; no publishing
+        run: |
+          mkdir -p /tmp/a36-repro/scripts
+          cp scripts/author-workshop-equipment.py scripts/aurel-workshop-equipment.blend /tmp/a36-repro/scripts/
+          /tmp/a36-blender/blender -b -t 2 --factory-startup --python-exit-code 1 --python /tmp/a36-repro/scripts/author-workshop-equipment.py -- --export-only
+          cmp public/models/aurel-workshop-equipment.glb /tmp/a36-repro/public/models/aurel-workshop-equipment.glb
+      - run: npm ci --no-audit --no-fund
+      - run: npm test -- tests/workshop-equipment.test.ts tests/hero-garage.test.ts
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: sudo apt-get update && sudo apt-get install -y xvfb libgl1-mesa-dri libegl-mesa0 mesa-utils
+      - run: xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e -- e2e/a36-workshop-equipment.spec.ts
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: a36-workshop-validation
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
