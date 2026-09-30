@@ -1,0 +1,113 @@
+name: A36 workshop candidate validation
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [.github/workflows/a36-candidate.yml]
+permissions:
+  contents: write
+jobs:
+  candidate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      APEX_BROWSER_BACKEND: mesa
+      LIBGL_ALWAYS_SOFTWARE: 'true'
+      GALLIUM_DRIVER: llvmpipe
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Recover hash-pinned A36 source and apply narrow garage hooks
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python - <<'PY'
+          import base64, hashlib, io, json, os, urllib.request, zipfile
+          from pathlib import Path
+          chunks = ['cbc32899ad156cc31df099f38e8e1e293512fe91','868e68777cd97e95f38740a4074a6c38e66e0b17','bf42e3ac168755b8733fb7f186d4ca9a19e794ea','6a7eb4ac23879cb0c16ea390ce379c58723d63e9','054bb0864c6a2e660ce8e32df503cc0fab658e8b']
+          content = bytearray()
+          for sha in chunks:
+              url = os.environ['GITHUB_API_URL']+'/repos/'+os.environ['GITHUB_REPOSITORY']+'/git/blobs/'+sha
+              req = urllib.request.Request(url, headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json'})
+              with urllib.request.urlopen(req, timeout=60) as response:
+                  blob = json.load(response)
+              raw = base64.b64decode(blob['content'])
+              assert hashlib.sha1(f'blob {len(raw)}\0'.encode()+raw).hexdigest()==sha
+              content.extend(raw)
+          assert len(content)==29336
+          assert hashlib.sha256(content).hexdigest()=='072e4cfeda209f463bf4e20d494d0e03f50cb94f2edd0b866ad0b4c74ebf5a0c'
+          allowed = {'scripts/author-workshop-equipment.py','scripts/verify-workshop-equipment.py','src/rendering/workshop-equipment.ts','tests/workshop-equipment.test.ts','e2e/a36-workshop-equipment.spec.ts','e2e/fixtures/workshop-equipment.ts','docs/A36_WORKSHOP_EQUIPMENT.md','.github/workflows/a36-authoring.yml','.github/a36-install.py','.github/a36-local-receipt.json','.github/a36-publish.py'}
+          with zipfile.ZipFile(io.BytesIO(content)) as archive:
+              assert archive.namelist()==['source.json']
+              files=json.loads(archive.read('source.json'))
+          assert set(files)==allowed
+          for name,text in files.items():
+              path=Path(name)
+              assert not path.exists(), f'A36 path already exists; reconcile instead of overwriting: {name}'
+              assert isinstance(text,str)
+              path.parent.mkdir(parents=True,exist_ok=True)
+              path.write_text(text)
+          p=Path('.github/a36-publish.py')
+          text=p.read_text()
+          old="REMOVE = ['.github/a36-candidate.zip', '.github/workflows/a36-candidate.yml']"
+          assert text.count(old)==1
+          p.write_text(text.replace(old,"REMOVE = ['.github/workflows/a36-candidate.yml']",1))
+          print('Verified and recovered all eleven source files; no branch refs changed.')
+          PY
+          python .github/a36-install.py
+      - name: Pinned Blender 5.2.2 LTS
+        run: |
+          curl --fail --location --retry 3 https://download.blender.org/release/Blender5.2/blender-5.2.2-linux-x64.tar.xz -o /tmp/blender.tar.xz
+          echo '84098912789dc450e95697c4184fb8a90acbe5111c2ba4aede3fecb57806a168  /tmp/blender.tar.xz' | sha256sum -c -
+          mkdir /tmp/a36-blender
+          tar -xJf /tmp/blender.tar.xz -C /tmp/a36-blender --strip-components=1
+      - name: Author and verify actual Blender meshes
+        run: |
+          set -o pipefail
+          /tmp/a36-blender/blender -b -t 2 --factory-startup --python-exit-code 1 --python scripts/author-workshop-equipment.py 2>&1 | tee a36-author.log
+          python scripts/verify-workshop-equipment.py | tee a36-verify.log
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          local=json.loads(Path('.github/a36-local-receipt.json').read_text())
+          hosted=json.loads(Path('src/rendering/workshop-equipment.manifest.json').read_text())
+          assert local['sha256']==hosted['sha256'], 'Hosted GLB differs; inspect before selecting different bytes'
+          print('Hosted Blender reproduced the exact locally validated GLB:',hosted['sha256'])
+          PY
+      - run: npm ci --no-audit --no-fund
+      - name: Format only A36-owned files
+        run: npx prettier --write src/rendering/workshop-equipment.ts src/rendering/workshop-equipment.manifest.json tests/workshop-equipment.test.ts e2e/a36-workshop-equipment.spec.ts e2e/fixtures/workshop-equipment.ts docs/A36_WORKSHOP_EQUIPMENT.md .github/workflows/a36-authoring.yml
+      - name: Full lint, unit tests, TypeScript and production build
+        run: |
+          set -o pipefail
+          npm run check 2>&1 | tee a36-check.log
+      - run: npx playwright install --with-deps chromium
+      - run: sudo apt-get update && sudo apt-get install -y xvfb libgl1-mesa-dri libegl-mesa0 mesa-utils
+      - name: Production startup, four lighting-weather surveys and A22 regressions
+        run: |
+          set -o pipefail
+          xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e -- e2e/a36-workshop-equipment.spec.ts e2e/43-hero-garage.spec.ts 2>&1 | tee a36-browser.log
+      - name: Retain validated Git objects without updating any branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python .github/a36-publish.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: a36-candidate-evidence
+          path: |
+            a36-candidate-receipt.json
+            a36-validated-source.zip
+            a36-author.log
+            a36-verify.log
+            a36-check.log
+            a36-browser.log
+            test-results/
+            playwright-report/
+          if-no-files-found: error
+          retention-days: 7
