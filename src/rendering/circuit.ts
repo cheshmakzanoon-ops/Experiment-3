@@ -14,9 +14,12 @@ import type { CrowdCluster } from './crowd.ts';
 import { APRON_COLUMNS, grassApronLateral, grassApronOffset } from './ground-profile.ts';
 import { barrierMaterials, buildBarrierChunk } from './circuit-barriers.ts';
 import { installCircuitFinish } from './circuit-finish.ts';
-import { GRANDSTANDS, standMaterials, buildGrandstand } from './grandstand.ts';
+import { standMaterials, buildGrandstand } from './grandstand.ts';
+import { venuePlan } from './venue-plan.ts';
+import { terrainFor } from './terrain.ts';
+import { buildSea, installShoreline, shoreWeight } from './sea.ts';
 import { buildGarageBay, paddockMaterials } from './paddock-detail.ts';
-import { buildVegetation, terrainHeight } from './landscape.ts';
+import { buildVegetation } from './landscape.ts';
 import {
   buildTrackInfrastructure,
   trackInfrastructurePlan as makeTrackInfrastructurePlan,
@@ -194,22 +197,34 @@ export class CircuitScene {
     }
     // Surface colour below the horizon: track ribbons cover the actual collision elevation.
     this.construction.add('Distant terrain', 3, () => {
-      // 34 m cells resolve the ridged range's crests at horizon distance.
-      const terrain = new T.PlaneGeometry(5500, 5500, 160, 160);
+      const model = terrainFor(track);
+      // 34 m cells resolve the ridged range's crests at horizon distance; the
+      // coastal venue's embankments and cuttings need 21 m cells near the road.
+      const segments = model.kind === 'coast' ? 256 : 160;
+      const terrain = new T.PlaneGeometry(5500, 5500, segments, segments);
       terrain.rotateX(-Math.PI / 2);
       const pos = terrain.getAttribute('position'),
         terrainUV = terrain.getAttribute('uv');
       for (let i = 0; i < pos.count; i++) {
         const x = pos.getX(i),
           z = pos.getZ(i);
-        pos.setY(i, terrainHeight(x, z));
+        pos.setY(i, model.height(x, z));
         // Match the apron's metre-scaled original grass and world-space finish,
         // instead of a flat beige horizon with a hard material boundary.
         terrainUV.setXY(i, x / 5, z / 5);
       }
       terrain.computeVertexNormals();
       // Same original grass texels, plus slope/elevation landform shading.
-      mesh(this.surfaces, terrain, surfaceMaterial('grass', 'terrain'));
+      const land = surfaceMaterial('grass', 'terrain');
+      if (model.seaLevel !== null && model.coastZ) {
+        const shore = new Float32Array(pos.count);
+        for (let i = 0; i < pos.count; i++)
+          shore[i] = shoreWeight(pos.getZ(i), model.coastZ(pos.getX(i)));
+        terrain.setAttribute('shore', new T.BufferAttribute(shore, 1));
+        installShoreline(land, model.seaLevel);
+      }
+      mesh(this.surfaces, terrain, land);
+      if (model.seaLevel !== null) this.surfaces.add(buildSea(model.seaLevel));
     });
     const barriers = barrierMaterials();
     const spans = Math.ceil(track.length / 80);
@@ -231,7 +246,9 @@ export class CircuitScene {
       buildServiceAreas(this.props, this.serviceSites, this.sightlines),
     );
     this.construction.add('Four authored Aurel districts', 3, () =>
-      buildDistricts(this.props, this.districts, this.sightlines),
+      buildDistricts(this.props, this.districts, this.sightlines, (x, z) =>
+        terrainFor(track).height(x, z),
+      ),
     );
     this.construction.add('Rule-placed layered foliage', 3, () =>
       buildVegetation(track, this.vegetationGroup, this.serviceSites),
@@ -453,7 +470,7 @@ export class CircuitScene {
       this.props.add(root);
     });
     const stands = standMaterials();
-    for (const site of GRANDSTANDS)
+    for (const site of venuePlan(this.track).grandstands)
       this.construction.add(`Detailed grandstand at ${site.s} m`, 3, () =>
         buildGrandstand(
           this.track,
@@ -466,11 +483,10 @@ export class CircuitScene {
         ),
       );
     this.construction.add('Signs, gantry and control tower', 2, () => {
-      this.sign('APEX  /  FORMULA', 360, -19, 18, 2);
-      this.sign('AUREL MOTORSPORT', 870, 19, 20, 2);
-      this.sign('NORTHLINE', 1540, -19, 15, 1.8);
-      this.sign('PULSE / ENGINEERING', 2300, 19, 20, 2);
-      for (const corner of [570, 1170, 1410, 1640, 2070, 2670])
+      const plan = venuePlan(this.track);
+      for (const sign of plan.signs)
+        this.sign(sign.text, sign.s, sign.lateral, sign.width, sign.height);
+      for (const corner of plan.brakingBoards)
         for (const distance of [50, 100, 150])
           this.sign(String(distance), corner - distance, -18, 1, 0.9);
       const p = this.track.at(0, trackPoint()),
@@ -482,7 +498,7 @@ export class CircuitScene {
       const banner = mesh(
         gantry,
         new T.PlaneGeometry(14, 1),
-        new T.MeshStandardMaterial({ map: label('AUREL / GRAND CIRCUIT'), side: T.DoubleSide }),
+        new T.MeshStandardMaterial({ map: label(plan.gantryLabel), side: T.DoubleSide }),
         0,
         6,
         -0.27,

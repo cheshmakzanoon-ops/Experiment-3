@@ -1,3 +1,4 @@
+import { circuitDefinition, type CircuitId } from './circuits.ts';
 import { clamp } from '../core/math.ts';
 export type Compound = 'soft' | 'medium' | 'hard' | 'intermediate' | 'wet';
 export type WeatherPreset = 'clear' | 'changeable' | 'rain';
@@ -111,6 +112,8 @@ export const VEHICLE = {
   ] as const,
 };
 export interface SessionOptions {
+  /** Original circuit; Aurel when absent (older saves and callers). */
+  circuit?: CircuitId;
   mode: 'race' | 'practice';
   laps: number;
   opponents: number;
@@ -134,6 +137,7 @@ export function validateOptions(v: unknown): SessionOptions {
   if (!v || typeof v !== 'object') throw new Error('Invalid session options');
   const o = v as Partial<SessionOptions>;
   return {
+    circuit: circuitDefinition(o.circuit).id,
     mode: o.mode === 'practice' ? 'practice' : 'race',
     laps: clamp(Math.round(Number(o.laps) || 3), 1, 10),
     opponents: clamp(Math.round(Number(o.opponents) || 0), 0, 11),

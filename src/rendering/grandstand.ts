@@ -1,3 +1,4 @@
+import { AUREL_VENUE, venuePlan, type StandSpec } from './venue-plan.ts';
 import { installVenueFinish } from './venue-materials.ts';
 import type { BroadcastSightlines } from './broadcast-sightlines.ts';
 import { CrowdCluster } from './crowd.ts';
@@ -10,17 +11,9 @@ import { box, mesh, rod, label } from './geometry.ts';
 
 /** Original site plan: front edges stay behind the physical barrier. Shared by
  * structure construction and vegetation exclusion, not separate random layouts. */
-export const GRANDSTANDS = Object.freeze([
-  { s: -72, side: -1, length: 64 },
-  { s: 55, side: -1, length: 80 },
-  { s: 450, side: -1, length: 48 },
-  { s: 780, side: 1, length: 48 },
-  { s: 1220, side: -1, length: 48 },
-  { s: 1670, side: 1, length: 48 },
-  { s: 2210, side: -1, length: 48 },
-  { s: 2600, side: 1, length: 48 },
-]);
-export type StandSite = (typeof GRANDSTANDS)[number];
+/** Aurel's authored stand sites (see venue-plan.ts for every circuit). */
+export const GRANDSTANDS = AUREL_VENUE.grandstands;
+export type StandSite = StandSpec;
 export function standFrame(track: Track, site: StandSite) {
   const p = track.at(site.s, trackPoint()),
     lateral = site.side * (track.boundary(site.s, site.side) + 7);
@@ -49,7 +42,7 @@ export function inStandFootprint(
   padding = 3,
   endPadding = padding,
 ) {
-  for (const site of GRANDSTANDS) {
+  for (const site of venuePlan(track).grandstands) {
     const p = track.at(site.s, trackPoint()),
       l = site.side * (track.boundary(site.s, site.side) + 7);
     const dx = x - p.x - p.nx * l,

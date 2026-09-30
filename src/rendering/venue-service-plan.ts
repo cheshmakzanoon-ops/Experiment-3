@@ -1,17 +1,11 @@
+import { AUREL_VENUE, venuePlan, type ServiceZoneSpec } from './venue-plan.ts';
 import { clamp } from '../core/math.ts';
 import { Track, trackPoint } from '../simulation/track.ts';
 import { grassApronOffset } from './ground-profile.ts';
 import { inStandFootprint } from './grandstand.ts';
 import { tracksideRigs } from './trackside.ts';
 
-export const SERVICE_ZONES = Object.freeze([
-  { s: 420, side: 1, kind: 'recovery' },
-  { s: 1010, side: -1, kind: 'maintenance' },
-  { s: 1460, side: 1, kind: 'recovery' },
-  { s: 1940, side: -1, kind: 'maintenance' },
-  { s: 2390, side: 1, kind: 'recovery' },
-  { s: 2710, side: -1, kind: 'maintenance' },
-] as const);
+export const SERVICE_ZONES = AUREL_VENUE.serviceZones;
 export interface ServiceAccessPoint {
   x: number;
   y: number;
@@ -36,10 +30,13 @@ export interface ServiceSite {
 /** Six authored service areas, not random prop scatter. Reject the WHOLE
  * footprint if any sample crosses another road corridor, stand or camera site.
  * No gate is cut through a collision barrier and no recovery AI is implied. */
-export function serviceSitePlan(track: Track): readonly ServiceSite[] {
+export function serviceSitePlan(
+  track: Track,
+  zones: readonly ServiceZoneSpec[] = venuePlan(track).serviceZones,
+): readonly ServiceSite[] {
   const result: ServiceSite[] = [],
     rigs = tracksideRigs(track);
-  for (const zone of SERVICE_ZONES) {
+  for (const zone of zones) {
     let accepted = false;
     for (const shift of [0, 18, -18]) {
       for (const side of [zone.side, -zone.side]) {

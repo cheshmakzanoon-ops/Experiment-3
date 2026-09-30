@@ -1,7 +1,7 @@
 import { expect, it, vi } from 'vitest';
 import { PauseHandshake, type ClientMessage, type WorkerMessage } from '../src/workers/diagnostics.ts';
 import { DEFAULT_OPTIONS } from '../src/simulation/config.ts';
-import { H } from '../src/simulation/protocol.ts';
+import { F, H, carBase } from '../src/simulation/protocol.ts';
 
 it('does not acknowledge pause before its exact final frame and ignores superseded receipts', () => {
   const pause = new PauseHandshake();
@@ -106,3 +106,44 @@ it('the real worker flushes recording and sends a final frame before pause ackno
     vi.unstubAllGlobals();
   }
 });
+
+it('delivers every player pit-service phase even while the consumer holds every pooled frame', async () => {
+  const messages: WorkerMessage[] = [];
+  let now = 0;
+  let pump: (() => void) | undefined;
+  const scope = {
+    onmessage: null as ((event: { data: ClientMessage }) => void) | null,
+    postMessage(message: WorkerMessage, transfer: Transferable[] = []) {
+      messages.push(structuredClone(message, { transfer }));
+    },
+  };
+  const clock = vi.spyOn(performance, 'now').mockImplementation(() => now);
+  vi.stubGlobal('self', scope);
+  vi.stubGlobal('setInterval', (callback: () => void) => {
+    pump = callback;
+    return 1;
+  });
+  try {
+    vi.resetModules();
+    await import('../src/workers/physics.worker.ts');
+    const send = (data: ClientMessage) => scope.onmessage!({ data });
+    send({ type: 'init', options: { ...DEFAULT_OPTIONS, opponents: 0, mode: 'practice' } });
+    send({ type: 'autopilot', value: true });
+    send({ type: 'pit' });
+    send({ type: 'pause', value: false, sequence: 1 });
+    const seen = new Set<number>();
+    // Nothing is recycled: after five frames only service transitions may pass.
+    for (now = 20; now <= 240000 && !seen.has(6); now += 20) {
+      const before = messages.length;
+      pump!();
+      for (const message of messages.slice(before))
+        if (message.type === 'frame') seen.add(new Float32Array(message.buffer)[carBase(0) + F.PIT_PHASE]);
+    }
+    expect([...seen].sort()).toEqual([0, 1, 2, 3, 4, 5, 6]);
+    expect(messages.filter((message) => message.type === 'frame').length).toBeLessThanOrEqual(5 + 6);
+    expect(messages.filter((message) => message.type === 'error')).toEqual([]);
+  } finally {
+    clock.mockRestore();
+    vi.unstubAllGlobals();
+  }
+}, 120000);

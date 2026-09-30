@@ -1,6 +1,7 @@
 import { tagWeatherSurface } from './weather-presentation.ts';
 import { landmarkSitePlan, inLandmarkFootprint } from './venue-landmark.ts';
-import { terrainHeight } from './terrain-profile.ts';
+import { terrainFor } from './terrain.ts';
+import { AUREL_VENUE, venuePlan, type PlantingZoneSpec } from './venue-plan.ts';
 import { districtPlan, inDistrictFootprint } from './venue-districts.ts';
 import { serviceSitePlan, inServiceFootprint, type ServiceSite } from './venue-service-plan.ts';
 import { grassApronOffset } from './ground-profile.ts';
@@ -15,17 +16,15 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 export { terrainHeight } from './terrain-profile.ts';
 /** Distinct planting character along the existing original circuit. These are
  * landscaping zones, NOT additional tracks or a claim of botanical simulation. */
-export const PLANTING_ZONES = Object.freeze([
-  { endFraction: 0.14, canopyRatio: 0.64, species: 'upright' },
-  { endFraction: 0.34, canopyRatio: 0.84, species: 'broadleaf' },
-  { endFraction: 0.55, canopyRatio: 1.0, species: 'spreading' },
-  { endFraction: 0.76, canopyRatio: 1.13, species: 'open-crown' },
-  { endFraction: 1, canopyRatio: 0.84, species: 'broadleaf' },
-] as const);
-export function plantingCharacter(s: number, length: number) {
+export const PLANTING_ZONES = AUREL_VENUE.plantingZones;
+export function plantingCharacter(
+  s: number,
+  length: number,
+  zones: readonly PlantingZoneSpec[] = PLANTING_ZONES,
+) {
   if (!Number.isFinite(s + length) || length <= 0) throw new Error('Invalid planting station');
   const fraction = (((s % length) + length) % length) / length;
-  return PLANTING_ZONES.find((zone) => fraction < zone.endFraction)!;
+  return zones.find((zone) => fraction < zone.endFraction)!;
 }
 export function foliageTile(ratio: number) {
   if (!Number.isFinite(ratio) || ratio <= 0) throw new Error('Invalid canopy aspect');
@@ -53,6 +52,8 @@ export function vegetationPlan(
   const occupied = new Map<string, TreePlacement[]>();
   const districts = districtPlan(track, services);
   const landmark = landmarkSitePlan(track, services, districts);
+  const ground = terrainFor(track),
+    zones = venuePlan(track).plantingZones;
   for (let attempt = 0; attempt < 1800 && result.length < 650; attempt++) {
     track.at(random.next() * track.length, point);
     const lateral = (random.next() < 0.5 ? -1 : 1) * (43 + random.next() * 155);
@@ -87,7 +88,8 @@ export function vegetationPlan(
     const y =
       Math.abs(l) <= nearest.width + 38
         ? nearest.y + nearest.bank * clamp(l, -12, 12) + grassApronOffset(track, nearest.s, l)
-        : terrainHeight(x, z);
+        : ground.height(x, z);
+    if (ground.seaLevel !== null && ground.height(x, z) < ground.seaLevel + 0.6) continue;
     const height = 6 + random.next() * 7;
     const tree = {
       x,
@@ -96,7 +98,8 @@ export function vegetationPlan(
       height,
       width:
         height *
-        (plantingCharacter(nearest.s, track.length).canopyRatio + (random.next() - 0.5) * 0.04),
+        (plantingCharacter(nearest.s, track.length, zones).canopyRatio +
+          (random.next() - 0.5) * 0.04),
       yaw: random.next() * Math.PI * 2,
     };
     result.push(tree);
@@ -128,7 +131,10 @@ export function grovePlan(
     nearest = trackPoint();
   const districts = districtPlan(track, services);
   const landmark = landmarkSitePlan(track, services, districts);
+  const terrain = terrainFor(track);
   const blocked = (x: number, z: number, margin: number) => {
+    // Nothing grows below the waterline on a coastal venue.
+    if (terrain.seaLevel !== null && terrain.height(x, z) < terrain.seaLevel + 0.6) return true;
     const l = track.nearest(x, z, nearest);
     if (Math.abs(l) < track.boundary(nearest.s, l < 0 ? -1 : 1) + 60) return true;
     return (
@@ -179,7 +185,7 @@ export function grovePlan(
       const height = conifer ? 10 + random.next() * 8 : 7 + random.next() * 8;
       place(groves, {
         x,
-        y: terrainHeight(x, z),
+        y: terrain.height(x, z),
         z,
         height,
         width: height * (conifer ? 0.34 + random.next() * 0.1 : 0.8 + random.next() * 0.26),
@@ -200,7 +206,7 @@ export function grovePlan(
       const height = 9 + random.next() * 9;
       place(treeline, {
         x,
-        y: terrainHeight(x, z),
+        y: terrain.height(x, z),
         z,
         height,
         width: height * (0.55 + random.next() * 0.45),

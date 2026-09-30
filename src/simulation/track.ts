@@ -1,6 +1,6 @@
 import { TrackContactMesh, kerbHeight } from './contact.ts';
 import { surfaceDrainageRate } from './surface-drainage.ts';
-import { clamp, lerp, mod, smooth, Vec3, TAU } from '../core/math.ts';
+import { clamp, lerp, mod, smooth, Vec3 } from '../core/math.ts';
 import type { WeatherPreset } from './config.ts';
 import {
   WeatherTimeline,
@@ -8,7 +8,8 @@ import {
   advanceWater,
   type WeatherKeyframe,
 } from './weather.ts';
-export const TRACK_NAME = 'AUREL / GRAND CIRCUIT',
+import { AUREL, type CircuitDefinition } from './circuits.ts';
+export const TRACK_NAME = AUREL.name,
   CELL_ROWS = 512,
   CELL_COLS = 7;
 // Coverage-index conversion shared by tire pickup and road-cell depletion.
@@ -74,24 +75,6 @@ export const surfaceSample = (): SurfaceSample => ({
   cell: 0,
   pit: false,
 });
-const DESIGN = [
-  [-360, -180],
-  [-360, 40],
-  [-355, 260],
-  [-270, 420],
-  [-65, 465],
-  [145, 410],
-  [295, 300],
-  [260, 180],
-  [100, 140],
-  [65, 15],
-  [175, -85],
-  [320, -190],
-  [295, -345],
-  [100, -430],
-  [-100, -420],
-  [-275, -335],
-];
 const catmull = (a: number, b: number, c: number, d: number, t: number) =>
   0.5 *
   (2 * b +
@@ -126,7 +109,9 @@ export class Track {
     readonly preset: WeatherPreset = 'clear',
     readonly flat = false,
     keyframes: readonly WeatherKeyframe[] = weatherKeyframes(preset),
+    readonly circuit: CircuitDefinition = AUREL,
   ) {
+    const DESIGN = circuit.design;
     this.weather = new WeatherTimeline(keyframes);
     this.weather.sample(0, this);
     const count = 1536;
@@ -157,13 +142,16 @@ export class Track {
       p.tz = (next.z - prev.z) / len;
       p.nx = p.tz;
       p.nz = -p.tx;
-      const theta = (p.s / this.length) * TAU;
-      p.y = flat ? 0 : 1.5 * Math.sin(theta) + 0.65 * Math.sin(3 * theta);
-      p.gradient = flat
-        ? 0
-        : ((1.5 * Math.cos(theta) + 1.95 * Math.cos(3 * theta)) * TAU) / this.length;
-      p.bank = flat ? 0 : 0.018 * Math.sin(2 * theta);
-      p.width = 8 + 0.6 * Math.sin(theta) ** 2;
+      const u = p.s / this.length;
+      p.y = circuit.elevation(u, flat);
+      if (circuit.gradient) p.gradient = circuit.gradient(u, this.length, flat);
+      else {
+        // Central difference over ±1 m of lap distance.
+        const du = 1 / this.length;
+        p.gradient = (circuit.elevation(u + du, flat) - circuit.elevation(u - du, flat)) / 2;
+      }
+      p.bank = circuit.crossFall(u, flat);
+      p.width = circuit.halfWidth(u);
       const hx = Math.floor(p.x / 32),
         hz = Math.floor(p.z / 32);
       for (let dx = -1; dx <= 1; dx++)
@@ -182,6 +170,26 @@ export class Track {
       p.curvature =
         Math.atan2(prev.tz * next.tx - prev.tx * next.tz, prev.tx * next.tx + prev.tz * next.tz) /
         ds;
+    }
+    // Authored banking: raise the outside of corners in circuit-defined zones.
+    // Curvature is smoothed over ±12 samples first so banking cannot chatter.
+    if (!flat) {
+      const smoothed = new Float64Array(count);
+      for (let i = 0; i < count; i++) {
+        let sum = 0;
+        for (let k = -12; k <= 12; k++) sum += this.points[mod(i + k, count)].curvature;
+        smoothed[i] = sum / 25;
+      }
+      for (let i = 0; i < count; i++) {
+        const p = this.points[i],
+          gain = circuit.bankGain(p.s / this.length);
+        if (gain > 0)
+          p.bank = clamp(
+            p.bank - gain * smoothed[i],
+            -circuit.maxBank,
+            circuit.maxBank,
+          );
+      }
     }
     Object.assign(this.points[count], this.points[0], { s: this.length });
     const drainagePoint = trackPoint();

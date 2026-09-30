@@ -27,6 +27,7 @@ import './ui/style.css';
 import { PerformanceCapture, type FrameMetrics } from './core/performance.ts';
 declare const __APEX_SOURCE_FINGERPRINT__: string;
 import { Track } from './simulation/track.ts';
+import { circuitDefinition, type CircuitId } from './simulation/circuits.ts';
 import {
   controls,
   DEFAULT_OPTIONS,
@@ -280,6 +281,36 @@ export class GameApp {
     });
     void this.boot(canvas).catch((e) => this.fail(e));
   }
+  private canvas: HTMLCanvasElement | null = null;
+  /** Build (or rebuild for another circuit) the complete presentation. */
+  private async buildRenderer(canvas: HTMLCanvasElement) {
+    this.canvas = canvas;
+    this.renderer = await RacingRenderer.create(
+      canvas,
+      this.track,
+      (progress) => this.ui.loading(`${Math.floor(progress.fraction * 100)}% · ${progress.label}…`),
+      () => this.disposed || this.errorStopped,
+    );
+    if (!this.renderer || this.disposed || this.errorStopped) return false;
+    this.renderer.setQuality(this.settings.quality, this.settings.graphics);
+    this.renderer.shake = this.settings.shake;
+    this.renderer.colorblind = this.settings.colorblind;
+    this.renderer.setLivery(this.team.livery);
+    this.audio.configureDriving(this.track, this.settings.drivingAudio);
+    this.ui.setTrack(this.track);
+    return true;
+  }
+  /** Circuits own their venue geometry, so a change rebuilds the presentation
+   * once, while loading; the simulation worker builds its own matching Track. */
+  private async switchCircuit(id: CircuitId) {
+    if (this.track.circuit.id === id || !this.canvas) return true;
+    this.ui.loading(`Building ${circuitDefinition(id).name}…`);
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    this.renderer?.dispose();
+    this.renderer = null;
+    this.track = new Track('clear', false, undefined, circuitDefinition(id));
+    return this.buildRenderer(this.canvas);
+  }
   private async boot(canvas: HTMLCanvasElement) {
     try {
       const saved = await this.store.read('settings');
@@ -302,19 +333,8 @@ export class GameApp {
     this.ui.applyBindings(this.settings.bindings);
     this.ui.loading('Building original bodywork, materials and Aurel circuit…');
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
-    this.renderer = await RacingRenderer.create(
-      canvas,
-      this.track,
-      (progress) => this.ui.loading(`${Math.floor(progress.fraction * 100)}% · ${progress.label}…`),
-      () => this.disposed || this.errorStopped,
-    );
-    if (!this.renderer || this.disposed || this.errorStopped) return;
-    this.renderer.setQuality(this.settings.quality, this.settings.graphics);
-    this.renderer.shake = this.settings.shake;
-    this.renderer.colorblind = this.settings.colorblind;
-    this.renderer.setLivery(this.team.livery);
+    if (!(await this.buildRenderer(canvas))) return;
     this.audio.volume = this.settings.volume;
-    this.audio.configureDriving(this.track, this.settings.drivingAudio);
     document.documentElement.style.setProperty('--ui-scale', String(this.settings.uiScale));
     document.documentElement.dataset.colorblind = String(this.settings.colorblind);
     document.documentElement.dataset.highContrast = String(this.settings.highContrast);
@@ -361,7 +381,9 @@ export class GameApp {
       );
     }
     if (this.disposed) return;
-    this.options = { ...options, setup: { ...this.settings.setup } };
+    const circuit = circuitDefinition(options.circuit).id;
+    if (!(await this.switchCircuit(circuit)) || this.disposed) return;
+    this.options = { ...options, circuit, setup: { ...this.settings.setup } };
     this.ui.options = this.options;
     this.auto = false;
     this.ers = 1;
@@ -476,7 +498,7 @@ export class GameApp {
       this.ui.toast(message);
     });
     // The initial surface is retained even before the first full recording batch.
-    const initialTrack = new Track(this.options.weather);
+    const initialTrack = new Track(this.options.weather, false, undefined, this.track.circuit);
     this.liveSurface = {
       water: initialTrack.water,
       rubber: initialTrack.rubber,
@@ -974,7 +996,9 @@ export class GameApp {
     }
     const best = frame[carBase(0) + F.BEST_LAP];
     if (best > 0) {
-      const key = `best:AUREL:${this.options.assist}:${this.options.compound}:${this.options.weather}`;
+      // Per-circuit key; Aurel keeps its original key so earlier bests remain.
+      const circuit = circuitDefinition(this.options.circuit).short;
+      const key = `best:${circuit}:${this.options.assist}:${this.options.compound}:${this.options.weather}`;
       void this.store
         .read(key)
         .then((old) => {

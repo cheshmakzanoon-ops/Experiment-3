@@ -50,6 +50,7 @@ jobs:
       - run: node --experimental-transform-types scripts/rotation-benchmark.ts
       - run: node --experimental-transform-types scripts/pit-integration.ts
       - run: node --experimental-transform-types scripts/race-classification.ts
+      - run: node --experimental-transform-types scripts/vellamar-race.ts clear,changeable
       - name: Scenario evidence, including failures
         if: always()
         uses: actions/upload-artifact@v4
@@ -64,6 +65,7 @@ jobs:
             docs/rotation-benchmark.json
             docs/pit-integration.json
             docs/race-classification.json
+            docs/vellamar-race.json
           retention-days: 7
   browser:
     # Run every original case on a verified software renderer capable of

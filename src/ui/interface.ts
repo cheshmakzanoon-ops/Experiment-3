@@ -27,6 +27,32 @@ import {
 } from '../simulation/config.ts';
 import { F, H, W, WHEEL_BASE, WHEEL_STRIDE, WHEEL_NAMES, carBase } from '../simulation/protocol.ts';
 import { type Track } from '../simulation/track.ts';
+import { CIRCUIT_IDS, type CircuitId } from '../simulation/circuits.ts';
+
+/** Menu labels for each original circuit (lengths are asserted in tests). */
+export const CIRCUIT_MENU_LABELS: Readonly<Record<CircuitId, string>> = Object.freeze({
+  aurel: 'Aurel Grand Circuit · 2.97 km',
+  vellamar: 'Vellamar Coast Circuit · 4.00 km',
+});
+/** Fit any circuit into the 250×240 map. Aurel keeps its original centre and
+ * 0.24 px/m scale (it already fits); larger circuits are centred and scaled. */
+export function minimapFrame(track: Track) {
+  let minX = Infinity,
+    maxX = -Infinity,
+    minZ = Infinity,
+    maxZ = -Infinity;
+  for (const p of track.points) {
+    minX = Math.min(minX, p.x);
+    maxX = Math.max(maxX, p.x);
+    minZ = Math.min(minZ, p.z);
+    maxZ = Math.max(maxZ, p.z);
+  }
+  const fitsOriginal =
+    125 + minX * 0.24 >= 12 && 125 + maxX * 0.24 <= 238 && 125 - maxZ * 0.23 >= 12 && 125 - minZ * 0.23 <= 228;
+  if (fitsOriginal) return { cx: 0, cz: 0, scale: 0.24 };
+  const scale = Math.min(220 / Math.max(1, maxX - minX), 210 / Math.max(1, maxZ - minZ));
+  return { cx: (minX + maxX) / 2, cz: (minZ + maxZ) / 2, scale };
+}
 import { type Settings, validateSettings } from '../storage/data.ts';
 import { type RacingRenderer } from '../rendering/renderer.ts';
 export const lapTime = (seconds: number) =>
@@ -71,15 +97,16 @@ export class Interface {
   options: SessionOptions = { ...DEFAULT_OPTIONS };
   constructor(
     readonly element: HTMLElement,
-    readonly track: Track,
+    public track: Track,
     private callbacks: Callbacks,
   ) {
     element.innerHTML = `
   <div id="loading" class="loading"><div class="brand">APEX<span>FORMULA</span></div><p id="loadingText">Preparing circuit and car systems…</p><div class="loader"><i></i></div></div>
   <section id="menu" class="menu" hidden>
-   <header class="masthead"><div class="brand">APEX<span>FORMULA</span></div><span class="edition">ORIGINAL MOTORSPORT SIMULATION <b>01 / AUREL</b></span></header>
-   <div class="menu-body" tabindex="0" role="region" aria-label="Race setup and tools"><div class="eyebrow"><i></i> AUREL · GRAND CIRCUIT</div><h1>EVERY INPUT.<br>EVERY FORCE.</h1><p class="intro">Four contact patches. One racing line.<br>Find the limit between them.</p>
+   <header class="masthead"><div class="brand">APEX<span>FORMULA</span></div><span class="edition">ORIGINAL MOTORSPORT SIMULATION <b id="circuitEdition">01 / AUREL</b></span></header>
+   <div class="menu-body" tabindex="0" role="region" aria-label="Race setup and tools"><div class="eyebrow"><i></i> <span id="circuitEyebrow">AUREL · GRAND CIRCUIT</span></div><h1>EVERY INPUT.<br>EVERY FORCE.</h1><p class="intro">Four contact patches. One racing line.<br>Find the limit between them.</p>
    <form id="sessionForm" class="session-form">
+    <div class="form-row"><label>CIRCUIT<select id="circuit">${CIRCUIT_IDS.map((id) => `<option value="${id}">${CIRCUIT_MENU_LABELS[id]}</option>`).join('')}</select></label></div>
     <div class="form-row"><label>SESSION<select id="mode"><option value="race">Grand Prix</option><option value="practice">Free practice</option></select></label><label>DISTANCE<select id="laps"><option value="1">1 lap · Sprint</option><option value="3" selected>3 laps · Standard</option><option value="5">5 laps</option><option value="10">10 laps</option></select></label></div>
     <div class="form-row"><label>WEATHER<select id="weather"><option value="clear">Clear / Dry</option><option value="changeable">Dry → Rain</option><option value="rain">Heavy rain</option></select></label><label>GRID<select id="opponents"><option value="0">Solo</option><option value="3">4 cars</option><option value="7" selected>8 cars</option><option value="11">12 cars</option></select></label></div>
     <div class="form-row"><label>TIRES<select id="compound"><option value="soft">Soft</option><option value="medium" selected>Medium</option><option value="hard">Hard</option><option value="intermediate">Intermediate</option><option value="wet">Full wet</option></select></label><label>CONTROL<select id="assist"><option value="sport">Sport / ABS + TC</option><option value="raw">Unassisted</option></select></label></div>
@@ -88,7 +115,7 @@ export class Interface {
    </form><div class="menu-actions"><button data-action="settings">GARAGE & SETTINGS</button><button data-action="controls">CONTROLS</button><button data-action="team">TEAM HQ</button><button data-action="photo">PHOTO / LIVERY</button><button data-action="references">REFERENCE REVIEW</button><button data-action="sessionReview">SESSION 146 EVIDENCE</button><button data-action="academy">DRIVING ACADEMY</button></div>
    <p class="menu-note">WASD / ARROWS TO DRIVE · GAMEPAD SUPPORTED<br>G TO WATCH THE AI DRIVE YOUR CAR</p></div>
    <div class="car-label"><span>APX–01</span><b>FORMULA / HYBRID</b><div>770 KG DRY · 8 SPEED · 4 MJ ERS</div></div>
-   <footer class="menu-footer"><span><b>${(track.length / 1000).toFixed(3)}</b> KM CIRCUIT</span><span><b>120</b> HZ SIMULATION</span><span><b>240</b> HZ TIRE SOLVE</span><span>ENGINEERING BUILD / 0.1</span></footer>
+   <footer class="menu-footer"><span><b id="circuitLength">${(track.length / 1000).toFixed(3)}</b> KM CIRCUIT</span><span><b>120</b> HZ SIMULATION</span><span><b>240</b> HZ TIRE SOLVE</span><span>ENGINEERING BUILD / 0.1</span></footer>
   </section>
   <section id="hud" class="hud" hidden>
    <div class="hud-top"><div class="brand small">APEX<span>LIVE</span></div><div class="position-badge" role="status" aria-label="Race position"><b id="positionBadge">P1</b><span id="positionField">/ 1</span></div><div class="session-status"><span id="lapLabel">LAP 1 / 3</span><b id="flag">GRID</b><span id="weatherLabel">24°C / DRY</span></div><button class="icon-button" data-action="pause" aria-label="Pause session">Ⅱ</button></div>
@@ -97,7 +124,7 @@ export class Interface {
    <div id="startSequence" class="start-sequence" hidden><div id="lights">${'<i></i>'.repeat(5)}</div><span id="startText">BUILD REVS. HOLD THE BRAKE.</span></div>
    <div class="proximity proximity-left" id="proximityLeft" hidden><b>◀</b><span>CAR LEFT</span></div><div class="proximity proximity-right" id="proximityRight" hidden><b>▶</b><span>CAR RIGHT</span></div>
    <div class="race-message" id="raceMessage" role="status" aria-live="polite"></div>
-   <div class="minimap"><canvas id="minimap" width="250" height="240"></canvas><span>AUREL / GRAND CIRCUIT</span></div>
+   <div class="minimap"><canvas id="minimap" width="250" height="240"></canvas><span id="minimapCaption">${track.circuit.name}</span></div>
    <div class="instruments"><div class="programme-hud" id="programmeHud" hidden></div><div class="guide-readout" id="guideReadout" hidden></div><div class="rev-lights" id="rpmLights">${'<i></i>'.repeat(16)}</div><div class="dash-main"><div class="gear"><b id="gear">1</b><span>GEAR</span></div><div class="speed"><b id="speed">000</b><span>KM/H</span></div><div class="engine"><b id="rpm">4,200</b><span>RPM</span><strong id="ersMode">BALANCED</strong></div></div>
    <div class="pedals"><label>BRK<span class="meter"><i id="brakeBar"></i></span></label><label>THR<span class="meter"><i id="throttleBar"></i></span></label></div>
    <div class="resources"><label>ERS <b id="battery">80%</b><span class="meter"><i id="batteryBar"></i></span></label><label>FUEL <b id="fuel">24.0 KG</b></label></div></div>
@@ -161,6 +188,7 @@ export class Interface {
       const select = (id: string) => (this.get(id) as HTMLSelectElement).value;
       this.options = {
         ...DEFAULT_OPTIONS,
+        circuit: select('circuit') as CircuitId,
         mode: select('mode') as SessionOptions['mode'],
         laps: Number(select('laps')),
         opponents: Number(select('opponents')),
@@ -361,11 +389,25 @@ export class Interface {
       );
     }
   }
+  /** Replace the displayed circuit (menu captions, length and minimap). */
+  setTrack(track: Track) {
+    this.track = track;
+    const name = track.circuit.name;
+    this.get('minimapCaption').textContent = name;
+    this.get('circuitEyebrow').textContent = name.replace(' / ', ' · ');
+    this.get('circuitEdition').textContent =
+      `${String(CIRCUIT_IDS.indexOf(track.circuit.id) + 1).padStart(2, '0')} / ${track.circuit.short}`;
+    this.get('circuitLength').textContent = (track.length / 1000).toFixed(3);
+    (this.get('circuit') as HTMLSelectElement).value = track.circuit.id;
+    this.mapFrame = minimapFrame(track);
+  }
+  private mapFrame: ReturnType<typeof minimapFrame> | null = null;
   private drawMap(frame: Float32Array) {
     const c = this.map.getContext('2d')!;
     c.clearRect(0, 0, 250, 240);
-    const x = (v: number) => 125 + v * 0.24,
-      z = (v: number) => 125 - v * 0.23;
+    const { cx, cz, scale } = (this.mapFrame ??= minimapFrame(this.track));
+    const x = (v: number) => 125 + (v - cx) * scale,
+      z = (v: number) => 125 - (v - cz) * scale * (0.23 / 0.24);
     const trace = () => {
       c.beginPath();
       this.track.points.forEach((p, i) => {

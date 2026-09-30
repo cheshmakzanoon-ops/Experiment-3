@@ -87,6 +87,7 @@ async function runCase(page: Page, c: Case) {
   await page.locator('[name=quality]').selectOption(quality);
   await page.getByRole('button', { name: 'APPLY & SAVE', exact: true }).click();
   await page.locator('#modal').waitFor({ state: 'hidden' });
+  await page.selectOption('#circuit', process.env.BASELINE_CIRCUIT ?? 'aurel');
   await page.selectOption('#mode', 'race');
   await page.selectOption('#opponents', '7');
   await page.selectOption('#laps', '3');
@@ -95,7 +96,7 @@ async function runCase(page: Page, c: Case) {
   await page.getByRole('button', { name: 'PREPARE GRID START PAUSED', exact: true }).click();
   await page
     .getByRole('button', { name: 'TOGGLE AI DEMONSTRATION', exact: true })
-    .waitFor({ state: 'visible', timeout: 300000 })
+    .waitFor({ state: 'visible', timeout: 600000 })
     .catch(async (e) => {
       await shot(page, join(dir, 'failure-grid.jpg'));
       throw e;

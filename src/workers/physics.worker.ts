@@ -16,7 +16,8 @@ const clock = new FixedStepper();
 let pool: ArrayBuffer[] = [];
 let telemetry: TelemetrySampler | null = null;
 let lastSent = -1,
-  lastSurface = -1;
+  lastSurface = -1,
+  lastPitPhase = 0;
 const send = (msg: WorkerMessage, transfer: Transferable[] = []) =>
   scope.postMessage(msg, transfer);
 function engineering() {
@@ -27,7 +28,8 @@ function engineering() {
 function snapshot(required = false) {
   if (!simulation || (pool.length === 0 && !required)) return;
   // A paused consumer may still hold every transferable frame. Only an explicit
-  // pause barrier may allocate one final snapshot; normal frame delivery stays pooled.
+  // pause barrier or a player pit-service transition may allocate a snapshot;
+  // normal frame delivery stays pooled.
   const buffer =
     pool.pop() ?? new ArrayBuffer((HEADER + simulation.cars.length * CAR_STRIDE) * 4);
   simulation.writeFrame(new Float32Array(buffer), stepMs, clock.droppedSeconds);
@@ -60,6 +62,7 @@ scope.onmessage = (event: MessageEvent<ClientMessage>) => {
         );
         lastSent = -1;
         lastSurface = -1;
+        lastPitPhase = simulation.cars[0].pitPhase;
         snapshot();
         break;
       case 'input':
@@ -124,6 +127,15 @@ setInterval(() => {
     clock.advance(elapsed, (dt) => {
       simulation!.step(dt);
       telemetry?.capture(stepMs, clock.droppedSeconds);
+      // Service phases last 0.8-1.7 s. A stalled consumer (every pooled frame
+      // held) or a starved worker batch must not skip one, so each player
+      // transition is delivered at the tick it occurs.
+      const pitPhase = simulation!.cars[0].pitPhase;
+      if (pitPhase !== lastPitPhase) {
+        lastPitPhase = pitPhase;
+        snapshot(true);
+        lastSent = simulation!.tick;
+      }
     });
     const count = clock.ticks - before;
     if (count) stepMs = stepMs * 0.9 + ((performance.now() - start) / count) * 0.1;

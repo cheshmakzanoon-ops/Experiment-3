@@ -4,7 +4,12 @@ import type { DistrictSite } from './venue-districts.ts';
 
 /** Interior deck remains level under structures. A three-metre graded perimeter
  * returns to the actual distant terrain, rather than exposing a floating slab. */
-export function plazaHeight(site: DistrictSite, x: number, z: number) {
+export function plazaHeight(
+  site: DistrictSite,
+  x: number,
+  z: number,
+  ground: (x: number, z: number) => number = terrainHeight,
+) {
   if (
     ![site.x, site.y, site.z, site.yaw, site.width, site.length, x, z].every(Number.isFinite) ||
     site.width < 8 ||
@@ -17,19 +22,22 @@ export function plazaHeight(site: DistrictSite, x: number, z: number) {
     throw new Error('Plaza sample outside its protected footprint');
   const wx = site.x + Math.cos(site.yaw) * x + Math.sin(site.yaw) * z,
     wz = site.z - Math.sin(site.yaw) * x + Math.cos(site.yaw) * z,
-    ground = terrainHeight(wx, wz) + 0.008,
+    floor = ground(wx, wz) + 0.008,
     t = Math.min(
       1,
       Math.max(0, Math.min(site.width / 2 - Math.abs(x), site.length / 2 - Math.abs(z)) / 3),
     ),
     blend = t * t * (3 - 2 * t);
-  return ground + (site.y - ground) * blend;
+  return floor + (site.y - floor) * blend;
 }
 
 /** One bounded, indexed patch per district. The original track, collision mesh,
  * grass apron and distant terrain are never moved to accommodate architecture. */
-export function districtPlazaGeometry(site: DistrictSite) {
-  plazaHeight(site, 0, 0);
+export function districtPlazaGeometry(
+  site: DistrictSite,
+  ground: (x: number, z: number) => number = terrainHeight,
+) {
+  plazaHeight(site, 0, 0, ground);
   const columns = Math.ceil(site.width),
     rows = Math.ceil(site.length),
     positions: number[] = [],
@@ -39,7 +47,7 @@ export function districtPlazaGeometry(site: DistrictSite) {
     for (let i = 0; i <= columns; i++) {
       const x = -site.width / 2 + (site.width * i) / columns,
         z = -site.length / 2 + (site.length * j) / rows;
-      positions.push(x, plazaHeight(site, x, z) - site.y, z);
+      positions.push(x, plazaHeight(site, x, z, ground) - site.y, z);
       uv.push(x, z);
       if (i < columns && j < rows) {
         const a = j * (columns + 1) + i,

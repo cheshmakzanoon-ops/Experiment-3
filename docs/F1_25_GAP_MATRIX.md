@@ -74,7 +74,7 @@ probe, environment, main scene) was added to renderer diagnostics as
 | Rival cars | Close rivals approach player-car detail | APX01 rivals are simpler than the supplied player car | Medium | Open (A61) |
 | Audio | V6 turbo-hybrid tone, turbo whistle, sharp upshift cut, overrun crackle, kerb/scrub, Doppler passes | Procedural bands exist; not evaluated by ear in this environment | Unknown | Improved: player power-unit layer adds turbo whistle (2.6–8 kHz with boost), straight-cut gear whine (41 Hz per m/s), overrun crackle and upshift/downshift cracks, all from recorded state and unit-tested; not yet judged by ear |
 | Draw-call budget | 1080p/60 on mid-range PC | 2.3k–3.8k draw calls at High | High | Improved (see below); rival LOD0 (~93 draws per car) and cockpit mirrors remain the next targets |
-| Circuits | Many circuits | One (Aurel) | High | Open (coastal-mountain circuit planned) |
+| Circuits | Many circuits | One (Aurel) | High | Improved: the original Vellamar Coast Circuit (4.00 km, 43 m of climb, banked sweepers, summit hairpin, sea, headland lighthouse, terraced districts) is driven from one circuit definition shared by physics, AI, pit, venue, terrain and minimap. The whole AI field completes clear and changeable races with real wet-tyre stops ([VELLAMAR_CIRCUIT.md](VELLAMAR_CIRCUIT.md)). Only two circuits; Vellamar venue art is procedural and awaits human review |
 | Modes | Time Trial with ghosts, qualifying/race weekends, championship, endurance | Grand Prix, Free Practice, Team HQ career layer | High | Open |
 
 ## Draw-call attribution and first reduction

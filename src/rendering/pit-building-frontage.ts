@@ -2,6 +2,9 @@ import * as T from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import manifest from './pit-building-frontage.manifest.json' with { type: 'json' };
 import { pitBuildingLayout, PIT_BUILDING_LIMITS } from './pit-building-layout.ts';
+
+/** Rigid-chunk placement tolerance for the shared paddock template (m, rad). */
+export const A21_BAY_TOLERANCE = Object.freeze({ position: 0.12, yaw: 0.02 });
 import { detailDistance } from './view-detail.ts';
 import { tagWeatherSurface } from './weather-presentation.ts';
 import { Track, trackPoint } from '../simulation/track.ts';
@@ -178,20 +181,35 @@ export class PitBuildingFrontage {
     root.name = 'Aurel Race Operations frontage / A21';
     root.userData.pitBuilding = { assetId: 'A21', revision: manifest.revision };
   }
+  /** Largest bay offset between the authored layout and this track. */
+  bayDeviation = { position: 0, yaw: 0 };
   /** Called once before scene transforms are sealed. No physics is modified. */
   place(track: Track, sightlines: BroadcastSightlines) {
     if (this.placed) throw new Error('A21 already placed');
     const sites = pitBuildingLayout(track);
-    // Exact bay-relative geometry is authored against this layout. Do not silently
-    // stretch a new track under old openings if a future layout changes.
+    // Bay-relative geometry is authored against Aurel's pit straight. Each
+    // chunk is placed rigidly (never stretched). Another circuit on the shared
+    // paddock template may differ only by a few centimetres of pit-straight
+    // curvature; anything beyond A21_BAY_TOLERANCE requires regeneration.
+    this.bayDeviation = { position: 0, yaw: 0 };
     for (let i = 0; i < sites.length; i++) {
       const expected = manifest.layout[i],
         actual = sites[i];
-      for (let b = 0; b < 3; b++)
-        for (const key of ['x', 'y', 'z', 'yaw'] as const)
-          if (Math.abs(expected.bays[b][key] - actual.bays[b][key]) > 1e-4)
-            throw new Error('A21 bay layout changed; regenerate frontage for this track');
+      for (let b = 0; b < 3; b++) {
+        const e = expected.bays[b],
+          a = actual.bays[b];
+        this.bayDeviation.position = Math.max(
+          this.bayDeviation.position,
+          Math.hypot(e.x - a.x, e.y - a.y, e.z - a.z),
+        );
+        this.bayDeviation.yaw = Math.max(this.bayDeviation.yaw, Math.abs(e.yaw - a.yaw));
+      }
     }
+    if (
+      this.bayDeviation.position > A21_BAY_TOLERANCE.position ||
+      this.bayDeviation.yaw > A21_BAY_TOLERANCE.yaw
+    )
+      throw new Error('A21 bay layout changed; regenerate frontage for this track');
     this.minimumPitClearance = Infinity;
     for (const chunk of this.chunks) {
       const site = sites.find((p) => p.id === chunk.id)!;

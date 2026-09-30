@@ -71,6 +71,10 @@ export class TrafficPlanner {
       // than taking an apparently clear overtaking lane away from the entry.
       if (approachingPit && Math.abs(candidate - preferredOffset) > Math.abs(closest - preferredOffset) + 0.1)
         continue;
+      // Queueing behind cars that are themselves slowing for the entry is the
+      // purpose of that corridor, so slower traffic ahead in it is not a reason
+      // to stay out. The swept separation test below still decides safety.
+      const queueing = approachingPit && Math.abs(candidate - preferredOffset) < 1.4;
       // Under yellow, safe changes around stationary hazards remain legal.
       // The speed planner below prevents gaining on moving competitors.
       let score =
@@ -110,7 +114,8 @@ export class TrafficPlanner {
             safe = false;
             break;
           }
-          if (dx > 0 && dx < 70 && dy < 2.9) score += ((70 - dx) / 70) * (1 + traits.aggression);
+          if (!queueing && dx > 0 && dx < 70 && dy < 2.9)
+            score += ((70 - dx) / 70) * (1 + traits.aggression);
         }
         if (!safe) break;
       }

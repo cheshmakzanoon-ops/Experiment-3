@@ -94,7 +94,7 @@ import { PresentedFrame } from './frame-state.ts';
 import { EffectPlayback } from './effect-playback.ts';
 import { AudioViewTracker } from '../audio/spatial.ts';
 import { Track } from '../simulation/track.ts';
-import { F, H, W, WHEEL_BASE, WHEEL_STRIDE, carBase } from '../simulation/protocol.ts';
+import { CAR_STRIDE, F, H, W, WHEEL_BASE, WHEEL_STRIDE, carBase } from '../simulation/protocol.ts';
 import { clamp } from '../core/math.ts';
 export type CameraMode = 'chase' | 'cockpit' | 'pod' | 'trackside';
 /** Chase rig in metres, m/s and vertical-FOV degrees. */
@@ -1258,12 +1258,17 @@ export class RacingRenderer {
         speed: this.presented.value[carBase(this.follow) + F.SPEED],
         inPit: this.presented.value[carBase(this.follow) + F.IN_PIT],
         jackHeight: this.presented.value[carBase(this.follow) + F.JACK_HEIGHT],
+        // A renderer rebuilt for another circuit has presented nothing yet.
         wheelOffsets: [0, 1, 2, 3].map((wheel) =>
-          serviceWheelOffset(
-            this.presented.value[carBase(this.follow) + F.PIT_PHASE],
-            this.presented.value[carBase(this.follow) + F.PIT_CLOCK],
-            this.presented.value[carBase(this.follow) + WHEEL_BASE + wheel * WHEEL_STRIDE + W.LOAD],
-          ),
+          this.presented.value.length < carBase(this.follow) + CAR_STRIDE
+            ? 0
+            : serviceWheelOffset(
+                this.presented.value[carBase(this.follow) + F.PIT_PHASE],
+                this.presented.value[carBase(this.follow) + F.PIT_CLOCK],
+                this.presented.value[
+                  carBase(this.follow) + WHEEL_BASE + wheel * WHEEL_STRIDE + W.LOAD
+                ],
+              ),
         ),
       },
       // CPU-only rig diagnostics. suppliedRig is the active R06 player skeleton;

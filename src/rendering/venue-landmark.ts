@@ -1,6 +1,8 @@
 import * as T from 'three';
 import { Track, trackPoint } from '../simulation/track.ts';
-import { terrainHeight } from './terrain-profile.ts';
+import { terrainFor } from './terrain.ts';
+import { venuePlan } from './venue-plan.ts';
+import { buildLighthouse, lighthouseSite } from './venue-lighthouse.ts';
 import { inStandFootprint } from './grandstand.ts';
 import { serviceSitePlan, inServiceFootprint, type ServiceSite } from './venue-service-plan.ts';
 import { districtPlan, inDistrictFootprint, type DistrictSite } from './venue-districts.ts';
@@ -40,6 +42,8 @@ export function landmarkSitePlan(
   services: readonly ServiceSite[] = serviceSitePlan(track),
   districts: readonly DistrictSite[] = districtPlan(track, services),
 ): LandmarkSite {
+  if (venuePlan(track).landmark === 'lighthouse') return lighthouseSite(track);
+  const terrain = terrainFor(track);
   const point = trackPoint(),
     near = trackPoint();
   for (const shift of [0, -24, 24, -48, 48]) {
@@ -67,7 +71,7 @@ export function landmarkSitePlan(
             inDistrictFootprint(districts, wx, wz, 8)
           )
             clear = false;
-          const ground = terrainHeight(wx, wz);
+          const ground = terrain.height(wx, wz);
           low = Math.min(low, ground);
           high = Math.max(high, ground);
           clearance = Math.min(clearance, margin);
@@ -137,7 +141,7 @@ export function landmarkScreenMaterial() {
 
 export interface VenueLandmark {
   site: LandmarkSite;
-  display: T.Mesh<T.SphereGeometry, T.MeshStandardMaterial>;
+  display: T.Mesh<T.BufferGeometry, T.MeshStandardMaterial>;
   structure: T.Group;
   solids: T.Mesh[];
 }
@@ -146,6 +150,7 @@ export interface VenueLandmark {
  * edge at 4.4 m. Foundations extend beneath the sampled terrain. All additions
  * are shared-material instanced geometry: this is not hundreds of tiny draws. */
 export function buildVenueLandmark(track: Track): VenueLandmark {
+  if (venuePlan(track).landmark === 'lighthouse') return buildLighthouse(track);
   const site = landmarkSitePlan(track);
   const structure = new T.Group();
   structure.name = 'Aurel event hall / grounded facade and public plaza';

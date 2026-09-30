@@ -3,6 +3,8 @@ import { Track, trackPoint } from '../simulation/track.ts';
 import { inStandFootprint } from './grandstand.ts';
 import { serviceSitePlan, inServiceFootprint, type ServiceSite } from './venue-service-plan.ts';
 import { terrainHeight } from './terrain-profile.ts';
+import { terrainFor } from './terrain.ts';
+import { AUREL_VENUE, venuePlan, type DistrictSpec } from './venue-plan.ts';
 import { BroadcastSightlines } from './broadcast-sightlines.ts';
 import { box, mesh, label } from './geometry.ts';
 import { buildDistrictArchitecture } from './venue-architecture.ts';
@@ -11,16 +13,11 @@ import { districtPlazaGeometry } from './venue-plaza.ts';
 
 /** Named districts of ONE circuit, not fictional extra tracks. Their complete
  * plaza footprint is shared with planting and clearance checks. */
-export const DISTRICTS = Object.freeze([
-  { id: 'orchard-club', name: 'ORCHARD / MOTOR CLUB', s: 725, kind: 'club', side: -1 },
-  { id: 'quarry-terrace', name: 'QUARRY / TERRACE', s: 1330, kind: 'terrace', side: 1 },
-  { id: 'north-works', name: 'NORTH / WORKS', s: 1845, kind: 'works', side: -1 },
-  { id: 'south-concourse', name: 'SOUTH / CONCOURSE', s: 2480, kind: 'concourse', side: 1 },
-] as const);
+export const DISTRICTS = AUREL_VENUE.districts;
 export interface DistrictSite {
   id: string;
   name: string;
-  kind: (typeof DISTRICTS)[number]['kind'];
+  kind: DistrictSpec['kind'];
   s: number;
   x: number;
   y: number;
@@ -50,11 +47,14 @@ export function inDistrictFootprint(
 export function districtPlan(
   track: Track,
   services: readonly ServiceSite[] = serviceSitePlan(track),
+  specs: readonly DistrictSpec[] = venuePlan(track).districts,
 ): DistrictSite[] {
   const sites: DistrictSite[] = [],
     p = trackPoint(),
-    near = trackPoint();
-  for (const district of DISTRICTS) {
+    near = trackPoint(),
+    plan = venuePlan(track),
+    ground = terrainFor(track);
+  for (const district of specs) {
     let found: DistrictSite | undefined;
     for (const delta of [0, -35, 35, -70, 70]) {
       if (found) break;
@@ -89,12 +89,14 @@ export function districtPlan(
                 inDistrictFootprint(sites, wx, wz, 8)
               )
                 clear = false;
-              const h = terrainHeight(wx, wz);
+              const h = ground.height(wx, wz);
               low = Math.min(low, h);
               high = Math.max(high, h);
               clearance = Math.min(clearance, margin);
             }
-          if (clear && high - low < 0.5) {
+          // Coastal venues: the whole plaza must stand clear of the waterline.
+          if (ground.seaLevel !== null && low < ground.seaLevel + 1) clear = false;
+          if (clear && high - low < plan.districtRelief) {
             found = { ...district, s, x, y: high + 0.12, z, yaw, width: 44, length: 36, clearance };
             break;
           }
@@ -102,7 +104,7 @@ export function districtPlan(
       }
     }
     // A failed plan is a visible authoring error, not a tree-overlapped building.
-    if (!found) throw new Error(`No safe footprint for Aurel district ${district.id}`);
+    if (!found) throw new Error(`No safe footprint for district ${district.id}`);
     sites.push(found);
   }
   return sites;
@@ -112,6 +114,7 @@ export function buildDistricts(
   parent: T.Group,
   sites: readonly DistrictSite[],
   sightlines: BroadcastSightlines,
+  ground: (x: number, z: number) => number = terrainHeight,
 ) {
   const materials = venueMaterials();
   for (const site of sites) {
@@ -120,7 +123,7 @@ export function buildDistricts(
     g.position.set(site.x, site.y, site.z);
     g.rotation.y = site.yaw;
     parent.add(g);
-    const plaza = mesh(g, districtPlazaGeometry(site), materials.paving);
+    const plaza = mesh(g, districtPlazaGeometry(site, ground), materials.paving);
     plaza.name = `Terrain-graded public plaza / ${site.id}`;
     plaza.castShadow = false;
     buildDistrictArchitecture(g, site.kind, materials, sightlines);

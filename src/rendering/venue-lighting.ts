@@ -96,7 +96,7 @@ export class VenueLighting {
   private locations: T.Vector3[] = [];
   private nearest = new Int32Array(4).fill(-1);
   private distances = new Float64Array(4);
-  private display: T.Mesh<T.SphereGeometry, T.MeshStandardMaterial>;
+  private display: T.Mesh<T.BufferGeometry, T.MeshStandardMaterial>;
   readonly landmarkSite: LandmarkSite;
   private readonly landmarkSolids: T.Mesh[];
   private readonly sightlineOwners = new WeakSet<BroadcastSightlines>();

@@ -1,3 +1,4 @@
+import { circuitDefinition } from './circuits.ts';
 import { K, SKID_BASE } from './protocol.ts';
 import { clamp } from '../core/math.ts';
 import { AIDriver } from './ai.ts';
@@ -32,7 +33,12 @@ export class Simulation {
 
   constructor(options: SessionOptions) {
     this.options = validateOptions(options);
-    this.track = new Track(this.options.weather);
+    this.track = new Track(
+      this.options.weather,
+      false,
+      undefined,
+      circuitDefinition(this.options.circuit),
+    );
     this.cars = Array.from({ length: this.options.opponents + 1 }, (_, i) => {
       const c = new Vehicle(i, this.options.compound, this.options.setup, this.options.assist);
       c.place(
