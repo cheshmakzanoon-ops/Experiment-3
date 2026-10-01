@@ -16,7 +16,7 @@ import { compileSceneTarget, PreparationTrace } from './preparation.ts';
 import { warmPitMaterials } from './pit-material-warmup.ts';
 import { frontToBackOpaque } from './opaque-order.ts';
 import { loadSuppliedPlayer, type SuppliedPlayerAsset } from './supplied-player.ts';
-import { detailDistance } from './view-detail.ts';
+import { detailDistance, feedDetailDistance } from './view-detail.ts';
 import { readRaceReviewFrame } from './race-review.ts';
 import { GhostCar } from './ghost-car.ts';
 import { reflectInWetRoad } from './wet-reflection.ts';
@@ -92,9 +92,10 @@ import { SceneAmbientPass } from './scene-ambient-pass.ts';
 import { BroadcastGradePass } from './broadcast-grade.ts';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { FormulaCar } from './car.ts';
+import { carLod } from './lod.ts';
 import { attachDrawLedger, type DrawLedger } from './draw-ledger.ts';
 import { installSpecularAntialiasing } from './specular-aa.ts';
-import { renderCensus, cubeCensusCameras } from './render-census.ts';
+import { renderCensus, cubeCensusCameras, mergeCensus } from './render-census.ts';
 import { CircuitScene } from './circuit.ts';
 import { Effects } from './effects.ts';
 import { PresentedFrame } from './frame-state.ts';
@@ -217,6 +218,10 @@ export class RacingRenderer {
     // per refresh) instead of all six in one frame.
     probeFacesPerFrame: PROBE_FACES_PER_FRAME,
   });
+  /** Rivals shown coarser for the current mirror pass, and each rival's last
+   * mirror level (for hysteresis). */
+  private mirrorDetailShown: FormulaCar[] = [];
+  private mirrorLevels = new WeakMap<FormulaCar, number>();
   /** Merged depth-only casters for the cars' rigid parts (sun shadow pass). */
   private shadowProxies = new ShadowProxies();
   /** Static sun shadow map of the whole circuit, beyond the car-following one. */
@@ -287,6 +292,10 @@ export class RacingRenderer {
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = T.PCFSoftShadowMap;
     this.shadowProxies.install(this.renderer);
+    this.reflection.mirrorDetail = {
+      before: (camera, height) => this.showMirrorDetail(camera, height),
+      after: () => this.restoreMirrorDetail(),
+    };
     this.sky.scale.setScalar(450000);
     this.sky.userData.excludeMotionBlur = true;
     configureSky(this.sky);
@@ -1231,6 +1240,32 @@ export class RacingRenderer {
     });
     this.farShadowBaked = illumination;
   }
+  /** A rival 30 m behind fills a few dozen pixels of a 512 x 192 mirror, yet
+   * the main view's LOD drew it at full detail (93 draws) in every pass. Each
+   * mirror pass shows a rival at the detail its size in that feed calls for,
+   * never more than the main view's, and the main view's LOD is restored. */
+  private showMirrorDetail(camera: T.PerspectiveCamera, height: number) {
+    for (const car of this.cars) {
+      if (car.suppliedPlayer || !car.root.visible) continue;
+      const distance = feedDetailDistance(
+        car.root.position.distanceTo(camera.position),
+        camera.fov,
+        camera.aspect,
+        height,
+        this.renderHeight,
+      );
+      const previous = this.mirrorLevels.get(car) ?? car.lodLevel;
+      const level = Math.max(car.lodLevel, carLod(distance, previous, this.quality, false));
+      this.mirrorLevels.set(car, level);
+      if (level === car.lodLevel) continue;
+      car.showDetail(level);
+      this.mirrorDetailShown.push(car);
+    }
+  }
+  private restoreMirrorDetail() {
+    for (const car of this.mirrorDetailShown) car.showDetail(car.lodLevel);
+    this.mirrorDetailShown.length = 0;
+  }
   private refreshReflectionExclusions(subject: FormulaCar) {
     const smallDetail = [
       this.pitCrew.root,
@@ -1326,10 +1361,16 @@ export class RacingRenderer {
           probe: renderCensus(this.scene, probeCameras, roots).slice(0, 24),
           // Pose the mirror cameras on the car first: they are only oriented
           // when a feed renders, and can lag far behind on slow frames.
-          mirrors: renderCensus(
-            this.scene,
-            this.reflection.poseMirrorCameras(car.root),
-            roots,
+          // Each feed with the detail its passes show.
+          mirrors: mergeCensus(
+            this.reflection.poseMirrorCameras(car.root).map((camera) => {
+              this.showMirrorDetail(camera as T.PerspectiveCamera, this.reflection.mirrorHeight);
+              try {
+                return renderCensus(this.scene, [camera], roots);
+              } finally {
+                this.restoreMirrorDetail();
+              }
+            }),
           ).slice(0, 24),
           // Casters inside the sun's shadow camera as of the last shadow pass.
           shadow: this.shadowProxies

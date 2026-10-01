@@ -40,6 +40,12 @@ export class MirrorViews {
   passes = 0;
   /** Roots hidden during both mirror passes (restored afterwards). */
   exclusions: T.Object3D[] = [];
+  /** Per-pass representation choice for what a feed shows (restored by
+   * `after` even when a pass throws). */
+  detail: {
+    before(camera: T.PerspectiveCamera, height: number): void;
+    after(): void;
+  } | null = null;
   private exclusionVisibility: boolean[] = [];
 
   invalidate() {
@@ -122,7 +128,12 @@ export class MirrorViews {
         renderer.setRenderTarget(this.targets[i]);
         renderer.setScissorTest(false);
         renderer.clear();
-        renderer.render(scene, this.cameras[i]);
+        this.detail?.before(this.cameras[i], this.targets[i].height);
+        try {
+          renderer.render(scene, this.cameras[i]);
+        } finally {
+          this.detail?.after();
+        }
         this.passes++;
       }
       if (!both) this.next = 1 - this.next;

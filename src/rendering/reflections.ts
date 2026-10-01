@@ -13,6 +13,13 @@ export class ReflectionSystem {
   get mirrorWidth() {
     return this.views.targets[0].width;
   }
+  get mirrorHeight() {
+    return this.views.targets[0].height;
+  }
+  /** Chooses what each mirror pass shows of the scene (see MirrorViews.detail). */
+  set mirrorDetail(detail: MirrorViews['detail']) {
+    this.views.detail = detail;
+  }
   get mirrors() {
     return this.surfaces;
   }

@@ -19,3 +19,19 @@ export function detailDistance(distance: number, fov = 58, aspect = 16 / 9): num
   );
   return distance * scale;
 }
+
+/** Equivalent main-view distance of a subject in a smaller feed, such as a
+ * rear-view mirror: the lens correction above, scaled by how many fewer pixel
+ * rows the feed has than the main view. A reflection 20 px tall then chooses
+ * the detail a main-view subject 20 px tall would. */
+export function feedDetailDistance(
+  distance: number,
+  fov: number,
+  aspect: number,
+  feedHeight: number,
+  viewHeight: number,
+): number {
+  if (!(feedHeight > 0) || !(viewHeight > 0) || !Number.isFinite(feedHeight + viewHeight))
+    throw new Error('Invalid detail feed');
+  return detailDistance(distance, fov, aspect) * Math.max(1, viewHeight / feedHeight);
+}

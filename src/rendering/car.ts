@@ -657,30 +657,52 @@ export class FormulaCar {
       );
       this.treads[i].surface.value.y = compoundIndex === 3 ? 1 : compoundIndex === 4 ? 2 : 0;
     }
-    if (this.lodLevel > 0) {
-      const reduced = this.reduced[this.lodLevel - 1];
-      for (let i = 0; i < 4; i++) {
-        const p = o + WHEEL_BASE + i * WHEEL_STRIDE;
-        reduced.wheels[i].position.y = 0.05 - wheelTravel(a, b, p, t);
-        const radius = (lerp(a[p + W.RADIUS], b[p + W.RADIUS], t) || 0.335) / 0.335;
-        // The reduced cylinder's axle is local Y; neither rim nor hub scales.
-        reduced.tires[i].scale.set(radius, 1, radius);
-        reduced.wheels[i].rotation.y = lerp(a[p + W.STEER], b[p + W.STEER], t);
-        reduced.wheels[i].rotation.z = -lerp(a[p + W.CAMBER], b[p + W.CAMBER], t);
-        reduced.spins[i].rotation.x = wheelPhase(a, b, o, p, t);
-        reduced.spins[i].position.x =
-          Math.sign(WHEEL_POSITIONS[i][0]) *
-          serviceWheelOffset(b[o + F.PIT_PHASE], b[o + F.PIT_CLOCK], b[p + W.LOAD]);
-        reduced.brakes[i].rotation.x = reduced.spins[i].rotation.x;
-      }
-      reduced.front.visible = b[o + F.FRONT_HEALTH] > 0.08;
-      reduced.rear.visible = b[o + F.REAR_HEALTH] > 0.08;
-      reduced.front.scale.x = 0.35 + 0.65 * b[o + F.FRONT_HEALTH];
-      reduced.front.rotation.z = (1 - b[o + F.FRONT_HEALTH]) * 0.12;
-      reduced.rear.rotation.z = (1 - b[o + F.REAR_HEALTH]) * 0.09;
-      this.updateSuspension(reduced.wheels);
-      return;
+    // Reduced representations a mirror may show (never more detailed than the
+    // main view's) stay posed and damaged like the car.
+    for (let level = Math.max(1, this.lodLevel); level <= this.reduced.length; level++)
+      this.poseReduced(this.reduced[level - 1], a, b, o, t);
+    if (this.lodLevel > 0) return;
+    this.poseDetailed(a, b, o, t, time, cockpit);
+  }
+  /** Show the representation for `level` without changing the chosen LOD:
+   * a mirror pass shows small reflections coarser, then restores lodLevel. */
+  showDetail(level: number) {
+    if (this.suppliedPlayer) return;
+    if (!Number.isInteger(level) || level < 0 || level > this.reduced.length)
+      throw new Error('Invalid car detail level');
+    this.highDetail.visible = level === 0;
+    this.reduced.forEach((car, index) => (car.root.visible = level === index + 1));
+  }
+  private poseReduced(reduced: ReducedCar, a: Float32Array, b: Float32Array, o: number, t: number) {
+    for (let i = 0; i < 4; i++) {
+      const p = o + WHEEL_BASE + i * WHEEL_STRIDE;
+      reduced.wheels[i].position.y = 0.05 - wheelTravel(a, b, p, t);
+      const radius = (lerp(a[p + W.RADIUS], b[p + W.RADIUS], t) || 0.335) / 0.335;
+      // The reduced cylinder's axle is local Y; neither rim nor hub scales.
+      reduced.tires[i].scale.set(radius, 1, radius);
+      reduced.wheels[i].rotation.y = lerp(a[p + W.STEER], b[p + W.STEER], t);
+      reduced.wheels[i].rotation.z = -lerp(a[p + W.CAMBER], b[p + W.CAMBER], t);
+      reduced.spins[i].rotation.x = wheelPhase(a, b, o, p, t);
+      reduced.spins[i].position.x =
+        Math.sign(WHEEL_POSITIONS[i][0]) *
+        serviceWheelOffset(b[o + F.PIT_PHASE], b[o + F.PIT_CLOCK], b[p + W.LOAD]);
+      reduced.brakes[i].rotation.x = reduced.spins[i].rotation.x;
     }
+    reduced.front.visible = b[o + F.FRONT_HEALTH] > 0.08;
+    reduced.rear.visible = b[o + F.REAR_HEALTH] > 0.08;
+    reduced.front.scale.x = 0.35 + 0.65 * b[o + F.FRONT_HEALTH];
+    reduced.front.rotation.z = (1 - b[o + F.FRONT_HEALTH]) * 0.12;
+    reduced.rear.rotation.z = (1 - b[o + F.REAR_HEALTH]) * 0.09;
+    this.updateSuspension(reduced.wheels);
+  }
+  private poseDetailed(
+    a: Float32Array,
+    b: Float32Array,
+    o: number,
+    t: number,
+    time: number,
+    cockpit: boolean,
+  ) {
     this.steering.rotation.z = -lerp(a[o + F.STEER], b[o + F.STEER], t) * 2.2;
     this.driver.update(
       time,

@@ -57,6 +57,19 @@ export function renderCensus(
   return [...table.values()].sort((a, b) => b.draws - a.draws);
 }
 
+/** Sum per-owner entries of several censuses, largest first. */
+export function mergeCensus(tables: readonly CensusEntry[][]): CensusEntry[] {
+  const merged = new Map<string, CensusEntry>();
+  for (const table of tables)
+    for (const entry of table) {
+      const total = merged.get(entry.owner) ?? { owner: entry.owner, draws: 0, instances: 0 };
+      total.draws += entry.draws;
+      total.instances += entry.instances;
+      merged.set(entry.owner, total);
+    }
+  return [...merged.values()].sort((a, b) => b.draws - a.draws);
+}
+
 /** Six 90-degree cameras matching a CubeCamera at `position`. */
 export function cubeCensusCameras(position: T.Vector3, far: number, layers?: T.Layers) {
   const directions: [T.Vector3, T.Vector3][] = [
