@@ -157,9 +157,13 @@ async function runCase(page: Page, c: Case) {
   return report;
 }
 
-const server = spawn('npx', ['vite', 'preview', '--host', '127.0.0.1', '--port', `${PORT}`], {
-  stdio: 'ignore',
-});
+// Spawn vite itself, not npx: killing an npx wrapper left the preview server
+// running after the capture.
+const server = spawn(
+  process.execPath,
+  ['node_modules/vite/bin/vite.js', 'preview', '--host', '127.0.0.1', '--port', `${PORT}`],
+  { stdio: 'ignore' },
+);
 try {
   await new Promise((r) => setTimeout(r, 2500));
   const backend = process.env.APEX_BROWSER_BACKEND ?? 'mesa';
