@@ -1240,6 +1240,8 @@ export class RacingRenderer {
             this.reflection.poseMirrorCameras(car.root),
             roots,
           ).slice(0, 24),
+          // Casters inside the sun's shadow camera as of the last shadow pass.
+          shadow: renderCensus(this.scene, [this.sun.shadow.camera], roots, true).slice(0, 24),
         };
       })(),
       haloProjection: halo.toArray(),

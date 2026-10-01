@@ -26,11 +26,14 @@ function ownerOf(object: T.Object3D, roots: ReadonlySet<T.Object3D>) {
 /** On-demand, CPU-only estimate of draw submissions per owner group for the
  * given cameras, using the same visibility, layer and frustum tests Three.js
  * applies before submitting a draw. It ignores material arrays (counted once)
- * and does not predict shadow passes. For profiling, not per-frame use. */
+ * and does not predict shadow passes unless `casters` is set, in which case
+ * only shadow casters count (a shadow camera's pass). For profiling, not
+ * per-frame use. */
 export function renderCensus(
   scene: T.Scene,
   cameras: readonly T.Camera[],
   roots: readonly T.Object3D[],
+  casters = false,
 ): CensusEntry[] {
   const rootSet = new Set<T.Object3D>([scene, ...roots]);
   const table = new Map<string, CensusEntry>();
@@ -41,6 +44,7 @@ export function renderCensus(
     frustum.setFromProjectionMatrix(matrix);
     scene.traverseVisible((object) => {
       if (!drawable(object) || !object.layers.test(camera.layers)) return;
+      if (casters && !object.castShadow) return;
       if (!effectivelyVisible(object)) return;
       if (object.frustumCulled && !frustum.intersectsObject(object)) return;
       const owner = ownerOf(object, rootSet);
