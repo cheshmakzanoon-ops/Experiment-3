@@ -109,11 +109,13 @@ for (const drive of drives)
     await page.selectOption('#opponents', drive.opponents);
     await page.selectOption('#weather', drive.weather);
     await page.selectOption('#compound', drive.weather === 'rain' ? 'wet' : 'medium');
-    // Following needs a car ahead. With the AI driving to the measured car
-    // envelope, a pole-sitting player keeps the lead for the whole race, so
-    // the wet-following review starts mid-field (the paddock START option).
-    // The qualification thresholds are unchanged.
-    if (drive.workload === 'wet-following') await page.selectOption('#startSlot', 'midfield');
+    // Following and close racing need a car alongside. With the AI driving to
+    // the measured car envelope, a pole-sitter runs away from the field (run
+    // 36817461056 never held a rival close for 5 s), so these reviews start
+    // mid-field (the paddock START option). The qualification thresholds are
+    // unchanged.
+    if (drive.workload === 'wet-following' || drive.workload === 'close-racing')
+      await page.selectOption('#startSlot', 'midfield');
     // All event reviews begin from the ordinary held grid. A running start lets
     // slow browser setup advance the opponents before the player's AI and camera
     // are ready. No vehicle is repositioned and simulation timing is unchanged.
