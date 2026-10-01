@@ -380,10 +380,13 @@ export class GameApp {
     this.current = preview;
     this.previous = preview;
     this.state = 'menu';
-    this.ui.ready();
-    this.ui.showMode('menu');
+    // The loading screen stays up until the first menu frame is drawn: the
+    // menu never appears over an undrawn canvas, and what it reports about the
+    // scene (LODs, diagnostics) describes a drawn frame.
+    this.revealMenu = true;
     this.timer = requestAnimationFrame(this.frame);
   }
+  private revealMenu = false;
   private workerPause = new PauseHandshake();
   private post(message: ClientMessage, transfer: Transferable[] = []) {
     if (!this.worker) return;
@@ -801,6 +804,11 @@ export class GameApp {
       this.state === 'replay' || (this.state === 'photo' && this.photoReturn === 'replay'),
       wallDelta,
     );
+    if (this.revealMenu && this.state === 'menu') {
+      this.revealMenu = false;
+      this.ui.ready();
+      this.ui.showMode('menu');
+    }
     if (
       (this.state === 'driving' || this.state === 'replay') &&
       !document.hidden &&
