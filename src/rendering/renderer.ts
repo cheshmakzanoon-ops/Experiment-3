@@ -1227,7 +1227,13 @@ export class RacingRenderer {
         return {
           main: renderCensus(this.scene, [this.camera], roots).slice(0, 24),
           probe: renderCensus(this.scene, probeCameras, roots).slice(0, 24),
-          mirrors: renderCensus(this.scene, this.reflection.mirrorCameras, roots).slice(0, 24),
+          // Pose the mirror cameras on the car first: they are only oriented
+          // when a feed renders, and can lag far behind on slow frames.
+          mirrors: renderCensus(
+            this.scene,
+            this.reflection.poseMirrorCameras(car.root),
+            roots,
+          ).slice(0, 24),
         };
       })(),
       haloProjection: halo.toArray(),

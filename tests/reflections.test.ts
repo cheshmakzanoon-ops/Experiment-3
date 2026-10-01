@@ -379,3 +379,23 @@ it('omits sub-texel scenery from one capture only, measured from the probe, and 
   expect([near.visible, far.visible, hiddenAlready.visible]).toEqual([true, true, false]);
   reflection.dispose();
 });
+it('poses the mirror cameras on the car for profiling, wherever they were last rendered', () => {
+  const reflection = new ReflectionSystem();
+  const car = new T.Group();
+  const surfaces = [-1, 1].map((side) => {
+    const surface = new T.Mesh(new T.PlaneGeometry(0.18, 0.065), new T.MeshBasicMaterial());
+    surface.position.set(side * 0.64, 0.3, 0.4);
+    car.add(surface);
+    return surface;
+  });
+  reflection.attachMirrors(surfaces);
+  car.position.set(120, 0, -40);
+  car.updateMatrixWorld(true);
+  const cameras = reflection.poseMirrorCameras(car);
+  cameras.forEach((camera, i) =>
+    expect(camera.position.distanceTo(surfaces[i].getWorldPosition(new T.Vector3()))).toBeLessThan(
+      1e-9,
+    ),
+  );
+  reflection.dispose();
+});

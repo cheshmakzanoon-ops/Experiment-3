@@ -24,6 +24,12 @@ export class ReflectionSystem {
   get mirrorCameras(): readonly T.Camera[] {
     return this.views.cameras;
   }
+  /** Pose the mirror cameras on `root` now. Feeds are rendered at their own
+   * rate, so between passes the cameras can lag a moving car (profiling). */
+  poseMirrorCameras(root: T.Object3D) {
+    this.views.orient(root);
+    return this.views.cameras;
+  }
   probeUpdates = 0;
   /** Roots omitted from the local probe (other cars, people, particles, small
    * props): at 128 px per face they are a few texels but cost one draw each
