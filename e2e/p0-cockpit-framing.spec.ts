@@ -3,7 +3,7 @@ import { build } from 'vite';
 import { resolve } from 'node:path';
 import type { cockpitFramingSurvey, CockpitSurveyRow } from './fixtures/cockpit-framing.ts';
 
-for (const group of ['framing', 'controls', 'driving', 'weather'] as const)
+for (const group of ['framing', 'controls', 'driving', 'braking', 'weather'] as const)
   test(`P0 actual supplied cockpit: ${group}, full circuit and camera framing evidence`, async ({
     page,
   }, info) => {
@@ -74,8 +74,12 @@ for (const group of ['framing', 'controls', 'driving', 'weather'] as const)
     expect(report.sourceEyeRetained).toBe(true);
     expect(report.glError).toBe(0);
     if (group === 'driving') {
-      expect(report.rows.find((row) => row.name === 'kerb-contact')!.surface).toContain(2);
+      expect(report.rows.map((row) => row.name)).toEqual(['moving']);
       expect(report.rows.find((row) => row.name === 'moving')!.speed).toBeGreaterThan(10);
+    }
+    if (group === 'braking') {
+      expect(report.rows.map((row) => row.name)).toEqual(['braking', 'kerb-contact']);
+      expect(report.rows.find((row) => row.name === 'kerb-contact')!.surface).toContain(2);
     }
     if (group === 'controls') {
       const right = report.rows.find((row) => row.name === 'right-lock')!;

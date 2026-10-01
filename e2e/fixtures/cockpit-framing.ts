@@ -33,7 +33,7 @@ export interface CockpitSurveyRow {
 /** Production loader, original binary/skeleton, full circuit and unmodified
  * simulation snapshots. These are real GPU frames, not a target-hardware FPS test. */
 export async function cockpitFramingSurvey(
-  group: 'framing' | 'controls' | 'driving' | 'weather',
+  group: 'framing' | 'controls' | 'driving' | 'braking' | 'weather',
   onRow?: (row: CockpitSurveyRow) => Promise<void>,
 ) {
   const simulation = new Simulation({ ...DEFAULT_OPTIONS, mode: 'practice', opponents: 0 });
@@ -159,16 +159,21 @@ export async function cockpitFramingSurvey(
       await capture('paused', right);
       await capture('rewound', neutral, 1280, 720, true);
     }
-    if (group === 'driving') {
+    if (group === 'driving' || group === 'braking') {
+      // The same deterministic 24 s drive. Each frame costs seconds under
+      // software GL, so 'driving' renders the drive and its moving frame and
+      // 'braking' renders the stop and the kerb strike from the same state.
       simulation.autoPlayer = true;
       for (let i = 0; i < 120 * 24; i++) {
         simulation.step(1 / 120);
-        if (i % 240 === 239) {
+        if (group === 'driving' && i % 240 === 239) {
           const frame = simulation.makeFrame();
           renderer.draw(frame, frame, 1, 1 / 60, false, false, 1 / 60);
         }
       }
-      await capture('moving', simulation.makeFrame());
+      if (group === 'driving') await capture('moving', simulation.makeFrame());
+    }
+    if (group === 'braking') {
       simulation.autoPlayer = false;
       simulation.setInput({ ...controls(), brake: 1 });
       for (let i = 0; i < 45; i++) {

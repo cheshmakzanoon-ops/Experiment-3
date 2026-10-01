@@ -15,7 +15,11 @@ permissions:
 jobs:
   capture:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    # Five independent groups under SwiftShader. Each frame costs 10-15 s at
+    # 1280x720 Medium, so the drive is split across 'driving' (3.5 min) and
+    # 'braking' (2.1 min); the specs total about 11.5 min on a slow runner,
+    # inside the per-test 5 min deadline but too close to 15 min with setup.
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
