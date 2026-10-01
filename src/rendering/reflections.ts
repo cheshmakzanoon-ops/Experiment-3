@@ -56,6 +56,9 @@ export class ReflectionSystem {
   /** Next face of the refresh in progress, or -1 when none is. */
   private pendingFace = -1;
   private pendingStart = 0;
+  /** Presentation time of the last refresh face. A paused or held frame does
+   * no probe work: a refresh advances only as presentation time does. */
+  private faceClock = NaN;
   private probeEye = new T.Vector3();
   private activePass = false;
   private clock = NaN;
@@ -200,6 +203,7 @@ export class ReflectionSystem {
       to = 6;
     if (environmentChanged || this.lastProbe === -Infinity) this.pendingFace = -1;
     else if (this.pendingFace >= 0) {
+      if (this.clock === this.faceClock) return;
       from = this.pendingFace;
       to = Math.min(6, from + this.probeFacesPerFrame);
     } else if (this.clock - this.lastProbe < intervalSeconds) return;
@@ -302,6 +306,7 @@ export class ReflectionSystem {
     }
     if (to < 6) {
       this.pendingFace = to;
+      this.faceClock = this.clock;
       return;
     }
     // Publish only a completed six-face capture. A thrown GPU pass leaves the

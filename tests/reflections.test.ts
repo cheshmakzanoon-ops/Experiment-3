@@ -515,6 +515,36 @@ it('drops a refresh in progress for a seek, subject or environment change and ca
   scene.environment.dispose();
   reflection.dispose();
 });
+it('holds a refresh in progress while presentation time holds (pause), doing no probe work', () => {
+  const reflection = new ReflectionSystem(),
+    { gl, faces } = slicedFixture();
+  const scene = new T.Scene(),
+    car = new T.Group(),
+    material = new T.MeshStandardMaterial();
+  vi.spyOn(T.CubeCamera.prototype, 'update').mockImplementation(() => undefined);
+  reflection.probeFacesPerFrame = 1;
+  reflection.beginFrame(1, false);
+  reflection.updateProbe(gl, scene, car, [material], true);
+  const first = material.envMap;
+  reflection.beginFrame(3, false);
+  reflection.updateProbe(gl, scene, car, [material], true);
+  expect(faces).toHaveLength(1);
+  // Paused: the same presentation time on every frame.
+  for (let i = 0; i < 10; i++) {
+    reflection.beginFrame(3, false);
+    reflection.updateProbe(gl, scene, car, [material], true);
+  }
+  expect(faces).toHaveLength(1);
+  expect(material.envMap).toBe(first);
+  // Resumed: one face per advancing frame, published after the sixth.
+  for (let i = 1; i <= 5; i++) {
+    reflection.beginFrame(3 + i / 60, false);
+    reflection.updateProbe(gl, scene, car, [material], true);
+  }
+  expect(faces.map((f) => f.face)).toEqual([0, 1, 2, 3, 4, 5]);
+  expect(material.envMap).not.toBe(first);
+  reflection.dispose();
+});
 it('abandons a refresh after a failed face, restores state and restarts it from the first face', () => {
   const reflection = new ReflectionSystem(),
     { gl, faces, renderer } = slicedFixture();
