@@ -57,6 +57,8 @@ it('fits the far frustum to the circuit as the sun sees it, with one-texel offse
   expect(far.baked).toBe(false);
   expect(far.light.intensity).toBe(0);
   expect(far.light.shadow.autoUpdate).toBe(false);
+  // Not in the scene's light list until baked: no program variant for it.
+  expect(far.light.visible).toBe(false);
   const bounds = new T.Box3(new T.Vector3(-500, -20, -600), new T.Vector3(400, 60, 550));
   const direction = new T.Vector3(-160, 190, -130);
   const texel = far.fit(direction, bounds);
@@ -114,6 +116,7 @@ it('bakes shadow maps only, without cars or people, with far-only planting casti
         grove: grove.castShadow,
         sun: [sun.shadow.autoUpdate, sun.shadow.needsUpdate],
         far: far.light.shadow.needsUpdate,
+        farLight: far.light.visible,
         shadows: renderer.shadowMap.autoUpdate,
         target: renderer.target !== previous && renderer.target!.width === 1,
         // The bake camera sees nothing at the circuit.
@@ -140,6 +143,7 @@ it('bakes shadow maps only, without cars or people, with far-only planting casti
       grove: true,
       sun: [false, false],
       far: true,
+      farLight: true,
       shadows: true,
       target: true,
       view: -1e5,
@@ -150,6 +154,7 @@ it('bakes shadow maps only, without cars or people, with far-only planting casti
   expect([far.light.shadow.needsUpdate, renderer.shadowMap.autoUpdate]).toEqual([false, false]);
   expect(renderer.target).toBe(previous);
   expect(far.bakes).toBe(1);
+  expect(far.light.visible).toBe(true);
   // A failed bake restores the same state; a disabled far map never bakes.
   renderer.render.mockImplementationOnce(() => {
     throw new Error('lost');
@@ -157,16 +162,37 @@ it('bakes shadow maps only, without cars or people, with far-only planting casti
   expect(() => far.bake(gl, scene, options)).toThrow('lost');
   expect([car.visible, grove.castShadow, sun.shadow.autoUpdate]).toEqual([true, false, true]);
   expect(far.bakes).toBe(1);
-  // A new map size discards the map: unmarked until the next bake.
+  // A new map size discards the map: unmarked and out of the light list
+  // until the next bake.
   far.setEnabled(true, 2048);
   expect(far.baked).toBe(false);
+  expect(far.light.visible).toBe(false);
+  renderer.render.mockImplementationOnce(() => {
+    throw new Error('lost again');
+  });
+  expect(() => far.bake(gl, scene, options)).toThrow('lost again');
+  expect([far.baked, far.light.visible]).toEqual([false, false]);
   expect(far.bake(gl, scene, options)).toBe(true);
   expect(far.baked).toBe(true);
   far.setEnabled(true, 2048);
   expect(far.baked).toBe(true);
+  expect(far.light.visible).toBe(true);
+  // Shadows switched off: no bakes, but the baked light keeps its map and its
+  // place in the light list (no program rebuild); a new size waits until
+  // shadows are back on.
   far.setEnabled(false, 1024);
+  expect([far.enabled, far.baked, far.light.visible, far.light.castShadow]).toEqual([
+    false,
+    true,
+    true,
+    true,
+  ]);
+  expect(far.diagnostics().mapSize).toBe(2048);
   expect(far.bake(gl, scene, options)).toBe(false);
-  expect(renderer.render).toHaveBeenCalledTimes(3);
+  expect(renderer.render).toHaveBeenCalledTimes(4);
+  far.setEnabled(true, 1024);
+  expect([far.enabled, far.baked, far.light.visible]).toEqual([true, false, false]);
+  expect(far.diagnostics().mapSize).toBe(1024);
   expect(() => far.setEnabled(true, 0)).toThrow('Invalid far shadow size');
   far.dispose();
   previous.dispose();

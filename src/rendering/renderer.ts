@@ -642,8 +642,12 @@ export class RacingRenderer {
       this.renderer.capabilities.maxTextureSize,
     );
     const ratio = Math.min(size.width / w, size.height / h);
-    this.renderer.setPixelRatio(ratio);
-    this.renderer.setSize(w, h, false);
+    // Assigning a canvas size, even an unchanged one, discards its drawing
+    // buffer and waits for queued GPU work; most settings changes resize with
+    // the window and resolution unchanged.
+    const current = this.renderer.getSize(new T.Vector2());
+    if (current.x !== w || current.y !== h || this.renderer.getPixelRatio() !== ratio)
+      this.renderer.setDrawingBufferSize(w, h, ratio);
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
     this.composer.setPixelRatio(ratio);

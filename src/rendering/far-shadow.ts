@@ -112,6 +112,10 @@ export class FarShadow {
   constructor(size = 2048) {
     this.light.name = 'Far sun shadow (no light of its own)';
     this.light.castShadow = true;
+    // Out of the scene's light list until a bake completes: without a map it
+    // would only add a light-loop iteration and a program variant to every
+    // lit material. A circuit loaded without shadows never compiles it.
+    this.light.visible = false;
     // Unmarked until a bake completes: an unrendered map must never shade
     // the scene (it would read as shadow everywhere beyond the near map).
     this.light.shadow.intensity = 0;
@@ -123,24 +127,29 @@ export class FarShadow {
     this.camera.lookAt(0, -2e5, 0);
     this.camera.updateMatrixWorld();
   }
+  private wanted = true;
+  /** Whether bakes are wanted (the sun's own shadows are on). */
   get enabled() {
-    return this.light.castShadow;
+    return this.wanted;
   }
   /** True once a complete map is in use. */
   get baked() {
     return this.light.shadow.intensity === FAR_SHADOW_MARK;
   }
-  /** Turn the far map on or off (it follows the sun's own shadows). A new
-   * size discards the map until the next bake. */
+  /** Turn bakes on or off (they follow the sun's own shadows). A new size
+   * discards the map until the next bake. Turning shadows off leaves a baked
+   * light, its static map and the light list as they are: changing the light
+   * list rebuilds every lit program, and three keeps the sun's programs as
+   * they are when shadow maps are switched off too. */
   setEnabled(enabled: boolean, size: number) {
     if (!Number.isInteger(size) || size < 1) throw new Error('Invalid far shadow size');
-    this.light.castShadow = enabled;
-    if (this.light.shadow.mapSize.x !== size) {
-      this.light.shadow.map?.dispose();
-      this.light.shadow.map = null;
-      this.light.shadow.mapSize.set(size, size);
-      this.light.shadow.intensity = 0;
-    }
+    this.wanted = enabled;
+    if (!enabled || this.light.shadow.mapSize.x === size) return;
+    this.light.shadow.map?.dispose();
+    this.light.shadow.map = null;
+    this.light.shadow.mapSize.set(size, size);
+    this.light.shadow.intensity = 0;
+    this.light.visible = false;
   }
   /** Fit the light's orthographic frustum to `bounds` seen along `direction`. */
   fit(direction: T.Vector3, bounds: T.Box3) {
@@ -196,8 +205,12 @@ export class FarShadow {
     const hidden = options.hidden.filter((o): o is T.Object3D => !!o && o.visible);
     const casters = options.farCasters.filter((o) => !o.castShadow);
     const target = renderer.getRenderTarget(),
-      autoUpdate = renderer.shadowMap.autoUpdate;
+      autoUpdate = renderer.shadowMap.autoUpdate,
+      visible = this.light.visible;
+    let baked = false;
     try {
+      // three renders maps only for lights in the scene's light list.
+      this.light.visible = true;
       sun.autoUpdate = false;
       sun.needsUpdate = false;
       for (const object of hidden) object.visible = false;
@@ -210,7 +223,9 @@ export class FarShadow {
       this.lastBakeMs = performance.now() - start;
       this.light.shadow.intensity = FAR_SHADOW_MARK;
       this.bakes++;
+      baked = true;
     } finally {
+      if (!baked) this.light.visible = visible;
       renderer.setRenderTarget(target);
       renderer.shadowMap.autoUpdate = autoUpdate;
       this.light.shadow.needsUpdate = false;
