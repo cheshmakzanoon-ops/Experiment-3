@@ -75,7 +75,7 @@ probe, environment, main scene) was added to renderer diagnostics as
 | Grid crews | Team crews in kit around every car on the formation grid, leaving before the lights | Grid staff were capsule bodies with separate cylinder limbs and floating helmets | High | Improved: grid staff use the Blender-authored people asset (the pit crew's body and helmet) in team kit, feet on the grid, facing the car and stepping back as the blankets come off. Open: they hold the asset's standing bind pose; no grid animation, umbrellas or tyre-blanket handling |
 | Rival cars | Close rivals approach player-car detail | APX01 rivals are simpler than the supplied player car | Medium | Open (A61) |
 | Audio | V6 turbo-hybrid tone, turbo whistle, sharp upshift cut, overrun crackle, kerb/scrub, Doppler passes | Procedural bands exist; not evaluated by ear in this environment | Unknown | Improved: player power-unit layer adds turbo whistle (2.6–8 kHz with boost), straight-cut gear whine (41 Hz per m/s), overrun crackle and upshift/downshift cracks, all from recorded state and unit-tested; not yet judged by ear |
-| Draw-call budget | 1080p/60 on mid-range PC | 2.3k–3.8k draw calls at High | High | Improved (see below); the local probe now leaves out scenery that cannot cover one texel of its 128 px faces (−37% Aurel, −38% Vellamar probe draws per refresh, headless census). Rival LOD0 (~90 draws per car: about 36 for the four wheel assemblies and 27 for the articulated driver) and cockpit mirrors remain the next targets. The two mirror feeds now alternate (each still 30 Hz at High), so their ~575 draws per update are spread over frames instead of landing on every other frame. Periodic probe refreshes now render one cube face per frame (six frames per refresh) instead of all six in one frame: in a quarter-speed grid replay the worst frame fell from 2,634 to 2,039 draws (−23%) with the median frame unchanged. Rival cars cast sun shadows through one depth-only mesh per rigid part: the grid shadow pass fell from 852 to 579 draws (−32%) with a pixel-identical frame With the mirror cameras posed on the car, 92 of the player car's 170 meshes fall inside a mirror view; oriented-box tests would drop only 18 of them |
+| Draw-call budget | 1080p/60 on mid-range PC | 2.3k–3.8k draw calls at High | High | Improved (see below); the local probe now leaves out scenery that cannot cover one texel of its 128 px faces (−37% Aurel, −38% Vellamar probe draws per refresh, headless census). Rival LOD0 (~90 draws per car: about 36 for the four wheel assemblies and 27 for the articulated driver) and cockpit mirrors remain the next targets. The two mirror feeds now alternate (each still 30 Hz at High), so their ~575 draws per update are spread over frames instead of landing on every other frame. Periodic probe refreshes now render one cube face per frame (six frames per refresh) instead of all six in one frame: in a quarter-speed grid replay the worst frame fell from 2,634 to 2,039 draws (−23%) with the median frame unchanged. The cars cast sun shadows through depth-only meshes per rigid part (12.9 MB of merged data): the grid shadow pass fell from 852 to 470 draws (−45%) and the on-track pass from 195 to 62, with pixel-identical chase and trackside frames. With the mirror cameras posed on the car, 92 of the player car's 170 meshes fall inside a mirror view; oriented-box tests would drop only 18 of them |
 | Car performance and AI pace | Physically plausible F1 envelope (about 5 g cornering, 4-5 g braking); rivals brake late and carry corner speed | Car envelope not measured against references; AI cornered at about 50% of the car and braked at 0.87 g, several hundred metres early | High | Improved: acceleration, top speed, braking and lateral limits measured against public F1 figures (fast lateral 4.3 g, peak braking 5.9 g; two figures are 2-3% quick, see [PHYSICS_REFERENCE.md](PHYSICS_REFERENCE.md)). The AI plans with the measured envelope, using a friction-circle velocity profile, wake loss and pedal modulation: dry laps are 9% (Aurel) and 7.5% (Vellamar) quicker, and braking reaches 3.3 g. The AI now drives a solved minimum-curvature racing line (outside, apex, outside) instead of the centreline. That opens Aurel's tightest radius from 43.8 to 61.6 m; single-car laps are Aurel 50.1 s and Vellamar 69.6 s. Paths, and rivals' paths, are predicted along the line, with absolute pit corridors and a narrower line and extra reserve in the wet. From a mid-field start the player's car still holds a rival within 18 m for 6-11 s (centreline 9-29 s) with 20-27 on-track passes per 5-lap race (centreline 23-25); cars on one line string out more. The AI still uses only 55-72% of the measured limits, and line tracking averages about 1.2 m; closing those gaps needs racecraft work |
 | Circuits | Many circuits | One (Aurel) | High | Improved: the original Vellamar Coast Circuit (4.00 km, 43 m of climb, banked sweepers, summit hairpin, sea, headland lighthouse, terraced districts) is driven from one circuit definition shared by physics, AI, pit, venue, terrain and minimap. The whole AI field completes clear and changeable races with real wet-tyre stops ([VELLAMAR_CIRCUIT.md](VELLAMAR_CIRCUIT.md)). Only two circuits; Vellamar venue art is procedural and awaits human review |
 | Modes | Time Trial with ghosts, qualifying/race weekends, championship, endurance | Grand Prix, Free Practice, Team HQ career layer | High | Improved: Time Trial with a saved per-circuit personal-best ghost and live delta; race weekends (spread-field qualifying sets the race grid); a persistent championship (calendar, 25-18-…-1 points, count-back, saved standings); and endurance (fuel for the distance, mandatory two-compound stop enforced by race control and planned by the AI). All run on the same simulation ([MODES.md](MODES.md)). Not yet: online leaderboards, a custom calendar editor, safety car, or endurance driver swaps |
@@ -141,21 +141,34 @@ as before.
 Sun shadow casters: in the same grid frames the shadow pass drew 852 casters per
 frame, more than the main view. A census of the casters by owner (now in the
 verbose diagnostics) put 807 of them on the cars: 170 for the supplied player car
-and 91 for each rival at full detail, one per mesh and material. Each rival's
-rigid parts (batched bodywork, wings, wheel carriers, rims, brake rotors with
-their bells, steering-wheel body, helmet and torso, at every LOD) now cast
-through one depth-only mesh per part and shadow side: the same triangles with
-positions only, so the shadow map is unchanged. Tyres (deformed on the CPU),
-skinned sleeves, instanced controls, gloves and anything alpha-tested still cast
-as before. The casters are shown only inside the shadow pass, after three.js has
-built each view's draw list, so they add no draw to any view. A rival casts in 52
-draws instead of 91 at full detail and 13 instead of 23 at LOD 1 and 2; a unit
-test checks the triangles cast are identical at all three LODs and that a lost
-wing still takes its shadow with it. In the game the grid shadow pass fell from
-852 to 579 draws (−32%), and a paused grid frame with a rival and crew in view
-was pixel-identical to the previous build (800×450, Mesa software GL). On track,
-where usually only the player car is inside the 76 m shadow box, the pass stays
-about 190 draws: the supplied player car's 170 casters are the next target.
+and 91 for each rival at full detail, one per mesh and material. The cars' rigid
+parts now cast through depth-only meshes, one per part, shadow side and 16-bit
+chunk: the rivals' batched bodywork, wings, wheel carriers, rims, brake rotors with
+their bells, steering-wheel body, helmet and torso (every LOD), and the player
+car's multi-primitive glTF groups (body, wings, DRS, wheels, and the cockpit,
+controls, driver and head skinned on their shared skeleton). They hold the same
+triangles in the same LOD tier with positions only (plus bone indices and
+weights in their source types), so self-shadowing is unchanged. Tyres deformed on
+the CPU, instanced controls, gloves, mirror surfaces (their visibility follows the
+camera) and anything alpha-tested cast as before. The casters are shown only
+inside the shadow pass, after three.js has built each view's draw list, so they
+add no draw to any view.
+
+Merging copies vertices to save draws, so sources over 8,192 vertices keep
+casting alone (7 of the player car's 172 primitives hold 41% of its vertices), and
+identical merged data is pooled by content: all seven rivals share one copy. The
+casters hold 12.9 MB of vertex and index data in total; without the cap and the
+pooling the same scheme held 62.8 MB.
+
+Measured (Aurel, High, Mesa software GL): a rival casts in 54 draws instead of 91
+at full detail and 13 instead of 23 at LOD 1 and 2; the player car in 43 instead of
+170. The grid shadow pass fell from 852 to 470 draws (−45%) and the on-track pass,
+where usually only the player car is inside the 76 m shadow box, from 195 to 62
+(−68%). Paused grid frames (800×450) were pixel-identical to the build before any
+casters in chase and trackside views; in the cockpit view 1 of 360,000 pixels
+differed, by 1/255 (repeat captures of the baseline were identical). Unit tests
+check, on a real rival at all three LODs and on skinned and tier-swapped
+sources, that the world-space triangles cast per shadow side are identical.
 
 ## Evidence retained
 

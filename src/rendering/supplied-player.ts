@@ -397,6 +397,25 @@ export class SuppliedPlayer {
     root.updateMatrixWorld(true);
     this.skinBounds = new SuppliedSkinBounds(root);
   }
+  /** Groups three made from multi-primitive glTF meshes (body, wings, DRS,
+   * wheels, cockpit, controls, driver, head): their primitives have identity
+   * placement and move only with the group (the steering clip animates
+   * bones, never mesh nodes). Shadow casters may merge each one. Mirror
+   * surfaces, whose visibility follows the camera, are never included. */
+  shadowFrames(): T.Object3D[] {
+    const frames: T.Object3D[] = [];
+    const identity = new T.Matrix4();
+    this.root.traverse((object) => {
+      const meshes = object.children.filter((c): c is T.Mesh => c instanceof T.Mesh);
+      if (
+        meshes.length >= 2 &&
+        meshes.length === object.children.length &&
+        meshes.every((m) => !this.mirrors.includes(m) && m.matrix.equals(identity))
+      )
+        frames.push(object);
+    });
+    return frames;
+  }
   headWorld(out: T.Vector3) {
     const head = this.bones.get('head');
     return head

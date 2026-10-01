@@ -1,5 +1,6 @@
 import * as T from 'three';
 import { CompactIndexBuffers } from './compact-index-buffer.ts';
+import { RANGE_ONLY_SHADOW_HOOK } from './shadow-proxies.ts';
 
 interface RangeBounds {
   index: T.BufferAttribute;
@@ -176,6 +177,10 @@ export class SuppliedDrawRanges {
         beforeShadow.apply(mesh, args);
         select(args[0], args[3], args[4], args[5]);
       };
+      // Narrowing to the shadow camera never changes what reaches the map.
+      const rangeOnly = mesh.userData[RANGE_ONLY_SHADOW_HOOK];
+      mesh.userData[RANGE_ONLY_SHADOW_HOOK] =
+        beforeShadow === T.Object3D.prototype.onBeforeShadow || rangeOnly === true;
       mesh.onAfterShadow = (...args) => {
         reset();
         afterShadow.apply(mesh, args);
@@ -186,6 +191,8 @@ export class SuppliedDrawRanges {
         mesh.onAfterRender = after;
         mesh.onBeforeShadow = beforeShadow;
         mesh.onAfterShadow = afterShadow;
+        if (rangeOnly === undefined) delete mesh.userData[RANGE_ONLY_SHADOW_HOOK];
+        else mesh.userData[RANGE_ONLY_SHADOW_HOOK] = rangeOnly;
       });
     }
   }

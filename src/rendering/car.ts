@@ -554,10 +554,10 @@ export class FormulaCar {
   /** Groups whose own mesh and direct mesh children never move relative to
    * the group: batched bodywork, wings, wheel carriers, rims, brake rotors
    * (with their bells), the steering-wheel body, helmet and torso, at every
-   * LOD. Shadow casters may merge each one. The supplied player car has its
-   * own assembly and is not listed. */
+   * LOD. Shadow casters may merge each one. The supplied player car lists
+   * its own glTF groups. */
   shadowFrames(): T.Object3D[] {
-    if (this.suppliedPlayer) return [];
+    if (this.suppliedPlayer) return this.suppliedPlayer.shadowFrames();
     return [
       this.staticBody,
       this.frontWing,

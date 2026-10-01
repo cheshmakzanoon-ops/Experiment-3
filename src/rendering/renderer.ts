@@ -1431,6 +1431,7 @@ export class RacingRenderer {
       reflectionProbeUpdates: this.reflection.probeUpdates,
       reflectionProbeDetailOmitted: this.reflection.probeDetailOmitted,
       shadowCasters: this.shadowProxies.count,
+      shadowCasterBytes: this.shadowProxies.bytes,
       skyEnvironmentUpdates: this.environment.captures,
       lighting: this.lighting,
       vegetationTrees: this.circuit.vegetationGroup.userData.treeCount,
