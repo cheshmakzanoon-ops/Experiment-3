@@ -28,6 +28,16 @@ const COLORS = [
   [0.045, 0.042, 0.038],
 ] as const;
 export const PARTICLE_KIND = { SPRAY: 0, DUST: 1, SPARK: 2, RAIN: 3, SMOKE: 4, MARBLE: 5 } as const;
+/** Share (0..1) of a wheel's slip work that smokes: zero up to a slip ratio
+ * of 0.18 and a slip angle of 8 degrees (past the tyre's peak), full when
+ * locked or spinning by 0.43, or sliding at 15 degrees. */
+export function tireSmokeSliding(slipRatio: number, slipAngle: number) {
+  if (!Number.isFinite(slipRatio) || !Number.isFinite(slipAngle)) return 0;
+  return Math.max(
+    clamp((Math.abs(slipRatio) - 0.18) / 0.25, 0, 1),
+    clamp((Math.abs(slipAngle) - 0.14) / 0.12, 0, 1),
+  );
+}
 /** One bounded particle pool. All contact emitters use measured load and work;
  * weather advection consumes the same wind carried by physics and replay. */
 export class Effects {
@@ -371,7 +381,13 @@ export class Effects {
             } else if (speed > 6) {
               // Actual slip power includes lateral scrub and locked-wheel work.
               // The brake pedal itself is deliberately not an emission trigger.
-              rate = clamp((frame[p + W.SLIP_POWER] - 1800) / 700, 0, 80);
+              // Rubber smokes when it slides well past peak grip (a lock-up,
+              // wheelspin or a big slide), not while cornering at the limit:
+              // an F1 tyre near its peak slip angle already dissipates tens of
+              // kilowatts without visible smoke.
+              rate =
+                tireSmokeSliding(frame[p + W.SLIP], frame[p + W.ANGLE]) *
+                clamp((frame[p + W.SLIP_POWER] - 1800) / 700, 0, 80);
             }
           }
           if (rate <= 0) {

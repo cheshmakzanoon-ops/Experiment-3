@@ -292,3 +292,15 @@ it('does not fabricate rain or contact spray for dry or disabled long-gap live o
     dispose(effects);
   }
 });
+it('smokes only for wheels sliding past peak grip, not for cornering at the limit', async () => {
+  const { tireSmokeSliding } = await import('../src/rendering/effects.ts');
+  // Cornering at about 5 degrees of slip angle and 8% slip ratio: no smoke.
+  expect(tireSmokeSliding(0.08, 0.087)).toBe(0);
+  // A locked wheel, wheelspin and a big slide smoke fully.
+  expect(tireSmokeSliding(-1, 0)).toBe(1);
+  expect(tireSmokeSliding(0.6, 0)).toBe(1);
+  expect(tireSmokeSliding(0, 0.3)).toBe(1);
+  // A partial lock-up smokes partly.
+  expect(tireSmokeSliding(-0.3, 0)).toBeCloseTo(0.48, 6);
+  expect(tireSmokeSliding(NaN, 0)).toBe(0);
+});

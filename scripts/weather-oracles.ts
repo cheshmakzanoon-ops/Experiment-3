@@ -135,7 +135,8 @@ export const weatherOracles: Record<string, () => void> = {
   'lateral slip work, actual water pickup and hard-contact work drive distinct emitters': () => {
     const e = new Effects(), frame = snapshot(), o = carBase(0), p = o + WHEEL_BASE;
     try {
-      frame[p + W.LOAD] = 2000; frame[p + W.SLIP_POWER] = 57800;
+      // Lateral slip work of a sliding tyre: 57.8 kW at about 17 degrees of slip.
+      frame[p + W.LOAD] = 2000; frame[p + W.SLIP_POWER] = 57800; frame[p + W.ANGLE] = 0.3;
       e.update(frame, 0.1); assert(e.diagnostics().spawned[K.SMOKE] > 0);
       frame[p + W.WATER] = 1; frame[o + F.COMPOUND] = 4;
       frame[o + F.BOTTOM_ENERGY] = 8300;
