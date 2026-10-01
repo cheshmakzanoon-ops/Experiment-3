@@ -1,6 +1,6 @@
 import * as T from 'three';
 import { Pass, FullScreenQuad } from 'three/addons/postprocessing/Pass.js';
-import { ExposureAdaptation, readExposureMeter } from './exposure-meter.ts';
+import { ExposureAdaptation, METER_KEY, readExposureMeter } from './exposure-meter.ts';
 
 /** Measures the actual linear scene before bloom/output conversion. One 16x12
  * draw, at most four times per simulated second, with one async read in flight.
@@ -37,6 +37,7 @@ export class AdaptiveExposurePass extends Pass {
   private viewIdentity = '';
   private lastSample = -Infinity;
   private baseExposure = 1;
+  private key: number = METER_KEY.day;
   private active = false;
   private pending = false;
   private disposed = false;
@@ -48,9 +49,18 @@ export class AdaptiveExposurePass extends Pass {
     this.target.texture.colorSpace = T.NoColorSpace;
     this.target.texture.generateMipmaps = false;
   }
-  prepare(time: number, identity: string, baseExposure: number, active: boolean) {
+  /** `key`: the lighting's authored exposure key (METER_KEY). */
+  prepare(
+    time: number,
+    identity: string,
+    baseExposure: number,
+    active: boolean,
+    key: number = METER_KEY.day,
+  ) {
     if (!Number.isFinite(baseExposure) || baseExposure <= 0)
       throw new Error('Invalid base exposure');
+    if (!Number.isFinite(key)) throw new Error('Invalid exposure key');
+    this.key = key;
     if (this.active !== (active && !this.disposed)) this.reset();
     const generation = this.adaptation.generation;
     const sameLighting =
@@ -86,7 +96,8 @@ export class AdaptiveExposurePass extends Pass {
       return;
     this.lastSample = this.time;
     const generation = this.adaptation.generation,
-      base = this.baseExposure;
+      base = this.baseExposure,
+      key = this.key;
     const previous = renderer.getRenderTarget(),
       face = renderer.getActiveCubeFace(),
       mip = renderer.getActiveMipmapLevel();
@@ -117,6 +128,7 @@ export class AdaptiveExposurePass extends Pass {
               base,
               generation,
               observation.highlightLogLuminance,
+              key,
             );
         })
         .catch((error: unknown) => {

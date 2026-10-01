@@ -27,6 +27,7 @@ import { PEOPLE_ASSET } from './people-asset.ts';
 import { loadDriverAsset, type DriverAsset } from './driver-asset.ts';
 import { loadHeroShells, type HeroShells } from './hero-shells.ts';
 import { AdaptiveExposurePass } from './adaptive-exposure.ts';
+import { METER_KEY } from './exposure-meter.ts';
 import { LensBloomPass } from './lens-bloom.ts';
 import { LocalAtmosphere } from './local-atmosphere.ts';
 import { RaceComposition } from './race-composition.ts';
@@ -1150,6 +1151,7 @@ export class RacingRenderer {
         `${illumination}:${cameraMode}:${cameraMode === 'trackside' ? this.trackside.activeId : -1}:${this.follow}`,
         daylight.exposure * 2 ** (this.photo?.exposure ?? 0),
         this.graphics.autoExposure && !this.photo && !menu,
+        METER_KEY[illumination],
       );
       this.grade.apply(studio ? 'studio' : illumination, presented[H.TIME]);
       this.drawLedger.mark('composer');
