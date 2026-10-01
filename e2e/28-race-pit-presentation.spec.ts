@@ -200,9 +200,11 @@ async function seek(page: Page, seconds: number) {
       max = Number(input.max);
     if (!(step > 0) || !(max >= min) || !Number.isFinite(value))
       throw new Error('Invalid replay range');
+    // Round up: a step below an observation can present the previous replay
+    // frame (1/15 s earlier), which may belong to the previous pit phase.
     const units = Math.max(
         0,
-        Math.min(Math.floor((max - min) / step), Math.round((value - min) / step)),
+        Math.min(Math.floor((max - min) / step), Math.ceil((value - min) / step - 1e-9)),
       ),
       target = Number((min + units * step).toFixed(8));
     input.value = String(target);
@@ -409,7 +411,9 @@ test('27H.6 populated pit journey: approach, real service, exit and complete rep
   // playback slider uses seconds relative to replay.start, not wall time.
   const removal = report.rows.filter((row) => row[phaseColumn] === 3);
   expect(removal.length).toBeGreaterThan(0);
-  const anchorTime = removal[removal.length - 1][timeColumn];
+  // Middle of the observed removal phase. When only one row was observed (a
+  // forced snapshot on the phase's first replay tick) this is that row.
+  const anchorTime = (removal[0][timeColumn] + removal[removal.length - 1][timeColumn]) / 2;
   await replay(page);
   const startTime = (await read(page)).replayStart;
   const anchor = await seek(page, anchorTime - startTime);
