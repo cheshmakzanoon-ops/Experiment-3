@@ -222,6 +222,8 @@ export class RacingRenderer {
   private farShadow = new FarShadow();
   private farShadowBounds = new T.Box3();
   private farShadowBaked: LightingMode | null = null;
+  /** Inputs of the baked far map besides the lighting: size and planting. */
+  private farShadowInputs = '';
   private gpuTimer: GpuTimer;
   private gpuFrames: GpuFrameGate;
   private previousAnchor = new T.Vector3();
@@ -322,6 +324,10 @@ export class RacingRenderer {
     this.farShadowBounds.expandByVector(
       this.temporary.set(FAR_SHADOW_MARGIN_M, 0, FAR_SHADOW_MARGIN_M),
     );
+    this.configureFarShadow();
+    // Baked behind the loading screen, after every scenery task, so the first
+    // menu or race frames never pay for it.
+    this.circuit.construction.add('Far sun shadow', 9, () => this.bakeFarShadow(this.lighting));
     this.circuit.construction.add('Event hall broadcast bounds', 1, () =>
       this.venueLighting.registerSightlines(this.circuit.sightlines),
     );
@@ -593,9 +599,7 @@ export class RacingRenderer {
     this.reflection.quality(g.mirrorQuality);
     this.circuit.wetReflection.setQuality(g.reflections === 'local' ? q : 'low');
     this.renderer.shadowMap.enabled = g.shadowSize > 0;
-    // Planting density and map size change the far map: bake it again.
-    this.farShadow.setEnabled(g.shadowSize > 0, Math.max(1024, g.shadowSize));
-    this.farShadowBaked = null;
+    this.configureFarShadow();
     if (this.sun.shadow.mapSize.x !== g.shadowSize && g.shadowSize > 0) {
       this.sun.shadow.map?.dispose();
       this.sun.shadow.map = null;
@@ -1171,6 +1175,16 @@ export class RacingRenderer {
   }
   /** Rebuilt in place each frame (no allocation): the car set, follow target
    * and lazily loaded pit kits can change between frames. */
+  /** Map size and planting density decide the far map; bake again only
+   * when they change. */
+  private configureFarShadow() {
+    const g = this.graphics,
+      size = Math.max(1024, g.shadowSize),
+      inputs = `${g.shadowSize > 0}|${size}|${g.vegetationDensity}`;
+    this.farShadow.setEnabled(g.shadowSize > 0, size);
+    if (inputs !== this.farShadowInputs) this.farShadowBaked = null;
+    this.farShadowInputs = inputs;
+  }
   /** Bake the static far sun shadow for this lighting: no cars, people,
    * particles or moving equipment; groves and treelines cast into it only. */
   private bakeFarShadow(illumination: LightingMode) {

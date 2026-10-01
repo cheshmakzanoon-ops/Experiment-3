@@ -104,13 +104,17 @@ export interface FarShadowBake {
 export class FarShadow {
   readonly light = new T.DirectionalLight(0xffffff, 0);
   bakes = 0;
+  /** CPU wall time of the last bake's submission, milliseconds. */
+  lastBakeMs = 0;
   private readonly camera = new T.OrthographicCamera(-1, 1, 1, -1, 1, 2);
   private readonly target = new T.WebGLRenderTarget(1, 1);
   private readonly view = new T.OrthographicCamera(-1, 1, 1, -1, 1, 2);
   constructor(size = 2048) {
     this.light.name = 'Far sun shadow (no light of its own)';
     this.light.castShadow = true;
-    this.light.shadow.intensity = FAR_SHADOW_MARK;
+    // Unmarked until a bake completes: an unrendered map must never shade
+    // the scene (it would read as shadow everywhere beyond the near map).
+    this.light.shadow.intensity = 0;
     this.light.shadow.autoUpdate = false;
     this.light.shadow.needsUpdate = false;
     this.light.shadow.mapSize.set(size, size);
@@ -122,7 +126,12 @@ export class FarShadow {
   get enabled() {
     return this.light.castShadow;
   }
-  /** Turn the far map on or off (it follows the sun's own shadows). */
+  /** True once a complete map is in use. */
+  get baked() {
+    return this.light.shadow.intensity === FAR_SHADOW_MARK;
+  }
+  /** Turn the far map on or off (it follows the sun's own shadows). A new
+   * size discards the map until the next bake. */
   setEnabled(enabled: boolean, size: number) {
     if (!Number.isInteger(size) || size < 1) throw new Error('Invalid far shadow size');
     this.light.castShadow = enabled;
@@ -130,6 +139,7 @@ export class FarShadow {
       this.light.shadow.map?.dispose();
       this.light.shadow.map = null;
       this.light.shadow.mapSize.set(size, size);
+      this.light.shadow.intensity = 0;
     }
   }
   /** Fit the light's orthographic frustum to `bounds` seen along `direction`. */
@@ -195,7 +205,10 @@ export class FarShadow {
       this.light.shadow.needsUpdate = true;
       renderer.shadowMap.autoUpdate = true;
       renderer.setRenderTarget(this.target);
+      const start = performance.now();
       renderer.render(scene, this.camera);
+      this.lastBakeMs = performance.now() - start;
+      this.light.shadow.intensity = FAR_SHADOW_MARK;
       this.bakes++;
     } finally {
       renderer.setRenderTarget(target);
@@ -211,8 +224,10 @@ export class FarShadow {
     const camera = this.light.shadow.camera;
     return {
       enabled: this.enabled,
+      baked: this.baked,
       mapSize: this.light.shadow.mapSize.x,
       bakes: this.bakes,
+      lastBakeMs: this.lastBakeMs,
       metresPerTexel:
         Math.max(camera.right - camera.left, camera.top - camera.bottom) /
         this.light.shadow.mapSize.x,

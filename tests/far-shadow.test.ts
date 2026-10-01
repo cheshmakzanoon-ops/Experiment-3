@@ -52,7 +52,9 @@ it('patches only the directional loop: the sun reads the far map, the marked far
 
 it('fits the far frustum to the circuit as the sun sees it, with one-texel offsets', () => {
   const far = new FarShadow(2048);
-  expect(far.light.shadow.intensity).toBe(FAR_SHADOW_MARK);
+  // Unmarked until baked: an unrendered map never shades anything.
+  expect(far.light.shadow.intensity).toBe(0);
+  expect(far.baked).toBe(false);
   expect(far.light.intensity).toBe(0);
   expect(far.light.shadow.autoUpdate).toBe(false);
   const bounds = new T.Box3(new T.Vector3(-500, -20, -600), new T.Vector3(400, 60, 550));
@@ -127,7 +129,10 @@ it('bakes shadow maps only, without cars or people, with far-only planting casti
     farCasters: [grove],
     sun,
   };
+  expect(far.baked).toBe(false);
   expect(far.bake(gl, scene, options)).toBe(true);
+  expect(far.baked).toBe(true);
+  expect(far.light.shadow.intensity).toBe(FAR_SHADOW_MARK);
   expect(seen).toEqual([
     {
       car: false,
@@ -152,9 +157,16 @@ it('bakes shadow maps only, without cars or people, with far-only planting casti
   expect(() => far.bake(gl, scene, options)).toThrow('lost');
   expect([car.visible, grove.castShadow, sun.shadow.autoUpdate]).toEqual([true, false, true]);
   expect(far.bakes).toBe(1);
+  // A new map size discards the map: unmarked until the next bake.
+  far.setEnabled(true, 2048);
+  expect(far.baked).toBe(false);
+  expect(far.bake(gl, scene, options)).toBe(true);
+  expect(far.baked).toBe(true);
+  far.setEnabled(true, 2048);
+  expect(far.baked).toBe(true);
   far.setEnabled(false, 1024);
   expect(far.bake(gl, scene, options)).toBe(false);
-  expect(renderer.render).toHaveBeenCalledTimes(2);
+  expect(renderer.render).toHaveBeenCalledTimes(3);
   expect(() => far.setEnabled(true, 0)).toThrow('Invalid far shadow size');
   far.dispose();
   previous.dispose();
