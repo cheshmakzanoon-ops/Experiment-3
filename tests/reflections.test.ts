@@ -335,7 +335,7 @@ it('omits excluded roots from every probe face and restores them, even after a f
   expect([rival.visible, crowd.visible, hiddenAlready.visible]).toEqual([true, true, false]);
   reflection.dispose();
 });
-it('omits sub-texel scenery from one capture only, measured from the probe, and restores it after a failed face', () => {
+it('draws all scenery in the first capture, then omits sub-texel detail from each later one and restores it after a failed face', () => {
   const reflection = new ReflectionSystem(),
     { gl } = fixture();
   const scene = new T.Scene(),
@@ -359,22 +359,35 @@ it('omits sub-texel scenery from one capture only, measured from the probe, and 
     size(far, Math.PI / 256 - 1e-6),
     size(hiddenAlready, 0),
   ];
+  const seen: boolean[][] = [];
   const update = vi.spyOn(T.CubeCamera.prototype, 'update').mockImplementation(function (
     this: T.CubeCamera,
   ) {
-    expect([near.visible, far.visible, hiddenAlready.visible]).toEqual([true, false, false]);
+    seen.push([near.visible, far.visible, hiddenAlready.visible]);
     expect(this.position.toArray()).toEqual([10, 3.5, -4]);
   });
+  // A failed first capture does not count as having drawn the scenery.
+  update.mockImplementationOnce(() => {
+    throw new Error('first face lost');
+  });
   reflection.beginFrame(1, false);
+  expect(() => reflection.updateProbe(gl, scene, car, [], true)).toThrow('first face lost');
+  reflection.beginFrame(3, false);
   reflection.updateProbe(gl, scene, car, [], true);
-  expect(update).toHaveBeenCalledOnce();
+  // The first complete capture uploads every static drawable.
+  expect(seen).toEqual([[true, true, false]]);
+  expect(reflection.probeDetailOmitted).toBe(0);
+  expect(eyes).toHaveLength(0);
+  reflection.beginFrame(5, false);
+  reflection.updateProbe(gl, scene, car, [], true);
+  expect(seen[1]).toEqual([true, false, false]);
   expect(eyes.every((eye) => eye.equals(new T.Vector3(10, 3.5, -4)))).toBe(true);
   expect(reflection.probeDetailOmitted).toBe(1);
   expect([near.visible, far.visible, hiddenAlready.visible]).toEqual([true, true, false]);
   update.mockImplementation(() => {
     throw new Error('face lost');
   });
-  reflection.beginFrame(3, false);
+  reflection.beginFrame(7, false);
   expect(() => reflection.updateProbe(gl, scene, car, [], true)).toThrow('face lost');
   expect([near.visible, far.visible, hiddenAlready.visible]).toEqual([true, true, false]);
   reflection.dispose();

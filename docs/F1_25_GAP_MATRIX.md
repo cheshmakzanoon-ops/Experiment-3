@@ -119,7 +119,9 @@ tests three.js applies, before the renderer's own exclusions) gives Aurel 1,385 
 In the game (Aurel, dry, High, AI demonstration, Mesa software GL; draw counts
 only) the largest probe refresh fell from 1,449–1,508 to 966–987 draws
 (−33 to −35%) across chase, trackside and cockpit views, with 721–781 sub-texel
-objects left out of each capture.
+objects left out of each capture. The first capture after loading still draws
+everything, so all scenery is uploaded to the GPU before driving; omitting it
+there left small props to upload when the main view first reached them.
 
 ## Evidence retained
 

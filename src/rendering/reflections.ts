@@ -42,6 +42,10 @@ export class ReflectionSystem {
   /** Detail drawables omitted from the most recent capture. */
   probeDetailOmitted = 0;
   private detailHidden: T.Object3D[] = [];
+  /** The first complete capture draws every static drawable, so all scenery
+   * is resident on the GPU before driving. Omitting detail from it left
+   * sub-texel props to upload when the main view first reached them. */
+  private sceneryResident = false;
   private probeEye = new T.Vector3();
   private activePass = false;
   private clock = NaN;
@@ -209,7 +213,13 @@ export class ReflectionSystem {
       }
       this.probeEye.copy(car.position);
       this.probeEye.y += 1.5;
-      cullProbeDetail(this.probeDetail, this.probeEye, cube.renderTarget.width, this.detailHidden);
+      if (this.sceneryResident)
+        cullProbeDetail(
+          this.probeDetail,
+          this.probeEye,
+          cube.renderTarget.width,
+          this.detailHidden,
+        );
       this.probeDetailOmitted = this.detailHidden.length;
       for (const { material, original } of previousMaps) {
         material.envMap = original.texture;
@@ -223,6 +233,7 @@ export class ReflectionSystem {
       if (skyScale) skyScale.value = scene.environmentIntensity;
       cube.position.copy(this.probeEye);
       cube.update(renderer, scene);
+      this.sceneryResident = true;
       this.probeUpdates++;
       this.lastProbe = this.clock;
       this.capturedEnvironment = environmentIdentity;
