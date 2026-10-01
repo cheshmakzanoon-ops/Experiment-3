@@ -21,6 +21,7 @@ import { buildSea, installShoreline, shoreWeight } from './sea.ts';
 import { WetRoadReflection, reflectInWetRoad } from './wet-reflection.ts';
 import { buildGarageBay, paddockMaterials } from './paddock-detail.ts';
 import { buildVegetation } from './landscape.ts';
+import { buildTyreMarks } from './tyre-marks.ts';
 import {
   buildTrackInfrastructure,
   trackInfrastructurePlan as makeTrackInfrastructurePlan,
@@ -272,6 +273,7 @@ export class CircuitScene {
         terrainFor(track).height(x, z),
       ),
     );
+    this.construction.add('Laid tyre rubber', 1, () => buildTyreMarks(track, this.surfaces));
     this.construction.add('Rule-placed layered foliage', 3, () =>
       buildVegetation(track, this.vegetationGroup, this.serviceSites),
     );
