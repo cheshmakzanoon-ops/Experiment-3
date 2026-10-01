@@ -36,6 +36,8 @@ export class ReducedCar {
   readonly brakes: T.Mesh[] = [];
   readonly front = new T.Group();
   readonly rear = new T.Group();
+  /** Batched bodywork (rigid). */
+  readonly body = new T.Group();
   constructor(
     level: 1 | 2,
     paint: T.Material,
@@ -44,7 +46,7 @@ export class ReducedCar {
     flanks: readonly [T.Material, T.Material] = [paint, paint],
   ) {
     const sides = level === 1 ? 12 : 8;
-    const body = new T.Group();
+    const body = this.body;
     this.root.add(body, this.front, this.rear);
     mesh(body, floorGeometry(level === 1 ? 'mid' : 'far'), carbon);
     for (const side of [-1, 1]) {

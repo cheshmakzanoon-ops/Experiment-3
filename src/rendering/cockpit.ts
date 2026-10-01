@@ -332,9 +332,11 @@ export class RotarySelectors {
 export class CockpitControls {
   readonly selectors: T.Group[];
   readonly selectorBank: RotarySelectors;
+  /** Batched, rigid steering-wheel body. */
+  readonly staticParts = new T.Group();
   private angles = new T.Vector3();
   constructor(steering: T.Group, carbon: T.Material) {
-    const staticParts = new T.Group();
+    const staticParts = this.staticParts;
     steering.add(staticParts);
     const face = mesh(staticParts, steeringFaceGeometry(), carbon);
     face.name = 'Bevelled butterfly steering body';

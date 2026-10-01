@@ -68,6 +68,7 @@ import type { BuildProgress } from './build-queue.ts';
 import { TracksideDirector } from './trackside.ts';
 import { CameraClock, InertialCamera, ViewOrientation } from './camera-dynamics.ts';
 import { ReflectionSystem } from './reflections.ts';
+import { ShadowProxies } from './shadow-proxies.ts';
 import { DebrisView } from './debris.ts';
 import { PitCrewView, serviceWheelOffset } from './pit-crew.ts';
 import { MotionBlurPass } from './motion-blur.ts';
@@ -212,6 +213,8 @@ export class RacingRenderer {
     // per refresh) instead of all six in one frame.
     probeFacesPerFrame: PROBE_FACES_PER_FRAME,
   });
+  /** Merged depth-only casters for the cars' rigid parts (sun shadow pass). */
+  private shadowProxies = new ShadowProxies();
   private gpuTimer: GpuTimer;
   private gpuFrames: GpuFrameGate;
   private previousAnchor = new T.Vector3();
@@ -273,6 +276,7 @@ export class RacingRenderer {
     this.renderer.toneMappingExposure = 1.05;
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = T.PCFSoftShadowMap;
+    this.shadowProxies.install(this.renderer);
     this.sky.scale.setScalar(450000);
     this.sky.userData.excludeMotionBlur = true;
     configureSky(this.sky);
@@ -455,6 +459,8 @@ export class RacingRenderer {
       this.textures.register(car.root);
       this.weatherPresentation.install(car.root);
       this.atmosphere.install(car.root);
+      // After the material installs above: the casters are depth-only.
+      this.shadowProxies.add(...car.shadowFrames());
       this.reflectionMaterials.push([...car.reflectivePaint, this.circuit.roadMaterial]);
       if (car.id === 0) {
         this.reflection.attachMirrors(car.mirrors);
@@ -1241,7 +1247,9 @@ export class RacingRenderer {
             roots,
           ).slice(0, 24),
           // Casters inside the sun's shadow camera as of the last shadow pass.
-          shadow: renderCensus(this.scene, [this.sun.shadow.camera], roots, true).slice(0, 24),
+          shadow: this.shadowProxies
+            .withCasters(() => renderCensus(this.scene, [this.sun.shadow.camera], roots, true))
+            .slice(0, 24),
         };
       })(),
       haloProjection: halo.toArray(),
@@ -1422,6 +1430,7 @@ export class RacingRenderer {
       mirrorWidth: this.reflection.mirrorWidth,
       reflectionProbeUpdates: this.reflection.probeUpdates,
       reflectionProbeDetailOmitted: this.reflection.probeDetailOmitted,
+      shadowCasters: this.shadowProxies.count,
       skyEnvironmentUpdates: this.environment.captures,
       lighting: this.lighting,
       vegetationTrees: this.circuit.vegetationGroup.userData.treeCount,
@@ -1477,6 +1486,7 @@ export class RacingRenderer {
     this.ghost?.dispose();
     this.pitCrew.dispose();
     this.reflection.dispose();
+    this.shadowProxies.dispose();
     this.gpuTimer.dispose();
     this.gpuFrames.dispose();
     this.motionBlur.dispose();

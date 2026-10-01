@@ -58,6 +58,8 @@ export class FormulaCar {
   readonly rearWing = new T.Group();
   readonly wheelPivots: T.Group[] = [];
   readonly wheelSpins: T.Group[] = [];
+  /** Steered, non-rotating wheel hardware (ducts, uprights, calipers). */
+  readonly wheelCarriers: T.Group[] = [];
   readonly carcasses: TireCarcass[] = [];
   readonly discs: T.MeshStandardMaterial[] = [];
   readonly brakeRotors: T.Mesh[] = [];
@@ -350,6 +352,7 @@ export class FormulaCar {
       this.discs.push(discMaterial);
       const carrierDetails = new T.Group();
       pivot.add(carrierDetails);
+      this.wheelCarriers.push(carrierDetails);
       const disc = mesh(
         pivot,
         hero?.copy('brake_rotor') ?? ventilatedBrakeGeometry(),
@@ -547,6 +550,26 @@ export class FormulaCar {
       this.mirrors.splice(0, this.mirrors.length, ...this.suppliedPlayer.mirrors);
       this.root.userData.suppliedPlayer = this.suppliedPlayer.diagnostics();
     }
+  }
+  /** Groups whose own mesh and direct mesh children never move relative to
+   * the group: batched bodywork, wings, wheel carriers, rims, brake rotors
+   * (with their bells), the steering-wheel body, helmet and torso, at every
+   * LOD. Shadow casters may merge each one. The supplied player car has its
+   * own assembly and is not listed. */
+  shadowFrames(): T.Object3D[] {
+    if (this.suppliedPlayer) return [];
+    return [
+      this.staticBody,
+      this.frontWing,
+      this.rearWing,
+      ...this.wheelCarriers,
+      ...this.wheelSpins,
+      ...this.brakeRotors,
+      this.cockpitControls.staticParts,
+      this.helmet,
+      this.driver.body,
+      ...this.reduced.flatMap((car) => [car.body, car.front, car.rear, ...car.spins]),
+    ];
   }
   setLod(
     distance: number,
