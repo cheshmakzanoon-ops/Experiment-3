@@ -46,6 +46,16 @@ export class ReflectionSystem {
    * is resident on the GPU before driving. Omitting detail from it left
    * sub-texel props to upload when the main view first reached them. */
   private sceneryResident = false;
+  /** Cube faces a periodic refresh renders per frame (1-6). A whole capture
+   * in one frame put about 940 extra draws on that frame every 1.5 s (0.55 s
+   * wet). Below 6, a refresh renders into the back target over several
+   * frames from one fixed eye and is published only when all six faces are
+   * complete. First captures, seeks, subject and environment changes always
+   * render all six faces at once. */
+  probeFacesPerFrame = 6;
+  /** Next face of the refresh in progress, or -1 when none is. */
+  private pendingFace = -1;
+  private pendingStart = 0;
   private probeEye = new T.Vector3();
   private activePass = false;
   private clock = NaN;
@@ -92,6 +102,7 @@ export class ReflectionSystem {
     this.probeActive = false;
     this.capturedCar = null;
     this.lastProbe = -Infinity;
+    this.pendingFace = -1;
   }
   /** Sky-only IBL uses the authored gain. A completed local cubemap already
    * contains lit scene radiance, so applying that gain again also darkens every
@@ -156,10 +167,17 @@ export class ReflectionSystem {
     if (this.activePass) return;
     if (!high) {
       if (this.probeActive) this.restoreEnvironment();
+      this.pendingFace = -1;
       return;
     }
     if (!Number.isFinite(intervalSeconds) || intervalSeconds < 0.25 || intervalSeconds > 5)
       throw new Error('Invalid reflection probe interval');
+    if (
+      !Number.isInteger(this.probeFacesPerFrame) ||
+      this.probeFacesPerFrame < 1 ||
+      this.probeFacesPerFrame > 6
+    )
+      throw new Error('Invalid probe faces per frame');
     if (
       skyScale &&
       (!Number.isFinite(skyScale.value) ||
@@ -176,8 +194,21 @@ export class ReflectionSystem {
     const environmentIdentity: object | null =
       scene.environment?.userData.aurelSkyEpoch ?? scene.environment;
     const environmentChanged = environmentIdentity !== this.capturedEnvironment;
-    if (this.activePass || (!environmentChanged && this.clock - this.lastProbe < intervalSeconds))
-      return;
+    // First captures, seeks (invalidate) and subject or environment changes
+    // render all six faces now and drop any refresh in progress.
+    let from = 0,
+      to = 6;
+    if (environmentChanged || this.lastProbe === -Infinity) this.pendingFace = -1;
+    else if (this.pendingFace >= 0) {
+      from = this.pendingFace;
+      to = Math.min(6, from + this.probeFacesPerFrame);
+    } else if (this.clock - this.lastProbe < intervalSeconds) return;
+    else {
+      this.pendingStart = this.clock;
+      to = this.probeFacesPerFrame;
+    }
+    // A failed face abandons the refresh; the next frame starts a new one.
+    this.pendingFace = -1;
     const cube = this.cubes[this.nextTarget];
     const visible = car.visible;
     const mirrorVisibility = this.mirrors.map((m) => m.visible);
@@ -211,8 +242,11 @@ export class ReflectionSystem {
         this.exclusionVisibility.push(root.visible);
         root.visible = false;
       }
-      this.probeEye.copy(car.position);
-      this.probeEye.y += 1.5;
+      // Every face of one capture shares the eye of its first face.
+      if (from === 0) {
+        this.probeEye.copy(car.position);
+        this.probeEye.y += 1.5;
+      }
       if (this.sceneryResident)
         cullProbeDetail(
           this.probeDetail,
@@ -232,12 +266,16 @@ export class ReflectionSystem {
       // The ordinary visible sky is restored even if a cube face throws.
       if (skyScale) skyScale.value = scene.environmentIntensity;
       cube.position.copy(this.probeEye);
-      cube.update(renderer, scene);
-      this.sceneryResident = true;
-      this.probeUpdates++;
-      this.lastProbe = this.clock;
-      this.capturedEnvironment = environmentIdentity;
-      this.capturedCar = car;
+      if (from === 0 && to === 6) cube.update(renderer, scene);
+      else this.renderFaces(renderer, scene, cube, from, to);
+      if (to === 6) {
+        this.sceneryResident = true;
+        this.probeUpdates++;
+        // A spread refresh dates from its eye, so the cadence is unchanged.
+        this.lastProbe = from === 0 && to === 6 ? this.clock : this.pendingStart;
+        this.capturedEnvironment = environmentIdentity;
+        this.capturedCar = car;
+      }
     } finally {
       if (skyScale) skyScale.value = priorSkyScale!;
       cube.renderTarget.texture.generateMipmaps = mipmaps;
@@ -262,6 +300,10 @@ export class ReflectionSystem {
       });
       this.activePass = false;
     }
+    if (to < 6) {
+      this.pendingFace = to;
+      return;
+    }
     // Publish only a completed six-face capture. A thrown GPU pass leaves the
     // last complete reflection and all renderer ownership untouched.
     const texture = this.cubeTargets[this.nextTarget].texture;
@@ -278,6 +320,34 @@ export class ReflectionSystem {
     }
     this.probeActive = true;
     this.nextTarget = 1 - this.nextTarget;
+  }
+  /** CubeCamera.update for faces [from, to) only: the same cameras, face
+   * order and target; the mip chain is generated once, by the sixth face. */
+  private renderFaces(
+    renderer: T.WebGLRenderer,
+    scene: T.Scene,
+    cube: T.CubeCamera,
+    from: number,
+    to: number,
+  ) {
+    if (cube.coordinateSystem !== renderer.coordinateSystem) {
+      cube.coordinateSystem = renderer.coordinateSystem;
+      cube.updateCoordinateSystem();
+    }
+    cube.updateMatrixWorld();
+    const texture = cube.renderTarget.texture,
+      mipmaps = texture.generateMipmaps;
+    renderer.xr.enabled = false;
+    try {
+      for (let face = from; face < to; face++) {
+        texture.generateMipmaps = mipmaps && face === 5;
+        renderer.setRenderTarget(cube.renderTarget, face, cube.activeMipmapLevel);
+        renderer.render(scene, cube.children[face] as T.Camera);
+      }
+    } finally {
+      texture.generateMipmaps = mipmaps;
+    }
+    if (to === 6) texture.needsPMREMUpdate = true;
   }
   diagnostics(renderer: T.WebGLRenderer) {
     return this.mirrors.map((mirror, i) => {

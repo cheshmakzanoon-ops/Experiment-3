@@ -115,6 +115,8 @@ export const CHASE = Object.freeze({
 /** T-cam lift above the authored pod socket and its downward gaze slope. */
 export const TCAM_LIFT_M = 0.09;
 export const TCAM_PITCH = -0.06;
+/** Local-probe cube faces rendered per frame by a periodic refresh. */
+export const PROBE_FACES_PER_FRAME = 1;
 export type { Quality } from './options.ts';
 export class RacingRenderer {
   readonly renderer: T.WebGLRenderer;
@@ -205,7 +207,11 @@ export class RacingRenderer {
   private cameraClock = new CameraClock();
   private inertia = new InertialCamera();
   private viewOrientation = new ViewOrientation();
-  private reflection = new ReflectionSystem();
+  private reflection = Object.assign(new ReflectionSystem(), {
+    // Periodic probe refreshes render one cube face per frame (six frames
+    // per refresh) instead of all six in one frame.
+    probeFacesPerFrame: PROBE_FACES_PER_FRAME,
+  });
   private gpuTimer: GpuTimer;
   private gpuFrames: GpuFrameGate;
   private previousAnchor = new T.Vector3();

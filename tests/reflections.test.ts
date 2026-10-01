@@ -392,6 +392,170 @@ it('draws all scenery in the first capture, then omits sub-texel detail from eac
   expect([near.visible, far.visible, hiddenAlready.visible]).toEqual([true, true, false]);
   reflection.dispose();
 });
+function slicedFixture() {
+  const base = fixture();
+  const faces: { face: number; x: number; mipmaps: boolean; texture: T.Texture }[] = [];
+  let target: T.WebGLCubeRenderTarget | null = null,
+    face = 0;
+  const renderer = Object.assign(base.renderer, {
+    coordinateSystem: T.WebGLCoordinateSystem,
+    setRenderTarget: vi.fn((t: T.WebGLCubeRenderTarget, f = 0) => {
+      target = t;
+      face = f;
+    }),
+    render: vi.fn((_scene: T.Scene, camera: T.Camera) => {
+      faces.push({
+        face,
+        x: camera.getWorldPosition(new T.Vector3()).x,
+        mipmaps: target!.texture.generateMipmaps,
+        texture: target!.texture,
+      });
+    }),
+  });
+  return { ...base, renderer, gl: renderer as unknown as T.WebGLRenderer, faces };
+}
+it('spreads a periodic refresh over frames from one eye and publishes it only when complete', () => {
+  const reflection = new ReflectionSystem(),
+    { gl, faces } = slicedFixture();
+  const scene = new T.Scene(),
+    car = new T.Group(),
+    material = new T.MeshStandardMaterial();
+  const full = vi.spyOn(T.CubeCamera.prototype, 'update').mockImplementation(() => undefined);
+  reflection.probeFacesPerFrame = 2;
+  reflection.beginFrame(1, false);
+  reflection.updateProbe(gl, scene, car, [material], true);
+  // The first capture renders all six faces at once.
+  expect(full).toHaveBeenCalledOnce();
+  const first = material.envMap!;
+  expect(faces).toHaveLength(0);
+  car.position.x = 10;
+  reflection.beginFrame(3, false);
+  reflection.updateProbe(gl, scene, car, [material], true);
+  const back = faces[0].texture,
+    pmrem = back.pmremVersion;
+  expect(back).not.toBe(first);
+  expect(faces.map((f) => f.face)).toEqual([0, 1]);
+  expect(car.visible).toBe(true);
+  expect(material.envMap).toBe(first);
+  expect(reflection.probeUpdates).toBe(1);
+  // The car moves on; the refresh keeps the eye of its first face.
+  car.position.x = 20;
+  reflection.beginFrame(3.02, false);
+  reflection.updateProbe(gl, scene, car, [material], true);
+  expect(material.envMap).toBe(first);
+  expect(back.pmremVersion).toBe(pmrem);
+  reflection.beginFrame(3.04, false);
+  reflection.updateProbe(gl, scene, car, [material], true);
+  expect(full).toHaveBeenCalledOnce();
+  expect(faces.map((f) => f.face)).toEqual([0, 1, 2, 3, 4, 5]);
+  expect(faces.every((f) => f.x === 10 && f.texture === back)).toBe(true);
+  // Mipmaps are generated once, after the sixth face, and PMREM refreshed.
+  expect(faces.map((f) => f.mipmaps)).toEqual([false, false, false, false, false, true]);
+  expect(back.generateMipmaps).toBe(true);
+  expect(back.pmremVersion).toBe(pmrem + 1);
+  expect(material.envMap).toBe(back);
+  expect(reflection.probeUpdates).toBe(2);
+  // The cadence runs from the refresh's first face (t = 3), not its last.
+  reflection.beginFrame(4.49, false);
+  reflection.updateProbe(gl, scene, car, [material], true);
+  expect(faces).toHaveLength(6);
+  reflection.beginFrame(4.5, false);
+  reflection.updateProbe(gl, scene, car, [material], true);
+  expect(faces).toHaveLength(8);
+  expect(faces[6].texture).toBe(first);
+  expect(faces[6].x).toBe(20);
+  reflection.dispose();
+});
+it('drops a refresh in progress for a seek, subject or environment change and captures all six faces', () => {
+  const reflection = new ReflectionSystem(),
+    { gl, faces } = slicedFixture();
+  const scene = new T.Scene(),
+    car = new T.Group(),
+    other = new T.Group(),
+    material = new T.MeshStandardMaterial();
+  const positions: number[] = [];
+  const full = vi.spyOn(T.CubeCamera.prototype, 'update').mockImplementation(function (
+    this: T.CubeCamera,
+  ) {
+    positions.push(this.position.x);
+  });
+  reflection.probeFacesPerFrame = 1;
+  other.position.x = 50;
+  let clock = 1;
+  const frame = (subject = car) => {
+    reflection.beginFrame(clock, false);
+    reflection.updateProbe(gl, scene, subject, [material], true);
+  };
+  frame();
+  const begin = () => {
+    clock += 2;
+    frame();
+    expect(faces.at(-1)!.face).toBe(0);
+  };
+  begin();
+  reflection.invalidate();
+  frame();
+  expect(full).toHaveBeenCalledTimes(2);
+  begin();
+  scene.environment = new T.Texture();
+  frame();
+  expect(full).toHaveBeenCalledTimes(3);
+  begin();
+  frame(other);
+  expect(full).toHaveBeenCalledTimes(4);
+  expect(positions).toEqual([0, 0, 0, 50]);
+  // Switching local reflections off also drops it.
+  clock += 2;
+  frame(other);
+  reflection.updateProbe(gl, scene, other, [material], false);
+  reflection.updateProbe(gl, scene, other, [material], true);
+  expect(full).toHaveBeenCalledTimes(5);
+  // No refresh face is ever published on its own.
+  expect(reflection.probeUpdates).toBe(5);
+  scene.environment.dispose();
+  reflection.dispose();
+});
+it('abandons a refresh after a failed face, restores state and restarts it from the first face', () => {
+  const reflection = new ReflectionSystem(),
+    { gl, faces, renderer } = slicedFixture();
+  const scene = new T.Scene(),
+    car = new T.Group(),
+    rival = new T.Group(),
+    material = new T.MeshStandardMaterial();
+  vi.spyOn(T.CubeCamera.prototype, 'update').mockImplementation(() => undefined);
+  reflection.probeExclusions = [rival];
+  reflection.probeFacesPerFrame = 3;
+  reflection.beginFrame(1, false);
+  reflection.updateProbe(gl, scene, car, [material], true);
+  const complete = material.envMap;
+  reflection.beginFrame(3, false);
+  reflection.updateProbe(gl, scene, car, [material], true);
+  const render = renderer.render.getMockImplementation()!;
+  renderer.render.mockImplementationOnce(() => {
+    throw new Error('face lost');
+  });
+  reflection.beginFrame(3.02, false);
+  expect(() => reflection.updateProbe(gl, scene, car, [material], true)).toThrow('face lost');
+  expect([car.visible, rival.visible]).toEqual([true, true]);
+  expect(faces[0].texture.generateMipmaps).toBe(true);
+  expect(material.envMap).toBe(complete);
+  renderer.render.mockImplementation(render);
+  reflection.beginFrame(3.04, false);
+  reflection.updateProbe(gl, scene, car, [material], true);
+  expect(faces.map((f) => f.face)).toEqual([0, 1, 2, 0, 1, 2]);
+  expect(material.envMap).toBe(complete);
+  reflection.beginFrame(3.06, false);
+  reflection.updateProbe(gl, scene, car, [material], true);
+  expect(material.envMap).toBe(faces[0].texture);
+  expect(reflection.probeUpdates).toBe(2);
+  for (const value of [0, 7, 1.5, NaN]) {
+    reflection.probeFacesPerFrame = value;
+    expect(() => reflection.updateProbe(gl, scene, car, [material], true)).toThrow(
+      'Invalid probe faces per frame',
+    );
+  }
+  reflection.dispose();
+});
 it('poses the mirror cameras on the car for profiling, wherever they were last rendered', () => {
   const reflection = new ReflectionSystem();
   const car = new T.Group();
