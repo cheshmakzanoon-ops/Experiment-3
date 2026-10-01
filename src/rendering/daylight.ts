@@ -127,10 +127,92 @@ export function shadowAnchor(
     .addScaledVector(lightForward, z);
 }
 
+/** Scattering parameters of the circuit sky (three's Preetham Sky uniforms). */
+export const SKY_SCATTERING = Object.freeze({ rayleigh: 2.9, mie: 0.0032, mieDirectionalG: 0.82 });
+
+/** CPU port of three r180 Sky.js in-scattering (Preetham), without the solar
+ * disc. `linear` is the shader's texColor; `encoded` is its final retColor,
+ * pow(texColor, 1/(1.2 + 1.2 sunfade)), a display-style curve (1/2.4 for any
+ * sun above the horizon). */
+export function preethamSky(direction: T.Vector3, sun: T.Vector3, turbidity: number) {
+  const totalRayleigh = [5.804542996261093e-6, 1.3562911419845635e-5, 3.0265902468824876e-5];
+  const mieConst = [1.8399918514433978e14, 2.7798023919660528e14, 4.0790479543861094e14];
+  const s = sun.clone().normalize();
+  const sunCos = clamp(s.y, -1, 1);
+  const sunE = 1000 * Math.max(0, 1 - Math.exp(-((1.6110731556870734 - Math.acos(sunCos)) / 1.5)));
+  // three derives sunfade from the un-normalized sun position over 450 km.
+  const sunfade = 1 - clamp(1 - Math.exp(sun.y / 450000), 0, 1);
+  const rayleighCoefficient = SKY_SCATTERING.rayleigh - (1 - sunfade);
+  const d = direction.clone().normalize();
+  const zenith = Math.acos(Math.max(0, d.y));
+  const inverse =
+    1 / (Math.cos(zenith) + 0.15 * Math.pow(93.885 - (zenith * 180) / Math.PI, -1.253));
+  const cosTheta = d.dot(s);
+  const rPhase = 0.05968310365946075 * (1 + Math.pow(cosTheta * 0.5 + 0.5, 2));
+  const g = SKY_SCATTERING.mieDirectionalG,
+    g2 = g * g;
+  const mPhase = 0.07957747154594767 * ((1 - g2) / Math.pow(1 - 2 * g * cosTheta + g2, 1.5));
+  const horizonBlend = clamp(Math.pow(1 - sunCos, 5), 0, 1);
+  const linear = [0, 0, 0],
+    encoded = [0, 0, 0];
+  for (let i = 0; i < 3; i++) {
+    const betaR = totalRayleigh[i] * rayleighCoefficient;
+    const betaM = 0.434 * 0.2 * turbidity * 10e-18 * mieConst[i] * SKY_SCATTERING.mie;
+    const fex = Math.exp(-(betaR * 8.4e3 * inverse + betaM * 1.25e3 * inverse));
+    const ratio = (betaR * rPhase + betaM * mPhase) / (betaR + betaM);
+    let lin = Math.pow(sunE * ratio * (1 - fex), 1.5);
+    lin *= 1 + (Math.pow(sunE * ratio * fex, 0.5) - 1) * horizonBlend;
+    linear[i] = (lin + 0.1 * fex) * 0.04 + [0, 0.0003, 0.00075][i];
+    encoded[i] = Math.pow(linear[i], 1 / (1.2 + 1.2 * sunfade));
+  }
+  return { linear, encoded };
+}
+
+const skyGainCache = new Map<string, number>();
+/** Gain that gives the linear Preetham sky the same cosine-weighted
+ * (hemispherical) luminance as three's encoded output, so the environment
+ * light the sky contributes is unchanged while its colour stops being
+ * flattened by a second display curve. Cached per sun and turbidity. */
+export function skyLinearGain(sun: T.Vector3, turbidity: number) {
+  if (![sun.x, sun.y, sun.z, turbidity].every(Number.isFinite) || turbidity <= 0)
+    throw new Error('Invalid sky state');
+  // 0.05 turbidity steps change the gain by under 0.001; a miss costs ~1 ms.
+  const quantized = Math.max(0.05, Math.round(turbidity * 20) / 20);
+  const key = `${sun.x},${sun.y},${sun.z},${quantized}`;
+  const cached = skyGainCache.get(key);
+  if (cached !== undefined) return cached;
+  const disc = sun.clone().normalize();
+  const direction = new T.Vector3();
+  let encoded = 0,
+    linear = 0;
+  const N = 24;
+  for (let i = 0; i < N; i++)
+    for (let j = 0; j < 2 * N; j++) {
+      const elevation = ((i + 0.5) / N) * (Math.PI / 2),
+        azimuth = ((j + 0.5) / (2 * N)) * 2 * Math.PI;
+      direction.set(
+        Math.cos(elevation) * Math.cos(azimuth),
+        Math.sin(elevation),
+        Math.cos(elevation) * Math.sin(azimuth),
+      );
+      if (direction.dot(disc) > 0.99995) continue;
+      const sample = preethamSky(direction, sun, quantized);
+      const w = Math.sin(elevation) * Math.cos(elevation);
+      const luma = (c: number[]) => 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+      encoded += luma(sample.encoded) * w;
+      linear += luma(sample.linear) * w;
+    }
+  const gain = encoded / linear;
+  if (skyGainCache.size > 256) skyGainCache.clear();
+  skyGainCache.set(key, gain);
+  return gain;
+}
+
 // Bounded, stationary cloud field. Coverage follows recorded weather; there is
 // no wall-clock cloud animation that would diverge between pause and replay.
 const cloudFunctions = `
 uniform float cloudCover;
+uniform float skyLinearGain;
 uniform float skyRadiance;
 uniform float probeSkyIntensity;
 uniform float nightAmount;
@@ -152,23 +234,29 @@ export function configureSky(sky: Sky) {
   material.uniforms.nightAmount = { value: 0 };
   material.uniforms.sunsetAmount = { value: 0 };
   material.uniforms.skyRadiance = { value: daylightState(0, 0).skyRadiance };
+  material.uniforms.skyLinearGain = {
+    value: skyLinearGain(SUN_OFFSET, daylightState(0, 0).turbidity),
+  };
   // One in the visible sky/PMREM. The local scene probe temporarily applies the
   // authored IBL gain here, without attenuating captured lamps a second time.
   material.uniforms.probeSkyIntensity = { value: 1 };
   material.uniforms.sunPosition.value.copy(SUN_OFFSET);
-  material.uniforms.rayleigh.value = 2.9;
-  material.uniforms.mieCoefficient.value = 0.0032;
-  material.uniforms.mieDirectionalG.value = 0.82;
+  material.uniforms.rayleigh.value = SKY_SCATTERING.rayleigh;
+  material.uniforms.mieCoefficient.value = SKY_SCATTERING.mie;
+  material.uniforms.mieDirectionalG.value = SKY_SCATTERING.mieDirectionalG;
   material.fragmentShader = material.fragmentShader
     .replace('void main() {', cloudFunctions + '\nvoid main() {')
     .replace(
       'gl_FragColor = vec4( retColor, 1.0 );',
       `
-      // Deepen the clear zenith: the analytic dome alone reads as a pale haze
-      // once normalized for the shared tone map. The horizon keeps its glow.
-      float zenith=smoothstep(.04,.62,direction.y)*(1.-cloudCover);
-      float skyLuma=dot(retColor,vec3(.2126,.7152,.0722));
-      retColor=mix(retColor,mix(vec3(skyLuma),retColor,1.45)*vec3(.86,.93,1.08),zenith*(1.-sunsetAmount)*.8);
+      // three's Sky ends with a display curve (pow(texColor, 1/2.4) for a sun
+      // above the horizon), but this pipeline tone-maps and encodes once at
+      // output. Encoding twice flattened the dome to a pale grey haze (at 15
+      // degrees elevation, saturation 0.40 instead of 0.71). Use the linear
+      // Preetham radiance, scaled to the same hemispherical luminance so the
+      // sky's share of the environment light is unchanged. The solar disc keeps
+      // its former radiance: the linear disc would overflow half float.
+      retColor=mix(((Lin+vec3(0.1)*Fex)*0.04+vec3(0.0,0.0003,0.00075))*skyLinearGain,retColor,sundisk);
       vec2 cloudUV=direction.xz/(max(direction.y,0.0)+0.24)*2.1+vec2(4.7,1.3);
       float field=skyCloud(cloudUV);
       float cover=smoothstep(.76-.64*cloudCover,.92-.57*cloudCover,field);

@@ -57,6 +57,7 @@ import {
   SUN_OFFSET,
   lightingDirection,
   lightingMode,
+  skyLinearGain,
   type LightingMode,
 } from './daylight.ts';
 import { EngineeringView } from './engineering-view.ts';
@@ -781,6 +782,10 @@ export class RacingRenderer {
     this.sky.material.uniforms.nightAmount.value = illumination === 'night' ? 1 : 0;
     this.sky.material.uniforms.sunsetAmount.value = illumination === 'sunset' ? 1 : 0;
     this.sky.material.uniforms.sunPosition.value.copy(lightingDirection(illumination));
+    this.sky.material.uniforms.skyLinearGain.value = skyLinearGain(
+      lightingDirection(illumination),
+      daylight.turbidity,
+    );
     this.target.copy(car.root.position);
     this.direction.set(0, 0, 1).applyQuaternion(car.root.quaternion);
     if (this.photo?.view === 'orbit') {
