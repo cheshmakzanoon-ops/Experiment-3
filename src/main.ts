@@ -322,6 +322,7 @@ export class GameApp {
       this.track,
       (progress) => this.ui.loading(`${Math.floor(progress.fraction * 100)}% · ${progress.label}…`),
       () => this.disposed || this.errorStopped,
+      { quality: this.settings.quality, graphics: this.settings.graphics },
     );
     if (!this.renderer || this.disposed || this.errorStopped) return false;
     this.renderer.setQuality(this.settings.quality, this.settings.graphics);

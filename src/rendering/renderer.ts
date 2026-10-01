@@ -378,8 +378,13 @@ export class RacingRenderer {
     track: Track,
     progress: (value: BuildProgress) => void,
     cancelled: () => boolean,
+    initial?: { quality: Quality; graphics?: GraphicsOptions },
   ): Promise<RacingRenderer | null> {
     const renderer = new RacingRenderer(canvas, track, true);
+    // The starting settings decide the far shadow map baked while loading;
+    // applied later, a different map size would discard it and bake again on
+    // the first rendered frame.
+    if (initial) renderer.setQuality(initial.quality, initial.graphics);
     renderer.circuit.construction.add('Player car and live instruments', 1, () =>
       renderer.setCars(1),
     );
@@ -617,10 +622,7 @@ export class RacingRenderer {
     this.scenePass.ambientOcclusion = g.ambientOcclusion;
     this.grade.enabled = g.filmGrade;
     this.circuit.crowd.visible = g.crowd;
-    this.circuit.vegetationGroup.traverse((object) => {
-      if (object instanceof T.InstancedMesh)
-        object.count = Math.floor(object.userData.fullCount * g.vegetationDensity);
-    });
+    this.applyVegetationDensity();
     this.effects.enabled = g.particleDensity > 0;
     this.effects.density = g.particleDensity;
     this.textures.configure(
@@ -1187,7 +1189,16 @@ export class RacingRenderer {
   }
   /** Bake the static far sun shadow for this lighting: no cars, people,
    * particles or moving equipment; groves and treelines cast into it only. */
+  private applyVegetationDensity() {
+    this.circuit.vegetationGroup.traverse((object) => {
+      if (object instanceof T.InstancedMesh)
+        object.count = Math.floor(object.userData.fullCount * this.graphics.vegetationDensity);
+    });
+  }
   private bakeFarShadow(illumination: LightingMode) {
+    // Planting built after the last quality change still has its full count;
+    // the map must hold the density its inputs say it does.
+    this.applyVegetationDensity();
     const farCasters: T.Object3D[] = [];
     this.circuit.vegetationGroup.traverse((object) => {
       if (object instanceof T.InstancedMesh && !object.castShadow) farCasters.push(object);
