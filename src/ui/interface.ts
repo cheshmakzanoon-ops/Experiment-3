@@ -25,8 +25,10 @@ import {
   QUALIFYING_TIMED_LAPS,
   SETUP_LIMITS,
   racingSession,
+  startingGrid,
   type SessionOptions,
   type Setup,
+  type StartSlot,
 } from '../simulation/config.ts';
 import { F, H, W, WHEEL_BASE, WHEEL_STRIDE, WHEEL_NAMES, carBase } from '../simulation/protocol.ts';
 import { type Track } from '../simulation/track.ts';
@@ -135,6 +137,7 @@ export class Interface {
     <div class="form-row"><label>SESSION<select id="mode"><option value="race">Grand Prix</option><option value="practice">Free practice</option><option value="time-trial">Time trial · ghost</option><option value="qualifying">Race weekend · qualifying</option><option value="endurance">Endurance · mandatory stop</option></select></label><label>DISTANCE<select id="laps"><option value="1">1 lap · Sprint</option><option value="3" selected>3 laps · Standard</option><option value="5">5 laps</option><option value="10">10 laps</option><option value="15">15 laps · Endurance</option><option value="25">25 laps · Endurance</option></select></label></div>
     <div class="form-row"><label>WEATHER<select id="weather"><option value="clear">Clear / Dry</option><option value="changeable">Dry → Rain</option><option value="rain">Heavy rain</option></select></label><label>GRID<select id="opponents"><option value="0">Solo</option><option value="3">4 cars</option><option value="7" selected>8 cars</option><option value="11">12 cars</option></select></label></div>
     <div class="form-row"><label>TIRES<select id="compound"><option value="soft">Soft</option><option value="medium" selected>Medium</option><option value="hard">Hard</option><option value="intermediate">Intermediate</option><option value="wet">Full wet</option></select></label><label>CONTROL<select id="assist"><option value="sport">Sport / ABS + TC</option><option value="raw">Unassisted</option></select></label></div>
+    <div class="form-row"><label>START<select id="startSlot"><option value="pole" selected>Pole position</option><option value="midfield">Mid-field</option><option value="back">Back of the grid</option></select></label></div>
     <button class="primary enter" type="submit">ENTER CIRCUIT <span aria-hidden="true">↗</span></button>
     <button class="enter" type="submit" name="prepareGrid" value="yes">PREPARE GRID <span>START PAUSED</span></button>
    </form><div class="menu-actions"><button data-action="settings">GARAGE & SETTINGS</button><button data-action="controls">CONTROLS</button><button data-action="championship">CHAMPIONSHIP</button><button data-action="team">TEAM HQ</button><button data-action="photo">PHOTO / LIVERY</button><button data-action="references">REFERENCE REVIEW</button><button data-action="sessionReview">SESSION 146 EVIDENCE</button><button data-action="academy">DRIVING ACADEMY</button></div>
@@ -221,6 +224,11 @@ export class Interface {
         compound: select('compound') as SessionOptions['compound'],
         assist: select('assist') as SessionOptions['assist'],
       };
+      // Races and endurance start from the chosen slot; timed sessions ignore it.
+      if (racingSession(this.options.mode)) {
+        const grid = startingGrid(this.options.opponents + 1, select('startSlot') as StartSlot);
+        if (grid) this.options.grid = grid;
+      }
       // Preparation is presentation/session control, not a physics option or save.
       const submitter = (e as SubmitEvent).submitter as HTMLButtonElement | null;
       this.callbacks.start(this.options, submitter?.name === 'prepareGrid');
@@ -235,6 +243,9 @@ export class Interface {
         laps = this.get('laps') as HTMLSelectElement,
         trial = mode === 'time-trial';
       (this.get('opponents') as HTMLSelectElement).disabled = trial;
+      (this.get('startSlot') as HTMLSelectElement).disabled = !racingSession(
+        mode as SessionOptions['mode'],
+      );
       laps.disabled = trial;
       // Endurance distances apply only to endurance; other races stop at 10.
       if (mode === 'endurance' && Number(laps.value) < 15) laps.value = '15';

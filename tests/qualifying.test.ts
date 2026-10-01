@@ -1,6 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import { Simulation } from '../src/simulation/world.ts';
-import { DEFAULT_OPTIONS, QUALIFYING_TIMED_LAPS, validateOptions } from '../src/simulation/config.ts';
+import {
+  DEFAULT_OPTIONS,
+  QUALIFYING_TIMED_LAPS,
+  startingGrid,
+  validateOptions,
+} from '../src/simulation/config.ts';
 import { PHASE } from '../src/simulation/race.ts';
 import { CAR_STRIDE, F, HEADER, carBase } from '../src/simulation/protocol.ts';
 import { qualifyingGrid } from '../src/core/championship.ts';
@@ -69,4 +74,26 @@ describe('race weekend: qualifying sets the grid', () => {
     },
     240000,
   );
+});
+
+describe('starting grid slot', () => {
+  it('places the player at pole, mid-field or the back with rivals in order', () => {
+    expect(startingGrid(8, 'pole')).toBeUndefined();
+    expect(startingGrid(8, 'midfield')).toEqual([1, 2, 3, 4, 0, 5, 6, 7]);
+    expect(startingGrid(8, 'back')).toEqual([1, 2, 3, 4, 5, 6, 7, 0]);
+    expect(startingGrid(1, 'back')).toBeUndefined();
+    expect(() => startingGrid(0, 'midfield')).toThrow();
+  });
+  it('starts a wet race behind rivals, so the player follows through their spray', () => {
+    const grid = startingGrid(8, 'midfield')!;
+    const sim = new Simulation(
+      validateOptions({ ...DEFAULT_OPTIONS, opponents: 7, weather: 'rain', compound: 'wet', grid }),
+    );
+    sim.autoPlayer = true;
+    const frame = sim.makeFrame();
+    for (let i = 0; i < 120 * 12; i++) sim.step(1 / 120);
+    sim.writeFrame(frame);
+    // Four rivals started ahead; the player is racing in their wake.
+    expect(frame[carBase(0) + F.RANK]).toBeGreaterThan(1);
+  });
 });

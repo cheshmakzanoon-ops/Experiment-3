@@ -271,9 +271,9 @@ for (const viewport of [
       await expect.poll(() => region.evaluate((e) => e.scrollTop)).toBeGreaterThan(0);
     await page.keyboard.press('Home');
     await expect.poll(() => region.evaluate((e) => e.scrollTop)).toBe(0);
-    // Seven selects (circuit first), two start controls, then settings: focus
-    // must scroll each into view.
-    for (let i = 0; i < 10; i++) {
+    // Eight selects (circuit first, start slot last), two start controls, then
+    // settings: focus must scroll each into view.
+    for (let i = 0; i < 11; i++) {
       await page.keyboard.press('Tab');
       const focused = await page.evaluate(() => {
         const active = document.activeElement as HTMLElement;

@@ -160,6 +160,16 @@ export function mandatoryStopSatisfied(used: ReadonlySet<Compound>) {
 export function alternateDryCompound(current: Compound): Compound {
   return current === 'medium' ? 'hard' : 'medium';
 }
+export type StartSlot = 'pole' | 'midfield' | 'back';
+/** Grid order (car id per slot) with the player starting from `slot`; the
+ * rivals keep their order around it. Pole keeps the default order. */
+export function startingGrid(cars: number, slot: StartSlot): number[] | undefined {
+  if (!Number.isInteger(cars) || cars < 1) throw new Error('Invalid grid size');
+  if (slot === 'pole' || cars === 1) return undefined;
+  const index = slot === 'back' ? cars - 1 : Math.floor(cars / 2);
+  const rivals = Array.from({ length: cars - 1 }, (_, i) => i + 1);
+  return [...rivals.slice(0, index), 0, ...rivals.slice(index)];
+}
 /** A grid must name every car exactly once; anything else is ignored. */
 function validGrid(value: unknown, cars: number): number[] | null {
   if (!Array.isArray(value) || value.length !== cars) return null;
