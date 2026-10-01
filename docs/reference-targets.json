@@ -1,0 +1,169 @@
+{
+  "fixture": "Production Vehicle on isolated analytic runway and constant-radius skidpads",
+  "fixedDtSeconds": 0.004166666666666667,
+  "comparison": [
+    {
+      "metric": "accel0to100",
+      "measured": 2.2708333333333335,
+      "unit": "s",
+      "reference": [
+        2.3,
+        3.2
+      ],
+      "within": false,
+      "source": "About 2.5-2.6 s (F1 Academy \"The car and engine\"; F1 fan references)"
+    },
+    {
+      "metric": "accel0to200",
+      "measured": 4.895833333333333,
+      "unit": "s",
+      "reference": [
+        4.3,
+        5.8
+      ],
+      "within": true,
+      "source": "About 4.5-5 s (F1 fan and technical summaries)"
+    },
+    {
+      "metric": "topSpeed",
+      "measured": 320.1273000487446,
+      "unit": "km/h",
+      "reference": [
+        320,
+        360
+      ],
+      "within": true,
+      "source": "Race-trim speed traps roughly 320-350 km/h (low-drag circuits)"
+    },
+    {
+      "metric": "braking200Distance",
+      "measured": 54.75449769273168,
+      "unit": "m",
+      "reference": [
+        50,
+        70
+      ],
+      "within": true,
+      "source": "Brembo: about 2.9 s and 65 m from 200 km/h"
+    },
+    {
+      "metric": "braking200Time",
+      "measured": 2.3333333333333335,
+      "unit": "s",
+      "reference": [
+        2.4,
+        3.3
+      ],
+      "within": false,
+      "source": "Brembo: about 2.9 s and 65 m from 200 km/h"
+    },
+    {
+      "metric": "peakBrakingG",
+      "measured": 5.904190193790963,
+      "unit": "g",
+      "reference": [
+        4,
+        6
+      ],
+      "within": true,
+      "source": "Brembo corner data: 4.5 g (Mexico T4), 4.8 g (Singapore T14)"
+    },
+    {
+      "metric": "lateralFastG",
+      "measured": 4.292077159786943,
+      "unit": "g",
+      "reference": [
+        4,
+        6.5
+      ],
+      "within": true,
+      "source": "High-speed corners 4-6.5 g (Mercedes-AMG F1 \"G-force explained\"; Copse ~5.5 g)"
+    },
+    {
+      "metric": "lateralSlowG",
+      "measured": 1.8940258534983954,
+      "unit": "g",
+      "reference": [
+        1.8,
+        3.2
+      ],
+      "within": true,
+      "source": "Engineering estimate for ~80 km/h hairpins (mechanical grip, little downforce)"
+    }
+  ],
+  "detail": {
+    "acceleration": {
+      "to100s": 2.2708333333333335,
+      "to200s": 4.895833333333333,
+      "to300s": 12.741666666666667,
+      "topSpeedKmh": 320.1273000487446,
+      "batteryLeftJ": 0
+    },
+    "braking": {
+      "from100": {
+        "distanceM": 18.95201431515368,
+        "timeS": 1.4416666666666667,
+        "peakG": 2.504615242192627
+      },
+      "from200": {
+        "distanceM": 54.75449769273168,
+        "timeS": 2.3333333333333335,
+        "peakG": 4.393309168905705
+      },
+      "from300": {
+        "distanceM": 96.91749003003986,
+        "timeS": 2.9375,
+        "peakG": 5.904190193790963
+      }
+    },
+    "wetBraking200": {
+      "standingWaterMm": 1.2,
+      "slick": {
+        "distanceM": 122.59517316374655,
+        "timeS": 5.295833333333333,
+        "peakG": 2.2460978803426737
+      },
+      "intermediate": {
+        "distanceM": 70.44805876995217,
+        "timeS": 3.0208333333333335,
+        "peakG": 3.7505607244007995
+      },
+      "wet": {
+        "distanceM": 70.74219614808898,
+        "timeS": 3.033333333333333,
+        "peakG": 3.737636298537674
+      },
+      "dryReference": {
+        "distanceM": 54.75449769273168,
+        "timeS": 2.3333333333333335,
+        "peakG": 4.393309168905705
+      }
+    },
+    "lateral": {
+      "slow": {
+        "targetKmh": 80,
+        "lateralG": 1.8940258534983954,
+        "speedAtPeakKmh": 79.13458154939403,
+        "steerInput": 0.47839999999995547
+      },
+      "medium": {
+        "targetKmh": 160,
+        "lateralG": 2.7973331706145985,
+        "speedAtPeakKmh": 157.3514322354755,
+        "steerInput": 0.3627499999999682
+      },
+      "fast": {
+        "targetKmh": 240,
+        "lateralG": 3.9825757235344326,
+        "speedAtPeakKmh": 234.4787428088052,
+        "steerInput": 0.25899999999997964
+      },
+      "veryFast": {
+        "targetKmh": 290,
+        "lateralG": 4.292077159786943,
+        "speedAtPeakKmh": 263.9509372842403,
+        "steerInput": 0.1621499999999903
+      }
+    }
+  }
+}

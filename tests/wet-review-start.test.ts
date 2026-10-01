@@ -28,6 +28,11 @@ describe('wet review prepared before the physical grid release', () => {
         opponents: 7,
         weather: 'rain',
         compound: 'wet',
+        // Start third, in line directly behind a real wet car of equal pace
+        // (car 4 shares car 0's skill). From pole the calibrated field no longer
+        // passes the player within the minute, so following must come from the
+        // grid rather than an overtake.
+        grid: [4, 2, 0, 3, 1, 5, 6, 7],
       });
       sim.autoPlayer = true;
       const frame = sim.makeFrame(),

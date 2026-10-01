@@ -9,10 +9,10 @@ export type RigKind = 'runway' | 'skidpad' | 'low-kerb' | 'high-kerb' | 'sausage
  */
 export class DynamicsTrack extends Track {
   override readonly length: number;
-  readonly radius = 80;
   constructor(
     readonly kind: RigKind = 'runway',
     readonly waterMm = 0,
+    readonly radius = 80,
   ) {
     super('clear', true);
     this.length = kind === 'skidpad' ? 2 * Math.PI * this.radius : 100000;

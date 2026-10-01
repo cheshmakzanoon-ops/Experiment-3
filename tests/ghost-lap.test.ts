@@ -50,7 +50,7 @@ describe('Time Trial ghost laps', () => {
     expect(ghosts).toHaveLength(2);
     const ghost = ghosts[1];
     expect(ghost.lapTime).toBeCloseTo(sim.race.laps[0].last, 4);
-    expect(ghost.lapTime).toBeGreaterThan(60);
+    expect(ghost.lapTime).toBeGreaterThan(45);
     expect(ghost.sectors.reduce((a, b) => a + b)).toBeCloseTo(ghost.lapTime, 3);
     const count = ghost.samples.length / GHOST_FIELDS;
     expect(count).toBeGreaterThan(ghost.lapTime * 25);

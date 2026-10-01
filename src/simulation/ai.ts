@@ -8,12 +8,97 @@ import {
   pitApproachTrafficSpeed,
 } from './pit-safety.ts';
 import { peakGrip } from './tire.ts';
-import { approach, clamp, mod, Vec3 } from '../core/math.ts';
+import { approach, clamp, G, mod, Vec3 } from '../core/math.ts';
 import { VEHICLE } from './config.ts';
 import { PHASE, type RaceDirector } from './race.ts';
 import { trackPoint, type Track } from './track.ts';
 import type { Vehicle } from './vehicle.ts';
 /** Strategic 2 Hz, tactical 12 Hz, controller 120 Hz. All driving uses normal pedals. */
+/** Racing envelope from the production car's MEASURED limits
+ * (scripts/reference-targets.ts, docs/PHYSICS_REFERENCE.md): constant-speed
+ * ramp-steer lateral limits and full stops from 100/200/300 km/h, both fitted
+ * as base + aero·v² in m/s². Margins leave room for line error, kerbs, traffic
+ * and the finite pedal controller. They are targets for normal pedals and
+ * steering only: no grip, force or pose is ever added. */
+export const AI_ENVELOPE = Object.freeze({
+  lateralBase: 15.95,
+  lateralAero: 0.00548,
+  brakingBase: 19.9,
+  brakingAero: 0.0056,
+  /** Fast corners (above ~180 km/h). */
+  lateralMargin: 0.72,
+  /** Slow corners (below ~70 km/h): tight hairpins, crests and exits on power
+   * leave the line-following controller less room. */
+  slowLateralMargin: 0.62,
+  brakingMargin: 0.55,
+});
+/** Lateral margin by corner speed (m/s), blended between the two limits. */
+export function lateralMarginAt(speed: number) {
+  const t = clamp((speed - 20) / 30, 0, 1);
+  return (
+    AI_ENVELOPE.slowLateralMargin +
+    (AI_ENVELOPE.lateralMargin - AI_ENVELOPE.slowLateralMargin) * t * t * (3 - 2 * t)
+  );
+}
+export const ENVELOPE_STEP = 12;
+export const ENVELOPE_SAMPLES = 21;
+/** Backward velocity profile over samples ENVELOPE_STEP apart: returns the
+ * highest speed at sample 0 from which every later sample's corner speed can
+ * be met, with braking limited to what the friction circle leaves after the
+ * lateral load at each sample. */
+export function envelopeProfile(
+  curvatures: ArrayLike<number>,
+  corners: ArrayLike<number>,
+  grip: number,
+  aero: number,
+) {
+  const n = corners.length;
+  let v = Math.min(corners[n - 1], 400);
+  for (let i = n - 2; i >= 0; i--) {
+    const lateralLimit =
+      (AI_ENVELOPE.lateralBase + AI_ENVELOPE.lateralAero * aero * v * v) *
+      grip *
+      lateralMarginAt(v);
+    const usage = Math.min(1, (v * v * curvatures[i + 1]) / Math.max(1e-6, lateralLimit));
+    const braking =
+      (AI_ENVELOPE.brakingBase + AI_ENVELOPE.brakingAero * aero * v * v) *
+      grip *
+      AI_ENVELOPE.brakingMargin *
+      Math.sqrt(Math.max(0, 1 - usage * usage));
+    v = Math.min(corners[i], Math.sqrt(v * v + 2 * Math.max(0.5, braking) * ENVELOPE_STEP));
+  }
+  return v;
+}
+/** Highest steady speed on curvature κ: v²κ = a0 + k·v². */
+export function envelopeCornerSpeed(curvature: number, grip: number, aero: number) {
+  // Solve with the fast margin, then once more with the margin at that speed.
+  let speed = Infinity;
+  for (const margin of [AI_ENVELOPE.lateralMargin, 0]) {
+    const m = margin || lateralMarginAt(speed);
+    const a0 = AI_ENVELOPE.lateralBase * grip * m,
+      k = AI_ENVELOPE.lateralAero * aero * grip * m,
+      denominator = Math.abs(curvature) - k;
+    speed = denominator <= 1e-7 ? Infinity : Math.sqrt(a0 / denominator);
+    if (!Number.isFinite(speed)) return speed;
+  }
+  return speed;
+}
+/** Entry speed from which the car can slow to `target` within `distance`
+ * with deceleration b0 + kb·v² (exact integral of v dv/ds = -(b0 + kb v²)). */
+export function envelopeBrakingSpeed(
+  target: number,
+  distance: number,
+  grip: number,
+  aero: number,
+  margin = AI_ENVELOPE.brakingMargin,
+) {
+  if (!Number.isFinite(target)) return Infinity;
+  const b0 = AI_ENVELOPE.brakingBase * grip * margin,
+    kb = AI_ENVELOPE.brakingAero * aero * grip * margin;
+  return Math.sqrt(
+    (target * target + b0 / kb) * Math.exp(2 * kb * Math.max(0, distance)) - b0 / kb,
+  );
+}
 /** Braking envelope with explicit controller response distance. Solving
  * d = v*tau + v²/(2a) keeps a finite-bandwidth pedal controller inside its stop.
  */
@@ -35,6 +120,8 @@ export class AIDriver {
   private trafficSpeed = 100;
   private stuckTime = 0;
   private preparingPit = false;
+  private readonly curvatures = new Float64Array(ENVELOPE_SAMPLES);
+  private readonly corners = new Float64Array(ENVELOPE_SAMPLES);
   private planner = new TrafficPlanner();
   readonly personality: DriverPersonality;
   readonly brain: DriverBrain;
@@ -129,19 +216,26 @@ export class AIDriver {
         1,
       ),
       braking = 8.5 * grip;
-    // Backwards braking envelope, not a distance-to-waypoint switch.
-    for (let d = 0; d <= 240; d += 12) {
-      track.at(c.s + d, this.sample);
-      const curvature = this.sample.curvature / (1 - this.sample.curvature * this.offset),
-        massFactor = 794 / (VEHICLE.dryMass + c.fuel),
-        aeroHealth = 0.45 + 0.55 * Math.min(c.frontHealth, c.floorHealth);
-      const corner =
-        Math.sqrt(
-          ((10.5 + Math.min(11, c.speed * c.speed * 0.0017) * aeroHealth) * grip * massFactor) /
-            (Math.abs(curvature) + 0.0001),
-        ) * this.skill;
-      desired = Math.min(desired, Math.sqrt(corner * corner + 2 * braking * d));
+    // Backwards braking envelope, not a distance-to-waypoint switch. Downforce
+    // scales with speed and with 1/mass; damage removes its share.
+    // Following in another car's wake costs downforce (about 30% of it at full
+    // overlap, from the aero model's front/rear/floor wake losses).
+    const aero =
+      ((0.45 + 0.55 * Math.min(c.frontHealth, c.floorHealth)) * 794 * (1 - 0.3 * c.wake)) /
+      (VEHICLE.dryMass + c.fuel);
+    // Off the racing line (passing or defending lanes) there is less room to
+    // run wide, so the envelope keeps a larger reserve there.
+    const laneGrip =
+      grip * clamp(1 - (0.25 * Math.max(0, Math.abs(this.offset) - 1.5)) / 6, 0.8, 1);
+    // Samples every 12 m for 240 m, then a backward pass with a friction
+    // circle: braking only uses the grip the corner leaves (trail braking).
+    for (let i = 0; i < ENVELOPE_SAMPLES; i++) {
+      track.at(c.s + i * ENVELOPE_STEP, this.sample);
+      const curvature = this.sample.curvature / (1 - this.sample.curvature * this.offset);
+      this.curvatures[i] = Math.abs(curvature);
+      this.corners[i] = envelopeCornerSpeed(curvature, laneGrip, aero) * this.skill;
     }
+    desired = Math.min(desired, envelopeProfile(this.curvatures, this.corners, laneGrip, aero));
     if (!c.inPit) desired = Math.min(desired * this.brain.pace, this.trafficSpeed);
     if (c.finishTime) desired = Math.min(desired, 38);
     if (preparingPit)
@@ -207,6 +301,29 @@ export class AIDriver {
     const error = desired - c.speed;
     command.throttle = clamp(error * 0.25 + 0.13, 0, 1);
     command.brake = clamp(-error * 0.18, 0, 1);
+    // Friction circle on exit: power comes in as the lateral load unwinds, so
+    // a car at the cornering limit is not also asked for full traction.
+    const lateralUsage = Math.min(
+      1,
+      (Math.abs(c.gLat) * G) /
+        ((AI_ENVELOPE.lateralBase + AI_ENVELOPE.lateralAero * aero * c.speed * c.speed) * grip),
+    );
+    command.throttle = Math.min(
+      command.throttle,
+      0.2 + 0.8 * Math.sqrt(Math.max(0, 1 - lateralUsage * lateralUsage)),
+    );
+    // A driver feathers the pedal against wheelspin (rear slip ratio above the
+    // traction peak) rather than holding it flat through a slide.
+    const wheelspin = Math.max(c.tires[2].slip, c.tires[3].slip);
+    if (wheelspin > 0.08) command.throttle *= clamp(1 - (wheelspin - 0.08) * 5, 0.05, 1);
+    // Braking shares the same friction circle: at the cornering limit the
+    // pedal is squeezed, not stamped, and eased off a locking wheel. Losing
+    // the rear under braking is worse than missing a traffic target.
+    const available = Math.sqrt(Math.max(0, 1 - lateralUsage * lateralUsage));
+    command.brake = Math.min(command.brake, 0.3 + 0.7 * available);
+    let lock = 0;
+    for (const tire of c.tires) lock = Math.min(lock, tire.slip);
+    if (lock < -0.12) command.brake *= clamp(1 - (-lock - 0.12) * 4, 0.35, 1);
     if (desired < 0.15) {
       command.throttle = 0;
       command.brake = 1;
