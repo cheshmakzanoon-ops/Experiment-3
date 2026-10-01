@@ -146,6 +146,27 @@ export function label(text: string, bg = '#171d21', fg = '#f5eee2', w = 512, h =
   });
 }
 
+/** A printed board is printed on one face. Seen from behind, a double-sided
+ * label showed its artwork mirrored; back faces now show a plain backing
+ * colour instead, in the same draw call. */
+export function unprintedBack<M extends T.MeshStandardMaterial>(material: M, back = 0x2b3236) {
+  const colour = new T.Color(back);
+  const previous = material.onBeforeCompile.bind(material);
+  material.onBeforeCompile = (shader, renderer) => {
+    previous(shader, renderer);
+    shader.uniforms.printedBack = { value: colour };
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <common>', '#include <common>\nuniform vec3 printedBack;')
+      .replace(
+        '#include <map_fragment>',
+        '#include <map_fragment>\nif (!gl_FrontFacing) diffuseColor.rgb = printedBack;',
+      );
+  };
+  const key = material.customProgramCacheKey.bind(material);
+  material.customProgramCacheKey = () => `${key()}|unprinted-back-v1`;
+  return material;
+}
+
 /** Batch static scene meshes while retaining instances and explicitly articulated roots. */
 export function batchScene(root: T.Group, preserve: Set<T.Object3D>) {
   root.updateMatrixWorld(true);

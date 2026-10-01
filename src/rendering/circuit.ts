@@ -35,7 +35,7 @@ import { kerbHeight } from '../simulation/contact.ts';
 import { Track, CELL_ROWS, CELL_COLS, trackPoint } from '../simulation/track.ts';
 import { H } from '../simulation/protocol.ts';
 import { clamp } from '../core/math.ts';
-import { batchScene, box, canvasTexture, label, mesh } from './geometry.ts';
+import { batchScene, box, canvasTexture, label, mesh, unprintedBack } from './geometry.ts';
 interface RibbonOptions {
   start?: number;
   end?: number;
@@ -425,7 +425,9 @@ export class CircuitScene {
     g.position.copy(this.at(s, l, 2.2));
     g.rotation.y = Math.atan2(p.tx, p.tz) + (l < 0 ? Math.PI / 2 : -Math.PI / 2);
     this.props.add(g);
-    const m = new T.MeshStandardMaterial({ map: label(text), roughness: 0.72, side: T.DoubleSide });
+    const m = unprintedBack(
+      new T.MeshStandardMaterial({ map: label(text), roughness: 0.72, side: T.DoubleSide }),
+    );
     mesh(g, new T.PlaneGeometry(width, height), m);
     const metal = new T.MeshStandardMaterial({ color: 0x586463 });
     box(g, metal, -width * 0.35, -1.1, 0.02, 0.08, 2.5, 0.08);
@@ -514,7 +516,9 @@ export class CircuitScene {
       const banner = mesh(
         gantry,
         new T.PlaneGeometry(14, 1),
-        new T.MeshStandardMaterial({ map: label(plan.gantryLabel), side: T.DoubleSide }),
+        unprintedBack(
+          new T.MeshStandardMaterial({ map: label(plan.gantryLabel), side: T.DoubleSide }),
+        ),
         0,
         6,
         -0.27,

@@ -7,7 +7,7 @@ import * as T from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { Track, trackPoint } from '../simulation/track.ts';
 import { clamp, Random } from '../core/math.ts';
-import { box, mesh, rod, label } from './geometry.ts';
+import { box, mesh, rod, label, unprintedBack } from './geometry.ts';
 
 /** Original site plan: front edges stay behind the physical barrier. Shared by
  * structure construction and vegetation exclusion, not separate random layouts. */
@@ -62,11 +62,13 @@ export function standMaterials() {
     underside: new T.MeshStandardMaterial({ color: 0x606963, roughness: 0.9 }),
     seats: new T.MeshStandardMaterial({ color: 0xffffff, roughness: 0.58 }),
     people: new T.MeshStandardMaterial({ color: 0xffffff, roughness: 1 }),
-    sign: new T.MeshStandardMaterial({
-      map: label('A U R E L    /    GRAND CIRCUIT', '#273536', '#e5e2d7', 1024, 128),
-      roughness: 0.7,
-      side: T.DoubleSide,
-    }),
+    sign: unprintedBack(
+      new T.MeshStandardMaterial({
+        map: label('A U R E L    /    GRAND CIRCUIT', '#273536', '#e5e2d7', 1024, 128),
+        roughness: 0.7,
+        side: T.DoubleSide,
+      }),
+    ),
   };
   installVenueFinish(materials.concrete, 'stone');
   installVenueFinish(materials.steel, 'metal');
