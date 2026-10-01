@@ -56,6 +56,11 @@ describe('scene ambient obscurance', () => {
     expect(AMBIENT_OCCLUSION.radius).toBeLessThan(2);
     expect(AMBIENT_OCCLUSION.fadeStart).toBeLessThan(AMBIENT_OCCLUSION.fadeEnd);
     expect(AMBIENT_OCCLUSION.maxPixels).toBeLessThanOrEqual(96);
+    // No obscurance on the cockpit interior (wheel and gloves within about
+    // 0.9 m of the eye), full obscurance from T-cam and chase distances.
+    expect(AMBIENT_OCCLUSION.nearStart).toBeGreaterThanOrEqual(0.8);
+    expect(AMBIENT_OCCLUSION.nearStart).toBeLessThan(AMBIENT_OCCLUSION.nearEnd);
+    expect(AMBIENT_OCCLUSION.nearEnd).toBeLessThanOrEqual(3);
     expect(Object.isFrozen(AMBIENT_OCCLUSION)).toBe(true);
   });
   it('owns a float depth attachment and releases the framebuffer on sample changes', () => {

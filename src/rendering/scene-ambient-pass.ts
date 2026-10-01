@@ -2,7 +2,13 @@ import * as T from 'three';
 import { Pass, FullScreenQuad } from 'three/addons/postprocessing/Pass.js';
 
 /** Scalable ambient obscurance tuning. World-space radius in metres; the screen
- * radius is clamped so a cockpit surface 30 cm from the eye cannot black out. */
+ * radius is clamped so a cockpit surface 30 cm from the eye cannot black out.
+ * Obscurance also fades out in the near field (nearStart..nearEnd metres from
+ * the eye). The composite multiplies the lit colour, direct sunlight included,
+ * and close to the eye the clamped kernel spans a large solid angle, so gloves,
+ * wheel and chassis tens of centimetres apart read as deep crevices: the
+ * cockpit interior went near-black. Sun shadows and the environment light
+ * still shade it. */
 export interface AmbientOcclusionSettings {
   radius: number;
   intensity: number;
@@ -10,6 +16,8 @@ export interface AmbientOcclusionSettings {
   maxPixels: number;
   fadeStart: number;
   fadeEnd: number;
+  nearStart: number;
+  nearEnd: number;
 }
 export const AMBIENT_OCCLUSION: Readonly<AmbientOcclusionSettings> = Object.freeze({
   radius: 0.9,
@@ -18,6 +26,8 @@ export const AMBIENT_OCCLUSION: Readonly<AmbientOcclusionSettings> = Object.free
   maxPixels: 72,
   fadeStart: 90,
   fadeEnd: 220,
+  nearStart: 0.9,
+  nearEnd: 2.2,
 });
 
 /** Half-resolution obscurance buffer; never below one pixel. */
@@ -55,6 +65,8 @@ const obscuranceFragment = /* glsl */ `
   uniform float maxPixels;
   uniform float fadeStart;
   uniform float fadeEnd;
+  uniform float nearStart;
+  uniform float nearEnd;
   varying vec2 vUv;
   #define SAMPLES 14
   #define TURNS 7.0
@@ -71,7 +83,7 @@ const obscuranceFragment = /* glsl */ `
     vec3 dy = abs(pu.z - p.z) < abs(p.z - pd.z) ? pu - p : p - pd;
     vec3 n = normalize(cross(dx, dy));
     if (dot(n, p) > 0.0) n = -n;
-    float distanceFade = 1.0 - smoothstep(fadeStart, fadeEnd, -p.z);
+    float distanceFade = (1.0 - smoothstep(fadeStart, fadeEnd, -p.z)) * smoothstep(nearStart, nearEnd, -p.z);
     if (distanceFade <= 0.0) { gl_FragColor = vec4(1.0); return; }
     // Near surfaces shrink their world radius; distant ones keep it.
     float worldRadius = min(radius, max(0.06, -p.z * 0.35));
@@ -219,6 +231,8 @@ export class SceneAmbientPass extends Pass {
       maxPixels: { value: AMBIENT_OCCLUSION.maxPixels },
       fadeStart: { value: AMBIENT_OCCLUSION.fadeStart },
       fadeEnd: { value: AMBIENT_OCCLUSION.fadeEnd },
+      nearStart: { value: AMBIENT_OCCLUSION.nearStart },
+      nearEnd: { value: AMBIENT_OCCLUSION.nearEnd },
     });
     this.blurMaterial = material('APEX depth-aware obscurance blur', blurFragment, {
       ...shared(),
