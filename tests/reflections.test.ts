@@ -335,3 +335,47 @@ it('omits excluded roots from every probe face and restores them, even after a f
   expect([rival.visible, crowd.visible, hiddenAlready.visible]).toEqual([true, true, false]);
   reflection.dispose();
 });
+it('omits sub-texel scenery from one capture only, measured from the probe, and restores it after a failed face', () => {
+  const reflection = new ReflectionSystem(),
+    { gl } = fixture();
+  const scene = new T.Scene(),
+    car = new T.Group(),
+    near = new T.Group(),
+    far = new T.Group(),
+    hiddenAlready = new T.Group();
+  hiddenAlready.visible = false;
+  car.position.set(10, 2, -4);
+  const eyes: T.Vector3[] = [];
+  const size = (object: T.Object3D, angle: number) => ({
+    object,
+    angularSize: (eye: T.Vector3) => {
+      eyes.push(eye.clone());
+      return angle;
+    },
+  });
+  // One texel of the 128 px face is pi / 256 rad.
+  reflection.probeDetail = [
+    size(near, Math.PI / 256),
+    size(far, Math.PI / 256 - 1e-6),
+    size(hiddenAlready, 0),
+  ];
+  const update = vi.spyOn(T.CubeCamera.prototype, 'update').mockImplementation(function (
+    this: T.CubeCamera,
+  ) {
+    expect([near.visible, far.visible, hiddenAlready.visible]).toEqual([true, false, false]);
+    expect(this.position.toArray()).toEqual([10, 3.5, -4]);
+  });
+  reflection.beginFrame(1, false);
+  reflection.updateProbe(gl, scene, car, [], true);
+  expect(update).toHaveBeenCalledOnce();
+  expect(eyes.every((eye) => eye.equals(new T.Vector3(10, 3.5, -4)))).toBe(true);
+  expect(reflection.probeDetailOmitted).toBe(1);
+  expect([near.visible, far.visible, hiddenAlready.visible]).toEqual([true, true, false]);
+  update.mockImplementation(() => {
+    throw new Error('face lost');
+  });
+  reflection.beginFrame(3, false);
+  expect(() => reflection.updateProbe(gl, scene, car, [], true)).toThrow('face lost');
+  expect([near.visible, far.visible, hiddenAlready.visible]).toEqual([true, true, false]);
+  reflection.dispose();
+});

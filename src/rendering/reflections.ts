@@ -1,6 +1,7 @@
 import * as T from 'three';
 import { MirrorViews } from './mirrors.ts';
 import { STUDIO_REFLECTION_LAYER } from './photo-stage.ts';
+import { cullProbeDetail, type ProbeDetail } from './probe-detail.ts';
 
 /** Coordinates recursive render passes. Mirrors render actual rear-facing camera feeds, and are hidden during other mirror/probe passes to prevent cycles. */
 export class ReflectionSystem {
@@ -29,6 +30,13 @@ export class ReflectionSystem {
    * per face. Visibility is restored even if a face throws. */
   probeExclusions: T.Object3D[] = [];
   private exclusionVisibility: boolean[] = [];
+  /** Static scenery left out of a capture when, from the probe, it cannot
+   * cover one cube-face texel. Restored like the exclusions. */
+  probeDetail: readonly ProbeDetail[] = [];
+  /** Detail drawables omitted from the most recent capture. */
+  probeDetailOmitted = 0;
+  private detailHidden: T.Object3D[] = [];
+  private probeEye = new T.Vector3();
   private activePass = false;
   private clock = NaN;
   private enabled = false;
@@ -193,6 +201,10 @@ export class ReflectionSystem {
         this.exclusionVisibility.push(root.visible);
         root.visible = false;
       }
+      this.probeEye.copy(car.position);
+      this.probeEye.y += 1.5;
+      cullProbeDetail(this.probeDetail, this.probeEye, cube.renderTarget.width, this.detailHidden);
+      this.probeDetailOmitted = this.detailHidden.length;
       for (const { material, original } of previousMaps) {
         material.envMap = original.texture;
         material.envMapIntensity = original.intensity;
@@ -203,8 +215,7 @@ export class ReflectionSystem {
       // Lit scenery/emissive objects are already radiance and remain unscaled.
       // The ordinary visible sky is restored even if a cube face throws.
       if (skyScale) skyScale.value = scene.environmentIntensity;
-      cube.position.copy(car.position);
-      cube.position.y += 1.5;
+      cube.position.copy(this.probeEye);
       cube.update(renderer, scene);
       this.probeUpdates++;
       this.lastProbe = this.clock;
@@ -221,6 +232,8 @@ export class ReflectionSystem {
       this.probeExclusions.forEach((root, i) => {
         if (i < this.exclusionVisibility.length) root.visible = this.exclusionVisibility[i];
       });
+      for (const object of this.detailHidden) object.visible = true;
+      this.detailHidden.length = 0;
       renderer.shadowMap.autoUpdate = shadows;
       renderer.xr.enabled = xr;
       renderer.setRenderTarget(target, face, mip);

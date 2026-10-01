@@ -30,6 +30,7 @@ import {
 import { surfaceMaterial } from './surface-detail.ts';
 import * as T from 'three';
 import { BuildQueue } from './build-queue.ts';
+import { sphereDetail, stripDetail, trunkDetail, type ProbeDetail } from './probe-detail.ts';
 import { installWetRoad } from './materials.ts';
 import { kerbHeight } from '../simulation/contact.ts';
 import { Track, CELL_ROWS, CELL_COLS, trackPoint } from '../simulation/track.ts';
@@ -61,6 +62,11 @@ export class CircuitScene {
   readonly surfaces = new StaticTransformGroup();
   readonly sightlines = new BroadcastSightlines();
   readonly vegetationGroup = new StaticTransformGroup();
+  /** Static scenery the local reflection probe may omit when, seen from the
+   * probe, it cannot cover one cube-face texel (see probe-detail.ts). */
+  readonly probeDetail: ProbeDetail[] = [];
+  /** Widest ribbon recorded as a strip (painted lines and kerbs). */
+  static readonly STRIP_WIDTH = 1.5;
   readonly stateTexture: T.DataTexture;
   /** Planar reflection sampled by the wet road and pit lane film. */
   readonly wetReflection = new WetRoadReflection();
@@ -288,6 +294,7 @@ export class CircuitScene {
       this.surfaces.sealTransforms();
       this.vegetationGroup.sealTransforms();
     });
+    this.construction.add('Probe detail survey', 7, () => this.surveyProbeDetail());
     if (!deferred) this.construction.runSynchronously();
   }
   /** Read-only identity of constructed groups, not planned sites or an art approval.
@@ -394,7 +401,50 @@ export class CircuitScene {
     g.computeVertexNormals();
     const o = mesh(this.surfaces, g, material);
     o.castShadow = false;
+    // Narrow ribbons (painted lines, kerbs) record their measured width and a
+    // centreline sampled about every 4 m for the probe detail survey.
+    let width = 0;
+    const centreline: T.Vector3[] = [];
+    for (let i = 0; i <= rows; i++) {
+      const a = i * (cols + 1) * 3,
+        b = a + cols * 3;
+      width = Math.max(
+        width,
+        Math.hypot(vertices[b] - vertices[a], vertices[b + 2] - vertices[a + 2]),
+      );
+      if (i % Math.max(1, Math.round(4 / ((end - start) / rows))) === 0 || i === rows)
+        centreline.push(
+          new T.Vector3(
+            (vertices[a] + vertices[b]) / 2,
+            (vertices[a + 1] + vertices[b + 1]) / 2,
+            (vertices[a + 2] + vertices[b + 2]) / 2,
+          ),
+        );
+    }
+    if (width <= CircuitScene.STRIP_WIDTH) o.userData.strip = { centreline, width };
     return o;
+  }
+  /** Register static drawables once construction is sealed: narrow ribbons
+   * as strips, tree trunks by instance, everything else by bounding sphere. */
+  private surveyProbeDetail() {
+    for (const root of [this.props, this.surfaces, this.vegetationGroup])
+      root.traverse((o) => {
+        // A mesh drawn without frustum culling has no trustworthy bounds.
+        if (!(o instanceof T.Mesh) || !o.frustumCulled) return;
+        const strip = o.userData.strip as { centreline: T.Vector3[]; width: number } | undefined;
+        if (strip) {
+          o.updateWorldMatrix(true, false);
+          const centreline = strip.centreline.map((p) => p.clone().applyMatrix4(o.matrixWorld));
+          this.probeDetail.push(stripDetail(o, centreline, strip.width));
+        } else
+          this.probeDetail.push(
+            o instanceof T.InstancedMesh &&
+              root === this.vegetationGroup &&
+              /branches/i.test(o.name)
+              ? trunkDetail(o)
+              : sphereDetail(o),
+          );
+      });
   }
   updateSurface(water: Float32Array, rubber: Float32Array, marbles: Float32Array) {
     const count = CELL_ROWS * CELL_COLS;

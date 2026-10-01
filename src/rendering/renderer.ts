@@ -291,6 +291,7 @@ export class RacingRenderer {
     this.sun.shadow.bias = -0.000015;
     this.sun.shadow.normalBias = 0.008;
     this.circuit = new CircuitScene(track, true);
+    this.reflection.probeDetail = this.circuit.probeDetail;
     this.circuit.construction.add('Event hall broadcast bounds', 1, () =>
       this.venueLighting.registerSightlines(this.circuit.sightlines),
     );
@@ -1406,6 +1407,7 @@ export class RacingRenderer {
       mirrorUpdates: this.reflection.mirrorUpdates,
       mirrorWidth: this.reflection.mirrorWidth,
       reflectionProbeUpdates: this.reflection.probeUpdates,
+      reflectionProbeDetailOmitted: this.reflection.probeDetailOmitted,
       skyEnvironmentUpdates: this.environment.captures,
       lighting: this.lighting,
       vegetationTrees: this.circuit.vegetationGroup.userData.treeCount,
