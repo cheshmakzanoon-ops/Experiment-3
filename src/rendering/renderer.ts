@@ -19,6 +19,7 @@ import { loadSuppliedPlayer, type SuppliedPlayerAsset } from './supplied-player.
 import { detailDistance } from './view-detail.ts';
 import { readRaceReviewFrame } from './race-review.ts';
 import { GhostCar } from './ghost-car.ts';
+import { reflectInWetRoad } from './wet-reflection.ts';
 import { ghostPose, type GhostPose } from '../core/ghost-lap.ts';
 import { WeatherPresentation } from './weather-presentation.ts';
 import { applyCircuitLightPalette } from './lighting-coherence.ts';
@@ -26,6 +27,7 @@ import { PEOPLE_ASSET } from './people-asset.ts';
 import { loadDriverAsset, type DriverAsset } from './driver-asset.ts';
 import { loadHeroShells, type HeroShells } from './hero-shells.ts';
 import { AdaptiveExposurePass } from './adaptive-exposure.ts';
+import { LensBloomPass } from './lens-bloom.ts';
 import { LocalAtmosphere } from './local-atmosphere.ts';
 import { RaceComposition } from './race-composition.ts';
 import { captureRenderedCanvas } from './frame-capture.ts';
@@ -84,7 +86,6 @@ import { Sky } from 'three/addons/objects/Sky.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { SceneAmbientPass } from './scene-ambient-pass.ts';
 import { BroadcastGradePass } from './broadcast-grade.ts';
-import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { FormulaCar } from './car.ts';
 import { attachDrawLedger, type DrawLedger } from './draw-ledger.ts';
@@ -95,7 +96,7 @@ import { Effects } from './effects.ts';
 import { PresentedFrame } from './frame-state.ts';
 import { EffectPlayback } from './effect-playback.ts';
 import { AudioViewTracker } from '../audio/spatial.ts';
-import { Track } from '../simulation/track.ts';
+import { Track, trackPoint } from '../simulation/track.ts';
 import { CAR_STRIDE, F, H, W, WHEEL_BASE, WHEEL_STRIDE, carBase } from '../simulation/protocol.ts';
 import { clamp } from '../core/math.ts';
 export type CameraMode = 'chase' | 'cockpit' | 'pod' | 'trackside';
@@ -127,6 +128,7 @@ export class RacingRenderer {
   private ghost: GhostCar | null = null;
   private ghostPose: GhostPose = ghostPose();
   private ghostActive = false;
+  private readonly wetPlanePoint = trackPoint();
   readonly effectPlayback = new EffectPlayback(this.effects);
   readonly debris = new DebrisView();
   readonly pitCrew = new PitCrewView();
@@ -160,7 +162,7 @@ export class RacingRenderer {
   private atmosphere: LocalAtmosphere;
   private weatherPresentation = new WeatherPresentation();
   private composition = new RaceComposition();
-  private bloom: UnrealBloomPass;
+  private bloom: LensBloomPass;
   private scenePass: SceneAmbientPass;
   private grade = new BroadcastGradePass();
   private photoFocus: BokehPass | null = null;
@@ -272,6 +274,8 @@ export class RacingRenderer {
     this.scene.environmentIntensity = 0.7;
     this.scene.fog = new T.FogExp2(0xb9c7c1, 0.00044);
     this.scene.add(this.hemisphere, this.sun, this.sun.target);
+    // Three culls lights by camera layer too: the wet reflection needs them.
+    for (const light of [this.hemisphere, this.sun]) reflectInWetRoad(light);
     this.sun.position.copy(SUN_OFFSET);
     this.sun.castShadow = true;
     this.sun.shadow.mapSize.set(2048, 2048);
@@ -317,7 +321,8 @@ export class RacingRenderer {
     this.composer.addPass(this.motionBlur);
     // Linear-HDR threshold above sunlit white paint and smoke: only speculars,
     // lamps and the sun disc bloom, never road markings or diffuse volumes.
-    this.bloom = new UnrealBloomPass(new T.Vector2(1, 1), 0.3, 0.55, 3.6);
+    // Single-pixel fireflies are limited before the round-filtered pyramid.
+    this.bloom = new LensBloomPass();
     this.composer.addPass(this.bloom);
     this.composer.addPass(new OutputPass());
     this.composer.addPass(this.fxaa);
@@ -402,6 +407,9 @@ export class RacingRenderer {
         return null;
       }
       renderer.textures.register(renderer.circuit.group);
+      // Large, bright or near-edge scenery mirrors in standing water; small
+      // props, people, planting and the road ribbons themselves do not.
+      reflectInWetRoad(renderer.circuit.props);
       return renderer;
     } catch (error) {
       renderer.dispose();
@@ -435,6 +443,7 @@ export class RacingRenderer {
       this.pitCrew.setWheelGunFits(car.id, measureWheelGunFits(car));
       if (this.pitCrew.pitJacks) this.pitCrew.setPitJackFits(car.id, measurePitJackFits(car));
       this.scene.add(car.root);
+      reflectInWetRoad(car.root);
       this.textures.register(car.root);
       this.weatherPresentation.install(car.root);
       this.atmosphere.install(car.root);
@@ -548,6 +557,7 @@ export class RacingRenderer {
     this.graphics = validateGraphics(options, q);
     const g = this.graphics;
     this.reflection.quality(g.mirrorQuality);
+    this.circuit.wetReflection.setQuality(g.reflections === 'local' ? q : 'low');
     this.renderer.shadowMap.enabled = g.shadowSize > 0;
     if (this.sun.shadow.mapSize.x !== g.shadowSize && g.shadowSize > 0) {
       this.sun.shadow.map?.dispose();
@@ -1034,6 +1044,9 @@ export class RacingRenderer {
         this.scenePresentation.begin(this.venueLighting.nightBackground, false, this.nightFog);
         // Retain the real skydome and its recorded-cloud night shader.
       }
+      // The wet-road reflection is re-rendered for this camera below; until then
+      // the environment, probe and mirror passes must not sample last frame's.
+      this.circuit.wetReflection.suspend();
       // Include weather-driven environment captures in real GPU/draw metrics.
       this.drawLedger.mark('environment');
       this.environment.update(this.renderer, this.scene, daylight.cover, illumination);
@@ -1054,6 +1067,17 @@ export class RacingRenderer {
       );
       this.drawLedger.mark('mirrors');
       this.reflection.renderMirrors(this.renderer, this.scene, car.root, dt);
+      this.drawLedger.mark('wet');
+      // Planar reflection about the road under the followed car, only while the
+      // track carries water; the film's own masks decide where it shows.
+      const roadPoint = this.circuit.track.at(presented[o + F.S], this.wetPlanePoint);
+      this.circuit.wetReflection.update(
+        this.renderer,
+        this.scene,
+        this.camera,
+        roadPoint.y + roadPoint.bank * presented[o + F.LATERAL],
+        !menu && !studio && (presented[H.WATER] > 0.02 || wetReflection) ? 1 : 0,
+      );
       this.drawLedger.mark('other');
       this.motionBlur.setStrength(this.photo ? 0 : this.graphics.motionBlur);
       this.motionBlur.prepareFrame(wallDelta, b[H.TIME]);
@@ -1428,6 +1452,7 @@ export class RacingRenderer {
     if (this.circuit.pitBuildingFrontage && !this.circuit.pitBuildingFrontage.root.parent)
       this.circuit.pitBuildingFrontage.dispose();
     this.cars.forEach((car) => car.suppliedPlayer?.disposeAnimation());
+    this.circuit.wetReflection.dispose();
     this.ghost?.dispose();
     this.pitCrew.dispose();
     this.reflection.dispose();

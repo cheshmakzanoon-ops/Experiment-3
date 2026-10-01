@@ -18,6 +18,7 @@ import { standMaterials, buildGrandstand } from './grandstand.ts';
 import { venuePlan } from './venue-plan.ts';
 import { terrainFor } from './terrain.ts';
 import { buildSea, installShoreline, shoreWeight } from './sea.ts';
+import { WetRoadReflection, reflectInWetRoad } from './wet-reflection.ts';
 import { buildGarageBay, paddockMaterials } from './paddock-detail.ts';
 import { buildVegetation } from './landscape.ts';
 import {
@@ -61,6 +62,8 @@ export class CircuitScene {
   readonly sightlines = new BroadcastSightlines();
   readonly vegetationGroup = new StaticTransformGroup();
   readonly stateTexture: T.DataTexture;
+  /** Planar reflection sampled by the wet road and pit lane film. */
+  readonly wetReflection = new WetRoadReflection();
   readonly roadMaterial: T.MeshStandardMaterial;
   readonly stateBytes = new Uint8Array(CELL_ROWS * CELL_COLS * 4);
   readonly startLamps: T.MeshStandardMaterial[] = [];
@@ -100,7 +103,13 @@ export class CircuitScene {
     this.stateTexture.minFilter = T.LinearFilter;
     this.updateSurface(track.water, track.rubber, track.marbles);
     this.roadMaterial = surfaceMaterial('asphalt', undefined, true);
-    installWetRoad(this.roadMaterial, this.stateTexture, true, VENUE_LAMP_RADIUS);
+    installWetRoad(
+      this.roadMaterial,
+      this.stateTexture,
+      true,
+      VENUE_LAMP_RADIUS,
+      this.wetReflection.uniforms,
+    );
     const grass = surfaceMaterial('grass');
     const runOff = surfaceMaterial('asphalt', 'paint');
     runOff.color.setHex(0x8aa58d);
@@ -173,7 +182,7 @@ export class CircuitScene {
     }
     // Smooth pit road ribbon and its marking; no decorative inaccessible lane.
     const pitMat = surfaceMaterial('asphalt', undefined, true);
-    installWetRoad(pitMat, this.stateTexture, false, VENUE_LAMP_RADIUS);
+    installWetRoad(pitMat, this.stateTexture, false, VENUE_LAMP_RADIUS, this.wetReflection.uniforms);
     for (const [start, end] of [
       [track.length - 220, track.length],
       [0, 330],
@@ -223,21 +232,28 @@ export class CircuitScene {
         terrain.setAttribute('shore', new T.BufferAttribute(shore, 1));
         installShoreline(land, model.seaLevel);
       }
-      mesh(this.surfaces, terrain, land);
-      if (model.seaLevel !== null) this.surfaces.add(buildSea(model.seaLevel));
+      reflectInWetRoad(mesh(this.surfaces, terrain, land));
+      if (model.seaLevel !== null) {
+        const sea = buildSea(model.seaLevel);
+        reflectInWetRoad(sea);
+        this.surfaces.add(sea);
+      }
     });
     const barriers = barrierMaterials();
     const spans = Math.ceil(track.length / 80);
     for (let i = 0; i < spans; i++)
-      this.construction.add('Profiled barriers and filtered catch fencing', 2, () =>
+      this.construction.add('Profiled barriers and filtered catch fencing', 2, () => {
+        const before = this.surfaces.children.length;
         buildBarrierChunk(
           track,
           this.surfaces,
           (track.length * i) / spans,
           (track.length * (i + 1)) / spans,
           barriers,
-        ),
-      );
+        );
+        // Barriers line the water's edge: they belong in the wet reflection.
+        for (const child of this.surfaces.children.slice(before)) reflectInWetRoad(child);
+      });
     this.infrastructure();
     this.construction.add('Drainage, marshal and replay-camera infrastructure', 3, () =>
       buildTrackInfrastructure(track, this.props, this.safetyPanel, this.trackInfrastructure),

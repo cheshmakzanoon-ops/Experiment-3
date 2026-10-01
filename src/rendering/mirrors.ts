@@ -6,8 +6,11 @@ import * as T from 'three';
 export class MirrorViews {
   readonly cameras = [0, 1].map(() => new T.PerspectiveCamera(42, 8 / 3, 0.03, 280));
   readonly targets = [0, 1].map(() => {
+    // Half-float keeps the mirrored scene in the same linear HDR range as
+    // the main view, which tone-maps it once at output. An 8-bit target
+    // clipped floodlit or sunlit scenery to flat white rectangles.
     const target = new T.WebGLRenderTarget(256, 96, {
-      type: T.UnsignedByteType,
+      type: T.HalfFloatType,
       depthBuffer: true,
       stencilBuffer: false,
       minFilter: T.LinearFilter,

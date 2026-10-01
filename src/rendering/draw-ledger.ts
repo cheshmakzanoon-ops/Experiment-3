@@ -1,6 +1,14 @@
 import type * as T from 'three';
 
-export const DRAW_PHASES = ['environment', 'probe', 'mirrors', 'shadow', 'composer', 'other'] as const;
+export const DRAW_PHASES = [
+  'environment',
+  'probe',
+  'mirrors',
+  'wet',
+  'shadow',
+  'composer',
+  'other',
+] as const;
 export type DrawPhase = (typeof DRAW_PHASES)[number];
 export type DrawBreakdown = Record<DrawPhase, { calls: number; triangles: number }>;
 

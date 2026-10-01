@@ -254,18 +254,31 @@ export class ReflectionSystem {
       const target = this.views.targets[i];
       const width = Math.min(48, target.width),
         height = Math.min(32, target.height);
-      const pixels = new Uint8Array(width * height * 4);
+      // Mirror feeds are half-float (linear HDR). Read them in their own type
+      // (a byte read of a float target is a GL error that outlives this call)
+      // and quantise the clamped linear values as the former 8-bit target did.
+      const half = target.texture.type === T.HalfFloatType;
+      const raw = half ? new Uint16Array(width * height * 4) : new Uint8Array(width * height * 4);
       renderer.readRenderTargetPixels(
         target,
         Math.floor((target.width - width) / 2),
         Math.floor((target.height - height) / 2),
         width,
         height,
-        pixels,
+        raw,
       );
+      const pixels = half
+        ? Uint8Array.from(raw, (h) =>
+            Math.round(Math.min(1, Math.max(0, T.DataUtils.fromHalfFloat(h))) * 255),
+          )
+        : (raw as Uint8Array);
       let min = 255,
         max = 0,
+        peak = 0,
         hash = 2166136261;
+      if (half)
+        for (let i = 0; i < raw.length; i++)
+          if (i % 4 !== 3) peak = Math.max(peak, T.DataUtils.fromHalfFloat(raw[i]));
       for (let i = 0; i < pixels.length; i++) {
         if (i % 4 === 3) continue;
         min = Math.min(min, pixels[i]);
@@ -277,6 +290,8 @@ export class ReflectionSystem {
         width: target.width,
         height: target.height,
         range: max - min,
+        /** Largest linear (pre-exposure) value in the sampled centre. */
+        peak,
         hash: hash >>> 0,
       };
     });

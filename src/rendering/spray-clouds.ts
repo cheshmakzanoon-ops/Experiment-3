@@ -92,7 +92,10 @@ export class SprayClouds {
           vec4 mvPosition=modelViewMatrix*vec4(center,1.0);
           #include <fog_vertex>
           float depth=-mvPosition.z;
-          float nearFade=smoothstep(max(0.2,nearPlane*1.5),max(0.8,nearPlane*4.0),depth);
+          // A metre-sized puff within a few metres of the lens fills a large
+          // part of the frame as one flat card; at night a floodlight makes it a
+          // bright rectangle. Dissolve puffs over 0.6-3.5 m, as the GL points do.
+          float nearFade=smoothstep(max(0.6,nearPlane*6.0),max(3.5,nearPlane*30.0),depth);
           bool spray=kind<0.5, dust=kind>0.5&&kind<1.5, smoke=kind>3.5&&kind<4.5;
           if(!(spray||dust||smoke) || opacity<=0.0 || nearFade<=0.0) {
             gl_Position=vec4(2.0,2.0,2.0,1.0); return;
@@ -163,7 +166,7 @@ export class SprayClouds {
           float density=mix(exp(-dot(p,p)*3.6),turbulent,vAnisotropy);
           // The cutoff must become radial as well; a square cutoff still
           // rotates visibly when near-axial motion changes to a diagonal.
-          float edge=mix(length(p),max(abs(p.x),abs(p.y)),vAnisotropy);
+          float edge=mix(length(p),max(abs(p.x),abs(p.y)),vAnisotropy*0.5);
           density*=1.0-smoothstep(0.48,1.0,edge);
           // Optical-depth alpha composes into a continuous cloud. This remains
           // bounded billboards, not a claim of volumetric multiple scattering.

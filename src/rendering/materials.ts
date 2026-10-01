@@ -1,5 +1,6 @@
 import { LIGHT_FOOTPRINT_GLSL } from './light-footprint.ts';
 import { roadWeatherUniform } from './weather-presentation.ts';
+import { WET_REFLECTION_GLSL, type WetReflectionUniforms } from './wet-reflection.ts';
 import { MeshStandardMaterial, ShaderChunk, type DataTexture } from 'three';
 import wetRoad from '../shaders/wetRoad.frag?raw';
 export { treadMaterial } from './tire-finish.ts';
@@ -42,6 +43,7 @@ export function installWetRoad(
   stateTexture: DataTexture,
   deposits: boolean,
   lampRadius = 0,
+  reflection?: WetReflectionUniforms,
 ) {
   if (!Number.isFinite(lampRadius) || lampRadius < 0) throw new Error('Invalid road lamp radius');
   const previous = material.onBeforeCompile;
@@ -53,6 +55,7 @@ export function installWetRoad(
     shader.uniforms.trackState = { value: stateTexture };
     shader.uniforms.surfaceDeposits = { value: deposits ? 1 : 0 };
     shader.uniforms.roadLampRadius = { value: lampRadius };
+    if (reflection) Object.assign(shader.uniforms, reflection);
     shader.vertexShader = shader.vertexShader
       .replace(
         '#include <common>',
@@ -65,6 +68,9 @@ export function installWetRoad(
     shader.fragmentShader = shader.fragmentShader.replace(
       '#include <common>',
       '#include <common>\nuniform sampler2D trackState; uniform float surfaceDeposits; uniform vec4 roadWeather; uniform float roadLampRadius; varying vec2 vTrackUV; varying vec2 vRoadMetres;\n' +
+        (reflection
+          ? 'uniform sampler2D wetReflection; uniform mat4 wetReflectionMatrix; uniform vec4 wetReflectionState;\n'
+          : '') +
         LIGHT_FOOTPRINT_GLSL,
     );
     shader.fragmentShader = shader.fragmentShader.replace(
@@ -156,9 +162,16 @@ export function installWetRoad(
       '#include <lights_fragment_begin>',
       pointLighting,
     );
+    // Standing water mirrors the scene: the planar pass replaces the probe
+    // radiance in the same water-film lobe (Fresnel, wet and puddle masks).
+    if (reflection)
+      shader.fragmentShader = shader.fragmentShader.replace(
+        '#include <lights_fragment_maps>',
+        '#include <lights_fragment_maps>\n' + WET_REFLECTION_GLSL,
+      );
   };
   material.customProgramCacheKey = () =>
-    `${previousKey}|apex-physical-asphalt-v5-conforming-film|water-fresnel-footprint-v1|venue-lamp-footprint-v1`;
+    `${previousKey}|apex-physical-asphalt-v5-conforming-film|water-fresnel-footprint-v1|venue-lamp-footprint-v1${reflection ? '|wet-planar-v1' : ''}`;
 }
 
 /** At grazing angles, collapsed screen derivatives can make the stock bump

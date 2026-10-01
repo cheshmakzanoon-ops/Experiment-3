@@ -25,7 +25,7 @@ import {
   peopleGeometry,
   leftCrewGloveGeometry,
 } from './people-asset.ts';
-import { installCrewHelmetFinish } from './crew-geometry.ts';
+import { CREW_KIT_COLOURS, installCrewHelmetFinish } from './crew-geometry.ts';
 import { CrewPose, installCrewSkin } from './crew-pose.ts';
 
 /** Removal requires an unloaded hub. These offsets are also consumed by the
@@ -45,7 +45,7 @@ const FORWARD = new T.Vector3(0, 0, 1);
 const UNIT = new T.Vector3(1, 1, 1);
 const CUFF = new T.Vector3(0, -0.067, -0.008);
 const GRIP = new T.Vector3(0, 0.034, 0.041);
-const palette = [0x244553, 0x315963, 0x334950, 0x455961, 0x304c62].map((c) => new T.Color(c));
+const palette = CREW_KIT_COLOURS;
 export type PitRole = 'gun' | 'remove' | 'install' | 'front-jack' | 'rear-jack' | 'release';
 interface ActorEvidence {
   car: number;

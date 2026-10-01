@@ -2,6 +2,12 @@ import * as T from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { helmetShell, helmetPatch } from './helmet-shell.ts';
 
+/** Team kit tones shared by pit and grid crews (instance colours over the
+ * authored people asset's white kit vertex colours). */
+export const CREW_KIT_COLOURS: readonly T.Color[] = [
+  0x244553, 0x315963, 0x334950, 0x455961, 0x304c62,
+].map((c) => new T.Color(c));
+
 /** Closed tailored limb and chest shapes with identical topology. Instanced
  * morph weights select a real shoulder/waist silhouette for torsos, without
  * turning every forearm into a torso or adding a draw call for every person. */

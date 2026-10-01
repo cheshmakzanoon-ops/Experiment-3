@@ -27,6 +27,7 @@ const CASES: Case[] = [
   { name: 'dry', weather: 'clear', lighting: 'day' },
   { name: 'wet', weather: 'rain', lighting: 'day' },
   { name: 'night', weather: 'clear', lighting: 'night' },
+  { name: 'wetnight', weather: 'rain', lighting: 'night' },
 ];
 
 async function waitFor(check: () => Promise<boolean>, ms: number, what: string) {
