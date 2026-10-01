@@ -69,6 +69,7 @@ import { TracksideDirector } from './trackside.ts';
 import { CameraClock, InertialCamera, ViewOrientation } from './camera-dynamics.ts';
 import { ReflectionSystem } from './reflections.ts';
 import { ShadowProxies } from './shadow-proxies.ts';
+import { FarShadow } from './far-shadow.ts';
 import { DebrisView } from './debris.ts';
 import { PitCrewView, serviceWheelOffset } from './pit-crew.ts';
 import { MotionBlurPass } from './motion-blur.ts';
@@ -116,6 +117,8 @@ export const CHASE = Object.freeze({
 /** T-cam lift above the authored pod socket and its downward gaze slope. */
 export const TCAM_LIFT_M = 0.09;
 export const TCAM_PITCH = -0.06;
+/** Metres of planting, stands and buildings around the track in the far sun shadow. */
+export const FAR_SHADOW_MARGIN_M = 150;
 /** Local-probe cube faces rendered per frame by a periodic refresh. */
 export const PROBE_FACES_PER_FRAME = 1;
 export type { Quality } from './options.ts';
@@ -215,6 +218,10 @@ export class RacingRenderer {
   });
   /** Merged depth-only casters for the cars' rigid parts (sun shadow pass). */
   private shadowProxies = new ShadowProxies();
+  /** Static sun shadow map of the whole circuit, beyond the car-following one. */
+  private farShadow = new FarShadow();
+  private farShadowBounds = new T.Box3();
+  private farShadowBaked: LightingMode | null = null;
   private gpuTimer: GpuTimer;
   private gpuFrames: GpuFrameGate;
   private previousAnchor = new T.Vector3();
@@ -285,8 +292,10 @@ export class RacingRenderer {
     this.scene.environmentIntensity = 0.7;
     this.scene.fog = new T.FogExp2(0xb9c7c1, 0.00044);
     this.scene.add(this.hemisphere, this.sun, this.sun.target);
+    // After the sun: shader patches read the far map as directional shadow 1.
+    this.scene.add(this.farShadow.light, this.farShadow.light.target);
     // Three culls lights by camera layer too: the wet reflection needs them.
-    for (const light of [this.hemisphere, this.sun]) reflectInWetRoad(light);
+    for (const light of [this.hemisphere, this.sun, this.farShadow.light]) reflectInWetRoad(light);
     this.sun.position.copy(SUN_OFFSET);
     this.sun.castShadow = true;
     this.sun.shadow.mapSize.set(2048, 2048);
@@ -302,6 +311,17 @@ export class RacingRenderer {
     this.sun.shadow.normalBias = 0.008;
     this.circuit = new CircuitScene(track, true);
     this.reflection.probeDetail = this.circuit.probeDetail;
+    // The far map covers the circuit and the planting and stands around it.
+    const point = trackPoint();
+    for (let s = 0; s < track.length; s += 10) {
+      track.at(s, point);
+      this.farShadowBounds.expandByPoint(this.temporary.set(point.x, point.y, point.z));
+    }
+    this.farShadowBounds.min.y -= 20;
+    this.farShadowBounds.max.y += 60;
+    this.farShadowBounds.expandByVector(
+      this.temporary.set(FAR_SHADOW_MARGIN_M, 0, FAR_SHADOW_MARGIN_M),
+    );
     this.circuit.construction.add('Event hall broadcast bounds', 1, () =>
       this.venueLighting.registerSightlines(this.circuit.sightlines),
     );
@@ -573,6 +593,9 @@ export class RacingRenderer {
     this.reflection.quality(g.mirrorQuality);
     this.circuit.wetReflection.setQuality(g.reflections === 'local' ? q : 'low');
     this.renderer.shadowMap.enabled = g.shadowSize > 0;
+    // Planting density and map size change the far map: bake it again.
+    this.farShadow.setEnabled(g.shadowSize > 0, Math.max(1024, g.shadowSize));
+    this.farShadowBaked = null;
     if (this.sun.shadow.mapSize.x !== g.shadowSize && g.shadowSize > 0) {
       this.sun.shadow.map?.dispose();
       this.sun.shadow.map = null;
@@ -1067,6 +1090,8 @@ export class RacingRenderer {
       this.circuit.wetReflection.suspend();
       // Include weather-driven environment captures in real GPU/draw metrics.
       this.drawLedger.mark('environment');
+      if (this.circuit.construction.ready && this.farShadowBaked !== illumination)
+        this.bakeFarShadow(illumination);
       this.environment.update(this.renderer, this.scene, daylight.cover, illumination);
       let wheelWater = 0;
       for (let wheel = 0; wheel < 4; wheel++)
@@ -1146,6 +1171,35 @@ export class RacingRenderer {
   }
   /** Rebuilt in place each frame (no allocation): the car set, follow target
    * and lazily loaded pit kits can change between frames. */
+  /** Bake the static far sun shadow for this lighting: no cars, people,
+   * particles or moving equipment; groves and treelines cast into it only. */
+  private bakeFarShadow(illumination: LightingMode) {
+    const farCasters: T.Object3D[] = [];
+    this.circuit.vegetationGroup.traverse((object) => {
+      if (object instanceof T.InstancedMesh && !object.castShadow) farCasters.push(object);
+    });
+    this.farShadow.bake(this.renderer, this.scene, {
+      direction: lightingDirection(illumination),
+      bounds: this.farShadowBounds,
+      hidden: [
+        ...this.cars.map((car) => car.root),
+        this.ghost?.root,
+        this.pitCrew.root,
+        this.gridPreparation.root,
+        this.debris.mesh,
+        this.guide.mesh,
+        this.engineeringView.group,
+        this.effects.group,
+        this.circuit.crowd,
+        this.circuit.staff.root,
+        this.circuit.tyreBlankets?.root,
+        ...this.circuit.crowdClusters.map((cluster) => cluster.root),
+      ],
+      farCasters,
+      sun: this.sun,
+    });
+    this.farShadowBaked = illumination;
+  }
   private refreshReflectionExclusions(subject: FormulaCar) {
     const smallDetail = [
       this.pitCrew.root,
@@ -1431,6 +1485,7 @@ export class RacingRenderer {
       reflectionProbeUpdates: this.reflection.probeUpdates,
       reflectionProbeDetailOmitted: this.reflection.probeDetailOmitted,
       shadowCasters: this.shadowProxies.count,
+      farShadow: this.farShadow.diagnostics(),
       shadowCasterBytes: this.shadowProxies.bytes,
       skyEnvironmentUpdates: this.environment.captures,
       lighting: this.lighting,
@@ -1488,6 +1543,7 @@ export class RacingRenderer {
     this.pitCrew.dispose();
     this.reflection.dispose();
     this.shadowProxies.dispose();
+    this.farShadow.dispose();
     this.gpuTimer.dispose();
     this.gpuFrames.dispose();
     this.motionBlur.dispose();
