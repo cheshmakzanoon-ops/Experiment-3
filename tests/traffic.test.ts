@@ -54,3 +54,36 @@ it('an occupied service-approach corridor never becomes an overtake away from en
   const plan = planner.evaluate(car, [car, other], track, 10, 4, personality(4417, 0), false, 6, true);
   expect(Math.abs(plan.offset - 6)).toBeLessThanOrEqual(Math.abs(car.lateral - 6) + 0.1);
 });
+it('predicts a rival alongside along the racing line, so a parallel lane stays clear', () => {
+  // Both cars follow a line drifting across the track (1 m/s at 50 m/s). A
+  // rival 4 m ahead and 3.4 m to the side keeps that spacing; extrapolating
+  // only its current lateral position made the shared drift look like a
+  // collision and pushed the car out of its lane.
+  const track = new Track(),
+    car = new Vehicle(0),
+    other = new Vehicle(1),
+    planner = new TrafficPlanner();
+  car.place(track, 1000, 0);
+  other.place(track, 1004, 3.4);
+  const line = (s: number) => 0.02 * (s - 1000);
+  for (const v of [car, other]) {
+    const p = v.trackPosition;
+    v.speed = 50;
+    v.body.velocity.x = p.tx * 50 + p.nx;
+    v.body.velocity.z = p.tz * 50 + p.nz;
+  }
+  const plan = planner.evaluate(
+    car,
+    [car, other],
+    track,
+    10,
+    8,
+    personality(4417, 0),
+    false,
+    0,
+    false,
+    line,
+  );
+  expect(plan.decision).toBe('RACING LINE');
+  expect(plan.offset).toBeCloseTo(0, 6);
+});

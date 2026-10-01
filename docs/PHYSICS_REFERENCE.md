@@ -72,11 +72,72 @@ several hundred metres early. The AI now plans with the measured capability
 `scripts/pit-integration.ts` and `scripts/vellamar-race.ts` (clear and
 changeable) all pass.
 
+## Racing line
+
+The AI used to drive the centreline, with passing lanes 3.5 m to either
+side, so every car ran down the middle of every corner.
+`src/simulation/racing-line.ts` now solves a minimum-curvature line for each
+circuit: outside on entry, inside at the apex, outside on exit, within the
+traffic planner's 2.4 m edge clearance. The solver relaxes the path's
+second-difference (curvature) energy, coarse to fine, with every point clamped
+inside the track. Neighbour averaging was rejected because it finds the shortest
+path, which hugs the inside of a whole corner and tightens it. It runs once per
+circuit geometry (30-45 ms).
+
+| | Centreline | Racing line |
+| --- | --- | --- |
+| Aurel tightest radius driven | 43.8 m | 61.6 m |
+| Vellamar tightest radius driven | 24.3 m | 27.1 m (summit hairpin) |
+| Aurel single-car dry lap | 56.0 s | 50.1 s |
+| Vellamar single-car dry lap | 75.0 s | 69.6 s |
+
+- The AI steers to the line at its look-ahead point. A passing or defending
+  lane is a tactical distance from the line. The speed envelope uses the
+  driven path's curvature: the line's, corrected for that distance.
+- The traffic planner predicts each candidate path along the line, including
+  the line's own lateral shift. With fixed absolute lanes, a car following the
+  line ran into a slower car ahead. Lane commitments are also held relative to
+  the line.
+- It predicts the other cars along the line too, extrapolating only the part
+  of their lateral velocity that is a lane change. Predicting them from their
+  current lateral position made a car alongside, drifting across the track with
+  the line, look like a collision, so followers left their lane and racing
+  thinned out. Measured from a mid-field start on Aurel (5 laps, 8 cars, seeds
+  73021/11/29, the race-review criterion of one rival within 18 m for 5 s):
+
+  | | Centreline | Line, rivals extrapolated | Line, rivals on the line |
+  | --- | --- | --- | --- |
+  | Longest close run (player) | 8.9-28.6 s | 2.4-3.5 s | 6.1-10.8 s |
+  | On-track position changes | 23-25 | 18-21 | 20-27 |
+  | Race time | 316-317 s | 284 s | 283-284 s |
+
+  Cars on one line string out more than cars spread across the centreline and
+  its lanes (10th-percentile time to the car ahead 0.65 s against 0.38 s), so
+  the share of time within 18 m of a rival is lower (1-10% per car, against
+  2-17%).
+- The pit approach and the pit lane keep absolute corridors.
+- In the wet the line narrows towards the centreline (to 55% from about 0.8 mm
+  of water under the car), and the envelope keeps up to 15% more in reserve.
+  Without these, cars trail-braking into fast sweepers in the rain stepped the
+  rear out and left the track.
+- Race-day rubber is laid along the line (a band about a car wide, peak 0.45
+  over a 0.035 coating) instead of down the centre. The existing rubber grip
+  term (+5% at full rubber, dry only) gives it about 2% more grip, and the
+  road shader shows it as a darker band.
+- The changeable race-classification scenario now runs 4 laps. Its storm
+  arrives on a fixed weather clock, and at the new pace a 3-lap race ended
+  before a car that called for wets just after the pit entry could be
+  serviced. Its requirement, that every car physically fit wet tyres, is
+  unchanged.
+
 ## Open
 
-- The AI still uses only 55-72% of the car. Closing that gap needs racecraft
-  work (first-lap caution, side-by-side braking, overtake abort distances),
-  not just larger margins.
+- The AI still uses only 55-72% of the measured limits. Closing that gap needs
+  racecraft work (first-lap caution, side-by-side braking, overtake abort
+  distances), not just larger margins.
+- Line tracking is pure pursuit and averages about 1.2 m from the line on
+  Aurel, cutting slightly inside on long corners. Kerb use at the apex is not
+  modelled as a choice.
 - Wet-weather reference figures are not published in a comparable form; the
   wet ratios here are internal consistency checks only.
 - Force feedback and steering-rack feel are not calibrated against reference

@@ -10,7 +10,11 @@ for (const weather of ['clear', 'changeable'] as const) {
   const sim = new Simulation({
     ...DEFAULT_OPTIONS,
     mode: 'race',
-    laps: 3,
+    // The storm arrives on a fixed weather clock (heavy rain from about 115 s).
+    // With the AI on the racing line a 3-lap race ends near 205 s, before a car
+    // that calls for wets just after the pit entry can be serviced; a fourth
+    // lap keeps the storm mid-race, as the scenario intends.
+    laps: weather === 'changeable' ? 4 : 3,
     opponents: 9,
     weather,
     seed: 4417,

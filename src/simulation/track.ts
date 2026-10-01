@@ -1,3 +1,4 @@
+import { racingLineFor } from './racing-line.ts';
 import { TrackContactMesh, kerbHeight } from './contact.ts';
 import { surfaceDrainageRate } from './surface-drainage.ts';
 import { clamp, lerp, mod, smooth, Vec3 } from '../core/math.ts';
@@ -207,10 +208,20 @@ export class Track {
         );
       }
     }
+    // Race-day rubber was laid by earlier sessions where cars drive: along the
+    // racing line (a band about a car wide), over a light general coating.
+    const line = racingLineFor(this),
+      rowPoint = trackPoint();
     for (let i = 0; i < this.water.length; i++) {
       this.temperature[i] = preset === 'rain' ? 22 : 34;
       this.water[i] = preset === 'rain' ? 0.7 + 0.35 * (0.5 + 0.5 * Math.sin(i * 0.27)) : 0;
-      this.rubber[i] = Math.abs((i % CELL_COLS) - 3) < 2 ? 0.2 : 0.035;
+      const row = Math.floor(i / CELL_COLS),
+        col = i % CELL_COLS,
+        s = ((row + 0.5) / CELL_ROWS) * this.length;
+      this.at(s, rowPoint);
+      const lateral = (((col + 0.5) / CELL_COLS) * 2 - 1) * rowPoint.width;
+      const fromLine = (lateral - line.offsetAt(s)) / 1.8;
+      this.rubber[i] = 0.035 + 0.415 * Math.exp(-0.5 * fromLine * fromLine);
     }
   }
   at(s: number, out: TrackPoint): TrackPoint {

@@ -12,6 +12,7 @@ import { approach, clamp, G, mod, Vec3 } from '../core/math.ts';
 import { VEHICLE } from './config.ts';
 import { PHASE, type RaceDirector } from './race.ts';
 import { trackPoint, type Track } from './track.ts';
+import { RACING_LINE, racingLineFor } from './racing-line.ts';
 import type { Vehicle } from './vehicle.ts';
 /** Strategic 2 Hz, tactical 12 Hz, controller 120 Hz. All driving uses normal pedals. */
 /** Racing envelope from the production car's MEASURED limits
@@ -115,7 +116,10 @@ export class AIDriver {
   private local = new Vec3();
   private strategyClock = 0;
   private tacticalClock = 0;
+  /** Absolute lateral target at the car (m from the centreline). */
   private offset = 0;
+  /** Lateral distance from the racing line (passing/defending lanes). */
+  private tactical = 0;
   private desiredOffset = 0;
   private trafficSpeed = 100;
   private stuckTime = 0;
@@ -161,6 +165,13 @@ export class AIDriver {
     if (!c.pitRequested || c.inPit || entryGap > track.length - 20) this.preparingPit = false;
     else if (entryGap < pitPreparationDistance(c.speed, c.lateral)) this.preparingPit = true;
     const preparingPit = this.preparingPit;
+    const line = racingLineFor(track);
+    // In the wet a driver keeps off the painted edges and kerbs and leaves
+    // room for a slide, so the line narrows towards the centreline (to 55% of
+    // its width from about 0.8 mm of water under the car).
+    const wetness = clamp(c.contacts[0].water / 0.8, 0, 1);
+    const width = 1 - 0.45 * wetness;
+    const lineAt = (s: number) => line.offsetAt(s) * width;
     if (this.tacticalClock > 1 / 12 && !c.inPit) {
       this.tacticalClock = 0;
       const grip = clamp(
@@ -176,8 +187,9 @@ export class AIDriver {
         8.5 * grip,
         this.personality,
         yellowFlag(race.control.flags[c.id]),
-        preparingPit ? 6 : this.brain.preferredLine(c, cars, track, race),
+        preparingPit ? 6 : this.brain.preferredLine(c, cars, track, race) || lineAt(c.s),
         preparingPit,
+        lineAt,
       );
       this.desiredOffset = plan.offset;
       this.trafficSpeed = plan.speedLimit;
@@ -187,16 +199,32 @@ export class AIDriver {
     const pit = c.inPit,
       box = 102 + c.id * 7,
       boxGap = mod(box - c.s, track.length);
-    this.offset = approach(
-      this.offset,
-      pit ? this.pitLine(track, c.s) : this.desiredOffset,
-      dt * (pit ? 6 : 1.6),
-    );
+    // On track the car follows the racing line; a passing or defending lane is
+    // a tactical distance from that line, changed at a finite lateral rate.
+    // The pit approach and the pit lane keep absolute corridors (the entry is
+    // a fixed place on the track, not a distance from the line).
+    const lineHere = lineAt(c.s);
+    const corridor = pit || preparingPit;
+    if (pit) {
+      this.offset = approach(this.offset, this.pitLine(track, c.s), dt * 6);
+      this.tactical = this.offset - lineHere;
+    } else if (preparingPit) {
+      this.offset = approach(this.offset, this.desiredOffset, dt * 1.6);
+      this.tactical = this.offset - lineHere;
+    } else {
+      this.tactical = approach(this.tactical, this.desiredOffset - lineHere, dt * 1.6);
+      this.offset = lineHere + this.tactical;
+    }
     let lookahead = clamp(6 + c.speed * 0.48, 8, 46);
     if (pit && c.pitPhase === 1 && boxGap < 35)
       lookahead = Math.min(lookahead, Math.max(1, boxGap));
     track.at(c.s + lookahead, this.target);
-    const pathOffset = pit ? this.pitLine(track, c.s + lookahead) : this.offset;
+    const reach = Math.max(1, this.target.width - RACING_LINE.edgeMargin);
+    const pathOffset = pit
+      ? this.pitLine(track, c.s + lookahead)
+      : corridor
+        ? this.offset
+        : clamp(lineAt(c.s + lookahead) + this.tactical, -reach, reach);
     this.delta.set(
       this.target.x + this.target.nx * pathOffset - c.body.position.x,
       0,
@@ -225,13 +253,32 @@ export class AIDriver {
       (VEHICLE.dryMass + c.fuel);
     // Off the racing line (passing or defending lanes) there is less room to
     // run wide, so the envelope keeps a larger reserve there.
+    // Standing water also costs the rear axle grip under trail braking (it
+    // steps out first), so the wet envelope keeps up to 15% more in reserve.
     const laneGrip =
-      grip * clamp(1 - (0.25 * Math.max(0, Math.abs(this.offset) - 1.5)) / 6, 0.8, 1);
+      grip *
+      (1 - 0.15 * wetness) *
+      clamp(
+        1 - (0.25 * Math.max(0, Math.abs(corridor ? this.offset : this.tactical) - 1.5)) / 6,
+        0.8,
+        1,
+      );
     // Samples every 12 m for 240 m, then a backward pass with a friction
     // circle: braking only uses the grip the corner leaves (trail braking).
+    // Corner radii are those of the path driven: the racing line, offset by
+    // the tactical lane (the pit lane follows the centreline geometry).
     for (let i = 0; i < ENVELOPE_SAMPLES; i++) {
-      track.at(c.s + i * ENVELOPE_STEP, this.sample);
-      const curvature = this.sample.curvature / (1 - this.sample.curvature * this.offset);
+      const s = c.s + i * ENVELOPE_STEP;
+      let curvature: number;
+      if (corridor) {
+        track.at(s, this.sample);
+        curvature = this.sample.curvature / (1 - this.sample.curvature * this.offset);
+      } else {
+        // A narrowed line blends the line's curvature with the centreline's.
+        let k = line.curvatureAt(s);
+        if (width < 1) k = k * width + track.at(s, this.sample).curvature * (1 - width);
+        curvature = k / (1 - k * this.tactical);
+      }
       this.curvatures[i] = Math.abs(curvature);
       this.corners[i] = envelopeCornerSpeed(curvature, laneGrip, aero) * this.skill;
     }
