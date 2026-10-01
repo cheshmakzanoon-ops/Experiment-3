@@ -165,7 +165,10 @@ jobs:
     # The complete browser suite above still runs unchanged, including these cases.
     needs: validate
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    # The five specs take 6.6-7.3 min of an 8-9 min job on a typical runner and
+    # 9.0-9.3 min on a slower one (unrelated specs 15-35% slower in the same
+    # run), so 10 min cancelled passing runs. Same budget as validate/scenarios.
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
