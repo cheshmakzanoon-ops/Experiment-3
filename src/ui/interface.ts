@@ -2,6 +2,7 @@ import { installCompactRaceHud } from './compact-race-hud.ts';
 import { audioAccessibility, readDrivingAudio } from './audio-accessibility.ts';
 import type { DrivingAudioSettings } from '../audio/driving-cues.ts';
 import { nearbyTraffic } from './proximity.ts';
+import { GapTimer, driverCode, formatInterval } from './gap-timer.ts';
 import { BUTTON_ACTIONS, BUTTON_ACTION_LABELS } from '../input/button-actions.ts';
 import { engineeringReport } from './engineering.ts';
 import { FLAG, flagLabel, yellowFlag } from '../simulation/marshal.ts';
@@ -112,6 +113,10 @@ export class Interface {
   private deviceCalibration: DeviceCalibrationPanel | null = null;
   private bindingCapture: AbortController | null = null;
   playerName = DRIVERS[0];
+  /** Timing loops for the tower's race intervals, rebuilt per field/circuit. */
+  private gaps: GapTimer | null = null;
+  private gapPositions = new Float64Array(0);
+  private towerRefresh = -Infinity;
   options: SessionOptions = { ...DEFAULT_OPTIONS };
   /** Time Trial: saved personal best (0 when none) and the live ghost delta. */
   timeTrial: { best: number; delta: number | null } | null = null;
@@ -139,7 +144,7 @@ export class Interface {
   </section>
   <section id="hud" class="hud" hidden>
    <div class="hud-top"><div class="brand small">APEX<span>LIVE</span></div><div class="position-badge" role="status" aria-label="Race position"><b id="positionBadge">P1</b><span id="positionField">/ 1</span></div><div class="session-status"><span id="lapLabel">LAP 1 / 3</span><b id="flag">GRID</b><span id="weatherLabel">24°C / DRY</span></div><button class="icon-button" data-action="pause" aria-label="Pause session">Ⅱ</button></div>
-   <aside class="timing" tabindex="0" aria-label="Live race classification"><div class="panel-heading">CLASSIFICATION <span>LIVE</span></div><div id="tower"></div></aside>
+   <aside class="timing" tabindex="0" aria-label="Live race classification"><div class="panel-heading">CLASSIFICATION <span id="towerColumn">INTERVAL</span></div><div id="tower"></div></aside>
    <div class="lap-panel"><label class="lap-delta"><i id="lapDeltaLabel">DELTA TO BEST</i><span id="lapDelta">—</span></label><label class="lap-current">CURRENT LAP<b id="lapTime">—:——.———</b></label><label>PERSONAL BEST<span id="bestLap">—:——.———</span></label><label>LAST LAP<span id="lastLap">—:——.———</span></label></div>
    <div id="startSequence" class="start-sequence" hidden><div id="lights">${'<i></i>'.repeat(5)}</div><span id="startText">BUILD REVS. HOLD THE BRAKE.</span></div>
    <div class="proximity proximity-left" id="proximityLeft" hidden><b>◀</b><span>CAR LEFT</span></div><div class="proximity proximity-right" id="proximityRight" hidden><b>▶</b><span>CAR RIGHT</span></div>
@@ -280,6 +285,16 @@ export class Interface {
     const e = this.get(id);
     if (e.textContent !== value) e.textContent = value;
   }
+  private observeGaps(frame: Float32Array) {
+    const cars = frame[H.CARS];
+    if (!this.gaps || this.gaps.cars !== cars || this.gaps.length !== this.track.length) {
+      this.gaps = new GapTimer(this.track.length, cars);
+      this.gapPositions = new Float64Array(cars);
+      this.towerRefresh = -Infinity;
+    }
+    for (let id = 0; id < cars; id++) this.gapPositions[id] = frame[carBase(id) + F.S];
+    this.gaps.observe(frame[H.TIME], this.gapPositions);
+  }
   update(frame: Float32Array, renderer: RacingRenderer, auto: boolean, ers: number) {
     const proximity = nearbyTraffic(frame);
     for (const side of ['left', 'right'] as const) {
@@ -289,6 +304,9 @@ export class Interface {
     }
 
     this.hud.dataset.camera = renderer.mode;
+    // Timing loops see every presented frame; the panels below refresh at a
+    // third of the rate.
+    this.observeGaps(frame);
     this.tick++;
     if (this.tick % 3 !== 0) return;
     const o = carBase(0),
@@ -393,18 +411,27 @@ export class Interface {
       this.lastAnnounced = message;
     }
     const tower = this.get('tower');
-    if (tower.children.length !== frame[H.CARS]) {
-      this.hud.style.setProperty('--grid-rows', String(frame[H.CARS]));
+    const cars = frame[H.CARS];
+    if (tower.children.length !== cars) {
+      this.hud.style.setProperty('--grid-rows', String(cars));
       tower.innerHTML = Array.from(
-        { length: frame[H.CARS] },
+        { length: cars },
         () => '<div class="tower-row"><b></b><i></i><span></span><small></small></div>',
       ).join('');
     }
-    const order = Array.from({ length: frame[H.CARS] }, (_, id) => id).sort(
+    const order = Array.from({ length: cars }, (_, id) => id).sort(
       (a, b) => frame[carBase(a) + F.RANK] - frame[carBase(b) + F.RANK],
     );
     this.setText('positionBadge', `P${order.indexOf(0) + 1}`);
-    this.setText('positionField', `/ ${frame[H.CARS]}`);
+    this.setText('positionField', `/ ${cars}`);
+    // Broadcast towers refresh intervals a few times a second, not every frame.
+    const racing = racingSession(this.options.mode);
+    const refresh =
+      frame[H.TIME] < this.towerRefresh || frame[H.TIME] - this.towerRefresh >= 0.5;
+    if (refresh) {
+      this.towerRefresh = frame[H.TIME];
+      this.setText('towerColumn', racing ? 'INTERVAL' : 'BEST LAP');
+    }
     order.forEach((id, rank) => {
       const e = tower.children[rank] as HTMLElement,
         p = carBase(id);
@@ -414,13 +441,27 @@ export class Interface {
         id === 0
           ? `#${renderer.cars[0].paint.color.getHexString()}`
           : `#${LIVERIES[id].toString(16).padStart(6, '0')}`;
-      e.querySelector('span')!.textContent = id === 0 ? this.playerName : DRIVERS[id];
+      const name = id === 0 ? this.playerName : DRIVERS[id];
+      const label = e.querySelector('span')!;
+      if (label.title !== name) {
+        label.title = name;
+        label.textContent = driverCode(name);
+      }
+      if (!refresh) return;
+      const ahead = order[rank - 1];
+      const best = frame[p + F.BEST_LAP];
       e.querySelector('small')!.textContent =
         frame[p + F.FINISH] > 0
           ? 'FIN'
           : frame[p + F.IN_PIT]
             ? 'PIT'
-            : `${Math.round(frame[p + F.LAPS])} L`;
+            : !racing
+              ? best > 0
+                ? lapTime(best)
+                : 'NO TIME'
+              : rank === 0
+                ? 'LEADER'
+                : formatInterval(this.gaps!.interval(ahead, id), this.gaps!.lapsBetween(ahead, id));
     });
     this.drawMap(frame);
     this.get('debug').hidden = !renderer.debug;

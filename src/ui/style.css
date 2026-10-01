@@ -3513,3 +3513,138 @@ html[data-high-contrast='true'] .dash-main span {
   font-weight: 700;
   letter-spacing: 0.08em;
 }
+
+/* ---------- Compact broadcast HUD (desktop) ----------
+   Small peripheral clusters, as on a broadcast racing HUD: a narrow timing
+   tower (codes and intervals), a short lap clock, a compact telemetry blade
+   and a small car-state block. Every readout is kept; the panels cover under
+   12% of a 1600x900 frame (e2e/49-hud-footprint.spec.ts), down from 18.8%. */
+@media (min-width: 1280px) and (min-height: 680px) {
+  .hud .timing,
+  .hud .lap-panel {
+    width: 180px;
+  }
+  .hud .timing .panel-heading {
+    padding: 7px 10px;
+  }
+  .hud .tower-row {
+    height: 22px;
+    gap: 7px;
+    padding: 0 8px;
+  }
+  .hud .tower-row > b {
+    font-size: 11px;
+    min-width: 18px;
+  }
+  .hud .tower-row > i {
+    height: 12px;
+  }
+  .hud .tower-row > span {
+    font-size: 10.5px;
+  }
+  .hud .tower-row > small {
+    font-size: 9.5px;
+    letter-spacing: 0.02em;
+  }
+  .hud .lap-panel {
+    padding: 9px 12px;
+    padding-inline: 12px;
+  }
+  .hud .lap-panel label {
+    margin-bottom: 6px;
+    gap: 8px;
+    align-items: baseline;
+    letter-spacing: 0.1em;
+    white-space: nowrap;
+  }
+  .hud .lap-panel label:last-child {
+    margin-bottom: 0;
+  }
+  .hud .lap-panel b {
+    margin-top: 3px;
+    font-size: 22px;
+  }
+  .hud .lap-panel span {
+    font-size: 11px;
+    white-space: nowrap;
+  }
+  .hud[data-camera] .instruments {
+    width: 420px;
+    grid-template-columns: minmax(0, 1fr) 132px;
+  }
+  .hud .rev-lights {
+    padding: 7px 10px 3px;
+  }
+  .hud .dash-main {
+    gap: 12px;
+    padding: 4px 12px 7px;
+  }
+  .hud[data-camera] .dash-main {
+    padding-bottom: 6px;
+  }
+  .hud .gear > b {
+    font-size: 42px;
+  }
+  .hud .speed > b {
+    font-size: 38px;
+  }
+  .hud .engine b {
+    font-size: 14px;
+  }
+  .hud .engine strong {
+    margin-top: 6px;
+  }
+  .hud .dash-main span {
+    margin-top: 3px;
+  }
+  .hud .pedals {
+    padding: 0 12px 7px;
+  }
+  .hud .resources {
+    padding: 6px 10px;
+  }
+  .hud[data-camera] .resources {
+    gap: 8px;
+  }
+  .hud .resources label {
+    font-size: 8px;
+    gap: 6px;
+  }
+  .hud .resources .meter {
+    width: 44px;
+  }
+  .hud .car-status {
+    width: 176px;
+  }
+  .hud .car-status .panel-heading {
+    padding: 7px 10px;
+  }
+  .hud .tires {
+    gap: 6px 8px;
+    padding: 8px 10px;
+  }
+  .hud .tires > div {
+    padding: 4px 6px 4px 8px;
+  }
+  .hud .tires > div::after {
+    top: 5px;
+    height: 12px;
+  }
+  .hud .tires label {
+    margin-bottom: 2px;
+  }
+  .hud .tires b {
+    font-size: 14px;
+  }
+  .hud .tires span {
+    font-size: 8px;
+    margin-top: 1px;
+  }
+  .hud .tires small {
+    margin-top: 2px;
+  }
+  .hud .health {
+    gap: 8px;
+    padding: 6px 10px;
+  }
+}
