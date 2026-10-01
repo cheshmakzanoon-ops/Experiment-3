@@ -166,9 +166,11 @@ jobs:
     needs: validate
     runs-on: ubuntu-latest
     # The five specs take 6.6-7.3 min of an 8-9 min job on a typical runner and
-    # 9.0-9.3 min on a slower one (unrelated specs 15-35% slower in the same
-    # run), so 10 min cancelled passing runs. Same budget as validate/scenarios.
-    timeout-minutes: 15
+    # 9.0-9.4 min on a slower one (unrelated specs 15-35% slower in the same
+    # run), so 10 min cancelled passing runs. Installing Playwright's system
+    # packages usually takes under a minute but took 6 min on runs for 2383805
+    # and 8cf27c2, which were cancelled at 15 min with the specs still running.
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
