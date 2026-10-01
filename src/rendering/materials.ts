@@ -1,6 +1,7 @@
 import { LIGHT_FOOTPRINT_GLSL } from './light-footprint.ts';
 import { roadWeatherUniform } from './weather-presentation.ts';
 import { WET_REFLECTION_GLSL, type WetReflectionUniforms } from './wet-reflection.ts';
+import { ROAD_MACRO_APPLY, ROAD_MACRO_GLSL } from './road-macro.ts';
 import { MeshStandardMaterial, ShaderChunk, type DataTexture } from 'three';
 import wetRoad from '../shaders/wetRoad.frag?raw';
 export { treadMaterial } from './tire-finish.ts';
@@ -71,11 +72,12 @@ export function installWetRoad(
         (reflection
           ? 'uniform sampler2D wetReflection; uniform mat4 wetReflectionMatrix; uniform vec4 wetReflectionState;\n'
           : '') +
-        LIGHT_FOOTPRINT_GLSL,
+        LIGHT_FOOTPRINT_GLSL +
+        ROAD_MACRO_GLSL,
     );
     shader.fragmentShader = shader.fragmentShader.replace(
       '#include <map_fragment>',
-      '#include <map_fragment>\n' + wetRoad,
+      '#include <map_fragment>\n' + ROAD_MACRO_APPLY + wetRoad,
     );
     shader.fragmentShader = shader.fragmentShader.replace(
       '#include <roughnessmap_fragment>',
@@ -171,7 +173,7 @@ export function installWetRoad(
       );
   };
   material.customProgramCacheKey = () =>
-    `${previousKey}|apex-physical-asphalt-v5-conforming-film|water-fresnel-footprint-v1|venue-lamp-footprint-v1${reflection ? '|wet-planar-v1' : ''}`;
+    `${previousKey}|apex-physical-asphalt-v5-conforming-film|water-fresnel-footprint-v1|venue-lamp-footprint-v1|road-macro-v1${reflection ? '|wet-planar-v1' : ''}`;
 }
 
 /** At grazing angles, collapsed screen derivatives can make the stock bump
