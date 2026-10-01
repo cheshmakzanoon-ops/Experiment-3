@@ -153,11 +153,13 @@ export class FarShadow {
   }
   /** Fit the light's orthographic frustum to `bounds` seen along `direction`. */
   fit(direction: T.Vector3, bounds: T.Box3) {
+    return this.fitLight(this.light, direction, bounds);
+  }
+  private fitLight(light: T.DirectionalLight, direction: T.Vector3, bounds: T.Box3) {
     if (bounds.isEmpty() || !(direction.lengthSq() > 0))
       throw new Error('Invalid far shadow region');
     const centre = bounds.getCenter(new T.Vector3());
     const radius = bounds.getSize(new T.Vector3()).length() / 2;
-    const light = this.light;
     light.position
       .copy(direction)
       .normalize()
@@ -194,6 +196,59 @@ export class FarShadow {
     shadow.normalBias = texel;
     shadow.bias = -texel / (camera.far - camera.near);
     return texel;
+  }
+  /** Depth programs compile when a caster first meets a shadow pass. The
+   * bake leaves cars and people out, and the car-following map meets
+   * trackside crowds and staff only mid-race, where each first meeting is a
+   * synchronous compile. While loading, render the sun's own map once over
+   * `bounds` with nothing hidden; the next frame renders its car-following
+   * map again. Returns false when shadows are off. */
+  warmCasters(
+    renderer: T.WebGLRenderer,
+    scene: T.Scene,
+    sun: T.DirectionalLight,
+    direction: T.Vector3,
+    bounds: T.Box3,
+  ) {
+    if (!renderer.shadowMap.enabled || !sun.castShadow) return false;
+    const shadow = sun.shadow,
+      camera = shadow.camera;
+    const saved = {
+      position: sun.position.clone(),
+      target: sun.target.position.clone(),
+      frustum: [camera.left, camera.right, camera.top, camera.bottom, camera.near, camera.far],
+      bias: shadow.bias,
+      normalBias: shadow.normalBias,
+      autoUpdate: shadow.autoUpdate,
+    };
+    const far = [this.light.shadow.autoUpdate, this.light.shadow.needsUpdate] as const;
+    const target = renderer.getRenderTarget(),
+      autoUpdate = renderer.shadowMap.autoUpdate;
+    try {
+      this.fitLight(sun, direction, bounds);
+      shadow.autoUpdate = true;
+      this.light.shadow.autoUpdate = false;
+      this.light.shadow.needsUpdate = false;
+      renderer.shadowMap.autoUpdate = true;
+      renderer.setRenderTarget(this.target);
+      renderer.render(scene, this.camera);
+    } finally {
+      renderer.setRenderTarget(target);
+      renderer.shadowMap.autoUpdate = autoUpdate;
+      [this.light.shadow.autoUpdate, this.light.shadow.needsUpdate] = far;
+      sun.position.copy(saved.position);
+      sun.target.position.copy(saved.target);
+      sun.updateMatrixWorld();
+      sun.target.updateMatrixWorld();
+      [camera.left, camera.right, camera.top, camera.bottom, camera.near, camera.far] =
+        saved.frustum;
+      camera.updateProjectionMatrix();
+      shadow.bias = saved.bias;
+      shadow.normalBias = saved.normalBias;
+      shadow.autoUpdate = saved.autoUpdate;
+      shadow.needsUpdate = true;
+    }
+    return true;
   }
   /** Render the far map now (shadow maps only), leaving every other pass,
    * visibility and caster flag as it was. */

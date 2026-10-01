@@ -197,3 +197,68 @@ it('bakes shadow maps only, without cars or people, with far-only planting casti
   far.dispose();
   previous.dispose();
 });
+
+it('warms every caster through one circuit-wide sun pass and restores the sun', () => {
+  const far = new FarShadow(1024);
+  const scene = new T.Scene();
+  const sun = new T.DirectionalLight();
+  sun.castShadow = true;
+  sun.position.set(3, 10, 2);
+  sun.target.position.set(1, 0, 1);
+  const camera = sun.shadow.camera;
+  [camera.left, camera.right, camera.top, camera.bottom] = [-38, 38, 38, -38];
+  sun.shadow.bias = -0.0004;
+  sun.shadow.normalBias = 0.02;
+  const before = {
+    position: sun.position.clone(),
+    target: sun.target.position.clone(),
+    frustum: [camera.left, camera.right, camera.top, camera.bottom, camera.near, camera.far],
+  };
+  const seen: unknown[] = [];
+  const renderer = {
+    shadowMap: { autoUpdate: false, enabled: true },
+    target: null as T.WebGLRenderTarget | null,
+    getRenderTarget() {
+      return this.target;
+    },
+    setRenderTarget(target: T.WebGLRenderTarget | null) {
+      this.target = target;
+    },
+    render: vi.fn(() => {
+      seen.push({
+        width: camera.right - camera.left,
+        sun: sun.shadow.autoUpdate,
+        far: [far.light.shadow.autoUpdate, far.light.shadow.needsUpdate],
+        shadows: renderer.shadowMap.autoUpdate,
+      });
+    }),
+  };
+  const gl = renderer as unknown as T.WebGLRenderer;
+  const bounds = new T.Box3(new T.Vector3(-400, -20, -300), new T.Vector3(400, 60, 300));
+  const direction = new T.Vector3(1, 2, 1);
+  expect(far.warmCasters(gl, scene, sun, direction, bounds)).toBe(true);
+  // One pass covering the whole region, far map skipped, sun rendered.
+  expect(seen).toHaveLength(1);
+  expect((seen[0] as { width: number }).width).toBeGreaterThan(700);
+  expect(seen[0]).toMatchObject({ sun: true, far: [false, false], shadows: true });
+  const restored = () => {
+    expect(sun.position.toArray()).toEqual(before.position.toArray());
+    expect(sun.target.position.toArray()).toEqual(before.target.toArray());
+    expect([camera.left, camera.right, camera.top, camera.bottom, camera.near, camera.far]).toEqual(
+      before.frustum,
+    );
+    expect([sun.shadow.bias, sun.shadow.normalBias]).toEqual([-0.0004, 0.02]);
+    expect(sun.shadow.needsUpdate).toBe(true);
+    expect([renderer.shadowMap.autoUpdate, renderer.target]).toEqual([false, null]);
+  };
+  restored();
+  renderer.render.mockImplementationOnce(() => {
+    throw new Error('lost');
+  });
+  expect(() => far.warmCasters(gl, scene, sun, direction, bounds)).toThrow('lost');
+  restored();
+  renderer.shadowMap.enabled = false;
+  expect(far.warmCasters(gl, scene, sun, direction, bounds)).toBe(false);
+  expect(renderer.render).toHaveBeenCalledTimes(2);
+  far.dispose();
+});

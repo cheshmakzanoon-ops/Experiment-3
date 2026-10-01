@@ -24,6 +24,9 @@ function fixture() {
     warmPitPresentation: vi.fn(async () => {
       calls.push('pit-materials');
     }),
+    warmShadowCasters: vi.fn(() => {
+      calls.push('shadow-casters');
+    }),
     setCars(n: number) {
       while (this.cars.length < n) this.cars.push({ update: vi.fn() });
       calls.push(`cars:${n}`);
@@ -91,6 +94,11 @@ it('yields construction, compiles and warms camera passes without modifying simu
   expect(sample[H.TICK]).toBe(0);
   expect(calls.indexOf('compile')).toBeGreaterThan(calls.indexOf('cars:3'));
   expect(calls.indexOf('draw')).toBeGreaterThan(calls.indexOf('compile'));
+  // Every caster's depth program compiles once, between material compiles
+  // and the first warmup draw.
+  expect(target.warmShadowCasters).toHaveBeenCalledTimes(1);
+  expect(calls.indexOf('shadow-casters')).toBeGreaterThan(calls.indexOf('compile'));
+  expect(calls.indexOf('shadow-casters')).toBeLessThan(calls.indexOf('draw'));
 });
 it('stops cancelled construction before touching any further GPU resources', async () => {
   const { target, typed, sample } = fixture();

@@ -568,6 +568,10 @@ export class RacingRenderer {
       if (cancelled()) return false;
       await compileSceneTarget(this.renderer, this.scene, this.camera, this.composer.readBuffer);
       if (cancelled()) return false;
+      progress('Compiling shadow casters around the circuit…');
+      await yieldFrame();
+      if (cancelled()) return false;
+      this.warmShadowCasters();
       const camera = this.mode;
       try {
         for (const mode of ['chase', 'cockpit'] as const) {
@@ -1201,6 +1205,17 @@ export class RacingRenderer {
     this.farShadow.setEnabled(g.shadowSize > 0, size);
     if (inputs !== this.farShadowInputs) this.farShadowBaked = null;
     this.farShadowInputs = inputs;
+  }
+  /** Compile every shadow caster's depth program while loading (see
+   * FarShadow.warmCasters). */
+  private warmShadowCasters() {
+    this.farShadow.warmCasters(
+      this.renderer,
+      this.scene,
+      this.sun,
+      lightingDirection(this.lighting),
+      this.farShadowBounds,
+    );
   }
   /** Bake the static far sun shadow for this lighting: no cars, people,
    * particles or moving equipment; groves and treelines cast into it only. */
