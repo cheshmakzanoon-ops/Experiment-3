@@ -34,6 +34,8 @@ export class MirrorViews {
   private scissor = new T.Vector4();
   private clock = Infinity;
   private period = 1 / 15;
+  /** The feed refreshed by the next steady-state update. */
+  private next = 0;
   updates = 0;
   passes = 0;
   /** Roots hidden during both mirror passes (restored afterwards). */
@@ -85,7 +87,12 @@ export class MirrorViews {
     this.passes = 0;
     if (this.surfaces.length !== 2 || !root.visible) return;
     this.clock += dt;
-    if (this.clock < this.period) return;
+    // After a discontinuity both feeds refresh at once. Otherwise the feeds
+    // alternate every half period: each keeps the quality's refresh rate, and
+    // one mirror pass per update spreads the cost evenly over frames instead
+    // of doubling it on every other frame.
+    const both = this.clock === Infinity;
+    if (!both && this.clock < this.period / 2) return;
     this.clock = 0;
     this.orient(root);
     const previousTarget = renderer.getRenderTarget();
@@ -110,13 +117,15 @@ export class MirrorViews {
     renderer.shadowMap.autoUpdate = false;
     renderer.shadowMap.needsUpdate = false;
     try {
-      for (let i = 0; i < 2; i++) {
+      for (let k = 0; k < (both ? 2 : 1); k++) {
+        const i = both ? k : this.next;
         renderer.setRenderTarget(this.targets[i]);
         renderer.setScissorTest(false);
         renderer.clear();
         renderer.render(scene, this.cameras[i]);
         this.passes++;
       }
+      if (!both) this.next = 1 - this.next;
       this.updates++;
     } finally {
       renderer.setRenderTarget(previousTarget, previousFace, previousMip);

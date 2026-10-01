@@ -133,3 +133,26 @@ describe('rear-view detail exclusions', () => {
     mirrors.dispose();
   });
 });
+it('alternates the two feeds in steady state, each at the quality rate, and refreshes both after a discontinuity', () => {
+  const { root, mirrors } = fixture();
+  const { renderer } = rendererMock();
+  const cameras = () =>
+    (renderer.render.mock.calls as unknown as [T.Scene, T.PerspectiveCamera][]).map(([, c]) =>
+      mirrors.cameras.indexOf(c),
+    );
+  const gl = renderer as unknown as T.WebGLRenderer;
+  mirrors.quality('high'); // 30 Hz per feed
+  mirrors.render(gl, new T.Scene(), root, 0);
+  expect(cameras()).toEqual([0, 1]);
+  // 60 Hz presentation: one pass per frame, alternating feeds.
+  for (let frame = 0; frame < 6; frame++) mirrors.render(gl, new T.Scene(), root, 1 / 60);
+  expect(cameras()).toEqual([0, 1, 0, 1, 0, 1, 0, 1]);
+  expect(mirrors.passes).toBe(1);
+  // Each feed is refreshed every 1/30 s.
+  expect(mirrors.updates).toBe(7);
+  mirrors.invalidate();
+  mirrors.render(gl, new T.Scene(), root, 0);
+  expect(cameras().slice(-2)).toEqual([0, 1]);
+  expect(mirrors.passes).toBe(2);
+  mirrors.dispose();
+});
