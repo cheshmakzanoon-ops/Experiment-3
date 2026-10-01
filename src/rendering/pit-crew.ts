@@ -43,7 +43,8 @@ const ACTORS = PIT_CREW_PER_CAR * MAX_PIT_CREWS;
 const UP = new T.Vector3(0, 1, 0);
 const FORWARD = new T.Vector3(0, 0, 1);
 const UNIT = new T.Vector3(1, 1, 1);
-const CUFF = new T.Vector3(0, -0.067, -0.008);
+/** Glove-local wrist (cuff) point: the skin's wrist target sits here. */
+export const CUFF = new T.Vector3(0, -0.067, -0.008);
 const GRIP = new T.Vector3(0, 0.034, 0.041);
 const palette = CREW_KIT_COLOURS;
 export type PitRole = 'gun' | 'remove' | 'install' | 'front-jack' | 'rear-jack' | 'release';
