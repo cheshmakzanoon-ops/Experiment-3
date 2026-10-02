@@ -1,0 +1,148 @@
+name: Author and validate A61 rival cars
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [docs/a61-transfer.*, docs/a61-controls.patch, scripts/apply-a61-candidate.sh, .github/workflows/a61-integration.yml]
+permissions:
+  contents: read
+concurrency:
+  group: a61-rival-integration
+  cancel-in-progress: false
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Preserve the unchanged baseline build for matched views
+        run: npm run build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: a61-baseline-web
+          path: dist/
+          retention-days: 3
+      - name: Apply the explicit, hash-verified candidate
+        run: bash scripts/apply-a61-candidate.sh
+      - name: Restore the retained official Blender version
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 2 --max-time 240 https://download.blender.org/release/Blender5.2/blender-5.2.2-linux-x64.tar.xz -o "$RUNNER_TEMP/blender.tar.xz"
+          echo '84098912789dc450e95697c4184fb8a90acbe5111c2ba4aede3fecb57806a168  '"$RUNNER_TEMP/blender.tar.xz" | sha256sum --check
+          tar -xf "$RUNNER_TEMP/blender.tar.xz" -C "$RUNNER_TEMP"
+      - name: Author the rival, derived detail levels and editable scene
+        run: ${{ runner.temp }}/blender-5.2.2-linux-x64/blender -b --python-exit-code 1 --python scripts/author-a61-rival.py
+      - name: Full lint, unit suite, types and production build
+        run: |
+          set -euo pipefail
+          npm run check 2>&1 | tee "$RUNNER_TEMP/a61-check.log"
+      - name: Verify protected assets and physics remain unchanged
+        run: git diff --exit-code HEAD -- src/simulation 'src/rendering/supplied-*' 'src/rendering/apx01-*' scripts/apx01-assembly.blend
+      - uses: actions/upload-artifact@v4
+        with:
+          name: a61-candidate-web
+          path: dist/
+          retention-days: 3
+      - uses: actions/upload-artifact@v4
+        with:
+          name: a61-authored-assets
+          path: |
+            scripts/a61-rival.blend
+            src/rendering/a61-rival-*.glb.gz
+            src/rendering/a61-rival-*.manifest.json
+          retention-days: 7
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: a61-authoring-check-evidence
+          path: |
+            ${{ runner.temp }}/a61-check.log
+            ${{ runner.temp }}/a61.patch
+          retention-days: 7
+  browser:
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        variant: [baseline, candidate]
+        circuit: [aurel, vellamar]
+    env:
+      APEX_BROWSER_BACKEND: mesa
+      LIBGL_ALWAYS_SOFTWARE: 'true'
+      GALLIUM_DRIVER: llvmpipe
+      A61_BASELINE: ${{ matrix.variant == 'baseline' && '1' || '0' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: bash scripts/apply-a61-candidate.sh
+      - uses: actions/download-artifact@v4
+        with:
+          name: a61-authored-assets
+          path: .
+      - uses: actions/download-artifact@v4
+        with:
+          name: a61-${{ matrix.variant }}-web
+          path: dist/
+      - run: npx playwright install --with-deps chromium
+      - run: sudo apt-get install -y xvfb libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils
+      - name: Observe the real twelve-car grid, photo views and running race
+        run: xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e -- e2e/53-a61-rival.spec.ts --grep 'on ${{ matrix.circuit }}' --workers=1 --retries=0
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: a61-${{ matrix.variant }}-${{ matrix.circuit }}-evidence
+          path: |
+            test-results/
+            playwright-report/
+            browser-progress.json
+            browser-backend.json
+            dist/BUILD_IDENTITY.json
+          retention-days: 7
+  integrate:
+    needs: [prepare, browser]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      actions: write
+    steps:
+      - uses: actions/checkout@v4
+      - run: bash scripts/apply-a61-candidate.sh
+      - uses: actions/download-artifact@v4
+        with:
+          name: a61-authored-assets
+          path: .
+      - name: Append only the verified source and authored assets on main
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          git diff --exit-code HEAD -- src/simulation 'src/rendering/supplied-*' 'src/rendering/apx01-*' scripts/apx01-assembly.blend
+          git add scripts/a61-rival.blend src/rendering/a61-rival-*.glb.gz src/rendering/a61-rival-*.manifest.json
+          git rm docs/a61-transfer.0 docs/a61-transfer.1 docs/a61-controls.patch scripts/apply-a61-candidate.sh .github/workflows/a61-integration.yml
+          git diff --cached --check
+          git diff --exit-code
+          test "$(git ls-remote origin refs/heads/main | cut -f1)" = "$GITHUB_SHA"
+          git config user.name 'cheshmakzanoon-ops'
+          git config user.email 'cheshmakzanoon@gmail.com'
+          git commit -m 'feat(A61): original rival bodywork and coherent mechanical detail levels'
+          git push origin HEAD:refs/heads/main
+          git rev-parse HEAD > "$RUNNER_TEMP/a61-integrated-source.txt"
+          gh workflow run ci.yml --ref main
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: a61-integrated-source
+          path: ${{ runner.temp }}/a61-integrated-source.txt
+          retention-days: 7
