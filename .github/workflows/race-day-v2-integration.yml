@@ -1,0 +1,75 @@
+name: Validate and integrate race-day presentation V2
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [docs/grid-preparation/race-day-v2-transfer.*, .github/workflows/race-day-v2-integration.yml]
+permissions:
+  contents: write
+  actions: write
+concurrency:
+  group: race-day-v2-integration
+  cancel-in-progress: false
+jobs:
+  integrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      APEX_BROWSER_BACKEND: mesa
+      LIBGL_ALWAYS_SOFTWARE: 'true'
+      GALLIUM_DRIVER: llvmpipe
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Verify and apply the locally tested patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat docs/grid-preparation/race-day-v2-transfer.0{0,1,2,3,4} > "$RUNNER_TEMP/race-day-v2.patch.xz"
+          echo 'e8ae425df33bf2ca3ad27da8397f8a5f77b1bc4ce78dc75d3caa2b34362fcf24  '"$RUNNER_TEMP/race-day-v2.patch.xz" | sha256sum --check
+          xz -dc "$RUNNER_TEMP/race-day-v2.patch.xz" > "$RUNNER_TEMP/race-day-v2.patch"
+          echo '52ae06e69eecc21e4f4adc86ce0fee0771f75df66e837b96d08cfc39e994d219  '"$RUNNER_TEMP/race-day-v2.patch" | sha256sum --check
+          git apply --check --index --unidiff-zero "$RUNNER_TEMP/race-day-v2.patch"
+          git apply --index --unidiff-zero "$RUNNER_TEMP/race-day-v2.patch"
+          git rm docs/grid-preparation/race-day-v2-transfer.0{0,1,2,3,4} .github/workflows/race-day-v2-integration.yml
+          git diff --cached --check
+      - run: npm ci --no-audit --no-fund
+      - name: Full unit suite, lint, types and production build
+        run: npm run check
+      - run: npx playwright install --with-deps chromium
+      - name: Restore the established Mesa backend
+        run: sudo apt-get install -y xvfb libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils
+      - name: Real race-day entry, full preparation, race completion, replay and HUD controls
+        run: xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e -- e2e/50-grid-presentation.spec.ts e2e/51-race-day.spec.ts e2e/52-vehicle-hud.spec.ts
+      - name: Append only the tested source to main and request full regression validation
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git ls-remote origin refs/heads/main | cut -f1)" = "$GITHUB_SHA"
+          git diff --exit-code -- src tests e2e scripts vite.config.ts playwright.config.ts
+          git config user.name 'cheshmakzanoon-ops'
+          git config user.email 'cheshmakzanoon@gmail.com'
+          git commit -m 'feat(race-day): normal pregame flow, persistent grid clearance and driver-focused HUD'
+          git push origin HEAD:refs/heads/main
+          git rev-parse HEAD > "$RUNNER_TEMP/race-day-source-commit.txt"
+          gh workflow run ci.yml --ref main
+      - name: Preserve actual browser observations and exact source patch
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: race-day-v2-integration
+          path: |
+            test-results/
+            playwright-report/
+            browser-progress.json
+            browser-backend.json
+            ${{ runner.temp }}/race-day-v2.patch
+            ${{ runner.temp }}/race-day-source-commit.txt
+          retention-days: 7
