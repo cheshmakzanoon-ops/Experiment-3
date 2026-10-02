@@ -14,13 +14,9 @@ on:
 permissions:
   contents: read
 jobs:
-  integration:
+  build:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
-    env:
-      APEX_BROWSER_BACKEND: mesa
-      LIBGL_ALWAYS_SOFTWARE: 'true'
-      GALLIUM_DRIVER: llvmpipe
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
         with:
@@ -32,32 +28,93 @@ jobs:
       - run: npm ci --no-audit --no-fund
       - name: Lint, unit tests, types and production build
         run: npm run check
+      - name: Require the built source to remain unchanged
+        run: git diff --exit-code
+      - name: Preserve the exact tested build for every browser group
+        uses: actions/upload-artifact@v4
+        with:
+          name: a34-tested-web
+          path: dist/
+          retention-days: 7
+          if-no-files-found: error
+  integration:
+    # The old single job hit 20 minutes before it reached the blanket cases:
+    # build + three replay repetitions + sixteen asset cases were sequential.
+    # Preserve all workloads, one worker, zero retries and existing test limits;
+    # each group now consumes the same build rather than rebuilding or skipping.
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        group: [replay, blankets, wheels, garage, station]
+    env:
+      APEX_BROWSER_BACKEND: mesa
+      LIBGL_ALWAYS_SOFTWARE: 'true'
+      GALLIUM_DRIVER: llvmpipe
+      A34_GROUP: ${{ matrix.group }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - uses: actions/download-artifact@v4
+        with:
+          name: a34-tested-web
+          path: dist/
+      - name: Verify that every group consumes this run's exact source
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s dist/index.html
+          node --input-type=module <<'NODE'
+          import { readFileSync } from 'node:fs';
+          const identity = JSON.parse(readFileSync('dist/BUILD_IDENTITY.json', 'utf8'));
+          if (identity.commit !== process.env.GITHUB_SHA) {
+            throw new Error(`Build source mismatch: ${identity.commit} != ${process.env.GITHUB_SHA}`);
+          }
+          NODE
       - run: npx playwright install --with-deps chromium
       - name: Install software graphics and virtual display
         run: sudo apt-get install -y xvfb libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils
-      - name: Repeat real photo/replay transitions without retries
-        run: >-
-          xvfb-run -a -s '-screen 0 1920x1080x24'
-          npm run test:e2e -- e2e/07-reference-tools.spec.ts
-          --grep 'race and replay photo transitions'
-          --repeat-each=3 --retries=0 --reporter=line
-          --output=test-results/a34-replay
-      - name: A34 and neighbouring garage assets in the actual circuit
-        run: >-
-          xvfb-run -a -s '-screen 0 1920x1080x24'
-          npm run test:e2e -- e2e/a34-tyre-blankets.spec.ts
-          e2e/a33-spare-wheel-set.spec.ts e2e/43-hero-garage.spec.ts
-          e2e/44-pit-wall-station.spec.ts --retries=0 --reporter=line
-          --output=test-results/a34-assets
+      - name: Run every assigned browser case without retries
+        shell: bash
+        run: |
+          set -euo pipefail
+          args=()
+          case "$A34_GROUP" in
+            replay)
+              spec=e2e/07-reference-tools.spec.ts
+              args+=(--grep 'race and replay photo transitions' --repeat-each=3)
+              ;;
+            blankets) spec=e2e/a34-tyre-blankets.spec.ts ;;
+            wheels) spec=e2e/a33-spare-wheel-set.spec.ts ;;
+            garage) spec=e2e/43-hero-garage.spec.ts ;;
+            station) spec=e2e/44-pit-wall-station.spec.ts ;;
+            *) echo "Unknown validation group: $A34_GROUP" >&2; exit 1 ;;
+          esac
+          # Retain the configured HTML and progress reporters, not only console
+          # output, so screenshots and the active case survive a failure.
+          xvfb-run -a -s '-screen 0 1920x1080x24' \
+            npm run test:e2e -- "$spec" "${args[@]}" --workers=1 --retries=0 \
+            --output="test-results/a34-$A34_GROUP"
       - name: Require validation to leave tracked source and assets unchanged
         run: git diff --exit-code
-      - uses: actions/upload-artifact@v4
+      - name: Preserve each group's screenshots and progress
         if: always()
+        uses: actions/upload-artifact@v4
         with:
-          name: a34-integration-and-replay-evidence
+          name: a34-integration-${{ matrix.group }}
           path: |
-            test-results/a34-replay/
-            test-results/a34-assets/
+            test-results/
+            playwright-report/
+            browser-progress.json
             browser-backend.json
+            dist/BUILD_IDENTITY.json
           retention-days: 7
           if-no-files-found: error
