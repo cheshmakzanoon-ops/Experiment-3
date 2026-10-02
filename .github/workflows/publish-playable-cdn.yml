@@ -1,22 +1,18 @@
-name: Publish playable CDN build
-
+name: Publish validated playable release
 on:
   workflow_run:
     workflows: [Build and validation]
     types: [completed]
     branches: [main]
-
 permissions:
   actions: read
   contents: read
-
 concurrency:
-  group: playable-cdn
+  group: validated-playable-release
   cancel-in-progress: false
-
 jobs:
   publish:
-    # Never accept PR artifacts, another repository, or an unsuccessful run.
+    # Only the exact successful, first-party main artifact can become a release.
     if: >-
       github.event.workflow_run.conclusion == 'success' &&
       github.event.workflow_run.head_branch == 'main' &&
@@ -30,6 +26,9 @@ jobs:
       contents: write
     env:
       VALIDATED_SHA: ${{ github.event.workflow_run.head_sha }}
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      VALIDATION_URL: ${{ github.event.workflow_run.html_url }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -41,11 +40,11 @@ jobs:
         run: |
           set -euo pipefail
           current=$(git ls-remote origin refs/heads/main | cut -f1)
-          if test "$current" != "$VALIDATED_SHA"; then
-            echo 'ready=false' >> "$GITHUB_OUTPUT"
-            echo 'A newer main commit exists; retaining the previous playable build.' >> "$GITHUB_STEP_SUMMARY"
-          else
+          if test "$current" = "$VALIDATED_SHA"; then
             echo 'ready=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'ready=false' >> "$GITHUB_OUTPUT"
+            echo 'Source advanced; previous release retained.' >> "$GITHUB_STEP_SUMMARY"
           fi
       - name: Download the release that passed every validation job
         if: steps.source.outputs.ready == 'true'
@@ -56,46 +55,7 @@ jobs:
           github-token: ${{ github.token }}
           repository: ${{ github.repository }}
           run-id: ${{ github.event.workflow_run.id }}
-      - name: Verify source identity and publish without rebuilding
+      - name: Verify source and publish a branchless, source-addressed release
         if: steps.source.outputs.ready == 'true'
         shell: bash
-        run: |
-          set -euo pipefail
-          release="$RUNNER_TEMP/validated-playable"
-          test "$(cat "$release/SOURCE_COMMIT.txt")" = "$VALIDATED_SHA"
-          test -s "$release/index.html"
-          node --input-type=module - "$release" <<'NODE'
-          import { readFileSync } from 'node:fs';
-          import { createHash } from 'node:crypto';
-          for (const [manifestPath, asset] of [
-            ['src/rendering/supplied-player.manifest.json', 'supplied-player.glb.gz'],
-            ['src/rendering/supplied-player-lods.manifest.json', 'supplied-player-lods.bin.gz'],
-          ]) {
-            const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
-            const bytes = readFileSync(`${process.argv[2]}/models/${asset}`);
-            if (bytes.length !== manifest.compressedBytes || createHash('sha256').update(bytes).digest('hex') !== manifest.compressedSHA256) {
-              throw new Error(`Validated release asset does not match its source manifest: ${asset}`);
-            }
-          }
-          NODE
-          current=$(git ls-remote origin refs/heads/main | cut -f1)
-          if test "$current" != "$VALIDATED_SHA"; then
-            echo 'Source advanced during download; no publication performed.' >> "$GITHUB_STEP_SUMMARY"
-            exit 0
-          fi
-          # This is the existing compiled CDN branch, never a source branch.
-          # Append a commit so publishing cannot silently overwrite another writer.
-          git fetch --depth=1 origin playable-cdn
-          git switch --detach FETCH_HEAD
-          git rm -rf --ignore-unmatch .
-          cp -a "$release/." .
-          git config user.name 'cheshmakzanoon-ops'
-          git config user.email 'cheshmakzanoon@gmail.com'
-          git add -A
-          if git diff --cached --quiet; then
-            echo "Validated source is already published: $VALIDATED_SHA" >> "$GITHUB_STEP_SUMMARY"
-            exit 0
-          fi
-          git commit -m "deploy: validated playable $VALIDATED_SHA"
-          git push origin HEAD:refs/heads/playable-cdn
-          echo "Published exact validated source: $VALIDATED_SHA" >> "$GITHUB_STEP_SUMMARY"
+        run: bash scripts/publish-validated-release.sh "$RUNNER_TEMP/validated-playable"

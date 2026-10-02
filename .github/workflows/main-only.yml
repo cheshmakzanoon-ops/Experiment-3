@@ -1,0 +1,39 @@
+name: Consolidate already-merged branches into main
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [.github/workflows/main-only.yml]
+permissions:
+  contents: write
+concurrency:
+  group: main-only-maintenance
+  cancel-in-progress: false
+jobs:
+  consolidate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Remove only branches whose complete history is already on main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --prune origin '+refs/heads/*:refs/remotes/origin/*'
+          while read -r ref sha; do
+            branch=${ref#refs/remotes/origin/}
+            case "$branch" in main|HEAD) continue ;; esac
+            if ! git merge-base --is-ancestor "$sha" refs/remotes/origin/main; then
+              echo "::error::Unmerged branch $branch retained. Integrate it before retrying."
+              exit 1
+            fi
+            # A concurrent change makes this deletion fail instead of losing it.
+            git push --force-with-lease="refs/heads/$branch:$sha" origin ":refs/heads/$branch"
+            printf 'Removed `%s` at `%s`; all commits are on main.\n' "$branch" "$sha" >> "$GITHUB_STEP_SUMMARY"
+          done < <(git for-each-ref --format='%(refname) %(objectname)' refs/remotes/origin/)
+          test "$(git ls-remote --heads origin | wc -l)" -eq 1
+          test "$(git ls-remote --heads origin | cut -f2)" = refs/heads/main
+          echo 'Verified: main is the only remote branch.' >> "$GITHUB_STEP_SUMMARY"
