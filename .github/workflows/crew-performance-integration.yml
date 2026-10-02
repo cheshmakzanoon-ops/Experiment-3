@@ -1,0 +1,170 @@
+name: Author and validate A41 A42 crew performance
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [docs/crew-transfer.*, scripts/apply-crew-candidate.mjs, .github/workflows/crew-performance-integration.yml]
+permissions:
+  contents: read
+concurrency:
+  group: crew-performance-integration
+  cancel-in-progress: false
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Preserve the unmodified baseline game
+        run: npm run build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: crew-baseline-web
+          path: dist/
+          retention-days: 3
+      - name: Apply the hash-verified source patch
+        run: node scripts/apply-crew-candidate.mjs
+      - name: Restore the same pinned official Blender
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 2 --max-time 240 https://download.blender.org/release/Blender5.2/blender-5.2.2-linux-x64.tar.xz -o "$RUNNER_TEMP/blender.tar.xz"
+          echo '84098912789dc450e95697c4184fb8a90acbe5111c2ba4aede3fecb57806a168  '"$RUNNER_TEMP/blender.tar.xz" | sha256sum --check
+          tar -xf "$RUNNER_TEMP/blender.tar.xz" -C "$RUNNER_TEMP"
+      - name: Author the shared kit and nine real editable actions
+        run: ${{ runner.temp }}/blender-5.2.2-linux-x64/blender -b --python-exit-code 1 --python scripts/author-crew-performance.py
+      - name: Full lint, unit suite, types and production build
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run check 2>&1 | tee "$RUNNER_TEMP/crew-check.log"
+      - name: Protect physical state, supplied player and retained original assets
+        run: git diff --exit-code HEAD -- src/simulation 'src/rendering/supplied-*' 'src/rendering/apx01-*' 'src/rendering/a61-*' 'src/rendering/aurel-people.*' scripts/apx01-assembly.blend scripts/aurel-people.blend scripts/grid-mechanic.blend
+      - uses: actions/upload-artifact@v4
+        with:
+          name: crew-candidate-web
+          path: dist/
+          retention-days: 3
+      - uses: actions/upload-artifact@v4
+        with:
+          name: crew-authored-assets
+          path: |
+            scripts/crew-performance.blend
+            src/rendering/crew-performance.geometry.json
+            src/rendering/crew-performance.glb.gz
+            src/rendering/crew-performance.manifest.json
+          retention-days: 7
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: crew-authoring-check
+          path: |
+            ${{ runner.temp }}/crew-check.log
+            ${{ runner.temp }}/crew-candidate.patch
+          retention-days: 7
+  browser:
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        variant: [baseline, candidate]
+        scene: [grid, pit]
+    env:
+      APEX_BROWSER_BACKEND: mesa
+      LIBGL_ALWAYS_SOFTWARE: 'true'
+      GALLIUM_DRIVER: llvmpipe
+      CREW_BASELINE: ${{ matrix.variant == 'baseline' && '1' || '0' }}
+      CREW_SCENE: ${{ matrix.scene }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: node scripts/apply-crew-candidate.mjs
+      - uses: actions/download-artifact@v4
+        with:
+          name: crew-authored-assets
+          path: .
+      - uses: actions/download-artifact@v4
+        with:
+          name: crew-${{ matrix.variant }}-web
+          path: dist/
+      - run: npx playwright install --with-deps chromium
+      - run: sudo apt-get install -y xvfb libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils
+      - name: Observe actual grid or recorded service without altering the simulation
+        shell: bash
+        run: |
+          set -euo pipefail
+          if test "$CREW_SCENE" = grid; then
+            xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e -- e2e/54-authored-crew.spec.ts --workers=1 --retries=0
+          else
+            xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e -- e2e/28-race-pit-presentation.spec.ts --grep 'populated pit journey' --workers=1 --retries=0
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: crew-${{ matrix.variant }}-${{ matrix.scene }}-evidence
+          path: |
+            test-results/
+            playwright-report/
+            browser-progress.json
+            browser-backend.json
+            dist/BUILD_IDENTITY.json
+          retention-days: 7
+  integrate:
+    needs: [prepare, browser]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      actions: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node scripts/apply-crew-candidate.mjs
+      - uses: actions/download-artifact@v4
+        with:
+          name: crew-authored-assets
+          path: .
+      - name: Append verified source and assets to main without rewriting history
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --exit-code HEAD -- src/simulation 'src/rendering/supplied-*' 'src/rendering/apx01-*' 'src/rendering/a61-*' 'src/rendering/aurel-people.*' scripts/apx01-assembly.blend scripts/aurel-people.blend scripts/grid-mechanic.blend
+          git add scripts/crew-performance.blend src/rendering/crew-performance.geometry.json src/rendering/crew-performance.glb.gz src/rendering/crew-performance.manifest.json
+          git rm docs/crew-transfer.0 docs/crew-transfer.1 docs/crew-transfer.2 scripts/apply-crew-candidate.mjs .github/workflows/crew-performance-integration.yml
+          git diff --cached --check
+          git diff --exit-code
+          test "$(git ls-remote origin refs/heads/main | cut -f1)" = "$GITHUB_SHA"
+          git config user.name 'cheshmakzanoon-ops'
+          git config user.email 'cheshmakzanoon@gmail.com'
+          git commit -m 'feat(crew): shared A41 A42 kit and authored grid and wheel-gun actions'
+          git push origin HEAD:refs/heads/main
+          git rev-parse HEAD > "$RUNNER_TEMP/crew-integrated-source.txt"
+          gh workflow run ci.yml --ref main
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: crew-integrated-source
+          path: ${{ runner.temp }}/crew-integrated-source.txt
+          retention-days: 7
