@@ -1,3 +1,4 @@
+import { PIT_ROLE_ACTIONS } from '../src/rendering/pit-role-performance.ts';
 import { CREW_PERFORMANCE } from '../src/rendering/crew-performance.ts';
 import { finishRaceEntry } from './race-entry.ts';
 import { expect, test, type Page, type TestInfo } from '@playwright/test';
@@ -79,6 +80,8 @@ async function start(
   await page.locator('#sessionReviewer').fill('27H.6 automation; human acceptance remains open');
   await page.locator('#sessionReviewMachine').fill(machine);
   await page.getByRole('button', { name: 'ARM FROM PADDOCK', exact: true }).click();
+  if (process.env.PIT_TEAM_CIRCUIT)
+    await page.locator('#circuit').selectOption(process.env.PIT_TEAM_CIRCUIT);
   await page.locator('#mode').selectOption('race');
   await page.locator('#laps').selectOption('5');
   await page.locator('#opponents').selectOption('7');
@@ -386,7 +389,8 @@ test('27H.6 populated pit journey: approach, real service, exit and complete rep
   page,
 }, info) => {
   test.setTimeout(900000);
-  const errors = await start(page, 'clear', 'trackside');
+  const wetNight = process.env.PIT_TEAM_NIGHT === '1';
+  const errors = await start(page, wetNight ? 'rain' : 'clear', 'trackside', wetNight);
   await auto(page);
   await page.keyboard.press('p');
   await expect
@@ -439,6 +443,13 @@ test('27H.6 populated pit journey: approach, real service, exit and complete rep
   if (process.env.CREW_BASELINE !== '1') {
     expect(service.renderer!.pitPersonnel.crewAsset).toBe(CREW_PERFORMANCE.runtimeSHA256);
     expect(service.renderer!.pitPersonnel.authoredGunAction).toBe('gun_service');
+    expect(service.renderer!.pitPersonnel.authoredRoles).toEqual(
+      Object.fromEntries(
+        Object.entries(PIT_ROLE_ACTIONS).map(([role, spec]) => [role, spec.action]),
+      ),
+    );
+    expect(service.renderer!.pitPersonnel.unreachableFeet).toBe(0);
+    expect(service.renderer!.pitPersonnel.unsupportedActors).toBe(0);
     expect(service.renderer!.pitPersonnel.unreachableArms).toBe(0);
     expect(service.renderer!.pitPersonnel.maxWristError).toBeLessThan(1e-5);
     expect(service.renderer!.pitPersonnel.maxGripError).toBeLessThan(1e-5);
@@ -478,6 +489,41 @@ test('27H.6 populated pit journey: approach, real service, exit and complete rep
   expect(installation.renderer?.pitState.phase).toBe(4);
   expect(Math.max(...installation.renderer!.pitState.wheelOffsets)).toBeGreaterThan(0);
   await image(page, info, 'pit-installation-full-crew');
+  // Observe the complete recorded service through ordinary replay controls.
+  // Exact phase instants are keyed from the real observed service, never written
+  // into worker snapshots. Baseline/candidate use the same camera and moments.
+  const serviceStart = anchor.renderer!.pitState.time - anchor.renderer!.pitState.clock;
+  const teamSurvey = [];
+  for (const clock of [0.4, 1.2, 2, 2.7, 3.9, 4.85, 5.15]) {
+    const at = await seek(page, serviceStart + clock - startTime);
+    const state = at.renderer!.pitState,
+      team = at.renderer!.pitPersonnel;
+    expect(team.actors).toBeGreaterThanOrEqual(15);
+    if (process.env.CREW_BASELINE !== '1') {
+      expect(team.unreachableArms).toBe(0);
+      expect(team.unreachableFeet).toBe(0);
+      expect(team.unsupportedActors).toBe(0);
+      expect(team.maxWristError).toBeLessThan(1e-5);
+      if (clock >= 4.85) expect(state.jackHeight).toBeLessThan(1e-5);
+    }
+    teamSurvey.push({ clock, state, team, rendering: at.renderer });
+    await image(page, info, `pit-team-${clock}`);
+    expect(at.frame?.[H.TICK]).toBe(held.frame?.[H.TICK]);
+  }
+  await info.attach('pit-team-matched-survey.json', {
+    body: JSON.stringify(teamSurvey),
+    contentType: 'application/json',
+  });
+  await seek(page, serviceStart - 0.2 - startTime);
+  await page.locator('#replayPlay').click();
+  await expect
+    .poll(async () => (await read(page)).renderer!.pitState.time, {
+      timeout: 120000,
+      intervals: [500],
+    })
+    .toBeGreaterThan(serviceStart + 5.5);
+  await page.locator('#replayPlay').click();
+  expect((await read(page)).replayPlaying).toBe(false);
   const rewind = await seek(page, removalTime - startTime);
   expect(rewind.renderer?.pitState).toEqual(held.renderer?.pitState);
   expect(rewind.frame?.[H.TICK]).toBe(held.frame?.[H.TICK]);

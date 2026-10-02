@@ -20,7 +20,7 @@ import { carBase } from '../src/simulation/protocol.ts';
 
 const hash = (data: Uint8Array) => createHash('sha256').update(data).digest('hex');
 
-it('binds the shared kit and all nine editable actions to the source and exchange hashes', () => {
+it('binds the shared kit and all fourteen editable actions to the source and exchange hashes', () => {
   expect(hash(readFileSync('scripts/author-crew-performance.py'))).toBe(
     CREW_PERFORMANCE.sourceSHA256,
   );
@@ -36,7 +36,7 @@ it('binds the shared kit and all nine editable actions to the source and exchang
   expect(model.animations.map((a: { name: string }) => a.name).sort()).toEqual(
     CREW_PERFORMANCE.actions,
   );
-  expect(model.animations).toHaveLength(9);
+  expect(model.animations).toHaveLength(14);
   expect(model.skins[0].joints).toHaveLength(15);
   expect(readFileSync('scripts/crew-performance.blend').length).toBeGreaterThan(100000);
   expect(source.rest).toEqual(CREW_REST.map((v) => v.toArray()));

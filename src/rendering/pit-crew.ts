@@ -1,8 +1,14 @@
 import {
-  crewPerformanceGeometry,
-  CrewPerformanceSampler,
-  CREW_PERFORMANCE,
-} from './crew-performance.ts';
+  PitFootwork,
+  PitWheelTask,
+  pitWheelOffset,
+  pitClearance,
+  pitGunWithdrawal,
+  pitJackClearance,
+} from './pit-footwork.ts';
+import { PitRolePerformance, type PitRole } from './pit-role-performance.ts';
+export type { PitRole } from './pit-role-performance.ts';
+import { crewPerformanceGeometry, CREW_PERFORMANCE } from './crew-performance.ts';
 import { type PitJackBatches } from './a32-pit-jacks.ts';
 import { A32JackPose, type PitJackFits } from './a32-jack-pose.ts';
 import { type WheelGunBatches, WHEEL_GUN } from './wheel-gun.ts';
@@ -11,7 +17,7 @@ import { A33WheelBatches, a33GripX } from './a33-spare-wheel-set.ts';
 import { PIT_CREW_MAX_DISTANCE, PitPoseCache } from './pit-presentation.ts';
 import { PitMachinery } from './pit-machinery.ts';
 import * as T from 'three';
-import { clamp, smooth } from '../core/math.ts';
+import { clamp } from '../core/math.ts';
 import {
   F,
   H,
@@ -25,17 +31,11 @@ import {
 import { WHEEL_POSITIONS } from '../simulation/vehicle.ts';
 import { PEOPLE_ASSET, CREW_BONES, CREW_REST, peopleGeometry } from './people-asset.ts';
 import { CREW_KIT_COLOURS, installCrewHelmetFinish } from './crew-geometry.ts';
-import { CrewPose, installCrewSkin } from './crew-pose.ts';
+import { CrewPose, CREW_THIGH, CREW_SHIN, installCrewSkin } from './crew-pose.ts';
 
 /** Removal requires an unloaded hub. These offsets are also consumed by the
  * actual FormulaCar wheel, so a crew cannot animate a different service clock. */
-export function serviceWheelOffset(phase: number, clock: number, load: number): number {
-  if (![phase, clock, load].every(Number.isFinite)) throw new Error('Invalid pit presentation');
-  if (load > 50) return 0;
-  if (phase === 3) return smooth(1.35, 2.1, clock) * 0.48;
-  if (phase === 4) return (1 - smooth(2.2, 3.25, clock)) * 0.48;
-  return 0;
-}
+export const serviceWheelOffset = pitWheelOffset;
 export const PIT_CREW_PER_CAR = 15;
 export const MAX_PIT_CREWS = 12;
 const ACTORS = PIT_CREW_PER_CAR * MAX_PIT_CREWS;
@@ -46,7 +46,6 @@ const UNIT = new T.Vector3(1, 1, 1);
 export const CUFF = new T.Vector3(0, -0.067, -0.008);
 const GRIP = new T.Vector3(0, 0.034, 0.041);
 const palette = CREW_KIT_COLOURS;
-export type PitRole = 'gun' | 'remove' | 'install' | 'front-jack' | 'rear-jack' | 'release';
 interface ActorEvidence {
   car: number;
   role: PitRole;
@@ -56,6 +55,12 @@ interface ActorEvidence {
   gripError: number;
   floorY: number;
   root: number[];
+  action: string;
+  actionTime: number;
+  hipOffset: number;
+  feet: number[][];
+  planted: boolean[];
+  feetReachable: boolean[];
 }
 
 /** Fifteen task-specific, Blender-authored actors per stopped car, with one
@@ -83,6 +88,8 @@ export class PitCrewView {
   wheelGuns: WheelGunBatches | null = null;
   pitJacks: PitJackBatches | null = null;
   private readonly jackPose = new A32JackPose();
+  private readonly jackFootPose = new A32JackPose();
+  private readonly jackFootRoot = new T.Matrix4();
   private readonly jackFits: PitJackFits[] = [];
   private readonly gunFits: WheelGunFit[][] = [];
   private readonly wheelRotation = new T.Quaternion();
@@ -91,7 +98,19 @@ export class PitCrewView {
   private readonly batches: readonly T.InstancedMesh[];
   private readonly slots: readonly [T.InstancedBufferAttribute, T.InstancedBufferAttribute];
   private readonly pose = new CrewPose();
-  private readonly performance = new CrewPerformanceSampler();
+  private readonly performances: Record<PitRole, PitRolePerformance> = {
+    gun: new PitRolePerformance(),
+    remove: new PitRolePerformance(),
+    install: new PitRolePerformance(),
+    'front-jack': new PitRolePerformance(),
+    'rear-jack': new PitRolePerformance(),
+    release: new PitRolePerformance(),
+  };
+  private servicePhase = 2;
+  private serviceClock = 0;
+  private wheelLoad = 0;
+  private readonly wheelTask = new PitWheelTask();
+  private readonly footwork = new PitFootwork();
   private readonly car = new T.Object3D();
   private readonly actor = new T.Object3D();
   private readonly prop = new T.Object3D();
@@ -105,6 +124,7 @@ export class PitCrewView {
   private readonly local = new T.Vector3();
   private readonly rotation = new T.Quaternion();
   private readonly actorWorld = new T.Matrix4();
+  private readonly footInverse = new T.Matrix4();
   private readonly records: ActorEvidence[] = Array.from({ length: ACTORS }, () => ({
     car: -1,
     role: 'gun',
@@ -114,6 +134,12 @@ export class PitCrewView {
     gripError: 0,
     floorY: 0,
     root: new Array<number>(16).fill(0),
+    action: '',
+    actionTime: 0,
+    hipOffset: 0,
+    feet: [new Array<number>(3).fill(0), new Array<number>(3).fill(0)],
+    planted: [true, true],
+    feetReachable: [true, true],
   }));
   // Local scratch values have disjoint lifetimes from person/hand/propAt.
   // They never escape into a diagnostic snapshot or another renderer instance.
@@ -327,19 +353,49 @@ export class PitCrewView {
     lean: number,
     detail: 0 | 1,
     spread = 0.15,
+    supportRoot?: T.Matrix4,
   ) {
     this.actor.position.set(x, floor, z);
     this.actor.rotation.set(0, yaw, 0);
     this.actor.scale.copy(UNIT);
     this.actor.updateMatrix();
+    const performance = this.performances[role].sample(
+      role,
+      this.servicePhase,
+      this.serviceClock,
+      lean,
+    );
+    performance.sampler.style.minimumKneeHeight = 0.11;
+    this.footwork.set(
+      role,
+      wheel,
+      this.servicePhase,
+      this.serviceClock,
+      this.wheelLoad,
+      floor,
+      spread,
+      supportRoot ?? this.actor.matrix,
+    );
+    let posedHip = hip + performance.hipOffset;
+    this.footInverse.copy(this.actor.matrix).invert();
+    for (const foot of [0, 1] as const) {
+      this.local.copy(this.footwork.feet[foot]).applyMatrix4(this.footInverse);
+      const x = this.local.x - performance.sampler.style.pelvis.x - (foot ? 0.092 : -0.092);
+      const z = this.local.z - performance.sampler.style.pelvis.z;
+      const reach = CREW_THIGH + CREW_SHIN - 0.003;
+      posedHip = Math.min(
+        posedHip,
+        this.local.y + Math.sqrt(Math.max(0.01, reach * reach - x * x - z * z)),
+      );
+    }
     this.pose.set(
       this.actor.matrix,
-      role === 'gun' ? hip + this.performance.joints[0].y - 0.3 : hip,
+      posedHip,
       lean,
       this.wrists,
       spread,
-      undefined,
-      role === 'gun' ? this.performance.style : undefined,
+      this.footwork.feet,
+      performance.sampler.style,
     );
     this.pose.write(this.boneData, this.actorSlot);
     const cloth = this.cloth[detail];
@@ -380,6 +436,14 @@ export class PitCrewView {
     record.wristError = wristError;
     record.gripError = gripError;
     record.floorY = floor;
+    record.action = performance.sampler.action;
+    record.actionTime = performance.sampler.time;
+    record.hipOffset = performance.hipOffset;
+    for (const foot of [0, 1] as const) {
+      this.footwork.feet[foot].toArray(record.feet[foot]);
+      record.planted[foot] = this.footwork.planted[foot];
+      record.feetReachable[foot] = this.pose.feetReachable[foot];
+    }
     this.actorWorld.toArray(record.root);
     this.activeActors++;
   }
@@ -427,10 +491,11 @@ export class PitCrewView {
       this.car.quaternion.normalize();
       this.car.updateMatrix();
       this.activeCrews++;
-      this.performance.sample('gun_service', clock);
+      this.servicePhase = phase;
+      this.serviceClock = clock;
       const floor = -0.43 - frame[o + F.JACK_HEIGHT],
         detail = this.cache.levels[id] as 0 | 1;
-      const clear = phase === 5 ? smooth(3.7, 5.1, clock) * 0.44 : 0;
+      const clear = pitClearance(phase, clock);
       for (let wheel = 0; wheel < 4; wheel++) {
         const [hubX, , hubZ] = WHEEL_POSITIONS[wheel],
           side = Math.sign(hubX);
@@ -439,16 +504,9 @@ export class PitCrewView {
           throw new Error('Invalid crew wheel contact');
         const length = frame[p + W.LENGTH] || 0.25,
           hubY = 0.05 - length;
-        const off = serviceWheelOffset(phase, clock, frame[p + W.LOAD]);
+        this.wheelLoad = frame[p + W.LOAD];
         const yaw = (-side * Math.PI) / 2;
-        const gunAway =
-          phase === 3
-            ? smooth(1.0, 1.35, clock)
-            : phase === 4
-              ? 1 - smooth(3.05, 3.4, clock)
-              : phase === 5
-                ? smooth(3.5, 3.9, clock)
-                : 0;
+        const gunAway = pitGunWithdrawal(phase, clock);
         const socket = this.socket.set(hubX + side * (0.21 + 0.28 * gunAway + clear), hubY, hubZ);
         const gunRotation = this.toolRotation.setFromAxisAngle(UP, yaw);
         const fit = this.gunFits[id]?.[wheel];
@@ -501,30 +559,20 @@ export class PitCrewView {
           // 2.2 s the simulation exchanges compounds: the old carried wheel
           // and new mounted wheel meet the same withdrawal endpoint. Nothing
           // depends on previous render frames, including a replay rewind.
-          const engagement = install
-            ? phase < 4
-              ? smooth(1.35, 2.2, clock)
-              : phase === 4
-                ? 1
-                : 1 - smooth(3.5, 4.15, clock)
-            : phase < 3
-              ? smooth(0.2, 0.8, clock)
-              : phase === 3
-                ? 1
-                : 1 - smooth(2.2, 2.9, clock);
-          const transferOffset = (install && phase < 4) || (!install && phase >= 4) ? 0.48 : off;
-          const center = this.center.set(
-            hubX + side * (0.98 + clear),
-            floor + 0.41,
-            hubZ + station * 0.8,
+          const task = this.wheelTask.set(
+            install ? 'install' : 'remove',
+            wheel,
+            phase,
+            clock,
+            frame[p + W.LOAD],
+            hubY,
+            floor,
           );
-          center.lerp(this.point.set(hubX + side * transferOffset, hubY, hubZ), engagement);
-          const hasSpare = install ? phase < 4 : phase >= 4;
+          const { engagement, center, hasSpare } = task;
           if (hasSpare) this.spareWheels.putCarLocal(wheel, center, this.car.matrix, detail);
-          // Hands touch the sidewall at two points on the carried/working wheel.
-          const actorX = center.x + side * (0.45 - 0.05 * engagement),
-            actorZ = center.z + station * (0.3 + 0.5 * engagement);
-          const actorYaw = Math.atan2(center.x - actorX, center.z - actorZ);
+          const actorX = task.root.x,
+            actorZ = task.root.z,
+            actorYaw = task.yaw;
           const q = this.toolRotation.setFromAxisAngle(UP, actorYaw);
           for (let hand = 0; hand < 2; hand++) {
             // Approach-side grips: a mechanic beside a tyre cannot reach its
@@ -558,20 +606,24 @@ export class PitCrewView {
         }
       }
       for (const end of [-1, 1]) {
+        const withdraw = end * pitJackClearance(phase, clock, frame[o + F.JACK_HEIGHT]);
         if (this.pitJacks) {
           const role = end > 0 ? 'front' : 'rear';
           const fits = this.jackFits[id];
           if (!fits) throw new Error('A32 missing measured car fit');
-          const pose = this.jackPose.set(role, fits[role], floor);
+          const pose = this.jackPose.set(role, fits[role], floor).withdraw(withdraw);
           this.pitJacks.put(role, pose, this.car.matrix);
           for (let hand = 0; hand < 2; hand++)
             this.hand(hand, pose.grips[hand], pose.handOrientation);
           const gripHeight = pose.grips[0].y - floor;
+          const support = this.jackFootPose.set(role, fits[role], -0.43);
+          this.jackFootRoot.makeRotationY(end > 0 ? Math.PI : 0);
+          this.jackFootRoot.setPosition(0, floor, support.grips[0].z + end * 0.37);
           this.person(
             id,
             end > 0 ? 'front-jack' : 'rear-jack',
             -1,
-            0,
+            withdraw,
             floor,
             pose.grips[0].z + end * 0.37,
             end > 0 ? Math.PI : 0,
@@ -579,21 +631,22 @@ export class PitCrewView {
             0.52,
             detail,
             0.14,
+            this.jackFootRoot,
           );
           continue;
         }
         const lift = clamp(frame[o + F.JACK_HEIGHT], 0, 0.22);
-        const jack = this.point.set(0, floor, end * 2.05);
+        const jack = this.point.set(withdraw, floor, end * 2.05);
         this.propAt(
           this.jacks,
           jack,
           this.toolRotation.setFromAxisAngle(UP, end > 0 ? Math.PI : 0),
         );
-        const base = this.endA.set(0, floor + 0.23, end * 2.05);
-        const top = this.endB.set(0, floor + 0.23 + lift, end * 2.05);
+        const base = this.endA.set(withdraw, floor + 0.23, end * 2.05);
+        const top = this.endB.set(withdraw, floor + 0.23 + lift, end * 2.05);
         this.tube(base, top, 1.9);
-        const bar = this.bar.set(0, floor + 0.9 - lift, end * 2.76);
-        this.tube(this.point.set(0, floor + 0.09, end * 2.05), bar);
+        const bar = this.bar.set(withdraw, floor + 0.9 - lift, end * 2.76);
+        this.tube(this.point.set(withdraw, floor + 0.09, end * 2.05), bar);
         this.tube(
           this.endA.set(bar.x - 0.17, bar.y, bar.z),
           this.endB.set(bar.x + 0.17, bar.y, bar.z),
@@ -606,11 +659,12 @@ export class PitCrewView {
             this.point.set(bar.x + (h ? 1 : -1) * (end > 0 ? -1 : 1) * 0.12, bar.y, bar.z),
             q,
           );
+        this.jackFootRoot.makeRotationY(yaw).setPosition(0, floor, end * 3.2);
         this.person(
           id,
           end > 0 ? 'front-jack' : 'rear-jack',
           -1,
-          0,
+          withdraw,
           floor,
           end * 3.2,
           yaw,
@@ -618,6 +672,7 @@ export class PitCrewView {
           0.42,
           detail,
           0.14,
+          this.jackFootRoot,
         );
       }
       const signX = 2.7 + clear,
@@ -670,18 +725,25 @@ export class PitCrewView {
   }
   summary() {
     let unreachableArms = 0,
+      unreachableFeet = 0,
+      unsupportedActors = 0,
       maxWristError = 0,
       maxGripError = 0;
     for (let i = 0; i < this.activeActors; i++) {
       const record = this.records[i];
       unreachableArms += Number(!record.reachable[0]) + Number(!record.reachable[1]);
+      unreachableFeet += record.feetReachable.filter((reachable) => !reachable).length;
+      unsupportedActors += Number(!record.planted.some(Boolean));
       maxWristError = Math.max(maxWristError, record.wristError);
       maxGripError = Math.max(maxGripError, record.gripError);
     }
     return {
       ...PEOPLE_ASSET,
       crewAsset: CREW_PERFORMANCE.runtimeSHA256,
-      authoredGunAction: this.performance.action,
+      authoredGunAction: this.performances.gun.sampler.action,
+      authoredRoles: Object.fromEntries(
+        Object.entries(this.performances).map(([role, p]) => [role, p.sampler.action]),
+      ),
       spareWheels: this.spareWheels.diagnostics(),
       wheelGuns: this.wheelGuns?.diagnostics() ?? null,
       pitJacks: this.pitJacks?.diagnostics() ?? null,
@@ -695,6 +757,8 @@ export class PitCrewView {
       boneTextureBytes: this.boneData.byteLength,
       machineryTextureBytes: this.machinery.instanceMatrix.array.byteLength,
       unreachableArms,
+      unreachableFeet,
+      unsupportedActors,
       maxWristError,
       maxGripError,
     };
@@ -714,11 +778,17 @@ export class PitCrewView {
       machineryTextureBytes: this.machinery.instanceMatrix.array.byteLength,
       counts: this.batches.map((b) => b.count),
       crewAsset: CREW_PERFORMANCE.runtimeSHA256,
-      authoredGunAction: this.performance.action,
+      authoredGunAction: this.performances.gun.sampler.action,
+      authoredRoles: Object.fromEntries(
+        Object.entries(this.performances).map(([role, p]) => [role, p.sampler.action]),
+      ),
       roles: this.records.slice(0, this.activeActors).map((r) => ({
         ...r,
         root: [...r.root],
         reachable: [...r.reachable],
+        feet: r.feet.map((p) => [...p]),
+        planted: [...r.planted],
+        feetReachable: [...r.feetReachable],
       })),
     };
   }

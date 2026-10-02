@@ -363,6 +363,82 @@ GUN=[(0,dict(hip=.30,lean=.85,head=(.30,0,0),
 ACTIONS={'idle':IDLE,'walk':WALK,'turn':TURN,'kneel':KNEEL,'inspect':INSPECT,'lift':LIFT,'stand':STAND,'carry':CARRY,'gun_service':GUN}
 
 
+# Five complementary service actions. The 5.2-second reference is the existing
+# service schedule, not a new simulation duration. Runtime adds the small keyed
+# hip/lean offsets to each measured working posture and retargets both hands.
+# Separate removal/installation keys encode different weight transfer and gaze.
+REMOVE = [
+    (0, dict(hip=.43, lean=.35, head=(.14,-.08,0), hands=[(-.20,.58,.38),(.20,.58,.38)])),
+    (.20, dict(hip=.425, lean=.375, sway=-.008, head=(.22,-.04,0))),
+    (.80, dict(hip=.418, lean=.38, twist=-.025, head=(.30,0,0), elbow=-.10)),
+    (1.35, dict(hip=.415, lean=.395, sway=-.012, head=(.31,0,0), elbow=-.12)),
+    (1.70, dict(hip=.424, lean=.33, twist=.035, sway=.008, head=(.26,-.06,0), elbow=.08)),
+    (2.10, dict(hip=.438, lean=.315, twist=.025, sway=.012, head=(.18,-.12,0), elbow=.12)),
+    (2.20, dict(hip=.44, lean=.32, head=(.18,-.14,0))),
+    (2.90, dict(hip=.435, lean=.33, twist=-.015, sway=-.005, head=(.10,-.18,0), elbow=.02)),
+    (3.50, dict(hip=.43, lean=.35, twist=0, sway=0, head=(.13,.08,0))),
+    (4.50, dict(hip=.434, lean=.34, head=(.10,-.08,0))),
+    (5.20, dict(hip=.43, lean=.35, head=(.12,0,0))),
+]
+INSTALL = [
+    (0, dict(hip=.43, lean=.35, head=(.12,.14,0), hands=[(-.20,.58,.38),(.20,.58,.38)])),
+    (.80, dict(hip=.428, lean=.36, sway=.004, head=(.17,.10,0))),
+    (1.35, dict(hip=.422, lean=.375, twist=.025, sway=.010, head=(.25,.04,0), elbow=.08)),
+    (1.80, dict(hip=.416, lean=.39, twist=.015, head=(.31,0,0), elbow=-.04)),
+    (2.20, dict(hip=.422, lean=.38, twist=0, sway=0, head=(.32,0,0), elbow=-.08)),
+    (2.65, dict(hip=.42, lean=.39, sway=-.005, head=(.30,-.04,0), elbow=-.14)),
+    (3.05, dict(hip=.425, lean=.365, sway=0, head=(.27,0,0))),
+    (3.50, dict(hip=.43, lean=.335, head=(.20,.10,0), elbow=.06)),
+    (4.15, dict(hip=.44, lean=.32, twist=-.025, sway=-.008, head=(.12,.18,0))),
+    (4.60, dict(hip=.433, lean=.34, twist=0, sway=0, head=(.12,.08,0))),
+    (5.20, dict(hip=.43, lean=.35, head=(.12,0,0))),
+]
+FRONT_JACK = [
+    (0, dict(hip=.60, lean=.52, head=(.18,0,0), hands=[(-.14,.83,.35),(.14,.83,.35)])),
+    (.50, dict(hip=.588, lean=.555, sway=-.009, head=(.28,0,0), elbow=-.06)),
+    (.80, dict(hip=.58, lean=.57, sway=0, head=(.30,0,0))),
+    (1.25, dict(hip=.587, lean=.54, head=(.26,0,0), elbow=.08)),
+    (1.95, dict(hip=.60, lean=.51, head=(.18,-.12,0))),
+    (2.20, dict(hip=.60, lean=.52, head=(.19,-.07,0))),
+    (3.05, dict(hip=.595, lean=.53, head=(.19,.12,0))),
+    (3.50, dict(hip=.60, lean=.52, head=(.16,0,0))),
+    (3.85, dict(hip=.59, lean=.55, sway=-.008, head=(.26,0,0))),
+    (4.35, dict(hip=.585, lean=.565, sway=0, head=(.27,0,0))),
+    (4.70, dict(hip=.597, lean=.535, head=(.15,-.18,0))),
+    (4.95, dict(hip=.61, lean=.49, twist=-.04, sway=-.010, head=(.08,-.24,0))),
+    (5.20, dict(hip=.60, lean=.52, twist=0, sway=0, head=(.12,-.12,0))),
+]
+REAR_JACK = [
+    (0, dict(hip=.60, lean=.52, head=(.22,.08,0), hands=[(-.18,.81,.34),(.18,.81,.34)])),
+    (.50, dict(hip=.59, lean=.545, twist=.025, sway=.009, head=(.30,0,0), elbow=.10)),
+    (.80, dict(hip=.582, lean=.56, twist=.01, head=(.32,0,0))),
+    (1.30, dict(hip=.59, lean=.535, sway=-.004, head=(.24,-.06,0))),
+    (1.95, dict(hip=.60, lean=.52, twist=0, sway=0, head=(.17,.15,0))),
+    (2.20, dict(hip=.60, lean=.52, head=(.22,.06,0))),
+    (3.05, dict(hip=.594, lean=.54, head=(.21,-.12,0), elbow=.03)),
+    (3.50, dict(hip=.60, lean=.52, head=(.17,0,0))),
+    (3.85, dict(hip=.588, lean=.55, sway=.008, head=(.25,0,0))),
+    (4.35, dict(hip=.585, lean=.56, twist=.015, head=(.26,0,0))),
+    (4.70, dict(hip=.598, lean=.53, sway=0, head=(.16,.18,0))),
+    (4.95, dict(hip=.61, lean=.495, twist=.04, sway=.010, head=(.09,.24,0))),
+    (5.20, dict(hip=.60, lean=.52, twist=0, sway=0, head=(.16,.12,0))),
+]
+RELEASE = [
+    (0, dict(hip=.84, lean=.08, head=(.05,-.20,0), hands=[(-.08,1.04,.40),(.08,1.16,.40)])),
+    (.80, dict(hip=.836, lean=.09, sway=-.008, head=(.08,.20,0))),
+    (1.70, dict(hip=.84, lean=.08, twist=-.025, sway=.004, head=(.10,-.22,0))),
+    (2.20, dict(hip=.839, lean=.085, twist=.02, head=(.08,.17,0))),
+    (3.05, dict(hip=.837, lean=.09, sway=-.004, head=(.12,-.10,0))),
+    (3.50, dict(hip=.84, lean=.08, twist=0, sway=0, head=(.10,.20,0))),
+    (4.40, dict(hip=.836, lean=.09, head=(.08,-.20,0))),
+    # Still a HOLD pose: reaching clock 5.2 does not prove traffic clearance.
+    (5.20, dict(hip=.84, lean=.08, head=(.08,0,0))),
+]
+ACTIONS.update({'tyre_remove': REMOVE, 'tyre_install': INSTALL,
+                'front_jack': FRONT_JACK, 'rear_jack': REAR_JACK,
+                'release_service': RELEASE})
+
+
 def make_actions(rig):
     clips={}
     rig.animation_data_create()

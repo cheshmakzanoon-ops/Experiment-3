@@ -412,7 +412,10 @@ export class Vehicle {
       Math.min(0.25, this.floorHealth),
       this.floorHealth - (this.bottomEnergy * dt) / SKID_CONTACT.wearWorkJ,
     );
-    const jackTarget = this.pitPhase >= 3 && this.pitPhase <= 5 ? 0.19 : 0;
+    // Wheels are installed/tightened before phase 5. Lower during the existing
+    // repair/clearance window, not after safePitRelease has enabled departure.
+    // The 5.2-second service minimum and actual tyre replacement are unchanged.
+    const jackTarget = this.pitPhase >= 3 && this.pitPhase <= 4 ? 0.19 : 0;
     this.jackHeight = approach(this.jackHeight, jackTarget, dt * 0.16);
     if (this.jackHeight > 0) {
       // Four feet provide a finite support polygon. Tangential Coulomb contact

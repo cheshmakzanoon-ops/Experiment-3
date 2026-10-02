@@ -1,5 +1,10 @@
 # A41/A42 — shared mechanic kit and authored task actions
 
+The coordinated pit-team continuation adds five actions (fourteen total), applies
+authored motion to every pit role, and fixes physical jack lowering before
+release. The original nine-action revision is documented below; see
+[Pit-team continuation](PIT_TEAM_PERFORMANCE.md) for current scope and validation.
+
 ## Scope and boundaries
 
 This revision retains the Aurel 15-bone skeleton, cuff/grip/sole contracts and the

@@ -1,3 +1,10 @@
+## Coordinated pit-team performance
+
+All six existing pit roles now use distinct authored actions with planted-foot
+and equipment-contact retargeting. Jacks lower during the existing clearance
+window before departure; tyre exchange and the 5.2-second minimum are retained.
+[Scope, physical correction and verification](docs/PIT_TEAM_PERFORMANCE.md).
+
 ## A41/A42 crew and authored actions
 
 Grid and pit mechanics share a refined garment, helmet and glove kit. Nine

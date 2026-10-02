@@ -72,4 +72,15 @@ export class A32JackPose {
     }
     return this;
   }
+  /** Translate the fully lowered assembly and both measured hand sockets as
+   * one rigid object. The caller gates this against recorded jack height. */
+  withdraw(x: number): this {
+    if (!Number.isFinite(x)) throw new Error('Invalid jack clearance');
+    this.root.elements[12] += x;
+    for (const part of this.parts) part.elements[12] += x;
+    this.contact.x += x;
+    for (const grip of this.grips) grip.x += x;
+    for (const wheel of this.wheels) wheel.x += x;
+    return this;
+  }
 }

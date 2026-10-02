@@ -19,6 +19,7 @@ export interface CrewPoseStyle {
   head: T.Quaternion;
   arms: readonly [T.Vector3, T.Vector3];
   legs: readonly [T.Vector3, T.Vector3];
+  minimumKneeHeight?: number;
 }
 
 /** Reusable analytic two-bone solver. Its actual bone transforms, not a second
@@ -35,6 +36,8 @@ export class CrewPose {
   private perpendicular = new T.Vector3();
   private target = new T.Vector3();
   private restInverse = new T.Matrix4();
+  private floorPole = new T.Vector3();
+  private floorSide = new T.Vector3();
   private shinRest = CREW_REST[10].clone().sub(CREW_REST[11]).negate().normalize();
 
   private bend(
@@ -44,6 +47,7 @@ export class CrewPose {
     lower: number,
     pole: T.Vector3,
     out: T.Vector3,
+    minimumHeight?: number,
   ) {
     this.delta.copy(b).sub(a);
     const actual = this.delta.length();
@@ -59,6 +63,28 @@ export class CrewPose {
       .copy(a)
       .addScaledVector(this.delta, along)
       .addScaledVector(this.perpendicular, Math.sqrt(Math.max(0, upper * upper - along * along)));
+    if (minimumHeight !== undefined && out.y < minimumHeight) {
+      // Rotate around the analytic bend circle, not by moving either endpoint
+      // or changing bone lengths. A trailing planted foot must not drive its
+      // knee/shin cloth below the service floor.
+      const radius = Math.sqrt(Math.max(0, upper * upper - along * along));
+      this.floorPole.set(0, 1, 0).addScaledVector(this.delta, -this.delta.y);
+      if (radius > 1e-8 && this.floorPole.lengthSq() > 1e-8) {
+        this.floorPole.normalize();
+        this.floorSide.crossVectors(this.delta, this.floorPole).normalize();
+        const sign = this.perpendicular.dot(this.floorSide) < 0 ? -1 : 1;
+        const c = clamp(
+          (minimumHeight - a.y - this.delta.y * along) / (radius * this.floorPole.y),
+          -1,
+          1,
+        );
+        this.perpendicular
+          .copy(this.floorPole)
+          .multiplyScalar(c)
+          .addScaledVector(this.floorSide, sign * Math.sqrt(Math.max(0, 1 - c * c)));
+        out.copy(a).addScaledVector(this.delta, along).addScaledVector(this.perpendicular, radius);
+      }
+    }
     return actual <= upper + lower + 1e-4 && actual >= Math.abs(upper - lower) - 1e-4;
   }
   private aim(bone: number, end: T.Vector3, rest = DOWN) {
@@ -127,6 +153,7 @@ export class CrewPose {
         CREW_SHIN,
         style?.legs[side] ?? legPole,
         this.joints[leg + 1],
+        style?.minimumKneeHeight,
       );
       this.aim(leg, this.joints[leg + 1]);
       this.aim(leg + 1, this.joints[leg + 2], this.shinRest);
