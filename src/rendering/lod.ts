@@ -1,3 +1,4 @@
+import type { HeroShells } from './hero-shells.ts';
 import { mirrorShellGeometry, apertureGeometry } from './cockpit.ts';
 import { addSafetyCell, addAirbox, buildWing, reducedTireGeometry } from './car-architecture.ts';
 import { helmetShell, helmetPatch } from './helmet-shell.ts';
@@ -44,12 +45,14 @@ export class ReducedCar {
     carbon: T.Material,
     rubber: T.Material,
     flanks: readonly [T.Material, T.Material] = [paint, paint],
+    hero?: HeroShells,
   ) {
     const sides = level === 1 ? 12 : 8;
     const body = this.body;
     this.root.add(body, this.front, this.rear);
-    mesh(body, floorGeometry(level === 1 ? 'mid' : 'far'), carbon);
-    for (const side of [-1, 1]) {
+    mesh(body, hero?.copy('floor') ?? floorGeometry(level === 1 ? 'mid' : 'far'), carbon);
+    if (hero) mesh(body, hero.copy('floor_edges'), carbon);
+    for (const side of hero ? [] : [-1, 1]) {
       mesh(body, floorFenceGeometry(side * 0.97, 0, 5, 0.042), carbon);
       for (const across of [0.25, 0.5, 0.76])
         mesh(body, floorFenceGeometry(side * across, 0, 2, 0.082), carbon);
@@ -57,28 +60,60 @@ export class ReducedCar {
     // Share the hero envelopes. Lower tessellation must not restore the old
     // swollen sidepod or broad nose when an opponent crosses its LOD threshold.
     const detail = level === 1 ? 'mid' : 'far';
-    mesh(body, sculptedLoft(NOSE_SECTIONS, 0, 0.32, [], detail), paint);
-    mesh(body, openFrontCap(sculptedLoft(ENGINE_SECTIONS, 0, 0.18, [], detail)), paint);
-    addAirbox(body, paint, carbon, rubber, detail);
-    mesh(body, cockpitShell(detail), paint);
+    mesh(body, hero?.copy('nose') ?? sculptedLoft(NOSE_SECTIONS, 0, 0.32, [], detail), paint);
+    mesh(
+      body,
+      hero?.copy('engine') ?? openFrontCap(sculptedLoft(ENGINE_SECTIONS, 0, 0.18, [], detail)),
+      paint,
+    );
+    if (hero) {
+      mesh(body, hero.copy('airbox_paint'), paint);
+      mesh(body, hero.copy('airbox_carbon'), carbon);
+      mesh(body, hero.copy('airbox_dark'), rubber);
+      mesh(body, hero.copy('beam'), carbon);
+      mesh(body, hero.copy('tail_carbon'), carbon);
+      mesh(body, hero.copy('tail_alloy'), carbon);
+      mesh(body, hero.copy('tail_dark'), rubber);
+    } else addAirbox(body, paint, carbon, rubber, detail);
+    mesh(body, hero?.copy('monocoque') ?? cockpitShell(detail), paint);
     for (const side of [-1, 1]) {
       // The same signed-UV materials are shared with LOD0. Repainting and texture
       // quality changes therefore reach every distance level without new maps,
       // cloned materials or a stale, unmarked opponent at the handoff.
       const pod = mesh(
         body,
-        openFrontCap(sidepodShell(detail, false)),
+        hero?.copy('sidepod') ?? openFrontCap(sidepodShell(detail, false)),
         flanks[side < 0 ? 0 : 1],
         side * 0.53,
       );
       pod.rotation.z = side * -0.08;
       addSidepodDuct(body, side, { carbon, dark: rubber, metal: carbon, paint }, detail);
     }
-    buildWing(this.front, 'front', detail, paint, carbon);
-    buildWing(this.rear, 'rear', detail, paint, carbon);
-    addSafetyCell(body, carbon, detail);
+    if (hero) {
+      for (const [name, parent] of [
+        ['front', this.front],
+        ['rear', this.rear],
+      ] as const) {
+        mesh(parent, hero.copy(`${name}_paint`), paint);
+        mesh(parent, hero.copy(`${name}_carbon`), carbon);
+        // Minor hardware shares carbon at this screen size; no extra draw.
+        mesh(parent, hero.copy(`${name}_alloy`), carbon);
+      }
+      mesh(body, hero.copy('safety'), carbon);
+    } else {
+      buildWing(this.front, 'front', detail, paint, carbon);
+      buildWing(this.rear, 'rear', detail, paint, carbon);
+      addSafetyCell(body, carbon, detail);
+    }
     for (const side of [-1, 1]) {
-      mesh(body, mirrorShellGeometry(), paint, side * 0.64, 0.3, 0.43);
+      mesh(
+        body,
+        hero?.copy('mirror_shell') ?? mirrorShellGeometry(),
+        paint,
+        side * 0.64,
+        0.3,
+        0.43,
+      );
       const glass = mesh(
         body,
         apertureGeometry(0.192, 0.072, 0.018),
@@ -126,16 +161,22 @@ export class ReducedCar {
       });
       brakeGeometry.translate(0, 0, -0.007);
       brakeGeometry.rotateY(Math.PI / 2);
-      const brake = mesh(wheel, brakeGeometry, carbon);
+      const brake = mesh(wheel, hero?.copy('brake_rotor') ?? brakeGeometry, carbon);
+      if (hero) brakeGeometry.dispose();
       brake.name = 'Upright-owned reduced brake';
       this.brakes.push(brake);
       this.root.add(wheel);
       this.wheels.push(wheel);
       this.spins.push(spin);
-      const tire = mesh(spin, reducedTireGeometry(i < 2 ? 0.31 : 0.38, detail), rubber);
+      const tire = mesh(
+        spin,
+        hero?.copy(i < 2 ? 'tire_front' : 'tire_rear').rotateZ(-Math.PI / 2) ??
+          reducedTireGeometry(i < 2 ? 0.31 : 0.38, detail),
+        rubber,
+      );
       tire.rotation.z = Math.PI / 2;
       this.tires.push(tire);
-      for (const sign of [-1, 1]) {
+      for (const sign of hero ? [] : [-1, 1]) {
         const rim = mesh(
           spin,
           new T.CylinderGeometry(0.21, 0.21, 0.012, sides),
@@ -146,15 +187,27 @@ export class ReducedCar {
         );
         rim.rotation.z = Math.PI / 2;
       }
-      const cover = mesh(
-        spin,
-        wheelCoverGeometry(detail),
-        carbon,
-        Math.sign(p[0]) * ((i < 2 ? 0.155 : 0.19) + 0.014),
-        0,
-        0,
-      );
-      cover.rotation.y = (Math.sign(p[0]) * Math.PI) / 2;
+      if (hero) {
+        const end = i < 2 ? 'front' : 'rear',
+          side = p[0] < 0 ? -1 : 1;
+        for (const suffix of ['rim', 'cover', 'hub'] as const)
+          mesh(spin, hero.copy(`${end}_${suffix}`, side), carbon);
+        const carrier = new T.Group();
+        wheel.add(carrier);
+        for (const suffix of ['duct', 'upright', 'caliper'] as const)
+          mesh(carrier, hero.copy(`${end}_${suffix}`, side), carbon);
+        mergeStatic(carrier);
+      } else {
+        const cover = mesh(
+          spin,
+          wheelCoverGeometry(detail),
+          carbon,
+          Math.sign(p[0]) * ((i < 2 ? 0.155 : 0.19) + 0.014),
+          0,
+          0,
+        );
+        cover.rotation.y = (Math.sign(p[0]) * Math.PI) / 2;
+      }
       spin.remove(tire);
       mergeStatic(spin);
       spin.add(tire);

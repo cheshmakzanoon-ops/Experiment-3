@@ -1,3 +1,9 @@
+## A61 rival exterior refinement
+
+Opponents use three separately verified Blender exports of the retained APX
+mechanical assembly. The source player car, cockpit and driver are unchanged.
+See [A61 implementation and evidence boundaries](docs/A61_RIVAL.md).
+
 ## Race-Day Presentation V2
 
 Normal Grand Prix/Endurance entry now includes a real-grid briefing, an optional

@@ -1,3 +1,4 @@
+import { loadRivalLevels, type RivalLevels } from './a61-rival.ts';
 import { GridPresentationView } from './grid-presentation-view.ts';
 import { gridPresentationCamera } from './grid-mechanic-motion.ts';
 import { cockpitEye, cockpitDirection, COCKPIT_FRAMING } from './cockpit-framing.ts';
@@ -192,6 +193,7 @@ export class RacingRenderer {
   private environment: SkyEnvironment;
   private disposed = false;
   private heroShells: HeroShells | null = null;
+  private rivalLevels: RivalLevels | null = null;
   private driverAsset: DriverAsset | null = null;
   private suppliedPlayerAsset: SuppliedPlayerAsset | null = null;
   tyreEquipment: TyreEquipmentKit | null = null;
@@ -408,6 +410,7 @@ export class RacingRenderer {
     try {
       progress({ completed: 0, total: 1, fraction: 0, label: 'Loading Blender-authored bodywork' });
       renderer.heroShells = await loadHeroShells(cancelled);
+      renderer.rivalLevels = await loadRivalLevels(cancelled);
       renderer.driverAsset = await loadDriverAsset(cancelled);
       progress({
         completed: 0,
@@ -498,6 +501,7 @@ export class RacingRenderer {
         this.heroShells ?? undefined,
         this.driverAsset ?? undefined,
         this.cars.length === 0 ? (this.suppliedPlayerAsset ?? undefined) : undefined,
+        this.rivalLevels ?? undefined,
       );
       this.cars.push(car);
       this.pitCrew.setWheelGunFits(car.id, measureWheelGunFits(car));
@@ -1373,6 +1377,13 @@ export class RacingRenderer {
       wheelProjection: wheel.toArray(),
       driver: car.driver.diagnostics(),
       authoredBodywork: this.heroShells?.diagnostics() ?? null,
+      rivalBodywork: this.rivalLevels?.map((asset) => asset.diagnostics()) ?? null,
+      rivalCars: this.cars.map((car) => ({
+        id: car.id,
+        level: car.lodLevel,
+        supplied: !!car.suppliedPlayer,
+        a61: car.root.userData.a61 !== null && car.root.userData.a61 !== undefined,
+      })),
       authoredDriver: this.driverAsset?.diagnostics() ?? null,
       suppliedPlayer: car.suppliedPlayer?.diagnostics() ?? null,
       // Bounded CPU summary; no texture readback or per-person geometry walk.
@@ -1485,6 +1496,13 @@ export class RacingRenderer {
     for (let i = sorted.length - slowCount; i < sorted.length; i++) slowTotal += sorted[i];
     return {
       authoredBodywork: this.heroShells?.diagnostics() ?? null,
+      rivalBodywork: this.rivalLevels?.map((asset) => asset.diagnostics()) ?? null,
+      rivalCars: this.cars.map((car) => ({
+        id: car.id,
+        level: car.lodLevel,
+        supplied: !!car.suppliedPlayer,
+        a61: car.root.userData.a61 !== null && car.root.userData.a61 !== undefined,
+      })),
       authoredDriver: this.driverAsset?.diagnostics() ?? null,
       suppliedPlayer: this.cars[0]?.suppliedPlayer?.diagnostics() ?? null,
       // Bounded CPU summary; no texture readback or per-person geometry walk.
@@ -1644,6 +1662,7 @@ export class RacingRenderer {
     if (this.circuit.tyreBlankets && !this.circuit.tyreBlankets.root.parent)
       this.circuit.tyreBlankets.dispose();
     this.heroShells?.dispose();
+    this.rivalLevels?.forEach((asset) => asset.dispose());
     this.driverAsset?.dispose();
     this.suppliedPlayerAsset?.dispose();
     this.tyreEquipment?.dispose();

@@ -14,6 +14,7 @@ export function browserWeight(test: BrowserCase) {
   // Whole weekends contain qualifying and racing; treating them as a generic
   // forty-unit test concentrates substantial work on one runner.
   if (/Championship weekend:|normal entry, immutable briefing/.test(test.title)) return 750;
+  if (/53-a61-rival/.test(test.file)) return 300;
   if (/51-race-day|p0-cockpit-framing/.test(test.file)) return 240;
   if (/29-populated-race-review/.test(test.file)) return 360;
   if (/27-visual-coherence|28-race-pit-presentation/.test(test.file)) return 260;

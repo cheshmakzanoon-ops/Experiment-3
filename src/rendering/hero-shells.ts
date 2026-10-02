@@ -3,6 +3,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import manifest from './apx01-shell.manifest.json' with { type: 'json' };
 import assembly from './apx01-assembly.json' with { type: 'json' };
 
+export type HeroManifest = typeof manifest;
 export type HeroPart = keyof typeof assembly.parts;
 export const HERO_PARTS = Object.freeze(Object.keys(assembly.parts) as HeroPart[]);
 const PARTS = HERO_PARTS;
@@ -230,7 +231,10 @@ export function validateHeroDocument(value: unknown): void {
  * clone, allowing existing material batching/disposal and independent liveries. */
 export class HeroShells {
   private disposed = false;
-  private constructor(private readonly parts: Map<HeroPart, T.BufferGeometry>) {}
+  private constructor(
+    private readonly parts: Map<HeroPart, T.BufferGeometry>,
+    private readonly identity: HeroManifest = manifest,
+  ) {}
   copy(part: HeroPart, side: -1 | 1 = 1) {
     if (this.disposed) throw new Error('Authored bodywork already disposed');
     const geometry = this.parts.get(part);
@@ -255,11 +259,11 @@ export class HeroShells {
   }
   diagnostics() {
     return {
-      revision: assembly.revision,
+      revision: this.identity === manifest ? assembly.revision : this.identity.asset,
       partCount: this.parts.size,
       materialBindings: assembly.parts,
-      sha256: manifest.sha256,
-      compressedBytes: manifest.compressedBytes,
+      sha256: this.identity.sha256,
+      compressedBytes: this.identity.compressedBytes,
       loaded: !this.disposed,
       triangles: Object.fromEntries([...this.parts].map(([name, g]) => [name, g.index!.count / 3])),
       finalArtApproved: false,
@@ -271,14 +275,18 @@ export class HeroShells {
     for (const part of this.parts.values()) part.dispose();
     this.parts.clear();
   }
-  static async decode(input: Uint8Array<ArrayBuffer>, signal?: AbortSignal) {
+  static async decode(
+    input: Uint8Array<ArrayBuffer>,
+    signal?: AbortSignal,
+    identity: HeroManifest = manifest,
+  ) {
     if (signal?.aborted) throw abortError();
     let bytes: Uint8Array<ArrayBuffer>;
     // Some static hosts decode Content-Encoding:gzip before fetch exposes bytes.
     // Both forms must be the exact retained Blender export, not an HTML 200 page.
     if (
-      input.length === manifest.compressedBytes &&
-      (await digest(input)) === manifest.compressedSHA256
+      input.length === identity.compressedBytes &&
+      (await digest(input)) === identity.compressedSHA256
     ) {
       bytes = new Uint8Array(
         await new Response(
@@ -286,7 +294,7 @@ export class HeroShells {
         ).arrayBuffer(),
       );
     } else bytes = input;
-    if (bytes.length !== manifest.bytes || (await digest(bytes)) !== manifest.sha256)
+    if (bytes.length !== identity.bytes || (await digest(bytes)) !== identity.sha256)
       throw new Error('Authored bodywork integrity check failed');
     if (signal?.aborted) throw abortError();
     // The checksum pins all external-reference and resource-size decisions.
@@ -327,7 +335,7 @@ export class HeroShells {
       const triangles = [...parts.values()].reduce((sum, g) => sum + g.index!.count / 3, 0);
       if (triangles > assembly.maxTriangles)
         throw new Error('Authored assembly triangle budget exceeded');
-      return new HeroShells(parts);
+      return new HeroShells(parts, identity);
     } catch (error) {
       for (const part of parts.values()) part.dispose();
       throw error;
@@ -353,6 +361,7 @@ export async function loadHeroShells(
   cancelled: () => boolean = () => false,
   fetcher: typeof fetch = fetch,
   url?: string,
+  identity: HeroManifest = manifest,
 ): Promise<HeroShells> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 15000);
@@ -380,7 +389,7 @@ export async function loadHeroShells(
         if (controller.signal.aborted || cancelled()) throw abortError();
         if (done) break;
         length += value.length;
-        if (length > manifest.bytes) throw new Error('Authored bodywork response exceeds budget');
+        if (length > identity.bytes) throw new Error('Authored bodywork response exceeds budget');
         chunks.push(value);
       }
     } finally {
@@ -393,7 +402,7 @@ export async function loadHeroShells(
       bytes.set(chunk, offset);
       offset += chunk.length;
     }
-    result = await HeroShells.decode(bytes, controller.signal);
+    result = await HeroShells.decode(bytes, controller.signal, identity);
     if (cancelled() || controller.signal.aborted) throw abortError();
     return result;
   } catch (error) {

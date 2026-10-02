@@ -1,3 +1,4 @@
+import type { RivalLevels } from './a61-rival.ts';
 import type { SuppliedPlayer, SuppliedPlayerAsset } from './supplied-player.ts';
 import { mountAuthoredWing, mountAuthoredWheel, uprightSocketX } from './car-assembly.ts';
 import type { DriverAsset } from './driver-asset.ts';
@@ -119,8 +120,11 @@ export class FormulaCar {
     hero?: HeroShells,
     driverAsset?: DriverAsset,
     suppliedAsset?: SuppliedPlayerAsset,
+    rivals?: RivalLevels,
   ) {
+    if (id > 0 && rivals) hero = rivals[0];
     this.root.name = `Formula ${id + 1}`;
+    this.root.userData.a61 = id > 0 && rivals ? rivals.map((asset) => asset.diagnostics()) : null;
     this.root.userData.authoredBodywork = hero?.diagnostics() ?? null;
     this.root.add(this.staticBody, this.frontWing, this.rearWing);
     const s = this.staticBody;
@@ -531,7 +535,14 @@ export class FormulaCar {
     this.root.add(this.highDetail);
     this.highDetail.add(...highChildren);
     for (const level of [1, 2] as const) {
-      const reduced = new ReducedCar(level, this.paint, carbon, dark, flankMaterials);
+      const reduced = new ReducedCar(
+        level,
+        this.paint,
+        carbon,
+        dark,
+        flankMaterials,
+        id > 0 ? rivals?.[level] : undefined,
+      );
       for (let i = 0; i < 4; i++) {
         bindTireSurface(reduced.tires[i].geometry, 'y');
         reduced.tires[i].material = this.treads[i].material;
