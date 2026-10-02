@@ -20,6 +20,7 @@ export class CrewPose {
   readonly rotations = Array.from({ length: CREW_BONES }, () => new T.Quaternion());
   readonly matrices = Array.from({ length: CREW_BONES }, () => new T.Matrix4());
   readonly reachable = [true, true];
+  readonly feetReachable = [true, true];
   readonly root = new T.Matrix4();
   private inverse = new T.Matrix4();
   private delta = new T.Vector3();
@@ -62,9 +63,12 @@ export class CrewPose {
     lean: number,
     hands: readonly T.Vector3[],
     footSpread = 0.15,
+    feet?: readonly T.Vector3[],
   ) {
     if (
       hands.length !== 2 ||
+      (feet !== undefined &&
+        (feet.length !== 2 || !feet.every((foot) => Number.isFinite(foot.x + foot.y + foot.z)))) ||
       !Number.isFinite(hipHeight + lean + footSpread) ||
       !root.elements.every(Number.isFinite) ||
       Math.abs(root.determinant()) < 1e-8 ||
@@ -101,9 +105,10 @@ export class CrewPose {
       const leg = side === 0 ? 9 : 12,
         sign = side === 0 ? -1 : 1;
       this.joints[leg].set(sign * 0.092, hipHeight, 0);
-      this.joints[leg + 2].set(sign * 0.14, 0.055, footSpread + 0.035);
+      if (feet) this.joints[leg + 2].copy(feet[side]).applyMatrix4(this.inverse);
+      else this.joints[leg + 2].set(sign * 0.14, 0.055, footSpread + 0.035);
       this.target.copy(this.joints[leg + 2]);
-      this.bend(
+      this.feetReachable[side] = this.bend(
         this.joints[leg],
         this.target,
         CREW_THIGH,

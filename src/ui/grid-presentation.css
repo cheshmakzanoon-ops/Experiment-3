@@ -1,0 +1,113 @@
+.grid-presentation {
+  position: absolute;
+  inset: 0;
+  z-index: 18;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  pointer-events: none;
+  color: #f5f2eb;
+  background: linear-gradient(
+    180deg,
+    rgba(6, 12, 16, 0.72),
+    transparent 25%,
+    transparent 52%,
+    rgba(6, 12, 16, 0.92)
+  );
+  padding: clamp(16px, 3vw, 44px);
+}
+.grid-presentation[hidden] {
+  display: none;
+}
+.grid-presentation header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+}
+.grid-event {
+  max-width: 600px;
+}
+.grid-stage {
+  max-width: 280px;
+  text-align: right;
+}
+.grid-presentation h1 {
+  font-size: clamp(24px, 2.8vw, 44px);
+  line-height: 1.08;
+  margin: 8px 0;
+}
+.grid-presentation h2 {
+  font-size: clamp(20px, 2vw, 28px);
+  margin: 4px 0;
+}
+.grid-presentation p {
+  margin: 6px 0;
+  max-width: 620px;
+}
+.grid-presentation-footer {
+  max-width: 760px;
+  pointer-events: auto;
+}
+.grid-timeline {
+  display: block;
+  margin: 14px 0;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+}
+.grid-timeline input {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+  accent-color: #dfb985;
+}
+.grid-presentation-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.grid-presentation-actions button {
+  min-height: 44px;
+  padding: 10px 16px;
+}
+.grid-presentation small {
+  display: block;
+  margin-top: 10px;
+  color: #c4c9ca;
+}
+@media (max-width: 700px) {
+  .grid-presentation header {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .grid-stage {
+    max-width: none;
+    text-align: left;
+  }
+  .grid-stage p {
+    display: none;
+  }
+}
+@media (max-height: 700px) {
+  .grid-presentation {
+    padding: 12px 18px;
+  }
+  .grid-presentation h1 {
+    font-size: 24px;
+  }
+  .grid-presentation header p,
+  .grid-presentation small {
+    display: none;
+  }
+  .grid-presentation-footer {
+    max-width: 690px;
+  }
+  .grid-timeline {
+    margin: 7px 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .grid-presentation * {
+    transition: none !important;
+  }
+}

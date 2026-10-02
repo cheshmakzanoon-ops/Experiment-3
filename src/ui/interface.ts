@@ -69,7 +69,10 @@ export function minimapFrame(track: Track) {
     maxZ = Math.max(maxZ, p.z);
   }
   const fitsOriginal =
-    125 + minX * 0.24 >= 12 && 125 + maxX * 0.24 <= 238 && 125 - maxZ * 0.23 >= 12 && 125 - minZ * 0.23 <= 228;
+    125 + minX * 0.24 >= 12 &&
+    125 + maxX * 0.24 <= 238 &&
+    125 - maxZ * 0.23 >= 12 &&
+    125 - minZ * 0.23 <= 228;
   if (fitsOriginal) return { cx: 0, cz: 0, scale: 0.24 };
   const scale = Math.min(220 / Math.max(1, maxX - minX), 210 / Math.max(1, maxZ - minZ));
   return { cx: (minX + maxX) / 2, cz: (minZ + maxZ) / 2, scale };
@@ -285,9 +288,12 @@ export class Interface {
     clearTimeout(this.toastTimer);
     this.toastTimer = window.setTimeout(() => (e.hidden = true), 6000);
   }
-  showMode(mode: 'menu' | 'driving' | 'paused' | 'results' | 'replay' | 'loading' | 'photo') {
+  showMode(
+    mode: 'menu' | 'driving' | 'paused' | 'results' | 'replay' | 'loading' | 'photo' | 'pregame',
+  ) {
     this.menu.hidden = mode !== 'menu';
-    this.hud.hidden = mode === 'menu' || mode === 'loading' || mode === 'photo';
+    this.hud.hidden =
+      mode === 'menu' || mode === 'loading' || mode === 'photo' || mode === 'pregame';
     this.get('debug').hidden ||= mode === 'photo';
     this.replayBar.hidden = mode !== 'replay';
     this.element.dataset.mode = mode;
@@ -437,8 +443,7 @@ export class Interface {
     this.setText('positionField', `/ ${cars}`);
     // Broadcast towers refresh intervals a few times a second, not every frame.
     const racing = racingSession(this.options.mode);
-    const refresh =
-      frame[H.TIME] < this.towerRefresh || frame[H.TIME] - this.towerRefresh >= 0.5;
+    const refresh = frame[H.TIME] < this.towerRefresh || frame[H.TIME] - this.towerRefresh >= 0.5;
     if (refresh) {
       this.towerRefresh = frame[H.TIME];
       this.setText('towerColumn', racing ? 'INTERVAL' : 'BEST LAP');
@@ -545,9 +550,10 @@ export class Interface {
       c.stroke();
     }
   }
+  gridPresentationAvailable = false;
   pause() {
     this.modalContent(
-      `<span class="eyebrow">SESSION SUSPENDED</span><h2>Hold your line.</h2><p>Simulation and race time are paused.</p><div class="dialog-buttons"><button class="primary" data-action="resume">RESUME SESSION</button><button data-action="settings">GARAGE & SETTINGS</button><button data-action="camera">CHANGE CAMERA</button><button data-action="autopilot">TOGGLE AI DEMONSTRATION</button><button data-action="replay">WATCH REPLAY</button><button data-action="photo">PHOTO STUDIO</button><button data-action="academy">ACADEMY</button><button data-action="team">TEAM HQ</button><button data-action="performance">PERFORMANCE CAPTURE</button><button data-action="visualReview">FULL-LAP VISUAL REVIEW</button><button data-action="sessionReview">SESSION 146 EVIDENCE</button><button data-action="restart">RESTART SESSION</button><button data-action="menu">RETURN TO PADDOCK</button></div>`,
+      `<span class="eyebrow">SESSION SUSPENDED</span><h2>Hold your line.</h2><p>Simulation and race time are paused.</p><div class="dialog-buttons"><button class="primary" data-action="resume">RESUME SESSION</button>${this.gridPresentationAvailable ? '<button data-action="gridPresentation">PRE-RACE PRESENTATION</button>' : ''}<button data-action="settings">GARAGE & SETTINGS</button><button data-action="camera">CHANGE CAMERA</button><button data-action="autopilot">TOGGLE AI DEMONSTRATION</button><button data-action="replay">WATCH REPLAY</button><button data-action="photo">PHOTO STUDIO</button><button data-action="academy">ACADEMY</button><button data-action="team">TEAM HQ</button><button data-action="performance">PERFORMANCE CAPTURE</button><button data-action="visualReview">FULL-LAP VISUAL REVIEW</button><button data-action="sessionReview">SESSION 146 EVIDENCE</button><button data-action="restart">RESTART SESSION</button><button data-action="menu">RETURN TO PADDOCK</button></div>`,
     );
   }
   performance(status: string, machine: string, workload: string, exportable: boolean) {

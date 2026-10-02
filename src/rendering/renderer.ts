@@ -1,3 +1,5 @@
+import { GridPresentationView } from './grid-presentation-view.ts';
+import { gridPresentationCamera } from './grid-mechanic-motion.ts';
 import { cockpitEye, cockpitDirection, COCKPIT_FRAMING } from './cockpit-framing.ts';
 import { loadPitJacks } from './a32-pit-jacks.ts';
 import { measurePitJackFits } from './a32-jack-contact.ts';
@@ -142,6 +144,10 @@ export class RacingRenderer {
   readonly debris = new DebrisView();
   readonly pitCrew = new PitCrewView();
   readonly gridPreparation = new GridPreparationView();
+  readonly gridPerformance = new GridPresentationView();
+  gridPresentationTime: number | null = null;
+  gridReducedMotion = false;
+  gridPrepared = false;
   readonly photoStage = new PhotoStage();
   private headquarters: HeadquartersStage | null = null;
   private scenePresentation = new ScenePresentationScope(this.scene);
@@ -279,6 +285,7 @@ export class RacingRenderer {
     this.scene.add(
       this.guide.mesh,
       this.gridPreparation.root,
+      this.gridPerformance.root,
       this.photoStage.root,
       this.venueLighting.root,
     );
@@ -766,8 +773,12 @@ export class RacingRenderer {
     replay = false,
     wallDelta = dt,
   ) {
-    const cameraMode: CameraMode =
-      this.photo && this.photo.view !== 'orbit' ? this.photo.view : this.mode;
+    const pregame = this.gridPresentationTime !== null && this.gridPresentationTime !== undefined;
+    const cameraMode: CameraMode = pregame
+      ? 'chase'
+      : this.photo && this.photo.view !== 'orbit'
+        ? this.photo.view
+        : this.mode;
     const start = performance.now();
     dt = clamp(dt, 1 / 300, 0.08);
     this.frameMs = this.frameMs * 0.95 + wallDelta * 1000 * 0.05;
@@ -848,7 +859,16 @@ export class RacingRenderer {
     );
     this.target.copy(car.root.position);
     this.direction.set(0, 0, 1).applyQuaternion(car.root.quaternion);
-    if (this.photo?.view === 'orbit') {
+    if (pregame) {
+      this.camera.fov = gridPresentationCamera(
+        this.gridPresentationTime!,
+        this.gridReducedMotion,
+        this.desired,
+        this.gaze,
+      );
+      this.desired.applyQuaternion(car.root.quaternion).add(car.root.position);
+      this.gaze.applyQuaternion(car.root.quaternion).add(car.root.position);
+    } else if (this.photo?.view === 'orbit') {
       const offset = photoOffset(this.photo);
       // Read actual articulated world transforms after this snapshot's car update.
       // A close helmet photograph must orbit the helmet, not the chassis centre.
@@ -946,7 +966,7 @@ export class RacingRenderer {
             ? CHASE.fov + Math.min(CHASE.fovGain, speed * 0.06)
             : 68 + Math.min(7, speed * 0.075);
     }
-    if (!this.initialized || cameraMode !== 'chase' || menu || this.photo) {
+    if (!this.initialized || cameraMode !== 'chase' || menu || this.photo || pregame) {
       this.camera.position.copy(this.desired);
       this.velocity.set(0, 0, 0);
       this.initialized = true;
@@ -1058,9 +1078,14 @@ export class RacingRenderer {
     this.gridPreparation.update(
       presented,
       this.camera.position,
-      (!menu || !!this.photo) && !studio,
+      (!menu || !!this.photo) && !studio && !pregame && !this.gridPrepared,
     );
-    this.guide.update(presented, !menu && !this.photo, this.colorblind);
+    this.gridPerformance?.update(
+      presented,
+      this.camera.position,
+      pregame ? this.gridPresentationTime : null,
+    );
+    this.guide.update(presented, !menu && !this.photo && !pregame, this.colorblind);
     this.replayView = replay;
     this.engineeringView.update(this.engineering, b[H.TIME], this.debug, replay);
     this.reflection.beginFrame(
@@ -1099,6 +1124,7 @@ export class RacingRenderer {
           this.effects.group,
           this.debris.mesh,
           this.gridPreparation.root,
+          this.gridPerformance.root,
           this.pitCrew.root,
           this.engineeringView.group,
         ])
@@ -1241,6 +1267,7 @@ export class RacingRenderer {
         this.ghost?.root,
         this.pitCrew.root,
         this.gridPreparation.root,
+        this.gridPerformance.root,
         this.debris.mesh,
         this.guide.mesh,
         this.engineeringView.group,
@@ -1285,6 +1312,7 @@ export class RacingRenderer {
     const smallDetail = [
       this.pitCrew.root,
       this.gridPreparation.root,
+      this.gridPerformance.root,
       this.debris.mesh,
       this.guide.mesh,
       this.engineeringView.group,
@@ -1521,6 +1549,7 @@ export class RacingRenderer {
       night: this.night,
       guide: this.guide.diagnostics(),
       gridPreparation: this.gridPreparation.diagnostics(),
+      gridPerformance: this.gridPerformance?.diagnostics() ?? null,
       venueLighting: this.venueLighting.diagnostics(),
       environmentAssets: {
         ...this.circuit.environmentDiagnostics(),
@@ -1628,6 +1657,7 @@ export class RacingRenderer {
     this.circuit.wetReflection.dispose();
     this.ghost?.dispose();
     this.pitCrew.dispose();
+    this.gridPerformance.dispose();
     this.reflection.dispose();
     this.shadowProxies.dispose();
     this.farShadow.dispose();

@@ -1,3 +1,6 @@
+import { GridPresentationClock } from './core/grid-presentation.ts';
+import { GridPresentationPanel } from './ui/grid-presentation.ts';
+import './ui/grid-presentation.css';
 import { menuPreview } from './rendering/menu-preview.ts';
 import { shouldDrawReplay } from './rendering/replay-presentation.ts';
 import { TabEvidence } from './ui/tab-evidence.ts';
@@ -94,8 +97,10 @@ import { referenceRoute } from './ui/reference-routes.ts';
 import { drivingAcademy, academyConfirmation, programmeHud } from './ui/driving-academy.ts';
 import { PracticeProgramme } from './simulation/practice-programme.ts';
 import type { GuideMode } from './rendering/driving-guide.ts';
-type State = 'menu' | 'loading' | 'driving' | 'paused' | 'results' | 'replay' | 'photo';
+type State = 'menu' | 'loading' | 'driving' | 'paused' | 'results' | 'replay' | 'photo' | 'pregame';
 export class GameApp {
+  private readonly gridClock = new GridPresentationClock();
+  private gridPanel: GridPresentationPanel | null = null;
   private track = new Track();
   private ui: Interface;
   private photoStudio: PhotoStudio;
@@ -397,6 +402,13 @@ export class GameApp {
   }
   private async start(options: SessionOptions, programme = false, holdOnGrid = false) {
     if (this.state === 'loading' && this.worker) return;
+    this.gridClock.reset();
+    this.gridPanel?.hide();
+    this.ui.gridPresentationAvailable = false;
+    if (this.renderer) {
+      this.renderer.gridPresentationTime = null;
+      this.renderer.gridPrepared = false;
+    }
     if (programme) this.programme.start();
     else this.programme.stop();
     this.renderer?.setPhoto(null);
@@ -794,6 +806,11 @@ export class GameApp {
       b = this.frozenPhoto;
       alpha = 0;
     }
+    if (this.state === 'pregame') {
+      this.gridClock.advance(wallDelta, !document.hidden);
+      this.renderer.gridPresentationTime = this.gridClock.time;
+      this.gridPanel?.update(this.gridClock);
+    }
     this.presentGhost(a, b, alpha);
     this.renderer.draw(
       a,
@@ -941,6 +958,10 @@ export class GameApp {
     }
   };
   private suspendPlayback() {
+    if (this.state === 'pregame') {
+      this.gridClock.pause();
+      this.gridPanel?.update(this.gridClock);
+    }
     this.referenceSession.interrupt('Playback suspended.');
     if (this.state === 'driving') this.pause();
     else if (this.state === 'replay') {
@@ -1150,12 +1171,73 @@ export class GameApp {
     this.audio.stop();
     if (document.pointerLockElement) document.exitPointerLock();
     this.ui.showMode('paused');
+    this.ui.gridPresentationAvailable =
+      !!this.current && this.current[H.TICK] === 0 && racingSession(this.options.mode);
     this.ui.pause();
+  }
+  private beginGridPresentation() {
+    if (
+      this.state !== 'paused' ||
+      !this.current ||
+      this.current[H.TICK] !== 0 ||
+      !racingSession(this.options.mode) ||
+      !this.renderer
+    )
+      return;
+    this.ui.closeModal();
+    this.ui.telemetryModal.close();
+    this.state = 'pregame';
+    this.input.setEnabled(false);
+    this.post({ type: 'pause', value: true });
+    this.audio.stop();
+    this.gridClock.reset();
+    this.renderer.gridPresentationTime = 0;
+    this.renderer.gridPrepared = false;
+    this.renderer.gridReducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    this.renderer.reset();
+    this.gridPanel ??= new GridPresentationPanel(this.ui.element, {
+      toggle: () => {
+        if (this.state !== 'pregame') return;
+        if (this.gridClock.complete) this.gridClock.reset();
+        if (this.gridClock.playing) this.gridClock.pause();
+        else this.gridClock.play();
+        this.gridPanel?.update(this.gridClock);
+      },
+      seek: (time) => {
+        if (this.state === 'pregame') {
+          this.gridClock.seek(time);
+          this.gridPanel?.update(this.gridClock);
+        }
+      },
+      start: () => this.endGridPresentation(true),
+      back: () => this.endGridPresentation(false),
+    });
+    this.ui.showMode('pregame');
+    this.gridPanel.show(
+      this.track.circuit.name,
+      `${this.options.laps} LAPS / ${this.options.opponents + 1} CARS / ${this.options.weather.toUpperCase()} / ${this.options.compound.toUpperCase()}`,
+    );
+    this.gridPanel.update(this.gridClock);
+  }
+  private endGridPresentation(startRace: boolean) {
+    if (this.state !== 'pregame' || !this.renderer) return;
+    this.gridClock.pause();
+    this.gridPanel?.hide();
+    this.renderer.gridPresentationTime = null;
+    // Prevent the legacy 1.8-second staff and blankets from reappearing after
+    // they have already been carried away. No worker snapshot is edited.
+    this.renderer.gridPrepared = startRace;
+    this.renderer.reset();
+    this.state = 'paused';
+    this.ui.showMode('paused');
+    if (startRace) this.resume();
+    else this.ui.pause();
   }
   private resume() {
     if (this.state !== 'paused' || this.ui.telemetryModal.open) return;
     this.ui.closeModal();
     this.state = 'driving';
+    this.ui.gridPresentationAvailable = false;
     this.ui.showMode('driving');
     // Retain the real paused grid snapshot before the worker is released.
     // A slow first rendered frame must not erase the start-light phase.
@@ -1293,6 +1375,20 @@ export class GameApp {
     this.ui.toast(`Reference ${String(id).padStart(3, '0')}: ${route.instruction}`);
   }
   private action(name: string) {
+    if (this.state === 'pregame') {
+      if (name === 'pause' || name === 'blur' || name === 'deviceLost') {
+        this.gridClock.pause();
+        this.gridPanel?.update(this.gridClock);
+      } else if (name === 'menu') {
+        this.endGridPresentation(false);
+        this.action('menu');
+      }
+      return;
+    }
+    if (name === 'gridPresentation') {
+      this.beginGridPresentation();
+      return;
+    }
     // Modal-owned GPU scenes never outlive a navigation or native Escape.
     this.mediaView?.dispose();
     this.mediaView = null;
@@ -1942,6 +2038,11 @@ export class GameApp {
   diagnostics(visual = false) {
     return {
       state: this.state,
+      gridPresentation: {
+        time: this.gridClock.time,
+        playing: this.gridClock.playing,
+        complete: this.gridClock.complete,
+      },
       workerPause: this.workerPause.status(),
       team: structuredClone(this.team),
       photoTime: this.frozenPhoto?.[H.TIME] ?? null,
