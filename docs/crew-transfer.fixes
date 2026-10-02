@@ -1,0 +1,152 @@
+--- a/e2e/54-authored-crew.spec.ts
++++ b/e2e/54-authored-crew.spec.ts
+@@ -4,8 +4,8 @@
+ 
+ const baseline = process.env.CREW_BASELINE === '1';
+ test.use({
+-  viewport: { width: 960, height: 600 },
+-  video: { mode: 'on', size: { width: 960, height: 600 } },
++  viewport: { width: 800, height: 500 },
++  video: { mode: 'on', size: { width: 800, height: 500 } },
+ });
+ async function capture(page: Page, info: TestInfo, name: string) {
+   const cdp = await page.context().newCDPSession(page);
+@@ -21,7 +21,7 @@
+   }
+ }
+ 
+-test('A41/A42 authored crew: continuous full-grid performance, held physics and race handover', async ({
++test('A41/A42 authored crew: continuous Low full-grid performance, held physics and race handover', async ({
+   page,
+ }, info) => {
+   test.setTimeout(600000);
+@@ -34,7 +34,9 @@
+   await page.goto('/');
+   await expect(page.locator('#menu')).toBeVisible({ timeout: 120000 });
+   await page.getByRole('button', { name: 'GARAGE & SETTINGS', exact: true }).click();
+-  await page.locator('[name=quality]').selectOption('medium');
++  // Continuous evidence uses Low on the CPU rasterizer. The separate Medium
++  // survey below retains the complete grid, shadows, contacts and close poses.
++  await page.locator('[name=quality]').selectOption('low');
+   await page.getByRole('button', { name: 'APPLY & SAVE', exact: true }).click();
+   await page.selectOption('#mode', 'race');
+   await page.selectOption('#opponents', '11');
+@@ -52,7 +54,10 @@
+   // No pose seek: video records every transition on the actual presentation clock.
+   for (const time of [2, 6, 10, 14, 16.5, 21, 30, 37.8]) {
+     await expect
+-      .poll(async () => (await read()).gridPresentation.time, { timeout: 120000, intervals: [500] })
++      .poll(() => page.evaluate(() => window.apexDiagnostics().gridPresentation.time), {
++        timeout: 120000,
++        intervals: [500],
++      })
+       .toBeGreaterThan(time);
+     const d = await read();
+     expect(d.frame).toEqual(before);
+@@ -84,6 +89,8 @@
+   await info.attach('crew-observations.json', {
+     body: JSON.stringify({
+       baseline,
++      quality: 'low',
++      viewport: { width: 800, height: 500 },
+       observations,
+       final: await read(),
+       boundary:
+@@ -93,3 +100,77 @@
+   });
+   expect(errors).toEqual([]);
+ });
++
++// Do not drop the Medium visual workload to get continuous video. Inspect the
++// same complete grid with its real paused timeline; no physics-channel writes.
++test('A41/A42 authored crew: Medium full-grid pose and shadow survey', async ({ page }, info) => {
++  test.setTimeout(600000);
++  await page.setViewportSize({ width: 960, height: 600 });
++  const errors: string[] = [];
++  page.on('pageerror', (error) => errors.push(error.message));
++  page.on('console', (message) => {
++    if (message.type() === 'error') errors.push(message.text());
++  });
++  const read = () => page.evaluate(() => window.apexDiagnostics());
++  await page.goto('/');
++  await expect(page.locator('#menu')).toBeVisible({ timeout: 120000 });
++  await page.getByRole('button', { name: 'GARAGE & SETTINGS', exact: true }).click();
++  await page.locator('[name=quality]').selectOption('medium');
++  await page.getByRole('button', { name: 'APPLY & SAVE', exact: true }).click();
++  await page.selectOption('#mode', 'race');
++  await page.selectOption('#opponents', '11');
++  await page.getByRole('button', { name: 'PREPARE GRID START PAUSED', exact: true }).click();
++  await expect.poll(async () => (await read()).frame?.[H.TICK] ?? -1).toBe(0);
++  await expect
++    .poll(async () => (await read()).workerPause)
++    .toMatchObject({
++      paused: true,
++      pending: false,
++    });
++  const before = (await read()).frame;
++  expect(before?.[H.CARS]).toBe(12);
++  await page.getByRole('button', { name: 'PRE-RACE PRESENTATION', exact: true }).click();
++  const observations: unknown[] = [];
++  for (const time of [0, 8, 10.5, 14, 16.5, 21, 30, 38]) {
++    await page.locator('#gridPresentationSeek').evaluate((node, value) => {
++      const input = node as HTMLInputElement;
++      input.value = String(value);
++      input.dispatchEvent(new Event('input', { bubbles: true }));
++    }, time);
++    await expect
++      .poll(() => page.evaluate(() => window.apexDiagnostics().gridPresentation.time))
++      .toBe(time);
++    // Wait for the production frame to consume the UI seek, not just the DOM.
++    await page.evaluate(
++      () =>
++        new Promise<void>((resolve) =>
++          requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
++        ),
++    );
++    const d = await read(),
++      crew = d.renderer!.gridPerformance!;
++    expect(d.frame).toEqual(before);
++    expect(d.workerPause.paused).toBe(true);
++    expect(d.gridPresentation.playing).toBe(false);
++    expect(crew.actors).toBeGreaterThan(0);
++    if (!baseline) {
++      expect(crew.asset).toBe(CREW_PERFORMANCE.runtimeSHA256);
++      expect(CREW_PERFORMANCE.actions).toContain(crew.authoredAction);
++    }
++    for (const c of crew.contacts) {
++      expect(c.arms).toBe(true);
++      expect(c.feet).toBe(true);
++      expect(c.gripError).toBeLessThan(0.001);
++    }
++    observations.push({ time, crew, renderer: d.renderer });
++    await capture(page, info, `crew-${baseline ? 'before' : 'after'}-medium-${time}.png`);
++  }
++  await info.attach('crew-medium-observations.json', {
++    body: JSON.stringify({ baseline, quality: 'medium', observations }),
++    contentType: 'application/json',
++  });
++  await page.getByRole('button', { name: 'BACK TO GRID MENU', exact: true }).click();
++  await expect.poll(async () => (await read()).state).toBe('paused');
++  expect((await read()).frame).toEqual(before);
++  expect(errors).toEqual([]);
++});
+--- a/docs/A41_A42_CREW.md
++++ b/docs/A41_A42_CREW.md
+@@ -66,9 +66,14 @@
+ - Existing grid and people tests retain fixed supporting feet, reachable limbs,
+   glove/cuff contacts, unchanged frames, actual simulated pit stops and replay.
+   Their skin readback now includes all four influences, matching the GPU.
+-- `e2e/54-authored-crew.spec.ts`: video of uninterrupted 12-car preparation,
+-  clock-controlled poses, immutable physics and start handover. Baseline mode
+-  uses the same cameras and controls without requiring new diagnostics.
++- `e2e/54-authored-crew.spec.ts`: uninterrupted 12-car preparation at Low,
++  plus a separate 12-car Medium pose/shadow survey. Both retain immutable
++  physics and real controls; the continuous run also checks race handover.
++  The first Medium continuous attempt advanced at roughly 0.03 presentation
++  seconds per wall second on llvmpipe and exceeded its checkpoint deadline;
++  that failure is not attributed to a stopped clock or fixed by skipping actions.
++  No game timing or physical state is changed for the evidence. Baseline and
++  candidate use matching settings in both surveys.
+ - The populated-pit journey in `e2e/28-race-pit-presentation.spec.ts` verifies the
+   new shared kit and gun action in an actual recorded tyre service, including
+   rewind. No simulation snapshots are injected to manufacture a stop.

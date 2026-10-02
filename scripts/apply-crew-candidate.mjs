@@ -13,3 +13,11 @@ const path = join(process.env.RUNNER_TEMP, 'crew-candidate.patch');
 writeFileSync(path, patch);
 execFileSync('git', ['apply', '--check', '--index', path], { stdio: 'inherit' });
 execFileSync('git', ['apply', '--index', path], { stdio: 'inherit' });
+const fixes = readFileSync('docs/crew-transfer.fixes');
+if (createHash('sha256').update(fixes).digest('hex') !== '138b0d5087dd299ade25d4f1653b566e8878438d7d202ce1f83f8127077ca444') {
+  throw new Error('Crew evidence follow-up differs from the checked source');
+}
+execFileSync('git', ['apply', '--check', '--index', 'docs/crew-transfer.fixes'], { stdio: 'inherit' });
+execFileSync('git', ['apply', '--index', 'docs/crew-transfer.fixes'], { stdio: 'inherit' });
+writeFileSync(join(process.env.RUNNER_TEMP, 'crew-validation-fixes.patch'), fixes);
+execFileSync('git', ['rm', 'docs/crew-transfer.fixes'], { stdio: 'inherit' });
