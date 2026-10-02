@@ -1,3 +1,4 @@
+import { CREW_PERFORMANCE } from '../src/rendering/crew-performance.ts';
 import { finishRaceEntry } from './race-entry.ts';
 import { expect, test, type Page, type TestInfo } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
@@ -89,7 +90,7 @@ async function start(
       exact: true,
     })
     .click();
-    if (!holdOnGrid) await finishRaceEntry(page);
+  if (!holdOnGrid) await finishRaceEntry(page);
   await expect
     .poll(async () => (await read(page)).state, { timeout: 90000 })
     .toBe(holdOnGrid ? 'paused' : 'driving');
@@ -435,6 +436,13 @@ test('27H.6 populated pit journey: approach, real service, exit and complete rep
   await expect.poll(async () => (await read(page)).renderer?.pitPersonnel.actors).toBe(15);
   await expect.poll(async () => (await read(page)).renderer?.broadcastFramingFits).toBe(true);
   const service = await read(page);
+  if (process.env.CREW_BASELINE !== '1') {
+    expect(service.renderer!.pitPersonnel.crewAsset).toBe(CREW_PERFORMANCE.runtimeSHA256);
+    expect(service.renderer!.pitPersonnel.authoredGunAction).toBe('gun_service');
+    expect(service.renderer!.pitPersonnel.unreachableArms).toBe(0);
+    expect(service.renderer!.pitPersonnel.maxWristError).toBeLessThan(1e-5);
+    expect(service.renderer!.pitPersonnel.maxGripError).toBeLessThan(1e-5);
+  }
   expect(service.renderer?.raceComposition.kind).toBe('pit');
   expect(service.renderer!.broadcastSubjectRadius).toBeCloseTo(PIT_SERVICE_RADIUS, 6);
   // Read the lens actually used for this recorded service, not only a geometric

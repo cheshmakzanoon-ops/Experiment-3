@@ -1,3 +1,10 @@
+## A41/A42 crew and authored actions
+
+Grid and pit mechanics share a refined garment, helmet and glove kit. Nine
+editable Blender actions feed the retained contact-aware renderer; the wheel-gun
+performance follows the actual pit-service clock. Supplied player assets and
+physics are unchanged. [Scope and verification](docs/A41_A42_CREW.md).
+
 ## A61 rival exterior refinement
 
 Opponents use three separately verified Blender exports of the retained APX

@@ -13,6 +13,14 @@ export const CREW_FOREARM = 0.34;
 export const CREW_THIGH = 0.42;
 export const CREW_SHIN = Math.hypot(0.405, 0.035);
 
+export interface CrewPoseStyle {
+  pelvis: T.Vector3;
+  torso: T.Quaternion;
+  head: T.Quaternion;
+  arms: readonly [T.Vector3, T.Vector3];
+  legs: readonly [T.Vector3, T.Vector3];
+}
+
 /** Reusable analytic two-bone solver. Its actual bone transforms, not a second
  * diagnostic-only skeleton, drive the authored cloth in colour and shadow. */
 export class CrewPose {
@@ -64,6 +72,8 @@ export class CrewPose {
     hands: readonly T.Vector3[],
     footSpread = 0.15,
     feet?: readonly T.Vector3[],
+    style?: CrewPoseStyle,
+    buildMatrices = true,
   ) {
     if (
       hands.length !== 2 ||
@@ -77,17 +87,19 @@ export class CrewPose {
       throw new Error('Invalid crew pose');
     this.root.copy(root);
     this.inverse.copy(root).invert();
-    this.joints[0].set(0, hipHeight, 0);
+    this.joints[0].set(style?.pelvis.x ?? 0, hipHeight, style?.pelvis.z ?? 0);
     this.rotations[0].identity();
     this.joints[1].copy(this.joints[0]);
-    this.rotations[1].setFromAxisAngle(X, lean);
+    if (style) this.rotations[1].copy(style.torso);
+    else this.rotations[1].setFromAxisAngle(X, lean);
     for (const bone of [2, 3, 6])
       this.joints[bone]
         .copy(CREW_REST[bone])
         .sub(CREW_REST[0])
         .applyQuaternion(this.rotations[1])
         .add(this.joints[0]);
-    this.rotations[2].setFromAxisAngle(X, lean * 0.25);
+    if (style) this.rotations[2].copy(style.head);
+    else this.rotations[2].setFromAxisAngle(X, lean * 0.25);
     for (let side = 0; side < 2; side++) {
       const arm = side === 0 ? 3 : 6;
       this.joints[arm + 2].copy(hands[side]).applyMatrix4(this.inverse);
@@ -96,7 +108,7 @@ export class CrewPose {
         this.joints[arm + 2],
         CREW_UPPER_ARM,
         CREW_FOREARM,
-        armPole[side],
+        style?.arms[side] ?? armPole[side],
         this.joints[arm + 1],
       );
       this.aim(arm, this.joints[arm + 1]);
@@ -104,7 +116,7 @@ export class CrewPose {
       this.rotations[arm + 2].copy(this.rotations[arm + 1]);
       const leg = side === 0 ? 9 : 12,
         sign = side === 0 ? -1 : 1;
-      this.joints[leg].set(sign * 0.092, hipHeight, 0);
+      this.joints[leg].copy(this.joints[0]).addScaledVector(X, sign * 0.092);
       if (feet) this.joints[leg + 2].copy(feet[side]).applyMatrix4(this.inverse);
       else this.joints[leg + 2].set(sign * 0.14, 0.055, footSpread + 0.035);
       this.target.copy(this.joints[leg + 2]);
@@ -113,17 +125,20 @@ export class CrewPose {
         this.target,
         CREW_THIGH,
         CREW_SHIN,
-        legPole,
+        style?.legs[side] ?? legPole,
         this.joints[leg + 1],
       );
       this.aim(leg, this.joints[leg + 1]);
       this.aim(leg + 1, this.joints[leg + 2], this.shinRest);
       this.rotations[leg + 2].identity(); // planted soles, independent of the shin bend
     }
-    for (let i = 0; i < CREW_BONES; i++) {
-      this.restInverse.makeTranslation(-CREW_REST[i].x, -CREW_REST[i].y, -CREW_REST[i].z);
-      this.matrices[i].compose(this.joints[i], this.rotations[i], UNIT).multiply(this.restInverse);
-    }
+    if (buildMatrices)
+      for (let i = 0; i < CREW_BONES; i++) {
+        this.restInverse.makeTranslation(-CREW_REST[i].x, -CREW_REST[i].y, -CREW_REST[i].z);
+        this.matrices[i]
+          .compose(this.joints[i], this.rotations[i], UNIT)
+          .multiply(this.restInverse);
+      }
     return this;
   }
   write(array: Float32Array, actor: number) {
@@ -139,7 +154,7 @@ export class CrewPose {
 }
 
 /** GPU instance skinning: four texels per bone, one 60-texel row per actor. Two
- * normalized influences are guaranteed by the authored asset contract. */
+ * normalized influences remain supported; the refined kit uses up to four. */
 export function installCrewSkin(
   material: T.Material,
   bones: T.DataTexture,
@@ -170,7 +185,7 @@ mat4 crewBone(float joint) {
 ` + shader.vertexShader;
     shader.vertexShader = shader.vertexShader.replace(
       'void main() {',
-      'void main() {\nmat4 crewTransform = crewBone(crewJoint.x)*crewWeight.x + crewBone(crewJoint.y)*crewWeight.y;',
+      'void main() {\nmat4 crewTransform = crewBone(crewJoint.x)*crewWeight.x + crewBone(crewJoint.y)*crewWeight.y;\nif (crewWeight.z > 0.) crewTransform += crewBone(crewJoint.z)*crewWeight.z;\nif (crewWeight.w > 0.) crewTransform += crewBone(crewJoint.w)*crewWeight.w;',
     );
     shader.vertexShader = shader.vertexShader.replace(
       '#include <beginnormal_vertex>',
@@ -197,6 +212,6 @@ roughnessFactor = mix(.58,.88+sin(weave)*resolved*.035,vCrewCloth);`,
       );
     }
   };
-  material.customProgramCacheKey = () => `aurel-authored-instance-skin-v2-tailoring-${colour}`;
+  material.customProgramCacheKey = () => `aurel-authored-instance-skin-v3-four-weight-${colour}`;
   return material;
 }

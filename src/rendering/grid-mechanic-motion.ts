@@ -43,6 +43,7 @@ export function gridBlanketPoint(u: number, angle: number, fold: number, out: T.
 
 export interface GridMechanicMotion {
   time: number;
+  distancePhase: number;
   visible: boolean;
   phase:
     | 'standby'
@@ -69,6 +70,7 @@ export interface GridMechanicMotion {
 export function gridMechanicMotion(): GridMechanicMotion {
   return {
     time: 0,
+    distancePhase: 0,
     visible: true,
     phase: 'standby',
     position: new T.Vector3(),
@@ -127,6 +129,16 @@ export function poseGridMechanic(
     (between(t, start + foot * 0.75, start + 0.75 + foot * 0.75) +
       between(t, start + 1.5 + foot * 0.75, start + 2.25 + foot * 0.75));
   out.time = t;
+  const stridePhase = (distance: number, length: number) =>
+    distance / ((2 * length) / Math.max(2, Math.ceil(length / 0.24)));
+  out.distancePhase =
+    t < 7
+      ? stridePhase(0.9 * approach, 0.9)
+      : t >= 20 && t < 23
+        ? stridePhase(longTravel, length1)
+        : t >= 26
+          ? stridePhase(sideTravel, length2)
+          : 0;
   out.phase =
     t < 4
       ? 'standby'

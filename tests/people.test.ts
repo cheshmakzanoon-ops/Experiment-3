@@ -237,7 +237,7 @@ describe('27H.3 real service-state rig and prop contacts', () => {
             weights = g.getAttribute('crewWeight');
           for (let vertex = 0; vertex < pos.count; vertex++) {
             posed.set(0, 0, 0);
-            for (let influence = 0; influence < 2; influence++) {
+            for (let influence = 0; influence < 4; influence++) {
               bone.fromArray(
                 data,
                 (slots.getX(actor) * CREW_BONES + joints.getComponent(vertex, influence)) * 16,

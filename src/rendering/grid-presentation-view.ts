@@ -1,9 +1,14 @@
+import {
+  crewPerformanceGeometry,
+  CrewPerformanceSampler,
+  CREW_PERFORMANCE,
+} from './crew-performance.ts';
 import { GRID_PRESENTATION_SECONDS } from '../core/grid-presentation.ts';
 import * as T from 'three';
 import { gridMechanicGeometry } from './grid-mechanic-asset.ts';
 import { F, H, W, WHEEL_BASE, WHEEL_STRIDE, carBase } from '../simulation/protocol.ts';
 import { WHEEL_POSITIONS } from '../simulation/vehicle.ts';
-import { CREW_BONES, peopleGeometry, leftCrewGloveGeometry } from './people-asset.ts';
+import { CREW_BONES } from './people-asset.ts';
 import { CrewPose, installCrewSkin } from './crew-pose.ts';
 import { installCrewHelmetFinish, CREW_KIT_COLOURS } from './crew-geometry.ts';
 import { CUFF } from './pit-crew.ts';
@@ -134,12 +139,12 @@ export class GridPresentationView {
     T.DynamicDrawUsage,
   );
   private readonly pose = new CrewPose();
+  private readonly performance = new CrewPerformanceSampler();
   private readonly motion = gridMechanicMotion();
   private readonly actor = new T.Object3D();
   private readonly car = new T.Object3D();
   private readonly part = new T.Object3D();
   private readonly matrix = new T.Matrix4();
-  private readonly basis = new T.Matrix4();
   private readonly hub = new T.Vector3();
   private readonly parkCamera = new T.Vector3();
   private readonly hands = [new T.Vector3(), new T.Vector3()];
@@ -147,10 +152,12 @@ export class GridPresentationView {
   private readonly handRotations = [new T.Quaternion(), new T.Quaternion()];
   private readonly gripDelta = new T.Vector3();
   private readonly feet = [new T.Vector3(), new T.Vector3()];
-  private readonly fingers = new T.Vector3();
-  private readonly palm = new T.Vector3();
-  private readonly side = new T.Vector3();
   private readonly head = new T.Quaternion();
+  private readonly gloveBind = [-1, 1].map((sign) =>
+    new T.Quaternion()
+      .setFromAxisAngle(new T.Vector3(1, 0, 0), Math.PI)
+      .multiply(new T.Quaternion().setFromAxisAngle(new T.Vector3(0, 1, 0), (sign * Math.PI) / 2)),
+  );
   private actors = 0;
   private parked = false;
   private phase = 'inactive';
@@ -167,8 +174,8 @@ export class GridPresentationView {
     this.bones.minFilter = this.bones.magFilter = T.NearestFilter;
     this.bones.name = 'Grid presentation bone atlas';
     this.bones.needsUpdate = true;
-    this.cloth = (['crew_high', 'crew_mid'] as const).map((role, i) => {
-      const geometry = i === 0 ? gridMechanicGeometry() : peopleGeometry(role);
+    this.cloth = (['suit_near', 'suit_mid'] as const).map((role, i) => {
+      const geometry = i === 0 ? gridMechanicGeometry() : crewPerformanceGeometry(role);
       geometry.setAttribute('crewSlot', this.slots[i]);
       const material = new T.MeshStandardMaterial({
         color: 0xffffff,
@@ -193,9 +200,12 @@ export class GridPresentationView {
         new T.MeshStandardMaterial({ color: 0xffffff, vertexColors: true, roughness }),
         ACTORS,
       );
-    this.helmets = batch(peopleGeometry('helmet'), 0.35);
+    this.helmets = batch(crewPerformanceGeometry('helmet'), 0.35);
     installCrewHelmetFinish(this.helmets.material as T.MeshStandardMaterial);
-    this.gloves = [batch(leftCrewGloveGeometry(), 0.82), batch(peopleGeometry('glove'), 0.82)];
+    this.gloves = [
+      batch(crewPerformanceGeometry('glove', true), 0.82),
+      batch(crewPerformanceGeometry('glove'), 0.82),
+    ];
     const blanket = gridBlanketGeometry();
     blanket.setAttribute('gridFold', this.folds);
     const textile = new T.MeshStandardMaterial({
@@ -284,6 +294,8 @@ export class GridPresentationView {
           id,
           (Math.sign(frame[base + F.LATERAL]) || -1) * 9.5 - frame[base + F.LATERAL],
         );
+        this.performance.grid(m.time, m.distancePhase);
+        const hip = Math.min(m.hip, this.performance.joints[0].y);
         this.phase = m.phase;
         if (!m.visible) continue;
         const side = Math.sign(x),
@@ -305,7 +317,7 @@ export class GridPresentationView {
           this.feet[hand].copy(m.feet[hand]).applyMatrix4(this.actor.matrix);
           if (m.grip < 1) {
             const idle = this.part.position
-              .set(hand === 0 ? -0.21 : 0.21, 0.79, 0.07)
+              .copy(this.performance.joints[hand === 0 ? 5 : 8])
               .applyMatrix4(this.actor.matrix);
             this.hands[hand].lerp(idle, 1 - m.grip);
           }
@@ -314,8 +326,18 @@ export class GridPresentationView {
         // Iterate the forearm orientation to keep the cuff and fingers on both
         // constraints without scaling bones or detaching the glove.
         for (let hand = 0; hand < 2; hand++) this.wrists[hand].copy(this.hands[hand]);
-        for (let iteration = 0; iteration < 12; iteration++) {
-          this.pose.set(this.actor.matrix, m.hip, m.lean, this.wrists, 0.15, this.feet);
+        for (let iteration = 0; iteration < 32; iteration++) {
+          this.pose.set(
+            this.actor.matrix,
+            hip,
+            m.lean,
+            this.wrists,
+            0.15,
+            this.feet,
+            this.performance.style,
+            false,
+          );
+          let correction = 0;
           for (let hand = 0; hand < 2; hand++) {
             this.gloveOrientation(hand, this.handRotations[hand]);
             this.gripDelta
@@ -325,10 +347,21 @@ export class GridPresentationView {
             this.gripDelta
               .transformDirection(this.actor.matrix)
               .multiplyScalar(GRID_GLOVE_GRIP.distanceTo(CUFF));
-            this.wrists[hand].copy(this.hands[hand]).sub(this.gripDelta);
+            this.gripDelta.sub(this.hands[hand]).negate();
+            correction = Math.max(correction, this.wrists[hand].distanceToSquared(this.gripDelta));
+            this.wrists[hand].lerp(this.gripDelta, 0.5);
           }
+          if (correction < 1e-12) break;
         }
-        this.pose.set(this.actor.matrix, m.hip, m.lean, this.wrists, 0.15, this.feet);
+        this.pose.set(
+          this.actor.matrix,
+          hip,
+          m.lean,
+          this.wrists,
+          0.15,
+          this.feet,
+          this.performance.style,
+        );
         this.pose.write(this.boneData, this.actors);
         const tier = id === 0 ? 0 : 1,
           body = this.cloth[tier];
@@ -374,17 +407,16 @@ export class GridPresentationView {
     this.folds.needsUpdate = true;
   }
   private gloveOrientation(hand: number, out: T.Quaternion) {
-    const elbow = this.pose.joints[hand === 0 ? 4 : 7],
-      wrist = this.pose.joints[hand === 0 ? 5 : 8];
-    this.fingers.copy(wrist).sub(elbow).normalize();
-    this.palm.set(hand === 0 ? 1 : -1, 0, 0);
-    this.palm.addScaledVector(this.fingers, -this.palm.dot(this.fingers)).normalize();
-    this.side.crossVectors(this.fingers, this.palm);
-    this.basis.makeBasis(this.side, this.fingers, this.palm);
-    return out.setFromRotationMatrix(this.basis);
+    // Transport the bind wrist frame with the forearm rotation. Projecting a
+    // fixed palm axis perpendicular to the arm becomes singular when they align
+    // (for example while rising with a blanket); bind-frame transport does not.
+    return out.copy(this.pose.rotations[hand === 0 ? 4 : 7]).multiply(this.gloveBind[hand]);
   }
+
   diagnostics() {
     return {
+      asset: CREW_PERFORMANCE.runtimeSHA256,
+      authoredAction: this.performance.action,
       phase: this.phase,
       parked: this.parked,
       actors: this.actors,

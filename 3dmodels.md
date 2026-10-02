@@ -20,6 +20,7 @@ Priority:
 
 | Asset | Integrated scope | Remaining acceptance |
 |---|---|---|
+| A41/A42 | Shared near/middle mechanic suit, helmet/gloves and nine editable actions; grid routine and one authored wheel-gun role. | Final human art/hardware approval, other pit-role clips and crowd/marshal refinement remain open. See [crew notes](docs/A41_A42_CREW.md). |
 | A21 | Four architectural frontage sections across all twelve existing bays, three LODs per section, 43 placement sockets and retained Blender/GLB source. | Final art, driven-lap and hardware approval remain open; neighboring equipment and cockpit repair remain separate. See [A21 notes](docs/A21_HERO_PIT_BUILDING.md). |
 | A22 | One working garage, bay 05; retained Blender source, GLB and three LODs. | Final art review, cockpit repair and further environmental refinement remain. See [A22 notes](docs/A22_HERO_GARAGE.md). |
 | A24 | One four-position pit-wall station, eight snapshot-driven screens, three LODs and 17 future interaction sockets. | Characters, collision/safety-wall behavior and final art/hardware approval remain separate. See [A24 notes](docs/A24_PIT_WALL_STATION.md). |

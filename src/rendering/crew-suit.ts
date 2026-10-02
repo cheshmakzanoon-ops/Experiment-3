@@ -10,10 +10,10 @@ varying vec2 vCrewRegion;
 export const crewSuitVertex = `
 vCrewCloth = crewCloth;
 vCrewPattern = position;
-vec2 crewIndices = crewJoint.xy;
+vec4 crewIndices = crewJoint;
 vCrewRegion = vec2(
-  dot(crewWeight.xy, vec2(1.) - step(vec2(2.5), crewIndices)),
-  dot(crewWeight.xy, step(vec2(2.5), crewIndices) * (vec2(1.) - step(vec2(8.5), crewIndices)))
+  dot(crewWeight, vec4(1.) - step(vec4(2.5), crewIndices)),
+  dot(crewWeight, step(vec4(2.5), crewIndices) * (vec4(1.) - step(vec4(8.5), crewIndices)))
 );
 `;
 

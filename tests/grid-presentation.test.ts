@@ -148,20 +148,20 @@ it('uses identical wrap/gather vertices in colour and both shadow programs', () 
   g.dispose();
 });
 
-it('retains bounded authored hero topology, UVs and normalized two-bone skin weights', async () => {
+it('retains bounded authored hero topology, UVs and normalized four-influence skin weights', async () => {
   const { gridMechanicGeometry, GRID_MECHANIC_ASSET } = await import(
     '../src/rendering/grid-mechanic-asset.ts'
   );
   const g = gridMechanicGeometry();
-  expect(g.index!.count / 3).toBe(9168);
+  expect(g.index!.count / 3).toBe(GRID_MECHANIC_ASSET.triangles.suit_near);
+  expect(g.index!.count / 3).toBeLessThan(14000);
   expect(GRID_MECHANIC_ASSET.finalArtApproved).toBe(false);
   expect(g.getAttribute('uv').count).toBe(g.getAttribute('position').count);
   const joint = g.getAttribute('crewJoint'),
     weight = g.getAttribute('crewWeight'),
     normal = g.getAttribute('normal');
   for (let i = 0; i < joint.count; i++) {
-    expect(weight.getX(i) + weight.getY(i)).toBeCloseTo(1, 5);
-    expect(weight.getZ(i) + weight.getW(i)).toBe(0);
+    expect(weight.getX(i) + weight.getY(i) + weight.getZ(i) + weight.getW(i)).toBeCloseTo(1, 5);
     expect(joint.getX(i)).toBeLessThan(15);
     expect(joint.getY(i)).toBeLessThan(15);
     expect(new T.Vector3().fromBufferAttribute(normal, i).length()).toBeCloseTo(1, 4);

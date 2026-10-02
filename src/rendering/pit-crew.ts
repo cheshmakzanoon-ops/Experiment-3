@@ -1,3 +1,8 @@
+import {
+  crewPerformanceGeometry,
+  CrewPerformanceSampler,
+  CREW_PERFORMANCE,
+} from './crew-performance.ts';
 import { type PitJackBatches } from './a32-pit-jacks.ts';
 import { A32JackPose, type PitJackFits } from './a32-jack-pose.ts';
 import { type WheelGunBatches, WHEEL_GUN } from './wheel-gun.ts';
@@ -18,13 +23,7 @@ import {
   carBase,
 } from '../simulation/protocol.ts';
 import { WHEEL_POSITIONS } from '../simulation/vehicle.ts';
-import {
-  PEOPLE_ASSET,
-  CREW_BONES,
-  CREW_REST,
-  peopleGeometry,
-  leftCrewGloveGeometry,
-} from './people-asset.ts';
+import { PEOPLE_ASSET, CREW_BONES, CREW_REST, peopleGeometry } from './people-asset.ts';
 import { CREW_KIT_COLOURS, installCrewHelmetFinish } from './crew-geometry.ts';
 import { CrewPose, installCrewSkin } from './crew-pose.ts';
 
@@ -92,6 +91,7 @@ export class PitCrewView {
   private readonly batches: readonly T.InstancedMesh[];
   private readonly slots: readonly [T.InstancedBufferAttribute, T.InstancedBufferAttribute];
   private readonly pose = new CrewPose();
+  private readonly performance = new CrewPerformanceSampler();
   private readonly car = new T.Object3D();
   private readonly actor = new T.Object3D();
   private readonly prop = new T.Object3D();
@@ -142,7 +142,7 @@ export class PitCrewView {
       new T.InstancedBufferAttribute(new Float32Array(ACTORS), 1).setUsage(T.DynamicDrawUsage),
     ) as [T.InstancedBufferAttribute, T.InstancedBufferAttribute];
     const makeCloth = (role: 'crew_high' | 'crew_mid', i: 0 | 1) => {
-      const g = peopleGeometry(role);
+      const g = crewPerformanceGeometry(role === 'crew_high' ? 'suit_near' : 'suit_mid');
       g.setAttribute('crewSlot', this.slots[i]);
       const material = new T.MeshStandardMaterial({
         color: 0xffffff,
@@ -169,11 +169,11 @@ export class PitCrewView {
       return batch;
     };
     this.cloth = [makeCloth('crew_high', 0), makeCloth('crew_mid', 1)];
-    this.heads = this.batch(peopleGeometry('helmet'), ACTORS, 0.35, 0.08);
+    this.heads = this.batch(crewPerformanceGeometry('helmet'), ACTORS, 0.35, 0.08);
     installCrewHelmetFinish(this.heads.material as T.MeshStandardMaterial);
     this.gloves = [
-      this.batch(leftCrewGloveGeometry(), ACTORS, 0.85),
-      this.batch(peopleGeometry('glove'), ACTORS, 0.85),
+      this.batch(crewPerformanceGeometry('glove', true), ACTORS, 0.85),
+      this.batch(crewPerformanceGeometry('glove'), ACTORS, 0.85),
     ];
     this.guns = this.batch(peopleGeometry('wheel_gun'), MAX_PIT_CREWS * 4, 0.37, 0.55);
     this.jacks = this.batch(peopleGeometry('jack_base'), MAX_PIT_CREWS * 2, 0.4, 0.65);
@@ -332,7 +332,15 @@ export class PitCrewView {
     this.actor.rotation.set(0, yaw, 0);
     this.actor.scale.copy(UNIT);
     this.actor.updateMatrix();
-    this.pose.set(this.actor.matrix, hip, lean, this.wrists, spread);
+    this.pose.set(
+      this.actor.matrix,
+      role === 'gun' ? hip + this.performance.joints[0].y - 0.3 : hip,
+      lean,
+      this.wrists,
+      spread,
+      undefined,
+      role === 'gun' ? this.performance.style : undefined,
+    );
     this.pose.write(this.boneData, this.actorSlot);
     const cloth = this.cloth[detail];
     this.slots[detail].setX(cloth.count, this.actorSlot++);
@@ -419,6 +427,7 @@ export class PitCrewView {
       this.car.quaternion.normalize();
       this.car.updateMatrix();
       this.activeCrews++;
+      this.performance.sample('gun_service', clock);
       const floor = -0.43 - frame[o + F.JACK_HEIGHT],
         detail = this.cache.levels[id] as 0 | 1;
       const clear = phase === 5 ? smooth(3.7, 5.1, clock) * 0.44 : 0;
@@ -671,6 +680,8 @@ export class PitCrewView {
     }
     return {
       ...PEOPLE_ASSET,
+      crewAsset: CREW_PERFORMANCE.runtimeSHA256,
+      authoredGunAction: this.performance.action,
       spareWheels: this.spareWheels.diagnostics(),
       wheelGuns: this.wheelGuns?.diagnostics() ?? null,
       pitJacks: this.pitJacks?.diagnostics() ?? null,
@@ -702,6 +713,8 @@ export class PitCrewView {
       boneTextureBytes: this.boneData.byteLength,
       machineryTextureBytes: this.machinery.instanceMatrix.array.byteLength,
       counts: this.batches.map((b) => b.count),
+      crewAsset: CREW_PERFORMANCE.runtimeSHA256,
+      authoredGunAction: this.performance.action,
       roles: this.records.slice(0, this.activeActors).map((r) => ({
         ...r,
         root: [...r.root],
