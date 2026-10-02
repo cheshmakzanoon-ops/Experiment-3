@@ -1,0 +1,1664 @@
+diff --git a/src/main.ts b/src/main.ts
+index 4f11187ab8677715c547f9550f2783cb9ff03667..c3a0160dd7d26c38af587d5c24e7c2d9f2cf12af 100644
+--- a/src/main.ts
++++ b/src/main.ts
+@@ -1,3 +1,6 @@
++import { GridPresentationClock } from './core/grid-presentation.ts';
++import { GridPresentationPanel } from './ui/grid-presentation.ts';
++import './ui/grid-presentation.css';
+ import { menuPreview } from './rendering/menu-preview.ts';
+ import { shouldDrawReplay } from './rendering/replay-presentation.ts';
+ import { TabEvidence } from './ui/tab-evidence.ts';
+@@ -94,8 +97,10 @@ import { referenceRoute } from './ui/reference-routes.ts';
+ import { drivingAcademy, academyConfirmation, programmeHud } from './ui/driving-academy.ts';
+ import { PracticeProgramme } from './simulation/practice-programme.ts';
+ import type { GuideMode } from './rendering/driving-guide.ts';
+-type State = 'menu' | 'loading' | 'driving' | 'paused' | 'results' | 'replay' | 'photo';
++type State = 'menu' | 'loading' | 'driving' | 'paused' | 'results' | 'replay' | 'photo' | 'pregame';
+ export class GameApp {
++  private readonly gridClock = new GridPresentationClock();
++  private gridPanel: GridPresentationPanel | null = null;
+   private track = new Track();
+   private ui: Interface;
+   private photoStudio: PhotoStudio;
+@@ -397,6 +402,13 @@ export class GameApp {
+   }
+   private async start(options: SessionOptions, programme = false, holdOnGrid = false) {
+     if (this.state === 'loading' && this.worker) return;
++    this.gridClock.reset();
++    this.gridPanel?.hide();
++    this.ui.gridPresentationAvailable = false;
++    if (this.renderer) {
++      this.renderer.gridPresentationTime = null;
++      this.renderer.gridPrepared = false;
++    }
+     if (programme) this.programme.start();
+     else this.programme.stop();
+     this.renderer?.setPhoto(null);
+@@ -794,6 +806,11 @@ export class GameApp {
+       b = this.frozenPhoto;
+       alpha = 0;
+     }
++    if (this.state === 'pregame') {
++      this.gridClock.advance(wallDelta, !document.hidden);
++      this.renderer.gridPresentationTime = this.gridClock.time;
++      this.gridPanel?.update(this.gridClock);
++    }
+     this.presentGhost(a, b, alpha);
+     this.renderer.draw(
+       a,
+@@ -941,6 +958,10 @@ export class GameApp {
+     }
+   };
+   private suspendPlayback() {
++    if (this.state === 'pregame') {
++      this.gridClock.pause();
++      this.gridPanel?.update(this.gridClock);
++    }
+     this.referenceSession.interrupt('Playback suspended.');
+     if (this.state === 'driving') this.pause();
+     else if (this.state === 'replay') {
+@@ -1150,12 +1171,73 @@ export class GameApp {
+     this.audio.stop();
+     if (document.pointerLockElement) document.exitPointerLock();
+     this.ui.showMode('paused');
++    this.ui.gridPresentationAvailable =
++      !!this.current && this.current[H.TICK] === 0 && racingSession(this.options.mode);
+     this.ui.pause();
+   }
++  private beginGridPresentation() {
++    if (
++      this.state !== 'paused' ||
++      !this.current ||
++      this.current[H.TICK] !== 0 ||
++      !racingSession(this.options.mode) ||
++      !this.renderer
++    )
++      return;
++    this.ui.closeModal();
++    this.ui.telemetryModal.close();
++    this.state = 'pregame';
++    this.input.setEnabled(false);
++    this.post({ type: 'pause', value: true });
++    this.audio.stop();
++    this.gridClock.reset();
++    this.renderer.gridPresentationTime = 0;
++    this.renderer.gridPrepared = false;
++    this.renderer.gridReducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
++    this.renderer.reset();
++    this.gridPanel ??= new GridPresentationPanel(this.ui.element, {
++      toggle: () => {
++        if (this.state !== 'pregame') return;
++        if (this.gridClock.complete) this.gridClock.reset();
++        if (this.gridClock.playing) this.gridClock.pause();
++        else this.gridClock.play();
++        this.gridPanel?.update(this.gridClock);
++      },
++      seek: (time) => {
++        if (this.state === 'pregame') {
++          this.gridClock.seek(time);
++          this.gridPanel?.update(this.gridClock);
++        }
++      },
++      start: () => this.endGridPresentation(true),
++      back: () => this.endGridPresentation(false),
++    });
++    this.ui.showMode('pregame');
++    this.gridPanel.show(
++      this.track.circuit.name,
++      `${this.options.laps} LAPS / ${this.options.opponents + 1} CARS / ${this.options.weather.toUpperCase()} / ${this.options.compound.toUpperCase()}`,
++    );
++    this.gridPanel.update(this.gridClock);
++  }
++  private endGridPresentation(startRace: boolean) {
++    if (this.state !== 'pregame' || !this.renderer) return;
++    this.gridClock.pause();
++    this.gridPanel?.hide();
++    this.renderer.gridPresentationTime = null;
++    // Prevent the legacy 1.8-second staff and blankets from reappearing after
++    // they have already been carried away. No worker snapshot is edited.
++    this.renderer.gridPrepared = startRace;
++    this.renderer.reset();
++    this.state = 'paused';
++    this.ui.showMode('paused');
++    if (startRace) this.resume();
++    else this.ui.pause();
++  }
+   private resume() {
+     if (this.state !== 'paused' || this.ui.telemetryModal.open) return;
+     this.ui.closeModal();
+     this.state = 'driving';
++    this.ui.gridPresentationAvailable = false;
+     this.ui.showMode('driving');
+     // Retain the real paused grid snapshot before the worker is released.
+     // A slow first rendered frame must not erase the start-light phase.
+@@ -1293,6 +1375,20 @@ export class GameApp {
+     this.ui.toast(`Reference ${String(id).padStart(3, '0')}: ${route.instruction}`);
+   }
+   private action(name: string) {
++    if (this.state === 'pregame') {
++      if (name === 'pause' || name === 'blur' || name === 'deviceLost') {
++        this.gridClock.pause();
++        this.gridPanel?.update(this.gridClock);
++      } else if (name === 'menu') {
++        this.endGridPresentation(false);
++        this.action('menu');
++      }
++      return;
++    }
++    if (name === 'gridPresentation') {
++      this.beginGridPresentation();
++      return;
++    }
+     // Modal-owned GPU scenes never outlive a navigation or native Escape.
+     this.mediaView?.dispose();
+     this.mediaView = null;
+@@ -1942,6 +2038,11 @@ export class GameApp {
+   diagnostics(visual = false) {
+     return {
+       state: this.state,
++      gridPresentation: {
++        time: this.gridClock.time,
++        playing: this.gridClock.playing,
++        complete: this.gridClock.complete,
++      },
+       workerPause: this.workerPause.status(),
+       team: structuredClone(this.team),
+       photoTime: this.frozenPhoto?.[H.TIME] ?? null,
+diff --git a/src/rendering/crew-pose.ts b/src/rendering/crew-pose.ts
+index 3d41b0e0906bc1bc30b452be916a4a15e100e066..1fafa8e22555a9b10c71170ce41cc1979f4bd4b6 100644
+--- a/src/rendering/crew-pose.ts
++++ b/src/rendering/crew-pose.ts
+@@ -20,6 +20,7 @@ export class CrewPose {
+   readonly rotations = Array.from({ length: CREW_BONES }, () => new T.Quaternion());
+   readonly matrices = Array.from({ length: CREW_BONES }, () => new T.Matrix4());
+   readonly reachable = [true, true];
++  readonly feetReachable = [true, true];
+   readonly root = new T.Matrix4();
+   private inverse = new T.Matrix4();
+   private delta = new T.Vector3();
+@@ -62,9 +63,12 @@ export class CrewPose {
+     lean: number,
+     hands: readonly T.Vector3[],
+     footSpread = 0.15,
++    feet?: readonly T.Vector3[],
+   ) {
+     if (
+       hands.length !== 2 ||
++      (feet !== undefined &&
++        (feet.length !== 2 || !feet.every((foot) => Number.isFinite(foot.x + foot.y + foot.z)))) ||
+       !Number.isFinite(hipHeight + lean + footSpread) ||
+       !root.elements.every(Number.isFinite) ||
+       Math.abs(root.determinant()) < 1e-8 ||
+@@ -101,9 +105,10 @@ export class CrewPose {
+       const leg = side === 0 ? 9 : 12,
+         sign = side === 0 ? -1 : 1;
+       this.joints[leg].set(sign * 0.092, hipHeight, 0);
+-      this.joints[leg + 2].set(sign * 0.14, 0.055, footSpread + 0.035);
++      if (feet) this.joints[leg + 2].copy(feet[side]).applyMatrix4(this.inverse);
++      else this.joints[leg + 2].set(sign * 0.14, 0.055, footSpread + 0.035);
+       this.target.copy(this.joints[leg + 2]);
+-      this.bend(
++      this.feetReachable[side] = this.bend(
+         this.joints[leg],
+         this.target,
+         CREW_THIGH,
+diff --git a/src/rendering/renderer.ts b/src/rendering/renderer.ts
+index 023f6386cfd4dda1835e76fe0ec0bb2eec58bc94..3f01c22707323763e5a4ab5cf24f1a7e764d22b2 100644
+--- a/src/rendering/renderer.ts
++++ b/src/rendering/renderer.ts
+@@ -1,3 +1,5 @@
++import { GridPresentationView } from './grid-presentation-view.ts';
++import { gridPresentationCamera } from './grid-mechanic-motion.ts';
+ import { cockpitEye, cockpitDirection, COCKPIT_FRAMING } from './cockpit-framing.ts';
+ import { loadPitJacks } from './a32-pit-jacks.ts';
+ import { measurePitJackFits } from './a32-jack-contact.ts';
+@@ -142,6 +144,10 @@ export class RacingRenderer {
+   readonly debris = new DebrisView();
+   readonly pitCrew = new PitCrewView();
+   readonly gridPreparation = new GridPreparationView();
++  readonly gridPerformance = new GridPresentationView();
++  gridPresentationTime: number | null = null;
++  gridReducedMotion = false;
++  gridPrepared = false;
+   readonly photoStage = new PhotoStage();
+   private headquarters: HeadquartersStage | null = null;
+   private scenePresentation = new ScenePresentationScope(this.scene);
+@@ -279,6 +285,7 @@ export class RacingRenderer {
+     this.scene.add(
+       this.guide.mesh,
+       this.gridPreparation.root,
++      this.gridPerformance.root,
+       this.photoStage.root,
+       this.venueLighting.root,
+     );
+@@ -766,8 +773,12 @@ export class RacingRenderer {
+     replay = false,
+     wallDelta = dt,
+   ) {
+-    const cameraMode: CameraMode =
+-      this.photo && this.photo.view !== 'orbit' ? this.photo.view : this.mode;
++    const pregame = this.gridPresentationTime !== null && this.gridPresentationTime !== undefined;
++    const cameraMode: CameraMode = pregame
++      ? 'chase'
++      : this.photo && this.photo.view !== 'orbit'
++        ? this.photo.view
++        : this.mode;
+     const start = performance.now();
+     dt = clamp(dt, 1 / 300, 0.08);
+     this.frameMs = this.frameMs * 0.95 + wallDelta * 1000 * 0.05;
+@@ -848,7 +859,16 @@ export class RacingRenderer {
+     );
+     this.target.copy(car.root.position);
+     this.direction.set(0, 0, 1).applyQuaternion(car.root.quaternion);
+-    if (this.photo?.view === 'orbit') {
++    if (pregame) {
++      this.camera.fov = gridPresentationCamera(
++        this.gridPresentationTime!,
++        this.gridReducedMotion,
++        this.desired,
++        this.gaze,
++      );
++      this.desired.applyQuaternion(car.root.quaternion).add(car.root.position);
++      this.gaze.applyQuaternion(car.root.quaternion).add(car.root.position);
++    } else if (this.photo?.view === 'orbit') {
+       const offset = photoOffset(this.photo);
+       // Read actual articulated world transforms after this snapshot's car update.
+       // A close helmet photograph must orbit the helmet, not the chassis centre.
+@@ -946,7 +966,7 @@ export class RacingRenderer {
+             ? CHASE.fov + Math.min(CHASE.fovGain, speed * 0.06)
+             : 68 + Math.min(7, speed * 0.075);
+     }
+-    if (!this.initialized || cameraMode !== 'chase' || menu || this.photo) {
++    if (!this.initialized || cameraMode !== 'chase' || menu || this.photo || pregame) {
+       this.camera.position.copy(this.desired);
+       this.velocity.set(0, 0, 0);
+       this.initialized = true;
+@@ -1058,7 +1078,12 @@ export class RacingRenderer {
+     this.gridPreparation.update(
+       presented,
+       this.camera.position,
+-      (!menu || !!this.photo) && !studio,
++      (!menu || !!this.photo) && !studio && !pregame && !this.gridPrepared,
++    );
++    this.gridPerformance?.update(
++      presented,
++      this.camera.position,
++      pregame ? this.gridPresentationTime : null,
+     );
+     this.guide.update(presented, !menu && !this.photo, this.colorblind);
+     this.replayView = replay;
+@@ -1099,6 +1124,7 @@ export class RacingRenderer {
+           this.effects.group,
+           this.debris.mesh,
+           this.gridPreparation.root,
++          this.gridPerformance.root,
+           this.pitCrew.root,
+           this.engineeringView.group,
+         ])
+@@ -1241,6 +1267,7 @@ export class RacingRenderer {
+         this.ghost?.root,
+         this.pitCrew.root,
+         this.gridPreparation.root,
++        this.gridPerformance.root,
+         this.debris.mesh,
+         this.guide.mesh,
+         this.engineeringView.group,
+@@ -1285,6 +1312,7 @@ export class RacingRenderer {
+     const smallDetail = [
+       this.pitCrew.root,
+       this.gridPreparation.root,
++      this.gridPerformance.root,
+       this.debris.mesh,
+       this.guide.mesh,
+       this.engineeringView.group,
+@@ -1521,6 +1549,7 @@ export class RacingRenderer {
+       night: this.night,
+       guide: this.guide.diagnostics(),
+       gridPreparation: this.gridPreparation.diagnostics(),
++      gridPerformance: this.gridPerformance?.diagnostics() ?? null,
+       venueLighting: this.venueLighting.diagnostics(),
+       environmentAssets: {
+         ...this.circuit.environmentDiagnostics(),
+@@ -1628,6 +1657,7 @@ export class RacingRenderer {
+     this.circuit.wetReflection.dispose();
+     this.ghost?.dispose();
+     this.pitCrew.dispose();
++    this.gridPerformance.dispose();
+     this.reflection.dispose();
+     this.shadowProxies.dispose();
+     this.farShadow.dispose();
+diff --git a/src/ui/interface.ts b/src/ui/interface.ts
+index 7fd7339375f4cafa28d181f5778d8e87ca211b7e..7c181a80a255c0ec5b150ce122982b85b382b5c3 100644
+--- a/src/ui/interface.ts
++++ b/src/ui/interface.ts
+@@ -69,7 +69,10 @@ export function minimapFrame(track: Track) {
+     maxZ = Math.max(maxZ, p.z);
+   }
+   const fitsOriginal =
+-    125 + minX * 0.24 >= 12 && 125 + maxX * 0.24 <= 238 && 125 - maxZ * 0.23 >= 12 && 125 - minZ * 0.23 <= 228;
++    125 + minX * 0.24 >= 12 &&
++    125 + maxX * 0.24 <= 238 &&
++    125 - maxZ * 0.23 >= 12 &&
++    125 - minZ * 0.23 <= 228;
+   if (fitsOriginal) return { cx: 0, cz: 0, scale: 0.24 };
+   const scale = Math.min(220 / Math.max(1, maxX - minX), 210 / Math.max(1, maxZ - minZ));
+   return { cx: (minX + maxX) / 2, cz: (minZ + maxZ) / 2, scale };
+@@ -285,9 +288,12 @@ export class Interface {
+     clearTimeout(this.toastTimer);
+     this.toastTimer = window.setTimeout(() => (e.hidden = true), 6000);
+   }
+-  showMode(mode: 'menu' | 'driving' | 'paused' | 'results' | 'replay' | 'loading' | 'photo') {
++  showMode(
++    mode: 'menu' | 'driving' | 'paused' | 'results' | 'replay' | 'loading' | 'photo' | 'pregame',
++  ) {
+     this.menu.hidden = mode !== 'menu';
+-    this.hud.hidden = mode === 'menu' || mode === 'loading' || mode === 'photo';
++    this.hud.hidden =
++      mode === 'menu' || mode === 'loading' || mode === 'photo' || mode === 'pregame';
+     this.get('debug').hidden ||= mode === 'photo';
+     this.replayBar.hidden = mode !== 'replay';
+     this.element.dataset.mode = mode;
+@@ -437,8 +443,7 @@ export class Interface {
+     this.setText('positionField', `/ ${cars}`);
+     // Broadcast towers refresh intervals a few times a second, not every frame.
+     const racing = racingSession(this.options.mode);
+-    const refresh =
+-      frame[H.TIME] < this.towerRefresh || frame[H.TIME] - this.towerRefresh >= 0.5;
++    const refresh = frame[H.TIME] < this.towerRefresh || frame[H.TIME] - this.towerRefresh >= 0.5;
+     if (refresh) {
+       this.towerRefresh = frame[H.TIME];
+       this.setText('towerColumn', racing ? 'INTERVAL' : 'BEST LAP');
+@@ -545,9 +550,10 @@ export class Interface {
+       c.stroke();
+     }
+   }
++  gridPresentationAvailable = false;
+   pause() {
+     this.modalContent(
+-      `<span class="eyebrow">SESSION SUSPENDED</span><h2>Hold your line.</h2><p>Simulation and race time are paused.</p><div class="dialog-buttons"><button class="primary" data-action="resume">RESUME SESSION</button><button data-action="settings">GARAGE & SETTINGS</button><button data-action="camera">CHANGE CAMERA</button><button data-action="autopilot">TOGGLE AI DEMONSTRATION</button><button data-action="replay">WATCH REPLAY</button><button data-action="photo">PHOTO STUDIO</button><button data-action="academy">ACADEMY</button><button data-action="team">TEAM HQ</button><button data-action="performance">PERFORMANCE CAPTURE</button><button data-action="visualReview">FULL-LAP VISUAL REVIEW</button><button data-action="sessionReview">SESSION 146 EVIDENCE</button><button data-action="restart">RESTART SESSION</button><button data-action="menu">RETURN TO PADDOCK</button></div>`,
++      `<span class="eyebrow">SESSION SUSPENDED</span><h2>Hold your line.</h2><p>Simulation and race time are paused.</p><div class="dialog-buttons"><button class="primary" data-action="resume">RESUME SESSION</button>${this.gridPresentationAvailable ? '<button data-action="gridPresentation">PRE-RACE PRESENTATION</button>' : ''}<button data-action="settings">GARAGE & SETTINGS</button><button data-action="camera">CHANGE CAMERA</button><button data-action="autopilot">TOGGLE AI DEMONSTRATION</button><button data-action="replay">WATCH REPLAY</button><button data-action="photo">PHOTO STUDIO</button><button data-action="academy">ACADEMY</button><button data-action="team">TEAM HQ</button><button data-action="performance">PERFORMANCE CAPTURE</button><button data-action="visualReview">FULL-LAP VISUAL REVIEW</button><button data-action="sessionReview">SESSION 146 EVIDENCE</button><button data-action="restart">RESTART SESSION</button><button data-action="menu">RETURN TO PADDOCK</button></div>`,
+     );
+   }
+   performance(status: string, machine: string, workload: string, exportable: boolean) {
+diff --git a/src/core/grid-presentation.ts b/src/core/grid-presentation.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..5775895721d029a8465dbd1a97afb43f00810bf1
+--- /dev/null
++++ b/src/core/grid-presentation.ts
+@@ -0,0 +1,74 @@
++/** A presentation-only pre-race clock. It never advances the physics worker. */
++export const GRID_PRESENTATION_SECONDS = 24;
++export const GRID_PRESENTATION_STAGES = [
++  {
++    start: 0,
++    end: 4,
++    title: 'On the grid',
++    detail: 'Review the conditions. The race clock has not started.',
++  },
++  { start: 4, end: 7, title: 'Final checks', detail: 'Mechanics approach their assigned wheels.' },
++  {
++    start: 7,
++    end: 12,
++    title: 'Tyre preparation',
++    detail: 'Crew kneel and take hold of the blanket handles.',
++  },
++  {
++    start: 12,
++    end: 17,
++    title: 'Blankets off',
++    detail: 'Blankets are gathered and lifted clear of the tyres.',
++  },
++  {
++    start: 17,
++    end: 22,
++    title: 'Clear the grid',
++    detail: 'Crew carry the blankets out of the starting corridor.',
++  },
++  {
++    start: 22,
++    end: 24,
++    title: 'Ready to race',
++    detail: 'The grid is clear. Continue to the starting lights.',
++  },
++] as const;
++
++export function gridPresentationStage(time: number) {
++  if (!Number.isFinite(time)) throw new Error('Invalid grid presentation time');
++  return (
++    GRID_PRESENTATION_STAGES.find((stage) => time < stage.end) ?? GRID_PRESENTATION_STAGES.at(-1)!
++  );
++}
++
++export class GridPresentationClock {
++  time = 0;
++  playing = false;
++  get complete() {
++    return this.time >= GRID_PRESENTATION_SECONDS;
++  }
++  reset() {
++    this.time = 0;
++    this.playing = false;
++  }
++  play() {
++    if (!this.complete) this.playing = true;
++  }
++  pause() {
++    this.playing = false;
++  }
++  seek(time: number) {
++    if (!Number.isFinite(time)) throw new Error('Invalid grid presentation time');
++    this.time = Math.max(0, Math.min(GRID_PRESENTATION_SECONDS, time));
++    this.playing = false;
++  }
++  advance(seconds: number, visible = true) {
++    if (!Number.isFinite(seconds) || seconds < 0) throw new Error('Invalid presentation delta');
++    if (!visible) this.pause();
++    // Slow renders do not skip whole actions. Hidden time is never caught up.
++    if (this.playing)
++      this.time = Math.min(GRID_PRESENTATION_SECONDS, this.time + Math.min(seconds, 0.1));
++    if (this.complete) this.pause();
++    return this.time;
++  }
++}
+diff --git a/src/rendering/grid-mechanic-asset.ts b/src/rendering/grid-mechanic-asset.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..c7447f1d1c3ec88b0277ca968901a0fc3618eca7
+--- /dev/null
++++ b/src/rendering/grid-mechanic-asset.ts
+@@ -0,0 +1,34 @@
++import * as T from 'three';
++import data from './grid-mechanic.geometry.json' with { type: 'json' };
++import manifest from './grid-mechanic.manifest.json' with { type: 'json' };
++
++export const GRID_MECHANIC_ASSET = Object.freeze({ ...manifest, finalArtApproved: false });
++
++/** Original Blender-authored close-up garment; the shared 15-bone rig and all
++ * wrist/boot sockets stay compatible with the retained pit crew. Owned buffers. */
++export function gridMechanicGeometry() {
++  const n = data.position.length / 3;
++  if (data.version !== 1 || n !== manifest.vertices || data.index.length !== manifest.triangles * 3)
++    throw new Error('Invalid grid mechanic topology');
++  const g = new T.BufferGeometry();
++  for (const [name, values, size] of [
++    ['position', data.position, 3],
++    ['normal', data.normal, 3],
++    ['color', data.color, 3],
++    ['uv', data.uv, 2],
++    ['crewJoint', data.joints, 4],
++    ['crewWeight', data.weights, 4],
++    ['crewCloth', data.cloth, 1],
++  ] as const) {
++    if (values.length !== n * size || !values.every(Number.isFinite))
++      throw new Error(`Invalid grid mechanic ${name}`);
++    g.setAttribute(name, new T.Float32BufferAttribute(values, size));
++  }
++  if (data.index.some((i) => !Number.isInteger(i) || i < 0 || i >= n))
++    throw new Error('Invalid mechanic indices');
++  g.setIndex(data.index);
++  g.computeBoundingBox();
++  g.computeBoundingSphere();
++  g.name = 'Blender-authored grid mechanic hero';
++  return g;
++}
+diff --git a/src/rendering/grid-mechanic-motion.ts b/src/rendering/grid-mechanic-motion.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..77d6b6c3d83617bcfbe1360fe755b239a38fd061
+--- /dev/null
++++ b/src/rendering/grid-mechanic-motion.ts
+@@ -0,0 +1,179 @@
++import * as T from 'three';
++import { GRID_PRESENTATION_SECONDS } from '../core/grid-presentation.ts';
++
++export const GRID_MECHANIC_VERSION = 1;
++export const GRID_BLANKET_RADIUS = 0.392;
++export const GRID_MECHANIC_FLOOR = -0.52;
++const smooth = (t: number) => {
++  const x = Math.max(0, Math.min(1, t));
++  return x * x * (3 - 2 * x);
++};
++const between = (t: number, a: number, b: number) => smooth((t - a) / (b - a));
++
++/** A planted foot remains at its last world-space step until its next swing.
++ * Distances are along the actor's heading, not elapsed wall time. */
++export function gridStep(distance: number, length: number, foot: 0 | 1) {
++  const d = Math.max(0, Math.min(length, distance));
++  const steps = Math.max(2, Math.ceil(length / 0.24));
++  const stride = length / steps;
++  if (stride === 0) return { forward: 0, lift: 0, planted: true };
++  const phase = Math.min(steps - 1e-8, d / stride);
++  const index = Math.floor(phase);
++  const swing = index % 2 === foot;
++  const last = index - (index % 2 === foot ? 2 : 1);
++  const from = last < 0 ? 0 : (last + 1.5) * stride;
++  const to = (index + 1.5) * stride;
++  const u = phase - index;
++  return {
++    forward: swing ? from + (to - from) * smooth(u) : from,
++    lift: swing ? 0.085 * Math.sin(Math.PI * u) ** 2 : 0,
++    planted: !swing || d === 0 || d === length,
++  };
++}
++
++/** Metre-scale blanket mesh and hand sockets share this exact deformation. */
++export function gridBlanketPoint(u: number, angle: number, fold: number, out: T.Vector3) {
++  const radius = GRID_BLANKET_RADIUS;
++  const wrappedY = radius * Math.cos(angle),
++    wrappedZ = radius * Math.sin(angle);
++  const foldedY = 0.035 * Math.cos(angle * 4) + 0.014 * Math.cos(angle),
++    foldedZ = 0.31 * Math.sin(angle);
++  return out.set(u, wrappedY + (foldedY - wrappedY) * fold, wrappedZ + (foldedZ - wrappedZ) * fold);
++}
++
++export interface GridMechanicMotion {
++  time: number;
++  visible: boolean;
++  phase: 'standby' | 'approach' | 'kneel' | 'inspect' | 'gather' | 'rise' | 'carry' | 'clear';
++  position: T.Vector3;
++  yaw: number;
++  hip: number;
++  lean: number;
++  headYaw: number;
++  grip: number;
++  fold: number;
++  blanket: T.Vector3;
++  feet: [T.Vector3, T.Vector3];
++  planted: [boolean, boolean];
++}
++export function gridMechanicMotion(): GridMechanicMotion {
++  return {
++    time: 0,
++    visible: true,
++    phase: 'standby',
++    position: new T.Vector3(),
++    yaw: 0,
++    hip: 0.86,
++    lean: 0.03,
++    headYaw: 0,
++    grip: 0,
++    fold: 0,
++    blanket: new T.Vector3(),
++    feet: [new T.Vector3(), new T.Vector3()],
++    planted: [true, true],
++  };
++}
++
++/** Original key poses plus distance-locked stepping. Coordinates are car-local;
++ * feet are actor-local. The sequence is independent of the live race snapshot. */
++export function poseGridMechanic(
++  time: number,
++  wheel: number,
++  hub: T.Vector3,
++  out = gridMechanicMotion(),
++): GridMechanicMotion {
++  if (!Number.isFinite(time) || wheel < 0 || wheel > 3 || !Number.isInteger(wheel))
++    throw new Error('Invalid grid mechanic sample');
++  const t = Math.max(0, Math.min(GRID_PRESENTATION_SECONDS, time));
++  const side = Math.sign(hub.x) || 1;
++  const approach = between(t, 4, 7),
++    kneel = between(t, 7, 9),
++    rise = between(t, 15, 17);
++  const outbound = between(t, 17, 22);
++  const distance = t < 17 ? 0.9 * approach : 2.7 * outbound;
++  out.time = t;
++  out.phase =
++    t < 4
++      ? 'standby'
++      : t < 7
++        ? 'approach'
++        : t < 9
++          ? 'kneel'
++          : t < 12
++            ? 'inspect'
++            : t < 15
++              ? 'gather'
++              : t < 17
++                ? 'rise'
++                : t < 22
++                  ? 'carry'
++                  : 'clear';
++  out.visible = t < 22;
++  out.position.set(
++    hub.x + side * (1.52 - 0.9 * approach + 2.7 * outbound),
++    GRID_MECHANIC_FLOOR,
++    hub.z,
++  );
++  // Face the wheel; carry backwards into the clearance corridor, without a
++  // sudden 180-degree root turn that would drag planted feet around the car.
++  out.yaw = (-side * Math.PI) / 2;
++  const crouch = kneel * (1 - rise);
++  out.hip = 0.86 - 0.4 * crouch;
++  out.lean = 0.035 + 0.15 * crouch;
++  out.headYaw = 0.08 * Math.sin(t * 0.65 + wheel);
++  out.grip = between(t, 7, 9);
++  out.fold = between(t, 12, 15);
++  out.blanket.copy(hub);
++  const carried = between(t, 12, 15);
++  out.blanket.x += (out.position.x - side * 0.42 - hub.x) * carried;
++  out.blanket.y += (GRID_MECHANIC_FLOOR + 0.69 + 0.19 * rise - hub.y) * carried;
++  for (const foot of [0, 1] as const) {
++    const step = gridStep(distance, t < 17 ? 0.9 : 2.7, foot);
++    const finalApproach = gridStep(0.9, 0.9, foot).forward - 0.9;
++    let forward = t < 17 ? step.forward - distance : -(step.forward - distance);
++    if (t >= 17) forward += finalApproach;
++    const kneelFoot = foot === 0 ? 0.29 : -0.32;
++    // During lowering, reposition the feet with a visible lift, then keep them
++    // planted throughout inspection, blanket gathering and the rise.
++    if (t >= 7 && t < 17)
++      forward = finalApproach + (kneelFoot - finalApproach) * kneel * (1 - rise);
++
++    const reposition = (t >= 7 && t < 9) || (t >= 15 && t < 17);
++    const lifting = reposition
++      ? 0.055 * Math.sin((Math.PI * (t - (t < 9 ? 7 : 15))) / 2) ** 2
++      : step.lift;
++    out.feet[foot].set(
++      foot === 0 ? -0.14 : 0.14,
++      0.055 + (t >= 9 && t < 15 ? 0 : lifting),
++      0.035 + forward,
++    );
++    out.planted[foot] = reposition ? false : t >= 9 && t < 15 ? true : step.planted;
++  }
++  // Lower the pelvis when a long planted stance would otherwise stretch a leg.
++  for (const foot of out.feet)
++    out.hip = Math.min(
++      out.hip,
++      foot.y + Math.sqrt(Math.max(0.01, 0.817 ** 2 - foot.z ** 2 - 0.048 ** 2)),
++    );
++  return out;
++}
++
++/** Purposeful static-to-static camera moves; reduced-motion uses one wide view. */
++export function gridPresentationCamera(
++  time: number,
++  reducedMotion: boolean,
++  eye: T.Vector3,
++  target: T.Vector3,
++) {
++  if (reducedMotion) {
++    eye.set(-6.4, 2.4, 5.5);
++    target.set(0, 0.4, 0.3);
++    return 46;
++  }
++  const close = between(time, 3, 5),
++    wide = between(time, 17, 21);
++  const mix = close * (1 - wide);
++  eye.set(-6.4 + 3.55 * mix, 2.4 - 1.48 * mix, 5.5 - 1.92 * mix);
++  target.set(-1.28 * mix, 0.4 - 0.08 * mix, 0.3 + 1.12 * mix);
++  return 46 + 6 * mix;
++}
+diff --git a/src/rendering/grid-presentation-view.ts b/src/rendering/grid-presentation-view.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..a9127282ad185ec7b484be4c8bf8e85aae3152b0
+--- /dev/null
++++ b/src/rendering/grid-presentation-view.ts
+@@ -0,0 +1,358 @@
++import * as T from 'three';
++import { gridMechanicGeometry } from './grid-mechanic-asset.ts';
++import { F, H, W, WHEEL_BASE, WHEEL_STRIDE, carBase } from '../simulation/protocol.ts';
++import { WHEEL_POSITIONS } from '../simulation/vehicle.ts';
++import { CREW_BONES, peopleGeometry, leftCrewGloveGeometry } from './people-asset.ts';
++import { CrewPose, installCrewSkin } from './crew-pose.ts';
++import { installCrewHelmetFinish, CREW_KIT_COLOURS } from './crew-geometry.ts';
++import { CUFF } from './pit-crew.ts';
++export const GRID_GLOVE_GRIP = new T.Vector3(0, 0.034, 0.041);
++import { gridBlanketPoint, gridMechanicMotion, poseGridMechanic } from './grid-mechanic-motion.ts';
++
++const ACTORS = 48;
++/** Original quilted blanket surface, with a shared wrap-to-gather deformation.
++ * Colour, directional depth and point-light depth use identical vertices. */
++export function gridBlanketGeometry() {
++  const g = new T.BufferGeometry(),
++    positions: number[] = [],
++    folded: number[] = [],
++    uv: number[] = [],
++    index: number[] = [];
++  const p = new T.Vector3(),
++    across = 8,
++    around = 32;
++  for (let v = 0; v <= around; v++)
++    for (let u = 0; u <= across; u++) {
++      const angle = -Math.PI + (v / around) * 2 * Math.PI;
++      gridBlanketPoint(u / across - 0.5, angle, 0, p);
++      positions.push(p.x, p.y, p.z);
++      gridBlanketPoint(u / across - 0.5, angle, 1, p);
++      folded.push(p.x, p.y, p.z);
++      uv.push(u / across, v / around);
++    }
++  for (let v = 0; v < around; v++)
++    for (let u = 0; u < across; u++) {
++      const a = v * (across + 1) + u,
++        b = a + across + 1;
++      index.push(a, a + 1, b, b, a + 1, b + 1);
++    }
++  // Four stitched loop handles are part of the same draw and deformation.
++  // The outermost tube centre (u = +/- .68) is the actual finger-grip socket.
++  for (const side of [-1, 1])
++    for (const sign of [-1, 1]) {
++      const angle = (sign * side * Math.PI) / 4,
++        start = positions.length / 3;
++      for (let segment = 0; segment < 12; segment++) {
++        const phase = (segment * 2 * Math.PI) / 12;
++        for (let ring = 0; ring < 6; ring++) {
++          const a = (ring * 2 * Math.PI) / 6;
++          const u = side * (0.59 + 0.09 * Math.cos(phase)) + 0.008 * Math.cos(a);
++          const tangent = 0.055 * Math.sin(phase) + 0.008 * Math.sin(a);
++          for (const fold of [0, 1]) {
++            gridBlanketPoint(u, angle, fold, p);
++            p.y -= Math.sin(angle) * tangent;
++            p.z += Math.cos(angle) * tangent;
++            (fold ? folded : positions).push(p.x, p.y, p.z);
++          }
++          uv.push(u + 0.5, (angle + Math.PI) / (2 * Math.PI));
++        }
++      }
++      for (let segment = 0; segment < 12; segment++)
++        for (let ring = 0; ring < 6; ring++) {
++          const a = start + segment * 6 + ring,
++            b = start + segment * 6 + ((ring + 1) % 6);
++          const c = start + ((segment + 1) % 12) * 6 + ring,
++            d = start + ((segment + 1) % 12) * 6 + ((ring + 1) % 6);
++          index.push(a, b, c, b, d, c);
++        }
++    }
++  g.setAttribute('position', new T.Float32BufferAttribute(positions, 3));
++  g.setAttribute('uv', new T.Float32BufferAttribute(uv, 2));
++  g.setIndex(index);
++  g.computeVertexNormals();
++  const f = g.clone();
++  f.setAttribute('position', new T.Float32BufferAttribute(folded, 3));
++  f.computeVertexNormals();
++  g.setAttribute('gridFolded', f.getAttribute('position').clone());
++  g.setAttribute('gridFoldedNormal', f.getAttribute('normal').clone());
++  f.dispose();
++  return g;
++}
++export function installGridBlanket(material: T.Material, colour: boolean) {
++  material.onBeforeCompile = (shader) => {
++    shader.vertexShader =
++      'attribute vec3 gridFolded;\nattribute vec3 gridFoldedNormal;\nattribute float gridFold;\n' +
++      shader.vertexShader;
++    shader.vertexShader = shader.vertexShader
++      .replace('#include <begin_vertex>', 'vec3 transformed = mix(position, gridFolded, gridFold);')
++      .replace(
++        '#include <beginnormal_vertex>',
++        '#include <beginnormal_vertex>\nobjectNormal = normalize(mix(objectNormal, gridFoldedNormal, gridFold));',
++      );
++    if (colour) {
++      shader.vertexShader = 'varying vec2 vGridCloth;\n' + shader.vertexShader;
++      shader.vertexShader = shader.vertexShader.replace(
++        '#include <uv_vertex>',
++        '#include <uv_vertex>\nvGridCloth = uv;',
++      );
++      shader.fragmentShader = 'varying vec2 vGridCloth;\n' + shader.fragmentShader;
++      shader.fragmentShader = shader.fragmentShader.replace(
++        '#include <color_fragment>',
++        `#include <color_fragment>
++        float strap = 1. - smoothstep(.015, .022, min(abs(vGridCloth.x-.18), abs(vGridCloth.x-.82)));
++        vec2 stitch = abs(fract(vGridCloth * vec2(8.,16.))-.5);
++        float seam = 1. - smoothstep(.01,.055,min(stitch.x,stitch.y));
++        diffuseColor.rgb *= 1. - seam * .12;
++        diffuseColor.rgb = mix(diffuseColor.rgb,vec3(.48,.38,.19),strap*.85);`,
++      );
++    }
++  };
++  material.customProgramCacheKey = () => `grid-blanket-wrap-gather-v1-${colour}`;
++}
++
++/** A bounded pre-race cast using the retained authored bodies, helmets and
++ * gloves. All objects and GPU attributes are allocated during renderer creation. */
++export class GridPresentationView {
++  readonly root = new T.Group();
++  private readonly boneData = new Float32Array(ACTORS * CREW_BONES * 16);
++  private readonly bones = new T.DataTexture(
++    this.boneData,
++    CREW_BONES * 4,
++    ACTORS,
++    T.RGBAFormat,
++    T.FloatType,
++  );
++  private readonly cloth: T.InstancedMesh[];
++  private readonly slots = [0, 1].map(() =>
++    new T.InstancedBufferAttribute(new Float32Array(ACTORS), 1).setUsage(T.DynamicDrawUsage),
++  );
++  private readonly helmets: T.InstancedMesh;
++  private readonly gloves: [T.InstancedMesh, T.InstancedMesh];
++  private readonly blankets: T.InstancedMesh;
++  private readonly folds = new T.InstancedBufferAttribute(new Float32Array(ACTORS), 1).setUsage(
++    T.DynamicDrawUsage,
++  );
++  private readonly pose = new CrewPose();
++  private readonly motion = gridMechanicMotion();
++  private readonly actor = new T.Object3D();
++  private readonly car = new T.Object3D();
++  private readonly part = new T.Object3D();
++  private readonly matrix = new T.Matrix4();
++  private readonly basis = new T.Matrix4();
++  private readonly hub = new T.Vector3();
++  private readonly hands = [new T.Vector3(), new T.Vector3()];
++  private readonly wrists = [new T.Vector3(), new T.Vector3()];
++  private readonly handRotations = [new T.Quaternion(), new T.Quaternion()];
++  private readonly gripDelta = new T.Vector3();
++  private readonly feet = [new T.Vector3(), new T.Vector3()];
++  private readonly fingers = new T.Vector3();
++  private readonly palm = new T.Vector3();
++  private readonly side = new T.Vector3();
++  private readonly head = new T.Quaternion();
++  private actors = 0;
++  private phase = 'inactive';
++  private readonly contacts: {
++    car: number;
++    wheel: number;
++    arms: boolean;
++    feet: boolean;
++    gripError: number;
++  }[] = [];
++  constructor() {
++    this.root.name = 'Original pre-race mechanic performances';
++    this.bones.generateMipmaps = false;
++    this.bones.minFilter = this.bones.magFilter = T.NearestFilter;
++    this.bones.name = 'Grid presentation bone atlas';
++    this.bones.needsUpdate = true;
++    this.cloth = (['crew_high', 'crew_mid'] as const).map((role, i) => {
++      const geometry = i === 0 ? gridMechanicGeometry() : peopleGeometry(role);
++      geometry.setAttribute('crewSlot', this.slots[i]);
++      const material = new T.MeshStandardMaterial({
++        color: 0xffffff,
++        vertexColors: true,
++        roughness: 0.88,
++      });
++      material.userData.weatherSurface = 'fabric';
++      installCrewSkin(material, this.bones, ACTORS, true);
++      const mesh = new T.InstancedMesh(geometry, material, ACTORS);
++      mesh.instanceColor = new T.InstancedBufferAttribute(new Float32Array(ACTORS * 3).fill(1), 3);
++      const depth = new T.MeshDepthMaterial({ depthPacking: T.RGBADepthPacking });
++      const distance = new T.MeshDistanceMaterial();
++      installCrewSkin(depth, this.bones, ACTORS, false);
++      installCrewSkin(distance, this.bones, ACTORS, false);
++      mesh.customDepthMaterial = depth;
++      mesh.customDistanceMaterial = distance;
++      return mesh;
++    });
++    const batch = (g: T.BufferGeometry, roughness: number) =>
++      new T.InstancedMesh(
++        g,
++        new T.MeshStandardMaterial({ color: 0xffffff, vertexColors: true, roughness }),
++        ACTORS,
++      );
++    this.helmets = batch(peopleGeometry('helmet'), 0.35);
++    installCrewHelmetFinish(this.helmets.material as T.MeshStandardMaterial);
++    this.gloves = [batch(leftCrewGloveGeometry(), 0.82), batch(peopleGeometry('glove'), 0.82)];
++    const blanket = gridBlanketGeometry();
++    blanket.setAttribute('gridFold', this.folds);
++    const textile = new T.MeshStandardMaterial({
++      color: 0x252c31,
++      roughness: 0.96,
++      side: T.DoubleSide,
++    });
++    installGridBlanket(textile, true);
++    this.blankets = new T.InstancedMesh(blanket, textile, ACTORS);
++    const depth = new T.MeshDepthMaterial({ depthPacking: T.RGBADepthPacking, side: T.DoubleSide });
++    const distance = new T.MeshDistanceMaterial({ side: T.DoubleSide });
++    installGridBlanket(depth, false);
++    installGridBlanket(distance, false);
++    this.blankets.customDepthMaterial = depth;
++    this.blankets.customDistanceMaterial = distance;
++    this.root.add(...this.cloth, this.helmets, ...this.gloves, this.blankets);
++    for (const mesh of this.batches()) {
++      mesh.count = 0;
++      mesh.frustumCulled = false;
++      mesh.castShadow = mesh.receiveShadow = true;
++      mesh.instanceMatrix.setUsage(T.DynamicDrawUsage);
++    }
++  }
++  private batches() {
++    return [...this.cloth, this.helmets, ...this.gloves, this.blankets];
++  }
++  private put(mesh: T.InstancedMesh, local: T.Matrix4) {
++    this.matrix.multiplyMatrices(this.car.matrix, local);
++    mesh.setMatrixAt(mesh.count++, this.matrix);
++  }
++  update(frame: Float32Array, camera: T.Vector3, time: number | null) {
++    for (const mesh of this.batches()) mesh.count = 0;
++    this.actors = 0;
++    this.contacts.length = 0;
++    this.phase = 'inactive';
++    if (time === null || !Number.isFinite(time) || frame[H.PHASE] >= 2 || frame[H.TIME] > 0) return;
++    for (let id = 0; id < Math.min(12, frame[H.CARS]); id++) {
++      const base = carBase(id);
++      if (Math.abs(frame[base + F.SPEED]) > 0.5) continue;
++      this.car.position.fromArray(frame, base + F.X);
++      this.car.quaternion.fromArray(frame, base + F.QX);
++      this.car.updateMatrix();
++      if (this.car.position.distanceToSquared(camera) > 100 ** 2) continue;
++      for (let wheel = 0; wheel < 4; wheel++) {
++        const [x, y, z] = WHEEL_POSITIONS[wheel];
++        this.hub.set(
++          x,
++          y - (frame[base + WHEEL_BASE + wheel * WHEEL_STRIDE + W.LENGTH] || 0.25),
++          z,
++        );
++        const m = poseGridMechanic(time, wheel, this.hub, this.motion);
++        this.phase = m.phase;
++        if (!m.visible) continue;
++        const side = Math.sign(x),
++          width = wheel < 2 ? 0.34 : 0.42;
++        this.actor.position.copy(m.position);
++        this.actor.rotation.set(0, m.yaw, 0);
++        this.actor.updateMatrix();
++        this.part.position.copy(m.blanket);
++        this.part.quaternion.identity();
++        this.part.scale.set(width, 1, 1);
++        this.part.updateMatrix();
++        this.folds.setX(this.blankets.count, m.fold);
++        this.put(this.blankets, this.part.matrix);
++        for (let hand = 0; hand < 2; hand++) {
++          const angle = ((hand === 0 ? -1 : 1) * side * Math.PI) / 4;
++          gridBlanketPoint(side * 0.68, angle, m.fold, this.hands[hand]).applyMatrix4(
++            this.part.matrix,
++          );
++          this.feet[hand].copy(m.feet[hand]).applyMatrix4(this.actor.matrix);
++          if (m.grip < 1) {
++            const idle = this.part.position
++              .set(hand === 0 ? -0.21 : 0.21, 0.79, 0.07)
++              .applyMatrix4(this.actor.matrix);
++            this.hands[hand].lerp(idle, 1 - m.grip);
++          }
++        }
++        // Work from the glove's measured finger-grip socket, not its wrist.
++        // Iterate the forearm orientation to keep the cuff and fingers on both
++        // constraints without scaling bones or detaching the glove.
++        for (let hand = 0; hand < 2; hand++) this.wrists[hand].copy(this.hands[hand]);
++        for (let iteration = 0; iteration < 12; iteration++) {
++          this.pose.set(this.actor.matrix, m.hip, m.lean, this.wrists, 0.15, this.feet);
++          for (let hand = 0; hand < 2; hand++) {
++            this.gloveOrientation(hand, this.handRotations[hand]);
++            this.gripDelta
++              .copy(GRID_GLOVE_GRIP)
++              .sub(CUFF)
++              .applyQuaternion(this.handRotations[hand]);
++            this.gripDelta
++              .transformDirection(this.actor.matrix)
++              .multiplyScalar(GRID_GLOVE_GRIP.distanceTo(CUFF));
++            this.wrists[hand].copy(this.hands[hand]).sub(this.gripDelta);
++          }
++        }
++        this.pose.set(this.actor.matrix, m.hip, m.lean, this.wrists, 0.15, this.feet);
++        this.pose.write(this.boneData, this.actors);
++        const tier = id === 0 ? 0 : 1,
++          body = this.cloth[tier];
++        this.slots[tier].setX(body.count, this.actors);
++        body.setColorAt(body.count, CREW_KIT_COLOURS[id % CREW_KIT_COLOURS.length]);
++        this.put(body, this.actor.matrix);
++        this.head.setFromAxisAngle(this.part.up, m.headYaw);
++        this.part.position.copy(this.pose.joints[2]);
++        this.part.quaternion.copy(this.pose.rotations[2]).multiply(this.head);
++        this.part.scale.set(1, 1, 1);
++        this.part.updateMatrix();
++        this.matrix.multiplyMatrices(this.actor.matrix, this.part.matrix);
++        this.put(this.helmets, this.matrix);
++        let gripError = 0;
++        for (let hand = 0; hand < 2; hand++) {
++          const wrist = this.pose.joints[hand === 0 ? 5 : 8];
++          this.gloveOrientation(hand, this.part.quaternion);
++          this.part.position.copy(CUFF).applyQuaternion(this.part.quaternion).negate().add(wrist);
++          this.part.updateMatrix();
++          this.matrix.multiplyMatrices(this.actor.matrix, this.part.matrix);
++          this.put(this.gloves[hand], this.matrix);
++          // Read the rendered glove's finger socket back in car space.
++          this.gripDelta
++            .copy(GRID_GLOVE_GRIP)
++            .applyMatrix4(this.part.matrix)
++            .applyMatrix4(this.actor.matrix);
++          gripError = Math.max(gripError, this.gripDelta.distanceTo(this.hands[hand]));
++        }
++        this.contacts.push({
++          car: id,
++          wheel,
++          arms: this.pose.reachable.every(Boolean),
++          feet: this.pose.feetReachable.every(Boolean),
++          gripError,
++        });
++        this.actors++;
++      }
++    }
++    for (const mesh of this.batches()) mesh.instanceMatrix.needsUpdate = true;
++    for (const mesh of this.cloth) mesh.instanceColor!.needsUpdate = true;
++    for (const slots of this.slots) slots.needsUpdate = true;
++    this.bones.needsUpdate = true;
++    this.folds.needsUpdate = true;
++  }
++  private gloveOrientation(hand: number, out: T.Quaternion) {
++    const elbow = this.pose.joints[hand === 0 ? 4 : 7],
++      wrist = this.pose.joints[hand === 0 ? 5 : 8];
++    this.fingers.copy(wrist).sub(elbow).normalize();
++    this.palm.set(hand === 0 ? 1 : -1, 0, 0);
++    this.palm.addScaledVector(this.fingers, -this.palm.dot(this.fingers)).normalize();
++    this.side.crossVectors(this.fingers, this.palm);
++    this.basis.makeBasis(this.side, this.fingers, this.palm);
++    return out.setFromRotationMatrix(this.basis);
++  }
++  diagnostics() {
++    return {
++      phase: this.phase,
++      actors: this.actors,
++      highDetail: this.cloth[0].count,
++      blankets: this.blankets.count,
++      contacts: this.contacts.map((c) => ({ ...c })),
++    };
++  }
++  dispose() {
++    this.bones.dispose();
++  }
++}
+diff --git a/src/ui/grid-presentation.ts b/src/ui/grid-presentation.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..aa95d1aaf1c2c03767598d9d0c40a33ec28bf032
+--- /dev/null
++++ b/src/ui/grid-presentation.ts
+@@ -0,0 +1,69 @@
++import {
++  GRID_PRESENTATION_SECONDS,
++  GridPresentationClock,
++  gridPresentationStage,
++} from '../core/grid-presentation.ts';
++
++export class GridPresentationPanel {
++  readonly root = document.createElement('section');
++  private readonly heading: HTMLElement;
++  private readonly detail: HTMLElement;
++  private readonly progress: HTMLInputElement;
++  private readonly toggle: HTMLButtonElement;
++  private readonly start: HTMLButtonElement;
++  constructor(
++    parent: HTMLElement,
++    callbacks: { toggle(): void; seek(time: number): void; start(): void; back(): void },
++  ) {
++    this.root.id = 'gridPresentation';
++    this.root.className = 'grid-presentation';
++    this.root.hidden = true;
++    this.root.setAttribute('aria-label', 'Pre-race presentation');
++    this.root.innerHTML = `<header><span class="eyebrow">APEX / RACE DAY</span><h1 id="gridEventTitle"></h1><p id="gridEventBrief"></p></header>
++      <div class="grid-presentation-footer"><div role="status" aria-live="polite"><span class="eyebrow">CREW PREPARATION</span><h2 id="gridStage"></h2><p id="gridStageDetail"></p></div>
++      <label class="grid-timeline">PRESENTATION POSITION <input id="gridPresentationSeek" type="range" min="0" max="${GRID_PRESENTATION_SECONDS}" step=".1" value="0" aria-label="Grid presentation position"></label>
++      <div class="grid-presentation-actions"><button type="button" id="gridPresentationPlay" class="primary">PLAY PREPARATION</button><button type="button" id="gridPresentationStart">SKIP TO START LIGHTS</button><button type="button" id="gridPresentationBack">BACK TO GRID MENU</button></div>
++      <small>Race simulation is held. This presentation does not change tyre temperature, fuel, or grip.</small></div>`;
++    parent.append(this.root);
++    this.heading = this.root.querySelector('#gridStage')!;
++    this.detail = this.root.querySelector('#gridStageDetail')!;
++    this.progress = this.root.querySelector('#gridPresentationSeek')!;
++    this.toggle = this.root.querySelector('#gridPresentationPlay')!;
++    this.start = this.root.querySelector('#gridPresentationStart')!;
++    this.toggle.addEventListener('click', callbacks.toggle);
++    this.start.addEventListener('click', callbacks.start);
++    this.root.querySelector('#gridPresentationBack')!.addEventListener('click', callbacks.back);
++    this.progress.addEventListener('input', () => callbacks.seek(Number(this.progress.value)));
++    // The native slider controls the presentation, never a hidden driving action.
++    this.root.addEventListener('keydown', (event) => {
++      if (event.key !== 'Escape') event.stopPropagation();
++    });
++  }
++  show(circuit: string, brief: string) {
++    this.root.querySelector('#gridEventTitle')!.textContent = circuit;
++    this.root.querySelector('#gridEventBrief')!.textContent = brief;
++    this.root.hidden = false;
++    this.toggle.focus();
++  }
++  update(clock: GridPresentationClock) {
++    const stage = gridPresentationStage(clock.time);
++    if (this.heading.textContent !== stage.title) {
++      this.heading.textContent = stage.title;
++      this.detail.textContent = stage.detail;
++    }
++    this.progress.value = String(clock.time);
++    this.progress.setAttribute(
++      'aria-valuetext',
++      `${clock.time.toFixed(1)} seconds. ${stage.title}`,
++    );
++    this.toggle.textContent = clock.complete
++      ? 'REPLAY PREPARATION'
++      : clock.playing
++        ? 'PAUSE PREPARATION'
++        : 'PLAY PREPARATION';
++    this.start.textContent = clock.complete ? 'BEGIN RACE' : 'SKIP TO START LIGHTS';
++  }
++  hide() {
++    this.root.hidden = true;
++  }
++}
+diff --git a/src/ui/grid-presentation.css b/src/ui/grid-presentation.css
+new file mode 100644
+index 0000000000000000000000000000000000000000..bffafd6841c7b2e7f52ef4116a187066ff6233f2
+--- /dev/null
++++ b/src/ui/grid-presentation.css
+@@ -0,0 +1,90 @@
++.grid-presentation {
++  position: absolute;
++  inset: 0;
++  z-index: 18;
++  display: flex;
++  flex-direction: column;
++  justify-content: space-between;
++  pointer-events: none;
++  color: #f5f2eb;
++  background: linear-gradient(
++    180deg,
++    rgba(6, 12, 16, 0.72),
++    transparent 25%,
++    transparent 52%,
++    rgba(6, 12, 16, 0.92)
++  );
++  padding: clamp(16px, 3vw, 44px);
++}
++.grid-presentation[hidden] {
++  display: none;
++}
++.grid-presentation header {
++  max-width: 600px;
++}
++.grid-presentation h1 {
++  font-size: clamp(24px, 3.4vw, 48px);
++  line-height: 1.08;
++  margin: 8px 0;
++}
++.grid-presentation h2 {
++  font-size: clamp(22px, 2.4vw, 32px);
++  margin: 4px 0;
++}
++.grid-presentation p {
++  margin: 6px 0;
++  max-width: 620px;
++}
++.grid-presentation-footer {
++  max-width: 760px;
++  pointer-events: auto;
++}
++.grid-timeline {
++  display: block;
++  margin: 14px 0;
++  font-size: 11px;
++  letter-spacing: 0.12em;
++}
++.grid-timeline input {
++  display: block;
++  width: 100%;
++  margin-top: 8px;
++  accent-color: #dfb985;
++}
++.grid-presentation-actions {
++  display: flex;
++  gap: 8px;
++  flex-wrap: wrap;
++}
++.grid-presentation-actions button {
++  min-height: 44px;
++  padding: 10px 16px;
++}
++.grid-presentation small {
++  display: block;
++  margin-top: 10px;
++  color: #c4c9ca;
++}
++@media (max-height: 520px) {
++  .grid-presentation {
++    padding: 12px 18px;
++  }
++  .grid-presentation h1 {
++    font-size: 24px;
++  }
++  .grid-presentation header p,
++  .grid-presentation small {
++    display: none;
++  }
++  .grid-presentation-footer {
++    max-width: 690px;
++  }
++  .grid-timeline {
++    margin: 7px 0;
++  }
++}
++@media (prefers-reduced-motion: reduce) {
++  .grid-presentation * {
++    transition: none !important;
++  }
++}
+diff --git a/tests/grid-presentation.test.ts b/tests/grid-presentation.test.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..ce7b67797c08485a9b1fa67788cb844fadc5393c
+--- /dev/null
++++ b/tests/grid-presentation.test.ts
+@@ -0,0 +1,164 @@
++import { expect, it } from 'vitest';
++import * as T from 'three';
++import {
++  GridPresentationClock,
++  GRID_PRESENTATION_STAGES,
++  gridPresentationStage,
++} from '../src/core/grid-presentation.ts';
++import {
++  gridStep,
++  poseGridMechanic,
++  gridBlanketPoint,
++  gridPresentationCamera,
++} from '../src/rendering/grid-mechanic-motion.ts';
++import {
++  GridPresentationView,
++  gridBlanketGeometry,
++  installGridBlanket,
++} from '../src/rendering/grid-presentation-view.ts';
++import { Simulation } from '../src/simulation/world.ts';
++import { DEFAULT_OPTIONS } from '../src/simulation/config.ts';
++import { H, carBase } from '../src/simulation/protocol.ts';
++
++it('keeps preparation on an explicitly controlled clock, bounded through hidden or stalled frames', () => {
++  const c = new GridPresentationClock();
++  c.advance(1);
++  expect(c.time).toBe(0);
++  c.play();
++  c.advance(0.05);
++  expect(c.time).toBe(0.05);
++  c.advance(50);
++  expect(c.time).toBeCloseTo(0.15);
++  c.advance(1, false);
++  expect(c.playing).toBe(false);
++  expect(c.time).toBeCloseTo(0.15);
++  c.seek(13);
++  expect(c.playing).toBe(false);
++  expect(gridPresentationStage(c.time).title).toBe('Blankets off');
++  c.seek(99);
++  expect(c.complete).toBe(true);
++  c.play();
++  expect(c.playing).toBe(false);
++  c.seek(-2);
++  expect(c.time).toBe(0);
++  expect(() => c.advance(NaN)).toThrow();
++  expect(() => c.advance(-1)).toThrow();
++  expect(() => c.seek(Infinity)).toThrow();
++  c.reset();
++  expect(c.time).toBe(0);
++  expect(c.playing).toBe(false);
++  expect(GRID_PRESENTATION_STAGES.map((s) => s.start)).toEqual([0, 4, 7, 12, 17, 22]);
++});
++
++it('plants feet in world space between swings, without teleporting at pose boundaries', () => {
++  for (const length of [0.9, 2.7])
++    for (const foot of [0, 1] as const) {
++      let previous = gridStep(0, length, foot);
++      for (let d = 0.001; d < length; d += 0.001) {
++        const s = gridStep(d, length, foot);
++        if (s.planted && previous.planted) expect(s.forward).toBe(previous.forward);
++        expect(Math.abs(s.forward - previous.forward)).toBeLessThan(0.008);
++        expect(s.lift).toBeGreaterThanOrEqual(0);
++        expect(s.lift).toBeLessThanOrEqual(0.085);
++        previous = s;
++      }
++    }
++  const hub = new T.Vector3(-0.83, -0.2, 1.82);
++  for (const t of [4, 7, 9, 12, 15, 17, 22]) {
++    const a = poseGridMechanic(t - 1e-6, 0, hub),
++      b = poseGridMechanic(t + 1e-6, 0, hub);
++    expect(a.position.distanceTo(b.position)).toBeLessThan(1e-4);
++    for (let f = 0; f < 2; f++) expect(a.feet[f].distanceTo(b.feet[f])).toBeLessThan(1e-4);
++    expect(a.blanket.distanceTo(b.blanket)).toBeLessThan(1e-4);
++  }
++});
++
++it('uses the real skinned bodies and gloves through the whole sequence without changing the race', () => {
++  const sim = new Simulation({ ...DEFAULT_OPTIONS, opponents: 2 }),
++    frame = sim.makeFrame(),
++    before = frame.slice();
++  const view = new GridPresentationView(),
++    camera = new T.Vector3().fromArray(frame, carBase(0));
++  const failures: unknown[] = [];
++  for (let tick = 0; tick < 220; tick++) {
++    const t = tick / 10;
++    view.update(frame, camera, t);
++    const d = view.diagnostics();
++    expect(d.actors).toBe(12);
++    expect(d.blankets).toBe(12);
++    expect(d.highDetail).toBe(4);
++    for (const c of d.contacts)
++      if (!c.arms || !c.feet || c.gripError > 0.001) failures.push({ t, ...c });
++  }
++  expect(failures.slice(0, 10)).toEqual([]);
++  expect(frame).toEqual(before);
++  view.update(frame, camera, 24);
++  expect(view.diagnostics().actors).toBe(0);
++  view.update(frame, camera, 12);
++  const d = view.diagnostics();
++  view.update(frame, camera, 4);
++  view.update(frame, camera, 12);
++  expect(view.diagnostics()).toEqual(d);
++  view.update(frame, camera, null);
++  expect(view.diagnostics().actors).toBe(0);
++  frame[H.TIME] = 0.1;
++  view.update(frame, camera, 12);
++  expect(view.diagnostics().actors).toBe(0);
++  view.dispose();
++});
++
++it('uses identical wrap/gather vertices in colour and both shadow programs', () => {
++  const g = gridBlanketGeometry(),
++    p = new T.Vector3();
++  expect(g.index!.count / 3).toBe(1088);
++  for (let i = 0; i < 9 * 33; i++) {
++    const uv = g.getAttribute('uv');
++    gridBlanketPoint(uv.getX(i) - 0.5, -Math.PI + uv.getY(i) * 2 * Math.PI, 1, p);
++    expect(
++      p.distanceTo(new T.Vector3().fromBufferAttribute(g.getAttribute('gridFolded'), i)),
++    ).toBeLessThan(1e-6);
++  }
++  for (const material of [
++    new T.MeshStandardMaterial(),
++    new T.MeshDepthMaterial(),
++    new T.MeshDistanceMaterial(),
++  ]) {
++    installGridBlanket(material, material instanceof T.MeshStandardMaterial);
++    const shader = {
++      vertexShader: '#include <begin_vertex>\n#include <beginnormal_vertex>\n#include <uv_vertex>',
++      fragmentShader: '#include <color_fragment>',
++      uniforms: {},
++    };
++    material.onBeforeCompile(shader as T.WebGLProgramParametersWithUniforms, {} as T.WebGLRenderer);
++    expect(shader.vertexShader).toContain('mix(position, gridFolded, gridFold)');
++    expect(shader.vertexShader).toContain('mix(objectNormal, gridFoldedNormal, gridFold)');
++  }
++  const eye = new T.Vector3(),
++    target = new T.Vector3();
++  gridPresentationCamera(4, true, eye, target);
++  const before = eye.clone();
++  gridPresentationCamera(18, true, eye, target);
++  expect(eye).toEqual(before);
++  g.dispose();
++});
++
++it('retains bounded authored hero topology, UVs and normalized two-bone skin weights', async () => {
++  const { gridMechanicGeometry, GRID_MECHANIC_ASSET } = await import(
++    '../src/rendering/grid-mechanic-asset.ts'
++  );
++  const g = gridMechanicGeometry();
++  expect(g.index!.count / 3).toBe(9168);
++  expect(GRID_MECHANIC_ASSET.finalArtApproved).toBe(false);
++  expect(g.getAttribute('uv').count).toBe(g.getAttribute('position').count);
++  const joint = g.getAttribute('crewJoint'),
++    weight = g.getAttribute('crewWeight'),
++    normal = g.getAttribute('normal');
++  for (let i = 0; i < joint.count; i++) {
++    expect(weight.getX(i) + weight.getY(i)).toBeCloseTo(1, 5);
++    expect(weight.getZ(i) + weight.getW(i)).toBe(0);
++    expect(joint.getX(i)).toBeLessThan(15);
++    expect(joint.getY(i)).toBeLessThan(15);
++    expect(new T.Vector3().fromBufferAttribute(normal, i).length()).toBeCloseTo(1, 4);
++  }
++  g.dispose();
++});
+diff --git a/tests/branchless-release.test.ts b/tests/branchless-release.test.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..2958672e944845e4e52d36574b3d237cdbda7876
+--- /dev/null
++++ b/tests/branchless-release.test.ts
+@@ -0,0 +1,116 @@
++import { expect, it } from 'vitest';
++import {
++  mkdtempSync,
++  mkdirSync,
++  writeFileSync,
++  readFileSync,
++  copyFileSync,
++  existsSync,
++  rmSync,
++} from 'node:fs';
++import { tmpdir } from 'node:os';
++import { join } from 'node:path';
++import { createHash } from 'node:crypto';
++import { spawnSync } from 'node:child_process';
++
++it('publishes exact validated bytes, recovers reruns, and rejects altered or stale artifacts without pushing branches', () => {
++  const root = mkdtempSync(join(tmpdir(), 'apex-release-'));
++  const script = new URL('../scripts/publish-validated-release.sh', import.meta.url);
++  try {
++    const bin = join(root, 'bin'),
++      release = join(root, 'release'),
++      models = join(release, 'models'),
++      manifests = join(root, 'src/rendering'),
++      state = join(root, 'mock-release');
++    for (const path of [bin, models, manifests]) mkdirSync(path, { recursive: true });
++    copyFileSync(script, join(root, 'publish.sh'));
++    const sha = 'a'.repeat(40);
++    writeFileSync(join(release, 'SOURCE_COMMIT.txt'), sha + '\n');
++    writeFileSync(join(release, 'index.html'), '<html>exact tested build</html>');
++    for (const [name, asset] of [
++      ['supplied-player', 'supplied-player.glb.gz'],
++      ['supplied-player-lods', 'supplied-player-lods.bin.gz'],
++    ]) {
++      const data = Buffer.from(`asset ${name}`);
++      writeFileSync(join(models, asset), data);
++      writeFileSync(
++        join(manifests, `${name}.manifest.json`),
++        JSON.stringify({
++          compressedBytes: data.length,
++          compressedSHA256: createHash('sha256').update(data).digest('hex'),
++        }),
++      );
++    }
++    writeFileSync(
++      join(bin, 'git'),
++      '#!/usr/bin/env bash\nset -euo pipefail\ntest "$1" = ls-remote\nprintf "%s\\trefs/heads/main\\n" "$TEST_CURRENT"\n',
++      { mode: 0o755 },
++    );
++    writeFileSync(
++      join(bin, 'gh'),
++      `#!/usr/bin/env python3
++import os,sys,pathlib,shutil
++args=sys.argv[1:]; root=pathlib.Path(os.environ['MOCK_RELEASE']); log=root.parent/'gh-calls'
++with log.open('a') as f:f.write(' '.join(args)+'\\n')
++assert args[0]=='release'
++cmd=args[1]
++if cmd=='view':
++    if not root.exists(): sys.exit(1)
++    if '--json' in args:
++        for p in sorted(root.glob('*')):
++            if p.name!='published': print(p.name)
++elif cmd=='create': root.mkdir()
++elif cmd=='upload':
++    p=pathlib.Path(args[3]); shutil.copyfile(p,root/p.name)
++elif cmd=='download':
++    name=args[args.index('--pattern')+1]; destination=pathlib.Path(args[args.index('--dir')+1]);shutil.copyfile(root/name,destination/name)
++elif cmd=='edit': (root/'published').write_text('yes')
++else: raise ValueError(cmd)
++`,
++      { mode: 0o755 },
++    );
++    const env = {
++      ...process.env,
++      PATH: bin + ':' + process.env.PATH,
++      VALIDATED_SHA: sha,
++      GH_REPO: 'owner/repo',
++      VALIDATION_URL: 'https://example.test/validation',
++      GITHUB_STEP_SUMMARY: join(root, 'summary'),
++      MOCK_RELEASE: state,
++      TEST_CURRENT: sha,
++    };
++    const run = () =>
++      spawnSync('bash', [join(root, 'publish.sh'), release], {
++        cwd: root,
++        env,
++        encoding: 'utf8',
++        timeout: 30000,
++      });
++    let result = run();
++    expect(result.stderr).toBe('');
++    expect(result.status).toBe(0);
++    expect(existsSync(join(state, 'published'))).toBe(true);
++    const bytes = readFileSync(join(state, 'apex-formula-playable.zip'));
++    const hash = createHash('sha256').update(bytes).digest('hex');
++    expect(readFileSync(join(state, 'SHA256SUMS'), 'utf8')).toContain(hash);
++    result = run();
++    expect(result.status).toBe(0);
++    expect(readFileSync(join(state, 'apex-formula-playable.zip'))).toEqual(bytes);
++    writeFileSync(join(models, 'supplied-player.glb.gz'), 'tampered');
++    expect(run().status).not.toBe(0);
++    // A mismatched source identity also fails before interacting with release APIs.
++    writeFileSync(join(release, 'SOURCE_COMMIT.txt'), 'b'.repeat(40));
++    expect(run().status).not.toBe(0);
++    const calls = readFileSync(join(root, 'gh-calls'), 'utf8');
++    expect(calls).not.toContain('--clobber');
++    expect(readFileSync(script, 'utf8')).not.toMatch(/git (push|switch|checkout|fetch)/);
++    // Restore the validated input; a newer main leaves the release untouched.
++    writeFileSync(join(release, 'SOURCE_COMMIT.txt'), sha + '\n');
++    writeFileSync(join(models, 'supplied-player.glb.gz'), 'asset supplied-player');
++    env.TEST_CURRENT = 'b'.repeat(40);
++    expect(run().status).toBe(0);
++    expect(readFileSync(join(root, 'gh-calls'), 'utf8')).toBe(calls);
++  } finally {
++    rmSync(root, { recursive: true, force: true });
++  }
++});
+diff --git a/e2e/50-grid-presentation.spec.ts b/e2e/50-grid-presentation.spec.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..c959fac12f44794655d0ab7829346ca3ce51803e
+--- /dev/null
++++ b/e2e/50-grid-presentation.spec.ts
+@@ -0,0 +1,79 @@
++import { test, expect } from '@playwright/test';
++import { H } from '../src/simulation/protocol.ts';
++
++// Real menu, worker, renderer and DOM controls; no simulation writes or debug
++// teleporting. Software-rendered captures do not certify consumer hardware.
++test.use({ viewport: { width: 960, height: 600 } });
++test('pre-race performance holds physics, seeks actual crew poses and hands control to the start', async ({
++  page,
++}, info) => {
++  const errors: string[] = [];
++  page.on('pageerror', (e) => errors.push(e.message));
++  page.on('console', (m) => {
++    if (m.type() === 'error') errors.push(m.text());
++  });
++  const diag = () => page.evaluate(() => window.apexDiagnostics());
++  await page.goto('/');
++  await expect(page.locator('#menu')).toBeVisible({ timeout: 90000 });
++  await page.getByRole('button', { name: 'GARAGE & SETTINGS', exact: true }).click();
++  await page.locator('[name=quality]').selectOption('medium');
++  await page.getByRole('button', { name: 'APPLY & SAVE', exact: true }).click();
++  await page.selectOption('#mode', 'race');
++  await page.selectOption('#opponents', '3');
++  await page.getByRole('button', { name: 'PREPARE GRID START PAUSED', exact: true }).click();
++  await expect
++    .poll(async () => (await diag()).workerPause)
++    .toMatchObject({ paused: true, pending: false });
++  const before = (await diag()).frame;
++  await page.getByRole('button', { name: 'PRE-RACE PRESENTATION', exact: true }).click();
++  await expect(page.locator('#gridPresentation')).toBeVisible();
++  await expect.poll(async () => (await diag()).state).toBe('pregame');
++  for (const [time, phase] of [
++    [10, 'inspect'],
++    [14, 'gather'],
++    [19, 'carry'],
++    [24, 'clear'],
++  ] as const) {
++    await page.locator('#gridPresentationSeek').evaluate((element, value) => {
++      const input = element as HTMLInputElement;
++      input.value = value;
++      input.dispatchEvent(new Event('input', { bubbles: true }));
++    }, String(time));
++    await expect.poll(async () => (await diag()).renderer?.gridPerformance?.phase).toBe(phase);
++    const d = await diag();
++    expect(d.frame).toEqual(before);
++    expect(d.frame?.[H.TICK]).toBe(0);
++    expect(d.workerPause.paused).toBe(true);
++    for (const c of d.renderer!.gridPerformance!.contacts) {
++      expect(c.arms).toBe(true);
++      expect(c.feet).toBe(true);
++      expect(c.gripError).toBeLessThan(0.001);
++    }
++    const cdp = await page.context().newCDPSession(page);
++    const { data } = await cdp.send('Page.captureScreenshot', {
++      format: 'png',
++      fromSurface: true,
++      captureBeyondViewport: false,
++    });
++    await info.attach(`grid-${phase}.png`, {
++      body: Buffer.from(data, 'base64'),
++      contentType: 'image/png',
++    });
++    await cdp.detach();
++  }
++  await page.getByRole('button', { name: 'BACK TO GRID MENU', exact: true }).click();
++  await expect.poll(async () => (await diag()).state).toBe('paused');
++  expect((await diag()).frame).toEqual(before);
++  await page.getByRole('button', { name: 'PRE-RACE PRESENTATION', exact: true }).click();
++  await page.locator('#gridPresentationStart').click();
++  await expect.poll(async () => (await diag()).state).toBe('driving');
++  await expect.poll(async () => (await diag()).frame?.[H.TIME] ?? 0).toBeGreaterThan(1);
++  expect((await diag()).renderer?.gridPerformance?.actors).toBe(0);
++  await expect(page.locator('#gridPresentation')).toBeHidden();
++  await page.keyboard.press('Escape');
++  await expect.poll(async () => (await diag()).state).toBe('paused');
++  await expect(
++    page.getByRole('button', { name: 'PRE-RACE PRESENTATION', exact: true }),
++  ).toHaveCount(0);
++  expect(errors).toEqual([]);
++});
+diff --git a/docs/grid-preparation/IMPLEMENTATION.md b/docs/grid-preparation/IMPLEMENTATION.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..97089e78cb684a1960f2dbb8410d238df18f45a1
+--- /dev/null
++++ b/docs/grid-preparation/IMPLEMENTATION.md
+@@ -0,0 +1,58 @@
++# Pre-race mechanic presentation — first playable slice
++
++## Entry and control
++
++On the paddock screen select a Grand Prix or Endurance session, then choose
++**PREPARE GRID / START PAUSED**. In the paused grid menu choose
++**PRE-RACE PRESENTATION**. Play, pause, or scrub the preparation; use
++**SKIP TO START LIGHTS** (or **BEGIN RACE** after clearance) to race.
++**BACK TO GRID MENU** returns without advancing the simulation.
++
++The direct ENTER CIRCUIT path and the established paused-grid inspection path
++remain available. This is not yet the default garage-to-grid race-weekend flow.
++
++## Implemented
++
++- Separate 24-second presentation clock: briefing, approach, kneel/inspect,
++  gather/lift blankets, backward clearance, and a clean handover to the lights.
++- The production physics worker remains paused at tick zero throughout.
++  No tyre temperature, fuel, grip, qualifying result, or vehicle pose is edited.
++- Distance-driven footfalls, explicit feet targets on the existing two-bone
++  solver, and finger-grip constraints on the rendered gloves and blanket loops.
++- Original folded-blanket geometry shares its deformation across colour,
++  directional shadows, point-light shadows and the CPU contact solver.
++- A dedicated Blender-authored close-up garment uses 9,168 triangles, UVs,
++  15 bones, shoulder stitching, knee-pad seams, boot tread and compression
++  details. Four close crew use it; distant teams retain the existing mid mesh.
++  The previous people, player car, cockpit and driver assets remain unchanged.
++- A bounded cast (four people per car, maximum 48); no per-frame geometry
++  creation. Reflection passes omit this presentation cast. After clearance,
++  legacy start props cannot suddenly reappear as the race starts.
++- Keyboard-accessible controls, reduced-motion camera option, hidden-tab pause,
++  repeatable seeking, back/re-enter and skip paths.
++
++## Evidence and boundaries
++
++`tests/grid-presentation.test.ts` checks clocks, footfall continuity, reachable
++limbs, actual grip residuals, immutable simulation frames, shadow deformation,
++and authored geometry/weights. `e2e/50-grid-presentation.spec.ts` enters through
++the real menu, captures inspection/gather/carry/clear views, verifies the paused
++worker and tests the handover into driving.
++
++These are procedural task performances on an authored mesh, **not motion
++capture**, not cloth simulation and not completed AAA human art. The mesh,
++exchange file and editable Blender scene are retained; `finalArtApproved` stays
++false. The rest of the pit service still uses its established assets and poses.
++A formation lap, umbrellas, full garage briefing, new racing HUD, close-rival
++replacement and expanded race-weekend presentation remain separate work.
++Consumer-hardware frame times and human visual approval are not inferred from
++software-rendered tests or triangle counts.
++
++## Publication and branch policy
++
++All source lives on `main`. The deleted `playable-cdn` branch is no longer a
++release dependency. A successful main validation publishes a source-addressed
++GitHub release ZIP with `SOURCE_COMMIT.txt` and `SHA256SUMS`, verifying supplied
++asset manifests before publication. This repairs artifact delivery; it does
++**not** claim that an old browser-hosted URL has been updated. Serve the extracted
++release over HTTP, or deploy those exact bytes through the selected web host.
