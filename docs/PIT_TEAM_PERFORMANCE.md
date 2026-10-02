@@ -85,3 +85,21 @@ hardware performance or final natural-motion certification. Original supplied
 player/cockpit/driver, A61 rival assets and the fourteen-action native scene remain
 retained. Cloth dynamics, general terrain-aware footsteps, crowd/marshal upgrades,
 more realistic finger articulation and final human visual approval remain open.
+
+## A32 contact-survey continuation
+
+The first complete main regression found six A32 browser cases still asserting
+that a fully withdrawn jack pad must touch the original chassis socket. The
+actual withdrawal was about 91 mm at the first failing sample; the new service
+behaviour correctly moves the lowered equipment out of the departure corridor.
+Both circuit and offline native-texture surveys now retain the original 10-micron
+tracking/floor tolerance while distinguishing loaded/lowering contact from the
+specified lateral clearance route. All original samples remain, with an added
+real service sample at full withdrawal before the 5.2-second release minimum.
+
+An independent test-side oracle does not import the runtime clearance function.
+Negative controls reject early/loaded withdrawal, wrong direction, missing
+withdrawal and vertical/longitudinal errors. CPU readback exercises the same
+actual jack geometry and uploaded part matrices through production-simulated
+stops on both circuits. No runtime, physics, asset, timeout, retry, graphics preset
+or original case is changed by this contact-survey correction.

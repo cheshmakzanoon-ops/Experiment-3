@@ -1,3 +1,4 @@
+import { measureA32Contact } from './a32-contact-witness.ts';
 import * as T from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
@@ -104,7 +105,7 @@ export async function inspectA32Offline(input: A32OfflineInput) {
   const point = new T.Vector3();
   const signatures: string[] = [];
   const states: ReturnType<typeof crew.summary>[] = [];
-  const contacts: { role: string; error: number; floorError: number }[] = [];
+  const contacts: ReturnType<typeof measureA32Contact>[] = [];
   const images: {
     name: string;
     image: string;
@@ -184,18 +185,23 @@ export async function inspectA32Offline(input: A32OfflineInput) {
           .getObjectByName(`SOCKET_${prefix}_CONTACT`)!
           .position.clone()
           .applyMatrix4(matrix);
-        const wanted = new T.Vector3(...fits[role]).applyMatrix4(car.root.matrixWorld);
         matrix.fromArray(jacks.matrices, slot * 4 * 16);
         const localGround = jackAsset.scene
           .getObjectByName(`SOCKET_${prefix}_GROUND`)!
           .position.clone()
           .applyMatrix4(matrix)
           .applyMatrix4(inverse);
-        contacts.push({
-          role,
-          error: actual.distanceTo(wanted),
-          floorError: Math.abs(localGround.y - (-0.43 - frame[o + F.JACK_HEIGHT])),
-        });
+        contacts.push(
+          measureA32Contact(
+            role,
+            frame[o + F.PIT_PHASE],
+            frame[o + F.PIT_CLOCK],
+            frame[o + F.JACK_HEIGHT],
+            actual.applyMatrix4(inverse),
+            fits[role],
+            localGround,
+          ),
+        );
       }
       draw();
       if (i === 0 || i === Math.floor(input.samples.length / 2) || i === input.samples.length - 1) {

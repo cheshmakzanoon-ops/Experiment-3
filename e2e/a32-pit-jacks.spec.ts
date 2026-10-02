@@ -70,7 +70,12 @@ for (const lighting of ['day', 'sunset', 'night'] as const) {
       if (car.pitPhase >= 2 && car.pitPhase <= 5 && car.pitClock >= next) {
         samples.push(Array.from(sim.makeFrame()));
         next += 0.28;
-        if (next > 4.9) break;
+      }
+      // Retain every original sample, then include the fully withdrawn jacks
+      // before the unchanged 5.2-second minimum release. These are real frames.
+      if (car.pitPhase === 5 && car.pitClock >= 5.15) {
+        samples.push(Array.from(sim.makeFrame()));
+        break;
       }
     }
     expect(samples.length).toBeGreaterThanOrEqual(16);
@@ -153,6 +158,26 @@ for (const lighting of ['day', 'sunset', 'night'] as const) {
     for (const c of report.contacts) {
       expect(c.error).toBeLessThan(0.00001);
       expect(c.floorError).toBeLessThan(0.00001);
+    }
+    // A pad must contact the car while loaded/lowering, but must follow its
+    // clearance route once lowered. Neither requirement may disappear silently.
+    for (const role of ['front', 'rear'] as const) {
+      const contacts = report.contacts.filter((c) => c.role === role);
+      const attached = contacts.filter((c) => c.state === 'contact');
+      const withdrawing = contacts.filter((c) => c.state === 'withdrawing');
+      expect(attached.length).toBeGreaterThan(0);
+      expect(attached.some((c) => c.height > 0.18)).toBe(true);
+      expect(attached.some((c) => c.phase === 5 && c.height > 1e-6)).toBe(true);
+      for (const c of attached) expect(c.carContactError).toBeLessThan(0.00001);
+      expect(withdrawing.length).toBeGreaterThan(0);
+      for (const c of withdrawing) {
+        expect(c.phase).toBe(5);
+        expect(c.height).toBeLessThanOrEqual(1e-6);
+        expect(c.clock).toBeGreaterThan(4.72);
+        expect(Math.sign(c.observedOffset)).toBe(role === 'front' ? 1 : -1);
+        expect(Math.abs(c.observedOffset - c.expectedOffset)).toBeLessThan(0.00001);
+      }
+      expect(withdrawing.some((c) => Math.abs(c.observedOffset) > 1.54999)).toBe(true);
     }
     expect(report.before).toEqual(report.after);
     expect(report.glError).toBe(0);

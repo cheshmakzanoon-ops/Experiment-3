@@ -1,3 +1,4 @@
+import { measureA32Contact } from './a32-contact-witness.ts';
 import * as T from 'three';
 import { RacingRenderer } from '../../src/rendering/renderer.ts';
 import { measurePitJackFits } from '../../src/rendering/a32-jack-contact.ts';
@@ -47,7 +48,7 @@ export async function surveyA32(samples: number[][], lighting: 'day' | 'sunset' 
     );
   const states: ReturnType<typeof view.pitCrew.summary>[] = [];
   const signatures: string[] = [];
-  const contacts: { role: string; error: number; floorError: number }[] = [];
+  const contacts: ReturnType<typeof measureA32Contact>[] = [];
   const car = new T.Object3D(),
     point = new T.Vector3(),
     matrix = new T.Matrix4();
@@ -120,18 +121,23 @@ export async function surveyA32(samples: number[][], lighting: 'day' | 'sunset' 
         matrix.fromArray(jacks.matrices, (slot * 4 + 2) * 16);
         const socket = jacks.prototype.getObjectByName(`SOCKET_${prefix}_CONTACT`)!;
         const actual = socket.position.clone().applyMatrix4(matrix);
-        const wanted = new T.Vector3(...fits[role]).applyMatrix4(car.matrix);
         const root = matrix.fromArray(jacks.matrices, slot * 4 * 16);
         const ground = jacks.prototype.getObjectByName(`SOCKET_${prefix}_GROUND`)!;
         const localGround = ground.position
           .clone()
           .applyMatrix4(root)
           .applyMatrix4(car.matrix.clone().invert());
-        contacts.push({
-          role,
-          error: actual.distanceTo(wanted),
-          floorError: Math.abs(localGround.y - (-0.43 - frame[o + F.JACK_HEIGHT])),
-        });
+        contacts.push(
+          measureA32Contact(
+            role,
+            frame[o + F.PIT_PHASE],
+            frame[o + F.PIT_CLOCK],
+            frame[o + F.JACK_HEIGHT],
+            actual.applyMatrix4(car.matrix.clone().invert()),
+            fits[role],
+            localGround,
+          ),
+        );
       }
       if (i === 0 || i === Math.floor(samples.length / 2) || i === samples.length - 1) {
         capture(`pair-phase-${frame[o + F.PIT_PHASE]}-${i}`);
