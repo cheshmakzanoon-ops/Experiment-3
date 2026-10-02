@@ -1,3 +1,4 @@
+import { GRID_PRESENTATION_SECONDS } from '../core/grid-presentation.ts';
 import * as T from 'three';
 import { gridMechanicGeometry } from './grid-mechanic-asset.ts';
 import { F, H, W, WHEEL_BASE, WHEEL_STRIDE, carBase } from '../simulation/protocol.ts';
@@ -140,6 +141,7 @@ export class GridPresentationView {
   private readonly matrix = new T.Matrix4();
   private readonly basis = new T.Matrix4();
   private readonly hub = new T.Vector3();
+  private readonly parkCamera = new T.Vector3();
   private readonly hands = [new T.Vector3(), new T.Vector3()];
   private readonly wrists = [new T.Vector3(), new T.Vector3()];
   private readonly handRotations = [new T.Quaternion(), new T.Quaternion()];
@@ -150,6 +152,7 @@ export class GridPresentationView {
   private readonly side = new T.Vector3();
   private readonly head = new T.Quaternion();
   private actors = 0;
+  private parked = false;
   private phase = 'inactive';
   private readonly contacts: {
     car: number;
@@ -223,8 +226,38 @@ export class GridPresentationView {
     this.matrix.multiplyMatrices(this.car.matrix, local);
     mesh.setMatrixAt(mesh.count++, this.matrix);
   }
+  reset() {
+    this.parked = false;
+    this.actors = 0;
+    this.contacts.length = 0;
+    this.phase = 'inactive';
+    for (const mesh of this.batches()) {
+      mesh.count = 0;
+      mesh.frustumCulled = false;
+    }
+  }
+  park(frame: Float32Array) {
+    this.update(
+      frame,
+      this.parkCamera.fromArray(frame, carBase(0) + F.X),
+      GRID_PRESENTATION_SECONDS,
+    );
+    this.parked = true;
+    // These transforms no longer animate. Conservative batch bounds let the
+    // renderer cull the parked cast behind the camera without timed popping.
+    for (const mesh of this.batches()) {
+      mesh.computeBoundingSphere();
+      if (mesh.boundingSphere) mesh.boundingSphere.radius += 2;
+      mesh.frustumCulled = true;
+    }
+  }
   update(frame: Float32Array, camera: T.Vector3, time: number | null) {
-    for (const mesh of this.batches()) mesh.count = 0;
+    if (time === null && this.parked) return;
+    this.parked = false;
+    for (const mesh of this.batches()) {
+      mesh.count = 0;
+      mesh.frustumCulled = false;
+    }
     this.actors = 0;
     this.contacts.length = 0;
     this.phase = 'inactive';
@@ -243,7 +276,14 @@ export class GridPresentationView {
           y - (frame[base + WHEEL_BASE + wheel * WHEEL_STRIDE + W.LENGTH] || 0.25),
           z,
         );
-        const m = poseGridMechanic(time, wheel, this.hub, this.motion);
+        const m = poseGridMechanic(
+          time,
+          wheel,
+          this.hub,
+          this.motion,
+          id,
+          (Math.sign(frame[base + F.LATERAL]) || -1) * 9.5 - frame[base + F.LATERAL],
+        );
         this.phase = m.phase;
         if (!m.visible) continue;
         const side = Math.sign(x),
@@ -252,7 +292,7 @@ export class GridPresentationView {
         this.actor.rotation.set(0, m.yaw, 0);
         this.actor.updateMatrix();
         this.part.position.copy(m.blanket);
-        this.part.quaternion.identity();
+        this.part.quaternion.setFromAxisAngle(this.part.up, m.blanketYaw);
         this.part.scale.set(width, 1, 1);
         this.part.updateMatrix();
         this.folds.setX(this.blankets.count, m.fold);
@@ -346,6 +386,7 @@ export class GridPresentationView {
   diagnostics() {
     return {
       phase: this.phase,
+      parked: this.parked,
       actors: this.actors,
       highDetail: this.cloth[0].count,
       blankets: this.blankets.count,

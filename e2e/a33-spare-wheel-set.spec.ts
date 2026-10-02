@@ -1,3 +1,4 @@
+import { finishRaceEntry } from './race-entry.ts';
 import { expect, test } from '@playwright/test';
 import { build } from 'vite';
 import { resolve } from 'node:path';
@@ -29,6 +30,7 @@ test('A33 ships in normal startup and survives entry, pause and garage registrat
   await page.selectOption('#mode', 'practice');
   await page.selectOption('#opponents', '0');
   await page.getByRole('button', { name: 'ENTER CIRCUIT', exact: true }).click();
+  await finishRaceEntry(page);
   await expect
     .poll(() => page.evaluate(() => window.apexDiagnostics().state), { timeout: 90000 })
     .toBe('driving');

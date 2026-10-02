@@ -1,3 +1,4 @@
+import { finishRaceEntry } from './race-entry.ts';
 import { test, expect, type Page } from '@playwright/test';
 import { CHAMPIONSHIP_KEY, type Championship } from '../src/core/championship.ts';
 
@@ -81,6 +82,7 @@ test('Championship weekend: qualifying grid, race and saved standings', async ({
   await expect(page.locator('#modal')).toContainText('QUALIFYING / CLASSIFICATION');
   await page.screenshot({ path: info.outputPath('qualifying-classification.png') });
   await page.getByRole('button', { name: 'START RACE FROM THIS GRID', exact: true }).click();
+  await finishRaceEntry(page);
   await expect.poll(async () => (await diag(page)).state, { timeout: 240000 }).toBe('driving');
   d = await diag(page);
   expect(d.options.mode).toBe('race');

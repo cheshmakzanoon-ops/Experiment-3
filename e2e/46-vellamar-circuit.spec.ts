@@ -1,3 +1,4 @@
+import { finishRaceEntry } from './race-entry.ts';
 import { test, expect, type Page } from '@playwright/test';
 import { F, carBase } from '../src/simulation/protocol.ts';
 
@@ -25,6 +26,7 @@ test('Vellamar: menu selection, climbing lap in the production worker and return
   await page.selectOption('#mode', 'practice');
   await page.selectOption('#opponents', '3');
   await page.getByRole('button', { name: 'ENTER CIRCUIT', exact: true }).click();
+  await finishRaceEntry(page);
   await expect.poll(async () => (await diag(page)).state, { timeout: 240000 }).toBe('driving');
   const start = await diag(page);
   expect(start.options.circuit).toBe('vellamar');
@@ -54,6 +56,7 @@ test('Vellamar: menu selection, climbing lap in the production worker and return
   await expect(page.locator('#menu')).toBeVisible();
   await page.selectOption('#circuit', 'aurel');
   await page.getByRole('button', { name: 'ENTER CIRCUIT', exact: true }).click();
+  await finishRaceEntry(page);
   await expect.poll(async () => (await diag(page)).state, { timeout: 240000 }).toBe('driving');
   expect((await diag(page)).options.circuit).toBe('aurel');
   await expect(page.locator('#minimapCaption')).toHaveText('AUREL / GRAND CIRCUIT');

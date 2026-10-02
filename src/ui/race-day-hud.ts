@@ -1,0 +1,147 @@
+import styles from './race-day-hud.css?inline';
+import { F, H, W, WHEEL_BASE, WHEEL_STRIDE, carBase } from '../simulation/protocol.ts';
+
+export function vehicleWarning(frame: Float32Array): string {
+  const o = carBase(0);
+  if (frame[H.PHASE] < 2 || frame[o + F.FINISH] > 0) return '';
+  for (let wheel = 0; wheel < 4; wheel++)
+    if (frame[o + WHEEL_BASE + wheel * WHEEL_STRIDE + W.PUNCTURED] > 0)
+      return 'PUNCTURE / REQUEST PIT SERVICE';
+  if (frame[o + F.FRONT_HEALTH] < 0.6 || frame[o + F.REAR_HEALTH] < 0.6)
+    return 'AERO DAMAGE / REQUEST PIT SERVICE';
+  if (frame[o + F.FUEL] < 2) return 'LOW FUEL / UNDER 2 KG';
+  for (let wheel = 0; wheel < 4; wheel++)
+    if (frame[o + WHEEL_BASE + wheel * WHEEL_STRIDE + W.DISC_TEMP] > 1100)
+      return 'BRAKE TEMPERATURE / OVER 1100°C';
+  return '';
+}
+
+/** Reorganize the existing live UI, never clone telemetry or create a second
+ * simulation reader. Every section remains keyboard-accessible on demand. */
+export function installRaceDayHud(hud: HTMLElement) {
+  if (hud.dataset.raceDay) throw new Error('Race-day HUD already installed');
+  hud.dataset.raceDay = 'true';
+  hud.dataset.vehicleOpen = 'false';
+  const style = document.createElement('style');
+  style.textContent = styles;
+  hud.append(style);
+  const panel = hud.querySelector<HTMLElement>('.car-status')!;
+  panel.id = 'vehicleMfd';
+  panel.setAttribute('aria-label', 'Vehicle information');
+  const tabs = document.createElement('div');
+  tabs.className = 'vehicle-tabs';
+  tabs.setAttribute('role', 'tablist');
+  tabs.setAttribute('aria-label', 'Vehicle information pages');
+  const names = ['TYRES', 'ENERGY', 'DAMAGE'];
+  const pages = names.map((name, index) => {
+    const page = document.createElement('div');
+    page.className = 'vehicle-page';
+    page.id = `vehiclePage${index}`;
+    page.setAttribute('role', 'tabpanel');
+    page.setAttribute('aria-labelledby', `vehicleTab${index}`);
+    const tab = document.createElement('button');
+    tab.id = `vehicleTab${index}`;
+    tab.type = 'button';
+    tab.textContent = name;
+    tab.setAttribute('role', 'tab');
+    tab.setAttribute('aria-controls', page.id);
+    tabs.append(tab);
+    panel.append(page);
+    return page;
+  });
+  pages[0].append(panel.querySelector('#tires')!);
+  pages[1].innerHTML =
+    '<dl class="vehicle-readings"><div><dt>FUEL MASS</dt><dd id="mfdFuel">—</dd></div><div><dt>BATTERY</dt><dd id="mfdBattery">—</dd></div><div><dt>MOTOR OUTPUT</dt><dd id="mfdMotor">—</dd></div><div><dt>REGENERATION</dt><dd id="mfdRegen">—</dd></div><div><dt>FRONT BRAKE BIAS</dt><dd id="mfdBrakeBias">—</dd></div></dl>';
+  pages[2].append(panel.querySelector('.health')!);
+  const details = document.createElement('dl');
+  details.className = 'vehicle-readings';
+  details.innerHTML =
+    '<div><dt>FLOOR HEALTH</dt><dd id="mfdFloor">—</dd></div><div><dt>REAR AERO</dt><dd id="mfdRear">—</dd></div><div><dt>PIT STOPS</dt><dd id="mfdStops">—</dd></div>';
+  pages[2].append(details);
+  panel.insertBefore(tabs, pages[0]);
+  const select = (index: number, focus = false) => {
+    pages.forEach((page, i) => {
+      page.hidden = index !== i;
+      const tab = tabs.children[i] as HTMLButtonElement;
+      tab.setAttribute('aria-selected', String(index === i));
+      tab.tabIndex = index === i ? 0 : -1;
+    });
+    if (focus) (tabs.children[index] as HTMLButtonElement).focus();
+  };
+  for (let i = 0; i < names.length; i++)
+    tabs.children[i].addEventListener('click', () => select(i));
+  tabs.addEventListener('keydown', (event) => {
+    if (event.key === ' ' || event.key === 'Enter') event.stopPropagation();
+    if (['ArrowRight', 'ArrowLeft', 'Home', 'End'].includes(event.key)) {
+      event.preventDefault();
+      event.stopPropagation();
+      const current = [...tabs.children].indexOf(document.activeElement!);
+      select(
+        event.key === 'Home'
+          ? 0
+          : event.key === 'End'
+            ? 2
+            : (current + (event.key === 'ArrowRight' ? 1 : 2)) % 3,
+        true,
+      );
+    }
+  });
+  select(0);
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'vehicle-toggle';
+  button.textContent = 'VEHICLE';
+  button.setAttribute('aria-controls', panel.id);
+  button.setAttribute('aria-expanded', 'false');
+  hud.querySelector('.hud-top')!.insertBefore(button, hud.querySelector('.icon-button'));
+  const close = () => {
+    hud.dataset.vehicleOpen = 'false';
+    button.setAttribute('aria-expanded', 'false');
+  };
+  button.addEventListener('keydown', (event) => {
+    if (event.key === ' ' || event.key === 'Enter') event.stopPropagation();
+  });
+  button.addEventListener('click', () => {
+    const open = hud.dataset.vehicleOpen !== 'true';
+    hud.dataset.vehicleOpen = String(open);
+    button.setAttribute('aria-expanded', String(open));
+  });
+  panel.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && hud.dataset.vehicleOpen === 'true') {
+      event.preventDefault();
+      event.stopPropagation();
+      close();
+      button.focus();
+    }
+  });
+  // Exiting a mode does not leave an invisible information panel focused.
+  hud.addEventListener('click', (event) => {
+    if ((event.target as Element).closest('[data-action]')) close();
+  });
+  const alert = document.createElement('div');
+  alert.id = 'vehicleAlert';
+  alert.className = 'vehicle-alert';
+  alert.setAttribute('role', 'status');
+  alert.setAttribute('aria-live', 'polite');
+  alert.hidden = true;
+  hud.querySelector('.instruments')!.prepend(alert);
+}
+
+export function updateRaceDayHud(hud: HTMLElement, frame: Float32Array) {
+  const o = carBase(0);
+  const write = (id: string, value: string) => {
+    const node = hud.querySelector<HTMLElement>(`#${id}`)!;
+    if (node.textContent !== value) node.textContent = value;
+  };
+  write('mfdFuel', `${frame[o + F.FUEL].toFixed(1)} KG`);
+  write('mfdBattery', `${Math.round(frame[o + F.BATTERY] / 4e4)}%`);
+  write('mfdMotor', `${Math.round(frame[o + F.MOTOR_POWER] / 1000)} KW`);
+  write('mfdRegen', `${Math.round(frame[o + F.REGEN_POWER] / 1000)} KW`);
+  write('mfdBrakeBias', `${Math.round(frame[o + F.BRAKE_BIAS] * 100)}%`);
+  write('mfdFloor', `${Math.round(frame[o + F.FLOOR_HEALTH] * 100)}%`);
+  write('mfdRear', `${Math.round(frame[o + F.REAR_HEALTH] * 100)}%`);
+  write('mfdStops', String(Math.round(frame[o + F.PIT_STOPS])));
+  const warning = vehicleWarning(frame);
+  write('vehicleAlert', warning);
+  hud.querySelector<HTMLElement>('#vehicleAlert')!.hidden = !warning;
+}

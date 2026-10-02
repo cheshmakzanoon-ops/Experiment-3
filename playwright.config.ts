@@ -12,7 +12,7 @@ export default defineConfig({
   fullyParallel: true,
   workers: 1,
   retries: 0,
-  reporter: [['list'], ['html', { open: 'never' }]],
+  reporter: [['list'], ['html', { open: 'never' }], ['./scripts/browser-progress-reporter.mjs']],
   use: {
     baseURL: 'http://127.0.0.1:4173',
     viewport: { width: 1440, height: 900 },

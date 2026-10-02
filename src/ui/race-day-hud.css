@@ -1,0 +1,362 @@
+/* Race-Day V2: a peripheral driving cluster and on-demand vehicle data.
+   The same telemetry nodes remain live at every breakpoint and camera. */
+.hud[data-race-day] {
+  --rd-gap: 18px;
+  --rd-controls: 52px;
+  --rd-cluster: min(340px, calc(100vw - 24px));
+}
+.hud[data-race-day] .hud-top {
+  inset: 12px 18px auto;
+  gap: 10px;
+}
+.hud[data-race-day] .hud-top .brand.small {
+  font-size: 21px;
+}
+.hud[data-race-day] .hud-top .brand.small span {
+  display: none;
+}
+.hud[data-race-day] .session-status {
+  margin: 0 auto 0 0;
+}
+.hud[data-race-day] .vehicle-toggle {
+  min-height: 36px;
+  font-size: 10px;
+  padding: 7px 10px;
+  pointer-events: auto;
+}
+.hud[data-race-day] .position-badge {
+  padding: 4px 9px;
+}
+.hud[data-race-day][data-camera] .instruments {
+  top: auto;
+  bottom: var(--rd-controls);
+  left: auto;
+  right: var(--rd-gap);
+  transform: none;
+  width: var(--rd-cluster);
+  display: block;
+  border: 1px solid #586a7044;
+  border-top: 2px solid #d5aa72;
+  background: #10191eef;
+  box-shadow: none;
+}
+.hud[data-race-day] .rev-lights {
+  padding: 8px 12px 3px;
+  gap: 4px;
+}
+.hud[data-race-day] .rev-lights i {
+  height: 4px;
+}
+.hud[data-race-day] .dash-main {
+  display: flex;
+  padding: 4px 12px 7px;
+  gap: 15px;
+}
+.hud[data-race-day] .gear {
+  padding-right: 12px;
+}
+.hud[data-race-day] .gear > b {
+  font-size: calc(38px * var(--ui-scale));
+  line-height: 1;
+}
+.hud[data-race-day] .speed > b {
+  font-size: calc(34px * var(--ui-scale));
+  line-height: 1;
+}
+.hud[data-race-day] .engine {
+  padding: 0;
+  margin-left: auto;
+  text-align: right;
+}
+.hud[data-race-day] .engine b {
+  font-size: calc(13px * var(--ui-scale));
+}
+.hud[data-race-day] .engine strong {
+  margin-top: 4px;
+  font-size: calc(8px * var(--ui-scale));
+}
+.hud[data-race-day] .dash-main span {
+  font-size: calc(7px * var(--ui-scale));
+  margin-top: 4px;
+}
+.hud[data-race-day] .pedals {
+  padding: 0 12px 7px;
+  gap: 16px;
+}
+.hud[data-race-day] .pedals label {
+  font-size: calc(7px * var(--ui-scale));
+}
+.hud[data-race-day] .resources {
+  display: flex;
+  flex-direction: row;
+  border-left: 0;
+  border-top: 1px solid #64747855;
+  justify-content: space-between;
+  padding: 8px 12px;
+  gap: 12px;
+}
+.hud[data-race-day] .resources label {
+  font-size: calc(8px * var(--ui-scale));
+  gap: 6px;
+}
+.hud[data-race-day] .resources b {
+  font-size: calc(10px * var(--ui-scale));
+}
+.hud[data-race-day] .resources .meter {
+  width: 55px;
+}
+.hud[data-race-day] :is(.programme-hud, .guide-readout, .vehicle-alert) {
+  font-size: calc(9px * var(--ui-scale));
+  padding: 6px 10px;
+  line-height: 1.3;
+  letter-spacing: 0.03em;
+  overflow-wrap: anywhere;
+}
+.hud[data-race-day] .vehicle-alert {
+  background: #472a19;
+  color: #ffe2ba;
+  border-bottom: 1px solid #b97745;
+}
+.hud[data-race-day] .timing {
+  top: 76px;
+  left: 18px;
+  width: 174px;
+  max-height: calc(100vh - 315px);
+}
+.hud[data-race-day] .timing .panel-heading {
+  padding: 7px 9px;
+}
+.hud[data-race-day] .tower-row {
+  height: calc(22px * var(--ui-scale));
+}
+.hud[data-race-day] .tower-row > :is(b, span) {
+  font-size: calc(10px * var(--ui-scale));
+}
+.hud[data-race-day] .tower-row > small {
+  font-size: calc(9px * var(--ui-scale));
+}
+.hud[data-race-day] .lap-panel {
+  inset: 76px 18px auto auto;
+  width: 196px;
+  padding: 9px 12px;
+}
+.hud[data-race-day] .lap-panel label {
+  font-size: calc(8px * var(--ui-scale));
+  margin: 0 0 6px;
+}
+.hud[data-race-day] .lap-panel b {
+  font-size: calc(23px * var(--ui-scale));
+}
+.hud[data-race-day] .lap-panel span {
+  font-size: calc(10px * var(--ui-scale));
+}
+.hud[data-race-day] .minimap {
+  left: 18px;
+  bottom: var(--rd-controls);
+  width: 174px;
+}
+.hud[data-race-day] .minimap canvas {
+  width: 174px;
+  height: auto;
+}
+.hud[data-race-day] .minimap > span {
+  font-size: 8px;
+}
+.hud[data-race-day][data-camera] .start-sequence {
+  top: 22%;
+  bottom: auto;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.hud[data-race-day] .race-message {
+  top: 76px;
+  left: 50%;
+  bottom: auto;
+  transform: translateX(-50%);
+  width: min(400px, calc(100vw - 450px));
+  font-size: calc(10px * var(--ui-scale));
+  white-space: normal;
+  line-height: 1.4;
+  text-align: center;
+}
+.hud[data-race-day] .race-message:empty {
+  display: none;
+}
+.hud[data-race-day] .hud-actions {
+  bottom: 10px;
+  gap: 5px;
+}
+.hud[data-race-day] .hud-actions button {
+  min-height: 32px;
+  font-size: 9px;
+  padding: 6px 9px;
+}
+[data-mode='driving'] .hud[data-race-day] .hud-actions kbd {
+  display: none;
+}
+.hud[data-race-day] .car-status {
+  inset: auto 18px 230px auto;
+  width: 280px;
+  max-height: calc(100vh - 300px);
+  overflow: auto;
+  pointer-events: auto;
+  z-index: 7;
+  background: #111d24fa;
+  border: 1px solid #66767f;
+}
+.hud[data-race-day][data-vehicle-open='false'] .car-status {
+  display: none;
+}
+.hud[data-race-day] .vehicle-tabs {
+  display: flex;
+  border-bottom: 1px solid #66767f;
+}
+.hud[data-race-day] .vehicle-tabs button {
+  flex: 1;
+  padding: 8px 4px;
+  min-height: 36px;
+  font-size: 9px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+}
+.hud[data-race-day] .vehicle-tabs button[aria-selected='true'] {
+  border-bottom-color: #d5aa72;
+  color: #f6d5a5;
+}
+.hud[data-race-day] .vehicle-readings {
+  padding: 12px;
+  margin: 0;
+}
+.hud[data-race-day] .vehicle-readings div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 8px 0;
+}
+.hud[data-race-day] .vehicle-readings dt {
+  font-size: calc(9px * var(--ui-scale));
+  color: #b2c0c6;
+}
+.hud[data-race-day] .vehicle-readings dd {
+  font-size: calc(11px * var(--ui-scale));
+  margin: 0;
+}
+.hud[data-race-day] .vehicle-page[hidden] {
+  display: none !important;
+}
+html[data-high-contrast='true']
+  .hud[data-race-day]
+  :is(.instruments, .car-status, .lap-panel, .timing) {
+  background: #061018;
+  border-color: #e4edf0;
+}
+[data-mode='replay'] .hud[data-race-day] {
+  --rd-controls: 108px;
+}
+/* Compact information remains a native scrollable drawer, not overlaid panels. */
+@media (max-width: 1279px), (max-height: 679px) {
+  .hud[data-race-day] {
+    --rd-gap: 10px;
+    --rd-cluster: min(305px, calc(100vw - 20px));
+  }
+  .hud[data-race-day] .hud-top {
+    inset: 6px 10px auto;
+    gap: 8px;
+  }
+  .hud[data-race-day] .vehicle-toggle {
+    display: none;
+  }
+  .hud[data-race-day] .session-status {
+    margin: 0 auto;
+  }
+  .hud[data-race-day] .race-info-panels .car-status {
+    display: block;
+  }
+  .hud[data-race-day][data-info-open='true'] .race-info-panels {
+    display: grid;
+    inset: calc(var(--race-header) + 6px) 10px calc(var(--race-controls) + 6px);
+  }
+  .hud[data-race-day][data-info-open='true']
+    .race-info-panels
+    > :is(.timing, .lap-panel, .minimap, .car-status) {
+    position: static;
+    width: 100%;
+    height: auto;
+    max-height: none;
+  }
+  .hud[data-race-day][data-info-open='true'] .race-info-panels .timing {
+    height: 250px;
+    max-height: 250px;
+  }
+  .hud[data-race-day] .race-message {
+    top: calc(var(--race-header) + 4px);
+    width: min(520px, calc(100vw - 20px));
+  }
+  .hud[data-race-day] .gear > b {
+    font-size: calc(29px * var(--ui-scale));
+  }
+  .hud[data-race-day] .speed > b {
+    font-size: calc(28px * var(--ui-scale));
+  }
+  .hud[data-race-day] .dash-main {
+    gap: 10px;
+  }
+}
+@media (max-width: 680px) {
+  .hud[data-race-day] {
+    --rd-controls: calc(104px + env(safe-area-inset-bottom, 0px));
+  }
+  .hud[data-race-day][data-camera] .instruments {
+    right: 10px;
+  }
+  .hud[data-race-day] .hud-actions {
+    bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+    width: calc(100% - 20px);
+  }
+  .hud[data-race-day] .hud-actions button {
+    flex: 1;
+    padding: 6px 3px;
+    font-size: 8px;
+  }
+}
+@media (max-height: 430px) and (min-width: 681px) {
+  .hud[data-race-day] {
+    --rd-controls: 46px;
+  }
+  .hud[data-race-day] .instruments .rev-lights {
+    padding-top: 4px;
+  }
+  .hud[data-race-day] .resources {
+    padding-block: 4px;
+  }
+}
+
+.hud[data-race-day] :is(.timing, .minimap, .lap-panel, .car-status) {
+  transform: none;
+}
+.hud[data-race-day] .timing {
+  height: auto;
+  max-height: calc(100vh - 352px);
+}
+.hud[data-race-day] .car-status {
+  top: auto;
+  bottom: var(--rd-controls);
+  right: calc(var(--rd-cluster) + var(--rd-gap) + 12px);
+  max-height: min(330px, calc(100vh - 180px));
+}
+
+@media (max-width: 1279px), (max-height: 679px) {
+  .hud[data-race-day][data-camera] .start-sequence {
+    top: calc(var(--race-header) + 10px);
+    left: 10px;
+    transform: none;
+  }
+}
+.hud[data-race-day] .hud-actions {
+  opacity: 0.8;
+}
+.hud[data-race-day] .hud-actions:focus-within,
+.hud[data-race-day] .hud-actions:hover {
+  opacity: 1;
+}

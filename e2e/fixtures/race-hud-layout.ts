@@ -1,9 +1,11 @@
 import { Color } from 'three';
+import { updateRaceDayHud } from '../../src/ui/race-day-hud.ts';
+let fixtureFrame: Float32Array | null = null;
 import { Interface } from '../../src/ui/interface.ts';
 import { Simulation } from '../../src/simulation/world.ts';
 import { DEFAULT_SETTINGS } from '../../src/storage/data.ts';
 import { DEFAULT_OPTIONS } from '../../src/simulation/config.ts';
-import { F, H, carBase } from '../../src/simulation/protocol.ts';
+import { F, H, W, WHEEL_BASE, carBase } from '../../src/simulation/protocol.ts';
 import type { RacingRenderer, CameraMode } from '../../src/rendering/renderer.ts';
 
 /** DOM-only component fixture. No GameApp, WebGL renderer or gameplay evidence. */
@@ -26,6 +28,7 @@ export function raceHudLayout(camera: CameraMode, uiScale: number, guidance: boo
   ui.ready();
   ui.showMode('driving');
   const frame = sim.makeFrame();
+  fixtureFrame = frame;
   frame[H.PHASE] = 1;
   frame[H.LIGHTS] = 5;
   frame[carBase(0) + F.SPEED] = 45;
@@ -114,4 +117,14 @@ export function menuNavigation() {
   record();
   ui.ready();
   ui.showMode('menu');
+}
+
+
+/** Synthetic warning input in a DOM-only component fixture, not race evidence. */
+export function vehicleWarningFixture(warning: boolean) {
+  if (!fixtureFrame) throw new Error('HUD fixture not initialized');
+  const frame = fixtureFrame.slice();
+  frame[H.PHASE] = 2;
+  frame[carBase(0)+WHEEL_BASE+W.PUNCTURED] = warning ? 1 : 0;
+  updateRaceDayHud(document.querySelector<HTMLElement>('#hud')!, frame);
 }

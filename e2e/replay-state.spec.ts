@@ -1,3 +1,4 @@
+import { finishRaceEntry } from './race-entry.ts';
 import { test, expect } from '@playwright/test';
 import { H } from '../src/simulation/protocol.ts';
 
@@ -22,6 +23,7 @@ test('recorded playback has exclusive modal, seek, audio and focus ownership', a
   await page.selectOption('#weather', 'rain');
   await page.selectOption('#compound', 'wet');
   await page.getByRole('button', { name: 'ENTER CIRCUIT' }).click();
+  await finishRaceEntry(page);
   await expect
     .poll(async () => (await diagnostics()).state, { timeout: 90000 })
     .toBe('driving');

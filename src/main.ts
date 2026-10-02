@@ -1,3 +1,4 @@
+import { raceBriefing } from './ui/race-briefing.ts';
 import { GridPresentationClock } from './core/grid-presentation.ts';
 import { GridPresentationPanel } from './ui/grid-presentation.ts';
 import './ui/grid-presentation.css';
@@ -29,6 +30,7 @@ import '@fontsource-variable/saira/wdth-italic.css';
 import './ui/style.css';
 import { PerformanceCapture, type FrameMetrics } from './core/performance.ts';
 declare const __APEX_SOURCE_FINGERPRINT__: string;
+declare const __APEX_SOURCE_COMMIT__: string | null;
 import { Track } from './simulation/track.ts';
 import { circuitDefinition, type CircuitId } from './simulation/circuits.ts';
 import {
@@ -101,6 +103,8 @@ type State = 'menu' | 'loading' | 'driving' | 'paused' | 'results' | 'replay' | 
 export class GameApp {
   private readonly gridClock = new GridPresentationClock();
   private gridPanel: GridPresentationPanel | null = null;
+  private gridAutomatic = false;
+  private gridBriefingOpen = false;
   private track = new Track();
   private ui: Interface;
   private photoStudio: PhotoStudio;
@@ -224,6 +228,11 @@ export class GameApp {
         ),
       importSetup: (file) => void this.importSetup(file),
     });
+    const identity = this.ui.get('buildIdentity');
+    identity.textContent = __APEX_SOURCE_COMMIT__
+      ? `BUILD / ${__APEX_SOURCE_COMMIT__.slice(0, 7)}`
+      : `SOURCE / ${__APEX_SOURCE_FINGERPRINT__.slice(0, 7)}`;
+    identity.title = __APEX_SOURCE_COMMIT__ ?? __APEX_SOURCE_FINGERPRINT__;
     this.referenceSession = new ReferenceSessionReview(
       element,
       __APEX_SOURCE_FINGERPRINT__,
@@ -403,7 +412,10 @@ export class GameApp {
   private async start(options: SessionOptions, programme = false, holdOnGrid = false) {
     if (this.state === 'loading' && this.worker) return;
     this.gridClock.reset();
+    this.gridAutomatic = false;
+    this.gridBriefingOpen = false;
     this.gridPanel?.hide();
+    this.renderer?.gridPerformance.reset();
     this.ui.gridPresentationAvailable = false;
     if (this.renderer) {
       this.renderer.gridPresentationTime = null;
@@ -582,8 +594,9 @@ export class GameApp {
     // A normal paddock action lets the player prepare cameras, controls and
     // recording before the real countdown. The initialized worker stays paused;
     // no elapsed race time, injected snapshot or alternate simulation is used.
-    if (holdOnGrid) {
+    if (holdOnGrid || (racingSession(this.options.mode) && !this.settings.quickStart)) {
       this.pause();
+      if (!holdOnGrid) this.openRaceBriefing();
       return;
     }
     this.input.setEnabled(true);
@@ -662,8 +675,7 @@ export class GameApp {
       to = b[o + F.LAP_TIME];
     // A lap reset between snapshots starts the ghost again at the line.
     const time = to >= from ? from + (to - from) * alpha : to;
-    const shown =
-      time > 0 && b[o + F.IN_PIT] === 0 && player.poseAt(time, this.ghostPoseScratch);
+    const shown = time > 0 && b[o + F.IN_PIT] === 0 && player.poseAt(time, this.ghostPoseScratch);
     this.renderer.setGhost(shown ? this.ghostPoseScratch : null);
   }
   private accept(buffer: ArrayBuffer) {
@@ -821,6 +833,9 @@ export class GameApp {
       this.state === 'replay' || (this.state === 'photo' && this.photoReturn === 'replay'),
       wallDelta,
     );
+    // Finish the visible clearance frame before handing input and timing back.
+    if (this.state === 'pregame' && this.gridAutomatic && this.gridClock.complete)
+      this.endGridPresentation(true);
     if (this.revealMenu && this.state === 'menu') {
       this.revealMenu = false;
       this.ui.ready();
@@ -1175,7 +1190,20 @@ export class GameApp {
       !!this.current && this.current[H.TICK] === 0 && racingSession(this.options.mode);
     this.ui.pause();
   }
-  private beginGridPresentation() {
+  private openRaceBriefing() {
+    if (this.state !== 'paused' || !this.current || this.current[H.TICK] !== 0) return;
+    this.gridBriefingOpen = true;
+    this.ui.modalContent(raceBriefing(this.options, this.current));
+    const preference = this.ui.get('raceDayQuickStart') as HTMLInputElement;
+    preference.checked = this.settings.quickStart;
+    preference.addEventListener('change', () => {
+      this.settings.quickStart = preference.checked;
+      void this.store
+        .write('settings', this.settings)
+        .catch(() => this.ui.toast('Quick Start applies to this session; storage is unavailable.'));
+    });
+  }
+  private beginGridPresentation(automatic = false) {
     if (
       this.state !== 'paused' ||
       !this.current ||
@@ -1187,10 +1215,13 @@ export class GameApp {
     this.ui.closeModal();
     this.ui.telemetryModal.close();
     this.state = 'pregame';
+    this.gridAutomatic = automatic;
+    this.gridBriefingOpen = false;
     this.input.setEnabled(false);
     this.post({ type: 'pause', value: true });
     this.audio.stop();
     this.gridClock.reset();
+    if (automatic) this.gridClock.play();
     this.renderer.gridPresentationTime = 0;
     this.renderer.gridPrepared = false;
     this.renderer.gridReducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1216,6 +1247,7 @@ export class GameApp {
     this.gridPanel.show(
       this.track.circuit.name,
       `${this.options.laps} LAPS / ${this.options.opponents + 1} CARS / ${this.options.weather.toUpperCase()} / ${this.options.compound.toUpperCase()}`,
+      automatic,
     );
     this.gridPanel.update(this.gridClock);
   }
@@ -1227,16 +1259,20 @@ export class GameApp {
     // Prevent the legacy 1.8-second staff and blankets from reappearing after
     // they have already been carried away. No worker snapshot is edited.
     this.renderer.gridPrepared = startRace;
+    if (startRace && this.current) this.renderer.gridPerformance.park(this.current);
+    else this.renderer.gridPerformance.reset();
     this.renderer.reset();
     this.state = 'paused';
     this.ui.showMode('paused');
     if (startRace) this.resume();
+    else if (this.gridAutomatic) this.openRaceBriefing();
     else this.ui.pause();
   }
   private resume() {
     if (this.state !== 'paused' || this.ui.telemetryModal.open) return;
     this.ui.closeModal();
     this.state = 'driving';
+    this.gridBriefingOpen = false;
     this.ui.gridPresentationAvailable = false;
     this.ui.showMode('driving');
     // Retain the real paused grid snapshot before the worker is released.
@@ -1382,6 +1418,19 @@ export class GameApp {
       } else if (name === 'menu') {
         this.endGridPresentation(false);
         this.action('menu');
+      }
+      return;
+    }
+    if (name === 'raceDayPrepare') {
+      this.beginGridPresentation(true);
+      return;
+    }
+    if (name === 'raceDaySkip') {
+      if (this.state === 'paused' && this.current?.[H.TICK] === 0 && this.renderer) {
+        this.gridBriefingOpen = false;
+        this.renderer.gridPrepared = true;
+        this.renderer.gridPerformance.park(this.current);
+        this.resume();
       }
       return;
     }
@@ -1572,6 +1621,9 @@ export class GameApp {
         this.resume();
         break;
       case 'menu':
+        this.gridBriefingOpen = false;
+        this.gridAutomatic = false;
+        this.renderer?.gridPerformance.reset();
         this.referenceSession.interrupt('Returned to the paddock.');
         this.performanceCapture.interrupt('Returned to paddock');
         this.interruptReview('Returned to paddock');
@@ -1597,6 +1649,7 @@ export class GameApp {
         this.ui.controls(this.settings.bindings);
         break;
       case 'modalClose':
+        this.gridBriefingOpen = false;
         this.ui.closeModal();
         if (this.state === 'paused') this.ui.pause();
         else if (this.state === 'results' && this.current) this.ui.results(this.current);
@@ -2037,11 +2090,14 @@ export class GameApp {
   }
   diagnostics(visual = false) {
     return {
+      buildIdentity: { commit: __APEX_SOURCE_COMMIT__, fingerprint: __APEX_SOURCE_FINGERPRINT__ },
       state: this.state,
       gridPresentation: {
         time: this.gridClock.time,
         playing: this.gridClock.playing,
         complete: this.gridClock.complete,
+        automatic: this.gridAutomatic,
+        briefing: this.gridBriefingOpen,
       },
       workerPause: this.workerPause.status(),
       team: structuredClone(this.team),

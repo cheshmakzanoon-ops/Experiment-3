@@ -1,3 +1,13 @@
+## Race-Day Presentation V2
+
+Normal Grand Prix/Endurance entry now includes a real-grid briefing, an optional
+automatic crew-preparation sequence and a saved Quick Start preference. Racing
+uses a lower-corner driving cluster with on-demand vehicle pages. Crew follow
+staged clearance routes and remain parked rather than vanishing on a timer.
+See [implementation, controls and explicit limits](docs/grid-preparation/IMPLEMENTATION.md).
+Full CI, published-build identity, target-hardware performance and final art are
+separate evidence gates; feature presence is not their certification.
+
 ## Broadcast presentation pass
 
 Multisampled scene rendering with depth-only ambient obscurance, broadcast colour

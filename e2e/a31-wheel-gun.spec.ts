@@ -1,3 +1,4 @@
+import { finishRaceEntry } from './race-entry.ts';
 import { expect, test } from '@playwright/test';
 import { build } from 'vite';
 import { resolve } from 'node:path';
@@ -28,6 +29,7 @@ test('A31 loads the real GLB before normal practice entry', async ({ page }, inf
   await page.selectOption('#mode', 'practice');
   await page.selectOption('#opponents', '0');
   await page.getByRole('button', { name: 'ENTER CIRCUIT', exact: true }).click();
+  await finishRaceEntry(page);
   await expect
     .poll(() => page.evaluate(() => window.apexDiagnostics().state), { timeout: 90000 })
     .toBe('driving');

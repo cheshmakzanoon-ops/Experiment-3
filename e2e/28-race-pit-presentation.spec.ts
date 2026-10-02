@@ -1,3 +1,4 @@
+import { finishRaceEntry } from './race-entry.ts';
 import { expect, test, type Page, type TestInfo } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { H, F, W, WHEEL_BASE, WHEEL_STRIDE, carBase } from '../src/simulation/protocol.ts';
@@ -88,6 +89,7 @@ async function start(
       exact: true,
     })
     .click();
+    if (!holdOnGrid) await finishRaceEntry(page);
   await expect
     .poll(async () => (await read(page)).state, { timeout: 90000 })
     .toBe(holdOnGrid ? 'paused' : 'driving');

@@ -1,3 +1,4 @@
+import { finishRaceEntry } from './race-entry.ts';
 import { expect, test } from '@playwright/test';
 import manifest from '../src/rendering/aurel-people.manifest.json' with { type: 'json' };
 
@@ -25,6 +26,7 @@ test('27H.3 normal startup binds the retained authored people and populated crow
   await page.selectOption('#mode', 'practice');
   await page.selectOption('#opponents', '0');
   await page.getByRole('button', { name: 'ENTER CIRCUIT', exact: true }).click();
+  await finishRaceEntry(page);
   await expect.poll(async () => (await read()).state, { timeout: 90000 }).toBe('driving');
   // Ordinary gameplay startup must compile the authored crowd materials. This
   // short test does not pretend to be an artistic review of an entire pit stop.

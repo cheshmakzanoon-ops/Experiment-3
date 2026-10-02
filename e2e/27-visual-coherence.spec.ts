@@ -1,3 +1,4 @@
+import { finishRaceEntry } from './race-entry.ts';
 import { expect, test } from '@playwright/test';
 import { build } from 'vite';
 import { resolve } from 'node:path';
@@ -126,6 +127,7 @@ test.describe('27H.5 ordinary application full-lap evidence', () => {
       await page.selectOption('#weather', drive.weather);
       await page.selectOption('#compound', drive.weather === 'rain' ? 'wet' : 'medium');
       await page.getByRole('button', { name: 'ENTER CIRCUIT', exact: true }).click();
+  await finishRaceEntry(page);
       await expect.poll(async () => (await read()).state, { timeout: 90000 }).toBe('driving');
       if (drive.lighting !== 'day') {
         await page.keyboard.press('Escape');

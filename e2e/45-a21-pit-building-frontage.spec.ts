@@ -1,3 +1,4 @@
+import { finishRaceEntry } from './race-entry.ts';
 import { expect, test } from '@playwright/test';
 import { build } from 'vite';
 import { readFileSync } from 'node:fs';
@@ -36,6 +37,7 @@ test('A21 normal startup retains four frontage chunks and A22/A24 through practi
   await page.selectOption('#mode', 'practice');
   await page.selectOption('#opponents', '0');
   await page.getByRole('button', { name: 'ENTER CIRCUIT', exact: true }).click();
+  await finishRaceEntry(page);
   await expect.poll(async () => (await read()).state, { timeout: 90000 }).toBe('driving');
   await page.keyboard.press('Escape');
   await expect

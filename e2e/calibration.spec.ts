@@ -1,3 +1,4 @@
+import { finishRaceEntry } from './race-entry.ts';
 import { expect, test } from '@playwright/test';
 import { F, carBase } from '../src/simulation/protocol.ts';
 
@@ -90,6 +91,7 @@ test('custom wheel calibration persists, drives a real clutch and disconnects sa
   await page.locator('#mode').selectOption('practice');
   await page.locator('#opponents').selectOption('0');
   await page.getByRole('button', { name: /ENTER CIRCUIT/ }).click();
+  await finishRaceEntry(page);
   // Session startup replaces the preview and initializes a module worker.
   // A null frame during that transition is not a failed clutch response.
   await expect

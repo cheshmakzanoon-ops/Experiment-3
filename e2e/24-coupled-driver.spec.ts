@@ -1,3 +1,4 @@
+import { finishRaceEntry } from './race-entry.ts';
 import { test, expect } from '@playwright/test';
 import { F, H, carBase } from '../src/simulation/protocol.ts';
 import manifest from '../src/rendering/supplied-player.manifest.json' with { type: 'json' };
@@ -57,6 +58,7 @@ test('27H.2 normal application: coupled driver survives both locks, countersteer
   await expect(enterCircuit).toHaveAccessibleName('ENTER CIRCUIT');
   await expect(enterCircuit).toBeEnabled();
   await enterCircuit.click();
+  await finishRaceEntry(page);
   await expect.poll(async () => (await diagnostics()).state, { timeout: 90000 }).toBe('driving');
   await page.keyboard.press('c');
   await expect.poll(async () => (await diagnostics()).renderer?.camera).toBe('cockpit');

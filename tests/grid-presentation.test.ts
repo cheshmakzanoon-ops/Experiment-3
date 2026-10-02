@@ -47,7 +47,7 @@ it('keeps preparation on an explicitly controlled clock, bounded through hidden 
   c.reset();
   expect(c.time).toBe(0);
   expect(c.playing).toBe(false);
-  expect(GRID_PRESENTATION_STAGES.map((s) => s.start)).toEqual([0, 4, 7, 12, 17, 22]);
+  expect(GRID_PRESENTATION_STAGES.map((s) => s.start)).toEqual([0, 4, 7, 12, 17, 36]);
 });
 
 it('plants feet in world space between swings, without teleporting at pose boundaries', () => {
@@ -64,7 +64,7 @@ it('plants feet in world space between swings, without teleporting at pose bound
       }
     }
   const hub = new T.Vector3(-0.83, -0.2, 1.82);
-  for (const t of [4, 7, 9, 12, 15, 17, 22]) {
+  for (const t of [4, 7, 9, 12, 15, 17, 17.75, 18.5, 19.25, 20, 23, 26, 34, 38]) {
     const a = poseGridMechanic(t - 1e-6, 0, hub),
       b = poseGridMechanic(t + 1e-6, 0, hub);
     expect(a.position.distanceTo(b.position)).toBeLessThan(1e-4);
@@ -80,7 +80,7 @@ it('uses the real skinned bodies and gloves through the whole sequence without c
   const view = new GridPresentationView(),
     camera = new T.Vector3().fromArray(frame, carBase(0));
   const failures: unknown[] = [];
-  for (let tick = 0; tick < 220; tick++) {
+  for (let tick = 0; tick <= 380; tick++) {
     const t = tick / 10;
     view.update(frame, camera, t);
     const d = view.diagnostics();
@@ -92,8 +92,14 @@ it('uses the real skinned bodies and gloves through the whole sequence without c
   }
   expect(failures.slice(0, 10)).toEqual([]);
   expect(frame).toEqual(before);
-  view.update(frame, camera, 24);
-  expect(view.diagnostics().actors).toBe(0);
+  view.update(frame, camera, 38);
+  expect(view.diagnostics().actors).toBe(12);
+  expect(view.diagnostics().phase).toBe('clear');
+  view.park(frame);
+  view.update(frame, camera, null);
+  expect(view.diagnostics().parked).toBe(true);
+  expect(view.diagnostics().actors).toBe(12);
+  view.reset();
   view.update(frame, camera, 12);
   const d = view.diagnostics();
   view.update(frame, camera, 4);
@@ -169,7 +175,7 @@ it('retains a fixed supporting foot while kneeling and rising, and throughout ea
   let previous = poseGridMechanic(0, 0, hub);
   const worldFoot = (motion: ReturnType<typeof poseGridMechanic>, foot: 0 | 1) =>
     motion.feet[foot].clone().applyAxisAngle(up, motion.yaw).add(motion.position);
-  for (let i = 1; i <= 2400; i++) {
+  for (let i = 1; i <= 3800; i++) {
     const m = poseGridMechanic(i / 100, 0, hub);
     expect(m.planted.some(Boolean), `no support at ${m.time}`).toBe(true);
     for (const foot of [0, 1] as const) {

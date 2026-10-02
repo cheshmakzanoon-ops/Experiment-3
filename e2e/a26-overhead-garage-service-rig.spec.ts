@@ -1,3 +1,4 @@
+import { finishRaceEntry } from './race-entry.ts';
 import { test, expect } from '@playwright/test';
 import { build } from 'vite';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -28,6 +29,7 @@ test('A26 production startup and practice entry retain the overhead rig with A22
   await page.selectOption('#mode', 'practice');
   await page.selectOption('#opponents', '0');
   await page.getByRole('button', { name: 'ENTER CIRCUIT', exact: true }).click();
+  await finishRaceEntry(page);
   await expect.poll(async () => (await read()).state, { timeout: 90000 }).toBe('driving');
   await page.keyboard.press('Escape');
   await expect

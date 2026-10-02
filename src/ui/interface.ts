@@ -1,3 +1,4 @@
+import { installRaceDayHud, updateRaceDayHud } from './race-day-hud.ts';
 import { installCompactRaceHud } from './compact-race-hud.ts';
 import { audioAccessibility, readDrivingAudio } from './audio-accessibility.ts';
 import type { DrivingAudioSettings } from '../audio/driving-cues.ts';
@@ -146,7 +147,7 @@ export class Interface {
    </form><div class="menu-actions"><button data-action="settings">GARAGE & SETTINGS</button><button data-action="controls">CONTROLS</button><button data-action="championship">CHAMPIONSHIP</button><button data-action="team">TEAM HQ</button><button data-action="photo">PHOTO / LIVERY</button><button data-action="references">REFERENCE REVIEW</button><button data-action="sessionReview">SESSION 146 EVIDENCE</button><button data-action="academy">DRIVING ACADEMY</button></div>
    <p class="menu-note">WASD / ARROWS TO DRIVE · GAMEPAD SUPPORTED<br>G TO WATCH THE AI DRIVE YOUR CAR</p></div>
    <div class="car-label"><span>APX–01</span><b>FORMULA / HYBRID</b><div>770 KG DRY · 8 SPEED · 4 MJ ERS</div></div>
-   <footer class="menu-footer"><span><b id="circuitLength">${(track.length / 1000).toFixed(3)}</b> KM CIRCUIT</span><span><b>120</b> HZ SIMULATION</span><span><b>240</b> HZ TIRE SOLVE</span><span>ENGINEERING BUILD / 0.1</span></footer>
+   <footer class="menu-footer"><span><b id="circuitLength">${(track.length / 1000).toFixed(3)}</b> KM CIRCUIT</span><span><b>120</b> HZ SIMULATION</span><span><b>240</b> HZ TIRE SOLVE</span><span id="buildIdentity">ENGINEERING BUILD / 0.1</span></footer>
   </section>
   <section id="hud" class="hud" hidden>
    <div class="hud-top"><div class="brand small">APEX<span>LIVE</span></div><div class="position-badge" role="status" aria-label="Race position"><b id="positionBadge">P1</b><span id="positionField">/ 1</span></div><div class="session-status"><span id="lapLabel">LAP 1 / 3</span><b id="flag">GRID</b><span id="weatherLabel">24°C / DRY</span></div><button class="icon-button" data-action="pause" aria-label="Pause session">Ⅱ</button></div>
@@ -181,6 +182,7 @@ export class Interface {
     this.graph = this.get('graph') as HTMLCanvasElement;
     this.replayBar = this.get('replayBar');
     installCompactRaceHud(this.hud);
+    installRaceDayHud(this.hud);
     element.addEventListener('click', (e) => {
       const button = (e.target as HTMLElement).closest<HTMLElement>('[data-action]');
       if (button) this.callbacks.action(button.dataset.action!);
@@ -368,6 +370,7 @@ export class Interface {
       this.setText('bestLap', lapTime(trial.best));
     this.setText('battery', `${Math.round(frame[o + F.BATTERY] / 4e4)}%`);
     this.setText('fuel', `${frame[o + F.FUEL].toFixed(1)} KG`);
+    updateRaceDayHud(this.hud, frame);
     this.get('brakeBar').style.width = `${frame[o + F.BRAKE] * 100}%`;
     this.get('throttleBar').style.width = `${frame[o + F.THROTTLE] * 100}%`;
     this.get('batteryBar').style.width = `${frame[o + F.BATTERY] / 4e4}%`;
@@ -773,6 +776,7 @@ export class Interface {
       next.drivingAudio = readDrivingAudio(form);
       next.colorblind = (form.elements.namedItem('colorblind') as HTMLInputElement).checked;
       next.highContrast = (form.elements.namedItem('highContrast') as HTMLInputElement).checked;
+      next.quickStart = (form.elements.namedItem('quickStart') as HTMLInputElement).checked;
       for (const key of ['volume', 'shake', 'uiScale'] as const) next[key] = Number(value(key));
       for (const key of Object.keys(DEFAULT_SETUP) as (keyof Setup)[])
         next.setup[key] = Number(value(key));

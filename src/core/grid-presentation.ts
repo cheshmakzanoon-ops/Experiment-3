@@ -1,5 +1,5 @@
 /** A presentation-only pre-race clock. It never advances the physics worker. */
-export const GRID_PRESENTATION_SECONDS = 24;
+export const GRID_PRESENTATION_SECONDS = 38;
 export const GRID_PRESENTATION_STAGES = [
   {
     start: 0,
@@ -22,13 +22,13 @@ export const GRID_PRESENTATION_STAGES = [
   },
   {
     start: 17,
-    end: 22,
+    end: 36,
     title: 'Clear the grid',
-    detail: 'Crew carry the blankets out of the starting corridor.',
+    detail: 'Crew turn and carry the blankets to the service margin.',
   },
   {
-    start: 22,
-    end: 24,
+    start: 36,
+    end: 38,
     title: 'Ready to race',
     detail: 'The grid is clear. Continue to the starting lights.',
   },

@@ -1,62 +1,79 @@
-# Pre-race mechanic presentation — first playable slice
+# Race-Day Presentation V2
 
-## Entry and control
+## Player entry
+Normal **ENTER CIRCUIT** in Grand Prix or Endurance now opens a race-day briefing.
+It reports the initialized grid position, fitted compound, actual fuel mass,
+selected distance and physical weather state. The setup chosen in the garage
+is already applied. **WATCH GRID PREPARATION** plays the preparation and hands
+control to the start lights automatically. **GO STRAIGHT TO LIGHTS** skips it.
 
-On the paddock screen select a Grand Prix or Endurance session, then choose
-**PREPARE GRID / START PAUSED**. In the paused grid menu choose
-**PRE-RACE PRESENTATION**. Play, pause, or scrub the preparation; use
-**SKIP TO START LIGHTS** (or **BEGIN RACE** after clearance) to race.
-**BACK TO GRID MENU** returns without advancing the simulation.
+Quick Start is an opt-in saved preference (also under Garage & Settings).
+It skips the briefing for subsequent races; old saves default to the full entry.
+Practice and qualifying retain their existing entry. Qualifying order is not
+overridden by preparation. **PREPARE GRID / START PAUSED** always remains an
+explicit inspection route, independent of the preference. Its presentation
+retains a scrubber; the normal player-facing sequence hides that review control.
 
-The direct ENTER CIRCUIT path and the established paused-grid inspection path
-remain available. This is not yet the default garage-to-grid race-weekend flow.
+## Crew performance
+The 38-second presentation has staggered actor timings, approach, lowering,
+blanket grip/gather, rise, two staged turns and two walking legs. Inboard
+mechanics go around the nose or tail before traversing the row; inner and
+outer wheel teams use separate longitudinal lanes. Parking is outside the
+asphalt at 9.5 m from the start straight's centreline on the two current circuits.
+A full-grid CPU regression checks every root against conservative car envelopes.
 
-## Implemented
+There is no `time < 22` visibility cutoff. The same final transforms are parked
+in world space when racing begins, with conservative frustum bounds. They do
+not follow the moving car or disappear at a time threshold. Restart/menu reset
+the cast. Foot targets maintain a supporting contact through gait and turns;
+rendered glove sockets and blanket handles use the same deformation.
+The existing dedicated garment, 15-bone rig, helmets, gloves, supplied player
+car, cockpit and driver remain unchanged.
 
-- Separate 24-second presentation clock: briefing, approach, kneel/inspect,
-  gather/lift blankets, backward clearance, and a clean handover to the lights.
-- The production physics worker remains paused at tick zero throughout.
-  No tyre temperature, fuel, grip, qualifying result, or vehicle pose is edited.
-- Distance-driven footfalls and one-foot-at-a-time kneeling/rising transitions,
-  with fixed support contacts and explicit feet targets on the two-bone solver, and finger-grip constraints on the rendered gloves and blanket loops.
-- Original folded-blanket geometry shares its deformation across colour,
-  directional shadows, point-light shadows and the CPU contact solver.
-- A dedicated Blender-authored close-up garment uses 9,168 triangles, UVs,
-  15 bones, shoulder stitching, knee-pad seams, boot tread and compression
-  details. Four close crew use it; distant teams retain the existing mid mesh.
-  The previous people, player car, cockpit and driver assets remain unchanged.
-- A bounded cast (four people per car, maximum 48); no per-frame geometry
-  creation. Reflection passes omit this presentation cast. After clearance,
-  legacy start props cannot suddenly reappear as the race starts.
-- Peripheral event and stage headings keep task contacts visible above the compact
-  control strip. Driving guidance is hidden during preparation.
-- Keyboard-accessible controls, reduced-motion camera option, hidden-tab pause,
-  repeatable seeking, back/re-enter and skip paths.
+The worker stays at tick zero during preparation. No fuel, grip, temperature,
+qualifying results, vehicle positions, simulation clock or race-control channels
+are rewritten. Skipping the presentation is a presentation-state transition,
+not a simulated formation lap. Pausing/hidden-tab behavior remains explicit.
+These are original procedural task poses and distance-locked steps, not motion
+capture, a cloth solver, certified natural human motion or final character art.
 
-## Evidence and boundaries
+## Racing interface
+The same live telemetry nodes now form a lower-right driving cluster (gear,
+speed, rev lights/RPM, pedal bars, ERS mode/charge and fuel). Classification and
+lap timing are peripheral. On wide screens, VEHICLE opens an adjacent MFD with
+Tyres, Energy and Damage tabs. Small screens keep the native RACE INFO drawer.
+Every prior tyre/brake/health reading is retained. Puncture, aero damage, low
+fuel and excessive brake temperature produce prioritized warnings even when
+the MFD is closed. The controls are keyboard accessible; panel navigation does
+not leak keydowns into driving, while keyups can release held inputs.
+Layout tests deliberately replace the old top-centre-placement assertions but
+retain all viewport/scale/camera/data/scroll/keyboard checks.
 
-`tests/grid-presentation.test.ts` checks clocks, footfall continuity, reachable
-limbs, actual grip residuals, immutable simulation frames, shadow deformation,
-and authored geometry/weights. `e2e/50-grid-presentation.spec.ts` enters through
-the real menu, plays and pauses the actual preparation clock, captures
-inspection/gather/carry/clear views, verifies the paused worker and tests the
-handover into driving. The support-foot regression checks 2,400 samples and
-requires an unmoving planted foot through every stance and transition.
+## Validation and delivery
+- Unit tests cover settings migration, briefing data, warning priorities,
+  staggered timing, planted feet, reachable limbs, glove grip, full-grid paths,
+  persistent parked transforms and unchanged simulation snapshots.
+- DOM tests cover lower-corner layout, footprint, compact/wide resize, MFD tabs,
+  warnings and input ownership. Their synthetic data is component evidence,
+  not a racing or hardware claim.
+- Browser test 50 retains explicit inspection, seeking and skip checks.
+  Browser test 51 uses normal entry, automatic clock playback, classification,
+  replay, saved Quick Start and paused inspection. Existing gameplay tests
+  explicitly take the new public skip action where they previously entered
+  directly; their race assertions, deadlines and physics are unchanged.
+- Browser progress reporting preserves the active case/step and elapsed
+  heartbeat. Whole-weekend and new preparation cases receive larger scheduling
+  weights; every discovered test still belongs to exactly one shard.
+- The menu shows a source fingerprint for uncommitted candidates or an exact
+  commit for clean builds. BUILD_IDENTITY.json contains both fields. No staging
+  commit is falsely labelled as the patched source.
+- Only a complete successful main validation may publish the source-addressed
+  release ZIP. A green workflow with skipped publication is not delivery proof.
+  No deployment branch is created; this does not redeploy an older web-host URL.
 
-These are procedural task performances on an authored mesh, **not motion
-capture**, not cloth simulation and not completed AAA human art. The mesh,
-exchange file and editable Blender scene are retained; `finalArtApproved` stays
-false. The rest of the pit service still uses its established assets and poses.
-A formation lap, umbrellas, full garage briefing, new racing HUD, close-rival
-replacement and expanded race-weekend presentation remain separate work.
-Consumer-hardware frame times and human visual approval are not inferred from
-software-rendered tests or triangle counts.
-
-## Publication and branch policy
-
-All source lives on `main`. The deleted `playable-cdn` branch is no longer a
-release dependency. A successful main validation publishes a source-addressed
-GitHub release ZIP with `SOURCE_COMMIT.txt` and `SHA256SUMS`, verifying supplied
-asset manifests before publication. This repairs artifact delivery; it does
-**not** claim that an old browser-hosted URL has been updated. Serve the extracted
-release over HTTP, or deploy those exact bytes through the selected web host.
+## Still open
+Final human art/animation review, representative GPU frame times, authored
+motion clips, terrain-conforming foot correction away from the current grid,
+full garage briefing/setup editing, a physical formation lap, rival-car A61,
+wider career/online scope and automatic deployment to the selected web host
+remain separate acceptance work. This milestone does not assert F1 25 parity.

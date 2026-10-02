@@ -1,3 +1,4 @@
+import { finishRaceEntry } from './race-entry.ts';
 import { readFile } from 'node:fs/promises';
 import { test, expect, type Page, type TestInfo } from '@playwright/test';
 import { H, carBase, F } from '../src/simulation/protocol.ts';
@@ -169,6 +170,7 @@ test('reference tools: race and replay photo transitions freeze the displayed fr
   await page.locator('#mode').selectOption('practice');
   await page.locator('#opponents').selectOption('3');
   await page.getByRole('button', { name: 'ENTER CIRCUIT' }).click();
+  await finishRaceEntry(page);
   await expect.poll(async () => (await diag(page)).state, { timeout: 90000 }).toBe('driving');
   await page.keyboard.press('g');
   await expect

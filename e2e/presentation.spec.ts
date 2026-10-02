@@ -1,3 +1,4 @@
+import { finishRaceEntry } from './race-entry.ts';
 import { expect, test } from '@playwright/test';
 import { F, H, carBase } from '../src/simulation/protocol.ts';
 
@@ -34,6 +35,7 @@ test('individual rendering controls persist and allocate the selected buffer dim
   await page.locator('#mode').selectOption('practice');
   await page.locator('#opponents').selectOption('0');
   await page.getByRole('button', { name: /ENTER CIRCUIT/ }).click();
+  await finishRaceEntry(page);
   await expect
     .poll(() => page.evaluate(() => window.apexDiagnostics().state), { timeout: 60000 })
     .toBe('driving');
@@ -90,6 +92,7 @@ test('manual pedals reach the physics worker while rendering callbacks are suspe
   await page.locator('#mode').selectOption('practice');
   await page.locator('#opponents').selectOption('0');
   await page.getByRole('button', { name: /ENTER CIRCUIT/ }).click();
+  await finishRaceEntry(page);
   await expect
     .poll(() => page.evaluate(() => window.apexDiagnostics().state), { timeout: 60000 })
     .toBe('driving');

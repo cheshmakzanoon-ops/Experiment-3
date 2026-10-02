@@ -69,8 +69,11 @@ test('compact live HUD preserves readable driving space and every information pa
       };
     });
     expect(observed.instruments.top).toBeGreaterThan(observed.header.bottom);
-    expect(observed.instruments.bottom).toBeLessThan(height * 0.45);
-    expect(observed.instruments.bottom).toBeLessThan(observed.lights.top);
+    // V2's lower driving cluster and peripheral light echo intentionally replace
+    // the previous top-centre contract. Keep viewport, data and keyboard checks.
+    expect(observed.instruments.bottom).toBeLessThan(height - 45);
+    expect(observed.lights.bottom < observed.instruments.top ||
+      observed.lights.right < observed.instruments.left).toBe(true);
     for (const r of observed.readouts) {
       expect(r.left).toBeGreaterThanOrEqual(0);
       expect(r.right).toBeLessThanOrEqual(width);

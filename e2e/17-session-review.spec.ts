@@ -1,3 +1,4 @@
+import { finishRaceEntry } from './race-entry.ts';
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import type { SessionReviewReport } from '../src/core/session-review.ts';
@@ -20,6 +21,7 @@ test('actual race UI records source-bound session observations and never certifi
   await page.locator('#mode').selectOption('race');
   await page.locator('#opponents').selectOption('0');
   await page.getByRole('button', { name: /ENTER CIRCUIT/ }).click();
+  await finishRaceEntry(page);
   await expect
     .poll(() => page.evaluate(() => window.apexDiagnostics().state), { timeout: 90000 })
     .toBe('driving');

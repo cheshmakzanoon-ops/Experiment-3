@@ -1,3 +1,4 @@
+import { finishRaceEntry } from './race-entry.ts';
 import { expect, test } from '@playwright/test';
 
 test('27H.4 normal startup constructs the upgraded districts and retained event hall', async ({
@@ -32,6 +33,7 @@ test('27H.4 normal startup constructs the upgraded districts and retained event 
   await page.selectOption('#mode', 'practice');
   await page.selectOption('#opponents', '0');
   await page.getByRole('button', { name: 'ENTER CIRCUIT', exact: true }).click();
+  await finishRaceEntry(page);
   await expect.poll(async () => (await read()).state, { timeout: 90000 }).toBe('driving');
   await page.keyboard.press('Escape');
   await expect

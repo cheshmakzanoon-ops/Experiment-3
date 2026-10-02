@@ -1,3 +1,4 @@
+import { finishRaceEntry } from './race-entry.ts';
 import { test, expect, type Page } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
@@ -66,6 +67,7 @@ test('live review exports every observed frame and interrupts on a real viewport
   await page.locator('#mode').selectOption('practice');
   await page.locator('#opponents').selectOption('0');
   await page.getByRole('button', { name: /ENTER CIRCUIT/ }).click();
+  await finishRaceEntry(page);
   await expect.poll(async () => (await diag(page)).state, { timeout: 90000 }).toBe('driving');
   await page.keyboard.press('g');
   await page.keyboard.press('Escape');

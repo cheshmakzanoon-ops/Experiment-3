@@ -51,6 +51,8 @@ export interface Settings {
   graphics: GraphicsOptions;
   colorblind: boolean;
   highContrast: boolean;
+  /** Skip race-day briefing/preparation on ordinary race entry. */
+  quickStart: boolean;
   quality: Quality;
   volume: number;
   drivingAudio: DrivingAudioSettings;
@@ -65,6 +67,7 @@ export const DEFAULT_SETTINGS: Settings = {
   graphics: graphicsPreset('medium'),
   colorblind: false,
   highContrast: false,
+  quickStart: false,
   quality: 'medium',
   volume: 0.45,
   drivingAudio: { ...DEFAULT_DRIVING_AUDIO },
@@ -110,6 +113,7 @@ export function validateSettings(v: unknown): Settings {
     graphics: validateGraphics(version >= 4 ? p.graphics : undefined, quality),
     colorblind: p.colorblind === true,
     highContrast: p.highContrast === true,
+    quickStart: p.quickStart === true,
     quality,
     volume: finite(p.volume, 0.45, 0, 1),
     drivingAudio: validateDrivingAudio(p.drivingAudio),

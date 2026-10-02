@@ -1,3 +1,4 @@
+import { finishRaceEntry } from './race-entry.ts';
 import { test, expect, type Page, type TestInfo } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { H } from '../src/simulation/protocol.ts';
@@ -126,6 +127,7 @@ for (const drive of drives)
         exact: true,
       })
       .click();
+    if (!pausedStart) await finishRaceEntry(page);
     await expect
       .poll(async () => (await diag(page)).state, { timeout: 90000 })
       .toBe(pausedStart ? 'paused' : 'driving');

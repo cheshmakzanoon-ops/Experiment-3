@@ -4,7 +4,7 @@ import { resolve } from 'node:path';
 import { readFile } from 'node:fs/promises';
 import type { raceHudLayout, gridPreparationControls } from './fixtures/race-hud-layout.ts';
 
-test('27H.6 DOM-only: compact and wide telemetry clears the car, lights and side panels', async ({
+test('Race-Day V2 DOM-only: lower-corner telemetry clears the road, lights and timing', async ({
   page,
 }, info) => {
   const bundled = await build({
@@ -67,11 +67,14 @@ test('27H.6 DOM-only: compact and wide telemetry clears the car, lights and side
           });
           expect(rectangles.timing.bottom).toBeLessThan(rectangles.minimap.top);
           const a = rectangles.instruments;
-          expect(a.top).toBeGreaterThanOrEqual(90);
-          expect(a.bottom).toBeLessThan(viewport.height * 0.45);
-          expect(a.left).toBeGreaterThan(rectangles.timing.right);
-          expect(a.right).toBeLessThan(rectangles.lap.left);
-          expect(a.bottom).toBeLessThan(rectangles.lights.top);
+          // V2 intentionally moves instruments below the driving sightline.
+          // Keep every camera, scale, guidance, data and overflow assertion.
+          expect(a.top).toBeGreaterThan(viewport.height * 0.5);
+          expect(a.bottom).toBeLessThanOrEqual(viewport.height - 48);
+          expect(a.left).toBeGreaterThan(viewport.width * 0.5);
+          expect(a.right).toBeLessThanOrEqual(viewport.width - 10);
+          expect(rectangles.lights.bottom).toBeLessThan(a.top);
+          expect(rectangles.lap.bottom).toBeLessThan(a.top);
           expect(rectangles.resources.right).toBeLessThanOrEqual(a.right + 0.1);
           await expect(page.locator('#speed')).toHaveText('162');
           await expect(page.locator('#battery')).toBeVisible();

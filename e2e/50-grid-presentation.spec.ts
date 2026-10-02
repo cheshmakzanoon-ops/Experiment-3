@@ -41,8 +41,8 @@ test('pre-race performance holds physics, seeks actual crew poses and hands cont
   for (const [time, phase] of [
     [10, 'inspect'],
     [14, 'gather'],
-    [19, 'carry'],
-    [24, 'clear'],
+    [30, 'carry'],
+    [38, 'clear'],
   ] as const) {
     await page.locator('#gridPresentationSeek').evaluate((element, value) => {
       const input = element as HTMLInputElement;
@@ -78,7 +78,8 @@ test('pre-race performance holds physics, seeks actual crew poses and hands cont
   await page.locator('#gridPresentationStart').click();
   await expect.poll(async () => (await diag()).state).toBe('driving');
   await expect.poll(async () => (await diag()).frame?.[H.TIME] ?? 0).toBeGreaterThan(1);
-  expect((await diag()).renderer?.gridPerformance?.actors).toBe(0);
+  expect((await diag()).renderer?.gridPerformance?.parked).toBe(true);
+  expect((await diag()).renderer?.gridPerformance?.actors).toBeGreaterThan(0);
   await expect(page.locator('#gridPresentation')).toBeHidden();
   await page.keyboard.press('Escape');
   await expect.poll(async () => (await diag()).state).toBe('paused');

@@ -1,3 +1,4 @@
+import { finishRaceEntry } from './race-entry.ts';
 import { test, expect, type Page } from '@playwright/test';
 import { Simulation } from '../src/simulation/world.ts';
 import { DEFAULT_OPTIONS } from '../src/simulation/config.ts';
@@ -74,6 +75,7 @@ test('Time Trial: saved personal-best ghost is loaded, drawn and timed against t
   await page.selectOption('#mode', 'time-trial');
   await expect(page.locator('#opponents')).toBeDisabled();
   await page.getByRole('button', { name: 'ENTER CIRCUIT', exact: true }).click();
+  await finishRaceEntry(page);
   await expect.poll(async () => (await diag(page)).state, { timeout: 240000 }).toBe('driving');
   const start = await diag(page);
   expect(start.options.mode).toBe('time-trial');

@@ -1,3 +1,4 @@
+import { finishRaceEntry } from './race-entry.ts';
 import { expect, test } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { readPerformanceReport } from '../src/core/performance.ts';
@@ -15,6 +16,7 @@ test('performance capture exports real frames and a second dialog never reuses d
   await page.locator('#mode').selectOption('practice');
   await page.locator('#opponents').selectOption('0');
   await page.getByRole('button', { name: /ENTER CIRCUIT/ }).click();
+  await finishRaceEntry(page);
   await expect.poll(() => page.evaluate(() => window.apexDiagnostics().state), { timeout: 60000 })
     .toBe('driving');
   await page.keyboard.press('g');

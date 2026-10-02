@@ -39,7 +39,12 @@ export class GridPresentationPanel {
       if (event.key !== 'Escape') event.stopPropagation();
     });
   }
-  show(circuit: string, brief: string) {
+  show(circuit: string, brief: string, automatic = false) {
+    this.root.dataset.automatic = String(automatic);
+    (this.root.querySelector('.grid-timeline') as HTMLElement).hidden = automatic;
+    this.root.querySelector('#gridPresentationBack')!.textContent = automatic
+      ? 'BACK TO BRIEFING'
+      : 'BACK TO GRID MENU';
     this.root.querySelector('#gridEventTitle')!.textContent = circuit;
     this.root.querySelector('#gridEventBrief')!.textContent = brief;
     this.root.hidden = false;

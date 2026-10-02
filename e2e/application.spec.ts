@@ -1,3 +1,4 @@
+import { finishRaceEntry } from './race-entry.ts';
 import { COCKPIT_FRAMING } from '../src/rendering/cockpit-framing.ts';
 import suppliedManifest from '../src/rendering/supplied-player.manifest.json' with { type: 'json' };
 import { readFile } from 'node:fs/promises';
@@ -14,6 +15,7 @@ async function begin(page: Page) {
   await page.selectOption('#mode', 'practice');
   await page.selectOption('#opponents', '3');
   await page.getByRole('button', { name: 'ENTER CIRCUIT' }).click();
+  await finishRaceEntry(page);
   await expect.poll(async () => (await diag(page)).state, { timeout: 90000 }).toBe('driving');
 }
 test('browser session, cameras, pause safety, telemetry and replay', async ({ page }, testInfo) => {
@@ -347,6 +349,7 @@ test('race start and chequered flag produce an actual result', async ({ page }, 
   await page.selectOption('#laps', '1');
   await page.selectOption('#opponents', '3');
   await page.getByRole('button', { name: 'ENTER CIRCUIT' }).click();
+  await finishRaceEntry(page);
   await expect.poll(async () => (await diag(page)).state, { timeout: 90000 }).toBe('driving');
   await page.keyboard.press('g');
   await expect
@@ -411,6 +414,7 @@ test('manual right steering and live rear-view passes work without autopilot', a
   await page.selectOption('#mode', 'practice');
   await page.selectOption('#opponents', '0');
   await page.getByRole('button', { name: 'ENTER CIRCUIT' }).click();
+  await finishRaceEntry(page);
   await expect.poll(async () => (await diag(page)).state, { timeout: 90000 }).toBe('driving');
   expect((await diag(page)).auto).toBe(false);
   await page.keyboard.down('w');
