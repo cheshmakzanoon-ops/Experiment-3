@@ -1,0 +1,210 @@
+diff --git a/src/rendering/grid-mechanic-motion.ts b/src/rendering/grid-mechanic-motion.ts
+--- a/src/rendering/grid-mechanic-motion.ts
++++ b/src/rendering/grid-mechanic-motion.ts
+@@ -133,21 +133,25 @@
+     let forward = t < 17 ? step.forward - distance : -(step.forward - distance);
+     if (t >= 17) forward += finalApproach;
+     const kneelFoot = foot === 0 ? 0.29 : -0.32;
+-    // During lowering, reposition the feet with a visible lift, then keep them
+-    // planted throughout inspection, blanket gathering and the rise.
++    // Reposition one foot at a time; the other remains at a fixed contact.
++    // Simultaneous lifts made the previous crouch/rise float above the grid.
++    const lowerStart = 7 + foot;
++    const riseStart = foot === 1 ? 15 : 16;
++    const lowering = between(t, lowerStart, lowerStart + 1);
++    const standing = between(t, riseStart, riseStart + 1);
+     if (t >= 7 && t < 17)
+-      forward = finalApproach + (kneelFoot - finalApproach) * kneel * (1 - rise);
++      forward = finalApproach + (kneelFoot - finalApproach) * lowering * (1 - standing);
+ 
+-    const reposition = (t >= 7 && t < 9) || (t >= 15 && t < 17);
+-    const lifting = reposition
+-      ? 0.055 * Math.sin((Math.PI * (t - (t < 9 ? 7 : 15))) / 2) ** 2
++    const shiftStart = t < 15 ? lowerStart : riseStart;
++    const reposition = t > shiftStart && t < shiftStart + 1;
++    const repositioningStage = t >= 7 && t < 17;
++    const lifting = repositioningStage
++      ? reposition
++        ? 0.055 * Math.sin(Math.PI * (t - shiftStart)) ** 2
++        : 0
+       : step.lift;
+-    out.feet[foot].set(
+-      foot === 0 ? -0.14 : 0.14,
+-      0.055 + (t >= 9 && t < 15 ? 0 : lifting),
+-      0.035 + forward,
+-    );
+-    out.planted[foot] = reposition ? false : t >= 9 && t < 15 ? true : step.planted;
++    out.feet[foot].set(foot === 0 ? -0.14 : 0.14, 0.055 + lifting, 0.035 + forward);
++    out.planted[foot] = repositioningStage ? !reposition : step.planted;
+   }
+   // Lower the pelvis when a long planted stance would otherwise stretch a leg.
+   for (const foot of out.feet)
+diff --git a/src/rendering/renderer.ts b/src/rendering/renderer.ts
+--- a/src/rendering/renderer.ts
++++ b/src/rendering/renderer.ts
+@@ -1085,7 +1085,7 @@
+       this.camera.position,
+       pregame ? this.gridPresentationTime : null,
+     );
+-    this.guide.update(presented, !menu && !this.photo, this.colorblind);
++    this.guide.update(presented, !menu && !this.photo && !pregame, this.colorblind);
+     this.replayView = replay;
+     this.engineeringView.update(this.engineering, b[H.TIME], this.debug, replay);
+     this.reflection.beginFrame(
+diff --git a/tests/grid-presentation.test.ts b/tests/grid-presentation.test.ts
+--- a/tests/grid-presentation.test.ts
++++ b/tests/grid-presentation.test.ts
+@@ -162,3 +162,21 @@
+   }
+   g.dispose();
+ });
++
++it('retains a fixed supporting foot while kneeling and rising, and throughout each walking stance', () => {
++  const hub = new T.Vector3(-0.83, -0.2, 1.82);
++  const up = new T.Vector3(0, 1, 0);
++  let previous = poseGridMechanic(0, 0, hub);
++  const worldFoot = (motion: ReturnType<typeof poseGridMechanic>, foot: 0 | 1) =>
++    motion.feet[foot].clone().applyAxisAngle(up, motion.yaw).add(motion.position);
++  for (let i = 1; i <= 2400; i++) {
++    const m = poseGridMechanic(i / 100, 0, hub);
++    expect(m.planted.some(Boolean), `no support at ${m.time}`).toBe(true);
++    for (const foot of [0, 1] as const) {
++      if (m.planted[foot]) expect(m.feet[foot].y).toBeCloseTo(0.055, 6);
++      if (m.planted[foot] && previous.planted[foot])
++        expect(worldFoot(m, foot).distanceTo(worldFoot(previous, foot))).toBeLessThan(1e-6);
++    }
++    previous = m;
++  }
++});
+diff --git a/e2e/50-grid-presentation.spec.ts b/e2e/50-grid-presentation.spec.ts
+--- a/e2e/50-grid-presentation.spec.ts
++++ b/e2e/50-grid-presentation.spec.ts
+@@ -21,13 +21,23 @@
+   await page.selectOption('#mode', 'race');
+   await page.selectOption('#opponents', '3');
+   await page.getByRole('button', { name: 'PREPARE GRID START PAUSED', exact: true }).click();
++  // A paused acknowledgement can predate the session's first frame. Wait for
++  // the actual paused grid before preserving the immutable comparison snapshot.
++  await expect.poll(async () => (await diag()).state).toBe('paused');
++  await expect.poll(async () => (await diag()).frame?.[H.TICK] ?? -1).toBe(0);
+   await expect
+     .poll(async () => (await diag()).workerPause)
+     .toMatchObject({ paused: true, pending: false });
+   const before = (await diag()).frame;
++  expect(before).not.toBeNull();
+   await page.getByRole('button', { name: 'PRE-RACE PRESENTATION', exact: true }).click();
+   await expect(page.locator('#gridPresentation')).toBeVisible();
+   await expect.poll(async () => (await diag()).state).toBe('pregame');
++  await page.getByRole('button', { name: 'PLAY PREPARATION', exact: true }).click();
++  await expect.poll(async () => (await diag()).gridPresentation.time).toBeGreaterThan(0.2);
++  await page.getByRole('button', { name: 'PAUSE PREPARATION', exact: true }).click();
++  expect((await diag()).gridPresentation.playing).toBe(false);
++  expect((await diag()).frame).toEqual(before);
+   for (const [time, phase] of [
+     [10, 'inspect'],
+     [14, 'gather'],
+diff --git a/src/ui/grid-presentation.ts b/src/ui/grid-presentation.ts
+--- a/src/ui/grid-presentation.ts
++++ b/src/ui/grid-presentation.ts
+@@ -19,9 +19,9 @@
+     this.root.className = 'grid-presentation';
+     this.root.hidden = true;
+     this.root.setAttribute('aria-label', 'Pre-race presentation');
+-    this.root.innerHTML = `<header><span class="eyebrow">APEX / RACE DAY</span><h1 id="gridEventTitle"></h1><p id="gridEventBrief"></p></header>
+-      <div class="grid-presentation-footer"><div role="status" aria-live="polite"><span class="eyebrow">CREW PREPARATION</span><h2 id="gridStage"></h2><p id="gridStageDetail"></p></div>
+-      <label class="grid-timeline">PRESENTATION POSITION <input id="gridPresentationSeek" type="range" min="0" max="${GRID_PRESENTATION_SECONDS}" step=".1" value="0" aria-label="Grid presentation position"></label>
++    this.root.innerHTML = `<header><div class="grid-event"><span class="eyebrow">APEX / RACE DAY</span><h1 id="gridEventTitle"></h1><p id="gridEventBrief"></p></div>
++      <div class="grid-stage" role="status" aria-live="polite"><span class="eyebrow">CREW PREPARATION</span><h2 id="gridStage"></h2><p id="gridStageDetail"></p></div></header>
++      <div class="grid-presentation-footer"><label class="grid-timeline">PRESENTATION POSITION <input id="gridPresentationSeek" type="range" min="0" max="${GRID_PRESENTATION_SECONDS}" step=".1" value="0" aria-label="Grid presentation position"></label>
+       <div class="grid-presentation-actions"><button type="button" id="gridPresentationPlay" class="primary">PLAY PREPARATION</button><button type="button" id="gridPresentationStart">SKIP TO START LIGHTS</button><button type="button" id="gridPresentationBack">BACK TO GRID MENU</button></div>
+       <small>Race simulation is held. This presentation does not change tyre temperature, fuel, or grip.</small></div>`;
+     parent.append(this.root);
+diff --git a/src/ui/grid-presentation.css b/src/ui/grid-presentation.css
+--- a/src/ui/grid-presentation.css
++++ b/src/ui/grid-presentation.css
+@@ -20,15 +20,25 @@
+   display: none;
+ }
+ .grid-presentation header {
++  display: flex;
++  justify-content: space-between;
++  align-items: flex-start;
++  gap: 24px;
++}
++.grid-event {
+   max-width: 600px;
+ }
++.grid-stage {
++  max-width: 280px;
++  text-align: right;
++}
+ .grid-presentation h1 {
+-  font-size: clamp(24px, 3.4vw, 48px);
++  font-size: clamp(24px, 2.8vw, 44px);
+   line-height: 1.08;
+   margin: 8px 0;
+ }
+ .grid-presentation h2 {
+-  font-size: clamp(22px, 2.4vw, 32px);
++  font-size: clamp(20px, 2vw, 28px);
+   margin: 4px 0;
+ }
+ .grid-presentation p {
+@@ -65,7 +75,20 @@
+   margin-top: 10px;
+   color: #c4c9ca;
+ }
+-@media (max-height: 520px) {
++@media (max-width: 700px) {
++  .grid-presentation header {
++    flex-direction: column;
++    gap: 8px;
++  }
++  .grid-stage {
++    max-width: none;
++    text-align: left;
++  }
++  .grid-stage p {
++    display: none;
++  }
++}
++@media (max-height: 700px) {
+   .grid-presentation {
+     padding: 12px 18px;
+   }
+diff --git a/docs/grid-preparation/IMPLEMENTATION.md b/docs/grid-preparation/IMPLEMENTATION.md
+--- a/docs/grid-preparation/IMPLEMENTATION.md
++++ b/docs/grid-preparation/IMPLEMENTATION.md
+@@ -17,8 +17,8 @@
+   gather/lift blankets, backward clearance, and a clean handover to the lights.
+ - The production physics worker remains paused at tick zero throughout.
+   No tyre temperature, fuel, grip, qualifying result, or vehicle pose is edited.
+-- Distance-driven footfalls, explicit feet targets on the existing two-bone
+-  solver, and finger-grip constraints on the rendered gloves and blanket loops.
++- Distance-driven footfalls and one-foot-at-a-time kneeling/rising transitions,
++  with fixed support contacts and explicit feet targets on the two-bone solver, and finger-grip constraints on the rendered gloves and blanket loops.
+ - Original folded-blanket geometry shares its deformation across colour,
+   directional shadows, point-light shadows and the CPU contact solver.
+ - A dedicated Blender-authored close-up garment uses 9,168 triangles, UVs,
+@@ -28,6 +28,8 @@
+ - A bounded cast (four people per car, maximum 48); no per-frame geometry
+   creation. Reflection passes omit this presentation cast. After clearance,
+   legacy start props cannot suddenly reappear as the race starts.
++- Peripheral event and stage headings keep task contacts visible above the compact
++  control strip. Driving guidance is hidden during preparation.
+ - Keyboard-accessible controls, reduced-motion camera option, hidden-tab pause,
+   repeatable seeking, back/re-enter and skip paths.
+ 
+@@ -36,8 +38,10 @@
+ `tests/grid-presentation.test.ts` checks clocks, footfall continuity, reachable
+ limbs, actual grip residuals, immutable simulation frames, shadow deformation,
+ and authored geometry/weights. `e2e/50-grid-presentation.spec.ts` enters through
+-the real menu, captures inspection/gather/carry/clear views, verifies the paused
+-worker and tests the handover into driving.
++the real menu, plays and pauses the actual preparation clock, captures
++inspection/gather/carry/clear views, verifies the paused worker and tests the
++handover into driving. The support-foot regression checks 2,400 samples and
++requires an unmoving planted foot through every stance and transition.
+ 
+ These are procedural task performances on an authored mesh, **not motion
+ capture**, not cloth simulation and not completed AAA human art. The mesh,

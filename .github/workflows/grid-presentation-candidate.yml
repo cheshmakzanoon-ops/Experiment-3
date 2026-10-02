@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: [docs/grid-preparation/candidate.patch, .github/workflows/grid-presentation-candidate.yml]
+    paths: [docs/grid-preparation/candidate.patch, docs/grid-preparation/candidate-fixes.patch, .github/workflows/grid-presentation-candidate.yml]
 permissions:
   contents: write
   actions: write
@@ -26,13 +26,15 @@ jobs:
         with:
           node-version: '22'
           cache: npm
-      - name: Apply the explicit source patch without rewriting existing history
+      - name: Apply the explicit source patches without rewriting existing history
         run: |
           set -euo pipefail
           git apply --check --index docs/grid-preparation/candidate.patch
           git apply --index docs/grid-preparation/candidate.patch
-          cp docs/grid-preparation/candidate.patch "$RUNNER_TEMP/validated-grid.patch"
-          git rm docs/grid-preparation/candidate.patch .github/workflows/grid-presentation-candidate.yml
+          git apply --check --index docs/grid-preparation/candidate-fixes.patch
+          git apply --index docs/grid-preparation/candidate-fixes.patch
+          git diff --cached > "$RUNNER_TEMP/validated-grid.patch"
+          git rm docs/grid-preparation/candidate.patch docs/grid-preparation/candidate-fixes.patch .github/workflows/grid-presentation-candidate.yml
       - run: npm ci --no-audit --no-fund
       - name: Lint, types, full unit suite and production build
         run: npm run check
