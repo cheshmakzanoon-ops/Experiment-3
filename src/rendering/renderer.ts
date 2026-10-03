@@ -1,3 +1,10 @@
+import { loadConcreteBarriers } from './concrete-barriers.ts';
+import { loadSteelGuardrails } from './steel-guardrails.ts';
+import { loadCatchFence } from './catch-fence.ts';
+import { loadImpactBarriers } from './impact-barriers.ts';
+import { loadRecoveryGates } from './recovery-gates.ts';
+import { loadMarshalPosts } from './marshal-posts.ts';
+import { loadStartGantry } from './start-gantry.ts';
 import { loadRivalLevels, type RivalLevels } from './a61-rival.ts';
 import { GridPresentationView } from './grid-presentation-view.ts';
 import { gridPresentationCamera } from './grid-mechanic-motion.ts';
@@ -461,6 +468,26 @@ export class RacingRenderer {
         label: 'Loading Aurel pit-building frontage',
       });
       renderer.circuit.pitBuildingFrontage = await loadPitBuildingFrontage(cancelled);
+      // This original kit is terrain/route-validated for Aurel. Vellamar keeps
+      // its own retained infrastructure until separately authored and reviewed.
+      if (track.circuit.id === 'aurel') {
+        progress({ completed: 0, total: 1, fraction: 0, label: 'Loading A01 concrete barriers' });
+        renderer.circuit.concreteBarriers = await loadConcreteBarriers(cancelled);
+        progress({ completed: 0, total: 1, fraction: 0, label: 'Loading A02 steel guardrails' });
+        renderer.circuit.steelGuardrails = await loadSteelGuardrails(cancelled);
+        progress({ completed: 0, total: 1, fraction: 0, label: 'Loading A03 catch fence' });
+        renderer.circuit.catchFence = await loadCatchFence(cancelled);
+        renderer.circuit.catchFence.setGateSites(renderer.circuit.trackInfrastructure.marshalPosts);
+        progress({ completed: 0, total: 1, fraction: 0, label: 'Loading A04 impact barriers' });
+        renderer.circuit.impactBarriers = await loadImpactBarriers(cancelled);
+        progress({ completed: 0, total: 1, fraction: 0, label: 'Loading A05 recovery gates' });
+        renderer.circuit.recoveryGates = await loadRecoveryGates(cancelled);
+        renderer.circuit.recoveryGates.setSites(track, renderer.circuit.serviceSites);
+        progress({ completed: 0, total: 1, fraction: 0, label: 'Loading A06 marshal posts' });
+        renderer.circuit.marshalPosts = await loadMarshalPosts(cancelled);
+        progress({ completed: 0, total: 1, fraction: 0, label: 'Loading A07 start gantry' });
+        renderer.circuit.startGantry = await loadStartGantry(cancelled);
+      }
       if (cancelled()) {
         renderer.dispose();
         return null;
@@ -1005,6 +1032,13 @@ export class RacingRenderer {
     this.camera.lookAt(this.gaze);
     if (this.photo) this.camera.rotateZ((this.photo.roll * Math.PI) / 180);
     this.camera.updateProjectionMatrix();
+    this.circuit.concreteBarriers?.update(this.camera, this.quality);
+    this.circuit.steelGuardrails?.update(this.camera, this.quality);
+    this.circuit.catchFence?.update(this.camera, this.quality);
+    this.circuit.impactBarriers?.update(this.camera, this.quality);
+    this.circuit.recoveryGates?.update(this.camera, this.quality);
+    this.circuit.marshalPosts?.update(this.camera, this.quality);
+    this.circuit.startGantry?.update(this.camera, this.quality);
     this.circuit.heroGarage?.update(this.camera, this.quality, illumination);
     this.tyreEquipment?.update(this.camera, this.quality);
     this.wheelGunStorage?.update(this.camera);
@@ -1626,6 +1660,7 @@ export class RacingRenderer {
       skyEnvironmentUpdates: this.environment.captures,
       lighting: this.lighting,
       vegetationTrees: this.circuit.vegetationGroup.userData.treeCount,
+      infrastructureDetail: this.circuit.infrastructureDiagnostics(),
       trackInfrastructure: {
         drains: this.circuit.trackInfrastructure.drains.length,
         marshalPosts: this.circuit.trackInfrastructure.marshalPosts.length,
@@ -1661,6 +1696,16 @@ export class RacingRenderer {
   dispose() {
     if (this.disposed) return;
     this.disposed = true;
+    // Each kit removes its owned root before the generic scene disposer, so
+    // source, cloned templates, atlas maps and all LODs are released once.
+    this.circuit.concreteBarriers?.dispose();
+    this.circuit.steelGuardrails?.dispose();
+    this.circuit.catchFence?.dispose();
+    this.circuit.impactBarriers?.dispose();
+    this.circuit.recoveryGates?.dispose();
+    this.circuit.marshalPosts?.dispose();
+    this.circuit.startGantry?.dispose();
+
     if (this.circuit.tyreBlankets && !this.circuit.tyreBlankets.root.parent)
       this.circuit.tyreBlankets.dispose();
     this.heroShells?.dispose();

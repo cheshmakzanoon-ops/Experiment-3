@@ -44,6 +44,7 @@ export function vegetationPlan(
   track: Track,
   seed = 7109,
   services: readonly ServiceSite[] = serviceSitePlan(track),
+  extraExclusion?: (x: number, z: number, padding: number) => boolean,
 ): TreePlacement[] {
   const random = new Random(seed),
     result: TreePlacement[] = [],
@@ -80,6 +81,7 @@ export function vegetationPlan(
     if (
       inStandFootprint(track, x, z, 8) ||
       inServiceFootprint(services, x, z, 8) ||
+      extraExclusion?.(x, z, 8) ||
       inDistrictFootprint(districts, x, z, 8) ||
       inLandmarkFootprint(landmark, x, z, 8)
     )
@@ -731,8 +733,9 @@ export function buildVegetation(
   track: Track,
   group: T.Group,
   services: readonly ServiceSite[] = serviceSitePlan(track),
+  extraExclusion?: (x: number, z: number, padding: number) => boolean,
 ) {
-  const placements = vegetationPlan(track, 7109, services);
+  const placements = vegetationPlan(track, 7109, services, extraExclusion);
   const { groves, treeline } = grovePlan(track, 40913, services);
   const { leafGeometry, trunkGeometry, distantLeafGeometry } = treeGeometry();
   const foliage = new T.MeshStandardMaterial({
@@ -784,7 +787,8 @@ export function buildVegetation(
       for (const [geometry, material] of parts) {
         const instances = new T.InstancedMesh(geometry, material, list.length);
         instances.name = `${label} ${material === bark ? 'branches' : 'canopy'} ${key}`;
-        if (label === 'Near') instances.name = `${material === bark ? 'Branches' : 'Canopy'} ${key}`;
+        if (label === 'Near')
+          instances.name = `${material === bark ? 'Branches' : 'Canopy'} ${key}`;
         instances.userData.fullCount = list.length;
         if (material === foliage) {
           instances.customDepthMaterial = depth;

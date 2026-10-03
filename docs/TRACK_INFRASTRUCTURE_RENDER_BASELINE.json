@@ -1,0 +1,122 @@
+{
+  "sourceCommit": "1b82c5a4424b6f503649d0516a4217608c0d54c3",
+  "evidenceRun": 37149330552,
+  "workload": {
+    "cars": 12,
+    "simulationSeed": 1887,
+    "simulationSeconds": 8,
+    "quality": "medium",
+    "resolution": [
+      1280,
+      720
+    ],
+    "resolutionScale": 1,
+    "camera": "cockpit",
+    "renderer": "complete production draw including mirrors, shadows and compositor"
+  },
+  "evidenceBoundary": "These measured frames are not approval of the failed original test. Its direct-scene ceiling was incorrectly applied to a multi-pass cockpit frame. All direct-scene ceilings remain unchanged; a new complete-frame regression budget permits at most 2% additional calls and triangles.",
+  "lighting": {
+    "day": {
+      "calls": 2345,
+      "triangles": 10744392,
+      "drawBreakdown": {
+        "environment": {
+          "calls": 33,
+          "triangles": 385
+        },
+        "probe": {
+          "calls": 0,
+          "triangles": 0
+        },
+        "mirrors": {
+          "calls": 1023,
+          "triangles": 2910947
+        },
+        "wet": {
+          "calls": 0,
+          "triangles": 0
+        },
+        "shadow": {
+          "calls": 477,
+          "triangles": 4092412
+        },
+        "composer": {
+          "calls": 812,
+          "triangles": 3740648
+        },
+        "other": {
+          "calls": 0,
+          "triangles": 0
+        }
+      }
+    },
+    "sunset": {
+      "calls": 3173,
+      "triangles": 12549162,
+      "drawBreakdown": {
+        "environment": {
+          "calls": 70,
+          "triangles": 7877
+        },
+        "probe": {
+          "calls": 0,
+          "triangles": 0
+        },
+        "mirrors": {
+          "calls": 1023,
+          "triangles": 2910947
+        },
+        "wet": {
+          "calls": 0,
+          "triangles": 0
+        },
+        "shadow": {
+          "calls": 1268,
+          "triangles": 5889690
+        },
+        "composer": {
+          "calls": 812,
+          "triangles": 3740648
+        },
+        "other": {
+          "calls": 0,
+          "triangles": 0
+        }
+      }
+    },
+    "night": {
+      "calls": 3457,
+      "triangles": 13147019,
+      "drawBreakdown": {
+        "environment": {
+          "calls": 70,
+          "triangles": 7877
+        },
+        "probe": {
+          "calls": 0,
+          "triangles": 0
+        },
+        "mirrors": {
+          "calls": 1296,
+          "triangles": 3592674
+        },
+        "wet": {
+          "calls": 0,
+          "triangles": 0
+        },
+        "shadow": {
+          "calls": 1324,
+          "triangles": 5985987
+        },
+        "composer": {
+          "calls": 767,
+          "triangles": 3560481
+        },
+        "other": {
+          "calls": 0,
+          "triangles": 0
+        }
+      }
+    }
+  }
+}

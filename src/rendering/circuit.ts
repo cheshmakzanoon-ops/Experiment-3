@@ -1,3 +1,11 @@
+import { infrastructureIdentity } from './track-infrastructure-diagnostics.ts';
+import type { ConcreteBarrierKit } from './concrete-barriers.ts';
+import type { SteelGuardrailKit } from './steel-guardrails.ts';
+import type { CatchFenceKit } from './catch-fence.ts';
+import type { ImpactBarriersKit } from './impact-barriers.ts';
+import type { RecoveryGatesKit } from './recovery-gates.ts';
+import type { MarshalPostsKit } from './marshal-posts.ts';
+import type { StartGantryKit } from './start-gantry.ts';
 import { StartFinishVenue } from './start-finish-venue.ts';
 import { type PitBuildingFrontage } from './pit-building-frontage.ts';
 import { PitWallStation, pitWallPlacement } from './pit-wall-station.ts';
@@ -52,6 +60,13 @@ interface RibbonOptions {
 }
 /** All surfaces are constructed from the same metre-valued track queries as physics. */
 export class CircuitScene {
+  concreteBarriers: ConcreteBarrierKit | null = null;
+  steelGuardrails: SteelGuardrailKit | null = null;
+  catchFence: CatchFenceKit | null = null;
+  impactBarriers: ImpactBarriersKit | null = null;
+  recoveryGates: RecoveryGatesKit | null = null;
+  marshalPosts: MarshalPostsKit | null = null;
+  startGantry: StartGantryKit | null = null;
   heroGarage: HeroGarage | null = null;
   tyreBlankets: TyreBlanketSet | null = null;
   pitBuildingFrontage: PitBuildingFrontage | null = null;
@@ -266,17 +281,31 @@ export class CircuitScene {
           (track.length * i) / spans,
           (track.length * (i + 1)) / spans,
           barriers,
+          this.concreteBarriers,
+          this.steelGuardrails,
+          this.catchFence,
+          this.impactBarriers,
+          this.recoveryGates,
         );
         // Barriers line the water's edge: they belong in the wet reflection.
         for (const child of this.surfaces.children.slice(before)) reflectInWetRoad(child);
       });
     this.infrastructure();
     this.construction.add('Drainage, marshal and replay-camera infrastructure', 3, () =>
-      buildTrackInfrastructure(track, this.props, this.safetyPanel, this.trackInfrastructure),
+      buildTrackInfrastructure(
+        track,
+        this.props,
+        this.safetyPanel,
+        this.trackInfrastructure,
+        this.marshalPosts,
+      ),
     );
-    this.construction.add('Authored service areas', 2, () =>
-      buildServiceAreas(this.props, this.serviceSites, this.sightlines),
-    );
+    this.construction.add('Authored service areas', 2, () => {
+      buildServiceAreas(this.props, this.serviceSites, this.sightlines, !!this.recoveryGates);
+      // A05 was attached by boundary construction. Use the SAME owner for
+      // its closed service gates and approach roads; never reparent the kit.
+      this.recoveryGates?.buildAccessGates(track, this.surfaces);
+    });
     this.construction.add('Four authored Aurel districts', 3, () =>
       buildDistricts(this.props, this.districts, this.sightlines, (x, z) =>
         terrainFor(track).height(x, z),
@@ -284,7 +313,12 @@ export class CircuitScene {
     );
     this.construction.add('Laid tyre rubber', 1, () => buildTyreMarks(track, this.surfaces));
     this.construction.add('Rule-placed layered foliage', 3, () =>
-      buildVegetation(track, this.vegetationGroup, this.serviceSites),
+      buildVegetation(
+        track,
+        this.vegetationGroup,
+        this.serviceSites,
+        (x, z, padding) => this.recoveryGates?.blocksVegetation(x, z, padding) ?? false,
+      ),
     );
     this.construction.add('Grid and finish markings', 0, () => this.grid());
     this.construction.add('Spatial geometry batches', 4, () =>
@@ -292,6 +326,8 @@ export class CircuitScene {
         this.props,
         new Set(
           [
+            this.marshalPosts?.root,
+            this.startGantry?.root,
             this.heroGarage?.root,
             this.tyreBlankets?.root,
             this.pitWallStation?.root,
@@ -302,6 +338,18 @@ export class CircuitScene {
       ),
     );
     this.construction.add('Seal static venue transforms', 6, () => {
+      // Layers are not inherited. Tag all append-only boundary batches after
+      // construction, before any colour, mirror or shadow survey uses them.
+      for (const kit of [
+        this.concreteBarriers,
+        this.steelGuardrails,
+        this.catchFence,
+        this.impactBarriers,
+        this.recoveryGates,
+      ])
+        if (kit) reflectInWetRoad(kit.root);
+      if (this.concreteBarriers) barriers.concrete.dispose();
+      if (this.catchFence) barriers.steel.dispose();
       this.props.sealTransforms();
       this.surfaces.sealTransforms();
       this.vegetationGroup.sealTransforms();
@@ -311,6 +359,17 @@ export class CircuitScene {
   }
   /** Read-only identity of constructed groups, not planned sites or an art approval.
    * Groups survive static batching; no mesh traversal or GPU readback is needed. */
+  infrastructureDiagnostics() {
+    return {
+      concreteBarriers: this.concreteBarriers?.diagnostics() ?? null,
+      steelGuardrails: this.steelGuardrails?.diagnostics() ?? null,
+      catchFence: this.catchFence?.diagnostics() ?? null,
+      impactBarriers: this.impactBarriers?.diagnostics() ?? null,
+      recoveryGates: this.recoveryGates?.diagnostics() ?? null,
+      marshalPosts: this.marshalPosts?.diagnostics() ?? null,
+      startGantry: this.startGantry?.diagnostics() ?? null,
+    };
+  }
   environmentDiagnostics() {
     const districts = this.props.children
       .filter((group) => group.userData.architecture !== undefined)
@@ -324,6 +383,14 @@ export class CircuitScene {
     return {
       source: 'constructed-runtime-groups',
       startFinish: this.startFinish.diagnostics(),
+      concreteBarriers: infrastructureIdentity(this.concreteBarriers?.diagnostics() ?? null),
+      steelGuardrails: infrastructureIdentity(this.steelGuardrails?.diagnostics() ?? null),
+      catchFence: infrastructureIdentity(this.catchFence?.diagnostics() ?? null),
+      impactBarriers: infrastructureIdentity(this.impactBarriers?.diagnostics() ?? null),
+      recoveryGates: infrastructureIdentity(this.recoveryGates?.diagnostics() ?? null),
+      marshalPosts: infrastructureIdentity(this.marshalPosts?.diagnostics() ?? null),
+      startGantry: infrastructureIdentity(this.startGantry?.diagnostics() ?? null),
+
       districts,
       garage: this.heroGarage?.diagnostics() ?? null,
       tyreBlankets: this.tyreBlankets?.diagnostics() ?? null,
@@ -579,7 +646,8 @@ export class CircuitScene {
       gantry.position.copy(this.at(0, 0));
       gantry.rotation.y = Math.atan2(p.tx, p.tz);
       this.props.add(gantry);
-      buildGantrySolids(gantry, dark, concrete, this.sightlines);
+      if (this.startGantry) this.startGantry.build(this.track, gantry, this.sightlines);
+      else buildGantrySolids(gantry, dark, concrete, this.sightlines);
       const banner = mesh(
         gantry,
         new T.PlaneGeometry(14, 1),

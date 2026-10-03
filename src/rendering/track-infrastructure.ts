@@ -1,3 +1,4 @@
+import type { MarshalPostsKit } from './marshal-posts.ts';
 import * as T from 'three';
 import { clamp } from '../core/math.ts';
 import { FLAG } from '../simulation/marshal.ts';
@@ -207,6 +208,7 @@ export function buildTrackInfrastructure(
   parent: T.Group,
   safetyPanel: T.MeshStandardMaterial,
   plan: TrackInfrastructurePlan = trackInfrastructurePlan(track),
+  marshalKit: MarshalPostsKit | null = null,
 ) {
   const concrete = new T.MeshStandardMaterial({ color: 0x777a75, roughness: 0.92 }),
     steel = new T.MeshStandardMaterial({ color: 0x4f5a5d, metalness: 0.72, roughness: 0.47 }),
@@ -244,24 +246,27 @@ export function buildTrackInfrastructure(
     placeRoot(g, site);
     parent.add(g);
     // Level concrete pad, open track-facing shelter, equipment cabinet and a real-state LED board.
-    box(g, concrete, 0, 0.09, 0, 3.1, 0.18, 2.5);
-    box(g, safety, site.side * 1.35, 1.25, 0, 0.12, 2.35, 2.5);
-    box(g, steel, 0, 2.42, 0, 3.2, 0.14, 2.65);
-    for (const z of [-1.325, 1.325]) {
-      box(g, steel, 0, 2.35, z, 3.25, 0.21, 0.055);
-      rod(
-        g,
-        steel,
-        new T.Vector3(site.side * 1.4, 2.34, z),
-        new T.Vector3(site.side * 1.4, 0.19, z),
-        0.027,
-      );
+    if (marshalKit) marshalKit.buildPost(track, parent, site, index);
+    else {
+      box(g, concrete, 0, 0.09, 0, 3.1, 0.18, 2.5);
+      box(g, safety, site.side * 1.35, 1.25, 0, 0.12, 2.35, 2.5);
+      box(g, steel, 0, 2.42, 0, 3.2, 0.14, 2.65);
+      for (const z of [-1.325, 1.325]) {
+        box(g, steel, 0, 2.35, z, 3.25, 0.21, 0.055);
+        rod(
+          g,
+          steel,
+          new T.Vector3(site.side * 1.4, 2.34, z),
+          new T.Vector3(site.side * 1.4, 0.19, z),
+          0.027,
+        );
+      }
+      for (let z = -0.9; z <= 0.9; z += 0.3)
+        box(g, dark, site.side * 1.42, 2.04, z, 0.025, 0.085, 0.16);
+      box(g, steel, -site.side * 1.16, 1.18, -1.02, 0.09, 2.25, 0.09);
+      box(g, steel, -site.side * 1.16, 1.18, 1.02, 0.09, 2.25, 0.09);
+      box(g, dark, site.side * 0.88, 0.72, -0.62, 0.48, 1.3, 0.58);
     }
-    for (let z = -0.9; z <= 0.9; z += 0.3)
-      box(g, dark, site.side * 1.42, 2.04, z, 0.025, 0.085, 0.16);
-    box(g, steel, -site.side * 1.16, 1.18, -1.02, 0.09, 2.25, 0.09);
-    box(g, steel, -site.side * 1.16, 1.18, 1.02, 0.09, 2.25, 0.09);
-    box(g, dark, site.side * 0.88, 0.72, -0.62, 0.48, 1.3, 0.58);
     box(g, safetyPanel, -site.side * 1.42, 1.85, 0, 0.09, 0.72, 1.15);
     // Two compact extinguisher cylinders make the station read as safety infrastructure.
     for (const z of [-0.7, 0.7]) {

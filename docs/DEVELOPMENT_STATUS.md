@@ -273,3 +273,15 @@ local implementation checkpoint; source publication, full current-source
 browser CI and normal-game artistic/hardware acceptance must be independently
 verified. The earlier green driver repair is not automatically evidence for
 this newer source or the baseline's later capture-timeout run.
+
+## A01–A07 original track-infrastructure integration
+
+The continuation from `bb5eaaca` integrates seven recovered original asset families
+with the current Aurel renderer, not the archive’s older application. Every native
+source was re-exported and reopened with pinned Blender 5.2.2. Span ownership,
+closed recovery routes, retained marshal signals, actual recorded start lamps and
+source-preserving resource disposal are covered by new unit/browser gates.
+See [scope, provenance and validation boundaries](TRACK_INFRASTRUCTURE_ASSET_PACK.md).
+Final art, continuous human-lap approval and hardware performance remain open.
+The existing simulator has no aborted-start state; it is not fabricated by this
+visual integration. Vellamar’s infrastructure remains unchanged.

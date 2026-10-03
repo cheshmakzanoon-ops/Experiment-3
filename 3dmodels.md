@@ -20,6 +20,7 @@ Priority:
 
 | Asset | Integrated scope | Remaining acceptance |
 |---|---|---|
+| A01–A07 | Original concrete/guardrail/fence/impact/gate/marshal/gantry families integrated on the retained Aurel route, three LODs, packed PBR maps and Blender 5.2.2 sources. | First integrated revision; final art, full human lap, hardware, Vellamar placement and interactive recovery remain open. Existing start-state replay only; no new aborted-start race rule. See [infrastructure notes](docs/TRACK_INFRASTRUCTURE_ASSET_PACK.md). |
 | A11/A13/A14/A18 + A43/A44/A45 | Two authored start/finish stands, seat LODs, recorded race board, four audience families and articulated marshals. | First integrated revision; final art, broader infrastructure/venue propagation and hardware review remain. See [venue notes](docs/START_FINISH_ENVIRONMENT.md). |
 | A41/A42 | Shared near/middle mechanic suit, helmet/gloves and fourteen editable actions; grid routine and all six authored pit roles. | Final human art/hardware approval, natural-motion review and crowd/marshal refinement remain open. See [crew notes](docs/A41_A42_CREW.md). |
 | A21 | Four architectural frontage sections across all twelve existing bays, three LODs per section, 43 placement sockets and retained Blender/GLB source. | Final art, driven-lap and hardware approval remain open; neighboring equipment and cockpit repair remain separate. See [A21 notes](docs/A21_HERO_PIT_BUILDING.md). |

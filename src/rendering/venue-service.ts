@@ -70,6 +70,7 @@ export function buildServiceAreas(
   parent: T.Group,
   sites: readonly ServiceSite[],
   sightlines?: BroadcastSightlines,
+  authoredAccessGates = false,
 ) {
   const asphalt = new T.MeshStandardMaterial({ color: 0x414747, roughness: 0.96 });
   const concrete = new T.MeshStandardMaterial({ color: 0x8b8c82, roughness: 0.92 });
@@ -100,21 +101,24 @@ export function buildServiceAreas(
       mesh(root, serviceAccessGeometry(site), asphalt);
       // A closed maintenance gate explicitly terminates the non-racing spur.
       // Its barrier is scenery, never advertised as a new drivable shortcut.
-      const end = site.access.at(-1)!,
-        dx = end.x - site.x,
-        dz = end.z - site.z;
-      const u = dx * Math.cos(site.yaw) - dz * Math.sin(site.yaw);
-      const v = dx * Math.sin(site.yaw) + dz * Math.cos(site.yaw),
-        y = end.y - site.y;
-      for (const side of [-1, 1]) box(root, metal, u + side * 1.63, y + 0.68, v, 0.09, 1.36, 0.09);
-      for (const h of [0.35, 0.95]) box(root, paint, u, y + h, v, 3.15, 0.06, 0.055);
-      rod(
-        root,
-        orange,
-        new T.Vector3(u - 1.52, y + 0.35, v),
-        new T.Vector3(u + 1.52, y + 0.95, v),
-        0.026,
-      );
+      if (!authoredAccessGates) {
+        const end = site.access.at(-1)!,
+          dx = end.x - site.x,
+          dz = end.z - site.z;
+        const u = dx * Math.cos(site.yaw) - dz * Math.sin(site.yaw);
+        const v = dx * Math.sin(site.yaw) + dz * Math.cos(site.yaw),
+          y = end.y - site.y;
+        for (const side of [-1, 1])
+          box(root, metal, u + side * 1.63, y + 0.68, v, 0.09, 1.36, 0.09);
+        for (const h of [0.35, 0.95]) box(root, paint, u, y + h, v, 3.15, 0.06, 0.055);
+        rod(
+          root,
+          orange,
+          new T.Vector3(u - 1.52, y + 0.35, v),
+          new T.Vector3(u + 1.52, y + 0.95, v),
+          0.026,
+        );
+      }
     }
     // White-line parking bays face a clear internal manoeuvring lane.
     for (const x of [-4.0, -0.8]) box(root, line, x, 0.027, 0, 0.07, 0.012, 7.4);

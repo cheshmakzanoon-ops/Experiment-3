@@ -84,3 +84,13 @@ browser survey additionally samples 4,096 points inside the projected panel and
 compares them with an explicitly blanked-panel negative control. The surrounding
 sky, scenery and housing cannot satisfy that check. The control restores the
 original material immediately and never changes simulation state.
+
+## A01–A07 infrastructure continuation
+
+The retained grandstands, dynamic board and A45 characters now sit alongside the
+[integrated track-infrastructure family](TRACK_INFRASTRUCTURE_ASSET_PACK.md).
+Authored opaque fence supports supersede the earlier start/finish-only hardware
+when the A03 kit is loaded; the filtered wire and existing fallback are retained.
+The original marshal positions, lights, pit openings and collision boundaries are
+unchanged. A05 gates remain closed visual assets with future interaction metadata.
+This continuation does not turn the first venue revision into final-art approval.

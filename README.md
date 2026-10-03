@@ -1,3 +1,11 @@
+## A01–A07 track infrastructure
+
+Aurel uses original authored concrete, guardrails, catch-fence supports, impact
+barriers, closed recovery/access gates, marshal shelters and a start gantry.
+Three detail levels, packed PBR maps and retained Blender sources preserve the
+existing physical route, live race signals and supplied player assets.
+[Scope, provenance and independent acceptance](docs/TRACK_INFRASTRUCTURE_ASSET_PACK.md).
+
 ## Aurel start/finish environment
 
 The start/finish stands now share original authored architecture, shaped seats,

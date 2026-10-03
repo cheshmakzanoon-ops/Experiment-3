@@ -1,3 +1,8 @@
+import type { RecoveryGatesKit } from './recovery-gates.ts';
+import { impactBarrierRole, type ImpactBarriersKit } from './impact-barriers.ts';
+import type { CatchFenceKit } from './catch-fence.ts';
+import { guardrailRole, type SteelGuardrailKit } from './steel-guardrails.ts';
+import type { ConcreteBarrierKit } from './concrete-barriers.ts';
 import { venueGeometry } from './start-finish-assets.ts';
 import { APRON_SEPARATION_M } from './ground-profile.ts';
 import * as T from 'three';
@@ -85,6 +90,11 @@ export function buildBarrierChunk(
   start: number,
   end: number,
   materials: ReturnType<typeof barrierMaterials>,
+  authored: ConcreteBarrierKit | null = null,
+  guardrails: SteelGuardrailKit | null = null,
+  fenceKit: CatchFenceKit | null = null,
+  impactKit: ImpactBarriersKit | null = null,
+  gateKit: RecoveryGatesKit | null = null,
 ) {
   const chunk = new T.Group();
   for (const side of [-1, 1]) {
@@ -105,25 +115,33 @@ export function buildBarrierChunk(
     for (let i = 0; i < count; i++) {
       const a = start + ((end - start) * i) / count,
         b = start + ((end - start) * (i + 1)) / count;
-      blocks.push(barrierGeometry(track, a + 0.008, b - 0.008, side));
-      const p = at(track, a, side, 0.23, 0.93),
-        q = at(track, a, side, 0.23, 3.4),
-        r = at(track, a, side, -0.17, 3.8);
-      beam(p, q, 0.036);
-      // Authoring changes the mounting detail only. Concrete profile, boundary,
-      // fence span and the existing three chunk submissions remain unchanged.
-      if (track.circuit.id === 'aurel' && (a < 110 || a > track.length - 115)) {
-        const mount = venueGeometry('fence_mount_near');
-        mount.deleteAttribute('color');
-        const tangent = track.at(a, trackPoint());
-        mount.rotateY(Math.atan2(tangent.tx, tangent.tz));
-        mount.translate(p.x, p.y, p.z);
-        steel.push(mount);
+      if (
+        !authored &&
+        !(guardrails && guardrailRole((a + b) / 2, side)) &&
+        !(impactKit && impactBarrierRole((a + b) / 2, side)) &&
+        !gateKit?.role((a + b) / 2, side)
+      )
+        blocks.push(barrierGeometry(track, a + 0.008, b - 0.008, side));
+      if (!fenceKit && !gateKit?.role((a + b) / 2, side)) {
+        const p = at(track, a, side, 0.23, 0.93),
+          q = at(track, a, side, 0.23, 3.4),
+          r = at(track, a, side, -0.17, 3.8);
+        beam(p, q, 0.036);
+        // Authoring changes the mounting detail only. Concrete profile, boundary,
+        // fence span and the existing three chunk submissions remain unchanged.
+        if (track.circuit.id === 'aurel' && (a < 110 || a > track.length - 115)) {
+          const mount = venueGeometry('fence_mount_near');
+          mount.deleteAttribute('color');
+          const tangent = track.at(a, trackPoint());
+          mount.rotateY(Math.atan2(tangent.tx, tangent.tz));
+          mount.translate(p.x, p.y, p.z);
+          steel.push(mount);
+        }
+        beam(q, r, 0.033);
+        // Support rails follow the same slope as each small fence section.
+        for (const h of [1.18, 2.32, 3.4])
+          beam(at(track, a, side, 0.23, h), at(track, b, side, 0.23, h), 0.012);
       }
-      beam(q, r, 0.033);
-      // Support rails follow the same slope as each small fence section.
-      for (const h of [1.18, 2.32, 3.4])
-        beam(at(track, a, side, 0.23, h), at(track, b, side, 0.23, h), 0.012);
       for (const [height, offset] of [
         [0.96, 0.23],
         [3.4, 0.23],
@@ -152,6 +170,7 @@ export function buildBarrierChunk(
       [blocks, materials.concrete, 'Profiled concrete'],
       [steel, materials.steel, 'Catch-fence supports'],
     ] as const) {
+      if (!parts.length) continue;
       const g = mergeGeometries(parts, false)!;
       parts.forEach((p) => p.dispose());
       mesh(chunk, g, material).name = `${name} ${side} ${Math.round(start)}m`;
@@ -171,6 +190,7 @@ export function buildBarrierChunk(
   // back into an opaque shadow caster. Bounds remain local to this short span.
   for (const [name, material] of Object.entries(materials)) {
     const pieces = chunk.children.filter((o) => (o as T.Mesh).material === material) as T.Mesh[];
+    if (!pieces.length) continue;
     const geometry = mergeGeometries(
       pieces.map((o) => o.geometry),
       false,
@@ -184,6 +204,22 @@ export function buildBarrierChunk(
     }
   }
   chunk.clear();
+  authored?.buildChunk(
+    track,
+    root,
+    start,
+    end,
+    (s, side) =>
+      !!(
+        (guardrails && guardrailRole(s, side)) ||
+        (impactKit && impactBarrierRole(s, side)) ||
+        gateKit?.role(s, side)
+      ),
+  );
+  guardrails?.buildChunk(track, root, start, end, (s, side) => !!gateKit?.role(s, side));
+  fenceKit?.buildChunk(track, root, start, end, (s, side) => !!gateKit?.role(s, side));
+  impactKit?.buildChunk(track, root, start, end);
+  gateKit?.buildChunk(track, root, start, end);
 }
 export function barrierMaterials() {
   const concrete = new T.MeshStandardMaterial({ color: 0xc4c3b7, roughness: 0.92 });
