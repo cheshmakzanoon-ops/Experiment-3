@@ -1,0 +1,135 @@
+name: Validate and integrate start-finish environment
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [docs/start-finish-transfer.*, scripts/apply-start-finish-candidate.mjs, .github/workflows/start-finish-integration.yml]
+permissions:
+  contents: read
+concurrency:
+  group: start-finish-integration
+  cancel-in-progress: false
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Preserve unchanged baseline production build
+        run: npm run build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: venue-baseline-web
+          path: dist/
+          retention-days: 3
+      - name: Apply the exact locally validated implementation
+        run: node scripts/apply-start-finish-candidate.mjs
+      - name: Complete lint, unit suite, types and production build
+        run: |
+          set -euo pipefail
+          npm run check 2>&1 | tee "$RUNNER_TEMP/venue-check.log"
+          git diff --exit-code HEAD -- src/simulation 'src/rendering/supplied-*' 'src/rendering/a61-*' 'src/rendering/crew-performance.*' 'src/rendering/aurel-people.*'
+          git diff --cached --check
+      - uses: actions/upload-artifact@v4
+        with:
+          name: venue-candidate-web
+          path: dist/
+          retention-days: 3
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: venue-unit-check
+          path: ${{ runner.temp }}/venue-check.log
+          retention-days: 7
+  browser:
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        variant: [baseline, candidate]
+        lighting: [day, sunset, night]
+    env:
+      APEX_BROWSER_BACKEND: mesa
+      LIBGL_ALWAYS_SOFTWARE: 'true'
+      GALLIUM_DRIVER: llvmpipe
+      VENUE_BASELINE: ${{ matrix.variant == 'baseline' && '1' || '0' }}
+      LIGHTING: ${{ matrix.lighting }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Build the shared survey against the matching variant source
+        run: node scripts/apply-start-finish-candidate.mjs ${{ matrix.variant }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: venue-${{ matrix.variant }}-web
+          path: dist/
+      - run: npx playwright install --with-deps chromium
+      - run: sudo apt-get install -y xvfb libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils
+      - name: Real production scene, exact baseline/candidate camera and rendering workload
+        run: xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e -- e2e/55-start-finish.spec.ts --grep "production $LIGHTING architecture" --workers=1 --retries=0
+      - name: Normal menu journey and explicit signal/shadow controls
+        if: matrix.variant == 'candidate' && matrix.lighting == 'day'
+        run: xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e -- e2e/55-start-finish.spec.ts --grep 'ordinary menu|explicit signal' --workers=1 --retries=0
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: venue-${{ matrix.variant }}-${{ matrix.lighting }}-evidence
+          path: |
+            test-results/
+            playwright-report/
+            browser-progress.json
+            browser-backend.json
+            dist/BUILD_IDENTITY.json
+          retention-days: 7
+  integrate:
+    needs: [prepare, browser]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      actions: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node scripts/apply-start-finish-candidate.mjs
+      - name: Append tested source on main without losing concurrent changes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          git diff --exit-code HEAD -- src/simulation 'src/rendering/supplied-*' 'src/rendering/a61-*' 'src/rendering/crew-performance.*' 'src/rendering/aurel-people.*'
+          git rm docs/start-finish-transfer.* scripts/apply-start-finish-candidate.mjs .github/workflows/start-finish-integration.yml
+          git diff --cached --check
+          git diff --exit-code
+          test "$(git ls-remote origin refs/heads/main | cut -f1)" = "$GITHUB_SHA"
+          git config user.name 'cheshmakzanoon-ops'
+          git config user.email 'cheshmakzanoon@gmail.com'
+          git commit -m 'feat(venue): integrate Aurel grandstands, varied audience, live boards and articulated marshals'
+          git push origin HEAD:refs/heads/main
+          git rev-parse HEAD > "$RUNNER_TEMP/venue-integrated-source.txt"
+          gh workflow run ci.yml --ref main
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: venue-integrated-source
+          path: ${{ runner.temp }}/venue-integrated-source.txt
+          retention-days: 7
