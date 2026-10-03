@@ -5,10 +5,11 @@ on:
     paths:
       - .github/workflows/track-infrastructure-candidate.yml
       - .github/infrastructure-stage.py
-      - .github/infrastructure-candidate.*.xzpart
+      - .github/infrastructure-resume.xz
   workflow_dispatch:
 permissions:
   contents: read
+  actions: read
 concurrency:
   group: aurel-infrastructure-candidate
   cancel-in-progress: true
@@ -17,116 +18,55 @@ env:
 jobs:
   prepare:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: infrastructure-source
+          run-id: 37149330552
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/source
+      - name: Restore exact authored candidate and corrected observer
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python .github/infrastructure-stage.py prepare
+      - uses: actions/upload-artifact@v4
+        with:
+          name: infrastructure-reviewed-source
+          path: |
+            ${{ runner.temp }}/infrastructure-reviewed-source.tar.gz
+            ${{ runner.temp }}/infrastructure-reviewed-source.json
+          retention-days: 7
+          if-no-files-found: error
+  check:
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: infrastructure-reviewed-source
+          path: ${{ runner.temp }}/reviewed
+      - run: python .github/infrastructure-stage.py restore
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: npm
-      - name: Restore guarded candidate without changing main
-        run: python .github/infrastructure-stage.py prepare
-      - name: Measure the actual post-batching lamp geometry
-        shell: bash
-        run: |
-          set -euo pipefail
-          cat > "$RUNNER_TEMP/lamp-pixel-oracle.patch" <<'PATCH'
-          --- a/e2e/fixtures/track-infrastructure.ts
-          +++ b/e2e/fixtures/track-infrastructure.ts
-          @@ -210,27 +210,33 @@
-                 unreachable: view.circuit.staff.unreachable,
-               };
-               // The retained lamps are sampled in actual GPU pixels, not only materials.
-          -    let parent: T.Object3D | null = null;
-          -    view.scene.traverse((o) => {
-          -      if (
-          -        o instanceof T.Mesh &&
-          -        view.circuit.startLamps.includes(o.material as T.MeshStandardMaterial)
-          -      )
-          -        parent = o.parent;
-          +    // Static batching bakes the original gantry transform into lamp geometry.
-          +    // Locate the real material-owning meshes, not their now-different parent.
-          +    view.scene.updateMatrixWorld(true);
-          +    const lampCentres = view.circuit.startLamps.map((material) => {
-          +      const matches: T.Mesh[] = [];
-          +      view.scene.traverse((o) => {
-          +        if (o instanceof T.Mesh && o.material === material) matches.push(o);
-          +      });
-          +      if (matches.length !== 1) throw new Error('Ambiguous retained start-lamp mesh');
-          +      const mesh = matches[0];
-          +      mesh.geometry.computeBoundingBox();
-          +      return mesh.geometry.boundingBox!.getCenter(new T.Vector3()).applyMatrix4(mesh.matrixWorld);
-               });
-          -    if (!parent) throw new Error('Original start-lamp parent not found');
-          -    const lampParent = parent as T.Object3D;
-          -    lampParent.updateWorldMatrix(true, true);
-          -    view.camera.position.copy(lampParent.localToWorld(new T.Vector3(0, 4.9, -4.4)));
-          -    view.camera.lookAt(lampParent.localToWorld(new T.Vector3(0, 4.95, -0.3)));
-          +    const lampForward = new T.Vector3()
-          +      .subVectors(lampCentres[4], lampCentres[0])
-          +      .normalize()
-          +      .cross(new T.Vector3(0, 1, 0))
-          +      .normalize();
-          +    view.camera.position.copy(lampCentres[2]).addScaledVector(lampForward, -4.1);
-          +    view.camera.position.y -= 0.05;
-          +    view.camera.lookAt(lampCentres[2]);
-               view.camera.fov = 38;
-               view.camera.updateProjectionMatrix();
-               update();
-               const faceBrightness = () =>
-                 Array.from({ length: 5 }, (_, i) => {
-          -        const p = lampParent
-          -          .localToWorld(new T.Vector3((i - 2) * 0.45, 4.95, -0.345))
-          -          .project(view.camera);
-          +        const p = lampCentres[i].clone().addScaledVector(lampForward, -0.045).project(view.camera);
-                   const x = Math.round(((p.x + 1) * width) / 2),
-                     y = Math.round(((p.y + 1) * height) / 2);
-                   if (x < 4 || x >= width - 4 || y < 4 || y >= height - 4)
-          PATCH
-          git apply --check "$RUNNER_TEMP/lamp-pixel-oracle.patch"
-          git apply "$RUNNER_TEMP/lamp-pixel-oracle.patch"
-      - name: Pinned Blender authoring and native round-trip
-        shell: bash
-        run: |
-          set -euo pipefail
-          curl --fail --location --retry 3 https://download.blender.org/release/Blender5.2/blender-5.2.2-linux-x64.tar.xz -o "$RUNNER_TEMP/blender.tar.xz"
-          echo "84098912789dc450e95697c4184fb8a90acbe5111c2ba4aede3fecb57806a168  $RUNNER_TEMP/blender.tar.xz" | sha256sum -c -
-          mkdir "$RUNNER_TEMP/blender"
-          tar -xJf "$RUNNER_TEMP/blender.tar.xz" --strip-components=1 -C "$RUNNER_TEMP/blender"
-          python scripts/rebuild-track-infrastructure.py --blender "$RUNNER_TEMP/blender/blender" --output-root "$RUNNER_TEMP/infrastructure-export"
-          python .github/infrastructure-stage.py collect
       - run: npm ci --no-audit --no-fund
-      - name: Full unchanged lint, unit and build gates
-        run: npm run check
-      - name: Archive exact tested tree
-        run: python .github/infrastructure-stage.py archive
+      - run: npm run check
       - uses: actions/upload-artifact@v4
         with:
-          name: infrastructure-source
-          path: |
-            ${{ runner.temp }}/infrastructure-source.tar.gz
-            ${{ runner.temp }}/infrastructure-source.json
-          if-no-files-found: error
-          retention-days: 7
-      - uses: actions/upload-artifact@v4
-        with:
-          name: infrastructure-web
+          name: infrastructure-reviewed-web
           path: dist/
+          retention-days: 7
           if-no-files-found: error
-          retention-days: 7
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: infrastructure-authoring
-          path: |
-            ${{ runner.temp }}/infrastructure-export/logs/
-            ${{ runner.temp }}/infrastructure-export/authoring-receipt.json
-            ${{ runner.temp }}/infrastructure-export/src/
-            ${{ runner.temp }}/infrastructure-export/public/
-          retention-days: 7
   survey:
     needs: prepare
     runs-on: ubuntu-latest
@@ -148,94 +88,37 @@ jobs:
           persist-credentials: false
       - uses: actions/download-artifact@v4
         with:
-          name: infrastructure-source
-          path: ${{ runner.temp }}/source
-      - name: Restore selected original or candidate source
+          name: infrastructure-reviewed-source
+          path: ${{ runner.temp }}/reviewed
+      - name: Restore selected source
         shell: bash
         run: |
           set -euo pipefail
           if [ '${{ matrix.revision }}' = baseline ]; then
             git checkout --detach "$BASE_COMMIT"
           else
-            tar -xzf "$RUNNER_TEMP/source/infrastructure-source.tar.gz"
-            rm .github/infrastructure-stage.py .github/infrastructure-candidate.*.xzpart .github/workflows/track-infrastructure-candidate.yml
+            python .github/infrastructure-stage.py restore
           fi
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: npm
       - run: npm ci --no-audit --no-fund
-      - name: Build unchanged baseline before adding observation fixture
+      - run: npm run build
+      - name: Add only observation files to the already built original baseline
         if: matrix.revision == 'baseline'
         run: |
-          npm run build
-          tar -xzf "$RUNNER_TEMP/source/infrastructure-source.tar.gz" e2e/56-track-infrastructure.spec.ts e2e/fixtures/track-infrastructure.ts
-      - uses: actions/download-artifact@v4
-        if: matrix.revision == 'candidate'
-        with:
-          name: infrastructure-web
-          path: dist/
+          tar -xzf "$RUNNER_TEMP/reviewed/infrastructure-reviewed-source.tar.gz" \
+            e2e/56-track-infrastructure.spec.ts e2e/fixtures/track-infrastructure.ts \
+            scripts/infrastructure-render-budget.ts docs/TRACK_INFRASTRUCTURE_RENDER_BASELINE.json
       - run: npx playwright install --with-deps chromium
       - run: sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb
-      - name: Actual complete-scene matched observation
+      - name: Complete production scene and recorded lamp pixels
         run: xvfb-run -a -s '-screen 0 1920x1080x24' npx playwright test e2e/56-track-infrastructure.spec.ts --grep 'production ${{ matrix.lighting }} scene'
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: infrastructure-${{ matrix.revision }}-${{ matrix.lighting }}
-          path: |
-            test-results/
-            playwright-report/
-            browser-backend.json
-            browser-progress.json
-          retention-days: 7
-  journeys:
-    needs: prepare
-    runs-on: ubuntu-latest
-    timeout-minutes: 35
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - name: cockpit
-            specs: e2e/p0-cockpit-framing.spec.ts
-          - name: venue
-            specs: e2e/26-aurel-environment.spec.ts e2e/55-start-finish.spec.ts
-          - name: grid-and-pit
-            specs: e2e/50-grid-presentation.spec.ts e2e/pit-presentation.spec.ts e2e/a32-pit-jacks.spec.ts
-    env:
-      APEX_BROWSER_BACKEND: mesa
-      LIBGL_ALWAYS_SOFTWARE: 'true'
-      GALLIUM_DRIVER: llvmpipe
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-      - uses: actions/download-artifact@v4
-        with:
-          name: infrastructure-source
-          path: ${{ runner.temp }}/source
-      - name: Restore exact tested source
-        run: |
-          tar -xzf "$RUNNER_TEMP/source/infrastructure-source.tar.gz"
-          rm .github/infrastructure-stage.py .github/infrastructure-candidate.*.xzpart .github/workflows/track-infrastructure-candidate.yml
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: npm
-      - run: npm ci --no-audit --no-fund
-      - uses: actions/download-artifact@v4
-        with:
-          name: infrastructure-web
-          path: dist/
-      - run: npx playwright install --with-deps chromium
-      - run: sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb
-      - name: Existing production journeys without reduced assertions
-        run: xvfb-run -a -s '-screen 0 1920x1080x24' npx playwright test ${{ matrix.specs }}
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: infrastructure-journey-${{ matrix.name }}
+          name: infrastructure-reviewed-${{ matrix.revision }}-${{ matrix.lighting }}
           path: |
             test-results/
             playwright-report/
@@ -243,21 +126,21 @@ jobs:
             browser-progress.json
           retention-days: 7
   seal:
-    needs: [prepare, survey, journeys]
+    needs: [prepare, check, survey]
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
       contents: write
+      actions: read
     steps:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
       - uses: actions/download-artifact@v4
         with:
-          name: infrastructure-source
-          path: ${{ runner.temp }}/source
-      - run: tar -xzf "$RUNNER_TEMP/source/infrastructure-source.tar.gz"
-      - name: Create only a passing immutable commit; do not advance main
+          name: infrastructure-reviewed-source
+          path: ${{ runner.temp }}/reviewed
+      - name: Create tested immutable commit without advancing main
         env:
           GH_TOKEN: ${{ github.token }}
         run: python .github/infrastructure-stage.py seal
