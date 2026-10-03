@@ -49,6 +49,11 @@ def prepare():
     assert hashlib.sha256(packet).hexdigest() == DELTA
     overrides = json.loads(lzma.decompress(packet))['files']
     assert set(overrides) == OVERRIDES
+    # Playwright's Node ESM loader requires explicit JSON import attributes.
+    for path in ['scripts/infrastructure-render-budget.ts', 'tests/infrastructure-render-budget.test.ts']:
+        before = "from '../docs/TRACK_INFRASTRUCTURE_RENDER_BASELINE.json';"
+        assert overrides[path].count(before) == 1
+        overrides[path] = overrides[path].replace(before, "from '../docs/TRACK_INFRASTRUCTURE_RENDER_BASELINE.json' with { type: 'json' };")
     jobs = api('/actions/runs/37149330552/jobs?per_page=100')['jobs']
     required = {111279712309, 111281373674, 111281373676, 111281373687}
     passing = {j['id'] for j in jobs if j['status'] == 'completed' and j['conclusion'] == 'success'}
