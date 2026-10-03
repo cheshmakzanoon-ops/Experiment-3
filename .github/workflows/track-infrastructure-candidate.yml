@@ -11,7 +11,7 @@ permissions:
   contents: read
 concurrency:
   group: aurel-infrastructure-candidate
-  cancel-in-progress: false
+  cancel-in-progress: true
 env:
   BASE_COMMIT: 1b82c5a4424b6f503649d0516a4217608c0d54c3
 jobs:
@@ -29,6 +29,65 @@ jobs:
           cache: npm
       - name: Restore guarded candidate without changing main
         run: python .github/infrastructure-stage.py prepare
+      - name: Measure the actual post-batching lamp geometry
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > "$RUNNER_TEMP/lamp-pixel-oracle.patch" <<'PATCH'
+          --- a/e2e/fixtures/track-infrastructure.ts
+          +++ b/e2e/fixtures/track-infrastructure.ts
+          @@ -210,27 +210,33 @@
+                 unreachable: view.circuit.staff.unreachable,
+               };
+               // The retained lamps are sampled in actual GPU pixels, not only materials.
+          -    let parent: T.Object3D | null = null;
+          -    view.scene.traverse((o) => {
+          -      if (
+          -        o instanceof T.Mesh &&
+          -        view.circuit.startLamps.includes(o.material as T.MeshStandardMaterial)
+          -      )
+          -        parent = o.parent;
+          +    // Static batching bakes the original gantry transform into lamp geometry.
+          +    // Locate the real material-owning meshes, not their now-different parent.
+          +    view.scene.updateMatrixWorld(true);
+          +    const lampCentres = view.circuit.startLamps.map((material) => {
+          +      const matches: T.Mesh[] = [];
+          +      view.scene.traverse((o) => {
+          +        if (o instanceof T.Mesh && o.material === material) matches.push(o);
+          +      });
+          +      if (matches.length !== 1) throw new Error('Ambiguous retained start-lamp mesh');
+          +      const mesh = matches[0];
+          +      mesh.geometry.computeBoundingBox();
+          +      return mesh.geometry.boundingBox!.getCenter(new T.Vector3()).applyMatrix4(mesh.matrixWorld);
+               });
+          -    if (!parent) throw new Error('Original start-lamp parent not found');
+          -    const lampParent = parent as T.Object3D;
+          -    lampParent.updateWorldMatrix(true, true);
+          -    view.camera.position.copy(lampParent.localToWorld(new T.Vector3(0, 4.9, -4.4)));
+          -    view.camera.lookAt(lampParent.localToWorld(new T.Vector3(0, 4.95, -0.3)));
+          +    const lampForward = new T.Vector3()
+          +      .subVectors(lampCentres[4], lampCentres[0])
+          +      .normalize()
+          +      .cross(new T.Vector3(0, 1, 0))
+          +      .normalize();
+          +    view.camera.position.copy(lampCentres[2]).addScaledVector(lampForward, -4.1);
+          +    view.camera.position.y -= 0.05;
+          +    view.camera.lookAt(lampCentres[2]);
+               view.camera.fov = 38;
+               view.camera.updateProjectionMatrix();
+               update();
+               const faceBrightness = () =>
+                 Array.from({ length: 5 }, (_, i) => {
+          -        const p = lampParent
+          -          .localToWorld(new T.Vector3((i - 2) * 0.45, 4.95, -0.345))
+          -          .project(view.camera);
+          +        const p = lampCentres[i].clone().addScaledVector(lampForward, -0.045).project(view.camera);
+                   const x = Math.round(((p.x + 1) * width) / 2),
+                     y = Math.round(((p.y + 1) * height) / 2);
+                   if (x < 4 || x >= width - 4 || y < 4 || y >= height - 4)
+          PATCH
+          git apply --check "$RUNNER_TEMP/lamp-pixel-oracle.patch"
+          git apply "$RUNNER_TEMP/lamp-pixel-oracle.patch"
       - name: Pinned Blender authoring and native round-trip
         shell: bash
         run: |
@@ -65,6 +124,8 @@ jobs:
           path: |
             ${{ runner.temp }}/infrastructure-export/logs/
             ${{ runner.temp }}/infrastructure-export/authoring-receipt.json
+            ${{ runner.temp }}/infrastructure-export/src/
+            ${{ runner.temp }}/infrastructure-export/public/
           retention-days: 7
   survey:
     needs: prepare
