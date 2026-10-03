@@ -68,3 +68,19 @@ matched scene draw/triangle counts, actual shader errors and source identity.
 `finalArtApproved` remains false: natural-motion review, greater facial/clothing
 variety, broader venue propagation and representative hardware measurements are
 still open. No final AAA-quality claim is made by the asset or test manifest.
+
+## Live-display visual review correction
+
+The first matched survey passed its whole-scene checks but image review showed
+that the A18 panel was black. The shared texture-budget pass had copied its
+canvas before the first telemetry repaint. The display is now explicitly
+registered as dynamic, like the existing A24 pit-wall screens, so quality changes
+cannot detach the GPU texture from its painted source. No screen resolution,
+race data, or environment lighting is changed to hide the issue.
+
+A regression drives the actual texture-budget registration and five quality
+limits, verifying source-canvas identity and repaint versions. The production
+browser survey additionally samples 4,096 points inside the projected panel and
+compares them with an explicitly blanked-panel negative control. The surrounding
+sky, scenery and housing cannot satisfy that check. The control restores the
+original material immediately and never changes simulation state.

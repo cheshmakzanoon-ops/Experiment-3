@@ -19,6 +19,7 @@ import {
 import { buildGrandstand, standFrame } from '../src/rendering/grandstand.ts';
 import { AUREL_VENUE, VELLAMAR_VENUE } from '../src/rendering/venue-plan.ts';
 import { buildBarrierChunk, barrierMaterials } from '../src/rendering/circuit-barriers.ts';
+import { TextureBudget } from '../src/rendering/texture-budget.ts';
 import { BroadcastSightlines } from '../src/rendering/broadcast-sightlines.ts';
 import { Track, trackPoint } from '../src/simulation/track.ts';
 import { CrowdCluster } from '../src/rendering/crowd.ts';
@@ -277,6 +278,54 @@ describe('Original Aurel start/finish kit', () => {
     } finally {
       Object.defineProperty(globalThis, 'document', { configurable: true, value: old });
       dispose(scene);
+    }
+  });
+  it('retains the live board canvas through texture-budget registration and quality changes', () => {
+    const oldDocument = globalThis.document,
+      oldCanvas = globalThis.HTMLCanvasElement;
+    class Canvas {
+      width = 0;
+      height = 0;
+      getContext() {
+        return { fillRect() {}, fillText() {}, drawImage() {}, clearRect() {} };
+      }
+    }
+    Object.defineProperty(globalThis, 'document', {
+      configurable: true,
+      value: { createElement: () => new Canvas() },
+    });
+    Object.defineProperty(globalThis, 'HTMLCanvasElement', { configurable: true, value: Canvas });
+    const sim = new Simulation({ ...DEFAULT_OPTIONS, opponents: 0 }),
+      scene = new T.Group();
+    const venue = new StartFinishVenue(sim.track),
+      budget = new TextureBudget();
+    try {
+      venue.buildScreen(scene, new BroadcastSightlines());
+      const face = scene.getObjectByName('A18 live race-information face') as T.Mesh<
+        T.PlaneGeometry,
+        T.MeshStandardMaterial
+      >;
+      const texture = face.material.map!,
+        paintedCanvas = texture.image;
+      expect(texture.userData.dynamic).toBe(true);
+      budget.register(scene);
+      for (const limit of [128, 256, 512, 1024, 2048]) {
+        budget.configure(limit, 4);
+        expect(texture.image).toBe(paintedCanvas);
+        expect([texture.image.width, texture.image.height]).toEqual([1024, 512]);
+      }
+      const version = texture.version;
+      venue.update(sim.makeFrame());
+      expect(texture.version).toBeGreaterThan(version);
+      expect(texture.image).toBe(paintedCanvas);
+    } finally {
+      budget.dispose();
+      dispose(scene);
+      Object.defineProperty(globalThis, 'document', { configurable: true, value: oldDocument });
+      Object.defineProperty(globalThis, 'HTMLCanvasElement', {
+        configurable: true,
+        value: oldCanvas,
+      });
     }
   });
   it('keeps fence mounting detail in the existing three batches without editing track data', () => {

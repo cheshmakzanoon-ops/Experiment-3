@@ -238,6 +238,10 @@ export class StartFinishVenue {
     if (!context) throw new Error('Race board canvas unavailable');
     const texture = new T.CanvasTexture(canvas);
     texture.colorSpace = T.SRGBColorSpace;
+    texture.name = 'A18 live race-information canvas';
+    // The generic texture budget copies immutable canvases. This display must
+    // keep the same painted canvas through quality changes and replay seeks.
+    texture.userData.dynamic = true;
     texture.anisotropy = 4;
     const material = new T.MeshStandardMaterial({
       map: texture,
@@ -248,6 +252,7 @@ export class StartFinishVenue {
       toneMapped: true,
     });
     const face = new T.Mesh(new T.PlaneGeometry(8.2, 4.24), material);
+    face.name = 'A18 live race-information face';
     face.position.set(0, 6.2, -0.29);
     face.rotation.y = Math.PI;
     root.add(face);

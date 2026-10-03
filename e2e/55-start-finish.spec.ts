@@ -78,6 +78,10 @@ for (const lighting of ['day', 'sunset', 'night'] as const) {
       expect(report.marshal.active).toBeGreaterThan(0);
       expect(report.marshal.gripError).toBeLessThan(0.00001);
       expect(report.marshal.unreachable).toBe(0);
+      expect(report.boardSurface).toMatchObject({ width: 1024, height: 512, dynamic: true });
+      expect(report.boardSurface!.samples).toBe(4096);
+      expect(report.boardSurface!.changed).toBeGreaterThan(200);
+      expect(report.boardSurface!.peakDelta).toBeGreaterThan(60);
     }
     expect(report.images).toHaveLength(6);
     for (const image of report.images) {

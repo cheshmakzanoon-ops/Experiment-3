@@ -57,6 +57,14 @@ export async function surveyStartFinish(lighting: 'day' | 'sunset' | 'night', of
     for (const c of view.circuit.crowdClusters)
       c.update(f[H.TIME], view.camera.position, f[H.RAIN], f, view.camera.fov, view.camera.aspect);
   };
+  let boardSurface: {
+    samples: number;
+    changed: number;
+    peakDelta: number;
+    width: number;
+    height: number;
+    dynamic: boolean;
+  } | null = null;
   const render = () =>
     completedDrawMilliseconds(gl, () => view.renderer.render(view.scene, view.camera), pixel);
   const camera = (eye: number[], target: number[], fov: number) => {
@@ -118,6 +126,67 @@ export async function surveyStartFinish(lighting: 'day' | 'sunset' | 'night', of
     for (const s of surveys) {
       camera(s.eye, s.target, s.fov);
       capture(s.name);
+      if (s.name === 'live-board') {
+        const face = view.scene.getObjectByName('A18 live race-information face') as
+          | T.Mesh<T.PlaneGeometry, T.MeshStandardMaterial>
+          | undefined;
+        if (face) {
+          // Independent visible-surface negative control. Whole-frame brightness
+          // can pass while a copied, stale display canvas remains completely black.
+          const material = face.material;
+          const map = material.map!,
+            emissiveMap = material.emissiveMap;
+          const color = material.color.clone(),
+            emissive = material.emissive.clone();
+          const displayed = pixels.slice(),
+            blanked = new Uint8Array(pixels.length);
+          try {
+            material.map = material.emissiveMap = null;
+            material.color.set(0);
+            material.emissive.set(0);
+            material.needsUpdate = true;
+            render();
+            gl.readPixels(0, 0, 1280, 720, gl.RGBA, gl.UNSIGNED_BYTE, blanked);
+          } finally {
+            material.map = map;
+            material.emissiveMap = emissiveMap;
+            material.color.copy(color);
+            material.emissive.copy(emissive);
+            material.needsUpdate = true;
+          }
+          let samples = 0,
+            changed = 0,
+            peakDelta = 0;
+          const point = new T.Vector3();
+          // Only the interior of the actual display, excluding sky and housing.
+          for (let row = 0; row < 64; row++)
+            for (let column = 0; column < 64; column++) {
+              point
+                .set(((column + 0.5) / 64 - 0.5) * 7.6, ((row + 0.5) / 64 - 0.5) * 3.9, 0)
+                .applyMatrix4(face.matrixWorld)
+                .project(view.camera);
+              const x = Math.floor((point.x + 1) * 640),
+                y = Math.floor((point.y + 1) * 360);
+              if (x < 0 || x >= 1280 || y < 0 || y >= 720) continue;
+              const pixel = (y * 1280 + x) * 4;
+              const delta = Math.max(
+                ...[0, 1, 2].map((c) => Math.abs(displayed[pixel + c] - blanked[pixel + c])),
+              );
+              samples++;
+              if (delta > 24) changed++;
+              peakDelta = Math.max(peakDelta, delta);
+            }
+          boardSurface = {
+            samples,
+            changed,
+            peakDelta,
+            width: map.image.width,
+            height: map.image.height,
+            dynamic: map.userData.dynamic === true,
+          };
+          render();
+        }
+      }
     }
     const post = view.circuit.trackInfrastructure.marshalPosts[0];
     view.camera.position.set(post.x + 4, post.y + 2, post.z + 4);
@@ -179,6 +248,7 @@ export async function surveyStartFinish(lighting: 'day' | 'sunset' | 'night', of
       glError: gl.getError(),
       contextLost: gl.isContextLost(),
       hardwareValidated: false,
+      boardSurface,
     };
   } finally {
     view.dispose();
