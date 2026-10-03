@@ -1,0 +1,49 @@
+name: Author original start-finish kit
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [scripts/author-start-finish.py, .github/workflows/author-start-finish.yml]
+permissions:
+  contents: write
+concurrency:
+  group: author-start-finish
+  cancel-in-progress: false
+jobs:
+  author:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - name: Restore verified Blender 5.2.2
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 2 --max-time 240 https://download.blender.org/release/Blender5.2/blender-5.2.2-linux-x64.tar.xz -o "$RUNNER_TEMP/blender.tar.xz"
+          echo '84098912789dc450e95697c4184fb8a90acbe5111c2ba4aede3fecb57806a168  '"$RUNNER_TEMP/blender.tar.xz" | sha256sum --check
+          tar -xf "$RUNNER_TEMP/blender.tar.xz" -C "$RUNNER_TEMP"
+      - name: Author original geometry and evaluated task actions
+        run: ${{ runner.temp }}/blender-5.2.2-linux-x64/blender -b --python-exit-code 1 --python scripts/author-start-finish.py
+      - name: Match the locally tested exports and retain only this asset family
+        run: |
+          set -euo pipefail
+          echo 'ffc66b4b30168a936051d0a6621bf28da9b609bde24b46677a797ef44fc1bb92  src/rendering/start-finish.geometry.json' | sha256sum --check
+          echo 'b11d3958216361e192c11bceb48e40e03c1212d6192541cee6d6b0cf930d6af0  src/rendering/start-finish.glb.gz' | sha256sum --check
+          git diff --exit-code HEAD -- src/simulation 'src/rendering/supplied-*' 'src/rendering/a61-*' 'src/rendering/crew-performance.*' 'src/rendering/aurel-people.*'
+          git add scripts/start-finish.blend src/rendering/start-finish.geometry.json src/rendering/start-finish.glb.gz src/rendering/start-finish.manifest.json
+          if git diff --cached --quiet; then exit 0; fi
+          test "$(git ls-remote origin refs/heads/main | cut -f1)" = "$GITHUB_SHA"
+          git config user.name 'cheshmakzanoon-ops'
+          git config user.email 'cheshmakzanoon@gmail.com'
+          git commit -m 'art(venue): retain verified grandstand, seating and audience source assets'
+          git push origin HEAD:refs/heads/main
+      - uses: actions/upload-artifact@v4
+        with:
+          name: authored-start-finish-kit
+          path: |
+            scripts/start-finish.blend
+            src/rendering/start-finish.geometry.json
+            src/rendering/start-finish.glb.gz
+            src/rendering/start-finish.manifest.json
+          retention-days: 7
