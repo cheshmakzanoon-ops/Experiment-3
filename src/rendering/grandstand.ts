@@ -1,3 +1,4 @@
+import type { StartFinishVenue } from './start-finish-venue.ts';
 import { AUREL_VENUE, venuePlan, type StandSpec } from './venue-plan.ts';
 import { installVenueFinish } from './venue-materials.ts';
 import type { BroadcastSightlines } from './broadcast-sightlines.ts';
@@ -83,6 +84,7 @@ export function buildGrandstand(
   m: ReturnType<typeof standMaterials>,
   clusters?: CrowdCluster[],
   sightlines?: BroadcastSightlines,
+  complex?: StartFinishVenue,
 ) {
   const frame = standFrame(track, site),
     root = new T.Group();
@@ -92,80 +94,83 @@ export function buildGrandstand(
   props.add(root);
   const side = site.side,
     L = site.length;
-  // Terraced concrete decks with open sightlines and a continuous front walkway.
-  box(root, m.concrete, side * 0.3, -0.12, 0, 2.5, 0.24, L);
-  for (let row = 0; row < 8; row++)
-    box(root, m.concrete, side * (1.7 + row * 0.98), row * 0.49 + 0.1, 0, 1.02, 0.2, L);
-  box(root, m.concrete, side * 9.5, 3.53, 0, 1.25, 0.2, L);
-  const point = trackPoint();
-  const supports = Math.ceil(L / 8);
-  for (let j = 0; j <= supports; j++) {
-    const z = -L / 2 + (j * L) / supports;
-    // Two post lines carry the cantilever and connect to independent footings.
-    for (const u of [2.1, 9.8]) {
-      const wx = frame.x + Math.cos(frame.yaw) * side * u + Math.sin(frame.yaw) * z;
-      const wz = frame.z - Math.sin(frame.yaw) * side * u + Math.cos(frame.yaw) * z;
-      const foot = frame.ground(wx, wz) - frame.y - 0.12,
-        top = u < 3 ? 5.95 : 7.65;
-      box(root, m.concrete, side * u, foot + 0.17, z, 0.85, 0.34, 0.85);
-      box(root, m.steel, side * u, (foot + top) / 2, z, 0.16, top - foot, 0.16);
+  const hero = complex?.accepts(site) ?? false;
+  if (hero) complex!.architecture(root, site, frame, sightlines);
+  else {
+    // Terraced concrete decks with open sightlines and a continuous front walkway.
+    box(root, m.concrete, side * 0.3, -0.12, 0, 2.5, 0.24, L);
+    for (let row = 0; row < 8; row++)
+      box(root, m.concrete, side * (1.7 + row * 0.98), row * 0.49 + 0.1, 0, 1.02, 0.2, L);
+    box(root, m.concrete, side * 9.5, 3.53, 0, 1.25, 0.2, L);
+    const supports = Math.ceil(L / 8);
+    for (let j = 0; j <= supports; j++) {
+      const z = -L / 2 + (j * L) / supports;
+      // Two post lines carry the cantilever and connect to independent footings.
+      for (const u of [2.1, 9.8]) {
+        const wx = frame.x + Math.cos(frame.yaw) * side * u + Math.sin(frame.yaw) * z;
+        const wz = frame.z - Math.sin(frame.yaw) * side * u + Math.cos(frame.yaw) * z;
+        const foot = frame.ground(wx, wz) - frame.y - 0.12,
+          top = u < 3 ? 5.95 : 7.65;
+        box(root, m.concrete, side * u, foot + 0.17, z, 0.85, 0.34, 0.85);
+        box(root, m.steel, side * u, (foot + top) / 2, z, 0.16, top - foot, 0.16);
+      }
+      const a = new T.Vector3(side * -1.6, 5.45, z),
+        b = new T.Vector3(side * 10.65, 7.5, z);
+      rod(root, m.steel, a, b, 0.08);
+      rod(root, m.steel, new T.Vector3(side * 2.1, 4.6, z), b, 0.05);
+      // Open triangular bracing under each roof rib, not a solid dark roof slab.
+      for (let k = 0; k < 5; k++) {
+        const u = -1.6 + k * 2.45,
+          v = u + 2.45;
+        rod(
+          root,
+          m.steel,
+          new T.Vector3(side * u, 5.45 + (u + 1.6) * 0.167, z),
+          new T.Vector3(side * v, 5.05 + (v + 1.6) * 0.167, z),
+          0.021,
+        );
+      }
+      if (j < supports) {
+        const next = z + L / supports;
+        rod(
+          root,
+          m.steel,
+          new T.Vector3(side * 9.8, 1, z),
+          new T.Vector3(side * 9.8, 6.1, next),
+          0.04,
+        );
+        rod(
+          root,
+          m.steel,
+          new T.Vector3(side * 9.8, 6.1, z),
+          new T.Vector3(side * 9.8, 1, next),
+          0.04,
+        );
+      }
     }
-    const a = new T.Vector3(side * -1.6, 5.45, z),
-      b = new T.Vector3(side * 10.65, 7.5, z);
-    rod(root, m.steel, a, b, 0.08);
-    rod(root, m.steel, new T.Vector3(side * 2.1, 4.6, z), b, 0.05);
-    // Open triangular bracing under each roof rib, not a solid dark roof slab.
-    for (let k = 0; k < 5; k++) {
-      const u = -1.6 + k * 2.45,
-        v = u + 2.45;
-      rod(
-        root,
-        m.steel,
-        new T.Vector3(side * u, 5.45 + (u + 1.6) * 0.167, z),
-        new T.Vector3(side * v, 5.05 + (v + 1.6) * 0.167, z),
-        0.021,
-      );
+    // One thin pitched roof per stand with a separate shaded soffit.
+    const roof = box(root, m.roof, side * 4.5, 6.58, 0, 12.8, 0.12, L + 1.5);
+    roof.rotation.z = side * 0.166;
+    sightlines?.add(roof);
+    const lining = new T.PlaneGeometry(12.8, L + 1.5).rotateX(Math.PI / 2).rotateZ(side * 0.166);
+    mesh(root, lining, m.underside, side * 4.5, 6.5, 0).name = 'Shaded canopy lining';
+    for (const u of [-1.75, 10.75])
+      box(root, m.steel, side * u, 5.55 + (u + 1.75) * 0.167, 0, 0.12, 0.24, L + 1.5);
+    for (let z = -L / 2; z < L / 2; z += 4) {
+      box(root, m.steel, side * -0.8, 0.54, z, 0.045, 1.1, 0.045);
+      box(root, m.steel, side * 10.0, 4.2, z, 0.04, 1.3, 0.04);
     }
-    if (j < supports) {
-      const next = z + L / supports;
-      rod(
-        root,
-        m.steel,
-        new T.Vector3(side * 9.8, 1, z),
-        new T.Vector3(side * 9.8, 6.1, next),
-        0.04,
-      );
-      rod(
-        root,
-        m.steel,
-        new T.Vector3(side * 9.8, 6.1, z),
-        new T.Vector3(side * 9.8, 1, next),
-        0.04,
-      );
-    }
+    for (const [u, y] of [
+      [-0.8, 1.05],
+      [10, 4.82],
+      [10, 4.27],
+    ])
+      box(root, m.steel, side * u, y, 0, 0.04, 0.04, L);
+    // Fascia signage lives on the actual roof edge rather than a billboard above it.
+    const sign = mesh(root, new T.PlaneGeometry(L * 0.72, 0.62), m.sign, side * -1.82, 5.53, 0);
+    sign.rotation.y = (-side * Math.PI) / 2;
+    sign.castShadow = false;
   }
-  // One thin pitched roof per stand with a separate shaded soffit.
-  const roof = box(root, m.roof, side * 4.5, 6.58, 0, 12.8, 0.12, L + 1.5);
-  roof.rotation.z = side * 0.166;
-  sightlines?.add(roof);
-  const lining = new T.PlaneGeometry(12.8, L + 1.5).rotateX(Math.PI / 2).rotateZ(side * 0.166);
-  mesh(root, lining, m.underside, side * 4.5, 6.5, 0).name = 'Shaded canopy lining';
-  for (const u of [-1.75, 10.75])
-    box(root, m.steel, side * u, 5.55 + (u + 1.75) * 0.167, 0, 0.12, 0.24, L + 1.5);
-  for (let z = -L / 2; z < L / 2; z += 4) {
-    box(root, m.steel, side * -0.8, 0.54, z, 0.045, 1.1, 0.045);
-    box(root, m.steel, side * 10.0, 4.2, z, 0.04, 1.3, 0.04);
-  }
-  for (const [u, y] of [
-    [-0.8, 1.05],
-    [10, 4.82],
-    [10, 4.27],
-  ])
-    box(root, m.steel, side * u, y, 0, 0.04, 0.04, L);
-  // Fascia signage lives on the actual roof edge rather than a billboard above it.
-  const sign = mesh(root, new T.PlaneGeometry(L * 0.72, 0.62), m.sign, side * -1.82, 5.53, 0);
-  sign.rotation.y = (-side * Math.PI) / 2;
-  sign.castShadow = false;
   // Two access stairs; the same aisles are kept empty in seats and spectators.
   const columns = Math.floor(L / 0.65),
     rows = 8,
@@ -188,7 +193,7 @@ export function buildGrandstand(
       const z = (col - (columns - 1) / 2) * 0.65;
       const aisle = Math.abs(z - L * 0.25) < 0.7 || Math.abs(z + L * 0.25) < 0.7;
       if (aisle) {
-        if (col % 2 === 0)
+        if (!hero && col % 2 === 0)
           box(root, m.concrete, side * (1.6 + row * 0.98), row * 0.49 - 0.03, z, 0.95, 0.1, 0.63);
         continue;
       }
@@ -233,7 +238,10 @@ export function buildGrandstand(
     inst.computeBoundingSphere();
     parent.add(inst);
   };
-  install(seatGeometry, m.seats, instances, colors, root, `Seats ${site.s}m`);
+  if (hero) {
+    complex!.seats(root, site, instances, colors, m.seats);
+    seatGeometry.dispose();
+  } else install(seatGeometry, m.seats, instances, colors, root, `Seats ${site.s}m`);
   const peopleRoot = new T.Group();
   peopleRoot.position.copy(root.position);
   peopleRoot.rotation.copy(root.rotation);
@@ -247,18 +255,20 @@ export function buildGrandstand(
     spectators[i] = entry.matrix;
     bodyColors[i] = entry.color;
   });
-  const chunkSize = 128;
+  const chunkSize = hero ? 64 : 128;
   for (let offset = 0; offset < spectators.length; offset += chunkSize) {
     const cluster = new CrowdCluster(
       spectators.slice(offset, offset + chunkSize),
       bodyColors.slice(offset, offset + chunkSize),
       821 + Math.round(site.s) + offset,
       m.people,
+      hero ? Math.floor(offset / chunkSize) % 4 : undefined,
     );
     peopleRoot.add(cluster.root);
     clusters?.push(cluster);
   }
   // All corners are measured against the nearest corridor, not just the centre.
+  const point = trackPoint();
   let clearance = Infinity;
   for (const u of [-1.9, 11])
     for (const v of [-L / 2, L / 2]) {

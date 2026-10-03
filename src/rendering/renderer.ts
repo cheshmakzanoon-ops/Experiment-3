@@ -753,6 +753,7 @@ export class RacingRenderer {
     return this.mode;
   }
   reset() {
+    this.circuit.startFinish.reset();
     this.exposure.reset();
     this.composition.reset();
     this.reflection.invalidate();
@@ -1052,6 +1053,7 @@ export class RacingRenderer {
     this.sun.position.copy(this.sun.target.position).add(lightingDirection(illumination));
     this.sun.target.updateMatrixWorld();
     this.circuit.update(b);
+    this.circuit.startFinish.update(presented, this.camera, this.night);
     this.atmosphere.update(presented, this.graphics.localFog && !studio);
     this.weatherPresentation.update(presented, !studio);
     this.circuit.staff.update(

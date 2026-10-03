@@ -1,3 +1,4 @@
+import { venueGeometry } from './start-finish-assets.ts';
 import { APRON_SEPARATION_M } from './ground-profile.ts';
 import * as T from 'three';
 import { Track, trackPoint } from '../simulation/track.ts';
@@ -109,6 +110,16 @@ export function buildBarrierChunk(
         q = at(track, a, side, 0.23, 3.4),
         r = at(track, a, side, -0.17, 3.8);
       beam(p, q, 0.036);
+      // Authoring changes the mounting detail only. Concrete profile, boundary,
+      // fence span and the existing three chunk submissions remain unchanged.
+      if (track.circuit.id === 'aurel' && (a < 110 || a > track.length - 115)) {
+        const mount = venueGeometry('fence_mount_near');
+        mount.deleteAttribute('color');
+        const tangent = track.at(a, trackPoint());
+        mount.rotateY(Math.atan2(tangent.tx, tangent.tz));
+        mount.translate(p.x, p.y, p.z);
+        steel.push(mount);
+      }
       beam(q, r, 0.033);
       // Support rails follow the same slope as each small fence section.
       for (const h of [1.18, 2.32, 3.4])

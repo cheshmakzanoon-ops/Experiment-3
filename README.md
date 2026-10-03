@@ -1,3 +1,9 @@
+## Aurel start/finish environment
+
+The start/finish stands now share original authored architecture, shaped seats,
+recorded race-information display and audience task motion. Existing protected
+marshal posts use the refined crew kit. [Scope and verification](docs/START_FINISH_ENVIRONMENT.md).
+
 ## Coordinated pit-team performance
 
 All six existing pit roles now use distinct authored actions with planted-foot

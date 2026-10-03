@@ -1,3 +1,4 @@
+import { StartFinishVenue } from './start-finish-venue.ts';
 import { type PitBuildingFrontage } from './pit-building-frontage.ts';
 import { PitWallStation, pitWallPlacement } from './pit-wall-station.ts';
 import { HERO_GARAGE, type HeroGarage } from './hero-garage.ts';
@@ -57,6 +58,7 @@ export class CircuitScene {
   pitWallStation: PitWallStation | null = null;
   readonly group = new T.Group();
   readonly crowd = new T.Group();
+  readonly startFinish: StartFinishVenue;
   readonly crowdClusters: CrowdCluster[] = [];
   readonly staff: MarshalStaffView;
   readonly props = new StaticTransformGroup();
@@ -92,6 +94,7 @@ export class CircuitScene {
   ) {
     this.group.name = 'Aurel circuit';
     this.trackInfrastructure = makeTrackInfrastructurePlan(track);
+    this.startFinish = new StartFinishVenue(track);
     this.staff = new MarshalStaffView(this.trackInfrastructure.marshalPosts);
     this.serviceSites = serviceSitePlan(track);
     this.districts = districtPlan(track, this.serviceSites);
@@ -189,7 +192,13 @@ export class CircuitScene {
     }
     // Smooth pit road ribbon and its marking; no decorative inaccessible lane.
     const pitMat = surfaceMaterial('asphalt', undefined, true);
-    installWetRoad(pitMat, this.stateTexture, false, VENUE_LAMP_RADIUS, this.wetReflection.uniforms);
+    installWetRoad(
+      pitMat,
+      this.stateTexture,
+      false,
+      VENUE_LAMP_RADIUS,
+      this.wetReflection.uniforms,
+    );
     for (const [start, end] of [
       [track.length - 220, track.length],
       [0, 330],
@@ -287,6 +296,7 @@ export class CircuitScene {
             this.tyreBlankets?.root,
             this.pitWallStation?.root,
             this.pitBuildingFrontage?.root,
+            ...this.startFinish.roots,
           ].filter((o): o is T.Group => !!o),
         ),
       ),
@@ -313,6 +323,7 @@ export class CircuitScene {
       }));
     return {
       source: 'constructed-runtime-groups',
+      startFinish: this.startFinish.diagnostics(),
       districts,
       garage: this.heroGarage?.diagnostics() ?? null,
       tyreBlankets: this.tyreBlankets?.diagnostics() ?? null,
@@ -550,8 +561,12 @@ export class CircuitScene {
           stands,
           this.crowdClusters,
           this.sightlines,
+          this.startFinish,
         ),
       );
+    this.construction.add('A18 live race-information board', 3, () =>
+      this.startFinish.buildScreen(this.props, this.sightlines),
+    );
     this.construction.add('Signs, gantry and control tower', 2, () => {
       const plan = venuePlan(this.track);
       for (const sign of plan.signs)

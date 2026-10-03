@@ -1,3 +1,5 @@
+import { audienceAtlas, audienceGeometry } from './start-finish-assets.ts';
+import { installAudienceActions } from './audience-actions.ts';
 import { detailDistance } from './view-detail.ts';
 import { tagWeatherSurface } from './weather-presentation.ts';
 import * as T from 'three';
@@ -201,6 +203,7 @@ export class CrowdCluster {
     crowdMotion: { value: 0 },
     crowdReaction: { value: new T.Vector2() },
   };
+  readonly audienceTime = { value: 0 };
   level: CrowdDetail = 0;
   readonly lodRanges = [new T.Vector2(0, 1), new T.Vector2(), new T.Vector2(), new T.Vector2()];
   private centre = new T.Vector3();
@@ -210,6 +213,7 @@ export class CrowdCluster {
     colors: readonly T.Color[],
     seed: number,
     material: T.MeshStandardMaterial,
+    authoredFamily?: number,
   ) {
     if (!matrices.length || matrices.length !== colors.length || !Number.isSafeInteger(seed))
       throw new Error('Invalid spectator cluster');
@@ -237,6 +241,7 @@ export class CrowdCluster {
     const phases = new T.InstancedBufferAttribute(phase, 1),
       skins = new T.InstancedBufferAttribute(skin, 3),
       styles = new T.InstancedBufferAttribute(style, 4);
+    const atlas = authoredFamily === undefined ? null : audienceAtlas();
     const levels: T.InstancedMesh[] = [];
     for (const level of [0, 1, 2, 3] as const) {
       const colorMaterial = material.clone();
@@ -254,7 +259,17 @@ export class CrowdCluster {
         installCrowdShader(depth!, uniforms, false);
         installCrowdShader(distanceMaterial!, uniforms, false);
       }
-      const geometry = level === 3 ? spectatorImpostorGeometry() : spectatorGeometry(level);
+      if (atlas && level < 2) {
+        for (const material of [colorMaterial, depth!, distanceMaterial!])
+          installAudienceActions(material, atlas, this.audienceTime);
+      }
+      if (atlas && level === 0) colorMaterial.addEventListener('dispose', () => atlas.dispose());
+      const geometry =
+        level === 3
+          ? spectatorImpostorGeometry()
+          : authoredFamily !== undefined && level < 2
+            ? audienceGeometry(level as 0 | 1, authoredFamily)
+            : spectatorGeometry(level);
       geometry.setAttribute('spectatorPhase', phases);
       geometry.setAttribute('spectatorSkin', skins);
       geometry.setAttribute('spectatorStyle', styles);
@@ -317,6 +332,7 @@ export class CrowdCluster {
     // float-time jump. The exact same replay timestamp restores the same pose.
     const cycle = Math.PI * 2;
     this.uniforms.crowdClock.value.set((time * 0.71) % cycle, (time * 0.43) % cycle);
+    this.audienceTime.value = ((time % 4) + 4) % 4;
     this.uniforms.crowdMotion.value =
       clamp((120 - distance) / 40, 0, 1) * (1 - clamp(rain / 40, 0, 0.4));
   }
