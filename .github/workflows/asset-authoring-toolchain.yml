@@ -7,51 +7,101 @@ on:
 permissions:
   contents: read
 jobs:
-  toolchain:
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
+  retained-objects:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    permissions:
+      actions: read
+      contents: write
     steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: operations-source
+          run-id: 37163800021
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/operations-source
+      - name: Verify retained archive and store immutable Git blobs only
+        shell: python
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          import base64, hashlib, json, os, pathlib, tarfile, urllib.request
+          temp = pathlib.Path(os.environ['RUNNER_TEMP'])
+          source = temp / 'operations-source'
+          archive = source / 'operations-source.tar.gz'
+          expected = '4620825165833cec5fa18cc658cd8551fc6f9be41578fa6e2ece133f2e1b1602'
+          assert hashlib.sha256(archive.read_bytes()).hexdigest() == expected
+          receipt = json.loads((source / 'operations-source.json').read_text())
+          assert receipt['archiveSHA256'] == expected
+          assert receipt['base'] == 'f952d587fa9a3ccfae562611371bb18cea2987a4'
+          assert receipt['tree'] == '207f104a3399afac9838ec0234a23bdba2a78d07'
+          assert len(receipt['files']) == 40
+          repository = os.environ['GITHUB_REPOSITORY']
+          assert repository == 'cheshmakzanoon-ops/Experiment-3'
+          objects = {}
+          with tarfile.open(archive, 'r:gz') as bundle:
+              for name, digest in sorted(receipt['files'].items()):
+                  path = pathlib.PurePosixPath(name)
+                  assert not path.is_absolute() and '..' not in path.parts
+                  assert path.parts[0] in {'src','scripts','tests','e2e','docs','3dmodels.md','README.md'} or name.startswith('public/models/aurel-')
+                  member = bundle.getmember(name)
+                  assert member.isfile() and member.size < 20 * 1024 * 1024
+                  data = bundle.extractfile(member).read()
+                  assert hashlib.sha256(data).hexdigest() == digest, name
+                  git_sha = hashlib.sha1(b'blob ' + str(len(data)).encode() + b'\0' + data).hexdigest()
+                  request = urllib.request.Request(
+                      'https://api.github.com/repos/' + repository + '/git/blobs',
+                      data=json.dumps({'content':base64.b64encode(data).decode(),'encoding':'base64'}).encode(),
+                      headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'})
+                  with urllib.request.urlopen(request, timeout=120) as response:
+                      uploaded = json.load(response)
+                  assert uploaded['sha'] == git_sha, name
+                  objects[name] = {'gitBlob':git_sha,'sha256':digest,'bytes':len(data)}
+                  print(name, git_sha)
+          destination = temp / 'retained-objects'
+          destination.mkdir()
+          (destination/'objects.json').write_text(json.dumps({'archiveSHA256':expected,'artifactId':11292312192,'objects':objects,'branchAdvanced':False},indent=2)+'\n')
+          print('Verified immutable blobs stored. No commit, branch, source file or release was changed.')
+      - uses: actions/upload-artifact@v4
+        with:
+          name: a08-a10-git-objects
+          path: ${{ runner.temp }}/retained-objects/
+          if-no-files-found: error
+          retention-days: 7
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Retain lockfile-bound offline dependencies
+      - name: Recover portable lockfile-bound npm cache
         shell: bash
         run: |
           set -euo pipefail
-          # Dependency transport only. This is NOT the application validation job.
-          # Lifecycle scripts run normally in CI and in the restored workspace.
+          # Dependency transport only; no application validation bypass is claimed.
           npm ci --ignore-scripts --no-audit --no-fund --cache "$RUNNER_TEMP/npm-cache"
+          python - <<'PY' > "$RUNNER_TEMP/linux-packages.txt"
+          import json
+          p=json.load(open('package-lock.json'))['packages']
+          for key in ['node_modules/@esbuild/linux-x64','node_modules/@rollup/rollup-linux-x64-gnu']:
+              print(p[key]['resolved'])
+          PY
+          while IFS= read -r package; do npm cache add "$package" --cache "$RUNNER_TEMP/npm-cache"; done < "$RUNNER_TEMP/linux-packages.txt"
           npm cache verify --cache "$RUNNER_TEMP/npm-cache"
-          mkdir -p "$RUNNER_TEMP/development-toolchain"
-          tar -czf "$RUNNER_TEMP/development-toolchain/npm-cache.tar.gz" -C "$RUNNER_TEMP" npm-cache
-          git archive --format=tar.gz HEAD > "$RUNNER_TEMP/development-toolchain/source.tar.gz"
-          git cat-file commit HEAD > "$RUNNER_TEMP/development-toolchain/commit.txt"
-          git rev-parse HEAD > "$RUNNER_TEMP/development-toolchain/source-commit.txt"
-          sha256sum package-lock.json > "$RUNNER_TEMP/development-toolchain/package-lock.sha256"
-          node --version > "$RUNNER_TEMP/development-toolchain/node-version.txt"
-          npm --version > "$RUNNER_TEMP/development-toolchain/npm-version.txt"
-          cd "$RUNNER_TEMP/development-toolchain"
-          sha256sum npm-cache.tar.gz source.tar.gz commit.txt > SHA256SUMS
+          python - <<'PY'
+          import hashlib,json,os,pathlib,subprocess,tarfile
+          t=pathlib.Path(os.environ['RUNNER_TEMP']);d=t/'development-toolchain';d.mkdir()
+          with tarfile.open(d/'npm-cache.tar.gz','w:gz') as bundle:bundle.add(t/'npm-cache',arcname='npm-cache')
+          with (d/'source.tar.gz').open('wb') as f:subprocess.run(['git','archive','--format=tar.gz','HEAD'],stdout=f,check=True)
+          (d/'commit.txt').write_bytes(subprocess.check_output(['git','cat-file','commit','HEAD']))
+          (d/'source-commit.txt').write_bytes(subprocess.check_output(['git','rev-parse','HEAD']))
+          (d/'package-lock.sha256').write_text(hashlib.sha256(pathlib.Path('package-lock.json').read_bytes()).hexdigest()+'  package-lock.json\n')
+          (d/'SHA256SUMS').write_text(''.join(hashlib.sha256((d/name).read_bytes()).hexdigest()+'  '+name+'\n' for name in ['npm-cache.tar.gz','source.tar.gz','commit.txt']))
+          PY
       - uses: actions/upload-artifact@v4
         with:
           name: apex-offline-development-toolchain
           path: ${{ runner.temp }}/development-toolchain/
+          if-no-files-found: error
           retention-days: 7
           compression-level: 0
-          if-no-files-found: error
-      - name: Download and verify pinned official Blender
-        shell: bash
-        run: |
-          set -euo pipefail
-          curl --fail --location --retry 2 --max-time 240 'https://download.blender.org/release/Blender5.2/blender-5.2.2-linux-x64.tar.xz' -o "$RUNNER_TEMP/blender-5.2.2-linux-x64.tar.xz"
-          echo '84098912789dc450e95697c4184fb8a90acbe5111c2ba4aede3fecb57806a168  '"$RUNNER_TEMP/blender-5.2.2-linux-x64.tar.xz" | sha256sum --check
-      - uses: actions/upload-artifact@v4
-        with:
-          name: blender-5.2.2-verified-development-toolchain
-          path: ${{ runner.temp }}/blender-5.2.2-linux-x64.tar.xz
-          retention-days: 1
-          compression-level: 0
-          if-no-files-found: error
