@@ -59,8 +59,16 @@ test('current-camera car detail and active wheel poses survive immediate cuts an
   expect(report.authored).toMatchObject({ loaded: true, sha256: manifest.sha256, joints: 9 });
   expect(report.staleDecisionDifferences).toBeGreaterThan(0);
   expect(report.after).toEqual(report.before);
+  expect(report.geometryAfter).toEqual(report.geometryBefore);
+  expect(report.warmup.map((row) => row.cameraHardwareLevel)).toEqual([2, 2, 0, 1]);
+  expect(report.cycles).toHaveLength(8);
+  for (const cycle of report.cycles) {
+    expect(cycle.memory).toEqual(report.before);
+    expect(cycle.levels).toEqual(cycle.expected);
+  }
   expect(report.rows).toHaveLength(5);
   for (const row of report.rows) {
+    expect(row.memory, row.name).toEqual(report.before);
     expect(row.levels, row.name).toEqual(row.expected);
     expect(row.levels[row.follow]).toBe(0);
     expect(row.calls).toBeGreaterThan(10);

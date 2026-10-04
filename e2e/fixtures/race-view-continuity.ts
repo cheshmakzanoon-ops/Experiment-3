@@ -42,7 +42,7 @@ export async function raceViewContinuity() {
   try {
     view.setQuality('low');
     view.setCars(2);
-    const draw = (name: string, follow: number, alpha: number, zoom: boolean) => {
+    const draw = (name: string, follow: number, alpha: number, zoom: boolean, capture = true) => {
       view.setPhoto(
         {
           ...DEFAULT_PHOTO,
@@ -98,24 +98,62 @@ export async function raceViewContinuity() {
         wheels,
         camera: view.camera.position.toArray(),
         fov: view.camera.fov,
-        image: canvas.toDataURL('image/png'),
+        image: capture ? canvas.toDataURL('image/png') : '',
+        memory: { ...view.renderer.info.memory },
+        cameraHardwareLevel: view.circuit.broadcastCameras?.chunks.find((c) => c.rigId === 0)
+          ?.level,
         triangles: view.renderer.info.render.triangles,
         calls: view.renderer.info.render.calls,
       };
     };
-    // Warm both direction cuts and both selected detail representations before
-    // testing bounded resources. Exact identity is checked by normal loaders.
-    draw('warm-0', 0, 1, false);
-    draw('warm-1', 1, 0.25, false);
-    draw('warm-photo', 0, 0.25, true);
-    const before = { ...view.renderer.info.memory };
+    // Warm the CLOSED path, not only its three camera positions. A10 rig 0 is
+    // ~67.59 lens-adjusted metres away: hysteresis keeps its initial far LOD,
+    // zoom selects near, then returning wide selects the previously cold middle
+    // LOD. This finite first-use upload is not continuing resource growth.
+    // Never loop until stable: this fixed four-cut warm-up is followed by strict
+    // equality on every measured frame and two additional complete cycles.
+    const warmup = [
+      draw('warm-0', 0, 1, false, false),
+      draw('warm-1', 1, 0.25, false, false),
+      draw('warm-photo', 0, 0.25, true, false),
+      draw('warm-return', 0, 1, false, false),
+    ];
+    const geometryIdentities = () => {
+      const identities = new Set<string>();
+      view.scene.traverse((object) => {
+        if (object instanceof T.Mesh) identities.add(object.geometry.uuid);
+      });
+      return [...identities].sort();
+    };
+    const before = { ...view.renderer.info.memory },
+      geometryBefore = geometryIdentities();
     rows.push(draw('first-follow-0', 0, 1, false));
     rows.push(draw('first-follow-1', 1, 0.25, false));
     rows.push(draw('held-follow-1', 1, 0.25, false));
     rows.push(draw('photo-long-lens', 0, 0.25, true));
     rows.push(draw('rewound-follow-0', 0, 1, false));
+    const cycles = [];
+    for (let cycle = 0; cycle < 2; cycle++) {
+      for (const [follow, alpha, zoom] of [
+        [0, 1, false],
+        [1, 0.25, false],
+        [0, 0.25, true],
+        [0, 1, false],
+      ] as const) {
+        const row = draw(`cycle-${cycle}`, follow, alpha, zoom, false);
+        cycles.push({ memory: row.memory, levels: row.levels, expected: row.expected });
+      }
+    }
     return {
       rows,
+      warmup: warmup.map(({ name, memory, cameraHardwareLevel }) => ({
+        name,
+        memory,
+        cameraHardwareLevel,
+      })),
+      cycles,
+      geometryBefore,
+      geometryAfter: geometryIdentities(),
       before,
       after: { ...view.renderer.info.memory },
       staleDecisionDifferences,

@@ -106,3 +106,28 @@ stability and branchless-release tests also passed. The full local check passed
 1,740 tests in 196 files, lint, TypeScript and the production build. Exact-commit
 browser/release outcomes must be read from their own run, not inherited from
 these results or historical candidate artifacts.
+
+## Closed-camera-cycle regression correction
+
+The full hosted run `37190130663` passed installation, stable lint/unit/build,
+all numerical scenarios, the independent wet GPU gate and seven browser shards.
+The remaining shard passed A08–A10 night but failed the existing view-continuity
+observer: GPU geometry count changed from 1,157 to 1,158 after its open warm-up.
+
+The retained A10 geometry reproduces the cause without a GPU: rig 0 is about
+67.59 lens-adjusted metres from the first chase view. Initial far-LOD hysteresis
+keeps level 2; the long lens selects level 0; returning to the same chase view
+selects level 1. That middle representation already exists, but the old three-view
+warm-up never submitted it. This is not evidence of continuing allocation growth.
+A source-preserving CPU regression includes that omitted-transition negative
+control, exercises repeated closed cycles and verifies geometry/index/position
+attribute identities are unchanged.
+
+The full-renderer observer now warms the explicit four-cut closed path once,
+then requires exact memory equality on every original measured frame and eight
+additional repeated-cycle frames, as well as unchanged scene geometry identities.
+It does not warm until a test happens to pass, allow a +1 tolerance, disable
+hysteresis, hide camera hardware or alter production rendering. All original
+camera, wheel, source, error and image assertions remain. The new commit still
+requires its own complete CI before release; the preceding failed run is retained
+as failure evidence, not retried into an approval.
