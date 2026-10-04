@@ -25,9 +25,14 @@ for (const [manifestPath, asset] of [
     throw new Error(`Validated asset differs from its source manifest: ${asset}`);
   }
 }
-for (const family of ['track-signal-hardware', 'track-boards', 'broadcast-cameras']) {
+for (const [family, filename] of [
+  ['track-signal-hardware', 'aurel-track-signal-hardware.glb'],
+  ['track-boards', 'aurel-track-boards.glb'],
+  ['broadcast-cameras', 'aurel-broadcast-cameras.glb'],
+  ['aurel-vegetation', 'aurel-vegetation.glb'],
+]) {
   const manifest = JSON.parse(readFileSync(`src/rendering/${family}.manifest.json`, 'utf8'));
-  const asset = `models/aurel-${family}.glb`;
+  const asset = `models/${filename}`;
   if (manifest.url !== asset) throw new Error(`Unexpected trackside asset path: ${family}`);
   const bytes = readFileSync(`${process.argv[2]}/${asset}`);
   if (bytes.length !== manifest.bytes ||

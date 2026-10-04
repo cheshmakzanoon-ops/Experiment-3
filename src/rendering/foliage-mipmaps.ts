@@ -45,9 +45,22 @@ export function preserveCoverage(
   if (target <= best) {
     for (let i = 3; i < pixels.length; i += 4) pixels[i] = 0;
   } else {
-    const scale = Math.ceil(cutoff * 255) / threshold;
-    for (let i = 3; i < pixels.length; i += 4)
-      pixels[i] = Math.min(255, Math.round(pixels[i] * scale));
+    const cutoffByte = Math.ceil(cutoff * 255),
+      scale = cutoffByte / threshold;
+    for (let i = 3; i < pixels.length; i += 4) {
+      const alpha = pixels[i],
+        scaled = Math.min(255, Math.round(alpha * scale));
+      // Quantization must preserve the histogram's selected partition. With
+      // threshold 255, for example, both 254 and 255 used to round to byte 115
+      // at cutoff .45, turning a requested half-covered mip into a solid one.
+      // Keep zero-alpha holes at zero and enforce the chosen side of the cut.
+      pixels[i] =
+        alpha === 0
+          ? 0
+          : alpha >= threshold
+            ? Math.max(cutoffByte, scaled)
+            : Math.min(cutoffByte - 1, scaled);
+    }
   }
   return alphaCoverage(pixels, cutoff);
 }

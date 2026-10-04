@@ -65,3 +65,36 @@ frame times remain independent open gates. Pixel differences demonstrate a
 changed image, not artistic quality. Fixed cameras are not human driving and
 software-rendered timings are not a consumer-GPU performance claim. These limits
 must remain explicit in subsequent validation records.
+
+## Validation continuation
+
+The integrated `fc465daa` source passed the complete local stable check: 1,755
+unit tests in 198 files, ESLint, TypeScript and the production build. Its GitHub
+full-CI validation and numerical-scenario jobs also passed in run `37228343173`.
+This executor reopened the retained `.blend` with pinned Blender 5.2.2 and produced
+a byte-identical GLB. Local Chromium navigation was attempted and rejected with
+`ERR_BLOCKED_BY_ADMINISTRATOR`; it is not recorded as a browser pass.
+
+A subsequent focused regression exposed alpha-byte quantization at a downscaled
+cutoff: input alpha bytes 254 and 255 both rounded to 115, making requested 50%
+coverage become 100% at cutoff 0.45. The correction preserves the selected
+histogram partition after quantization, leaves RGB and zero-alpha holes alone,
+and is checked against 2,304 histogram/target/cutoff combinations. Both failing
+regressions were executed before the correction and passed afterward.
+
+Release verification now also checks the vegetation GLB's declared path, size
+and SHA-256 before interacting with release APIs. Missing and same-size-corrupt
+vegetation assets are covered by the branchless publisher's negative controls.
+The continuation passed 18 focused tests plus lint and TypeScript locally; these
+results do not substitute for its own full CI or browser/release outcomes.
+
+The integrated `fc465daa` production surveys passed in daylight, sunset and wet
+night in workflow `37228343195`, retaining 20 landscape images and one normal
+cockpit capture per lighting condition. Each survey measured 2,299 trees
+(including 66 Orchard trees), 139 spatial/family chunks and 278 instanced meshes.
+Closed camera/lens cycles preserved exact GPU memory and geometry identities,
+and existing inspection/cockpit draw budgets passed without relaxed thresholds.
+There were no reported page, console or WebGL errors. Sunset comparison images
+were inspected: managed rows, branching and more varied silhouettes are visible;
+the wider terrain still needs refinement. These captures certify the stated
+structural/rendering checks on `fc465daa`, not final art or subsequent commits.

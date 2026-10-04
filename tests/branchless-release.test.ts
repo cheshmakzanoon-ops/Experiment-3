@@ -29,9 +29,13 @@ it('publishes exact validated bytes, recovers reruns, and rejects altered or sta
     writeFileSync(join(release, 'index.html'), '<html>exact tested build</html>');
     const identity = { version: 1, commit: sha, fingerprint: 'c'.repeat(64) };
     writeFileSync(join(release, 'BUILD_IDENTITY.json'), JSON.stringify(identity));
-    const families = ['track-signal-hardware', 'track-boards', 'broadcast-cameras'];
-    for (const family of families) {
-      const asset = `aurel-${family}.glb`;
+    const families = [
+      ['track-signal-hardware', 'aurel-track-signal-hardware.glb'],
+      ['track-boards', 'aurel-track-boards.glb'],
+      ['broadcast-cameras', 'aurel-broadcast-cameras.glb'],
+      ['aurel-vegetation', 'aurel-vegetation.glb'],
+    ];
+    for (const [family, asset] of families) {
       const data = Buffer.from(`asset ${family}`);
       writeFileSync(join(models, asset), data);
       writeFileSync(
@@ -113,8 +117,8 @@ else: raise ValueError(cmd)
     expect(result.status).toBe(0);
     expect(readFileSync(join(state, 'apex-formula-playable.zip'))).toEqual(bytes);
     const callsBeforeNegativeCases = readFileSync(join(root, 'gh-calls'), 'utf8');
-    for (const family of families) {
-      const path = join(models, `aurel-${family}.glb`);
+    for (const [, asset] of families) {
+      const path = join(models, asset);
       const original = readFileSync(path);
       // Equal-length byte corruption exercises the checksum, not just file size.
       const corrupt = Buffer.from(original);
