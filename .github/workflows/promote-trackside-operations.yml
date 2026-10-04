@@ -13,12 +13,12 @@ concurrency:
   cancel-in-progress: true
 jobs:
   promote:
-    runs-on: windows-latest
+    runs-on: macos-latest
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 4
+          fetch-depth: 5
           persist-credentials: false
       - uses: actions/download-artifact@v4
         with:
@@ -99,7 +99,7 @@ jobs:
               assert len(ancestry['parents']) == 1
               cursor = ancestry['parents'][0]['sha']
               depth += 1
-              assert depth <= 4, 'unexpected promotion ancestry'
+              assert depth <= 5, 'unexpected promotion ancestry'
 
           entries = []
           for name, expected in receipt['files'].items():
