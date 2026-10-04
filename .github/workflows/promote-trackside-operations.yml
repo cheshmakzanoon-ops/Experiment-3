@@ -10,15 +10,15 @@ permissions:
   contents: write
 concurrency:
   group: promote-sealed-a08-a10
-  cancel-in-progress: false
+  cancel-in-progress: true
 jobs:
   promote:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: 4
           persist-credentials: false
       - uses: actions/download-artifact@v4
         with:
@@ -92,8 +92,14 @@ jobs:
           current = api('/git/ref/heads/main')['object']['sha']
           assert current == os.environ['GITHUB_SHA'], 'main advanced; refuse to overwrite'
           parent = api('/git/commits/' + current)
-          assert len(parent['parents']) == 1
-          assert parent['parents'][0]['sha'] == EXPECTED_STAGING
+          cursor = current
+          depth = 0
+          while cursor != EXPECTED_STAGING:
+              ancestry = api('/git/commits/' + cursor)
+              assert len(ancestry['parents']) == 1
+              cursor = ancestry['parents'][0]['sha']
+              depth += 1
+              assert depth <= 4, 'unexpected promotion ancestry'
 
           entries = []
           for name, expected in receipt['files'].items():
