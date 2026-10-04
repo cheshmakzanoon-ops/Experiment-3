@@ -14,7 +14,7 @@ BASE = 'f952d587fa9a3ccfae562611371bb18cea2987a4'
 PACK = '8b393e9400995c7242b06e0e5bd97cf21ca77aacb2d4dbfe063da6917d4cf67c'
 N_PARTS = 7
 ASSETS = ['track-signal-hardware','track-boards','broadcast-cameras']
-STAGE = ['.github/operations-stage.py','.github/workflows/trackside-operations-candidate.yml'] + [f'.github/operations-candidate.{i:02d}.xzpart' for i in range(N_PARTS)]
+STAGE = ['.github/operations-observer.xz','.github/operations-stage.py','.github/workflows/trackside-operations-candidate.yml'] + [f'.github/operations-candidate.{i:02d}.xzpart' for i in range(N_PARTS)]
 TEMP = Path(os.environ['RUNNER_TEMP'])
 
 def sha(p): return hashlib.sha256(Path(p).read_bytes()).hexdigest()
@@ -39,6 +39,18 @@ def prepare():
         Path(name).parent.mkdir(parents=True,exist_ok=True);Path(name).write_text(text)
     for name,digest in p['hashes'].items(): assert sha(name)==digest,name
     assert set(git('diff','--name-only').splitlines()) <= set(p['paths'])
+    # Checksum-bound corrections affect only the supplementary observer.
+    data=Path('.github/operations-observer.xz').read_bytes()
+    assert hashlib.sha256(data).hexdigest()=='f67f01817bc07c4806b9f59720114fdb1b2123fc0e03db9c3a1f3897c47f7c8b'
+    correction=json.loads(lzma.decompress(data))
+    for name,digest in correction['before'].items(): assert sha(name)==digest,name
+    extra=TEMP/'observer.patch';extra.write_text(correction['patch'])
+    subprocess.run(['git','apply','--check',str(extra)],check=True)
+    subprocess.run(['git','apply',str(extra)],check=True)
+    for name,text in correction['files'].items():
+        assert name in ['scripts/operations-render-budget.ts','tests/operations-render-budget.test.ts']
+        assert not Path(name).exists(),name
+        Path(name).write_text(text);p['paths'].append(name)
     (TEMP/'operations-paths.json').write_text(json.dumps(p['paths']))
     print('Restored bounded operations source; protected physics, supplied assets and permanent CI unchanged.')
 

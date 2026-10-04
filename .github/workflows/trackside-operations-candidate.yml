@@ -5,6 +5,7 @@ on:
     paths:
       - .github/operations-stage.py
       - .github/operations-candidate.*.xzpart
+      - .github/operations-observer.xz
       - .github/workflows/trackside-operations-candidate.yml
   workflow_dispatch:
 permissions:
@@ -117,7 +118,8 @@ jobs:
           tar -xzf "$RUNNER_TEMP/source/operations-source.tar.gz" \
             e2e/57-trackside-operations.spec.ts e2e/fixtures/trackside-operations.ts \
             src/rendering/track-board-plan.ts src/rendering/track-signal-plan.ts \
-            src/rendering/broadcast-camera-placement.ts src/rendering/broadcast-cameras.manifest.json
+            src/rendering/broadcast-camera-placement.ts src/rendering/broadcast-cameras.manifest.json \
+            scripts/operations-render-budget.ts
       - run: npx playwright install --with-deps chromium
       - run: sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb
       - run: xvfb-run -a -s '-screen 0 1920x1080x24' npx playwright test e2e/57-trackside-operations.spec.ts --grep 'production ${{ matrix.lighting }} operations'
