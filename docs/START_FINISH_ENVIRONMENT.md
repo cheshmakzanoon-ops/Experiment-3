@@ -94,3 +94,7 @@ when the A03 kit is loaded; the filtered wire and existing fallback are retained
 The original marshal positions, lights, pit openings and collision boundaries are
 unchanged. A05 gates remain closed visual assets with future interaction metadata.
 This continuation does not turn the first venue revision into final-art approval.
+
+## A08–A10 continuation
+
+The [Trackside Operations Kit](TRACKSIDE_OPERATIONS_KIT.md) adds circuit-wide signal fittings, braking/sector-board construction and camera installations while retaining this start/finish architecture, people, screens, pit movement and original optical positions. Local LED state follows the existing recorded marshal witness. This is not final-art acceptance.

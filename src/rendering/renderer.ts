@@ -1,3 +1,6 @@
+import { loadTrackSignalHardware } from './track-signal-hardware.ts';
+import { loadTrackBoards } from './track-boards.ts';
+import { loadBroadcastCameras } from './broadcast-cameras.ts';
 import { loadConcreteBarriers } from './concrete-barriers.ts';
 import { loadSteelGuardrails } from './steel-guardrails.ts';
 import { loadCatchFence } from './catch-fence.ts';
@@ -487,6 +490,27 @@ export class RacingRenderer {
         renderer.circuit.marshalPosts = await loadMarshalPosts(cancelled);
         progress({ completed: 0, total: 1, fraction: 0, label: 'Loading A07 start gantry' });
         renderer.circuit.startGantry = await loadStartGantry(cancelled);
+        progress({
+          completed: 0,
+          total: 1,
+          fraction: 0,
+          label: 'Loading A08 trackside signal hardware',
+        });
+        renderer.circuit.signalHardware = await loadTrackSignalHardware(cancelled);
+        progress({
+          completed: 0,
+          total: 1,
+          fraction: 0,
+          label: 'Loading A09 braking and sector boards',
+        });
+        renderer.circuit.trackBoards = await loadTrackBoards(cancelled);
+        progress({
+          completed: 0,
+          total: 1,
+          fraction: 0,
+          label: 'Loading A10 broadcast camera installations',
+        });
+        renderer.circuit.broadcastCameras = await loadBroadcastCameras(cancelled);
       }
       if (cancelled()) {
         renderer.dispose();
@@ -1039,6 +1063,9 @@ export class RacingRenderer {
     this.circuit.recoveryGates?.update(this.camera, this.quality);
     this.circuit.marshalPosts?.update(this.camera, this.quality);
     this.circuit.startGantry?.update(this.camera, this.quality);
+    this.circuit.signalHardware?.update(this.camera, this.quality);
+    this.circuit.trackBoards?.update(this.camera, this.quality);
+    this.circuit.broadcastCameras?.update(this.camera, this.quality);
     this.circuit.heroGarage?.update(this.camera, this.quality, illumination);
     this.tyreEquipment?.update(this.camera, this.quality);
     this.wheelGunStorage?.update(this.camera);
@@ -1705,6 +1732,9 @@ export class RacingRenderer {
     this.circuit.recoveryGates?.dispose();
     this.circuit.marshalPosts?.dispose();
     this.circuit.startGantry?.dispose();
+    this.circuit.signalHardware?.dispose();
+    this.circuit.trackBoards?.dispose();
+    this.circuit.broadcastCameras?.dispose();
 
     if (this.circuit.tyreBlankets && !this.circuit.tyreBlankets.root.parent)
       this.circuit.tyreBlankets.dispose();

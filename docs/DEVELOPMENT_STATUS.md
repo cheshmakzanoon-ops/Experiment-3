@@ -285,3 +285,7 @@ See [scope, provenance and validation boundaries](TRACK_INFRASTRUCTURE_ASSET_PAC
 Final art, continuous human-lap approval and hardware performance remain open.
 The existing simulator has no aborted-start state; it is not fabricated by this
 visual integration. Vellamar’s infrastructure remains unchanged.
+
+## Continuation from f952d587 — A08–A10 trackside operations
+
+Integrates the three independent original recovery-archive families into the current production Aurel renderer, without replacing the existing cars, people, venue or physics. Adds bounded recorded-local-signal presentation, 18 retained braking stations plus two sector markers, and authored hardware around all 20 retained replay optics. The three Blender exports were reopened independently; source/geometry/placement/ownership tests and a current full-factory browser observer are included. Current executed outcomes must be read from exact-commit evidence. [Scope, reproducibility and limitations](TRACKSIDE_OPERATIONS_KIT.md).

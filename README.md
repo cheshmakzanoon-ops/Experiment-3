@@ -615,3 +615,7 @@ increment. See [measurements, reproduction and open acceptance](docs/PHASE_27F_A
 This is not complete 148-section/reference acceptance or a Steam-ready build.
 More modes, stronger models/atmosphere and at least 16 genuine maps remain open;
 Steam productization is not automatically the next milestone.
+
+### Trackside operations — A08–A10
+
+Aurel’s normal renderer loads authored signal housings/utility cabinets, approach-facing braking and sector boards, and dry/rain broadcast-camera installations. LED panels follow the same recorded local witness as the marshals; replay optical positions and physical track boundaries are preserved. Editable sources and validation details: [Trackside Operations Kit](docs/TRACKSIDE_OPERATIONS_KIT.md).

@@ -1,3 +1,6 @@
+import type { TrackSignalHardwareKit } from './track-signal-hardware.ts';
+import type { TrackBoardsKit } from './track-boards.ts';
+import type { BroadcastCamerasKit } from './broadcast-cameras.ts';
 import { infrastructureIdentity } from './track-infrastructure-diagnostics.ts';
 import type { ConcreteBarrierKit } from './concrete-barriers.ts';
 import type { SteelGuardrailKit } from './steel-guardrails.ts';
@@ -67,6 +70,9 @@ export class CircuitScene {
   recoveryGates: RecoveryGatesKit | null = null;
   marshalPosts: MarshalPostsKit | null = null;
   startGantry: StartGantryKit | null = null;
+  signalHardware: TrackSignalHardwareKit | null = null;
+  trackBoards: TrackBoardsKit | null = null;
+  broadcastCameras: BroadcastCamerasKit | null = null;
   heroGarage: HeroGarage | null = null;
   tyreBlankets: TyreBlanketSet | null = null;
   pitBuildingFrontage: PitBuildingFrontage | null = null;
@@ -298,6 +304,8 @@ export class CircuitScene {
         this.safetyPanel,
         this.trackInfrastructure,
         this.marshalPosts,
+        this.signalHardware,
+        this.broadcastCameras,
       ),
     );
     this.construction.add('Authored service areas', 2, () => {
@@ -328,12 +336,16 @@ export class CircuitScene {
           [
             this.marshalPosts?.root,
             this.startGantry?.root,
+            this.signalHardware?.root,
+            ...(this.signalHardware?.displays.meshes ?? []),
+            this.trackBoards?.root,
+            this.broadcastCameras?.root,
             this.heroGarage?.root,
             this.tyreBlankets?.root,
             this.pitWallStation?.root,
             this.pitBuildingFrontage?.root,
             ...this.startFinish.roots,
-          ].filter((o): o is T.Group => !!o),
+          ].filter((o) => o !== undefined),
         ),
       ),
     );
@@ -368,6 +380,9 @@ export class CircuitScene {
       recoveryGates: this.recoveryGates?.diagnostics() ?? null,
       marshalPosts: this.marshalPosts?.diagnostics() ?? null,
       startGantry: this.startGantry?.diagnostics() ?? null,
+      signalHardware: this.signalHardware?.diagnostics() ?? null,
+      trackBoards: this.trackBoards?.diagnostics() ?? null,
+      broadcastCameras: this.broadcastCameras?.diagnostics() ?? null,
     };
   }
   environmentDiagnostics() {
@@ -390,6 +405,9 @@ export class CircuitScene {
       recoveryGates: infrastructureIdentity(this.recoveryGates?.diagnostics() ?? null),
       marshalPosts: infrastructureIdentity(this.marshalPosts?.diagnostics() ?? null),
       startGantry: infrastructureIdentity(this.startGantry?.diagnostics() ?? null),
+      signalHardware: infrastructureIdentity(this.signalHardware?.diagnostics() ?? null),
+      trackBoards: infrastructureIdentity(this.trackBoards?.diagnostics() ?? null),
+      broadcastCameras: infrastructureIdentity(this.broadcastCameras?.diagnostics() ?? null),
 
       districts,
       garage: this.heroGarage?.diagnostics() ?? null,
@@ -638,9 +656,11 @@ export class CircuitScene {
       const plan = venuePlan(this.track);
       for (const sign of plan.signs)
         this.sign(sign.text, sign.s, sign.lateral, sign.width, sign.height);
-      for (const corner of plan.brakingBoards)
-        for (const distance of [50, 100, 150])
-          this.sign(String(distance), corner - distance, -18, 1, 0.9);
+      if (this.trackBoards) this.trackBoards.build(this.track, this.props);
+      else
+        for (const corner of plan.brakingBoards)
+          for (const distance of [50, 100, 150])
+            this.sign(String(distance), corner - distance, -18, 1, 0.9);
       const p = this.track.at(0, trackPoint()),
         gantry = new T.Group();
       gantry.position.copy(this.at(0, 0));
@@ -715,5 +735,6 @@ export class CircuitScene {
     for (let i = 0; i < 5; i++)
       this.startLamps[i].emissiveIntensity = i < frame[H.LIGHTS] ? 2.5 : 0;
     updateSafetyPanel(this.safetyPanel, frame);
+    this.signalHardware?.displays.update(frame);
   }
 }

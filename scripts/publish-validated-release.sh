@@ -9,6 +9,11 @@ test -s "$release/index.html"
 node --input-type=module - "$release" <<'NODE'
 import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
+const identity = JSON.parse(readFileSync(`${process.argv[2]}/BUILD_IDENTITY.json`, 'utf8'));
+if (identity.version !== 1 || identity.commit !== process.env.VALIDATED_SHA ||
+    !/^[0-9a-f]{64}$/.test(identity.fingerprint)) {
+  throw new Error('Validated build identity differs from the gated source commit');
+}
 for (const [manifestPath, asset] of [
   ['src/rendering/supplied-player.manifest.json', 'supplied-player.glb.gz'],
   ['src/rendering/supplied-player-lods.manifest.json', 'supplied-player-lods.bin.gz'],
@@ -17,6 +22,16 @@ for (const [manifestPath, asset] of [
   const bytes = readFileSync(`${process.argv[2]}/models/${asset}`);
   if (bytes.length !== manifest.compressedBytes ||
       createHash('sha256').update(bytes).digest('hex') !== manifest.compressedSHA256) {
+    throw new Error(`Validated asset differs from its source manifest: ${asset}`);
+  }
+}
+for (const family of ['track-signal-hardware', 'track-boards', 'broadcast-cameras']) {
+  const manifest = JSON.parse(readFileSync(`src/rendering/${family}.manifest.json`, 'utf8'));
+  const asset = `models/aurel-${family}.glb`;
+  if (manifest.url !== asset) throw new Error(`Unexpected trackside asset path: ${family}`);
+  const bytes = readFileSync(`${process.argv[2]}/${asset}`);
+  if (bytes.length !== manifest.bytes ||
+      createHash('sha256').update(bytes).digest('hex') !== manifest.sha256) {
     throw new Error(`Validated asset differs from its source manifest: ${asset}`);
   }
 }

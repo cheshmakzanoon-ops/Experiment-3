@@ -27,13 +27,11 @@
     "test:reference-ui": "node scripts/reference-ui-check.mjs",
     "test:phase27c": "node --experimental-transform-types scripts/phase27c-verify.ts",
     "generate:player-lods": "node --experimental-strip-types scripts/build-player-lods.mjs",
-    "prebuild": "npm run materialize:a08-a10 && npm run generate:player-lods",
-    "predev": "npm run materialize:a08-a10 && npm run generate:player-lods",
-    "pretest": "npm run materialize:a08-a10 && npm run generate:player-lods",
+    "prebuild": "npm run generate:player-lods",
+    "predev": "npm run generate:player-lods",
+    "pretest": "npm run generate:player-lods",
     "test:e2e:shard": "node --experimental-strip-types scripts/run-browser-shard.ts",
-    "precheck": "npm run materialize:a08-a10",
-    "materialize:a08-a10": "node scripts/materialize-a08-a10.mjs",
-    "preinstall": "npm run materialize:a08-a10"
+    "check:stable": "node --experimental-transform-types scripts/source-stability.ts -- npm run check"
   },
   "dependencies": {
     "@fontsource-variable/saira": "5.3.0",

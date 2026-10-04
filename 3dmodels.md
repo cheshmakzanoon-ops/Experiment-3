@@ -290,3 +290,7 @@ A34 now supplies nine original Blender-authored blanket/controller/cable variant
 ## A36 authored revision 01
 
 A36 supplies an original rolling seven-drawer tool chest, medium and large flight cases, and a freestanding workbench. Four garage-local placements in A22 bay 05 share one PBR atlas and three batched LODs. Editable Blender source, self-contained GLB, footprint/transport/ownership tests and production-factory browser surveys are retained. These are parked visual props, not live drawer interaction, crew animation, collision changes, cockpit repair or final-art approval. See [A36 scope and validation](docs/A36_WORKSHOP_EQUIPMENT.md).
+
+## A08–A10 integrated revision 1
+
+Three original Blender families now dress Aurel’s existing signal, braking-board and replay-camera stations. A08 adds local recorded LED presentation; A09 retains the original 18 distance stations and adds two sector boards; A10 retains all 20 optical positions with dry/rain camera and platform geometry. Native sources, bounded LODs, manifests, socket metadata and validation are retained. This is not a new timing engine, mechanical TV tracking, final art or Vellamar propagation. See [scope and evidence boundary](docs/TRACKSIDE_OPERATIONS_KIT.md).

@@ -1,3 +1,5 @@
+import type { TrackSignalHardwareKit } from './track-signal-hardware.ts';
+import type { BroadcastCamerasKit } from './broadcast-cameras.ts';
 import type { MarshalPostsKit } from './marshal-posts.ts';
 import * as T from 'three';
 import { clamp } from '../core/math.ts';
@@ -209,6 +211,8 @@ export function buildTrackInfrastructure(
   safetyPanel: T.MeshStandardMaterial,
   plan: TrackInfrastructurePlan = trackInfrastructurePlan(track),
   marshalKit: MarshalPostsKit | null = null,
+  signalKit: TrackSignalHardwareKit | null = null,
+  cameraKit: BroadcastCamerasKit | null = null,
 ) {
   const concrete = new T.MeshStandardMaterial({ color: 0x777a75, roughness: 0.92 }),
     steel = new T.MeshStandardMaterial({ color: 0x4f5a5d, metalness: 0.72, roughness: 0.47 }),
@@ -267,7 +271,10 @@ export function buildTrackInfrastructure(
       box(g, steel, -site.side * 1.16, 1.18, 1.02, 0.09, 2.25, 0.09);
       box(g, dark, site.side * 0.88, 0.72, -0.62, 0.48, 1.3, 0.58);
     }
-    box(g, safetyPanel, -site.side * 1.42, 1.85, 0, 0.09, 0.72, 1.15);
+    signalKit?.buildHardware(track, parent, site, 'flag_back');
+    const panel = box(g, safetyPanel, -site.side * 1.42, 1.85, 0, 0.09, 0.72, 1.15);
+    panel.name = `Recorded marshal LED ${index + 1}`;
+    signalKit?.displays.bind(panel as T.Mesh<T.BufferGeometry, T.MeshStandardMaterial>, site.s);
     // Two compact extinguisher cylinders make the station read as safety infrastructure.
     for (const z of [-0.7, 0.7]) {
       const extinguisher = mesh(g, new T.CylinderGeometry(0.09, 0.09, 0.62, 10), safety);
@@ -280,6 +287,10 @@ export function buildTrackInfrastructure(
     g.name = `Track utility cabinet ${index + 1}`;
     placeRoot(g, site);
     parent.add(g);
+    if (signalKit) {
+      signalKit.buildHardware(track, parent, site, 'utility');
+      continue;
+    }
     box(g, concrete, 0, 0.06, 0, 0.95, 0.12, 0.72);
     box(g, steel, 0, 0.68, 0, 0.72, 1.2, 0.52);
     box(g, dark, -0.37, 0.78, 0.08, 0.015, 0.42, 0.22);
@@ -294,11 +305,17 @@ export function buildTrackInfrastructure(
     box(g, dark, 0.12, 0.71, -0.312, 0.035, 0.16, 0.038);
   }
 
+  signalKit?.buildSensors(track, parent);
+
   for (const site of plan.cameras) {
     const g = new T.Group();
     g.name = `Replay camera infrastructure ${site.rigId}`;
     placeRoot(g, site);
     parent.add(g);
+    if (cameraKit) {
+      cameraKit.buildCamera(track, parent, site);
+      continue;
+    }
     const cameraHeight = Math.max(1.2, (site.cameraY ?? site.y + 3) - site.y);
     if (site.supported) {
       box(g, concrete, 0, 0.08, 0, 1.3, 0.16, 1.3);

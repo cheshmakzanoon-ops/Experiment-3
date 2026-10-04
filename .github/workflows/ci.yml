@@ -16,8 +16,8 @@ jobs:
         with:
           node-version: '22'
           cache: npm
-      - run: npm ci --no-audit --no-fund
-      - run: npm run check
+      - run: node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
+      - run: npm run check:stable
       - name: Static application build
         uses: actions/upload-artifact@v4
         with:
@@ -45,7 +45,7 @@ jobs:
         with:
           node-version: '22'
           cache: npm
-      - run: npm ci --no-audit --no-fund
+      - run: node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
       - run: npm run test:physics
       - run: node --experimental-transform-types scripts/rotation-benchmark.ts
       - run: node --experimental-transform-types scripts/pit-integration.ts
@@ -92,7 +92,7 @@ jobs:
         with:
           node-version: '22'
           cache: npm
-      - run: npm ci --no-audit --no-fund
+      - run: node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
       # Retry only artifact transport. A third failure remains a hard failure;
       # no build is regenerated and no browser assertion is retried or skipped.
       - name: Download tested build (attempt 1 of 3)
@@ -178,7 +178,7 @@ jobs:
         with:
           node-version: '22'
           cache: npm
-      - run: npm ci --no-audit --no-fund
+      - run: node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
       # Retry only artifact transport. A third failure remains a hard failure;
       # no build is regenerated and no browser assertion is retried or skipped.
       - name: Download tested build (attempt 1 of 3)

@@ -35,9 +35,10 @@ export function postSignal(frame: Float32Array, s: number) {
       signal = frame[b + F.LOCAL_FLAG];
     }
   }
-  return [FLAG.GREEN, FLAG.YELLOW, FLAG.DOUBLE_YELLOW, FLAG.BLUE].includes(
-    signal as typeof FLAG.GREEN,
-  )
+  return signal === FLAG.GREEN ||
+    signal === FLAG.YELLOW ||
+    signal === FLAG.DOUBLE_YELLOW ||
+    signal === FLAG.BLUE
     ? signal
     : FLAG.GREEN;
 }

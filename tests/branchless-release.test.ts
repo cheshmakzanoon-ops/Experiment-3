@@ -27,6 +27,22 @@ it('publishes exact validated bytes, recovers reruns, and rejects altered or sta
     const sha = 'a'.repeat(40);
     writeFileSync(join(release, 'SOURCE_COMMIT.txt'), sha + '\n');
     writeFileSync(join(release, 'index.html'), '<html>exact tested build</html>');
+    const identity = { version: 1, commit: sha, fingerprint: 'c'.repeat(64) };
+    writeFileSync(join(release, 'BUILD_IDENTITY.json'), JSON.stringify(identity));
+    const families = ['track-signal-hardware', 'track-boards', 'broadcast-cameras'];
+    for (const family of families) {
+      const asset = `aurel-${family}.glb`;
+      const data = Buffer.from(`asset ${family}`);
+      writeFileSync(join(models, asset), data);
+      writeFileSync(
+        join(manifests, `${family}.manifest.json`),
+        JSON.stringify({
+          url: `models/${asset}`,
+          bytes: data.length,
+          sha256: createHash('sha256').update(data).digest('hex'),
+        }),
+      );
+    }
     for (const [name, asset] of [
       ['supplied-player', 'supplied-player.glb.gz'],
       ['supplied-player-lods', 'supplied-player-lods.bin.gz'],
@@ -96,6 +112,29 @@ else: raise ValueError(cmd)
     result = run();
     expect(result.status).toBe(0);
     expect(readFileSync(join(state, 'apex-formula-playable.zip'))).toEqual(bytes);
+    const callsBeforeNegativeCases = readFileSync(join(root, 'gh-calls'), 'utf8');
+    for (const family of families) {
+      const path = join(models, `aurel-${family}.glb`);
+      const original = readFileSync(path);
+      // Equal-length byte corruption exercises the checksum, not just file size.
+      const corrupt = Buffer.from(original);
+      corrupt[0] ^= 1;
+      writeFileSync(path, corrupt);
+      expect(run().status).not.toBe(0);
+      rmSync(path);
+      expect(run().status).not.toBe(0);
+      writeFileSync(path, original);
+    }
+    for (const invalid of [
+      { ...identity, commit: 'b'.repeat(40) },
+      { ...identity, fingerprint: 'invalid' },
+      { ...identity, version: 2 },
+    ]) {
+      writeFileSync(join(release, 'BUILD_IDENTITY.json'), JSON.stringify(invalid));
+      expect(run().status).not.toBe(0);
+    }
+    writeFileSync(join(release, 'BUILD_IDENTITY.json'), JSON.stringify(identity));
+    expect(readFileSync(join(root, 'gh-calls'), 'utf8')).toBe(callsBeforeNegativeCases);
     writeFileSync(join(models, 'supplied-player.glb.gz'), 'tampered');
     expect(run().status).not.toBe(0);
     // A mismatched source identity also fails before interacting with release APIs.
