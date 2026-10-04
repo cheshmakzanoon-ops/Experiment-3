@@ -9,8 +9,39 @@ permissions:
 jobs:
   toolchain:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Retain lockfile-bound offline dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Dependency transport only. This is NOT the application validation job.
+          # Lifecycle scripts run normally in CI and in the restored workspace.
+          npm ci --ignore-scripts --no-audit --no-fund --cache "$RUNNER_TEMP/npm-cache"
+          npm cache verify --cache "$RUNNER_TEMP/npm-cache"
+          mkdir -p "$RUNNER_TEMP/development-toolchain"
+          tar -czf "$RUNNER_TEMP/development-toolchain/npm-cache.tar.gz" -C "$RUNNER_TEMP" npm-cache
+          git archive --format=tar.gz HEAD > "$RUNNER_TEMP/development-toolchain/source.tar.gz"
+          git cat-file commit HEAD > "$RUNNER_TEMP/development-toolchain/commit.txt"
+          git rev-parse HEAD > "$RUNNER_TEMP/development-toolchain/source-commit.txt"
+          sha256sum package-lock.json > "$RUNNER_TEMP/development-toolchain/package-lock.sha256"
+          node --version > "$RUNNER_TEMP/development-toolchain/node-version.txt"
+          npm --version > "$RUNNER_TEMP/development-toolchain/npm-version.txt"
+          cd "$RUNNER_TEMP/development-toolchain"
+          sha256sum npm-cache.tar.gz source.tar.gz commit.txt > SHA256SUMS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: apex-offline-development-toolchain
+          path: ${{ runner.temp }}/development-toolchain/
+          retention-days: 7
+          compression-level: 0
+          if-no-files-found: error
       - name: Download and verify pinned official Blender
         shell: bash
         run: |
@@ -24,5 +55,3 @@ jobs:
           retention-days: 1
           compression-level: 0
           if-no-files-found: error
-# Full-race continuation: reuse the original verified authoring toolchain.
-# Grid mechanic: restore the same pinned toolchain; existing accepted assets stay intact.
