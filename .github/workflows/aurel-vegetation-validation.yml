@@ -76,6 +76,8 @@ jobs:
         run: xvfb-run -a -s '-screen 0 1920x1080x24' npx playwright test e2e/aurel-vegetation.spec.ts --grep 'A51-A54 ${{ matrix.lighting }} '
       - name: Independent retained cockpit regression
         if: matrix.lighting == 'day'
+        env:
+          PLAYWRIGHT_HTML_OUTPUT_DIR: cockpit-playwright-report
         run: xvfb-run -a -s '-screen 0 1920x1080x24' npx playwright test e2e/p0-cockpit-framing.spec.ts --output=cockpit-test-results
       - uses: actions/upload-artifact@v4
         if: always()
@@ -85,6 +87,7 @@ jobs:
             test-results/
             cockpit-test-results/
             playwright-report/
+            cockpit-playwright-report/
             browser-backend.json
             browser-progress.json
           retention-days: 14

@@ -89,7 +89,7 @@ The continuation passed 18 focused tests plus lint and TypeScript locally; these
 results do not substitute for its own full CI or browser/release outcomes.
 
 The integrated `fc465daa` production surveys passed in daylight, sunset and wet
-night in workflow `37228343195`, retaining 20 landscape images and one normal
+night in workflow `37228343195`, producing 20 landscape images and one normal
 cockpit capture per lighting condition. Each survey measured 2,299 trees
 (including 66 Orchard trees), 139 spatial/family chunks and 278 instanced meshes.
 Closed camera/lens cycles preserved exact GPU memory and geometry identities,
@@ -98,3 +98,10 @@ There were no reported page, console or WebGL errors. Sunset comparison images
 were inspected: managed rows, branching and more varied silhouettes are visible;
 the wider terrain still needs refinement. These captures certify the stated
 structural/rendering checks on `fc465daa`, not final art or subsequent commits.
+
+The initial day job's second Playwright invocation overwrote its HTML report: the
+JSON measurements survived, but only the cockpit regression images remained in
+that artifact. Sunset and night retained all 21 images. The follow-up explicitly
+separates the cockpit HTML output directory and uploads both report directories;
+no test or assertion is removed. Fresh day evidence must be read from that run,
+not claimed to exist in the earlier overwritten report.
