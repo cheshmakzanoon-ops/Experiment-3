@@ -1,4 +1,5 @@
 import * as T from 'three';
+import { StaticInstanceShadowBounds } from './static-instance-shadow-bounds.ts';
 import { Track, trackPoint } from '../simulation/track.ts';
 import { F, H, HEADER, CAR_STRIDE, carBase } from '../simulation/protocol.ts';
 import { clamp } from '../core/math.ts';
@@ -68,6 +69,7 @@ export function raceBoardRows(frame: Float32Array) {
  * at the unchanged seat/aisle coordinates. No collision or simulation edits. */
 export class StartFinishVenue {
   readonly roots: T.Group[] = [];
+  readonly shadowBounds: StaticInstanceShadowBounds[] = [];
   private readonly details: DetailGroup[] = [];
   private readonly materials = {
     stone: new T.MeshStandardMaterial({ color: 0x969b95, roughness: 0.87 }),
@@ -104,6 +106,7 @@ export class StartFinishVenue {
     mesh.computeBoundingBox();
     mesh.computeBoundingSphere();
     mesh.name = name;
+    this.shadowBounds.push(new StaticInstanceShadowBounds(mesh));
     root.add(mesh);
     return mesh;
   }

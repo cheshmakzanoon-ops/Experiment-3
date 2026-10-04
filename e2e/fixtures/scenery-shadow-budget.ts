@@ -68,10 +68,65 @@ export async function sceneryShadowBudget(lighting: 'day' | 'sunset' | 'night') 
     view.draw(frame, frame, 1, 1 / 60);
     const stats = view.stats();
     const shadows = [...rows.values()].sort((a, b) => b.triangles - a.triangles);
+    const image = canvas.toDataURL('image/png');
+    renderer.renderBufferDirect = originalDraw;
+    // Compare the actual near shadow texture under an identical frozen scene.
+    // These additional controls are NOT the first-frame budget measurement above.
+    const controls = view.circuit.startFinish.shadowBounds;
+    const target = view.sun.shadow.map;
+    if (!target || !controls.length) throw new Error('Missing production shadow-bound control');
+    const beforePixels = new Uint8Array(target.width * target.height * 4);
+    const afterPixels = new Uint8Array(beforePixels.length);
+    const beforeGeometry = controls.map(({ mesh }) => ({
+      mesh,
+      geometry: mesh.geometry,
+      index: mesh.geometry.index,
+      position: mesh.geometry.getAttribute('position'),
+      instances: mesh.instanceMatrix,
+      array: mesh.instanceMatrix.array,
+      start: mesh.geometry.drawRange.start,
+      count: mesh.geometry.drawRange.count,
+    }));
+    const renderShadow = (enabled: boolean, pixels: Uint8Array) => {
+      for (const control of controls) control.enabled = enabled;
+      const calls = renderer.info.render.calls,
+        triangles = renderer.info.render.triangles;
+      view.sun.shadow.needsUpdate = true;
+      renderer.shadowMap.render([view.sun], view.scene, view.camera);
+      renderer.readRenderTargetPixels(target, 0, 0, target.width, target.height, pixels);
+      return {
+        calls: renderer.info.render.calls - calls,
+        triangles: renderer.info.render.triangles - triangles,
+      };
+    };
+    const uncropped = renderShadow(false, beforePixels);
+    const cropped = renderShadow(true, afterPixels);
+    let changedBytes = 0;
+    for (let i = 0; i < beforePixels.length; i++)
+      if (beforePixels[i] !== afterPixels[i]) changedBytes++;
+    const shadowEquivalence = {
+      width: target.width,
+      height: target.height,
+      changedBytes,
+      uncropped,
+      cropped,
+      savedTriangles: uncropped.triangles - cropped.triangles,
+      geometryUnchanged: beforeGeometry.every(
+        (b) =>
+          b.mesh.geometry === b.geometry &&
+          b.geometry.index === b.index &&
+          b.geometry.getAttribute('position') === b.position &&
+          b.mesh.instanceMatrix === b.instances &&
+          b.instances.array === b.array &&
+          b.geometry.drawRange.start === b.start &&
+          b.geometry.drawRange.count === b.count,
+      ),
+    };
     return {
       lighting,
       workload: { cars: 12, seed: 1887, seconds: 8, quality: 'medium', resolution: [1280, 720] },
-      image: canvas.toDataURL('image/png'),
+      image,
+      shadowEquivalence,
       calls: stats.drawCalls,
       triangles: stats.triangles,
       passes: stats.drawBreakdown,

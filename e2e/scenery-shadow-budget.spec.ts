@@ -63,6 +63,7 @@ for (const lighting of ['day', 'sunset', 'night'] as const) {
         calls: report.calls,
         triangles: report.triangles,
         passes: report.passes,
+        shadowEquivalence: report.shadowEquivalence,
         largestShadowSubmissions: report.shadows.slice(0, 12),
       }),
     );
@@ -70,6 +71,12 @@ for (const lighting of ['day', 'sunset', 'night'] as const) {
     expect(report.sourceUnchanged).toBe(true);
     expect(report.glError).toBe(0);
     expect(report.contextLost).toBe(false);
+    expect(report.shadowEquivalence.changedBytes).toBe(0);
+    expect(report.shadowEquivalence.geometryUnchanged).toBe(true);
+    expect(report.shadowEquivalence.savedTriangles).toBeGreaterThan(200000);
+    expect(report.shadowEquivalence.cropped.calls).toBeLessThan(
+      report.shadowEquivalence.uncropped.calls,
+    );
     // Independent per-object accounting must cover the entire shadow phase.
     expect(report.shadows.reduce((n, r) => n + r.calls, 0)).toBe(report.passes.shadow.calls);
     expect(report.shadows.reduce((n, r) => n + r.triangles, 0)).toBe(
