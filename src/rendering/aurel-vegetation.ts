@@ -1,3 +1,4 @@
+import { SceneryPassDetail } from './scenery-pass-detail.ts';
 import * as T from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
@@ -207,6 +208,7 @@ export class AurelVegetationKit {
   private primaryCamera: T.Camera | null = null;
   private readonly eye = new T.Vector3();
   private readonly centre = new T.Vector3();
+  private readonly passDetail = new SceneryPassDetail();
 
   constructor(private readonly source: T.Group) {
     this.root.name = 'A51-A54 authored Aurel planting';
@@ -419,8 +421,10 @@ export class AurelVegetationKit {
         mesh.computeBoundingBox();
         mesh.computeBoundingSphere();
         bounds.union(mesh.boundingBox!);
-        mesh.onBeforeRender = (_renderer, _scene, camera) => this.select(chunk, camera);
-        mesh.onBeforeShadow = (_renderer, _object, camera) => this.select(chunk, camera);
+        mesh.onBeforeRender = (renderer, _scene, camera) => this.select(chunk, camera, renderer);
+        // Three passes the viewing camera third and the actual light camera fourth.
+        mesh.onBeforeShadow = (renderer, _object, _viewCamera, shadowCamera) =>
+          this.select(chunk, shadowCamera, renderer);
         this.root.add(mesh);
         chunk.meshes.push(mesh);
       }
@@ -435,10 +439,13 @@ export class AurelVegetationKit {
     parent.userData.groveTrees = this.sites.filter((t) => t.layer === 'grove').length;
     parent.userData.treelineTrees = this.sites.filter((t) => t.layer === 'treeline').length;
   }
-  private select(chunk: VegetationChunk, camera: T.Camera) {
+  private select(chunk: VegetationChunk, camera: T.Camera, renderer?: T.WebGLRenderer | null) {
     if (this.disposed) return;
     let level = 2;
-    if (camera instanceof T.PerspectiveCamera) {
+    if (
+      camera instanceof T.PerspectiveCamera ||
+      (camera instanceof T.OrthographicCamera && renderer)
+    ) {
       camera.getWorldPosition(this.eye);
       this.centre.copy(chunk.sphere.center).applyMatrix4(this.root.matrixWorld);
       const distance = Math.max(
@@ -448,7 +455,9 @@ export class AurelVegetationKit {
         ),
         primary = camera === this.primaryCamera;
       level = vegetationLod(
-        cameraDetailDistance(distance, camera),
+        renderer && !primary
+          ? this.passDetail.distance(distance, camera, renderer)
+          : cameraDetailDistance(distance, camera as T.PerspectiveCamera),
         primary ? chunk.level : -1,
         this.quality,
       );

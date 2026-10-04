@@ -77,6 +77,10 @@ for (const lighting of ['day', 'sunset', 'night'] as const) {
     expect(report.sourceUnchanged).toBe(true);
     expect(report.waterUnchanged).toBe(true);
     expect(report.identitiesUnchanged).toBe(true);
+    expect(report.sceneGeometryUnchanged).toBe(true);
+    expect(report.warmupMemories).toHaveLength(80);
+    expect(report.memories).toHaveLength(40);
+    expect(report.cameraSequence).toHaveLength(40);
     for (const memory of report.memories) expect(memory).toEqual(report.memoryBefore);
     expect(report.detail.sites).toBeLessThanOrEqual(360);
     expect(report.detail.families['cliff-cut']).toBeGreaterThan(1);

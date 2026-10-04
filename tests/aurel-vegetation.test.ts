@@ -262,8 +262,12 @@ describe('instanced tier continuity and ownership', () => {
       reflection.position.copy(c.sphere.center).add(new T.Vector3(0, 0, 3000));
       reflection.updateMatrixWorld();
       const mesh = c.meshes[0];
+      const renderer = {
+        getCurrentViewport: (out: T.Vector4) => out.set(0, 0, 128, 128),
+        getDrawingBufferSize: (out: T.Vector2) => out.set(1280, 720),
+      } as T.WebGLRenderer;
       mesh.onBeforeRender(
-        {} as T.WebGLRenderer,
+        renderer,
         {} as T.Scene,
         reflection,
         mesh.geometry,
@@ -273,7 +277,7 @@ describe('instanced tier continuity and ownership', () => {
       expect(c.level).toBe(main);
       expect(mesh.geometry.drawRange).toEqual(c.templates[0].ranges[2]);
       mesh.onBeforeRender(
-        {} as T.WebGLRenderer,
+        renderer,
         {} as T.Scene,
         camera,
         mesh.geometry,

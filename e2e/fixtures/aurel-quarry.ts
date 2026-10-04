@@ -196,28 +196,65 @@ export async function surveyAurelQuarry(lighting: 'day' | 'sunset' | 'night') {
           changedPixels++;
       comparisons.push({ station, changedPixels, beforeCalls, afterCalls: images.at(-1)!.calls });
     }
-    // Closing two explicit cycles warms existing geometry/material paths, rather
-    // than allocating until a memory test happens to pass. All measured cuts recur.
+    // Hysteretic LODs can visit different prebuilt geometry when approached
+    // from opposite directions. Warm the SAME closed bidirectional sequence
+    // that is measured, twice, never an open forward-only path or "until stable".
     const cuts = [0, 700, 1100, 1160, 1230, 1330, 1410, 1490, 1800, 2400];
+    const sequence = [
+      ...cuts.map((station) => ({ station, forward: true })),
+      ...[...cuts].reverse().map((station) => ({ station, forward: false })),
+    ].flatMap((step) => [
+      { ...step, fov: 58 },
+      { ...step, fov: 16 },
+    ]);
+    const warmupMemories: ReturnType<typeof resources>[] = [];
     for (let warm = 0; warm < 2; warm++)
-      for (const s of cuts) {
-        cut(s);
+      for (const { station, fov } of sequence) {
+        cut(station, fov);
         render();
-        cut(s, 16);
-        render();
+        warmupMemories.push(resources());
       }
+    const geometrySnapshot = () => {
+      const found = new Map<
+        T.BufferGeometry,
+        { index: T.BufferAttribute | null; attributes: unknown[] }
+      >();
+      view.scene.traverse((object) => {
+        if (!(object instanceof T.Mesh || object instanceof T.Points || object instanceof T.Line))
+          return;
+        const g = object.geometry as T.BufferGeometry;
+        found.set(g, {
+          index: g.index,
+          attributes: Object.entries(g.attributes).flatMap(([name, attr]) => [
+            name,
+            attr,
+            attr.array,
+          ]),
+        });
+      });
+      return found;
+    };
+    const allGeometryBefore = geometrySnapshot();
     const memoryBefore = resources();
     const memories: ReturnType<typeof resources>[] = [];
-    for (let cycle = 0; cycle < 2; cycle++)
-      for (const s of cycle ? [...cuts].reverse() : cuts) {
-        cut(s);
-        if (cycle === 0) capture(`lap-${Math.round(s)}`);
-        else render();
-        memories.push(resources());
-        cut(s, 16);
-        render();
-        memories.push(resources());
-      }
+    for (const { station, fov, forward } of sequence) {
+      cut(station, fov);
+      if (forward && fov === 58) capture(`lap-${Math.round(station)}`);
+      else render();
+      memories.push(resources());
+    }
+    const allGeometryAfter = geometrySnapshot();
+    const sceneGeometryUnchanged =
+      allGeometryBefore.size === allGeometryAfter.size &&
+      [...allGeometryBefore].every(([g, before]) => {
+        const after = allGeometryAfter.get(g);
+        return (
+          after &&
+          before.index === after.index &&
+          before.attributes.length === after.attributes.length &&
+          before.attributes.every((value, index) => value === after.attributes[index])
+        );
+      });
     const identitiesUnchanged = sourceIds.every(
       ({ mesh, geometry, position, index }) =>
         mesh.geometry === geometry &&
@@ -276,6 +313,10 @@ export async function surveyAurelQuarry(lighting: 'day' | 'sunset' | 'night') {
       driveCompleted: completed,
       detail: kit.diagnostics(),
       identitiesUnchanged,
+      sceneGeometryUnchanged,
+      sceneGeometryCount: allGeometryBefore.size,
+      warmupMemories,
+      cameraSequence: sequence,
       memoryBefore,
       memories,
       sourceUnchanged,

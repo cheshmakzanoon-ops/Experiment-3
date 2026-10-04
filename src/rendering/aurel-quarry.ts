@@ -1,3 +1,4 @@
+import { SceneryPassDetail } from './scenery-pass-detail.ts';
 import * as T from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
@@ -179,6 +180,7 @@ export class AurelQuarryKit {
   private primaryCamera: T.Camera | null = null;
   private readonly eye = new T.Vector3();
   private readonly centre = new T.Vector3();
+  private readonly passDetail = new SceneryPassDetail();
   private readonly depths = new Set<T.MeshDepthMaterial>();
   private readonly distances = new Set<T.MeshDistanceMaterial>();
   constructor(private readonly source: T.Group) {
@@ -316,6 +318,7 @@ export class AurelQuarryKit {
     if (!geometry) throw new Error('Unable to pack A55-A60 levels');
     geometry.computeBoundingBox();
     geometry.computeBoundingSphere();
+    geometry.setDrawRange(ranges[2].start, ranges[2].count);
     const material = this.templates.get(`${sites[0].variant}_LOD0`)!.material,
       mesh = new T.Mesh(geometry, material);
     const chunk: QuarryChunk = {
@@ -349,15 +352,21 @@ export class AurelQuarryKit {
       this.depths.add(depth);
       this.distances.add(distance);
     }
-    mesh.onBeforeRender = (_renderer, _scene, camera) => this.select(chunk, camera);
-    mesh.onBeforeShadow = (_renderer, _object, camera) => this.select(chunk, camera);
+    mesh.onBeforeRender = (renderer, _scene, camera) => this.select(chunk, camera, renderer);
+    // Three passes the viewing camera third and the actual light camera fourth.
+    mesh.onBeforeShadow = (renderer, _object, _viewCamera, shadowCamera) =>
+      this.select(chunk, shadowCamera, renderer);
     this.root.add(mesh);
     this.chunks.push(chunk);
   }
-  private select(chunk: QuarryChunk, camera: T.Camera) {
+  private select(chunk: QuarryChunk, camera: T.Camera, renderer?: T.WebGLRenderer | null) {
     if (this.disposed) return;
     let level = 2;
-    if (camera instanceof T.PerspectiveCamera && !chunk.background) {
+    if (
+      !chunk.background &&
+      (camera instanceof T.PerspectiveCamera ||
+        (camera instanceof T.OrthographicCamera && renderer))
+    ) {
       camera.getWorldPosition(this.eye);
       this.centre.copy(chunk.sphere.center).applyMatrix4(this.root.matrixWorld);
       const d = Math.max(
@@ -367,7 +376,9 @@ export class AurelQuarryKit {
       );
       const primary = camera === this.primaryCamera;
       level = quarryLod(
-        cameraDetailDistance(d, camera),
+        renderer && !primary
+          ? this.passDetail.distance(d, camera, renderer)
+          : cameraDetailDistance(d, camera as T.PerspectiveCamera),
         primary ? chunk.level : -1,
         this.quality,
       );
