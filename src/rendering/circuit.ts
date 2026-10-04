@@ -1,3 +1,4 @@
+import type { AurelVegetationKit } from './aurel-vegetation.ts';
 import type { TrackSignalHardwareKit } from './track-signal-hardware.ts';
 import type { TrackBoardsKit } from './track-boards.ts';
 import type { BroadcastCamerasKit } from './broadcast-cameras.ts';
@@ -63,6 +64,7 @@ interface RibbonOptions {
 }
 /** All surfaces are constructed from the same metre-valued track queries as physics. */
 export class CircuitScene {
+  vegetation: AurelVegetationKit | null = null;
   concreteBarriers: ConcreteBarrierKit | null = null;
   steelGuardrails: SteelGuardrailKit | null = null;
   catchFence: CatchFenceKit | null = null;
@@ -320,14 +322,13 @@ export class CircuitScene {
       ),
     );
     this.construction.add('Laid tyre rubber', 1, () => buildTyreMarks(track, this.surfaces));
-    this.construction.add('Rule-placed layered foliage', 3, () =>
-      buildVegetation(
-        track,
-        this.vegetationGroup,
-        this.serviceSites,
-        (x, z, padding) => this.recoveryGates?.blocksVegetation(x, z, padding) ?? false,
-      ),
-    );
+    this.construction.add('Rule-placed layered foliage', 3, () => {
+      const excluded = (x: number, z: number, padding: number) =>
+        this.recoveryGates?.blocksVegetation(x, z, padding) ?? false;
+      if (this.vegetation)
+        this.vegetation.build(track, this.vegetationGroup, this.serviceSites, excluded);
+      else buildVegetation(track, this.vegetationGroup, this.serviceSites, excluded);
+    });
     this.construction.add('Grid and finish markings', 0, () => this.grid());
     this.construction.add('Spatial geometry batches', 4, () =>
       batchScene(

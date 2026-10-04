@@ -1,7 +1,9 @@
+import { foliageMipmaps } from './foliage-mipmaps.ts';
 import * as T from 'three';
 
 type ImportedImage = ImageBitmap | HTMLImageElement | HTMLCanvasElement;
 interface ImportedAsset {
+  coverage?: { width: number; height: number; cutoff: number; levels: HTMLCanvasElement[] };
   original: T.Source;
   owned: T.Source;
   image: ImportedImage;
@@ -26,7 +28,8 @@ export class ImportedTextureBudget {
   register(texture: T.Texture) {
     if (
       this.registered.has(texture) ||
-      texture.userData.suppliedPlayerTexture !== true ||
+      (texture.userData.suppliedPlayerTexture !== true &&
+        texture.userData.immutableAssetTexture !== true) ||
       texture.userData.dynamic ||
       texture.isRenderTargetTexture ||
       texture instanceof T.DataTexture ||
@@ -71,6 +74,30 @@ export class ImportedTextureBudget {
     const factor = Math.min(1, this.limit / Math.max(asset.image.width, asset.image.height));
     const width = Math.max(1, Math.round(asset.image.width * factor));
     const height = Math.max(1, Math.round(asset.image.height * factor));
+    const cutoff = [...asset.textures].find(
+      (t) => typeof t.userData.foliageAlphaCutoff === 'number',
+    )?.userData.foliageAlphaCutoff as number | undefined;
+    if (cutoff !== undefined) {
+      if (
+        !asset.coverage ||
+        asset.coverage.width !== width ||
+        asset.coverage.height !== height ||
+        asset.coverage.cutoff !== cutoff
+      ) {
+        const levels = foliageMipmaps(asset.image, this.limit, cutoff);
+        for (const texture of asset.textures) texture.dispose();
+        asset.coverage = { width, height, cutoff, levels };
+        asset.owned.data = levels[0];
+      }
+      for (const texture of asset.textures) {
+        texture.mipmaps = asset.coverage.levels;
+        texture.generateMipmaps = false;
+        texture.anisotropy = this.anisotropy;
+        texture.minFilter = T.LinearMipmapLinearFilter;
+        texture.needsUpdate = true;
+      }
+      return;
+    }
     const current = asset.owned.data as ImportedImage;
     if (
       current.width !== width ||
@@ -105,6 +132,10 @@ export class ImportedTextureBudget {
       for (const texture of asset.textures) {
         texture.dispose();
         texture.source = asset.original;
+        if (asset.coverage) {
+          texture.mipmaps = [];
+          texture.generateMipmaps = true;
+        }
         texture.needsUpdate = true;
       }
       asset.textures.clear();

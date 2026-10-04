@@ -1,3 +1,4 @@
+import { loadAurelVegetation } from './aurel-vegetation.ts';
 import { loadTrackSignalHardware } from './track-signal-hardware.ts';
 import { loadTrackBoards } from './track-boards.ts';
 import { loadBroadcastCameras } from './broadcast-cameras.ts';
@@ -511,6 +512,13 @@ export class RacingRenderer {
           label: 'Loading A10 broadcast camera installations',
         });
         renderer.circuit.broadcastCameras = await loadBroadcastCameras(cancelled);
+        progress({
+          completed: 0,
+          total: 1,
+          fraction: 0,
+          label: 'Loading A51-A54 authored planting',
+        });
+        renderer.circuit.vegetation = await loadAurelVegetation(cancelled);
       }
       if (cancelled()) {
         renderer.dispose();
@@ -1066,6 +1074,7 @@ export class RacingRenderer {
     this.circuit.signalHardware?.update(this.camera, this.quality);
     this.circuit.trackBoards?.update(this.camera, this.quality);
     this.circuit.broadcastCameras?.update(this.camera, this.quality);
+    this.circuit.vegetation?.update(this.camera, this.quality);
     this.circuit.heroGarage?.update(this.camera, this.quality, illumination);
     this.tyreEquipment?.update(this.camera, this.quality);
     this.wheelGunStorage?.update(this.camera);
@@ -1723,6 +1732,8 @@ export class RacingRenderer {
   dispose() {
     if (this.disposed) return;
     this.disposed = true;
+    // Restore immutable source images before any asset owner closes its bitmap.
+    this.textures.dispose();
     // Each kit removes its owned root before the generic scene disposer, so
     // source, cloned templates, atlas maps and all LODs are released once.
     this.circuit.concreteBarriers?.dispose();
@@ -1735,6 +1746,7 @@ export class RacingRenderer {
     this.circuit.signalHardware?.dispose();
     this.circuit.trackBoards?.dispose();
     this.circuit.broadcastCameras?.dispose();
+    this.circuit.vegetation?.dispose();
 
     if (this.circuit.tyreBlankets && !this.circuit.tyreBlankets.root.parent)
       this.circuit.tyreBlankets.dispose();
@@ -1768,7 +1780,6 @@ export class RacingRenderer {
     this.fxaa.dispose();
     this.scenePass.dispose();
     this.grade.dispose();
-    this.textures.dispose();
     const geometries = new Set<T.BufferGeometry>(),
       materials = new Set<T.Material>(),
       textures = new Set<T.Texture>();

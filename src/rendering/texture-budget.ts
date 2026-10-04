@@ -16,7 +16,11 @@ export class TextureBudget {
       if (!(object instanceof T.Mesh)) return;
       for (const material of Array.isArray(object.material) ? object.material : [object.material]) {
         for (const value of Object.values(material)) {
-          if (value instanceof T.Texture && value.userData.suppliedPlayerTexture === true) {
+          if (
+            value instanceof T.Texture &&
+            (value.userData.suppliedPlayerTexture === true ||
+              value.userData.immutableAssetTexture === true)
+          ) {
             this.imported.register(value);
             continue;
           }
