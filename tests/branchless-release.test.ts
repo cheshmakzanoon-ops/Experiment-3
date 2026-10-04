@@ -34,6 +34,7 @@ it('publishes exact validated bytes, recovers reruns, and rejects altered or sta
       ['track-boards', 'aurel-track-boards.glb'],
       ['broadcast-cameras', 'aurel-broadcast-cameras.glb'],
       ['aurel-vegetation', 'aurel-vegetation.glb'],
+      ['aurel-quarry', 'aurel-quarry.glb'],
     ];
     for (const [family, asset] of families) {
       const data = Buffer.from(`asset ${family}`);

@@ -12,7 +12,7 @@ import {
   type PlantingExclusion,
 } from './aurel-vegetation-plan.ts';
 import { serviceSitePlan, type ServiceSite } from './venue-service-plan.ts';
-import { detailDistance } from './view-detail.ts';
+import { cameraDetailDistance } from './camera-detail.ts';
 import { installCanopyNormals } from './canopy-normals.ts';
 import { tagWeatherSurface } from './weather-presentation.ts';
 import type { Quality } from './options.ts';
@@ -448,7 +448,7 @@ export class AurelVegetationKit {
         ),
         primary = camera === this.primaryCamera;
       level = vegetationLod(
-        detailDistance(distance, camera.fov, camera.aspect),
+        cameraDetailDistance(distance, camera),
         primary ? chunk.level : -1,
         this.quality,
       );

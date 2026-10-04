@@ -1,0 +1,93 @@
+name: A55-A60 Quarry validation
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'src/rendering/**'
+      - 'public/models/aurel-quarry.glb'
+      - 'scripts/aurel-quarry.blend'
+      - 'scripts/author-aurel-quarry.py'
+      - 'tests/aurel-quarry.test.ts'
+      - 'e2e/aurel-quarry.spec.ts'
+      - 'e2e/fixtures/aurel-quarry.ts'
+      - '.github/workflows/aurel-quarry-validation.yml'
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Retain exact source before validation, including failing candidates
+        run: |
+          mkdir -p "$RUNNER_TEMP/quarry-source"
+          git archive --format=tar.gz HEAD > "$RUNNER_TEMP/quarry-source/apex-source.tar.gz"
+          git cat-file commit HEAD > "$RUNNER_TEMP/quarry-source/commit.txt"
+          git rev-parse HEAD > "$RUNNER_TEMP/quarry-source/source-commit.txt"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: quarry-source
+          path: ${{ runner.temp }}/quarry-source/
+          retention-days: 7
+          compression-level: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
+      - run: npm run check:stable
+      - uses: actions/upload-artifact@v4
+        with:
+          name: quarry-tested-web
+          path: dist/
+          retention-days: 7
+  browser:
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        lighting: [day, sunset, night]
+    env:
+      APEX_BROWSER_BACKEND: mesa
+      LIBGL_ALWAYS_SOFTWARE: 'true'
+      GALLIUM_DRIVER: llvmpipe
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
+      - uses: actions/download-artifact@v4
+        with:
+          name: quarry-tested-web
+          path: dist/
+      - run: npx playwright install --with-deps chromium
+      - run: sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb
+      - name: Actual production renderer and unchanged budget gates
+        run: xvfb-run -a -s '-screen 0 1920x1080x24' npx playwright test e2e/aurel-quarry.spec.ts --grep 'A55-A60 ${{ matrix.lighting }} '
+      - name: Independent retained cockpit regression
+        if: matrix.lighting == 'day'
+        env:
+          PLAYWRIGHT_HTML_OUTPUT_DIR: cockpit-playwright-report
+        run: xvfb-run -a -s '-screen 0 1920x1080x24' npx playwright test e2e/p0-cockpit-framing.spec.ts --output=cockpit-test-results
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: quarry-${{ matrix.lighting }}-evidence
+          path: |
+            test-results/
+            cockpit-test-results/
+            playwright-report/
+            cockpit-playwright-report/
+            browser-backend.json
+            browser-progress.json
+          retention-days: 14

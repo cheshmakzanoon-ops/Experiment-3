@@ -167,7 +167,12 @@ export function drainGratingGeometry(track: Track, site: TrackDetailSite) {
         z = positions.getZ(i);
       const worldX = site.x + c * x + n * z,
         worldZ = site.z - n * x + c * z;
-      positions.setY(i, positions.getY(i) + groundHeight(track, worldX, worldZ) - site.y);
+      // Aurel's painted runoff sits 32 mm above the grass datum. Keep the
+      // drain above that finish with a shallow cosmetic relief, rather than
+      // burying the bars beneath it or adding a new physical bump.
+      const localHeight =
+        track.circuit.id === 'aurel' ? 0.033 + positions.getY(i) * 0.2 : positions.getY(i);
+      positions.setY(i, localHeight + groundHeight(track, worldX, worldZ) - site.y);
     }
     geometry.computeVertexNormals();
     geometry.computeBoundingBox();

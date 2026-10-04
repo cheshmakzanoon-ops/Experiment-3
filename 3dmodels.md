@@ -294,3 +294,15 @@ A36 supplies an original rolling seven-drawer tool chest, medium and large fligh
 ## A08–A10 integrated revision 1
 
 Three original Blender families now dress Aurel’s existing signal, braking-board and replay-camera stations. A08 adds local recorded LED presentation; A09 retains the original 18 distance stations and adds two sector boards; A10 retains all 20 optical positions with dry/rain camera and platform geometry. Native sources, bounded LODs, manifests, socket metadata and validation are retained. This is not a new timing engine, mechanical TV tracking, final art or Vellamar propagation. See [scope and evidence boundary](docs/TRACKSIDE_OPERATIONS_KIT.md).
+
+
+## A55-A60 Quarry integration continuation
+
+The first authored Quarry sector revision integrates two limestone cliff forms,
+retaining wall, talus/boulder, retained-drain collars, jointed verge edge, shrub,
+hedge, tussock and background ridge families, all with three detail tiers and a
+matched editable Blender/GLB source. Ground-conforming placement and graded outer
+apron strips preserve the physical circuit and supplied player assets.
+See [A55-A60 scope, reproduction and evidence limits](docs/A55_A60_QUARRY.md).
+This is one coherent Aurel sector; broader propagation, final art, uninterrupted
+human driving and representative-hardware approval remain open.

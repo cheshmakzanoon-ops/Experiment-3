@@ -1,3 +1,4 @@
+import type { AurelQuarryKit } from './aurel-quarry.ts';
 import type { AurelVegetationKit } from './aurel-vegetation.ts';
 import type { TrackSignalHardwareKit } from './track-signal-hardware.ts';
 import type { TrackBoardsKit } from './track-boards.ts';
@@ -64,6 +65,7 @@ interface RibbonOptions {
 }
 /** All surfaces are constructed from the same metre-valued track queries as physics. */
 export class CircuitScene {
+  quarry: AurelQuarryKit | null = null;
   vegetation: AurelVegetationKit | null = null;
   concreteBarriers: ConcreteBarrierKit | null = null;
   steelGuardrails: SteelGuardrailKit | null = null;
@@ -324,7 +326,8 @@ export class CircuitScene {
     this.construction.add('Laid tyre rubber', 1, () => buildTyreMarks(track, this.surfaces));
     this.construction.add('Rule-placed layered foliage', 3, () => {
       const excluded = (x: number, z: number, padding: number) =>
-        this.recoveryGates?.blocksVegetation(x, z, padding) ?? false;
+        (this.recoveryGates?.blocksVegetation(x, z, padding) ?? false) ||
+        (this.quarry?.blocksPlanting(track, x, z, padding) ?? false);
       if (this.vegetation)
         this.vegetation.build(track, this.vegetationGroup, this.serviceSites, excluded);
       else buildVegetation(track, this.vegetationGroup, this.serviceSites, excluded);
@@ -341,6 +344,7 @@ export class CircuitScene {
             ...(this.signalHardware?.displays.meshes ?? []),
             this.trackBoards?.root,
             this.broadcastCameras?.root,
+            this.quarry?.root,
             this.heroGarage?.root,
             this.tyreBlankets?.root,
             this.pitWallStation?.root,
@@ -398,6 +402,7 @@ export class CircuitScene {
       }));
     return {
       source: 'constructed-runtime-groups',
+      quarry: this.quarry?.diagnostics() ?? null,
       startFinish: this.startFinish.diagnostics(),
       concreteBarriers: infrastructureIdentity(this.concreteBarriers?.diagnostics() ?? null),
       steelGuardrails: infrastructureIdentity(this.steelGuardrails?.diagnostics() ?? null),

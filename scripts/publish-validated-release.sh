@@ -30,6 +30,7 @@ for (const [family, filename] of [
   ['track-boards', 'aurel-track-boards.glb'],
   ['broadcast-cameras', 'aurel-broadcast-cameras.glb'],
   ['aurel-vegetation', 'aurel-vegetation.glb'],
+  ['aurel-quarry', 'aurel-quarry.glb'],
 ]) {
   const manifest = JSON.parse(readFileSync(`src/rendering/${family}.manifest.json`, 'utf8'));
   const asset = `models/${filename}`;

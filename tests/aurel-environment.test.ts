@@ -258,8 +258,8 @@ describe('physical drainage station presentation', () => {
     for (const site of plan.drains) {
       const { grate, bed } = drainGratingGeometry(track, site);
       for (const [geometry, minimum, maximum] of [
-        [grate, 0.0039, 0.0221],
-        [bed, -0.0011, 0.0071],
+        [grate, 0.03378, 0.03742],
+        [bed, 0.03278, 0.03442],
       ] as const) {
         const positions = geometry.getAttribute('position');
         for (let i = 0; i < positions.count; i++) {

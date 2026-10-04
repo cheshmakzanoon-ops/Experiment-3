@@ -1,3 +1,4 @@
+import { loadAurelQuarry } from './aurel-quarry.ts';
 import { loadAurelVegetation } from './aurel-vegetation.ts';
 import { loadTrackSignalHardware } from './track-signal-hardware.ts';
 import { loadTrackBoards } from './track-boards.ts';
@@ -519,6 +520,15 @@ export class RacingRenderer {
           label: 'Loading A51-A54 authored planting',
         });
         renderer.circuit.vegetation = await loadAurelVegetation(cancelled);
+        renderer.circuit.quarry = await loadAurelQuarry(cancelled);
+        renderer.circuit.quarry.enqueue(
+          track,
+          renderer.circuit.props,
+          renderer.circuit.serviceSites,
+          renderer.circuit.construction,
+          (x, z, padding) =>
+            renderer.circuit.recoveryGates?.blocksVegetation(x, z, padding) ?? false,
+        );
       }
       if (cancelled()) {
         renderer.dispose();
@@ -1075,6 +1085,7 @@ export class RacingRenderer {
     this.circuit.trackBoards?.update(this.camera, this.quality);
     this.circuit.broadcastCameras?.update(this.camera, this.quality);
     this.circuit.vegetation?.update(this.camera, this.quality);
+    this.circuit.quarry?.update(this.camera, this.quality);
     this.circuit.heroGarage?.update(this.camera, this.quality, illumination);
     this.tyreEquipment?.update(this.camera, this.quality);
     this.wheelGunStorage?.update(this.camera);
@@ -1747,6 +1758,7 @@ export class RacingRenderer {
     this.circuit.trackBoards?.dispose();
     this.circuit.broadcastCameras?.dispose();
     this.circuit.vegetation?.dispose();
+    this.circuit.quarry?.dispose();
 
     if (this.circuit.tyreBlankets && !this.circuit.tyreBlankets.root.parent)
       this.circuit.tyreBlankets.dispose();
