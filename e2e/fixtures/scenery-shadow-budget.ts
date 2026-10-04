@@ -89,15 +89,29 @@ export async function sceneryShadowBudget(lighting: 'day' | 'sunset' | 'night') 
     }));
     const renderShadow = (enabled: boolean, pixels: Uint8Array) => {
       for (const control of controls) control.enabled = enabled;
-      const calls = renderer.info.render.calls,
-        triangles = renderer.info.render.triangles;
-      view.sun.shadow.needsUpdate = true;
-      renderer.shadowMap.render([view.sun], view.scene, view.camera);
-      renderer.readRenderTargetPixels(target, 0, 0, target.width, target.height, pixels);
-      return {
-        calls: renderer.info.render.calls - calls,
-        triangles: renderer.info.render.triangles - triangles,
+      const shadowDraw = renderer.shadowMap.render;
+      const autoUpdate = renderer.shadowMap.autoUpdate;
+      const measured = { calls: 0, triangles: 0 };
+      renderer.shadowMap.render = function (...args) {
+        const calls = renderer.info.render.calls,
+          triangles = renderer.info.render.triangles;
+        shadowDraw.apply(this, args);
+        measured.calls += renderer.info.render.calls - calls;
+        measured.triangles += renderer.info.render.triangles - triangles;
       };
+      try {
+        view.sun.shadow.needsUpdate = true;
+        renderer.shadowMap.autoUpdate = true;
+        // A normal render owns Three's current render state/light cache. Calling
+        // shadowMap.render directly outside it leaves that internal state null.
+        // No simulation step or presentation update occurs between the controls.
+        renderer.render(view.scene, view.camera);
+        renderer.readRenderTargetPixels(target, 0, 0, target.width, target.height, pixels);
+        return measured;
+      } finally {
+        renderer.shadowMap.render = shadowDraw;
+        renderer.shadowMap.autoUpdate = autoUpdate;
+      }
     };
     const uncropped = renderShadow(false, beforePixels);
     const cropped = renderShadow(true, afterPixels);
