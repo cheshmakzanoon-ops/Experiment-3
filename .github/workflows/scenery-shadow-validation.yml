@@ -1,0 +1,50 @@
+name: Scenery shadow budget
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'src/rendering/**'
+      - 'e2e/scenery-shadow-budget.spec.ts'
+      - 'e2e/fixtures/scenery-shadow-budget.ts'
+      - '.github/workflows/scenery-shadow-validation.yml'
+permissions:
+  contents: read
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        lighting: [day, sunset, night]
+    env:
+      APEX_BROWSER_BACKEND: mesa
+      LIBGL_ALWAYS_SOFTWARE: 'true'
+      GALLIUM_DRIVER: llvmpipe
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
+      - run: node --experimental-transform-types scripts/source-stability.ts -- npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb
+      - name: First complete cockpit frame, all shadow submissions, unchanged budget
+        run: xvfb-run -a -s '-screen 0 1920x1080x24' npx playwright test e2e/scenery-shadow-budget.spec.ts --grep '${{ matrix.lighting }}'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: scenery-shadow-${{ matrix.lighting }}
+          path: |
+            test-results/
+            playwright-report/
+            browser-backend.json
+            browser-progress.json
+          retention-days: 14
+# Diagnostic/early regression gate only. Never substitutes for full CI, Quarry,
+# vegetation, cockpit, wet-presentation or the existing release publication gates.
