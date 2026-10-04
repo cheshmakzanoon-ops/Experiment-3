@@ -66,14 +66,18 @@ describe('rigid instance shadow AABB rejection', () => {
       );
       expect(frustum.intersectsObject(f.mesh)).toBe(true);
       f.geometry.setDrawRange(6, 18);
+      f.mesh.count = 1;
       f.begin();
       expect(f.geometry.drawRange).toEqual({ start: 6, count: 0 });
+      expect(f.mesh.count).toBe(0);
       f.end();
       expect(f.geometry.drawRange).toEqual({ start: 6, count: 18 });
+      expect(f.mesh.count).toBe(1);
       f.shadow.position.x = 20;
       f.shadow.updateMatrixWorld();
       f.begin();
       expect(f.geometry.drawRange).toEqual({ start: 6, count: 18 });
+      expect(f.mesh.count).toBe(1);
       f.end();
       expect(f.guard.diagnostics()).toEqual({ tested: 2, rejected: 1 });
       expect(f.mesh.castShadow).toBe(true);
@@ -128,6 +132,7 @@ describe('rigid instance shadow AABB rejection', () => {
       f.geometry.setDrawRange(3, 12);
       f.begin();
       expect(f.geometry.drawRange.count).toBe(0);
+      expect(f.mesh.count).toBe(0);
       f.mesh.onBeforeRender(
         f.renderer,
         new T.Scene(),
@@ -137,10 +142,12 @@ describe('rigid instance shadow AABB rejection', () => {
         null as unknown as T.Group,
       );
       expect(f.geometry.drawRange).toEqual({ start: 3, count: 12 });
+      expect(f.mesh.count).toBe(2);
       f.begin();
       f.guard.dispose();
       f.guard.dispose();
       expect(f.geometry.drawRange).toEqual({ start: 3, count: 12 });
+      expect(f.mesh.count).toBe(2);
       expect(f.mesh.onBeforeShadow).toBe(f.before);
       expect(f.mesh.onAfterShadow).toBe(f.after);
       expect(f.mesh.onBeforeRender).toBe(f.render);

@@ -84,6 +84,7 @@ export async function sceneryShadowBudget(lighting: 'day' | 'sunset' | 'night') 
       position: mesh.geometry.getAttribute('position'),
       instances: mesh.instanceMatrix,
       array: mesh.instanceMatrix.array,
+      instanceCount: mesh.count,
       start: mesh.geometry.drawRange.start,
       count: mesh.geometry.drawRange.count,
     }));
@@ -132,6 +133,7 @@ export async function sceneryShadowBudget(lighting: 'day' | 'sunset' | 'night') 
           b.geometry.getAttribute('position') === b.position &&
           b.mesh.instanceMatrix === b.instances &&
           b.instances.array === b.array &&
+          b.mesh.count === b.instanceCount &&
           b.geometry.drawRange.start === b.start &&
           b.geometry.drawRange.count === b.count,
       ),

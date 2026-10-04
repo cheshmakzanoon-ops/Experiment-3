@@ -28,8 +28,9 @@ were executed and failed before the repair (full range instead of zero).
 start/finish batches. It supplements Three's sphere test with their retained
 local-space bounding box transformed into the actual fourth-argument light
 camera's clip space. A millimetre margin conservatively retains boundary geometry.
-Only a provably off-frustum submission receives a temporary zero draw count;
-the prior range is restored immediately afterward and before any colour draw.
+Only a provably off-frustum submission receives a temporary zero index range
+and zero instance count; both prior values are restored immediately afterward
+and before any colour draw.
 All instances, vertices, indices, LODs, materials, cast-shadow flags and placements
 are unchanged. No new geometry or GPU buffers are allocated.
 
@@ -64,3 +65,25 @@ must be read from their corresponding runs. Local Mesa initialized successfully,
 but local browser navigation was denied by administrator policy; that attempt
 is not a browser pass and no restriction was bypassed. Continuous human driving,
 consumer-hardware performance and final artistic approval remain separate work.
+
+## Empty-call and observer continuation
+
+The first pixel-comparison observer in `1edfcce` called Three's shadow renderer
+outside its owning frame lifecycle. Run `37244296071` retained the resulting
+null render-state error; it is not a production browser pass. `1b147a9` corrected
+that observer to render the identical frozen scene normally and count only the
+shadow subpass. No simulation step or presentation update separates controls.
+
+Run `37244687461`'s day artifact `11318219049` then measured 10,374,772 triangles
+in the original complete cockpit frame, with zero browser/GL errors. Its actual
+1024-square near-shadow texture was byte-identical with culling disabled/enabled,
+and the shadow workload dropped by 463,144 triangles. However, both controls
+recorded 480 calls, failing the additional strict call-reduction assertion:
+Three submits zero-index instanced draws rather than skipping the driver call.
+
+The continuation also temporarily sets the rejected batch's instance draw count
+to zero, exercising Three's explicit zero-instance early return. All original
+counts and ranges are restored, including finite/subset caller counts and an
+interrupted draw. The strict call-reduction assertion and all original rendering
+limits stay unchanged. Pixel equivalence and the revised exact-commit outcomes
+remain required; the exploratory failed controls are retained, not relabelled.

@@ -5,8 +5,9 @@ import * as T from 'three';
  * while every vertex lies outside the light frustum. Test its retained local AABB
  * in the light's clip space, then suppress only that provably empty submission.
  *
- * No LOD, instance, caster flag, vertex/index buffer, or colour-pass state changes.
- * The original draw range is restored immediately after the shadow draw. A caller
+ * No LOD, instance transform, caster flag, vertex/index buffer, or colour-pass
+ * state changes. Original draw ranges and instance counts are restored immediately
+ * after the shadow draw. A caller
  * that changes the authored geometry/instances gets the ordinary full submission;
  * this is deliberately not a generic bound for animated or custom vertex shaders.
  */
@@ -19,6 +20,7 @@ export class StaticInstanceShadowBounds {
   private held = false;
   private start = 0;
   private count = Infinity;
+  private instanceCount = 0;
   private rejected = 0;
   private tested = 0;
   private disposed = false;
@@ -53,6 +55,7 @@ export class StaticInstanceShadowBounds {
     const reset = () => {
       if (!this.held) return;
       geometry.setDrawRange(this.start, this.count);
+      mesh.count = this.instanceCount;
       this.held = false;
     };
     mesh.onBeforeShadow = (...args) => {
@@ -98,9 +101,13 @@ export class StaticInstanceShadowBounds {
       if (this.frustum.intersectsBox(this.box)) return;
       this.start = geometry.drawRange.start;
       this.count = geometry.drawRange.count;
+      this.instanceCount = mesh.count;
       this.held = true;
       this.rejected++;
       geometry.setDrawRange(this.start, 0);
+      // Three still submits a zero-index instanced draw. A zero instance count
+      // takes its explicit early return and avoids that empty driver call too.
+      mesh.count = 0;
     };
     mesh.onAfterShadow = (...args) => {
       reset();

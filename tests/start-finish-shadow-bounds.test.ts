@@ -103,6 +103,7 @@ describe('production start-finish shadow frustum', () => {
             null as unknown as T.Group,
           );
           expect(geometry.drawRange.count).toBe(0);
+          expect(seats.count).toBe(0);
           seats.onAfterShadow(
             renderer,
             seats as unknown as T.Scene,
