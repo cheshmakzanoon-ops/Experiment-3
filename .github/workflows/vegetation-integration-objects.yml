@@ -1,0 +1,83 @@
+name: One-shot vegetation integration objects
+on:
+  push:
+    branches: [main]
+    paths: [.github/workflows/vegetation-integration-objects.yml]
+permissions:
+  contents: read
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Export exact reviewed ordinary-source objects without updating branches
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PY'
+          import os, json, hashlib, base64, urllib.request
+          from pathlib import Path
+          records = [
+            ('src/rendering/circuit.ts', '2561710b96b489835f86facc06f6a43774e52f61259fe4a42453dd9c616e7adb', 'a837827741e4278dc9ebbed1a68510bf5779c780f20c9c0ba22d2e43e361f110'),
+            ('src/rendering/renderer.ts', 'e4978feae5f042c312b6fdb64edea699179826d59c0a85a2552a61aea7ed65f9', '4529c8ef4fa09f18245ca8d82c06c8dab3c88f259909425ba9b18889d0415832')
+          ]
+          def replace(text, old, new):
+              if text.count(old) != 1:
+                  raise ValueError('Ambiguous integration preimage: ' + old[:100])
+              return text.replace(old, new, 1)
+          out = Path(os.environ['RUNNER_TEMP']) / 'reviewed-source'
+          entries = []
+          for path, before, after in records:
+              data = Path(path).read_bytes()
+              if hashlib.sha256(data).hexdigest() != before:
+                  raise ValueError('Source advanced; re-review required: ' + path)
+              text = data.decode()
+              if path.endswith('circuit.ts'):
+                  text = "import type { AurelVegetationKit } from './aurel-vegetation.ts';\n" + text
+                  text = replace(text, 'export class CircuitScene {\n', 'export class CircuitScene {\n  vegetation: AurelVegetationKit | null = null;\n')
+                  text = replace(text,
+                      "    this.construction.add('Rule-placed layered foliage', 3, () =>\n      buildVegetation(\n        track,\n        this.vegetationGroup,\n        this.serviceSites,\n        (x, z, padding) => this.recoveryGates?.blocksVegetation(x, z, padding) ?? false,\n      ),\n    );\n",
+                      "    this.construction.add('Rule-placed layered foliage', 3, () => {\n      const excluded = (x: number, z: number, padding: number) =>\n        this.recoveryGates?.blocksVegetation(x, z, padding) ?? false;\n      if (this.vegetation)\n        this.vegetation.build(track, this.vegetationGroup, this.serviceSites, excluded);\n      else buildVegetation(track, this.vegetationGroup, this.serviceSites, excluded);\n    });\n")
+              else:
+                  text = "import { loadAurelVegetation } from './aurel-vegetation.ts';\n" + text
+                  text = replace(text,
+                      '        renderer.circuit.broadcastCameras = await loadBroadcastCameras(cancelled);\n',
+                      "        renderer.circuit.broadcastCameras = await loadBroadcastCameras(cancelled);\n        progress({\n          completed: 0,\n          total: 1,\n          fraction: 0,\n          label: 'Loading A51-A54 authored planting',\n        });\n        renderer.circuit.vegetation = await loadAurelVegetation(cancelled);\n")
+                  text = replace(text,
+                      '    this.circuit.broadcastCameras?.update(this.camera, this.quality);\n',
+                      '    this.circuit.broadcastCameras?.update(this.camera, this.quality);\n    this.circuit.vegetation?.update(this.camera, this.quality);\n')
+                  text = replace(text, '    this.textures.dispose();\n', '')
+                  text = replace(text, '    this.disposed = true;\n',
+                      '    this.disposed = true;\n    // Restore immutable source images before any asset owner closes its bitmap.\n    this.textures.dispose();\n')
+                  text = replace(text, '    this.circuit.broadcastCameras?.dispose();\n',
+                      '    this.circuit.broadcastCameras?.dispose();\n    this.circuit.vegetation?.dispose();\n')
+              data = text.encode()
+              if hashlib.sha256(data).hexdigest() != after:
+                  raise ValueError('Reviewed output differs: ' + path)
+              expected = hashlib.sha1(b'blob ' + str(len(data)).encode() + b'\0' + data).hexdigest()
+              request = urllib.request.Request(
+                  'https://api.github.com/repos/' + os.environ['GITHUB_REPOSITORY'] + '/git/blobs',
+                  data=json.dumps({'content': base64.b64encode(data).decode(), 'encoding': 'base64'}).encode(),
+                  headers={'Authorization': 'Bearer ' + os.environ['GH_TOKEN'], 'Content-Type': 'application/json'}, method='POST')
+              with urllib.request.urlopen(request, timeout=45) as response:
+                  result = json.load(response)
+              if result['sha'] != expected:
+                  raise ValueError('Git object integrity differs: ' + path)
+              destination = out / path
+              destination.parent.mkdir(parents=True, exist_ok=True)
+              destination.write_bytes(data)
+              entries.append({'path': path, 'mode': '100644', 'type': 'blob', 'sha': expected, 'sha256': after})
+          receipt = {'entries': entries, 'sourceCommit': os.environ['GITHUB_SHA'], 'branchUpdated': False}
+          (out / 'receipt.json').write_text(json.dumps(receipt, indent=2) + '\n')
+          print(json.dumps(receipt, indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: reviewed-vegetation-source-objects
+          path: ${{ runner.temp }}/reviewed-source/
+          retention-days: 7
