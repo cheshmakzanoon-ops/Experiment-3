@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - scripts/author-aurel-quarry.py
+      - scripts/author-aurel-quarry-r02.py
       - .github/workflows/aurel-quarry-authoring.yml
 permissions:
   contents: read
@@ -24,10 +24,10 @@ jobs:
           echo "84098912789dc450e95697c4184fb8a90acbe5111c2ba4aede3fecb57806a168  $RUNNER_TEMP/blender.tar.xz" | sha256sum -c -
           mkdir "$RUNNER_TEMP/blender"
           tar -xJf "$RUNNER_TEMP/blender.tar.xz" -C "$RUNNER_TEMP/blender" --strip-components=1
-      - name: Author and independently reopen the editable source
+      - name: Author candidate and independently reopen the editable source
         run: |
-          "$RUNNER_TEMP/blender/blender" -b -t 2 --factory-startup --python-exit-code 1 --python scripts/author-aurel-quarry.py -- --output-root "$RUNNER_TEMP/quarry"
-          "$RUNNER_TEMP/blender/blender" -b -t 2 --factory-startup --python-exit-code 1 --python scripts/author-aurel-quarry.py -- --output-root "$RUNNER_TEMP/quarry-reopened" --source "$RUNNER_TEMP/quarry/scripts/aurel-quarry.blend"
+          "$RUNNER_TEMP/blender/blender" -b -t 2 --factory-startup --python-exit-code 1 --python scripts/author-aurel-quarry-r02.py -- --output-root "$RUNNER_TEMP/quarry"
+          "$RUNNER_TEMP/blender/blender" -b -t 2 --factory-startup --python-exit-code 1 --python scripts/author-aurel-quarry-r02.py -- --output-root "$RUNNER_TEMP/quarry-reopened" --source "$RUNNER_TEMP/quarry/scripts/aurel-quarry.blend"
           cmp "$RUNNER_TEMP/quarry/public/models/aurel-quarry.glb" "$RUNNER_TEMP/quarry-reopened/public/models/aurel-quarry.glb"
       - name: Retain immutable asset objects for a reviewed integration, never update branches
         env:
