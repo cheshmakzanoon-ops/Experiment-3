@@ -28,28 +28,44 @@ for (const lighting of ['day', 'sunset', 'night'] as const) {
     const chunk = output.output.find((o) => o.type === 'chunk');
     if (!chunk || chunk.type !== 'chunk') throw new Error('No A12 observer code');
     const errors: string[] = [];
+    const progress: { stage: string; elapsedMs: number }[] = [];
     page.on('pageerror', (e) => errors.push(e.message));
     page.on('console', (m) => {
+      if (m.text().startsWith('[a12-survey] ')) {
+        const event = JSON.parse(m.text().slice('[a12-survey] '.length));
+        progress.push({ stage: event.stage, elapsedMs: event.elapsedMs });
+        console.info(`[A12 ${lighting}] ${event.stage} (${Math.round(event.elapsedMs)} ms)`);
+      }
       if (m.type() === 'error') errors.push(m.text());
     });
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.route('**/secondary-stand-survey', (r) =>
       r.fulfill({
         contentType: 'text/html',
-        body: '<!doctype html><title>A12 production event hall inspection</title>',
+        body: '<!doctype html><title>A12 production secondary-stand inspection</title>',
       }),
     );
     await page.goto('/secondary-stand-survey');
     await page.addScriptTag({ content: chunk.code });
-    const report = await page.evaluate(
-      (l) =>
-        (
-          window as unknown as {
-            StandSurvey: { surveySecondaryStands: typeof surveySecondaryStands };
-          }
-        ).StandSurvey.surveySecondaryStands(l),
-      lighting,
-    );
+    let report: Awaited<ReturnType<typeof surveySecondaryStands>>;
+    try {
+      report = await page.evaluate(
+        (l) =>
+          (
+            window as unknown as {
+              StandSurvey: { surveySecondaryStands: typeof surveySecondaryStands };
+            }
+          ).StandSurvey.surveySecondaryStands(l),
+        lighting,
+      );
+    } finally {
+      // Preserve the last completed stage even when a browser timeout prevents
+      // returning the final report or capturing its canvas.
+      await writeFile(
+        info.outputPath('a12-progress.json'),
+        JSON.stringify({ lighting, progress, errors }, null, 2),
+      );
+    }
     for (const image of [
       ...report.images,
       report.cockpit,

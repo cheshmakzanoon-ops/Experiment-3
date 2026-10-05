@@ -15,6 +15,13 @@ import { AUREL_VENUE } from '../../src/rendering/venue-plan.ts';
 /** Full production factory and unchanged physical traversal, not a standalone
  * model viewer. Additional static cuts inspect both sides and all six sites. */
 export async function surveySecondaryStands(lighting: 'day' | 'sunset' | 'night') {
+  const started = performance.now();
+  const progress = (stage: string) =>
+    console.info(
+      '[a12-survey] ' + JSON.stringify({ lighting, stage, elapsedMs: performance.now() - started }),
+    );
+  const yieldBrowser = () => new Promise<void>((resolve) => setTimeout(resolve, 0));
+  progress('simulation-start');
   const width = 1280,
     height = 720;
   const sim = new Simulation({
@@ -33,14 +40,16 @@ export async function surveySecondaryStands(lighting: 'day' | 'sunset' | 'night'
   canvas.style.cssText = `display:block;width:${width}px;height:${height}px`;
   document.body.style.cssText = 'margin:0';
   document.body.append(canvas);
+  progress('factory-start');
   const view = await RacingRenderer.create(
     canvas,
     sim.track,
-    () => {},
+    (message) => progress(`factory: ${message}`),
     () => false,
     { quality: 'medium', graphics: { ...graphicsPreset('medium'), resolutionScale: 1 } },
   );
   if (!view) throw new Error('Missing production A12 renderer');
+  progress('factory-ready');
   const roots = view.circuit.secondaryStands.roots;
   if (roots.length !== 6) throw new Error('Production scene did not install all six A12 stands');
   const installed: T.InstancedMesh[] = [];
@@ -194,27 +203,52 @@ export async function surveySecondaryStands(lighting: 'day' | 'sunset' | 'night'
   try {
     view.lighting = lighting;
     view.mode = 'cockpit';
+    // Use the same asynchronous, GPU-complete grid preparation as real entry;
+    // do not cold-compile an entire twelve-car race in one synchronous draw.
+    if (
+      !(await view.prepare(
+        frame,
+        (message) => progress(`prepare: ${message}`),
+        () => false,
+        yieldBrowser,
+      ))
+    )
+      throw new Error('A12 production preparation did not complete');
+    progress('normal-cockpit-start');
     view.draw(frame, frame, 1, 1 / 60);
     const cockpit = {
       name: 'normal-cockpit',
       image: canvas.toDataURL('image/png'),
       stats: view.stats(),
     };
+    progress('normal-cockpit-ready');
+    await yieldBrowser();
     const sequence = [...cuts, ...[...cuts].reverse()];
     for (let pass = 0; pass < 2; pass++)
       for (const c of sequence) {
+        progress(`warm-${pass}: ${c.name}`);
         cut(c);
         render();
+        // Yield only the observer. The frozen snapshot, water, render count,
+        // camera coverage, quality and application simulation clock are retained.
+        await yieldBrowser();
       }
     const memoryBefore = memory(),
       memories: ReturnType<typeof memory>[] = [];
     observedTiers.clear();
     for (const c of sequence) {
+      progress(`memory: ${c.name}`);
       cut(c);
       render();
       memories.push(memory());
+      await yieldBrowser();
     }
-    for (const c of cuts) capture(c);
+    for (const c of cuts) {
+      progress(`capture: ${c.name}`);
+      capture(c);
+      await yieldBrowser();
+    }
+    progress('building-negative-control');
     // A controlled render hides only the selected authored building, not the
     // whole scene. Sky, road and unrelated props cannot satisfy this difference.
     cut(cuts[0]);
@@ -233,9 +267,19 @@ export async function surveySecondaryStands(lighting: 'day' | 'sunset' | 'night'
       render();
     }
     for (const quality of ['low', 'high', 'medium'] as const) {
-      view.setQuality(quality, { ...graphicsPreset(quality), resolutionScale: 1 });
+      progress(`quality: ${quality}`);
+      if (
+        !(await view.prepareQuality(
+          quality,
+          { ...graphicsPreset(quality), resolutionScale: 1 },
+          () => false,
+          yieldBrowser,
+        ))
+      )
+        throw new Error('A12 production quality preparation did not complete');
       view.mode = 'cockpit';
       view.draw(frame, frame, 1, 1 / 60);
+      await yieldBrowser();
     }
     const frameUnchanged = frame.every((v, i) => Object.is(v, original[i]));
     const waterUnchanged = water.every((v, i) => v === sim.track.water[i]);
@@ -244,7 +288,9 @@ export async function surveySecondaryStands(lighting: 'day' | 'sunset' | 'night'
     let liveFramesUnchanged = true,
       liveWaterUnchanged = true;
     const visited = new Set<number>();
+    progress('physical-traversal-start');
     const traversal = await sampleSecondaryStandLap(sim, (sample) => {
+      progress(`physical: ${sample.site}m / ${sample.station.toFixed(2)}m`);
       const live = sample.frame.slice(),
         wet = sim.track.water.slice();
       view.mode = 'cockpit';
@@ -271,6 +317,7 @@ export async function surveySecondaryStands(lighting: 'day' | 'sunset' | 'night'
       liveFramesUnchanged &&= live.every((v, i) => Object.is(v, sample.frame[i]));
       liveWaterUnchanged &&= wet.every((v, i) => v === sim.track.water[i]);
     });
+    progress('survey-complete');
     return {
       lighting,
       asset: SECONDARY_STAND_ASSET,
@@ -299,6 +346,7 @@ export async function surveySecondaryStands(lighting: 'day' | 'sunset' | 'night'
       acceptance: { finalArt: false, humanLap: false, hardwarePerformance: false },
     };
   } finally {
+    progress('dispose');
     selected.onBeforeRender = before;
     view.dispose();
     canvas.remove();
