@@ -1,0 +1,247 @@
+name: Stage reviewed A71 integration objects
+on:
+  push:
+    branches: [main]
+    paths: [.github/workflows/a71-source-staging.yml]
+permissions:
+  contents: write
+jobs:
+  stage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Prepare immutable source objects in an isolated index
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cat > "$RUNNER_TEMP/a71.patch" <<'PATCH'
+          diff --git a/3dmodels.md b/3dmodels.md
+          index 40373b6..83b00fe 100644
+          --- a/3dmodels.md
+          +++ b/3dmodels.md
+          @@ -306,3 +306,13 @@ apron strips preserve the physical circuit and supplied player assets.
+           See [A55-A60 scope, reproduction and evidence limits](docs/A55_A60_QUARRY.md).
+           This is one coherent Aurel sector; broader propagation, final art, uninterrupted
+           human driving and representative-hardware approval remain open.
+          +
+          +## A71 authored event-hall revision 1
+          +
+          +The released menu repair clears the way for an original Blender-authored event-hall
+          +refinement at the existing Aurel site. Four recessed entrance bays, canopy lobes,
+          +facade detail, approaches and chamfered supports accompany three packed shell tiers.
+          +The eight-draw / 7,000 allocated-triangle limit is retained. Native/GLB/accessor
+          +identities and independent reopen evidence are preserved. This is not A12/A72–A75
+          +completion, a human-driven review, hardware approval or final art.
+          +See [A71 scope and evidence boundary](docs/A71_EVENT_HALL.md).
+          diff --git a/scripts/publish-validated-release.sh b/scripts/publish-validated-release.sh
+          index 4d03209..0b7bc48 100644
+          --- a/scripts/publish-validated-release.sh
+          +++ b/scripts/publish-validated-release.sh
+          @@ -31,8 +31,16 @@ for (const [family, filename] of [
+             ['broadcast-cameras', 'aurel-broadcast-cameras.glb'],
+             ['aurel-vegetation', 'aurel-vegetation.glb'],
+             ['aurel-quarry', 'aurel-quarry.glb'],
+          +  ['event-hall', 'aurel-event-hall.glb'],
+           ]) {
+          -  const manifest = JSON.parse(readFileSync(`src/rendering/${family}.manifest.json`, 'utf8'));
+          +  const source = JSON.parse(readFileSync(`src/rendering/${family}.manifest.json`, 'utf8'));
+          +  // A71 ships bundled accessors and retains its matching exchange asset too.
+          +  if (family === 'event-hall' && source.exchange !== 'public/models/aurel-event-hall.glb') {
+          +    throw new Error('Unexpected A71 exchange path');
+          +  }
+          +  const manifest = family === 'event-hall'
+          +    ? { url: source.exchange.slice(7), bytes: source.exchangeBytes, sha256: source.exchangeSHA256 }
+          +    : source;
+             const asset = `models/${filename}`;
+             if (manifest.url !== asset) throw new Error(`Unexpected trackside asset path: ${family}`);
+             const bytes = readFileSync(`${process.argv[2]}/${asset}`);
+          diff --git a/src/rendering/venue-landmark.ts b/src/rendering/venue-landmark.ts
+          index 08b4850..ca77887 100644
+          --- a/src/rendering/venue-landmark.ts
+          +++ b/src/rendering/venue-landmark.ts
+          @@ -1,4 +1,5 @@
+           import * as T from 'three';
+          +import { eventHallGeometry, eventHallShell, EVENT_HALL_ASSET } from './event-hall-assets.ts';
+           import { Track, trackPoint } from '../simulation/track.ts';
+           import { terrainFor } from './terrain.ts';
+           import { venuePlan } from './venue-plan.ts';
+          @@ -156,6 +157,7 @@ export function buildVenueLandmark(track: Track): VenueLandmark {
+             structure.name = 'Aurel event hall / grounded facade and public plaza';
+             structure.position.set(site.x, site.deckY, site.z);
+             structure.rotation.y = site.yaw;
+          +  structure.userData.authoredAsset = EVENT_HALL_ASSET.revision;
+             const concrete = new T.MeshStandardMaterial({ color: 0x8a887b, roughness: 0.93 });
+             const stone = new T.MeshStandardMaterial({ color: 0x636e6c, roughness: 0.83 });
+             const metal = new T.MeshStandardMaterial({ color: 0x33484d, metalness: 0.65, roughness: 0.39 });
+          @@ -179,25 +181,16 @@ export function buildVenueLandmark(track: Track): VenueLandmark {
+             const thickness = site.deckY - site.bottomY;
+             const foundation = add(
+               'Terrain-seated plaza foundation',
+          -    new T.CylinderGeometry(LANDMARK.plazaRadius, LANDMARK.plazaRadius, thickness, 64),
+          +    eventHallGeometry('foundation'),
+               concrete,
+          -    -thickness * 0.5,
+          +    0,
+             );
+          -  add('Entrance plinth', new T.CylinderGeometry(18.1, 18.2, 0.18, 64), stone, 0.09);
+          -  const facade = add(
+          -    'Continuous load-bearing facade drum',
+          -    new T.CylinderGeometry(LANDMARK.drumRadius, LANDMARK.drumRadius, 4.4, 64),
+          -    glass,
+          -    2.2,
+          -  );
+          -  const bearing = add(
+          -    'Shell bearing ring',
+          -    new T.CylinderGeometry(17.05, 17.05, 0.26, 64),
+          -    metal,
+          -    4.35,
+          -  );
+          -  add('Sheltered entrance canopy', new T.CylinderGeometry(19.4, 19.4, 0.16, 64), metal, 3.25);
+          -  const columns = new T.InstancedMesh(new T.BoxGeometry(0.28, 4.32, 0.48), metal, LANDMARK.columns);
+          +  foundation.scale.y = thickness;
+          +  add('Entrance plinth', eventHallGeometry('plinth'), stone, 0);
+          +  const facade = add('Continuous load-bearing facade drum', eventHallGeometry('facade'), glass, 0);
+          +  const bearing = add('Shell bearing ring', eventHallGeometry('bearing'), metal, 0);
+          +  add('Sheltered entrance canopy', eventHallGeometry('canopy'), metal, 0);
+          +  const columns = new T.InstancedMesh(eventHallGeometry('column'), metal, LANDMARK.columns);
+             columns.name = 'Twenty-four facade and shell supports';
+             const transform = new T.Object3D();
+             for (let i = 0; i < LANDMARK.columns; i++) {
+          @@ -213,10 +206,10 @@ export function buildVenueLandmark(track: Track): VenueLandmark {
+             columns.receiveShadow = true;
+             structure.add(columns);
+             // Stable pedestrian furniture stays on the plaza and outside its doors.
+          -  const bollards = new T.InstancedMesh(new T.CylinderGeometry(0.13, 0.15, 0.9, 8), metal, 20);
+          +  const bollards = new T.InstancedMesh(eventHallGeometry('bollard'), metal, 20);
+             bollards.name = 'Plaza boundary bollards';
+             for (let i = 0; i < bollards.count; i++) {
+          -    const angle = (i / bollards.count) * Math.PI * 2;
+          +    const angle = ((i + 0.5) / bollards.count) * Math.PI * 2;
+               transform.position.set(Math.sin(angle) * 25.9, 0.45, Math.cos(angle) * 25.9);
+               transform.rotation.set(0, 0, 0);
+               transform.updateMatrix();
+          @@ -226,18 +219,9 @@ export function buildVenueLandmark(track: Track): VenueLandmark {
+             bollards.computeBoundingSphere();
+             bollards.castShadow = true;
+             structure.add(bollards);
+          -  const display = new T.Mesh(
+          -    new T.SphereGeometry(
+          -      LANDMARK.radius,
+          -      64,
+          -      32,
+          -      0,
+          -      Math.PI * 2,
+          -      0,
+          -      Math.acos(LANDMARK.lowerCosine),
+          -    ),
+          -    landmarkScreenMaterial(),
+          -  );
+          +  const shell = eventHallShell();
+          +  const display = new T.Mesh(shell.geometry, landmarkScreenMaterial());
+          +  shell.bind(display);
+             display.name = 'Original LED venue landmark / structurally grounded event hall';
+             display.position.set(site.x, site.deckY + LANDMARK.centreHeight, site.z);
+             display.rotation.y = site.yaw;
+          diff --git a/src/rendering/venue-lighting.ts b/src/rendering/venue-lighting.ts
+          index d802544..fffeaba 100644
+          --- a/src/rendering/venue-lighting.ts
+          +++ b/src/rendering/venue-lighting.ts
+          @@ -188,7 +188,11 @@ export class VenueLighting {
+             diagnostics() {
+               return {
+                 masts: this.locations.length,
+          -      landmark: { ...this.landmarkSite, emission: this.display.material.emissiveIntensity },
+          +      landmark: {
+          +        ...this.landmarkSite,
+          +        emission: this.display.material.emissiveIntensity,
+          +        authored: this.display.geometry.userData.authoredAsset ?? null,
+          +      },
+                 nearbyLights: this.lights.filter((light) => light.visible).length,
+                 lightIntensity: this.lights.map((light) => light.intensity),
+                 lightSites: Array.from(this.nearest),
+          diff --git a/tests/branchless-release.test.ts b/tests/branchless-release.test.ts
+          index 1c3b0da..d00b839 100644
+          --- a/tests/branchless-release.test.ts
+          +++ b/tests/branchless-release.test.ts
+          @@ -35,6 +35,7 @@ it('publishes exact validated bytes, recovers reruns, and rejects altered or sta
+                 ['broadcast-cameras', 'aurel-broadcast-cameras.glb'],
+                 ['aurel-vegetation', 'aurel-vegetation.glb'],
+                 ['aurel-quarry', 'aurel-quarry.glb'],
+          +      ['event-hall', 'aurel-event-hall.glb'],
+               ];
+               for (const [family, asset] of families) {
+                 const data = Buffer.from(`asset ${family}`);
+          @@ -42,6 +43,9 @@ it('publishes exact validated bytes, recovers reruns, and rejects altered or sta
+                 writeFileSync(
+                   join(manifests, `${family}.manifest.json`),
+                   JSON.stringify({
+          +          exchange: `public/models/${asset}`,
+          +          exchangeBytes: data.length,
+          +          exchangeSHA256: createHash('sha256').update(data).digest('hex'),
+                     url: `models/${asset}`,
+                     bytes: data.length,
+                     sha256: createHash('sha256').update(data).digest('hex'),
+          @@ -118,7 +122,7 @@ else: raise ValueError(cmd)
+               expect(result.status).toBe(0);
+               expect(readFileSync(join(state, 'apex-formula-playable.zip'))).toEqual(bytes);
+               const callsBeforeNegativeCases = readFileSync(join(root, 'gh-calls'), 'utf8');
+          -    for (const [, asset] of families) {
+          +    for (const [family, asset] of families) {
+                 const path = join(models, asset);
+                 const original = readFileSync(path);
+                 // Equal-length byte corruption exercises the checksum, not just file size.
+          @@ -129,6 +133,14 @@ else: raise ValueError(cmd)
+                 rmSync(path);
+                 expect(run().status).not.toBe(0);
+                 writeFileSync(path, original);
+          +      const manifestPath = join(manifests, `${family}.manifest.json`);
+          +      const originalManifest = readFileSync(manifestPath);
+          +      const wrongPath = JSON.parse(originalManifest.toString());
+          +      if (family === 'event-hall') wrongPath.exchange = 'public/models/other.glb';
+          +      else wrongPath.url = 'models/other.glb';
+          +      writeFileSync(manifestPath, JSON.stringify(wrongPath));
+          +      expect(run().status).not.toBe(0);
+          +      writeFileSync(manifestPath, originalManifest);
+               }
+               for (const invalid of [
+                 { ...identity, commit: 'b'.repeat(40) },
+          PATCH
+          python3 - <<'PY'
+          import os, json, subprocess, urllib.request
+          from pathlib import Path
+          assert os.environ['GITHUB_REPOSITORY'] == 'cheshmakzanoon-ops/Experiment-3'
+          expected = {
+            '3dmodels.md': ('40373b6ecf72d8c3b41ec25a27e09ff2608063c3','83b00fed65788d1edc85b7c2f460e1d9ca5903e4'),
+            'scripts/publish-validated-release.sh': ('4d0320907ac488a8060e57ebd204c5eb727f7d5f','0b7bc481c1a91df66fa9fbe2c36baa18db48ee7d'),
+            'src/rendering/venue-landmark.ts': ('08b4850418f5b8a87ef4125cfd13bf47c96e435b','ca77887066ddfdbd7db4489d918414d325c95554'),
+            'src/rendering/venue-lighting.ts': ('d80254435cd61dc144984e5b88e8c19681431e3f','fffeabae63826c3cb7ecb7c20d62ebb0ab2caaaf'),
+            'tests/branchless-release.test.ts': ('1c3b0daaba94f0020d6e8ec94b7be28f1d31bfbd','d00b83921d6c1c47307aa9ee7bbf43ba085804d2'),
+          }
+          def git(*args, env=None): return subprocess.check_output(['git',*args],env=env)
+          original = git('status','--porcelain')
+          for path,(old,new) in expected.items():
+            assert git('rev-parse','HEAD:'+path).decode().strip()==old,path
+          env=dict(os.environ,GIT_INDEX_FILE=os.environ['RUNNER_TEMP']+'/a71.index')
+          git('read-tree','HEAD',env=env)
+          git('apply','--cached',os.environ['RUNNER_TEMP']+'/a71.patch',env=env)
+          entries=[]
+          for path,(old,new) in expected.items():
+            assert git('rev-parse',':'+path,env=env).decode().strip()==new,path
+            data=git('show',':'+path,env=env).decode()
+            request=urllib.request.Request('https://api.github.com/repos/'+os.environ['GITHUB_REPOSITORY']+'/git/blobs',data=json.dumps({'encoding':'utf-8','content':data}).encode(),method='POST',headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','Content-Type':'application/json'})
+            with urllib.request.urlopen(request,timeout=60) as response: result=json.load(response)
+            assert result['sha']==new,path
+            entries.append({'path':path,'sha':new})
+          assert git('status','--porcelain')==original
+          receipt={'sourceCommit':os.environ['GITHUB_SHA'],'updatedRefs':False,'entries':entries}
+          output=Path(os.environ['RUNNER_TEMP'])/'a71-source-receipt.json'
+          output.write_text(json.dumps(receipt,indent=2)+'\n');print(output.read_text())
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: a71-source-receipt
+          path: ${{ runner.temp }}/a71-source-receipt.json
+          retention-days: 7
