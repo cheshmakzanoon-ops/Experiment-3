@@ -1,0 +1,67 @@
+name: A12 explicit secondary stand authoring
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - scripts/author-secondary-grandstands.py
+      - .github/workflows/secondary-stands-authoring.yml
+permissions:
+  contents: read
+jobs:
+  author:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Pinned Blender outside the application checkout
+        run: |
+          curl --fail --location --retry 3 https://download.blender.org/release/Blender5.2/blender-5.2.2-linux-x64.tar.xz -o "$RUNNER_TEMP/blender.tar.xz"
+          echo "84098912789dc450e95697c4184fb8a90acbe5111c2ba4aede3fecb57806a168  $RUNNER_TEMP/blender.tar.xz" | sha256sum -c -
+          mkdir "$RUNNER_TEMP/blender"
+          tar -xJf "$RUNNER_TEMP/blender.tar.xz" -C "$RUNNER_TEMP/blender" --strip-components=1
+      - name: Author and independently reopen native geometry
+        run: |
+          "$RUNNER_TEMP/blender/blender" -b -t 2 --factory-startup --python-exit-code 1 --python scripts/author-secondary-grandstands.py -- --output-root "$RUNNER_TEMP/stands"
+          "$RUNNER_TEMP/blender/blender" -b -t 2 --factory-startup --python-exit-code 1 --python scripts/author-secondary-grandstands.py -- --output-root "$RUNNER_TEMP/stands-reopened" --source "$RUNNER_TEMP/stands/scripts/aurel-secondary-grandstands.blend"
+          cmp "$RUNNER_TEMP/stands/public/models/aurel-secondary-grandstands.glb" "$RUNNER_TEMP/stands-reopened/public/models/aurel-secondary-grandstands.glb"
+          cmp "$RUNNER_TEMP/stands/src/rendering/secondary-grandstands.geometry.json" "$RUNNER_TEMP/stands-reopened/src/rendering/secondary-grandstands.geometry.json"
+      - name: Retain immutable asset objects for reviewed integration without updating refs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PY'
+          import os, json, base64, hashlib, urllib.request
+          from pathlib import Path
+          assert os.environ['GITHUB_REPOSITORY'] == 'cheshmakzanoon-ops/Experiment-3'
+          root = Path(os.environ['RUNNER_TEMP']) / 'stands'
+          paths = ['scripts/aurel-secondary-grandstands.blend', 'public/models/aurel-secondary-grandstands.glb', 'src/rendering/secondary-grandstands.geometry.json', 'src/rendering/secondary-grandstands.manifest.json']
+          entries = []
+          for path in paths:
+              data = (root / path).read_bytes()
+              expected = hashlib.sha1(b'blob ' + str(len(data)).encode() + b'\0' + data).hexdigest()
+              request = urllib.request.Request(
+                  'https://api.github.com/repos/' + os.environ['GITHUB_REPOSITORY'] + '/git/blobs',
+                  data=json.dumps({'content': base64.b64encode(data).decode(), 'encoding': 'base64'}).encode(),
+                  headers={'Authorization': 'Bearer ' + os.environ['GH_TOKEN'], 'Accept': 'application/vnd.github+json', 'Content-Type': 'application/json'}, method='POST')
+              with urllib.request.urlopen(request, timeout=60) as response:
+                  result = json.load(response)
+              if result['sha'] != expected:
+                  raise RuntimeError('Git object integrity mismatch: ' + path)
+              entries.append({'path': path, 'mode': '100644', 'type': 'blob', 'sha': expected, 'bytes': len(data), 'sha256': hashlib.sha256(data).hexdigest()})
+          receipt = {'sourceCommit': os.environ['GITHUB_SHA'], 'roundtripIdentical': True, 'entries': entries, 'branchUpdated': False}
+          (root / 'authoring-receipt.json').write_text(json.dumps(receipt, indent=2) + '\n')
+          print(json.dumps(receipt, indent=2))
+          PY
+      - name: Retain the exact authoring commit object for offline source verification
+        run: git cat-file commit HEAD > "$RUNNER_TEMP/stands/source-commit-object.txt"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: a12-authored-library
+          path: ${{ runner.temp }}/stands/
+          retention-days: 14
