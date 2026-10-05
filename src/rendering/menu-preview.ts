@@ -48,3 +48,16 @@ export function menuPreview(track: Track, distance = track.length - 32): Float32
   }
   return frame;
 }
+
+/** Read-only editors retain the last completed background. Only an active scene
+ * preview (the Academy) may consume an explicit invalidation while covered.
+ * Settings ownership overrides even that request; the caller keeps invalidation
+ * pending until a real frame is submitted. This never advances simulation time. */
+export function shouldDrawMenu(state: {
+  covered: boolean;
+  preview: boolean;
+  invalidated: boolean;
+  settingsBusy: boolean;
+}): boolean {
+  return !state.settingsBusy && (!state.covered || (state.preview && state.invalidated));
+}

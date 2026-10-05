@@ -7,6 +7,9 @@ on:
       - src/main.ts
       - src/core/settings-transition.ts
       - src/rendering/renderer.ts
+      - src/rendering/menu-preview.ts
+      - tests/menu-presentation.test.ts
+      - e2e/08-reference-implementation.spec.ts
       - tests/settings-transition.test.ts
       - e2e/settings-transition.spec.ts
       - e2e/30-menu-access.spec.ts
@@ -28,12 +31,12 @@ jobs:
           node-version: '22'
           cache: npm
       - run: node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
-      - run: npm test -- tests/settings-transition.test.ts
+      - run: npm test -- tests/settings-transition.test.ts tests/menu-presentation.test.ts tests/menu-preview.test.ts tests/replay-presentation.test.ts
       - run: node --experimental-transform-types scripts/source-stability.ts -- npm run build
       - run: npx playwright install --with-deps chromium
       - run: sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb
       - name: Original menu regression and transition ownership, without forced clicks or retries
-        run: xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e -- e2e/30-menu-access.spec.ts e2e/settings-transition.spec.ts
+        run: xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e -- e2e/30-menu-access.spec.ts e2e/settings-transition.spec.ts e2e/08-reference-implementation.spec.ts
       - name: Retain results including failures
         if: always()
         uses: actions/upload-artifact@v4

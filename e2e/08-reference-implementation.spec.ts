@@ -11,6 +11,32 @@ async function inspect(page: Page, id: number) {
   await entry.locator('summary').click();
   await entry.locator(`[data-action="reference:${id}"]`).click();
 }
+/** Observe completed production frames, not the selected lighting label alone.
+ * Keep input live but reject a continuously rendered menu behind the preview. */
+async function heldAcademy(page: Page) {
+  const held = await page.evaluate(async () => {
+    const before = window.apexDiagnostics();
+    for (let callback = 0; callback < 8; callback++)
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    const after = window.apexDiagnostics();
+    return {
+      before: before.presentation!.frames,
+      after: after.presentation!.frames,
+      inputBefore: before.inputPolls,
+      inputAfter: after.inputPolls,
+      frameBefore: before.frame,
+      frameAfter: after.frame,
+      covered: after.presentation!.menuCovered,
+      state: after.state,
+    };
+  });
+  expect(held.state).toBe('menu');
+  expect(held.covered).toBe(true);
+  expect(held.after).toBe(held.before);
+  expect(held.inputAfter).toBeGreaterThan(held.inputBefore);
+  expect(held.frameAfter).toEqual(held.frameBefore);
+  return held;
+}
 test('reference continuation: native showroom and grid views preserve the held simulation', async ({
   page,
 }, info) => {
@@ -54,18 +80,63 @@ test('reference continuation: night and guide controls are real, reversible and 
   await expect(page.locator('.driving-academy')).toBeVisible();
   await expect.poll(async () => (await diag(page)).renderer!.venueLighting.nearbyLights).toBe(4);
   expect((await diag(page)).renderer!.night).toBe(true);
+  const night = await heldAcademy(page);
+  await info.attach('reference-079-night-preview-held.png', {
+    body: await page.screenshot(),
+    contentType: 'image/png',
+  });
   await page.locator('[data-action="guide:full"]').click();
   expect((await diag(page)).renderer!.guide.mode).toBe('full');
+  await expect.poll(async () => (await diag(page)).presentation!.frames).toBe(night.after + 1);
+  const guide = await heldAcademy(page);
   await page.locator('[data-action="modalClose"]').click();
   await info.attach('reference-079-original-night-venue.png', {
     body: await page.screenshot(),
     contentType: 'image/png',
   });
   expect((await diag(page)).frame).toEqual(original.frame);
-  await page.getByRole('button', { name: 'DRIVING ACADEMY', exact: true }).click();
-  await page.locator('[data-action="lighting:day"]').click();
+  const academy = page.getByRole('button', { name: 'DRIVING ACADEMY', exact: true });
+  await academy.evaluate((button) => {
+    button.addEventListener(
+      'click',
+      () => {
+        document.body.dataset.academyOpenFrames = String(
+          window.apexDiagnostics().presentation!.frames,
+        );
+      },
+      { capture: true, once: true },
+    );
+  });
+  await academy.click();
+  // Opening the Academy requests one preview. Wait for its completed frame,
+  // including GPU backpressure, before observing the following control action.
+  const beforeOpen = await page.evaluate(() => Number(document.body.dataset.academyOpenFrames));
+  await expect.poll(async () => (await diag(page)).presentation!.frames).toBe(beforeOpen + 1);
+  await heldAcademy(page);
+  const dayControl = page.locator('[data-action="lighting:day"]');
+  await dayControl.evaluate((button) => {
+    button.addEventListener(
+      'click',
+      () => {
+        document.body.dataset.lightingPreviewFrames = String(
+          window.apexDiagnostics().presentation!.frames,
+        );
+      },
+      { capture: true, once: true },
+    );
+  });
+  await dayControl.click();
   await expect.poll(async () => (await diag(page)).renderer!.venueLighting.nearbyLights).toBe(0);
+  expect((await diag(page)).renderer!.night).toBe(false);
+  const day = await heldAcademy(page);
+  const beforeDay = await page.evaluate(() => Number(document.body.dataset.lightingPreviewFrames));
+  expect(day.after).toBe(beforeDay + 1);
+  expect((await diag(page)).frame).toEqual(original.frame);
   expect((await diag(page)).frame![H.WATER]).toBe(original.frame![H.WATER]);
+  await info.attach('reference-079-preview-ownership.json', {
+    body: JSON.stringify({ night, guide, day }),
+    contentType: 'application/json',
+  });
   expect(errors).toEqual([]);
 });
 test('reference continuation: explicit programme replacement, live chevrons and no replay awards', async ({

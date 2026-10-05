@@ -8,7 +8,7 @@ import { raceBriefing } from './ui/race-briefing.ts';
 import { GridPresentationClock } from './core/grid-presentation.ts';
 import { GridPresentationPanel } from './ui/grid-presentation.ts';
 import './ui/grid-presentation.css';
-import { menuPreview } from './rendering/menu-preview.ts';
+import { menuPreview, shouldDrawMenu } from './rendering/menu-preview.ts';
 import { shouldDrawReplay } from './rendering/replay-presentation.ts';
 import { TabEvidence } from './ui/tab-evidence.ts';
 import { ReferenceSessionReview, referenceSessionPanel } from './ui/reference-session.ts';
@@ -744,11 +744,19 @@ export class GameApp {
     const wallDelta = Math.max(0.001, (time - (previousTime || time - 16)) / 1000),
       dt = clamp(wallDelta, 0.001, 0.08);
     this.previousTime = time;
-    // A covering editor owns the LAST completed frame, including its first
-    // callback. Invalidation stays pending until it closes; no fresh submission
-    // may race quality preparation or a settings persistence transaction.
+    // Editors hold their last completed background from the first callback.
+    // The Academy explicitly previews lighting/guidance: allow one invalidated
+    // frame, not a continuous orbit. Never draw during a settings transaction.
     this.menuCovered = this.state === 'menu' && this.ui.modal.open;
-    if (this.menuCovered || this.savingSettings) return;
+    if (
+      !shouldDrawMenu({
+        covered: this.menuCovered,
+        preview: this.menuCovered && !!this.ui.modal.querySelector('.driving-academy'),
+        invalidated: this.renderedState !== this.state,
+        settingsBusy: this.savingSettings,
+      })
+    )
+      return;
     // Telemetry/settings own a replay's last presented frame immediately, even
     // on the first callback after opening. Paused replay redraws only for a seek
     // or explicit camera/resize invalidation; keep the wall clock current above.
