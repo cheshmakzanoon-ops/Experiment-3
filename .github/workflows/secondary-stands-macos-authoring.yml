@@ -1,0 +1,87 @@
+name: A12 independent macOS authoring
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - scripts/author-secondary-grandstands.py
+      - .github/workflows/secondary-stands-macos-authoring.yml
+permissions:
+  contents: read
+jobs:
+  author:
+    runs-on: macos-14
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Version-pinned Blender and publisher checksum outside the checkout
+        run: |
+          mkdir "$RUNNER_TEMP/a12-blender"
+          cd "$RUNNER_TEMP/a12-blender"
+          curl --fail --location --retry 3 https://download.blender.org/release/Blender5.2/blender-5.2.2-macos-arm64.dmg -o blender-5.2.2-macos-arm64.dmg
+          curl --fail --location --retry 3 https://download.blender.org/release/Blender5.2/blender-5.2.2.sha256 -o publisher.sha256
+          python3 - <<'PY'
+          import hashlib, pathlib, re
+          name = 'blender-5.2.2-macos-arm64.dmg'
+          entries = [line.split() for line in pathlib.Path('publisher.sha256').read_text().splitlines()]
+          matches = [parts[0] for parts in entries if len(parts) == 2 and parts[1].lstrip('*') == name]
+          if len(matches) != 1 or not re.fullmatch('[0-9a-f]{64}', matches[0]):
+              raise ValueError('Missing unique publisher checksum for pinned Blender')
+          if hashlib.sha256(pathlib.Path(name).read_bytes()).hexdigest() != matches[0]:
+              raise ValueError('Blender DMG differs from publisher checksum')
+          pathlib.Path('verified.sha256').write_text(matches[0] + '  ' + name + '\n')
+          print(pathlib.Path('verified.sha256').read_text())
+          PY
+          mkdir "$RUNNER_TEMP/a12-blender-volume"
+          hdiutil attach -nobrowse -readonly -mountpoint "$RUNNER_TEMP/a12-blender-volume" blender-5.2.2-macos-arm64.dmg
+          echo "BLENDER_PATH=$RUNNER_TEMP/a12-blender-volume/Blender.app/Contents/MacOS/Blender" >> "$GITHUB_ENV"
+      - name: Author, reopen native source and require the corrected export identities
+        run: |
+          "$BLENDER_PATH" -b -t 2 --factory-startup --python-exit-code 1 --python scripts/author-secondary-grandstands.py -- --output-root "$RUNNER_TEMP/stands"
+          "$BLENDER_PATH" -b -t 2 --factory-startup --python-exit-code 1 --python scripts/author-secondary-grandstands.py -- --output-root "$RUNNER_TEMP/stands-reopened" --source "$RUNNER_TEMP/stands/scripts/aurel-secondary-grandstands.blend"
+          cmp "$RUNNER_TEMP/stands/public/models/aurel-secondary-grandstands.glb" "$RUNNER_TEMP/stands-reopened/public/models/aurel-secondary-grandstands.glb"
+          cmp "$RUNNER_TEMP/stands/src/rendering/secondary-grandstands.geometry.json" "$RUNNER_TEMP/stands-reopened/src/rendering/secondary-grandstands.geometry.json"
+          echo "adad3132445f4d9015297ff149edfefcfd658c7d6f0baaa2645ebf586b345054  $RUNNER_TEMP/stands/public/models/aurel-secondary-grandstands.glb" | shasum -a 256 -c -
+          echo "957dd57015c7c058cfd49eeb1b8bddcf4d80b7b1ef31fe41948552302f1d078b  $RUNNER_TEMP/stands/src/rendering/secondary-grandstands.geometry.json" | shasum -a 256 -c -
+      - name: Retain exact asset objects without changing any branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PY'
+          import os, json, base64, hashlib, urllib.request
+          from pathlib import Path
+          assert os.environ['GITHUB_REPOSITORY'] == 'cheshmakzanoon-ops/Experiment-3'
+          root = Path(os.environ['RUNNER_TEMP']) / 'stands'
+          paths = ['scripts/aurel-secondary-grandstands.blend', 'public/models/aurel-secondary-grandstands.glb', 'src/rendering/secondary-grandstands.geometry.json', 'src/rendering/secondary-grandstands.manifest.json']
+          entries = []
+          for path in paths:
+              data = (root / path).read_bytes()
+              expected = hashlib.sha1(b'blob ' + str(len(data)).encode() + b'\0' + data).hexdigest()
+              request = urllib.request.Request(
+                  'https://api.github.com/repos/' + os.environ['GITHUB_REPOSITORY'] + '/git/blobs',
+                  data=json.dumps({'content': base64.b64encode(data).decode(), 'encoding': 'base64'}).encode(),
+                  headers={'Authorization': 'Bearer ' + os.environ['GH_TOKEN'], 'Accept': 'application/vnd.github+json', 'Content-Type': 'application/json'}, method='POST')
+              with urllib.request.urlopen(request, timeout=60) as response:
+                  result = json.load(response)
+              if result['sha'] != expected:
+                  raise RuntimeError('Git object integrity mismatch: ' + path)
+              entries.append({'path': path, 'mode': '100644', 'type': 'blob', 'sha': expected, 'bytes': len(data), 'sha256': hashlib.sha256(data).hexdigest()})
+          receipt = {'sourceCommit': os.environ['GITHUB_SHA'], 'roundtripIdentical': True, 'matchesCorrectedLinuxExports': True, 'entries': entries, 'branchUpdated': False}
+          (root / 'authoring-receipt.json').write_text(json.dumps(receipt, indent=2) + '\n')
+          print(json.dumps(receipt, indent=2))
+          PY
+          git cat-file commit HEAD > "$RUNNER_TEMP/stands/source-commit-object.txt"
+          cp "$RUNNER_TEMP/a12-blender/verified.sha256" "$RUNNER_TEMP/stands/blender-archive.sha256"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: a12-macos-authored-library
+          path: ${{ runner.temp }}/stands/
+          retention-days: 14
+      - name: Detach this job's read-only Blender volume
+        if: always()
+        run: hdiutil detach "$RUNNER_TEMP/a12-blender-volume" || true
