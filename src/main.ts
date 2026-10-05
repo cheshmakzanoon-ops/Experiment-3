@@ -1,3 +1,9 @@
+import {
+  graphicsSettingsChanged,
+  runSettingsChange,
+  yieldBrowserTask,
+  type SettingsPhase,
+} from './core/settings-transition.ts';
 import { raceBriefing } from './ui/race-briefing.ts';
 import { GridPresentationClock } from './core/grid-presentation.ts';
 import { GridPresentationPanel } from './ui/grid-presentation.ts';
@@ -155,6 +161,8 @@ export class GameApp {
     gpuSequence: 0,
   };
   private savingSettings = false;
+  private settingsPhase: SettingsPhase = 'idle';
+  private settingsResizePending = false;
   private disposed = false;
   private settings: Settings = structuredClone(DEFAULT_SETTINGS);
   private worker: Worker | null = null;
@@ -293,8 +301,11 @@ export class GameApp {
     window.addEventListener('resize', () => {
       this.performanceCapture.interrupt('Viewport changed');
       this.interruptReview('Viewport changed');
-      this.renderer?.resize();
-      this.renderedState = null; // A covered menu still needs one resized frame.
+      // Quality preparation owns render targets until its save settles. Apply
+      // the latest viewport once afterward, not concurrently with compilation.
+      if (this.savingSettings) this.settingsResizePending = true;
+      else this.renderer?.resize();
+      this.renderedState = null; // Redraw after the covering editor releases ownership.
     });
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) this.suspendPlayback();
@@ -410,6 +421,12 @@ export class GameApp {
     );
   }
   private async start(options: SessionOptions, programme = false, holdOnGrid = false) {
+    if (this.savingSettings) {
+      this.ui.toast(
+        'Preferences are still being applied. Start the session after saving completes.',
+      );
+      return;
+    }
     if (this.state === 'loading' && this.worker) return;
     this.gridClock.reset();
     this.gridAutomatic = false;
@@ -727,6 +744,11 @@ export class GameApp {
     const wallDelta = Math.max(0.001, (time - (previousTime || time - 16)) / 1000),
       dt = clamp(wallDelta, 0.001, 0.08);
     this.previousTime = time;
+    // A covering editor owns the LAST completed frame, including its first
+    // callback. Invalidation stays pending until it closes; no fresh submission
+    // may race quality preparation or a settings persistence transaction.
+    this.menuCovered = this.state === 'menu' && this.ui.modal.open;
+    if (this.menuCovered || this.savingSettings) return;
     // Telemetry/settings own a replay's last presented frame immediately, even
     // on the first callback after opening. Paused replay redraws only for a seek
     // or explicit camera/resize invalidation; keep the wall clock current above.
@@ -740,14 +762,6 @@ export class GameApp {
       })
     )
       return;
-    // A modal owns the menu: keep the last fully rendered backdrop instead of
-    // re-submitting an orbiting scene behind every HQ/settings interaction.
-    // On software GPUs the nominal 15 FPS cap cannot help when ONE frame takes
-    // seconds. Input pumping, DOM transactions and saves remain independent.
-    // Photo/replay/driving are deliberately excluded; resize/settings invalidate.
-    const covered = this.state === 'menu' && this.ui.modal.open;
-    if (covered && this.menuCovered && this.renderedState === this.state) return;
-    this.menuCovered = covered;
     // Do not queue seconds of obsolete full-quality frames on a slow GPU.
     // Leave the worker/input pump independent, and retain elapsed presentation
     // time while a draw is deferred. Covered replay/menu returns above still
@@ -1269,7 +1283,7 @@ export class GameApp {
     else this.ui.pause();
   }
   private resume() {
-    if (this.state !== 'paused' || this.ui.telemetryModal.open) return;
+    if (this.savingSettings || this.state !== 'paused' || this.ui.telemetryModal.open) return;
     this.ui.closeModal();
     this.state = 'driving';
     this.gridBriefingOpen = false;
@@ -1411,6 +1425,16 @@ export class GameApp {
     this.ui.toast(`Reference ${String(id).padStart(3, '0')}: ${route.instruction}`);
   }
   private action(name: string) {
+    // Do not replace a renderer or resume simulation while it owns a graphics
+    // transition. Closing the editor, muting, losing focus and reload remain
+    // available; closing does not cancel an already submitted preference save.
+    if (
+      this.savingSettings &&
+      !['modalClose', 'mute', 'blur', 'deviceLost', 'reload'].includes(name)
+    ) {
+      this.ui.toast('Applying preferences…');
+      return;
+    }
     if (this.state === 'pregame') {
       if (name === 'pause' || name === 'blur' || name === 'deviceLost') {
         this.gridClock.pause();
@@ -2009,54 +2033,85 @@ export class GameApp {
       }
     }
   }
-  private applySettings(settings: Settings) {
-    if (this.savingSettings) return;
+  private async applySettings(settings: Settings) {
+    if (this.savingSettings || this.disposed || this.errorStopped) return;
     const form = document.querySelector<HTMLFormElement>('#settingsForm');
     const submit = form?.querySelector<HTMLButtonElement>('[type="submit"]');
+    const renderer = this.renderer;
+    const generation = this.generation;
+    const cancelled = () =>
+      this.disposed ||
+      this.errorStopped ||
+      this.generation !== generation ||
+      this.renderer !== renderer;
+    const graphicsChanged = graphicsSettingsChanged(this.settings, settings);
     this.savingSettings = true;
+    form?.setAttribute('aria-busy', 'true');
     if (submit) {
       submit.disabled = true;
       submit.textContent = 'SAVING…';
     }
     this.performanceCapture.interrupt('Settings changed');
     this.interruptReview('Settings changed');
-    this.settings = settings;
-    this.input.settings = settings;
-    this.ui.applyBindings(settings.bindings);
-    this.renderer?.setQuality(settings.quality, settings.graphics);
-    this.renderedState = null;
-    if (this.renderer) {
-      this.renderer.shake = settings.shake;
-      this.renderer.colorblind = settings.colorblind;
-    }
-    this.audio.volume = settings.volume;
-    this.audio.configureDriving(this.track, settings.drivingAudio);
-    document.documentElement.style.setProperty('--ui-scale', String(settings.uiScale));
-    document.documentElement.dataset.colorblind = String(settings.colorblind);
-    document.documentElement.dataset.highContrast = String(settings.highContrast);
-    // Closing the editor is the completion signal. Do not emit it before the
-    // readwrite transaction commits: an immediate reload can abort the save.
-    const closeCurrentEditor = () => {
+    try {
+      const outcome = await runSettingsChange({
+        cancelled,
+        phase: (phase) => {
+          this.settingsPhase = phase;
+        },
+        prepare: async () =>
+          !renderer ||
+          !graphicsChanged ||
+          renderer.prepareQuality(settings.quality, settings.graphics, cancelled, yieldBrowserTask),
+        apply: () => {
+          this.settings = settings;
+          this.input.settings = settings;
+          this.ui.applyBindings(settings.bindings);
+          this.renderedState = null;
+          if (renderer) {
+            renderer.shake = settings.shake;
+            renderer.colorblind = settings.colorblind;
+          }
+          this.audio.volume = settings.volume;
+          this.audio.configureDriving(this.track, settings.drivingAudio);
+          document.documentElement.style.setProperty('--ui-scale', String(settings.uiScale));
+          document.documentElement.dataset.colorblind = String(settings.colorblind);
+          document.documentElement.dataset.highContrast = String(settings.highContrast);
+        },
+        save: () => this.store.write('settings', settings),
+      });
+      if (!outcome || cancelled()) return;
+      // The transaction, not a successful put request, is the durable completion
+      // signal. Never close a replacement editor or another application's view.
       if (form?.isConnected && document.querySelector('#settingsForm') === form)
         this.action('modalClose');
-    };
-    void this.store
-      .write('settings', settings)
-      .then(() => {
-        closeCurrentEditor();
-        this.ui.toast('Preferences saved. Vehicle setup applies to the next session.');
-      })
-      .catch((e) => {
-        closeCurrentEditor();
-        this.ui.toast(`Applied for this session, but saving failed: ${String(e)}`);
-      })
-      .finally(() => {
-        this.savingSettings = false;
-        if (submit) {
-          submit.disabled = false;
-          submit.textContent = 'APPLY & SAVE';
+      this.ui.toast(
+        outcome.saved
+          ? 'Preferences saved. Vehicle setup applies to the next session.'
+          : `Applied for this session, but saving failed: ${outcome.error}`,
+      );
+    } catch (error) {
+      // A partially applied graphics failure cannot safely be labeled "saved".
+      // Use the existing recoverable fatal panel instead of resuming bad GPU state.
+      if (!cancelled()) this.fail(error);
+    } finally {
+      this.savingSettings = false;
+      form?.removeAttribute('aria-busy');
+      if (submit) {
+        submit.disabled = false;
+        submit.textContent = 'APPLY & SAVE';
+      }
+      if (this.settingsResizePending) {
+        this.settingsResizePending = false;
+        if (!cancelled()) {
+          try {
+            renderer?.resize();
+          } catch (error) {
+            this.fail(error);
+          }
         }
-      });
+      }
+    }
   }
   private async importSetup(file: File) {
     try {
@@ -2103,6 +2158,7 @@ export class GameApp {
       team: structuredClone(this.team),
       photoTime: this.frozenPhoto?.[H.TIME] ?? null,
       teamBusy: this.teamBusy,
+      settingsTransition: { busy: this.savingSettings, phase: this.settingsPhase },
       usedDemonstration: this.usedDemonstration,
       practiceProgramme: this.programme.progress(),
       inspectedReference: this.inspectedReference,

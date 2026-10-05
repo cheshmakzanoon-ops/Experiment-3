@@ -1,0 +1,47 @@
+name: Settings interaction validation
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - src/main.ts
+      - src/core/settings-transition.ts
+      - src/rendering/renderer.ts
+      - tests/settings-transition.test.ts
+      - e2e/settings-transition.spec.ts
+      - e2e/30-menu-access.spec.ts
+      - .github/workflows/settings-validation.yml
+permissions:
+  contents: read
+jobs:
+  settings:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      APEX_BROWSER_BACKEND: mesa
+      LIBGL_ALWAYS_SOFTWARE: 'true'
+      GALLIUM_DRIVER: llvmpipe
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
+      - run: npm test -- tests/settings-transition.test.ts
+      - run: node --experimental-transform-types scripts/source-stability.ts -- npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb
+      - name: Original menu regression and transition ownership, without forced clicks or retries
+        run: xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e -- e2e/30-menu-access.spec.ts e2e/settings-transition.spec.ts
+      - name: Retain results including failures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: settings-interaction-evidence
+          path: |
+            test-results/
+            playwright-report/
+            browser-backend.json
+            browser-progress.json
+          retention-days: 7

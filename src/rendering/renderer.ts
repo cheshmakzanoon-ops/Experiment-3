@@ -691,6 +691,26 @@ export class RacingRenderer {
       return true;
     });
   }
+  /** A settings edit is not a new race. Drain the preceding submission before
+   * releasing its textures/targets, and compile without drawing or resetting
+   * the camera, car poses, physics, replay or recorded presentation clocks.
+   * The application owns normal-frame exclusion for the whole transaction. */
+  async prepareQuality(
+    quality: Quality,
+    graphics: GraphicsOptions,
+    cancelled: () => boolean,
+    yieldControl: () => Promise<void>,
+  ): Promise<boolean> {
+    const stopped = () => this.disposed || cancelled();
+    if (stopped()) return false;
+    await this.waitForPreparedFrame(stopped, yieldControl);
+    if (stopped()) return false;
+    this.setQuality(quality, graphics);
+    await yieldControl();
+    if (stopped()) return false;
+    await compileSceneTarget(this.renderer, this.scene, this.camera, this.composer.readBuffer);
+    return !stopped();
+  }
   setQuality(q: Quality, options: GraphicsOptions = graphicsPreset(q)) {
     this.quality = q;
     this.graphics = validateGraphics(options, q);
