@@ -1,3 +1,4 @@
+import { saveSecondaryStandEvidence } from './fixtures/secondary-stand-artifacts.ts';
 import { createHash } from 'node:crypto';
 import type { SecondaryStandCaptureSink } from './fixtures/secondary-stand-capture.ts';
 import { test, expect } from '@playwright/test';
@@ -52,7 +53,10 @@ for (const lighting of ['day', 'sunset', 'night'] as const) {
       const body = Buffer.from(image.slice('data:image/png;base64,'.length), 'base64');
       if (!body.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])))
         throw new Error('Invalid A12 PNG signature');
-      await info.attach(`${lighting}-${name}.png`, { body, contentType: 'image/png' });
+      const filename = `${lighting}-${name}.png`;
+      await saveSecondaryStandEvidence(info.outputPath(filename), body, async (path) => {
+        await info.attach(filename, { path, contentType: 'image/png' });
+      });
       captures.push({
         name,
         bytes: body.length,

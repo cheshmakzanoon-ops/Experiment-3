@@ -41,3 +41,30 @@ Final exact-source browser and aggregate results must be checked independently.
 No source car, cockpit camera, physical route, authored asset, save/replay format,
 release gate, or final-art flag changes. Human-driven full-race review, consumer
 hardware, final art and A72-A75 remain open.
+
+## Disk-first attachment correction
+
+The installed Playwright reporter keeps body-only attachments in memory until
+reporting. The capture sink now writes each PNG with exclusive creation before
+notifying Playwright through a file-path attachment. Worker termination can no
+longer erase earlier images that have already been delivered. Four filesystem
+regressions verify exact bytes before notification, retention when the reporter
+rejects, propagation of write errors, and rejection of duplicate overwrites.
+This Node-side persistence correction does not change the browser survey,
+application, authored assets, simulation or original coverage assertions.
+
+## Independent aggregate results
+
+GitHub run `37386431866`, validation job `112020726431`, passed all 1,898
+unit cases in 215 files, complete lint, strict TypeScript, production build and
+source preservation for commit `be2ecbdcbfb92558f1be707adc032bd03896e7bb`.
+Its separate simulation-scenario job also passed. Full browser/release acceptance
+must not be inferred from those jobs.
+
+The concurrent sandbox aggregate is not a pass: although all 1,898 cases
+reported passing, Vitest reported an unhandled task-update RPC timeout and the
+source guard correctly rejected the separately running browser reporter's new
+`browser-progress.json`. No source-stability exclusion was added. Use the
+independent, exact-commit hosted aggregate above; do not relabel the local run.
+
+The disk-first continuation passed all seven capture/filesystem tests, changed-file ESLint and strict project TypeScript. Its exact-commit full CI remains a separate gate.
