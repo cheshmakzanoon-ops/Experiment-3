@@ -29,6 +29,12 @@ Priority:
 | A33 | Front/rear spare-wheel handling set, three LODs, sixteen sockets, state-driven carrying and four stored wheels in A22. | Final art, detailed exchange/condition continuity and representative-hardware approval remain. See [A33 notes](docs/A33_SPARE_WHEEL_HANDLING_SET.md). |
 | A35 | Mobile trolley and fixed rack; empty, partial and full loads, eight sockets, three LODs and three bay-05 placements. | Parked visual props only; live handling, final art, full-lap and hardware approval remain. See [A35 notes](docs/A35_TYRE_TROLLEYS_RACKS.md). |
 
+A12 now has a first integrated revision at the six retained Aurel sites, with
+three detail tiers, unchanged seat/crowd layouts and editable native source.
+[Scope and evidence](docs/A12_SECONDARY_GRANDSTANDS.md). Final art, continuous
+human-driven review, representative hardware and exact-source release remain
+independent acceptance gates; A72–A75 are not completed by this package.
+
 An integrated revision is not final approval and does not complete related asset-family rows.
 
 ---

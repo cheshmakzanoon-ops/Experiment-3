@@ -1779,6 +1779,7 @@ export class RacingRenderer {
     this.circuit.broadcastCameras?.dispose();
     this.circuit.vegetation?.dispose();
     this.circuit.quarry?.dispose();
+    this.circuit.secondaryStands.dispose();
 
     if (this.circuit.tyreBlankets && !this.circuit.tyreBlankets.root.parent)
       this.circuit.tyreBlankets.dispose();

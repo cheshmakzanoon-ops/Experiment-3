@@ -1,3 +1,4 @@
+import { SecondaryGrandstands } from './secondary-grandstands.ts';
 import type { AurelQuarryKit } from './aurel-quarry.ts';
 import type { AurelVegetationKit } from './aurel-vegetation.ts';
 import type { TrackSignalHardwareKit } from './track-signal-hardware.ts';
@@ -84,6 +85,7 @@ export class CircuitScene {
   readonly group = new T.Group();
   readonly crowd = new T.Group();
   readonly startFinish: StartFinishVenue;
+  readonly secondaryStands: SecondaryGrandstands;
   readonly crowdClusters: CrowdCluster[] = [];
   readonly staff: MarshalStaffView;
   readonly props = new StaticTransformGroup();
@@ -120,6 +122,7 @@ export class CircuitScene {
     this.group.name = 'Aurel circuit';
     this.trackInfrastructure = makeTrackInfrastructurePlan(track);
     this.startFinish = new StartFinishVenue(track);
+    this.secondaryStands = new SecondaryGrandstands(track);
     this.staff = new MarshalStaffView(this.trackInfrastructure.marshalPosts);
     this.serviceSites = serviceSitePlan(track);
     this.districts = districtPlan(track, this.serviceSites);
@@ -350,6 +353,7 @@ export class CircuitScene {
             this.pitWallStation?.root,
             this.pitBuildingFrontage?.root,
             ...this.startFinish.roots,
+            ...this.secondaryStands.roots,
           ].filter((o) => o !== undefined),
         ),
       ),
@@ -404,6 +408,7 @@ export class CircuitScene {
       source: 'constructed-runtime-groups',
       quarry: this.quarry?.diagnostics() ?? null,
       startFinish: this.startFinish.diagnostics(),
+      secondaryStands: this.secondaryStands.diagnostics(),
       concreteBarriers: infrastructureIdentity(this.concreteBarriers?.diagnostics() ?? null),
       steelGuardrails: infrastructureIdentity(this.steelGuardrails?.diagnostics() ?? null),
       catchFence: infrastructureIdentity(this.catchFence?.diagnostics() ?? null),
@@ -653,6 +658,7 @@ export class CircuitScene {
           this.crowdClusters,
           this.sightlines,
           this.startFinish,
+          this.secondaryStands,
         ),
       );
     this.construction.add('A18 live race-information board', 3, () =>

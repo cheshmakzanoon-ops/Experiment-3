@@ -1,3 +1,4 @@
+import type { SecondaryGrandstands } from './secondary-grandstands.ts';
 import type { StartFinishVenue } from './start-finish-venue.ts';
 import { AUREL_VENUE, venuePlan, type StandSpec } from './venue-plan.ts';
 import { installVenueFinish } from './venue-materials.ts';
@@ -85,6 +86,7 @@ export function buildGrandstand(
   clusters?: CrowdCluster[],
   sightlines?: BroadcastSightlines,
   complex?: StartFinishVenue,
+  secondary?: SecondaryGrandstands,
 ) {
   const frame = standFrame(track, site),
     root = new T.Group();
@@ -95,8 +97,15 @@ export function buildGrandstand(
   const side = site.side,
     L = site.length;
   const hero = complex?.accepts(site) ?? false;
+  const authoredSecondary = secondary?.accepts(site) ?? false;
   if (hero) complex!.architecture(root, site, frame, sightlines);
-  else {
+  else if (authoredSecondary) {
+    secondary!.architecture(root, site, frame, sightlines);
+    // Keep the existing roof-edge signage and its material/texture lifecycle.
+    const sign = mesh(root, new T.PlaneGeometry(L * 0.72, 0.62), m.sign, side * -1.82, 5.53, 0);
+    sign.rotation.y = (-side * Math.PI) / 2;
+    sign.castShadow = false;
+  } else {
     // Terraced concrete decks with open sightlines and a continuous front walkway.
     box(root, m.concrete, side * 0.3, -0.12, 0, 2.5, 0.24, L);
     for (let row = 0; row < 8; row++)
@@ -193,7 +202,7 @@ export function buildGrandstand(
       const z = (col - (columns - 1) / 2) * 0.65;
       const aisle = Math.abs(z - L * 0.25) < 0.7 || Math.abs(z + L * 0.25) < 0.7;
       if (aisle) {
-        if (!hero && col % 2 === 0)
+        if (!hero && !authoredSecondary && col % 2 === 0)
           box(root, m.concrete, side * (1.6 + row * 0.98), row * 0.49 - 0.03, z, 0.95, 0.1, 0.63);
         continue;
       }
@@ -240,6 +249,9 @@ export function buildGrandstand(
   };
   if (hero) {
     complex!.seats(root, site, instances, colors, m.seats);
+    seatGeometry.dispose();
+  } else if (authoredSecondary) {
+    secondary!.seats(root, site, instances, colors);
     seatGeometry.dispose();
   } else install(seatGeometry, m.seats, instances, colors, root, `Seats ${site.s}m`);
   const peopleRoot = new T.Group();

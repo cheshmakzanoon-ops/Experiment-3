@@ -1,0 +1,53 @@
+name: A12 secondary-stand validation
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - src/rendering/secondary-grandstand*
+      - src/rendering/grandstand.ts
+      - src/rendering/circuit.ts
+      - src/rendering/renderer.ts
+      - public/models/aurel-secondary-grandstands.glb
+      - scripts/aurel-secondary-grandstands.blend
+      - scripts/author-secondary-grandstands.py
+      - tests/secondary-grandstand*.test.ts
+      - tests/secondary-stand-traversal.test.ts
+      - e2e/secondary-grandstands.spec.ts
+      - e2e/fixtures/secondary-stand*.ts
+      - .github/workflows/secondary-grandstands-validation.yml
+permissions:
+  contents: read
+jobs:
+  browser:
+    # Supplemental first-party GPU evidence during the Linux runner disruption.
+    # This does not replace any full CI, Mesa, wet-presentation or release gate.
+    runs-on: macos-14
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        lighting: [day, sunset, night]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
+      - name: Check exact A12 assets and unchanged six-site layouts
+        run: npx vitest run tests/secondary-grandstand-assets.test.ts tests/secondary-grandstands.test.ts tests/secondary-stand-traversal.test.ts
+      - run: node --experimental-transform-types scripts/source-stability.ts -- npm run build
+      - run: npx playwright install chromium
+      - name: Production scenery, normal cockpit and physical lap traversal
+        run: npx playwright test e2e/secondary-grandstands.spec.ts --grep 'A12 ${{ matrix.lighting }}:'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: a12-${{ matrix.lighting }}-evidence
+          path: |
+            test-results/
+            playwright-report/
+            browser-backend.json
+            browser-progress.json
+          retention-days: 14

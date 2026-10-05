@@ -32,13 +32,15 @@ for (const [family, filename] of [
   ['aurel-vegetation', 'aurel-vegetation.glb'],
   ['aurel-quarry', 'aurel-quarry.glb'],
   ['event-hall', 'aurel-event-hall.glb'],
+  ['secondary-grandstands', 'aurel-secondary-grandstands.glb'],
 ]) {
   const source = JSON.parse(readFileSync(`src/rendering/${family}.manifest.json`, 'utf8'));
-  // A71 ships bundled accessors and retains its matching exchange asset too.
-  if (family === 'event-hall' && source.exchange !== 'public/models/aurel-event-hall.glb') {
-    throw new Error('Unexpected A71 exchange path');
+  // A71/A12 bundle accessors while retaining their matched exchange assets.
+  const bundled = family === 'event-hall' || family === 'secondary-grandstands';
+  if (bundled && source.exchange !== `public/models/${filename}`) {
+    throw new Error(`Unexpected authored exchange path: ${family}`);
   }
-  const manifest = family === 'event-hall'
+  const manifest = bundled
     ? { url: source.exchange.slice(7), bytes: source.exchangeBytes, sha256: source.exchangeSHA256 }
     : source;
   const asset = `models/${filename}`;

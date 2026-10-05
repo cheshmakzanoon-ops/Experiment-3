@@ -1,3 +1,11 @@
+## A12 secondary grandstands
+
+Aurel's six retained secondary stands now use an original modular Blender/GLB
+library with formed seats, mounting shoes, roof ribs, protected aisles and
+terrain-seated supports. The two hero stands, spectator occupancy, circuit
+physics and supplied player assets are unchanged. [Scope and independent
+acceptance](docs/A12_SECONDARY_GRANDSTANDS.md).
+
 ## A01–A07 track infrastructure
 
 Aurel uses original authored concrete, guardrails, catch-fence supports, impact

@@ -36,6 +36,7 @@ it('publishes exact validated bytes, recovers reruns, and rejects altered or sta
       ['aurel-vegetation', 'aurel-vegetation.glb'],
       ['aurel-quarry', 'aurel-quarry.glb'],
       ['event-hall', 'aurel-event-hall.glb'],
+      ['secondary-grandstands', 'aurel-secondary-grandstands.glb'],
     ];
     for (const [family, asset] of families) {
       const data = Buffer.from(`asset ${family}`);
@@ -136,7 +137,8 @@ else: raise ValueError(cmd)
       const manifestPath = join(manifests, `${family}.manifest.json`);
       const originalManifest = readFileSync(manifestPath);
       const wrongPath = JSON.parse(originalManifest.toString());
-      if (family === 'event-hall') wrongPath.exchange = 'public/models/other.glb';
+      if (family === 'event-hall' || family === 'secondary-grandstands')
+        wrongPath.exchange = 'public/models/other.glb';
       else wrongPath.url = 'models/other.glb';
       writeFileSync(manifestPath, JSON.stringify(wrongPath));
       expect(run().status).not.toBe(0);
