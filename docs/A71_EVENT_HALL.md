@@ -94,3 +94,15 @@ workflow does not imply these browser checks passed.
 
 Continuous human-driven full-race review, representative consumer-hardware timing,
 final-art approval, and broader district/secondary-stand propagation remain open.
+
+## Approach-observer sampling correction
+
+An independent run of the exact seeded dry approach showed that half-second
+observation skipped alternate 40 m capture stations: three views were retained,
+not the required four. The rain case produced five. No car was stuck and no
+simulation change was required. The observer now polls the unchanged 120 Hz
+physics every 15 ticks (one eighth of a second). Native dry/rain regressions
+require at least four views, ordered times and stations, actual live frame
+equality and unchanged state for rejected sites. Rendering occurs immediately
+at each selected snapshot so live track water is not read from a later time.
+The browser's minimum coverage, route extent and rendering budgets are unchanged.

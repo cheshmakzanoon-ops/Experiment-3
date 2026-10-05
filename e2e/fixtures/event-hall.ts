@@ -1,3 +1,4 @@
+import { sampleHallApproach } from './event-hall-approach.ts';
 import * as T from 'three';
 import { RacingRenderer } from '../../src/rendering/renderer.ts';
 import { graphicsPreset } from '../../src/rendering/options.ts';
@@ -203,27 +204,15 @@ export async function surveyEventHall(lighting: 'day' | 'sunset' | 'night') {
     // Spaced moving captures are rendering evidence, NOT a continuous human lap
     // or a representative-hardware benchmark. No state/position injection.
     const driving: { station: number; time: number; image: string }[] = [];
-    let previous = frame,
-      last = -Infinity,
-      completed = false;
-    const entry = site.s - 100,
-      exit = site.s + 110;
-    while (sim.makeFrame()[H.TIME] < 180) {
-      for (let i = 0; i < 60; i++) sim.step(1 / 120);
-      const current = sim.makeFrame().slice(),
-        station = sim.cars[0].s;
-      if (station >= entry && station <= exit && station - last >= 40) {
-        view.mode = 'cockpit';
-        view.draw(previous, current, 1, 0.5);
-        driving.push({ station, time: current[H.TIME], image: canvas.toDataURL('image/png') });
-        last = station;
-      }
-      previous = current;
-      if (driving.length > 0 && station > exit) {
-        completed = true;
-        break;
-      }
-    }
+    const approach = sampleHallApproach(sim, site.s, (sample) => {
+      view.mode = 'cockpit';
+      view.draw(sample.previous, sample.frame, 1, sample.delta);
+      driving.push({
+        station: sample.station,
+        time: sample.time,
+        image: canvas.toDataURL('image/png'),
+      });
+    });
     return {
       lighting,
       asset: EVENT_HALL_ASSET,
@@ -231,7 +220,7 @@ export async function surveyEventHall(lighting: 'day' | 'sunset' | 'night') {
       images,
       cockpit,
       driving,
-      driveCompleted: completed,
+      driveCompleted: approach.completed,
       frameUnchanged,
       waterUnchanged,
       memoryBefore,
