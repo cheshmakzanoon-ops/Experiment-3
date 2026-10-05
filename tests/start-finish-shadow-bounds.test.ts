@@ -8,14 +8,20 @@ import { DEFAULT_OPTIONS } from '../src/simulation/config.ts';
 import { F, carBase } from '../src/simulation/protocol.ts';
 import { lightingDirection, shadowAnchor } from '../src/rendering/daylight.ts';
 
-function stand() {
+function stand(weather: 'clear' | 'rain' = 'clear') {
   const context = { fillRect() {}, fillText() {}, measureText: () => ({ width: 10 }) };
   const previous = globalThis.document;
   Object.defineProperty(globalThis, 'document', {
     configurable: true,
     value: { createElement: () => ({ getContext: () => context, width: 0, height: 0 }) },
   });
-  const sim = new Simulation({ ...DEFAULT_OPTIONS, mode: 'race', opponents: 11, seed: 1887 });
+  const sim = new Simulation({
+    ...DEFAULT_OPTIONS,
+    mode: 'race',
+    opponents: 11,
+    seed: 1887,
+    weather,
+  });
   sim.autoPlayer = true;
   for (let i = 0; i < 960; i++) sim.step(1 / 120);
   const props = new T.Group();
@@ -51,6 +57,38 @@ function dispose(root: T.Object3D) {
 }
 
 describe('production start-finish shadow frustum', () => {
+  it('retains wet night as the original sphere-culling no-change control', () => {
+    const { sim, props, crowd, root } = stand('rain');
+    const frame = sim.makeFrame(),
+      original = frame.slice(),
+      b = carBase(0);
+    const target = new T.Vector3(frame[b + F.X], frame[b + F.Y], frame[b + F.Z]);
+    const light = new T.DirectionalLight();
+    const shadow = light.shadow.camera;
+    Object.assign(shadow, { left: -38, right: 38, top: 38, bottom: -38, near: 20, far: 500 });
+    shadow.updateProjectionMatrix();
+    shadowAnchor(target, 1024, 38, light.target.position, 'night');
+    light.position.copy(light.target.position).add(lightingDirection('night'));
+    light.updateMatrixWorld();
+    light.target.updateMatrixWorld();
+    light.shadow.updateMatrices(light);
+    try {
+      for (const tier of ['near', 'mid', 'far']) {
+        const seats = root.getObjectByName(`seat_${tier}`) as T.InstancedMesh;
+        // Unlike the dry daylight/sunset fixture, the unchanged rainy physics
+        // frame already misses Three's initial sphere test. The extra callback
+        // must not be required to save work the renderer never submitted.
+        expect(light.shadow.getFrustum().intersectsObject(seats)).toBe(false);
+        expect(seats.count).toBe(952);
+        expect(seats.castShadow).toBe(true);
+        expect(seats.geometry.drawRange).toEqual({ start: 0, count: Infinity });
+      }
+      expect(frame).toEqual(original);
+    } finally {
+      dispose(props);
+      dispose(crowd);
+    }
+  });
   for (const lighting of ['day', 'sunset'] as const) {
     it(`rejects the ${lighting} sphere false-positive without changing seat geometry`, () => {
       const { sim, props, crowd, root } = stand();

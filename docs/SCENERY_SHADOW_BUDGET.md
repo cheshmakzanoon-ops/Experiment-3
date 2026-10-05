@@ -87,3 +87,36 @@ counts and ranges are restored, including finite/subset caller counts and an
 interrupted draw. The strict call-reduction assertion and all original rendering
 limits stay unchanged. Pixel equivalence and the revised exact-commit outcomes
 remain required; the exploratory failed controls are retained, not relabelled.
+
+## Wet-night no-change control
+
+Final production source `f40e48a` passed local and hosted source validation.
+The local check retained all 1,800 cases in 207 files, lint, TypeScript, build
+and unchanged guarded inputs. Its dedicated shadow workflow `37245124681`
+passed daylight and sunset. Day artifact `11319016779` records 10,374,772
+complete triangles / 2,353 calls; sunset artifact `11318684395` records
+12,544,064 / 3,207, below the unchanged sunset ceiling. Both actual near-shadow
+textures were byte-identical, with 463,144 fewer triangles and five fewer calls.
+
+The wet-night artifact `11319385683` correctly rejected the NEW observer's
+universal savings assertion: its saved work was zero. However, its original
+complete-frame counts (12,917,479 triangles / 3,487 calls) are EXACTLY those
+of the retained pre-repair `0bf8a6d` wet-night Quarry report. Pixels and draw-state
+identities were unchanged and no browser/GL errors occurred. The night budget
+was already satisfied; this is not a new production rendering failure.
+
+An independent CPU check of the unchanged rainy simulation puts the player at
+[-354.50787353515625, 0.34505146741867065, -203.3347625732422]. Three's initial
+sphere test already excludes every detail tier of stand 55 in that near light
+frustum, unlike the daylight/sunset case. There is no false-positive submission
+for the additional check to remove. The test must not demand deletion of real
+visible work just to manufacture a saving.
+
+Wet night is now an explicit negative control: exact zero savings and identical
+uncropped/cropped calls AND triangles are required. Daylight/sunset retain their
+strict >200,000 savings and call-reduction assertions. Every lighting still
+requires zero changed shadow bytes, geometry/draw-state identity, no errors and
+the original first-frame budget; no scenario, camera, simulation, asset, renderer
+or budget changed. The added CPU regression preserves the rainy source frame
+and verifies the ordinary sphere exclusion. The failed universal assertion is
+retained as evidence, not relabelled as a pass.
