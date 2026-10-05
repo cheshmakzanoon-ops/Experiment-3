@@ -37,6 +37,50 @@ jobs:
       - run: node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
       - name: Check exact A12 assets and unchanged six-site layouts
         run: npx vitest run tests/secondary-grandstand-assets.test.ts tests/secondary-grandstands.test.ts tests/secondary-stand-traversal.test.ts
+      - name: Restore the unchanged hash-pinned player derivative
+        # ARM macOS regeneration differs from the existing Linux-pinned package.
+        # Restore only that verified cache file, never an old application build.
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 --max-time 180 \
+            'https://github.com/cheshmakzanoon-ops/Experiment-3/releases/download/playable-67e3af529e09a52028cacf77a93f1066e2ca6f2c/apex-formula-playable.zip' \
+            -o "$RUNNER_TEMP/a71-playable.zip"
+          python3 - <<'PYTHON'
+          import gzip, hashlib, io, json, os, pathlib, zipfile
+          root = pathlib.Path.cwd()
+          archive = pathlib.Path(os.environ['RUNNER_TEMP']) / 'a71-playable.zip'
+          if archive.stat().st_size != 61148930:
+              raise ValueError('Unexpected validated release size')
+          raw = archive.read_bytes()
+          if hashlib.sha256(raw).hexdigest() != '2c600c149fae76ce60e96374ebb461371a8e60be6002caa61c1b8516d7bcfdd2':
+              raise ValueError('Validated release checksum differs')
+          manifest = json.loads((root / 'src/rendering/supplied-player-lods.manifest.json').read_text())
+          player = json.loads((root / 'src/rendering/supplied-player.manifest.json').read_text())
+          if manifest['version'] != 2 or manifest['sourceSHA256'] != player['sha256']:
+              raise ValueError('Player source no longer matches the retained derivative')
+          with zipfile.ZipFile(io.BytesIO(raw)) as source:
+              path = 'models/supplied-player-lods.bin.gz'
+              for name in ('SOURCE_COMMIT.txt', path):
+                  if source.namelist().count(name) != 1:
+                      raise ValueError('Missing or duplicate validated archive member')
+              if source.getinfo('SOURCE_COMMIT.txt').file_size > 64:
+                  raise ValueError('Oversized source identity')
+              if source.read('SOURCE_COMMIT.txt').decode().strip() != '67e3af529e09a52028cacf77a93f1066e2ca6f2c':
+                  raise ValueError('Wrong validated source commit')
+              if source.getinfo(path).file_size != manifest['compressedBytes']:
+                  raise ValueError('Wrong derivative archive size')
+              packed = source.read(path)
+          if hashlib.sha256(packed).hexdigest() != manifest['compressedSHA256']:
+              raise ValueError('Wrong compressed derivative checksum')
+          with gzip.GzipFile(fileobj=io.BytesIO(packed)) as stream:
+              data = stream.read(manifest['bytes'] + 1)
+          if len(data) != manifest['bytes'] or hashlib.sha256(data).hexdigest() != manifest['sha256']:
+              raise ValueError('Wrong raw derivative bytes')
+          target = root / 'public/models/supplied-player-lods.bin.gz'
+          target.write_bytes(packed)
+          print('Restored only the unchanged verified player derivative; ordinary prebuild verification follows.')
+          PYTHON
       - run: node --experimental-transform-types scripts/source-stability.ts -- npm run build
       - run: npx playwright install chromium
       - name: Production scenery, normal cockpit and physical lap traversal
