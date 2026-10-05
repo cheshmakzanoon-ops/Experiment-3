@@ -31,8 +31,16 @@ for (const [family, filename] of [
   ['broadcast-cameras', 'aurel-broadcast-cameras.glb'],
   ['aurel-vegetation', 'aurel-vegetation.glb'],
   ['aurel-quarry', 'aurel-quarry.glb'],
+  ['event-hall', 'aurel-event-hall.glb'],
 ]) {
-  const manifest = JSON.parse(readFileSync(`src/rendering/${family}.manifest.json`, 'utf8'));
+  const source = JSON.parse(readFileSync(`src/rendering/${family}.manifest.json`, 'utf8'));
+  // A71 ships bundled accessors and retains its matching exchange asset too.
+  if (family === 'event-hall' && source.exchange !== 'public/models/aurel-event-hall.glb') {
+    throw new Error('Unexpected A71 exchange path');
+  }
+  const manifest = family === 'event-hall'
+    ? { url: source.exchange.slice(7), bytes: source.exchangeBytes, sha256: source.exchangeSHA256 }
+    : source;
   const asset = `models/${filename}`;
   if (manifest.url !== asset) throw new Error(`Unexpected trackside asset path: ${family}`);
   const bytes = readFileSync(`${process.argv[2]}/${asset}`);

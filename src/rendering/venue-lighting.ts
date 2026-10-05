@@ -188,7 +188,11 @@ export class VenueLighting {
   diagnostics() {
     return {
       masts: this.locations.length,
-      landmark: { ...this.landmarkSite, emission: this.display.material.emissiveIntensity },
+      landmark: {
+        ...this.landmarkSite,
+        emission: this.display.material.emissiveIntensity,
+        authored: this.display.geometry.userData.authoredAsset ?? null,
+      },
       nearbyLights: this.lights.filter((light) => light.visible).length,
       lightIntensity: this.lights.map((light) => light.intensity),
       lightSites: Array.from(this.nearest),

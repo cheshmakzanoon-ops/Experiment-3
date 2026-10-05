@@ -1,0 +1,72 @@
+name: A71 event hall validation
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - src/rendering/event-hall*
+      - src/rendering/venue-landmark.ts
+      - src/rendering/venue-lighting.ts
+      - public/models/aurel-event-hall.glb
+      - scripts/aurel-event-hall.blend
+      - scripts/author-event-hall.py
+      - tests/event-hall.test.ts
+      - e2e/event-hall.spec.ts
+      - e2e/fixtures/event-hall.ts
+      - .github/workflows/event-hall-validation.yml
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
+      - run: npm run check:stable
+      - uses: actions/upload-artifact@v4
+        with:
+          name: a71-tested-web
+          path: dist/
+          retention-days: 7
+  browser:
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        lighting: [day, sunset, night]
+    env:
+      APEX_BROWSER_BACKEND: mesa
+      LIBGL_ALWAYS_SOFTWARE: 'true'
+      GALLIUM_DRIVER: llvmpipe
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
+      - uses: actions/download-artifact@v4
+        with:
+          name: a71-tested-web
+          path: dist/
+      - run: npx playwright install --with-deps chromium
+      - run: sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb
+      - name: Actual production renderer, optical cycles and physical approach
+        run: xvfb-run -a -s '-screen 0 1920x1080x24' npx playwright test e2e/event-hall.spec.ts --grep 'A71 ${{ matrix.lighting }}:'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: a71-${{ matrix.lighting }}-evidence
+          path: |
+            test-results/
+            playwright-report/
+            browser-backend.json
+            browser-progress.json
+          retention-days: 14

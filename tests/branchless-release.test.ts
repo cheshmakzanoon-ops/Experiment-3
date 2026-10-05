@@ -35,6 +35,7 @@ it('publishes exact validated bytes, recovers reruns, and rejects altered or sta
       ['broadcast-cameras', 'aurel-broadcast-cameras.glb'],
       ['aurel-vegetation', 'aurel-vegetation.glb'],
       ['aurel-quarry', 'aurel-quarry.glb'],
+      ['event-hall', 'aurel-event-hall.glb'],
     ];
     for (const [family, asset] of families) {
       const data = Buffer.from(`asset ${family}`);
@@ -42,6 +43,9 @@ it('publishes exact validated bytes, recovers reruns, and rejects altered or sta
       writeFileSync(
         join(manifests, `${family}.manifest.json`),
         JSON.stringify({
+          exchange: `public/models/${asset}`,
+          exchangeBytes: data.length,
+          exchangeSHA256: createHash('sha256').update(data).digest('hex'),
           url: `models/${asset}`,
           bytes: data.length,
           sha256: createHash('sha256').update(data).digest('hex'),
@@ -118,7 +122,7 @@ else: raise ValueError(cmd)
     expect(result.status).toBe(0);
     expect(readFileSync(join(state, 'apex-formula-playable.zip'))).toEqual(bytes);
     const callsBeforeNegativeCases = readFileSync(join(root, 'gh-calls'), 'utf8');
-    for (const [, asset] of families) {
+    for (const [family, asset] of families) {
       const path = join(models, asset);
       const original = readFileSync(path);
       // Equal-length byte corruption exercises the checksum, not just file size.
@@ -129,6 +133,14 @@ else: raise ValueError(cmd)
       rmSync(path);
       expect(run().status).not.toBe(0);
       writeFileSync(path, original);
+      const manifestPath = join(manifests, `${family}.manifest.json`);
+      const originalManifest = readFileSync(manifestPath);
+      const wrongPath = JSON.parse(originalManifest.toString());
+      if (family === 'event-hall') wrongPath.exchange = 'public/models/other.glb';
+      else wrongPath.url = 'models/other.glb';
+      writeFileSync(manifestPath, JSON.stringify(wrongPath));
+      expect(run().status).not.toBe(0);
+      writeFileSync(manifestPath, originalManifest);
     }
     for (const invalid of [
       { ...identity, commit: 'b'.repeat(40) },

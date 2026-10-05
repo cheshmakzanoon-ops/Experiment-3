@@ -306,3 +306,13 @@ apron strips preserve the physical circuit and supplied player assets.
 See [A55-A60 scope, reproduction and evidence limits](docs/A55_A60_QUARRY.md).
 This is one coherent Aurel sector; broader propagation, final art, uninterrupted
 human driving and representative-hardware approval remain open.
+
+## A71 authored event-hall revision 1
+
+The released menu repair clears the way for an original Blender-authored event-hall
+refinement at the existing Aurel site. Four recessed entrance bays, canopy lobes,
+facade detail, approaches and chamfered supports accompany three packed shell tiers.
+The eight-draw / 7,000 allocated-triangle limit is retained. Native/GLB/accessor
+identities and independent reopen evidence are preserved. This is not A12/A72–A75
+completion, a human-driven review, hardware approval or final art.
+See [A71 scope and evidence boundary](docs/A71_EVENT_HALL.md).

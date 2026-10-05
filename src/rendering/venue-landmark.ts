@@ -1,4 +1,5 @@
 import * as T from 'three';
+import { eventHallGeometry, eventHallShell, EVENT_HALL_ASSET } from './event-hall-assets.ts';
 import { Track, trackPoint } from '../simulation/track.ts';
 import { terrainFor } from './terrain.ts';
 import { venuePlan } from './venue-plan.ts';
@@ -156,6 +157,7 @@ export function buildVenueLandmark(track: Track): VenueLandmark {
   structure.name = 'Aurel event hall / grounded facade and public plaza';
   structure.position.set(site.x, site.deckY, site.z);
   structure.rotation.y = site.yaw;
+  structure.userData.authoredAsset = EVENT_HALL_ASSET.revision;
   const concrete = new T.MeshStandardMaterial({ color: 0x8a887b, roughness: 0.93 });
   const stone = new T.MeshStandardMaterial({ color: 0x636e6c, roughness: 0.83 });
   const metal = new T.MeshStandardMaterial({ color: 0x33484d, metalness: 0.65, roughness: 0.39 });
@@ -179,25 +181,16 @@ export function buildVenueLandmark(track: Track): VenueLandmark {
   const thickness = site.deckY - site.bottomY;
   const foundation = add(
     'Terrain-seated plaza foundation',
-    new T.CylinderGeometry(LANDMARK.plazaRadius, LANDMARK.plazaRadius, thickness, 64),
+    eventHallGeometry('foundation'),
     concrete,
-    -thickness * 0.5,
+    0,
   );
-  add('Entrance plinth', new T.CylinderGeometry(18.1, 18.2, 0.18, 64), stone, 0.09);
-  const facade = add(
-    'Continuous load-bearing facade drum',
-    new T.CylinderGeometry(LANDMARK.drumRadius, LANDMARK.drumRadius, 4.4, 64),
-    glass,
-    2.2,
-  );
-  const bearing = add(
-    'Shell bearing ring',
-    new T.CylinderGeometry(17.05, 17.05, 0.26, 64),
-    metal,
-    4.35,
-  );
-  add('Sheltered entrance canopy', new T.CylinderGeometry(19.4, 19.4, 0.16, 64), metal, 3.25);
-  const columns = new T.InstancedMesh(new T.BoxGeometry(0.28, 4.32, 0.48), metal, LANDMARK.columns);
+  foundation.scale.y = thickness;
+  add('Entrance plinth', eventHallGeometry('plinth'), stone, 0);
+  const facade = add('Continuous load-bearing facade drum', eventHallGeometry('facade'), glass, 0);
+  const bearing = add('Shell bearing ring', eventHallGeometry('bearing'), metal, 0);
+  add('Sheltered entrance canopy', eventHallGeometry('canopy'), metal, 0);
+  const columns = new T.InstancedMesh(eventHallGeometry('column'), metal, LANDMARK.columns);
   columns.name = 'Twenty-four facade and shell supports';
   const transform = new T.Object3D();
   for (let i = 0; i < LANDMARK.columns; i++) {
@@ -213,10 +206,10 @@ export function buildVenueLandmark(track: Track): VenueLandmark {
   columns.receiveShadow = true;
   structure.add(columns);
   // Stable pedestrian furniture stays on the plaza and outside its doors.
-  const bollards = new T.InstancedMesh(new T.CylinderGeometry(0.13, 0.15, 0.9, 8), metal, 20);
+  const bollards = new T.InstancedMesh(eventHallGeometry('bollard'), metal, 20);
   bollards.name = 'Plaza boundary bollards';
   for (let i = 0; i < bollards.count; i++) {
-    const angle = (i / bollards.count) * Math.PI * 2;
+    const angle = ((i + 0.5) / bollards.count) * Math.PI * 2;
     transform.position.set(Math.sin(angle) * 25.9, 0.45, Math.cos(angle) * 25.9);
     transform.rotation.set(0, 0, 0);
     transform.updateMatrix();
@@ -226,18 +219,9 @@ export function buildVenueLandmark(track: Track): VenueLandmark {
   bollards.computeBoundingSphere();
   bollards.castShadow = true;
   structure.add(bollards);
-  const display = new T.Mesh(
-    new T.SphereGeometry(
-      LANDMARK.radius,
-      64,
-      32,
-      0,
-      Math.PI * 2,
-      0,
-      Math.acos(LANDMARK.lowerCosine),
-    ),
-    landmarkScreenMaterial(),
-  );
+  const shell = eventHallShell();
+  const display = new T.Mesh(shell.geometry, landmarkScreenMaterial());
+  shell.bind(display);
   display.name = 'Original LED venue landmark / structurally grounded event hall';
   display.position.set(site.x, site.deckY + LANDMARK.centreHeight, site.z);
   display.rotation.y = site.yaw;
