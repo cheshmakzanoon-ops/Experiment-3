@@ -16,8 +16,11 @@ for (const weather of ['clear', 'rain'] as const)
     let previousTime = -Infinity,
       previousStation = -Infinity;
     const counts = new Map<number, number>();
-    const result = await sampleSecondaryStandLap(sim, (sample) => {
+    const result = await sampleSecondaryStandLap(sim, async (sample) => {
+      const water = sim.track.water.slice();
+      await new Promise<void>((resolve) => setTimeout(resolve, 0));
       expect(sample.frame).toEqual(sim.makeFrame());
+      expect(sim.track.water).toEqual(water);
       expect(sample.station).toBe(sim.cars[0].s);
       expect(sample.time).toBeGreaterThan(previousTime);
       expect(sample.station).toBeGreaterThan(previousStation);
@@ -43,3 +46,22 @@ it('A12 rejects an invalid starting session without stepping it', async () => {
     expect(sim.makeFrame()).toEqual(before);
   }
 });
+
+it('A12 stops advancing when an asynchronous evidence sink rejects', async () => {
+  const sim = new Simulation({ ...DEFAULT_OPTIONS, mode: 'race', opponents: 0, seed: 1887 });
+  sim.autoPlayer = true;
+  let held: Float32Array | undefined;
+  const failed = new Error('Evidence write failed');
+  let captures = 0;
+  await expect(
+    sampleSecondaryStandLap(sim, async (sample) => {
+      captures++;
+      held = sample.frame.slice();
+      await new Promise<void>((resolve) => setTimeout(resolve, 0));
+      throw failed;
+    }),
+  ).rejects.toBe(failed);
+  expect(captures).toBe(1);
+  expect(held).toBeDefined();
+  expect(sim.makeFrame()).toEqual(held);
+}, 30000);

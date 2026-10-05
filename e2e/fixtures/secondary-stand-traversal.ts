@@ -15,7 +15,7 @@ export interface SecondaryStandSample {
  * The callback executes before the next tick so live water matches its frame. */
 export async function sampleSecondaryStandLap(
   sim: Simulation,
-  observe?: (sample: SecondaryStandSample) => void,
+  observe?: (sample: SecondaryStandSample) => void | Promise<void>,
 ) {
   if (sim.track.circuit.id !== 'aurel' || !sim.autoPlayer)
     throw new Error('A12 traversal requires an ordinary AI-driven Aurel session');
@@ -61,7 +61,8 @@ export async function sampleSecondaryStandLap(
         frame,
       };
       samples.push(sample);
-      observe?.(sample);
+      // Keep the exact live water/frame held until evidence is persisted.
+      await observe?.(sample);
       last = station;
     }
     previous = frame;

@@ -1,3 +1,5 @@
+import { createHash } from 'node:crypto';
+import type { SecondaryStandCaptureSink } from './fixtures/secondary-stand-capture.ts';
 import { test, expect } from '@playwright/test';
 import { build } from 'vite';
 import { resolve } from 'node:path';
@@ -10,7 +12,10 @@ for (const lighting of ['day', 'sunset', 'night'] as const) {
   test(`A12 ${lighting}: six production stands, cockpit and unchanged physical traversal`, async ({
     page,
   }, info) => {
-    test.setTimeout(600000);
+    // Software-GPU execution of the complete 12-car, six-site survey is an
+    // evidence workload, not a hardware frame-time benchmark. Keep the 45s
+    // application GPU gate, all render budgets and all coverage assertions.
+    test.setTimeout(1800000);
     const built = await build({
       configFile: false,
       logLevel: 'error',
@@ -38,6 +43,27 @@ for (const lighting of ['day', 'sunset', 'night'] as const) {
       }
       if (m.type() === 'error') errors.push(m.text());
     });
+    const captures: { name: string; bytes: number; sha256: string }[] = [];
+    const sink: SecondaryStandCaptureSink = async ({ name, image }) => {
+      if (!/^[a-z0-9-]+$/.test(name) || captures.some((c) => c.name === name))
+        throw new Error('Invalid or duplicate A12 capture name');
+      if (!image.startsWith('data:image/png;base64,') || image.length > 16000000)
+        throw new Error('Invalid A12 PNG envelope');
+      const body = Buffer.from(image.slice('data:image/png;base64,'.length), 'base64');
+      if (!body.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])))
+        throw new Error('Invalid A12 PNG signature');
+      await info.attach(`${lighting}-${name}.png`, { body, contentType: 'image/png' });
+      captures.push({
+        name,
+        bytes: body.length,
+        sha256: createHash('sha256').update(body).digest('hex'),
+      });
+      await writeFile(
+        info.outputPath('a12-captures.json'),
+        JSON.stringify({ lighting, captures }, null, 2),
+      );
+    };
+    await page.exposeFunction('persistA12Capture', sink);
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.route('**/secondary-stand-survey', (r) =>
       r.fulfill({
@@ -55,7 +81,11 @@ for (const lighting of ['day', 'sunset', 'night'] as const) {
             window as unknown as {
               StandSurvey: { surveySecondaryStands: typeof surveySecondaryStands };
             }
-          ).StandSurvey.surveySecondaryStands(l),
+          ).StandSurvey.surveySecondaryStands(l, (capture) =>
+            (
+              window as unknown as { persistA12Capture: SecondaryStandCaptureSink }
+            ).persistA12Capture(capture),
+          ),
         lighting,
       );
     } finally {
@@ -66,22 +96,12 @@ for (const lighting of ['day', 'sunset', 'night'] as const) {
         JSON.stringify({ lighting, progress, errors }, null, 2),
       );
     }
-    for (const image of [
-      ...report.images,
-      report.cockpit,
-      ...report.driving.map((d, i) => ({ ...d, name: `physical-drive-${i}` })),
-    ])
-      await info.attach(`${lighting}-${image.name}.png`, {
-        body: Buffer.from(image.image.split(',')[1], 'base64'),
-        contentType: 'image/png',
-      });
-    const data = {
-      ...report,
-      errors,
-      images: report.images.map(({ image: _image, ...m }) => m),
-      cockpit: { name: report.cockpit.name, stats: report.cockpit.stats },
-      driving: report.driving.map(({ image: _image, ...d }) => d),
-    };
+    expect(captures.map((c) => c.name)).toEqual([
+      report.cockpit.name,
+      ...report.images.map((image) => image.name),
+      ...report.driving.map((_, i) => `physical-drive-${i}`),
+    ]);
+    const data = { ...report, errors, captures };
     await writeFile(info.outputPath('a12-report.json'), JSON.stringify(data, null, 2));
     expect(errors).toEqual([]);
     expect(report.glError).toBe(0);

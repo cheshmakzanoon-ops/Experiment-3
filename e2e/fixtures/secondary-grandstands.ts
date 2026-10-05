@@ -1,3 +1,7 @@
+import {
+  persistSecondaryStandCapture,
+  type SecondaryStandCaptureSink,
+} from './secondary-stand-capture.ts';
 import { sampleSecondaryStandLap } from './secondary-stand-traversal.ts';
 import * as T from 'three';
 import { RacingRenderer } from '../../src/rendering/renderer.ts';
@@ -14,7 +18,10 @@ import { AUREL_VENUE } from '../../src/rendering/venue-plan.ts';
 
 /** Full production factory and unchanged physical traversal, not a standalone
  * model viewer. Additional static cuts inspect both sides and all six sites. */
-export async function surveySecondaryStands(lighting: 'day' | 'sunset' | 'night') {
+export async function surveySecondaryStands(
+  lighting: 'day' | 'sunset' | 'night',
+  sink: SecondaryStandCaptureSink,
+) {
   const started = performance.now();
   const progress = (stage: string) =>
     console.info(
@@ -44,7 +51,7 @@ export async function surveySecondaryStands(lighting: 'day' | 'sunset' | 'night'
   const view = await RacingRenderer.create(
     canvas,
     sim.track,
-    (message) => progress(`factory: ${message}`),
+    (message) => progress(`factory: ${message.label}`),
     () => false,
     { quality: 'medium', graphics: { ...graphicsPreset('medium'), resolutionScale: 1 } },
   );
@@ -82,7 +89,6 @@ export async function surveySecondaryStands(lighting: 'day' | 'sunset' | 'night'
   const images: {
     name: string;
     site: number;
-    image: string;
     calls: number;
     triangles: number;
     range: number;
@@ -180,9 +186,8 @@ export async function surveySecondaryStands(lighting: 'day' | 'sunset' | 'night'
     ledger.end();
     gl.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
   };
-  const capture = (c: (typeof cuts)[number]) => {
-    cut(c);
-    render();
+  // Own the existing measured frame; do not issue a duplicate scene draw.
+  const capture = async (c: (typeof cuts)[number]) => {
     let min = 255,
       max = 0;
     for (let i = 0; i < pixels.length; i += 4) {
@@ -190,10 +195,10 @@ export async function surveySecondaryStands(lighting: 'day' | 'sunset' | 'night'
       min = Math.min(min, v);
       max = Math.max(max, v);
     }
+    await persistSecondaryStandCapture(canvas, c.name, sink);
     images.push({
       name: c.name,
       site: c.station,
-      image: canvas.toDataURL('image/png'),
       calls: view.renderer.info.render.calls,
       triangles: view.renderer.info.render.triangles,
       range: max - min,
@@ -218,9 +223,9 @@ export async function surveySecondaryStands(lighting: 'day' | 'sunset' | 'night'
     view.draw(frame, frame, 1, 1 / 60);
     const cockpit = {
       name: 'normal-cockpit',
-      image: canvas.toDataURL('image/png'),
       stats: view.stats(),
     };
+    await persistSecondaryStandCapture(canvas, cockpit.name, sink);
     progress('normal-cockpit-ready');
     await yieldBrowser();
     const sequence = [...cuts, ...[...cuts].reverse()];
@@ -241,11 +246,7 @@ export async function surveySecondaryStands(lighting: 'day' | 'sunset' | 'night'
       cut(c);
       render();
       memories.push(memory());
-      await yieldBrowser();
-    }
-    for (const c of cuts) {
-      progress(`capture: ${c.name}`);
-      capture(c);
+      if (memories.length <= cuts.length) await capture(c);
       await yieldBrowser();
     }
     progress('building-negative-control');
@@ -283,34 +284,33 @@ export async function surveySecondaryStands(lighting: 'day' | 'sunset' | 'night'
     }
     const frameUnchanged = frame.every((v, i) => Object.is(v, original[i]));
     const waterUnchanged = water.every((v, i) => v === sim.track.water[i]);
-    const driving: { site: number; station: number; time: number; image: string; mode: string }[] =
-      [];
+    const driving: { site: number; station: number; time: number; mode: string }[] = [];
     let liveFramesUnchanged = true,
       liveWaterUnchanged = true;
     const visited = new Set<number>();
     progress('physical-traversal-start');
-    const traversal = await sampleSecondaryStandLap(sim, (sample) => {
+    const traversal = await sampleSecondaryStandLap(sim, async (sample) => {
       progress(`physical: ${sample.site}m / ${sample.station.toFixed(2)}m`);
       const live = sample.frame.slice(),
         wet = sim.track.water.slice();
       view.mode = 'cockpit';
       view.draw(sample.previous, sample.frame, 1, sample.delta);
+      await persistSecondaryStandCapture(canvas, `physical-drive-${driving.length}`, sink);
       driving.push({
         site: sample.site,
         station: sample.station,
         time: sample.time,
-        image: canvas.toDataURL('image/png'),
         mode: 'cockpit',
       });
       if (!visited.has(sample.site)) {
         visited.add(sample.site);
         view.mode = 'chase';
         view.draw(sample.frame, sample.frame, 1, 0);
+        await persistSecondaryStandCapture(canvas, `physical-drive-${driving.length}`, sink);
         driving.push({
           site: sample.site,
           station: sample.station,
           time: sample.time,
-          image: canvas.toDataURL('image/png'),
           mode: 'chase',
         });
       }
