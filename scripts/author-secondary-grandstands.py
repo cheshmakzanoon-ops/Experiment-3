@@ -135,14 +135,20 @@ def author():
         g.box((9.5,3.53,0),(1.25,.2,8))
         mesh('deck',tier,g,'stone')
         g = Shape()
-        # Folded canopy retains the old stand envelope and pitched roof datum.
-        g.section(((-1.75,5.54),(10.75,7.63),(10.75,7.77),(-1.75,5.68)),-4,4)
+        # Keep the tested original roof pitch/envelope. Recess the skin below
+        # its raised seams; do not lift the whole roof into existing camera rays.
+        slope, half = math.tan(.166), .06 / math.cos(.166)
+        low = lambda x: 6.58 + (x-4.5)*slope - half
+        high = lambda x: 6.58 + (x-4.5)*slope + half
+        g.section(((-1.75,low(-1.75)),(10.75,low(10.75)),
+                   (10.75,high(10.75)-.035),(-1.75,high(-1.75)-.035)),-4,4)
         if not far:
-            for x in ([-.8,2.1,5.0,7.9,10.1] if near else [2.1,7.9]):
-                g.box((x,5.54+(x+1.75)*.167-.10,0),(.08,.16,8))
-        if not far:
-            # Raised folded seam at the rear end of each module, not a texture.
-            g.section(((-1.75,5.68),(10.75,7.77),(10.75,7.805),(-1.75,5.715)), -3.98, -3.94)
+            # Support the canopy behind the front cantilever sightline, not
+            # across the protected broadcast-camera view under its leading edge.
+            for x in ([1.6,3.6,5.6,7.8,10.1] if near else [2.1,7.9]):
+                g.box((x,low(x)-.10,0),(.08,.16,8))
+            g.section(((-1.75,high(-1.75)-.035),(10.75,high(10.75)-.035),
+                       (10.75,high(10.75)),(-1.75,high(-1.75))), -3.98, -3.94)
         mesh('roof',tier,g,'roof')
         g = Shape()
         for x,y in ((-.8,1.05),(10,4.82),(10,4.27)):
@@ -227,7 +233,7 @@ def author():
         mesh('foot',tier,g,'stone')
         g = Shape()
         # Folded front fascia and rear gutter form a continuous modular edge.
-        g.section(((-1.81,5.22),(-1.69,5.22),(-1.69,5.68),(-1.81,5.68)),-4,4)
+        g.section(((-1.81,5.22),(-1.69,5.22),(-1.69,high(-1.75)),(-1.81,high(-1.75))),-4,4)
         g.section(((10.64,7.62),(10.84,7.62),(10.84,7.86),(10.77,7.86),
                    (10.77,7.69),(10.64,7.69)),-4,4)
         mesh('trim',tier,g,'trim')
