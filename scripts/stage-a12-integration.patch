@@ -1,0 +1,193 @@
+diff --git a/3dmodels.md b/3dmodels.md
+index 83b00fed65788d1edc85b7c2f460e1d9ca5903e4..07261fb0d19428ff9b0c5ebf2b754cf054b56639 100644
+--- a/3dmodels.md
++++ b/3dmodels.md
+@@ -29,6 +29,12 @@ Priority:
+ | A33 | Front/rear spare-wheel handling set, three LODs, sixteen sockets, state-driven carrying and four stored wheels in A22. | Final art, detailed exchange/condition continuity and representative-hardware approval remain. See [A33 notes](docs/A33_SPARE_WHEEL_HANDLING_SET.md). |
+ | A35 | Mobile trolley and fixed rack; empty, partial and full loads, eight sockets, three LODs and three bay-05 placements. | Parked visual props only; live handling, final art, full-lap and hardware approval remain. See [A35 notes](docs/A35_TYRE_TROLLEYS_RACKS.md). |
+ 
++A12 now has a first integrated revision at the six retained Aurel sites, with
++three detail tiers, unchanged seat/crowd layouts and editable native source.
++[Scope and evidence](docs/A12_SECONDARY_GRANDSTANDS.md). Final art, continuous
++human-driven review, representative hardware and exact-source release remain
++independent acceptance gates; A72–A75 are not completed by this package.
++
+ An integrated revision is not final approval and does not complete related asset-family rows.
+ 
+ ---
+diff --git a/README.md b/README.md
+index a2768ad67e6d1efdf74908e83b5ca3310c8c3b98..4652c589ca530922fb6671ef5687ad6aa3128562 100644
+--- a/README.md
++++ b/README.md
+@@ -1,3 +1,11 @@
++## A12 secondary grandstands
++
++Aurel's six retained secondary stands now use an original modular Blender/GLB
++library with formed seats, mounting shoes, roof ribs, protected aisles and
++terrain-seated supports. The two hero stands, spectator occupancy, circuit
++physics and supplied player assets are unchanged. [Scope and independent
++acceptance](docs/A12_SECONDARY_GRANDSTANDS.md).
++
+ ## A01–A07 track infrastructure
+ 
+ Aurel uses original authored concrete, guardrails, catch-fence supports, impact
+diff --git a/scripts/publish-validated-release.sh b/scripts/publish-validated-release.sh
+index 0b7bc481c1a91df66fa9fbe2c36baa18db48ee7d..db06011fead7d07a9ad1ab7ae2d763d8eba7c219 100644
+--- a/scripts/publish-validated-release.sh
++++ b/scripts/publish-validated-release.sh
+@@ -32,13 +32,15 @@ for (const [family, filename] of [
+   ['aurel-vegetation', 'aurel-vegetation.glb'],
+   ['aurel-quarry', 'aurel-quarry.glb'],
+   ['event-hall', 'aurel-event-hall.glb'],
++  ['secondary-grandstands', 'aurel-secondary-grandstands.glb'],
+ ]) {
+   const source = JSON.parse(readFileSync(`src/rendering/${family}.manifest.json`, 'utf8'));
+-  // A71 ships bundled accessors and retains its matching exchange asset too.
+-  if (family === 'event-hall' && source.exchange !== 'public/models/aurel-event-hall.glb') {
+-    throw new Error('Unexpected A71 exchange path');
++  // A71/A12 bundle accessors while retaining their matched exchange assets.
++  const bundled = family === 'event-hall' || family === 'secondary-grandstands';
++  if (bundled && source.exchange !== `public/models/${filename}`) {
++    throw new Error(`Unexpected authored exchange path: ${family}`);
+   }
+-  const manifest = family === 'event-hall'
++  const manifest = bundled
+     ? { url: source.exchange.slice(7), bytes: source.exchangeBytes, sha256: source.exchangeSHA256 }
+     : source;
+   const asset = `models/${filename}`;
+diff --git a/src/rendering/circuit.ts b/src/rendering/circuit.ts
+index dfcbaae95dd086228885622990c5ae77e7de5f53..164fdf1a33f88e4696b7c30bf6057e4b1e81a5c5 100644
+--- a/src/rendering/circuit.ts
++++ b/src/rendering/circuit.ts
+@@ -1,3 +1,4 @@
++import { SecondaryGrandstands } from './secondary-grandstands.ts';
+ import type { AurelQuarryKit } from './aurel-quarry.ts';
+ import type { AurelVegetationKit } from './aurel-vegetation.ts';
+ import type { TrackSignalHardwareKit } from './track-signal-hardware.ts';
+@@ -84,6 +85,7 @@ export class CircuitScene {
+   readonly group = new T.Group();
+   readonly crowd = new T.Group();
+   readonly startFinish: StartFinishVenue;
++  readonly secondaryStands: SecondaryGrandstands;
+   readonly crowdClusters: CrowdCluster[] = [];
+   readonly staff: MarshalStaffView;
+   readonly props = new StaticTransformGroup();
+@@ -120,6 +122,7 @@ export class CircuitScene {
+     this.group.name = 'Aurel circuit';
+     this.trackInfrastructure = makeTrackInfrastructurePlan(track);
+     this.startFinish = new StartFinishVenue(track);
++    this.secondaryStands = new SecondaryGrandstands(track);
+     this.staff = new MarshalStaffView(this.trackInfrastructure.marshalPosts);
+     this.serviceSites = serviceSitePlan(track);
+     this.districts = districtPlan(track, this.serviceSites);
+@@ -350,6 +353,7 @@ export class CircuitScene {
+             this.pitWallStation?.root,
+             this.pitBuildingFrontage?.root,
+             ...this.startFinish.roots,
++            ...this.secondaryStands.roots,
+           ].filter((o) => o !== undefined),
+         ),
+       ),
+@@ -404,6 +408,7 @@ export class CircuitScene {
+       source: 'constructed-runtime-groups',
+       quarry: this.quarry?.diagnostics() ?? null,
+       startFinish: this.startFinish.diagnostics(),
++      secondaryStands: this.secondaryStands.diagnostics(),
+       concreteBarriers: infrastructureIdentity(this.concreteBarriers?.diagnostics() ?? null),
+       steelGuardrails: infrastructureIdentity(this.steelGuardrails?.diagnostics() ?? null),
+       catchFence: infrastructureIdentity(this.catchFence?.diagnostics() ?? null),
+@@ -653,6 +658,7 @@ export class CircuitScene {
+           this.crowdClusters,
+           this.sightlines,
+           this.startFinish,
++          this.secondaryStands,
+         ),
+       );
+     this.construction.add('A18 live race-information board', 3, () =>
+diff --git a/src/rendering/grandstand.ts b/src/rendering/grandstand.ts
+index 8b7447fb27ac1f277444515ad211165fcf295a6b..5ac2761a8172aa0a478774f84ef2ab8a50084bf4 100644
+--- a/src/rendering/grandstand.ts
++++ b/src/rendering/grandstand.ts
+@@ -1,3 +1,4 @@
++import type { SecondaryGrandstands } from './secondary-grandstands.ts';
+ import type { StartFinishVenue } from './start-finish-venue.ts';
+ import { AUREL_VENUE, venuePlan, type StandSpec } from './venue-plan.ts';
+ import { installVenueFinish } from './venue-materials.ts';
+@@ -85,6 +86,7 @@ export function buildGrandstand(
+   clusters?: CrowdCluster[],
+   sightlines?: BroadcastSightlines,
+   complex?: StartFinishVenue,
++  secondary?: SecondaryGrandstands,
+ ) {
+   const frame = standFrame(track, site),
+     root = new T.Group();
+@@ -95,8 +97,15 @@ export function buildGrandstand(
+   const side = site.side,
+     L = site.length;
+   const hero = complex?.accepts(site) ?? false;
++  const authoredSecondary = secondary?.accepts(site) ?? false;
+   if (hero) complex!.architecture(root, site, frame, sightlines);
+-  else {
++  else if (authoredSecondary) {
++    secondary!.architecture(root, site, frame, sightlines);
++    // Keep the existing roof-edge signage and its material/texture lifecycle.
++    const sign = mesh(root, new T.PlaneGeometry(L * 0.72, 0.62), m.sign, side * -1.82, 5.53, 0);
++    sign.rotation.y = (-side * Math.PI) / 2;
++    sign.castShadow = false;
++  } else {
+     // Terraced concrete decks with open sightlines and a continuous front walkway.
+     box(root, m.concrete, side * 0.3, -0.12, 0, 2.5, 0.24, L);
+     for (let row = 0; row < 8; row++)
+@@ -193,7 +202,7 @@ export function buildGrandstand(
+       const z = (col - (columns - 1) / 2) * 0.65;
+       const aisle = Math.abs(z - L * 0.25) < 0.7 || Math.abs(z + L * 0.25) < 0.7;
+       if (aisle) {
+-        if (!hero && col % 2 === 0)
++        if (!hero && !authoredSecondary && col % 2 === 0)
+           box(root, m.concrete, side * (1.6 + row * 0.98), row * 0.49 - 0.03, z, 0.95, 0.1, 0.63);
+         continue;
+       }
+@@ -241,6 +250,9 @@ export function buildGrandstand(
+   if (hero) {
+     complex!.seats(root, site, instances, colors, m.seats);
+     seatGeometry.dispose();
++  } else if (authoredSecondary) {
++    secondary!.seats(root, site, instances, colors);
++    seatGeometry.dispose();
+   } else install(seatGeometry, m.seats, instances, colors, root, `Seats ${site.s}m`);
+   const peopleRoot = new T.Group();
+   peopleRoot.position.copy(root.position);
+diff --git a/src/rendering/renderer.ts b/src/rendering/renderer.ts
+index 59ccf430e381a667185fb4afda65a898ff64ff87..6bf23cb84703a53bfbbbf6394722ba1b3c437625 100644
+--- a/src/rendering/renderer.ts
++++ b/src/rendering/renderer.ts
+@@ -1779,6 +1779,7 @@ export class RacingRenderer {
+     this.circuit.broadcastCameras?.dispose();
+     this.circuit.vegetation?.dispose();
+     this.circuit.quarry?.dispose();
++    this.circuit.secondaryStands.dispose();
+ 
+     if (this.circuit.tyreBlankets && !this.circuit.tyreBlankets.root.parent)
+       this.circuit.tyreBlankets.dispose();
+diff --git a/tests/branchless-release.test.ts b/tests/branchless-release.test.ts
+index d00b83921d6c1c47307aa9ee7bbf43ba085804d2..738b073205bf20d64c80e2a00987a59ac17aa63e 100644
+--- a/tests/branchless-release.test.ts
++++ b/tests/branchless-release.test.ts
+@@ -36,6 +36,7 @@ it('publishes exact validated bytes, recovers reruns, and rejects altered or sta
+       ['aurel-vegetation', 'aurel-vegetation.glb'],
+       ['aurel-quarry', 'aurel-quarry.glb'],
+       ['event-hall', 'aurel-event-hall.glb'],
++      ['secondary-grandstands', 'aurel-secondary-grandstands.glb'],
+     ];
+     for (const [family, asset] of families) {
+       const data = Buffer.from(`asset ${family}`);
+@@ -136,7 +137,8 @@ else: raise ValueError(cmd)
+       const manifestPath = join(manifests, `${family}.manifest.json`);
+       const originalManifest = readFileSync(manifestPath);
+       const wrongPath = JSON.parse(originalManifest.toString());
+-      if (family === 'event-hall') wrongPath.exchange = 'public/models/other.glb';
++      if (family === 'event-hall' || family === 'secondary-grandstands')
++        wrongPath.exchange = 'public/models/other.glb';
+       else wrongPath.url = 'models/other.glb';
+       writeFileSync(manifestPath, JSON.stringify(wrongPath));
+       expect(run().status).not.toBe(0);

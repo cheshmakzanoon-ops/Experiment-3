@@ -1,0 +1,70 @@
+name: A12 integration object staging
+on:
+  push:
+    branches: [main]
+    paths:
+      - scripts/stage-a12-integration.patch
+      - .github/workflows/a12-integration-objects.yml
+permissions:
+  contents: write
+jobs:
+  stage:
+    runs-on: macos-14
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply readable patch only to an isolated index and retain verified blobs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import base64, json, os, pathlib, subprocess, tempfile, urllib.request
+          expected = {
+            '3dmodels.md': ['83b00fed65788d1edc85b7c2f460e1d9ca5903e4','07261fb0d19428ff9b0c5ebf2b754cf054b56639'],
+            'README.md': ['a2768ad67e6d1efdf74908e83b5ca3310c8c3b98','4652c589ca530922fb6671ef5687ad6aa3128562'],
+            'scripts/publish-validated-release.sh': ['0b7bc481c1a91df66fa9fbe2c36baa18db48ee7d','db06011fead7d07a9ad1ab7ae2d763d8eba7c219'],
+            'src/rendering/circuit.ts': ['dfcbaae95dd086228885622990c5ae77e7de5f53','164fdf1a33f88e4696b7c30bf6057e4b1e81a5c5'],
+            'src/rendering/grandstand.ts': ['8b7447fb27ac1f277444515ad211165fcf295a6b','5ac2761a8172aa0a478774f84ef2ab8a50084bf4'],
+            'src/rendering/renderer.ts': ['59ccf430e381a667185fb4afda65a898ff64ff87','6bf23cb84703a53bfbbbf6394722ba1b3c437625'],
+            'tests/branchless-release.test.ts': ['d00b83921d6c1c47307aa9ee7bbf43ba085804d2','738b073205bf20d64c80e2a00987a59ac17aa63e'],
+          }
+          temp = pathlib.Path(tempfile.mkdtemp(dir=os.environ['RUNNER_TEMP']))
+          env = dict(os.environ, GIT_INDEX_FILE=str(temp/'index'))
+          def git(*args):
+              return subprocess.check_output(['git',*args],env=env)
+          for path,(old,new) in expected.items():
+              if git('rev-parse','HEAD:'+path).decode().strip()!=old:
+                  raise ValueError('Original source changed: '+path)
+          git('read-tree','HEAD')
+          patch='scripts/stage-a12-integration.patch'
+          git('apply','--cached','--check',patch)
+          git('apply','--cached',patch)
+          if set(git('diff','--cached','--name-only','HEAD').decode().splitlines())!=set(expected):
+              raise ValueError('Unexpected patch paths')
+          entries=[]
+          for path,(old,new) in expected.items():
+              mode,sha=git('ls-files','--stage',path).decode().split()[:2]
+              if mode!='100644' or sha!=new:
+                  raise ValueError('Resulting source differs: '+path)
+              raw=git('cat-file','blob',sha)
+              body=json.dumps({'content':base64.b64encode(raw).decode(),'encoding':'base64'}).encode()
+              request=urllib.request.Request('https://api.github.com/repos/'+os.environ['GITHUB_REPOSITORY']+'/git/blobs',data=body,headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','Content-Type':'application/json'},method='POST')
+              with urllib.request.urlopen(request,timeout=60) as response:
+                  retained=json.load(response)
+              if retained['sha']!=new:
+                  raise ValueError('Retained blob differs: '+path)
+              entries.append({'path':path,'mode':mode,'type':'blob','sha':sha})
+          subprocess.run(['git','diff','--exit-code'],check=True)
+          subprocess.run(['git','diff','--cached','--exit-code'],check=True)
+          receipt={'source':os.environ['GITHUB_SHA'],'entries':entries,'branchUpdated':False,'checkoutModified':False}
+          target=pathlib.Path(os.environ['RUNNER_TEMP'])/'a12-integration-objects.json'
+          target.write_text(json.dumps(receipt,indent=2)+'\n')
+          print(target.read_text())
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: a12-integration-objects
+          path: ${{ runner.temp }}/a12-integration-objects.json
+          retention-days: 7
