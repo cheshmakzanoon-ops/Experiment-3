@@ -178,6 +178,7 @@ export class GameApp {
   private renderedAt = 0;
   private renderedState: State | null = null;
   private menuCovered = false;
+  private viewportRedrawPending = false;
   private presentationFrames = 0;
   private timer = 0;
   private generation = 0;
@@ -305,7 +306,8 @@ export class GameApp {
       // the latest viewport once afterward, not concurrently with compilation.
       if (this.savingSettings) this.settingsResizePending = true;
       else this.renderer?.resize();
-      this.renderedState = null; // Redraw after the covering editor releases ownership.
+      this.viewportRedrawPending = true;
+      this.renderedState = null; // Restore a resized backdrop once, including behind an editor.
     });
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) this.suspendPlayback();
@@ -745,14 +747,15 @@ export class GameApp {
       dt = clamp(wallDelta, 0.001, 0.08);
     this.previousTime = time;
     // Editors hold their last completed background from the first callback.
-    // The Academy explicitly previews lighting/guidance: allow one invalidated
-    // frame, not a continuous orbit. Never draw during a settings transaction.
+    // Academy previews and real viewport resizes may each request one redraw,
+    // not a continuous orbit. Never draw during a settings transaction.
     this.menuCovered = this.state === 'menu' && this.ui.modal.open;
     if (
       !shouldDrawMenu({
         covered: this.menuCovered,
         preview: this.menuCovered && !!this.ui.modal.querySelector('.driving-academy'),
         invalidated: this.renderedState !== this.state,
+        resizePending: this.viewportRedrawPending,
         settingsBusy: this.savingSettings,
       })
     )
@@ -855,6 +858,9 @@ export class GameApp {
       this.state === 'replay' || (this.state === 'photo' && this.photoReturn === 'replay'),
       wallDelta,
     );
+    // Consume only after a real submission; busy graphics and covered replay
+    // keep the latest viewport request pending without creating extra frames.
+    this.viewportRedrawPending = false;
     // Finish the visible clearance frame before handing input and timing back.
     if (this.state === 'pregame' && this.gridAutomatic && this.gridClock.complete)
       this.endGridPresentation(true);

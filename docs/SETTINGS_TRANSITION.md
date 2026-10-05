@@ -17,9 +17,10 @@ one-shot staging workflow. Installs and builds do not apply source patches.
 
 Settings, HQ and other read-only menu editors freeze their last completed
 background immediately, including the first animation callback after opening.
-Their invalidations remain pending until the editor closes. The Academy is an
-explicit lighting/guidance preview: it consumes one invalidated frame and then
-holds it. Settings transactions override both paths. Input polling continues;
+Generic action invalidations remain pending until the editor closes. The Academy
+is an explicit lighting/guidance preview; a real viewport resize must also restore
+the cleared background once, even behind HQ/settings. Both paths consume one
+invalidated frame and then hold it. Settings transactions override both paths. Input polling continues;
 gameplay/replay are not blanket-disabled by the menu rule.
 
 A save marks its form busy and yields a browser task. For a graphics change only,
@@ -91,3 +92,27 @@ succeeded, but navigation returned `ERR_BLOCKED_BY_ADMINISTRATOR`; no local game
 browser pass is claimed. The hosted failing trace establishes the pre-repair
 application defect. Full frozen-source validation and the new-commit hosted
 browser and release outcomes remain independently reportable gates.
+
+## Viewport redraw correction
+
+The completed `22e2416` full run also failed browser job `111767907775` at
+`07-reference-tools.spec.ts:249`: resizing behind Team HQ left the presentation
+counter at three instead of the required fourth frame. Its other 25 cases passed,
+including the recorded wet-night lap and pit-service journey. Browser partition 7
+passed. These failures are retained, not relabeled as intermittent runner issues.
+
+The Academy-only exception in `2eb5978` does not address that resize contract.
+The application now records a separate viewport redraw request, set only by its
+actual resize listener and consumed only after a real renderer submission. GPU
+backpressure and a settings transaction preserve the request. Repeated resize
+events coalesce; generic HQ/settings actions cannot turn it on. Recorded replay
+keeps its own existing modal-ownership rule. This changes no simulation, assets,
+rendering thresholds, input bindings, or original test deadlines.
+
+The unchanged original HQ resize/photo test is included beside the settings and
+Academy regressions in the focused workflow. Eight menu-policy tests cover
+settings ownership across all flag combinations, retained/coalesced viewport
+requests, stale requests, preview selection and normal uncovered presentation.
+The previous `2eb5978` tree completed a separate local stable check (1,843 tests,
+ESLint, TypeScript and build); it is not evidence of this subsequent repair.
+The final resize-corrected commit requires its own full check and hosted results.

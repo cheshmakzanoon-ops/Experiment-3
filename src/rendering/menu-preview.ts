@@ -49,15 +49,19 @@ export function menuPreview(track: Track, distance = track.length - 32): Float32
   return frame;
 }
 
-/** Read-only editors retain the last completed background. Only an active scene
- * preview (the Academy) may consume an explicit invalidation while covered.
- * Settings ownership overrides even that request; the caller keeps invalidation
- * pending until a real frame is submitted. This never advances simulation time. */
+/** Editors freeze immediately. An Academy control or a real viewport resize
+ * may request one invalidated frame; a generic editor action may not. Settings
+ * ownership overrides both requests. The caller consumes the resize only after
+ * a real submission, so GPU backpressure cannot discard a pending redraw. */
 export function shouldDrawMenu(state: {
   covered: boolean;
   preview: boolean;
   invalidated: boolean;
+  resizePending: boolean;
   settingsBusy: boolean;
 }): boolean {
-  return !state.settingsBusy && (!state.covered || (state.preview && state.invalidated));
+  return (
+    !state.settingsBusy &&
+    (!state.covered || (state.invalidated && (state.preview || state.resizePending)))
+  );
 }

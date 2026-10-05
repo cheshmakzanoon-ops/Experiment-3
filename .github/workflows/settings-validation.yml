@@ -10,6 +10,7 @@ on:
       - src/rendering/menu-preview.ts
       - tests/menu-presentation.test.ts
       - e2e/08-reference-implementation.spec.ts
+      - e2e/07-reference-tools.spec.ts
       - tests/settings-transition.test.ts
       - e2e/settings-transition.spec.ts
       - e2e/30-menu-access.spec.ts
@@ -36,7 +37,7 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - run: sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb
       - name: Original menu regression and transition ownership, without forced clicks or retries
-        run: xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e -- e2e/30-menu-access.spec.ts e2e/settings-transition.spec.ts e2e/08-reference-implementation.spec.ts
+        run: xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e -- e2e/30-menu-access.spec.ts e2e/settings-transition.spec.ts e2e/08-reference-implementation.spec.ts e2e/07-reference-tools.spec.ts:243
       - name: Retain results including failures
         if: always()
         uses: actions/upload-artifact@v4
