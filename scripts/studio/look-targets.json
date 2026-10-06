@@ -294,27 +294,35 @@
         {
           "id": "5.shadow-br-10",
           "shot": "10",
-          "crop": [0.325, 0.9, 0.36, 0.95],
+          "crop": [0.33, 0.905, 0.368, 0.97],
+          "filter": {
+            "trim": [0, 35]
+          },
+          "min_coverage": 0.3,
           "measure": "stats",
           "value": "br",
           "target": {
             "min": 1.5
           },
-          "baseline": 7.834,
-          "note": "cast-shadow core left of the left rear tyre; AB-A's 'about 1.0 / 8:1' sampled the tyre ([0.37,0.94,0.42,0.98]), the real core is a blue-black #030b18"
+          "baseline": 11.3,
+          "note": "cast-shadow core left of the left rear tyre: the darkest 35 % of a box that stops short of the tyre, so a softer or shifted shadow is still measured on its core, not its penumbra. AB-A's 'about 1.0 / 8:1' sampled the tyre ([0.37,0.94,0.42,0.98]); the real baseline core is a blue-black #020814"
         },
         {
           "id": "5.shadow-hex-10",
           "shot": "10",
-          "crop": [0.325, 0.9, 0.36, 0.95],
+          "crop": [0.33, 0.905, 0.368, 0.97],
+          "filter": {
+            "trim": [0, 35]
+          },
+          "min_coverage": 0.3,
           "measure": "stats",
           "value": "hex",
           "target": {
             "hex_box": ["#1b2635", "#1d2738"],
             "tol": 10
           },
-          "baseline": "#080f1c",
-          "note": "AB-A 0.1 reference shadow colour (sky-filled, not black)"
+          "baseline": "#020814",
+          "note": "AB-A 0.1 reference shadow colour (sky-filled, not black); same core pixels as 5.shadow-br-10"
         },
         {
           "id": "5.lit-shadow-10",
@@ -329,12 +337,17 @@
             }
           },
           "b": {
-            "crop": [0.325, 0.9, 0.36, 0.95]
+            "crop": [0.33, 0.905, 0.368, 0.97],
+            "filter": {
+              "trim": [0, 35]
+            }
           },
+          "min_coverage": 0.3,
           "target": {
             "range": [10, 17]
           },
-          "baseline": 15.15
+          "baseline": 21.6,
+          "note": "sunlit asphalt over the shadow core of 5.shadow-br-10"
         },
         {
           "id": "5.under-floor-10",
@@ -669,9 +682,9 @@
           "stop": 0.3,
           "min_fill": 0.5,
           "filter": {
-            "sat_max": 0.2,
-            "luma": [0.1, 0.5]
+            "sat_max": 0.2
           },
+          "luma_ref": [0.6, 1.5],
           "target": {
             "range": [0.42, 0.46]
           },

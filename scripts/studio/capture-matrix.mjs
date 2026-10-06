@@ -83,8 +83,9 @@ identity, timings, per-shot renderer state incl. drawBreakdown, census, failures
 console errors; must be empty), capture-log.txt. Exit code 0 = every planned shot written and no
 page errors, 1 = setup failure, 2 = some shots missing or page errors.
 Measured wall time (SwiftShader, Medium, 1280x720, box shared with another capture/build job, load
-average 4-6): day run 8.2-9.8 min, --matrix 28.9 min; High day run 10.3 min. An idle box is about
-30 % faster (capture.mjs: 6.8 min for the same day shots).
+average 4-6): day run 8.1-9.8 min, --lighting day,sunset,night --weather clear,rain 19.3 min,
+--matrix 28.9 min (live drives); High day run 10.3 min. An idle box is about 30 % faster
+(capture.mjs: 6.8 min for the same day shots).
 Per-shot records describe the frame submitted before the screenshot; on SwiftShader 1-4 more frames
 are submitted while it waits, so the PNG lies between that record and its 'after' values (time,
 speed, driveElapsed). Held and static shots read the same on both.`;

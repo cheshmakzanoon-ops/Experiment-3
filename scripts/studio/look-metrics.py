@@ -393,16 +393,31 @@ def m_edge_span(img, check, ctx):
 
 def m_horizon(img, check, ctx):
     """Vanishing line of the road straight ahead: the highest row, scanning up from `start`,
-    where the asphalt (filter) still covers `min_fill` of the centre columns."""
+    where the asphalt (filter) still covers `min_fill` of the centre columns. With `luma_ref`
+    [lo, hi] the asphalt is also the luma band lo-hi times the median of the filtered pixels in
+    the `ref_rows` rows above `start` (the near road), so the detector follows the asphalt tone
+    instead of a fixed luma window (a lighter road must not read as a lower horizon)."""
     h, w = img.shape[:2]
     _, _, x0, x1 = crop_box(img.shape, check['crop'])
     start = int(check.get('start', 0.75) * h)
     stop = int(check.get('stop', 0.25) * h)
     fill = check.get('min_fill', 0.5)
+    band = None
+    if 'luma_ref' in check:
+        rows = img[max(0, start - int(check.get('ref_rows', 0.02) * h)):start + 1, x0:x1]
+        near, _ = apply_filter(rows.reshape(-1, 3), check.get('filter'))
+        if len(near) < 16:
+            return {}, {'coverage': 0.0, 'invalid': 'no road at the start row'}
+        ref = float(np.median(luma(near)))
+        band = (check['luma_ref'][0] * ref, check['luma_ref'][1] * ref)
     misses = 0
     top = None
     for y in range(start, stop, -1):
-        _, keep = apply_filter(img[y, x0:x1], check.get('filter'))
+        row = img[y, x0:x1]
+        _, keep = apply_filter(row, check.get('filter'))
+        if band:
+            yl = luma(row)
+            keep &= (yl >= band[0]) & (yl <= band[1])
         if keep.mean() >= fill:
             top, misses = y, 0
         else:
