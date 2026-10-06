@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "about": "Crop boxes and targets for scripts/studio/look-metrics.py: PRODUCTION_PLAN section 5 KPIs 1-13. Crops are frame fractions [x0, y0, x1, y1] (or poly points) calibrated on the baseline 1280x720 Medium framing (capture.mjs / capture-matrix.mjs shot indices). When a camera department changes a view's framing, re-check the crops with look-metrics --overlay and move them in the same change. Targets and baselines are display-referred sRGB measurements from ART_BIBLE_A section 0.1 and PRODUCTION_PLAN section 5. Baseline values are AB-A 0.1 numbers where AB-A measured the same crop (asphalt and grass on shot 10, cockpit dark share, frame percentiles); every other baseline is this tool on $S/shots/baseline-matrix (the original game, build bc2f7a0 = 3a6036d sources), except shots 20/21, which are measured on the held 16 s drive of the same build ($S/shots/qa-review-hold-base16; capture-matrix default since the qa-tools review).",
+  "about": "Crop boxes and targets for scripts/studio/look-metrics.py: PRODUCTION_PLAN section 5 KPIs 1-13. Crops are frame fractions [x0, y0, x1, y1] (or poly points) calibrated on the baseline 1280x720 Medium framing (capture.mjs / capture-matrix.mjs shot indices). When a camera department changes a view's framing, re-check the crops with look-metrics --overlay and move them in the same change. Targets and baselines are display-referred sRGB measurements from ART_BIBLE_A section 0.1 and PRODUCTION_PLAN section 5. Baseline values are AB-A 0.1 numbers where AB-A measured the same crop (asphalt and grass on shot 10, cockpit dark share, frame percentiles); every other baseline is this tool on $S/shots/baseline-matrix (the original game, build bc2f7a0 = 3a6036d sources), except shots 20/21, which are measured on the held 16 s drive of the same build ($S/shots/baseline-hold, 262.5 km/h at +16.07 s; capture-matrix default since the qa-tools review).",
   "kpis": [
     {
       "id": "1",
@@ -65,7 +65,7 @@
           "target": {
             "hex_box": ["#7d7a76", "#938b83"]
           },
-          "baseline": "#393a3f",
+          "baseline": "#37393d",
           "note": "car-relative: road right of the right rear tyre (left of the HUD panel), or left of the left rear tyre when the car rides a kerb",
           "gate": false,
           "alternates": [[0.29, 0.82, 0.37, 0.92]]
@@ -83,7 +83,7 @@
           "target": {
             "range": [0.88, 0.95]
           },
-          "baseline": 1.102,
+          "baseline": 1.103,
           "note": "car-relative: road right of the right rear tyre (left of the HUD panel), or left of the left rear tyre when the car rides a kerb",
           "gate": false,
           "alternates": [[0.29, 0.82, 0.37, 0.92]]
@@ -101,7 +101,7 @@
           "target": {
             "min": 8
           },
-          "baseline": 2.82,
+          "baseline": 2.387,
           "note": "car-relative: road right of the right rear tyre (left of the HUD panel), or left of the left rear tyre when the car rides a kerb",
           "gate": false,
           "alternates": [[0.29, 0.82, 0.37, 0.92]]
@@ -161,7 +161,7 @@
           "target": {
             "range": [0.45, 0.65]
           },
-          "baseline": 0.903,
+          "baseline": 0.916,
           "note": "road ahead of the car on the turn-1 approach (held autopilot drive, 16 s)"
         }
       ]
@@ -201,7 +201,7 @@
           "target": {
             "max": 0.93
           },
-          "baseline": 0.855,
+          "baseline": 0.874,
           "gate": false
         }
       ]
@@ -282,7 +282,7 @@
           "target": {
             "min": 12
           },
-          "baseline": 3.245
+          "baseline": 3.261
         }
       ]
     },
@@ -384,7 +384,7 @@
           "target": {
             "max": 0.2
           },
-          "baseline": 0.252
+          "baseline": 0.253
         }
       ]
     },
@@ -557,7 +557,7 @@
           "target": {
             "hex_box": ["#7f8444", "#8e8a4c"]
           },
-          "baseline": "#41601e"
+          "baseline": "#43621e"
         },
         {
           "id": "9.grass-sat-20",
@@ -625,7 +625,7 @@
           "target": {
             "range": [0.36, 0.42]
           },
-          "baseline": 0.212,
+          "baseline": 0.213,
           "gauge": [["width", 0.5, 0.36, 0.42, 0.84]],
           "gate": false
         },
@@ -755,7 +755,7 @@
             "hex_near": "#c4222a",
             "tol": 20
           },
-          "baseline": "#db5035",
+          "baseline": "#da4e33",
           "min_coverage": 0.03
         }
       ]
@@ -946,7 +946,7 @@
     "41": "cockpit"
   },
   "compositions": {
-    "_about": "Drive shots 20/21 are calibrated on the default capture-matrix drive: autopilot from the practice grid for 16 simulated seconds, then held (paused) so both views show that instant on the turn-1 approach (265 km/h). driveElapsed is the simulated time from the drive start to the frame submitted before the screenshot, after.driveElapsed the one presented after it (the PNG lies between; equal when held). Live drives (--drive-mode auto) land 10-60 s later on SwiftShader and fail the window. Position-dependent checks outside the window report INVALID; checks with \"gate\": false use car-relative crops or whole-frame statistics and always run.",
+    "_about": "Drive shots 20/21 are calibrated on the default capture-matrix drive: autopilot from the practice grid for 16 simulated seconds, then held (paused) so both views show that instant on the turn-1 approach (262-265 km/h; two runs of one build differ by mean |d| 3-8, from a sub-metre offset). driveElapsed is the simulated time from the drive start to the frame submitted before the screenshot, after.driveElapsed the one presented after it (the PNG lies between; equal when held). Live drives (--drive-mode auto) land 10-60 s later on SwiftShader and fail the window. Position-dependent checks outside the window report INVALID; checks with \"gate\": false use car-relative crops or whole-frame statistics and always run.",
     "20": {
       "driveElapsed": [15.5, 17],
       "after.driveElapsed": [15.5, 17]
