@@ -112,3 +112,9 @@ All three authored detail levels, corners, normals, UVs and seat/crowd transform
 remain. This reduces ten batches to nine and seventeen shared geometry buffers
 to fifteen, within the existing 7,000-triangle allocation ceiling. Native assets
 are not regenerated. See [cold-frame evidence](A12_COLD_FRAME_BUDGET.md).
+
+## Survey camera cuts
+
+The survey uses the normal camera transaction and verifies actual camera/body
+framing for each chase capture. See [camera validation](A12_SURVEY_CAMERA.md).
+Earlier passing jobs with incorrect chase images are not final visual approval.

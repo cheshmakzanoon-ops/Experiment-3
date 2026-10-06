@@ -1,3 +1,4 @@
+import { requireSecondaryStandChaseCamera } from './fixtures/secondary-stand-camera.ts';
 import { saveSecondaryStandEvidence } from './fixtures/secondary-stand-artifacts.ts';
 import { createHash } from 'node:crypto';
 import type { SecondaryStandCaptureSink } from './fixtures/secondary-stand-capture.ts';
@@ -126,6 +127,8 @@ for (const lighting of ['day', 'sunset', 'night'] as const) {
       ).toBeGreaterThanOrEqual(4);
       expect(report.driving.some((d) => d.site === site.s && d.mode === 'chase')).toBe(true);
     }
+    for (const capture of report.driving)
+      if (capture.mode === 'chase') requireSecondaryStandChaseCamera(capture.camera);
     expect(report.memories).toHaveLength(22);
     for (const memory of report.memories) expect(memory).toEqual(report.memoryBefore);
     expect(report.images).toHaveLength(11);

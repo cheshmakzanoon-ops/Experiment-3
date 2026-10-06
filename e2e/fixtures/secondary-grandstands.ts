@@ -1,4 +1,9 @@
 import {
+  selectSecondaryStandView,
+  secondaryStandCameraEvidence,
+  requireSecondaryStandChaseCamera,
+} from './secondary-stand-camera.ts';
+import {
   persistSecondaryStandCapture,
   type SecondaryStandCaptureSink,
 } from './secondary-stand-capture.ts';
@@ -207,7 +212,7 @@ export async function surveySecondaryStands(
   };
   try {
     view.lighting = lighting;
-    view.mode = 'cockpit';
+    selectSecondaryStandView(view, 'cockpit');
     // Use the same asynchronous, GPU-complete grid preparation as real entry;
     // do not cold-compile an entire twelve-car race in one synchronous draw.
     if (
@@ -278,13 +283,19 @@ export async function surveySecondaryStands(
         ))
       )
         throw new Error('A12 production quality preparation did not complete');
-      view.mode = 'cockpit';
+      selectSecondaryStandView(view, 'cockpit');
       view.draw(frame, frame, 1, 1 / 60);
       await yieldBrowser();
     }
     const frameUnchanged = frame.every((v, i) => Object.is(v, original[i]));
     const waterUnchanged = water.every((v, i) => v === sim.track.water[i]);
-    const driving: { site: number; station: number; time: number; mode: string }[] = [];
+    const driving: {
+      site: number;
+      station: number;
+      time: number;
+      mode: string;
+      camera: ReturnType<typeof secondaryStandCameraEvidence>;
+    }[] = [];
     let liveFramesUnchanged = true,
       liveWaterUnchanged = true;
     const visited = new Set<number>();
@@ -293,7 +304,7 @@ export async function surveySecondaryStands(
       progress(`physical: ${sample.site}m / ${sample.station.toFixed(2)}m`);
       const live = sample.frame.slice(),
         wet = sim.track.water.slice();
-      view.mode = 'cockpit';
+      selectSecondaryStandView(view, 'cockpit');
       view.draw(sample.previous, sample.frame, 1, sample.delta);
       await persistSecondaryStandCapture(canvas, `physical-drive-${driving.length}`, sink);
       driving.push({
@@ -301,17 +312,21 @@ export async function surveySecondaryStands(
         station: sample.station,
         time: sample.time,
         mode: 'cockpit',
+        camera: secondaryStandCameraEvidence(view.camera, view.cars[0].root),
       });
       if (!visited.has(sample.site)) {
         visited.add(sample.site);
-        view.mode = 'chase';
+        selectSecondaryStandView(view, 'chase');
         view.draw(sample.frame, sample.frame, 1, 0);
+        const camera = secondaryStandCameraEvidence(view.camera, view.cars[0].root);
+        requireSecondaryStandChaseCamera(camera);
         await persistSecondaryStandCapture(canvas, `physical-drive-${driving.length}`, sink);
         driving.push({
           site: sample.site,
           station: sample.station,
           time: sample.time,
           mode: 'chase',
+          camera,
         });
       }
       liveFramesUnchanged &&= live.every((v, i) => Object.is(v, sample.frame[i]));

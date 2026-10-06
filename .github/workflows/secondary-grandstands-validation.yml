@@ -15,6 +15,7 @@ on:
       - tests/secondary-stand-traversal.test.ts
       - tests/secondary-stand-capture.test.ts
       - tests/secondary-stand-circulation.test.ts
+      - tests/secondary-stand-camera.test.ts
       - tests/secondary-stand-artifacts.test.ts
       - e2e/secondary-grandstands.spec.ts
       - e2e/scenery-shadow-budget.spec.ts
@@ -43,7 +44,7 @@ jobs:
           cache: npm
       - run: node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
       - name: Check exact A12 assets and unchanged six-site layouts
-        run: npx vitest run tests/secondary-grandstand-assets.test.ts tests/secondary-grandstands.test.ts tests/secondary-stand-traversal.test.ts tests/secondary-stand-capture.test.ts tests/secondary-stand-artifacts.test.ts tests/secondary-stand-circulation.test.ts
+        run: npx vitest run tests/secondary-grandstand-assets.test.ts tests/secondary-grandstands.test.ts tests/secondary-stand-traversal.test.ts tests/secondary-stand-capture.test.ts tests/secondary-stand-artifacts.test.ts tests/secondary-stand-circulation.test.ts tests/secondary-stand-camera.test.ts
       - run: node --experimental-transform-types scripts/source-stability.ts -- npm run build
       - run: npx playwright install --with-deps chromium
       - name: Install Mesa and the virtual display
