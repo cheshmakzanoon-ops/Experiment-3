@@ -70,11 +70,12 @@ it('adapts to frames that depart from the lighting key, within the restrained bo
 
 it('centres the measured Aurel views on the authored exposure', () => {
   // Exposed log2 luminance of the 90th-percentile sample in chase, cockpit and
-  // trackside views at four points of a lap (Mesa software GL, High, 0 EV).
+  // trackside views at four points of a lap (SwiftShader, Medium, 0 EV; real
+  // meter readbacks under the P1-P3 day and P2 golden-hour lighting).
   const measured = {
-    day: [-2.72, -3.38, -2.06, -1.87, -2.63, -2.06, -2.72, -2.82, -2.16, -2.44, -2.53, -1.87],
-    sunset: [-3.99, -4.27, -4.08, -2.96, -3.61, -3.14, -4.08, -4.18, -3.52, -3.05, -3.43, -2.86],
-    night: [-4.12, -4.78, -3.27, -2.9, -4.31, -1.95, -4.5, -5.15, -3.65, -4.12, -5.15, -3.08],
+    day: [-2.06, -2.34, -2.16, -2.25, -2.06, -1.87, -2.06, -2.44, -1.87, -1.87, -2.34, -1.78],
+    sunset: [-2.46, -3.77, -2.83, -3.59, -3.87, -3.68, -2.83, -3.4, -2.17, -2.46, -3.12, -3.49],
+    night: [-3.74, -4.78, -3.55, -3.74, -4.4, -3.74, -4.02, -4.87, -3.93, -4.02, -4.02, -1.48],
   };
   for (const lighting of ['day', 'sunset', 'night'] as const) {
     const evs = measured[lighting].map((exposed) => {

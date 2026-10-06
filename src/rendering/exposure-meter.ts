@@ -5,12 +5,14 @@ export const METER_LOG_RANGE = 24;
 /** Exposed log2 luminance (scene log2 luminance plus log2 of the base
  * exposure) of the 90th-percentile meter sample in the authored look, by
  * lighting: the mean over chase, cockpit and trackside views at four points
- * of an Aurel lap at 0 EV, the exposure every review was made at. The bright
+ * of an Aurel lap at 0 EV, the exposure every review was made at (re-measured
+ * under the P1-P3 sun/sky split and the P2 golden hour; night is set so the
+ * one floodlit view clamped at -0.7 EV still leaves a centred mean). The bright
  * part of the frame follows the lit exterior in all three views (spread
- * 0.4 EV by day); a mean over asphalt and carbon reads 2 EV darker in the
+ * 0.66 EV by day); a mean over asphalt and carbon reads 2 EV darker in the
  * cockpit and asked for +1.2 to +4.7 EV in every view, so the meter sat at
  * its +0.85 EV ceiling. */
-export const METER_KEY = Object.freeze({ day: -2.44, sunset: -3.6, night: -3.91 });
+export const METER_KEY = Object.freeze({ day: -2.09, sunset: -3.14, night: -3.95 });
 /** Share of the difference from the key that exposure follows. */
 export const METER_RESPONSE = 0.5;
 export interface ExposureObservation {
