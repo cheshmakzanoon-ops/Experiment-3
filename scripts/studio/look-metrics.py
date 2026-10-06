@@ -531,9 +531,48 @@ def m_crowd(img, check, ctx):
             'hex': hexcol(crop.reshape(-1, 3).mean(0))}, {'coverage': 1.0}
 
 
+def flow_anisotropy(img, check, crop, vanish):
+    """Mean |luma gradient| along the image-space flow direction (from the vanishing point
+    through the crop centre) over the mean across it, on the filtered (road) pixels."""
+    y0, y1, x0, x1 = crop_box(img.shape, crop)
+    h, w = img.shape[:2]
+    lum = luma(img[y0:y1, x0:x1])
+    gy, gx = np.gradient(lum)
+    _, keep = apply_filter(img[y0:y1, x0:x1].reshape(-1, 3), check.get('filter'))
+    keep = keep.reshape(lum.shape)
+    if keep.mean() < check.get('min_coverage', 0.5):
+        return None, float(keep.mean())
+    ux, uy = (x0 + x1) / 2 - vanish[0] * w, (y0 + y1) / 2 - vanish[1] * h
+    n = math.hypot(ux, uy) or 1.0
+    ux, uy = ux / n, uy / n
+    along = np.abs(gx * ux + gy * uy)[keep].mean()
+    across = np.abs(-gx * uy + gy * ux)[keep].mean()
+    return float(along / max(across, 1e-9)), float(keep.mean())
+
+
+def m_flow(img, check, ctx):
+    """Motion blur on the near road: flow anisotropy (gradient along / across the road's
+    screen-space motion) of this shot against the same crop of the same shot in a 0-blur
+    capture (--noblur; e.g. capture-matrix --graphics motionBlur=0). Same-view captures of a
+    road crop agree within about 4 %, so a 35 % reduction is well above the noise."""
+    vanish = check.get('vanish', [0.5, 0.45])
+    value, coverage = flow_anisotropy(img, check, check['crop'], vanish)
+    if value is None:
+        return {}, {'coverage': coverage, 'invalid': 'crop is not road'}
+    values = {'anisotropy': value}
+    ref_img = ctx.get('compare_img')
+    if ref_img is None:
+        return values, {'coverage': coverage, 'na': 'needs --noblur <0-blur capture dir>'}
+    ref, ref_coverage = flow_anisotropy(ref_img, check, check['crop'], vanish)
+    if ref is None:
+        return values, {'coverage': ref_coverage, 'invalid': '0-blur crop is not road'}
+    values.update(reference=ref, reduction=1.0 - value / max(ref, 1e-9))
+    return values, {'coverage': coverage}
+
+
 def m_gradient(img, check, ctx):
     """Directional gradient energy (mean |d luma|) along `direction` (y or x) in the crop;
-    with ctx['compare'] (a 0-blur capture) it reports the reduction against that capture."""
+    with ctx['compare_img'] (a 0-blur capture) it reports the change against that capture."""
     def energy(a):
         y0, y1, x0, x1 = crop_box(a.shape, check['crop'])
         lum = luma(a[y0:y1, x0:x1])
@@ -563,6 +602,7 @@ MEASURES = {
     'board_coverage': m_board_coverage,
     'crowd': m_crowd,
     'gradient': m_gradient,
+    'flow': m_flow,
 }
 
 
@@ -741,7 +781,7 @@ def main(argv):
                 continue
             img = image(path)
             ctx = {}
-            if measure == 'gradient' and check['shot'] in noblur:
+            if measure in ('gradient', 'flow') and check['shot'] in noblur:
                 ctx['compare_img'] = image(noblur[check['shot']])
             values, info = MEASURES[measure](img, check, ctx)
             value = values.get(check.get('value'))
@@ -766,6 +806,17 @@ def main(argv):
 
     # Table
     print('look-metrics: %s  (targets %s)' % (args.capture, os.path.relpath(args.targets)))
+    if diag and diag.get('shots'):
+        build = (diag.get('buildIdentity') or {}).get('commit') or '?'
+        print('build %s; quality %s' % (str(build)[:12], (diag.get('options') or {}).get('quality')))
+        used = {r['shot'] for r in results if r.get('shot')}
+        for rec in diag['shots']:
+            key = '%02d' % rec['index']
+            if key in used:
+                print('  shot %s %-26s %-9s %-7s %5s km/h  lap %s m  %s calls' % (
+                    key, rec.get('file', '')[3:-4][:26], rec.get('presentedCamera'),
+                    rec.get('lighting'), rec.get('speedKmh'), rec.get('presentedLapM'),
+                    rec.get('drawCalls')))
     print('%-3s %-26s %-4s %-12s %-22s %-14s %s' % ('KPI', 'check', 'shot', 'measured', 'target',
                                                     'baseline', 'result'))
     for r in results:

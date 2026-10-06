@@ -390,15 +390,36 @@
     },
     {
       "id": "8",
-      "title": "Motion: near-road vertical gradient energy vs a 0-blur capture (--noblur)",
+      "title": "Motion: near-road flow anisotropy vs a 0-blur capture of the same views (--noblur)",
       "owner": "post-motion",
       "checks": [
         {
-          "id": "8.road-20",
+          "id": "8.road-left-20",
           "shot": "20",
-          "crop": [0.12, 0.62, 0.38, 0.8],
-          "direction": "y",
-          "measure": "gradient",
+          "crop": [0.14, 0.64, 0.34, 0.76],
+          "vanish": [0.5, 0.45],
+          "filter": {
+            "sat_max": 0.25,
+            "luma_rel": [0.6, 1.5]
+          },
+          "measure": "flow",
+          "value": "reduction",
+          "target": {
+            "min": 0.35
+          },
+          "baseline": 0,
+          "note": "0-blur reference: capture-matrix --graphics motionBlur=0, then look-metrics --noblur <that dir>"
+        },
+        {
+          "id": "8.road-right-20",
+          "shot": "20",
+          "crop": [0.64, 0.64, 0.8, 0.74],
+          "vanish": [0.5, 0.45],
+          "filter": {
+            "sat_max": 0.25,
+            "luma_rel": [0.6, 1.5]
+          },
+          "measure": "flow",
           "value": "reduction",
           "target": {
             "min": 0.35

@@ -44,7 +44,9 @@ Options
                          A view keeps its slot: chase +0, cockpit +1, pod +2, trackside +3.
   --variant-views V,...  Views of each extra lighting (default chase,cockpit).
   --drive S              Seconds of driving before the drive shots (default 10; 0 = no drive shots).
-  --drive-mode M         throttle (hold ArrowUp, like the original capture.mjs; default) | auto (autopilot).
+  --drive-mode M         auto (autopilot on the racing line, so drive shots keep the car on track;
+                         default) | throttle (hold ArrowUp like the original capture.mjs; the car
+                         leaves the road at turn 1 and the frame depends on render speed).
   --drive-views V,...    Views shot while driving (default chase,cockpit).
   --grid                 Race session held on the grid: pre-race presentation shots of the grid crew.
   --grid-times T,...     Presentation seconds to capture (default 10,14; stages: 4-7 checks,
@@ -53,6 +55,9 @@ Options
                          wheel service and capture --pit-views.
   --pit-views V,...      Views of the held pit stop (default trackside,cockpit; trackside = TV).
   --matrix               Shorthand for --lighting day,sunset,night --weather clear,rain --grid --pit.
+  --graphics K=V[,K=V]   Individual graphics controls after the preset (the GARAGE & SETTINGS
+                         graphics_<K> fields), e.g. motionBlur=0 for the KPI 8 0-blur reference,
+                         temporalAA=true, cockpitFov=54. Unknown keys fail the run.
   --opponents N          Rival count (default 7).
   --size WxH             Viewport (default 1280x720).
   --no-census            Skip the visual census (apexDiagnostics(true).visual.census) on the cockpit shot.
@@ -117,13 +122,14 @@ function parse(argv) {
         views: { type: 'string', default: VIEWS.join(',') },
         'variant-views': { type: 'string', default: 'chase,cockpit' },
         drive: { type: 'string', default: '10' },
-        'drive-mode': { type: 'string', default: 'throttle' },
+        'drive-mode': { type: 'string', default: 'auto' },
         'drive-views': { type: 'string', default: 'chase,cockpit' },
         grid: { type: 'boolean', default: false },
         'grid-times': { type: 'string', default: '10,14' },
         pit: { type: 'boolean', default: false },
         'pit-views': { type: 'string', default: 'trackside,cockpit' },
         matrix: { type: 'boolean', default: false },
+        graphics: { type: 'string', default: '' },
         opponents: { type: 'string', default: '7' },
         size: { type: 'string', default: '1280x720' },
         'no-census': { type: 'boolean', default: false },
@@ -172,6 +178,16 @@ function parse(argv) {
     pit: v.pit,
     pitViews: list(v['pit-views'], VIEWS, 'pit-views'),
     opponents,
+    graphics: Object.fromEntries(
+      String(v.graphics)
+        .split(',')
+        .filter(Boolean)
+        .map((pair) => {
+          const m = /^([A-Za-z]+)=([\w.-]+)$/.exec(pair.trim());
+          if (!m) fail(`--graphics: expected key=value, got "${pair}"`);
+          return [m[1], m[2]];
+        }),
+    ),
     width: Number(size[1]),
     height: Number(size[2]),
     census: !v['no-census'],
@@ -348,6 +364,7 @@ const FRAME = {
   clock: carBase(0) + F.PIT_CLOCK,
   inPit: carBase(0) + F.IN_PIT,
   speed: carBase(0) + F.SPEED,
+  s: carBase(0) + F.S,
 };
 mkdirSync(o.out, { recursive: true });
 
@@ -405,9 +422,40 @@ const probe = () =>
           ? { phase: f[I.phase], clock: f[I.clock], inPit: f[I.inPit], time: f[I.time] }
           : null,
         tick: f ? f[I.tick] : null,
+        live: f ? { time: f[I.time], s: f[I.s], speed: f[I.speed] } : null,
       };
     }, FRAME)
+    .then((d) => {
+      if (d?.live && d.live.time !== history.at(-1)?.time) history.push(d.live);
+      if (history.length > 4000) history.splice(0, 2000);
+      return d;
+    })
     .catch(() => null);
+
+/** Live (time, lap distance, speed) samples of car 0, so a shot can report where the presented
+ * frame was taken: the renderer lags the worker by up to one slow frame. */
+const history = [];
+let sampling = true;
+(async () => {
+  while (sampling) {
+    await probe();
+    await sleep(400);
+  }
+})();
+function lapAt(time) {
+  if (time === null || time === undefined || !history.length) return null;
+  let a = history[0];
+  for (const b of history) {
+    if (b.time >= time) {
+      if (b === a || b.time === a.time) return b.s;
+      const t = (time - a.time) / (b.time - a.time);
+      // Lap wrap: interpolate on the shorter way round.
+      return Math.abs(b.s - a.s) > 500 ? (t < 0.5 ? a.s : b.s) : a.s + (b.s - a.s) * t;
+    }
+    a = b;
+  }
+  return null;
+}
 
 async function waitFor(label, predicate, timeoutMs = 240000, intervalMs = 500) {
   const deadline = Date.now() + timeoutMs;
@@ -433,7 +481,9 @@ const click = (selector) =>
     element.click();
   }, selector);
 
+/** Switch the camera with the player's controls; true when a switch was needed. */
 async function setView(view) {
+  const initial = (await probe())?.requestedCamera;
   for (let i = 0; i < 5; i++) {
     const d = await probe();
     if (d?.requestedCamera === view) break;
@@ -446,6 +496,7 @@ async function setView(view) {
     `presented ${view}`,
     (d) => d.presentedCamera === view && d.requestedCamera === view,
   );
+  return initial !== view;
 }
 
 /** Hide only the pause dialog (and its backdrop) for held shots; the HUD stays as the player sees it. */
@@ -462,11 +513,12 @@ async function hideDialog(hidden) {
   }, hidden);
 }
 
-async function shot(entry, context) {
+/** `immediate`: the view was already live (drive shots), so capture the next frame at once. */
+async function shot(entry, context, immediate = false) {
   const file = `${String(entry.index).padStart(2, '0')}-${entry.name}.png`;
   try {
-    if (entry.view) await setView(entry.view);
-    await settle(1);
+    const switched = entry.view ? await setView(entry.view) : false;
+    if (switched || !immediate) await settle(1);
     await page.screenshot({ path: join(o.out, file), timeout: 240000 });
     const meta = await page.evaluate((I) => {
       const d = window.apexDiagnostics();
@@ -490,6 +542,8 @@ async function shot(entry, context) {
         drawBreakdown: r.drawBreakdown,
       };
     }, FRAME);
+    const lap = lapAt(meta.presentedTime);
+    meta.presentedLapM = lap === null ? null : Math.round(lap * 10) / 10;
     records.push({ index: entry.index, file, ...context, view: entry.view ?? null, ...meta });
     log(`shot ${file} (${meta.presentedCamera}, ${meta.drawCalls} calls)`);
     return true;
@@ -539,6 +593,8 @@ async function toMenu() {
 async function enter({ mode, weather, hold }) {
   await page.locator('#mode').selectOption(mode);
   await page.locator('#weather').selectOption(weather);
+  // Selecting rain switches the menu to wets and nothing switches back: set tyres explicitly.
+  await page.locator('#compound').selectOption(weather === 'rain' ? 'wet' : 'medium');
   await page.locator('#opponents').selectOption(String(o.opponents));
   const button = hold ? 'PREPARE GRID START PAUSED' : 'ENTER CIRCUIT';
   await page.getByRole('button', { name: button, exact: true }).click();
@@ -570,17 +626,23 @@ async function enter({ mode, weather, hold }) {
   }
   throw new Error(`session did not reach driving (${mode}, ${weather})`);
 }
+/** Autopilot on/off through the player's key ('g'), confirmed by diagnostics. */
+async function setAuto(on) {
+  if ((await probe())?.auto === on) return;
+  await page.keyboard.press('g');
+  await waitFor(`autopilot ${on}`, (x) => x.auto === on, 30000, 250);
+}
 async function drive(block, context) {
   if (!block.drive.length) return;
   await setView(block.drive[0].view);
-  if (block.driveMode === 'auto') {
-    await page.keyboard.press('g');
-    await waitFor('autopilot', (x) => x.auto === true, 30000, 250);
-  } else await page.keyboard.down('ArrowUp');
+  if (block.driveMode === 'auto') await setAuto(true);
+  else await page.keyboard.down('ArrowUp');
   log(`${block.driveMode} drive ${block.driveSeconds} s`);
   await sleep(block.driveSeconds * 1000);
-  for (const entry of block.drive) await shot(entry, { ...context, drive: block.driveMode });
+  for (const [i, entry] of block.drive.entries())
+    await shot(entry, { ...context, drive: block.driveMode }, i === 0);
   if (block.driveMode === 'throttle') await page.keyboard.up('ArrowUp');
+  else await setAuto(false);
 }
 
 async function practice(block, first) {
@@ -639,8 +701,7 @@ async function race(block) {
     await enter({ mode: 'race', weather: block.weather, hold: false });
   }
   log('race running; autopilot + pit request');
-  await page.keyboard.press('g');
-  await waitFor('autopilot', (x) => x.auto === true, 30000, 250);
+  await setAuto(true);
   await page.keyboard.press('p');
   // Pause inside the wheel service (phase 3 = wheels off) so every view shows the same held instant.
   let held = null;
@@ -708,6 +769,26 @@ try {
   mark('loaded');
   await page.getByRole('button', { name: 'GARAGE & SETTINGS', exact: true }).click();
   await page.locator('[name=quality]').selectOption(o.quality);
+  if (Object.keys(o.graphics).length) {
+    const unknown = await page.evaluate((overrides) => {
+      const form = document.querySelector('#settingsForm');
+      const missing = [];
+      for (const [key, value] of Object.entries(overrides)) {
+        const input = form?.elements.namedItem(`graphics_${key}`);
+        if (!input) {
+          missing.push(key);
+          continue;
+        }
+        if (input.type === 'checkbox') input.checked = value === 'true';
+        else input.value = value;
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+      return missing;
+    }, o.graphics);
+    if (unknown.length) throw new Error(`unknown --graphics keys: ${unknown.join(', ')}`);
+    log(`graphics ${JSON.stringify(o.graphics)}`);
+  }
   await page.getByRole('button', { name: 'APPLY & SAVE', exact: true }).click();
   await page.locator('#modal').waitFor({ state: 'hidden', timeout: 120000 });
   log(`quality ${o.quality}`);
@@ -729,7 +810,9 @@ try {
   log(`FATAL ${fatal}`);
   errors.push(`fatal: ${fatal}`);
 }
+if (!summary && !fatal) await rendererSummary();
 mark('total');
+sampling = false;
 const planned =
   blocks.flatMap((b) =>
     b.kind === 'practice'
