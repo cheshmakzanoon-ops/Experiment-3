@@ -122,3 +122,108 @@ float apexRoadMacro(vec2 m) {
 
 /** Applied to the road albedo right after the base map. */
 export const ROAD_MACRO_APPLY = 'diffuseColor.rgb *= apexRoadMacro(vRoadMetres);\n';
+
+/** Small sealed repairs on top of the macro layer: cut-and-filled rectangles a
+ * lane or less across, 10-15 % darker and a little smoother than the road,
+ * bordered by a thin sealant seam. Presentation only, like ROAD_MACRO. */
+export const ROAD_REPAIRS = Object.freeze({
+  /** Along-track cell that may hold one repair, metres. */
+  cell: 23,
+  chance: 0.3,
+  /** Repair length and half-width ranges, metres. */
+  length: [1, 4] as const,
+  halfWidth: [0.5, 1.8] as const,
+  /** Centre range from the centreline, metres (inside the 8 m half-width). */
+  centre: [-5, 5] as const,
+  /** Albedo factor range: 10-15 % darker. */
+  tone: [0.85, 0.9] as const,
+  /** Roughness reduction of the fresh binder. */
+  roughness: 0.05,
+  /** Sealant seam half-width along the cut, metres. */
+  seam: 0.012,
+});
+
+/** The repair the shader draws in along-track cell `cell` of a lap of
+ * `lapLength` metres, if any. The last, partial cell never holds one, so no
+ * repair is cut by the start-line wrap. */
+export function roadRepair(cell: number, lapLength: number): RoadPatch | null {
+  const R = ROAD_REPAIRS,
+    h = (k: number) => roadHash(cell, k + 20.5);
+  if (!(lapLength > 0) || (cell + 1) * R.cell > lapLength || h(0) >= R.chance) return null;
+  const length = mix(R.length[0], R.length[1], h(1));
+  const start = cell * R.cell + h(2) * (R.cell - length);
+  const half = mix(R.halfWidth[0], R.halfWidth[1], h(3)),
+    centre = mix(R.centre[0], R.centre[1], h(4));
+  return {
+    start,
+    length,
+    low: centre - half,
+    high: centre + half,
+    tone: mix(R.tone[0], R.tone[1], h(5)),
+  };
+}
+
+/** Meandering crack sealant ("tar snakes"): iso-lines of a world-space noise
+ * inside sparse crack regions. Fresh bitumen, glossier than the road. */
+export const ROAD_SEALANT = Object.freeze({
+  /** sRGB colour of the sealant. */
+  colour: 0x2a2927,
+  /** Line half-width range, metres (lines 1-2 cm wide). */
+  halfWidth: [0.005, 0.01] as const,
+  roughness: 0.45,
+  /** Meander frequency (1/m) of the crack field. */
+  frequency: 0.55,
+  /** Frequency (1/m) and threshold range of the regions that carry cracks. */
+  region: 0.045,
+  regionThreshold: [0.6, 0.7] as const,
+});
+
+const linear = (v: number) => {
+  const c = v / 255;
+  return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+};
+const sealant = [16, 8, 0].map((shift) => linear((ROAD_SEALANT.colour >> shift) & 255));
+
+/** Repairs and sealant for the road shader's common section. Uses the macro
+ * layer's hash and noise, so ROAD_MACRO_GLSL must precede it. */
+export const ROAD_REPAIR_GLSL = /* glsl */ `
+const vec3 apexSealantColour = vec3(${sealant.map(f).join(', ')});
+// x: repair coverage, y: repair albedo factor, z: seam coverage.
+vec3 apexRoadRepair(vec2 m, float lap) {
+  vec2 dm = fwidth(m);
+  float aa = max(max(dm.x, dm.y), 1e-4);
+  float cell = floor(m.y / ${f(ROAD_REPAIRS.cell)});
+  if ((cell + 1.0) * ${f(ROAD_REPAIRS.cell)} > lap || apexRoadHash(vec2(cell, 20.5)) >= ${f(ROAD_REPAIRS.chance)})
+    return vec3(0.0, 1.0, 0.0);
+  float len = mix(${f(ROAD_REPAIRS.length[0])}, ${f(ROAD_REPAIRS.length[1])}, apexRoadHash(vec2(cell, 21.5)));
+  float s0 = cell * ${f(ROAD_REPAIRS.cell)} + apexRoadHash(vec2(cell, 22.5)) * (${f(ROAD_REPAIRS.cell)} - len);
+  float halfWidth = mix(${f(ROAD_REPAIRS.halfWidth[0])}, ${f(ROAD_REPAIRS.halfWidth[1])}, apexRoadHash(vec2(cell, 23.5)));
+  float centre = mix(${f(ROAD_REPAIRS.centre[0])}, ${f(ROAD_REPAIRS.centre[1])}, apexRoadHash(vec2(cell, 24.5)));
+  float tone = mix(${f(ROAD_REPAIRS.tone[0])}, ${f(ROAD_REPAIRS.tone[1])}, apexRoadHash(vec2(cell, 25.5)));
+  float d = min(min(m.y - s0, s0 + len - m.y), min(m.x - centre + halfWidth, centre + halfWidth - m.x));
+  float seam = (1.0 - smoothstep(${f(ROAD_REPAIRS.seam)} - aa, ${f(ROAD_REPAIRS.seam)} + aa, abs(d)))
+    * (1.0 - smoothstep(0.04, 0.2, aa));
+  return vec3(smoothstep(-aa, aa, d), tone, seam);
+}
+// Coverage of crack sealant at world position p (metres): a domain-warped
+// iso-line, broken into separate runs, inside sparse crack regions. Box-
+// filtered over the pixel footprint; dropped once far narrower than a pixel.
+float apexRoadSealant(vec2 p) {
+  float region = smoothstep(${f(ROAD_SEALANT.regionThreshold[0])}, ${f(ROAD_SEALANT.regionThreshold[1])},
+    apexRoadNoise(p * ${f(ROAD_SEALANT.region)} + vec2(31.7, 12.9)));
+  if (region <= 0.0) return 0.0;
+  vec2 q = p * ${f(ROAD_SEALANT.frequency)};
+  // Cracks wander at several scales: warp the field by finer noise.
+  q += (vec2(apexRoadNoise(p * 2.9 + vec2(1.3, 8.1)), apexRoadNoise(p * 2.9 + vec2(9.4, 2.6))) - 0.5) * 0.55;
+  q += (vec2(apexRoadNoise(p * 9.0 + vec2(5.5, 0.7)), apexRoadNoise(p * 9.0 + vec2(2.2, 6.6))) - 0.5) * 0.12;
+  float n = apexRoadNoise(q) * 0.7 + apexRoadNoise(q * 2.3 + vec2(7.1, 3.3)) * 0.3;
+  // Runs of sealant a metre or two long, not closed contour loops.
+  float run = smoothstep(0.42, 0.58, apexRoadNoise(p * 0.9 + vec2(17.3, 4.4)));
+  float metresPerPixel = max(length(fwidth(p)), 1e-5);
+  float halfWidth = mix(${f(ROAD_SEALANT.halfWidth[0])}, ${f(ROAD_SEALANT.halfWidth[1])},
+    apexRoadNoise(p * 1.9 + vec2(4.2, 9.7))) * run / metresPerPixel;
+  float distancePx = abs(n - 0.5) / max(fwidth(n), 1e-6);
+  float coverage = clamp(min(2.0 * halfWidth, halfWidth + 0.5 - distancePx), 0.0, 1.0);
+  return coverage * region * smoothstep(0.08, 0.3, 2.0 * halfWidth);
+}
+`;

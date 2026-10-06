@@ -39,8 +39,9 @@ const finishes: Record<CircuitFinish, string> = {
     float broad=finishFilteredNoise(vFinishWorld.xz*.11);
     float medium=finishFilteredNoise(vFinishWorld.xz*1.7);
     float repair=finishFilteredNoise(vFinishWorld.xz*.035+vec2(3.1,7.9));
-    // Darker, richer binder with sealed repair patches and fine tonal break-up.
-    diffuseColor.rgb *= (.8 + broad*.2 + medium*.07) * mix(1.0,.86,smoothstep(.62,.78,repair));
+    // Binder tone breaks up gently (P4: .92+broad*.08); broad aged regions
+    // are a soft -7 %. Rectangular sealed repairs are the road layer's job.
+    diffuseColor.rgb *= (.92 + broad*.08 + medium*.07) * mix(1.0,.93,smoothstep(.58,.82,repair));
     // A restrained longitudinal paving join, not a painted racing line.
     float joinPhase=(vFinishMetres.x-.1)/3.6;
     float join=apexStripeCoverage(joinPhase,fwidth(joinPhase),.014/3.6);
@@ -153,7 +154,7 @@ export function installCircuitFinish(material: T.MeshStandardMaterial, kind: Cir
       .replace('#include <map_fragment>', '#include <map_fragment>\n' + finishes[kind]);
   };
   material.customProgramCacheKey = () =>
-    `${baseKey}:circuit-finish-v2-filtered:periodic-joints-v1:${kind}${kind === 'grass' ? ':regional-soil-v1:mown-v1' : kind === 'terrain' ? ':landform-v1' : ''}`;
+    `${baseKey}:circuit-finish-v2-filtered:periodic-joints-v1:${kind}${kind === 'asphalt' ? ':binder-p4-v1' : ''}${kind === 'grass' ? ':regional-soil-v1:mown-v1' : kind === 'terrain' ? ':landform-v1' : ''}`;
   material.name = `Original ${kind} construction finish`;
 }
 

@@ -29,6 +29,8 @@ export const TYRE_MARKS = Object.freeze({
   lift: 0.006,
   /** Track length per merged mesh, metres (culling granularity). */
   chunk: 400,
+  /** Braking streak length range, metres: they end at (or just short of) the apex. */
+  brakingLength: [20, 60] as const,
 });
 
 export interface TyreMarkZone {
@@ -134,16 +136,23 @@ export function tyreMarks(track: Track, zones = tyreMarkZones(track), seed = 541
     const count = Math.round(clamp(zone.strength / 2.2, 4, 16));
     for (let m = 0; m < count; m++) {
       const passOffset = (random.next() - 0.5) * 1.4;
-      // Braking marks gather towards the end of the zone, where the
-      // downforce has fallen; exit marks start at the apex.
-      const t0 = zone.kind === 'braking' ? 0.35 + random.next() * 0.55 : random.next() * 0.25,
-        markLength = clamp(length * (0.25 + random.next() * 0.45), 6, 60);
-      const from = zone.start + t0 * length - (zone.kind === 'braking' ? markLength * 0.6 : 0);
+      // Braking streaks are pairs 20-60 m long that run into the apex, where
+      // the downforce has fallen and the wheels lock; exit marks start there.
+      const braking = zone.kind === 'braking';
+      const t0 = braking ? 0.88 + random.next() * 0.12 : random.next() * 0.25,
+        markLength = braking
+          ? clamp(
+              length * (0.45 + random.next() * 0.5),
+              TYRE_MARKS.brakingLength[0],
+              TYRE_MARKS.brakingLength[1],
+            )
+          : clamp(length * (0.25 + random.next() * 0.45), 6, 60);
+      const from = zone.start + t0 * length - (braking ? markLength : 0);
       const drift = (random.next() - 0.5) * 0.6,
         strength = 0.3 + random.next() * 0.32;
       // Under braking both axles mark; out of slow corners the rear pair.
       for (const side of [-1, 1]) {
-        if (zone.kind === 'braking' && random.next() < 0.25) continue;
+        if (braking && random.next() < 0.25) continue;
         const samples = Math.max(2, Math.ceil(markLength / 1.2) + 1);
         const s = new Float32Array(samples),
           lateral = new Float32Array(samples),
@@ -159,8 +168,12 @@ export function tyreMarks(track: Track, zones = tyreMarkZones(track), seed = 541
             -limit,
             limit,
           );
-          // Fade in and out; exits fade as the tyres hook up.
-          const envelope = zone.kind === 'braking' ? Math.sin(Math.PI * u) ** 0.6 : (1 - u) ** 1.3;
+          // Braking streaks build as load transfers and the tyre starts to
+          // lock, darkest near the apex, then lift off within the last metres.
+          // Exits fade as the tyres hook up.
+          const envelope = braking
+            ? Math.min(1, u / 0.3) ** 0.7 * Math.min(1, (1 - u) / 0.06)
+            : (1 - u) ** 1.3;
           alpha[k] = strength * envelope;
         }
         marks.push({ s, lateral, alpha });

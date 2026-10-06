@@ -5,7 +5,7 @@ roadState.gb *= surfaceDeposits;
 float waterMm = roadState.r * 2.0;
 float wet = smoothstep(0.0, 0.65, waterMm);
 float puddle = smoothstep(0.65, 1.5, waterMm);
-diffuseColor.rgb *= mix(1.0, 0.58, wet) * (1.0 - roadState.g * 0.25);
+diffuseColor.rgb *= mix(1.0, 0.58, wet) * (1.0 - roadState.g * 0.08);
 // Stable granular flecks: local density is from the physics cell, never rain or
 // session age. Derivative filtering suppresses sub-pixel shimmer at distance.
 vec2 marbleGrid = vTrackUV * vec2(360.0, 48000.0);

@@ -48,6 +48,7 @@ import * as T from 'three';
 import { BuildQueue } from './build-queue.ts';
 import { sphereDetail, stripDetail, trunkDetail, type ProbeDetail } from './probe-detail.ts';
 import { installWetRoad } from './materials.ts';
+import { apexLineAt, installRoadDetail } from './studio/road-detail.ts';
 import { kerbHeight } from '../simulation/contact.ts';
 import { Track, CELL_ROWS, CELL_COLS, trackPoint } from '../simulation/track.ts';
 import { H } from '../simulation/protocol.ts';
@@ -148,6 +149,8 @@ export class CircuitScene {
       VENUE_LAMP_RADIUS,
       this.wetReflection.uniforms,
     );
+    // Rubbered racing line, edge dust, small repairs and crack sealant.
+    installRoadDetail(this.roadMaterial, track.length);
     const grass = surfaceMaterial('grass');
     const runOff = surfaceMaterial('asphalt', 'paint');
     runOff.color.setHex(0x8aa58d);
@@ -189,7 +192,8 @@ export class CircuitScene {
       road: true,
       step: 1.8,
     });
-    const white = new T.MeshStandardMaterial({ color: 0xf1eee0, roughness: 0.75 });
+    // Line paint is an off-white with a little sheen, never pure white.
+    const white = new T.MeshStandardMaterial({ color: 0xe9e7e0, roughness: 0.55 });
     installCircuitFinish(white, 'paint');
     const kerb = new T.MeshStandardMaterial({ vertexColors: true, roughness: 0.85 });
     installCircuitFinish(kerb, 'kerb');
@@ -474,8 +478,11 @@ export class CircuitScene {
       uv: number[] = [],
       state: number[] = [],
       colors: number[] = [],
+      edge: number[] = [],
+      apex: number[] = [],
       indices: number[] = [];
-    const p = trackPoint();
+    const p = trackPoint(),
+      line: [number, number] = [0, 0];
     for (let i = 0; i <= rows; i++) {
       const s = start + ((end - start) * i) / rows;
       this.track.at(s, p);
@@ -486,6 +493,10 @@ export class CircuitScene {
         vertices.push(p.x + p.nx * l, p.y + p.bank * clamp(l, -12, 12) + extra, p.z + p.nz * l);
         uv.push(l / 5, s / 5);
         state.push(clamp((l / p.width) * 0.5 + 0.5, 0, 1), s / this.track.length);
+        // Signed metres beyond the asphalt edge (negative on the road), shared
+        // by the kerb, verge and terrain shaders.
+        edge.push(Math.abs(l) - p.width);
+        if (options.road) apex.push(...apexLineAt(this.track, s, l, line));
         const c = Math.floor(s / 3) % 2 === 0 ? new T.Color(0xdc553b) : new T.Color(0xe8e3cf);
         colors.push(c.r, c.g, c.b);
       }
@@ -505,6 +516,8 @@ export class CircuitScene {
     g.setAttribute('position', new T.Float32BufferAttribute(vertices, 3));
     g.setAttribute('uv', new T.Float32BufferAttribute(uv, 2));
     g.setAttribute('trackUV', new T.Float32BufferAttribute(state, 2));
+    g.setAttribute('edgeMetres', new T.Float32BufferAttribute(edge, 1));
+    if (options.road) g.setAttribute('apexLine', new T.Float32BufferAttribute(apex, 2));
     if (options.stripes) g.setAttribute('color', new T.Float32BufferAttribute(colors, 3));
     g.setIndex(indices);
     g.computeVertexNormals();
@@ -715,7 +728,9 @@ export class CircuitScene {
     });
   }
   private grid() {
-    const paint = new T.MeshBasicMaterial({ color: 0xece9de });
+    // Grid boxes use the same lit, slightly worn line paint as the edges.
+    const paint = new T.MeshStandardMaterial({ color: 0xe9e7e0, roughness: 0.55 });
+    installCircuitFinish(paint, 'paint');
     for (let i = 0; i < 12; i++) {
       const s = this.track.length - 32 - Math.floor(i / 2) * 10,
         l = i % 2 === 0 ? -2.2 : 2.2,

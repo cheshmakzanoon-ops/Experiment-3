@@ -1,7 +1,11 @@
 /** Real production materials/renderer with explicit, reversible test controls.
  * These held comparisons do not substitute for ordinary race/pit/replay suites. */
 import * as T from 'three';
-import { surfaceMaterial, surfacePixels } from '../../src/rendering/surface-detail.ts';
+import {
+  surfaceMaterial,
+  surfaceNormalPixels,
+  surfacePixels,
+} from '../../src/rendering/surface-detail.ts';
 import { legacySurfacePixels } from './race-surface-control.ts';
 import { completedDrawMilliseconds } from './completed-draw.ts';
 import { LocalAtmosphere, LOCAL_FOG_OPTICAL_ERROR } from '../../src/rendering/local-atmosphere.ts';
@@ -80,14 +84,11 @@ export function roadMaterialGPU() {
   const prior = legacySurfacePixels('asphalt'),
     current = surfacePixels('asphalt');
   const upload = (data: typeof current) => {
-    const height = new Uint8ClampedArray(data.albedo.length);
-    for (let i = 0; i < data.height.length; i++) {
-      height[i * 4] = height[i * 4 + 1] = height[i * 4 + 2] = data.height[i];
-      height[i * 4 + 3] = 255;
-    }
+    // Asphalt relief is a Sobel normal map of the same height bytes.
+    const normals = surfaceNormalPixels(data.height, Math.round(Math.sqrt(data.height.length)));
     for (const [texture, bytes] of [
       [material.map!, data.albedo],
-      [material.bumpMap!, height],
+      [material.normalMap!, normals],
       [material.roughnessMap!, data.roughness],
     ] as const) {
       const canvas = texture.image as HTMLCanvasElement,
@@ -126,7 +127,7 @@ export function roadMaterialGPU() {
       glError: renderer.getContext().getError(),
     };
   } finally {
-    for (const texture of [material.map!, material.bumpMap!, material.roughnessMap!])
+    for (const texture of [material.map!, material.normalMap!, material.roughnessMap!])
       texture.dispose();
     geometry.dispose();
     material.dispose();
