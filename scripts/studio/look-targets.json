@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "about": "Crop boxes and targets for scripts/studio/look-metrics.py: PRODUCTION_PLAN section 5 KPIs 1-13. Crops are frame fractions [x0, y0, x1, y1] (or poly points) calibrated on the baseline 1280x720 Medium framing (capture.mjs / capture-matrix.mjs shot indices). When a camera department changes a view's framing, re-check the crops with look-metrics --overlay and move them in the same change. Targets and baselines are display-referred sRGB measurements from ART_BIBLE_A section 0.1 and PRODUCTION_PLAN section 5. Baseline values are AB-A 0.1 numbers where AB-A measured the same crop (asphalt and grass on shot 10, cockpit dark share, frame percentiles); every other baseline is this tool on $S/shots/baseline-matrix (the original game, build bc2f7a0 = 3a6036d sources).",
+  "about": "Crop boxes and targets for scripts/studio/look-metrics.py: PRODUCTION_PLAN section 5 KPIs 1-13. Crops are frame fractions [x0, y0, x1, y1] (or poly points) calibrated on the baseline 1280x720 Medium framing (capture.mjs / capture-matrix.mjs shot indices). When a camera department changes a view's framing, re-check the crops with look-metrics --overlay and move them in the same change. Targets and baselines are display-referred sRGB measurements from ART_BIBLE_A section 0.1 and PRODUCTION_PLAN section 5. Baseline values are AB-A 0.1 numbers where AB-A measured the same crop (asphalt and grass on shot 10, cockpit dark share, frame percentiles); every other baseline is this tool on $S/shots/baseline-matrix (the original game, build bc2f7a0 = 3a6036d sources), except shots 20/21, which are measured on the held 16 s drive of the same build ($S/shots/qa-review-hold-base16; capture-matrix default since the qa-tools review).",
   "kpis": [
     {
       "id": "1",
@@ -65,7 +65,7 @@
           "target": {
             "hex_box": ["#7d7a76", "#938b83"]
           },
-          "baseline": "#3f3f44",
+          "baseline": "#393a3f",
           "note": "car-relative: road right of the right rear tyre (left of the HUD panel), or left of the left rear tyre when the car rides a kerb",
           "gate": false,
           "alternates": [[0.29, 0.82, 0.37, 0.92]]
@@ -83,7 +83,7 @@
           "target": {
             "range": [0.88, 0.95]
           },
-          "baseline": 1.087,
+          "baseline": 1.102,
           "note": "car-relative: road right of the right rear tyre (left of the HUD panel), or left of the left rear tyre when the car rides a kerb",
           "gate": false,
           "alternates": [[0.29, 0.82, 0.37, 0.92]]
@@ -101,7 +101,7 @@
           "target": {
             "min": 8
           },
-          "baseline": 5.105,
+          "baseline": 2.82,
           "note": "car-relative: road right of the right rear tyre (left of the HUD panel), or left of the left rear tyre when the car rides a kerb",
           "gate": false,
           "alternates": [[0.29, 0.82, 0.37, 0.92]]
@@ -150,7 +150,8 @@
         {
           "id": "2.line-20",
           "shot": "20",
-          "crop": [0.42, 0.47, 0.88, 0.5],
+          "crop": [0.3, 0.5, 0.59, 0.535],
+          "vanish": [0.43, 0.41],
           "filter": {
             "sat_max": 0.25,
             "luma_rel": [0.6, 1.5]
@@ -160,8 +161,8 @@
           "target": {
             "range": [0.45, 0.65]
           },
-          "baseline": 0.838,
-          "note": "across turn 1 at the apex, ahead of the car (autopilot drive)"
+          "baseline": 0.903,
+          "note": "road ahead of the car on the turn-1 approach (held autopilot drive, 16 s)"
         }
       ]
     },
@@ -178,7 +179,7 @@
           "target": {
             "range": [0.42, 0.53]
           },
-          "baseline": 0.308,
+          "baseline": 0.24,
           "gate": false
         },
         {
@@ -189,7 +190,7 @@
           "target": {
             "range": [0.8, 0.88]
           },
-          "baseline": 0.91,
+          "baseline": 0.812,
           "gate": false
         },
         {
@@ -200,7 +201,7 @@
           "target": {
             "max": 0.93
           },
-          "baseline": 0.943,
+          "baseline": 0.855,
           "gate": false
         }
       ]
@@ -213,7 +214,7 @@
         {
           "id": "4.zenith-10",
           "shot": "10",
-          "crop": [0.4, 0.08, 0.6, 0.12],
+          "crop": [0.4, 0.075, 0.6, 0.1],
           "filter": {
             "class": "sky"
           },
@@ -222,7 +223,8 @@
           "target": {
             "range": [0.78, 0.85]
           },
-          "baseline": 0.92
+          "baseline": 0.92,
+          "note": "rows 0.075-0.10: the race-control banner starts at 0.104"
         },
         {
           "id": "4.zenith-13",
@@ -250,7 +252,7 @@
           "target": {
             "range": [0.78, 0.85]
           },
-          "baseline": 0.987,
+          "baseline": 0.943,
           "gate": false,
           "note": "upper sky right of centre (sky filter coverage-gated)"
         },
@@ -280,7 +282,7 @@
           "target": {
             "min": 12
           },
-          "baseline": -3.787
+          "baseline": 3.245
         }
       ]
     },
@@ -382,7 +384,7 @@
           "target": {
             "max": 0.2
           },
-          "baseline": 0.319
+          "baseline": 0.252
         }
       ]
     },
@@ -409,6 +411,12 @@
       "checks": [
         {
           "id": "8.road-left-20",
+          "requires": {
+            "held": false,
+            "motionBlur.active": true,
+            "frameMs": [0, 120]
+          },
+          "requires_note": "needs a live blurred frame under 0.12 s (presets have motionBlur 0; MotionBlurPass resets on slower frames, so SwiftShader never blurs)",
           "shot": "20",
           "crop": [0.28, 0.7, 0.37, 0.82],
           "vanish": [0.5, 0.45],
@@ -427,6 +435,12 @@
         },
         {
           "id": "8.road-right-20",
+          "requires": {
+            "held": false,
+            "motionBlur.active": true,
+            "frameMs": [0, 120]
+          },
+          "requires_note": "needs a live blurred frame under 0.12 s (presets have motionBlur 0; MotionBlurPass resets on slower frames, so SwiftShader never blurs)",
           "shot": "20",
           "crop": [0.63, 0.7, 0.71, 0.81],
           "vanish": [0.5, 0.45],
@@ -444,6 +458,12 @@
         },
         {
           "id": "8.car-20",
+          "requires": {
+            "held": false,
+            "motionBlur.active": true,
+            "frameMs": [0, 120]
+          },
+          "requires_note": "needs a live blurred frame under 0.12 s (presets have motionBlur 0; MotionBlurPass resets on slower frames, so SwiftShader never blurs)",
           "shot": "20",
           "crop": [0.45, 0.63, 0.56, 0.7],
           "direction": "x",
@@ -522,7 +542,12 @@
         {
           "id": "9.grass-20",
           "shot": "20",
-          "crop": [0.04, 0.52, 0.2, 0.6],
+          "poly": [
+            [0.01, 0.528],
+            [0.15, 0.495],
+            [0.15, 0.505],
+            [0.01, 0.548]
+          ],
           "filter": {
             "class": "vegetation",
             "trim": [5, 95]
@@ -532,12 +557,17 @@
           "target": {
             "hex_box": ["#7f8444", "#8e8a4c"]
           },
-          "baseline": "#657838"
+          "baseline": "#41601e"
         },
         {
           "id": "9.grass-sat-20",
           "shot": "20",
-          "crop": [0.04, 0.52, 0.2, 0.6],
+          "poly": [
+            [0.01, 0.528],
+            [0.15, 0.495],
+            [0.15, 0.505],
+            [0.01, 0.548]
+          ],
           "filter": {
             "class": "vegetation",
             "trim": [5, 95]
@@ -547,7 +577,7 @@
           "target": {
             "range": [0.33, 0.47]
           },
-          "baseline": 0.53
+          "baseline": 0.691
         },
         {
           "id": "9.trees-13",
@@ -566,7 +596,7 @@
         {
           "id": "9.trees-20",
           "shot": "20",
-          "crop": [0.5, 0.37, 0.66, 0.41],
+          "crop": [0.83, 0.38, 0.88, 0.43],
           "filter": {
             "class": "vegetation"
           },
@@ -575,7 +605,7 @@
           "target": {
             "range": [0.15, 0.25]
           },
-          "baseline": 0.308
+          "baseline": 0.643
         }
       ]
     },
@@ -595,7 +625,7 @@
           "target": {
             "range": [0.36, 0.42]
           },
-          "baseline": 0.237,
+          "baseline": 0.212,
           "gauge": [["width", 0.5, 0.36, 0.42, 0.84]],
           "gate": false
         },
@@ -715,7 +745,7 @@
         {
           "id": "11.red-20",
           "shot": "20",
-          "crop": [0.15, 0.62, 0.37, 0.85],
+          "crop": [0.64, 0.52, 0.88, 0.65],
           "filter": {
             "class": "red"
           },
@@ -725,7 +755,7 @@
             "hex_near": "#c4222a",
             "tol": 20
           },
-          "baseline": "#e06044",
+          "baseline": "#db5035",
           "min_coverage": 0.03
         }
       ]
@@ -763,15 +793,19 @@
           "id": "12.boards-20",
           "shot": "20",
           "poly": [
-            [0.0, 0.49],
-            [0.12, 0.47],
-            [0.235, 0.455],
-            [0.235, 0.465],
-            [0.12, 0.5],
-            [0.0, 0.545]
+            [0.6, 0.441],
+            [0.7, 0.456],
+            [0.8, 0.473],
+            [0.9, 0.49],
+            [0.99, 0.505],
+            [0.99, 0.547],
+            [0.9, 0.524],
+            [0.8, 0.498],
+            [0.7, 0.473],
+            [0.6, 0.449]
           ],
           "axis": "x",
-          "slices": 16,
+          "slices": 20,
           "measure": "board_coverage",
           "value": "coverage",
           "target": {
@@ -783,10 +817,10 @@
           "id": "12.boards-21",
           "shot": "21",
           "poly": [
-            [0.52, 0.456],
-            [0.99, 0.456],
-            [0.99, 0.47],
-            [0.52, 0.47]
+            [0.52, 0.458],
+            [0.99, 0.455],
+            [0.99, 0.465],
+            [0.52, 0.465]
           ],
           "axis": "x",
           "slices": 20,
@@ -860,15 +894,15 @@
         {
           "id": "N.sunset-zenith-30",
           "shot": "30",
-          "crop": [0.4, 0.08, 0.6, 0.12],
+          "crop": [0.4, 0.075, 0.6, 0.1],
           "measure": "stats",
           "value": "hex",
           "target": {
             "hex_near": "#4a6fa8",
             "tol": 25
           },
-          "baseline": "#314c54",
-          "note": "sky from #f2b27a at the horizon to #4a6fa8 overhead"
+          "baseline": "#365965",
+          "note": "sky from #f2b27a at the horizon to #4a6fa8 overhead; rows 0.075-0.10 stay above the race-control banner (0.104-0.126)"
         },
         {
           "id": "N.sunset-horizon-30",
@@ -885,22 +919,41 @@
         {
           "id": "N.night-sky-40",
           "shot": "40",
-          "crop": [0.4, 0.08, 0.6, 0.12],
+          "crop": [0.4, 0.075, 0.6, 0.1],
           "measure": "stats",
           "value": "hex",
           "target": {
             "hex_box": ["#06090d", "#0b0d14"],
             "tol": 4
           },
-          "baseline": "#121622"
+          "baseline": "#0d1321",
+          "note": "rows 0.075-0.10 stay above the race-control banner, whose panel and white text read #121622 here"
         }
       ]
     }
   ],
+  "views": {
+    "_about": "Camera view each shot index's crops are calibrated on; a capture that records another presentedCamera for the index (e.g. --drive-views pod,chase) has its checks INVALID.",
+    "10": "chase",
+    "11": "cockpit",
+    "12": "pod",
+    "13": "trackside",
+    "20": "chase",
+    "21": "cockpit",
+    "30": "chase",
+    "31": "cockpit",
+    "40": "chase",
+    "41": "cockpit"
+  },
   "compositions": {
-    "_about": "Driving shots land wherever the car is when a slow frame completes (SwiftShader frames take 10-20 s while the simulation runs in real time). capture-matrix records driveElapsed: simulated seconds from the autopilot drive start on the grid to the presented frame. The drive is deterministic; a simulation probe of the practice start gives lap distance 259 m at 10 s, 469-615 m (turn 1) at 13-15 s, 1024 m at 21 s, about 2000 m at 43 s. Position-dependent checks on a shot outside its window report INVALID; checks with \"gate\": false use car-relative crops or whole-frame statistics and always run. Shot 20 position crops are calibrated on turn 1 (12-18 s).",
+    "_about": "Drive shots 20/21 are calibrated on the default capture-matrix drive: autopilot from the practice grid for 16 simulated seconds, then held (paused) so both views show that instant on the turn-1 approach (265 km/h). driveElapsed is the simulated time from the drive start to the frame submitted before the screenshot, after.driveElapsed the one presented after it (the PNG lies between; equal when held). Live drives (--drive-mode auto) land 10-60 s later on SwiftShader and fail the window. Position-dependent checks outside the window report INVALID; checks with \"gate\": false use car-relative crops or whole-frame statistics and always run.",
     "20": {
-      "driveElapsed": [12, 18]
+      "driveElapsed": [15.5, 17],
+      "after.driveElapsed": [15.5, 17]
+    },
+    "21": {
+      "driveElapsed": [15.5, 17],
+      "after.driveElapsed": [15.5, 17]
     }
   }
 }

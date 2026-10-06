@@ -9,7 +9,9 @@ QA tooling only (not part of the game, CI or any test). Run it with the isolated
 two-digit index, plus diag.json. Every check in look-targets.json names a shot index, a crop
 (fractions of the frame, or a polygon), an optional pixel filter and a target. A check reports
 PASS, FAIL, INVALID (the crop no longer shows the surface it was calibrated on: too few pixels pass
-the filter, or a heuristic could not lock on) or N/A (shot, diag value or comparison missing).
+the filter, a heuristic could not lock on, the shot shows another camera view than look-targets
+'views' names, a drive shot was taken outside its 'compositions' window, or the capture state
+misses a check's 'requires') or N/A (shot, diag value or comparison missing).
 All colours are display-referred sRGB 0-255, measured after tone mapping, like the art bibles.
 --overlay writes <shot>-overlay.png with every crop outlined in its result colour, so a reviewer can
 confirm that the crops still sit on the intended surfaces after camera or layout changes.
@@ -569,8 +571,10 @@ def flow_anisotropy(img, check, crop, vanish):
 def m_flow(img, check, ctx):
     """Motion blur on the near road: flow anisotropy (gradient along / across the road's
     screen-space motion) of this shot against the same crop of the same shot in a 0-blur
-    capture (--noblur; e.g. capture-matrix --graphics motionBlur=0). Same-view captures of a
-    road crop agree within about 4 %, so a 35 % reduction is well above the noise."""
+    capture (--noblur; every quality preset has motionBlur 0, so the blurred capture needs e.g.
+    capture-matrix --drive-mode auto --graphics motionBlur=0.35). Same-view captures of a road
+    crop agree within about 4 %, so a 35 % reduction is well above the noise. The KPI 8 checks
+    'require' a live (not held) frame with blur on and frames fast enough for the blur pass."""
     vanish = check.get('vanish', [0.5, 0.45])
     value, coverage = flow_anisotropy(img, check, check['crop'], vanish)
     if value is None:
@@ -672,25 +676,48 @@ def fmt(v):
     return str(v)
 
 
-def composition_mismatch(targets, record, shot):
-    """Driving shots land wherever the car is when a slow frame completes. When the capture's
-    diag.json records where the presented frame was taken (driveElapsed: simulated seconds of the
-    deterministic autopilot drive from the grid), a shot outside the calibrated window
-    (targets['compositions'][shot]: field -> [lo, hi]) has its position-dependent checks INVALID
-    instead of a verdict measured on the wrong surface. Checks marked "gate": false use car-relative
-    crops and are always measured. Captures without the field are not gated."""
-    window = targets.get('compositions', {}).get(shot)
+def state_mismatch(window, record, strict=False):
+    """First field of `window` (dotted diag.json shot-record path -> [lo, hi] or an exact value)
+    that the record contradicts, as text; None when it matches. Without a record (legacy
+    capture.mjs diag.json) nothing is judged; a field the record lacks is judged only when
+    `strict` (then it is a mismatch: the capture cannot show it matches)."""
     if not isinstance(window, dict) or not record:
         return None
-    for field, (lo, hi) in window.items():
+    for field, want in window.items():
         if field.startswith('_'):
             continue
-        value = record.get(field)
-        if value is None:  # not recorded by this capture: cannot judge, do not gate
+        value = dig(record, field)
+        if value is None:
+            if strict:
+                return '%s not recorded (older capture-matrix run)' % field
             continue
-        if not lo <= value <= hi:
-            return 'composition differs from the calibration: %s %s outside %s-%s' % (
-                field, fmt(value), fmt(lo), fmt(hi))
+        if isinstance(want, list):
+            if not isinstance(value, (int, float)) or not want[0] <= value <= want[1]:
+                return '%s %s outside %s-%s' % (field, fmt(value), fmt(want[0]), fmt(want[1]))
+        elif value != want:
+            return '%s is %s, not %s' % (field, json.dumps(value), json.dumps(want))
+    return None
+
+
+def composition_mismatch(targets, record, shot):
+    """Driving shots are taken at a recorded place on the lap (driveElapsed: simulated seconds of
+    the deterministic autopilot drive from the grid). A shot outside the calibrated window
+    (targets['compositions'][shot]) has its position-dependent checks INVALID instead of a verdict
+    measured on the wrong surface. Checks marked "gate": false use car-relative crops or whole-frame
+    statistics and are always measured. A capture-matrix record without the field (a run from
+    before drive positions were recorded, e.g. the live drive of $S/shots/baseline-matrix) is
+    INVALID too; legacy capture.mjs captures carry no shot records and are not gated."""
+    reason = state_mismatch(targets.get('compositions', {}).get(shot), record, strict=True)
+    return reason and 'composition differs from the calibration: ' + reason
+
+
+def view_mismatch(targets, record, shot):
+    """The crops of a shot index belong to one camera view (targets['views']); a capture that put
+    another view in that slot (e.g. --drive-views pod,chase) must not be measured with them."""
+    want = targets.get('views', {}).get(shot)
+    got = (record or {}).get('presentedCamera')
+    if want and got and got != want:
+        return 'shot %s shows the %s view; its crops are calibrated on %s' % (shot, got, want)
     return None
 
 
@@ -819,8 +846,13 @@ def main(argv):
                 r.update(result='N/A', measured=None, reason='shot %s not in capture' % check['shot'])
                 results.append(r)
                 continue
-            mismatch = check.get('gate', True) and composition_mismatch(
-                targets, records.get(check['shot']), check['shot'])
+            record = records.get(check['shot'])
+            mismatch = view_mismatch(targets, record, check['shot'])
+            if not mismatch and check.get('gate', True):
+                mismatch = composition_mismatch(targets, record, check['shot'])
+            if not mismatch and 'requires' in check:
+                reason = state_mismatch(check['requires'], record)
+                mismatch = reason and '%s (%s)' % (check.get('requires_note', 'capture state'), reason)
             if mismatch:
                 r.update(result='INVALID', measured=None, reason=mismatch, _path=path)
                 results.append(r)
@@ -859,10 +891,16 @@ def main(argv):
         for rec in diag['shots']:
             key = '%02d' % rec['index']
             if key in used:
-                drive = ('  drive +%.1f s' % rec['driveElapsed']) if rec.get('driveElapsed') is not None else ''
-                print('  shot %s %-26s %-9s %-7s %5s km/h  %s calls%s' % (
+                drive = ''
+                if rec.get('driveElapsed') is not None:
+                    later = dig(rec, 'after.driveElapsed')
+                    drive = '  drive +%.1f s' % rec['driveElapsed']
+                    if later is not None and abs(later - rec['driveElapsed']) >= 0.05:
+                        drive = '  drive +%.1f..%.1f s' % (rec['driveElapsed'], later)
+                held = ' held' if rec.get('held') else ''
+                print('  shot %s %-26s %-9s %-7s %5s km/h  %s calls%s%s' % (
                     key, rec.get('file', '')[3:-4][:26], rec.get('presentedCamera'),
-                    rec.get('lighting'), rec.get('speedKmh'), rec.get('drawCalls'), drive))
+                    rec.get('lighting'), rec.get('speedKmh'), rec.get('drawCalls'), drive, held))
     print('%-3s %-26s %-4s %-12s %-22s %-14s %s' % ('KPI', 'check', 'shot', 'measured', 'target',
                                                     'baseline', 'result'))
     for r in results:

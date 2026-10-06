@@ -11,7 +11,8 @@
  *
  * Shot indices are stable so `look-metrics.py` and `shotdiff.py` can match them
  * across builds (10-13 frame exactly like the original capture.mjs; 20-21 are
- * autopilot drive shots, while capture.mjs held the throttle: --drive-mode throttle):
+ * autopilot drive shots held at one simulated instant, while capture.mjs held the
+ * throttle: --drive-mode throttle --drive 10):
  *   00 menu
  *   10-13 day/clear static chase, cockpit, pod (T-cam), trackside   20-21 day drive
  *   30-33 sunset static                                              34-35 sunset drive
@@ -44,12 +45,20 @@ Options
   --views V[,V...]       Static views of the primary session (default chase,cockpit,pod,trackside).
                          A view keeps its slot: chase +0, cockpit +1, pod +2, trackside +3.
   --variant-views V,...  Views of each extra lighting (default chase,cockpit).
-  --drive S              Seconds of driving before the drive shots (default 10; 0 = no drive shots).
-                         auto: simulated seconds, then a frame submitted after that instant;
-                         throttle: wall seconds, then the next frame (capture.mjs behaviour).
-  --drive-mode M         auto (autopilot on the racing line, so drive shots keep the car on track;
-                         default) | throttle (hold ArrowUp like the original capture.mjs; the car
-                         leaves the road at turn 1 and the frame depends on render speed).
+  --drive S              Seconds of driving before the drive shots (default 16: the turn-1 approach
+                         at 265 km/h, where the shot 20/21 crops are calibrated; 0 = no drive shots,
+                         also for --weather).
+                         hold/auto: simulated seconds; throttle: wall seconds (capture.mjs used 10).
+  --drive-mode M         hold (default): autopilot on the racing line for S simulated seconds, then
+                         the session is paused (the player's Escape, dialog hidden) and every drive
+                         view shows that same instant, so 20/21 land at the same place on every
+                         run (driveElapsed in diag.json, S + under 0.2 s).
+                         auto: the same drive without the pause; SwiftShader frames take 2-15 s
+                         while the simulation runs in real time, so the shots land 10-60 s later
+                         and position checks report INVALID. Use it only where motion blur can
+                         render (frames under 0.12 s; never on SwiftShader).
+                         throttle: hold ArrowUp like the original capture.mjs; the car leaves the
+                         road at turn 1 and the frame depends on render speed.
   --drive-views V,...    Views shot while driving (default chase,cockpit).
   --grid                 Race session held on the grid: pre-race presentation shots of the grid crew.
   --grid-times T,...     Presentation seconds to capture (default 10,14; stages: 4-7 checks,
@@ -59,8 +68,10 @@ Options
   --pit-views V,...      Views of the held pit stop (default trackside,cockpit; trackside = TV).
   --matrix               Shorthand for --lighting day,sunset,night --weather clear,rain --grid --pit.
   --graphics K=V[,K=V]   Individual graphics controls after the preset (the GARAGE & SETTINGS
-                         graphics_<K> fields), e.g. motionBlur=0 for the KPI 8 0-blur reference,
-                         temporalAA=true, cockpitFov=54. Unknown keys fail the run.
+                         graphics_<K> fields), e.g. motionBlur=0.35, temporalAA=true, cockpitFov=54.
+                         Every preset has motionBlur 0, so a KPI 8 blurred capture must set it.
+                         Unknown keys, unknown select values and non-boolean checkbox values fail
+                         the run; range values are snapped by the control (diag.json graphics).
   --opponents N          Rival count (default 7).
   --size WxH             Viewport (default 1280x720).
   --no-census            Skip the visual census (apexDiagnostics(true).visual.census) on the cockpit shot.
@@ -72,8 +83,11 @@ identity, timings, per-shot renderer state incl. drawBreakdown, census, failures
 console errors; must be empty), capture-log.txt. Exit code 0 = every planned shot written and no
 page errors, 1 = setup failure, 2 = some shots missing or page errors.
 Measured wall time (SwiftShader, Medium, 1280x720, box shared with another capture/build job, load
-average 4-6): day run 9.8 min, --matrix 28.9 min; High day run 10.3 min. An idle box is about 30 %
-faster (capture.mjs: 6.8 min for the same day shots).`;
+average 4-6): day run 8.2-9.8 min, --matrix 28.9 min; High day run 10.3 min. An idle box is about
+30 % faster (capture.mjs: 6.8 min for the same day shots).
+Per-shot records describe the frame submitted before the screenshot; on SwiftShader 1-4 more frames
+are submitted while it waits, so the PNG lies between that record and its 'after' values (time,
+speed, driveElapsed). Held and static shots read the same on both.`;
 
 const VIEWS = ['chase', 'cockpit', 'pod', 'trackside'];
 const LIGHTINGS = ['day', 'sunset', 'night'];
@@ -126,8 +140,8 @@ function parse(argv) {
         weather: { type: 'string', default: 'clear' },
         views: { type: 'string', default: VIEWS.join(',') },
         'variant-views': { type: 'string', default: 'chase,cockpit' },
-        drive: { type: 'string', default: '10' },
-        'drive-mode': { type: 'string', default: 'auto' },
+        drive: { type: 'string', default: '16' },
+        'drive-mode': { type: 'string', default: 'hold' },
         'drive-views': { type: 'string', default: 'chase,cockpit' },
         grid: { type: 'boolean', default: false },
         'grid-times': { type: 'string', default: '10,14' },
@@ -158,8 +172,8 @@ function parse(argv) {
     v.pit = true;
   }
   if (!QUALITIES.includes(v.quality)) fail(`--quality must be one of ${QUALITIES.join(', ')}`);
-  if (!['throttle', 'auto'].includes(v['drive-mode']))
-    fail('--drive-mode must be throttle or auto');
+  if (!['hold', 'auto', 'throttle'].includes(v['drive-mode']))
+    fail('--drive-mode must be hold, auto or throttle');
   const size = /^(\d{3,4})x(\d{3,4})$/.exec(v.size);
   if (!size) fail('--size must look like 1280x720');
   const opponents = Number(v.opponents);
@@ -277,10 +291,9 @@ function buildPlan(o) {
     driveSeconds: o.drive,
   });
   for (const weather of extraWeather) {
-    const s = shots(primaryLighting, weather, ['chase', 'pod'], Math.max(o.drive, 12), [
-      'chase',
-      'pod',
-    ]);
+    // --drive 0 means no drive shots here too; throttle would leave the road, so it drives held.
+    const seconds = o.drive ? Math.max(o.drive, 12) : 0;
+    const s = shots(primaryLighting, weather, ['chase', 'pod'], seconds, ['chase', 'pod']);
     blocks.push({
       kind: 'practice',
       weather,
@@ -288,8 +301,8 @@ function buildPlan(o) {
       static: s.static,
       variants: [],
       drive: s.drive,
-      driveMode: 'auto',
-      driveSeconds: Math.max(o.drive, 12),
+      driveMode: o.driveMode === 'throttle' ? 'hold' : o.driveMode,
+      driveSeconds: seconds,
     });
   }
   if (o.grid || o.pit) {
@@ -487,6 +500,41 @@ async function hideDialog(hidden) {
   }, hidden);
 }
 
+/** Renderer state of the most recently submitted frame (the one the next screenshot shows). */
+const frameMeta = () =>
+  page.evaluate((I) => {
+    const d = window.apexDiagnostics();
+    const r = d.renderer ?? {};
+    const blur = r.motionBlur ?? null;
+    return {
+      state: d.state,
+      frame: d.presentation?.frames ?? null,
+      presentedCamera: r.presentedCamera,
+      lighting: r.lighting,
+      liveTime: d.frame ? d.frame[I.time] : null,
+      presentedTime: r.pitState?.time ?? null,
+      speedKmh: r.pitState ? Math.round(r.pitState.speed * 36) / 10 : null,
+      pitPhase: r.pitState?.phase ?? null,
+      gridTime: d.state === 'pregame' ? d.gridPresentation.time : null,
+      drawCalls: r.drawCalls,
+      triangles: r.triangles,
+      frameMs: r.frameMs,
+      gpuMilliseconds: r.gpuMilliseconds,
+      renderCPUms: r.renderCPUms,
+      exposure: r.automaticExposure ?? null,
+      reflectionIntensity: r.reflectionIntensity,
+      motionBlur: blur
+        ? {
+            active: blur.active,
+            strength: blur.strength,
+            resets: blur.resets,
+            velocityFrames: blur.velocityFrames,
+          }
+        : null,
+      drawBreakdown: r.drawBreakdown,
+    };
+  }, FRAME);
+
 /** `immediate`: the view was already live (throttle drive shot), so capture the next frame at once. */
 async function shot(entry, context, immediate = false) {
   const file = `${String(entry.index).padStart(2, '0')}-${entry.name}.png`;
@@ -496,36 +544,35 @@ async function shot(entry, context, immediate = false) {
     // submission) and the screenshot waits for it on the GPU. Without a switch, wait for one fresh
     // submission so the shot reflects the current state (seek, resume, drive time).
     if (!switched && !immediate) await settle(1);
+    // The PNG shows a frame between the one submitted before the screenshot and the one presented
+    // after it: on SwiftShader the screenshot waits behind the GPU while the renderer submits 1-4
+    // more frames. The record is the frame before; `after` bounds the shot (a held or static scene
+    // reads the same on both). Draw calls and the breakdown are those of the frame before.
+    const meta = await frameMeta();
     await page.screenshot({ path: join(o.out, file), timeout: 240000 });
-    const meta = await page.evaluate((I) => {
-      const d = window.apexDiagnostics();
-      const r = d.renderer ?? {};
-      return {
-        state: d.state,
-        presentedCamera: r.presentedCamera,
-        lighting: r.lighting,
-        liveTime: d.frame ? d.frame[I.time] : null,
-        presentedTime: r.pitState?.time ?? null,
-        speedKmh: r.pitState ? Math.round(r.pitState.speed * 36) / 10 : null,
-        pitPhase: r.pitState?.phase ?? null,
-        gridTime: d.state === 'pregame' ? d.gridPresentation.time : null,
-        drawCalls: r.drawCalls,
-        triangles: r.triangles,
-        frameMs: r.frameMs,
-        gpuMilliseconds: r.gpuMilliseconds,
-        renderCPUms: r.renderCPUms,
-        exposure: r.automaticExposure ?? null,
-        reflectionIntensity: r.reflectionIntensity,
-        drawBreakdown: r.drawBreakdown,
-      };
-    }, FRAME);
+    const later = await frameMeta();
+    const elapsed = (time) =>
+      context.driveStart !== undefined && time !== null
+        ? Math.round((time - context.driveStart) * 100) / 100
+        : undefined;
     // Simulated seconds between the drive start and the presented frame: the autopilot drive
     // from the grid is deterministic, so this places the frame on the lap (look-metrics gates
-    // position-dependent checks on it). Slow frames make it overshoot by up to a frame.
-    if (context.driveStart !== undefined && meta.presentedTime !== null)
-      meta.driveElapsed = Math.round((meta.presentedTime - context.driveStart) * 100) / 100;
+    // position-dependent checks on both ends).
+    meta.driveElapsed = elapsed(meta.presentedTime);
+    meta.after = {
+      frames: meta.frame !== null && later.frame !== null ? later.frame - meta.frame : null,
+      presentedTime: later.presentedTime,
+      speedKmh: later.speedKmh,
+      driveElapsed: elapsed(later.presentedTime),
+    };
     records.push({ index: entry.index, file, ...context, view: entry.view ?? null, ...meta });
-    log(`shot ${file} (${meta.presentedCamera}, ${meta.drawCalls} calls)`);
+    log(
+      `shot ${file} (${meta.presentedCamera}, ${meta.drawCalls} calls` +
+        (meta.driveElapsed !== undefined
+          ? `, drive +${meta.driveElapsed}..${meta.after.driveElapsed} s`
+          : '') +
+        `, ${meta.speedKmh}..${meta.after.speedKmh} km/h, +${meta.after.frames} frames)`,
+    );
     return true;
   } catch (error) {
     failures.push(`${file}: ${short(error)}`);
@@ -612,30 +659,48 @@ async function setAuto(on) {
   await page.keyboard.press('g');
   await waitFor(`autopilot ${on}`, (x) => x.auto === on, 30000, 250);
 }
-/** Autopilot: drive S simulated seconds, then shoot a frame submitted after that instant, so the
- * shot does not depend on render speed (slow frames only add overshoot). Throttle: S wall seconds
- * and the next frame, exactly like the original capture.mjs. */
+/** Hold (default): autopilot for S simulated seconds, then pause and shoot every drive view of
+ * that held instant (the deterministic drive puts it at the same place on the lap on every run).
+ * Auto: the same drive, then a frame submitted after that instant without pausing; on SwiftShader
+ * it lands one or more slow frames (10-60 simulated s) later. Throttle: S wall seconds and the next
+ * frame, exactly like the original capture.mjs. */
 async function drive(block, context) {
   if (!block.drive.length) return;
   await setView(block.drive[0].view);
-  const auto = block.driveMode === 'auto';
-  if (auto) await setAuto(true);
-  else await page.keyboard.down('ArrowUp');
+  const throttle = block.driveMode === 'throttle';
+  const held = block.driveMode === 'hold';
+  if (throttle) await page.keyboard.down('ArrowUp');
+  else await setAuto(true);
   // Read after the key was handled: the main thread can be blocked for a whole slow frame.
   const t0 = (await probe())?.live?.time ?? 0;
   log(`${block.driveMode} drive ${block.driveSeconds} s from t=${t0.toFixed(2)}`);
-  if (auto)
-    await waitFor(
-      `${block.driveSeconds} s of simulated driving`,
-      (x) => (x.live?.time ?? 0) >= t0 + block.driveSeconds,
-      300000,
-      250,
-    );
-  else await sleep(block.driveSeconds * 1000);
-  for (const [i, entry] of block.drive.entries())
-    await shot(entry, { ...context, drive: block.driveMode, driveStart: t0 }, !auto && i === 0);
-  if (block.driveMode === 'throttle') await page.keyboard.up('ArrowUp');
-  else await setAuto(false);
+  try {
+    if (throttle) await sleep(block.driveSeconds * 1000);
+    else
+      await waitFor(
+        `${block.driveSeconds} s of simulated driving`,
+        (x) => (x.live?.time ?? 0) >= t0 + block.driveSeconds,
+        300000,
+        held ? 100 : 250,
+      );
+    if (held) {
+      await pause();
+      await hideDialog(true);
+      // The HUD panels refresh on every third drawn frame; two more frames (plus the shot's own)
+      // let them catch up with the held instant instead of showing the drive start.
+      await settle(2);
+    }
+    const shotContext = { ...context, drive: block.driveMode, driveStart: t0, held };
+    for (const [i, entry] of block.drive.entries())
+      await shot(entry, shotContext, throttle && i === 0);
+  } finally {
+    if (throttle) await page.keyboard.up('ArrowUp');
+    if (held) {
+      await hideDialog(false);
+      if ((await probe())?.state === 'paused') await resume();
+    }
+  }
+  if (!throttle) await setAuto(false);
 }
 
 async function practice(block, first) {
@@ -718,7 +783,7 @@ async function race(block) {
   mark('pit-held');
   await hideDialog(true);
   try {
-    for (const entry of block.pit) await shot(entry, { ...context, pit: true });
+    for (const entry of block.pit) await shot(entry, { ...context, pit: true, held: true });
   } finally {
     await hideDialog(false);
   }
@@ -762,24 +827,40 @@ try {
   await page.getByRole('button', { name: 'GARAGE & SETTINGS', exact: true }).click();
   await page.locator('[name=quality]').selectOption(o.quality);
   if (Object.keys(o.graphics).length) {
-    const unknown = await page.evaluate((overrides) => {
+    const { rejected, applied } = await page.evaluate((overrides) => {
       const form = document.querySelector('#settingsForm');
-      const missing = [];
+      const rejected = [];
+      const applied = {};
       for (const [key, value] of Object.entries(overrides)) {
         const input = form?.elements.namedItem(`graphics_${key}`);
         if (!input) {
-          missing.push(key);
+          rejected.push(`${key} (no such control)`);
           continue;
         }
-        if (input.type === 'checkbox') input.checked = value === 'true';
-        else input.value = value;
+        if (input.type === 'checkbox') {
+          const on = ['true', '1', 'on'].includes(value);
+          if (!on && !['false', '0', 'off'].includes(value)) {
+            rejected.push(`${key}=${value} (checkbox: true or false)`);
+            continue;
+          }
+          input.checked = on;
+        } else {
+          input.value = value;
+          // A select drops values it has no option for; a range snaps to its min/max/step.
+          if (input.tagName === 'SELECT' && input.value !== value) {
+            const options = [...input.options].map((x) => x.value).join(', ');
+            rejected.push(`${key}=${value} (options: ${options})`);
+            continue;
+          }
+        }
         input.dispatchEvent(new Event('input', { bubbles: true }));
         input.dispatchEvent(new Event('change', { bubbles: true }));
+        applied[key] = input.type === 'checkbox' ? input.checked : input.value;
       }
-      return missing;
+      return { rejected, applied };
     }, o.graphics);
-    if (unknown.length) throw new Error(`unknown --graphics keys: ${unknown.join(', ')}`);
-    log(`graphics ${JSON.stringify(o.graphics)}`);
+    if (rejected.length) throw new Error(`--graphics rejected: ${rejected.join('; ')}`);
+    log(`graphics ${JSON.stringify(applied)}`);
   }
   await page.getByRole('button', { name: 'APPLY & SAVE', exact: true }).click();
   await page.locator('#modal').waitFor({ state: 'hidden', timeout: 120000 });

@@ -27,7 +27,12 @@ interface Check {
 }
 const targets = JSON.parse(
   readFileSync(join(root, 'scripts/studio/look-targets.json'), 'utf8'),
-) as { kpis: { id: string; checks: Check[] }[]; extras?: { id: string; checks: Check[] }[] };
+) as {
+  kpis: { id: string; checks: Check[] }[];
+  extras?: { id: string; checks: Check[] }[];
+  views: Record<string, string>;
+  compositions: Record<string, Record<string, unknown>>;
+};
 
 function plan(...args: string[]) {
   const result = run(join(tmpdir(), 'capture-matrix-plan'), '--plan', ...args);
@@ -80,6 +85,22 @@ describe('capture-matrix', () => {
     expect(shots.get('71')).toBe('pit-cockpit');
     // A view keeps its slot when others are left out.
     expect([...plan('--views', 'pod', '--drive', '0').keys()]).toEqual(['00', '12']);
+    // --drive 0 also drops the extra weather's drive shots.
+    expect([...plan('--weather', 'clear,rain', '--drive', '0').keys()]).toEqual([
+      '00',
+      '10',
+      '11',
+      '12',
+      '13',
+      '50',
+      '52',
+    ]);
+  });
+
+  it('holds the default drive shots at one simulated instant (turn-1 approach)', () => {
+    const result = run(join(tmpdir(), 'capture-matrix-plan'), '--plan');
+    expect(result.stdout).toContain('(hold drive 16 s, lighting day)');
+    expect(run(join(tmpdir(), 'x'), '--plan', '--drive-mode', 'live').status).toBe(1);
   });
 
   it('rejects bad options and output inside the repository before launching a browser', () => {
@@ -124,6 +145,10 @@ describe('look-targets.json', () => {
         continue;
       }
       expect(produced.has(check.shot!), check.id).toBe(true);
+      // Every measured shot names the camera view its crops are calibrated on.
+      expect(['chase', 'cockpit', 'pod', 'trackside'], check.id).toContain(
+        targets.views[check.shot!],
+      );
       for (const box of [check.crop, check.a?.crop, check.b?.crop])
         if (box) expect(inFrame(box), check.id).toBe(true);
       for (const points of [check.poly, check.line])
@@ -132,5 +157,7 @@ describe('look-targets.json', () => {
             expect(x >= 0 && x <= 1 && y >= 0 && y <= 1, check.id).toBe(true);
           }
     }
+    for (const shot of Object.keys(targets.compositions).filter((k) => !k.startsWith('_')))
+      expect(produced.has(shot), `composition ${shot}`).toBe(true);
   });
 });

@@ -7,7 +7,9 @@ Shots are matched by their two-digit index (capture.mjs camera labels in file na
 view; capture-matrix.mjs names are exact, but the index is the contract). Per shot it prints the
 mean |A-B| (0-255), the share of pixels with any channel delta > 24, sRGB luma mean and p95 and
 mean saturation of A and B, and the draw-call delta when both diag.json files carry per-shot
-records (capture-matrix) or a top-level renderer.drawCalls (legacy capture.mjs).
+records (capture-matrix) or a top-level renderer.drawCalls (legacy capture.mjs). With per-shot
+records on both sides it also flags a slot that holds different camera views, and drive shots
+taken at different places on the lap (driveElapsed more than 2 s apart, or held vs live).
 
 Noise floor: two captures of the same build differ by mean |d| 1.0-4.2 on the static views
 (00, 11, 12, 13; distant traffic moves) and by 9.5-18.8 on views with moving traffic (10, 20,
@@ -67,18 +69,36 @@ def saturation(a):
     return float(np.where(mx > 0, (mx - mn) / np.maximum(mx, 1e-5), 0).mean())
 
 
-def draw_calls(directory):
-    """{index: drawCalls} from a capture-matrix diag.json, or {'*': n} from a legacy one."""
+def records(directory):
+    """{index: shot record} from a capture-matrix diag.json, or {'*': {'drawCalls': n}} from a
+    legacy capture.mjs one (a single renderer.drawCalls for the whole run)."""
     path = os.path.join(directory, 'diag.json')
     if not os.path.exists(path):
         return {}
     with open(path) as f:
         diag = json.load(f)
-    per = {('%02d' % s['index']): s.get('drawCalls') for s in diag.get('shots', [])
+    per = {('%02d' % s['index']): s for s in diag.get('shots', [])
            if isinstance(s, dict) and 'index' in s}
     if not per and isinstance(diag.get('renderer'), dict):
-        per['*'] = diag['renderer'].get('drawCalls')
+        per['*'] = {'drawCalls': diag['renderer'].get('drawCalls')}
     return per
+
+
+def mismatch(ra, rb):
+    """Why two records of one index show different things ('' when they match or are unknown)."""
+    if not ra or not rb:
+        return ''
+    notes = []
+    va, vb = ra.get('presentedCamera'), rb.get('presentedCamera')
+    if va and vb and va != vb:
+        notes.append('VIEW %s vs %s' % (va, vb))
+    da, db = ra.get('driveElapsed'), rb.get('driveElapsed')
+    if da is not None and db is not None and abs(da - db) > 2:
+        notes.append('drive +%.1f s vs +%.1f s' % (da, db))
+    if (da is not None or db is not None) and bool(ra.get('held')) != bool(rb.get('held')):
+        notes.append('%s vs %s' % ('held' if ra.get('held') else 'live',
+                                   'held' if rb.get('held') else 'live'))
+    return '; '.join(notes)
 
 
 def fit(img, w, h):
@@ -112,7 +132,9 @@ def main(argv):
     for item in args.ref:
         k, _, path = item.partition('=')
         refs['%02d' % int(k)] = path
-    calls_a, calls_b = draw_calls(args.a), draw_calls(args.b)
+    rec_a, rec_b = records(args.a), records(args.b)
+    calls_a = {k: r.get('drawCalls') for k, r in rec_a.items()}
+    calls_b = {k: r.get('drawCalls') for k, r in rec_b.items()}
 
     print('%-3s %-30s %-30s %7s %6s %6s %6s %6s %6s %5s %5s %s' % (
         'id', 'A', 'B', 'meanAbs', '%chg', 'lumA', 'lumB', 'p95A', 'p95B', 'satA', 'satB',
@@ -134,7 +156,8 @@ def main(argv):
             luma_a=float(la.mean()), luma_b=float(lb.mean()),
             p95_a=float(np.percentile(la, 95)), p95_b=float(np.percentile(lb, 95)),
             sat_a=saturation(a), sat_b=saturation(b), above_noise=bool(d.mean() > floor),
-            calls_a=calls_a.get(k), calls_b=calls_b.get(k))
+            calls_a=calls_a.get(k), calls_b=calls_b.get(k),
+            mismatch=mismatch(rec_a.get(k), rec_b.get(k)))
         calls = ''
         if entry['calls_a'] is not None and entry['calls_b'] is not None:
             calls = '%d->%d (%+d)' % (entry['calls_a'], entry['calls_b'],
@@ -142,10 +165,11 @@ def main(argv):
         elif entry['calls_a'] is not None or entry['calls_b'] is not None:
             calls = '%s -> %s' % (entry['calls_a'] if entry['calls_a'] is not None else '-',
                                 entry['calls_b'] if entry['calls_b'] is not None else '-')
-        print('%-3s %-30s %-30s %6.2f%s %5.1f%% %6.3f %6.3f %6.3f %6.3f %5.3f %5.3f %s' % (
+        print('%-3s %-30s %-30s %6.2f%s %5.1f%% %6.3f %6.3f %6.3f %6.3f %5.3f %5.3f %s%s' % (
             k, entry['a'][:30], entry['b'][:30], entry['mean_abs'],
             '*' if entry['above_noise'] else ' ', 100 * entry['changed'], entry['luma_a'],
-            entry['luma_b'], entry['p95_a'], entry['p95_b'], entry['sat_a'], entry['sat_b'], calls))
+            entry['luma_b'], entry['p95_a'], entry['p95_b'], entry['sat_a'], entry['sat_b'], calls,
+            ('  ! ' + entry['mismatch']) if entry['mismatch'] else ''))
         report.append(entry)
         rows.append(k)
     if calls_a.get('*') is not None or calls_b.get('*') is not None:
@@ -155,8 +179,8 @@ def main(argv):
     only_a, only_b = sorted(set(A) - set(B)), sorted(set(B) - set(A))
     if only_a or only_b:
         print('only in A: %s; only in B: %s' % (' '.join(only_a) or '-', ' '.join(only_b) or '-'))
-    print("'*' = above the same-build noise floor (static %.1f, moving %.0f)" % (FLOOR_STATIC,
-                                                                               FLOOR_MOVING))
+    print("'*' = above the same-build noise floor (static %.1f, moving %.0f); "
+          "'!' = the two shots do not show the same thing" % (FLOOR_STATIC, FLOOR_MOVING))
 
     if args.montage and rows:
         w = args.width
