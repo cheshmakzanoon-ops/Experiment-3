@@ -27,7 +27,7 @@ interface Check {
 }
 const targets = JSON.parse(
   readFileSync(join(root, 'scripts/studio/look-targets.json'), 'utf8'),
-) as { kpis: { id: string; checks: Check[] }[] };
+) as { kpis: { id: string; checks: Check[] }[]; extras?: { id: string; checks: Check[] }[] };
 
 function plan(...args: string[]) {
   const result = run(join(tmpdir(), 'capture-matrix-plan'), '--plan', ...args);
@@ -98,7 +98,9 @@ describe('look-targets.json', () => {
       (m) => m[1],
     ),
   );
-  const checks = targets.kpis.flatMap((kpi) => kpi.checks.map((check) => ({ kpi: kpi.id, check })));
+  const checks = [...targets.kpis, ...(targets.extras ?? [])].flatMap((kpi) =>
+    kpi.checks.map((check) => ({ kpi: kpi.id, check })),
+  );
   const inFrame = (box: number[]) =>
     box.length === 4 && box.every((v) => v >= 0 && v <= 1) && box[0] < box[2] && box[1] < box[3];
 

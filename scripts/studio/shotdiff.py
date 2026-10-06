@@ -9,9 +9,9 @@ mean |A-B| (0-255), the share of pixels with any channel delta > 24, sRGB luma m
 mean saturation of A and B, and the draw-call delta when both diag.json files carry per-shot
 records (capture-matrix) or a top-level renderer.drawCalls (legacy capture.mjs).
 
-Noise floor (TECH_TEST_MAP 9): two captures of the same build differ by mean |d| 1.0-2.9 on the
-static views (00, 11, 12, 13) and by 9.5-18.8 on views with moving traffic (10, 20, 21). Rows
-above the floor are flagged '*'. Judge looks with the montage, not with the numbers.
+Noise floor: two captures of the same build differ by mean |d| 1.0-4.2 on the static views
+(00, 11, 12, 13; distant traffic moves) and by 9.5-18.8 on views with moving traffic (10, 20,
+21). Rows above the floor (4.5 static, 19 moving) are flagged '*'. Judge looks with the montage, not with the numbers.
 
 --montage writes A | B (| reference) rows with index labels; --ref NN=path adds a reference image
 (any size, letterboxed) as a third column for that shot. Write montages to the scratchpad, never
@@ -39,7 +39,9 @@ def outside_repo(path, flag):
     return path
 
 STATIC = {'00', '11', '12', '13'}
-FLOOR_STATIC = 3.0
+# Same build, two captures: TECH_TEST_MAP 9 measured 1.0-2.9 on the static views; capture.mjs vs
+# capture-matrix.mjs on the baseline build measured 2.1-4.2 (distant traffic in 12 and 13).
+FLOOR_STATIC = 4.5
 FLOOR_MOVING = 19.0
 
 
@@ -137,6 +139,9 @@ def main(argv):
         if entry['calls_a'] is not None and entry['calls_b'] is not None:
             calls = '%d->%d (%+d)' % (entry['calls_a'], entry['calls_b'],
                                       entry['calls_b'] - entry['calls_a'])
+        elif entry['calls_a'] is not None or entry['calls_b'] is not None:
+            calls = '%s -> %s' % (entry['calls_a'] if entry['calls_a'] is not None else '-',
+                                entry['calls_b'] if entry['calls_b'] is not None else '-')
         print('%-3s %-30s %-30s %6.2f%s %5.1f%% %6.3f %6.3f %6.3f %6.3f %5.3f %5.3f %s' % (
             k, entry['a'][:30], entry['b'][:30], entry['mean_abs'],
             '*' if entry['above_noise'] else ' ', 100 * entry['changed'], entry['luma_a'],

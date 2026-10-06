@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "about": "Crop boxes and targets for scripts/studio/look-metrics.py: PRODUCTION_PLAN section 5 KPIs 1-13. Crops are frame fractions [x0, y0, x1, y1] (or poly points) calibrated on the baseline 1280x720 Medium framing (capture.mjs / capture-matrix.mjs shot indices). When a camera department changes a view's framing, re-check the crops with look-metrics --overlay and move them in the same change. Targets and baselines are display-referred sRGB measurements from ART_BIBLE_A section 0.1 and PRODUCTION_PLAN section 5.",
+  "about": "Crop boxes and targets for scripts/studio/look-metrics.py: PRODUCTION_PLAN section 5 KPIs 1-13. Crops are frame fractions [x0, y0, x1, y1] (or poly points) calibrated on the baseline 1280x720 Medium framing (capture.mjs / capture-matrix.mjs shot indices). When a camera department changes a view's framing, re-check the crops with look-metrics --overlay and move them in the same change. Targets and baselines are display-referred sRGB measurements from ART_BIBLE_A section 0.1 and PRODUCTION_PLAN section 5. Baseline values are AB-A 0.1 numbers where AB-A measured the same crop (asphalt and grass on shot 10, cockpit dark share, frame percentiles); every other baseline is this tool on $S/shots/baseline-matrix (the original game, build bc2f7a0 = 3a6036d sources).",
   "kpis": [
     {
       "id": "1",
@@ -55,7 +55,7 @@
         {
           "id": "1.mean-20",
           "shot": "20",
-          "crop": [0.02, 0.5, 0.2, 0.55],
+          "crop": [0.62, 0.5, 0.82, 0.57],
           "filter": {
             "sat_max": 0.3,
             "luma_rel": [0.5, 1.6]
@@ -65,12 +65,13 @@
           "target": {
             "hex_box": ["#7d7a76", "#938b83"]
           },
-          "baseline": "#3c3c40"
+          "baseline": "#46464a",
+          "note": "off-line road right of the racing line at turn 1 (autopilot drive)"
         },
         {
           "id": "1.br-20",
           "shot": "20",
-          "crop": [0.02, 0.5, 0.2, 0.55],
+          "crop": [0.62, 0.5, 0.82, 0.57],
           "filter": {
             "sat_max": 0.3,
             "luma_rel": [0.5, 1.6]
@@ -80,12 +81,13 @@
           "target": {
             "range": [0.88, 0.95]
           },
-          "baseline": 1.08
+          "baseline": 1.058,
+          "note": "off-line road right of the racing line at turn 1 (autopilot drive)"
         },
         {
           "id": "1.std-20",
           "shot": "20",
-          "crop": [0.02, 0.5, 0.2, 0.55],
+          "crop": [0.62, 0.5, 0.82, 0.57],
           "filter": {
             "sat_max": 0.3,
             "luma_rel": [0.5, 1.6]
@@ -95,7 +97,8 @@
           "target": {
             "min": 8
           },
-          "baseline": 2.4
+          "baseline": 6.557,
+          "note": "off-line road right of the racing line at turn 1 (autopilot drive)"
         }
       ]
     },
@@ -117,7 +120,7 @@
           "target": {
             "range": [0.45, 0.65]
           },
-          "baseline": "none",
+          "baseline": 0.836,
           "note": "grid straight ahead of the car; darkest detrended lateral band vs its 75th percentile",
           "vanish": [0.47, 0.45]
         },
@@ -134,14 +137,14 @@
           "target": {
             "range": [0.45, 0.65]
           },
-          "baseline": "none",
+          "baseline": 0.952,
           "note": "grid straight from the T-cam",
           "vanish": [0.41, 0.47]
         },
         {
           "id": "2.line-20",
           "shot": "20",
-          "crop": [0.0, 0.5, 0.22, 0.535],
+          "crop": [0.42, 0.47, 0.88, 0.5],
           "filter": {
             "sat_max": 0.25,
             "luma_rel": [0.6, 1.5]
@@ -151,8 +154,8 @@
           "target": {
             "range": [0.45, 0.65]
           },
-          "baseline": "none",
-          "note": "corner ahead of the driving chase (traffic can make it INVALID)"
+          "baseline": 0.838,
+          "note": "across turn 1 at the apex, ahead of the car (autopilot drive)"
         }
       ]
     },
@@ -169,7 +172,7 @@
           "target": {
             "range": [0.42, 0.53]
           },
-          "baseline": 0.37
+          "baseline": 0.308
         },
         {
           "id": "3.p95-20",
@@ -179,7 +182,7 @@
           "target": {
             "range": [0.8, 0.88]
           },
-          "baseline": 0.83
+          "baseline": 0.91
         },
         {
           "id": "3.p99-20",
@@ -189,7 +192,7 @@
           "target": {
             "max": 0.93
           },
-          "baseline": 0.87
+          "baseline": 0.943
         }
       ]
     },
@@ -224,12 +227,12 @@
           "target": {
             "range": [0.78, 0.85]
           },
-          "baseline": 0.92
+          "baseline": 0.987
         },
         {
           "id": "4.zenith-20",
           "shot": "20",
-          "crop": [0.5, 0.12, 0.6, 0.18],
+          "crop": [0.66, 0.15, 0.82, 0.21],
           "filter": {
             "class": "sky"
           },
@@ -238,7 +241,7 @@
           "target": {
             "range": [0.78, 0.85]
           },
-          "baseline": 0.92
+          "baseline": 0.987
         },
         {
           "id": "4.horizon-10",
@@ -257,7 +260,7 @@
         {
           "id": "4.horizon-20",
           "shot": "20",
-          "crop": [0.3, 0.28, 0.4, 0.3],
+          "crop": [0.36, 0.25, 0.46, 0.28],
           "filter": {
             "class": "sky"
           },
@@ -266,7 +269,7 @@
           "target": {
             "min": 12
           },
-          "baseline": 0
+          "baseline": -3.787
         }
       ]
     },
@@ -284,8 +287,8 @@
           "target": {
             "min": 1.5
           },
-          "baseline": "1.0 (AB-A sampled the tyre; the real core reads #080f1c, 3.8)",
-          "note": "cast-shadow core left of the left rear tyre"
+          "baseline": 7.834,
+          "note": "cast-shadow core left of the left rear tyre; AB-A's 'about 1.0 / 8:1' sampled the tyre ([0.37,0.94,0.42,0.98]), the real core is a blue-black #030b18"
         },
         {
           "id": "5.shadow-hex-10",
@@ -318,7 +321,7 @@
           "target": {
             "range": [10, 17]
           },
-          "baseline": 8
+          "baseline": 15.15
         },
         {
           "id": "5.under-floor-10",
@@ -338,7 +341,7 @@
           "target": {
             "range": [20, 30]
           },
-          "baseline": "-",
+          "baseline": 87.423,
           "note": "ground strip under the floor, between the rear tyres, above the HUD action bar"
         }
       ]
@@ -368,7 +371,7 @@
           "target": {
             "max": 0.2
           },
-          "baseline": 0.33
+          "baseline": 0.319
         }
       ]
     },
@@ -396,7 +399,7 @@
         {
           "id": "8.road-left-20",
           "shot": "20",
-          "crop": [0.14, 0.64, 0.34, 0.76],
+          "crop": [0.4, 0.52, 0.47, 0.6],
           "vanish": [0.5, 0.45],
           "filter": {
             "sat_max": 0.25,
@@ -413,7 +416,7 @@
         {
           "id": "8.road-right-20",
           "shot": "20",
-          "crop": [0.64, 0.64, 0.8, 0.74],
+          "crop": [0.63, 0.6, 0.72, 0.72],
           "vanish": [0.5, 0.45],
           "filter": {
             "sat_max": 0.25,
@@ -429,7 +432,7 @@
         {
           "id": "8.car-20",
           "shot": "20",
-          "crop": [0.43, 0.63, 0.56, 0.7],
+          "crop": [0.45, 0.63, 0.56, 0.7],
           "direction": "x",
           "measure": "gradient",
           "value": "change",
@@ -505,32 +508,32 @@
         {
           "id": "9.grass-20",
           "shot": "20",
-          "crop": [0.74, 0.55, 0.86, 0.62],
+          "crop": [0.04, 0.52, 0.2, 0.6],
           "filter": {
             "class": "vegetation",
-            "trim": [10, 95]
+            "trim": [5, 95]
           },
           "measure": "stats",
           "value": "hex",
           "target": {
             "hex_box": ["#7f8444", "#8e8a4c"]
           },
-          "baseline": "#445e20"
+          "baseline": "#657838"
         },
         {
           "id": "9.grass-sat-20",
           "shot": "20",
-          "crop": [0.74, 0.55, 0.86, 0.62],
+          "crop": [0.04, 0.52, 0.2, 0.6],
           "filter": {
             "class": "vegetation",
-            "trim": [10, 95]
+            "trim": [5, 95]
           },
           "measure": "stats",
           "value": "sat_of_mean",
           "target": {
             "range": [0.33, 0.47]
           },
-          "baseline": 0.6
+          "baseline": 0.53
         },
         {
           "id": "9.trees-13",
@@ -544,12 +547,12 @@
           "target": {
             "range": [0.15, 0.25]
           },
-          "baseline": 0.47
+          "baseline": 0.575
         },
         {
           "id": "9.trees-20",
           "shot": "20",
-          "crop": [0.87, 0.31, 0.97, 0.4],
+          "crop": [0.5, 0.37, 0.66, 0.41],
           "filter": {
             "class": "vegetation"
           },
@@ -558,7 +561,7 @@
           "target": {
             "range": [0.15, 0.25]
           },
-          "baseline": 0.47
+          "baseline": 0.308
         }
       ]
     },
@@ -574,12 +577,12 @@
           "measure": "dark_span",
           "value": "width",
           "threshold": 0.11,
-          "center": 0.49,
+          "center": 0.5,
           "target": {
             "range": [0.36, 0.42]
           },
-          "baseline": "0.21-0.26",
-          "gauge": [["width", 0.49, 0.36, 0.42, 0.84]]
+          "baseline": 0.237,
+          "gauge": [["width", 0.5, 0.36, 0.42, 0.84]]
         },
         {
           "id": "10.chase-width-10",
@@ -605,7 +608,7 @@
           "target": {
             "range": [0.3, 0.38]
           },
-          "baseline": "0.22-0.24",
+          "baseline": 0.231,
           "gauge": [["width", 0.5, 0.3, 0.38, 0.7]],
           "note": "outermost coloured wheel buttons (baseline 0.418-0.580) times 1.43, so the baseline rim (0.383-0.615) reads 0.232",
           "sat": 0.5,
@@ -661,7 +664,7 @@
           "target": {
             "range": [2.0, 2.4]
           },
-          "baseline": 6,
+          "baseline": 5.4,
           "min_coverage": 0.05,
           "note": "segment_m calibrated so the baseline's 3 m stripes read 6 m per pair; valid while the static trackside view keeps its framing",
           "band": 8
@@ -690,14 +693,14 @@
             "hex_near": "#c4222a",
             "tol": 20
           },
-          "baseline": "#dc553b albedo",
+          "baseline": "#d54f37",
           "min_coverage": 0.05,
           "band": 8
         },
         {
           "id": "11.red-20",
           "shot": "20",
-          "crop": [0.0, 0.55, 0.25, 0.68],
+          "crop": [0.15, 0.62, 0.37, 0.85],
           "filter": {
             "class": "red"
           },
@@ -707,7 +710,7 @@
             "hex_near": "#c4222a",
             "tol": 20
           },
-          "baseline": "#dc553b albedo",
+          "baseline": "#e06044",
           "min_coverage": 0.03
         }
       ]
@@ -745,44 +748,12 @@
           "id": "12.boards-20",
           "shot": "20",
           "poly": [
-            [0.49, 0.43],
-            [0.515, 0.5],
-            [0.549, 0.55],
-            [0.565, 0.6],
-            [0.585, 0.65],
-            [0.605, 0.7],
-            [0.625, 0.75],
-            [0.64, 0.8],
-            [0.658, 0.85],
-            [0.675, 0.9],
-            [0.59, 0.9],
-            [0.578, 0.85],
-            [0.57, 0.8],
-            [0.56, 0.75],
-            [0.552, 0.7],
-            [0.54, 0.65],
-            [0.53, 0.6],
-            [0.517, 0.55],
-            [0.493, 0.5],
-            [0.468, 0.43]
-          ],
-          "axis": "y",
-          "slices": 24,
-          "measure": "board_coverage",
-          "value": "coverage",
-          "target": {
-            "min": 0.8
-          },
-          "baseline": 0
-        },
-        {
-          "id": "12.boards-21",
-          "shot": "21",
-          "poly": [
-            [0.03, 0.39],
-            [0.45, 0.4],
-            [0.45, 0.47],
-            [0.03, 0.46]
+            [0.0, 0.49],
+            [0.12, 0.47],
+            [0.235, 0.455],
+            [0.235, 0.465],
+            [0.12, 0.5],
+            [0.0, 0.545]
           ],
           "axis": "x",
           "slices": 16,
@@ -791,7 +762,25 @@
           "target": {
             "min": 0.8
           },
-          "baseline": 0
+          "baseline": 0.0
+        },
+        {
+          "id": "12.boards-21",
+          "shot": "21",
+          "poly": [
+            [0.52, 0.456],
+            [0.99, 0.456],
+            [0.99, 0.47],
+            [0.52, 0.47]
+          ],
+          "axis": "x",
+          "slices": 20,
+          "measure": "board_coverage",
+          "value": "coverage",
+          "target": {
+            "min": 0.8
+          },
+          "baseline": 0.0
         }
       ]
     },
@@ -809,7 +798,7 @@
           "target": {
             "min": 27
           },
-          "baseline": "uniform maroon"
+          "baseline": 26.2
         },
         {
           "id": "13.block-13",
@@ -820,7 +809,7 @@
           "target": {
             "max": 0.02
           },
-          "baseline": "uniform maroon"
+          "baseline": 0.013
         },
         {
           "id": "13.uniform-13",
@@ -831,10 +820,72 @@
           "target": {
             "max": 0.25
           },
-          "baseline": "uniform maroon",
+          "baseline": 0.836,
           "note": "QA addition: the plan's 2 %-of-frame cap cannot fail on a crowd crop smaller than 2 % of the frame, so also cap the largest uniform block at 25 % of the crowd crop"
         }
       ]
     }
-  ]
+  ],
+  "extras": [
+    {
+      "id": "N",
+      "title": "Golden hour and night (D28 night-golden-hour goals; sunset 30-31, night 40-41)",
+      "owner": "night-golden-hour",
+      "checks": [
+        {
+          "id": "N.sunset-p50-30",
+          "shot": "30",
+          "measure": "percentiles",
+          "value": "p50",
+          "target": {
+            "range": [0.15, 0.25]
+          },
+          "baseline": 0.093
+        },
+        {
+          "id": "N.sunset-zenith-30",
+          "shot": "30",
+          "crop": [0.4, 0.08, 0.6, 0.12],
+          "measure": "stats",
+          "value": "hex",
+          "target": {
+            "hex_near": "#4a6fa8",
+            "tol": 25
+          },
+          "baseline": "#314c54",
+          "note": "sky from #f2b27a at the horizon to #4a6fa8 overhead"
+        },
+        {
+          "id": "N.sunset-horizon-30",
+          "shot": "30",
+          "crop": [0.3, 0.25, 0.4, 0.28],
+          "measure": "stats",
+          "value": "hex",
+          "target": {
+            "hex_near": "#f2b27a",
+            "tol": 30
+          },
+          "baseline": "#677460"
+        },
+        {
+          "id": "N.night-sky-40",
+          "shot": "40",
+          "crop": [0.4, 0.08, 0.6, 0.12],
+          "measure": "stats",
+          "value": "hex",
+          "target": {
+            "hex_box": ["#06090d", "#0b0d14"],
+            "tol": 4
+          },
+          "baseline": "#121622"
+        }
+      ]
+    }
+  ],
+  "compositions": {
+    "_about": "Driving shots are taken wherever the car is when a slow frame completes. capture-matrix records presentedLapM (car 0 lap distance at the presented frame); checks on a shot outside its window report INVALID. Shot 20 is calibrated on the autopilot drive reaching the turn-1 left-hander (Aurel s 380-720 m).",
+    "20": {
+      "presentedLapM": [380, 720]
+    }
+  }
 }

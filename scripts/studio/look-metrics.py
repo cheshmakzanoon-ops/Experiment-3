@@ -656,6 +656,26 @@ def fmt(v):
     return str(v)
 
 
+def composition_mismatch(targets, record, shot):
+    """Driving shots land wherever the car is when a slow frame completes. When the capture's
+    diag.json records where the presented frame was taken, a shot outside the calibrated window
+    (targets['compositions'][shot]: field -> [lo, hi]) has every check INVALID instead of a
+    verdict measured on the wrong surface. Legacy captures without records are not gated."""
+    window = targets.get('compositions', {}).get(shot)
+    if not isinstance(window, dict) or not record:
+        return None
+    for field, (lo, hi) in window.items():
+        if field.startswith('_'):
+            continue
+        value = record.get(field)
+        if value is None:  # not recorded by this capture: cannot judge, do not gate
+            continue
+        if not lo <= value <= hi:
+            return 'composition differs from the calibration: %s %s outside %s-%s' % (
+                field, fmt(value), fmt(lo), fmt(hi))
+    return None
+
+
 def dig(obj, path):
     for key in path.split('.'):
         if not isinstance(obj, dict) or key not in obj:
@@ -749,6 +769,8 @@ def main(argv):
         with open(diag_path) as f:
             diag = json.load(f)
     wanted = set(args.kpi.split(',')) if args.kpi else None
+    records = {'%02d' % rec['index']: rec for rec in (diag or {}).get('shots', [])
+               if isinstance(rec, dict) and 'index' in rec}
     cache = {}
 
     def image(path):
@@ -757,7 +779,7 @@ def main(argv):
         return cache[path]
 
     results = []
-    for kpi in targets['kpis']:
+    for kpi in targets['kpis'] + targets.get('extras', []):
         if wanted and kpi['id'] not in wanted:
             continue
         for check in kpi['checks']:
@@ -777,6 +799,11 @@ def main(argv):
             path = shots.get(check['shot'])
             if not path:
                 r.update(result='N/A', measured=None, reason='shot %s not in capture' % check['shot'])
+                results.append(r)
+                continue
+            mismatch = composition_mismatch(targets, records.get(check['shot']), check['shot'])
+            if mismatch:
+                r.update(result='INVALID', measured=None, reason=mismatch, _path=path)
                 results.append(r)
                 continue
             img = image(path)

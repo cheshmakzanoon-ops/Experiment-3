@@ -365,6 +365,7 @@ const FRAME = {
   inPit: carBase(0) + F.IN_PIT,
   speed: carBase(0) + F.SPEED,
   s: carBase(0) + F.S,
+  length: H.LENGTH,
 };
 mkdirSync(o.out, { recursive: true });
 
@@ -422,7 +423,7 @@ const probe = () =>
           ? { phase: f[I.phase], clock: f[I.clock], inPit: f[I.inPit], time: f[I.time] }
           : null,
         tick: f ? f[I.tick] : null,
-        live: f ? { time: f[I.time], s: f[I.s], speed: f[I.speed] } : null,
+        live: f ? { time: f[I.time], s: f[I.s], speed: f[I.speed], length: f[I.length] } : null,
       };
     }, FRAME)
     .then((d) => {
@@ -442,17 +443,26 @@ let sampling = true;
     await sleep(400);
   }
 })();
+/** Lap distance of car 0 at a (presented) simulation time: interpolated between the live
+ * samples around it, or, when samples are sparse (slow frames block polling), extrapolated back
+ * from the nearest later sample at its speed. Lap wrap is handled modulo the track length. */
 function lapAt(time) {
   if (time === null || time === undefined || !history.length) return null;
-  let a = history[0];
+  const wrap = (s, length) => ((s % length) + length) % length;
+  let before = null;
   for (const b of history) {
-    if (b.time >= time) {
-      if (b === a || b.time === a.time) return b.s;
-      const t = (time - a.time) / (b.time - a.time);
-      // Lap wrap: interpolate on the shorter way round.
-      return Math.abs(b.s - a.s) > 500 ? (t < 0.5 ? a.s : b.s) : a.s + (b.s - a.s) * t;
+    if (b.time < time) {
+      before = b;
+      continue;
     }
-    a = b;
+    const length = b.length || 1e9;
+    if (before && b.time - before.time <= 3) {
+      let delta = b.s - before.s;
+      if (delta < -length / 2) delta += length; // crossed the line
+      const t = (time - before.time) / Math.max(b.time - before.time, 1e-6);
+      return wrap(before.s + delta * t, length);
+    }
+    return wrap(b.s - b.speed * (b.time - time), length);
   }
   return null;
 }
@@ -542,6 +552,7 @@ async function shot(entry, context, immediate = false) {
         drawBreakdown: r.drawBreakdown,
       };
     }, FRAME);
+    await probe(); // a live sample at or after the presented time
     const lap = lapAt(meta.presentedTime);
     meta.presentedLapM = lap === null ? null : Math.round(lap * 10) / 10;
     records.push({ index: entry.index, file, ...context, view: entry.view ?? null, ...meta });
