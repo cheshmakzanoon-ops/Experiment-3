@@ -89,7 +89,7 @@ export const LAUNCH_RUBBER = Object.freeze({
   axle: 1.8,
   /** Decay length of one launch mark (m) and its darkening where it starts. */
   decay: 30,
-  darkening: 0.45,
+  darkening: 0.6,
 });
 
 export interface AsphaltMeans {
@@ -302,7 +302,7 @@ export function installRoadDetail(material: T.MeshStandardMaterial, lapLength: n
   // Striation cells along the lap: an integer count, so the pattern closes.
   const alongCells = Math.max(1, Math.round(lapLength / 18)),
     streakCells = Math.max(1, Math.round(lapLength / R.streakLength));
-  return chainShaderHook(material, 'road-detail-v2', (shader) => {
+  return chainShaderHook(material, 'road-detail-v3', (shader) => {
     for (const needed of [
       'vec4 roadState',
       'varying vec2 vRoadMetres',
@@ -370,7 +370,7 @@ export function installRoadDetail(material: T.MeshStandardMaterial, lapLength: n
           float apexLaunches = 0.0;
           for (int k = 0; k < ${G.rows}; k++) {
             float apexAlong = apexFromLine + ${g(G.front + L.axle)} + float(k) * ${g(G.spacing)};
-            if (apexAlong > 0.0) apexLaunches += 0.6 * exp(-apexAlong / ${g(L.decay)}) * smoothstep(0.0, 1.2, apexAlong);
+            if (apexAlong > 0.0) apexLaunches += 0.7 * exp(-apexAlong / ${g(L.decay)}) * smoothstep(0.0, 1.2, apexAlong);
           }
           // Tread streaks inside each track, converging before they alias.
           float apexTread = mix(0.5, apexRoadNoise(vec2(apexWheel * 38.0, apexFromLine * 0.12)),
@@ -381,7 +381,7 @@ export function installRoadDetail(material: T.MeshStandardMaterial, lapLength: n
           apexLaunch = min(1.0, apexLaunches) * apexTyre * apexBreakUp * mix(0.55, 1.2, apexTread);
           diffuseColor.rgb = mix(diffuseColor.rgb, apexGrey, 0.4 * apexLaunch) *
             (1.0 - ${g(L.darkening)} * min(apexLaunch, 1.0));
-          apexLineMask = max(apexLineMask, 0.8 * min(apexLaunch, 1.0));
+          apexLineMask = max(apexLineMask, 0.5 * min(apexLaunch, 1.0));
         }
         // Dust and fine debris collect toward the edges, off the line.
         apexDust = smoothstep(-${g(R.dustWidth)}, -0.12, vEdgeMetres) * (1.0 - apexLineMask) *

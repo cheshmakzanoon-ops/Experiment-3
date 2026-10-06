@@ -238,9 +238,9 @@ describe('racing surface layer', () => {
     expect(shader.vertexShader).toContain('attribute vec2 apexLine;');
     expect(shader.vertexShader).toContain('attribute float edgeMetres;');
     expect(material.customProgramCacheKey()).toContain('road-macro-v1');
-    expect(material.customProgramCacheKey()).toContain('|road-detail-v2');
+    expect(material.customProgramCacheKey()).toContain('|road-detail-v3');
     // The wet road hook is not a studio chain, so only the newer key is listed.
-    expect(studioHookKeys(material)).toEqual(['road-detail-v2']);
+    expect(studioHookKeys(material)).toEqual(['road-detail-v3']);
     material.dispose();
     state.dispose();
   });
@@ -413,16 +413,27 @@ describe('grid launch rubber and asphalt tone', () => {
     material.dispose();
     state.dispose();
   });
-  it('lifts the racing asphalt by one neutral tone gain in its finish', () => {
+  it('lifts the racing asphalt by one calibrated tone gain in its finish', () => {
     stubCanvas();
-    expect(ASPHALT_TONE).toBeGreaterThan(1);
-    expect(ASPHALT_TONE).toBeLessThan(1.6);
+    // Brighter than the texels, never a hue swing: B/R and G/R within 10 %.
+    for (const v of ASPHALT_TONE) {
+      expect(v).toBeGreaterThan(1);
+      expect(v).toBeLessThan(1.9);
+    }
+    expect(ASPHALT_TONE[2] / ASPHALT_TONE[0]).toBeLessThan(1.1);
+    expect(ASPHALT_TONE[1] / ASPHALT_TONE[0]).toBeLessThan(1.1);
+    // The effective mean albedo stays a plausible light asphalt (linear 0.15-0.22).
+    const means = asphaltTexelMeans(surfacePixels('asphalt', 128));
+    for (let c = 0; c < 3; c++) {
+      expect(means.albedo[c] * ASPHALT_TONE[c]).toBeGreaterThan(0.15);
+      expect(means.albedo[c] * ASPHALT_TONE[c]).toBeLessThan(0.22);
+    }
     const asphalt = surfaceMaterial('asphalt');
     expect(compile(asphalt).fragmentShader).toContain(
-      `diffuseColor.rgb *= ${ASPHALT_TONE.toFixed(3)} * (.92 + broad*.08`,
+      `diffuseColor.rgb *= vec3(${ASPHALT_TONE.map((v) => v.toFixed(3)).join(',')}) * (.92 + broad*.08`,
     );
     // Painted run-off keeps its own finish without the racing-surface gain.
     const runOff = surfaceMaterial('asphalt', 'paint');
-    expect(compile(runOff).fragmentShader).not.toContain(`${ASPHALT_TONE.toFixed(3)} * (.92`);
+    expect(compile(runOff).fragmentShader).not.toContain('* (.92 + broad*.08');
   });
 });
