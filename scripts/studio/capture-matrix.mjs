@@ -487,6 +487,25 @@ async function setView(view) {
   return initial !== view;
 }
 
+/** The HUD panels refresh on every third drawn frame, so after a camera switch the HUD can still
+ * show the previous view's label (and, in a held shot, the state before the pause). Wait until the
+ * camera label names the view: that refresh also brought every other panel up to date. */
+async function hudShows(view) {
+  const want = view.toUpperCase();
+  const deadline = Date.now() + 60000;
+  while (Date.now() < deadline) {
+    const label = await page
+      .evaluate(() => {
+        const hud = document.getElementById('cameraLabel');
+        return hud && hud.offsetParent !== null ? hud.textContent : null;
+      })
+      .catch(() => null);
+    if (label === null || label === want) return;
+    await sleep(250);
+  }
+  log(`HUD camera label still not ${want} after 60 s`);
+}
+
 /** Hide only the pause dialog (and its backdrop) for held shots; the HUD stays as the player sees it. */
 async function hideDialog(hidden) {
   await page.evaluate((h) => {
@@ -545,6 +564,7 @@ async function shot(entry, context, immediate = false) {
     // submission) and the screenshot waits for it on the GPU. Without a switch, wait for one fresh
     // submission so the shot reflects the current state (seek, resume, drive time).
     if (!switched && !immediate) await settle(1);
+    else if (switched) await hudShows(entry.view);
     // The PNG shows a frame between the one submitted before the screenshot and the one presented
     // after it: on SwiftShader the screenshot waits behind the GPU while the renderer submits 1-4
     // more frames. The record is the frame before; `after` bounds the shot (a held or static scene
@@ -783,6 +803,7 @@ async function race(block) {
   log(`pit held: phase ${held.pit.phase} -> ${after?.pit?.phase}, clock ${after?.pit?.clock}`);
   mark('pit-held');
   await hideDialog(true);
+  await settle(2); // HUD panels catch up with the held instant (see drive())
   try {
     for (const entry of block.pit) await shot(entry, { ...context, pit: true, held: true });
   } finally {
