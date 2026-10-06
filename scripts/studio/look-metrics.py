@@ -143,11 +143,27 @@ def apply_filter(rgb, spec):
 # and 'draw' (overlay primitives in frame fractions).
 # --------------------------------------------------------------------------------------------
 def m_stats(img, check, ctx):
-    pixels = img[region_mask(img.shape, check)]
-    kept, _ = apply_filter(pixels, check.get('filter'))
-    coverage = len(kept) / max(1, len(pixels))
+    """Colour statistics of the filtered crop pixels. With `alternates` (more crops), the first
+    crop whose filter coverage reaches min_coverage is used (else the best one), e.g. road right
+    of the car, or left of it when the car rides the right-hand kerb."""
+    best = None
+    for crop in [check.get('crop', [0, 0, 1, 1])] + check.get('alternates', []):
+        sub = dict(check, crop=crop)
+        pixels = img[region_mask(img.shape, sub)]
+        kept, _ = apply_filter(pixels, check.get('filter'))
+        coverage = len(kept) / max(1, len(pixels))
+        if best is None or coverage > best[1]:
+            best = (kept, coverage, crop)
+        if coverage >= check.get('min_coverage', 0.5):
+            best = (kept, coverage, crop)
+            break
+    kept, coverage, crop = best
+    info = {'coverage': coverage}
+    if check.get('alternates'):
+        info['draw'] = [('box', crop, 'used')]
     if len(kept) < 16:
-        return {}, {'coverage': coverage, 'invalid': 'no pixels pass the filter'}
+        info['invalid'] = 'no pixels pass the filter'
+        return {}, info
     mean = kept.mean(0)
     y = luma(kept) * 255.0
     values = {
@@ -163,7 +179,7 @@ def m_stats(img, check, ctx):
         'sat_of_mean': float(saturation(mean)),
         'lin': float(linear_luminance(mean)),
     }
-    return values, {'coverage': coverage}
+    return values, info
 
 
 def m_percentiles(img, check, ctx):
@@ -658,9 +674,11 @@ def fmt(v):
 
 def composition_mismatch(targets, record, shot):
     """Driving shots land wherever the car is when a slow frame completes. When the capture's
-    diag.json records where the presented frame was taken, a shot outside the calibrated window
-    (targets['compositions'][shot]: field -> [lo, hi]) has every check INVALID instead of a
-    verdict measured on the wrong surface. Legacy captures without records are not gated."""
+    diag.json records where the presented frame was taken (driveElapsed: simulated seconds of the
+    deterministic autopilot drive from the grid), a shot outside the calibrated window
+    (targets['compositions'][shot]: field -> [lo, hi]) has its position-dependent checks INVALID
+    instead of a verdict measured on the wrong surface. Checks marked "gate": false use car-relative
+    crops and are always measured. Captures without the field are not gated."""
     window = targets.get('compositions', {}).get(shot)
     if not isinstance(window, dict) or not record:
         return None
@@ -801,7 +819,8 @@ def main(argv):
                 r.update(result='N/A', measured=None, reason='shot %s not in capture' % check['shot'])
                 results.append(r)
                 continue
-            mismatch = composition_mismatch(targets, records.get(check['shot']), check['shot'])
+            mismatch = check.get('gate', True) and composition_mismatch(
+                targets, records.get(check['shot']), check['shot'])
             if mismatch:
                 r.update(result='INVALID', measured=None, reason=mismatch, _path=path)
                 results.append(r)
@@ -840,10 +859,10 @@ def main(argv):
         for rec in diag['shots']:
             key = '%02d' % rec['index']
             if key in used:
-                print('  shot %s %-26s %-9s %-7s %5s km/h  lap %s m  %s calls' % (
+                drive = ('  drive +%.1f s' % rec['driveElapsed']) if rec.get('driveElapsed') is not None else ''
+                print('  shot %s %-26s %-9s %-7s %5s km/h  %s calls%s' % (
                     key, rec.get('file', '')[3:-4][:26], rec.get('presentedCamera'),
-                    rec.get('lighting'), rec.get('speedKmh'), rec.get('presentedLapM'),
-                    rec.get('drawCalls')))
+                    rec.get('lighting'), rec.get('speedKmh'), rec.get('drawCalls'), drive))
     print('%-3s %-26s %-4s %-12s %-22s %-14s %s' % ('KPI', 'check', 'shot', 'measured', 'target',
                                                     'baseline', 'result'))
     for r in results:

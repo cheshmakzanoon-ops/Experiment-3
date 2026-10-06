@@ -10,7 +10,8 @@
  * simulation state and never writes inside the repository.
  *
  * Shot indices are stable so `look-metrics.py` and `shotdiff.py` can match them
- * across builds (10-13/20-21 are identical to the original capture.mjs):
+ * across builds (10-13 frame exactly like the original capture.mjs; 20-21 are
+ * autopilot drive shots, while capture.mjs held the throttle: --drive-mode throttle):
  *   00 menu
  *   10-13 day/clear static chase, cockpit, pod (T-cam), trackside   20-21 day drive
  *   30-33 sunset static                                              34-35 sunset drive
@@ -44,6 +45,8 @@ Options
                          A view keeps its slot: chase +0, cockpit +1, pod +2, trackside +3.
   --variant-views V,...  Views of each extra lighting (default chase,cockpit).
   --drive S              Seconds of driving before the drive shots (default 10; 0 = no drive shots).
+                         auto: simulated seconds, then a frame submitted after that instant;
+                         throttle: wall seconds, then the next frame (capture.mjs behaviour).
   --drive-mode M         auto (autopilot on the racing line, so drive shots keep the car on track;
                          default) | throttle (hold ArrowUp like the original capture.mjs; the car
                          leaves the road at turn 1 and the frame depends on render speed).
@@ -68,7 +71,9 @@ Output (outDir must be outside the repository): NN-<scenario>-<view>.png, diag.j
 identity, timings, per-shot renderer state incl. drawBreakdown, census, failures), errors.txt (page and
 console errors; must be empty), capture-log.txt. Exit code 0 = every planned shot written and no
 page errors, 1 = setup failure, 2 = some shots missing or page errors.
-Typical wall time (SwiftShader, Medium, 1280x720): day run 6-7 min, --matrix about 22-25 min.`;
+Measured wall time (SwiftShader, Medium, 1280x720, box shared with another capture/build job, load
+average 4-6): day run 9.8 min, --matrix 28.9 min; High day run 10.3 min. An idle box is about 30 %
+faster (capture.mjs: 6.8 min for the same day shots).`;
 
 const VIEWS = ['chase', 'cockpit', 'pod', 'trackside'];
 const LIGHTINGS = ['day', 'sunset', 'night'];
@@ -364,8 +369,6 @@ const FRAME = {
   clock: carBase(0) + F.PIT_CLOCK,
   inPit: carBase(0) + F.IN_PIT,
   speed: carBase(0) + F.SPEED,
-  s: carBase(0) + F.S,
-  length: H.LENGTH,
 };
 mkdirSync(o.out, { recursive: true });
 
@@ -423,49 +426,10 @@ const probe = () =>
           ? { phase: f[I.phase], clock: f[I.clock], inPit: f[I.inPit], time: f[I.time] }
           : null,
         tick: f ? f[I.tick] : null,
-        live: f ? { time: f[I.time], s: f[I.s], speed: f[I.speed], length: f[I.length] } : null,
+        live: f ? { time: f[I.time], speed: f[I.speed] } : null,
       };
     }, FRAME)
-    .then((d) => {
-      if (d?.live && d.live.time !== history.at(-1)?.time) history.push(d.live);
-      if (history.length > 4000) history.splice(0, 2000);
-      return d;
-    })
     .catch(() => null);
-
-/** Live (time, lap distance, speed) samples of car 0, so a shot can report where the presented
- * frame was taken: the renderer lags the worker by up to one slow frame. */
-const history = [];
-let sampling = true;
-(async () => {
-  while (sampling) {
-    await probe();
-    await sleep(400);
-  }
-})();
-/** Lap distance of car 0 at a (presented) simulation time: interpolated between the live
- * samples around it, or, when samples are sparse (slow frames block polling), extrapolated back
- * from the nearest later sample at its speed. Lap wrap is handled modulo the track length. */
-function lapAt(time) {
-  if (time === null || time === undefined || !history.length) return null;
-  const wrap = (s, length) => ((s % length) + length) % length;
-  let before = null;
-  for (const b of history) {
-    if (b.time < time) {
-      before = b;
-      continue;
-    }
-    const length = b.length || 1e9;
-    if (before && b.time - before.time <= 3) {
-      let delta = b.s - before.s;
-      if (delta < -length / 2) delta += length; // crossed the line
-      const t = (time - before.time) / Math.max(b.time - before.time, 1e-6);
-      return wrap(before.s + delta * t, length);
-    }
-    return wrap(b.s - b.speed * (b.time - time), length);
-  }
-  return null;
-}
 
 async function waitFor(label, predicate, timeoutMs = 240000, intervalMs = 500) {
   const deadline = Date.now() + timeoutMs;
@@ -523,12 +487,15 @@ async function hideDialog(hidden) {
   }, hidden);
 }
 
-/** `immediate`: the view was already live (drive shots), so capture the next frame at once. */
+/** `immediate`: the view was already live (throttle drive shot), so capture the next frame at once. */
 async function shot(entry, context, immediate = false) {
   const file = `${String(entry.index).padStart(2, '0')}-${entry.name}.png`;
   try {
     const switched = entry.view ? await setView(entry.view) : false;
-    if (switched || !immediate) await settle(1);
+    // After a switch the frame with the new view is already submitted (presentedCamera is set at
+    // submission) and the screenshot waits for it on the GPU. Without a switch, wait for one fresh
+    // submission so the shot reflects the current state (seek, resume, drive time).
+    if (!switched && !immediate) await settle(1);
     await page.screenshot({ path: join(o.out, file), timeout: 240000 });
     const meta = await page.evaluate((I) => {
       const d = window.apexDiagnostics();
@@ -552,9 +519,11 @@ async function shot(entry, context, immediate = false) {
         drawBreakdown: r.drawBreakdown,
       };
     }, FRAME);
-    await probe(); // a live sample at or after the presented time
-    const lap = lapAt(meta.presentedTime);
-    meta.presentedLapM = lap === null ? null : Math.round(lap * 10) / 10;
+    // Simulated seconds between the drive start and the presented frame: the autopilot drive
+    // from the grid is deterministic, so this places the frame on the lap (look-metrics gates
+    // position-dependent checks on it). Slow frames make it overshoot by up to a frame.
+    if (context.driveStart !== undefined && meta.presentedTime !== null)
+      meta.driveElapsed = Math.round((meta.presentedTime - context.driveStart) * 100) / 100;
     records.push({ index: entry.index, file, ...context, view: entry.view ?? null, ...meta });
     log(`shot ${file} (${meta.presentedCamera}, ${meta.drawCalls} calls)`);
     return true;
@@ -643,15 +612,28 @@ async function setAuto(on) {
   await page.keyboard.press('g');
   await waitFor(`autopilot ${on}`, (x) => x.auto === on, 30000, 250);
 }
+/** Autopilot: drive S simulated seconds, then shoot a frame submitted after that instant, so the
+ * shot does not depend on render speed (slow frames only add overshoot). Throttle: S wall seconds
+ * and the next frame, exactly like the original capture.mjs. */
 async function drive(block, context) {
   if (!block.drive.length) return;
   await setView(block.drive[0].view);
-  if (block.driveMode === 'auto') await setAuto(true);
+  const auto = block.driveMode === 'auto';
+  if (auto) await setAuto(true);
   else await page.keyboard.down('ArrowUp');
-  log(`${block.driveMode} drive ${block.driveSeconds} s`);
-  await sleep(block.driveSeconds * 1000);
+  // Read after the key was handled: the main thread can be blocked for a whole slow frame.
+  const t0 = (await probe())?.live?.time ?? 0;
+  log(`${block.driveMode} drive ${block.driveSeconds} s from t=${t0.toFixed(2)}`);
+  if (auto)
+    await waitFor(
+      `${block.driveSeconds} s of simulated driving`,
+      (x) => (x.live?.time ?? 0) >= t0 + block.driveSeconds,
+      300000,
+      250,
+    );
+  else await sleep(block.driveSeconds * 1000);
   for (const [i, entry] of block.drive.entries())
-    await shot(entry, { ...context, drive: block.driveMode }, i === 0);
+    await shot(entry, { ...context, drive: block.driveMode, driveStart: t0 }, !auto && i === 0);
   if (block.driveMode === 'throttle') await page.keyboard.up('ArrowUp');
   else await setAuto(false);
 }
@@ -663,7 +645,6 @@ async function practice(block, first) {
   await enter({ mode: 'practice', weather: block.weather, hold: false });
   log(`driving (practice, ${block.weather}, ${block.lighting})`);
   mark(`enter-${block.weather}`);
-  await sleep(4000);
   for (const entry of block.static) {
     await shot(entry, context);
     if (first && o.census && entry.view === 'cockpit') await census();
@@ -803,8 +784,8 @@ try {
   await page.getByRole('button', { name: 'APPLY & SAVE', exact: true }).click();
   await page.locator('#modal').waitFor({ state: 'hidden', timeout: 120000 });
   log(`quality ${o.quality}`);
-  await sleep(2000);
-  await shot({ index: 0, name: 'menu', view: null }, { session: 'menu' });
+  // The menu has been redrawing since the settings closed: shoot its next completed frame.
+  await shot({ index: 0, name: 'menu', view: null }, { session: 'menu' }, true);
   mark('menu');
   for (const [i, block] of blocks.entries()) {
     try {
@@ -823,7 +804,6 @@ try {
 }
 if (!summary && !fatal) await rendererSummary();
 mark('total');
-sampling = false;
 const planned =
   blocks.flatMap((b) =>
     b.kind === 'practice'

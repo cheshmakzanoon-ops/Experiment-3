@@ -55,7 +55,7 @@
         {
           "id": "1.mean-20",
           "shot": "20",
-          "crop": [0.62, 0.5, 0.82, 0.57],
+          "crop": [0.63, 0.82, 0.71, 0.92],
           "filter": {
             "sat_max": 0.3,
             "luma_rel": [0.5, 1.6]
@@ -65,13 +65,15 @@
           "target": {
             "hex_box": ["#7d7a76", "#938b83"]
           },
-          "baseline": "#46464a",
-          "note": "off-line road right of the racing line at turn 1 (autopilot drive)"
+          "baseline": "#3f3f44",
+          "note": "car-relative: road right of the right rear tyre (left of the HUD panel), or left of the left rear tyre when the car rides a kerb",
+          "gate": false,
+          "alternates": [[0.29, 0.82, 0.37, 0.92]]
         },
         {
           "id": "1.br-20",
           "shot": "20",
-          "crop": [0.62, 0.5, 0.82, 0.57],
+          "crop": [0.63, 0.82, 0.71, 0.92],
           "filter": {
             "sat_max": 0.3,
             "luma_rel": [0.5, 1.6]
@@ -81,13 +83,15 @@
           "target": {
             "range": [0.88, 0.95]
           },
-          "baseline": 1.058,
-          "note": "off-line road right of the racing line at turn 1 (autopilot drive)"
+          "baseline": 1.087,
+          "note": "car-relative: road right of the right rear tyre (left of the HUD panel), or left of the left rear tyre when the car rides a kerb",
+          "gate": false,
+          "alternates": [[0.29, 0.82, 0.37, 0.92]]
         },
         {
           "id": "1.std-20",
           "shot": "20",
-          "crop": [0.62, 0.5, 0.82, 0.57],
+          "crop": [0.63, 0.82, 0.71, 0.92],
           "filter": {
             "sat_max": 0.3,
             "luma_rel": [0.5, 1.6]
@@ -97,8 +101,10 @@
           "target": {
             "min": 8
           },
-          "baseline": 6.557,
-          "note": "off-line road right of the racing line at turn 1 (autopilot drive)"
+          "baseline": 5.105,
+          "note": "car-relative: road right of the right rear tyre (left of the HUD panel), or left of the left rear tyre when the car rides a kerb",
+          "gate": false,
+          "alternates": [[0.29, 0.82, 0.37, 0.92]]
         }
       ]
     },
@@ -172,7 +178,8 @@
           "target": {
             "range": [0.42, 0.53]
           },
-          "baseline": 0.308
+          "baseline": 0.308,
+          "gate": false
         },
         {
           "id": "3.p95-20",
@@ -182,7 +189,8 @@
           "target": {
             "range": [0.8, 0.88]
           },
-          "baseline": 0.91
+          "baseline": 0.91,
+          "gate": false
         },
         {
           "id": "3.p99-20",
@@ -192,7 +200,8 @@
           "target": {
             "max": 0.93
           },
-          "baseline": 0.943
+          "baseline": 0.943,
+          "gate": false
         }
       ]
     },
@@ -241,7 +250,9 @@
           "target": {
             "range": [0.78, 0.85]
           },
-          "baseline": 0.987
+          "baseline": 0.987,
+          "gate": false,
+          "note": "upper sky right of centre (sky filter coverage-gated)"
         },
         {
           "id": "4.horizon-10",
@@ -399,7 +410,7 @@
         {
           "id": "8.road-left-20",
           "shot": "20",
-          "crop": [0.4, 0.52, 0.47, 0.6],
+          "crop": [0.28, 0.7, 0.37, 0.82],
           "vanish": [0.5, 0.45],
           "filter": {
             "sat_max": 0.25,
@@ -411,12 +422,13 @@
             "min": 0.35
           },
           "baseline": 0,
-          "note": "0-blur reference: capture-matrix --graphics motionBlur=0, then look-metrics --noblur <that dir>"
+          "note": "car-relative near road (INVALID when the car rides a kerb)",
+          "gate": false
         },
         {
           "id": "8.road-right-20",
           "shot": "20",
-          "crop": [0.63, 0.6, 0.72, 0.72],
+          "crop": [0.63, 0.7, 0.71, 0.81],
           "vanish": [0.5, 0.45],
           "filter": {
             "sat_max": 0.25,
@@ -427,7 +439,8 @@
           "target": {
             "min": 0.35
           },
-          "baseline": 0
+          "baseline": 0,
+          "gate": false
         },
         {
           "id": "8.car-20",
@@ -440,7 +453,8 @@
             "max": 0.1
           },
           "baseline": 0,
-          "note": "followed car stays sharp"
+          "note": "followed car stays sharp",
+          "gate": false
         }
       ]
     },
@@ -582,7 +596,8 @@
             "range": [0.36, 0.42]
           },
           "baseline": 0.237,
-          "gauge": [["width", 0.5, 0.36, 0.42, 0.84]]
+          "gauge": [["width", 0.5, 0.36, 0.42, 0.84]],
+          "gate": false
         },
         {
           "id": "10.chase-width-10",
@@ -883,9 +898,9 @@
     }
   ],
   "compositions": {
-    "_about": "Driving shots are taken wherever the car is when a slow frame completes. capture-matrix records presentedLapM (car 0 lap distance at the presented frame); checks on a shot outside its window report INVALID. Shot 20 is calibrated on the autopilot drive reaching the turn-1 left-hander (Aurel s 380-720 m).",
+    "_about": "Driving shots land wherever the car is when a slow frame completes (SwiftShader frames take 10-20 s while the simulation runs in real time). capture-matrix records driveElapsed: simulated seconds from the autopilot drive start on the grid to the presented frame. The drive is deterministic; a simulation probe of the practice start gives lap distance 259 m at 10 s, 469-615 m (turn 1) at 13-15 s, 1024 m at 21 s, about 2000 m at 43 s. Position-dependent checks on a shot outside its window report INVALID; checks with \"gate\": false use car-relative crops or whole-frame statistics and always run. Shot 20 position crops are calibrated on turn 1 (12-18 s).",
     "20": {
-      "presentedLapM": [380, 720]
+      "driveElapsed": [12, 18]
     }
   }
 }

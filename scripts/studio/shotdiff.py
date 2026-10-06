@@ -155,7 +155,7 @@ def main(argv):
     only_a, only_b = sorted(set(A) - set(B)), sorted(set(B) - set(A))
     if only_a or only_b:
         print('only in A: %s; only in B: %s' % (' '.join(only_a) or '-', ' '.join(only_b) or '-'))
-    print("'*' = above the same-build noise floor (static %.0f, moving %.0f)" % (FLOOR_STATIC,
+    print("'*' = above the same-build noise floor (static %.1f, moving %.0f)" % (FLOOR_STATIC,
                                                                                FLOOR_MOVING))
 
     if args.montage and rows:
