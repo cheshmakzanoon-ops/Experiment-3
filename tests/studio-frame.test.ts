@@ -25,7 +25,11 @@ import {
   useStudioUniforms,
   type StudioUniforms,
 } from '../src/rendering/studio/studio-frame.ts';
-import { chainShaderHook, type StudioShader } from '../src/rendering/studio/shader-hooks.ts';
+import {
+  chainShaderHook,
+  injectAfter,
+  type StudioShader,
+} from '../src/rendering/studio/shader-hooks.ts';
 
 interface CarState {
   x: number;
@@ -158,6 +162,22 @@ describe('StudioFrame uniforms are shared by identity', () => {
     expect(vertex).not.toContain('studioWind');
     expect(shader.fragmentShader).not.toContain('studio');
     expect(vertex.indexOf('#include <common>')).toBeLessThan(vertex.indexOf('studioTime'));
+  });
+
+  it('declares ahead of a helper injected at the same anchor, in either call order', () => {
+    const helper = 'float studioSwayProbe() { return studioWind.w; }';
+    for (const declareFirst of [true, false]) {
+      const material = new T.MeshStandardMaterial();
+      chainShaderHook(material, 'sway-v1', (shader) => {
+        if (declareFirst) useStudioUniforms(shader, ['studioWind'], 'vertex');
+        injectAfter(shader, 'common', helper, 'vertex');
+        if (!declareFirst) useStudioUniforms(shader, ['studioWind'], 'vertex');
+      });
+      const vertex = compile(material, 'standard').vertexShader;
+      const declaration = vertex.indexOf('uniform vec4 studioWind;');
+      expect(declaration).toBeGreaterThan(vertex.indexOf('#include <common>'));
+      expect(declaration).toBeLessThan(vertex.indexOf(helper));
+    }
   });
 
   it('describes the declared GLSL type of every uniform', () => {

@@ -1,3 +1,4 @@
+import { Material } from 'three';
 import type * as T from 'three';
 
 /**
@@ -14,6 +15,12 @@ import type * as T from 'three';
  * not in `material.userData`: `Material.copy()` clones userData but not the
  * hook, so a userData marker would claim a clone is patched when it is not,
  * while a hook copied by reference carries its keys with it.
+ *
+ * Injection order: successive `injectAfter` calls at one anchor keep their call
+ * order (each lands below the blocks injected there before it), as successive
+ * `injectBefore` calls do. `injectDeclarations` (used by `useStudioUniforms`)
+ * instead leads the anchor's region, so a helper that reads a studio uniform
+ * always follows its declaration, whichever was injected first.
  */
 
 /** The shader object three.js passes to `onBeforeCompile`. */
@@ -46,13 +53,15 @@ export function chainShaderHook(material: T.Material, key: string, fn: StudioHoo
   const previous = material.onBeforeCompile as ChainedHook;
   const keys = previous.studioHookKeys;
   if (keys?.has(key)) return false;
-  // A custom key installed by another system may depend on its own state, so it
-  // is evaluated lazily. The prototype default returns the *current* hook's
-  // source text, which after chaining would be this wrapper for every material;
-  // capture the previous hook's text now so distinct chains never share a program.
-  const ownKey = Object.prototype.hasOwnProperty.call(material, 'customProgramCacheKey')
-    ? material.customProgramCacheKey
-    : null;
+  // A custom key (an own property or a subclass override) may depend on its own
+  // state, so it is evaluated lazily. Three's base default returns the *current*
+  // hook's source text, which after chaining would be this wrapper for every
+  // material; capture the previous hook's text now so distinct chains never
+  // share a program.
+  const ownKey =
+    material.customProgramCacheKey !== Material.prototype.customProgramCacheKey
+      ? material.customProgramCacheKey
+      : null;
   const baseKey = ownKey ? '' : previous.toString();
   const hook: ChainedHook = function (
     this: T.Material,
@@ -101,34 +110,56 @@ function resolveStage(shader: StudioShader, anchor: string, stage?: ShaderStage)
   if (!vertex && !fragment) throw new Error(`Shader anchor "${anchor}" is missing`);
   return vertex ? 'vertex' : 'fragment';
 }
+/**
+ * The studio blocks already placed at each anchor (`<side>|<stage>|<anchor>`) of
+ * the shader being compiled. Three.js passes a fresh shader object to every
+ * compile, so the record lives exactly as long as one hook chain's edits.
+ */
+const injected = new WeakMap<StudioShader, Map<string, string[]>>();
+type Placement = 'before' | 'after' | 'lead';
 function inject(
   shader: StudioShader,
   chunk: string,
   glsl: string,
   stage: ShaderStage | undefined,
-  after: boolean,
+  placement: Placement,
 ) {
   const anchor = anchorText(chunk);
   const target = resolveStage(shader, anchor, stage);
   const source = stageSource(shader, target);
   if (occurrences(source, anchor) !== 1)
     throw new Error(`Shader anchor "${anchor}" is ambiguous in the ${target} shader`);
-  const patched = after ? `${anchor}\n${glsl}` : `${glsl}\n${anchor}`;
-  // Idempotent: the same text at the same anchor is never inserted twice.
-  if (source.includes(patched)) return target;
+  let records = injected.get(shader);
+  if (!records) injected.set(shader, (records = new Map()));
+  const before = placement === 'before';
+  const id = `${before ? 'before' : 'after'}|${target}|${anchor}`;
+  let blocks = records.get(id) ?? [];
+  // A non-studio edit at this anchor since the last injection moved the blocks:
+  // start a new region directly at the anchor (the untracked behaviour).
+  const region = (list: readonly string[]) => (before ? [...list, anchor] : [anchor, ...list]);
+  if (blocks.length && !source.includes(region(blocks).join('\n'))) blocks = [];
+  // Idempotent: the same block at the same anchor is never inserted twice. The
+  // record matches whole blocks, so a block that merely prefixes an earlier one
+  // still lands; untracked text is matched where it would have been inserted.
+  const untracked = before ? `${glsl}\n${anchor}` : `${anchor}\n${glsl}`;
+  if (blocks.includes(glsl) || (!blocks.length && source.includes(untracked))) return target;
+  // Successive calls keep their order on both sides of the anchor; a leading
+  // block goes directly under the anchor, above everything injected after it.
+  const next = placement === 'lead' ? [glsl, ...blocks] : [...blocks, glsl];
   setStageSource(
     shader,
     target,
-    source.replace(anchor, () => patched),
+    source.replace(region(blocks).join('\n'), () => region(next).join('\n')),
   );
+  records.set(id, next);
   return target;
 }
 
 /**
- * Insert `glsl` on the line after `chunk` (a ShaderChunk name such as
- * `lights_fragment_maps`, or literal anchor text). Throws when the anchor is
- * missing or ambiguous; omit `stage` only for anchors unique to one stage.
- * Returns the patched stage.
+ * Insert `glsl` after `chunk` (a ShaderChunk name such as `lights_fragment_maps`,
+ * or literal anchor text), below any blocks injected after it earlier in this
+ * compile. Throws when the anchor is missing or ambiguous; omit `stage` only
+ * for anchors unique to one stage. Returns the patched stage.
  */
 export function injectAfter(
   shader: StudioShader,
@@ -136,15 +167,26 @@ export function injectAfter(
   glsl: string,
   stage?: ShaderStage,
 ): ShaderStage {
-  return inject(shader, chunk, glsl, stage, true);
+  return inject(shader, chunk, glsl, stage, 'after');
 }
 
-/** As `injectAfter`, but on the line before the anchor. */
+/** As `injectAfter`, but directly under the anchor, above every block injected
+ * after it: for declarations that code injected there (before or later) reads. */
+export function injectDeclarations(
+  shader: StudioShader,
+  chunk: string,
+  glsl: string,
+  stage?: ShaderStage,
+): ShaderStage {
+  return inject(shader, chunk, glsl, stage, 'lead');
+}
+
+/** As `injectAfter`, but on the line before the anchor (successive calls keep their order). */
 export function injectBefore(
   shader: StudioShader,
   chunk: string,
   glsl: string,
   stage?: ShaderStage,
 ): ShaderStage {
-  return inject(shader, chunk, glsl, stage, false);
+  return inject(shader, chunk, glsl, stage, 'before');
 }

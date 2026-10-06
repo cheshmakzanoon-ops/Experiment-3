@@ -4,6 +4,7 @@ import {
   chainShaderHook,
   injectAfter,
   injectBefore,
+  injectDeclarations,
   studioHookKeys,
   type StudioShader,
 } from '../src/rendering/studio/shader-hooks.ts';
@@ -85,6 +86,24 @@ describe('chainShaderHook', () => {
     expect(plain.customProgramCacheKey()).toBe(`${plainKey}|probe-v1`);
     expect(hooked.customProgramCacheKey()).toBe(`${hookedKey}|probe-v1`);
     expect(plain.customProgramCacheKey()).not.toBe(hooked.customProgramCacheKey());
+  });
+
+  it('keeps a subclass cache-key override, evaluated lazily', () => {
+    class Tinted extends T.MeshStandardMaterial {
+      tint = 'red';
+      override customProgramCacheKey() {
+        return `tint-${this.tint}`;
+      }
+    }
+    const red = new Tinted(),
+      blue = new Tinted();
+    blue.tint = 'blue';
+    chainShaderHook(red, 'probe-v1', () => {});
+    chainShaderHook(blue, 'probe-v1', () => {});
+    expect(red.customProgramCacheKey()).toBe('tint-red|probe-v1');
+    expect(blue.customProgramCacheKey()).toBe('tint-blue|probe-v1');
+    red.tint = 'green';
+    expect(red.customProgramCacheKey()).toBe('tint-green|probe-v1');
   });
 
   it('marks the material for recompilation once per new key', () => {
@@ -175,6 +194,65 @@ describe('injectAfter / injectBefore', () => {
     injectAfter(shader, 'lights_fragment_end', glsl);
     expect(count(shader.fragmentShader, glsl)).toBe(1);
     expect(shader.fragmentShader).toContain(`#include <lights_fragment_end>\n${glsl}`);
+  });
+
+  it('keeps the call order of successive injections on each side of an anchor', () => {
+    const shader = shaderFor();
+    injectAfter(shader, 'common', '// below one', 'vertex');
+    injectAfter(shader, 'common', '// below two', 'vertex');
+    injectBefore(shader, 'common', '// above one', 'vertex');
+    injectBefore(shader, 'common', '// above two', 'vertex');
+    expect(shader.vertexShader).toContain(
+      '// above one\n// above two\n#include <common>\n// below one\n// below two\n',
+    );
+  });
+
+  it('leads the region with declarations, whichever was injected first', () => {
+    const shader = shaderFor();
+    injectAfter(shader, 'common', 'float helperA() { return probeA; }', 'vertex');
+    injectDeclarations(shader, 'common', 'uniform float probeA;', 'vertex');
+    injectAfter(shader, 'common', 'float helperB() { return probeB; }', 'vertex');
+    injectDeclarations(shader, 'common', 'uniform float probeB;', 'vertex');
+    injectDeclarations(shader, 'common', 'uniform float probeA;', 'vertex');
+    expect(shader.vertexShader).toContain(
+      [
+        '#include <common>',
+        'uniform float probeB;',
+        'uniform float probeA;',
+        'float helperA() { return probeA; }',
+        'float helperB() { return probeB; }',
+        '',
+      ].join('\n'),
+    );
+    expect(count(shader.vertexShader, 'uniform float probeA;')).toBe(1);
+  });
+
+  it('matches whole blocks: a block that prefixes an earlier one still lands', () => {
+    const shader = shaderFor();
+    injectAfter(shader, 'common', 'float a = 1.0; float b = 2.0;', 'vertex');
+    injectAfter(shader, 'common', 'float a = 1.0;', 'vertex');
+    expect(shader.vertexShader).toContain(
+      '#include <common>\nfloat a = 1.0; float b = 2.0;\nfloat a = 1.0;\n',
+    );
+    injectBefore(shader, 'begin_vertex', 'float c = 2.0; float d = 1.0;');
+    injectBefore(shader, 'begin_vertex', 'float d = 1.0;');
+    expect(shader.vertexShader).toContain(
+      'float c = 2.0; float d = 1.0;\nfloat d = 1.0;\n#include <begin_vertex>',
+    );
+  });
+
+  it('starts a new region under the anchor when another edit moved the earlier one', () => {
+    const shader = shaderFor();
+    injectAfter(shader, 'common', '// studio a', 'vertex');
+    shader.vertexShader = shader.vertexShader.replace(
+      '#include <common>',
+      '#include <common>\n// legacy',
+    );
+    injectAfter(shader, 'common', '// studio b', 'vertex');
+    injectAfter(shader, 'common', '// studio c', 'vertex');
+    expect(shader.vertexShader).toContain(
+      '#include <common>\n// studio b\n// studio c\n// legacy\n// studio a\n',
+    );
   });
 
   it('patches through a chained hook on a real compile path', () => {

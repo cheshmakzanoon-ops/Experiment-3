@@ -3,7 +3,7 @@ import { TAU } from '../../core/math.ts';
 import { F, H, W, WHEEL_BASE, WHEEL_STRIDE, carBase } from '../../simulation/protocol.ts';
 import { WHEEL_POSITIONS } from '../../simulation/vehicle.ts';
 import { renderWind } from '../../simulation/weather.ts';
-import { injectAfter, type ShaderStage, type StudioShader } from './shader-hooks.ts';
+import { injectDeclarations, type ShaderStage, type StudioShader } from './shader-hooks.ts';
 
 /**
  * StudioFrame: the per-frame uniforms every studio department shares.
@@ -155,8 +155,9 @@ export function studioGlsl(names: readonly StudioUniformName[]) {
 }
 
 /**
- * Bind the shared uniform objects into a compiling shader and declare them after
- * `#include <common>` (or `anchor`) in the given stage(s). Call from a
+ * Bind the shared uniform objects into a compiling shader and declare them
+ * directly after `#include <common>` (or `anchor`) in the given stage(s), above
+ * any code injected after that anchor, whichever call came first. Call from a
  * `chainShaderHook` body. Uniforms are assigned by identity, never copied.
  */
 export function useStudioUniforms(
@@ -169,7 +170,7 @@ export function useStudioUniforms(
   const glsl = studioGlsl(names);
   for (const name of names) shader.uniforms[name] = uniforms[name];
   for (const stage of stages === 'both' ? (['vertex', 'fragment'] as const) : [stages])
-    injectAfter(shader, anchor, glsl, stage);
+    injectDeclarations(shader, anchor, glsl, stage);
 }
 
 const UNIT = new T.Vector3(1, 1, 1);
