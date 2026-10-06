@@ -114,6 +114,7 @@ import { renderCensus, cubeCensusCameras, mergeCensus } from './render-census.ts
 import { CircuitScene } from './circuit.ts';
 import { Effects } from './effects.ts';
 import { PresentedFrame } from './frame-state.ts';
+import { StudioFrame } from './studio/studio-frame.ts';
 import { EffectPlayback } from './effect-playback.ts';
 import { AudioViewTracker } from '../audio/spatial.ts';
 import { Track, trackPoint } from '../simulation/track.ts';
@@ -148,6 +149,7 @@ export class RacingRenderer {
   readonly audioView = new AudioViewTracker();
   readonly effects = new Effects();
   readonly presented = new PresentedFrame();
+  readonly studioFrame = new StudioFrame();
   /** Time Trial ghost, built on first use; posed from setGhost() each frame. */
   private ghost: GhostCar | null = null;
   private ghostPose: GhostPose = ghostPose();
@@ -747,6 +749,7 @@ export class RacingRenderer {
   }
   resize() {
     this.exposure.reset();
+    this.studioFrame.reset();
     const w = this.canvas.clientWidth || innerWidth,
       h = this.canvas.clientHeight || innerHeight;
     const size = bufferSize(
@@ -844,6 +847,7 @@ export class RacingRenderer {
   reset() {
     this.circuit.startFinish.reset();
     this.exposure.reset();
+    this.studioFrame.reset();
     this.composition.reset();
     this.reflection.invalidate();
     this.motionBlur.reset();
@@ -1203,6 +1207,8 @@ export class RacingRenderer {
     );
     this.scene.updateMatrixWorld(true);
     this.camera.updateMatrixWorld(true);
+    const studioView = `${cameraMode}:${this.follow}:${this.trackside.activeId}:${menu}:${pregame}`;
+    this.studioFrame.update(presented, this.camera, this.sun, studioView);
     this.audioView.update(
       this.camera,
       this.presented.value[H.TIME],

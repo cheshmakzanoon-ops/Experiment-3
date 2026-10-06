@@ -1,0 +1,300 @@
+import * as T from 'three';
+import { TAU } from '../../core/math.ts';
+import { F, H, W, WHEEL_BASE, WHEEL_STRIDE, carBase } from '../../simulation/protocol.ts';
+import { WHEEL_POSITIONS } from '../../simulation/vehicle.ts';
+import { renderWind } from '../../simulation/weather.ts';
+import { injectAfter, type ShaderStage, type StudioShader } from './shader-hooks.ts';
+
+/**
+ * StudioFrame: the per-frame uniforms every studio department shares.
+ *
+ * One `update()` per rendered frame (renderer.ts, after the shadow anchor and the
+ * scene/camera matrix update) writes plain values into uniform objects that
+ * materials and passes bind *by identity*: binding costs no per-material update
+ * and no draw call, and every consumer sees the same frame state.
+ *
+ * Determinism: values depend only on the presented snapshot, the solved camera
+ * and the sun. No wall clock and no random source. A held frame (presented time
+ * unchanged) reports no motion (`prev == now`), so held, paused and photo frames
+ * are byte-identical. Camera cuts (view key change), seeks and rewinds (time
+ * jumps back or more than `STUDIO_SEEK_SECONDS` forward), resizes (aspect
+ * change) and explicit `reset()` calls restart the motion history.
+ *
+ * Car slots are car ids (`< studioCarCount`, at most 12, the protocol limit).
+ * `studioCarNow/Prev` are rigid chassis-to-world matrices (+X driver's left,
+ * +Y up, +Z nose). `studioCarPose` is (x, z, yaw, groundY): chassis origin,
+ * heading `atan2(forward.x, forward.z)` and the mean world height of the four
+ * presented tyre contacts. The studio car footprint is the oriented box of half
+ * extents `STUDIO_CAR_HALF_EXTENTS` (2.8 m along, 1.0 m across) about (x, z).
+ */
+
+export const STUDIO_MAX_CARS = 12;
+export const STUDIO_CAR_HALF_EXTENTS = Object.freeze({ length: 2.8, width: 1.0 });
+/** A forward presented-time jump longer than this is a seek, not motion. */
+export const STUDIO_SEEK_SECONDS = 2;
+
+export interface StudioUniforms {
+  /** Presented simulation time H.TIME, seconds. */
+  studioTime: T.IUniform<number>;
+  /** Presented seconds between the previous and current frame; 0 when held or cut. */
+  studioFrameDt: T.IUniform<number>;
+  /** (wind x m/s, wind z m/s, presented time s, gust 0..1). */
+  studioWind: T.IUniform<T.Vector4>;
+  /** Unit world direction toward the sun (key light). */
+  studioSunDir: T.IUniform<T.Vector3>;
+  /** Main camera projection × view, current frame. */
+  studioViewProj: T.IUniform<T.Matrix4>;
+  /** Main camera projection × view, previous presented frame (== current after a cut or hold). */
+  studioPrevViewProj: T.IUniform<T.Matrix4>;
+  studioCarCount: T.IUniform<number>;
+  studioCarNow: T.IUniform<T.Matrix4[]>;
+  studioCarPrev: T.IUniform<T.Matrix4[]>;
+  /** (x, z, yaw, groundY) per car. */
+  studioCarPose: T.IUniform<T.Vector4[]>;
+}
+export type StudioUniformName = keyof StudioUniforms;
+
+const GLSL_TYPES: Readonly<Record<StudioUniformName, string>> = Object.freeze({
+  studioTime: 'float studioTime',
+  studioFrameDt: 'float studioFrameDt',
+  studioWind: 'vec4 studioWind',
+  studioSunDir: 'vec3 studioSunDir',
+  studioViewProj: 'mat4 studioViewProj',
+  studioPrevViewProj: 'mat4 studioPrevViewProj',
+  studioCarCount: 'int studioCarCount',
+  studioCarNow: 'mat4 studioCarNow[STUDIO_MAX_CARS]',
+  studioCarPrev: 'mat4 studioCarPrev[STUDIO_MAX_CARS]',
+  studioCarPose: 'vec4 studioCarPose[STUDIO_MAX_CARS]',
+});
+export const STUDIO_UNIFORM_NAMES = Object.freeze(Object.keys(GLSL_TYPES) as StudioUniformName[]);
+
+export function createStudioUniforms(): StudioUniforms {
+  return {
+    studioTime: { value: 0 },
+    studioFrameDt: { value: 0 },
+    studioWind: { value: new T.Vector4() },
+    studioSunDir: { value: new T.Vector3(0, 1, 0) },
+    studioViewProj: { value: new T.Matrix4() },
+    studioPrevViewProj: { value: new T.Matrix4() },
+    studioCarCount: { value: 0 },
+    studioCarNow: { value: Array.from({ length: STUDIO_MAX_CARS }, () => new T.Matrix4()) },
+    studioCarPrev: { value: Array.from({ length: STUDIO_MAX_CARS }, () => new T.Matrix4()) },
+    studioCarPose: { value: Array.from({ length: STUDIO_MAX_CARS }, () => new T.Vector4()) },
+  };
+}
+
+/** The application's shared uniform objects. The renderer's StudioFrame writes
+ * them; any material or pass binds them (see `useStudioUniforms`). */
+export const studioUniforms: StudioUniforms = createStudioUniforms();
+
+/**
+ * Deterministic gust factor in [0, 1): wind-speed strength (1 - e^(-v/4 m/s))
+ * modulated by three incommensurate slow swells (9.7 s, 4.3 s, 2.1 s) between
+ * 55 % and 100 %. Consumers multiply sway/flutter amplitudes by it.
+ */
+export function studioGust(time: number, windX: number, windZ: number) {
+  if (!Number.isFinite(time)) return 0;
+  const speed = Math.hypot(renderWind(windX), renderWind(windZ));
+  const strength = 1 - Math.exp(-speed / 4);
+  const swell =
+    0.55 * Math.sin((TAU * time) / 9.7) +
+    0.3 * Math.sin((TAU * time) / 4.3 + 1.7) +
+    0.15 * Math.sin((TAU * time) / 2.1 + 0.6);
+  return strength * (0.55 + 0.45 * (0.5 + 0.5 * swell));
+}
+
+/** CPU reference of `studioCarPoseLocal`: world point → (across, height above
+ * ground, along) in a car's footprint frame. */
+export function studioCarLocal(pose: T.Vector4, point: T.Vector3, out = new T.Vector3()) {
+  const s = Math.sin(pose.z),
+    c = Math.cos(pose.z),
+    dx = point.x - pose.x,
+    dz = point.z - pose.y;
+  return out.set(dx * c - dz * s, point.y - pose.w, dx * s + dz * c);
+}
+
+const CAR_HELPERS = /* glsl */ `
+#ifndef STUDIO_CAR_HELPERS
+#define STUDIO_CAR_HELPERS
+#define STUDIO_CAR_HALF_LENGTH ${STUDIO_CAR_HALF_EXTENTS.length.toFixed(2)}
+#define STUDIO_CAR_HALF_WIDTH ${STUDIO_CAR_HALF_EXTENTS.width.toFixed(2)}
+// Rigid (rotation + translation) world -> chassis space, without a general inverse.
+vec3 studioRigidToLocal( mat4 m, vec3 p ) { return ( p - m[ 3 ].xyz ) * mat3( m ); }
+// World -> (across, height above ground, along) for pose (x, z, yaw, groundY).
+vec3 studioCarPoseLocal( vec4 pose, vec3 p ) {
+	float s = sin( pose.z ), c = cos( pose.z );
+	vec2 d = p.xz - pose.xy;
+	return vec3( d.x * c - d.y * s, p.y - pose.w, d.x * s + d.y * c );
+}
+#endif`;
+
+/** GLSL declarations for `names`, each guarded so several hooks on one material
+ * may declare the same studio uniform. */
+export function studioGlsl(names: readonly StudioUniformName[]) {
+  const lines = ['#ifndef STUDIO_MAX_CARS', `#define STUDIO_MAX_CARS ${STUDIO_MAX_CARS}`, '#endif'];
+  for (const name of names) {
+    const declaration = GLSL_TYPES[name];
+    if (!declaration) throw new Error(`Unknown studio uniform "${String(name)}"`);
+    const guard = `STUDIO_DECLARED_${name}`;
+    lines.push(`#ifndef ${guard}`, `#define ${guard}`, `uniform ${declaration};`, '#endif');
+  }
+  if (names.some((name) => name.startsWith('studioCar'))) lines.push(CAR_HELPERS);
+  return lines.join('\n');
+}
+
+/**
+ * Bind the shared uniform objects into a compiling shader and declare them after
+ * `#include <common>` (or `anchor`) in the given stage(s). Call from a
+ * `chainShaderHook` body. Uniforms are assigned by identity, never copied.
+ */
+export function useStudioUniforms(
+  shader: StudioShader,
+  names: readonly StudioUniformName[],
+  stages: ShaderStage | 'both' = 'both',
+  uniforms: StudioUniforms = studioUniforms,
+  anchor = 'common',
+) {
+  const glsl = studioGlsl(names);
+  for (const name of names) shader.uniforms[name] = uniforms[name];
+  for (const stage of stages === 'both' ? (['vertex', 'fragment'] as const) : [stages])
+    injectAfter(shader, anchor, glsl, stage);
+}
+
+const UNIT = new T.Vector3(1, 1, 1);
+
+export class StudioFrame {
+  private time = NaN;
+  private aspect = NaN;
+  private view = '';
+  private cars = 0;
+  private updates = 0;
+  private cuts = 0;
+  private pending = true;
+  /** Previous chassis matrices by car id (slots are ids). */
+  private readonly previousCars = Array.from({ length: STUDIO_MAX_CARS }, () => new T.Matrix4());
+  private readonly position = new T.Vector3();
+  private readonly quaternion = new T.Quaternion();
+  private readonly point = new T.Vector3();
+  private readonly sunPosition = new T.Vector3();
+  private readonly sunTarget = new T.Vector3();
+
+  constructor(readonly uniforms: StudioUniforms = studioUniforms) {}
+
+  /** Restart the motion history: the next frame reports no motion. */
+  reset() {
+    this.pending = true;
+  }
+
+  /**
+   * Write this frame's values. `camera` and `sun` must have current world
+   * matrices (the renderer calls this after `scene.updateMatrixWorld`). `view`
+   * identifies the camera rig; any change is a cut.
+   */
+  update(
+    presented: Float32Array,
+    camera: T.Camera,
+    sun: T.Object3D & { target: T.Object3D },
+    view: string,
+  ) {
+    const u = this.uniforms;
+    const time = presented[H.TIME];
+    const cars = Math.min(STUDIO_MAX_CARS, Math.max(0, Math.floor(presented[H.CARS] || 0)));
+    if (!Number.isFinite(time)) throw new Error('Invalid studio frame time');
+    const aspect = (camera as T.PerspectiveCamera).aspect ?? 1;
+    const elapsed = time - this.time;
+    const cut =
+      this.pending ||
+      view !== this.view ||
+      aspect !== this.aspect ||
+      !(elapsed >= 0 && elapsed <= STUDIO_SEEK_SECONDS);
+    // Motion advances only when presented time does: held frames show none.
+    const advancing = !cut && elapsed > 0;
+    if (cut) this.cuts++;
+    this.updates++;
+    this.pending = false;
+    this.view = view;
+    this.aspect = aspect;
+    this.time = time;
+
+    u.studioTime.value = time;
+    u.studioFrameDt.value = advancing ? elapsed : 0;
+    const windX = renderWind(presented[H.WIND_X]),
+      windZ = renderWind(presented[H.WIND_Z]);
+    u.studioWind.value.set(windX, windZ, time, studioGust(time, windX, windZ));
+    this.sunPosition.setFromMatrixPosition(sun.matrixWorld);
+    this.sunTarget.setFromMatrixPosition(sun.target.matrixWorld);
+    const sunDir = u.studioSunDir.value.subVectors(this.sunPosition, this.sunTarget);
+    if (sunDir.lengthSq() > 0) sunDir.normalize();
+    else sunDir.set(0, 1, 0);
+
+    const viewProj = u.studioViewProj.value;
+    if (advancing) u.studioPrevViewProj.value.copy(viewProj);
+    viewProj.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+    if (!advancing) u.studioPrevViewProj.value.copy(viewProj);
+
+    u.studioCarCount.value = cars;
+    for (let id = 0; id < STUDIO_MAX_CARS; id++) {
+      const now = u.studioCarNow.value[id],
+        prev = u.studioCarPrev.value[id],
+        pose = u.studioCarPose.value[id],
+        last = this.previousCars[id];
+      if (id >= cars) {
+        now.identity();
+        prev.identity();
+        last.identity();
+        pose.set(0, 0, 0, 0);
+        continue;
+      }
+      const o = carBase(id);
+      this.position.set(presented[o + F.X], presented[o + F.Y], presented[o + F.Z]);
+      this.quaternion
+        .set(presented[o + F.QX], presented[o + F.QY], presented[o + F.QZ], presented[o + F.QW])
+        .normalize();
+      now.compose(this.position, this.quaternion, UNIT);
+      // History exists only while time advances without a cut. A car that
+      // joined this frame or moved implausibly far (recovery, pit reset) has
+      // none either; without history a car reports no motion (prev == now).
+      const jump = this.point.setFromMatrixPosition(last).distanceTo(this.position);
+      const reach = 2 + 2 * Math.abs(presented[o + F.SPEED]) * elapsed;
+      prev.copy(advancing && id < this.cars && jump <= reach ? last : now);
+      last.copy(now);
+      this.point.set(0, 0, 1).applyQuaternion(this.quaternion);
+      pose.set(
+        this.position.x,
+        this.position.z,
+        Math.atan2(this.point.x, this.point.z),
+        this.groundHeight(presented, o),
+      );
+    }
+    this.cars = cars;
+  }
+
+  /** Mean world height of the four presented tyre contacts. */
+  private groundHeight(presented: Float32Array, o: number) {
+    let sum = 0;
+    for (let wheel = 0; wheel < 4; wheel++) {
+      const p = o + WHEEL_BASE + wheel * WHEEL_STRIDE,
+        mount = WHEEL_POSITIONS[wheel];
+      const length = presented[p + W.LENGTH] || 0.25,
+        radius = presented[p + W.RADIUS] || 0.335;
+      this.point
+        .set(mount[0], mount[1] - length - radius, mount[2])
+        .applyQuaternion(this.quaternion);
+      sum += this.position.y + this.point.y;
+    }
+    return sum / 4;
+  }
+
+  diagnostics() {
+    return {
+      source: 'presented-snapshot' as const,
+      updates: this.updates,
+      cuts: this.cuts,
+      time: this.uniforms.studioTime.value,
+      frameDt: this.uniforms.studioFrameDt.value,
+      cars: this.uniforms.studioCarCount.value,
+      view: this.view,
+      extraDraws: 0,
+    };
+  }
+}
