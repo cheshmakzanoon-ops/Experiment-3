@@ -1,6 +1,12 @@
 import { afterEach, expect, it, vi } from 'vitest';
 import * as T from 'three';
-import { graphicsPreset, validateGraphics, bufferSize } from '../src/rendering/options.ts';
+import {
+  COCKPIT_FOV,
+  graphicsPreset,
+  validateGraphics,
+  bufferSize,
+} from '../src/rendering/options.ts';
+import { presentationControls } from '../src/ui/presentation.ts';
 import { DEFAULT_SETTINGS, validateSettings } from '../src/storage/data.ts';
 import { InputPump } from '../src/input/pump.ts';
 import { TextureBudget } from '../src/rendering/texture-budget.ts';
@@ -67,6 +73,40 @@ it('bounds every numeric budget and rejects unsupported quality values', () => {
   expect(g.anisotropy).toBe(8);
   expect(g.reflections).toBe('environment');
   expect(g.antialias).toBe(true);
+});
+it('adds the studio keys: temporal AA opt-in, lens effects above Low, 54 degree cockpit lens', () => {
+  expect(COCKPIT_FOV).toEqual({ default: 54, min: 44, max: 70 });
+  for (const [quality, lens] of [
+    ['low', false],
+    ['medium', true],
+    ['high', true],
+  ] as const)
+    expect(graphicsPreset(quality)).toMatchObject({
+      temporalAA: false,
+      lensEffects: lens,
+      cockpitFov: 54,
+    });
+  expect(validateGraphics({ cockpitFov: 10 }, 'medium').cockpitFov).toBe(44);
+  expect(validateGraphics({ cockpitFov: 99 }, 'medium').cockpitFov).toBe(70);
+  expect(validateGraphics({ cockpitFov: 61.5 }, 'medium').cockpitFov).toBe(61.5);
+  for (const invalid of [NaN, Infinity, '60', null])
+    expect(validateGraphics({ cockpitFov: invalid }, 'high').cockpitFov).toBe(54);
+  const typed = validateGraphics({ temporalAA: 'true', lensEffects: 0 }, 'high');
+  expect(typed.temporalAA).toBe(false);
+  expect(typed.lensEffects).toBe(true);
+  const chosen = validateGraphics({ temporalAA: true, lensEffects: false }, 'high');
+  expect(chosen.temporalAA).toBe(true);
+  expect(chosen.lensEffects).toBe(false);
+  // Version-6 saves written before these keys existed take the preset values.
+  const saved = structuredClone(DEFAULT_SETTINGS) as unknown as {
+    graphics: Record<string, unknown>;
+  };
+  for (const key of ['temporalAA', 'lensEffects', 'cockpitFov']) delete saved.graphics[key];
+  expect(validateSettings(saved).graphics).toEqual(graphicsPreset('medium'));
+  const controls = presentationControls(DEFAULT_SETTINGS);
+  expect(controls).toContain('name="graphics_cockpitFov" type="range" min="44" max="70" step="1"');
+  expect(controls).toContain('<input type="checkbox" name="graphics_temporalAA">');
+  expect(controls).toContain('<input type="checkbox" name="graphics_lensEffects">');
 });
 it('calculates bounded physical pixels without changing aspect ratio', () => {
   expect(bufferSize(1920, 1080, 0.5, 8192)).toEqual({ width: 960, height: 540 });

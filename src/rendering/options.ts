@@ -1,6 +1,8 @@
 import { clamp } from '../core/math.ts';
 
 export type Quality = 'low' | 'medium' | 'high';
+/** Seated-driver lens: vertical degrees (producer decision P6). */
+export const COCKPIT_FOV = Object.freeze({ default: 54, min: 44, max: 70 });
 export interface GraphicsOptions {
   resolutionScale: number;
   textureSize: 128 | 256 | 512 | 1024;
@@ -22,6 +24,12 @@ export interface GraphicsOptions {
   ambientOcclusion: boolean;
   /** Display-referred broadcast grade: contrast, vignette, lens fringe and grain. */
   filmGrade: boolean;
+  /** Temporal anti-aliasing (jittered history resolve). Opt-in on every preset. */
+  temporalAA: boolean;
+  /** Lens effects for exterior cameras: sun flare, lens dirt and rain on the lens. */
+  lensEffects: boolean;
+  /** Cockpit camera vertical field of view in degrees (COCKPIT_FOV range). */
+  cockpitFov: number;
 }
 export function graphicsPreset(quality: Quality): GraphicsOptions {
   return {
@@ -44,6 +52,9 @@ export function graphicsPreset(quality: Quality): GraphicsOptions {
     msaa: quality === 'low' ? 0 : quality === 'high' ? 4 : 2,
     ambientOcclusion: quality !== 'low',
     filmGrade: true,
+    temporalAA: false,
+    lensEffects: quality !== 'low',
+    cockpitFov: COCKPIT_FOV.default,
   };
 }
 export function validateGraphics(value: unknown, quality: Quality): GraphicsOptions {
@@ -73,6 +84,9 @@ export function validateGraphics(value: unknown, quality: Quality): GraphicsOpti
     ambientOcclusion:
       typeof p.ambientOcclusion === 'boolean' ? p.ambientOcclusion : fallback.ambientOcclusion,
     filmGrade: typeof p.filmGrade === 'boolean' ? p.filmGrade : fallback.filmGrade,
+    temporalAA: typeof p.temporalAA === 'boolean' ? p.temporalAA : fallback.temporalAA,
+    lensEffects: typeof p.lensEffects === 'boolean' ? p.lensEffects : fallback.lensEffects,
+    cockpitFov: number(p.cockpitFov, fallback.cockpitFov, COCKPIT_FOV.min, COCKPIT_FOV.max),
   };
 }
 /** Render and post-processing use the same physical-pixel budget. */

@@ -737,6 +737,7 @@ export class RacingRenderer {
     this.fxaa.enabled = g.antialias && this.scenePass.samples === 0;
     this.scenePass.ambientOcclusion = g.ambientOcclusion;
     this.grade.enabled = g.filmGrade;
+    // Stored only: temporalAA (post-motion), lensEffects (post-lens), cockpitFov (camera-cockpit).
     this.circuit.crowd.visible = g.crowd;
     this.applyVegetationDensity();
     this.effects.enabled = g.particleDensity > 0;

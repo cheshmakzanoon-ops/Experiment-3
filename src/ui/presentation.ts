@@ -1,4 +1,5 @@
 import {
+  COCKPIT_FOV,
   graphicsPreset,
   validateGraphics,
   type GraphicsOptions,
@@ -39,6 +40,7 @@ const ranges: [keyof GraphicsOptions, string, number, number, number][] = [
   ['motionBlur', 'Motion blur (0 disables; HUD stays sharp)', 0, 0.6, 0.05],
   ['particleDensity', 'Smoke, spray and rain density', 0, 1, 0.1],
   ['vegetationDensity', 'Environment vegetation density', 0, 1, 0.1],
+  ['cockpitFov', 'Cockpit field of view (vertical degrees)', COCKPIT_FOV.min, COCKPIT_FOV.max, 1],
 ];
 const checks: [keyof GraphicsOptions, string][] = [
   ['crowd', 'Grandstand crowd'],
@@ -48,6 +50,8 @@ const checks: [keyof GraphicsOptions, string][] = [
   ['antialias', 'FXAA anti-aliasing (used when MSAA is off)'],
   ['ambientOcclusion', 'Ambient occlusion (contact shading)'],
   ['filmGrade', 'Broadcast colour grade and light vignette'],
+  ['temporalAA', 'Temporal anti-aliasing (steadier fine detail, softer motion)'],
+  ['lensEffects', 'Lens effects (sun flare, lens dirt, rain on lens)'],
 ];
 export function presentationControls(settings: Settings) {
   return `<details class="presentation-details"><summary>Individual graphics controls</summary><p class="small-note">Presets reset these controls. Individual changes apply on save. Lower resolutions reduce GPU work; barriers and timing signs are never removed.</p>${choices.map(([key, label, values, labels]) => `<label>${label}<select name="graphics_${key}">${values.map((value, i) => `<option value="${value}">${labels[i]}</option>`).join('')}</select></label>`).join('')}${ranges.map(([key, label, min, max, step]) => `<label class="range-row">${label}<output></output><input name="graphics_${key}" type="range" min="${min}" max="${max}" step="${step}"></label>`).join('')}${checks.map(([key, label]) => `<label class="check"><input type="checkbox" name="graphics_${key}">${label}</label>`).join('')}</details><h3>Race entry</h3><label class="check"><input name="quickStart" type="checkbox" ${settings.quickStart ? 'checked' : ''}>Quick Start · skip briefing and grid preparation</label><h3>Accessibility</h3><label class="check"><input name="colorblind" type="checkbox" ${settings.colorblind ? 'checked' : ''}>Patterned flags (colorblind-friendly)</label><label class="check"><input name="highContrast" type="checkbox" ${settings.highContrast ? 'checked' : ''}>High-contrast instruments</label><p class="small-note">Flags always include text. Camera movement and interface scale can be adjusted below.</p>`;

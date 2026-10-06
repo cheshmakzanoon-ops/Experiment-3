@@ -35,6 +35,7 @@ const graphics: GraphicsOptions = {
   vegetationDensity: 1, crowd: true, bloom: true, autoExposure: true,
   localFog: true, motionBlur: 0, antialias: true, anisotropy: 8,
   msaa: 2, ambientOcclusion: true, filmGrade: true,
+  temporalAA: false, lensEffects: true, cockpitFov: 54,
 };
 const before = { quality: 'medium' as const, graphics };
 
@@ -51,6 +52,7 @@ const alternatives: GraphicsOptions = {
   vegetationDensity: 0.5, crowd: false, bloom: false, autoExposure: false,
   localFog: false, motionBlur: 0.2, antialias: false, anisotropy: 4,
   msaa: 0, ambientOcclusion: false, filmGrade: false,
+  temporalAA: true, lensEffects: false, cockpitFov: 62,
 };
 for (const key of Object.keys(graphics) as (keyof GraphicsOptions)[]) {
   test(`detects a custom ${key} change under the same quality label`, () => {
