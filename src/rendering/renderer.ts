@@ -38,6 +38,7 @@ import { reflectInWetRoad } from './wet-reflection.ts';
 import { ghostPose, type GhostPose } from '../core/ghost-lap.ts';
 import { WeatherPresentation } from './weather-presentation.ts';
 import { applyCircuitLightPalette } from './lighting-coherence.ts';
+import { installSpecularIBL, setIblEnergy } from './studio/ibl-energy.ts';
 import { PEOPLE_ASSET } from './people-asset.ts';
 import { loadDriverAsset, type DriverAsset } from './driver-asset.ts';
 import { loadHeroShells, type HeroShells } from './hero-shells.ts';
@@ -184,8 +185,8 @@ export class RacingRenderer {
     this.lightingMode = lightingMode(value);
   }
   colorblind = false;
-  readonly sun = new T.DirectionalLight(0xffead0, 3.3);
-  private hemisphere = new T.HemisphereLight(0xc3d8f3, 0x33372e, 0.3);
+  readonly sun = new T.DirectionalLight(0xfff0dc, 3.9);
+  private hemisphere = new T.HemisphereLight(0x8fb6ea, 0x4a4237, 0.14);
   private sky = new Sky();
   private composer: EffectComposer;
   private exposure = new AdaptiveExposurePass();
@@ -372,6 +373,7 @@ export class RacingRenderer {
     this.circuit.construction.add('Local weather materials', 5, () => {
       this.weatherPresentation.install(this.scene);
       this.atmosphere.install(this.scene);
+      installSpecularIBL(this.scene);
     });
     this.trackside = new TracksideDirector(track, (from, to) =>
       this.circuit.sightlines.blocked(from, to),
@@ -582,6 +584,7 @@ export class RacingRenderer {
       this.textures.register(car.root);
       this.weatherPresentation.install(car.root);
       this.atmosphere.install(car.root);
+      installSpecularIBL(car.root);
       // After the material installs above: the casters are depth-only.
       this.shadowProxies.add(...car.shadowFrames());
       this.reflectionMaterials.push([...car.reflectivePaint, this.circuit.roadMaterial]);
@@ -719,6 +722,7 @@ export class RacingRenderer {
     const g = this.graphics;
     this.reflection.quality(g.mirrorQuality);
     this.circuit.wetReflection.setQuality(g.reflections === 'local' ? q : 'low');
+    this.environment.highDetail = g.reflections === 'local';
     this.renderer.shadowMap.enabled = g.shadowSize > 0;
     this.configureFarShadow();
     if (this.sun.shadow.mapSize.x !== g.shadowSize && g.shadowSize > 0) {
@@ -941,7 +945,8 @@ export class RacingRenderer {
     this.hemisphere.intensity = daylight.fill;
     this.scene.environmentIntensity = daylight.environment;
     // Sky fallback and already-lit local radiance have different gains.
-    this.reflection.setSkyIntensity(reflectionMaterials, daylight.environment);
+    const specularIBL = setIblEnergy(daylight.environment, illumination);
+    this.reflection.setSkyIntensity(reflectionMaterials, daylight.environment, specularIBL);
     this.renderer.toneMappingExposure = daylight.exposure * 2 ** (this.photo?.exposure ?? 0);
     const fog = this.scene.fog as T.FogExp2;
     fog.density = daylight.fogDensity;

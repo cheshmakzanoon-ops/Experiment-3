@@ -2,7 +2,13 @@ import { skyRendererDouble } from './sky-renderer-double.ts';
 import { afterEach, expect, it, vi } from 'vitest';
 import * as T from 'three';
 import { Sky } from 'three/addons/objects/Sky.js';
-import { SkyEnvironment, configureSky } from '../src/rendering/daylight.ts';
+import {
+  SKY_PMREM_SIZE,
+  SkyEnvironment,
+  configureSky,
+  groundLightState,
+} from '../src/rendering/daylight.ts';
+import { groundIrradiance } from '../src/rendering/studio/ibl-energy.ts';
 import { installWetRoad, installStableSurfaceBump } from '../src/rendering/materials.ts';
 
 afterEach(() => vi.restoreAllMocks());
@@ -81,6 +87,61 @@ it('does not publish a failed sky capture, lose the previous texture or poison i
   sky.geometry.dispose();
   sky.material.dispose();
 });
+it('captures a tiered PMREM with a lit ground hemisphere only inside the capture', () => {
+  const sky = new Sky();
+  configureSky(sky);
+  const uniforms = sky.material.uniforms;
+  uniforms.groundIrradiance.value.set(7, 8, 9);
+  const seen: { ground: number; irradiance: number[]; size?: number }[] = [];
+  const capture = vi
+    .spyOn(T.PMREMGenerator.prototype, 'fromScene')
+    .mockImplementation((scene, _sigma, _near, _far, options) => {
+      const material = (scene.children[0] as Sky).material;
+      // The capture's sky clone shares the live material.
+      expect(material).toBe(sky.material);
+      seen.push({
+        ground: material.uniforms.groundAmount.value,
+        irradiance: material.uniforms.groundIrradiance.value.toArray(),
+        size: options?.size,
+      });
+      return new T.WebGLRenderTarget(8, 8);
+    });
+  vi.spyOn(T.PMREMGenerator.prototype, 'dispose');
+  const renderer = skyRendererDouble().renderer;
+  const scene = new T.Scene(),
+    environment = new SkyEnvironment(sky);
+  environment.update(renderer, scene, 0.25, 'sunset');
+  expect(seen).toEqual([
+    {
+      ground: 1,
+      irradiance: groundIrradiance(groundLightState(0.25, 'sunset')).toArray(),
+      size: SKY_PMREM_SIZE.standard,
+    },
+  ]);
+  expect(SKY_PMREM_SIZE).toEqual({ standard: 128, high: 256 });
+  // High detail recaptures the same bin at 256 px (a hard change for probes).
+  environment.highDetail = true;
+  expect(environment.update(renderer, scene, 0.25, 'sunset')).toBe(true);
+  expect(seen.at(-1)!.size).toBe(SKY_PMREM_SIZE.high);
+  expect(environment.diagnostics().size).toBe(SKY_PMREM_SIZE.high);
+  expect(environment.probeRefreshNeeded).toBe(true);
+  expect(environment.update(renderer, scene, 0.25, 'sunset')).toBe(false);
+  expect(() => environment.update(renderer, scene, 0.25, 'sunset', 100)).toThrow(
+    'Invalid sky PMREM size',
+  );
+  // The visible dome never shows the ground branch.
+  expect(uniforms.groundAmount.value).toBe(0);
+  expect(uniforms.groundIrradiance.value.toArray()).toEqual([7, 8, 9]);
+  capture.mockImplementationOnce(() => {
+    throw new Error('Injected GPU capture failure');
+  });
+  expect(() => environment.update(renderer, scene, 1, 'day')).toThrow('Injected GPU');
+  expect(uniforms.groundAmount.value).toBe(0);
+  expect(uniforms.groundIrradiance.value.toArray()).toEqual([7, 8, 9]);
+  environment.dispose();
+  sky.geometry.dispose();
+  sky.material.dispose();
+});
 it('shares actual water channels and normal flattening without inventing pit rubber', () => {
   const state = new T.DataTexture(new Uint8Array(16), 2, 2);
   for (const deposits of [true, false]) {
@@ -95,7 +156,9 @@ it('shares actual water channels and normal flattening without inventing pit rub
     expect(shader.uniforms.trackState.value).toBe(state);
     expect(shader.uniforms.surfaceDeposits.value).toBe(deposits ? 1 : 0);
     expect(shader.fragmentShader).toContain('roadState.gb *= surfaceDeposits');
-    expect(shader.fragmentShader).toContain('mix(normal, dryRoadNormal, wet * mix(0.35, 0.9, puddle))');
+    expect(shader.fragmentShader).toContain(
+      'mix(normal, dryRoadNormal, wet * mix(0.35, 0.9, puddle))',
+    );
     expect(shader.fragmentShader).toContain('#include <normal_fragment_maps>');
     material.dispose();
   }
@@ -123,4 +186,48 @@ it('retains singular-derivative normal guards through wet-road shader compositio
   expect(shader.fragmentShader).toContain('roadState.gb *= surfaceDeposits');
   material.dispose();
   state.dispose();
+});
+it('retires blend outputs of the old atlas size only after publishing the resized sky', () => {
+  const sky = new Sky();
+  configureSky(sky);
+  vi.spyOn(T.PMREMGenerator.prototype, 'fromScene').mockImplementation(
+    (_scene, _sigma, _near, _far, options) => {
+      const size = options?.size ?? 0;
+      const target = new T.WebGLRenderTarget(size * 3, size * 4);
+      target.texture.mapping = T.CubeUVReflectionMapping;
+      return target;
+    },
+  );
+  vi.spyOn(T.PMREMGenerator.prototype, 'dispose');
+  const disposed: T.Texture[] = [];
+  const dispose = T.WebGLRenderTarget.prototype.dispose;
+  vi.spyOn(T.WebGLRenderTarget.prototype, 'dispose').mockImplementation(function (
+    this: T.WebGLRenderTarget,
+  ) {
+    disposed.push(this.texture);
+    dispose.call(this);
+  });
+  const double = skyRendererDouble();
+  const scene = new T.Scene(),
+    environment = new SkyEnvironment(sky);
+  // Fractional cover: a blended output atlas is published.
+  environment.update(double.renderer, scene, 0.3, 'day');
+  const small = scene.environment!;
+  expect(double.state.blends).toHaveLength(1);
+  environment.highDetail = true;
+  const blend = double.renderer.render;
+  vi.spyOn(double.renderer, 'render').mockImplementation((quad, camera) => {
+    // The published 128 px atlas stays alive while the 256 px one is blended.
+    expect(disposed).not.toContain(small);
+    expect(double.state.target?.width).toBe(256 * 3);
+    return blend.call(double.renderer, quad, camera);
+  });
+  expect(environment.update(double.renderer, scene, 0.3, 'day')).toBe(true);
+  expect(double.state.blends).toHaveLength(2);
+  expect(scene.environment).not.toBe(small);
+  expect(disposed).toContain(small);
+  expect(environment.diagnostics().retainedTargets).toBe(4);
+  environment.dispose();
+  sky.geometry.dispose();
+  sky.material.dispose();
 });

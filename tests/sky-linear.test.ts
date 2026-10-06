@@ -39,11 +39,12 @@ describe('linear Preetham sky', () => {
     expect(luma(low)).toBeGreaterThan(2 * luma(high));
   });
   it('matches the encoded sky hemispherical luminance, for day and sunset', () => {
-    // Clear weather (turbidity 2.96), a cleaner 2.3 sky and a 5.6 sunset.
+    // Clear weather (turbidity 2.96), a cleaner 2.3 sky and a 5.6 sunset, for
+    // the 52-degree day sun and the 10-degree sunset sun.
     for (const [sun, t, expected] of [
-      [SUN_OFFSET, turbidity, 0.513],
-      [SUN_OFFSET, 2.3, 0.523],
-      [SUNSET_OFFSET, 5.6, 1.54],
+      [SUN_OFFSET, turbidity, 0.454],
+      [SUN_OFFSET, 2.3, 0.461],
+      [SUNSET_OFFSET, 5.6, 1.081],
     ] as const) {
       const gain = skyLinearGain(sun, t);
       expect(gain).toBeCloseTo(expected, 2);
@@ -57,7 +58,11 @@ describe('linear Preetham sky', () => {
         for (let j = 0; j < 80; j++) {
           const el = ((i + 0.5) / 40) * (Math.PI / 2),
             az = ((j + 0.5) / 80) * 2 * Math.PI;
-          const d = new T.Vector3(Math.cos(el) * Math.cos(az), Math.sin(el), Math.cos(el) * Math.sin(az));
+          const d = new T.Vector3(
+            Math.cos(el) * Math.cos(az),
+            Math.sin(el),
+            Math.cos(el) * Math.sin(az),
+          );
           if (d.dot(disc) > 0.99995) continue;
           const s = preethamSky(d, sun, t);
           const w = Math.sin(el) * Math.cos(el);
@@ -74,7 +79,7 @@ describe('linear Preetham sky', () => {
     const shader = sky.material.fragmentShader;
     expect(shader).toContain('uniform float skyLinearGain');
     expect(shader).toContain('*skyLinearGain,retColor,sundisk)');
-    expect(sky.material.uniforms.skyLinearGain.value).toBeCloseTo(0.523, 2); // turbidity 2.3
+    expect(sky.material.uniforms.skyLinearGain.value).toBeCloseTo(0.461, 2); // turbidity 2.3
     // The old saturation boost for the encoded dome is gone.
     expect(shader).not.toContain('Deepen the clear zenith');
   });

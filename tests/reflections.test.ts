@@ -1,6 +1,7 @@
 import { afterEach, expect, it, vi } from 'vitest';
 import * as T from 'three';
-import { ReflectionSystem } from '../src/rendering/reflections.ts';
+import { PROBE_FACE_SIZE, ReflectionSystem } from '../src/rendering/reflections.ts';
+import { ownEnvMapUniform } from '../src/rendering/studio/ibl-energy.ts';
 import { PhotoStage, STUDIO_REFLECTION_LAYER } from '../src/rendering/photo-stage.ts';
 
 afterEach(() => vi.restoreAllMocks());
@@ -238,6 +239,47 @@ it('captures no previous local bounce and restores sky, maps and mipmaps after a
   expect(reflection.probeUpdates).toBe(1);
   reflection.dispose();
   material.dispose();
+});
+it('captures the dome at the specular sky gain and flags probe-owned materials without recompiles', () => {
+  const reflection = new ReflectionSystem(),
+    { gl } = fixture(),
+    scene = new T.Scene();
+  scene.environmentIntensity = 0.42;
+  const car = new T.Group(),
+    paint = new T.MeshPhysicalMaterial(),
+    sky = { value: 1 };
+  // Sky-lit reflective paint records its effective specular sky gain.
+  reflection.setSkyIntensity([paint], 0.42, 1 / 0.42);
+  expect(paint.envMapIntensity).toBeCloseTo(1, 12);
+  const flags: number[] = [];
+  const capture = vi.spyOn(T.CubeCamera.prototype, 'update').mockImplementation(function (
+    this: T.CubeCamera,
+  ) {
+    expect(this.renderTarget.width).toBe(PROBE_FACE_SIZE);
+    // The dome at the radiance sky-lit specular sees, not the diffuse share.
+    expect(sky.value).toBeCloseTo(1, 12);
+    flags.push(ownEnvMapUniform(paint).value);
+  });
+  reflection.beginFrame(10, false);
+  reflection.updateProbe(gl, scene, car, [paint], true, 0.55, sky);
+  const version = paint.version;
+  expect(ownEnvMapUniform(paint).value).toBe(1);
+  expect(sky.value).toBe(1);
+  reflection.beginFrame(11, false);
+  reflection.updateProbe(gl, scene, car, [paint], true, 0.55, sky);
+  // While capturing, the owned material renders as sky-lit (no previous bounce).
+  expect(flags).toEqual([0, 0]);
+  expect(ownEnvMapUniform(paint).value).toBe(1);
+  expect(paint.version).toBe(version);
+  expect(capture).toHaveBeenCalledTimes(2);
+  reflection.updateProbe(gl, scene, car, [paint], false);
+  expect(ownEnvMapUniform(paint).value).toBe(0);
+  expect(paint.envMap).toBe(null);
+  expect(paint.envMapIntensity).toBeCloseTo(1, 12);
+  for (const gain of [0.5, NaN])
+    expect(() => reflection.setSkyIntensity([], 0.42, gain)).toThrow('Invalid sky specular gain');
+  reflection.dispose();
+  paint.dispose();
 });
 it('transfers the real probe subject at a held instant and releases former material owners', () => {
   const reflection = new ReflectionSystem(),

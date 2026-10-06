@@ -1,11 +1,22 @@
 import * as T from 'three';
 import type { Sky } from 'three/addons/objects/Sky.js';
 import { FullScreenQuad } from 'three/addons/postprocessing/Pass.js';
-import { clamp } from '../core/math.ts';
+import { clamp, lerp, smooth } from '../core/math.ts';
+import { circuitLightColors } from './lighting-coherence.ts';
+import {
+  IBL_ENERGY,
+  SKY_IRRADIANCE_SATURATION,
+  SKY_GROUND_GLSL,
+  SKY_GROUND_UNIFORMS,
+  groundIrradiance,
+} from './studio/ibl-energy.ts';
 
-/** One world-space sun direction for the visible disk, illumination and shadows. */
-export const SUN_OFFSET = Object.freeze(new T.Vector3(-160, 190, -130));
-export const SUNSET_OFFSET = Object.freeze(new T.Vector3(-215, 28, -150));
+/** One world-space sun direction for the visible disk, illumination and shadows.
+ * Day: about 52 degrees of elevation, the short shadows tucked under the car of
+ * the midday references; azimuth as before, so far-shadow and probe bakes keep
+ * their orientation. Sunset: about 10 degrees, a long raking golden-hour key. */
+export const SUN_OFFSET = Object.freeze(new T.Vector3(-140, 235, -115));
+export const SUNSET_OFFSET = Object.freeze(new T.Vector3(-215, 45, -150));
 export type LightingMode = 'day' | 'sunset' | 'night';
 export function lightingMode(value: boolean | LightingMode): LightingMode {
   if (value === true) return 'night';
@@ -25,8 +36,11 @@ const dayBasis = basis(SUN_OFFSET),
   sunsetBasis = basis(SUNSET_OFFSET);
 
 /** Authored daylight response, not measured exposure/meteorological calibration.
- * Diffuse fill is deliberately subordinate to direct light: the previous bright
- * hemisphere plus IBL lit recesses almost as strongly as exposed bodywork. */
+ * Diffuse fill is deliberately subordinate to direct light, and it is mostly sky:
+ * the IBL `environment` (the share of the visible dome that lights diffuse
+ * surfaces) rises with cover, because overcast light is all sky light, while the
+ * small hemisphere term only adds a cool sky / warm ground bias. Specular IBL is
+ * normalised to the visible dome separately (studio/ibl-energy.ts). */
 export function daylightState(cloud: number, rain: number) {
   if (![cloud, rain].every(Number.isFinite)) throw new Error('Non-finite daylight state');
   const cover = clamp(cloud, 0, 1),
@@ -34,9 +48,9 @@ export function daylightState(cloud: number, rain: number) {
     storm = precipitation / 60;
   return {
     cover,
-    sun: 4.2 * (1 - 0.94 * cover ** 1.45),
-    fill: 0.26 + cover * 0.34,
-    environment: 0.28 - cover * 0.07,
+    sun: 3.9 * (1 - 0.94 * cover ** 1.45),
+    fill: 0.14 + cover * 0.3,
+    environment: 0.42 + cover * 0.08,
     exposure: 0.9 + cover * 0.1,
     turbidity: 2.3 + cover * 5.5,
     // Normalize the analytic skydome before the shared scene tone map; keeping
@@ -68,7 +82,8 @@ export function circuitLightState(
       // as strongly as the daytime key. Retain a distinct, cooler skylight floor
       // instead of compensating with global exposure (which clips the warm key).
       fill: 0.5 + light.cover * 0.1,
-      environment: 0.28 - light.cover * 0.07,
+      // The same diffuse share of the (sunset) dome as by day.
+      environment: 0.42 + light.cover * 0.08,
       exposure: 1.01 - light.cover * 0.03,
       turbidity: 5.6 + light.cover * 3,
       skyRadiance: 0.26 + light.cover * 0.12,
@@ -240,12 +255,16 @@ export function configureSky(sky: Sky) {
   // One in the visible sky/PMREM. The local scene probe temporarily applies the
   // authored IBL gain here, without attenuating captured lamps a second time.
   material.uniforms.probeSkyIntensity = { value: 1 };
+  // Ground hemisphere: 0 for the visible dome, set only by SkyEnvironment.capture.
+  material.uniforms.groundAmount = { value: 0 };
+  material.uniforms.groundAlbedo = { value: new T.Vector3(...IBL_ENERGY.groundAlbedo) };
+  material.uniforms.groundIrradiance = { value: new T.Vector3() };
   material.uniforms.sunPosition.value.copy(SUN_OFFSET);
   material.uniforms.rayleigh.value = SKY_SCATTERING.rayleigh;
   material.uniforms.mieCoefficient.value = SKY_SCATTERING.mie;
   material.uniforms.mieDirectionalG.value = SKY_SCATTERING.mieDirectionalG;
   material.fragmentShader = material.fragmentShader
-    .replace('void main() {', cloudFunctions + '\nvoid main() {')
+    .replace('void main() {', cloudFunctions + SKY_GROUND_UNIFORMS + '\nvoid main() {')
     .replace(
       'gl_FragColor = vec4( retColor, 1.0 );',
       `
@@ -290,6 +309,7 @@ export function configureSky(sky: Sky) {
         nightSky=mix(nightSky,nightCloud,cover);
         radiance=mix(vec3(.01,.014,.026),nightSky,smoothstep(-.05,.10,direction.y));
       }
+      ${SKY_GROUND_GLSL}
       gl_FragColor=vec4(radiance * probeSkyIntensity,1.0);
     `,
     );
@@ -361,6 +381,13 @@ function preserveSkyRenderState(renderer: T.WebGLRenderer) {
   };
 }
 
+/** PMREM face size of the sky capture by tier. Each doubling adds one mip level,
+ * i.e. two blur draws per capture, so Medium and Low keep 128 px (draw-neutral
+ * in the cold-frame budget); High resolves a 0.04 clearcoat's horizon line at
+ * 256 px. Below roughness ~0.075 three samples the top mip, so only the
+ * glossiest finishes see the difference. */
+export const SKY_PMREM_SIZE = Object.freeze({ standard: 128, high: 256 });
+
 /** At most two neighbouring sky captures and two reusable blend outputs are
  * retained. PMREM is captured only at a bin/mode change; a changing fractional
  * cover costs one small atlas blend, not a six-face recapture. A held frame costs
@@ -369,6 +396,9 @@ export class SkyEnvironment {
   private cached = new Map<number, T.WebGLRenderTarget>();
   private cover = NaN;
   private mode: LightingMode = 'day';
+  private size: number = SKY_PMREM_SIZE.standard;
+  /** High tier: capture at SKY_PMREM_SIZE.high (the renderer's setQuality). */
+  highDetail = false;
   private environmentScene = new T.Scene();
   private blend = skyBlendMaterial();
   private quad = new FullScreenQuad(this.blend);
@@ -383,7 +413,7 @@ export class SkyEnvironment {
   constructor(private sky: Sky) {
     this.environmentScene.add(sky.clone());
   }
-  private capture(renderer: T.WebGLRenderer, bin: number, mode: LightingMode) {
+  private capture(renderer: T.WebGLRenderer, bin: number, mode: LightingMode, size: number) {
     const restore = preserveSkyRenderState(renderer);
     let generator: T.PMREMGenerator | undefined;
     const uniforms = this.sky.material.uniforms;
@@ -394,6 +424,8 @@ export class SkyEnvironment {
       sun: uniforms.sunPosition.value.clone() as T.Vector3,
       turbidity: uniforms.turbidity.value,
       radiance: uniforms.skyRadiance.value,
+      ground: uniforms.groundAmount?.value as number | undefined,
+      groundIrradiance: (uniforms.groundIrradiance?.value as T.Vector3 | undefined)?.clone(),
     };
     try {
       generator = new T.PMREMGenerator(renderer);
@@ -404,7 +436,14 @@ export class SkyEnvironment {
       uniforms.sunPosition.value.copy(lightingDirection(mode));
       uniforms.turbidity.value = light.turbidity;
       uniforms.skyRadiance.value = light.skyRadiance;
-      const target = generator.fromScene(this.environmentScene, 0.04, 0.1, 700000, { size: 128 });
+      // The lower hemisphere is ground, lit by this bin's sun and sky, not
+      // horizon sky: undersides and lower bodywork reflect dark warm asphalt.
+      if (uniforms.groundAmount && uniforms.groundIrradiance) {
+        uniforms.groundAmount.value = 1;
+        groundIrradiance(groundLightState(bin / 8, mode), uniforms.groundIrradiance.value);
+      }
+      // Paid only on a cloud-bin, lighting or tier change.
+      const target = generator.fromScene(this.environmentScene, 0.04, 0.1, 700000, { size });
       this.captures++;
       return target;
     } finally {
@@ -414,6 +453,9 @@ export class SkyEnvironment {
       uniforms.sunPosition.value.copy(previous.sun);
       uniforms.turbidity.value = previous.turbidity;
       uniforms.skyRadiance.value = previous.radiance;
+      if (previous.ground !== undefined) uniforms.groundAmount.value = previous.ground;
+      if (previous.groundIrradiance)
+        uniforms.groundIrradiance.value.copy(previous.groundIrradiance);
       try {
         generator?.dispose();
       } finally {
@@ -478,19 +520,30 @@ export class SkyEnvironment {
     scene: T.Scene,
     cover: number,
     value: boolean | LightingMode = false,
+    size: number = this.highDetail ? SKY_PMREM_SIZE.high : SKY_PMREM_SIZE.standard,
   ) {
     const plan = skyBlendPlan(cover),
       mode = lightingMode(value);
+    if (!Number.isInteger(Math.log2(size)) || size < 16 || size > 1024)
+      throw new Error('Invalid sky PMREM size');
     this.probeRefreshNeeded = false;
-    if (plan.cover === this.cover && mode === this.mode) return false;
+    if (plan.cover === this.cover && mode === this.mode && size === this.size) return false;
+    const resized = size !== this.size;
     const candidates = new Map<number, T.WebGLRenderTarget>();
     const created: T.WebGLRenderTarget[] = [];
+    // A new atlas layout needs new blend outputs. The published texture may be
+    // one of the old ones, so they are retired only after the new publish.
+    const retiredOutputs = resized ? this.outputs : [];
+    if (resized) {
+      this.outputs = [];
+      this.nextOutput = 0;
+    }
     let texture: T.Texture;
     try {
       for (const bin of new Set([plan.lower, plan.upper])) {
-        let target = mode === this.mode ? this.cached.get(bin) : undefined;
+        let target = mode === this.mode && !resized ? this.cached.get(bin) : undefined;
         if (!target) {
-          target = this.capture(renderer, bin, mode);
+          target = this.capture(renderer, bin, mode, size);
           created.push(target);
         }
         candidates.set(bin, target);
@@ -503,6 +556,11 @@ export class SkyEnvironment {
           : this.interpolate(renderer, low, high, plan.weight);
     } catch (error) {
       created.forEach((target) => target.dispose());
+      if (resized) {
+        this.outputs.forEach((target) => target.dispose());
+        this.outputs = retiredOutputs;
+        this.nextOutput = 0;
+      }
       throw error;
     }
     // Publish before retiring old resources. A disposal listener must not send
@@ -514,6 +572,7 @@ export class SkyEnvironment {
     const hardChange =
       !Number.isFinite(this.cover) ||
       mode !== this.mode ||
+      resized ||
       Math.abs(plan.cover - this.cover) > 0.25;
     if (hardChange) this.epoch = {};
     texture.userData.aurelSkyEpoch = this.epoch;
@@ -525,8 +584,10 @@ export class SkyEnvironment {
     this.probeRefreshNeeded = hardChange;
     this.cover = plan.cover;
     this.mode = mode;
+    this.size = size;
     this.cached = candidates;
     for (const [bin, target] of retired) if (candidates.get(bin) !== target) target.dispose();
+    retiredOutputs.forEach((target) => target.dispose());
     return true;
   }
   diagnostics() {
@@ -536,6 +597,7 @@ export class SkyEnvironment {
       cover: this.cover,
       mode: this.mode,
       cachedBins: [...this.cached.keys()],
+      size: this.size,
       retainedTargets: this.cached.size + this.outputs.length,
       interpolation: 'linear-HDR-CubeUV',
       independentAnimation: false,
@@ -554,4 +616,95 @@ export class SkyEnvironment {
     this.publishedScene = null;
     this.publishedTexture = null;
   }
+}
+
+const domeCache = new Map<string, T.Color>();
+/** Cosine-weighted mean radiance of the upper dome as the sky shader renders it
+ * for a PMREM capture (linear, probeSkyIntensity 1), with the stationary cloud
+ * field replaced by its expected coverage. It sets the sky part of the PMREM
+ * ground's irradiance; the visible dome is unaffected. */
+export function skyCosineRadiance(cloud: number, value: boolean | LightingMode = false) {
+  const mode = lightingMode(value),
+    light = circuitLightState(cloud, 0, mode),
+    cover = light.cover;
+  const key = `${mode}:${cover}`;
+  const cached = domeCache.get(key);
+  if (cached) return cached.clone();
+  const sun = lightingDirection(mode),
+    disc = sun.clone().normalize();
+  const gain = skyLinearGain(sun, light.turbidity);
+  // The shader's cloud field (mean 0.5) above its cover threshold, as a share.
+  const threshold = 0.84 - 0.605 * cover;
+  const coverage = (1 / (1 + Math.exp(-(0.5 - threshold) / 0.08))) * smooth(0, 0.16, cover);
+  const direction = new T.Vector3(),
+    sum = new T.Color(0, 0, 0),
+    sample = new T.Color();
+  let weights = 0;
+  const N = 12;
+  for (let i = 0; i < N; i++)
+    for (let j = 0; j < 2 * N; j++) {
+      const elevation = ((i + 0.5) / N) * (Math.PI / 2),
+        azimuth = ((j + 0.5) / (2 * N)) * 2 * Math.PI;
+      direction.set(
+        Math.cos(elevation) * Math.cos(azimuth),
+        Math.sin(elevation),
+        Math.cos(elevation) * Math.sin(azimuth),
+      );
+      const y = direction.y,
+        clouds = coverage * smooth(-0.025, 0.12, y);
+      if (mode === 'night') {
+        const horizon = (1 - y) ** 3;
+        sample.setRGB(
+          lerp(lerp(0.008, 0.035, horizon), 0.0232, clouds),
+          lerp(lerp(0.014, 0.039, horizon), 0.0278, clouds),
+          lerp(lerp(0.029, 0.052, horizon), 0.037, clouds),
+        );
+      } else {
+        const clear = preethamSky(direction, sun, light.turbidity).linear;
+        const lit = clamp(0.48 + 0.22 * Math.max(0, direction.dot(disc)), 0, 1),
+          dim = 1 - 0.42 * cover,
+          warm = mode === 'sunset' ? 1 - cover * 0.6 : 0;
+        const cloudLight = [
+          lerp(0.39, 1.35, lit) * dim * lerp(1, 1.35, warm),
+          lerp(0.46, 1.42, lit) * dim * lerp(1, 0.84, warm),
+          lerp(0.55, 1.48, lit) * dim * lerp(1, 0.63, warm),
+        ];
+        const grey = [0.55, 0.64, 0.75];
+        const rgb = clear.map(
+          (c, k) =>
+            lerp(lerp(c * gain, cloudLight[k], clouds), grey[k], cover * 0.22) * light.skyRadiance,
+        );
+        if (mode === 'sunset') {
+          const haze = (1 - y) ** 4 * 0.15 * (1 - cover * 0.5);
+          [0.38, 0.19, 0.12].forEach((h, k) => (rgb[k] = lerp(rgb[k], h, haze)));
+        }
+        sample.setRGB(rgb[0], rgb[1], rgb[2]);
+      }
+      const w = Math.sin(elevation) * Math.cos(elevation);
+      sum.r += sample.r * w;
+      sum.g += sample.g * w;
+      sum.b += sample.b * w;
+      weights += w;
+    }
+  const result = sum.multiplyScalar(1 / weights);
+  if (domeCache.size > 64) domeCache.clear();
+  domeCache.set(key, result.clone());
+  return result;
+}
+
+/** The lights of one PMREM bin, for the ground's irradiance. */
+export function groundLightState(cloud: number, value: boolean | LightingMode = false) {
+  const mode = lightingMode(value),
+    light = circuitLightState(cloud, 0, mode),
+    colors = circuitLightColors(light.cover, mode);
+  return {
+    sunColor: colors.sun,
+    sun: light.sun,
+    sunDirection: lightingDirection(mode).clone(),
+    skyColor: colors.sky,
+    fill: light.fill,
+    environment: light.environment,
+    skyCosineRadiance: skyCosineRadiance(light.cover, mode),
+    skySaturation: SKY_IRRADIANCE_SATURATION[mode],
+  };
 }

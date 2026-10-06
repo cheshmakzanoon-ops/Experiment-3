@@ -2,6 +2,14 @@ import * as T from 'three';
 import { MirrorViews } from './mirrors.ts';
 import { STUDIO_REFLECTION_LAYER } from './photo-stage.ts';
 import { cullProbeDetail, type ProbeDetail } from './probe-detail.ts';
+import { setOwnEnvMap } from './studio/ibl-energy.ts';
+
+/** Local probe face size (High). 256 px keeps a 0.04 clearcoat's horizon line
+ * crisp; draws per face are unchanged. */
+export const PROBE_FACE_SIZE = 256;
+/** Detail culling keeps its 128 px-face texel threshold: props below one such
+ * texel are a few texels at 256 px but would cost one draw per face. */
+export const PROBE_DETAIL_FACE_SIZE = 128;
 
 /** Coordinates recursive render passes. Mirrors render actual rear-facing camera feeds, and are hidden during other mirror/probe passes to prevent cycles. */
 export class ReflectionSystem {
@@ -71,12 +79,15 @@ export class ReflectionSystem {
   private clock = NaN;
   private enabled = false;
   private lastProbe = -Infinity;
+  /** Specular IBL gain of the sky (see studio/ibl-energy.ts): the probe captures
+   * the dome at environment × gain, the radiance sky-lit specular sees. */
+  private specularGain = 1;
   private capturedEnvironment: object | null = null;
   // Alternate completed targets: a scene never samples the cubemap into which
   // it is currently rendering. Material programs stay stable between captures.
   private cubeTargets = [0, 1].map(
     () =>
-      new T.WebGLCubeRenderTarget(128, {
+      new T.WebGLCubeRenderTarget(PROBE_FACE_SIZE, {
         type: T.HalfFloatType,
         generateMipmaps: true,
         minFilter: T.LinearMipmapLinearFilter,
@@ -106,6 +117,7 @@ export class ReflectionSystem {
     for (const [material, original] of this.originalMaps) {
       material.envMap = original.texture;
       material.envMapIntensity = original.intensity;
+      setOwnEnvMap(material, false);
       material.needsUpdate = true;
     }
     this.originalMaps.clear();
@@ -117,14 +129,27 @@ export class ReflectionSystem {
   /** Sky-only IBL uses the authored gain. A completed local cubemap already
    * contains lit scene radiance, so applying that gain again also darkens every
    * lamp and lit building (by 12.5x on an overcast night). Keep the fallback gain
-   * current while a probe owns the map, and restore it on disable/subject change. */
-  setSkyIntensity(materials: readonly T.MeshStandardMaterial[], intensity: number) {
+   * current while a probe owns the map, and restore it on disable/subject change.
+   * `specularGain` is the sky's specular IBL normalisation (apexSpecularIBL): the
+   * recorded sky intensity of a sky-lit reflective material is its effective
+   * specular gain, environment × specularGain (three uses the scene's
+   * environmentIntensity for a material without an envMap of its own), and the
+   * probe captures the dome at that same scale. */
+  setSkyIntensity(
+    materials: readonly T.MeshStandardMaterial[],
+    intensity: number,
+    specularGain = 1,
+  ) {
     if (!Number.isFinite(intensity) || intensity < 0)
       throw new Error('Invalid sky environment intensity');
+    if (!Number.isFinite(specularGain) || specularGain < 1)
+      throw new Error('Invalid sky specular gain');
+    this.specularGain = specularGain;
+    const sky = intensity * specularGain;
     for (const material of materials) {
       const original = this.originalMaps.get(material);
-      if (original) original.intensity = intensity;
-      material.envMapIntensity = original ? 1 : intensity;
+      if (original) original.intensity = sky;
+      material.envMapIntensity = original ? 1 : sky;
     }
   }
   attachMirrors(surfaces: readonly T.Mesh[]) {
@@ -259,23 +284,20 @@ export class ReflectionSystem {
         this.probeEye.y += 1.5;
       }
       if (this.sceneryResident)
-        cullProbeDetail(
-          this.probeDetail,
-          this.probeEye,
-          cube.renderTarget.width,
-          this.detailHidden,
-        );
+        cullProbeDetail(this.probeDetail, this.probeEye, PROBE_DETAIL_FACE_SIZE, this.detailHidden);
       this.probeDetailOmitted = this.detailHidden.length;
       for (const { material, original } of previousMaps) {
         material.envMap = original.texture;
         material.envMapIntensity = original.intensity;
+        setOwnEnvMap(material, false);
       }
       renderer.shadowMap.autoUpdate = false;
       renderer.setScissorTest(false);
-      // Scale only the visible skydome contribution by the sky IBL gain.
+      // Scale only the visible skydome contribution, to the radiance sky-lit
+      // specular sees (environment × specular gain, about the visible dome).
       // Lit scenery/emissive objects are already radiance and remain unscaled.
       // The ordinary visible sky is restored even if a cube face throws.
-      if (skyScale) skyScale.value = scene.environmentIntensity;
+      if (skyScale) skyScale.value = scene.environmentIntensity * this.specularGain;
       cube.position.copy(this.probeEye);
       if (from === 0 && to === 6) cube.update(renderer, scene);
       else this.renderFaces(renderer, scene, cube, from, to);
@@ -293,6 +315,7 @@ export class ReflectionSystem {
       for (const { material, texture, intensity } of previousMaps) {
         material.envMap = texture;
         material.envMapIntensity = intensity;
+        setOwnEnvMap(material, true);
       }
       car.visible = visible;
       this.probeExclusions.forEach((root, i) => {
@@ -329,6 +352,7 @@ export class ReflectionSystem {
       }
       material.envMap = texture;
       material.envMapIntensity = 1;
+      setOwnEnvMap(material, true);
     }
     this.probeActive = true;
     this.nextTarget = 1 - this.nextTarget;
