@@ -77,14 +77,17 @@ export function circuitLightState(
   const mode = lightingMode(value);
   if (mode === 'sunset')
     Object.assign(light, {
-      sun: 2.8 * (1 - light.cover * 0.88),
-      // The low sun cannot illuminate horizontal road/upper cockpit surfaces
-      // as strongly as the daytime key. Retain a distinct, cooler skylight floor
-      // instead of compensating with global exposure (which clips the warm key).
-      fill: 0.5 + light.cover * 0.1,
+      // P2 golden hour: a ~10 degree key strong enough to dominate whatever
+      // faces it (car flanks, walls, hillsides read warm orange) while a
+      // horizontal road still gets only sin(10 deg) of it and stays mostly sky lit.
+      sun: 3.6 * (1 - light.cover * 0.88),
+      // A distinct, cooler violet-blue skylight floor, instead of compensating
+      // with global exposure (which clips the warm key). Kept below the sky IBL
+      // so sunlit asphalt reads warm grey rather than mauve.
+      fill: 0.45 + light.cover * 0.1,
       // The same diffuse share of the (sunset) dome as by day.
       environment: 0.42 + light.cover * 0.08,
-      exposure: 1.01 - light.cover * 0.03,
+      exposure: 1.03 - light.cover * 0.03,
       turbidity: 5.6 + light.cover * 3,
       skyRadiance: 0.26 + light.cover * 0.12,
       fogDensity: light.fogDensity * 1.18,

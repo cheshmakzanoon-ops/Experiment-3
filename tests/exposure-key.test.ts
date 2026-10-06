@@ -50,7 +50,7 @@ it('keeps a cockpit view, mostly dark interior, at the exposure of the lit exter
 it('adapts to frames that depart from the lighting key, within the restrained bounds', () => {
   for (const [lighting, base] of [
     ['day', 0.912],
-    ['sunset', 1.006],
+    ['sunset', 1.026],
     ['night', 1.12],
   ] as const) {
     const key = METER_KEY[lighting],

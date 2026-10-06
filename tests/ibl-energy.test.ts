@@ -86,6 +86,19 @@ describe('D03 producer lighting decisions (P1-P3)', () => {
     expect(clear.sky.getHex()).toBe(0x8fb6ea);
     expect(clear.ground.getHex()).toBe(0x4a4237);
     expect(circuitLightColors(0, 'sunset').sun.getHex()).toBe(0xffb26b);
+    // P2 violet-blue dusk skylight: blue well above red, green just above red
+    // (a magenta fill would turn the orange-lit asphalt mauve).
+    const dusk = circuitLightColors(0, 'sunset').sky;
+    expect(dusk.getHex()).toBe(0xa4b4ee);
+    expect(dusk.b).toBeGreaterThan(2 * dusk.r);
+    expect(dusk.g).toBeGreaterThan(dusk.r);
+    expect(dusk.g).toBeLessThan(1.4 * dusk.r);
+    for (const cover of [0, 0.5, 1]) {
+      const dusk = circuitLightState(cover, 0, 'sunset');
+      expect(dusk.fill).toBeCloseTo(0.45 + 0.1 * cover, 12);
+      // The ~10 degree key dominates what faces it: key / fill >= 6 when clear.
+      if (cover === 0) expect(dusk.sun / dusk.fill).toBeGreaterThanOrEqual(6);
+    }
     const sun = new T.DirectionalLight(),
       fill = new T.HemisphereLight();
     for (const mode of ['day', 'sunset', 'night'] as const) {

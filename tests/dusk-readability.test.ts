@@ -15,8 +15,8 @@ describe('shared dusk skylight balance', () => {
       expect(a.fill).toBeGreaterThan(0.27 + cover * 0.2);
       expect(a.fill).toBeLessThanOrEqual(0.6);
       expect(a.environment).toBeGreaterThanOrEqual(0.24 - cover * 0.06);
-      expect(a.sun).toBe(2.8 * (1 - cover * 0.88));
-      expect(a.exposure).toBe(1.01 - cover * 0.03);
+      expect(a.sun).toBe(3.6 * (1 - cover * 0.88));
+      expect(a.exposure).toBe(1.03 - cover * 0.03);
       expect(a.skyRadiance).toBe(0.26 + cover * 0.12);
       expect(a.fogDensity).toBe(daylightState(cover, 14).fogDensity * 1.18);
       expect(lightingDirection('sunset')).toBe(SUNSET_OFFSET);

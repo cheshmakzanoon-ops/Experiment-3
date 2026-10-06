@@ -15,7 +15,9 @@ const direct = {
 // (environment) carries most of it, so shadows take the colour of the sky.
 const diffuse = {
   day: new T.Color(0x8fb6ea),
-  sunset: new T.Color(0xbccde6),
+  // Violet-blue dusk skylight (P2: shaded asphalt #2e3550-#3a4660). Green stays
+  // above red: added to the orange key, a magenta fill turns lit asphalt mauve.
+  sunset: new T.Color(0xa4b4ee),
   night: new T.Color(0x9eaec8),
 };
 // Warm bounce from asphalt and verges.
