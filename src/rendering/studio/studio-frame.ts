@@ -30,8 +30,12 @@ import { injectDeclarations, type ShaderStage, type StudioShader } from './shade
  * Usage. Material edits go through a chained hook:
  *   chainShaderHook(material, 'foliage-wind-v1', (shader) => {
  *     useStudioUniforms(shader, ['studioWind'], 'vertex');
- *     injectAfter(shader, 'begin_vertex', 'transformed.x += sway(studioWind);', 'vertex');
+ *     injectAfter(shader, 'common', 'float sway(vec3 p) { return studioWind.w * sin(studioWind.z + p.x); }', 'vertex');
+ *     injectAfter(shader, 'begin_vertex', 'transformed.x += 0.02 * sway(transformed);', 'vertex');
  *   });
+ * Declarations always precede code injected after the same anchor, and blocks
+ * after one anchor keep their call order. Chain the same key on the mesh's
+ * depth and distance materials when the edit moves vertices, so shadows follow.
  * Full-screen passes reference the objects directly, e.g.
  * `uniforms: { studioPrevViewProj: studioUniforms.studioPrevViewProj }`, and
  * prepend `studioGlsl(['studioPrevViewProj'])` to their fragment source.
