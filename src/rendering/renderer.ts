@@ -1679,6 +1679,7 @@ export class RacingRenderer {
       gridPreparation: this.gridPreparation.diagnostics(),
       gridPerformance: this.gridPerformance?.diagnostics() ?? null,
       venueLighting: this.venueLighting.diagnostics(),
+      studioFrame: this.studioFrame.diagnostics(),
       environmentAssets: {
         ...this.circuit.environmentDiagnostics(),
         tyreEquipment: this.tyreEquipment?.diagnostics() ?? null,

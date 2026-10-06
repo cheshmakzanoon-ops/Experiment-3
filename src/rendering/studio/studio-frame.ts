@@ -293,6 +293,8 @@ export class StudioFrame {
       time: this.uniforms.studioTime.value,
       frameDt: this.uniforms.studioFrameDt.value,
       cars: this.uniforms.studioCarCount.value,
+      wind: this.uniforms.studioWind.value.toArray(),
+      sunDir: this.uniforms.studioSunDir.value.toArray(),
       view: this.view,
       extraDraws: 0,
     };

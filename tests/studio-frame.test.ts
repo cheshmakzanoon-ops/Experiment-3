@@ -367,6 +367,26 @@ describe('StudioFrame values', () => {
     expect(frame.uniforms.studioSunDir.value.distanceTo(expected)).toBeLessThan(1e-6);
   });
 
+  it('reports a draw-free diagnostic of the presented frame state', () => {
+    const frame = new StudioFrame(createStudioUniforms());
+    const r = rig();
+    place(r, 0);
+    frame.update(snapshot(10, grid), r.camera, r.sun, 'chase:0');
+    frame.update(snapshot(10.25, advance(grid, 0.25)), r.camera, r.sun, 'chase:0');
+    expect(frame.diagnostics()).toEqual({
+      source: 'presented-snapshot',
+      updates: 2,
+      cuts: 1,
+      time: 10.25,
+      frameDt: 0.25,
+      cars: 3,
+      wind: frame.uniforms.studioWind.value.toArray(),
+      sunDir: frame.uniforms.studioSunDir.value.toArray(),
+      view: 'chase:0',
+      extraDraws: 0,
+    });
+  });
+
   it('rejects a non-finite presented time', () => {
     const frame = new StudioFrame(createStudioUniforms());
     const r = rig();
