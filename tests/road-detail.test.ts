@@ -8,9 +8,12 @@ import {
   ROAD_SEALANT,
   roadRepair,
 } from '../src/rendering/road-macro.ts';
+import { ASPHALT_TONE } from '../src/rendering/circuit-finish.ts';
 import {
   ASPHALT_DETAIL,
+  LAUNCH_RUBBER,
   ROAD_DETAIL,
+  START_GRID,
   apexLineAt,
   apexLineProfile,
   installAsphaltDetail,
@@ -28,6 +31,8 @@ import {
 import { TYRE_MARKS, tyreMarkZones, tyreMarks } from '../src/rendering/tyre-marks.ts';
 import { racingLineFor } from '../src/simulation/racing-line.ts';
 import { Track, trackPoint } from '../src/simulation/track.ts';
+import { Simulation } from '../src/simulation/world.ts';
+import { DEFAULT_OPTIONS } from '../src/simulation/config.ts';
 
 function stubCanvas() {
   class Canvas {
@@ -161,7 +166,7 @@ describe('asphalt texels (P4 tone, Sobel normals, meso tile)', () => {
     expect(asphalt.normalScale.x).toBeLessThanOrEqual(0.9);
     const textures = Object.values(asphalt).filter((v) => v instanceof T.Texture);
     expect(new Set(textures).size).toBe(3);
-    expect(studioHookKeys(asphalt)).toEqual(['asphalt-detail-v1']);
+    expect(studioHookKeys(asphalt)).toEqual(['asphalt-detail-v2']);
     // Other surfaces keep their bump relief.
     const gravel = surfaceMaterial('gravel');
     expect(gravel.bumpMap).toBeInstanceOf(T.Texture);
@@ -190,7 +195,7 @@ describe('asphalt detail shader', () => {
       f.indexOf('#include <normal_fragment_begin>'),
     );
     expect(shader.vertexShader).toContain('vAsphaltWorld = (modelMatrix * asphaltWorld).xz;');
-    expect(material.customProgramCacheKey()).toContain('|asphalt-detail-v1');
+    expect(material.customProgramCacheKey()).toContain('|asphalt-detail-v2');
     // Idempotent and validated.
     expect(installAsphaltDetail(material, { albedo: [0.1, 0.1, 0.1], roughness: 0.8 })).toBe(false);
     expect(() =>
@@ -233,9 +238,9 @@ describe('racing surface layer', () => {
     expect(shader.vertexShader).toContain('attribute vec2 apexLine;');
     expect(shader.vertexShader).toContain('attribute float edgeMetres;');
     expect(material.customProgramCacheKey()).toContain('road-macro-v1');
-    expect(material.customProgramCacheKey()).toContain('|road-detail-v1');
+    expect(material.customProgramCacheKey()).toContain('|road-detail-v2');
     // The wet road hook is not a studio chain, so only the newer key is listed.
-    expect(studioHookKeys(material)).toEqual(['road-detail-v1']);
+    expect(studioHookKeys(material)).toEqual(['road-detail-v2']);
     material.dispose();
     state.dispose();
   });
@@ -368,5 +373,56 @@ describe('repairs, sealant and braking streaks', () => {
       if (new Set(ends.map((e) => e.toFixed(3))).size < ends.length) pairs++;
     }
     expect(pairs).toBeGreaterThanOrEqual(zones.length - 1);
+  });
+});
+
+describe('grid launch rubber and asphalt tone', () => {
+  it('lays launch tracks from the same slots the simulation starts cars in', () => {
+    const sim = new Simulation({ ...DEFAULT_OPTIONS, mode: 'race', opponents: 11 });
+    const p = trackPoint(),
+      length = sim.track.length;
+    const slots = new Set<string>();
+    for (const car of sim.cars) {
+      const from = length - car.s;
+      const row = (from - START_GRID.front) / START_GRID.spacing;
+      expect(Math.abs(row - Math.round(row))).toBeLessThan(1e-6);
+      expect(Math.round(row)).toBeGreaterThanOrEqual(0);
+      expect(Math.round(row)).toBeLessThan(START_GRID.rows);
+      expect(Math.abs(car.lateral)).toBeCloseTo(START_GRID.lateral, 6);
+      slots.add(`${Math.round(row)}:${Math.sign(car.lateral)}`);
+      sim.track.at(car.s, p);
+      expect(
+        Math.abs(car.lateral) + LAUNCH_RUBBER.halfTrack + LAUNCH_RUBBER.halfWidth * 1.7,
+      ).toBeLessThan(p.width);
+    }
+    expect(slots.size).toBe(START_GRID.rows * 2);
+  });
+  it('compiles the launch tracks continuously across the start line', () => {
+    stubCanvas();
+    const { material, state } = roadMaterial(2972.7);
+    const f = compile(material).fragmentShader;
+    expect(f).toContain(
+      'float apexFromLine = vRoadMetres.y > 1486.35000 ? vRoadMetres.y - 2972.70000 : vRoadMetres.y;',
+    );
+    expect(f).toContain(`for (int k = 0; k < ${START_GRID.rows}; k++)`);
+    expect(f).toContain(`exp(-apexAlong / ${LAUNCH_RUBBER.decay.toFixed(5)})`);
+    // Launch rubber shares the line's roughness and relief response.
+    expect(f.indexOf('apexLineMask = max(apexLineMask')).toBeLessThan(
+      f.indexOf(`roughnessFactor -= ${ROAD_DETAIL.lineRoughness.toFixed(5)} * apexLineMask`),
+    );
+    material.dispose();
+    state.dispose();
+  });
+  it('lifts the racing asphalt by one neutral tone gain in its finish', () => {
+    stubCanvas();
+    expect(ASPHALT_TONE).toBeGreaterThan(1);
+    expect(ASPHALT_TONE).toBeLessThan(1.6);
+    const asphalt = surfaceMaterial('asphalt');
+    expect(compile(asphalt).fragmentShader).toContain(
+      `diffuseColor.rgb *= ${ASPHALT_TONE.toFixed(3)} * (.92 + broad*.08`,
+    );
+    // Painted run-off keeps its own finish without the racing-surface gain.
+    const runOff = surfaceMaterial('asphalt', 'paint');
+    expect(compile(runOff).fragmentShader).not.toContain(`${ASPHALT_TONE.toFixed(3)} * (.92`);
   });
 });

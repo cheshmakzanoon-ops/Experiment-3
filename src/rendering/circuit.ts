@@ -48,7 +48,7 @@ import * as T from 'three';
 import { BuildQueue } from './build-queue.ts';
 import { sphereDetail, stripDetail, trunkDetail, type ProbeDetail } from './probe-detail.ts';
 import { installWetRoad } from './materials.ts';
-import { apexLineAt, installRoadDetail } from './studio/road-detail.ts';
+import { START_GRID, apexLineAt, installRoadDetail } from './studio/road-detail.ts';
 import { kerbHeight } from '../simulation/contact.ts';
 import { Track, CELL_ROWS, CELL_COLS, trackPoint } from '../simulation/track.ts';
 import { H } from '../simulation/protocol.ts';
@@ -731,9 +731,10 @@ export class CircuitScene {
     // Grid boxes use the same lit, slightly worn line paint as the edges.
     const paint = new T.MeshStandardMaterial({ color: 0xe9e7e0, roughness: 0.55 });
     installCircuitFinish(paint, 'paint');
-    for (let i = 0; i < 12; i++) {
-      const s = this.track.length - 32 - Math.floor(i / 2) * 10,
-        l = i % 2 === 0 ? -2.2 : 2.2,
+    // The same slots as the simulation's grid and the road's launch rubber.
+    for (let i = 0; i < START_GRID.rows * 2; i++) {
+      const s = this.track.length - START_GRID.front - Math.floor(i / 2) * START_GRID.spacing,
+        l = i % 2 === 0 ? -START_GRID.lateral : START_GRID.lateral,
         p = this.track.at(s, trackPoint()),
         g = new T.Group();
       g.position.copy(this.at(s, l, 0.012));

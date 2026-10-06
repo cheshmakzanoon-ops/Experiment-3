@@ -3,6 +3,11 @@ import * as T from 'three';
 
 export type CircuitFinish = 'asphalt' | 'grass' | 'terrain' | 'concrete' | 'paint' | 'kerb';
 
+/** Neutral tone gain of the racing asphalt over its byte-limited texels (P4
+ * allows tone in the shader): calibrated so sunlit off-line asphalt renders
+ * #7d7a76-#938b83 under the P3 day lighting. Effective linear albedo ~0.18. */
+export const ASPHALT_TONE = 1.4;
+
 /** Screen-space footprint in noise cells per pixel. Keep resolved construction
  * detail; converge to its mean before a pixel samples multiple unrelated cells. */
 export function finishDetailWeight(footprint: number) {
@@ -41,7 +46,7 @@ const finishes: Record<CircuitFinish, string> = {
     float repair=finishFilteredNoise(vFinishWorld.xz*.035+vec2(3.1,7.9));
     // Binder tone breaks up gently (P4: .92+broad*.08); broad aged regions
     // are a soft -7 %. Rectangular sealed repairs are the road layer's job.
-    diffuseColor.rgb *= (.92 + broad*.08 + medium*.07) * mix(1.0,.93,smoothstep(.58,.82,repair));
+    diffuseColor.rgb *= ${ASPHALT_TONE.toFixed(3)} * (.92 + broad*.08 + medium*.07) * mix(1.0,.93,smoothstep(.58,.82,repair));
     // A restrained longitudinal paving join, not a painted racing line.
     float joinPhase=(vFinishMetres.x-.1)/3.6;
     float join=apexStripeCoverage(joinPhase,fwidth(joinPhase),.014/3.6);
@@ -154,7 +159,7 @@ export function installCircuitFinish(material: T.MeshStandardMaterial, kind: Cir
       .replace('#include <map_fragment>', '#include <map_fragment>\n' + finishes[kind]);
   };
   material.customProgramCacheKey = () =>
-    `${baseKey}:circuit-finish-v2-filtered:periodic-joints-v1:${kind}${kind === 'asphalt' ? ':binder-p4-v1' : ''}${kind === 'grass' ? ':regional-soil-v1:mown-v1' : kind === 'terrain' ? ':landform-v1' : ''}`;
+    `${baseKey}:circuit-finish-v2-filtered:periodic-joints-v1:${kind}${kind === 'asphalt' ? ':binder-p4-v2' : ''}${kind === 'grass' ? ':regional-soil-v1:mown-v1' : kind === 'terrain' ? ':landform-v1' : ''}`;
   material.name = `Original ${kind} construction finish`;
 }
 
