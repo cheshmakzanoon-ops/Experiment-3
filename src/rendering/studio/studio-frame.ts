@@ -26,6 +26,18 @@ import { injectAfter, type ShaderStage, type StudioShader } from './shader-hooks
  * heading `atan2(forward.x, forward.z)` and the mean world height of the four
  * presented tyre contacts. The studio car footprint is the oriented box of half
  * extents `STUDIO_CAR_HALF_EXTENTS` (2.8 m along, 1.0 m across) about (x, z).
+ *
+ * Usage. Material edits go through a chained hook:
+ *   chainShaderHook(material, 'foliage-wind-v1', (shader) => {
+ *     useStudioUniforms(shader, ['studioWind'], 'vertex');
+ *     injectAfter(shader, 'begin_vertex', 'transformed.x += sway(studioWind);', 'vertex');
+ *   });
+ * Full-screen passes reference the objects directly, e.g.
+ * `uniforms: { studioPrevViewProj: studioUniforms.studioPrevViewProj }`, and
+ * prepend `studioGlsl(['studioPrevViewProj'])` to their fragment source.
+ * The view matrices describe the main camera only: mirror, probe and wet
+ * reflection passes render the same materials, so velocity-style outputs must
+ * be gated to the main scene pass by the consumer.
  */
 
 export const STUDIO_MAX_CARS = 12;
