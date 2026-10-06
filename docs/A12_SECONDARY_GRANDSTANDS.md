@@ -6,7 +6,7 @@ A12 replaces the procedural building and seat geometry at the existing Aurel
 stands at 450, 780, 1220, 1670, 2210 and 2600 metres. Each retains its original
 48 m site, side, level deck, terrain query, eight rows, 552 seat transforms,
 seat colours, protected aisles, spectator cohorts and spatial crowd chunks.
-The scene uses ten instanced batches per stand, shared role buffers and three
+The scene uses nine instanced batches per stand, shared role buffers and three
 preallocated detail levels. There is no per-frame geometry generation.
 
 `SecondaryGrandstands` is a separate renderer component. It does not broaden
@@ -102,3 +102,13 @@ independently: authoring success does not imply full-game acceptance.
 Final-art approval, continuous human-driven race review and representative
 consumer-hardware performance remain open. No AAA parity, physical Windows/wheel
 approval or Steam readiness is certified by this increment.
+
+## Cold-frame budget closure
+
+The first sunset cockpit frame must include the complete lighting bake, not just
+a prepared steady-state view. The six rail bays and two protected aisles now
+share one steel batch per stand, built from two retained 24 m half-stand modules.
+All three authored detail levels, corners, normals, UVs and seat/crowd transforms
+remain. This reduces ten batches to nine and seventeen shared geometry buffers
+to fifteen, within the existing 7,000-triangle allocation ceiling. Native assets
+are not regenerated. See [cold-frame evidence](A12_COLD_FRAME_BUDGET.md).

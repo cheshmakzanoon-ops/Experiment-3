@@ -120,7 +120,7 @@ for (const lighting of ['day', 'sunset', 'night'] as const) {
     expect(report.liveWaterUnchanged).toBe(true);
     expect(report.diagnostics.sites.map((s) => s.s)).toEqual([450, 780, 1220, 1670, 2210, 2600]);
     for (const site of report.diagnostics.sites) {
-      expect(site.batches).toBe(10);
+      expect(site.batches).toBe(9);
       expect(
         report.driving.filter((d) => d.site === site.s && d.mode === 'cockpit').length,
       ).toBeGreaterThanOrEqual(4);

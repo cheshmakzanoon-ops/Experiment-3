@@ -133,8 +133,8 @@ describe('A12 retained-site integration', () => {
       expect(currentClusters.length).toBe(originalClusters.length);
       const data = kit.diagnostics();
       expect(data.sites.map((s) => s.s)).toEqual([450, 780, 1220, 1670, 2210, 2600]);
-      expect(data.sites.every((s) => s.batches === 10 && s.seats === 552)).toBe(true);
-      expect(data.geometryBuffers).toBe(17);
+      expect(data.sites.every((s) => s.batches === 9 && s.seats === 552)).toBe(true);
+      expect(data.geometryBuffers).toBe(15);
       expect(data.allocatedTriangles).toBeLessThan(7000);
       expect(data.finalArtApproved).toBe(false);
     } finally {
@@ -216,7 +216,7 @@ describe('A12 retained-site integration', () => {
     a.dispose();
     expect(disposed).toBe(buffers.size);
     expect(p.children).toHaveLength(0);
-    expect(meshes(q)).toHaveLength(9);
+    expect(meshes(q)).toHaveLength(8);
     expect(a.diagnostics().geometryBuffers).toBe(0);
     b.dispose();
   });

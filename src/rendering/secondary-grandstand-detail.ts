@@ -25,6 +25,32 @@ export function secondaryStandTier(distance: number, previous?: SecondaryTier): 
 export function packSecondaryStandRole(role: SecondaryRole, mirror = false) {
   if (!SECONDARY_ROLES.includes(role)) throw new Error('Invalid A12 mesh role');
   const input = SECONDARY_TIERS.map((tier) => secondaryStandGeometry(`${role}_${tier}`, mirror));
+  return packLevels(input, `${role}${mirror ? ' / mirrored' : ''}`);
+}
+
+/** Each unchanged 24 m half contains three rail bays and one protected aisle.
+ * Both roles use the same opaque steel material. Baking their translations
+ * once saves one draw per stand/pass without removing a triangle or increasing
+ * the retained 7,000-triangle allocation ceiling. */
+export function packSecondaryStandCirculation(mirror = false) {
+  const input = SECONDARY_TIERS.map((tier) => {
+    const rail = secondaryStandGeometry(`rails_${tier}`, mirror);
+    const aisle = secondaryStandGeometry(`aisle_${tier}`, mirror);
+    const parts = [-8, 0, 8].map((z) => rail.clone().translate(0, 0, z));
+    parts.push(aisle);
+    try {
+      const geometry = mergeGeometries(parts, false);
+      if (!geometry) throw new Error('Incompatible A12 circulation attributes');
+      return geometry;
+    } finally {
+      rail.dispose();
+      parts.forEach((part) => part.dispose());
+    }
+  });
+  return packLevels(input, `circulation${mirror ? ' / mirrored' : ''}`);
+}
+
+function packLevels(input: T.BufferGeometry[], name: string) {
   const ranges = input.map((geometry, i) => ({
     start: input.slice(0, i).reduce((n, g) => n + g.index!.count, 0),
     count: geometry.index!.count,
@@ -37,7 +63,7 @@ export function packSecondaryStandRole(role: SecondaryRole, mirror = false) {
   } finally {
     input.forEach((g) => g.dispose());
   }
-  geometry.name = `A12 packed ${role}${mirror ? ' / mirrored' : ''}`;
+  geometry.name = `A12 packed ${name}`;
   geometry.userData.authoredAsset = SECONDARY_STAND_ASSET.revision;
   geometry.computeBoundingBox();
   geometry.computeBoundingSphere();

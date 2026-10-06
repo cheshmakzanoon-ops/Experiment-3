@@ -65,7 +65,7 @@ export async function surveySecondaryStands(
       if (o instanceof T.InstancedMesh) installed.push(o);
     });
   if (
-    installed.length !== 60 ||
+    installed.length !== 54 ||
     installed.some((m) => m.geometry.userData.authoredAsset !== SECONDARY_STAND_ASSET.revision)
   )
     throw new Error('A12 inspection found missing or unverified production geometry');

@@ -5,7 +5,11 @@ import type { BroadcastSightlines } from './broadcast-sightlines.ts';
 import { StaticInstanceShadowBounds } from './static-instance-shadow-bounds.ts';
 import { installVenueFinish } from './venue-materials.ts';
 import { SECONDARY_STAND_ASSET, type SecondaryRole } from './secondary-grandstand-assets.ts';
-import { packSecondaryStandRole, type PackedSecondaryRole } from './secondary-grandstand-detail.ts';
+import {
+  packSecondaryStandCirculation,
+  packSecondaryStandRole,
+  type PackedSecondaryRole,
+} from './secondary-grandstand-detail.ts';
 
 export interface SecondaryStandFrame {
   x: number;
@@ -56,18 +60,21 @@ export class SecondaryGrandstands {
       )
     );
   }
-  private packed(role: SecondaryRole, mirror = false) {
+  private packed(role: SecondaryRole | 'circulation', mirror = false) {
     const key = `${role}:${mirror}`;
     let asset = this.assets.get(key);
     if (!asset) {
-      asset = packSecondaryStandRole(role, mirror);
+      asset =
+        role === 'circulation'
+          ? packSecondaryStandCirculation(mirror)
+          : packSecondaryStandRole(role, mirror);
       this.assets.set(key, asset);
     }
     return asset;
   }
   private batch(
     entry: StandEntry,
-    role: SecondaryRole,
+    role: SecondaryRole | 'circulation',
     material: T.Material,
     matrices: readonly T.Matrix4[],
     mirror = false,
@@ -150,16 +157,16 @@ export class SecondaryGrandstands {
     const mirror = site.side < 0;
     this.batch(entry, 'deck', m.stone, modules, mirror);
     this.batch(entry, 'roof', m.roof, modules, mirror);
-    this.batch(entry, 'rails', m.steel, modules, mirror);
-    this.batch(entry, 'frame', m.steel, frames, mirror);
-    this.batch(entry, 'trim', m.trim, modules, mirror);
+    // Two halves retain all six rail bays and both aisle locations exactly.
     this.batch(
       entry,
-      'aisle',
+      'circulation',
       m.steel,
-      [-0.25, 0.25].map((s) => new T.Matrix4().makeTranslation(0, 0, site.length * s)),
+      [-12, 12].map((z) => new T.Matrix4().makeTranslation(0, 0, z)),
       mirror,
     );
+    this.batch(entry, 'frame', m.steel, frames, mirror);
+    this.batch(entry, 'trim', m.trim, modules, mirror);
     this.batch(
       entry,
       'end',
