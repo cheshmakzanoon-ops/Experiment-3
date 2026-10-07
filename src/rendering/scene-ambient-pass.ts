@@ -1,5 +1,7 @@
 import * as T from 'three';
 import { Pass, FullScreenQuad } from 'three/addons/postprocessing/Pass.js';
+import type { MotionBlur } from './motion-blur.ts';
+import { MOTION_BLUR, MOTION_VELOCITY_GLSL, createMotionUniforms } from './studio/velocity.ts';
 
 /** Scalable ambient obscurance tuning. World-space radius in metres; the screen
  * radius is clamped so a cockpit surface 30 cm from the eye cannot black out.
@@ -51,10 +53,8 @@ const viewPosition = /* glsl */ `
   uniform vec2 projectionScale;
   float sceneDepth(vec2 uv) { return texture2D(tDepth, uv).x; }
   float viewZAt(vec2 uv) { return perspectiveDepthToViewZ(sceneDepth(uv), cameraNear, cameraFar); }
-  vec3 viewAt(vec2 uv) {
-    float z = viewZAt(uv);
-    return vec3((uv * 2.0 - 1.0) * -z / projectionScale, z);
-  }
+  vec3 viewAtZ(vec2 uv, float z) { return vec3((uv * 2.0 - 1.0) * -z / projectionScale, z); }
+  vec3 viewAt(vec2 uv) { return viewAtZ(uv, viewZAt(uv)); }
 `;
 const obscuranceFragment = /* glsl */ `
   ${viewPosition}
@@ -132,18 +132,68 @@ const blurFragment = /* glsl */ `
     gl_FragColor = vec4(vec3(sum / weight), 1.0);
   }
 `;
+/** Interleaved gradient noise: stable per pixel, never wall-clock animated. */
+const interleavedNoise = /* glsl */ `
+  float interleavedNoise(vec2 pixel) {
+    return fract(52.9829189 * fract(dot(pixel, vec2(0.06711056, 0.00583715))));
+  }
+`;
+/** Camera motion blur gathered from the scene's own colour and depth. The
+ * centre's streak is sampled symmetrically (shutter centred on the frame) with
+ * per-pixel jittered taps. A tap clearly nearer than the centre surface,
+ * extrapolated along the streak in inverse depth (affine in screen space on a
+ * plane), is a sharp foreground occluder and is skipped, so the locked player
+ * car is never dragged over the road and grazing road keeps its full streak. */
+const motionGather = /* glsl */ `
+  ${MOTION_VELOCITY_GLSL}
+  #define MOTION_TAPS ${MOTION_BLUR.taps}
+  vec3 motionBlur(vec3 base, vec2 uv, float depthZ, vec2 streak, vec2 resolution) {
+    float len = length(streak);
+    if (len < 0.5) return base;
+    if (len > motionMaxPixels) { streak *= motionMaxPixels / len; len = motionMaxPixels; }
+    vec2 dir = streak / len;
+    vec2 texel = 1.0 / resolution;
+    float wc = 1.0 / depthZ;
+    float wf = -1.0 / viewZAt(uv + dir * texel), wb = -1.0 / viewZAt(uv - dir * texel);
+    float slope = abs(wf - wc) < abs(wc - wb) ? wf - wc : wc - wb;
+    float jitter = interleavedNoise(floor(uv * resolution)) - 0.5;
+    vec3 sum = base;
+    float weight = 1.0;
+    for (int i = 0; i < MOTION_TAPS; i++) {
+      float s = ((float(i) + 0.5 + jitter) / float(MOTION_TAPS) - 0.5) * len;
+      vec2 tap = uv + dir * (s * texel);
+      if (tap.x < 0.0 || tap.y < 0.0 || tap.x > 1.0 || tap.y > 1.0) continue;
+      float expected = max(wc + slope * s, 1e-7);
+      if (-1.0 / viewZAt(tap) > expected * 1.06 + 1e-5) continue;
+      sum += texture2D(tColor, tap).rgb;
+      weight += 1.0;
+    }
+    return sum / weight;
+  }
+`;
 const compositeFragment = /* glsl */ `
   ${viewPosition}
   uniform sampler2D tColor;
   uniform sampler2D tObscurance;
   uniform vec2 obscuranceResolution;
+  uniform vec2 colorResolution;
   uniform float enabled;
   varying vec2 vUv;
+  ${interleavedNoise}
+  ${motionGather}
   void main() {
     vec4 color = texture2D(tColor, vUv);
+    float z = viewZAt(vUv);
+    #ifdef MOTION_DEBUG_VELOCITY
+      // Test oracle: unclamped streak (uv units), linear depth, geometry mask.
+      vec2 debugStreak = motionActive > 0.5 ? motionPixels(viewAtZ(vUv, z), colorResolution) : vec2(0.0);
+      gl_FragColor = vec4(debugStreak / colorResolution, -z, sceneDepth(vUv) < 0.99999 ? 1.0 : 0.0);
+      return;
+    #endif
+    if (motionActive > 0.5)
+      color.rgb = motionBlur(color.rgb, vUv, -z, motionPixels(viewAtZ(vUv, z), colorResolution), colorResolution);
     if (enabled < 0.5) { gl_FragColor = color; return; }
     // Joint-bilateral upsample: prefer half-resolution texels on the same surface.
-    float z = viewZAt(vUv);
     vec2 grid = vUv * obscuranceResolution - 0.5;
     vec2 base = floor(grid), f = grid - base;
     float sum = 0.0, weight = 0.0;
@@ -164,8 +214,10 @@ const compositeFragment = /* glsl */ `
 `;
 
 /** Renders the linear scene into an optionally multisampled target with a float
- * depth attachment, then composites half-resolution depth-only ambient obscurance.
- * It replaces RenderPass without a second geometry draw; disabling AO is a copy. */
+ * depth attachment, then composites half-resolution depth-only ambient obscurance
+ * and the depth-reprojected camera motion blur (`MotionBlur`, when given).
+ * It replaces RenderPass without a second geometry draw; with AO and blur off the
+ * composite is a copy. */
 export class SceneAmbientPass extends Pass {
   readonly target: T.WebGLRenderTarget;
   private obscurance: T.WebGLRenderTarget;
@@ -178,10 +230,13 @@ export class SceneAmbientPass extends Pass {
   private height = 1;
   ambientOcclusion = true;
   frames = 0;
+  private debugVelocity = false;
+  private motion: MotionBlur | null = null;
   constructor(
     private scene: T.Scene,
     private camera: T.PerspectiveCamera,
     samples = 0,
+    motion: MotionBlur | null = null,
   ) {
     super();
     this.needsSwap = true;
@@ -244,8 +299,18 @@ export class SceneAmbientPass extends Pass {
       tColor: { value: this.target.texture },
       tObscurance: { value: this.blurred.texture },
       obscuranceResolution: { value: new T.Vector2(1, 1) },
+      colorResolution: { value: new T.Vector2(1, 1) },
       enabled: { value: 1 },
+      ...(createMotionUniforms() as unknown as Record<string, T.IUniform>),
     });
+    if (motion) this.attachMotion(motion);
+  }
+  /** Gather the camera motion blur in the composite. The controller's uniform
+   * objects are bound by identity; it writes them once per frame. */
+  attachMotion(motion: MotionBlur) {
+    this.motion = motion;
+    Object.assign(this.compositeMaterial.uniforms, motion.uniforms);
+    motion.setSize(this.width, this.height);
   }
   get samples() {
     return this.target.samples;
@@ -265,6 +330,17 @@ export class SceneAmbientPass extends Pass {
     this.blurred.setSize(small.width, small.height);
     this.obscuranceMaterial.uniforms.resolution.value.set(small.width, small.height);
     this.compositeMaterial.uniforms.obscuranceResolution.value.set(small.width, small.height);
+    this.compositeMaterial.uniforms.colorResolution.value.set(this.width, this.height);
+    this.motion?.setSize(this.width, this.height);
+  }
+  /** Test and QA oracle: the composite writes (streak uv, linear depth, geometry)
+   * instead of colour. Needs a float output target. */
+  setDebugVelocity(value: boolean) {
+    if (value === this.debugVelocity) return;
+    this.debugVelocity = value;
+    if (value) this.compositeMaterial.defines.MOTION_DEBUG_VELOCITY = '';
+    else delete this.compositeMaterial.defines.MOTION_DEBUG_VELOCITY;
+    this.compositeMaterial.needsUpdate = true;
   }
   private syncCamera() {
     for (const m of [this.obscuranceMaterial, this.blurMaterial, this.compositeMaterial]) {
@@ -283,8 +359,9 @@ export class SceneAmbientPass extends Pass {
       renderer.setRenderTarget(this.target);
       renderer.render(this.scene, this.camera);
       const occlude = this.ambientOcclusion;
+      // The composite reconstructs depth for the motion blur even without AO.
+      this.syncCamera();
       if (occlude) {
-        this.syncCamera();
         this.quad.material = this.obscuranceMaterial;
         renderer.setRenderTarget(this.obscurance);
         this.quad.render(renderer);
@@ -304,6 +381,8 @@ export class SceneAmbientPass extends Pass {
       this.quad.material = this.compositeMaterial;
       renderer.setRenderTarget(this.renderToScreen ? null : writeBuffer);
       this.quad.render(renderer);
+      // Oracle reads are not presented frames.
+      if (!this.debugVelocity) this.motion?.rendered();
       this.frames++;
     } finally {
       renderer.autoClear = autoClear;
@@ -318,6 +397,7 @@ export class SceneAmbientPass extends Pass {
       obscuranceWidth: this.obscurance.width,
       obscuranceHeight: this.obscurance.height,
       frames: this.frames,
+      motionBlur: !!this.motion?.enabled,
     };
   }
   override dispose() {

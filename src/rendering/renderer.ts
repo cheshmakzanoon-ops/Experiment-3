@@ -89,7 +89,7 @@ import { ShadowProxies } from './shadow-proxies.ts';
 import { FarShadow } from './far-shadow.ts';
 import { DebrisView } from './debris.ts';
 import { PitCrewView, serviceWheelOffset } from './pit-crew.ts';
-import { MotionBlurPass } from './motion-blur.ts';
+import { MotionBlur } from './motion-blur.ts';
 import { GpuTimer } from './gpu-timer.ts';
 import { GpuFrameGate } from './gpu-frame-gate.ts';
 import { TextureBudget } from './texture-budget.ts';
@@ -198,7 +198,7 @@ export class RacingRenderer {
   private grade = new BroadcastGradePass();
   private photoFocus: BokehPass | null = null;
   private geometrySurvey: GeometrySurvey | null = null;
-  private motionBlur: MotionBlurPass;
+  private motionBlur: MotionBlur;
   private fxaa = new ShaderPass(FXAAShader);
   private textures = new TextureBudget();
   private drawLedger: DrawLedger;
@@ -386,12 +386,9 @@ export class RacingRenderer {
     this.scenePass = new SceneAmbientPass(this.scene, this.camera, this.graphics.msaa);
     this.composer.addPass(this.scenePass);
     this.composer.addPass(this.exposure);
-    this.motionBlur = new MotionBlurPass(
-      this.scene,
-      this.camera,
-      this.renderer.extensions.has('EXT_color_buffer_float'),
-    );
-    this.composer.addPass(this.motionBlur);
+    // Camera motion blur is gathered in the scene pass composite (no extra draw).
+    this.motionBlur = new MotionBlur(this.renderer.extensions.has('EXT_color_buffer_float'));
+    this.scenePass.attachMotion(this.motionBlur);
     // Linear-HDR threshold above sunlit white paint and smoke: only speculars,
     // lamps and the sun disc bloom, never road markings or diffuse volumes.
     // Single-pixel fireflies are limited before the round-filtered pyramid.
@@ -1291,8 +1288,8 @@ export class RacingRenderer {
         !menu && !studio && (presented[H.WATER] > 0.02 || wetReflection) ? 1 : 0,
       );
       this.drawLedger.mark('other');
-      this.motionBlur.setStrength(this.photo ? 0 : this.graphics.motionBlur);
-      this.motionBlur.prepareFrame(wallDelta, b[H.TIME]);
+      this.motionBlur.setStrength(this.photo || menu ? 0 : this.graphics.motionBlur);
+      this.motionBlur.prepareFrame(presented, this.camera, this.follow, cameraMode, replay);
       if (this.photoFocus?.enabled && this.photo) {
         // Optical-axis depth, rather than Euclidean distance, matches the depth shader.
         this.camera.updateMatrixWorld();

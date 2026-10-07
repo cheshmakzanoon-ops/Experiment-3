@@ -46,7 +46,8 @@ export function graphicsPreset(quality: Quality): GraphicsOptions {
     bloom: quality !== 'low',
     autoExposure: quality !== 'low',
     localFog: quality !== 'low',
-    motionBlur: 0,
+    // Shutter as a fraction of a 60 Hz frame (P10); depth reprojection, no extra draw.
+    motionBlur: quality === 'low' ? 0 : quality === 'high' ? 0.5 : 0.35,
     antialias: true,
     anisotropy: quality === 'low' ? 2 : quality === 'high' ? 16 : 8,
     msaa: quality === 'low' ? 0 : quality === 'high' ? 4 : 2,
