@@ -304,7 +304,7 @@ export function installRoadDetail(material: T.MeshStandardMaterial, lapLength: n
   // Striation cells along the lap: an integer count, so the pattern closes.
   const alongCells = Math.max(1, Math.round(lapLength / 18)),
     streakCells = Math.max(1, Math.round(lapLength / R.streakLength));
-  return chainShaderHook(material, 'road-detail-v4', (shader) => {
+  return chainShaderHook(material, 'road-detail-v5', (shader) => {
     for (const needed of [
       'vec4 roadState',
       'varying vec2 vRoadMetres',
@@ -365,9 +365,12 @@ export function installRoadDetail(material: T.MeshStandardMaterial, lapLength: n
         // Launch rubber on the grid, continuous across the start line.
         float apexFromLine = vRoadMetres.y > ${g(lapLength * 0.5)} ? vRoadMetres.y - ${g(lapLength)} : vRoadMetres.y;
         float apexLaunch = 0.0;
+        // Lateral footprint taken before the grid branch: derivatives inside
+        // non-uniform control flow are undefined in GLSL. The wheel distance
+        // below has unit lateral slope, so this is also its own footprint.
+        float apexWheelAA = max(fwidth(vRoadMetres.x), 1e-4);
         if (apexFromLine > ${g(-launchBack - 1)} && apexFromLine < ${g(L.decay * 4.5)}) {
           float apexWheel = abs(abs(abs(vRoadMetres.x) - ${g(G.lateral)}) - ${g(L.halfTrack)});
-          float apexWheelAA = max(fwidth(vRoadMetres.x), 1e-4);
           // Many starts from slightly different stances: a soft-shouldered track.
           float apexTyre = 1.0 - smoothstep(${g(L.halfWidth * 0.55)} - apexWheelAA, ${g(L.halfWidth * 1.7)} + apexWheelAA, apexWheel);
           float apexLaunches = 0.0;
@@ -377,7 +380,7 @@ export function installRoadDetail(material: T.MeshStandardMaterial, lapLength: n
           }
           // Tread streaks inside each track, converging before they alias.
           float apexTread = mix(0.5, apexRoadNoise(vec2(apexWheel * 38.0, apexFromLine * 0.12)),
-            1.0 - smoothstep(0.4, 1.0, fwidth(apexWheel * 38.0)));
+            1.0 - smoothstep(0.4, 1.0, apexWheelAA * 38.0));
           // Grip comes and goes as the tyres hook up: the marks break up.
           float apexBreakUp = mix(0.35, 1.0, smoothstep(0.25, 0.7,
             apexRoadNoise(vec2(apexWheel * 4.0 + vRoadMetres.x * 0.7, apexFromLine * 0.3 + 5.0))));
@@ -387,7 +390,8 @@ export function installRoadDetail(material: T.MeshStandardMaterial, lapLength: n
           apexLineMask = max(apexLineMask, 0.5 * min(apexLaunch, 1.0));
         }
         // Dust and fine debris collect toward the edges, off the line.
-        apexDust = smoothstep(-${g(R.dustWidth)}, -0.12, vEdgeMetres) * (1.0 - apexLineMask) *
+        // (The striated line mask peaks at 1.2: clamp before using it as a share.)
+        apexDust = smoothstep(-${g(R.dustWidth)}, -0.12, vEdgeMetres) * max(0.0, 1.0 - apexLineMask) *
           (0.7 + 0.6 * apexRoadNoise(vAsphaltWorld * 2.7));
         diffuseColor.rgb *= 1.0 + ${g(R.dustLift)} * apexDust;
         vec3 apexRepairState = apexRoadRepair(vRoadMetres, ${g(lapLength)});
@@ -410,7 +414,8 @@ export function installRoadDetail(material: T.MeshStandardMaterial, lapLength: n
       shader,
       'normal_fragment_maps',
       `#ifdef USE_NORMALMAP_TANGENTSPACE
-        float apexRelief = 1.0 - (1.0 - ${g(R.lineRelief)}) * apexLineMask - 0.8 * apexSealant;
+        // Never below zero: sealant across a striation peak would flip the chips.
+        float apexRelief = max(0.0, 1.0 - (1.0 - ${g(R.lineRelief)}) * apexLineMask - 0.8 * apexSealant);
         tbn[0] *= apexRelief;
         tbn[1] *= apexRelief;
       #endif`,

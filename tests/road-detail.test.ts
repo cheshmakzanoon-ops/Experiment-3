@@ -238,9 +238,9 @@ describe('racing surface layer', () => {
     expect(shader.vertexShader).toContain('attribute vec2 apexLine;');
     expect(shader.vertexShader).toContain('attribute float edgeMetres;');
     expect(material.customProgramCacheKey()).toContain('road-macro-v1');
-    expect(material.customProgramCacheKey()).toContain('|road-detail-v4');
+    expect(material.customProgramCacheKey()).toContain('|road-detail-v5');
     // The wet road hook is not a studio chain, so only the newer key is listed.
-    expect(studioHookKeys(material)).toEqual(['road-detail-v4']);
+    expect(studioHookKeys(material)).toEqual(['road-detail-v5']);
     material.dispose();
     state.dispose();
   });
@@ -249,6 +249,35 @@ describe('racing surface layer', () => {
     installRoadDetail(plain, 3000);
     expect(() => compile(plain)).toThrow(/wet road/);
     expect(() => installRoadDetail(new T.MeshPhysicalMaterial(), 0)).toThrow();
+  });
+  it('takes derivatives in uniform control flow and never inverts the chip relief', () => {
+    stubCanvas();
+    const { material, state } = roadMaterial();
+    const f = compile(material).fragmentShader;
+    // GLSL leaves derivatives inside non-uniform branches undefined: the grid
+    // branch and the per-cell repair early return use footprints taken before.
+    const branch = f.indexOf('if (apexFromLine >');
+    expect(branch).toBeGreaterThan(f.indexOf('float apexWheelAA = max(fwidth(vRoadMetres.x)'));
+    expect(f.slice(branch, f.indexOf('apexLineMask = max(apexLineMask', branch))).not.toContain(
+      'fwidth(',
+    );
+    const repair = ROAD_REPAIR_GLSL.slice(
+      ROAD_REPAIR_GLSL.indexOf('vec3 apexRoadRepair('),
+      ROAD_REPAIR_GLSL.indexOf('float apexRoadSealant('),
+    );
+    const early = repair.indexOf('return vec3(0.0, 1.0, 0.0);');
+    expect(repair.indexOf('fwidth(m)')).toBeLessThan(early);
+    expect(repair.slice(early)).not.toContain('fwidth(');
+    // Seams are box-filtered across their own cut: lateral footprint on the
+    // long sides, along-track on the ends.
+    expect(repair).toContain('fd = dx < dy ? dm.x : dm.y');
+    // The striated line mask peaks above 1: shares and relief are clamped.
+    expect(f).toContain('max(0.0, 1.0 - apexLineMask)');
+    expect(f).toContain(
+      `float apexRelief = max(0.0, 1.0 - (1.0 - ${ROAD_DETAIL.lineRelief.toFixed(5)}) * apexLineMask`,
+    );
+    material.dispose();
+    state.dispose();
   });
   it('samples the solved line and braking weights along the lap', () => {
     const track = new Track('clear'),

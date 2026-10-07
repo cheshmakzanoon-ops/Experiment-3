@@ -210,7 +210,7 @@ function markTexture() {
 export function installTyreMarkWater(material: T.Material, state: T.Texture) {
   const [dry, covered] = TYRE_MARKS.waterCover;
   const uniform = { value: state };
-  return chainShaderHook(material, 'tyre-mark-water-v1', (shader) => {
+  return chainShaderHook(material, 'tyre-mark-water-v2', (shader) => {
     shader.uniforms.apexMarkState = uniform;
     injectAfter(shader, 'common', 'attribute vec2 trackUV; varying vec2 vMarkTrackUV;', 'vertex');
     injectAfter(
@@ -220,11 +220,13 @@ export function installTyreMarkWater(material: T.Material, state: T.Texture) {
       'fragment',
     );
     injectAfter(shader, 'begin_vertex', 'vMarkTrackUV = trackUV;');
+    // The lap fraction runs on across the start line within a mark (see
+    // buildTyreMarks), so it wraps here, per fragment, not per vertex.
     injectAfter(
       shader,
       'alphamap_fragment',
       `diffuseColor.a *= 1.0 - ${TYRE_MARKS.waterHidden.toFixed(3)} *
-        smoothstep(${dry.toFixed(3)}, ${covered.toFixed(3)}, texture2D(apexMarkState, vMarkTrackUV).r * 2.0);`,
+        smoothstep(${dry.toFixed(3)}, ${covered.toFixed(3)}, texture2D(apexMarkState, vec2(vMarkTrackUV.x, fract(vMarkTrackUV.y))).r * 2.0);`,
     );
   });
 }
@@ -269,6 +271,10 @@ export function buildTyreMarks(
     if (!chunk)
       chunks.set(key, (chunk = { position: [], uv: [], trackUV: [], color: [], index: [] }));
     const base = chunk.position.length / 3;
+    // Lap of the mark's first sample: the state V coordinate continues past 1
+    // (or below 0) instead of jumping back across the whole texture inside one
+    // quad when a mark crosses the start line; the shader wraps it.
+    const lap = Math.floor(mark.s[0] / track.length);
     for (let k = 0; k < mark.s.length; k++) {
       track.at(mark.s[k], p);
       for (const edge of [-0.5, 0.5]) {
@@ -280,10 +286,7 @@ export function buildTyreMarks(
         );
         chunk.uv.push(edge + 0.5, (mark.s[k] - mark.s[0]) / 4);
         // The road ribbon's state coordinates (lateral share, lap fraction).
-        chunk.trackUV.push(
-          clamp((l / p.width) * 0.5 + 0.5, 0, 1),
-          (((mark.s[k] % track.length) + track.length) % track.length) / track.length,
-        );
+        chunk.trackUV.push(clamp((l / p.width) * 0.5 + 0.5, 0, 1), mark.s[k] / track.length - lap);
         chunk.color.push(1, 1, 1, mark.alpha[k]);
       }
       if (k > 0) {

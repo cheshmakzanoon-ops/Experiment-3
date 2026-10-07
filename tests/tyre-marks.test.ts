@@ -99,7 +99,7 @@ describe('laid tyre rubber', () => {
     const material = meshes[0].material as T.MeshStandardMaterial;
     // One shared material; draw count and blending unchanged.
     expect(new Set(meshes.map((m) => m.material)).size).toBe(1);
-    expect(studioHookKeys(material)).toContain('tyre-mark-water-v1');
+    expect(studioHookKeys(material)).toContain('tyre-mark-water-v2');
     for (const mesh of meshes) {
       const uv = mesh.geometry.getAttribute('trackUV');
       expect(uv.itemSize).toBe(2);
@@ -126,7 +126,9 @@ describe('laid tyre rubber', () => {
     expect(shader.uniforms.apexMarkState.value).toBe(state);
     expect(shader.vertexShader).toContain('attribute vec2 trackUV;');
     expect(shader.vertexShader).toContain('vMarkTrackUV = trackUV;');
-    const fade = shader.fragmentShader.indexOf('texture2D(apexMarkState, vMarkTrackUV).r * 2.0');
+    const fade = shader.fragmentShader.indexOf(
+      'texture2D(apexMarkState, vec2(vMarkTrackUV.x, fract(vMarkTrackUV.y))).r * 2.0',
+    );
     expect(fade).toBeGreaterThan(shader.fragmentShader.indexOf('#include <alphamap_fragment>'));
     expect(fade).toBeLessThan(shader.fragmentShader.indexOf('#include <alphatest_fragment>'));
     expect(shader.fragmentShader).toContain(
@@ -137,6 +139,28 @@ describe('laid tyre rubber', () => {
     // Without the state texture the marks stay as before (no extra attribute).
     const plain = buildTyreMarks(t, new T.Group());
     expect(plain[0].geometry.getAttribute('trackUV')).toBeUndefined();
-    expect(studioHookKeys(plain[0].material as T.Material)).not.toContain('tyre-mark-water-v1');
+    expect(studioHookKeys(plain[0].material as T.Material)).not.toContain('tyre-mark-water-v2');
+  });
+  it('keeps the water lookup continuous for a mark across the start line', () => {
+    stubCanvas();
+    const t = track('aurel'),
+      state = new T.DataTexture(new Uint8Array(4), 1, 1);
+    const n = 25,
+      s = new Float32Array(n),
+      lateral = new Float32Array(n).fill(1.5),
+      alpha = new Float32Array(n).fill(0.5);
+    for (let k = 0; k < n; k++) s[k] = t.length - 14.4 + k * 1.2;
+    const [mesh] = buildTyreMarks(t, new T.Group(), [{ s, lateral, alpha }], state);
+    const uv = mesh.geometry.getAttribute('trackUV');
+    // V keeps rising through the seam (no quad interpolates across the whole
+    // lap) and wraps to the same lap fraction the road samples.
+    for (let i = 2; i < uv.count; i++) expect(uv.getY(i)).toBeGreaterThan(uv.getY(i - 2));
+    for (let i = 0; i < uv.count; i++) {
+      const lap = s[i >> 1] / t.length;
+      expect(uv.getY(i) - Math.floor(uv.getY(i))).toBeCloseTo(lap - Math.floor(lap), 5);
+    }
+    expect(uv.getY(0)).toBeLessThan(1);
+    expect(uv.getY(uv.count - 1)).toBeGreaterThan(1);
+    state.dispose();
   });
 });

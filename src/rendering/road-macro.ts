@@ -190,8 +190,8 @@ export const ROAD_REPAIR_GLSL = /* glsl */ `
 const vec3 apexSealantColour = vec3(${sealant.map(f).join(', ')});
 // x: repair coverage, y: repair albedo factor, z: seam coverage.
 vec3 apexRoadRepair(vec2 m, float lap) {
-  vec2 dm = fwidth(m);
-  float aa = max(max(dm.x, dm.y), 1e-4);
+  // Footprint per axis, taken before the per-cell early return.
+  vec2 dm = max(fwidth(m), vec2(1e-4));
   float cell = floor(m.y / ${f(ROAD_REPAIRS.cell)});
   if ((cell + 1.0) * ${f(ROAD_REPAIRS.cell)} > lap || apexRoadHash(vec2(cell, 20.5)) >= ${f(ROAD_REPAIRS.chance)})
     return vec3(0.0, 1.0, 0.0);
@@ -200,10 +200,17 @@ vec3 apexRoadRepair(vec2 m, float lap) {
   float halfWidth = mix(${f(ROAD_REPAIRS.halfWidth[0])}, ${f(ROAD_REPAIRS.halfWidth[1])}, apexRoadHash(vec2(cell, 23.5)));
   float centre = mix(${f(ROAD_REPAIRS.centre[0])}, ${f(ROAD_REPAIRS.centre[1])}, apexRoadHash(vec2(cell, 24.5)));
   float tone = mix(${f(ROAD_REPAIRS.tone[0])}, ${f(ROAD_REPAIRS.tone[1])}, apexRoadHash(vec2(cell, 25.5)));
-  float d = min(min(m.y - s0, s0 + len - m.y), min(m.x - centre + halfWidth, centre + halfWidth - m.x));
-  float seam = (1.0 - smoothstep(${f(ROAD_REPAIRS.seam)} - aa, ${f(ROAD_REPAIRS.seam)} + aa, abs(d)))
-    * (1.0 - smoothstep(0.04, 0.2, aa));
-  return vec3(smoothstep(-aa, aa, d), tone, seam);
+  float dy = min(m.y - s0, s0 + len - m.y), dx = min(m.x - centre + halfWidth, centre + halfWidth - m.x);
+  // Distance to the nearest cut and the pixel footprint across that cut:
+  // lateral for the long sides, along-track for the ends. An isotropic
+  // footprint smeared the long seams several pixels wide at grazing angles.
+  float d = min(dx, dy), fd = dx < dy ? dm.x : dm.y;
+  // Box-filtered fill and seam: the seam's exact pixel coverage, so it thins
+  // with distance instead of widening. The whole outline drops out together
+  // once the coarser footprint is far sub-pixel (no lone side dashes).
+  float seam = clamp((min(d + 0.5 * fd, ${f(ROAD_REPAIRS.seam)}) - max(d - 0.5 * fd, -${f(ROAD_REPAIRS.seam)})) / fd, 0.0, 1.0)
+    * (1.0 - smoothstep(0.04, 0.2, max(dm.x, dm.y)));
+  return vec3(clamp(d / fd + 0.5, 0.0, 1.0), tone, seam);
 }
 // Coverage of crack sealant at world position p (metres): a domain-warped
 // iso-line, broken into separate runs, inside sparse crack regions. Box-
