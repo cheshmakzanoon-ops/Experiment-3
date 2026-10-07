@@ -2,6 +2,11 @@ import * as T from 'three';
 import { installPointLightWork } from './point-light-work.ts';
 import { H } from '../simulation/protocol.ts';
 import { Track, trackPoint } from '../simulation/track.ts';
+import {
+  AERIAL_PERSPECTIVE_FRAGMENT,
+  AERIAL_PERSPECTIVE_PARS,
+  useAerialUniforms,
+} from './studio/aerial-perspective.ts';
 
 export interface FogPocket {
   x: number;
@@ -128,7 +133,10 @@ export function fogSegmentIntegral(pockets: readonly FogPocket[], from: T.Vector
 
 /** Analytic local height haze evaluated along the visible fragment's sightline.
  * This is depth-aware single-scattering-style attenuation, not a volumetric
- * shadow simulation. It has no meshes, new draw calls or independent weather. */
+ * shadow simulation. It has no meshes, new draw calls or independent weather.
+ * The same fog chunk carries the scene-wide aerial perspective
+ * (studio/aerial-perspective.ts) in place of three's FogExp2 term; the local
+ * pockets follow it unchanged. */
 export class LocalAtmosphere {
   readonly pockets: readonly FogPocket[];
   readonly sigma = { value: 0 };
@@ -190,6 +198,7 @@ export class LocalAtmosphere {
       shader.uniforms.apexFogVolumes = this.volumes;
       shader.uniforms.apexFogHeights = this.heights;
       shader.uniforms.apexFogFloors = this.floors;
+      useAerialUniforms(shader);
       shader.vertexShader = shader.vertexShader
         .replace(
           '#include <fog_pars_vertex>',
@@ -225,6 +234,9 @@ export class LocalAtmosphere {
         #include <fog_pars_fragment>
         #ifdef USE_FOG
           varying vec3 vApexFogWorld;
+        #endif
+        ${AERIAL_PERSPECTIVE_PARS}
+        #ifdef USE_FOG
           uniform float apexLocalSigma;
           uniform float apexLocalTailError;
           uniform vec4 apexFogVolumes[3];
@@ -278,7 +290,7 @@ export class LocalAtmosphere {
         .replace(
           '#include <fog_fragment>',
           `
-          #include <fog_fragment>
+          ${AERIAL_PERSPECTIVE_FRAGMENT}
           #ifdef USE_FOG
             if (apexLocalSigma > 0.) {
               vec3 apexRay = vApexFogWorld-cameraPosition;
@@ -294,7 +306,10 @@ export class LocalAtmosphere {
         );
     };
     material.customProgramCacheKey = () =>
-      key + '|apex-local-atmosphere-v4-vector-quadrature:' + position;
+      key +
+      '|apex-local-atmosphere-v4-vector-quadrature:' +
+      position +
+      '|apex-aerial-perspective-v1';
     material.needsUpdate = true;
   }
   diagnostics() {

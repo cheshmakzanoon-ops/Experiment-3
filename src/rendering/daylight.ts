@@ -3,6 +3,7 @@ import type { Sky } from 'three/addons/objects/Sky.js';
 import { FullScreenQuad } from 'three/addons/postprocessing/Pass.js';
 import { clamp, lerp, smooth } from '../core/math.ts';
 import { circuitLightColors } from './lighting-coherence.ts';
+import { aerialFogColor, setAerialPerspective } from './studio/aerial-perspective.ts';
 import {
   SKY_CLOUD_LIGHT,
   SKY_CLOUD_LIGHTING,
@@ -55,7 +56,7 @@ export function daylightState(cloud: number, rain: number) {
   if (![cloud, rain].every(Number.isFinite)) throw new Error('Non-finite daylight state');
   const cover = clamp(cloud, 0, 1),
     precipitation = clamp(rain, 0, 60),
-    storm = precipitation / 60;
+    fog = aerialFogColor(cover, precipitation, 'day');
   return {
     cover,
     sun: 3.9 * (1 - 0.94 * cover ** 1.45),
@@ -68,14 +69,25 @@ export function daylightState(cloud: number, rain: number) {
     // Normalize the analytic skydome before the shared scene tone map; keeping
     // its native radiance washed the entire clear sky and reflected paint white.
     skyRadiance: 0.28 + cover * 0.2,
-    // Clear-air aerial perspective stays blue rather than milky white; cloud
-    // and rain still thicken and grey it.
-    fogDensity: 0.000205 + cover * 0.00016 + precipitation * 0.000026,
-    fogRed: 0.5 - cover * 0.07 - storm * 0.06,
-    fogGreen: 0.61 - cover * 0.08 - storm * 0.055,
-    fogBlue: 0.77 - cover * 0.1 - storm * 0.045,
+    // P12 aerial perspective (studio/aerial-perspective.ts): FogExp2 density
+    // at the circuit datum, thinning with altitude in the fog chunk. Clear
+    // 0.00055 (26 % contrast loss at 1 km), overcast 0.0008, the 24 mm/h rain
+    // preset about 0.0017. The colour is the anti-sun haze #9db8d3, greying to
+    // overcast #c4cacd and rain #aeb5b8; the sun side adds its glow per view.
+    fogDensity: 0.00055 + cover * 0.00025 + precipitation * 0.0000375,
+    fogRed: fog[0],
+    fogGreen: fog[1],
+    fogBlue: fog[2],
   };
 }
+
+function fogChannels([fogRed, fogGreen, fogBlue]: readonly number[]) {
+  return { fogRed, fogGreen, fogBlue };
+}
+const sunsetFog = (cover: number, rain: number) =>
+  fogChannels(aerialFogColor(cover, clamp(rain, 0, 60), 'sunset'));
+const nightFog = (cover: number, rain: number) =>
+  fogChannels(aerialFogColor(cover, clamp(rain, 0, 60), 'night'));
 
 /** Shared circuit/night profile for the renderer and its evidence fixtures.
  * This is authored exposure, not a claim of calibrated real-world photometry.
@@ -103,9 +115,8 @@ export function circuitLightState(
       turbidity: 5.6 + light.cover * 3,
       skyRadiance: 0.26 + light.cover * 0.12,
       fogDensity: light.fogDensity * 1.18,
-      fogRed: 0.55 - light.cover * 0.11,
-      fogGreen: 0.37 + light.cover * 0.02,
-      fogBlue: 0.31 + light.cover * 0.06,
+      // Anti-sun dusk haze #7d84a0; the sun side glows #d9a27c (per view).
+      ...sunsetFog(light.cover, rain),
     });
   if (mode === 'night')
     Object.assign(light, {
@@ -119,9 +130,8 @@ export function circuitLightState(
       environment: 0.07 + light.cover * 0.01,
       exposure: 1.12 - clamp(rain, 0, 60) * 0.001,
       fogDensity: light.fogDensity * 0.75,
-      fogRed: 0.01 + light.cover * 0.002,
-      fogGreen: 0.014 + light.cover * 0.003,
-      fogBlue: 0.026 + light.cover * 0.002,
+      // Night haze #0e141c, a little lighter under cloud.
+      ...nightFog(light.cover, rain),
     });
   return light;
 }
@@ -575,8 +585,10 @@ export class SkyEnvironment {
       mode = lightingMode(value);
     if (!Number.isInteger(Math.log2(size)) || size < 16 || size > 1024)
       throw new Error('Invalid sky PMREM size');
-    // The visible dome's clouds (bakes only a missing bin panorama).
+    // The visible dome's clouds (bakes only a missing bin panorama) and the
+    // aerial perspective's sun-side glow for this cover and lighting.
     this.clouds?.prepare(renderer, plan.cover, mode);
+    setAerialPerspective(plan.cover, mode);
     this.probeRefreshNeeded = false;
     if (plan.cover === this.cover && mode === this.mode && size === this.size) return false;
     const resized = size !== this.size;
