@@ -2,6 +2,7 @@ import * as T from 'three';
 import { Pass, FullScreenQuad } from 'three/addons/postprocessing/Pass.js';
 import type { MotionBlur } from './motion-blur.ts';
 import { MOTION_BLUR, MOTION_VELOCITY_GLSL, createMotionUniforms } from './studio/velocity.ts';
+import { TemporalAA } from './studio/temporal-aa.ts';
 
 /** Scalable ambient obscurance tuning. World-space radius in metres; the screen
  * radius is clamped so a cockpit surface 30 cm from the eye cannot black out.
@@ -361,6 +362,8 @@ export class SceneAmbientPass extends Pass {
   frames = 0;
   private debugVelocity = false;
   private motion: MotionBlur | null = null;
+  /** Temporal anti-aliasing (`temporalAA`); one extra quad only while active. */
+  readonly temporal = new TemporalAA();
   private sun: T.DirectionalLight | null = null;
   private readonly sunDirection = new T.Vector3();
   private readonly sunTarget = new T.Vector3();
@@ -481,6 +484,7 @@ export class SceneAmbientPass extends Pass {
     this.compositeMaterial.uniforms.obscuranceResolution.value.set(small.width, small.height);
     this.compositeMaterial.uniforms.colorResolution.value.set(this.width, this.height);
     this.motion?.setSize(this.width, this.height);
+    this.temporal.setSize(this.width, this.height);
   }
   /** Test and QA oracle: the composite writes (streak uv, linear depth, geometry)
    * instead of colour. Needs a float output target. */
@@ -533,7 +537,20 @@ export class SceneAmbientPass extends Pass {
     try {
       renderer.autoClear = true;
       renderer.setRenderTarget(this.target);
-      renderer.render(this.scene, this.camera);
+      // High opt-in TAA: sub-pixel jitter for the scene draw only.
+      this.temporal.begin(this.camera, this.motion?.live ?? true);
+      try {
+        renderer.render(this.scene, this.camera);
+      } finally {
+        this.temporal.end(this.camera);
+      }
+      const depth = this.target.depthTexture!;
+      this.compositeMaterial.uniforms.tColor.value = this.temporal.resolve(
+        renderer,
+        this.camera,
+        this.target.texture,
+        depth,
+      );
       const occlude = this.ambientOcclusion;
       // The composite reconstructs depth for the motion blur even without AO.
       this.syncCamera();
@@ -574,6 +591,7 @@ export class SceneAmbientPass extends Pass {
       obscuranceHeight: this.obscurance.height,
       frames: this.frames,
       motionBlur: !!this.motion?.enabled,
+      temporalAA: this.temporal.diagnostics(),
     };
   }
   override dispose() {
@@ -585,5 +603,6 @@ export class SceneAmbientPass extends Pass {
     this.blurMaterial.dispose();
     this.compositeMaterial.dispose();
     this.quad.dispose();
+    this.temporal.dispose();
   }
 }

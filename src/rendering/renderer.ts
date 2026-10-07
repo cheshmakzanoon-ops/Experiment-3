@@ -738,7 +738,8 @@ export class RacingRenderer {
     this.fxaa.enabled = g.antialias && this.scenePass.samples === 0;
     this.scenePass.ambientOcclusion = g.ambientOcclusion;
     this.grade.enabled = g.filmGrade;
-    // Stored only: temporalAA (post-motion), lensEffects (post-lens), cockpitFov (camera-cockpit).
+    this.scenePass.temporal.enabled = g.temporalAA;
+    // Stored only: lensEffects (post-lens), cockpitFov (camera-cockpit).
     this.circuit.crowd.visible = g.crowd;
     this.applyVegetationDensity();
     this.effects.enabled = g.particleDensity > 0;
@@ -1288,7 +1289,7 @@ export class RacingRenderer {
         !menu && !studio && (presented[H.WATER] > 0.02 || wetReflection) ? 1 : 0,
       );
       this.drawLedger.mark('other');
-      this.motionBlur.setStrength(this.photo || menu ? 0 : this.graphics.motionBlur);
+      this.motionBlur.setStrength(this.graphics.motionBlur, !this.photo && !menu);
       this.motionBlur.prepareFrame(presented, this.camera, this.follow, cameraMode, replay);
       if (this.photoFocus?.enabled && this.photo) {
         // Optical-axis depth, rather than Euclidean distance, matches the depth shader.

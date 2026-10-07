@@ -24,18 +24,24 @@ export class MotionBlur {
   readonly field = new MotionField();
   readonly uniforms = this.field.uniforms;
   enabled = false;
+  /** A live view this frame (not menu, photo or a paused replay); TAA needs it. */
+  live = false;
   velocityFrames = 0;
   resets = 0;
   private amount = 0;
   private width = 1;
   private height = 1;
   private disposed = false;
+  private view = true;
   constructor(readonly supported: boolean) {}
-  setStrength(value: number) {
+  /** `value` is the settings shutter; `live` is false for menu and photo
+   * frames, which never streak (the setting itself is kept). */
+  setStrength(value: number, live = true) {
     const next = Number.isFinite(value) ? Math.max(0, Math.min(MOTION_BLUR.maxStrength, value)) : 0;
     if (next !== this.amount) this.reset();
     this.amount = next;
-    this.enabled = !this.disposed && this.supported && next > 0;
+    this.view = live;
+    this.enabled = !this.disposed && this.supported && next > 0 && live;
     if (!this.enabled) this.field.still();
   }
   /** Camera cut, seek or resize. Velocities carry no frame history, so there
@@ -65,7 +71,8 @@ export class MotionBlur {
     frameDt = studioUniforms.studioFrameDt.value,
   ) {
     const held = replay && !(frameDt > 0);
-    const model: MotionCamera = this.enabled && !held ? motionCameraFor(view) : 'still';
+    this.live = this.view && !held && motionCameraFor(view) !== 'still';
+    const model: MotionCamera = this.enabled && this.live ? motionCameraFor(view) : 'still';
     if (model === 'still') return this.field.still();
     this.field.update(presented, camera, follow, model, shutterSeconds(this.amount));
   }
