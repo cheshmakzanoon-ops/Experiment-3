@@ -164,3 +164,14 @@ it('runs inside the scene pass: jittered scene draw, one resolve quad, held fram
   pass.dispose();
   write.dispose();
 });
+
+it('clamps scene and history input to the HalfFloat range before the history blend', () => {
+  // compress(Inf) is NaN: an overflowed scene pixel must not enter the history.
+  const taa = new TemporalAA();
+  type Internals = { material: T.ShaderMaterial };
+  const glsl = (taa as unknown as Internals).material.fragmentShader;
+  expect(glsl).toContain('clamp(c, vec3(0.0), vec3(65000.0))');
+  expect(glsl).toContain('compress(finiteColor(texture2D(tColor, uv).rgb))');
+  expect(glsl).toContain('compress(finiteColor(sum / weight))');
+  taa.dispose();
+});

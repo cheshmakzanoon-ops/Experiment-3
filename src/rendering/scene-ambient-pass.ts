@@ -301,13 +301,16 @@ const compositeFragment = /* glsl */ `
   ${motionGather}
   void main() {
     vec4 color = texture2D(tColor, vUv);
-    float z = viewZAt(vUv);
     #ifdef MOTION_DEBUG_VELOCITY
       // Test oracle: unclamped streak (uv units), linear depth, geometry mask.
-      vec2 debugStreak = motionActive > 0.5 ? motionPixels(viewAtZ(vUv, z), colorResolution) : vec2(0.0);
-      gl_FragColor = vec4(debugStreak / colorResolution, -z, sceneDepth(vUv) < 0.99999 ? 1.0 : 0.0);
+      float debugZ = viewZAt(vUv);
+      vec2 debugStreak = motionActive > 0.5 ? motionPixels(viewAtZ(vUv, debugZ), colorResolution) : vec2(0.0);
+      gl_FragColor = vec4(debugStreak / colorResolution, -debugZ, sceneDepth(vUv) < 0.99999 ? 1.0 : 0.0);
       return;
     #endif
+    // Low (no AO, no blur) stays a plain copy: no depth read.
+    if (motionActive < 0.5 && enabled < 0.5) { gl_FragColor = color; return; }
+    float z = viewZAt(vUv);
     if (motionActive > 0.5)
       color.rgb = motionBlur(color.rgb, vUv, -z, motionPixels(viewAtZ(vUv, z), colorResolution), colorResolution);
     if (enabled < 0.5) { gl_FragColor = color; return; }
@@ -506,7 +509,7 @@ export class SceneAmbientPass extends Pass {
     else delete this.compositeMaterial.defines.MOTION_DEBUG_VELOCITY;
     this.compositeMaterial.needsUpdate = true;
   }
-  private syncCamera() {
+  private syncCamera(shadows: boolean) {
     for (const m of [this.obscuranceMaterial, this.blurMaterial, this.compositeMaterial]) {
       m.uniforms.cameraNear.value = this.camera.near;
       m.uniforms.cameraFar.value = this.camera.far;
@@ -533,8 +536,10 @@ export class SceneAmbientPass extends Pass {
       smoothstep(-0.02, 0.06, elevation);
     u.sunRatio.value = CONTACT_SUN.ratioPerIntensity * sun.intensity * strength;
     u.sunView.value.copy(this.sunDirection).transformDirection(this.camera.matrixWorldInverse);
-    // The key light's shadow map, rendered by this frame's scene draw.
-    const map = sun.castShadow ? sun.shadow.map?.texture : undefined;
+    // The key light's shadow map, rendered by this frame's scene draw. With
+    // shadow mapping off (shadowSize 0) the scene has no sun shadows, and a
+    // map left from an earlier quality is stale: every pixel counts as lit.
+    const map = shadows && sun.castShadow ? sun.shadow.map?.texture : undefined;
     u.sunShadowed.value = map ? 1 : 0;
     u.sunShadowMap.value = map ?? null;
     if (map) {
@@ -565,7 +570,7 @@ export class SceneAmbientPass extends Pass {
       );
       const occlude = this.ambientOcclusion;
       // The composite reconstructs depth for the motion blur even without AO.
-      this.syncCamera();
+      this.syncCamera(renderer.shadowMap?.enabled !== false);
       if (occlude) {
         this.quad.material = this.obscuranceMaterial;
         renderer.setRenderTarget(this.obscurance);

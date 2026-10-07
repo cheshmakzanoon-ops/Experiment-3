@@ -126,7 +126,6 @@ export class MotionField {
   readonly uniforms = createMotionUniforms();
   /** Last applied model, for diagnostics. */
   camera: MotionCamera = 'still';
-  cars = 0;
   private readonly prevCars = Array.from({ length: STUDIO_MAX_CARS }, () => new T.Matrix4());
   private readonly relative = Array.from({ length: STUDIO_MAX_CARS }, () => new T.Matrix4());
   private readonly position = new T.Vector3();
@@ -168,7 +167,6 @@ export class MotionField {
     const cars = Math.max(0, Math.min(STUDIO_MAX_CARS, Math.floor(count)));
     if (model === 'still' || !(shutter > 0) || !Number.isFinite(shutter)) return this.still();
     this.camera = model;
-    this.cars = cars;
     const cameraWorld = camera.matrixWorld;
     // Each car's chassis at shutter-open, and the rigid map now → shutter-open.
     for (let id = 0; id < cars; id++) {

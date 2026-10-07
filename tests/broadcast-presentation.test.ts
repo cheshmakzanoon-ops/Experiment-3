@@ -221,6 +221,39 @@ describe('ground-truth ambient occlusion and sun contact shadows', () => {
     pass.dispose();
     write.dispose();
   });
+  it('ignores a stale key-light map while shadow mapping is off', () => {
+    const camera = new T.PerspectiveCamera(50, 16 / 9, 0.045, 7000);
+    camera.updateMatrixWorld(true);
+    const sun = new T.DirectionalLight(0xffffff, 3.9);
+    sun.position.set(-140, 235, -115);
+    sun.castShadow = true;
+    sun.updateMatrixWorld(true);
+    sun.target.updateMatrixWorld(true);
+    // A map left from an earlier quality; shadowSize 0 stops updating it.
+    sun.shadow.map = new T.WebGLRenderTarget(1024, 1024);
+    const pass = new SceneAmbientPass(new T.Scene(), camera, 2, null, sun);
+    type Internals = { obscuranceMaterial: T.ShaderMaterial };
+    const uniforms = (pass as unknown as Internals).obscuranceMaterial.uniforms;
+    const renderer = {
+      autoClear: true,
+      shadowMap: { enabled: false },
+      setRenderTarget: () => {},
+      render: () => {},
+    };
+    const write = new T.WebGLRenderTarget(4, 4);
+    pass.render(renderer as unknown as T.WebGLRenderer, write);
+    // The scene has no sun shadows: every pixel is lit and keeps its contact shadow.
+    expect(uniforms.sunShadowed.value).toBe(0);
+    expect(uniforms.sunShadowMap.value).toBeNull();
+    expect(uniforms.sunRatio.value).toBeCloseTo(CONTACT_SUN.ratioPerIntensity * 3.9, 9);
+    renderer.shadowMap.enabled = true;
+    pass.render(renderer as unknown as T.WebGLRenderer, write);
+    expect(uniforms.sunShadowed.value).toBe(1);
+    expect(uniforms.sunShadowMap.value).toBe(sun.shadow.map.texture);
+    sun.shadow.map.dispose();
+    pass.dispose();
+    write.dispose();
+  });
 });
 
 describe('late scene hook (vfx soft particles)', () => {

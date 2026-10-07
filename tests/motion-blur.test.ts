@@ -2,7 +2,7 @@ import { expect, it, vi } from 'vitest';
 import * as T from 'three';
 import { MotionBlur } from '../src/rendering/motion-blur.ts';
 import { graphicsPreset } from '../src/rendering/options.ts';
-import { SceneAmbientPass } from '../src/rendering/scene-ambient-pass.ts';
+import { SCENE_AMBIENT_GLSL, SceneAmbientPass } from '../src/rendering/scene-ambient-pass.ts';
 import {
   MOTION_BLUR,
   MotionField,
@@ -273,4 +273,15 @@ it('gathers inside the existing composite: no extra draw, AO on or off', () => {
   expect(blur.diagnostics().velocityFrames).toBe(2);
   pass.dispose();
   write.dispose();
+});
+it('keeps the Low composite a plain copy: no depth read without blur or AO', () => {
+  const glsl = SCENE_AMBIENT_GLSL.composite;
+  const copy = glsl.indexOf('if (motionActive < 0.5 && enabled < 0.5) { gl_FragColor = color; return; }');
+  expect(copy).toBeGreaterThan(0);
+  // The only depth reads (the gather's and the AO upsample's) come after the early out.
+  const debug = glsl.indexOf('#endif', glsl.indexOf('#ifdef MOTION_DEBUG_VELOCITY'));
+  const reads = [...glsl.matchAll(/viewZAt\(/g)].map((m) => m.index!);
+  const main = glsl.indexOf('void main()');
+  for (const at of reads.filter((i) => i > debug && i > main)) expect(at).toBeGreaterThan(copy);
+  expect(glsl.indexOf('float z = viewZAt(vUv);')).toBeGreaterThan(copy);
 });

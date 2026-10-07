@@ -80,7 +80,9 @@ const fragment = /* glsl */ `
   // Luminance-weighted (Karis) space: bright speculars cannot dominate the blend.
   vec3 compress(vec3 c) { return c / (1.0 + max(c.r, max(c.g, c.b))); }
   vec3 expand(vec3 c) { return c / max(1.0 - max(c.r, max(c.g, c.b)), 1e-4); }
-  vec3 sampleCurrent(vec2 uv) { return toYCoCg(compress(max(texture2D(tColor, uv).rgb, vec3(0.0)))); }
+  // Clamped to the HalfFloat range: compress(Inf) is NaN, which would reach the history.
+  vec3 finiteColor(vec3 c) { return clamp(c, vec3(0.0), vec3(65000.0)); }
+  vec3 sampleCurrent(vec2 uv) { return toYCoCg(compress(finiteColor(texture2D(tColor, uv).rgb))); }
   // Five-tap Catmull-Rom history fetch (sharper than bilinear, no ringing past the clip).
   vec3 sampleHistory(vec2 uv) {
     vec2 position = uv * resolution;
@@ -98,7 +100,7 @@ const fragment = /* glsl */ `
       + texture2D(tHistory, vec2(t3.x, t12.y)).rgb * (w3.x * w12.y)
       + texture2D(tHistory, vec2(t12.x, t3.y)).rgb * (w12.x * w3.y);
     float weight = w12.x * w0.y + w0.x * w12.y + w12.x * w12.y + w3.x * w12.y + w12.x * w3.y;
-    return toYCoCg(compress(max(sum / weight, vec3(0.0))));
+    return toYCoCg(compress(finiteColor(sum / weight)));
   }
   vec2 previousUv(vec2 uv, float depth) {
     float z = perspectiveDepthToViewZ(depth, cameraNear, cameraFar);
