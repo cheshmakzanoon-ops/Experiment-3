@@ -364,6 +364,17 @@ export class SceneAmbientPass extends Pass {
   private motion: MotionBlur | null = null;
   /** Temporal anti-aliasing (`temporalAA`); one extra quad only while active. */
   readonly temporal = new TemporalAA();
+  /**
+   * Late scene layer (vfx soft particles): called after the scene draw, with the
+   * same (TAA-jittered) camera, before AO, TAA resolve and the composite. Draw
+   * into `target` with `autoClear` off. With multisampling the scene's depth is
+   * already resolved into `depth`, which can be sampled while drawing (no
+   * feedback loop); without it (Low) `depth` is the attachment itself and must
+   * not be sampled. Disable the shadow map update for any extra `render` call.
+   */
+  lateScene:
+    | ((renderer: T.WebGLRenderer, target: T.WebGLRenderTarget, depth: T.DepthTexture) => void)
+    | null = null;
   private sun: T.DirectionalLight | null = null;
   private readonly sunDirection = new T.Vector3();
   private readonly sunTarget = new T.Vector3();
@@ -541,6 +552,7 @@ export class SceneAmbientPass extends Pass {
       this.temporal.begin(this.camera, this.motion?.live ?? true);
       try {
         renderer.render(this.scene, this.camera);
+        this.lateScene?.(renderer, this.target, this.target.depthTexture!);
       } finally {
         this.temporal.end(this.camera);
       }

@@ -222,3 +222,29 @@ describe('ground-truth ambient occlusion and sun contact shadows', () => {
     write.dispose();
   });
 });
+
+describe('late scene hook (vfx soft particles)', () => {
+  it('runs once after the scene draw, before the obscurance quads, with the resolved depth', () => {
+    const scene = new T.Scene();
+    const camera = new T.PerspectiveCamera(50, 16 / 9, 0.1, 1000);
+    const pass = new SceneAmbientPass(scene, camera, 2);
+    pass.setSize(64, 36);
+    const order: string[] = [];
+    const renderer = {
+      autoClear: false,
+      setRenderTarget: () => {},
+      render: (object: unknown) => order.push(object === scene ? 'scene' : 'quad'),
+    } as unknown as T.WebGLRenderer;
+    const seen: unknown[] = [];
+    pass.lateScene = (r, target, depth) => {
+      order.push('late');
+      seen.push(r, target, depth);
+    };
+    const write = new T.WebGLRenderTarget(4, 4);
+    pass.render(renderer, write);
+    expect(order).toEqual(['scene', 'late', 'quad', 'quad', 'quad', 'quad']);
+    expect(seen).toEqual([renderer, pass.target, pass.target.depthTexture]);
+    pass.dispose();
+    write.dispose();
+  });
+});
