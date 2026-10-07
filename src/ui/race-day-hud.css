@@ -35,10 +35,10 @@
   transform: none;
   width: var(--rd-cluster);
   display: block;
-  border: 1px solid #586a7044;
-  border-top: 2px solid #d5aa72;
-  background: #10191eef;
-  box-shadow: none;
+  border: 0;
+  border-radius: var(--hud-radius);
+  background: var(--hud-panel);
+  box-shadow: inset 0 0 0 1.5px var(--hud-stroke);
 }
 .hud[data-race-day] .rev-lights {
   padding: 8px 12px 3px;
@@ -113,9 +113,10 @@
   overflow-wrap: anywhere;
 }
 .hud[data-race-day] .vehicle-alert {
-  background: #472a19;
+  background: rgba(30, 20, 8, 0.9);
   color: #ffe2ba;
-  border-bottom: 1px solid #b97745;
+  border-radius: 6px;
+  box-shadow: inset 0 0 0 1px rgba(240, 160, 32, 0.7);
 }
 .hud[data-race-day] .timing {
   top: 76px;
@@ -201,15 +202,17 @@
   overflow: auto;
   pointer-events: auto;
   z-index: 7;
-  background: #111d24fa;
-  border: 1px solid #66767f;
+  background: var(--hud-panel);
+  border: 0;
+  border-radius: var(--hud-radius);
+  box-shadow: inset 0 0 0 1.5px var(--hud-stroke);
 }
 .hud[data-race-day][data-vehicle-open='false'] .car-status {
   display: none;
 }
 .hud[data-race-day] .vehicle-tabs {
   display: flex;
-  border-bottom: 1px solid #66767f;
+  border-bottom: 1px solid var(--hud-hair);
 }
 .hud[data-race-day] .vehicle-tabs button {
   flex: 1;
@@ -221,8 +224,8 @@
   background: transparent;
 }
 .hud[data-race-day] .vehicle-tabs button[aria-selected='true'] {
-  border-bottom-color: #d5aa72;
-  color: #f6d5a5;
+  border-bottom-color: var(--hud-text);
+  color: #fff;
 }
 .hud[data-race-day] .vehicle-readings {
   padding: 12px;
@@ -236,7 +239,7 @@
 }
 .hud[data-race-day] .vehicle-readings dt {
   font-size: calc(9px * var(--ui-scale));
-  color: #b2c0c6;
+  color: var(--hud-text-dim);
 }
 .hud[data-race-day] .vehicle-readings dd {
   font-size: calc(11px * var(--ui-scale));
@@ -353,10 +356,16 @@ html[data-high-contrast='true']
     transform: none;
   }
 }
+/* The action bar must not sit over the road while racing (it used to win at
+   80 % over the in-race restraint rule). Driving and held/paused frames hide it;
+   hover or keyboard focus brings it back; replay and results keep it. */
 .hud[data-race-day] .hud-actions {
-  opacity: 0.8;
+  opacity: 1;
 }
-.hud[data-race-day] .hud-actions:focus-within,
-.hud[data-race-day] .hud-actions:hover {
+:is([data-mode='driving'], [data-mode='paused']) .hud[data-race-day] .hud-actions {
+  opacity: 0;
+}
+:is([data-mode='driving'], [data-mode='paused']) .hud[data-race-day] .hud-actions:focus-within,
+:is([data-mode='driving'], [data-mode='paused']) .hud[data-race-day] .hud-actions:hover {
   opacity: 1;
 }

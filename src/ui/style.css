@@ -367,13 +367,6 @@ h1 {
   align-items: center;
   gap: 30px;
 }
-.hud-top:before {
-  content: '';
-  position: absolute;
-  z-index: -1;
-  inset: -20px -26px -40px;
-  background: linear-gradient(#0d171ccc, transparent);
-}
 .session-status {
   margin: auto;
   display: flex;
@@ -2535,6 +2528,47 @@ html[data-colorblind='true'] #flag[data-flag='4']::before {
   --apex-blue: #4d7dff;
   --apex-cut: 12px;
   --accent: var(--apex-flame);
+  /* Race HUD tokens (Art Bible B 0.3): F1-style surfaces and timing semantics. */
+  --hud-panel: rgba(14, 16, 22, 0.86);
+  --hud-panel-head: rgba(9, 10, 15, 0.92);
+  --hud-panel-2: rgba(42, 44, 52, 0.62);
+  --hud-stroke: rgba(214, 218, 226, 0.55);
+  --hud-hair: rgba(255, 255, 255, 0.1);
+  --hud-radius: 8px;
+  --hud-text: #f4f5f7;
+  --hud-text-dim: #9a9ea8;
+  --hud-player-row: rgba(150, 156, 172, 0.62);
+  --hud-player-text: #1c1f27;
+  --t-purple: #b418cc;
+  --t-green: #19c23b;
+  --t-yellow: #e4c030;
+  --t-red: #e0182a;
+  --ers-hi: #e4f084;
+  --ers-lo: #9cc054;
+  --ers-status: #e8b06a;
+  --drs-on: #a6e04a;
+  --pit-cyan: #54e4f0;
+  --obj-purple: #b454fc;
+  --obj-yellow: rgba(216, 216, 112, 0.38);
+  --light-red: #f00c0c;
+  --rev-green: #22d44a;
+  --rev-red: #ff2a2a;
+  --rev-blue: #3d6bff;
+  --flag-yellow: #ffd21f;
+  --flag-blue: #2f6bff;
+  --fe-accent: #fc4854;
+  --fe-income: #58e06a;
+  --fe-outgoing: #fc4854;
+  --fe-warn: #f0fc0c;
+  --dept-engineering: #a8fccc;
+  --dept-personnel: #a884cc;
+  /* Compound colours: installF1Hud overwrites these from COMPOUNDS.color, so
+     the tower rings and the car sidewalls can never disagree. */
+  --tyre-soft: #e5313d;
+  --tyre-medium: #f5c518;
+  --tyre-hard: #f2f2f2;
+  --tyre-intermediate: #43b047;
+  --tyre-wet: #1f8fe0;
   font-family: var(--font-display);
   color: var(--apex-text);
   background: var(--apex-ink);
@@ -2809,137 +2843,144 @@ h1 {
   letter-spacing: 0;
 }
 
-/* ---------- Race HUD: shared surfaces ---------- */
+/* ---------- Race HUD: shared surfaces ----------
+   F1-style broadcast language: upright wide type, rounded glass panels with a
+   thin light outline, and colour only where it carries timing meaning. No
+   italics, skews or flame accents anywhere in the race HUD. The desktop
+   geometry (binocular cluster, tower v2, sector panel, dock) is in
+   f1-hud.css, injected by installF1Hud; this layer is the shared look that the
+   compact drawer and DOM fixtures also see. */
 .hud {
   font-family: var(--font-display);
   font-variant-numeric: tabular-nums;
+  font-style: normal;
 }
-.hud-top:before {
-  background: linear-gradient(rgba(4, 6, 9, 0.72), transparent);
+.hud .brand {
+  font-style: normal;
+  font-weight: 800;
+}
+.hud .brand span {
+  border-left-color: var(--hud-stroke);
 }
 .hud .timing,
 .hud .lap-panel,
 .hud .car-status,
-.hud .instruments,
-.replay-bar {
-  background: linear-gradient(160deg, rgba(20, 25, 32, 0.8), var(--apex-glass) 40%);
-  -webkit-backdrop-filter: blur(10px) saturate(1.3);
-  backdrop-filter: blur(10px) saturate(1.3);
+.hud .instruments {
+  background: var(--hud-panel);
+  border-radius: var(--hud-radius);
   box-shadow:
-    inset 0 1px 0 var(--apex-edge),
+    inset 0 0 0 1px var(--hud-hair),
+    0 14px 34px -18px rgba(0, 0, 0, 0.6);
+}
+.replay-bar {
+  background: var(--hud-panel);
+  -webkit-backdrop-filter: blur(10px) saturate(1.2);
+  backdrop-filter: blur(10px) saturate(1.2);
+  border: 0;
+  border-radius: var(--hud-radius);
+  box-shadow:
+    inset 0 0 0 1.5px var(--hud-stroke),
     0 18px 40px -18px rgba(0, 0, 0, 0.65);
 }
 .panel-heading {
   font-family: var(--font-display);
-  font-style: italic;
   font-weight: 800;
   font-stretch: 112%;
-  letter-spacing: 0.18em;
-  color: #fff;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  letter-spacing: 0.08em;
+  color: var(--hud-text);
+  border-bottom: 1px solid var(--hud-hair);
 }
 .panel-heading > span {
-  font-style: normal;
-  letter-spacing: 0.18em;
-  color: var(--apex-flame-hot);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: var(--hud-text-dim);
 }
 .hud .timing .panel-heading {
   /* Opaque: a translucent sticky header over a filtered scroller stops Chromium
      routing keyboard scrolling to the classification list. */
-  background: linear-gradient(100deg, #5b2618, #0c0f14 60%);
+  background: #0b0c11;
 }
 
-/* Session strip */
+/* Session strip (compact header; hidden on the desktop F1 layout) */
 .session-status {
   gap: 0;
   font-family: var(--font-display);
-  font-weight: 700;
-  font-stretch: 108%;
-  letter-spacing: 0.16em;
+  font-weight: 500;
+  font-stretch: 112%;
+  letter-spacing: 0.04em;
 }
 .session-status > span {
-  padding: 8px 16px;
-  background: var(--apex-glass);
-  color: rgba(255, 255, 255, 0.86);
+  padding: 8px 14px;
+  background: var(--hud-panel);
+  color: var(--hud-text);
 }
 .session-status > #lapLabel {
-  font-style: italic;
   font-weight: 800;
-  color: #fff;
-  clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%);
-  padding-left: 22px;
+  border-radius: var(--hud-radius) 0 0 var(--hud-radius);
 }
 .session-status > #weatherLabel {
-  clip-path: polygon(0 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
-  padding-right: 24px;
-  font-weight: 600;
+  border-radius: 0 var(--hud-radius) var(--hud-radius) 0;
+  color: var(--hud-text-dim);
 }
 .session-status > b {
-  padding: 8px 18px;
-  font-style: italic;
-  font-weight: 900;
+  padding: 8px 14px;
+  font-weight: 800;
   font-stretch: 112%;
-  letter-spacing: 0.18em;
-  background: var(--apex-green);
-  color: #03170b;
-  box-shadow: 0 0 22px -4px rgba(43, 234, 127, 0.6);
+  letter-spacing: 0.06em;
+  background: var(--t-green);
+  color: #04140a;
 }
-.session-status > b[data-flag='1'] {
-  background: var(--apex-yellow);
+.session-status > b[data-flag='1'],
+.session-status > b[data-flag='3'] {
+  background: var(--flag-yellow);
   color: #1d1600;
-  box-shadow: 0 0 22px -4px rgba(255, 210, 31, 0.65);
 }
 .session-status > b[data-flag='2'] {
-  background: #fff;
+  background: var(--hud-text);
   color: #0a0c10;
 }
-.session-status > b[data-flag='3'] {
-  background: var(--apex-yellow);
-  color: #1d1600;
-}
 .session-status > b[data-flag='4'] {
-  background: var(--apex-blue);
+  background: var(--flag-blue);
   color: #fff;
 }
 .icon-button {
-  background: var(--apex-glass);
-  border-color: rgba(255, 255, 255, 0.16);
-  clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%);
+  background: var(--hud-panel);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 6px;
 }
 .race-message {
   font-family: var(--font-display);
-  font-style: italic;
-  font-weight: 800;
-  font-stretch: 110%;
-  letter-spacing: 0.16em;
-  padding: 5px 18px;
-  background: linear-gradient(90deg, transparent, rgba(6, 8, 11, 0.8) 18%, rgba(6, 8, 11, 0.8) 82%, transparent);
+  font-weight: 700;
+  font-stretch: 108%;
+  letter-spacing: 0.06em;
+  padding: 6px 16px;
+  background: var(--hud-panel);
+  border-radius: var(--hud-radius);
+  box-shadow: inset 0 0 0 1px var(--hud-hair);
   text-shadow: none;
 }
 
-/* Position badge */
+/* Position badge (compact header) */
 .position-badge {
   display: flex;
   align-items: baseline;
   gap: 4px;
-  padding: 2px 16px 2px 12px;
-  background: #fff;
-  color: #07090c;
-  clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
-  font-style: italic;
+  padding: 2px 12px;
+  background: var(--hud-panel);
+  color: var(--hud-text);
+  border-radius: var(--hud-radius);
+  box-shadow: inset 0 0 0 1.5px var(--hud-stroke);
   line-height: 1;
 }
 .position-badge b {
   font-size: 30px;
-  font-weight: 900;
-  font-stretch: 118%;
-  letter-spacing: -0.02em;
+  font-weight: 800;
+  font-stretch: 125%;
 }
 .position-badge span {
   font-size: 12px;
-  font-weight: 800;
-  color: #59616b;
-  letter-spacing: 0.04em;
+  font-weight: 500;
+  color: var(--hud-text-dim);
 }
 
 /* Classification tower */
@@ -2947,248 +2988,240 @@ h1 {
   /* The keyboard-scrollable list keeps a plain translucent surface. */
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
-  background: rgba(8, 11, 15, 0.84);
   border-top: 0;
-  box-shadow:
-    inset 3px 0 0 var(--apex-flame),
-    inset 0 1px 0 var(--apex-edge),
-    0 18px 40px -18px rgba(0, 0, 0, 0.65);
 }
 .tower-row {
   gap: 9px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.045);
+  border-bottom: 1px solid var(--hud-hair);
   font-family: var(--font-display);
-}
-.tower-row:nth-child(even) {
-  background: rgba(255, 255, 255, 0.022);
 }
 .tower-row > b {
   font-family: var(--font-display);
-  font-style: italic;
-  font-weight: 800;
+  font-weight: 400;
   font-stretch: 112%;
   font-size: 13px;
-  color: #fff;
+  color: #c8ccd4;
   min-width: 22px;
-  text-align: center;
+  text-align: right;
 }
 .tower-row > i {
-  width: 4px;
+  width: 2px;
   height: 16px;
-  transform: skewX(-18deg);
 }
 .tower-row > span {
-  font-weight: 700;
-  font-stretch: 106%;
+  font-weight: 500;
+  font-stretch: 112%;
   font-size: 11px;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.02em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--hud-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tower-row > em {
+  order: 1;
+  margin-left: auto;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  border: 1.5px solid var(--tyre, var(--tyre-medium));
+  font-style: normal;
+  font-size: 8px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--hud-text);
 }
 .tower-row > small {
-  font-weight: 600;
+  order: 2;
+  margin-left: 0;
+  min-width: 50px;
+  text-align: right;
+  font-weight: 500;
   font-size: 10px;
-  letter-spacing: 0.08em;
-  color: var(--apex-dim);
+  letter-spacing: 0.02em;
+  color: var(--hud-text);
+}
+.tower-row > u {
+  order: 3;
+  display: none;
 }
 .tower-row.player {
-  background: linear-gradient(90deg, var(--apex-flame), #d9361f);
-  color: #fff;
+  background: var(--hud-player-row);
+  color: var(--hud-player-text);
 }
-.tower-row.player > b,
-.tower-row.player > span,
-.tower-row.player > small {
-  color: #fff;
+.tower-row.player > :is(b, span, small, em) {
+  color: var(--hud-player-text);
 }
-.tower-row.player > i {
-  background: #fff !important;
+.tower-row[data-fastest] {
+  background: var(--t-purple);
+}
+.tower-row[data-fastest] > :is(b, span, small, em) {
+  color: #fff;
 }
 
 /* Lap timing panel */
 .hud .lap-panel {
   border-top: 0;
-  box-shadow:
-    inset 0 3px 0 rgba(255, 255, 255, 0.85),
-    inset 0 1px 0 var(--apex-edge),
-    0 18px 40px -18px rgba(0, 0, 0, 0.65);
 }
 .lap-panel label {
-  font-weight: 700;
-  font-stretch: 100%;
-  letter-spacing: 0.18em;
-  color: var(--apex-dim);
+  font-weight: 500;
+  font-stretch: 112%;
+  letter-spacing: 0.04em;
+  color: var(--hud-text-dim);
 }
 .lap-panel b {
   font-family: var(--font-data);
-  font-style: italic;
-  font-weight: 800;
+  font-weight: 500;
   font-stretch: 112%;
   letter-spacing: 0;
-  color: #fff;
+  color: var(--hud-text);
 }
 .lap-panel span {
   font-family: var(--font-data);
-  font-weight: 700;
+  font-weight: 500;
   font-stretch: 108%;
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.92);
+  color: var(--hud-text);
 }
 #lapDelta {
-  font-style: italic;
   font-weight: 800;
   padding: 1px 8px;
+  border-radius: 3px;
 }
 #lapDelta[data-ahead='true'] {
-  color: #03170b;
-  background: var(--apex-green);
+  color: #fff;
+  background: repeating-linear-gradient(135deg, #009c00 0 6px, #006000 6px 12px);
 }
 #lapDelta[data-ahead='false'] {
   color: #fff;
-  background: rgba(255, 45, 58, 0.85);
+  background: repeating-linear-gradient(135deg, #c4141e 0 6px, #7a0a12 6px 12px);
 }
 #lapDelta[data-ahead='none'] {
-  color: var(--apex-dim);
+  color: var(--hud-text-dim);
   background: transparent;
 }
 #lapDeltaLabel {
   font-style: normal;
 }
 
-/* Telemetry blade */
+/* Telemetry (compact blade; the desktop binocular cluster is in f1-hud.css) */
 .hud .instruments {
   border-bottom: 0;
-  box-shadow:
-    inset 0 -3px 0 var(--apex-flame),
-    inset 0 1px 0 var(--apex-edge),
-    0 22px 48px -20px rgba(0, 0, 0, 0.75);
 }
 .rev-lights {
-  gap: 5px;
+  gap: 4px;
 }
 .rev-lights i {
   height: 4px;
-  background: rgba(255, 255, 255, 0.08);
-  transform: skewX(-28deg);
+  border-radius: 2px;
+  background: #2a2d36;
 }
 .rev-lights .lit {
-  background: var(--apex-green);
-  box-shadow: 0 0 10px rgba(43, 234, 127, 0.75);
+  background: var(--rev-green);
+  box-shadow: 0 0 6px rgba(34, 212, 74, 0.7);
 }
-.rev-lights .lit:nth-child(n + 9) {
-  background: var(--apex-red);
-  box-shadow: 0 0 10px rgba(255, 45, 58, 0.8);
+.rev-lights .lit:nth-child(n + 6) {
+  background: var(--rev-red);
+  box-shadow: 0 0 6px rgba(255, 42, 42, 0.75);
 }
-.rev-lights .lit:nth-child(n + 13) {
-  background: var(--apex-blue);
-  box-shadow: 0 0 12px rgba(77, 125, 255, 0.9);
-}
-.rev-lights .lit:nth-child(n + 15) {
-  background: #d7c2ff;
-  box-shadow: 0 0 14px rgba(180, 92, 255, 0.95);
+.rev-lights .lit:nth-child(n + 11),
+.rev-lights[data-limiter='on'] .lit {
+  background: var(--rev-blue);
+  box-shadow: 0 0 8px rgba(61, 107, 255, 0.85);
 }
 .dash-main b {
   font-family: var(--font-data);
-  font-style: italic;
   font-weight: 800;
-  font-stretch: 115%;
+  font-stretch: 125%;
 }
 .dash-main span {
-  font-weight: 700;
-  letter-spacing: 0.24em;
-  color: var(--apex-dim);
+  font-weight: 500;
+  font-stretch: 112%;
+  letter-spacing: 0.04em;
+  color: var(--hud-text-dim);
 }
 .gear {
-  border-right: 0;
-  background: #fff;
-  color: #07090c;
+  border-right: 1px solid var(--hud-hair);
   padding: 0 14px 0 12px;
   align-self: stretch;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  clip-path: polygon(7px 0, 100% 0, calc(100% - 7px) 100%, 0 100%);
 }
 .gear > b {
-  color: #07090c;
-  font-weight: 900;
-}
-.gear > span {
-  color: #59616b !important;
+  color: var(--hud-text);
+  font-weight: 800;
 }
 .speed > b {
   color: #fff;
-  letter-spacing: -0.02em;
-  text-shadow: 0 0 24px rgba(255, 255, 255, 0.12);
+  letter-spacing: 0;
 }
 .engine b {
   font-weight: 700;
-  font-stretch: 108%;
-  color: rgba(255, 255, 255, 0.92);
+  font-stretch: 112%;
+  color: var(--hud-text);
 }
 .engine strong {
   display: inline-block;
   padding: 2px 8px;
-  font-weight: 800;
-  font-style: italic;
-  letter-spacing: 0.16em;
-  color: #1d1600;
-  background: var(--apex-yellow);
-  clip-path: polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%);
+  border-radius: 4px;
+  font-weight: 600;
+  font-stretch: 112%;
+  letter-spacing: 0.06em;
+  color: var(--ers-status);
+  box-shadow: inset 0 0 0 1px rgba(232, 176, 106, 0.45);
 }
 .engine strong[data-mode='HARVEST'] {
-  background: var(--apex-blue);
-  color: #fff;
+  color: var(--ers-lo);
+  box-shadow: inset 0 0 0 1px rgba(156, 192, 84, 0.5);
 }
 .engine strong[data-mode='ATTACK'] {
-  background: var(--apex-purple);
-  color: #fff;
+  color: #ff6b6b;
+  box-shadow: inset 0 0 0 1px rgba(224, 24, 42, 0.6);
 }
 .pedals label,
 .resources label {
-  font-weight: 700;
-  letter-spacing: 0.16em;
-  color: var(--apex-dim);
+  font-weight: 500;
+  font-stretch: 112%;
+  letter-spacing: 0.04em;
+  color: var(--hud-text-dim);
 }
 .meter {
   height: 4px;
+  border-radius: 2px;
   background: rgba(255, 255, 255, 0.09);
-  transform: skewX(-24deg);
 }
 .meter i {
-  background: var(--apex-green);
-  box-shadow: 0 0 8px rgba(43, 234, 127, 0.55);
+  border-radius: 2px;
+  background: var(--t-green);
 }
 #brakeBar {
-  background: var(--apex-red);
-  box-shadow: 0 0 8px rgba(255, 45, 58, 0.6);
+  background: var(--rev-red);
 }
 #batteryBar {
-  background: linear-gradient(90deg, #ffb01f, var(--apex-yellow));
-  box-shadow: 0 0 8px rgba(255, 210, 31, 0.55);
+  background: linear-gradient(90deg, var(--ers-lo), var(--ers-hi));
 }
 .resources {
-  border-color: rgba(255, 255, 255, 0.08) !important;
+  border-color: var(--hud-hair) !important;
 }
 .resources b {
   font-family: var(--font-data);
-  font-style: italic;
   font-weight: 800;
-  font-stretch: 110%;
+  font-stretch: 112%;
   color: #fff;
 }
 
 /* Vehicle state */
-.hud .car-status {
-  box-shadow:
-    inset 0 3px 0 rgba(255, 255, 255, 0.18),
-    inset 0 1px 0 var(--apex-edge),
-    0 18px 40px -18px rgba(0, 0, 0, 0.65);
-}
 .tires > div {
   border-left: 0;
   padding: 6px 8px 6px 10px;
-  background: rgba(255, 255, 255, 0.035);
-  box-shadow: inset 3px 0 0 var(--tire, var(--apex-green));
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.04);
+  box-shadow: inset 2px 0 0 var(--tire, var(--t-green));
   position: relative;
 }
 .tires > div::after {
@@ -3199,102 +3232,94 @@ h1 {
   width: 7px;
   height: 16px;
   border-radius: 3px;
-  border: 2px solid var(--tire, var(--apex-green));
-  box-shadow: 0 0 10px -2px var(--tire, var(--apex-green));
+  border: 2px solid var(--tire, var(--t-green));
 }
 .tires label {
-  letter-spacing: 0.2em;
-  color: var(--apex-dim);
+  letter-spacing: 0.06em;
+  color: var(--hud-text-dim);
 }
 .tires b {
   font-family: var(--font-data);
-  font-style: italic;
   font-weight: 800;
-  font-stretch: 110%;
+  font-stretch: 112%;
   color: #fff;
 }
 .tires span {
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.85);
+  font-weight: 600;
+  color: var(--hud-text);
 }
 .tires small {
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  color: var(--apex-dim);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--hud-text-dim);
 }
 .health {
-  border-top-color: rgba(255, 255, 255, 0.08);
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  color: var(--apex-dim);
+  border-top-color: var(--hud-hair);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--hud-text-dim);
 }
 .health b {
   font-family: var(--font-data);
-  font-style: italic;
   font-weight: 800;
   color: #fff;
 }
 
 /* Track map */
 .minimap > span {
-  font-weight: 700;
-  font-style: italic;
-  letter-spacing: 0.26em;
-  color: rgba(255, 255, 255, 0.75);
+  font-weight: 500;
+  font-stretch: 112%;
+  letter-spacing: 0.08em;
+  color: var(--hud-text-dim);
 }
 .minimap canvas {
-  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.55));
+  filter: none;
 }
 
 /* Start lights */
 .start-sequence > div {
-  background: linear-gradient(180deg, #14181e, #07090c);
+  background: rgba(10, 12, 18, 0.82);
   border: 0;
-  box-shadow:
-    inset 0 1px 0 var(--apex-edge),
-    0 24px 60px -20px rgba(0, 0, 0, 0.9);
-  clip-path: polygon(14px 0, 100% 0, calc(100% - 14px) 100%, 0 100%);
-  padding-inline: 38px;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1px var(--hud-hair);
+  padding-inline: 16px;
 }
 .start-sequence i {
-  background: radial-gradient(circle at 40% 35%, #3a1c1c, #150a0a 70%);
-  border: 2px solid #26181a;
+  background: #2b2d31;
+  border: 0;
+  box-shadow: inset 0 1.5px 0 #6a6d74;
 }
 .start-sequence i.lit {
-  background: radial-gradient(circle at 40% 35%, #ffd0c8, #ff2d3a 45%, #a30f18);
-  border-color: #ff5a60;
-  box-shadow:
-    0 0 26px rgba(255, 45, 58, 0.9),
-    0 0 60px rgba(255, 45, 58, 0.45);
+  background: radial-gradient(circle at 50% 45%, #ff2a1a, var(--light-red) 55%, #901818);
+  box-shadow: 0 0 16px rgba(240, 12, 12, 0.6);
 }
 .start-sequence > span {
-  font-style: italic;
-  font-weight: 800;
+  font-weight: 700;
   font-stretch: 112%;
-  letter-spacing: 0.24em;
+  letter-spacing: 0.08em;
 }
 
 /* Proximity */
 .proximity {
   font-family: var(--font-display);
-  font-style: italic;
-  font-weight: 800;
-  letter-spacing: 0.2em;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--t-red);
 }
 
 /* Action keys */
 .hud-actions button {
-  background: var(--apex-glass);
-  border: 0;
-  border-bottom: 2px solid rgba(255, 255, 255, 0.16);
-  font-weight: 700;
-  letter-spacing: 0.16em;
-  color: rgba(255, 255, 255, 0.85);
-  clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%);
-  padding-inline: 14px;
+  background: var(--hud-panel);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 6px;
+  font-weight: 600;
+  font-stretch: 108%;
+  letter-spacing: 0.06em;
+  color: var(--hud-text);
+  padding-inline: 12px;
 }
 .hud-actions button:hover {
-  border-bottom-color: var(--apex-flame);
+  border-color: rgba(255, 255, 255, 0.55);
   color: #fff;
 }
 .hud-actions kbd {
@@ -3302,42 +3327,39 @@ h1 {
   min-width: 17px;
   padding: 1px 4px;
   margin-right: 6px;
+  border-radius: 3px;
   font-family: var(--font-display);
-  font-weight: 900;
+  font-weight: 800;
   font-style: normal;
-  color: #07090c;
-  background: #fff;
+  color: #0b0c10;
+  background: var(--hud-text);
   text-align: center;
 }
 
 /* Replay */
-.replay-bar {
-  border: 0;
-  box-shadow:
-    inset 0 2px 0 var(--apex-flame),
-    0 18px 40px -18px rgba(0, 0, 0, 0.7);
-}
 .replay-tag {
   padding: 5px 12px;
-  background: var(--apex-flame);
-  color: #fff;
-  font-style: italic;
-  font-weight: 900;
-  letter-spacing: 0.2em;
-  clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%);
+  border-radius: 4px;
+  background: var(--hud-text);
+  color: #0b0c10;
+  font-weight: 800;
+  font-stretch: 112%;
+  letter-spacing: 0.12em;
 }
 .replay-bar span {
   font-family: var(--font-data);
-  font-weight: 700;
+  font-weight: 600;
 }
 
 /* Toast */
 .toast {
   font-family: var(--font-display);
-  font-weight: 600;
-  background: rgba(8, 11, 15, 0.94);
+  font-weight: 500;
+  background: rgba(9, 10, 15, 0.94);
   color: #fff;
-  border-left: 4px solid var(--apex-flame);
+  border-left: 0;
+  border-radius: var(--hud-radius);
+  box-shadow: inset 0 0 0 1.5px var(--hud-stroke);
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
 }
@@ -3429,15 +3451,16 @@ dialog footer {
 .hud .instruments {
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
-  background: linear-gradient(160deg, rgba(14, 18, 24, 0.84), rgba(8, 11, 15, 0.7) 45%);
+  background: var(--hud-panel);
 }
-/* Key hints recede while driving; hover or keyboard focus restores them. */
-[data-mode='driving'] .hud-actions {
-  opacity: 0.3;
+/* F1 25 shows no action bar while racing: the key hints stay in the DOM (and
+   keyboard reachable) but are invisible until hovered or focused. */
+:is([data-mode='driving'], [data-mode='paused']) .hud-actions {
+  opacity: 0;
   transition: opacity 0.25s;
 }
-[data-mode='driving'] .hud-actions:hover,
-[data-mode='driving'] .hud-actions:focus-within {
+:is([data-mode='driving'], [data-mode='paused']) .hud-actions:hover,
+:is([data-mode='driving'], [data-mode='paused']) .hud-actions:focus-within {
   opacity: 1;
 }
 
