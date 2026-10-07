@@ -223,8 +223,9 @@ void main() {
   vec2 pixel = floor(vUv * resolution);
   float jitter = fract(52.9829189 * fract(dot(pixel, vec2(0.06711056, 0.00583715))));
   float mu = dot(dir, sunDirection);
-  // Forward lobe (silver lining) + a weak back lobe, relative to isotropic.
-  float phase = mix(phaseHG(mu, 0.68), phaseHG(mu, -0.18), 0.32);
+  // Forward lobe (silver lining) + a weak back lobe, relative to isotropic;
+  // capped so a cloud beside the sun glows without a bloom-blown core.
+  float phase = min(mix(phaseHG(mu, 0.68), phaseHG(mu, -0.18), 0.32), 4.5);
   float transmittance = 1.0, sun = 0.0, sky = 0.0, ground = 0.0, meanT = 0.0, weight = 0.0;
   // Coarse steps through empty air. On reaching cloud, step back and march at
   // a quarter step for as long as the ray stays in cloud (plus a short margin),
@@ -339,14 +340,14 @@ vec4 skyCloudTerms(vec3 direction) {
 export const CLOUD_DOME_MEANS: readonly (readonly [number, number, number, number, number])[] =
   Object.freeze([
     [0, 0, 0, 0, 0],
-    [0.1445, 0.0792, 0.0381, 0.0467, 0.0481],
-    [0.242, 0.1033, 0.0522, 0.0755, 0.0813],
-    [0.3658, 0.1262, 0.0658, 0.1097, 0.1245],
-    [0.5263, 0.1647, 0.0704, 0.1507, 0.1817],
-    [0.6778, 0.1589, 0.0653, 0.1847, 0.2375],
-    [0.9181, 0.0708, 0.0306, 0.2302, 0.3272],
-    [0.9744, 0.0135, 0.0082, 0.2276, 0.3451],
-    [0.9759, 0.0105, 0.0066, 0.2221, 0.339],
+    [0.1445, 0.0745, 0.0363, 0.0467, 0.0481],
+    [0.242, 0.092, 0.0489, 0.0755, 0.0813],
+    [0.3658, 0.1082, 0.0606, 0.1097, 0.1245],
+    [0.5263, 0.1299, 0.0656, 0.1507, 0.1817],
+    [0.6778, 0.1326, 0.0613, 0.1847, 0.2375],
+    [0.9181, 0.0665, 0.0289, 0.2302, 0.3272],
+    [0.9744, 0.0117, 0.0076, 0.2276, 0.3451],
+    [0.9759, 0.009, 0.0061, 0.2221, 0.339],
   ] as const);
 /** Mean baked terms (premultiplied) of the dome at a cover, blended between
  * neighbouring bins exactly as the dome blends their panoramas. */

@@ -260,8 +260,14 @@ describe('baked cumulus panorama', () => {
     configureSky(sky);
     const { renderer } = bakeDouble();
     const clouds = SkyClouds.forSky(sky.material, lightingDirection);
-    const seen: { cover: number; low: unknown; high: unknown; weight: number; ready: number }[] =
-      [];
+    const seen: {
+      cover: number;
+      low: unknown;
+      high: unknown;
+      weight: number;
+      ready: number;
+      luminance: number;
+    }[] = [];
     vi.spyOn(T.PMREMGenerator.prototype, 'fromScene').mockImplementation((scene) => {
       const u = (scene.children[0] as Sky).material.uniforms;
       seen.push({
@@ -270,6 +276,7 @@ describe('baked cumulus panorama', () => {
         high: u.cloudHigh.value,
         weight: u.cloudWeight.value,
         ready: u.cloudReady.value,
+        luminance: u.skyGradeLuminance.value,
       });
       return new T.WebGLRenderTarget(8, 8);
     });
@@ -284,7 +291,10 @@ describe('baked cumulus panorama', () => {
       expect(s.high).toBe(s.low);
       expect(s.weight).toBe(0);
       expect(s.ready).toBe(1);
+      // The scene's sky light keeps the ungraded luminance (SKY_GRADE).
+      expect(s.luminance).toBe(0);
     }
+    expect(sky.material.uniforms.skyGradeLuminance.value).toBe(1);
     // The visible dome blends the same two panoramas.
     const u = sky.material.uniforms;
     expect(u.cloudLow.value).toBe(clouds.cached(2, 'day'));

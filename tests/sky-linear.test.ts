@@ -137,7 +137,12 @@ describe('linear Preetham sky', () => {
     const gain = skyLinearGain(SUN_OFFSET, day.turbidity);
     const dome = (elevation: number) => {
       const direction = elevation >= 90 ? new T.Vector3(0, 1, 0) : across(SUN_OFFSET, elevation);
-      const grade = skyGrade(direction.y);
+      const grade = skyGrade(
+        direction.y,
+        1,
+        [0, 0, 0],
+        direction.dot(SUN_OFFSET.clone().normalize()),
+      );
       return display(
         preethamSky(direction, SUN_OFFSET, day.turbidity).linear.map(
           (c, i) => c * grade[i] * gain * day.skyRadiance,
@@ -173,6 +178,27 @@ describe('linear Preetham sky', () => {
       `const vec3 skyGradeHorizon=vec3(${SKY_GRADE.horizon.join(',')});`,
     );
     expect(sky.material.fragmentShader).toContain('(1.0-sunsetAmount)*(1.0-nightAmount)');
+    // A PMREM capture keeps each direction's ungraded luminance in the graded hue.
+    expect(sky.material.uniforms.skyGradeLuminance.value).toBe(1);
+    const probe = { getRenderTarget: () => new T.WebGLCubeRenderTarget(4) },
+      screen = { getRenderTarget: () => null };
+    const render = (renderer: object) =>
+      sky.onBeforeRender(
+        renderer as T.WebGLRenderer,
+        new T.Scene(),
+        new T.PerspectiveCamera(),
+        sky.geometry,
+        sky.material,
+        null as unknown as T.Group,
+      );
+    render(probe);
+    expect(sky.material.uniforms.skyGradeLuminance.value).toBe(0);
+    render(screen);
+    expect(sky.material.uniforms.skyGradeLuminance.value).toBe(1);
+    expect(sky.clone().onBeforeRender).not.toBe(sky.onBeforeRender);
+    expect(sky.material.fragmentShader).toContain(
+      'skyGraded*=mix(dot(skyLinear,skyLuma)/max(dot(skyGraded,skyLuma),1e-9),1.0,skyGradeLuminance);',
+    );
     sky.geometry.dispose();
     sky.material.dispose();
   });
