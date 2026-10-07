@@ -2,7 +2,7 @@ import { LIGHT_FOOTPRINT_GLSL } from './light-footprint.ts';
 import { roadWeatherUniform } from './weather-presentation.ts';
 import { WET_REFLECTION_GLSL, type WetReflectionUniforms } from './wet-reflection.ts';
 import { ROAD_MACRO_APPLY, ROAD_MACRO_GLSL } from './road-macro.ts';
-import { MeshStandardMaterial, ShaderChunk, type DataTexture } from 'three';
+import { MeshPhysicalMaterial, MeshStandardMaterial, ShaderChunk, type DataTexture } from 'three';
 import wetRoad from '../shaders/wetRoad.frag?raw';
 export { treadMaterial } from './tire-finish.ts';
 import carbonRoughness from '../shaders/carbon.frag?raw';
@@ -13,17 +13,50 @@ import carbonNormal from '../shaders/carbon-normal.frag?raw';
 export const ROAD_FILM_IOR = 1.333;
 export const ROAD_FILM_F0 = ((ROAD_FILM_IOR - 1) / (ROAD_FILM_IOR + 1)) ** 2;
 
-export function carbonMaterial() {
-  const material = new MeshStandardMaterial({ color: 0x15191c, metalness: 0.08, roughness: 0.42 });
+/** Carbon finishes (ART_BIBLE_A §6.2, D06): lacquered bodywork carbon under a
+ * clear coat with a +-18 % weave, and raw satin carbon (floor underside) with
+ * no coat and a +-8 % weave. */
+export const CARBON_FINISHES = Object.freeze({
+  lacquered: Object.freeze({
+    color: 0x0e1012,
+    roughness: 0.36,
+    clearcoat: 0.85,
+    clearcoatRoughness: 0.07,
+    specularIntensity: 1,
+    weave: 0.18,
+  }),
+  // Raw resin scatters: a weaker sheen than lacquer (scales F0 and F90).
+  satin: Object.freeze({
+    color: 0x121417,
+    roughness: 0.55,
+    clearcoat: 0,
+    clearcoatRoughness: 0,
+    specularIntensity: 0.6,
+    weave: 0.08,
+  }),
+});
+export function carbonMaterial(finish: keyof typeof CARBON_FINISHES = 'lacquered') {
+  const f = CARBON_FINISHES[finish];
+  const material = new MeshPhysicalMaterial({
+    color: f.color,
+    metalness: 0,
+    roughness: f.roughness,
+    clearcoat: f.clearcoat,
+    clearcoatRoughness: f.clearcoatRoughness,
+    specularIntensity: f.specularIntensity,
+  });
   material.onBeforeCompile = (shader) => {
     shader.vertexShader = shader.vertexShader
       .replace('#include <common>', '#include <common>\nvarying vec2 vCarbonUv;')
       .replace(
         '#include <begin_vertex>',
-        '#include <begin_vertex>\nvCarbonUv = vec2(position.x + position.z * 0.7071, position.y + position.z * 0.7071) * 320.0;',
+        '#include <begin_vertex>\nvCarbonUv = vec2(position.x + position.z * 0.7071, position.y + position.z * 0.7071) * 333.0;',
       );
     shader.fragmentShader = shader.fragmentShader
-      .replace('#include <common>', '#include <common>\nvarying vec2 vCarbonUv;')
+      .replace(
+        '#include <common>',
+        `#include <common>\nvarying vec2 vCarbonUv;\n#define CARBON_WEAVE ${f.weave.toFixed(3)}`,
+      )
       .replace(
         '#include <roughnessmap_fragment>',
         '#include <roughnessmap_fragment>\n' + carbonRoughness,
@@ -33,7 +66,9 @@ export function carbonMaterial() {
         '#include <normal_fragment_maps>\n' + carbonNormal,
       );
   };
-  material.customProgramCacheKey = () => 'apex-metre-carbon-v3-twill';
+  material.customProgramCacheKey = () =>
+    finish === 'lacquered' ? 'apex-metre-carbon-v4-twill-coat' : 'apex-metre-carbon-v4-twill-satin';
+  material.userData.carbonFinish = finish;
   return material;
 }
 

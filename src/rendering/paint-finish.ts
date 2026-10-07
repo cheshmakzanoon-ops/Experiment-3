@@ -1,4 +1,5 @@
 import { Vector3, type MeshPhysicalMaterial } from 'three';
+import { chainShaderHook, injectAfter, injectDeclarations } from './studio/shader-hooks.ts';
 const observations = new WeakMap<MeshPhysicalMaterial, { value: Vector3 }>();
 
 /** Snapshot projection, not a second body-water simulation. All inputs come
@@ -88,4 +89,140 @@ export function installPaintObservation(material: MeshPhysicalMaterial) {
   };
   material.customProgramCacheKey = () => `${previousKey}|snapshot-wet-component-damage-v2-filtered`;
   return material;
+}
+
+/** Paint finish table (ART_BIBLE_A §6.1, D06). `flake` scales the metallic
+ * flake tilt, `peel` is the clear-coat orange-peel slope. */
+export const PAINT_FINISHES = Object.freeze({
+  gloss: Object.freeze({
+    metalness: 0,
+    roughness: 0.32,
+    clearcoat: 1,
+    clearcoatRoughness: 0.04,
+    flake: 0,
+    peel: 0.002,
+  }),
+  metallic: Object.freeze({
+    metalness: 0.5,
+    roughness: 0.38,
+    clearcoat: 1,
+    clearcoatRoughness: 0.04,
+    flake: 1,
+    peel: 0.002,
+  }),
+  satin: Object.freeze({
+    metalness: 0.1,
+    roughness: 0.48,
+    clearcoat: 0.35,
+    clearcoatRoughness: 0.32,
+    flake: 0,
+    peel: 0,
+  }),
+  matte: Object.freeze({
+    metalness: 0,
+    roughness: 0.62,
+    clearcoat: 0,
+    clearcoatRoughness: 0,
+    flake: 0,
+    peel: 0,
+  }),
+});
+export type PaintFinish = keyof typeof PAINT_FINISHES;
+
+/** Set `material`'s lobes to `finish` and record it (`userData.paintFinish`). */
+export function applyPaintFinish(material: MeshPhysicalMaterial, finish: PaintFinish) {
+  const f = PAINT_FINISHES[finish];
+  if (!f) throw new Error('Unknown paint finish');
+  material.metalness = f.metalness;
+  material.roughness = f.roughness;
+  material.clearcoat = f.clearcoat;
+  material.clearcoatRoughness = f.clearcoatRoughness;
+  material.userData.paintFinish = finish;
+  return material;
+}
+
+/** Shared GLSL helpers: an integer cell hash and the object-to-view mapping of
+ * a surface direction through the screen-space Jacobian of the two positions
+ * (no tangents, no model matrix in the fragment stage). */
+const FLAKE_DECLARATIONS = `#ifndef APEX_PAINT_FLAKE_DECLARED
+#define APEX_PAINT_FLAKE_DECLARED
+uvec3 apexPaintHash3(uvec3 v) {
+  v = v * 1664525u + 1013904223u;
+  v.x += v.y * v.z; v.y += v.z * v.x; v.z += v.x * v.y;
+  v ^= v >> 16u;
+  v.x += v.y * v.z; v.y += v.z * v.x; v.z += v.x * v.y;
+  return v;
+}
+vec3 apexPaintRandom(vec3 cell) {
+  return vec3(apexPaintHash3(uvec3(ivec3(cell) + 1048576))) * (1.0 / 4294967296.0);
+}
+vec3 apexObjectToView(vec3 d, vec3 ox, vec3 oy, vec3 vx, vec3 vy) {
+  float a11 = dot(ox, ox), a12 = dot(ox, oy), a22 = dot(oy, oy);
+  float det = a11 * a22 - a12 * a12;
+  vec2 r = vec2(dot(d, ox), dot(d, oy));
+  vec2 ab = vec2(a22 * r.x - a12 * r.y, a11 * r.y - a12 * r.x) / max(det, 1e-30);
+  return det > 1e-30 ? ab.x * vx + ab.y * vy : vec3(0.0);
+}
+#endif`;
+/** Flake cell size (0.4 mm) and the distance by which the sparkle is gone. */
+export const PAINT_FLAKE = Object.freeze({ cell: 0.0004, fadeStart: 4, fadeEnd: 10, tilt: 0.18 });
+const flakeGlsl = (amount: number) => `{
+  // Metallic flake (D06): 0.4 mm cells in object space, a glitter LOD that never
+  // makes cells smaller than ~1.5 px (two levels blended like a mip), averaged
+  // tilt shrinking with the flakes per cell, gone by ${PAINT_FLAKE.fadeEnd} m.
+  vec3 flakeOx = dFdx(vPaintPosition), flakeOy = dFdy(vPaintPosition);
+  vec3 flakeVx = dFdx(-vViewPosition), flakeVy = dFdy(-vViewPosition);
+  float flakePixel = max(length(flakeOx), length(flakeOy));
+  float flakeLevel = max(0.0, log2(max(flakePixel, 1e-7) * 1.5 / ${PAINT_FLAKE.cell}));
+  float flakeLod = floor(flakeLevel), flakeBlend = flakeLevel - flakeLod;
+  float flakeFade = 1.0 - smoothstep(${PAINT_FLAKE.fadeStart.toFixed(1)}, ${PAINT_FLAKE.fadeEnd.toFixed(1)}, length(vViewPosition));
+  vec3 flakeTilt = vec3(0.0);
+  float flakeCover = 0.0;
+  for (int k = 0; k < 2; k++) {
+    float level = flakeLod + float(k);
+    float size = ${PAINT_FLAKE.cell} * exp2(level);
+    vec3 r = apexPaintRandom(floor(vPaintPosition / size) + level * 7919.0);
+    vec3 s = apexPaintRandom(floor(vPaintPosition / size) + level * 7919.0 + 104729.0);
+    float weight = (k == 0 ? 1.0 - flakeBlend : flakeBlend) * step(0.82, r.x) * inversesqrt(exp2(level));
+    flakeTilt += weight * apexObjectToView(vec3(r.y, r.z, s.x) * 2.0 - 1.0, flakeOx, flakeOy, flakeVx, flakeVy);
+    flakeCover += weight;
+  }
+  flakeTilt -= normal * dot(normal, flakeTilt);
+  normal = normalize(normal + ${(PAINT_FLAKE.tilt * amount).toFixed(4)} * flakeFade * flakeTilt);
+  metalnessFactor = min(1.0, metalnessFactor + ${(0.25 * amount).toFixed(4)} * flakeFade * flakeCover);
+}`;
+const peelGlsl = (slope: number) => `#ifdef USE_CLEARCOAT
+{
+  // Orange peel (D06): a 7 mm ripple in the coat normal only (analytic object
+  // gradient of three skewed waves), faded once a wave spans under ~2 px.
+  vec3 peelOx = dFdx(vPaintPosition), peelOy = dFdy(vPaintPosition);
+  float peelPixel = max(length(peelOx), length(peelOy));
+  float peelResolved = 1.0 - smoothstep(0.0015, 0.0035, peelPixel);
+  vec3 peelP = vPaintPosition * (6.2831853 / 0.007);
+  vec3 peelA = vec3(0.83, 0.31, 0.47), peelB = vec3(-0.29, 0.77, 0.57), peelC = vec3(0.41, -0.52, 0.75);
+  vec3 peelG = cos(dot(peelP, peelA)) * peelA + cos(dot(peelP, peelB) + 1.7) * peelB +
+    cos(dot(peelP, peelC) + 4.1) * peelC;
+  vec3 peelV = apexObjectToView(peelG, peelOx, peelOy, dFdx(-vViewPosition), dFdy(-vViewPosition));
+  peelV -= clearcoatNormal * dot(clearcoatNormal, peelV);
+  clearcoatNormal = normalize(clearcoatNormal - ${(slope / 1.2).toFixed(6)} * peelResolved * peelV);
+}
+#endif`;
+
+/**
+ * Metallic flakes in the base layer and orange peel in the clear coat, chained
+ * after `installPaintFinish` (whose `vPaintPosition` it reads). Constants only:
+ * no uniform, texture or time source, so the paint keeps its zero-uniform
+ * contract; the amounts are baked into the GLSL and the hook key.
+ */
+export function installPaintFlakes(material: MeshPhysicalMaterial, flake: number, peel: number) {
+  if (![flake, peel].every(Number.isFinite) || flake < 0 || flake > 2 || peel < 0 || peel > 0.02)
+    throw new Error('Invalid paint flake setting');
+  installPaintFinish(material);
+  if (flake === 0 && peel === 0) return false;
+  const key = `paint-flake-${Math.round(flake * 100)}-${Math.round(peel * 10000)}-v1`;
+  return chainShaderHook(material, key, (shader) => {
+    injectDeclarations(shader, 'common', FLAKE_DECLARATIONS, 'fragment');
+    if (flake > 0) injectAfter(shader, 'normal_fragment_maps', flakeGlsl(flake), 'fragment');
+    if (peel > 0) injectAfter(shader, 'clearcoat_normal_fragment_maps', peelGlsl(peel), 'fragment');
+  });
 }

@@ -30,7 +30,15 @@ import {
 } from './car-mechanical-detail.ts';
 import { addMirrorHousing, apertureGeometry, CockpitControls } from './cockpit.ts';
 import { sculptedLoft, wingElement } from './bodywork.ts';
-import { flankLivery, repaintFlank } from './car-livery.ts';
+import {
+  flankLivery,
+  installTeamPaint,
+  liveryScheme,
+  playerSecondary,
+  repaintFlank,
+  setLiveryPattern,
+} from './car-livery.ts';
+import { drawWordmark, fitHeight } from './studio/brand-atlas.ts';
 import { liveryCustomised, validateLivery, type Livery } from '../storage/livery.ts';
 import { setSuppliedLivery, suppliedLookdevReport } from './studio/supplied-lookdev.ts';
 import { TireCarcass } from './tire-carcass.ts';
@@ -42,7 +50,7 @@ import { serviceWheelOffset } from './pit-crew.ts';
 import { drawSteeringDisplay, shiftLight, SteeringDisplayClock } from './steering-display.ts';
 import { carbonMaterial, treadMaterial } from './materials.ts';
 import { ReducedCar, carLod } from './lod.ts';
-import { box, canvasTexture, label, cockpitShell, mergeStatic, mesh, rod } from './geometry.ts';
+import { box, canvasTexture, cockpitShell, mergeStatic, mesh, rod } from './geometry.ts';
 import { COMPOUNDS, LIVERIES } from '../simulation/config.ts';
 import { F, H, W, WHEEL_BASE, WHEEL_STRIDE } from '../simulation/protocol.ts';
 import { WHEEL_POSITIONS } from '../simulation/vehicle.ts';
@@ -97,26 +105,30 @@ export class FormulaCar {
     const livery = validateLivery(value);
     this.paint.color.set(livery.primary);
     this.accent.color.set(livery.accent);
+    const secondary = playerSecondary(livery.primary);
+    setLiveryPattern(this.paint, { secondary, accent: livery.accent });
     for (const material of this.reflectivePaint) repaintFlank(material, this.id, livery);
     if (this.suppliedPlayer)
       setSuppliedLivery(this.suppliedPlayer.root, liveryCustomised(livery) ? livery : null);
+    this.drawIdentity(
+      `${livery.sponsor} / ${String(livery.number).padStart(2, '0')}`,
+      secondary,
+      livery.accent,
+    );
+  }
+  /** The nose identity panel: path-drawn text (no system font), so every
+   * machine paints the same pixels. */
+  private drawIdentity(text: string, background: string, ink: string) {
     const canvas = this.identityTexture.image as HTMLCanvasElement;
     const context = canvas.getContext('2d');
-    if (context) {
-      context.fillStyle = '#f4eddf';
-      context.fillRect(0, 0, canvas.width, canvas.height);
-      context.fillStyle = '#182126';
-      context.textAlign = 'center';
-      context.textBaseline = 'middle';
-      context.font = `800 ${Math.round(canvas.height * 0.54)}px Arial`;
-      context.fillText(
-        `${livery.sponsor} / ${String(livery.number).padStart(2, '0')}`,
-        canvas.width / 2,
-        canvas.height / 2,
-        canvas.width * 0.92,
-      );
-      this.identityTexture.needsUpdate = true;
-    }
+    if (!context) return;
+    context.fillStyle = background;
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    context.strokeStyle = ink;
+    const style = { weight: 0.18, width: 0.96 };
+    const height = fitHeight(text, canvas.width * 0.9, canvas.height * 0.56, style);
+    drawWordmark(context, text, canvas.width / 2, canvas.height / 2, height, style);
+    this.identityTexture.needsUpdate = true;
   }
   /** Supplied-car look-dev applied at load (de-branded sheets, overrides). */
   get suppliedLookdev() {
@@ -135,32 +147,34 @@ export class FormulaCar {
     this.root.userData.authoredBodywork = hero?.diagnostics() ?? null;
     this.root.add(this.staticBody, this.frontWing, this.rearWing);
     const s = this.staticBody;
-    this.paint = new T.MeshPhysicalMaterial({
-      color: LIVERIES[id % LIVERIES.length],
-      metalness: 0.06,
-      roughness: 0.34,
-      clearcoat: 1,
-      clearcoatRoughness: 0.16,
-    });
-    installPaintFinish(this.paint);
+    const scheme = liveryScheme(id);
+    // Team finish (gloss, metallic, satin or matte), flakes, orange peel and the
+    // body livery pattern, before the flank skins clone it.
+    this.paint = installTeamPaint(
+      new T.MeshPhysicalMaterial({ color: LIVERIES[id % LIVERIES.length] }),
+      id,
+    );
     this.reflectivePaint.push(this.paint);
     const carbon = carbonMaterial();
+    // Raw satin carbon for the floor (one extra submission per near car).
+    const floorCarbon = carbonMaterial('satin');
     const dark = new T.MeshStandardMaterial({ color: 0x101416, roughness: 0.75 });
     const metal = installManufacturingFinish(
       new T.MeshStandardMaterial({ color: 0x7c8589, metalness: 0.88, roughness: 0.3 }),
       'turned-alloy',
     );
     const ivory = new T.MeshPhysicalMaterial({
-      color: 0xe7e1d2,
+      color: scheme.accent,
       roughness: 0.3,
       metalness: 0.18,
       clearcoat: 1,
+      clearcoatRoughness: 0.04,
     });
     installPaintFinish(ivory);
     this.accent = ivory;
     // Venturi floor, sculpted monocoque, narrow nose and smoothly undercut sidepods.
-    mesh(s, hero?.copy('floor') ?? floorGeometry(), carbon);
-    if (hero) mesh(s, hero.copy('floor_edges'), carbon);
+    mesh(s, hero?.copy('floor') ?? floorGeometry(), floorCarbon);
+    if (hero) mesh(s, hero.copy('floor_edges'), floorCarbon);
     mesh(s, hero?.copy('nose') ?? sculptedLoft(NOSE_SECTIONS, 0, 0.32), this.paint);
     mesh(s, hero?.copy('monocoque') ?? cockpitShell(), this.paint);
     if (hero) {
@@ -263,16 +277,17 @@ export class FormulaCar {
     // Original car identity and livery: small, deliberate markings on bodywork.
     const logo = installPaintFinish(
       new T.MeshPhysicalMaterial({
-        map: label(`APEX / ${String(id + 7).padStart(2, '0')}`, '#182126', '#f4eddf'),
-        roughness: 0.34,
-        metalness: 0.06,
+        map: canvasTexture(512, 128, () => {}),
+        roughness: 0.32,
+        metalness: 0,
         clearcoat: 1,
-        clearcoatRoughness: 0.16,
+        clearcoatRoughness: 0.04,
       }),
     );
     this.reflectivePaint.push(logo);
     this.identityTexture = logo.map as T.CanvasTexture;
     this.identityTexture.userData.dynamic = true;
+    this.drawIdentity(`APEX / ${String(id + 7).padStart(2, '0')}`, scheme.secondary, scheme.accent);
     mesh(
       s,
       bodySurfacePatch(NOSE_SECTIONS, { z0: 0.7, z1: 0.815, u0: 0.365, u1: 0.635 }, 0, 0.32),

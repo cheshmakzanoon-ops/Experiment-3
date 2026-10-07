@@ -241,7 +241,9 @@ export const DRIVERS = [
   'D. BELL',
   'T. AZIZ',
 ];
+/** Saturated team bases (ART_BIBLE_A §6.1); secondaries, accents, finishes and
+ * sponsors per team live in rendering/car-livery.ts (LIVERY_SCHEMES). */
 export const LIVERIES = [
-  0xec4c2f, 0x54c8c0, 0xf2c95d, 0x7696ed, 0xe6dfce, 0xb58ce4, 0x5aaa7a, 0xe079ac, 0xdc9c5a,
-  0x6a9ca8, 0xd1d3d8, 0x93aa4b,
+  0xb3121e, 0xf27c1e, 0x0b5e4f, 0x13235e, 0xe9e9eb, 0x1c5bd8, 0xe36fa8, 0x16181b, 0x2bb3a0,
+  0x9ea4aa, 0x7fc241, 0xf2c200,
 ];
