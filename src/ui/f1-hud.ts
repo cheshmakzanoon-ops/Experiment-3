@@ -625,11 +625,15 @@ export class F1Hud {
     attr(this.lapPanel, 'valid', String(valid || !(lapTime > 0)));
 
     // Banners: the state observed every frame, plus penalty/track-limit events.
+    // Hiding keeps the last swatch and text (CSS hides it at once), so no
+    // frame ever shows an emptied box.
     const shown = bannerView(this.banner, this.bannerSince, this.event, time);
     attr(this.bannerEl, 'state', shown ? shown.mode : 'off');
-    attr(this.bannerEl, 'swatch', shown?.swatch ?? '');
-    set(this.bannerTitle, shown?.title ?? '');
-    set(this.bannerSub, shown?.sub ?? '');
+    if (shown) {
+      attr(this.bannerEl, 'swatch', shown.swatch);
+      set(this.bannerTitle, shown.title);
+      set(this.bannerSub, shown.sub);
+    }
 
     // Pit-lane panel: time in the lane (stamped every frame in observe) and
     // the stationary stop time.
@@ -678,7 +682,7 @@ export class F1Hud {
     return this.banner;
   }
   /** Every presented frame: project the tagged cars (translate3d only). */
-  nameTags(frame: Float32Array, view: TagView, order: readonly number[], active: boolean) {
+  nameTags(frame: Float32Array, view: TagView, active: boolean) {
     const ids = active && view.camera ? nameTagCars(frame) : [];
     const width = window.innerWidth,
       height = window.innerHeight;
@@ -712,8 +716,9 @@ export class F1Hud {
             tag.bar.style.background = `#${LIVERIES[id].toString(16).padStart(6, '0')}`;
             tag.name.textContent = surname(DRIVERS[id] ?? '');
           }
-          // Before the first panel refresh `order` is empty: use the frame's rank.
-          const rank = String(order.indexOf(id) + 1 || Math.round(frame[o + F.RANK]));
+          // The frame's own rank: the tower order refreshes at a third of the
+          // rate, so it can lag a pass by a refresh.
+          const rank = String(Math.round(frame[o + F.RANK]));
           if (tag.pos.textContent !== rank) tag.pos.textContent = rank;
         }
       }

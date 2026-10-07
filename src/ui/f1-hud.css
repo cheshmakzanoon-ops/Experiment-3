@@ -1017,10 +1017,13 @@
       transform 0.22s,
       visibility 0.22s;
   }
+  /* Enter with the 220 ms slide + fade; leave at once (AB-B only animates
+     the entry), so held and slow-rendered frames never catch a fading box. */
   #hud[data-f1] .f1-banner[data-state='off'] {
     visibility: hidden;
     opacity: 0;
     transform: translate(-50%, -12px);
+    transition: none;
   }
   #hud[data-f1] .f1-banner[data-state='mini'] {
     min-width: 0;

@@ -148,7 +148,6 @@ export class Interface {
   /** F1-style layout: cluster, tower header, sector panel, banners, tags. */
   private readonly f1: F1Hud;
   private readonly trackMap: TrackMap;
-  private order: number[] = [];
   private readonly revThresholds = revLedThresholds();
   options: SessionOptions = { ...DEFAULT_OPTIONS };
   /** Time Trial: saved personal best (0 when none) and the live ghost delta. */
@@ -359,7 +358,7 @@ export class Interface {
     this.observeGaps(frame);
     const mode = this.element.dataset.mode;
     const banner = this.f1.observe(frame, auto);
-    this.f1.nameTags(frame, renderer, this.order, mode === 'driving' || mode === 'paused');
+    this.f1.nameTags(frame, renderer, mode === 'driving' || mode === 'paused');
     this.tick++;
     if (this.tick % 3 !== 0) return;
     const o = carBase(0),
@@ -461,7 +460,6 @@ export class Interface {
     const order = Array.from({ length: cars }, (_, id) => id).sort(
       (a, b) => frame[carBase(a) + F.RANK] - frame[carBase(b) + F.RANK],
     );
-    this.order = order;
     const playerRank = order.indexOf(0);
     this.setText('positionBadge', `P${playerRank + 1}`);
     this.setText('positionField', `/ ${cars}`);
