@@ -1,12 +1,25 @@
 import { installRaceDayHud, updateRaceDayHud } from './race-day-hud.ts';
 import { installCompactRaceHud } from './compact-race-hud.ts';
+import {
+  compoundOf,
+  fastestLapCar,
+  installF1Hud,
+  raceBanner,
+  revLedThresholds,
+  surname,
+  towerWindow,
+  tyreBand,
+  type F1Hud,
+} from './f1-hud.ts';
+import { TrackMap } from './f1-minimap.ts';
+import { SectorBoard } from './sector-timing.ts';
 import { audioAccessibility, readDrivingAudio } from './audio-accessibility.ts';
 import type { DrivingAudioSettings } from '../audio/driving-cues.ts';
 import { nearbyTraffic } from './proximity.ts';
-import { GapTimer, driverCode, formatInterval } from './gap-timer.ts';
+import { GapTimer, formatInterval } from './gap-timer.ts';
 import { BUTTON_ACTIONS, BUTTON_ACTION_LABELS } from '../input/button-actions.ts';
 import { engineeringReport } from './engineering.ts';
-import { FLAG, flagLabel, yellowFlag } from '../simulation/marshal.ts';
+import { flagLabel } from '../simulation/marshal.ts';
 import { presentationControls, bindPresentation, weatherReadout } from './presentation.ts';
 import { DeviceCalibrationPanel } from './device-calibration.ts';
 import {
@@ -27,6 +40,7 @@ import {
   SETUP_LIMITS,
   racingSession,
   startingGrid,
+  VEHICLE,
   type SessionOptions,
   type Setup,
   type StartSlot,
@@ -123,6 +137,13 @@ export class Interface {
   private gaps: GapTimer | null = null;
   private gapPositions = new Float64Array(0);
   private towerRefresh = -Infinity;
+  /** Per-sector session and personal bests (sector panel colours). */
+  private sectors: SectorBoard | null = null;
+  /** F1-style layout: cluster, tower header, sector panel, banners, tags. */
+  private readonly f1: F1Hud;
+  private readonly trackMap: TrackMap;
+  private order: number[] = [];
+  private readonly revThresholds = revLedThresholds();
   options: SessionOptions = { ...DEFAULT_OPTIONS };
   /** Time Trial: saved personal best (0 when none) and the live ghost delta. */
   timeTrial: { best: number; delta: number | null } | null = null;
@@ -157,7 +178,7 @@ export class Interface {
    <div class="proximity proximity-left" id="proximityLeft" hidden><b>◀</b><span>CAR LEFT</span></div><div class="proximity proximity-right" id="proximityRight" hidden><b>▶</b><span>CAR RIGHT</span></div>
    <div class="race-message" id="raceMessage" role="status" aria-live="polite"></div>
    <div class="minimap"><canvas id="minimap" width="250" height="240"></canvas><span id="minimapCaption">${track.circuit.name}</span></div>
-   <div class="instruments"><div class="programme-hud" id="programmeHud" hidden></div><div class="guide-readout" id="guideReadout" hidden></div><div class="rev-lights" id="rpmLights">${'<i></i>'.repeat(16)}</div><div class="dash-main"><div class="gear"><b id="gear">1</b><span>GEAR</span></div><div class="speed"><b id="speed">000</b><span>KM/H</span></div><div class="engine"><b id="rpm">4,200</b><span>RPM</span><strong id="ersMode">BALANCED</strong></div></div>
+   <div class="instruments"><div class="programme-hud" id="programmeHud" hidden></div><div class="guide-readout" id="guideReadout" hidden></div><div class="rev-lights" id="rpmLights">${'<i></i>'.repeat(15)}</div><div class="dash-main"><div class="gear"><b id="gear">1</b><span>GEAR</span></div><div class="speed"><b id="speed">0</b><span>KPH</span></div><div class="engine"><b id="rpm">4200</b><span>RPM</span><strong id="ersMode">BALANCED</strong></div></div>
    <div class="pedals"><label>BRK<span class="meter"><i id="brakeBar"></i></span></label><label>THR<span class="meter"><i id="throttleBar"></i></span></label></div>
    <div class="resources"><label>ERS <b id="battery">80%</b><span class="meter"><i id="batteryBar"></i></span></label><label>FUEL <b id="fuel">24.0 KG</b></label></div></div>
    <aside class="car-status"><div class="panel-heading">VEHICLE STATE <span id="tireCompound">MEDIUM</span></div><div id="tires" class="tires">${WHEEL_NAMES.map((name) => `<div><label>${name}</label><b>87°</b><span>100%</span><small>320° BRAKE</small></div>`).join('')}</div><div class="health"><span>AERO <b id="health">100%</b></span><span>LAT <b id="lateralG">0.0 G</b></span><span>PEN <b id="penalty">0 S</b></span></div></aside>
@@ -183,6 +204,8 @@ export class Interface {
     this.replayBar = this.get('replayBar');
     installCompactRaceHud(this.hud);
     installRaceDayHud(this.hud);
+    this.f1 = installF1Hud(this.hud);
+    this.trackMap = new TrackMap(this.map);
     element.addEventListener('click', (e) => {
       const button = (e.target as HTMLElement).closest<HTMLElement>('[data-action]');
       if (button) this.callbacks.action(button.dataset.action!);
@@ -310,9 +333,11 @@ export class Interface {
       this.gaps = new GapTimer(this.track.length, cars);
       this.gapPositions = new Float64Array(cars);
       this.towerRefresh = -Infinity;
+      this.sectors = Number.isInteger(cars) && cars > 0 ? new SectorBoard(cars) : null;
     }
     for (let id = 0; id < cars; id++) this.gapPositions[id] = frame[carBase(id) + F.S];
     this.gaps.observe(frame[H.TIME], this.gapPositions);
+    this.sectors?.observe(frame);
   }
   update(frame: Float32Array, renderer: RacingRenderer, auto: boolean, ers: number) {
     const proximity = nearbyTraffic(frame);
@@ -323,18 +348,20 @@ export class Interface {
     }
 
     this.hud.dataset.camera = renderer.mode;
-    // Timing loops see every presented frame; the panels below refresh at a
-    // third of the rate.
+    // Timing loops and name tags see every presented frame; the panels below
+    // refresh at a third of the rate.
     this.observeGaps(frame);
+    const mode = this.element.dataset.mode;
+    this.f1.nameTags(frame, renderer, this.order, mode === 'driving' || mode === 'paused');
     this.tick++;
     if (this.tick % 3 !== 0) return;
     const o = carBase(0),
       speed = frame[o + F.SPEED],
       compound = Object.keys(COMPOUNDS)[Math.round(frame[o + F.COMPOUND])] ?? 'medium';
-    this.setText('speed', String(Math.round(speed * 3.6)).padStart(3, '0'));
+    this.setText('speed', String(Math.round(speed * 3.6)));
     const gear = frame[o + F.GEAR];
     this.setText('gear', gear === 0 ? 'N' : gear < 0 ? 'R' : String(Math.round(gear)));
-    this.setText('rpm', Math.round(frame[o + F.RPM]).toLocaleString('en'));
+    this.setText('rpm', String(Math.round(frame[o + F.RPM])));
     this.setText(
       'lapLabel',
       racingSession(this.options.mode)
@@ -383,8 +410,17 @@ export class Interface {
     this.setText('health', `${Math.round(frame[o + F.FRONT_HEALTH] * 100)}%`);
     this.setText('lateralG', `${Math.abs(frame[o + F.G_LAT]).toFixed(1)} G`);
     this.setText('penalty', `${Math.round(frame[o + F.PENALTY])} S`);
-    Array.from(this.get('rpmLights').children).forEach((e, i) => {
-      (e as HTMLElement).classList.toggle('lit', frame[o + F.RPM] > 5800 + i * 465);
+    // Rev lights: 15 LEDs up to the shift point; every LED flashes blue at
+    // the limiter (8 Hz) and with the pit limiter on (2 Hz), on sim time.
+    const rpm = frame[o + F.RPM],
+      lights = this.get('rpmLights'),
+      pitPhase = Math.round(frame[o + F.PIT_PHASE]),
+      pitLimiter = frame[o + F.IN_PIT] > 0 && (pitPhase === 1 || pitPhase === 6),
+      limiter = pitLimiter || rpm >= VEHICLE.limiterRPM - 60,
+      blinkOn = Math.floor(frame[H.TIME] * (pitLimiter ? 4 : 16)) % 2 === 0;
+    lights.dataset.limiter = limiter ? 'on' : 'off';
+    Array.from(lights.children).forEach((e, i) => {
+      (e as HTMLElement).classList.toggle('lit', limiter ? blinkOn : rpm > this.revThresholds[i]);
     });
     Array.from(this.get('tires').children).forEach((e, i) => {
       const p = o + WHEEL_BASE + i * WHEEL_STRIDE,
@@ -392,40 +428,15 @@ export class Interface {
       e.querySelector('b')!.textContent = `${Math.round(temp)}°`;
       e.querySelector('span')!.textContent = `${Math.round(100 * (1 - frame[p + W.WEAR]))}%`;
       e.querySelector('small')!.textContent = `${Math.round(frame[p + W.DISC_TEMP])}° BRAKE`;
-      (e as HTMLElement).style.setProperty(
-        '--tire',
-        temp > 120 ? '#ed6847' : temp < 60 ? '#84acbe' : '#75b7a1',
-      );
+      (e as HTMLElement).style.setProperty('--tire', tyreBand(temp));
     });
     this.get('startSequence').hidden = frame[H.PHASE] !== 1;
     Array.from(this.get('lights').children).forEach((e, i) =>
       e.classList.toggle('lit', i < frame[H.LIGHTS]),
     );
-    const pit = frame[o + F.PIT_PHASE];
-    const message =
-      frame[o + F.FINISH] > 0
-        ? 'FINISHED · AUTOMATIC COOLDOWN / WAITING FOR FIELD'
-        : yellowFlag(frame[H.FLAG])
-          ? `${flagLabel(frame[H.FLAG])} · ${Math.round(frame[o + F.CAUTION_SPEED] * 3.6)} KM/H · NO OVERTAKING`
-          : frame[H.FLAG] === FLAG.BLUE
-            ? 'BLUE FLAG · HOLD A PREDICTABLE LINE / LET THE LEADER PASS'
-            : auto
-              ? 'AI DEMONSTRATION · PRESS G TO TAKE CONTROL'
-              : pit > 0
-                ? [
-                    '',
-                    'PIT ASSIST · APPROACHING BOX',
-                    'JACKED · SERVICE',
-                    'REMOVING WHEELS',
-                    'NEW TIRES INSTALLED',
-                    'REPAIRING FRONT WING',
-                    'RELEASED · PIT EXIT',
-                  ][pit]
-                : frame[o + F.FRONT_HEALTH] < 0.6
-                  ? 'FRONT WING DAMAGE · REQUEST PIT SERVICE'
-                  : frame[H.FLAG] === 1
-                    ? 'YELLOW · INCIDENT ON CIRCUIT'
-                    : '';
+    // Race control: one message for the polite live region; the F1 layout
+    // shows it as a 4 s banner (flags stay as a compact chip while they apply).
+    const message = raceBanner(frame, auto).text;
     if (message !== this.lastAnnounced) {
       this.setText('raceMessage', message);
       this.lastAnnounced = message;
@@ -436,13 +447,16 @@ export class Interface {
       this.hud.style.setProperty('--grid-rows', String(cars));
       tower.innerHTML = Array.from(
         { length: cars },
-        () => '<div class="tower-row"><b></b><i></i><span></span><small></small></div>',
+        () =>
+          '<div class="tower-row"><b></b><i></i><span></span><small></small><em></em><u></u></div>',
       ).join('');
     }
     const order = Array.from({ length: cars }, (_, id) => id).sort(
       (a, b) => frame[carBase(a) + F.RANK] - frame[carBase(b) + F.RANK],
     );
-    this.setText('positionBadge', `P${order.indexOf(0) + 1}`);
+    this.order = order;
+    const playerRank = order.indexOf(0);
+    this.setText('positionBadge', `P${playerRank + 1}`);
     this.setText('positionField', `/ ${cars}`);
     // Broadcast towers refresh intervals a few times a second, not every frame.
     const racing = racingSession(this.options.mode);
@@ -451,11 +465,17 @@ export class Interface {
       this.towerRefresh = frame[H.TIME];
       this.setText('towerColumn', racing ? 'INTERVAL' : 'BEST LAP');
     }
+    // Five rows around the player while driving; focus expands the full list.
+    const [first, end] = towerWindow(playerRank, cars);
+    const fastest = fastestLapCar(frame);
     order.forEach((id, rank) => {
       const e = tower.children[rank] as HTMLElement,
         p = carBase(id);
       e.classList.toggle('player', id === 0);
-      e.querySelector('b')!.textContent = String(rank + 1).padStart(2, '0');
+      const slot = rank < first || rank >= end ? 'out' : rank === end - 1 ? 'last' : 'in';
+      if (e.dataset.window !== slot) e.dataset.window = slot;
+      e.toggleAttribute('data-fastest', id === fastest);
+      e.querySelector('b')!.textContent = String(rank + 1);
       (e.querySelector('i') as HTMLElement).style.background =
         id === 0
           ? `#${renderer.cars[0].paint.color.getHexString()}`
@@ -464,23 +484,48 @@ export class Interface {
       const label = e.querySelector('span')!;
       if (label.title !== name) {
         label.title = name;
-        label.textContent = driverCode(name);
+        label.textContent = surname(name);
+      }
+      const compound = compoundOf(frame, id);
+      const tyre = e.querySelector('em')!;
+      if (tyre.dataset.c !== compound) {
+        tyre.dataset.c = compound;
+        tyre.textContent = compound[0].toUpperCase();
+        tyre.title = compound;
+        tyre.style.setProperty('--tyre', `var(--tyre-${compound})`);
       }
       if (!refresh) return;
       const ahead = order[rank - 1];
       const best = frame[p + F.BEST_LAP];
       e.querySelector('small')!.textContent =
-        frame[p + F.FINISH] > 0
-          ? 'FIN'
-          : frame[p + F.IN_PIT]
-            ? 'PIT'
-            : !racing
-              ? best > 0
-                ? lapTime(best)
-                : 'NO TIME'
-              : rank === 0
-                ? 'LEADER'
-                : formatInterval(this.gaps!.interval(ahead, id), this.gaps!.lapsBetween(ahead, id));
+        frame[p + F.RETIRED] > 0
+          ? 'DNF'
+          : frame[p + F.FINISH] > 0
+            ? 'FIN'
+            : frame[p + F.IN_PIT]
+              ? 'PIT'
+              : !racing
+                ? best > 0
+                  ? lapTime(best)
+                  : '--:--.---'
+                : rank === 0
+                  ? 'LEADER'
+                  : formatInterval(
+                      this.gaps!.interval(ahead, id),
+                      this.gaps!.lapsBetween(ahead, id),
+                    );
+    });
+    this.f1.update({
+      frame,
+      trackLength: this.track.length,
+      mode: this.options.mode,
+      laps: this.options.laps,
+      order,
+      sectors: this.sectors,
+      ers,
+      auto,
+      bestKnown: frame[o + F.BEST_LAP] > 0 || (trial?.best ?? 0) > 0,
+      deltaShown: deltaValid && !racing,
     });
     this.drawMap(frame);
     this.get('debug').hidden = !renderer.debug;
@@ -507,51 +552,7 @@ export class Interface {
   }
   private mapFrame: ReturnType<typeof minimapFrame> | null = null;
   private drawMap(frame: Float32Array) {
-    const c = this.map.getContext('2d')!;
-    c.clearRect(0, 0, 250, 240);
-    const { cx, cz, scale } = (this.mapFrame ??= minimapFrame(this.track));
-    const x = (v: number) => 125 + (v - cx) * scale,
-      z = (v: number) => 125 - (v - cz) * scale * (0.23 / 0.24);
-    const trace = () => {
-      c.beginPath();
-      this.track.points.forEach((p, i) => {
-        if (i === 0) c.moveTo(x(p.x), z(p.z));
-        else c.lineTo(x(p.x), z(p.z));
-      });
-      c.closePath();
-    };
-    c.lineJoin = 'round';
-    c.lineCap = 'round';
-    // Broadcast map: dark casing, bright ribbon, then the start/finish mark.
-    trace();
-    c.lineWidth = 9;
-    c.strokeStyle = 'rgba(4, 6, 9, 0.78)';
-    c.stroke();
-    c.lineWidth = 3.4;
-    c.strokeStyle = 'rgba(255, 255, 255, 0.92)';
-    c.stroke();
-    const [a, b] = this.track.points;
-    if (a && b) {
-      const angle = Math.atan2(z(b.z) - z(a.z), x(b.x) - x(a.x)) + Math.PI / 2;
-      c.save();
-      c.translate(x(a.x), z(a.z));
-      c.rotate(angle);
-      c.fillStyle = '#ff5a2a';
-      c.fillRect(-7, -1.6, 14, 3.2);
-      c.restore();
-    }
-    for (let i = frame[H.CARS] - 1; i >= 0; i--) {
-      const p = carBase(i);
-      const px = x(frame[p]),
-        pz = z(frame[p + 2]);
-      c.beginPath();
-      c.arc(px, pz, i === 0 ? 6.2 : 4, 0, Math.PI * 2);
-      c.fillStyle = i === 0 ? '#ff5a2a' : `#${LIVERIES[i].toString(16).padStart(6, '0')}`;
-      c.fill();
-      c.lineWidth = i === 0 ? 2.2 : 1.4;
-      c.strokeStyle = i === 0 ? '#ffffff' : 'rgba(4, 6, 9, 0.9)';
-      c.stroke();
-    }
+    this.trackMap.draw(frame, this.track, (this.mapFrame ??= minimapFrame(this.track)));
   }
   gridPresentationAvailable = false;
   pause() {

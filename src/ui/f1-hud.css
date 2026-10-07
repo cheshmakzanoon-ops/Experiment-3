@@ -1,0 +1,1327 @@
+/* F1-style race HUD (Art Bible B §1). Injected by installF1Hud after the
+   race-day stylesheet and scoped to #hud[data-f1], so it wins on desktop
+   without !important while the compact drawer keeps its own layout.
+   One HUD unit (--u) is 1 vh of a 16:9 safe frame, times the UI scale. */
+
+/* ---------- Every size: presentation-only nodes start hidden ---------- */
+#hud[data-f1]
+  :is(
+    .f1-shape,
+    .f1-status,
+    .f1-drs,
+    .f1-shift,
+    .f1-tyres,
+    .f1-banner,
+    .f1-pit,
+    .f1-tags,
+    .f1-tower-head,
+    .f1-tower-lap,
+    .f1-sectors,
+    .f1-pos,
+    .f1-progress
+  ) {
+  display: none;
+}
+#hud[data-f1] .f1-text {
+  font-style: normal;
+}
+/* Compact: the moved notes stay full-width rows of the instrument grid. */
+#hud[data-f1] .f1-notes {
+  display: contents;
+}
+#hud[data-f1] .f1-notes > * {
+  grid-column: 1 / -1;
+}
+
+@media (min-width: 1280px) and (min-height: 680px) {
+  #hud[data-f1] {
+    --u: calc(var(--ui-scale, 1) * min(1vh, 0.5625vw));
+    --f1-side: 2.7vw;
+    --f1-top: 4.4vh;
+    --f1-floor: max(5vh, 52px);
+    --f1-dock: max(3.4vh, 12px);
+    --f1-name: calc(26 * var(--u));
+    --f1-gaps: calc(12.5 * var(--u));
+    --f1-row: calc(3.8 * var(--u));
+    --f1-map-h: calc(24 * var(--u));
+  }
+  [data-mode='replay'] #hud[data-f1] {
+    --f1-floor: 112px;
+    --f1-dock: 112px;
+  }
+
+  /* ---------- Dock: the top bar becomes two small glass boxes bottom-right ---------- */
+  #hud[data-f1] .hud-top {
+    inset: auto var(--f1-side) var(--f1-dock) auto;
+    gap: calc(0.8 * var(--u));
+    min-height: 0;
+  }
+  #hud[data-f1] .hud-top > :is(.brand, .position-badge, .session-status) {
+    display: none;
+  }
+  #hud[data-f1] .hud-top :is(.vehicle-toggle, .icon-button) {
+    height: calc(3.4 * var(--u));
+    min-height: calc(3.4 * var(--u));
+    padding: 0 calc(1.1 * var(--u));
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 6px;
+    background: rgba(10, 12, 18, 0.55);
+    color: var(--hud-text);
+    font-size: calc(1.15 * var(--u));
+    font-weight: 600;
+    font-stretch: 112%;
+    letter-spacing: 0.06em;
+    clip-path: none;
+  }
+  /* The ≡ glyph is drawn, not text: generated text would join the button's
+     accessible name ("VEHICLE" is what players and tests address). */
+  #hud[data-f1] .hud-top .vehicle-toggle::before {
+    content: '';
+    display: inline-block;
+    width: calc(1.2 * var(--u));
+    height: calc(1 * var(--u));
+    margin-right: calc(0.6 * var(--u));
+    vertical-align: -0.1em;
+    background:
+      linear-gradient(currentColor 0 0) 0 0 / 100% 2px no-repeat,
+      linear-gradient(currentColor 0 0) 0 50% / 100% 2px no-repeat,
+      linear-gradient(currentColor 0 0) 0 100% / 100% 2px no-repeat;
+  }
+  #hud[data-f1] .hud-top .icon-button {
+    width: calc(3.4 * var(--u));
+    padding: 0;
+    font-size: calc(1.4 * var(--u));
+  }
+  #hud[data-f1] .hud-top :is(.vehicle-toggle, .icon-button):is(:hover, [aria-expanded='true']) {
+    background: var(--hud-text);
+    color: #14161c;
+    border-color: var(--hud-text);
+  }
+
+  /* ---------- Timing tower v2 ---------- */
+  #hud[data-f1] .timing {
+    top: var(--f1-top);
+    left: var(--f1-side);
+    width: calc(var(--f1-name) + var(--f1-gaps));
+    height: auto;
+    max-height: none;
+    overflow: visible;
+    background: transparent;
+    border-radius: 0;
+    box-shadow: none;
+    transform: none;
+  }
+  /* Keyboard focus expands the 5-row window to the whole field, scrollable
+     inside the space above the map (End/Home reach the last/first car). */
+  #hud[data-f1] .timing:focus-within {
+    max-height: calc(100vh - var(--f1-top) - var(--f1-floor) - var(--f1-map-h) - 3vh);
+    overflow-x: hidden;
+    overflow-y: auto;
+    scrollbar-width: thin;
+  }
+  #hud[data-f1] .timing:focus-visible {
+    outline: 1.5px solid var(--hud-text);
+    outline-offset: 3px;
+  }
+  #hud[data-f1] .timing .panel-heading {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    width: var(--f1-name);
+    padding: 0;
+    border: 1.5px solid var(--hud-stroke);
+    border-bottom: 0;
+    border-radius: var(--hud-radius) var(--hud-radius) 0 0;
+    background: var(--hud-panel-head);
+    letter-spacing: 0;
+  }
+  #hud[data-f1] .timing .panel-heading > :is(.f1-text, #towerColumn) {
+    display: none;
+  }
+  #hud[data-f1] .f1-tower-head {
+    display: flex;
+    align-items: center;
+    gap: calc(1.1 * var(--u));
+    height: calc(6.6 * var(--u));
+    padding: 0 calc(1.6 * var(--u));
+    border-bottom: 1px solid var(--hud-hair);
+    white-space: nowrap;
+  }
+  #hud[data-f1] .f1-wordmark {
+    font-size: calc(3.9 * var(--u));
+    font-weight: 800;
+    font-stretch: 125%;
+    letter-spacing: -0.01em;
+    line-height: 1;
+    color: #fff;
+  }
+  #hud[data-f1] .f1-session {
+    font-style: normal;
+    font-size: calc(3.3 * var(--u));
+    font-weight: 800;
+    font-stretch: 125%;
+    line-height: 1;
+    color: var(--hud-text-dim);
+  }
+  #hud[data-f1] .f1-session[data-long='true'] {
+    font-size: calc(2.1 * var(--u));
+    font-stretch: 112%;
+  }
+  #hud[data-f1] .f1-tower-lap {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: calc(0.6 * var(--u));
+    height: calc(3.6 * var(--u));
+    padding-top: calc(0.55 * var(--u));
+    background: rgba(255, 255, 255, 0.035);
+    white-space: nowrap;
+  }
+  #hud[data-f1] .f1-tower-lap small {
+    font-size: calc(2 * var(--u));
+    font-weight: 400;
+    font-stretch: 112%;
+    color: #d6d9df;
+  }
+  #hud[data-f1] .f1-tower-lap b {
+    font-size: calc(2.6 * var(--u));
+    font-weight: 800;
+    font-stretch: 112%;
+    color: #fff;
+  }
+  #hud[data-f1] #tower {
+    width: 100%;
+  }
+  #hud[data-f1] .tower-row {
+    position: relative;
+    display: grid;
+    grid-template-columns:
+      calc(3.4 * var(--u)) calc(0.9 * var(--u)) calc(var(--f1-name) - 4.3 * var(--u))
+      calc(3 * var(--u)) calc(9.5 * var(--u));
+    align-items: center;
+    height: var(--f1-row);
+    padding: 0;
+    gap: 0;
+    border: 0;
+    background: linear-gradient(
+      90deg,
+      var(--hud-panel) 0 var(--f1-name),
+      var(--hud-panel-2) var(--f1-name)
+    );
+    box-shadow: inset 1.5px 0 0 var(--hud-stroke);
+    color: var(--hud-text);
+  }
+  #hud[data-f1] .tower-row > b {
+    min-width: 0;
+    padding-right: calc(0.5 * var(--u));
+    font-size: calc(1.75 * var(--u));
+    font-weight: 400;
+    font-stretch: 112%;
+    text-align: right;
+    color: #c8ccd4;
+  }
+  #hud[data-f1] .tower-row > i {
+    justify-self: center;
+    width: 2px;
+    height: calc(2.4 * var(--u));
+    transform: none;
+  }
+  #hud[data-f1] .tower-row > span {
+    display: flex;
+    align-items: center;
+    height: 100%;
+    padding: 0 calc(0.8 * var(--u)) 0 calc(0.45 * var(--u));
+    font-size: calc(1.75 * var(--u));
+    font-weight: 500;
+    font-stretch: 112%;
+    letter-spacing: 0.02em;
+    box-shadow: inset -1.5px 0 0 var(--hud-stroke);
+  }
+  #hud[data-f1] .tower-row > em {
+    justify-self: center;
+    width: calc(1.9 * var(--u));
+    height: calc(1.9 * var(--u));
+    margin: 0;
+    border-width: 1.5px;
+    font-size: calc(1.05 * var(--u));
+  }
+  #hud[data-f1] .tower-row > small {
+    min-width: 0;
+    padding-right: calc(1 * var(--u));
+    font-size: calc(1.75 * var(--u));
+    font-weight: 500;
+    font-stretch: 108%;
+    letter-spacing: 0;
+    color: var(--hud-text);
+    white-space: nowrap;
+  }
+  #hud[data-f1] .tower-row > u {
+    position: absolute;
+    left: 100%;
+    top: 0;
+    width: var(--f1-row);
+    height: var(--f1-row);
+  }
+  #hud[data-f1] .tower-row.player {
+    background: linear-gradient(
+      90deg,
+      var(--hud-player-row) 0 var(--f1-name),
+      var(--hud-panel-2) var(--f1-name)
+    );
+  }
+  #hud[data-f1] .tower-row.player > :is(b, span) {
+    color: var(--hud-player-text);
+  }
+  #hud[data-f1] .tower-row.player > :is(small, em) {
+    color: var(--hud-text);
+  }
+  #hud[data-f1] .tower-row[data-fastest] {
+    background: var(--t-purple);
+  }
+  #hud[data-f1] .tower-row[data-fastest] > * {
+    color: #fff;
+  }
+  /* Fastest-lap holder: a purple tab with a stopwatch beside the row. */
+  #hud[data-f1] .tower-row[data-fastest] > u {
+    display: block;
+    border-radius: 0 4px 4px 0;
+    background: var(--t-purple);
+  }
+  #hud[data-f1] .tower-row[data-fastest] > u::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 58%;
+    width: calc(1.45 * var(--u));
+    height: calc(1.45 * var(--u));
+    transform: translate(-50%, -50%);
+    border: 1.5px solid #fff;
+    border-radius: 50%;
+  }
+  #hud[data-f1] .tower-row[data-fastest] > u::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 13%;
+    width: calc(0.55 * var(--u));
+    height: calc(0.5 * var(--u));
+    transform: translateX(-50%);
+    border-top: 1.5px solid #fff;
+    background: linear-gradient(#fff, #fff) center / 1.5px 100% no-repeat;
+  }
+  #hud[data-f1] .timing:not(:focus-within) .tower-row[data-window='out'] {
+    display: none;
+  }
+  /* The name block's frame closes under the last visible row. */
+  #hud[data-f1] .timing:not(:focus-within) .tower-row[data-window='last']::after,
+  #hud[data-f1] .timing:focus-within .tower-row:last-child::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: var(--f1-name);
+    height: 1.5px;
+    background: var(--hud-stroke);
+  }
+
+  /* ---------- Sector / position / lap panel ---------- */
+  #hud[data-f1] .lap-panel {
+    inset: calc(var(--f1-top) - 0.2vh) var(--f1-side) auto auto;
+    width: calc(35.6 * var(--u));
+    padding: 0;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-areas: 'tabs tabs' 'pos time' 'line line' 'best best' 'delta delta';
+    overflow: hidden;
+    background: var(--hud-panel);
+    border-radius: var(--hud-radius) calc(1.75 * var(--hud-radius)) var(--hud-radius)
+      var(--hud-radius);
+    box-shadow: inset 0 0 0 1.5px var(--hud-stroke);
+    transform: none;
+  }
+  #hud[data-f1] .lap-panel :is(.f1-text, .f1-last) {
+    display: none;
+  }
+  #hud[data-f1] .f1-sectors {
+    grid-area: tabs;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    height: calc(2.1 * var(--u));
+    padding: 1.5px 1.5px 0;
+  }
+  #hud[data-f1] .f1-sectors > i {
+    position: relative;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    font-style: normal;
+    background: #1d2028;
+  }
+  #hud[data-f1] .f1-sectors > i > u {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 0;
+  }
+  #hud[data-f1] .f1-sectors > i > b {
+    position: relative;
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: calc(1.1 * var(--u));
+    font-weight: 500;
+    font-stretch: 112%;
+    color: var(--hud-text-dim);
+  }
+  #hud[data-f1] .f1-sectors > [data-state='live'] > u {
+    width: var(--fill, 0%);
+    background: rgba(244, 245, 247, 0.2);
+  }
+  #hud[data-f1]
+    .f1-sectors
+    > :is(
+      [data-state='purple'],
+      [data-state='green'],
+      [data-state='yellow'],
+      [data-state='invalid']
+    )
+    > u {
+    width: 100%;
+  }
+  #hud[data-f1] .f1-sectors > [data-state='purple'] > u {
+    background: var(--t-purple);
+  }
+  #hud[data-f1] .f1-sectors > [data-state='green'] > u {
+    background: var(--t-green);
+  }
+  #hud[data-f1] .f1-sectors > [data-state='yellow'] > u {
+    background: var(--t-yellow);
+  }
+  #hud[data-f1] .f1-sectors > [data-state='invalid'] > u {
+    background: #5b1f26;
+  }
+  #hud[data-f1]
+    .f1-sectors
+    > :is([data-state='purple'], [data-state='green'], [data-state='invalid'], [data-state='live'])
+    > b {
+    color: #fff;
+  }
+  #hud[data-f1] .f1-sectors > [data-state='yellow'] > b {
+    color: #241d00;
+  }
+  #hud[data-f1] .f1-pos {
+    grid-area: pos;
+    display: flex;
+    align-items: baseline;
+    gap: calc(0.5 * var(--u));
+    margin: 0;
+    padding: calc(0.5 * var(--u)) calc(1.4 * var(--u)) 0;
+    font-family: var(--font-display);
+    letter-spacing: 0;
+  }
+  #hud[data-f1] .f1-pos span {
+    font-family: var(--font-display);
+    font-size: calc(3.2 * var(--u));
+    font-weight: 800;
+    font-stretch: 125%;
+    line-height: 1.15;
+    color: #fff;
+  }
+  #hud[data-f1] .f1-pos small {
+    font-size: calc(2.3 * var(--u));
+    font-weight: 400;
+    font-stretch: 112%;
+    color: var(--hud-text-dim);
+  }
+  #hud[data-f1] .lap-panel label {
+    margin: 0;
+    letter-spacing: 0.04em;
+  }
+  #hud[data-f1] .lap-panel .lap-current {
+    grid-area: time;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: calc(0.5 * var(--u)) calc(1.4 * var(--u)) 0;
+  }
+  #hud[data-f1] .lap-panel #lapTime {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: calc(2.4 * var(--u));
+    font-weight: 500;
+    font-stretch: 112%;
+    letter-spacing: 0.01em;
+    color: #fff;
+  }
+  #hud[data-f1] .lap-panel[data-valid='false'] #lapTime {
+    color: #ff8f8f;
+  }
+  #hud[data-f1] .f1-progress {
+    grid-area: line;
+    display: block;
+    height: 2px;
+    margin: calc(0.55 * var(--u)) 1.5px 0;
+    background: #d4e000;
+  }
+  #hud[data-f1] .f1-progress[data-state='ahead'] {
+    background: var(--t-green);
+  }
+  #hud[data-f1] .f1-progress[data-state='pit'] {
+    background: #1aa6a6;
+  }
+  #hud[data-f1] .f1-progress[data-state='invalid'] {
+    background: #e8902a;
+  }
+  #hud[data-f1] .lap-panel .f1-best {
+    grid-area: best;
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    padding: calc(0.75 * var(--u)) calc(1.4 * var(--u));
+  }
+  #hud[data-f1] .lap-panel[data-best='true'] .f1-best {
+    display: flex;
+  }
+  #hud[data-f1] .lap-panel .f1-best::before {
+    content: 'BEST';
+    font-size: calc(2 * var(--u));
+    font-weight: 500;
+    font-stretch: 112%;
+    color: rgba(244, 245, 247, 0.86);
+  }
+  #hud[data-f1] .lap-panel #bestLap {
+    font-family: var(--font-display);
+    font-size: calc(2 * var(--u));
+    font-weight: 500;
+    font-stretch: 112%;
+    color: #fff;
+  }
+  #hud[data-f1] .lap-panel .lap-delta {
+    grid-area: delta;
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    padding: calc(0.6 * var(--u)) calc(1.4 * var(--u));
+    border-top: 1px solid var(--hud-hair);
+  }
+  #hud[data-f1] .lap-panel[data-delta='true'] .lap-delta {
+    display: flex;
+  }
+  #hud[data-f1] #lapDeltaLabel {
+    font-size: calc(1.5 * var(--u));
+    font-weight: 500;
+    font-stretch: 112%;
+    color: var(--hud-text-dim);
+  }
+  #hud[data-f1] #lapDelta {
+    font-family: var(--font-display);
+    font-size: calc(2.4 * var(--u));
+    font-weight: 800;
+    font-stretch: 112%;
+    padding: calc(0.15 * var(--u)) calc(0.8 * var(--u));
+  }
+
+  /* ---------- Binocular cluster ---------- */
+  #hud[data-f1][data-camera] .instruments {
+    left: 50%;
+    right: auto;
+    top: auto;
+    bottom: var(--f1-floor);
+    width: calc(37.9 * var(--u));
+    height: calc(14.2 * var(--u));
+    display: block;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+    overflow: visible;
+    transform: translateX(-50%);
+  }
+  #hud[data-f1] .f1-shape {
+    display: block;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    pointer-events: none;
+  }
+  #hud[data-f1] .f1-body {
+    fill: rgba(10, 12, 18, 0.82);
+    stroke: rgba(120, 126, 140, 0.55);
+    stroke-width: 1.5px;
+    vector-effect: non-scaling-stroke;
+  }
+  #hud[data-f1] .f1-ticks {
+    fill: none;
+    stroke: rgba(200, 205, 215, 0.35);
+    stroke-width: 2.4;
+    stroke-dasharray: 1.2 4.2;
+  }
+  #hud[data-f1] :is(.f1-track, .f1-ers, .f1-rpm, .f1-thr, .f1-brk) {
+    fill: none;
+  }
+  #hud[data-f1] .f1-track {
+    stroke: rgba(255, 255, 255, 0.08);
+    stroke-width: 9;
+  }
+  #hud[data-f1] .f1-track.f1-thin {
+    stroke: rgba(200, 205, 215, 0.16);
+    stroke-width: 3.5;
+  }
+  #hud[data-f1] .f1-ers {
+    stroke-width: 9;
+  }
+  #hud[data-f1] .f1-rpm {
+    stroke: #e9ecf2;
+    stroke-width: 3.5;
+  }
+  #hud[data-f1] [data-redline='true'] .f1-rpm {
+    stroke: var(--rev-red);
+  }
+  #hud[data-f1] .f1-thr {
+    stroke: rgba(200, 205, 215, 0.6);
+    stroke-width: 2.4;
+  }
+  #hud[data-f1] .f1-brk {
+    stroke: var(--rev-red);
+    stroke-width: 2.4;
+  }
+  #hud[data-f1] .f1-notes {
+    position: absolute;
+    left: 50%;
+    bottom: calc(100% + 1 * var(--u));
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: calc(0.5 * var(--u));
+    width: calc(50 * var(--u));
+    transform: translateX(-50%);
+  }
+  #hud[data-f1] .f1-notes > * {
+    width: auto;
+    max-width: 100%;
+    padding: calc(0.45 * var(--u)) calc(1.1 * var(--u));
+    border: 0;
+    border-radius: 6px;
+    background: var(--hud-panel);
+    box-shadow: inset 0 0 0 1px var(--hud-hair);
+    font-size: calc(1.3 * var(--u));
+    font-weight: 500;
+    font-stretch: 108%;
+    letter-spacing: 0.03em;
+    line-height: 1.3;
+    text-align: center;
+  }
+  #hud[data-f1] .f1-notes > .vehicle-alert {
+    color: #ffe2ba;
+    box-shadow: inset 0 0 0 1px rgba(240, 160, 32, 0.8);
+  }
+  #hud[data-f1] .f1-notes > .vehicle-alert::before {
+    content: '';
+    display: inline-block;
+    margin-right: calc(0.6 * var(--u));
+    border: calc(0.6 * var(--u)) solid transparent;
+    border-bottom: calc(1 * var(--u)) solid #f0a020;
+    border-top: 0;
+    vertical-align: 0.05em;
+  }
+  #hud[data-f1] .rev-lights {
+    position: absolute;
+    left: 50%;
+    top: calc(31% - 0.275 * var(--u));
+    display: flex;
+    gap: calc(0.35 * var(--u));
+    padding: 0;
+    transform: translateX(-50%);
+  }
+  #hud[data-f1] .rev-lights i {
+    flex: 0 0 auto;
+    width: calc(0.55 * var(--u));
+    height: calc(0.55 * var(--u));
+    border-radius: 50%;
+    transform: none;
+  }
+  #hud[data-f1] .dash-main {
+    display: contents;
+  }
+  #hud[data-f1] .gear {
+    position: absolute;
+    left: 50%;
+    top: 54%;
+    display: block;
+    padding: 0;
+    border: 0;
+    background: none;
+    transform: translate(-50%, -50%);
+    clip-path: none;
+  }
+  #hud[data-f1] .gear > b {
+    font-family: var(--font-display);
+    font-size: calc(6.4 * var(--u));
+    font-weight: 800;
+    font-stretch: 125%;
+    line-height: 1;
+    color: #fff;
+  }
+  #hud[data-f1] .gear > span,
+  #hud[data-f1] .pedals {
+    display: none;
+  }
+  #hud[data-f1] .speed {
+    position: absolute;
+    left: 83.4%;
+    top: 12%;
+    display: flex;
+    flex-direction: column-reverse;
+    align-items: center;
+    transform: translateX(-50%);
+  }
+  #hud[data-f1] .speed > b {
+    font-family: var(--font-display);
+    font-size: calc(3.6 * var(--u));
+    font-weight: 800;
+    font-stretch: 125%;
+    line-height: 1;
+    color: #fff;
+  }
+  #hud[data-f1] .speed > span,
+  #hud[data-f1] .engine > span {
+    margin: 0 0 calc(0.1 * var(--u));
+    font-size: calc(1.2 * var(--u));
+    font-weight: 400;
+    font-stretch: 112%;
+    letter-spacing: 0.04em;
+    color: #fff;
+  }
+  #hud[data-f1] [data-pit='true'] .speed > b {
+    color: var(--pit-cyan);
+  }
+  #hud[data-f1] .engine {
+    display: contents;
+  }
+  #hud[data-f1] .engine > span {
+    position: absolute;
+    left: 83.4%;
+    top: 57%;
+    transform: translateX(-50%);
+    font-size: calc(1.1 * var(--u));
+    line-height: 1;
+  }
+  #hud[data-f1] .engine > b {
+    position: absolute;
+    left: 83.4%;
+    top: 65.5%;
+    transform: translateX(-50%);
+    font-family: var(--font-display);
+    font-size: calc(2.1 * var(--u));
+    font-weight: 700;
+    font-stretch: 112%;
+    line-height: 1;
+    color: #fff;
+  }
+  /* ERS mode badge: concentric-ring glyph at the BATT pod's lower left. */
+  #hud[data-f1] #ersMode {
+    position: absolute;
+    left: 6.2%;
+    top: 75%;
+    width: calc(2.4 * var(--u));
+    height: calc(2.4 * var(--u));
+    margin: 0;
+    padding: 0;
+    border-radius: 50%;
+    font-size: 0;
+    clip-path: none;
+    box-shadow: 0 0 0 1px rgba(10, 12, 18, 0.9);
+    background: radial-gradient(
+      circle,
+      #e4c030 0 27%,
+      #0a0c12 29% 45%,
+      #e0182a 47% 64%,
+      #0a0c12 66%
+    );
+  }
+  #hud[data-f1] #ersMode[data-mode='HARVEST'] {
+    background: radial-gradient(
+      circle,
+      var(--ers-hi) 0 27%,
+      #0a0c12 29% 45%,
+      var(--ers-lo) 47% 64%,
+      #0a0c12 66%
+    );
+  }
+  #hud[data-f1] #ersMode[data-mode='ATTACK'] {
+    background: radial-gradient(circle, #fff 0 22%, #e0182a 25% 64%, #0a0c12 66%);
+  }
+  /* BATT pod: the live #battery and #fuel nodes, centred in the left pod. */
+  #hud[data-f1][data-camera] .resources {
+    position: absolute;
+    left: 16.6%;
+    top: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    transform: translate(-50%, -54%);
+  }
+  #hud[data-f1] .resources label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    flex: none;
+    margin: 0;
+    font-size: calc(1.35 * var(--u));
+    line-height: 1.1;
+  }
+  #hud[data-f1] .resources .f1-res-label {
+    font-size: 0;
+  }
+  #hud[data-f1] .resources .f1-res-label::after {
+    content: 'BATT';
+    font-size: calc(1.35 * var(--u));
+    font-weight: 500;
+    font-stretch: 112%;
+    letter-spacing: 0.04em;
+    color: var(--ers-hi);
+  }
+  #hud[data-f1] #battery {
+    font-family: var(--font-display);
+    font-size: calc(3 * var(--u));
+    font-weight: 800;
+    font-stretch: 125%;
+    line-height: 1.05;
+    color: var(--ers-hi);
+  }
+  #hud[data-f1] .resources .meter {
+    display: none;
+  }
+  #hud[data-f1] .resources label:last-child {
+    flex-direction: row;
+    gap: calc(0.35 * var(--u));
+    margin-top: calc(0.3 * var(--u));
+    font-size: calc(0.95 * var(--u));
+    color: var(--hud-text-dim);
+  }
+  #hud[data-f1] #fuel {
+    font-family: var(--font-display);
+    font-size: calc(0.95 * var(--u));
+    font-weight: 600;
+    color: var(--hud-text-dim);
+  }
+  #hud[data-f1] .f1-status {
+    display: block;
+    position: absolute;
+    left: 50%;
+    top: 78.5%;
+    transform: translateX(-50%);
+    font-size: calc(1.25 * var(--u));
+    font-weight: 600;
+    font-stretch: 112%;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    color: var(--ers-status);
+  }
+  #hud[data-f1] .f1-drs {
+    display: block;
+    position: absolute;
+    left: 50%;
+    top: 93.5%;
+    width: calc(5.7 * var(--u));
+    height: calc(0.9 * var(--u));
+    border-radius: calc(0.45 * var(--u));
+    background: #2a2d36;
+    transform: translate(-50%, -50%);
+  }
+  #hud[data-f1] .f1-drs span {
+    display: none;
+  }
+  #hud[data-f1] .f1-drs[data-state='1'] {
+    background: transparent;
+    box-shadow: inset 0 0 0 1.5px var(--drs-on);
+  }
+  #hud[data-f1] .f1-drs[data-state='2'] {
+    background: var(--drs-on);
+    box-shadow: 0 0 8px var(--drs-on);
+  }
+  #hud[data-f1] .f1-shift {
+    display: flex;
+    flex-direction: column;
+    gap: calc(0.9 * var(--u));
+    position: absolute;
+    left: 63%;
+    top: 52%;
+    transform: translateY(-50%);
+  }
+  #hud[data-f1] .f1-shift i {
+    width: calc(1.1 * var(--u));
+    height: calc(1.1 * var(--u));
+    border: solid rgba(255, 255, 255, 0.22);
+    border-width: 2px 2px 0 0;
+    transform: rotate(-45deg);
+  }
+  #hud[data-f1] .f1-shift i.down {
+    transform: rotate(135deg);
+  }
+  #hud[data-f1] .f1-shift[data-shift='up'] .up,
+  #hud[data-f1] .f1-shift[data-shift='down'] .down {
+    border-color: var(--rev-green);
+  }
+  /* Tyre widget beside the speed pod (Art Bible B §1.7 temperature bands). */
+  #hud[data-f1] .f1-tyres {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: calc(0.6 * var(--u));
+    position: absolute;
+    left: calc(100% + 1.2 * var(--u));
+    top: 50%;
+    padding: calc(0.7 * var(--u)) calc(0.6 * var(--u));
+    border-radius: 6px;
+    background: rgba(10, 12, 18, 0.72);
+    box-shadow: inset 0 0 0 1px var(--hud-hair);
+    transform: translateY(-50%);
+  }
+  #hud[data-f1] .f1-compound {
+    display: grid;
+    place-items: center;
+    width: calc(2.1 * var(--u));
+    height: calc(2.1 * var(--u));
+    border: 1.5px solid var(--tyre-medium);
+    border-radius: 50%;
+    font-style: normal;
+    font-size: calc(1.05 * var(--u));
+    font-weight: 700;
+    line-height: 1;
+    color: #fff;
+  }
+  #hud[data-f1] .f1-compound[data-c='soft'] {
+    border-color: var(--tyre-soft);
+  }
+  #hud[data-f1] .f1-compound[data-c='hard'] {
+    border-color: var(--tyre-hard);
+  }
+  #hud[data-f1] .f1-compound[data-c='intermediate'] {
+    border-color: var(--tyre-intermediate);
+  }
+  #hud[data-f1] .f1-compound[data-c='wet'] {
+    border-color: var(--tyre-wet);
+  }
+  #hud[data-f1] .f1-car {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(2, calc(1.1 * var(--u)));
+    column-gap: calc(1.2 * var(--u));
+    row-gap: calc(2 * var(--u));
+  }
+  #hud[data-f1] .f1-car > i {
+    position: relative;
+    width: calc(1.1 * var(--u));
+    height: calc(1.9 * var(--u));
+    overflow: hidden;
+    border-radius: calc(0.35 * var(--u));
+    background: var(--t, #4cd964);
+  }
+  #hud[data-f1] .f1-car > i::after {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto;
+    height: var(--wear, 0%);
+    background: rgba(10, 12, 18, 0.72);
+  }
+  #hud[data-f1] .f1-car > i[data-puncture='true'] {
+    outline: 1.5px solid #ff3b30;
+    outline-offset: 1px;
+  }
+  #hud[data-f1] .f1-car > b {
+    position: absolute;
+    left: 50%;
+    top: 12%;
+    bottom: 12%;
+    width: calc(0.45 * var(--u));
+    border-radius: calc(0.25 * var(--u));
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateX(-50%);
+  }
+
+  /* ---------- Map ---------- */
+  #hud[data-f1] .minimap {
+    left: var(--f1-side);
+    bottom: var(--f1-floor);
+    width: auto;
+    transform: none;
+  }
+  #hud[data-f1] .minimap canvas {
+    width: calc(var(--f1-map-h) * 250 / 240);
+    height: var(--f1-map-h);
+    filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.45));
+  }
+  #hud[data-f1] .minimap > span {
+    display: none;
+  }
+
+  /* ---------- Race-control banner and pit-lane panel ---------- */
+  #hud[data-f1] .race-message {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    transform: none;
+  }
+  #hud[data-f1] .f1-banner {
+    display: flex;
+    align-items: stretch;
+    position: absolute;
+    left: 50%;
+    top: 10vh;
+    min-width: calc(30 * var(--u));
+    max-width: calc(46 * var(--u));
+    overflow: hidden;
+    border-radius: 6px;
+    background: var(--hud-panel);
+    box-shadow:
+      inset 0 0 0 1px var(--hud-hair),
+      0 10px 30px -14px rgba(0, 0, 0, 0.6);
+    transform: translate(-50%, 0);
+    transition:
+      opacity 0.22s,
+      transform 0.22s,
+      visibility 0.22s;
+  }
+  #hud[data-f1] .f1-banner[data-state='off'] {
+    visibility: hidden;
+    opacity: 0;
+    transform: translate(-50%, -12px);
+  }
+  #hud[data-f1] .f1-banner[data-state='mini'] {
+    min-width: 0;
+  }
+  #hud[data-f1] .f1-swatch {
+    flex: 0 0 calc(4.4 * var(--u));
+    min-height: calc(4.4 * var(--u));
+    background: #e8eaef;
+  }
+  #hud[data-f1] .f1-banner[data-state='mini'] .f1-swatch {
+    flex-basis: calc(2.8 * var(--u));
+    min-height: calc(2.8 * var(--u));
+  }
+  #hud[data-f1] .f1-banner[data-swatch='yellow'] .f1-swatch {
+    background: var(--flag-yellow);
+  }
+  #hud[data-f1] .f1-banner[data-swatch='double'] .f1-swatch {
+    background: linear-gradient(var(--flag-yellow) 0 42%, #14161c 42% 58%, var(--flag-yellow) 58%);
+  }
+  #hud[data-f1] .f1-banner[data-swatch='blue'] .f1-swatch {
+    background: var(--flag-blue);
+  }
+  #hud[data-f1] .f1-banner[data-swatch='green'] .f1-swatch {
+    background: var(--t-green);
+  }
+  #hud[data-f1] .f1-banner[data-swatch='warn'] .f1-swatch {
+    background: #ff9500;
+  }
+  #hud[data-f1] .f1-banner[data-swatch='chequered'] .f1-swatch {
+    background: repeating-conic-gradient(#fff 0 25%, #111 0 50%) 0 0 / calc(1.1 * var(--u))
+      calc(1.1 * var(--u));
+  }
+  #hud[data-f1] .f1-banner > div {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: calc(0.15 * var(--u));
+    padding: calc(0.6 * var(--u)) calc(1.6 * var(--u));
+  }
+  #hud[data-f1] .f1-banner b {
+    font-size: calc(1.9 * var(--u));
+    font-weight: 700;
+    font-stretch: 112%;
+    letter-spacing: 0.04em;
+    line-height: 1.1;
+    color: #fff;
+    white-space: nowrap;
+  }
+  #hud[data-f1] .f1-banner small {
+    font-size: calc(1.3 * var(--u));
+    font-weight: 500;
+    font-stretch: 108%;
+    letter-spacing: 0.04em;
+    color: var(--hud-text-dim);
+    white-space: nowrap;
+  }
+  #hud[data-f1] .f1-banner[data-state='mini'] b {
+    font-size: calc(1.4 * var(--u));
+  }
+  #hud[data-f1] .f1-banner[data-state='mini'] small {
+    display: none;
+  }
+  #hud[data-f1] .f1-pit {
+    display: block;
+    position: absolute;
+    left: 50%;
+    top: 14.9vh;
+    width: calc(41 * var(--u));
+    overflow: hidden;
+    border-radius: 6px;
+    background: rgba(9, 10, 15, 0.88);
+    box-shadow: inset 0 0 0 1px var(--hud-hair);
+    transform: translateX(-50%);
+  }
+  #hud[data-f1] .f1-pit[hidden] {
+    display: none;
+  }
+  #hud[data-f1] .f1-pit header {
+    padding: calc(0.45 * var(--u)) 0;
+    background: #0b0d14;
+    color: var(--pit-cyan);
+    text-align: center;
+    font-size: calc(2 * var(--u));
+    font-weight: 800;
+    font-stretch: 125%;
+    letter-spacing: 0.04em;
+  }
+  #hud[data-f1] .f1-pit > div {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  #hud[data-f1] .f1-pit span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: calc(1.4 * var(--u));
+    padding: calc(0.6 * var(--u)) calc(1 * var(--u));
+  }
+  #hud[data-f1] .f1-pit span + span {
+    box-shadow: inset 1px 0 0 var(--hud-hair);
+  }
+  #hud[data-f1] .f1-pit small {
+    font-size: calc(1.6 * var(--u));
+    font-weight: 500;
+    line-height: 1.1;
+    color: #fff;
+  }
+  #hud[data-f1] .f1-pit b {
+    font-size: calc(2.6 * var(--u));
+    font-weight: 700;
+    font-stretch: 112%;
+    color: #fff;
+  }
+  #hud[data-f1] .f1-pit b.stop {
+    font-size: calc(3.6 * var(--u));
+    font-weight: 800;
+    color: var(--pit-cyan);
+  }
+  #hud[data-f1] .f1-pit p {
+    margin: 0;
+    padding: calc(0.3 * var(--u)) 0 calc(0.5 * var(--u));
+    text-align: center;
+    font-size: calc(1.2 * var(--u));
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    color: var(--hud-text-dim);
+  }
+
+  /* ---------- Start lights (five 5.6 u lamps centred at y 0.31) ---------- */
+  #hud[data-f1][data-camera] .start-sequence {
+    top: 31vh;
+    left: 50%;
+    bottom: auto;
+    transform: translate(-50%, calc(-2.8 * var(--u) - 0.9 * var(--u)));
+  }
+  #hud[data-f1] .start-sequence > #lights {
+    display: flex;
+    gap: calc(1.95 * var(--u));
+    padding: calc(0.9 * var(--u)) calc(1.4 * var(--u));
+    border-radius: 999px;
+    background: rgba(10, 12, 18, 0.82);
+    box-shadow: inset 0 0 0 1px var(--hud-hair);
+    clip-path: none;
+  }
+  #hud[data-f1] .start-sequence i {
+    width: calc(5.6 * var(--u));
+    height: calc(5.6 * var(--u));
+    border: 0;
+    border-radius: 50%;
+    background: radial-gradient(circle at 50% 40%, #34363b, #2b2d31 60%, #1d1f23);
+    box-shadow:
+      inset 0 1.5px 0 #6a6d74,
+      inset 0 0 0 1px rgba(0, 0, 0, 0.6);
+  }
+  #hud[data-f1] .start-sequence i.lit {
+    background:
+      radial-gradient(circle, rgba(60, 0, 0, 0.35) 0 32%, transparent 36%) 0 0 /
+        calc(0.4 * var(--u)) calc(0.4 * var(--u)),
+      radial-gradient(circle at 50% 45%, #ff2a1a, var(--light-red) 55%, #901818);
+    box-shadow:
+      0 0 22px rgba(240, 12, 12, 0.6),
+      inset 0 1.5px 0 #ff8a7a;
+  }
+  #hud[data-f1] .start-sequence > span {
+    margin-top: calc(1 * var(--u));
+    font-size: calc(1.4 * var(--u));
+    font-weight: 600;
+    font-stretch: 112%;
+    letter-spacing: 0.06em;
+    color: #fff;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+  }
+
+  /* ---------- Proximity chevrons (no text; the label stays for AT) ---------- */
+  #hud[data-f1] .proximity {
+    top: 63vh;
+    gap: 0;
+    color: var(--t-red);
+    filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.7));
+    transform: translateY(-50%);
+  }
+  #hud[data-f1] .proximity-left {
+    left: calc(50% - 21 * var(--u));
+    right: auto;
+  }
+  #hud[data-f1] .proximity-right {
+    right: calc(50% - 21 * var(--u));
+    left: auto;
+  }
+  #hud[data-f1] .proximity b {
+    position: relative;
+    display: block;
+    width: calc(3.2 * var(--u));
+    height: calc(3.2 * var(--u));
+    font-size: 0;
+    transform: none;
+  }
+  #hud[data-f1] .proximity b::before {
+    content: '';
+    position: absolute;
+    inset: calc(0.75 * var(--u));
+    border: solid var(--t-red);
+    border-width: 0 0 3px 3px;
+    transform: translateX(15%) rotate(45deg);
+  }
+  #hud[data-f1] .proximity-right b::before {
+    transform: translateX(-15%) rotate(-135deg);
+  }
+  #hud[data-f1] .proximity span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  #hud[data-f1] .proximity[data-proximity='near'] {
+    opacity: 0.5;
+  }
+  :root[data-colorblind='true'] #hud[data-f1] .proximity b {
+    filter: drop-shadow(1px 0 0 #fff) drop-shadow(-1px 0 0 #fff) drop-shadow(0 1px 0 #fff)
+      drop-shadow(0 -1px 0 #fff);
+  }
+
+  /* ---------- Name tags ---------- */
+  #hud[data-f1] .f1-tags {
+    display: block;
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  #hud[data-f1] .f1-tag {
+    position: absolute;
+    left: 0;
+    top: 0;
+    display: flex;
+    align-items: center;
+    gap: calc(0.45 * var(--u));
+    height: calc(2.3 * var(--u));
+    padding: 0 calc(0.6 * var(--u));
+    border-radius: 2px;
+    background: rgba(10, 12, 18, 0.72);
+    white-space: nowrap;
+    will-change: transform;
+  }
+  #hud[data-f1] .f1-tag b {
+    font-size: calc(1.6 * var(--u));
+    font-weight: 400;
+    color: #c8ccd4;
+  }
+  #hud[data-f1] .f1-tag i {
+    width: 2px;
+    height: calc(1.6 * var(--u));
+  }
+  #hud[data-f1] .f1-tag span {
+    font-size: calc(1.6 * var(--u));
+    font-weight: 700;
+    font-stretch: 112%;
+    color: #fff;
+  }
+
+  /* ---------- Vehicle MFD (grows up from the dock) ---------- */
+  #hud[data-f1] .car-status {
+    inset: auto var(--f1-side) calc(var(--f1-dock) + 4.6 * var(--u)) auto;
+    width: calc(34 * var(--u));
+    max-height: min(calc(50 * var(--u)), calc(100vh - var(--f1-dock) - 4.6 * var(--u) - 90px));
+    transform: none;
+  }
+  #hud[data-f1] .vehicle-tabs {
+    gap: 1px;
+    padding: 1.5px;
+    border-bottom: 0;
+  }
+  #hud[data-f1] .vehicle-tabs button {
+    min-height: calc(3 * var(--u));
+    padding: 0 calc(0.2 * var(--u));
+    border: 0;
+    border-radius: 4px;
+    background: rgba(10, 12, 18, 0.55);
+    font-size: calc(1.05 * var(--u));
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--hud-text);
+  }
+  #hud[data-f1] .vehicle-tabs button[aria-selected='true'] {
+    background: var(--hud-text);
+    color: #14161c;
+  }
+  #hud[data-f1] .vehicle-readings {
+    padding: calc(0.6 * var(--u)) calc(1 * var(--u));
+  }
+  #hud[data-f1] .vehicle-readings div {
+    align-items: center;
+    min-height: calc(3.2 * var(--u));
+    margin: 0;
+    padding: 0 calc(0.4 * var(--u));
+    border-bottom: 1px solid var(--hud-hair);
+  }
+  #hud[data-f1] .vehicle-readings dt {
+    font-size: calc(1.3 * var(--u));
+    font-weight: 500;
+  }
+  #hud[data-f1] .vehicle-readings dd {
+    font-size: calc(1.55 * var(--u));
+    font-weight: 700;
+  }
+
+  /* ---------- Accessibility ---------- */
+  html[data-high-contrast='true'] #hud[data-f1] .f1-body {
+    fill: #05070a;
+    stroke: #fff;
+  }
+  html[data-high-contrast='true']
+    #hud[data-f1]
+    :is(.lap-panel, .panel-heading, .f1-banner, .f1-pit, .f1-tag) {
+    background: #05070a;
+  }
+  html[data-high-contrast='true'] #hud[data-f1] .tower-row:not(.player):not([data-fastest]) {
+    background: #05070a;
+  }
+}

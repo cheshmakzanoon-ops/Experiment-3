@@ -1,5 +1,12 @@
 import styles from './race-day-hud.css?inline';
-import { F, H, W, WHEEL_BASE, WHEEL_STRIDE, carBase } from '../simulation/protocol.ts';
+import { F, H, W, WHEEL_BASE, WHEEL_STRIDE, WHEEL_NAMES, carBase } from '../simulation/protocol.ts';
+import { COMPOUNDS } from '../simulation/config.ts';
+
+/** MFD pages in cycle order. STRATEGY and SETUP follow DAMAGE so ArrowRight
+ * from ENERGY still lands on DAMAGE (e2e/52). */
+export const MFD_PAGES = ['TYRES', 'ENERGY', 'DAMAGE', 'STRATEGY', 'SETUP'] as const;
+const reading = (rows: readonly [string, string][]) =>
+  `<dl class="vehicle-readings">${rows.map(([label, id]) => `<div><dt>${label}</dt><dd id="${id}">—</dd></div>`).join('')}</dl>`;
 
 export function vehicleWarning(frame: Float32Array): string {
   const o = carBase(0);
@@ -32,7 +39,7 @@ export function installRaceDayHud(hud: HTMLElement) {
   tabs.className = 'vehicle-tabs';
   tabs.setAttribute('role', 'tablist');
   tabs.setAttribute('aria-label', 'Vehicle information pages');
-  const names = ['TYRES', 'ENERGY', 'DAMAGE'];
+  const names = MFD_PAGES;
   const pages = names.map((name, index) => {
     const page = document.createElement('div');
     page.className = 'vehicle-page';
@@ -58,6 +65,19 @@ export function installRaceDayHud(hud: HTMLElement) {
   details.innerHTML =
     '<div><dt>FLOOR HEALTH</dt><dd id="mfdFloor">—</dd></div><div><dt>REAR AERO</dt><dd id="mfdRear">—</dd></div><div><dt>PIT STOPS</dt><dd id="mfdStops">—</dd></div>';
   pages[2].append(details);
+  pages[3].innerHTML = reading([
+    ['CURRENT COMPOUND', 'mfdCompound'],
+    ['TYRE LIFE · AVERAGE', 'mfdTyreLife'],
+    ['MOST WORN TYRE', 'mfdTyreWorst'],
+    ['PIT STOPS MADE', 'mfdStrategyStops'],
+  ]);
+  pages[4].innerHTML = reading([
+    ['FRONT BRAKE BIAS', 'mfdSetupBias'],
+    ['DIFFERENTIAL · ON THROTTLE', 'mfdDiffPower'],
+    ['DIFFERENTIAL · OFF THROTTLE', 'mfdDiffCoast'],
+    ['ERS MODE', 'mfdErsMode'],
+    ['RIDE HEIGHT · FRONT / REAR', 'mfdRide'],
+  ]);
   panel.insertBefore(tabs, pages[0]);
   const select = (index: number, focus = false) => {
     pages.forEach((page, i) => {
@@ -76,12 +96,13 @@ export function installRaceDayHud(hud: HTMLElement) {
       event.preventDefault();
       event.stopPropagation();
       const current = [...tabs.children].indexOf(document.activeElement!);
+      const count = names.length;
       select(
         event.key === 'Home'
           ? 0
           : event.key === 'End'
-            ? 2
-            : (current + (event.key === 'ArrowRight' ? 1 : 2)) % 3,
+            ? count - 1
+            : (current + (event.key === 'ArrowRight' ? 1 : count - 1)) % count,
         true,
       );
     }
@@ -141,7 +162,30 @@ export function updateRaceDayHud(hud: HTMLElement, frame: Float32Array) {
   write('mfdFloor', `${Math.round(frame[o + F.FLOOR_HEALTH] * 100)}%`);
   write('mfdRear', `${Math.round(frame[o + F.REAR_HEALTH] * 100)}%`);
   write('mfdStops', String(Math.round(frame[o + F.PIT_STOPS])));
+  const compound = Object.keys(COMPOUNDS)[Math.round(frame[o + F.COMPOUND])] ?? 'medium';
+  write('mfdCompound', compound.toUpperCase());
+  let total = 0,
+    worst = 0;
+  for (let wheel = 1; wheel < 4; wheel++)
+    if (wear(frame, wheel) > wear(frame, worst)) worst = wheel;
+  for (let wheel = 0; wheel < 4; wheel++) total += wear(frame, wheel);
+  write('mfdTyreLife', `${Math.round(100 * (1 - total / 4))}%`);
+  write('mfdTyreWorst', `${WHEEL_NAMES[worst]} · ${Math.round(100 * (1 - wear(frame, worst)))}%`);
+  write('mfdStrategyStops', String(Math.round(frame[o + F.PIT_STOPS])));
+  write('mfdSetupBias', `${Math.round(frame[o + F.BRAKE_BIAS] * 100)}%`);
+  write('mfdDiffPower', `${Math.round(frame[o + F.DIFF_POWER] * 100)}%`);
+  write('mfdDiffCoast', `${Math.round(frame[o + F.DIFF_COAST] * 100)}%`);
+  write('mfdErsMode', ['HARVEST', 'BALANCED', 'ATTACK'][Math.round(frame[o + F.ERS_MODE])] ?? '—');
+  write(
+    'mfdRide',
+    `${Math.round(frame[o + F.FRONT_RIDE] * 1000)} / ${Math.round(frame[o + F.REAR_RIDE] * 1000)} MM`,
+  );
   const warning = vehicleWarning(frame);
   write('vehicleAlert', warning);
   hud.querySelector<HTMLElement>('#vehicleAlert')!.hidden = !warning;
+}
+
+function wear(frame: Float32Array, wheel: number) {
+  const value = frame[carBase(0) + WHEEL_BASE + wheel * WHEEL_STRIDE + W.WEAR];
+  return Number.isFinite(value) ? Math.min(1, Math.max(0, value)) : 0;
 }

@@ -59,7 +59,13 @@ test('Race-Day V2 DOM: vehicle pages, urgent warning, scale and keyboard ownersh
       const dash = await page.locator('.instruments').boundingBox();
       if (!compact) {
         expect(box!.y).toBeGreaterThan(60);
-        expect(box!.x + box!.width).toBeLessThan(dash!.x);
+        // The bottom-centre cluster and the MFD must not overlap.
+        const overlap =
+          box!.x < dash!.x + dash!.width &&
+          dash!.x < box!.x + box!.width &&
+          box!.y < dash!.y + dash!.height &&
+          dash!.y < box!.y + box!.height;
+        expect(overlap).toBe(false);
         expect(box!.y + box!.height).toBeLessThanOrEqual(height - 48);
       }
       records.push({ width, height, scale, box, dash });

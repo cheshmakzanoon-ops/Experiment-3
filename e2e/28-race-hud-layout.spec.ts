@@ -71,7 +71,9 @@ test('Race-Day V2 DOM-only: lower-corner telemetry clears the road, lights and t
           // Keep every camera, scale, guidance, data and overflow assertion.
           expect(a.top).toBeGreaterThan(viewport.height * 0.5);
           expect(a.bottom).toBeLessThanOrEqual(viewport.height - 48);
-          expect(a.left).toBeGreaterThan(viewport.width * 0.5);
+          // F1-style binocular cluster: a bottom-centre band, not the right half.
+          expect(a.left).toBeGreaterThan(viewport.width * 0.3);
+          expect(a.right).toBeLessThan(viewport.width * 0.7);
           expect(a.right).toBeLessThanOrEqual(viewport.width - 10);
           expect(rectangles.lights.bottom).toBeLessThan(a.top);
           expect(rectangles.lap.bottom).toBeLessThan(a.top);
