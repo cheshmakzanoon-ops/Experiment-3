@@ -258,6 +258,16 @@
     color: var(--hud-text);
     white-space: nowrap;
   }
+  #hud[data-f1] .tower-row > small[data-penalty]::before {
+    content: attr(data-penalty);
+    margin-right: calc(0.5 * var(--u));
+    padding: 0 calc(0.3 * var(--u));
+    border-radius: 3px;
+    background: #ff9500;
+    color: #1d1200;
+    font-size: calc(1.2 * var(--u));
+    font-weight: 700;
+  }
   #hud[data-f1] .tower-row > u {
     position: absolute;
     left: 100%;
@@ -294,23 +304,24 @@
     content: '';
     position: absolute;
     left: 50%;
-    top: 58%;
-    width: calc(1.45 * var(--u));
-    height: calc(1.45 * var(--u));
+    top: 57%;
+    width: calc(1.7 * var(--u));
+    height: calc(1.7 * var(--u));
     transform: translate(-50%, -50%);
-    border: 1.5px solid #fff;
+    border: 2px solid #fff;
     border-radius: 50%;
+    background: linear-gradient(#fff 0 0) 50% 18% / 2px 38% no-repeat;
   }
   #hud[data-f1] .tower-row[data-fastest] > u::after {
     content: '';
     position: absolute;
     left: 50%;
-    top: 13%;
-    width: calc(0.55 * var(--u));
-    height: calc(0.5 * var(--u));
+    top: 10%;
+    width: calc(0.7 * var(--u));
+    height: calc(0.35 * var(--u));
     transform: translateX(-50%);
-    border-top: 1.5px solid #fff;
-    background: linear-gradient(#fff, #fff) center / 1.5px 100% no-repeat;
+    border-radius: 1px;
+    background: #fff;
   }
   #hud[data-f1] .timing:not(:focus-within) .tower-row[data-window='out'] {
     display: none;
@@ -378,6 +389,7 @@
   #hud[data-f1] .f1-sectors > [data-state='live'] > u {
     width: var(--fill, 0%);
     background: rgba(244, 245, 247, 0.2);
+    transition: width 0.25s linear;
   }
   #hud[data-f1]
     .f1-sectors
@@ -1031,6 +1043,10 @@
   }
   #hud[data-f1] .f1-banner[data-swatch='warn'] .f1-swatch {
     background: #ff9500;
+  }
+  #hud[data-f1] .f1-banner[data-swatch='info'] .f1-swatch {
+    flex-basis: calc(0.6 * var(--u));
+    background: var(--hud-text);
   }
   #hud[data-f1] .f1-banner[data-swatch='chequered'] .f1-swatch {
     background: repeating-conic-gradient(#fff 0 25%, #111 0 50%) 0 0 / calc(1.1 * var(--u))

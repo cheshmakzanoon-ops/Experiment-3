@@ -320,6 +320,14 @@ export class F1Hud {
   private readonly pitPhase: HTMLElement;
   private bannerKey = '';
   private bannerSince = 0;
+  private banner: RaceBanner = {
+    kind: 'none',
+    swatch: '',
+    title: '',
+    sub: '',
+    persistent: false,
+    text: '',
+  };
   private event: { title: string; sub: string; since: number } | null = null;
   private warnings = -1;
   private penalty = -1;
@@ -474,8 +482,6 @@ export class F1Hud {
     const { frame } = s,
       o = carBase(0),
       time = frame[H.TIME];
-    if (time < this.time - 0.05) this.resetTimers();
-    this.time = time;
     const set = (node: HTMLElement, value: string) => {
       if (node.textContent !== value) node.textContent = value;
     };
@@ -560,30 +566,8 @@ export class F1Hud {
     attr(this.lapPanel, 'delta', String(s.deltaShown));
     attr(this.lapPanel, 'valid', String(valid || !(lapTime > 0)));
 
-    // Banners: state messages, plus transient penalty and track-limit events.
-    const warnings = frame[o + F.WARNINGS],
-      penalty = frame[o + F.PENALTY];
-    if (this.penalty >= 0 && penalty > this.penalty)
-      this.event = {
-        title: `+${Math.round(penalty - this.penalty)}S TIME PENALTY`,
-        sub: 'TRACK LIMITS',
-        since: time,
-      };
-    else if (this.warnings >= 0 && warnings > this.warnings)
-      this.event = {
-        title: 'TRACK LIMITS',
-        sub: `WARNING ${Math.round(warnings)} · LAP INVALIDATED`,
-        since: time,
-      };
-    this.warnings = warnings;
-    this.penalty = penalty;
-    if (this.event && time - this.event.since >= BANNER_SECONDS) this.event = null;
-    const state = raceBanner(frame, s.auto);
-    const key = `${state.kind}|${state.title}`;
-    if (key !== this.bannerKey) {
-      this.bannerKey = key;
-      this.bannerSince = time;
-    }
+    // Banners: the state observed every frame, plus penalty/track-limit events.
+    const state = this.banner;
     let shown: { swatch: string; title: string; sub: string; mode: string } | null = null;
     if (state.kind === 'flag' || state.kind === 'finish') {
       const fresh = time - this.bannerSince < BANNER_SECONDS;
@@ -611,6 +595,40 @@ export class F1Hud {
       set(this.pitStop, pitPhase >= 2 ? frame[o + F.PIT_CLOCK].toFixed(1) : '—');
       set(this.pitPhase, pitPhaseLabel(pitPhase));
     }
+  }
+  /** Every presented frame: stamp race-control changes with the frame's
+   * simulated time, so a banner's 4 s run from when the state appeared even
+   * when the panels refresh rarely (software rendering, held frames). */
+  observe(frame: Float32Array, auto: boolean) {
+    const o = carBase(0),
+      time = frame[H.TIME];
+    if (!Number.isFinite(time)) return;
+    if (time < this.time - 0.05) this.resetTimers();
+    this.time = time;
+    const warnings = frame[o + F.WARNINGS],
+      penalty = frame[o + F.PENALTY];
+    if (this.penalty >= 0 && penalty > this.penalty)
+      this.event = {
+        title: `+${Math.round(penalty - this.penalty)}S TIME PENALTY`,
+        sub: 'TRACK LIMITS',
+        since: time,
+      };
+    else if (this.warnings >= 0 && warnings > this.warnings)
+      this.event = {
+        title: 'TRACK LIMITS',
+        sub: `WARNING ${Math.round(warnings)} · LAP INVALIDATED`,
+        since: time,
+      };
+    this.warnings = warnings;
+    this.penalty = penalty;
+    if (this.event && time - this.event.since >= BANNER_SECONDS) this.event = null;
+    this.banner = raceBanner(frame, auto);
+    const key = `${this.banner.kind}|${this.banner.title}`;
+    if (key !== this.bannerKey) {
+      this.bannerKey = key;
+      this.bannerSince = time;
+    }
+    return this.banner;
   }
   /** Every presented frame: project the tagged cars (translate3d only). */
   nameTags(frame: Float32Array, view: TagView, order: readonly number[], active: boolean) {

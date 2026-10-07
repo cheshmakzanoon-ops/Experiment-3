@@ -2537,7 +2537,8 @@ html[data-colorblind='true'] #flag[data-flag='4']::before {
   --hud-radius: 8px;
   --hud-text: #f4f5f7;
   --hud-text-dim: #9a9ea8;
-  --hud-player-row: rgba(150, 156, 172, 0.62);
+  /* AB-B samples #8a8fa0 over a light sky; 0.9 keeps dark text legible over dark scenes. */
+  --hud-player-row: rgba(150, 156, 172, 0.9);
   --hud-player-text: #1c1f27;
   --t-purple: #b418cc;
   --t-green: #19c23b;
@@ -2911,19 +2912,18 @@ h1 {
 }
 .session-status > span {
   padding: 8px 14px;
-  background: var(--hud-panel);
   color: var(--hud-text);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.75);
 }
 .session-status > #lapLabel {
   font-weight: 800;
-  border-radius: var(--hud-radius) 0 0 var(--hud-radius);
 }
 .session-status > #weatherLabel {
-  border-radius: 0 var(--hud-radius) var(--hud-radius) 0;
-  color: var(--hud-text-dim);
+  color: #d6d9df;
 }
 .session-status > b {
   padding: 8px 14px;
+  border-radius: 4px;
   font-weight: 800;
   font-stretch: 112%;
   letter-spacing: 0.06em;

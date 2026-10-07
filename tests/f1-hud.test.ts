@@ -16,7 +16,7 @@ import {
 } from '../src/ui/f1-hud.ts';
 import { MFD_PAGES } from '../src/ui/race-day-hud.ts';
 import { MAP_H, MAP_W, mapPoint, sectorMarks } from '../src/ui/f1-minimap.ts';
-import { minimapFrame } from '../src/ui/interface.ts';
+import { minimapFrame, timedGap } from '../src/ui/interface.ts';
 import { Simulation } from '../src/simulation/world.ts';
 import { DEFAULT_OPTIONS, VEHICLE } from '../src/simulation/config.ts';
 import { FLAG } from '../src/simulation/marshal.ts';
@@ -74,6 +74,12 @@ describe('F1 HUD tower', () => {
     frame[carBase(2) + F.BEST_LAP] = 71.2;
     frame[carBase(1) + F.BEST_LAP] = 70.9;
     expect(fastestLapCar(frame)).toBe(1);
+  });
+  it('shows timed sessions as the best lap and gaps to it', () => {
+    expect(timedGap(0, 70, false)).toBe('--:--.---');
+    expect(timedGap(70.25, 70.25, true)).toBe('1:10.250');
+    expect(timedGap(71.5, 70.25, false)).toBe('+1.250');
+    expect(timedGap(71.5, 0, false)).toBe('1:11.500');
   });
   it('heads the tower with the session and the lap counter', () => {
     const frame = field(3),

@@ -4,7 +4,6 @@ import {
   compoundOf,
   fastestLapCar,
   installF1Hud,
-  raceBanner,
   revLedThresholds,
   surname,
   towerWindow,
@@ -98,6 +97,13 @@ export const lapTime = (seconds: number) =>
   seconds > 0
     ? `${Math.floor(seconds / 60)}:${(seconds % 60).toFixed(3).padStart(6, '0')}`
     : '—:——.———';
+/** Timed-session tower cell: the session best in full, other times as a gap. */
+export const timedGap = (best: number, sessionBest: number, holder: boolean) =>
+  !(best > 0)
+    ? '--:--.---'
+    : holder || !(sessionBest > 0)
+      ? lapTime(best)
+      : `+${Math.max(0, best - sessionBest).toFixed(3)}`;
 export const shortTime = (seconds: number) =>
   `${Math.floor(seconds / 60)}:${Math.floor(seconds % 60)
     .toString()
@@ -352,6 +358,7 @@ export class Interface {
     // refresh at a third of the rate.
     this.observeGaps(frame);
     const mode = this.element.dataset.mode;
+    const banner = this.f1.observe(frame, auto);
     this.f1.nameTags(frame, renderer, this.order, mode === 'driving' || mode === 'paused');
     this.tick++;
     if (this.tick % 3 !== 0) return;
@@ -436,7 +443,7 @@ export class Interface {
     );
     // Race control: one message for the polite live region; the F1 layout
     // shows it as a 4 s banner (flags stay as a compact chip while they apply).
-    const message = raceBanner(frame, auto).text;
+    const message = banner?.text ?? '';
     if (message !== this.lastAnnounced) {
       this.setText('raceMessage', message);
       this.lastAnnounced = message;
@@ -468,6 +475,8 @@ export class Interface {
     // Five rows around the player while driving; focus expands the full list.
     const [first, end] = towerWindow(playerRank, cars);
     const fastest = fastestLapCar(frame);
+    // Timed sessions: the fastest lap in full, everyone else as the gap to it.
+    const poleBest = fastest >= 0 ? frame[carBase(fastest) + F.BEST_LAP] : 0;
     order.forEach((id, rank) => {
       const e = tower.children[rank] as HTMLElement,
         p = carBase(id);
@@ -497,7 +506,15 @@ export class Interface {
       if (!refresh) return;
       const ahead = order[rank - 1];
       const best = frame[p + F.BEST_LAP];
-      e.querySelector('small')!.textContent =
+      const gap = e.querySelector('small')!;
+      // Time penalties ride on the interval cell as an orange "+5S" chip.
+      const penalty = Math.round(frame[p + F.PENALTY]);
+      const chip = penalty > 0 ? `+${penalty}S` : '';
+      if ((gap.dataset.penalty ?? '') !== chip) {
+        if (chip) gap.dataset.penalty = chip;
+        else delete gap.dataset.penalty;
+      }
+      gap.textContent =
         frame[p + F.RETIRED] > 0
           ? 'DNF'
           : frame[p + F.FINISH] > 0
@@ -505,9 +522,7 @@ export class Interface {
             : frame[p + F.IN_PIT]
               ? 'PIT'
               : !racing
-                ? best > 0
-                  ? lapTime(best)
-                  : '--:--.---'
+                ? timedGap(best, poleBest, id === fastest)
                 : rank === 0
                   ? 'LEADER'
                   : formatInterval(
