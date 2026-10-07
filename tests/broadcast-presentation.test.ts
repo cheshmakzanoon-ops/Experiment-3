@@ -3,7 +3,10 @@ import * as T from 'three';
 import { graphicsPreset, validateGraphics } from '../src/rendering/options.ts';
 import {
   AMBIENT_OCCLUSION,
+  CONTACT_SUN,
+  SCENE_AMBIENT_GLSL,
   SceneAmbientPass,
+  gtaoSlices,
   obscuranceSize,
 } from '../src/rendering/scene-ambient-pass.ts';
 import {
@@ -139,5 +142,83 @@ describe('broadcast colour grade', () => {
     pass.apply('day', NaN);
     expect(uniforms.seed.value).toBe(0);
     pass.dispose();
+  });
+});
+
+describe('ground-truth ambient occlusion and sun contact shadows', () => {
+  it('integrates GTAO horizons in 2-3 slices of 6 steps with a multi-bounce fit', () => {
+    const glsl = SCENE_AMBIENT_GLSL.obscurance;
+    expect(glsl).toContain('#define GTAO_STEPS 6');
+    expect(glsl).toContain('interleavedNoise(pixel)');
+    // Jimenez 2016 multi-bounce fit for albedo 0.3.
+    const rho = 0.3;
+    for (const [name, value] of [
+      ['a', 2.0404 * rho - 0.3324],
+      ['b', -4.7951 * rho + 0.6417],
+      ['c', 2.7552 * rho + 0.6903],
+    ] as const)
+      expect(glsl).toContain(`${name} = ${value.toFixed(5)}`);
+    expect(gtaoSlices(0)).toBe(2);
+    expect(gtaoSlices(2)).toBe(2);
+    expect(gtaoSlices(4)).toBe(3);
+    // The frozen near fade still guards the cockpit interior.
+    expect(glsl).toContain('smoothstep(nearStart, nearEnd, -p.z)');
+  });
+  it('marches 12 steps over 0.3 m toward the sun and removes only direct light', () => {
+    expect(SCENE_AMBIENT_GLSL.obscurance).toContain('#define CONTACT_STEPS 12');
+    expect(SCENE_AMBIENT_GLSL.obscurance).toContain('#define CONTACT_LENGTH 0.3');
+    expect(SCENE_AMBIENT_GLSL.composite).toContain('mix(1.0, contact, directShare)');
+    expect(SCENE_AMBIENT_GLSL.blur).toContain('.rgb * w');
+  });
+  it('rebuilds the slice count with the sample count and keys contact shadows to the sun', () => {
+    const camera = new T.PerspectiveCamera(50, 16 / 9, 0.045, 7000);
+    camera.position.set(0, 1.65, -4.9);
+    camera.lookAt(0, 0.4, 13);
+    camera.updateMatrixWorld(true);
+    const sun = new T.DirectionalLight(0xffffff, 3.9);
+    sun.position.set(-140, 235, -115);
+    sun.updateMatrixWorld(true);
+    sun.target.updateMatrixWorld(true);
+    const pass = new SceneAmbientPass(new T.Scene(), camera, 2, null, sun);
+    type Internals = { obscuranceMaterial: T.ShaderMaterial };
+    const material = (pass as unknown as Internals).obscuranceMaterial;
+    expect(material.defines.GTAO_SLICES).toBe(2);
+    pass.setSamples(4);
+    expect(material.defines.GTAO_SLICES).toBe(3);
+    const renderer = { autoClear: true, setRenderTarget: () => {}, render: () => {} };
+    const write = new T.WebGLRenderTarget(4, 4);
+    const contact = (intensity: number) => {
+      sun.intensity = intensity;
+      pass.render(renderer as unknown as T.WebGLRenderer, write);
+      return material.uniforms.sunRatio.value as number;
+    };
+    expect(contact(3.9)).toBeCloseTo(CONTACT_SUN.ratioPerIntensity * 3.9, 9);
+    expect(contact(0.3)).toBe(0); // night key (moon) and overcast cast none
+    contact(3.9);
+    const view = material.uniforms.sunView.value as T.Vector3;
+    const world = new T.Vector3(-140, 235, -115).normalize();
+    expect(view.length()).toBeCloseTo(1, 6);
+    expect(view.clone().transformDirection(camera.matrixWorld).dot(world)).toBeCloseTo(1, 6);
+    // Without a key-light shadow map every pixel counts as sunlit; with one,
+    // the pass reads this frame's map so contact shadows never double up.
+    expect(material.uniforms.sunShadowed.value).toBe(0);
+    sun.castShadow = true;
+    sun.shadow.map = new T.WebGLRenderTarget(2048, 1024);
+    sun.shadow.bias = -1.5e-5;
+    sun.shadow.updateMatrices(sun);
+    contact(3.9);
+    expect(material.uniforms.sunShadowed.value).toBe(1);
+    expect(material.uniforms.sunShadowMap.value).toBe(sun.shadow.map.texture);
+    expect(material.uniforms.sunShadowTexel.value.toArray()).toEqual([1 / 2048, 1 / 1024]);
+    expect(material.uniforms.sunShadowBias.value).toBe(-1.5e-5);
+    const expected = sun.shadow.matrix.clone().multiply(camera.matrixWorld);
+    expect(material.uniforms.sunShadowMatrix.value.equals(expected)).toBe(true);
+    expect(SCENE_AMBIENT_GLSL.obscurance).toContain('direct *= sunVisibility(p, n)');
+    sun.position.set(-140, -10, -115); // below the horizon
+    sun.updateMatrixWorld(true);
+    expect(contact(3.9)).toBe(0);
+    sun.shadow.map.dispose();
+    pass.dispose();
+    write.dispose();
   });
 });

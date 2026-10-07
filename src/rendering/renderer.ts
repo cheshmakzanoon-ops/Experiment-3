@@ -386,9 +386,9 @@ export class RacingRenderer {
     this.scenePass = new SceneAmbientPass(this.scene, this.camera, this.graphics.msaa);
     this.composer.addPass(this.scenePass);
     this.composer.addPass(this.exposure);
-    // Camera motion blur is gathered in the scene pass composite (no extra draw).
+    // Motion blur and sun contact shadows run in the scene pass composite (no extra draw).
     this.motionBlur = new MotionBlur(this.renderer.extensions.has('EXT_color_buffer_float'));
-    this.scenePass.attachMotion(this.motionBlur);
+    this.scenePass.attach(this.motionBlur, this.sun);
     // Linear-HDR threshold above sunlit white paint and smoke: only speculars,
     // lamps and the sun disc bloom, never road markings or diffuse volumes.
     // Single-pixel fireflies are limited before the round-filtered pyramid.
