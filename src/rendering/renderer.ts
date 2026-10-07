@@ -77,6 +77,7 @@ import {
   skyLinearGain,
   type LightingMode,
 } from './daylight.ts';
+import { SkyClouds } from './studio/sky-clouds.ts';
 import { EngineeringView } from './engineering-view.ts';
 import type { EngineeringSample } from '../workers/diagnostics.ts';
 import * as T from 'three';
@@ -323,7 +324,8 @@ export class RacingRenderer {
     this.sky.scale.setScalar(450000);
     this.sky.userData.excludeMotionBlur = true;
     configureSky(this.sky);
-    this.environment = new SkyEnvironment(this.sky);
+    const clouds = SkyClouds.forSky(this.sky.material, lightingDirection);
+    this.environment = new SkyEnvironment(this.sky, clouds);
     this.scene.add(this.sky);
     this.scene.environmentIntensity = 0.7;
     this.scene.fog = new T.FogExp2(0xb9c7c1, 0.00044);

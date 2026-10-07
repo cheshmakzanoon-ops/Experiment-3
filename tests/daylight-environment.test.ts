@@ -24,7 +24,7 @@ it('interpolates bounded sky bins, restores live uniforms and disposes replaced 
     const material = (scene.children[0] as Sky).material;
     samples.push(material.uniforms.cloudCover.value);
     expect(material.uniforms.skyRadiance.value).toBeCloseTo(
-      0.32 + material.uniforms.cloudCover.value * 0.2,
+      0.28 + material.uniforms.cloudCover.value * 0.2,
       8,
     );
     const target = new T.WebGLRenderTarget(8, 8);
@@ -79,7 +79,7 @@ it('does not publish a failed sky capture, lose the previous texture or poison i
   expect(dispose).not.toHaveBeenCalled();
   expect(environment.captures).toBe(1);
   expect(sky.material.uniforms.cloudCover.value).toBe(0);
-  expect(sky.material.uniforms.skyRadiance.value).toBe(0.32);
+  expect(sky.material.uniforms.skyRadiance.value).toBe(0.28);
   expect(environment.update(renderer, scene, 0)).toBe(false);
   expect(generatorDispose).toHaveBeenCalledTimes(2);
   expect(() => environment.update(renderer, scene, NaN)).toThrow('Non-finite');

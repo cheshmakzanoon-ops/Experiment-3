@@ -293,7 +293,10 @@ describe('PMREM ground hemisphere', () => {
     const s = SKY_IRRADIANCE_SATURATION.day,
       l = 0.2126 * sky.r + 0.7152 * sky.g + 0.0722 * sky.b;
     const balanced = (l + (sky.b - l) * s) / (l + (sky.r - l) * s);
-    expect(sky.b / sky.r).toBeGreaterThan(4);
+    // The cloud-free dome; the clear preset's baked cumulus whiten it a little.
+    const cloudless = skyCosineRadiance(0, 'day');
+    expect(cloudless.b / cloudless.r).toBeGreaterThan(4);
+    expect(sky.b / sky.r).toBeGreaterThan(3);
     expect(balanced).toBeGreaterThan(1.6);
     expect(balanced).toBeLessThan(2.6);
     expect(sky.b).toBeGreaterThan(sky.r);

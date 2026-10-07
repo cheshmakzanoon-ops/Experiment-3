@@ -4,6 +4,16 @@ import { FullScreenQuad } from 'three/addons/postprocessing/Pass.js';
 import { clamp, lerp, smooth } from '../core/math.ts';
 import { circuitLightColors } from './lighting-coherence.ts';
 import {
+  SKY_CLOUD_LIGHT,
+  SKY_CLOUD_LIGHTING,
+  SKY_CLOUD_SAMPLE,
+  SKY_CLOUD_UNIFORMS,
+  cloudDomeTerms,
+  createSkyCloudUniforms,
+  skyCloudLight,
+  type SkyClouds,
+} from './studio/sky-clouds.ts';
+import {
   IBL_ENERGY,
   SKY_IRRADIANCE_SATURATION,
   SKY_GROUND_GLSL,
@@ -52,10 +62,12 @@ export function daylightState(cloud: number, rain: number) {
     fill: 0.14 + cover * 0.3,
     environment: 0.42 + cover * 0.08,
     exposure: 0.9 + cover * 0.1,
-    turbidity: 2.3 + cover * 5.5,
+    // A clean, deep clear-day sky (ART_BIBLE_A section 2.1): less Mie haze than
+    // the former 2.3, so the blue survives down toward the horizon.
+    turbidity: 1.9 + cover * 5.5,
     // Normalize the analytic skydome before the shared scene tone map; keeping
     // its native radiance washed the entire clear sky and reflected paint white.
-    skyRadiance: 0.32 + cover * 0.2,
+    skyRadiance: 0.28 + cover * 0.2,
     // Clear-air aerial perspective stays blue rather than milky white; cloud
     // and rain still thicken and grey it.
     fogDensity: 0.000205 + cover * 0.00016 + precipitation * 0.000026,
@@ -146,7 +158,31 @@ export function shadowAnchor(
 }
 
 /** Scattering parameters of the circuit sky (three's Preetham Sky uniforms). */
-export const SKY_SCATTERING = Object.freeze({ rayleigh: 2.9, mie: 0.0032, mieDirectionalG: 0.82 });
+export const SKY_SCATTERING = Object.freeze({ rayleigh: 3.4, mie: 0.0032, mieDirectionalG: 0.82 });
+
+/** Day-sky colour grade, a linear per-channel gain from the horizon to the
+ * zenith: `mix(horizon, zenith, smoothstep(edges, direction.y))`, faded out
+ * at sunset and night. Preetham's single-scatter fit saturates every channel
+ * along the long horizon path, so its lower sky goes white and, through the
+ * ACES shoulder and the day grade, cyan-grey (G/B 0.93-1.0 at 5-25 degrees,
+ * horizon B-G about 0). The gains are fitted (through ACES at day exposure and
+ * the day broadcast grade) to the clear-sky targets of ART_BIBLE_A section 2.1:
+ * horizon #b8d4ea-#c8dcef, 20 degrees about #8ec0f3, zenith #6aa2d6-#70a6cb,
+ * 90 degrees in azimuth from the sun. The sun side keeps Preetham's brighter,
+ * whiter Mie glow; the anti-sun side is a deeper blue. */
+export const SKY_GRADE = Object.freeze({
+  horizon: Object.freeze([0.36, 0.65, 1.49] as const),
+  zenith: Object.freeze([1.132, 0.865, 0.792] as const),
+  edges: Object.freeze([0.05, 0.93] as const),
+});
+/** CPU mirror of the shader's day-sky grade for a view direction's y. `day` is
+ * 1 for the day dome and 0 at sunset or night (no grade). */
+export function skyGrade(y: number, day = 1, out: number[] = [0, 0, 0]) {
+  const s = smooth(SKY_GRADE.edges[0], SKY_GRADE.edges[1], y);
+  for (let i = 0; i < 3; i++)
+    out[i] = lerp(1, lerp(SKY_GRADE.horizon[i], SKY_GRADE.zenith[i], s), day);
+  return out;
+}
 
 /** CPU port of three r180 Sky.js in-scattering (Preetham), without the solar
  * disc. `linear` is the shader's texColor; `encoded` is its final retColor,
@@ -226,8 +262,9 @@ export function skyLinearGain(sun: T.Vector3, turbidity: number) {
   return gain;
 }
 
-// Bounded, stationary cloud field. Coverage follows recorded weather; there is
-// no wall-clock cloud animation that would diverge between pause and replay.
+// Bounded, stationary clouds: a baked cumulus panorama per cover bin
+// (studio/sky-clouds.ts). Coverage follows recorded weather; there is no
+// wall-clock cloud animation that would diverge between pause and replay.
 const cloudFunctions = `
 uniform float cloudCover;
 uniform float skyLinearGain;
@@ -235,17 +272,9 @@ uniform float skyRadiance;
 uniform float probeSkyIntensity;
 uniform float nightAmount;
 uniform float sunsetAmount;
-float skyHash(vec2 p) { return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }
-float skyNoise(vec2 p) {
-  vec2 i=floor(p), f=fract(p); f=f*f*(3.0-2.0*f);
-  return mix(mix(skyHash(i),skyHash(i+vec2(1,0)),f.x),
-    mix(skyHash(i+vec2(0,1)),skyHash(i+vec2(1,1)),f.x),f.y);
-}
-float skyCloud(vec2 p) {
-  return .52*skyNoise(p)+.27*skyNoise(p*2.03+11.7)+
-    .14*skyNoise(p*4.09+3.1)+.07*skyNoise(p*8.17+27.3);
-}
-`;
+const vec3 skyGradeHorizon=vec3(${SKY_GRADE.horizon.join(',')});
+const vec3 skyGradeZenith=vec3(${SKY_GRADE.zenith.join(',')});
+${SKY_CLOUD_UNIFORMS}${SKY_CLOUD_SAMPLE}${SKY_CLOUD_LIGHTING}`;
 export function configureSky(sky: Sky) {
   const material = sky.material;
   material.uniforms.cloudCover = { value: 0 };
@@ -258,6 +287,8 @@ export function configureSky(sky: Sky) {
   // One in the visible sky/PMREM. The local scene probe temporarily applies the
   // authored IBL gain here, without attenuating captured lamps a second time.
   material.uniforms.probeSkyIntensity = { value: 1 };
+  // Cloud panoramas: unbound (no baked clouds) until a SkyClouds binds them.
+  Object.assign(material.uniforms, createSkyCloudUniforms());
   // Ground hemisphere: 0 for the visible dome, set only by SkyEnvironment.capture.
   material.uniforms.groundAmount = { value: 0 };
   material.uniforms.groundAlbedo = { value: new T.Vector3(...IBL_ENERGY.groundAlbedo) };
@@ -278,18 +309,21 @@ export function configureSky(sky: Sky) {
       // Preetham radiance, scaled to the same hemispherical luminance so the
       // sky's share of the environment light is unchanged. The solar disc keeps
       // its former radiance: the linear disc would overflow half float.
-      retColor=mix(((Lin+vec3(0.1)*Fex)*0.04+vec3(0.0,0.0003,0.00075))*skyLinearGain,retColor,sundisk);
-      vec2 cloudUV=direction.xz/(max(direction.y,0.0)+0.24)*2.1+vec2(4.7,1.3);
-      float field=skyCloud(cloudUV);
-      float cover=smoothstep(.76-.64*cloudCover,.92-.57*cloudCover,field);
-      cover*=smoothstep(-.025,.12,direction.y)*smoothstep(0.0,.16,cloudCover);
-      float edge=skyCloud(cloudUV+vec2(.11,-.09));
-      vec3 cloudLight=mix(vec3(.39,.46,.55),vec3(1.35,1.42,1.48),
-        clamp(.48+(field-edge)*3.0+.22*max(0.0,dot(direction,vSunDirection)),0.0,1.0));
-      cloudLight*=1.0-.42*cloudCover;
-      cloudLight=mix(cloudLight,cloudLight*vec3(1.35,.84,.63),sunsetAmount*(1.-cloudCover*.60));
-      retColor=mix(retColor,cloudLight,cover);
+      // Day-sky colour grade (SKY_GRADE): the white Preetham lower sky becomes
+      // the clear blue of the references; none at sunset or night.
+      vec3 skyGrade=mix(vec3(1.0),mix(skyGradeHorizon,skyGradeZenith,
+        smoothstep(${SKY_GRADE.edges[0]},${SKY_GRADE.edges[1]},direction.y)),
+        (1.0-sunsetAmount)*(1.0-nightAmount));
+      retColor=mix(((Lin+vec3(0.1)*Fex)*0.04+vec3(0.0,0.0003,0.00075))*skyGrade*skyLinearGain,retColor,sundisk);
+      // Behind the clouds, unresolved thin cloud and haze grey the dome with
+      // cover, and a closing deck turns it into the deck's own diffuse grey.
       retColor=mix(retColor,vec3(.55,.64,.75),cloudCover*.22);
+      retColor=mix(retColor,skyOvercastHaze*cloudSkyGain,smoothstep(.55,.95,cloudCover)*.9);
+      // Baked cumulus (premultiplied sun and sky terms, opacity): flat bases,
+      // billowed tops, self-shadow and a silver lining; over the sun disc too.
+      vec4 clouds=skyCloudTerms(direction);
+      float cover=clouds.a;
+      retColor=retColor*(1.0-cover)+skyCloudLight(clouds);
       // The night dome shares the same stationary cloud field, not a daylight
       // texture behind a black background. This is an authored fictional night
       // sky, not an astronomical moon/date model or measured photometry.
@@ -307,9 +341,13 @@ export function configureSky(sky: Sky) {
         float moon=smoothstep(.999989-moonEdge,.999989+moonEdge,moonCos);
         float halo=pow(max(0.0,moonCos),96.0)*.012;
         nightSky+=vec3(.43,.46,.48)*(moon+halo)*(1.0-cover);
+        // Moonlit tops from the same bake's sun (moon) term per unit opacity.
+        float moonLit=clouds.r/max(clouds.a,0.02);
         vec3 nightCloud=mix(vec3(.012,.017,.027),vec3(.040,.044,.052),
-          clamp(.4+(field-edge)*2.0+.35*max(0.0,moonCos),0.0,1.0));
+          clamp(.25+.3*moonLit+.35*max(0.0,moonCos),0.0,1.0));
         nightSky=mix(nightSky,nightCloud,cover);
+        // Unresolved cloud veils the stars and moon and catches the venue glow.
+        nightSky=mix(nightSky,vec3(.026,.030,.040),cloudCover*.45*(1.0-cover));
         radiance=mix(vec3(.01,.014,.026),nightSky,smoothstep(-.05,.10,direction.y));
       }
       ${SKY_GROUND_GLSL}
@@ -413,12 +451,17 @@ export class SkyEnvironment {
   blends = 0;
   probeRefreshNeeded = false;
   private epoch: object = {};
-  constructor(private sky: Sky) {
+  /** `clouds` bakes and binds the sky's cloud panoramas (the circuit renderer);
+   * without it the dome has no baked clouds. */
+  constructor(
+    private sky: Sky,
+    private clouds?: SkyClouds,
+  ) {
     this.environmentScene.add(sky.clone());
   }
   private capture(renderer: T.WebGLRenderer, bin: number, mode: LightingMode, size: number) {
     const restore = preserveSkyRenderState(renderer);
-    let generator: T.PMREMGenerator | undefined;
+    let generator: T.PMREMGenerator | undefined, unbindClouds: (() => void) | undefined;
     const uniforms = this.sky.material.uniforms;
     const previous = {
       cover: uniforms.cloudCover.value,
@@ -445,11 +488,14 @@ export class SkyEnvironment {
         uniforms.groundAmount.value = 1;
         groundIrradiance(groundLightState(bin / 8, mode), uniforms.groundIrradiance.value);
       }
+      // This bin's cloud panorama, not the visible dome's blend.
+      unbindClouds = this.clouds?.bind(renderer, bin, mode);
       // Paid only on a cloud-bin, lighting or tier change.
       const target = generator.fromScene(this.environmentScene, 0.04, 0.1, 700000, { size });
       this.captures++;
       return target;
     } finally {
+      unbindClouds?.();
       uniforms.cloudCover.value = previous.cover;
       uniforms.nightAmount.value = previous.night;
       uniforms.sunsetAmount.value = previous.sunset;
@@ -529,6 +575,8 @@ export class SkyEnvironment {
       mode = lightingMode(value);
     if (!Number.isInteger(Math.log2(size)) || size < 16 || size > 1024)
       throw new Error('Invalid sky PMREM size');
+    // The visible dome's clouds (bakes only a missing bin panorama).
+    this.clouds?.prepare(renderer, plan.cover, mode);
     this.probeRefreshNeeded = false;
     if (plan.cover === this.cover && mode === this.mode && size === this.size) return false;
     const resized = size !== this.size;
@@ -604,6 +652,7 @@ export class SkyEnvironment {
       retainedTargets: this.cached.size + this.outputs.length,
       interpolation: 'linear-HDR-CubeUV',
       independentAnimation: false,
+      clouds: this.clouds?.diagnostics() ?? null,
     };
   }
   dispose() {
@@ -615,6 +664,7 @@ export class SkyEnvironment {
     this.outputs.length = 0;
     this.blend.dispose();
     this.quad.dispose();
+    this.clouds?.dispose();
     this.cover = NaN;
     this.publishedScene = null;
     this.publishedTexture = null;
@@ -623,9 +673,10 @@ export class SkyEnvironment {
 
 const domeCache = new Map<string, T.Color>();
 /** Cosine-weighted mean radiance of the upper dome as the sky shader renders it
- * for a PMREM capture (linear, probeSkyIntensity 1), with the stationary cloud
- * field replaced by its expected coverage. It sets the sky part of the PMREM
- * ground's irradiance; the visible dome is unaffected. */
+ * for a PMREM capture (linear, probeSkyIntensity 1). The baked clouds enter
+ * through their measured dome means (`cloudDomeTerms`), as if spread evenly
+ * over the hemisphere. It sets the sky part of the PMREM ground's irradiance;
+ * the visible dome is unaffected. */
 export function skyCosineRadiance(cloud: number, value: boolean | LightingMode = false) {
   const mode = lightingMode(value),
     light = circuitLightState(cloud, 0, mode),
@@ -633,15 +684,15 @@ export function skyCosineRadiance(cloud: number, value: boolean | LightingMode =
   const key = `${mode}:${cover}`;
   const cached = domeCache.get(key);
   if (cached) return cached.clone();
-  const sun = lightingDirection(mode),
-    disc = sun.clone().normalize();
+  const sun = lightingDirection(mode);
   const gain = skyLinearGain(sun, light.turbidity);
-  // The shader's cloud field (mean 0.5) above its cover threshold, as a share.
-  const threshold = 0.84 - 0.605 * cover;
-  const coverage = (1 / (1 + Math.exp(-(0.5 - threshold) / 0.08))) * smooth(0, 0.16, cover);
+  const terms = cloudDomeTerms(cover, mode),
+    clouds = skyCloudLight(terms, cover, mode === 'sunset' ? 1 : 0),
+    deck = smooth(0.55, 0.95, cover) * 0.9;
   const direction = new T.Vector3(),
     sum = new T.Color(0, 0, 0),
-    sample = new T.Color();
+    sample = new T.Color(),
+    grade = [1, 1, 1];
   let weights = 0;
   const N = 12;
   for (let i = 0; i < N; i++)
@@ -653,30 +704,33 @@ export function skyCosineRadiance(cloud: number, value: boolean | LightingMode =
         Math.sin(elevation),
         Math.cos(elevation) * Math.sin(azimuth),
       );
-      const y = direction.y,
-        clouds = coverage * smooth(-0.025, 0.12, y);
+      const y = direction.y;
       if (mode === 'night') {
         const horizon = (1 - y) ** 3;
-        sample.setRGB(
-          lerp(lerp(0.008, 0.035, horizon), 0.0232, clouds),
-          lerp(lerp(0.014, 0.039, horizon), 0.0278, clouds),
-          lerp(lerp(0.029, 0.052, horizon), 0.037, clouds),
+        const night = [
+          [0.008, 0.035, 0.0232, 0.026],
+          [0.014, 0.039, 0.0278, 0.03],
+          [0.029, 0.052, 0.037, 0.04],
+        ].map(([zenith, low, cloudy, veil]) =>
+          lerp(
+            lerp(lerp(zenith, low, horizon), cloudy, terms.opacity),
+            veil,
+            cover * 0.45 * (1 - terms.opacity),
+          ),
         );
+        sample.setRGB(night[0], night[1], night[2]);
       } else {
         const clear = preethamSky(direction, sun, light.turbidity).linear;
-        const lit = clamp(0.48 + 0.22 * Math.max(0, direction.dot(disc)), 0, 1),
-          dim = 1 - 0.42 * cover,
-          warm = mode === 'sunset' ? 1 - cover * 0.6 : 0;
-        const cloudLight = [
-          lerp(0.39, 1.35, lit) * dim * lerp(1, 1.35, warm),
-          lerp(0.46, 1.42, lit) * dim * lerp(1, 0.84, warm),
-          lerp(0.55, 1.48, lit) * dim * lerp(1, 0.63, warm),
-        ];
-        const grey = [0.55, 0.64, 0.75];
-        const rgb = clear.map(
-          (c, k) =>
-            lerp(lerp(c * gain, cloudLight[k], clouds), grey[k], cover * 0.22) * light.skyRadiance,
-        );
+        skyGrade(y, mode === 'day' ? 1 : 0, grade);
+        const veil = [0.55, 0.64, 0.75];
+        const rgb = clear.map((c, k) => {
+          const background = lerp(
+            lerp(c * gain * grade[k], veil[k], cover * 0.22),
+            SKY_CLOUD_LIGHT.overcastHaze[k] * SKY_CLOUD_LIGHT.skyGain,
+            deck,
+          );
+          return (background * (1 - terms.opacity) + clouds[k]) * light.skyRadiance;
+        });
         if (mode === 'sunset') {
           const haze = (1 - y) ** 4 * 0.15 * (1 - cover * 0.5);
           [0.38, 0.19, 0.12].forEach((h, k) => (rgb[k] = lerp(rgb[k], h, haze)));
