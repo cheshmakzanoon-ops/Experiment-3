@@ -173,6 +173,60 @@ export function raceBanner(frame: Float32Array, auto: boolean): RaceBanner {
 /** Seconds a banner stays fully visible (Art Bible B §0.3 motion). */
 export const BANNER_SECONDS = 4;
 
+/** Track-limit strikes before the next one costs time: the lap tracker
+ * (simulation/race.ts `limits`) adds 5 s on every fourth warning. */
+export const TRACK_LIMIT_STRIKES = 3;
+/** Race-control event: a penalty or a track-limits warning (Art Bible B §1.9). */
+export interface RaceEvent {
+  title: string;
+  sub: string;
+  since: number;
+}
+/** Why the player's penalty total grew. A track-limits penalty lands in the
+ * same simulation step as its warning; everything else is race control
+ * (jump start on the grid, pit-lane speeding, overtaking under yellow,
+ * the endurance mandatory stop at the flag). */
+export function penaltyReason(frame: Float32Array, warningsRose: boolean): string {
+  const o = carBase(0);
+  if (warningsRose) return 'TRACK LIMITS';
+  if (frame[H.PHASE] < 2) return 'JUMP START';
+  if (frame[o + F.IN_PIT] > 0) return 'PIT LANE SPEEDING';
+  if (frame[o + F.FINISH] > 0) return 'MANDATORY PIT STOP';
+  if (yellowFlag(frame[H.FLAG]) || yellowFlag(frame[o + F.LOCAL_FLAG]))
+    return 'OVERTAKING UNDER YELLOW';
+  return 'RACE CONTROL DECISION';
+}
+/** "WARNING 2 / 3": strikes since the last track-limits penalty. */
+export function trackLimitWarning(warnings: number): string {
+  const strike = ((Math.max(1, Math.round(warnings)) - 1) % (TRACK_LIMIT_STRIKES + 1)) + 1;
+  return `WARNING ${Math.min(strike, TRACK_LIMIT_STRIKES)} / ${TRACK_LIMIT_STRIKES} · LAP INVALIDATED`;
+}
+export interface BannerView {
+  swatch: string;
+  title: string;
+  sub: string;
+  mode: 'full' | 'mini';
+}
+/** What the banner shows this frame. A new flag or the chequered flag gets
+ * its full 4 s first; a penalty or warning then outranks the compact flag
+ * chip (a persistent yellow must not swallow "+5S · OVERTAKING UNDER
+ * YELLOW"); info and damage notes run 4 s when nothing else is up. */
+export function bannerView(
+  state: RaceBanner,
+  since: number,
+  event: RaceEvent | null,
+  time: number,
+): BannerView | null {
+  const fresh = time - since < BANNER_SECONDS;
+  const flag = state.kind === 'flag' || state.kind === 'finish';
+  if (flag && fresh) return { ...state, mode: 'full' };
+  if (event && time - event.since < BANNER_SECONDS)
+    return { swatch: 'warn', title: event.title, sub: event.sub, mode: 'full' };
+  if (flag && state.persistent) return { ...state, mode: 'mini' };
+  if ((state.kind === 'info' || state.kind === 'warn') && fresh) return { ...state, mode: 'full' };
+  return null;
+}
+
 /** Cluster status line under the gear (Art Bible B §1.5). */
 export function clusterStatus(frame: Float32Array, ers: number, pitLimiter: boolean): string {
   const o = carBase(0);
@@ -237,6 +291,9 @@ export interface F1Frame {
   sectors: SectorBoard | null;
   ers: number;
   auto: boolean;
+  /** Live lap delta the panel shows (time trial: the saved-PB ghost), or null
+   * when no valid reference exists. Colours the progress line. */
+  delta: number | null;
   /** 0 unavailable, 1 available, 2 open (R.DRS when gameplay publishes it). */
   drs?: number;
   /** A best lap exists (this session, or a saved time-trial personal best). */
@@ -328,7 +385,7 @@ export class F1Hud {
     persistent: false,
     text: '',
   };
-  private event: { title: string; sub: string; since: number } | null = null;
+  private event: RaceEvent | null = null;
   private warnings = -1;
   private penalty = -1;
   private pitSince = -1;
@@ -553,44 +610,32 @@ export class F1Hud {
       if (tab.style.getPropertyValue('--fill') !== width) tab.style.setProperty('--fill', width);
     });
     const valid = frame[o + F.LAP_VALID] > 0;
-    const deltaValid = frame[o + F.DELTA_VALID] > 0;
-    const line = frame[o + F.IN_PIT]
-      ? 'pit'
-      : !valid && lapTime > 0
-        ? 'invalid'
-        : deltaValid && frame[o + F.LAP_DELTA] < 0
-          ? 'ahead'
-          : 'neutral';
+    // The same delta the panel prints (time trial: the saved-PB ghost).
+    const line =
+      frame[o + F.IN_PIT] > 0
+        ? 'pit'
+        : !valid && lapTime > 0
+          ? 'invalid'
+          : s.delta !== null && s.delta < 0
+            ? 'ahead'
+            : 'neutral';
     attr(this.progress, 'state', line);
     attr(this.lapPanel, 'best', String(s.bestKnown));
     attr(this.lapPanel, 'delta', String(s.deltaShown));
     attr(this.lapPanel, 'valid', String(valid || !(lapTime > 0)));
 
     // Banners: the state observed every frame, plus penalty/track-limit events.
-    const state = this.banner;
-    let shown: { swatch: string; title: string; sub: string; mode: string } | null = null;
-    if (state.kind === 'flag' || state.kind === 'finish') {
-      const fresh = time - this.bannerSince < BANNER_SECONDS;
-      if (fresh || state.persistent) shown = { ...state, mode: fresh ? 'full' : 'mini' };
-    }
-    if (!shown && this.event) shown = { swatch: 'warn', ...this.event, mode: 'full' };
-    if (
-      !shown &&
-      (state.kind === 'info' || state.kind === 'warn') &&
-      time - this.bannerSince < BANNER_SECONDS
-    )
-      shown = { ...state, mode: 'full' };
+    const shown = bannerView(this.banner, this.bannerSince, this.event, time);
     attr(this.bannerEl, 'state', shown ? shown.mode : 'off');
     attr(this.bannerEl, 'swatch', shown?.swatch ?? '');
     set(this.bannerTitle, shown?.title ?? '');
     set(this.bannerSub, shown?.sub ?? '');
 
-    // Pit-lane panel: time in the lane and the stationary stop time.
+    // Pit-lane panel: time in the lane (stamped every frame in observe) and
+    // the stationary stop time.
     const inPit = frame[o + F.IN_PIT] > 0;
-    if (inPit && this.pitSince < 0) this.pitSince = time;
-    if (!inPit) this.pitSince = -1;
     this.pit.hidden = !inPit;
-    if (inPit) {
+    if (inPit && this.pitSince >= 0) {
       set(this.pitLane, Math.max(0, time - this.pitSince).toFixed(1));
       set(this.pitStop, pitPhase >= 2 ? frame[o + F.PIT_CLOCK].toFixed(1) : '—');
       set(this.pitPhase, pitPhaseLabel(pitPhase));
@@ -607,21 +652,23 @@ export class F1Hud {
     this.time = time;
     const warnings = frame[o + F.WARNINGS],
       penalty = frame[o + F.PENALTY];
+    const warningsRose = this.warnings >= 0 && warnings > this.warnings;
     if (this.penalty >= 0 && penalty > this.penalty)
       this.event = {
         title: `+${Math.round(penalty - this.penalty)}S TIME PENALTY`,
-        sub: 'TRACK LIMITS',
+        sub: penaltyReason(frame, warningsRose),
         since: time,
       };
-    else if (this.warnings >= 0 && warnings > this.warnings)
-      this.event = {
-        title: 'TRACK LIMITS',
-        sub: `WARNING ${Math.round(warnings)} · LAP INVALIDATED`,
-        since: time,
-      };
+    else if (warningsRose)
+      this.event = { title: 'TRACK LIMITS', sub: trackLimitWarning(warnings), since: time };
     this.warnings = warnings;
     this.penalty = penalty;
     if (this.event && time - this.event.since >= BANNER_SECONDS) this.event = null;
+    // Pit-lane clock: stamped on the frame the car enters the lane, not on
+    // the next third-rate panel refresh.
+    const inPit = frame[o + F.IN_PIT] > 0;
+    if (!inPit) this.pitSince = -1;
+    else if (this.pitSince < 0) this.pitSince = time;
     this.banner = raceBanner(frame, auto);
     const key = `${this.banner.kind}|${this.banner.title}`;
     if (key !== this.bannerKey) {
@@ -665,7 +712,8 @@ export class F1Hud {
             tag.bar.style.background = `#${LIVERIES[id].toString(16).padStart(6, '0')}`;
             tag.name.textContent = surname(DRIVERS[id] ?? '');
           }
-          const rank = String(order.indexOf(id) + 1);
+          // Before the first panel refresh `order` is empty: use the frame's rank.
+          const rank = String(order.indexOf(id) + 1 || Math.round(frame[o + F.RANK]));
           if (tag.pos.textContent !== rank) tag.pos.textContent = rank;
         }
       }

@@ -840,6 +840,11 @@
     letter-spacing: 0.04em;
     white-space: nowrap;
     color: var(--ers-status);
+    /* Long states ("REDUCED HARVESTING") cross the bridge outline; a tight
+       body-coloured halo keeps the stroke from cutting through the letters. */
+    text-shadow:
+      0 0 2px rgba(10, 12, 18, 0.95),
+      0 0 4px rgba(10, 12, 18, 0.8);
   }
   #hud[data-f1] .f1-drs {
     display: block;
@@ -1052,6 +1057,19 @@
     background: repeating-conic-gradient(#fff 0 25%, #111 0 50%) 0 0 / calc(1.1 * var(--u))
       calc(1.1 * var(--u));
   }
+  /* Patterned flags (colorblind setting): the desktop layout hides the
+     patterned #flag chip, so the banner swatch carries the pattern instead. */
+  html[data-colorblind='true'] #hud[data-f1] .f1-banner[data-swatch='yellow'] .f1-swatch {
+    background: repeating-linear-gradient(135deg, var(--flag-yellow) 0 6px, #fff0aa 6px 9px);
+  }
+  html[data-colorblind='true'] #hud[data-f1] .f1-banner[data-swatch='double'] .f1-swatch {
+    background:
+      linear-gradient(transparent 42%, #14161c 42% 58%, transparent 58%),
+      repeating-linear-gradient(135deg, var(--flag-yellow) 0 6px, #fff0aa 6px 9px);
+  }
+  html[data-colorblind='true'] #hud[data-f1] .f1-banner[data-swatch='blue'] .f1-swatch {
+    background: repeating-linear-gradient(90deg, var(--flag-blue) 0 5px, #b9d0ff 5px 7px);
+  }
   #hud[data-f1] .f1-banner > div {
     display: flex;
     flex-direction: column;
@@ -1217,10 +1235,11 @@
     font-size: 0;
     transform: none;
   }
+  /* The rotated square's diagonal is the chevron's height: 3.2 u (AB-B §1.8). */
   #hud[data-f1] .proximity b::before {
     content: '';
     position: absolute;
-    inset: calc(0.75 * var(--u));
+    inset: calc(0.47 * var(--u));
     border: solid var(--t-red);
     border-width: 0 0 3px 3px;
     transform: translateX(15%) rotate(45deg);

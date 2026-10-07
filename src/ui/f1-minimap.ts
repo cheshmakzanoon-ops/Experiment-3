@@ -127,7 +127,8 @@ export class TrackMap {
     if (sf) this.chequer(c, sf.x - sf.nx * 13, sf.y - sf.ny * 13, Math.atan2(sf.ty, sf.tx));
     const time = frame[H.TIME];
     const cars = frame[H.CARS];
-    // Local caution zone ahead of the player: a pulsing ring (1.2 s period).
+    // Local caution zone ahead of the player: a 1.9 vh ring (~6.9 map units
+    // radius at 720p, Art Bible B §1.6) pulsing outward on a 1.2 s period.
     const me = carBase(0);
     const caution = frame[me + F.CAUTION_DISTANCE];
     const flag = frame[me + F.LOCAL_FLAG];
@@ -136,13 +137,13 @@ export class TrackMap {
       const [x, y] = mapPoint(view, p.x, p.z);
       const phase = (((time % 1.2) + 1.2) % 1.2) / 1.2;
       c.strokeStyle = `rgba(240, 208, 32, ${(1 - phase * 0.7).toFixed(3)})`;
-      c.lineWidth = 1.8;
+      c.lineWidth = 1.5;
       c.beginPath();
-      c.arc(x, y, 8 + phase * 6, 0, Math.PI * 2);
+      c.arc(x, y, 6.9 + phase * 3, 0, Math.PI * 2);
       c.stroke();
       c.fillStyle = 'rgba(240, 208, 32, 0.35)';
       c.beginPath();
-      c.arc(x, y, 6, 0, Math.PI * 2);
+      c.arc(x, y, 4.6, 0, Math.PI * 2);
       c.fill();
     }
     // Rivals in reverse race order (the leader on top), then the player.

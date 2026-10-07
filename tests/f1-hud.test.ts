@@ -4,16 +4,21 @@ import {
   REV_LEDS,
   TAG_LIMIT,
   TAG_RANGE,
+  TRACK_LIMIT_STRIKES,
+  bannerView,
   clusterStatus,
   fastestLapCar,
   nameTagCars,
+  penaltyReason,
   raceBanner,
   revLedThresholds,
   sessionHeading,
   surname,
   towerWindow,
+  trackLimitWarning,
   tyreBand,
 } from '../src/ui/f1-hud.ts';
+import { LapTracker } from '../src/simulation/race.ts';
 import { MFD_PAGES } from '../src/ui/race-day-hud.ts';
 import { MAP_H, MAP_W, mapPoint, sectorMarks } from '../src/ui/f1-minimap.ts';
 import { minimapFrame, timedGap } from '../src/ui/interface.ts';
@@ -120,6 +125,71 @@ describe('F1 HUD race control', () => {
     frame[o + F.FINISH] = 300;
     expect(raceBanner(frame, false).kind).toBe('finish');
     expect(BANNER_SECONDS).toBe(4);
+  });
+  it('shows a penalty over a persistent flag chip, never under it', () => {
+    const frame = field(3);
+    frame[H.FLAG] = FLAG.YELLOW;
+    const yellow = raceBanner(frame, false);
+    // The flag's first 4 s outrank everything.
+    const event = { title: '+5S TIME PENALTY', sub: 'OVERTAKING UNDER YELLOW', since: 10 };
+    expect(bannerView(yellow, 9, event, 10)).toMatchObject({ mode: 'full', swatch: 'yellow' });
+    // After them the penalty takes the banner for its own 4 s...
+    expect(bannerView(yellow, 0, event, 10)).toMatchObject({
+      mode: 'full',
+      swatch: 'warn',
+      title: '+5S TIME PENALTY',
+    });
+    expect(bannerView(yellow, 0, event, 10 + BANNER_SECONDS - 0.01)?.swatch).toBe('warn');
+    // ...and the flag returns as the compact chip while it applies.
+    expect(bannerView(yellow, 0, event, 10 + BANNER_SECONDS)).toMatchObject({
+      mode: 'mini',
+      swatch: 'yellow',
+    });
+    expect(bannerView(yellow, 0, null, 30)?.mode).toBe('mini');
+    // Info notes run 4 s and never return.
+    const info = raceBanner(field(3), true);
+    expect(bannerView(info, 20, null, 23)?.mode).toBe('full');
+    expect(bannerView(info, 20, null, 24)).toBeNull();
+  });
+  it('names the reason for a time penalty', () => {
+    const frame = field(3),
+      o = carBase(0);
+    frame[H.PHASE] = 2;
+    expect(penaltyReason(frame, true)).toBe('TRACK LIMITS');
+    expect(penaltyReason(frame, false)).toBe('RACE CONTROL DECISION');
+    frame[H.FLAG] = FLAG.DOUBLE_YELLOW;
+    expect(penaltyReason(frame, false)).toBe('OVERTAKING UNDER YELLOW');
+    frame[H.FLAG] = FLAG.GREEN;
+    frame[o + F.IN_PIT] = 1;
+    expect(penaltyReason(frame, false)).toBe('PIT LANE SPEEDING');
+    frame[o + F.IN_PIT] = 0;
+    frame[o + F.FINISH] = 612;
+    expect(penaltyReason(frame, false)).toBe('MANDATORY PIT STOP');
+    frame[H.PHASE] = 1;
+    expect(penaltyReason(frame, false)).toBe('JUMP START');
+  });
+  it('counts track-limit strikes the way the lap tracker penalises them', () => {
+    const lap = new LapTracker(1000, 0);
+    const seen: string[] = [];
+    let penalty = 0;
+    for (let strike = 1; strike <= 2 * (TRACK_LIMIT_STRIKES + 1); strike++) {
+      lap.limits(true, 0.5);
+      lap.limits(false, 0.1);
+      expect(lap.warnings).toBe(strike);
+      if (lap.penalty > penalty) seen.push('PENALTY');
+      else seen.push(trackLimitWarning(lap.warnings).split(' · ')[0]);
+      penalty = lap.penalty;
+    }
+    expect(seen).toEqual([
+      'WARNING 1 / 3',
+      'WARNING 2 / 3',
+      'WARNING 3 / 3',
+      'PENALTY',
+      'WARNING 1 / 3',
+      'WARNING 2 / 3',
+      'WARNING 3 / 3',
+      'PENALTY',
+    ]);
   });
   it('tags every nearby car on the grid but only the car ahead while racing', () => {
     const frame = field(7),

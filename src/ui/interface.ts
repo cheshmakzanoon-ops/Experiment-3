@@ -539,6 +539,7 @@ export class Interface {
       sectors: this.sectors,
       ers,
       auto,
+      delta: deltaValid ? delta : null,
       bestKnown: frame[o + F.BEST_LAP] > 0 || (trial?.best ?? 0) > 0,
       deltaShown: deltaValid && !racing,
     });
