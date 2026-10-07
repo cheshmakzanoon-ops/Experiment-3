@@ -2,7 +2,7 @@ import * as T from 'three';
 import { MirrorViews } from './mirrors.ts';
 import { STUDIO_REFLECTION_LAYER } from './photo-stage.ts';
 import { cullProbeDetail, type ProbeDetail } from './probe-detail.ts';
-import { setOwnEnvMap } from './studio/ibl-energy.ts';
+import { hasSpecularIBL, setOwnEnvMap } from './studio/ibl-energy.ts';
 
 /** Local probe face size (High). 256 px keeps a 0.04 clearcoat's horizon line
  * crisp; draws per face are unchanged. */
@@ -134,7 +134,9 @@ export class ReflectionSystem {
    * recorded sky intensity of a sky-lit reflective material is its effective
    * specular gain, environment × specularGain (three uses the scene's
    * environmentIntensity for a material without an envMap of its own), and the
-   * probe captures the dome at that same scale. */
+   * probe captures the dome at that same scale. A material without the
+   * normalisation hook (hasSpecularIBL) records the plain environment, so the
+   * reported gain (diag reflectionIntensity, KPI 7) is the one it renders. */
   setSkyIntensity(
     materials: readonly T.MeshStandardMaterial[],
     intensity: number,
@@ -145,8 +147,8 @@ export class ReflectionSystem {
     if (!Number.isFinite(specularGain) || specularGain < 1)
       throw new Error('Invalid sky specular gain');
     this.specularGain = specularGain;
-    const sky = intensity * specularGain;
     for (const material of materials) {
+      const sky = hasSpecularIBL(material) ? intensity * specularGain : intensity;
       const original = this.originalMaps.get(material);
       if (original) original.intensity = sky;
       material.envMapIntensity = original ? 1 : sky;

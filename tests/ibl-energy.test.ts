@@ -9,6 +9,7 @@ import {
   SPECULAR_IBL_KEY,
   createIblUniforms,
   groundIrradiance,
+  hasSpecularIBL,
   iblUniforms,
   installSpecularIBL,
   installSpecularIBLMaterial,
@@ -129,6 +130,14 @@ describe('specular IBL normalisation', () => {
     expect(setIblEnergy(0.07, 'night', uniforms)).toBe(3.5);
     expect(uniforms.apexSkyIrradianceSaturation.value).toBe(1);
     expect(() => setIblEnergy(0.5, 'dawn' as 'day', uniforms)).toThrow('Invalid circuit lighting');
+    // Photo showroom/workshop: no visible dome to normalise to, so the authored
+    // studio environment keeps gain 1 and the dome's own colour.
+    expect(setIblEnergy(0.3, 'day', uniforms, false)).toBe(1);
+    expect(uniforms.apexSpecularIBL.value).toBe(1);
+    expect(uniforms.apexSkyIrradianceSaturation.value).toBe(1);
+    expect(() => setIblEnergy(NaN, 'day', uniforms, false)).toThrow('Invalid IBL environment');
+    expect(setIblEnergy(0.3, 'day', uniforms)).toBeCloseTo(1 / 0.3, 12);
+    expect(uniforms.apexSkyIrradianceSaturation.value).toBe(SKY_IRRADIANCE_SATURATION.day);
     expect(uniforms).not.toBe(iblUniforms);
   });
   it('chains once on Standard/Physical materials without their own envMap', () => {
@@ -208,7 +217,10 @@ describe('specular IBL normalisation', () => {
     expect(material.customProgramCacheKey()).toBe(key);
     // A clone (Material.copy drops the hook) is installed and flagged on its own.
     const clone = material.clone();
+    expect(hasSpecularIBL(material)).toBe(true);
+    expect(hasSpecularIBL(clone)).toBe(false);
     expect(installSpecularIBLMaterial(clone, createIblUniforms())).toBe(true);
+    expect(hasSpecularIBL(clone)).toBe(true);
     expect(compile(clone).uniforms.apexOwnEnvMap).toBe(ownEnvMapUniform(clone));
     expect(ownEnvMapUniform(clone)).not.toBe(ownEnvMapUniform(material));
     material.dispose();
@@ -225,8 +237,13 @@ describe('PMREM ground hemisphere', () => {
     expect(uniforms.groundAlbedo.value.toArray()).toEqual([...IBL_ENERGY.groundAlbedo]);
     expect(fragmentShader).toContain(SKY_GROUND_UNIFORMS);
     expect(fragmentShader).toContain(SKY_GROUND_GLSL);
-    // Below the horizon only, blended over 2 degrees.
-    expect(SKY_GROUND_GLSL).toContain('smoothstep(0.0,-0.034899,direction.y)');
+    // Below the horizon only, blended over 2 degrees, with ascending smoothstep
+    // edges (GLSL ES leaves edge0 >= edge1 undefined).
+    expect(SKY_GROUND_GLSL).toContain('(1.0-smoothstep(-0.034899,0.0,direction.y))');
+    for (const [, edge0, edge1] of SKY_GROUND_GLSL.matchAll(
+      /smoothstep\(\s*([-0-9.]+)\s*,\s*([-0-9.]+)\s*,/g,
+    ))
+      expect(Number(edge0)).toBeLessThan(Number(edge1));
     expect(fragmentShader.indexOf(SKY_GROUND_GLSL)).toBeLessThan(
       fragmentShader.indexOf('gl_FragColor=vec4(radiance * probeSkyIntensity,1.0);'),
     );

@@ -1,6 +1,11 @@
 import * as T from 'three';
 import type { LightingMode } from '../daylight.ts';
-import { chainShaderHook, injectAfter, injectDeclarations } from './shader-hooks.ts';
+import {
+  chainShaderHook,
+  injectAfter,
+  injectDeclarations,
+  studioHookKeys,
+} from './shader-hooks.ts';
 
 /**
  * Lighting & IBL energy (D03): one diffuse/specular split for the sky light.
@@ -84,18 +89,25 @@ export function specularIBLGain(environment: number) {
 }
 /** Write this frame's sky-light split into the shared uniforms: the specular
  * gain for `environment` (the scene's diffuse IBL intensity) and the diffuse
- * colour balance of `mode`. Returns the specular gain. */
+ * colour balance of `mode`. Returns the specular gain.
+ *
+ * `skyVisible` false is a photo showroom or workshop: the dome is hidden and the
+ * environment only stands in for studio light at its authored level, so there
+ * is no visible sky to normalise to. Gain 1 and the dome's own colour keep that
+ * authored look (a dark showroom must not mirror a daylight sky at full
+ * strength on paint, floor and podium). */
 export function setIblEnergy(
   environment: number,
   mode: LightingMode = 'day',
   uniforms: IblUniforms = iblUniforms,
+  skyVisible = true,
 ) {
   const gain = specularIBLGain(environment),
     saturation = SKY_IRRADIANCE_SATURATION[mode];
   if (saturation === undefined) throw new Error('Invalid circuit lighting mode');
-  uniforms.apexSpecularIBL.value = gain;
-  uniforms.apexSkyIrradianceSaturation.value = saturation;
-  return gain;
+  uniforms.apexSpecularIBL.value = skyVisible ? gain : 1;
+  uniforms.apexSkyIrradianceSaturation.value = skyVisible ? saturation : 1;
+  return uniforms.apexSpecularIBL.value;
 }
 
 export const SPECULAR_IBL_KEY = 'apex-specular-ibl-v2';
@@ -105,6 +117,11 @@ export function ownEnvMapUniform(material: T.Material) {
   let uniform = ownEnvMaps.get(material);
   if (!uniform) ownEnvMaps.set(material, (uniform = { value: 0 }));
   return uniform;
+}
+/** Whether the specular IBL normalisation is chained on `material` (a clone or
+ * a material created after the installers is not). */
+export function hasSpecularIBL(material: T.Material) {
+  return studioHookKeys(material).includes(SPECULAR_IBL_KEY);
 }
 /** Mark `material` as lit by its own (local probe) cubemap, or by the scene's
  * sky PMREM again. A uniform value: no program change. */
@@ -187,13 +204,15 @@ uniform float groundAmount;
 uniform vec3 groundAlbedo;
 uniform vec3 groundIrradiance;
 `;
-/** Applied to the sky's final `radiance`, before probeSkyIntensity. */
+/** Applied to the sky's final `radiance`, before probeSkyIntensity. The blend is
+ * `1 - smoothstep(-sin(2 deg), 0, y)`: GLSL ES leaves smoothstep undefined for
+ * edge0 >= edge1, so the edges stay ascending. */
 export const SKY_GROUND_GLSL = `
       // Ground hemisphere for the PMREM only (groundAmount is 0 for the visible
       // dome): Lambertian ground radiance under the same sun and sky, blended
       // in over ${IBL_ENERGY.horizonBlendDegrees} degrees below the horizon.
       radiance=mix(radiance,groundAlbedo*groundIrradiance*0.3183098862,
-        groundAmount*smoothstep(0.0,-${Math.sin((IBL_ENERGY.horizonBlendDegrees * Math.PI) / 180).toFixed(6)},direction.y));
+        groundAmount*(1.0-smoothstep(-${Math.sin((IBL_ENERGY.horizonBlendDegrees * Math.PI) / 180).toFixed(6)},0.0,direction.y)));
 `;
 
 export interface GroundLight {

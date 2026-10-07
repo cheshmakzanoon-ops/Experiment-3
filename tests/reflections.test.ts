@@ -1,7 +1,10 @@
 import { afterEach, expect, it, vi } from 'vitest';
 import * as T from 'three';
 import { PROBE_FACE_SIZE, ReflectionSystem } from '../src/rendering/reflections.ts';
-import { ownEnvMapUniform } from '../src/rendering/studio/ibl-energy.ts';
+import {
+  installSpecularIBLMaterial,
+  ownEnvMapUniform,
+} from '../src/rendering/studio/ibl-energy.ts';
 import { PhotoStage, STUDIO_REFLECTION_LAYER } from '../src/rendering/photo-stage.ts';
 
 afterEach(() => vi.restoreAllMocks());
@@ -247,10 +250,19 @@ it('captures the dome at the specular sky gain and flags probe-owned materials w
   scene.environmentIntensity = 0.42;
   const car = new T.Group(),
     paint = new T.MeshPhysicalMaterial(),
+    unhooked = new T.MeshPhysicalMaterial(),
     sky = { value: 1 };
+  // Only the normalised material renders the sky at the specular gain; one
+  // created after the installers records (and renders) the plain environment.
+  reflection.setSkyIntensity([paint, unhooked], 0.42, 1 / 0.42);
+  expect(paint.envMapIntensity).toBeCloseTo(0.42, 12);
+  expect(unhooked.envMapIntensity).toBeCloseTo(0.42, 12);
+  expect(installSpecularIBLMaterial(paint)).toBe(true);
   // Sky-lit reflective paint records its effective specular sky gain.
-  reflection.setSkyIntensity([paint], 0.42, 1 / 0.42);
+  reflection.setSkyIntensity([paint, unhooked], 0.42, 1 / 0.42);
   expect(paint.envMapIntensity).toBeCloseTo(1, 12);
+  expect(unhooked.envMapIntensity).toBeCloseTo(0.42, 12);
+  unhooked.dispose();
   const flags: number[] = [];
   const capture = vi.spyOn(T.CubeCamera.prototype, 'update').mockImplementation(function (
     this: T.CubeCamera,

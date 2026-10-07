@@ -943,7 +943,7 @@ export class RacingRenderer {
     this.hemisphere.intensity = daylight.fill;
     this.scene.environmentIntensity = daylight.environment;
     // Sky fallback and already-lit local radiance have different gains.
-    const specularIBL = setIblEnergy(daylight.environment, illumination);
+    const specularIBL = setIblEnergy(daylight.environment, illumination, undefined, !studio);
     this.reflection.setSkyIntensity(reflectionMaterials, daylight.environment, specularIBL);
     this.renderer.toneMappingExposure = daylight.exposure * 2 ** (this.photo?.exposure ?? 0);
     const fog = this.scene.fog as T.FogExp2;
