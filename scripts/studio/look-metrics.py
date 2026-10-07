@@ -695,15 +695,17 @@ def state_mismatch(window, record, strict=False):
     """First field of `window` (dotted diag.json shot-record path -> [lo, hi] or an exact value)
     that the record contradicts, as text; None when it matches. Without a record (legacy
     capture.mjs diag.json) nothing is judged; a field the record lacks is judged only when
-    `strict` (then it is a mismatch: the capture cannot show it matches)."""
+    `strict` (then it is a mismatch: the capture cannot show it matches), unless the window lists
+    it in '_if_recorded' (a field newer runs record, which older runs are not judged on)."""
     if not isinstance(window, dict) or not record:
         return None
+    optional = set(window.get('_if_recorded', []))
     for field, want in window.items():
         if field.startswith('_'):
             continue
         value = dig(record, field)
         if value is None:
-            if strict:
+            if strict and field not in optional:
                 return '%s not recorded (older capture-matrix run)' % field
             continue
         if isinstance(want, list):
@@ -716,7 +718,9 @@ def state_mismatch(window, record, strict=False):
 
 def composition_mismatch(targets, record, shot):
     """Driving shots are taken at a recorded place on the lap (driveElapsed: simulated seconds of
-    the deterministic autopilot drive from the grid). A shot outside the calibrated window
+    the deterministic autopilot drive from the grid, which reaches the same place only after a
+    similar idle, driveStart; liveTrack.s: the car's track distance, recorded since capture-matrix
+    restarts long-idle sessions before the drive). A shot outside the calibrated window
     (targets['compositions'][shot]) has its position-dependent checks INVALID instead of a verdict
     measured on the wrong surface. Checks marked "gate": false use car-relative crops or whole-frame
     statistics and are always measured. A capture-matrix record without the field (a run from
@@ -912,6 +916,10 @@ def main(argv):
                     drive = '  drive +%.1f s' % rec['driveElapsed']
                     if later is not None and abs(later - rec['driveElapsed']) >= 0.05:
                         drive = '  drive +%.1f..%.1f s' % (rec['driveElapsed'], later)
+                    if rec.get('driveStart') is not None:
+                        drive += ' from t=%.0f s' % rec['driveStart']
+                    if dig(rec, 'liveTrack.s') is not None:
+                        drive += ', s=%.0f m' % rec['liveTrack']['s']
                 held = ' held' if rec.get('held') else ''
                 print('  shot %s %-26s %-9s %-7s %5s km/h  %s calls%s%s' % (
                     key, rec.get('file', '')[3:-4][:26], rec.get('presentedCamera'),

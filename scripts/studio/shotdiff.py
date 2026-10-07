@@ -9,11 +9,15 @@ mean |A-B| (0-255), the share of pixels with any channel delta > 24, sRGB luma m
 mean saturation of A and B, and the draw-call delta when both diag.json files carry per-shot
 records (capture-matrix) or a top-level renderer.drawCalls (legacy capture.mjs). With per-shot
 records on both sides it also flags a slot that holds different camera views, and drive shots
-taken at different places on the lap (driveElapsed more than 2 s apart, or held vs live).
+taken at different places on the lap (driveElapsed more than 2 s apart, held vs live, track
+distance liveTrack.s more than 10 m apart, or only one drive started after 60-300 s of idle).
 
-Noise floor: two captures of the same build differ by mean |d| 1.0-4.2 on the static views
-(00, 11, 12, 13; distant traffic moves) and by 9.5-18.8 on views with moving traffic (10, 20,
-21). Rows above the floor (4.5 static, 19 moving) are flagged '*'. Judge looks with the montage, not with the numbers.
+Noise floor: two capture-matrix captures of the same build differ by mean |d| 0.4-4.4 on the
+static slots (the parked car x0-x3 of every scenario, e.g. 10-13, 30/31, 40/41, 50/52, and the
+held grid presentation 60-69; distant traffic moves) and by up to 19 on drive (20-29, x4-x9) and
+pit (70-79) slots. Against a legacy capture.mjs directory slot 10 differs by 18.9 (its chase
+shot caught passing traffic), so there it counts as moving. Rows above the floor (4.5 static,
+19 moving) are flagged '*'. Judge looks with the montage, not with the numbers.
 
 --montage writes A | B (| reference) rows with index labels; --ref NN=path adds a reference image
 (any size, letterboxed) as a third column for that shot. Write montages to the scratchpad, never
@@ -40,11 +44,28 @@ def outside_repo(path, flag):
         sys.exit('%s %s is inside the repository; write it to the scratchpad instead' % (flag, path))
     return path
 
-STATIC = {'00', '11', '12', '13'}
-# Same build, two captures: TECH_TEST_MAP 9 measured 1.0-2.9 on the static views; capture.mjs vs
-# capture-matrix.mjs on the baseline build measured 2.1-4.2 (distant traffic in 12 and 13).
+# Same build, two captures: TECH_TEST_MAP 9 measured 1.0-2.9 on the static views; capture-matrix
+# runs of one build 0.4-4.4 on every static slot (baseline-matrix vs qa-tools-trial1: 10-13,
+# 30/31, 40/41, 50/52, 60/61); capture.mjs vs capture-matrix 2.1-4.2 on 11-13 but 18.9 on 10.
 FLOOR_STATIC = 4.5
 FLOOR_MOVING = 19.0
+# capture-matrix HOLD_IDLE: a hold drive after a shorter or longer idle reaches another place.
+HOLD_IDLE = (60, 300)
+
+
+def calibrated_idle(seconds):
+    return HOLD_IDLE[0] <= seconds <= HOLD_IDLE[1]
+
+
+def static_slot(k, legacy):
+    """The parked car (x0-x3 of every scenario) and the held grid presentation (60-69) are
+    static; drive (20-29, x4-x9) and pit (70-79) slots move. Legacy capture.mjs 10 moved too."""
+    i = int(k)
+    if 60 <= i <= 69:
+        return True
+    if 20 <= i <= 29 or 70 <= i <= 79 or (legacy and i == 10):
+        return False
+    return i % 10 < 4
 
 
 def shots(directory):
@@ -98,6 +119,12 @@ def mismatch(ra, rb):
     if (da is not None or db is not None) and bool(ra.get('held')) != bool(rb.get('held')):
         notes.append('%s vs %s' % ('held' if ra.get('held') else 'live',
                                    'held' if rb.get('held') else 'live'))
+    sa, sb = (r.get('liveTrack') or {} for r in (ra, rb))
+    if sa.get('s') is not None and sb.get('s') is not None and abs(sa['s'] - sb['s']) > 10:
+        notes.append('track s %.0f vs %.0f m' % (sa['s'], sb['s']))
+    ia, ib = ra.get('driveStart'), rb.get('driveStart')
+    if ia is not None and ib is not None and calibrated_idle(ia) != calibrated_idle(ib):
+        notes.append('drive after %.0f vs %.0f s idle' % (ia, ib))
     return '; '.join(notes)
 
 
@@ -135,6 +162,7 @@ def main(argv):
     rec_a, rec_b = records(args.a), records(args.b)
     calls_a = {k: r.get('drawCalls') for k, r in rec_a.items()}
     calls_b = {k: r.get('drawCalls') for k, r in rec_b.items()}
+    legacy = not rec_a or not rec_b or '*' in rec_a or '*' in rec_b
 
     print('%-3s %-30s %-30s %7s %6s %6s %6s %6s %6s %5s %5s %s' % (
         'id', 'A', 'B', 'meanAbs', '%chg', 'lumA', 'lumB', 'p95A', 'p95B', 'satA', 'satB',
@@ -150,7 +178,7 @@ def main(argv):
             continue
         d = np.abs(a - b)
         la, lb = luma(a), luma(b)
-        floor = FLOOR_STATIC if k in STATIC else FLOOR_MOVING
+        floor = FLOOR_STATIC if static_slot(k, legacy) else FLOOR_MOVING
         entry.update(
             mean_abs=float(d.mean()), changed=float((d.max(-1) > 24).mean()),
             luma_a=float(la.mean()), luma_b=float(lb.mean()),

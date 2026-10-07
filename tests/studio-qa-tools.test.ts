@@ -157,7 +157,12 @@ describe('look-targets.json', () => {
             expect(x >= 0 && x <= 1 && y >= 0 && y <= 1, check.id).toBe(true);
           }
     }
-    for (const shot of Object.keys(targets.compositions).filter((k) => !k.startsWith('_')))
+    for (const shot of Object.keys(targets.compositions).filter((k) => !k.startsWith('_'))) {
       expect(produced.has(shot), `composition ${shot}`).toBe(true);
+      // A field judged only when recorded must still be one of the composition's windows.
+      const window = targets.compositions[shot];
+      for (const field of (window._if_recorded as string[] | undefined) ?? [])
+        expect(Object.keys(window), `composition ${shot} ${field}`).toContain(field);
+    }
   });
 });

@@ -959,14 +959,20 @@
     "41": "cockpit"
   },
   "compositions": {
-    "_about": "Drive shots 20/21 are calibrated on the default capture-matrix drive: autopilot from the practice grid for 16 simulated seconds, then held (paused) so both views show that instant on the turn-1 approach (262-265 km/h; two runs of one build differ by mean |d| 3-8, from a sub-metre offset). driveElapsed is the simulated time from the drive start to the frame submitted before the screenshot, after.driveElapsed the one presented after it (the PNG lies between; equal when held). Live drives (--drive-mode auto) land 10-60 s later on SwiftShader and fail the window. Position-dependent checks outside the window report INVALID; checks with \"gate\": false use car-relative crops or whole-frame statistics and always run.",
+    "_about": "Drive shots 20/21 are calibrated on the default capture-matrix drive: autopilot from the practice grid for 16 simulated seconds, then held (paused) so both views show that instant on the turn-1 approach (262-265 km/h; two runs of one build differ by mean |d| 3-8, from a sub-metre offset). driveElapsed is the simulated time from the drive start to the frame submitted before the screenshot, after.driveElapsed the one presented after it (the PNG lies between; equal when held; a held drive stops 0.07-0.09 s after 16 s). The drive reaches that place only after a similar idle: the tyres cool while the car waits through the static and lighting shots (+16 s: 268 km/h and 27 m further after 15 s idle, 265.5 after 47 s, 262.5-265.1 after 63-220 s, 256.4 after 449 s and 244.6 after 700 s, a different stretch of the lap), so driveStart (the session time at the drive start, i.e. the idle) must lie in the 60-300 s that capture-matrix enforces (HOLD_IDLE: it waits out a shorter idle and restarts the session after a longer one). liveTrack.s is the car's track distance in the held frame: 676 m after 233 s idle (the default day run) with every shot 20/21 position check within 0.015 and 3/255 of the 65 s and 169 s runs, 683 m after 47 s, 710 m after 15 s; the window keeps about 6 m beyond the verified 676-683 m. Older captures carry no liveTrack and are judged on time and idle only. Live drives (--drive-mode auto) land 10-60 s later on SwiftShader and fail the window. Position-dependent checks outside the window report INVALID; checks with \"gate\": false use car-relative crops or whole-frame statistics and always run.",
     "20": {
-      "driveElapsed": [15.5, 17],
-      "after.driveElapsed": [15.5, 17]
+      "_if_recorded": ["liveTrack.s"],
+      "driveElapsed": [16.0, 16.3],
+      "after.driveElapsed": [16.0, 16.3],
+      "driveStart": [60, 300],
+      "liveTrack.s": [670, 690]
     },
     "21": {
-      "driveElapsed": [15.5, 17],
-      "after.driveElapsed": [15.5, 17]
+      "_if_recorded": ["liveTrack.s"],
+      "driveElapsed": [16.0, 16.3],
+      "after.driveElapsed": [16.0, 16.3],
+      "driveStart": [60, 300],
+      "liveTrack.s": [670, 690]
     }
   }
 }

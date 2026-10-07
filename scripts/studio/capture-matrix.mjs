@@ -24,9 +24,17 @@
  * Run `node scripts/studio/capture-matrix.mjs --help` for the options.
  */
 import { existsSync, mkdirSync, readdirSync, realpathSync, writeFileSync } from 'node:fs';
-import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
+import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
+
+/** Idle window (simulated seconds of the practice session before a hold drive) in which the drive
+ * reaches the calibrated shot 20/21 place. The tyres cool while the car waits through the static
+ * and lighting shots, and the autopilot's drive changes with them: at +16 s it ran 268 km/h and
+ * 27 m further after 15 s idle, 265.5 after 47 s, 262.5-265.1 after 63-220 s, 256.4 after 449 s
+ * and 244.6 after 700 s (another stretch of the lap). A shorter idle is waited out, a longer one
+ * restarts the session first. look-targets.json gates 20/21 on the same window. */
+const HOLD_IDLE = [60, 300];
 
 const HELP = `Usage: node scripts/studio/capture-matrix.mjs <outDir> --url http://127.0.0.1:<port> [options]
 
@@ -49,10 +57,17 @@ Options
                          at 265 km/h, where the shot 20/21 crops are calibrated; 0 = no drive shots,
                          also for --weather).
                          hold/auto: simulated seconds; throttle: wall seconds (capture.mjs used 10).
-  --drive-mode M         hold (default): autopilot on the racing line for S simulated seconds, then
-                         the session is paused (the player's Escape, dialog hidden) and every drive
-                         view shows that same instant, so 20/21 land at the same place on every
-                         run (driveElapsed in diag.json, S + under 0.2 s).
+  --drive-mode M         hold (default): the AI demonstration is switched on from the pause menu,
+                         so the drive starts at a frozen instant; after S simulated seconds the
+                         session is paused again (Escape, dialog hidden) and every drive view shows
+                         that same instant, so 20/21 land at the same place on every run
+                         (driveElapsed in diag.json, S + under 0.2 s; liveTrack.s the car's track
+                         distance). The tyres cool while the car idles through the static and
+                         lighting shots and the drive changes with them (+16 s: 268 km/h after
+                         15 s idle, 265 after 65 s, 245 after 700 s, another place on the lap),
+                         so it starts only after ${HOLD_IDLE[0]}-${HOLD_IDLE[1]} simulated seconds of idle
+                         (driveStart): a shorter idle is waited out, a longer one first restarts
+                         the session (RESTART SESSION; about 1-2 min).
                          auto: the same drive without the pause; SwiftShader frames take 2-15 s
                          while the simulation runs in real time, so the shots land 10-60 s later
                          and position checks report INVALID. Use it only where motion blur can
@@ -238,7 +253,9 @@ function guardOutput(out) {
     return join(realpathSync(probe), relative(probe, p));
   };
   const rel = relative(real(repo), real(out));
-  if (rel === '' || (!rel.startsWith('..') && !isAbsolute(rel)))
+  // Outside means a parent step ('..' or '../x'), not a name that merely starts with '..'.
+  const outside = rel === '..' || rel.startsWith(`..${sep}`) || isAbsolute(rel);
+  if (!outside)
     fail(`outDir ${out} is inside the repository; write captures to the scratchpad instead`);
   if (existsSync(out) && readdirSync(out).some((f) => /^\d\d-.*\.png$/.test(f)))
     fail(`outDir ${out} already holds captures; choose a new directory`);
@@ -383,6 +400,9 @@ const FRAME = {
   clock: carBase(0) + F.PIT_CLOCK,
   inPit: carBase(0) + F.IN_PIT,
   speed: carBase(0) + F.SPEED,
+  s: carBase(0) + F.S,
+  laps: carBase(0) + F.LAPS,
+  lateral: carBase(0) + F.LATERAL,
 };
 mkdirSync(o.out, { recursive: true });
 
@@ -532,6 +552,15 @@ const frameMeta = () =>
       presentedCamera: r.presentedCamera,
       lighting: r.lighting,
       liveTime: d.frame ? d.frame[I.time] : null,
+      // Where the player car is in the live worker frame (the presented one when held): track
+      // distance (m), completed laps and lateral offset (m). Places held drive shots on the lap.
+      liveTrack: d.frame
+        ? {
+            s: Math.round(d.frame[I.s] * 10) / 10,
+            laps: d.frame[I.laps],
+            lateral: Math.round(d.frame[I.lateral] * 100) / 100,
+          }
+        : null,
       presentedTime: r.pitState?.time ?? null,
       speedKmh: r.pitState ? Math.round(r.pitState.speed * 36) / 10 : null,
       pitPhase: r.pitState?.phase ?? null,
@@ -656,6 +685,10 @@ async function enter({ mode, weather, hold }) {
     );
     return;
   }
+  await reachDriving(`${mode}, ${weather}`);
+}
+/** Wait for a starting session to reach the driving state, skipping a race briefing. */
+async function reachDriving(label) {
   const deadline = Date.now() + 300000;
   while (Date.now() < deadline) {
     const d = await probe();
@@ -672,7 +705,14 @@ async function enter({ mode, weather, hold }) {
         .catch(() => {});
     await sleep(1000);
   }
-  throw new Error(`session did not reach driving (${mode}, ${weather})`);
+  throw new Error(`session did not reach driving (${label})`);
+}
+/** RESTART SESSION from the pause menu: same options and lighting, a fresh car on the grid. */
+async function restartSession() {
+  await pause();
+  await click('#modal [data-action="restart"]');
+  await waitFor('session restart', (x) => x.state !== 'paused', 60000, 250);
+  await reachDriving('restart');
 }
 /** Autopilot on/off through the player's key ('g'), confirmed by diagnostics. */
 async function setAuto(on) {
@@ -681,19 +721,44 @@ async function setAuto(on) {
   await waitFor(`autopilot ${on}`, (x) => x.auto === on, 30000, 250);
 }
 /** Hold (default): autopilot for S simulated seconds, then pause and shoot every drive view of
- * that held instant (the deterministic drive puts it at the same place on the lap on every run).
+ * that held instant (the deterministic drive puts it at the same place on the lap on every run, as
+ * long as the car idled for a time inside HOLD_IDLE before it; see there).
  * Auto: the same drive, then a frame submitted after that instant without pausing; on SwiftShader
  * it lands one or more slow frames (10-60 simulated s) later. Throttle: S wall seconds and the next
  * frame, exactly like the original capture.mjs. */
 async function drive(block, context) {
   if (!block.drive.length) return;
-  await setView(block.drive[0].view);
   const throttle = block.driveMode === 'throttle';
   const held = block.driveMode === 'hold';
-  if (throttle) await page.keyboard.down('ArrowUp');
-  else await setAuto(true);
-  // Read after the key was handled: the main thread can be blocked for a whole slow frame.
-  const t0 = (await probe())?.live?.time ?? 0;
+  if (held) {
+    const idle = (await probe())?.live?.time ?? 0;
+    if (idle > HOLD_IDLE[1]) {
+      log(`idled ${idle.toFixed(0)} s (> ${HOLD_IDLE[1]}): restarting the session for the drive`);
+      await restartSession();
+      mark(`restart-${context.weather}`);
+    }
+    const now = (await probe())?.live?.time ?? 0;
+    if (now < HOLD_IDLE[0]) {
+      log(`idled ${now.toFixed(0)} s: waiting for ${HOLD_IDLE[0]} s before the drive`);
+      await waitFor(`${HOLD_IDLE[0]} s idle`, (x) => (x.live?.time ?? 0) >= HOLD_IDLE[0]);
+    }
+  }
+  await setView(block.drive[0].view);
+  let t0;
+  if (throttle) {
+    await page.keyboard.down('ArrowUp');
+    // Read after the key was handled: the main thread can be blocked for a whole slow frame.
+    t0 = (await probe())?.live?.time ?? 0;
+  } else {
+    // Engage the AI demonstration from the pause menu, so the drive starts exactly at the frozen
+    // simulation time t0. With G pressed while driving, the worker could already be driving for
+    // a slow frame before t0 was read, which shifted driveElapsed by that frame.
+    await pause();
+    if ((await probe())?.auto !== true) await click('#modal [data-action="autopilot"]');
+    await waitFor('autopilot on', (x) => x.auto === true, 30000, 250);
+    t0 = (await probe())?.live?.time ?? 0;
+    await resume();
+  }
   log(`${block.driveMode} drive ${block.driveSeconds} s from t=${t0.toFixed(2)}`);
   try {
     if (throttle) await sleep(block.driveSeconds * 1000);
