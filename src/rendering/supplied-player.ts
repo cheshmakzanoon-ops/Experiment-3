@@ -2,6 +2,7 @@ import { SuppliedSkinBounds } from './supplied-skin-bounds.ts';
 import * as T from 'three';
 import { installSuppliedShaderWork } from './supplied-shader-work.ts';
 import { configureSuppliedMaterial } from './supplied-player-materials.ts';
+import { applySuppliedLookdev } from './studio/supplied-lookdev.ts';
 import { loadPlayerLods, SuppliedPlayerLods, type PlayerLodData } from './supplied-player-lods.ts';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { clamp, lerp } from '../core/math.ts';
@@ -371,6 +372,7 @@ export class SuppliedPlayer {
           if (restoreSuppliedHeightMap(m)) this.heightMapsRestored++;
           configureSuppliedMaterial(m);
           installSuppliedShaderWork(m, materialSkeletons.get(m) ?? undefined);
+          applySuppliedLookdev(m, root);
           if (
             m instanceof T.MeshPhysicalMaterial &&
             (m.name.startsWith('Paint |') ||

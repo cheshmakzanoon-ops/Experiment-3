@@ -31,7 +31,8 @@ import {
 import { addMirrorHousing, apertureGeometry, CockpitControls } from './cockpit.ts';
 import { sculptedLoft, wingElement } from './bodywork.ts';
 import { flankLivery, repaintFlank } from './car-livery.ts';
-import { validateLivery, type Livery } from '../storage/livery.ts';
+import { liveryCustomised, validateLivery, type Livery } from '../storage/livery.ts';
+import { setSuppliedLivery, suppliedLookdevReport } from './studio/supplied-lookdev.ts';
 import { TireCarcass } from './tire-carcass.ts';
 import { bindTireSurface, tireWetAppearance } from './tire-finish.ts';
 import { wheelPhase, wheelTravel } from './wheel-pose.ts';
@@ -97,6 +98,8 @@ export class FormulaCar {
     this.paint.color.set(livery.primary);
     this.accent.color.set(livery.accent);
     for (const material of this.reflectivePaint) repaintFlank(material, this.id, livery);
+    if (this.suppliedPlayer)
+      setSuppliedLivery(this.suppliedPlayer.root, liveryCustomised(livery) ? livery : null);
     const canvas = this.identityTexture.image as HTMLCanvasElement;
     const context = canvas.getContext('2d');
     if (context) {
@@ -114,6 +117,10 @@ export class FormulaCar {
       );
       this.identityTexture.needsUpdate = true;
     }
+  }
+  /** Supplied-car look-dev applied at load (de-branded sheets, overrides). */
+  get suppliedLookdev() {
+    return this.suppliedPlayer ? suppliedLookdevReport(this.suppliedPlayer.root) : null;
   }
   constructor(
     readonly id: number,

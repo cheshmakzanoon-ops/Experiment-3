@@ -82,6 +82,11 @@ export const DEFAULT_LIVERY: Readonly<Livery> = Object.freeze({
   sponsor: 'APEX',
   pattern: 'sweep',
 });
+/** Whether `value` paints the car differently from the default identity. The
+ * supplied player car keeps its authored navy until the player customises. */
+export function liveryCustomised(value: Pick<Livery, 'primary' | 'accent'>) {
+  return value.primary !== DEFAULT_LIVERY.primary || value.accent !== DEFAULT_LIVERY.accent;
+}
 export const LIVERY_PRESETS = {
   copper: { ...DEFAULT_LIVERY },
   nocturne: {

@@ -1691,6 +1691,7 @@ export class RacingRenderer {
         ? {
             primary: `#${this.cars[0].paint.color.getHexString()}`,
             accent: `#${this.cars[0].accent.color.getHexString()}`,
+            lookdev: this.cars[0].suppliedLookdev,
             flankSizes: this.cars[0].reflectivePaint
               .filter((m) => m.map && m.userData.liverySide !== undefined)
               .map((m) => {
