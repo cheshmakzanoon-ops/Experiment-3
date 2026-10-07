@@ -238,9 +238,9 @@ describe('racing surface layer', () => {
     expect(shader.vertexShader).toContain('attribute vec2 apexLine;');
     expect(shader.vertexShader).toContain('attribute float edgeMetres;');
     expect(material.customProgramCacheKey()).toContain('road-macro-v1');
-    expect(material.customProgramCacheKey()).toContain('|road-detail-v3');
+    expect(material.customProgramCacheKey()).toContain('|road-detail-v4');
     // The wet road hook is not a studio chain, so only the newer key is listed.
-    expect(studioHookKeys(material)).toEqual(['road-detail-v3']);
+    expect(studioHookKeys(material)).toEqual(['road-detail-v4']);
     material.dispose();
     state.dispose();
   });

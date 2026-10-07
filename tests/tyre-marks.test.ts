@@ -6,9 +6,11 @@ import { racingLineFor } from '../src/simulation/racing-line.ts';
 import {
   TYRE_MARKS,
   buildTyreMarks,
+  installTyreMarkWater,
   tyreMarkZones,
   tyreMarks,
 } from '../src/rendering/tyre-marks.ts';
+import { studioHookKeys } from '../src/rendering/studio/shader-hooks.ts';
 
 function stubCanvas() {
   class Canvas {
@@ -87,5 +89,54 @@ describe('laid tyre rubber', () => {
     }
     expect(triangles).toBeLessThan(40000);
     expect(group.children).toHaveLength(meshes.length);
+  });
+  it('fades the marks under the physics water film, on the road state coordinates', () => {
+    stubCanvas();
+    const t = track('aurel'),
+      group = new T.Group(),
+      state = new T.DataTexture(new Uint8Array(4), 1, 1);
+    const meshes = buildTyreMarks(t, group, undefined, state);
+    const material = meshes[0].material as T.MeshStandardMaterial;
+    // One shared material; draw count and blending unchanged.
+    expect(new Set(meshes.map((m) => m.material)).size).toBe(1);
+    expect(studioHookKeys(material)).toContain('tyre-mark-water-v1');
+    for (const mesh of meshes) {
+      const uv = mesh.geometry.getAttribute('trackUV');
+      expect(uv.itemSize).toBe(2);
+      expect(uv.count).toBe(mesh.geometry.getAttribute('position').count);
+      for (let i = 0; i < uv.count; i++) {
+        expect(uv.getX(i)).toBeGreaterThanOrEqual(0);
+        expect(uv.getX(i)).toBeLessThanOrEqual(1);
+        expect(uv.getY(i)).toBeGreaterThanOrEqual(0);
+        expect(uv.getY(i)).toBeLessThan(1);
+      }
+    }
+    // Same lateral/lap mapping as the road ribbon's trackUV.
+    const mark = tyreMarks(t)[0];
+    expect(meshes[0].geometry.getAttribute('trackUV').getY(0)).toBeCloseTo(
+      (((mark.s[0] % t.length) + t.length) % t.length) / t.length,
+      5,
+    );
+    const shader = {
+      uniforms: {} as Record<string, T.IUniform>,
+      vertexShader: T.ShaderLib.physical.vertexShader,
+      fragmentShader: T.ShaderLib.physical.fragmentShader,
+    } as unknown as T.WebGLProgramParametersWithUniforms;
+    material.onBeforeCompile(shader, {} as T.WebGLRenderer);
+    expect(shader.uniforms.apexMarkState.value).toBe(state);
+    expect(shader.vertexShader).toContain('attribute vec2 trackUV;');
+    expect(shader.vertexShader).toContain('vMarkTrackUV = trackUV;');
+    const fade = shader.fragmentShader.indexOf('texture2D(apexMarkState, vMarkTrackUV).r * 2.0');
+    expect(fade).toBeGreaterThan(shader.fragmentShader.indexOf('#include <alphamap_fragment>'));
+    expect(fade).toBeLessThan(shader.fragmentShader.indexOf('#include <alphatest_fragment>'));
+    expect(shader.fragmentShader).toContain(
+      `smoothstep(${TYRE_MARKS.waterCover[0].toFixed(3)}, ${TYRE_MARKS.waterCover[1].toFixed(3)}`,
+    );
+    // Idempotent: a second install chains nothing.
+    expect(installTyreMarkWater(material, state)).toBe(false);
+    // Without the state texture the marks stay as before (no extra attribute).
+    const plain = buildTyreMarks(t, new T.Group());
+    expect(plain[0].geometry.getAttribute('trackUV')).toBeUndefined();
+    expect(studioHookKeys(plain[0].material as T.Material)).not.toContain('tyre-mark-water-v1');
   });
 });

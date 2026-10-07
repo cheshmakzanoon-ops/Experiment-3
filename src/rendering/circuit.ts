@@ -330,7 +330,9 @@ export class CircuitScene {
         terrainFor(track).height(x, z),
       ),
     );
-    this.construction.add('Laid tyre rubber', 1, () => buildTyreMarks(track, this.surfaces));
+    this.construction.add('Laid tyre rubber', 1, () =>
+      buildTyreMarks(track, this.surfaces, undefined, this.stateTexture),
+    );
     this.construction.add('Rule-placed layered foliage', 3, () => {
       const excluded = (x: number, z: number, padding: number) =>
         (this.recoveryGates?.blocksVegetation(x, z, padding) ?? false) ||

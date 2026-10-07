@@ -4,6 +4,7 @@ import { envelopeCornerSpeed } from '../simulation/ai.ts';
 import { racingLineFor } from '../simulation/racing-line.ts';
 import { trackPoint, type Track } from '../simulation/track.ts';
 import { canvasTexture } from './geometry.ts';
+import { chainShaderHook, injectAfter } from './studio/shader-hooks.ts';
 import { tagWeatherSurface } from './weather-presentation.ts';
 
 /** Rubber laid by locking and spinning tyres where cars brake hard, turn in
@@ -31,6 +32,10 @@ export const TYRE_MARKS = Object.freeze({
   chunk: 400,
   /** Braking streak length range, metres: they end at (or just short of) the apex. */
   brakingLength: [20, 60] as const,
+  /** Standing water (mm, the physics track state) over which the marks fade
+   * out, and the share of their opacity the film hides. */
+  waterCover: [0.15, 1.1] as const,
+  waterHidden: 0.85,
 });
 
 export interface TyreMarkZone {
@@ -198,8 +203,41 @@ function markTexture() {
   });
 }
 
-/** Merged mark meshes, one per TYRE_MARKS.chunk metres of track. */
-export function buildTyreMarks(track: Track, parent: T.Object3D, marks = tyreMarks(track)) {
+/** Standing water hides the marks: the physics track state (R = water mm / 2,
+ * the texture the wet road samples) fades their opacity, so the wet road's
+ * mirror and sheen run unbroken over a braking zone instead of being striped
+ * by dark rubber, and the marks return with the dry line. */
+export function installTyreMarkWater(material: T.Material, state: T.Texture) {
+  const [dry, covered] = TYRE_MARKS.waterCover;
+  const uniform = { value: state };
+  return chainShaderHook(material, 'tyre-mark-water-v1', (shader) => {
+    shader.uniforms.apexMarkState = uniform;
+    injectAfter(shader, 'common', 'attribute vec2 trackUV; varying vec2 vMarkTrackUV;', 'vertex');
+    injectAfter(
+      shader,
+      'common',
+      'uniform sampler2D apexMarkState; varying vec2 vMarkTrackUV;',
+      'fragment',
+    );
+    injectAfter(shader, 'begin_vertex', 'vMarkTrackUV = trackUV;');
+    injectAfter(
+      shader,
+      'alphamap_fragment',
+      `diffuseColor.a *= 1.0 - ${TYRE_MARKS.waterHidden.toFixed(3)} *
+        smoothstep(${dry.toFixed(3)}, ${covered.toFixed(3)}, texture2D(apexMarkState, vMarkTrackUV).r * 2.0);`,
+    );
+  });
+}
+
+/** Merged mark meshes, one per TYRE_MARKS.chunk metres of track. With the
+ * physics state texture, every vertex carries the road's `trackUV` and the
+ * marks fade under standing water (installTyreMarkWater). */
+export function buildTyreMarks(
+  track: Track,
+  parent: T.Object3D,
+  marks = tyreMarks(track),
+  state?: T.Texture,
+) {
   const texture = markTexture();
   texture.wrapT = T.RepeatWrapping;
   texture.colorSpace = T.NoColorSpace;
@@ -217,9 +255,10 @@ export function buildTyreMarks(track: Track, parent: T.Object3D, marks = tyreMar
   material.name = 'Laid tyre rubber';
   // Rain wets the marks like the painted lines around them.
   tagWeatherSurface(material, 'paint');
+  if (state) installTyreMarkWater(material, state);
   const chunks = new Map<
     number,
-    { position: number[]; uv: number[]; color: number[]; index: number[] }
+    { position: number[]; uv: number[]; trackUV: number[]; color: number[]; index: number[] }
   >();
   const p = trackPoint();
   for (const mark of marks) {
@@ -227,7 +266,8 @@ export function buildTyreMarks(track: Track, parent: T.Object3D, marks = tyreMar
       (((mark.s[0] % track.length) + track.length) % track.length) / TYRE_MARKS.chunk,
     );
     let chunk = chunks.get(key);
-    if (!chunk) chunks.set(key, (chunk = { position: [], uv: [], color: [], index: [] }));
+    if (!chunk)
+      chunks.set(key, (chunk = { position: [], uv: [], trackUV: [], color: [], index: [] }));
     const base = chunk.position.length / 3;
     for (let k = 0; k < mark.s.length; k++) {
       track.at(mark.s[k], p);
@@ -239,6 +279,11 @@ export function buildTyreMarks(track: Track, parent: T.Object3D, marks = tyreMar
           p.z + p.nz * l,
         );
         chunk.uv.push(edge + 0.5, (mark.s[k] - mark.s[0]) / 4);
+        // The road ribbon's state coordinates (lateral share, lap fraction).
+        chunk.trackUV.push(
+          clamp((l / p.width) * 0.5 + 0.5, 0, 1),
+          (((mark.s[k] % track.length) + track.length) % track.length) / track.length,
+        );
         chunk.color.push(1, 1, 1, mark.alpha[k]);
       }
       if (k > 0) {
@@ -252,6 +297,7 @@ export function buildTyreMarks(track: Track, parent: T.Object3D, marks = tyreMar
     const geometry = new T.BufferGeometry();
     geometry.setAttribute('position', new T.Float32BufferAttribute(chunk.position, 3));
     geometry.setAttribute('uv', new T.Float32BufferAttribute(chunk.uv, 2));
+    if (state) geometry.setAttribute('trackUV', new T.Float32BufferAttribute(chunk.trackUV, 2));
     geometry.setAttribute('color', new T.Float32BufferAttribute(chunk.color, 4));
     geometry.setIndex(chunk.index);
     // Same winding as the road ribbons (lateral ascending): faces point up.

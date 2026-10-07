@@ -58,8 +58,10 @@ export const ROAD_DETAIL = Object.freeze({
   brakeDarkening: 0.18,
   /** Laid rubber (track-state G) at which the line is fully shown. */
   rubberFull: 0.3,
-  /** Roughness reduction at the line centre (0.80 -> about 0.66). */
-  lineRoughness: 0.14,
+  /** Roughness reduction at the line centre (0.80 -> about 0.68). The matte
+   * end of the 0.62-0.68 range: a glossier line doubles its grazing-angle
+   * sky sheen and washes out down the next straight. */
+  lineRoughness: 0.12,
   /** Aggregate relief kept on the rubbered line (rubber fills the texture). */
   lineRelief: 0.55,
   /** Along-track traffic streaks (rubber dust lanes): tone amplitude off and
@@ -302,7 +304,7 @@ export function installRoadDetail(material: T.MeshStandardMaterial, lapLength: n
   // Striation cells along the lap: an integer count, so the pattern closes.
   const alongCells = Math.max(1, Math.round(lapLength / 18)),
     streakCells = Math.max(1, Math.round(lapLength / R.streakLength));
-  return chainShaderHook(material, 'road-detail-v3', (shader) => {
+  return chainShaderHook(material, 'road-detail-v4', (shader) => {
     for (const needed of [
       'vec4 roadState',
       'varying vec2 vRoadMetres',
@@ -347,7 +349,8 @@ export function installRoadDetail(material: T.MeshStandardMaterial, lapLength: n
         vec2 apexStriP = vec2(apexX * 9.0, vRoadMetres.y * ${g(alongCells / lapLength)});
         float apexStriAA = 1.0 - smoothstep(0.35, 1.0, fwidth(apexStriP.x));
         float apexStri = mix(0.5, apexLapNoise(apexStriP, ${g(alongCells)}), apexStriAA);
-        apexLineMask = apexCore * apexRubber * mix(0.78, 1.16, apexStri);
+        // Striations average 1.0, so the line keeps its full darkening at range.
+        apexLineMask = apexCore * apexRubber * mix(0.8, 1.2, apexStri);
         // Traffic streaks: every car's tyres polish and dust lanes along the
         // lap, strongest around the line. Converge to the mean before aliasing.
         vec2 apexLaneP = vec2(vRoadMetres.x / ${g(R.streakWidth)}, vRoadMetres.y * ${g(streakCells / lapLength)});
