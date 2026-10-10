@@ -125,7 +125,9 @@ export function circuitLightState(
       // the skylight fill is low so the surroundings fall away to dark instead
       // of the whole scene reading as a flat blue-grey. The bounded photometric
       // pass can adapt without turning night into daylight.
-      sun: 0.3 * (1 - light.cover * 0.55),
+      // D28: the floodlights' share on vertical faces (cars, walls); the road's
+      // own pools come from the analytic lamp rows (studio/light-pools.ts).
+      sun: 0.6 * (1 - light.cover * 0.55),
       fill: 0.085 + light.cover * 0.03,
       environment: 0.07 + light.cover * 0.01,
       exposure: 1.12 - clamp(rain, 0, 60) * 0.001,
@@ -372,6 +374,15 @@ export function configureSky(sky: Sky) {
       const vec3 skyLuma=vec3(0.2126,0.7152,0.0722);
       skyGraded*=mix(dot(skyLinear,skyLuma)/max(dot(skyGraded,skyLuma),1e-9),1.0,skyGradeLuminance);
       retColor=mix(skyGraded*skyLinearGain,retColor,sundisk);
+      if(sunsetAmount>0.5) {
+        // D28 golden-hour dome (P2): warm #f2b27a at the horizon to #4a6fa8
+        // overhead, as a hue at the clear dome's own luminance (brighter in the
+        // horizon glow, deeper overhead), before the clouds composite over it.
+        float duskUp=smoothstep(-.02,.55,direction.y);
+        vec3 dusk=mix(vec3(.888,.445,.195),vec3(.068,.159,.392),duskUp);
+        vec3 duskTint=dusk*dot(retColor,skyLuma)*mix(1.5,.55,duskUp)/max(dot(dusk,skyLuma),1e-6);
+        retColor=mix(retColor,duskTint,.92*(1.0-sundisk));
+      }
       // Behind the clouds, unresolved thin cloud and haze grey the dome with
       // cover, and a closing deck turns it into the deck's own diffuse grey.
       retColor=mix(retColor,vec3(.55,.64,.75),cloudCover*.22);
@@ -390,9 +401,10 @@ export function configureSky(sky: Sky) {
         radiance=mix(radiance,vec3(.38,.19,.12),haze*.15*(1.-cloudCover*.5));
       }
       if(nightAmount>0.5) {
+        // D28: a near-black floodlit-venue night (#06090d-#0b0d14), not blue.
         float elevation=max(0.0,direction.y);
         float horizon=pow(1.0-clamp(elevation,0.0,1.0),3.0);
-        vec3 nightSky=mix(vec3(.008,.014,.029),vec3(.035,.039,.052),horizon);
+        vec3 nightSky=mix(vec3(.0085,.0115,.0175),vec3(.012,.014,.02),horizon);
         float moonCos=dot(direction,vSunDirection);
         float moonEdge=max(fwidth(moonCos),.0000007);
         float moon=smoothstep(.999989-moonEdge,.999989+moonEdge,moonCos);
@@ -400,12 +412,12 @@ export function configureSky(sky: Sky) {
         nightSky+=vec3(.43,.46,.48)*(moon+halo)*(1.0-cover);
         // Moonlit tops from the same bake's sun (moon) term per unit opacity.
         float moonLit=clouds.r/max(clouds.a,0.02);
-        vec3 nightCloud=mix(vec3(.006,.009,.016),vec3(.026,.029,.036),
+        vec3 nightCloud=mix(vec3(.0075,.0092,.0135),vec3(.02,.022,.027),
           clamp(.25+.3*moonLit+.35*max(0.0,moonCos),0.0,1.0));
         nightSky=mix(nightSky,nightCloud,cover);
         // Unresolved cloud veils the stars and moon and catches the venue glow.
-        nightSky=mix(nightSky,vec3(.018,.021,.03),cloudCover*.45*(1.0-cover));
-        radiance=mix(vec3(.01,.014,.026),nightSky,smoothstep(-.05,.10,direction.y));
+        nightSky=mix(nightSky,vec3(.014,.016,.021),cloudCover*.45*(1.0-cover));
+        radiance=mix(vec3(.008,.0095,.014),nightSky,smoothstep(-.05,.10,direction.y));
       }
       ${SKY_GROUND_GLSL}
       gl_FragColor=vec4(radiance * probeSkyIntensity,1.0);

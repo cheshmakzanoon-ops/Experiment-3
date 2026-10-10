@@ -148,7 +148,7 @@ describe('A01-A07 integrated infrastructure contract', () => {
         const original = frame.slice();
         CircuitScene.prototype.update.call(context, frame);
         expect(lamps.map((m) => m.emissiveIntensity)).toEqual(
-          Array.from({ length: 5 }, (_, i) => (i < frame[H.LIGHTS] ? 2.5 : 0)),
+          Array.from({ length: 5 }, (_, i) => (i < frame[H.LIGHTS] ? 25 : 0)),
         );
         expect(frame).toEqual(original);
       }

@@ -35,6 +35,7 @@ import { detailDistance, feedDetailDistance } from './view-detail.ts';
 import { readRaceReviewFrame } from './race-review.ts';
 import { GhostCar } from './ghost-car.ts';
 import { SafetyCarView } from './studio/safety-car.ts';
+import { LightPools } from './studio/light-pools.ts';
 import { reflectInWetRoad } from './wet-reflection.ts';
 import { ghostPose, type GhostPose } from '../core/ghost-lap.ts';
 import { WeatherPresentation } from './weather-presentation.ts';
@@ -177,6 +178,8 @@ export class RacingRenderer {
   private nightFog = new T.Color(0x111b2c);
   readonly guide: DrivingGuide;
   readonly venueLighting: VenueLighting;
+  /** D28: lap-space floodlight pools and their visible pole rows. */
+  readonly lightPools: LightPools;
   private lightingMode: LightingMode = 'day';
   get lighting(): LightingMode {
     return this.lightingMode;
@@ -306,7 +309,9 @@ export class RacingRenderer {
     this.atmosphere = new LocalAtmosphere(track);
     this.guide = new DrivingGuide(track);
     this.venueLighting = new VenueLighting(track);
+    this.lightPools = new LightPools(track);
     this.scene.add(
+      this.lightPools.root,
       this.guide.mesh,
       this.gridPreparation.root,
       this.gridPerformance.root,
@@ -960,6 +965,7 @@ export class RacingRenderer {
       car.root.position,
       illumination === 'sunset' ? 0.18 : 1,
     );
+    this.lightPools.update(studio ? 'day' : illumination);
     applyCircuitLightPalette(this.sun, this.hemisphere, daylight.cover, illumination);
     this.sun.intensity = daylight.sun;
     this.hemisphere.intensity = daylight.fill;

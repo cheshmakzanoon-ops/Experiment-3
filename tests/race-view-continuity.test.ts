@@ -168,6 +168,7 @@ describe('current-view detail and deterministic presentation', () => {
         reflectionMaterials: [[], []],
         reflection: { setSkyIntensity: vi.fn() },
         venueLighting: { update: vi.fn() },
+        lightPools: { update: vi.fn() },
         scene: new T.Scene(),
         sun,
         hemisphere: new T.HemisphereLight(),

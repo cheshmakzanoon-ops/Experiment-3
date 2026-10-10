@@ -60,8 +60,11 @@ import { clamp } from '../core/math.ts';
 import { buildTracksideBranding, type BrandingBuild } from './studio/trackside-branding.ts';
 import { installKerbFinish, installRunoffFinish, kerbUsage } from './studio/kerb-runoff-finish.ts';
 import { installCarGrounding } from './studio/car-grounding.ts';
+import { installLightPools } from './studio/light-pools.ts';
 import { buildForestBelts } from './studio/forest-belts.ts';
 import { batchScene, box, canvasTexture, label, mesh, unprintedBack } from './geometry.ts';
+/** Lit start lamp emission (D28: bright enough to bloom at night and in daylight). */
+export const START_LAMP_EMISSIVE = 25;
 interface RibbonOptions {
   start?: number;
   end?: number;
@@ -174,6 +177,8 @@ export class CircuitScene {
     installGravelFinish(gravel);
     // Sky and sun light under the cars (D08): the ground they stand on.
     for (const m of [this.roadMaterial, grass, runOff, gravel]) installCarGrounding(m);
+    // D28: night floodlight pools on every track ribbon (lap-space lamp rows).
+    for (const m of [this.roadMaterial, grass, runOff, gravel]) installLightPools(m);
     this.queueRibbon(grass, {
       offset: (s, t) => {
         track.at(s, this.temp);
@@ -229,7 +234,10 @@ export class CircuitScene {
     const kerb = new T.MeshStandardMaterial({ vertexColors: true, roughness: 0.85 });
     installCircuitFinish(kerb, 'kerb');
     installKerbFinish(kerb);
-    for (const m of [white, kerb]) installCarGrounding(m);
+    for (const m of [white, kerb]) {
+      installCarGrounding(m);
+      installLightPools(m);
+    }
     for (const side of [-1, 1]) {
       this.queueRibbon(kerb, {
         offset: (s, t) => {
@@ -842,7 +850,7 @@ export class CircuitScene {
   }
   update(frame: Float32Array) {
     for (let i = 0; i < 5; i++)
-      this.startLamps[i].emissiveIntensity = i < frame[H.LIGHTS] ? 2.5 : 0;
+      this.startLamps[i].emissiveIntensity = i < frame[H.LIGHTS] ? START_LAMP_EMISSIVE : 0;
     updateSafetyPanel(this.safetyPanel, frame);
     this.signalHardware?.displays.update(frame);
   }

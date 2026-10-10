@@ -248,7 +248,7 @@ describe('A07 authored start-light gantry and retained signal apertures', () => 
       }
     }
     expect(states).toEqual(
-      [0, 1, 2, 3, 4, 5, 0].map((n) => Array.from({ length: 5 }, (_, i) => (i < n ? 2.5 : 0))),
+      [0, 1, 2, 3, 4, 5, 0].map((n) => Array.from({ length: 5 }, (_, i) => (i < n ? 25 : 0))),
     );
     let disposed = 0;
     for (const m of startLamps) m.addEventListener('dispose', () => disposed++);
