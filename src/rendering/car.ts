@@ -539,10 +539,16 @@ export class FormulaCar {
       controls.computeBoundingSphere();
       this.steering.add(controls);
     }
-    this.driver = new DriverRig(this.steering, driverAsset);
+    // D16: the driver wears the team's kit and helmet.
+    const kit = {
+      primary: LIVERIES[id % LIVERIES.length],
+      secondary: scheme.secondary,
+      accent: scheme.accent,
+    };
+    this.driver = new DriverRig(this.steering, driverAsset, kit);
     this.root.add(this.driver.root);
 
-    buildHelmet(this.helmet, { carbon, dark, metal, paint: ivory });
+    buildHelmet(this.helmet, { carbon, dark, metal, paint: ivory }, kit);
     if (hero) {
       mesh(s, hero.copy('tail_carbon'), carbon);
       mesh(s, hero.copy('tail_alloy'), metal);

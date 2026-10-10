@@ -1,3 +1,4 @@
+import { teamHelmetMaterial, visorMaterial, type DriverDesign } from './studio/helmet-livery.ts';
 import { helmetTetherPost } from './driver-restraints.ts';
 import { helmetShell, helmetPatch, helmetPoint } from './helmet-shell.ts';
 import * as T from 'three';
@@ -96,10 +97,16 @@ export function addTailMechanicalDetail(parent: T.Group, m: MechanicalMaterials)
 
 /** The neck pivot is independent from the shell centre, so load-induced nods
  * rotate about the neck instead of swinging the head around the car origin. */
-export function buildHelmet(parent: T.Group, m: MechanicalMaterials) {
+export function buildHelmet(parent: T.Group, m: MechanicalMaterials, design?: DriverDesign) {
   parent.name = 'Original helmet with neck-centred articulation';
   parent.position.set(0, 0.17, -0.4);
   const shellGeometry = helmetShell();
+  if (design) {
+    // D16: the team's own helmet and an iridescent visor.
+    mesh(parent, shellGeometry, teamHelmetMaterial(design).material, 0, 0.12, 0.02);
+    buildHelmetDetail(parent, m, visorMaterial());
+    return;
+  }
   const helmetPaint = m.paint.clone();
   helmetPaint.onBeforeCompile = (shader) => {
     shader.vertexShader =
@@ -126,14 +133,21 @@ export function buildHelmet(parent: T.Group, m: MechanicalMaterials) {
   };
   helmetPaint.customProgramCacheKey = () => 'original-helmet-crown-v2';
   mesh(parent, shellGeometry, helmetPaint, 0, 0.12, 0.02);
-  const visorMaterial = new T.MeshPhysicalMaterial({
-    name: 'Original smoked visor',
-    color: 0x253b45,
-    metalness: 0.35,
-    roughness: 0.13,
-    clearcoat: 1,
-    clearcoatRoughness: 0.07,
-  });
+  buildHelmetDetail(
+    parent,
+    m,
+    new T.MeshPhysicalMaterial({
+      name: 'Original smoked visor',
+      color: 0x253b45,
+      metalness: 0.35,
+      roughness: 0.13,
+      clearcoat: 1,
+      clearcoatRoughness: 0.07,
+    }),
+  );
+}
+/** Visor, gaskets, hinges and tether sockets around a helmet shell. */
+function buildHelmetDetail(parent: T.Group, m: MechanicalMaterials, visorMaterial: T.Material) {
   // Raised brow and a tapered visor follow the same shell rather than a
   // circular band. Gaskets remain separated by only millimetres at the cheeks.
   mesh(

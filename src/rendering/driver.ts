@@ -7,6 +7,9 @@ import * as T from 'three';
 import { clamp } from '../core/math.ts';
 import { mesh } from './geometry.ts';
 import { driverMaterials } from './driver-materials.ts';
+import type { DriverDesign } from './studio/helmet-livery.ts';
+/** Head roll gain over the body-pose model (0.013 rad/g): about 6 deg at 5 g. */
+export const HEAD_ROLL_GAIN = 1.6;
 import { buildGlove, buildDriverTorso, driverBodyPose, sleeveGeometry } from './driver-anatomy.ts';
 
 /** Analytic two-bone IK in vehicle-local metres. The pole chooses the elbow's
@@ -107,9 +110,10 @@ export class DriverRig {
   constructor(
     private steering: T.Group,
     asset?: DriverAsset,
+    design?: DriverDesign,
   ) {
     this.root.name = 'Articulated driver';
-    const materials = driverMaterials();
+    const materials = driverMaterials(design);
     const { suit } = materials;
     this.tethers = new HelmetTethers(materials.grip);
     this.root.add(this.tethers.root);
@@ -185,7 +189,8 @@ export class DriverRig {
     const pose = driverBodyPose(lateralG, longitudinalG, verticalG, this.bodyPose);
     this.body.scale.y = 1 - pose.compression;
     this.body.position.y = 0.015 * pose.compression;
-    this.headRoll = pose.headRoll;
+    // D16: a stronger head roll into the corner (about 6 deg at 5 g).
+    this.headRoll = T.MathUtils.clamp(pose.headRoll * HEAD_ROLL_GAIN, -0.105, 0.105);
     this.headPitch = pose.headPitch;
     this.tethers.update(this.headPitch, this.headRoll);
     this.actions.sample(time, gear, mode);

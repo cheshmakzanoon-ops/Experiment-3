@@ -1,4 +1,10 @@
 import * as T from 'three';
+import {
+  installSuitRecolour,
+  sheenFabric,
+  GLOVE_SHEEN,
+  type DriverDesign,
+} from './studio/helmet-livery.ts';
 
 /** A small original woven normal/roughness field, shared by one driver's suit
  * and gloves. Data textures work without a DOM and contain no baked lighting. */
@@ -33,7 +39,7 @@ export function fabricPixels(size = 128) {
     }
   return { normal, roughness };
 }
-export function driverMaterials() {
+export function driverMaterials(design?: DriverDesign) {
   const size = 128,
     pixels = fabricPixels(size);
   const data = (bytes: Uint8Array, name: string) => {
@@ -66,12 +72,29 @@ export function driverMaterials() {
     material.userData.weatherExposure = 0.32;
     return material;
   };
+  // D16: a team's kit is sheened MeshPhysical in its livery colours; the
+  // authored suit's teal vertex colours are remapped to the same kit.
+  const team = (material: T.MeshStandardMaterial, colour: T.ColorRepresentation, sheen?: number) =>
+    design ? sheenFabric(material, colour, sheen) : material;
+  const suit = team(
+    fabric('Original teal woven driver suit', 0x283f46, 0.98, 0.3),
+    design?.primary ?? 0,
+  );
+  if (design) installSuitRecolour(suit, design);
   return {
     // Coarse fire-suit yarn, finer glove textile, and a flat reinforcement panel
     // share the same mipmapped fields. No emissive fill or extra lighting is used.
-    suit: fabric('Original teal woven driver suit', 0x283f46, 0.98, 0.3),
-    glove: fabric('Original sage woven glove', 0x74928a, 0.86, 0.2),
-    panel: fabric('Original dark glove reinforcement', 0x293f44, 0.93, 0.1),
+    suit,
+    glove: team(
+      fabric('Original sage woven glove', 0x74928a, 0.86, 0.2),
+      design?.primary ?? 0,
+      GLOVE_SHEEN.sheen,
+    ),
+    panel: team(
+      fabric('Original dark glove reinforcement', 0x293f44, 0.93, 0.1),
+      design?.secondary ?? 0,
+      GLOVE_SHEEN.sheen,
+    ),
     grip: new T.MeshStandardMaterial({
       name: 'Matte silicone glove grip',
       color: 0x1c2326,

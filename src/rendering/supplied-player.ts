@@ -1,3 +1,4 @@
+import { applySuppliedCharacterLookdev } from './studio/supplied-character-lookdev.ts';
 import { SuppliedSkinBounds } from './supplied-skin-bounds.ts';
 import * as T from 'three';
 import { installSuppliedShaderWork } from './supplied-shader-work.ts';
@@ -373,6 +374,7 @@ export class SuppliedPlayer {
           configureSuppliedMaterial(m);
           installSuppliedShaderWork(m, materialSkeletons.get(m) ?? undefined);
           applySuppliedLookdev(m, root);
+          applySuppliedCharacterLookdev(m);
           if (
             m instanceof T.MeshPhysicalMaterial &&
             (m.name.startsWith('Paint |') ||
