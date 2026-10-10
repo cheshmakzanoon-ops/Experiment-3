@@ -1,3 +1,4 @@
+import { installGlazing } from './studio/glazing.ts';
 import * as T from 'three';
 import { PERIODIC_COVERAGE_GLSL } from './periodic-coverage.ts';
 
@@ -133,6 +134,8 @@ export function venueMaterials() {
     fabric: new T.MeshStandardMaterial({ color: 0xd3c8ad, roughness: 0.94, side: T.DoubleSide }),
   };
   materials.fabric.userData.weatherSurface = 'fabric';
+  // D26: reflective glazing with a parallax interior (no transmission pass).
+  installGlazing(materials.glass);
   for (const [role, material] of Object.entries(materials)) material.name = `Aurel venue / ${role}`;
   return materials;
 }
