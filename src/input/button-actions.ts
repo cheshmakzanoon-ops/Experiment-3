@@ -13,6 +13,7 @@ export const BUTTON_ACTION_LABELS = {
   reverse: 'Reverse (hold at low speed)',
   drs: 'DRS (open in a zone)',
   overtake: 'ERS overtake (4 s)',
+  flashback: 'Flashback (last 30 s)',
 } as const;
 export type ButtonAction = keyof typeof BUTTON_ACTION_LABELS;
 export type ButtonActions = Record<ButtonAction, number>;
@@ -36,6 +37,7 @@ export function defaultButtonActions(standard = false): ButtonActions {
     reverse: -1,
     drs: -1,
     overtake: -1,
+    flashback: -1,
   };
 }
 export function driveButtonOwner(mapping: InputMapping, index: number): string | null {
@@ -86,7 +88,8 @@ export function validateButtonActions(
   for (const action of BUTTON_ACTIONS) {
     // Actions added later (DRS, overtake) are unbound in older saved mappings.
     const index =
-      source[action] === undefined && (action === 'drs' || action === 'overtake')
+      source[action] === undefined &&
+      (action === 'drs' || action === 'overtake' || action === 'flashback')
         ? -1
         : source[action];
     if (typeof index !== 'number' || !Number.isInteger(index) || index < -1 || index > 127)

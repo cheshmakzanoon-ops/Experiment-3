@@ -3,7 +3,8 @@ import { FixedStepper } from '../core/math.ts';
 import { CAR_STRIDE, HEADER } from '../simulation/protocol.ts';
 import { REPLAY_TICKS, TelemetrySampler } from '../storage/telemetry-sampler.ts';
 import { Simulation } from '../simulation/world.ts';
-import { controls } from '../simulation/config.ts';
+import { controls, type Controls, type SessionOptions } from '../simulation/config.ts';
+import { InputLog, Resimulation, flashbackFloor } from '../core/flashback.ts';
 import { EngineeringProbe, type ClientMessage, type WorkerMessage } from './diagnostics.ts';
 const probe = new EngineeringProbe();
 const scope = self as unknown as DedicatedWorkerGlobalScope;
@@ -15,6 +16,46 @@ let simulation: Simulation | null = null,
 const clock = new FixedStepper();
 let pool: ArrayBuffer[] = [];
 let telemetry: TelemetrySampler | null = null;
+// D31 flashback: every applied input, the session options and a running rewind.
+let log = new InputLog(),
+  sessionOptions: SessionOptions | null = null,
+  rewind: Resimulation | null = null;
+function applyInput(input: Controls) {
+  if (!simulation) return;
+  log.input(simulation.tick, input);
+  simulation.setInput(input);
+}
+function recorder(sim: Simulation) {
+  return new TelemetrySampler(
+    sim,
+    (buffer, rows) => send({ type: 'telemetry', buffer, rows }, [buffer]),
+    (message) => send({ type: 'recordingWarning', message }),
+    (buffer, rows) => send({ type: 'replayFrames', buffer, rows }, [buffer]),
+  );
+}
+/** Swap in the re-simulated session at the flashback tick and report it. */
+function finishFlashback(job: Resimulation) {
+  simulation = job.simulation;
+  log.truncate(job.target);
+  telemetry = recorder(simulation);
+  clock.reset();
+  probe.reset();
+  previous = performance.now();
+  lastInput = previous;
+  lastSent = simulation.tick;
+  lastSurface = -1;
+  lastPitPhase = simulation.cars[0].pitPhase;
+  send({ type: 'flashback', tick: simulation.tick, time: simulation.race.time });
+  const water = simulation.track.water.slice(),
+    rubber = simulation.track.rubber.slice(),
+    marbles = simulation.track.marbles.slice();
+  send({ type: 'surface', water, rubber, marbles, time: simulation.race.time }, [
+    water.buffer,
+    rubber.buffer,
+    marbles.buffer,
+  ]);
+  snapshot(true);
+}
 let lastSent = -1,
   lastSurface = -1,
   lastPitPhase = 0;
@@ -46,12 +87,10 @@ scope.onmessage = (event: MessageEvent<ClientMessage>) => {
       case 'init':
         probe.reset();
         simulation = new Simulation(msg.options);
-        telemetry = new TelemetrySampler(
-          simulation,
-          (buffer, rows) => send({ type: 'telemetry', buffer, rows }, [buffer]),
-          (message) => send({ type: 'recordingWarning', message }),
-          (buffer, rows) => send({ type: 'replayFrames', buffer, rows }, [buffer]),
-        );
+        sessionOptions = msg.options;
+        log = new InputLog();
+        rewind = null;
+        telemetry = recorder(simulation);
         clock.reset();
         paused = true;
         previous = performance.now();
@@ -66,7 +105,7 @@ scope.onmessage = (event: MessageEvent<ClientMessage>) => {
         snapshot();
         break;
       case 'input':
-        simulation?.setInput(msg.input);
+        applyInput(msg.input);
         lastInput = performance.now();
         break;
       case 'pause':
@@ -81,7 +120,7 @@ scope.onmessage = (event: MessageEvent<ClientMessage>) => {
         if (paused) {
           telemetry?.flush();
           telemetry?.flushReplay();
-          simulation?.setInput(controls());
+          applyInput(controls());
           snapshot(true);
         }
         // Dedicated-worker messages retain this ordering: recording flushes,
@@ -90,10 +129,29 @@ scope.onmessage = (event: MessageEvent<ClientMessage>) => {
           send({ type: 'pauseState', sequence: msg.sequence, value: paused, tick: simulation.tick });
         break;
       case 'pit':
+        if (simulation) log.pit(simulation.tick, msg.compound);
         simulation?.requestPit(msg.compound);
         break;
       case 'autopilot':
-        if (simulation) simulation.autoPlayer = msg.value;
+        if (simulation) {
+          log.autopilot(simulation.tick, msg.value);
+          simulation.autoPlayer = msg.value;
+        }
+        break;
+      case 'flashback':
+        if (
+          !simulation ||
+          !sessionOptions ||
+          rewind ||
+          !Number.isInteger(msg.tick) ||
+          msg.tick < flashbackFloor(simulation.tick) ||
+          msg.tick > simulation.tick
+        )
+          throw new Error('Invalid flashback request');
+        paused = true;
+        telemetry?.flush();
+        telemetry?.flushReplay();
+        rewind = new Resimulation(sessionOptions, log.entries.slice(), msg.tick);
         break;
       case 'recycleReplay':
         telemetry?.recycleReplay(msg.buffer);
@@ -119,9 +177,23 @@ setInterval(() => {
   const now = performance.now(),
     elapsed = (now - previous) / 1000;
   previous = now;
+  if (rewind) {
+    // Re-simulate in slices (~2000 steps per turn) so messages keep flowing.
+    try {
+      const job = rewind;
+      if (job.run()) {
+        rewind = null;
+        finishFlashback(job);
+      }
+    } catch (error) {
+      rewind = null;
+      send({ type: 'error', message: error instanceof Error ? error.message : String(error) });
+    }
+    return;
+  }
   if (paused || !simulation) return;
   try {
-    if (now - lastInput > 750) simulation.setInput({ ...controls(), brake: 0.4 });
+    if (now - lastInput > 750) applyInput({ ...controls(), brake: 0.4 });
     const start = performance.now(),
       before = clock.ticks;
     clock.advance(elapsed, (dt) => {

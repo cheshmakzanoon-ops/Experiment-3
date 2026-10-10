@@ -52,6 +52,9 @@ import { RacingRenderer } from './rendering/renderer.ts';
 import { Interface, lapTime, shortTime } from './ui/interface.ts';
 import { selectedPitCompound } from './ui/race-day-hud.ts';
 import { ReplayDirector, ReplayHud } from './ui/replay-hud.ts';
+import { FlashbackPanel, flashbackAllowed } from './ui/flashback.ts';
+import { FLASHBACK } from './core/flashback.ts';
+import { insertLeaderboard, leaderboardKey } from './storage/leaderboard.ts';
 import {
   GhostPlayer,
   GhostRecorder,
@@ -181,6 +184,11 @@ export class GameApp {
   private overtakePress = false;
   private replayHud!: ReplayHud;
   private readonly replayDirector = new ReplayDirector();
+  /** D31 flashback: used this session, choosing a point, waiting for the worker. */
+  private flashbacks = 0;
+  private flashbackMode = false;
+  private flashbackPending = false;
+  private flashbackPanel!: FlashbackPanel;
   private safetyCarScratch = ghostPose();
   private inputPump: InputPump;
   private previousTime = 0;
@@ -247,6 +255,7 @@ export class GameApp {
       importSetup: (file) => void this.importSetup(file),
     });
     this.replayHud = new ReplayHud(element);
+    this.flashbackPanel = new FlashbackPanel(this.ui.get('replayBar'));
     const identity = this.ui.get('buildIdentity');
     identity.textContent = __APEX_SOURCE_COMMIT__
       ? `BUILD / ${__APEX_SOURCE_COMMIT__.slice(0, 7)}`
@@ -493,6 +502,8 @@ export class GameApp {
     this.exporter.cancel();
     if (this.replay) void this.replay.dispose();
     this.replay = null;
+    this.flashbacks = 0;
+    this.flashbackMode = this.flashbackPending = false;
     this.liveSurface = null;
     this.recordingWarnings = [];
     this.telemetry = null;
@@ -568,6 +579,10 @@ export class GameApp {
         this.replay?.recordSurface(message.water, message.rubber, message.time, message.marbles);
         if (this.state !== 'replay')
           this.renderer?.circuit.updateSurface(message.water, message.rubber, message.marbles);
+        return;
+      }
+      if (message.type === 'flashback') {
+        this.completeFlashback(message.time);
         return;
       }
       this.accept(message.buffer);
@@ -680,6 +695,7 @@ export class GameApp {
           ? this.ghostPlayer.delta(frame[o + F.S], frame[o + F.LAP_TIME])
           : null;
     }
+    if (lap) this.recordLeaderboard(lap.circuit, lap.lapTime);
     if (!lap || (this.ghostPlayer && lap.lapTime >= this.ghostPlayer.lap.lapTime)) return;
     const improvement = this.ghostPlayer ? this.ghostPlayer.lap.lapTime - lap.lapTime : 0;
     this.ghostPlayer = new GhostPlayer(lap);
@@ -693,6 +709,28 @@ export class GameApp {
         ),
       )
       .catch((error) => this.ui.toast(`Ghost not saved: ${String(error)}`));
+  }
+  /** D31: every valid time-trial lap enters the circuit's local top ten. */
+  private recordLeaderboard(circuit: string, time: number) {
+    const key = leaderboardKey(circuit);
+    const entry = {
+      lapTime: time,
+      driver: this.ui.playerName,
+      assist: this.options.assist,
+      compound: this.options.compound,
+      weather: this.options.weather,
+      session: this.sessionId,
+    };
+    void this.store
+      .read(key)
+      .then((stored) => {
+        const { board, rank } = insertLeaderboard(stored, entry);
+        if (!rank) return;
+        return this.store
+          .write(key, board)
+          .then(() => this.ui.toast(`P${rank} ON THE LOCAL LEADERBOARD · ${lapTime(time)}`));
+      })
+      .catch((error) => this.ui.toast(`Leaderboard not saved: ${String(error)}`));
   }
   /** Pose the ghost at the presented lap time (same interpolation as the car). */
   private presentGhost(a: Float32Array, b: Float32Array, alpha: number) {
@@ -844,6 +882,7 @@ export class GameApp {
       b = this.replayB;
       const seek = this.ui.get('replaySeek') as HTMLInputElement;
       seek.max = String(this.replay.duration);
+      seek.min = String(this.replayFloor());
       seek.value = String(this.replayTime);
       this.ui.setText(
         'replayTime',
@@ -1045,7 +1084,7 @@ export class GameApp {
   }
   private seekReplay(value: number) {
     if (this.state !== 'replay' || !this.replay || !Number.isFinite(value)) return;
-    this.replayTime = clamp(value, 0, this.replay.duration);
+    this.replayTime = clamp(value, this.replayFloor(), this.replay.duration);
     // Draw the requested position once before advancing, including after an
     // asynchronous page read. A seek is not a catch-up interval for effects.
     this.replaySeekPending = true;
@@ -1404,8 +1443,65 @@ export class GameApp {
     this.ui.showMode('replay');
     this.input.setEnabled(true);
   }
+  /** Earliest replay position: the flashback window while choosing a point. */
+  private replayFloor() {
+    return this.flashbackMode && this.replay
+      ? Math.max(0, this.replay.duration - FLASHBACK.window)
+      : 0;
+  }
+  /** D31: choose a point in the last 30 s to resume from (KeyX / gamepad action). */
+  private openFlashback() {
+    if (this.flashbackPending || this.state === 'replay') return;
+    if (this.state !== 'driving' && this.state !== 'paused') return;
+    if (!flashbackAllowed(this.options.mode, this.flashbacks)) {
+      this.ui.toast(
+        this.flashbacks >= FLASHBACK.perRace
+          ? 'No flashbacks left this session.'
+          : 'Flashback is available in races and free practice.',
+      );
+      return;
+    }
+    if (!this.replay || this.replay.duration < 1) return;
+    this.enterReplay();
+    if ((this.state as State) !== 'replay') return;
+    this.flashbackMode = true;
+    this.replayPlaying = false;
+    this.seekReplay(this.replay.duration);
+    this.flashbackPanel.show(true, FLASHBACK.perRace - this.flashbacks);
+  }
+  /** RESUME FROM HERE: rewind the simulation to the shown replay frame. */
+  private resumeFlashback() {
+    if (!this.flashbackMode || this.flashbackPending || !this.replay || !this.replayA) return;
+    const frame = this.replayA,
+      tick = Math.round(frame[H.TICK]),
+      time = frame[H.TIME];
+    if (!this.replay.canTruncate(time)) {
+      this.ui.toast('That moment is no longer held in memory. Choose a later point.');
+      return;
+    }
+    this.flashbackPending = true;
+    this.flashbackPanel.busy(true);
+    this.post({ type: 'flashback', tick });
+  }
+  /** The worker stands at the flashback tick: cut the recordings and drive on. */
+  private completeFlashback(time: number) {
+    if (!this.flashbackPending) return;
+    this.flashbackPending = false;
+    this.flashbacks++;
+    this.replay?.truncate(time);
+    this.telemetry?.truncate(time);
+    this.flashbackMode = false;
+    this.flashbackPanel.show(false);
+    this.exitReplay();
+    this.ui.toast(`FLASHBACK · ${FLASHBACK.perRace - this.flashbacks} LEFT`);
+    if (this.state === 'paused') this.resume();
+  }
   private exitReplay() {
     if (this.state !== 'replay') return;
+    if (this.flashbackMode && !this.flashbackPending) {
+      this.flashbackMode = false;
+      this.flashbackPanel.show(false);
+    }
     this.replayPlaying = false;
     this.audio.stop();
     this.state = this.replayReturn === 'results' ? 'results' : 'paused';
@@ -1780,7 +1876,14 @@ export class GameApp {
         this.enterReplay();
         break;
       case 'replayExit':
+        if (this.flashbackPending) break;
         this.exitReplay();
+        break;
+      case 'flashback':
+        this.openFlashback();
+        break;
+      case 'flashbackResume':
+        this.resumeFlashback();
         break;
       case 'replayPlay':
         if (this.state !== 'replay') break;
@@ -2213,6 +2316,11 @@ export class GameApp {
       teamBusy: this.teamBusy,
       settingsTransition: { busy: this.savingSettings, phase: this.settingsPhase },
       usedDemonstration: this.usedDemonstration,
+      flashback: {
+        used: this.flashbacks,
+        choosing: this.flashbackMode,
+        pending: this.flashbackPending,
+      },
       practiceProgramme: this.programme.progress(),
       inspectedReference: this.inspectedReference,
       audio: this.audio.diagnostics(),

@@ -179,6 +179,17 @@ export class TelemetryRecorder {
       this.count = Math.min(this.count + 1, this.capacity);
     }
   }
+  /** D31 flashback: drop the rows recorded after `time` (column 0, seconds). */
+  truncate(time: number) {
+    let removed = 0;
+    // The newest row sits just before `head`; drop rows from that end.
+    while (this.count > 0 && this.at(this.count - 1, 0) > time) {
+      this.head = (this.head - 1 + this.capacity) % this.capacity;
+      this.count--;
+      removed++;
+    }
+    return removed;
+  }
   snapshot() {
     const values = new Float32Array(this.count * this.stride);
     for (let row = 0; row < this.count; row++)

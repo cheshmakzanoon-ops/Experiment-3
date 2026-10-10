@@ -203,7 +203,9 @@ export type ToWorker =
   | { type: 'recycleTelemetry'; buffer: ArrayBuffer }
   | { type: 'recycleReplay'; buffer: ArrayBuffer }
   | { type: 'pit'; compound?: Compound }
-  | { type: 'autopilot'; value: boolean };
+  | { type: 'autopilot'; value: boolean }
+  /** D31: rewind to this tick (within the flashback window). */
+  | { type: 'flashback'; tick: number };
 export type FromWorker =
   | { type: 'frame'; buffer: ArrayBuffer }
   | { type: 'telemetry'; buffer: ArrayBuffer; rows: number }
@@ -216,5 +218,7 @@ export type FromWorker =
       marbles: Float32Array;
       time: number;
     }
+  /** D31: the session now stands at this tick and race time (paused). */
+  | { type: 'flashback'; tick: number; time: number }
   | { type: 'error'; message: string };
 export const carBase = (id: number) => HEADER + id * CAR_STRIDE;

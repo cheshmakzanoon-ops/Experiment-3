@@ -457,6 +457,55 @@ export class SessionReplay {
   get count() {
     return this.totalCount;
   }
+  /** The page that would hold the end of the recording after `truncate(time)`:
+   * the open page, or a cached, fully written recent page; null otherwise. */
+  private truncationPage(time: number) {
+    if (this.closed || this.failure || !Number.isFinite(time) || time < this.start) return null;
+    if (this.current.count && this.current.frames[H.TIME] <= time) return this.current;
+    let id = this.metadata.length - 1;
+    while (id >= 0 && this.metadata[id].start > time) id--;
+    if (id < 0 || this.writing.has(id)) return null;
+    return this.cache.get(id) ?? null;
+  }
+  /** D31 flashback: can the recording be cut back to `time` synchronously? */
+  canTruncate(time: number) {
+    return this.truncationPage(time) !== null;
+  }
+  /** D31 flashback: forget every frame recorded after `time`; the resumed
+   * session records its own future from there. The open page or a cached
+   * recent page (about the last 80 s) is reopened; later stored pages are
+   * overwritten by id as the new timeline seals them. */
+  truncate(time: number) {
+    const page = this.truncationPage(time);
+    if (!page) return false;
+    if (page !== this.current) {
+      this.metadata.length = page.id;
+      for (const id of [...this.cache.keys()]) if (id >= page.id) this.cache.delete(id);
+      for (const id of [...this.failedReads]) if (id >= page.id) this.failedReads.delete(id);
+      this.current = page;
+    }
+    const stride = this.stride;
+    let count = 0;
+    while (count < page.count && page.frames[count * stride + H.TIME] <= time) count++;
+    page.count = count;
+    page.frames.fill(0, count * stride);
+    this.frameHash = HASH_SEED;
+    for (let i = 0; i < count; i++) {
+      const frame = page.frames.subarray(i * stride, (i + 1) * stride);
+      this.frameHash = hashWords(
+        new Uint32Array(frame.buffer, frame.byteOffset, frame.length),
+        this.frameHash,
+      );
+    }
+    this.lastTime = count ? page.frames[(count - 1) * stride + H.TIME] : -Infinity;
+    this.totalCount = this.metadata.reduce((sum, meta) => sum + meta.count, 0) + count;
+    // Keep the weather keyframe valid at the cut and drop the old future's.
+    let keep = page.surfaces.length;
+    while (keep > 1 && page.surfaces[keep - 1].time > time) keep--;
+    page.surfaces.length = keep;
+    this.surface = page.surfaces[keep - 1] ?? null;
+    return true;
+  }
   get start() {
     return this.metadata[0]?.start ?? (this.current.count ? this.current.frames[H.TIME] : 0);
   }

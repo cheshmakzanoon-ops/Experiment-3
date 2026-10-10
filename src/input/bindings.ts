@@ -17,6 +17,7 @@ export const DEFAULT_BINDINGS = {
   autopilot: 'KeyG',
   drs: 'KeyF',
   overtake: 'KeyO',
+  flashback: 'KeyX',
 };
 export type BindingAction = keyof typeof DEFAULT_BINDINGS;
 export type Bindings = Record<BindingAction, string>;
@@ -39,12 +40,14 @@ export const BINDING_LABELS: Record<BindingAction, string> = {
   autopilot: 'AI demonstration',
   drs: 'DRS (open in a zone)',
   overtake: 'ERS overtake (4 s)',
+  flashback: 'Flashback (last 30 s)',
 };
 /** Actions added after bindings were first saved: a saved set without them
  * takes the first key it leaves free, like the clutch did. */
 const LATE_ACTION_KEYS: Partial<Record<BindingAction, readonly string[]>> = {
   drs: ['KeyF', 'KeyV', 'KeyN', 'KeyH'],
   overtake: ['KeyO', 'KeyU', 'KeyY', 'KeyJ'],
+  flashback: ['KeyX', 'KeyK', 'KeyL', 'KeyI'],
 };
 export const validBindingCode = (code: unknown): code is string =>
   typeof code === 'string' &&
