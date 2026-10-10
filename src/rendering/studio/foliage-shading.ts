@@ -58,7 +58,6 @@ const WIND = /* glsl */ `
 {
 	// D11 wind: trunk sway along the wind and a small crown flutter.
 	float treeHeight = length( instanceMatrix[ 1 ].xyz );
-	float treeWidth = max( length( instanceMatrix[ 0 ].xyz ), 1e-3 );
 	float hn = clamp( transformed.y, 0.0, 1.2 );
 	vec2 windXZ = studioWind.xy;
 	float windSpeed = length( windXZ );
@@ -66,16 +65,18 @@ const WIND = /* glsl */ `
 	float strength = clamp( windSpeed / 8.0, 0.15, 1.5 ) * ( 0.55 + 0.45 * studioWind.w );
 	float phase = dot( instanceMatrix[ 3 ].xz, vec2( 0.37, 0.61 ) );
 	float sway = ${f(CANOPY.sway)} * treeHeight * hn * hn * sin( ${f(CANOPY.swayRate)} * studioWind.z + phase ) * strength;
-	float flutter = ${f(CANOPY.flutter)} * hn * sin( ${f(CANOPY.flutterHz * 2 * Math.PI)} * studioWind.z + phase * 7.0 + dot( transformed, vec3( 9.1, 5.3, 7.7 ) ) ) * strength;
-	// Instance space is scaled by the tree's width across: metres / width.
-	mat3 toLocal = transpose( mat3( normalize( instanceMatrix[ 0 ].xyz ), normalize( instanceMatrix[ 1 ].xyz ), normalize( instanceMatrix[ 2 ].xyz ) ) );
+	// The flutter phase is mirror-invariant (|x|): a card drawn mirrored (a
+	// negative object or instance scale) must move exactly as its original.
+	float flutter = ${f(CANOPY.flutter)} * hn * sin( ${f(CANOPY.flutterHz * 2 * Math.PI)} * studioWind.z + phase * 7.0 + dot( vec3( abs( transformed.x ), transformed.yz ), vec3( 9.1, 5.3, 7.7 ) ) ) * strength;
+	// The offset is in world metres: map it through the inverse of the full
+	// object-and-instance transform (scale, rotation and any mirror).
 	vec3 worldOffset = vec3( windDir.x, 0.0, windDir.y ) * ( sway + flutter );
-	transformed += toLocal * worldOffset / treeWidth;
+	transformed += inverse( mat3( modelMatrix ) * mat3( instanceMatrix ) ) * worldOffset;
 }
 #endif`;
 
 export const FOLIAGE_SHADING_HOOK = 'foliage-shading-v1';
-export const FOLIAGE_WIND_HOOK = 'foliage-wind-v1';
+export const FOLIAGE_WIND_HOOK = 'foliage-wind-v2';
 
 /** Canopy grade and translucency on a lit foliage colour material. */
 export function installFoliageShading(material: T.Material) {

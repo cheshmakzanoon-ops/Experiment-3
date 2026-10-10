@@ -155,4 +155,21 @@ describe('foliage shading and wind', () => {
     expect(foliageSwayAmplitude(20, 8, 1)).toBeLessThan(0.5);
     expect(foliageSwayAmplitude(28, 30, 1)).toBeLessThan(0.7);
   });
+  it('moves a mirrored card exactly like the original (e2e/30 canopy front/back)', () => {
+    const colour = new T.MeshStandardMaterial();
+    installFoliageWind(colour);
+    const a = shaderFor('standard');
+    colour.onBeforeCompile(a, {} as T.WebGLRenderer);
+    const block = a.vertexShader.slice(
+      a.vertexShader.indexOf('// D11 wind'),
+      a.vertexShader.indexOf('#include <project_vertex>'),
+    );
+    // World metres through the full object and instance transform (any mirror).
+    expect(block).toContain(
+      'inverse( mat3( modelMatrix ) * mat3( instanceMatrix ) ) * worldOffset',
+    );
+    // The flutter phase does not see the sign of local x.
+    expect(block).toContain('abs( transformed.x )');
+    expect(block).not.toMatch(/dot\( transformed,/);
+  });
 });
