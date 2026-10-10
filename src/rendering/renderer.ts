@@ -37,6 +37,7 @@ import { GhostCar } from './ghost-car.ts';
 import { SafetyCarView } from './studio/safety-car.ts';
 import { LightPools } from './studio/light-pools.ts';
 import { MENU_CAR_DATUM, SHOWROOM } from './menu-preview.ts';
+import { focusOnSubject, subjectLens } from './studio/subject-focus.ts';
 import { reflectInWetRoad } from './wet-reflection.ts';
 import { ghostPose, type GhostPose } from '../core/ghost-lap.ts';
 import { WeatherPresentation } from './weather-presentation.ts';
@@ -63,6 +64,7 @@ import { GridPreparationView } from './grid-preparation.ts';
 import { PhotoStage, ScenePresentationScope } from './photo-stage.ts';
 import { VenueLighting } from './venue-lighting.ts';
 import {
+  photoGrade,
   photoLens,
   photoFov,
   photoOffset,
@@ -111,7 +113,7 @@ import { FXAAShader } from 'three/addons/shaders/FXAAShader.js';
 import { Sky } from 'three/addons/objects/Sky.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { SceneAmbientPass } from './scene-ambient-pass.ts';
-import { BroadcastGradePass } from './broadcast-grade.ts';
+import { BroadcastGradePass, GRADE_PROFILES } from './broadcast-grade.ts';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { FormulaCar } from './car.ts';
 import { carLod } from './lod.ts';
@@ -580,6 +582,22 @@ export class RacingRenderer {
       this.scene.add(this.ghost.root);
       this.textures.register(this.ghost.root);
     }
+  }
+  /** D30 replay director: follow this car on the broadcast cameras (null: the photo subject or the player). */
+  setBroadcastFollow(id: number | null) {
+    const next = id ?? this.photo?.target ?? 0;
+    if (next === this.follow || !Number.isInteger(next) || next < 0 || next >= this.cars.length)
+      return;
+    this.follow = next;
+    this.trackside.reset();
+  }
+  /** The presented broadcast shot (camera, trackside rig, followed car) for the replay HUD. */
+  get broadcastShot() {
+    return {
+      camera: this.mode as string,
+      rig: this.mode === 'trackside' ? this.trackside.activeId : -1,
+      follow: this.follow,
+    };
   }
   ghostVisible() {
     return this.ghost?.visible ?? false;
@@ -1337,24 +1355,17 @@ export class RacingRenderer {
       this.drawLedger.mark('other');
       this.motionBlur.setStrength(this.graphics.motionBlur, !this.photo && !menu);
       this.motionBlur.prepareFrame(presented, this.camera, this.follow, cameraMode, replay);
-      if (menu && !this.photo) {
-        // D29 showroom: the D09 depth-of-field pass focused on the car.
-        if (!this.photoFocus) {
-          this.photoFocus = new DepthOfFieldPass(
-            this.camera,
-            { focus: SHOWROOM.radius, aperture: SHOWROOM.aperture, maxblur: SHOWROOM.maxblur },
-            this.scenePass.target.depthTexture!,
-          );
+      // D29/D30: depth of field on the subject car (showroom, broadcast telephoto).
+      const lens = subjectLens(menu, !!this.photo, cameraMode, this.camera.fov);
+      if (lens) {
+        this.photoFocus ??= new DepthOfFieldPass(
+          this.camera,
+          { focus: 10, ...lens },
+          this.scenePass.target.depthTexture!,
+        );
+        if (!this.composer.passes.includes(this.photoFocus))
           this.composer.insertPass(this.photoFocus, 1);
-        }
-        this.photoFocus.enabled = true;
-        this.camera.updateMatrixWorld();
-        const uniforms = this.photoFocus.materialBokeh.uniforms;
-        uniforms.focus.value = -this.temporary
-          .copy(this.target)
-          .applyMatrix4(this.camera.matrixWorldInverse).z;
-        uniforms.aperture.value = SHOWROOM.aperture;
-        uniforms.maxblur.value = SHOWROOM.maxblur;
+        focusOnSubject(this.photoFocus, this.camera, this.target, lens, this.temporary);
       } else if (this.photoFocus && !this.photo?.depthOfField) this.photoFocus.enabled = false;
       if (this.photoFocus?.enabled && this.photo) {
         // Optical-axis depth, rather than Euclidean distance, matches the depth shader.
@@ -1376,6 +1387,10 @@ export class RacingRenderer {
       );
       // Grade + LUT, P11 bloom and lens effects (studio/lens-effects.ts).
       const lensOn = this.graphics.lensEffects && !menu && !studio && !this.photo;
+      // D30: the photo studio's filter, vignette, grain and saturation (photo only).
+      this.grade.photoOverride = this.photo
+        ? photoGrade(GRADE_PROFILES[studio ? 'studio' : illumination], this.photo)
+        : null;
       postLensFrame(
         this.grade,
         this.bloom,

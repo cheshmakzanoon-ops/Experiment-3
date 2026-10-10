@@ -1,5 +1,11 @@
 import { DecalEditor } from './decal-editor.ts';
-import { DEFAULT_PHOTO, validatePhoto, type PhotoSettings } from '../rendering/photo-camera.ts';
+import {
+  DEFAULT_PHOTO,
+  PHOTO_FILTERS,
+  validatePhoto,
+  type PhotoFilter,
+  type PhotoSettings,
+} from '../rendering/photo-camera.ts';
 import { LIVERY_PRESETS, validateLivery, type Livery } from '../storage/livery.ts';
 import { escapeHtml } from './team-hub.ts';
 interface PhotoCallbacks {
@@ -20,7 +26,18 @@ const sliders = [
   ['focusDistance', 'MANUAL FOCUS DISTANCE', 0.5, 250, 0.1, ' m'],
   ['fStop', 'APERTURE', 1.4, 22, 0.1, ' f'],
   ['split', 'SURVEY SPLIT', 0.1, 0.9, 0.01, ''],
+  ['vignette', 'VIGNETTE', 0, 0.6, 0.01, ''],
+  ['grain', 'FILM GRAIN', 0, 0.12, 0.005, ''],
+  ['saturation', 'SATURATION', 0, 2, 0.01, '×'],
 ] as const;
+const FILTER_LABELS: Record<PhotoFilter, string> = {
+  neutral: 'NEUTRAL',
+  vivid: 'VIVID',
+  cinematic: 'CINEMATIC',
+  mono: 'MONOCHROME',
+  warm: 'WARM',
+  cool: 'COOL',
+};
 export class PhotoStudio {
   readonly element = document.createElement('section');
   private settings: PhotoSettings = { ...DEFAULT_PHOTO };
@@ -45,7 +62,9 @@ export class PhotoStudio {
             [input.dataset.photo]:
               input.type === 'checkbox'
                 ? input.checked
-                : ['backdrop', 'focusMode', 'survey', 'view'].includes(input.dataset.photo)
+                : ['backdrop', 'focusMode', 'survey', 'view', 'filter'].includes(
+                      input.dataset.photo,
+                    )
                   ? input.value
                   : Number(input.value),
           },
@@ -117,7 +136,7 @@ export class PhotoStudio {
     this.settings = { ...DEFAULT_PHOTO };
     this.element.classList.remove('clean-frame');
     this.decalEditor?.dispose();
-    this.element.innerHTML = `<header class="photo-title"><span class="eyebrow">APEX / PHOTO STUDIO</span><h2>Hold the moment.</h2><p>FROZEN SIMULATION · ORIGINAL GAME RENDER</p></header><div class="photo-top-actions"><button data-photo-action="clean">CLEAN FRAME</button><button data-photo-action="close">RETURN / ESC</button></div><aside class="photo-drawer" aria-label="Photo studio controls"><h3>Compose</h3><label>CAMERA<select id="photo-view" data-photo="view"><option value="orbit">FREE ORBIT</option><option value="cockpit">DRIVER COCKPIT</option><option value="pod">POD CAMERA</option><option value="chase">CHASE CAMERA</option><option value="trackside">PHYSICAL TRACKSIDE CAMERA</option></select></label><p class="photo-help">Native views retain driving optics. Orbit, elevation and lens sliders apply to Free Orbit. Showrooms use Free Orbit.</p><label>SETTING<select id="photoBackdrop" data-photo="backdrop"><option value="circuit">ON CIRCUIT</option><option value="studio">DARK SHOWROOM</option><option value="headquarters">TEAM WORKSHOP / ATRIUM</option></select></label><label>FRAME A DETAIL<select id="photo-focusSubject" data-photo="focusSubject"><option value="0">WHOLE CAR</option><option value="1">HELMET / DRIVER</option><option value="2">COCKPIT CONTROLS</option><option value="3">FRONT WHEEL / UPRIGHT</option><option value="4">FRONT AERO</option><option value="5">REAR AERO</option><option value="6">HQ EXTERIOR ARRIVAL</option></select></label><label>SUBJECT<select id="photoTarget" data-photo="target">${Array.from({ length: this.cars }, (_, id) => `<option value="${id}">${id === 0 ? 'YOUR CAR' : `CAR ${id + 1}`}</option>`).join('')}</select></label>${sliders.map(([key, title, min, max, step, unit]) => `<label for="photo-${key}">${title}<span><output for="photo-${key}">${this.settings[key]}</output>${unit}</span></label><input id="photo-${key}" data-photo="${key}" aria-label="${title}" type="range" min="${min}" max="${max}" step="${step}" value="${this.settings[key]}">`).join('')}<label class="check"><input data-photo="depthOfField" id="photo-depthOfField" type="checkbox">DEPTH OF FIELD</label><label>FOCUS<select data-photo="focusMode" id="photo-focusMode"><option value="subject">FOLLOW SUBJECT DEPTH</option><option value="manual">MANUAL DISTANCE</option></select></label><label>GEOMETRY SURVEY<select data-photo="survey" id="photo-survey"><option value="off">NORMAL RENDER</option><option value="split">POINTS / RENDER SPLIT</option><option value="points">POINT CLOUD ONLY</option></select></label><p class="photo-help">24 mm vertical film gate. Depth-based bokeh is an artistic approximation, not lens-calibrated shutter accumulation. Survey points are sampled from this original circuit geometry, NOT imported LiDAR or reference pixels. Survey is circuit-only.</p><p id="photoReference" class="photo-help"></p><button id="unlinkReference" data-photo-action="unlinkReference" hidden>UNLINK REFERENCE</button><div class="photo-buttons"><button data-photo-action="reset">RESET CAMERA</button><button class="primary" id="capturePhoto" data-photo-action="capture">DOWNLOAD PNG</button></div><form id="photoLivery"><h3>Make it yours.</h3><label>STUDIO PRESET<select id="liveryPreset"><option value="">CUSTOM</option>${Object.keys(
+    this.element.innerHTML = `<header class="photo-title"><span class="eyebrow">APEX / PHOTO STUDIO</span><h2>Hold the moment.</h2><p>FROZEN SIMULATION · ORIGINAL GAME RENDER</p></header><div class="photo-top-actions"><button data-photo-action="clean">CLEAN FRAME</button><button data-photo-action="close">RETURN / ESC</button></div><aside class="photo-drawer" aria-label="Photo studio controls"><h3>Compose</h3><label>CAMERA<select id="photo-view" data-photo="view"><option value="orbit">FREE ORBIT</option><option value="cockpit">DRIVER COCKPIT</option><option value="pod">POD CAMERA</option><option value="chase">CHASE CAMERA</option><option value="trackside">PHYSICAL TRACKSIDE CAMERA</option></select></label><p class="photo-help">Native views retain driving optics. Orbit, elevation and lens sliders apply to Free Orbit. Showrooms use Free Orbit.</p><label>FILTER<select id="photo-filter" data-photo="filter">${PHOTO_FILTERS.map((f) => `<option value="${f}">${FILTER_LABELS[f]}</option>`).join('')}</select></label><label>SETTING<select id="photoBackdrop" data-photo="backdrop"><option value="circuit">ON CIRCUIT</option><option value="studio">DARK SHOWROOM</option><option value="headquarters">TEAM WORKSHOP / ATRIUM</option></select></label><label>FRAME A DETAIL<select id="photo-focusSubject" data-photo="focusSubject"><option value="0">WHOLE CAR</option><option value="1">HELMET / DRIVER</option><option value="2">COCKPIT CONTROLS</option><option value="3">FRONT WHEEL / UPRIGHT</option><option value="4">FRONT AERO</option><option value="5">REAR AERO</option><option value="6">HQ EXTERIOR ARRIVAL</option></select></label><label>SUBJECT<select id="photoTarget" data-photo="target">${Array.from({ length: this.cars }, (_, id) => `<option value="${id}">${id === 0 ? 'YOUR CAR' : `CAR ${id + 1}`}</option>`).join('')}</select></label>${sliders.map(([key, title, min, max, step, unit]) => `<label for="photo-${key}">${title}<span><output for="photo-${key}">${this.settings[key]}</output>${unit}</span></label><input id="photo-${key}" data-photo="${key}" aria-label="${title}" type="range" min="${min}" max="${max}" step="${step}" value="${this.settings[key]}">`).join('')}<label class="check"><input data-photo="depthOfField" id="photo-depthOfField" type="checkbox">DEPTH OF FIELD</label><label>FOCUS<select data-photo="focusMode" id="photo-focusMode"><option value="subject">FOLLOW SUBJECT DEPTH</option><option value="manual">MANUAL DISTANCE</option></select></label><label>GEOMETRY SURVEY<select data-photo="survey" id="photo-survey"><option value="off">NORMAL RENDER</option><option value="split">POINTS / RENDER SPLIT</option><option value="points">POINT CLOUD ONLY</option></select></label><p class="photo-help">24 mm vertical film gate. Depth-based bokeh is an artistic approximation, not lens-calibrated shutter accumulation. Survey points are sampled from this original circuit geometry, NOT imported LiDAR or reference pixels. Survey is circuit-only.</p><p id="photoReference" class="photo-help"></p><button id="unlinkReference" data-photo-action="unlinkReference" hidden>UNLINK REFERENCE</button><div class="photo-buttons"><button data-photo-action="reset">RESET CAMERA</button><button class="primary" id="capturePhoto" data-photo-action="capture">DOWNLOAD PNG</button></div><form id="photoLivery"><h3>Make it yours.</h3><label>STUDIO PRESET<select id="liveryPreset"><option value="">CUSTOM</option>${Object.keys(
       LIVERY_PRESETS,
     )
       .map((key) => `<option value="${key}">${key.toUpperCase()}</option>`)
@@ -158,6 +177,7 @@ export class PhotoStudio {
     (this.element.querySelector('#photo-focusMode') as HTMLSelectElement).value =
       this.settings.focusMode;
     (this.element.querySelector('#photo-survey') as HTMLSelectElement).value = this.settings.survey;
+    (this.element.querySelector('#photo-filter') as HTMLSelectElement).value = this.settings.filter;
     (this.element.querySelector('#photoBackdrop') as HTMLSelectElement).value =
       this.settings.backdrop;
     for (const [key] of sliders) {

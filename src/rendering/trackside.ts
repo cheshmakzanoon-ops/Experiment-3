@@ -126,6 +126,20 @@ export function tracksideRigs(track: Track): readonly CameraRig[] {
   });
 }
 
+/** Broadcast telephoto (D30): a moving subject's sphere fills `fill` of the
+ * smaller screen axis (scaled by the rig's authored lens: a wider rig frames
+ * looser), giving a 12-24 degree lens over the authored distances with zoom
+ * following the distance; a close pass widens only as far as the fit needs.
+ * Below `dofBelow` degrees the renderer adds depth of field on the subject. */
+export const TELEPHOTO = Object.freeze({
+  fill: 0.5,
+  minFov: 12,
+  maxFov: 24,
+  dofBelow: 20,
+  aperture: 0.0013,
+  maxblur: 0.011,
+});
+
 /** A complete car fits within a 3.1 m bounding sphere. Reserve composition
  * room on the smaller screen axis, including narrow/portrait viewports. */
 export function tracksideFraming(
@@ -154,9 +168,11 @@ export function tracksideFraming(
   // The old 24-degree floor left a legal distant lens showing mostly scenery.
   // Reserve the same 28% angular margin, but let the existing physical rig use
   // a telephoto lens. Ordinary moving-car and pack compositions stay unchanged.
+  const fill = (TELEPHOTO.fill * 40) / clamp(baseFov, 30, 50);
+  const tele = (2 * Math.atan(Math.tan(radius) / (fill * smallAxis)) * 180) / Math.PI;
   const fov = service
     ? clamp(required, 4, 55)
-    : clamp(Math.max(baseFov * Math.sqrt(40 / Math.max(20, distanceM)), required), 24, 55);
+    : Math.min(55, Math.max(clamp(tele, TELEPHOTO.minFov, TELEPHOTO.maxFov), required));
   const half = Math.atan(Math.tan((fov * Math.PI) / 360) * smallAxis);
   return {
     fov,

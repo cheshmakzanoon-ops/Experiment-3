@@ -18,7 +18,7 @@ it('covers a complete lap with fixed platforms and finite camera directions', ()
     );
     expect(director.position.equals(director.rigs[director.activeId].position)).toBe(true);
     expect(director.gaze.distanceTo(director.position)).toBeGreaterThan(1);
-    expect(director.fov).toBeGreaterThanOrEqual(24);
+    expect(director.fov).toBeGreaterThanOrEqual(12); // D30 broadcast telephoto
     expect(director.fov).toBeLessThanOrEqual(55);
   }
   expect(director.cuts).toBeLessThanOrEqual(director.rigs.length + 2);

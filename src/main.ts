@@ -51,6 +51,7 @@ import { safetyCarPose } from './rendering/studio/safety-car.ts';
 import { RacingRenderer } from './rendering/renderer.ts';
 import { Interface, lapTime, shortTime } from './ui/interface.ts';
 import { selectedPitCompound } from './ui/race-day-hud.ts';
+import { ReplayDirector, ReplayHud } from './ui/replay-hud.ts';
 import {
   GhostPlayer,
   GhostRecorder,
@@ -178,6 +179,8 @@ export class GameApp {
   /** One-shot DRS and ERS overtake presses, sent with the next input sample. */
   private drsPress = false;
   private overtakePress = false;
+  private replayHud!: ReplayHud;
+  private readonly replayDirector = new ReplayDirector();
   private safetyCarScratch = ghostPose();
   private inputPump: InputPump;
   private previousTime = 0;
@@ -243,6 +246,7 @@ export class GameApp {
         ),
       importSetup: (file) => void this.importSetup(file),
     });
+    this.replayHud = new ReplayHud(element);
     const identity = this.ui.get('buildIdentity');
     identity.textContent = __APEX_SOURCE_COMMIT__
       ? `BUILD / ${__APEX_SOURCE_COMMIT__.slice(0, 7)}`
@@ -971,6 +975,17 @@ export class GameApp {
         this.auto,
         this.ers,
       );
+    const shown = this.state === 'replay' ? this.renderer.presented.value : b;
+    this.renderer.setBroadcastFollow(
+      this.state === 'replay' && this.renderer.mode === 'trackside'
+        ? this.replayDirector.follow(shown, shown[H.TIME], this.track.length)
+        : null,
+    );
+    this.replayHud.update(
+      shown,
+      { active: this.state === 'replay', ...this.renderer.broadcastShot },
+      shown[H.TIME],
+    );
     const programmeText = programmeHud(this.programme.progress(), this.state === 'replay');
     this.ui.get('programmeHud').hidden = !programmeText;
     this.ui.setText('programmeHud', programmeText);

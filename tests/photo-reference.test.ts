@@ -19,7 +19,8 @@ describe('photo camera and safe original livery', () => {
     expect(
       Object.entries(validatePhoto({ focalLength: NaN, roll: -Infinity }))
         .filter(
-          ([key]) => !['backdrop', 'depthOfField', 'focusMode', 'survey', 'view'].includes(key),
+          ([key]) =>
+            !['backdrop', 'depthOfField', 'focusMode', 'survey', 'view', 'filter'].includes(key),
         )
         .every(([, value]) => Number.isFinite(value)),
     ).toBe(true);
@@ -126,6 +127,10 @@ describe('native photo-view validation', () => {
       'focusDistance',
       'fStop',
       'split',
+      // TEST-UPDATE (D30): the photo look sliders.
+      'vignette',
+      'grain',
+      'saturation',
     ];
     expect(
       Object.entries(DEFAULT_PHOTO)

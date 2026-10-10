@@ -33,7 +33,7 @@ it('uses a real telephoto lens for service without changing ordinary racing lens
     for (const distance of [30, 45, 80, 120, 160]) {
       const original = tracksideFraming(distance, 42, aspect, PIT_SERVICE_RADIUS);
       const shot = tracksideFraming(distance, 42, aspect, PIT_SERVICE_RADIUS, true);
-      expect(original.fov).toBeGreaterThanOrEqual(24);
+      expect(original.fov).toBeGreaterThanOrEqual(12); // D30 broadcast telephoto
       expect(shot.fits).toBe(true);
       expect(shot.fov).toBeLessThanOrEqual(original.fov);
       const fraction =
@@ -104,7 +104,11 @@ it('reframes a held service and returns to the unchanged racing lens without adv
     id = d.activeId;
   d.update(0, target, zero, 0, 16 / 9, PIT_SERVICE_RADIUS, true, visibility);
   const serviceFov = d.fov;
-  expect(serviceFov).toBeLessThan(ordinary);
+  // TEST-UPDATE (D30): the racing lens is itself a telephoto now, so the held
+  // service lens differs from it and frames the crew envelope at 69-72 %.
+  expect(serviceFov).not.toBeCloseTo(ordinary, 3);
+  expect(d.subjectScreenFraction).toBeGreaterThan(0.69);
+  expect(d.subjectScreenFraction).toBeLessThanOrEqual(0.72);
   for (let i = 0; i < 10; i++) {
     d.update(0, target, zero, 0, 16 / 9, PIT_SERVICE_RADIUS, true, visibility);
     expect(d.fov).toBe(serviceFov);

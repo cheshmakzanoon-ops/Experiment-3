@@ -1,4 +1,5 @@
 import { clamp } from '../core/math.ts';
+import type { GradeProfile } from './broadcast-grade.ts';
 export type PhotoView = 'orbit' | 'cockpit' | 'pod' | 'chase' | 'trackside';
 export interface PhotoSettings {
   view: PhotoView;
@@ -18,7 +19,14 @@ export interface PhotoSettings {
   fStop: number;
   survey: 'off' | 'split' | 'points';
   split: number;
+  /** Photo-only look (D30): a filter plus vignette, grain and saturation. */
+  filter: PhotoFilter;
+  vignette: number;
+  grain: number;
+  saturation: number;
 }
+export const PHOTO_FILTERS = ['neutral', 'vivid', 'cinematic', 'mono', 'warm', 'cool'] as const;
+export type PhotoFilter = (typeof PHOTO_FILTERS)[number];
 export const DEFAULT_PHOTO: Readonly<PhotoSettings> = Object.freeze({
   view: 'orbit',
   azimuth: 38,
@@ -36,6 +44,10 @@ export const DEFAULT_PHOTO: Readonly<PhotoSettings> = Object.freeze({
   fStop: 4,
   survey: 'off',
   split: 0.5,
+  filter: 'neutral',
+  vignette: 0.12,
+  grain: 0,
+  saturation: 1,
 });
 export function validatePhoto(value: unknown, cars = 1): PhotoSettings {
   const p = value && typeof value === 'object' ? (value as Partial<PhotoSettings>) : {};
@@ -69,6 +81,74 @@ export function validatePhoto(value: unknown, cars = 1): PhotoSettings {
         ? p.survey
         : 'off',
     split: finite(p.split, 0.5, 0.1, 0.9),
+    filter: PHOTO_FILTERS.includes(p.filter as PhotoFilter) ? (p.filter as PhotoFilter) : 'neutral',
+    vignette: finite(p.vignette, 0.12, 0, 0.6),
+    grain: finite(p.grain, 0, 0, 0.12),
+    saturation: finite(p.saturation, 1, 0, 2),
+  };
+}
+
+/** Each filter's change to the gameplay grade (contrast and saturation are
+ * added and multiplied; tints multiply the profile's own). */
+export const PHOTO_FILTER_LOOKS: Readonly<
+  Record<
+    PhotoFilter,
+    {
+      contrast: number;
+      saturation: number;
+      vibrance: number;
+      shadow: readonly [number, number, number];
+      highlight: readonly [number, number, number];
+    }
+  >
+> = Object.freeze({
+  neutral: { contrast: 0, saturation: 1, vibrance: 0, shadow: [1, 1, 1], highlight: [1, 1, 1] },
+  vivid: {
+    contrast: 0.08,
+    saturation: 1.18,
+    vibrance: 0.12,
+    shadow: [1, 1, 1],
+    highlight: [1, 1, 1],
+  },
+  cinematic: {
+    contrast: 0.1,
+    saturation: 0.86,
+    vibrance: 0,
+    shadow: [0.94, 1.0, 1.08],
+    highlight: [1.06, 1.0, 0.92],
+  },
+  mono: { contrast: 0.12, saturation: 0, vibrance: 0, shadow: [1, 1, 1], highlight: [1, 1, 1] },
+  warm: {
+    contrast: 0.02,
+    saturation: 1.02,
+    vibrance: 0,
+    shadow: [1.03, 1, 0.95],
+    highlight: [1.07, 1.01, 0.9],
+  },
+  cool: {
+    contrast: 0.02,
+    saturation: 0.98,
+    vibrance: 0,
+    shadow: [0.95, 1, 1.07],
+    highlight: [0.95, 1, 1.07],
+  },
+});
+
+/** The photo-only grade: the gameplay profile with the chosen look. Gameplay
+ * profiles (GRADE_PROFILES) are never changed; grain exists only here. */
+export function photoGrade(base: Readonly<GradeProfile>, settings: PhotoSettings): GradeProfile {
+  const look = PHOTO_FILTER_LOOKS[settings.filter] ?? PHOTO_FILTER_LOOKS.neutral;
+  const times = (a: readonly number[], b: readonly number[]) =>
+    [a[0] * b[0], a[1] * b[1], a[2] * b[2]] as const;
+  return {
+    ...base,
+    contrast: base.contrast + look.contrast,
+    saturation: base.saturation * look.saturation * settings.saturation,
+    vibrance: look.saturation === 0 ? 0 : base.vibrance + look.vibrance,
+    shadowTint: times(base.shadowTint, look.shadow),
+    highlightTint: times(base.highlightTint, look.highlight),
+    vignette: settings.vignette,
+    grain: settings.grain,
   };
 }
 /** Vertical field of view for a 24 mm-high full-frame sensor; units are degrees. */

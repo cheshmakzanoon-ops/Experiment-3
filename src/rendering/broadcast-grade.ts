@@ -205,11 +205,14 @@ export class BroadcastGradePass extends Pass {
     this.quad = new FullScreenQuad(this.material);
     this.apply('day');
   }
+  /** Photo mode's look (photo-camera.ts photoGrade), or null for the gameplay
+   * profile. Set by the renderer only while the photo studio is open. */
+  photoOverride: Readonly<GradeProfile> | null = null;
   /** Seed must come from presented state so pause, photo and replay hold grain.
    * `wet` (0..1, standing water) blends the profile LUT toward the wet LUT. */
   apply(profile: LightingMode | 'studio', seed = 0, wet = 0) {
     this.profile = profile;
-    const p = GRADE_PROFILES[profile];
+    const p = this.photoOverride ?? GRADE_PROFILES[profile];
     const u = this.material.uniforms;
     u.contrast.value = p.contrast;
     u.saturation.value = p.saturation;
