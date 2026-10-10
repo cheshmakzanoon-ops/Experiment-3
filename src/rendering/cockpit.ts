@@ -90,7 +90,8 @@ export function addMirrorHousing(
   const surface = mesh(
     root,
     apertureGeometry(0.192, 0.072, 0.018),
-    new T.MeshBasicMaterial({ color: 0xd4dde0 }),
+    // D18: real mirror glass that reflects the environment.
+    new T.MeshStandardMaterial({ color: 0xd8dfe2, metalness: 1, roughness: 0.06 }),
     0,
     0,
     -0.042,

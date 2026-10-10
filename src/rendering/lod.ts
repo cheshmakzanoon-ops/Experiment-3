@@ -99,7 +99,7 @@ export class ReducedCar {
         // Minor hardware shares carbon at this screen size; no extra draw.
         mesh(parent, hero.copy(`${name}_alloy`), carbon);
       }
-      mesh(body, hero.copy('safety'), carbon);
+      mesh(body, hero.copy('safety'), paint); // D18: painted halo
     } else {
       buildWing(this.front, 'front', detail, paint, carbon);
       buildWing(this.rear, 'rear', detail, paint, carbon);
@@ -190,8 +190,10 @@ export class ReducedCar {
       if (hero) {
         const end = i < 2 ? 'front' : 'rear',
           side = p[0] < 0 ? -1 : 1;
+        // D18: the whole reduced wheel in team paint (one material, as the
+        // carbon was), so the livery reads on the covers at range.
         for (const suffix of ['rim', 'cover', 'hub'] as const)
-          mesh(spin, hero.copy(`${end}_${suffix}`, side), carbon);
+          mesh(spin, hero.copy(`${end}_${suffix}`, side), paint);
         const carrier = new T.Group();
         wheel.add(carrier);
         for (const suffix of ['duct', 'upright', 'caliper'] as const)

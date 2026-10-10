@@ -370,10 +370,11 @@ it('casts the same shadow triangles from a rival car with about half the draws',
     expect(row.draws, `LOD ${level}`).toBeLessThan(levels[level].draws);
     if (level > 0) expect(row.draws, `LOD ${level}`).toBeLessThanOrEqual(13);
   }
-  // Measured: 92 -> 54 shadow draws at LOD0 (the satin floor carbon is its own
-  // material since D06), 23 -> 13 at LOD1 and LOD2.
+  // Measured: 92 -> 55 shadow draws at LOD0 (the satin floor carbon is its own
+  // material since D06; the halo, painted since D18, leaves the carbon caster
+  // group and costs one more merged caster), 23 -> 13 at LOD1 and LOD2.
   expect(levels[0].draws).toBe(92);
-  expect(after[0].draws).toBeLessThanOrEqual(54);
+  expect(after[0].draws).toBeLessThanOrEqual(55);
   // Damage still removes a wing's shadow: its caster lives in the wing group.
   car.frontWing.visible = false;
   car.setLod(10, 'high', false);

@@ -245,7 +245,8 @@ export class FormulaCar {
       mesh(s, hero.copy('airbox_paint'), this.paint);
       mesh(s, hero.copy('airbox_carbon'), carbon);
       mesh(s, hero.copy('airbox_dark'), dark);
-      mesh(s, hero.copy('safety'), carbon);
+      // D18: a halo painted in the team primary (merges with the bodywork).
+      mesh(s, hero.copy('safety'), this.paint);
     } else {
       addAirbox(s, this.paint, carbon, dark, 'high');
       addSafetyCell(s, carbon, 'high');
