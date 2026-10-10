@@ -1,5 +1,6 @@
 import * as T from 'three';
 import { FullScreenQuad, Pass } from 'three/addons/postprocessing/Pass.js';
+import { LENS_BLOOM_GLSL, lensUniforms, type LensUniforms } from './studio/lens-effects.ts';
 
 /** Lens bloom from the linear HDR scene, before exposure and tone mapping.
  *
@@ -138,6 +139,25 @@ void main() {
   gl_FragColor = vec4(sum * gain, 1.0);
 }`;
 
+/** The final upsample into the scene, with the lens terms (D09): lens dirt
+ * scales the bloom where it lands, and flare ghosts of a coarse level are
+ * mirrored through the frame centre. Both are 0 when lens effects are off. */
+const compositeShader = /* glsl */ `
+uniform sampler2D tSource;
+uniform vec2 texel;
+uniform float gain;
+varying vec2 vUv;
+${LENS_BLOOM_GLSL}
+vec3 tap(vec2 offset) { return texture2D(tSource, vUv + offset * texel).rgb; }
+void main() {
+  vec3 sum = vec3(0.0);
+  ${taps(TENT_TAPS, 'tap')}
+  gl_FragColor = vec4(sum * gain * lensDirtGain(vUv) + lensGhosts(vUv), 1.0);
+}`;
+/** Bloom level the flare ghosts are drawn from (1/8 resolution, already
+ * carrying every coarser level after the upsample chain). */
+export const LENS_GHOST_LEVEL = 2;
+
 function material(fragmentShader: string, uniforms: Record<string, T.IUniform>, additive = false) {
   return new T.ShaderMaterial({
     uniforms,
@@ -175,9 +195,23 @@ export class LensBloomPass extends Pass {
     { tSource: { value: null }, texel: { value: new T.Vector2() }, gain: { value: 1 } },
     true,
   );
-  constructor(levels: number = LENS_BLOOM.levels) {
+  private readonly composite: T.ShaderMaterial;
+  constructor(levels: number = LENS_BLOOM.levels, lens: LensUniforms = lensUniforms) {
     super();
     this.needsSwap = false;
+    this.composite = material(
+      compositeShader,
+      {
+        tSource: { value: null },
+        texel: { value: new T.Vector2() },
+        gain: { value: 1 },
+        tGhost: { value: null },
+        lensFlare: lens.lensFlare,
+        lensDirt: lens.lensDirt,
+        lensDirtMap: lens.lensDirtMap,
+      },
+      true,
+    );
     this.levels = Array.from({ length: levels + 1 }, (_, i) => {
       const target = new T.WebGLRenderTarget(1, 1, {
         type: T.HalfFloatType,
@@ -229,8 +263,10 @@ export class LensBloomPass extends Pass {
     this.upsample.uniforms.gain.value = LENS_BLOOM.scatter;
     for (let i = this.levels.length - 1; i > 0; i--)
       draw(this.upsample, this.levels[i].texture, this.levels[i], this.levels[i - 1]);
-    this.upsample.uniforms.gain.value = this.strength / this.normalization;
-    draw(this.upsample, this.levels[0].texture, this.levels[0], this.renderToScreen ? null : readBuffer);
+    this.composite.uniforms.gain.value = this.strength / this.normalization;
+    this.composite.uniforms.tGhost.value =
+      this.levels[Math.min(LENS_GHOST_LEVEL, this.levels.length - 1)].texture;
+    draw(this.composite, this.levels[0].texture, this.levels[0], this.renderToScreen ? null : readBuffer);
     renderer.autoClear = autoClear;
   }
   override dispose() {
@@ -238,6 +274,7 @@ export class LensBloomPass extends Pass {
     this.prefilter.dispose();
     this.downsample.dispose();
     this.upsample.dispose();
+    this.composite.dispose();
     this.quad.dispose();
   }
 }

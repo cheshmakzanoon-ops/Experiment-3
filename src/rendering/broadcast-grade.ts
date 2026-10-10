@@ -1,6 +1,8 @@
 import * as T from 'three';
 import { Pass, FullScreenQuad } from 'three/addons/postprocessing/Pass.js';
 import type { LightingMode } from './daylight.ts';
+import { gradeLut } from './studio/grade-lut.ts';
+import { LENS_RAIN_GLSL, lensUniforms, type LensUniforms } from './studio/lens-effects.ts';
 
 /** Authored display-referred grade per circuit lighting profile. These are
  * look-development values, not a calibrated camera or broadcast LUT. */
@@ -88,7 +90,19 @@ const fragmentShader = /* glsl */ `
   uniform float fringe;
   uniform float grain;
   uniform float sharpen;
+  // D09: hue-selective profile LUT (32^3, display RGB), blended toward the wet LUT.
+  uniform sampler3D gradeLut;
+  uniform sampler3D gradeLutWet;
+  uniform float lutWet;
+  uniform float lutAmount;
   varying vec2 vUv;
+  ${LENS_RAIN_GLSL}
+  vec3 applyGradeLut(vec3 c) {
+    vec3 p = clamp(c, 0.0, 1.0) * (31.0 / 32.0) + 0.5 / 32.0;
+    vec3 graded = texture(gradeLut, p).rgb;
+    if (lutWet > 0.0) graded = mix(graded, texture(gradeLutWet, p).rgb, lutWet);
+    return mix(c, graded, lutAmount);
+  }
   float grainHash(vec2 p) {
     vec3 q = fract(vec3(p.xyx) * 0.1031);
     q += dot(q, q.yzx + 33.33);
@@ -101,7 +115,10 @@ const fragmentShader = /* glsl */ `
     vec2 shift = centre * radius2 * fringe * 4.0;
     // Optional effects are skipped entirely at zero (uniform, coherent branches).
     vec3 color;
-    if (fringe > 0.0) {
+    if (lensRain > 0.0) {
+      // Rain on the lens (D09): refracting drops replace the plain fetch.
+      color = lensRainSample(vUv);
+    } else if (fringe > 0.0) {
       // Lateral lens fringe grows with the square of the field radius.
       vec2 shift = centre * radius2 * fringe * 4.0;
       color = vec3(
@@ -133,6 +150,7 @@ const fragmentShader = /* glsl */ `
     float chroma = maxC - minC;
     float satBoost = saturation * (1.0 + vibrance * (1.0 - smoothstep(0.0, 0.55, chroma)));
     color = mix(vec3(luma), color, satBoost);
+    if (lutAmount > 0.0) color = applyGradeLut(color);
     // Optical vignette.
     float falloff = smoothstep(0.85, 0.18, radius2 * (1.0 + 0.35 * resolution.x / resolution.y));
     color *= mix(1.0 - vignette, 1.0, falloff);
@@ -151,7 +169,7 @@ export class BroadcastGradePass extends Pass {
   private material: T.ShaderMaterial;
   private quad: FullScreenQuad;
   profile: LightingMode | 'studio' = 'day';
-  constructor() {
+  constructor(lens: LensUniforms = lensUniforms) {
     super();
     this.material = new T.ShaderMaterial({
       name: 'APEX broadcast colour grade',
@@ -171,6 +189,13 @@ export class BroadcastGradePass extends Pass {
         fringe: { value: 0 },
         grain: { value: 0 },
         sharpen: { value: 0 },
+        gradeLut: { value: null },
+        gradeLutWet: { value: null },
+        lutWet: { value: 0 },
+        lutAmount: { value: 1 },
+        lensRain: lens.lensRain,
+        lensTime: lens.lensTime,
+        lensStreak: lens.lensStreak,
       },
       depthTest: false,
       depthWrite: false,
@@ -180,8 +205,9 @@ export class BroadcastGradePass extends Pass {
     this.quad = new FullScreenQuad(this.material);
     this.apply('day');
   }
-  /** Seed must come from presented state so pause, photo and replay hold grain. */
-  apply(profile: LightingMode | 'studio', seed = 0) {
+  /** Seed must come from presented state so pause, photo and replay hold grain.
+   * `wet` (0..1, standing water) blends the profile LUT toward the wet LUT. */
+  apply(profile: LightingMode | 'studio', seed = 0, wet = 0) {
     this.profile = profile;
     const p = GRADE_PROFILES[profile];
     const u = this.material.uniforms;
@@ -195,6 +221,11 @@ export class BroadcastGradePass extends Pass {
     u.grain.value = p.grain;
     u.sharpen.value = p.sharpen;
     u.seed.value = Number.isFinite(seed) ? seed % 97 : 0;
+    u.gradeLut.value = gradeLut(profile);
+    const wetness =
+      profile === 'studio' || !Number.isFinite(wet) ? 0 : Math.min(1, Math.max(0, wet));
+    u.lutWet.value = wetness;
+    u.gradeLutWet.value = gradeLut(wetness > 0 ? 'wet' : profile);
   }
   override setSize(width: number, height: number) {
     this.material.uniforms.resolution.value.set(Math.max(1, width), Math.max(1, height));

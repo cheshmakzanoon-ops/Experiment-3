@@ -45,6 +45,7 @@ import { loadHeroShells, type HeroShells } from './hero-shells.ts';
 import { AdaptiveExposurePass } from './adaptive-exposure.ts';
 import { METER_KEY } from './exposure-meter.ts';
 import { LensBloomPass } from './lens-bloom.ts';
+import { postLensFrame } from './studio/lens-effects.ts';
 import { LocalAtmosphere } from './local-atmosphere.ts';
 import { RaceComposition } from './race-composition.ts';
 import { captureRenderedCanvas } from './frame-capture.ts';
@@ -52,7 +53,7 @@ import { reviewHardware } from '../ui/review-hardware.ts';
 import type { ReviewFrame } from './presentation-review.ts';
 import { photoSubject } from './photo-subject.ts';
 import { HeadquartersStage } from './headquarters-stage.ts';
-import { BokehPass } from 'three/addons/postprocessing/BokehPass.js';
+import { DepthOfFieldPass } from './studio/dof-pass.ts';
 import { GeometrySurvey } from './geometry-survey.ts';
 import { DrivingGuide } from './driving-guide.ts';
 import { GridPreparationView } from './grid-preparation.ts';
@@ -198,7 +199,7 @@ export class RacingRenderer {
   private bloom: LensBloomPass;
   private scenePass: SceneAmbientPass;
   private grade = new BroadcastGradePass();
-  private photoFocus: BokehPass | null = null;
+  private photoFocus: DepthOfFieldPass | null = null;
   private geometrySurvey: GeometrySurvey | null = null;
   private motionBlur: MotionBlur;
   private fxaa = new ShaderPass(FXAAShader);
@@ -808,10 +809,11 @@ export class RacingRenderer {
       );
     }
     if (this.photo?.depthOfField && !this.photoFocus) {
-      this.photoFocus = new BokehPass(
-        this.scene,
+      // Gathers the scene pass's depth: no second scene render (D09).
+      this.photoFocus = new DepthOfFieldPass(
         this.camera,
         photoLens(this.photo, this.photo.distance),
+        this.scenePass.target.depthTexture!,
       );
       this.composer.insertPass(this.photoFocus, 1);
     }
@@ -1314,7 +1316,18 @@ export class RacingRenderer {
         this.graphics.autoExposure && !this.photo && !menu,
         METER_KEY[illumination],
       );
-      this.grade.apply(studio ? 'studio' : illumination, presented[H.TIME]);
+      // Grade + LUT, P11 bloom and lens effects (studio/lens-effects.ts).
+      const lensOn = this.graphics.lensEffects && !menu && !studio && !this.photo;
+      postLensFrame(
+        this.grade,
+        this.bloom,
+        presented,
+        studio ? 'studio' : illumination,
+        lensOn,
+        this.camera,
+        cameraMode,
+        speed,
+      );
       this.drawLedger.mark('composer');
       this.composer.render();
       this.drawLedger.mark('other');
