@@ -8,6 +8,7 @@ import { grassApronOffset } from './ground-profile.ts';
 import { inStandFootprint } from './grandstand.ts';
 import * as T from 'three';
 import { installCanopyNormals } from './canopy-normals.ts';
+import { installFoliageShading, installFoliageWind } from './studio/foliage-shading.ts';
 import { Random, clamp } from '../core/math.ts';
 import { Track, trackPoint } from '../simulation/track.ts';
 import { canvasTexture } from './geometry.ts';
@@ -746,6 +747,8 @@ export function buildVegetation(
   });
   foliage.name = 'Original four-character planted foliage';
   installFoliageAtlas(foliage);
+  installFoliageShading(foliage);
+  installFoliageWind(foliage);
   tagWeatherSurface(foliage, 'foliage');
   const depth = new T.MeshDepthMaterial({
     depthPacking: T.RGBADepthPacking,
@@ -760,6 +763,8 @@ export function buildVegetation(
   });
   installFoliageAtlas(depth);
   installFoliageAtlas(distance);
+  installFoliageWind(depth);
+  installFoliageWind(distance);
   const bark = tagWeatherSurface(
     new T.MeshStandardMaterial({ color: 0x655e49, roughness: 1 }),
     'timber',

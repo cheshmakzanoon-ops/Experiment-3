@@ -15,6 +15,7 @@ import {
 import { serviceSitePlan, type ServiceSite } from './venue-service-plan.ts';
 import { cameraDetailDistance } from './camera-detail.ts';
 import { installCanopyNormals } from './canopy-normals.ts';
+import { installFoliageShading, installFoliageWind } from './studio/foliage-shading.ts';
 import { tagWeatherSurface } from './weather-presentation.ts';
 import type { Quality } from './options.ts';
 
@@ -227,6 +228,9 @@ export class AurelVegetationKit {
     if (foliage.map) foliage.map.userData.foliageAlphaCutoff = manifest.alphaCutoff;
     installTreeVariants(foliage);
     installCanopyNormals(foliage);
+    // D11: canopy grade, leaf translucency and wind (also on the shadow materials).
+    installFoliageShading(foliage);
+    installFoliageWind(foliage);
     tagWeatherSurface(foliage, 'foliage');
     this.depth = new T.MeshDepthMaterial({
       depthPacking: T.RGBADepthPacking,
@@ -241,6 +245,8 @@ export class AurelVegetationKit {
     });
     installTreeVariants(this.depth);
     installTreeVariants(this.distance);
+    installFoliageWind(this.depth);
+    installFoliageWind(this.distance);
     const configured = new Set<T.Material>([foliage]);
     try {
       for (const family of TREE_FAMILIES) {

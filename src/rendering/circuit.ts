@@ -54,6 +54,7 @@ import { Track, CELL_ROWS, CELL_COLS, trackPoint } from '../simulation/track.ts'
 import { H } from '../simulation/protocol.ts';
 import { clamp } from '../core/math.ts';
 import { installCarGrounding } from './studio/car-grounding.ts';
+import { buildForestBelts } from './studio/forest-belts.ts';
 import { batchScene, box, canvasTexture, label, mesh, unprintedBack } from './geometry.ts';
 interface RibbonOptions {
   start?: number;
@@ -345,6 +346,8 @@ export class CircuitScene {
       if (this.vegetation)
         this.vegetation.build(track, this.vegetationGroup, this.serviceSites, excluded);
       else buildVegetation(track, this.vegetationGroup, this.serviceSites, excluded);
+      // Continuous woodland 30-120 m behind the boundary (D11).
+      buildForestBelts(track, this.vegetationGroup, this.serviceSites, excluded);
     });
     this.construction.add('Grid and finish markings', 0, () => this.grid());
     this.construction.add('Spatial geometry batches', 4, () =>
