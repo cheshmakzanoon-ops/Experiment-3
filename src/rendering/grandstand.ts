@@ -1,3 +1,10 @@
+import {
+  COHORT_SHARE,
+  MAIN_STAND_OCCUPANCY,
+  buildCrowdFlags,
+  crowdColour,
+  flagMaterial,
+} from './studio/crowd-flags.ts';
 import type { SecondaryGrandstands } from './secondary-grandstands.ts';
 import type { StartFinishVenue } from './start-finish-venue.ts';
 import { AUREL_VENUE, venuePlan, type StandSpec } from './venue-plan.ts';
@@ -76,6 +83,11 @@ export function standMaterials() {
   installVenueFinish(materials.steel, 'metal');
   installVenueFinish(materials.roof, 'metal');
   return materials;
+}
+let sharedFlagMaterial: T.MeshStandardMaterial | null = null;
+/** One flag material for every stand (one program, shared uniforms). */
+function crowdFlagMaterial() {
+  return (sharedFlagMaterial ??= flagMaterial());
 }
 export function buildGrandstand(
   track: Track,
@@ -196,7 +208,7 @@ export function buildGrandstand(
   const seatGeometry = mergeGeometries(seatParts, false)!;
   seatParts.forEach((g) => g.dispose());
   const seatPalette = [0xa33c35, 0x8b3431, 0xe0dcd0, 0x394e53];
-  const personPalette = [0x535b5c, 0xc7b69b, 0x323f51, 0xab4030, 0x3f665a, 0x88867d];
+  // D21: shirts from CROWD_PALETTE (half team kits, half neutrals) in 75 % cohorts.
   for (let row = 0; row < rows; row++)
     for (let col = 0; col < columns; col++) {
       const z = (col - (columns - 1) / 2) * 0.65;
@@ -218,13 +230,15 @@ export function buildGrandstand(
       const cohort = new Random(
         821 + Math.round(site.s) + Math.floor(col / 5) * 113 + Math.floor(row / 2) * 7919,
       );
-      const density = 0.56 + cohort.next() * 0.25 + (1 - row / (rows - 1)) * 0.1;
-      const groupColour = Math.floor(cohort.next() * personPalette.length);
+      const density = hero
+        ? MAIN_STAND_OCCUPANCY + cohort.next() * (1 - MAIN_STAND_OCCUPANCY)
+        : 0.56 + cohort.next() * 0.25 + (1 - row / (rows - 1)) * 0.1;
+      const groupColour = crowdColour(cohort.next(), cohort.next());
       if (random.next() < density) {
         spectators.push(dummy.matrix.clone());
         const colour =
-          random.next() < 0.6 ? groupColour : Math.floor(random.next() * personPalette.length);
-        bodyColors.push(new T.Color(personPalette[colour]));
+          random.next() < COHORT_SHARE ? groupColour : crowdColour(random.next(), random.next());
+        bodyColors.push(new T.Color(colour));
       }
     }
   const install = (
@@ -267,6 +281,9 @@ export function buildGrandstand(
     spectators[i] = entry.matrix;
     bodyColors[i] = entry.color;
   });
+  // D21: waving team flags, one instanced draw per stand.
+  const flags = buildCrowdFlags(spectators, Math.round(site.s), crowdFlagMaterial());
+  if (flags) peopleRoot.add(flags);
   const chunkSize = hero ? 64 : 128;
   for (let offset = 0; offset < spectators.length; offset += chunkSize) {
     const cluster = new CrowdCluster(
