@@ -140,3 +140,43 @@ export const VELLAMAR_VENUE: VenuePlan = Object.freeze({
 export function venuePlan(track: Track): VenuePlan {
   return track.circuit.id === 'vellamar' ? VELLAMAR_VENUE : AUREL_VENUE;
 }
+
+/** Kerb paint schemes (D15): red/white (default), the signature blue/white
+ * complex and one yellow/green corner. */
+export const KERB_STYLES = Object.freeze(['red-white', 'blue-white', 'yellow-green'] as const);
+export type KerbStyle = (typeof KERB_STYLES)[number];
+/** Run-off finishes beyond the kerb (D15): painted bands over grey asphalt in
+ * one of four colours, or astroturf. */
+export const RUNOFF_STYLES = Object.freeze([
+  'green',
+  'red',
+  'blue',
+  'yellow',
+  'astroturf',
+] as const);
+export type RunoffStyle = (typeof RUNOFF_STYLES)[number];
+/** Corner window around a named corner's lap distance, metres. */
+export const CORNER_WINDOW = Object.freeze({ before: 110, after: 70 });
+
+function cornerAt(track: Track, s: number) {
+  const corners = track.circuit.corners,
+    length = track.length;
+  for (let i = 0; i < corners.length; i++) {
+    const d = ((((s - corners[i].s) % length) + length * 1.5) % length) - length / 2;
+    if (d >= -CORNER_WINDOW.before && d <= CORNER_WINDOW.after) return i;
+  }
+  return -1;
+}
+/** Kerb scheme index (into KERB_STYLES) at lap distance `s`: the second named
+ * corner is the blue complex, the fourth the yellow/green corner. */
+export function kerbStyleAt(track: Track, s: number) {
+  const corner = cornerAt(track, s);
+  return corner === 1 ? 1 : corner === 3 ? 2 : 0;
+}
+/** Run-off finish index (into RUNOFF_STYLES) at `s`: green bands on the
+ * straights, corners cycling red, astroturf, blue, yellow. */
+export function runoffStyleAt(track: Track, s: number) {
+  const corner = cornerAt(track, s);
+  if (corner < 0) return 0;
+  return [1, 4, 2, 3][corner % 4];
+}

@@ -30,7 +30,7 @@ import { APRON_COLUMNS, grassApronLateral, grassApronOffset } from './ground-pro
 import { barrierMaterials, buildBarrierChunk } from './circuit-barriers.ts';
 import { installCircuitFinish } from './circuit-finish.ts';
 import { standMaterials, buildGrandstand } from './grandstand.ts';
-import { venuePlan } from './venue-plan.ts';
+import { kerbStyleAt, runoffStyleAt, venuePlan } from './venue-plan.ts';
 import { terrainFor } from './terrain.ts';
 import { buildSea, installShoreline, shoreWeight } from './sea.ts';
 import { WetRoadReflection, reflectInWetRoad } from './wet-reflection.ts';
@@ -54,6 +54,7 @@ import { Track, CELL_ROWS, CELL_COLS, trackPoint } from '../simulation/track.ts'
 import { H } from '../simulation/protocol.ts';
 import { clamp } from '../core/math.ts';
 import { buildTracksideBranding, type BrandingBuild } from './studio/trackside-branding.ts';
+import { installKerbFinish, installRunoffFinish, kerbUsage } from './studio/kerb-runoff-finish.ts';
 import { installCarGrounding } from './studio/car-grounding.ts';
 import { buildForestBelts } from './studio/forest-belts.ts';
 import { batchScene, box, canvasTexture, label, mesh, unprintedBack } from './geometry.ts';
@@ -64,6 +65,8 @@ interface RibbonOptions {
   offset: (s: number, t: number) => number;
   height?: (s: number, l: number, t: number) => number;
   stripes?: boolean;
+  /** Run-off ribbon: per-vertex `runoffStyle` (D15). */
+  runoff?: boolean;
   columns?: number;
   road?: boolean;
   include?: (s: number, lateral: number) => boolean;
@@ -158,7 +161,8 @@ export class CircuitScene {
     installRoadDetail(this.roadMaterial, track.length);
     const grass = surfaceMaterial('grass');
     const runOff = surfaceMaterial('asphalt', 'paint');
-    runOff.color.setHex(0x8aa58d);
+    // D15: painted bands, chevrons or astroturf per corner (no flat tint).
+    installRunoffFinish(runOff);
     const gravel = surfaceMaterial('gravel');
     // Sky and sun light under the cars (D08): the ground they stand on.
     for (const m of [this.roadMaterial, grass, runOff, gravel]) installCarGrounding(m);
@@ -189,6 +193,7 @@ export class CircuitScene {
       },
       height: () => -0.008,
       columns: 4,
+      runoff: true,
     });
     this.queueRibbon(this.roadMaterial, {
       offset: (s, t) => {
@@ -204,6 +209,7 @@ export class CircuitScene {
     installCircuitFinish(white, 'paint');
     const kerb = new T.MeshStandardMaterial({ vertexColors: true, roughness: 0.85 });
     installCircuitFinish(kerb, 'kerb');
+    installKerbFinish(kerb);
     for (const m of [white, kerb]) installCarGrounding(m);
     for (const side of [-1, 1]) {
       this.queueRibbon(kerb, {
@@ -506,6 +512,8 @@ export class CircuitScene {
       colors: number[] = [],
       edge: number[] = [],
       apex: number[] = [],
+      kerb: number[] = [],
+      runoff: number[] = [],
       indices: number[] = [];
     const p = trackPoint(),
       line: [number, number] = [0, 0];
@@ -525,6 +533,13 @@ export class CircuitScene {
         if (options.road) apex.push(...apexLineAt(this.track, s, l, line));
         const c = Math.floor(s / 3) % 2 === 0 ? new T.Color(0xdc553b) : new T.Color(0xe8e3cf);
         colors.push(c.r, c.g, c.b);
+        if (options.stripes) {
+          // D15: kerb scheme and how much the racing line uses this kerb.
+          kerb.push(kerbStyleAt(this.track, s));
+          const side = Math.sign(l) || 1;
+          kerb.push(kerbUsage(Math.abs(apexLineAt(this.track, s, side * p.width, line)[0])));
+        }
+        if (options.runoff) runoff.push(runoffStyleAt(this.track, s));
       }
     }
     const ascending = options.offset(start, 1) >= options.offset(start, 0);
@@ -544,7 +559,24 @@ export class CircuitScene {
     g.setAttribute('trackUV', new T.Float32BufferAttribute(state, 2));
     g.setAttribute('edgeMetres', new T.Float32BufferAttribute(edge, 1));
     if (options.road) g.setAttribute('apexLine', new T.Float32BufferAttribute(apex, 2));
-    if (options.stripes) g.setAttribute('color', new T.Float32BufferAttribute(colors, 3));
+    if (options.stripes) {
+      g.setAttribute('color', new T.Float32BufferAttribute(colors, 3));
+      g.setAttribute(
+        'kerbStyle',
+        new T.Float32BufferAttribute(
+          kerb.filter((_, i) => i % 2 === 0),
+          1,
+        ),
+      );
+      g.setAttribute(
+        'kerbUsage',
+        new T.Float32BufferAttribute(
+          kerb.filter((_, i) => i % 2 === 1),
+          1,
+        ),
+      );
+    }
+    if (options.runoff) g.setAttribute('runoffStyle', new T.Float32BufferAttribute(runoff, 1));
     g.setIndex(indices);
     g.computeVertexNormals();
     const o = mesh(this.surfaces, g, material);
