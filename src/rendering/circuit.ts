@@ -6,9 +6,9 @@ import type { TrackBoardsKit } from './track-boards.ts';
 import type { BroadcastCamerasKit } from './broadcast-cameras.ts';
 import { infrastructureIdentity } from './track-infrastructure-diagnostics.ts';
 import type { ConcreteBarrierKit } from './concrete-barriers.ts';
-import type { SteelGuardrailKit } from './steel-guardrails.ts';
+import { guardrailRole, type SteelGuardrailKit } from './steel-guardrails.ts';
 import type { CatchFenceKit } from './catch-fence.ts';
-import type { ImpactBarriersKit } from './impact-barriers.ts';
+import { impactBarrierRole, type ImpactBarriersKit } from './impact-barriers.ts';
 import type { RecoveryGatesKit } from './recovery-gates.ts';
 import type { MarshalPostsKit } from './marshal-posts.ts';
 import type { StartGantryKit } from './start-gantry.ts';
@@ -53,6 +53,7 @@ import { kerbHeight } from '../simulation/contact.ts';
 import { Track, CELL_ROWS, CELL_COLS, trackPoint } from '../simulation/track.ts';
 import { H } from '../simulation/protocol.ts';
 import { clamp } from '../core/math.ts';
+import { buildTracksideBranding, type BrandingBuild } from './studio/trackside-branding.ts';
 import { installCarGrounding } from './studio/car-grounding.ts';
 import { buildForestBelts } from './studio/forest-belts.ts';
 import { batchScene, box, canvasTexture, label, mesh, unprintedBack } from './geometry.ts';
@@ -76,6 +77,8 @@ export class CircuitScene {
   catchFence: CatchFenceKit | null = null;
   impactBarriers: ImpactBarriersKit | null = null;
   recoveryGates: RecoveryGatesKit | null = null;
+  /** Trackside sponsor vinyl and bridges (D13), once built. */
+  branding: BrandingBuild | null = null;
   marshalPosts: MarshalPostsKit | null = null;
   startGantry: StartGantryKit | null = null;
   signalHardware: TrackSignalHardwareKit | null = null;
@@ -313,6 +316,19 @@ export class CircuitScene {
         // Barriers line the water's edge: they belong in the wet reflection.
         for (const child of this.surfaces.children.slice(before)) reflectInWetRoad(child);
       });
+    // Fictional sponsor vinyl on every concrete run, and banner bridges (D13).
+    this.construction.add('Trackside sponsor branding', 3, () => {
+      this.branding = buildTracksideBranding(
+        track,
+        this.surfaces,
+        (s, side) =>
+          !!(
+            (this.steelGuardrails && guardrailRole(s, side)) ||
+            (this.impactBarriers && impactBarrierRole(s, side)) ||
+            this.recoveryGates?.role(s, side)
+          ),
+      );
+    });
     this.infrastructure();
     this.construction.add('Drainage, marshal and replay-camera infrastructure', 3, () =>
       buildTrackInfrastructure(

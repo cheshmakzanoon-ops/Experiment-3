@@ -1,0 +1,334 @@
+import * as T from 'three';
+import { Track, trackPoint } from '../../simulation/track.ts';
+import { clamp } from '../../core/math.ts';
+import { reflectInWetRoad } from '../wet-reflection.ts';
+import { tagWeatherSurface } from '../weather-presentation.ts';
+import { BRAND_ART, drawMark, type MarkArt } from './brand-atlas.ts';
+import {
+  ATLAS,
+  PANELS,
+  brandingPlan,
+  plainPanel,
+  type BrandSpan,
+  type Panel,
+} from './branding-plan.ts';
+import { chainShaderHook, injectAfter, injectDeclarations } from './shader-hooks.ts';
+import { useStudioUniforms } from './studio-frame.ts';
+
+/**
+ * Trackside branding (D13): barrier vinyl on every concrete barrier run and
+ * sponsor banner bridges over the track, all from one fictional-brand atlas.
+ *
+ * Vinyl follows the barrier's track face (the A01 / procedural profile: base
+ * 0.275 m out to 0.16 m high, sloping to 0.17 m at 0.55 m, upright to 0.89 m)
+ * 6 mm proud of it, skipping guardrail, impact-barrier and gate spans. One
+ * mesh per `CHUNK_METRES` of lap (both sides merged), so the whole lap costs
+ * about ten draws. Each sponsor span repeats its wordmark every
+ * `BOARD_METRES`; LED spans glow (emissive `LED_EMISSIVE`) and scroll with
+ * presented simulation time. Vinyl roughness 0.7, reflected in the wet road.
+ */
+export const VINYL = Object.freeze({
+  /** (outward from the barrier centre toward the track, height) rows, metres. */
+  profile: Object.freeze([
+    [0.281, 0.03],
+    [0.281, 0.16],
+    [0.176, 0.55],
+    [0.176, 0.885],
+  ] as const),
+  module: 2,
+  roughness: 0.7,
+});
+export const CHUNK_METRES = 300;
+export const BOARD_METRES = 4.6;
+export const LED_EMISSIVE = 2.5;
+/** LED wordmark scroll speed, boards per second. */
+export const LED_SCROLL = 0.12;
+/** Banner bridges over the track: lap stations and dimensions. */
+export const BRIDGES = Object.freeze({
+  stations: Object.freeze([0.31, 0.63] as const),
+  height: 6.2,
+  bannerHeight: 1.15,
+  post: 0.32,
+});
+
+/** Draw the 1024×2048 sponsor atlas into `context`. */
+export function drawBrandingAtlas(context: CanvasRenderingContext2D) {
+  const { panelWidth: w, panelHeight: h } = ATLAS;
+  for (const panel of PANELS) {
+    const x = (panel.index % 2) * w,
+      y = Math.floor(panel.index / 2) * h;
+    context.fillStyle = panel.colourway.background;
+    context.fillRect(x, y, w, h);
+    if (!panel.brand) continue;
+    const art: MarkArt = { ...BRAND_ART[panel.brand], ink: panel.colourway.ink };
+    if (art.accent && panel.colourway.name === 'yellow') art.accent = panel.colourway.ink;
+    if (art.fill && art.fill.toLowerCase() === panel.colourway.background.toLowerCase())
+      art.fill = panel.colourway.ink;
+    drawMark(context, art, x + 18, y + 12, w - 36, h - 24);
+  }
+}
+
+let atlas: T.CanvasTexture | null = null;
+export function brandingAtlas() {
+  if (atlas) return atlas;
+  const canvas = document.createElement('canvas');
+  canvas.width = ATLAS.width;
+  canvas.height = ATLAS.height;
+  const context = canvas.getContext('2d');
+  if (!context) throw new Error('Canvas 2D unavailable');
+  drawBrandingAtlas(context);
+  atlas = new T.CanvasTexture(canvas);
+  atlas.colorSpace = T.SRGBColorSpace;
+  atlas.anisotropy = 8;
+  // Kept at full size: 1024×2048 RGBA (8 MiB + mips) for legible boards at
+  // trackside distances; the TextureBudget's canvas downscale is opted out.
+  atlas.userData.dynamic = true;
+  atlas.name = 'Trackside fictional sponsor atlas';
+  return atlas;
+}
+
+/** The vinyl/board material: panel cells chosen per vertex, LED glow and scroll. */
+export function brandingMaterial() {
+  const material = new T.MeshStandardMaterial({
+    map: brandingAtlas(),
+    roughness: VINYL.roughness,
+    metalness: 0,
+  });
+  material.name = 'Trackside sponsor vinyl';
+  chainShaderHook(material, 'trackside-vinyl-v1', (shader) => {
+    useStudioUniforms(shader, ['studioTime'], 'fragment');
+    injectDeclarations(
+      shader,
+      'common',
+      'attribute vec4 brandPanel;\nattribute float brandLed;\nvarying vec4 vBrandPanel;\nvarying float vBrandLed;\nvarying vec2 vBrandUv;',
+      'vertex',
+    );
+    injectAfter(
+      shader,
+      'uv_vertex',
+      'vBrandPanel = brandPanel;\nvBrandLed = brandLed;\nvBrandUv = uv;',
+      'vertex',
+    );
+    injectDeclarations(
+      shader,
+      'common',
+      'varying vec4 vBrandPanel;\nvarying float vBrandLed;\nvarying vec2 vBrandUv;',
+      'fragment',
+    );
+    injectAfter(
+      shader,
+      'map_fragment',
+      `{
+	// D13: repeat the span's panel along the barrier; LED boards scroll.
+	vec2 boardUv = vBrandUv;
+	boardUv.x += vBrandLed * studioTime * ${LED_SCROLL.toFixed(3)};
+	vec2 cell = vec2( fract( boardUv.x ), clamp( boardUv.y, 0.002, 0.998 ) );
+	vec2 atlasUv = vBrandPanel.xy + cell * vBrandPanel.zw;
+	vec4 board = textureGrad( map, atlasUv, dFdx( boardUv ) * vBrandPanel.zw, dFdy( boardUv ) * vBrandPanel.zw );
+	diffuseColor = vec4( diffuse, opacity ) * board;
+}`,
+      'fragment',
+    );
+    injectAfter(
+      shader,
+      'emissivemap_fragment',
+      `totalEmissiveRadiance += vBrandLed * ${LED_EMISSIVE.toFixed(2)} * diffuseColor.rgb;`,
+      'fragment',
+    );
+  });
+  tagWeatherSurface(material, 'paint');
+  return material;
+}
+
+/** Barrier modules (side, s0, s1) that carry vinyl, grouped by sponsor span. */
+export function vinylModules(
+  track: Track,
+  skip: (s: number, side: number) => boolean,
+  spans: readonly BrandSpan[] = brandingPlan(track.length),
+) {
+  const modules: { span: BrandSpan; a: number; b: number }[] = [];
+  for (const span of spans) {
+    const count = Math.max(1, Math.round((span.end - span.start) / VINYL.module));
+    for (let i = 0; i < count; i++) {
+      const a = span.start + ((span.end - span.start) * i) / count,
+        b = span.start + ((span.end - span.start) * (i + 1)) / count;
+      if (!skip((a + b) / 2, span.side)) modules.push({ span, a, b });
+    }
+  }
+  return modules;
+}
+
+function barrierPoint(track: Track, s: number, side: number, inward: number, height: number) {
+  const p = track.at(s, trackPoint());
+  const l = side * (track.boundary(s, side) - inward);
+  return new T.Vector3(p.x + p.nx * l, p.y + p.bank * clamp(l, -12, 12) + height, p.z + p.nz * l);
+}
+
+/** One merged vinyl geometry for the modules inside [start, end). */
+export function vinylGeometry(
+  track: Track,
+  modules: readonly { span: BrandSpan; a: number; b: number }[],
+) {
+  const position: number[] = [],
+    uv: number[] = [],
+    panel: number[] = [],
+    led: number[] = [],
+    index: number[] = [];
+  const rows = VINYL.profile;
+  const lengths = [0];
+  for (let r = 1; r < rows.length; r++)
+    lengths.push(
+      lengths[r - 1] + Math.hypot(rows[r][0] - rows[r - 1][0], rows[r][1] - rows[r - 1][1]),
+    );
+  const total = lengths[lengths.length - 1];
+  for (const { span, a, b } of modules) {
+    const base = position.length / 3;
+    for (const s of [a, b])
+      rows.forEach(([inward, height], r) => {
+        const p = barrierPoint(track, s, span.side, inward, height);
+        position.push(p.x, p.y, p.z);
+        // Boards read left to right from the track on both sides.
+        const along = (span.side > 0 ? s - span.start : span.end - s) / BOARD_METRES;
+        uv.push(along, lengths[r] / total);
+        panel.push(span.panel.u, span.panel.v, span.panel.du, span.panel.dv);
+        led.push(span.led ? 1 : 0);
+      });
+    const n = rows.length;
+    for (let r = 0; r < n - 1; r++) {
+      const i0 = base + r,
+        i1 = base + r + 1,
+        j0 = base + n + r,
+        j1 = base + n + r + 1;
+      // Faces the track: the winding flips with the side.
+      if (span.side < 0) index.push(i0, i1, j0, i1, j1, j0);
+      else index.push(i0, j0, i1, i1, j0, j1);
+    }
+  }
+  const g = new T.BufferGeometry();
+  g.setAttribute('position', new T.Float32BufferAttribute(position, 3));
+  g.setAttribute('uv', new T.Float32BufferAttribute(uv, 2));
+  g.setAttribute('brandPanel', new T.Float32BufferAttribute(panel, 4));
+  g.setAttribute('brandLed', new T.Float32BufferAttribute(led, 1));
+  g.setIndex(index);
+  g.computeVertexNormals();
+  g.computeBoundingBox();
+  g.computeBoundingSphere();
+  return g;
+}
+
+/** A sponsor bridge across the track at lap station `s`: two posts, a beam
+ * and a banner facing each direction, one geometry in the vinyl material. */
+export function bridgeGeometry(track: Track, s: number, brand: Panel, post = plainPanel('black')) {
+  const p = track.at(s, trackPoint());
+  const parts: T.BufferGeometry[] = [];
+  const yaw = Math.atan2(p.tx, p.tz);
+  // Posts stand 1 m behind each barrier; the banner spans the whole width.
+  const left = track.boundary(s, -1) + 1,
+    right = track.boundary(s, 1) + 1,
+    span = (left + right) / 2,
+    centre = (right - left) / 2;
+  const tag = (g: T.BufferGeometry, cell: Panel, uScale: number, vScale: number) => {
+    const count = g.getAttribute('position').count;
+    const uvs = g.getAttribute('uv');
+    for (let i = 0; i < count; i++) uvs.setXY(i, uvs.getX(i) * uScale, uvs.getY(i) * vScale);
+    g.setAttribute(
+      'brandPanel',
+      new T.Float32BufferAttribute(
+        new Array(count).fill(0).flatMap(() => [cell.u, cell.v, cell.du, cell.dv]),
+        4,
+      ),
+    );
+    g.setAttribute('brandLed', new T.Float32BufferAttribute(new Array(count).fill(0), 1));
+    return g;
+  };
+  for (const side of [-1, 1]) {
+    const column = new T.BoxGeometry(
+      BRIDGES.post,
+      BRIDGES.height + BRIDGES.bannerHeight,
+      BRIDGES.post,
+    );
+    column.translate(centre + side * span, (BRIDGES.height + BRIDGES.bannerHeight) / 2, 0);
+    parts.push(tag(column, post, 1, 1));
+  }
+  const banner = new T.BoxGeometry(span * 2, BRIDGES.bannerHeight, 0.18);
+  banner.translate(centre, BRIDGES.height + BRIDGES.bannerHeight / 2, 0);
+  parts.push(tag(banner, brand, (span * 2) / (BRIDGES.bannerHeight * 4), 1));
+  const merged = mergeAll(parts);
+  merged.rotateY(yaw);
+  merged.translate(p.x, p.y, p.z);
+  merged.computeBoundingBox();
+  merged.computeBoundingSphere();
+  return merged;
+}
+function mergeAll(parts: T.BufferGeometry[]) {
+  const position: number[] = [],
+    normal: number[] = [],
+    uv: number[] = [],
+    panel: number[] = [],
+    led: number[] = [],
+    index: number[] = [];
+  for (const g of parts) {
+    const base = position.length / 3;
+    position.push(...(g.getAttribute('position').array as Float32Array));
+    normal.push(...(g.getAttribute('normal').array as Float32Array));
+    uv.push(...(g.getAttribute('uv').array as Float32Array));
+    panel.push(...(g.getAttribute('brandPanel').array as Float32Array));
+    led.push(...(g.getAttribute('brandLed').array as Float32Array));
+    for (const i of g.index!.array as ArrayLike<number> as number[]) index.push(base + i);
+    g.dispose();
+  }
+  const g = new T.BufferGeometry();
+  g.setAttribute('position', new T.Float32BufferAttribute(position, 3));
+  g.setAttribute('normal', new T.Float32BufferAttribute(normal, 3));
+  g.setAttribute('uv', new T.Float32BufferAttribute(uv, 2));
+  g.setAttribute('brandPanel', new T.Float32BufferAttribute(panel, 4));
+  g.setAttribute('brandLed', new T.Float32BufferAttribute(led, 1));
+  g.setIndex(index);
+  return g;
+}
+
+export interface BrandingBuild {
+  meshes: T.Mesh[];
+  modules: number;
+  /** Fraction of barrier modules (outside skipped spans) carrying vinyl. */
+  coverage: number;
+}
+/** Build the vinyl and bridges into `root` (the circuit's surfaces group). */
+export function buildTracksideBranding(
+  track: Track,
+  root: T.Object3D,
+  skip: (s: number, side: number) => boolean,
+): BrandingBuild {
+  const material = brandingMaterial();
+  const spans = brandingPlan(track.length);
+  const modules = vinylModules(track, skip, spans);
+  const meshes: T.Mesh[] = [];
+  for (let start = 0; start < track.length; start += CHUNK_METRES) {
+    const inside = modules.filter((m) => m.a >= start && m.a < start + CHUNK_METRES);
+    if (!inside.length) continue;
+    const mesh = new T.Mesh(vinylGeometry(track, inside), material);
+    mesh.name = `Sponsor barrier vinyl ${Math.round(start)}m`;
+    mesh.castShadow = false;
+    mesh.receiveShadow = true;
+    reflectInWetRoad(mesh);
+    root.add(mesh);
+    meshes.push(mesh);
+  }
+  const branded = PANELS.filter((p) => p.brand);
+  BRIDGES.stations.forEach((fraction, i) => {
+    const mesh = new T.Mesh(
+      bridgeGeometry(track, fraction * track.length, branded[(i * 7 + 3) % branded.length]),
+      material,
+    );
+    mesh.name = `Sponsor bridge ${i}`;
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    reflectInWetRoad(mesh);
+    root.add(mesh);
+    meshes.push(mesh);
+  });
+  let total = 0;
+  for (const span of spans)
+    total += Math.max(1, Math.round((span.end - span.start) / VINYL.module));
+  return { meshes, modules: modules.length, coverage: total ? modules.length / total : 0 };
+}

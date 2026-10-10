@@ -8,7 +8,7 @@ import {
   trackBoardPlan,
   type TrackBoardSite,
 } from './track-board-plan.ts';
-import { label } from './geometry.ts';
+import { distanceBoardLabel } from './studio/branding-plan.ts';
 import { concreteBarrierLod } from './concrete-barriers.ts';
 import { tagWeatherSurface } from './weather-presentation.ts';
 import type { Quality } from './options.ts';
@@ -112,11 +112,12 @@ export class TrackBoardsKit {
   sites: readonly TrackBoardSite[] = [];
   constructor(
     private readonly source: T.Group,
-    private readonly makeLabel: (text: string, width: number, height: number) => T.Texture = (
-      text,
-      w,
-      h,
-    ) => label(text, '#171d21', '#f5eee2', w, h),
+    // D13: white marker boards with black stroke-font numerals.
+    private readonly makeLabel: (
+      text: string,
+      width: number,
+      height: number,
+    ) => T.Texture = distanceBoardLabel,
   ) {
     this.root.name = 'A09 authored braking and sector boards';
     source.updateMatrixWorld(true);
