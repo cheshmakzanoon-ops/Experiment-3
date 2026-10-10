@@ -378,7 +378,9 @@ export function configureSky(sky: Sky) {
         // D28 golden-hour dome (P2): warm #f2b27a at the horizon to #4a6fa8
         // overhead, as a hue at the clear dome's own luminance (brighter in the
         // horizon glow, deeper overhead), before the clouds composite over it.
-        float duskUp=smoothstep(-.02,.55,direction.y);
+        // The warm band ends about 17 degrees up (a 50 degree chase view's top
+        // tenth reads blue, shots/night-golden-hour-v4: mauve at .55).
+        float duskUp=smoothstep(.10,.30,direction.y);
         vec3 dusk=mix(vec3(.888,.445,.195),vec3(.068,.159,.392),duskUp);
         vec3 duskTint=dusk*dot(retColor,skyLuma)*mix(1.5,.55,duskUp)/max(dot(dusk,skyLuma),1e-6);
         retColor=mix(retColor,duskTint,.92*(1.0-sundisk));
