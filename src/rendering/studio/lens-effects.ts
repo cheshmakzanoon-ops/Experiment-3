@@ -38,8 +38,12 @@ export const LENS = Object.freeze({
   rainFull: 8,
   /** Share of drop cells holding a drop at full rain (two layers). */
   dropShare: 0.12,
-  /** Darkening at a drop's rim (a thin meniscus, not an outline). */
-  dropRim: 0.12,
+  /** A drop's shading: a smooth dimming that peaks at its centre and is 0 at
+   * its edge (a darker rim read as an outlined ring, shots/rain-review-v2). */
+  dropRim: 0.05,
+  /** Radius share where a drop's refraction and edge start to fade out, so
+   * it melts into the frame instead of ending in a sharp ring. */
+  dropSoft: 0.6,
   /** Speed (m/s) where drops are fully streaked. */
   streakSpeed: 60,
 });
@@ -264,8 +268,12 @@ vec3 lensDropLayer(vec2 px, float cell, float layer) {
   float h = sqrt(1.0 - r * r);
   vec2 n = normalize(d + 1e-4) * (1.0 - h);
   // A drop is a small lens: it shows a magnified, inverted patch of the frame.
-  vec2 offset = -n * radius * 1.6 * wet;
-  float rim = 1.0 - ${LENS.dropRim.toFixed(3)} * smoothstep(0.75, 1.0, r) * wet;
+  // Its thin edge bends less: the refraction fades to 0 at the rim, so the
+  // drop meets the frame continuously (no sharp outlined ring; review of
+  // shots/rain-review-v1).
+  float soft = 1.0 - smoothstep(${LENS.dropSoft.toFixed(3)}, 1.0, r);
+  vec2 offset = -n * radius * 1.6 * wet * soft;
+  float rim = 1.0 - ${LENS.dropRim.toFixed(3)} * h * soft * wet;
   return vec3(offset, rim);
 }
 vec3 lensRainSample(vec2 uv) {

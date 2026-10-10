@@ -147,6 +147,15 @@ describe('lens effects', () => {
     expect(LENS.dropShare).toBeLessThanOrEqual(0.15);
     expect(LENS.dropRim).toBeLessThanOrEqual(0.15);
     expect(LENS_RAIN_GLSL).toContain(`${LENS.dropShare.toFixed(3)} * lensRain`);
+    // Soft drops: refraction and meniscus fade out toward the edge (no ring).
+    expect(LENS.dropSoft).toBeGreaterThan(0.3);
+    expect(LENS.dropSoft).toBeLessThan(0.9);
+    expect(LENS_RAIN_GLSL).toContain(
+      `float soft = 1.0 - smoothstep(${LENS.dropSoft.toFixed(3)}, 1.0, r);`,
+    );
+    expect(LENS_RAIN_GLSL).toContain('vec2 offset = -n * radius * 1.6 * wet * soft;');
+    // The dimming peaks at the centre (h) and is 0 at the edge: no ring.
+    expect(LENS_RAIN_GLSL).toContain(`${LENS.dropRim.toFixed(3)} * h * soft * wet`);
   });
 
   it('builds the same dirt mask every time', () => {
