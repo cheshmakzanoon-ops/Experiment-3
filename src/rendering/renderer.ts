@@ -135,11 +135,13 @@ export type CameraMode = 'chase' | 'cockpit' | 'pod' | 'trackside';
 // car at 31 % of the width, low in the frame. PSQ036 (the primary reference)
 // needs a 1.3 m eye 4.5 m back, pitched about 4 degrees down: rear tyres at
 // ~41 % of the width, the rear wing top at y ~0.59 and the horizon at ~0.42.
+// At speed only the P5 +4 degree lens widens (the 0.0065 s pull-back left the
+// car at 34.9 % of the width at 265 km/h, shots/qa-signoff-medium KPI 10).
 export const CHASE = Object.freeze({
   height: 1.3,
-  heightPerMS: 0.003,
+  heightPerMS: 0.002,
   distance: 4.5,
-  distancePerMS: 0.0065,
+  distancePerMS: 0,
   lookAhead: 10,
   lookLift: -0.25,
   fov: 50,

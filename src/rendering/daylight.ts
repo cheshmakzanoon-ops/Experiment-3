@@ -381,7 +381,7 @@ export function configureSky(sky: Sky) {
         // The warm band ends about 17 degrees up (a 50 degree chase view's top
         // tenth reads blue, shots/night-golden-hour-v4: mauve at .55).
         float duskUp=smoothstep(.10,.30,direction.y);
-        vec3 dusk=mix(vec3(.888,.445,.195),vec3(.068,.159,.392),duskUp);
+        vec3 dusk=mix(vec3(.888,.445,.195),vec3(.045,.14,.42),duskUp);
         vec3 duskTint=dusk*dot(retColor,skyLuma)*mix(1.5,.55,duskUp)/max(dot(dusk,skyLuma),1e-6);
         retColor=mix(retColor,duskTint,.92*(1.0-sundisk));
       }
