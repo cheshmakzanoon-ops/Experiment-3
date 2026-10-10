@@ -74,22 +74,23 @@ describe('independent original livery slots', () => {
   it.each([-1, 1])(
     'paints signed flank %s UV transforms rather than placing labels over the screen',
     (side) => {
-      const context = {
-        save: vi.fn(),
-        restore: vi.fn(),
-        translate: vi.fn(),
-        rotate: vi.fn(),
-        fillText: vi.fn(),
-      };
+      // Decals are path-drawn wordmarks (studio/brand-atlas.ts, no system font).
+      const calls: Record<string, ReturnType<typeof vi.fn>> = {};
+      const context = new Proxy({} as Record<string, unknown>, {
+        get: (target, key: string) => (key in target ? target[key] : (calls[key] ??= vi.fn())),
+        set: (target, key: string, value) => ((target[key] = value), true),
+      }) as unknown as Record<string, ReturnType<typeof vi.fn>> & { strokeStyle: string };
       const slot = { ...emptyDecal(1), x: 0.5, y: -0.25, rotation: 30, text: 'VECTOR' };
       drawDecal(context as unknown as CanvasRenderingContext2D, slot, side);
       expect(context.translate).toHaveBeenNthCalledWith(1, (side > 0 ? 0.25 : 0.75) * 1024, 440);
       expect(context.translate).toHaveBeenNthCalledWith(2, 160, -22.5);
       expect(context.rotate).toHaveBeenNthCalledWith(1, side > 0 ? Math.PI / 2 : -Math.PI / 2);
       expect(context.rotate).toHaveBeenNthCalledWith(2, Math.PI / 6);
-      expect(context.fillText).toHaveBeenCalledWith('VECTOR', 0, 0, 190);
-      expect(context.save).toHaveBeenCalledOnce();
-      expect(context.restore).toHaveBeenCalledOnce();
+      // TEST-UPDATE: D06 replaced fillText with the stroked path wordmark.
+      expect(calls.fillText).toBeUndefined();
+      expect(context.strokeStyle).toBe(slot.color);
+      expect(context.stroke.mock.calls.length).toBeGreaterThan(0);
+      expect(context.save.mock.calls.length).toBe(context.restore.mock.calls.length);
     },
   );
 });
