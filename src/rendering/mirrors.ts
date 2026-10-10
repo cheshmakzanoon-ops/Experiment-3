@@ -23,7 +23,7 @@ export class MirrorViews {
     return target;
   });
   private materials = this.targets.map(
-    (t) => new T.MeshBasicMaterial({ map: t.texture, color: 0xd4dde0 }),
+    (t) => new T.MeshBasicMaterial({ map: t.texture, color: 0xeef2f4 }),
   );
   private surfaces: T.Mesh[] = [];
   private originals: (T.Material | T.Material[])[] = [];

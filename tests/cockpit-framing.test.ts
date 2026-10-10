@@ -1,6 +1,13 @@
 import { expect, it } from 'vitest';
 import { Euler, Quaternion, Vector3 } from 'three';
-import { cockpitEye, cockpitDirection, COCKPIT_FRAMING } from '../src/rendering/cockpit-framing.ts';
+import {
+  cockpitEye,
+  cockpitDirection,
+  cockpitFov,
+  tcamFov,
+  COCKPIT_FRAMING,
+  TCAM_FOV,
+} from '../src/rendering/cockpit-framing.ts';
 import { InertialCamera } from '../src/rendering/camera-dynamics.ts';
 import manifest from '../src/rendering/supplied-player.manifest.json' with { type: 'json' };
 import { PLAYER_SUSPENSION_DATUM } from '../src/rendering/supplied-player.ts';
@@ -71,4 +78,19 @@ it('is deterministic on pause/seek and rejects invalid socket or spring input', 
   expect(cockpitDirection(new Vector3()).length()).toBeCloseTo(1, 12);
   expect(COCKPIT_FRAMING.verticalFov).toBeGreaterThan(45);
   expect(COCKPIT_FRAMING.verticalFov).toBeLessThan(75);
+});
+
+it('P6/P7 lenses: the cockpitFov key and the speed-widened T-cam', () => {
+  expect(COCKPIT_FRAMING.verticalFov).toBe(54);
+  expect(COCKPIT_FRAMING.eyeOffset).toEqual([0, -0.03, -0.04]);
+  expect(COCKPIT_FRAMING.pitchRadians).toBe(-0.035);
+  expect(cockpitFov(54)).toBe(54);
+  expect(cockpitFov(30)).toBe(44);
+  expect(cockpitFov(90)).toBe(70);
+  expect(cockpitFov(NaN)).toBe(54);
+  expect(tcamFov(0)).toBe(58);
+  expect(tcamFov(40)).toBe(60);
+  expect(tcamFov(90)).toBe(62);
+  expect(tcamFov(-90)).toBe(62);
+  expect(TCAM_FOV.max).toBe(4);
 });

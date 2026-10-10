@@ -13,7 +13,7 @@ import { loadStartGantry } from './start-gantry.ts';
 import { loadRivalLevels, type RivalLevels } from './a61-rival.ts';
 import { GridPresentationView } from './grid-presentation-view.ts';
 import { gridPresentationCamera } from './grid-mechanic-motion.ts';
-import { cockpitEye, cockpitDirection, COCKPIT_FRAMING } from './cockpit-framing.ts';
+import { cockpitEye, cockpitDirection, cockpitFov, tcamFov } from './cockpit-framing.ts';
 import { loadPitJacks } from './a32-pit-jacks.ts';
 import { measurePitJackFits } from './a32-jack-contact.ts';
 import { loadWheelGuns, WheelGunStorage } from './wheel-gun.ts';
@@ -127,18 +127,18 @@ import { clamp } from '../core/math.ts';
 export type CameraMode = 'chase' | 'cockpit' | 'pod' | 'trackside';
 /** Chase rig in metres, m/s and vertical-FOV degrees. */
 export const CHASE = Object.freeze({
-  height: 1.95,
+  height: 1.65,
   heightPerMS: 0.003,
-  distance: 5.7,
+  distance: 4.9,
   distancePerMS: 0.0065,
-  lookAhead: 10,
-  lookLift: 0.42,
-  fov: 58,
-  fovGain: 6,
+  lookAhead: 13,
+  lookLift: 0.4,
+  fov: 50,
+  fovGain: 4,
 });
-/** T-cam lift above the authored pod socket and its downward gaze slope. */
+/** T-cam lift above the authored pod socket and its downward gaze slope (P7). */
 export const TCAM_LIFT_M = 0.09;
-export const TCAM_PITCH = -0.06;
+export const TCAM_PITCH = -0.075;
 /** Metres of planting, stands and buildings around the track in the far sun shadow. */
 export const FAR_SHADOW_MARGIN_M = 150;
 /** Local-probe cube faces rendered per frame by a periodic refresh. */
@@ -1070,10 +1070,10 @@ export class RacingRenderer {
       }
       this.camera.fov =
         cameraMode === 'cockpit' && car.suppliedPlayer
-          ? COCKPIT_FRAMING.verticalFov
+          ? cockpitFov(this.graphics.cockpitFov)
           : cameraMode === 'chase'
             ? CHASE.fov + Math.min(CHASE.fovGain, speed * 0.06)
-            : 68 + Math.min(7, speed * 0.075);
+            : tcamFov(speed);
     }
     if (!this.initialized || cameraMode !== 'chase' || menu || this.photo || pregame) {
       this.camera.position.copy(this.desired);
