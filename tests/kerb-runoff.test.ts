@@ -66,7 +66,8 @@ describe('kerb and run-off plan', () => {
 describe('kerb and run-off finishes', () => {
   it('paints P9 kerbs: 1.1 m stripes, ridges by normal, rubber and wear', () => {
     expect(KERB.pair).toBe(2.2);
-    expect(hex(KERB.colours[0][0])).toBe('#c4222a');
+    // TEST-UPDATE (KPI 11 iteration): albedo #c4222a rendered #c74146.
+    expect(hex(KERB.colours[0][0])).toBe('#bc0a14');
     expect(hex(KERB.colours[0][1])).toBe('#ecebe6');
     expect(hex(KERB.colours[1][0])).toBe('#2a4fa0');
     expect(KERB.colours[2].map(hex)).toEqual(['#e8c43a', '#2f8f52']);
@@ -80,7 +81,8 @@ describe('kerb and run-off finishes', () => {
     const f = shader.fragmentShader;
     expect(f).toContain('float stripePhase = vFinishMetres.y / 2.2000;');
     expect(f).toContain('apexStripeCoverage( stripePhase, fwidth( stripePhase ), .25 )');
-    expect(f).toContain('roughnessFactor = mix( 0.6800, 0.8800, kerbWear );');
+    // TEST-UPDATE (KPI 11 iteration): rougher paint, less sky sheen on the red.
+    expect(f).toContain('roughnessFactor = mix( 0.8200, 0.9200, kerbWear );');
     expect(f).toContain('normal = apexReliefNormal(');
     // The circuit finish (chips, joints) still runs after the paint.
     expect(f.indexOf('D15 kerb paint')).toBeLessThan(f.indexOf('float jointPhase'));

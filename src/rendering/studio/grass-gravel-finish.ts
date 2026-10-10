@@ -14,7 +14,10 @@ import { chainShaderHook, injectAfter, injectDeclarations } from './shader-hooks
  * their mean before a pixel spans a pebble. World-space and lap-space, so
  * stable in motion; 0 draw calls.
  */
-export const GRASS_TINT = Object.freeze([1.5, 1.38, 1.12] as const);
+// KPI 9 iteration: the rendered turf read #6d7937 at saturation 0.54 (target
+// #7f8444-#8e8a4c, 0.33-0.47). A lighter, greyer olive albedo #808054 renders
+// about #868553 in the day sun (shots/kpi-iteration-v1/v2).
+export const GRASS_TINT = Object.freeze([2.17, 1.66, 2.46] as const);
 export const GRASS_MOW_METRES = 4;
 export const GRASS_MOW_CONTRAST = 0.06;
 export const GRASS_DETAIL_GLSL = /* glsl */ `

@@ -76,11 +76,11 @@ export const COMPOUNDS: Record<
   Compound,
   { mu: number; ideal: number; lifeJ: number; waterTolerance: number; color: number }
 > = {
-  soft: { mu: 1.92, ideal: 96, lifeJ: 29e6, waterTolerance: 0.09, color: 0xe7444f },
-  medium: { mu: 1.84, ideal: 92, lifeJ: 40e6, waterTolerance: 0.1, color: 0xf6cf45 },
-  hard: { mu: 1.76, ideal: 90, lifeJ: 55e6, waterTolerance: 0.11, color: 0xe1e1db },
-  intermediate: { mu: 1.57, ideal: 70, lifeJ: 30e6, waterTolerance: 1.2, color: 0x49bb82 },
-  wet: { mu: 1.43, ideal: 60, lifeJ: 25e6, waterTolerance: 3.2, color: 0x529bea },
+  soft: { mu: 1.92, ideal: 96, lifeJ: 29e6, waterTolerance: 0.09, color: 0xe2262f },
+  medium: { mu: 1.84, ideal: 92, lifeJ: 40e6, waterTolerance: 0.1, color: 0xf5c400 },
+  hard: { mu: 1.76, ideal: 90, lifeJ: 55e6, waterTolerance: 0.11, color: 0xf2f2ee },
+  intermediate: { mu: 1.57, ideal: 70, lifeJ: 30e6, waterTolerance: 1.2, color: 0x2bb04a },
+  wet: { mu: 1.43, ideal: 60, lifeJ: 25e6, waterTolerance: 3.2, color: 0x0a6fd0 },
 };
 export const VEHICLE = {
   dryMass: 770,

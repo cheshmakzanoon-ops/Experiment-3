@@ -21,7 +21,10 @@ import { chainShaderHook, injectAfter, injectDeclarations } from './shader-hooks
 export const KERB = Object.freeze({
   pair: 2.2,
   colours: Object.freeze([
-    [0xc4222a, 0xecebe6],
+    // P9's #c4222a is the rendered red: in the day sun, with the white stripes
+    // filtered in at distance, the albedo #bc0a14 renders about #c4222a
+    // (#c4222a itself rendered #c74146, shots/kpi-iteration-v2 KPI 11).
+    [0xbc0a14, 0xecebe6],
     [0x2a4fa0, 0xecebe6],
     [0xe8c43a, 0x2f8f52],
   ] as const),
@@ -30,7 +33,7 @@ export const KERB = Object.freeze({
   // as hard bands at chase distance, so the visual relief is softened.
   ridge: Object.freeze({ amplitude: 0.006, period: 0.65, from: 0.12, to: 0.98 }),
   // Fresh paint at 0.5 mirrored the blue sky at grazing angles (pink kerbs).
-  roughness: Object.freeze({ fresh: 0.68, worn: 0.88 }),
+  roughness: Object.freeze({ fresh: 0.82, worn: 0.92 }),
   width: 1.1,
 });
 export const RUNOFF = Object.freeze({

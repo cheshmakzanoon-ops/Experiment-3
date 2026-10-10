@@ -129,13 +129,17 @@ import { CAR_STRIDE, F, H, W, WHEEL_BASE, WHEEL_STRIDE, carBase } from '../simul
 import { clamp } from '../core/math.ts';
 export type CameraMode = 'chase' | 'cockpit' | 'pod' | 'trackside';
 /** Chase rig in metres, m/s and vertical-FOV degrees. */
+// P5 retuned to its own target (KPI 10 iteration): 1.65 m / 4.9 m framed the
+// car at 31 % of the width, low in the frame. PSQ036 (the primary reference)
+// needs a 1.3 m eye 4.5 m back, pitched about 4 degrees down: rear tyres at
+// ~41 % of the width, the rear wing top at y ~0.59 and the horizon at ~0.42.
 export const CHASE = Object.freeze({
-  height: 1.65,
+  height: 1.3,
   heightPerMS: 0.003,
-  distance: 4.9,
+  distance: 4.5,
   distancePerMS: 0.0065,
-  lookAhead: 13,
-  lookLift: 0.4,
+  lookAhead: 10,
+  lookLift: -0.25,
   fov: 50,
   fovGain: 4,
 });

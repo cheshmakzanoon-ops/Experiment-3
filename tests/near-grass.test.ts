@@ -28,10 +28,11 @@ const linear = (byte: number) => {
 };
 
 describe('olive turf', () => {
-  it('tints the shared grass texels to an olive #6c7438 albedo', () => {
+  it('tints the shared grass texels to an olive #808054 albedo', () => {
     const texel = [89, 101, 53].map(linear);
     const albedo = texel.map((v, i) => srgb(v * GRASS_TINT[i]));
-    const target = [0x6c, 0x74, 0x38];
+    // TEST-UPDATE (KPI 9 iteration): #6c7438 rendered too green (#6d7937, sat 0.54).
+    const target = [0x80, 0x80, 0x54];
     albedo.forEach((v, i) => expect(Math.abs(v - target[i])).toBeLessThanOrEqual(12));
     // Less saturated than the old irrigated tint (sRGB 80/104/48).
     const sat = (c: number[]) => (Math.max(...c) - Math.min(...c)) / Math.max(...c);
