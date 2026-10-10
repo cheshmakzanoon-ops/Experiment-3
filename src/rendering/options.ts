@@ -37,7 +37,8 @@ export function graphicsPreset(quality: Quality): GraphicsOptions {
     // target. Supersampling beyond 1.0 remains a manual slider for faster GPUs.
     resolutionScale: quality === 'low' ? 0.75 : 1,
     textureSize: quality === 'low' ? 256 : quality === 'high' ? 1024 : 512,
-    shadowSize: quality === 'low' ? 0 : quality === 'high' ? 2048 : 1024,
+    // 2048 on Medium too (3.7 cm texels, fill cost only, 0 draw calls; D08).
+    shadowSize: quality === 'low' ? 0 : 2048,
     reflections: quality === 'high' ? 'local' : 'environment',
     mirrorQuality: quality,
     particleDensity: quality === 'low' ? 0 : quality === 'high' ? 1 : 0.65,

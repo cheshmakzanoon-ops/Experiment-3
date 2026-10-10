@@ -53,6 +53,7 @@ import { kerbHeight } from '../simulation/contact.ts';
 import { Track, CELL_ROWS, CELL_COLS, trackPoint } from '../simulation/track.ts';
 import { H } from '../simulation/protocol.ts';
 import { clamp } from '../core/math.ts';
+import { installCarGrounding } from './studio/car-grounding.ts';
 import { batchScene, box, canvasTexture, label, mesh, unprintedBack } from './geometry.ts';
 interface RibbonOptions {
   start?: number;
@@ -155,6 +156,8 @@ export class CircuitScene {
     const runOff = surfaceMaterial('asphalt', 'paint');
     runOff.color.setHex(0x8aa58d);
     const gravel = surfaceMaterial('gravel');
+    // Sky and sun light under the cars (D08): the ground they stand on.
+    for (const m of [this.roadMaterial, grass, runOff, gravel]) installCarGrounding(m);
     this.queueRibbon(grass, {
       offset: (s, t) => {
         track.at(s, this.temp);
@@ -197,6 +200,7 @@ export class CircuitScene {
     installCircuitFinish(white, 'paint');
     const kerb = new T.MeshStandardMaterial({ vertexColors: true, roughness: 0.85 });
     installCircuitFinish(kerb, 'kerb');
+    for (const m of [white, kerb]) installCarGrounding(m);
     for (const side of [-1, 1]) {
       this.queueRibbon(kerb, {
         offset: (s, t) => {
@@ -231,6 +235,7 @@ export class CircuitScene {
       VENUE_LAMP_RADIUS,
       this.wetReflection.uniforms,
     );
+    installCarGrounding(pitMat);
     for (const [start, end] of [
       [track.length - 220, track.length],
       [0, 330],

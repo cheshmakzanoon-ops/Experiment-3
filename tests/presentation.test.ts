@@ -66,7 +66,7 @@ it('bounds every numeric budget and rejects unsupported quality values', () => {
   );
   expect(g.resolutionScale).toBe(1);
   expect(g.textureSize).toBe(512);
-  expect(g.shadowSize).toBe(1024);
+  expect(g.shadowSize).toBe(2048);
   expect(g.particleDensity).toBe(0);
   expect(g.vegetationDensity).toBe(1);
   expect(g.motionBlur).toBe(0.6);

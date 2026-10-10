@@ -1,4 +1,5 @@
 import * as T from 'three';
+import { installShadowFilter } from './studio/shadow-filter.ts';
 
 /** Shadow intensity that marks the far light. Its map is sampled for the sun
  * (directional light 0) and it adds no light itself; any other second
@@ -83,6 +84,8 @@ export function installFarShadowChunks() {
   installed = true;
 }
 installFarShadowChunks();
+// After the far map: PCSS and rotated Vogel PCF in the PCF_SOFT branch (D08).
+installShadowFilter();
 
 export interface FarShadowBake {
   /** Sun direction (towards the sun), any length. */

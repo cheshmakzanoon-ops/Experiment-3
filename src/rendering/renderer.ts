@@ -88,6 +88,7 @@ import { CameraClock, InertialCamera, ViewOrientation } from './camera-dynamics.
 import { ReflectionSystem } from './reflections.ts';
 import { ShadowProxies } from './shadow-proxies.ts';
 import { FarShadow } from './far-shadow.ts';
+import { sunPenumbraScale } from './studio/shadow-filter.ts';
 import { DebrisView } from './debris.ts';
 import { PitCrewView, serviceWheelOffset } from './pit-crew.ts';
 import { MotionBlur } from './motion-blur.ts';
@@ -347,6 +348,8 @@ export class RacingRenderer {
     });
     this.sun.shadow.bias = -0.000015;
     this.sun.shadow.normalBias = 0.008;
+    // PCSS for the sun's 0.53° disc (studio/shadow-filter.ts reads it as radius).
+    this.sun.shadow.radius = sunPenumbraScale(this.sun.shadow.camera);
     this.circuit = new CircuitScene(track, true);
     this.reflection.probeDetail = this.circuit.probeDetail;
     // The far map covers the circuit and the planting and stands around it.
