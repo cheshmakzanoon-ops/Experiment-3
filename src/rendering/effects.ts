@@ -15,6 +15,17 @@ export const EFFECT_CAPACITY = { contact: 3600, rain: 600 } as const;
  * spray is partly contained by the wheel wake and bodywork. The shares average
  * to one, so a car's total measured-water emission is unchanged. */
 export const SPRAY_AXLE_SHARE = Object.freeze({ front: 0.5, rear: 1.5 });
+/** Rooster-tail spray (D24, TECH_WORLD_MAP 9.9): plume birth vertical speed
+ * (m/s), diffuser offset (m), puff size (m), growth (m/s), life (s), peak
+ * alpha. Birth counts and EFFECT_CAPACITY are unchanged. */
+export const SPRAY_PLUME = Object.freeze({
+  vy: Object.freeze([3.0, 4.5] as const),
+  offset: -2.6,
+  size: Object.freeze([0.55, 0.8] as const),
+  growth: 2.6,
+  life: Object.freeze([1.6, 2.6] as const),
+  alpha: 0.5,
+});
 /** Share of rear-tyre spray births lifted from the diffuser exit as the
  * central rooster tail rather than from the contact patch. */
 export const DIFFUSER_PLUME_SHARE = 0.3;
@@ -230,8 +241,10 @@ export class Effects {
       this.sizes[i] = 0.17 + r.next() * 0.08;
       this.gravity[i] = 0;
     } else if (kind === PARTICLE_KIND.SPRAY) {
-      this.life[i] = this.maxLife[i] = 1.1 + r.next() * 0.8;
-      this.sizes[i] = 0.3 + r.next() * 0.15;
+      this.life[i] = this.maxLife[i] =
+        SPRAY_PLUME.life[0] + r.next() * (SPRAY_PLUME.life[1] - SPRAY_PLUME.life[0]);
+      this.sizes[i] =
+        SPRAY_PLUME.size[0] + r.next() * (SPRAY_PLUME.size[1] - SPRAY_PLUME.size[0]);
       this.gravity[i] = -0.35;
     } else if (kind === PARTICLE_KIND.MARBLE) {
       this.life[i] = this.maxLife[i] = 0.3 + r.next() * 0.15;
@@ -407,7 +420,7 @@ export class Effects {
               .set(
                 plume ? (wheel % 2 === 0 ? -0.18 : 0.18) : wheel % 2 === 0 ? -0.83 : 0.83,
                 plume ? -0.12 : -0.37,
-                plume ? -2.35 : wheel < 2 ? 1.82 : -1.62,
+                plume ? SPRAY_PLUME.offset : wheel < 2 ? 1.82 : -1.62,
               )
               .applyQuaternion(this.q);
             this.spawn(
@@ -417,7 +430,11 @@ export class Effects {
               spray
                 ? frame[o + F.VX] * 0.16 + this.wake.x * speed * 0.2 + this.windX * 0.84
                 : frame[o + F.VX] * 0.25 + this.windX * 0.75,
-              spray ? (plume ? 2.2 + r.next() * 1.3 : 1.15 + r.next() * 1.4) : 1 + r.next(),
+              spray
+                ? plume
+                  ? SPRAY_PLUME.vy[0] + r.next() * (SPRAY_PLUME.vy[1] - SPRAY_PLUME.vy[0])
+                  : 1.15 + r.next() * 1.4
+                : 1 + r.next(),
               spray
                 ? frame[o + F.VZ] * 0.16 + this.wake.z * speed * 0.2 + this.windZ * 0.84
                 : frame[o + F.VZ] * 0.25 + this.windZ * 0.75,
@@ -474,8 +491,10 @@ export class Effects {
         const age = this.maxLife[i] - this.life[i];
         // Soft birth and broadening mist keep a trail legible, not a chain of dots.
         // Larger, fainter puffs overlap into one continuous plume.
-        this.alpha[i] = Math.min(1, age / 0.08) * remaining ** 0.75 * 0.36;
-        this.sizes[i] += dt * 1.6;
+        // D24: denser young plume, thinning with the square of its age.
+        const t = 1 - remaining;
+        this.alpha[i] = Math.min(1, age / 0.08) * (1 - t * t) * SPRAY_PLUME.alpha;
+        this.sizes[i] += dt * SPRAY_PLUME.growth;
       } else {
         this.alpha[i] =
           remaining *

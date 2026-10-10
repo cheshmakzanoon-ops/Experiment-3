@@ -109,6 +109,10 @@ export class SprayClouds {
           vec2 along=speed>0.001?projected/speed:vec2(0.0,1.0);
           vec2 across=vec2(along.y,-along.x);
           float radius=max(0.01,size)*0.72;
+          // D24 hanging mist: a quarter of the older puffs spread wide and thin.
+          float mist=spray?step(variation,0.25)*(1.0-clamp(opacity/0.5,0.0,1.0)):0.0;
+          radius*=1.0+1.5*mist;
+          vOpacity*=1.0-0.65*mist;
           // A wake viewed along its motion has no defined screen-space axis.
           // Collapse to a radial footprint before that axis can flip or spin.
           float stretch=1.0+min(1.1,speed*0.12);
@@ -124,7 +128,8 @@ export class SprayClouds {
           // Use the scene's real light state. Unlike the old unlit point color,
           // spray cannot remain luminous when the venue lights are switched off.
           vec3 energy=precipitationEnergy((modelViewMatrix*vec4(center,1.0)).xyz);
-          vLight=(spray?vec3(0.65,0.73,0.73):dust?vec3(0.5,0.42,0.3):vec3(0.8,0.8,0.78))*energy;
+          // D24: lit spray #d6dadb (linear), dust and smoke as before.
+          vLight=(spray?vec3(0.672,0.701,0.708):dust?vec3(0.5,0.42,0.3):vec3(0.8,0.8,0.78))*energy;
           // A diffuse volume cannot be brighter than a fully lit white card;
           // an unbounded nearby floodlight otherwise blooms a puff into a
           // glowing block. Smoke and dust stay radial (no wake anisotropy).
