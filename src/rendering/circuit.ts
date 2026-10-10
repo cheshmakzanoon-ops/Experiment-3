@@ -27,6 +27,8 @@ import { serviceSitePlan } from './venue-service-plan.ts';
 import { buildServiceAreas } from './venue-service.ts';
 import type { CrowdCluster } from './crowd.ts';
 import { APRON_COLUMNS, grassApronLateral, grassApronOffset } from './ground-profile.ts';
+import { APRON_OUTER, APRON_SKIRT_METRES, apronSkirtHeight } from './studio/apron-skirt.ts';
+import { installTerrainFinish, terrainTrackDistance } from './studio/terrain-finish.ts';
 import { barrierMaterials, buildBarrierChunk } from './circuit-barriers.ts';
 import { installCircuitFinish } from './circuit-finish.ts';
 import { standMaterials, buildGrandstand } from './grandstand.ts';
@@ -174,6 +176,17 @@ export class CircuitScene {
       height: (s, l) => grassApronOffset(track, s, l),
       columns: APRON_COLUMNS,
     });
+    // D17: a skirt from the apron's outer edge onto the terrain, both sides.
+    const ground = terrainFor(track);
+    for (const side of [-1, 1])
+      this.queueRibbon(grass, {
+        offset: (s, t) => {
+          track.at(s, this.temp);
+          return side * (this.temp.width + APRON_OUTER + APRON_SKIRT_METRES * t);
+        },
+        height: (s, l, t) => apronSkirtHeight(track, (x, z) => ground.height(x, z), s, l, t),
+        columns: 3,
+      });
     this.queueRibbon(gravel, {
       offset: (s, t) => {
         track.at(s, this.temp);
@@ -272,7 +285,8 @@ export class CircuitScene {
       const model = terrainFor(track);
       // 34 m cells resolve the ridged range's crests at horizon distance; the
       // coastal venue's embankments and cuttings need 21 m cells near the road.
-      const segments = model.kind === 'coast' ? 256 : 160;
+      // Aurel 160 -> 320 segments (17 m cells): the canopy carpet's ridgelines (D17).
+      const segments = model.kind === 'coast' ? 256 : 320;
       const terrain = new T.PlaneGeometry(5500, 5500, segments, segments);
       terrain.rotateX(-Math.PI / 2);
       const pos = terrain.getAttribute('position'),
@@ -288,6 +302,9 @@ export class CircuitScene {
       terrain.computeVertexNormals();
       // Same original grass texels, plus slope/elevation landform shading.
       const land = surfaceMaterial('grass', 'terrain');
+      // D17: forest carpet, strata rock and dry meadows by distance to the circuit.
+      terrainTrackDistance(track, terrain);
+      installTerrainFinish(land);
       if (model.seaLevel !== null && model.coastZ) {
         const shore = new Float32Array(pos.count);
         for (let i = 0; i < pos.count; i++)
