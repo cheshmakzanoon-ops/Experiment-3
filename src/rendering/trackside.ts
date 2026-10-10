@@ -136,8 +136,11 @@ export const TELEPHOTO = Object.freeze({
   minFov: 12,
   maxFov: 24,
   dofBelow: 20,
-  aperture: 0.0013,
-  maxblur: 0.011,
+  // Broadcast-mild (qa-signoff review of shots/qa-signoff-medium/70-pit-tv):
+  // 0.0013 / 0.011 turned the held pit-stop TV shot into a miniature with the
+  // pit wall and boards unreadable; a long lens softens, it does not smear.
+  aperture: 0.0006,
+  maxblur: 0.006,
 });
 
 /** A complete car fits within a 3.1 m bounding sphere. Reserve composition
