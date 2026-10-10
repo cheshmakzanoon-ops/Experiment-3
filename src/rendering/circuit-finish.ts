@@ -1,5 +1,11 @@
 import { PERIODIC_COVERAGE_GLSL } from './periodic-coverage.ts';
 import * as T from 'three';
+import {
+  GRASS_DETAIL_GLSL,
+  GRASS_MOW_CONTRAST,
+  GRASS_MOW_METRES,
+  GRASS_TINT,
+} from './studio/grass-gravel-finish.ts';
 
 export type CircuitFinish = 'asphalt' | 'grass' | 'terrain' | 'concrete' | 'paint' | 'kerb';
 
@@ -55,9 +61,10 @@ const finishes: Record<CircuitFinish, string> = {
     diffuseColor.rgb *= 1.0-.17*join;
   `,
   grass: `
-    // Irrigated circuit turf: shift the shared olive texels greener (linear
-    // ratios of sRGB 80/104/48 over the texture's 89/101/53 mean).
-    diffuseColor.rgb *= vec3(.79,1.066,.8);
+    // D19: olive circuit turf (#6c7438 albedo over the shared 89/101/53 texels)
+    // with 25 m and 90 m regional variation and dry patches below.
+    diffuseColor.rgb *= vec3(${GRASS_TINT.map((v) => v.toFixed(3)).join(',')});
+    ${GRASS_DETAIL_GLSL}
     // Regional soil/moisture variation, not high-contrast camouflage patches.
     float broad=finishFilteredNoise(vFinishWorld.xz*.018);
     float patches=finishFilteredNoise(vFinishWorld.xz*.48);
@@ -71,12 +78,12 @@ const finishes: Record<CircuitFinish, string> = {
     // A filtered triangle wave keeps band edges stable in motion; the bands
     // converge to their mean before one pixel spans a band, and fade out before
     // the apron's outer edge so they never meet the unmown terrain as a seam.
-    float mowPhase=abs(vFinishMetres.x)/9.0;
+    float mowPhase=abs(vFinishMetres.x)/${GRASS_MOW_METRES.toFixed(1)};
     float mowTri=abs(fract(mowPhase)-.5)*4.0-1.0;
     float mowAA=fwidth(mowPhase)*4.0+.03;
     float mowBand=smoothstep(-mowAA,mowAA,mowTri);
     float mowResolved=(1.0-smoothstep(.25,.9,mowAA))*(1.0-smoothstep(26.0,38.0,abs(vFinishMetres.x)));
-    diffuseColor.rgb *= mix(1.0,mix(.9,1.08,mowBand),mowResolved);
+    diffuseColor.rgb *= mix(1.0,mix(${(1 - GRASS_MOW_CONTRAST).toFixed(3)},${(1 + GRASS_MOW_CONTRAST).toFixed(3)},mowBand),mowResolved);
   `,
   terrain: `
     // Distant landform shading from the world normal and elevation: lush
@@ -86,6 +93,8 @@ const finishes: Record<CircuitFinish, string> = {
     float tFine=finishFilteredNoise(vFinishWorld.xz*.21);
     float slope=1.0-clamp(normalize(vFinishNormal).y,0.0,1.0);
     float elevation=vFinishWorld.y;
+    // D19: the same olive turf tint as the apron, so their seam disappears.
+    diffuseColor.rgb *= vec3(${GRASS_TINT.map((v) => v.toFixed(3)).join(',')});
     diffuseColor.rgb *= .9+.18*tBroad;
     float dryLand=smoothstep(14.0,95.0,elevation+(tBroad-.5)*40.0);
     diffuseColor.rgb=mix(diffuseColor.rgb,diffuseColor.rgb*vec3(1.22,1.05,.72),dryLand*.8);
@@ -161,7 +170,7 @@ export function installCircuitFinish(material: T.MeshStandardMaterial, kind: Cir
       .replace('#include <map_fragment>', '#include <map_fragment>\n' + finishes[kind]);
   };
   material.customProgramCacheKey = () =>
-    `${baseKey}:circuit-finish-v2-filtered:periodic-joints-v1:${kind}${kind === 'asphalt' ? ':binder-p4-v3' : ''}${kind === 'grass' ? ':regional-soil-v1:mown-v1' : kind === 'terrain' ? ':landform-v1' : ''}`;
+    `${baseKey}:circuit-finish-v2-filtered:periodic-joints-v1:${kind}${kind === 'asphalt' ? ':binder-p4-v3' : ''}${kind === 'grass' ? ':regional-soil-v1:mown-v1:olive-d19-v1' : kind === 'terrain' ? ':landform-v1:olive-d19-v1' : ''}`;
   material.name = `Original ${kind} construction finish`;
 }
 

@@ -46,6 +46,7 @@ import {
   type TrackInfrastructurePlan,
 } from './track-infrastructure.ts';
 import { surfaceMaterial } from './surface-detail.ts';
+import { installGravelFinish } from './studio/grass-gravel-finish.ts';
 import * as T from 'three';
 import { BuildQueue } from './build-queue.ts';
 import { sphereDetail, stripDetail, trunkDetail, type ProbeDetail } from './probe-detail.ts';
@@ -166,6 +167,8 @@ export class CircuitScene {
     // D15: painted bands, chevrons or astroturf per corner (no flat tint).
     installRunoffFinish(runOff);
     const gravel = surfaceMaterial('gravel');
+    // D19: Voronoi pebbles, cavities and raked furrows (#b9a98a).
+    installGravelFinish(gravel);
     // Sky and sun light under the cars (D08): the ground they stand on.
     for (const m of [this.roadMaterial, grass, runOff, gravel]) installCarGrounding(m);
     this.queueRibbon(grass, {
