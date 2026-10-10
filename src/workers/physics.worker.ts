@@ -90,7 +90,7 @@ scope.onmessage = (event: MessageEvent<ClientMessage>) => {
           send({ type: 'pauseState', sequence: msg.sequence, value: paused, tick: simulation.tick });
         break;
       case 'pit':
-        simulation?.requestPit();
+        simulation?.requestPit(msg.compound);
         break;
       case 'autopilot':
         if (simulation) simulation.autoPlayer = msg.value;

@@ -9,10 +9,13 @@ import {
   alternateDryCompound,
   mandatoryStopSatisfied,
   racingSession,
+  VEHICLE,
+  type Compound,
   type Controls,
   type SessionOptions,
   validateOptions,
 } from './config.ts';
+import { OVERTAKE } from './drs.ts';
 import {
   CAR_STRIDE,
   DEBRIS_BASE,
@@ -20,6 +23,8 @@ import {
   F,
   H,
   HEADER,
+  R,
+  RACE_BASE,
   W,
   WHEEL_BASE,
   WHEEL_STRIDE,
@@ -83,10 +88,23 @@ export class Simulation {
     dst.reverse = !!input.reverse;
     dst.manualClutch = input.manualClutch === true;
     dst.clutch = Number.isFinite(input.clutch) ? clamp(input.clutch, 0, 1) : 0;
+    const car = this.cars[0];
+    if (input.drs === true) car.drsRequest = true;
+    if (
+      input.overtake === true &&
+      car.overtakeClock <= 0 &&
+      car.battery >= VEHICLE.maxBatteryJ * OVERTAKE.minBattery
+    )
+      car.overtakeClock = OVERTAKE.seconds;
   }
-  requestPit() {
+  /** Toggle the player's pit request; `compound` is the strategy page's choice. */
+  requestPit(compound?: Compound) {
     const c = this.cars[0];
     c.pitRequested = !c.pitRequested;
+    if (compound && Object.hasOwn(COMPOUNDS, compound)) {
+      c.nextCompound = compound;
+      return;
+    }
     c.nextCompound =
       this.track.meanWater() > 0.85
         ? 'wet'
@@ -145,6 +163,17 @@ export class Simulation {
     out[H.LENGTH] = this.track.length;
     out[H.WIND_X] = this.track.windX;
     out[H.WIND_Z] = this.track.windZ;
+    const sc = this.race.safetyCar;
+    out[H.SC_PHASE] = sc.phase;
+    out[H.SC_S] = sc.s;
+    out[H.SC_SPEED] = sc.phase >= 2 ? sc.speed : 0;
+    out[H.DRS_ENABLED] = Number(this.race.drs.enabled);
+    let leaderLaps = 0;
+    for (const lap of this.race.laps) leaderLaps = Math.max(leaderLaps, lap.completed);
+    out[H.LAP_LEADER] = leaderLaps + 1;
+    out[H.FORMATION] = 0;
+    out[H.FORMATION + 1] = 0;
+    out[H.FORMATION + 2] = 0;
     for (let id = 0; id < this.cars.length; id++) {
       const c = this.cars[id],
         b = c.body,
@@ -196,6 +225,16 @@ export class Simulation {
       out[o + F.WAKE] = c.wake;
       out[o + F.SLIP_ENERGY] = c.tires.reduce((sum, w) => sum + w.energy, 0);
       out[o + F.BOTTOM_ENERGY] = c.bottomEnergy;
+      const r = o + RACE_BASE,
+        status = this.race.sectorStatus;
+      out[r + R.DRS] = this.race.drs.state[id];
+      out[r + R.DRS_ELIGIBLE] = Number(this.race.drs.eligibleZone[id] >= 0);
+      out[r + R.TYRE_AGE_LAPS] = t.completed - this.race.stintStart[id];
+      out[r + R.NEXT_COMPOUND] = c.pitRequested ? COMPOUND_IDS.indexOf(c.nextCompound) : -1;
+      out[r + R.OVERTAKE] = c.overtakeClock;
+      out[r + R.SECTOR_STATUS] = status[id * 3] + 4 * status[id * 3 + 1] + 16 * status[id * 3 + 2];
+      out[r + R.DRS_FLAP] = c.drsFlap;
+      out[r + 7] = 0;
       const k = o + SKID_BASE,
         skid = c.skid;
       out[k + K.CONTACTS] = skid.contacts;

@@ -14,7 +14,7 @@ it('migrates version-one driving keys and provides bindings for every existing a
   expect(result.bindings.throttle).toBe('KeyI');
   expect(result.bindings.shiftUp).toBe('BracketRight');
   expect(result.bindings.camera).toBe('KeyC');
-  expect(new Set(Object.values(result.bindings)).size).toBe(16);
+  expect(new Set(Object.values(result.bindings)).size).toBe(18);
 });
 it('rejects duplicate actions and reserved browser/safety keys', () => {
   expect(() => validateBindings({ ...DEFAULT_BINDINGS, throttle: 'KeyC' })).toThrow(

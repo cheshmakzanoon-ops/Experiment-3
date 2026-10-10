@@ -9,7 +9,7 @@ import { applySuppliedLookdev } from './studio/supplied-lookdev.ts';
 import { loadPlayerLods, SuppliedPlayerLods, type PlayerLodData } from './supplied-player-lods.ts';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { clamp, lerp } from '../core/math.ts';
-import { F, H, W, WHEEL_BASE, WHEEL_STRIDE } from '../simulation/protocol.ts';
+import { F, H, R, RACE_BASE, W, WHEEL_BASE, WHEEL_STRIDE } from '../simulation/protocol.ts';
 import { COMPOUNDS } from '../simulation/config.ts';
 import { wheelPhase, wheelTravel } from './wheel-pose.ts';
 import { serviceWheelOffset } from './pit-crew.ts';
@@ -19,6 +19,8 @@ import manifest from './supplied-player.manifest.json' with { type: 'json' };
 /** The Blender assembly uses the nominal wheel-centre datum, while the
  * simulation publishes absolute suspension lengths below chassis hardpoints. */
 export const PLAYER_SUSPENSION_DATUM = 0.25;
+/** DRS flap rotation (rad about the lateral axis) when fully open. */
+export const PLAYER_DRS_OPEN = -0.5;
 
 /** These two source images are scalar height, not tangent-space RGB normals.
  * Preserve their UV transforms and restore the source Bump-node interpretation.
@@ -297,6 +299,7 @@ export class SuppliedPlayer {
   private readonly action: T.AnimationAction;
   private readonly front: T.Object3D;
   private readonly rear: T.Object3D;
+  private readonly drsFlap: T.Object3D | null;
   private readonly rain: T.MeshStandardMaterial[] = [];
   private readonly compound: T.MeshStandardMaterial[] = [];
   private readonly wheelBlur: SuppliedWheelBlur;
@@ -333,6 +336,8 @@ export class SuppliedPlayer {
     this.mirrors = [0, 1].map((i) => firstMesh(`RB19_MIRROR_${i}`));
     this.front = node('PLAYER_FRONT_WING');
     this.rear = node('PLAYER_REAR_WING');
+    // DRS: the upper flap hinges near its trailing edge; the leading edge lifts.
+    this.drsFlap = root.getObjectByName('PLAYER_DRS') ?? null;
     this.eye = new T.Vector3(...(manifest.sockets.eye as [number, number, number]));
     this.pod = new T.Vector3(...(manifest.sockets.pod as [number, number, number]));
     this.steering = new T.Vector3(...(manifest.sockets.steering as [number, number, number]));
@@ -465,6 +470,9 @@ export class SuppliedPlayer {
     this.front.scale.x = 0.35 + 0.65 * clamp(b[o + F.FRONT_HEALTH], 0, 1);
     this.front.rotation.z = (1 - b[o + F.FRONT_HEALTH]) * 0.12;
     this.rear.rotation.z = (1 - b[o + F.REAR_HEALTH]) * 0.09;
+    if (this.drsFlap)
+      this.drsFlap.rotation.x =
+        PLAYER_DRS_OPEN * lerp(a[o + RACE_BASE + R.DRS_FLAP], b[o + RACE_BASE + R.DRS_FLAP], t);
     const style = Object.values(COMPOUNDS)[Math.round(b[o + F.COMPOUND])] ?? COMPOUNDS.medium;
     this.compound.forEach((m) => m.color.setHex(style.color));
     this.rubber.forEach(({ material, roughness }) => {

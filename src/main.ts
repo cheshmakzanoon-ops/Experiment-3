@@ -47,8 +47,10 @@ import {
   type SessionOptions,
 } from './simulation/config.ts';
 import { F, H, carBase } from './simulation/protocol.ts';
+import { safetyCarPose } from './rendering/studio/safety-car.ts';
 import { RacingRenderer } from './rendering/renderer.ts';
 import { Interface, lapTime, shortTime } from './ui/interface.ts';
+import { selectedPitCompound } from './ui/race-day-hud.ts';
 import {
   GhostPlayer,
   GhostRecorder,
@@ -173,6 +175,10 @@ export class GameApp {
   private options: SessionOptions = { ...DEFAULT_OPTIONS };
   private auto = false;
   private ers: 0 | 1 | 2 = 1;
+  /** One-shot DRS and ERS overtake presses, sent with the next input sample. */
+  private drsPress = false;
+  private overtakePress = false;
+  private safetyCarScratch = ghostPose();
   private inputPump: InputPump;
   private previousTime = 0;
   private renderedAt = 0;
@@ -290,6 +296,9 @@ export class GameApp {
       // A device fault may have paused the session during update().
       if (this.state !== 'driving') return;
       input.ers = this.ers;
+      input.drs = this.drsPress;
+      input.overtake = this.overtakePress;
+      this.drsPress = this.overtakePress = false;
       this.post({ type: 'input', input: { ...input } });
       input.shift = 0;
     });
@@ -849,6 +858,12 @@ export class GameApp {
       this.gridPanel?.update(this.gridClock);
     }
     this.presentGhost(a, b, alpha);
+    const scPhase = b[H.SC_PHASE];
+    this.renderer.setSafetyCar(
+      scPhase >= 2 && scPhase <= 3 && this.state !== 'menu'
+        ? safetyCarPose(this.track, b[H.SC_S], b[H.SC_SPEED], this.safetyCarScratch)
+        : null,
+    );
     this.renderer.draw(
       a,
       b,
@@ -1700,7 +1715,7 @@ export class GameApp {
         break;
       case 'pit':
         if (this.state === 'driving') {
-          this.post({ type: 'pit' });
+          this.post({ type: 'pit', compound: selectedPitCompound(this.ui.hud) });
           this.ui.toast(
             'Pit request toggled. Pit assist drives to the box, services the car, then returns control after the exit.',
           );
@@ -1709,6 +1724,15 @@ export class GameApp {
       case 'ers':
         this.performanceCapture.interrupt('Deployment mode changed');
         this.ers = ((this.ers + 1) % 3) as 0 | 1 | 2;
+        break;
+      case 'drs':
+        if (this.state === 'driving') this.drsPress = true;
+        break;
+      case 'overtake':
+        if (this.state === 'driving') {
+          this.performanceCapture.interrupt('Deployment mode changed');
+          this.overtakePress = true;
+        }
         break;
       case 'mute':
         this.performanceCapture.interrupt('Audio workload changed');

@@ -7,7 +7,16 @@ import {
   VEHICLE,
   type SessionOptions,
 } from '../simulation/config.ts';
-import { F, H, W, WHEEL_BASE, WHEEL_STRIDE, carBase } from '../simulation/protocol.ts';
+import {
+  F,
+  H,
+  R,
+  RACE_BASE,
+  W,
+  WHEEL_BASE,
+  WHEEL_STRIDE,
+  carBase,
+} from '../simulation/protocol.ts';
 import { FLAG, yellowFlag } from '../simulation/marshal.ts';
 import type { SectorBoard, SectorState } from './sector-timing.ts';
 import { Vector3, type Camera } from 'three';
@@ -141,6 +150,19 @@ export function raceBanner(frame: Float32Array, auto: boolean): RaceBanner {
     flag = frame[H.FLAG];
   if (frame[o + F.FINISH] > 0)
     return banner('finish', 'chequered', 'CHEQUERED FLAG', 'COOL-DOWN LAP · WAITING FOR THE FIELD');
+  const neutralised = Math.round(frame[H.SC_PHASE]);
+  if (neutralised > 0)
+    return banner(
+      'flag',
+      'yellow',
+      neutralised === 1 ? 'VIRTUAL SAFETY CAR' : 'SAFETY CAR',
+      neutralised === 1
+        ? 'KEEP TO THE DELTA · NO OVERTAKING'
+        : neutralised === 3
+          ? 'IN THIS LAP · HOLD POSITION'
+          : 'DEPLOYED · NO OVERTAKING',
+      true,
+    );
   if (yellowFlag(flag)) {
     const speed = Math.round(Math.max(0, frame[o + F.CAUTION_SPEED]) * 3.6);
     const double = flag === FLAG.DOUBLE_YELLOW;
@@ -168,6 +190,8 @@ export function raceBanner(frame: Float32Array, auto: boolean): RaceBanner {
   if (pit > 0) return banner('pit', 'pit', 'PIT LANE', pitPhaseLabel(pit));
   if (frame[o + F.FRONT_HEALTH] < 0.6)
     return banner('warn', 'warn', 'FRONT WING DAMAGE', 'REQUEST PIT SERVICE');
+  if (frame[H.DRS_ENABLED] > 0 && frame[H.LAP_LEADER] === 3)
+    return banner('info', 'info', 'DRS ENABLED', 'WITHIN 1.0 S AT DETECTION');
   return banner('none', '', '', '');
 }
 /** Seconds a banner stays fully visible (Art Bible B §0.3 motion). */
@@ -561,7 +585,8 @@ export class F1Hud {
     const pitLimiter = frame[o + F.IN_PIT] > 0 && (pitPhase === 1 || pitPhase === 6);
     attr(this.cluster, 'pit', String(pitLimiter));
     set(this.status, clusterStatus(frame, s.ers, pitLimiter));
-    attr(this.drs, 'state', String(s.drs ?? 0));
+    const drs = s.drs ?? Math.round(s.frame[carBase(0) + RACE_BASE + R.DRS]);
+    attr(this.drs, 'state', String(drs >= 0 && drs <= 2 ? drs : 0));
     const gear = Math.round(frame[o + F.GEAR]);
     const up = gear >= 1 && gear < VEHICLE.gearRatios.length - 2 && rpm >= VEHICLE.shiftRPM * 0.985;
     const down = gear > 1 && rpm < VEHICLE.shiftRPM * 0.62 && frame[o + F.BRAKE] > 0.2;

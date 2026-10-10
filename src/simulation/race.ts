@@ -1,5 +1,7 @@
 import { LapReference } from './lap-reference.ts';
-import { MarshalControl } from './marshal.ts';
+import { MarshalControl, yellowFlag } from './marshal.ts';
+import { DrsControl } from './drs.ts';
+import { SC_PHASE, SafetyCarDirector } from './safety-car.ts';
 import { safePitRelease } from './pit-safety.ts';
 import { mod, Random } from '../core/math.ts';
 import {
@@ -153,6 +155,19 @@ export class RaceDirector {
   readonly laps: LapTracker[];
   readonly order: number[];
   readonly control: MarshalControl;
+  readonly drs: DrsControl;
+  readonly safetyCar: SafetyCarDirector;
+  /** Per car and sector of the current lap: 0 none, 1 slower, 2 personal best, 3 overall best. */
+  readonly sectorStatus: Uint8Array;
+  /** Laps completed when each car's current tyre set was fitted. */
+  readonly stintStart: Int32Array;
+  private readonly bestSector: Float64Array;
+  private readonly overallSector = [0, 0, 0];
+  private readonly seenSector: Int8Array;
+  private readonly seenLaps: Int32Array;
+  private readonly seenStops: Int32Array;
+  private drsAnnounced = false;
+  private scAnnounced = 0;
   flag: 'GREEN' | 'YELLOW' | 'CHEQUERED' = 'GREEN';
   message = 'SYSTEMS READY';
   private nextMessage = 0;
@@ -167,6 +182,89 @@ export class RaceDirector {
     this.control = new MarshalControl(track.length, cars.length, (car, seconds, code) =>
       this.penalize(car, seconds, code),
     );
+    this.drs = new DrsControl(
+      track.circuit.drsZones,
+      track.length,
+      cars.length,
+      cars.map((c) => c.s),
+    );
+    this.safetyCar = new SafetyCarDirector(track.length);
+    this.sectorStatus = new Uint8Array(cars.length * 3);
+    this.stintStart = new Int32Array(cars.length);
+    this.bestSector = new Float64Array(cars.length * 3);
+    this.seenSector = new Int8Array(cars.length);
+    this.seenLaps = new Int32Array(cars.length);
+    this.seenStops = new Int32Array(cars.length);
+  }
+  /** Race-rules bookkeeping after timing: safety car, DRS, sectors, stints. */
+  private rules(dt: number) {
+    const racing = racingSession(this.options.mode);
+    this.safetyCar.update(
+      dt,
+      this.cars,
+      this.order[0],
+      this.control,
+      racing && this.finishStartedAt < 0,
+    );
+    let leaderLaps = 0;
+    for (const lap of this.laps) leaderLaps = Math.max(leaderLaps, lap.completed);
+    this.drs.update(dt, this.raceTime, this.cars, {
+      racing,
+      leaderLaps,
+      water: this.track.meanWater(),
+      neutralised: this.safetyCar.neutralised,
+      yellow: (car) => yellowFlag(this.control.flags[car]),
+    });
+    for (let i = 0; i < this.cars.length; i++) {
+      const lap = this.laps[i],
+        car = this.cars[i];
+      if (car.pitStops !== this.seenStops[i]) {
+        this.seenStops[i] = car.pitStops;
+        this.stintStart[i] = lap.completed;
+      }
+      let done = -1,
+        time = 0;
+      if (lap.completed !== this.seenLaps[i]) {
+        done = 2;
+        time = lap.lastSectors[2];
+      } else if (lap.sector !== this.seenSector[i] && lap.sector > 0) {
+        done = lap.sector - 1;
+        time = lap.sectors[done];
+      }
+      this.seenLaps[i] = lap.completed;
+      this.seenSector[i] = lap.sector;
+      if (done < 0 || !(time > 0)) continue;
+      const k = i * 3 + done;
+      let status = 1;
+      if (done === 2 ? lap.lastValid : lap.valid) {
+        if (this.bestSector[k] === 0 || time < this.bestSector[k]) {
+          this.bestSector[k] = time;
+          status = 2;
+        }
+        if (this.overallSector[done] === 0 || time < this.overallSector[done]) {
+          this.overallSector[done] = time;
+          status = 3;
+        }
+      }
+      this.sectorStatus[k] = status;
+      if (done === 0) this.sectorStatus.fill(0, i * 3 + 1, i * 3 + 3);
+    }
+    if (racing && this.drs.enabled && !this.drsAnnounced) {
+      this.drsAnnounced = true;
+      this.message = 'DRS ENABLED';
+      this.nextMessage = this.time + 5;
+    }
+    if (this.safetyCar.phase !== this.scAnnounced) {
+      const was = this.scAnnounced;
+      this.scAnnounced = this.safetyCar.phase;
+      this.message = [
+        was === SC_PHASE.VSC ? 'VSC ENDING · GREEN FLAG' : 'GREEN FLAG · RACING RESUMES',
+        'VIRTUAL SAFETY CAR · 115 KM/H',
+        'SAFETY CAR DEPLOYED · NO OVERTAKING',
+        'SAFETY CAR IN THIS LAP',
+      ][this.safetyCar.phase];
+      this.nextMessage = this.time + 5;
+    }
   }
   penalize(car: number, seconds: number, code: string) {
     this.laps[car].penalty += seconds;
@@ -218,6 +316,7 @@ export class RaceDirector {
         lap.update(c.s, this.raceTime, outside);
       }
     }
+    this.rules(dt);
     if (this.options.mode === 'qualifying') {
       // Each car's session ends as it completes its timed laps; it then cools
       // down. A car that never completes them is retired after the grace time.
@@ -292,13 +391,15 @@ export class RaceDirector {
     this.flag =
       this.finishStartedAt >= 0 || this.phase === PHASE.FINISHED
         ? 'CHEQUERED'
-        : this.control.hasIncident
+        : this.control.hasIncident || this.safetyCar.neutralised
           ? 'YELLOW'
           : 'GREEN';
     if (this.phase === PHASE.FINISHED) this.message = 'SESSION COMPLETE';
     else if (this.finishStartedAt >= 0) this.message = 'CHEQUERED FLAG · FIELD FINISHING';
     else if (this.time > this.nextMessage)
-      this.message = this.control.hasIncident
+      this.message = this.safetyCar.neutralised
+        ? ['', 'VIRTUAL SAFETY CAR', 'SAFETY CAR', 'SAFETY CAR IN THIS LAP'][this.safetyCar.phase]
+        : this.control.hasIncident
         ? 'YELLOW · INCIDENT AHEAD'
         : this.cars[0].inPit
           ? 'PIT LANE · 80 KM/H'

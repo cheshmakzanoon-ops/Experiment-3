@@ -53,6 +53,8 @@ export class MarshalControl {
   readonly blueCar: Int16Array;
   readonly events: RaceEvent[] = [];
   sequence = 0;
+  /** Safety-car phase (SC_PHASE): overtaking while neutralised is judged as under yellow. */
+  neutralised = 0;
   readonly penaltyCount: Uint32Array;
   private readonly incidents: Incident[];
   private readonly stopped: Float64Array;
@@ -98,6 +100,26 @@ export class MarshalControl {
   }
   get hasIncident() {
     return this.incidents.some((incident) => incident.active);
+  }
+  /** The speed allowed at lap distance `s` given the active yellow zones,
+   * braking at `braking` m/s² for zones ahead (the safety car obeys these). */
+  speedLimitAt(s: number, braking: number): number {
+    let limit = Infinity;
+    for (const incident of this.incidents) {
+      if (!incident.active) continue;
+      const fromStart = mod(s - (incident.s - MARSHAL.approach), this.length);
+      const ahead = fromStart <= MARSHAL.approach + MARSHAL.exit ? 0 : this.length - fromStart;
+      const cap =
+        incident.severity === FLAG.DOUBLE_YELLOW ? MARSHAL.doubleYellowSpeed : MARSHAL.yellowSpeed;
+      if (ahead < 500) limit = Math.min(limit, Math.sqrt(cap * cap + 2 * braking * ahead));
+    }
+    return limit;
+  }
+  /** A stopped or retired car obstructs the track (double yellow). */
+  get hasObstruction() {
+    return this.incidents.some(
+      (incident) => incident.active && incident.severity === FLAG.DOUBLE_YELLOW,
+    );
   }
   private emit(time: number, kind: RaceEvent['kind'], car: number, code: string, seconds = 0) {
     if (this.events.length === MARSHAL.maximumEvents) this.events.shift();
@@ -282,8 +304,7 @@ export class MarshalControl {
           this.previousGap[index] < 30 &&
           gap < -0.5 &&
           gap > -30 &&
-          yellowFlag(this.flags[i]) &&
-          yellowFlag(this.previousFlags[i])
+          ((yellowFlag(this.flags[i]) && yellowFlag(this.previousFlags[i])) || this.neutralised > 0)
         ) {
           this.passDue[index] = time + MARSHAL.giveBackSeconds;
         }

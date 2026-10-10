@@ -35,6 +35,14 @@ export interface CircuitDefinition {
   maxBank: number;
   /** Named corners, by lap distance (m), for boards, minimap labels and guides. */
   corners: readonly { s: number; name: string }[];
+  /** DRS zones by lap distance (m): the 1.0 s gap is judged at `detect`, the
+   * flap may open from `start` to `end` (zones may wrap through the line). */
+  drsZones: readonly DrsZone[];
+}
+export interface DrsZone {
+  detect: number;
+  start: number;
+  end: number;
 }
 
 const AUREL_DESIGN = Object.freeze([
@@ -82,6 +90,7 @@ export const AUREL: CircuitDefinition = Object.freeze({
     { s: 2012, name: 'WORKS' },
     { s: 2180, name: 'CONCOURSE' },
   ]),
+  drsZones: Object.freeze([{ detect: 2180, start: 2300, end: 470 }]),
 });
 
 /** Periodic monotone-free cubic interpolation through (u, value) knots. */
@@ -201,6 +210,10 @@ export const VELLAMAR: CircuitDefinition = Object.freeze({
     { s: 3195, name: 'CASCATA' },
     { s: 3490, name: 'LANTERN' },
     { s: 3813, name: 'MARINA' },
+  ]),
+  drsZones: Object.freeze([
+    { detect: 3330, start: 3420, end: 640 },
+    { detect: 1800, start: 1900, end: 2720 },
   ]),
 });
 

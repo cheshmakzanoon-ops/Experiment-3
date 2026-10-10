@@ -34,6 +34,7 @@ import { loadSuppliedPlayer, type SuppliedPlayerAsset } from './supplied-player.
 import { detailDistance, feedDetailDistance } from './view-detail.ts';
 import { readRaceReviewFrame } from './race-review.ts';
 import { GhostCar } from './ghost-car.ts';
+import { SafetyCarView } from './studio/safety-car.ts';
 import { reflectInWetRoad } from './wet-reflection.ts';
 import { ghostPose, type GhostPose } from '../core/ghost-lap.ts';
 import { WeatherPresentation } from './weather-presentation.ts';
@@ -158,6 +159,9 @@ export class RacingRenderer {
   private ghost: GhostCar | null = null;
   private ghostPose: GhostPose = ghostPose();
   private ghostActive = false;
+  private safetyCar: SafetyCarView | null = null;
+  private safetyCarPose: GhostPose = ghostPose();
+  private safetyCarActive = false;
   private readonly wetPlanePoint = trackPoint();
   readonly effectPlayback = new EffectPlayback(this.effects);
   readonly debris = new DebrisView();
@@ -569,6 +573,17 @@ export class RacingRenderer {
   }
   ghostVisible() {
     return this.ghost?.visible ?? false;
+  }
+  /** Pose the presentation-only safety car (D27), or hide it (null). */
+  setSafetyCar(pose: GhostPose | null) {
+    this.safetyCarActive = !!pose;
+    if (!pose) return;
+    Object.assign(this.safetyCarPose, pose);
+    if (!this.safetyCar) {
+      this.safetyCar = new SafetyCarView(this.heroShells ?? undefined);
+      this.scene.add(this.safetyCar.root);
+      this.textures.register(this.safetyCar.root);
+    }
   }
   setCars(n: number) {
     while (this.cars.length < n) {
@@ -1154,6 +1169,13 @@ export class RacingRenderer {
     }
     this.ghost?.update(
       this.ghostActive && !replay && !menu && !this.photo ? this.ghostPose : null,
+      this.camera,
+      this.quality,
+      time,
+      dt,
+    );
+    this.safetyCar?.update(
+      this.safetyCarActive && !menu ? this.safetyCarPose : null,
       this.camera,
       this.quality,
       time,

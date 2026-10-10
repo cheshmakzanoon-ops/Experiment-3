@@ -9,7 +9,7 @@ import {
 } from './pit-safety.ts';
 import { peakGrip } from './tire.ts';
 import { approach, clamp, G, mod, Vec3 } from '../core/math.ts';
-import { VEHICLE } from './config.ts';
+import { VEHICLE, racingSession } from './config.ts';
 import { PHASE, type RaceDirector } from './race.ts';
 import { trackPoint, type Track } from './track.ts';
 import { RACING_LINE, racingLineFor } from './racing-line.ts';
@@ -152,6 +152,9 @@ export class AIDriver {
       command.steer = 0;
       return;
     }
+    // The AI opens DRS whenever race control makes it available (race sessions
+    // only, so single-car practice benchmarks never run with the flap open).
+    if (racingSession(race.options.mode)) c.drsRequest = true;
     this.strategyClock += dt;
     this.tacticalClock += dt;
     if (this.strategyClock >= 0.5) {
@@ -186,7 +189,7 @@ export class AIDriver {
         race.time,
         8.5 * grip,
         this.personality,
-        yellowFlag(race.control.flags[c.id]),
+        yellowFlag(race.control.flags[c.id]) || race.control.neutralised > 0,
         preparingPit ? 6 : this.brain.preferredLine(c, cars, track, race) || lineAt(c.s),
         preparingPit,
         lineAt,

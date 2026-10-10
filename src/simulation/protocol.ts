@@ -1,13 +1,25 @@
-import type { Controls, SessionOptions } from './config.ts';
-export const HEADER = 16,
-  CAR_STRIDE = 249,
+import type { Compound, Controls, SessionOptions } from './config.ts';
+export const HEADER = 24,
+  CAR_STRIDE = 257,
   WHEEL_BASE = 96,
   WHEEL_STRIDE = 26,
   DEBRIS_BASE = 200,
   DEBRIS_STRIDE = 8,
   SKID_BASE = 232,
-  SKID_STRIDE = 17;
-export const PROTOCOL_VERSION = 10;
+  SKID_STRIDE = 17,
+  RACE_BASE = 249,
+  RACE_STRIDE = 8;
+export const PROTOCOL_VERSION = 11;
+/** Race-rules tail per car (protocol v11). DRS: 0 off, 1 available, 2 open. */
+export const R = {
+  DRS: 0,
+  DRS_ELIGIBLE: 1,
+  TYRE_AGE_LAPS: 2,
+  NEXT_COMPOUND: 3,
+  OVERTAKE: 4,
+  SECTOR_STATUS: 5,
+  DRS_FLAP: 6,
+} as const;
 // +Z is the nose, +Y up and +X the driver's left; negative-X hubs are right-side wheels.
 export const WHEEL_NAMES = ['FR', 'FL', 'RR', 'RL'] as const;
 export const D = { KIND: 0, X: 1, Y: 2, Z: 3, ROTATION: 4, AGE: 5, MASS: 6, ACTIVE: 7 } as const;
@@ -48,6 +60,13 @@ export const H = {
   LENGTH: 13,
   WIND_X: 14,
   WIND_Z: 15,
+  /** 0 none, 1 VSC, 2 safety car deployed, 3 safety car in this lap. */
+  SC_PHASE: 16,
+  SC_S: 17,
+  SC_SPEED: 18,
+  DRS_ENABLED: 19,
+  LAP_LEADER: 20,
+  FORMATION: 21,
 } as const;
 export const F = {
   X: 0,
@@ -183,7 +202,7 @@ export type ToWorker =
   | { type: 'recycle'; buffer: ArrayBuffer }
   | { type: 'recycleTelemetry'; buffer: ArrayBuffer }
   | { type: 'recycleReplay'; buffer: ArrayBuffer }
-  | { type: 'pit' }
+  | { type: 'pit'; compound?: Compound }
   | { type: 'autopilot'; value: boolean };
 export type FromWorker =
   | { type: 'frame'; buffer: ArrayBuffer }

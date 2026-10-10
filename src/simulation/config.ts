@@ -215,6 +215,10 @@ export interface Controls {
   ers: 0 | 1 | 2;
   pit: boolean;
   reverse: boolean;
+  /** Edge: open the DRS flap if race control makes it available. */
+  drs?: boolean;
+  /** Edge: start the 4 s ERS overtake boost. */
+  overtake?: boolean;
 }
 export const controls = (): Controls => ({
   throttle: 0,

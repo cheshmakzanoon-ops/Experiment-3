@@ -11,6 +11,8 @@ export const BUTTON_ACTION_LABELS = {
   mute: 'Mute',
   debug: 'Engineering overlay',
   reverse: 'Reverse (hold at low speed)',
+  drs: 'DRS (open in a zone)',
+  overtake: 'ERS overtake (4 s)',
 } as const;
 export type ButtonAction = keyof typeof BUTTON_ACTION_LABELS;
 export type ButtonActions = Record<ButtonAction, number>;
@@ -32,6 +34,8 @@ export function defaultButtonActions(standard = false): ButtonActions {
     mute: -1,
     debug: -1,
     reverse: -1,
+    drs: -1,
+    overtake: -1,
   };
 }
 export function driveButtonOwner(mapping: InputMapping, index: number): string | null {
@@ -80,7 +84,11 @@ export function validateButtonActions(
   if (!legacy && Object.keys(source).some((key) => !BUTTON_ACTIONS.includes(key as ButtonAction)))
     throw new Error('Unknown controller action');
   for (const action of BUTTON_ACTIONS) {
-    const index = source[action];
+    // Actions added later (DRS, overtake) are unbound in older saved mappings.
+    const index =
+      source[action] === undefined && (action === 'drs' || action === 'overtake')
+        ? -1
+        : source[action];
     if (typeof index !== 'number' || !Number.isInteger(index) || index < -1 || index > 127)
       throw new Error(`${BUTTON_ACTION_LABELS[action]}: use a whole button number from -1 to 127`);
     const owner = driveButtonOwner(mapping, index) ?? occupied.get(index);

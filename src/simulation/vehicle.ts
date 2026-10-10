@@ -5,6 +5,7 @@ import { FrictionClutch } from './clutch.ts';
 import { DebrisPool } from './damage.ts';
 import { approach, clamp, G, lerp, Vec3 } from '../core/math.ts';
 import { aero, type AeroForces } from './aero.ts';
+import { DRS, OVERTAKE } from './drs.ts';
 import {
   controls,
   DEFAULT_SETUP,
@@ -105,6 +106,12 @@ export class Vehicle {
   aiOffset = 0;
   retired = false;
   finishTime = 0;
+  /** DRS: open request this step (player key or AI), granted state, flap 0..1. */
+  drsRequest = false;
+  drsOpen = false;
+  drsFlap = 0;
+  /** Seconds left of the ERS overtake boost. */
+  overtakeClock = 0;
   private force = new Vec3();
   private point = new Vec3();
   private localPoint = new Vec3();
@@ -227,7 +234,16 @@ export class Vehicle {
       this.fuel > 0 ? clamp(((VEHICLE.idleRPM * Math.PI) / 30 - shaft) * 3, 0, 180) : 0;
     let ice = this.fuel > 0 ? engineTorque(this.rpm) * this.throttle + idleTorque : 0;
     if (this.shiftClock > 0 || this.rpm > VEHICLE.limiterRPM) ice = 0;
-    const deploy = this.input.ers === 2 ? 1 : this.input.ers === 1 ? 0.55 : 0;
+    const deploy =
+      this.overtakeClock > 0
+        ? OVERTAKE.deploy
+        : this.input.ers === 2
+          ? 1
+          : this.input.ers === 1
+            ? 0.55
+            : 0;
+    this.overtakeClock = Math.max(0, this.overtakeClock - dt);
+    this.drsFlap = clamp(this.drsFlap + (this.drsOpen ? dt : -dt) / DRS.travel, 0, 1);
     const motorPower =
       this.gear > 0 && this.brake < 0.05 && this.shiftClock === 0 && shaft > 100
         ? Math.min(VEHICLE.motorPowerW * deploy * this.throttle, (this.battery * 0.94) / dt)
@@ -395,6 +411,7 @@ export class Vehicle {
       this.wake,
       Math.atan2(this.localVelocity.x, Math.abs(this.localVelocity.z) + 1),
       this.aero,
+      this.drsFlap,
     );
     this.force.copy(this.up).scale(-this.aero.front);
     b.orientation.rotate(this.localPoint.set(0, 0, 1.7), this.point).add(b.position);

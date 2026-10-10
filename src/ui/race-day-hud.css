@@ -245,6 +245,27 @@
   font-size: calc(11px * var(--ui-scale));
   margin: 0;
 }
+.hud[data-race-day] .pit-choices {
+  display: flex;
+  gap: 4px;
+  padding: 0 12px 12px;
+}
+.hud[data-race-day] .pit-choices button {
+  flex: 1;
+  min-width: 0;
+  padding: 4px 0;
+  border: 2px solid var(--compound, var(--hud-text-dim));
+  border-radius: 999px;
+  background: transparent;
+  color: var(--hud-text);
+  font: inherit;
+  font-size: calc(9px * var(--ui-scale));
+  font-weight: 800;
+}
+.hud[data-race-day] .pit-choices button[aria-pressed='true'] {
+  background: var(--compound, var(--hud-text));
+  color: #0b0d10;
+}
 .hud[data-race-day] .vehicle-page[hidden] {
   display: none !important;
 }

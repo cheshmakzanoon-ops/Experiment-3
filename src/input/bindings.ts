@@ -15,6 +15,8 @@ export const DEFAULT_BINDINGS = {
   debug: 'F3',
   mute: 'KeyM',
   autopilot: 'KeyG',
+  drs: 'KeyF',
+  overtake: 'KeyO',
 };
 export type BindingAction = keyof typeof DEFAULT_BINDINGS;
 export type Bindings = Record<BindingAction, string>;
@@ -35,6 +37,14 @@ export const BINDING_LABELS: Record<BindingAction, string> = {
   debug: 'Engineering overlay',
   mute: 'Mute',
   autopilot: 'AI demonstration',
+  drs: 'DRS (open in a zone)',
+  overtake: 'ERS overtake (4 s)',
+};
+/** Actions added after bindings were first saved: a saved set without them
+ * takes the first key it leaves free, like the clutch did. */
+const LATE_ACTION_KEYS: Partial<Record<BindingAction, readonly string[]>> = {
+  drs: ['KeyF', 'KeyV', 'KeyN', 'KeyH'],
+  overtake: ['KeyO', 'KeyU', 'KeyY', 'KeyJ'],
 };
 export const validBindingCode = (code: unknown): code is string =>
   typeof code === 'string' &&
@@ -51,6 +61,19 @@ export function validateBindings(value: unknown): Bindings {
           !Object.entries(source).some(([name, value]) => name !== 'clutch' && value === code),
       ) ?? 'ShiftLeft';
   }
+  const effective = (name: BindingAction) =>
+    source[name] === undefined ? result[name] : source[name];
+  if (Object.keys(source).length)
+    for (const [action, keys] of Object.entries(LATE_ACTION_KEYS) as [
+      BindingAction,
+      readonly string[],
+    ][]) {
+      if (source[action] !== undefined) continue;
+      const names = Object.keys(result) as BindingAction[];
+      result[action] =
+        keys.find((code) => !names.some((name) => name !== action && effective(name) === code)) ??
+        keys[0];
+    }
   const occupied = new Map<string, string>();
   for (const action of Object.keys(result) as BindingAction[]) {
     const code = source[action] === undefined ? result[action] : source[action];

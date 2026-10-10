@@ -1,10 +1,37 @@
 import styles from './race-day-hud.css?inline';
-import { F, H, W, WHEEL_BASE, WHEEL_STRIDE, WHEEL_NAMES, carBase } from '../simulation/protocol.ts';
-import { COMPOUNDS } from '../simulation/config.ts';
+import {
+  F,
+  H,
+  R,
+  RACE_BASE,
+  W,
+  WHEEL_BASE,
+  WHEEL_STRIDE,
+  WHEEL_NAMES,
+  carBase,
+} from '../simulation/protocol.ts';
+import { COMPOUNDS, type Compound } from '../simulation/config.ts';
 
 /** MFD pages in cycle order. STRATEGY and SETUP follow DAMAGE so ArrowRight
  * from ENERGY still lands on DAMAGE (e2e/52). */
 export const MFD_PAGES = ['TYRES', 'ENERGY', 'DAMAGE', 'STRATEGY', 'SETUP'] as const;
+/** STRATEGY page tyre choices for the next stop; AUTO leaves it to the engineer. */
+export const PIT_CHOICES = ['auto', 'soft', 'medium', 'hard', 'intermediate', 'wet'] as const;
+const CHOICE_LABEL: Record<(typeof PIT_CHOICES)[number], string> = {
+  auto: 'AUTO',
+  soft: 'S',
+  medium: 'M',
+  hard: 'H',
+  intermediate: 'I',
+  wet: 'W',
+};
+/** The compound picked on the STRATEGY page for the next pit request, if any. */
+export function selectedPitCompound(hud: HTMLElement): Compound | undefined {
+  const value = hud.dataset.pitCompound;
+  return value && value !== 'auto' && Object.hasOwn(COMPOUNDS, value)
+    ? (value as Compound)
+    : undefined;
+}
 const reading = (rows: readonly [string, string][]) =>
   `<dl class="vehicle-readings">${rows.map(([label, id]) => `<div><dt>${label}</dt><dd id="${id}">—</dd></div>`).join('')}</dl>`;
 
@@ -70,7 +97,37 @@ export function installRaceDayHud(hud: HTMLElement) {
     ['TYRE LIFE · AVERAGE', 'mfdTyreLife'],
     ['MOST WORN TYRE', 'mfdTyreWorst'],
     ['PIT STOPS MADE', 'mfdStrategyStops'],
+    ['LAPS ON THIS SET', 'mfdTyreAge'],
+    ['NEXT SET', 'mfdNextSet'],
   ]);
+  const choices = document.createElement('div');
+  choices.className = 'pit-choices';
+  choices.setAttribute('role', 'group');
+  choices.setAttribute('aria-label', 'Tyres for the next pit stop');
+  hud.dataset.pitCompound = 'auto';
+  for (const choice of PIT_CHOICES) {
+    const option = document.createElement('button');
+    option.type = 'button';
+    option.dataset.compound = choice;
+    option.textContent = CHOICE_LABEL[choice];
+    option.title = choice === 'auto' ? 'Engineer’s choice' : choice.toUpperCase();
+    option.setAttribute('aria-pressed', String(choice === 'auto'));
+    if (choice !== 'auto')
+      option.style.setProperty(
+        '--compound',
+        `#${COMPOUNDS[choice].color.toString(16).padStart(6, '0')}`,
+      );
+    option.addEventListener('keydown', (event) => {
+      if (event.key === ' ' || event.key === 'Enter') event.stopPropagation();
+    });
+    option.addEventListener('click', () => {
+      hud.dataset.pitCompound = choice;
+      for (const other of choices.children)
+        other.setAttribute('aria-pressed', String(other === option));
+    });
+    choices.append(option);
+  }
+  pages[3].append(choices);
   pages[4].innerHTML = reading([
     ['FRONT BRAKE BIAS', 'mfdSetupBias'],
     ['DIFFERENTIAL · ON THROTTLE', 'mfdDiffPower'],
@@ -172,6 +229,13 @@ export function updateRaceDayHud(hud: HTMLElement, frame: Float32Array) {
   write('mfdTyreLife', `${Math.round(100 * (1 - total / 4))}%`);
   write('mfdTyreWorst', `${WHEEL_NAMES[worst]} · ${Math.round(100 * (1 - wear(frame, worst)))}%`);
   write('mfdStrategyStops', String(Math.round(frame[o + F.PIT_STOPS])));
+  const age = Math.round(frame[o + RACE_BASE + R.TYRE_AGE_LAPS]);
+  write(
+    'mfdTyreAge',
+    Number.isFinite(age) && age >= 0 ? `${age} ${age === 1 ? 'LAP' : 'LAPS'}` : '—',
+  );
+  const next = Object.keys(COMPOUNDS)[Math.round(frame[o + RACE_BASE + R.NEXT_COMPOUND])];
+  write('mfdNextSet', next ? next.toUpperCase() : '—');
   write('mfdSetupBias', `${Math.round(frame[o + F.BRAKE_BIAS] * 100)}%`);
   write('mfdDiffPower', `${Math.round(frame[o + F.DIFF_POWER] * 100)}%`);
   write('mfdDiffCoast', `${Math.round(frame[o + F.DIFF_COAST] * 100)}%`);
