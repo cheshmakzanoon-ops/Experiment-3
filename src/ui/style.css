@@ -2776,26 +2776,86 @@ h1 {
 .enter.primary {
   min-height: 58px;
 }
+/* F1 25 list items (AB-B 4.1): upright heavy caps; the selected or hovered
+   item takes a white 2 px outline pill over a 10 % white fill. */
 .menu-actions button {
-  background: rgba(255, 255, 255, 0.035);
-  border: 0;
-  border-left: 2px solid rgba(255, 255, 255, 0.22);
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  color: rgba(255, 255, 255, 0.82);
+  background: rgba(255, 255, 255, 0.03);
+  border: 2px solid transparent;
+  border-radius: 1.2vh;
+  font-weight: 800;
+  font-stretch: 115%;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.92);
   text-align: left;
-  padding: 10px 12px;
+  padding: 0.6vh 0.9vw;
 }
 .menu-actions button {
   flex: 1 1 auto;
   min-height: 36px;
   white-space: nowrap;
-  font-size: 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: clamp(9px, 1.45vh, 13px);
 }
-.menu-actions button:hover {
-  background: rgba(255, 90, 42, 0.16);
-  border-left-color: var(--apex-flame);
+.menu-actions button:is(:hover, :focus-visible) {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: #fff;
   color: #fff;
+  outline: none;
+}
+/* F1 25 paddock layout (D29, AB-B 4.2): one two-column grid of setup
+   options (the rows only group the source order), full-width start buttons
+   and a two-column action list, so the whole menu fits a 720 px viewport.
+   The slogan gives way on shorter screens; it is not part of the F1 25 menu. */
+.menu .session-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 16px;
+  row-gap: 10px;
+}
+.menu .session-form .form-row {
+  display: contents;
+}
+.menu .session-form .enter {
+  grid-column: 1 / -1;
+}
+.menu .menu-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  max-width: 390px;
+}
+/* P14: the developer and evidence tools stay in the DOM and clickable, as a
+   compact low-emphasis TOOLS row after the player entries. */
+.menu .menu-actions :is([data-action='references'], [data-action='sessionReview']) {
+  order: 1;
+  min-height: 26px;
+  font-size: 9px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.55);
+  background: transparent;
+}
+@media (max-height: 860px) {
+  .menu-body h1,
+  .menu-body .intro,
+  .menu-body .menu-note {
+    display: none;
+  }
+  .menu-body .eyebrow {
+    margin-bottom: 12px;
+  }
+  .menu .enter,
+  .menu .enter.primary {
+    min-height: 44px;
+  }
+  .menu .menu-actions button {
+    min-height: 32px;
+  }
+}
+/* The front end's red-pink accent (AB-B 4.1 --fe-accent) on the paddock menu. */
+.menu {
+  --apex-flame: #fc4854;
+  --apex-flame-hot: #ff6b75;
 }
 .menu-note {
   color: rgba(255, 255, 255, 0.45);

@@ -11,6 +11,7 @@ import {
   type F1Hud,
 } from './f1-hud.ts';
 import { TrackMap } from './f1-minimap.ts';
+import { installSpeedTunnel } from '../rendering/studio/speed-tunnel.ts';
 import { SectorBoard } from './sector-timing.ts';
 import { audioAccessibility, readDrivingAudio } from './audio-accessibility.ts';
 import type { DrivingAudioSettings } from '../audio/driving-cues.ts';
@@ -210,6 +211,7 @@ export class Interface {
     installCompactRaceHud(this.hud);
     installRaceDayHud(this.hud);
     this.f1 = installF1Hud(this.hud);
+    installSpeedTunnel(element.ownerDocument);
     this.trackMap = new TrackMap(this.map);
     element.addEventListener('click', (e) => {
       const button = (e.target as HTMLElement).closest<HTMLElement>('[data-action]');

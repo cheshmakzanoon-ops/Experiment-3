@@ -36,6 +36,7 @@ import { readRaceReviewFrame } from './race-review.ts';
 import { GhostCar } from './ghost-car.ts';
 import { SafetyCarView } from './studio/safety-car.ts';
 import { LightPools } from './studio/light-pools.ts';
+import { MENU_CAR_DATUM, SHOWROOM } from './menu-preview.ts';
 import { reflectInWetRoad } from './wet-reflection.ts';
 import { ghostPose, type GhostPose } from '../core/ghost-lap.ts';
 import { WeatherPresentation } from './weather-presentation.ts';
@@ -1009,15 +1010,21 @@ export class RacingRenderer {
         .add(this.gaze);
       this.camera.fov = photoFov(this.photo.focalLength);
     } else if (menu && !this.photo) {
-      const angle = 0.65 + Math.sin(this.orbitTime * 0.07) * 0.12;
+      // D29 showroom: low eye, long lens, slow orbit; the car sits right of the menu.
+      const angle = SHOWROOM.angle + Math.sin(this.orbitTime * SHOWROOM.rate) * SHOWROOM.sway;
       this.desired
-        .set(Math.sin(angle) * 6.8, 2.45, Math.cos(angle) * 6.8)
+        .set(Math.sin(angle) * SHOWROOM.radius, 0, Math.cos(angle) * SHOWROOM.radius)
         .applyQuaternion(car.root.quaternion)
         .add(this.target);
-      this.gaze
-        .copy(this.target)
-        .add(this.temporary.set(-0.8, 0.15, 0).applyQuaternion(car.root.quaternion));
-      this.camera.fov = 45;
+      const road = car.root.position.y - MENU_CAR_DATUM;
+      this.desired.y = road + SHOWROOM.height;
+      this.gaze.copy(this.target);
+      this.gaze.y = road + SHOWROOM.aim;
+      // Across-view direction (to the camera's right) from the view azimuth.
+      this.temporary.subVectors(this.gaze, this.desired).setY(0).normalize();
+      this.gaze.x += this.temporary.z * SHOWROOM.shift;
+      this.gaze.z -= this.temporary.x * SHOWROOM.shift;
+      this.camera.fov = SHOWROOM.fov;
     } else if (cameraMode === 'trackside') {
       const composition = this.composition.update(presented, this.follow);
       this.trackside.update(
@@ -1326,6 +1333,25 @@ export class RacingRenderer {
       this.drawLedger.mark('other');
       this.motionBlur.setStrength(this.graphics.motionBlur, !this.photo && !menu);
       this.motionBlur.prepareFrame(presented, this.camera, this.follow, cameraMode, replay);
+      if (menu && !this.photo) {
+        // D29 showroom: the D09 depth-of-field pass focused on the car.
+        if (!this.photoFocus) {
+          this.photoFocus = new DepthOfFieldPass(
+            this.camera,
+            { focus: SHOWROOM.radius, aperture: SHOWROOM.aperture, maxblur: SHOWROOM.maxblur },
+            this.scenePass.target.depthTexture!,
+          );
+          this.composer.insertPass(this.photoFocus, 1);
+        }
+        this.photoFocus.enabled = true;
+        this.camera.updateMatrixWorld();
+        const uniforms = this.photoFocus.materialBokeh.uniforms;
+        uniforms.focus.value = -this.temporary
+          .copy(this.target)
+          .applyMatrix4(this.camera.matrixWorldInverse).z;
+        uniforms.aperture.value = SHOWROOM.aperture;
+        uniforms.maxblur.value = SHOWROOM.maxblur;
+      } else if (this.photoFocus && !this.photo?.depthOfField) this.photoFocus.enabled = false;
       if (this.photoFocus?.enabled && this.photo) {
         // Optical-axis depth, rather than Euclidean distance, matches the depth shader.
         this.camera.updateMatrixWorld();

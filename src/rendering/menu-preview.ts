@@ -11,6 +11,28 @@ import {
   carBase,
 } from '../simulation/protocol.ts';
 
+/** Front-end showroom camera (D29, AB-B §4.2): a low 1.2 m eye, a 32 degree
+ * lens and a slow orbit, the car framed right of the menu with the background
+ * softly out of focus (the D09 depth-of-field pass, focused on the car). */
+export const SHOWROOM = Object.freeze({
+  height: 1.2,
+  fov: 32,
+  radius: 9.4,
+  /** Orbit: base angle (rad, car frame), sway amplitude and rate (rad/s). */
+  angle: 0.72,
+  sway: 0.16,
+  rate: 0.035,
+  /** Aim this far left of the car (m, across the view) so it sits right of the menu. */
+  shift: 1.35,
+  /** Eye and aim heights above the road (m). */
+  aim: 0.55,
+  aperture: 0.0011,
+  maxblur: 0.012,
+});
+
+/** The preview car's origin above the road (FormulaCar hub anchor datum). */
+export const MENU_CAR_DATUM = VEHICLE.restLength + VEHICLE.wheelRadius - 0.05;
+
 /** Static menu presentation, not a simulated or award-eligible driving session.
  * Keep the track coordinate, world pose and wheel dimensions consistent: the
  * studio/HQ floor samples F.S, not the position of an unrelated grid-start cell.
@@ -30,7 +52,7 @@ export function menuPreview(track: Track, distance = track.length - 32): Float32
   frame[o + F.X] = p.x;
   // FormulaCar's actual hub anchor is +0.05 m; the wheel extends down by
   // restLength + radius. Previously the preview was a further 19 mm too low.
-  frame[o + F.Y] = p.y + VEHICLE.restLength + VEHICLE.wheelRadius - 0.05;
+  frame[o + F.Y] = p.y + MENU_CAR_DATUM;
   frame[o + F.Z] = p.z;
   frame[o + F.QY] = Math.sin(yaw / 2);
   frame[o + F.QW] = Math.cos(yaw / 2);
