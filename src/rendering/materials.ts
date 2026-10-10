@@ -116,7 +116,7 @@ export function installWetRoad(
     );
     shader.fragmentShader = shader.fragmentShader.replace(
       '#include <roughnessmap_fragment>',
-      '#include <roughnessmap_fragment>\nroughnessFactor=mix(roughnessFactor,mix(0.48,0.095,puddle),wet);',
+      '#include <roughnessmap_fragment>\nroughnessFactor=mix(roughnessFactor,mix(0.22,0.08,puddle),wet);',
     );
     shader.fragmentShader = shader.fragmentShader.replace(
       '#include <normal_fragment_maps>',

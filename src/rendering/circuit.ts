@@ -52,6 +52,7 @@ import { BuildQueue } from './build-queue.ts';
 import { sphereDetail, stripDetail, trunkDetail, type ProbeDetail } from './probe-detail.ts';
 import { installWetRoad } from './materials.ts';
 import { START_GRID, apexLineAt, installRoadDetail } from './studio/road-detail.ts';
+import { installWetDetail } from './studio/wet-detail.ts';
 import { kerbHeight } from '../simulation/contact.ts';
 import { Track, CELL_ROWS, CELL_COLS, trackPoint } from '../simulation/track.ts';
 import { H } from '../simulation/protocol.ts';
@@ -162,6 +163,8 @@ export class CircuitScene {
     );
     // Rubbered racing line, edge dust, small repairs and crack sealant.
     installRoadDetail(this.roadMaterial, track.length);
+    // Sub-cell puddles and an emerging dry line (D22).
+    installWetDetail(this.roadMaterial);
     const grass = surfaceMaterial('grass');
     const runOff = surfaceMaterial('asphalt', 'paint');
     // D15: painted bands, chevrons or astroturf per corner (no flat tint).

@@ -21,6 +21,9 @@ export const WET_REFLECTION = Object.freeze({
   maxLod: 5,
 });
 
+/** Vertical streak step in reflection UV: base + roughness gain (D22). */
+export const WET_STREAK = Object.freeze({ base: 0.004, roughness: 0.03, taps: 7 });
+
 export interface WetReflectionUniforms {
   wetReflection: { value: T.Texture };
   wetReflectionMatrix: { value: T.Matrix4 };
@@ -180,7 +183,19 @@ if (wetReflectionState.y > 0.0 && material.clearcoat > 0.0) {
   float wetReflectionWeight = wetReflectionState.y * wetReflectionEdge.x * wetReflectionEdge.y *
     wetReflectionHeight * step(0.0, wetReflectionClip.w);
   float wetReflectionLod = sqrt(material.clearcoatRoughness) * wetReflectionState.z;
+  // D22: wet asphalt stretches reflections vertically (anisotropic film),
+  // 7 taps along the reflection's vertical, wider on rougher film.
+  float wetStreak = ${WET_STREAK.base.toFixed(4)} + ${WET_STREAK.roughness.toFixed(4)} * material.clearcoatRoughness;
   vec3 wetReflectionColor = textureLod(wetReflection, wetReflectionUv, wetReflectionLod).rgb;
+  float wetStreakWeight = 1.0;
+  for (int k = 1; k <= 3; k++) {
+    float w = exp(-0.55 * float(k * k));
+    vec2 o = vec2(0.0, wetStreak * float(k));
+    wetReflectionColor += w * (textureLod(wetReflection, clamp(wetReflectionUv + o, 0.0, 1.0), wetReflectionLod).rgb +
+      textureLod(wetReflection, clamp(wetReflectionUv - o, 0.0, 1.0), wetReflectionLod).rgb);
+    wetStreakWeight += 2.0 * w;
+  }
+  wetReflectionColor /= wetStreakWeight;
   clearcoatRadiance = mix(clearcoatRadiance, wetReflectionColor, wetReflectionWeight);
 }
 #endif
