@@ -12,6 +12,7 @@ import {
 } from '../src/rendering/studio/grade-lut.ts';
 import {
   LENS,
+  LENS_RAIN_GLSL,
   LensEffects,
   bloomStrength,
   createLensDirt,
@@ -141,6 +142,11 @@ describe('lens effects', () => {
     expect(lensRainAmount(0)).toBe(0);
     expect(lensRainAmount(LENS.rainFull)).toBe(1);
     expect(lensRainAmount(2)).toBeGreaterThan(0);
+    // Sparse drops with a thin meniscus: at most 15 % of the drop cells, rims
+    // darkened by at most 15 % (a full grid of outlined bubbles read as noise).
+    expect(LENS.dropShare).toBeLessThanOrEqual(0.15);
+    expect(LENS.dropRim).toBeLessThanOrEqual(0.15);
+    expect(LENS_RAIN_GLSL).toContain(`${LENS.dropShare.toFixed(3)} * lensRain`);
   });
 
   it('builds the same dirt mask every time', () => {

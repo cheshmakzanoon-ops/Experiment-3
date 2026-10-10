@@ -36,6 +36,10 @@ export const LENS = Object.freeze({
   /** Rain (mm/h) where drops start / reach full density. */
   rainStart: 0.3,
   rainFull: 8,
+  /** Share of drop cells holding a drop at full rain (two layers). */
+  dropShare: 0.12,
+  /** Darkening at a drop's rim (a thin meniscus, not an outline). */
+  dropRim: 0.12,
   /** Speed (m/s) where drops are fully streaked. */
   streakSpeed: 60,
 });
@@ -241,7 +245,7 @@ vec3 lensDropLayer(vec2 px, float cell, float layer) {
   float age = fract(lensTime / life + phase);
   float epoch = floor(lensTime / life + phase);
   float seed = lensHash(vec3(id + epoch * 17.0, layer * 13.0 + 3.0));
-  if (seed > (0.05 + 0.1 * lensRain) * lensRain / 0.15) return vec3(0.0, 0.0, 1.0);
+  if (seed > ${LENS.dropShare.toFixed(3)} * lensRain * (0.35 + 0.65 * lensRain)) return vec3(0.0, 0.0, 1.0);
   float pxScale = resolution.y / 720.0;
   float radius = (2.0 + 10.0 * lensHash(vec3(id + epoch, layer + 4.0))) * pxScale;
   vec2 centre = (vec2(lensHash(vec3(id + epoch, layer + 5.0)), lensHash(vec3(id + epoch, layer + 6.0))) - 0.5)
@@ -261,7 +265,7 @@ vec3 lensDropLayer(vec2 px, float cell, float layer) {
   vec2 n = normalize(d + 1e-4) * (1.0 - h);
   // A drop is a small lens: it shows a magnified, inverted patch of the frame.
   vec2 offset = -n * radius * 1.6 * wet;
-  float rim = 1.0 - 0.35 * smoothstep(0.65, 1.0, r) * wet;
+  float rim = 1.0 - ${LENS.dropRim.toFixed(3)} * smoothstep(0.75, 1.0, r) * wet;
   return vec3(offset, rim);
 }
 vec3 lensRainSample(vec2 uv) {
