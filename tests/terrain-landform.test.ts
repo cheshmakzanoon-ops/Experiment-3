@@ -3,13 +3,19 @@ import * as T from 'three';
 import { Track, trackPoint } from '../src/simulation/track.ts';
 import { CIRCUITS } from '../src/simulation/circuits.ts';
 import { terrainFor } from '../src/rendering/terrain.ts';
-import { grassApronOffset } from '../src/rendering/ground-profile.ts';
+import {
+  APRON_COLUMNS,
+  grassApronLateral,
+  grassApronOffset,
+} from '../src/rendering/ground-profile.ts';
 import { clamp } from '../src/core/math.ts';
 import {
   APRON_OUTER,
   APRON_SKIRT_METRES,
+  SKIRT_COLUMNS,
   SKIRT_EMBED,
   apronSkirtHeight,
+  apronWithSkirt,
 } from '../src/rendering/studio/apron-skirt.ts';
 import {
   FAR,
@@ -48,6 +54,45 @@ describe('apron skirt', () => {
       expect(worst).toBeCloseTo(SKIRT_EMBED, 6);
     });
   }
+});
+
+describe('apron and skirt as one ribbon (D32)', () => {
+  it('reproduces the apron and both skirt ribbons column for column', () => {
+    const track = new Track('clear', false, undefined, CIRCUITS.aurel);
+    const ground = terrainFor(track);
+    const height = (x: number, z: number) => ground.height(x, z);
+    const p = trackPoint();
+    const merged = apronWithSkirt(track, height, (s) => track.at(s, p).width);
+    expect(merged.columns).toBe(APRON_COLUMNS + 2 * SKIRT_COLUMNS);
+    for (let s = 0; s < track.length; s += 97) {
+      const width = track.at(s, trackPoint()).width;
+      const expected: [number, number][] = [];
+      // Left skirt from its outer edge in to the apron, then the apron, then the right skirt out.
+      for (let j = SKIRT_COLUMNS; j > 0; j--) {
+        const k = j / SKIRT_COLUMNS,
+          l = -(width + APRON_OUTER + APRON_SKIRT_METRES * k);
+        expected.push([l, apronSkirtHeight(track, height, s, l, k)]);
+      }
+      for (let j = 0; j <= APRON_COLUMNS; j++) {
+        const l = grassApronLateral(track, s, j / APRON_COLUMNS, width);
+        expected.push([l, grassApronOffset(track, s, l)]);
+      }
+      for (let j = 1; j <= SKIRT_COLUMNS; j++) {
+        const k = j / SKIRT_COLUMNS,
+          l = width + APRON_OUTER + APRON_SKIRT_METRES * k;
+        expected.push([l, apronSkirtHeight(track, height, s, l, k)]);
+      }
+      expect(expected).toHaveLength(merged.columns + 1);
+      expected.forEach(([l, y], j) => {
+        const t = j / merged.columns;
+        expect(merged.offset(s, t)).toBeCloseTo(l, 9);
+        expect(merged.height(s, merged.offset(s, t), t)).toBeCloseTo(y, 9);
+      });
+      // Monotonic across, so the ribbon keeps one winding.
+      for (let j = 1; j < expected.length; j++)
+        expect(expected[j][0]).toBeGreaterThan(expected[j - 1][0]);
+    }
+  });
 });
 
 describe('far landscape finish', () => {

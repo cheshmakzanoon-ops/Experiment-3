@@ -26,8 +26,8 @@ import { BroadcastSightlines } from './broadcast-sightlines.ts';
 import { serviceSitePlan } from './venue-service-plan.ts';
 import { buildServiceAreas } from './venue-service.ts';
 import type { CrowdCluster } from './crowd.ts';
-import { APRON_COLUMNS, grassApronLateral, grassApronOffset } from './ground-profile.ts';
-import { APRON_OUTER, APRON_SKIRT_METRES, apronSkirtHeight } from './studio/apron-skirt.ts';
+import { apronWithSkirt } from './studio/apron-skirt.ts';
+import { splitTerrainGrid } from './studio/terrain-tiles.ts';
 import { installTerrainFinish, terrainTrackDistance } from './studio/terrain-finish.ts';
 import { barrierMaterials, buildBarrierChunk } from './circuit-barriers.ts';
 import { installCircuitFinish } from './circuit-finish.ts';
@@ -179,25 +179,17 @@ export class CircuitScene {
     for (const m of [this.roadMaterial, grass, runOff, gravel]) installCarGrounding(m);
     // D28: night floodlight pools on every track ribbon (lap-space lamp rows).
     for (const m of [this.roadMaterial, grass, runOff, gravel]) installLightPools(m);
-    this.queueRibbon(grass, {
-      offset: (s, t) => {
-        track.at(s, this.temp);
-        return grassApronLateral(track, s, t, this.temp.width);
-      },
-      height: (s, l) => grassApronOffset(track, s, l),
-      columns: APRON_COLUMNS,
-    });
-    // D17: a skirt from the apron's outer edge onto the terrain, both sides.
+    // The grass apron plus D17's skirt onto the terrain, both sides, as one
+    // ribbon (D32: the skirt shares the apron's chunks, 0 extra draws).
     const ground = terrainFor(track);
-    for (const side of [-1, 1])
-      this.queueRibbon(grass, {
-        offset: (s, t) => {
-          track.at(s, this.temp);
-          return side * (this.temp.width + APRON_OUTER + APRON_SKIRT_METRES * t);
-        },
-        height: (s, l, t) => apronSkirtHeight(track, (x, z) => ground.height(x, z), s, l, t),
-        columns: 3,
-      });
+    this.queueRibbon(
+      grass,
+      apronWithSkirt(
+        track,
+        (x, z) => ground.height(x, z),
+        (s) => track.at(s, this.temp).width,
+      ),
+    );
     this.queueRibbon(gravel, {
       offset: (s, t) => {
         track.at(s, this.temp);
@@ -326,7 +318,10 @@ export class CircuitScene {
         terrain.setAttribute('shore', new T.BufferAttribute(shore, 1));
         installShoreline(land, model.seaLevel);
       }
-      reflectInWetRoad(mesh(this.surfaces, terrain, land));
+      // D32: culled per tile (same vertices), not one always-visible plane.
+      for (const tile of splitTerrainGrid(terrain, segments))
+        reflectInWetRoad(mesh(this.surfaces, tile, land));
+      terrain.dispose();
       if (model.seaLevel !== null) {
         const sea = buildSea(model.seaLevel);
         reflectInWetRoad(sea);

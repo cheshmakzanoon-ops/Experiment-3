@@ -1,6 +1,6 @@
 {
-  "sourceCommit": "1b82c5a4424b6f503649d0516a4217608c0d54c3",
-  "evidenceRun": 37149330552,
+  "sourceCommit": "1e21a41 + D32 performance-budget (the re-pin commit)",
+  "evidenceRun": "e2e/scenery-shadow-budget.spec.ts, SwiftShader, studio re-pin (D32)",
   "workload": {
     "cars": 12,
     "simulationSeed": 1887,
@@ -17,20 +17,20 @@
   "evidenceBoundary": "These measured frames are not approval of the failed original test. Its direct-scene ceiling was incorrectly applied to a multi-pass cockpit frame. All direct-scene ceilings remain unchanged; a new complete-frame regression budget permits at most 2% additional calls and triangles.",
   "lighting": {
     "day": {
-      "calls": 2345,
-      "triangles": 10744392,
+      "calls": 2355,
+      "triangles": 11358110,
       "drawBreakdown": {
         "environment": {
-          "calls": 33,
-          "triangles": 385
+          "calls": 35,
+          "triangles": 387
         },
         "probe": {
           "calls": 0,
           "triangles": 0
         },
         "mirrors": {
-          "calls": 1023,
-          "triangles": 2910947
+          "calls": 1048,
+          "triangles": 3036083
         },
         "wet": {
           "calls": 0,
@@ -38,11 +38,11 @@
         },
         "shadow": {
           "calls": 477,
-          "triangles": 4092412
+          "triangles": 3835240
         },
         "composer": {
-          "calls": 812,
-          "triangles": 3740648
+          "calls": 795,
+          "triangles": 4486400
         },
         "other": {
           "calls": 0,
@@ -51,32 +51,32 @@
       }
     },
     "sunset": {
-      "calls": 3173,
-      "triangles": 12549162,
+      "calls": 3266,
+      "triangles": 13767736,
       "drawBreakdown": {
         "environment": {
-          "calls": 70,
-          "triangles": 7877
+          "calls": 72,
+          "triangles": 7879
         },
         "probe": {
           "calls": 0,
           "triangles": 0
         },
         "mirrors": {
-          "calls": 1023,
-          "triangles": 2910947
+          "calls": 1048,
+          "triangles": 3036083
         },
         "wet": {
           "calls": 0,
           "triangles": 0
         },
         "shadow": {
-          "calls": 1268,
-          "triangles": 5889690
+          "calls": 1351,
+          "triangles": 6237374
         },
         "composer": {
-          "calls": 812,
-          "triangles": 3740648
+          "calls": 795,
+          "triangles": 4486400
         },
         "other": {
           "calls": 0,
@@ -85,32 +85,32 @@
       }
     },
     "night": {
-      "calls": 3457,
-      "triangles": 13147019,
+      "calls": 3573,
+      "triangles": 14293296,
       "drawBreakdown": {
         "environment": {
-          "calls": 70,
-          "triangles": 7877
+          "calls": 73,
+          "triangles": 7880
         },
         "probe": {
           "calls": 0,
           "triangles": 0
         },
         "mirrors": {
-          "calls": 1296,
-          "triangles": 3592674
+          "calls": 1322,
+          "triangles": 3680770
         },
         "wet": {
           "calls": 0,
           "triangles": 0
         },
         "shadow": {
-          "calls": 1324,
-          "triangles": 5985987
+          "calls": 1408,
+          "triangles": 6189759
         },
         "composer": {
-          "calls": 767,
-          "triangles": 3560481
+          "calls": 770,
+          "triangles": 4414887
         },
         "other": {
           "calls": 0,
@@ -118,5 +118,25 @@
         }
       }
     }
+  },
+  "studioRepin": {
+    "department": "D32 performance-budget",
+    "programmeBase": "3a6036d",
+    "previous": {
+      "day": {
+        "calls": 2345,
+        "triangles": 10744392
+      },
+      "sunset": {
+        "calls": 3173,
+        "triangles": 12549162
+      },
+      "night": {
+        "calls": 3457,
+        "triangles": 13147019
+      }
+    },
+    "cap": "programme cap +8 % calls over the previous pin (day <= 2533, sunset <= 3427, night <= 3734); composer < 1800",
+    "note": "Same workload (seed 1887, 8 s, 12 cars, Medium 1280x720 cockpit). The 2 % complete-frame gate now applies to these values. Triangle growth includes workload drift: since the race-rules change the player is ~128 m further along at 8 s, so 3 more authored crowd clusters (147k triangles each) enter the view."
   }
 }
