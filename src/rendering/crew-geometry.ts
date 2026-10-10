@@ -1,3 +1,4 @@
+import { LIVERIES } from '../simulation/config.ts';
 import * as T from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { helmetShell, helmetPatch } from './helmet-shell.ts';
@@ -7,6 +8,21 @@ import { helmetShell, helmetPatch } from './helmet-shell.ts';
 export const CREW_KIT_COLOURS: readonly T.Color[] = [
   0x244553, 0x315963, 0x334950, 0x455961, 0x304c62,
 ].map((c) => new T.Color(c));
+
+/** D23: the player's crew wears the supplied car's navy; rivals their livery. */
+export const PLAYER_CREW_COLOUR = 0x1b2a5e;
+const teamKits = new Map<number, T.Color>();
+/** A team's crew kit (shared Color, do not mutate): LIVERIES[car % 12]. */
+export function crewTeamColour(car: number) {
+  const id = Number.isInteger(car) && car >= 0 ? car : 0;
+  let colour = teamKits.get(id);
+  if (!colour)
+    teamKits.set(
+      id,
+      (colour = new T.Color(id === 0 ? PLAYER_CREW_COLOUR : LIVERIES[id % LIVERIES.length])),
+    );
+  return colour;
+}
 
 /** Closed tailored limb and chest shapes with identical topology. Instanced
  * morph weights select a real shoulder/waist silhouette for torsos, without

@@ -30,7 +30,7 @@ import {
 } from '../simulation/protocol.ts';
 import { WHEEL_POSITIONS } from '../simulation/vehicle.ts';
 import { PEOPLE_ASSET, CREW_BONES, CREW_REST, peopleGeometry } from './people-asset.ts';
-import { CREW_KIT_COLOURS, installCrewHelmetFinish } from './crew-geometry.ts';
+import { crewTeamColour, installCrewHelmetFinish } from './crew-geometry.ts';
 import { CrewPose, CREW_THIGH, CREW_SHIN, installCrewSkin } from './crew-pose.ts';
 
 /** Removal requires an unloaded hub. These offsets are also consumed by the
@@ -45,7 +45,6 @@ const UNIT = new T.Vector3(1, 1, 1);
 /** Glove-local wrist (cuff) point: the skin's wrist target sits here. */
 export const CUFF = new T.Vector3(0, -0.067, -0.008);
 const GRIP = new T.Vector3(0, 0.034, 0.041);
-const palette = CREW_KIT_COLOURS;
 interface ActorEvidence {
   car: number;
   role: PitRole;
@@ -197,6 +196,12 @@ export class PitCrewView {
     this.cloth = [makeCloth('crew_high', 0), makeCloth('crew_mid', 1)];
     this.heads = this.batch(crewPerformanceGeometry('helmet'), ACTORS, 0.35, 0.08);
     installCrewHelmetFinish(this.heads.material as T.MeshStandardMaterial);
+    // D23: helmets in the team colour, allocated now so the instancing-colour
+    // shader variant is the one prepare() compiled.
+    this.heads.instanceColor = new T.InstancedBufferAttribute(
+      new Float32Array(ACTORS * 3).fill(1),
+      3,
+    ).setUsage(T.DynamicDrawUsage);
     this.gloves = [
       this.batch(crewPerformanceGeometry('glove', true), ACTORS, 0.85),
       this.batch(crewPerformanceGeometry('glove'), ACTORS, 0.85),
@@ -402,7 +407,8 @@ export class PitCrewView {
     this.slots[detail].setX(cloth.count, this.actorSlot++);
     cloth.setColorAt(
       cloth.count,
-      palette[(car * 7 + wheel + (role === 'gun' ? 1 : 2)) % palette.length],
+      // D23: every crew member wears the team's kit.
+      crewTeamColour(car),
     );
     this.put(cloth, this.actor.matrix);
     this.actorWorld.multiplyMatrices(this.car.matrix, this.actor.matrix);
@@ -412,6 +418,7 @@ export class PitCrewView {
     this.prop.updateMatrix();
     this.prop.matrix.premultiply(this.actor.matrix);
     this.put(this.heads, this.prop.matrix);
+    this.heads.setColorAt(this.heads.count - 1, crewTeamColour(car));
     let wristError = 0,
       gripError = 0;
     for (let i = 0; i < 2; i++) {

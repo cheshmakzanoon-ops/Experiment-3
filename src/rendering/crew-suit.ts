@@ -35,8 +35,10 @@ float suitKnee = (1. - smoothstep(.065, .11, abs(suitP.y - .46))) * suitLeg;
 float suitElbow = (1. - smoothstep(.045, .075, abs(suitP.y - 1.07))) * suitSleeve;
 float suitReinforcement = clamp(suitSide + suitKnee + suitElbow, 0., 1.);
 diffuseColor.rgb *= 1. - suitCloth * suitReinforcement * .24;
-diffuseColor.rgb = mix(diffuseColor.rgb, vec3(.30, .36, .37),
-  clamp(suitYoke + suitShoulder, 0., 1.) * suitCloth * .78);
+// D23: the yoke, shoulders and trousers in the team kit's dark secondary.
+diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * .3,
+  clamp(suitYoke + suitShoulder, 0., 1.) * suitCloth * .85);
+diffuseColor.rgb *= mix(1., .42, suitLeg * suitCloth);
 // A narrow centre closure belongs to the front of the torso, not the back.
 float suitFront = smoothstep(.02, .07, suitP.z) * suitTorso;
 float suitZip = (1. - smoothstep(max(0., .004 - suitPixel.x), .004 + suitPixel.x, abs(suitP.x)))

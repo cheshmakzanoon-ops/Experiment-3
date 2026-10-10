@@ -10,7 +10,7 @@ import { F, H, W, WHEEL_BASE, WHEEL_STRIDE, carBase } from '../simulation/protoc
 import { WHEEL_POSITIONS } from '../simulation/vehicle.ts';
 import { CREW_BONES } from './people-asset.ts';
 import { CrewPose, installCrewSkin } from './crew-pose.ts';
-import { installCrewHelmetFinish, CREW_KIT_COLOURS } from './crew-geometry.ts';
+import { installCrewHelmetFinish, crewTeamColour } from './crew-geometry.ts';
 import { CUFF } from './pit-crew.ts';
 export const GRID_GLOVE_GRIP = new T.Vector3(0, 0.034, 0.041);
 import { gridBlanketPoint, gridMechanicMotion, poseGridMechanic } from './grid-mechanic-motion.ts';
@@ -366,7 +366,7 @@ export class GridPresentationView {
         const tier = id === 0 ? 0 : 1,
           body = this.cloth[tier];
         this.slots[tier].setX(body.count, this.actors);
-        body.setColorAt(body.count, CREW_KIT_COLOURS[id % CREW_KIT_COLOURS.length]);
+        body.setColorAt(body.count, crewTeamColour(id));
         this.put(body, this.actor.matrix);
         this.head.setFromAxisAngle(this.part.up, m.headYaw);
         this.part.position.copy(this.pose.joints[2]);

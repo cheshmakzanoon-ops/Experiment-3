@@ -1,4 +1,4 @@
-import { CREW_KIT_COLOURS, installCrewHelmetFinish } from './crew-geometry.ts';
+import { crewTeamColour, installCrewHelmetFinish } from './crew-geometry.ts';
 import { CREW_BONES, CREW_REST, leftCrewGloveGeometry, peopleGeometry } from './people-asset.ts';
 import { CrewPose, installCrewSkin } from './crew-pose.ts';
 import { CUFF } from './pit-crew.ts';
@@ -282,10 +282,7 @@ export class GridPreparationView {
           // Beside the cockpit, feet on the grid (car origin is ~0.52 m up),
           // facing the car and stepping back as the blankets come off.
           const person = id * 2 + (side + 1) / 2;
-          this.bodies.setColorAt(
-            this.bodies.count,
-            CREW_KIT_COLOURS[person % CREW_KIT_COLOURS.length],
-          );
+          this.bodies.setColorAt(this.bodies.count, crewTeamColour(id));
           this.person(
             person,
             side * (1.8 + state.withdrawal * 1.8),
