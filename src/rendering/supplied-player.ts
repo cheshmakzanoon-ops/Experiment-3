@@ -1,4 +1,6 @@
 import { applySuppliedCharacterLookdev } from './studio/supplied-character-lookdev.ts';
+import { installSuppliedWheelBlur, type SuppliedWheelBlur } from './studio/wheel-blur.ts';
+import { wheelBlur } from './studio/tyre-letters.ts';
 import { SuppliedSkinBounds } from './supplied-skin-bounds.ts';
 import * as T from 'three';
 import { installSuppliedShaderWork } from './supplied-shader-work.ts';
@@ -297,6 +299,7 @@ export class SuppliedPlayer {
   private readonly rear: T.Object3D;
   private readonly rain: T.MeshStandardMaterial[] = [];
   private readonly compound: T.MeshStandardMaterial[] = [];
+  private readonly wheelBlur: SuppliedWheelBlur;
   private readonly rubber: { material: T.MeshStandardMaterial; roughness: number }[] = [];
   private readonly lcd: T.Mesh;
   readonly skinBounds: SuppliedSkinBounds;
@@ -388,6 +391,11 @@ export class SuppliedPlayer {
           if (m.name.toLowerCase().includes('rain') && m.emissive.getHex() !== 0) this.rain.push(m);
         }
     });
+    // D12: per-wheel tyre-art copies that smear with wheel speed.
+    this.wheelBlur = installSuppliedWheelBlur(this.spins);
+    for (const m of this.wheelBlur.materials.flat())
+      if (m instanceof T.MeshStandardMaterial && m.name.startsWith('Tyre | compound'))
+        this.compound.push(m);
     const clip = clips.find((c) => c.name === manifest.steeringClip);
     if (!clip || clip.duration <= 0) throw new Error('Missing supplied driver steering animation');
     this.mixer = new T.AnimationMixer(root);
@@ -447,6 +455,7 @@ export class SuppliedPlayer {
       this.wheels[i].rotation.y = lerp(a[p + W.STEER], b[p + W.STEER], t);
       this.wheels[i].rotation.z = -lerp(a[p + W.CAMBER], b[p + W.CAMBER], t);
       this.spins[i].rotation.x = wheelPhase(a, b, o, p, t);
+      this.wheelBlur.blur[i].value = wheelBlur(lerp(a[p + W.OMEGA], b[p + W.OMEGA], t));
       this.spins[i].position.x =
         (i % 2 === 0 ? -1 : 1) *
         serviceWheelOffset(b[o + F.PIT_PHASE], b[o + F.PIT_CLOCK], b[p + W.LOAD]);

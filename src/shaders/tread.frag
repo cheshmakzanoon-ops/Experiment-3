@@ -14,6 +14,9 @@ float tireStyle = clamp(treadSurface.y, 0., 2.);
 float tireCrown = smoothstep(.314, .329, tireRadius) *
   (1. - smoothstep(.70, .90, abs(tireAcross)));
 float tireGroove = 0.;
+float tireInk = 0.;
+// D12: slick tread #2a2a2a on the crown, sidewall #1f2022 off it.
+diffuseColor.rgb = mix(treadSidewallColor, diffuseColor.rgb, tireCrown);
 if (tireStyle > .5) {
   float wetStyle = step(1.5, tireStyle);
   float channels = mix(2., 3., wetStyle);

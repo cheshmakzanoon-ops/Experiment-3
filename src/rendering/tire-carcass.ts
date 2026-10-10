@@ -42,7 +42,8 @@ export class TireCarcass {
     bindTireSurface(rubber);
     mesh(this.root, rubber, tread);
     const rings = [-1, 1].map((side) =>
-      new T.TorusGeometry(0.287, 0.005, 6, 48)
+      // D12: a hairline ring; the band and lettering are drawn in the tread shader.
+      new T.TorusGeometry(0.287, 0.0015, 6, 48)
         .rotateY(Math.PI / 2)
         .translate(side * (half + 0.001), 0, 0),
     );

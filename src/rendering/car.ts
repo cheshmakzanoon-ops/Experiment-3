@@ -42,6 +42,8 @@ import { drawWordmark, fitHeight } from './studio/brand-atlas.ts';
 import { liveryCustomised, validateLivery, type Livery } from '../storage/livery.ts';
 import { setSuppliedLivery, suppliedLookdevReport } from './studio/supplied-lookdev.ts';
 import { TireCarcass } from './tire-carcass.ts';
+import { anthraciteRimMaterial, wheelCoverMaterial } from './studio/wheel-blur.ts';
+import { wheelBlur } from './studio/tyre-letters.ts';
 import { bindTireSurface, tireWetAppearance } from './tire-finish.ts';
 import { wheelPhase, wheelTravel } from './wheel-pose.ts';
 import * as T from 'three';
@@ -75,6 +77,8 @@ export class FormulaCar {
   readonly brakeRotors: T.Mesh[] = [];
   readonly treads: ReturnType<typeof treadMaterial>[] = [];
   readonly rings: T.MeshStandardMaterial[] = [];
+  /** Painted cover speed blur 0..1 (D12), shared by this car's four covers. */
+  readonly coverBlur = { value: 0 };
   readonly links: { mesh: T.Object3D; anchor: T.Vector3; wheel: number; dy: number; dx: number }[] =
     [];
   private suspension: T.InstancedMesh;
@@ -163,6 +167,14 @@ export class FormulaCar {
       new T.MeshStandardMaterial({ color: 0x7c8589, metalness: 0.88, roughness: 0.3 }),
       'turned-alloy',
     );
+    // D12: anthracite rims and painted covers (one for one, draw-neutral).
+    const rimAlloy = anthraciteRimMaterial();
+    const wheelCover = wheelCoverMaterial(
+      LIVERIES[id % LIVERIES.length],
+      scheme.secondary,
+      scheme.accent,
+      this.coverBlur,
+    ).material;
     const ivory = new T.MeshPhysicalMaterial({
       color: scheme.accent,
       roughness: 0.3,
@@ -335,7 +347,7 @@ export class FormulaCar {
           const rim = mesh(
             spin,
             new T.TorusGeometry(0.24, 0.011, 8, 40),
-            metal,
+            rimAlloy,
             side * (half + 0.002),
             0,
             0,
@@ -420,10 +432,10 @@ export class FormulaCar {
           hero,
           i < 2 ? 'front' : 'rear',
           outside < 0 ? -1 : 1,
-          { carbon, dark, metal, paint: this.paint },
+          { carbon, dark, metal, paint: this.paint, rim: rimAlloy, cover: wheelCover },
         );
       } else {
-        const cover = mesh(spin, wheelCoverGeometry(), carbon, outside * (half + 0.014), 0, 0);
+        const cover = mesh(spin, wheelCoverGeometry(), wheelCover, outside * (half + 0.014), 0, 0);
         cover.rotation.y = (outside * Math.PI) / 2;
         const centreRing = mesh(
           spin,
@@ -682,6 +694,9 @@ export class FormulaCar {
     for (let i = 0; i < 4; i++) {
       const p = o + WHEEL_BASE + i * WHEEL_STRIDE;
       this.rings[i].color.setHex(compound.color);
+      // D12 sidewall band in the compound colour; art smears with wheel speed.
+      this.treads[i].band.value.setHex(compound.color);
+      this.treads[i].side.value.x = wheelBlur(b[p + W.OMEGA]);
       this.treads[i].condition.value.set(
         b[p + W.DIRT],
         b[p + W.WEAR],
@@ -696,6 +711,7 @@ export class FormulaCar {
       );
       this.treads[i].surface.value.y = compoundIndex === 3 ? 1 : compoundIndex === 4 ? 2 : 0;
     }
+    this.coverBlur.value = Math.max(...this.treads.map((tread) => tread.side.value.x));
     // Reduced representations a mirror may show (never more detailed than the
     // main view's) stay posed and damaged like the car.
     for (let level = Math.max(1, this.lodLevel); level <= this.reduced.length; level++)

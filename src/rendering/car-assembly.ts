@@ -7,6 +7,10 @@ export interface AssemblyMaterials {
   carbon: T.Material;
   metal: T.Material;
   dark: T.Material;
+  /** Rim and hub alloy (D12); the turned metal when absent. */
+  rim?: T.Material;
+  /** Painted wheel cover (D12); carbon when absent. */
+  cover?: T.Material;
 }
 /** Static subassemblies are batched only AFTER attachment to their proper
  * damage or carrier group. Never flatten a whole car or its moving pivots. */
@@ -34,9 +38,9 @@ export function mountAuthoredWheel(
   materials: AssemblyMaterials,
 ) {
   for (const [suffix, parent, material] of [
-    ['rim', spin, materials.metal],
-    ['cover', spin, materials.carbon],
-    ['hub', spin, materials.metal],
+    ['rim', spin, materials.rim ?? materials.metal],
+    ['cover', spin, materials.cover ?? materials.carbon],
+    ['hub', spin, materials.rim ?? materials.metal],
     ['duct', carrier, materials.carbon],
     ['upright', carrier, materials.metal],
     ['caliper', carrier, materials.dark],

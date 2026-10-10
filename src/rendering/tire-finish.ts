@@ -1,4 +1,5 @@
-import { BufferAttribute, MeshStandardMaterial, Vector3, Vector4, type BufferGeometry } from 'three';
+import { BufferAttribute, Color, MeshStandardMaterial, Vector2, Vector3, Vector4, type BufferGeometry } from 'three';
+import { TYRE_ART, TYRE_SIDEWALL_GLSL, tyreLetteringAtlas } from './studio/tyre-letters.ts';
 import { PERIODIC_COVERAGE_GLSL } from './periodic-coverage.ts';
 import treadShader from '../shaders/tread.frag?raw';
 
@@ -36,22 +37,37 @@ export function tireWetAppearance(rain: number, water: number, load: number, spe
 export function treadMaterial(halfWidth = 0.155) {
   if (!Number.isFinite(halfWidth) || halfWidth < 0.1 || halfWidth > 0.25)
     throw new Error('Invalid tyre material width');
-  const material = new MeshStandardMaterial({ color: 0x191c1d, roughness: 0.9 });
+  const material = new MeshStandardMaterial({
+    color: TYRE_ART.tread.color,
+    roughness: TYRE_ART.tread.roughness,
+  });
   const condition = { value: new Vector4() };
   // wet appearance, drainage style (0 slick / 1 intermediate / 2 wet), half-width
   const surface = { value: new Vector3(0, 0, halfWidth) };
+  // Sidewall (D12): compound band colour, rotational blur 0..1 and lettering on/off.
+  const band = { value: new Color(0xf5c400) };
+  const side = { value: new Vector2(0, 0) };
+  const lettering = { value: tyreLetteringAtlas() };
+  side.value.y = lettering.value ? 1 : 0;
+  const sidewall = { value: new Color(TYRE_ART.sidewall.color) };
   material.onBeforeCompile = (shader) => {
     shader.uniforms.treadCondition = condition;
     shader.uniforms.treadSurface = surface;
+    shader.uniforms.treadBandColor = band;
+    shader.uniforms.treadSide = side;
+    shader.uniforms.tireLettering = lettering;
+    shader.uniforms.treadSidewallColor = sidewall;
     shader.vertexShader = shader.vertexShader
       .replace('#include <common>', '#include <common>\nattribute vec3 tireBind; varying vec3 vTireBind;')
       .replace('#include <begin_vertex>', '#include <begin_vertex>\nvTireBind=tireBind;');
     shader.fragmentShader = shader.fragmentShader
       .replace('#include <common>', `#include <common>
         uniform vec4 treadCondition; uniform vec3 treadSurface;
+        uniform vec3 treadBandColor; uniform vec2 treadSide; uniform vec3 treadSidewallColor;
+        uniform sampler2D tireLettering;
         varying vec3 vTireBind;
         ${PERIODIC_COVERAGE_GLSL}`)
-      .replace('#include <map_fragment>', '#include <map_fragment>\n' + treadShader)
+      .replace('#include <map_fragment>', '#include <map_fragment>\n' + treadShader + TYRE_SIDEWALL_GLSL)
       .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
         // Material relief only. The tyre silhouette/contact geometry is unchanged.
         float tireHeight = -.0015 * tireGroove;
@@ -61,9 +77,11 @@ export function treadMaterial(halfWidth = 0.155) {
         vec3 tireGradient = sign(tireDet) * (dFdx(tireHeight) * tireR1 + dFdy(tireHeight) * tireR2);
         normal = normalize(max(abs(tireDet), 1.e-10) * normal - tireGradient);`)
       .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
+        // D12: fresh slick .75 rising to .82 scrubbed; sidewall .58; ink a touch glossier.
+        roughnessFactor = mix(${TYRE_ART.sidewall.roughness.toFixed(2)}, roughnessFactor + ${(TYRE_ART.tread.scrubbed - TYRE_ART.tread.roughness).toFixed(2)} * clamp(treadCondition.y * 2., 0., 1.), tireCrown) - .08 * tireInk;
         roughnessFactor = clamp(roughnessFactor - .32 * tireWet * (1. - tireGroove)
-          + .07 * tireGroove + .06 * clamp(treadCondition.x, 0., 1.), .5, 1.);`);
+          + .07 * tireGroove + .06 * clamp(treadCondition.x, 0., 1.), .4, 1.);`);
   };
-  material.customProgramCacheKey = () => 'apex-contact-tread-v2-bind-drainage';
-  return { material, condition, surface };
+  material.customProgramCacheKey = () => 'apex-contact-tread-v3-bind-drainage-sidewall';
+  return { material, condition, surface, band, side };
 }
