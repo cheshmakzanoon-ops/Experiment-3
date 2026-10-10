@@ -222,11 +222,12 @@ export function buildBarrierChunk(
   gateKit?.buildChunk(track, root, start, end);
 }
 export function barrierMaterials() {
-  const concrete = new T.MeshStandardMaterial({ color: 0xc4c3b7, roughness: 0.92 });
+  const concrete = new T.MeshStandardMaterial({ color: 0xc8c8c4, roughness: 0.92 });
   installCircuitFinish(concrete, 'concrete');
   return {
     concrete,
-    steel: new T.MeshStandardMaterial({ color: 0x7e8583, metalness: 0.65, roughness: 0.48 }),
+    // D25: galvanised posts and supports.
+    steel: new T.MeshStandardMaterial({ color: 0x8d9396, metalness: 0.85, roughness: 0.45 }),
     fence: catchFenceMaterial(),
   };
 }
