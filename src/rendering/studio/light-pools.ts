@@ -14,8 +14,10 @@ import { chainShaderHook, injectAfter, injectDeclarations } from './shader-hooks
  * the two sides staggered by half a spacing, `height` m up and `lateral` m from
  * the centreline. Each pixel sums the four nearest lamps per side (8 taps, any
  * number of lamps lit at 0 draw calls), E = I cos(theta) / r^2 on the surface
- * normal's vertical share, so pools sit under the lamps and the minimum between
- * them stays above 0.6 of the maximum.
+ * normal's vertical share, so pools sit under the lamps. Review (orchestrator,
+ * perf-budget-v1 shot 40): with 13 m lamps every 32 m the road read one flat,
+ * almost daytime grey; 9 m lamps every 40 m leave the asphalt between pools at
+ * about 0.35 of the light under a lamp (the darker unlit night road).
  *
  * The visible poles (one instanced pole-and-arm mesh, one instanced lamp-head
  * mesh, +2 draws at night only, hidden by day) stand at the same lap positions,
@@ -23,12 +25,12 @@ import { chainShaderHook, injectAfter, injectDeclarations } from './shader-hooks
  * pit side. Lamp heads are unlit HDR white so the bloom draws their halo.
  */
 export const LIGHT_POOLS = Object.freeze({
-  spacing: 32,
-  height: 13,
+  spacing: 40,
+  height: 9,
   /** Analytic lamp offset from the centreline (m). */
   lateral: 12,
   /** Lamp intensity (cd-like units in the renderer's linear scale). */
-  intensity: 360,
+  intensity: 300,
   colour: 0xf4f0e8,
   /** Lamp-head radiance (x linear white) for the bloom halo. */
   headGain: 12,
@@ -38,9 +40,16 @@ export const LIGHT_POOLS = Object.freeze({
 });
 /** Pool strength by lighting: full at night, a hint at golden hour. */
 export const POOL_STRENGTH = Object.freeze({ day: 0, sunset: 0.12, night: 1 });
+/** Share of the directional key's diffuse light kept on the track ribbons.
+ * At night the key is the floodlights' light on vertical faces (cars, walls;
+ * circuitLightState night sun 0.6), but from the 52 degree sun direction it
+ * also lit the road evenly, the "daytime grey" of the night review; the
+ * ribbons take their light from the pools instead. */
+export const RIBBON_KEY_SHARE = Object.freeze({ day: 1, sunset: 1, night: 0.3 });
 
 export const lightPoolUniforms = Object.freeze({
   lightPoolStrength: { value: 0 },
+  lightPoolKeyShare: { value: 1 },
   lightPoolColor: { value: new T.Color(LIGHT_POOLS.colour) },
 });
 
@@ -48,6 +57,7 @@ const f = (v: number) => v.toFixed(4);
 const DECLARATIONS = /* glsl */ `
 varying vec2 vPoolLap;
 uniform float lightPoolStrength;
+uniform float lightPoolKeyShare;
 uniform vec3 lightPoolColor;
 // Sum of cos(theta) / r^2 from the nearest lamps of both rows (lap metres).
 float apexPoolIrradiance( vec2 lap ) {
@@ -68,14 +78,16 @@ float apexPoolIrradiance( vec2 lap ) {
 
 const POOL_GLSL = /* glsl */ `
 if ( lightPoolStrength > 0.0 ) {
-	// D28 floodlight pools: diffuse light from the analytic lamp rows above.
+	// D28 floodlight pools: diffuse light from the analytic lamp rows above;
+	// at night they replace most of the directional key on the track surfaces.
+	reflectedLight.directDiffuse *= lightPoolKeyShare;
 	vec3 poolUp = normalize( ( viewMatrix * vec4( 0.0, 1.0, 0.0, 0.0 ) ).xyz );
 	float poolFacing = clamp( dot( normal, poolUp ), 0.0, 1.0 );
 	vec3 poolIrradiance = lightPoolColor * ( lightPoolStrength * ${f(LIGHT_POOLS.intensity)} * poolFacing ) * apexPoolIrradiance( vPoolLap );
 	reflectedLight.directDiffuse += poolIrradiance * BRDF_Lambert( material.diffuseColor );
 }`;
 
-export const LIGHT_POOL_HOOK = 'light-pools-v1';
+export const LIGHT_POOL_HOOK = 'light-pools-v2';
 /** Light a track ribbon material (uv = lateral, lap metres / 5) with the pools. */
 export function installLightPools(material: T.Material) {
   return chainShaderHook(material, LIGHT_POOL_HOOK, (shader) => {
@@ -186,6 +198,7 @@ export class LightPools {
   update(mode: 'day' | 'sunset' | 'night') {
     const strength = POOL_STRENGTH[mode];
     lightPoolUniforms.lightPoolStrength.value = strength;
+    lightPoolUniforms.lightPoolKeyShare.value = RIBBON_KEY_SHARE[mode];
     this.root.visible = mode === 'night';
   }
 }

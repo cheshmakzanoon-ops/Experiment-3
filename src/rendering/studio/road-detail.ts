@@ -89,9 +89,10 @@ export const LAUNCH_RUBBER = Object.freeze({
   halfWidth: 0.15,
   /** Rear axle behind the slot reference, metres. */
   axle: 1.8,
-  /** Decay length of one launch mark (m) and its darkening where it starts. */
+  /** Decay length of one launch mark (m) and its darkening where it starts.
+   * 0.6 -> 0.4: the grid marks read too contrasty under the night pools. */
   decay: 30,
-  darkening: 0.6,
+  darkening: 0.4,
 });
 
 export interface AsphaltMeans {
