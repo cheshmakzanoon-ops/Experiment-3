@@ -15,6 +15,11 @@ import type { TrackPoint } from '../../simulation/track.ts';
 import type { TerrainField } from '../../simulation/open-world/terrain-field.ts';
 import { materials } from '../materials/index.ts';
 import { OW_NOISE_GLSL } from './terrain-material.ts';
+import {
+  FestivalRoadFrame,
+  festivalRoadProfile,
+  installFestivalRoadSurface,
+} from './festival-road-surface.ts';
 
 /** Chunk edge (m) for culling road geometry. */
 const CHUNK = 512;
@@ -38,14 +43,26 @@ class Builder {
   positions: number[] = [];
   normals: number[] = [];
   uvs: number[] = [];
+  roadData: number[] = [];
   indices: number[] = [];
   get count() {
     return this.positions.length / 3;
   }
-  vertex(x: number, y: number, z: number, u: number, v: number, nx = 0, ny = 1, nz = 0) {
+  vertex(
+    x: number,
+    y: number,
+    z: number,
+    u: number,
+    v: number,
+    nx = 0,
+    ny = 1,
+    nz = 0,
+    road?: readonly [number, number, number, number],
+  ) {
     this.positions.push(x, y, z);
     this.normals.push(nx, ny, nz);
     this.uvs.push(u, v);
+    if (road) this.roadData.push(...road);
     return this.count - 1;
   }
   quad(a: number, b: number, c: number, d: number) {
@@ -58,6 +75,11 @@ class Builder {
     g.setAttribute('normal', new T.Float32BufferAttribute(this.normals, 3));
     g.setAttribute('uv', new T.Float32BufferAttribute(this.uvs, 2));
     g.setAttribute('uv1', new T.Float32BufferAttribute(this.uvs, 2));
+    if (this.roadData.length) {
+      if (this.roadData.length !== this.count * 4)
+        throw new Error('Festival road metadata must cover every vertex of its material batch');
+      g.setAttribute('festivalRoadData', new T.Float32BufferAttribute(this.roadData, 4));
+    }
     g.setIndex(this.indices);
     g.computeBoundingSphere();
     g.computeBoundingBox();
@@ -251,6 +273,9 @@ export class RoadMeshes {
     // Photographed asphalt on Medium and above (ground/scanned-ground.ts).
     for (const m of [asphaltMajor, asphalt, town])
       installScannedMaps(m, 'asphalt', libraryAlbedo(m));
+    installFestivalRoadSurface(asphaltMajor, 0.32);
+    installFestivalRoadSurface(asphalt, 0.9);
+    installFestivalRoadSurface(town, 1);
     for (const [m, units] of [
       [asphaltMajor, -4],
       [asphalt, -3],
@@ -323,6 +348,7 @@ export class RoadMeshes {
         crown = spec.crown,
         layer = this.layerOf(e),
         height: SurfaceHeight = (pt, l) => net.surfaceHeight(pt, l, hw, crown);
+      const frame = new FestivalRoadFrame(net, e);
       const across = [-hw, -hw * 0.5, 0, hw * 0.5, hw];
       // Running surface and verges, segment by segment.
       for (let i = e.first; i < e.last; i++) {
@@ -333,8 +359,23 @@ export class RoadMeshes {
           v0 = p.s - e.offset,
           v1 = q.s - e.offset;
         const b = builder(mx, mz, layer);
-        const row = (pt: TrackPoint, v: number) =>
-          across.map((l) => b.vertex(pt.x + pt.nx * l, height(pt, l), pt.z + pt.nz * l, l, v));
+        const row = (pt: TrackPoint, v: number) => {
+          const profile = spec.surface === 'asphalt' ? festivalRoadProfile(net, e, v) : undefined;
+          return across.map((l) => {
+            const n = frame.normal(pt, l);
+            return b.vertex(
+              pt.x + pt.nx * l,
+              height(pt, l),
+              pt.z + pt.nz * l,
+              l,
+              v,
+              n.x,
+              n.y,
+              n.z,
+              profile,
+            );
+          });
+        };
         const r0 = row(p, v0),
           r1 = row(q, v1);
         for (let k = 0; k < across.length - 1; k++) b.quad(r0[k], r0[k + 1], r1[k], r1[k + 1]);
@@ -342,32 +383,44 @@ export class RoadMeshes {
         const bridge =
           (net.flags[i] & ROAD_FLAG.BRIDGE) !== 0 && (net.flags[i + 1] & ROAD_FLAG.BRIDGE) !== 0;
         if (spec.shoulder > 0.2 && !bridge) {
-          const vb = builder(
-            mx,
-            mz,
+          const shoulderLayer =
             e.roadClass === 'town'
               ? 'paving'
               : e.roadClass === 'highway' || e.roadClass === 'runway'
                 ? layer
-                : 'verge',
-          );
+                : 'verge';
+          const vb = builder(mx, mz, shoulderLayer);
           for (const side of [-1, 1]) {
             const edge = (pt: TrackPoint, v: number) => {
+              const profile =
+                shoulderLayer === layer && spec.surface === 'asphalt'
+                  ? festivalRoadProfile(net, e, v)
+                  : undefined;
+              const n = frame.normal(pt, side * hw, true);
               const inner = vb.vertex(
                 pt.x + pt.nx * side * hw,
                 height(pt, side * hw) - 0.005,
                 pt.z + pt.nz * side * hw,
                 side * hw,
                 v,
+                n.x,
+                n.y,
+                n.z,
+                profile,
               );
-              const w = hw + spec.shoulder,
-                outer = vb.vertex(
-                  pt.x + pt.nx * side * w,
-                  height(pt, side * hw) - 0.06 - spec.shoulder * 0.03,
-                  pt.z + pt.nz * side * w,
-                  side * w,
-                  v,
-                );
+              const w = hw + spec.shoulder;
+              frame.normal(pt, side * w, true);
+              const outer = vb.vertex(
+                pt.x + pt.nx * side * w,
+                height(pt, side * hw) - 0.06 - spec.shoulder * 0.03,
+                pt.z + pt.nz * side * w,
+                side * w,
+                v,
+                n.x,
+                n.y,
+                n.z,
+                profile,
+              );
               return [inner, outer];
             };
             const [a0, a1] = edge(p, v0),
@@ -394,7 +447,7 @@ export class RoadMeshes {
               posts,
             );
       }
-      this.markings(e, builder);
+      this.markings(e, builder, frame);
       if (e.roadClass === 'town') this.townLamps(e, lamps);
       this.piers(e, builder);
     }
@@ -471,7 +524,11 @@ export class RoadMeshes {
     };
   }
   /** Painted lines: edge lines, centre lines and runway markings. */
-  private markings(e: RoadEdge, builder: (x: number, z: number, layer: Layer) => Builder) {
+  private markings(
+    e: RoadEdge,
+    builder: (x: number, z: number, layer: Layer) => Builder,
+    frame: FestivalRoadFrame,
+  ) {
     const net = this.network,
       spec = e.spec,
       hw = spec.halfWidth;
@@ -542,14 +599,19 @@ export class RoadMeshes {
         net.at(e.offset + Math.min(e.length, s + step), p);
         const b = { ...p },
           builderAt = builder((a.x + b.x) / 2, (a.z + b.z) / 2, line.layer);
-        const corner = (pt: TrackPoint, l: number, v: number) =>
-          builderAt.vertex(
+        const corner = (pt: TrackPoint, l: number, v: number) => {
+          const n = frame.normal(pt, l);
+          return builderAt.vertex(
             pt.x + pt.nx * l,
             net.surfaceHeight(pt, l, hw, spec.crown) + 0.012,
             pt.z + pt.nz * l,
             l,
             v,
+            n.x,
+            n.y,
+            n.z,
           );
+        };
         const w = line.width / 2;
         const a0 = corner(a, line.lateral - w, s),
           a1 = corner(a, line.lateral + w, s),
@@ -570,14 +632,19 @@ export class RoadMeshes {
           if (k === 0) continue;
           const l = k * 1.9,
             bb = builder(a.x, a.z, 'paint');
-          const corner = (pt: TrackPoint, ll: number, v: number) =>
-            bb.vertex(
+          const corner = (pt: TrackPoint, ll: number, v: number) => {
+            const n = frame.normal(pt, ll);
+            return bb.vertex(
               pt.x + pt.nx * ll,
               net.surfaceHeight(pt, ll, hw, spec.crown) + 0.012,
               pt.z + pt.nz * ll,
               ll,
               v,
+              n.x,
+              n.y,
+              n.z,
             );
+          };
           bb.quad(
             corner(a, l - 0.6, 0),
             corner(a, l + 0.6, 0),

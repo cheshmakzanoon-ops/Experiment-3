@@ -1,5 +1,6 @@
 import './festival-hud.css';
 import type { DriftCue } from '../simulation/open-world/drift-feedback.ts';
+import type { FestivalActivityProgress } from '../simulation/open-world/activity-progress.ts';
 import type { PaceCue } from '../rendering/open-world/pace-coach.ts';
 import {
   EVENT_KIND_LABEL,
@@ -18,6 +19,8 @@ import { MAP_HALF, MAP_SIZE, mapToWorld, minimapMatrix, worldToMap } from './fes
 export interface FestivalHudCallbacks {
   start(id: string): void;
   continue(): void;
+  /** Return to a streamed event start for another attempt. */
+  retry?(id: string): void;
   cancel(): void;
   reset(): void;
   resume(): void;
@@ -55,10 +58,11 @@ export class FestivalHud {
   private readonly minimap: HTMLCanvasElement;
   private readonly nodes = new Map<string, HTMLElement>();
   private lastCard = '';
-  /** Rendered results (event and time): every status message is a new
+  /** Rendered result run: every status message is a new
    * structured clone, so identity would rebuild the card at 10 Hz and eat
    * mouse clicks on CONTINUE. */
   private lastResult = '';
+  private lastActivity: FestivalResult | null = null;
   private routeEvent: FestivalEvent | null = null;
   private mapSelection = '';
   private mapFilter = 'all';
@@ -88,7 +92,7 @@ export class FestivalHud {
       <div class="fest-hint" id="festHint"><kbd>C</kbd> CAMERA · <kbd>T</kbd> MAP · <kbd>ESC</kbd> MENU</div>
       <div class="fest-explore" id="festExplore"><span class="fest-eyebrow">THE ROAD IS YOURS</span><b id="festExploreName">Explore Solvane Coast</b><small id="festExploreDistance"></small></div>
       <div class="fest-skills" id="festSkills" hidden role="status"><span id="festSkillLabel"></span><div><b id="festSkillScore">0</b><i id="festSkillMultiplier">×1.0</i></div><small id="festSkillBank"></small><div class="fest-chain-track"><i id="festSkillTimer"></i></div></div>
-      <div class="fest-event" id="festEvent" hidden><h2 id="festEventName"></h2><div class="fest-row" id="festEventRow"></div><div class="fest-progress"><i id="festProgress"></i></div></div>
+      <div class="fest-event" id="festEvent" hidden><h2 id="festEventName"></h2><div class="fest-row" id="festEventRow"></div><div class="fest-challenge" id="festChallenge" hidden aria-label="Live activity target"><div><b id="festChallengeStars"></b><span id="festChallengeTarget"></span></div><small id="festChallengeAdvice"></small><div class="fest-challenge-track" role="progressbar" aria-label="Progress to activity star target" aria-valuemin="0" aria-valuemax="100" id="festChallengeMeter"><i id="festChallengeFill"></i></div></div><div class="fest-progress"><i id="festProgress"></i></div></div>
       <div class="fest-countdown" id="festCountdown" hidden></div>
       <div class="fest-message" id="festMessage" role="status" aria-live="polite" hidden></div>
       <div class="fest-card" id="festCard" hidden role="dialog" aria-label="Event"></div>
@@ -112,6 +116,9 @@ export class FestivalHud {
           break;
         case 'continue':
           this.callbacks.continue();
+          break;
+        case 'retry':
+          this.callbacks.retry?.(value);
           break;
         case 'cancel':
           this.callbacks.cancel();
@@ -534,6 +541,10 @@ export class FestivalHud {
     }
     // Running event.
     const ev = status.event;
+    const challenge = status.mode === 'running' ? (ev?.challenge ?? null) : null;
+    this.root.classList.toggle('fest-has-challenge', !!challenge);
+    this.show('festChallenge', !!challenge);
+    if (challenge) this.updateChallenge(challenge);
     this.routeEvent = ev
       ? (this.events.find((e) => e.spec.id === ev.id) ?? null)
       : status.card
@@ -583,16 +594,73 @@ export class FestivalHud {
     }
     // Results.
     const result = status.mode === 'finished' ? status.result : null,
-      resultKey = result ? `${result.eventId}:${result.at}` : '';
+      resultKey = result?.runId ?? '';
     if (resultKey !== this.lastResult) {
       this.lastResult = resultKey;
       const node = this.get('festResults');
       node.hidden = !result || !isRace(result.eventKind);
-      if (result && isRace(result.eventKind)) node.innerHTML = this.resultsHtml(result);
+      if (result && isRace(result.eventKind)) {
+        node.innerHTML = this.resultsHtml(result);
+        if (!this.menuOpen && !this.mapOpen && !this.photoOpen)
+          node.querySelector<HTMLElement>('[data-fest="continue"]')?.focus();
+      }
     }
     this.text('festMessage', status.message ?? '');
     this.show('festMessage', !!status.message && !this.menuOpen);
     if (!this.photoOpen) this.paintMinimap(x, z, heading, discovered);
+  }
+  private updateChallenge(c: FestivalActivityProgress) {
+    const number = (value: number) => Math.round(value).toLocaleString('en');
+    this.get('festChallenge').dataset.state = c.offRoute
+      ? 'off-route'
+      : c.stars === 3
+        ? 'on-target'
+        : 'building';
+    this.text('festChallengeStars', `${stars(c.stars)} LIVE`);
+    this.text(
+      'festChallengeTarget',
+      `${c.stars === 3 ? 'HOLD' : 'NEXT'} ${c.targetStars}★ · ${number(c.target)} ${c.unit}`,
+    );
+    const remaining =
+      c.remainingMeters >= 1000
+        ? `${(c.remainingMeters / 1000).toFixed(1)} KM LEFT`
+        : `${Math.ceil(c.remainingMeters)} M LEFT`;
+    const advice = c.offRoute
+      ? 'RETURN TO THE MARKED ROUTE'
+      : c.metric === 'average-speed'
+        ? c.targetTimeExpired
+          ? 'NEXT TARGET OUT OF REACH THIS RUN'
+          : c.requiredAverageKmh !== null
+            ? `NEED ${Math.ceil(c.requiredAverageKmh)} KM/H AVG FROM HERE`
+            : 'CROSS THE FINISH TO CONFIRM'
+        : c.metric === 'drift'
+          ? c.stars === 3
+            ? 'FINISH CLEAN TO KEEP YOUR SCORE'
+            : `${Math.ceil(Math.max(0, -c.delta)).toLocaleString('en')} PTS TO NEXT STAR`
+          : c.stars === 3
+            ? 'HOLD YOUR SPEED THROUGH THE FINISH'
+            : `${Math.ceil(Math.max(0, -c.delta))} KM/H TO NEXT STAR`;
+    this.text('festChallengeAdvice', `${c.assisted ? 'ASSISTED · ' : ''}${advice} · ${remaining}`);
+    this.get('festChallengeFill').style.transform = `scaleX(${c.progress.toFixed(4)})`;
+    this.get('festChallengeMeter').setAttribute(
+      'aria-valuenow',
+      String(Math.round(c.progress * 100)),
+    );
+    this.get('festChallengeMeter').setAttribute(
+      'aria-valuetext',
+      `${number(c.value)} ${c.unit}; ${c.stars} provisional stars; target ${number(c.target)} ${c.unit}`,
+    );
+  }
+  /** Passive activities keep the drive moving; their most recent measured
+   * result remains available in the pause menu for a deliberate retry. */
+  recordActivity(result: FestivalResult) {
+    if (!isRace(result.eventKind) && result.completed) this.lastActivity = result;
+  }
+  /** A streamed move owns the screen until its worker acknowledgment.
+   * Hide stale actions immediately, including on an already cached road. */
+  hideResults() {
+    this.get('festResults').hidden = true;
+    this.lastResult = '';
   }
   private resultsHtml(r: FestivalResult) {
     const rows = r.standings
@@ -610,7 +678,7 @@ export class FestivalHud {
       <div class="fest-stars" aria-label="${r.stars} of 3 stars">${stars(r.stars)}</div>
       ${r.time !== null ? `<div>Time ${clock(r.time)}${r.assisted ? ' · autopilot assisted' : ''}</div>` : ''}
       <table>${rows}</table>
-      <button class="fest-primary" data-fest="continue">CONTINUE <kbd>ENTER</kbd></button>`;
+      <div class="fest-result-actions"><button class="fest-primary" data-fest="continue">CONTINUE <kbd>ENTER</kbd></button>${this.callbacks.retry ? `<button class="fest-secondary" data-fest="retry" data-value="${escapeHtml(r.eventId)}">TRY AGAIN</button>` : ''}</div>`;
   }
   /** Pause menu (free roam): resume, reset, time of day, machine, autopilot,
    * traffic, travel, exit. */
@@ -639,6 +707,7 @@ export class FestivalHud {
     node.innerHTML = `<header class="fest-menu-heading"><div><span class="fest-eyebrow">MOTOBOUND / FESTIVAL</span><h2>The open road.</h2><p>Solvane Coast · ${state.discovered.length} of ${this.events.length} events discovered</p></div><span class="fest-menu-mark">S<span>COAST</span></span></header>
       <div class="fest-menu-actions"><button class="fest-primary" data-fest="resume">RESUME</button><button class="fest-secondary" data-fest="reset">RESET TO ROAD</button>${state.inEvent ? '<button class="fest-secondary" data-fest="cancel">ABANDON EVENT</button>' : ''}<button class="fest-secondary" data-fest="exit">EXIT FESTIVAL</button>${this.callbacks.map ? '<button class="fest-secondary" data-fest="map">WORLD MAP</button>' : ''}${this.callbacks.photo ? '<button class="fest-secondary" data-fest="photo">PHOTO MODE</button>' : ''}</div>
       <div class="fest-menu-columns"><div>
+      ${this.lastActivity && this.callbacks.retry && !state.inEvent ? `<section class="fest-last-activity"><h3>Last activity <span>${this.lastActivity.assisted ? 'ASSISTED' : 'COMPLETED'}</span></h3><b>${escapeHtml(this.lastActivity.eventName)}</b><p>${stars(this.lastActivity.stars)} · ${Math.round(this.lastActivity.trapKmh ?? this.lastActivity.averageKmh ?? this.lastActivity.driftScore ?? 0).toLocaleString('en')} ${this.lastActivity.eventKind === 'drift-zone' ? 'PTS' : this.lastActivity.eventKind === 'speed-zone' ? 'KM/H AVG' : 'KM/H'}</p><button class="fest-secondary" data-fest="retry" data-value="${escapeHtml(this.lastActivity.eventId)}">TRY AGAIN</button></section>` : ''}
       <section><h3>Time of day</h3><div class="fest-options">${lightings.map(([m, label]) => `<button data-fest="lighting" data-value="${m}" ${pressed(state.lighting === m)}>${label}</button>`).join('')}</div></section>
       <section><h3>Your machine <span>${this.vehicles.length} AVAILABLE</span></h3><div class="fest-options fest-garage">${this.vehicles.map((v) => `<button data-fest="vehicle" data-value="${escapeHtml(v.id)}" ${pressed(state.vehicle === v.id)}><span>${escapeHtml(v.name)}</span><small>${escapeHtml(v.classId.toUpperCase())} · ${Math.round(v.spec.dryMass).toLocaleString('en')} KG</small></button>`).join('')}</div></section></div><div>
       <section><h3>Autopilot</h3><div class="fest-options"><button data-fest="autopilot" data-value="on" ${pressed(state.autopilot)}>On</button><button data-fest="autopilot" data-value="off" ${pressed(!state.autopilot)}>Off</button></div></section>
@@ -682,7 +751,9 @@ export class FestivalHud {
         ? this.get('festMap')
         : this.menuOpen
           ? this.get('festMenu')
-          : null;
+          : this.resultsOpen
+            ? this.get('festResults')
+            : null;
   }
   private focusable(panel: HTMLElement) {
     return [...panel.querySelectorAll<HTMLButtonElement>('button:not(:disabled)')].filter(
@@ -720,6 +791,7 @@ export class FestivalHud {
       if (fresh(1)) {
         if (this.photoOpen) this.callbacks.photo?.(false);
         else if (this.mapOpen) this.showMap(false);
+        else if (this.resultsOpen && !this.menuOpen) this.callbacks.continue();
         else this.callbacks.resume();
       }
     }

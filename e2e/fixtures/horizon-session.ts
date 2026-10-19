@@ -156,11 +156,11 @@ async function boot() {
       travel: params.get('travel') ?? undefined,
     },
   );
-  input.setEnabled(true);
+  input.setEnabled(session.drivingInputEnabled);
   let previous = performance.now();
   const tick = (time: number) => {
     if (!session) return;
-    if (session.isPaused) input.pollActions(['pause']);
+    if (!session.drivingInputEnabled) input.pollActions(['pause']);
     else session.input(input.update(Math.min(0.08, (time - previous) / 1000)));
     previous = time;
     if (rendering) {

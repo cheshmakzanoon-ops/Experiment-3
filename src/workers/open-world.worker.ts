@@ -53,8 +53,8 @@ function applyInput(input: Controls) {
   simulation?.setInput(input);
 }
 scope.onmessage = (event: MessageEvent<ToOpenWorld>) => {
+  const msg = event.data;
   try {
-    const msg = event.data;
     switch (msg.type) {
       case 'init': {
         const start = performance.now();
@@ -90,6 +90,8 @@ scope.onmessage = (event: MessageEvent<ToOpenWorld>) => {
         // A field change or teleport: deliver the new state at once.
         if (simulation && (simulation.cars.length !== before || paused)) snapshot(true);
         status();
+        // The caller must receive the updated state before continuing travel.
+        if (msg.requestId !== undefined) send({ type: 'command-result', requestId: msg.requestId });
         break;
       }
       case 'recycle':
@@ -98,7 +100,10 @@ scope.onmessage = (event: MessageEvent<ToOpenWorld>) => {
         break;
     }
   } catch (error) {
-    send({ type: 'error', message: error instanceof Error ? error.message : String(error) });
+    const message = error instanceof Error ? error.message : String(error);
+    if (msg.type === 'command' && msg.requestId !== undefined) {
+      send({ type: 'command-result', requestId: msg.requestId, error: message });
+    } else send({ type: 'error', message });
   }
 };
 setInterval(() => {

@@ -7,6 +7,7 @@ import { FormulaCar } from '../car.ts';
 import { VehicleBodies } from '../vehicle-bodies/index.ts';
 import { installSpecularIBL } from '../studio/ibl-energy.ts';
 import type { Quality } from '../options.ts';
+import { FestivalCarFinish } from './festival-car-finish.ts';
 
 /** The festival constructs the procedural Formula model without borrowed
  * hero/driver assets. Capture its own resources before reflection/mirror
@@ -45,6 +46,8 @@ export class FestivalCars {
   readonly root = new T.Group();
   /** Non-Formula bodies (the circuit renderer's library). */
   readonly bodies = new VehicleBodies();
+  /** Snapshot-driven finish on the followed road car; its clones are local. */
+  readonly finish = new FestivalCarFinish();
   private readonly holders: { root: T.Object3D; lodLevel: number }[] = [];
   private readonly formula = new Map<number, FormulaCar>();
   private readonly releaseFormula = new Map<number, () => void>();
@@ -159,6 +162,21 @@ export class FestivalCars {
       night > 0.05,
       { follow: 0, cockpit, camera: camera?.position ?? null },
     );
+    const followed = vehicleAt(Math.round(presented[carBase(0) + RACE_BASE + R.VEHICLE]));
+    const followedSheet = bodySheetFor(followed);
+    let finishActive = false;
+    if (cars > 0 && followedSheet?.kind === 'closed') {
+      // The public cabin belongs to this entrant even after a garage swap.
+      // Resolve its enclosing body rather than relying on child insertion
+      // order, vehicle names, or the catalogue's private implementation map.
+      let body: T.Object3D | null = this.bodies.cabinOf(0)?.detail ?? null;
+      while (body && body.parent !== this.bodies.root) body = body.parent;
+      if (body) {
+        if (this.finish.bind(body, followed, followedSheet)) this.refreshPaint();
+        finishActive = true;
+      }
+    }
+    this.finish.update(presented, quality !== 'low', finishActive);
     for (let id = 0; id < this.holders.length; id++) {
       const formula = this.formula.get(id);
       const isFormula =
@@ -197,6 +215,7 @@ export class FestivalCars {
   /** Clear all entrants; repeated garage swaps reuse bounded Formula entries,
    * while a session exit releases every resource owned by those entries. */
   clear() {
+    this.finish.clear();
     this.bodies.clear();
     for (const release of this.releaseFormula.values()) release();
     this.releaseFormula.clear();

@@ -167,6 +167,228 @@ test('festival results: CONTINUE takes a normal mouse click while status keeps a
   expect(errors).toEqual([]);
 });
 
+test('festival results: keyboard and controller can retry without also continuing', async ({
+  page,
+}) => {
+  await load(page);
+  await page.evaluate(() =>
+    (window as unknown as { FestivalMenu: Fixture }).FestivalMenu.mountFestivalResults(),
+  );
+  const log = page.locator('#festivalEvents');
+  const again = page.locator('#festResults [data-fest="retry"]');
+  const event = await again.getAttribute('data-value');
+  await expect(page.locator('#festResults [data-fest="continue"]')).toBeFocused();
+  await page.keyboard.press('Tab');
+  await expect(again).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect(log).toHaveText(`retry:${event};`);
+  await page.keyboard.press('Space');
+  await expect(log).toHaveText(`retry:${event};retry:${event};`);
+  await page.keyboard.press('Tab');
+  await expect(page.locator('#festResults [data-fest="continue"]')).toBeFocused();
+  await page.keyboard.press('Shift+Tab');
+  await expect(again).toBeFocused();
+  // The real HUD polls this controller on animation frames, including
+  // while driving input is disabled by the result dialog.
+  await page.evaluate(() => {
+    const buttons = Array.from({ length: 17 }, (_, index) => ({
+      pressed: index === 0,
+      touched: index === 0,
+      value: Number(index === 0),
+    }));
+    Object.defineProperty(navigator, 'getGamepads', {
+      configurable: true,
+      value: () => [{ connected: true, buttons }],
+    });
+  });
+  await expect(log).toHaveText(`retry:${event};retry:${event};retry:${event};`);
+  await page.waitForTimeout(180);
+  await expect(log).toHaveText(`retry:${event};retry:${event};retry:${event};`);
+  // Results own driving input, but still offer the real pause menu from
+  // a focused button and from the mapped controller pause action.
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#festMenu')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#festMenu')).toBeHidden();
+  await page.evaluate(() => {
+    const buttons = Array.from({ length: 17 }, () => ({
+      pressed: false,
+      touched: false,
+      value: 0,
+    }));
+    Object.defineProperty(navigator, 'getGamepads', {
+      configurable: true,
+      value: () => [
+        {
+          id: 'Results controller',
+          index: 0,
+          connected: true,
+          mapping: 'standard',
+          axes: [0, 0, 0, 0],
+          buttons,
+        },
+      ],
+    });
+  });
+  await page.waitForTimeout(100);
+  await page.evaluate(() => {
+    Object.assign(navigator.getGamepads()[0]!.buttons[9], { pressed: true, value: 1 });
+  });
+  await expect(page.locator('#festMenu')).toBeVisible();
+  await expect(log).toHaveText(`retry:${event};retry:${event};retry:${event};`);
+});
+
+test('festival activity retry: completed passive results remain reachable in the pause menu', async ({
+  page,
+}) => {
+  await mount(page);
+  await page.evaluate(() => {
+    const h = (window as unknown as FestivalWindow).festivalHarness;
+    const result = {
+      kind: 'festival-result' as const,
+      version: 2 as const,
+      runId: 'menu-activity:1',
+      regionId: 'solvane',
+      eventId: 'kestrel-drift',
+      eventName: 'Kestrel Drift Playground',
+      eventKind: 'drift-zone' as const,
+      vehicleId: 'rd2',
+      completed: true,
+      abandoned: false,
+      position: null,
+      entrants: 1,
+      time: 46.4,
+      trapKmh: null,
+      averageKmh: null,
+      driftScore: 69,
+      driftLines: [],
+      stars: 1,
+      legalDistance: 790,
+      offRouteSeconds: 0,
+      standings: [],
+      at: 46.4,
+      assisted: false,
+    };
+    h.recordActivity(result);
+    h.recordActivity({ ...result, runId: 'menu-activity:2', completed: false, abandoned: true });
+  });
+  await expect(page.locator('#festResults')).toBeHidden();
+  await page.keyboard.press('Escape');
+  const activity = page.locator('.fest-last-activity');
+  await expect(activity).toContainText('Kestrel Drift Playground');
+  await expect(activity).toContainText('★☆☆ · 69 PTS');
+  const retry = activity.getByRole('button', { name: 'TRY AGAIN' });
+  await retry.focus();
+  await page.keyboard.press('Enter');
+  await expect(page.locator('#festivalEvents')).toContainText('retry:kestrel-drift;');
+  expect(
+    await page.evaluate(() => (window as unknown as FestivalWindow).festivalHarness.frame()),
+  ).toMatchObject({ paused: true, throttle: 0 });
+});
+
+test('festival activity targets: provisional pacing, route loss, and overlays stay coherent', async ({
+  page,
+}) => {
+  await mount(page);
+  const update = (patch: Record<string, unknown>) =>
+    page.evaluate((patch) => {
+      const h = (window as unknown as FestivalWindow).festivalHarness;
+      h.setStatus(patch);
+    }, patch);
+  const event = {
+    id: 'kestrel-drift',
+    name: 'Kestrel Drift Playground',
+    kind: 'drift-zone',
+    countdown: 0,
+    elapsed: 12,
+    progress: 0.4,
+    lap: 1,
+    laps: 1,
+    position: 1,
+    entrants: 1,
+    offRoute: false,
+    live: { label: 'DRIFT', value: '160' },
+    gate: null,
+    challenge: {
+      metric: 'drift',
+      value: 160,
+      unit: 'PTS',
+      stars: 1,
+      targetStars: 2,
+      target: 300,
+      delta: -140,
+      progress: 160 / 300,
+      remainingMeters: 410,
+      requiredAverageKmh: null,
+      targetTimeExpired: false,
+      provisional: true,
+      assisted: false,
+      offRoute: false,
+    },
+  };
+  await update({ mode: 'running', event });
+  await expect(page.locator('#festChallenge')).toBeVisible();
+  await expect(page.locator('#festChallengeStars')).toHaveText('★☆☆ LIVE');
+  await expect(page.locator('#festChallengeTarget')).toHaveText('NEXT 2★ · 300 PTS');
+  await expect(page.locator('#festChallengeAdvice')).toHaveText(
+    '140 PTS TO NEXT STAR · 410 M LEFT',
+  );
+  await expect(page.locator('#festChallengeMeter')).toHaveAttribute('aria-valuenow', '53');
+  // A provisional slide can be voided by route loss; the display must
+  // move back immediately instead of keeping a fictitious earned star.
+  event.challenge = {
+    ...event.challenge,
+    value: 0,
+    stars: 0,
+    targetStars: 1,
+    target: 50,
+    delta: -50,
+    progress: 0,
+    offRoute: true,
+  };
+  await update({ event });
+  await expect(page.locator('#festChallengeStars')).toHaveText('☆☆☆ LIVE');
+  await expect(page.locator('#festChallengeAdvice')).toContainText('RETURN TO THE MARKED ROUTE');
+  // Switch to a speed-zone timing requirement, including an expired
+  // target budget. These are HUD samples, not a physics driving claim.
+  const zone = {
+    ...event,
+    id: 'test-zone',
+    kind: 'speed-zone',
+    challenge: {
+      ...event.challenge,
+      metric: 'average-speed',
+      value: 118,
+      unit: 'KM/H',
+      target: 140,
+      delta: -22,
+      progress: 118 / 140,
+      offRoute: false,
+      requiredAverageKmh: 152.3,
+      assisted: true,
+    },
+  };
+  await update({ event: zone });
+  await expect(page.locator('#festChallengeAdvice')).toHaveText(
+    'ASSISTED · NEED 153 KM/H AVG FROM HERE · 410 M LEFT',
+  );
+  await update({
+    event: {
+      ...zone,
+      challenge: { ...zone.challenge, requiredAverageKmh: null, targetTimeExpired: true },
+    },
+  });
+  await expect(page.locator('#festChallengeAdvice')).toContainText(
+    'NEXT TARGET OUT OF REACH THIS RUN',
+  );
+  await page.keyboard.press('Escape');
+  await page.locator('[data-fest="photo"]').click();
+  await expect(page.locator('#festChallenge')).toBeHidden();
+  await update({ mode: 'free', event: null });
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#festChallenge')).toBeHidden();
+});
+
 test('festival map: filters, event selection and keyboard focus survive redraws', async ({
   page,
 }) => {

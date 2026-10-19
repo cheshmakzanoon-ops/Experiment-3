@@ -46,8 +46,15 @@ measured section; the extra runout is not credited as driven distance.
 | Activity | Kind / setting | Measured event distance | Authored path including runout | Targets |
 | --- | --- | ---: | ---: | --- |
 | Harbour Opening Run (`harbour-welcome`) | Sprint through the waterfront, market and upper streets; two rivals | 2,579.525 m | 2,639.525 m | Existing race position/star rules |
-| Kestrel Drift Playground (`kestrel-drift`) | Broad airfield taxiway bend; 30 m running width | 706.316 m | 766.316 m | 100 / 300 / 600 points |
+| Kestrel Drift Playground (`kestrel-drift`) | Broad airfield taxiway bend; 30 m running width | 706.316 m | 766.316 m | 50 / 300 / 600 points |
 | Kestrel Launch Run (`runway-launch`) | Straight runway acceleration speed trap | 1,239.981 m | 1,299.981 m | 110 / 160 / 210 km/h |
+
+The Kestrel beginner milestone was calibrated from **100 to 50 points**; its 300/600 mastery
+goals are unchanged. The [retained normal-control drift trial](../../scripts/horizon-drift-validation.ts)
+finishes in the RD2 on Raw assist with **69 points and one star**, zero off-road time, contacts or
+resets, and full measured progress. Its [complete result and trace](horizon-drift-validation.json)
+label the steering as scripted assistance: this establishes the first milestone, not human
+usability or attainability of the higher goals. Vehicle physics and the scoring formula are unchanged.
 
 Automatic skill-zone entry retains the same vehicle, velocity, pose, gear, tyres, damage and controls.
 The car must cross the entry plane at the correct road height and travel in the route direction;

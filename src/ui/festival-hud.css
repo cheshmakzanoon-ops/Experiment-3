@@ -267,6 +267,50 @@
   transform-origin: left;
   background: var(--fest-accent);
 }
+.fest-challenge {
+  margin-top: 7px;
+  padding-top: 7px;
+  border-top: 1px solid var(--fest-line);
+  font-variant-numeric: tabular-nums;
+}
+.fest-challenge > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+}
+.fest-challenge b {
+  color: #f0d497;
+  font-size: 11px;
+  font-weight: 550;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+.fest-challenge span,
+.fest-challenge small {
+  font-size: 9px;
+  letter-spacing: 0.05em;
+}
+.fest-challenge small {
+  display: block;
+  color: #d1dfd8;
+  margin-top: 4px;
+  line-height: 1.5;
+}
+.fest-challenge-track {
+  height: 3px;
+  margin-top: 5px;
+  background: rgba(255, 255, 255, 0.14);
+}
+.fest-challenge-track i {
+  display: block;
+  height: 100%;
+  background: #f0d497;
+  transform-origin: left;
+}
+.fest-challenge[data-state='off-route'] small {
+  color: #f0a990;
+}
 .fest-countdown {
   position: absolute;
   top: 38%;
@@ -302,6 +346,9 @@
 }
 .fest-in-event .fest-skills {
   top: 140px;
+}
+.fest-has-challenge .fest-skills {
+  top: 195px;
 }
 .fest-skills > span {
   font-size: 10px;
@@ -437,6 +484,21 @@
   width: 100%;
   margin: 14px 0 21px;
   font-variant-numeric: tabular-nums;
+}
+.fest-result-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.fest-last-activity > b {
+  display: block;
+  font-size: 16px;
+  font-weight: 550;
+}
+.fest-last-activity > p {
+  color: #f0d497;
+  font-size: 12px;
+  margin: 5px 0 10px;
 }
 .fest-results td {
   padding: 7px 5px;
@@ -950,6 +1012,14 @@
   }
   .fest-in-event .fest-skills {
     top: 155px;
+  }
+  .fest-has-challenge .fest-skills {
+    top: 224px;
+  }
+  .fest-challenge b,
+  .fest-challenge span,
+  .fest-challenge small {
+    font-size: 8px;
   }
   .fest-menu {
     top: 3vh;

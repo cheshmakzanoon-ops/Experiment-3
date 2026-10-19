@@ -11,7 +11,7 @@ export type ToOpenWorld =
   | { type: 'init'; options: Omit<FreeRoamOptions, 'region'> }
   | { type: 'input'; input: Controls }
   | { type: 'pause'; value: boolean }
-  | { type: 'command'; command: FestivalCommand }
+  | { type: 'command'; command: FestivalCommand; requestId?: number }
   | { type: 'recycle'; buffer: ArrayBuffer };
 /** Messages from the festival simulation worker. */
 export type FromOpenWorld =
@@ -21,6 +21,7 @@ export type FromOpenWorld =
   | { type: 'frame'; buffer: ArrayBuffer; traffic?: ArrayBuffer }
   | { type: 'status'; status: FestivalStatus }
   | { type: 'result'; result: FestivalResult }
+  | { type: 'command-result'; requestId: number; error?: string }
   | { type: 'error'; message: string };
 
 /** Messages to the terrain tile worker (render meshes). */

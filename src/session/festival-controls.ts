@@ -63,9 +63,10 @@ export interface FestivalControlHooks {
  */
 export class FestivalControls {
   paused = false;
+  private driving: boolean | null = null;
   private readonly keydown = (e: KeyboardEvent) => {
     const menus = this.menus;
-    if (e.code === 'Escape' && menus.menuOpen) {
+    if (e.code === 'Escape' && (menus.menuOpen || menus.resultsOpen)) {
       // Capture phase: before the driving input's own Escape handling, which
       // ignores a focused button while it is off.
       e.preventDefault();
@@ -78,6 +79,10 @@ export class FestivalControls {
     // A race card or result can remain behind the photo controls; activating
     // one of those controls must not also start/continue its event.
     if (this.paused || menus.menuOpen) return;
+    // Focused result buttons own Enter, including TRY AGAIN. A global
+    // CONTINUE shortcut must not consume their native activation.
+    if (menus.resultsOpen && e.target instanceof HTMLElement && e.target.closest('button')) return;
+    if (e.repeat) return;
     const card = this.hooks.card();
     if (menus.cardOpen && card) {
       e.preventDefault();
@@ -99,10 +104,21 @@ export class FestivalControls {
   setPaused(value: boolean) {
     this.paused = value;
     this.hooks.pause(value);
-    this.hooks.driving?.(!value);
+    this.syncInput();
     if (value) this.openMenu();
     else this.menus.showMenu(false);
     if (!value && this.menus.mapOpen) this.menus.showMap(false);
+  }
+  /** Result dialogs use the same keyboard/gamepad ownership as menus,
+   * without pausing a race worker that is completing rival standings. */
+  syncInput() {
+    const driving = this.drivingInputEnabled;
+    if (driving === this.driving) return;
+    this.driving = driving;
+    this.hooks.driving?.(driving);
+  }
+  get drivingInputEnabled() {
+    return !this.paused && !this.menus.resultsOpen;
   }
   /** The pause action (Escape, a gamepad's pause button): the map closes
    * first, then the menu toggles. */

@@ -380,7 +380,7 @@ export class GameApp {
     this.inputPump = new InputPump((dt) => {
       if (this.errorStopped || document.hidden) return;
       if (this.festival) {
-        if (this.festival.isPaused) this.input.pollActions(['pause']);
+        if (!this.festival.drivingInputEnabled) this.input.pollActions(['pause']);
         else {
           const input = this.input.update(dt);
           this.festival.input(input);
@@ -650,7 +650,7 @@ export class GameApp {
           loaner: career?.loaner ?? false,
         },
       );
-      this.input.setEnabled(true);
+      this.input.setEnabled(this.festival.drivingInputEnabled);
     } catch (error) {
       this.festival = null;
       this.exitFestival();

@@ -109,6 +109,7 @@ export function mountFestivalMenu(options: { card?: boolean } = {}) {
   const hud = new FestivalHud(root, world, events, vehicles, {
     start: (id) => record(`start:${id}`),
     continue: () => record('continue'),
+    retry: (id) => record(`retry:${id}`),
     cancel: () => record('cancel'),
     reset: () => {
       record('reset');
@@ -155,14 +156,21 @@ export function mountFestivalMenu(options: { card?: boolean } = {}) {
   // GameApp.startFestival: driving input on for the session.
   input.setEnabled(true);
   const frame = () => {
-    if (controls?.paused) input.pollActions(['pause']);
+    if (!controls?.drivingInputEnabled) input.pollActions(['pause']);
     else input.update(1 / 60);
     hud.update(status, 560, -2602, 0, 0, 0);
+    controls?.syncInput();
     return { paused: controls?.paused, photoOpen, throttle: input.state.throttle };
   };
   frame();
   return {
     frame,
+    setStatus(patch: Partial<FestivalStatus>) {
+      Object.assign(status, patch);
+      return frame();
+    },
+    recordActivity: (result: Parameters<FestivalHud['recordActivity']>[0]) =>
+      hud.recordActivity(result),
     events: events.map((event) => ({
       id: event.spec.id,
       name: event.spec.name,
@@ -192,6 +200,7 @@ export function mountFestivalResults() {
   const hud = new FestivalHud(root, world, events, vehicles, {
     start: noop,
     continue: () => (log.textContent += 'continue;'),
+    retry: (id) => (log.textContent += `retry:${id};`),
     cancel: noop,
     reset: noop,
     resume: noop,
@@ -258,9 +267,30 @@ export function mountFestivalResults() {
     traffic: { enabled: true, cars: 0 },
   } as const;
   let status = structuredClone(source);
+  const input = new InputController(structuredClone(DEFAULT_SETTINGS), (action) => {
+    if (action === 'pause') controls.togglePause();
+  });
+  const controls = new FestivalControls(hud, {
+    pause: noop,
+    driving: (on) => input.setEnabled(on),
+    menuState: () => ({
+      lighting: 'day',
+      vehicle: vehicles[0].id,
+      discovered: [],
+      autopilot: false,
+      inEvent: false,
+      traffic: true,
+    }),
+    card: () => null,
+    start: noop,
+    continue: () => (log.textContent += 'continue;'),
+  });
   setInterval(() => (status = structuredClone(source)), 100);
   const frame = () => {
+    if (!controls.drivingInputEnabled) input.pollActions(['pause']);
+    else input.update(1 / 60);
     hud.update(status as never, 0, 0, 0, 0, 0);
+    controls.syncInput();
     requestAnimationFrame(frame);
   };
   frame();

@@ -922,7 +922,7 @@ export const SOLVANE: RegionDefinition = Object.freeze({
         [3700, 1660],
         [3320, 1640],
       ],
-      stars: [100, 300, 600],
+      stars: [50, 300, 600],
       blurb:
         'A wide taxiway turn for learning to link a slide. Carry speed through the gate, countersteer and exit cleanly.',
     },

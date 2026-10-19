@@ -122,6 +122,14 @@ the **60 m braking runout** included in each authored open path.
 | Kestrel Drift Playground | 706.316 m | 766.316 m | 100 / 300 / 600 points; 15 m half-width. |
 | Kestrel Launch Run | 1,239.981 m | 1,299.981 m | 110 / 160 / 210 km/h. |
 
+**Later beginner calibration (2026-10-19):** the table above preserves the earlier validated
+targets. Kestrel's first drift target is now **50**, previously **100**; the **300/600** mastery
+goals are unchanged. The separate [normal-control drift harness](../../scripts/horizon-drift-validation.ts)
+and [retained result](horizon-drift-validation.json) reproduce a clean RD2 run scoring **69 points
+and one star** in **46.4 seconds**, with zero off-road time, contacts or resets and full measured
+progress. That evidence is explicitly scripted assistance. It does not change the earlier
+records, prove the mastery goals, or establish human playtesting.
+
 The [retained harness](../../scripts/horizon-gameplay-validation.ts) constructs
 `OpenWorldSimulation`, starts events through the normal command path and advances its actual
 physics at **120 Hz with two substeps per tick**. Its fixed settings are clear weather, Sport

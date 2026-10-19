@@ -29,7 +29,8 @@ const errors = [],
   steps = [];
 let phase = 'load',
   sourceIdentity = null,
-  renderer = null;
+  renderer = null,
+  failureState = null;
 page.on('pageerror', (error) => errors.push(error.message));
 page.on('console', (message) => {
   if (message.type() === 'error') errors.push(message.text());
@@ -89,9 +90,14 @@ try {
 
   phase = 'manual driving';
   await page.keyboard.down('w');
-  await page.waitForFunction(() => window.horizonReview.state().status.speedKmh > 15, undefined, {
-    timeout: 20000,
-  });
+  await page.waitForFunction(
+    (start) => {
+      const s = window.horizonReview.state();
+      return s.status.speedKmh > 15 && Math.hypot(s.player.x - start.x, s.player.z - start.z) > 30;
+    },
+    initial.player,
+    { timeout: 30000 },
+  );
   await page.keyboard.up('w');
   const moving = await state();
   await draw();
@@ -105,7 +111,10 @@ try {
     stopped.player.x - initial.player.x,
     stopped.player.z - initial.player.z,
   );
-  assert(distance > 3);
+  assert(
+    distance > 30,
+    `Expected a meaningful launch and brake journey, measured ${distance.toFixed(2)} m`,
+  );
   assert.equal(stopped.status.autopilot, false);
   pass('keyboard throttle, rendered movement and braking', {
     distanceM: distance,
@@ -213,6 +222,46 @@ try {
   assert.equal(result.assisted, true, 'Autopilot verification must be marked assisted.');
   await capture('journey-results');
   pass('one typed completed result and visible results card', { result });
+
+  phase = 'result retry';
+  await page.locator('#festResults [data-fest="retry"]').focus();
+  await page.keyboard.press('Enter');
+  await page.locator('#loading').waitFor({ state: 'hidden' });
+  await page.waitForFunction(
+    () =>
+      window.horizonReview.state().status.event?.id === 'harbour-welcome' &&
+      ['countdown', 'running'].includes(window.horizonReview.state().status.mode),
+  );
+  await draw();
+  assert.equal(
+    (await state()).results.length,
+    1,
+    'Retry must not pay or emit the first run twice.',
+  );
+  assert.equal(await page.locator('#festResults').isVisible(), false);
+  await page.waitForFunction(
+    () =>
+      window.horizonReview.state().status.mode === 'running' &&
+      window.horizonReview.state().status.event.elapsed > 1,
+  );
+  assert.equal((await state()).paused, false);
+  // Stop this second attempt through the normal pause-menu action. The
+  // first run already established completion; this checks retry lifecycle
+  // and distinct result identity without repeating the same full race.
+  await page.keyboard.press('Escape');
+  await page.locator('#festMenu [data-fest="cancel"]').click();
+  await page.waitForFunction(() => window.horizonReview.state().status.mode === 'finished');
+  await page.locator('#festMenu [data-fest="resume"]').click();
+  await page.waitForFunction(() => window.horizonReview.state().results.length === 2);
+  await draw();
+  const retried = (await state()).results[1];
+  assert.notEqual(retried.runId, result.runId);
+  assert.equal(retried.completed, false);
+  pass('keyboard Try Again streams and starts a distinct run without duplicate results', {
+    firstRunId: result.runId,
+    retryRunId: retried.runId,
+    retryCompleted: retried.completed,
+  });
   await page.locator('#festResults [data-fest="continue"]').click();
   await page.waitForFunction(() => window.horizonReview.state().status.mode === 'free');
   await draw();
@@ -235,6 +284,15 @@ try {
   assert.deepEqual(failedAssets, []);
   phase = 'complete';
 } catch (error) {
+  const observed = await state().catch(() => null);
+  if (observed)
+    failureState = {
+      paused: observed.paused,
+      status: observed.status,
+      player: observed.player,
+      draws: observed.draws,
+      results: observed.results,
+    };
   steps.push({ name: phase, passed: false, error: error.stack ?? String(error) });
   console.error('FAILED', phase, error);
   process.exitCode = 1;
@@ -255,6 +313,7 @@ try {
           'Real FestivalSession, workers, InputController and renderer. Natural initial discoveries. GPU submissions held between deliberate rendered states for software-GPU readback; no simulation acceleration. Manual keyboard launch/brake; race completion uses explicitly assisted production autopilot. This is not a hardware performance test.',
         errors,
         failedAssets,
+        failureState,
         steps,
       },
       null,

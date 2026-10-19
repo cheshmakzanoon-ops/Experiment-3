@@ -1,0 +1,1384 @@
+{
+  "schemaVersion": 1,
+  "kind": "horizon-r4-validation",
+  "state": "Validation complete, including the preserved concurrent main update. Resolved fixture failures and the incomplete earlier screenshot journey remain explicitly recorded.",
+  "scope": "Selective original Three.js appearance and gameplay work. Measured checks establish the stated behavior and rendering observations; they do not establish commercial-game parity, human usability or hardware frame rate.",
+  "evidenceIdentity": "Source hashes are retained exactly as recorded by each experiment. Experiments occurred at different working-tree states; these hashes are not a claim that every experiment used the final repository state.",
+  "sourceArtifacts": {
+    "roads": {
+      "sha256": "27364431e3d0ad41d21c79c1f06fea44623776b854065fc024a3d888ec341140",
+      "bytes": 6010,
+      "scratchSourcePath": "/tmp/horizon-road-captures/report.json"
+    },
+    "roadGeometry": {
+      "sha256": "5e3714a51efb2390435772de8188f3d1bccabf486a94cb329d4092a49dd9178a",
+      "bytes": 940,
+      "scratchSourcePath": "/tmp/horizon-road-captures/geometry-audit.json"
+    },
+    "carFinish": {
+      "sha256": "86376af1a8c5d99cb680d276724ff4a9a05f1536ddaf906e773dbc1e2d0522ad",
+      "bytes": 10995,
+      "scratchSourcePath": "/tmp/horizon-car-captures/report.json"
+    },
+    "spawn": {
+      "sha256": "09416bfb9c12c1646138581fb26ef250e2940a466e843909e5e28afa5a9e3010",
+      "bytes": 1895,
+      "scratchSourcePath": "/tmp/horizon-spawn-regression.json"
+    },
+    "drift": {
+      "path": "docs/production/horizon-drift-validation.json",
+      "sha256": "feb6d303477fc021d3ea78f0e3fb40090e4f0928b1ea3a552b5e9a07e0ceef7f",
+      "bytes": 80899
+    },
+    "nativeJourney": {
+      "sha256": "90786e65934afaba290603dd29c99039f491aa3f97820dc33c87df99f3542901",
+      "bytes": 6627,
+      "scratchSourcePath": "/tmp/horizon-root-evidence/integrated-journey-fixed/journey.json"
+    },
+    "references": {
+      "path": "docs/production/HORIZON_R4_REFERENCE_REVIEW.json",
+      "sha256": "fde1575a510224ac348c630a1257c9c9c305a4f878e4f47c4ab8ebbd3c604695",
+      "bytes": 95442
+    }
+  },
+  "softwareGpuAdapter": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+  "referenceReview": {
+    "document": "docs/production/HORIZON_R4_REFERENCE_REVIEW.json",
+    "reviewedImages": 100,
+    "verifiedCompressedFiles": 100,
+    "verifiedCompressedBytes": 27546467,
+    "matchingIndividualAuditHashes": 100,
+    "verificationScope": "Each recovered compressed review file was rehashed and matched against both manifest.json and its assigned individual audit. The original full-resolution source files were not re-downloaded or byte-verified by this consolidation.",
+    "originalSourceHashes": "Retained provenance only; original full-resolution source bytes were not verified by the compressed-pack review.",
+    "dispositions": {
+      "reviewed_not_implemented": 53,
+      "preservation_guidance": 14,
+      "partial_technique_transfer": 27,
+      "promotional_exclusion": 6
+    },
+    "promotionalExclusions": [
+      "031",
+      "054",
+      "062",
+      "065",
+      "084",
+      "088"
+    ],
+    "corrections": "068 records preservation of existing glazing, not a new transfer. 022 distinguishes runtime wet-contact/tyre-dirt response from optional carried-mud channels currently at zero.",
+    "transferScope": "All 100 images were individually reviewed; 27 have partial technique transfers. Review completion does not mean every depicted feature was implemented. No reference photographs were copied into the repository."
+  },
+  "roadAppearance": {
+    "evidenceClass": "Isolated production road geometry and real WebGL shaders; synthetic fixed lighting/weather presentation on a carved-ground fixture; software GPU.",
+    "method": "Production roads on an isolated carved-ground patch, fixed RoomEnvironment and directional/hemisphere lighting. No claim of full-world appearance or hardware performance.",
+    "captures": 8,
+    "beforeAfterPairs": 4,
+    "recordedPageOrShaderErrors": 0,
+    "sourceSha256": {
+      "roadsBefore": "d9795e6acf068182a8dcba492433b0009276b723ca3b2d191443fc05f6c169cc",
+      "roadsAfter": "6f14e1a7af1c442f7011b57ba6f844019b717620db2dac8fdf5eeaad200422c7",
+      "surfaceHelperAfter": "eac9c731a751e50a45fa5b0414c857c7cba5b5383763332b61333b9406315333"
+    },
+    "viewCounts": [
+      {
+        "view": "town",
+        "edge": "harbour#0",
+        "stationMetres": 119,
+        "states": [
+          "before dry",
+          "before wet",
+          "after dry",
+          "after wet"
+        ],
+        "drawCallsEach": 22,
+        "visibleTrianglesEach": 89278
+      },
+      {
+        "view": "mountain",
+        "edge": "pass#1",
+        "stationMetres": 937.2145207060817,
+        "states": [
+          "before dry",
+          "before wet",
+          "after dry",
+          "after wet"
+        ],
+        "drawCallsEach": 17,
+        "visibleTrianglesEach": 80436
+      }
+    ],
+    "wholeNetwork": {
+      "beforeAndAfter": {
+        "chunks": 124,
+        "triangles": 439160,
+        "lamps": 240,
+        "posts": 774
+      },
+      "positionBytesUnchanged": true,
+      "indexBytesUnchanged": true,
+      "statisticsUnchanged": true,
+      "positionSha256": "8bc20f41b303dfb790de6f8eefa38d9e61e3b0783b4b6c513a589a2e5f87876b",
+      "indexSha256": "d4fe7289514f55e028541fd79dd9a41fd9ee21f47cee8b03d8bb3bcdb835f095",
+      "normalSha256Before": "b380bd6a65e03a733b9b53c6d15a9503a8d23a8337d7c506adde3f8b48d8d8ef",
+      "normalSha256After": "53aa8a12af5adde90f10d7ffc0e8da936d14beba98daa4b8a4e5328acd9fd30a",
+      "addedRoadMetadataBytes": 3246752,
+      "verticesWithRoadMetadata": 202922
+    },
+    "visualReview": "Eight final before/after frames rendered without page/shader errors. Inspected all initial dry/wet town/mountain pairs, the refined Varda dry image, and the final Harbour dry comparison. Harbour camera moved equally to station 119 m to examine a sparse repair near 132 m. Dry wheel-path roughness reduction calibrated down to 0.032 after grazing-light review.",
+    "limits": "No full-world appearance or hardware-performance conclusion. The recorded visual review identifies which images were inspected; eight generated final frames do not imply all eight final frames received an additional manual review."
+  },
+  "carFinishAppearance": {
+    "evidenceClass": "Isolated actual catalogue geometry and real WebGL shaders; weather, surface water and dirt snapshots held synthetically; software GPU.",
+    "method": "Isolated actual catalogue car geometry and real WebGL shaders. Synthetic held snapshot weather/dirt values; no worker, gameplay, world or hardware-FPS claim. Same camera, geometry and lighting per before/after pair. Finish controller is the only changed appearance layer.",
+    "recordedSourceSha256": "516799ffad0cd87b6a11e54e35f13cfb6d4fbbce45c473801266d7fbe60ac809",
+    "captures": 10,
+    "beforeAfterPairs": 5,
+    "reportPassed": true,
+    "pageOrShaderErrors": 0,
+    "glErrors": 0,
+    "contextLosses": 0,
+    "warnings": [
+      {
+        "message": "sigmaRadians, 0.05, is too large and will clip, as it requested 25 samples when the maximum is set to 20",
+        "count": 2
+      }
+    ],
+    "viewCounts": [
+      {
+        "view": "dry-rear",
+        "vehicle": "eh3",
+        "syntheticInputs": {
+          "rain": 0,
+          "water": 0,
+          "dirt": 0,
+          "speed": 0
+        },
+        "beforeAndAfter": {
+          "calls": 55,
+          "triangles": 81296,
+          "geometries": 51,
+          "textures": 3
+        }
+      },
+      {
+        "view": "rain-rear",
+        "vehicle": "eh3",
+        "syntheticInputs": {
+          "rain": 14,
+          "water": 0.7,
+          "dirt": 0,
+          "speed": 22
+        },
+        "beforeAndAfter": {
+          "calls": 55,
+          "triangles": 81296,
+          "geometries": 51,
+          "textures": 3
+        }
+      },
+      {
+        "view": "dirty-rear",
+        "vehicle": "eh3",
+        "syntheticInputs": {
+          "rain": 3,
+          "water": 0.25,
+          "dirt": 0.9,
+          "speed": 22
+        },
+        "beforeAndAfter": {
+          "calls": 55,
+          "triangles": 81296,
+          "geometries": 51,
+          "textures": 3
+        }
+      },
+      {
+        "view": "rain-glass",
+        "vehicle": "rh3",
+        "syntheticInputs": {
+          "rain": 14,
+          "water": 0.4,
+          "dirt": 0.6,
+          "speed": 25
+        },
+        "beforeAndAfter": {
+          "calls": 55,
+          "triangles": 68368,
+          "geometries": 53,
+          "textures": 3
+        }
+      },
+      {
+        "view": "rain-glass-macro",
+        "vehicle": "rh3",
+        "syntheticInputs": {
+          "rain": 14,
+          "water": 0.4,
+          "dirt": 0.6,
+          "speed": 25
+        },
+        "beforeAndAfter": {
+          "calls": 37,
+          "triangles": 55046,
+          "geometries": 53,
+          "textures": 3
+        }
+      }
+    ],
+    "afterFinishMaterials": {
+      "total": 3,
+      "paint": 2,
+      "glass": 1
+    },
+    "addedDrawCalls": 0,
+    "addedTriangles": 0,
+    "addedTextures": 0,
+    "allComparedDrawGeometryTextureCountsUnchanged": true,
+    "sampledSoilWetnessValues": [
+      0
+    ],
+    "limits": "This fixture does not measure natural weather/contact/dirt production, carried-mud behavior with nonzero input, complete-world appearance, driving, or hardware FPS. Garage clone lifecycle is not inferred from these static captures."
+  },
+  "spawnLaneRegression": {
+    "evidenceClass": "Headless actual OpenWorldSimulation with ambient traffic and normal controls; no browser, renderer, autopilot or synthetic traffic placement.",
+    "cause": "Default eastbound spawn occupied the westbound lane. The first oncoming car could stop nose-to-nose after a prolonged idle boot.",
+    "road": "harbour",
+    "experiment": {
+      "vehicle": "tc1",
+      "traffic": true,
+      "seed": 73021,
+      "tileBudget": 24,
+      "physicsHz": 120,
+      "inputHz": 60,
+      "idleSeconds": 30,
+      "throttleSeconds": 6,
+      "throttle": 1,
+      "steer": 0
+    },
+    "before": {
+      "spawnZ": -2602,
+      "travelFrameLateral": 2,
+      "distanceMetres": 6.517143035885292,
+      "trafficCollisions": 1,
+      "peakSpeedKmh": 31.762717680385094,
+      "endSpeedKmh": 0.08031734933967453,
+      "onRoad": true
+    },
+    "after": {
+      "spawnZ": -2598,
+      "travelFrameLateral": -2,
+      "distanceMetres": 102.83399271611788,
+      "trafficCollisions": 0,
+      "peakSpeedKmh": 112.74307443499193,
+      "endSpeedKmh": 112.74307443499193,
+      "onRoad": true
+    },
+    "validation": {
+      "oldSpawnTest": "Failed as expected: 1 traffic collision, expected 0.",
+      "correctedSuites": [
+        "tests/open-world-traffic.test.ts",
+        "tests/open-world-session.test.ts"
+      ],
+      "correctedTestsPassed": 15,
+      "correctedTestsFailed": 0,
+      "scopedEslint": "passed"
+    },
+    "sourceSha256": {
+      "src/simulation/open-world/session.ts": "fd560a353c2e8eef6130863a0799b8909213289324b49eb4b2878a71a52b897d",
+      "tests/open-world-traffic.test.ts": "519eb774be897e780ea57018dfaecc1dbe2a07779104a112224036b40f89312b"
+    },
+    "limits": "A deterministic prolonged-idle spawn regression using this vehicle, seed and traffic setup; not a general collision or human driving study."
+  },
+  "scriptedDriftMilestone": {
+    "evidenceClass": "Actual simulation driven through normal controls by an external steering script; assisted evidence, with no renderer.",
+    "sourceDocument": "docs/production/horizon-drift-validation.json",
+    "generatedAt": "2026-10-19T03:27:25.788Z",
+    "command": "node --experimental-transform-types scripts/horizon-drift-validation.ts",
+    "settings": {
+      "vehicle": "rd2",
+      "assist": "raw",
+      "weather": "clear",
+      "seed": 73021,
+      "tileBudget": 12,
+      "traffic": false,
+      "session": "scripted-drift-milestone"
+    },
+    "method": {
+      "normalControlsOnly": true,
+      "scriptedAssistance": true,
+      "inSessionAutopilot": false,
+      "explanation": "External scripted steering is assisted evidence even though the raw game result assisted flag is false. No human operator, renderer, forced physical state, injected score, career host or save persistence is used."
+    },
+    "goalCalibration": {
+      "eventId": "kestrel-drift",
+      "previousTargets": [
+        100,
+        300,
+        600
+      ],
+      "currentTargets": [
+        50,
+        300,
+        600
+      ],
+      "starsAtPreviousTargets": 0,
+      "rationale": "The beginner playground first milestone is 50 points. The 300/600 mastery goals, all other events and physics/scoring formulas are preserved. This run establishes the first milestone only, not mastery attainability or human usability."
+    },
+    "measurements": {
+      "elapsedSimulationSeconds": 46.39999999999801,
+      "maximumSpeedKmh": 78.62839768173723,
+      "maximumAngleDegrees": 35.88600087064285,
+      "candidateDriftSeconds": 3.2083333333333246,
+      "groundedSeconds": 46.25833333333135,
+      "offRoadSeconds": 0,
+      "contactSamples": 0,
+      "replacements": 0
+    },
+    "result": {
+      "runId": "scripted-drift-milestone:1",
+      "eventId": "kestrel-drift",
+      "eventName": "Kestrel Drift Playground",
+      "vehicleId": "rd2",
+      "completed": true,
+      "abandoned": false,
+      "time": 46.39999999999801,
+      "driftScore": 69,
+      "stars": 1,
+      "legalDistance": 710.2855341794227,
+      "offRouteSeconds": 0
+    },
+    "rawGameAssistedFlag": false,
+    "evidenceAssisted": true,
+    "checks": {
+      "completed": true,
+      "positiveBankedDrift": true,
+      "firstMilestoneReached": true,
+      "zeroOffRoadTime": true,
+      "noContacts": true,
+      "noRecovery": true,
+      "fullMeasuredProgress": true,
+      "finalLiveScoreMatchesResult": true,
+      "firstGoalOnlyCalibrated": true
+    },
+    "passed": true,
+    "sourceSha256": {
+      "scripts/horizon-drift-validation.ts": "2d469f6a6ad053aea1061a90749f6070b833c4844aa755a52ad39337321290ef",
+      "src/simulation/open-world/activity-progress.ts": "e53394796b3e4e2645f5197478a8e951cba5a2e314634a59594c60fd877b1d40",
+      "src/simulation/open-world/session.ts": "e97e7ee1a769f93250fbdd8e49e2b7b604992745227e58f5a36afe58661f478f",
+      "src/simulation/open-world/region-data.ts": "5e5be85634f0e994e49722dd128a41e3b812cf4fd54ee52a3cbd199ff1c6dc88",
+      "src/simulation/open-world/festival-events.ts": "0e1db5c9a7d74e53ed5e8e0b80b4f52031f0a090c79c764cc4c8d3e161eef775",
+      "src/simulation/open-world/route-driver.ts": "a658f4bc7d950c5f20f585ebb70e4a5b1811acd4abca5a01dd01d2af30fc04c2",
+      "src/simulation/vehicle.ts": "02ea360d0888e0776dd156fedee15dae8679c4850d4bbeb59faa05b6c14fdb24"
+    },
+    "trace": "The 232 original 5 Hz trace samples remain in the source document and are not duplicated here.",
+    "limits": "69 banked points establish the beginner first milestone after its 100-to-50 target calibration. The 300/600 mastery thresholds, other activities, human usability and manual unassisted completion are not established by this scripted run."
+  },
+  "nativeBrowserJourney": {
+    "evidenceClass": "Real FestivalSession, workers, InputController, renderer and native UI paths; software GPU with explicit render submission holds.",
+    "methodology": "Real FestivalSession, workers, InputController and renderer. Natural initial discoveries. GPU submissions held between deliberate rendered states for software-GPU readback; no simulation acceleration. Manual keyboard launch/brake; race completion uses explicitly assisted production autopilot. This is not a hardware performance test.",
+    "browserVersion": "140.0.7339.186",
+    "quality": "low",
+    "viewport": {
+      "width": 960,
+      "height": 540
+    },
+    "sourceIdentity": null,
+    "reviewSourceIdentity": null,
+    "identityLimit": "The source journey recorded both identity fields as null; no captured build identity is inferred.",
+    "journeyCompleted": false,
+    "successfulRecordedSteps": 6,
+    "failedRecordedSteps": 1,
+    "successes": [
+      {
+        "name": "real session boot and natural harbour discovery",
+        "passed": true,
+        "discoveries": [
+          "harbour-welcome"
+        ]
+      },
+      {
+        "name": "keyboard throttle, rendered movement and braking",
+        "passed": true,
+        "distanceM": 62.33607675852592,
+        "movingKmh": 65.53102353806807,
+        "stoppedKmh": 0.08556053303475418
+      },
+      {
+        "name": "world map route preview, discovery gate and return to pause menu",
+        "passed": true
+      },
+      {
+        "name": "paused photo orbit and Escape return",
+        "passed": true,
+        "cameraTravelM": 4.433625562632716
+      },
+      {
+        "name": "garage Formula to road-car round trip through real worker and renderer",
+        "passed": true
+      },
+      {
+        "name": "discovered-event travel, start card, countdown, real rivals and route presentation",
+        "passed": true
+      }
+    ],
+    "raceResultObserved": {
+      "runId": "horizon-browser-review:1",
+      "eventId": "harbour-welcome",
+      "eventName": "Harbour Opening Run",
+      "completed": true,
+      "abandoned": false,
+      "assisted": true,
+      "position": 3,
+      "entrants": 3,
+      "time": 105.66666666668866,
+      "stars": 2,
+      "legalDistance": 2569.4017453028223,
+      "offRouteSeconds": 0
+    },
+    "failure": {
+      "step": "race to result",
+      "message": "page.screenshot: Protocol error (Page.captureScreenshot): Unable to capture screenshot",
+      "workerModeAtFailure": "finished",
+      "resultEventsObserved": 1,
+      "meaning": "The worker completed an assisted Harbour Opening Run, but the native results screenshot failed. This step and the full journey remain incomplete; successful race state does not establish a captured or visually reviewed native results dialog."
+    },
+    "retryPhaseExecuted": false,
+    "retryLimit": "The journey stopped at the results capture before the retry phase. It provides no native retry result.",
+    "pageErrors": 0,
+    "failedAssets": 0,
+    "limits": "No simulation acceleration was used, but production autopilot assisted race completion and GPU submissions were deliberately held between rendered states. This is not ordinary sustained rendering or a hardware performance test."
+  },
+  "finalValidation": {
+    "repositoryGate": {
+      "status": "passed_by_component_with_recorded_fixture_recovery",
+      "initialCommand": "npm run check",
+      "initialCommandExitCode": 1,
+      "initialFullSweep": {
+        "testFiles": 437,
+        "passedFiles": 432,
+        "failedFiles": 5,
+        "tests": 3654,
+        "passedTests": 3649,
+        "failedTests": 5,
+        "durationSeconds": 1591.51,
+        "failureCause": "Five original Blender authoring fixtures had temporarily been omitted from the local sparse checkout. All failures were ENOENT file reads, not changed game behavior."
+      },
+      "fixtureRecovery": {
+        "status": "passed",
+        "originalTrackedFilesRestored": true,
+        "selectedTestsPassed": 5,
+        "selectedTestsFailed": 0,
+        "otherTestsSkippedInSelectiveRerun": 58,
+        "cases": [
+          {
+            "file": "tests/a32-pit-jacks.test.ts",
+            "test": "A32 authored mechanical handoff retains the editable source, original packed atlas and exact export identities"
+          },
+          {
+            "file": "tests/a33-spare-wheel-set.test.ts",
+            "test": "A33 retained Blender wheel handling contract binds source, GLB and compact runtime data to measured integrity receipts"
+          },
+          {
+            "file": "tests/aurel-vegetation.test.ts",
+            "test": "A51-A54 original asset library retains matching native source, exporter and all six complete three-tier families"
+          },
+          {
+            "file": "tests/broadcast-cameras.test.ts",
+            "test": "A10 authored broadcast cameras and retained optical positions retains exact original source/export, packed atlas, twenty-two sockets and bounded LODs"
+          },
+          {
+            "file": "tests/people.test.ts",
+            "test": "27H.3 retained Blender people assets binds runtime and GLB bytes to their retained authored manifest"
+          }
+        ],
+        "report": {
+          "scratchSourcePath": "/tmp/horizon-root-evidence/final-fixture-recovery.json",
+          "sha256": "ffbcf6a3720ac439800fd6589767b6b35cc70460ea76a71111e58fe0a19d0d9b",
+          "bytes": 23534
+        },
+        "command": "npx vitest run tests/people.test.ts tests/broadcast-cameras.test.ts tests/a32-pit-jacks.test.ts tests/aurel-vegetation.test.ts tests/a33-spare-wheel-set.test.ts --testNamePattern \"binds runtime and GLB bytes to their retained authored manifest|retains exact original source/export, packed atlas, twenty-two sockets and bounded LODs|retains the editable source, original packed atlas and exact export identities|retains matching native source, exporter and all six complete three-tier families|binds source, GLB and compact runtime data to measured integrity receipts\""
+      },
+      "combinedUniqueCases": {
+        "passed": 3654,
+        "unresolvedFailures": 0,
+        "method": "3649 full-sweep passes plus exact successful reruns of its five missing-fixture failures. The complete npm run check command was not rerun and is not described as a single clean pass."
+      },
+      "lint": {
+        "command": "npm run lint",
+        "exitCode": 0,
+        "additionalFinalStartupFiles": "npx eslint src/main.ts e2e/fixtures/horizon-session.ts",
+        "additionalExitCode": 0
+      },
+      "content": {
+        "command": "npm run validate:content",
+        "exitCode": 0
+      },
+      "productionBuild": {
+        "command": "npm run build",
+        "exitCode": 0,
+        "typescriptNoEmit": true,
+        "viteBuildSeconds": 21.15,
+        "warning": "Vite reported chunks above 500 kB, including the existing large application chunk. No claim of bundle-size or hardware-performance acceptance."
+      },
+      "logs": {
+        "final-check.log": {
+          "scratchSourcePath": "/tmp/horizon-root-evidence/final-check.log",
+          "sha256": "c6b8763cd3802ed1b250e1f035b73781840b6800adf9e229c0e9a11ea5861329",
+          "bytes": 91861
+        },
+        "final-build.log": {
+          "scratchSourcePath": "/tmp/horizon-root-evidence/final-build.log",
+          "sha256": "5f94bd5e8ad06903f84acdaf06bad5d12c053b5524bffcfbda459d07a57f1fcf",
+          "bytes": 2465
+        },
+        "final-startup-lint.log": {
+          "scratchSourcePath": "/tmp/horizon-root-evidence/final-startup-lint.log",
+          "sha256": "7125f194612fcff2f454c05d848e7cb71facc1967b4d5017e25b34fdee3ba74f",
+          "bytes": 99
+        }
+      }
+    },
+    "retry": {
+      "passed": true,
+      "completed": true,
+      "functionalPassed": true,
+      "canvasEvidencePassed": true,
+      "scope": "Real session/worker/HUD from an ordinary fresh fixture. Two deliberate abandoned races exercise retry/result identity and disposal; no race completion or human playtest claim.",
+      "inputMethod": "Normal menu/card buttons and keyboard Escape/Enter. A synthetic MouseEvent('click', { bubbles: true, cancelable: true }) is dispatched on the stale button in the same event task after the trusted keyboard click to test the busy guard. This is not a second trusted input or a recursive HTMLButtonElement.click(). No fixture command/inspect API, fabricated save, physics/pose/state injection or clock acceleration.",
+      "renderingMethod": "Real low/selected-quality renderer; capture=1&frames=1 holds GPU submissions between explicit session.draw calls. Captures are paused through the real Escape/menu UI. This is not a performance benchmark.",
+      "quality": "low",
+      "viewport": {
+        "width": 960,
+        "height": 540
+      },
+      "backend": {
+        "requested": "swiftshader",
+        "executable": "/root/.cache/ms-playwright/chromium-1193/chrome-linux/chrome",
+        "browserVersion": "140.0.7339.186",
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+      },
+      "sourceSha256": {
+        "e2e/fixtures/horizon-session.html": "1cb9f2cc2c0e8ff4f6b8338a9c6f5495aed0299842936a20406cc1981982ab91",
+        "e2e/fixtures/horizon-session.ts": "7c26e56c183288567b3d60436cf22dbe96a37e639adfac0e500936841036eceb",
+        "src/session/free-roam.ts": "5add01e7f4bf19787d8cdf2282b35f46688762b3085623b7b9f0938ed47635ac",
+        "src/session/festival-controls.ts": "f1a012bb8d4bee18feef5e9791a828d62212313f5356d5ab4a7b06f5a218f350",
+        "src/workers/open-world.worker.ts": "b4c50d6ce6ffe201ef63c163e322c1357d44c7bdf8ec61a59d2250f29d5fa84b",
+        "src/workers/open-world-protocol.ts": "e0809c55ff720d728b94c9fc38663aba6fc1bd6d6194a429c9204c6a6686c489",
+        "src/simulation/open-world/session.ts": "e97e7ee1a769f93250fbdd8e49e2b7b604992745227e58f5a36afe58661f478f",
+        "src/simulation/open-world/region-data.ts": "5e5be85634f0e994e49722dd128a41e3b812cf4fd54ee52a3cbd199ff1c6dc88",
+        "src/ui/festival-hud.ts": "0e9cb8b0e88bf1f018c6d23f7c48cf185c0c27caae0697393b9f53472a292b31",
+        "src/ui/festival-hud.css": "28f44ba256857b362d17b084f66ab1c56433907ecd51aa084add6fcc679b583b",
+        "src/input/controller.ts": "bbba784fd28d3dc365e180ad1858fbe5df2cc5b97b7f18c6646c251019ad900b",
+        "src/rendering/open-world/festival-renderer.ts": "95637e1933138516040924a8f9a03af7c5278a515ecb98d53bb9d398598e6e27",
+        "src/rendering/open-world/terrain.ts": "eac43a632de3b43e925c182d666b655625e4c541ec92aa54b56a303c3f60e59d",
+        "driver": "db024f351ec918f43ecc5b6a529fdc453fe114e955844c8db345a25094c63cb3"
+      },
+      "errors": [],
+      "warnings": [],
+      "failedAssets": [],
+      "retryActivation": {
+        "clicks": [
+          {
+            "trusted": true,
+            "detail": 0
+          },
+          {
+            "trusted": false,
+            "detail": 0
+          }
+        ],
+        "nativeTrusted": true,
+        "attempted": true,
+        "afterNative": {
+          "paused": true,
+          "mode": "finished",
+          "resultCount": 1,
+          "loadingVisible": true,
+          "resultsHidden": true
+        },
+        "afterDuplicate": {
+          "paused": true,
+          "mode": "finished",
+          "resultCount": 1,
+          "loadingVisible": true,
+          "resultsHidden": true
+        }
+      },
+      "steps": [
+        {
+          "name": "fresh real session and natural Harbour discovery",
+          "passed": true,
+          "discoveries": [
+            "harbour-welcome"
+          ],
+          "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+        },
+        {
+          "name": "ordinary menu travel, real card and first countdown",
+          "passed": true,
+          "event": {
+            "id": "harbour-welcome",
+            "name": "Harbour Opening Run",
+            "kind": "sprint",
+            "countdown": 3,
+            "elapsed": 0,
+            "progress": 0,
+            "lap": 1,
+            "laps": 1,
+            "position": 1,
+            "entrants": 3,
+            "offRoute": false,
+            "live": null,
+            "challenge": null,
+            "gate": {
+              "x": 1051.2702078521938,
+              "z": -2600
+            }
+          }
+        },
+        {
+          "name": "resume drains exactly one typed abandoned result and renders results",
+          "passed": true,
+          "result": {
+            "kind": "festival-result",
+            "version": 2,
+            "runId": "horizon-browser-review:1",
+            "regionId": "solvane",
+            "eventId": "harbour-welcome",
+            "eventName": "Harbour Opening Run",
+            "eventKind": "sprint",
+            "vehicleId": "tc1",
+            "completed": false,
+            "abandoned": true,
+            "position": 1,
+            "entrants": 3,
+            "time": null,
+            "trapKmh": null,
+            "averageKmh": null,
+            "driftScore": null,
+            "driftLines": [],
+            "stars": 0,
+            "legalDistance": 0,
+            "offRouteSeconds": 0,
+            "standings": [
+              {
+                "car": 0,
+                "name": "YOU",
+                "vehicleId": "tc1",
+                "time": null,
+                "progress": 0
+              },
+              {
+                "car": 1,
+                "name": "TC-3 AWD TOURING",
+                "vehicleId": "tc3",
+                "time": null,
+                "progress": 0
+              },
+              {
+                "car": 2,
+                "name": "TC-1 TOURING",
+                "vehicleId": "tc1",
+                "time": null,
+                "progress": 0
+              }
+            ],
+            "at": 20.608333333332805,
+            "assisted": false
+          }
+        },
+        {
+          "name": "keyboard retry owns cached travel through worker acknowledgment; stale duplicate is ignored",
+          "passed": true,
+          "retryActivation": {
+            "clicks": [
+              {
+                "trusted": true,
+                "detail": 0
+              },
+              {
+                "trusted": false,
+                "detail": 0
+              }
+            ],
+            "nativeTrusted": true,
+            "attempted": true,
+            "afterNative": {
+              "paused": true,
+              "mode": "finished",
+              "resultCount": 1,
+              "loadingVisible": true,
+              "resultsHidden": true
+            },
+            "afterDuplicate": {
+              "paused": true,
+              "mode": "finished",
+              "resultCount": 1,
+              "loadingVisible": true,
+              "resultsHidden": true
+            }
+          },
+          "event": {
+            "id": "harbour-welcome",
+            "name": "Harbour Opening Run",
+            "kind": "sprint",
+            "countdown": 3,
+            "elapsed": 0,
+            "progress": 0,
+            "lap": 1,
+            "laps": 1,
+            "position": 1,
+            "entrants": 3,
+            "offRoute": false,
+            "live": null,
+            "challenge": null,
+            "gate": {
+              "x": 1051.2702078521938,
+              "z": -2600
+            }
+          }
+        },
+        {
+          "name": "second cancellation emits one distinct run and preserves the first result",
+          "passed": true,
+          "result": {
+            "kind": "festival-result",
+            "version": 2,
+            "runId": "horizon-browser-review:2",
+            "regionId": "solvane",
+            "eventId": "harbour-welcome",
+            "eventName": "Harbour Opening Run",
+            "eventKind": "sprint",
+            "vehicleId": "tc1",
+            "completed": false,
+            "abandoned": true,
+            "position": 1,
+            "entrants": 3,
+            "time": null,
+            "trapKmh": null,
+            "averageKmh": null,
+            "driftScore": null,
+            "driftLines": [],
+            "stars": 0,
+            "legalDistance": 0,
+            "offRouteSeconds": 0,
+            "standings": [
+              {
+                "car": 0,
+                "name": "YOU",
+                "vehicleId": "tc1",
+                "time": null,
+                "progress": 0
+              },
+              {
+                "car": 1,
+                "name": "TC-3 AWD TOURING",
+                "vehicleId": "tc3",
+                "time": null,
+                "progress": 0
+              },
+              {
+                "car": 2,
+                "name": "TC-1 TOURING",
+                "vehicleId": "tc1",
+                "time": null,
+                "progress": 0
+              }
+            ],
+            "at": 21.52499999999942,
+            "assisted": false
+          }
+        },
+        {
+          "name": "Continue publishes free roam and removes the result dialog",
+          "passed": true,
+          "observedMode": "free",
+          "observedTime": 22.174999999999383
+        },
+        {
+          "name": "exit removes the HUD and session and releases geometry",
+          "passed": true,
+          "before": {
+            "geometries": 315,
+            "textures": 31
+          },
+          "after": {
+            "geometries": 1,
+            "textures": 15
+          }
+        }
+      ],
+      "status": "passed",
+      "captures": [
+        {
+          "name": "first-result-paused",
+          "canvas": {
+            "passed": true,
+            "file": "first-result-paused-canvas.png",
+            "bytes": 512822,
+            "width": 720,
+            "height": 405,
+            "sha256": "e448154cb059b79210dfb5e33330498317045e4a9f4c7019005d3820bc261a08"
+          },
+          "dom": {
+            "skipped": false,
+            "passed": true,
+            "file": "first-result-paused-dom.png"
+          }
+        },
+        {
+          "name": "retry-countdown-paused",
+          "canvas": {
+            "passed": true,
+            "file": "retry-countdown-paused-canvas.png",
+            "bytes": 506437,
+            "width": 720,
+            "height": 405,
+            "sha256": "f0b17ce09b3a61185ac3c787914d33b9475ee68625b1106144cb5794cfb9e183"
+          },
+          "dom": {
+            "skipped": false,
+            "passed": true,
+            "file": "retry-countdown-paused-dom.png"
+          }
+        }
+      ],
+      "resultIdentity": [
+        {
+          "runId": "horizon-browser-review:1",
+          "completed": false,
+          "abandoned": true
+        },
+        {
+          "runId": "horizon-browser-review:2",
+          "completed": false,
+          "abandoned": true
+        }
+      ],
+      "report": {
+        "scratchSourcePath": "/tmp/horizon-root-evidence/retry-browser-review-corrected/retry-journey.json",
+        "sha256": "c16dcdb5f500b20d4ef09f552486579fb4aa3638e13d3edb6e614331c7d0e3c0",
+        "bytes": 50776
+      },
+      "driverCorrection": "The first focused attempt stopped at a driver assertion because Chromium suppressed recursive HTMLElement.click(). The corrected driver explicitly dispatches a synthetic bubbling/cancelable MouseEvent after the trusted Enter activation. This gesture is labeled synthetic and does not change worker state or physics.",
+      "firstAttemptReport": {
+        "scratchSourcePath": "/tmp/horizon-root-evidence/retry-browser-review/retry-journey.json",
+        "sha256": "ead5434ebfe299be4fa80148f723a69d2144eec85bee67bd655f3428ebde5d03",
+        "bytes": 26495
+      },
+      "resourceOwnershipNote": "The host renderer outlives the disposed session; remaining renderer geometry/textures are not expected to be zero."
+    },
+    "dom": {
+      "status": "passed",
+      "command": "npx playwright test 49-festival-menu-access.spec.ts --config /tmp/horizon-playwright.config.mjs",
+      "passed": 9,
+      "failed": 0,
+      "durationSeconds": 38.6,
+      "evidenceClass": "Real FestivalHud and input-controller DOM fixtures; synthetic session/status/gamepad data, separate from worker/physics evidence.",
+      "coverage": [
+        "pause-menu keyboard reachability",
+        "native mouse Continue during status updates",
+        "Enter/Space retry without implicit Continue; Escape and mapped controller pause",
+        "completed passive-activity retry",
+        "live provisional stars, route loss and overlay separation",
+        "map filters and focus during redraws",
+        "photo keyboard ownership",
+        "fresh controller presses across menu transitions",
+        "browser policy denial of Gamepad API"
+      ],
+      "testFileSha256": "92838f31f2a5232ed4e29cfa15da476a7206af1e23920eb2919be6ece2ed6751",
+      "log": {
+        "scratchSourcePath": "/tmp/horizon-root-evidence/final-dom-tests.log",
+        "sha256": "0f8d9a8ca926e395e23228a2496f329d2d7a8103ef9af119824c0b5b707afca4",
+        "bytes": 1765
+      }
+    },
+    "layout": {
+      "status": "passed",
+      "evidenceClass": "Synthetic DOM/layout samples of the real festival fixture and production CSS, with locally bundled Saira width-variable fonts. No renderer, workers, driving physics, performance, or scene-fidelity claim.",
+      "samples": [
+        {
+          "name": "960x540-drift-challenge",
+          "kind": "challenge",
+          "viewport": {
+            "width": 960,
+            "height": 540
+          },
+          "issues": [],
+          "overlaps": []
+        },
+        {
+          "name": "960x540-results",
+          "kind": "results",
+          "viewport": {
+            "width": 960,
+            "height": 540
+          },
+          "issues": [],
+          "overlaps": []
+        },
+        {
+          "name": "960x540-last-activity",
+          "kind": "last-activity",
+          "viewport": {
+            "width": 960,
+            "height": 540
+          },
+          "issues": [],
+          "overlaps": []
+        },
+        {
+          "name": "390x844-speed-zone-challenge",
+          "kind": "challenge",
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "issues": [],
+          "overlaps": []
+        },
+        {
+          "name": "390x844-results",
+          "kind": "results",
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "issues": [],
+          "overlaps": []
+        },
+        {
+          "name": "390x844-last-activity",
+          "kind": "last-activity",
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "issues": [],
+          "overlaps": []
+        }
+      ],
+      "runtimeErrors": [],
+      "sourceSha256": {
+        "e2e/fixtures/festival-menu-access.ts": "f764784c53a248b891d3f382998316843178bf2b1b9de04d16354dc939e203ec",
+        "src/ui/festival-hud.ts": "0e9cb8b0e88bf1f018c6d23f7c48cf185c0c27caae0697393b9f53472a292b31",
+        "src/ui/style.css": "18d7c448f45fadd48559e513e325cc5d32f34acc74ad1308562520d64b778999",
+        "src/ui/festival-hud.css": "28f44ba256857b362d17b084f66ab1c56433907ecd51aa084add6fcc679b583b"
+      },
+      "visualInspection": "All six final PNGs inspected at the supplied desktop and phone sizes; no actionable clipping, unintended panel overlap or inaccessible result/action label found.",
+      "report": {
+        "scratchSourcePath": "/tmp/horizon-ui-captures/report.json",
+        "sha256": "2abb2599bce0ab1e257536c240e41ac6fb7cb4a4b6be5f9ab87de38bd6dd85cf",
+        "bytes": 44018
+      },
+      "fixtureCorrection": "Ancestor overflow checks omit HTML/BODY because fixed-position content is bounded by the viewport; explicit viewport checks remain active. Intentional pause-menu scrolling is allowed."
+    },
+    "fullWorldMediumNight": {
+      "status": "passed",
+      "completed": true,
+      "evidenceClass": "Actual current FestivalSession and workers with the production renderer, Medium quality, EH3, night lighting and rain. A paused fixed-camera inspection, not a driving or hardware-performance measurement.",
+      "quality": "medium",
+      "lighting": "night",
+      "weather": "rain",
+      "vehicle": "eh3",
+      "cameraPosition": [
+        552,
+        7,
+        -2602
+      ],
+      "cameraTarget": [
+        583,
+        5,
+        -2602
+      ],
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "browser": "140.0.7339.186",
+      "backend": "swiftshader",
+      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "notHardwarePerformance": true,
+      "drawnFrames": 10,
+      "scene": {
+        "player": {
+          "x": 560.0095825195312,
+          "y": 4.97087287902832,
+          "z": -2597.58203125
+        },
+        "memory": {
+          "geometries": 272,
+          "textures": 51
+        },
+        "details": {
+          "loaded": true,
+          "frontage": 1232,
+          "balconies": 1467,
+          "boats": 3,
+          "nearInstances": 11,
+          "farInstances": 44,
+          "drawBatches": 17
+        },
+        "street": {
+          "loaded": true,
+          "planned": 2458,
+          "nearInstances": 12,
+          "farInstances": 42,
+          "draws": 15,
+          "candidates": 218
+        },
+        "contacts": {
+          "cars": 1,
+          "patches": 5,
+          "triangles": 40,
+          "draws": 1,
+          "capacity": 40
+        }
+      },
+      "renderCounters": {
+        "drawCalls": 357,
+        "triangles": 2347735
+      },
+      "errors": [],
+      "failedAssets": [],
+      "warnings": [],
+      "visualReview": "Final 1280 x 720 PNG inspected: coherent lit asphalt and paint, road and pavement continuity, resident street detail, visible car and rain, without an actionable new shading or layout defect. The car is partly framed at the right edge; this view does not replace the isolated close-up car comparisons.",
+      "identityLimit": "The capture script recorded no embedded build/source identity. The consolidator records the stable working-tree source hashes for this pass; the complete base commit identifies unchanged dependencies.",
+      "sourceReport": {
+        "scratchSourcePath": "/tmp/horizon-root-evidence/final-medium-night/review.json",
+        "sha256": "64e124e67ac0b2d4cb68109144db4dee59f69feb7d58351bb9375af7bb57fb43",
+        "bytes": 9490
+      },
+      "screenshot": {
+        "scratchSourcePath": "/tmp/horizon-root-evidence/final-medium-night/night-rain.png",
+        "sha256": "342ff1f09f372ad4b34295b6df8dec2c2276a43393b4a1433afb7e8f5445fc31"
+      },
+      "reproducer": {
+        "script": "scripts/solvane-r2-browser-review.mjs",
+        "sha256": "411eb916da15886cd3ec6252f472a0341439531a69beb56fcf98abff901f574a",
+        "environment": {
+          "SOLVANE_R2_CANDIDATE": "0",
+          "SOLVANE_R2_VIEW": "night-rain",
+          "APEX_BROWSER_BACKEND": "swiftshader"
+        },
+        "note": "Supply HORIZON_REVIEW_URL for the running local server and HORIZON_REVIEW_EXECUTABLE for an installed Chromium. R2-only candidate density and pace assertions remain disabled."
+      },
+      "limits": "One combined current scene confirms shader compilation and visible integration. The fixture does not expose individual finish-hook binding statistics. Its software render timing is not reported as FPS."
+    }
+  },
+  "recordedAt": "2026-10-19T04:24:01.265124+00:00",
+  "baseCommit": "4d207318915d7d32d5485a2e579c221672a523b4",
+  "implementationFilesSha256": {
+    "e2e/49-festival-menu-access.spec.ts": "92838f31f2a5232ed4e29cfa15da476a7206af1e23920eb2919be6ece2ed6751",
+    "e2e/fixtures/festival-menu-access.ts": "f764784c53a248b891d3f382998316843178bf2b1b9de04d16354dc939e203ec",
+    "e2e/fixtures/horizon-session.ts": "7c26e56c183288567b3d60436cf22dbe96a37e639adfac0e500936841036eceb",
+    "scripts/horizon-browser-review.mjs": "55a6d8d685d4a6a4d2f5b342724c79d7446dbcd1926baf6a2eae5c88a1c80fbb",
+    "scripts/horizon-drift-validation.ts": "2d469f6a6ad053aea1061a90749f6070b833c4844aa755a52ad39337321290ef",
+    "src/main.ts": "01bc679a2d35cc459e4674810a00936a45e017226fa1d873b572ea1d4ba34a57",
+    "src/rendering/open-world/festival-car-finish.ts": "516799ffad0cd87b6a11e54e35f13cfb6d4fbbce45c473801266d7fbe60ac809",
+    "src/rendering/open-world/festival-cars.ts": "7e19dd7b44f863191f195292114a57cbb5fdf72661ea53cb6b33cab8d4397418",
+    "src/rendering/open-world/festival-road-surface.ts": "eac9c731a751e50a45fa5b0414c857c7cba5b5383763332b61333b9406315333",
+    "src/rendering/open-world/roads.ts": "6f14e1a7af1c442f7011b57ba6f844019b717620db2dac8fdf5eeaad200422c7",
+    "src/session/festival-controls.ts": "f1a012bb8d4bee18feef5e9791a828d62212313f5356d5ab4a7b06f5a218f350",
+    "src/session/free-roam.ts": "5add01e7f4bf19787d8cdf2282b35f46688762b3085623b7b9f0938ed47635ac",
+    "src/simulation/open-world/activity-progress.ts": "e53394796b3e4e2645f5197478a8e951cba5a2e314634a59594c60fd877b1d40",
+    "src/simulation/open-world/region-data.ts": "5e5be85634f0e994e49722dd128a41e3b812cf4fd54ee52a3cbd199ff1c6dc88",
+    "src/simulation/open-world/session.ts": "e97e7ee1a769f93250fbdd8e49e2b7b604992745227e58f5a36afe58661f478f",
+    "src/ui/festival-hud.css": "28f44ba256857b362d17b084f66ab1c56433907ecd51aa084add6fcc679b583b",
+    "src/ui/festival-hud.ts": "0e9cb8b0e88bf1f018c6d23f7c48cf185c0c27caae0697393b9f53472a292b31",
+    "src/workers/open-world-protocol.ts": "e0809c55ff720d728b94c9fc38663aba6fc1bd6d6194a429c9204c6a6686c489",
+    "src/workers/open-world.worker.ts": "b4c50d6ce6ffe201ef63c163e322c1357d44c7bdf8ec61a59d2250f29d5fa84b"
+  },
+  "runtime": {
+    "node": "24.19.0",
+    "npm": "11.9.0",
+    "three": "0.180.0",
+    "vite": "7.1.7",
+    "typescript": "5.9.3",
+    "vitest": "3.2.4",
+    "playwright": "1.55.1",
+    "browser": "140.0.7339.186"
+  },
+  "sourceArtifactsNote": "Temporary experiment sources are identified for provenance; their relevant results and hashes are retained in this document. Full temporary captures and logs are not repository deliverables.",
+  "knownLimits": [
+    "Commercial reference parity and rebuilt photographed vehicles/environments are not claimed.",
+    "No human playtest or target-hardware frame-rate benchmark was run.",
+    "The Kestrel physical trial establishes the 50-point introductory goal, not 300/600-point mastery attainability.",
+    "Generic worker errors recover through an eight-second command timeout. Timeout reports an uncertain outcome; it does not cancel work already queued in a suspended or slow worker.",
+    "The earlier native assisted-race journey ended on a Chromium screenshot error; the separate focused retry/Continue/disposal journey passed."
+  ],
+  "publishParentCommit": "31bc93db04adec2deb3af999cb36531134838a4c",
+  "upstreamIntegration": {
+    "originalValidationBase": "4d207318915d7d32d5485a2e579c221672a523b4",
+    "newParent": "31bc93db04adec2deb3af999cb36531134838a4c",
+    "upstreamCommit": "feat(motogp): refine GP suits, cockpit and seamless braking",
+    "upstreamChangedFiles": [
+      "docs/MOTOGP_REFINEMENT_PASS.md",
+      "docs/production/motogp-refinement/apex-gp-dry.png",
+      "docs/production/motogp-refinement/apex-gp-wet.png",
+      "docs/production/motogp-refinement/braking-bike.png",
+      "docs/production/motogp-refinement/braking-comparison.json",
+      "docs/production/motogp-refinement/braking-gp.png",
+      "docs/production/motogp-refinement/cockpit-after.png",
+      "docs/production/motogp-refinement/cockpit-before.png",
+      "docs/production/motogp-refinement/environment-material-metrics.json",
+      "docs/production/motogp-refinement/gpr1-after.png",
+      "docs/production/motogp-refinement/gpr2-after.png",
+      "docs/production/motogp-refinement/lever-released.png",
+      "docs/production/motogp-refinement/lever-squeezed.png",
+      "docs/production/motogp-refinement/live-low-chase.png",
+      "docs/production/motogp-refinement/live-low-cockpit.png",
+      "docs/production/motogp-refinement/model-and-lever-checks.json",
+      "docs/production/motogp-refinement/recorded-low-cockpit.png",
+      "docs/production/motogp-refinement/rider-after.png",
+      "docs/production/motogp-refinement/rider-before.png",
+      "docs/production/motogp-refinement/rider-wet.png",
+      "docs/production/motogp-refinement/surface-receipt.json",
+      "docs/production/motogp-refinement/verification-receipt.json",
+      "e2e/41-motogp-reference.spec.ts",
+      "e2e/42-motogp-environment.spec.ts",
+      "e2e/fixtures/motogp-environment-review.ts",
+      "e2e/fixtures/motogp-reference-review.ts",
+      "e2e/gp-brake-lever.spec.ts",
+      "src/rendering/bike-livery.ts",
+      "src/rendering/bike.ts",
+      "src/rendering/circuit.ts",
+      "src/rendering/gp-rider-suit.ts",
+      "src/rendering/renderer.ts",
+      "src/rendering/rider.ts",
+      "src/rendering/studio/road-detail.ts",
+      "src/rendering/tyre-marks.ts",
+      "src/simulation/bike-vehicle.ts",
+      "tests/bike-cockpit-view.test.ts",
+      "tests/gp-brake-lever.test.ts",
+      "tests/gp-rider-suit.test.ts",
+      "tests/gp-seamless-braking.test.ts",
+      "tests/road-detail.test.ts",
+      "tests/scanned-ground.test.ts",
+      "tests/startup.test.ts",
+      "tests/tyre-marks.test.ts"
+    ],
+    "horizonChangedFilesOverlap": [],
+    "allThirtyHorizonFileHashesPreservedBeforeThisDocumentationUpdate": true,
+    "scope": "The upstream GP suit, brake-lever and seamless-shift changes also feed Horizon motorcycles. Its circuit road-detail and tyre-mark paths are not used by Horizon RoadMeshes and FestivalTrails.",
+    "combinedBuild": {
+      "command": "npm run build",
+      "exitCode": 0,
+      "typescriptNoEmit": true,
+      "viteBuildSeconds": 16.06,
+      "warning": "Existing large-chunk warning remains.",
+      "logSha256": "f5f758a3b85ee76c430c98dbe226ec738bbd9d011a0c26b7ef68004215d54a0e"
+    },
+    "targetedTests": {
+      "command": "npx vitest run tests/open-world-bikes.test.ts tests/gp-seamless-braking.test.ts tests/gp-rider-suit.test.ts tests/gp-brake-lever.test.ts",
+      "passed": 34,
+      "failed": 0,
+      "skipped": 0,
+      "files": [
+        {
+          "file": "gp-brake-lever.test.ts",
+          "cases": 3,
+          "status": "passed"
+        },
+        {
+          "file": "gp-rider-suit.test.ts",
+          "cases": 12,
+          "status": "passed"
+        },
+        {
+          "file": "gp-seamless-braking.test.ts",
+          "cases": 14,
+          "status": "passed"
+        },
+        {
+          "file": "open-world-bikes.test.ts",
+          "cases": 5,
+          "status": "passed"
+        }
+      ],
+      "reportSha256": "b9e53147badfa20cbb09e4d6ef9d0a1aae1d48be34e201b4efba68c6205b262c"
+    },
+    "garageSmoke": {
+      "status": "passed",
+      "completed": true,
+      "scope": "Real FestivalSession, workers and production garage buttons: EH3 \u2192 GPR1 \u2192 EH3 \u2192 exit. Normal keyboard S press/release. No status, physics, save or pose injection. Low day/rain at 960\u00d7540; followed bike remains its production near/high geometry. Canvas readbacks are actual production chase frames paused through Escape. No per-hook finish binding claim, lever-pixel measurement, human playtest or hardware-FPS claim.",
+      "headAtStart": "31bc93db04adec2deb3af999cb36531134838a4c",
+      "headAtEnd": "31bc93db04adec2deb3af999cb36531134838a4c",
+      "sourceSha256": {
+        "e2e/49-festival-menu-access.spec.ts": "92838f31f2a5232ed4e29cfa15da476a7206af1e23920eb2919be6ece2ed6751",
+        "e2e/fixtures/festival-menu-access.ts": "f764784c53a248b891d3f382998316843178bf2b1b9de04d16354dc939e203ec",
+        "e2e/fixtures/horizon-session.html": "1cb9f2cc2c0e8ff4f6b8338a9c6f5495aed0299842936a20406cc1981982ab91",
+        "e2e/fixtures/horizon-session.ts": "7c26e56c183288567b3d60436cf22dbe96a37e639adfac0e500936841036eceb",
+        "scripts/horizon-browser-review.mjs": "55a6d8d685d4a6a4d2f5b342724c79d7446dbcd1926baf6a2eae5c88a1c80fbb",
+        "scripts/horizon-drift-validation.ts": "2d469f6a6ad053aea1061a90749f6070b833c4844aa755a52ad39337321290ef",
+        "src/main.ts": "01bc679a2d35cc459e4674810a00936a45e017226fa1d873b572ea1d4ba34a57",
+        "src/rendering/bike-livery.ts": "d40c3ed7a49d8eb4e2750c93f2ca4d35cde0c9cf921037b48e9f793b1e4b7cba",
+        "src/rendering/bike.ts": "f72bf0a4af7c80629a82c6629d1530129e6431dee3338e7f2771b99bf28cb87b",
+        "src/rendering/circuit.ts": "682fcb83a3c3fee16537300153b529d93240db9c524843346cfefc71c5c7c257",
+        "src/rendering/festival-riders.ts": "95cbbc38e2b77f5f6db2249d4d59a35b74256591732c72e1ef3ea136868d8fb5",
+        "src/rendering/gp-rider-suit.ts": "2393d59f2e2ad7c5ebaedcf24bb5cffb8d4697b5b33d2e0e620de76be9836799",
+        "src/rendering/open-world/festival-car-finish.ts": "516799ffad0cd87b6a11e54e35f13cfb6d4fbbce45c473801266d7fbe60ac809",
+        "src/rendering/open-world/festival-cars.ts": "7e19dd7b44f863191f195292114a57cbb5fdf72661ea53cb6b33cab8d4397418",
+        "src/rendering/open-world/festival-renderer.ts": "95637e1933138516040924a8f9a03af7c5278a515ecb98d53bb9d398598e6e27",
+        "src/rendering/open-world/festival-road-surface.ts": "eac9c731a751e50a45fa5b0414c857c7cba5b5383763332b61333b9406315333",
+        "src/rendering/open-world/roads.ts": "6f14e1a7af1c442f7011b57ba6f844019b717620db2dac8fdf5eeaad200422c7",
+        "src/rendering/options.ts": "c66a8907e7e9d5db3ad67a097127be3a07bb78b58fa79fc16922a5cce8aed95f",
+        "src/rendering/renderer.ts": "8a4fbaf04ac1460e8f87660ff2dfecc6a9ecfa1b5272ad38b750c2d32822ba89",
+        "src/rendering/rider.ts": "3732137f7797e51013edd978069d7ed4576a31edcbdd7a4b54548115f5e5d81f",
+        "src/rendering/studio/ibl-energy.ts": "93731cdca5e866ab34369b3a008506a9b8c4c1e99fcc7a5d706e7f55d4e9a651",
+        "src/rendering/studio/road-detail.ts": "ad52fe8d71e03a6c2bb1a2d681801383fb4f89c3eabe616e7d63dbae06aa4878",
+        "src/rendering/studio/shader-hooks.ts": "8ae51033f242d1100a6008975d6f5be3f55fd37e8f3be6399f5f731cc8da0488",
+        "src/rendering/tyre-marks.ts": "73544f6ccf4268b5364519b8bfd554070c447360ce76dddb0109ba4ff8a3e60a",
+        "src/rendering/vehicle-bodies/index.ts": "dbbc45bf991f43ce50c55993f3d6761e459523276f5a802106aa3e4af2617fcc",
+        "src/session/festival-controls.ts": "f1a012bb8d4bee18feef5e9791a828d62212313f5356d5ab4a7b06f5a218f350",
+        "src/session/free-roam.ts": "5add01e7f4bf19787d8cdf2282b35f46688762b3085623b7b9f0938ed47635ac",
+        "src/simulation/bike-definitions.ts": "e075dd421d9a61b9564e2918da316a0ebe92816aa4871b8662d2ac357bffe3a6",
+        "src/simulation/bike-vehicle.ts": "606ea9696e19c09f37d9b45a4279ea319f1afc15dfea82beb348c5c5ded79f7b",
+        "src/simulation/open-world/activity-progress.ts": "e53394796b3e4e2645f5197478a8e951cba5a2e314634a59594c60fd877b1d40",
+        "src/simulation/open-world/festival-machines.ts": "04439d579be1e32fa292da837d9547257f8bb37958a344ecc59006e373fe634b",
+        "src/simulation/open-world/region-data.ts": "5e5be85634f0e994e49722dd128a41e3b812cf4fd54ee52a3cbd199ff1c6dc88",
+        "src/simulation/open-world/session.ts": "e97e7ee1a769f93250fbdd8e49e2b7b604992745227e58f5a36afe58661f478f",
+        "src/simulation/protocol.ts": "f51e07505174017042b5f3aa669f01efbf173816355b27a55e920b431dd38c37",
+        "src/simulation/vehicles.ts": "d362e0a36d566ba8cfe866e84a2b3014e2d6bf2307b07c286e52335334f0b090",
+        "src/ui/festival-hud.css": "28f44ba256857b362d17b084f66ab1c56433907ecd51aa084add6fcc679b583b",
+        "src/ui/festival-hud.ts": "0e9cb8b0e88bf1f018c6d23f7c48cf185c0c27caae0697393b9f53472a292b31",
+        "src/workers/open-world-protocol.ts": "e0809c55ff720d728b94c9fc38663aba6fc1bd6d6194a429c9204c6a6686c489",
+        "src/workers/open-world.worker.ts": "b4c50d6ce6ffe201ef63c163e322c1357d44c7bdf8ec61a59d2250f29d5fa84b",
+        "tests/festival-activity-progress.test.ts": "4fc8f0733bea299c67d8341fde0aa94a98427126814745b632e0496cd81d8943",
+        "tests/festival-car-finish.test.ts": "c4ceb2819147e13bc8bfe1a1dc7f2262762a2938b355d99573b86cb3dfbe2087",
+        "tests/festival-road-surface.test.ts": "db87f0d6e0924236461775b39e62d22294bf66ab9177f53428d28267d8d93439",
+        "tests/open-world-traffic.test.ts": "519eb774be897e780ea57018dfaecc1dbe2a07779104a112224036b40f89312b"
+      },
+      "changedSourceFiles": [],
+      "quality": "low",
+      "lighting": "day",
+      "weather": "rain",
+      "viewport": {
+        "width": 960,
+        "height": 540
+      },
+      "browserVersion": "140.0.7339.186",
+      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "steps": [
+        {
+          "name": "actual EH3 boot",
+          "passed": true,
+          "vehicle": "eh3",
+          "brake": 0,
+          "memory": {
+            "geometries": 216,
+            "textures": 29
+          }
+        },
+        {
+          "name": "garage button selected actual GPR1",
+          "passed": true,
+          "vehicle": "gpr1",
+          "brake": 1,
+          "memory": {
+            "geometries": 216,
+            "textures": 29
+          }
+        },
+        {
+          "name": "ordinary brake release clears garage parking hold",
+          "passed": true,
+          "vehicle": "gpr1",
+          "brake": 0,
+          "memory": {
+            "geometries": 216,
+            "textures": 29
+          }
+        },
+        {
+          "name": "held S reaches real front-brake snapshot",
+          "passed": true,
+          "vehicle": "gpr1",
+          "brake": 1,
+          "memory": {
+            "geometries": 216,
+            "textures": 29
+          }
+        },
+        {
+          "name": "released S returns real front-brake snapshot to zero",
+          "passed": true,
+          "vehicle": "gpr1",
+          "brake": 0,
+          "memory": {
+            "geometries": 325,
+            "textures": 49
+          }
+        },
+        {
+          "name": "returned EH3 rendered through production garage",
+          "passed": true,
+          "vehicle": "eh3",
+          "brake": 1,
+          "memory": {
+            "geometries": 217,
+            "textures": 30
+          }
+        },
+        {
+          "name": "exit releases festival geometries and detaches session",
+          "passed": true,
+          "vehicle": null,
+          "brake": null,
+          "memory": {
+            "geometries": 1,
+            "textures": 17
+          }
+        }
+      ],
+      "errors": [],
+      "warnings": [],
+      "failedAssets": [],
+      "beforeExitMemory": {
+        "geometries": 217,
+        "textures": 30
+      },
+      "afterExitMemory": {
+        "geometries": 1,
+        "textures": 17
+      },
+      "captures": [
+        {
+          "file": "gpr1-brake-held-canvas.png",
+          "sha256": "11af8b175584a820cbe003cc109b1f76c17c43ebe67a9d9d8bf5f473400be60f",
+          "bytes": 420607,
+          "glError": 0,
+          "contextLost": false,
+          "vehicle": "gpr1",
+          "memory": {
+            "geometries": 325,
+            "textures": 49
+          }
+        },
+        {
+          "file": "eh3-returned-canvas.png",
+          "sha256": "71a43b30b3c8c6d5264f0d69d374f4ca07eb1cfac2d9860db91c95ba5f61567f",
+          "bytes": 416990,
+          "glError": 0,
+          "contextLost": false,
+          "vehicle": "eh3",
+          "memory": {
+            "geometries": 217,
+            "textures": 30
+          }
+        }
+      ],
+      "visualReview": "Both actual GP/rider and returned-EH3 canvases inspected; no duplicate vehicle representation or new actionable shader defect found.",
+      "sourceReport": {
+        "scratchSourcePath": "/tmp/horizon-root-evidence/merged-main-gp-smoke/smoke.json",
+        "sha256": "89536489b3883a8431f1a60fc5591577eda4e178d33df7a7181e91f12181cd6c",
+        "bytes": 18944
+      },
+      "sourceReproducer": {
+        "scratchSourcePath": "/tmp/horizon-root-evidence/merged-main-gp-smoke/reproduce.mjs",
+        "sha256": "e42165c666cdf8414382744127a95fe5dbd9017ae609e9ce09b287b4fee2ef31"
+      },
+      "resourceOwnershipNote": "The host renderer remains alive after Festival exit; remaining geometry/textures are not expected to be zero."
+    },
+    "fullSuiteScope": "The 3654-case original sweep and recorded fixture recoveries ran before this disjoint upstream update. The combined branch was rebuilt and its concrete motorcycle overlap was checked separately; no full-suite rerun on the new parent is claimed."
+  }
+}

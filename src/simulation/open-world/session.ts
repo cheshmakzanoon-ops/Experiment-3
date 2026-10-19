@@ -33,6 +33,7 @@ import { trackPoint, type Track } from '../track.ts';
 import type { Vehicle } from '../vehicle.ts';
 import { vehicleIndex, VEHICLES } from '../vehicles.ts';
 import { AmbientTraffic } from './ambient-traffic.ts';
+import { activityProgress, type FestivalActivityProgress } from './activity-progress.ts';
 import { NearMissDetector } from './near-miss.ts';
 import {
   DriftMeter,
@@ -137,6 +138,8 @@ export interface FestivalStatus {
     entrants: number;
     offRoute: boolean;
     live: { label: string; value: string } | null;
+    /** Live, provisional skill-activity targets from actual measured progress. */
+    challenge?: FestivalActivityProgress | null;
     /** Next checkpoint position (world) for the guidance arrow/marker. */
     gate: { x: number; z: number } | null;
   } | null;
@@ -168,7 +171,9 @@ interface Run {
    * run-up, and measure only the distance covered after they start timing. */
   entryDistance: number;
 }
-const SPAWN = { x: 560, z: -2602, heading: Math.PI / 2 };
+// Depart east along Harbour Front's right-hand lane. Its centreline is
+// z=-2600; the opposite side would point the player into oncoming traffic.
+const SPAWN = { x: 560, z: -2598, heading: Math.PI / 2 };
 /** Event reset: route search window around the legal progress (m, well
  * inside RouteProgress's 60 m maxStep) and the most it may place a car
  * ahead of that progress. */
@@ -448,6 +453,9 @@ export class OpenWorldSimulation {
         if (!event) throw new Error(`Unknown festival event ${cmd.event}`);
         if (!this.discovered.has(event.spec.id)) throw new Error('Travel needs a discovered event');
         if (this.run) this.abandon();
+        // Travel leaves the old event immediately. An active race still
+        // emits its one abandonment; its pending result survives endRun.
+        this.endRun();
         this.skills.reset();
         const fresh = this.makeCar(0, this.player.definition.id);
         this.cars[0] = fresh;
@@ -560,6 +568,12 @@ export class OpenWorldSimulation {
   private abandon() {
     const run = this.run;
     if (!run) return;
+    // Results are final even before the worker drains them. Retry, cancel
+    // and garage exits must not turn a completed run into a second result.
+    if (this.mode === 'finished') {
+      this.endRun();
+      return;
+    }
     if (isRace(run.event.spec.kind)) this.finishRun(false, true);
     else {
       this.say(`${run.event.spec.name} failed`);
@@ -735,12 +749,16 @@ export class OpenWorldSimulation {
         if (beyondEntry < 0 || Math.abs(pos.y - entry.y) > 5) continue;
         const d = path.locate(pos.x, pos.z, 0, 40, this.located),
           p = path.at(d, this.pp),
-          aligned = this.player.forward.x * p.tx + this.player.forward.z * p.tz;
+          aligned = this.player.forward.x * p.tx + this.player.forward.z * p.tz,
+          velocity = this.player.body.velocity,
+          forwardSpeed = velocity.x * p.tx + velocity.z * p.tz;
         if (
           d < 25 &&
           Math.abs(this.located.lateral) < p.halfWidth + 1.5 &&
           aligned > 0.6 &&
-          this.player.speed > 4
+          // Facing the route is insufficient: reversing back through the
+          // entry gate must not start a fresh measurement.
+          forwardSpeed > 4
         ) {
           this.startEvent(event, true);
           return;
@@ -1035,15 +1053,29 @@ export class OpenWorldSimulation {
         }))
         .sort((a, b) => a.key - b.key);
       let live: { label: string; value: string } | null = null;
-      const elapsed = Math.max(0, this.time - run.start);
+      const elapsed = Math.max(0, (p.finishTime ?? this.time) - run.start);
+      const measuredDistance = Math.max(0, run.event.distance - run.entryDistance);
+      const measured = activityProgress(run.event.spec, {
+        elapsed,
+        legalDistance: p.progress.distance,
+        measuredDistance,
+        speedKmh: player.speed * 3.6,
+        driftScore: run.drift?.live(this.time) ?? 0,
+        assisted: run.assisted,
+        offRoute: p.progress.offRoute,
+      });
       if (run.event.spec.kind === 'speed-trap')
-        live = { label: 'SPEED', value: `${Math.round(player.speed * 3.6)} KM/H` };
+        live = {
+          label: 'SPEED',
+          value: `${Math.round(measured?.value ?? player.speed * 3.6)} KM/H`,
+        };
       else if (run.event.spec.kind === 'speed-zone')
         live = {
           label: 'AVERAGE',
-          value: `${elapsed > 0.5 ? Math.round((p.progress.distance / elapsed) * 3.6) : 0} KM/H`,
+          value: `${Math.round(measured?.value ?? (elapsed > 0.5 ? (Math.min(p.progress.distance, measuredDistance) / elapsed) * 3.6 : 0))} KM/H`,
         };
-      else if (run.drift) live = { label: 'DRIFT', value: `${run.drift.live(this.time)}` };
+      else if (run.drift)
+        live = { label: 'DRIFT', value: `${measured?.value ?? run.drift.live(this.time)}` };
       const gate = run.event.graph.spec.checkpoints[p.progress.checkpoint];
       let gatePoint: { x: number; z: number } | null = null;
       if (gate) {
@@ -1065,14 +1097,19 @@ export class OpenWorldSimulation {
         name: run.event.spec.name,
         kind: run.event.spec.kind,
         countdown: this.mode === 'countdown' ? Math.max(0, run.start - this.time) : 0,
-        elapsed: p.finishTime !== null ? p.finishTime - run.start : elapsed,
-        progress: Math.min(1, p.progress.distance / run.event.distance),
+        elapsed,
+        progress: Math.min(
+          1,
+          p.progress.distance /
+            Math.max(1, isRace(run.event.spec.kind) ? run.event.distance : measuredDistance),
+        ),
         lap: Math.min(run.event.laps, p.progress.laps + 1),
         laps: run.event.laps,
         position: ranking.findIndex((r) => r.i === 0) + 1,
         entrants: run.participants.length,
         offRoute: p.progress.offRoute,
         live,
+        challenge: this.mode === 'running' ? measured : null,
         gate: gatePoint,
       };
     }

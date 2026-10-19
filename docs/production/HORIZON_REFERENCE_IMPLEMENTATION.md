@@ -32,8 +32,12 @@ Blender was not required for this pass. Extending the existing procedural geomet
 | Activity | Type and setting | Deliberate scope |
 | --- | --- | --- |
 | Harbour Opening Run | Short sprint through the waterfront, market and upper streets; two rivals. | Introductory event for ordinary road cars, using existing streets. |
-| Kestrel Drift Playground | Drift zone through the broad taxiway turn; 100 / 300 / 600 point star targets. | An approachable linked-slide activity in the existing airfield. |
+| Kestrel Drift Playground | Drift zone through the broad taxiway turn; 50 / 300 / 600 point star targets. | The beginner first goal was calibrated from 100 to 50 using a clean 69-point scripted physical run; mastery goals are unchanged. |
 | Kestrel Launch Run | Runway speed trap; 110 / 160 / 210 km/h star targets. | A rolling acceleration/speed activity, without a new drag-tree or reaction-time system. |
+
+The [retained drift trial](horizon-drift-validation.json) records the previous and current targets,
+the normal controls, grounded motion and final one-star result. It is scripted assistance and
+does not establish a human playtest or three-star drift acceptance.
 
 ## Individual reference mapping
 

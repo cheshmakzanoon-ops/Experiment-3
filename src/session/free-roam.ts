@@ -115,6 +115,11 @@ export class FestivalSession {
   private travelling = false;
   private events: readonly FestivalEvent[] = [];
   private disposed = false;
+  private commandSerial = 0;
+  private readonly commandRequests = new Map<
+    number,
+    { resolve(): void; reject(error: Error): void; timer: ReturnType<typeof setTimeout> }
+  >();
   private readyResolve: (() => void) | null = null;
   private readyReject: ((e: Error) => void) | null = null;
   private save: FestivalSave;
@@ -195,6 +200,7 @@ export class FestivalSession {
     this.hud = new FestivalHud(host.element, world, events, vehicles, {
       start: (id) => this.command({ type: 'start', event: id }),
       continue: () => this.command({ type: 'continue' }),
+      retry: (id) => void this.travel(id, true),
       cancel: () => this.command({ type: 'cancel' }),
       reset: () => {
         this.command({ type: 'reset' });
@@ -338,12 +344,22 @@ export class FestivalSession {
       case 'result':
         this.recordResult(msg.result);
         break;
+      case 'command-result': {
+        const request = this.commandRequests.get(msg.requestId);
+        if (!request) break;
+        clearTimeout(request.timer);
+        this.commandRequests.delete(msg.requestId);
+        if (msg.error !== undefined) request.reject(new Error(msg.error));
+        else request.resolve();
+        break;
+      }
       case 'error':
         this.fail(new Error(msg.message));
         break;
     }
   }
   private recordResult(result: FestivalResult) {
+    this.hud?.recordActivity(result);
     this.host.onResult?.(result);
     if (!result.completed || result.assisted) return;
     const best = this.save.best[result.eventId],
@@ -378,36 +394,65 @@ export class FestivalSession {
   command(command: FestivalCommand) {
     this.post({ type: 'command', command });
   }
+  /** Resolve only after the worker's command snapshot and status arrive.
+   * Travel must retain input/loading ownership through this round trip. */
+  private commandAndWait(command: FestivalCommand) {
+    if (this.disposed) return Promise.reject(new Error('Festival session closed'));
+    const requestId = ++this.commandSerial;
+    return new Promise<void>((resolve, reject) => {
+      const timer = setTimeout(() => {
+        this.commandRequests.delete(requestId);
+        reject(new Error('The festival simulation did not confirm the move.'));
+      }, 8000);
+      this.commandRequests.set(requestId, { resolve, reject, timer });
+      this.post({ type: 'command', command, requestId });
+    });
+  }
   /** Fast travel to a discovered event: the car is placed at once, and the
    * simulation stays held behind the loading screen until the terrain and
    * cover at the destination are resident (bounded wait), so the player
    * never drives onto coarse or missing ground. */
-  private async travel(id: string) {
+  private async travel(id: string, retry = false) {
     const renderer = this.renderer,
       event = this.events.find((e) => e.spec.id === id);
     if (!renderer || !event || this.travelling) return;
     this.travelling = true;
+    // Retrying from the results is not already paused. Hold physics and
+    // input before moving the car until the destination is resident.
+    this.setPaused(true);
     this.hud?.showMenu(false);
     this.hud?.showMap(false);
-    this.host.loading(`Travelling to ${event.spec.name}…`);
-    this.command({ type: 'travel', event: id });
-    const { x, z } = event.marker,
-      deadline = performance.now() + 12000;
+    this.hud?.hideResults();
+    this.host.loading(
+      `${retry ? 'Preparing another run at' : 'Travelling to'} ${event.spec.name}…`,
+    );
+    let complete = false;
     try {
+      await this.commandAndWait({ type: 'travel', event: id });
+      const { x, z } = event.marker,
+        deadline = performance.now() + 12000;
       while (!renderer.ready(x, z) && performance.now() < deadline && !this.disposed) {
         renderer.prestream(x, z);
         await new Promise<void>((resolve) => setTimeout(resolve, 30));
       }
+      if (this.disposed) return;
+      if (!renderer.ready(x, z))
+        throw new Error('The destination is still loading. Try again from the pause menu.');
+      if (retry) await this.commandAndWait({ type: 'start', event: id });
+      complete = true;
+    } catch (error) {
+      if (!this.disposed)
+        this.host.toast(error instanceof Error ? error.message : 'Travel could not finish.');
     } finally {
       this.travelling = false;
       if (!this.disposed) {
         this.host.loaded();
-        this.setPaused(false);
+        this.setPaused(!complete);
       }
     }
   }
   input(input: Controls) {
-    if (!this.isPaused) this.post({ type: 'input', input: { ...input } });
+    if (this.drivingInputEnabled) this.post({ type: 'input', input: { ...input } });
   }
   private openMenu() {
     this.controls?.openMenu();
@@ -434,6 +479,11 @@ export class FestivalSession {
   }
   get isPaused() {
     return this.controls?.paused ?? false;
+  }
+  /** Hosts keep polling the mapped pause action while results own input,
+   * even though rival finishers may still be moving in the worker. */
+  get drivingInputEnabled() {
+    return !this.travelling && (this.controls?.drivingInputEnabled ?? false);
   }
   /** Application actions while the festival drives; true when consumed. */
   action(name: string) {
@@ -515,6 +565,7 @@ export class FestivalSession {
         renderer.guidance.cue,
         renderer.driftCue,
       );
+    this.controls?.syncInput();
     this.host.audio?.update(
       presented,
       renderer.mode === 'hood',
@@ -529,6 +580,11 @@ export class FestivalSession {
   dispose() {
     if (this.disposed) return;
     this.disposed = true;
+    for (const request of this.commandRequests.values()) {
+      clearTimeout(request.timer);
+      request.reject(new Error('Festival session closed'));
+    }
+    this.commandRequests.clear();
     window.removeEventListener('keydown', this.photoKeys, true);
     this.controls?.dispose();
     this.host.audio?.stop();

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { festivalMenuState } from '../src/session/festival-controls.ts';
-import { DEFAULT_SETUP } from '../src/simulation/config.ts';
+import { controls, DEFAULT_SETUP } from '../src/simulation/config.ts';
 import {
   AmbientTraffic,
   TF,
@@ -31,6 +31,31 @@ function drive(seed: number, seconds: number, check?: (sim: OpenWorldSimulation)
 }
 
 describe('festival ambient traffic', () => {
+  it('can depart the harbour in its travel lane after traffic arrives during an idle start', () => {
+    const sim = new OpenWorldSimulation({ vehicle: 'tc1', traffic: true, seed: 73021, tileBudget: 24 });
+    const spawnLateral = sim.player.lateral;
+    // A slow first render may leave the real worker idling long enough for
+    // ambient cars to arrive. Do not disable traffic or relocate the player.
+    for (let i = 0; i < 30 * 120; i++) {
+      if (i % 2 === 0) sim.setInput(controls());
+      sim.step(1 / 120);
+    }
+    expect(sim.traffic.cars.length).toBeGreaterThan(0);
+    const start = { x: sim.player.body.position.x, z: sim.player.body.position.z };
+    // Production input is refreshed while held; assists may change the
+    // consumed throttle between updates. Physics still steps at 120 Hz.
+    for (let i = 0; i < 6 * 120; i++) {
+      if (i % 2 === 0) sim.setInput({ ...controls(), throttle: 1 });
+      sim.step(1 / 120);
+    }
+    const end = sim.player.body.position;
+    expect(sim.traffic.collisions).toBe(0);
+    expect(Math.hypot(end.x - start.x, end.z - start.z)).toBeGreaterThan(30);
+    expect(sim.player.speed * 3.6).toBeGreaterThan(15);
+    expect(sim.status().road.onRoad).toBe(true);
+    // The network's positive lateral is travel-left; this is right-hand traffic.
+    expect(spawnLateral).toBeLessThan(0);
+  });
   it('is deterministic: the same seed and inputs give the same traffic, another seed differs', () => {
     const a = drive(73021, 30),
       b = drive(73021, 30),
