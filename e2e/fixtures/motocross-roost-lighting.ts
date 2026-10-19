@@ -1,4 +1,5 @@
 import * as T from 'three';
+import { LocalAtmosphere } from '../../src/rendering/local-atmosphere.ts';
 import { Roost } from '../../src/rendering/offroad/roost.ts';
 import { TrackTerrainSurface } from '../../src/simulation/offroad/course-terrain.ts';
 import { rigTrack } from '../../src/simulation/offroad/jump-rig.ts';
@@ -22,7 +23,7 @@ import { vehicleIndex } from '../../src/simulation/vehicles.ts';
 
 /** Controlled snapshot emitter for the production roost material/contact
  * renderer. This close-up is a component check, not a played race or FPS test. */
-export function captureMotocrossRoostLighting(wet: boolean) {
+function emittedRoost(wet: boolean) {
   const track = rigTrack('valley-ridge-mx');
   const terrain = (Track.offroadOf(track) as TrackTerrainSurface).terrain;
   const p = track.at(100, trackPoint());
@@ -51,6 +52,11 @@ export function captureMotocrossRoostLighting(wet: boolean) {
   }
   const source = frame.slice();
   for (let i = 0; i < 40; i++) roost.update(frame, 1 / 60);
+  return { track, terrain, p, roost, frame, source };
+}
+
+export function captureMotocrossRoostLighting(wet: boolean) {
+  const { track, terrain, p, roost, frame, source } = emittedRoost(wet);
   const renderer = new T.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
   renderer.setSize(1120, 700);
   renderer.setPixelRatio(1);
@@ -117,6 +123,163 @@ export function captureMotocrossRoostLighting(wet: boolean) {
   };
   ground.dispose();
   soil.dispose();
+  roost.dispose();
+  renderer.dispose();
+  renderer.forceContextLoss();
+  return result;
+}
+
+/** Keep actual emitted dust positions/opacity fixed while changing only the
+ * real scene lights. A black background isolates scattered light from clods,
+ * ground colour, atmosphere and post-processing. */
+export function captureMotocrossDustLighting() {
+  const { track, roost, frame, source } = emittedRoost(false);
+  const renderer = new T.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+  renderer.setPixelRatio(1);
+  renderer.setSize(800, 500);
+  renderer.outputColorSpace = T.SRGBColorSpace;
+  renderer.toneMapping = T.ACESFilmicToneMapping;
+  const scene = new T.Scene();
+  scene.background = new T.Color(0);
+  scene.fog = new T.FogExp2(0x7891a3, 0);
+  scene.add(roost.points);
+  const geometry = roost.points.geometry,
+    positions = geometry.getAttribute('position'),
+    shapes = geometry.getAttribute('mxParticleShape'),
+    opacity = geometry.getAttribute('mxParticleAlpha'),
+    centre = new T.Vector3();
+  let count = 0;
+  for (let i = 0; i < positions.count; i++) {
+    if (shapes.getX(i) < 0.5 || opacity.getX(i) <= 0) continue;
+    centre.add(new T.Vector3().fromBufferAttribute(positions, i));
+    count++;
+  }
+  centre.divideScalar(count);
+  const camera = new T.PerspectiveCamera(50, 1.6, 0.05, 100);
+  const toEye = new T.Vector3(0.6, 0.35, 1).normalize();
+  camera.position.copy(centre).addScaledVector(toEye, 5);
+  camera.lookAt(centre);
+  const sun = new T.DirectionalLight(0xfff0d8, 0),
+    hemisphere = new T.HemisphereLight(0x8eb6ec, 0x7d5c3d, 0),
+    lamp = new T.PointLight(0xffaa66, 0, 20, 2),
+    spot = new T.SpotLight(0x75aaff, 0, 20, 0.6, 0.3, 2);
+  sun.target.position.copy(centre);
+  spot.target.position.copy(centre);
+  sun.position.copy(centre).addScaledVector(toEye, 100);
+  lamp.position.copy(centre).addScaledVector(toEye, 2.5);
+  spot.position.copy(centre).addScaledVector(toEye, 4);
+  scene.add(sun, sun.target, hemisphere, lamp, spot, spot.target);
+  const gl = renderer.getContext(),
+    debug = gl.getExtension('WEBGL_debug_renderer_info'),
+    adapter = debug ? gl.getParameter(debug.UNMASKED_RENDERER_WEBGL) : 'unavailable';
+  const samples: {
+    label: string;
+    hash: number;
+    width: number;
+    height: number;
+    rgb: number[];
+    energy: number;
+    coverage: number;
+    calls: number;
+    resources: { geometries: number; textures: number; programs: number };
+    glError: number;
+    image: string;
+  }[] = [];
+  const capture = (label: string) => {
+    renderer.render(scene, camera);
+    const width = renderer.domElement.width,
+      height = renderer.domElement.height,
+      pixels = new Uint8Array(width * height * 4);
+    gl.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+    let hash = 2166136261,
+      litPixels = 0;
+    const rgb = [0, 0, 0];
+    for (let i = 0; i < pixels.length; i += 4) {
+      for (let channel = 0; channel < 3; channel++) {
+        rgb[channel] += pixels[i + channel];
+        hash = Math.imul(hash ^ pixels[i + channel], 16777619) >>> 0;
+      }
+      if (pixels[i] + pixels[i + 1] + pixels[i + 2] > 9) litPixels++;
+    }
+    const sample = {
+      label,
+      hash,
+      width,
+      height,
+      rgb,
+      energy: rgb.reduce((sum, value) => sum + value, 0) / (width * height),
+      coverage: litPixels / (width * height),
+      calls: renderer.info.render.calls,
+      resources: { ...renderer.info.memory, programs: renderer.info.programs?.length ?? 0 },
+      glError: gl.getError(),
+      image: renderer.domElement.toDataURL('image/png'),
+    };
+    samples.push(sample);
+  };
+  capture('dark');
+  sun.intensity = 4;
+  capture('front-lit');
+  sun.position.copy(centre).addScaledVector(toEye, -100);
+  capture('back-lit');
+  capture('back-lit-held');
+  sun.intensity = 0;
+  hemisphere.intensity = 1.1;
+  capture('sky-lit');
+  hemisphere.intensity = 0;
+  lamp.intensity = 70;
+  capture('lamp-near');
+  lamp.position.copy(centre).addScaledVector(toEye, 9);
+  capture('lamp-far');
+  lamp.intensity = 0;
+  spot.intensity = 100;
+  capture('spot-blue');
+  spot.target.position.copy(centre).add(new T.Vector3(20, 20, 0));
+  capture('spot-away');
+  spot.intensity = 0;
+  hemisphere.intensity = 1.1;
+  scene.fog.density = 0.22;
+  capture('fog');
+  scene.fog.density = 0;
+  capture('sky-restored');
+  renderer.setPixelRatio(2);
+  renderer.setSize(400, 250);
+  capture('sky-dpr2');
+  renderer.setPixelRatio(1);
+  renderer.setSize(800, 500);
+  capture('sky-resized-back');
+
+  // Exercise the production hook after the primary lighting comparisons.
+  // Translate the intact cloud and camera together into an actual authored
+  // pocket; the simulation snapshot and particle buffers remain unchanged.
+  const atmosphere = new LocalAtmosphere(track),
+    pocket = atmosphere.pockets[0],
+    offset = new T.Vector3(pocket.x, pocket.floor + 0.7, pocket.z).sub(centre),
+    weather = frame.slice(),
+    atmosphereStart = samples.length;
+  roost.points.position.copy(offset);
+  camera.position.add(offset);
+  camera.lookAt(centre.clone().add(offset));
+  scene.fog.density = 0.22;
+  capture('atmosphere-native-fog');
+  atmosphere.install(roost.points);
+  atmosphere.install(roost.points); // Reused-scene installation is idempotent.
+  capture('atmosphere-clear');
+  weather[H.CLOUD] = 1;
+  weather[H.RAIN] = 20;
+  atmosphere.update(weather, true);
+  capture('atmosphere-local-fog');
+  capture('atmosphere-local-held');
+  atmosphere.update(weather, false);
+  capture('atmosphere-restored');
+  const atmosphereSamples = samples.splice(atmosphereStart);
+  const result = {
+    adapter,
+    dust: count,
+    capacity: positions.count,
+    sourceUnchanged: frame.every((value, i) => value === source[i]),
+    samples,
+    atmosphere: { materialCount: atmosphere.materialCount, samples: atmosphereSamples },
+  };
   roost.dispose();
   renderer.dispose();
   renderer.forceContextLoss();

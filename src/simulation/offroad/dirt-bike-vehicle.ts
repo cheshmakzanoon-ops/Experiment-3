@@ -469,6 +469,20 @@ export class DirtBikeVehicle extends BikeVehicle {
     const d = this.dynamics,
       a = this.air,
       spec = this.spec;
+    if (this.playerMotocross) {
+      // Predict from one coherent beginning-of-step pose. Horizontal travel
+      // happens below and vertical travel in vertical(); mixing the new X/Z
+      // with the old Y shifts a near-contact forecast by a physics tick.
+      this.predictClock -= dt;
+      if (this.predictClock <= 0) {
+        this.predictPlayerLanding();
+        this.predictClock = this.landingIn < 0.3 ? 0.05 : 0.1;
+      }
+      // Terrain look-ahead is sampled, but time still passes between those
+      // samples. The pitch and whip aids must not hold an extra 100 ms of
+      // correction authority just before a tyre reaches the landing.
+      this.landingIn = Math.max(0, this.landingIn - dt);
+    }
     this.airTime += dt;
     this.flightSpeed = Math.max(
       0,
@@ -479,10 +493,12 @@ export class DirtBikeVehicle extends BikeVehicle {
     d.z += Math.cos(d.heading) * this.flightSpeed * dt;
     // Assisted pitch control (AI always; the player's Sport rider aid uses the
     // body only): aim the chassis at the predicted landing slope.
-    this.predictClock -= dt;
-    if (this.predictClock <= 0) {
-      this.predictClock = 0.1;
-      this.predictLanding();
+    if (!this.playerMotocross) {
+      this.predictClock -= dt;
+      if (this.predictClock <= 0) {
+        this.predictClock = 0.1;
+        this.predictLanding();
+      }
     }
     // Riders land rear wheel first: aim a little nose-up of the slope.
     const chassis = this.pitch + this.automaticBody * 0.06,
@@ -668,6 +684,82 @@ export class DirtBikeVehicle extends BikeVehicle {
     this.dynamics.fall('highside');
     this.freeSteps = 0;
     this.frontLight = 0;
+  }
+  /** Forecast the first extended tyre to reach terrain, using the same
+   * wheelbase/sag/pitch geometry as vertical(). This is a control forecast,
+   * never a force or a change to the ballistic path. Present pitch momentum
+   * decays with the existing air damping; future rider/pedal inputs remain
+   * unknown and are incorporated on the next sample. Horizontal quadratic
+   * drag is integrated analytically and the contact crossing is refined so
+   * a 40 ms sampling bin cannot become a late whip or body correction. */
+  private predictPlayerLanding() {
+    const d = this.dynamics,
+      spec = this.bikeSpec,
+      track = this.lastTrack!,
+      sh = Math.sin(d.heading),
+      ch = Math.cos(d.heading),
+      wheelHeading = d.heading + this.airYaw,
+      wheelSin = Math.sin(wheelHeading),
+      wheelCos = Math.cos(wheelHeading),
+      HF = spec.cgHeight + this.sag(true),
+      HR = spec.cgHeight + this.sag(false),
+      drag = d.p.drag / d.mass,
+      damping = 0.3 + 0.5 * this.standing;
+    let sampledSlope = 0;
+    const clearance = (t: number) => {
+      const travel =
+          drag > 0 ? Math.log1p(drag * this.flightSpeed * t) / drag : this.flightSpeed * t,
+        x = d.x + sh * travel + ch * this.slide * t,
+        z = d.z + ch * travel - sh * this.slide * t,
+        y = this.cgY + this.vy * t - 0.5 * G * t * t,
+        pitch = clamp(
+          this.pitch + (this.pitchRate * -Math.expm1(-damping * t)) / damping,
+          -1.2,
+          1.2,
+        ),
+        sin = Math.sin(pitch),
+        cos = Math.cos(pitch);
+      let lowest = Infinity;
+      for (let end = 0; end < 2; end++) {
+        const front = end === 0,
+          reach = front ? spec.cgToFront : -spec.cgToRear,
+          freeY = y + reach * sin - (front ? HF : HR) * cos;
+        track.sample(x + wheelSin * reach, z + wheelCos * reach, this.probe, freeY);
+        const gap = freeY - this.probe.height;
+        if (gap < lowest) {
+          lowest = gap;
+          const n = this.probe.normal;
+          sampledSlope = Math.atan2(-(n.x * sh + n.z * ch), n.y);
+        }
+      }
+      return lowest;
+    };
+    const step = 0.04;
+    let previous = clearance(0);
+    for (let t = step; t <= 3; t += step) {
+      const gap = clearance(t);
+      // A rebounding end may begin a few millimetres inside the terrain
+      // while its damper is unloaded. Wait for clearance before accepting
+      // a downward crossing; that initial separation is not a landing.
+      if (gap <= 0 && previous > 0) {
+        let low = t - step,
+          high = t;
+        for (let n = 0; n < 7; n++) {
+          const middle = (low + high) * 0.5;
+          if (clearance(middle) > 0) low = middle;
+          else high = middle;
+        }
+        clearance(high);
+        this.landingTarget = sampledSlope;
+        this.landingIn = high;
+        return;
+      }
+      previous = gap;
+    }
+    // No collision inside the bounded horizon. Retain a terrain-derived
+    // aid target; the legacy predictor also provides the established
+    // fallback when a free tyre began inside its contact skin.
+    this.predictLanding();
   }
   /** Where and at what slope the current flight will land (10 Hz). */
   private predictLanding() {
@@ -865,7 +957,12 @@ export class DirtBikeVehicle extends BikeVehicle {
       }
       return Math.max(0, f);
     };
-    const FF = end(cF, rateF, true),
+    // Start this flight's bottoming window before the first contact force
+    // is evaluated: a hard first compression must survive into its record.
+    if (this.airborne && this.playerMotocross) this.bottomPeak = 0;
+    const incomingVy = this.vy,
+      incomingPitch = this.pitch,
+      FF = end(cF, rateF, true),
       FR = end(cR, rateR, false);
     const contact = FF > 0 || FR > 0;
     // Longitudinal tyre forces act at the ground, below the CG: squat and dive.
@@ -937,8 +1034,11 @@ export class DirtBikeVehicle extends BikeVehicle {
         const slopeAt = Math.atan(
           cF > 0 && cR > 0 ? 0.5 * (slope(0) + slope(2)) : cF > 0 ? slope(0) : slope(2),
         );
-        const chassis = this.pitch + this.automaticBody * 0.06;
-        const normal = this.flightSpeed * Math.sin(slopeAt) - this.vy * Math.cos(slopeAt);
+        const chassis =
+          (this.playerMotocross ? incomingPitch : this.pitch) + this.automaticBody * 0.06;
+        const normal =
+          this.flightSpeed * Math.sin(slopeAt) -
+          (this.playerMotocross ? incomingVy : this.vy) * Math.cos(slopeAt);
         const along = this.flightSpeed * Math.cos(slopeAt) + this.vy * Math.sin(slopeAt);
         d.speed = Math.max(0, along);
         const yawError = this.airYaw;
@@ -968,7 +1068,7 @@ export class DirtBikeVehicle extends BikeVehicle {
           this.rearSpin = d.speed / spec.rearWheelRadius;
           this.frontSpin = d.speed / spec.frontWheelRadius;
         }
-        this.bottomPeak = 0;
+        if (!this.playerMotocross) this.bottomPeak = 0;
         this.pendingLanding = {
           time: this.clock,
           s: this.s,
@@ -980,7 +1080,7 @@ export class DirtBikeVehicle extends BikeVehicle {
           normalSpeed: normal,
           yawError,
           lateralSpeed: this.slide,
-          bottomSpeed: 0,
+          bottomSpeed: this.playerMotocross ? this.bottomPeak : 0,
           outcome: 'clean',
         };
         // Publish the touchdown immediately. Its shared record is refined

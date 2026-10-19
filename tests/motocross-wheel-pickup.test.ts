@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { clamp } from '../src/core/math.ts';
+import { clamp, G } from '../src/core/math.ts';
 import { InputLog, Resimulation } from '../src/core/flashback.ts';
 import { controls, DEFAULT_OPTIONS, DEFAULT_SETUP, type Assist } from '../src/simulation/config.ts';
 import { jumpHoldSpeed } from '../src/simulation/offroad/ai.ts';
@@ -222,25 +222,62 @@ describe('motocross wheel pickup on actual surveyed landings', () => {
   it.each(['sport', 'raw'] as const)(
     '%s preserves all airborne motion and changes ground exit only through bounded contact',
     (assist) => {
-      const run = land(launch(MX_450, assist)),
-        // Same physical definition through the untouched general adapter;
-        // no whip input is used, isolating the MX-only wheel-pickup gate.
-        reference = land(launch({ ...MX_450, id: 'pickup-reference' }, assist));
+      const run = launch(MX_450, assist),
+        bike = run.bike;
+      let stoppedInFlight = 0;
+      while (bike.airborne && bike.airTime < 4) {
+        Object.assign(bike.input, airInputs(bike, 0.4));
+        const x = bike.dynamics.x,
+          z = bike.dynamics.z,
+          speed = bike.dynamics.speed,
+          heading = bike.heading,
+          slide = bike.slide,
+          y = bike.cgY,
+          vy = bike.vy,
+          alreadyFlying = bike.airTime > 0;
+        bike.step(DT, run.track);
+        if (bike.airborne && alreadyFlying) {
+          // Independently check the free centre of mass, including while
+          // the front rotor is stopped. Neither the contact forecast nor
+          // wheel pickup may apply a tyre force before terrain contact.
+          const coast = speed - ((bike.dynamics.p.drag * speed ** 2) / bike.dynamics.mass) * DT;
+          expect(bike.dynamics.speed).toBeCloseTo(coast, 12);
+          expect(bike.dynamics.x).toBeCloseTo(
+            x + (Math.sin(heading) * coast + Math.cos(heading) * slide) * DT,
+            10,
+          );
+          expect(bike.dynamics.z).toBeCloseTo(
+            z + (Math.cos(heading) * coast - Math.sin(heading) * slide) * DT,
+            10,
+          );
+          expect(bike.cgY).toBeCloseTo(y + (vy - G * DT) * DT, 10);
+          stoppedInFlight += Number(bike.frontSpin === 0);
+        }
+      }
+      expect(stoppedInFlight).toBeGreaterThan(20);
+      Object.assign(bike.input, controls());
+      // Both flights now use the same MX contact predictor and inputs.
+      // A fake definition ID would disable the player landing controller
+      // too, changing pitch before pickup can even become active.
+      const reference = land(launch(MX_450, assist));
       expect(run.bike.lastLanding).toEqual(reference.bike.lastLanding);
       expect(run.bike.dynamics.speed).toBe(reference.bike.dynamics.speed);
       expect(run.bike.cgY).toBe(reference.bike.cgY);
       expect(run.bike.dynamics.x).toBe(reference.bike.dynamics.x);
       expect(run.bike.dynamics.z).toBe(reference.bike.dynamics.z);
-      expect(reference.bike.tires[0].omega * reference.bike.tires[0].radius).toBeCloseTo(
-        reference.bike.dynamics.speed,
-        9,
-      );
       expect(run.bike.tires[0].omega).toBe(0);
+      // Ground-only AI handover retains the established rolling-wheel
+      // calibration. Neutral pedals avoid a second driving/braking change.
+      reference.bike.aiControlled(1e6);
       for (let i = 0; i < 0.3 / DT; i++) {
         run.bike.step(DT, run.track);
         reference.bike.step(DT, reference.track);
       }
       const speedChange = run.bike.dynamics.speed - reference.bike.dynamics.speed;
+      expect(reference.bike.tires[0].omega * reference.bike.tires[0].radius).toBeCloseTo(
+        reference.bike.dynamics.speed,
+        9,
+      );
       // The overspeed rear can donate its stored angular momentum while
       // the locked front consumes some. Either way the change is small and
       // occurs on the ground; no launch or flight path was manipulated.

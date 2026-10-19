@@ -29,6 +29,10 @@ test('real motocross player entry, eight-rider gate, riding, cameras, pause and 
   };
   await page.goto('/');
   await expect(page.locator('#menu')).toBeVisible({ timeout: MENU_STARTUP_TIMEOUT_MS });
+  const entryPresentation = (await diag()).renderer!;
+  expect(entryPresentation.presentationPurpose).toBe('showroom');
+  expect(entryPresentation.construction.tasks).toBe(0);
+  expect(entryPresentation.gpuFrameQueue.completed).toBeGreaterThan(0);
   // Software GPUs can spend the whole riding budget on a production frame.
   // An explicit opt-in exercises the same visible settings flow while the
   // separate bike/world fixtures retain their full rendering checks.
@@ -60,8 +64,8 @@ test('real motocross player entry, eight-rider gate, riding, cameras, pause and 
       })
       .toBe(machine);
     const before = (await diag()).presentation!.frames;
-    // The initial Aurel frame may still own the software GPU when the menu
-    // becomes interactive. Require the selected-machine redraw to complete,
+    // The preceding showroom frame may still own the software GPU after a
+    // selection. Require the selected-machine redraw to complete,
     // using the same bounded cold-start budget as the visible menu itself.
     await expect
       .poll(async () => (await diag()).presentation?.frames ?? 0, {
@@ -78,6 +82,9 @@ test('real motocross player entry, eight-rider gate, riding, cameras, pause and 
     await expect(page.locator('#raceBriefing')).toBeVisible({ timeout: 300000 });
     console.info(`[MX journey] ${circuit} is prepared at the held eight-rider gate`);
     const initialized = await diag();
+    expect(initialized.renderer?.presentationPurpose).toBe('circuit');
+    expect(initialized.renderer?.construction.tasks).toBeGreaterThan(0);
+    expect(initialized.renderer?.preparation?.status).toBe('complete');
     expect(initialized.options.circuit).toBe(circuit);
     expect(initialized.frame?.[H.CARS]).toBe(8);
     expect(initialized.frame?.[H.TICK]).toBe(0);

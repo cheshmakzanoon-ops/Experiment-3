@@ -20,8 +20,9 @@ import {
  * v7: retain the motocross hard stop through deep-contact recovery;
  * v8: coupled unilateral axle solve and wheel-plane contact/link-force geometry;
  * v9: independently sampled player motocross front/rear contact grip;
+ * v10: player motocross first-tyre landing prediction and incoming-impact grading;
  * prior records remain in their original physics category. */
-export const SIMULATION_VERSION = 9;
+export const SIMULATION_VERSION = 10;
 /** Fixed physics tick used by the worker and headless simulation. */
 export const SIMULATION_TICK_HZ = 120;
 

@@ -23,8 +23,16 @@ test('reference tools: actual livery pixels persist through save, quality change
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
   await ready(page);
+  const showroom = (await diag(page)).renderer!;
+  expect(showroom.presentationPurpose).toBe('showroom');
+  expect(showroom.construction.tasks).toBe(0);
   await page.getByRole('button', { name: 'PHOTO / LIVERY', exact: true }).click();
   await expect(page.locator('#photoStudio')).toBeVisible();
+  await expect(page.locator('#loading')).toBeHidden();
+  await expect(page.locator('#loading')).toHaveAttribute('aria-busy', 'false');
+  const photoVenue = (await diag(page)).renderer!;
+  expect(photoVenue.presentationPurpose).toBe('circuit');
+  expect(photoVenue.construction.tasks).toBeGreaterThan(100);
   await input(page, '#liveryPrimary', '#2266bb');
   await input(page, '#liveryAccent', '#f5d54a');
   await page.locator('#liveryNumber').fill('42');
@@ -80,6 +88,8 @@ test('reference tools: actual livery pixels persist through save, quality change
   expect(pixels.height).toBe(edited.renderer!.renderHeight);
   await page.keyboard.press('Escape');
   await expect(page.locator('#menu')).toBeVisible();
+  await expect(page.locator('#loading')).toBeHidden();
+  await expect(page.locator('#loading')).toHaveAttribute('aria-busy', 'false');
   await page.getByRole('button', { name: 'GARAGE & SETTINGS', exact: true }).click();
   await page.locator('[name="quality"]').selectOption('low');
   await page.getByRole('button', { name: 'APPLY & SAVE' }).click();

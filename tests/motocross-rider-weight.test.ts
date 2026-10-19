@@ -326,7 +326,16 @@ describe('independent motocross rider weight', () => {
       }
       const wasFlying = bike.airborne;
       sim.step(1 / 120);
-      if (manual && sim.tick - manualAt === 24) {
+      // The terrain-derived pitch aid may initially counter part of the
+      // body pose. Capture the active stroke once that transient clears,
+      // while the player still holds it, instead of tying it to one frame.
+      if (
+        manual &&
+        !rewindTick &&
+        sim.tick - manualAt >= 24 &&
+        bike.input.riderLean === 1 &&
+        bike.riderBody > 0.1
+      ) {
         rewindTick = sim.tick;
         savedFrame = sim.makeFrame();
         expect(bike.riderBody).toBeGreaterThan(0.1);

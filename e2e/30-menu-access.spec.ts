@@ -41,8 +41,9 @@ test('27H.6 menu access: real interface keeps all actions reachable with mouse a
   ]) {
     await page.setViewportSize({ width, height });
     await page.evaluate(() => {
-      (window as unknown as { MenuAccess: { mountMenuAccess: typeof mountMenuAccess } })
-        .MenuAccess.mountMenuAccess();
+      (
+        window as unknown as { MenuAccess: { mountMenuAccess: typeof mountMenuAccess } }
+      ).MenuAccess.mountMenuAccess();
     });
     const body = page.locator('.menu-body');
     const bounds = await body.boundingBox();
@@ -122,7 +123,10 @@ test('27H.6 menu access: real interface keeps all actions reachable with mouse a
   }
   expect(errors).toEqual([]);
   await info.attach('menu-access-components.json', {
-    body: JSON.stringify({ boundary: 'DOM interface only; no race or hardware claim', measurements }),
+    body: JSON.stringify({
+      boundary: 'DOM interface only; no race or hardware claim',
+      measurements,
+    }),
     contentType: 'application/json',
   });
 });
@@ -136,6 +140,10 @@ test('27H.6 menu access: 640x400 settings persist and the normal paused grid sta
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto('/');
   await expect(page.locator('#menu')).toBeVisible({ timeout: MENU_STARTUP_TIMEOUT_MS });
+  const showroom = await page.evaluate(() => window.apexDiagnostics().renderer);
+  expect(showroom?.presentationPurpose).toBe('showroom');
+  expect(showroom?.construction.tasks).toBe(0);
+  expect(showroom?.gpuFrameQueue.completed).toBeGreaterThan(0);
   const settings = page.getByRole('button', { name: 'GARAGE & SETTINGS', exact: true });
   await settings.click();
   await page.locator('[name=quality]').selectOption('low');
@@ -150,6 +158,11 @@ test('27H.6 menu access: 640x400 settings persist and the normal paused grid sta
   await page.selectOption('#opponents', '3');
   await page.getByRole('button', { name: 'PREPARE GRID START PAUSED', exact: true }).click();
   await expect.poll(() => page.evaluate(() => window.apexDiagnostics().state)).toBe('paused');
+  const circuit = await page.evaluate(() => window.apexDiagnostics());
+  expect(circuit.options.circuit).toBe('aurel');
+  expect(circuit.renderer?.presentationPurpose).toBe('circuit');
+  expect(circuit.renderer?.construction.tasks).toBeGreaterThan(100);
+  expect(circuit.renderer?.preparation?.status).toBe('complete');
   await expect
     .poll(() => page.evaluate(() => window.apexDiagnostics().workerPause))
     .toMatchObject({ pending: false, paused: true });

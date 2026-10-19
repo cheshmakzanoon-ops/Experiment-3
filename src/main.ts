@@ -499,7 +499,7 @@ export class GameApp {
     this.menuPresentationActive = false;
   }
   /** Build (or rebuild for another circuit) the complete presentation. */
-  private async buildRenderer(canvas: HTMLCanvasElement) {
+  private async buildRenderer(canvas: HTMLCanvasElement, showroomOnly = false) {
     this.resetMenuPresentation();
     this.canvas = canvas;
     this.renderer = await RacingRenderer.create(
@@ -508,6 +508,7 @@ export class GameApp {
       (progress) => this.ui.loading(`${Math.floor(progress.fraction * 100)}% · ${progress.label}…`),
       () => this.disposed || this.errorStopped,
       { quality: this.settings.quality, graphics: this.settings.graphics },
+      showroomOnly,
     );
     if (!this.renderer || this.disposed || this.errorStopped) return false;
     this.renderer.setQuality(this.settings.quality, this.settings.graphics);
@@ -523,7 +524,8 @@ export class GameApp {
   /** Circuits own their venue geometry, so a change rebuilds the presentation
    * once, while loading; the simulation worker builds its own matching Track. */
   private async switchCircuit(id: CircuitId) {
-    if (this.track.circuit.id === id || !this.canvas) return true;
+    if (!this.canvas) return true;
+    if (this.track.circuit.id === id && this.renderer && !this.renderer.showroomOnly) return true;
     this.ui.loading(`Building ${circuitDefinition(id).name}…`);
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
     this.renderer?.dispose();
@@ -582,9 +584,9 @@ export class GameApp {
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) this.settings.shake = 0;
     this.input.settings = this.settings;
     this.ui.applyBindings(this.settings.bindings);
-    this.ui.loading('Building original bodywork, materials and Aurel circuit…');
+    this.ui.loading('Preparing your vehicle showroom…');
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
-    if (!(await this.buildRenderer(canvas))) return;
+    if (!(await this.buildRenderer(canvas, true))) return;
     this.audio.volume = this.settings.volume;
     document.documentElement.style.setProperty('--ui-scale', String(this.settings.uiScale));
     document.documentElement.dataset.colorblind = String(this.settings.colorblind);
@@ -1525,10 +1527,28 @@ export class GameApp {
       this.ui.toast(`Team unchanged: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
-  private openPhoto() {
+  private async openPhoto() {
     if (!this.renderer || !this.current || this.state === 'loading' || this.state === 'photo')
       return;
     this.photoReturnHub = !!document.querySelector('.team-hub');
+    if (this.renderer.showroomOnly) {
+      // Photo mode exposes circuit viewpoints and reference inspections, so
+      // it owns the same complete venue as a race before those controls open.
+      const lighting = this.renderer.lighting;
+      this.state = 'loading';
+      this.ui.closeModal();
+      this.ui.showMode('loading');
+      if (!(await this.switchCircuit(this.track.circuit.id))) return;
+      this.renderer.lighting = lighting;
+      this.state = 'menu';
+      const preview = this.selectedMachinePreview();
+      this.menuMachineFrame = preview;
+      this.current = this.previous = preview;
+      this.liveFrames.observe(preview, performance.now());
+      // The circuit load is complete. Retire its overlay and busy state
+      // before Photo takes ownership; changing the mode alone leaves it up.
+      this.ui.ready();
+    }
     if (this.state === 'driving') this.pause();
     this.suspendPlayback();
     this.photoReturn = this.state;
@@ -1855,7 +1875,7 @@ export class GameApp {
       ),
     );
   }
-  private inspectReference(id: number) {
+  private async inspectReference(id: number) {
     const entry = REFERENCES.find((item) => item.id === id);
     if (!entry) return;
     const route = referenceRoute(entry);
@@ -1874,7 +1894,7 @@ export class GameApp {
         `<section class="reference-event-config"><span class="eyebrow">REFERENCE ${id} / OPEN REQUIREMENT</span><h2>${escapeHtml(entry.title)}</h2><p>${escapeHtml(route.instruction)}</p><p>${escapeHtml(entry.gap)}</p><button data-action="references">RETURN TO ALL 100 FINDINGS</button></section>`,
       );
     } else if (route.destination === 'photo') {
-      this.openPhoto();
+      await this.openPhoto();
       if (this.state === 'photo') {
         this.photoStudio.compose(route.photo ?? {});
         this.photoStudio.status(
@@ -2037,7 +2057,7 @@ export class GameApp {
       return;
     }
     if (name.startsWith('reference:')) {
-      this.inspectReference(Number(name.slice(10)));
+      void this.inspectReference(Number(name.slice(10))).catch((error) => this.fail(error));
       return;
     }
     if (name.startsWith('guide:')) {
@@ -2164,18 +2184,21 @@ export class GameApp {
         });
         break;
       case 'workshop':
-        this.openPhoto();
-        if (!this.photoStudio.element.hidden)
-          this.photoStudio.compose({
-            backdrop: 'headquarters',
-            azimuth: 28,
-            elevation: 17,
-            distance: 17,
-            focalLength: 30,
-          });
+        void this.openPhoto()
+          .then(() => {
+            if (!this.photoStudio.element.hidden)
+              this.photoStudio.compose({
+                backdrop: 'headquarters',
+                azimuth: 28,
+                elevation: 17,
+                distance: 17,
+                focalLength: 30,
+              });
+          })
+          .catch((error) => this.fail(error));
         break;
       case 'photo':
-        this.openPhoto();
+        void this.openPhoto().catch((error) => this.fail(error));
         break;
       case 'pause':
         if (this.state === 'driving') this.pause();

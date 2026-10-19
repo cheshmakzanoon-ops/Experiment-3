@@ -398,6 +398,9 @@ export class RacingRenderer {
     readonly canvas: HTMLCanvasElement,
     track: Track,
     deferred = false,
+    /** The menu owns a full-detail vehicle and its studio. Circuit geometry
+     * stays deferred until a race or circuit inspection is requested. */
+    readonly showroomOnly = false,
   ) {
     // Before any material program compiles (idempotent, shared chunk).
     installSpecularAntialiasing();
@@ -582,8 +585,9 @@ export class RacingRenderer {
     progress: (value: BuildProgress) => void,
     cancelled: () => boolean,
     initial?: { quality: QualityPreset; graphics?: GraphicsOptions },
+    showroomOnly = false,
   ): Promise<RacingRenderer | null> {
-    const renderer = new RacingRenderer(canvas, track, true);
+    const renderer = new RacingRenderer(canvas, track, true, showroomOnly);
     // Night venues open floodlit (a live sky, if enabled, still overrides).
     if (track.circuit.catalogue?.night) renderer.lighting = 'night';
     // The starting settings decide the far shadow map baked while loading;
@@ -600,7 +604,7 @@ export class RacingRenderer {
       await renderer.photoSky.ready(0, renderer.lighting, 15000);
       // Photographed track, verge and terrain surfaces (Medium and above).
       progress({ completed: 0, total: 1, fraction: 0, label: 'Loading photographed ground' });
-      await scannedGround.ready(20000);
+      if (!showroomOnly) await scannedGround.ready(20000);
       progress({ completed: 0, total: 1, fraction: 0, label: 'Loading Blender-authored bodywork' });
       renderer.heroShells = await loadHeroShells(cancelled);
       renderer.rivalLevels = await loadRivalLevels(cancelled);
@@ -612,6 +616,20 @@ export class RacingRenderer {
         label: 'Loading your RB19 car and R06 driver/cockpit',
       });
       renderer.suppliedPlayerAsset = await loadSuppliedPlayer(cancelled);
+      if (showroomOnly) {
+        if (cancelled()) {
+          renderer.dispose();
+          return null;
+        }
+        // Keep the real subject, selected detail/texture budget and GPU
+        // completion gate. A choice of discipline must not require building
+        // an unrelated complete Aurel circuit, its pit kits and far shadow.
+        progress({ completed: 0, total: 1, fraction: 0, label: 'Preparing vehicle showroom' });
+        renderer.setCars(1);
+        prewarmSky(renderer.lighting);
+        renderer.environment.update(renderer.renderer, renderer.scene, 0, renderer.lighting);
+        return renderer;
+      }
       progress({
         completed: 0,
         total: 1,
@@ -862,6 +880,7 @@ export class RacingRenderer {
       new Promise((resolve) => requestAnimationFrame(() => resolve())),
   ) {
     return this.preparation.run(progress, async (progress) => {
+      if (this.showroomOnly) throw new Error('Build the selected circuit before preparing a race');
       const total = frame[H.CARS];
       if (!Number.isInteger(total) || total < 1 || total > 12)
         throw new Error('Invalid warmup grid');
@@ -1205,7 +1224,8 @@ export class RacingRenderer {
     // Per-vehicle cabin (cars loose ends 1): a catalogue machine's own eye,
     // onboard mount and lenses; the Formula car keeps its supplied cockpit.
     const cabin = (this.cabin = bikeFollow ? null : cabinFor(followedDefinition));
-    const studio = !!this.photo && this.photo.backdrop !== 'circuit';
+    const studio =
+      (menu && this.showroomOnly) || (!!this.photo && this.photo.backdrop !== 'circuit');
     const illumination: LightingMode = studio ? 'day' : this.lighting;
     const daylight = circuitLightState(presented[H.CLOUD], presented[H.RAIN], illumination);
     // Distant haze takes the horizon colours of the photographed sky.
@@ -2193,6 +2213,7 @@ export class RacingRenderer {
     let slowTotal = 0;
     for (let i = sorted.length - slowCount; i < sorted.length; i++) slowTotal += sorted[i];
     return {
+      presentationPurpose: this.showroomOnly ? 'showroom' : 'circuit',
       authoredBodywork: this.heroShells?.diagnostics() ?? null,
       rivalBodywork: this.rivalLevels?.map((asset) => asset.diagnostics()) ?? null,
       rivalCars: this.cars.map((car) => ({

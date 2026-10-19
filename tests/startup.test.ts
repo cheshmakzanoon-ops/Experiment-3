@@ -160,6 +160,25 @@ it('stops cancelled construction before touching any further GPU resources', asy
   expect(target.draw).not.toHaveBeenCalled();
   expect(target.renderer.compileAsync).not.toHaveBeenCalled();
 });
+it('requires the complete selected circuit before a showroom can prepare driving', async () => {
+  const { target, typed, sample } = fixture('mx450');
+  Object.assign(target, { showroomOnly: true });
+  const before = sample.slice();
+  await expect(
+    RacingRenderer.prototype.prepare.call(
+      typed,
+      sample,
+      vi.fn(),
+      () => false,
+      async () => {},
+    ),
+  ).rejects.toThrow('Build the selected circuit before preparing a race');
+  expect(target.cars).toHaveLength(0);
+  expect(target.draw).not.toHaveBeenCalled();
+  expect(target.renderer.compileAsync).not.toHaveBeenCalled();
+  expect(sample).toEqual(before);
+  expect(target.preparation.snapshot()?.status).toBe('failed');
+});
 it('a shader failure rejects initialization instead of starting unprepared gameplay', async () => {
   const { target, typed, sample } = fixture();
   target.renderer.compileAsync.mockRejectedValueOnce(new Error('Shader failure'));

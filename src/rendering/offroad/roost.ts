@@ -16,7 +16,7 @@ import {
 import { vehicleAt } from '../../simulation/vehicles.ts';
 import { TrackTerrainSurface } from '../../simulation/offroad/course-terrain.ts';
 import { Track, trackPoint } from '../../simulation/track.ts';
-import { chainShaderHook, injectAfter, injectDeclarations } from '../studio/shader-hooks.ts';
+import { MxDustMaterial } from './mx-dust-material.ts';
 
 /** Loose ground a spinning tyre throws (WP41). */
 const LOOSE = new Set<number>([
@@ -146,68 +146,20 @@ export class Roost {
         'mxParticleShape',
         new T.BufferAttribute(this.shapes, 2).setUsage(T.DynamicDrawUsage),
       );
-    const material = new T.PointsMaterial({
-      size: this.motocross ? 1 : 0.11,
-      sizeAttenuation: true,
-      vertexColors: true,
-      map: this.motocross ? null : softDisc(),
-      transparent: true,
-      alphaTest: this.motocross ? 0.008 : 0.04,
-      depthWrite: false,
-    });
-    if (this.motocross)
-      chainShaderHook(material, 'mx-roost-particle-v2', (shader) => {
-        injectDeclarations(
-          shader,
-          'common',
-          'attribute float mxParticleSize;\nattribute float mxParticleAlpha;\nattribute vec2 mxParticleShape;\nvarying float vMxParticleAlpha;\nvarying vec2 vMxParticleShape;',
-          'vertex',
-        );
-        injectAfter(
-          shader,
-          'begin_vertex',
-          'vMxParticleAlpha = mxParticleAlpha;\nvMxParticleShape = mxParticleShape;',
-          'vertex',
-        );
-        injectAfter(shader, 'gl_PointSize = size;', 'gl_PointSize *= mxParticleSize;', 'vertex');
-        injectDeclarations(
-          shader,
-          'common',
-          'varying float vMxParticleAlpha;\nvarying vec2 vMxParticleShape;',
-          'fragment',
-        );
-        injectAfter(
-          shader,
-          'map_particle_fragment',
-          /* glsl */ `{
-            // 094–096: hard, irregular soil fragments sit within soft dust.
-            // A shared circular sprite made every fragment look like a puff.
-            vec2 p = gl_PointCoord * 2.0 - 1.0;
-            float seed = vMxParticleShape.y;
-            float angle = seed * 6.2831853;
-            vec2 q = mat2( cos( angle ), -sin( angle ), sin( angle ), cos( angle ) ) * p;
-            q.x *= 0.84 + seed * 0.25;
-            float radius = dot( q, q );
-            float boundary = 0.70 + 0.12 * sin( q.x * 8.0 + seed * 13.0 )
-              * sin( q.y * 6.0 - seed * 9.0 );
-            float edge = max( fwidth( radius ), 0.025 );
-            float clod = 1.0 - smoothstep( boundary - edge, boundary + edge, radius );
-            float envelope = 1.0 - smoothstep( 0.05, 0.95, radius );
-            float billow = 0.68 + 0.18 * sin( q.x * 6.0 + seed * 19.0 )
-              + 0.14 * sin( q.y * 8.0 - seed * 7.0 );
-            float cloud = envelope * envelope * clamp( billow, 0.28, 1.0 );
-            diffuseColor.a *= mix( clod, cloud, vMxParticleShape.x );
-            // Opaque earth is now lit geometry; only dust uses this sprite.
-            diffuseColor.a *= vMxParticleShape.x;
-            // Soft form shading on solids; no bright additive dust or halo.
-            diffuseColor.rgb *= mix( 0.70 + 0.30 * clamp( 0.7 - q.y * 0.45
-              + q.x * 0.15, 0.0, 1.0 ), 1.0, vMxParticleShape.x );
-          }`,
-          'fragment',
-        );
-        injectAfter(shader, 'color_fragment', 'diffuseColor.a *= vMxParticleAlpha;', 'fragment');
-      });
+    const material = this.motocross
+      ? new MxDustMaterial()
+      : new T.PointsMaterial({
+          size: 0.11,
+          sizeAttenuation: true,
+          vertexColors: true,
+          map: softDisc(),
+          transparent: true,
+          alphaTest: 0.04,
+          depthWrite: false,
+        });
     this.points = new T.Points(g, material);
+    if (material instanceof MxDustMaterial)
+      this.points.onBeforeRender = (renderer) => material.updateViewport(renderer);
     this.points.name = 'Roost (clods and dust)';
     this.points.frustumCulled = false;
     this.clods = this.motocross
@@ -647,8 +599,8 @@ export class Roost {
   }
   dispose() {
     this.points.geometry.dispose();
-    const m = this.points.material as T.PointsMaterial;
-    m.map?.dispose();
+    const m = this.points.material as T.Material;
+    if (m instanceof T.PointsMaterial) m.map?.dispose();
     m.dispose();
     if (this.clods) {
       this.clods.geometry.dispose();
