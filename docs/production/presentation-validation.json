@@ -1,0 +1,219 @@
+{
+  "schemaVersion": 1,
+  "status": "passed-focused-reconstruction-regressions-awaiting-upstream-gp-integration",
+  "scope": "Presentation reconstruction before incoming MotoGP 9e5ff53 merge; focused development evidence, not a final integrated repository/build/browser gate.",
+  "reconstructionBaseCommit": "2dc5a0ae6d7076e633ac87cf0a4ae4f067fa97d4",
+  "incomingGPCommit": "9e5ff534ecf4d8391eaa7075a284b141544de7ee",
+  "publishedRotorCommit": "d09921545ddcebe2b34ed4a85dab36deeafab969",
+  "runtime": {
+    "node": "24.19.0",
+    "vitest": "3.2.4"
+  },
+  "versions": {
+    "simulation": 4,
+    "snapshotProtocol": 13,
+    "networkProtocol": 2
+  },
+  "assembledAtUTC": "2026-10-19T16:29:54.039938+00:00",
+  "evidenceProvenance": "Run excerpts are transcribed from retained exec_command/write_stdin tool output for these fresh reconstruction runs. Leading/trailing blank lines are normalized. capturedOutputSHA256 hashes the included UTF-8 excerpt, not an independently archived complete terminal log. No pre-reset output is included. Vitest reported start times are retained without inferring a date or timezone.",
+  "fileIdentityScope": "SHA-256 of the exact raw bytes of the 13 frozen presentation package files, captured after development runs. This is not a full-source digest, build fingerprint, or an assertion that every run executed this final file set unchanged.",
+  "packageFiles": [
+    {
+      "path": "src/rendering/snapshot-interpolation.ts",
+      "bytes": 6599,
+      "sha256": "303143e138cd234858dbc3dd74450e86faef156f91e35dfbacee6fe9bac5afb5"
+    },
+    {
+      "path": "src/rendering/frame-state.ts",
+      "bytes": 4411,
+      "sha256": "0f71c8c99808c942b1f14142247a3b7c78b015ca6b9d7062151aa9f437d0d1e6"
+    },
+    {
+      "path": "src/rendering/wheel-pose.ts",
+      "bytes": 3187,
+      "sha256": "fe8f156b09006d70de516d1695866dcdf713aa9d9f2b11dfd76448fac3273ef3"
+    },
+    {
+      "path": "src/rendering/car.ts",
+      "bytes": 34793,
+      "sha256": "7c48e59e6d1f794baa718081bd931a063f6c1c13c54b6ea442d3a4ba9458bc92"
+    },
+    {
+      "path": "src/rendering/supplied-player.ts",
+      "bytes": 24541,
+      "sha256": "6a3b60187226ef5137be448cc0ed9120e2dd6ae1eb112a3a4d92f1c0ecda0ba5"
+    },
+    {
+      "path": "src/rendering/bike.ts",
+      "bytes": 76826,
+      "sha256": "ac149d1d937ff637898e2a98081dcf66a856275255d3bdca398447e36bc9ba85"
+    },
+    {
+      "path": "src/rendering/festival-riders.ts",
+      "bytes": 2164,
+      "sha256": "b5b4d6142f46f334cb425ee09f9c7cf7f4f117aa3f529fc08980d70eba439549"
+    },
+    {
+      "path": "src/rendering/vehicle-bodies/index.ts",
+      "bytes": 19532,
+      "sha256": "026b4d824dc8150596fd365e9f1186ba381c92c9a1f9270ad570e31494e5ae0f"
+    },
+    {
+      "path": "src/rendering/renderer.ts",
+      "bytes": 108622,
+      "sha256": "4bb5c82b21016e2f2641f0be6ae405246df2e2f2b3c77d24d77a7dfc22a2865a"
+    },
+    {
+      "path": "tests/snapshot-interpolation.test.ts",
+      "bytes": 9126,
+      "sha256": "05262db95271c2c949a97a06034610b15974c731dbd0e7481e45e67574c77ee5"
+    },
+    {
+      "path": "tests/wheel-pose.test.ts",
+      "bytes": 3972,
+      "sha256": "308e84ecb827a7d3b7718f892f64bdaa2b63e8153bb4eb54929a5c7e18974f09"
+    },
+    {
+      "path": "tests/bike-animation.test.ts",
+      "bytes": 8748,
+      "sha256": "0c7699cc49178dbb89fb4373633d5bbda954f39560ca4bc831d59305d6db9321"
+    },
+    {
+      "path": "tests/festival-car-switch.test.ts",
+      "bytes": 11772,
+      "sha256": "30272795e7095c19e74cace07c418179d751775c76791d2ff2fda7097f2541b4"
+    }
+  ],
+  "distinctPassedCases": {
+    "total": 66,
+    "suites": {
+      "tests/presentation-time.test.ts": 23,
+      "tests/wheel-pose.test.ts": 14,
+      "tests/snapshot-interpolation.test.ts": 20,
+      "tests/bike-animation.test.ts": 5,
+      "tests/festival-car-switch.test.ts": 4
+    },
+    "aggregationNote": "Distinct passing cases across overlapping development runs; do not sum run pass counts as independent tests or present these as one combined gate."
+  },
+  "runs": [
+    {
+      "id": "existing-presentation-suites",
+      "command": "./node_modules/.bin/vitest run tests/wheel-pose.test.ts tests/presentation-time.test.ts tests/festival-car-switch.test.ts --maxWorkers=2",
+      "exitCode": 0,
+      "files": [
+        "tests/wheel-pose.test.ts",
+        "tests/presentation-time.test.ts",
+        "tests/festival-car-switch.test.ts"
+      ],
+      "passed": 35,
+      "failed": 0,
+      "skipped": 0,
+      "vitestDurationSeconds": 91.98,
+      "scope": "Early reconstructed presentation development state. This run preceded the added analytic/model/action tests and final body-visibility correction. The wheel and festival cases overlap subsequent runs.",
+      "capturedOutput": " RUN  v3.2.4 /workspace/scratch/d3afbe35c2f7/Experiment-3\n\n ✓ tests/presentation-time.test.ts (23 tests) 3204ms\n   ✓ bounds a 50-second live GPU stall without extinguishing measured rain and spray  1296ms\n ✓ tests/wheel-pose.test.ts (9 tests) 133ms\n ✓ tests/festival-car-switch.test.ts (3 tests) 27198ms\n   ✓ festival garage presentation > poses a road body from the current holder after using and reusing a Formula car  3287ms\n   ✓ festival garage presentation > selects rival Formula LODs from camera distance and the selected quality  1392ms\n   ✓ festival garage presentation > releases every procedural Formula resource once and preserves shared atlases and borrowed feeds  22400ms\n\n Test Files  3 passed (3)\n      Tests  35 passed (35)\n   Start at  23:31:51\n   Duration  91.98s (transform 39.44s, setup 0ms, collect 69.46s, tests 30.54s, environment 2ms, prepare 1.77s)\n",
+      "capturedOutputSHA256": "6efbf153f7faac969d4c1d74f0fe02c5776f9b37bf654697605f521bc4701c1c"
+    },
+    {
+      "id": "analytic-snapshot-and-wheel",
+      "command": "./node_modules/.bin/vitest run tests/snapshot-interpolation.test.ts tests/wheel-pose.test.ts --maxWorkers=2",
+      "exitCode": 0,
+      "files": [
+        "tests/snapshot-interpolation.test.ts",
+        "tests/wheel-pose.test.ts"
+      ],
+      "passed": 34,
+      "failed": 0,
+      "skipped": 0,
+      "vitestDurationSeconds": 17.3,
+      "scope": "Final reconstructed shared sampler and expanded wheel suite; both remain unchanged in the frozen presentation package. Nine wheel cases also ran in existing-presentation-suites.",
+      "capturedOutput": " RUN  v3.2.4 /workspace/scratch/d3afbe35c2f7/Experiment-3\n\n ✓ tests/wheel-pose.test.ts (14 tests) 283ms\n ✓ tests/snapshot-interpolation.test.ts (20 tests) 4468ms\n   ✓ motorcycle and off-road presentation channels > reuses a full 32-entrant buffer and is deterministic under pause and reordered replay queries  3093ms\n\n Test Files  2 passed (2)\n      Tests  34 passed (34)\n   Start at  23:36:15\n   Duration  17.30s (transform 7.91s, setup 0ms, collect 13.55s, tests 4.75s, environment 2ms, prepare 4.45s)\n",
+      "capturedOutputSHA256": "016bb39076ed7aa179ef1d2bf7b00767eac6fd7038c503e7c866fa0b24c2e8bb"
+    },
+    {
+      "id": "production-bike-animation",
+      "command": "./node_modules/.bin/vitest run tests/bike-animation.test.ts --maxWorkers=1",
+      "exitCode": 0,
+      "files": [
+        "tests/bike-animation.test.ts"
+      ],
+      "passed": 5,
+      "failed": 0,
+      "skipped": 0,
+      "vitestDurationSeconds": 72.04,
+      "scope": "Final reconstructed GP/MX and festival rider code before the new upstream GP grip-axis integration. Real geometry/transform tests with a no-op canvas; not rendered-image evidence.",
+      "capturedOutput": " RUN  v3.2.4 /workspace/scratch/d3afbe35c2f7/Experiment-3\n\n ✓ tests/bike-animation.test.ts (5 tests) 12753ms\n   ✓ poses gpr1 wheels, controls and rider weight from the same intermediate snapshot  2681ms\n   ✓ poses mx450 wheels, controls and rider weight from the same intermediate snapshot  2679ms\n   ✓ holds the crash boundary, samples separated motion, hides old rider LODs and reattaches on reset  2070ms\n   ✓ selects the recorded bike identity until the exact car-swap boundary  2201ms\n   ✓ keeps festival motorcycle roots exactly aligned with the presented camera path  3118ms\n\n Test Files  1 passed (1)\n      Tests  5 passed (5)\n   Start at  23:40:06\n   Duration  72.04s (transform 31.51s, setup 0ms, collect 55.20s, tests 12.75s, environment 0ms, prepare 2.00s)\n",
+      "capturedOutputSHA256": "e43714b14a687402774ba8a8239d73e268ed28a5ef82547bd79d8b2d667937af"
+    },
+    {
+      "id": "formula-boundary-fixture-diagnostic",
+      "command": "./node_modules/.bin/vitest run tests/festival-car-switch.test.ts -t 'holds Formula actions' --maxWorkers=1",
+      "exitCode": 1,
+      "files": [
+        "tests/festival-car-switch.test.ts"
+      ],
+      "passed": 0,
+      "failed": 1,
+      "skipped": 3,
+      "vitestDurationSeconds": 45.99,
+      "scope": "Diagnostic excerpt. The new test expected withdrawal at PIT_CLOCK=1.3 s. Existing pitWheelOffset starts withdrawing at 1.35 s; the test fixture was corrected to 1.8 s. Production code and assertion were unchanged.",
+      "capturedOutput": " FAIL  tests/festival-car-switch.test.ts > festival garage presentation > holds Formula actions and body identity until their recorded sample boundary\nAssertionError: expected 0 to be greater than 0\n ❯ tests/festival-car-switch.test.ts:126:58\n    124|       expect(driver.mock.calls.at(-1)!.slice(1, 3)).toEqual([3, 2]);\n    125|       expect(formula.frontWing.visible).toBe(false);\n    126|       expect(Math.abs(formula.wheelSpins[0].position.x)).toBeGreaterTh…\n       |                                                          ^\n    127|\n    128|       const road = snapshot('rh3', 10.2, [5, 1, 2], 0.5);\n\n Test Files  1 failed (1)\n      Tests  1 failed | 3 skipped (4)\n   Start at  23:42:07\n   Duration  45.99s (transform 17.98s, setup 0ms, collect 35.96s, tests 5.62s, environment 0ms, prepare 744ms)\n",
+      "capturedOutputSHA256": "cf6698c379df0ad8fd03a4971e122ff5b7e2a32da571e43c8dea04b0751ecf33"
+    },
+    {
+      "id": "formula-boundary-final",
+      "command": "./node_modules/.bin/vitest run tests/festival-car-switch.test.ts -t 'holds Formula actions' --maxWorkers=1",
+      "exitCode": 0,
+      "files": [
+        "tests/festival-car-switch.test.ts"
+      ],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 3,
+      "vitestDurationSeconds": 70.18,
+      "scope": "Corrected final fixture and frozen Formula/supplied/catalogue presentation state. The other three festival tests passed in existing-presentation-suites; they were deliberately skipped by this targeted name filter.",
+      "capturedOutput": " RUN  v3.2.4 /workspace/scratch/d3afbe35c2f7/Experiment-3\n\n ✓ tests/festival-car-switch.test.ts (4 tests | 3 skipped) 4027ms\n   ✓ festival garage presentation > holds Formula actions and body identity until their recorded sample boundary  4024ms\n\n Test Files  1 passed (1)\n      Tests  1 passed | 3 skipped (4)\n   Start at  23:45:20\n   Duration  70.18s (transform 29.39s, setup 0ms, collect 61.76s, tests 4.03s, environment 0ms, prepare 1.48s)\n",
+      "capturedOutputSHA256": "5e0736d8a8da3d405c32810a8bd1f3e25c27d0a73e3c2801145a3e61464018ad"
+    }
+  ],
+  "checks": [
+    {
+      "command": "npx eslint src/rendering/snapshot-interpolation.ts src/rendering/frame-state.ts src/rendering/wheel-pose.ts src/rendering/car.ts src/rendering/supplied-player.ts src/rendering/bike.ts src/rendering/festival-riders.ts src/rendering/vehicle-bodies/index.ts src/rendering/renderer.ts tests/snapshot-interpolation.test.ts tests/wheel-pose.test.ts tests/bike-animation.test.ts tests/festival-car-switch.test.ts",
+      "exitCode": 0,
+      "scope": "Final scoped production and test lint. The later fixture correction only changed a numeric literal.",
+      "capturedOutput": "npm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n",
+      "capturedOutputSHA256": "7125f194612fcff2f454c05d848e7cb71facc1967b4d5017e25b34fdee3ba74f"
+    },
+    {
+      "command": "./node_modules/.bin/tsc --noEmit",
+      "exitCode": 0,
+      "scope": "Development-time whole-project typecheck. Files were still being completed during this command; this was not an immutable final-source guard.",
+      "capturedOutput": "",
+      "capturedOutputSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "git diff --check -- src/rendering/bike.ts src/rendering/car.ts src/rendering/festival-riders.ts src/rendering/frame-state.ts src/rendering/renderer.ts src/rendering/supplied-player.ts src/rendering/vehicle-bodies/index.ts src/rendering/wheel-pose.ts tests/festival-car-switch.test.ts tests/wheel-pose.test.ts",
+      "exitCode": 0,
+      "scope": "Tracked presentation changes. New files are covered by scoped lint.",
+      "capturedOutput": "",
+      "capturedOutputSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "review": {
+    "agent": "engine_review",
+    "kind": "independent-read-only-review",
+    "result": "no-concrete-blocker",
+    "scope": "Timing/reset/Hermite and PresentedFrame integration, including coherent positive spans <=0.5 s, unchanged contact states, finite acceleration <=120 m/s², exact held endpoints, rider reset clocks, tire/service boundaries and O.BODY continuous sampling. No review test jobs or edits."
+  },
+  "nextIntegration": {
+    "mergedSourceIdentity": null,
+    "affectedGPModelRegression": "pending merged-source signal",
+    "combinedGate": "pending",
+    "build": "pending",
+    "browser": "pending"
+  },
+  "limitations": [
+    "Rendering tests use production geometry and transforms with a no-op drawing context; they do not establish rendered-image quality or hardware frame rate.",
+    "Hermite and teleport guards are presentation heuristics; wheel whole-turn inference depends on recorded endpoint angular velocities.",
+    "Old test and benchmark results from the environment lost before publication do not certify this reconstructed source."
+  ]
+}

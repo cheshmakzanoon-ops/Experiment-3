@@ -1,0 +1,825 @@
+{
+  "schemaVersion": 2,
+  "status": "published-focused-checks-and-production-build-passed-browser-launch-failed-before-tests",
+  "assembledAtUTC": "2026-10-19T17:44:56.676637+00:00",
+  "scope": "Reconstructed engine publication. Completed development suites, three incomplete pre-festival integration attempts, and one separate published-source direct-Node GP scenario retain distinct scopes. No complete final repository gate is claimed.",
+  "publication": {
+    "repository": "https://github.com/cheshmakzanoon-ops/Experiment-3",
+    "commit": "5ba247c25bbe3ec793655517e5fa4e39162b40e9",
+    "tree": "e7ce670787f7e92113be723e80ff052b823dc067",
+    "parent": "14270a4058ec547102b4aedb5430faac9c52fc7c",
+    "implementationCommit": "14270a4058ec547102b4aedb5430faac9c52fc7c",
+    "implementationTree": "4efba22b8e5c4755ed7e18a5e3e81da085bb6e91",
+    "ancestryOldestFirst": [
+      "2dc5a0ae6d7076e633ac87cf0a4ae4f067fa97d4",
+      "9e5ff534ecf4d8391eaa7075a284b141544de7ee",
+      "d09921545ddcebe2b34ed4a85dab36deeafab969",
+      "794c90c3914af20881ccfeb24b408cb5af555e44",
+      "d9d7d163cbc9abaa1fdd167a6ad68381e0022797",
+      "14270a4058ec547102b4aedb5430faac9c52fc7c",
+      "5ba247c25bbe3ec793655517e5fa4e39162b40e9"
+    ],
+    "integrationNote": "Preserves incoming MotoGP 9e5ff53 and festival/CI 794c90c/d9d7d16. The shared open-world session retains incoming behavior, adds one beginStep(contact) capture call and passes dt * 0.5 to the existing solve.",
+    "formatFollowup": "5ba247c changes only the layout of one traffic.update call in src/session/free-roam.ts; no semantic or numerical change. Confirmed by git show.",
+    "source": {
+      "status": "unchanged-through-completed-checks-build-and-browser-attempt",
+      "fileCount": 728,
+      "sha256": "7cef8b8826ddb90b151e73653198456b25e7032a62f55accb0301fa06c176eb7",
+      "encoding": "SHA-256 of all files below src sorted globally by repository-relative POSIX path strings; each UTF-8 path + NUL + raw file bytes + NUL",
+      "scope": "This raw-byte fingerprint covers all files under src/ on the tested 5ba247c revision. The independent Vite fingerprint additionally covers package-lock.json, index.html and vite.config.ts.",
+      "beforeAfterUnchangedAtCompletedSteps": true,
+      "beforeAfterUnchangedAtCompletedBuild": true,
+      "beforeAfterUnchangedAtBrowserAttempt": true,
+      "completedBuildGuardCoverage": {
+        "directories": ["src", "public", "scripts", "tests", "e2e", "docs", ".github"],
+        "rootFiles": "All non-directory entries in the repository root, including configuration; file bytes, executable bits and symlink targets are compared.",
+        "generatedAssetException": "public/models/supplied-player-lods.bin.gz",
+        "evidence": "Existing scripts/source-stability.ts returned observed exit zero after npm run build; its implementation rejects changed protected inputs."
+      }
+    },
+    "commitRole": "Immutable source revision used by final formatting, lint, content, production build and the one browser attempt; not the later documentation commit.",
+    "subsequentPreservedUpstream": [
+      {
+        "commit": "c1827511146611c8049569b555d40ea5719936c7",
+        "parent": "5ba247c25bbe3ec793655517e5fa4e39162b40e9",
+        "tree": "05831a93e28326853dbe2dcb16f477f819634613",
+        "scope": "Concurrent motocross sprung-contact traction, independent rear-pedal control, lit roost and terrain-normal continuity update.",
+        "simulationVersion": 5,
+        "integrationPolicy": "Preserved in the ancestry of this evidence publication; no source reversion or force push.",
+        "validationScope": "The checks in this engine report were completed on 5ba247c before this subsequent update and do not certify its changes.",
+        "ownReport": "docs/production/motocross-contact-and-roost-20261019.md"
+      },
+      {
+        "commit": "9d5c5582530bbb66de2a170edd6775f3a3947b1b",
+        "parent": "c1827511146611c8049569b555d40ea5719936c7",
+        "tree": "f8590458ef196dbe92ead67320b7e5c7fcdd50b1",
+        "scope": "Concurrent MotoGP rear chassis, road-derived corner guidance, current-contact-load traction and replay-seek preparation update.",
+        "simulationVersion": 6,
+        "integrationPolicy": "Preserved as the parent of this evidence publication; no source reversion or force push.",
+        "validationScope": "The checks in this engine report were completed on 5ba247c before this subsequent update and do not certify its changes.",
+        "ownReport": "docs/production/motogp-corner-drive/README.md"
+      }
+    ],
+    "evidenceParentCommit": "9d5c5582530bbb66de2a170edd6775f3a3947b1b"
+  },
+  "versions": {
+    "simulation": 4,
+    "snapshotProtocol": 13,
+    "networkProtocol": 2,
+    "scope": "The tested engine increment at 5ba247c (physics 4). Subsequent preserved c182751 introduces motocross physics 5, and 9d5c558 introduces MotoGP physics 6. Snapshot protocol 13 and network protocol 2 are unchanged."
+  },
+  "runtime": {
+    "node": "24.19.0",
+    "vitest": "3.2.4"
+  },
+  "completedFocusedScopes": [
+    {
+      "name": "Wheel momentum, integrator stability, record identity",
+      "passed": 24,
+      "files": 3,
+      "vitestSeconds": 27.64,
+      "evidenceRef": "rotorFocused",
+      "scope": "Recovered wheel/chassis increment; not a complete repository or browser acceptance gate"
+    },
+    {
+      "name": "Continuous chassis collision",
+      "passed": 22,
+      "files": 1,
+      "vitestSeconds": 41.88,
+      "evidenceRef": "collisionSummary",
+      "provenance": "Retained tool output from exec session 12207, exit 0; no raw reporter artifact exists.",
+      "scope": "Ran before incoming GP-grid merge. collision.ts, obb.ts and the 22-case fixture have remained unchanged; it does not certify the later world/grid integration."
+    },
+    {
+      "name": "Live clock and lifecycle integration",
+      "passed": 25,
+      "files": 4,
+      "vitestSeconds": 88.71,
+      "caseCounts": {
+        "live-frame-clock": 17,
+        "worker-pause": 5,
+        "open-world-worker": 1,
+        "replay-clock": 2
+      },
+      "command": "./node_modules/.bin/vitest run tests/live-frame-clock.test.ts tests/worker-pause.test.ts tests/open-world-worker.test.ts tests/replay-clock.test.ts",
+      "provenance": "Retained terminal summary from post-reset exec session 39727, exit 0, confirmed by engine_review. No separately archived raw log or reporter JSON exists.",
+      "scope": "Predates incoming GP and final festival integrations. Package hashes were captured after development, not with an immutable whole-source guard.",
+      "postDevelopmentFileSHA256": {
+        "src/main.ts": "be99af8eaf35d7a22c9446b964583d028bc65a17eabf5a10ac039438af998656",
+        "src/session/free-roam.ts": "cfd5936e24a0fb9432f28012cc5c2d20c3090cdd8731dd11ad37e2a0662cec75",
+        "src/rendering/live-frame-clock.ts": "fa23d9fda426161c379c5610454ea136d97ef9000baa948263fc794ea30071fe",
+        "tests/live-frame-clock.test.ts": "6819685669b7e08a9aa47e6ed4a41bea7016cb17201a3d8fa2dc4b49c75ed965"
+      }
+    },
+    {
+      "name": "Presentation reconstruction",
+      "distinctPassedCases": 66,
+      "suites": 5,
+      "evidenceRef": "presentationFocused",
+      "scope": "Overlapping development runs. The unchanged 14,038-byte presentation-validation.json holds commands, excerpt hashes, fixture diagnostic and 13 post-development package hashes; it is referenced, not duplicated.",
+      "evidenceProvenance": "See the referenced unchanged presentation evidence for the exact excerpt-only provenance and scope."
+    }
+  ],
+  "developmentChecks": {
+    "scopedLintAndDiffChecks": "passed during reconstruction",
+    "typescript": "Development-time tsc --noEmit exited 0 while files were still being completed; not a final guarded typecheck."
+  },
+  "broaderCollisionHistory": {
+    "status": "not-a-clean-gate",
+    "passedCases": 55,
+    "totalCases": 57,
+    "passedCCDCases": 20,
+    "totalCCDCases": 21,
+    "passedPhysicsCases": 21,
+    "passedContactCases": 5,
+    "passedMXCollisionCases": 9,
+    "totalMXCollisionCases": 10,
+    "remainingOutcome": "The chain fixture expected sweepLimitReached false but received true. The MX seeded stadium-start case exceeded its existing 30-second timeout. Two onTaskUpdate RPC timeouts were reported.",
+    "chainFixture": {
+      "name": "continuous collision response > recomputes remaining travel when a struck bike can hit a third bike",
+      "failedAssertion": "expect(solver.sweepLimitReached).toBe(false) received true",
+      "original": "Three real GP bikes at x = [-1, 0, 1] m; first-bike speed 300 m/s; dt = 0.01 s. Tracing found eight legitimate alternating, increasingly weak inelastic impacts.",
+      "correction": "Use x = [-1.5, 0, 1.5] m for the ordinary propagation fixture, yielding three chronological contacts. The 22nd regression separately preserves the original tight cascade and checks its reported limit, finite state, momentum, dissipated energy and centre ordering.",
+      "limitsAndThresholdsUnchanged": true
+    },
+    "provenance": "Retained tool output from session 86423, exit 1, summarized by collision_engine. No original full terminal log or reporter artifact exists."
+  },
+  "incompleteIntegrationAttempts": [
+    {
+      "name": "Seeded eight-rider MX stadium start",
+      "status": "incomplete-process-timeout",
+      "baseCommit": "d09921545ddcebe2b34ed4a85dab36deeafab969",
+      "outerBoundSeconds": 180,
+      "observedWallSeconds": 183.6600021309996,
+      "wrapperExitCode": 124,
+      "sourceGuardPassed": true,
+      "testTimeoutsAndAssertionsUnchanged": true,
+      "assertionOutcome": "not captured",
+      "vitestJSONProduced": false,
+      "rawLogBytes": 0,
+      "rawLogSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "receiptRef": "mxTimeoutReceipt"
+    },
+    {
+      "name": "Poggio full GP grid and first normal tick",
+      "status": "incomplete-process-timeout",
+      "baseCommit": "d09921545ddcebe2b34ed4a85dab36deeafab969",
+      "outerBoundSeconds": 180,
+      "observedWallSeconds": 182.61747122999986,
+      "wrapperExitCode": 124,
+      "sourceGuardPassed": true,
+      "testTimeoutsAndAssertionsUnchanged": true,
+      "assertionOutcome": "not captured",
+      "vitestJSONProduced": false,
+      "rawLogBytes": 0,
+      "rawLogSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "receiptRef": "gpVitestTimeoutReceipt"
+    },
+    {
+      "name": "Merged GP grip/contact and bike presentation",
+      "status": "incomplete-process-timeout",
+      "baseCommit": "d09921545ddcebe2b34ed4a85dab36deeafab969",
+      "selectedFiles": 2,
+      "selectedCases": 12,
+      "outerBoundSeconds": 300,
+      "observedWallSeconds": 320.63922391600045,
+      "wrapperExitCode": 124,
+      "childExitCode": -9,
+      "sourceGuardPassed": true,
+      "testTimeoutsAndAssertionsUnchanged": true,
+      "assertionOutcome": "not captured",
+      "vitestJSONProduced": false,
+      "rawLogBytes": 60,
+      "rawLogSHA256": "cc7e231434002bdb4b9b4f5732c26f9e6938e37aa93825006d71b55911e7bf44",
+      "rawLogMeaning": "Vitest RUN startup banner only.",
+      "receiptRef": "presentationTimeoutReceipt"
+    }
+  ],
+  "historicalInputGuards": {
+    "scope": "Pre-festival integrated source at base d099215; not the published 14270a4 tree.",
+    "collisionSource": {
+      "files": 726,
+      "sha256": "cada2d354717909704bd243a14a75c53bff40feaa7fb78ac679f3c63b4d20eb7",
+      "encoding": "SHA-256 of all files under src/ sorted by repository-relative POSIX path, each encoded as UTF-8(path) + NUL + raw file bytes + NUL."
+    },
+    "presentationSource": {
+      "files": 726,
+      "sha256": "94edbccb0d0cd4f6f1397661a39038838bb03f387e10efb19e63fed306d74639",
+      "encoding": "SHA-256 of entries sorted lexicographically by repository-relative POSIX path, each encoded as UTF-8(path + NUL + lowercase SHA-256 hex of raw file bytes + newline)."
+    },
+    "presentationAllInputs": {
+      "files": 1382,
+      "sha256": "63cb2f7408d12452e2feeaa0ea269218ff059a125dca321fd3b077e959eabc52",
+      "encoding": "SHA-256 of entries sorted lexicographically by repository-relative POSIX path, each encoded as UTF-8(path + NUL + lowercase SHA-256 hex of raw file bytes + newline).",
+      "scope": "726 src + 461 tests + 186 scripts + 9 root configuration files."
+    },
+    "interpretation": "Different raw-content and per-file-digest aggregate encodings must not be compared as if they were the same fingerprint. All recorded before/after guards passed. No cause of the stalled Vitest execution is established."
+  },
+  "publishedSourceChecks": {
+    "directNodeGP": {
+      "status": "passed",
+      "scenario": "poggio-alto: places a full field in qualifying order with physical clearance",
+      "commit": "14270a4058ec547102b4aedb5430faac9c52fc7c",
+      "source": {
+        "fileCount": 728,
+        "sha256": "68059accef78c3f71fa7da423efd92c1d2be861a70a6c98b4be6aa2b55866dbe",
+        "encoding": "SHA-256 of entries in lexical depth-first directory traversal order (equivalent here to sorting path-component tuples, and exactly the stored manifest order), each encoded as UTF-8(repository-relative POSIX path + NUL + lowercase SHA-256 hex of raw file bytes + newline). This is not global lexical full-path order.",
+        "scope": "All files under src/; excludes tests, scripts, root configuration, dependencies and public assets."
+      },
+      "processExitCode": 0,
+      "observedWallSeconds": 18.73142333800024,
+      "processBoundSeconds": 180,
+      "measured": {
+        "cars": 12,
+        "tick": 1,
+        "sweptContacts": 0,
+        "sweepLimitReached": false,
+        "sweepIterationLimits": 0
+      },
+      "sourceUnchanged": true,
+      "receiptRef": "publishedGPReceipt",
+      "resultRef": "publishedGPResult",
+      "scope": "One production grid/first-tick scenario with the existing assertions. Separate direct-Node execution, not a relabeled Vitest pass, full race, animation or browser gate."
+    },
+    "productionBuildIdentity": {
+      "status": "passed",
+      "version": 1,
+      "commit": "5ba247c25bbe3ec793655517e5fa4e39162b40e9",
+      "fingerprint": "02db92eb9d3e79035d8205d78882f83425e07e93c48e96f56b71d8f3aa5fa6d1",
+      "verifiedInputCount": 731,
+      "fingerprintAlgorithm": "SHA-256 over JavaScript full-path .sort() order of all src files plus package-lock.json, index.html and vite.config.ts; each record is UTF-8(relative POSIX path + NUL), raw file bytes, NUL",
+      "checks": {
+        "headMatches": true,
+        "trackedBuildInputsClean": true,
+        "recomputedMatchesReleasedBuild": true,
+        "emittedVersionMatches": true,
+        "emittedCommitMatches": true,
+        "emittedFingerprintMatches": true,
+        "indexModuleContainsExactIdentity": true
+      },
+      "entryModules": [
+        {
+          "path": "assets/index-CIyOPRap.js",
+          "bytes": 15368630,
+          "sha256": "42fc17533220d36a52d110e1718f96815f5c0a146d28d25d430da6a046b6083d",
+          "containsFingerprint": true,
+          "containsCommit": true
+        }
+      ],
+      "identityRef": "finalBuildIdentity",
+      "verificationRef": "buildSourceVerification",
+      "rawLogRef": "buildSourceVerificationRawLog"
+    },
+    "browserDrivingAndCamera": {
+      "status": "failed-before-tests",
+      "commit": "5ba247c25bbe3ec793655517e5fa4e39162b40e9",
+      "selectedTest": "manual right steering and live rear-view passes work without autopilot",
+      "processExitCode": 1,
+      "elapsedSeconds": 24.774713128001167,
+      "completedTests": 0,
+      "failureStage": "Original global setup at scripts/browser-backend-setup.ts:11, chromium.launch()",
+      "browserSignal": "SIGTRAP",
+      "backendProofProduced": false,
+      "pageTraceOrGameplayScreenshotProduced": false,
+      "sourceTestConfigAndBuildUnchanged": true,
+      "manifestEncoding": "SHA-256 over UTF-8(path + NUL + lowercase content SHA-256 + LF), in Python pathlib component-wise path order. The source, original test/config inputs and index/direct-asset manifests have separate scopes.",
+      "originalConfiguration": {
+        "backendRequested": "swiftshader",
+        "testTimeoutMs": 300000,
+        "menuAndAssertionTimeoutMs": 60000,
+        "workers": 1,
+        "retries": 0,
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        }
+      },
+      "receiptRef": "browserReceipt",
+      "rawLogRef": "browserRawLog",
+      "commandRef": "browserCommand",
+      "diagnosticLimit": "Crashpad reported missing CPU-frequency sysfs files immediately before closure. These messages do not establish the SIGTRAP cause. No application or gameplay assertion ran, and no application regression diagnosis follows from this outcome.",
+      "remainingOwnedProcesses": 0
+    },
+    "completeRepositoryTestGate": {
+      "status": "not-established"
+    },
+    "generalPerformanceComparison": {
+      "status": "not-established"
+    },
+    "completedFormatLintContent": {
+      "commit": "5ba247c25bbe3ec793655517e5fa4e39162b40e9",
+      "status": "passed",
+      "scope": "One-file formatting recheck (the other 29 initial files were unchanged), lint on all 30 changed TypeScript files, and repository content validation. The guarded production build has its own completed receipt below.",
+      "steps": [
+        {
+          "name": "format",
+          "status": "passed",
+          "exitCode": 0,
+          "wallSeconds": 7.245104215999163,
+          "sourceStable": true,
+          "evidenceRef": "completed-format"
+        },
+        {
+          "name": "lint",
+          "status": "passed",
+          "exitCode": 0,
+          "wallSeconds": 32.485571237999466,
+          "sourceStable": true,
+          "evidenceRef": "completed-lint"
+        },
+        {
+          "name": "content",
+          "status": "passed",
+          "exitCode": 0,
+          "wallSeconds": 47.16198432300007,
+          "sourceStable": true,
+          "evidenceRef": "completed-content"
+        }
+      ]
+    },
+    "guardedTypecheckAndProductionBuild": {
+      "status": "passed",
+      "commit": "5ba247c25bbe3ec793655517e5fa4e39162b40e9",
+      "command": [
+        "node",
+        "--experimental-transform-types",
+        "scripts/source-stability.ts",
+        "--",
+        "npm",
+        "run",
+        "build"
+      ],
+      "observedGuardExitCode": 0,
+      "exitObservedAtUTC": "2026-10-19T17:35:48.370916+00:00",
+      "elapsedSecondsFromSecondPrecisionReportedStart": 1178.370916,
+      "phases": [
+        "pinned player-LOD prebuild",
+        "tsc --noEmit",
+        "vite build",
+        "unchanged-input guard"
+      ],
+      "sourceStable": true,
+      "receiptRef": "finalBuildReceipt",
+      "rawLogRef": "finalBuildRawLog",
+      "monitoringCaveat": "The original Python wrapper disappeared after exec transport loss, so its 600-second limit and exit capture were lost. A detached monitor supervised the exact original process group to an absolute 1200-second cap and directly observed its identity-matched zombie exit status 0. No termination signal or duplicate build was used.",
+      "warnings": [
+        "Vite reported chunks larger than 500 kB; the generated entry module is 15368630 bytes before gzip. This is not evidence of an FPS improvement."
+      ]
+    }
+  },
+  "formattingHistory": {
+    "commit": "14270a4058ec547102b4aedb5430faac9c52fc7c",
+    "status": "one-formatting-issue",
+    "filesChecked": 30,
+    "exitCode": 1,
+    "receiptRef": "initialFormatCheck",
+    "issue": "Prettier requested condensing the multiline traffic.update call in src/session/free-roam.ts.",
+    "correctionCommit": "5ba247c25bbe3ec793655517e5fa4e39162b40e9",
+    "finalRecheck": "passed; see completed-format"
+  },
+  "recoveryHistory": "The execution environment reset before the earlier uncommitted engine tree reached GitHub. Its source workspace, raw reports and benchmarks were lost. Fresh reconstruction preserved current upstream changes; only LiveFrameClock was recovered byte-for-byte from a retained read. Pre-reset full-suite and timing results do not certify this publication and are excluded.",
+  "limitations": [
+    "Operator-split wheel/chassis coupling, single-box bounded CCD and conservative snapshot interpolation remain physical/presentation approximations.",
+    "Production transform tests with a no-op canvas do not establish rendered-image quality or hardware frame rate.",
+    "No manufacturer calibration, general speedup or complete hyperrealism is claimed.",
+    "The one actual-application smoke stopped at Chromium startup with SIGTRAP before any test; browser gameplay and rendered-image acceptance remain unverified.",
+    "The final build and browser attempt cover immutable 5ba247c, not the later preserved c182751 motocross or 9d5c558 MotoGP updates.",
+    "A complete repository test gate and a general hardware/performance comparison are not established."
+  ],
+  "artifactHashScope": "Embedded UTF-8 and referenced file hashes cover exact raw bytes, with the applicable kind documented above. Parsed receipt extracts have no invented original-file hash. Earlier excerpt hashes cover only included text. Git object IDs and aggregate source fingerprints remain separately scoped.",
+  "artifacts": {
+    "presentationFocused": {
+      "kind": "companion-file",
+      "path": "presentation-validation.json",
+      "bytes": 14038,
+      "sha256": "bf1abcff8b2df9f145bbcd11f41126a187cf31d2b5d3c8cbcdb20652a6e57935"
+    },
+    "rotorFocused": {
+      "kind": "repository-file",
+      "commit": "d09921545ddcebe2b34ed4a85dab36deeafab969",
+      "path": "docs/production/wheel-momentum-validation.json",
+      "bytes": 6684,
+      "sha256": "f6f3425cfe011c26aeff10fd71f52b4c8d0a3cf465daeb34f0562c6329d4f7be"
+    },
+    "collisionSummary": {
+      "kind": "retained-summary",
+      "provenance": "Selected earlierFocusedCCD record from the retained consolidated receipt. No original full terminal log or reporter JSON exists.",
+      "record": {
+        "status": "passed",
+        "testsPassed": 22,
+        "testsFailed": 0,
+        "testExecutionMs": 206,
+        "totalWallSeconds": 41.88,
+        "command": [
+          "node",
+          "node_modules/vitest/vitest.mjs",
+          "run",
+          "tests/collision-continuous.test.ts"
+        ],
+        "evidence": "Retained tool output from exec session 12207, exit 0; no raw reporter artifact exists.",
+        "scope": "Ran before incoming GP-grid merge. collision.ts, obb.ts and the 22-case fixture have remained unchanged; it does not certify the later world/grid integration.",
+        "sourceHashesRecordedAfterRun": {
+          "src/simulation/collision.ts": "4f85907e1a79b8f8c8dc2213aec44140e60b955c9a6e59f7f8c264e5220fa895",
+          "src/simulation/obb.ts": "14185b3ad455cd7eba9f371cdc686d839fd2729ed936e1dd808196414d392b19",
+          "tests/collision-continuous.test.ts": "1588bacb32aead8221c717679ab5139edc34197da355fe7b96270f793a0a0f14"
+        }
+      }
+    },
+    "mxTimeoutReceipt": {
+      "kind": "embedded-utf8",
+      "originalFilename": "receipt.json",
+      "mediaType": "application/json",
+      "bytes": 2826,
+      "sha256": "af75522f71e77536405148e3b310ca640ca8df763461b621c99d70379c4df986",
+      "text": "{\n  \"schemaVersion\": 1,\n  \"status\": \"failed\",\n  \"scope\": \"Explicitly selected reconstructed CCD integration regressions; not a full repository gate\",\n  \"baseCommit\": \"d09921545ddcebe2b34ed4a85dab36deeafab969\",\n  \"nodeVersion\": \"v24.19.0\",\n  \"command\": [\n    \"node\",\n    \"node_modules/vitest/vitest.mjs\",\n    \"run\",\n    \"tests/motocross-collision.test.ts\",\n    \"-t\",\n    \"keeps the seeded eight-rider stadium start free of spurious high-energy launches\",\n    \"--reporter=json\",\n    \"--outputFile=/tmp/motobound-ccd-validation/mx-fresh/vitest.json\"\n  ],\n  \"startedAtUTC\": \"2026-10-19T16:36:34.022696+00:00\",\n  \"completedAtUTC\": \"2026-10-19T16:39:37.682905+00:00\",\n  \"wallSeconds\": 183.6600021309996,\n  \"exitCode\": 124,\n  \"wrapperTimedOut\": true,\n  \"wrapperMaxWallSeconds\": 180,\n  \"testTimeoutsUnchanged\": true,\n  \"fullSourceHashEncoding\": \"SHA-256 of all files below src, sorted by repository-relative POSIX path; each entry is UTF-8 path + NUL + raw file bytes + NUL\",\n  \"sourceBefore\": {\n    \"fullSourceSHA256\": \"cada2d354717909704bd243a14a75c53bff40feaa7fb78ac679f3c63b4d20eb7\",\n    \"sourceFileCount\": 726,\n    \"testAndConfigSHA256\": {\n      \"package-lock.json\": \"d85b97d2e51497b62414087966db13b740b174fe4b96663d29447644948d2969\",\n      \"package.json\": \"2529988dea1291dbfd77c6583633e2c0d4d05e811077442494797a5986d6b6f2\",\n      \"tests/motocross-collision.test.ts\": \"d344685f9ef22eca0059568de257ca4a17963a9d964e16537089e7d3826a1761\",\n      \"vitest.config.ts\": \"67638d6bafb1c6c22af66d8cc0a443e994f5b2df94c91c11220eff7438647abf\"\n    }\n  },\n  \"sourceAfter\": {\n    \"fullSourceSHA256\": \"cada2d354717909704bd243a14a75c53bff40feaa7fb78ac679f3c63b4d20eb7\",\n    \"sourceFileCount\": 726,\n    \"testAndConfigSHA256\": {\n      \"package-lock.json\": \"d85b97d2e51497b62414087966db13b740b174fe4b96663d29447644948d2969\",\n      \"package.json\": \"2529988dea1291dbfd77c6583633e2c0d4d05e811077442494797a5986d6b6f2\",\n      \"tests/motocross-collision.test.ts\": \"d344685f9ef22eca0059568de257ca4a17963a9d964e16537089e7d3826a1761\",\n      \"vitest.config.ts\": \"67638d6bafb1c6c22af66d8cc0a443e994f5b2df94c91c11220eff7438647abf\"\n    }\n  },\n  \"sourceStable\": true,\n  \"changedSourceFiles\": [],\n  \"changedTestOrConfigFiles\": [],\n  \"testsPassed\": null,\n  \"testsFailed\": null,\n  \"testsSkipped\": null,\n  \"assertions\": [],\n  \"logSHA256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n  \"rawReport\": null,\n  \"interpretation\": \"Process wall limit reached before a framework report was captured. No assertion outcome is available; an empty log does not establish whether assertions executed.\",\n  \"postTimeoutWorkerCheck\": {\n    \"method\": \"Read /proc command, process name and cwd with escalated access; restrict to Node/Vitest processes belonging to this repository.\",\n    \"remainingRepositoryNodeProcesses\": 0,\n    \"terminationNeeded\": false\n  }\n}\n"
+    },
+    "mxTimeoutRawLog": {
+      "kind": "embedded-utf8",
+      "originalFilename": "output.log",
+      "mediaType": "text/plain",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    "gpVitestTimeoutReceipt": {
+      "kind": "embedded-utf8",
+      "originalFilename": "receipt.json",
+      "mediaType": "application/json",
+      "bytes": 2848,
+      "sha256": "8fec3c7283676550f85094f2ddff2c60276143c02854a903f4926a84aed2021a",
+      "text": "{\n  \"schemaVersion\": 1,\n  \"status\": \"failed\",\n  \"scope\": \"Explicitly selected reconstructed CCD integration regressions; not a full repository gate\",\n  \"baseCommit\": \"d09921545ddcebe2b34ed4a85dab36deeafab969\",\n  \"nodeVersion\": \"v24.19.0\",\n  \"command\": [\n    \"node\",\n    \"node_modules/vitest/vitest.mjs\",\n    \"run\",\n    \"tests/gp-grid.test.ts\",\n    \"-t\",\n    \"poggio-alto: places a full field in qualifying order with physical clearance\",\n    \"--reporter=json\",\n    \"--outputFile=/tmp/motobound-ccd-validation/gp-grid-fresh/vitest.json\"\n  ],\n  \"startedAtUTC\": \"2026-10-19T16:43:00.035255+00:00\",\n  \"completedAtUTC\": \"2026-10-19T16:46:02.653084+00:00\",\n  \"wallSeconds\": 182.61747122999986,\n  \"exitCode\": 124,\n  \"processId\": 24536,\n  \"isolatedProcessGroup\": true,\n  \"wrapperTimedOut\": true,\n  \"wrapperMaxWallSeconds\": 180,\n  \"testTimeoutsUnchanged\": true,\n  \"fullSourceHashEncoding\": \"SHA-256 of all files below src, sorted by repository-relative POSIX path; each entry is UTF-8 path + NUL + raw file bytes + NUL\",\n  \"sourceBefore\": {\n    \"fullSourceSHA256\": \"cada2d354717909704bd243a14a75c53bff40feaa7fb78ac679f3c63b4d20eb7\",\n    \"sourceFileCount\": 726,\n    \"testAndConfigSHA256\": {\n      \"package-lock.json\": \"d85b97d2e51497b62414087966db13b740b174fe4b96663d29447644948d2969\",\n      \"package.json\": \"2529988dea1291dbfd77c6583633e2c0d4d05e811077442494797a5986d6b6f2\",\n      \"tests/gp-grid.test.ts\": \"60625afe05239439dc98dc44bea4e59107d1d725db7d6c67e92960ae75e297df\",\n      \"vitest.config.ts\": \"67638d6bafb1c6c22af66d8cc0a443e994f5b2df94c91c11220eff7438647abf\"\n    }\n  },\n  \"sourceAfter\": {\n    \"fullSourceSHA256\": \"cada2d354717909704bd243a14a75c53bff40feaa7fb78ac679f3c63b4d20eb7\",\n    \"sourceFileCount\": 726,\n    \"testAndConfigSHA256\": {\n      \"package-lock.json\": \"d85b97d2e51497b62414087966db13b740b174fe4b96663d29447644948d2969\",\n      \"package.json\": \"2529988dea1291dbfd77c6583633e2c0d4d05e811077442494797a5986d6b6f2\",\n      \"tests/gp-grid.test.ts\": \"60625afe05239439dc98dc44bea4e59107d1d725db7d6c67e92960ae75e297df\",\n      \"vitest.config.ts\": \"67638d6bafb1c6c22af66d8cc0a443e994f5b2df94c91c11220eff7438647abf\"\n    }\n  },\n  \"sourceStable\": true,\n  \"changedSourceFiles\": [],\n  \"changedTestOrConfigFiles\": [],\n  \"testsPassed\": null,\n  \"testsFailed\": null,\n  \"testsSkipped\": null,\n  \"assertions\": [],\n  \"logSHA256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n  \"rawReport\": null,\n  \"interpretation\": \"Process wall limit reached before a framework report was captured. No assertion outcome is available; an empty log does not establish whether assertions executed.\",\n  \"postTimeoutWorkerCheck\": {\n    \"checkedAtUTC\": \"2026-10-19T16:46:58.963247+00:00\",\n    \"remainingRepositoryNodeProcesses\": [],\n    \"terminationNeeded\": false,\n    \"method\": \"Read /proc name and cwd, restricted to repository Node/Vitest processes.\"\n  }\n}\n"
+    },
+    "gpVitestTimeoutRawLog": {
+      "kind": "embedded-utf8",
+      "originalFilename": "output.log",
+      "mediaType": "text/plain",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    "presentationTimeoutReceipt": {
+      "kind": "embedded-utf8",
+      "originalFilename": "validation-summary.json",
+      "mediaType": "application/json",
+      "bytes": 4609,
+      "sha256": "53b536d61555a82a2ab8926b117d5336f46312e71b6c2beb7f0e299a7c98e5c9",
+      "text": "{\n  \"schemaVersion\": 1,\n  \"scope\": \"Fresh merged MotoGP grip/contact and coherent snapshot presentation regression; not a full project test gate.\",\n  \"status\": \"incomplete-or-failed\",\n  \"runtime\": {\n    \"node\": \"v24.19.0\",\n    \"vitest\": \"3.2.4\"\n  },\n  \"repository\": \"/workspace/scratch/d3afbe35c2f7/Experiment-3\",\n  \"gitHeadBefore\": \"d09921545ddcebe2b34ed4a85dab36deeafab969\",\n  \"gitHeadAfter\": \"d09921545ddcebe2b34ed4a85dab36deeafab969\",\n  \"command\": [\n    \"/workspace/scratch/d3afbe35c2f7/Experiment-3/node_modules/.bin/vitest\",\n    \"run\",\n    \"tests/gp-rider-contact.test.ts\",\n    \"tests/bike-animation.test.ts\",\n    \"--maxWorkers=1\",\n    \"--reporter=verbose\",\n    \"--reporter=json\",\n    \"--outputFile.json=/workspace/scratch/d3afbe35c2f7/engine-recovery-verification/merged-presentation/vitest.json\"\n  ],\n  \"timeoutPolicy\": \"A 300-second outer process bound applies to this isolated task-owned process group. There is no CLI test-timeout override; test source and existing Vitest configuration remain unchanged.\",\n  \"processBoundSeconds\": 300,\n  \"processBoundReached\": true,\n  \"taskProcessGroupPID\": 7,\n  \"startedAtUTC\": \"2026-10-19T16:49:14.595535+00:00\",\n  \"endedAtUTC\": \"2026-10-19T16:54:35.236718+00:00\",\n  \"elapsedWallSeconds\": 320.63922391600045,\n  \"testCommandExitCode\": -9,\n  \"inputGuard\": {\n    \"passed\": true,\n    \"algorithm\": \"Per-file SHA-256 of raw file bytes. Aggregate SHA-256 of entries sorted lexicographically by repository-relative POSIX path; each UTF-8 entry is path + NUL + lowercase file SHA-256 hexadecimal + newline. All regular files under src/, tests/, and scripts/ are included, plus the explicitly listed root configuration files. Git metadata, dependency directory contents, public assets, and generated outputs are outside this scope.\",\n    \"beforeSHA256\": \"63cb2f7408d12452e2feeaa0ea269218ff059a125dca321fd3b077e959eabc52\",\n    \"afterSHA256\": \"63cb2f7408d12452e2feeaa0ea269218ff059a125dca321fd3b077e959eabc52\",\n    \"beforeFileCount\": 1382,\n    \"afterFileCount\": 1382,\n    \"changedPaths\": [],\n    \"addedPaths\": [],\n    \"removedPaths\": [],\n    \"groupsBefore\": {\n      \"source\": {\n        \"fileCount\": 726,\n        \"sha256\": \"94edbccb0d0cd4f6f1397661a39038838bb03f387e10efb19e63fed306d74639\"\n      },\n      \"tests\": {\n        \"fileCount\": 461,\n        \"sha256\": \"31ffa4dc98edcde48b69563dcf7e190c9d9d8efa7c8bfc7d98135f4f2affa388\"\n      },\n      \"tooling\": {\n        \"fileCount\": 186,\n        \"sha256\": \"ffc415c6db860dc705f965e578a2073013f4e8d6e413d6d8b20f0a0d78d68b7d\"\n      },\n      \"configuration\": {\n        \"fileCount\": 9,\n        \"sha256\": \"31e7e57fbdf15617f53fce21102f7b67320133764fa93791f06a9d0f5f131968\"\n      }\n    },\n    \"groupsAfter\": {\n      \"source\": {\n        \"fileCount\": 726,\n        \"sha256\": \"94edbccb0d0cd4f6f1397661a39038838bb03f387e10efb19e63fed306d74639\"\n      },\n      \"tests\": {\n        \"fileCount\": 461,\n        \"sha256\": \"31ffa4dc98edcde48b69563dcf7e190c9d9d8efa7c8bfc7d98135f4f2affa388\"\n      },\n      \"tooling\": {\n        \"fileCount\": 186,\n        \"sha256\": \"ffc415c6db860dc705f965e578a2073013f4e8d6e413d6d8b20f0a0d78d68b7d\"\n      },\n      \"configuration\": {\n        \"fileCount\": 9,\n        \"sha256\": \"31e7e57fbdf15617f53fce21102f7b67320133764fa93791f06a9d0f5f131968\"\n      }\n    }\n  },\n  \"vitestSummary\": null,\n  \"reporterError\": \"Vitest JSON report was not produced.\",\n  \"artifacts\": {\n    \"rawLog\": {\n      \"path\": \"/workspace/scratch/d3afbe35c2f7/engine-recovery-verification/merged-presentation/vitest-raw.log\",\n      \"exists\": true,\n      \"bytes\": 60,\n      \"sha256\": \"cc7e231434002bdb4b9b4f5732c26f9e6938e37aa93825006d71b55911e7bf44\"\n    },\n    \"vitestJSON\": {\n      \"path\": \"/workspace/scratch/d3afbe35c2f7/engine-recovery-verification/merged-presentation/vitest.json\",\n      \"exists\": false\n    },\n    \"beforeIdentity\": {\n      \"path\": \"/workspace/scratch/d3afbe35c2f7/engine-recovery-verification/merged-presentation/input-identity-before.json\",\n      \"exists\": true,\n      \"bytes\": 246513,\n      \"sha256\": \"92a56b766db3c8a006cb8a99c73f1a185324b670b1b36ed5c6558d2114a24bab\"\n    },\n    \"afterIdentity\": {\n      \"path\": \"/workspace/scratch/d3afbe35c2f7/engine-recovery-verification/merged-presentation/input-identity-after.json\",\n      \"exists\": true,\n      \"bytes\": 246513,\n      \"sha256\": \"b001bd1b50c0fcd5ad61d7ccb789727d60b7987ecd0b192a2e056cfd281b6aa3\"\n    },\n    \"evidenceRunner\": {\n      \"path\": \"/workspace/scratch/d3afbe35c2f7/engine-recovery-verification/merged-presentation/run_evidence.py\",\n      \"exists\": true,\n      \"bytes\": 9620,\n      \"sha256\": \"66e757234f4a8bd3bb4216b7032fe2fb334678f1134e567cf1da410908779166\"\n    }\n  }\n}\n"
+    },
+    "presentationTimeoutRawLog": {
+      "kind": "embedded-utf8",
+      "originalFilename": "vitest-raw.log",
+      "mediaType": "text/plain",
+      "bytes": 60,
+      "sha256": "cc7e231434002bdb4b9b4f5732c26f9e6938e37aa93825006d71b55911e7bf44",
+      "text": "\n RUN  v3.2.4 /workspace/scratch/d3afbe35c2f7/Experiment-3\n\n"
+    },
+    "publishedGPReceipt": {
+      "kind": "embedded-utf8",
+      "originalFilename": "receipt.json",
+      "mediaType": "application/json",
+      "bytes": 1349,
+      "sha256": "d35776db2f2ff291338b8410847b83433029fb0ce7fb3af2a09e9abd3ce9a161",
+      "text": "{\n  \"schemaVersion\": 1,\n  \"status\": \"passed\",\n  \"headBefore\": \"14270a4058ec547102b4aedb5430faac9c52fc7c\",\n  \"headAfter\": \"14270a4058ec547102b4aedb5430faac9c52fc7c\",\n  \"command\": [\n    \"/usr/bin/timeout\",\n    \"--signal=KILL\",\n    \"180s\",\n    \"/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node\",\n    \"--experimental-transform-types\",\n    \"/workspace/scratch/d3afbe35c2f7/engine-recovery-verification/gp-grid-node.mts\"\n  ],\n  \"cwd\": \"/workspace/scratch/d3afbe35c2f7/Experiment-3\",\n  \"processBoundSeconds\": 180,\n  \"processExitCode\": 0,\n  \"startedUTC\": \"2026-10-19T17:07:32.402123+00:00\",\n  \"endedUTC\": \"2026-10-19T17:07:51.133583+00:00\",\n  \"processElapsedSeconds\": 18.73142333800024,\n  \"sourceBeforeSHA256\": \"68059accef78c3f71fa7da423efd92c1d2be861a70a6c98b4be6aa2b55866dbe\",\n  \"sourceAfterSHA256\": \"68059accef78c3f71fa7da423efd92c1d2be861a70a6c98b4be6aa2b55866dbe\",\n  \"sourceFiles\": 728,\n  \"sourceUnchanged\": true,\n  \"changedSourcePaths\": [],\n  \"scriptSHA256\": \"6fdea0e7a93922b641c38863c67eac24af9ebcc0892e655051f607adfce702a9\",\n  \"rawLogSHA256\": \"4380bafb0e4615f41f475067f6b3110f5c79bb3b38057ae2d5b082a51fe93168\",\n  \"resultPresent\": true,\n  \"resultStatus\": \"passed\",\n  \"scope\": \"Direct-Node production Poggio Alto grid placement and one first tick at published 14270a4; separate execution from the earlier Vitest process bounds.\"\n}\n"
+    },
+    "publishedGPResult": {
+      "kind": "embedded-utf8",
+      "originalFilename": "result.json",
+      "mediaType": "application/json",
+      "bytes": 1250,
+      "sha256": "e1917e06f39865329a498ee08c09b1c21359a0d555b73f82c0a328ce30e7f40c",
+      "text": "{\n  \"schemaVersion\": 1,\n  \"scenario\": \"poggio-alto: places a full field in qualifying order with physical clearance\",\n  \"equivalentTest\": \"Experiment-3/tests/gp-grid.test.ts\",\n  \"runtime\": \"v24.19.0\",\n  \"invocation\": [\n    \"/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node\",\n    \"/workspace/scratch/d3afbe35c2f7/engine-recovery-verification/gp-grid-node.mts\"\n  ],\n  \"status\": \"passed\",\n  \"phases\": [\n    {\n      \"phase\": \"production-imports-start\",\n      \"elapsedMs\": 0.04629099999999653\n    },\n    {\n      \"phase\": \"production-imports-complete\",\n      \"elapsedMs\": 12471.542529999999\n    },\n    {\n      \"phase\": \"simulation-constructed\",\n      \"elapsedMs\": 14776.470344000001\n    },\n    {\n      \"phase\": \"placement-assertions-passed\",\n      \"elapsedMs\": 14858.464865000002\n    },\n    {\n      \"phase\": \"initial-contact-assertions-passed\",\n      \"elapsedMs\": 14939.260381\n    },\n    {\n      \"phase\": \"first-tick-complete\",\n      \"elapsedMs\": 15270.820584000001\n    },\n    {\n      \"phase\": \"first-tick-assertions-passed\",\n      \"elapsedMs\": 15302.28385\n    }\n  ],\n  \"measured\": {\n    \"cars\": 12,\n    \"tick\": 1,\n    \"sweptContacts\": 0,\n    \"sweepLimitReached\": false,\n    \"sweepIterationLimits\": 0\n  },\n  \"elapsedMs\": 15302.673306\n}\n"
+    },
+    "publishedGPRawLog": {
+      "kind": "embedded-utf8",
+      "originalFilename": "raw.log",
+      "mediaType": "text/plain",
+      "bytes": 695,
+      "sha256": "4380bafb0e4615f41f475067f6b3110f5c79bb3b38057ae2d5b082a51fe93168",
+      "text": "(node:8) ExperimentalWarning: Transform Types is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n{\"phase\":\"production-imports-start\",\"elapsedMs\":0.04629099999999653}\n{\"phase\":\"production-imports-complete\",\"elapsedMs\":12471.542529999999}\n{\"phase\":\"simulation-constructed\",\"elapsedMs\":14776.470344000001}\n{\"phase\":\"placement-assertions-passed\",\"elapsedMs\":14858.464865000002}\n{\"phase\":\"initial-contact-assertions-passed\",\"elapsedMs\":14939.260381}\n{\"phase\":\"first-tick-complete\",\"elapsedMs\":15270.820584000001}\n{\"phase\":\"first-tick-assertions-passed\",\"elapsedMs\":15302.28385}\n{\"status\":\"passed\",\"elapsedMs\":15302.673306}\n"
+    },
+    "initialFormatCheck": {
+      "kind": "receipt-extract-with-embedded-log",
+      "provenance": "Selected fields from the completed initial 30-file formatting receipt; the complete input manifest is intentionally omitted.",
+      "record": {
+        "name": "format",
+        "command": [
+          "node",
+          "node_modules/prettier/bin/prettier.cjs",
+          "--check",
+          "scripts/physics-cost.ts",
+          "src/core/session-identity.ts",
+          "src/main.ts",
+          "src/rendering/bike.ts",
+          "src/rendering/car.ts",
+          "src/rendering/festival-riders.ts",
+          "src/rendering/frame-state.ts",
+          "src/rendering/live-frame-clock.ts",
+          "src/rendering/renderer.ts",
+          "src/rendering/snapshot-interpolation.ts",
+          "src/rendering/supplied-player.ts",
+          "src/rendering/vehicle-bodies/index.ts",
+          "src/rendering/wheel-pose.ts",
+          "src/session/free-roam.ts",
+          "src/simulation/collision.ts",
+          "src/simulation/obb.ts",
+          "src/simulation/open-world/session.ts",
+          "src/simulation/rigid.ts",
+          "src/simulation/vehicle.ts",
+          "src/simulation/wheel-momentum.ts",
+          "src/simulation/world.ts",
+          "tests/bike-animation.test.ts",
+          "tests/collision-continuous.test.ts",
+          "tests/festival-car-switch.test.ts",
+          "tests/gp-grid.test.ts",
+          "tests/live-frame-clock.test.ts",
+          "tests/session-identity.test.ts",
+          "tests/snapshot-interpolation.test.ts",
+          "tests/wheel-momentum.test.ts",
+          "tests/wheel-pose.test.ts"
+        ],
+        "startedAtUTC": "2026-10-19T17:09:02.493060+00:00",
+        "completedAtUTC": "2026-10-19T17:10:29.460702+00:00",
+        "wallSeconds": 86.9676114140002,
+        "exitCode": 1,
+        "wrapperTimedOut": false,
+        "wrapperMaxWallSeconds": 180,
+        "sourceStable": true
+      },
+      "log": {
+        "kind": "embedded-utf8",
+        "originalFilename": "format.log",
+        "mediaType": "text/plain",
+        "bytes": 139,
+        "sha256": "dc4c1163b712790c967f6d19f7fa8e35b43934638a7fcd0c99977e5c0e1eaeec",
+        "text": "Checking formatting...\n[warn] src/session/free-roam.ts\n[warn] Code style issues found in the above file. Run Prettier with --write to fix.\n"
+      }
+    },
+    "completed-format": {
+      "kind": "receipt-extract-with-embedded-log",
+      "provenance": "Exact parsed completed-run object copied from the active final-integration receipt. Only this completed step and its closed log are retained; the active enclosing receipt and build log are not hashed or embedded.",
+      "commit": "5ba247c25bbe3ec793655517e5fa4e39162b40e9",
+      "sourceHashEncoding": "SHA-256 of all files below src sorted globally by repository-relative POSIX path strings; each UTF-8 path + NUL + raw file bytes + NUL",
+      "record": {
+        "name": "format",
+        "command": [
+          "node",
+          "node_modules/prettier/bin/prettier.cjs",
+          "--check",
+          "src/session/free-roam.ts"
+        ],
+        "startedAtUTC": "2026-10-19T17:14:40.870990+00:00",
+        "completedAtUTC": "2026-10-19T17:14:48.116017+00:00",
+        "wallSeconds": 7.245104215999163,
+        "exitCode": 0,
+        "wrapperTimedOut": false,
+        "wrapperMaxWallSeconds": 180,
+        "sourceBefore": {
+          "fullSourceSHA256": "7cef8b8826ddb90b151e73653198456b25e7032a62f55accb0301fa06c176eb7",
+          "sourceFileCount": 728
+        },
+        "sourceAfter": {
+          "fullSourceSHA256": "7cef8b8826ddb90b151e73653198456b25e7032a62f55accb0301fa06c176eb7",
+          "sourceFileCount": 728
+        },
+        "sourceStable": true,
+        "log": "format.log",
+        "logSHA256": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20",
+        "output": "Checking formatting...\nAll matched files use Prettier code style!\n"
+      },
+      "log": {
+        "kind": "embedded-utf8",
+        "originalFilename": "format.log",
+        "mediaType": "text/plain",
+        "bytes": 66,
+        "sha256": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20",
+        "text": "Checking formatting...\nAll matched files use Prettier code style!\n"
+      }
+    },
+    "completed-lint": {
+      "kind": "receipt-extract-with-embedded-log",
+      "provenance": "Exact parsed completed-run object copied from the active final-integration receipt. Only this completed step and its closed log are retained; the active enclosing receipt and build log are not hashed or embedded.",
+      "commit": "5ba247c25bbe3ec793655517e5fa4e39162b40e9",
+      "sourceHashEncoding": "SHA-256 of all files below src sorted globally by repository-relative POSIX path strings; each UTF-8 path + NUL + raw file bytes + NUL",
+      "record": {
+        "name": "lint",
+        "command": [
+          "node",
+          "node_modules/eslint/bin/eslint.js",
+          "scripts/physics-cost.ts",
+          "src/core/session-identity.ts",
+          "src/main.ts",
+          "src/rendering/bike.ts",
+          "src/rendering/car.ts",
+          "src/rendering/festival-riders.ts",
+          "src/rendering/frame-state.ts",
+          "src/rendering/live-frame-clock.ts",
+          "src/rendering/renderer.ts",
+          "src/rendering/snapshot-interpolation.ts",
+          "src/rendering/supplied-player.ts",
+          "src/rendering/vehicle-bodies/index.ts",
+          "src/rendering/wheel-pose.ts",
+          "src/session/free-roam.ts",
+          "src/simulation/collision.ts",
+          "src/simulation/obb.ts",
+          "src/simulation/open-world/session.ts",
+          "src/simulation/rigid.ts",
+          "src/simulation/vehicle.ts",
+          "src/simulation/wheel-momentum.ts",
+          "src/simulation/world.ts",
+          "tests/bike-animation.test.ts",
+          "tests/collision-continuous.test.ts",
+          "tests/festival-car-switch.test.ts",
+          "tests/gp-grid.test.ts",
+          "tests/live-frame-clock.test.ts",
+          "tests/session-identity.test.ts",
+          "tests/snapshot-interpolation.test.ts",
+          "tests/wheel-momentum.test.ts",
+          "tests/wheel-pose.test.ts"
+        ],
+        "startedAtUTC": "2026-10-19T17:14:49.179039+00:00",
+        "completedAtUTC": "2026-10-19T17:15:21.664599+00:00",
+        "wallSeconds": 32.485571237999466,
+        "exitCode": 0,
+        "wrapperTimedOut": false,
+        "wrapperMaxWallSeconds": 240,
+        "sourceBefore": {
+          "fullSourceSHA256": "7cef8b8826ddb90b151e73653198456b25e7032a62f55accb0301fa06c176eb7",
+          "sourceFileCount": 728
+        },
+        "sourceAfter": {
+          "fullSourceSHA256": "7cef8b8826ddb90b151e73653198456b25e7032a62f55accb0301fa06c176eb7",
+          "sourceFileCount": 728
+        },
+        "sourceStable": true,
+        "log": "lint.log",
+        "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "output": ""
+      },
+      "log": {
+        "kind": "embedded-utf8",
+        "originalFilename": "lint.log",
+        "mediaType": "text/plain",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "text": ""
+      }
+    },
+    "completed-content": {
+      "kind": "receipt-extract-with-embedded-log",
+      "provenance": "Exact parsed completed-run object copied from the active final-integration receipt. Only this completed step and its closed log are retained; the active enclosing receipt and build log are not hashed or embedded.",
+      "commit": "5ba247c25bbe3ec793655517e5fa4e39162b40e9",
+      "sourceHashEncoding": "SHA-256 of all files below src sorted globally by repository-relative POSIX path strings; each UTF-8 path + NUL + raw file bytes + NUL",
+      "record": {
+        "name": "content",
+        "command": ["npm", "run", "validate:content"],
+        "startedAtUTC": "2026-10-19T17:15:22.521822+00:00",
+        "completedAtUTC": "2026-10-19T17:16:09.683807+00:00",
+        "wallSeconds": 47.16198432300007,
+        "exitCode": 0,
+        "wrapperTimedOut": false,
+        "wrapperMaxWallSeconds": 240,
+        "sourceBefore": {
+          "fullSourceSHA256": "7cef8b8826ddb90b151e73653198456b25e7032a62f55accb0301fa06c176eb7",
+          "sourceFileCount": 728
+        },
+        "sourceAfter": {
+          "fullSourceSHA256": "7cef8b8826ddb90b151e73653198456b25e7032a62f55accb0301fa06c176eb7",
+          "sourceFileCount": 728
+        },
+        "sourceStable": true,
+        "log": "content.log",
+        "logSHA256": "b405425b01dcac903453dfdd4760155bbecba7ed236e8fba5debb1c16505a502",
+        "output": "npm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> apex-formula-laboratory@0.1.0 validate:content\n> node --experimental-transform-types scripts/validate-content.ts\n\n(node:32322) ExperimentalWarning: Transform Types is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\nContent valid\n"
+      },
+      "log": {
+        "kind": "embedded-utf8",
+        "originalFilename": "content.log",
+        "mediaType": "text/plain",
+        "bytes": 408,
+        "sha256": "b405425b01dcac903453dfdd4760155bbecba7ed236e8fba5debb1c16505a502",
+        "text": "npm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> apex-formula-laboratory@0.1.0 validate:content\n> node --experimental-transform-types scripts/validate-content.ts\n\n(node:32322) ExperimentalWarning: Transform Types is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\nContent valid\n"
+      }
+    },
+    "finalBuildReceipt": {
+      "kind": "embedded-utf8",
+      "originalFilename": "build-completion-receipt.json",
+      "mediaType": "application/json",
+      "bytes": 9114,
+      "sha256": "359c96f82afc6054e4fb903cd907ad758924a9aab49606aca21615560c41f3ec",
+      "text": "{\n  \"schemaVersion\": 1,\n  \"status\": \"passed-observed-source-stability-exit\",\n  \"scope\": \"Production build of the published engine source, with observed source-stability guard exit; not a full test-suite or browser acceptance result.\",\n  \"commit\": \"5ba247c25bbe3ec793655517e5fa4e39162b40e9\",\n  \"command\": [\n    \"node\",\n    \"--experimental-transform-types\",\n    \"scripts/source-stability.ts\",\n    \"--\",\n    \"npm\",\n    \"run\",\n    \"build\"\n  ],\n  \"startedAtUTC\": \"2026-10-19T17:16:10+00:00\",\n  \"startTimeProvenance\": \"Original runner announcement as reported by root, retained at second precision.\",\n  \"exitObservedAtUTC\": \"2026-10-19T17:35:48.370916+00:00\",\n  \"elapsedSecondsFromReportedStart\": 1178.370916,\n  \"leaderIdentity\": {\n    \"pid\": 32521,\n    \"processGroup\": 32521,\n    \"session\": 32521,\n    \"startTimeClockTicks\": 874000,\n    \"argv\": [\n      \"node\",\n      \"--experimental-transform-types\",\n      \"scripts/source-stability.ts\",\n      \"--\",\n      \"npm\",\n      \"run\",\n      \"build\"\n    ],\n    \"verifiedAtMonitorStart\": true\n  },\n  \"outerWrapper\": {\n    \"path\": \"/tmp/motobound-final-gate.py\",\n    \"configuredBuildLimitSeconds\": 600,\n    \"outcome\": \"Original exec transport was lost and the Python wrapper was absent; its build exit capture and deadline enforcement were lost.\",\n    \"absenceObservedAtUTC\": \"2026-10-19T17:26:41.032809+00:00\",\n    \"buildExitCodeCapturedByOuterWrapper\": null,\n    \"originalReceiptStatus\": \"in_progress\"\n  },\n  \"replacementSupervision\": {\n    \"startedAtUTC\": \"2026-10-19T17:31:46.873338+00:00\",\n    \"initialRequestedObservationSeconds\": 120,\n    \"extensionAuthorizedByRoot\": true,\n    \"extensionReason\": \"Root authorized one extension to the absolute 1200-second build cap after active Vite CPU/I/O and phase progress. The log reached 712 transformed modules at 17:29:06 UTC. This changes no test or assertion deadline.\",\n    \"absoluteBuildLimitSeconds\": 1200,\n    \"absoluteDeadlineUTC\": \"2026-10-19T17:36:10+00:00\",\n    \"detachedMonitor\": true,\n    \"termination\": null\n  },\n  \"observedCommandExit\": {\n    \"pid\": 32521,\n    \"state\": \"Z\",\n    \"rawWaitStatus\": 0,\n    \"exitCode\": 0,\n    \"evidence\": \"Read exit_code from /proc/PID/stat only while the identity-matched source-stability leader was a zombie. No exit value was inferred from a running process or a missing parent.\"\n  },\n  \"preMonitorProgress\": [\n    {\n      \"utc\": \"2026-10-19T17:25:41.432240+00:00\",\n      \"observation\": \"Owned shell tsc --noEmit && vite build had advanced to Vite and esbuild. Vite CPU 48.75 s; RSS 385384448 bytes.\"\n    },\n    {\n      \"utc\": \"2026-10-19T17:25:43.450204+00:00\",\n      \"observation\": \"Vite CPU rose to 51.06 s and esbuild CPU to 17.16 s; read/write counters rose. Reported VmSwap was zero.\"\n    },\n    {\n      \"utc\": \"2026-10-19T17:29:06.918488+00:00\",\n      \"observation\": \"Raw build log had advanced to 712 modules transformed; verified leader remained live.\"\n    }\n  ],\n  \"firstMonitorSample\": {\n    \"utc\": \"2026-10-19T17:31:46.822451+00:00\",\n    \"logBytes\": 791,\n    \"members\": [\n      {\n        \"pid\": 32521,\n        \"ppid\": 1,\n        \"state\": \"S\",\n        \"startTimeClockTicks\": 874000,\n        \"cpuSeconds\": 16.12,\n        \"rssBytes\": 159592448,\n        \"readChars\": 469680061,\n        \"writeChars\": 188\n      },\n      {\n        \"pid\": 32680,\n        \"ppid\": 32521,\n        \"state\": \"S\",\n        \"startTimeClockTicks\": 876014,\n        \"cpuSeconds\": 14.04,\n        \"rssBytes\": 46485504,\n        \"readChars\": 42255591,\n        \"writeChars\": 3926\n      },\n      {\n        \"pid\": 32711,\n        \"ppid\": 32680,\n        \"state\": \"S\",\n        \"startTimeClockTicks\": 876364,\n        \"cpuSeconds\": 0.05,\n        \"rssBytes\": 655360,\n        \"readChars\": 42889186,\n        \"writeChars\": 18\n      },\n      {\n        \"pid\": 33778,\n        \"ppid\": 32711,\n        \"state\": \"R\",\n        \"startTimeClockTicks\": 926926,\n        \"cpuSeconds\": 604.63,\n        \"rssBytes\": 2146549760,\n        \"readChars\": 434644780,\n        \"writeChars\": 341736943\n      },\n      {\n        \"pid\": 33801,\n        \"ppid\": 33778,\n        \"state\": \"S\",\n        \"startTimeClockTicks\": 927257,\n        \"cpuSeconds\": 97.86,\n        \"rssBytes\": 279896064,\n        \"readChars\": 32448478,\n        \"writeChars\": 69671902\n      }\n    ]\n  },\n  \"logProgressSamples\": [\n    {\n      \"utc\": \"2026-10-19T17:35:02.455651+00:00\",\n      \"logBytes\": 814,\n      \"members\": [\n        {\n          \"pid\": 32521,\n          \"ppid\": 1,\n          \"state\": \"S\",\n          \"startTimeClockTicks\": 874000,\n          \"cpuSeconds\": 16.12,\n          \"rssBytes\": 159592448,\n          \"readChars\": 469680061,\n          \"writeChars\": 188\n        },\n        {\n          \"pid\": 32680,\n          \"ppid\": 32521,\n          \"state\": \"S\",\n          \"startTimeClockTicks\": 876014,\n          \"cpuSeconds\": 17.44,\n          \"rssBytes\": 46485504,\n          \"readChars\": 42255767,\n          \"writeChars\": 4102\n        },\n        {\n          \"pid\": 32711,\n          \"ppid\": 32680,\n          \"state\": \"S\",\n          \"startTimeClockTicks\": 876364,\n          \"cpuSeconds\": 0.05,\n          \"rssBytes\": 655360,\n          \"readChars\": 42889186,\n          \"writeChars\": 18\n        },\n        {\n          \"pid\": 33778,\n          \"ppid\": 32711,\n          \"state\": \"S\",\n          \"startTimeClockTicks\": 926926,\n          \"cpuSeconds\": 820.26,\n          \"rssBytes\": 968286208,\n          \"readChars\": 434647344,\n          \"writeChars\": 379274990\n        },\n        {\n          \"pid\": 33801,\n          \"ppid\": 33778,\n          \"state\": \"S\",\n          \"startTimeClockTicks\": 927257,\n          \"cpuSeconds\": 103.02,\n          \"rssBytes\": 27160576,\n          \"readChars\": 32448530,\n          \"writeChars\": 69672001\n        }\n      ]\n    },\n    {\n      \"utc\": \"2026-10-19T17:35:12.183278+00:00\",\n      \"logBytes\": 2643,\n      \"members\": [\n        {\n          \"pid\": 32521,\n          \"ppid\": 1,\n          \"state\": \"S\",\n          \"startTimeClockTicks\": 874000,\n          \"cpuSeconds\": 16.12,\n          \"rssBytes\": 159592448,\n          \"readChars\": 469680061,\n          \"writeChars\": 188\n        },\n        {\n          \"pid\": 32680,\n          \"ppid\": 32521,\n          \"state\": \"S\",\n          \"startTimeClockTicks\": 876014,\n          \"cpuSeconds\": 17.44,\n          \"rssBytes\": 46485504,\n          \"readChars\": 42255775,\n          \"writeChars\": 4110\n        },\n        {\n          \"pid\": 32711,\n          \"ppid\": 32680,\n          \"state\": \"S\",\n          \"startTimeClockTicks\": 876364,\n          \"cpuSeconds\": 0.05,\n          \"rssBytes\": 655360,\n          \"readChars\": 42889186,\n          \"writeChars\": 18\n        },\n        {\n          \"pid\": 33778,\n          \"ppid\": 32711,\n          \"state\": \"R\",\n          \"startTimeClockTicks\": 926926,\n          \"cpuSeconds\": 830.15,\n          \"rssBytes\": 1006059520,\n          \"readChars\": 434649633,\n          \"writeChars\": 379375988\n        },\n        {\n          \"pid\": 33801,\n          \"ppid\": 33778,\n          \"state\": \"Z\",\n          \"startTimeClockTicks\": 927257,\n          \"cpuSeconds\": 103.78,\n          \"rssBytes\": 0,\n          \"readChars\": 32448634,\n          \"writeChars\": 69672298,\n          \"observableWaitStatus\": 0,\n          \"observableExitCode\": 0\n        }\n      ]\n    }\n  ],\n  \"lastMonitorSample\": {\n    \"utc\": \"2026-10-19T17:35:48.370916+00:00\",\n    \"logBytes\": 2643,\n    \"members\": [\n      {\n        \"pid\": 32521,\n        \"ppid\": 1,\n        \"state\": \"Z\",\n        \"startTimeClockTicks\": 874000,\n        \"cpuSeconds\": 51.43,\n        \"rssBytes\": 0,\n        \"readChars\": 1459118093,\n        \"writeChars\": 379380548,\n        \"observableWaitStatus\": 0,\n        \"observableExitCode\": 0\n      }\n    ]\n  },\n  \"precedingGateStages\": [\n    {\n      \"name\": \"format\",\n      \"exitCode\": 0,\n      \"sourceStable\": true\n    },\n    {\n      \"name\": \"lint\",\n      \"exitCode\": 0,\n      \"sourceStable\": true\n    },\n    {\n      \"name\": \"content\",\n      \"exitCode\": 0,\n      \"sourceStable\": true\n    }\n  ],\n  \"sourceBefore\": {\n    \"fullSourceSHA256\": \"7cef8b8826ddb90b151e73653198456b25e7032a62f55accb0301fa06c176eb7\",\n    \"sourceFileCount\": 728\n  },\n  \"sourceAfter\": {\n    \"fullSourceSHA256\": \"7cef8b8826ddb90b151e73653198456b25e7032a62f55accb0301fa06c176eb7\",\n    \"sourceFileCount\": 728\n  },\n  \"sourceStable\": true,\n  \"sourceHashEncoding\": \"Sorted repository-relative POSIX paths below src; UTF-8 path + NUL + raw file bytes + NUL for each file.\",\n  \"finalLog\": {\n    \"file\": \"build-completion.log\",\n    \"bytes\": 2643,\n    \"sha256\": \"7156be1a0986440e1ee3a39f65a709113de6a50642df76d8df09e92314d16779\",\n    \"viteCompletionLine\": \"\\u2713 built in 10m 6s\"\n  },\n  \"buildIdentityBeforeMonitoring\": null,\n  \"buildIdentityAfter\": {\n    \"file\": \"build-completion-BUILD_IDENTITY.json\",\n    \"sha256\": \"611611b587b2006d2bceb02b04cf5e11f3ecef384337f585d72a667c3668bf54\",\n    \"mtimeUTC\": \"2026-10-19T17:34:52.912345+00:00\",\n    \"contents\": {\n      \"version\": 1,\n      \"commit\": \"5ba247c25bbe3ec793655517e5fa4e39162b40e9\",\n      \"fingerprint\": \"02db92eb9d3e79035d8205d78882f83425e07e93c48e96f56b71d8f3aa5fa6d1\"\n    }\n  },\n  \"fullMonitorHistoryScope\": \"Full per-process sample history remains in scratch build-monitor.json and is omitted from this compact receipt.\"\n}\n"
+    },
+    "finalBuildRawLog": {
+      "kind": "embedded-utf8",
+      "originalFilename": "build-completion.log",
+      "mediaType": "text/plain",
+      "bytes": 2643,
+      "sha256": "7156be1a0986440e1ee3a39f65a709113de6a50642df76d8df09e92314d16779",
+      "text": "(node:32521) ExperimentalWarning: Transform Types is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> apex-formula-laboratory@0.1.0 prebuild\n> npm run generate:player-lods\n\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> apex-formula-laboratory@0.1.0 generate:player-lods\n> node --experimental-strip-types scripts/build-player-lods.mjs\n\nPlayer LODs already match the pinned derivative.\n\n> apex-formula-laboratory@0.1.0 build\n> tsc --noEmit && vite build\n\nvite v7.1.7 building for production...\ntransforming...\n\u2713 712 modules transformed.\nrendering chunks...\ncomputing gzip size...\ndist/BUILD_IDENTITY.json                                      0.16 kB \u2502 gzip:     0.14 kB\ndist/index.html                                               0.96 kB \u2502 gzip:     0.54 kB\ndist/assets/saira-vietnamese-wdth-normal-Dabr_kLY.woff2      26.80 kB\ndist/assets/saira-vietnamese-wdth-italic-52KPIsOu.woff2      29.93 kB\ndist/assets/saira-latin-ext-wdth-normal-3Ba4ICIc.woff2       67.19 kB\ndist/assets/saira-latin-ext-wdth-italic-CqU2kHDy.woff2       77.37 kB\ndist/assets/saira-latin-wdth-normal-X2eA-qfZ.woff2           98.91 kB\ndist/assets/saira-latin-wdth-italic-wJlFlYW8.woff2          116.24 kB\ndist/assets/a61-rival-far.glb-ClvD6mFa.gz                   161.38 kB\ndist/assets/apx01-driver.glb-CNKxI3ag.gz                    209.40 kB\ndist/assets/a61-rival-mid.glb-CAutdD2Z.gz                   397.76 kB\ndist/assets/apx01-shell.glb-B2AhAkfx.gz                   1,142.77 kB\ndist/assets/a61-rival-near.glb-DNe8_BZp.gz                1,219.90 kB\ndist/assets/free-roam-CaL1vEix.css                           18.72 kB \u2502 gzip:     4.72 kB\ndist/assets/index-DsWC2xfY.css                               74.66 kB \u2502 gzip:    17.14 kB\ndist/assets/three-B7n6Cpfp.js                               617.63 kB \u2502 gzip:   158.93 kB \u2502 map: 2,889.65 kB\ndist/assets/free-roam-DumJ0zd6.js                         1,274.21 kB \u2502 gzip:   337.42 kB \u2502 map: 1,045.06 kB\ndist/assets/index-CIyOPRap.js                            15,368.63 kB \u2502 gzip: 4,609.48 kB \u2502 map: 8,991.31 kB\n\n(!) Some chunks are larger than 500 kB after minification. Consider:\n- Using dynamic import() to code-split the application\n- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks\n- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.\n\u2713 built in 10m 6s\n"
+    },
+    "finalBuildIdentity": {
+      "kind": "embedded-utf8",
+      "originalFilename": "build-completion-BUILD_IDENTITY.json",
+      "mediaType": "application/json",
+      "bytes": 160,
+      "sha256": "611611b587b2006d2bceb02b04cf5e11f3ecef384337f585d72a667c3668bf54",
+      "text": "{\n  \"version\": 1,\n  \"commit\": \"5ba247c25bbe3ec793655517e5fa4e39162b40e9\",\n  \"fingerprint\": \"02db92eb9d3e79035d8205d78882f83425e07e93c48e96f56b71d8f3aa5fa6d1\"\n}\n"
+    },
+    "browserReceipt": {
+      "kind": "embedded-utf8",
+      "originalFilename": "receipt.json",
+      "mediaType": "application/json",
+      "bytes": 1509,
+      "sha256": "83beb7ab4b50e21af2f2efb5208ca5d51aa8fa8ea7c9d0c692b0c3c149b71028",
+      "text": "{\n  \"schemaVersion\": 1,\n  \"status\": \"failed\",\n  \"headBefore\": \"5ba247c25bbe3ec793655517e5fa4e39162b40e9\",\n  \"headAfter\": \"5ba247c25bbe3ec793655517e5fa4e39162b40e9\",\n  \"startedUTC\": \"2026-10-19T17:37:43.031840+00:00\",\n  \"endedUTC\": \"2026-10-19T17:38:07.807109+00:00\",\n  \"elapsedSeconds\": 24.774713128001167,\n  \"outerProcessBoundSeconds\": 420,\n  \"processExitCode\": 1,\n  \"interruptionSignals\": [],\n  \"sourceBeforeSHA256\": \"9d90bbbfbfeaa0fd686671e9e6ac7f531a0246d9da28d2f7c9ffb5eb983df852\",\n  \"sourceAfterSHA256\": \"9d90bbbfbfeaa0fd686671e9e6ac7f531a0246d9da28d2f7c9ffb5eb983df852\",\n  \"inputsBeforeSHA256\": \"6b2b7803976ad2e77a81b5fd1a4a1b6356a88d6869deee7284af03444b0aaf23\",\n  \"inputsAfterSHA256\": \"6b2b7803976ad2e77a81b5fd1a4a1b6356a88d6869deee7284af03444b0aaf23\",\n  \"buildBeforeSHA256\": \"b51f23cfea237de2d0293f54cff9aa8b22e7c92b85cd9f545a19b2214696c4d0\",\n  \"buildAfterSHA256\": \"b51f23cfea237de2d0293f54cff9aa8b22e7c92b85cd9f545a19b2214696c4d0\",\n  \"sourceTestConfigAndBuildUnchanged\": true,\n  \"completedTests\": [],\n  \"lastProgress\": {\n    \"version\": 1,\n    \"event\": \"failed\",\n    \"timestamp\": \"2026-10-19T17:38:06.369Z\",\n    \"active\": [],\n    \"completed\": []\n  },\n  \"backendProofPresent\": false,\n  \"backendProofSHA256\": null,\n  \"rawLogSHA256\": \"8ae284cbc18ac7aacb91586841fef583995ffe0118586fd03dd0a42ddf809579\",\n  \"ownedProcessCleanup\": [],\n  \"remainingOwnedDescendants\": [],\n  \"rawReaderErrors\": [],\n  \"scope\": \"One original actual-application manual steering/mirror test; no assertions or deadlines changed.\"\n}\n"
+    },
+    "browserRawLog": {
+      "kind": "embedded-utf8",
+      "originalFilename": "raw.log",
+      "mediaType": "text/plain",
+      "bytes": 5197,
+      "sha256": "8ae284cbc18ac7aacb91586841fef583995ffe0118586fd03dd0a42ddf809579",
+      "text": "[WebServer] npm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n[WebServer] (node:36110) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)\nError: browserType.launch: Target page, context or browser has been closed\nBrowser logs:\n\n<launching> /tmp/motobound-browsers/chromium-1193/chrome-linux/chrome --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phishing-detection --disable-component-extensions-with-background-pages --disable-component-update --no-default-browser-check --disable-default-apps --disable-dev-shm-usage --disable-extensions --disable-features=AcceptCHFrame,AvoidUnnecessaryBeforeUnloadCheckSync,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,Translate,AutoDeElevate --allow-pre-commit-input --disable-hang-monitor --disable-ipc-flooding-protection --disable-popup-blocking --disable-prompt-on-repost --disable-renderer-backgrounding --force-color-profile=srgb --metrics-recording-only --no-first-run --password-store=basic --use-mock-keychain --no-service-autorun --export-tagged-pdf --disable-search-engine-choice-screen --unsafely-disable-devtools-self-xss-warnings --edge-skip-compat-layer-relaunch --enable-automation --headless --hide-scrollbars --mute-audio --blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4 --no-sandbox --use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --user-data-dir=/workspace/scratch/d3afbe35c2f7/engine-recovery-verification/browser-manual-5ba247c/tmp/playwright_chromiumdev_profile-GuRR5d --remote-debugging-pipe --no-startup-window\n<launched> pid=36138\n[pid=36138][err] [1020/013806.089914:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq: No such file or directory (2)\n[pid=36138][err] [1020/013806.090940:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq: No such file or directory (2)\nCall log:\n  - <launching> /tmp/motobound-browsers/chromium-1193/chrome-linux/chrome --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phishing-detection --disable-component-extensions-with-background-pages --disable-component-update --no-default-browser-check --disable-default-apps --disable-dev-shm-usage --disable-extensions --disable-features=AcceptCHFrame,AvoidUnnecessaryBeforeUnloadCheckSync,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,Translate,AutoDeElevate --allow-pre-commit-input --disable-hang-monitor --disable-ipc-flooding-protection --disable-popup-blocking --disable-prompt-on-repost --disable-renderer-backgrounding --force-color-profile=srgb --metrics-recording-only --no-first-run --password-store=basic --use-mock-keychain --no-service-autorun --export-tagged-pdf --disable-search-engine-choice-screen --unsafely-disable-devtools-self-xss-warnings --edge-skip-compat-layer-relaunch --enable-automation --headless --hide-scrollbars --mute-audio --blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4 --no-sandbox --use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --user-data-dir=/workspace/scratch/d3afbe35c2f7/engine-recovery-verification/browser-manual-5ba247c/tmp/playwright_chromiumdev_profile-GuRR5d --remote-debugging-pipe --no-startup-window\n  - <launched> pid=36138\n  - [pid=36138][err] [1020/013806.089914:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq: No such file or directory (2)\n  - [pid=36138][err] [1020/013806.090940:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq: No such file or directory (2)\n  - [pid=36138] <gracefully close start>\n  - [pid=36138] <kill>\n  - [pid=36138] <will force kill>\n  - [pid=36138] <process did exit: exitCode=null, signal=SIGTRAP>\n  - [pid=36138] starting temporary directories cleanup\n  - [pid=36138] finished temporary directories cleanup\n  - [pid=36138] <gracefully close end>\n\n\n   at ../scripts/browser-backend-setup.ts:11\n\n   9 |   const project = config.projects[0];\n  10 |   if (!project) throw new Error('No browser project configured');\n> 11 |   const browser = await chromium.launch({\n     |                                  ^\n  12 |     ...project.use.launchOptions,\n  13 |     headless: project.use.headless,\n  14 |   });\n    at verifyBrowserBackend (/workspace/scratch/d3afbe35c2f7/Experiment-3/scripts/browser-backend-setup.ts:11:34)\n\n"
+    },
+    "browserCommand": {
+      "kind": "embedded-utf8",
+      "originalFilename": "command.json",
+      "mediaType": "application/json",
+      "bytes": 1858,
+      "sha256": "56422b481e176e55f5dab83b0689c1477f1857a823e74213b6de05b8d855a8e5",
+      "text": "{\n  \"argv\": [\n    \"/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node\",\n    \"/workspace/scratch/d3afbe35c2f7/Experiment-3/node_modules/playwright/cli.js\",\n    \"test\",\n    \"--config\",\n    \"/workspace/scratch/d3afbe35c2f7/Experiment-3/playwright.config.ts\",\n    \"e2e/application.spec.ts\",\n    \"--grep\",\n    \"manual right steering and live rear-view passes work without autopilot$\",\n    \"--workers\",\n    \"1\",\n    \"--output\",\n    \"/workspace/scratch/d3afbe35c2f7/engine-recovery-verification/browser-manual-5ba247c/test-results\"\n  ],\n  \"cwd\": \"/workspace/scratch/d3afbe35c2f7/engine-recovery-verification/browser-manual-5ba247c\",\n  \"environmentOverrides\": {\n    \"CI\": \"1\",\n    \"APEX_BROWSER_BACKEND\": \"swiftshader\",\n    \"CHROMIUM_PATH\": \"/tmp/motobound-browsers/chromium-1193/chrome-linux/chrome\",\n    \"PLAYWRIGHT_HTML_OUTPUT_DIR\": \"/workspace/scratch/d3afbe35c2f7/engine-recovery-verification/browser-manual-5ba247c/html-report\",\n    \"TMPDIR\": \"/workspace/scratch/d3afbe35c2f7/engine-recovery-verification/browser-manual-5ba247c/tmp\",\n    \"XDG_CACHE_HOME\": \"/workspace/scratch/d3afbe35c2f7/engine-recovery-verification/browser-manual-5ba247c/xdg-cache\",\n    \"XDG_CONFIG_HOME\": \"/workspace/scratch/d3afbe35c2f7/engine-recovery-verification/browser-manual-5ba247c/xdg-config\",\n    \"XDG_DATA_HOME\": \"/workspace/scratch/d3afbe35c2f7/engine-recovery-verification/browser-manual-5ba247c/xdg-data\",\n    \"XDG_RUNTIME_DIR\": \"/workspace/scratch/d3afbe35c2f7/engine-recovery-verification/browser-manual-5ba247c/xdg-runtime\"\n  },\n  \"executionProfile\": \"require_escalated for loopback sockets\",\n  \"outerProcessBoundSeconds\": 420,\n  \"testTimeoutMs\": 300000,\n  \"expectTimeoutMs\": 60000,\n  \"menuReadyTimeoutMs\": 60000,\n  \"viewport\": {\n    \"width\": 1440,\n    \"height\": 900\n  },\n  \"workers\": 1,\n  \"retries\": 0,\n  \"reporters\": \"original main config unchanged\"\n}\n"
+    },
+    "buildSourceVerificationRawLog": {
+      "kind": "embedded-utf8",
+      "originalFilename": "build-source-verification.log",
+      "mediaType": "text/plain",
+      "bytes": 808,
+      "sha256": "d925ebcffa24a76b940e5af83e6dec89d7fe905756aab7c011f0afac94037f3e",
+      "text": "{\n  \"status\": \"passed\",\n  \"computedFingerprint\": \"02db92eb9d3e79035d8205d78882f83425e07e93c48e96f56b71d8f3aa5fa6d1\",\n  \"sourceFileCount\": 731,\n  \"checks\": {\n    \"headMatches\": true,\n    \"trackedBuildInputsClean\": true,\n    \"recomputedMatchesReleasedBuild\": true,\n    \"emittedVersionMatches\": true,\n    \"emittedCommitMatches\": true,\n    \"emittedFingerprintMatches\": true,\n    \"indexModuleContainsExactIdentity\": true\n  },\n  \"entryModules\": [\n    {\n      \"path\": \"assets/index-CIyOPRap.js\",\n      \"bytes\": 15368630,\n      \"sha256\": \"42fc17533220d36a52d110e1718f96815f5c0a146d28d25d430da6a046b6083d\",\n      \"containsFingerprint\": true,\n      \"containsCommit\": true\n    }\n  ],\n  \"reportPath\": \"/workspace/scratch/d3afbe35c2f7/engine-recovery-verification/browser-manual-5ba247c/build-source-verification.json\"\n}\n"
+    },
+    "buildSourceVerification": {
+      "kind": "receipt-extract",
+      "provenance": "All parsed fields except the large per-file entries array from the completed independent build identity receipt; the omitted entries have the stated count and exact fingerprint algorithm.",
+      "originalFilename": "build-source-verification.json",
+      "originalBytes": 124680,
+      "originalSHA256": "ea05569dcf9c4e492d8fe3ecaf98188513046421db8da66a064293e1c4e32b6d",
+      "omittedEntryCount": 731,
+      "record": {
+        "schemaVersion": 1,
+        "checkedUTC": "2026-10-19T17:37:04.499Z",
+        "status": "passed",
+        "argv": [
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+          "/workspace/scratch/d3afbe35c2f7/engine-recovery-verification/verify-build-5ba247c.mjs",
+          "/workspace/scratch/d3afbe35c2f7/engine-recovery-verification/browser-manual-5ba247c/build-source-verification.json"
+        ],
+        "cwd": "/workspace/scratch/d3afbe35c2f7/Experiment-3",
+        "repository": "/workspace/scratch/d3afbe35c2f7/Experiment-3",
+        "expectedCommit": "5ba247c25bbe3ec793655517e5fa4e39162b40e9",
+        "expectedFingerprint": "02db92eb9d3e79035d8205d78882f83425e07e93c48e96f56b71d8f3aa5fa6d1",
+        "head": "5ba247c25bbe3ec793655517e5fa4e39162b40e9",
+        "dirtyBuildInputStatus": "",
+        "fingerprintAlgorithm": "SHA-256 over JavaScript full-path .sort() order of all src files plus package-lock.json, index.html and vite.config.ts; each record is UTF-8(relative POSIX path + NUL), raw file bytes, NUL",
+        "computedFingerprint": "02db92eb9d3e79035d8205d78882f83425e07e93c48e96f56b71d8f3aa5fa6d1",
+        "sourceFileCount": 731,
+        "emittedIdentity": {
+          "version": 1,
+          "commit": "5ba247c25bbe3ec793655517e5fa4e39162b40e9",
+          "fingerprint": "02db92eb9d3e79035d8205d78882f83425e07e93c48e96f56b71d8f3aa5fa6d1"
+        },
+        "emittedIdentitySHA256": "611611b587b2006d2bceb02b04cf5e11f3ecef384337f585d72a667c3668bf54",
+        "index": {
+          "path": "index.html",
+          "bytes": 963,
+          "sha256": "df4286eaa14db895320e5762eb287441368b81a069689feed5feb80a6a07591d"
+        },
+        "entryModules": [
+          {
+            "path": "assets/index-CIyOPRap.js",
+            "bytes": 15368630,
+            "sha256": "42fc17533220d36a52d110e1718f96815f5c0a146d28d25d430da6a046b6083d",
+            "containsFingerprint": true,
+            "containsCommit": true
+          }
+        ],
+        "checks": {
+          "headMatches": true,
+          "trackedBuildInputsClean": true,
+          "recomputedMatchesReleasedBuild": true,
+          "emittedVersionMatches": true,
+          "emittedCommitMatches": true,
+          "emittedFingerprintMatches": true,
+          "indexModuleContainsExactIdentity": true
+        }
+      }
+    }
+  },
+  "evidenceSchema": {
+    "normalizedOutcomes": "Scope, counts, timing, identity and status fields support review without reparsing every receipt. evidenceRef/receiptRef/resultRef keys resolve to artifacts below.",
+    "embedded-utf8": "text preserves exact original UTF-8 bytes when encoded; bytes and sha256 hash that complete original content. JSON receipts can be parsed directly from text. Original scratch paths inside receipts are provenance, not external dependencies.",
+    "receipt-extract-with-embedded-log": "record is an explicitly identified parsed receipt extract, not claimed to be the original file serialization. log preserves the exact completed UTF-8 output and raw-byte hash.",
+    "repository-file": "Resolve path in the named immutable Git commit and verify the raw-byte hash.",
+    "companion-file": "Publish the named unchanged file beside this JSON; verify the raw-byte hash. No duplicate of its contents is embedded here.",
+    "retained-summary": "Clearly attributed terminal summary where no original full raw output survives; not represented as a raw log.",
+    "omittedManifests": "Large before/after per-file manifests are not embedded. Their relevant full-source fingerprints, file counts, scope and exact ordering/encoding are retained. Historical paths/hashes inside original receipts remain unmodified provenance."
+  }
+}
