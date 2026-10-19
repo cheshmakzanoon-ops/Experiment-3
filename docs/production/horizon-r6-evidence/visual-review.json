@@ -1,0 +1,135 @@
+{
+  "schema": 1,
+  "kind": "horizon-r6-direct-image-review",
+  "reviewedOn": "2026-10-19",
+  "method": "Direct visual inspection of eight original CI PNGs, compared with freshly inspected reference images. Visual judgments are separate from automated pixel and resource checks. No image editing or resampling was performed.",
+  "sourceIdentity": {
+    "commit": "d9d7d163cbc9abaa1fdd167a6ad68381e0022797",
+    "fingerprint": "0337913472a4101e8c59241088f9ad1e868be1e5dc57a116755c21f34a8dc23e",
+    "independentlyMatchedRawGitBlobs": true,
+    "evidence": "d9d7/retained-evidence.json"
+  },
+  "ciRun": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39290190127",
+  "referenceReview": {
+    "ledger": "../HORIZON_R4_REFERENCE_REVIEW.json",
+    "integrity": "reference-integrity.json",
+    "compressedInputsMatched": 100,
+    "freshlyViewedIds": ["028", "040", "052", "066", "081", "083"],
+    "scope": "The full compressed pack was hash-validated. Six references were freshly viewed; this is not a fresh visual inspection of all 100 references."
+  },
+  "rawEvidence": {
+    "buildIdentity": "d9d7/BUILD_IDENTITY.json",
+    "tests": "d9d7/tests.json",
+    "optics": "d9d7/optics/review.json",
+    "journey": "d9d7/journey/journey.json",
+    "timing": "d9d7/ci-timing-excerpt.log",
+    "physicalRemeasurement": "airtime-integrated-measurements.json"
+  },
+  "acceptedEvidenceContext": {
+    "testsPassed": 88,
+    "testFilesPassed": 12,
+    "testFailures": 0,
+    "journeyStepsPassed": 11,
+    "browserErrors": 0,
+    "failedAssets": 0,
+    "shaderErrors": 0,
+    "webGlErrors": 0,
+    "effectsMotionSamplesPerScenario": 3,
+    "allRepeatedOffFramesPixelEqual": true,
+    "snapshotsAndParticleBytesUnchanged": true,
+    "waterBeforeAfterPixelEqualAtAllThreeSamples": true,
+    "waterBeforeAfterPngBytesEqualAtAllThreeSamples": true,
+    "beforeAfterDrawsTrianglesAndAllocationsEqual": true,
+    "nightCameraAndPhysicsUnchanged": true,
+    "nightActivePracticalLights": 2,
+    "allocatedPracticalLights": 4,
+    "newShadowPasses": 0,
+    "opticsWallMs": 1504061.729317,
+    "acceptedRunOutcome": "Completed successfully; no GPU stall or timeout was reported.",
+    "backend": "Mesa/llvmpipe software rendering",
+    "scope": "These are focused committed-source checks, not a full-repository release gate or target-device performance measurement."
+  },
+  "comparisons": [
+    {
+      "subject": "smoke",
+      "scene": "Isolated Effects plume on a bounded patch of actual carved ground",
+      "before": "d9d7/optics/smoke-1-before.png",
+      "after": "d9d7/optics/smoke-1-after.png",
+      "referenceIds": ["040"],
+      "finding": "The prior sequence of blurry bright ovals becomes a more connected plume with irregular translucent lobes and soft breakup. This is the strongest visible improvement of the four comparisons.",
+      "artifacts": "The central region is denser and whiter, but no hard billboard boundary is visible.",
+      "limit": "The isolated still does not establish tyre-contact alignment, full-scene driving readability or temporal shimmer quality.",
+      "unchangedResourceCounts": {
+        "calls": 3,
+        "triangles": 3428,
+        "geometries": 4,
+        "textures": 0
+      }
+    },
+    {
+      "subject": "dust",
+      "scene": "Isolated Effects plume on a bounded patch of actual carved ground",
+      "before": "d9d7/optics/dust-1-before.png",
+      "after": "d9d7/optics/dust-1-after.png",
+      "referenceIds": ["052"],
+      "finding": "Soft disconnected dabs become broken ochre wisps with more varied density. The visual change is subtler than smoke and remains low contrast against the ground.",
+      "artifacts": "No hard particle rectangle or obvious opaque disc is visible.",
+      "limit": "The neutral lighting does not demonstrate the reference's strong sunset backlighting, and the still does not establish temporal stability or full-world appearance.",
+      "unchangedResourceCounts": {
+        "calls": 3,
+        "triangles": 5216,
+        "geometries": 4,
+        "textures": 0
+      }
+    },
+    {
+      "subject": "storefront",
+      "scene": "Frozen full production Festival composer and geometry; practical intensities off/on/off",
+      "before": "d9d7/optics/night-storefront-before.png",
+      "after": "d9d7/optics/night-storefront-after.png",
+      "referenceIds": ["081", "083"],
+      "finding": "A cool local pool reaches the pavement and curb, with slight spill onto the wet road. The upper facade, dark shop windows and surrounding street retain their darkness.",
+      "artifacts": "No obvious wall backspill, abrupt cone edge or excessive ambient brightening is visible in this composition.",
+      "limit": "The red car changes negligibly in this composition. This image demonstrates pavement and wet-road illumination more clearly than improved car reflections.",
+      "unchangedResourceCounts": {
+        "calls": 519,
+        "triangles": 1738568,
+        "geometries": 533,
+        "textures": 53
+      }
+    },
+    {
+      "subject": "festoon",
+      "scene": "Frozen full production Festival composer and geometry; practical intensities off/on/off",
+      "before": "d9d7/optics/night-festoon-before.png",
+      "after": "d9d7/optics/night-festoon-after.png",
+      "referenceIds": ["028", "083"],
+      "finding": "A broad, restrained warm pool reveals foreground asphalt texture while the distant street and existing lamp pools retain their appearance.",
+      "artifacts": "No abrupt light edge, obvious wall backspill or scene-wide ambient wash is visible.",
+      "limit": "The composition shows the ground contribution rather than the overhead bulb itself, and does not establish general occlusion through every other building or prop.",
+      "unchangedResourceCounts": {
+        "calls": 391,
+        "triangles": 2484110,
+        "geometries": 564,
+        "textures": 53
+      }
+    }
+  ],
+  "visualConclusion": "Worthwhile localized realism improvements; no concrete visual blocker found in the eight reviewed stills.",
+  "blockingFindings": [],
+  "limitations": [
+    "Repeated architecture and comparatively simple vehicle forms remain visible in the production street scenes.",
+    "The images do not establish a complete match to the reference photography or commercial Forza visual parity.",
+    "Direct still-image inspection cannot certify in-motion shimmer, all driving views or human fun and comfort.",
+    "Stable draw and allocation counts do not mean zero additional shader cost or certify hardware frame rate.",
+    "Pre-R6 unit and offroad scenario failures remain separate from the focused Horizon acceptance results."
+  ],
+  "subsequentHarnessChanges": {
+    "scope": "The accepted d9d7 screenshots predate this hardening; it does not change their evidence identity.",
+    "partialReportsAndEarlyArtifacts": true,
+    "explicitPhaseDeadlines": true,
+    "nightCompositionDeadlineSeconds": 1080,
+    "deadlineBasis": "Approximately 694 and 704 seconds measured for the accepted Mesa production compositions, with generous additional time.",
+    "assertionsRelaxed": false
+  }
+}

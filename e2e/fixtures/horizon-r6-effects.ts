@@ -296,10 +296,19 @@ function opticalDifference(a: Uint8Array, b: Uint8Array) {
 }
 
 export async function captureHorizonR6Effects(scenario: Scenario) {
-  const recording = recordHorizonR6Effects(scenario),
-    { frames, indices, peakBounds, sim } = recording,
+  const checkpointStarted = performance.now();
+  const checkpoint = (stage: string, image?: string) =>
+    console.log(
+      'R6_EFFECTS_CHECKPOINT',
+      JSON.stringify({ scenario, stage, image, elapsedMs: performance.now() - checkpointStarted }),
+    );
+  checkpoint('recording:begin');
+  const recording = recordHorizonR6Effects(scenario);
+  checkpoint('recording:complete');
+  const { frames, indices, peakBounds, sim } = recording,
     started = performance.now(),
     renderer = new T.WebGLRenderer({ antialias: false, preserveDrawingBuffer: true });
+  checkpoint('renderer:created');
   renderer.setPixelRatio(1);
   renderer.setSize(WIDTH, HEIGHT);
   renderer.outputColorSpace = T.SRGBColorSpace;
@@ -373,12 +382,20 @@ export async function captureHorizonR6Effects(scenario: Scenario) {
   const render = (name: string, detail: boolean, visible = true, save = true) => {
     effects.setDryCloudDetail(detail);
     effects.group.visible = visible;
+    checkpoint('render:begin', name);
     renderer.render(scene, camera);
+    checkpoint('render:complete', name);
     const pixels = new Uint8Array(WIDTH * HEIGHT * 4);
+    checkpoint('readPixels:begin', name);
     gl.readPixels(0, 0, WIDTH, HEIGHT, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+    checkpoint('readPixels:complete', name);
     const error = gl.getError();
     if (error !== gl.NO_ERROR) glErrors.push(error);
-    if (save) images.push({ name, image: renderer.domElement.toDataURL('image/png') });
+    if (save) {
+      checkpoint('png:begin', name);
+      images.push({ name, image: renderer.domElement.toDataURL('image/png') });
+      checkpoint('png:complete', name);
+    }
     return {
       pixels,
       calls: renderer.info.render.calls,
@@ -470,6 +487,7 @@ export async function captureHorizonR6Effects(scenario: Scenario) {
     checks.noSnapshotMutation &&= snapshotsSha256 === (await sha256(frames));
     checks.noShaderErrors = shaderErrors.length === 0;
     checks.noGlErrors = glErrors.length === 0;
+    checkpoint('complete');
     return {
       ...recording.metadata,
       rendererName,

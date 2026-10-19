@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "status": "awaiting committed-source browser verification",
+  "status": "feature verification passed; integrated engine browser recheck in progress",
   "implementation": "HORIZON_R6_IMPLEMENTATION.md",
   "integratedBaseCommit": "d09921545ddcebe2b34ed4a85dab36deeafab969",
   "references": {
@@ -17,7 +17,9 @@
       "083"
     ],
     "fullResolutionHashesReverified": false,
-    "newAll100VisualInspection": false
+    "newAll100VisualInspection": false,
+    "integrityEvidence": "horizon-r6-evidence/reference-integrity.json",
+    "integrityEvidenceSha256": "3c50f7427673a416ca926b35a11052c22002a2f0d763bf7f7683eb0b354d81b5"
   },
   "local": {
     "effectsInitialRun": {
@@ -31,20 +33,72 @@
       "files": 2,
       "scopedEslintPassed": true
     },
-    "finalBuild": "in progress",
-    "postUpstreamGameplay": "in progress",
-    "browser": "not available locally; committed-source CI review required"
+    "postUpstreamGameplay": "Current-head exact physical probe passed with identical measurements; noisy local Vitest attempts are superseded by committed-source CI contracts.",
+    "browser": "not available locally; committed-source CI review required",
+    "preliminaryBuild": {
+      "exitCode": 0,
+      "command": "npm run build",
+      "sourceIdentity": {
+        "commit": null,
+        "fingerprint": "0337913472a4101e8c59241088f9ad1e868be1e5dc57a116755c21f34a8dc23e"
+      },
+      "acceptedAsCommittedSourceEvidence": false,
+      "reason": "The completed local build has the same application fingerprint as the accepted CI build. Its null commit reflects the then-dirty Git state; the clean CI checkout supplies exact commit provenance.",
+      "acceptedAsMatchingApplicationSource": true
+    }
   },
   "physicalEvidence": {
     "file": "horizon-r6-evidence/airtime-measurements.json",
     "sha256": "650c430c2526acba94ee3999c7d4c887eeaa6c8f7bb45a5c691b1752d956bdae",
-    "description": "Real Quarry integration after controlled initial tangential speed; actual flight, tyre loads and landing. Scripted input, not a human playtest."
+    "description": "Real Quarry integration after controlled initial tangential speed; actual flight, tyre loads and landing. Scripted input, not a human playtest.",
+    "integratedRecheck": {
+      "commit": "5ba247c25bbe3ec793655517e5fa4e39162b40e9",
+      "file": "horizon-r6-evidence/airtime-integrated-measurements.json",
+      "sha256": "e9c38912f729f473ae0caf737e156f937cf3ce1ead655a7ce4baa668890732d4",
+      "exitCode": 0,
+      "allMeasurementAndTimelineValuesNumericallyIdentical": true,
+      "stableSourceBeforeAndAfter": true
+    }
   },
   "ci": {
     "workflow": ".github/workflows/horizon-driving-review.yml",
     "artifact": "horizon-r6-driving-and-optics",
-    "run": null,
-    "conclusion": null
+    "run": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39290190127",
+    "conclusion": "success",
+    "commit": "d9d7d163cbc9abaa1fdd167a6ad68381e0022797",
+    "build": "success",
+    "focusedContracts": {
+      "files": 12,
+      "passedTests": 88,
+      "failedTests": 0,
+      "wallSeconds": 43.81
+    },
+    "lintAndContent": "success",
+    "browser": {
+      "opticsPassed": true,
+      "journeyCompleted": true,
+      "journeySteps": 11,
+      "browserErrors": 0,
+      "failedAssets": 0,
+      "shaderErrors": 0,
+      "glErrors": 0,
+      "warnings": 0,
+      "backend": "ANGLE Mesa llvmpipe LLVM20.1.2",
+      "chromium": "140.0.7339.186",
+      "quality": {
+        "effects": "isolated optics at 960x600",
+        "night": "medium at 960x600",
+        "journey": "low at 960x540"
+      }
+    },
+    "initialWorkflowInitializationFailure": {
+      "run": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39289660265",
+      "testsExecuted": false,
+      "reason": "Invalid runner.temp expression in job-level environment; corrected before accepted run."
+    },
+    "artifactId": 12206449440,
+    "artifactZipSha256": "c839aa556ddc94673c3344db871ec59ad3444ec327f22a46f356345e35a51cb1",
+    "retainedEvidence": "horizon-r6-evidence/d9d7/retained-evidence.json"
   },
   "limitations": {
     "hardwareFpsMeasured": false,
@@ -58,6 +112,157 @@
     "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39284585710",
     "buildLintContentTypecheck": "success",
     "fullUnitSuite": "3819 passed; 2 failed in pre-existing race-view-continuity fixture",
-    "offroadScenarios": "pre-existing Kestrel rallycross joker accounting failure"
+    "offroadScenarios": "pre-existing Kestrel rallycross joker accounting failure",
+    "scope": "Historical pre-R6 result, not a fresh result for the current repository.",
+    "subsequentFixtureCorrection": {
+      "commit": "9d5c5582530bbb66de2a170edd6775f3a3947b1b",
+      "path": "tests/race-view-continuity.test.ts",
+      "change": "Added setGrandPrixGrid mock and explicit false-call assertion; addresses the historical missing-method error."
+    }
+  },
+  "integratedHeadCommit": "9d5c5582530bbb66de2a170edd6775f3a3947b1b",
+  "acceptedFeatureCommit": "d9d7d163cbc9abaa1fdd167a6ad68381e0022797",
+  "acceptedSourceIdentity": {
+    "version": 1,
+    "commit": "d9d7d163cbc9abaa1fdd167a6ad68381e0022797",
+    "fingerprint": "0337913472a4101e8c59241088f9ad1e868be1e5dc57a116755c21f34a8dc23e"
+  },
+  "sourceIdentityIndependentlyMatchedRawGitBlobs": true,
+  "optics": {
+    "effects": [
+      {
+        "scenario": "smoke",
+        "peakActive": 111,
+        "motionSamples": 3,
+        "changedPixels": [
+          46491,
+          53911,
+          56717
+        ],
+        "exactRepeatedControl": true,
+        "allChecksPassed": true,
+        "recordingImpactSamples": 0,
+        "recordingOffRoadSeconds": 0
+      },
+      {
+        "scenario": "dust",
+        "peakActive": 208,
+        "motionSamples": 3,
+        "changedPixels": [
+          23068,
+          18828,
+          13743
+        ],
+        "exactRepeatedControl": true,
+        "allChecksPassed": true,
+        "recordingImpactSamples": 0,
+        "recordingOffRoadSeconds": 0
+      },
+      {
+        "scenario": "water",
+        "peakActive": 392,
+        "motionSamples": 3,
+        "changedPixels": [
+          0,
+          0,
+          0
+        ],
+        "exactRepeatedControl": true,
+        "allChecksPassed": true,
+        "recordingImpactSamples": 0,
+        "recordingOffRoadSeconds": 0
+      }
+    ],
+    "waterControlPngBytesIdenticalAtAllThreeTimes": true,
+    "night": [
+      {
+        "composition": "storefront",
+        "activeLights": 2,
+        "capacity": 4,
+        "sockets": 635,
+        "changedPixels": 105027,
+        "changedByAtLeastTwo": 55049,
+        "exactRepeatedControl": true,
+        "drawCallsBeforeAndAfter": 519,
+        "trianglesBeforeAndAfter": 1738568,
+        "memoryBeforeAndAfter": {
+          "geometries": 533,
+          "textures": 53
+        },
+        "allChecksPassed": true
+      },
+      {
+        "composition": "festoon",
+        "activeLights": 2,
+        "capacity": 4,
+        "sockets": 635,
+        "changedPixels": 251493,
+        "changedByAtLeastTwo": 243398,
+        "exactRepeatedControl": true,
+        "drawCallsBeforeAndAfter": 391,
+        "trianglesBeforeAndAfter": 2484110,
+        "memoryBeforeAndAfter": {
+          "geometries": 564,
+          "textures": 53
+        },
+        "allChecksPassed": true
+      }
+    ]
+  },
+  "journey": {
+    "report": "horizon-r6-evidence/d9d7/journey/journey.json",
+    "keyboardDistanceM": 67.42402390829842,
+    "movingKmh": 64.87906976408752,
+    "stoppedKmh": 0.3870966745621168,
+    "assistedRaceTimeSeconds": 106.33333333337306,
+    "raceOffRouteSeconds": 0,
+    "distinctRetryRun": true,
+    "rivalGapCoverage": "Worker-to-HUD wiring at launch with 0 M displayed; not independent moving-gap accuracy evidence."
+  },
+  "visualReview": "horizon-r6-evidence/visual-review.json",
+  "reviewHarness": {
+    "productionSourceChanged": false,
+    "scopedEslintAndSyntax": "passed",
+    "artifactRetention": "preflight and each optical scenario, plus the original final combined artifact",
+    "phaseDeadlinesMinutes": {
+      "effects": 6,
+      "nightLoad": 4,
+      "nightComposition": 18
+    },
+    "observedSuccessfulSoftwareSeconds": {
+      "smoke": 4.35,
+      "dust": 2.51,
+      "water": 3.26,
+      "nightLoad": 94.98,
+      "storefront": 694.28,
+      "festoon": 703.59,
+      "journey": 163
+    },
+    "observedGpuStall": false,
+    "reason": "Retain partial evidence promptly and bound future stalled calls; the accepted original optical run was slow and successful."
+  },
+  "integratedBrowserRecheck": {
+    "commit": "14270a4058ec547102b4aedb5430faac9c52fc7c",
+    "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39290292406",
+    "status": "in_progress",
+    "expectedSourceFingerprint": "3b9da186b2fbb878400d622889902deb3647a39d936312be8f4a166d6081b17e",
+    "subsequentFormattingCommit": "5ba247c25bbe3ec793655517e5fa4e39162b40e9",
+    "formattingCommitSourceFingerprint": "02db92eb9d3e79035d8205d78882f83425e07e93c48e96f56b71d8f3aa5fa6d1"
+  },
+  "broaderRepositoryReview": {
+    "commit": "9d5c5582530bbb66de2a170edd6775f3a3947b1b",
+    "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39297624742",
+    "observedAt": "2026-10-19T17:53:51Z",
+    "status": "queued",
+    "currentFullSuiteResultClaimed": false
+  },
+  "concurrentChangesPreserved": {
+    "commits": [
+      "c1827511146611c8049569b555d40ea5719936c7",
+      "9d5c5582530bbb66de2a170edd6775f3a3947b1b"
+    ],
+    "integration": "Fast-forward after 5ba247c; all concurrent source and evidence files preserved.",
+    "reviewedScope": "Motorcycle physics/presentation, Motocross terrain/roost, GP HUD, session identity, replay prefetch and their tests. No change to Festival four-wheel physics, skill evaluator, dry clouds or practical lights.",
+    "evidenceIdentity": "Earlier browser and physical measurements retain their exact original commit provenance; no current-head browser claim is inferred from them."
   }
 }

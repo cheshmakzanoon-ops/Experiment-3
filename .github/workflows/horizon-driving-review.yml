@@ -12,6 +12,16 @@ on:
       - src/rendering/open-world/festival-practical-lights.ts
       - src/rendering/open-world/festival-renderer.ts
       - src/rendering/open-world/horizon-dressing.ts
+      - src/session/free-roam.ts
+      - src/rendering/frame-state.ts
+      - src/rendering/live-frame-clock.ts
+      - src/rendering/snapshot-interpolation.ts
+      - src/simulation/collision.ts
+      - src/simulation/obb.ts
+      - src/simulation/vehicle.ts
+      - src/simulation/vehicle-dynamics.ts
+      - src/simulation/rigid.ts
+      - src/simulation/wheel-momentum.ts
       - src/simulation/open-world/skill-chain.ts
       - src/simulation/open-world/session.ts
       - src/ui/festival-hud.ts
@@ -27,13 +37,15 @@ permissions:
   contents: read
 
 concurrency:
-  group: horizon-driving-review-${{ github.ref }}
+  group: horizon-driving-review-phased-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    # The outer limits allow 3 x 8m effects, 42m night and 12m journey,
+    # plus setup and artifact retention. Each phase keeps its own failure.
+    timeout-minutes: 90
     env:
       HORIZON_R6_OUT: /tmp/horizon-r6-review
       HORIZON_REVIEW_URL: http://127.0.0.1:5188
@@ -80,45 +92,140 @@ jobs:
           node --experimental-transform-types scripts/source-stability.ts -- npm run lint 2>&1 | tee "$HORIZON_R6_OUT/lint.log"
           node --experimental-transform-types scripts/source-stability.ts -- npm run validate:content 2>&1 | tee "$HORIZON_R6_OUT/content.log"
       - name: Install the verified software browser backend
+        id: browser
         if: ${{ !cancelled() && steps.build.outcome == 'success' }}
         run: |
           npx playwright install --with-deps chromium
           sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb
-      - name: Compare real recorded tyre effects and frozen night compositions
-        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+      - name: Retain build identity and contract results before rendering
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: horizon-r6-preflight
+          path: /tmp/horizon-r6-review/
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Start the committed-source review server
+        id: server
+        if: ${{ !cancelled() && steps.build.outcome == 'success' && steps.browser.outcome == 'success' }}
         shell: bash
         run: |
           set -euo pipefail
-          node scripts/solvane-review-server.mjs > "$HORIZON_R6_OUT/server.log" 2>&1 &
-          server=$!
-          trap 'kill "$server" 2>/dev/null || true' EXIT
+          mkdir -p "$HORIZON_R6_OUT/optics"
+          nohup node scripts/solvane-review-server.mjs > "$HORIZON_R6_OUT/server.log" 2>&1 < /dev/null &
+          echo "$!" > "$HORIZON_R6_OUT/server.pid"
           for i in $(seq 1 60); do
             if curl -fsS "$HORIZON_REVIEW_URL/e2e/fixtures/horizon-session.html" >/dev/null; then break; fi
             sleep 1
           done
           curl -fsS "$HORIZON_REVIEW_URL/e2e/fixtures/horizon-session.html" >/dev/null
-          HORIZON_REVIEW_OUTPUT="$HORIZON_R6_OUT/optics" \
+      - name: Compare recorded tyre smoke
+        id: smoke
+        if: ${{ !cancelled() && steps.server.outcome == 'success' }}
+        timeout-minutes: 9
+        shell: bash
+        run: |
+          set -euo pipefail
+          HORIZON_REVIEW_OUTPUT="$HORIZON_R6_OUT/optics/smoke" HORIZON_R6_SCENARIOS=smoke \
+            timeout --signal=TERM --kill-after=20s 8m \
             xvfb-run -a -s '-screen 0 1920x1080x24' \
             node --experimental-transform-types scripts/horizon-r6-browser-review.mjs \
-            2>&1 | tee "$HORIZON_R6_OUT/optics.log"
-      - name: Real worker, keyboard, HUD and event journey
-        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+            2>&1 | tee "$HORIZON_R6_OUT/optics/smoke.log"
+      - name: Retain smoke evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: horizon-r6-smoke
+          path: |
+            /tmp/horizon-r6-review/optics/smoke/
+            /tmp/horizon-r6-review/optics/smoke.log
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Compare recorded Quarry dust
+        id: dust
+        if: ${{ !cancelled() && steps.server.outcome == 'success' }}
+        timeout-minutes: 9
         shell: bash
         run: |
           set -euo pipefail
-          node scripts/solvane-review-server.mjs >> "$HORIZON_R6_OUT/server.log" 2>&1 &
-          server=$!
-          trap 'kill "$server" 2>/dev/null || true' EXIT
-          for i in $(seq 1 60); do
-            if curl -fsS "$HORIZON_REVIEW_URL/e2e/fixtures/horizon-session.html" >/dev/null; then break; fi
-            sleep 1
-          done
-          curl -fsS "$HORIZON_REVIEW_URL/e2e/fixtures/horizon-session.html" >/dev/null
+          HORIZON_REVIEW_OUTPUT="$HORIZON_R6_OUT/optics/dust" HORIZON_R6_SCENARIOS=dust \
+            timeout --signal=TERM --kill-after=20s 8m \
+            xvfb-run -a -s '-screen 0 1920x1080x24' \
+            node --experimental-transform-types scripts/horizon-r6-browser-review.mjs \
+            2>&1 | tee "$HORIZON_R6_OUT/optics/dust.log"
+      - name: Retain dust evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: horizon-r6-dust
+          path: |
+            /tmp/horizon-r6-review/optics/dust/
+            /tmp/horizon-r6-review/optics/dust.log
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Verify unchanged recorded water effects
+        id: water
+        if: ${{ !cancelled() && steps.server.outcome == 'success' }}
+        timeout-minutes: 9
+        shell: bash
+        run: |
+          set -euo pipefail
+          HORIZON_REVIEW_OUTPUT="$HORIZON_R6_OUT/optics/water" HORIZON_R6_SCENARIOS=water \
+            timeout --signal=TERM --kill-after=20s 8m \
+            xvfb-run -a -s '-screen 0 1920x1080x24' \
+            node --experimental-transform-types scripts/horizon-r6-browser-review.mjs \
+            2>&1 | tee "$HORIZON_R6_OUT/optics/water.log"
+      - name: Retain water evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: horizon-r6-water
+          path: |
+            /tmp/horizon-r6-review/optics/water/
+            /tmp/horizon-r6-review/optics/water.log
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Compare frozen storefront and festoon night compositions
+        id: night
+        if: ${{ !cancelled() && steps.server.outcome == 'success' }}
+        timeout-minutes: 43
+        shell: bash
+        run: |
+          set -euo pipefail
+          HORIZON_REVIEW_OUTPUT="$HORIZON_R6_OUT/optics/night" HORIZON_R6_SCENARIOS=night \
+            timeout --signal=TERM --kill-after=20s 42m \
+            xvfb-run -a -s '-screen 0 1920x1080x24' \
+            node --experimental-transform-types scripts/horizon-r6-browser-review.mjs \
+            2>&1 | tee "$HORIZON_R6_OUT/optics/night.log"
+      - name: Retain night evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: horizon-r6-night
+          path: |
+            /tmp/horizon-r6-review/optics/night/
+            /tmp/horizon-r6-review/optics/night.log
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Real worker, keyboard, HUD and event journey
+        if: ${{ !cancelled() && steps.server.outcome == 'success' }}
+        timeout-minutes: 13
+        shell: bash
+        run: |
+          set -euo pipefail
           HORIZON_REVIEW_OUTPUT="$HORIZON_R6_OUT/journey" HORIZON_REVIEW_QUALITY=low \
+            timeout --signal=TERM --kill-after=20s 12m \
             xvfb-run -a -s '-screen 0 1920x1080x24' \
             node --experimental-transform-types scripts/horizon-browser-review.mjs \
             2>&1 | tee "$HORIZON_R6_OUT/journey.log"
           git diff --exit-code
+      - name: Stop this workflow's review server
+        if: always()
+        shell: bash
+        run: |
+          if [ -f "$HORIZON_R6_OUT/server.pid" ]; then
+            kill "$(cat "$HORIZON_R6_OUT/server.pid")" 2>/dev/null || true
+          fi
       - uses: actions/upload-artifact@v4
         if: always()
         with:

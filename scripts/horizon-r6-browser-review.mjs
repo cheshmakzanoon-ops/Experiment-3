@@ -15,6 +15,16 @@ const backend = browserBackend(process.env.APEX_BROWSER_BACKEND);
 const identityPath = process.env.HORIZON_REVIEW_IDENTITY;
 const expectedIdentity = identityPath ? JSON.parse(await readFile(identityPath, 'utf8')) : null;
 const choices = ['smoke', 'dust', 'water', 'night'];
+const budgetsMs = {
+  launch: 60000,
+  effects: 360000,
+  nightLoad: 240000,
+  // Mesa completed the original frozen compositions in 694 s and 704 s.
+  // Retain the same nine settling draws and captures with roughly 50% margin.
+  nightComposition: 1080000,
+  failureState: 10000,
+  close: 15000,
+};
 const selected = process.env.HORIZON_R6_SCENARIOS?.split(',') ?? choices;
 assert(
   selected.length > 0 && selected.every((choice) => choices.includes(choice)),
@@ -42,6 +52,10 @@ const report = {
     ),
   ),
   environment: { backend: backend.name, oneBrowser: true, baseURL: base },
+  budgetsMs,
+  phaseTimings: [],
+  timeouts: [],
+  checkpoints: [],
   limitations: {
     softwareRendering: true,
     targetDevicePerformance: false,
@@ -59,12 +73,59 @@ const report = {
   passed: false,
 };
 let browser = null,
-  activePage = null;
+  activePage = null,
+  phaseDeadline = 0,
+  forceExit = false;
 const started = performance.now();
 const hasFingerprint = (identity) =>
   typeof identity?.fingerprint === 'string' && /^[0-9a-f]{64}$/.test(identity.fingerprint);
 const save = () =>
   writeFile(resolve(output, 'review.json'), JSON.stringify(report, null, 2) + '\n');
+async function bounded(label, milliseconds, operation) {
+  let timer;
+  const began = performance.now();
+  try {
+    return await Promise.race([
+      Promise.resolve().then(operation),
+      new Promise((_, reject) => {
+        timer = setTimeout(
+          () => {
+            const failure = { phase: report.phase, operation: label, milliseconds };
+            report.timeouts.push(failure);
+            console.error('R6_TIMEOUT', JSON.stringify(failure));
+            reject(new Error(`${label} exceeded its ${milliseconds} ms deadline`));
+          },
+          Math.max(1, milliseconds),
+        );
+      }),
+    ]);
+  } finally {
+    clearTimeout(timer);
+    report.lastOperation = { label, wallMs: performance.now() - began };
+  }
+}
+const withinPhase = (label, operation) =>
+  bounded(`${report.phase}:${label}`, Math.max(1, phaseDeadline - performance.now()), operation);
+function finishPhase() {
+  const current = report.phaseTimings.at(-1);
+  if (current && current.wallMs === undefined) {
+    current.endedAt = new Date().toISOString();
+    current.wallMs = performance.now() - current.startedMonotonicMs;
+  }
+}
+async function beginPhase(name, milliseconds) {
+  finishPhase();
+  report.phase = name;
+  phaseDeadline = performance.now() + milliseconds;
+  report.phaseTimings.push({
+    name,
+    budgetMs: milliseconds,
+    startedAt: new Date().toISOString(),
+    startedMonotonicMs: performance.now(),
+  });
+  console.log('R6_BEGIN', report.phase);
+  await save();
+}
 const observe = (page) => {
   activePage = page;
   page.setDefaultTimeout(240000);
@@ -72,10 +133,17 @@ const observe = (page) => {
     report.errors.push({ phase: report.phase, message: error.message }),
   );
   page.on('console', (message) => {
-    if (message.type() === 'error')
-      report.errors.push({ phase: report.phase, message: message.text() });
-    if (message.type() === 'warning')
-      report.warnings.push({ phase: report.phase, message: message.text() });
+    const value = message.text();
+    if (value.startsWith('R6_EFFECTS_CHECKPOINT ')) {
+      report.checkpoints.push({
+        phase: report.phase,
+        receivedAt: new Date().toISOString(),
+        message: value,
+      });
+      console.log(value);
+    }
+    if (message.type() === 'error') report.errors.push({ phase: report.phase, message: value });
+    if (message.type() === 'warning') report.warnings.push({ phase: report.phase, message: value });
   });
   page.on('response', (response) => {
     if (response.status() >= 400)
@@ -123,34 +191,46 @@ async function saveImages(images) {
   return files;
 }
 async function draw(page) {
-  await page.evaluate(() => {
-    window.horizonReview.draw();
-    // Synchronous readback drains a software GPU queue before the next frame.
-    return window.horizonReview.image().length;
-  });
+  await withinPhase('draw and readback', () =>
+    page.evaluate(() => {
+      window.horizonReview.draw();
+      // Synchronous readback drains a software GPU queue before the next frame.
+      return window.horizonReview.image().length;
+    }),
+  );
 }
 
 try {
-  browser = await chromium.launch({
-    executablePath: process.env.HORIZON_REVIEW_EXECUTABLE || undefined,
-    headless: backend.headless,
-    args: ['--no-sandbox', ...backend.args],
-  });
+  await beginPhase('launch', budgetsMs.launch);
+  browser = await withinPhase('Chromium launch', () =>
+    chromium.launch({
+      executablePath: process.env.HORIZON_REVIEW_EXECUTABLE || undefined,
+      headless: backend.headless,
+      args: ['--no-sandbox', ...backend.args],
+    }),
+  );
   report.environment.browser = browser.version();
   for (const scenario of selected.filter((choice) => choice !== 'night')) {
-    report.phase = `effects:${scenario}`;
-    console.log('R6_BEGIN', report.phase);
-    await save();
-    const page = await browser.newPage({ viewport: { width: 960, height: 600 } });
+    await beginPhase(`effects:${scenario}`, budgetsMs.effects);
+    const page = await withinPhase('new page', () =>
+      browser.newPage({ viewport: { width: 960, height: 600 } }),
+    );
     observe(page);
-    await page.goto(`${base}/e2e/fixtures/horizon-r6-effects.html`, {
-      waitUntil: 'domcontentloaded',
-    });
-    await page.waitForFunction(() => !!window.horizonR6Effects?.capture);
-    identify(await page.evaluate(() => window.horizonR6Effects.sourceIdentity()));
-    const { images, ...result } = await page.evaluate(
-      (choice) => window.horizonR6Effects.capture(choice),
-      scenario,
+    await withinPhase('navigate', () =>
+      page.goto(`${base}/e2e/fixtures/horizon-r6-effects.html`, {
+        waitUntil: 'domcontentloaded',
+      }),
+    );
+    await withinPhase('fixture ready', () =>
+      page.waitForFunction(() => !!window.horizonR6Effects?.capture),
+    );
+    identify(
+      await withinPhase('source identity', () =>
+        page.evaluate(() => window.horizonR6Effects.sourceIdentity()),
+      ),
+    );
+    const { images, ...result } = await withinPhase('record and capture', () =>
+      page.evaluate((choice) => window.horizonR6Effects.capture(choice), scenario),
     );
     identify(result.sourceIdentity);
     requireBrowserBackend(backend.name, result.rendererName);
@@ -175,33 +255,43 @@ try {
         recordingMs: result.cpuRecordingMs,
       }),
     );
-    await page.close();
+    await withinPhase('close page', () => page.close());
     activePage = null;
   }
   if (selected.includes('night')) {
-    report.phase = 'night:load';
-    console.log('R6_BEGIN', report.phase);
-    await save();
-    const page = await browser.newPage({ viewport: { width: 960, height: 600 } });
-    observe(page);
-    await page.goto(
-      `${base}/e2e/fixtures/horizon-session.html?quality=medium&vehicle=tc1&lighting=night&weather=rain&capture=1&frames=1`,
-      { waitUntil: 'domcontentloaded' },
+    await beginPhase('night:load', budgetsMs.nightLoad);
+    const page = await withinPhase('new page', () =>
+      browser.newPage({ viewport: { width: 960, height: 600 } }),
     );
-    await page.locator('#loading').waitFor({ state: 'hidden' });
-    await page.waitForFunction(() => window.horizonReview?.state().draws >= 1);
-    const initial = await page.evaluate(() => window.horizonReview.state());
+    observe(page);
+    await withinPhase('navigate', () =>
+      page.goto(
+        `${base}/e2e/fixtures/horizon-session.html?quality=medium&vehicle=tc1&lighting=night&weather=rain&capture=1&frames=1`,
+        { waitUntil: 'domcontentloaded' },
+      ),
+    );
+    await withinPhase('loading overlay', () =>
+      page.locator('#loading').waitFor({ state: 'hidden' }),
+    );
+    await withinPhase('first draw', () =>
+      page.waitForFunction(() => window.horizonReview?.state().draws >= 1),
+    );
+    const initial = await withinPhase('initial state', () =>
+      page.evaluate(() => window.horizonReview.state()),
+    );
     identify(initial.sourceIdentity);
     assert.equal(
       initial.details?.loaded,
       true,
       'Night review must retain the production detail kit',
     );
-    const rendererName = await page.evaluate(() => {
-      const gl = document.querySelector('#world').getContext('webgl2');
-      const extension = gl.getExtension('WEBGL_debug_renderer_info');
-      return gl.getParameter(extension ? extension.UNMASKED_RENDERER_WEBGL : gl.RENDERER);
-    });
+    const rendererName = await withinPhase('renderer identity', () =>
+      page.evaluate(() => {
+        const gl = document.querySelector('#world').getContext('webgl2');
+        const extension = gl.getExtension('WEBGL_debug_renderer_info');
+        return gl.getParameter(extension ? extension.UNMASKED_RENDERER_WEBGL : gl.RENDERER);
+      }),
+    );
     requireBrowserBackend(backend.name, rendererName);
     const nightCameras = [
       {
@@ -217,22 +307,27 @@ try {
     ];
     for (const camera of nightCameras) {
       const { kind } = camera;
-      report.phase = `night:${kind}`;
-      console.log('R6_BEGIN', report.phase);
+      await beginPhase(`night:${kind}`, budgetsMs.nightComposition);
       // Both eye positions were checked against the actual authored building
       // footprints and carved road; these are fixed review cameras only.
-      await page.evaluate(
-        ({ position, target }) => window.horizonReview.inspect(position, target),
-        camera,
+      await withinPhase('inspect camera', () =>
+        page.evaluate(
+          ({ position, target }) => window.horizonReview.inspect(position, target),
+          camera,
+        ),
       );
-      await page.waitForFunction(() => window.horizonReview.state().paused);
+      await withinPhase('paused snapshot', () =>
+        page.waitForFunction(() => window.horizonReview.state().paused),
+      );
       // Settle the real bounded light fade and the existing six-face probe.
       // This never changes the source snapshot or renderer quality.
       for (let i = 0; i < 9; i++) {
-        await page.waitForTimeout(85);
+        await withinPhase('settling interval', () => page.waitForTimeout(85));
         await draw(page);
       }
-      const state = await page.evaluate(() => window.horizonReview.state());
+      const state = await withinPhase('settled state', () =>
+        page.evaluate(() => window.horizonReview.state()),
+      );
       identify(state.sourceIdentity);
       assert(
         state.practicalLights.sockets > 0 && state.practicalLights.active > 0,
@@ -242,9 +337,8 @@ try {
         state.practicalLights.active <= 2,
         'Medium quality admits at most two practical lights',
       );
-      const { images, ...result } = await page.evaluate(
-        (value) => window.horizonReview.practicalOptics(`night-${value}`),
-        kind,
+      const { images, ...result } = await withinPhase('frozen capture', () =>
+        page.evaluate((value) => window.horizonReview.practicalOptics(`night-${value}`), kind),
       );
       identify(result.sourceIdentity);
       result.camera = camera;
@@ -288,7 +382,7 @@ try {
         }),
       );
     }
-    await page.close();
+    await withinPhase('close page', () => page.close());
     activePage = null;
   }
   assertClean();
@@ -296,19 +390,33 @@ try {
   report.passed = true;
 } catch (error) {
   report.failure = error.stack ?? String(error);
+  console.error('R6_FAIL', report.phase, error.message ?? String(error));
+  await save();
   if (activePage && !activePage.isClosed()) {
     try {
-      report.failureState = await activePage.evaluate(() => window.horizonReview?.state() ?? null);
-    } catch {
-      /* A renderer crash must not hide the original failure. */
+      report.failureState = await bounded('failure state readback', budgetsMs.failureState, () =>
+        activePage.evaluate(() => window.horizonReview?.state() ?? null),
+      );
+    } catch (stateError) {
+      report.failureStateError = stateError.message ?? String(stateError);
     }
   }
-  console.error('R6_FAIL', report.phase, error.message ?? String(error));
   process.exitCode = 1;
 } finally {
+  finishPhase();
   report.wallMs = performance.now() - started;
   await save();
-  await browser?.close();
+  if (browser) {
+    try {
+      await bounded('browser shutdown', budgetsMs.close, () => browser.close());
+    } catch (closeError) {
+      report.cleanupError = closeError.message ?? String(closeError);
+      report.passed = false;
+      process.exitCode = 1;
+      forceExit = true;
+    }
+  }
+  await save();
 }
 console.log(
   'R6_RESULT',
@@ -318,3 +426,6 @@ console.log(
     phase: report.phase,
   }),
 );
+// Playwright's process-exit cleanup terminates the Chromium child it owns.
+// The workflow also has an outer process-group deadline if Node itself stalls.
+if (forceExit) process.exit(1);

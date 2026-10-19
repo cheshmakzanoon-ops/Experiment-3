@@ -1,0 +1,113 @@
+
+> apex-formula-laboratory@0.1.0 prebuild
+> npm run generate:player-lods
+
+
+> apex-formula-laboratory@0.1.0 generate:player-lods
+> node --experimental-strip-types scripts/build-player-lods.mjs
+
+(node:2524) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+mesh 0: 32262 -> 8860 near triangles
+mesh 1: 50456 -> 29174 near triangles
+mesh 2: 241852 -> 131054 near triangles
+mesh 3: 44752 -> 10318 near triangles
+mesh 4: 2 -> 2 near triangles
+mesh 5: 7108 -> 2946 near triangles
+mesh 6: 504 -> 416 near triangles
+mesh 7: 752047 -> 406205 near triangles
+mesh 8: 51920 -> 47482 near triangles
+mesh 9: 21133 -> 21025 near triangles
+mesh 10: 38706 -> 37002 near triangles
+mesh 11: 51680 -> 39384 near triangles
+mesh 12: 51680 -> 39342 near triangles
+mesh 13: 51680 -> 39360 near triangles
+mesh 14: 51680 -> 39396 near triangles
+mesh 15: 108 -> 108 near triangles
+mesh 16: 108 -> 108 near triangles
+mesh 17: 7440 -> 3472 near triangles
+{
+  "version": 2,
+  "generator": "meshoptimizer@0.25.0 / exact livery surfaces, locked seams, opaque triangle cache order",
+  "sourceSHA256": "013a47f059bf34a0a28bd31ae8f407f07ed6e2b55755753aed9a942c895e132b",
+  "sha256": "2bcd661c78be3df21090c042c43ffd2fb828b9db42465d1fd4111fac8d48437d",
+  "compressedSHA256": "1553e32eef4a6f89d02fb8f44a45f000620ee8539466d41704654e5f5dd09b58",
+  "bytes": 13037000,
+  "compressedBytes": 4213368,
+  "primitives": 172,
+  "triangles": [
+    1455118,
+    855654,
+    814806,
+    797386
+  ],
+  "cacheModel": {
+    "name": "FIFO-16 vertex misses, not hardware timings",
+    "levels": [
+      {
+        "before": 992010,
+        "after": 622914
+      },
+      {
+        "before": 952099,
+        "after": 595999
+      },
+      {
+        "before": 933925,
+        "after": 583328
+      }
+    ]
+  },
+  "levels": [
+    {
+      "name": "efficient-close",
+      "ratio": 0.15,
+      "error": 0.002
+    },
+    {
+      "name": "medium",
+      "ratio": 0.075,
+      "error": 0.006
+    },
+    {
+      "name": "distant",
+      "ratio": 0.025,
+      "error": 0.012
+    }
+  ]
+}
+
+> apex-formula-laboratory@0.1.0 build
+> tsc --noEmit && vite build
+
+[36mvite v7.1.7 [32mbuilding for production...[36m[39m
+transforming...
+[32m✓[39m 710 modules transformed.
+rendering chunks...
+computing gzip size...
+[2mdist/[22m[32mBUILD_IDENTITY.json                                 [39m[1m[2m     0.16 kB[22m[1m[22m[2m │ gzip:     0.14 kB[22m
+[2mdist/[22m[32mindex.html                                          [39m[1m[2m     0.96 kB[22m[1m[22m[2m │ gzip:     0.54 kB[22m
+[2mdist/[22m[2massets/[22m[32msaira-vietnamese-wdth-normal-Dabr_kLY.woff2  [39m[1m[2m    26.80 kB[22m[1m[22m
+[2mdist/[22m[2massets/[22m[32msaira-vietnamese-wdth-italic-52KPIsOu.woff2  [39m[1m[2m    29.93 kB[22m[1m[22m
+[2mdist/[22m[2massets/[22m[32msaira-latin-ext-wdth-normal-3Ba4ICIc.woff2   [39m[1m[2m    67.19 kB[22m[1m[22m
+[2mdist/[22m[2massets/[22m[32msaira-latin-ext-wdth-italic-CqU2kHDy.woff2   [39m[1m[2m    77.37 kB[22m[1m[22m
+[2mdist/[22m[2massets/[22m[32msaira-latin-wdth-normal-X2eA-qfZ.woff2       [39m[1m[2m    98.91 kB[22m[1m[22m
+[2mdist/[22m[2massets/[22m[32msaira-latin-wdth-italic-wJlFlYW8.woff2       [39m[1m[2m   116.24 kB[22m[1m[22m
+[2mdist/[22m[2massets/[22m[32ma61-rival-far.glb-ClvD6mFa.gz                [39m[1m[2m   161.38 kB[22m[1m[22m
+[2mdist/[22m[2massets/[22m[32mapx01-driver.glb-CNKxI3ag.gz                 [39m[1m[2m   209.40 kB[22m[1m[22m
+[2mdist/[22m[2massets/[22m[32ma61-rival-mid.glb-CAutdD2Z.gz                [39m[1m[2m   397.76 kB[22m[1m[22m
+[2mdist/[22m[2massets/[22m[32mapx01-shell.glb-B2AhAkfx.gz                  [39m[1m[2m 1,142.77 kB[22m[1m[22m
+[2mdist/[22m[2massets/[22m[32ma61-rival-near.glb-DNe8_BZp.gz               [39m[1m[2m 1,219.90 kB[22m[1m[22m
+[2mdist/[22m[2massets/[22m[35mfree-roam-CaL1vEix.css                       [39m[1m[2m    18.72 kB[22m[1m[22m[2m │ gzip:     4.72 kB[22m
+[2mdist/[22m[2massets/[22m[35mindex-DsWC2xfY.css                           [39m[1m[2m    74.66 kB[22m[1m[22m[2m │ gzip:    17.14 kB[22m
+[2mdist/[22m[2massets/[22m[36mthree-B7n6Cpfp.js                            [39m[1m[33m   617.63 kB[39m[22m[2m │ gzip:   158.93 kB[22m[2m │ map: 2,889.65 kB[22m
+[2mdist/[22m[2massets/[22m[36mfree-roam-VHEufEYH.js                        [39m[1m[33m 1,267.35 kB[39m[22m[2m │ gzip:   335.52 kB[22m[2m │ map: 1,046.12 kB[22m
+[2mdist/[22m[2massets/[22m[36mindex-CopFq7Ru.js                            [39m[1m[33m15,355.53 kB[39m[22m[2m │ gzip: 4,606.79 kB[22m[2m │ map: 8,961.90 kB[22m
+[33m
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.[39m
+[32m✓ built in 16.39s[39m
+(node:2488) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
