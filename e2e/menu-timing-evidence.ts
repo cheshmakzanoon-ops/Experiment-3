@@ -147,9 +147,9 @@ export const menuTimingTest = base.extend<{ menuTimingEvidence: undefined }>({
           const getContext = HTMLCanvasElement.prototype.getContext;
           HTMLCanvasElement.prototype.getContext = function (
             this: HTMLCanvasElement,
-            ...args: Parameters<typeof getContext>
+            ...args: unknown[]
           ) {
-            const result = Reflect.apply(getContext, this, args) as ReturnType<typeof getContext>;
+            const result: unknown = Reflect.apply(getContext, this, args);
             if (args[0] !== 'webgl2' || !result) return result;
             const gl = result as WebGL2RenderingContext;
             if (contexts.has(gl)) return result;
