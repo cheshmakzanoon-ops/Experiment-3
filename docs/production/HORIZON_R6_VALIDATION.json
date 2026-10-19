@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "status": "feature verification passed; integrated engine browser recheck in progress",
+  "status": "feature and integrated engine verification passed",
   "implementation": "HORIZON_R6_IMPLEMENTATION.md",
   "integratedBaseCommit": "d09921545ddcebe2b34ed4a85dab36deeafab969",
   "references": {
@@ -239,15 +239,60 @@
       "journey": 163
     },
     "observedGpuStall": false,
-    "reason": "Retain partial evidence promptly and bound future stalled calls; the accepted original optical run was slow and successful."
+    "reason": "Retain partial evidence promptly and bound future stalled calls; the accepted original optical run was slow and successful.",
+    "publishedCommit": "3f9f0ee97be9ee16270be744f70e151af9cd4011",
+    "followupCi": {
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39298672730",
+      "observedStatus": "queued",
+      "observedAt": "2026-10-19T18:00:29Z",
+      "scope": "Harness phase separation and diagnostics only; the accepted feature and integrated engine browser evidence predate it. No full-run result claimed for this later harness revision."
+    }
   },
   "integratedBrowserRecheck": {
     "commit": "14270a4058ec547102b4aedb5430faac9c52fc7c",
     "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39290292406",
-    "status": "in_progress",
+    "status": "completed",
     "expectedSourceFingerprint": "3b9da186b2fbb878400d622889902deb3647a39d936312be8f4a166d6081b17e",
     "subsequentFormattingCommit": "5ba247c25bbe3ec793655517e5fa4e39162b40e9",
-    "formattingCommitSourceFingerprint": "02db92eb9d3e79035d8205d78882f83425e07e93c48e96f56b71d8f3aa5fa6d1"
+    "formattingCommitSourceFingerprint": "02db92eb9d3e79035d8205d78882f83425e07e93c48e96f56b71d8f3aa5fa6d1",
+    "conclusion": "success",
+    "build": "success",
+    "focusedContracts": {
+      "files": 12,
+      "passedTests": 88,
+      "failedTests": 0
+    },
+    "lintAndContent": "success",
+    "browser": {
+      "opticsPassed": true,
+      "journeyCompleted": true,
+      "journeySteps": 11,
+      "browserErrors": 0,
+      "failedAssets": 0
+    },
+    "artifactId": 12211680883,
+    "artifactZipSha256": "887e20f1585f37458572214dd381eb2084e7b9723603c6ea20211f0b37cc472c",
+    "retainedEvidence": "horizon-r6-evidence/14270/retained-evidence.json",
+    "completedAt": "2026-10-19T18:07:39Z",
+    "stepTimings": {
+      "optics": {
+        "startedAt": "2026-10-19T17:40:16Z",
+        "completedAt": "2026-10-19T18:04:53Z"
+      },
+      "journey": {
+        "startedAt": "2026-10-19T18:04:53Z",
+        "completedAt": "2026-10-19T18:07:35Z"
+      }
+    },
+    "sourceIdentity": {
+      "version": 1,
+      "commit": "14270a4058ec547102b4aedb5430faac9c52fc7c",
+      "fingerprint": "3b9da186b2fbb878400d622889902deb3647a39d936312be8f4a166d6081b17e"
+    },
+    "sourceIdentityIndependentlyMatchedRawGitBlobs": true,
+    "artifactHashVerified": true,
+    "comparisonAndVisualReview": "horizon-r6-evidence/14270/review-comparison.json",
+    "comparisonSummary": "Every within-run optical switch and repeated-control assertion passed. Cross-run particle hashes and some scene counters differ; the retained comparison records both values instead of claiming identity across commits."
   },
   "broaderRepositoryReview": {
     "commit": "9d5c5582530bbb66de2a170edd6775f3a3947b1b",

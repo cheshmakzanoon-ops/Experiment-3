@@ -1,0 +1,4999 @@
+{
+  "kind": "horizon-r6-frozen-optics-and-measured-motion",
+  "generatedAt": "2026-10-19T17:40:20.972Z",
+  "sourceIdentity": {
+    "version": 1,
+    "commit": "14270a4058ec547102b4aedb5430faac9c52fc7c",
+    "fingerprint": "3b9da186b2fbb878400d622889902deb3647a39d936312be8f4a166d6081b17e"
+  },
+  "validationSourceSha256": {
+    "scripts/horizon-r6-browser-review.mjs": "216860ea1299c17f196645b2b1002b8f492663136d1f2502fb520e30d7934ed0",
+    "e2e/fixtures/horizon-r6-effects.ts": "5245bca2d9d41f309fae36c8b811eb8e4e212ab767b3a094fbae56a27fcde3be",
+    "e2e/fixtures/horizon-r6-effects.html": "4156c34e104235a2b4554dd12fbf2c46d7a092f11ef506de86f993297672afcf",
+    "e2e/fixtures/horizon-session.ts": "80810958f04431254035625a4b417a8c08347de6b2dcc13fca0b0fbeeb269a71"
+  },
+  "environment": {
+    "backend": "mesa",
+    "oneBrowser": true,
+    "baseURL": "http://127.0.0.1:5188",
+    "browser": "140.0.7339.186"
+  },
+  "limitations": {
+    "softwareRendering": true,
+    "targetDevicePerformance": false,
+    "humanPlaytest": false,
+    "dryFrames": "isolated Effects on actual carved ground; real recorded controls and physics",
+    "nightFrames": "frozen production composer and geometry; only practical-light intensity toggled",
+    "gameplayJourney": "run scripts/horizon-browser-review.mjs separately"
+  },
+  "phase": "complete",
+  "effects": [
+    {
+      "scenario": "smoke",
+      "configuration": {
+        "vehicle": "rd2",
+        "weather": "clear",
+        "event": "kestrel-drift",
+        "kind": 4,
+        "seconds": 50
+      },
+      "sourceIdentity": {
+        "fingerprint": "3b9da186b2fbb878400d622889902deb3647a39d936312be8f4a166d6081b17e",
+        "commit": "14270a4058ec547102b4aedb5430faac9c52fc7c"
+      },
+      "method": {
+        "normalControlsOnly": true,
+        "scriptedSteeringAssistance": true,
+        "humanPlaytest": false,
+        "productionStartCommand": true,
+        "assignedPhysicsChannels": false,
+        "timestep": 0.008333333333333333,
+        "snapshotInterval": 0.03333333333333333,
+        "ground": "bounded mesh sampled from the actual carved world height"
+      },
+      "cpuRecordingMs": 1506.6000000000058,
+      "simulatedSeconds": 47.63333333333127,
+      "recordedFrames": 174,
+      "captureTimes": [
+        5.400000095367432,
+        5.599999904632568,
+        5.800000190734863
+      ],
+      "peakActive": 111,
+      "peakDiagnostics": {
+        "capacity": 4200,
+        "contactCapacity": 3600,
+        "rainCapacity": 600,
+        "active": [
+          0,
+          0,
+          0,
+          0,
+          111,
+          0
+        ],
+        "spawned": [
+          0,
+          0,
+          0,
+          0,
+          114,
+          0
+        ],
+        "velocityX": [
+          0,
+          0,
+          0,
+          0,
+          3.7293633985089825,
+          0
+        ],
+        "velocityZ": [
+          0,
+          0,
+          0,
+          0,
+          0.2612547263734332,
+          0
+        ],
+        "windX": 1.5,
+        "windZ": 0.6000000238418579
+      },
+      "finite": true,
+      "framesUnmodified": true,
+      "contactSamples": 0,
+      "offRoadSeconds": 0,
+      "controlsTrace": [
+        {
+          "time": 0.19999999999999998,
+          "speedKmh": 4.423952504253493,
+          "steer": 0.38623014094909347,
+          "throttle": 0.9997799062594195,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 0.4000000000000004,
+          "speedKmh": 4.345896504495493,
+          "steer": 0.374910704021883,
+          "throttle": 0.39424163430378,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 0.6000000000000003,
+          "speedKmh": 7.166670020660517,
+          "steer": 0.35155583683341046,
+          "throttle": 0.999179191478498,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 0.7999999999999996,
+          "speedKmh": 10.573695400695891,
+          "steer": 0.31611468343086957,
+          "throttle": 0.9595024261624444,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 0.9999999999999989,
+          "speedKmh": 13.895116677631169,
+          "steer": 0.26914746985483984,
+          "throttle": 0.9711225332269028,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 1.1999999999999982,
+          "speedKmh": 17.31406960989827,
+          "steer": 0.19350266875616035,
+          "throttle": 0.9671696989844026,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 1.3999999999999975,
+          "speedKmh": 20.85471361888836,
+          "steer": 0.12015091917529747,
+          "throttle": 0.9665689095598364,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 1.5999999999999968,
+          "speedKmh": 24.532676494724182,
+          "steer": 0.05926034600355244,
+          "throttle": 0.9675444483441489,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 1.799999999999996,
+          "speedKmh": 28.34531722832183,
+          "steer": 0.012519421907618724,
+          "throttle": 0.9642405634405957,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 1.9999999999999953,
+          "speedKmh": 32.25274641303421,
+          "steer": -0.020562493947843576,
+          "throttle": 0.9547738469608149,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 2.199999999999995,
+          "speedKmh": 36.152262297664606,
+          "steer": -0.041067093092095414,
+          "throttle": 0.9259980463561759,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 2.399999999999994,
+          "speedKmh": 39.94071749475096,
+          "steer": -0.04960010993257442,
+          "throttle": 0.9238149468984987,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 2.5999999999999934,
+          "speedKmh": 43.662410899667265,
+          "steer": -0.03543162708397121,
+          "throttle": 0.926141318729355,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 2.7999999999999927,
+          "speedKmh": 47.361138874440236,
+          "steer": 0.12931861809828543,
+          "throttle": 0.9573710671784207,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 2.999999999999992,
+          "speedKmh": 50.707186641635495,
+          "steer": 0.21894129544987057,
+          "throttle": 0.7423113979524825,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 3.1999999999999913,
+          "speedKmh": 53.057072876975546,
+          "steer": 0.22968399157981104,
+          "throttle": 0.4566953956755993,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 3.3999999999999906,
+          "speedKmh": 54.13842614988356,
+          "steer": 0.1668161129341214,
+          "throttle": 0.3407354457169712,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 3.59999999999999,
+          "speedKmh": 55.140235568358385,
+          "steer": 0.1072670839110273,
+          "throttle": 0.6105769863303163,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 3.799999999999989,
+          "speedKmh": 57.26234242149065,
+          "steer": -0.009769096245742181,
+          "throttle": 0.9131579394068166,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 3.9999999999999885,
+          "speedKmh": 59.74435631072286,
+          "steer": -0.18214104874392356,
+          "throttle": 0.9603264018550237,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 4.199999999999998,
+          "speedKmh": 60.32315034857664,
+          "steer": -0.39657617077594887,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 4.400000000000008,
+          "speedKmh": 62.318014124427286,
+          "steer": -0.5622859431664627,
+          "throttle": 0.1597359801536627,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 4.600000000000018,
+          "speedKmh": 60.96979483856052,
+          "steer": -0.6965206103750083,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 4.800000000000028,
+          "speedKmh": 58.6101467315773,
+          "steer": -0.7797530559366848,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 5.000000000000038,
+          "speedKmh": 55.831350732613224,
+          "steer": -0.8064303788423894,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 5.200000000000048,
+          "speedKmh": 52.97518545503838,
+          "steer": -0.7504811070827816,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 5.400000000000058,
+          "speedKmh": 50.4272256331597,
+          "steer": -0.6180925462691101,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 5.600000000000068,
+          "speedKmh": 48.66535537575284,
+          "steer": -0.40448762517279296,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 5.800000000000078,
+          "speedKmh": 48.097540497793254,
+          "steer": -0.09036920324880673,
+          "throttle": 0.42946386126354835,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 6.000000000000088,
+          "speedKmh": 49.960800261825625,
+          "steer": 0.2635468341960626,
+          "throttle": 0.9707532355714696,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 6.200000000000098,
+          "speedKmh": 51.44780330678954,
+          "steer": 0.46492553126725916,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 6.400000000000108,
+          "speedKmh": 50.756985925611644,
+          "steer": 0.5565629971337256,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 6.600000000000118,
+          "speedKmh": 49.61368124699054,
+          "steer": 0.5570508590826035,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 6.800000000000128,
+          "speedKmh": 48.36887004819139,
+          "steer": 0.46604866154615465,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 7.000000000000138,
+          "speedKmh": 47.324262258915915,
+          "steer": 0.28310205083054835,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 7.200000000000148,
+          "speedKmh": 46.81387714559605,
+          "steer": 0.02590470742735329,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 7.400000000000158,
+          "speedKmh": 47.84892024281604,
+          "steer": -0.18663797125584286,
+          "throttle": 0.9659438957228703,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 7.6000000000001675,
+          "speedKmh": 50.18001920322949,
+          "steer": -0.2630176152043421,
+          "throttle": 0.7068920736616597,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 7.8000000000001775,
+          "speedKmh": 50.915700881722486,
+          "steer": -0.31168143824617894,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 8.000000000000187,
+          "speedKmh": 50.53861695920277,
+          "steer": -0.31278210696516806,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 8.200000000000175,
+          "speedKmh": 50.07758129302625,
+          "steer": -0.24898832871008897,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 8.400000000000164,
+          "speedKmh": 49.74987698690243,
+          "steer": -0.12142423229147137,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 8.600000000000152,
+          "speedKmh": 50.27801905945691,
+          "steer": 0.019797022581952373,
+          "throttle": 0.7991968906487339,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 8.800000000000141,
+          "speedKmh": 52.66606356338216,
+          "steer": 0.11392176460626913,
+          "throttle": 0.9922394678018744,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 9.00000000000013,
+          "speedKmh": 55.14839010356096,
+          "steer": 0.16525087112930642,
+          "throttle": 0.8247308975100736,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 9.200000000000118,
+          "speedKmh": 56.97007348676262,
+          "steer": 0.2019250443008559,
+          "throttle": 0.6038497955411815,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 9.400000000000107,
+          "speedKmh": 57.53040524560838,
+          "steer": 0.2930864770745448,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 9.600000000000096,
+          "speedKmh": 56.978135987330944,
+          "steer": 0.4330319164864689,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 9.800000000000084,
+          "speedKmh": 56.03564790786828,
+          "steer": 0.5049782337292146,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 10.000000000000073,
+          "speedKmh": 54.870663734984895,
+          "steer": 0.4891704971302552,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 10.200000000000061,
+          "speedKmh": 53.70864980344075,
+          "steer": 0.3672978098938851,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 10.40000000000005,
+          "speedKmh": 52.88983811886011,
+          "steer": 0.16958334080581605,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 10.600000000000039,
+          "speedKmh": 52.65870677773487,
+          "steer": -0.08532568095650883,
+          "throttle": 0.535612899619837,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 10.800000000000027,
+          "speedKmh": 54.58391501405354,
+          "steer": -0.2581175382158382,
+          "throttle": 0.9709112986999877,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 11.000000000000016,
+          "speedKmh": 56.32664832025953,
+          "steer": -0.2904111315795879,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 11.200000000000005,
+          "speedKmh": 56.030132961363506,
+          "steer": -0.3353082006873887,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 11.399999999999993,
+          "speedKmh": 55.29192948324862,
+          "steer": -0.399544254185595,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 11.599999999999982,
+          "speedKmh": 54.270626139473755,
+          "steer": -0.4487067067893499,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 11.79999999999997,
+          "speedKmh": 53.17962454053487,
+          "steer": -0.39173660278177586,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 11.99999999999996,
+          "speedKmh": 52.284224900554804,
+          "steer": -0.2441714116305586,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 12.199999999999948,
+          "speedKmh": 51.855373480425186,
+          "steer": -0.0169490604341046,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 12.399999999999936,
+          "speedKmh": 53.07547975757125,
+          "steer": 0.17900109873910752,
+          "throttle": 0.9800302922863955,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 12.599999999999925,
+          "speedKmh": 55.40956540201535,
+          "steer": 0.24248718026259142,
+          "throttle": 0.6850519768827548,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 12.799999999999914,
+          "speedKmh": 55.9947870102922,
+          "steer": 0.2893082292994665,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 12.999999999999902,
+          "speedKmh": 55.46650746363535,
+          "steer": 0.40390721497541626,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 13.199999999999891,
+          "speedKmh": 54.51809332284707,
+          "steer": 0.5311937175065791,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 13.39999999999988,
+          "speedKmh": 53.27808008032274,
+          "steer": 0.584166081503468,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 13.599999999999868,
+          "speedKmh": 51.95589283951623,
+          "steer": 0.5575524074910095,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 13.799999999999857,
+          "speedKmh": 50.766226949275776,
+          "steer": 0.45063388221426215,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 13.999999999999845,
+          "speedKmh": 50.050509633977995,
+          "steer": -0.2582880584263048,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 14.199999999999834,
+          "speedKmh": 51.341273417424524,
+          "steer": -0.39579029568081264,
+          "throttle": 0.9951478443230248,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 14.399999999999823,
+          "speedKmh": 52.933782123675144,
+          "steer": -0.2825325314905028,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 14.599999999999811,
+          "speedKmh": 52.77458611160872,
+          "steer": -0.13386108479007627,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 14.7999999999998,
+          "speedKmh": 52.61726464322995,
+          "steer": -0.0006167410319224167,
+          "throttle": 0.42225925845777224,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 14.999999999999789,
+          "speedKmh": 54.072480957427196,
+          "steer": 0.056185725987359124,
+          "throttle": 0.9452107110497563,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 15.199999999999777,
+          "speedKmh": 56.78721475343965,
+          "steer": 0.053586200117426874,
+          "throttle": 0.981582320179498,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 15.399999999999766,
+          "speedKmh": 59.52612544935796,
+          "steer": 0.04321177261025102,
+          "throttle": 0.9572442839698254,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 15.599999999999755,
+          "speedKmh": 62.243299174194355,
+          "steer": 0.035685177836684415,
+          "throttle": 0.9674869445132279,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 15.799999999999743,
+          "speedKmh": 64.77627736357448,
+          "steer": 0.03267294332226156,
+          "throttle": 0.6581514702816317,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 15.999999999999732,
+          "speedKmh": 66.41313492079361,
+          "steer": 0.03507777873498796,
+          "throttle": 0.5428630465022676,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 16.199999999999722,
+          "speedKmh": 66.55759902300746,
+          "steer": 0.03923328249205149,
+          "throttle": 0.09820718832032072,
+          "brake": 0.022890824409369088,
+          "surface": "asphalt"
+        },
+        {
+          "time": 16.39999999999971,
+          "speedKmh": 65.38999027697665,
+          "steer": 0.05145044969394516,
+          "throttle": 0,
+          "brake": 0.2687998512332019,
+          "surface": "asphalt"
+        },
+        {
+          "time": 16.5999999999997,
+          "speedKmh": 63.294758850611125,
+          "steer": 0.06348182862849211,
+          "throttle": 0,
+          "brake": 0.5196203681090908,
+          "surface": "asphalt"
+        },
+        {
+          "time": 16.799999999999688,
+          "speedKmh": 59.69187205234544,
+          "steer": 0.0681933450288113,
+          "throttle": 0,
+          "brake": 0.3407098369734104,
+          "surface": "asphalt"
+        },
+        {
+          "time": 16.999999999999677,
+          "speedKmh": 56.04670752200577,
+          "steer": 0.13064070231263214,
+          "throttle": 0,
+          "brake": 0.43807865147544867,
+          "surface": "asphalt"
+        },
+        {
+          "time": 17.199999999999665,
+          "speedKmh": 52.50274522983438,
+          "steer": 0.19499585090289986,
+          "throttle": 0,
+          "brake": 0.5163810971085032,
+          "surface": "asphalt"
+        },
+        {
+          "time": 17.399999999999654,
+          "speedKmh": 48.80965357948739,
+          "steer": 0.22759810969886912,
+          "throttle": 0,
+          "brake": 0.3,
+          "surface": "asphalt"
+        },
+        {
+          "time": 17.599999999999643,
+          "speedKmh": 45.52729644479797,
+          "steer": 0.3904318149419244,
+          "throttle": 0,
+          "brake": 0.3,
+          "surface": "asphalt"
+        },
+        {
+          "time": 17.79999999999963,
+          "speedKmh": 41.186504328019105,
+          "steer": 0.38371362772105916,
+          "throttle": 0,
+          "brake": 0.1694072095796601,
+          "surface": "asphalt"
+        },
+        {
+          "time": 17.99999999999962,
+          "speedKmh": 36.48956412450389,
+          "steer": 0.21978089438693202,
+          "throttle": 0,
+          "brake": 0.3,
+          "surface": "asphalt"
+        },
+        {
+          "time": 18.19999999999961,
+          "speedKmh": 33.24479262002154,
+          "steer": 0.02982033045875417,
+          "throttle": 0,
+          "brake": 0.17709110483472543,
+          "surface": "asphalt"
+        },
+        {
+          "time": 18.399999999999597,
+          "speedKmh": 32.204241750587855,
+          "steer": -0.09883632212128587,
+          "throttle": 0.3858276437949642,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 18.599999999999586,
+          "speedKmh": 33.49406395133662,
+          "steer": -0.06873156866841328,
+          "throttle": 0.44796744200491656,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 18.799999999999574,
+          "speedKmh": 35.248211918877615,
+          "steer": 0.0037929301252563113,
+          "throttle": 0.6729527450971281,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 18.999999999999563,
+          "speedKmh": 37.60113355904997,
+          "steer": 0.03224318680037555,
+          "throttle": 0.508972371503612,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 19.19999999999955,
+          "speedKmh": 39.522144067861184,
+          "steer": 0.05016512414531017,
+          "throttle": 0.9892979839604444,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 19.39999999999954,
+          "speedKmh": 42.76642801174375,
+          "steer": 0.05937901345500471,
+          "throttle": 0.7661234396067488,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 19.59999999999953,
+          "speedKmh": 45.64493987680006,
+          "steer": 0.05915235648773192,
+          "throttle": 0.9803919339141762,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 19.799999999999518,
+          "speedKmh": 49.036693992092005,
+          "steer": 0.056907722662442234,
+          "throttle": 0.9593866489725306,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 19.999999999999506,
+          "speedKmh": 52.60193650563284,
+          "steer": 0.051602374842526305,
+          "throttle": 0.9563057182448129,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 20.199999999999495,
+          "speedKmh": 56.05108567850763,
+          "steer": 0.0417734897894753,
+          "throttle": 0.9715264992811621,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 20.399999999999483,
+          "speedKmh": 58.93538029576712,
+          "steer": 0.045186341279688555,
+          "throttle": 0.9679583543661914,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 20.599999999999472,
+          "speedKmh": 60.791485983142366,
+          "steer": 0.04293664068207951,
+          "throttle": 0.9660941972683232,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 20.79999999999946,
+          "speedKmh": 63.19922500747981,
+          "steer": 0.033573200188771864,
+          "throttle": 0.4372868881523414,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 20.99999999999945,
+          "speedKmh": 66.4674665753257,
+          "steer": 0.032821646701614283,
+          "throttle": 0.9590566526715121,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 21.199999999999438,
+          "speedKmh": 69.06536940460619,
+          "steer": 0.041946104379708124,
+          "throttle": 0.840686692936739,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 21.399999999999427,
+          "speedKmh": 71.16153037574439,
+          "steer": 0.04852504035408933,
+          "throttle": 0.6935601545115279,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 21.599999999999415,
+          "speedKmh": 72.78265396662378,
+          "steer": 0.041925424243972734,
+          "throttle": 0.5798079933837333,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 21.799999999999404,
+          "speedKmh": 74.04092586778847,
+          "steer": 0.041887631535664195,
+          "throttle": 0.4914910901629669,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 21.999999999999392,
+          "speedKmh": 75.01879331328512,
+          "steer": 0.0455388903080733,
+          "throttle": 0.42286070245327256,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 22.19999999999938,
+          "speedKmh": 75.78263278711516,
+          "steer": 0.03841835581517028,
+          "throttle": 0.3692696356359121,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 22.39999999999937,
+          "speedKmh": 76.37733344272989,
+          "steer": 0.04049467740894426,
+          "throttle": 0.32755823931419503,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 22.59999999999936,
+          "speedKmh": 76.84149766888063,
+          "steer": 0.03962594234796657,
+          "throttle": 0.2949723196822128,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 22.799999999999347,
+          "speedKmh": 77.20832677387543,
+          "steer": 0.03831835143861712,
+          "throttle": 0.2692497293747361,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 22.999999999999336,
+          "speedKmh": 77.49567840629253,
+          "steer": 0.03667792774427977,
+          "throttle": 0.24909661882917888,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 23.199999999999324,
+          "speedKmh": 77.72195697992991,
+          "steer": 0.034320532221830555,
+          "throttle": 0.2332387356298221,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 23.399999999999313,
+          "speedKmh": 77.90328644472957,
+          "steer": 0.03554152608520391,
+          "throttle": 0.2205084843543076,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 23.5999999999993,
+          "speedKmh": 78.04873491341596,
+          "steer": 0.034061857695782134,
+          "throttle": 0.2103241173797975,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 23.79999999999929,
+          "speedKmh": 78.16580335831993,
+          "steer": 0.029784534336616986,
+          "throttle": 0.2021286114294477,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 23.99999999999928,
+          "speedKmh": 78.25965116594531,
+          "steer": 0.029344141025410504,
+          "throttle": 0.19555691885239057,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 24.199999999999267,
+          "speedKmh": 78.3363840938031,
+          "steer": 0.02996972641623275,
+          "throttle": 0.19016124319824368,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 24.399999999999256,
+          "speedKmh": 78.3992679226221,
+          "steer": 0.02943558167938177,
+          "throttle": 0.1857672294383087,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 24.599999999999245,
+          "speedKmh": 78.44926772701388,
+          "steer": 0.02763704610325826,
+          "throttle": 0.1822653577502128,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 24.799999999999233,
+          "speedKmh": 78.48847474158559,
+          "steer": 0.02624745345152298,
+          "throttle": 0.17952724147117316,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 24.999999999999222,
+          "speedKmh": 78.52155342144087,
+          "steer": 0.026616490696949355,
+          "throttle": 0.17719042153783626,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 25.19999999999921,
+          "speedKmh": 78.550051397765,
+          "steer": 0.025468643583841058,
+          "throttle": 0.1752114816107656,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 25.3999999999992,
+          "speedKmh": 78.57421231397541,
+          "steer": 0.023148784669888452,
+          "throttle": 0.17352193094444346,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 25.599999999999188,
+          "speedKmh": 78.59437139229232,
+          "steer": 0.021684594841193686,
+          "throttle": 0.17212280855831896,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 25.799999999999176,
+          "speedKmh": 78.61277628252917,
+          "steer": 0.021478809511353544,
+          "throttle": 0.1708200608439131,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 25.999999999999165,
+          "speedKmh": 78.62855124631699,
+          "steer": 0.05064032266505133,
+          "throttle": 0.16968814150759048,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 26.199999999999154,
+          "speedKmh": 78.49408820624215,
+          "steer": 0.2046406287334127,
+          "throttle": 0.17820630191317932,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 26.399999999999142,
+          "speedKmh": 78.04523873829382,
+          "steer": 0.2638205016585556,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 26.59999999999913,
+          "speedKmh": 77.29594325250193,
+          "steer": 0.22982098753145835,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 26.79999999999912,
+          "speedKmh": 76.32640310092619,
+          "steer": 0.17167656741560938,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 26.99999999999911,
+          "speedKmh": 75.30217111341437,
+          "steer": 0.0889042812056432,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 27.199999999999097,
+          "speedKmh": 74.43878100443135,
+          "steer": -0.01443952732843351,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 27.399999999999086,
+          "speedKmh": 74.06970302631827,
+          "steer": -0.18621174333932877,
+          "throttle": 0.4870613123101687,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 27.599999999999074,
+          "speedKmh": 74.652361455446,
+          "steer": -0.3925486088702684,
+          "throttle": 0.2692575586950997,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 27.799999999999063,
+          "speedKmh": 73.2451844244176,
+          "steer": -0.5619777638672618,
+          "throttle": 0,
+          "brake": 0.15527520795036465,
+          "surface": "asphalt"
+        },
+        {
+          "time": 27.99999999999905,
+          "speedKmh": 69.84670979838667,
+          "steer": -0.7033155777490449,
+          "throttle": 0,
+          "brake": 0.2216932032615228,
+          "surface": "asphalt"
+        },
+        {
+          "time": 28.19999999999904,
+          "speedKmh": 65.58002753794374,
+          "steer": -0.7881913212771134,
+          "throttle": 0,
+          "brake": 0.18303336309037788,
+          "surface": "gravel shoulder"
+        },
+        {
+          "time": 28.39999999999903,
+          "speedKmh": 61.55653424220686,
+          "steer": -0.835907548665308,
+          "throttle": 0,
+          "brake": 0.1043304994442834,
+          "surface": "gravel shoulder"
+        },
+        {
+          "time": 28.599999999999017,
+          "speedKmh": 57.74069540784547,
+          "steer": -0.8082741885826679,
+          "throttle": 0.1442904351117128,
+          "brake": 0,
+          "surface": "gravel shoulder"
+        },
+        {
+          "time": 28.799999999999006,
+          "speedKmh": 54.37959395494392,
+          "steer": -0.709561395685799,
+          "throttle": 0.19761424983345985,
+          "brake": 0,
+          "surface": "gravel shoulder"
+        },
+        {
+          "time": 28.999999999998995,
+          "speedKmh": 50.98428262459886,
+          "steer": -0.5398554333615752,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "gravel shoulder"
+        },
+        {
+          "time": 29.199999999998983,
+          "speedKmh": 46.107674301094114,
+          "steer": -0.31575670719895466,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "gravel shoulder"
+        },
+        {
+          "time": 29.399999999998972,
+          "speedKmh": 42.75999330229644,
+          "steer": 0.03810533868863508,
+          "throttle": 0.36671135951714096,
+          "brake": 0,
+          "surface": "gravel shoulder"
+        },
+        {
+          "time": 29.59999999999896,
+          "speedKmh": 40.23480847105626,
+          "steer": 0.20432693506008323,
+          "throttle": 0.1123286080463183,
+          "brake": 0,
+          "surface": "gravel shoulder"
+        },
+        {
+          "time": 29.79999999999895,
+          "speedKmh": 37.23569542478275,
+          "steer": 0.4834153558302351,
+          "throttle": 0.02459567306732795,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 29.999999999998938,
+          "speedKmh": 33.84714567497813,
+          "steer": 0.8360459067911115,
+          "throttle": 0.010000000000000002,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 30.199999999998926,
+          "speedKmh": 30.215827147046358,
+          "steer": 1,
+          "throttle": 0.05499234885366997,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 30.399999999998915,
+          "speedKmh": 26.72690108427673,
+          "steer": 1,
+          "throttle": 0.1775946435200915,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 30.599999999998904,
+          "speedKmh": 23.982814637515794,
+          "steer": 1,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 30.799999999998892,
+          "speedKmh": 22.974440215490635,
+          "steer": 1,
+          "throttle": 0.7129145486902833,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 30.99999999999888,
+          "speedKmh": 23.898301738775057,
+          "steer": 1,
+          "throttle": 0.22587649015142044,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 31.19999999999887,
+          "speedKmh": 23.861319667748358,
+          "steer": 1,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 31.399999999998858,
+          "speedKmh": 23.587483660510188,
+          "steer": 1,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 31.599999999998847,
+          "speedKmh": 23.319017604235963,
+          "steer": 1,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 31.799999999998835,
+          "speedKmh": 23.09259687899199,
+          "steer": 1,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 31.999999999998824,
+          "speedKmh": 23.575741662030623,
+          "steer": 0.6475308576290622,
+          "throttle": 0.6814045807117316,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 32.199999999998816,
+          "speedKmh": 26.053086719366075,
+          "steer": 0.3398362093412999,
+          "throttle": 0.8524927134327375,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 32.399999999998805,
+          "speedKmh": 29.38171037694773,
+          "steer": 0.16603836527640872,
+          "throttle": 0.8917649861850232,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 32.59999999999879,
+          "speedKmh": 33.018892959789355,
+          "steer": 0.07154045203079917,
+          "throttle": 0.9319443566217115,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 32.79999999999878,
+          "speedKmh": 36.83904617249944,
+          "steer": 0.02746155150148737,
+          "throttle": 0.9469948064673274,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 32.99999999999877,
+          "speedKmh": 40.714610508870074,
+          "steer": 0.00759680998986734,
+          "throttle": 0.9637584123035975,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 33.19999999999876,
+          "speedKmh": 44.57424331572849,
+          "steer": 0.05445600074122735,
+          "throttle": 0.970640543829751,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 33.39999999999875,
+          "speedKmh": 48.1917298162251,
+          "steer": 0.17262535563929526,
+          "throttle": 0.8469778507500818,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 33.59999999999874,
+          "speedKmh": 51.17670435267499,
+          "steer": 0.170457968582341,
+          "throttle": 0.73360830729999,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 33.799999999998725,
+          "speedKmh": 53.77360377145159,
+          "steer": 0.09911446597324264,
+          "throttle": 0.7696360155396333,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 33.999999999998714,
+          "speedKmh": 56.5134610137485,
+          "steer": 0.0374909313709732,
+          "throttle": 0.8937770566154633,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 34.1999999999987,
+          "speedKmh": 59.21017839123954,
+          "steer": -0.03966802291363786,
+          "throttle": 0.993837745878529,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 34.39999999999869,
+          "speedKmh": 60.827573812034075,
+          "steer": -0.17544773655258783,
+          "throttle": 0.8984031778806096,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 34.59999999999868,
+          "speedKmh": 63.11408019019771,
+          "steer": -0.1918243917736278,
+          "throttle": 0.23137298534825027,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 34.79999999999867,
+          "speedKmh": 63.8471288856679,
+          "steer": -0.2116632396836346,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 34.99999999999866,
+          "speedKmh": 63.24399588154813,
+          "steer": -0.25427812507447484,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 35.199999999998646,
+          "speedKmh": 62.45723432621512,
+          "steer": -0.28804933762710017,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 35.399999999998634,
+          "speedKmh": 61.64751199195106,
+          "steer": -0.24798819175196693,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 35.59999999999862,
+          "speedKmh": 60.95783136162832,
+          "steer": -0.16674224130862414,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 35.79999999999861,
+          "speedKmh": 60.51013233947654,
+          "steer": -0.06090159507198639,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 35.9999999999986,
+          "speedKmh": 60.97620068758964,
+          "steer": 0.06096400882270303,
+          "throttle": 0.7776354013493187,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 36.19999999999859,
+          "speedKmh": 63.28542542567948,
+          "steer": 0.25072862072861574,
+          "throttle": 0.9162870949271058,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 36.39999999999858,
+          "speedKmh": 64.41076816442245,
+          "steer": 0.4372751949976721,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 36.599999999998566,
+          "speedKmh": 63.40749200206678,
+          "steer": 0.6188636865437559,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 36.799999999998555,
+          "speedKmh": 61.71568639920001,
+          "steer": 0.7801808838554475,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 36.99999999999854,
+          "speedKmh": 59.56970946722159,
+          "steer": 0.9141955439145075,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 37.19999999999853,
+          "speedKmh": 57.194619405539875,
+          "steer": 1,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 37.39999999999852,
+          "speedKmh": 54.91214175068968,
+          "steer": 1,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 37.59999999999851,
+          "speedKmh": 52.95492101594202,
+          "steer": 0.9880557507477217,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 37.7999999999985,
+          "speedKmh": 51.386656432544356,
+          "steer": 0.7803459768620442,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 37.99999999999849,
+          "speedKmh": 50.35659147129554,
+          "steer": 0.39412624396397944,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 38.199999999998475,
+          "speedKmh": 50.25455879159252,
+          "steer": -0.11723166010893868,
+          "throttle": 0.817296634801109,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 38.399999999998464,
+          "speedKmh": 52.25876907739887,
+          "steer": -0.4324301279020654,
+          "throttle": 0.8928926546165933,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 38.59999999999845,
+          "speedKmh": 52.72823700212608,
+          "steer": -0.4921426139099711,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 38.79999999999844,
+          "speedKmh": 51.73616263336006,
+          "steer": -0.45360448831558636,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 38.99999999999843,
+          "speedKmh": 50.59329975923023,
+          "steer": -0.3327812862293374,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 39.19999999999842,
+          "speedKmh": 49.545452928341575,
+          "steer": -0.13003498561854732,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 39.39999999999841,
+          "speedKmh": 49.00046918903458,
+          "steer": 0.11296534683879206,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 39.599999999998396,
+          "speedKmh": 50.188651568526566,
+          "steer": 0.24213290363492151,
+          "throttle": 0.9920247549688304,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 39.799999999998384,
+          "speedKmh": 52.3477558838039,
+          "steer": 0.23350365049414795,
+          "throttle": 0.5526093260976287,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 39.99999999999837,
+          "speedKmh": 52.679919528077036,
+          "steer": 0.24045164176012596,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 40.19999999999836,
+          "speedKmh": 52.380174862014194,
+          "steer": 0.22677039393545054,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 40.39999999999835,
+          "speedKmh": 52.104812990038646,
+          "steer": 0.16779592484243722,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 40.59999999999834,
+          "speedKmh": 52.22422246065366,
+          "steer": 0.0733664415680979,
+          "throttle": 0.6303486863176284,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 40.79999999999833,
+          "speedKmh": 54.02014412202839,
+          "steer": -0.006999937465362871,
+          "throttle": 0.9303642105732224,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 40.999999999998316,
+          "speedKmh": 56.69111557636101,
+          "steer": -0.06773696966139464,
+          "throttle": 0.9922050858299196,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 41.199999999998305,
+          "speedKmh": 59.40944722305634,
+          "steer": -0.08501094465816966,
+          "throttle": 0.918681044956623,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 41.39999999999829,
+          "speedKmh": 61.83151453745926,
+          "steer": -0.12893219394907568,
+          "throttle": 0.8376704398261479,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 41.59999999999828,
+          "speedKmh": 63.734312631925285,
+          "steer": -0.18562275503735298,
+          "throttle": 0.6171122643005674,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 41.79999999999827,
+          "speedKmh": 64.36734136843711,
+          "steer": -0.24688397211848487,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 41.99999999999826,
+          "speedKmh": 63.88109373204521,
+          "steer": -0.32087475860421194,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 42.19999999999825,
+          "speedKmh": 63.07025277964268,
+          "steer": -0.3309882936650699,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 42.399999999998236,
+          "speedKmh": 62.130058251647625,
+          "steer": -0.28223143610083723,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 42.599999999998225,
+          "speedKmh": 61.2128682369724,
+          "steer": -0.1966672891691631,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 42.799999999998214,
+          "speedKmh": 60.49856611985003,
+          "steer": -0.08489516744246572,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 42.9999999999982,
+          "speedKmh": 60.2113388365519,
+          "steer": 0.04363179023001068,
+          "throttle": 0.4874801405704062,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 43.19999999999819,
+          "speedKmh": 61.92370076400558,
+          "steer": 0.230679804373341,
+          "throttle": 0.9984873323291517,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 43.39999999999818,
+          "speedKmh": 63.5960397165731,
+          "steer": 0.4220481886572093,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 43.59999999999817,
+          "speedKmh": 62.74708830371893,
+          "steer": 0.6048441845893293,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 43.79999999999816,
+          "speedKmh": 61.1215087288947,
+          "steer": 0.7676940137011458,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 43.999999999998145,
+          "speedKmh": 58.996124647489566,
+          "steer": 0.8985048416260908,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 44.199999999998134,
+          "speedKmh": 56.62118178346825,
+          "steer": 0.9887029506269569,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 44.39999999999812,
+          "speedKmh": 54.287953729491036,
+          "steer": 1,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 44.59999999999811,
+          "speedKmh": 52.281774501755585,
+          "steer": 0.9580520276924023,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 44.7999999999981,
+          "speedKmh": 50.75075814472899,
+          "steer": 0.7595450615158503,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 44.99999999999809,
+          "speedKmh": 49.77560736545983,
+          "steer": 0.38606887813243873,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 45.19999999999808,
+          "speedKmh": 49.7514189145694,
+          "steer": -0.11278265400011495,
+          "throttle": 0.8316422569224364,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 45.399999999998066,
+          "speedKmh": 51.802663989167804,
+          "steer": -0.42179807790955415,
+          "throttle": 0.8880994896593088,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 45.599999999998055,
+          "speedKmh": 52.28248077148306,
+          "steer": -0.49359082624124584,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 45.79999999999804,
+          "speedKmh": 51.30083066678351,
+          "steer": -0.46907522277237046,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 45.99999999999803,
+          "speedKmh": 50.137149221587705,
+          "steer": -0.358941646762451,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 46.19999999999802,
+          "speedKmh": 49.12263019370072,
+          "steer": -0.16709264968256748,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 46.39999999999801,
+          "speedKmh": 48.58583874380191,
+          "steer": 0.07449020685138114,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 46.599999999998,
+          "speedKmh": 49.67163022109329,
+          "steer": 0.22651246274492343,
+          "throttle": 0.9823202922806455,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 46.799999999997986,
+          "speedKmh": 51.922579034725615,
+          "steer": 0.24001806792286007,
+          "throttle": 0.6338471858460419,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 46.999999999997975,
+          "speedKmh": 52.49337521356997,
+          "steer": 0.256290443161062,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 47.199999999997964,
+          "speedKmh": 52.178481168130766,
+          "steer": 0.2503577704459481,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 47.39999999999795,
+          "speedKmh": 51.8420783339421,
+          "steer": 0.19286530596969445,
+          "throttle": 0.2,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 47.59999999999794,
+          "speedKmh": 51.66979775987118,
+          "steer": 0.0906426387586361,
+          "throttle": 0.41862905662562827,
+          "brake": 0,
+          "surface": "asphalt"
+        }
+      ],
+      "rendererName": "ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)",
+      "viewport": {
+        "width": 960,
+        "height": 600
+      },
+      "camera": {
+        "position": [
+          3594.046720830503,
+          152.77477259973767,
+          1797.8094163301325
+        ],
+        "target": [
+          3602.64404296875,
+          146.21863555908203,
+          1814.8352661132812
+        ],
+        "fov": 43
+      },
+      "comparison": "same-source frozen optics switch; before disables only Festival dry-cloud detail",
+      "sourceSnapshotsSha256": "c2e61662b426677b757d24683e69be559960f6ffcf63f92a76b81a3ec6347387",
+      "cpuReplayAndReadbackMs": 1079.7999999999884,
+      "notTargetDevicePerformance": true,
+      "checks": {
+        "recordedRealControls": true,
+        "finitePhysics": true,
+        "noSnapshotMutation": true,
+        "threeMotionSamples": true,
+        "smoke-0: visible measured plume": true,
+        "smoke-0: desired optical response": true,
+        "smoke-0: unchanged pool and motion": true,
+        "smoke-0: no added draw calls or triangles": true,
+        "smoke-0: same geometry and material": true,
+        "smoke-0: exact repeated control frame": true,
+        "smoke-1: visible measured plume": true,
+        "smoke-1: desired optical response": true,
+        "smoke-1: unchanged pool and motion": true,
+        "smoke-1: no added draw calls or triangles": true,
+        "smoke-1: same geometry and material": true,
+        "smoke-1: exact repeated control frame": true,
+        "peak replay matches measured recording": true,
+        "smoke-2: visible measured plume": true,
+        "smoke-2: desired optical response": true,
+        "smoke-2: unchanged pool and motion": true,
+        "smoke-2: no added draw calls or triangles": true,
+        "smoke-2: same geometry and material": true,
+        "smoke-2: exact repeated control frame": true,
+        "noShaderErrors": true,
+        "noGlErrors": true
+      },
+      "passed": true,
+      "captures": [
+        {
+          "index": 0,
+          "time": 5.400000095367432,
+          "diagnostics": {
+            "capacity": 4200,
+            "contactCapacity": 3600,
+            "rainCapacity": 600,
+            "active": [
+              0,
+              0,
+              0,
+              0,
+              105,
+              0
+            ],
+            "spawned": [
+              0,
+              0,
+              0,
+              0,
+              106,
+              0
+            ],
+            "velocityX": [
+              0,
+              0,
+              0,
+              0,
+              3.9835117589859736,
+              0
+            ],
+            "velocityZ": [
+              0,
+              0,
+              0,
+              0,
+              0.11635374656124484,
+              0
+            ],
+            "windX": 1.5,
+            "windZ": 0.6000000238418579
+          },
+          "poolBytesSha256": "7e53c435c124f39f7c928fb76f49a4a544f4188a73eefb64d0bd898b419989e3",
+          "poolByteLength": 366696,
+          "difference": {
+            "maxChannelDelta": 62,
+            "changedPixels": 46486,
+            "coverageDifferences": 0,
+            "changedByAtLeastTwo": 41800,
+            "meanAbsoluteRgb": 0.9003402777777778
+          },
+          "effectCoverage": {
+            "maxChannelDelta": 129,
+            "changedPixels": 44996,
+            "coverageDifferences": 0,
+            "changedByAtLeastTwo": 43417,
+            "meanAbsoluteRgb": 3.066906828703704
+          },
+          "repeatDifference": {
+            "maxChannelDelta": 0,
+            "changedPixels": 0,
+            "coverageDifferences": 0,
+            "changedByAtLeastTwo": 0,
+            "meanAbsoluteRgb": 0
+          },
+          "before": {
+            "calls": 3,
+            "triangles": 3412,
+            "points": 106,
+            "memory": {
+              "geometries": 4,
+              "textures": 0
+            }
+          },
+          "after": {
+            "calls": 3,
+            "triangles": 3412,
+            "points": 106,
+            "memory": {
+              "geometries": 4,
+              "textures": 0
+            }
+          }
+        },
+        {
+          "index": 1,
+          "time": 5.599999904632568,
+          "diagnostics": {
+            "capacity": 4200,
+            "contactCapacity": 3600,
+            "rainCapacity": 600,
+            "active": [
+              0,
+              0,
+              0,
+              0,
+              111,
+              0
+            ],
+            "spawned": [
+              0,
+              0,
+              0,
+              0,
+              114,
+              0
+            ],
+            "velocityX": [
+              0,
+              0,
+              0,
+              0,
+              3.7293633985089825,
+              0
+            ],
+            "velocityZ": [
+              0,
+              0,
+              0,
+              0,
+              0.2612547263734332,
+              0
+            ],
+            "windX": 1.5,
+            "windZ": 0.6000000238418579
+          },
+          "poolBytesSha256": "eb08a200b43593962d27febb5953d0d69e1463223cc75444fb90e35066bb2aa8",
+          "poolByteLength": 366696,
+          "difference": {
+            "maxChannelDelta": 51,
+            "changedPixels": 53889,
+            "coverageDifferences": 0,
+            "changedByAtLeastTwo": 46485,
+            "meanAbsoluteRgb": 0.8872204861111112
+          },
+          "effectCoverage": {
+            "maxChannelDelta": 128,
+            "changedPixels": 53153,
+            "coverageDifferences": 0,
+            "changedByAtLeastTwo": 50898,
+            "meanAbsoluteRgb": 3.2239635416666665
+          },
+          "repeatDifference": {
+            "maxChannelDelta": 0,
+            "changedPixels": 0,
+            "coverageDifferences": 0,
+            "changedByAtLeastTwo": 0,
+            "meanAbsoluteRgb": 0
+          },
+          "before": {
+            "calls": 3,
+            "triangles": 3428,
+            "points": 114,
+            "memory": {
+              "geometries": 4,
+              "textures": 0
+            }
+          },
+          "after": {
+            "calls": 3,
+            "triangles": 3428,
+            "points": 114,
+            "memory": {
+              "geometries": 4,
+              "textures": 0
+            }
+          }
+        },
+        {
+          "index": 2,
+          "time": 5.800000190734863,
+          "diagnostics": {
+            "capacity": 4200,
+            "contactCapacity": 3600,
+            "rainCapacity": 600,
+            "active": [
+              0,
+              0,
+              0,
+              0,
+              98,
+              0
+            ],
+            "spawned": [
+              0,
+              0,
+              0,
+              0,
+              114,
+              0
+            ],
+            "velocityX": [
+              0,
+              0,
+              0,
+              0,
+              3.5141366695871157,
+              0
+            ],
+            "velocityZ": [
+              0,
+              0,
+              0,
+              0,
+              0.37480223821286035,
+              0
+            ],
+            "windX": 1.5,
+            "windZ": 0.6000000238418579
+          },
+          "poolBytesSha256": "c7d9f2458bf5a7c85efb2614b12370d5ca83eb5ee7ac0cf16317d5371e4e5c48",
+          "poolByteLength": 366696,
+          "difference": {
+            "maxChannelDelta": 52,
+            "changedPixels": 56705,
+            "coverageDifferences": 0,
+            "changedByAtLeastTwo": 46689,
+            "meanAbsoluteRgb": 0.81584375
+          },
+          "effectCoverage": {
+            "maxChannelDelta": 133,
+            "changedPixels": 55585,
+            "coverageDifferences": 0,
+            "changedByAtLeastTwo": 52094,
+            "meanAbsoluteRgb": 2.958751736111111
+          },
+          "repeatDifference": {
+            "maxChannelDelta": 0,
+            "changedPixels": 0,
+            "coverageDifferences": 0,
+            "changedByAtLeastTwo": 0,
+            "meanAbsoluteRgb": 0
+          },
+          "before": {
+            "calls": 3,
+            "triangles": 3428,
+            "points": 114,
+            "memory": {
+              "geometries": 4,
+              "textures": 0
+            }
+          },
+          "after": {
+            "calls": 3,
+            "triangles": 3428,
+            "points": 114,
+            "memory": {
+              "geometries": 4,
+              "textures": 0
+            }
+          }
+        }
+      ],
+      "shaderErrors": [],
+      "glErrors": [],
+      "images": [
+        {
+          "file": "smoke-0-before.png",
+          "bytes": 109091,
+          "sha256": "035eba79a37091f1ce203dc68f310c401114d40c61a018ad59bb74d1b94e5fdc",
+          "width": 960,
+          "height": 600
+        },
+        {
+          "file": "smoke-0-after.png",
+          "bytes": 117362,
+          "sha256": "592d89137ec29110a0629cc6bf2088d23643ba0ff1f25c47a8fabfdbbedca92e",
+          "width": 960,
+          "height": 600
+        },
+        {
+          "file": "smoke-1-without-particles.png",
+          "bytes": 37324,
+          "sha256": "bea01ed30f87c85c1e092b4462ea343f14eefece5ee4016aa0390a642840baa0",
+          "width": 960,
+          "height": 600
+        },
+        {
+          "file": "smoke-1-before.png",
+          "bytes": 111826,
+          "sha256": "79ff9cc42119e304a08fd56f072039f135a72d44d600c2d85a4203472b919bbd",
+          "width": 960,
+          "height": 600
+        },
+        {
+          "file": "smoke-1-after.png",
+          "bytes": 123690,
+          "sha256": "f65cd58077d4d4c0d773a24df910a31167bf2f73a52564fff27f09f33ada4d7a",
+          "width": 960,
+          "height": 600
+        },
+        {
+          "file": "smoke-2-before.png",
+          "bytes": 108263,
+          "sha256": "d4db55b427f5e370c9f79a81dca38c3f24533f8738d88c63f397e28b7e797583",
+          "width": 960,
+          "height": 600
+        },
+        {
+          "file": "smoke-2-after.png",
+          "bytes": 119473,
+          "sha256": "61b7fe6d5556639de4ad46105e73373bc5f57595118eca2a5cd57e347c4bcf97",
+          "width": 960,
+          "height": 600
+        }
+      ]
+    },
+    {
+      "scenario": "dust",
+      "configuration": {
+        "vehicle": "tc1",
+        "weather": "clear",
+        "event": "quarry-drift",
+        "kind": 1,
+        "seconds": 18
+      },
+      "sourceIdentity": {
+        "fingerprint": "3b9da186b2fbb878400d622889902deb3647a39d936312be8f4a166d6081b17e",
+        "commit": "14270a4058ec547102b4aedb5430faac9c52fc7c"
+      },
+      "method": {
+        "normalControlsOnly": true,
+        "scriptedSteeringAssistance": true,
+        "humanPlaytest": false,
+        "productionStartCommand": true,
+        "assignedPhysicsChannels": false,
+        "timestep": 0.008333333333333333,
+        "snapshotInterval": 0.03333333333333333,
+        "ground": "bounded mesh sampled from the actual carved world height"
+      },
+      "cpuRecordingMs": 1032.8000000000175,
+      "simulatedSeconds": 17.99999999999962,
+      "recordedFrames": 319,
+      "captureTimes": [
+        10.233333587646484,
+        10.433333396911621,
+        10.633333206176758
+      ],
+      "peakActive": 208,
+      "peakDiagnostics": {
+        "capacity": 4200,
+        "contactCapacity": 3600,
+        "rainCapacity": 600,
+        "active": [
+          0,
+          208,
+          0,
+          0,
+          0,
+          0
+        ],
+        "spawned": [
+          0,
+          1008,
+          0,
+          0,
+          0,
+          0
+        ],
+        "velocityX": [
+          0,
+          -1.791911825716782,
+          0,
+          0,
+          0,
+          0
+        ],
+        "velocityZ": [
+          0,
+          -1.0274127705846554,
+          0,
+          0,
+          0,
+          0
+        ],
+        "windX": 1.5,
+        "windZ": 0.6000000238418579
+      },
+      "finite": true,
+      "framesUnmodified": true,
+      "contactSamples": 0,
+      "offRoadSeconds": 0,
+      "controlsTrace": [
+        {
+          "time": 0.19999999999999998,
+          "speedKmh": 4.658657346879484,
+          "steer": -0.038989901081390645,
+          "throttle": 0.04978882462724844,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 0.4000000000000004,
+          "speedKmh": 3.101526216291732,
+          "steer": -0.03749474737483815,
+          "throttle": 0.049996613738639485,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 0.6000000000000003,
+          "speedKmh": 5.710320908882273,
+          "steer": -0.037505976238193184,
+          "throttle": 0.04999112364176203,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 0.7999999999999996,
+          "speedKmh": 7.829177692137894,
+          "steer": -0.03396819742861547,
+          "throttle": 0.7730179091678435,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 0.9999999999999989,
+          "speedKmh": 10.084391044038373,
+          "steer": -0.029627725013878704,
+          "throttle": 0.778056111769536,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 1.1999999999999982,
+          "speedKmh": 12.15294304398201,
+          "steer": -0.025118779132616127,
+          "throttle": 0.7734627093506291,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 1.3999999999999975,
+          "speedKmh": 14.320304230569436,
+          "steer": -0.02030882505619114,
+          "throttle": 0.7131248346170974,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 1.5999999999999968,
+          "speedKmh": 16.574311659750162,
+          "steer": -0.014585544701859299,
+          "throttle": 0.6988428591694282,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 1.799999999999996,
+          "speedKmh": 18.874013292169934,
+          "steer": -0.009791890151196664,
+          "throttle": 0.6994918792869722,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 1.9999999999999953,
+          "speedKmh": 21.23411913977858,
+          "steer": -0.005802475310068534,
+          "throttle": 0.5916453558376092,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 2.199999999999995,
+          "speedKmh": 23.608321768272337,
+          "steer": -0.0026693043581745516,
+          "throttle": 0.5905138379524307,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 2.399999999999994,
+          "speedKmh": 26.06973785655984,
+          "steer": -0.0004897549828792474,
+          "throttle": 0.6421746237155308,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 2.5999999999999934,
+          "speedKmh": 28.53085255878927,
+          "steer": 0.0010339823117177132,
+          "throttle": 0.5863313836994044,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 2.7999999999999927,
+          "speedKmh": 31.015867205214153,
+          "steer": 0.001853352608459255,
+          "throttle": 0.6134369021221874,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 2.999999999999992,
+          "speedKmh": 33.61281257382583,
+          "steer": 0.0022141522357500363,
+          "throttle": 0.6140313348576499,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 3.1999999999999913,
+          "speedKmh": 36.12882645476415,
+          "steer": 0.0020385086479963667,
+          "throttle": 0.6051637410863984,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 3.3999999999999906,
+          "speedKmh": 38.758029897397655,
+          "steer": 0.0016310321793331483,
+          "throttle": 0.6383490775348927,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 3.59999999999999,
+          "speedKmh": 41.30880729797624,
+          "steer": 0.0009926574211372601,
+          "throttle": 0.6382713860689007,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 3.799999999999989,
+          "speedKmh": 43.93567280806675,
+          "steer": 0.00015750595239476272,
+          "throttle": 0.6436819019136011,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 3.9999999999999885,
+          "speedKmh": 46.525849782508594,
+          "steer": -0.000680124144767583,
+          "throttle": 0.6726702341556066,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 4.199999999999998,
+          "speedKmh": 49.114467177717735,
+          "steer": -0.001481721557260167,
+          "throttle": 0.6796890587149129,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 4.400000000000008,
+          "speedKmh": 51.693902395485054,
+          "steer": -0.002276488410779792,
+          "throttle": 0.6946934496604366,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 4.600000000000018,
+          "speedKmh": 54.25506772916508,
+          "steer": -0.002993177777020258,
+          "throttle": 0.712334009470726,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 4.800000000000028,
+          "speedKmh": 56.786481330808385,
+          "steer": -0.003581573306678662,
+          "throttle": 0.7439570039613635,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 5.000000000000038,
+          "speedKmh": 59.24842136997247,
+          "steer": -0.00403578663024055,
+          "throttle": 0.784159636150409,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 5.200000000000048,
+          "speedKmh": 61.63182924035817,
+          "steer": -0.004349108329011244,
+          "throttle": 0.7973368205536326,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 5.400000000000058,
+          "speedKmh": 62.52610052695312,
+          "steer": -0.004473741483927523,
+          "throttle": 0.0499896303681496,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 5.600000000000068,
+          "speedKmh": 65.3804524926236,
+          "steer": -0.004786322578798828,
+          "throttle": 0.735343769137254,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 5.800000000000078,
+          "speedKmh": 67.6872921589949,
+          "steer": -0.0049683396953335785,
+          "throttle": 0.7295029768344983,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 6.000000000000088,
+          "speedKmh": 69.96854855414173,
+          "steer": -0.004939625739674346,
+          "throttle": 0.6778718716615094,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 6.200000000000098,
+          "speedKmh": 71.98164719536442,
+          "steer": -0.00475438802847651,
+          "throttle": 0.6206435199437053,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 6.400000000000108,
+          "speedKmh": 73.65412830682592,
+          "steer": -0.0044545122748884235,
+          "throttle": 0.5193741228330292,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 6.600000000000118,
+          "speedKmh": 74.87405194067426,
+          "steer": -0.004093139244710464,
+          "throttle": 0.43332515634079194,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 6.800000000000128,
+          "speedKmh": 75.6754950692438,
+          "steer": -0.00371817274296331,
+          "throttle": 0.37668910790502885,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 7.000000000000138,
+          "speedKmh": 76.20776985942997,
+          "steer": -0.0033631026034970546,
+          "throttle": 0.33914607893267246,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 7.200000000000148,
+          "speedKmh": 76.57853006530243,
+          "steer": -0.0030429976355500236,
+          "throttle": 0.31297905596749953,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 7.400000000000158,
+          "speedKmh": 76.83722614422167,
+          "steer": -0.0027592701302899913,
+          "throttle": 0.29466860723774524,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 7.6000000000001675,
+          "speedKmh": 77.00636495471441,
+          "steer": -0.0025081364786369853,
+          "throttle": 0.28268634623609945,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 7.8000000000001775,
+          "speedKmh": 77.10326422220521,
+          "steer": -0.0022848998687208045,
+          "throttle": 0.27581782684015643,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 8.000000000000187,
+          "speedKmh": 77.14397995943955,
+          "steer": -0.002087133737096631,
+          "throttle": 0.27286759638163993,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 8.200000000000175,
+          "speedKmh": 77.13983225157438,
+          "steer": -0.001918958805045425,
+          "throttle": 0.272983694810626,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 8.400000000000164,
+          "speedKmh": 77.0997388274217,
+          "steer": -0.001764830944607926,
+          "throttle": 0.2755929804686118,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 8.600000000000152,
+          "speedKmh": 77.03645211149768,
+          "steer": -0.0016234873463319903,
+          "throttle": 0.27990954049643524,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 8.800000000000141,
+          "speedKmh": 76.97119961102997,
+          "steer": -0.0014944966614076072,
+          "throttle": 0.2845147298924876,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 9.00000000000013,
+          "speedKmh": 76.9286576296762,
+          "steer": -0.0013768809756621839,
+          "throttle": 0.2876382459632253,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 9.200000000000118,
+          "speedKmh": 76.92531340787639,
+          "steer": -0.0012703324685892344,
+          "throttle": 0.2880275675681522,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 9.400000000000107,
+          "speedKmh": 76.96140008240374,
+          "steer": -0.0011745291787769745,
+          "throttle": 0.2856028271496386,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 9.600000000000096,
+          "speedKmh": 77.02270101170647,
+          "steer": -0.0010870611726842587,
+          "throttle": 0.28136636002872095,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 9.800000000000084,
+          "speedKmh": 77.08810577039846,
+          "steer": -0.0010027550465283655,
+          "throttle": 0.2768389207911569,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 10.000000000000073,
+          "speedKmh": 77.13850249076454,
+          "steer": -0.0009153936498999709,
+          "throttle": 0.27327885226828663,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 10.200000000000061,
+          "speedKmh": 77.16432916322647,
+          "steer": -0.0008193633061057866,
+          "throttle": 0.27141769124259885,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 10.40000000000005,
+          "speedKmh": 77.16372351547534,
+          "steer": -0.0007107645595396282,
+          "throttle": 0.2714187558633131,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 10.600000000000039,
+          "speedKmh": 77.13914636834839,
+          "steer": -0.000588170278619198,
+          "throttle": 0.2730999393826049,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 10.800000000000027,
+          "speedKmh": 77.09796705706448,
+          "steer": -0.0004530324329601642,
+          "throttle": 0.2759141179002419,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 11.000000000000016,
+          "speedKmh": 77.05188274587707,
+          "steer": -0.0003082735423929328,
+          "throttle": 0.27906621881379146,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 11.200000000000005,
+          "speedKmh": 77.014661923456,
+          "steer": -0.00015748001681376104,
+          "throttle": 0.28166993660845396,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 11.399999999999993,
+          "speedKmh": 76.99401435637213,
+          "steer": -0.000005316281441110732,
+          "throttle": 0.28316783673693025,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 11.599999999999982,
+          "speedKmh": 76.98909538465283,
+          "steer": 0.00014498184951963321,
+          "throttle": 0.28356373396831025,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 11.79999999999997,
+          "speedKmh": 76.99798981845032,
+          "steer": 0.0002913439411157724,
+          "throttle": 0.2829962588008811,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 11.99999999999996,
+          "speedKmh": 77.02549589489819,
+          "steer": 0.0004328830328119561,
+          "throttle": 0.28114249822439963,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 12.199999999999948,
+          "speedKmh": 77.07848530279725,
+          "steer": 0.0005701300997256092,
+          "throttle": 0.2775166321748489,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 12.399999999999936,
+          "speedKmh": 77.15915422410717,
+          "steer": 0.0007039594863487057,
+          "throttle": 0.2719549497034387,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 12.599999999999925,
+          "speedKmh": 77.2577160184833,
+          "steer": 0.000835632695426252,
+          "throttle": 0.26516948666452234,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 12.799999999999914,
+          "speedKmh": 77.34850675592271,
+          "steer": 0.0009661345367760018,
+          "throttle": 0.25880304147896205,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 12.999999999999902,
+          "speedKmh": 77.3996634597411,
+          "steer": 0.0010961830813609422,
+          "throttle": 0.2551198304938699,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 13.199999999999891,
+          "speedKmh": 77.3916601475457,
+          "steer": 0.001225137273883019,
+          "throttle": 0.25558982773968897,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 13.39999999999988,
+          "speedKmh": 77.32505152523396,
+          "steer": 0.0013516371921750803,
+          "throttle": 0.2601551468726965,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 13.599999999999868,
+          "speedKmh": 77.21816970607053,
+          "steer": 0.0014760916569510282,
+          "throttle": 0.2674350354840752,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 13.799999999999857,
+          "speedKmh": 77.10254831377407,
+          "steer": 0.0016070807678394612,
+          "throttle": 0.2753624732259806,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 13.999999999999845,
+          "speedKmh": 77.01310582203516,
+          "steer": 0.0017344459368373395,
+          "throttle": 0.28165736138468145,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 14.199999999999834,
+          "speedKmh": 76.96425092174098,
+          "steer": 0.0018608874719584082,
+          "throttle": 0.28518656591188407,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 14.399999999999823,
+          "speedKmh": 76.93598724702026,
+          "steer": 0.0019893110416929786,
+          "throttle": 0.28712791499480705,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 14.599999999999811,
+          "speedKmh": 76.88275750436104,
+          "steer": 0.002120600752941604,
+          "throttle": 0.2906294126413763,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 14.7999999999998,
+          "speedKmh": 76.76627416586591,
+          "steer": 0.0022533876597203364,
+          "throttle": 0.29854019808090737,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 14.999999999999789,
+          "speedKmh": 76.58118028349027,
+          "steer": 0.002385267011438787,
+          "throttle": 0.31130980761068383,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 15.199999999999777,
+          "speedKmh": 76.34855586811493,
+          "steer": 0.002511672710083348,
+          "throttle": 0.32741333593798416,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 15.399999999999766,
+          "speedKmh": 76.1013099677081,
+          "steer": 0.002626447259142313,
+          "throttle": 0.34447379325286953,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 15.599999999999755,
+          "speedKmh": 75.87843288193602,
+          "steer": 0.0027262424921279073,
+          "throttle": 0.36001228568315036,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 15.799999999999743,
+          "speedKmh": 75.71322720024384,
+          "steer": 0.0028149445971090096,
+          "throttle": 0.37170917617771615,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 15.999999999999732,
+          "speedKmh": 75.61968201665584,
+          "steer": 0.0029049197162730957,
+          "throttle": 0.3784414989152084,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 16.199999999999722,
+          "speedKmh": 75.58809121980303,
+          "steer": 0.003011642143348993,
+          "throttle": 0.38077775212618026,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 16.39999999999971,
+          "speedKmh": 75.5904624202024,
+          "steer": 0.003145062598419044,
+          "throttle": 0.3806551219753188,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 16.5999999999997,
+          "speedKmh": 75.59787690755944,
+          "steer": 0.0033056358243630517,
+          "throttle": 0.38014978173576897,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 16.799999999999688,
+          "speedKmh": 75.59861349776591,
+          "steer": 0.003483407036532669,
+          "throttle": 0.38009985656872936,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 16.999999999999677,
+          "speedKmh": 75.60238869616876,
+          "steer": 0.0036684983645261845,
+          "throttle": 0.37979583231967606,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 17.199999999999665,
+          "speedKmh": 75.63051985562254,
+          "steer": 0.0038551150661870464,
+          "throttle": 0.3778170908594235,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 17.399999999999654,
+          "speedKmh": 75.7018301675927,
+          "steer": 0.004065036139079021,
+          "throttle": 0.372960799627328,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 17.599999999999643,
+          "speedKmh": 75.82249250277977,
+          "steer": 0.004292530333367645,
+          "throttle": 0.36483489973917405,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 17.79999999999963,
+          "speedKmh": 75.97840755520194,
+          "steer": 0.00453295159764763,
+          "throttle": 0.3542688442135483,
+          "brake": 0,
+          "surface": "dirt road"
+        },
+        {
+          "time": 17.99999999999962,
+          "speedKmh": 76.14232418201382,
+          "steer": 0.004778759991597507,
+          "throttle": 0.34298651379095013,
+          "brake": 0,
+          "surface": "dirt road"
+        }
+      ],
+      "rendererName": "ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)",
+      "viewport": {
+        "width": 960,
+        "height": 600
+      },
+      "camera": {
+        "position": [
+          -2063.1818050281713,
+          171.68099052581002,
+          1328.7225824506681
+        ],
+        "target": [
+          -2075.6474609375,
+          158.15673828125,
+          1291.4042358398438
+        ],
+        "fov": 43
+      },
+      "comparison": "same-source frozen optics switch; before disables only Festival dry-cloud detail",
+      "sourceSnapshotsSha256": "c9bdd8d82785dff54cd1d05ce564d8d5041accff2835498e1cc3258bc565ed6e",
+      "cpuReplayAndReadbackMs": 359.19999999998254,
+      "notTargetDevicePerformance": true,
+      "checks": {
+        "recordedRealControls": true,
+        "finitePhysics": true,
+        "noSnapshotMutation": true,
+        "threeMotionSamples": true,
+        "dust-0: visible measured plume": true,
+        "dust-0: desired optical response": true,
+        "dust-0: unchanged pool and motion": true,
+        "dust-0: no added draw calls or triangles": true,
+        "dust-0: same geometry and material": true,
+        "dust-0: exact repeated control frame": true,
+        "dust-1: visible measured plume": true,
+        "dust-1: desired optical response": true,
+        "dust-1: unchanged pool and motion": true,
+        "dust-1: no added draw calls or triangles": true,
+        "dust-1: same geometry and material": true,
+        "dust-1: exact repeated control frame": true,
+        "peak replay matches measured recording": true,
+        "dust-2: visible measured plume": true,
+        "dust-2: desired optical response": true,
+        "dust-2: unchanged pool and motion": true,
+        "dust-2: no added draw calls or triangles": true,
+        "dust-2: same geometry and material": true,
+        "dust-2: exact repeated control frame": true,
+        "noShaderErrors": true,
+        "noGlErrors": true
+      },
+      "passed": true,
+      "captures": [
+        {
+          "index": 0,
+          "time": 10.233333587646484,
+          "diagnostics": {
+            "capacity": 4200,
+            "contactCapacity": 3600,
+            "rainCapacity": 600,
+            "active": [
+              0,
+              202,
+              0,
+              0,
+              0,
+              0
+            ],
+            "spawned": [
+              0,
+              980,
+              0,
+              0,
+              0,
+              0
+            ],
+            "velocityX": [
+              0,
+              -1.8696244469668606,
+              0,
+              0,
+              0,
+              0
+            ],
+            "velocityZ": [
+              0,
+              -1.0378526702089843,
+              0,
+              0,
+              0,
+              0
+            ],
+            "windX": 1.5,
+            "windZ": 0.6000000238418579
+          },
+          "poolBytesSha256": "9f2831c6face1b7511a66776809b429ff5e596da6f95fa7af474435a50ee0c4b",
+          "poolByteLength": 366696,
+          "difference": {
+            "maxChannelDelta": 17,
+            "changedPixels": 23067,
+            "coverageDifferences": 0,
+            "changedByAtLeastTwo": 12628,
+            "meanAbsoluteRgb": 0.07060011574074074
+          },
+          "effectCoverage": {
+            "maxChannelDelta": 42,
+            "changedPixels": 22616,
+            "coverageDifferences": 0,
+            "changedByAtLeastTwo": 17381,
+            "meanAbsoluteRgb": 0.2361550925925926
+          },
+          "repeatDifference": {
+            "maxChannelDelta": 0,
+            "changedPixels": 0,
+            "coverageDifferences": 0,
+            "changedByAtLeastTwo": 0,
+            "meanAbsoluteRgb": 0
+          },
+          "before": {
+            "calls": 3,
+            "triangles": 5160,
+            "points": 980,
+            "memory": {
+              "geometries": 4,
+              "textures": 0
+            }
+          },
+          "after": {
+            "calls": 3,
+            "triangles": 5160,
+            "points": 980,
+            "memory": {
+              "geometries": 4,
+              "textures": 0
+            }
+          }
+        },
+        {
+          "index": 1,
+          "time": 10.433333396911621,
+          "diagnostics": {
+            "capacity": 4200,
+            "contactCapacity": 3600,
+            "rainCapacity": 600,
+            "active": [
+              0,
+              208,
+              0,
+              0,
+              0,
+              0
+            ],
+            "spawned": [
+              0,
+              1008,
+              0,
+              0,
+              0,
+              0
+            ],
+            "velocityX": [
+              0,
+              -1.791911825716782,
+              0,
+              0,
+              0,
+              0
+            ],
+            "velocityZ": [
+              0,
+              -1.0274127705846554,
+              0,
+              0,
+              0,
+              0
+            ],
+            "windX": 1.5,
+            "windZ": 0.6000000238418579
+          },
+          "poolBytesSha256": "757824f14a06143b38c494770d240cacfd1b642816e16b3f1d1aff1139dba6c6",
+          "poolByteLength": 366696,
+          "difference": {
+            "maxChannelDelta": 18,
+            "changedPixels": 18826,
+            "coverageDifferences": 0,
+            "changedByAtLeastTwo": 10733,
+            "meanAbsoluteRgb": 0.058200231481481485
+          },
+          "effectCoverage": {
+            "maxChannelDelta": 42,
+            "changedPixels": 18310,
+            "coverageDifferences": 0,
+            "changedByAtLeastTwo": 14143,
+            "meanAbsoluteRgb": 0.19343229166666667
+          },
+          "repeatDifference": {
+            "maxChannelDelta": 0,
+            "changedPixels": 0,
+            "coverageDifferences": 0,
+            "changedByAtLeastTwo": 0,
+            "meanAbsoluteRgb": 0
+          },
+          "before": {
+            "calls": 3,
+            "triangles": 5216,
+            "points": 1008,
+            "memory": {
+              "geometries": 4,
+              "textures": 0
+            }
+          },
+          "after": {
+            "calls": 3,
+            "triangles": 5216,
+            "points": 1008,
+            "memory": {
+              "geometries": 4,
+              "textures": 0
+            }
+          }
+        },
+        {
+          "index": 2,
+          "time": 10.633333206176758,
+          "diagnostics": {
+            "capacity": 4200,
+            "contactCapacity": 3600,
+            "rainCapacity": 600,
+            "active": [
+              0,
+              195,
+              0,
+              0,
+              0,
+              0
+            ],
+            "spawned": [
+              0,
+              1036,
+              0,
+              0,
+              0,
+              0
+            ],
+            "velocityX": [
+              0,
+              -1.8508902665896294,
+              0,
+              0,
+              0,
+              0
+            ],
+            "velocityZ": [
+              0,
+              -1.0460698480789479,
+              0,
+              0,
+              0,
+              0
+            ],
+            "windX": 1.5,
+            "windZ": 0.6000000238418579
+          },
+          "poolBytesSha256": "f1795a4ae331d84a02d3cbd6e309fc1990d29c82f3e213ec07759054f1b888f4",
+          "poolByteLength": 366696,
+          "difference": {
+            "maxChannelDelta": 16,
+            "changedPixels": 13741,
+            "coverageDifferences": 0,
+            "changedByAtLeastTwo": 7960,
+            "meanAbsoluteRgb": 0.04410011574074074
+          },
+          "effectCoverage": {
+            "maxChannelDelta": 45,
+            "changedPixels": 13246,
+            "coverageDifferences": 0,
+            "changedByAtLeastTwo": 10416,
+            "meanAbsoluteRgb": 0.15322569444444445
+          },
+          "repeatDifference": {
+            "maxChannelDelta": 0,
+            "changedPixels": 0,
+            "coverageDifferences": 0,
+            "changedByAtLeastTwo": 0,
+            "meanAbsoluteRgb": 0
+          },
+          "before": {
+            "calls": 3,
+            "triangles": 5272,
+            "points": 1036,
+            "memory": {
+              "geometries": 4,
+              "textures": 0
+            }
+          },
+          "after": {
+            "calls": 3,
+            "triangles": 5272,
+            "points": 1036,
+            "memory": {
+              "geometries": 4,
+              "textures": 0
+            }
+          }
+        }
+      ],
+      "shaderErrors": [],
+      "glErrors": [],
+      "images": [
+        {
+          "file": "dust-0-before.png",
+          "bytes": 109422,
+          "sha256": "6889ec1d6ba5151a6b61c9714466633e2a737f4682b7575f539d9b0c833a2fe9",
+          "width": 960,
+          "height": 600
+        },
+        {
+          "file": "dust-0-after.png",
+          "bytes": 112161,
+          "sha256": "409c867fdbaefca1eecbd7c6951929af67ac84e760a31a2cb57f0f73b1a1fb8b",
+          "width": 960,
+          "height": 600
+        },
+        {
+          "file": "dust-1-without-particles.png",
+          "bytes": 74547,
+          "sha256": "350796ca1be95f91473d03f54d6339aea1a12dffc02c8a83d11c955d9fe4a0ea",
+          "width": 960,
+          "height": 600
+        },
+        {
+          "file": "dust-1-before.png",
+          "bytes": 103881,
+          "sha256": "c356c39de53418e6ae056b588a27fad7ba3a26b4a56afa8dd1865455678cc8df",
+          "width": 960,
+          "height": 600
+        },
+        {
+          "file": "dust-1-after.png",
+          "bytes": 106026,
+          "sha256": "c7992145d057b5c2170e14abf205f4402346dac164da62719b4b08e0cf26a690",
+          "width": 960,
+          "height": 600
+        },
+        {
+          "file": "dust-2-before.png",
+          "bytes": 97992,
+          "sha256": "bc310b43950b2c797578610f5cb154a2de5c8306d7b09f5cf83cab892751ec1b",
+          "width": 960,
+          "height": 600
+        },
+        {
+          "file": "dust-2-after.png",
+          "bytes": 99774,
+          "sha256": "fe14a37db826834afe283b796c1f5c0eef6d7332e8ab3cb1cdb1b1055746d38d",
+          "width": 960,
+          "height": 600
+        }
+      ]
+    },
+    {
+      "scenario": "water",
+      "configuration": {
+        "vehicle": "tc1",
+        "weather": "rain",
+        "event": "runway-launch",
+        "kind": 0,
+        "seconds": 18
+      },
+      "sourceIdentity": {
+        "fingerprint": "3b9da186b2fbb878400d622889902deb3647a39d936312be8f4a166d6081b17e",
+        "commit": "14270a4058ec547102b4aedb5430faac9c52fc7c"
+      },
+      "method": {
+        "normalControlsOnly": true,
+        "scriptedSteeringAssistance": true,
+        "humanPlaytest": false,
+        "productionStartCommand": true,
+        "assignedPhysicsChannels": false,
+        "timestep": 0.008333333333333333,
+        "snapshotInterval": 0.03333333333333333,
+        "ground": "bounded mesh sampled from the actual carved world height"
+      },
+      "cpuRecordingMs": 1246.7999999999884,
+      "simulatedSeconds": 17.99999999999962,
+      "recordedFrames": 537,
+      "captureTimes": [
+        17.5,
+        17.700000762939453,
+        17.899999618530273
+      ],
+      "peakActive": 392,
+      "peakDiagnostics": {
+        "capacity": 4200,
+        "contactCapacity": 3600,
+        "rainCapacity": 600,
+        "active": [
+          392,
+          0,
+          0,
+          531,
+          0,
+          0
+        ],
+        "spawned": [
+          2467,
+          0,
+          0,
+          16960,
+          0,
+          0
+        ],
+        "velocityX": [
+          0.9368311478946434,
+          0,
+          0,
+          1.5,
+          0,
+          0
+        ],
+        "velocityZ": [
+          0.5592407193836727,
+          0,
+          0,
+          0.6000000238418579,
+          0,
+          0
+        ],
+        "windX": 1.5,
+        "windZ": 0.6000000238418579
+      },
+      "finite": true,
+      "framesUnmodified": true,
+      "contactSamples": 0,
+      "offRoadSeconds": 0,
+      "controlsTrace": [
+        {
+          "time": 0.19999999999999998,
+          "speedKmh": 3.2331526096174468,
+          "steer": 0.41683429506540065,
+          "throttle": 0.04985883612639174,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 0.4000000000000004,
+          "speedKmh": 3.317616023039587,
+          "steer": 0.3968711523379471,
+          "throttle": 0.04998253144522104,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 0.6000000000000003,
+          "speedKmh": 5.448714446424168,
+          "steer": 0.3690695093900138,
+          "throttle": 0.04999195719060682,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 0.7999999999999996,
+          "speedKmh": 6.873838955195692,
+          "steer": 0.33650138715843403,
+          "throttle": 0.04984109219942876,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 0.9999999999999989,
+          "speedKmh": 8.584047385079465,
+          "steer": 0.2946931249783753,
+          "throttle": 0.6398343884437475,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 1.1999999999999982,
+          "speedKmh": 10.523918353051185,
+          "steer": 0.24782535019429902,
+          "throttle": 0.7813907389773467,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 1.3999999999999975,
+          "speedKmh": 12.373044314360541,
+          "steer": 0.19611123538865025,
+          "throttle": 0.8086175634602273,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 1.5999999999999968,
+          "speedKmh": 14.422592152438627,
+          "steer": 0.14285092480875267,
+          "throttle": 0.8533659358407215,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 1.799999999999996,
+          "speedKmh": 16.468377907480352,
+          "steer": 0.07713313092918048,
+          "throttle": 0.7751286744058334,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 1.9999999999999953,
+          "speedKmh": 18.58506532099639,
+          "steer": 0.02330244165566226,
+          "throttle": 0.534791194946475,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 2.199999999999995,
+          "speedKmh": 20.716613452820944,
+          "steer": -0.017825771434600974,
+          "throttle": 0.44159149316545093,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 2.399999999999994,
+          "speedKmh": 22.857563660822365,
+          "steer": -0.04728473564778077,
+          "throttle": 0.3984258374732393,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 2.5999999999999934,
+          "speedKmh": 24.99594563151317,
+          "steer": -0.06482620160280293,
+          "throttle": 0.48810364302352804,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 2.7999999999999927,
+          "speedKmh": 27.115729861598656,
+          "steer": -0.07493703317062016,
+          "throttle": 0.5097294076297519,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 2.999999999999992,
+          "speedKmh": 29.236408167342233,
+          "steer": -0.07912772326585502,
+          "throttle": 0.44411534751394394,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 3.1999999999999913,
+          "speedKmh": 31.327132937205725,
+          "steer": -0.07893736575524665,
+          "throttle": 0.5219251710571199,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 3.3999999999999906,
+          "speedKmh": 33.432964684178664,
+          "steer": -0.0735910379025548,
+          "throttle": 0.4820552071169251,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 3.59999999999999,
+          "speedKmh": 35.536689784058716,
+          "steer": -0.06531162774290356,
+          "throttle": 0.4978289295660827,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 3.799999999999989,
+          "speedKmh": 37.63715268744217,
+          "steer": -0.05540358473708049,
+          "throttle": 0.49200533329850943,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 3.9999999999999885,
+          "speedKmh": 39.73842304974344,
+          "steer": -0.04454117701109571,
+          "throttle": 0.5144833901551786,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 4.199999999999998,
+          "speedKmh": 41.84099135141401,
+          "steer": -0.0341011591635748,
+          "throttle": 0.505268874832676,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 4.400000000000008,
+          "speedKmh": 43.94423746869166,
+          "steer": -0.02413032843791931,
+          "throttle": 0.532346943491995,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 4.600000000000018,
+          "speedKmh": 46.04868292039008,
+          "steer": -0.015542846677528054,
+          "throttle": 0.5293386371500441,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 4.800000000000028,
+          "speedKmh": 48.15310566905924,
+          "steer": -0.008285106831256266,
+          "throttle": 0.5553602536317004,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 5.000000000000038,
+          "speedKmh": 50.25630178969397,
+          "steer": -0.0026690369304549545,
+          "throttle": 0.5627055914337394,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 5.200000000000048,
+          "speedKmh": 52.356053061016695,
+          "steer": 0.0015117462497276685,
+          "throttle": 0.5823431685872815,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 5.400000000000058,
+          "speedKmh": 54.45247973629011,
+          "steer": 0.004271883189095502,
+          "throttle": 0.5943177171445253,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 5.600000000000068,
+          "speedKmh": 56.54323342242791,
+          "steer": 0.00590465436880849,
+          "throttle": 0.6184134304332871,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 5.800000000000078,
+          "speedKmh": 58.628393576849504,
+          "steer": 0.00654030906850861,
+          "throttle": 0.6492150831220632,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 6.000000000000088,
+          "speedKmh": 60.70636708764463,
+          "steer": 0.007392013924451978,
+          "throttle": 0.6810616647511174,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 6.200000000000098,
+          "speedKmh": 61.60598421015167,
+          "steer": 0.0072093524152772445,
+          "throttle": 0.04996523577798761,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 6.400000000000108,
+          "speedKmh": 63.66576177153662,
+          "steer": 0.006450818060690086,
+          "throttle": 0.4257284915576103,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 6.600000000000118,
+          "speedKmh": 65.73681667825387,
+          "steer": 0.004817425997497956,
+          "throttle": 0.6542082672502894,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 6.800000000000128,
+          "speedKmh": 67.79667661479158,
+          "steer": 0.002896429724376969,
+          "throttle": 0.5981622147004928,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 7.000000000000138,
+          "speedKmh": 69.84821215269095,
+          "steer": 0.0013667819075364718,
+          "throttle": 0.5873769050436399,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 7.200000000000148,
+          "speedKmh": 71.86842865159468,
+          "steer": 0.00028980286928663223,
+          "throttle": 0.5647983103099654,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 7.400000000000158,
+          "speedKmh": 73.80367741840637,
+          "steer": -0.0003347161791197683,
+          "throttle": 0.5101203532184143,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 7.6000000000001675,
+          "speedKmh": 75.47760436839049,
+          "steer": -0.000600572510346763,
+          "throttle": 0.39263753434580295,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 7.8000000000001775,
+          "speedKmh": 76.574437566533,
+          "steer": -0.0005790206215405464,
+          "throttle": 0.3146978540446935,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 8.000000000000187,
+          "speedKmh": 77.18625200551537,
+          "steer": -0.00040799538350194984,
+          "throttle": 0.27117613595911483,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 8.200000000000175,
+          "speedKmh": 77.53948621629952,
+          "steer": -0.00017514458688829996,
+          "throttle": 0.24610160010050663,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 8.400000000000164,
+          "speedKmh": 77.75228383556846,
+          "steer": 0.00006504866544622047,
+          "throttle": 0.2310180696057743,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 8.600000000000152,
+          "speedKmh": 77.88288287049437,
+          "steer": 0.0002943292076670402,
+          "throttle": 0.22176305914033823,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 8.800000000000141,
+          "speedKmh": 77.96406804236184,
+          "steer": 0.000458895142126814,
+          "throttle": 0.2160141018433147,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 9.00000000000013,
+          "speedKmh": 78.01502189098503,
+          "steer": 0.0005526960749340755,
+          "throttle": 0.21240665349401155,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 9.200000000000118,
+          "speedKmh": 78.0468968044693,
+          "steer": 0.0005967759914335107,
+          "throttle": 0.2101528748059095,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 9.400000000000107,
+          "speedKmh": 78.06714906407565,
+          "steer": 0.0005976068004975245,
+          "throttle": 0.20871728576696313,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 9.600000000000096,
+          "speedKmh": 78.08024665571511,
+          "steer": 0.0005564088195376363,
+          "throttle": 0.20778935378393382,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 9.800000000000084,
+          "speedKmh": 78.08898268185462,
+          "steer": 0.0004890996225200223,
+          "throttle": 0.2071739412564223,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 10.000000000000073,
+          "speedKmh": 78.09464675439357,
+          "steer": 0.00042892298073216294,
+          "throttle": 0.20677539839565562,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 10.200000000000061,
+          "speedKmh": 78.0987468844593,
+          "steer": 0.0003642987470787337,
+          "throttle": 0.20648656670822263,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 10.40000000000005,
+          "speedKmh": 78.10186049887521,
+          "steer": 0.00030102589796762665,
+          "throttle": 0.20626635004746074,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 10.600000000000039,
+          "speedKmh": 78.10416574347377,
+          "steer": 0.00024892367173870135,
+          "throttle": 0.20610680959748529,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 10.800000000000027,
+          "speedKmh": 78.1058693365442,
+          "steer": 0.00021334600965942815,
+          "throttle": 0.20598546815842156,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 11.000000000000016,
+          "speedKmh": 78.1074596327487,
+          "steer": 0.00018220009877085687,
+          "throttle": 0.2058743033980469,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 11.200000000000005,
+          "speedKmh": 78.10899631345647,
+          "steer": 0.00015565557210466753,
+          "throttle": 0.20576774717227064,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 11.399999999999993,
+          "speedKmh": 78.11018664793399,
+          "steer": 0.00013870774793180347,
+          "throttle": 0.20568676085630522,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 11.599999999999982,
+          "speedKmh": 78.11131224828266,
+          "steer": 0.00012372084458129508,
+          "throttle": 0.20560674305357296,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 11.79999999999997,
+          "speedKmh": 78.11228166279955,
+          "steer": 0.00010745594453230959,
+          "throttle": 0.2055376467951514,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 11.99999999999996,
+          "speedKmh": 78.11298533305694,
+          "steer": 0.00009077333043030808,
+          "throttle": 0.20548897733544813,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 12.199999999999948,
+          "speedKmh": 78.1133945003342,
+          "steer": 0.00007440164741494039,
+          "throttle": 0.2054593385396003,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 12.399999999999936,
+          "speedKmh": 78.11350222235724,
+          "steer": 0.000054855387484059097,
+          "throttle": 0.20545109542167872,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 12.599999999999925,
+          "speedKmh": 78.11316913620632,
+          "steer": 0.00003419761397266897,
+          "throttle": 0.20547347095190738,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 12.799999999999914,
+          "speedKmh": 78.11267000007341,
+          "steer": 0.000012365389536858398,
+          "throttle": 0.2055053043013083,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 12.999999999999902,
+          "speedKmh": 78.11206285649702,
+          "steer": -0.000012631476753799553,
+          "throttle": 0.20554938204406004,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 13.199999999999891,
+          "speedKmh": 78.11126162921978,
+          "steer": -0.00003685782264507223,
+          "throttle": 0.20560556152109044,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 13.39999999999988,
+          "speedKmh": 78.11045218762223,
+          "steer": -0.000058027872900246556,
+          "throttle": 0.20566133859296631,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 13.599999999999868,
+          "speedKmh": 78.10990624872237,
+          "steer": -0.00008504294326358668,
+          "throttle": 0.20569973397164187,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 13.799999999999857,
+          "speedKmh": 78.1095309402465,
+          "steer": -0.00011163429524420095,
+          "throttle": 0.20572649103050378,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 13.999999999999845,
+          "speedKmh": 78.10959035952871,
+          "steer": -0.00013394656837862847,
+          "throttle": 0.2057224455515324,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 14.199999999999834,
+          "speedKmh": 78.1099054474554,
+          "steer": -0.00015420076021446455,
+          "throttle": 0.20570306386133563,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 14.399999999999823,
+          "speedKmh": 78.11027724769575,
+          "steer": -0.00018380063311662062,
+          "throttle": 0.20567603397714518,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 14.599999999999811,
+          "speedKmh": 78.11085412181787,
+          "steer": -0.00020846302489492088,
+          "throttle": 0.205636391026209,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 14.7999999999998,
+          "speedKmh": 78.11131821579613,
+          "steer": -0.00022612390589592533,
+          "throttle": 0.2056036777790028,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 14.999999999999789,
+          "speedKmh": 78.11145555433158,
+          "steer": -0.0002513883552411781,
+          "throttle": 0.2055920061313704,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 15.199999999999777,
+          "speedKmh": 78.1112539024194,
+          "steer": -0.000280672158771106,
+          "throttle": 0.20560599756053233,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 15.399999999999766,
+          "speedKmh": 78.11050455705794,
+          "steer": -0.0003023393712522539,
+          "throttle": 0.20565943928606345,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 15.599999999999755,
+          "speedKmh": 78.10909057121087,
+          "steer": -0.0003146571711825398,
+          "throttle": 0.20575368850624554,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 15.799999999999743,
+          "speedKmh": 78.10778735863651,
+          "steer": -0.0003504441538149889,
+          "throttle": 0.20584253536660502,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 15.999999999999732,
+          "speedKmh": 78.1057116506499,
+          "steer": -0.0003782992961065064,
+          "throttle": 0.20598487950799094,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 16.199999999999722,
+          "speedKmh": 78.10306502523146,
+          "steer": -0.00039579621374703176,
+          "throttle": 0.20617056819403523,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 16.39999999999971,
+          "speedKmh": 78.10059103540202,
+          "steer": -0.0004170172668562699,
+          "throttle": 0.20633620542918785,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 16.5999999999997,
+          "speedKmh": 78.0983098093429,
+          "steer": -0.0004530962732586609,
+          "throttle": 0.20650042672377655,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 16.799999999999688,
+          "speedKmh": 78.0959399299537,
+          "steer": -0.00047793555853210736,
+          "throttle": 0.2066661056529383,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 16.999999999999677,
+          "speedKmh": 78.09367482622929,
+          "steer": -0.000489526509456704,
+          "throttle": 0.20682313949162012,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 17.199999999999665,
+          "speedKmh": 78.09201676134339,
+          "steer": -0.0005245949527090442,
+          "throttle": 0.20693773935391502,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 17.399999999999654,
+          "speedKmh": 78.09058498668993,
+          "steer": -0.0005586630225195402,
+          "throttle": 0.20703880613323566,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 17.599999999999643,
+          "speedKmh": 78.08946088062082,
+          "steer": -0.0005783445604676281,
+          "throttle": 0.2071182761912712,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 17.79999999999963,
+          "speedKmh": 78.08855569436486,
+          "steer": -0.0005907298071922075,
+          "throttle": 0.20718111289863572,
+          "brake": 0,
+          "surface": "asphalt"
+        },
+        {
+          "time": 17.99999999999962,
+          "speedKmh": 78.08788537233961,
+          "steer": -0.00063569648792853,
+          "throttle": 0.20722855502463766,
+          "brake": 0,
+          "surface": "asphalt"
+        }
+      ],
+      "rendererName": "ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)",
+      "viewport": {
+        "width": 960,
+        "height": 600
+      },
+      "camera": {
+        "position": [
+          2382.67051538601,
+          168.65287017822266,
+          1794.8407886600023
+        ],
+        "target": [
+          2424.488037109375,
+          149.40287017822266,
+          1832.0914916992188
+        ],
+        "fov": 43
+      },
+      "comparison": "same-source frozen optics switch; before disables only Festival dry-cloud detail",
+      "sourceSnapshotsSha256": "8a536fcc86487d27bf1b2da5abe501a61fca361581b0e2134af75f492040cfc9",
+      "cpuReplayAndReadbackMs": 948,
+      "notTargetDevicePerformance": true,
+      "checks": {
+        "recordedRealControls": true,
+        "finitePhysics": true,
+        "noSnapshotMutation": true,
+        "threeMotionSamples": true,
+        "water-0: visible measured plume": true,
+        "water-0: desired optical response": true,
+        "water-0: unchanged pool and motion": true,
+        "water-0: no added draw calls or triangles": true,
+        "water-0: same geometry and material": true,
+        "water-0: exact repeated control frame": true,
+        "water-0: spray and rain with no dry particles": true,
+        "water-1: visible measured plume": true,
+        "water-1: desired optical response": true,
+        "water-1: unchanged pool and motion": true,
+        "water-1: no added draw calls or triangles": true,
+        "water-1: same geometry and material": true,
+        "water-1: exact repeated control frame": true,
+        "peak replay matches measured recording": true,
+        "water-1: spray and rain with no dry particles": true,
+        "water-2: visible measured plume": true,
+        "water-2: desired optical response": true,
+        "water-2: unchanged pool and motion": true,
+        "water-2: no added draw calls or triangles": true,
+        "water-2: same geometry and material": true,
+        "water-2: exact repeated control frame": true,
+        "water-2: spray and rain with no dry particles": true,
+        "noShaderErrors": true,
+        "noGlErrors": true
+      },
+      "passed": true,
+      "captures": [
+        {
+          "index": 0,
+          "time": 17.5,
+          "diagnostics": {
+            "capacity": 4200,
+            "contactCapacity": 3600,
+            "rainCapacity": 600,
+            "active": [
+              389,
+              0,
+              0,
+              515,
+              0,
+              0
+            ],
+            "spawned": [
+              2431,
+              0,
+              0,
+              16767,
+              0,
+              0
+            ],
+            "velocityX": [
+              0.9338645619366577,
+              0,
+              0,
+              1.5,
+              0,
+              0
+            ],
+            "velocityZ": [
+              0.5497068315457102,
+              0,
+              0,
+              0.6000000238418579,
+              0,
+              0
+            ],
+            "windX": 1.5,
+            "windZ": 0.6000000238418579
+          },
+          "poolBytesSha256": "565f591786d6d12a19ee0ce2c829c43152481f5837c4cf982092c28d0eb90564",
+          "poolByteLength": 366696,
+          "difference": {
+            "maxChannelDelta": 0,
+            "changedPixels": 0,
+            "coverageDifferences": 0,
+            "changedByAtLeastTwo": 0,
+            "meanAbsoluteRgb": 0
+          },
+          "effectCoverage": {
+            "maxChannelDelta": 165,
+            "changedPixels": 125325,
+            "coverageDifferences": 0,
+            "changedByAtLeastTwo": 112382,
+            "meanAbsoluteRgb": 12.822945601851853
+          },
+          "repeatDifference": {
+            "maxChannelDelta": 0,
+            "changedPixels": 0,
+            "coverageDifferences": 0,
+            "changedByAtLeastTwo": 0,
+            "meanAbsoluteRgb": 0
+          },
+          "before": {
+            "calls": 4,
+            "triangles": 9262,
+            "points": 2431,
+            "memory": {
+              "geometries": 4,
+              "textures": 0
+            }
+          },
+          "after": {
+            "calls": 4,
+            "triangles": 9262,
+            "points": 2431,
+            "memory": {
+              "geometries": 4,
+              "textures": 0
+            }
+          }
+        },
+        {
+          "index": 1,
+          "time": 17.700000762939453,
+          "diagnostics": {
+            "capacity": 4200,
+            "contactCapacity": 3600,
+            "rainCapacity": 600,
+            "active": [
+              392,
+              0,
+              0,
+              531,
+              0,
+              0
+            ],
+            "spawned": [
+              2467,
+              0,
+              0,
+              16960,
+              0,
+              0
+            ],
+            "velocityX": [
+              0.9368311478946434,
+              0,
+              0,
+              1.5,
+              0,
+              0
+            ],
+            "velocityZ": [
+              0.5592407193836727,
+              0,
+              0,
+              0.6000000238418579,
+              0,
+              0
+            ],
+            "windX": 1.5,
+            "windZ": 0.6000000238418579
+          },
+          "poolBytesSha256": "d6fc4445f682bd46b9e652d4f611772127f30c183d6d079c07883898a94ea147",
+          "poolByteLength": 366696,
+          "difference": {
+            "maxChannelDelta": 0,
+            "changedPixels": 0,
+            "coverageDifferences": 0,
+            "changedByAtLeastTwo": 0,
+            "meanAbsoluteRgb": 0
+          },
+          "effectCoverage": {
+            "maxChannelDelta": 165,
+            "changedPixels": 124381,
+            "coverageDifferences": 0,
+            "changedByAtLeastTwo": 109353,
+            "meanAbsoluteRgb": 11.057684606481482
+          },
+          "repeatDifference": {
+            "maxChannelDelta": 0,
+            "changedPixels": 0,
+            "coverageDifferences": 0,
+            "changedByAtLeastTwo": 0,
+            "meanAbsoluteRgb": 0
+          },
+          "before": {
+            "calls": 4,
+            "triangles": 9334,
+            "points": 2467,
+            "memory": {
+              "geometries": 4,
+              "textures": 0
+            }
+          },
+          "after": {
+            "calls": 4,
+            "triangles": 9334,
+            "points": 2467,
+            "memory": {
+              "geometries": 4,
+              "textures": 0
+            }
+          }
+        },
+        {
+          "index": 2,
+          "time": 17.899999618530273,
+          "diagnostics": {
+            "capacity": 4200,
+            "contactCapacity": 3600,
+            "rainCapacity": 600,
+            "active": [
+              381,
+              0,
+              0,
+              525,
+              0,
+              0
+            ],
+            "spawned": [
+              2503,
+              0,
+              0,
+              17151,
+              0,
+              0
+            ],
+            "velocityX": [
+              0.9158881821943413,
+              0,
+              0,
+              1.5,
+              0,
+              0
+            ],
+            "velocityZ": [
+              0.5511858403295269,
+              0,
+              0,
+              0.6000000238418579,
+              0,
+              0
+            ],
+            "windX": 1.5,
+            "windZ": 0.6000000238418579
+          },
+          "poolBytesSha256": "28b6daa3228a22cd11fa6638d77b5b56820e9c43e5a929366747a5ffc3d163b4",
+          "poolByteLength": 366696,
+          "difference": {
+            "maxChannelDelta": 0,
+            "changedPixels": 0,
+            "coverageDifferences": 0,
+            "changedByAtLeastTwo": 0,
+            "meanAbsoluteRgb": 0
+          },
+          "effectCoverage": {
+            "maxChannelDelta": 165,
+            "changedPixels": 102036,
+            "coverageDifferences": 0,
+            "changedByAtLeastTwo": 86237,
+            "meanAbsoluteRgb": 9.437034722222222
+          },
+          "repeatDifference": {
+            "maxChannelDelta": 0,
+            "changedPixels": 0,
+            "coverageDifferences": 0,
+            "changedByAtLeastTwo": 0,
+            "meanAbsoluteRgb": 0
+          },
+          "before": {
+            "calls": 4,
+            "triangles": 9406,
+            "points": 2503,
+            "memory": {
+              "geometries": 4,
+              "textures": 0
+            }
+          },
+          "after": {
+            "calls": 4,
+            "triangles": 9406,
+            "points": 2503,
+            "memory": {
+              "geometries": 4,
+              "textures": 0
+            }
+          }
+        }
+      ],
+      "shaderErrors": [],
+      "glErrors": [],
+      "images": [
+        {
+          "file": "water-0-before.png",
+          "bytes": 196645,
+          "sha256": "f9fd0c8b689b2305fcc77ee2728f54c6f5ad0b3cc1160d226d412ba8c3aa1039",
+          "width": 960,
+          "height": 600
+        },
+        {
+          "file": "water-0-after.png",
+          "bytes": 196645,
+          "sha256": "f9fd0c8b689b2305fcc77ee2728f54c6f5ad0b3cc1160d226d412ba8c3aa1039",
+          "width": 960,
+          "height": 600
+        },
+        {
+          "file": "water-1-without-particles.png",
+          "bytes": 39682,
+          "sha256": "72527f2eb4c5ab5b2a264547321e3a702c77f72b7aee273fb88fca8c81b46aab",
+          "width": 960,
+          "height": 600
+        },
+        {
+          "file": "water-1-before.png",
+          "bytes": 183888,
+          "sha256": "71c2562e00e58669988290a87c18ce124b3bf7f93bb6edef358a34bd2c5a656b",
+          "width": 960,
+          "height": 600
+        },
+        {
+          "file": "water-1-after.png",
+          "bytes": 183888,
+          "sha256": "71c2562e00e58669988290a87c18ce124b3bf7f93bb6edef358a34bd2c5a656b",
+          "width": 960,
+          "height": 600
+        },
+        {
+          "file": "water-2-before.png",
+          "bytes": 159668,
+          "sha256": "669899ebafb990953bb1e53ceca12a9d31805759a5daa597984e37f17e9c6a00",
+          "width": 960,
+          "height": 600
+        },
+        {
+          "file": "water-2-after.png",
+          "bytes": 159668,
+          "sha256": "669899ebafb990953bb1e53ceca12a9d31805759a5daa597984e37f17e9c6a00",
+          "width": 960,
+          "height": 600
+        }
+      ]
+    }
+  ],
+  "night": [
+    {
+      "sourceIdentity": {
+        "fingerprint": "3b9da186b2fbb878400d622889902deb3647a39d936312be8f4a166d6081b17e",
+        "commit": "14270a4058ec547102b4aedb5430faac9c52fc7c"
+      },
+      "method": "same frozen production composer; only practical SpotLight intensity off/on/off",
+      "lights": [
+        {
+          "name": "Festival practical light 1",
+          "visible": true,
+          "castShadow": false,
+          "intensity": 145,
+          "position": [
+            574.9692318635305,
+            6.5634000000000015,
+            -2608.08
+          ],
+          "target": [
+            574.9692318635306,
+            4.434100139141091,
+            -2603.2949999999996
+          ]
+        },
+        {
+          "name": "Festival practical light 2",
+          "visible": true,
+          "castShadow": false,
+          "intensity": 145,
+          "position": [
+            567.6115210852538,
+            7.2640000000000065,
+            -2591.9199999999996
+          ],
+          "target": [
+            567.6115210852538,
+            4.434100139141082,
+            -2596.705
+          ]
+        },
+        {
+          "name": "Festival practical light 3",
+          "visible": false,
+          "castShadow": false,
+          "intensity": 0,
+          "position": [
+            0,
+            1,
+            0
+          ],
+          "target": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "Festival practical light 4",
+          "visible": false,
+          "castShadow": false,
+          "intensity": 0,
+          "position": [
+            0,
+            1,
+            0
+          ],
+          "target": [
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      "practicalLights": {
+        "capacity": 4,
+        "sockets": 635,
+        "visible": 2,
+        "active": 2
+      },
+      "difference": {
+        "maxChannelDelta": 130,
+        "changedPixels": 105262,
+        "coverageDifferences": 0,
+        "changedByAtLeastTwo": 55013
+      },
+      "repeatDifference": {
+        "maxChannelDelta": 0,
+        "changedPixels": 0,
+        "coverageDifferences": 0
+      },
+      "physicsUnchanged": true,
+      "cameraUnchanged": true,
+      "before": {
+        "calls": 516,
+        "triangles": 1728284,
+        "memory": {
+          "geometries": 529,
+          "textures": 53
+        }
+      },
+      "after": {
+        "calls": 516,
+        "triangles": 1728284,
+        "memory": {
+          "geometries": 529,
+          "textures": 53
+        }
+      },
+      "errors": [],
+      "camera": {
+        "kind": "storefront",
+        "position": [
+          574.6115210853,
+          6.0416001034,
+          -2601.42
+        ],
+        "target": [
+          567.6115210853,
+          5.7330224657,
+          -2593.72
+        ]
+      },
+      "rendererName": "ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)",
+      "images": [
+        {
+          "file": "night-storefront-before.png",
+          "bytes": 852242,
+          "sha256": "3349cd9716d419551220666da571fedbb256d3c496f8e02c8eb281e340b03923",
+          "width": 960,
+          "height": 600
+        },
+        {
+          "file": "night-storefront-after.png",
+          "bytes": 861170,
+          "sha256": "49cb4db9dfacd232178150cadaab6a1a641af57369f89db5751b0b1249b46eb4",
+          "width": 960,
+          "height": 600
+        }
+      ],
+      "checks": {
+        "visibleLightContribution": true,
+        "unchangedPhysics": true,
+        "unchangedCamera": true,
+        "exactRepeatedControl": true,
+        "fixedCapacity": true,
+        "boundedMediumLights": true,
+        "noShadowPassAdded": true,
+        "unchangedDrawCalls": true,
+        "unchangedTriangles": true,
+        "unchangedGeometryAllocation": true,
+        "unchangedTextureAllocation": true,
+        "noGlErrors": true
+      },
+      "passed": true
+    },
+    {
+      "sourceIdentity": {
+        "fingerprint": "3b9da186b2fbb878400d622889902deb3647a39d936312be8f4a166d6081b17e",
+        "commit": "14270a4058ec547102b4aedb5430faac9c52fc7c"
+      },
+      "method": "same frozen production composer; only practical SpotLight intensity off/on/off",
+      "lights": [
+        {
+          "name": "Festival practical light 1",
+          "visible": true,
+          "castShadow": false,
+          "intensity": 190,
+          "position": [
+            515.0000000000016,
+            12.524158408315595,
+            -2599.185
+          ],
+          "target": [
+            515.0000000000016,
+            4.483700091838836,
+            -2599.185
+          ]
+        },
+        {
+          "name": "Festival practical light 2",
+          "visible": true,
+          "castShadow": false,
+          "intensity": 145,
+          "position": [
+            517.9592318635347,
+            6.749600000000001,
+            -2608.0800000000004
+          ],
+          "target": [
+            517.9592318635348,
+            4.434100139141082,
+            -2603.295
+          ]
+        },
+        {
+          "name": "Festival practical light 3",
+          "visible": false,
+          "castShadow": false,
+          "intensity": 0,
+          "position": [
+            0,
+            1,
+            0
+          ],
+          "target": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "Festival practical light 4",
+          "visible": false,
+          "castShadow": false,
+          "intensity": 0,
+          "position": [
+            0,
+            1,
+            0
+          ],
+          "target": [
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      "practicalLights": {
+        "capacity": 4,
+        "sockets": 635,
+        "visible": 2,
+        "active": 2
+      },
+      "difference": {
+        "maxChannelDelta": 60,
+        "changedPixels": 251562,
+        "coverageDifferences": 0,
+        "changedByAtLeastTwo": 243392
+      },
+      "repeatDifference": {
+        "maxChannelDelta": 0,
+        "changedPixels": 0,
+        "coverageDifferences": 0
+      },
+      "physicsUnchanged": true,
+      "cameraUnchanged": true,
+      "before": {
+        "calls": 391,
+        "triangles": 2484110,
+        "memory": {
+          "geometries": 561,
+          "textures": 53
+        }
+      },
+      "after": {
+        "calls": 391,
+        "triangles": 2484110,
+        "memory": {
+          "geometries": 561,
+          "textures": 53
+        }
+      },
+      "errors": [],
+      "camera": {
+        "kind": "festoon",
+        "position": [
+          512,
+          6.0600000858,
+          -2600.5
+        ],
+        "target": [
+          521,
+          4.9,
+          -2599.185
+        ]
+      },
+      "rendererName": "ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)",
+      "images": [
+        {
+          "file": "night-festoon-before.png",
+          "bytes": 825024,
+          "sha256": "2abed34c80b32144c8950a961d132585d06704b76a7b7694f79ae1600a2dace3",
+          "width": 960,
+          "height": 600
+        },
+        {
+          "file": "night-festoon-after.png",
+          "bytes": 929318,
+          "sha256": "545dc69214d76cc7e54a13db98778eb587af3ce3512521493239067ba46fee89",
+          "width": 960,
+          "height": 600
+        }
+      ],
+      "checks": {
+        "visibleLightContribution": true,
+        "unchangedPhysics": true,
+        "unchangedCamera": true,
+        "exactRepeatedControl": true,
+        "fixedCapacity": true,
+        "boundedMediumLights": true,
+        "noShadowPassAdded": true,
+        "unchangedDrawCalls": true,
+        "unchangedTriangles": true,
+        "unchangedGeometryAllocation": true,
+        "unchangedTextureAllocation": true,
+        "noGlErrors": true
+      },
+      "passed": true
+    }
+  ],
+  "errors": [],
+  "failedAssets": [],
+  "warnings": [],
+  "passed": true,
+  "wallMs": 1471963.342047
+}

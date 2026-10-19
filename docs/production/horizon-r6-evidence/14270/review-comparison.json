@@ -1,0 +1,257 @@
+{
+  "schema": 1,
+  "baselineSourceIdentity": {
+    "version": 1,
+    "commit": "d9d7d163cbc9abaa1fdd167a6ad68381e0022797",
+    "fingerprint": "0337913472a4101e8c59241088f9ad1e868be1e5dc57a116755c21f34a8dc23e"
+  },
+  "sourceIdentity": {
+    "version": 1,
+    "commit": "14270a4058ec547102b4aedb5430faac9c52fc7c",
+    "fingerprint": "3b9da186b2fbb878400d622889902deb3647a39d936312be8f4a166d6081b17e"
+  },
+  "method": "Compare accepted CI report assertions and counters; inspect the integrated storefront-after, festoon-after and journey-results PNGs directly. Cross-run timing and pixel-count differences are not treated as hardware performance measurements.",
+  "tests": {
+    "baselineFiles": 12,
+    "integratedFiles": 12,
+    "baselinePassed": 88,
+    "integratedPassed": 88,
+    "integratedFailures": 0
+  },
+  "effects": [
+    {
+      "scenario": "smoke",
+      "checksMatchBaseline": true,
+      "allIntegratedChecksPassed": true,
+      "counters": {
+        "peakActive": {
+          "baseline": 111,
+          "integrated": 111
+        },
+        "recordedFrames": {
+          "baseline": 174,
+          "integrated": 174
+        },
+        "contactSamples": {
+          "baseline": 0,
+          "integrated": 0
+        },
+        "offRoadSeconds": {
+          "baseline": 0,
+          "integrated": 0
+        }
+      },
+      "poolHashesMatchBaseline": [
+        false,
+        false,
+        false
+      ],
+      "diagnosticsMatchBaseline": [
+        true,
+        true,
+        true
+      ],
+      "waterControlsPngByteIdentical": null
+    },
+    {
+      "scenario": "dust",
+      "checksMatchBaseline": true,
+      "allIntegratedChecksPassed": true,
+      "counters": {
+        "peakActive": {
+          "baseline": 208,
+          "integrated": 208
+        },
+        "recordedFrames": {
+          "baseline": 319,
+          "integrated": 319
+        },
+        "contactSamples": {
+          "baseline": 0,
+          "integrated": 0
+        },
+        "offRoadSeconds": {
+          "baseline": 0,
+          "integrated": 0
+        }
+      },
+      "poolHashesMatchBaseline": [
+        false,
+        false,
+        false
+      ],
+      "diagnosticsMatchBaseline": [
+        true,
+        true,
+        true
+      ],
+      "waterControlsPngByteIdentical": null
+    },
+    {
+      "scenario": "water",
+      "checksMatchBaseline": true,
+      "allIntegratedChecksPassed": true,
+      "counters": {
+        "peakActive": {
+          "baseline": 392,
+          "integrated": 392
+        },
+        "recordedFrames": {
+          "baseline": 537,
+          "integrated": 537
+        },
+        "contactSamples": {
+          "baseline": 0,
+          "integrated": 0
+        },
+        "offRoadSeconds": {
+          "baseline": 0,
+          "integrated": 0
+        }
+      },
+      "poolHashesMatchBaseline": [
+        false,
+        false,
+        false
+      ],
+      "diagnosticsMatchBaseline": [
+        true,
+        true,
+        true
+      ],
+      "waterControlsPngByteIdentical": true
+    }
+  ],
+  "night": [
+    {
+      "kind": "storefront",
+      "checksMatchBaseline": true,
+      "allIntegratedChecksPassed": true,
+      "practicalLightStateMatchesBaseline": true,
+      "practicalLights": {
+        "capacity": 4,
+        "sockets": 635,
+        "visible": 2,
+        "active": 2
+      },
+      "renderCountersMatchBaseline": false,
+      "baselineChangedPixels": 105027,
+      "integratedChangedPixels": 105262,
+      "changedPixelCountDelta": 235,
+      "repeatedControlChangedPixels": 0,
+      "before": {
+        "calls": 516,
+        "triangles": 1728284,
+        "memory": {
+          "geometries": 529,
+          "textures": 53
+        }
+      },
+      "after": {
+        "calls": 516,
+        "triangles": 1728284,
+        "memory": {
+          "geometries": 529,
+          "textures": 53
+        }
+      }
+    },
+    {
+      "kind": "festoon",
+      "checksMatchBaseline": true,
+      "allIntegratedChecksPassed": true,
+      "practicalLightStateMatchesBaseline": true,
+      "practicalLights": {
+        "capacity": 4,
+        "sockets": 635,
+        "visible": 2,
+        "active": 2
+      },
+      "renderCountersMatchBaseline": false,
+      "baselineChangedPixels": 251493,
+      "integratedChangedPixels": 251562,
+      "changedPixelCountDelta": 69,
+      "repeatedControlChangedPixels": 0,
+      "before": {
+        "calls": 391,
+        "triangles": 2484110,
+        "memory": {
+          "geometries": 561,
+          "textures": 53
+        }
+      },
+      "after": {
+        "calls": 391,
+        "triangles": 2484110,
+        "memory": {
+          "geometries": 561,
+          "textures": 53
+        }
+      }
+    }
+  ],
+  "journey": {
+    "stepNamesMatchBaseline": true,
+    "baselinePassedSteps": 11,
+    "integratedPassedSteps": 11,
+    "errors": [],
+    "failedAssets": [],
+    "result": {
+      "position": {
+        "baseline": 3,
+        "integrated": 3
+      },
+      "entrants": {
+        "baseline": 3,
+        "integrated": 3
+      },
+      "stars": {
+        "baseline": 2,
+        "integrated": 2
+      },
+      "time": {
+        "baseline": 106.33333333337306,
+        "integrated": 106.33333333337326
+      },
+      "legalDistance": {
+        "baseline": 2569.24365290865,
+        "integrated": 2569.24365290865
+      },
+      "offRouteSeconds": {
+        "baseline": 0,
+        "integrated": 0
+      },
+      "assisted": {
+        "baseline": true,
+        "integrated": true
+      }
+    },
+    "comparisonNote": "Both runs finish P3/3 with two stars, an explicitly assisted 1:46.33 result and zero off-route seconds; sub-picosecond float differences in result time have no displayed effect."
+  },
+  "visualReview": {
+    "blockingIssueFound": false,
+    "images": [
+      {
+        "artifactPath": "optics/night-storefront-after.png",
+        "sha256": "49cb4db9dfacd232178150cadaab6a1a641af57369f89db5751b0b1249b46eb4",
+        "observation": "Cool localized sign/pavement illumination and the separate warm headlight reflection remain readable on wet road; darker glazing and upper walls retain contrast. No new visible issue found."
+      },
+      {
+        "artifactPath": "optics/night-festoon-after.png",
+        "sha256": "545dc69214d76cc7e54a13db98778eb587af3ce3512521493239067ba46fee89",
+        "observation": "Localized warm pavement and road illumination leaves the distant street and unlit surfaces dark. No new visible issue found."
+      },
+      {
+        "artifactPath": "journey/journey-results.png",
+        "sha256": "a9957aac0e809a515d7e55c3e51e3c725f8a09bfa21eedd19aa45b156e9321ea",
+        "observation": "Results panel, standings, two stars, assisted 1:46.33 label, keyboard-focused Continue and Try Again remain legible and consistent with the raw report. No blocking layout issue found."
+      }
+    ]
+  },
+  "limitations": [
+    "Software-rendered controlled fixture; no target-device FPS claim or human playtest.",
+    "Recorded tyre controls use the documented external RouteDriver; race completion uses explicitly assisted production autopilot.",
+    "Evidence describes commit14270a4058ec547102b4aedb5430faac9c52fc7c exactly and is not an assertion about every later repository change.",
+    "The launch-time rival-gap check establishes worker-to-HUD wiring with zero-metre gaps, not a nonzero moving-gap accuracy measurement."
+  ]
+}

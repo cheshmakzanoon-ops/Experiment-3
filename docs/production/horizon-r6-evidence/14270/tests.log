@@ -1,0 +1,50 @@
+
+[1m[46m RUN [49m[22m [36mv3.2.4 [39m[90m/home/runner/work/Experiment-3/Experiment-3[39m
+
+ [32m✓[39m tests/gp-contact-effects.test.ts [2m([22m[2m17 tests[22m[2m)[22m[33m 5331[2mms[22m[39m
+   [33m[2m✓[22m[39m GP contact effects in the bounded production particle pool[2m > [22mpreserves every apx01 particle attribute and birth count [33m 820[2mms[22m[39m
+   [33m[2m✓[22m[39m GP contact effects in the bounded production particle pool[2m > [22mpreserves every tc1 particle attribute and birth count [33m 793[2mms[22m[39m
+   [33m[2m✓[22m[39m GP contact effects in the bounded production particle pool[2m > [22mpreserves every sbk1000 particle attribute and birth count [33m 771[2mms[22m[39m
+   [33m[2m✓[22m[39m GP contact effects in the bounded production particle pool[2m > [22mpreserves every mx450 particle attribute and birth count [33m 744[2mms[22m[39m
+   [33m[2m✓[22m[39m GP contact effects in the bounded production particle pool[2m > [22mchanges only GP presentation bytes while preserving moving births, advection and complete lifetime [33m 1491[2mms[22m[39m
+   [33m[2m✓[22m[39m GP contact effects in the bounded production particle pool[2m > [22muses actual wet GP practice snapshots and measured wheel water/load to form the trail [33m 482[2mms[22m[39m
+ [32m✓[39m tests/open-world-traffic.test.ts [2m([22m[2m7 tests[22m[2m)[22m[33m 8360[2mms[22m[39m
+   [33m[2m✓[22m[39m festival ambient traffic[2m > [22mcan depart the harbour in its travel lane after traffic arrives during an idle start [33m 1785[2mms[22m[39m
+   [33m[2m✓[22m[39m festival ambient traffic[2m > [22mis deterministic: the same seed and inputs give the same traffic, another seed differs [33m 2621[2mms[22m[39m
+   [33m[2m✓[22m[39m festival ambient traffic[2m > [22mkeeps the total and per-tile caps and never spawns close to the player [33m 2717[2mms[22m[39m
+   [33m[2m✓[22m[39m festival ambient traffic[2m > [22mis off during events and returns in free roam; the HUD toggle turns it off [33m 1049[2mms[22m[39m
+ [32m✓[39m tests/festival-airtime.test.ts [2m([22m[2m13 tests[22m[2m)[22m[33m 1937[2mms[22m[39m
+   [33m[2m✓[22m[39m Quarry Track vehicle-integrated airtime[2m > [22mlaunches naturally, lands cleanly and earns the measured air bonus on a dirt road [33m 1103[2mms[22m[39m
+   [33m[2m✓[22m[39m Quarry Track vehicle-integrated airtime[2m > [22mdoes not award ordinary suspension contact chatter on the same crest at lower speed [33m 394[2mms[22m[39m
+   [33m[2m✓[22m[39m Quarry Track vehicle-integrated airtime[2m > [22mdiscards a live physical flight when the player resets to the road [33m 399[2mms[22m[39m
+ [32m✓[39m tests/open-world-session.test.ts [2m([22m[2m8 tests[22m[2m)[22m[33m 10854[2mms[22m[39m
+   [33m[2m✓[22m[39m festival free-roam session[2m > [22mspawns on the ground, drives, writes circuit-layout frames and streams within budget [33m 966[2mms[22m[39m
+   [33m[2m✓[22m[39m festival free-roam session[2m > [22mrestores saved discoveries and travels only to discovered events [33m 352[2mms[22m[39m
+   [33m[2m✓[22m[39m festival free-roam session[2m > [22mresets an upturned or drowned car onto the nearest road, repaired [33m 555[2mms[22m[39m
+   [33m[2m✓[22m[39m festival free-roam session[2m > [22mraces a sprint against route-following rivals and emits a typed result [33m 6210[2mms[22m[39m
+   [33m[2m✓[22m[39m festival free-roam session[2m > [22mresets onto the route at the legal progress, never ahead of it (a shortcut gains nothing) [33m 1453[2mms[22m[39m
+   [33m[2m✓[22m[39m festival free-roam session[2m > [22mmeasures a speed trap and a speed zone as skill challenges [33m 1103[2mms[22m[39m
+ [32m✓[39m tests/festival-practical-lights.test.ts [2m([22m[2m6 tests[22m[2m)[22m[33m 1047[2mms[22m[39m
+   [33m[2m✓[22m[39m Festival physical storefront and festoon lighting[2m > [22manchors real regional shop sockets to rotated front signs and festoons to actual suspended bulbs [33m 1005[2mms[22m[39m
+ [32m✓[39m tests/festival-skill-chain.test.ts [2m([22m[2m11 tests[22m[2m)[22m[33m 1309[2mms[22m[39m
+   [33m[2m✓[22m[39m festival rolling gates and measurement[2m > [22mcrosses a passive gate in the same moving car without teleporting or repairing it [33m 873[2mms[22m[39m
+ [32m✓[39m tests/festival-effects-integration.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 23[2mms[22m[39m
+ [32m✓[39m tests/spray-lighting.test.ts [2m([22m[2m8 tests[22m[2m)[22m[33m 772[2mms[22m[39m
+   [33m[2m✓[22m[39m lit spray and spatial floodlight continuity[2m > [22muses bounded continuous weights and exchanges tied lamps at zero energy [33m 365[2mms[22m[39m
+ [32m✓[39m tests/open-world-bikes.test.ts [2m([22m[2m5 tests[22m[2m)[22m[33m 3227[2mms[22m[39m
+   [33m[2m✓[22m[39m festival motorcycles[2m > [22madmits road motorcycles and the supermoto, never karts or knobby motocross machines [33m 735[2mms[22m[39m
+   [33m[2m✓[22m[39m festival motorcycles[2m > [22mrides a road bike in free roam: placed upright, held until the rider acts, lean in the frame [33m 361[2mms[22m[39m
+   [33m[2m✓[22m[39m festival motorcycles[2m > [22mdrives a bike on the autopilot for a minute of streets and roads without a fall [33m 1038[2mms[22m[39m
+   [33m[2m✓[22m[39m festival motorcycles[2m > [22mdisposes every motorcycle it built when the festival session ends (the renderer outlives it) [33m 813[2mms[22m[39m
+ [32m✓[39m tests/festival-dry-clouds.test.ts [2m([22m[2m4 tests[22m[2m)[22m[33m 451[2mms[22m[39m
+ [32m✓[39m tests/solvane-street-light-pools.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 28[2mms[22m[39m
+ [32m✓[39m tests/effects-upload.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 66[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m12 passed[39m[22m[90m (12)[39m
+[2m      Tests [22m [1m[32m88 passed[39m[22m[90m (88)[39m
+[2m   Start at [22m 17:38:37
+[2m   Duration [22m 44.36s[2m (transform 1.78s, setup 0ms, collect 8.44s, tests 33.40s, environment 3ms, prepare 988ms)[22m
+
+JSON report written to /tmp/horizon-r6-review/tests.json
+(node:2581) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
