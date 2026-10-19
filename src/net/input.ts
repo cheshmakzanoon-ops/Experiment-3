@@ -17,12 +17,13 @@ export type SanitizeResult =
   | { ok: true; controls: Controls; clamped: string[] }
   | { ok: false; reason: string };
 
-const NUMERIC = ['throttle', 'brake', 'clutch', 'steer', 'shift', 'ers'] as const;
+const NUMERIC = ['throttle', 'brake', 'clutch', 'steer', 'riderLean', 'shift', 'ers'] as const;
 const RANGE: Record<(typeof NUMERIC)[number], readonly [number, number]> = {
   throttle: [0, 1],
   brake: [0, 1],
   clutch: [0, 1],
   steer: [-1, 1],
+  riderLean: [-1, 1],
   shift: [-1, 1],
   ers: [0, 2],
 };
@@ -55,7 +56,9 @@ export function sanitizeControls(raw: unknown): SanitizeResult {
 
 const SHIFT_CODE = (shift: number) => (shift > 0 ? 1 : shift < 0 ? 2 : 0);
 /** Wire representation: pedals 8 bit, steering 16 bit, discrete fields in a
- * 16-bit word. Both peers derive the applied value from these integers, so
+ * 16-bit word. Its upper seven bits carry signed rider lean (-63..63); the
+ * reserved -64 code is invalid. Neutral keeps the original seven-byte shape.
+ * Both peers derive the applied value from these integers, so
  * the client predicts with exactly the numbers the server applies. */
 export function writeControls(w: ByteWriter, c: Controls) {
   w.u8(Math.round(clamp(c.throttle, 0, 1) * 255));
@@ -69,7 +72,8 @@ export function writeControls(w: ByteWriter, c: Controls) {
     (c.reverse ? 1 << 5 : 0) |
     (c.drs ? 1 << 6 : 0) |
     (c.overtake ? 1 << 7 : 0) |
-    (c.pit ? 1 << 8 : 0);
+    (c.pit ? 1 << 8 : 0) |
+    ((Math.round(clamp(c.riderLean ?? 0, -1, 1) * 63) & 127) << 9);
   w.u16(bits);
 }
 export function readControls(r: ByteReader): Controls {
@@ -79,7 +83,8 @@ export function readControls(r: ByteReader): Controls {
     steerRaw = r.i16(),
     bits = r.u16();
   if (steerRaw < -32767) throw new DecodeError('steer out of range');
-  if (bits >> 9) throw new DecodeError('unknown control bits');
+  const leanCode = bits >> 9;
+  if (leanCode === 64) throw new DecodeError('rider lean out of range');
   const shiftCode = bits & 3,
     ers = (bits >> 2) & 3;
   if (shiftCode === 3 || ers === 3) throw new DecodeError('invalid discrete control');
@@ -88,6 +93,7 @@ export function readControls(r: ByteReader): Controls {
     brake,
     clutch,
     steer: steerRaw / 32767,
+    riderLean: (leanCode > 63 ? leanCode - 128 : leanCode) / 63,
     shift: shiftCode === 1 ? 1 : shiftCode === 2 ? -1 : 0,
     ers: ers as 0 | 1 | 2,
     manualClutch: (bits & (1 << 4)) !== 0,
@@ -111,6 +117,7 @@ export function sameControls(a: Controls, b: Controls) {
     a.brake === b.brake &&
     a.clutch === b.clutch &&
     a.steer === b.steer &&
+    (a.riderLean ?? 0) === (b.riderLean ?? 0) &&
     a.shift === b.shift &&
     a.ers === b.ers &&
     a.manualClutch === b.manualClutch &&

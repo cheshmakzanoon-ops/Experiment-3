@@ -198,6 +198,35 @@ test('motocross entry, live race alerts and landing HUD remain usable at small s
     await expect(page.locator('#startSequence')).toBeHidden();
     await expect(page.locator('.f1-drs')).toBeHidden();
     await expect(page.locator('#battery')).toBeHidden();
+    const touchControls = page.locator('.touch-controls');
+    if (await touchControls.isVisible()) {
+      await expect(
+        page.getByRole('button', { name: 'Move rider weight forward', exact: true }),
+      ).toBeVisible();
+      await expect(
+        page.getByRole('button', { name: 'Move rider weight back', exact: true }),
+      ).toBeVisible();
+      const touchLayout = await touchControls.locator('button').evaluateAll((nodes) =>
+        nodes.map((node) => {
+          const rect = node.getBoundingClientRect();
+          return {
+            x: rect.x,
+            right: rect.right,
+            width: rect.width,
+            height: rect.height,
+            overflow: node.scrollWidth - node.clientWidth,
+          };
+        }),
+      );
+      expect(touchLayout).toHaveLength(6);
+      for (const button of touchLayout) {
+        expect(button.width).toBeGreaterThanOrEqual(44);
+        expect(button.height).toBeGreaterThanOrEqual(44);
+        expect(button.x).toBeGreaterThanOrEqual(0);
+        expect(button.right).toBeLessThanOrEqual(width);
+        expect(button.overflow).toBeLessThanOrEqual(1);
+      }
+    }
     // None of these sampled ticks is divisible by three. Both forward gaps and
     // a short backwards seek have to update in this single presented call.
     const sparseSamples = [];

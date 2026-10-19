@@ -395,6 +395,7 @@ export class OpenWorldSimulation {
     dst.throttle = Number.isFinite(input.throttle) ? clamp(input.throttle, 0, 1) : 0;
     dst.brake = Number.isFinite(input.brake) ? clamp(input.brake, 0, 1) : 0;
     dst.steer = Number.isFinite(input.steer) ? clamp(input.steer, -1, 1) : 0;
+    dst.riderLean = Number.isFinite(input.riderLean) ? clamp(input.riderLean!, -1, 1) : 0;
     dst.shift = Number.isFinite(input.shift) ? Math.sign(input.shift) : 0;
     dst.ers = input.ers === 0 ? 0 : input.ers === 2 ? 2 : 1;
     dst.reverse = !!input.reverse;

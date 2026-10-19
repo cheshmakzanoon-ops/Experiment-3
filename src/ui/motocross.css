@@ -1,3 +1,35 @@
+.hud .touch-controls .mx-body-touch {
+  display: none;
+}
+.hud[data-motocross='true'] .touch-controls .mx-body-touch {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1px;
+  min-width: 0;
+  padding: 4px 2px;
+  line-height: 1.1;
+  border-color: #dbb27c88;
+  background: #493c2ad9;
+}
+.hud .mx-body-touch span {
+  font-size: 7px;
+  letter-spacing: 0.06em;
+}
+@media (max-width: 700px) {
+  .hud[data-motocross='true'] .touch-controls {
+    gap: 4px;
+  }
+  .hud[data-motocross='true'] .touch-controls button {
+    min-width: 0;
+    padding-inline: 2px;
+    flex: 1 1 0;
+    font-size: min(calc(9px * var(--scale, 1)), 10px);
+  }
+  .hud[data-motocross='true'] .touch-controls [data-touch='throttle'] {
+    flex-grow: 1.35;
+  }
+}
 .mx-entry {
   display: flex;
   align-items: center;

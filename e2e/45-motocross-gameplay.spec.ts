@@ -21,7 +21,9 @@ test('real motocross player entry, eight-rider gate, riding, cameras, pause and 
   const diag = () => page.evaluate(() => window.apexDiagnostics());
   const capture = async (name: string) => {
     const path = info.outputPath(name);
-    await page.screenshot({ path });
+    // A lost/stalled software graphics readback must fail with an attached
+    // trace instead of consuming the entire two-venue journey budget.
+    await page.screenshot({ path, timeout: 60000 });
     await info.attach(name, { path, contentType: 'image/png' });
     console.info(`[MX journey] Captured ${name}`);
   };
@@ -92,6 +94,27 @@ test('real motocross player entry, eight-rider gate, riding, cameras, pause and 
     await expect(page.locator('.mx-ride-hud')).toBeVisible();
     await capture(`${circuit}-actual-gate.png`);
     await expect.poll(async () => (await diag()).frame?.[H.PHASE] ?? 0).toBe(2);
+    // Keep the bike stationary with the ordinary front brake and exercise
+    // both independently held body controls through Main -> worker -> pose.
+    // Diagnostics remain read-only; no position or flight is synthesized.
+    await page.keyboard.down('s');
+    await page.keyboard.down('q');
+    await expect
+      .poll(async () => (await diag()).frame?.[o + OFFROAD_BASE + O.BODY] ?? 0, { timeout: 30000 })
+      .toBeGreaterThan(0.55);
+    const bodyForward = await diag();
+    expect(bodyForward.auto).toBe(false);
+    expect(bodyForward.frame![o + F.SPEED]).toBeLessThan(1);
+    await page.keyboard.up('q');
+    await page.keyboard.down('z');
+    await expect
+      .poll(async () => (await diag()).frame?.[o + OFFROAD_BASE + O.BODY] ?? 0, { timeout: 30000 })
+      .toBeLessThan(-0.55);
+    const bodyBack = await diag();
+    expect(bodyBack.frame![o + F.SPEED]).toBeLessThan(1);
+    await capture(`${circuit}-actual-weight-back.png`);
+    await page.keyboard.up('z');
+    await page.keyboard.up('s');
     // Exercise the real player throttle before handing the observed run to
     // the game's explicitly enabled AI demonstration.
     await page.keyboard.down('w');
@@ -221,6 +244,8 @@ test('real motocross player entry, eight-rider gate, riding, cameras, pause and 
         speed: human.frame![o + F.SPEED],
         throttle: human.frame![o + F.THROTTLE],
         auto: human.auto,
+        bodyForward: bodyForward.frame![o + OFFROAD_BASE + O.BODY],
+        bodyBack: bodyBack.frame![o + OFFROAD_BASE + O.BODY],
       },
       aiStartedAt,
       progressM,

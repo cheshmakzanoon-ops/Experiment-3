@@ -15,6 +15,15 @@ import { boundAction, isHeld } from './bindings.ts';
 import { approach, clamp } from '../core/math.ts';
 import { controls, type Controls } from '../simulation/config.ts';
 import type { Settings } from '../storage/data.ts';
+export type TouchAction = 'left' | 'right' | 'throttle' | 'brake' | 'riderForward' | 'riderBack';
+const releasedTouch = (): Record<TouchAction, boolean> => ({
+  left: false,
+  right: false,
+  throttle: false,
+  brake: false,
+  riderForward: false,
+  riderBack: false,
+});
 export class InputController {
   readonly state: Controls = controls();
   private keys = new Set<string>();
@@ -23,7 +32,7 @@ export class InputController {
   private enabled = false;
   private generation = 0;
   private buttons = new ControllerActions();
-  private touch = { left: false, right: false, throttle: false, brake: false };
+  private touch = releasedTouch();
   gamepadName = 'KEYBOARD';
   deviceStatus = '';
   private lastDevice = '';
@@ -61,7 +70,16 @@ export class InputController {
     else if (action === 'shiftDown') this.state.shift = -1;
     else if (
       action &&
-      !['throttle', 'brake', 'left', 'right', 'reverse', 'clutch'].includes(action)
+      ![
+        'throttle',
+        'brake',
+        'left',
+        'right',
+        'reverse',
+        'clutch',
+        'riderForward',
+        'riderBack',
+      ].includes(action)
     )
       this.action(action);
   };
@@ -100,7 +118,7 @@ export class InputController {
     Object.assign(this.state, controls());
     this.previousButtons.clear();
     this.lastDevice = '';
-    this.touch = { left: false, right: false, throttle: false, brake: false };
+    this.touch = releasedTouch();
   }
   private observeButtons(pad: Gamepad) {
     const identity = `${pad.index}:${pad.id}`;
@@ -152,7 +170,7 @@ export class InputController {
     this.observeButtons(pad);
     this.dispatchButtons(pad, allowed);
   }
-  bindTouch(element: HTMLElement, action: 'left' | 'right' | 'throttle' | 'brake') {
+  bindTouch(element: HTMLElement, action: TouchAction) {
     const options = { signal: this.touchEvents.signal };
     element.addEventListener(
       'pointerdown',
@@ -178,6 +196,9 @@ export class InputController {
       Number(isHeld(k, b, 'left', ['ArrowLeft']) || t.left);
     let throttle = Number(isHeld(k, b, 'throttle', ['ArrowUp']) || t.throttle),
       brake = Number(isHeld(k, b, 'brake', ['ArrowDown', 'Space']) || t.brake);
+    const forward = isHeld(k, b, 'riderForward') || t.riderForward,
+      back = isHeld(k, b, 'riderBack') || t.riderBack;
+    let riderLean = Number(forward) - Number(back);
     const m = this.settings.mapping;
     let clutch = Number(isHeld(k, b, 'clutch'));
     let pads: (Gamepad | null)[] = [];
@@ -234,6 +255,22 @@ export class InputController {
       throttle = Math.max(throttle, pt);
       brake = Math.max(brake, pb);
       clutch = Math.max(clutch, pc);
+      // The standard right-stick vertical axis independently positions the
+      // rider. Explicit keyboard/touch input owns this axis, including a
+      // deliberate neutral from both keys. A custom wheel, missing stick or
+      // axis already assigned to a driving control must never move the rider.
+      if (
+        !forward &&
+        !back &&
+        pad.mapping === 'standard' &&
+        !m.wheelSteering &&
+        m.steerAxis !== 3 &&
+        (!m.axisPedals || (m.throttleAxis !== 3 && m.brakeAxis !== 3)) &&
+        (!m.manualClutch || m.clutchAxis !== 3)
+      ) {
+        const bodyAxis = readAxis(pad, 3);
+        if (bodyAxis !== undefined) riderLean = steeringResponse(-bodyAxis, m.deadzone, 1, 1);
+      }
       if (!this.dispatchButtons(pad)) return this.state;
       for (const [index, direction] of [
         [m.shiftDownButton, -1],
@@ -264,6 +301,7 @@ export class InputController {
     // left. Devices use right-positive input, so convert exactly once here.
     // AI controls already use the simulation's left-positive convention.
     this.state.steer = -this.steering;
+    this.state.riderLean = riderLean || 0;
     this.state.throttle = throttle;
     this.state.brake = brake;
     this.state.clutch = clutch;

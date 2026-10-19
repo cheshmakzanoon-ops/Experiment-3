@@ -41,6 +41,7 @@ import { developerMode } from './dev-mode.ts';
 import { LOADING_TIPS, loadingStage } from './loading-copy.ts';
 import {
   BINDING_LABELS,
+  DEFAULT_BINDINGS,
   keyName,
   validateBindings,
   type BindingAction,
@@ -193,6 +194,7 @@ export class Interface {
   private readonly offroadHud: OffroadHud;
   private readonly motocrossStatus: MotocrossStatusStack;
   private readonly refreshMotocrossMenu: () => void;
+  private bindings: Bindings = { ...DEFAULT_BINDINGS };
   readonly modal: HTMLDialogElement;
   readonly map: HTMLCanvasElement;
   readonly graph: HTMLCanvasElement;
@@ -279,7 +281,7 @@ export class Interface {
    <div class="resources"><label>ERS <b id="battery">80%</b><span class="meter"><i id="batteryBar"></i></span></label><label>FUEL <b id="fuel">24.0 KG</b></label></div></div>
    <aside class="car-status"><div class="panel-heading">VEHICLE STATE <span id="tireCompound">MEDIUM</span></div><div id="tires" class="tires">${WHEEL_NAMES.map((name) => `<div><label>${name}</label><b>87°</b><span>100%</span><small>320° BRAKE</small></div>`).join('')}</div><div class="health"><span>AERO <b id="health">100%</b></span><span>LAT <b id="lateralG">0.0 G</b></span><span>PEN <b id="penalty">0 S</b></span></div></aside>
    <nav class="hud-actions"><button data-action="camera"><kbd>C</kbd> <span id="cameraLabel">CHASE</span></button><button data-action="pit"><kbd>P</kbd> PIT</button><button data-action="ers"><kbd>E</kbd> ERS</button><button data-action="telemetry"><kbd>T</kbd> DATA</button><button data-action="replay"><kbd>R</kbd> REPLAY</button><button data-action="autopilot"><kbd>G</kbd> <span id="autoLabel">AI OFF</span></button></nav>
-   <div class="touch-controls"><button data-touch="left" aria-label="Steer left">◀</button><button data-touch="right" aria-label="Steer right">▶</button><button data-touch="brake">BRAKE</button><button data-touch="throttle">THROTTLE</button></div>
+   <div class="touch-controls"><button data-touch="left" aria-label="Steer left">◀</button><button data-touch="right" aria-label="Steer right">▶</button><button class="mx-body-touch" data-touch="riderForward" aria-label="Move rider weight forward"><span>LEAN</span><b>FWD</b></button><button class="mx-body-touch" data-touch="riderBack" aria-label="Move rider weight back"><span>LEAN</span><b>BACK</b></button><button data-touch="brake">BRAKE</button><button data-touch="throttle">THROTTLE</button></div>
   </section>
   <div id="replayBar" class="replay-bar" hidden><span class="replay-tag">REPLAY</span><button data-action="replayPlay" id="replayPlay">PAUSE</button><span id="replayTime">0:00</span><input id="replaySeek" type="range" min="0" max="1" step=".01" value="0" aria-label="Replay position"><select id="replaySpeed" aria-label="Replay playback speed"><option value=".25">¼×</option><option value=".5">½×</option><option value="1" selected>1×</option><option value="2">2×</option></select><button data-action="camera">CAMERA</button><button data-action="photo">PHOTO STUDIO</button><button data-action="replayExit">RETURN</button></div>
   <div id="debug" class="debug" hidden></div><div id="toast" class="toast" role="status" hidden></div>
@@ -375,7 +377,11 @@ export class Interface {
     // Restore the original menu structure before applying the selected road
     // machine's presentation. The MX helper owns its venue copy and dirt-bike
     // specification card; its change listeners must run before this refresh.
-    const refreshMotocross = installMotocrossMenu(this.menu, () => this.track);
+    const refreshMotocross = installMotocrossMenu(
+      this.menu,
+      () => this.track,
+      () => this.bindings,
+    );
     let previewSelection = '';
     const describeRules = () => {
       const select = (id: string) => (this.get(id) as HTMLSelectElement).value;
@@ -917,14 +923,18 @@ export class Interface {
       `<span class="eyebrow">DRIVER BRIEFING</span><h2>Take control.</h2><div class="control-grid">${Object.entries(
         bindings,
       )
-        .filter(([action]) => !motocross || !['pit', 'ers', 'drs', 'overtake'].includes(action))
+        .filter(([action]) =>
+          motocross
+            ? !['pit', 'ers', 'drs', 'overtake'].includes(action)
+            : !['riderForward', 'riderBack'].includes(action),
+        )
         .map(
           ([action, code]) =>
             `<b>${keyName(code)}</b><span>${labels[action as BindingAction]}</span>`,
         )
         .join(
           '',
-        )}<b>ESC</b><span>Pause / release mouse look</span><b>DOUBLE CLICK</b><span>Cockpit mouse look</span></div><p>${motocross ? 'In flight, throttle lifts the nose and either brake lowers it. Steer to bank and whip; release before touchdown to square the wheels. Riding assists help align a landing. Gamepad: left stick steers and whips, triggers operate throttle and brake, shoulder buttons shift and Start pauses.' : 'Gamepad: left stick steers, triggers for throttle and brake, shoulder buttons shift, Y changes camera, X cycles energy mode and Start pauses.'} Remap any control in Garage &amp; Settings.</p><button class="primary" data-action="modalClose">UNDERSTOOD</button>`,
+        )}<b>ESC</b><span>Pause / release mouse look</span><b>DOUBLE CLICK</b><span>Cockpit mouse look</span></div><p>${motocross ? 'Shift rider weight separately from the pedals; release to return to the normal riding posture. In flight, throttle lifts the nose and either brake lowers it. Steer to bank and whip; release before touchdown to square the wheels. Riding assists help align a landing. Standard gamepad: left stick steers and whips, right stick up/down shifts rider weight, triggers operate throttle and brake, shoulder buttons shift and Start pauses. Touch: use the two LEAN buttons beside the steering controls.' : 'Gamepad: left stick steers, triggers for throttle and brake, shoulder buttons shift, Y changes camera, X cycles energy mode and Start pauses.'} Remap any keyboard control in Garage &amp; Settings.</p><button class="primary" data-action="modalClose">UNDERSTOOD</button>`,
     );
   }
   /** Paddock "Credits & licences": every third-party attribution (manifest). */
@@ -956,6 +966,9 @@ export class Interface {
     if (this.modal.open) this.modal.close();
   }
   applyBindings(bindings: Bindings) {
+    this.bindings = { ...bindings };
+    this.offroadHud.setBindings(bindings);
+    this.refreshMotocrossMenu();
     this.hud.querySelectorAll<HTMLElement>('[data-action] kbd').forEach((key) => {
       const action = key.parentElement?.dataset.action as BindingAction;
       if (bindings[action]) key.textContent = keyName(bindings[action]);

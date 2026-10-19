@@ -33,6 +33,7 @@ const sameInput = (a: Controls, b: Controls) =>
   a.clutch === b.clutch &&
   a.manualClutch === b.manualClutch &&
   a.steer === b.steer &&
+  (a.riderLean ?? 0) === (b.riderLean ?? 0) &&
   a.shift === b.shift &&
   a.ers === b.ers &&
   a.pit === b.pit &&

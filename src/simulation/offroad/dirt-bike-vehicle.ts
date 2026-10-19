@@ -12,11 +12,18 @@ import { offroadCourse } from './venues.ts';
 import type { OffroadBikeSpec } from './types.ts';
 import { LANDING_RULES } from './riding-feedback.ts';
 import { wheelPickupImpulse } from './wheel-pickup.ts';
+import { RiderWeight } from './rider-weight.ts';
 
 const TAU = Math.PI * 2;
 /** How far (m) the rider's body moves fore/aft over the pegs at full lean;
  * on the ground that shifts the system CG (a weight-shift pitch torque). */
 const RIDER_REACH = 0.25;
+/** Effective arm/hip lever (m) of a braced rider stroke through bars and
+ * pegs. This reduced control coordinate is calibrated nose-down for a
+ * forward command; it is not a solved articulated-human inertia model or
+ * gravity acting on a freely translated torso. Its finite motion exchanges
+ * pitch momentum with the chassis, without any centre-of-mass air force. */
+const RIDER_AIR_LEVER = 0.65;
 /** Deep terrain overlap is a contact-position error, not additional spring
  * travel. Normal bottoming keeps the calibrated bump stop; a discontinuous
  * surface step more than 12 cm past full travel is projected to its 15 mm
@@ -100,6 +107,12 @@ export class DirtBikeVehicle extends BikeVehicle {
   dab = 0;
   /** Rider body position fore/aft, -1 back .. +1 forward. */
   riderBody = 0;
+  /** Automatic posture remains separate so a held manual stroke cannot
+   * become the existing aid's perpetual body torque in flight. */
+  private automaticBody = 0;
+  private readonly riderWeight = new RiderWeight();
+  /** Chassis pitch rate currently exchanged with the relative rider stroke. */
+  private riderAirRate = 0;
   /** Bottoming intensity 0..1 (decays). */
   bottom = 0;
   mud = 0;
@@ -196,6 +209,9 @@ export class DirtBikeVehicle extends BikeVehicle {
     this.cgY = ground + b.cgHeight;
     this.vy = this.pitchRate = 0;
     this.airYaw = this.airYawRate = 0;
+    this.riderWeight.reset();
+    this.riderAirRate = 0;
+    this.riderBody = this.automaticBody;
     this.wheelPickup = false;
     this.pickupSpeed = this.dynamics.speed;
     this.compressionFront = this.sag(true);
@@ -429,7 +445,7 @@ export class DirtBikeVehicle extends BikeVehicle {
       this.predictLanding();
     }
     // Riders land rear wheel first: aim a little nose-up of the slope.
-    const chassis = this.pitch + this.riderBody * 0.06,
+    const chassis = this.pitch + this.automaticBody * 0.06,
       target = this.landingTarget + LANDING_NOSE_UP;
     const wanted = (target - chassis) / Math.max(0.12, this.landingIn) - this.pitchRate;
     const assisted = ai || this.assist === 'sport';
@@ -450,7 +466,8 @@ export class DirtBikeVehicle extends BikeVehicle {
     const bodyTarget = assisted
       ? clamp(-wanted * 0.9, -1, 1)
       : clamp(0.55 * brake + 0.4 * rear - 0.3 * throttle, -0.3, 0.8);
-    this.riderBody = approach(this.riderBody, bodyTarget, dt * 4);
+    this.automaticBody = approach(this.automaticBody, bodyTarget, dt * 4);
+    this.riderBody = this.riderWeight.pose(this.automaticBody);
     // Rear wheel: the engine spins it up toward the limiter in this gear;
     // the rear brake stops it. The chassis takes the reaction torque.
     // The engaged ratio through the setup's gearing, as on the ground
@@ -472,7 +489,7 @@ export class DirtBikeVehicle extends BikeVehicle {
     // AI retains its surveyed rear-brake controller without a second pedal.
     const frontBrakeTorque = (spec.wheelInertia * (this.frontSpin - frontCoast)) / dt;
     // Forward body (+) pitches the bike nose-down.
-    const bodyTorque = -this.riderBody * a.bodyTorque;
+    const bodyTorque = -this.automaticBody * a.bodyTorque;
     this.airTorque = spinTorque + frontBrakeTorque + bodyTorque;
     // Handing a player whip to the demonstration rider must recover its
     // bank as well as its yaw. Ordinary AI flights keep their calibration.
@@ -667,7 +684,10 @@ export class DirtBikeVehicle extends BikeVehicle {
     if (!this.riding) {
       this.standing = approach(this.standing, 0, dt * 3);
       this.dab = approach(this.dab, 0, dt * 6);
-      this.riderBody = approach(this.riderBody, 0, dt * 3);
+      this.automaticBody = approach(this.automaticBody, 0, dt * 3);
+      this.riderWeight.reset();
+      this.riderAirRate = 0;
+      this.riderBody = this.automaticBody;
       return;
     }
     let rough = false;
@@ -693,11 +713,13 @@ export class DirtBikeVehicle extends BikeVehicle {
       dt * 6,
     );
     if (!this.airborne)
-      this.riderBody = approach(
-        this.riderBody,
+      this.automaticBody = approach(
+        this.automaticBody,
         clamp(0.45 * this.throttle - 0.55 * this.brake + climb, -1, 1),
         dt * 3,
       );
+    this.riderWeight.step(this.playerMotocross ? this.input.riderLean : 0, dt);
+    this.riderBody = this.riderWeight.pose(this.automaticBody);
     void track;
   }
   /** The 2-DOF sprung chassis over the two contact patches (heave + pitch),
@@ -801,12 +823,24 @@ export class DirtBikeVehicle extends BikeVehicle {
     const contact = FF > 0 || FR > 0;
     // Longitudinal tyre forces act at the ground, below the CG: squat and dive.
     const pitchMoment = contact ? this.longitudinal * spec.cgHeight : 0;
-    // On the ground the rider's body fore/aft shifts the CG over the wheels
-    // (forward pitches nose-down); in the air it is a reaction torque only.
+    // On the ground the combined rider pose shifts supported weight over
+    // the wheels (forward pitches nose-down). With both tyres free only the
+    // legacy automatic aid and finite braced rider stroke act on pitch.
     const bodyShift = contact ? -this.riderBody * RIDER_REACH * spec.riderMass * G * cos : 0;
     const torque =
       (FF * fa - FR * ra) * cos + pitchMoment + bodyShift + (this.airborne ? this.airTorque : 0);
     this.vy += ((FF + FR) / m - G) * dt;
+    // Split the composite pitch momentum from the finite relative rider
+    // motion while both tyres are free. Bracing forward moves the chassis
+    // nose down; its equal opposite rider momentum remains in this rate.
+    // Integrating the exact stroke distance prevents repeated held inputs,
+    // release/reversal or a different substep from manufacturing rotation.
+    // Ground contact inherits the actual incoming chassis rate, then the
+    // ordinary spring/damper forces and shifted rider weight take over.
+    const freeRider = this.airborne && !contact,
+      coupling = (spec.riderMass * RIDER_REACH * RIDER_AIR_LEVER) / a.pitchInertia;
+    if (freeRider) this.pitchRate -= this.riderAirRate;
+    else this.riderAirRate = 0;
     this.pitchRate += (torque / a.pitchInertia) * dt;
     // The rider's body damps pitch: strongly with a wheel down (more when
     // standing over rough ground), a little in the air.
@@ -814,7 +848,15 @@ export class DirtBikeVehicle extends BikeVehicle {
       -(contact ? 1.5 + 2.5 * this.standing : 0.3 + 0.5 * this.standing) * dt,
     );
     this.cgY += this.vy * dt;
-    this.pitch = clamp(this.pitch + this.pitchRate * dt, -1.2, 1.2);
+    this.pitch = clamp(
+      this.pitch + this.pitchRate * dt - (freeRider ? coupling * this.riderWeight.displacement : 0),
+      -1.2,
+      1.2,
+    );
+    if (freeRider) {
+      this.riderAirRate = -coupling * this.riderWeight.velocity;
+      this.pitchRate += this.riderAirRate;
+    }
     this.compressionFront = clamp(cF, 0, spec.forkTravel);
     this.compressionRear = clamp(cR, 0, spec.shockTravel);
     this.forceFront = FF;
@@ -848,7 +890,7 @@ export class DirtBikeVehicle extends BikeVehicle {
         const slopeAt = Math.atan(
           cF > 0 && cR > 0 ? 0.5 * (slope(0) + slope(2)) : cF > 0 ? slope(0) : slope(2),
         );
-        const chassis = this.pitch + this.riderBody * 0.06;
+        const chassis = this.pitch + this.automaticBody * 0.06;
         const normal = this.flightSpeed * Math.sin(slopeAt) - this.vy * Math.cos(slopeAt);
         const along = this.flightSpeed * Math.cos(slopeAt) + this.vy * Math.sin(slopeAt);
         d.speed = Math.max(0, along);
@@ -906,6 +948,9 @@ export class DirtBikeVehicle extends BikeVehicle {
       else if (this.freeSteps > 2) {
         this.airborne = true;
         this.airTime = 0;
+        // Initialise composite momentum from the real take-off rate; any
+        // rider movement already begun on the ground is not applied twice.
+        this.riderAirRate = -coupling * this.riderWeight.velocity;
         this.airYaw = this.airYawRate = 0;
         // The last wheel leaves along its own face: that slope splits the
         // speed into the plan-view flight speed (the springs gave vy).
@@ -1112,7 +1157,7 @@ export class DirtBikeVehicle extends BikeVehicle {
     const fallen = !this.airborne && Math.abs(d.lean) > 1.2;
     // The sprung model carries squat, dive and wheelies itself; the core's
     // relative pitch only guards its own loop-out limit.
-    const chassisPitch = fallen ? this.roadPitch : this.pitch + this.riderBody * 0.06;
+    const chassisPitch = fallen ? this.roadPitch : this.pitch + this.automaticBody * 0.06;
     bikeOrientation(b.orientation, h, chassisPitch, fallen ? d.lean : chassisLean(d.lean, spec));
     if (fallen) {
       this.pivot.set(d.x, (front.y + rear.y) / 2 + spec.crownRadius, d.z);

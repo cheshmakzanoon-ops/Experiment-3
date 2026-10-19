@@ -12,8 +12,10 @@ import {
  * recorded lap times, so old records are archived or migrated explicitly
  * instead of competing silently against new physics (masterplan §22.5).
  * v2: combined-slip/thermal/relaxation tyres, hub suspension, powertrain lags,
- * aero platform and ground materials (docs/production/PHYSICS_MODEL.md). */
-export const SIMULATION_VERSION = 2;
+ * aero platform and ground materials (docs/production/PHYSICS_MODEL.md).
+ * v3: independently controlled motocross rider weight and finite air stroke;
+ * prior records remain in their original physics category. */
+export const SIMULATION_VERSION = 3;
 /** Fixed physics tick used by the worker and headless simulation. */
 export const SIMULATION_TICK_HZ = 120;
 

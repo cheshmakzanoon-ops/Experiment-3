@@ -51,7 +51,7 @@ describe('session lifecycle with content-version agreement (WP51)', () => {
     expect(reasons[4][1]).toContain(`snapshot format v${PROTOCOL_VERSION - 1} does not match`);
     expect(reasons[5][1]).toMatch(/not eligible for FORMULA GRAND PRIX/);
     expect(reasons[6][0]).toBe('lobby');
-    expect(rawReply).toMatch(/network protocol v6 is not supported/);
+    expect(rawReply).toContain(`network protocol v${NET_PROTOCOL_VERSION + 5} is not supported`);
     expect(f.server.stats.rejectedJoins).toHaveLength(7);
     expect(f.lobby.members.map((m) => m.name)).toEqual(['ok']);
     // Ready check: one of four drivers is not enough to start.

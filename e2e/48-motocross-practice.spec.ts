@@ -39,6 +39,7 @@ test('solo landing targets, held-brake guidance and autopilot exclusion use the 
         circuit,
       );
       await page.evaluate(() => document.fonts.ready);
+      await page.evaluate(() => window.MotocrossInterface.remapMotocrossBodyControls());
       expect(
         await page.evaluate(() =>
           [...document.fonts].some(
@@ -56,6 +57,7 @@ test('solo landing targets, held-brake guidance and autopilot exclusion use the 
       await expect(hud).toContainText('RELEASE THE BRAKE');
       await page.evaluate(() => window.MotocrossInterface.sampleMotocrossPractice('flight'));
       await expect(hud).not.toContainText('RELEASE THE BRAKE');
+      await expect(hud).toContainText('U / J: shift weight');
       await page.evaluate(() => window.MotocrossInterface.sampleMotocrossPractice('contact'));
       await expect(hud).not.toContainText('TARGET LANDED');
       await page.evaluate(() => window.MotocrossInterface.sampleMotocrossPractice('settled'));

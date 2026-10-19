@@ -4,7 +4,7 @@ import { chainShaderHook, injectAfter, injectDeclarations } from '../studio/shad
 /** Fractions of the existing, area-integrated course cells. Turf, asphalt
  * and gravel remain the remainder; no second soil classifier is invented. */
 export const MX_SOIL_MORPHOLOGY_KINDS = ['hardpack', 'loam', 'sand', 'mud'] as const;
-export const MX_SOIL_MORPHOLOGY_HOOK = 'mx-soil-morphology-v1';
+export const MX_SOIL_MORPHOLOGY_HOOK = 'mx-soil-morphology-v2';
 
 const DECLARATIONS = /* glsl */ `
 varying vec4 vMxSoilMix;
@@ -17,6 +17,11 @@ float mxMorphReservoir = 0.0;
 // The support ends inside its cell; adjacent cells never make a height seam.
 vec2 mxSoilFragment( vec2 p, float frequency ) {
   vec2 q = p * frequency;
+  // Untouched cell supports exposed a square lattice across broad shoulders.
+  // Warp the distribution before choosing cells so coarse crumbs form an
+  // uneven granular field. Footprint filtering below includes this warp.
+  q += ( vec2( mxSoilNoise( q * 0.32 + 2.1 ),
+               mxSoilNoise( q * 0.29 + 12.7 ) ) - 0.5 ) * 0.9;
   vec2 cell = floor( q );
   float seed = mxSoilHash( cell + 14.3 );
   vec2 centre = vec2( 0.5 ) + ( vec2( seed,

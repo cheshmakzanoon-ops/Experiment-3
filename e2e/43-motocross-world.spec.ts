@@ -7,6 +7,11 @@ import type { captureMotocrossTerrainControls } from './fixtures/motocross-terra
 test('MX and SX production terrain loads photographed soil with correct macros and reversible wetness on WebGL2', async ({
   page,
 }, info) => {
+  // This complete scene gate renders 24 shadowed states across both venues
+  // and cameras, including full stadium furniture and eight riders. Keep a
+  // separate bounded software-GPU budget; pixel/resource assertions remain
+  // the gate. Consumer-hardware performance needs separate measurement.
+  test.setTimeout(600000);
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
   page.on('console', (message) => {
@@ -49,13 +54,19 @@ test('MX and SX production terrain loads photographed soil with correct macros a
           ).MotocrossWorld.captureMotocrossWorld(circuit, view),
         { circuit, view },
       );
+      // Preserve all six state observations even when the first pixel/GL
+      // assertion fails, so the exact view and transition stay diagnosable.
+      await info.attach(`${circuit}-${view}-metrics.json`, {
+        body: JSON.stringify(samples, (key, value) => (key === 'image' ? undefined : value), 2),
+        contentType: 'application/json',
+      });
       for (const [i, sample] of samples.entries()) {
-        expect(sample.glError).toBe(0);
+        expect(sample.glError, `${circuit}/${view}/${sample.label}: WebGL error`).toBe(0);
         expect(sample.sourceUnchanged).toBe(true);
         expect(sample.hash).not.toBe(0);
         expect(sample.bikes).toBe(8);
         expect(sample.terrainCells).toBeGreaterThan(50);
-        expect(sample.soilHooks).toContain('mx-groomed-soil-v2');
+        expect(sample.soilHooks).toContain('mx-groomed-soil-v3');
         expect(sample.soilScans.active).toBe(true);
         expect(sample.soilScans.macro).toBe('dryEarth');
         expect(sample.soilScans.compiledMacroSampler).toBe('apexScanDryEarthC');
@@ -80,10 +91,6 @@ test('MX and SX production terrain loads photographed soil with correct macros a
       expect(samples[0].shadowWork.calls).toBeGreaterThan(samples[4].shadowWork.calls);
       expect(samples[0].shadowWork.triangles).toBeGreaterThan(samples[4].shadowWork.triangles);
       expect(samples[0].calls).toBe(samples[4].calls);
-      await info.attach(`${circuit}-${view}-metrics.json`, {
-        body: JSON.stringify(samples, (key, value) => (key === 'image' ? undefined : value), 2),
-        contentType: 'application/json',
-      });
     }
   }
   expect(errors).toEqual([]);

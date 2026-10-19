@@ -268,6 +268,8 @@ export interface Controls {
   clutch: number;
   manualClutch: boolean;
   steer: number;
+  /** Motocross rider weight: +1 forward, -1 back. Older inputs are neutral. */
+  riderLean?: number;
   shift: number;
   ers: 0 | 1 | 2;
   pit: boolean;
@@ -283,6 +285,7 @@ export const controls = (): Controls => ({
   clutch: 0,
   manualClutch: false,
   steer: 0,
+  riderLean: 0,
   shift: 0,
   ers: 1,
   pit: false,

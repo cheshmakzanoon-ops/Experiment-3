@@ -5,6 +5,8 @@ export const DEFAULT_BINDINGS = {
   right: 'KeyD',
   reverse: 'KeyB',
   clutch: 'ShiftLeft',
+  riderForward: 'KeyQ',
+  riderBack: 'KeyZ',
   shiftDown: 'BracketLeft',
   shiftUp: 'BracketRight',
   camera: 'KeyC',
@@ -28,6 +30,8 @@ export const BINDING_LABELS: Record<BindingAction, string> = {
   right: 'Steer right',
   reverse: 'Reverse (hold at low speed)',
   clutch: 'Clutch pedal (manual clutch mode)',
+  riderForward: 'Move rider weight forward (motocross)',
+  riderBack: 'Move rider weight back (motocross)',
   shiftDown: 'Downshift',
   shiftUp: 'Upshift',
   camera: 'Cycle camera',
@@ -48,7 +52,15 @@ const LATE_ACTION_KEYS: Partial<Record<BindingAction, readonly string[]>> = {
   drs: ['KeyF', 'KeyV', 'KeyN', 'KeyH'],
   overtake: ['KeyO', 'KeyU', 'KeyY', 'KeyJ'],
   flashback: ['KeyX', 'KeyK', 'KeyL', 'KeyI'],
+  riderForward: ['KeyQ', 'KeyU', 'KeyY', 'KeyH', 'KeyI', 'Digit8'],
+  riderBack: ['KeyZ', 'KeyV', 'KeyN', 'KeyJ', 'KeyK', 'Digit9'],
 };
+// More letter keys than actions guarantees room even when a saved layout
+// occupies every preferred migration key. Existing assignments keep priority.
+const FALLBACK_BINDING_KEYS = Array.from(
+  { length: 26 },
+  (_, index) => `Key${String.fromCharCode(65 + index)}`,
+);
 export const validBindingCode = (code: unknown): code is string =>
   typeof code === 'string' &&
   /^(Key[A-Z]|Digit[0-9]|Arrow(Left|Right|Up|Down)|Space|Bracket(Left|Right)|Shift(Left|Right)|Control(Left|Right)|Comma|Period|Slash|Backquote|Minus|Equal|F[1-4]|F[6-9]|F10)$/.test(
@@ -73,9 +85,11 @@ export function validateBindings(value: unknown): Bindings {
     ][]) {
       if (source[action] !== undefined) continue;
       const names = Object.keys(result) as BindingAction[];
-      result[action] =
-        keys.find((code) => !names.some((name) => name !== action && effective(name) === code)) ??
-        keys[0];
+      const available = [...keys, ...FALLBACK_BINDING_KEYS].find(
+        (code) => !names.some((name) => name !== action && effective(name) === code),
+      );
+      if (!available) throw new Error(`No unused key for ${BINDING_LABELS[action]}.`);
+      result[action] = available;
     }
   const occupied = new Map<string, string>();
   for (const action of Object.keys(result) as BindingAction[]) {

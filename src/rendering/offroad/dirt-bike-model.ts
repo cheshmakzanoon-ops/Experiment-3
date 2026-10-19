@@ -31,6 +31,9 @@ import {
   motocrossRotor,
   motocrossSidePanel,
   motocrossTread,
+  motocrossFender,
+  motocrossForkGuard,
+  motocrossTripleClamp,
   mouldedPanel,
   installMotocrossPlasticFinish,
 } from './motocross-detail.ts';
@@ -250,14 +253,30 @@ export class DirtBikeModel {
     for (const side of [1, -1])
       add(
         this.steer,
-        new T.CylinderGeometry(0.03, 0.03, 0.5, sides / 2),
+        // Keep the lower endpoint at -0.38 m while the MX tube now passes
+        // through the upper collar. The old 0.5 m tube ended 8 cm below it;
+        // the former solid rectangular clamp hid that missing attachment.
+        new T.CylinderGeometry(0.03, 0.03, supermoto ? 0.5 : 0.6, sides / 2),
         this.m.forkUpper,
         side * 0.095,
-        -0.13,
+        supermoto ? -0.13 : -0.08,
         OFFSET,
       );
-    add(this.steer, new T.BoxGeometry(0.24, 0.035, 0.08), this.m.aluminium, 0, 0, OFFSET * 0.5);
-    add(this.steer, new T.BoxGeometry(0.24, 0.03, 0.07), this.m.aluminium, 0, CLAMPS, OFFSET * 0.5);
+    if (supermoto || detail === 'far') {
+      add(this.steer, new T.BoxGeometry(0.24, 0.035, 0.08), this.m.aluminium, 0, 0, OFFSET * 0.5);
+      add(
+        this.steer,
+        new T.BoxGeometry(0.24, 0.03, 0.07),
+        this.m.aluminium,
+        0,
+        CLAMPS,
+        OFFSET * 0.5,
+      );
+    } else {
+      add(this.steer, motocrossTripleClamp(detail, 0.035, OFFSET), this.m.aluminium);
+      add(this.steer, motocrossTripleClamp(detail, 0.03, OFFSET), this.m.aluminium, 0, CLAMPS);
+      add(this.steer, new T.CylinderGeometry(0.0115, 0.0115, 0.244, 12), this.m.steel, 0, 0.1);
+    }
     // Tapered bar on risers, crossbar pad, grips and levers.
     const barY = CLAMPS + 0.09,
       barZ = -0.06;
@@ -379,20 +398,23 @@ export class DirtBikeModel {
     // moulding, not a mirrored duplicate of the graphics through the plate.
     mapUnprintedPlateBack(plate.geometry);
     // High front fender on the lower clamp: the wheel rises into the gap.
-    const fender = superLoft(
-      [
-        { z: -0.26, y: -0.09, w: 0.062, top: 0.012, bottom: 0.004 },
-        { z: -0.05, y: -0.05, w: 0.095, top: 0.022, bottom: 0.004 },
-        { z: 0.15, y: -0.06, w: 0.103, top: 0.025, bottom: 0.004 },
-        { z: 0.36, y: -0.115, w: 0.082, top: 0.02, bottom: 0.004 },
-        { z: 0.48, y: -0.17, w: 0.067, top: 0.008, bottom: 0.004 },
-      ],
-      sides,
-      3,
-    );
+    const fender = supermoto
+      ? superLoft(
+          [
+            { z: -0.26, y: -0.09, w: 0.062, top: 0.012, bottom: 0.004 },
+            { z: -0.05, y: -0.05, w: 0.095, top: 0.022, bottom: 0.004 },
+            { z: 0.15, y: -0.06, w: 0.103, top: 0.025, bottom: 0.004 },
+            { z: 0.36, y: -0.115, w: 0.082, top: 0.02, bottom: 0.004 },
+            { z: 0.48, y: -0.17, w: 0.067, top: 0.008, bottom: 0.004 },
+          ],
+          sides,
+          3,
+        )
+      : motocrossFender(true, detail);
     add(this.steer, fender, primary, 0, -0.04, OFFSET);
     // Lower legs (stanchions and axle lugs) slide with the recorded compression.
     this.steer.add(this.forkLower);
+    this.forkLower.name = 'Motocross sliding fork lowers';
     for (const side of [1, -1]) {
       add(
         this.forkLower,
@@ -411,15 +433,18 @@ export class DirtBikeModel {
         OFFSET,
       );
       // Plastic fork guards over the stanchions.
-      if (detail !== 'far')
-        add(
-          this.forkLower,
-          new RoundedBoxGeometry(0.049, 0.34, 0.054, 2, 0.013),
-          primary,
-          side * 0.115,
-          0.2,
-          OFFSET + 0.023,
-        );
+      if (detail !== 'far') {
+        if (supermoto)
+          add(
+            this.forkLower,
+            new RoundedBoxGeometry(0.049, 0.34, 0.054, 2, 0.013),
+            primary,
+            side * 0.115,
+            0.2,
+            OFFSET + 0.023,
+          );
+        else add(this.forkLower, motocrossForkGuard(detail), primary, side * 0.095, 0, OFFSET);
+      }
     }
     const frontBanjo =
       detail !== 'far'
@@ -751,15 +776,17 @@ export class DirtBikeModel {
     }
     add(
       this.sprung,
-      superLoft(
-        [
-          { z: -0.7, y: 0.04, w: 0.11, top: 0.012, bottom: 0.004 },
-          { z: -0.92, y: 0.09, w: 0.1, top: 0.012, bottom: 0.004 },
-          { z: -1.08, y: 0.15, w: 0.07, top: 0.01, bottom: 0.004 },
-        ],
-        sides,
-        3,
-      ),
+      supermoto
+        ? superLoft(
+            [
+              { z: -0.7, y: 0.04, w: 0.11, top: 0.012, bottom: 0.004 },
+              { z: -0.92, y: 0.09, w: 0.1, top: 0.012, bottom: 0.004 },
+              { z: -1.08, y: 0.15, w: 0.07, top: 0.01, bottom: 0.004 },
+            ],
+            sides,
+            3,
+          )
+        : motocrossFender(false, detail),
       primary,
     );
     // Exhaust: header from the head down the right side to the silencer.

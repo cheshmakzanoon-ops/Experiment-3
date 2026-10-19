@@ -3,6 +3,7 @@ import type { SessionOptions } from '../simulation/config.ts';
 import { offroadCourse } from '../simulation/offroad/venues.ts';
 import { VEHICLES } from '../simulation/vehicles.ts';
 import type { Track } from '../simulation/track.ts';
+import { DEFAULT_BINDINGS, keyName, type Bindings } from '../input/bindings.ts';
 import { circuitBlurb } from './circuit-menu.ts';
 import styles from './motocross.css?inline';
 
@@ -82,7 +83,11 @@ export function motocrossPreset(id: string) {
 
 /** A discipline-aware entry inside the existing paddock. Local DOM listeners
  * live with the Interface; no global listeners or extra animation loop. */
-export function installMotocrossMenu(menu: HTMLElement, currentTrack: () => Track) {
+export function installMotocrossMenu(
+  menu: HTMLElement,
+  currentTrack: () => Track,
+  currentBindings: () => Bindings = () => DEFAULT_BINDINGS,
+) {
   const knownLengths = new Map<CircuitId, number>();
   const select = (id: string) => menu.querySelector<HTMLSelectElement>(`#${id}`)!;
   const circuit = select('circuit'),
@@ -113,7 +118,7 @@ export function installMotocrossMenu(menu: HTMLElement, currentTrack: () => Trac
   panel.className = 'mx-setup';
   panel.setAttribute('aria-label', 'Motocross ride setup');
   panel.hidden = true;
-  panel.innerHTML = `<div class="mx-venue-preview"></div><fieldset class="mx-ride-presets"><legend>YOUR RIDE</legend>${MOTOCROSS_RIDE_PRESETS.map((p) => `<button type="button" data-mx-preset="${p.id}" aria-pressed="false"><b>${p.title}</b><span>${p.detail}</span></button>`).join('')}</fieldset><p class="mx-technique">Brake before the face. Tap a brake to lower the nose in flight, then release for touchdown. In solo practice, land smoothly on each surveyed downslope to clear its target.</p>`;
+  panel.innerHTML = `<div class="mx-venue-preview"></div><fieldset class="mx-ride-presets"><legend>YOUR RIDE</legend>${MOTOCROSS_RIDE_PRESETS.map((p) => `<button type="button" data-mx-preset="${p.id}" aria-pressed="false"><b>${p.title}</b><span>${p.detail}</span></button>`).join('')}</fieldset><p class="mx-technique"></p>`;
   rules.after(panel);
   const body = menu.querySelector<HTMLElement>('.menu-body')!,
     form = menu.querySelector<HTMLFormElement>('#sessionForm')!,
@@ -163,6 +168,9 @@ export function installMotocrossMenu(menu: HTMLElement, currentTrack: () => Trac
   let lastVenue = '';
   const refresh = () => {
     const current = currentTrack();
+    const bindings = currentBindings();
+    panel.querySelector('.mx-technique')!.textContent =
+      `Brake before the face. ${keyName(bindings.riderForward)} / ${keyName(bindings.riderBack)} shift rider weight; release to settle. Tap a brake to lower the nose in flight, then release for touchdown. In solo practice, land smoothly on each surveyed downslope to clear its target.`;
     knownLengths.set(current.circuit.id, current.length);
     const kind = motocrossKind(circuit.value as CircuitId);
     menu.dataset.discipline = kind ?? 'circuit';
@@ -173,7 +181,7 @@ export function installMotocrossMenu(menu: HTMLElement, currentTrack: () => Trac
       edition.firstChild.textContent = kind ? 'RIDER ' : originalEditionLabel;
     if (menuHint)
       menuHint.innerHTML = kind
-        ? '<kbd>WASD</kbd> / <kbd>ARROWS</kbd> RIDE · <kbd>G</kbd> AI RIDER · GAMEPAD READY'
+        ? `<kbd>${escape(keyName(bindings.throttle))}${escape(keyName(bindings.left))}${escape(keyName(bindings.brake))}${escape(keyName(bindings.right))}</kbd> RIDE · <kbd>${escape(keyName(bindings.riderForward))} / ${escape(keyName(bindings.riderBack))}</kbd> WEIGHT · RIGHT STICK READY`
         : originalMenuHint;
     panel.hidden = !kind;
     for (const button of shortcuts.querySelectorAll<HTMLButtonElement>('button'))

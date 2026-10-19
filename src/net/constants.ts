@@ -5,7 +5,9 @@ import { SIMULATION_TICK_HZ } from '../core/session-identity.ts';
  * separate numbers: the server simulates at 120 Hz, a client samples its
  * controls at 60 Hz (each command covers two physics ticks) and sends them at
  * 30 Hz with redundancy, and the server publishes a compact state at 20 Hz. */
-export const NET_PROTOCOL_VERSION = 1;
+// v2 assigns the previously reserved control-word bits to motocross body lean.
+// Older peers must fail the handshake before interpreting a non-neutral input.
+export const NET_PROTOCOL_VERSION = 2;
 
 export const CADENCE = Object.freeze({
   physicsHz: SIMULATION_TICK_HZ,

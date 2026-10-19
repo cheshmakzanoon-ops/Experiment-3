@@ -87,7 +87,7 @@ export class TerrainView {
     this.soilMacro = this.motocross ? 'dryEarth' : this.soilSlots[0];
     installScannedSoil(this.material, this.soilSlots, this.soilMacro);
     if (this.motocross) {
-      installMxSoilDetail(this.material);
+      installMxSoilDetail(this.material, track.length);
       installMxSoilMorphology(this.material);
       installMxTerrainShadow(this.material);
     }
@@ -126,6 +126,7 @@ export class TerrainView {
       state = new Float32Array(count * 3),
       layers = new Float32Array(count * 4),
       mxCourse = this.motocross ? new Float32Array(count * 4) : null,
+      mxCourseWidth = this.motocross ? new Float32Array(count) : null,
       mxSoilMix = this.motocross ? new Float32Array(count * 4) : null,
       uv = new Float32Array(count * 2),
       base = new Float32Array(count),
@@ -197,6 +198,7 @@ export class TerrainView {
               ? 0
               : 1;
           mxCourse[k * 4 + 3] = clamp(p.curvature * 20, -1, 1);
+          if (mxCourseWidth) mxCourseWidth[k] = p.width;
         }
       }
     }
@@ -222,6 +224,8 @@ export class TerrainView {
     );
     geometry.setAttribute('apexSoilLayers', new T.BufferAttribute(layers, 4));
     if (mxCourse) geometry.setAttribute('mxCourse', new T.BufferAttribute(mxCourse, 4));
+    if (mxCourseWidth)
+      geometry.setAttribute('mxCourseWidth', new T.BufferAttribute(mxCourseWidth, 1));
     if (mxSoilMix) geometry.setAttribute('mxSoilMix', new T.BufferAttribute(mxSoilMix, 4));
     geometry.setAttribute('uv', new T.BufferAttribute(uv, 2));
     geometry.setAttribute('uv1', new T.BufferAttribute(uv.slice(), 2));

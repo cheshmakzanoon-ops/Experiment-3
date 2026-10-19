@@ -3,6 +3,7 @@ import '@fontsource-variable/saira/wdth.css';
 import '@fontsource-variable/saira/wdth-italic.css';
 import '../../src/ui/style.css';
 import { DEFAULT_OPTIONS, validateOptions } from '../../src/simulation/config.ts';
+import { DEFAULT_BINDINGS } from '../../src/input/bindings.ts';
 import {
   F,
   H,
@@ -27,6 +28,10 @@ import { raceBriefing } from '../../src/ui/race-briefing.ts';
 import { RadioCaption } from '../../src/ui/radio-caption.ts';
 
 let ui: Interface;
+/** Exercise the production saved-binding refresh without changing simulation state. */
+export function remapMotocrossBodyControls() {
+  ui.applyBindings({ ...DEFAULT_BINDINGS, riderForward: 'KeyU', riderBack: 'KeyJ' });
+}
 let radio: RadioCaption;
 let radioArbiter: RadioArbiter;
 let simulation: Simulation | null = null;

@@ -16,6 +16,7 @@ import { PHASE } from '../simulation/race.ts';
 import { FLAG } from '../simulation/marshal.ts';
 import { trackPoint, type Track } from '../simulation/track.ts';
 import { clamp, mod } from '../core/math.ts';
+import { DEFAULT_BINDINGS, keyName, type Bindings } from '../input/bindings.ts';
 import { vehicleAt } from '../simulation/vehicles.ts';
 import { motocrossApproachCue, MotocrossRhythm } from '../simulation/offroad/rhythm-coach.ts';
 import {
@@ -73,7 +74,11 @@ export class OffroadHud {
   private landingWhip = false;
   private landingSideways = 0;
   private landing: ReturnType<typeof assessMotocrossLanding> | null = null;
+  private bodyKeys = `${keyName(DEFAULT_BINDINGS.riderForward)} / ${keyName(DEFAULT_BINDINGS.riderBack)}`;
   constructor(private readonly hud: HTMLElement) {}
+  setBindings(bindings: Bindings) {
+    this.bodyKeys = `${keyName(bindings.riderForward)} / ${keyName(bindings.riderBack)}`;
+  }
   private node() {
     if (!this.element) {
       this.element = document.createElement('div');
@@ -144,8 +149,8 @@ export class OffroadHud {
       metric = next ? `${Math.round(distance)} M` : '';
     let note =
       options.assist === 'raw'
-        ? 'Throttle and brake control pitch in flight.'
-        : 'Assisted pitch · line up with the landing slope.';
+        ? `${this.bodyKeys}: shift weight · throttle and brake control pitch.`
+        : `${this.bodyKeys}: shift weight · line up with the landing slope.`;
     let tone = 'approach',
       progress = next ? Math.round(clamp(1 - distance / 100, 0, 1) * 100) : 0;
     if (next && distance <= 0.01) {
@@ -212,7 +217,7 @@ export class OffroadHud {
       note =
         yaw > 0.18
           ? 'Release steering to square the wheels · throttle and brake set pitch.'
-          : 'Steer to whip · release to square · throttle lifts the nose, brake lowers it.';
+          : `Steer to whip · ${this.bodyKeys}: shift weight · throttle lifts, brake lowers.`;
       if (playerControlled && yaw <= 0.18 && motocrossBrakeHeldInFlight(frame)) {
         title = 'RELEASE THE BRAKE';
         note = 'Let the wheels roll before touchdown. A held brake drags the landing.';

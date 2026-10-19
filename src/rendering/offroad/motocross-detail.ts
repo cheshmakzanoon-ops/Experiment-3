@@ -4,6 +4,212 @@ import { TessellateModifier } from 'three/addons/modifiers/TessellateModifier.js
 import { canvasTexture } from '../geometry.ts';
 import type { RiderColours, RiderDetail } from '../rider.ts';
 import { chainShaderHook, injectAfter, injectDeclarations } from '../studio/shader-hooks.ts';
+import { sampleProfile } from '../profile-sampling.ts';
+
+type FenderStation = readonly [z: number, y: number, halfWidth: number, crown: number];
+const FRONT_FENDER: readonly FenderStation[] = [
+  [-0.26, -0.086, 0.052, 0.008],
+  [-0.2, -0.064, 0.068, 0.019],
+  [-0.08, -0.05, 0.094, 0.027],
+  [0.06, -0.049, 0.101, 0.031],
+  [0.2, -0.073, 0.098, 0.028],
+  [0.34, -0.116, 0.086, 0.019],
+  [0.45, -0.157, 0.067, 0.009],
+  [0.48, -0.161, 0.044, 0.005],
+];
+const REAR_FENDER: readonly FenderStation[] = [
+  [-1.08, 0.143, 0.059, 0.007],
+  [-1.025, 0.129, 0.088, 0.017],
+  [-0.91, 0.088, 0.102, 0.025],
+  [-0.76, 0.046, 0.109, 0.024],
+  [-0.68, 0.036, 0.105, 0.017],
+];
+
+/** Offset the inner skin along the sampled outside normal. A vertical or
+ * radial subtraction would thin the wall wherever a moulding bends. This
+ * temporary calculation runs only while constructing an LOD. */
+function offsetInnerSkin(
+  positions: number[],
+  indices: number[],
+  stride: number,
+  outsideIndexCount: number,
+  thickness: number,
+) {
+  const outer = new T.BufferGeometry();
+  outer.setAttribute('position', new T.Float32BufferAttribute(positions.slice(0, stride * 3), 3));
+  outer.setIndex(indices.slice(0, outsideIndexCount));
+  outer.computeVertexNormals();
+  const normal = outer.getAttribute('normal');
+  for (let i = 0; i < stride; i++) {
+    positions[(i + stride) * 3] = positions[i * 3] - normal.getX(i) * thickness;
+    positions[(i + stride) * 3 + 1] = positions[i * 3 + 1] - normal.getY(i) * thickness;
+    positions[(i + stride) * 3 + 2] = positions[i * 3 + 2] - normal.getZ(i) * thickness;
+  }
+  outer.dispose();
+}
+
+/** Closed injection-moulded shell, with a constant 3.5 mm wall instead of a
+ * solid oval loft. The centre crown, paired relief channels and returned lip
+ * describe large continuous surfaces that remain readable from a chase view.
+ * Both skins share the same parameterisation, so the underside is recessed
+ * by the actual wall thickness and never crosses the visible upper surface. */
+export function motocrossFender(front: boolean, detail: RiderDetail) {
+  const stations = front ? FRONT_FENDER : REAR_FENDER,
+    zs = stations.map((s) => s[0]),
+    ys = stations.map((s) => s[1]),
+    widths = stations.map((s) => s[2]),
+    crowns = stations.map((s) => s[3]),
+    rows = detail === 'high' ? (front ? 28 : 18) : detail === 'mid' ? (front ? 16 : 12) : 8,
+    columns = detail === 'high' ? 16 : detail === 'mid' ? 12 : 8,
+    stride = (rows + 1) * (columns + 1),
+    positions: number[] = [],
+    uvs: number[] = [],
+    indices: number[] = [];
+  for (const underside of [false, true])
+    for (let row = 0; row <= rows; row++) {
+      const t = row / rows,
+        z = T.MathUtils.lerp(zs[0], zs[zs.length - 1], t),
+        y = sampleProfile(zs, ys, z),
+        width = sampleProfile(zs, widths, z),
+        crown = sampleProfile(zs, crowns, z),
+        ends = Math.sin(t * Math.PI) ** 0.7;
+      for (let column = 0; column <= columns; column++) {
+        const u = (column / columns) * 2 - 1,
+          side = Math.abs(u),
+          ridge = 0.006 * Math.exp(-((u / 0.22) ** 2)),
+          channel = 0.007 * Math.exp(-(((side - 0.5) / 0.14) ** 2)),
+          lip = 0.007 * T.MathUtils.smoothstep(side, 0.77, 1),
+          height = crown * (1 - u * u) ** 1.15 + (ridge - channel - lip) * ends;
+        positions.push(u * width, y + height, z);
+        uvs.push(column / columns, t);
+        if (row < rows && column < columns) {
+          const a = (underside ? stride : 0) + row * (columns + 1) + column,
+            b = a + columns + 1;
+          if (underside) indices.push(a, a + 1, b, a + 1, b + 1, b);
+          else indices.push(a, b, a + 1, a + 1, b, b + 1);
+        }
+      }
+    }
+  offsetInnerSkin(positions, indices, stride, rows * columns * 6, 0.0035);
+  // Join the complete perimeter. Separate edge normals preserve a thin,
+  // deliberate return instead of smoothing the upper crown around the lip.
+  const rim = (a: number, b: number) => {
+    const base = positions.length / 3;
+    for (const index of [a, b, a + stride, b + stride]) {
+      positions.push(...positions.slice(index * 3, index * 3 + 3));
+      uvs.push(...uvs.slice(index * 2, index * 2 + 2));
+    }
+    indices.push(base, base + 1, base + 2, base + 1, base + 3, base + 2);
+  };
+  for (let column = 0; column < columns; column++) {
+    rim(column, column + 1);
+    rim(rows * (columns + 1) + column + 1, rows * (columns + 1) + column);
+  }
+  for (let row = 0; row < rows; row++) {
+    rim((row + 1) * (columns + 1), row * (columns + 1));
+    rim(row * (columns + 1) + columns, (row + 1) * (columns + 1) + columns);
+  }
+  const geometry = new T.BufferGeometry();
+  geometry.setAttribute('position', new T.Float32BufferAttribute(positions, 3));
+  geometry.setAttribute('uv', new T.Float32BufferAttribute(uvs, 2));
+  geometry.setIndex(indices);
+  geometry.computeVertexNormals();
+  geometry.computeBoundingBox();
+  geometry.computeBoundingSphere();
+  return geometry;
+}
+
+/** A thin C-section follows each sliding lower fork. Its open rear and
+ * scalloped upper edge leave the stanchion visible. The minimum inner radius
+ * exceeds the 30 mm outer tube even at full fork compression; no scaling or
+ * extra animation is needed because the shell uses the actual lower group. */
+export function motocrossForkGuard(detail: RiderDetail) {
+  const rows = detail === 'high' ? 10 : 6,
+    columns = detail === 'high' ? 20 : 12,
+    stride = (rows + 1) * (columns + 1),
+    positions: number[] = [],
+    uvs: number[] = [],
+    indices: number[] = [];
+  for (const inside of [false, true])
+    for (let row = 0; row <= rows; row++)
+      for (let column = 0; column <= columns; column++) {
+        const t = row / rows,
+          u = (column / columns) * 2 - 1,
+          angle = u * 2.06,
+          radius = 0.036 + 0.005 * Math.sin(t * Math.PI) ** 2,
+          bottom = 0.044 + 0.013 * Math.abs(Math.sin(angle)),
+          top = 0.376 - 0.031 * u * u;
+        positions.push(
+          Math.sin(angle) * radius,
+          T.MathUtils.lerp(bottom, top, t),
+          Math.cos(angle) * radius * (1.13 - 0.06 * t),
+        );
+        uvs.push(column / columns, t);
+        if (row < rows && column < columns) {
+          const a = (inside ? stride : 0) + row * (columns + 1) + column,
+            b = a + columns + 1;
+          if (inside) indices.push(a, b, a + 1, a + 1, b, b + 1);
+          else indices.push(a, a + 1, b, a + 1, b + 1, b);
+        }
+      }
+  offsetInnerSkin(positions, indices, stride, rows * columns * 6, 0.003);
+  const edge = (a: number, b: number) => indices.push(a, a + stride, b, b, a + stride, b + stride);
+  for (let column = 0; column < columns; column++) {
+    edge(column, column + 1);
+    edge(rows * (columns + 1) + column + 1, rows * (columns + 1) + column);
+  }
+  for (let row = 0; row < rows; row++) {
+    edge((row + 1) * (columns + 1), row * (columns + 1));
+    edge(row * (columns + 1) + columns, (row + 1) * (columns + 1) + columns);
+  }
+  const geometry = new T.BufferGeometry();
+  geometry.setAttribute('position', new T.Float32BufferAttribute(positions, 3));
+  geometry.setAttribute('uv', new T.Float32BufferAttribute(uvs, 2));
+  geometry.setIndex(indices);
+  geometry.computeVertexNormals();
+  geometry.computeBoundingBox();
+  geometry.computeBoundingSphere();
+  return geometry;
+}
+
+/** One continuous cast triple clamp surrounds both fork tubes and the stem.
+ * Open bores preserve the real fork interfaces in underside/onboard views. */
+export function motocrossTripleClamp(detail: RiderDetail, thickness: number, offset: number) {
+  const shape = new T.Shape();
+  shape.moveTo(-0.095, offset + 0.041);
+  shape.quadraticCurveTo(-0.066, offset + 0.041, -0.05, offset + 0.011);
+  shape.lineTo(0.05, offset + 0.011);
+  shape.quadraticCurveTo(0.066, offset + 0.041, 0.095, offset + 0.041);
+  shape.absarc(0.095, offset, 0.041, Math.PI / 2, -Math.PI / 2, true);
+  shape.quadraticCurveTo(0.066, offset - 0.041, 0.049, -0.035);
+  shape.lineTo(-0.049, -0.035);
+  shape.quadraticCurveTo(-0.066, offset - 0.041, -0.095, offset - 0.041);
+  shape.absarc(-0.095, offset, 0.041, -Math.PI / 2, -Math.PI * 1.5, true);
+  shape.closePath();
+  for (const [x, z, radius] of [
+    [-0.095, offset, 0.033],
+    [0.095, offset, 0.033],
+    [0, 0, 0.012],
+  ]) {
+    const hole = new T.Path();
+    hole.absarc(x, z, radius, 0, Math.PI * 2, true);
+    shape.holes.push(hole);
+  }
+  const geometry = new T.ExtrudeGeometry(shape, {
+    depth: thickness,
+    steps: 1,
+    bevelEnabled: true,
+    bevelSize: 0.001,
+    bevelThickness: 0.001,
+    bevelSegments: 1,
+    curveSegments: detail === 'high' ? 8 : 5,
+  });
+  geometry.translate(0, 0, -thickness / 2);
+  geometry.rotateX(Math.PI / 2);
+  geometry.computeBoundingBox();
+  geometry.computeBoundingSphere();
+  return geometry;
+}
 
 /** Mould texture and fine riding scuffs in metres. The same physical grain
  * survives the very different fender, number-board and shroud UV layouts.

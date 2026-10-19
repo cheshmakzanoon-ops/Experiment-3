@@ -75,7 +75,7 @@ import {
   validateChampionship,
   type Championship,
 } from './core/championship.ts';
-import { InputController } from './input/controller.ts';
+import { InputController, type TouchAction } from './input/controller.ts';
 import { InputPump } from './input/pump.ts';
 import { RacingAudio } from './audio/engine.ts';
 import {
@@ -413,9 +413,7 @@ export class GameApp {
     this.inputPump.start();
     element
       .querySelectorAll<HTMLElement>('[data-touch]')
-      .forEach((e) =>
-        this.input.bindTouch(e, e.dataset.touch as 'left' | 'right' | 'throttle' | 'brake'),
-      );
+      .forEach((e) => this.input.bindTouch(e, e.dataset.touch as TouchAction));
     window.addEventListener('resize', () => {
       this.performanceCapture.interrupt('Viewport changed');
       this.interruptReview('Viewport changed');
