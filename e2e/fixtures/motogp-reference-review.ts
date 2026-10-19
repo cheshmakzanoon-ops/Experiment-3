@@ -25,6 +25,9 @@ export function captureBikeSequence(
     windscreen?: 'production' | 'legacy-volume';
     /** Replayable front-lever input; other pose channels remain fixed. */
     frontBrake?: number;
+    /** Explicit production-model pose controls for contact/recovery review. */
+    pose?: Partial<Pick<BikePoseValues, 'chassisLean' | 'riderOffset' | 'tuck' | 'steer'>>;
+    recovery?: 0 | 1 | 2;
   }[] = [{ wet: false, time: 2 }],
 ) {
   const renderer = new T.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
@@ -61,8 +64,8 @@ export function captureBikeSequence(
     steer: 0,
     frontRotation: 0,
     rearRotation: 0,
-    chassisLean: view === 'corner' ? 0.88 : 0,
-    riderOffset: view === 'corner' ? 0.18 : 0,
+    chassisLean: view === 'corner' || view === 'rider-corner' ? 0.88 : 0,
+    riderOffset: view === 'corner' || view === 'rider-corner' ? 0.18 : 0,
     tuck: 0.75,
     brake: 0.05,
     rearBrake: 0,
@@ -75,7 +78,7 @@ export function captureBikeSequence(
   };
   bike.pose(pose);
   bike.root.position.y = def.bike!.cgHeight;
-  if (view === 'corner') {
+  if (view === 'corner' || view === 'rider-corner') {
     bike.root.rotation.z = -0.88;
     bike.root.position.y *= Math.cos(0.88);
   }
@@ -95,6 +98,7 @@ export function captureBikeSequence(
   if (view === 'side') camera.position.set(3.7, 1.35, 0.1);
   else if (view === 'front') camera.position.set(0.18, 1.1, 3.7);
   else if (view === 'rear') camera.position.set(-2.5, 1.8, -3.0);
+  else if (view === 'rider-corner') camera.position.set(2.8, 1.65, 3.35);
   else camera.position.set(-2.8, 1.65, 3.35);
   camera.lookAt(0, 0.68, 0);
   // Inspect the actual garment skin at a useful reference-photo distance.
@@ -109,6 +113,22 @@ export function captureBikeSequence(
     );
     camera.lookAt(0, view === 'rider-rear' ? 1.03 : 1, view === 'rider-rear' ? -0.15 : -0.08);
     camera.fov = 32;
+    camera.updateProjectionMatrix();
+  }
+  if (view === 'right-grip' || view === 'left-grip' || view === 'right-peg') {
+    const index = view === 'left-grip' ? 0 : 1,
+      peg = view === 'right-peg',
+      focus = (peg ? bike.rider.pegs[index] : bike.rider.grips[index]).clone();
+    bike.rider.root.localToWorld(focus);
+    camera.position.copy(focus).add(new T.Vector3(index === 0 ? 0.48 : -0.48, 0.3, -0.32));
+    camera.lookAt(focus.add(new T.Vector3(0, peg ? 0.04 : -0.04, -0.04)));
+    camera.fov = 36;
+    camera.updateProjectionMatrix();
+  }
+  if (view === 'rider-recovery') {
+    camera.position.set(-3.5, 1.7, 0.15);
+    camera.lookAt(0, 1.5, 0);
+    camera.fov = 42;
     camera.updateProjectionMatrix();
   }
   if (view === 'onboard') {
@@ -177,7 +197,11 @@ export function captureBikeSequence(
       };
     });
     return samples.map((sample) => {
-      bike.pose({ ...pose, brake: sample.frontBrake ?? pose.brake });
+      const samplePose = { ...pose, ...sample.pose, brake: sample.frontBrake ?? pose.brake };
+      bike.pose(samplePose);
+      bike.root.rotation.z = -samplePose.chassisLean;
+      bike.root.position.y = def.bike!.cgHeight * Math.cos(samplePose.chassisLean);
+      if (sample.recovery !== undefined) bike.rider.separated(sample.recovery, 0.6, sample.time);
       // Reproduce the previous GP volume setting on this SAME real curved
       // windscreen, display, camera and renderer. Production samples restore
       // the authored material value rather than prescribing the candidate.
@@ -213,6 +237,13 @@ export function captureBikeSequence(
         hash,
         cockpit: view === 'onboard' ? inspectBikeCockpit(bike.root, camera) : null,
         frontBrake: sample.frontBrake ?? pose.brake,
+        riderPose: {
+          lean: samplePose.chassisLean,
+          offset: samplePose.riderOffset,
+          tuck: samplePose.tuck,
+          steer: samplePose.steer,
+          recovery: sample.recovery ?? null,
+        },
         frontBrakeLever: (() => {
           const lever = bike.root.getObjectByName('GP front-brake lever pivot');
           return lever
@@ -232,6 +263,11 @@ export function captureBikeSequence(
         submittedTriangles: renderer.info.render.triangles,
         calls: renderer.info.render.calls,
         glError: renderer.getContext().getError(),
+        backend: (() => {
+          const context = renderer.getContext(),
+            extension = context.getExtension('WEBGL_debug_renderer_info');
+          return extension ? String(context.getParameter(extension.UNMASKED_RENDERER_WEBGL)) : null;
+        })(),
         bounds: new T.Box3().setFromObject(bike.root),
       };
       return result;

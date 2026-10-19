@@ -584,7 +584,7 @@ export class AIDriver {
     void race;
     return desired;
   }
-  private pitLine(track: Track, s: number) {
+  protected pitLine(track: Track, s: number) {
     const base = track.pitOffset(s),
       c = this.car,
       box = track.boxS(c.id),

@@ -9,6 +9,17 @@ import { mxAuthoredGeometry } from './offroad/authored-kit.ts';
 import { tagMudExposure } from './offroad/mud.ts';
 import { gpRacingBoot, installGpLeatherFinish } from './gp-rider-gear.ts';
 import {
+  GP_BOOT_ANKLE,
+  GP_BOOT_PEG,
+  GP_GLOVE_GRIP,
+  GP_GLOVE_WRIST,
+  GP_FOOTPEG_RADIUS,
+  gpAttachAtJoint,
+  gpBootFrame,
+  gpContactJoint,
+  gpGripFrame,
+} from './gp-rider-contact.ts';
+import {
   GP_AIRBAG_PROFILE,
   installGpSuitFinish,
   shapeGpSuitGeometry,
@@ -339,6 +350,8 @@ export class Rider {
    * grips (after steering) and the two foot pegs. Index 0 left (+X), 1 right. */
   readonly seat = new T.Vector3(0, 0.3, -0.24);
   readonly grips = [new T.Vector3(0.3, 0.24, 0.35), new T.Vector3(-0.3, 0.24, 0.35)];
+  /** Cylinder axes in this same sprung frame; supplied from the real GP bars. */
+  readonly gripAxes = [new T.Vector3(1, 0, 0), new T.Vector3(1, 0, 0)];
   readonly pegs = [new T.Vector3(0.17, -0.2, -0.3), new T.Vector3(-0.17, -0.2, -0.3)];
   private readonly torso = new T.Group();
   private readonly head = new T.Group();
@@ -349,6 +362,7 @@ export class Rider {
   private readonly shins: Bone[];
   private readonly hands: T.Group[] = [];
   private readonly feet: T.Group[] = [];
+  private readonly bootCuffs: (T.Object3D | undefined)[] = [];
   private readonly exteriorForearms = [0, 1].map(() => ({
     position: new T.Vector3(),
     quaternion: new T.Quaternion(),
@@ -806,12 +820,13 @@ export class Rider {
     this.shins = [0, 1].map(() => limb('shin', 0.05, 0.037, RIDER.shin, panel));
     for (let i = 0; i < 2; i++) {
       const side = i === 0 ? 1 : -1;
-      if (mx) {
+      if (mx || gp) {
         const label = i === 0 ? 'left' : 'right';
-        this.upperArms[i].group.name = `Motocross ${label} upper arm`;
-        this.forearms[i].group.name = `Motocross ${label} forearm`;
-        this.thighs[i].group.name = `Motocross ${label} thigh`;
-        this.shins[i].group.name = `Motocross ${label} shin`;
+        const family = mx ? 'Motocross' : 'GP';
+        this.upperArms[i].group.name = `${family} ${label} upper arm`;
+        this.forearms[i].group.name = `${family} ${label} forearm`;
+        this.thighs[i].group.name = `${family} ${label} thigh`;
+        this.shins[i].group.name = `${family} ${label} shin`;
       }
       if (detail !== 'far' && !mx) {
         const foldSides = detail === 'high' ? 12 : 8;
@@ -967,6 +982,7 @@ export class Rider {
       }
       const hand = new T.Group();
       if (mx) hand.name = `Motocross ${i === 0 ? 'left' : 'right'} hand`;
+      else if (gp) hand.name = `GP ${i === 0 ? 'left' : 'right'} hand`;
       part(
         hand,
         new RoundedBoxGeometry(0.069, 0.047, 0.079, detail === 'far' ? 1 : 3, 0.017),
@@ -1008,20 +1024,16 @@ export class Rider {
       this.hands.push(hand);
       const foot = new T.Group();
       if (mx) foot.name = `Motocross ${i === 0 ? 'left' : 'right'} boot`;
+      else if (gp) foot.name = `GP ${i === 0 ? 'left' : 'right'} foot`;
       if (mx) addMotocrossBoot(foot, detail, side, mxBoot!, flex, armour);
       else
         foot.add(
-          gpRacingBoot(detail, side, {
-            leather: glove,
-            panel,
-            sole: flex,
-            armour,
-            slider,
-          }),
+          gpRacingBoot(detail, side, { leather: glove, panel, sole: flex, armour, slider }, gp),
         );
       this.shins[i].group.add(foot);
       foot.position.set(0, RIDER.shin + 0.02, 0);
       this.feet.push(foot);
+      this.bootCuffs.push(foot.getObjectByName('GP ankle-hinged boot cuff'));
     }
     for (const group of [
       this.torso,
@@ -1101,6 +1113,7 @@ export class Rider {
     pelvis.y -= tuck * 0.03;
     // Off-road: up on the pegs (knees flexed) and fore/aft over the bike.
     const mx = this.kit === 'motocross';
+    const gpContact = this.gp && !mx;
     // The original 30 cm rise exceeded a dirt rider's leg reach. Keep the
     // ankles planted on their pegs with flex left in the knees for a landing.
     pelvis.y += standing * (mx ? 0.17 : 0.3);
@@ -1138,7 +1151,31 @@ export class Rider {
       pole
         .copy(shoulder)
         .add(target.set(side * 0.35, mx ? -0.08 + standing * 0.15 : -0.3, mx ? 0.08 : -0.1));
-      twoBone(this.upperArms[i], this.forearms[i], shoulder, this.grips[i], pole, joint);
+      if (gpContact) {
+        gpGripFrame(this.gripAxes[i], this.q);
+        gpContactJoint(this.grips[i], this.q, GP_GLOVE_GRIP, GP_GLOVE_WRIST, target);
+        // A braking rider can protract the outside shoulder within the suit.
+        // Preserve a little elbow flex at full hang-off rather than letting
+        // the fixed-length IK silently shorten its wrist target off the grip.
+        const reach = shoulder.distanceTo(target),
+          relaxedReach = RIDER.upperArm + RIDER.forearm - 0.01;
+        if (reach > relaxedReach) {
+          joint.subVectors(target, shoulder).multiplyScalar((reach - relaxedReach) / reach);
+          shoulder.add(joint);
+          pole.add(joint);
+        }
+        twoBone(this.upperArms[i], this.forearms[i], shoulder, target, pole, joint);
+        gpAttachAtJoint(
+          this.hands[i],
+          this.forearms[i].group.quaternion,
+          RIDER.forearm,
+          this.q,
+          GP_GLOVE_WRIST,
+        );
+      } else {
+        twoBone(this.upperArms[i], this.forearms[i], shoulder, this.grips[i], pole, joint);
+        this.hands[i].rotation.set(0.2, 0, 0);
+      }
       hip
         .set(side * RIDER.hipWidth, 0, 0)
         .applyQuaternion(this.torso.quaternion)
@@ -1148,15 +1185,33 @@ export class Rider {
       pole.copy(hip).add(target.set(side * out, 0.15, 0.55));
       // A dabbed foot leaves its peg toward the ground ahead of it.
       const down = side * dab > 0 ? Math.abs(dab) : 0;
-      if (down > 0) {
+      if (gpContact && down === 0) {
+        gpBootFrame(this.q);
+        gpContactJoint(this.pegs[i], this.q, GP_BOOT_PEG, GP_BOOT_ANKLE, target);
+        target.y += GP_FOOTPEG_RADIUS;
+        twoBone(this.thighs[i], this.shins[i], hip, target, pole, joint);
+        gpAttachAtJoint(
+          this.feet[i],
+          this.shins[i].group.quaternion,
+          RIDER.shin,
+          this.q,
+          GP_BOOT_ANKLE,
+        );
+        // Inverse ankle rotation keeps the existing cuff on the shin while
+        // its forefoot rests on the rearset. No skinning or vertex uploads.
+        this.bootCuffs[i]?.quaternion.copy(this.feet[i].quaternion).invert();
+      } else if (down > 0) {
         // Motocross: project the boot ahead of the peg, heel close to the
         // surface. The former 86 cm drop put the target far below the track.
         target.set(side * (mx ? 0.2 : 0.34), mx ? -0.015 : -0.86, 0.32).add(this.pegs[i]);
         target.lerpVectors(this.pegs[i], target, down);
         twoBone(this.thighs[i], this.shins[i], hip, target, pole, joint);
       } else twoBone(this.thighs[i], this.shins[i], hip, this.pegs[i], pole, joint);
-      this.feet[i].rotation.set(mx ? -0.07 - down * 0.15 : -0.35, 0, 0);
-      this.hands[i].rotation.set(0.2, 0, 0);
+      if (!gpContact || down > 0) {
+        this.feet[i].position.set(0, RIDER.shin + 0.02, 0);
+        this.feet[i].rotation.set(mx ? -0.07 - down * 0.15 : -0.35, 0, 0);
+        this.bootCuffs[i]?.quaternion.identity();
+      }
     }
     if (this.kit === 'motocross') {
       this.captureExteriorArms();
@@ -1196,6 +1251,23 @@ export class Rider {
       pole.copy(a).add(b.set(side * 0.1, 0, 0.6).applyQuaternion(this.torso.quaternion));
       twoBone(this.thighs[i], this.shins[i], a, c, pole, joint);
       this.feet[i].rotation.set(-1.4, 0, 0);
+      if (this.gp && this.kit !== 'motocross') {
+        // A held recovery frame must not inherit the last riding wrist/ankle
+        // transforms, including after a replay jumps directly out of a turn.
+        this.hands[i].position.set(0, RIDER.forearm + 0.02, 0);
+        this.hands[i].rotation.set(0.2, 0, 0);
+        // Keep the existing sliding/jogging leg targets, with the forefoot
+        // facing the rider's direction and the calf sleeve following its shin.
+        gpBootFrame(this.q).premultiply(this.torso.quaternion);
+        gpAttachAtJoint(
+          this.feet[i],
+          this.shins[i].group.quaternion,
+          RIDER.shin,
+          this.q,
+          GP_BOOT_ANKLE,
+        );
+        this.bootCuffs[i]?.quaternion.copy(this.feet[i].quaternion).invert();
+      }
     }
     if (this.kit === 'motocross') this.captureExteriorArms();
   }

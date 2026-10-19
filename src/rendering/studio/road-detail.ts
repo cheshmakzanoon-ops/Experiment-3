@@ -1,6 +1,7 @@
 import type * as T from 'three';
 import { clamp, mod, smooth } from '../../core/math.ts';
 import { racingLineFor } from '../../simulation/racing-line.ts';
+import { gpGridSlot } from '../../simulation/gp-grid.ts';
 import type { Track } from '../../simulation/track.ts';
 import { ROAD_REPAIR_GLSL, ROAD_SEALANT } from '../road-macro.ts';
 import { tyreMarkZones } from '../tyre-marks.ts';
@@ -113,6 +114,24 @@ export function surfaceGridFor(track: Track): SurfaceGrid {
     rows: START_GRID.rows,
     lateral: track.pit.gridColumn,
   };
+}
+
+export interface GpLaunchGrid {
+  enabled: T.IUniform<number>;
+  /** Packed vec2: rear contact station relative to finish, lateral metres. */
+  slots: Float32Array;
+}
+
+/** Static construction data shared with actual GP starts and grid paint.
+ * Both GP prototypes have the same 0.75 m CG-to-rear-axle distance. */
+export function gpLaunchGridFor(track: Track, enabled: T.IUniform<number>): GpLaunchGrid {
+  const slots = new Float32Array(START_GRID.rows * 2 * 2);
+  for (let i = 0; i < START_GRID.rows * 2; i++) {
+    const slot = gpGridSlot(track, i);
+    slots[i * 2] = slot.s - track.length - 0.75;
+    slots[i * 2 + 1] = slot.lateral;
+  }
+  return { enabled, slots };
 }
 
 /** Launch rubber: every start spins the rear tyres up from each grid slot,
@@ -347,6 +366,7 @@ export function installRoadDetail(
   motorcycle: T.IUniform<number> = { value: 0 },
   grid: SurfaceGrid = START_GRID,
   grandPrix: T.IUniform<number> = { value: 0 },
+  gpGrid?: GpLaunchGrid,
 ) {
   if (!Number.isFinite(lapLength) || lapLength <= 0) throw new Error('Invalid road lap length');
   const R = ROAD_DETAIL,
@@ -358,47 +378,66 @@ export function installRoadDetail(
   const alongCells = Math.max(1, Math.round(lapLength / 18)),
     streakCells = Math.max(1, Math.round(lapLength / R.streakLength)),
     gpCells = Math.max(1, Math.round(lapLength / GP.variationLength));
-  return chainShaderHook(material, 'road-detail-v7', (shader) => {
-    shader.uniforms.apexMotorcycleSurface = motorcycle;
-    shader.uniforms.apexGpSurface = grandPrix;
-    for (const needed of [
-      'vec4 roadState',
-      'varying vec2 vRoadMetres',
-      'float apexRoadNoise',
-      'varying vec2 vAsphaltWorld',
-    ])
-      if (!shader.fragmentShader.includes(needed))
-        throw new Error(`Road detail needs the wet road and asphalt detail (${needed})`);
-    injectAfter(
-      shader,
-      'common',
-      'attribute vec2 apexLine; attribute float apexBikeBrake; attribute float edgeMetres; varying vec2 vApexLine; varying float vApexBikeBrake; varying float vEdgeMetres;',
-      'vertex',
-    );
-    injectAfter(
-      shader,
-      'begin_vertex',
-      'vApexLine = apexLine; vApexBikeBrake = apexBikeBrake; vEdgeMetres = edgeMetres;',
-    );
-    // Below every pars chunk and the wet road's common block, whose macro
-    // hash and noise these functions call (GLSL needs them declared first).
-    injectAfter(
-      shader,
-      'clipping_planes_pars_fragment',
-      ROAD_COMMON + ROAD_REPAIR_GLSL,
-      'fragment',
-    );
-    injectDeclarations(
-      shader,
-      'map_fragment',
-      `float apexLineMask = 0.0, apexSealant = 0.0, apexRepair = 0.0, apexDust = 0.0;`,
-    );
-    // After every map-stage term (finish, macro, water, marbles): the line is
-    // laid rubber on top of the surface, and needs the physics state sample.
-    injectBefore(
-      shader,
-      'color_fragment',
-      `{
+  const gpSlots = gpGrid ? gpGrid.slots.length / 2 : 0;
+  if (gpGrid && (gpSlots !== START_GRID.rows * 2 || !gpGrid.slots.every(Number.isFinite)))
+    throw new Error('Invalid GP launch slots');
+  const gpLaunchBack = gpGrid
+    ? Math.max(...Array.from({ length: gpSlots }, (_, i) => -gpGrid.slots[i * 2]))
+    : launchBack;
+  return chainShaderHook(
+    material,
+    gpGrid ? 'road-detail-gp-grid-v8' : 'road-detail-v7',
+    (shader) => {
+      shader.uniforms.apexMotorcycleSurface = motorcycle;
+      shader.uniforms.apexGpSurface = grandPrix;
+      if (gpGrid) {
+        shader.uniforms.apexGpGrid = gpGrid.enabled;
+        shader.uniforms.apexGpGridSlots = { value: gpGrid.slots };
+        injectDeclarations(
+          shader,
+          'common',
+          `uniform float apexGpGrid; uniform vec2 apexGpGridSlots[${gpSlots}];`,
+          'fragment',
+        );
+      }
+      for (const needed of [
+        'vec4 roadState',
+        'varying vec2 vRoadMetres',
+        'float apexRoadNoise',
+        'varying vec2 vAsphaltWorld',
+      ])
+        if (!shader.fragmentShader.includes(needed))
+          throw new Error(`Road detail needs the wet road and asphalt detail (${needed})`);
+      injectAfter(
+        shader,
+        'common',
+        'attribute vec2 apexLine; attribute float apexBikeBrake; attribute float edgeMetres; varying vec2 vApexLine; varying float vApexBikeBrake; varying float vEdgeMetres;',
+        'vertex',
+      );
+      injectAfter(
+        shader,
+        'begin_vertex',
+        'vApexLine = apexLine; vApexBikeBrake = apexBikeBrake; vEdgeMetres = edgeMetres;',
+      );
+      // Below every pars chunk and the wet road's common block, whose macro
+      // hash and noise these functions call (GLSL needs them declared first).
+      injectAfter(
+        shader,
+        'clipping_planes_pars_fragment',
+        ROAD_COMMON + ROAD_REPAIR_GLSL,
+        'fragment',
+      );
+      injectDeclarations(
+        shader,
+        'map_fragment',
+        `float apexLineMask = 0.0, apexSealant = 0.0, apexRepair = 0.0, apexDust = 0.0;`,
+      );
+      // After every map-stage term (finish, macro, water, marbles): the line is
+      // laid rubber on top of the surface, and needs the physics state sample.
+      injectBefore(
+        shader,
+        'color_fragment',
+        `{
         float apexX = vApexLine.x;
         float apexBrake = clamp(mix(vApexLine.y, vApexBikeBrake, apexMotorcycleSurface), 0.0, 1.0);
         float apexRubber = smoothstep(0.0, ${g(R.rubberFull)}, roadState.g);
@@ -461,15 +500,33 @@ export function installRoadDetail(
         // non-uniform control flow are undefined in GLSL. The wheel distance
         // below has unit lateral slope, so this is also its own footprint.
         float apexWheelAA = max(fwidth(vRoadMetres.x), 1e-4);
-        if (apexFromLine > ${g(-launchBack - 1)} && apexFromLine < ${g(L.decay * 4.5)}) {
-          float apexWheel = abs(abs(abs(vRoadMetres.x) - ${g(G.lateral)}) - mix(${g(L.halfTrack)}, 0.0, apexMotorcycleSurface));
-          float apexLaunchWidth = mix(${g(L.halfWidth)}, 0.09, apexMotorcycleSurface);
-          // Many starts from slightly different stances: a soft-shouldered track.
-          float apexTyre = 1.0 - smoothstep(apexLaunchWidth * 0.55 - apexWheelAA, apexLaunchWidth * 1.7 + apexWheelAA, apexWheel);
-          float apexLaunches = 0.0;
-          for (int k = 0; k < ${G.rows}; k++) {
-            float apexAlong = apexFromLine + ${g(G.front)} + mix(${g(L.axle)}, 0.75, apexMotorcycleSurface) + float(k) * ${g(G.spacing)};
-            if (apexAlong > 0.0) apexLaunches += 0.7 * exp(-apexAlong / ${g(L.decay)}) * smoothstep(0.0, 1.2, apexAlong);
+        if (apexFromLine > ${gpGrid ? `mix(${g(-launchBack - 1)}, ${g(-gpLaunchBack - 1)}, apexGpGrid)` : g(-launchBack - 1)} && apexFromLine < ${g(L.decay * 4.5)}) {
+          float apexWheel, apexTyre, apexLaunches = 0.0;
+          ${
+            gpGrid
+              ? `if (apexGpGrid > 0.5) {
+            // Every GP slot starts one rear contact path. Longitudinal stagger,
+            // column and width clamping match the complete session's grid.
+            apexWheel = 1e6;
+            apexTyre = 1.0;
+            for (int k = 0; k < ${gpSlots}; k++) {
+              float gpAlong = apexFromLine - apexGpGridSlots[k].x;
+              float gpWheel = abs(vRoadMetres.x - apexGpGridSlots[k].y);
+              apexWheel = min(apexWheel, gpWheel);
+              float gpContact = 1.0 - smoothstep(0.0495 - apexWheelAA, 0.153 + apexWheelAA, gpWheel);
+              if (gpAlong > 0.0) apexLaunches += gpContact * 0.7 * exp(-gpAlong / ${g(L.decay)}) * smoothstep(0.0, 1.2, gpAlong);
+            }
+          } else`
+              : ''
+          } {
+            apexWheel = abs(abs(abs(vRoadMetres.x) - ${g(G.lateral)}) - mix(${g(L.halfTrack)}, 0.0, apexMotorcycleSurface));
+            float apexLaunchWidth = mix(${g(L.halfWidth)}, 0.09, apexMotorcycleSurface);
+            // Retain the original car and road-bike paths in mixed fields.
+            apexTyre = 1.0 - smoothstep(apexLaunchWidth * 0.55 - apexWheelAA, apexLaunchWidth * 1.7 + apexWheelAA, apexWheel);
+            for (int k = 0; k < ${G.rows}; k++) {
+              float apexAlong = apexFromLine + ${g(G.front)} + mix(${g(L.axle)}, 0.75, apexMotorcycleSurface) + float(k) * ${g(G.spacing)};
+              if (apexAlong > 0.0) apexLaunches += 0.7 * exp(-apexAlong / ${g(L.decay)}) * smoothstep(0.0, 1.2, apexAlong);
+            }
           }
           // Tread streaks inside each track, converging before they alias.
           float apexTread = mix(0.5, apexRoadNoise(vec2(apexWheel * 38.0, apexFromLine * 0.12)),
@@ -493,25 +550,26 @@ export function installRoadDetail(
         apexSealant = max(apexRoadSealant(vAsphaltWorld), apexRepairState.z);
         diffuseColor.rgb = mix(diffuseColor.rgb, apexSealantColour, apexSealant * 0.85);
       }`,
-    );
-    // Roughness before the water film takes over (the wet mix follows).
-    injectAfter(
-      shader,
-      'roughnessmap_fragment',
-      `roughnessFactor -= ${g(R.lineRoughness)} * apexLineMask;
+      );
+      // Roughness before the water film takes over (the wet mix follows).
+      injectAfter(
+        shader,
+        'roughnessmap_fragment',
+        `roughnessFactor -= ${g(R.lineRoughness)} * apexLineMask;
       roughnessFactor -= 0.05 * apexRepair;
       roughnessFactor += 0.05 * apexDust;
       roughnessFactor = mix(roughnessFactor, ${g(ROAD_SEALANT.roughness)}, apexSealant);`,
-    );
-    injectBefore(
-      shader,
-      'normal_fragment_maps',
-      `#ifdef USE_NORMALMAP_TANGENTSPACE
+      );
+      injectBefore(
+        shader,
+        'normal_fragment_maps',
+        `#ifdef USE_NORMALMAP_TANGENTSPACE
         // Never below zero: sealant across a striation peak would flip the chips.
         float apexRelief = max(0.0, 1.0 - (1.0 - ${g(R.lineRelief)}) * apexLineMask - 0.8 * apexSealant);
         tbn[0] *= apexRelief;
         tbn[1] *= apexRelief;
       #endif`,
-    );
-  });
+      );
+    },
+  );
 }

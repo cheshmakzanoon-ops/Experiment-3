@@ -3,6 +3,7 @@ import { K, SKID_BASE } from './protocol.ts';
 import { clamp } from '../core/math.ts';
 import type { AIDriver } from './ai.ts';
 import { BikeVehicle, writeBikeBlock } from './bike-vehicle.ts';
+import { gpGridForVehicles, gpGridSlot } from './gp-grid.ts';
 import { createEntrantDriver } from './offroad/ai.ts';
 import { OffroadSession, createEntrant, writeOffroadBlock } from './offroad/session.ts';
 import { wakeFields } from './aero.ts';
@@ -73,7 +74,8 @@ export class Simulation {
     );
     const count = this.options.opponents + 1,
       grid = this.options.grid,
-      length = this.track.length;
+      length = this.track.length,
+      grandPrixGrid = gpGridForVehicles(this.options.vehicles);
     // Qualifying releases the field spread around the lap, so every car has an
     // out-lap and clear track; a race uses the staggered grid in `grid` order.
     const spacing = Math.min(420, (length - 400) / count);
@@ -90,7 +92,10 @@ export class Simulation {
       const paddock = this.track.pit;
       if (this.options.mode === 'qualifying')
         c.place(this.track, length - paddock.gridStart - (slot + 1) * spacing, 0);
-      else
+      else if (grandPrixGrid) {
+        const start = gpGridSlot(this.track, slot);
+        c.place(this.track, start.s, start.lateral);
+      } else
         c.place(
           this.track,
           length - paddock.gridStart - Math.floor(slot / 2) * paddock.gridRow,

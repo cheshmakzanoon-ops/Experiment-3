@@ -70,6 +70,10 @@ export interface BikeParameters {
    * braking. The GP adapter blends torque through a small coast/power overlap;
    * other machines retain their original closed-throttle threshold (0.02). */
   engineBrakeReleaseThrottle?: number;
+  /** Combined-brake assistance may proportion the front lever across both
+   * tyres, but the rear pedal never asks for front pressure. Enabled by the
+   * GP adapter; other motorcycles retain their existing linked controls. */
+  independentRearBrake?: boolean;
 }
 export const BIKE: BikeParameters = Object.freeze({
   mass: 157 + 72,
@@ -262,7 +266,11 @@ export class Bike {
     let front = clamp(input.frontBrake, 0, 1),
       rear = clamp(input.rearBrake, 0, 1);
     if (a.combinedBrakes) {
-      const total = Math.max(front, rear);
+      // On a GP machine the rear pedal trims the rear tyre alone. Taking
+      // max(front, rear) here made that pedal pull the front brake too, so
+      // a small rear correction could unexpectedly load the fork. Preserve
+      // Sport's existing front-lever proportioning and its ABS force budget.
+      const total = p.independentRearBrake ? front : Math.max(front, rear);
       front = total * 0.78;
       rear = Math.max(rear, total * 0.3);
     }

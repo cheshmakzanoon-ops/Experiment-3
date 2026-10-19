@@ -69,6 +69,33 @@ describe('GP riding cues use actual road and recorded powertrain data', () => {
     expect(readout.distance).toBe('50 M TO APEX');
   });
 
+  it('distinguishes rear-pedal control from front-lever trail braking and restores it on replay', () => {
+    const cues = new GPRidingCues(),
+      corner = track.circuit.corners[0],
+      rear = riding(corner.s - 60);
+    rear[b + B.LEAN] = 0.35;
+    rear[b + B.REAR_BRAKE] = 0.45;
+    const held = cues.read(rear, track),
+      saved = rear.slice();
+    expect(held).toMatchObject({
+      action: 'REAR BRAKE',
+      detail: 'Light pedal · keep steering smooth',
+      tone: 'brake',
+      tow: 0,
+    });
+    expect(held?.corner).toContain(corner.name);
+    const combined = rear.slice();
+    combined[o + F.BRAKE] = 0.45;
+    expect(cues.read(combined, track)?.action).toBe('TRAIL BRAKING');
+    expect(cues.read(rear, track)).toEqual(held);
+    expect(rear).toEqual(saved);
+    const straight = riding(0, 60, 0.8);
+    straight[b + B.REAR_BRAKE] = 0.45;
+    expect(cues.read(straight, track)).toMatchObject({ action: 'REAR BRAKE', tow: 0 });
+    straight[o + F.LOCAL_FLAG] = FLAG.YELLOW;
+    expect(cues.read(straight, track)?.action).toBe('CAUTION');
+  });
+
   it('puts caution ahead of passing advice and suppresses racing advice in non-riding states', () => {
     const cues = new GPRidingCues(),
       frame = riding(0, 60, 0.8);

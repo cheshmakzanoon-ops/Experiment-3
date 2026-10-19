@@ -98,6 +98,7 @@ import { SKY_CLOUDS, SkyClouds } from './studio/sky-clouds.ts';
 import { EngineeringView } from './engineering-view.ts';
 import type { EngineeringSample } from '../workers/diagnostics.ts';
 import * as T from 'three';
+import { gpGridForFrame } from '../simulation/gp-grid.ts';
 import type { FrameMetrics } from '../core/performance.ts';
 import type { BuildProgress } from './build-queue.ts';
 import { TracksideDirector } from './trackside.ts';
@@ -1168,6 +1169,7 @@ export class RacingRenderer {
         followedDefinition.classId === 'motocross' &&
         !!followedDefinition.bike?.offroad;
     this.circuit.setMotorcyclePresentation(bikeFollow, followedDefinition.classId === 'gp-bike');
+    this.circuit.setGrandPrixGrid(gpGridForFrame(presented));
     const bikeView =
       bikeFollow && !motocrossFollow
         ? motorcycleChase(
@@ -2337,6 +2339,7 @@ export class RacingRenderer {
       vegetationTrees: this.circuit.vegetationGroup.userData.treeCount,
       photoVegetation: this.circuit.photoPlanting?.diagnostics() ?? null,
       infrastructureDetail: this.circuit.infrastructureDiagnostics(),
+      startingGrid: this.circuit.startingGridDiagnostics(),
       trackInfrastructure: {
         drains: this.circuit.trackInfrastructure.drains.length,
         marshalPosts: this.circuit.trackInfrastructure.marshalPosts.length,

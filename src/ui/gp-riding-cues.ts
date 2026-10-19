@@ -70,8 +70,10 @@ export class GPRidingCues {
       speed = frame[o + F.SPEED],
       lateral = frame[o + F.LATERAL],
       lean = Math.abs(frame[b + B.LEAN]),
-      brake = frame[o + F.BRAKE];
-    if (![station, speed, lateral, lean, brake].every(Number.isFinite) || speed < 4) return null;
+      brake = frame[o + F.BRAKE],
+      rearBrake = frame[b + B.REAR_BRAKE];
+    if (![station, speed, lateral, lean, brake, rearBrake].every(Number.isFinite) || speed < 4)
+      return null;
     track.at(station, this.road);
     const forward = frame[o + F.VX] * this.road.tx + frame[o + F.VZ] * this.road.tz;
     if (!Number.isFinite(forward)) return null;
@@ -123,13 +125,23 @@ export class GPRidingCues {
         cue.detail = 'Keep the throttle smooth';
         cue.tone = 'flow';
       }
-    } else if (cue.tow > 0.08 && brake < 0.12 && lean < 0.35) {
+    } else if (cue.tow > 0.08 && brake < 0.12 && rearBrake < 0.12 && lean < 0.35) {
       cue.action = 'SLIPSTREAM';
       cue.detail =
         frame[b + B.TUCK] < 0.65
           ? 'Hold a steady line · build the run'
           : 'Tow active · plan your pass';
       cue.tone = 'flow';
+    }
+    // The independent GP pedal is a different technique from front-lever
+    // trail braking. Read the actual pedal channel, including during replay;
+    // do not label rear-only braking as a front-brake action or a passing run.
+    if (rearBrake > 0.12 && brake <= 0.12) {
+      cue.action = 'REAR BRAKE';
+      cue.detail =
+        lean > 0.25 ? 'Light pedal · keep steering smooth' : 'Use front brake for a strong stop';
+      cue.tone = 'brake';
+      cue.tow = 0;
     }
     if (control) {
       cue.action = control.action;

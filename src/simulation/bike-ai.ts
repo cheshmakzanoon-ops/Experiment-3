@@ -17,6 +17,12 @@ import type { Vehicle } from './vehicle.ts';
 /** Bounded GP preview work: at most 1,524 m at the shared 12 m spacing. */
 export const GP_APPROACH_SAMPLES = 128;
 
+/** A departing GP rider merges from its stopped bay over distance. Cubic
+ * easing has peak slope 1.5 * displacement / length, so these bounds leave
+ * the low-speed balance controller time to straighten before the fast lane.
+ * These are planner limits, not measured motorcycle coefficients. */
+export const GP_PIT_DEPARTURE = Object.freeze({ minimumDistance: 20, maxSlope: 0.2 });
+
 /** Bike rider AI (WP35). The shared race-craft layers (strategy, traffic,
  * racing line, pit approach, flags, capability-envelope speed targets) are
  * the AIDriver's; the bike's own `VehicleDefinition.ai` envelope makes those
@@ -31,6 +37,9 @@ export class BikeAIDriver extends AIDriver {
   private readonly ahead = trackPoint();
   private pitCorridor = false;
   private passingScale = 1;
+  private pitDeparture = false;
+  private pitDepartureS = 0;
+  private pitDepartureLateral = 0;
   private readonly approachCurvatures = new Float64Array(GP_APPROACH_SAMPLES);
   private readonly approachCorners = new Float64Array(GP_APPROACH_SAMPLES);
   protected override readonly reverseRecovery = false;
@@ -45,6 +54,15 @@ export class BikeAIDriver extends AIDriver {
     const c = this.bike,
       d = c.dynamics,
       command = c.input;
+    if (c.definition.id === 'gpr1' || c.definition.id === 'gpr2') {
+      // Keep the actual settled position, including a legal stop before the
+      // box centre. Missing the box never arms a service-bay departure.
+      if (c.inPit && c.pitPhase >= 2 && c.pitPhase <= 5 && c.riding) {
+        this.pitDeparture = true;
+        this.pitDepartureS = c.s;
+        this.pitDepartureLateral = c.lateral;
+      } else if (!c.inPit || c.pitPhase !== 6 || !c.riding) this.pitDeparture = false;
+    }
     if (!c.riding) {
       command.throttle = 0;
       command.brake = 0;
@@ -80,6 +98,21 @@ export class BikeAIDriver extends AIDriver {
     command.clutch = 0;
     command.steer = this.steerIntent(track, command.steer);
     c.aiControlled();
+  }
+  protected override pitLine(track: Track, s: number) {
+    const lane = super.pitLine(track, s);
+    if (!this.pitDeparture || !this.bike.inPit || this.bike.pitPhase !== 6) return lane;
+    const displacement = this.pitDepartureLateral - super.pitLine(track, this.pitDepartureS);
+    const length = Math.max(
+      GP_PIT_DEPARTURE.minimumDistance,
+      (1.5 * Math.abs(displacement)) / GP_PIT_DEPARTURE.maxSlope,
+    );
+    const distance =
+      mod(s - this.pitDepartureS + track.length / 2, track.length) - track.length / 2;
+    const progress = clamp(distance / length, 0, 1);
+    // The same curve supplies pursuit, queue clearance, and the recorded
+    // AI target. It does not move the bike or override a traffic speed cap.
+    return lane + displacement * (1 - progress * progress * (3 - 2 * progress));
   }
   /** Path tracking for a leaning vehicle (WP35): a car's pure pursuit cuts
    * corners and over-corrects when the lean must change before the path can.

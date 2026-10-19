@@ -42,6 +42,7 @@ import { WetRoadReflection, reflectInWetRoad } from './wet-reflection.ts';
 import { buildGarageBay, paddockMaterials } from './paddock-detail.ts';
 import { buildVegetation } from './landscape.ts';
 import { TyreMarkPresentation } from './tyre-marks.ts';
+import { GridPaintPresentation } from './grid-paint.ts';
 import {
   buildTrackInfrastructure,
   trackInfrastructurePlan as makeTrackInfrastructurePlan,
@@ -61,7 +62,12 @@ import * as T from 'three';
 import { BuildQueue } from './build-queue.ts';
 import { sphereDetail, stripDetail, trunkDetail, type ProbeDetail } from './probe-detail.ts';
 import { installWetRoad } from './materials.ts';
-import { apexLineAt, installRoadDetail, surfaceGridFor } from './studio/road-detail.ts';
+import {
+  apexLineAt,
+  gpLaunchGridFor,
+  installRoadDetail,
+  surfaceGridFor,
+} from './studio/road-detail.ts';
 import { installWetDetail } from './studio/wet-detail.ts';
 import { kerbHeight } from '../simulation/contact.ts';
 import { Track, CELL_ROWS, CELL_COLS, trackPoint } from '../simulation/track.ts';
@@ -138,6 +144,8 @@ export class CircuitScene {
   private readonly motorcycleSurface = { value: 0 };
   private readonly gpSurface = { value: 0 };
   private readonly tyreRubber: TyreMarkPresentation;
+  private gridPaint?: GridPaintPresentation;
+  private readonly grandPrixGrid = { value: 0 };
   readonly stateBytes = new Uint8Array(CELL_ROWS * CELL_COLS * 4);
   readonly startLamps: T.MeshStandardMaterial[] = [];
   readonly trackInfrastructure: TrackInfrastructurePlan;
@@ -206,6 +214,7 @@ export class CircuitScene {
       this.motorcycleSurface,
       surfaceGridFor(track),
       this.gpSurface,
+      gpLaunchGridFor(track, this.grandPrixGrid),
     );
     // Sub-cell puddles and an emerging dry line (D22).
     installWetDetail(this.roadMaterial);
@@ -511,6 +520,7 @@ export class CircuitScene {
             this.tyreBlankets?.root,
             this.pitWallStation?.root,
             this.pitBuildingFrontage?.root,
+            this.gridPaint?.root,
             ...this.startFinish.roots,
             ...this.secondaryStands.roots,
           ].filter((o) => o !== undefined),
@@ -557,6 +567,15 @@ export class CircuitScene {
     this.gpSurface.value = enabled && grandPrix ? 1 : 0;
     this.surfaces.invalidateTransforms();
   }
+  /** Grid layout belongs to the complete session field, independently of the
+   * followed vehicle's road-material family. Remember selection before build. */
+  setGrandPrixGrid(enabled: boolean) {
+    this.grandPrixGrid.value = enabled ? 1 : 0;
+    if (this.gridPaint?.setGrandPrix(enabled)) this.props.invalidateTransforms();
+  }
+  startingGridDiagnostics() {
+    return this.gridPaint?.diagnostics() ?? null;
+  }
   /** Read-only identity of constructed groups, not planned sites or an art approval.
    * Groups survive static batching; no mesh traversal or GPU readback is needed. */
   infrastructureDiagnostics() {
@@ -586,6 +605,7 @@ export class CircuitScene {
     return {
       source: 'constructed-runtime-groups',
       tyreRubber: this.tyreRubber.diagnostics(),
+      gridPaint: this.gridPaint?.diagnostics() ?? null,
       quarry: this.quarry?.diagnostics() ?? null,
       startFinish: this.startFinish.diagnostics(),
       secondaryStands: this.secondaryStands.diagnostics(),
@@ -990,18 +1010,10 @@ export class CircuitScene {
       roughness: 0.55,
     });
     installCircuitFinish(paint, 'paint');
-    // The same slots as the simulation's grid and the road's launch rubber.
-    const grid = surfaceGridFor(this.track);
-    for (let i = 0; i < (isMotocrossVenue(this.track) ? 0 : grid.rows * 2); i++) {
-      const s = this.track.length - grid.front - Math.floor(i / 2) * grid.spacing,
-        l = i % 2 === 0 ? -grid.lateral : grid.lateral,
-        p = this.track.at(s, trackPoint()),
-        g = new T.Group();
-      g.position.copy(this.at(s, l, 0.012));
-      g.rotation.y = Math.atan2(p.tx, p.tz);
-      this.props.add(g);
-      for (const x of [-1.1, 1.1]) box(g, paint, x, 0, 0, 0.08, 0.01, 4);
-      box(g, paint, 0, 0, 2, 2.3, 0.01, 0.08);
+    if (!isMotocrossVenue(this.track)) {
+      this.gridPaint = new GridPaintPresentation(this.track, paint);
+      this.gridPaint.setGrandPrix(this.grandPrixGrid.value > 0);
+      this.gridPaint.build(this.props);
     }
     const finish = canvasTexture(128, 32, (c) => {
       for (let y = 0; y < 2; y++)

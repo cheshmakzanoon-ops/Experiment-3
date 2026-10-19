@@ -1,0 +1,272 @@
+{
+  "references": [
+    "REF_018",
+    "REF_065",
+    "REF_071"
+  ],
+  "sourceTests": {
+    "files": 7,
+    "testsPassed": 44,
+    "contactEnvelope": {
+      "fullBikePoses": 72,
+      "models": [
+        "gpr1",
+        "gpr2"
+      ],
+      "details": [
+        "high",
+        "mid",
+        "far"
+      ],
+      "lean": [
+        -1.05,
+        0,
+        1.05
+      ],
+      "tuck": [
+        0,
+        1
+      ],
+      "frontBrake": [
+        0,
+        1
+      ]
+    },
+    "durationSeconds": 21.33,
+    "report": "rider-test-results.json",
+    "recoveryInvariants": [
+      "Actual ankle on shin endpoint",
+      "Cuff hinge on ankle",
+      "Cuff axis aligned with shin",
+      "Toe forward and sole down in torso frame",
+      "Original torso and limb trajectories preserved at all three LODs",
+      "Exact held and riding/recovery rewind transforms",
+      "Stable mesh, geometry, material identity and triangles"
+    ]
+  },
+  "browserTests": [
+    {
+      "title": "gpr1 right-peg retains held, wet and rewound production-model contact poses",
+      "status": "passed",
+      "durationMs": 9269
+    },
+    {
+      "title": "gpr1 rider-corner retains held, wet and rewound production-model contact poses",
+      "status": "passed",
+      "durationMs": 9693
+    },
+    {
+      "title": "gpr2 right-grip retains held, wet and rewound production-model contact poses",
+      "status": "passed",
+      "durationMs": 5025
+    },
+    {
+      "title": "gpr2 right-peg retains held, wet and rewound production-model contact poses",
+      "status": "passed",
+      "durationMs": 2915
+    },
+    {
+      "title": "gpr2 rider-corner retains held, wet and rewound production-model contact poses",
+      "status": "passed",
+      "durationMs": 3731
+    },
+    {
+      "title": "gpr1 rider recovery restores the original wrist and ankle cuff pose after riding",
+      "status": "passed",
+      "durationMs": 3168
+    }
+  ],
+  "finalRecoveryBrowserTests": [
+    {
+      "title": "gpr1 rider recovery restores the original wrist and ankle cuff pose after riding",
+      "status": "passed",
+      "durationMs": 5104
+    }
+  ],
+  "sourceHashes": {
+    "src/rendering/gp-rider-contact.ts": "0a30229dd51fdf43a1b0a5cee8a1bc6f72f982d640fa4645fb76a6d9a9f7227c",
+    "src/rendering/gp-rider-gear.ts": "90ded9ad8362442d7357108bd84c50ed3f836180524886db9996359fc6914a18",
+    "src/rendering/rider.ts": "db903ce9a0569b744712dfe612aa49a64ddb90e24588230d6fc5383c98b6bea0",
+    "src/rendering/bike.ts": "34d3aafad5c2e70a7410b94d80f94254880924af20da9d5f21418a01399459de",
+    "tests/gp-rider-contact.test.ts": "320d03e1868fb097da5d3c64f0147e4001b91c2ad31d55bc13a22c6b36b5c4a1",
+    "tests/gp-rider-suit.test.ts": "1f3bcff005aee4bc7f5040287f6f6417f00b64025913cff87f265e45b0db7634",
+    "e2e/gp-rider-contact.spec.ts": "24288335861d837ac973c7c85bea2c7bae234eb041d34c66e68c03d2eb5aa3bb",
+    "e2e/fixtures/motogp-reference-review.ts": "9d32f5f00ca2ad337f118d557fb70de0cb83510ad3745b7c6d59677db3cbda4c"
+  },
+  "originalMonolithicTest": {
+    "status": "timedOut",
+    "deadlineMs": 300000,
+    "completedScene": "gpr1 right-grip",
+    "completedSceneAssertions": "passed before the next scene timed out"
+  },
+  "captureSequenceNote": "The six riding contact sequences were captured before the final recovery-only attachment correction. The riding code was unchanged. The complete affected 44-test source suite and recovery-only browser case were then rerun successfully on the final source hashes.",
+  "physicalHardwareValidated": false,
+  "visualReviewComplete": true,
+  "renderSummary": {
+    "gpr1-right-peg": {
+      "triangles": 109337,
+      "callsDryWet": [
+        61,
+        60
+      ],
+      "resources": {
+        "geometries": 118,
+        "textures": 15,
+        "programs": 32
+      },
+      "backend": "ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)",
+      "heldAndRewoundPixelsExact": true,
+      "glErrors": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sourceSnapshotsUnchanged": true
+    },
+    "gpr1-rider-corner": {
+      "triangles": 109337,
+      "callsDryWet": [
+        217,
+        217
+      ],
+      "resources": {
+        "geometries": 121,
+        "textures": 23,
+        "programs": 56
+      },
+      "backend": "ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)",
+      "heldAndRewoundPixelsExact": true,
+      "glErrors": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sourceSnapshotsUnchanged": true
+    },
+    "gpr2-right-grip": {
+      "triangles": 101636,
+      "callsDryWet": [
+        131,
+        123
+      ],
+      "resources": {
+        "geometries": 114,
+        "textures": 21,
+        "programs": 53
+      },
+      "backend": "ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)",
+      "heldAndRewoundPixelsExact": true,
+      "glErrors": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sourceSnapshotsUnchanged": true
+    },
+    "gpr2-right-peg": {
+      "triangles": 101636,
+      "callsDryWet": [
+        57,
+        56
+      ],
+      "resources": {
+        "geometries": 112,
+        "textures": 17,
+        "programs": 32
+      },
+      "backend": "ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)",
+      "heldAndRewoundPixelsExact": true,
+      "glErrors": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sourceSnapshotsUnchanged": true
+    },
+    "gpr2-rider-corner": {
+      "triangles": 101636,
+      "callsDryWet": [
+        207,
+        207
+      ],
+      "resources": {
+        "geometries": 116,
+        "textures": 23,
+        "programs": 56
+      },
+      "backend": "ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)",
+      "heldAndRewoundPixelsExact": true,
+      "glErrors": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sourceSnapshotsUnchanged": true
+    },
+    "gpr1-right-grip": {
+      "triangles": 109337,
+      "callsDryWet": [
+        137,
+        125
+      ],
+      "resources": {
+        "geometries": 119,
+        "textures": 21,
+        "programs": 53
+      },
+      "backend": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "heldAndRewoundPixelsExact": true,
+      "glErrors": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sourceSnapshotsUnchanged": true
+    }
+  },
+  "finalRecoveryBrowserMetrics": {
+    "evidenceType": "Assertions retained in the passing recovery browser test; raw per-frame values were not attached.",
+    "sequence": [
+      "recovery phase 1 at time 3",
+      "riding at time 5 with front brake and steering",
+      "same recovery phase 1 at time 3"
+    ],
+    "sampleCount": 3,
+    "assertedAndPassed": {
+      "sameProductionModelInstanceAcrossFrames": true,
+      "trianglesInEveryFrame": 109337,
+      "glErrorInEveryFrame": 0,
+      "restoredRecoveryPixelsExactlyEqual": true,
+      "recoveryPixelsDifferFromRiding": true,
+      "consoleAndPageErrors": []
+    },
+    "backend": "ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)",
+    "backendIdentityAndFramebufferCheckPassed": true,
+    "rawValuesNotAttached": [
+      "per-frame draw-call counts",
+      "per-frame geometry/texture/program resource counts",
+      "numeric pixel hashes"
+    ],
+    "screenshot": "gpr1-rider-recovery.png",
+    "testResult": {
+      "status": "passed",
+      "durationMs": 5104
+    }
+  },
+  "integratedProductionFingerprint": {
+    "value": "0aae609e1ff1db8adb7fc587578cd74559bb5e39d9f6a6b682869d1002dd70d5",
+    "source": "Parent reported after final production rebuild and full lint"
+  }
+}

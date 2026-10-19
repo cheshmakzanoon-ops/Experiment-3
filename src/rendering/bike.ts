@@ -655,6 +655,7 @@ export class BikeModel {
   private readonly rearAxle: T.Vector3;
   private readonly sag: { fork: number; shock: number };
   private readonly gripLocal = [new T.Vector3(), new T.Vector3()];
+  private readonly gripAxisLocal = [new T.Vector3(), new T.Vector3()];
   private readonly scratch = new T.Vector3();
   private readonly matrix = new T.Matrix4();
   private readonly rings: T.Mesh[] = [];
@@ -955,7 +956,11 @@ export class BikeModel {
       );
       grip.rotation.z = Math.PI / 2 - side * 0.18;
       grip.rotation.y = side * 0.22;
-      this.gripLocal[side > 0 ? 0 : 1].set(side * (0.3 + barX), -0.06 + barY, -0.05);
+      const gripIndex = side > 0 ? 0 : 1;
+      this.gripLocal[gripIndex].set(side * (0.3 + barX), -0.06 + barY, -0.05);
+      // Preserve the actual cylindrical grip axis before rigid batching.
+      // Glove +X spans the knuckles; cylinder -Y points toward bike +X.
+      this.gripAxisLocal[gripIndex].set(0, -1, 0).applyQuaternion(grip.quaternion);
       if (detail === 'high') {
         const lever = add(
           this.steer,
@@ -1847,8 +1852,11 @@ export class BikeModel {
       this.steerMount.updateMatrix();
       this.steer.updateMatrix();
       this.matrix.multiplyMatrices(this.steerMount.matrix, this.steer.matrix);
-      for (let i = 0; i < 2; i++)
+      for (let i = 0; i < 2; i++) {
         this.rider.grips[i].copy(this.gripLocal[i]).applyMatrix4(this.matrix);
+        if (this.rider.gp)
+          this.rider.gripAxes[i].copy(this.gripAxisLocal[i]).transformDirection(this.matrix);
+      }
       this.rider.ride({
         lean: v.chassisLean,
         offset: v.riderOffset,

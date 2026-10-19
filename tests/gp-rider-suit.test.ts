@@ -87,7 +87,7 @@ describe('GP fitted racing leathers', () => {
     },
   );
 
-  it('does not alter riding/recovery anchors or increase rider topology, draws or textures', () => {
+  it('does not alter garment anchors or increase rider topology, draws or textures', () => {
     for (const detail of ['high', 'mid', 'far'] as const) {
       const legacy = new Rider(colours, detail),
         gp = new Rider(colours, detail, 'leathers', 2, true);
@@ -101,7 +101,7 @@ describe('GP fitted racing leathers', () => {
         rider.root.updateMatrixWorld(true);
         return {
           contacts: [rider.seat, ...rider.grips, ...rider.pegs].map((v) => v.toArray()),
-          bones: rider.root.children.map((child) => child.matrixWorld.elements),
+          torso: rider.root.getObjectByName('Rider torso')!.matrixWorld.elements,
           helmet: rider.root.getObjectByName('Rider head and helmet')!.matrixWorld.elements,
         };
       };
@@ -109,12 +109,20 @@ describe('GP fitted racing leathers', () => {
         const pose = { lean, offset: lean * 0.18, tuck: 0.7, braking: 0.65, steer: 0.12 };
         legacy.ride(pose);
         gp.ride(pose);
+        // GP wrists/ankles now target the anatomical joint behind each held
+        // contact. Their limb lengths and actual mesh contact have a separate
+        // production-model contract in gp-rider-contact.test.ts.
         expect(anchors(gp)).toEqual(anchors(legacy));
       }
       for (const phase of [0, 1, 2]) {
         legacy.separated(phase, 0.75, 2);
         gp.separated(phase, 0.75, 2);
         expect(anchors(gp)).toEqual(anchors(legacy));
+        // Recovery changes only the GP foot's attachment and calf cuff.
+        // Preserve the existing torso and limb trajectories for every kit.
+        expect(gp.root.children.map((child) => child.matrixWorld.elements)).toEqual(
+          legacy.root.children.map((child) => child.matrixWorld.elements),
+        );
       }
       legacy.dispose();
       gp.dispose();

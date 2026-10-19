@@ -1,5 +1,15 @@
 import { expect, test } from '@playwright/test';
-import { B, BIKE_BASE, F, H, R, RACE_BASE, carBase } from '../src/simulation/protocol.ts';
+import {
+  B,
+  BIKE_BASE,
+  F,
+  H,
+  R,
+  RACE_BASE,
+  W,
+  WHEEL_BASE,
+  carBase,
+} from '../src/simulation/protocol.ts';
 import { VEHICLE_IDS } from '../src/simulation/vehicles.ts';
 import { finishRaceEntry } from './race-entry.ts';
 import { MENU_STARTUP_TIMEOUT_MS } from './menu-startup.ts';
@@ -82,6 +92,7 @@ test('GP practice rides through named corner guidance, cockpit, pause and record
   await page.selectOption('#opponents', '3');
   await page.selectOption('#weather', 'clear');
   await page.selectOption('#compound', 'medium');
+  await page.selectOption('#assist', 'sport');
   await expect(page.locator('.car-label')).toContainText('GP-R1');
   await expect(page.locator('#opponents option[value="3"]')).toHaveText('4 riders');
   await expect(page.locator('#sessionRules')).not.toContainText('Unavailable');
@@ -97,9 +108,14 @@ test('GP practice rides through named corner guidance, cockpit, pause and record
     mode: 'practice',
     circuit: 'poggio-alto',
     opponents: 3,
+    assist: 'sport',
     vehicles: Array(4).fill('gpr1'),
   });
   expect(entered.frame![H.CARS]).toBe(4);
+  expect(entered.renderer?.startingGrid).toMatchObject({
+    mode: 'gp',
+    slots: 12,
+  });
   for (let id = 0; id < 4; id++)
     expect(entered.frame![carBase(id) + RACE_BASE + R.VEHICLE]).toBe(VEHICLE_IDS.indexOf('gpr1'));
 
@@ -121,6 +137,41 @@ test('GP practice rides through named corner guidance, cockpit, pause and record
     await page.keyboard.up('w');
   }
 
+  await page.keyboard.press('g');
+  await expect.poll(async () => (await diag()).auto).toBe(true);
+  await expect.poll(async () => (await diag()).frame?.[carBase(0) + F.SPEED]).toBeGreaterThan(15);
+  // Exercise the real secondary keyboard control through the worker. The GP
+  // rear pedal must not create front hydraulic braking in Sport assistance.
+  await page.keyboard.press('g');
+  await expect.poll(async () => (await diag()).auto).toBe(false);
+  let rearPedal: typeof entered;
+  await page.keyboard.down('ShiftLeft');
+  try {
+    await expect
+      .poll(
+        async () => {
+          const frame = (await diag()).frame!,
+            base = carBase(0);
+          return (
+            frame[base + F.SPEED] > 5 &&
+            frame[base + BIKE_BASE + B.REAR_BRAKE] > 0.8 &&
+            frame[base + F.BRAKE] < 0.01 &&
+            Math.abs(frame[base + WHEEL_BASE + W.FX]) < 1
+          );
+        },
+        { timeout: 20000 },
+      )
+      .toBe(true);
+    rearPedal = await diag();
+    expect(rearPedal.auto).toBe(false);
+    expect(rearPedal.frame![carBase(0) + BIKE_BASE + B.STATE]).toBe(0);
+    await expect(page.locator('#gpRearBrake')).toHaveText('100%');
+  } finally {
+    await page.keyboard.up('ShiftLeft');
+  }
+  await expect
+    .poll(async () => (await diag()).frame?.[carBase(0) + BIKE_BASE + B.REAR_BRAKE])
+    .toBe(0);
   await page.keyboard.press('g');
   await expect.poll(async () => (await diag()).auto).toBe(true);
   await expect.poll(async () => (await diag()).frame?.[carBase(0) + F.SPEED]).toBeGreaterThan(15);
@@ -188,6 +239,10 @@ test('GP practice rides through named corner guidance, cockpit, pause and record
   const replayLayout = await readableGuide();
   const heldGuide = await guide();
   const heldReplay = await diag();
+  expect(heldReplay.renderer?.startingGrid).toMatchObject({
+    mode: 'gp',
+    slots: 12,
+  });
   await capture('05-gp-recorded-cockpit-guide');
   await seek(Math.max(0, cornerPosition - 4));
   await seek(cornerPosition);
@@ -208,14 +263,19 @@ test('GP practice rides through named corner guidance, cockpit, pause and record
     .toBeGreaterThan(paused.frame![H.TICK] + 60);
   await expect(page.locator('#gpCraft')).toBeVisible();
   const resumed = await diag();
+  expect(resumed.renderer?.startingGrid).toMatchObject({
+    mode: 'gp',
+    slots: 12,
+  });
   expect(resumed.usedDemonstration).toBe(true);
   expect(errors).toEqual([]);
   await info.attach('gp-riding-flow-diagnostics.json', {
     body: JSON.stringify(
       {
         workload:
-          'Actual GP-R1 menu entry, four-rider Poggio Alto practice, manual throttle, AI demonstration and recorded replay',
+          'Actual GP-R1 menu entry, four-rider Poggio Alto practice, manual throttle and rear pedal, AI demonstration and recorded replay',
         manualLaunch,
+        rearPedal,
         chaseLayout,
         cockpitLayout,
         replayLayout,

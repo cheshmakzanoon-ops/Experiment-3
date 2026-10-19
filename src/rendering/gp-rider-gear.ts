@@ -3,6 +3,7 @@ import { batchBikeRigidMeshes } from './bike-rigid-batch.ts';
 import { sampleProfile } from './profile-sampling.ts';
 import { chainShaderHook, injectAfter, injectDeclarations } from './studio/shader-hooks.ts';
 import type { RiderDetail } from './rider.ts';
+import { GP_BOOT_ANKLE } from './gp-rider-contact.ts';
 
 /** Metres in the existing ankle frame: +Y points down the shin, +Z to the toe.
  * A shaped forefoot, Achilles volume and calf cuff replace the rounded-box
@@ -79,21 +80,30 @@ export function gpRacingBoot(
     armour: T.Material;
     slider: T.Material;
   },
+  contactPose = false,
 ) {
   if (side !== -1 && side !== 1) throw new RangeError('Invalid racing boot side');
   const root = new T.Group();
   root.name = `GP ${side > 0 ? 'left' : 'right'} articulated racing boot`;
   const close = detail === 'high',
     sides = close ? 16 : detail === 'mid' ? 10 : 8;
-  const add = (g: T.BufferGeometry, m: T.Material, name: string) => {
+  const add = (g: T.BufferGeometry, m: T.Material, name: string, parent = root) => {
     const mesh = new T.Mesh(g, m);
     mesh.name = name;
     mesh.castShadow = mesh.receiveShadow = true;
-    root.add(mesh);
+    parent.add(mesh);
     return mesh;
   };
+  const cuffRoot = contactPose ? new T.Group() : root;
+  if (contactPose) {
+    cuffRoot.name = 'GP ankle-hinged boot cuff';
+    cuffRoot.position.fromArray(GP_BOOT_ANKLE);
+    root.add(cuffRoot);
+  }
   add(loft(FOOT, 'z', close ? 19 : 10, sides), materials.leather, 'Anatomical forefoot and heel');
-  add(loft(CUFF, 'y', close ? 14 : 8, sides), materials.panel, 'Tapered calf and Achilles cuff');
+  const cuffGeometry = loft(CUFF, 'y', close ? 14 : 8, sides);
+  if (contactPose) cuffGeometry.translate(-GP_BOOT_ANKLE[0], -GP_BOOT_ANKLE[1], -GP_BOOT_ANKLE[2]);
+  add(cuffGeometry, materials.panel, 'Tapered calf and Achilles cuff', cuffRoot);
   const sole = FOOT.map(([z, , w]) => [z, 0.028, w * 1.02, 0.0045, 0.005] as const);
   add(loft(sole, 'z', close ? 15 : 8, sides), materials.sole, 'Thin shaped traction sole');
   if (detail === 'far') {
@@ -107,14 +117,17 @@ export function gpRacingBoot(
     'External ankle protection',
   );
   ankle.scale.set(0.16, 1, 0.88);
-  ankle.position.set(side * 0.044, -0.083, -0.037);
+  // In the planted GP foot frame, +Y is down and +Z is forward, so +X
+  // points to bike right. Keep the external protection on the outside.
+  const footSide = contactPose ? -side : side;
+  ankle.position.set(footSide * 0.044, contactPose ? -0.035 : -0.083, -0.037);
   const toe = add(
     new T.SphereGeometry(0.023, close ? 12 : 8, 6),
     materials.slider,
     'Replaceable toe slider',
   );
   toe.scale.set(0.22, 0.34, 1.4);
-  toe.position.set(side * 0.046, -0.013, 0.144);
+  toe.position.set(footSide * 0.046, -0.013, 0.144);
   const heel = add(
     loft(
       [
@@ -152,12 +165,19 @@ export function gpRacingBoot(
       new T.Vector3(-side * 0.038, -0.085, -0.03),
       new T.Vector3(-side * 0.032, -0.04, -0.016),
     ]);
+    const seamGeometry = new T.TubeGeometry(seam, 10, 0.0013, 4, false);
+    if (contactPose)
+      seamGeometry.translate(-GP_BOOT_ANKLE[0], -GP_BOOT_ANKLE[1], -GP_BOOT_ANKLE[2]);
+    // Keep the cuff's existing seam in its batch, avoiding another material
+    // submission while the ankle articulates. Other road kits retain theirs.
     add(
-      new T.TubeGeometry(seam, 10, 0.0013, 4, false),
-      materials.sole,
+      seamGeometry,
+      contactPose ? materials.panel : materials.sole,
       'Recessed inner boot closure',
+      cuffRoot,
     );
   }
+  if (contactPose) batchBikeRigidMeshes(cuffRoot);
   batchBikeRigidMeshes(root);
   return root;
 }

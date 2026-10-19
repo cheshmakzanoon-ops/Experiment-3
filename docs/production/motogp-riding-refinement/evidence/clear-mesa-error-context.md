@@ -1,0 +1,235 @@
+# Page snapshot
+
+```yaml
+- generic:
+  - generic:
+    - generic:
+      - generic:
+        - generic:
+          - text: MOTOBOUND
+          - generic: MOTORSPORT
+        - generic:
+          - text: DRIVER
+          - generic: ALEX RIVER
+      - region "Race setup and tools" [ref=e2]:
+        - generic [ref=e5]: POGGIO ALTO · AUTODROMO
+        - navigation "Motocross venues" [ref=e6]:
+          - generic [ref=e7]: DIRT SERIES
+          - button "OUTDOOR MX" [ref=e8] [cursor=pointer]
+          - button "STADIUM SX" [ref=e9] [cursor=pointer]
+        - generic [ref=e10]:
+          - generic [ref=e12]:
+            - text: CIRCUIT
+            - combobox "CIRCUIT" [ref=e13] [cursor=pointer]:
+              - option "Aurel Grand Circuit · 2.97 km"
+              - option "Vellamar Coast Circuit · 4.00 km"
+              - option "Parco Reale Autodromo · 5.79 km"
+              - option "Ardennes Forest Circuit · 7.00 km"
+              - option "Northfield Airfield GP · 5.89 km"
+              - option "Northfield Airfield GP — Classic · 5.14 km"
+              - option "Kansai Figure-Eight · 5.81 km"
+              - option "Kansai Figure-Eight — East Course · 2.24 km"
+              - option "Riviera Harbour Street Circuit · 3.34 km"
+              - option "Texas Hill Country Circuit · 5.51 km"
+              - option "Poggio Alto Autodromo · 5.25 km" [selected]
+              - option "Cape Wrenna Island Circuit · 4.45 km"
+              - option "Haarveld Circuit · 4.54 km"
+              - option "Montejaral Circuit · 4.42 km"
+              - option "Hochwald Forest Ring — Forest Ring · 20.83 km"
+              - option "Loirette Endurance Circuit — Endurance · 13.63 km"
+              - option "Loirette Endurance Circuit — Club Circuit · 4.19 km"
+              - option "Serra Verde Autódromo · 4.31 km"
+              - option "Mount Ardlow Circuit — Mountain Circuit · 6.21 km"
+              - option "Arroyo Oro Raceway · 3.60 km"
+              - option "Autodromo Fiume Verde · 4.91 km"
+              - option "Duinwijk Circuit · 4.26 km"
+              - option "Ramla Desert Circuit · 5.41 km"
+              - option "Ramla Desert Circuit — Outer Circuit · 3.54 km"
+              - option "Mirvari Boulevard Street Circuit · 6.00 km"
+              - option "Lantern Bay Street Circuit · 4.94 km"
+              - option "Lotus Hill Harbour Circuit · 6.12 km"
+              - option "Neon City Street Circuit · 4.87 km"
+              - option "Neon City Street Circuit — Reverse · 4.87 km"
+              - option "Col d’Argent Mountain Pass — Ascent · 7.28 km"
+              - option "Col d’Argent Mountain Pass — Descent · 7.28 km"
+              - option "Mesa Speedbowl — Tri-Oval · 4.00 km"
+              - option "Mesa Speedbowl — Infield Road Course · 4.49 km"
+              - option "Red Mesa Canyon Circuit · 5.60 km"
+              - option "Red Mesa Canyon Circuit — Reverse · 5.60 km"
+              - option "Cap Lumière Cliff Road · 4.71 km"
+              - option "Cap Lumière Cliff Road — Reverse · 4.71 km"
+              - option "Iron Quay Docklands · 4.60 km"
+              - option "Iron Quay Docklands — Reverse · 4.60 km"
+              - option "Gantry Point Container Terminal · 5.38 km"
+              - option "Gantry Point Container Terminal — Reverse · 5.38 km"
+              - option "Bright Basin Salt Flat Airbase — High-Speed Course · 6.80 km"
+              - option "Valley Ridge Motocross Park — National · 0.92 km"
+              - option "Arena Nord Stadium — Supercross · 0.62 km"
+              - option "Kestrel Rallycross Circuit — Joker · 0.95 km"
+              - option "Pinewood Forest Stage — Special Stage · 2.82 km"
+          - paragraph [ref=e14]: "Real-world approximations · 17 named corners · 1 DRS · Tuscan hills: a kilometre straight over a crest, climbing esses, two flat-out uphill rights and a long final right."
+          - generic [ref=e15]:
+            - generic [ref=e16]:
+              - text: SESSION
+              - combobox "SESSION" [ref=e17] [cursor=pointer]:
+                - option "Grand Prix"
+                - option "Free practice" [selected]
+                - option "Time trial · ghost"
+                - option "Race weekend · qualifying"
+                - option "Endurance · mandatory stop"
+                - option "Festival · open world"
+            - generic [ref=e18]:
+              - text: DISTANCE
+              - combobox "DISTANCE" [ref=e19] [cursor=pointer]:
+                - option "1 lap · Sprint"
+                - option "3 laps · Standard" [selected]
+                - option "5 laps"
+                - option "10 laps"
+                - option "15 laps · Endurance"
+                - option "25 laps · Endurance"
+          - generic [ref=e20]:
+            - generic [ref=e21]:
+              - text: WEATHER
+              - combobox "WEATHER" [ref=e22] [cursor=pointer]:
+                - option "Clear / Dry" [selected]
+                - option "Dry → Rain"
+                - option "Heavy rain"
+            - generic [ref=e23]:
+              - text: GRID
+              - combobox "GRID" [ref=e24] [cursor=pointer]:
+                - option "Solo"
+                - option "4 riders" [selected]
+                - option "8 riders"
+                - option "12 riders"
+          - generic [ref=e25]:
+            - generic [ref=e26]:
+              - text: TYRES
+              - combobox "TYRES" [ref=e27] [cursor=pointer]:
+                - option "Soft"
+                - option "Medium" [selected]
+                - option "Hard"
+                - option "Intermediate"
+                - option "Full wet"
+            - generic [ref=e28]:
+              - text: ASSISTS
+              - combobox "ASSISTS" [ref=e29] [cursor=pointer]:
+                - option "ABS + TC" [selected]
+                - option "Off"
+          - generic [ref=e30]:
+            - generic [ref=e31]:
+              - text: START
+              - combobox "START" [disabled] [ref=e32] [cursor=pointer]:
+                - option "Pole position" [selected]
+                - option "Mid-field"
+                - option "Back of the grid"
+            - generic [ref=e33]:
+              - text: MACHINE
+              - combobox "MACHINE" [ref=e34] [cursor=pointer]:
+                - option "APX-01 Formula · RWD"
+                - option "FX-26 Formula · RWD"
+                - option "JF-2 Junior Formula · RWD"
+                - option "FR-3 Feeder Formula · RWD"
+                - option "FE-4 Entry Formula · RWD"
+                - option "HF-67 Historic Formula · RWD"
+                - option "HF-76 Historic Formula · RWD"
+                - option "HF-86 Turbo Formula · RWD"
+                - option "HY-9 Hypercar · RWD"
+                - option "HY-11 Hypercar · RWD"
+                - option "PR-2 Prototype · RWD"
+                - option "PR-3 Open Prototype · RWD"
+                - option "SP-71 Long-Tail Prototype · RWD"
+                - option "GT-8F Front-Engine GT · RWD"
+                - option "GT-10M Mid-Engine GT · RWD"
+                - option "GT-6R Rear-Engine GT · RWD"
+                - option "GT-6S Straight-Six GT · RWD"
+                - option "GS-4 GT Sport · RWD"
+                - option "GS-6M Mid-Engine GT Sport · RWD"
+                - option "TC-1 Touring · FWD"
+                - option "TC-2 Touring · RWD"
+                - option "TC-3 Awd Touring · AWD"
+                - option "CR-1 Club Roadster · RWD"
+                - option "HH-2 Hot-Hatch Racer · FWD"
+                - option "VC-62 Vintage Roadster · RWD"
+                - option "RL-2 Rally · AWD"
+                - option "RL-7 Classic Rally · RWD"
+                - option "GB-4 Group Rally · AWD"
+                - option "RCX-6 Rallycross · AWD"
+                - option "RX-E Electric Rallycross · AWD"
+                - option "DX-8 Trophy Truck · RWD"
+                - option "BG-2 Desert Buggy · RWD"
+                - option "SK-125 Shifter Kart · RWD"
+                - option "DK-100 Direct-Drive Kart · RWD"
+                - option "XF-2 Fan Prototype · RWD"
+                - option "XE-1 Electric Time Attack · AWD"
+                - option "XH-3 Hydrogen Prototype · AWD"
+                - option "XT-1 Track Hypercar · RWD"
+                - option "EH-3 Electric Hypercar · AWD"
+                - option "SC-7 Supercar · RWD"
+                - option "RH-3 Hot Hatch · FWD"
+                - option "RS-5 Sports Sedan · AWD"
+                - option "RM-8 Muscle Coupe · RWD"
+                - option "RG-63 Classic Grand Tourer · RWD"
+                - option "RP-6 Desert Pickup · AWD"
+                - option "RR-4 Rally-Bred Road Car · AWD"
+                - option "LX-12 Luxury GT · RWD"
+                - option "RD-2 Roadster · RWD"
+                - option "GP-R1 Prototype · motorcycle" [selected]
+                - option "GP-R2 Prototype · motorcycle"
+                - option "SBK-1000 Superbike · motorcycle"
+                - option "SS-600 Supersport · motorcycle"
+                - option "CR-750 Classic Racer · motorcycle"
+                - option "NR-900 Naked Roadster · motorcycle"
+                - option "Motorcycle grid · GP-R1 + SBK-1000"
+                - option "MX-450 MOTOCROSS · motocross"
+                - option "MX-250 TWO-STROKE · motocross"
+                - option "SM-450 SUPERMOTO · supermoto"
+                - option "Mixed exhibition · Formula + Touring"
+                - option "Multi-class endurance · Hypercar + Prototype + GT"
+          - paragraph [ref=e35]: "PRACTICE: no mandatory stop · DRS off · no points."
+          - button "ENTER CIRCUIT" [ref=e36] [cursor=pointer]:
+            - text: ENTER CIRCUIT
+            - generic [ref=e37] [cursor=pointer]: ↗
+          - button "PREPARE GRID START PAUSED" [ref=e38] [cursor=pointer]:
+            - text: PREPARE GRID
+            - generic [ref=e39] [cursor=pointer]: START PAUSED
+        - group "Paddock" [ref=e40]:
+          - button "CAREER" [ref=e41] [cursor=pointer]
+          - button "GARAGE & SETTINGS" [ref=e42] [cursor=pointer]
+          - button "EVENTS" [ref=e43] [cursor=pointer]
+          - button "CHAMPIONSHIP" [ref=e44] [cursor=pointer]
+          - button "TEAM HQ" [ref=e45] [cursor=pointer]
+          - button "DRIVING ACADEMY" [ref=e46] [cursor=pointer]
+          - button "PHOTO / LIVERY" [ref=e47] [cursor=pointer]
+          - button "CONTROLS" [ref=e48] [cursor=pointer]
+          - button "CREDITS & LICENCES" [ref=e49] [cursor=pointer]
+      - generic:
+        - generic: GP-R1
+        - generic: GRAND PRIX / TWO WHEELS
+        - generic: 157 KG BIKE · 6 SPEED · SEAMLESS
+      - generic:
+        - generic:
+          - generic: "5.245"
+          - text: KM
+        - generic:
+          - generic: "17"
+          - text: TURNS
+        - generic:
+          - generic: "1"
+          - text: DRS ZONE
+        - generic:
+          - generic: WASD
+          - text: /
+          - generic: ARROWS
+          - text: DRIVE ·
+          - generic: G
+          - text: AI DRIVER · GAMEPAD READY
+    - text: BATT BEST
+    - dialog [ref=e50]:
+      - generic [ref=e51]:
+        - generic [ref=e52]: SOMETHING WENT WRONG
+        - heading "Session stopped." [level=2] [ref=e53]
+        - paragraph [ref=e54]: The session could not continue. Reload to return to the paddock. If this keeps happening, lower the render quality in Garage & Settings.
+        - paragraph [ref=e55]: The graphics context was lost. Reload to recover; reduce rendering quality if this repeats.
+        - button "RELOAD GAME" [active] [ref=e56] [cursor=pointer]
+    - status
+```

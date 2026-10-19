@@ -23,9 +23,10 @@ import { FORMULA_APX01, type VehicleDefinition } from './vehicles.ts';
 
 /** Rider aids from the session assist setting: 'sport' (the ABS/TC setting
  * for cars) enables traction control, wheelie and stoppie control, combined
- * brakes and cornering ABS; 'raw' removes them. The lean-intent controller
- * (counter-steer) is the control contract itself and is always on. AI riders
- * always ride with the aids. */
+ * brakes and cornering ABS; 'raw' removes them. On GP prototypes the linked
+ * help runs from the front lever to the rear only; the rear pedal is independent.
+ * The lean-intent controller (counter-steer) is the control contract itself
+ * and is always on. AI riders always ride with the aids. */
 export function bikeAssists(assist: Assist, ai = false): BikeAssists {
   return assist === 'sport' || ai ? NOVICE : Object.freeze({ ...EXPERT, lean: true });
 }
@@ -122,8 +123,10 @@ export class BikeVehicle extends Vehicle {
       definition,
       this.setup,
     );
-    if (definition.id === 'gpr1' || definition.id === 'gpr2')
+    if (definition.id === 'gpr1' || definition.id === 'gpr2') {
       parameters.engineBrakeReleaseThrottle = GP_ENGINE_BRAKE_RELEASE_THROTTLE;
+      parameters.independentRearBrake = true;
+    }
     this.dynamics = new Bike(this.riderAids, parameters);
     this.gearing = this.setup.gearing;
     this.engineBrake =
