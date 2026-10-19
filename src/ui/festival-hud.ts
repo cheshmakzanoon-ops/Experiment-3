@@ -515,10 +515,15 @@ export class FestivalHud {
       );
       this.text(
         'festSkillBank',
-        skills.phase === 'active'
-          ? `${Math.round(skills.total).toLocaleString('en')} PTS TO BANK`
-          : `SESSION ${Math.round(skills.sessionTotal).toLocaleString('en')} PTS`,
+        skills.air
+          ? `${skills.air.seconds.toFixed(1)} S AIRTIME · ${Math.round(skills.air.distance)} M`
+          : skills.phase === 'active'
+            ? `${Math.round(skills.total).toLocaleString('en')} PTS TO BANK`
+            : `SESSION ${Math.round(skills.sessionTotal).toLocaleString('en')} PTS`,
       );
+      // A jump is provisional until the suspension settles. Do not present a
+      // bank countdown while the driver is still securing that landing.
+      this.get('festSkillTimer').parentElement!.hidden = !!skills.air;
       this.get('festSkillTimer').style.transform =
         `scaleX(${Math.min(1, skills.bankRemaining / 4)})`;
     }
@@ -738,7 +743,7 @@ export class FestivalHud {
               `<button data-fest="travel" data-value="${escapeHtml(e.spec.id)}">${escapeHtml(e.spec.name)} · ${escapeHtml(EVENT_KIND_LABEL[e.spec.kind])}</button>`,
           )
           .join('') || '<span>Drive near an event marker to discover it.</span>'
-      }</div></section><section class="fest-driving-note"><h3>Make the drive count</h3><p>Link clean speed and drifts into a skill chain. Keep the car clear of impacts, then let the chain bank. Autopilot runs are marked assisted.</p><p><kbd>R</kbd> Reset to road &nbsp; <kbd>G</kbd> Autopilot</p></section></div></div>`;
+      }</div></section><section class="fest-driving-note"><h3>Make the drive count</h3><p>Link clean speed, drifts, traffic passes and clean landings into a skill chain. Land upright and hold your line to secure airtime points, then return to the road and let the chain bank. Autopilot runs are marked assisted.</p><p><kbd>R</kbd> Reset to road &nbsp; <kbd>G</kbd> Autopilot</p></section></div></div>`;
     node.querySelector<HTMLElement>('[data-fest="resume"]')?.focus();
   }
   /** Is a dialog that owns Enter visible? */

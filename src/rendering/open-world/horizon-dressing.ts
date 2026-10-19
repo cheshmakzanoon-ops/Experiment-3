@@ -10,6 +10,7 @@ import { PhotoForest, type PhotoPlant } from '../vegetation/forest.ts';
 import type { VegetationLibrary } from '../vegetation/library.ts';
 import { VEGETATION } from '../vegetation/materials.ts';
 import { SPECIES } from '../vegetation/species.ts';
+import type { FestivalPracticalSocket } from './festival-practical-lights.ts';
 
 /** Original Solvane scenery derived from the reference review's visual
  * principles: human-scale commercial detail, legible road edges, layered
@@ -92,6 +93,12 @@ const SHOP_NAMES = [
   ['EASTERN LINE', 'DESIGN STUDIO'],
   ['VARDA', 'GUIDES & OUTFITTERS'],
   ['MOTOBOUND', 'FESTIVAL DRIVERS CLUB'],
+] as const;
+
+// Pale integrated hues of the original atlas backgrounds and warm lettering.
+// The lights are restrained practical spill, not a replacement sign texture.
+const SHOP_LIGHT_COLORS = [
+  0xb1d8cb, 0xffe5b9, 0xffbca2, 0xbdd4e8, 0xd1dfb8, 0xffd3a0, 0xffe9cb, 0xb4dbe3,
 ] as const;
 
 /** One small atlas, authored at runtime: no individual sign textures and no
@@ -248,6 +255,7 @@ type StaticChunk = { kind: BatchKind; batch: GeometryBatch };
 
 export class HorizonDressing {
   readonly root = new T.Group();
+  readonly lightSockets: FestivalPracticalSocket[] = [];
   readonly stats = {
     chunks: 0,
     triangles: 0,
@@ -296,6 +304,7 @@ export class HorizonDressing {
   private readonly lanternTime = { value: 0 };
   private readonly eye = new T.Vector3();
   private readonly staticMeshes: T.Mesh[] = [];
+  private nextLightGroup = 0;
 
   constructor(
     readonly world: OpenWorld,
@@ -444,6 +453,21 @@ export class HorizonDressing {
         s.style % SHOP_NAMES.length,
       );
       this.stats.shopSigns++;
+      // Position the light on the upper part of the actual sign, just beyond
+      // its plane. Aiming outward/down clears its own wall and shallow canopy;
+      // the destination uses the same carved ground as the visible forecourt.
+      const outward = new T.Vector3(-n * side, 0, c * side);
+      const source = sign.clone().addScaledVector(outward, 0.015);
+      source.y += 0.3;
+      const target = sign.clone().addScaledVector(outward, 4.8);
+      target.y = carvedGroundHeight(this.world.carver, target.x, target.z) + 0.08;
+      this.lightSockets.push({
+        position: source,
+        target,
+        color: SHOP_LIGHT_COLORS[s.style % SHOP_LIGHT_COLORS.length],
+        kind: 'storefront',
+        group: this.nextLightGroup++,
+      });
       // A shallow projecting canopy and its valance make the shopfront
       // cast an actual shadow. Projection remains below 0.45 m.
       const awning = at(0, s.base + 2.21, side * (s.hz + 0.22));
@@ -551,6 +575,7 @@ export class HorizonDressing {
       for (let s = 95; s < edge.length - 30; s += 170) {
         net.at(edge.offset + s, p);
         const half = edge.spec.halfWidth + edge.spec.shoulder + 1.15;
+        const lightGroup = this.nextLightGroup++;
         let previous: T.Vector3 | null = null;
         for (let k = 0; k <= 20; k++) {
           const t = k / 20,
@@ -571,6 +596,23 @@ export class HorizonDressing {
               0.09,
               0xffffff,
             );
+            if (k === 5 || k === 9 || k === 15) {
+              // These sockets coincide with existing suspended bulbs; only
+              // one bulb on each string can occupy a reusable lighting slot.
+              const source = position.clone();
+              source.y -= 0.14;
+              this.lightSockets.push({
+                position: source,
+                target: new T.Vector3(
+                  source.x,
+                  carvedGroundHeight(this.world.carver, source.x, source.z) + 0.08,
+                  source.z,
+                ),
+                color: 0xffd29b,
+                kind: 'festoon',
+                group: lightGroup,
+              });
+            }
           } else if (k > 0 && k < 20) {
             const triangle = new T.BufferGeometry();
             triangle.setAttribute(

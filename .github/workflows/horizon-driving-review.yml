@@ -1,0 +1,128 @@
+name: Horizon driving and optics review
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/horizon-driving-review.yml
+      - src/rendering/dry-cloud-density.ts
+      - src/rendering/spray-clouds.ts
+      - src/rendering/effects.ts
+      - src/rendering/open-world/festival-practical-lights.ts
+      - src/rendering/open-world/festival-renderer.ts
+      - src/rendering/open-world/horizon-dressing.ts
+      - src/simulation/open-world/skill-chain.ts
+      - src/simulation/open-world/session.ts
+      - src/ui/festival-hud.ts
+      - tests/festival-airtime.test.ts
+      - tests/festival-dry-clouds.test.ts
+      - tests/festival-practical-lights.test.ts
+      - e2e/fixtures/horizon-r6-effects.*
+      - e2e/fixtures/horizon-session.ts
+      - scripts/horizon-r6-browser-review.mjs
+      - scripts/horizon-browser-review.mjs
+
+permissions:
+  contents: read
+
+concurrency:
+  group: horizon-driving-review-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      HORIZON_R6_OUT: ${{ runner.temp }}/horizon-r6-review
+      HORIZON_REVIEW_URL: http://127.0.0.1:5188
+      HORIZON_REVIEW_PORT: '5188'
+      HORIZON_REVIEW_IDENTITY: ${{ runner.temp }}/horizon-r6-review/BUILD_IDENTITY.json
+      APEX_BROWSER_BACKEND: mesa
+      LIBGL_ALWAYS_SOFTWARE: 'true'
+      GALLIUM_DRIVER: llvmpipe
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+          cache: npm
+      - run: mkdir -p "$HORIZON_R6_OUT"
+      - run: node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
+      - name: Typecheck and build the committed application
+        id: build
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --experimental-transform-types scripts/source-stability.ts -- npm run build 2>&1 | tee "$HORIZON_R6_OUT/build.log"
+          cp dist/BUILD_IDENTITY.json "$HORIZON_REVIEW_IDENTITY"
+      - name: Focused physics, scoring and rendering regressions
+        id: contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --experimental-transform-types scripts/source-stability.ts -- npx vitest run \
+            tests/festival-airtime.test.ts tests/festival-skill-chain.test.ts \
+            tests/open-world-session.test.ts tests/open-world-traffic.test.ts tests/open-world-bikes.test.ts \
+            tests/festival-dry-clouds.test.ts tests/festival-effects-integration.test.ts \
+            tests/spray-lighting.test.ts tests/effects-upload.test.ts tests/gp-contact-effects.test.ts \
+            tests/festival-practical-lights.test.ts tests/solvane-street-light-pools.test.ts \
+            --maxWorkers=1 --reporter=default --reporter=json --outputFile="$HORIZON_R6_OUT/tests.json" \
+            2>&1 | tee "$HORIZON_R6_OUT/tests.log"
+      - name: Lint and content validation
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --experimental-transform-types scripts/source-stability.ts -- npm run lint 2>&1 | tee "$HORIZON_R6_OUT/lint.log"
+          node --experimental-transform-types scripts/source-stability.ts -- npm run validate:content 2>&1 | tee "$HORIZON_R6_OUT/content.log"
+      - name: Install the verified software browser backend
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        run: |
+          npx playwright install --with-deps chromium
+          sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb
+      - name: Compare real recorded tyre effects and frozen night compositions
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/solvane-review-server.mjs > "$HORIZON_R6_OUT/server.log" 2>&1 &
+          server=$!
+          trap 'kill "$server" 2>/dev/null || true' EXIT
+          for i in $(seq 1 60); do
+            if curl -fsS "$HORIZON_REVIEW_URL/e2e/fixtures/horizon-session.html" >/dev/null; then break; fi
+            sleep 1
+          done
+          curl -fsS "$HORIZON_REVIEW_URL/e2e/fixtures/horizon-session.html" >/dev/null
+          HORIZON_REVIEW_OUTPUT="$HORIZON_R6_OUT/optics" \
+            xvfb-run -a -s '-screen 0 1920x1080x24' \
+            node --experimental-transform-types scripts/horizon-r6-browser-review.mjs \
+            2>&1 | tee "$HORIZON_R6_OUT/optics.log"
+      - name: Real worker, keyboard, HUD and event journey
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/solvane-review-server.mjs >> "$HORIZON_R6_OUT/server.log" 2>&1 &
+          server=$!
+          trap 'kill "$server" 2>/dev/null || true' EXIT
+          for i in $(seq 1 60); do
+            if curl -fsS "$HORIZON_REVIEW_URL/e2e/fixtures/horizon-session.html" >/dev/null; then break; fi
+            sleep 1
+          done
+          curl -fsS "$HORIZON_REVIEW_URL/e2e/fixtures/horizon-session.html" >/dev/null
+          HORIZON_REVIEW_OUTPUT="$HORIZON_R6_OUT/journey" HORIZON_REVIEW_QUALITY=low \
+            xvfb-run -a -s '-screen 0 1920x1080x24' \
+            node --experimental-transform-types scripts/horizon-browser-review.mjs \
+            2>&1 | tee "$HORIZON_R6_OUT/journey.log"
+          git diff --exit-code
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: horizon-r6-driving-and-optics
+          path: ${{ runner.temp }}/horizon-r6-review/
+          if-no-files-found: error
+          retention-days: 14

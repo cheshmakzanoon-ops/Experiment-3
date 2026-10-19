@@ -77,6 +77,7 @@ import {
   setIblEnergy,
 } from '../studio/ibl-energy.ts';
 import { StreetLightPools } from './street-light-pools.ts';
+import { FestivalPracticalLights } from './festival-practical-lights.ts';
 import { surfaceDampness } from '../weather-presentation.ts';
 import { SolvaneDetails } from './solvane-details.ts';
 import { StreetDetails } from './street-details.ts';
@@ -120,6 +121,7 @@ export class FestivalRenderer {
   readonly terrain: TerrainStreamer;
   readonly roads: RoadMeshes;
   readonly streetLights: StreetLightPools;
+  readonly practicalLights: FestivalPracticalLights;
   readonly buildings: Buildings;
   readonly dressing: HorizonDressing;
   readonly atmosphere: FestivalAtmosphere;
@@ -226,6 +228,7 @@ export class FestivalRenderer {
     this.effects.contactOffset = createFestivalContactOffset(this.heightAt);
     this.effects.contactEnabled = festivalContactEnabled;
     this.effects.diffuserEnabled = festivalDiffuserEnabled;
+    this.effects.setDryCloudDetail(true);
     scene.name = 'Festival region';
     this.sky.scale.setScalar(450000);
     this.sky.userData.excludeMotionBlur = true;
@@ -255,6 +258,8 @@ export class FestivalRenderer {
     scene.add(this.streetLights.root);
     this.buildings = new Buildings(structures);
     this.dressing = new HorizonDressing(world, structures);
+    this.practicalLights = new FestivalPracticalLights(this.dressing.lightSockets);
+    scene.add(this.practicalLights.root);
     this.water = new Water(world.field);
     this.atmosphere = new FestivalAtmosphere(world.field.region.seaLevel);
     this.markers = new EventMarkers(events, (x, z) => this.groundHeight(x, z));
@@ -668,6 +673,7 @@ export class FestivalRenderer {
     if (this.photo) this.guidance.root.visible = false;
     if (discontinuity) {
       this.effectPlayback.reset();
+      this.practicalLights.reset();
       // Travel/recovery may keep time and the current car's material identity.
       // Capture the destination even if the player immediately pauses for a photo.
       this.reflection.invalidate();
@@ -692,6 +698,7 @@ export class FestivalRenderer {
     );
     this.contacts.update(presented, this.camera, this.preset, this.heightAt);
     this.streetLights.update(this.camera, night, this.preset, dt);
+    this.practicalLights.update(this.camera, night, this.preset, dt);
     if (this.details?.poseAero(presented, subject ?? null, dt, this.camera))
       this.cars.bodies.hideRearWing(0);
     // --- Lighting -----------------------------------------------------------
@@ -854,6 +861,7 @@ export class FestivalRenderer {
     this.terrain.dispose();
     this.roads.dispose();
     this.streetLights.dispose();
+    this.practicalLights.dispose();
     this.buildings.dispose();
     this.dressing.dispose();
     this.details?.dispose();

@@ -14,6 +14,7 @@ import type { LightingMode } from '../../src/rendering/daylight.ts';
 import { SOLVANE } from '../../src/simulation/open-world/region-data.ts';
 import type { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { F, carBase } from '../../src/simulation/protocol.ts';
+import { pixelDifference } from './pixel-difference.ts';
 
 declare const __APEX_SOURCE_FINGERPRINT__: string;
 declare const __APEX_SOURCE_COMMIT__: string | null;
@@ -90,6 +91,7 @@ const state = () => {
     lampSockets:
       (internal?.renderer as unknown as { streetLights?: { activeSockets: number[] } })
         ?.streetLights?.activeSockets ?? [],
+    practicalLights: internal?.renderer?.practicalLights.state ?? null,
     aero: internal?.renderer?.scene.getObjectByName('EH-3 articulated rear aero')?.visible ?? false,
     frame: internal?.current ? Array.from(internal.current) : null,
   };
@@ -112,6 +114,97 @@ Object.assign(window, {
       orbit.target.fromArray(target);
       renderer.camera.position.fromArray(position);
       orbit.update();
+    },
+    // Frozen production-composer comparison. Only real practical-light
+    // intensities are zeroed for the control and restored before return.
+    // Keeping the light count fixed also keeps the compiled shader variants
+    // comparable. No session tick, particle update or exposure edit occurs.
+    practicalOptics: (name: string) => {
+      if (!session?.isPaused || rendering)
+        throw new Error('Optics review requires paused, manual drawing');
+      const internal = session as unknown as { renderer: FestivalRenderer; current: Float32Array };
+      const renderer = internal.renderer;
+      const lights = renderer.practicalLights.root.children.filter(
+        (node): node is T.SpotLight => node instanceof T.SpotLight,
+      );
+      const intensities = lights.map((light) => light.intensity);
+      const sourceFrame = internal.current.slice();
+      const cameraBefore = renderer.camera.matrixWorld.elements.slice();
+      const composer = (renderer as unknown as { composer: { render: (dt: number) => void } })
+        .composer;
+      const context = gl.getContext();
+      const images: { name: string; image: string }[] = [];
+      const errors: number[] = [];
+      const autoReset = gl.info.autoReset;
+      const render = (enabled: boolean, label: string, save = true) => {
+        lights.forEach((light, index) => {
+          light.intensity = enabled ? intensities[index] : 0;
+        });
+        gl.info.reset();
+        composer.render(0);
+        const pixels = new Uint8Array(canvas.width * canvas.height * 4);
+        context.readPixels(
+          0,
+          0,
+          canvas.width,
+          canvas.height,
+          context.RGBA,
+          context.UNSIGNED_BYTE,
+          pixels,
+        );
+        const error = context.getError();
+        if (error !== context.NO_ERROR) errors.push(error);
+        if (save) images.push({ name: `${name}-${label}`, image: canvas.toDataURL('image/png') });
+        return {
+          pixels,
+          calls: gl.info.render.calls,
+          triangles: gl.info.render.triangles,
+          memory: { ...gl.info.memory },
+        };
+      };
+      try {
+        const before = render(false, 'before');
+        const after = render(true, 'after');
+        const repeat = render(false, 'repeat', false);
+        const difference = pixelDifference(before.pixels, after.pixels);
+        const repeatDifference = pixelDifference(before.pixels, repeat.pixels);
+        let changedByAtLeastTwo = 0;
+        for (let i = 0; i < before.pixels.length; i += 4)
+          if (
+            [0, 1, 2].some(
+              (channel) => Math.abs(before.pixels[i + channel] - after.pixels[i + channel]) >= 2,
+            )
+          )
+            changedByAtLeastTwo++;
+        return {
+          sourceIdentity: state().sourceIdentity,
+          method: 'same frozen production composer; only practical SpotLight intensity off/on/off',
+          lights: lights.map((light, index) => ({
+            name: light.name,
+            visible: light.visible,
+            castShadow: light.castShadow,
+            intensity: intensities[index],
+            position: light.position.toArray(),
+            target: light.target.position.toArray(),
+          })),
+          practicalLights: { ...renderer.practicalLights.state },
+          difference: { ...difference, changedByAtLeastTwo },
+          repeatDifference,
+          physicsUnchanged: sourceFrame.every((value, index) => value === internal.current[index]),
+          cameraUnchanged: cameraBefore.every(
+            (value, index) => value === renderer.camera.matrixWorld.elements[index],
+          ),
+          before: { calls: before.calls, triangles: before.triangles, memory: before.memory },
+          after: { calls: after.calls, triangles: after.triangles, memory: after.memory },
+          errors,
+          images,
+        };
+      } finally {
+        lights.forEach((light, index) => {
+          light.intensity = intensities[index];
+        });
+        gl.info.autoReset = autoReset;
+      }
     },
     command: (command: Parameters<FestivalSession['command']>[0]) => session?.command(command),
     // Stop submitting GPU frames only for a still capture. This does not alter

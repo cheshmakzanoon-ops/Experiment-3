@@ -16,6 +16,20 @@ export interface FestivalSkillStatus {
   bestChain: number;
   /** Increments on a bank or loss, so presentation can announce it once. */
   sequence: number;
+  /** Provisional motion only; no points are awarded until a clean landing. */
+  air?: { phase: 'airborne' | 'landing'; seconds: number; distance: number } | null;
+}
+
+export interface FestivalSkillMotion {
+  x: number;
+  y: number;
+  z: number;
+  /** World vertical speed and velocity along the sampled ground normal. */
+  vertical: number;
+  surfaceVelocity: number;
+  upright: number;
+  /** Loaded contact on both axles. */
+  settled: boolean;
 }
 
 export interface FestivalSkillSample {
@@ -28,6 +42,8 @@ export interface FestivalSkillSample {
   assisted: boolean;
   /** Only set by the post-contact, front-to-back traffic pass detector. */
   nearMiss?: boolean;
+  /** Post-physics motion; omitted legacy samples cannot earn air bonuses. */
+  motion?: FestivalSkillMotion;
 }
 
 export const FESTIVAL_SKILLS = Object.freeze({
@@ -41,6 +57,13 @@ export const FESTIVAL_SKILLS = Object.freeze({
   maxDriftAngle: 1.2,
   maxMultiplier: 5,
   maxChainPoints: 100_000,
+  airApproach: 0.6,
+  minAirSpeed: 12,
+  minAirTime: 0.35,
+  minAirDistance: 8,
+  maxAirTime: 3,
+  landingHold: 0.25,
+  landingWindow: 0.8,
 });
 
 /** A bounded, time-based free-roam skill chain. It consumes real motion;
@@ -68,11 +91,28 @@ export class FestivalSkillChain {
   private transitionCooldown = 0;
   private bonusFeedback = 0;
   private bonusLabel = '';
+  private airPhase: 'airborne' | 'landing' | null = null;
+  private approach = 0;
+  private airTime = 0;
+  private landingTime = 0;
+  private landingStable = 0;
+  private airDistance = 0;
+  private airPeak = 0;
+  private takeoffX = 0;
+  private takeoffZ = 0;
+  private haveMotion = false;
+  private previousX = 0;
+  private previousY = 0;
+  private previousZ = 0;
+  private previousSpeed = 0;
+  private previousSurfaceVelocity = 0;
 
   /** A reset, new machine or manual event start must not bank a teleport. */
   reset(reason = 'CHAIN LOST') {
     const hadPoints = this.points > 0;
     this.clearPending();
+    this.clearAir();
+    this.haveMotion = false;
     if (hadPoints) {
       this.phase = 'lost';
       this.label = reason;
@@ -92,6 +132,111 @@ export class FestivalSkillChain {
     this.sideDwell = this.transitionWindow = this.transitionCooldown = 0;
     this.bonusFeedback = 0;
     this.bonusLabel = '';
+  }
+
+  private clearAir() {
+    this.airPhase = null;
+    this.approach = this.airTime = this.landingTime = this.landingStable = 0;
+    this.airDistance = 0;
+  }
+
+  private updateAir(sample: FestivalSkillSample, speed: number, dt: number) {
+    const motion = sample.motion;
+    if (!motion) {
+      this.clearAir();
+      this.haveMotion = false;
+      return 0;
+    }
+    const motionSpeed = Math.hypot(speed, motion.vertical),
+      moved = Math.hypot(
+        motion.x - this.previousX,
+        motion.y - this.previousY,
+        motion.z - this.previousZ,
+      );
+    // Placement commands reset explicitly; this also rejects discontinuous
+    // poses supplied by another host. A flipped car cannot earn a jump.
+    if (
+      !Number.isFinite(
+        motionSpeed + motion.x + motion.y + motion.z + motion.surfaceVelocity + motion.upright,
+      ) ||
+      motion.upright < 0.7 ||
+      (this.haveMotion && moved > 0.6 + (motionSpeed + this.previousSpeed) * dt)
+    ) {
+      this.reset('CHAIN LOST');
+      this.cooldown = 0.8;
+      return 0;
+    }
+    let bonus = 0;
+    if (
+      this.airPhase === null &&
+      !sample.grounded &&
+      this.approach >= FESTIVAL_SKILLS.airApproach
+    ) {
+      this.airPhase = 'airborne';
+      this.takeoffX = this.previousX;
+      this.takeoffZ = this.previousZ;
+      this.airPeak = this.previousY;
+      this.airTime = 0;
+    }
+    if (this.airPhase === 'airborne') {
+      this.airDistance = Math.hypot(motion.x - this.takeoffX, motion.z - this.takeoffZ);
+      this.airPeak = Math.max(this.airPeak, motion.y);
+      if (!sample.grounded) {
+        this.airTime += dt;
+        if (this.airTime > FESTIVAL_SKILLS.maxAirTime || sample.forward < 8) {
+          this.reset('AIR LOST');
+          this.cooldown = 0.8;
+        }
+      } else if (
+        this.airTime + 1e-8 >= FESTIVAL_SKILLS.minAirTime &&
+        this.airDistance >= FESTIVAL_SKILLS.minAirDistance &&
+        this.airPeak - motion.y >= 0.3 &&
+        this.previousSurfaceVelocity < -0.5 &&
+        this.previousSurfaceVelocity > -7
+      ) {
+        this.airPhase = 'landing';
+        this.approach = 0;
+        this.landingTime = this.landingStable = 0;
+      } else {
+        // Brief unloaded-wheel chatter over rough road can retain its
+        // run-up, but cannot combine many tiny hops into one paid flight.
+        const approach = this.airTime < FESTIVAL_SKILLS.minAirTime ? this.approach : 0;
+        this.clearAir();
+        this.approach = approach;
+      }
+    }
+    if (this.airPhase === 'landing') {
+      this.landingTime += dt;
+      this.landingStable =
+        sample.grounded &&
+        motion.settled &&
+        motion.upright > 0.85 &&
+        Math.abs(motion.surfaceVelocity) < 2.5 &&
+        sample.forward >= 8
+          ? this.landingStable + dt
+          : 0;
+      if (this.landingStable + 1e-8 >= FESTIVAL_SKILLS.landingHold) {
+        bonus = 150 + Math.round(Math.min(2, this.airTime) * 100);
+        this.bonusLabel = this.airTime >= 1 ? 'GREAT AIR · CLEAN LANDING' : 'AIR · CLEAN LANDING';
+        this.clearAir();
+      } else if (this.landingTime > FESTIVAL_SKILLS.landingWindow) this.clearAir();
+    }
+    if (this.airPhase === null) {
+      this.approach =
+        sample.grounded &&
+        sample.onRoad &&
+        sample.forward >= FESTIVAL_SKILLS.minAirSpeed &&
+        this.cooldown === 0
+          ? Math.min(FESTIVAL_SKILLS.airApproach, this.approach + dt)
+          : 0;
+    }
+    this.previousX = motion.x;
+    this.previousY = motion.y;
+    this.previousZ = motion.z;
+    this.previousSpeed = motionSpeed;
+    this.previousSurfaceVelocity = motion.surfaceVelocity;
+    this.haveMotion = true;
+    return bonus;
   }
 
   private multiplier() {
@@ -139,12 +284,15 @@ export class FestivalSkillChain {
       this.cooldown = 0.8;
       return;
     }
-    this.offRoad = sample.onRoad ? 0 : this.offRoad + dt;
+    const speed = Math.hypot(sample.lateral, sample.forward),
+      airBonus = this.updateAir(sample, speed, dt);
+    // A real road/dirt-trail launch may cross grass. Its bounded flight and
+    // landing window pause this grace; ordinary off-road driving does not.
+    this.offRoad = sample.onRoad ? 0 : this.offRoad + (this.airPhase ? 0 : dt);
     if (this.offRoad > FESTIVAL_SKILLS.offRoadGrace) {
       this.reset('RETURN TO THE ROAD');
       return;
     }
-    const speed = Math.hypot(sample.lateral, sample.forward);
     const angle = Math.atan2(Math.abs(sample.lateral), Math.max(0.01, sample.forward));
     if (
       speed > FESTIVAL_SKILLS.minDriftSpeed &&
@@ -162,7 +310,7 @@ export class FestivalSkillChain {
     const clean = valid && speed >= FESTIVAL_SKILLS.cleanSpeed && angle < 0.11;
     this.cleanTime = clean ? this.cleanTime + dt : 0;
     this.driftTime = drifting ? this.driftTime + dt : 0;
-    let bonus = 0;
+    let bonus = airBonus;
     if (drifting) {
       const side = Math.sign(sample.lateral);
       if (side !== this.slideSide) {
@@ -178,7 +326,7 @@ export class FestivalSkillChain {
           this.transitionWindow > 0 &&
           this.transitionCooldown === 0
         ) {
-          bonus = 180;
+          bonus += 180;
           this.bonusLabel = 'DRIFT TRANSITION';
           this.transitionCooldown = 1.5;
         }
@@ -211,9 +359,9 @@ export class FestivalSkillChain {
       this.scoringTime += dt;
       this.points = Math.min(FESTIVAL_SKILLS.maxChainPoints, this.points + rate * dt + bonus);
     } else if (this.points > 0) {
-      this.calm += dt;
-      // Land and recover the road before banking a chain. Airborne motion
-      // earns nothing, even when its horizontal velocity resembles a slide.
+      if (!this.airPhase) this.calm += dt;
+      // Land and recover the road before banking a chain. Provisional
+      // airtime never spends the bank timer or earns points in mid-air.
       if (this.calm + 1e-8 >= FESTIVAL_SKILLS.bankDelay && sample.onRoad && sample.grounded)
         this.bank();
     }
@@ -221,16 +369,25 @@ export class FestivalSkillChain {
 
   status(): FestivalSkillStatus {
     return {
-      phase: this.phase,
+      phase: this.airPhase && this.airTime >= FESTIVAL_SKILLS.minAirTime ? 'active' : this.phase,
       score: Math.round(this.points),
       multiplier: Math.round(this.multiplier() * 10) / 10,
       total: this.projected(),
       bankRemaining: this.points > 0 ? Math.max(0, FESTIVAL_SKILLS.bankDelay - this.calm) : 0,
-      label: this.label,
+      label:
+        this.airPhase && this.airTime >= FESTIVAL_SKILLS.minAirTime
+          ? this.airPhase === 'airborne'
+            ? 'AIR · LAND CLEANLY'
+            : 'LANDING · HOLD YOUR LINE'
+          : this.label,
       lastBank: this.lastBank,
       sessionTotal: this.sessionTotal,
       bestChain: this.bestChain,
       sequence: this.sequence,
+      air:
+        this.airPhase && this.airTime >= FESTIVAL_SKILLS.minAirTime
+          ? { phase: this.airPhase, seconds: this.airTime, distance: this.airDistance }
+          : null,
     };
   }
 }

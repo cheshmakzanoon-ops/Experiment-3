@@ -66,6 +66,7 @@ import { RouteDriver, type RouteObstacle } from './route-driver.ts';
 import { pathPoint, planRoute, RoutePath } from './route-path.ts';
 import {
   FestivalSkillChain,
+  type FestivalSkillMotion,
   type FestivalSkillSample,
   type FestivalSkillStatus,
 } from './skill-chain.ts';
@@ -243,6 +244,15 @@ export class OpenWorldSimulation {
   private runs = 0;
   private readonly obstacles: RouteObstacle[] = [];
   private readonly nearMisses = new NearMissDetector();
+  private readonly skillMotion: FestivalSkillMotion = {
+    x: 0,
+    y: 0,
+    z: 0,
+    vertical: 0,
+    surfaceVelocity: 0,
+    upright: 1,
+    settled: false,
+  };
   private readonly skillSample: FestivalSkillSample = {
     lateral: 0,
     forward: 0,
@@ -298,6 +308,7 @@ export class OpenWorldSimulation {
   // --- Placement ----------------------------------------------------------
   /** Put a car at rest on the ground at (x, z) facing `heading` (rad, from +z). */
   placeAt(car: Vehicle, x: number, z: number, heading: number, layerY?: number) {
+    if (car === this.player) this.skills.reset();
     const ground = this.track.groundHeight(x, z, layerY);
     const b = car.body;
     b.position.set(x, ground + 0.62, z);
@@ -864,12 +875,35 @@ export class OpenWorldSimulation {
     }
     const skillCar = this.player,
       sample = this.skillSample;
+    // Discovery/recovery may query another point or replace the player;
+    // skills consume the current car's actual post-contact ground layer.
+    this.track.sample(
+      skillCar.body.position.x,
+      skillCar.body.position.z,
+      SAMPLE,
+      skillCar.body.position.y,
+    );
     sample.lateral = skillCar.localVelocity.x;
     sample.forward = skillCar.localVelocity.z;
     sample.onRoad = this.track.query.onRoad;
     sample.grounded = skillCar.up.y > 0.45 && skillCar.tires.some((t) => t.load > 20);
     sample.impact = skillCar.impact > 0.25;
     sample.assisted = this.autopilot || !!(this.run && isRace(this.run.event.spec.kind));
+    // The four-wheel stunt evaluator uses loaded front/rear axles. Keep
+    // the existing motorcycle lean and skill behavior on its own adapter.
+    sample.motion =
+      skillCar.definition.dynamicsKind === 'four-wheel' ? this.skillMotion : undefined;
+    const motion = this.skillMotion,
+      body = skillCar.body;
+    motion.x = body.position.x;
+    motion.y = body.position.y;
+    motion.z = body.position.z;
+    motion.vertical = body.velocity.y;
+    motion.surfaceVelocity = body.velocity.dot(SAMPLE.normal);
+    motion.upright = skillCar.up.y;
+    motion.settled =
+      (skillCar.tires[0].load > 20 || skillCar.tires[1].load > 20) &&
+      (skillCar.tires[2].load > 20 || skillCar.tires[3].load > 20);
     sample.nearMiss =
       this.nearMisses.update(
         skillCar,

@@ -2,6 +2,7 @@ import { precipitationLighting } from './precipitation-light.ts';
 import { RearSignalField } from './rear-signal.ts';
 import * as T from 'three';
 import { markAll, markItems } from './attribute-ranges.ts';
+import { dryCloudDensity } from './dry-cloud-density.ts';
 
 /** Stored at birth, so mixed grids and replay camera changes cannot restyle
  * an existing wake. Zero retains the original car/cloud presentation. */
@@ -130,6 +131,7 @@ export class SprayClouds {
         T.UniformsLib.lights,
         {
           nearPlane: { value: 0.1 },
+          dryCloudDetail: { value: 0 },
         },
       ]),
       vertexShader: `
@@ -150,12 +152,15 @@ export class SprayClouds {
           attribute float sprayProfile;
         #endif
         uniform float nearPlane;
+        uniform float dryCloudDetail;
         varying vec2 vUv;
         varying float vGround;
         varying float vOpacity;
         varying float vVariation;
         varying float vAnisotropy;
         varying vec3 vLight;
+        varying vec3 vDrySlice;
+        varying vec3 vDryState;
         #include <common>
         #include <lights_pars_begin>
         #include <fog_pars_vertex>
@@ -163,6 +168,7 @@ export class SprayClouds {
         void main() {
           vUv=position.xy; vVariation=variation;
           vOpacity=0.0; vLight=vec3(0.0); vAnisotropy=0.0; vGround=1.0;
+          vDrySlice=vec3(0.0); vDryState=vec3(0.0);
           vec4 mvPosition=modelViewMatrix*vec4(center,1.0);
           #include <fog_vertex>
           float depth=-mvPosition.z;
@@ -200,6 +206,24 @@ export class SprayClouds {
           float stretch=1.0+min(1.1,speed*0.12);
           vAnisotropy=smoothstep(0.05,1.0,speed);
           vec2 offset=radius*(across*position.x+along*position.y*stretch);
+          if(!spray && dryCloudDetail>0.5) {
+            // Preserve projected area while removing the unstable velocity
+            // axis. Round billows remain stable through an axial camera pass.
+            radius*=sqrt(stretch);
+            offset=radius*position.xy;
+            vDrySlice=transpose(mat3(viewMatrix))*vec3(position.xy,0.0);
+            float age=smoke?max(0.0,(size-0.24)/0.95):max(0.0,(size-0.18)/0.6);
+            vDryState=vec3(smoke?2.0:1.0,min(age,5.0),0.0);
+            vec3 toEye=-mvPosition.xyz*inversesqrt(max(dot(mvPosition.xyz,mvPosition.xyz),0.0001));
+            #if NUM_DIR_LIGHTS > 0
+              for(int i=0;i<NUM_DIR_LIGHTS;i++) {
+                float energy=dot(directionalLights[i].color,vec3(0.2126,0.7152,0.0722));
+                float forward=pow(max(0.0,dot(-directionalLights[i].direction,toEye)),4.0);
+                vDryState.z+=forward*energy/(1.0+energy);
+              }
+            #endif
+            vDryState.z=min(1.0,vDryState.z);
+          }
           mvPosition.xy+=offset;
           gl_Position=projectionMatrix*mvPosition;
           // World height of this corner above the ground at the puff's birth:
@@ -210,6 +234,24 @@ export class SprayClouds {
           // Use the scene's real light state. Unlike the old unlit point color,
           // spray cannot remain luminous when the venue lights are switched off.
           vec3 energy=precipitationEnergy((modelViewMatrix*vec4(center,1.0)).xyz);
+          if(vDryState.x>0.5) {
+            // Festival practicals, street lamps and headlights are spotlights.
+            // Scatter their actual local radiance only into opted-in dry
+            // clouds, preserving the circuit/water calibration exactly.
+            vec3 viewCenter=(modelViewMatrix*vec4(center,1.0)).xyz;
+            vec3 toEye=-viewCenter*inversesqrt(max(dot(viewCenter,viewCenter),0.0001));
+            #if NUM_SPOT_LIGHTS > 0
+              for(int i=0;i<NUM_SPOT_LIGHTS;i++) {
+                vec3 delta=spotLights[i].position-viewCenter;
+                float d=length(delta);
+                vec3 toLamp=delta/max(d,0.001);
+                float cone=getSpotAttenuation(spotLights[i].coneCos,spotLights[i].penumbraCos,dot(toLamp,spotLights[i].direction));
+                float forward=pow(max(0.0,dot(-toLamp,toEye)),4.0);
+                energy+=(0.16+0.16*forward)*cone*spotLights[i].color*
+                  getDistanceAttenuation(d,spotLights[i].distance,spotLights[i].decay);
+              }
+            #endif
+          }
           // Preserve calibrated spray/smoke radiance. Dust uses its recorded
           // per-puff surface colour, shared with the existing contact pool.
           vec3 albedo=spray?vec3(0.672,0.701,0.708):dust?vec3(0.5,0.42,0.3):vec3(0.8,0.8,0.78);
@@ -219,7 +261,8 @@ export class SprayClouds {
           vLight=albedo*energy;
           // A diffuse volume cannot be brighter than a fully lit white card;
           // an unbounded nearby floodlight otherwise blooms a puff into a
-          // glowing block. Smoke and dust stay radial (no wake anisotropy).
+          // glowing block. Default smoke/dust retain their calibrated radial
+          // profile; Festival dry detail uses its own density field below.
           vLight=min(vLight,vec3(1.6));
           if(!spray) { vAnisotropy=0.0; return; }
           // Rain-light in-scatter: a bounded, forward-scattered single-scatter
@@ -251,31 +294,45 @@ export class SprayClouds {
         varying float vAnisotropy;
         varying vec3 vLight;
         varying float vGround;
+        varying vec3 vDrySlice;
+        varying vec3 vDryState;
         #include <fog_pars_fragment>
+        ${dryCloudDensity}
         void main() {
           // A connected dense core, entrained mist and filtered turbulent
           // filaments replace the two visibly separate circular lobes. Slot
           // identity and physical advection provide variation; no wall clock.
           vec2 p=vUv;
-          float phase=vVariation*6.2831853;
-          vec2 q=vec2(p.x+0.09*sin(p.y*4.0+phase),p.y);
-          float broad=exp(-dot(q*vec2(1.12,0.97),q*vec2(1.12,0.97))*3.0);
-          float core=exp(-dot(q*vec2(1.70,0.88),q*vec2(1.70,0.88))*3.0);
-          vec2 noiseP=q*vec2(11.0,7.0);
-          float footprint=max(length(dFdx(noiseP)),length(dFdy(noiseP)));
-          float resolved=1.0-smoothstep(0.7,2.0,footprint);
-          float filaments=0.5+0.5*sin(noiseP.x+sin(noiseP.y+phase))*sin(noiseP.y*0.73-phase);
-          float turbulent=(0.60*core+0.40*broad)*(1.0+resolved*(filaments-0.5)*0.42);
-          float density=mix(exp(-dot(p,p)*3.6),turbulent,vAnisotropy);
-          // The cutoff must become radial as well; a square cutoff still
-          // rotates visibly when near-axial motion changes to a diagonal.
-          float edge=mix(length(p),max(abs(p.x),abs(p.y)),vAnisotropy*0.5);
-          density*=1.0-smoothstep(0.48,1.0,edge);
+          float density;
+          vec3 light=vLight;
+          if(vDryState.x>0.5) {
+            vec2 dry=festivalDryDensity(p,vDrySlice,vVariation,vDryState.y,step(1.5,vDryState.x));
+            density=dry.x;
+            // Restrained internal extinction and a sun-dependent bright edge.
+            // No emissive term: a dark scene cannot produce glowing smoke.
+            float rim=(1.0-smoothstep(0.12,0.65,density))*vDryState.z;
+            light*=0.76+0.24*dry.y+0.14*rim;
+          } else {
+            float phase=vVariation*6.2831853;
+            vec2 q=vec2(p.x+0.09*sin(p.y*4.0+phase),p.y);
+            float broad=exp(-dot(q*vec2(1.12,0.97),q*vec2(1.12,0.97))*3.0);
+            float core=exp(-dot(q*vec2(1.70,0.88),q*vec2(1.70,0.88))*3.0);
+            vec2 noiseP=q*vec2(11.0,7.0);
+            float footprint=max(length(dFdx(noiseP)),length(dFdy(noiseP)));
+            float resolved=1.0-smoothstep(0.7,2.0,footprint);
+            float filaments=0.5+0.5*sin(noiseP.x+sin(noiseP.y+phase))*sin(noiseP.y*0.73-phase);
+            float turbulent=(0.60*core+0.40*broad)*(1.0+resolved*(filaments-0.5)*0.42);
+            density=mix(exp(-dot(p,p)*3.6),turbulent,vAnisotropy);
+            // The cutoff must become radial as well; a square cutoff still
+            // rotates visibly when near-axial motion changes to a diagonal.
+            float edge=mix(length(p),max(abs(p.x),abs(p.y)),vAnisotropy*0.5);
+            density*=1.0-smoothstep(0.48,1.0,edge);
+          }
           // Optical-depth alpha composes into a continuous cloud. This remains
           // bounded billboards, not a claim of volumetric multiple scattering.
           float alpha=(1.0-exp(-density*vOpacity*1.25))*smoothstep(0.0,1.0,vGround);
           if(alpha<0.003) discard;
-          gl_FragColor=vec4(vLight,alpha);
+          gl_FragColor=vec4(light,alpha);
           #include <tonemapping_fragment>
           #include <colorspace_fragment>
           #include <fog_fragment>
@@ -300,6 +357,10 @@ export class SprayClouds {
    * empty pool submits no draw at all. */
   drawUpTo(count: number) {
     this.geometry.instanceCount = count;
+  }
+  /** Venue-owned optical detail; never changes the shared particle buffers. */
+  setDryCloudDetail(enabled: boolean) {
+    this.material.uniforms.dryCloudDetail.value = enabled ? 1 : 0;
   }
   /** Upload pool items `first..last` (inclusive); the whole pool by default. */
   upload(first = 0, last = this.geometry.instanceCount - 1) {

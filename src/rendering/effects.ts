@@ -641,6 +641,11 @@ export class Effects {
   get signalSourceCount() {
     return this.spray.signals.count.value;
   }
+  /** Festival-only dry plume optics. Birth rates, advection, pool capacity,
+   * recorded water profiles and all circuit defaults remain authoritative. */
+  setDryCloudDetail(enabled: boolean) {
+    this.spray.setDryCloudDetail(enabled);
+  }
   setSignalLights(frame: Float32Array, enabled: boolean) {
     this.spray.signals.update(frame, enabled && this.enabled);
   }

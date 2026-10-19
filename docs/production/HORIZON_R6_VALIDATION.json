@@ -1,0 +1,63 @@
+{
+  "schema": 1,
+  "status": "awaiting committed-source browser verification",
+  "implementation": "HORIZON_R6_IMPLEMENTATION.md",
+  "integratedBaseCommit": "d09921545ddcebe2b34ed4a85dab36deeafab969",
+  "references": {
+    "ledger": "HORIZON_R4_REFERENCE_REVIEW.json",
+    "compressedImages": 100,
+    "matchingHashes": 100,
+    "mismatches": 0,
+    "freshDirectVisualInspection": [
+      "028",
+      "040",
+      "052",
+      "066",
+      "081",
+      "083"
+    ],
+    "fullResolutionHashesReverified": false,
+    "newAll100VisualInspection": false
+  },
+  "local": {
+    "effectsInitialRun": {
+      "passedAssertions": 34,
+      "files": 5,
+      "exitCode": 1,
+      "error": "Vitest worker RPC onTaskUpdate timeout; not accepted as a clean pass"
+    },
+    "practicalLightsAndStreetLights": {
+      "passed": 10,
+      "files": 2,
+      "scopedEslintPassed": true
+    },
+    "finalBuild": "in progress",
+    "postUpstreamGameplay": "in progress",
+    "browser": "not available locally; committed-source CI review required"
+  },
+  "physicalEvidence": {
+    "file": "horizon-r6-evidence/airtime-measurements.json",
+    "sha256": "650c430c2526acba94ee3999c7d4c887eeaa6c8f7bb45a5c691b1752d956bdae",
+    "description": "Real Quarry integration after controlled initial tangential speed; actual flight, tyre loads and landing. Scripted input, not a human playtest."
+  },
+  "ci": {
+    "workflow": ".github/workflows/horizon-driving-review.yml",
+    "artifact": "horizon-r6-driving-and-optics",
+    "run": null,
+    "conclusion": null
+  },
+  "limitations": {
+    "hardwareFpsMeasured": false,
+    "humanPlaytest": false,
+    "dryCloudsAreTrueVolumetricFluids": false,
+    "practicalLightsHaveGeneralShadowOcclusion": false,
+    "allReferenceScenesRecreated": false
+  },
+  "baselineCi": {
+    "commit": "d09921545ddcebe2b34ed4a85dab36deeafab969",
+    "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39284585710",
+    "buildLintContentTypecheck": "success",
+    "fullUnitSuite": "3819 passed; 2 failed in pre-existing race-view-continuity fixture",
+    "offroadScenarios": "pre-existing Kestrel rallycross joker accounting failure"
+  }
+}

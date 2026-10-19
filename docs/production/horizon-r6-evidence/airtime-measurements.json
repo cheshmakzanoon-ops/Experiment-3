@@ -1,0 +1,270 @@
+{
+  "schemaVersion": 1,
+  "kind": "vehicle-integrated-festival-airtime-measurement",
+  "gitHead": "d09921545ddcebe2b34ed4a85dab36deeafab969",
+  "validatesWorkingTree": true,
+  "sourceSha256": {
+    "src/simulation/open-world/skill-chain.ts": "2a2bb99f98c52840513e8fb226872a8feaae17068c2c491b999baa2154a78993",
+    "src/simulation/open-world/session.ts": "158c89609e11820a9f2c43b096f9c38c5a78f4f748a848dcccdcdb8cb86f093d",
+    "src/simulation/vehicle.ts": "400a144c1531852af6295e2611a3b17ca76a946240adbc05b9b84016eef0ce48",
+    "src/simulation/rigid.ts": "08c32ae36662f45d25c6ef5acf15f01dc5332463973ccaa3b1959bba6e10d61b",
+    "src/simulation/wheel-momentum.ts": "46eef7c2e24ec379282988c53ddbd2ea01aec3c04f84a359027536813838ac66",
+    "src/simulation/open-world/region-data.ts": "5e5be85634f0e994e49722dd128a41e3b812cf4fd54ee52a3cbd199ff1c6dc88",
+    "src/simulation/open-world/road-network.ts": "37453ec851695b409cd8be395437f85cd906ff7be4bbd8d600812b0a0755a8c9"
+  },
+  "command": "node --experimental-transform-types /tmp/festival-air-measure.mjs",
+  "programSha256": "248890a9c7072e0df9533db3c9de078212e20335f2ffbf2d6d79415576861817",
+  "program": "import {OpenWorldSimulation} from '/workspace/scratch/e34866a435ab/Experiment-3/src/simulation/open-world/session.ts';\nimport {trackPoint, surfaceSample} from '/workspace/scratch/e34866a435ab/Experiment-3/src/simulation/track.ts';\nimport {RoutePath} from '/workspace/scratch/e34866a435ab/Experiment-3/src/simulation/open-world/route-path.ts';\nimport {RouteDriver} from '/workspace/scratch/e34866a435ab/Experiment-3/src/simulation/open-world/route-driver.ts';\nimport {controls} from '/workspace/scratch/e34866a435ab/Experiment-3/src/simulation/config.ts';\nfor (const speed of [24,32]) {\nconst sim=new OpenWorldSimulation({vehicle:'tc1',tileBudget:12});\nconst edge=sim.world.network.edges.find(e=>e.id==='quarry#0');\nconst p=sim.world.network.at(edge.offset+1940,trackPoint());\nsim.placeAt(sim.player,p.x,p.z,Math.atan2(p.tx,p.tz),p.y+.5);\nfor(let i=0;i<120;i++)sim.step(1/120);\nconst car=sim.player;\nconst path=new RoutePath(sim.world.network,[{edge:edge.index,dir:1,from:1900,to:2200}],false);\nconst driver=new RouteDriver(car,path,1);driver.relocate(40);\ncar.body.velocity.set(p.tx*speed,p.gradient*speed,p.tz*speed);car.gear=4;\nfor(const tire of car.tires)tire.omega=speed/tire.radius;\nsim.setInput({...controls(),throttle:.3});\nlet air=0,longestAir=0,minUp=1,maxImpact=0,offRoad=0,peakClearance=0,label='';\nconst changes=[],flights=[],surface=surfaceSample();\nlet flightStart=null;\nfor(let i=0;i<420;i++) {\n driver.update(1/120,[car]);sim.setInput({...car.input,throttle:.3,brake:0});sim.step(1/120);\n const pos=car.body.position, grounded=car.tires.some(t=>t.load>20);\n if (!grounded) {if(air===0)flightStart={i,x:pos.x,y:pos.y,z:pos.z,speed:car.speed,vy:car.body.velocity.y};air+=1/120;}\n else if(air>0) {flights.push({seconds:air,takeoff:flightStart,landing:{i,x:pos.x,y:pos.y,z:pos.z,vy:car.body.velocity.y,up:car.up.y}});air=0;}\n longestAir=Math.max(longestAir,air);minUp=Math.min(minUp,car.up.y);maxImpact=Math.max(maxImpact,car.impact);offRoad+=Number(!sim.track.query.onRoad);\n sim.track.sample(pos.x,pos.z,surface,pos.y);peakClearance=Math.max(peakClearance,pos.y-surface.height);\n const s=sim.skills.status();if(s.label!==label){changes.push({i,s,up:car.up.y,normalVelocity:car.body.velocity.dot(surface.normal),loads:car.tires.map(t=>t.load)});label=s.label;}\n}\nconsole.log(JSON.stringify({initialSpeed:speed,flights,longestAir,minUp,maxImpact,offRoad,peakClearance,changes,final:sim.skills.status()}));\n}\n",
+  "fixture": {
+    "region": "Solvane Coast",
+    "road": "Quarry Track",
+    "edge": "quarry#0",
+    "initialEdgeStationMeters": 1940,
+    "crestApproximateEdgeStationMeters": 1992,
+    "vehicle": "tc1",
+    "weather": "clear",
+    "assist": "sport",
+    "seed": 73021,
+    "traffic": false,
+    "tileBudget": 12,
+    "parkedSettlingSteps": 120,
+    "timeStepSeconds": 0.008333333333333333,
+    "physicsSubstepsPerTick": 2,
+    "measuredSteps": 420,
+    "placement": "network.at(edge.offset + 1940), heading atan2(p.tx,p.tz), layer p.y + 0.5; settle with normal session physics",
+    "initialRollingVelocity": "(p.tx * speed, p.gradient * speed, p.tz * speed)",
+    "initialWheelOmega": "speed / tire.radius",
+    "initialGear": 4,
+    "steering": "RouteDriver(skill=1), RoutePath edge quarry#0 from 1900 to 2200, relocate(40)",
+    "pedals": "after driver.update each tick: setInput({...car.input, throttle:0.3, brake:0})",
+    "positionOrVelocityWritesAfterRollingSetup": false,
+    "artificialForcesOrTerrainEdits": false,
+    "humanDriven": false,
+    "browserExecuted": false,
+    "rendererExecuted": false,
+    "inGameAutopilot": false,
+    "externalScriptedSteering": true
+  },
+  "measurements": [
+    {
+      "initialSpeed": 24,
+      "flights": [
+        {
+          "seconds": 0.025,
+          "takeoff": {
+            "i": 278,
+            "x": -3277.945413139682,
+            "y": 263.85823283247976,
+            "z": 1457.9129605377432,
+            "speed": 18.521419730577783,
+            "vy": 1.7649922089407377
+          },
+          "landing": {
+            "i": 281,
+            "x": -3278.337398163864,
+            "y": 263.89875051229126,
+            "z": 1458.1551498118104,
+            "vy": 1.518418769975448,
+            "up": 0.9957340220527221
+          }
+        },
+        {
+          "seconds": 0.06666666666666667,
+          "takeoff": {
+            "i": 304,
+            "x": -3281.3531731586227,
+            "y": 264.11975496307565,
+            "z": 1460.0216353063488,
+            "speed": 18.526083085496534,
+            "vy": 0.7250359791374632
+          },
+          "landing": {
+            "i": 312,
+            "x": -3282.401765731366,
+            "y": 264.1447495963921,
+            "z": 1460.671507059903,
+            "vy": 0.06905482407597927,
+            "up": 0.9995211930470456
+          }
+        },
+        {
+          "seconds": 0.016666666666666666,
+          "takeoff": {
+            "i": 335,
+            "x": -3285.432784734058,
+            "y": 264.0488387094734,
+            "z": 1462.55252940686,
+            "speed": 18.66694378746678,
+            "vy": -1.044649545916473
+          },
+          "landing": {
+            "i": 337,
+            "x": -3285.6966602638236,
+            "y": 264.02974963430995,
+            "z": 1462.7164882202085,
+            "vy": -1.2015497689782717,
+            "up": 0.9976492468143052
+          }
+        }
+      ],
+      "longestAir": 0.06666666666666667,
+      "minUp": 0.9893091583726805,
+      "maxImpact": 0,
+      "offRoad": 0,
+      "peakClearance": 0.5118079403605407,
+      "changes": [],
+      "final": {
+        "phase": "idle",
+        "score": 0,
+        "multiplier": 1,
+        "total": 0,
+        "bankRemaining": 0,
+        "label": "",
+        "lastBank": 0,
+        "sessionTotal": 0,
+        "bestChain": 0,
+        "sequence": 0,
+        "air": null
+      }
+    },
+    {
+      "initialSpeed": 32,
+      "flights": [
+        {
+          "seconds": 0.7999999999999996,
+          "takeoff": {
+            "i": 202,
+            "x": -3279.1746464973958,
+            "y": 264.038816564445,
+            "z": 1459.1222369441243,
+            "speed": 27.78012943600878,
+            "vy": 2.4039821037797156
+          },
+          "landing": {
+            "i": 298,
+            "x": -3297.984028662753,
+            "y": 262.7528170138187,
+            "z": 1470.596959665814,
+            "vy": -5.550679066842337,
+            "up": 0.9600276362764932
+          }
+        },
+        {
+          "seconds": 0.016666666666666666,
+          "takeoff": {
+            "i": 307,
+            "x": -3299.757588141685,
+            "y": 262.3779670515125,
+            "z": 1471.6763651679107,
+            "speed": 28.208474812395032,
+            "vy": -4.990395278745715
+          },
+          "landing": {
+            "i": 309,
+            "x": -3300.1528895033102,
+            "y": 262.29394721162794,
+            "z": 1471.9166236640935,
+            "vy": -5.003633372705303,
+            "up": 0.9973280085358661
+          }
+        }
+      ],
+      "longestAir": 0.7999999999999996,
+      "minUp": 0.9593388986974304,
+      "maxImpact": 0,
+      "offRoad": 0,
+      "peakClearance": 1.0359783698591514,
+      "changes": [
+        {
+          "i": 243,
+          "s": {
+            "phase": "active",
+            "score": 0,
+            "multiplier": 1,
+            "total": 0,
+            "bankRemaining": 0,
+            "label": "AIR · LAND CLEANLY",
+            "lastBank": 0,
+            "sessionTotal": 0,
+            "bestChain": 0,
+            "sequence": 0,
+            "air": {
+              "phase": "airborne",
+              "seconds": 0.35000000000000026,
+              "distance": 9.666963716951656
+            }
+          },
+          "up": 0.9950310259977143,
+          "normalVelocity": 1.1766135370520387,
+          "loads": [0, 0, 0, 0]
+        },
+        {
+          "i": 298,
+          "s": {
+            "phase": "active",
+            "score": 0,
+            "multiplier": 1,
+            "total": 0,
+            "bankRemaining": 0,
+            "label": "LANDING · HOLD YOUR LINE",
+            "lastBank": 0,
+            "sessionTotal": 0,
+            "bestChain": 0,
+            "sequence": 0,
+            "air": {
+              "phase": "landing",
+              "seconds": 0.7999999999999996,
+              "distance": 22.26380194433067
+            }
+          },
+          "up": 0.9600276362764932,
+          "normalVelocity": -2.828632023201717,
+          "loads": [2336.1078632388408, 2050.717972602435, 0, 0]
+        },
+        {
+          "i": 373,
+          "s": {
+            "phase": "active",
+            "score": 230,
+            "multiplier": 1,
+            "total": 230,
+            "bankRemaining": 4,
+            "label": "AIR · CLEAN LANDING",
+            "lastBank": 0,
+            "sessionTotal": 0,
+            "bestChain": 0,
+            "sequence": 0,
+            "air": null
+          },
+          "up": 0.9972486120884646,
+          "normalVelocity": 0.12926301198692539,
+          "loads": [1668.1289843896745, 1763.5076735642597, 1711.453038142533, 1737.1575507683963]
+        }
+      ],
+      "final": {
+        "phase": "active",
+        "score": 230,
+        "multiplier": 1,
+        "total": 230,
+        "bankRemaining": 3.6166666666666663,
+        "label": "AIR · CLEAN LANDING",
+        "lastBank": 0,
+        "sessionTotal": 0,
+        "bestChain": 0,
+        "sequence": 0,
+        "air": null
+      }
+    }
+  ],
+  "interpretation": {
+    "recordOrigin": "Exact JSON measurement output retained from the executed program; metadata added afterward.",
+    "i": "Zero-based tick index after the 120 settling ticks and initial rolling setup.",
+    "initialSpeed": "Controlled initial tangential speed in m/s, not the speed at takeoff.",
+    "longestAir": "Longest continuous interval with no tire carrying more than 20 N.",
+    "peakClearance": "Body centre height above the sampled road/ground, not a rendered tire clearance.",
+    "airDistance": "Horizontal displacement from the last supported body position to first landing contact.",
+    "offRoad": "Count of measured ticks outside the road footprint.",
+    "skills": "Provisional feedback has zero points; only the stable landing adds unbanked driving points. No career reward is claimed.",
+    "limitations": "Automated fixture on one natural crest and one vehicle; no human driving, browser, visual-quality or hardware-performance claim."
+  }
+}
