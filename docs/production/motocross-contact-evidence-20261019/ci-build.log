@@ -1,0 +1,230 @@
+
+> apex-formula-laboratory@0.1.0 lint
+> eslint src tests e2e scripts
+
+
+> apex-formula-laboratory@0.1.0 validate:content
+> node --experimental-transform-types scripts/validate-content.ts
+
+(node:2687) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Content valid
+
+[1m[46m RUN [49m[22m [36mv3.2.4 [39m[90m/home/runner/work/Experiment-3/Experiment-3[39m
+
+ [32m✓[39m tests/motocross-riding.test.ts [2m([22m[2m21 tests[22m[2m)[22m[33m 1062[2mms[22m[39m
+ [32m✓[39m tests/motocross-ai.test.ts [2m([22m[2m16 tests[22m[2m)[22m[33m 6795[2mms[22m[39m
+   [33m[2m✓[22m[39m motocross committed jump handoff[2m > [22mallows a real mx250 clear to settle without treating touchdown as a beached gap rider [33m 403[2mms[22m[39m
+   [33m[2m✓[22m[39m motocross AI rejoining[2m > [22mhelps a beached rider with the exact 4 m/s rolling target without waiting for the slower fallback [33m 910[2mms[22m[39m
+   [33m[2m✓[22m[39m motocross stationary drive effort[2m > [22mpauses effort during passing traffic and assists only after four seconds of actual drive [33m 1147[2mms[22m[39m
+   [33m[2m✓[22m[39m motocross stationary drive effort[2m > [22mkeeps a continuously brake-held traffic queue stationary without assistance [33m 1069[2mms[22m[39m
+   [33m[2m✓[22m[39m motocross stationary drive effort[2m > [22mdiscards earlier effort when a real external push moves the bike [33m 614[2mms[22m[39m
+   [33m[2m✓[22m[39m motocross stationary drive effort[2m > [22mstarts a fresh drive-effort interval after an actual manual remount [33m 834[2mms[22m[39m
+ [32m✓[39m tests/motocross-rider-weight.test.ts [2m([22m[2m14 tests[22m[2m)[22m[33m 2743[2mms[22m[39m
+   [33m[2m✓[22m[39m independent motocross rider weight[2m > [22mreconstructs and resumes an active rider stroke from the real gate via the input journal [33m 1351[2mms[22m[39m
+ [32m✓[39m tests/motocross-environment.test.ts [2m([22m[2m9 tests[22m[2m)[22m[33m 4497[2mms[22m[39m
+   [33m[2m✓[22m[39m reference-informed MX environments[2m > [22mkeeps valley-ridge-mx race lines clear while batching surveyed course furniture [33m 1675[2mms[22m[39m
+   [33m[2m✓[22m[39m reference-informed MX environments[2m > [22mkeeps arena-nord-sx race lines clear while batching surveyed course furniture [33m 659[2mms[22m[39m
+   [33m[2m✓[22m[39m reference-informed MX environments[2m > [22mkeeps render heights exact while adding MX-only grading and a single color decode [33m 1283[2mms[22m[39m
+   [33m[2m✓[22m[39m reference-informed MX environments[2m > [22muses prepared earth rather than the synthetic turf slot for the actual SX course macro [33m 597[2mms[22m[39m
+ [32m✓[39m tests/motocross-mechanics.test.ts [2m([22m[2m16 tests[22m[2m)[22m[33m 1483[2mms[22m[39m
+   [33m[2m✓[22m[39m motocross two-anchor suspension and brake geometry[2m > [22mmx250 high keeps both shock eyes on their actual frame/arm mounts through full suspension travel [33m 322[2mms[22m[39m
+ [32m✓[39m tests/motocross-wheel-pickup.test.ts [2m([22m[2m10 tests[22m[2m)[22m[33m 1835[2mms[22m[39m
+   [33m[2m✓[22m[39m motocross wheel pickup on actual surveyed landings[2m > [22mreconstructs the real manual landing and its wheel channels through the input journal [33m 1262[2mms[22m[39m
+ [32m✓[39m tests/motocross-chain-drive.test.ts [2m([22m[2m15 tests[22m[2m)[22m[33m 776[2mms[22m[39m
+   [33m[2m✓[22m[39m MX chain geometry, snapshot motion and ownership[2m > [22mmx250 high integrates wheel phase, keeps its LOD budget and disposes owned buffers exactly once [33m 304[2mms[22m[39m
+ [32m✓[39m tests/motocross-broadcast-controls.test.ts [2m([22m[2m51 tests[22m[2m)[22m[33m 3612[2mms[22m[39m
+ [32m✓[39m tests/motocross-hud.test.ts [2m([22m[2m15 tests[22m[2m)[22m[32m 101[2mms[22m[39m
+ [32m✓[39m tests/motocross-collision.test.ts [2m([22m[2m11 tests[22m[2m)[22m[33m 6790[2mms[22m[39m
+   [33m[2m✓[22m[39m motocross barriers between adjacent stadium lanes[2m > [22mkeeps the seeded eight-rider stadium start free of spurious high-energy launches [33m 5656[2mms[22m[39m
+   [33m[2m✓[22m[39m motocross barriers between adjacent stadium lanes[2m > [22mreconstructs a projected median contact and its remaining stroke from logged inputs [33m 505[2mms[22m[39m
+ [32m✓[39m tests/motocross-terrain-continuity.test.ts [2m([22m[2m5 tests[22m[2m)[22m[33m 2443[2mms[22m[39m
+   [33m[2m✓[22m[39m continuous motocross terrain lighting and live rut receivers[2m > [22mvalley-ridge-mx keeps shared/lap heights, wear and area normals exact through sparse updates and replay [33m 758[2mms[22m[39m
+   [33m[2m✓[22m[39m continuous motocross terrain lighting and live rut receivers[2m > [22marena-nord-sx keeps shared/lap heights, wear and area normals exact through sparse updates and replay [33m 649[2mms[22m[39m
+   [33m[2m✓[22m[39m continuous motocross terrain lighting and live rut receivers[2m > [22msamples both displayed triangles, shared rows, lap wrap and replay without reading future physical wear [33m 506[2mms[22m[39m
+   [33m[2m✓[22m[39m continuous motocross terrain lighting and live rut receivers[2m > [22mkeeps maximum permitted rut displacement inside fixed bounds without extra GPU attributes [33m 521[2mms[22m[39m
+ [32m✓[39m tests/motocross-contact-traction.test.ts [2m([22m[2m10 tests[22m[2m)[22m[33m 862[2mms[22m[39m
+ [32m✓[39m tests/motocross-body-input.test.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+ [32m✓[39m tests/motocross-soil-transition.test.ts [2m([22m[2m7 tests[22m[2m)[22m[33m 2983[2mms[22m[39m
+   [33m[2m✓[22m[39m MX construction-time soil boundary integration[2m > [22mvalley-ridge-mx uses the same area weights in color, scan layers and displayed base moisture [33m 1668[2mms[22m[39m
+   [33m[2m✓[22m[39m MX construction-time soil boundary integration[2m > [22marena-nord-sx uses the same area weights in color, scan layers and displayed base moisture [33m 1214[2mms[22m[39m
+ [32m✓[39m tests/motocross-venue-integration.test.ts [2m([22m[2m4 tests[22m[2m)[22m[33m 10623[2mms[22m[39m
+   [33m[2m✓[22m[39m full motocross venue construction[2m > [22mvalley-ridge-mx has low marked boundaries without road furniture across its dirt lanes [33m 4192[2mms[22m[39m
+   [33m[2m✓[22m[39m full motocross venue construction[2m > [22marena-nord-sx has low marked boundaries without road furniture across its dirt lanes [33m 2719[2mms[22m[39m
+   [33m[2m✓[22m[39m full motocross venue construction[2m > [22mretains actual paved pit ribbons and both road lighting hardware systems on Aurel [33m 3661[2mms[22m[39m
+[90mstdout[2m | tests/motocross-broadcast-placement.test.ts[2m > [22m[2mcomplete dirt-venue replay-camera hardware[2m > [22m[2mvalley-ridge-mx keeps all 20 actual bases, posts, platforms, rails and heads outside every legal lane
+[22m[39mMX_CAMERA_FOOTPRINT {"venue":"valley-ridge-mx","minimumExpandedEnvelopeClearanceM":0.4,"rigs":[{"rig":0,"nearestLegalVertexGapM":2.7050653208828344,"actualVertices":220},{"rig":1,"nearestLegalVertexGapM":4.303687793987177,"actualVertices":220},{"rig":2,"nearestLegalVertexGapM":4.323555130707525,"actualVertices":220},{"rig":3,"nearestLegalVertexGapM":2.6003954749167875,"actualVertices":220},{"rig":4,"nearestLegalVertexGapM":3.0284850308107947,"actualVertices":220},{"rig":5,"nearestLegalVertexGapM":4.300000023841858,"actualVertices":220},{"rig":6,"nearestLegalVertexGapM":2.916331591520372,"actualVertices":220},{"rig":7,"nearestLegalVertexGapM":4.300000023841858,"actualVertices":220},{"rig":8,"nearestLegalVertexGapM":4.475476493761275,"actualVertices":220},{"rig":9,"nearestLegalVertexGapM":4.300000023841858,"actualVertices":220},{"rig":10,"nearestLegalVertexGapM":4.404661624192204,"actualVertices":220},{"rig":11,"nearestLegalVertexGapM":4.2985695750882735,"actualVertices":220},{"rig":12,"nearestLegalVertexGapM":4.300000023841858,"actualVertices":220},{"rig":13,"nearestLegalVertexGapM":4.300000023841858,"actualVertices":220},{"rig":14,"nearestLegalVertexGapM":4.301261621317898,"actualVertices":220},{"rig":15,"nearestLegalVertexGapM":4.299410581213842,"actualVertices":220},{"rig":16,"nearestLegalVertexGapM":4.300000023841858,"actualVertices":220},{"rig":17,"nearestLegalVertexGapM":4.294104079126259,"actualVertices":220},{"rig":18,"nearestLegalVertexGapM":2.5056579271063653,"actualVertices":220},{"rig":19,"nearestLegalVertexGapM":2.948075903757033,"actualVertices":220}]}
+
+[90mstdout[2m | tests/motocross-broadcast-placement.test.ts[2m > [22m[2mcomplete dirt-venue replay-camera hardware[2m > [22m[2marena-nord-sx keeps all 20 actual bases, posts, platforms, rails and heads outside every legal lane
+[22m[39mMX_CAMERA_FOOTPRINT {"venue":"arena-nord-sx","minimumExpandedEnvelopeClearanceM":0.4,"rigs":[{"rig":0,"nearestLegalVertexGapM":0.8500000238418837,"actualVertices":220},{"rig":1,"nearestLegalVertexGapM":0.8500000238418837,"actualVertices":220},{"rig":2,"nearestLegalVertexGapM":1.014180444905623,"actualVertices":220},{"rig":3,"nearestLegalVertexGapM":2.1944153423252413,"actualVertices":220},{"rig":4,"nearestLegalVertexGapM":2.1674165986126557,"actualVertices":220},{"rig":5,"nearestLegalVertexGapM":0.9264589866786705,"actualVertices":220},{"rig":6,"nearestLegalVertexGapM":1.0000000238418396,"actualVertices":220},{"rig":7,"nearestLegalVertexGapM":0.9002530650113174,"actualVertices":220},{"rig":8,"nearestLegalVertexGapM":1.2530053830131402,"actualVertices":220},{"rig":9,"nearestLegalVertexGapM":1.000000023841836,"actualVertices":220},{"rig":10,"nearestLegalVertexGapM":2.550000023841851,"actualVertices":220},{"rig":11,"nearestLegalVertexGapM":1.7263317195663204,"actualVertices":220},{"rig":12,"nearestLegalVertexGapM":1.3405717287343553,"actualVertices":220},{"rig":13,"nearestLegalVertexGapM":4.800000023841851,"actualVertices":220},{"rig":14,"nearestLegalVertexGapM":0.9000000238418933,"actualVertices":220},{"rig":15,"nearestLegalVertexGapM":4.800000023841858,"actualVertices":220},{"rig":16,"nearestLegalVertexGapM":3.7472432668897317,"actualVertices":220},{"rig":17,"nearestLegalVertexGapM":4.285613953279984,"actualVertices":220},{"rig":18,"nearestLegalVertexGapM":1.6171215932352805,"actualVertices":220},{"rig":19,"nearestLegalVertexGapM":1.2867860851832011,"actualVertices":220}]}
+
+ [32m✓[39m tests/motocross-broadcast-placement.test.ts [2m([22m[2m2 tests[22m[2m)[22m[33m 1791[2mms[22m[39m
+   [33m[2m✓[22m[39m complete dirt-venue replay-camera hardware[2m > [22mvalley-ridge-mx keeps all 20 actual bases, posts, platforms, rails and heads outside every legal lane [33m 1129[2mms[22m[39m
+   [33m[2m✓[22m[39m complete dirt-venue replay-camera hardware[2m > [22marena-nord-sx keeps all 20 actual bases, posts, platforms, rails and heads outside every legal lane [33m 661[2mms[22m[39m
+ [32m✓[39m tests/motocross-roost-contact.test.ts [2m([22m[2m5 tests[22m[2m)[22m[33m 407[2mms[22m[39m
+ [32m✓[39m tests/motocross-camera.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 197[2mms[22m[39m
+ [32m✓[39m tests/motocross-terrain-shadow.test.ts [2m([22m[2m9 tests[22m[2m)[22m[33m 2530[2mms[22m[39m
+   [33m[2m✓[22m[39m material-local MX terrain shadow correction[2m > [22mvalley-ridge-mx casts the same deforming chunks without a second depth mesh [33m 723[2mms[22m[39m
+   [33m[2m✓[22m[39m material-local MX terrain shadow correction[2m > [22marena-nord-sx casts the same deforming chunks without a second depth mesh [33m 646[2mms[22m[39m
+   [33m[2m✓[22m[39m material-local MX terrain shadow correction[2m > [22mkestrel-rx keeps its previous caster/material policy [33m 622[2mms[22m[39m
+   [33m[2m✓[22m[39m material-local MX terrain shadow correction[2m > [22mpinewood-stage keeps its previous caster/material policy [33m 532[2mms[22m[39m
+ [32m✓[39m tests/gp-r5-materials.test.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 70[2mms[22m[39m
+ [32m✓[39m tests/texture-loader-lifecycle.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 161[2mms[22m[39m
+ [32m✓[39m tests/motocross-landing-challenge.test.ts [2m([22m[2m15 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m tests/motocross-mouldings.test.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 242[2mms[22m[39m
+ [32m✓[39m tests/motocross-lever-contact.test.ts [2m([22m[2m4 tests[22m[2m)[22m[33m 731[2mms[22m[39m
+   [33m[2m✓[22m[39m MX lever terminal contact on actual production aluminium triangles[2m > [22mmx250 right terminal intersects its blade through neutral, steered and braking poses [33m 315[2mms[22m[39m
+ [32m✓[39m tests/motocross-soil-morphology.test.ts [2m([22m[2m4 tests[22m[2m)[22m[33m 4712[2mms[22m[39m
+   [33m[2m✓[22m[39m MX material-specific earth structure[2m > [22muses the same integrated valley-ridge-mx cell fractions for material structure without mutating the surface [33m 1588[2mms[22m[39m
+   [33m[2m✓[22m[39m MX material-specific earth structure[2m > [22muses the same integrated arena-nord-sx cell fractions for material structure without mutating the surface [33m 1259[2mms[22m[39m
+   [33m[2m✓[22m[39m MX material-specific earth structure[2m > [22mrewinds wet film, compaction and geometry to before the first export, then restores the same live field [33m 568[2mms[22m[39m
+   [33m[2m✓[22m[39m MX material-specific earth structure[2m > [22mcomposes once with the scanned, groomed and wet material, and excludes rallycross [33m 1296[2mms[22m[39m
+ [32m✓[39m tests/motocross-authored-kit.test.ts [2m([22m[2m11 tests[22m[2m)[22m[33m 1181[2mms[22m[39m
+ [32m✓[39m tests/motocross-equipment-surface.test.ts [2m([22m[2m9 tests[22m[2m)[22m[33m 1667[2mms[22m[39m
+   [33m[2m✓[22m[39m motocross equipment surface and ownership[2m > [22mbends shrouds into a crown while keeping physical thickness, mirrored envelopes and UVs [33m 437[2mms[22m[39m
+   [33m[2m✓[22m[39m motocross equipment surface and ownership[2m > [22mdisposing one MX LOD leaves the shared rubber textures usable by the other LOD [33m 359[2mms[22m[39m
+ [32m✓[39m tests/normal-residency.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m tests/motocross-cockpit-view.test.ts [2m([22m[2m3 tests[22m[2m)[22m[33m 788[2mms[22m[39m
+   [33m[2m✓[22m[39m Motocross production onboard visibility[2m > [22mmx250: clears the number plate and rider while keeping real controls in view [33m 408[2mms[22m[39m
+ [32m✓[39m tests/motocross-race-control.test.ts [2m([22m[2m6 tests[22m[2m)[22m[33m 860[2mms[22m[39m
+ [32m✓[39m tests/motocross-body-pose.test.ts [2m([22m[2m5 tests[22m[2m)[22m[33m 847[2mms[22m[39m
+[90mstdout[2m | tests/motocross-stadium-crowd.test.ts[2m > [22m[2mmotocross stadium audience[2m > [22m[2mdraws every occupied seat once with detailed lower rows below the previous crowd geometry cost
+[22m[39m{"seats":14821,"sculpted":2573,"distant":12248,"meshes":15,"submittedCrowd":1635194,"previousCrowd":4090596,"totalStadiumTriangles":2021554}
+
+ [32m✓[39m tests/motocross-stadium-crowd.test.ts [2m([22m[2m3 tests[22m[2m)[22m[33m 548[2mms[22m[39m
+   [33m[2m✓[22m[39m motocross stadium audience[2m > [22mdraws every occupied seat once with detailed lower rows below the previous crowd geometry cost [33m 382[2mms[22m[39m
+ [32m✓[39m tests/motocross-worked-soil.test.ts [2m([22m[2m3 tests[22m[2m)[22m[33m 2597[2mms[22m[39m
+   [33m[2m✓[22m[39m MX prepared traffic corridor[2m > [22mcarries the real valley-ridge-mx corridor width across mesh chunks without altering the course [33m 777[2mms[22m[39m
+   [33m[2m✓[22m[39m MX prepared traffic corridor[2m > [22mcarries the real arena-nord-sx corridor width across mesh chunks without altering the course [33m 666[2mms[22m[39m
+   [33m[2m✓[22m[39m MX prepared traffic corridor[2m > [22mkeeps prepared width and shader resources stable through terrain recording, holding and rewinding [33m 1153[2mms[22m[39m
+ [32m✓[39m tests/motocross-rhythm-coach.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 137[2mms[22m[39m
+ [32m✓[39m tests/motocross-presentation.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 67[2mms[22m[39m
+ [32m✓[39m tests/motocross-thermal.test.ts [2m([22m[2m3 tests[22m[2m)[22m[33m 539[2mms[22m[39m
+ [32m✓[39m tests/motocross-grid-preparation.test.ts [2m([22m[2m2 tests[22m[2m)[22m[33m 441[2mms[22m[39m
+ [32m✓[39m tests/gp-engine-braking.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 65[2mms[22m[39m
+ [32m✓[39m tests/motocross-uv-footprint.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 40[2mms[22m[39m
+ [32m✓[39m tests/motocross-roost-budget.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 108[2mms[22m[39m
+ [32m✓[39m tests/motocross-brake-cue.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m tests/motocross-shoulder-recovery.test.ts [2m([22m[2m2 tests[22m[2m)[22m[33m 1447[2mms[22m[39m
+   [33m[2m✓[22m[39m motocross shoulder recovery with intermittent wheel-speed pulses[2m > [22mrecovers a beached mx250 without waiting for repeated speed pulses [33m 855[2mms[22m[39m
+   [33m[2m✓[22m[39m motocross shoulder recovery with intermittent wheel-speed pulses[2m > [22mrecovers a beached mx450 without waiting for repeated speed pulses [33m 591[2mms[22m[39m
+ [32m✓[39m tests/motocross-reference-review.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m43 passed[39m[22m[90m (43)[39m
+[2m      Tests [22m [1m[32m376 passed[39m[22m[90m (376)[39m
+[2m   Start at [22m 18:21:36
+[2m   Duration [22m 100.14s[2m (transform 2.29s, setup 0ms, collect 24.35s, tests 68.82s, environment 7ms, prepare 2.65s)[22m
+
+
+> apex-formula-laboratory@0.1.0 prebuild
+> npm run generate:player-lods
+
+
+> apex-formula-laboratory@0.1.0 generate:player-lods
+> node --experimental-strip-types scripts/build-player-lods.mjs
+
+(node:3817) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+mesh 0: 32262 -> 8860 near triangles
+mesh 1: 50456 -> 29174 near triangles
+mesh 2: 241852 -> 131054 near triangles
+mesh 3: 44752 -> 10318 near triangles
+mesh 4: 2 -> 2 near triangles
+mesh 5: 7108 -> 2946 near triangles
+mesh 6: 504 -> 416 near triangles
+mesh 7: 752047 -> 406205 near triangles
+mesh 8: 51920 -> 47482 near triangles
+mesh 9: 21133 -> 21025 near triangles
+mesh 10: 38706 -> 37002 near triangles
+mesh 11: 51680 -> 39384 near triangles
+mesh 12: 51680 -> 39342 near triangles
+mesh 13: 51680 -> 39360 near triangles
+mesh 14: 51680 -> 39396 near triangles
+mesh 15: 108 -> 108 near triangles
+mesh 16: 108 -> 108 near triangles
+mesh 17: 7440 -> 3472 near triangles
+{
+  "version": 2,
+  "generator": "meshoptimizer@0.25.0 / exact livery surfaces, locked seams, opaque triangle cache order",
+  "sourceSHA256": "013a47f059bf34a0a28bd31ae8f407f07ed6e2b55755753aed9a942c895e132b",
+  "sha256": "2bcd661c78be3df21090c042c43ffd2fb828b9db42465d1fd4111fac8d48437d",
+  "compressedSHA256": "1553e32eef4a6f89d02fb8f44a45f000620ee8539466d41704654e5f5dd09b58",
+  "bytes": 13037000,
+  "compressedBytes": 4213368,
+  "primitives": 172,
+  "triangles": [
+    1455118,
+    855654,
+    814806,
+    797386
+  ],
+  "cacheModel": {
+    "name": "FIFO-16 vertex misses, not hardware timings",
+    "levels": [
+      {
+        "before": 992010,
+        "after": 622914
+      },
+      {
+        "before": 952099,
+        "after": 595999
+      },
+      {
+        "before": 933925,
+        "after": 583328
+      }
+    ]
+  },
+  "levels": [
+    {
+      "name": "efficient-close",
+      "ratio": 0.15,
+      "error": 0.002
+    },
+    {
+      "name": "medium",
+      "ratio": 0.075,
+      "error": 0.006
+    },
+    {
+      "name": "distant",
+      "ratio": 0.025,
+      "error": 0.012
+    }
+  ]
+}
+
+> apex-formula-laboratory@0.1.0 build
+> tsc --noEmit && vite build
+
+[36mvite v7.1.7 [32mbuilding for production...[36m[39m
+transforming...
+[32m✓[39m 715 modules transformed.
+rendering chunks...
+computing gzip size...
+[2mdist/[22m[32mBUILD_IDENTITY.json                                 [39m[1m[2m     0.16 kB[22m[1m[22m[2m │ gzip:     0.14 kB[22m
+[2mdist/[22m[32mindex.html                                          [39m[1m[2m     0.96 kB[22m[1m[22m[2m │ gzip:     0.54 kB[22m
+[2mdist/[22m[2massets/[22m[32msaira-vietnamese-wdth-normal-Dabr_kLY.woff2  [39m[1m[2m    26.80 kB[22m[1m[22m
+[2mdist/[22m[2massets/[22m[32msaira-vietnamese-wdth-italic-52KPIsOu.woff2  [39m[1m[2m    29.93 kB[22m[1m[22m
+[2mdist/[22m[2massets/[22m[32msaira-latin-ext-wdth-normal-3Ba4ICIc.woff2   [39m[1m[2m    67.19 kB[22m[1m[22m
+[2mdist/[22m[2massets/[22m[32msaira-latin-ext-wdth-italic-CqU2kHDy.woff2   [39m[1m[2m    77.37 kB[22m[1m[22m
+[2mdist/[22m[2massets/[22m[32msaira-latin-wdth-normal-X2eA-qfZ.woff2       [39m[1m[2m    98.91 kB[22m[1m[22m
+[2mdist/[22m[2massets/[22m[32msaira-latin-wdth-italic-wJlFlYW8.woff2       [39m[1m[2m   116.24 kB[22m[1m[22m
+[2mdist/[22m[2massets/[22m[32ma61-rival-far.glb-ClvD6mFa.gz                [39m[1m[2m   161.38 kB[22m[1m[22m
+[2mdist/[22m[2massets/[22m[32mapx01-driver.glb-CNKxI3ag.gz                 [39m[1m[2m   209.40 kB[22m[1m[22m
+[2mdist/[22m[2massets/[22m[32ma61-rival-mid.glb-CAutdD2Z.gz                [39m[1m[2m   397.76 kB[22m[1m[22m
+[2mdist/[22m[2massets/[22m[32mapx01-shell.glb-B2AhAkfx.gz                  [39m[1m[2m 1,142.77 kB[22m[1m[22m
+[2mdist/[22m[2massets/[22m[32ma61-rival-near.glb-DNe8_BZp.gz               [39m[1m[2m 1,219.90 kB[22m[1m[22m
+[2mdist/[22m[2massets/[22m[35mfree-roam-CaL1vEix.css                       [39m[1m[2m    18.72 kB[22m[1m[22m[2m │ gzip:     4.72 kB[22m
+[2mdist/[22m[2massets/[22m[35mindex-DsWC2xfY.css                           [39m[1m[2m    74.66 kB[22m[1m[22m[2m │ gzip:    17.14 kB[22m
+[2mdist/[22m[2massets/[22m[36mthree-p391b5-I.js                            [39m[1m[33m   617.63 kB[39m[22m[2m │ gzip:   158.93 kB[22m[2m │ map: 2,889.65 kB[22m
+[2mdist/[22m[2massets/[22m[36mfree-roam-DjvJOhho.js                        [39m[1m[33m 1,275.25 kB[39m[22m[2m │ gzip:   337.85 kB[22m[2m │ map: 1,045.05 kB[22m
+[2mdist/[22m[2massets/[22m[36mindex-BUuaOjfT.js                            [39m[1m[33m15,386.33 kB[39m[22m[2m │ gzip: 4,615.81 kB[22m[2m │ map: 9,056.09 kB[22m
+[33m
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.[39m
+[32m✓ built in 15.43s[39m
+(node:2636) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)

@@ -1,0 +1,329 @@
+{
+  "schemaVersion": 1,
+  "evidenceKind": "controlled-motocross-component-browser-validation",
+  "createdUTC": "2026-10-19T18:27:53Z",
+  "run": {
+    "status": "passed",
+    "exitCode": 0,
+    "playwrightInvocations": 1,
+    "testCases": 2,
+    "passed": 2,
+    "failed": 0,
+    "skipped": 0,
+    "flaky": 0,
+    "startUTC": "2026-10-19T17:46:37.770Z",
+    "reporterCompletedUTC": "2026-10-19T17:52:28.162Z",
+    "durationMs": 350212.127,
+    "command": "./node_modules/.bin/playwright test e2e/50-motocross-terrain-continuity.spec.ts e2e/51-motocross-roost-lighting.spec.ts --workers=1 --output=/tmp/motocross-component-browser",
+    "environment": {
+      "PLAYWRIGHT_BROWSERS_PATH": "/tmp/motobound-browsers",
+      "CHROMIUM_PATH": "/tmp/motobound-browsers/chromium-1193/chrome-linux/chrome",
+      "PLAYWRIGHT_HTML_OUTPUT_DIR": "/tmp/motocross-component-browser-report"
+    },
+    "configuration": {
+      "file": "playwright.config.ts",
+      "modifiedForRun": false,
+      "workers": 1,
+      "testTimeoutMs": 300000,
+      "expectTimeoutMs": 60000,
+      "retries": 0,
+      "headless": true,
+      "xvfbUsed": false
+    },
+    "cases": [
+      {
+        "file": "e2e/50-motocross-terrain-continuity.spec.ts",
+        "title": "MX and SX display continuous lit receiver normals across worn chunk edges",
+        "status": "passed",
+        "durationMs": 231406
+      },
+      {
+        "file": "e2e/51-motocross-roost-lighting.spec.ts",
+        "title": "opaque motocross soil fragments respond to scene lighting while dust and contact remain bounded",
+        "status": "passed",
+        "durationMs": 67645
+      }
+    ],
+    "logReceipt": {
+      "file": "motocross-component-browser.log",
+      "bytes": 3147,
+      "sha256": "09a99f8406fe396a2db77f7fbf5c63a85647e84c1667f7b7e1bc38f380982fcc"
+    }
+  },
+  "provenance": {
+    "gitHeadDuringRun": "c1827511146611c8049569b555d40ea5719936c7",
+    "headEvidence": "Local reflog kept HEAD at c182751 from 2026-10-19T17:39:22Z until 2026-10-19T18:08:23Z; HEAD alone does not establish a clean worktree.",
+    "fixtureBuild": {
+      "kind": "Vite in-memory IIFE from worktree",
+      "configFile": false,
+      "write": false,
+      "fullWorktreeSnapshotRecorded": false,
+      "iifeContentHashRecorded": false,
+      "exactFullTreeValidatedCommit": null
+    },
+    "provenanceLimit": "Physics follow-up edits may have been underway during the run. Component rendering/spec/fixture files remained unchanged according to root coordination, and the selected source manifest proves their published blob equality. It does not retrospectively prove a pristine complete c182751 worktree or validate the full later cc7cb7 tree.",
+    "hostDistribution": {
+      "observedBuildIdentity": {
+        "version": 1,
+        "commit": "c1827511146611c8049569b555d40ea5719936c7",
+        "fingerprint": "6140b3e293ee8267ae3b55fe64271496d486fac21cdc1f23e47c8d4d0248d65d"
+      },
+      "identityEvidence": "Root read the original dist/BUILD_IDENTITY.json after the successful build; its fields are reported here. The component harness did not preserve that identity file.",
+      "buildExitCode": 0,
+      "buildDurationReported": "5m 29s",
+      "buildLogReceipt": {
+        "file": "motocross-vite-build.log",
+        "bytes": 1956,
+        "sha256": "c0b8ddef36eba52e56b1ed82c3e77244062ff53a8284b25c4b8235263ec5d0f2"
+      },
+      "role": "Local preview asset host. Specs substitute the page and inject separately bundled component IIFEs.",
+      "identifiesFixtureBundle": false
+    },
+    "laterPublishedCommit": "cc7cb7ff19759609402d58a34af037a68fbe841d",
+    "selectedSourceComparison": {
+      "fromCommit": "c1827511146611c8049569b555d40ea5719936c7",
+      "toCommit": "cc7cb7ff19759609402d58a34af037a68fbe841d",
+      "equalGitBlobCount": 35,
+      "allListedBlobsEqual": true,
+      "manifestFile": "component-source-manifest.json"
+    },
+    "toolchain": {
+      "three": "0.180.0",
+      "playwright": "1.55.1",
+      "vite": "7.1.7"
+    }
+  },
+  "graphicsBackend": {
+    "requested": "swiftshader",
+    "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+    "vendor": "Google Inc. (Google)",
+    "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+    "pixel": [
+      64,
+      128,
+      191,
+      255
+    ],
+    "error": 0,
+    "softwareRendererDetected": true,
+    "physicalHardwareValidated": false
+  },
+  "pixelHashAlgorithm": "Unsigned FNV-1a 32-bit over full RGBA gl.readPixels bytes; separate SHA-256 values fingerprint the saved PNG file bytes.",
+  "terrain": [
+    {
+      "circuit": "valley-ridge-mx",
+      "diagnosticsFile": "valley-ridge-mx-terrain-continuity.json",
+      "selectedStationMetres": 192,
+      "selectedLateralMetres": 2,
+      "maximumSharedEdgeNormalDifference": {
+        "continuous": 0,
+        "independentPerStrip": 0.3299245178169518
+      },
+      "rgbaPixelHashes": {
+        "continuous-area-normals": 999063745,
+        "independent-strip-normals": 635600643,
+        "continuous-restored": 999063745
+      },
+      "drawCallsPerCapture": 7,
+      "trianglesPerCapture": 63200,
+      "resourcesPerCapture": {
+        "geometries": 7,
+        "textures": 10,
+        "programs": 1
+      },
+      "resourcesAndDrawCountsUnchangedAcrossComparison": true,
+      "allGlErrorsZero": true,
+      "simulationTerrainUnchanged": true,
+      "scannedGround": {
+        "preset": "high",
+        "failed": [],
+        "normalResidency": {
+          "dryEarth": "source",
+          "wetEarth": "source",
+          "meadow": "source",
+          "gravel": "source",
+          "forest": "source"
+        }
+      }
+    },
+    {
+      "circuit": "arena-nord-sx",
+      "diagnosticsFile": "arena-nord-sx-terrain-continuity.json",
+      "selectedStationMetres": 384,
+      "selectedLateralMetres": -1,
+      "maximumSharedEdgeNormalDifference": {
+        "continuous": 0,
+        "independentPerStrip": 0.241241065797349
+      },
+      "rgbaPixelHashes": {
+        "continuous-area-normals": 1779801152,
+        "independent-strip-normals": 651880696,
+        "continuous-restored": 1779801152
+      },
+      "drawCallsPerCapture": 7,
+      "trianglesPerCapture": 45446,
+      "resourcesPerCapture": {
+        "geometries": 7,
+        "textures": 6,
+        "programs": 1
+      },
+      "resourcesAndDrawCountsUnchangedAcrossComparison": true,
+      "allGlErrorsZero": true,
+      "simulationTerrainUnchanged": true,
+      "scannedGround": {
+        "preset": "high",
+        "failed": [],
+        "normalResidency": {
+          "dryEarth": "source",
+          "wetEarth": "source",
+          "meadow": "source",
+          "gravel": "source",
+          "forest": "source"
+        }
+      }
+    }
+  ],
+  "roost": [
+    {
+      "condition": "dry",
+      "diagnosticsFile": "dry-roost-lighting.json",
+      "activeParticles": 154,
+      "solidClods": 104,
+      "sharedParticleCapacity": 2400,
+      "rgbaPixelHashes": {
+        "dry-soil-contact": 2092647098,
+        "fragments-lit-from-left": 309623506,
+        "fragments-lit-from-right": 648306389,
+        "fragments-held": 648306389,
+        "fragments-hidden": 1101933253
+      },
+      "wholeContactFixture": {
+        "drawCalls": 4,
+        "triangles": 6692
+      },
+      "isolatedClods": {
+        "drawCalls": 1,
+        "triangles": 2080,
+        "trianglesPerClod": 20
+      },
+      "clodsHidden": {
+        "drawCalls": 0,
+        "triangles": 0
+      },
+      "resourcesPerCapture": {
+        "geometries": 4,
+        "textures": 1
+      },
+      "resourcesUnchangedAcrossCaptures": true,
+      "allGlErrorsZero": true,
+      "inputSnapshotUnchanged": true
+    },
+    {
+      "condition": "wet",
+      "diagnosticsFile": "wet-roost-lighting.json",
+      "activeParticles": 144,
+      "solidClods": 144,
+      "sharedParticleCapacity": 2400,
+      "rgbaPixelHashes": {
+        "wet-soil-contact": 3154437639,
+        "fragments-lit-from-left": 2694048867,
+        "fragments-lit-from-right": 480028802,
+        "fragments-held": 480028802,
+        "fragments-hidden": 1101933253
+      },
+      "wholeContactFixture": {
+        "drawCalls": 4,
+        "triangles": 7492
+      },
+      "isolatedClods": {
+        "drawCalls": 1,
+        "triangles": 2880,
+        "trianglesPerClod": 20
+      },
+      "clodsHidden": {
+        "drawCalls": 0,
+        "triangles": 0
+      },
+      "resourcesPerCapture": {
+        "geometries": 4,
+        "textures": 1
+      },
+      "resourcesUnchangedAcrossCaptures": true,
+      "allGlErrorsZero": true,
+      "inputSnapshotUnchanged": true
+    }
+  ],
+  "visualReview": {
+    "capturedPngsReviewed": 10,
+    "findings": [
+      "Corrected receiver images retain continuous rut-shoulder shading under the controlled lights.",
+      "Clods remain opaque and visibly change illuminated faces with key-light direction; wet roost is darker with suppressed dust.",
+      "Clods are visibly faceted at the fixture close-up scale; these captures do not establish completed photorealism."
+    ],
+    "valleyDottedForegroundColumn": {
+      "comparison": "continuous-area-normals versus independent-strip-normals",
+      "regionPixels": {
+        "minimumInclusiveXY": [
+          385,
+          450
+        ],
+        "maximumExclusiveXY": [
+          430,
+          680
+        ]
+      },
+      "pixelCount": 10350,
+      "changedPixels": 0,
+      "maximumRgbChannelDifference": 0,
+      "conclusion": "The conspicuous lower dotted column is identical in the comparator; it was not introduced by the normal correction."
+    }
+  },
+  "scope": {
+    "terrainFixture": "Production TerrainView with scanned soil, synthetic displayed wear and wetness, a controlled directional/hemisphere light, and no full venue dressing. Comparator changes only strip normals while retaining identical displayed positions and materials.",
+    "roostFixture": "Production Roost driven by a held synthetic snapshot, controlled lights and a simple terrain-shaped receiver. Whole-contact draw totals include floor, dust, clods and contact shadows; standalone contact-shadow and terrain-query counts were not captured.",
+    "notValidated": [
+      "Full menu-to-race/gameplay flow",
+      "Arena Nord actual night-lamp presentation",
+      "Rider/physics recovery behavior at the later published commit",
+      "Full final-commit source tree",
+      "Hardware GPU performance or frame rate",
+      "Completed photorealism"
+    ]
+  },
+  "evidence": {
+    "compactEvidenceDirectory": "motocross-component-evidence",
+    "imagesCopiedIntoCompactEvidence": true,
+    "attachmentManifest": {
+      "file": "attachment-sha256-manifest.json",
+      "bytes": 3187,
+      "sha256": "b06fa2fed50a1bcbd5b74ddb214c3c600128587d37cceb39727443620b0956d4"
+    },
+    "sourceManifest": {
+      "file": "component-source-manifest.json",
+      "bytes": 7876,
+      "sha256": "50ea6ef9c4a072e6b307a9c2f6e8910f66b30cef05eeee81aa2113db5d1b4dc7"
+    },
+    "backendReceipt": {
+      "file": "browser-backend.json",
+      "bytes": 369,
+      "sha256": "f1537375721c6a9664c673b9545e728c2aff3d053640088891e5324577a93ccf"
+    },
+    "reportReceipt": {
+      "file": "report-summary.json",
+      "bytes": 2895,
+      "sha256": "b4464a8777244932a33bd58721e055e9284c9981dcd572e4b6024b21db0e3da9"
+    },
+    "diagnosticJsonFiles": [
+      "valley-ridge-mx-terrain-continuity.json",
+      "arena-nord-sx-terrain-continuity.json",
+      "dry-roost-lighting.json",
+      "wet-roost-lighting.json"
+    ],
+    "retainedOriginalImages": [
+      "dry-dry-soil-contact.png",
+      "wet-wet-soil-contact.png"
+    ],
+    "imageRetentionScope": "Two of the ten original PNG attachments are retained without modification. The attachment manifest records all original attachment hashes; the other eight PNGs are not retained here.",
+    "preRetentionSummarySha256": "db616d8c11fdcb96765e862059aac02401030e09da8786c3d74ac8417b5463fa"
+  }
+}

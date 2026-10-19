@@ -1,0 +1,182 @@
+{
+  "scope": "Local development verification; final published-source CI is recorded separately",
+  "tests": [
+    {
+      "scope": "Eight-file motocross development regression",
+      "sourceReceipt": "motocross-focused-results.json",
+      "sourceReceiptSha256": "2651c97962b901714b1208cfc53fd1715c3ba98d056ba1d6cfa9caa4e097f7d6",
+      "recordedExitCode": 0,
+      "passed": 75,
+      "failed": 0,
+      "filteredOrPending": 0,
+      "success": true,
+      "files": [
+        {
+          "path": "tests/motocross-contact-traction.test.ts",
+          "status": "passed",
+          "durationMs": 9497.913,
+          "failures": []
+        },
+        {
+          "path": "tests/motocross-environment.test.ts",
+          "status": "passed",
+          "durationMs": 229313.18,
+          "failures": []
+        },
+        {
+          "path": "tests/motocross-rider-weight.test.ts",
+          "status": "passed",
+          "durationMs": 64431.871,
+          "failures": []
+        },
+        {
+          "path": "tests/motocross-riding.test.ts",
+          "status": "passed",
+          "durationMs": 33796.001,
+          "failures": []
+        },
+        {
+          "path": "tests/motocross-roost-budget.test.ts",
+          "status": "passed",
+          "durationMs": 966.082,
+          "failures": []
+        },
+        {
+          "path": "tests/motocross-roost-contact.test.ts",
+          "status": "passed",
+          "durationMs": 3281.24,
+          "failures": []
+        },
+        {
+          "path": "tests/motocross-terrain-continuity.test.ts",
+          "status": "passed",
+          "durationMs": 19817.975,
+          "failures": []
+        },
+        {
+          "path": "tests/motocross-wheel-pickup.test.ts",
+          "status": "passed",
+          "durationMs": 42161.122,
+          "failures": []
+        }
+      ]
+    },
+    {
+      "scope": "Final integrated physics-v7 identity regression",
+      "sourceReceipt": "motocross-v7-identity-results.json",
+      "sourceReceiptSha256": "d01ea9caf02190e69d885c745a591c2583fff20a199a06e2f65f5761a6d42bb6",
+      "recordedExitCode": 0,
+      "passed": 10,
+      "failed": 0,
+      "filteredOrPending": 0,
+      "success": true,
+      "files": [
+        {
+          "path": "tests/session-identity.test.ts",
+          "status": "passed",
+          "durationMs": 34.111,
+          "failures": []
+        }
+      ]
+    },
+    {
+      "scope": "Active deep-contact input-journal reconstruction and continuation",
+      "sourceReceipt": "motocross-contact-restore-results.json",
+      "sourceReceiptSha256": "3f0a1ee39ee7520ad9ef5cf12f795136a2d76db9c1655ca8ce6f826602dbd574",
+      "recordedExitCode": 0,
+      "passed": 1,
+      "failed": 0,
+      "filteredOrPending": 10,
+      "success": true,
+      "files": [
+        {
+          "path": "tests/motocross-collision.test.ts",
+          "status": "passed",
+          "durationMs": 2477.034,
+          "failures": []
+        }
+      ]
+    },
+    {
+      "scope": "Post-fix collision/contact run with unchanged deadlines",
+      "sourceReceipt": "motocross-collision-contact-results.json",
+      "sourceReceiptSha256": "62758529a959f0a7219dc63e17097daf275e0364b59ae396953736931ec061a7",
+      "recordedExitCode": 1,
+      "passed": 19,
+      "failed": 1,
+      "filteredOrPending": 0,
+      "success": false,
+      "files": [
+        {
+          "path": "tests/motocross-collision.test.ts",
+          "status": "failed",
+          "durationMs": 141409.891,
+          "failures": [
+            {
+              "name": "motocross barriers between adjacent stadium lanes keeps the seeded eight-rider stadium start free of spurious high-energy launches",
+              "messages": [
+                "Error: STACK_TRACE_ERROR\n    at task (file:///workspace/scratch/a41e0b61e85a/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:638:27)\n    at Object.<anonymous> (file:///workspace/scratch/a41e0b61e85a/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:662:16)\n    at Object.<anonymous> (file:///workspace/scratch/a41e0b61e85a/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:458:28)\n    at chain (file:///workspace/scratch/a41e0b61e85a/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:369:14)\n    at /workspace/scratch/a41e0b61e85a/Experiment-3/tests/motocross-collision.test.ts:119:3\n    at file:///workspace/scratch/a41e0b61e85a/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:734:40\n    at runWithSuite (file:///workspace/scratch/a41e0b61e85a/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1849:8)\n    at Object.collect (file:///workspace/scratch/a41e0b61e85a/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:734:10)\n    at Object.collect (file:///workspace/scratch/a41e0b61e85a/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:738:54)\n    at collectTests (file:///workspace/scratch/a41e0b61e85a/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1179:25)\n    at startTests (file:///workspace/scratch/a41e0b61e85a/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1817:17)\n    at file:///workspace/scratch/a41e0b61e85a/Experiment-3/node_modules/vitest/dist/chunks/runBaseTests.9Ij9_de-.js:117:26\n    at withEnv (file:///workspace/scratch/a41e0b61e85a/Experiment-3/node_modules/vitest/dist/chunks/runBaseTests.9Ij9_de-.js:84:3)\n    at run (file:///workspace/scratch/a41e0b61e85a/Experiment-3/node_modules/vitest/dist/chunks/runBaseTests.9Ij9_de-.js:109:2)\n    at runBaseTests (file"
+              ]
+            }
+          ]
+        },
+        {
+          "path": "tests/motocross-contact-traction.test.ts",
+          "status": "passed",
+          "durationMs": 7588.175,
+          "failures": []
+        }
+      ]
+    }
+  ],
+  "contactReplayProbe": {
+    "at": 30,
+    "projectedTicks": 2,
+    "entries": 2,
+    "crashes": 1,
+    "restored": true,
+    "resumed": true
+  },
+  "contactRecoveryProbe": [
+    {
+      "id": "mx450",
+      "assist": "raw",
+      "highestMetres": 4.361389699904493,
+      "maxAbsVerticalSpeedMetresPerSecond": 6.7099982404227205,
+      "projectedSubsteps": 6,
+      "crashes": 1,
+      "endedAirborne": false,
+      "retired": false
+    },
+    {
+      "id": "mx450",
+      "assist": "sport",
+      "highestMetres": 4.304774949589426,
+      "maxAbsVerticalSpeedMetresPerSecond": 6.5036480204415,
+      "projectedSubsteps": 8,
+      "crashes": 1,
+      "endedAirborne": false,
+      "retired": false
+    },
+    {
+      "id": "mx250",
+      "assist": "raw",
+      "highestMetres": 5.999501592602193,
+      "maxAbsVerticalSpeedMetresPerSecond": 9.895643718378617,
+      "projectedSubsteps": 10,
+      "crashes": 1,
+      "endedAirborne": false,
+      "retired": false
+    },
+    {
+      "id": "mx250",
+      "assist": "sport",
+      "highestMetres": 5.996561173102466,
+      "maxAbsVerticalSpeedMetresPerSecond": 9.927518770258871,
+      "projectedSubsteps": 10,
+      "crashes": 1,
+      "endedAirborne": false,
+      "retired": false
+    }
+  ]
+}

@@ -1,0 +1,261 @@
+{
+  "schemaVersion": 1,
+  "observedAtUtc": "2026-10-19 18:47:25 UTC",
+  "source": {
+    "commit": "cc7cb7ff19759609402d58a34af037a68fbe841d",
+    "parent": "7d997e7046ee1537ee7e842ac68315d18276757d",
+    "tree": "8b0ae8e2c51fcbf054002ab4773bfafbe1e6bcf8"
+  },
+  "workflow": {
+    "id": 39301590589,
+    "name": "Motocross committed-source review",
+    "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39301590589",
+    "event": "push",
+    "headSha": "cc7cb7ff19759609402d58a34af037a68fbe841d"
+  },
+  "prepareJob": {
+    "id": 118227894514,
+    "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39301590589/job/118227894514",
+    "status": "completed",
+    "conclusion": "success",
+    "startedAt": "2026-10-19T18:20:17Z",
+    "completedAt": "2026-10-19T18:24:05Z",
+    "validationStep": {
+      "name": "Lint, content, motocross contracts and the production build",
+      "conclusion": "success",
+      "startedAt": "2026-10-19T18:21:12Z",
+      "completedAt": "2026-10-19T18:23:57Z"
+    }
+  },
+  "checks": {
+    "nativeAssetReproduction": "passed",
+    "fullLint": {
+      "status": "passed",
+      "command": "eslint src tests e2e scripts"
+    },
+    "contentValidation": {
+      "status": "passed",
+      "command": "npm run validate:content"
+    },
+    "focusedUnitSuite": {
+      "status": "passed",
+      "files": 43,
+      "tests": 376,
+      "durationSeconds": 100.14,
+      "command": "npx vitest run tests/motocross-*.test.ts tests/normal-residency.test.ts tests/texture-loader-lifecycle.test.ts tests/gp-r5-materials.test.ts tests/gp-engine-braking.test.ts",
+      "collision": {
+        "file": "tests/motocross-collision.test.ts",
+        "tests": 11,
+        "status": "passed",
+        "durationSeconds": 6.79
+      },
+      "terrainContinuity": {
+        "tests": 5,
+        "status": "passed"
+      },
+      "roostContact": {
+        "tests": 5,
+        "status": "passed"
+      },
+      "roostBudget": {
+        "tests": 1,
+        "status": "passed"
+      }
+    },
+    "typescript": {
+      "status": "passed",
+      "command": "tsc --noEmit"
+    },
+    "productionBuild": {
+      "status": "passed",
+      "command": "vite build",
+      "viteDurationSeconds": 15.43
+    },
+    "sourceStability": {
+      "prepareCompoundCommand": "passed",
+      "postCommandGitDiff": "passed",
+      "browserReceiptExercise": "Journey generated the root backend receipt without a mutation diagnostic; its original initial-menu assertion failed.",
+      "receiptUnitSuite": "tests/source-stability.test.ts is not included in the focused prepare glob"
+    },
+    "shippedNormalMipVerification": "passed in models-world job"
+  },
+  "buildIdentity": {
+    "version": 1,
+    "commit": "cc7cb7ff19759609402d58a34af037a68fbe841d",
+    "fingerprint": "1e90ebc8e4a2969d6ef8882bde78152f16a9dee5b2e3d5edb80494d2a1da984c"
+  },
+  "sourceCommitReceipt": "cc7cb7ff19759609402d58a34af037a68fbe841d",
+  "proofArchive": {
+    "path": "/tmp/motocross-final-build-proof-cc7cb7ff.zip",
+    "bytes": 234138,
+    "sha256": "4956c8322668e83b017d287ab7a32c607760cb83554f0d89e02759f4b78c8935",
+    "digestVerified": true,
+    "entries": 7,
+    "identityEntry": "BUILD_IDENTITY.json",
+    "sourceEntry": "source-commit.txt"
+  },
+  "artifacts": [
+    {
+      "id": 12212876175,
+      "name": "motocross-committed-qa-journey",
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39301590589/artifacts/12212876175",
+      "bytes": 70995665,
+      "digest": "sha256:b99303a66ed1d65eb68eb3bd87d3a6aaa510a52451cd9c1ffd0dc87a1e972deb",
+      "headSha": "cc7cb7ff19759609402d58a34af037a68fbe841d",
+      "createdAt": "2026-10-19T18:36:39Z",
+      "expiresAt": "2026-11-02T18:36:36Z"
+    },
+    {
+      "id": 12211847787,
+      "name": "motocross-committed-build-proof",
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39301590589/artifacts/12211847787",
+      "bytes": 234138,
+      "digest": "sha256:4956c8322668e83b017d287ab7a32c607760cb83554f0d89e02759f4b78c8935",
+      "headSha": "cc7cb7ff19759609402d58a34af037a68fbe841d",
+      "createdAt": "2026-10-19T18:23:58Z",
+      "expiresAt": "2026-11-02T18:23:57Z"
+    },
+    {
+      "id": 12210789154,
+      "name": "motocross-committed-web",
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39301590589/artifacts/12210789154",
+      "bytes": 191736726,
+      "digest": "sha256:638a3defcc21ad49c45c4e36a739cee9adfb8b8f493c306e2cb643c4397df55a",
+      "headSha": "cc7cb7ff19759609402d58a34af037a68fbe841d",
+      "createdAt": "2026-10-19T18:24:02Z",
+      "expiresAt": "2026-10-26T18:23:59Z"
+    }
+  ],
+  "browserJobs": [
+    {
+      "id": 118229908361,
+      "name": "browser (journey)",
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39301590589/job/118229908361",
+      "status": "completed",
+      "conclusion": "failure",
+      "startedAt": "2026-10-19T18:30:31Z",
+      "completedAt": "2026-10-19T18:36:42Z",
+      "activeSteps": [],
+      "failedSteps": [
+        "Original full-quality world and real-input acceptance assertions"
+      ]
+    },
+    {
+      "id": 118229908396,
+      "name": "browser (models-world)",
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39301590589/job/118229908396",
+      "status": "in_progress",
+      "conclusion": null,
+      "startedAt": "2026-10-19T18:29:24Z",
+      "completedAt": null,
+      "activeSteps": [
+        "Original full-quality world and real-input acceptance assertions"
+      ],
+      "failedSteps": []
+    }
+  ],
+  "logEvidence": [
+    "2026-10-19T18:22:15.5711647Z  \u2713 tests/motocross-collision.test.ts (11 tests) 6790ms",
+    "2026-10-19T18:23:16.8344812Z  Test Files  43 passed (43)",
+    "2026-10-19T18:23:16.8345753Z       Tests  376 passed (376)",
+    "2026-10-19T18:23:57.0190144Z \u2713 built in 15.43s"
+  ],
+  "limitations": [
+    "The CI journey failed before motocross selection; no actual motocross gameplay was validated by that journey.",
+    "Models-world browser job last observed in_progress, conclusion not yet available; observation stopped at sealing time without waiting for additional cases or cancelling CI.",
+    "The 191,736,726-byte web artifact was not downloaded. The proof and journey QA ZIPs were downloaded and SHA-256 verified."
+  ],
+  "localBuildIdentityComparison": {
+    "localPath": "/workspace/scratch/a41e0b61e85a/Experiment-3/dist/BUILD_IDENTITY.json",
+    "localIdentity": {
+      "version": 1,
+      "commit": "cc7cb7ff19759609402d58a34af037a68fbe841d",
+      "fingerprint": "1e90ebc8e4a2969d6ef8882bde78152f16a9dee5b2e3d5edb80494d2a1da984c"
+    },
+    "matchesVerifiedCiIdentity": true
+  },
+  "journey": {
+    "status": "failed",
+    "jobId": 118229908361,
+    "test": "e2e/45-motocross-gameplay.spec.ts",
+    "line": 31,
+    "failure": "The initial #menu visibility assertion received hidden after its unchanged 180000 ms deadline.",
+    "reachedMotocrossSelection": false,
+    "reachedMotocrossGameplay": false,
+    "testLogReportedDuration": "5.0m",
+    "sourceGuard": {
+      "childExitCode": 1,
+      "mutationDiagnosticPresent": false,
+      "backendReceiptGeneratedAndSaved": true,
+      "note": "The original initial-menu assertion failed; the guard did not report generated receipt files as source mutations."
+    },
+    "qaArchive": {
+      "id": 12212876175,
+      "path": "/tmp/motocross-final-ci-journey-cc7cb7ff.zip",
+      "bytes": 70995665,
+      "sha256": "b99303a66ed1d65eb68eb3bd87d3a6aaa510a52451cd9c1ffd0dc87a1e972deb",
+      "digestVerified": true,
+      "entries": 22
+    },
+    "tracePath": "/tmp/motocross-final-ci-journey-cc7cb7ff/trace.zip",
+    "errorContextPath": "/tmp/motocross-final-ci-journey-cc7cb7ff/error-context.md",
+    "traceSummaryPath": "/tmp/motocross-final-ci-journey-cc7cb7ff/trace-summary.json",
+    "network": {
+      "responseCount": 171,
+      "statusCounts": {
+        "200": 171
+      },
+      "recordedApplicationConsoleOrPageErrors": 0
+    },
+    "visualInspection": {
+      "inspectedFrameIndices": [
+        33,
+        64,
+        65
+      ],
+      "frame33": "Building the circuit, 65%.",
+      "frame64": "Almost ready, 90%.",
+      "frame65": "Default Aurel Grand Circuit / APX-01 Formula menu is visible; no motocross selection.",
+      "lastLoadingFramePath": "/tmp/motocross-final-ci-journey-cc7cb7ff/trace-frame-0064.jpeg",
+      "finalMenuFramePath": "/tmp/motocross-final-ci-journey-cc7cb7ff/trace-frame-0065.jpeg"
+    },
+    "timing": {
+      "clock": "Playwright monotonic milliseconds",
+      "visibilityAssertionStart": 7447.297,
+      "visibilityAssertionEnd": 187460.765,
+      "lastLoadingFrame": 31909.426,
+      "visibleMenuDomSnapshot": 191106.07,
+      "finalMenuFrame": 191726.959,
+      "note": "The saved visible-menu DOM snapshot and rendered menu frame occur after the failed assertion. These observations do not establish the exact instant at which the UI became ready."
+    },
+    "backend": {
+      "requested": "mesa",
+      "renderer": "ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)",
+      "vendor": "Google Inc. (Mesa)",
+      "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+      "pixel": [
+        64,
+        128,
+        191,
+        255
+      ],
+      "error": 0,
+      "softwareRendererDetected": true,
+      "physicalHardwareValidated": false
+    },
+    "logEvidence": [
+      "2026-10-19T18:31:33.4186805Z Observed mesa test backend: ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)",
+      "2026-10-19T18:36:35.7513307Z     Received: hidden",
+      "2026-10-19T18:36:35.7513682Z     Timeout:  180000ms",
+      "2026-10-19T18:36:35.7520430Z         at /home/runner/work/Experiment-3/Experiment-3/e2e/45-motocross-gameplay.spec.ts:31:39",
+      "2026-10-19T18:36:36.3887610Z ##[error]Process completed with exit code 1."
+    ]
+  },
+  "sealedAtUtc": "2026-10-19 18:47:25 UTC",
+  "observationComplete": true,
+  "scope": {
+    "validatedCommit": "cc7cb7ff19759609402d58a34af037a68fbe841d",
+    "laterMainCommitReportedByRoot": "d0720d8",
+    "note": "The later GP detail/menu-pacing correction is outside this cc7 capture and validation scope."
+  }
+}

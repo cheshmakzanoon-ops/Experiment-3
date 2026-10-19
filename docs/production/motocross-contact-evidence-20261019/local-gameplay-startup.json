@@ -1,0 +1,81 @@
+{
+  "command": [
+    "node",
+    "--experimental-transform-types",
+    "scripts/source-stability.ts",
+    "--",
+    "node_modules/.bin/playwright",
+    "test",
+    "e2e/45-motocross-gameplay.spec.ts",
+    "--output=/tmp/motocross-gameplay-browser"
+  ],
+  "sourceCommit": "cc7cb7ff19759609402d58a34af037a68fbe841d",
+  "buildIdentity": {
+    "version": 1,
+    "commit": "cc7cb7ff19759609402d58a34af037a68fbe841d",
+    "fingerprint": "1e90ebc8e4a2969d6ef8882bde78152f16a9dee5b2e3d5edb80494d2a1da984c"
+  },
+  "requestedQuality": "low",
+  "sourceGuard": true,
+  "exitCode": 1,
+  "durationSeconds": 305.181,
+  "result": "failed_before_motocross_entry",
+  "stage": "Initial default-circuit loading; #menu remained hidden",
+  "assertion": "expect(page.locator('#menu')).toBeVisible",
+  "deadlineMs": 180000,
+  "lowQualitySettingReached": false,
+  "playwrightTestCases": 1,
+  "passed": 0,
+  "failed": 1,
+  "sourceGuardReportedInputMutations": false,
+  "errorContext": "Later artifact snapshot: Building the circuit, 69%; construction continued after the original assertion failed. No MX selection or riding occurred.",
+  "evidence": [
+    {
+      "file": "trace.zip",
+      "bytes": 36828448,
+      "sha256": "ff03332e012e08e8da3657386a3111014f3f6b0297799f53812d13ab9feb290c"
+    },
+    {
+      "file": "test-failed-1.png",
+      "bytes": 369767,
+      "sha256": "43b8ec22f9dc41a6021a5603e078fb4db9a3971ff0a6881f063f6740b60bd6e5"
+    },
+    {
+      "file": "error-context.md",
+      "bytes": 541,
+      "sha256": "e11f451a5fb4a5cfa01bef01cbe09d90f29166a344f582d3a7c383b2dd665710"
+    },
+    {
+      "file": "motocross-gameplay-browser.log",
+      "bytes": 5649,
+      "sha256": "5bc0a26b98b8637101e25b14f7212bd1708530ac239b0a1b828693a596486c7d"
+    }
+  ],
+  "networkRequestCount": 168,
+  "observedHttpErrorCount": 0,
+  "observedConsoleErrorCount": 0,
+  "assertionSnapshot": {
+    "loadingStage": "Loading circuit",
+    "visiblePercent": "48%",
+    "rawPendingTask": "56% \u00b7 Track surface\u2026",
+    "menu": "hidden",
+    "discipline": "circuit",
+    "bike": false
+  },
+  "networkTimeline": {
+    "httpAssets": 53,
+    "blobResources": 115,
+    "lastRequestCompletionAfterNavigationMs": 120503.684,
+    "assertionCompletionAfterNavigationMs": 196806.986,
+    "gapFromLastRequestCompletionToAssertionMs": 76303.302
+  },
+  "diagnosis": {
+    "scope": "Initial default Aurel/APX-01 construction before motocross entry",
+    "newMotocrossConstructorsExecuted": false,
+    "constructionQueue": "Pending Track surface task; work is chunked and yielded in measured 8 ms slices",
+    "sceneDrawingDuringConstruction": false,
+    "cpuProfileCaptured": false,
+    "exactDominantCostEstablished": false,
+    "supportedAction": "Retain failed readiness gate without speculative MX changes or relaxed deadline"
+  }
+}

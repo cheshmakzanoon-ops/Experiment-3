@@ -1,6 +1,6 @@
 # Motocross contact, terrain continuity and lit roost — 2026-10-19
 
-This pass improves tyre contact, rider braking control and soil presentation in the Three.js motocross section. It builds on the existing rider-weight controls, formed bike mouldings and worked-soil materials. The reviewed starting commit is `9e5ff534ecf4d8391eaa7075a284b141544de7ee`; the core implementation was published as `c1827511146611c8049569b555d40ea5719936c7`. The follow-up below closes a deep-contact edge case exposed by the broader CI suite. The final validation section distinguishes completed checks from the remaining full-game journey.
+This pass improves tyre contact, rider braking control and soil presentation in the Three.js motocross section. It builds on the existing rider-weight controls, formed bike mouldings and worked-soil materials. The reviewed starting commit is `9e5ff534ecf4d8391eaa7075a284b141544de7ee`; the core implementation was published as `c1827511146611c8049569b555d40ea5719936c7`. The recovery correction was published as `cc7cb7ff19759609402d58a34af037a68fbe841d`. That exact commit passed the complete focused motocross CI build. The final validation section also records the full-game journey's initial Aurel startup timeout, before motocross entry.
 
 ## Reference review and provenance
 
@@ -46,12 +46,57 @@ Start a player session with MX-250 or MX-450 at **VALLEY RIDGE / MOTOCROSS**. Wi
 
 Use the existing **Q** forward and **Z** backward rider-weight controls during an approach, then release to return the input to neutral. **C** cycles cameras. These bindings and their motocross labels are verified in [bindings](../../src/input/bindings.ts), [controller](../../src/input/controller.ts) and the [controls screen](../../src/ui/interface.ts); saved custom bindings take precedence.
 
-## Validation — final journey in progress
+## Validation
 
-- The focused eight-file motocross regression run passed **75/75 tests with exit 0**. It covers contact traction, wheel pickup, riding, rider weight, environment, terrain continuity, roost contact and the 129-clod budget case. The eight test files are unchanged between the start of that run and the published graphics implementation.
-- The final integrated physics-v7 identity suite passed **10/10 tests with exit 0**, including the incoming GP record/ghost coverage. The source-stability suite passed **19/19 tests**, and targeted lint passed for that guard.
-- The core implementation passed a full TypeScript check and a production Vite build. `dist/BUILD_IDENTITY.json` identifies `c1827511146611c8049569b555d40ea5719936c7`, fingerprint `6140b3e293ee8267ae3b55fe64271496d486fac21cdc1f23e47c8d4d0248d65d`.
-- Both new WebGL tests passed with their original deadlines and assertions: terrain continuity in Valley Ridge and Arena Nord, and dry/wet roost lighting. The verified adapter was SwiftShader. The complete two-test run exited 0 in approximately 5.8 minutes. Root and the terrain reviewer inspected the resulting frames.
-- The broader CI review of `c182751` passed full lint, content validation, native-asset reproduction and **374/375 tests**. Its one Raw deep-contact failure led to the correction described above. The follow-up CI run and final full-game journey will be recorded below once complete.
+### Published-source build and physics
 
-The WebGL fixtures are isolated production components under controlled lighting; they establish neither full gameplay acceptance nor Arena Nord night-lighting acceptance. No physical-GPU frame-rate or completed photorealism claim is made from these captures.
+The [focused CI run](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39301590589) validates **`cc7cb7ff19759609402d58a34af037a68fbe841d`**. Its [prepare job](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39301590589/job/118227894514) passed:
+
+- Full repository lint and content validation.
+- **43 test files / 376 tests**, with no failing or skipped test reported in that run. The collision file passed all **11** cases, including the unchanged Raw/Sport contact bounds, the eight-rider stadium start and the new active-contact input-journal reconstruction/continuation case.
+- `tsc --noEmit` and the production Vite build, followed by source-stability and clean tracked-input checks.
+- Checksum-pinned native-kit reproduction and independent reopening of the existing saved editable source. This pass does not claim to have newly authored that kit.
+
+The [retained CI record](motocross-contact-evidence-20261019/motocross-final-ci-evidence.json), [build log](motocross-contact-evidence-20261019/ci-build.log) and [build identity](motocross-contact-evidence-20261019/BUILD_IDENTITY.json) preserve the source and result. The independently built local distribution and the downloaded CI proof have the same fingerprint: **`1e90ebc8e4a2969d6ef8882bde78152f16a9dee5b2e3d5edb80494d2a1da984c`**. The final local Vite build exited 0 in 200.223 seconds.
+
+Additional local checks passed: the eight-file development regression (**75/75**), final integrated physics-v7 identity coverage (**10/10**) and the source-stability guard (**19/19**). The [local regression record](motocross-contact-evidence-20261019/local-regressions.json) also retains the earlier collision/contact run that passed 19/20 but exceeded the original 30-second stadium-test deadline. That case subsequently passed in the exact-commit CI run; its local timeout is not represented as a clean local run. A separate filtered run passed the new replay/contact case with exit 0.
+
+### Rendered terrain and dirt
+
+Both new WebGL cases passed with their original assertions and deadlines on the verified SwiftShader backend: **two cases, exit 0, 350.212 seconds**. They cover both Valley Ridge/Arena Nord terrain and dry/wet roost. The [component summary](motocross-contact-evidence-20261019/motocross-component-evidence-summary.json) retains the exact counts, timings, backend proof and source-scope limits; its companion [source manifest](motocross-contact-evidence-20261019/motocross-component-evidence/component-source-manifest.json) records 35 selected unchanged blobs between the core and final publication.
+
+The component fixtures were bundled from the worktree during development. The original asset-serving distribution identified `c182751`; a complete runtime worktree snapshot and fixture-bundle hash were not recorded. These checks therefore establish the observed component behavior, without claiming a pristine full-tree browser validation of the later `cc7cb7` build.
+
+- Shared-edge normal error is **zero** in both venues. Changing only to independent strip normals changes the pixel hash; restoring the joined normals reproduces the original hash exactly. Draw counts, triangle counts and resources stay unchanged across that comparison.
+- The dry fixture contains **104 solid clods / 154 active particles**; the wet fixture contains **144 clods / 144 active particles**. The isolated clod mesh adds one draw and exactly 20 triangles per active clod. Changing the light position changes the fragment image; repeating the held lighting produces the same hash. The fixture reports no GL errors or source-snapshot mutation.
+- Root and the terrain reviewer inspected all relevant captures. The retained PNGs below are original attachments without image edits.
+
+**Dry soil component:** angular opaque fragments over soft dust, captured under controlled lighting on a simple receiver.
+
+![Original dry-soil component capture](motocross-contact-evidence-20261019/motocross-component-evidence/dry-dry-soil-contact.png)
+
+**Wet soil component:** darker clods with suppressed loose dust under the same controlled-fixture approach.
+
+![Original wet-soil component capture](motocross-contact-evidence-20261019/motocross-component-evidence/wet-wet-soil-contact.png)
+
+These isolated fixtures do not establish full gameplay acceptance, Arena Nord's actual night-lamp presentation, hardware frame rate or completed photorealism.
+
+### Full-game journey: startup gate failed before MX entry
+
+The unchanged `e2e/45-motocross-gameplay.spec.ts` did **not** complete a motocross ride-through. Both the local SwiftShader run and the exact-commit Mesa [CI journey](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39301590589/job/118229908361) exceeded the original **180-second initial `#menu` visibility deadline** while constructing the default Aurel circuit. Neither run selected a motocross venue or exercised its riding controls. The local run requested the supported Low setting, but that visible settings step occurs after menu readiness and was never reached.
+
+The [local startup record](motocross-contact-evidence-20261019/local-gameplay-startup.json) preserves its failed exit and artifact hashes. Its trace reports 168 successful network responses and no recorded application console/page errors. At the assertion failure, the pending task was `Track surface` at raw 56% queue progress (displayed as 48%); subsequent failure artifacts show construction continuing. This is queued geometry construction, not a download percentage.
+
+The initial Aurel/APX-01 state does not instantiate the revised MX terrain, roost or bike adapter. `offroadSceneFor()` returns null for that circuit. The shared construction queue batches work into measured slices and the game starts its scene-draw loop after construction; the saved trace does not justify attributing the timeout to a specific faulty task or changing the motocross implementation to mask it.
+
+The CI trace also shows the default Aurel Formula menu eventually becoming visible after the failed assertion. That later frame does not turn the timed-out test into a pass, and no MX gameplay frames were captured. The source-stability wrapper preserved the real test failure without the former false browser-receipt mutation error.
+
+The separate CI models/world job was still running when the evidence record was sealed at **2026-10-19 18:47:25 UTC**; no outcome is claimed for that job here. The [evidence manifest](motocross-contact-evidence-20261019/evidence-manifest.json) records the exact retained file hashes.
+
+The remaining acceptance boundary is a complete browser ride-through. The physics, terrain and dirt results above stand on their stated checks; they are not presented as a completed full-game approval.
+
+### Concurrent integration
+
+While this report was being finalized, `main` received [the separate GP/menu-pacing correction](https://github.com/cheshmakzanoon-ops/Experiment-3/commit/d0720d8ab52de0d7ae4b792e1ae65bc07f8949e4). This delivery preserves that commit, including its shared menu handoff and GP render-budget work. Its 81-case menu/state regression and other validation are documented in [the GP report](motogp-corner-drive/README.md).
+
+The motocross physics and terrain/roost source files are unchanged by that integration. The browser results above remain pinned to `cc7cb7`; they are not observations of a new run with the later menu-pacing change. In particular, the recorded `cc7cb7` cold-start timeout must not be relabelled as either a passing journey or a demonstrated failure of the newer menu implementation.
