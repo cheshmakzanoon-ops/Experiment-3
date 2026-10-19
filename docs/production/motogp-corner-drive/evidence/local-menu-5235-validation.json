@@ -1,0 +1,446 @@
+{
+  "schemaVersion": 1,
+  "scope": "One original local live-menu browser case, then read-only artifact analysis; startup failure only. No repeat run or production modification.",
+  "createdAtUtc": "2026-10-19T20:34:19.724881+00:00",
+  "identity": {
+    "fixtureCommit": "5235c243b7912b078a799fa3e8a77080a25abd0b",
+    "builtProductionCommit": "d0720d8ab52de0d7ae4b792e1ae65bc07f8949e4",
+    "productionRuntimeIdentity": "No Git diff in src/public/scripts/index.html/package files and config inputs. Reusing the existing d072 production dist; no rebuild.",
+    "identityPaths": [
+      "src",
+      "public",
+      "scripts",
+      "index.html",
+      "package.json",
+      "package-lock.json",
+      "*.config.*",
+      "tsconfig.json"
+    ],
+    "runtimeInputDiff": "",
+    "distEntryAssets": [
+      {
+        "path": "dist/index.html",
+        "sha256": "30bf0c1b6818ec7e1917b4e9d4b546f4b588de8b96c32508d5caaf4a97834cae"
+      }
+    ]
+  },
+  "identityAuthority": "Guarded local checkout and recorded Git comparison; the HTML report has no embedded Git commit metadata.",
+  "execution": {
+    "test": "27H.6 menu access: 640x400 settings persist and the normal paused grid starts",
+    "command": [
+      "node",
+      "--experimental-transform-types",
+      "scripts/source-stability.ts",
+      "--",
+      "npm",
+      "run",
+      "test:e2e",
+      "--",
+      "e2e/30-menu-access.spec.ts",
+      "--grep",
+      "27H\\.6 menu access: 640x400 settings persist and the normal paused grid starts$",
+      "--workers=1",
+      "--output=/tmp/gp-menu-5235-once/test-results"
+    ],
+    "environment": {
+      "CI": "1",
+      "APEX_BROWSER_BACKEND": "swiftshader",
+      "PLAYWRIGHT_HTML_OUTPUT_DIR": "/tmp/gp-menu-5235-once/playwright-report",
+      "CHROMIUM_PATH": null,
+      "PLAYWRIGHT_BROWSERS_PATH": null
+    },
+    "configuration": "Unchanged playwright.config.ts; original reporters and retain-on-failure trace policy. CLI changes select exactly one existing case, one worker and /tmp artifact destinations only.",
+    "viewport": {
+      "width": 640,
+      "height": 400
+    },
+    "originalCaseTimeoutMs": 240000,
+    "originalActionTimeoutMs": 15000,
+    "singleAttempt": true,
+    "portOwnership": "Exclusive bind to 127.0.0.1:4173 succeeded immediately before invocation. CI=1 forbids reuseExistingServer; original Playwright webServer owns its npm preview.",
+    "startedAtUtc": "2026-10-19T20:14:51.723315+00:00",
+    "finishedAtUtc": "2026-10-19T20:22:11.000186+00:00",
+    "wallSeconds": 439.275,
+    "exitCode": 1,
+    "sourceGuardClosed": true,
+    "sourceRewriteReported": false,
+    "cpuCount": 9,
+    "loadAverageAtStart": [
+      1.1455078125,
+      1.54345703125,
+      3.4931640625
+    ],
+    "loadAverageAtEnd": [
+      16.49853515625,
+      12.33447265625,
+      7.494140625
+    ]
+  },
+  "backend": {
+    "requested": "swiftshader",
+    "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+    "vendor": "Google Inc. (Google)",
+    "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+    "pixel": [
+      64,
+      128,
+      191,
+      255
+    ],
+    "error": 0,
+    "softwareRendererDetected": true,
+    "physicalHardwareValidated": false
+  },
+  "outcome": {
+    "tests": 1,
+    "passed": 0,
+    "failed": 1,
+    "retry": 0,
+    "status": "timedOut",
+    "stage": "Initial #menu visibility; no normal Garage & Settings click reached.",
+    "errors": [
+      "Test timeout of 240000ms exceeded.",
+      "Error: expect(locator).toBeVisible() failed\n\nLocator:  locator('#menu')\nExpected: visible\nReceived: hidden\nTimeout:  180000ms\n\nCall log:\n  - Expect \"toBeVisible\" with timeout 180000ms\n  - waiting for locator('#menu')\n    55 \u00d7 locator resolved to <section id=\"menu\" hidden=\"\" class=\"menu\" data-bike=\"false\" data-discipline=\"circuit\">\u2026</section>\n       - unexpected value \"hidden\"\n\n\n  136 |   page.on('pageerror', (error) => errors.push(error.message));\n  137 |   await page.goto('/');\n> 138 |   await expect(page.locator('#menu')).toBeVisible({ timeout: MENU_STARTUP_TIMEOUT_MS });\n      |                                       ^\n  139 |   const settings = page.getByRole('button', { name: 'GARAGE & SETTINGS', exact: true });\n  140 |   await settings.click();\n  141 |   await page.locator('[name=quality]').selectOption('low');\n    at /workspace/scratch/12f760d63cf8/Experiment-3/e2e/30-menu-access.spec.ts:138:39"
+    ],
+    "playwrightReportDurationMs": 402303.967,
+    "originalVisibilityTimeoutMs": 180000,
+    "visibilityExpectationNativeTrace": [
+      {
+        "method": "expect",
+        "selector": "#menu",
+        "configuredTimeoutMs": 180000,
+        "traceStartMs": 41098.174,
+        "traceEndMs": 221258.653,
+        "durationMs": 180160.479,
+        "result": {
+          "matches": false,
+          "log": [
+            "  - Expect \"toBeVisible\" with timeout 180000ms",
+            "  - waiting for locator('#menu')",
+            "    55 \u00d7 locator resolved to <section id=\"menu\" hidden=\"\" class=\"menu\" data-bike=\"false\" data-discipline=\"circuit\">\u2026</section>",
+            "       - unexpected value \"hidden\""
+          ],
+          "received": {
+            "s": "hidden"
+          },
+          "timedOut": true
+        }
+      }
+    ],
+    "playwrightAttemptDurationMs": 299350
+  },
+  "cleanup": {
+    "noRetry": true,
+    "ownershipInspectionAtUtc": "2026-10-19T20:21:49.394799+00:00",
+    "ownedBrowserPidsAtIntervention": [],
+    "signalActuallySent": false,
+    "reason": "Requested ownership-specific termination found no remaining owned browser; Playwright and the source-stability wrapper completed without a signal.",
+    "traceMeasuredPostTestSpans": [
+      {
+        "title": "Fixture \"menuTimingEvidence\"",
+        "traceStartMs": 269185.015,
+        "traceEndMs": 269273.142,
+        "durationMs": 88.127
+      },
+      {
+        "title": "Close context",
+        "traceStartMs": 323181.334,
+        "traceEndMs": 323392.863,
+        "durationMs": 211.529
+      },
+      {
+        "title": "Fixture \"context\"",
+        "traceStartMs": 269275.185,
+        "traceEndMs": 323392.93,
+        "durationMs": 54117.745
+      },
+      {
+        "title": "After Hooks",
+        "traceStartMs": 264054.982,
+        "traceEndMs": 323510.467,
+        "durationMs": 59455.485
+      },
+      {
+        "title": "Fixture \"browser\"",
+        "traceStartMs": 323516.437,
+        "traceEndMs": 325309.408,
+        "durationMs": 1792.971
+      },
+      {
+        "title": "Worker Cleanup",
+        "traceStartMs": 323511.387,
+        "traceEndMs": 325347.468,
+        "durationMs": 1836.081
+      }
+    ],
+    "durationBoundary": "Trace hook/fixture spans, report duration and wrapper wall duration are separate measurements. They are not additional allowed test time.",
+    "generatedProgressFile": "Only untracked browser-progress.json remained after the wrapper. Its exact /tmp copy was byte-verified before removing that generated worktree output; subsequent Git status was empty."
+  },
+  "retainedTiming": {
+    "pageTimeOriginEpochMs": 1792440940116.1,
+    "retention": {
+      "totalEvents": 656,
+      "retainedEvents": 656,
+      "nodeDropped": 0,
+      "browserDroppedByDocument": {
+        "1792440940116.1": 0
+      },
+      "contextMetadataDropped": 0,
+      "totalMilestones": 3,
+      "packets": {
+        "1792440940116.1": 147
+      }
+    },
+    "eventKinds": {
+      "document": 1,
+      "timer": 100,
+      "visibility": 1,
+      "long-task": 100,
+      "app-raf-start": 227,
+      "app-raf-end": 226,
+      "context": 1
+    },
+    "contextCreation": [
+      {
+        "kind": "context",
+        "at": 12536.7,
+        "context": 1,
+        "canvas": "world",
+        "width": 300,
+        "height": 150
+      }
+    ],
+    "menuVisibility": [
+      {
+        "kind": "visibility",
+        "at": 8190.2,
+        "menuHidden": true,
+        "modalOpen": false
+      }
+    ],
+    "fenceLifecyclesObserved": 0,
+    "nativeWaitEventsObserved": 0,
+    "nativeClicksObserved": 0,
+    "lastTimer": {
+      "kind": "timer",
+      "at": 119152.1,
+      "browserFrames": 1010,
+      "lastBrowserFrame": 119142.3,
+      "activeCallback": 0,
+      "callbacks": 224
+    },
+    "tailEvents": [
+      {
+        "kind": "long-task",
+        "at": 118783.69999999925,
+        "duration": 61,
+        "origin": 1792440940116.1,
+        "receivedAt": 1792441059263
+      },
+      {
+        "kind": "app-raf-start",
+        "at": 119142.39999999851,
+        "id": 224,
+        "clock": 119137.1,
+        "name": "",
+        "origin": 1792440940116.1,
+        "receivedAt": 1792441059263
+      },
+      {
+        "kind": "app-raf-end",
+        "at": 119142.5,
+        "id": 224,
+        "duration": 0.10000000149011612,
+        "origin": 1792440940116.1,
+        "receivedAt": 1792441059295
+      },
+      {
+        "kind": "timer",
+        "at": 119152.09999999776,
+        "browserFrames": 1010,
+        "lastBrowserFrame": 119142.30000000075,
+        "activeCallback": 0,
+        "callbacks": 224,
+        "origin": 1792440940116.1,
+        "receivedAt": 1792441059295
+      },
+      {
+        "kind": "app-raf-start",
+        "at": 119158.09999999776,
+        "id": 225,
+        "clock": 119153.7,
+        "name": "",
+        "origin": 1792440940116.1,
+        "receivedAt": 1792441104827
+      },
+      {
+        "kind": "app-raf-end",
+        "at": 119158.09999999776,
+        "id": 225,
+        "duration": 0,
+        "origin": 1792440940116.1,
+        "receivedAt": 1792441104827
+      },
+      {
+        "kind": "long-task",
+        "at": 119343.69999999925,
+        "duration": 185,
+        "origin": 1792440940116.1,
+        "receivedAt": 1792441104827
+      },
+      {
+        "kind": "app-raf-start",
+        "at": 119352.19999999925,
+        "id": 226,
+        "clock": 119320.4,
+        "name": "",
+        "origin": 1792440940116.1,
+        "receivedAt": 1792441104827
+      },
+      {
+        "kind": "app-raf-end",
+        "at": 119352.19999999925,
+        "id": 226,
+        "duration": 0,
+        "origin": 1792440940116.1,
+        "receivedAt": 1792441104827
+      },
+      {
+        "kind": "app-raf-start",
+        "at": 164671.30000000075,
+        "id": 227,
+        "clock": 164652,
+        "name": "frame",
+        "origin": 1792440940116.1,
+        "receivedAt": 1792441104827
+      }
+    ],
+    "unmatchedCallbacks": [
+      {
+        "id": 227,
+        "name": "frame",
+        "startAt": 164671.3,
+        "laterTimerActiveCallbackObservations": 0,
+        "lastMatchingTimerAt": null
+      }
+    ],
+    "largestObservedLongTask": {
+      "kind": "long-task",
+      "at": 116643.7,
+      "start": 97449.6,
+      "duration": 19149
+    },
+    "largestExactAdjacentNativeHeartbeatGap": {
+      "previousHeartbeatAt": 98404.8,
+      "nextHeartbeatAt": 116650.1,
+      "adjacentHeartbeatGapMs": 18245.3,
+      "counterBefore": 1007,
+      "counterAfter": 1008
+    },
+    "clockAlignment": {
+      "pageTimeOriginEpochMs": 1792440940116.1,
+      "traceClockAnchorMethod": "trace wallTime + (trace monotonic event time - trace monotonicTime), then subtract page performance.timeOrigin",
+      "consolePacketCrossChecks": 147,
+      "consoleMinusLastPacketEventMs": {
+        "count": 147,
+        "min": 1.223,
+        "median": 9.358,
+        "max": 985.105
+      },
+      "crossClockAssumption": "Trace runner and browser epoch clocks are comparable. Console residual includes transport/dispatch time; it is not a GPU duration.",
+      "alignmentUsedForActions": true,
+      "negativeConsoleResidualToleranceMs": 5,
+      "alignmentCaveat": "Explicit clock anchors corroborated by matching timing console packets; sub-millisecond equality is not claimed."
+    }
+  },
+  "tracePaints": {
+    "observedScreencastFrames": 71,
+    "lastRecordedFrame": {
+      "type": "screencast-frame",
+      "pageId": "page@8194e8a15e83ff7f99f0ce48fe83848b",
+      "sha1": "page@8194e8a15e83ff7f99f0ce48fe83848b-1792441104895.jpeg",
+      "width": 640,
+      "height": 400,
+      "timestamp": 189866.537,
+      "frameSwapWallTime": 1792441104887.333
+    },
+    "lastImage": {
+      "path": "/tmp/gp-menu-5235-analysis/last-screencast-3.jpeg",
+      "bytes": 30090,
+      "sha256": "a46b5da14f08eb6fec1d4b105179f95d28e82910e75288c6e8e51f6a21cf45ae"
+    },
+    "visualObservation": "Last saved 640 by 400 screencast shows the loading screen: ALMOST READY, 90%. Menu controls are not painted.",
+    "comparisonBoundary": "Screencast capture records a painted image; it does not prove application JavaScript callbacks or timers continued."
+  },
+  "conclusions": {
+    "observed": "A world WebGL2 context and the first callback named frame were retained. No menu reveal, native fence submission/completion or normal click was retained.",
+    "recordingDuringFirstFrame": "The +164671.3 ms frame-start is the last retained timing event. No later timer or callback-end corroborates ongoing activity. Last timer is +119152.1 ms with activeCallback 0 and native heartbeat timestamp +119142.3 ms. No claim that recording continued while the frame callback was active.",
+    "sourceInterpretation": "main.ts schedules App.frame after renderer construction, setting state menu and revealMenu true. The named frame entry is consistent with first menu draw entry; instrumentation does not mark the call to renderer.draw itself.",
+    "causalLimit": "Zero reported ring drops means retained packets were not evicted; it does not rule out an unsent browser batch or fixture capture ending. An unmatched callback alone cannot establish CPU/GL blocking or its duration. Earlier startup long tasks and native RAF gaps are observed, but GPU-exclusive causation is unmeasured.",
+    "menuRepairImplication": "This attempt did not reach the normal-click failure and supplies no completed-menu-frame evidence to validate adaptive recovery or an offscreen-presentation repair.",
+    "hostBoundary": "SwiftShader control only, not the Mesa CI backend. Load averages rose during this run; the receipt does not assign a cause."
+  },
+  "artifacts": {
+    "archive": {
+      "path": "/tmp/gp-menu-5235-once.zip",
+      "bytes": 69768215,
+      "sha256": "74d79b6a67c2d0ab9fd73bec1e3ceb2590f2af1fc48ce3a748c6e65c166b9cf9",
+      "suppliedSha256Verified": true
+    },
+    "rawLog": {
+      "path": "/tmp/gp-menu-5235-once/raw.log",
+      "bytes": 5735,
+      "sha256": "c00ba7ac1e19e613d05a0539a89f469eb6cee6234ec0c752dbf27aee65d17d84"
+    },
+    "runMetadata": {
+      "path": "/tmp/gp-menu-5235-once/run-metadata.json",
+      "bytes": 2346,
+      "sha256": "68b6eb27359dac83fe597afd08ab6f2f2a671515d8de15196d7c4fffe6160397"
+    },
+    "portOwnership": {
+      "path": "/tmp/gp-menu-5235-once/preview-ownership.json",
+      "bytes": 888,
+      "sha256": "d1a501d15fd7027e508c365f01324686f5c89a51b0e721a2f8fac5fc0c3d1ea9"
+    },
+    "cleanupInspection": {
+      "path": "/tmp/gp-menu-5235-once/teardown-intervention.json",
+      "bytes": 868,
+      "sha256": "6fd1adc61dc80c582e28750deb37308b9813ee63e104a4f811be5c7247d721e2"
+    },
+    "manifest": {
+      "path": "/tmp/gp-menu-5235-evidence/manifest.json",
+      "bytes": 9517,
+      "sha256": "12236f647b5bd71b19047c6998954c394e30058c2d5856da56f49b06ec3871b6"
+    },
+    "timing": {
+      "path": "/tmp/gp-menu-5235-evidence/named-evidence/report-01/30-menu-access.spec-27H.6-menu-access-640x400-settings-persist-and-the-normal-pa--5fa15e46b3/attempt-1/menu-frame-timing.json",
+      "bytes": 90959,
+      "sha256": "737fb2d30bd08d13c2aedff8c8b2f53bb18380bfe16e1e6c2dfbb5d3831e3407"
+    },
+    "trace": {
+      "path": "/tmp/gp-menu-5235-evidence/named-evidence/report-01/30-menu-access.spec-27H.6-menu-access-640x400-settings-persist-and-the-normal-pa--5fa15e46b3/attempt-1/trace.zip",
+      "bytes": 35712538,
+      "sha256": "06ba16c69abb6753654f1988ffcc266a738ae6641a90814da6d1039fb3438304"
+    },
+    "summary": {
+      "path": "/tmp/gp-menu-5235-analysis/summary.json",
+      "bytes": 21634,
+      "sha256": "176fb12324d5fefb38edd964afff0150d99e443b5ef4b07d0c0209d69814128f"
+    },
+    "timeline": {
+      "path": "/tmp/gp-menu-5235-analysis/timeline.md",
+      "bytes": 1620,
+      "sha256": "06592427ec5b362371170986faec68aee1e543450b3c62cefa03bc4c1c21bd2c"
+    },
+    "parser": {
+      "path": "/tmp/analyze_menu_timing.py",
+      "bytes": 30234,
+      "sha256": "016b86dabff862f11df061722f452ba0ff890e79437db14ee51b92922a4fc05d"
+    },
+    "unpacker": {
+      "path": "/tmp/unpack_playwright_evidence.py",
+      "bytes": 14709,
+      "sha256": "7e490aebea5b4fc7631007923c476d0c64e9408463027ce36504912712212012"
+    }
+  }
+}

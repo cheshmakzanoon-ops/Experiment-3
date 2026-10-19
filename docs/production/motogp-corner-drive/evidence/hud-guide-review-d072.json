@@ -1,0 +1,492 @@
+{
+  "schemaVersion": 1,
+  "scope": "Independent read-only review of retained exact-d072 Mesa motorcycle HUD and corner-guide artifact; no new browser run, repository test or edit.",
+  "reviewedAtUtc": "2026-10-19T19:55:06.791057+00:00",
+  "sourceCommit": "d0720d8ab52de0d7ae4b792e1ae65bc07f8949e4",
+  "workflowRunId": 39304318127,
+  "jobId": 118244612006,
+  "archive": {
+    "path": "/tmp/motogp-d072-presentation.zip",
+    "bytes": 11027133,
+    "sha256": "9d6a2f680e70c435adafa6c5255fdb9b55dd7769f22942b23b04c40f514ca745",
+    "suppliedSha256Verified": true
+  },
+  "manifestSha256": "81ba0b6f8ba8677265c7ea1ab04d9c59a92508186f29c70b5c7e45ca8ae63b2c",
+  "reportedPresentationGroup": {
+    "total": 4,
+    "expected": 4,
+    "unexpected": 0,
+    "flaky": 0,
+    "skipped": 0,
+    "ok": true
+  },
+  "backend": {
+    "requested": "mesa",
+    "renderer": "ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)",
+    "vendor": "Google Inc. (Mesa)",
+    "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+    "pixel": [
+      64,
+      128,
+      191,
+      255
+    ],
+    "error": 0,
+    "softwareRendererDetected": true,
+    "physicalHardwareValidated": false
+  },
+  "hudTest": {
+    "file": "motorcycle-presentation.spec.ts",
+    "title": "motorcycle HUD: responsive production layout, real tyre channels and bike/car restoration",
+    "status": "passed",
+    "retry": 0,
+    "durationMs": 13773,
+    "errors": [],
+    "detailJson": {
+      "path": "decoded-report/report-01/contents/e2111030aae4ee6984db.json",
+      "bytes": 688437,
+      "sha256": "87538eb38eeecb5500aa61bb6360d1f603b0077b1809836c8274f5e2b8e2a1c8"
+    }
+  },
+  "sourceIdentity": {
+    "testPath": "e2e/motorcycle-presentation.spec.ts",
+    "testSha256AtD072": "b669554debb9b0aec0a5453fb9f21807f654d74a4fe4143f4e6c93ae4b539541",
+    "testSha256Current": "b669554debb9b0aec0a5453fb9f21807f654d74a4fe4143f4e6c93ae4b539541",
+    "testUnchanged": true,
+    "hudCssPath": "src/ui/bike-hud.css",
+    "hudCssSha256AtD072": "20dc9c2944a1d78033d1de285e9ccbd96eaf6a5a6dc1b0068fab96996625cfe0",
+    "hudCssSha256Current": "20dc9c2944a1d78033d1de285e9ccbd96eaf6a5a6dc1b0068fab96996625cfe0",
+    "hudCssUnchanged": true,
+    "currentHeadObserved": "54b240ac82bc80e445fde3408ae99376a79508e8",
+    "meaning": "File identity supports interpreting the retained assertions; this artifact remains acceptance evidence for d072, not a newly executed full-game test at current HEAD."
+  },
+  "baselineInstrumentMeasurements": [
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "scale": 1,
+      "bounds": {
+        "left": 1123.125,
+        "right": 1401.125,
+        "top": 503.109375,
+        "bottom": 834,
+        "width": 278,
+        "scroll": 276,
+        "client": 276
+      },
+      "guardEvaluation": {
+        "minimumTopExclusive": 405.0,
+        "topMarginPx": 98.109375,
+        "maximumBottom": 852,
+        "bottomMarginPx": 18,
+        "overflowPx": 0,
+        "allRecordedBoundsPass": true
+      }
+    },
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "scale": 1.35,
+      "bounds": {
+        "left": 1025.828125,
+        "right": 1401.125,
+        "top": 430.4375,
+        "bottom": 834,
+        "width": 375.296875,
+        "scroll": 373,
+        "client": 373
+      },
+      "guardEvaluation": {
+        "minimumTopExclusive": 405.0,
+        "topMarginPx": 25.4375,
+        "maximumBottom": 852,
+        "bottomMarginPx": 18,
+        "overflowPx": 0,
+        "allRecordedBoundsPass": true
+      }
+    },
+    {
+      "viewport": {
+        "width": 960,
+        "height": 600
+      },
+      "scale": 1,
+      "bounds": {
+        "left": 718,
+        "right": 948,
+        "top": 339.890625,
+        "bottom": 543,
+        "width": 230,
+        "scroll": 228,
+        "client": 228
+      },
+      "guardEvaluation": {
+        "minimumTopExclusive": 270.0,
+        "topMarginPx": 69.890625,
+        "maximumBottom": 552,
+        "bottomMarginPx": 9,
+        "overflowPx": 0,
+        "allRecordedBoundsPass": true
+      }
+    },
+    {
+      "viewport": {
+        "width": 960,
+        "height": 600
+      },
+      "scale": 1.35,
+      "bounds": {
+        "left": 637.5,
+        "right": 948,
+        "top": 292.296875,
+        "bottom": 543,
+        "width": 310.5,
+        "scroll": 309,
+        "client": 309
+      },
+      "guardEvaluation": {
+        "minimumTopExclusive": 270.0,
+        "topMarginPx": 22.296875,
+        "maximumBottom": 552,
+        "bottomMarginPx": 9,
+        "overflowPx": 0,
+        "allRecordedBoundsPass": true
+      }
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "scale": 1,
+      "bounds": {
+        "left": 148,
+        "right": 378,
+        "top": 463.890625,
+        "bottom": 737,
+        "width": 230,
+        "scroll": 228,
+        "client": 228
+      },
+      "guardEvaluation": {
+        "minimumTopExclusive": 379.8,
+        "topMarginPx": 84.09062499999999,
+        "maximumBottom": 796,
+        "bottomMarginPx": 59,
+        "overflowPx": 0,
+        "allRecordedBoundsPass": true
+      }
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "scale": 1.35,
+      "bounds": {
+        "left": 67.5,
+        "right": 378,
+        "top": 399.34375,
+        "bottom": 737,
+        "width": 310.5,
+        "scroll": 309,
+        "client": 309
+      },
+      "guardEvaluation": {
+        "minimumTopExclusive": 379.8,
+        "topMarginPx": 19.54374999999999,
+        "maximumBottom": 796,
+        "bottomMarginPx": 59,
+        "overflowPx": 0,
+        "allRecordedBoundsPass": true
+      }
+    }
+  ],
+  "measurementScope": "layout-measurements.json contains six baseline instrument rectangles. These exact coordinates must not be relabelled as the long-corner phase fixture rectangles.",
+  "cornerPhaseCases": {
+    "viewports": [
+      {
+        "width": 1440,
+        "height": 900
+      },
+      {
+        "width": 960,
+        "height": 600
+      },
+      {
+        "width": 390,
+        "height": 844
+      }
+    ],
+    "uiScales": [
+      1,
+      1.35
+    ],
+    "combinationCount": 6,
+    "nodesWithBoundsAsserted": [
+      ".instruments",
+      "#gpCornerProgress",
+      "#gpAction"
+    ],
+    "allOriginalGuardAssertionsPassed": true,
+    "exactPhaseRectanglesRetained": false,
+    "stepEvidence": [
+      {
+        "check": "entryPhase",
+        "testSourceLine": 210,
+        "expectedCount": 6,
+        "retainedCount": 6,
+        "allRetainedPassed": true
+      },
+      {
+        "check": "apexPhase",
+        "testSourceLine": 213,
+        "expectedCount": 6,
+        "retainedCount": 6,
+        "allRetainedPassed": true
+      },
+      {
+        "check": "apexProgressExactly50",
+        "testSourceLine": 214,
+        "expectedCount": 6,
+        "retainedCount": 6,
+        "allRetainedPassed": true
+      },
+      {
+        "check": "northHookIdentityAtApexPlus85m",
+        "testSourceLine": 216,
+        "expectedCount": 6,
+        "retainedCount": 6,
+        "allRetainedPassed": true
+      },
+      {
+        "check": "holdYourLineAtApexPlus85m",
+        "testSourceLine": 217,
+        "expectedCount": 6,
+        "retainedCount": 6,
+        "allRetainedPassed": true
+      },
+      {
+        "check": "exitPhase",
+        "testSourceLine": 218,
+        "expectedCount": 6,
+        "retainedCount": 6,
+        "allRetainedPassed": true
+      },
+      {
+        "check": "exitProgressGreaterThan66",
+        "testSourceLine": 220,
+        "expectedCount": 6,
+        "retainedCount": 6,
+        "allRetainedPassed": true
+      },
+      {
+        "check": "entryProgressGreaterThan0",
+        "testSourceLine": 221,
+        "expectedCount": 6,
+        "retainedCount": 6,
+        "allRetainedPassed": true
+      },
+      {
+        "check": "entryProgressLessThan34",
+        "testSourceLine": 222,
+        "expectedCount": 6,
+        "retainedCount": 6,
+        "allRetainedPassed": true
+      },
+      {
+        "check": "boundLeftAtLeast0",
+        "testSourceLine": 239,
+        "expectedCount": 18,
+        "retainedCount": 18,
+        "allRetainedPassed": true
+      },
+      {
+        "check": "boundRightWithinViewport",
+        "testSourceLine": 240,
+        "expectedCount": 18,
+        "retainedCount": 18,
+        "allRetainedPassed": true
+      },
+      {
+        "check": "boundTopBelow45PercentOfViewport",
+        "testSourceLine": 241,
+        "expectedCount": 18,
+        "retainedCount": 18,
+        "allRetainedPassed": true
+      },
+      {
+        "check": "boundBottomWithinViewportMinus48",
+        "testSourceLine": 242,
+        "expectedCount": 18,
+        "retainedCount": 18,
+        "allRetainedPassed": true
+      },
+      {
+        "check": "boundNoHorizontalOverflowBeyond1px",
+        "testSourceLine": 243,
+        "expectedCount": 18,
+        "retainedCount": 18,
+        "allRetainedPassed": true
+      },
+      {
+        "check": "rewindAndRestoreSameExitValue",
+        "testSourceLine": 247,
+        "expectedCount": 6,
+        "retainedCount": 6,
+        "allRetainedPassed": true
+      },
+      {
+        "check": "rewindAndRestoreHoldYourLine",
+        "testSourceLine": 248,
+        "expectedCount": 6,
+        "retainedCount": 6,
+        "allRetainedPassed": true
+      },
+      {
+        "check": "heldMeterAttributeMutationsExactly0",
+        "testSourceLine": 264,
+        "expectedCount": 6,
+        "retainedCount": 6,
+        "allRetainedPassed": true
+      },
+      {
+        "check": "frontBrakeAtExitShowsTrailBraking",
+        "testSourceLine": 266,
+        "expectedCount": 6,
+        "retainedCount": 6,
+        "allRetainedPassed": true
+      },
+      {
+        "check": "uprightAtExitShowsDriveOut",
+        "testSourceLine": 268,
+        "expectedCount": 6,
+        "retainedCount": 6,
+        "allRetainedPassed": true
+      }
+    ],
+    "heldMutationScope": "After two repeated North Hook +85 m presentations, MutationObserver attributes:true/subtree:true on #gpCornerProgress reported zero records in all six cases. This is not a zero-mutation claim for the entire HUD.",
+    "rewindScope": "The production UI fixture was driven from entry (-80 m) to apex (0 m) to exit (+85 m), then back to entry and forward to the same exit. The same exit aria value and HOLD YOUR LINE text restored in all six cases. This is snapshot presentation continuity, not the separate full-game replay journey."
+  },
+  "enlarged1440": {
+    "baselineActualBounds": {
+      "left": 1025.828125,
+      "right": 1401.125,
+      "top": 430.4375,
+      "bottom": 834,
+      "width": 375.296875,
+      "scroll": 373,
+      "client": 373
+    },
+    "phaseStateGuardActuallyPassed": "For all three selected nodes, top >405, bottom <=852, left >=0, right <=1440, scrollWidth <=clientWidth+1.",
+    "exactPhaseStateTopPx": null,
+    "previousPhaseStatePredictionPx": 411.984375,
+    "predictionStatus": "Still a prediction, not emitted as an exact measured number. The previously failing phase-state inequality is now directly passed.",
+    "historical9d5ObservedPhaseTopPx": 393.984375
+  },
+  "visualReview": {
+    "viewedScreenshots": [
+      "motorcycle-hud-1440.png",
+      "motorcycle-hud-960.png",
+      "motorcycle-hud-390.png",
+      "gp-corner-phase-1440.png",
+      "gp-corner-phase-960.png",
+      "gp-corner-phase-390.png"
+    ],
+    "allScreenshotScales": 1,
+    "enlargedScaleScreenshotsAvailable": false,
+    "observations": [
+      "Desktop phase screenshot shows T1 NORTH HOOK, ENTRY/APEX/EXIT strip and DRIVE OUT advice with speed, gear, fuel, lean, rear-pedal and tyre readouts in the existing cluster; no observed clipping or overlaps.",
+      "390 px phase screenshot preserves the corner identity, progress strip, action, advice and core instruments above the visible front-brake/throttle touch controls; no observed contact between cluster and controls.",
+      "960x600 screenshot uses the compact existing landscape layout: identity/phase/action and core instruments remain visible; expanded advice and tyre detail are omitted by that responsive presentation.",
+      "These captures explicitly label themselves INTERFACE LAYOUT CHECK / SYNTHETIC TELEMETRY / NO 3D SCENE, so they are interface evidence rather than scene-realism screenshots."
+    ]
+  },
+  "verifiedAttachments": [
+    {
+      "name": "motorcycle-hud-1440.png",
+      "namedPath": "named-evidence/report-01/motorcycle-presentation.spec-motorcycle-HUD-responsive-production-layout-real-ty--09e06adcb9/attempt-1/motorcycle-hud-1440.png",
+      "bytes": 88119,
+      "sha256": "c407f06b429d7a535095f59bf6d8e34765dec2bd2fbd2d766042942cafe54620"
+    },
+    {
+      "name": "motorcycle-hud-960.png",
+      "namedPath": "named-evidence/report-01/motorcycle-presentation.spec-motorcycle-HUD-responsive-production-layout-real-ty--09e06adcb9/attempt-1/motorcycle-hud-960.png",
+      "bytes": 40648,
+      "sha256": "78f00fb8580d4a3de81d22d181b715a4d6ba3ed9ee1336f0a86101217889cfa8"
+    },
+    {
+      "name": "motorcycle-hud-390.png",
+      "namedPath": "named-evidence/report-01/motorcycle-presentation.spec-motorcycle-HUD-responsive-production-layout-real-ty--09e06adcb9/attempt-1/motorcycle-hud-390.png",
+      "bytes": 47976,
+      "sha256": "dd1e695de887862fb62e057685d77cc26f54b7381b8d03edafe18eaf0110cf8a"
+    },
+    {
+      "name": "gp-corner-phase-1440.png",
+      "namedPath": "named-evidence/report-01/motorcycle-presentation.spec-motorcycle-HUD-responsive-production-layout-real-ty--09e06adcb9/attempt-1/gp-corner-phase-1440.png",
+      "bytes": 91415,
+      "sha256": "b29fe0fb10322e9f024deed7a39dfc4e0c87190c19f0c59d3a5f43771099a37b"
+    },
+    {
+      "name": "gp-corner-phase-960.png",
+      "namedPath": "named-evidence/report-01/motorcycle-presentation.spec-motorcycle-HUD-responsive-production-layout-real-ty--09e06adcb9/attempt-1/gp-corner-phase-960.png",
+      "bytes": 42541,
+      "sha256": "91fd8a09be95dcf46edeb73d86e4984160fe86cecf043909b50f1dc99b5bb2d1"
+    },
+    {
+      "name": "gp-corner-phase-390.png",
+      "namedPath": "named-evidence/report-01/motorcycle-presentation.spec-motorcycle-HUD-responsive-production-layout-real-ty--09e06adcb9/attempt-1/gp-corner-phase-390.png",
+      "bytes": 50086,
+      "sha256": "b4802d835d387d2b725f4bedb959778bf86fb8a574dea7de5efcc8e18ea6a2a6"
+    },
+    {
+      "name": "gp-wet-contact-feedback.png",
+      "namedPath": "named-evidence/report-01/motorcycle-presentation.spec-motorcycle-HUD-responsive-production-layout-real-ty--09e06adcb9/attempt-1/gp-wet-contact-feedback.png",
+      "bytes": 88646,
+      "sha256": "d12640dbd62644298b300dc68c321aa8386d1c01135505e486369b453a9a1626"
+    },
+    {
+      "name": "motorcycle-mfd.png",
+      "namedPath": "named-evidence/report-01/motorcycle-presentation.spec-motorcycle-HUD-responsive-production-layout-real-ty--09e06adcb9/attempt-1/motorcycle-mfd.png",
+      "bytes": 107735,
+      "sha256": "575578178d4ee5779e202ca91b39453b66a43b9263d0dfca1cd88fc29f5f1a0f"
+    },
+    {
+      "name": "layout-measurements.json",
+      "namedPath": "named-evidence/report-01/motorcycle-presentation.spec-motorcycle-HUD-responsive-production-layout-real-ty--09e06adcb9/attempt-1/layout-measurements.json",
+      "bytes": 1595,
+      "sha256": "fe0623fe755a7d4afb6d3cc8e402af7c5a53ebdce64a01a36a08a73a2d7b0b09"
+    }
+  ],
+  "selectedScreenshots": [
+    {
+      "name": "gp-corner-phase-1440.png",
+      "copiedPath": "/tmp/gp-hud-d072-review/gp-corner-phase-1440.png",
+      "sourceNamedPath": "named-evidence/report-01/motorcycle-presentation.spec-motorcycle-HUD-responsive-production-layout-real-ty--09e06adcb9/attempt-1/gp-corner-phase-1440.png",
+      "sha256": "b29fe0fb10322e9f024deed7a39dfc4e0c87190c19f0c59d3a5f43771099a37b",
+      "uiScale": 1,
+      "purpose": "Desktop production HUD layout fixture showing the full North Hook exit card and instruments.",
+      "scope": "Synthetic telemetry production interface fixture; no 3D scene; not a full riding screenshot."
+    },
+    {
+      "name": "gp-corner-phase-390.png",
+      "copiedPath": "/tmp/gp-hud-d072-review/gp-corner-phase-390.png",
+      "sourceNamedPath": "named-evidence/report-01/motorcycle-presentation.spec-motorcycle-HUD-responsive-production-layout-real-ty--09e06adcb9/attempt-1/gp-corner-phase-390.png",
+      "sha256": "b4802d835d387d2b725f4bedb959778bf86fb8a574dea7de5efcc8e18ea6a2a6",
+      "uiScale": 1,
+      "purpose": "390 px production HUD layout fixture showing the exit strip, advice and clearance above touch controls.",
+      "scope": "Synthetic telemetry production interface fixture; no 3D scene; not a full riding screenshot."
+    }
+  ],
+  "limitations": [
+    "Exact long-corner phase rectangles and scale-1.35 images were not saved by the original test; no new capture or coordinate reconstruction was performed.",
+    "This review does not turn d072 menu-entry or full dry/wet riding outcomes into passes.",
+    "Mesa llvmpipe is software rendering; no physical-hardware performance claim."
+  ],
+  "repoModified": false,
+  "newTestsRun": false
+}

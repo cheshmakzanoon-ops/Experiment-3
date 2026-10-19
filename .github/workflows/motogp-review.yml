@@ -13,6 +13,7 @@ on:
       - 'src/rendering/snapshot-interpolation.ts'
       - 'src/rendering/wheel-pose.ts'
       - 'src/rendering/menu-frame-pacing.ts'
+      - 'src/rendering/menu-preview-receipt.ts'
       - 'src/ui/bike-hud*'
       - 'src/ui/gp-*'
       - 'e2e/*motogp*'
@@ -35,6 +36,8 @@ on:
       - 'tests/wheel-pose.test.ts'
       - 'tests/collision-continuous.test.ts'
       - 'tests/menu-frame-pacing.test.ts'
+      - 'tests/menu-preview-receipt.test.ts'
+      - 'tests/rotation-interpolation.test.ts'
       - 'tests/menu-presentation.test.ts'
       - 'tests/gpu-frame-gate.test.ts'
       - 'tests/menu-preview.test.ts'
@@ -96,6 +99,7 @@ jobs:
           tests/collision-continuous.test.ts tests/menu-frame-pacing.test.ts
           tests/menu-presentation.test.ts tests/gpu-frame-gate.test.ts
           tests/menu-preview.test.ts tests/settings-transition.test.ts
+          tests/menu-preview-receipt.test.ts tests/rotation-interpolation.test.ts
           --reporter=default --reporter=json
           --outputFile=${{ runner.temp }}/motogp-unit-tests.json
       - name: Preserve complete test results

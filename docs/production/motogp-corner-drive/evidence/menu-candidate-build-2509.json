@@ -1,0 +1,58 @@
+{
+  "phase": "build",
+  "parent": "2509d005ecb3ea288716ca4210e1fdb4084af4ef",
+  "source_inputs": [
+    {
+      "path": "src/main.ts",
+      "sha256": "e70db703bd200051e23e10f2d9567a973827bb325817d4a840d72b5b41d31cb6",
+      "bytes": 118242
+    },
+    {
+      "path": "src/rendering/menu-frame-pacing.ts",
+      "sha256": "8da95713d2525e737c410998a3950e2fc645c56b059a8f999125546b2badb0d9",
+      "bytes": 5649
+    },
+    {
+      "path": "src/rendering/menu-preview-receipt.ts",
+      "sha256": "583177ebcc5502c264340230f20075c94c7d70d0daf4b7ab5d9edea75a28d068",
+      "bytes": 7202
+    },
+    {
+      "path": "tests/menu-frame-pacing.test.ts",
+      "sha256": "a34237e5e38966138c88cd7a9da32e596ac27c0f59a15b5c5ea34d522e5024c7",
+      "bytes": 17823
+    },
+    {
+      "path": "tests/menu-preview-receipt.test.ts",
+      "sha256": "ce7d762a6d66468ada0fd39812152ffb2dfb133abd80b3e651e51959bf87c6a4",
+      "bytes": 11732
+    },
+    {
+      "path": ".github/workflows/motogp-review.yml",
+      "sha256": "c318d87d24e82a23ba4fdbc0429121d21425a6f7912d57dafd61bfd58758f8d1",
+      "bytes": 6664
+    }
+  ],
+  "started_utc": "2026-10-19T21:50:20.687515+00:00",
+  "ended_utc": "2026-10-19T21:53:45.564641+00:00",
+  "elapsed_seconds": 204.87738782000088,
+  "command": [
+    "node",
+    "--experimental-transform-types",
+    "scripts/source-stability.ts",
+    "--",
+    "npm",
+    "run",
+    "build"
+  ],
+  "exit_code": 0,
+  "log_path": "/tmp/motogp-menu-integrated-validation/build.log",
+  "log_sha256": "7f0d40abeaf713b7e6dbe0dfd6a35559841f7ad7c5df1a7848360a633908048d",
+  "guard_reported_input_changes": false,
+  "scope": "Local guarded command on the recorded candidate input hashes; parent commit has uncommitted candidate changes.",
+  "build_identity": {
+    "version": 1,
+    "commit": null,
+    "fingerprint": "fd28db0d13f190a36ea308ae001d89b64b40772c4c1cbc61375f7cd0680f40c2"
+  }
+}

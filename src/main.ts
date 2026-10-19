@@ -10,6 +10,7 @@ import { GridPresentationPanel } from './ui/grid-presentation.ts';
 import './ui/grid-presentation.css';
 import { menuPreview, shouldDrawMenu } from './rendering/menu-preview.ts';
 import { MenuFramePacing } from './rendering/menu-frame-pacing.ts';
+import { MenuPreviewReceipt } from './rendering/menu-preview-receipt.ts';
 import { LiveFrameClock } from './rendering/live-frame-clock.ts';
 import { motocrossMenuPreview } from './rendering/offroad/menu-bike.ts';
 import { VEHICLES, vehicleAt } from './simulation/vehicles.ts';
@@ -228,6 +229,10 @@ export class GameApp {
   private menuPreviewPending = false;
   private menuCovered = false;
   private readonly menuFrames = new MenuFramePacing();
+  private readonly menuPreviewReceipt = new MenuPreviewReceipt();
+  private menuPreviewSubmission: number | null = null;
+  private menuPresentationActive = false;
+  private readonly menuPreviewView = { circuit: '', width: 0, height: 0 };
   private viewportRedrawPending = false;
   private presentationFrames = 0;
   private timer = 0;
@@ -276,7 +281,7 @@ export class GameApp {
       replaySpeed: (value) => {
         this.replayClock.setRate(value);
       },
-      previewMachine: (id) => this.previewSelectedMachine(id),
+      previewMachine: (id) => this.previewSelectedMachine(id, true),
       previewAudio: (settings) => {
         void this.audio
           .previewDriving(settings)
@@ -426,10 +431,16 @@ export class GameApp {
       else if (this.festival) this.festival.resize();
       else this.renderer?.resize();
       this.viewportRedrawPending = true;
+      if (this.state === 'menu') this.menuPreviewReceipt.request('resize');
       this.renderedState = null; // Restore a resized backdrop once, including behind an editor.
     });
     document.addEventListener('visibilitychange', () => {
-      if (document.hidden) this.suspendPlayback();
+      if (document.hidden) {
+        // A hidden tab may deliver no RAF at all. Break the active timing
+        // chain immediately while retaining the real pending GPU ownership.
+        this.menuFrames.suspend();
+        this.suspendPlayback();
+      }
     });
     const canvas = document.getElementById('world') as HTMLCanvasElement;
     canvas.addEventListener('webglcontextlost', (e) => {
@@ -465,22 +476,31 @@ export class GameApp {
       ? motocrossMenuPreview(this.track, this.showroomMachine)
       : menuPreview(this.track, this.track.length - 32, this.showroomMachine);
   }
-  private previewSelectedMachine(id: string) {
+  private previewSelectedMachine(id: string, selectionChanged = false) {
     const changed = this.showroomMachine !== id;
     this.showroomMachine = id;
-    this.menuPreviewPending ||= changed;
+    // The interface deduplicates circuit + machine, so a same-machine callback
+    // can still be an explicit circuit selection that needs a fresh preview.
+    this.menuPreviewPending ||= changed || selectionChanged;
     if (this.state !== 'menu' || !this.renderer || this.savingSettings) return;
     if (!this.menuPreviewPending && this.menuMachineFrame) return;
     // One display-only pose supports each vehicle family while worker-owned
     // snapshots retain their pause receipts and transferable-buffer identity.
     this.menuMachineFrame = this.selectedMachinePreview();
     this.menuPreviewPending = false;
+    this.menuPreviewReceipt.request('selection');
     this.renderer.reset();
     this.renderedState = null;
   }
+  private resetMenuPresentation() {
+    this.menuFrames.reset();
+    this.menuPreviewReceipt.reset();
+    this.menuPreviewSubmission = null;
+    this.menuPresentationActive = false;
+  }
   /** Build (or rebuild for another circuit) the complete presentation. */
   private async buildRenderer(canvas: HTMLCanvasElement) {
-    this.menuFrames.reset();
+    this.resetMenuPresentation();
     this.canvas = canvas;
     this.renderer = await RacingRenderer.create(
       canvas,
@@ -572,6 +592,8 @@ export class GameApp {
     this.applyCommunication(this.settings);
     const preview = this.selectedMachinePreview();
     this.menuMachineFrame = preview;
+    this.menuPreviewPending = false;
+    this.menuPreviewReceipt.request('initial');
     this.current = preview;
     this.previous = preview;
     this.liveFrames.observe(preview, performance.now());
@@ -673,6 +695,7 @@ export class GameApp {
     this.renderer?.setQuality(this.settings.quality, this.settings.graphics);
     this.state = 'menu';
     this.menuMachineFrame = this.selectedMachinePreview();
+    this.menuPreviewReceipt.request('return');
     this.renderedState = null;
     this.ui.ready();
     this.ui.showMode('menu');
@@ -978,6 +1001,9 @@ export class GameApp {
   }
   private frame = (time: number) => {
     this.timer = requestAnimationFrame(this.frame);
+    const menuActive = this.state === 'menu' && !this.festival && !this.festivalStarting;
+    if (!menuActive && this.menuPresentationActive) this.resetMenuPresentation();
+    this.menuPresentationActive = menuActive;
     if (this.festival) {
       this.festival.frame(time);
       return;
@@ -996,8 +1022,15 @@ export class GameApp {
       !this.renderer ||
       !this.current ||
       !this.previous
-    )
+    ) {
+      this.menuFrames.suspend();
       return;
+    }
+    if (this.state === 'menu' && (document.hidden || this.festivalStarting)) {
+      this.previousTime = time;
+      this.menuFrames.suspend();
+      return;
+    }
     const previousTime = this.previousTime;
     const wallDelta = Math.max(0.001, (time - (previousTime || time - 16)) / 1000),
       dt = clamp(wallDelta, 0.001, 0.08);
@@ -1005,17 +1038,30 @@ export class GameApp {
     // Editors hold their last completed background from the first callback.
     // Academy previews and real viewport resizes may each request one redraw,
     // not a continuous orbit. Never draw during a settings transaction.
+    const previouslyCovered = this.menuCovered;
     this.menuCovered = this.state === 'menu' && this.ui.modal.open;
+    if (this.menuCovered && !previouslyCovered) this.menuFrames.suspend();
+    const academyPreview = this.menuCovered && !!this.ui.modal.querySelector('.driving-academy');
+    const menuInvalidated = this.renderedState !== this.state;
+    if (
+      this.state === 'menu' &&
+      academyPreview &&
+      menuInvalidated &&
+      !this.menuPreviewReceipt.needsSubmission
+    )
+      this.menuPreviewReceipt.request('academy');
     if (
       !shouldDrawMenu({
         covered: this.menuCovered,
-        preview: this.menuCovered && !!this.ui.modal.querySelector('.driving-academy'),
-        invalidated: this.renderedState !== this.state,
+        preview: academyPreview,
+        invalidated: menuInvalidated,
         resizePending: this.viewportRedrawPending,
         settingsBusy: this.savingSettings,
       })
-    )
+    ) {
+      if (this.state === 'menu') this.menuFrames.suspend();
       return;
+    }
     // Telemetry/settings own a replay's last presented frame immediately, even
     // on the first callback after opening. Paused replay redraws only for a seek
     // or explicit camera/resize invalidation; keep the wall clock current above.
@@ -1035,7 +1081,14 @@ export class GameApp {
     // refresh the wall clock so closing a dialog cannot catch up hidden time.
     try {
       if (this.state === 'menu') {
-        const readiness = this.menuFrames.poll(this.renderer);
+        // An explicit selection, resize or Academy preview may bypass only
+        // extra automatic-orbit recovery, never the actual GPU/base paint gate.
+        const readiness = this.menuFrames.poll(
+          this.renderer,
+          this.menuPreviewReceipt.needsSubmission || this.viewportRedrawPending,
+        );
+        this.menuPreviewReceipt.observe(this.renderer, readiness, this.menuPreviewSubmission);
+        if (readiness === 'completed') this.menuPreviewSubmission = null;
         if (readiness === 'completed' && this.revealMenu) {
           this.revealMenu = false;
           this.ui.ready();
@@ -1129,6 +1182,7 @@ export class GameApp {
         ? safetyCarPose(this.track, b[H.SC_S], b[H.SC_SPEED], this.safetyCarScratch)
         : null,
     );
+    const previewRevision = this.menuPreviewReceipt.revision;
     this.renderer.draw(
       a,
       b,
@@ -1138,7 +1192,18 @@ export class GameApp {
       this.state === 'replay' || (this.state === 'photo' && this.photoReturn === 'replay'),
       wallDelta,
     );
-    if (this.state === 'menu') this.menuFrames.submittedFrame(this.renderer);
+    if (this.state === 'menu') {
+      this.menuFrames.submittedFrame(this.renderer);
+      this.menuPreviewView.circuit = this.track.circuit.id;
+      this.menuPreviewView.width = this.canvas?.width ?? 0;
+      this.menuPreviewView.height = this.canvas?.height ?? 0;
+      this.menuPreviewSubmission = this.menuPreviewReceipt.submittedFrame(
+        this.renderer,
+        previewRevision,
+        b,
+        this.menuPreviewView,
+      );
+    }
     // Consume only after a real submission; busy graphics and covered replay
     // keep the latest viewport request pending without creating extra frames.
     this.viewportRedrawPending = false;
@@ -1998,6 +2063,8 @@ export class GameApp {
         void requestObserver().then((observer) => {
           if (!this.renderer || !this.liveSky.active || observer.source === 'timezone') return;
           this.renderer.lighting = this.liveSky.start(observer);
+          if (this.state === 'menu') this.menuPreviewReceipt.request('academy');
+          this.renderedState = null;
           // Refresh the academy's location line if it is still on screen.
           if (document.querySelector('.driving-academy [data-action="lighting:live"]'))
             this.openAcademy();
@@ -2139,6 +2206,7 @@ export class GameApp {
         // A circuit change replaces the Track. Rebuild the selected showroom
         // pose against this venue instead of retaining coordinates from the last one.
         this.menuMachineFrame = this.selectedMachinePreview();
+        this.menuPreviewReceipt.request('return');
         this.programme.stop();
         this.post({ type: 'pause', value: true });
         this.input.setEnabled(false);
@@ -2589,6 +2657,7 @@ export class GameApp {
           this.settings = settings;
           this.input.settings = settings;
           this.ui.applyBindings(settings.bindings);
+          if (this.state === 'menu') this.menuPreviewReceipt.request('settings');
           this.renderedState = null;
           if (renderer) {
             this.applyMotion(renderer, settings);
@@ -2670,6 +2739,7 @@ export class GameApp {
     this.ui.error(error instanceof Error ? error.message : String(error));
   }
   diagnostics(visual = false) {
+    const menuPreview = this.state === 'menu' ? this.menuPreviewReceipt.report() : null;
     return {
       buildIdentity: { commit: __APEX_SOURCE_COMMIT__, fingerprint: __APEX_SOURCE_FINGERPRINT__ },
       state: this.state,
@@ -2731,16 +2801,17 @@ export class GameApp {
         reason: this.performanceCapture.reason,
       },
       auto: this.auto,
-      menuPreview:
-        this.state === 'menu' && this.menuMachineFrame
-          ? {
-              machine: vehicleAt(
-                Math.round(this.menuMachineFrame[carBase(0) + RACE_BASE + R.VEHICLE]),
-              ).id,
-              time: this.menuMachineFrame[H.TIME],
-              cars: this.menuMachineFrame[H.CARS],
-            }
-          : null,
+      menuPreview: menuPreview?.completed
+        ? {
+            machine: menuPreview.completed.machine,
+            time: menuPreview.completed.time,
+            cars: menuPreview.completed.cars,
+            current: menuPreview.current,
+            requestedRevision: menuPreview.requested.revision,
+            completedRevision: menuPreview.completed.revision,
+          }
+        : null,
+      menuPreviewPresentation: menuPreview,
       timeTrial: {
         ghostLap: this.records.player?.lap.lapTime ?? 0,
         ghostVisible: this.renderer?.ghostVisible() ?? false,
@@ -2789,6 +2860,7 @@ export class GameApp {
     this.referenceSession.dispose();
     this.input.dispose();
     this.menuFrames.dispose();
+    this.menuPreviewReceipt.dispose();
     this.renderer?.dispose();
     void this.audio.dispose().catch((e) => console.warn('Audio cleanup:', e));
   }

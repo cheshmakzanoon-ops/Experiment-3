@@ -1,0 +1,69 @@
+{
+  "phase": "integration",
+  "parent": "2509d005ecb3ea288716ca4210e1fdb4084af4ef",
+  "source_inputs": [
+    {
+      "path": "src/main.ts",
+      "sha256": "e70db703bd200051e23e10f2d9567a973827bb325817d4a840d72b5b41d31cb6",
+      "bytes": 118242
+    },
+    {
+      "path": "src/rendering/menu-frame-pacing.ts",
+      "sha256": "8da95713d2525e737c410998a3950e2fc645c56b059a8f999125546b2badb0d9",
+      "bytes": 5649
+    },
+    {
+      "path": "src/rendering/menu-preview-receipt.ts",
+      "sha256": "583177ebcc5502c264340230f20075c94c7d70d0daf4b7ab5d9edea75a28d068",
+      "bytes": 7202
+    },
+    {
+      "path": "tests/menu-frame-pacing.test.ts",
+      "sha256": "a34237e5e38966138c88cd7a9da32e596ac27c0f59a15b5c5ea34d522e5024c7",
+      "bytes": 17823
+    },
+    {
+      "path": "tests/menu-preview-receipt.test.ts",
+      "sha256": "ce7d762a6d66468ada0fd39812152ffb2dfb133abd80b3e651e51959bf87c6a4",
+      "bytes": 11732
+    },
+    {
+      "path": ".github/workflows/motogp-review.yml",
+      "sha256": "c318d87d24e82a23ba4fdbc0429121d21425a6f7912d57dafd61bfd58758f8d1",
+      "bytes": 6664
+    }
+  ],
+  "started_utc": "2026-10-19T21:48:59.946865+00:00",
+  "ended_utc": "2026-10-19T21:49:53.428722+00:00",
+  "elapsed_seconds": 53.48195777399815,
+  "command": [
+    "node",
+    "--experimental-transform-types",
+    "scripts/source-stability.ts",
+    "--",
+    "node_modules/.bin/vitest",
+    "run",
+    "tests/gp-rear-chassis.test.ts",
+    "tests/gp-rider-contact.test.ts",
+    "tests/bike-bodies.test.ts",
+    "tests/bike-animation.test.ts",
+    "tests/session-identity.test.ts",
+    "--reporter=default",
+    "--reporter=json",
+    "--outputFile=/tmp/motogp-menu-integrated-validation/unit-tests.json"
+  ],
+  "exit_code": 0,
+  "log_path": "/tmp/motogp-menu-integrated-validation/integration.log",
+  "log_sha256": "a9d615e4cb106625ea6d2e5f1e48a33ccd7f6b817ad24e2d02bef75a4933fdc9",
+  "guard_reported_input_changes": false,
+  "scope": "Local guarded command on the recorded candidate input hashes; parent commit has uncommitted candidate changes.",
+  "test_report_sha256": "ab8f59a1d2717372917a28444fdc544d9bfb24d458274f6a5138f24f43634f1f",
+  "tests": {
+    "success": true,
+    "numTotalTests": 36,
+    "numPassedTests": 36,
+    "numFailedTests": 0,
+    "numPendingTests": 0
+  },
+  "files": 5
+}

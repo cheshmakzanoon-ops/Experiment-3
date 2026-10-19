@@ -1,0 +1,660 @@
+{
+  "schemaVersion": 1,
+  "createdAtUtc": "2026-10-19T21:55:55.842363+00:00",
+  "scope": "Read-only exact-source CI native timing analysis; no repository changes or browser execution. The frozen adaptive candidate is not the source under test.",
+  "sourceCommit": "5235c243b7912b078a799fa3e8a77080a25abd0b",
+  "sourceGitBlobs": {
+    "src/main.ts": "c0e76e7c09d6fcf559ebcb7ac8f7e6ab527a4f0b",
+    "src/rendering/menu-frame-pacing.ts": "783e90fbed16b9fb80f01d6e629994978777d3a6",
+    "e2e/menu-timing-evidence.ts": "feea66ab7b67b93c31674e09ab2fdbbec10dc356"
+  },
+  "artifactId": 12221621383,
+  "archive": {
+    "path": "/tmp/motogp-5235-menu.zip",
+    "bytes": 209331548,
+    "sha256": "fbfc60a32f5a502478c84ded0a90474c4bb75541a5c2b4b3e7065ac66593ac89",
+    "suppliedSha256Verified": true
+  },
+  "manifest": {
+    "path": "/tmp/motogp-5235-menu/manifest.json",
+    "bytes": 25330,
+    "sha256": "aca4367a68ac9a63df9668b6e8edf61bba85bd0442cf4f624947107cdc8653f0"
+  },
+  "browserBackend": {
+    "requested": "mesa",
+    "renderer": "ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)",
+    "vendor": "Google Inc. (Mesa)",
+    "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+    "pixel": [
+      64,
+      128,
+      191,
+      255
+    ],
+    "error": 0,
+    "softwareRendererDetected": true,
+    "physicalHardwareValidated": false
+  },
+  "report": {
+    "durationMs": 325473.932,
+    "total": 6,
+    "passed": 3,
+    "failed": 3,
+    "skipped": 0,
+    "attachmentsAvailable": 15,
+    "attachmentsExpected": 15,
+    "timingAttachmentsAnalyzed": 4,
+    "controlsWithoutTimingInstrumentation": 2
+  },
+  "outcomes": [
+    {
+      "title": "settings transition: 640x400 owns its first covered frame and persists quality",
+      "file": "settings-transition.spec.ts",
+      "status": "failed",
+      "durationMs": 72703
+    },
+    {
+      "title": "settings transition: 1280x720 owns its first covered frame and persists quality",
+      "file": "settings-transition.spec.ts",
+      "status": "failed",
+      "durationMs": 118468
+    },
+    {
+      "title": "27H.6 menu access: real interface keeps all actions reachable with mouse and keyboard",
+      "file": "30-menu-access.spec.ts",
+      "status": "passed",
+      "durationMs": 16053
+    },
+    {
+      "title": "27H.6 menu access: 640x400 settings persist and the normal paused grid starts",
+      "file": "30-menu-access.spec.ts",
+      "status": "failed",
+      "durationMs": 105822
+    },
+    {
+      "title": "GPU frame completion stays asynchronous with timer polling",
+      "file": "gpu-frame-gate.spec.ts",
+      "status": "passed",
+      "durationMs": 549
+    },
+    {
+      "title": "GPU frame completion stays asynchronous with animation-frame polling",
+      "file": "gpu-frame-gate.spec.ts",
+      "status": "passed",
+      "durationMs": 488
+    }
+  ],
+  "failedClickObservations": [
+    {
+      "title": "settings transition: 640x400 owns its first covered frame and persists quality",
+      "file": "settings-transition.spec.ts",
+      "status": "failed",
+      "pageTimeOriginEpochMs": 1792443156619.6,
+      "context": [
+        {
+          "kind": "context",
+          "at": 1204.7,
+          "context": 1,
+          "canvas": "world",
+          "width": 300,
+          "height": 150
+        }
+      ],
+      "firstFrame": {
+        "id": 111,
+        "start": 12809.9,
+        "end": 43423.2,
+        "reportedDuration": 30613.3
+      },
+      "firstOwnedFence": 67,
+      "firstFenceCreatedAtMs": 43422.5,
+      "firstFenceCompletedAtMs": 43485.2,
+      "menuRevealedAtMs": 43485.4,
+      "secondFrame": {
+        "id": 119,
+        "start": 43558.8,
+        "end": 43731.7,
+        "reportedDuration": 172.9
+      },
+      "revealToSecondFrameStartMs": 73.4,
+      "secondOwnedFence": 68,
+      "secondFenceCreatedAtMs": 43731.7,
+      "lastSecondFenceWaitAtMs": 43742,
+      "lastSecondFenceResult": "TIMEOUT_EXPIRED",
+      "secondFenceCompletionObserved": false,
+      "ownerEvidence": "    at Io0.submittedFrame (http://127.0.0.1:4173/assets/index-Cnr5VtbI.js:4292:7177)\n    at LD.draw (http://127.0.0.1:4173/assets/index-Cnr5VtbI.js:7490:53451)\n    at frame (http://127.0.0.1:4173/assets/index-Cnr5VtbI.js:7505:67594)",
+      "nativeGateWaitParameters": {
+        "(0, 0)": 2
+      },
+      "maximumObservedGateQueryDurationMs": 0.1,
+      "click": {
+        "selector": "internal:role=button[name=\"GARAGE & SETTINGS\"s]",
+        "timeoutParameterMs": 15000,
+        "startAtMs": 44499.922,
+        "endAtMs": 59505.226,
+        "durationMs": 15005.304,
+        "revealToClickStartMs": 1014.522,
+        "screencastFramesDuringClick": 0,
+        "actionLog": [
+          {
+            "traceMonotonicMs": 175852.247,
+            "message": "waiting for getByRole('button', { name: 'GARAGE & SETTINGS', exact: true })"
+          },
+          {
+            "traceMonotonicMs": 175857.988,
+            "message": "  locator resolved to <button data-action=\"settings\">GARAGE & SETTINGS</button>"
+          },
+          {
+            "traceMonotonicMs": 175859.077,
+            "message": "attempting click action"
+          },
+          {
+            "traceMonotonicMs": 175859.134,
+            "message": "  waiting for element to be visible, enabled and stable"
+          }
+        ]
+      },
+      "timersDuringClick": {
+        "samples": 30,
+        "firstAtMs": 44517.6,
+        "lastAtMs": 59015.5,
+        "sampleGapMs": {
+          "minimum": 495.9,
+          "median": 498.1,
+          "maximum": 506.1
+        },
+        "activeCallbackValues": [
+          0
+        ],
+        "nativeRafCounterValues": [
+          318
+        ],
+        "lastNativeRafDeliveryValuesMs": [
+          43741.8
+        ],
+        "sampleBeforeClick": {
+          "at": 44021.6,
+          "browserFrames": 318,
+          "lastBrowserFrame": 43741.8,
+          "activeCallback": 0
+        },
+        "sampleAfterClick": {
+          "at": 59516.5,
+          "browserFrames": 318,
+          "lastBrowserFrame": 43741.8,
+          "activeCallback": 0
+        }
+      },
+      "lastRetainedTimer": {
+        "kind": "timer",
+        "at": 63515.5,
+        "browserFrames": 318,
+        "lastBrowserFrame": 43741.8,
+        "activeCallback": 0,
+        "callbacks": 121
+      },
+      "nativeHeartbeatSilenceLowerBoundAtLastTimerMs": 19773.7,
+      "retainedLongTasksOverlappingClick": 0,
+      "retainedConsoleErrorsOrWarnings": 0,
+      "contextLostEvents": 0,
+      "retention": {
+        "totalEvents": 1266,
+        "retainedEvents": 1266,
+        "nodeDropped": 0,
+        "browserDroppedByDocument": {
+          "1792443156619.6": 101
+        },
+        "contextMetadataDropped": 0,
+        "totalMilestones": 270,
+        "packets": {
+          "1792443156619.6": 97
+        }
+      },
+      "browserDropTransitions": [
+        {
+          "sequence": 1,
+          "dropped": 0,
+          "atRange": [
+            15.5,
+            15.5
+          ]
+        },
+        {
+          "sequence": 8,
+          "dropped": 101,
+          "atRange": [
+            2565.5,
+            3015.6
+          ]
+        }
+      ],
+      "streamPacketSequenceGaps": [],
+      "clockAlignment": {
+        "pageTimeOriginEpochMs": 1792443156619.6,
+        "traceClockAnchorMethod": "trace wallTime + (trace monotonic event time - trace monotonicTime), then subtract page performance.timeOrigin",
+        "consolePacketCrossChecks": 97,
+        "consoleMinusLastPacketEventMs": {
+          "count": 97,
+          "min": -0.625,
+          "median": -0.059,
+          "max": 48.843
+        },
+        "crossClockAssumption": "Trace runner and browser epoch clocks are comparable. Console residual includes transport/dispatch time; it is not a GPU duration.",
+        "alignmentUsedForActions": true,
+        "negativeConsoleResidualToleranceMs": 5,
+        "alignmentCaveat": "Explicit clock anchors corroborated by matching timing console packets; sub-millisecond equality is not claimed."
+      },
+      "timingAttachment": {
+        "path": "/tmp/motogp-5235-menu/named-evidence/report-01/settings-transition.spec-settings-transition-640x400-owns-its-first-covered-fram--4eb3d5f70e/attempt-1/menu-frame-timing.json",
+        "bytes": 276932,
+        "sha256": "d58c37868ad63c4fd2b635ff0e9222ebee9ac43f0e21d456331b210351cf2ac8"
+      },
+      "trace": {
+        "path": "/tmp/motogp-5235-menu/named-evidence/report-01/settings-transition.spec-settings-transition-640x400-owns-its-first-covered-fram--4eb3d5f70e/attempt-1/trace.zip",
+        "bytes": 35599863,
+        "sha256": "58ea81501707b1f0588d32a2d3e504b211bfabc8cd48dc690b947f6a7c93b8fb"
+      },
+      "detailedObservations": {
+        "path": "/tmp/motogp-5235-menu-analysis/observations-0.json",
+        "bytes": 4430,
+        "sha256": "2eea47bdf8540db9fb13345c82ede73984abb05812d0faa69e7f3df7a1a4b274"
+      }
+    },
+    {
+      "title": "settings transition: 1280x720 owns its first covered frame and persists quality",
+      "file": "settings-transition.spec.ts",
+      "status": "failed",
+      "pageTimeOriginEpochMs": 1792443231464.9,
+      "context": [
+        {
+          "kind": "context",
+          "at": 1298.7,
+          "context": 1,
+          "canvas": "world",
+          "width": 300,
+          "height": 150
+        }
+      ],
+      "firstFrame": {
+        "id": 114,
+        "start": 12364.4,
+        "end": 69919.3,
+        "reportedDuration": 57554.9
+      },
+      "firstOwnedFence": 67,
+      "firstFenceCreatedAtMs": 69918.8,
+      "firstFenceCompletedAtMs": 69992.6,
+      "menuRevealedAtMs": 69992.9,
+      "secondFrame": {
+        "id": 120,
+        "start": 70083.9,
+        "end": 70249,
+        "reportedDuration": 165.2
+      },
+      "revealToSecondFrameStartMs": 91.0,
+      "secondOwnedFence": 68,
+      "secondFenceCreatedAtMs": 70248.9,
+      "lastSecondFenceWaitAtMs": 70259.4,
+      "lastSecondFenceResult": "TIMEOUT_EXPIRED",
+      "secondFenceCompletionObserved": false,
+      "ownerEvidence": "    at Io0.submittedFrame (http://127.0.0.1:4173/assets/index-Cnr5VtbI.js:4292:7177)\n    at LD.draw (http://127.0.0.1:4173/assets/index-Cnr5VtbI.js:7490:53451)\n    at frame (http://127.0.0.1:4173/assets/index-Cnr5VtbI.js:7505:67594)",
+      "nativeGateWaitParameters": {
+        "(0, 0)": 2
+      },
+      "maximumObservedGateQueryDurationMs": 0,
+      "click": {
+        "selector": "internal:role=button[name=\"GARAGE & SETTINGS\"s]",
+        "timeoutParameterMs": 15000,
+        "startAtMs": 70997.566,
+        "endAtMs": 86007.265,
+        "durationMs": 15009.699,
+        "revealToClickStartMs": 1004.666,
+        "screencastFramesDuringClick": 0,
+        "actionLog": [
+          {
+            "traceMonotonicMs": 277199.802,
+            "message": "waiting for getByRole('button', { name: 'GARAGE & SETTINGS', exact: true })"
+          },
+          {
+            "traceMonotonicMs": 277209.457,
+            "message": "  locator resolved to <button data-action=\"settings\">GARAGE & SETTINGS</button>"
+          },
+          {
+            "traceMonotonicMs": 277211.232,
+            "message": "attempting click action"
+          },
+          {
+            "traceMonotonicMs": 277211.5,
+            "message": "  waiting for element to be visible, enabled and stable"
+          }
+        ]
+      },
+      "timersDuringClick": {
+        "samples": 30,
+        "firstAtMs": 71019.8,
+        "lastAtMs": 85515.7,
+        "sampleGapMs": {
+          "minimum": 495.9,
+          "median": 498.8,
+          "maximum": 505.3
+        },
+        "activeCallbackValues": [
+          0
+        ],
+        "nativeRafCounterValues": [
+          298
+        ],
+        "lastNativeRafDeliveryValuesMs": [
+          70259.3
+        ],
+        "sampleBeforeClick": {
+          "at": 70514.6,
+          "browserFrames": 298,
+          "lastBrowserFrame": 70259.3,
+          "activeCallback": 0
+        },
+        "sampleAfterClick": {
+          "at": 86014.6,
+          "browserFrames": 298,
+          "lastBrowserFrame": 70259.3,
+          "activeCallback": 0
+        }
+      },
+      "lastRetainedTimer": {
+        "kind": "timer",
+        "at": 91019.8,
+        "browserFrames": 298,
+        "lastBrowserFrame": 70259.3,
+        "activeCallback": 0,
+        "callbacks": 122
+      },
+      "nativeHeartbeatSilenceLowerBoundAtLastTimerMs": 20760.5,
+      "retainedLongTasksOverlappingClick": 0,
+      "retainedConsoleErrorsOrWarnings": 0,
+      "contextLostEvents": 0,
+      "retention": {
+        "totalEvents": 1102,
+        "retainedEvents": 1102,
+        "nodeDropped": 0,
+        "browserDroppedByDocument": {
+          "1792443231464.9": 146
+        },
+        "contextMetadataDropped": 0,
+        "totalMilestones": 266,
+        "packets": {
+          "1792443231464.9": 94
+        }
+      },
+      "browserDropTransitions": [
+        {
+          "sequence": 1,
+          "dropped": 0,
+          "atRange": [
+            14.6,
+            14.6
+          ]
+        },
+        {
+          "sequence": 8,
+          "dropped": 146,
+          "atRange": [
+            2595.3,
+            3020.3
+          ]
+        }
+      ],
+      "streamPacketSequenceGaps": [],
+      "clockAlignment": {
+        "pageTimeOriginEpochMs": 1792443231464.9,
+        "traceClockAnchorMethod": "trace wallTime + (trace monotonic event time - trace monotonicTime), then subtract page performance.timeOrigin",
+        "consolePacketCrossChecks": 94,
+        "consoleMinusLastPacketEventMs": {
+          "count": 94,
+          "min": 0.065,
+          "median": 0.606,
+          "max": 52.745
+        },
+        "crossClockAssumption": "Trace runner and browser epoch clocks are comparable. Console residual includes transport/dispatch time; it is not a GPU duration.",
+        "alignmentUsedForActions": true,
+        "negativeConsoleResidualToleranceMs": 5,
+        "alignmentCaveat": "Explicit clock anchors corroborated by matching timing console packets; sub-millisecond equality is not claimed."
+      },
+      "timingAttachment": {
+        "path": "/tmp/motogp-5235-menu/named-evidence/report-01/settings-transition.spec-settings-transition-1280x720-owns-its-first-covered-fra--08faeaa7df/attempt-1/menu-frame-timing.json",
+        "bytes": 253298,
+        "sha256": "4ef97b58dd960029d65e96be6b38df52f98f331eb635a5088142eb86730a9a3d"
+      },
+      "trace": {
+        "path": "/tmp/motogp-5235-menu/named-evidence/report-01/settings-transition.spec-settings-transition-1280x720-owns-its-first-covered-fra--08faeaa7df/attempt-1/trace.zip",
+        "bytes": 35348838,
+        "sha256": "69c4d9606b8ddceb28f6753817062b203997c5512c853da53db4a138c44ee538"
+      },
+      "detailedObservations": {
+        "path": "/tmp/motogp-5235-menu-analysis/observations-1.json",
+        "bytes": 4176,
+        "sha256": "d40da5d835ecdc0c877f858213d9b0be90060aea6e5d6ff5773288ceb83eb353"
+      }
+    },
+    {
+      "title": "27H.6 menu access: 640x400 settings persist and the normal paused grid starts",
+      "file": "30-menu-access.spec.ts",
+      "status": "failed",
+      "pageTimeOriginEpochMs": 1792443047465.5,
+      "context": [
+        {
+          "kind": "context",
+          "at": 1394.4,
+          "context": 1,
+          "canvas": "world",
+          "width": 300,
+          "height": 150
+        }
+      ],
+      "firstFrame": {
+        "id": 105,
+        "start": 15156.8,
+        "end": 66132.6,
+        "reportedDuration": 50975.8
+      },
+      "firstOwnedFence": 67,
+      "firstFenceCreatedAtMs": 66131.3,
+      "firstFenceCompletedAtMs": 66220.7,
+      "menuRevealedAtMs": 66221,
+      "secondFrame": {
+        "id": 113,
+        "start": 66299.7,
+        "end": 66454.1,
+        "reportedDuration": 154.4
+      },
+      "revealToSecondFrameStartMs": 78.7,
+      "secondOwnedFence": 68,
+      "secondFenceCreatedAtMs": 66454,
+      "lastSecondFenceWaitAtMs": 66468.1,
+      "lastSecondFenceResult": "TIMEOUT_EXPIRED",
+      "secondFenceCompletionObserved": false,
+      "ownerEvidence": "    at Io0.submittedFrame (http://127.0.0.1:4173/assets/index-Cnr5VtbI.js:4292:7177)\n    at LD.draw (http://127.0.0.1:4173/assets/index-Cnr5VtbI.js:7490:53451)\n    at frame (http://127.0.0.1:4173/assets/index-Cnr5VtbI.js:7505:67594)",
+      "nativeGateWaitParameters": {
+        "(0, 0)": 2
+      },
+      "maximumObservedGateQueryDurationMs": 0,
+      "click": {
+        "selector": "internal:role=button[name=\"GARAGE & SETTINGS\"s]",
+        "timeoutParameterMs": 15000,
+        "startAtMs": 67156.343,
+        "endAtMs": 82167.645,
+        "durationMs": 15011.302,
+        "revealToClickStartMs": 935.343,
+        "screencastFramesDuringClick": 0,
+        "actionLog": [
+          {
+            "traceMonotonicMs": 89360.45,
+            "message": "waiting for getByRole('button', { name: 'GARAGE & SETTINGS', exact: true })"
+          },
+          {
+            "traceMonotonicMs": 89383.005,
+            "message": "  locator resolved to <button data-action=\"settings\">GARAGE & SETTINGS</button>"
+          },
+          {
+            "traceMonotonicMs": 89385.454,
+            "message": "attempting click action"
+          },
+          {
+            "traceMonotonicMs": 89385.5,
+            "message": "  waiting for element to be visible, enabled and stable"
+          }
+        ]
+      },
+      "timersDuringClick": {
+        "samples": 30,
+        "firstAtMs": 67524.7,
+        "lastAtMs": 82031.4,
+        "sampleGapMs": {
+          "minimum": 495.9,
+          "median": 500.0,
+          "maximum": 506.7
+        },
+        "activeCallbackValues": [
+          0
+        ],
+        "nativeRafCounterValues": [
+          342
+        ],
+        "lastNativeRafDeliveryValuesMs": [
+          66467.8
+        ],
+        "sampleBeforeClick": {
+          "at": 67024.7,
+          "browserFrames": 342,
+          "lastBrowserFrame": 66467.8,
+          "activeCallback": 0
+        },
+        "sampleAfterClick": {
+          "at": 82527.3,
+          "browserFrames": 342,
+          "lastBrowserFrame": 66467.8,
+          "activeCallback": 0
+        }
+      },
+      "lastRetainedTimer": {
+        "kind": "timer",
+        "at": 85524.7,
+        "browserFrames": 342,
+        "lastBrowserFrame": 66467.8,
+        "activeCallback": 0,
+        "callbacks": 115
+      },
+      "nativeHeartbeatSilenceLowerBoundAtLastTimerMs": 19056.9,
+      "retainedLongTasksOverlappingClick": 0,
+      "retainedConsoleErrorsOrWarnings": 0,
+      "contextLostEvents": 0,
+      "retention": {
+        "totalEvents": 1735,
+        "retainedEvents": 1735,
+        "nodeDropped": 0,
+        "browserDroppedByDocument": {
+          "1792443047465.5": 89
+        },
+        "contextMetadataDropped": 0,
+        "totalMilestones": 274,
+        "packets": {
+          "1792443047465.5": 100
+        }
+      },
+      "browserDropTransitions": [
+        {
+          "sequence": 1,
+          "dropped": 0,
+          "atRange": [
+            24.7,
+            24.7
+          ]
+        },
+        {
+          "sequence": 8,
+          "dropped": 89,
+          "atRange": [
+            2815.7,
+            3026.8
+          ]
+        }
+      ],
+      "streamPacketSequenceGaps": [],
+      "clockAlignment": {
+        "pageTimeOriginEpochMs": 1792443047465.5,
+        "traceClockAnchorMethod": "trace wallTime + (trace monotonic event time - trace monotonicTime), then subtract page performance.timeOrigin",
+        "consolePacketCrossChecks": 100,
+        "consoleMinusLastPacketEventMs": {
+          "count": 100,
+          "min": 0.24,
+          "median": 0.779,
+          "max": 48.568
+        },
+        "crossClockAssumption": "Trace runner and browser epoch clocks are comparable. Console residual includes transport/dispatch time; it is not a GPU duration.",
+        "alignmentUsedForActions": true,
+        "negativeConsoleResidualToleranceMs": 5,
+        "alignmentCaveat": "Explicit clock anchors corroborated by matching timing console packets; sub-millisecond equality is not claimed."
+      },
+      "timingAttachment": {
+        "path": "/tmp/motogp-5235-menu/named-evidence/report-01/30-menu-access.spec-27H.6-menu-access-640x400-settings-persist-and-the-normal-pa--5fa15e46b3/attempt-1/menu-frame-timing.json",
+        "bytes": 343529,
+        "sha256": "cd0d4a924f85e8a802354192fe2f5c97f91f5cf9785b50198bdc8a0233e445d1"
+      },
+      "trace": {
+        "path": "/tmp/motogp-5235-menu/named-evidence/report-01/30-menu-access.spec-27H.6-menu-access-640x400-settings-persist-and-the-normal-pa--5fa15e46b3/attempt-1/trace.zip",
+        "bytes": 35608511,
+        "sha256": "54370d94a2d4747149a84d532bd4fe91f4775b24247a12395ddecd3292694cf9"
+      },
+      "detailedObservations": {
+        "path": "/tmp/motogp-5235-menu-analysis/observations-3.json",
+        "bytes": 4472,
+        "sha256": "4628c0c5789231a78de786e0af41331e20b5b2a7c5b1acc5019391181705430d"
+      }
+    }
+  ],
+  "findings": {
+    "observedSequence": "Each first menu frame returns after a long callback; its frame-owned native fence then reports CONDITION_SATISFIED and the menu reveals. The old scheduler starts another automatic complete frame 73.4\u201391.0 ms later. That frame returns and its own fence last reports TIMEOUT_EXPIRED. The original normal click begins 935.343\u20131014.522 ms after reveal and fails its original 15-second stability deadline.",
+    "eventLoopBoundary": "Every failed click has 30 streamed timer callbacks with activeCallback 0, fixed native heartbeat count/timestamp and zero screencast frames. Timer intervals remain approximately 496\u2013507 ms. Thus an uninterrupted 15-second application RAF callback is not what this evidence shows; browser RAF delivery is absent while timer tasks continue.",
+    "fenceBoundary": "The second fence was genuinely pending at its last native query, shortly before the click. No native queries are observed during the RAF silence; its actual completion time and the specific driver/compositor cause are unknown. No GL finish, extra wait or readback was inserted by this analysis.",
+    "stableCheckConnection": "The installed Playwright injected _checkElementIsStable implementation schedules bounding-rectangle comparisons with native requestAnimationFrame. Its dependency on delivered animation callbacks matches the observed original action log stopping at visible/enabled/stable; this does not require inferring moving CSS geometry.",
+    "candidateAssessment": "The frozen policy directly targets the observed premature automatic redraw: it retains the admission timestamp across the long draw, reserves recovery proportional to the occupied eligible callback interval after genuine completion, and preserves the original base/following-callback handoff. It changes scheduling rather than per-frame quality or input deadlines. This is a mechanism match, not proof of a successful original browser journey.",
+    "candidateScope": "Root confirms no cold precompilation is included in the current frozen candidate. Original menu/settings and MotoGP browser acceptance is still pending; explicit preview transactions and later transitions are not validated by these initial failed clicks.",
+    "retentionBoundary": "The 89/101/146 browser-side drops occur in the early preparation burst around page +2.6\u20133.0 seconds, before the first menu frames. No later drop-counter changes, Node ring drops or packet sequence gaps are recorded. Clock anchors are corroborated by matching console packets. Last retained activity is never treated as proof of continued execution beyond capture."
+  },
+  "references": {
+    "parserSummary": {
+      "path": "/tmp/motogp-5235-menu-analysis/summary.json",
+      "bytes": 437838,
+      "sha256": "c8e7439346a4a8d294645041b944a6a7e91747011912f36ac803c95acca4a920"
+    },
+    "parserTimeline": {
+      "path": "/tmp/motogp-5235-menu-analysis/timeline.md",
+      "bytes": 56989,
+      "sha256": "8deb924dd18bf10aca86e45500ca01e9a85568d34651dfe97cc34163ec15c8a7"
+    },
+    "progressLog": {
+      "path": "/tmp/motogp-5235-menu/raw/browser-progress.json",
+      "bytes": 2142,
+      "sha256": "ea26ed3f03b8263f7ce5760d7add0839815fe6a05679c676c37daf289d4aabc7"
+    },
+    "backendReceipt": {
+      "path": "/tmp/motogp-5235-menu/raw/browser-backend.json",
+      "bytes": 325,
+      "sha256": "9ddbe9ad44808a6870cd07050381a6a34e2a1dba36490aa7bd029cec6a6d15ed"
+    },
+    "parser": {
+      "path": "/tmp/analyze_menu_timing.py",
+      "bytes": 30234,
+      "sha256": "016b86dabff862f11df061722f452ba0ff890e79437db14ee51b92922a4fc05d"
+    },
+    "candidatePacingSource": {
+      "path": "/workspace/scratch/12f760d63cf8/Experiment-3/src/rendering/menu-frame-pacing.ts",
+      "bytes": 5649,
+      "sha256": "8da95713d2525e737c410998a3950e2fc645c56b059a8f999125546b2badb0d9"
+    },
+    "playwrightInjectedStableCheck": {
+      "path": "/workspace/scratch/12f760d63cf8/Experiment-3/node_modules/playwright-core/lib/generated/injectedScriptSource.js",
+      "bytes": 302520,
+      "sha256": "79ed5f698eb5af051def9bce40df70806a33ff19a2f8e2ba567093c39662ae47"
+    }
+  }
+}

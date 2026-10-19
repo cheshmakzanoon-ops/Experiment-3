@@ -108,6 +108,7 @@ describe('menu handoff after actual GPU completion', () => {
       settingsBusy: false,
     };
     state.wait = gl.CONDITION_SATISFIED;
+    pacing.suspend();
     // A covered editor owns its existing frame before the GPU/menu scheduler.
     for (let callback = 0; callback < 120; callback++) {
       clock.now += 16;
@@ -196,5 +197,277 @@ describe('menu handoff after actual GPU completion', () => {
       expect(state.deleted).toHaveLength(1);
       expect(state.finishes).toBe(0);
     }
+  });
+});
+
+describe('adaptive recovery for active menu callbacks', () => {
+  it('learns the longest occupied callback gap, then returns a later fast frame to the base cadence', () => {
+    const { clock, pacing, source, gl, state, submit } = fixture();
+    expect(pacing.poll(source)).toBe('ready');
+    submit();
+    clock.now = 16;
+    expect(pacing.poll(source)).toBe('busy');
+    clock.now = 2016;
+    expect(pacing.poll(source)).toBe('busy');
+    clock.now = 2032;
+    state.wait = gl.CONDITION_SATISFIED;
+    expect(pacing.poll(source)).toBe('completed');
+    clock.now = 2048;
+    expect(pacing.poll(source)).toBe('quiet');
+    clock.now = 3032;
+    expect(pacing.poll(source)).toBe('quiet');
+    clock.now = 4031;
+    expect(pacing.poll(source)).toBe('quiet');
+    clock.now = 4032;
+    expect(pacing.poll(source)).toBe('ready');
+    expect(state.allocated).toBe(1);
+    submit();
+    clock.now = 4048;
+    expect(pacing.poll(source)).toBe('completed');
+    clock.now = 4064;
+    expect(pacing.poll(source)).toBe('quiet');
+    clock.now = 4115;
+    expect(pacing.poll(source)).toBe('ready');
+    expect(state.allocated).toBe(2);
+    expect(state.finishes).toBe(0);
+  });
+
+  it('includes the admission query and synchronous draw before submittedFrame returns', () => {
+    const { clock, pacing, source, gl, state, submit } = fixture();
+    const canSubmitFrame = source.canSubmitFrame;
+    source.canSubmitFrame = () => {
+      clock.now += 300;
+      return canSubmitFrame();
+    };
+    expect(pacing.poll(source)).toBe('ready');
+    clock.now += 700; // The complete draw is synchronous work in this same callback.
+    submit();
+    source.canSubmitFrame = canSubmitFrame;
+    clock.now = 1016;
+    state.wait = gl.CONDITION_SATISFIED;
+    expect(pacing.poll(source)).toBe('completed');
+    clock.now = 1032;
+    expect(pacing.poll(source)).toBe('quiet');
+    clock.now = 1800;
+    expect(pacing.poll(source)).toBe('quiet');
+    clock.now = 2031;
+    expect(pacing.poll(source)).toBe('quiet');
+    clock.now = 2032;
+    expect(pacing.poll(source)).toBe('ready');
+    expect(state.allocated).toBe(1);
+  });
+
+  it('includes a blocking final completion query even without another pending callback', () => {
+    const { clock, pacing, source, gl, state, submit } = fixture();
+    expect(pacing.poll(source)).toBe('ready');
+    submit();
+    clock.now = 16;
+    expect(pacing.poll(source)).toBe('busy');
+    const canSubmitFrame = source.canSubmitFrame;
+    source.canSubmitFrame = () => {
+      clock.now += 500;
+      return canSubmitFrame();
+    };
+    clock.now = 32;
+    state.wait = gl.CONDITION_SATISFIED;
+    expect(pacing.poll(source)).toBe('completed');
+    expect(clock.now).toBe(532);
+    source.canSubmitFrame = canSubmitFrame;
+    clock.now = 548;
+    expect(pacing.poll(source)).toBe('quiet');
+    clock.now = 1031;
+    expect(pacing.poll(source)).toBe('quiet');
+    clock.now = 1032;
+    expect(pacing.poll(source)).toBe('ready');
+    expect(state.allocated).toBe(1);
+    expect(state.finishes).toBe(0);
+  });
+
+  it('prioritizes one explicit redraw after the base interval without admitting automatic orbit', () => {
+    const { clock, pacing, source, gl, state, submit } = fixture();
+    expect(pacing.poll(source)).toBe('ready');
+    submit();
+    clock.now = 1000;
+    state.wait = gl.CONDITION_SATISFIED;
+    expect(pacing.poll(source, true)).toBe('completed');
+    clock.now = 1016;
+    expect(pacing.poll(source, true)).toBe('quiet');
+    clock.now = 1066;
+    expect(pacing.poll(source, true)).toBe('quiet');
+    clock.now = 1067;
+    expect(pacing.poll(source)).toBe('quiet');
+    clock.now = 1083;
+    expect(pacing.poll(source, true)).toBe('ready');
+    expect(state.allocated).toBe(1);
+    submit();
+    clock.now = 1099;
+    expect(pacing.poll(source)).toBe('completed');
+    clock.now = 1115;
+    expect(pacing.poll(source)).toBe('quiet');
+    clock.now = 1166;
+    expect(pacing.poll(source)).toBe('ready');
+    expect(state.allocated).toBe(2);
+  });
+
+  it('does not let explicit redraw consume the mandatory following paint callback', () => {
+    const { clock, pacing, source, gl, state, submit } = fixture();
+    submit();
+    state.wait = gl.CONDITION_SATISFIED;
+    expect(pacing.poll(source, true)).toBe('completed');
+    clock.now = 5000;
+    expect(pacing.poll(source, true)).toBe('quiet');
+    clock.now += 16;
+    expect(pacing.poll(source, true)).toBe('ready');
+    expect(state.allocated).toBe(1);
+  });
+
+  it('breaks suspended callback gaps while retaining an earlier active gap and owned fence', () => {
+    const { clock, pacing, source, gl, state, submit } = fixture();
+    expect(pacing.poll(source)).toBe('ready');
+    submit();
+    clock.now = 16;
+    expect(pacing.poll(source)).toBe('busy');
+    clock.now = 2016;
+    expect(pacing.poll(source)).toBe('busy');
+    const polls = state.polls;
+    pacing.suspend();
+    clock.now = 62016;
+    pacing.suspend();
+    expect(state.polls).toBe(polls);
+    state.wait = gl.CONDITION_SATISFIED;
+    expect(pacing.poll(source)).toBe('completed');
+    clock.now = 62032;
+    expect(pacing.poll(source)).toBe('quiet');
+    clock.now = 64015;
+    expect(pacing.poll(source)).toBe('quiet');
+    clock.now = 64016;
+    expect(pacing.poll(source)).toBe('ready');
+    expect(state.allocated).toBe(1);
+    expect(state.deleted).toHaveLength(1);
+  });
+
+  it.each([false, true])(
+    'does not spend visible control recovery during suspension (explicit redraw: %s)',
+    (explicit) => {
+      const { clock, pacing, source, gl, state, submit } = fixture();
+      expect(pacing.poll(source)).toBe('ready');
+      submit();
+      clock.now = 1000;
+      state.wait = gl.CONDITION_SATISFIED;
+      expect(pacing.poll(source)).toBe('completed');
+      clock.now = 1016;
+      expect(pacing.poll(source)).toBe('quiet');
+      pacing.suspend();
+      clock.now = 61016;
+      expect(pacing.poll(source, explicit)).toBe('quiet');
+      const remaining = (explicit ? MenuFramePacing.quietMilliseconds : 1000) - 16;
+      clock.now = 61016 + remaining - 1;
+      expect(pacing.poll(source, explicit)).toBe('quiet');
+      clock.now = 61016 + remaining + 1;
+      expect(pacing.poll(source, explicit)).toBe('ready');
+      expect(state.allocated).toBe(1);
+    },
+  );
+
+  it('does not charge unrelated time before the callback that actually admits a draw', () => {
+    const { clock, pacing, source, gl, state, submit } = fixture();
+    expect(pacing.poll(source)).toBe('ready');
+    // The caller may coalesce an invalidation instead of drawing this callback.
+    clock.now = 50000;
+    expect(pacing.poll(source)).toBe('ready');
+    submit();
+    clock.now = 50016;
+    state.wait = gl.CONDITION_SATISFIED;
+    expect(pacing.poll(source)).toBe('completed');
+    clock.now = 50032;
+    expect(pacing.poll(source)).toBe('quiet');
+    clock.now = 50083;
+    expect(pacing.poll(source)).toBe('ready');
+  });
+
+  it('discards an old admission timestamp when presentation is suspended before submission', () => {
+    const { clock, pacing, source, gl, state, submit } = fixture();
+    expect(pacing.poll(source)).toBe('ready');
+    pacing.suspend();
+    clock.now = 50000;
+    submit();
+    clock.now = 50016;
+    state.wait = gl.CONDITION_SATISFIED;
+    expect(pacing.poll(source)).toBe('completed');
+    clock.now = 50032;
+    expect(pacing.poll(source)).toBe('quiet');
+    clock.now = 50083;
+    expect(pacing.poll(source)).toBe('ready');
+  });
+
+  it('does not transfer learned recovery from an abandoned renderer to its replacement', () => {
+    const { clock, pacing, source, gl, state, submit } = fixture();
+    expect(pacing.poll(source)).toBe('ready');
+    submit();
+    clock.now = 2000;
+    expect(pacing.poll(source)).toBe('busy');
+    const replacement = renderer(clock);
+    clock.now = 60000;
+    expect(pacing.poll(replacement.source)).toBe('ready');
+    state.wait = gl.CONDITION_SATISFIED;
+    const oldPolls = state.polls;
+    replacement.gpu.submittedFrame();
+    pacing.submittedFrame(replacement.source);
+    clock.now = 60016;
+    replacement.state.wait = replacement.gl.CONDITION_SATISFIED;
+    expect(pacing.poll(replacement.source)).toBe('completed');
+    clock.now = 60032;
+    expect(pacing.poll(replacement.source)).toBe('quiet');
+    clock.now = 60083;
+    expect(pacing.poll(replacement.source)).toBe('ready');
+    expect(state.polls).toBe(oldPolls);
+    expect(replacement.state.allocated).toBe(1);
+  });
+
+  it.each([
+    ['NaN', Number.NaN],
+    ['positive infinity', Number.POSITIVE_INFINITY],
+    ['negative infinity', Number.NEGATIVE_INFINITY],
+    ['a backwards sample', -1],
+  ] as const)('preserves genuine pending work across %s', (_label, invalid) => {
+    const { clock, pacing, source, gl, state, submit } = fixture();
+    expect(pacing.poll(source)).toBe('ready');
+    submit();
+    clock.now = 100;
+    expect(pacing.poll(source)).toBe('busy');
+    clock.now = invalid;
+    expect(pacing.poll(source)).toBe('busy');
+    expect(state.deleted).toHaveLength(0);
+    clock.now = 1000;
+    expect(pacing.poll(source)).toBe('busy');
+    clock.now = 1016;
+    state.wait = gl.CONDITION_SATISFIED;
+    expect(pacing.poll(source)).toBe('completed');
+    clock.now = 1032;
+    expect(pacing.poll(source)).toBe('quiet');
+    clock.now = 1083;
+    expect(pacing.poll(source)).toBe('ready');
+    expect(state.allocated).toBe(1);
+    expect(state.deleted).toHaveLength(1);
+  });
+
+  it('resumes finite remaining recovery after the clock becomes invalid and starts again', () => {
+    const { clock, pacing, source, gl, state, submit } = fixture();
+    expect(pacing.poll(source)).toBe('ready');
+    submit();
+    clock.now = 1000;
+    state.wait = gl.CONDITION_SATISFIED;
+    expect(pacing.poll(source)).toBe('completed');
+    clock.now = 1016;
+    expect(pacing.poll(source)).toBe('quiet');
+    clock.now = Number.NaN;
+    expect(pacing.poll(source)).toBe('quiet');
+    clock.now = 0;
+    expect(pacing.poll(source)).toBe('quiet');
+    clock.now = 983;
+    expect(pacing.poll(source)).toBe('quiet');
+    clock.now = 984;
+    expect(pacing.poll(source)).toBe('ready');
+    expect(state.allocated).toBe(1);
   });
 });

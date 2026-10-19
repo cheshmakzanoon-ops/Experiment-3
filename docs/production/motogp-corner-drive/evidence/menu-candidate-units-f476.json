@@ -1,0 +1,96 @@
+{
+  "phase": "units",
+  "parent": "f476cee649cf1386bce659bf5eeacccb48fa4650",
+  "source_inputs": [
+    {
+      "path": "src/main.ts",
+      "sha256": "e70db703bd200051e23e10f2d9567a973827bb325817d4a840d72b5b41d31cb6",
+      "bytes": 118242
+    },
+    {
+      "path": "src/rendering/menu-frame-pacing.ts",
+      "sha256": "8da95713d2525e737c410998a3950e2fc645c56b059a8f999125546b2badb0d9",
+      "bytes": 5649
+    },
+    {
+      "path": "src/rendering/menu-preview-receipt.ts",
+      "sha256": "583177ebcc5502c264340230f20075c94c7d70d0daf4b7ab5d9edea75a28d068",
+      "bytes": 7202
+    },
+    {
+      "path": "tests/menu-frame-pacing.test.ts",
+      "sha256": "a34237e5e38966138c88cd7a9da32e596ac27c0f59a15b5c5ea34d522e5024c7",
+      "bytes": 17823
+    },
+    {
+      "path": "tests/menu-preview-receipt.test.ts",
+      "sha256": "ce7d762a6d66468ada0fd39812152ffb2dfb133abd80b3e651e51959bf87c6a4",
+      "bytes": 11732
+    },
+    {
+      "path": ".github/workflows/motogp-review.yml",
+      "sha256": "c318d87d24e82a23ba4fdbc0429121d21425a6f7912d57dafd61bfd58758f8d1",
+      "bytes": 6664
+    }
+  ],
+  "started_utc": "2026-10-19T20:54:37.835973+00:00",
+  "ended_utc": "2026-10-19T21:04:11.413497+00:00",
+  "elapsed_seconds": 573.5777220370001,
+  "command": [
+    "node",
+    "--experimental-transform-types",
+    "scripts/source-stability.ts",
+    "--",
+    "node_modules/.bin/vitest",
+    "run",
+    "tests/gp-rear-chassis.test.ts",
+    "tests/gp-rider-contact.test.ts",
+    "tests/gp-chain-integrity.test.ts",
+    "tests/bike-bodies.test.ts",
+    "tests/gp-drive-traction.test.ts",
+    "tests/gp-rear-pedal.test.ts",
+    "tests/gp-engine-braking.test.ts",
+    "tests/gp-seamless-braking.test.ts",
+    "tests/gp-corner-phases.test.ts",
+    "tests/gp-riding-cues.test.ts",
+    "tests/gp-control-feedback.test.ts",
+    "tests/replay-seek-preparation.test.ts",
+    "tests/recording.test.ts",
+    "tests/flashback-recording.test.ts",
+    "tests/replay-clock.test.ts",
+    "tests/replay-presentation.test.ts",
+    "tests/race-view-continuity.test.ts",
+    "tests/gp-grid-paint.test.ts",
+    "tests/gp-grid.test.ts",
+    "tests/session-identity.test.ts",
+    "tests/bike-animation.test.ts",
+    "tests/snapshot-interpolation.test.ts",
+    "tests/live-frame-clock.test.ts",
+    "tests/wheel-pose.test.ts",
+    "tests/collision-continuous.test.ts",
+    "tests/menu-frame-pacing.test.ts",
+    "tests/menu-presentation.test.ts",
+    "tests/gpu-frame-gate.test.ts",
+    "tests/menu-preview.test.ts",
+    "tests/settings-transition.test.ts",
+    "tests/menu-preview-receipt.test.ts",
+    "tests/rotation-interpolation.test.ts",
+    "--reporter=default",
+    "--reporter=json",
+    "--outputFile=/tmp/motogp-menu-candidate-validation/unit-tests.json"
+  ],
+  "exit_code": 0,
+  "log_path": "/tmp/motogp-menu-candidate-validation/units.log",
+  "log_sha256": "2fdc15b01a14d6bdde8c4a3dcb3cbe3c0f9b48798fd5825b99a54ea7f0a778f5",
+  "guard_reported_input_changes": false,
+  "scope": "Local guarded command on the recorded candidate input hashes; parent commit has uncommitted candidate changes.",
+  "test_report_sha256": "2e9be151dc7000016e60c17a6dad6ae99f37163930eb9baf06d0d7bca1403e7a",
+  "tests": {
+    "success": true,
+    "numTotalTests": 392,
+    "numPassedTests": 392,
+    "numFailedTests": 0,
+    "numPendingTests": 0
+  },
+  "files": 32
+}
