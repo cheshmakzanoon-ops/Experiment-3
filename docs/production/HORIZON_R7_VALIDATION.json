@@ -1,0 +1,588 @@
+{
+  "schema_version": 1,
+  "title": "Horizon R7 implementation validation",
+  "recorded_at_utc": "2026-10-19T19:55:07.382018+00:00",
+  "target_branch": "main",
+  "development_baseline": "0dd77ce92de69cf4f07cb01a8f44003349eda97c",
+  "parent_after_preserving_concurrent_work": "5235c243b7912b078a799fa3e8a77080a25abd0b",
+  "source_identity": {
+    "production_fingerprint": "b04a0e8ca16ddf0546b0caa5c8317ebfb334b5c1254469b57bd0aeba70a848f8",
+    "fingerprint_method": "Exact vite.config.ts path/content/NUL hashing, with full string path order. Recomputed after incorporating concurrent main changes.",
+    "production_build_and_live_journey_match": true,
+    "reviewed_room_sources_match": true,
+    "reviewed_vehicle_sources_match": true,
+    "reviewed_physics_sources_match": true,
+    "fingerprinted_files": 737,
+    "build_commit_field": null,
+    "build_commit_field_explanation": "The build was made from the modified working tree before committing. Its content fingerprint identifies the tested application."
+  },
+  "concurrent_main": {
+    "commit": "54b240ac82bc80e445fde3408ae99376a79508e8",
+    "method": "Fast-forwarded main before committing the Horizon work; no conflicts or overwritten changes.",
+    "scope": "MotoGP test diagnostics, its workflow and evidence; no application src, package-lock, index.html or vite.config changes.",
+    "horizon_application_fingerprint_unchanged": true,
+    "note": "The full lint/build invocations preceded this incoming test-only commit. Their application source identity and all executed Horizon test files still match; no claim is made that the new unrelated MotoGP tests were rerun here.",
+    "additional_commit_during_publication": {
+      "commit": "5235c243b7912b078a799fa3e8a77080a25abd0b",
+      "method": "Rebased the unpublished Horizon commit onto the new main head without conflicts.",
+      "scope": "Type annotations only in e2e/menu-timing-evidence.ts; application and Horizon test sources unchanged.",
+      "horizon_application_fingerprint_recomputed_and_unchanged": true,
+      "note": "No additional build or unrelated MotoGP test execution is claimed for this test-helper type fix."
+    }
+  },
+  "gates": {
+    "production_build": {
+      "command": "npm run build",
+      "exit_code": 0,
+      "includes": "Player derivative validation, TypeScript noEmit, Vite production bundle",
+      "log": "horizon-r7-evidence/build.log",
+      "identity": "horizon-r7-evidence/build-identity.json",
+      "warning": "Vite reports chunks larger than 500 kB; no size threshold, graphics setting or dependency was changed to suppress that warning."
+    },
+    "lint": {
+      "command": "npm run lint",
+      "exit_code": 0,
+      "log": "horizon-r7-evidence/lint.log",
+      "final_followups": "Targeted ESLint also passed for the final room shader, combined HUD test, diagnostic journey logging, new bike test and reproducible racecraft script. The new bike test passed a narrow TypeScript check using the project compiler flags."
+    },
+    "content": {
+      "command": "npm run validate:content",
+      "exit_code": 0,
+      "result": "Content valid",
+      "log": "horizon-r7-evidence/content.log"
+    },
+    "unit_regressions": {
+      "passed": 75,
+      "failed": 0,
+      "files": 9,
+      "scope": "Focused Festival physics, wake integration, bike compatibility, car geometry, material ownership and disposal; not the entire repository suite.",
+      "runs": [
+        {
+          "report": "horizon-r7-evidence/racecraft-tests.json",
+          "exit_code": 0,
+          "passed": 53,
+          "failed": 0,
+          "files": [
+            {
+              "path": "tests/aero-platform.test.ts",
+              "assertions": 8,
+              "status": "passed"
+            },
+            {
+              "path": "tests/festival-racecraft.test.ts",
+              "assertions": 24,
+              "status": "passed"
+            },
+            {
+              "path": "tests/festival-rival-passing.test.ts",
+              "assertions": 13,
+              "status": "passed"
+            },
+            {
+              "path": "tests/open-world-session.test.ts",
+              "assertions": 8,
+              "status": "passed"
+            }
+          ]
+        },
+        {
+          "report": "horizon-r7-evidence/bike-tests.json",
+          "exit_code": 0,
+          "passed": 6,
+          "failed": 0,
+          "files": [
+            {
+              "path": "tests/festival-racecraft-bikes.test.ts",
+              "assertions": 1,
+              "status": "passed"
+            },
+            {
+              "path": "tests/open-world-bikes.test.ts",
+              "assertions": 5,
+              "status": "passed"
+            }
+          ]
+        },
+        {
+          "report": "horizon-r7-evidence/vehicle-tests.json",
+          "exit_code": 0,
+          "passed": 16,
+          "failed": 0,
+          "files": [
+            {
+              "path": "tests/festival-car-finish.test.ts",
+              "assertions": 7,
+              "status": "passed"
+            },
+            {
+              "path": "tests/festival-vehicle-detail.test.ts",
+              "assertions": 6,
+              "status": "passed"
+            },
+            {
+              "path": "tests/festival-vehicle-glazing.test.ts",
+              "assertions": 3,
+              "status": "passed"
+            }
+          ]
+        }
+      ],
+      "vehicle_source_receipt": "horizon-r7-evidence/vehicle-tests-source.json",
+      "vehicle_default_reporter": "horizon-r7-evidence/vehicle-tests.log"
+    },
+    "hud_browser": {
+      "command": "npx playwright test e2e/49-festival-menu-access.spec.ts --grep 'festival (rival|slipstream)' --reporter=list,json",
+      "exit_code": 0,
+      "passed": 3,
+      "unexpected": 0,
+      "flaky": 0,
+      "skipped": 0,
+      "report": "horizon-r7-evidence/hud-tests.json",
+      "scope": "Real HUD and input controller with injected declared worker-status values. Includes all four coaching phases, literal target text, combined rival/coaching layout, progress accessibility, menu focus, assistance and event lifecycle clearing.",
+      "viewports": [
+        [
+          1440,
+          900
+        ],
+        [
+          900,
+          640
+        ],
+        [
+          360,
+          780
+        ],
+        [
+          640,
+          360
+        ]
+      ],
+      "physics_claim": false
+    },
+    "racecraft_reproducer": {
+      "command": "node --experimental-transform-types scripts/horizon-r7-racecraft-review.mjs",
+      "exit_code": 0,
+      "checks_passed": 13,
+      "report": "horizon-r7-evidence/racecraft-reproducer.json",
+      "drag_reduction_percent_in_matched_control": 10.573424,
+      "pass_timeline": [
+        {
+          "seconds": 1.041667,
+          "phase": "following",
+          "gapMetres": 25.169254,
+          "speedKmh": 98.366317,
+          "tow": 0.220387,
+          "progress": 0.166667
+        },
+        {
+          "seconds": 2.291667,
+          "phase": "ready",
+          "gapMetres": 25.69825,
+          "speedKmh": 105.396151,
+          "tow": 0.242702,
+          "progress": 1
+        },
+        {
+          "seconds": 7.125,
+          "phase": "passing",
+          "gapMetres": 5.452801,
+          "speedKmh": 142.301483,
+          "tow": 0,
+          "progress": 0
+        },
+        {
+          "seconds": 8.825,
+          "phase": "complete",
+          "gapMetres": -14.937467,
+          "speedKmh": 149.971483,
+          "tow": 0,
+          "progress": 1
+        }
+      ],
+      "contact_count": 0,
+      "limit": "Externally scripted controls establish physical reachability. Game autopilot=false does not turn this probe into human or unaided driving evidence."
+    },
+    "room_render": {
+      "command": "HORIZON_REVIEW_OUTPUT=test-results/horizon-r7-rooms-final node --experimental-transform-types scripts/horizon-r7-room-review.mjs",
+      "exit_code": 0,
+      "views": 5,
+      "report": "horizon-r7-evidence/rooms/review.json",
+      "same_control_pixels": true,
+      "same_resource_counts": true,
+      "webgl_errors": 0,
+      "browser_errors": [],
+      "failed_assets": []
+    },
+    "vehicle_render": {
+      "command": "HORIZON_R7_VEHICLE_BASELINE_DIR=<saved-original-two-module-directory> node --experimental-transform-types scripts/horizon-r7-vehicle-review.mjs",
+      "exit_code": 0,
+      "paired_views": 4,
+      "report": "horizon-r7-evidence/vehicles/review.json",
+      "baseline_git_provenance": "horizon-r7-evidence/vehicles/baseline-git-provenance.json",
+      "full_original_application_compared": false,
+      "after_frozen_fingerprint": "3c4bc111d2803a3a1a1a2fa5891d60b8f6185dbd9b3a8ffcff0770d5431102bb",
+      "snapshot_note": "The frozen vehicle comparison predates the final, unrelated storefront product-seed stabilization. Both reviewed car modules match the final application exactly.",
+      "resource_deltas": [
+        {
+          "name": "rh3-front-quarter",
+          "difference": {
+            "changedPixels": 16898,
+            "maxChannelDelta": 226,
+            "meanChannelDelta": 0.23253316326530613
+          },
+          "resourceDelta": {
+            "calls": 0,
+            "triangles": 1864,
+            "geometries": 0,
+            "textures": 0,
+            "materials": 0,
+            "attributeBytes": 260352,
+            "indexBytes": 0
+          }
+        },
+        {
+          "name": "rh3-windscreen",
+          "difference": {
+            "changedPixels": 66228,
+            "maxChannelDelta": 233,
+            "meanChannelDelta": 1.0405875850340136
+          },
+          "resourceDelta": {
+            "calls": 0,
+            "triangles": 1864,
+            "geometries": 0,
+            "textures": 0,
+            "materials": 0,
+            "attributeBytes": 260352,
+            "indexBytes": 0
+          }
+        },
+        {
+          "name": "rh3-side-glass",
+          "difference": {
+            "changedPixels": 78741,
+            "maxChannelDelta": 190,
+            "meanChannelDelta": 2.041124149659864
+          },
+          "resourceDelta": {
+            "calls": 0,
+            "triangles": 1864,
+            "geometries": 0,
+            "textures": 0,
+            "materials": 0,
+            "attributeBytes": 260352,
+            "indexBytes": 0
+          }
+        },
+        {
+          "name": "sc7-rear-glass",
+          "difference": {
+            "changedPixels": 33346,
+            "maxChannelDelta": 195,
+            "meanChannelDelta": 0.46484736394557824
+          },
+          "resourceDelta": {
+            "calls": 0,
+            "triangles": 1192,
+            "geometries": 0,
+            "textures": 0,
+            "materials": 0,
+            "attributeBytes": 168192,
+            "indexBytes": 0
+          }
+        }
+      ],
+      "browser_errors": [],
+      "failed_assets": [],
+      "warnings": [
+        {
+          "variant": "before",
+          "message": "[.WebGL-0xff4000ee200]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+        }
+      ]
+    },
+    "full_festival_journey": {
+      "command": "HORIZON_REVIEW_URL=http://127.0.0.1:5188 HORIZON_REVIEW_QUALITY=low HORIZON_REVIEW_IDENTITY=dist/BUILD_IDENTITY.json HORIZON_REVIEW_OUTPUT=test-results/horizon-r7-journey-final node --experimental-transform-types scripts/horizon-browser-review.mjs",
+      "exit_code": 0,
+      "completed": true,
+      "passed_steps": 11,
+      "report": "horizon-r7-evidence/journey/journey.json",
+      "log": "horizon-r7-evidence/journey/journey.log",
+      "keyboard_distance_m": 74.2116461236198,
+      "moving_kmh": 68.09043542290058,
+      "stopped_kmh": 0.015623324260822578,
+      "race_time_seconds": 106.23333333323399,
+      "race_assisted": true,
+      "race_off_route_seconds": 0,
+      "browser_errors": [],
+      "failed_assets": [],
+      "exit_resources": {
+        "name": "session exit removes HUD, terminates session and releases geometry",
+        "passed": true,
+        "before": {
+          "geometries": 685,
+          "textures": 40
+        },
+        "after": {
+          "geometries": 1,
+          "textures": 16
+        }
+      },
+      "rival_gap_limit": "The full worker-to-DOM sample was at race launch with a 0 M displayed gap. Moving-gap and tow/pass behavior have separate focused physical and HUD evidence."
+    }
+  },
+  "reference_review": {
+    "ledger": "HORIZON_R7_REFERENCE_REVIEW.json",
+    "compressed_images_hash_verified": 100,
+    "images_visually_reviewed_in_contact_sheets": 100,
+    "additional_full_resolution_images": 9,
+    "original_reference_images_added_to_product": false
+  },
+  "visual_review": {
+    "reviewers": "Root inspected all final room views and car close views; reference and vehicle agents independently inspected all car boundaries.",
+    "rooms": "Side walls, floor, ceiling and furniture show depth and occlusion from opposing angles; final product silhouettes have no observed scanline stripes; room illumination stays within glazing.",
+    "cars": "Continuous bonded perimeters, uninterrupted central glass and visible cabins; no newly detached border or opaque centreline.",
+    "stills_limit": "Rear heater traces remain subpixel/stippled in places. Static captures do not validate temporal shimmer."
+  },
+  "excluded_preliminary_attempts": [
+    {
+      "attempt": "Earlier 51-assertion physics run",
+      "reason": "Vitest worker RPC timeout yielded a nonzero exit; superseded by the clean 53-test run."
+    },
+    {
+      "attempt": "First final-vehicle JSON-only test run",
+      "reason": "All 16 assertions passed but the process exited 1. The JSON reporter omits runner-level errors; the exact three files were repeated with default plus JSON reporters and passed with exit 0. No timeout/configuration was weakened."
+    },
+    {
+      "attempt": "Initial vehicle render harness",
+      "reason": "Incorrect ?raw handling caused a shader-text module syntax error before any capture. Corrected import semantics were checked against actual Vite output before the successful run."
+    },
+    {
+      "attempt": "Pre-final room renders",
+      "reason": "An earlier capture was interrupted by authoring reload; a later visible shelf-seed artifact was corrected. Only the final stabilized five-view source is accepted."
+    },
+    {
+      "attempt": "First full-game browser attempt",
+      "reason": "Interrupted during startup, exit 130; inconclusive. Public-manifest console messages were investigated and established to be warnings with successful HTTP200 modules, not a proven failure. The final unchanged-deadline journey completed all 11 steps."
+    }
+  ],
+  "remaining_limits": [
+    "All visual browser evidence uses verified SwiftShader. It establishes behavior and resource inventories, not physical-device FPS, thermal behavior or long-session performance.",
+    "Scripted controls are not a human keyboard/gamepad driving-feel or enjoyment assessment.",
+    "No commercial Forza parity, scanned body geometry, calibrated indoor illumination or recreation of every reference scene is claimed. Vehicle forms and repeated world architecture remain simplified.",
+    "Analytic rooms are non-enterable facade illusions. Zero added draw/resource counts do not establish zero shader cost.",
+    "The complete repository suite, every event/vehicle combination and long-session hardware profiling were not rerun in this pass."
+  ],
+  "artifacts": [
+    {
+      "path": "horizon-r7-evidence/bike-tests.json",
+      "bytes": 3013,
+      "sha256": "be71893bf1794c9fbf3e3fd3959f489863f758f588855eeae352bb1fce7e03c8"
+    },
+    {
+      "path": "horizon-r7-evidence/build-identity.json",
+      "bytes": 122,
+      "sha256": "91692010c73e6c21c10f4b27909874984ff2f4997655ade0f760bb4d5361dbfc"
+    },
+    {
+      "path": "horizon-r7-evidence/build.log",
+      "bytes": 2465,
+      "sha256": "38bab0359ebcc9acb54d7764a9d5acdb8aca5253cc8cfd6f4cc7fe9160bd0ed3"
+    },
+    {
+      "path": "horizon-r7-evidence/content.log",
+      "bytes": 405,
+      "sha256": "def8facdcc811d8bf9998f7d439e7be2dd5ce5cc5ab6ebcfadd830d94801459c"
+    },
+    {
+      "path": "horizon-r7-evidence/final-targeted-lint.log",
+      "bytes": 99,
+      "sha256": "7125f194612fcff2f454c05d848e7cb71facc1967b4d5017e25b34fdee3ba74f"
+    },
+    {
+      "path": "horizon-r7-evidence/hud-tests.json",
+      "bytes": 5107,
+      "sha256": "4885e4ef16205ac5fbf64b2689115470aabf4fc97d185faeed3ce597bb7ce173"
+    },
+    {
+      "path": "horizon-r7-evidence/journey/journey-event.png",
+      "bytes": 463994,
+      "sha256": "c0dc67697197dfc0a5deacac216ba9215dfdeb4a8f474ab417d2a726526e6186"
+    },
+    {
+      "path": "horizon-r7-evidence/journey/journey-map.png",
+      "bytes": 251560,
+      "sha256": "8c2efb9008e7f51ad0555be8df03860e4ae19932e0ad7dd892aa85188b28ebc8"
+    },
+    {
+      "path": "horizon-r7-evidence/journey/journey-photo.png",
+      "bytes": 438075,
+      "sha256": "ff004be85abc8b72c831c581e7520a10412e6ebba4286fbc0658fdcf0d4168dd"
+    },
+    {
+      "path": "horizon-r7-evidence/journey/journey-results.png",
+      "bytes": 314542,
+      "sha256": "1aa3e3824ada3b479917ed98829cd016ceefbac07c2e681dbe710c292236cb5b"
+    },
+    {
+      "path": "horizon-r7-evidence/journey/journey.json",
+      "bytes": 4567,
+      "sha256": "215dc99162c2266570bfda35842f73aa90e45a2853d39d21e9b0468dac3616c0"
+    },
+    {
+      "path": "horizon-r7-evidence/journey/journey.log",
+      "bytes": 3234,
+      "sha256": "c52c6d3221734a0d659b2f5c58d9293d7a4bf1974559223fff540be9d5064c16"
+    },
+    {
+      "path": "horizon-r7-evidence/lint.log",
+      "bytes": 168,
+      "sha256": "b6f9e858f3d45fec018242a0895babeb685e33cade5073621ed6791fde9274c7"
+    },
+    {
+      "path": "horizon-r7-evidence/manifest-import-check.json",
+      "bytes": 3222,
+      "sha256": "b1de2ed9e250c204c44de139af2b9c323dea6b59a319cc24592ece0dee53f918"
+    },
+    {
+      "path": "horizon-r7-evidence/racecraft-physics.json",
+      "bytes": 6417,
+      "sha256": "98428c6dca96d5b134b98a747610e44ec589a061419e2e23128382e4bca83220"
+    },
+    {
+      "path": "horizon-r7-evidence/racecraft-reproducer.json",
+      "bytes": 5089,
+      "sha256": "511e090996f4401adc3f7df11fc4be08b958b815cdc0cd8aa611a8c15a122d6c"
+    },
+    {
+      "path": "horizon-r7-evidence/racecraft-tests.json",
+      "bytes": 18919,
+      "sha256": "54938d647a9e18e2857df7448386bc85af90a6d4f54d7482cef9a330964e7586"
+    },
+    {
+      "path": "horizon-r7-evidence/review-runner-lint.log",
+      "bytes": 99,
+      "sha256": "7125f194612fcff2f454c05d848e7cb71facc1967b4d5017e25b34fdee3ba74f"
+    },
+    {
+      "path": "horizon-r7-evidence/rooms/day-front-after.png",
+      "bytes": 439932,
+      "sha256": "954ca6d935304794f9aedd2c115b5d82a14c78f84e9375c7c836a4d38d7a79c1"
+    },
+    {
+      "path": "horizon-r7-evidence/rooms/day-front-before.png",
+      "bytes": 409987,
+      "sha256": "77555ef1b6b9b936534e9f8bc01897ae2e507883511a5b29687b5c277887748a"
+    },
+    {
+      "path": "horizon-r7-evidence/rooms/day-left-after.png",
+      "bytes": 477318,
+      "sha256": "790e0852637f622d7093395868a23c3d123d85ad8002d79a73d2619d14e62c66"
+    },
+    {
+      "path": "horizon-r7-evidence/rooms/day-left-before.png",
+      "bytes": 454893,
+      "sha256": "2894ebcd37def0d3298637d03214656866fdc623c53b42e8b62ecaf037152d8f"
+    },
+    {
+      "path": "horizon-r7-evidence/rooms/day-right-after.png",
+      "bytes": 463034,
+      "sha256": "09fc4523a5ef8f10fde96a9004928862afa72ebe0b89cd570b427d9095a99c31"
+    },
+    {
+      "path": "horizon-r7-evidence/rooms/day-right-before.png",
+      "bytes": 444260,
+      "sha256": "499a72c0f9d54d268f7eae362df21066f4f2c72dbd62d504bdbde2c24dcbea8e"
+    },
+    {
+      "path": "horizon-r7-evidence/rooms/night-front-after.png",
+      "bytes": 251366,
+      "sha256": "f646ccbb0c1a049943a2e0ff2d945019ddfc56f6fce655c16de7bb121b7a2edb"
+    },
+    {
+      "path": "horizon-r7-evidence/rooms/night-front-before.png",
+      "bytes": 213891,
+      "sha256": "1bd90297b3a4df6e69fb9eda892904a95675a60ca6e236254e6f7cc3cd9e1282"
+    },
+    {
+      "path": "horizon-r7-evidence/rooms/night-street-after.png",
+      "bytes": 197572,
+      "sha256": "fcb3b256dc4701020fc044b5d9378c91937027716665c69867e55cec85b3c6dc"
+    },
+    {
+      "path": "horizon-r7-evidence/rooms/night-street-before.png",
+      "bytes": 183038,
+      "sha256": "bb1530f49b07d49d9456bc328da65528fe58a23ac0b2d47f3d0d119b0a8681e3"
+    },
+    {
+      "path": "horizon-r7-evidence/rooms/review.json",
+      "bytes": 10447,
+      "sha256": "162055d288ca83fbac7b5196fc144ad33f36dc03c907e0ccce4ee32a9642dfd9"
+    },
+    {
+      "path": "horizon-r7-evidence/vehicle-tests-source.json",
+      "bytes": 3267,
+      "sha256": "47dd60bed3b159cb002f38980773a14943b0d3a25274bebe0a1137fbcf576205"
+    },
+    {
+      "path": "horizon-r7-evidence/vehicle-tests.json",
+      "bytes": 7035,
+      "sha256": "c14a25ac29448d146e2cfc0af1aa53f27c47c49f09a8609f448ad5ae0437bd4b"
+    },
+    {
+      "path": "horizon-r7-evidence/vehicle-tests.log",
+      "bytes": 1984,
+      "sha256": "ad41e27d1716a1fb88cd09320e81eb2271a6e50a75cbe969ab0b1a1c480c15f3"
+    },
+    {
+      "path": "horizon-r7-evidence/vehicles/after-rh3-front-quarter.png",
+      "bytes": 349035,
+      "sha256": "fb32385f0d7a735733ea8651e53c13e2bd18e673a926949e734ba101f13063d7"
+    },
+    {
+      "path": "horizon-r7-evidence/vehicles/after-rh3-side-glass.png",
+      "bytes": 776266,
+      "sha256": "ce51a7326bbd1d838cd9e658045848d06edd399212bd760fe388cc2d364d94ca"
+    },
+    {
+      "path": "horizon-r7-evidence/vehicles/after-rh3-windscreen.png",
+      "bytes": 669328,
+      "sha256": "a65f4f121d15c23fe9c78aaa481f0fa9bd662b60f9a23aa662429f31caf15da0"
+    },
+    {
+      "path": "horizon-r7-evidence/vehicles/after-sc7-rear-glass.png",
+      "bytes": 679189,
+      "sha256": "acc838ec55595835bd3beb58bafe42e3fe92da62719fe03d7d14cef2eaec117a"
+    },
+    {
+      "path": "horizon-r7-evidence/vehicles/baseline-git-provenance.json",
+      "bytes": 882,
+      "sha256": "c1aa2259f2c0aa993b5d6d72a7eba9cb39a793eb9402761082b32ae5c59965b6"
+    },
+    {
+      "path": "horizon-r7-evidence/vehicles/before-rh3-front-quarter.png",
+      "bytes": 346330,
+      "sha256": "d7402de80bfe8bde5cfd8778ba4a7a7d0f04e7fd433eb856db82a0dd73e809e6"
+    },
+    {
+      "path": "horizon-r7-evidence/vehicles/before-rh3-side-glass.png",
+      "bytes": 768970,
+      "sha256": "2d9276c820d74f580ec9d68d8d51c41585c462f64ee474f0c11dd7dab2afa5d1"
+    },
+    {
+      "path": "horizon-r7-evidence/vehicles/before-rh3-windscreen.png",
+      "bytes": 658093,
+      "sha256": "9344f040123ce360c391c784ea097f23978ced2a8c70216455038d456fd4d6af"
+    },
+    {
+      "path": "horizon-r7-evidence/vehicles/before-sc7-rear-glass.png",
+      "bytes": 676523,
+      "sha256": "e5566f2320be557b295dcdb3200ac2a8b92ad05c1d7a9644aafda9c339481419"
+    },
+    {
+      "path": "horizon-r7-evidence/vehicles/review.json",
+      "bytes": 35044,
+      "sha256": "75c60096fdc300706db3ea0c3ef43432d9b3998d512d3b642f6304915905ce45"
+    }
+  ]
+}

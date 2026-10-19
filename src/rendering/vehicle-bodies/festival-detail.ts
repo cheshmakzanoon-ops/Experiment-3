@@ -52,6 +52,167 @@ const darkOptics = new T.MeshStandardMaterial({
   metalness: 0.25,
 });
 
+/** Reference 023 separates the reflective pane from its rubber reveal;
+ * reference 074 shows bonded black borders without losing the rear interior.
+ * These are authored construction dimensions, not measurements of the images. */
+export const FESTIVAL_GLAZING = Object.freeze({
+  recessM: 0.004,
+  rubberWidthM: 0.006,
+  fritWidthM: 0.012,
+  fritInsetM: 0.0006,
+  overlapM: 0.002,
+  surfaceClearanceM: 0.0008,
+});
+
+/** Recess only the glazing buffer and construct continuous strips around its
+ * actual material boundary. Triangle diagonals and the windscreen centreline
+ * never become seams. The opaque greenhouse retains its original positions.
+ * Both strips merge into existing trim/optics draws; no texture or shader is
+ * added. All working maps are released after this one-time body construction. */
+export function recessFestivalGlazing(glass: T.BufferGeometry) {
+  const source = glass.getAttribute('position'),
+    normal = glass.getAttribute('normal'),
+    index = glass.getIndex();
+  if (!index) throw new Error('Festival glazing requires an indexed pane surface');
+  const position = source.clone();
+  const triangles: [number, number, number][] = [];
+  const edges = new Map<string, readonly [number, number]>();
+  for (const group of glass.groups)
+    for (let k = group.start; k < group.start + group.count; k += 3) {
+      const triangle = [index.getX(k), index.getX(k + 1), index.getX(k + 2)] as const;
+      triangles.push([...triangle]);
+      for (let side = 0; side < 3; side++) {
+        const a = triangle[side],
+          b = triangle[(side + 1) % 3],
+          key = a < b ? `${a}:${b}` : `${b}:${a}`;
+        if (edges.has(key)) edges.delete(key);
+        else edges.set(key, [a, b]);
+      }
+    }
+  for (let i = 0; i < position.count; i++)
+    position.setXYZ(
+      i,
+      source.getX(i) - normal.getX(i) * FESTIVAL_GLAZING.recessM,
+      source.getY(i) - normal.getY(i) * FESTIVAL_GLAZING.recessM,
+      source.getZ(i) - normal.getZ(i) * FESTIVAL_GLAZING.recessM,
+    );
+  glass.setAttribute('position', position);
+  glass.computeBoundingSphere();
+
+  const boundary = new Map<
+    number,
+    { slot: number; inward: T.Vector3[]; faces: (readonly [number, number, number])[] }
+  >();
+  for (const [a, b] of edges.values()) {
+    const tangent = new T.Vector3()
+      .fromBufferAttribute(source, b)
+      .sub(new T.Vector3().fromBufferAttribute(source, a))
+      .normalize();
+    for (const vertex of [a, b]) {
+      let record = boundary.get(vertex);
+      if (!record) {
+        record = { slot: boundary.size, inward: [], faces: [] };
+        boundary.set(vertex, record);
+      }
+      record.inward.push(
+        new T.Vector3().fromBufferAttribute(normal, vertex).cross(tangent).normalize(),
+      );
+    }
+  }
+  for (const face of triangles) for (const vertex of face) boundary.get(vertex)?.faces.push(face);
+
+  const outer: T.Vector3[] = [],
+    rubberEdge: T.Vector3[] = [],
+    bondEdge: T.Vector3[] = [],
+    fritEdge: T.Vector3[] = [];
+  const triangle = new T.Triangle(),
+    candidate = new T.Vector3(),
+    closest = new T.Vector3(),
+    barycentric = new T.Vector3(),
+    surfaceNormal = new T.Vector3(),
+    temp = new T.Vector3();
+  for (const [vertex, record] of boundary) {
+    const p = new T.Vector3().fromBufferAttribute(source, vertex),
+      n = new T.Vector3().fromBufferAttribute(normal, vertex),
+      inward = new T.Vector3();
+    for (const direction of record.inward) inward.add(direction);
+    inward.normalize();
+    // A bounded mitre joins adjacent segments without cracks or long spikes
+    // at the small triangular corners of a swept windscreen.
+    inward.multiplyScalar(1 / Math.max(0.5, inward.dot(record.inward[0])));
+    outer.push(
+      p
+        .clone()
+        .addScaledVector(inward, -FESTIVAL_GLAZING.overlapM)
+        .addScaledVector(n, FESTIVAL_GLAZING.surfaceClearanceM),
+    );
+    const onPane = (width: number, offset: number) => {
+      const target = p
+        .clone()
+        .addScaledVector(n, -FESTIVAL_GLAZING.recessM)
+        .addScaledVector(inward, width);
+      let distance = Infinity;
+      for (const face of record.faces) {
+        triangle.setFromAttributeAndIndices(position, ...face);
+        triangle.closestPointToPoint(target, candidate);
+        const d = candidate.distanceToSquared(target);
+        if (d >= distance) continue;
+        distance = d;
+        closest.copy(candidate);
+        triangle.getBarycoord(candidate, barycentric);
+        surfaceNormal.set(0, 0, 0);
+        for (let k = 0; k < 3; k++)
+          surfaceNormal.addScaledVector(
+            temp.fromBufferAttribute(normal, face[k]),
+            barycentric.getComponent(k),
+          );
+      }
+      // Projecting into the actual pane triangles keeps the border attached
+      // through canopy curvature and prevents it crossing a tapered corner.
+      return closest.clone().addScaledVector(surfaceNormal.normalize(), offset);
+    };
+    rubberEdge.push(onPane(FESTIVAL_GLAZING.rubberWidthM, FESTIVAL_GLAZING.surfaceClearanceM));
+    // Ceramic is bonded underneath the pane, so the existing glass shader
+    // still supplies sky reflections over its dark perimeter.
+    bondEdge.push(onPane(FESTIVAL_GLAZING.rubberWidthM, -FESTIVAL_GLAZING.fritInsetM));
+    fritEdge.push(
+      onPane(
+        FESTIVAL_GLAZING.rubberWidthM + FESTIVAL_GLAZING.fritWidthM,
+        -FESTIVAL_GLAZING.fritInsetM,
+      ),
+    );
+  }
+  const band = (a: readonly T.Vector3[], b: readonly T.Vector3[]) => {
+    const vertices: number[] = [],
+      indices: number[] = [];
+    for (let i = 0; i < a.length; i++) vertices.push(...a[i].toArray(), ...b[i].toArray());
+    for (const [a, b] of edges.values()) {
+      const i = boundary.get(a)!.slot * 2,
+        j = boundary.get(b)!.slot * 2;
+      indices.push(i, j, i + 1, j, j + 1, i + 1);
+    }
+    const geometry = new T.BufferGeometry();
+    geometry.setAttribute('position', new T.Float32BufferAttribute(vertices, 3));
+    geometry.setIndex(indices);
+    geometry.computeVertexNormals();
+    geometry.computeBoundingSphere();
+    return geometry;
+  };
+  glass.userData.festivalGlazing = {
+    revision: 1,
+    recessM: FESTIVAL_GLAZING.recessM,
+    boundaryEdges: edges.size,
+    addedTriangles: edges.size * 4,
+  };
+  return { rubber: band(outer, rubberEdge), frit: band(bondEdge, fritEdge) };
+}
+
+export function addFestivalGlazing(parts: Parts, glass: T.BufferGeometry) {
+  const { rubber, frit } = recessFestivalGlazing(glass);
+  parts.add(rubber, sharedMaterials.trim());
+  parts.add(frit, darkOptics);
+}
+
 export interface FasciaOpening {
   x: number;
   y: number;
@@ -533,6 +694,7 @@ function addHardware(
   model: ClosedBodyModel,
   mats: CarMaterials,
   greenhouse: Greenhouse | null,
+  glazing: T.BufferGeometry | null,
 ) {
   const { f, s } = model;
   const classic = s.lamps.front === 'round' && s.numbers === 'none';
@@ -600,38 +762,36 @@ function addHardware(
       );
     }
   }
-  // Wipers lie on the evaluated windscreen crown, clear of the cockpit volume.
-  if (greenhouse) {
+  // Sample the built, recessed pane, so wipers and heater traces remain
+  // attached to its curvature instead of floating on an approximate parabola.
+  if (greenhouse && glazing) {
+    const surface = new T.Mesh(glazing, [darkOptics, darkOptics]);
+    const ray = new T.Raycaster(new T.Vector3(), new T.Vector3(0, -1, 0));
+    const glassPoint = (x: number, z: number, offset: number) => {
+      ray.ray.origin.set(x, greenhouse.roofY + 1, z);
+      const hit = ray.intersectObject(surface, false)[0];
+      if (!hit) return null;
+      return hit.point.addScaledVector(hit.normal ?? hit.face!.normal, offset);
+    };
     const z = f.z(ws) - Math.max(0.055, (f.z(ws) - f.z(rf)) * 0.12);
-    const crown = greenhouse.control(z);
-    const y = crown[crown.length - 1][1] + 0.008;
-    for (const side of [-1, 1])
-      parts.add(
-        rodGeometry(
-          new T.Vector3(side * 0.09, y, z),
-          new T.Vector3(side * 0.48, y + 0.006, z - 0.012),
-          0.0035,
-          5,
-        ),
-        sharedMaterials.trim(),
-      );
+    for (const side of [-1, 1]) {
+      const start = glassPoint(side * 0.09, z, 0.006),
+        end = glassPoint(side * 0.48, z - 0.012, 0.006);
+      if (start && end) parts.add(rodGeometry(start, end, 0.0035, 5), sharedMaterials.trim());
+    }
     // Rear-screen demister wires follow the glass crown. Their submillimetre
     // thickness keeps the cabin transparent and avoids a heavy painted grid.
     for (let row = 1; row <= 9; row++) {
       const zz = f.z(rr + ((rw - rr) * row) / 10);
       const profile = greenhouse.control(zz);
-      const w = profile[2][0] * 0.87,
-        top = profile[profile.length - 1][1];
+      const w = profile[2][0] * 0.87;
       const wire: [number, number, number][] = [];
       for (let k = -4; k <= 4; k++) {
         const xx = (w * k) / 4;
-        wire.push([
-          xx,
-          top + 0.0018 - (Math.abs(xx) / Math.max(0.01, profile[2][0])) ** 2 * 0.026,
-          zz,
-        ]);
+        const point = glassPoint(xx, zz, -0.0003);
+        if (point) wire.push(point.toArray());
       }
-      parts.add(tubeGeometry(wire, 0.0008, 12, 4), sharedMaterials.steel());
+      if (wire.length > 1) parts.add(tubeGeometry(wire, 0.00055, 12, 4), sharedMaterials.steel());
     }
   }
   if (s.numbers === 'door') {
@@ -777,6 +937,7 @@ export function buildFestivalDetail(
   detail: Detail,
   lod: BuiltLod,
   greenhouse: Greenhouse | null,
+  glazing: T.BufferGeometry | null,
 ) {
   if (detail > 1) return;
   addFascia(parts, model, mats, detail, false);
@@ -785,7 +946,7 @@ export function buildFestivalDetail(
   addTailLamps(parts, model, mats, detail);
   addExhausts(parts, model, detail);
   addVents(parts, model, mats, detail);
-  if (detail === 0) addHardware(parts, model, mats, greenhouse);
+  if (detail === 0) addHardware(parts, model, mats, greenhouse, glazing);
   addAeroEdges(model, detail, lod);
   lod.group.userData.festivalBodyDetail = {
     revision: 1,

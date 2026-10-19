@@ -1,0 +1,179 @@
+{
+  "version": 1,
+  "recordedAt": "2026-10-19T19:22:58.665Z",
+  "sourceSha256": {
+    "src/simulation/open-world/racecraft.ts": "5807d84afb2ebdf596d0717b7d76681715453ae8bb3c13f3c49b0ca53764b4fa",
+    "src/simulation/open-world/session.ts": "d70eaab381aa331a873a646d9967a10b912c916e6b25220d70aa2d6e04f0a1dc",
+    "src/simulation/aero.ts": "072678c4ce515b222475a02e4f1eda20f21042640dcc74127f1a9bb7f048fef5",
+    "src/simulation/vehicle.ts": "400a144c1531852af6295e2611a3b17ca76a946240adbc05b9b84016eef0ce48",
+    "src/simulation/open-world/route-driver.ts": "33657c0414c12cdbf1856292b5bc1f21a602f46fd76d1d891795fed840ecf492",
+    "tests/festival-racecraft.test.ts": "446f93192ac9cdffd7a10caafc4b9656c38103f7f1fb8e48d6177c1062f65000",
+    "tests/festival-racecraft-bikes.test.ts": "9e98edd74401514f4731c18ac0e84ac51a428491f67d12f84cc766710d6d0b9d"
+  },
+  "forceControl": {
+    "procedure": "Actual OpenWorldSimulation.step at 120 Hz with two 240 Hz substeps, same 45 m/s player/leader initial speed and 25 m runway separation; clear-air control offsets leader laterally by 12 m.",
+    "towed": {
+      "player": "tc1",
+      "leader": "xt1",
+      "dragN": 810.905155,
+      "slipstreamFraction": 0.660919,
+      "wakeFraction": 0.4656,
+      "speedKmh": 161.990634
+    },
+    "clear": {
+      "player": "tc1",
+      "leader": "xt1",
+      "dragN": 906.783184,
+      "slipstreamFraction": 0,
+      "wakeFraction": 0,
+      "speedKmh": 161.989519
+    },
+    "measuredDragReductionPercent": 10.573424,
+    "controls": {
+      "eightMetreDeckSeparation": {
+        "player": "tc1",
+        "leader": "xt1",
+        "dragN": 906.783184,
+        "slipstreamFraction": 0,
+        "wakeFraction": 0,
+        "speedKmh": 161.989519
+      },
+      "oppositeFacingLeader": {
+        "player": "tc1",
+        "leader": "xt1",
+        "dragN": 906.783184,
+        "slipstreamFraction": 0,
+        "wakeFraction": 0,
+        "speedKmh": 161.989519
+      },
+      "finishedLeader": {
+        "player": "tc1",
+        "leader": "xt1",
+        "dragN": 906.783184,
+        "slipstreamFraction": 0,
+        "wakeFraction": 0,
+        "speedKmh": 161.989519
+      }
+    }
+  },
+  "physicalPass": {
+    "procedure": "Actual OpenWorldSimulation.step on the authored Runway Showcase; scripted RouteDriver inputs are applied through setInput with session autopilot disabled. Initial speed 30 m/s and separation 26 m. Rival uses its normal driver with a 29 m/s cap; the player follows until prepared then uses its normal lane planner to pass. Timeline is read from public sim.status().event.racecraft after real vehicle/aero/tyre, car/road/static collision and legal progress integration.",
+    "timeline": [
+      {
+        "seconds": 1.041667,
+        "phase": "following",
+        "gapMetres": 25.169254,
+        "speedKmh": 98.366317,
+        "tow": 0.220387,
+        "progress": 0.166667
+      },
+      {
+        "seconds": 2.291667,
+        "phase": "ready",
+        "gapMetres": 25.69825,
+        "speedKmh": 105.396151,
+        "tow": 0.242702,
+        "progress": 1
+      },
+      {
+        "seconds": 7.125,
+        "phase": "passing",
+        "gapMetres": 5.452801,
+        "speedKmh": 142.301483,
+        "tow": 0,
+        "progress": 0
+      },
+      {
+        "seconds": 8.825,
+        "phase": "complete",
+        "gapMetres": -14.937467,
+        "speedKmh": 149.971483,
+        "tow": 0,
+        "progress": 1
+      }
+    ],
+    "maxTow": 0.271477,
+    "carContacts": 0,
+    "allContacts": 0,
+    "resetsRequested": false,
+    "final": {
+      "phase": "complete",
+      "car": 1,
+      "target": "XT-1 TRACK HYPERCAR",
+      "progress": 1,
+      "passes": 1,
+      "sequence": 1
+    },
+    "mode": "running",
+    "assisted": false
+  },
+  "limits": [
+    "Scripted controls validate physical reachability; this does not claim a human playtest or subjective handling evaluation.",
+    "Aerodynamic volumes are the existing gameplay model, not CFD or measured vehicle validation."
+  ],
+  "verification": {
+    "regressions": [
+      {
+        "command": "vitest run tests/aero-platform.test.ts tests/festival-rival-passing.test.ts tests/open-world-session.test.ts tests/festival-racecraft.test.ts --maxWorkers=1",
+        "exitCode": 0,
+        "receipt": "/tmp/horizon-r7-racecraft-tests-rerun.json",
+        "receiptSha256": "54938d647a9e18e2857df7448386bc85af90a6d4f54d7482cef9a330964e7586",
+        "files": [
+          {
+            "file": "aero-platform.test.ts",
+            "passed": 8
+          },
+          {
+            "file": "festival-racecraft.test.ts",
+            "passed": 24
+          },
+          {
+            "file": "festival-rival-passing.test.ts",
+            "passed": 13
+          },
+          {
+            "file": "open-world-session.test.ts",
+            "passed": 8
+          }
+        ],
+        "passedTests": 53,
+        "unhandledErrors": 0,
+        "runnerConfiguration": "Standard Vitest timeouts; single worker; no dependency/runner modifications."
+      },
+      {
+        "command": "vitest run tests/open-world-bikes.test.ts tests/festival-racecraft-bikes.test.ts --maxWorkers=1",
+        "exitCode": 0,
+        "receipt": "/tmp/horizon-r7-bike-regression.json",
+        "receiptSha256": "be71893bf1794c9fbf3e3fd3959f489863f758f588855eeae352bb1fce7e03c8",
+        "files": [
+          {
+            "file": "festival-racecraft-bikes.test.ts",
+            "passed": 1
+          },
+          {
+            "file": "open-world-bikes.test.ts",
+            "passed": 5
+          }
+        ],
+        "passedTests": 6,
+        "unhandledErrors": 0,
+        "runnerConfiguration": "Standard Vitest timeouts; single worker; no dependency/runner modifications."
+      }
+    ],
+    "newMotorcycleTestTypecheck": {
+      "entry": "tests/festival-racecraft-bikes.test.ts",
+      "scope": "Only this entry and its transitive imports; matching tsconfig ES2022 / ESNext / Bundler / strict / DOM / Vite+Node flags.",
+      "exitCode": 0
+    },
+    "newMotorcycleTestLint": {
+      "command": "eslint tests/festival-racecraft-bikes.test.ts",
+      "exitCode": 0
+    },
+    "previousRunExcluded": {
+      "receipt": "/tmp/horizon-r7-racecraft-tests.json",
+      "assertionsPassed": 51,
+      "exitCode": 1,
+      "reason": "Unhandled vitest-worker onTaskUpdate RPC timeout under concurrent workload. Not treated as a passing gate; the clean standard-timeout 53-test rerun above supersedes it."
+    }
+  }
+}

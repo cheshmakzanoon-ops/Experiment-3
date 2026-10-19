@@ -23,6 +23,7 @@ import type { CabinLayout } from './cabin.ts';
 import { buildClosedCabin, type CabinOpening } from './interior.ts';
 import type { VehicleDefinition } from '../../simulation/vehicles.ts';
 import {
+  addFestivalGlazing,
   addFestivalWingHardware,
   buildFestivalDetail,
   festivalDetailFor,
@@ -435,9 +436,9 @@ export class Greenhouse {
     return counts[0] + counts[1];
   }
 }
-/** Greenhouse geometry: opaque frames and roof, and the glazing as its own
- * mesh (it sorts and casts differently), sharing one vertex buffer. */
-function greenhouse(gh: Greenhouse, detail: Detail) {
+/** Greenhouse geometry: opaque frames and roof, and separately sorted glazing.
+ * Festival near/mid panes detach their positions for a real bonded recess. */
+function greenhouse(gh: Greenhouse, detail: Detail, festivalParts?: Parts) {
   const geometry = loftRings(gh.rings(detail), { closed: false, material: gh.material(detail) });
   const opaque = new T.BufferGeometry(),
     glass = new T.BufferGeometry();
@@ -453,6 +454,7 @@ function greenhouse(gh: Greenhouse, detail: Detail) {
       group.count,
       group.materialIndex,
     );
+  if (festivalParts) addFestivalGlazing(festivalParts, glass);
   return { opaque, glass };
 }
 /** Inner headliner and pillar trims: the greenhouse surface 2 mm in, wound to
@@ -604,9 +606,11 @@ export function buildClosedBody(
   const glassMaterial =
     cabin && !cabin.layout.race ? sharedMaterials.roadGlass() : sharedMaterials.glass();
   const gh = openCockpit ? null : new Greenhouse(model);
+  let glazing: T.BufferGeometry | null = null;
   if (gh) {
-    const house = greenhouse(gh, detail),
+    const house = greenhouse(gh, detail, detailedFestival ? parts : undefined),
       materials = [mats.paint, glassMaterial, sharedMaterials.trim()];
+    glazing = house.glass;
     parts.addGrouped(house.opaque, materials, 'Greenhouse');
     parts.addGrouped(house.glass, materials, 'Cabin glass');
     if (detail === 0 && cabin) parts.add(greenhouseLining(gh), sharedMaterials.interior());
@@ -1017,7 +1021,7 @@ export function buildClosedBody(
       );
   }
   extraFurniture(parts, model, mats, detail, lod);
-  if (detailedFestival) buildFestivalDetail(parts, model, mats, detail, lod, gh);
+  if (detailedFestival) buildFestivalDetail(parts, model, mats, detail, lod, gh, glazing);
   // Interior (near LOD): the cabin shell merges into this LOD's draws; its
   // detail, helmet and turning wheel are groups of their own (interior.ts).
   if (detail === 0 && cabin && cell) {

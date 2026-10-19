@@ -1,0 +1,23 @@
+
+ RUN  v3.2.4 /workspace/scratch/7b054fbd913b/Experiment-3
+
+ ✓ tests/festival-vehicle-detail.test.ts (6 tests) 31219ms
+   ✓ Festival vehicle exterior construction > cuts real fascia apertures while keeping their painted perimeter closed  401ms
+   ✓ Festival vehicle exterior construction > lets a front-view ray reach the recessed radiator rather than a painted blocking face  6551ms
+   ✓ Festival vehicle exterior construction > terminates rear cooling apertures inside a dark duct at chase-view angles  8076ms
+   ✓ Festival vehicle exterior construction > keeps all optical emitters on the existing lamp materials and batches the extra finish roles  1731ms
+   ✓ Festival vehicle exterior construction > releases replaced and cleared cars once while preserving other cars and shared finishes  14450ms
+ ✓ tests/festival-car-finish.test.ts (7 tests) 25036ms
+   ✓ Festival car finish ownership and shader integration > clones only exterior paint/glass, preserves clean glass/IBL/paint hooks and adds no scene primitives  8308ms
+   ✓ Festival car finish ownership and shader integration > restores exact material slots and releases owned clones once while preserving borrowed textures and other bodies  7170ms
+   ✓ Festival car finish ownership and shader integration > rebinds the actual followed Festival car on garage changes with independent scene probes and bounded resources  9492ms
+ ✓ tests/festival-vehicle-glazing.test.ts (3 tests) 15454ms
+   ✓ Festival bonded glazing > recesses every used pane vertex while retaining the original body surface and normals  7186ms
+   ✓ Festival bonded glazing > uses detached glass only on Festival near/mid bodies and retains the existing material roles  7704ms
+
+ Test Files  3 passed (3)
+      Tests  16 passed (16)
+   Start at  03:46:41
+   Duration  134.72s (transform 23.52s, setup 0ms, collect 51.99s, tests 71.71s, environment 2ms, prepare 4.02s)
+
+JSON report written to /tmp/horizon-r7-vehicle-tests-final.json

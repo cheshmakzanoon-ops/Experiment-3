@@ -1,0 +1,85 @@
+{
+  "kind": "horizon-r7-development-manifest-import-inspection",
+  "server": "http://127.0.0.1:5188",
+  "method": "Actual HTTP requests to existing Vite server; parse and evaluate both import-free manifest modules; recursively compare every exported value to canonical public JSON, recording signed-zero normalizations explicitly.",
+  "rendererModulesPreviouslyInspected": [
+    {
+      "path": "/src/rendering/open-world/solvane-details.ts",
+      "status": 200,
+      "contentType": "text/javascript",
+      "bytes": 48490,
+      "javascriptSyntaxValid": true
+    },
+    {
+      "path": "/src/rendering/open-world/street-details.ts",
+      "status": 200,
+      "contentType": "text/javascript",
+      "bytes": 45729,
+      "javascriptSyntaxValid": true
+    }
+  ],
+  "checks": [
+    {
+      "path": "/public/models/solvane/detail-kit.manifest.json?import",
+      "status": 200,
+      "contentType": "text/javascript",
+      "bytes": 2379,
+      "javascriptSyntaxValid": true,
+      "defaultExportMatchesCanonicalExceptListedSignedZeros": true,
+      "signedZeroNormalizations": [
+        {
+          "path": "$.templates.frontage_far.bounds.0.2",
+          "canonicalNegativeZero": true,
+          "servedNegativeZero": false
+        },
+        {
+          "path": "$.templates.frontage_near.bounds.0.2",
+          "canonicalNegativeZero": true,
+          "servedNegativeZero": false
+        },
+        {
+          "path": "$.templates.gate_far.bounds.0.1",
+          "canonicalNegativeZero": true,
+          "servedNegativeZero": false
+        },
+        {
+          "path": "$.templates.gate_near.bounds.0.1",
+          "canonicalNegativeZero": true,
+          "servedNegativeZero": false
+        }
+      ],
+      "canonicalSha256": "ad74212b1b213f9c3ec17445daad52514b85d010054d67ce1202c3f69837ffa8",
+      "templateCount": 12,
+      "verifiedPayloadSha256": "aa9da4d19a73889affaf59a5e10ff1d5d8f18f8dbb3195f7d87f4e22734fbb1c",
+      "verifiedPayloadBytes": 1794216
+    },
+    {
+      "path": "/public/models/solvane/street-kit.manifest.json?import",
+      "status": 200,
+      "contentType": "text/javascript",
+      "bytes": 1438,
+      "javascriptSyntaxValid": true,
+      "defaultExportMatchesCanonicalExceptListedSignedZeros": true,
+      "signedZeroNormalizations": [
+        {
+          "path": "$.templates.service_far.bounds.min.2",
+          "canonicalNegativeZero": true,
+          "servedNegativeZero": false
+        },
+        {
+          "path": "$.templates.service_near.bounds.min.2",
+          "canonicalNegativeZero": true,
+          "servedNegativeZero": false
+        }
+      ],
+      "canonicalSha256": "71be45fdbd6a9f0d996d7dc8ebdfb1043739d76182e5dedfa5dac7c171440508",
+      "templateCount": 6,
+      "verifiedPayloadSha256": "3dbf14c8a2e476ee1e426026e950aaf97de4c905b425accbc4a62bcf94869ca7",
+      "verifiedPayloadBytes": 166988
+    }
+  ],
+  "conclusion": "Renderer imports and canonical manifest exports work. Vite public-directory messages are warnings and do not establish a Festival boot failure. Only signed zero in authored bounds is normalized; all other data fields, asset hashes, byte budgets and templates match.",
+  "productionChanges": [],
+  "browserLaunches": 0,
+  "passed": true
+}

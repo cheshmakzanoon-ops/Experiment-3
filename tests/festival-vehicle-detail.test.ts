@@ -1,7 +1,7 @@
 import * as T from 'three';
 import { describe, expect, it, vi } from 'vitest';
 import { VEHICLES, vehicleIndex } from '../src/simulation/vehicles.ts';
-import { CAR_STRIDE, F, HEADER, R, RACE_BASE, carBase } from '../src/simulation/protocol.ts';
+import { CAR_STRIDE, F, H, HEADER, R, RACE_BASE, carBase } from '../src/simulation/protocol.ts';
 import { bodySheetFor, type ClosedSheet } from '../src/rendering/vehicle-bodies/body-sheet.ts';
 import { bodyFrame } from '../src/rendering/vehicle-bodies/frame.ts';
 import { ClosedBodyModel } from '../src/rendering/vehicle-bodies/closed-body.ts';
@@ -189,7 +189,9 @@ describe('Festival vehicle exterior construction', () => {
     const bodies = new VehicleBodies();
     const built = (bodies as unknown as { bodies: Map<number, Body> }).bodies;
     const frame = new Float32Array(HEADER + 2 * CAR_STRIDE);
+    frame[H.CARS] = 2;
     for (let id = 0; id < 2; id++) {
+      frame[carBase(id) + F.QW] = 1;
       frame[carBase(id) + RACE_BASE + R.VEHICLE] = vehicleIndex(id === 0 ? 'rh3' : 'rg63');
       frame[carBase(id) + F.FRONT_HEALTH] = 1;
       frame[carBase(id) + F.REAR_HEALTH] = 1;

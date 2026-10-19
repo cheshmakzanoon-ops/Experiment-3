@@ -1,4 +1,5 @@
 import { clamp, Vec3 } from '../../core/math.ts';
+import { wakeFields } from '../aero.ts';
 import { BikeVehicle, createVehicle, writeBikeBlock } from '../bike-vehicle.ts';
 import { CollisionSolver } from '../collision.ts';
 import {
@@ -36,6 +37,7 @@ import { AmbientTraffic } from './ambient-traffic.ts';
 import { activityProgress, type FestivalActivityProgress } from './activity-progress.ts';
 import { NearMissDetector } from './near-miss.ts';
 import { rivalGaps, type FestivalRivalGaps } from './rival-gap.ts';
+import { FestivalRacecraft, type FestivalRacecraftStatus } from './racecraft.ts';
 import {
   DriftMeter,
   isRace,
@@ -144,6 +146,8 @@ export interface FestivalStatus {
     challenge?: FestivalActivityProgress | null;
     /** Nearest active opponents, measured along their legal race progress. */
     rivals?: FestivalRivalGaps | null;
+    /** Manual tow-and-pass feedback, separate from competitive results. */
+    racecraft?: FestivalRacecraftStatus | null;
     /** Next checkpoint position (world) for the guidance arrow/marker. */
     gate: { x: number; z: number } | null;
   } | null;
@@ -174,6 +178,7 @@ interface Run {
   /** Actual route station at activation. Rolling zones retain the player's
    * run-up, and measure only the distance covered after they start timing. */
   entryDistance: number;
+  racecraft: FestivalRacecraft | null;
 }
 // Depart east along Harbour Front's right-hand lane. Its centreline is
 // z=-2600; the opposite side would point the player into oncoming traffic.
@@ -183,6 +188,17 @@ const SPAWN = { x: 560, z: -2598, heading: Math.PI / 2 };
  * ahead of that progress. */
 const RESET_WINDOW = 30;
 const RESET_AHEAD = 8;
+
+/** Record actual contacts for clean racecraft, including gentle brushes that
+ * cause no visible damage. The shared impulse/contact solve is unchanged. */
+class FestivalCollisionSolver extends CollisionSolver {
+  touched = 0;
+  override impulse(a: Vehicle, b: Vehicle | null, at: Vec3, normal: Vec3, penetration: number) {
+    this.touched |= 1 << a.id;
+    if (b) this.touched |= 1 << b.id;
+    super.impulse(a, b, at, normal, penetration);
+  }
+}
 
 /**
  * The festival free-roam session (runs in the open-world worker, or headless
@@ -202,7 +218,7 @@ export class OpenWorldSimulation {
   readonly structures: Structure[];
   readonly structureGrid: StructureGrid;
   cars: Vehicle[];
-  readonly collisions = new CollisionSolver();
+  readonly collisions = new FestivalCollisionSolver();
   readonly discovered = new Set<string>();
   readonly results: FestivalResult[] = [];
   /** Ambient traffic (kinematic cars around the player in free roam). */
@@ -309,6 +325,7 @@ export class OpenWorldSimulation {
   /** Put a car at rest on the ground at (x, z) facing `heading` (rad, from +z). */
   placeAt(car: Vehicle, x: number, z: number, heading: number, layerY?: number) {
     if (car === this.player) this.skills.reset();
+    this.run?.racecraft?.reset();
     const ground = this.track.groundHeight(x, z, layerY);
     const b = car.body;
     b.position.set(x, ground + 0.62, z);
@@ -443,7 +460,13 @@ export class OpenWorldSimulation {
         break;
       case 'autopilot':
         this.autopilot = !!cmd.value;
-        if (this.autopilot) this.skills.reset('AUTOPILOT · PRACTICE');
+        if (this.autopilot) {
+          this.skills.reset('AUTOPILOT · PRACTICE');
+          if (this.run) {
+            this.run.assisted = true;
+            this.run.racecraft?.reset();
+          }
+        }
         this.autopilotDriver = null;
         if (!this.autopilot) Object.assign(this.player.input, controls());
         break;
@@ -573,6 +596,7 @@ export class OpenWorldSimulation {
       progressClock: 0,
       lost: 0,
       entryDistance,
+      racecraft: race ? new FestivalRacecraft(event.graph) : null,
     };
     this.parked = false;
     this.autopilotDriver = null;
@@ -597,6 +621,8 @@ export class OpenWorldSimulation {
   }
   /** Remove rivals and return to free roam. */
   private endRun() {
+    for (const car of this.cars) car.wake = car.slipstream = 0;
+    this.run?.racecraft?.reset();
     if (this.run) this.cars = [this.player];
     this.run = null;
     this.mode = 'free';
@@ -659,6 +685,8 @@ export class OpenWorldSimulation {
     this.lastResult = result;
     this.resultClock = 0;
     this.mode = 'finished';
+    run.racecraft?.reset();
+    for (const car of this.cars) car.wake = car.slipstream = 0;
     // Skill challenges end immediately; races show the results card.
     if (!isRace(spec.kind)) {
       this.say(
@@ -832,8 +860,23 @@ export class OpenWorldSimulation {
     const traffic = this.trafficEnabled && !run ? this.traffic : null;
     if (traffic) traffic.step(dt, this.player);
     else if (this.traffic.cars.length) this.traffic.clear();
+    this.collisions.touched = 0;
     for (let sub = 0; sub < 2; sub++) {
       this.collisions.beginStep(contact);
+      // Use the shared physical drag tow and downforce wake. Read every
+      // leader's current pose before advancing any car; finished rivals
+      // are excluded by the same active set as physical car contacts.
+      for (let i = 0; i < this.cars.length; i++) {
+        const car = this.cars[i];
+        if (
+          run &&
+          isRace(run.event.spec.kind) &&
+          this.mode === 'running' &&
+          run.participants[i]?.finishTime === null
+        )
+          wakeFields(car, contact);
+        else car.wake = car.slipstream = 0;
+      }
       for (const c of this.cars) c.step(dt * 0.5, track);
       this.collisions.solve(contact, track, dt * 0.5);
       for (const c of this.cars) this.collideStatic(c);
@@ -890,6 +933,12 @@ export class OpenWorldSimulation {
     sample.grounded = skillCar.up.y > 0.45 && skillCar.tires.some((t) => t.load > 20);
     sample.impact = skillCar.impact > 0.25;
     sample.assisted = this.autopilot || !!(this.run && isRace(this.run.event.spec.kind));
+    this.run?.racecraft?.update(
+      this.run.participants,
+      dt,
+      this.mode === 'running' && !this.autopilot && !this.run.assisted && sample.onRoad,
+      this.collisions.touched,
+    );
     // The four-wheel stunt evaluator uses loaded front/rear axles. Keep
     // the existing motorcycle lean and skill behavior on its own adapter.
     sample.motion =
@@ -1152,6 +1201,10 @@ export class OpenWorldSimulation {
         rivals:
           this.mode === 'running' && isRace(run.event.spec.kind)
             ? rivalGaps(run.participants)
+            : null,
+        racecraft:
+          this.mode === 'running' && !this.autopilot && !run.assisted
+            ? (run.racecraft?.status() ?? null)
             : null,
         gate: gatePoint,
       };

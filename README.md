@@ -17,7 +17,7 @@ MOTOBOUND is an independent browser-based motorsport game built with TypeScript 
 | Racing | Free practice, ghost time trials, qualifying, Grand Prix and endurance events. |
 | Machines | Multiple car classes, road-racing motorcycles and off-road machines, with vehicle-specific setup and assists. |
 | Locations | A circuit catalogue, dedicated off-road venues and the Solvane Coast festival region, with free roam, traffic and local events. |
-| Festival | Sixteen activities, rolling speed and drift challenges, clean-driving skill chains, a route-preview map, and paused orbit/zoom photo mode. |
+| Festival | Sixteen activities, rolling speed and drift challenges, clean-driving skill chains, physical slipstream and clean-pass coaching, a route-preview map, and paused orbit/zoom photo mode. |
 | Racecraft | AI rivals, changing weather, tyre temperature and wear, fuel, damage, pit stops and race control. |
 | Progression | Career events, garage ownership, unlocks and festival rewards. |
 | Presentation | Cockpit and external cameras, authored 3D assets, photographic skies, scanned ground materials and state-driven audio. |
@@ -121,6 +121,7 @@ scripts/, tools/ Validation and asset tooling
 | [Open-world festival](docs/production/OPEN_WORLD.md) | Solvane Coast, free roam, events, traffic and known limits. |
 | [100-image festival reference record](docs/production/HORIZON_REFERENCE_IMPLEMENTATION.md) | Individual observations and original implementations for every supplied reference, with code links and limits. |
 | [Festival upgrade validation](docs/production/HORIZON_UPGRADE_VALIDATION.md) | Final screenshots, real driving/event evidence, test results and the guarded production build. |
+| [Horizon R7](docs/production/HORIZON_R7_IMPLEMENTATION.md) | Camera-dependent storefront depth, bonded car glazing, slipstream passes, the original 100-image review and executable validation. |
 | [Solvane Blender continuation](docs/production/SOLVANE_CONTINUATION_VALIDATION.md) | Native detail assets, all eight committed-source validation jobs, actual game captures and the 100-reference continuation ledger. |
 | [Solvane authoring guide](authoring/solvane/README.md) | Editable Blender source, template contracts, safe re-export and reference-integrity verification. |
 | [Production documents](docs/production/README.md) | Design, implementation status, development plans and validation protocols. |

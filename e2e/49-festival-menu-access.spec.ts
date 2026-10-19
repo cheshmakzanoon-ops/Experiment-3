@@ -694,3 +694,96 @@ test('festival rival route gaps fit desktop and phone event panels', async ({ pa
     expect(layout).toMatchObject({ clipped: false, inside: true, numbers: true });
   }
 });
+
+test('festival slipstream coaching follows worker phases and clears across menus, assistance and events', async ({
+  page,
+}) => {
+  const events = await mount(page),
+    race = events.find((event) => event.race)!;
+  const event: NonNullable<FestivalStatus['event']> = {
+    id: race.id,
+    name: race.name,
+    kind: 'sprint',
+    countdown: 0,
+    elapsed: 35,
+    progress: 0.4,
+    lap: 1,
+    laps: 1,
+    position: 2,
+    entrants: 4,
+    offRoute: false,
+    live: null,
+    challenge: null,
+    gate: null,
+    racecraft: {
+      phase: 'following',
+      car: 1,
+      target: 'Nera <test>',
+      progress: 0.4,
+      passes: 0,
+      sequence: 0,
+    },
+    rivals: {
+      ahead: { car: 1, name: 'Nera <test>', metres: 24.6 },
+      behind: { car: 2, name: 'A lengthy pursuing rival name', metres: 10.4 },
+    },
+  };
+  const update = (patch: Partial<FestivalStatus>) =>
+    page.evaluate(
+      (patch) => (window as unknown as FestivalWindow).festivalHarness.setStatus(patch),
+      patch,
+    );
+  await update({ mode: 'running', event });
+  const panel = page.locator('#festRacecraft'),
+    meter = page.locator('#festRacecraftMeter');
+  await expect(panel).toBeVisible();
+  await expect(panel).toContainText('BUILDING THE TOW');
+  await expect(panel).toContainText('Nera <test>');
+  expect(await panel.locator('test').count()).toBe(0);
+  await expect(meter).toHaveAttribute('aria-valuenow', '40');
+  for (const [phase, label] of [
+    ['ready', 'SLIPSTREAM READY'],
+    ['passing', 'COMPLETE THE PASS'],
+    ['complete', 'CLEAN SLIPSTREAM PASS'],
+  ] as const) {
+    event.racecraft = {
+      ...event.racecraft!,
+      phase,
+      progress: 1,
+      passes: phase === 'complete' ? 1 : 0,
+    };
+    await update({ event });
+    await expect(panel).toContainText(label);
+    await expect(meter).toHaveAttribute('aria-valuetext', new RegExp(label));
+  }
+  await expect(panel).toContainText('1 clean pass this race');
+  for (const [width, height] of [
+    [1440, 900],
+    [360, 780],
+    [640, 360],
+  ]) {
+    await page.setViewportSize({ width, height });
+    const bounds = await panel.boundingBox();
+    expect(bounds!.x).toBeGreaterThanOrEqual(0);
+    expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(width);
+    expect(bounds!.y + bounds!.height).toBeLessThan(height - 110);
+    expect(await panel.evaluate((node) => node.scrollWidth <= node.clientWidth)).toBe(true);
+  }
+  await page.keyboard.press('Escape');
+  await page.evaluate(() => (window as unknown as FestivalWindow).festivalHarness.frame());
+  await expect(panel).toBeHidden();
+  await expect(page.locator('#festMenu [data-fest="resume"]')).toBeFocused();
+  await page.keyboard.press('Escape');
+  await update({});
+  await expect(panel).toBeVisible();
+  await update({ autopilot: true });
+  await expect(panel).toBeHidden();
+  await update({ autopilot: false, event: { ...event, kind: 'drift-zone' } });
+  await expect(panel).toBeHidden();
+  await update({ mode: 'countdown', event });
+  await expect(panel).toBeHidden();
+  await update({ mode: 'finished', event });
+  await expect(panel).toBeHidden();
+  await update({ mode: 'free', event: null });
+  await expect(panel).toBeHidden();
+});

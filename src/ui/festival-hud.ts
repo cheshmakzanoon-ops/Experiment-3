@@ -92,7 +92,7 @@ export class FestivalHud {
       <div class="fest-hint" id="festHint"><kbd>C</kbd> CAMERA · <kbd>T</kbd> MAP · <kbd>ESC</kbd> MENU</div>
       <div class="fest-explore" id="festExplore"><span class="fest-eyebrow">THE ROAD IS YOURS</span><b id="festExploreName">Explore Solvane Coast</b><small id="festExploreDistance"></small></div>
       <div class="fest-skills" id="festSkills" hidden role="status"><span id="festSkillLabel"></span><div><b id="festSkillScore">0</b><i id="festSkillMultiplier">×1.0</i></div><small id="festSkillBank"></small><div class="fest-chain-track"><i id="festSkillTimer"></i></div></div>
-      <div class="fest-event" id="festEvent" hidden><h2 id="festEventName"></h2><div class="fest-row" id="festEventRow"></div><div class="fest-rivals" id="festRivals" hidden aria-label="Rival gaps along the race route"><small>ROUTE GAP</small><div id="festRivalsRow"></div></div><div class="fest-challenge" id="festChallenge" hidden aria-label="Live activity target"><div><b id="festChallengeStars"></b><span id="festChallengeTarget"></span></div><small id="festChallengeAdvice"></small><div class="fest-challenge-track" role="progressbar" aria-label="Progress to activity star target" aria-valuemin="0" aria-valuemax="100" id="festChallengeMeter"><i id="festChallengeFill"></i></div></div><div class="fest-progress"><i id="festProgress"></i></div></div>
+      <div class="fest-event" id="festEvent" hidden><h2 id="festEventName"></h2><div class="fest-row" id="festEventRow"></div><div class="fest-rivals" id="festRivals" hidden aria-label="Rival gaps along the race route"><small>ROUTE GAP</small><div id="festRivalsRow"></div></div><div class="fest-challenge fest-racecraft" id="festRacecraft" hidden aria-label="Slipstream pass"><div><b id="festRacecraftLabel"></b><span id="festRacecraftTarget"></span></div><small id="festRacecraftAdvice"></small><div class="fest-challenge-track" role="progressbar" aria-label="Slipstream pass progress" aria-valuemin="0" aria-valuemax="100" id="festRacecraftMeter"><i id="festRacecraftFill"></i></div></div><div class="fest-challenge" id="festChallenge" hidden aria-label="Live activity target"><div><b id="festChallengeStars"></b><span id="festChallengeTarget"></span></div><small id="festChallengeAdvice"></small><div class="fest-challenge-track" role="progressbar" aria-label="Progress to activity star target" aria-valuemin="0" aria-valuemax="100" id="festChallengeMeter"><i id="festChallengeFill"></i></div></div><div class="fest-progress"><i id="festProgress"></i></div></div>
       <div class="fest-countdown" id="festCountdown" hidden></div>
       <div class="fest-message" id="festMessage" role="status" aria-live="polite" hidden></div>
       <div class="fest-card" id="festCard" hidden role="dialog" aria-label="Event"></div>
@@ -565,6 +565,44 @@ export class FestivalHud {
       if (row.innerHTML !== html) row.innerHTML = html;
     }
     const challenge = status.mode === 'running' ? (ev?.challenge ?? null) : null;
+    const racecraft =
+      status.mode === 'running' &&
+      ev &&
+      isRace(ev.kind as never) &&
+      !status.autopilot &&
+      !this.menuOpen &&
+      !this.mapOpen &&
+      !this.photoOpen
+        ? ev?.racecraft
+        : null;
+    this.show('festRacecraft', !!racecraft);
+    if (racecraft) {
+      const label = {
+        following: 'BUILDING THE TOW',
+        ready: 'SLIPSTREAM READY',
+        passing: 'COMPLETE THE PASS',
+        complete: 'CLEAN SLIPSTREAM PASS',
+      }[racecraft.phase];
+      const advice = {
+        following: 'Hold a steady line. Leave room to react.',
+        ready: 'Choose a clear side and carry your momentum.',
+        passing: 'Leave space. Clear both bumpers and hold your line.',
+        complete: `${racecraft.passes} clean ${racecraft.passes === 1 ? 'pass' : 'passes'} this race`,
+      }[racecraft.phase];
+      const progress = Number.isFinite(racecraft.progress)
+        ? Math.max(0, Math.min(1, racecraft.progress))
+        : 0;
+      this.get('festRacecraft').dataset.state = racecraft.phase;
+      this.text('festRacecraftLabel', label);
+      this.text('festRacecraftTarget', racecraft.target);
+      this.text('festRacecraftAdvice', advice);
+      this.get('festRacecraftFill').style.transform = `scaleX(${progress.toFixed(4)})`;
+      this.get('festRacecraftMeter').setAttribute(
+        'aria-valuenow',
+        String(Math.round(progress * 100)),
+      );
+      this.get('festRacecraftMeter').setAttribute('aria-valuetext', `${label}. ${advice}`);
+    }
     this.root.classList.toggle('fest-has-challenge', !!challenge);
     this.show('festChallenge', !!challenge);
     if (challenge) this.updateChallenge(challenge);

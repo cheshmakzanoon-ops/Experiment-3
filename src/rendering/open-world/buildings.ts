@@ -4,6 +4,7 @@ import { OW_NOISE_GLSL } from './terrain-material.ts';
 import { facadeLayout, addRecessedFacade, type FacadePlacement } from './facade-layout.ts';
 import { FacadeJoinery } from './facade-joinery.ts';
 import type { QualityPreset } from '../options.ts';
+import { FACADE_INTERIORS_GLSL } from './facade-interiors.ts';
 
 const KIND_CODE: Record<Structure['kind'], number> = {
   house: 0,
@@ -84,7 +85,7 @@ class Mesher {
  * and bay (dark glazing with low roughness, deep reveals), shopfronts on
  * town ground floors, ribbed cladding on sheds, weathering stains, and
  * individually lit windows at night. */
-function facadeMaterial(night: { value: number }) {
+function facadeMaterial(night: { value: number }, interiorDepth: { value: number }) {
   const material = new T.MeshStandardMaterial({
     vertexColors: true,
     roughness: 0.85,
@@ -94,6 +95,7 @@ function facadeMaterial(night: { value: number }) {
   (material as unknown as { defines: Record<string, string> }).defines = { USE_UV: '' };
   material.onBeforeCompile = (shader) => {
     shader.uniforms.owNight = night;
+    shader.uniforms.owInteriorDepth = interiorDepth;
     shader.vertexShader = shader.vertexShader
       .replace(
         '#include <common>',
@@ -105,8 +107,10 @@ function facadeMaterial(night: { value: number }) {
         '#include <common>',
         `#include <common>
 uniform float owNight;
+uniform float owInteriorDepth;
 varying vec4 vFacade;
 ${OW_NOISE_GLSL}
+${FACADE_INTERIORS_GLSL}
 float owGlass;
 float owLit;
 float owRib;
@@ -120,6 +124,8 @@ vec3 owLamp;`,
 {
   float style = vFacade.x, kind = vFacade.y, height = vFacade.w;
   vec2 q = vUv;
+  vec3 interiorColor = vec3(0.0);
+  float interiorVisibility = 0.0;
   owGlass = 0.0; owLit = 0.0; owRib = 0.0; owWallRelief = 0.0; owWallRoughness = -1.0; owLamp = vec3(1.0, 0.7, 0.42);
   bool shed = kind > 4.5 && kind < 5.5 || kind > 8.5;
   bool roof = vFacade.z < -0.5 && vFacade.z > -1.5;
@@ -151,6 +157,22 @@ vec3 owLamp;`,
       (1.0-smoothstep(0.09,0.23,abs(q.x-(0.30+room*0.35))))*0.68;
     owLamp = mix(vec3(1.0,0.69,0.42),vec3(0.78,0.87,1.0),step(0.86,room));
     owLit = step(0.57,room)*(0.34+room*0.45)*owGlass*ceiling*curtain*furniture;
+    if (owInteriorDepth > 0.0 && dot(vViewPosition,vViewPosition) < 16900.0) {
+      float facing, roomLamp;
+      bool shopRoom = vFacade.w > 0.5;
+      vec3 roomColor = owFacadeRoom(q,room,shopRoom,vViewPosition,facing,roomLamp);
+      // Keep a minority of shop bays frosted and some residential blinds
+      // closed. Room lighting never illuminates the frame or the wall.
+      float clearPane = shopRoom ? 1.0-step(0.91,room) : 1.0-step(0.79,room);
+      float distanceFade = 1.0-smoothstep(80.0,130.0,length(vViewPosition));
+      interiorVisibility = owInteriorDepth*clearPane*distanceFade
+        *smoothstep(0.08,0.38,facing)*(0.46+0.22*facing);
+      interiorColor = roomColor*0.33;
+      float occupied = shopRoom ? step(0.26,room) : step(0.57,room);
+      vec3 tint = shopRoom ? vec3(0.91,0.97,1.0) : mix(vec3(1.0,0.76,0.50),vec3(0.83,0.91,1.0),step(0.73,room));
+      owLamp = mix(owLamp,roomColor*tint,interiorVisibility);
+      owLit = mix(owLit,(1.65+roomLamp*0.8)*occupied*owGlass,interiorVisibility);
+    }
   } else if (physicalWall) {
     // Metre-scaled surface detail. Derivative fades remove sub-pixel grit
     // and mortar instead of adding sparkling high-frequency noise at speed.
@@ -245,6 +267,7 @@ vec3 owLamp;`,
   vec3 glass = mix(vec3(0.032, 0.047, 0.052), vec3(0.075, 0.115, 0.13), reflectionBand);
   glass *= 0.68 + 0.45 * roomId;
   glass = mix(glass, vec3(0.17, 0.155, 0.125), blind * 0.72);
+  glass = mix(glass,interiorColor,interiorVisibility);
   diffuseColor.rgb = mix(diffuseColor.rgb, glass, owGlass);
   owLit *= 1.0 - blind * 0.72;
 }`,
@@ -277,7 +300,7 @@ if (abs(owRib) > 0.001) normal = normalize(normal + (viewMatrix * vec4(0.0, 0.0,
 totalEmissiveRadiance += owLamp * owLit * owNight * 0.2;`,
       );
   };
-  material.customProgramCacheKey = () => 'festival-facades-v6-metric-recessed-joinery';
+  material.customProgramCacheKey = () => 'festival-facades-v7-parallax-rooms';
   return material;
 }
 
@@ -292,6 +315,8 @@ totalEmissiveRadiance += owLamp * owLit * owNight * 0.2;`,
 export class Buildings {
   readonly root = new T.Group();
   readonly night = { value: 0 };
+  /** Isolated render review can compare identical geometry with depth off. */
+  readonly interiorDepth = { value: 1 };
   readonly material: T.MeshStandardMaterial;
   readonly lantern: T.MeshStandardMaterial;
   readonly joinery: FacadeJoinery;
@@ -299,7 +324,7 @@ export class Buildings {
   stats = { buildings: 0, triangles: 0, openings: 0 };
   constructor(structures: readonly Structure[]) {
     this.root.name = 'Festival buildings';
-    this.material = facadeMaterial(this.night);
+    this.material = facadeMaterial(this.night, this.interiorDepth);
     this.lantern = new T.MeshStandardMaterial({
       color: 0xfff6d8,
       emissive: 0xfff0c0,

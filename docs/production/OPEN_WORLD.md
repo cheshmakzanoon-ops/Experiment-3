@@ -101,6 +101,17 @@ airborne slides, and uses the same scoring calculation for the live total and fi
 The focused gameplay tests cover sample-rate independence, bank/loss behavior, rolling car
 continuity, race-card interruption and speed-zone distance accuracy.
 
+### Slipstream racecraft
+
+Road-car races apply the engine's physical aerodynamic tow and wake between active entrants.
+Follow a rival above 72 km/h with steady loaded-wheel driving to build the tow meter. After
+1.5 seconds, **SLIPSTREAM READY** invites a pass on a clear side. Drive alongside with clearance,
+fully clear both bumpers and hold the lead to receive **CLEAN SLIPSTREAM PASS**. Each rival can count
+once per race. Any actual contact invalidates the attempt; reset, departure from the route and
+unstable driving also clear it. Autopilot disables this challenge for the remainder of the run.
+The pass count is local race feedback. See [Horizon R7](HORIZON_R7_IMPLEMENTATION.md) for the
+implementation, reference review and measured validation.
+
 ### Overlay input ownership
 
 | Flow | Current behavior |

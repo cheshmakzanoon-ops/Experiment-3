@@ -31,13 +31,21 @@ let phase = 'load',
   sourceIdentity = null,
   renderer = null,
   failureState = null;
-page.on('pageerror', (error) => errors.push(error.message));
+page.on('pageerror', (error) => {
+  errors.push(error.message);
+  console.error('BROWSER ERROR', error.message);
+});
 page.on('console', (message) => {
-  if (message.type() === 'error') errors.push(message.text());
+  if (message.type() === 'error') {
+    errors.push(message.text());
+    console.error('BROWSER CONSOLE ERROR', message.text());
+  }
 });
 page.on('response', (response) => {
-  if (response.status() >= 400)
+  if (response.status() >= 400) {
     failedAssets.push({ status: response.status(), url: response.url() });
+    console.error('ASSET ERROR', response.status(), response.url());
+  }
 });
 const state = () => page.evaluate(() => window.horizonReview.state());
 const hasSourceFingerprint = (identity) =>
@@ -65,10 +73,12 @@ try {
       /* Development server has no build identity. */
     }
   }
+  console.log('LOAD', 'requesting Festival fixture');
   await page.goto(
     `${baseURL}/e2e/fixtures/horizon-session.html?quality=${quality}&vehicle=tc1&capture=1&frames=1`,
     { waitUntil: 'domcontentloaded' },
   );
+  console.log('LOAD', 'document ready; waiting for the real session and first rendered frame');
   await page.locator('#loading').waitFor({ state: 'hidden' });
   await page.waitForFunction(() => window.horizonReview?.state().draws >= 1);
   const initial = await state();
