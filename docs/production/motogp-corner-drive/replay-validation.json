@@ -1,0 +1,81 @@
+{
+  "scope": "Replay page preparation, flashback timeline isolation, and unchanged recording contracts",
+  "date": "2026-10-19",
+  "integrated_main_at_local_replay_runs": "794c90c3914af20881ccfeb24b408cb5af555e44",
+  "later_integration_requiring_exact_commit_ci": "14270a4058ec547102b4aedb5430faac9c52fc7c",
+  "behavior": [
+    "prepareSeek starts page reads at the user seek event without sampling or acknowledging a displayed frame.",
+    "The latest scrub target is serviced when pending reads finish; two pending reads and four cached pages remain the bounds.",
+    "Required pages on both sides of an interpolation seam are prepared together.",
+    "Read results retain the immutable metadata identity captured when the read began. Flashback replaces or removes future metadata, invalidating late results and failures even when page numbers are reused.",
+    "Unchanged earlier pages remain eligible for cache insertion; discarded future reads retain their occupied read slot until completion.",
+    "Checksum validation, surface selection, output buffers, and replay presentation remain in the existing sampling path."
+  ],
+  "local_runs": [
+    {
+      "files": ["tests/replay-seek-preparation.test.ts", "tests/flashback-recording.test.ts"],
+      "tests_passed": 13,
+      "tests_failed": 0,
+      "process_exit": 0,
+      "status": "passed",
+      "cases": "Initial preparation without presentation side effects; seams; bounded rapid scrubbing; corrupt data; disposal; invalid inputs; late resolution/rejection after flashback; reusing a page id on the new timeline."
+    },
+    {
+      "files": [
+        "tests/recording.test.ts",
+        "tests/replay-clock.test.ts",
+        "tests/replay-presentation.test.ts"
+      ],
+      "tests_passed": 41,
+      "tests_failed": 2,
+      "process_exit": 1,
+      "status": "failed_timeouts",
+      "failures": [
+        {
+          "test": "keeps powertrain energy, damage and fragment poses connected to serialized state",
+          "observed": "120 second test timeout during dynamic World import"
+        },
+        {
+          "test": "retains the real worker recording cadence during a 24-second consumer stall with surface updates",
+          "observed": "Vitest worker fetch RPC timeout for /src/core/flashback.ts"
+        }
+      ]
+    },
+    {
+      "files": ["tests/recording.test.ts"],
+      "filter": "The two timed-out tests only, unchanged original deadlines",
+      "tests_passed": 1,
+      "tests_failed": 1,
+      "tests_skipped": 35,
+      "process_exit": 1,
+      "status": "failed_timeout",
+      "passed": "24-second real worker consumer stall, 100663 ms",
+      "failed": "Powertrain energy/damage/fragment serialization, 120 second timeout"
+    },
+    {
+      "files": ["tests/race-view-continuity.test.ts", "tests/gp-grid-paint.test.ts"],
+      "tests_passed": 12,
+      "tests_failed": 0,
+      "process_exit": 0,
+      "status": "passed",
+      "note": "Renderer mock supplies the existing setGrandPrixGrid API; all pose/order/grid and resource assertions remain."
+    }
+  ],
+  "static_checks": {
+    "scoped_eslint": "passed_again_after_animation_integration",
+    "prettier": "passed_again_after_animation_integration",
+    "exact_final_commit_build": "pending_ci",
+    "git_diff_check": "passed"
+  },
+  "browser_review": {
+    "local": "not_executed_no_chromium",
+    "exact_commit_ci": "pending",
+    "workload": "Full original dry UI riding, four GP-R1 entrants, original replay seeks and rewind equality now including corner phase/progress/fill; original wet riding and held particles."
+  },
+  "limitations": [
+    "The full unchanged recording suite did not pass locally. Passing individual assertions is not a clean suite result.",
+    "No browser result or rendered seek latency is inferred from unit tests.",
+    "The incoming animation integration must be checked by the final exact-commit CI build and browser runs."
+  ],
+  "latest_integrated_main": "c1827511146611c8049569b555d40ea5719936c7"
+}

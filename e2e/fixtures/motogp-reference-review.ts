@@ -26,7 +26,9 @@ export function captureBikeSequence(
     /** Replayable front-lever input; other pose channels remain fixed. */
     frontBrake?: number;
     /** Explicit production-model pose controls for contact/recovery review. */
-    pose?: Partial<Pick<BikePoseValues, 'chassisLean' | 'riderOffset' | 'tuck' | 'steer'>>;
+    pose?: Partial<
+      Pick<BikePoseValues, 'chassisLean' | 'riderOffset' | 'tuck' | 'steer' | 'fork' | 'shock'>
+    >;
     recovery?: 0 | 1 | 2;
   }[] = [{ wet: false, time: 2 }],
 ) {
@@ -113,6 +115,14 @@ export function captureBikeSequence(
     );
     camera.lookAt(0, view === 'rider-rear' ? 1.03 : 1, view === 'rider-rear' ? -0.15 : -0.08);
     camera.fov = 32;
+    camera.updateProjectionMatrix();
+  }
+  if (view === 'rear-chassis') {
+    // Same production model and lighting; a mechanical camera that exposes
+    // the undertray, rear arm, axle and damper without a detached display rig.
+    camera.position.set(1.35, 0.8, -1.62);
+    camera.lookAt(0, 0.53, -0.37);
+    camera.fov = 35;
     camera.updateProjectionMatrix();
   }
   if (view === 'right-grip' || view === 'left-grip' || view === 'right-peg') {
@@ -242,6 +252,8 @@ export function captureBikeSequence(
           offset: samplePose.riderOffset,
           tuck: samplePose.tuck,
           steer: samplePose.steer,
+          fork: samplePose.fork,
+          shock: samplePose.shock,
           recovery: sample.recovery ?? null,
         },
         frontBrakeLever: (() => {

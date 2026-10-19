@@ -41,6 +41,9 @@ test('GP practice rides through named corner guidance, cockpit, pause and record
       advice: element.querySelector('#gpAdvice')!.textContent,
       tow: element.querySelector('#gpTow')!.textContent,
       tone: (element as HTMLElement).dataset.tone,
+      phase: (element.querySelector('#gpCornerProgress') as HTMLElement).dataset.phase,
+      progress: element.querySelector('#gpCornerProgress')!.getAttribute('aria-valuenow'),
+      fill: (element.querySelector('#gpPhaseFill') as HTMLElement).style.transform,
     }));
   const readableGuide = async () => {
     await expect(page.locator('#gpCraft')).toBeVisible();

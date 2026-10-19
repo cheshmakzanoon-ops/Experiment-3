@@ -1,0 +1,138 @@
+{
+  "scope": "Independent occupied-volume regression for the planted GP boots and every newly authored swingarm-mounted part after the forward-spar routing correction",
+  "status": "passed",
+  "source": {
+    "head": "14270a4058ec547102b4aedb5430faac9c52fc7c",
+    "sha256": {
+      "src/rendering/gp-rear-chassis.ts": "18a90293a59ff0fdac12a6f9e3967d258bdebc11df32f568ae056f60a193a2a9",
+      "src/rendering/bike.ts": "3377ff921a4e02c91707b7d63e498c06c2750aeef67bb478a19071a85ebf9168",
+      "src/rendering/rider.ts": "db903ce9a0569b744712dfe612aa49a64ddb90e24588230d6fc5383c98b6bea0",
+      "src/rendering/gp-rider-gear.ts": "90ded9ad8362442d7357108bd84c50ed3f836180524886db9996359fc6914a18",
+      "src/rendering/gp-rider-contact.ts": "0a30229dd51fdf43a1b0a5cee8a1bc6f72f982d640fa4645fb76a6d9a9f7227c",
+      "tests/gp-mesh-clearance.ts": "b74eaa261318ed30a1b4e411224cfee000fd88e85786a57b44bac85766bbc2ee"
+    }
+  },
+  "method": {
+    "fixture": "Actual production BikeModel poses and boot/cuff/sole meshes; the production gpRearSwingarm geometry generator supplies the unbatched test parts under the actual swingarm world matrix.",
+    "parts": [
+      "carbon spars",
+      "pivot collars",
+      "axle adjusters and fasteners",
+      "clevis braces",
+      "lower damper captive pin"
+    ],
+    "intersection": "Project transformed outward-facing triangles to a shared XZ grid; build oriented occupied Y intervals per mesh, merge occupied material, and measure interval overlap. Boots may pass above or below structure without causing false collisions.",
+    "gridMetres": 0.008,
+    "models": [
+      "gpr1",
+      "gpr2"
+    ],
+    "details": [
+      "high",
+      "mid",
+      "far"
+    ],
+    "forkTravelFractions": [
+      0,
+      0.5,
+      1
+    ],
+    "shockTravelFractions": [
+      0,
+      0.5,
+      1
+    ],
+    "feet": "Both entire production boot groups, including cuffs and soles",
+    "otherPose": {
+      "steer": 0.24,
+      "chassisLean": 0.9,
+      "riderOffset": 0.18,
+      "tuck": 0.75,
+      "brake": 0.05
+    },
+    "helper": "tests/gp-mesh-clearance.ts"
+  },
+  "totals": {
+    "bikePoses": 54,
+    "footPoseChecks": 108,
+    "comparedOccupiedColumns": 9533,
+    "intersectingColumns": 0,
+    "maximumOverlapMetres": 0,
+    "minimumComparedColumnsPerFootPose": 71,
+    "minimumBootColumnsPerFootPose": 411
+  },
+  "results": [
+    {
+      "id": "gpr1",
+      "detail": "high",
+      "maximumOverlap": 0,
+      "comparedColumns": 1601,
+      "intersectingColumns": 0,
+      "minimumFootColumns": 432,
+      "minimumComparedColumns": 72
+    },
+    {
+      "id": "gpr1",
+      "detail": "mid",
+      "maximumOverlap": 0,
+      "comparedColumns": 1562,
+      "intersectingColumns": 0,
+      "minimumFootColumns": 425,
+      "minimumComparedColumns": 72
+    },
+    {
+      "id": "gpr1",
+      "detail": "far",
+      "maximumOverlap": 0,
+      "comparedColumns": 1499,
+      "intersectingColumns": 0,
+      "minimumFootColumns": 411,
+      "minimumComparedColumns": 71
+    },
+    {
+      "id": "gpr2",
+      "detail": "high",
+      "maximumOverlap": 0,
+      "comparedColumns": 1670,
+      "intersectingColumns": 0,
+      "minimumFootColumns": 432,
+      "minimumComparedColumns": 77
+    },
+    {
+      "id": "gpr2",
+      "detail": "mid",
+      "maximumOverlap": 0,
+      "comparedColumns": 1635,
+      "intersectingColumns": 0,
+      "minimumFootColumns": 425,
+      "minimumComparedColumns": 75
+    },
+    {
+      "id": "gpr2",
+      "detail": "far",
+      "maximumOverlap": 0,
+      "comparedColumns": 1566,
+      "intersectingColumns": 0,
+      "minimumFootColumns": 411,
+      "minimumComparedColumns": 75
+    }
+  ],
+  "observedDefectAndControl": {
+    "initialIndividualBootMeshOverlapMetres": {
+      "gpr1": 0.06082660615267527,
+      "gpr2": 0.06008137795699897
+    },
+    "profileControl": "A temporary bundle restored the former spar profile constants. The projection helper reproduced the independently measured spar intervals at both observed points and detected the connected forefoot/sole union overlap.",
+    "oldProfileBootUnionOverlapMetres": {
+      "gpr1": 0.06854452522163629,
+      "gpr2": 0.06782370264056994
+    },
+    "candidateAtObservedPoints": "Both boot columns remain occupied; the corrected inboard neck clears both columns."
+  },
+  "sourceChecks": {
+    "hashesUnchangedDuringSweep": true,
+    "helperEslint": "passed",
+    "helperPrettier": "passed"
+  },
+  "limits": "This is a sampled mesh-volume check, not a rendered visual approval. The finer 4 mm production unit regression and three-dimensional chain test are recorded by the rear-structure suite. No local browser result is claimed by this receipt."
+}

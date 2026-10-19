@@ -1,0 +1,245 @@
+{
+  "scope": "Final corrected GP rear assembly: actual production-arm chain envelope, full-travel occupied boot clearance, attachment transforms and geometry inventory",
+  "status": "passed for the declared local unit and inventory checks; browser review remains pending",
+  "baselineCommit": "9e5ff534ecf4d8391eaa7075a284b141544de7ee",
+  "integratedBaseCommit": "5ba247c25bbe3ec793655517e5fa4e39162b40e9",
+  "sourceSha256": {
+    "src/rendering/gp-rear-chassis.ts": "18a90293a59ff0fdac12a6f9e3967d258bdebc11df32f568ae056f60a193a2a9",
+    "src/rendering/bike.ts": "3377ff921a4e02c91707b7d63e498c06c2750aeef67bb478a19071a85ebf9168",
+    "tests/gp-rear-chassis.test.ts": "765ff6c1d4a111500845efa58db0774b97d3b0faa28287882a4099f1b424bf22",
+    "tests/gp-chain-envelope.ts": "5f56c50372d149e72831bf78aacdbba66fb9634d90289d8846bde614b36842c2",
+    "tests/gp-mesh-clearance.ts": "b74eaa261318ed30a1b4e411224cfee000fd88e85786a57b44bac85766bbc2ee"
+  },
+  "unitRuns": [
+    {
+      "command": "node node_modules/vitest/vitest.mjs run tests/gp-rear-chassis.test.ts tests/gp-chain-integrity.test.ts --maxWorkers=1 --reporter=verbose",
+      "testsPassed": 20,
+      "filesPassed": 2,
+      "exitCode": 0,
+      "durationSeconds": 86.64,
+      "scope": "Corrected geometry, 4 mm occupied-volume sweep, former failure columns, attachment/resource determinism and existing chain integrity. This run preceded the actual-production-arm assertion."
+    },
+    {
+      "command": "node node_modules/vitest/vitest.mjs run tests/gp-rear-chassis.test.ts --maxWorkers=1 --reporter=verbose",
+      "testsPassed": 10,
+      "filesPassed": 1,
+      "exitCode": 0,
+      "durationSeconds": 64.53,
+      "scope": "Final source including chain-envelope assertions for the actual arm length of each GP motorcycle at all three detail levels, before posed world-matrix copies. Also repeats the full 4 mm occupied-volume and attachment/resource regressions."
+    }
+  ],
+  "independentMeshReceipt": "mesh-clearance-validation.json",
+  "independentReceiptSourceHashesMatchFinalFiles": true,
+  "inventoryMethod": "Production BikeModel at the declared static-sag pose for both GP and four other road-bike families at high/mid/far detail. Triangles include expanded instances; bytes sum geometry attribute/index payloads. Geometry/pose hashes include every geometry attribute/index byte and each object world matrix; they exclude UUIDs and instance-matrix array contents.",
+  "gpInventory": [
+    {
+      "id": "gpr1",
+      "detail": "high",
+      "before": {
+        "triangles": 109337,
+        "bytes": 4554128,
+        "meshes": 109,
+        "materials": 34,
+        "textures": 19
+      },
+      "after": {
+        "triangles": 107617,
+        "bytes": 4262688,
+        "meshes": 114,
+        "materials": 34,
+        "textures": 19
+      },
+      "finalGeometryAndPoseSha256": "0aff6d6bea770c1ac73dbc7aa2ac11db0362f43d82f98131fda8dc3adfe5c449"
+    },
+    {
+      "id": "gpr1",
+      "detail": "mid",
+      "before": {
+        "triangles": 43448,
+        "bytes": 1951532,
+        "meshes": 86,
+        "materials": 30,
+        "textures": 16
+      },
+      "after": {
+        "triangles": 42152,
+        "bytes": 1824332,
+        "meshes": 91,
+        "materials": 30,
+        "textures": 16
+      },
+      "finalGeometryAndPoseSha256": "ca9ceee082433323ecda3d3f2489f896b0694c94836421afcfa393bd31a2673d"
+    },
+    {
+      "id": "gpr1",
+      "detail": "far",
+      "before": {
+        "triangles": 12588,
+        "bytes": 692008,
+        "meshes": 46,
+        "materials": 23,
+        "textures": 10
+      },
+      "after": {
+        "triangles": 11444,
+        "bytes": 551640,
+        "meshes": 46,
+        "materials": 23,
+        "textures": 10
+      },
+      "finalGeometryAndPoseSha256": "6343e1cf857c0fa0d2e97f62ab0df1093cf1506a2ba826b519e8ad856c6aea4f"
+    },
+    {
+      "id": "gpr2",
+      "detail": "high",
+      "before": {
+        "triangles": 101636,
+        "bytes": 4321924,
+        "meshes": 104,
+        "materials": 34,
+        "textures": 19
+      },
+      "after": {
+        "triangles": 99916,
+        "bytes": 4030484,
+        "meshes": 108,
+        "materials": 34,
+        "textures": 19
+      },
+      "finalGeometryAndPoseSha256": "4b8f2f89672bea3ec6eba9808c9c43a6d6da033eedbfccdab118cce6be074e9a"
+    },
+    {
+      "id": "gpr2",
+      "detail": "mid",
+      "before": {
+        "triangles": 43008,
+        "bytes": 2009204,
+        "meshes": 82,
+        "materials": 31,
+        "textures": 18
+      },
+      "after": {
+        "triangles": 41712,
+        "bytes": 1882004,
+        "meshes": 86,
+        "materials": 31,
+        "textures": 18
+      },
+      "finalGeometryAndPoseSha256": "943a7bab4edf5ff9cb62fa3c6aadac7f9a8d8f18bad00d55043e58d23e90ea88"
+    },
+    {
+      "id": "gpr2",
+      "detail": "far",
+      "before": {
+        "triangles": 9870,
+        "bytes": 617276,
+        "meshes": 44,
+        "materials": 23,
+        "textures": 10
+      },
+      "after": {
+        "triangles": 8726,
+        "bytes": 476908,
+        "meshes": 44,
+        "materials": 23,
+        "textures": 10
+      },
+      "finalGeometryAndPoseSha256": "0259f6fd9998054cf16eaaf3cb2d2db1e22d80b8fecf21b4a525a8f477d6d752"
+    }
+  ],
+  "unchangedNonGpGeometryAndPose": [
+    {
+      "id": "sbk1000",
+      "detail": "high",
+      "baselineAndFinalSha256": "7edeecb0886ddff06f5a3d711fd334143e167b8968aa2ba9a7adefa397d2ff75"
+    },
+    {
+      "id": "sbk1000",
+      "detail": "mid",
+      "baselineAndFinalSha256": "cffaf373bcd61643ee65bc2e6759a5fbac473eb12fbfdcb5fcb6ab68c0799b06"
+    },
+    {
+      "id": "sbk1000",
+      "detail": "far",
+      "baselineAndFinalSha256": "5ca1b2d107b0d176ebf4b23a11d49c2604d7282216ef6d9d95d75d86da1218b5"
+    },
+    {
+      "id": "ss600",
+      "detail": "high",
+      "baselineAndFinalSha256": "b6973b9bbadfd1bbd08d6e45a4d0a1188f602b54c0259181dc702eeb638b5cac"
+    },
+    {
+      "id": "ss600",
+      "detail": "mid",
+      "baselineAndFinalSha256": "32ccde91dce55f79ebfd0a84058f0c5db194f265defe24c9558f1baa85903277"
+    },
+    {
+      "id": "ss600",
+      "detail": "far",
+      "baselineAndFinalSha256": "5e3c4c5916fff81f5a6850d212d412fa07a02bce08047a2ab3f71e787a2637d7"
+    },
+    {
+      "id": "nr900",
+      "detail": "high",
+      "baselineAndFinalSha256": "b4e28a839e0528fb776d48e9795754fcab19da6757885a3042ee685ec5d6ce41"
+    },
+    {
+      "id": "nr900",
+      "detail": "mid",
+      "baselineAndFinalSha256": "ee4eeb4f4c03f58349c6bad4db96b08ae2f6806bbc8024666e11fc566d3d7fea"
+    },
+    {
+      "id": "nr900",
+      "detail": "far",
+      "baselineAndFinalSha256": "e213045c4fd9cc896b2d46a150421b3f431c55270a451ad428ae93f689345e7c"
+    },
+    {
+      "id": "cr750",
+      "detail": "high",
+      "baselineAndFinalSha256": "31aab8b3697ece38e7949bff618726a625f066f4232e226a1a5b9dac2374ca2c"
+    },
+    {
+      "id": "cr750",
+      "detail": "mid",
+      "baselineAndFinalSha256": "3535a73dc2d9d478eab912422f67df831a4bc37278c5bb3d7d06bfcc9e5a005d"
+    },
+    {
+      "id": "cr750",
+      "detail": "far",
+      "baselineAndFinalSha256": "8a74ab0de84a7c97081fc3142eeb3a7727103689b7623f2cbd1a2f303cf13010"
+    }
+  ],
+  "unchangedGpChainGeometry": [
+    {
+      "id": "gpr1",
+      "detail": "high",
+      "baselineAndFinalSha256": "4b459cd4280654656cca75dedcf5596138dc290859bf0ce7e558b15752fa12e7"
+    },
+    {
+      "id": "gpr1",
+      "detail": "mid",
+      "baselineAndFinalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "gpr1",
+      "detail": "far",
+      "baselineAndFinalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "gpr2",
+      "detail": "high",
+      "baselineAndFinalSha256": "4b459cd4280654656cca75dedcf5596138dc290859bf0ce7e558b15752fa12e7"
+    },
+    {
+      "id": "gpr2",
+      "detail": "mid",
+      "baselineAndFinalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "gpr2",
+      "detail": "far",
+      "baselineAndFinalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "limits": "The mesh-volume checks sample occupied intervals on a grid; the chain test encloses the complete loop with conservative connected segment boxes and checks solid containment. No browser screenshots, rendered draw-call results, GPU-memory values or physical-device frame rate are claimed by this receipt."
+}

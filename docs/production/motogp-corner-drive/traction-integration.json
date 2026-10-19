@@ -1,0 +1,176 @@
+{
+  "scope": "Historical GP traction integration with wheel/chassis momentum and rigid integration; final physics-v6 record/ghost compatibility after incorporating published Motocross physics v5.",
+  "integratedBaseCommit": "d09921545ddcebe2b34ed4a85dab36deeafab969",
+  "integrationRun": {
+    "command": "node node_modules/vitest/vitest.mjs run tests/gp-drive-traction.test.ts tests/wheel-momentum.test.ts tests/session-identity.test.ts tests/rotation.test.ts tests/integrator-stability.test.ts tests/physics.test.ts --reporter=dot --reporter=json --outputFile=/tmp/gp-handling-integrated-tests.json",
+    "status": "runner_error",
+    "processExitCode": 1,
+    "assertions": {
+      "total": 59,
+      "passed": 59,
+      "failed": 0,
+      "pending": 0
+    },
+    "durationSeconds": 643.46,
+    "unhandledErrors": [
+      {
+        "message": "[vitest-worker]: Timeout calling \"onTaskUpdate\"",
+        "count": 2
+      }
+    ],
+    "reporterCaveat": "The Vitest JSON report sets success=true despite two console-reported unhandled worker RPC errors and process exit 1. This is not a clean test gate.",
+    "suites": [
+      {
+        "file": "tests/gp-drive-traction.test.ts",
+        "assertions": 8,
+        "reportedStatus": "passed"
+      },
+      {
+        "file": "tests/integrator-stability.test.ts",
+        "assertions": 7,
+        "reportedStatus": "passed"
+      },
+      {
+        "file": "tests/physics.test.ts",
+        "assertions": 21,
+        "reportedStatus": "passed"
+      },
+      {
+        "file": "tests/rotation.test.ts",
+        "assertions": 6,
+        "reportedStatus": "passed"
+      },
+      {
+        "file": "tests/session-identity.test.ts",
+        "assertions": 5,
+        "reportedStatus": "passed"
+      },
+      {
+        "file": "tests/wheel-momentum.test.ts",
+        "assertions": 12,
+        "reportedStatus": "passed"
+      }
+    ],
+    "sourceSha256": {
+      "src/simulation/bike.ts": "fed30c09e2d4fb65c9374e5cb3a398cc01203fdad23a03d038a030e56b634966",
+      "src/simulation/bike-vehicle.ts": "e46dec3d723fa9bbebf9e772d293694a78bdd7499f91109f83fc2dfb742f6d03",
+      "src/simulation/rigid.ts": "08c32ae36662f45d25c6ef5acf15f01dc5332463973ccaa3b1959bba6e10d61b",
+      "src/simulation/vehicle.ts": "400a144c1531852af6295e2611a3b17ca76a946240adbc05b9b84016eef0ce48",
+      "src/simulation/wheel-momentum.ts": "46eef7c2e24ec379282988c53ddbd2ea01aec3c04f84a359027536813838ac66",
+      "src/core/session-identity.ts": "71af088445e64714fbe3c3d7f97cb1429cedfc246fec2d81f0283c6eaa12a0de",
+      "tests/gp-drive-traction.test.ts": "9867d5bc3b0e0c7f832631776414b328d7ec6d24ac821b0a1a74937bc19e3e5c",
+      "tests/wheel-momentum.test.ts": "41666f6a67aa046451b1c75487f3e52e100aec735df60199a04bc9e7631c91ac",
+      "tests/session-identity.test.ts": "444696caf539b65f1548876ef5b902309743945db6bfca77d01270328cade15c",
+      "tests/rotation.test.ts": "318616d638ee92b8cb8c5b66d2b2140042fa854a608063b362aa10f112131d9e",
+      "tests/integrator-stability.test.ts": "fbc6a72e8584cf83212f4c0832ef6d3669817a7f68f720e7b022037c54bfd8d5",
+      "tests/physics.test.ts": "c0f1b57663cbc0c45276043e5896a1c3df1b06f87b588b70b50fc01eb3e2b4cd"
+    },
+    "scopedSourcesUnchangedDuringRun": true,
+    "sourceVerification": "The 12 listed sources were hashed before the run and compared after process exit, before applying the separate physics-v5 identity edit."
+  },
+  "finalIdentityRun": {
+    "status": "passed",
+    "processExitCode": 0,
+    "simulationVersion": 6,
+    "baseCommitAtVerification": "c1827511146611c8049569b555d40ea5719936c7",
+    "command": "node node_modules/vitest/vitest.mjs run tests/session-identity.test.ts --reporter=dot --reporter=json --outputFile=/tmp/gp-handling-identity-v6-tests.json",
+    "assertions": {
+      "total": 9,
+      "passed": 9,
+      "failed": 0,
+      "pending": 0
+    },
+    "durationSeconds": 26.99,
+    "sourceSha256": {
+      "src/core/session-identity.ts": "a69c4de7de04ff4c93b4f27ad7990f70235be83e9d5cd40f2c19ecb509792365",
+      "tests/session-identity.test.ts": "f139858496d9c3a66d4eebeac27f19a390d4049d3fe3f282a9c933e11bede32c",
+      "src/core/ghost-lap.ts": "9766853ddd0515cf71acd0a0cbcb25aefde14519aa43c48e36fadcf8ea4eb7ce",
+      "src/storage/leaderboard.ts": "b664818e7bbc35d5ab47a6db613448a6e26b6603625e09ae5f67a9e330e6f2c8",
+      "src/simulation/protocol.ts": "f51e07505174017042b5f3aa669f01efbf173816355b27a55e920b431dd38c37",
+      "src/simulation/bike.ts": "fed30c09e2d4fb65c9374e5cb3a398cc01203fdad23a03d038a030e56b634966",
+      "src/simulation/bike-vehicle.ts": "1fd4c718439fd85d788fbb1fdd97f4c7c1b1c3d08e08f96e534f55b0be56c58f"
+    },
+    "testedSourceSha256": {
+      "src/core/session-identity.ts": "a69c4de7de04ff4c93b4f27ad7990f70235be83e9d5cd40f2c19ecb509792365",
+      "tests/session-identity.test.ts": "60c868577743806d4f9e1ef343c3ad53da17b4aa452cf5fb379cdd8e87b88a7e",
+      "src/core/ghost-lap.ts": "9766853ddd0515cf71acd0a0cbcb25aefde14519aa43c48e36fadcf8ea4eb7ce",
+      "src/storage/leaderboard.ts": "b664818e7bbc35d5ab47a6db613448a6e26b6603625e09ae5f67a9e330e6f2c8",
+      "src/simulation/protocol.ts": "f51e07505174017042b5f3aa669f01efbf173816355b27a55e920b431dd38c37",
+      "src/simulation/bike.ts": "fed30c09e2d4fb65c9374e5cb3a398cc01203fdad23a03d038a030e56b634966",
+      "src/simulation/bike-vehicle.ts": "1fd4c718439fd85d788fbb1fdd97f4c7c1b1c3d08e08f96e534f55b0be56c58f"
+    },
+    "scopedSourcesUnchangedDuringRun": true,
+    "formattingAfterRun": {
+      "file": "tests/session-identity.test.ts",
+      "testedSha256": "60c868577743806d4f9e1ef343c3ad53da17b4aa452cf5fb379cdd8e87b88a7e",
+      "formattedSha256": "f139858496d9c3a66d4eebeac27f19a390d4049d3fe3f282a9c933e11bede32c",
+      "syntaxTreesEquivalent": true,
+      "verification": "TypeScript parsed node kinds, flags, literal text and child trees are identical after Prettier reflowed the expanded prior-version declaration."
+    },
+    "eslint": {
+      "status": "passed",
+      "processExitCode": 0,
+      "command": "node node_modules/eslint/bin/eslint.js src/core/session-identity.ts tests/session-identity.test.ts"
+    },
+    "prettier": {
+      "status": "passed",
+      "processExitCode": 0,
+      "command": "node node_modules/prettier/bin/prettier.cjs --check src/core/session-identity.ts tests/session-identity.test.ts"
+    },
+    "coverage": [
+      "Version 2, 3, 4 and 5 records remain outside the current category.",
+      "Both GP prototypes use physics v6 and distinct leaderboard keys from the published v5 category.",
+      "Both GP prototypes reject a complete v5 ghost and accept the same complete v6 ghost.",
+      "Existing canonical session identity, legacy-ghost policy and snapshot-stride checks remain valid."
+    ],
+    "versionBoundary": {
+      "previousPublishedVersion": 5,
+      "previousPublishedCommit": "c1827511146611c8049569b555d40ea5719936c7",
+      "previousPublishedChange": "Motocross sprung-contact traction and independent rear-pedal control",
+      "currentVersion": 6,
+      "currentChange": "GP current-load traction limiting during split-grip brake/drive overlap",
+      "protocolChanged": false
+    },
+    "scope": "One identity suite was rerun after the c182 integration. The seven listed sources stayed unchanged during the run; only the test formatting changed afterward. This check does not rerun the historical six-suite traction/rigid integration."
+  },
+  "cleanCombinedGate": "Pending parent CI verification.",
+  "changedScopedSourcesAfterIntegrationRun": [
+    "src/simulation/bike-vehicle.ts",
+    "src/core/session-identity.ts",
+    "tests/session-identity.test.ts"
+  ],
+  "historicalIdentityRuns": [
+    {
+      "status": "passed",
+      "processExitCode": 0,
+      "simulationVersion": 5,
+      "baseCommitAtVerification": "d09921545ddcebe2b34ed4a85dab36deeafab969",
+      "command": "node node_modules/vitest/vitest.mjs run tests/session-identity.test.ts --reporter=dot --reporter=json --outputFile=/tmp/gp-handling-identity-v5-tests.json",
+      "assertions": {
+        "total": 8,
+        "passed": 8,
+        "failed": 0,
+        "pending": 0
+      },
+      "durationSeconds": 19.15,
+      "sourceSha256": {
+        "src/core/session-identity.ts": "f0b8e3090b37b635df0f572ed2e28bb9b6ba94f4033161a3b35c6de63f431f0f",
+        "tests/session-identity.test.ts": "8d74fb640bc002ce06cb609122a38c1763cf49e459badc681207a849d163da99"
+      },
+      "eslint": {
+        "status": "passed",
+        "processExitCode": 0,
+        "command": "node node_modules/eslint/bin/eslint.js src/core/session-identity.ts tests/session-identity.test.ts"
+      },
+      "coverage": [
+        "Version 2, 3 and 4 records remain outside the current category.",
+        "Both GP prototypes use physics v5 and distinct leaderboard keys from v4.",
+        "Both GP prototypes reject a complete v4 ghost and accept the same complete v5 ghost.",
+        "Existing canonical session identity, legacy-ghost policy and snapshot-stride checks remain valid."
+      ],
+      "scope": "Only src/core/session-identity.ts and tests/session-identity.test.ts change after the six-suite run; GP solver remains frozen.",
+      "historicalContext": "This local GP v5 check preceded c1827511, which published a distinct global physics v5 for Motocross. It is retained as historical evidence; the final GP release now uses v6."
+    }
+  ],
+  "currentIntegrationBaseCommit": "c1827511146611c8049569b555d40ea5719936c7"
+}

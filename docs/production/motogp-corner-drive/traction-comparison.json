@@ -1,0 +1,223 @@
+{
+  "baselineCommit": "9e5ff534ecf4d8391eaa7075a284b141544de7ee",
+  "summary": {
+    "base": "9e5ff534",
+    "scope": "Controlled reduced-order game solver, not measured motorcycle data. Contact coefficients are declared fixtures.",
+    "splitContactCases": 960,
+    "beforeRearOveruse": 88,
+    "afterRearOveruse": 0,
+    "beforeWorstRear": 1.4906969259718104,
+    "afterWorstRear": 1.0002564685620394,
+    "afterWorstFront": 0.9510427206549954,
+    "beforeCrashes": 0,
+    "afterCrashes": 0,
+    "controls": 144,
+    "identicalControls": 144,
+    "rawSplitControls": 16,
+    "identicalRawSplitControls": 16
+  },
+  "method": {
+    "initialSpeedMps": 35,
+    "settleSeconds": 3,
+    "overlapSeconds": 0.5,
+    "requestedDriveNewtons": 6000,
+    "prototypes": [
+      "gpr1",
+      "gpr2"
+    ],
+    "contactGripPairs": [
+      [
+        1,
+        0.35
+      ],
+      [
+        0.35,
+        1
+      ],
+      [
+        1,
+        0.65
+      ],
+      [
+        0.65,
+        1
+      ]
+    ],
+    "tractionMaps": [
+      1,
+      3,
+      6
+    ],
+    "leanInputs": [
+      0,
+      0.4,
+      0.8,
+      1
+    ],
+    "frontLeverInputs": [
+      0,
+      0.1,
+      0.3,
+      0.6,
+      1
+    ],
+    "timestepSeconds": [
+      0.008333333333333333,
+      0.004166666666666667
+    ],
+    "overuseThreshold": 1.01,
+    "diagnosticTiming": "Force bounds precede speed/roll integration; reported force-circle use includes the final speed and roll sample. The maximum final diagnostic was 1.00025647, or 0.02565% above one, on the least restrictive TC map.",
+    "traceColumns": [
+      "speed",
+      "longitudinal",
+      "driveForce",
+      "frontBrakeForce",
+      "rearBrakeForce",
+      "frontLoad",
+      "rearLoad",
+      "frontUse",
+      "rearUse",
+      "intervention",
+      "lean",
+      "leanRate",
+      "steer",
+      "rearSlip",
+      "pitch",
+      "state"
+    ],
+    "ordinaryControlMachines": [
+      "gpr1",
+      "gpr2",
+      "sbk1000",
+      "ss600",
+      "nr900",
+      "cr750",
+      "mx450",
+      "mx250",
+      "sm450"
+    ],
+    "ordinaryControlSettings": {
+      "assists": [
+        "sport",
+        "raw"
+      ],
+      "sharedGrip": [
+        1,
+        0.4
+      ],
+      "leanInputs": [
+        0,
+        0.4
+      ],
+      "timesteps": [
+        0.008333333333333333,
+        0.004166666666666667
+      ]
+    },
+    "ordinaryControlProfile": "After the same settled corner, a 0.5 s trace uses 1000 N drive at 20% throttle for 0.2 s, then a 30% front lever, adding a 30% rear pedal after 0.35 s; lean intent follows leanInput*sin(2*t).",
+    "rawSplitControlSettings": {
+      "prototypes": [
+        "gpr1",
+        "gpr2"
+      ],
+      "gripPairs": [
+        [
+          1,
+          0.35
+        ],
+        [
+          0.35,
+          1
+        ]
+      ],
+      "leanInputs": [
+        0,
+        0.4
+      ],
+      "timesteps": [
+        0.008333333333333333,
+        0.004166666666666667
+      ],
+      "frontLever": 0.3,
+      "requestedDriveNewtons": 6000
+    }
+  },
+  "representativeCornerOverlap": {
+    "condition": {
+      "id": "gpr1",
+      "map": 3,
+      "front": 1,
+      "rear": 0.35,
+      "lean": 0.4,
+      "brake": 0.3,
+      "dt": 0.004166666666666667
+    },
+    "before": {
+      "hash": "e6a610a4134c759561c7ae509888c7c627286b120eb19a982868203ea733895d",
+      "first": {
+        "speed": 34.97555727527872,
+        "longitudinal": -5.902433933569492,
+        "driveForce": 543.6322717503173,
+        "frontBrakeForce": 1690.3118779324277,
+        "rearBrakeForce": 0,
+        "frontLoad": 1766.1189354925368,
+        "rearLoad": 691.6357893709918,
+        "frontUse": 0.551309587677544,
+        "rearUse": 1.367953438484934,
+        "intervention": 0.8808946213749471,
+        "lean": 0.1238892067654745,
+        "leanRate": 2.955975857044234e-05,
+        "steer": 0.002027041891723933,
+        "rearSlip": 0.3679534384849339,
+        "pitch": 0,
+        "state": "riding"
+      },
+      "peakRear": 1.367953438484934,
+      "peakFront": 0.551309587677544,
+      "crashes": 0,
+      "state": "riding",
+      "endSpeed": 31.057419534923962
+    },
+    "after": {
+      "hash": "1ea73a33c0897dac6465e0110528d7ffd07cb522e1d5428507f9dd5afe49d993",
+      "first": {
+        "speed": 34.97080281403873,
+        "longitudinal": -7.043504631166841,
+        "driveForce": 264.06995083896663,
+        "frontBrakeForce": 1690.3118779324277,
+        "rearBrakeForce": 0,
+        "frontLoad": 1885.6559278822178,
+        "rearLoad": 572.0987969813109,
+        "frontUse": 0.5163582984529912,
+        "rearUse": 0.9464859567877477,
+        "intervention": 0.9274883415268389,
+        "lean": 0.12388921952084886,
+        "leanRate": 3.2621048415712837e-05,
+        "steer": 0.002027041891723933,
+        "rearSlip": 0,
+        "pitch": 0,
+        "state": "riding"
+      },
+      "peakRear": 0.9464859567877477,
+      "peakFront": 0.5163582984529912,
+      "crashes": 0,
+      "state": "riding",
+      "endSpeed": 31.05093019207361
+    }
+  },
+  "verification": {
+    "modifiedSourceSha256": {
+      "src/simulation/bike.ts": "fed30c09e2d4fb65c9374e5cb3a398cc01203fdad23a03d038a030e56b634966",
+      "src/simulation/bike-vehicle.ts": "e46dec3d723fa9bbebf9e772d293694a78bdd7499f91109f83fc2dfb742f6d03",
+      "tests/gp-drive-traction.test.ts": "9867d5bc3b0e0c7f832631776414b328d7ec6d24ac821b0a1a74937bc19e3e5c"
+    },
+    "eslint": "passed: src/simulation/bike.ts src/simulation/bike-vehicle.ts tests/gp-drive-traction.test.ts",
+    "focusedTests": {
+      "passed": 52,
+      "files": 5,
+      "command": "node node_modules/vitest/vitest.mjs run tests/gp-drive-traction.test.ts tests/gp-rear-pedal.test.ts tests/gp-engine-braking.test.ts tests/gp-seamless-braking.test.ts tests/bike.test.ts --reporter=dot"
+    },
+    "integrationNote": "This receipt covers the GP traction source and focused verification on the stated baseline. Integration with incoming main commits is verified separately by the parent task.",
+    "newTests": "Eight tests include actual adapter tyre-force publication, POWER LIMITED feedback, full SessionReplay channel preservation and backward seeks, Raw slip/demand preservation, and non-GP opt-out."
+  }
+}

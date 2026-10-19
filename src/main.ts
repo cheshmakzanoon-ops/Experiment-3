@@ -1306,6 +1306,7 @@ export class GameApp {
     // Draw the requested position once before advancing, including after an
     // asynchronous page read. A seek is not a catch-up interval for effects.
     this.replayClock.seek(value, this.replayFloor(), this.replay.duration);
+    this.replay.prepareSeek(this.replayClock.position);
     this.renderer?.reset();
     this.audio.stop();
   }

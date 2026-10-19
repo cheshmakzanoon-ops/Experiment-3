@@ -1,0 +1,144 @@
+name: MotoGP focused review
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/main.ts'
+      - 'src/rendering/bike*'
+      - 'src/rendering/gp-*'
+      - 'src/simulation/bike*'
+      - 'src/storage/replay-pages.ts'
+      - 'src/core/session-identity.ts'
+      - 'src/rendering/live-frame-clock.ts'
+      - 'src/rendering/snapshot-interpolation.ts'
+      - 'src/rendering/wheel-pose.ts'
+      - 'src/ui/bike-hud*'
+      - 'src/ui/gp-*'
+      - 'e2e/*motogp*'
+      - 'e2e/motorcycle-presentation.spec.ts'
+      - 'e2e/gp-rear-chassis.spec.ts'
+      - 'e2e/gp-rider-contact.spec.ts'
+      - 'tests/gp-*'
+      - 'tests/bike*'
+      - 'tests/replay-*'
+      - 'tests/recording.test.ts'
+      - 'tests/flashback-recording.test.ts'
+      - 'tests/session-identity.test.ts'
+      - 'e2e/fixtures/*motogp*'
+      - 'e2e/fixtures/motorcycle-presentation.ts'
+      - '.github/workflows/motogp-review.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+# Early, isolated evidence for the MotoGP work. The full Build and validation
+# workflow retains every unit, scenario, browser and publication gate.
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
+      - run: node --experimental-transform-types scripts/source-stability.ts -- npm run build
+      - name: Identify the reviewed source
+        run: git rev-parse HEAD > dist/SOURCE_COMMIT.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: motogp-reviewed-build
+          path: dist/
+          retention-days: 7
+          if-no-files-found: error
+  unit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
+      - name: MotoGP geometry, driving, guidance, recording and compatibility contracts
+        run: >-
+          node --experimental-transform-types scripts/source-stability.ts --
+          npm test --
+          tests/gp-rear-chassis.test.ts tests/gp-rider-contact.test.ts
+          tests/gp-chain-integrity.test.ts tests/bike-bodies.test.ts
+          tests/gp-drive-traction.test.ts tests/gp-rear-pedal.test.ts
+          tests/gp-engine-braking.test.ts tests/gp-seamless-braking.test.ts
+          tests/gp-corner-phases.test.ts
+          tests/gp-riding-cues.test.ts tests/gp-control-feedback.test.ts
+          tests/replay-seek-preparation.test.ts tests/recording.test.ts
+          tests/flashback-recording.test.ts tests/replay-clock.test.ts
+          tests/replay-presentation.test.ts tests/race-view-continuity.test.ts
+          tests/gp-grid-paint.test.ts tests/gp-grid.test.ts tests/session-identity.test.ts
+          tests/bike-animation.test.ts tests/snapshot-interpolation.test.ts
+          tests/live-frame-clock.test.ts tests/wheel-pose.test.ts
+          tests/collision-continuous.test.ts
+          --reporter=default --reporter=json
+          --outputFile=${{ runner.temp }}/motogp-unit-tests.json
+      - name: Preserve complete test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: motogp-unit-tests
+          path: ${{ runner.temp }}/motogp-unit-tests.json
+          retention-days: 7
+          if-no-files-found: error
+  browser:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - scene: presentation
+            specs: e2e/41-motogp-reference.spec.ts e2e/motorcycle-presentation.spec.ts e2e/gp-rear-chassis.spec.ts
+          - scene: rider-contact
+            specs: e2e/gp-rider-contact.spec.ts
+          - scene: dry-riding
+            specs: e2e/motogp-riding-flow.spec.ts
+          - scene: wet-riding
+            specs: e2e/motogp-wet-riding.spec.ts
+    env:
+      APEX_BROWSER_BACKEND: mesa
+      LIBGL_ALWAYS_SOFTWARE: 'true'
+      GALLIUM_DRIVER: llvmpipe
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
+      - uses: actions/download-artifact@v4
+        with:
+          name: motogp-reviewed-build
+          path: dist/
+      - name: Require the exact source build
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s dist/index.html
+          test "$(cat dist/SOURCE_COMMIT.txt)" = "$GITHUB_SHA"
+      - run: npx playwright install --with-deps chromium
+      - run: sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb
+      - name: Original workloads, viewports, deadlines and assertions
+        run: xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e -- ${{ matrix.specs }}
+      - name: Screenshots, traces and diagnostics, including failures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: motogp-${{ matrix.scene }}
+          path: |
+            test-results/
+            playwright-report/
+            browser-backend.json
+            browser-progress.json
+          retention-days: 7
+          if-no-files-found: error

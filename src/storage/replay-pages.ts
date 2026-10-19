@@ -120,6 +120,7 @@ export class SessionReplay {
   private surfaceHashes = new WeakMap<SurfaceRecord, number>();
   private cache = new Map<number, ReplayPage>();
   private pendingReads = new Map<number, Promise<void>>();
+  private preparedSeekTime: number | null = null;
   private failedReads = new Set<number>();
   private writing = new Set<number>();
   private writes: Promise<void> = Promise.resolve();
@@ -286,28 +287,35 @@ export class SessionReplay {
       this.cache.set(id, cached);
       return cached;
     }
+    const metadata = this.metadata[id];
     if (
+      metadata &&
       !this.pendingReads.has(id) &&
       !this.failedReads.has(id) &&
       this.pendingReads.size < 2 &&
       !this.closed
     ) {
+      // A flashback can reopen this page or reuse its numeric id while I/O
+      // is pending. Only the original sealed witness may admit the result.
+      // Earlier, unchanged pages can still complete; read slots remain held
+      // until their actual promises settle.
+      const currentTimeline = () => !this.closed && this.metadata[id] === metadata;
       const request = this.store
         .get(id)
         .then(async (page) => {
-          if (this.closed) return;
+          if (!currentTimeline()) return;
           if (
             !page ||
             page.id !== id ||
             page.version !== PROTOCOL_VERSION ||
             page.stride !== this.stride ||
-            page.count !== this.metadata[id]?.count ||
+            page.count !== metadata.count ||
             !(page.frames instanceof Float32Array) ||
             page.frames.length !== this.stride * this.pageFrames ||
-            page.frames[H.TIME] !== this.metadata[id].start ||
-            page.frames[(page.count - 1) * this.stride + H.TIME] !== this.metadata[id].end ||
+            page.frames[H.TIME] !== metadata.start ||
+            page.frames[(page.count - 1) * this.stride + H.TIME] !== metadata.end ||
             !Array.isArray(page.surfaces) ||
-            page.surfaces.length !== this.metadata[id].surfaces.length ||
+            page.surfaces.length !== metadata.surfaces.length ||
             page.surfaces.some(
               (record, index) =>
                 !record ||
@@ -342,15 +350,15 @@ export class SessionReplay {
             frameHash = hashWords(words, frameHash, offset, offset + this.stride);
             if (performance.now() >= deadline) {
               await new Promise<void>((resolve) => setTimeout(resolve, 0));
-              if (this.closed) return;
+              if (!currentTimeline()) return;
               deadline = performance.now() + 4;
             }
           }
-          if (frameHash !== this.metadata[id].frameHash)
+          if (frameHash !== metadata.frameHash)
             throw new Error('Incompatible replay page: recorded bytes changed');
           for (let i = 0; i < page.surfaces.length; i++) {
             const record = page.surfaces[i],
-              witness = this.metadata[id].surfaces[i];
+              witness = metadata.surfaces[i];
             if (
               record.time !== witness.time ||
               record.data.length !== witness.length ||
@@ -359,27 +367,51 @@ export class SessionReplay {
               throw new Error('Incompatible replay page: recorded surface changed');
             if (performance.now() >= deadline) {
               await new Promise<void>((resolve) => setTimeout(resolve, 0));
-              if (this.closed) return;
+              if (!currentTimeline()) return;
               deadline = performance.now() + 4;
             }
           }
+          if (!currentTimeline()) return;
           this.cache.set(id, page);
           this.trim();
         })
         .catch((error) => {
+          if (!currentTimeline()) return;
           this.failedReads.add(id);
-          if (!this.closed) this.fail(`Replay read failed: ${String(error)}`);
+          this.fail(`Replay read failed: ${String(error)}`);
         })
-        .finally(() => this.pendingReads.delete(id));
+        .finally(() => {
+          this.pendingReads.delete(id);
+          // A rapid scrub may have filled both read slots with earlier targets.
+          // Start the latest requested pages as soon as a slot is released,
+          // independently of the next render callback.
+          this.prefetchSeek();
+        });
       this.pendingReads.set(id, request);
     }
     return null;
   }
-  sample(seconds: number, a: Float32Array, b: Float32Array): number | null {
-    if (this.closed || !this.count || !Number.isFinite(seconds)) return null;
-    if (a.length !== this.stride || b.length !== this.stride)
-      throw new Error('Invalid replay output buffers');
-    const time = clamp(this.start + seconds, this.start, this.end);
+  /** Start the exact seek's disk reads while the renderer finishes its current
+   * frame. This never samples a pose, changes the displayed weather, or
+   * acknowledges the playback clock. The normal sample/present path owns those.
+   * Repeated requests replace one pending target; reads remain bounded at two. */
+  prepareSeek(seconds: number): void {
+    if (this.closed || this.failure || !this.count || !Number.isFinite(seconds)) return;
+    this.preparedSeekTime = clamp(this.start + seconds, this.start, this.end);
+    this.prefetchSeek();
+  }
+  private prefetchSeek(): void {
+    if (this.preparedSeekTime === null || this.closed || this.failure) return;
+    const time = clamp(this.preparedSeekTime, this.start, this.end),
+      pageId = this.pageAt(time),
+      page = this.read(pageId);
+    // The last sample of a sealed page interpolates against the next page.
+    // Load both sides immediately instead of waiting for a second GPU slot.
+    const nextReady =
+      pageId >= this.current.id || time < this.metadata[pageId].end || !!this.read(pageId + 1);
+    if (page && nextReady) this.preparedSeekTime = null;
+  }
+  private pageAt(time: number): number {
     let lo = 0,
       hi = this.metadata.length;
     while (lo < hi) {
@@ -394,7 +426,15 @@ export class SessionReplay {
         pageId === this.current.id ? this.current.frames[H.TIME] : this.metadata[pageId].start;
       if (time < start) pageId--;
     }
-    const page = this.read(pageId);
+    return pageId;
+  }
+  sample(seconds: number, a: Float32Array, b: Float32Array): number | null {
+    if (this.closed || !this.count || !Number.isFinite(seconds)) return null;
+    if (a.length !== this.stride || b.length !== this.stride)
+      throw new Error('Invalid replay output buffers');
+    const time = clamp(this.start + seconds, this.start, this.end),
+      pageId = this.pageAt(time),
+      page = this.read(pageId);
     if (!page) return null;
     let left = 0,
       right = page.count - 1;
@@ -481,6 +521,7 @@ export class SessionReplay {
   truncate(time: number) {
     const page = this.truncationPage(time);
     if (!page) return false;
+    this.preparedSeekTime = null;
     if (page !== this.current) {
       this.metadata.length = page.id;
       for (const id of [...this.cache.keys()]) if (id >= page.id) this.cache.delete(id);
@@ -528,6 +569,7 @@ export class SessionReplay {
   diagnostics() {
     return {
       currentPage: this.current.id,
+      preparedSeekTime: this.preparedSeekTime,
       sealedPages: this.metadata.length,
       cached: [...this.cache.keys()],
       pending: [...this.pendingReads.keys()],
@@ -551,10 +593,11 @@ export class SessionReplay {
   }
   async settle() {
     await this.writes;
-    await Promise.all(this.pendingReads.values());
+    while (this.pendingReads.size) await Promise.all(this.pendingReads.values());
   }
   async dispose() {
     this.closed = true;
+    this.preparedSeekTime = null;
     await this.settle();
     this.cache.clear();
     try {

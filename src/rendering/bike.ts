@@ -16,6 +16,7 @@ import { bindGpTyre, installGpTyreFinish, type GpTyreAppearance } from './gp-tyr
 import { gpCoolingLouvers } from './gp-cooling-louvers.ts';
 import { gpRadiator } from './gp-radiator.ts';
 import { GPChainDrive } from './gp-chain-drive.ts';
+import { GPRearSuspension, gpRearBody, gpRearSwingarm } from './gp-rear-chassis.ts';
 import { bikeSurfaceMaps } from './bike-surface-detail.ts';
 import { BikeCockpit } from './bike-cockpit.ts';
 import { tcamFov } from './cockpit-framing.ts';
@@ -666,6 +667,7 @@ export class BikeModel {
   private readonly matrix = new T.Matrix4();
   private readonly rings: T.Mesh[] = [];
   private readonly gpChain?: GPChainDrive;
+  private readonly gpRearSuspension?: GPRearSuspension;
   private readonly gpFrontBrakeLever?: T.Group;
   private readonly cockpit?: BikeCockpit;
   private disposed = false;
@@ -688,7 +690,8 @@ export class BikeModel {
       full = look.fairing === 'full',
       naked = look.fairing === 'naked',
       classic = look.fairing === 'classic',
-      authored = definition.id === 'gpr1';
+      authored = definition.id === 'gpr1',
+      gp = authored || definition.id === 'gpr2';
     calibrateGpMaterials(m, definition.id);
     const gpPrototype = authored || definition.id === 'gpr2';
     this.sag = staticSag(definition);
@@ -1641,6 +1644,7 @@ export class BikeModel {
       add(this.sprung, new T.BoxGeometry(0.22, 0.03, 0.38), m.seat, 0, 0.235, -0.28);
       add(this.sprung, new T.BoxGeometry(0.08, 0.04, 0.012), m.lamp, 0, 0.3, -0.73, false);
     }
+    if (gp) this.sprung.add(...gpRearBody(detail, m).children);
     // Footpegs (rearsets).
     for (const side of [1, -1]) {
       add(
@@ -1661,8 +1665,9 @@ export class BikeModel {
           -0.28,
         );
     }
-    // Rear shock spring (visible behind the engine, compresses with the shock).
-    if (detail !== 'far') {
+    // The GP damper below joins real hardpoints on the sprung frame and arm.
+    // Other motorcycles retain the original spring and its recorded scaling.
+    if (detail !== 'far' && !gp) {
       const coil: [number, number, number][] = [];
       for (let k = 0; k <= 64; k++) {
         const t = k / 64;
@@ -1682,21 +1687,31 @@ export class BikeModel {
     this.pivot = new T.Vector3(0, -0.13, -0.2);
     this.rearAxle = new T.Vector3(0, rearR - h, -b.cgToRear);
     const arm = (this.armLength = this.rearAxle.clone().sub(this.pivot).length());
-    for (const side of [1, -1]) {
-      add(
-        this.swingarm,
-        beam(
-          [
-            [side * 0.1, 0, 0],
-            [side * 0.13, 0.015, -arm * 0.45],
-            [side * 0.12, 0, -arm],
-          ],
-          0.035,
-          0.085,
-          detail === 'high' ? 16 : 6,
-        ),
-        m.aluminium,
-      );
+    if (gp) {
+      const rearStructure = gpRearSwingarm(arm, detail, m);
+      this.swingarm.name = rearStructure.name;
+      this.swingarm.add(...rearStructure.children);
+      if (detail !== 'far') {
+        this.gpRearSuspension = new GPRearSuspension(arm, detail, m);
+        this.root.add(this.gpRearSuspension.root);
+      }
+    } else {
+      for (const side of [1, -1]) {
+        add(
+          this.swingarm,
+          beam(
+            [
+              [side * 0.1, 0, 0],
+              [side * 0.13, 0.015, -arm * 0.45],
+              [side * 0.12, 0, -arm],
+            ],
+            0.035,
+            0.085,
+            detail === 'high' ? 16 : 6,
+          ),
+          m.aluminium,
+        );
+      }
     }
     add(this.swingarm, new T.CylinderGeometry(0.02, 0.02, 0.3, 10), m.steel).rotation.z =
       Math.PI / 2;
@@ -1841,6 +1856,10 @@ export class BikeModel {
       dz = this.rearAxle.z - p.z;
     this.swingarm.rotation.x = Math.atan2(dy, -dz);
     this.swingarm.scale.z = Math.hypot(dy, dz) / this.armLength;
+    if (this.gpRearSuspension) {
+      this.swingarm.updateMatrix();
+      this.gpRearSuspension.update(this.sprung.matrix, this.swingarm.matrix);
+    }
     if (this.definition.id === 'gpr1' || this.definition.id === 'gpr2') {
       // Carbon-carbon rotors dark at moderate temperatures; only extreme heat
       // emits a restrained red glow instead of a neon-orange disc.

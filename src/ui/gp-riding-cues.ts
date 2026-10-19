@@ -5,6 +5,12 @@ import { B, BIKE_BASE, F, H, R, RACE_BASE, carBase } from '../simulation/protoco
 import { trackPoint, type Track } from '../simulation/track.ts';
 import { vehicleAt } from '../simulation/vehicles.ts';
 import { gpControlFeedback } from './gp-control-feedback.ts';
+import {
+  gpCornerPhase,
+  gpCornerShapes,
+  type GPCornerPhase,
+  type GPCornerShape,
+} from './gp-corner-phases.ts';
 
 export interface GPRidingCue {
   corner: string;
@@ -14,6 +20,8 @@ export interface GPRidingCue {
   detail: string;
   tone: 'neutral' | 'brake' | 'flow' | 'caution';
   tow: number;
+  phase: GPCornerPhase;
+  progress: number;
 }
 
 /** Recover the applied tow from the recorded drag, not the different dirty-air
@@ -50,7 +58,8 @@ export function gpTowFraction(frame: Float32Array) {
  * pause and replay seek reproduce the same cue immediately. */
 export class GPRidingCues {
   private readonly road = trackPoint();
-  private readonly apex = trackPoint();
+  private shapeTrack: Track | null = null;
+  private shapes: readonly GPCornerShape[] = [];
 
   read(frame: Float32Array, track: Track): GPRidingCue | null {
     const o = carBase(0),
@@ -71,8 +80,12 @@ export class GPRidingCues {
       lateral = frame[o + F.LATERAL],
       lean = Math.abs(frame[b + B.LEAN]),
       brake = frame[o + F.BRAKE],
-      rearBrake = frame[b + B.REAR_BRAKE];
-    if (![station, speed, lateral, lean, brake, rearBrake].every(Number.isFinite) || speed < 4)
+      rearBrake = frame[b + B.REAR_BRAKE],
+      throttle = frame[o + F.THROTTLE];
+    if (
+      ![station, speed, lateral, lean, brake, rearBrake, throttle].every(Number.isFinite) ||
+      speed < 4
+    )
       return null;
     track.at(station, this.road);
     const forward = frame[o + F.VX] * this.road.tx + frame[o + F.VZ] * this.road.tz;
@@ -83,12 +96,18 @@ export class GPRidingCues {
     // puncture and brake warnings remain useful beyond the paved track edge.
     if (!onRoute && !control) return null;
 
+    if (this.shapeTrack !== track) {
+      this.shapes = gpCornerShapes(track);
+      this.shapeTrack = track;
+    }
     let cornerIndex = -1,
       distance = Infinity;
-    // Retain the apex for the first 24 m of its exit, then show the next turn.
-    // This signed wrapped distance works across the start/finish line as well.
+    // Retain the current corner through its sampled exit. A fixed 24 m
+    // expiry used to announce a straight midway through long GP bends.
+    // Each road-shaped window also wraps across the start/finish line.
     for (let i = 0; onRoute && i < track.circuit.corners.length; i++) {
-      const d = mod(track.circuit.corners[i].s - station + 24, track.length) - 24;
+      const exit = this.shapes[i].exit,
+        d = mod(track.circuit.corners[i].s - station + exit, track.length) - exit;
       if (d < distance) {
         cornerIndex = i;
         distance = d;
@@ -103,23 +122,51 @@ export class GPRidingCues {
       detail: 'Build speed with smooth inputs',
       tone: 'neutral',
       tow: onRoute ? gpTowFraction(frame) : 0,
+      phase: 'none',
+      progress: 0,
     };
     if (close) {
-      const corner = track.circuit.corners[cornerIndex];
-      track.at(corner.s, this.apex);
+      const corner = track.circuit.corners[cornerIndex],
+        shape = this.shapes[cornerIndex],
+        phase = gpCornerPhase(shape, distance);
       cue.corner = `T${cornerIndex + 1} · ${corner.name}`;
-      cue.direction = this.apex.curvature >= 0 ? 'left' : 'right';
+      cue.direction = shape.direction;
       cue.distance = distance < 0 ? 'EXIT' : `${Math.round(distance / 5) * 5} M TO APEX`;
+      cue.phase = phase.phase;
+      cue.progress = phase.progress;
       cue.action = 'LOOK THROUGH THE TURN';
       cue.detail = 'Set your entry speed';
-      if (distance < 0) {
-        cue.action = 'CORNER EXIT';
-        cue.detail = 'Pick up the bike · feed in power';
-        cue.tone = 'flow';
-      } else if (brake > 0.12) {
+      if (brake > 0.12) {
+        // Braking remains braking after the named apex as well. The previous
+        // distance-only exit branch encouraged power with the lever held.
         cue.action = lean > 0.22 ? 'TRAIL BRAKING' : 'BRAKING';
         cue.detail = lean > 0.22 ? 'Ease the brake as lean builds' : 'Set speed before turn-in';
         cue.tone = 'brake';
+      } else if (distance < 0) {
+        cue.action = 'CORNER EXIT';
+        cue.detail = 'Pick up the bike · feed in power';
+        cue.tone = 'flow';
+        // The bend can continue well beyond its apex. An upright rider can
+        // drive out; a deeply leaned rider still needs measured throttle.
+        if (lean > 0.5) {
+          cue.action = 'HOLD YOUR LINE';
+          cue.detail = 'Unwind lean · add power gently';
+        } else if (lean < 0.25 && throttle > 0.2) {
+          cue.action = 'DRIVE OUT';
+          cue.detail = 'Bike coming upright · build your run';
+        }
+        const nextShape = this.shapes[shape.next],
+          toNextEntry = shape.nextGap + distance - nextShape.entry;
+        if (
+          shape.next !== cornerIndex &&
+          toNextEntry < clamp(speed * 2, 60, 130) &&
+          shape.nextGap + distance < 200
+        ) {
+          cue.action = 'LINK THE TURNS';
+          cue.detail = `T${shape.next + 1} ${nextShape.direction} next · ${
+            shape.direction === nextShape.direction ? 'hold your rhythm' : 'balance the change'
+          }`;
+        }
       } else if (lean > 0.35 && distance < Math.max(65, speed * 1.5)) {
         cue.action = 'HOLD YOUR LINE';
         cue.detail = 'Keep the throttle smooth';

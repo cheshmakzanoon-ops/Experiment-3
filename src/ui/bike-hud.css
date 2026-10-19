@@ -172,6 +172,45 @@
   color: #a5b9c9;
   font-size: calc(8px * var(--ui-scale, 1));
 }
+#hud[data-bike='true'] .gp-phase:not([hidden]) {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding-bottom: 4px;
+  font-size: calc(7px * var(--ui-scale, 1));
+  letter-spacing: 0.08em;
+  line-height: 1;
+  color: #8298ab;
+}
+#hud[data-bike='true'] .gp-phase > span:nth-child(2) {
+  text-align: center;
+}
+#hud[data-bike='true'] .gp-phase > span:nth-child(3) {
+  text-align: right;
+}
+#hud[data-bike='true'] .gp-phase::after,
+#hud[data-bike='true'] .gp-phase > i {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: #aac4d826;
+}
+#hud[data-bike='true'] .gp-phase > i {
+  z-index: 1;
+  background: var(--gp-accent);
+  transform-origin: left;
+}
+#hud[data-bike='true'] .gp-phase[data-phase='entry'] > span:first-child,
+#hud[data-bike='true'] .gp-phase[data-phase='apex'] > span:nth-child(2),
+#hud[data-bike='true'] .gp-phase[data-phase='exit'] > span:nth-child(3) {
+  color: #dfedf6;
+}
+#hud[data-bike='true'] .gp-craft[data-tone='caution'] .gp-phase > i {
+  background: #a5b9c9;
+}
 #hud[data-bike='true'] #gpAction {
   font-size: calc(11px * var(--ui-scale, 1));
   font-weight: 600;

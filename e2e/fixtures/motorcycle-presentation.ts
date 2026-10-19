@@ -64,6 +64,9 @@ export interface HudSnapshot {
   frontDisc: number;
   intervention: number;
   flag: number;
+  throttle: number;
+  brake: number;
+  rearBrake: number;
 }
 
 export function showMotorcycleHud(
@@ -79,14 +82,14 @@ export function showMotorcycleHud(
   frame[o + F.SPEED] = snapshot.speed ?? 45;
   frame[o + F.GEAR] = snapshot.gear ?? 4;
   frame[o + F.RPM] = snapshot.rpm ?? 11340;
-  frame[o + F.THROTTLE] = 0.6;
-  frame[o + F.BRAKE] = 0.25;
+  frame[o + F.THROTTLE] = snapshot.throttle ?? 0.6;
+  frame[o + F.BRAKE] = snapshot.brake ?? 0.25;
   frame[o + F.FUEL] = 12.4;
   frame[o + F.LAP_TIME] = 48.271;
   frame[o + F.RANK] = 1;
   frame[o + F.LATERAL] = snapshot.lateral ?? 0;
   frame[o + BIKE_BASE + B.LEAN] = snapshot.lean ?? 0.72;
-  frame[o + BIKE_BASE + B.REAR_BRAKE] = 0.35;
+  frame[o + BIKE_BASE + B.REAR_BRAKE] = snapshot.rearBrake ?? 0.35;
   frame[o + BIKE_BASE + B.TUCK] = 0.8;
   frame[o + BIKE_BASE + B.INTERVENTION] = snapshot.intervention ?? (fallen ? 0.6 : 0.18);
   frame[o + F.LOCAL_FLAG] = snapshot.flag ?? 0;
@@ -129,6 +132,21 @@ export function showGpCornerCase(exit = false) {
   showMotorcycleHud('gpr1', 'chase', false, {
     station: track.circuit.corners[0].s + (exit ? 12 : -80),
     lean: 0.3,
+    // A coast-to-power exit actually releases the two independent brakes.
+    // A held front lever must keep showing braking after the apex as well.
+    brake: exit ? 0 : 0.25,
+    rearBrake: exit ? 0 : 0.35,
+  });
+}
+
+export function showGpBendCase(offset: number, snapshot: Partial<HudSnapshot> = {}) {
+  showMotorcycleHud('gpr1', 'chase', false, {
+    station: track.circuit.corners[0].s + offset,
+    lean: 0.65,
+    throttle: 0.35,
+    brake: 0,
+    rearBrake: 0,
+    ...snapshot,
   });
 }
 

@@ -1,0 +1,75 @@
+{
+  "scope": "GP road-derived corner phases, control priority, linked turns, deterministic presented-frame guidance and the existing HUD phase strip",
+  "sourceSha256": {
+    "src/ui/gp-corner-phases.ts": "b922a37eb1d8e713a936f2fe5bcf8e775ac41aa66f22a73d406abc7f97da9e05",
+    "src/ui/gp-riding-cues.ts": "07ceadb0a68c272097bb8b618ca775957fcd843076aee68588e74926af33221f",
+    "src/ui/bike-hud.ts": "e9c73c8deaeaaa363919263dfb3b248ca5aafbb291c6fed4da1d28c0fb6ae72b",
+    "src/ui/bike-hud.css": "0596278c70559fb831da69f82ea11b06bcd2b266bd768ca938229cd59c4f272d"
+  },
+  "nodeTests": {
+    "status": "passed",
+    "total": 23,
+    "passed": 23,
+    "failed": 0,
+    "suites": [
+      {
+        "file": "tests/gp-control-feedback.test.ts",
+        "tests": 9,
+        "status": "passed"
+      },
+      {
+        "file": "tests/gp-corner-phases.test.ts",
+        "tests": 7,
+        "status": "passed"
+      },
+      {
+        "file": "tests/gp-riding-cues.test.ts",
+        "tests": 7,
+        "status": "passed"
+      }
+    ],
+    "integration": "A real GP-R1 practice simulation traverses North Hook entry, apex and the extended exit; every presented phase progresses monotonically and no post-apex sample within the window becomes a straight cue."
+  },
+  "lint": {
+    "status": "passed",
+    "files": [
+      "src/ui/gp-corner-phases.ts",
+      "src/ui/gp-riding-cues.ts",
+      "src/ui/bike-hud.ts",
+      "tests/gp-corner-phases.test.ts",
+      "e2e/fixtures/motorcycle-presentation.ts",
+      "e2e/motorcycle-presentation.spec.ts"
+    ]
+  },
+  "localBrowser": {
+    "status": "blocked_before_test_execution",
+    "testsExecuted": 0,
+    "reason": "Playwright could not launch: /root/.cache/ms-playwright/chromium_headless_shell-1193/chrome-linux/headless_shell is absent.",
+    "preparedSpec": "e2e/motorcycle-presentation.spec.ts",
+    "viewports": [
+      [
+        1440,
+        900
+      ],
+      [
+        960,
+        600
+      ],
+      [
+        390,
+        844
+      ]
+    ],
+    "uiScales": [
+      1,
+      1.35
+    ],
+    "assertions": [
+      "existing screen bounds and overflow limits",
+      "entry/apex/exit progress",
+      "control priority after the apex",
+      "rewind restores the displayed progress",
+      "repeated held frames produce zero phase-subtree attribute mutations"
+    ]
+  }
+}

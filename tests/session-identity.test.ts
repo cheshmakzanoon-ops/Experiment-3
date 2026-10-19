@@ -3,6 +3,7 @@ import { GHOST_FIELDS, GHOST_VERSION, ghostKey, validateGhost } from '../src/cor
 import {
   SIMULATION_VERSION,
   circuitHash,
+  recordCategory,
   recordIncompatibility,
   sessionIdentity,
 } from '../src/core/session-identity.ts';
@@ -37,17 +38,33 @@ const legacyGhost = () => {
   };
 };
 describe('WP12 recorded identity and schema policy', () => {
-  it.each([2, 3, 4])('keeps physics v%i records out of the current physics category', (physics) => {
-    expect(SIMULATION_VERSION).toBe(5);
-    expect(
-      recordIncompatibility(
-        { circuit: 'aurel', vehicle: 'apx01', physics },
-        { circuit: 'aurel', vehicle: 'apx01', physics: SIMULATION_VERSION },
-      ),
-    ).toBe(`recorded with physics v${physics}; current physics is v5`);
-    expect(leaderboardKey('aurel', 'apx01', physics)).not.toBe(
-      leaderboardKey('aurel', 'apx01', SIMULATION_VERSION),
+  it.each([2, 3, 4, 5])(
+    'keeps physics v%i records out of the current physics category',
+    (physics) => {
+      expect(SIMULATION_VERSION).toBe(6);
+      expect(
+        recordIncompatibility(
+          { circuit: 'aurel', vehicle: 'apx01', physics },
+          { circuit: 'aurel', vehicle: 'apx01', physics: SIMULATION_VERSION },
+        ),
+      ).toBe(`recorded with physics v${physics}; current physics is v6`);
+      expect(leaderboardKey('aurel', 'apx01', physics)).not.toBe(
+        leaderboardKey('aurel', 'apx01', SIMULATION_VERSION),
+      );
+    },
+  );
+  it.each(['gpr1', 'gpr2'])('separates %s records after the GP traction update', (vehicle) => {
+    const category = recordCategory({ circuit: 'aurel', vehicles: [vehicle] });
+    expect(category).toEqual({ circuit: 'aurel', vehicle, physics: 6 });
+    expect(leaderboardKey(category.circuit, category.vehicle, category.physics)).not.toBe(
+      leaderboardKey(category.circuit, category.vehicle, 5),
     );
+    expect(
+      validateGhost({ ...legacyGhost(), vehicle, physics: 5 }, 'aurel', 3000, category),
+    ).toBeNull();
+    expect(
+      validateGhost({ ...legacyGhost(), vehicle, physics: 6 }, 'aurel', 3000, category),
+    ).toMatchObject({ vehicle, physics: 6 });
   });
   it('hashes content, not object identity', () => {
     expect(circuitHash(AUREL)).toBe(circuitHash({ ...AUREL }));

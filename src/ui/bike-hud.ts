@@ -17,6 +17,7 @@ export class BikeHud {
     feedback.innerHTML = `
       <div id="gpCraft" class="gp-craft" hidden aria-label="Corner and slipstream guide">
         <div class="gp-next"><b id="gpTurnArrow" aria-hidden="true">↑</b><span id="gpCorner">STRAIGHT</span><small id="gpCornerDistance"></small></div>
+        <div id="gpCornerProgress" class="gp-phase" hidden role="meter" aria-label="Corner progress" aria-valuemin="0" aria-valuemax="100"><span>ENTRY</span><span>APEX</span><span>EXIT</span><i id="gpPhaseFill" aria-hidden="true"></i></div>
         <div class="gp-cue"><b id="gpAction"></b><span id="gpTow" hidden></span></div><small id="gpAdvice"></small>
       </div>
       <div class="gp-lean"><span>LEAN</span><div class="gp-lean-track" aria-hidden="true"><i id="gpLeanMarker"></i></div><b id="gpLean">0°</b></div>
@@ -103,6 +104,18 @@ export class BikeHud {
       set('gpCornerDistance', cue.distance);
       set('gpAction', cue.action);
       set('gpAdvice', cue.detail);
+      const meter = this.nodes.gpCornerProgress,
+        hidden = cue.phase === 'none',
+        value = String(Math.round(cue.progress * 100)),
+        description = `${hidden ? 'No corner' : cue.phase}, ${cue.corner}`,
+        transform = `scaleX(${Math.round(cue.progress * 10000) / 10000})`;
+      if (meter.hidden !== hidden) meter.hidden = hidden;
+      if (meter.dataset.phase !== cue.phase) meter.dataset.phase = cue.phase;
+      if (meter.getAttribute('aria-valuenow') !== value) meter.setAttribute('aria-valuenow', value);
+      if (meter.getAttribute('aria-valuetext') !== description)
+        meter.setAttribute('aria-valuetext', description);
+      if (this.nodes.gpPhaseFill.style.transform !== transform)
+        this.nodes.gpPhaseFill.style.transform = transform;
       this.nodes.gpCraft.dataset.tone = cue.tone;
       this.nodes.gpTow.hidden = cue.tow < 0.08;
       set('gpTow', `TOW ${Math.round(cue.tow * 100)}%`);

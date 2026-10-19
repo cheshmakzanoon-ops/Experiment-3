@@ -74,6 +74,10 @@ export interface BikeParameters {
    * tyres, but the rear pedal never asks for front pressure. Enabled by the
    * GP adapter; other motorcycles retain their existing linked controls. */
   independentRearBrake?: boolean;
+  /** GP traction control also checks drive against this step's brake load
+   * transfer. The previous normal load can overstate rear grip while the
+   * front lever and throttle overlap on different contact surfaces. */
+  currentDriveTraction?: boolean;
 }
 export const BIKE: BikeParameters = Object.freeze({
   mass: 157 + 72,
@@ -333,7 +337,7 @@ export class Bike {
         Math.max(0, ((staticRear - rearLatKeep) * p.wheelbase) / p.cgHeight - rearHeld),
       );
     }
-    const rearForce = drive - brakeR;
+    let rearForce = drive - brakeR;
     let rearApplied = clamp(rearForce, -rearCapacity, rearCapacity);
     let frontApplied = -Math.min(brakeF, frontMu * this.frontLoad);
     if (a.abs) {
@@ -371,6 +375,36 @@ export class Bike {
             ? (capacity * coupling + Math.sqrt(discriminant)) / (1 - coupling * coupling)
             : 0;
         frontApplied = Math.max(frontApplied, -limit);
+      }
+    }
+    if (p.currentDriveTraction && a.traction && rearApplied > 0) {
+      // TC's first pass uses the preceding contact load. A simultaneous front
+      // brake stroke can now unload the rear, especially with clean front
+      // asphalt and a wet/kerbed rear tyre. Limit the requested engine force
+      // using the CURRENT force pair before committing load/heat/telemetry.
+      // With q = net rear drive, N = N0 + (frontApplied + q)*h/L and map k,
+      // q² + (k*Fy)² <= (k*mu*camber*N)². Use its positive upper root; the
+      // drive contributes its own rear load, so merely clipping to N(q_old)
+      // would still over-ask grip after reducing q.
+      const camberNow = 1 - 0.18 * Math.max(0, Math.abs(this.lean) - 0.8);
+      const margin = p.tractionMargin ?? 0.92;
+      const tractionGrip = margin * rearMu * camberNow;
+      const transferRatio = p.cgHeight / p.wheelbase;
+      const capacity = tractionGrip * Math.max(0, staticRear + frontApplied * transferRatio);
+      const coupling = tractionGrip * transferRatio;
+      if (coupling < 1) {
+        const lateral = margin * rearLatNow;
+        const discriminant = capacity * capacity - (1 - coupling * coupling) * lateral * lateral;
+        const limit =
+          discriminant > 0
+            ? (capacity * coupling + Math.sqrt(discriminant)) / (1 - coupling * coupling)
+            : 0;
+        if (rearApplied > limit) {
+          drive = Math.min(drive, brakeR + limit);
+          rearForce = drive - brakeR;
+          rearApplied = Math.min(rearApplied, rearForce);
+          this.intervention = requested > 1 ? clamp(1 - drive / requested, 0, 1) : 0;
+        }
       }
     }
     this.rearSlip =

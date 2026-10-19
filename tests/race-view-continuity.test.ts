@@ -136,6 +136,7 @@ describe('current-view detail and deterministic presentation', () => {
       const fixture = {
         circuit: {
           setMotorcyclePresentation: vi.fn(),
+          setGrandPrixGrid: vi.fn(),
           heroGarage: { update: garageUpdate },
           pitWallStation: { update: stationUpdate },
           pitBuildingFrontage: { update: frontageUpdate },
@@ -213,6 +214,7 @@ describe('current-view detail and deterministic presentation', () => {
         ),
       ).toThrow(stop);
       expect(camera.position.toArray()).toEqual([60, 0.4, 0.2]);
+      expect(fixture.circuit.setGrandPrixGrid).toHaveBeenCalledExactlyOnceWith(false);
       expect(garageUpdate).toHaveBeenCalledExactlyOnceWith(camera, 'high', 'day');
       expect(frontageUpdate).toHaveBeenCalledExactlyOnceWith(camera, 'high', 'day');
       expect(frontageUpdate.mock.invocationCallOrder[0]).toBeLessThan(

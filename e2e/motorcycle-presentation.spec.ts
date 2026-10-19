@@ -193,6 +193,90 @@ test('motorcycle HUD: responsive production layout, real tyre channels and bike/
   await expect(page.locator('#gpAction')).toHaveText('CORNER EXIT');
   await page.evaluate(() => window.MotorcycleHudFixture.showGpCornerCase());
   await expect(page.locator('#gpAction')).toHaveText('TRAIL BRAKING');
+  await test.step('corner phases remain readable through a long exit and restore after a seek', async () => {
+    for (const viewport of [
+      { width: 1440, height: 900 },
+      { width: 960, height: 600 },
+      { width: 390, height: 844 },
+    ]) {
+      await page.setViewportSize(viewport);
+      for (const scale of [1, 1.35]) {
+        await page.evaluate((scale) => {
+          document.documentElement.style.setProperty('--ui-scale', String(scale));
+          window.MotorcycleHudFixture.showGpBendCase(-80);
+        }, scale);
+        const meter = page.locator('#gpCornerProgress');
+        await expect(meter).toBeVisible();
+        await expect(meter).toHaveAttribute('data-phase', 'entry');
+        const entry = Number(await meter.getAttribute('aria-valuenow'));
+        await page.evaluate(() => window.MotorcycleHudFixture.showGpBendCase(0));
+        await expect(meter).toHaveAttribute('data-phase', 'apex');
+        await expect(meter).toHaveAttribute('aria-valuenow', '50');
+        await page.evaluate(() => window.MotorcycleHudFixture.showGpBendCase(85));
+        await expect(page.locator('#gpCorner')).toHaveText('T1 · NORTH HOOK');
+        await expect(page.locator('#gpAction')).toHaveText('HOLD YOUR LINE');
+        await expect(meter).toHaveAttribute('data-phase', 'exit');
+        const exit = await meter.getAttribute('aria-valuenow');
+        expect(Number(exit)).toBeGreaterThan(66);
+        expect(entry).toBeGreaterThan(0);
+        expect(entry).toBeLessThan(34);
+        const bounds = await page
+          .locator('#gpCornerProgress, #gpAction, .instruments')
+          .evaluateAll((nodes) =>
+            nodes.map((node) => {
+              const r = node.getBoundingClientRect();
+              return {
+                left: r.left,
+                right: r.right,
+                top: r.top,
+                bottom: r.bottom,
+                scroll: node.scrollWidth,
+                client: node.clientWidth,
+              };
+            }),
+          );
+        for (const bound of bounds) {
+          expect(bound.left).toBeGreaterThanOrEqual(0);
+          expect(bound.right).toBeLessThanOrEqual(viewport.width);
+          expect(bound.top).toBeGreaterThan(viewport.height * 0.45);
+          expect(bound.bottom).toBeLessThanOrEqual(viewport.height - 48);
+          expect(bound.scroll).toBeLessThanOrEqual(bound.client + 1);
+        }
+        await page.evaluate(() => window.MotorcycleHudFixture.showGpBendCase(-80));
+        await page.evaluate(() => window.MotorcycleHudFixture.showGpBendCase(85));
+        await expect(meter).toHaveAttribute('aria-valuenow', exit!);
+        await expect(page.locator('#gpAction')).toHaveText('HOLD YOUR LINE');
+        const heldMutations = await page.evaluate(async () => {
+          let mutations = 0;
+          const observer = new MutationObserver((records) => {
+            mutations += records.length;
+          });
+          observer.observe(document.getElementById('gpCornerProgress')!, {
+            attributes: true,
+            subtree: true,
+          });
+          window.MotorcycleHudFixture.showGpBendCase(85);
+          window.MotorcycleHudFixture.showGpBendCase(85);
+          await Promise.resolve();
+          observer.disconnect();
+          return mutations;
+        });
+        expect(heldMutations).toBe(0);
+        await page.evaluate(() => window.MotorcycleHudFixture.showGpBendCase(85, { brake: 0.3 }));
+        await expect(page.locator('#gpAction')).toHaveText('TRAIL BRAKING');
+        await page.evaluate(() => window.MotorcycleHudFixture.showGpBendCase(85, { lean: 0.15 }));
+        await expect(page.locator('#gpAction')).toHaveText('DRIVE OUT');
+        if (scale === 1) {
+          const path = info.outputPath(`gp-corner-phase-${viewport.width}.png`);
+          await page.screenshot({ path });
+          await info.attach(`gp-corner-phase-${viewport.width}.png`, {
+            path,
+            contentType: 'image/png',
+          });
+        }
+      }
+    }
+  });
   await test.step('wet contacts, thermal fade and corner-exit electronics explain the actual axle', async () => {
     const cases = [
       { sample: { frontSurface: SURFACE.KERB, frontWater: 0.2 }, action: 'FRONT ON WET KERB' },

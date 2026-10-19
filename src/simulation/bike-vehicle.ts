@@ -126,6 +126,7 @@ export class BikeVehicle extends Vehicle {
     if (definition.id === 'gpr1' || definition.id === 'gpr2') {
       parameters.engineBrakeReleaseThrottle = GP_ENGINE_BRAKE_RELEASE_THROTTLE;
       parameters.independentRearBrake = true;
+      parameters.currentDriveTraction = true;
     }
     this.dynamics = new Bike(this.riderAids, parameters);
     this.gearing = this.setup.gearing;
