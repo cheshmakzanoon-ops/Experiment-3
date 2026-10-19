@@ -35,10 +35,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
-      HORIZON_R6_OUT: ${{ runner.temp }}/horizon-r6-review
+      HORIZON_R6_OUT: /tmp/horizon-r6-review
       HORIZON_REVIEW_URL: http://127.0.0.1:5188
       HORIZON_REVIEW_PORT: '5188'
-      HORIZON_REVIEW_IDENTITY: ${{ runner.temp }}/horizon-r6-review/BUILD_IDENTITY.json
+      HORIZON_REVIEW_IDENTITY: /tmp/horizon-r6-review/BUILD_IDENTITY.json
       APEX_BROWSER_BACKEND: mesa
       LIBGL_ALWAYS_SOFTWARE: 'true'
       GALLIUM_DRIVER: llvmpipe
@@ -123,6 +123,6 @@ jobs:
         if: always()
         with:
           name: horizon-r6-driving-and-optics
-          path: ${{ runner.temp }}/horizon-r6-review/
+          path: /tmp/horizon-r6-review/
           if-no-files-found: error
           retention-days: 14
