@@ -18,8 +18,9 @@ import {
  * v5: motocross sprung-contact traction and independent rear-pedal control;
  * v6: GP current-load traction limiting during split-grip brake/drive overlap;
  * v7: retain the motocross hard stop through deep-contact recovery;
+ * v8: coupled unilateral axle solve and wheel-plane contact/link-force geometry;
  * prior records remain in their original physics category. */
-export const SIMULATION_VERSION = 7;
+export const SIMULATION_VERSION = 8;
 /** Fixed physics tick used by the worker and headless simulation. */
 export const SIMULATION_TICK_HZ = 120;
 

@@ -17,7 +17,8 @@ listed in `git log a8800c7..HEAD`; these documents hold what cannot be code.
 | [GAME_DESIGN.md](GAME_DESIGN.md) | §4–§5, §11–§12 expanded: disciplines, journey, economy, racecraft |
 | [ARCHITECTURE_SERVICES.md](ARCHITECTURE_SERVICES.md) | §6 |
 | [ONLINE_SLICE.md](ONLINE_SLICE.md) | §22, WP50–WP54 |
-| [PHYSICS_MODEL.md](PHYSICS_MODEL.md) | §7 vehicle physics: tyres, suspension, drivetrain, aero, ground materials, integration (simulation v2) |
+| [PHYSICS_MODEL.md](PHYSICS_MODEL.md) | §7 vehicle physics: tyres, suspension, drivetrain, aero, ground materials, integration (simulation v8) |
+| [ENGINE_DYNAMICS_V8.md](ENGINE_DYNAMICS_V8.md) | Coupled axle solve, wheel-plane contact geometry, angular presentation and measured validation |
 | [OPEN_WORLD.md](OPEN_WORLD.md) | §4–§5 festival discipline: region, road network, free roam, events |
 
 Commands added: `npm run validate:content`, `npm run test:vehicles`, `npm run test:server`,

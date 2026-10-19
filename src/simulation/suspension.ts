@@ -1,4 +1,3 @@
-import { clamp } from '../core/math.ts';
 import type { Setup } from './config.ts';
 
 /** Per-corner suspension (docs/production/PHYSICS_MODEL.md §2).
@@ -9,8 +8,10 @@ import type { Setup } from './config.ts';
  * stiffness and damping on the deflection X − x, where X is the total
  * geometric compression from the contact query. Hub force balance
  *     k_t·(X − x) + c_t·(Ẋ − ẋ) = F_spring(x) + F_bump(x) + F_damper(ẋ) + k_arb·(x − x_other)
- * is solved with backward Euler (Newton per corner, Gauss-Seidel for the bar),
- * so the stiff tyre/damper mode is unconditionally stable at any timestep.
+ * is solved with backward Euler and a coupled two-corner Newton solve for
+ * each axle. Tyres push only, and mechanical droop stops carry an extension
+ * reaction. A convex-work line search resolves the changing contact, damper
+ * and stop branches without an ordered left/right force imbalance.
  *
  * Setup springs, bars and the definition's damper values are RIDE values at
  * the contact patch (wheel and tyre in series, as a seven-post rig measures
@@ -209,6 +210,25 @@ function springSlope(h: CornerHardware, x: number) {
     2 * h.stopRate * Math.max(0, x - h.stopGap)
   );
 }
+/** Integral of spring force with respect to hub travel (J). */
+function springWork(h: CornerHardware, x: number) {
+  return (
+    0.5 * h.wheelRate * x * x +
+    (h.wheelRate * h.progression * Math.max(0, x) ** 3) / (6 * h.travel) +
+    (h.stopRate * Math.max(0, x - h.stopGap) ** 3) / 3
+  );
+}
+/** Convex time-discrete damper work potential. Its travel derivative is
+ * damperForce(h, (x - previous) / dt), including the digressive knees. */
+function damperWork(h: CornerHardware, v: number, dt: number) {
+  const speed = Math.abs(v),
+    knee = v >= 0 ? h.bumpKnee : h.reboundKnee,
+    low = v >= 0 ? h.bump : h.rebound,
+    high = v >= 0 ? h.bumpHigh : h.reboundHigh,
+    below = Math.min(speed, knee),
+    above = Math.max(0, speed - knee);
+  return dt * (0.5 * low * below * below + low * knee * above + 0.5 * high * above * above);
+}
 /** Inputs and outputs of one hub solve (allocation-free, per vehicle). */
 export class HubSolver {
   /** Hub travel (m, + bump) per corner: the integrated state. */
@@ -229,58 +249,102 @@ export class HubSolver {
   }
   private r = 0;
   private slope = 0;
-  /** Hub force residual (tyre − suspension) and its slope at trial travel x. */
+  /** Hub force residual (tyre − suspension), and the positive restoring
+   * stiffness. The bar contributes the off-diagonal term in the axle solve. */
   private residual(i: number, x: number, dt: number, other: number) {
     const h = this.hardware[i],
       v = (x - this.previous[i]) / dt,
       suspension = springForce(h, x) + damperForce(h, v) + h.barRate * (x - other),
       stiffness = springSlope(h, x) + damperSlope(h, v) / dt + h.barRate;
-    if (!this.contact[i]) {
-      this.r = -suspension;
-      this.slope = -stiffness;
-      return;
-    }
-    const kt = this.tyreRate[i];
-    this.r = kt * (this.compression[i] - x) + h.tyreDamping * (this.rate[i] - v) - suspension;
-    this.slope = -(kt + h.tyreDamping / dt + stiffness);
+    const kt = this.tyreRate[i],
+      tyre = this.contact[i]
+        ? Math.max(0, kt * (this.compression[i] - x) + h.tyreDamping * (this.rate[i] - v))
+        : 0;
+    this.r = tyre - suspension;
+    this.slope = stiffness + (tyre > 0 ? kt + h.tyreDamping / dt : 0);
   }
-  /** Backward-Euler hub travel and tyre force for all four corners. */
-  solve(dt: number) {
-    if (!(dt > 0)) throw new Error('Invalid suspension timestep');
-    this.previous.set(this.travel);
-    for (let sweep = 0; sweep < 2; sweep++)
-      for (let i = 0; i < 4; i++) {
-        const h = this.hardware[i],
-          other = this.travel[i ^ 1];
-        let x = this.travel[i];
-        for (let n = 0; n < 6; n++) {
-          this.residual(i, x, dt, other);
-          const next = x - this.r / this.slope;
-          const done = Math.abs(next - x) < 1e-9;
-          x = next;
-          if (done) break;
-        }
-        x = Math.max(-h.droop, x);
-        // A tyre cannot pull: re-solve the free hub if the patch would.
-        if (this.contact[i]) {
-          const v = (x - this.previous[i]) / dt;
-          if (
-            this.tyreRate[i] * (this.compression[i] - x) + h.tyreDamping * (this.rate[i] - v) <
-            0
-          ) {
-            this.contact[i] = 0;
-            for (let n = 0; n < 6; n++) {
-              this.residual(i, x, dt, other);
-              const next = x - this.r / this.slope;
-              const done = Math.abs(next - x) < 1e-9;
-              x = next;
-              if (done) break;
-            }
-            x = Math.max(-h.droop, x);
-          }
-        }
+  /** Scalar work potential whose negative derivative is the corner residual
+   * before the bar. Taking the positive part of the tyre force gives a convex
+   * unilateral contact potential; a detached tyre contributes no force. */
+  private cornerWork(i: number, x: number, dt: number) {
+    const h = this.hardware[i],
+      v = (x - this.previous[i]) / dt,
+      tyre = this.contact[i]
+        ? Math.max(
+            0,
+            this.tyreRate[i] * (this.compression[i] - x) + h.tyreDamping * (this.rate[i] - v),
+          )
+        : 0;
+    return (
+      springWork(h, x) +
+      damperWork(h, v, dt) +
+      (tyre > 0 ? (0.5 * tyre * tyre) / (this.tyreRate[i] + h.tyreDamping / dt) : 0)
+    );
+  }
+  private axleWork(i: number, x: number, y: number, dt: number) {
+    return (
+      this.cornerWork(i, x, dt) +
+      this.cornerWork(i + 1, y, dt) +
+      0.5 * this.hardware[i].barRate * (x - y) ** 2
+    );
+  }
+  /** A simultaneous 2×2 Newton solve: both bar ends use the same iterate.
+   * A corner at its droop stop is held only while its unconstrained force
+   * points into that stop. This also frees it again as its partner moves. */
+  private solveAxle(i: number, dt: number) {
+    const first = this.hardware[i],
+      second = this.hardware[i + 1],
+      lowerX = -first.droop,
+      lowerY = -second.droop;
+    let x = Math.max(lowerX, this.travel[i]),
+      y = Math.max(lowerY, this.travel[i + 1]);
+    for (let iteration = 0; iteration <= 24; iteration++) {
+      this.residual(i, x, dt, y);
+      const rx = this.r,
+        kx = this.slope;
+      this.residual(i + 1, y, dt, x);
+      const ry = this.r,
+        ky = this.slope,
+        boundX = x === lowerX && rx <= 0,
+        boundY = y === lowerY && ry <= 0;
+      if (Math.max(boundX ? 0 : Math.abs(rx), boundY ? 0 : Math.abs(ry)) < 1e-6) {
         this.travel[i] = x;
+        this.travel[i + 1] = y;
+        return;
       }
+      if (iteration === 24) throw new Error('Suspension axle solve did not converge');
+      const determinant = kx * ky - first.barRate * second.barRate;
+      let dx = boundX ? 0 : boundY ? rx / kx : (ky * rx + first.barRate * ry) / determinant,
+        dy = boundY ? 0 : boundX ? ry / ky : (kx * ry + second.barRate * rx) / determinant;
+      // Projection can cut off one component of a Newton step at a stop.
+      // Use a diagonal descent direction if the projected step points uphill.
+      if (rx * (Math.max(lowerX, x + dx) - x) + ry * (Math.max(lowerY, y + dy) - y) <= 0) {
+        dx = boundX ? 0 : rx / kx;
+        dy = boundY ? 0 : ry / ky;
+      }
+      const work = this.axleWork(i, x, y, dt),
+        roundoff = 16 * Number.EPSILON * Math.max(1, work);
+      let scale = 1;
+      for (let line = 0; line < 20; line++) {
+        const nextX = Math.max(lowerX, x + scale * dx),
+          nextY = Math.max(lowerY, y + scale * dy),
+          decrease = rx * (nextX - x) + ry * (nextY - y);
+        if (this.axleWork(i, nextX, nextY, dt) <= work - 1e-4 * decrease + roundoff) {
+          x = nextX;
+          y = nextY;
+          break;
+        }
+        if (line === 19) throw new Error('Suspension axle line search did not converge');
+        scale *= 0.5;
+      }
+    }
+  }
+  /** Backward-Euler hub travel and non-negative tyre force for both axles. */
+  solve(dt: number) {
+    if (!Number.isFinite(dt) || !(dt > 0)) throw new Error('Invalid suspension timestep');
+    this.previous.set(this.travel);
+    this.solveAxle(0, dt);
+    this.solveAxle(2, dt);
     for (let i = 0; i < 4; i++) {
       const h = this.hardware[i],
         v = (this.travel[i] - this.previous[i]) / dt;
@@ -291,6 +355,7 @@ export class HubSolver {
               h.tyreDamping * (this.rate[i] - v),
           )
         : 0;
+      if (this.tyreForce[i] === 0) this.contact[i] = 0;
     }
   }
 }
@@ -315,9 +380,4 @@ export function geometricLoad(
   return (
     -(rc / (Math.abs(y) < 0.05 ? 0.05 * Math.sign(y || 1) : y)) * fy - slope * fx * Math.sign(z)
   );
-}
-/** Road-relative inclination: chassis-relative camber minus the chassis roll
- * relative to the road plane (sin of its lateral axis along the normal). */
-export function roadInclination(chassisCamber: number, lateralDotNormal: number) {
-  return chassisCamber - Math.asin(clamp(lateralDotNormal, -1, 1));
 }

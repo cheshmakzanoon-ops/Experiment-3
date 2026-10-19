@@ -14,13 +14,7 @@ import {
   type DifferentialDefinition,
 } from './differential.ts';
 import { combustionTorque, curveTorque, EngineState, frictionTorque } from './powertrain.ts';
-import {
-  geometricLoad,
-  HubSolver,
-  kinematicCamber,
-  resolveSuspension,
-  roadInclination,
-} from './suspension.ts';
+import { geometricLoad, HubSolver, kinematicCamber, resolveSuspension } from './suspension.ts';
 import { vehicleDynamics, type VehicleDynamics } from './vehicle-dynamics.ts';
 import { DRS, OVERTAKE } from './drs.ts';
 import { FORMULA_APX01, setupFor, type VehicleDefinition, type VehicleSpec } from './vehicles.ts';
@@ -581,7 +575,8 @@ export class Vehicle {
       const t = this.tires[i],
         s = this.contacts[i];
       const basis = this.contactFrames[i];
-      if (!basis.set(b.orientation, this.wheelSteering[i], s.normal)) this.normalLoads[i] = 0;
+      if (!basis.set(b.orientation, this.wheelSteering[i], s.normal, this.wheelCamber[i]))
+        this.normalLoads[i] = 0;
       const long = this.pointVelocities[i].dot(basis.forward),
         lat = this.pointVelocities[i].dot(basis.lateral),
         total =
@@ -615,7 +610,7 @@ export class Vehicle {
         driven,
         friction + regen,
         s,
-        roadInclination(this.wheelCamber[i], this.lateralAxis.dot(s.normal)),
+        basis.inclination,
         dt,
         regen,
         track.ambient,
@@ -638,14 +633,19 @@ export class Vehicle {
       this.point.copy(this.contactPoints[i]).addScaled(this.up, spec.linkCentreHeight);
       b.apply(this.force, this.point);
       const axle = i < 2 ? dynamics.suspension.front : dynamics.suspension.rear;
+      // The links belong to the chassis, whereas Fx/Fy belong to the steered
+      // wheel. Resolve the force actually applied above onto chassis axes so
+      // steering and road bank route braking/cornering transfer consistently.
+      const linkLongitudinal = this.force.dot(this.forward),
+        linkLateral = this.force.dot(this.lateralAxis);
       this.jacking[i] =
         t.load > 0
           ? geometricLoad(
               axle,
               this.wheelPositions[i][0],
               this.wheelPositions[i][2],
-              t.fx,
-              t.fy,
+              linkLongitudinal,
+              linkLateral,
               (hub.travel[i & 2] + hub.travel[(i & 2) + 1]) * 0.5,
             )
           : 0;

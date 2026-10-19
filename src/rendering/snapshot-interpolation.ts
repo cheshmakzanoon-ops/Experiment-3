@@ -16,6 +16,9 @@ import {
 } from '../simulation/protocol.ts';
 
 const targetQuaternion = new Quaternion();
+const sampledQuaternion = new Quaternion();
+const rotationControlA = new Quaternion();
+const rotationControlB = new Quaternion();
 const TAU = Math.PI * 2;
 
 /** A discrete action belongs to the older sample until the newer sample's time.
@@ -116,8 +119,7 @@ export function sampleOffroadField(
   return sampleValue(a, b, p + field, t);
 }
 
-function smoothMotion(a: Float32Array, b: Float32Array, car: number, dt: number) {
-  if (!(dt > 0 && dt <= 0.5)) return false;
+function continuousContacts(a: Float32Array, b: Float32Array, car: number) {
   if (
     a[car + OFFROAD_BASE + O.AIRBORNE] !== b[car + OFFROAD_BASE + O.AIRBORNE] ||
     a[car + SKID_BASE + K.CONTACTS] !== b[car + SKID_BASE + K.CONTACTS]
@@ -127,6 +129,11 @@ function smoothMotion(a: Float32Array, b: Float32Array, car: number, dt: number)
     const p = car + WHEEL_BASE + i * WHEEL_STRIDE;
     if (a[p + W.LOAD] > 1 !== b[p + W.LOAD] > 1) return false;
   }
+  return true;
+}
+
+function smoothMotion(a: Float32Array, b: Float32Array, car: number, dt: number) {
+  if (!(dt > 0 && dt <= 0.5)) return false;
   let error2 = 0,
     distance2 = 0,
     acceleration2 = 0;
@@ -148,6 +155,96 @@ function smoothMotion(a: Float32Array, b: Float32Array, car: number, dt: number)
     Math.sqrt(error2) <= 0.03 + 0.1 * Math.sqrt(distance2) &&
     acceleration2 <= 120 * 120
   );
+}
+
+/** Snapshot omega is WORLD angular velocity. Left multiplication applies its
+ * exponential about that world axis, irrespective of the chassis' initial pose. */
+function rotationControl(
+  target: Quaternion,
+  pose: Quaternion,
+  wx: number,
+  wy: number,
+  wz: number,
+  time: number,
+) {
+  const speed = Math.hypot(wx, wy, wz),
+    halfAngle = speed * time * 0.5,
+    scale = speed > 1e-12 ? Math.sin(halfAngle) / speed : time * 0.5;
+  target.set(wx * scale, wy * scale, wz * scale, Math.cos(halfAngle)).multiply(pose);
+}
+
+/** A spherical cubic has endpoint rates supplied by the measured world omegas.
+ * Unlike constant-rate SLERP, adjacent smooth samples meet with the same angular
+ * velocity. No frame clock, accumulated orientation or render-time integration
+ * is involved; even an out-of-order replay query is a complete absolute pose. */
+function sampleChassisRotation(
+  a: Float32Array,
+  b: Float32Array,
+  car: number,
+  dt: number,
+  t: number,
+  continuous: boolean,
+) {
+  const quaternion = sampledQuaternion;
+  quaternion.fromArray(a, car + F.QX).normalize();
+  targetQuaternion.fromArray(b, car + F.QX).normalize();
+  if (quaternion.dot(targetQuaternion) < 0)
+    targetQuaternion.set(
+      -targetQuaternion.x,
+      -targetQuaternion.y,
+      -targetQuaternion.z,
+      -targetQuaternion.w,
+    );
+  let smooth = false;
+  const ax = a[car + F.WX],
+    ay = a[car + F.WY],
+    az = a[car + F.WZ],
+    bx = b[car + F.WX],
+    by = b[car + F.WY],
+    bz = b[car + F.WZ];
+  if (
+    continuous &&
+    dt > 0 &&
+    dt <= 0.5 &&
+    riderAlpha(a, b, car, t) !== 0 &&
+    b[car + F.IMPACT] <= a[car + F.IMPACT] + 1e-4
+  ) {
+    rotationControlA.copy(quaternion).conjugate();
+    rotationControlB.multiplyQuaternions(targetQuaternion, rotationControlA);
+    const sine = Math.hypot(rotationControlB.x, rotationControlB.y, rotationControlB.z),
+      angle = 2 * Math.atan2(sine, Math.max(0, rotationControlB.w)),
+      scale = sine > 1e-12 ? angle / sine : 2,
+      error = Math.hypot(
+        rotationControlB.x * scale - (ax + bx) * 0.5 * dt,
+        rotationControlB.y * scale - (ay + by) * 0.5 * dt,
+        rotationControlB.z * scale - (az + bz) * 0.5 * dt,
+      ),
+      speed = Math.max(Math.hypot(ax, ay, az), Math.hypot(bx, by, bz)),
+      acceleration = Math.hypot(bx - ax, by - ay, bz - az) / dt;
+    // A quaternion alone cannot identify whole turns. Do not invent a rotation
+    // beyond the unambiguous half-turn span, or use unresolved impact tangents.
+    // Small coherent reversals remain valid (e.g. the top of a chassis roll).
+    smooth =
+      Number.isFinite(error + speed + acceleration) &&
+      speed * dt < Math.PI &&
+      speed > 1e-8 &&
+      (angle > 1e-6 || ax * bx + ay * by + az * bz < 0) &&
+      acceleration <= 200 &&
+      error <= 1e-4 + 0.1 * angle;
+  }
+  if (smooth) {
+    rotationControl(rotationControlA, quaternion, ax, ay, az, dt / 3);
+    rotationControl(rotationControlB, targetQuaternion, bx, by, bz, -dt / 3);
+    // Spherical de Casteljau evaluation. Fixed scratch quaternions also avoid
+    // adding garbage collection work to a 32-entrant presentation frame.
+    quaternion.slerp(rotationControlA, t);
+    rotationControlA.slerp(rotationControlB, t);
+    rotationControlB.slerp(targetQuaternion, t);
+    quaternion.slerp(rotationControlA, t);
+    rotationControlA.slerp(rotationControlB, t);
+    quaternion.slerp(rotationControlA, t);
+  } else quaternion.slerp(targetQuaternion, t);
+  return quaternion.normalize();
 }
 
 /** Cubic endpoint reconstruction, not render-time physics integration. */
@@ -181,22 +278,22 @@ export function sampleChassisPose(
     return t;
   }
   const dt = b[H.TIME] - a[H.TIME],
-    smooth = smoothMotion(a, b, car, dt);
+    continuous = continuousContacts(a, b, car),
+    smooth = continuous && smoothMotion(a, b, car, dt);
   for (let axis = 0; axis < 3; axis++) {
     const p = car + F.X + axis,
       v = car + F.VX + axis;
     const value = smooth ? hermite(a[p], b[p], a[v] * dt, b[v] * dt, t) : sampleValue(a, b, p, t);
     position.setComponent(axis, Math.fround(value));
   }
-  quaternion
-    .fromArray(a, car + F.QX)
-    .slerp(targetQuaternion.fromArray(b, car + F.QX), t)
-    .normalize();
+  const orientation = sampleChassisRotation(a, b, car, dt, t, continuous);
+  // Publish once: an Object3D quaternion callback also rebuilds its Euler pose.
+  // Intermediate control evaluations stay in callback-free shared scratch.
   quaternion.set(
-    Math.fround(quaternion.x),
-    Math.fround(quaternion.y),
-    Math.fround(quaternion.z),
-    Math.fround(quaternion.w),
+    Math.fround(orientation.x),
+    Math.fround(orientation.y),
+    Math.fround(orientation.z),
+    Math.fround(orientation.w),
   );
   return t;
 }

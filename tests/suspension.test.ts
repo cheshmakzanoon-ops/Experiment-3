@@ -9,7 +9,6 @@ import {
   hubRate,
   kinematicCamber,
   resolveSuspension,
-  roadInclination,
   springForce,
 } from '../src/simulation/suspension.ts';
 import { FORMULA_APX01, type VehicleDefinition } from '../src/simulation/vehicles.ts';
@@ -109,12 +108,10 @@ describe('massless-hub suspension with series tyre stiffness', () => {
 });
 
 describe('suspension kinematics and geometric load transfer', () => {
-  it('gains negative camber in bump on both sides, and the road sees body roll', () => {
+  it('gains negative camber in bump on both sides', () => {
     // Right wheel (side -1): negative camber leans its top toward +lateral.
     expect(kinematicCamber(-0.03, 0.4, 0.02, -1)).toBeCloseTo(0.038, 12);
     expect(kinematicCamber(-0.03, 0.4, 0.02, 1)).toBeCloseTo(-0.038, 12);
-    // A chassis rolled to the right (lateral axis tilted up) tips its wheels right.
-    expect(roadInclination(0.04, Math.sin(0.03))).toBeCloseTo(0.01, 12);
   });
   it('splits load transfer without changing its moment', () => {
     const axle = { ...defaultSuspension().front, rollCentreHeight: 0.05, antiBrake: 0.02 };

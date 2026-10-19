@@ -1,17 +1,18 @@
-# Physics model (simulation version 2)
+# Physics model (simulation version 8)
 
 This is the engineering reference for the vehicle physics behind every car in a session: tyres,
 suspension, drivetrain, aerodynamics, ground materials and integration. Every coefficient is an
 original engineering calibration. None is a manufacturer data set, a fitted test-rig curve or CFD.
-The model stays deterministic: no randomness, no wall clock, fixed iteration counts, and an
+The model stays deterministic: no randomness, no wall clock, bounded deterministic solves, and an
 allocation-free hot path. It runs inside the existing 120 Hz worker tick with two 240 Hz vehicle
 substeps.
 
-`SIMULATION_VERSION` is **2** (`src/core/session-identity.ts`). Lap times can change, so under
-decision D8 records, ghosts and boards are split by physics version. Version-1 records stay readable
-but compete only with version-1 records. Pre-identity saves still read as version 1. Replays from
-version 1 remain presentation replays; deterministic resimulation (flashback) only ever re-runs the
-current version.
+`SIMULATION_VERSION` is **8** (`src/core/session-identity.ts`). Lap times can change, so under
+decision D8 records, ghosts and boards are split by physics version. Earlier records retain their
+original physics category. Pre-identity saves still read as version 1. Earlier recordings remain
+presentation replays; deterministic resimulation (flashback) only ever re-runs the current version.
+The original v2 force-law reference below now includes the v8 axle and contact-frame corrections;
+[ENGINE_DYNAMICS_V8.md](ENGINE_DYNAMICS_V8.md) records their measurements and validation scope.
 
 ## Module map
 
@@ -21,6 +22,7 @@ current version.
 | `tyre-thermal.ts` | Three-node (surface/carcass/core) thermal network, hot pressure |
 | `tire.ts` | Tyre state, peak friction, implicit wheel-spin solve, wear/damage, ground contact terms |
 | `suspension.ts` | Massless-hub corners: springs, stops, dampers, bars, tyre radial; kinematics; geometric load transfer |
+| `road-contact.ts` | Wheel-plane/road-plane rolling tangent and road-relative inclination; shared velocity/force frame |
 | `powertrain.ts` | Engine torque map, throttle lag, turbo, friction/pumping; gearbox shift time |
 | `differential.ts` | One module: the catalogue driveline (open/LSD/locked axles, AWD centre, `distributeDrive`) and the stick-torque model (open, spool, viscous, clutch-pack LSD, Torsen) |
 | `aero.ts`, `aero-map.ts` | Ride-height/pitch map, floor centre of pressure, convective lag, plunge damping, dirty air, slipstream |
@@ -62,7 +64,7 @@ for its own two-wheel state.
 | State | Scheme | Property |
 |---|---|---|
 | Wheel spin ω | backward Euler, bracketed bisection (unchanged) | brake cannot reverse a wheel |
-| Hub travel (tyre radial + suspension) | backward Euler, Newton per corner, Gauss–Seidel for the bar | unconditionally stable with a 5 MN/m tyre at 1/30 s |
+| Hub travel (tyre radial + suspension) | backward Euler, coupled 2×2 Newton per axle, unilateral contact and droop active sets | mirrored force balance; convex-work line search through contact, damper and stop transitions |
 | Tyre temperatures | backward Euler on a 3×3 tridiagonal M-matrix | conserves heat exactly with losses closed; never overshoots |
 | Slip relaxation, intake, turbo, aero lag, sinkage | exact first-order exponential | no overshoot at any step |
 | Differential locking | stick torque with road-reaction feedforward, under-relaxed feedback | a locked axle stays synchronized at 60 Hz |
@@ -159,8 +161,12 @@ power spins). The MF weighting keeps saturation physics and a moderate interior 
   * the optimum inclination leans into the force (γopt = 0.03 rad Formula, 0.045 TC-1);
   * straight running prefers none;
   * D, κ* and α* are scaled together, so slip stiffness is unchanged.
-* **γ is road-relative.** It is the kinematic camber (static plus camber gain, §2) minus the chassis
-  roll measured against the contact normal.
+* **γ is road-relative.** `RoadContactFrame` rotates the wheel axle using chassis orientation,
+  steering and kinematic camber (static plus camber gain, §2). For its unit world axle `a` and unit
+  road normal `n`, `γ = atan2(-a·n, |a×n|)`. This includes the combined effect of pitch, steering
+  and banking. The forward rolling tangent is `normalize(a×n)` and the lateral tangent is
+  `n×forward`; the same orthonormal frame resolves slip velocity and reconstructs tyre force.
+  An axle parallel to the road normal has no unique rolling tangent and produces no tread traction.
 
 ### 1.4 Transient slip (relaxation length)
 
@@ -220,9 +226,15 @@ k_t(p)·(X − x) + c_t·(Ẋ − ẋ) = k_w·x·(1 + ½·prog·x/travel) + k_st
 D(v) = c_b·v  (bump, v ≤ v_kb),  c_b·v_kb + r_b·c_b·(v − v_kb)  above the knee;  rebound alike
 ```
 
-* The equation is solved by backward Euler (§0).
-* The tyre cannot pull. If the patch would go into tension, the free-hub equation is solved instead.
-* Hub extension is limited by a droop strap.
+* Backward Euler (§0) solves both corners of an axle together with an analytic 2×2 Newton step.
+  The anti-roll bar therefore couples both residuals in the same update, without an ordered
+  left/right approximation.
+* The tyre cannot pull: its radial force is clamped to zero inside every residual evaluation.
+  Contact loss changes the active force branch as part of the coupled solve.
+* An active set enforces the droop strap; its reaction carries force that would extend the hub
+  beyond the stop. A convex-work line search handles changes in the contact, damper and stop
+  branches. The solve accepts at most 1e-6 N unconstrained force residual, uses at most 24 Newton
+  iterations per axle and reports a convergence failure instead of accepting an imbalanced axle.
 
 **Setup values are ride values at the contact patch.** Setup springs, anti-roll bars and the
 definition's dampers are what a seven-post rig measures (wheel and tyre in series). The module
@@ -259,6 +271,10 @@ Roll-centre height and side-view anti geometry then split that transfer into:
 ΔN_i = −(h_rc/y_i)·Fy_i − tanθ·Fx_i·sign(z_i),   h_rc = h0 + gain·mean axle travel
 Σ y_i·ΔN_i = −h_rc·ΣFy   (moment-equivalent: the total transfer is unchanged)
 ```
+
+Here `Fx_i` and `Fy_i` are the **applied force projected onto chassis axes**, including the rolling
+and ground drag already applied at the patch. They are not the raw force components in the steered
+wheel frame. This keeps the link geometry consistent under combined steering, braking and banking.
 
 * Jacking appears whenever the outer and inner forces differ.
 * Formula: roll centres 0.03 m front and 0.06 m rear (dropping 0.3 m per m of squat); anti-dive
