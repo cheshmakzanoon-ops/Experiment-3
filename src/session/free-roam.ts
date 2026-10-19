@@ -537,13 +537,7 @@ export class FestivalSession {
     this.lastTime = time;
     // Posed before the draw, from the same interpolation as the cars.
     this.riders?.update(a, b, alpha, renderer.camera, this.host.quality);
-    this.traffic?.update(
-      live.auxiliaryA,
-      live.auxiliaryB,
-      alpha,
-      renderer.night,
-      b[H.TIME],
-    );
+    this.traffic?.update(live.auxiliaryA, live.auxiliaryB, alpha, renderer.night, b[H.TIME]);
     renderer.draw(a, b, alpha, Math.min(0.08, wall));
     const o = carBase(0),
       presented = renderer.presented.value;
