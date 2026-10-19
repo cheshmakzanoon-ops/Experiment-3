@@ -1,0 +1,151 @@
+{
+  "scope": "Frozen MotoGP HUD spacing correction; read-only source review and prior validation receipt",
+  "recordedUtc": "2026-10-19T18:34:18.568119+00:00",
+  "priorObserved": {
+    "commit": "9d5c5582530bbb66de2a170edd6775f3a3947b1b",
+    "runId": 39297624842,
+    "jobId": 118220602719,
+    "artifactId": 12210821214,
+    "test": "e2e/motorcycle-presentation.spec.ts",
+    "step": "corner phases remain readable through a long exit and restore after a seek",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "uiScale": 1.35,
+    "sample": {
+      "corner": "T1 · NORTH HOOK",
+      "offsetPastApexMeters": 85,
+      "phase": "exit",
+      "action": "HOLD YOUR LINE"
+    },
+    "bounds": [
+      {
+        "selector": ".instruments",
+        "left": 1025.828125,
+        "right": 1401.125,
+        "top": 393.984375,
+        "bottom": 834,
+        "scrollWidth": 373,
+        "clientWidth": 373
+      },
+      {
+        "selector": "#gpCornerProgress",
+        "left": 1041.828125,
+        "right": 1385.125,
+        "top": 615.546875,
+        "bottom": 629,
+        "scrollWidth": 343,
+        "clientWidth": 343
+      },
+      {
+        "selector": "#gpAction",
+        "left": 1041.828125,
+        "right": 1169.015625,
+        "top": 634,
+        "bottom": 658,
+        "scrollWidth": 127,
+        "clientWidth": 127
+      }
+    ],
+    "failedAssertion": ".instruments.top > viewport.height * 0.45 (405 px)",
+    "evidenceDirectory": "/tmp/motogp-9d5-presentation/test-results/motorcycle-presentation-mo-870c0-ls-and-bike-car-restoration",
+    "imagesReviewed": [
+      "test-failed-1.png",
+      "gp-corner-phase-1440.png",
+      "motorcycle-hud-960.png",
+      "motorcycle-hud-390.png"
+    ]
+  },
+  "frozenSource": {
+    "file": "src/ui/bike-hud.css",
+    "sha256": "20dc9c2944a1d78033d1de285e9ccbd96eaf6a5a6dc1b0068fab96996625cfe0",
+    "changes": [
+      {
+        "selector": ".rev-lights",
+        "property": "margin-bottom",
+        "before": "9px",
+        "after": "5px",
+        "recoveredHeightPx": 4
+      },
+      {
+        "selector": ".dash-main",
+        "property": "padding-bottom",
+        "before": "10px",
+        "after": "6px",
+        "recoveredHeightPx": 4
+      },
+      {
+        "selector": ".pedals",
+        "property": "padding-bottom",
+        "before": "9px",
+        "after": "5px",
+        "recoveredHeightPx": 4
+      },
+      {
+        "selector": ".resources",
+        "property": "padding-block",
+        "before": "7px",
+        "after": "4px",
+        "recoveredHeightPx": 6
+      }
+    ],
+    "scopeQualifier": "All four declarations retain their existing GP HUD selectors outside media queries.",
+    "otherChange": "One explanatory CSS comment.",
+    "preserved": [
+      "font sizes",
+      "phase labels and spacing",
+      "readouts and controls",
+      "widths",
+      "bottom anchor",
+      "media breakpoints"
+    ]
+  },
+  "originalBrowserContract": {
+    "file": "e2e/motorcycle-presentation.spec.ts",
+    "sha256": "b669554debb9b0aec0a5453fb9f21807f654d74a4fe4143f4e6c93ae4b539541",
+    "diffFromPriorCommit": "empty",
+    "viewports": [
+      [1440, 900],
+      [960, 600],
+      [390, 844]
+    ],
+    "uiScales": [1, 1.35],
+    "bounds": [
+      "left >= 0",
+      "right <= viewport.width",
+      "top > viewport.height * 0.45",
+      "bottom <= viewport.height - 48",
+      "scrollWidth <= clientWidth + 1"
+    ],
+    "changedAssertionsDeadlinesWorkloads": false
+  },
+  "validationAlreadyExecuted": {
+    "prettier": {
+      "command": "./node_modules/.bin/prettier --check src/ui/bike-hud.css",
+      "exitCode": 0
+    },
+    "postcss": {
+      "result": "parse passed; four changed declarations retain exact existing selectors and root scope",
+      "exitCode": 0
+    },
+    "whitespace": {
+      "command": "git diff --check -- src/ui/bike-hud.css",
+      "exitCode": 0
+    },
+    "rerunDuringReceiptPreparation": false,
+    "testsRunDuringReceiptPreparation": false
+  },
+  "projectionOnly": {
+    "recoveredHeightPx": 18,
+    "projectedDesktopTopPx": 411.984375,
+    "requiredTopGreaterThanPx": 405,
+    "bottomPx": 834,
+    "method": "Prior observed desktop bounds plus the spacing delta; not a browser measurement."
+  },
+  "actualBrowserVerification": {
+    "status": "pending",
+    "passClaimed": false,
+    "nextEvidence": "Unchanged original responsive browser test and new exact-commit HUD/phase screenshots."
+  }
+}

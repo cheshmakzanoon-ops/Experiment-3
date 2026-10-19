@@ -9,6 +9,7 @@ import { GridPresentationClock } from './core/grid-presentation.ts';
 import { GridPresentationPanel } from './ui/grid-presentation.ts';
 import './ui/grid-presentation.css';
 import { menuPreview, shouldDrawMenu } from './rendering/menu-preview.ts';
+import { MenuFramePacing } from './rendering/menu-frame-pacing.ts';
 import { LiveFrameClock } from './rendering/live-frame-clock.ts';
 import { motocrossMenuPreview } from './rendering/offroad/menu-bike.ts';
 import { VEHICLES, vehicleAt } from './simulation/vehicles.ts';
@@ -226,6 +227,7 @@ export class GameApp {
   private showroomMachine = 'apx01';
   private menuPreviewPending = false;
   private menuCovered = false;
+  private readonly menuFrames = new MenuFramePacing();
   private viewportRedrawPending = false;
   private presentationFrames = 0;
   private timer = 0;
@@ -478,6 +480,7 @@ export class GameApp {
   }
   /** Build (or rebuild for another circuit) the complete presentation. */
   private async buildRenderer(canvas: HTMLCanvasElement) {
+    this.menuFrames.reset();
     this.canvas = canvas;
     this.renderer = await RacingRenderer.create(
       canvas,
@@ -573,9 +576,9 @@ export class GameApp {
     this.previous = preview;
     this.liveFrames.observe(preview, performance.now());
     this.state = 'menu';
-    // The loading screen stays up until the first menu frame is drawn: the
-    // menu never appears over an undrawn canvas, and what it reports about the
-    // scene (LODs, diagnostics) describes a drawn frame.
+    // The first menu frame must complete on the GPU before revealing controls.
+    // Merely submitting it can leave the browser unable to paint the menu or
+    // complete normal input actionability checks while that work is pending.
     this.revealMenu = true;
     this.timer = requestAnimationFrame(this.frame);
   }
@@ -1031,7 +1034,18 @@ export class GameApp {
     // time while a draw is deferred. Covered replay/menu returns above still
     // refresh the wall clock so closing a dialog cannot catch up hidden time.
     try {
-      if (!this.renderer.canSubmitFrame()) {
+      if (this.state === 'menu') {
+        const readiness = this.menuFrames.poll(this.renderer);
+        if (readiness === 'completed' && this.revealMenu) {
+          this.revealMenu = false;
+          this.ui.ready();
+          this.ui.showMode('menu');
+        }
+        if (readiness !== 'ready') {
+          if (readiness === 'busy') this.previousTime = previousTime;
+          return;
+        }
+      } else if (!this.renderer.canSubmitFrame()) {
         if (this.state === 'replay') this.replayStall.gpuDeferred++;
         this.previousTime = previousTime;
         return;
@@ -1124,17 +1138,13 @@ export class GameApp {
       this.state === 'replay' || (this.state === 'photo' && this.photoReturn === 'replay'),
       wallDelta,
     );
+    if (this.state === 'menu') this.menuFrames.submittedFrame(this.renderer);
     // Consume only after a real submission; busy graphics and covered replay
     // keep the latest viewport request pending without creating extra frames.
     this.viewportRedrawPending = false;
     // Finish the visible clearance frame before handing input and timing back.
     if (this.state === 'pregame' && this.gridAutomatic && this.gridClock.complete)
       this.endGridPresentation(true);
-    if (this.revealMenu && this.state === 'menu') {
-      this.revealMenu = false;
-      this.ui.ready();
-      this.ui.showMode('menu');
-    }
     if (
       (this.state === 'driving' || this.state === 'replay') &&
       !document.hidden &&
@@ -2778,6 +2788,7 @@ export class GameApp {
     this.mediaView?.dispose();
     this.referenceSession.dispose();
     this.input.dispose();
+    this.menuFrames.dispose();
     this.renderer?.dispose();
     void this.audio.dispose().catch((e) => console.warn('Audio cleanup:', e));
   }

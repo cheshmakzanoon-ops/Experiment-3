@@ -12,18 +12,32 @@ on:
       - 'src/rendering/live-frame-clock.ts'
       - 'src/rendering/snapshot-interpolation.ts'
       - 'src/rendering/wheel-pose.ts'
+      - 'src/rendering/menu-frame-pacing.ts'
       - 'src/ui/bike-hud*'
       - 'src/ui/gp-*'
       - 'e2e/*motogp*'
       - 'e2e/motorcycle-presentation.spec.ts'
       - 'e2e/gp-rear-chassis.spec.ts'
       - 'e2e/gp-rider-contact.spec.ts'
+      - 'e2e/30-menu-access.spec.ts'
+      - 'e2e/settings-transition.spec.ts'
+      - 'e2e/gpu-frame-gate.spec.ts'
       - 'tests/gp-*'
       - 'tests/bike*'
       - 'tests/replay-*'
       - 'tests/recording.test.ts'
       - 'tests/flashback-recording.test.ts'
       - 'tests/session-identity.test.ts'
+      - 'tests/race-view-continuity.test.ts'
+      - 'tests/snapshot-interpolation.test.ts'
+      - 'tests/live-frame-clock.test.ts'
+      - 'tests/wheel-pose.test.ts'
+      - 'tests/collision-continuous.test.ts'
+      - 'tests/menu-frame-pacing.test.ts'
+      - 'tests/menu-presentation.test.ts'
+      - 'tests/gpu-frame-gate.test.ts'
+      - 'tests/menu-preview.test.ts'
+      - 'tests/settings-transition.test.ts'
       - 'e2e/fixtures/*motogp*'
       - 'e2e/fixtures/motorcycle-presentation.ts'
       - '.github/workflows/motogp-review.yml'
@@ -78,7 +92,9 @@ jobs:
           tests/gp-grid-paint.test.ts tests/gp-grid.test.ts tests/session-identity.test.ts
           tests/bike-animation.test.ts tests/snapshot-interpolation.test.ts
           tests/live-frame-clock.test.ts tests/wheel-pose.test.ts
-          tests/collision-continuous.test.ts
+          tests/collision-continuous.test.ts tests/menu-frame-pacing.test.ts
+          tests/menu-presentation.test.ts tests/gpu-frame-gate.test.ts
+          tests/menu-preview.test.ts tests/settings-transition.test.ts
           --reporter=default --reporter=json
           --outputFile=${{ runner.temp }}/motogp-unit-tests.json
       - name: Preserve complete test results
@@ -105,6 +121,8 @@ jobs:
             specs: e2e/motogp-riding-flow.spec.ts
           - scene: wet-riding
             specs: e2e/motogp-wet-riding.spec.ts
+          - scene: menu-entry
+            specs: e2e/30-menu-access.spec.ts e2e/settings-transition.spec.ts e2e/gpu-frame-gate.spec.ts
     env:
       APEX_BROWSER_BACKEND: mesa
       LIBGL_ALWAYS_SOFTWARE: 'true'

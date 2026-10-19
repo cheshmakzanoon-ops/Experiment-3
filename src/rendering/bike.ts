@@ -635,6 +635,38 @@ export function add(
   parent.add(mesh);
   return mesh;
 }
+/** These GP finish groups have a fixed placement on the sprung chassis,
+ * with no damage, visibility or articulation controller of their own. Move
+ * compatible rigid surfaces into its existing material/shadow batches. Select
+ * finishes explicitly: the rotated silencer carbon keeps its object-space
+ * weave frame, while the identity-frame cooling vanes can retain theirs here. */
+function addGpRigidFinish(parent: T.Group, assembly: T.Group, finishes: readonly T.Material[]) {
+  parent.add(assembly);
+  if (
+    !assembly.visible ||
+    assembly.renderOrder !== 0 ||
+    assembly.layers.mask !== parent.layers.mask
+  )
+    return;
+  assembly.updateMatrix();
+  for (const child of [...assembly.children]) {
+    if (
+      !(child instanceof T.Mesh) ||
+      child instanceof T.InstancedMesh ||
+      child instanceof T.SkinnedMesh ||
+      Array.isArray(child.material) ||
+      !finishes.includes(child.material) ||
+      !child.visible ||
+      child.renderOrder !== 0 ||
+      child.layers.mask !== parent.layers.mask ||
+      child.children.length ||
+      Object.keys(child.geometry.morphAttributes).length
+    )
+      continue;
+    child.applyMatrix4(assembly.matrix);
+    parent.add(child);
+  }
+}
 /** Static compressions under the bike's own weight (m). */
 export function staticSag(def: VehicleDefinition) {
   const b = def.bike!,
@@ -1246,7 +1278,7 @@ export class BikeModel {
         const silencer = gpSilencer(detail, m);
         silencer.position.set(-0.165, -0.08, -0.74);
         silencer.rotation.x = Math.PI / 2 - 0.35;
-        this.sprung.add(silencer);
+        addGpRigidFinish(this.sprung, silencer, [m.titanium, m.dark]);
       } else if (look.exhaust === 'side-high') {
         const can = add(
           this.sprung,
@@ -1589,7 +1621,11 @@ export class BikeModel {
       const shell = gpBodywork(m, detail);
       if (detail !== 'far') addGPIdentity(shell, m, id);
       this.sprung.add(shell);
-      if (detail !== 'far') this.sprung.add(gpCoolingLouvers(detail, m.carbon, m.steel));
+      if (detail !== 'far')
+        addGpRigidFinish(this.sprung, gpCoolingLouvers(detail, m.carbon, m.steel), [
+          m.carbon,
+          m.steel,
+        ]);
       add(this.sprung, new T.BoxGeometry(0.05, 0.025, 0.012), m.lamp, 0, 0.302, -0.83, false);
     } else if (look.tail === 'race') {
       add(

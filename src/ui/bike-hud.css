@@ -48,11 +48,12 @@
   color: #dfedf6;
   letter-spacing: 0.035em;
 }
+/* Share vertical space with the corner phase strip when text is enlarged. */
 #hud[data-f1][data-bike='true'] .rev-lights {
   position: static;
   transform: none;
   padding: 0;
-  margin-bottom: 9px;
+  margin-bottom: 5px;
   gap: 3px;
 }
 #hud[data-f1][data-bike='true'] .rev-lights i {
@@ -65,7 +66,7 @@
   display: flex;
   align-items: center;
   gap: 18px;
-  padding: 0 0 10px;
+  padding: 0 0 6px;
 }
 #hud[data-f1][data-bike='true'] :is(.gear, .speed, .engine),
 #hud[data-f1][data-bike='true'] .engine > :is(b, span) {
@@ -111,7 +112,7 @@
 #hud[data-f1][data-bike='true'] .pedals {
   display: flex;
   gap: 12px;
-  padding: 0 0 9px;
+  padding: 0 0 5px;
 }
 #hud[data-bike='true'] .pedals label {
   font-size: calc(7px * var(--ui-scale, 1));
@@ -123,7 +124,7 @@
   position: static;
   display: flex;
   transform: none;
-  padding: 7px 0;
+  padding: 4px 0;
   border-top: 1px solid #aac4d826;
   align-items: flex-start;
 }

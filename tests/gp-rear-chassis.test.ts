@@ -29,9 +29,11 @@ function inventory(root: T.Object3D) {
   const geometries = new Set<T.BufferGeometry>(),
     materials = new Set<T.Material>(),
     textures = new Set<T.Texture>();
-  let triangles = 0;
+  let triangles = 0,
+    meshes = 0;
   root.traverse((object) => {
     if (!(object instanceof T.Mesh)) return;
+    meshes++;
     geometries.add(object.geometry);
     for (const material of Array.isArray(object.material) ? object.material : [object.material]) {
       materials.add(material);
@@ -42,7 +44,7 @@ function inventory(root: T.Object3D) {
       ((object.geometry.index?.count ?? object.geometry.getAttribute('position').count) / 3) *
       (object instanceof T.InstancedMesh ? object.count : 1);
   });
-  return { geometries, materials, textures, triangles };
+  return { geometries, materials, textures, triangles, meshes };
 }
 function matrices(root: T.Object3D) {
   root.updateMatrixWorld(true);
@@ -252,6 +254,9 @@ describe('GP rear structure on the production motorcycle', () => {
         expect(matrices(bike.root)).toEqual(first);
         expect(inventory(bike.root)).toEqual(original);
         expect(original.triangles).toBeLessThan(110000);
+        // A lower triangle count can still add rigid draws to the opaque and
+        // windscreen transmission passes. Keep that observed regression out.
+        if (detail === 'high') expect(original.meshes).toBeLessThan(110);
         expect(original.materials.size).toBeLessThanOrEqual(34);
         expect(original.textures.size).toBeLessThanOrEqual(19);
       } finally {

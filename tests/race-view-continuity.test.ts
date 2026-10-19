@@ -76,187 +76,200 @@ describe('current-view detail and deterministic presentation', () => {
     }
   });
   for (const follow of [0, 1])
-    it(`poses each car once, after the current view is solved (following ${follow})`, () => {
-      // Exercise the actual production draw ordering without a GPU. Stop only at
-      // the subsequent shadow stage; all camera math and pose dispatch above it
-      // are real. Separate hosted tests exercise the complete renderer.
-      const stop = new Error('Reached shadow stage');
-      const camera = new T.PerspectiveCamera(58, 16 / 9, 0.02, 500);
-      camera.position.set(10000, 0, 0); // the outgoing camera must never decide LOD
-      const a = frame(),
-        b = frame(),
-        opponent = 1 - follow;
-      a[carBase(opponent) + F.X] = 40;
-      b[carBase(opponent) + F.X] = 120;
-      b[H.TIME] = 1.1;
-      const savedA = a.slice(),
-        savedB = b.slice();
-      const sun = new T.DirectionalLight();
-      Object.defineProperty(sun.shadow, 'mapSize', {
-        get() {
-          throw stop;
-        },
-      });
-      const reset = () => ({ reset: vi.fn() });
-      const cars = [0, 1].map(() => ({
-        root: new T.Group(),
-        mirrors: [],
-        setLod: vi.fn(),
-        update: vi.fn(),
-      }));
-      const garageUpdate = vi.fn((currentCamera: T.PerspectiveCamera) => {
-        // Sample during dispatch so later mutations cannot hide a stale view.
-        expect(currentCamera).toBe(camera);
-        expect(currentCamera.position.toArray()).toEqual([60, 0.4, 0.2]);
-        expect(currentCamera.projectionMatrix.elements).toEqual(
-          new T.PerspectiveCamera(
-            currentCamera.fov,
-            currentCamera.aspect,
-            currentCamera.near,
-            currentCamera.far,
-          ).projectionMatrix.elements,
-        );
-      });
-      const stationUpdate = vi.fn((currentCamera: T.PerspectiveCamera) => {
-        expect(currentCamera).toBe(camera);
-        expect(currentCamera.position.toArray()).toEqual([60, 0.4, 0.2]);
-      });
-      const frontageUpdate = vi.fn((currentCamera: T.PerspectiveCamera) => {
-        expect(currentCamera).toBe(camera);
-        expect(currentCamera.position.toArray()).toEqual([60, 0.4, 0.2]);
-        expect(currentCamera.projectionMatrix.elements).toEqual(
-          new T.PerspectiveCamera(
-            currentCamera.fov,
-            currentCamera.aspect,
-            currentCamera.near,
-            currentCamera.far,
-          ).projectionMatrix.elements,
-        );
-      });
-      const fixture = {
-        circuit: {
-          setMotorcyclePresentation: vi.fn(),
-          setGrandPrixGrid: vi.fn(),
-          heroGarage: { update: garageUpdate },
-          pitWallStation: { update: stationUpdate },
-          pitBuildingFrontage: { update: frontageUpdate },
-        },
-        frameMs: 16,
-        frameSamples: new Float32Array(300),
-        sampleIndex: 0,
-        sampleCount: 0,
-        setCars: vi.fn(),
-        orbitTime: 0,
-        presented: new PresentedFrame(),
-        cameraClock: new CameraClock(),
-        motocrossCamera: reset(),
-        composition: reset(),
-        motionBlur: reset(),
-        trackside: reset(),
-        audioView: reset(),
-        inertia: {
-          ...reset(),
-          step: vi.fn(),
-          eye: (_p: T.Vector3, _q: T.Quaternion, _pod: boolean, out: T.Vector3) =>
-            out.set(60, 0.4, 0.2),
-        },
-        viewOrientation: { ...reset(), update: () => new T.Quaternion() },
-        cars,
-        follow,
-        quality: 'high',
-        mode: 'cockpit',
-        photo: null,
-        night: false,
-        lighting: 'day',
-        reflectionFollow: follow,
-        reflectionMaterials: [[], []],
-        reflection: { setSkyIntensity: vi.fn() },
-        venueLighting: { update: vi.fn() },
-        lightPools: { update: vi.fn() },
-        bloom: { energyConserving: false },
-        scene: new T.Scene(),
-        sun,
-        hemisphere: new T.HemisphereLight(),
-        renderer: { toneMappingExposure: 1 },
-        sky: {
-          material: {
-            uniforms: {
-              cloudCover: { value: 0 },
-              cloudDrift: { value: 0 },
-              skyRadiance: { value: 0 },
-              nightAmount: { value: 0 },
-              sunsetAmount: { value: 0 },
-              urbanGlow: { value: 0 },
-              sunPosition: { value: new T.Vector3() },
+    it.each([
+      { motion: 'continuous motion', firstX: 58, lastX: 66, speed: 80, expectedX: 60 },
+      { motion: 'reset boundary', firstX: 40, lastX: 120, speed: 0, expectedX: 40 },
+    ])(
+      `poses each car once, after the current view is solved (following ${follow}, $motion)`,
+      ({ firstX, lastX, speed, expectedX }) => {
+        // Exercise the actual production draw ordering without a GPU. Stop only at
+        // the subsequent shadow stage; all camera math and pose dispatch above it
+        // are real. Separate hosted tests exercise the complete renderer.
+        const stop = new Error('Reached shadow stage');
+        const camera = new T.PerspectiveCamera(58, 16 / 9, 0.02, 500);
+        camera.position.set(10000, 0, 0); // the outgoing camera must never decide LOD
+        const a = frame(),
+          b = frame(),
+          opponent = 1 - follow;
+        // Ordinary motion has consistent endpoint velocities. The original
+        // zero-speed jump is a reset and must hold the older opponent pose.
+        a[carBase(opponent) + F.X] = firstX;
+        b[carBase(opponent) + F.X] = lastX;
+        a[carBase(opponent) + F.VX] = b[carBase(opponent) + F.VX] = speed;
+        a[carBase(opponent) + F.SPEED] = b[carBase(opponent) + F.SPEED] = speed;
+        b[H.TIME] = 1.1;
+        const presentedTime = Math.fround(a[H.TIME] + (b[H.TIME] - a[H.TIME]) * 0.25);
+        const savedA = a.slice(),
+          savedB = b.slice();
+        const sun = new T.DirectionalLight();
+        Object.defineProperty(sun.shadow, 'mapSize', {
+          get() {
+            throw stop;
+          },
+        });
+        const reset = () => ({ reset: vi.fn() });
+        const cars = [0, 1].map(() => ({
+          root: new T.Group(),
+          mirrors: [],
+          setLod: vi.fn(),
+          update: vi.fn(),
+        }));
+        const garageUpdate = vi.fn((currentCamera: T.PerspectiveCamera) => {
+          // Sample during dispatch so later mutations cannot hide a stale view.
+          expect(currentCamera).toBe(camera);
+          expect(currentCamera.position.toArray()).toEqual([60, 0.4, 0.2]);
+          expect(currentCamera.projectionMatrix.elements).toEqual(
+            new T.PerspectiveCamera(
+              currentCamera.fov,
+              currentCamera.aspect,
+              currentCamera.near,
+              currentCamera.far,
+            ).projectionMatrix.elements,
+          );
+        });
+        const stationUpdate = vi.fn((currentCamera: T.PerspectiveCamera) => {
+          expect(currentCamera).toBe(camera);
+          expect(currentCamera.position.toArray()).toEqual([60, 0.4, 0.2]);
+        });
+        const frontageUpdate = vi.fn((currentCamera: T.PerspectiveCamera) => {
+          expect(currentCamera).toBe(camera);
+          expect(currentCamera.position.toArray()).toEqual([60, 0.4, 0.2]);
+          expect(currentCamera.projectionMatrix.elements).toEqual(
+            new T.PerspectiveCamera(
+              currentCamera.fov,
+              currentCamera.aspect,
+              currentCamera.near,
+              currentCamera.far,
+            ).projectionMatrix.elements,
+          );
+        });
+        const fixture = {
+          circuit: {
+            setMotorcyclePresentation: vi.fn(),
+            setGrandPrixGrid: vi.fn(),
+            heroGarage: { update: garageUpdate },
+            pitWallStation: { update: stationUpdate },
+            pitBuildingFrontage: { update: frontageUpdate },
+          },
+          frameMs: 16,
+          frameSamples: new Float32Array(300),
+          sampleIndex: 0,
+          sampleCount: 0,
+          setCars: vi.fn(),
+          orbitTime: 0,
+          presented: new PresentedFrame(),
+          cameraClock: new CameraClock(),
+          motocrossCamera: reset(),
+          composition: reset(),
+          motionBlur: reset(),
+          trackside: reset(),
+          audioView: reset(),
+          inertia: {
+            ...reset(),
+            step: vi.fn(),
+            eye: (_p: T.Vector3, _q: T.Quaternion, _pod: boolean, out: T.Vector3) =>
+              out.set(60, 0.4, 0.2),
+          },
+          viewOrientation: { ...reset(), update: () => new T.Quaternion() },
+          cars,
+          follow,
+          quality: 'high',
+          mode: 'cockpit',
+          photo: null,
+          night: false,
+          lighting: 'day',
+          reflectionFollow: follow,
+          reflectionMaterials: [[], []],
+          reflection: { setSkyIntensity: vi.fn() },
+          venueLighting: { update: vi.fn() },
+          lightPools: { update: vi.fn() },
+          bloom: { energyConserving: false },
+          scene: new T.Scene(),
+          sun,
+          hemisphere: new T.HemisphereLight(),
+          renderer: { toneMappingExposure: 1 },
+          sky: {
+            material: {
+              uniforms: {
+                cloudCover: { value: 0 },
+                cloudDrift: { value: 0 },
+                skyRadiance: { value: 0 },
+                nightAmount: { value: 0 },
+                sunsetAmount: { value: 0 },
+                urbanGlow: { value: 0 },
+                sunPosition: { value: new T.Vector3() },
+              },
             },
           },
-        },
-        camera,
-        target: new T.Vector3(),
-        direction: new T.Vector3(),
-        gaze: new T.Vector3(),
-        desired: new T.Vector3(),
-        temporary: new T.Vector3(),
-        previousAnchor: new T.Vector3(),
-        velocity: new T.Vector3(),
-        initialized: false,
-        lookX: 0,
-        lookY: 0,
-      };
-      fixture.scene.fog = new T.FogExp2(0xffffff);
-      expect(() =>
-        RacingRenderer.prototype.draw.call(
-          fixture as unknown as RacingRenderer,
+          camera,
+          target: new T.Vector3(),
+          direction: new T.Vector3(),
+          gaze: new T.Vector3(),
+          desired: new T.Vector3(),
+          temporary: new T.Vector3(),
+          previousAnchor: new T.Vector3(),
+          velocity: new T.Vector3(),
+          initialized: false,
+          lookX: 0,
+          lookY: 0,
+        };
+        fixture.scene.fog = new T.FogExp2(0xffffff);
+        expect(() =>
+          RacingRenderer.prototype.draw.call(
+            fixture as unknown as RacingRenderer,
+            a,
+            b,
+            0.25,
+            1 / 60,
+          ),
+        ).toThrow(stop);
+        expect(camera.position.toArray()).toEqual([60, 0.4, 0.2]);
+        expect(fixture.presented.value[carBase(opponent) + F.X]).toBe(expectedX);
+        expect(fixture.presented.value[H.TIME]).toBe(presentedTime);
+        expect(fixture.circuit.setGrandPrixGrid).toHaveBeenCalledExactlyOnceWith(false);
+        expect(garageUpdate).toHaveBeenCalledExactlyOnceWith(camera, 'high', 'day');
+        expect(frontageUpdate).toHaveBeenCalledExactlyOnceWith(camera, 'high', 'day');
+        expect(frontageUpdate.mock.invocationCallOrder[0]).toBeLessThan(
+          stationUpdate.mock.invocationCallOrder[0],
+        );
+        expect(stationUpdate).toHaveBeenCalledExactlyOnceWith(
+          camera,
+          'high',
+          'day',
+          fixture.presented.value,
+          'LIVE',
+          true,
+        );
+        expect(stationUpdate.mock.invocationCallOrder[0]).toBeGreaterThan(
+          cars[follow].update.mock.invocationCallOrder[0],
+        );
+        expect(stationUpdate.mock.invocationCallOrder[0]).toBeLessThan(
+          cars[opponent].setLod.mock.invocationCallOrder[0],
+        );
+        expect(garageUpdate.mock.invocationCallOrder[0]).toBeGreaterThan(
+          cars[follow].update.mock.invocationCallOrder[0],
+        );
+        expect(garageUpdate.mock.invocationCallOrder[0]).toBeLessThan(
+          cars[opponent].setLod.mock.invocationCallOrder[0],
+        );
+        for (const car of cars) {
+          expect(car.update).toHaveBeenCalledTimes(1);
+          expect(car.setLod).toHaveBeenCalledTimes(1);
+        }
+        expect(cars[follow].setLod.mock.calls[0].slice(1)).toEqual(['high', true, false]);
+        const distance = cars[opponent].setLod.mock.calls[0][0];
+        expect(distance).toBeCloseTo(Math.hypot(expectedX - 60, 0.4, 0.2), 12);
+        expect(cars[opponent].update).toHaveBeenCalledWith(
           a,
           b,
+          carBase(opponent),
           0.25,
           1 / 60,
-        ),
-      ).toThrow(stop);
-      expect(camera.position.toArray()).toEqual([60, 0.4, 0.2]);
-      expect(fixture.circuit.setGrandPrixGrid).toHaveBeenCalledExactlyOnceWith(false);
-      expect(garageUpdate).toHaveBeenCalledExactlyOnceWith(camera, 'high', 'day');
-      expect(frontageUpdate).toHaveBeenCalledExactlyOnceWith(camera, 'high', 'day');
-      expect(frontageUpdate.mock.invocationCallOrder[0]).toBeLessThan(
-        stationUpdate.mock.invocationCallOrder[0],
-      );
-      expect(stationUpdate).toHaveBeenCalledExactlyOnceWith(
-        camera,
-        'high',
-        'day',
-        fixture.presented.value,
-        'LIVE',
-        true,
-      );
-      expect(stationUpdate.mock.invocationCallOrder[0]).toBeGreaterThan(
-        cars[follow].update.mock.invocationCallOrder[0],
-      );
-      expect(stationUpdate.mock.invocationCallOrder[0]).toBeLessThan(
-        cars[opponent].setLod.mock.invocationCallOrder[0],
-      );
-      expect(garageUpdate.mock.invocationCallOrder[0]).toBeGreaterThan(
-        cars[follow].update.mock.invocationCallOrder[0],
-      );
-      expect(garageUpdate.mock.invocationCallOrder[0]).toBeLessThan(
-        cars[opponent].setLod.mock.invocationCallOrder[0],
-      );
-      for (const car of cars) {
-        expect(car.update).toHaveBeenCalledTimes(1);
-        expect(car.setLod).toHaveBeenCalledTimes(1);
-      }
-      expect(cars[follow].setLod.mock.calls[0].slice(1)).toEqual(['high', true, false]);
-      const distance = cars[opponent].setLod.mock.calls[0][0];
-      expect(distance).toBeCloseTo(Math.hypot(0.4, 0.2), 12);
-      expect(cars[opponent].update).toHaveBeenCalledWith(
-        a,
-        b,
-        carBase(opponent),
-        0.25,
-        1 / 60,
-        b[H.TIME],
-        false,
-      );
-      expect(a).toEqual(savedA);
-      expect(b).toEqual(savedB);
-    });
+          presentedTime,
+          false,
+        );
+        expect(a).toEqual(savedA);
+        expect(b).toEqual(savedB);
+      },
+    );
 });

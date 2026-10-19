@@ -1,0 +1,270 @@
+{
+  "scope": "First exact published MotoGP implementation review; failures retained and follow-up repairs described without claiming a rerun pass.",
+  "sourceCommit": "9d5c5582530bbb66de2a170edd6775f3a3947b1b",
+  "runId": 39297624842,
+  "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39297624842",
+  "backend": "ANGLE (Mesa, llvmpipe LLVM 20.1.2 256 bits, OpenGL 4.5)",
+  "productionBuild": {
+    "status": "passed",
+    "jobId": 118214145464,
+    "sourceStabilityGuard": "passed",
+    "modules": 715,
+    "viteSeconds": 17.33,
+    "artifactId": 12212180340,
+    "artifactSha256": "285ea5162e1d39fcd11334cabe87592468e86b911d5cf59b16771da48d452c9b"
+  },
+  "focusedUnits": {
+    "status": "failed",
+    "jobId": 118214145670,
+    "processExitCode": 1,
+    "passed": 253,
+    "failed": 2,
+    "total": 255,
+    "durationSeconds": 42.09,
+    "artifactId": 12211785081,
+    "artifactSha256": "7aebfec4dd3245726c395892b05212816e718587043d918f0050ffb95e73a3c9",
+    "suites": [
+      {
+        "file": "tests/bike-animation.test.ts",
+        "status": "passed",
+        "assertions": 5
+      },
+      {
+        "file": "tests/bike-bodies.test.ts",
+        "status": "passed",
+        "assertions": 2
+      },
+      {
+        "file": "tests/collision-continuous.test.ts",
+        "status": "passed",
+        "assertions": 22
+      },
+      {
+        "file": "tests/flashback-recording.test.ts",
+        "status": "passed",
+        "assertions": 4
+      },
+      {
+        "file": "tests/gp-chain-integrity.test.ts",
+        "status": "passed",
+        "assertions": 10
+      },
+      {
+        "file": "tests/gp-control-feedback.test.ts",
+        "status": "passed",
+        "assertions": 9
+      },
+      {
+        "file": "tests/gp-corner-phases.test.ts",
+        "status": "passed",
+        "assertions": 7
+      },
+      {
+        "file": "tests/gp-drive-traction.test.ts",
+        "status": "passed",
+        "assertions": 8
+      },
+      {
+        "file": "tests/gp-engine-braking.test.ts",
+        "status": "passed",
+        "assertions": 5
+      },
+      {
+        "file": "tests/gp-grid-paint.test.ts",
+        "status": "passed",
+        "assertions": 7
+      },
+      {
+        "file": "tests/gp-grid.test.ts",
+        "status": "passed",
+        "assertions": 6
+      },
+      {
+        "file": "tests/gp-rear-chassis.test.ts",
+        "status": "passed",
+        "assertions": 10
+      },
+      {
+        "file": "tests/gp-rear-pedal.test.ts",
+        "status": "passed",
+        "assertions": 15
+      },
+      {
+        "file": "tests/gp-rider-contact.test.ts",
+        "status": "passed",
+        "assertions": 7
+      },
+      {
+        "file": "tests/gp-riding-cues.test.ts",
+        "status": "passed",
+        "assertions": 7
+      },
+      {
+        "file": "tests/gp-seamless-braking.test.ts",
+        "status": "passed",
+        "assertions": 14
+      },
+      {
+        "file": "tests/live-frame-clock.test.ts",
+        "status": "passed",
+        "assertions": 17
+      },
+      {
+        "file": "tests/race-view-continuity.test.ts",
+        "status": "failed",
+        "assertions": 5
+      },
+      {
+        "file": "tests/recording.test.ts",
+        "status": "passed",
+        "assertions": 37
+      },
+      {
+        "file": "tests/replay-clock.test.ts",
+        "status": "passed",
+        "assertions": 2
+      },
+      {
+        "file": "tests/replay-presentation.test.ts",
+        "status": "passed",
+        "assertions": 4
+      },
+      {
+        "file": "tests/replay-seek-preparation.test.ts",
+        "status": "passed",
+        "assertions": 9
+      },
+      {
+        "file": "tests/session-identity.test.ts",
+        "status": "passed",
+        "assertions": 9
+      },
+      {
+        "file": "tests/snapshot-interpolation.test.ts",
+        "status": "passed",
+        "assertions": 20
+      },
+      {
+        "file": "tests/wheel-pose.test.ts",
+        "status": "passed",
+        "assertions": 14
+      }
+    ],
+    "failure": "Two followed-camera fixtures expected interpolation across an 80 m movement in 0.1 s with zero velocity. The incoming discontinuity-aware presentation correctly treats this as a reset.",
+    "repair": "Retain that exact zero-speed jump as a reset case; add a coherent 58 to 66 m / 80 m/s case. Assert the Float32 presented timestamp and pose independently for both followed vehicles. All existing order, camera, LOD and source immutability assertions remain.",
+    "repairReceipt": "menu-pacing-validation.json"
+  },
+  "browserGroups": [
+    {
+      "group": "presentation",
+      "jobId": 118220602719,
+      "status": "failed",
+      "passed": 1,
+      "failed": 3,
+      "artifactId": 12210821214,
+      "artifactSha256": "a0caadc2d9c89c6869169823928ce1c44a4cb5f795c300b6cd7bf3b53a9c22bd",
+      "results": [
+        {
+          "case": "GP reference",
+          "status": "failed",
+          "observed": "227 draw calls at the first GP-R1 high-detail sample; unchanged requirement is fewer than 220."
+        },
+        {
+          "case": "GP-R1 rear",
+          "status": "failed",
+          "observed": "All five pose/hash comparisons passed, then the first draw-call assertion failed at 227."
+        },
+        {
+          "case": "GP-R2 rear",
+          "status": "passed",
+          "observed": "All six poses and every hash, resource, GL, immutability, instance, triangle and draw-call assertion passed. 215 calls; 99,916 triangles; 120 geometries, 23 textures, 56 programs stable; GL error 0.",
+          "hashes": [3322314516, 811528177, 1095346716, 1095346716, 3322314516, 811528177]
+        },
+        {
+          "case": "Motorcycle HUD",
+          "status": "failed",
+          "observed": "1440 by 900 at UI scale 1.35: instrument top 393.984375, requirement greater than 405; bottom 834. Earlier normal-scale layouts produced screenshots."
+        }
+      ]
+    },
+    {
+      "group": "rider-contact",
+      "jobId": 118220602768,
+      "status": "failed",
+      "passed": 6,
+      "failed": 1,
+      "artifactId": 12211016559,
+      "artifactSha256": "3fe458437b35e3e6597cd9651accb80abef0a0ed8d297067c35a886d1af494cf",
+      "failure": "Only GP-R1 rider-corner reaches 227 calls. Its hash assertions follow the budget loop and were not reached. The other six cases passed their complete assertions."
+    },
+    {
+      "group": "wet-riding",
+      "jobId": 118220602801,
+      "status": "failed",
+      "passed": 0,
+      "failed": 1,
+      "artifactId": 12212205856,
+      "artifactSha256": "cd9d485d2c08e669377430884a3c0373ed9ae9ceb7ad75c41b189cfd9ff6ae2f",
+      "originalTimeoutMs": 300000,
+      "failure": "Setup consumed the deadline; ENTER CIRCUIT actionability at motogp-wet-riding.spec.ts:52. Race-entry completion and wet riding/effects assertions were not reached."
+    },
+    {
+      "group": "dry-riding",
+      "jobId": 118220602878,
+      "status": "failed",
+      "passed": 0,
+      "failed": 1,
+      "artifactId": 12211667016,
+      "originalTimeoutMs": 300000,
+      "failure": "Menu and settings consumed the deadline. Final timeout in finishRaceEntry diagnostics evaluation at race-entry.ts:9; riding was not established and replay assertions were not reached."
+    }
+  ],
+  "parentMenuCrossCheck": {
+    "parentCommit": "c1827511146611c8049569b555d40ea5719936c7",
+    "parentRunId": 39295903097,
+    "parentJobId": 118208222459,
+    "implementationRunId": 39297624783,
+    "implementationJobId": 118214145399,
+    "sameBackend": true,
+    "parentResult": {
+      "passed": 3,
+      "failed": 3
+    },
+    "implementationResult": {
+      "passed": 3,
+      "failed": 3
+    },
+    "finding": "Same normal-click failures for Apply & Save at 640 by 400 and Garage & Settings at 640 by 400 and 1280 by 720. The Formula menu fails before GP entry on both commits.",
+    "inference": "Trace evidence is consistent with immediate heavy showroom resubmission starving quiet UI paint callbacks; the menu pacing repair must still pass original browser tests."
+  },
+  "followup": {
+    "status": "ready_for_exact_commit_review",
+    "baseCommit": "cc7cb7ff19759609402d58a34af037a68fbe841d",
+    "changes": [
+      "GP-R1 fixed-finish batching: high meshes 114 to 109, mid 91 to 87; unchanged triangles, materials, textures and per-surface checks.",
+      "Four HUD spacing declarations recover 18 px without changing text, widths, anchors, breakpoints or assertions.",
+      "Menu frame handoff starts the existing quiet interval after actual GPU completion and preserves a following browser paint callback. Racing/replay scheduling is unchanged.",
+      "Camera fixtures explicitly cover coherent motion and the original reset.",
+      "Rear PNG and JSON attachments are retained before assertions; all original assertions remain."
+    ],
+    "receipts": [
+      "rear-rigid-batch-validation.json",
+      "hud-layout-validation.json",
+      "menu-pacing-validation.json"
+    ],
+    "preparedReview": {
+      "unitFiles": 30,
+      "browserGroups": 5,
+      "originalDryWetTimeoutMs": 300000,
+      "drawCallLimitExclusive": 220,
+      "changedViewports": false,
+      "weakenedAssertions": false
+    },
+    "nextResult": "pending"
+  },
+  "limits": [
+    "This is not an all-green CI result.",
+    "The first clean recording assertions supersede earlier local recording timeouts, but the complete unit command failed on two separate camera fixture expectations.",
+    "No hardware FPS, photoreal equivalence or full riding/replay browser pass is inferred from these results."
+  ]
+}

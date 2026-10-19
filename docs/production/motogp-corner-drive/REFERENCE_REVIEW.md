@@ -10,30 +10,30 @@ The archive contains 10 official PlayStation Store images, 3 UI/menu references,
 
 The existing [complete reference ledger](../../MOTOGP_THREEJS_REFERENCE_REVIEW.md) and [previous production audit](../motogp-riding-refinement/REFERENCE_AUDIT.md) remain the full provenance and scope record. This document records the focused design decisions rather than duplicating that ledger.
 
-| Integrity check | Result |
-| --- | --- |
-| Numbered originals | All 100; exact REF 001–100 sequence |
-| Individual SHA-256 checks against `MANIFEST.csv` | 100 matching; 0 mismatches |
-| Archive size | 36,997,717 bytes |
-| Archive SHA-256 | `478517180397aa7022b508264e2e6383f721ea930a4035ef314e2e8fb421e7c6` |
-| `MANIFEST.csv` SHA-256 | `f023269e46872465e9f69e41bb97e82be2a7d821cc28c27fa6559f8751176ef2` |
-| Ordered image-hash receipt SHA-256 | `c790c78c827408c5c44f5043d8bc388bbebb7e041d145f9dbc288f04d0b3dc42` |
+| Integrity check                                  | Result                                                             |
+| ------------------------------------------------ | ------------------------------------------------------------------ |
+| Numbered originals                               | All 100; exact REF 001–100 sequence                                |
+| Individual SHA-256 checks against `MANIFEST.csv` | 100 matching; 0 mismatches                                         |
+| Archive size                                     | 36,997,717 bytes                                                   |
+| Archive SHA-256                                  | `478517180397aa7022b508264e2e6383f721ea930a4035ef314e2e8fb421e7c6` |
+| `MANIFEST.csv` SHA-256                           | `f023269e46872465e9f69e41bb97e82be2a7d821cc28c27fa6559f8751176ef2` |
+| Ordered image-hash receipt SHA-256               | `c790c78c827408c5c44f5043d8bc388bbebb7e041d145f9dbc288f04d0b3dc42` |
 
 The ordered receipt is UTF-8 text containing one `NNN:sha256` line per image in manifest order, with a final newline. It can be reconstructed directly from the archive's manifest without storing another copy of all 100 photographs.
 
 ## Evidence to implementation
 
-| Reference | Visible observation | Implemented response |
-| --- | --- | --- |
-| REF 018, “Bike and rider close-up” | The side profile has a tapered, dark carbon-covered rear arm; restrained machined adjuster hardware sits around the axle. | Closed, rounded carbon spars taper in depth and width. Thin aluminium adjuster plates, dark adjustment slots, steel axle nuts and captive tension screws provide small hard highlights. |
-| REF 071, announcement trailer 48.99 s | Low rear-quarter view: the tyre and bodywork dominate; the under-tail is compact and shadowed, with limited exposed bright mechanics. | A formed 2 mm carbon tray closes the underside; a narrower, tucked damper replaces the large exposed spring. |
-| REF 087, launch trailer 19.85 s | Following view: a dark tail underside above the broad tyre, with asymmetric exhaust and slim chain/axle details. | Preserve the existing exhaust, tyre, chain and pegs; reduce the bright rear-arm area and keep daylight between the tyre hugger and undertray. |
-| REF 053 / 059 / 061, launch trailer 27.67 / 5.20 / 7.64 s | Racing and rear-quarter silhouettes reinforce the tyre/body mass and compact mechanical detail. | Preserve the current GP body and rider proportions; assess this smaller mechanical change from a production rear camera. |
+| Reference                                                 | Visible observation                                                                                                                   | Implemented response                                                                                                                                                                    |
+| --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| REF 018, “Bike and rider close-up”                        | The side profile has a tapered, dark carbon-covered rear arm; restrained machined adjuster hardware sits around the axle.             | Closed, rounded carbon spars taper in depth and width. Thin aluminium adjuster plates, dark adjustment slots, steel axle nuts and captive tension screws provide small hard highlights. |
+| REF 071, announcement trailer 48.99 s                     | Low rear-quarter view: the tyre and bodywork dominate; the under-tail is compact and shadowed, with limited exposed bright mechanics. | A formed 2 mm carbon tray closes the underside; a narrower, tucked damper replaces the large exposed spring.                                                                            |
+| REF 087, launch trailer 19.85 s                           | Following view: a dark tail underside above the broad tyre, with asymmetric exhaust and slim chain/axle details.                      | Preserve the existing exhaust, tyre, chain and pegs; reduce the bright rear-arm area and keep daylight between the tyre hugger and undertray.                                           |
+| REF 053 / 059 / 061, launch trailer 27.67 / 5.20 / 7.64 s | Racing and rear-quarter silhouettes reinforce the tyre/body mass and compact mechanical detail.                                       | Preserve the current GP body and rider proportions; assess this smaller mechanical change from a production rear camera.                                                                |
 
 The main original-image hashes for this scope are:
 
-| ID | SHA-256 |
-| --- | --- |
+| ID      | SHA-256                                                            |
+| ------- | ------------------------------------------------------------------ |
 | REF 018 | `00bd3c544fc28315189390e7385bca13607075a56e9583ae9d7d460d393c05e8` |
 | REF 071 | `fb52560156425a4e7af52300b22fbce2624e237d5c25b9acb852695eca106bd7` |
 | REF 087 | `533e2916681ba97b49f5a69d4febc7614d8700a149d04d888a9286f789bed46f` |
@@ -59,19 +59,29 @@ The [independent mesh-clearance receipt](mesh-clearance-validation.json) validat
 Measured production-model costs and focused checks are recorded below. The comparison baseline is commit `9e5ff534ecf4d8391eaa7075a284b141544de7ee`; later unrelated integration changes do not alter the rear assembly.
 
 | Model / detail | Triangles before → after | Attribute/index bytes before → after | Mesh objects before → after |
-| --- | ---: | ---: | ---: |
-| GPR1 / high | 109,337 → 107,617 | 4,554,128 → 4,262,688 | 109 → 114 |
-| GPR1 / mid | 43,448 → 42,152 | 1,951,532 → 1,824,332 | 86 → 91 |
-| GPR1 / far | 12,588 → 11,444 | 692,008 → 551,640 | 46 → 46 |
-| GPR2 / high | 101,636 → 99,916 | 4,321,924 → 4,030,484 | 104 → 108 |
-| GPR2 / mid | 43,008 → 41,712 | 2,009,204 → 1,882,004 | 82 → 86 |
-| GPR2 / far | 9,870 → 8,726 | 617,276 → 476,908 | 44 → 44 |
+| -------------- | -----------------------: | -----------------------------------: | --------------------------: |
+| GPR1 / high    |        109,337 → 107,617 |                4,554,128 → 4,262,688 |                   109 → 109 |
+| GPR1 / mid     |          43,448 → 42,152 |                1,951,532 → 1,824,332 |                     86 → 87 |
+| GPR1 / far     |          12,588 → 11,444 |                    692,008 → 551,640 |                     46 → 46 |
+| GPR2 / high    |         101,636 → 99,916 |                4,321,924 → 4,030,484 |                   104 → 108 |
+| GPR2 / mid     |          43,008 → 41,712 |                2,009,204 → 1,882,004 |                     82 → 86 |
+| GPR2 / far     |            9,870 → 8,726 |                    617,276 → 476,908 |                     44 → 44 |
 
 Material and texture counts are unchanged at each detail level (34 materials / 19 textures for both high-detail GP models). The byte figures sum geometry attribute and index payloads from the scene inventory; they are not a GPU-memory reading.
 
-The controlled rear-only comparison for the four other road-motorcycle families (SBK1000, SS600, NR900 and CR750), each at high/mid/far detail, retains exactly the baseline geometry and posed-transform SHA-256 values: 12 of 12 identical. All six GP chain/sprocket geometry hashes also match their baseline values. A final inventory refresh after the neck correction and upstream integrations reproduced these costs and confirmed all 12 non-GP geometry/pose hashes and six GP chain hashes against the original baseline. Every source hash in the independent mesh-clearance receipt also matches the final files. The [final rear validation receipt](rear-chassis-validation.json) preserves the exact hashes, inventories and completed unit commands.
+The controlled rear-only comparison for the four other road-motorcycle families (SBK1000, SS600, NR900 and CR750), each at high/mid/far detail, retains exactly the baseline geometry and posed-transform SHA-256 values: 12 of 12 identical. All six GP chain/sprocket geometry hashes also match their baseline values. The [initial rear validation receipt](rear-chassis-validation.json) preserves the hashes, inventories and completed unit commands before the first browser review. The subsequent draw-budget repair below preserves all 12 non-GP geometry/pose hashes and six GP chain hashes; all three GP-R2 variants and GP-R1 far also retain their complete pre-batch geometry/pose hashes. The independent mesh-clearance receipt records the earlier source revision; the final guarded rear suite repeats the finer 4 mm full-travel occupied-volume check on the batched production model.
 
 Focused ESLint passed for the new module, production integration, unit test and browser fixture/spec. The earlier focused four-file run passed all 29 assertions: 10 rear-chassis cases, 7 production rider-contact cases, 10 chain-integrity cases and 2 motorcycle-body cases. This includes both GP motorcycles at all three detail levels through full suspension travel. The overall local command nevertheless exited 1 because Vitest reported one worker RPC `Timeout calling "onTaskUpdate"` after 557 seconds in the heavily loaded shared environment; this is not recorded as a clean completed gate. After the occupied-volume correction, the rear-chassis and chain-integrity command completed cleanly: 20 tests in two files passed, exit 0, in 86.64 seconds. Adding the actual-production-arm chain assertions was followed by the affected rear-chassis suite alone: all 10 cases passed, exit 0, in 64.53 seconds. That final run includes the finer 4 mm boot-volume sweep, both former failure columns, all six real arm/detail variants, attachment checks and held/restored resource checks. The integrated production report retains the separate final type/build/browser status.
+
+### Draw-budget correction from the first browser review
+
+The exact `9d5c558` Mesa rider-contact run reached the production scene and exposed a real budget regression: GP-R1's rider-corner view submitted 227 calls against the unchanged `<220` gate. Six other rider-contact cases passed. The [failed job](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39297624842/job/118220602768) completed on ANGLE/Mesa llvmpipe; this was not a browser-install or runner failure.
+
+The repair joins compatible fixed GP-R1 hardware to the existing sprung material batches. The titanium silencer shell and its two dark interior surfaces keep their fixed placement, UVs and finishes; the rotated carbon retention strap stays in its original object frame. The cooling vanes and retainers have an identity frame and join the matching carbon/steel batches without changing their shader coordinates. No articulation, wheel/chain, damper, material, texture, shadow flag, render layer or cockpit visibility behavior changes.
+
+This removes five high-detail mesh objects (114 → 109) and four at mid detail (91 → 87), with exactly the same triangles and geometry payload bytes. All original surface UV/colour bytes and triangle topology match. Across 11,502 vertex/pose comparisons in nine suspension states, maximum world-position error is 0.0000000303 m and maximum normal error is 0.0000000382, from baking fixed transforms. Carbon object frames match exactly. The [batch-preservation receipt](rear-rigid-batch-validation.json) contains the per-surface hashes, source hashes, inventory and method.
+
+The six affected geometry, appearance, rider-contact, chain and louver suites then passed under the source-stability guard: 46 tests, exit 0, in 123.71 seconds. Scoped lint and formatting passed. A new mesh-count regression catches rigid-draw growth alongside the existing triangle and clearance checks. The ten-call reduction to approximately 217 in the failing view is a prediction; the final exact-source browser run must measure it. The `<220` browser gate is unchanged.
 
 The original rendering gates remain fewer than 110,000 expanded triangles and fewer than 220 rendered calls for the high-detail fixture. Triangle counts include expanded instanced geometry. Mesh-object counts are a CPU scene inventory, not a GPU draw-call benchmark.
 

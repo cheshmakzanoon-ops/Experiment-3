@@ -43,19 +43,8 @@ for (const id of ['gpr1', 'gpr2']) {
         window as unknown as { MotoGPReview: { captureBikeSequence: typeof captureBikeSequence } }
       ).MotoGPReview.captureBikeSequence('rear-chassis', 'high', id, [a, b, c, c, a, b]);
     }, id);
-    expect(sequence[0].hash).not.toBe(sequence[1].hash);
-    expect(sequence[1].hash).not.toBe(sequence[2].hash);
-    expect(sequence[2].hash).toBe(sequence[3].hash);
-    expect(sequence[0].hash).toBe(sequence[4].hash);
-    expect(sequence[1].hash).toBe(sequence[5].hash);
+    // Keep the rendered evidence available even when a later assertion fails.
     for (const [i, result] of sequence.entries()) {
-      expect(result.glError).toBe(0);
-      expect(result.sourceFrameUnchanged).toBe(true);
-      expect(result.instance).toBe(sequence[0].instance);
-      expect(result.triangles).toBe(sequence[0].triangles);
-      expect(result.triangles).toBeLessThan(110000);
-      expect(result.calls).toBeLessThan(220);
-      if (i > 1) expect(result.resources).toEqual(sequence[1].resources);
       if (i < 3)
         await info.attach(`${id}-rear-${['static-dry', 'loaded-dry', 'loaded-wet'][i]}.png`, {
           body: Buffer.from(result.image.split(',')[1], 'base64'),
@@ -70,6 +59,20 @@ for (const id of ['gpr1', 'gpr2']) {
       ),
       contentType: 'application/json',
     });
+    expect(sequence[0].hash).not.toBe(sequence[1].hash);
+    expect(sequence[1].hash).not.toBe(sequence[2].hash);
+    expect(sequence[2].hash).toBe(sequence[3].hash);
+    expect(sequence[0].hash).toBe(sequence[4].hash);
+    expect(sequence[1].hash).toBe(sequence[5].hash);
+    for (const [i, result] of sequence.entries()) {
+      expect(result.glError).toBe(0);
+      expect(result.sourceFrameUnchanged).toBe(true);
+      expect(result.instance).toBe(sequence[0].instance);
+      expect(result.triangles).toBe(sequence[0].triangles);
+      expect(result.triangles).toBeLessThan(110000);
+      expect(result.calls).toBeLessThan(220);
+      if (i > 1) expect(result.resources).toEqual(sequence[1].resources);
+    }
     expect(errors).toEqual([]);
   });
 }

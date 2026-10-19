@@ -1,0 +1,283 @@
+{
+  "schemaVersion": 1,
+  "purpose": "MotoGP entry responsiveness repair and independent renderer-fixture validation",
+  "repository": "cheshmakzanoon-ops/Experiment-3",
+  "candidateCommit": null,
+  "status": "local focused contracts passed; original browser verification pending",
+  "menuPacing": {
+    "sourceHashesSha256": {
+      "src/main.ts": "44300c90dead0e341377a02b7867d2297856302e7bd1543c7c8f2c16bf2cdada",
+      "src/rendering/menu-frame-pacing.ts": "8d9a91ea42998ff48781a9d65aebc103d10a783c230177147934354fe4100f8d",
+      "tests/menu-frame-pacing.test.ts": "8b748dc4b340f90d2d4c9b29ec22c87ad9ea3e80c3afb0664aa2c3b12b722c1d"
+    },
+    "hashesIdenticalBeforeAndAfterGuardedRun": true,
+    "testRun": {
+      "command": "node --experimental-transform-types scripts/source-stability.ts -- npm test -- tests/menu-frame-pacing.test.ts tests/menu-presentation.test.ts tests/gpu-frame-gate.test.ts tests/menu-preview.test.ts tests/settings-transition.test.ts --reporter=dot --reporter=json --outputFile=/tmp/gp-menu-pacing-tests.json",
+      "processExitCode": 0,
+      "durationSeconds": 38.48,
+      "passed": 81,
+      "failed": 0,
+      "total": 81,
+      "files": [
+        {
+          "path": "tests/gpu-frame-gate.test.ts",
+          "status": "passed",
+          "testCases": 13
+        },
+        {
+          "path": "tests/menu-frame-pacing.test.ts",
+          "status": "passed",
+          "testCases": 8
+        },
+        {
+          "path": "tests/menu-presentation.test.ts",
+          "status": "passed",
+          "testCases": 8
+        },
+        {
+          "path": "tests/menu-preview.test.ts",
+          "status": "passed",
+          "testCases": 3
+        },
+        {
+          "path": "tests/settings-transition.test.ts",
+          "status": "passed",
+          "testCases": 49
+        }
+      ],
+      "sourceStabilityGuard": "passed; no source rewrites",
+      "pretest": "pinned player LOD derivative already matched",
+      "jsonReport": "/tmp/gp-menu-pacing-tests.json",
+      "jsonReportSha256": "de14ee0aa638db3ab872b4ce1ad9e05491ec93cce0fcdc5bed9edb20262bdf6b",
+      "baseCommit": "3f9f0ee97be9ee16270be744f70e151af9cd4011"
+    },
+    "staticChecks": {
+      "eslint": "passed; exit 0",
+      "prettier": "passed; exit 0",
+      "gitDiffCheck": "passed; exit 0"
+    },
+    "behavior": [
+      "A menu frame completes through the actual renderer GPU gate before startup controls are revealed.",
+      "The next showroom submission waits 1000/15 ms after observed completion; the completion callback and at least one following callback remain free for UI painting.",
+      "Covered settings return before either frame scheduler; settings preparation may drain the same real fence without losing its owned menu handoff.",
+      "Renderer identity, reset and disposal prevent stale startup receipts; context loss and failed GPU queries do not authorize a handoff.",
+      "Driving and replay retain their existing direct GPU-gate branch; no physics, quality, scene-pass or model simplification is introduced."
+    ],
+    "causeAssessment": {
+      "sourceFact": "The prior idle cap measured elapsed time from submission start. On slow completion that interval had expired, permitting another full menu render in the completion callback. Startup controls were exposed at submission, before completion.",
+      "traceFact": "The failed controls resolved in the DOM, then waited for visible/enabled/stable actionability; no scroll or interception failure was reached. In the Apply trace the modal existed and low quality selection succeeded, but the latest screencast remained the bare menu throughout the 15-second click wait.",
+      "inference": "The combined evidence supports a UI-paint starvation window during menu GPU handoff. It does not measure a new GPU FPS or guarantee total startup time."
+    }
+  },
+  "browserFailureComparison": {
+    "backend": "ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)",
+    "physicalHardwareValidated": false,
+    "parent": {
+      "commit": "c1827511146611c8049569b555d40ea5719936c7",
+      "runId": 39295903097,
+      "jobId": 118208222459,
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39295903097/job/118208222459",
+      "passed": 3,
+      "failed": 3,
+      "processExitCode": 1,
+      "artifactId": 12208028313
+    },
+    "motogpCommit": {
+      "commit": "9d5c5582530bbb66de2a170edd6775f3a3947b1b",
+      "runId": 39297624783,
+      "jobId": 118214145399,
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39297624783/job/118214145399",
+      "passed": 3,
+      "failed": 3,
+      "processExitCode": 1,
+      "artifactId": 12211050559
+    },
+    "identicalFailedStages": [
+      {
+        "test": "e2e/30-menu-access.spec.ts: live 640x400 settings and paused grid",
+        "action": "APPLY & SAVE",
+        "failure": "click actionability timeout",
+        "timeoutMs": 15000
+      },
+      {
+        "test": "e2e/settings-transition.spec.ts: 640x400",
+        "action": "GARAGE & SETTINGS",
+        "failure": "click actionability timeout",
+        "timeoutMs": 15000
+      },
+      {
+        "test": "e2e/settings-transition.spec.ts: 1280x720",
+        "action": "GARAGE & SETTINGS",
+        "failure": "click actionability timeout",
+        "timeoutMs": 15000
+      }
+    ],
+    "passedControlsInBoth": [
+      "DOM-only menu mouse/keyboard accessibility",
+      "real WebGL GPU-frame completion with timer polling",
+      "real WebGL GPU-frame completion with animation-frame polling"
+    ],
+    "scope": "Same failures are observed on the parent and MotoGP commit. This is not an isolated before/after performance benchmark."
+  },
+  "motogpJourneyFailuresBeforePacing": {
+    "commit": "9d5c5582530bbb66de2a170edd6775f3a3947b1b",
+    "runId": 39297624842,
+    "dry": {
+      "jobId": 118220602878,
+      "artifactId": 12211667016,
+      "failed": 1,
+      "processExitCode": 1,
+      "testTimeoutMs": 300000,
+      "progress": [
+        {
+          "seconds": 149,
+          "stage": "initial menu visibility"
+        },
+        {
+          "seconds": [179, 210, 240],
+          "stage": "APPLY & SAVE click"
+        },
+        {
+          "seconds": 270,
+          "stage": "modal hidden check"
+        }
+      ],
+      "failure": "Original total deadline expired inside finishRaceEntry while evaluating apexDiagnostics; riding and replay were not established.",
+      "retainedCapture": "01-gp-poggio-practice-menu.png"
+    },
+    "wet": {
+      "jobId": 118220602801,
+      "artifactId": 12212205856,
+      "failed": 1,
+      "processExitCode": 1,
+      "testTimeoutMs": 300000,
+      "progress": [
+        {
+          "seconds": 150,
+          "stage": "initial menu visibility"
+        },
+        {
+          "seconds": [180, 210, 240],
+          "stage": "presentation-details summary click"
+        },
+        {
+          "seconds": 270,
+          "stage": "APPLY & SAVE click"
+        },
+        {
+          "seconds": 300,
+          "stage": "ENTER CIRCUIT click"
+        }
+      ],
+      "failure": "Original total deadline expired at the ENTER CIRCUIT click; riding was not established."
+    }
+  },
+  "cameraFixtureCorrection": {
+    "path": "tests/race-view-continuity.test.ts",
+    "sha256": "a4a283713ca48e7720319be2bf18469c506ecdf346f1e6690cb17e4c67a6667c",
+    "testRun": {
+      "command": "node --experimental-transform-types scripts/source-stability.ts -- npm test -- tests/race-view-continuity.test.ts tests/snapshot-interpolation.test.ts --reporter=dot --reporter=json --outputFile=/tmp/gp-race-view-integration-tests.json",
+      "processExitCode": 0,
+      "durationSeconds": 44.86,
+      "passed": 27,
+      "failed": 0,
+      "total": 27,
+      "files": [
+        {
+          "path": "tests/race-view-continuity.test.ts",
+          "status": "passed",
+          "testCases": 7
+        },
+        {
+          "path": "tests/snapshot-interpolation.test.ts",
+          "status": "passed",
+          "testCases": 20
+        }
+      ],
+      "sourceStabilityGuard": "passed; no source rewrites",
+      "pretest": "pinned player LOD derivative already matched",
+      "jsonReport": "/tmp/gp-race-view-integration-tests.json",
+      "jsonReportSha256": "6ddaffaaab4798341c5c75b334aba76aeaf2a2dd32a00cd02b158ba6e0e65144",
+      "baseCommit": "9d5c5582530bbb66de2a170edd6775f3a3947b1b"
+    },
+    "productionInterpolationChanged": false,
+    "cases": [
+      {
+        "case": "continuous motion",
+        "firstXMetres": 58,
+        "lastXMetres": 66,
+        "endpointVxAndSpeedMetresPerSecond": 80,
+        "nominalSnapshotIntervalSeconds": 0.1,
+        "alpha": 0.25,
+        "expectedPresentedXMetres": 60,
+        "validity": "Eight metres over 0.1 seconds agrees with the endpoint speed to Float32 precision; interpolation is physically coherent."
+      },
+      {
+        "case": "reset boundary",
+        "firstXMetres": 40,
+        "lastXMetres": 120,
+        "endpointVxAndSpeedMetresPerSecond": 0,
+        "nominalSnapshotIntervalSeconds": 0.1,
+        "alpha": 0.25,
+        "expectedPresentedXMetres": 40,
+        "validity": "An 80-metre zero-speed discontinuity exceeds the production reset threshold and must hold the older opponent pose."
+      }
+    ],
+    "bothFollowedCarsCovered": true,
+    "timeExpectation": "Math.fround(a[H.TIME] + (b[H.TIME] - a[H.TIME]) * 0.25), computed independently of PresentedFrame",
+    "retainedAssertions": [
+      "current camera and projection",
+      "garage/frontage/pit-station dispatch ordering",
+      "one pose and one LOD update per car",
+      "LOD distance from actual presented opponent position",
+      "exact opponent update arguments",
+      "source snapshot immutability"
+    ],
+    "whyResetCaseIsSeparate": "The full renderer-order fixture checks that LOD uses the held presented pose; a snapshot-interpolation helper test alone cannot detect renderer integration reverting to raw position interpolation.",
+    "priorFocusedCiFailure": {
+      "runId": 39297624842,
+      "jobId": 118214145670,
+      "passed": 253,
+      "failed": 2,
+      "total": 255,
+      "processExitCode": 1,
+      "failedCases": "Both followed-car variants of the original implausible-motion fixture; other focused cases passed."
+    },
+    "staticChecks": {
+      "eslint": "passed; exit 0",
+      "prettier": "passed; exit 0",
+      "gitDiffCheck": "passed; exit 0"
+    }
+  },
+  "originalBrowserVerification": {
+    "status": "pending on the committed candidate",
+    "testFiles": [
+      "e2e/30-menu-access.spec.ts",
+      "e2e/settings-transition.spec.ts",
+      "e2e/gpu-frame-gate.spec.ts",
+      "e2e/motogp-riding-flow.spec.ts",
+      "e2e/motogp-wet-riding.spec.ts"
+    ],
+    "timeoutsMs": {
+      "motogpWholeJourney": 300000,
+      "menuVisibility": 180000,
+      "settingsAndMenuLiveCase": 240000,
+      "settingsPointerAction": 15000,
+      "menuDomComponentCase": 120000,
+      "gpuFenceCompletionLoop": 15000
+    },
+    "unchanged": [
+      "normal pointer/keyboard input and actionability",
+      "scene assets, quality settings and render passes",
+      "MotoGP 1280x800 viewports and recorded driving/replay workloads",
+      "test assertions and timeouts"
+    ],
+    "forcedClicksAdded": false,
+    "timeoutExtensionsAdded": false,
+    "syntheticSessionSnapshotsAdded": false,
+    "measuredGpuFpsClaim": false
+  },
+  "sourceBaseCommitAtMenuTest": "3f9f0ee97be9ee16270be744f70e151af9cd4011",
+  "integratedBaseCommitBeforePublication": "cc7cb7ff19759609402d58a34af037a68fbe841d",
+  "integrationNote": "Incoming cc7cb7f advanced shared simulation identity to 7 and preserved GP version-6 history. All menu repair and corrected camera test hashes remain identical; no additional test run is represented here."
+}
