@@ -216,6 +216,10 @@ export class DirtBikeVehicle extends BikeVehicle {
     this.pickupSpeed = this.dynamics.speed;
     this.compressionFront = this.sag(true);
     this.compressionRear = this.sag(false);
+    this.forceFront = (this.dynamics.mass * G * b.cgToRear) / L;
+    this.forceRear = (this.dynamics.mass * G * b.cgToFront) / L;
+    this.tires[0].load = this.tires[1].load = this.forceFront;
+    this.tires[2].load = this.tires[3].load = this.forceRear;
     this.airborne = false;
     this.airTime = 0;
     this.freeSteps = 0;
@@ -273,6 +277,10 @@ export class DirtBikeVehicle extends BikeVehicle {
       !ai &&
       (course?.kind === 'motocross' || course?.kind === 'supercross') &&
       (this.definition.id === 'mx250' || this.definition.id === 'mx450');
+    // Sport may share a front-lever stroke across both tyres, but the
+    // player's rear pedal is a rear-only correction on a jump approach or
+    // while covering a wheelie. AI keeps its surveyed linked-brake map.
+    d.p.independentRearBrake = this.playerMotocross;
     if (!this.playerMotocross || !this.riding) this.wheelPickup = false;
     // Ground grip: tyre/surface peak (knobby bite from the material table),
     // the load the suspension actually carries, and berm support.
@@ -304,6 +312,17 @@ export class DirtBikeVehicle extends BikeVehicle {
     else {
       const x0 = d.x,
         z0 = d.z;
+      if (this.playerMotocross && this.riding) {
+        // The sprung chassis has already resolved these contact loads.
+        // Supplying them before the core's force solve makes an unloaded
+        // wheel lose drive/braking immediately, with TC/ABS sharing the
+        // remaining tyre circle with cornering. No second velocity or
+        // trajectory correction is needed. The core's quasi-static load
+        // transfer still owns its calibrated lean and fall controller;
+        // these spring loads replace that estimate again on the next step.
+        d.frontLoad = this.forceFront;
+        d.rearLoad = this.forceRear;
+      }
       d.step(
         {
           lean: this.input.steer,
@@ -315,6 +334,10 @@ export class DirtBikeVehicle extends BikeVehicle {
         },
         dt,
       );
+      // A free tyre cannot work soil, even if its requested torque exceeds
+      // a zero contact budget. Keep that raw-mode demand out of roost/mud
+      // accumulation; wheel spin in a real flight remains explicit state.
+      if (this.playerMotocross && this.forceRear <= 0) d.rearSlip = 0;
       const coreSpeed = d.speed;
       if (this.wheelPickup && this.riding) {
         this.pickupWheels(dt);

@@ -293,8 +293,8 @@ describe('MX contact, dust and landing presentation', () => {
     dry.update(frame, 1 / 60);
     frame[o + OFFROAD_BASE + O.MOISTURE] = 0.7;
     wet.update(frame, 1 / 60);
-    expect(dry.active).toBe(29);
-    expect(wet.active).toBe(29);
+    expect(dry.active).toBe(30); // Fifteen fragments at each observed tyre contact.
+    expect(wet.active).toBe(30);
     const broad = (r: Roost) =>
       [...r.points.geometry.getAttribute('mxParticleSize').array].filter((v) => v > 0.2).length;
     expect(broad(dry)).toBeGreaterThan(12);

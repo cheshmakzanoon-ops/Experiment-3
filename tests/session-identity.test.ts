@@ -37,14 +37,14 @@ const legacyGhost = () => {
   };
 };
 describe('WP12 recorded identity and schema policy', () => {
-  it.each([2, 3])('keeps physics v%i records out of the current physics category', (physics) => {
-    expect(SIMULATION_VERSION).toBe(4);
+  it.each([2, 3, 4])('keeps physics v%i records out of the current physics category', (physics) => {
+    expect(SIMULATION_VERSION).toBe(5);
     expect(
       recordIncompatibility(
         { circuit: 'aurel', vehicle: 'apx01', physics },
         { circuit: 'aurel', vehicle: 'apx01', physics: SIMULATION_VERSION },
       ),
-    ).toBe(`recorded with physics v${physics}; current physics is v4`);
+    ).toBe(`recorded with physics v${physics}; current physics is v5`);
     expect(leaderboardKey('aurel', 'apx01', physics)).not.toBe(
       leaderboardKey('aurel', 'apx01', SIMULATION_VERSION),
     );

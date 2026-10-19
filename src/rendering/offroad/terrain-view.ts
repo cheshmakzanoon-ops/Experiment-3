@@ -7,6 +7,7 @@ import {
 } from '../../simulation/offroad/course-terrain.ts';
 import { COURSE_CELL, SOIL_KINDS, type SoilKind } from '../../simulation/offroad/course.ts';
 import { Track, trackPoint } from '../../simulation/track.ts';
+import { TERRAIN } from '../../simulation/terrain.ts';
 import { materials } from '../materials/index.ts';
 import { installScannedSoil, soilSlotOf, soilSlots, writeSoilSlot } from '../ground/soil-splat.ts';
 import type { ScanLayer } from '../ground/scan-store.ts';
@@ -14,6 +15,7 @@ import { installMxSoilDetail, MX_SOIL_COLOURS } from './mx-soil-detail.ts';
 import { installMxSoilMorphology, MX_SOIL_MORPHOLOGY_KINDS } from './mx-soil-morphology.ts';
 import { mxSoilSample, sampleMxSoilTransition } from './mx-soil-transition.ts';
 import { installMxTerrainShadow } from './mx-terrain-shadow.ts';
+import { MxTerrainNormalEdges } from './mx-terrain-normal-edges.ts';
 
 /** Soil albedo per kind (sRGB; the soil detail map multiplies it). */
 export const SOIL_COLOURS: Readonly<Record<SoilKind, number>> = Object.freeze({
@@ -32,6 +34,7 @@ interface Chunk {
   first: number;
   rows: number;
   base: Float32Array;
+  edges: MxTerrainNormalEdges | null;
   dirty: boolean;
 }
 /** One recorded export, for replays (the soil as it was at that time). */
@@ -93,6 +96,7 @@ export class TerrainView {
     }
     for (let first = 0; first < t.renderRows; first += CHUNK_ROWS)
       this.chunks.push(this.buildChunk(first, Math.min(CHUNK_ROWS, t.renderRows - first)));
+    this.joinNormals(true);
   }
   private buildChunk(first: number, rows: number): Chunk {
     const t = this.terrain,
@@ -231,13 +235,22 @@ export class TerrainView {
     geometry.setAttribute('uv1', new T.BufferAttribute(uv.slice(), 2));
     geometry.setIndex(index);
     geometry.computeVertexNormals();
+    (geometry.getAttribute('normal') as T.BufferAttribute).setUsage(T.DynamicDrawUsage);
     geometry.computeBoundingSphere();
+    geometry.computeBoundingBox();
+    // Ruts only lower a vertex, by at most the simulation's depth cap. Keep
+    // conservative bounds for every replay/live state without a full bounds
+    // scan on each sparse update or a chunk disappearing at a frustum edge.
+    const depression = TERRAIN.maxDepth + 1e-4; // Float32 position upload allowance.
+    geometry.boundingSphere!.radius += depression;
+    geometry.boundingBox!.min.y -= depression;
     const mesh = new T.Mesh(geometry, this.material);
     mesh.name = `Course terrain ${first}-${first + rows} m`;
     mesh.receiveShadow = true;
     mesh.castShadow = this.motocross;
     this.group.add(mesh);
-    return { mesh, first, rows, base, dirty: false };
+    const edges = this.motocross ? new MxTerrainNormalEdges(geometry, vx) : null;
+    return { mesh, first, rows, base, edges, dirty: false };
   }
   /** A worker keyframe: record it (replays) and, live, show it. */
   record(delta: TerrainRenderDelta | undefined, time: number, live: boolean) {
@@ -300,11 +313,17 @@ export class TerrainView {
       if (!(block >= 0 && block < this.depth.length)) continue;
       this.depth[block] = b[k + 1];
       this.compaction[block] = b[k + 2];
-      const chunk = this.chunks[Math.floor(Math.floor(block / cols) / CHUNK_ROWS)];
+      const row = Math.floor(block / cols),
+        chunkIndex = Math.floor(row / CHUNK_ROWS),
+        chunk = this.chunks[chunkIndex];
       if (chunk) chunk.dirty = true;
-      // The vertex row after a chunk's last block belongs to the next one too.
-      const next = this.chunks[Math.floor((Math.floor(block / cols) + 1) / CHUNK_ROWS)];
-      if (next) next.dirty = true;
+      // A block drives the vertex at its own row. At a strip boundary that
+      // row is also the PREVIOUS strip's final row; row zero closes the lap.
+      // Dirtying the next strip for row 95 missed the actual shared row 96.
+      if (row % CHUNK_ROWS === 0) {
+        const previous = this.chunks[mod(chunkIndex - 1, this.chunks.length)];
+        if (previous) previous.dirty = true;
+      }
     }
     this.setWetness(delta.wetness);
   }
@@ -319,7 +338,6 @@ export class TerrainView {
       rowsTotal = t.renderRows;
     for (const chunk of this.chunks) {
       if (!chunk.dirty) continue;
-      chunk.dirty = false;
       const g = chunk.mesh.geometry,
         position = g.getAttribute('position') as T.BufferAttribute,
         state = g.getAttribute('apexSoilState') as T.BufferAttribute,
@@ -338,7 +356,51 @@ export class TerrainView {
       position.needsUpdate = true;
       state.needsUpdate = true;
       g.computeVertexNormals();
+      chunk.edges?.refresh();
     }
+    // First update every changed face ring, then combine raw area-weighted
+    // contributions. A near-edge rut can change a neighbour's edge normal
+    // even when none of that neighbour's own positions/state changed.
+    this.joinNormals();
+    for (const chunk of this.chunks) chunk.dirty = false;
+  }
+  private joinNormals(all = false) {
+    if (!this.motocross) return;
+    for (let i = 0; i < this.chunks.length; i++) {
+      const current = this.chunks[i],
+        next = this.chunks[(i + 1) % this.chunks.length];
+      if (all || current.dirty || next.dirty) current.edges!.join(next.edges!);
+    }
+  }
+  /** Height of the currently displayed grid at course coordinates. Cosmetic
+   * ground contacts can follow live/replayed ruts without reading the later
+   * worker state. Use the mesh's two triangles, not bilinear interpolation:
+   * the latter lifts particles off a saddle or sinks them below a rut lip.
+   * The short final row wraps at the true lap length. Outside the mesh band
+   * the original course ground remains the receiver. No simulation writes. */
+  heightAt(s: number, lateral: number) {
+    const t = this.terrain,
+      station = mod(s, this.track.length),
+      across = COURSE_CELL.lateral * 2,
+      along = COURSE_CELL.along * 2,
+      column = (lateral - t.lateralMin) / across;
+    if (column < 0 || column > t.renderColumns) return t.baseHeight(station, lateral);
+    const row = Math.min(t.renderRows - 1, Math.floor(station / along)),
+      chunk = this.chunks[Math.floor(row / CHUNK_ROWS)],
+      positions = chunk.mesh.geometry.getAttribute('position'),
+      c = Math.min(t.renderColumns - 1, Math.floor(column)),
+      x = column - c,
+      z = (station - row * along) / (Math.min(this.track.length, (row + 1) * along) - row * along),
+      a = (row - chunk.first) * (t.renderColumns + 1) + c,
+      b = a + 1,
+      d = a + t.renderColumns + 1,
+      e = d + 1;
+    if (x + z <= 1) {
+      const h = positions.getY(a);
+      return h + (positions.getY(b) - h) * x + (positions.getY(d) - h) * z;
+    }
+    const h = positions.getY(e);
+    return h + (positions.getY(d) - h) * (1 - x) + (positions.getY(b) - h) * (1 - z);
   }
   /** Deformed blocks shown (diagnostics, tests). */
   get deformedBlocks() {

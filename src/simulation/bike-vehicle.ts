@@ -815,8 +815,11 @@ export function writeBikeBlock(out: Float32Array, base: number, car: Vehicle) {
   out[base + B.RIDER_OFFSET] = d.riderOffset;
   out[base + B.STATE] = BIKE_STATES.indexOf(d.state);
   out[base + B.STATE_CLOCK] = d.stateClock;
-  out[base + B.FRONT_LOAD] = d.frontLoad;
-  out[base + B.REAR_LOAD] = d.rearLoad;
+  // The off-road adapter resolves sprung wheel contact, including a lifted
+  // front or a rear skipping a bump. Publish the same measured loads as
+  // W.LOAD so the rider readout cannot show a free tyre carrying weight.
+  out[base + B.FRONT_LOAD] = car.bikeSpec.offroad ? car.tires[0].load : d.frontLoad;
+  out[base + B.REAR_LOAD] = car.bikeSpec.offroad ? car.tires[2].load : d.rearLoad;
   out[base + B.PITCH] = d.pitch;
   out[base + B.FORK] = car.fork;
   out[base + B.SHOCK] = car.shock;

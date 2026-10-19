@@ -46,9 +46,11 @@ export class OffroadScene {
     this.roost = new Roost(track);
     this.group.name = 'Off-road venue';
     this.group.add(this.roost.points);
+    if (this.roost.clods) this.group.add(this.roost.clods);
     if (this.roost.contactShadows) this.group.add(this.roost.contactShadows);
     construction.add('Off-road course terrain', 3, () => {
       this.terrain = new TerrainView(track);
+      this.roost.groundHeight = (s, lateral) => this.terrain!.heightAt(s, lateral);
       // Night venues light the soil with the floodlight pools, like a ribbon.
       installLightPools(this.terrain.material);
       this.group.add(this.terrain.group);
