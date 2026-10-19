@@ -92,7 +92,7 @@ export class FestivalHud {
       <div class="fest-hint" id="festHint"><kbd>C</kbd> CAMERA · <kbd>T</kbd> MAP · <kbd>ESC</kbd> MENU</div>
       <div class="fest-explore" id="festExplore"><span class="fest-eyebrow">THE ROAD IS YOURS</span><b id="festExploreName">Explore Solvane Coast</b><small id="festExploreDistance"></small></div>
       <div class="fest-skills" id="festSkills" hidden role="status"><span id="festSkillLabel"></span><div><b id="festSkillScore">0</b><i id="festSkillMultiplier">×1.0</i></div><small id="festSkillBank"></small><div class="fest-chain-track"><i id="festSkillTimer"></i></div></div>
-      <div class="fest-event" id="festEvent" hidden><h2 id="festEventName"></h2><div class="fest-row" id="festEventRow"></div><div class="fest-challenge" id="festChallenge" hidden aria-label="Live activity target"><div><b id="festChallengeStars"></b><span id="festChallengeTarget"></span></div><small id="festChallengeAdvice"></small><div class="fest-challenge-track" role="progressbar" aria-label="Progress to activity star target" aria-valuemin="0" aria-valuemax="100" id="festChallengeMeter"><i id="festChallengeFill"></i></div></div><div class="fest-progress"><i id="festProgress"></i></div></div>
+      <div class="fest-event" id="festEvent" hidden><h2 id="festEventName"></h2><div class="fest-row" id="festEventRow"></div><div class="fest-rivals" id="festRivals" hidden aria-label="Rival gaps along the race route"><small>ROUTE GAP</small><div id="festRivalsRow"></div></div><div class="fest-challenge" id="festChallenge" hidden aria-label="Live activity target"><div><b id="festChallengeStars"></b><span id="festChallengeTarget"></span></div><small id="festChallengeAdvice"></small><div class="fest-challenge-track" role="progressbar" aria-label="Progress to activity star target" aria-valuemin="0" aria-valuemax="100" id="festChallengeMeter"><i id="festChallengeFill"></i></div></div><div class="fest-progress"><i id="festProgress"></i></div></div>
       <div class="fest-countdown" id="festCountdown" hidden></div>
       <div class="fest-message" id="festMessage" role="status" aria-live="polite" hidden></div>
       <div class="fest-card" id="festCard" hidden role="dialog" aria-label="Event"></div>
@@ -541,6 +541,24 @@ export class FestivalHud {
     }
     // Running event.
     const ev = status.event;
+    const rivals = status.mode === 'running' && ev && isRace(ev.kind as never) ? ev.rivals : null;
+    this.show('festRivals', !!rivals && !this.menuOpen && !this.mapOpen && !this.photoOpen);
+    if (rivals) {
+      const gapText = (metres: number) =>
+        metres >= 1000 ? `${(metres / 1000).toFixed(1)} KM` : `${Math.round(metres)} M`;
+      const html = (['ahead', 'behind'] as const)
+        .flatMap((side) => {
+          const rival = rivals[side];
+          return rival
+            ? [
+                `<span data-relation="${side}"><small>${side.toUpperCase()}</small><b>${escapeHtml(rival.name)}</b><em>${gapText(rival.metres)}</em></span>`,
+              ]
+            : [];
+        })
+        .join('');
+      const row = this.get('festRivalsRow');
+      if (row.innerHTML !== html) row.innerHTML = html;
+    }
     const challenge = status.mode === 'running' ? (ev?.challenge ?? null) : null;
     this.root.classList.toggle('fest-has-challenge', !!challenge);
     this.show('festChallenge', !!challenge);

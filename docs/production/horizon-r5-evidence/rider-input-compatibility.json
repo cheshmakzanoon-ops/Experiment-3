@@ -1,0 +1,471 @@
+{
+  "label": "Post-MX-merge Festival body-input compatibility",
+  "head": "08be765b0c9abab1f29c4603e2405715b7cd84c8",
+  "upstream": "08be765b0c9abab1f29c4603e2405715b7cd84c8",
+  "simulationVersion": 3,
+  "snapshotVersion": 13,
+  "snapshotHeader": 24,
+  "carStride": 293,
+  "sourceSha256": {
+    "src/simulation/open-world/session.ts": "97adec621d4187cbb5af44fe892be28c2c36d94f457ad00d5609a6c4a9050c0c",
+    "src/simulation/config.ts": "5f161e455401d26cd7e618cc35bbb5640f0ac05662de36e584fcee5c8ae8c30e",
+    "src/simulation/offroad/dirt-bike-vehicle.ts": "3bed8947c05659a14adc74df0dec34511b8b2c91df26e17555bdd572b3dd1626",
+    "src/simulation/offroad/rider-weight.ts": "1b4819b96e4bf48f03113f0440b964cd0cc0aefb697bbc775f8ac823bb75940a",
+    "src/core/session-identity.ts": "95e573235880f57391d6bbd1acafc48211415162b9e1be2175bdcc11c87f9993",
+    "src/input/controller.ts": "30cab5f82c1228c9535455d69e3fe680fecf97447a9d0f4f64d82d24cfb5a1dd"
+  },
+  "scope": "Actual local Festival simulation; no browser, network or pixel capture.",
+  "physicsHz": 120,
+  "inputHz": 60,
+  "secondsPerRun": 6,
+  "vehicles": 3,
+  "drivingRuns": 9,
+  "simulatedTicks": 6480,
+  "generatedFrames": 6489,
+  "comparedFrames": 4326,
+  "scalarComparisons": 1371342,
+  "inputSamples": 3240,
+  "setterNormalizationCases": 36,
+  "passed": true,
+  "failures": [],
+  "results": [
+    {
+      "vehicle": "eh3",
+      "runs": [
+        {
+          "variant": "absent",
+          "frames": 721,
+          "ticks": 720,
+          "inputSamples": 360,
+          "frameFloats": [
+            317
+          ],
+          "frameSha256": "2b68a76746b94c38fa5f821f1b51b7994948a7160539666231e7456e2bc2fac9",
+          "badInputSamples": 0,
+          "nonFinite": 0,
+          "resets": 0,
+          "peakSpeedKmh": 83.83897923830156,
+          "finalSpeedKmh": 18.696214746527275,
+          "displacementMetres": 73.47333070616645,
+          "finalMode": "free"
+        },
+        {
+          "variant": "neutral",
+          "frames": 721,
+          "ticks": 720,
+          "inputSamples": 360,
+          "frameFloats": [
+            317
+          ],
+          "frameSha256": "2b68a76746b94c38fa5f821f1b51b7994948a7160539666231e7456e2bc2fac9",
+          "badInputSamples": 0,
+          "nonFinite": 0,
+          "resets": 0,
+          "peakSpeedKmh": 83.83897923830156,
+          "finalSpeedKmh": 18.696214746527275,
+          "displacementMetres": 73.47333070616645,
+          "finalMode": "free"
+        },
+        {
+          "variant": "alternating",
+          "frames": 721,
+          "ticks": 720,
+          "inputSamples": 360,
+          "frameFloats": [
+            317
+          ],
+          "frameSha256": "2b68a76746b94c38fa5f821f1b51b7994948a7160539666231e7456e2bc2fac9",
+          "badInputSamples": 0,
+          "nonFinite": 0,
+          "resets": 0,
+          "peakSpeedKmh": 83.83897923830156,
+          "finalSpeedKmh": 18.696214746527275,
+          "displacementMetres": 73.47333070616645,
+          "finalMode": "free"
+        }
+      ],
+      "comparisons": [
+        {
+          "against": "neutral",
+          "passed": true,
+          "comparedFrames": 721,
+          "mismatchFrames": 0,
+          "firstMismatch": null
+        },
+        {
+          "against": "alternating",
+          "passed": true,
+          "comparedFrames": 721,
+          "mismatchFrames": 0,
+          "firstMismatch": null
+        }
+      ],
+      "normalization": [
+        {
+          "case": "absent",
+          "expected": 0,
+          "actual": 0,
+          "passed": true
+        },
+        {
+          "case": "undefined",
+          "expected": 0,
+          "actual": 0,
+          "passed": true
+        },
+        {
+          "case": "null",
+          "expected": 0,
+          "actual": 0,
+          "passed": true
+        },
+        {
+          "case": "NaN",
+          "expected": 0,
+          "actual": 0,
+          "passed": true
+        },
+        {
+          "case": "positive-infinity",
+          "expected": 0,
+          "actual": 0,
+          "passed": true
+        },
+        {
+          "case": "negative-infinity",
+          "expected": 0,
+          "actual": 0,
+          "passed": true
+        },
+        {
+          "case": "above-range",
+          "expected": 1,
+          "actual": 1,
+          "passed": true
+        },
+        {
+          "case": "below-range",
+          "expected": -1,
+          "actual": -1,
+          "passed": true
+        },
+        {
+          "case": "positive-analog",
+          "expected": 0.375,
+          "actual": 0.375,
+          "passed": true
+        },
+        {
+          "case": "negative-analog",
+          "expected": -0.625,
+          "actual": -0.625,
+          "passed": true
+        },
+        {
+          "case": "numeric-string",
+          "expected": 0,
+          "actual": 0,
+          "passed": true
+        },
+        {
+          "case": "neutral",
+          "expected": 0,
+          "actual": 0,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "vehicle": "gpr1",
+      "runs": [
+        {
+          "variant": "absent",
+          "frames": 721,
+          "ticks": 720,
+          "inputSamples": 360,
+          "frameFloats": [
+            317
+          ],
+          "frameSha256": "df5feeae8b3969c99964fff09acf55c4090834483deab8553371b3894de55ae7",
+          "badInputSamples": 0,
+          "nonFinite": 0,
+          "resets": 0,
+          "peakSpeedKmh": 85.00184916353321,
+          "finalSpeedKmh": 27.956671635450537,
+          "displacementMetres": 77.13402853497608,
+          "finalMode": "free"
+        },
+        {
+          "variant": "neutral",
+          "frames": 721,
+          "ticks": 720,
+          "inputSamples": 360,
+          "frameFloats": [
+            317
+          ],
+          "frameSha256": "df5feeae8b3969c99964fff09acf55c4090834483deab8553371b3894de55ae7",
+          "badInputSamples": 0,
+          "nonFinite": 0,
+          "resets": 0,
+          "peakSpeedKmh": 85.00184916353321,
+          "finalSpeedKmh": 27.956671635450537,
+          "displacementMetres": 77.13402853497608,
+          "finalMode": "free"
+        },
+        {
+          "variant": "alternating",
+          "frames": 721,
+          "ticks": 720,
+          "inputSamples": 360,
+          "frameFloats": [
+            317
+          ],
+          "frameSha256": "df5feeae8b3969c99964fff09acf55c4090834483deab8553371b3894de55ae7",
+          "badInputSamples": 0,
+          "nonFinite": 0,
+          "resets": 0,
+          "peakSpeedKmh": 85.00184916353321,
+          "finalSpeedKmh": 27.956671635450537,
+          "displacementMetres": 77.13402853497608,
+          "finalMode": "free"
+        }
+      ],
+      "comparisons": [
+        {
+          "against": "neutral",
+          "passed": true,
+          "comparedFrames": 721,
+          "mismatchFrames": 0,
+          "firstMismatch": null
+        },
+        {
+          "against": "alternating",
+          "passed": true,
+          "comparedFrames": 721,
+          "mismatchFrames": 0,
+          "firstMismatch": null
+        }
+      ],
+      "normalization": [
+        {
+          "case": "absent",
+          "expected": 0,
+          "actual": 0,
+          "passed": true
+        },
+        {
+          "case": "undefined",
+          "expected": 0,
+          "actual": 0,
+          "passed": true
+        },
+        {
+          "case": "null",
+          "expected": 0,
+          "actual": 0,
+          "passed": true
+        },
+        {
+          "case": "NaN",
+          "expected": 0,
+          "actual": 0,
+          "passed": true
+        },
+        {
+          "case": "positive-infinity",
+          "expected": 0,
+          "actual": 0,
+          "passed": true
+        },
+        {
+          "case": "negative-infinity",
+          "expected": 0,
+          "actual": 0,
+          "passed": true
+        },
+        {
+          "case": "above-range",
+          "expected": 1,
+          "actual": 1,
+          "passed": true
+        },
+        {
+          "case": "below-range",
+          "expected": -1,
+          "actual": -1,
+          "passed": true
+        },
+        {
+          "case": "positive-analog",
+          "expected": 0.375,
+          "actual": 0.375,
+          "passed": true
+        },
+        {
+          "case": "negative-analog",
+          "expected": -0.625,
+          "actual": -0.625,
+          "passed": true
+        },
+        {
+          "case": "numeric-string",
+          "expected": 0,
+          "actual": 0,
+          "passed": true
+        },
+        {
+          "case": "neutral",
+          "expected": 0,
+          "actual": 0,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "vehicle": "sm450",
+      "runs": [
+        {
+          "variant": "absent",
+          "frames": 721,
+          "ticks": 720,
+          "inputSamples": 360,
+          "frameFloats": [
+            317
+          ],
+          "frameSha256": "9c70f71fa55f6314d7cdf29ba9b4faa2023de20392e10d14979aa75dee7b746b",
+          "badInputSamples": 0,
+          "nonFinite": 0,
+          "resets": 0,
+          "peakSpeedKmh": 73.3847737851215,
+          "finalSpeedKmh": 27.771209962469623,
+          "displacementMetres": 69.64669037661182,
+          "finalMode": "free"
+        },
+        {
+          "variant": "neutral",
+          "frames": 721,
+          "ticks": 720,
+          "inputSamples": 360,
+          "frameFloats": [
+            317
+          ],
+          "frameSha256": "9c70f71fa55f6314d7cdf29ba9b4faa2023de20392e10d14979aa75dee7b746b",
+          "badInputSamples": 0,
+          "nonFinite": 0,
+          "resets": 0,
+          "peakSpeedKmh": 73.3847737851215,
+          "finalSpeedKmh": 27.771209962469623,
+          "displacementMetres": 69.64669037661182,
+          "finalMode": "free"
+        },
+        {
+          "variant": "alternating",
+          "frames": 721,
+          "ticks": 720,
+          "inputSamples": 360,
+          "frameFloats": [
+            317
+          ],
+          "frameSha256": "9c70f71fa55f6314d7cdf29ba9b4faa2023de20392e10d14979aa75dee7b746b",
+          "badInputSamples": 0,
+          "nonFinite": 0,
+          "resets": 0,
+          "peakSpeedKmh": 73.3847737851215,
+          "finalSpeedKmh": 27.771209962469623,
+          "displacementMetres": 69.64669037661182,
+          "finalMode": "free"
+        }
+      ],
+      "comparisons": [
+        {
+          "against": "neutral",
+          "passed": true,
+          "comparedFrames": 721,
+          "mismatchFrames": 0,
+          "firstMismatch": null
+        },
+        {
+          "against": "alternating",
+          "passed": true,
+          "comparedFrames": 721,
+          "mismatchFrames": 0,
+          "firstMismatch": null
+        }
+      ],
+      "normalization": [
+        {
+          "case": "absent",
+          "expected": 0,
+          "actual": 0,
+          "passed": true
+        },
+        {
+          "case": "undefined",
+          "expected": 0,
+          "actual": 0,
+          "passed": true
+        },
+        {
+          "case": "null",
+          "expected": 0,
+          "actual": 0,
+          "passed": true
+        },
+        {
+          "case": "NaN",
+          "expected": 0,
+          "actual": 0,
+          "passed": true
+        },
+        {
+          "case": "positive-infinity",
+          "expected": 0,
+          "actual": 0,
+          "passed": true
+        },
+        {
+          "case": "negative-infinity",
+          "expected": 0,
+          "actual": 0,
+          "passed": true
+        },
+        {
+          "case": "above-range",
+          "expected": 1,
+          "actual": 1,
+          "passed": true
+        },
+        {
+          "case": "below-range",
+          "expected": -1,
+          "actual": -1,
+          "passed": true
+        },
+        {
+          "case": "positive-analog",
+          "expected": 0.375,
+          "actual": 0.375,
+          "passed": true
+        },
+        {
+          "case": "negative-analog",
+          "expected": -0.625,
+          "actual": -0.625,
+          "passed": true
+        },
+        {
+          "case": "numeric-string",
+          "expected": 0,
+          "actual": 0,
+          "passed": true
+        },
+        {
+          "case": "neutral",
+          "expected": 0,
+          "actual": 0,
+          "passed": true
+        }
+      ]
+    }
+  ]
+}

@@ -9,8 +9,24 @@ import { pathPoint, type RoutePath } from './route-path.ts';
 /** Anything the driver keeps its distance from: other cars and riders, and
  * the festival's kinematic ambient traffic (position and speed only). */
 export interface RouteObstacle {
-  readonly body: { readonly position: { readonly x: number; readonly z: number } };
+  readonly body: {
+    readonly position: { readonly x: number; readonly y: number; readonly z: number };
+    readonly velocity?: { readonly x: number; readonly z: number };
+  };
   readonly speed: number;
+  readonly definition?: { readonly halfExtents: readonly [number, number, number] };
+  readonly half?: readonly [number, number, number];
+  readonly forward?: { readonly x: number; readonly z: number };
+  readonly yaw?: number;
+}
+interface TrafficObservation {
+  car: RouteObstacle;
+  gap: number;
+  lateral: number;
+  width: number;
+  length: number;
+  speed: number;
+  lateralSpeed: number;
 }
 /** A rider down (lowside, highside, separated, remounting) this long asks
  * the session for a reset; the bike's own recovery is bounded well inside it. */
@@ -28,7 +44,15 @@ const BIKE_TURN_ROUND = 1.0;
 export const LOOSE_ROAD_SPEED = 41;
 
 /** Why the driver is doing what it does (HUD/debug, tests). */
-export type RouteDecision = 'HOLD' | 'RACE LINE' | 'FOLLOW' | 'PASS LEFT' | 'PASS RIGHT' | 'RECOVERY' | 'FINISHED';
+export type RouteDecision =
+  | 'HOLD'
+  | 'RACE LINE'
+  | 'FOLLOW'
+  | 'PASS LEFT'
+  | 'PASS RIGHT'
+  | 'HOLD LINE'
+  | 'RECOVERY'
+  | 'FINISHED';
 
 /**
  * AI for the festival: drives a planned road-network route (RoutePath) with
@@ -61,6 +85,15 @@ export class RouteDriver {
   private recovery = 0;
   private trafficSpeed = Infinity;
   private trafficClock = 0;
+  private passTarget: RouteObstacle | null = null;
+  private passSide: -1 | 0 | 1 = 0;
+  private holdingLine = false;
+  /** Reused observations: at most the festival's 24 active traffic cars. */
+  private readonly observed: TrafficObservation[] = [];
+  private observedCount = 0;
+  private trafficWidth = 1;
+  private trafficLength = 2.5;
+  private trafficMotion = 0;
   /** Seconds a motorcycle's rider has been down (see BIKE_DOWN_RESET). */
   private down = 0;
   /** A motorcycle turning round at walking pace (see BIKE_TURN_ROUND). */
@@ -92,6 +125,7 @@ export class RouteDriver {
     this.recovery = 0;
     this.trouble = 0;
     this.wantsReset = false;
+    this.clearTraffic();
   }
   update(dt: number, cars: readonly RouteObstacle[], hold = false, finished = false) {
     const c = this.car,
@@ -106,6 +140,7 @@ export class RouteDriver {
     this.d = path.locate(c.body.position.x, c.body.position.z, this.d, 40, this.located);
     this.lateral = this.located.lateral;
     if (hold) {
+      this.clearTraffic();
       command.throttle = 0;
       command.brake = 1;
       command.steer = 0;
@@ -128,7 +163,8 @@ export class RouteDriver {
     const env = c.definition.ai;
     // Traffic (12 Hz): follow, or take a lane beside a slower car ahead.
     this.trafficClock += dt;
-    if (this.trafficClock > 1 / 12) {
+    if (finished) this.clearTraffic();
+    else if (this.trafficClock > 1 / 12) {
       this.trafficClock = 0;
       this.planTraffic(cars);
     }
@@ -137,11 +173,17 @@ export class RouteDriver {
     // car's local +X is its left, and positive steer turns left.
     const lookahead = clamp(6 + c.speed * 0.5, 8, 48);
     path.at(this.d + lookahead, this.target);
-    const reach = Math.max(0.5, this.target.halfWidth - 1.3);
+    const reach = Math.max(0.25, this.target.halfWidth - c.definition.halfExtents[0] - 0.45);
     // A finished car pulls over to the right-hand verge (negative lateral).
     const offset = finished
       ? -reach
-      : clamp(path.lineAt(this.d + lookahead) * (this.laneOffset ? 0 : 1) + this.laneOffset + this.tactical, -reach, reach);
+      : clamp(
+          path.lineAt(this.d + lookahead) * (this.laneOffset ? 0 : 1) +
+            this.laneOffset +
+            this.tactical,
+          -reach,
+          reach,
+        );
     this.delta.set(
       this.target.x + this.target.nx * offset - c.body.position.x,
       0,
@@ -152,7 +194,11 @@ export class RouteDriver {
       const h = bike.dynamics.heading,
         sh = Math.sin(h),
         ch = Math.cos(h);
-      this.local.set(this.delta.x * ch - this.delta.z * sh, 0, this.delta.x * sh + this.delta.z * ch);
+      this.local.set(
+        this.delta.x * ch - this.delta.z * sh,
+        0,
+        this.delta.x * sh + this.delta.z * ch,
+      );
     } else c.body.orientation.inverseRotate(this.delta, this.local);
     const purePursuit = Math.atan2(
         2 * c.spec.wheelbase * this.local.x,
@@ -161,9 +207,17 @@ export class RouteDriver {
       speedSteer = c.assist === 'sport' ? 1 / (1 + c.speed * 0.018) : 1;
     // Learn the understeer from the yaw rate actually achieved (positive yaw
     // and steer are both to the left) while cornering with grip in hand.
-    const yawCurvature = (c.body.omega.x * c.up.x + c.body.omega.y * c.up.y + c.body.omega.z * c.up.z) / Math.max(1, c.speed),
+    const yawCurvature =
+        (c.body.omega.x * c.up.x + c.body.omega.y * c.up.y + c.body.omega.z * c.up.z) /
+        Math.max(1, c.speed),
       geometric = Math.atan(c.spec.wheelbase * yawCurvature);
-    if (!bike && c.speed > 15 && Math.abs(geometric) > 0.002 && Math.sign(geometric) === Math.sign(c.steer) && this.recovery <= 0)
+    if (
+      !bike &&
+      c.speed > 15 &&
+      Math.abs(geometric) > 0.002 &&
+      Math.sign(geometric) === Math.sign(c.steer) &&
+      this.recovery <= 0
+    )
       this.understeer = approach(this.understeer, clamp(c.steer / geometric, 0.9, 2.5), dt * 0.8);
     command.steer = clamp((purePursuit * this.understeer) / (c.spec.maxSteer * speedSteer), -1, 1);
     // A motorcycle facing away from its route (a route planned from where it
@@ -172,20 +226,34 @@ export class RouteDriver {
       away = 0;
     if (bike) {
       path.at(this.d, this.sample);
-      away = Math.abs(mod(bike.dynamics.heading - Math.atan2(this.sample.tx, this.sample.tz) + Math.PI, Math.PI * 2) - Math.PI);
+      away = Math.abs(
+        mod(
+          bike.dynamics.heading - Math.atan2(this.sample.tx, this.sample.tz) + Math.PI,
+          Math.PI * 2,
+        ) - Math.PI,
+      );
       // Hysteresis: once turning round, carry on until nearly aligned.
       this.turningRound = away > (this.turningRound ? BIKE_TURN_ROUND * 0.3 : BIKE_TURN_ROUND);
       turning = this.turningRound;
-      command.steer = turning ? leanIntent(bike, command.steer) : this.leanCommand(bike, command.steer, finished);
+      command.steer = turning
+        ? leanIntent(bike, command.steer)
+        : this.leanCommand(bike, command.steer, finished);
     }
     // Envelope speed profile along the route ahead (the race line's own
     // curvature, or the centreline's for a lane-keeping driver).
-    const grip = clamp(peakGrip(c.tires[0], 2500, c.contacts[0], Math.max(c.speed, 38)) / env.referenceMu, 0.1, 1);
-    const aero = (env.downforceReference * (0.45 + 0.55 * Math.min(c.frontHealth, c.floorHealth))) / (c.spec.dryMass + c.fuel);
+    const grip = clamp(
+      peakGrip(c.tires[0], 2500, c.contacts[0], Math.max(c.speed, 38)) / env.referenceMu,
+      0.1,
+      1,
+    );
+    const aero =
+      (env.downforceReference * (0.45 + 0.55 * Math.min(c.frontHealth, c.floorHealth))) /
+      (c.spec.dryMass + c.fuel);
     const laneGrip = grip * clamp(1 - Math.abs(this.tactical) * 0.03, 0.85, 1);
     for (let i = 0; i < ENVELOPE_SAMPLES; i++) {
       const at = this.d + i * ENVELOPE_STEP;
-      const curvatureAt = (x: number) => (this.laneOffset ? path.at(x, this.sample).curvature : path.lineCurvatureAt(x));
+      const curvatureAt = (x: number) =>
+        this.laneOffset ? path.at(x, this.sample).curvature : path.lineCurvatureAt(x);
       let k = curvatureAt(at);
       // A motorcycle cannot brake hard while leaned: the sharpest point of
       // each sample's window counts (a junction corner shorter than the
@@ -211,7 +279,10 @@ export class RouteDriver {
     // Turning round at walking pace; aligning again before speeding up.
     if (turning) desired = Math.min(desired, 4);
     else if (bike) desired = Math.min(desired, Math.max(6, 30 - 60 * away));
-    desired = Math.min(desired, envelopeProfile(this.curvatures, this.corners, laneGrip, aero, env));
+    desired = Math.min(
+      desired,
+      envelopeProfile(this.curvatures, this.corners, laneGrip, aero, env),
+    );
     desired = Math.min(desired, this.trafficSpeed);
     // The end of a point-to-point route: brake to a stop before its end.
     const remaining = path.closed ? Infinity : path.length - 6 - this.d;
@@ -234,7 +305,8 @@ export class RouteDriver {
     command.brake = clamp(-error * 0.18, 0, 1);
     const lateralUsage = Math.min(
       1,
-      (Math.abs(c.gLat) * G) / Math.max(1, (env.lateralBase + env.lateralAero * aero * c.speed * c.speed) * grip),
+      (Math.abs(c.gLat) * G) /
+        Math.max(1, (env.lateralBase + env.lateralAero * aero * c.speed * c.speed) * grip),
     );
     const available = Math.sqrt(Math.max(0, 1 - lateralUsage * lateralUsage));
     command.throttle = Math.min(command.throttle, 0.2 + 0.8 * available);
@@ -248,7 +320,17 @@ export class RouteDriver {
       command.throttle = 0;
       command.brake = 1;
     }
-    this.decision = finished ? 'FINISHED' : this.tactical > 1 ? 'PASS RIGHT' : this.tactical < -1 ? 'PASS LEFT' : this.trafficSpeed < c.speed + 1 ? 'FOLLOW' : 'RACE LINE';
+    this.decision = finished
+      ? 'FINISHED'
+      : this.holdingLine
+        ? 'HOLD LINE'
+        : this.passSide > 0
+          ? 'PASS LEFT'
+          : this.passSide < 0
+            ? 'PASS RIGHT'
+            : this.trafficSpeed < c.speed + 1
+              ? 'FOLLOW'
+              : 'RACE LINE';
     // Stuck against something: reverse out with opposite lock.
     if (!finished && c.speed < 0.8 && desired > 5) this.stuck += dt;
     else if (this.recovery <= 0) this.stuck = 0;
@@ -281,10 +363,12 @@ export class RouteDriver {
       v = d.speed;
     if (v < 6) return leanIntent(bike, steer);
     const p = path.at(this.d, this.sample),
-      reach = Math.max(0.5, p.halfWidth - 1.3),
+      reach = Math.max(0.25, p.halfWidth - bike.definition.halfExtents[0] - 0.45),
       lane = this.laneOffset !== 0;
     const line = (at: number) => (lane ? 0 : path.lineAt(at));
-    const target = finished ? -reach : clamp(line(this.d) + this.laneOffset + this.tactical, -reach, reach);
+    const target = finished
+      ? -reach
+      : clamp(line(this.d) + this.laneOffset + this.tactical, -reach, reach);
     const pathSlope = (line(this.d + 3) - line(this.d - 3)) / 6,
       slope = pathSlope / Math.max(0.5, 1 - p.curvature * target);
     const heading = mod(d.heading - Math.atan2(p.tx, p.tz) + Math.PI, Math.PI * 2) - Math.PI;
@@ -295,56 +379,200 @@ export class RouteDriver {
       feedForward = k / Math.max(0.5, 1 - k * (lane ? target : this.tactical));
     const w = BIKE_AI.bandwidth,
       bound = (BIKE_AI.correctionG * G) / (v * v);
-    const correction = clamp((w * w * error) / (v * v) + (2 * BIKE_AI.damping * w * headingError) / v, -bound, bound);
+    const correction = clamp(
+      (w * w * error) / (v * v) + (2 * BIKE_AI.damping * w * headingError) / v,
+      -bound,
+      bound,
+    );
     return leanFromCurvature(bike, feedForward + correction, steer);
   }
-  /** Lane choice and following speed from the cars ahead on the route. */
+  private clearTraffic() {
+    this.passTarget = null;
+    this.passSide = 0;
+    this.tactical = 0;
+    this.trafficSpeed = Infinity;
+    this.holdingLine = false;
+    this.observedCount = 0;
+  }
+  /** A merge sweeps the car's footprint, not just its centre. A faster car
+   * approaching from behind also owns the lane it will reach in 1.2 s. */
+  private laneClear(lane: number) {
+    const ownWidth = this.trafficWidth,
+      ownLength = this.trafficLength;
+    for (let i = 0; i < this.observedCount; i++) {
+      const other = this.observed[i];
+      let enter = 0,
+        leave = 1.2,
+        overlaps = true;
+      // Continuous swept intervals cannot miss a fast car that crosses the
+      // entire overlap area between two discrete prediction samples.
+      for (let axis = 0; axis < 2; axis++) {
+        const separation = axis === 0 ? other.gap : this.lateral - other.lateral,
+          velocity =
+            axis === 0
+              ? other.speed - this.trafficMotion
+              : (lane - this.lateral) / 1.2 - other.lateralSpeed,
+          extent = axis === 0 ? ownLength + other.length + 1.7 : ownWidth + other.width + 0.45;
+        if (Math.abs(velocity) < 1e-6) {
+          if (Math.abs(separation) >= extent) {
+            overlaps = false;
+            break;
+          }
+        } else {
+          const a = (-extent - separation) / velocity,
+            b = (extent - separation) / velocity;
+          enter = Math.max(enter, Math.min(a, b));
+          leave = Math.min(leave, Math.max(a, b));
+          if (enter > leave) {
+            overlaps = false;
+            break;
+          }
+        }
+      }
+      if (overlaps) return false;
+    }
+    return true;
+  }
+  /** Persistent, footprint-aware race passing. Positive lateral is LEFT.
+   * Hold the chosen side until the rear bumper clears the passed car;
+   * side-by-side cars and approaching cars can veto a return to the line.
+   * All decisions still go through the same pedals/steering and physics. */
   private planTraffic(cars: readonly RouteObstacle[]) {
     const c = this.car,
       path = this.path;
-    let follow = Infinity,
-      blockLeft = false,
-      blockRight = false,
-      blocked: RouteObstacle | null = null;
+    path.at(this.d, this.sample);
+    const ownAlignment = Math.abs(
+        clamp(
+          (c.forward.x * this.sample.tx + c.forward.z * this.sample.tz) /
+            Math.max(1e-6, Math.hypot(c.forward.x, c.forward.z)),
+          -1,
+          1,
+        ),
+      ),
+      ownCrossing = Math.sqrt(Math.max(0, 1 - ownAlignment * ownAlignment)),
+      ownWidth =
+        ownAlignment * c.definition.halfExtents[0] + ownCrossing * c.definition.halfExtents[2],
+      ownLength =
+        ownAlignment * c.definition.halfExtents[2] + ownCrossing * c.definition.halfExtents[0],
+      baseline = this.laneOffset || path.lineAt(this.d);
+    this.trafficWidth = ownWidth;
+    this.trafficLength = ownLength;
+    this.trafficMotion = c.body.velocity.x * this.sample.tx + c.body.velocity.z * this.sample.tz;
+    let follow = Infinity;
+    let blocked: TrafficObservation | null = null;
+    this.observedCount = 0;
     for (const other of cars) {
-      if (other === c) continue;
+      if (other === c || this.observedCount >= 24) continue;
       const dx = other.body.position.x - c.body.position.x,
         dz = other.body.position.z - c.body.position.z;
-      if (dx * dx + dz * dz > 80 * 80) continue;
+      if (dx * dx + dz * dz > 85 * 85) continue;
       const od = path.locate(other.body.position.x, other.body.position.z, this.d, 90, this.other),
         lateral = this.other.lateral;
       let gap = od - this.d;
       if (path.closed && gap < -path.length / 2) gap += path.length;
-      if (gap < -6 || gap > 70) continue;
-      const side = lateral - (this.lateral + 0);
-      if (gap < 8 && Math.abs(side) < 3.2) {
-        if (side > 0) blockRight = true;
-        else blockLeft = true;
+      else if (path.closed && gap > path.length / 2) gap -= path.length;
+      if (gap < -45 || gap > 75) continue;
+      path.at(od, this.sample);
+      const half = other.half ?? other.definition?.halfExtents ?? [1, 0.8, 2.5],
+        forwardX =
+          other.forward?.x ?? Math.sin(other.yaw ?? Math.atan2(this.sample.tx, this.sample.tz)),
+        forwardZ =
+          other.forward?.z ?? Math.cos(other.yaw ?? Math.atan2(this.sample.tx, this.sample.tz)),
+        alignment = clamp(
+          (forwardX * this.sample.tx + forwardZ * this.sample.tz) /
+            Math.max(1e-6, Math.hypot(forwardX, forwardZ)),
+          -1,
+          1,
+        ),
+        crossing = Math.sqrt(Math.max(0, 1 - alignment * alignment)),
+        width = Math.abs(alignment) * half[0] + crossing * half[2],
+        length = Math.abs(alignment) * half[2] + crossing * half[0];
+      // A car on the other deck of an overpass cannot block this road.
+      // Compare to the route at the other car, so hills remain valid traffic.
+      if (
+        Math.abs(other.body.position.y - this.sample.y) > half[1] + 1.6 ||
+        this.other.distance > this.sample.halfWidth + width + 1
+      )
+        continue;
+      let observed = this.observed[this.observedCount++];
+      if (!observed) {
+        observed = {
+          car: other,
+          gap: 0,
+          lateral: 0,
+          width: 0,
+          length: 0,
+          speed: 0,
+          lateralSpeed: 0,
+        };
+        this.observed.push(observed);
       }
-      if (gap > 2 && Math.abs(side) < 2.4 && other.speed < c.speed + 3) {
-        // Following speed: keep a short gap at the other car's pace.
-        const keep = Math.sqrt(Math.max(0, other.speed ** 2 + 2 * 5 * Math.max(0, gap - 8 - c.speed * 0.4)));
+      observed.car = other;
+      observed.gap = gap;
+      observed.lateral = lateral;
+      observed.width = width;
+      observed.length = length;
+      observed.speed = other.body.velocity
+        ? other.body.velocity.x * this.sample.tx + other.body.velocity.z * this.sample.tz
+        : other.speed * alignment;
+      observed.lateralSpeed = other.body.velocity
+        ? other.body.velocity.x * this.sample.nx + other.body.velocity.z * this.sample.nz
+        : other.speed * (forwardX * this.sample.nx + forwardZ * this.sample.nz);
+      const side = lateral - this.lateral;
+      if (gap > 0 && Math.abs(side) < ownWidth + width + 0.45) {
+        // Bumper spacing, braking distance and headway vary with real size.
+        const room = gap - ownLength - length - 2.5 - c.speed * 0.4,
+          keep = Math.sqrt(Math.max(0, Math.max(0, observed.speed) ** 2 + 2 * 5 * room));
         if (keep < follow) {
           follow = keep;
-          blocked = other;
+          blocked = observed;
         }
       }
     }
-    path.at(this.d, this.sample);
-    const reach = Math.max(0, this.sample.halfWidth - 1.6);
-    let tactical = 0;
-    if (blocked && reach > 2.2 && this.overtake) {
-      path.locate(blocked.body.position.x, blocked.body.position.z, this.d, 90, this.other);
-      const theirs = this.other.lateral;
-      // Pass on the side with more room, if it is free.
-      const right = theirs < 0 && !blockRight,
-        left = theirs >= 0 && !blockLeft;
-      if (right || left) {
-        tactical = clamp((right ? theirs + 3.2 : theirs - 3.2) - path.lineAt(this.d), -reach * 2, reach * 2);
-        follow = Math.max(follow, blocked.speed + 2);
+    // Look through the manoeuvre: a wide junction followed by a narrow lane
+    // is not room for two cars. Four samples keep the planner bounded.
+    let reach = Infinity;
+    const preview = clamp(c.speed * 2, 25, 65);
+    for (let i = 0; i <= 3; i++) {
+      path.at(this.d + (preview * i) / 3, this.sample);
+      reach = Math.min(reach, Math.max(0.25, this.sample.halfWidth - ownWidth - 0.45));
+    }
+    let prior: TrafficObservation | null = null;
+    for (let i = 0; i < this.observedCount; i++)
+      if (this.observed[i].car === this.passTarget) prior = this.observed[i];
+    if (!this.overtake || !prior || prior.gap < -ownLength - prior.length - 2.5 || prior.gap > 65) {
+      this.passTarget = null;
+      this.passSide = 0;
+    }
+    let lane = clamp(baseline, -reach, reach);
+    this.holdingLine = false;
+    if (this.passTarget && prior) {
+      const target = prior.lateral + this.passSide * (ownWidth + prior.width + 0.85);
+      // If a third car prevents continuing, keep space beside the target.
+      // Never reverse passing side while the two footprints overlap.
+      lane = clamp(target, -reach, reach);
+      if (!this.laneClear(lane)) {
+        lane = clamp(this.lateral, -reach, reach);
+        this.holdingLine = true;
+      }
+    } else if (blocked && this.overtake && blocked.speed >= 0 && blocked.speed < c.speed + 3) {
+      const preferred = blocked.lateral <= baseline + 0.05 ? 1 : -1;
+      for (const side of [preferred, -preferred] as const) {
+        const target = blocked.lateral + side * (ownWidth + blocked.width + 0.85);
+        if (Math.abs(target) > reach || !this.laneClear(target)) continue;
+        this.passTarget = blocked.car;
+        this.passSide = side as -1 | 1;
+        lane = target;
+        break;
       }
     }
-    this.tactical = approach(this.tactical, tactical, 0.6);
+    if (!this.passTarget && Math.abs(lane - this.lateral) > 0.35 && !this.laneClear(lane)) {
+      lane = clamp(this.lateral, -reach, reach);
+      this.holdingLine = true;
+    }
+    if (this.passTarget && !this.holdingLine && blocked?.car === this.passTarget)
+      follow = Math.max(follow, Math.max(0, blocked.speed) + 2);
+    this.tactical = approach(this.tactical, lane - baseline, 0.35);
     this.trafficSpeed = follow;
   }
 }

@@ -261,6 +261,51 @@
   height: 2px;
   background: rgba(255, 255, 255, 0.15);
 }
+.fest-rivals {
+  margin-top: 7px;
+  padding-top: 5px;
+  border-top: 1px solid rgba(255, 255, 255, 0.13);
+  text-align: left;
+  font-variant-numeric: tabular-nums;
+}
+.fest-rivals small {
+  font-size: 8px;
+  color: #bbcdc7;
+  letter-spacing: 0.1em;
+}
+.fest-rivals > small {
+  display: block;
+  text-align: center;
+  margin-bottom: 3px;
+}
+.fest-rivals > div {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+}
+.fest-rivals span {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: 7px;
+  min-width: 0;
+  flex: 1 1 0;
+}
+.fest-rivals span small {
+  grid-column: 1 / -1;
+}
+.fest-rivals b {
+  font-size: 10px;
+  font-weight: 550;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fest-rivals em {
+  font-size: 10px;
+  color: #80e6d2;
+  font-style: normal;
+  white-space: nowrap;
+}
 .fest-progress i {
   display: block;
   height: 100%;

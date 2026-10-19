@@ -1,9 +1,10 @@
 import * as T from 'three';
 import type { TerrainField } from '../../simulation/open-world/terrain-field.ts';
 import { buildSea, installSeaWaves } from '../sea.ts';
+import { CoastalWater, FESTIVAL_SEA } from './coastal-water.ts';
 
 /** The sea wave shader maps plane UV to world metres at this scale. */
-const SEA_UV_METRES = 5500;
+const SEA_UV_METRES = FESTIVAL_SEA.uvMetres;
 
 /**
  * Water of the region: the open sea (the circuit sea material and its wave
@@ -15,19 +16,24 @@ export class Water {
   readonly root = new T.Group();
   readonly sea: T.Mesh;
   readonly river: T.Mesh;
+  readonly coast: CoastalWater;
+  private readonly normalTexture: T.Texture | null;
+  private disposed = false;
   constructor(field: TerrainField) {
     this.root.name = 'Festival water';
     const region = field.region;
     this.sea = buildSea(region.seaLevel);
-    const size = 48000;
+    this.normalTexture = (this.sea.material as T.MeshPhysicalMaterial).normalMap;
+    const size = FESTIVAL_SEA.size;
     const geometry = new T.PlaneGeometry(size, size, 1, 1);
     geometry.rotateX(-Math.PI / 2);
     const uv = geometry.getAttribute('uv');
-    for (let i = 0; i < uv.count; i++) uv.setXY(i, (uv.getX(i) * size) / SEA_UV_METRES, (uv.getY(i) * size) / SEA_UV_METRES);
+    for (let i = 0; i < uv.count; i++)
+      uv.setXY(i, (uv.getX(i) * size) / SEA_UV_METRES, (uv.getY(i) * size) / SEA_UV_METRES);
     this.sea.geometry.dispose();
     this.sea.geometry = geometry;
     this.sea.name = 'Festival sea';
-    this.sea.position.set(0, region.seaLevel - 0.05, -size / 2 + 2000);
+    this.sea.position.set(0, region.seaLevel - 0.05, -size / 2 + FESTIVAL_SEA.northEdge);
     this.sea.userData.excludeMotionBlur = true;
     // River ribbon along the valley polyline at its water level.
     const points = region.valley.points,
@@ -83,12 +89,23 @@ export class Water {
     riverMaterial.polygonOffsetFactor = -1;
     this.river = new T.Mesh(river, riverMaterial);
     this.river.name = 'Ashvale river';
-    this.root.add(this.sea, this.river);
+    this.coast = new CoastalWater(
+      field,
+      this.sea.material as T.MeshPhysicalMaterial,
+      this.sea.position.y,
+    );
+    this.root.add(this.sea, this.river, this.coast.root);
   }
   dispose() {
+    if (this.disposed) return;
+    this.disposed = true;
+    this.coast.dispose();
     this.sea.geometry.dispose();
     (this.sea.material as T.Material).dispose();
     this.river.geometry.dispose();
     (this.river.material as T.Material).dispose();
+    this.normalTexture?.dispose();
+    this.root.clear();
+    this.root.removeFromParent();
   }
 }

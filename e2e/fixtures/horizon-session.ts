@@ -15,6 +15,9 @@ import { SOLVANE } from '../../src/simulation/open-world/region-data.ts';
 import type { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { F, carBase } from '../../src/simulation/protocol.ts';
 
+declare const __APEX_SOURCE_FINGERPRINT__: string;
+declare const __APEX_SOURCE_COMMIT__: string | null;
+
 const params = new URLSearchParams(location.search);
 const quality = (params.get('quality') ?? 'medium') as QualityPreset;
 const canvas = document.querySelector<HTMLCanvasElement>('#world')!;
@@ -49,6 +52,11 @@ const state = () => {
     current: Float32Array | null;
   } | null;
   return {
+    sourceIdentity: {
+      fingerprint:
+        typeof __APEX_SOURCE_FINGERPRINT__ === 'string' ? __APEX_SOURCE_FINGERPRINT__ : null,
+      commit: typeof __APEX_SOURCE_COMMIT__ === 'string' ? __APEX_SOURCE_COMMIT__ : null,
+    },
     ready: !!session,
     paused: session?.isPaused,
     exited,
@@ -71,6 +79,13 @@ const state = () => {
       (internal?.renderer as unknown as { details?: { stats: unknown } })?.details?.stats ?? null,
     street: internal?.renderer?.streetDetails?.stats ?? null,
     contacts: internal?.renderer?.contacts.stats ?? null,
+    water: internal?.renderer?.water.coast.stats ?? null,
+    atmosphere: internal?.renderer
+      ? {
+          falloff: internal.renderer.atmosphere.uniforms.apexAerialFalloff.value.toArray(),
+          extinction: internal.renderer.atmosphere.uniforms.apexAerialExtinction.value.toArray(),
+        }
+      : null,
     pace: internal?.renderer?.guidance.cue ?? null,
     lampSockets:
       (internal?.renderer as unknown as { streetLights?: { activeSockets: number[] } })

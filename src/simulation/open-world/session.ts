@@ -35,6 +35,7 @@ import { vehicleIndex, VEHICLES } from '../vehicles.ts';
 import { AmbientTraffic } from './ambient-traffic.ts';
 import { activityProgress, type FestivalActivityProgress } from './activity-progress.ts';
 import { NearMissDetector } from './near-miss.ts';
+import { rivalGaps, type FestivalRivalGaps } from './rival-gap.ts';
 import {
   DriftMeter,
   isRace,
@@ -140,6 +141,8 @@ export interface FestivalStatus {
     live: { label: string; value: string } | null;
     /** Live, provisional skill-activity targets from actual measured progress. */
     challenge?: FestivalActivityProgress | null;
+    /** Nearest active opponents, measured along their legal race progress. */
+    rivals?: FestivalRivalGaps | null;
     /** Next checkpoint position (world) for the guidance arrow/marker. */
     gate: { x: number; z: number } | null;
   } | null;
@@ -1111,6 +1114,10 @@ export class OpenWorldSimulation {
         offRoute: p.progress.offRoute,
         live,
         challenge: this.mode === 'running' ? measured : null,
+        rivals:
+          this.mode === 'running' && isRace(run.event.spec.kind)
+            ? rivalGaps(run.participants)
+            : null,
         gate: gatePoint,
       };
     }

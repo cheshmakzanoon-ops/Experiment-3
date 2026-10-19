@@ -3,6 +3,7 @@ import { build } from 'vite';
 import { resolve } from 'node:path';
 import { readFile } from 'node:fs/promises';
 import type { mountFestivalMenu, mountFestivalResults } from './fixtures/festival-menu-access.ts';
+import type { FestivalStatus } from '../src/simulation/open-world/session.ts';
 
 type Fixture = {
   mountFestivalMenu: typeof mountFestivalMenu;
@@ -565,4 +566,131 @@ test('festival menus remain usable when browser policy denies gamepad access', a
     await page.evaluate(() => (window as unknown as FestivalWindow).festivalHarness.frame()),
   ).toMatchObject({ paused: false });
   expect(errors).toEqual([]);
+});
+
+test('festival rival feedback updates route gaps, preserves focus and clears stale race targets', async ({
+  page,
+}) => {
+  const events = await mount(page);
+  const race = events.find((event) => event.race)!;
+  const event: NonNullable<FestivalStatus['event']> = {
+    id: race.id,
+    name: race.name,
+    kind: 'sprint',
+    countdown: 0,
+    elapsed: 30,
+    progress: 0.35,
+    lap: 1,
+    laps: 1,
+    position: 2,
+    entrants: 4,
+    offRoute: false,
+    live: null,
+    challenge: null,
+    gate: null,
+    rivals: {
+      ahead: { car: 1, name: 'Nera <test>', metres: 24.6 },
+      behind: { car: 2, name: 'Ivo', metres: 10.4 },
+    },
+  };
+  const update = (patch: Partial<FestivalStatus>) =>
+    page.evaluate(
+      (patch) => (window as unknown as FestivalWindow).festivalHarness.setStatus(patch),
+      patch,
+    );
+  const focus = await page.evaluate(() => document.activeElement?.tagName);
+  await update({ mode: 'running', event });
+  const rivals = page.locator('#festRivals');
+  await expect(rivals).toBeVisible();
+  await expect(rivals).toContainText('ROUTE GAP');
+  await expect(rivals.locator('[data-relation="ahead"]')).toContainText('Nera <test>');
+  await expect(rivals.locator('[data-relation="ahead"]')).toContainText('25 M');
+  await expect(rivals.locator('[data-relation="behind"]')).toContainText('10 M');
+  expect(await rivals.locator('test').count()).toBe(0);
+  expect(await page.evaluate(() => document.activeElement?.tagName)).toBe(focus);
+  // The opponent just passed becomes the nearest car behind; full-lap gaps
+  // remain route kilometres instead of collapsing to a false close battle.
+  event.rivals = {
+    ahead: { car: 3, name: 'Mara', metres: 1540 },
+    behind: { car: 1, name: 'Nera <test>', metres: 5.2 },
+  };
+  await update({ event });
+  await expect(rivals.locator('[data-relation="ahead"]')).toContainText('1.5 KM');
+  await expect(rivals.locator('[data-relation="behind"]')).toContainText('Nera <test>');
+  await expect(rivals.locator('[data-relation="behind"]')).toContainText('5 M');
+  await page.keyboard.press('Escape');
+  await page.evaluate(() => (window as unknown as FestivalWindow).festivalHarness.frame());
+  await expect(rivals).toBeHidden();
+  await expect(page.locator('#festMenu [data-fest="resume"]')).toBeFocused();
+  await page.keyboard.press('Escape');
+  await page.evaluate(() => (window as unknown as FestivalWindow).festivalHarness.frame());
+  await expect(rivals).toBeVisible();
+  await update({ event: { ...event, kind: 'drift-zone' } });
+  await expect(rivals).toBeHidden();
+  await update({ mode: 'finished', event });
+  await expect(rivals).toBeHidden();
+  await update({ mode: 'free', event: null });
+  await expect(rivals).toBeHidden();
+});
+
+test('festival rival route gaps fit desktop and phone event panels', async ({ page }) => {
+  const events = await mount(page);
+  const race = events.find((event) => event.race)!;
+  await page.evaluate(
+    (race) =>
+      (window as unknown as FestivalWindow).festivalHarness.setStatus({
+        mode: 'running',
+        event: {
+          id: race.id,
+          name: race.name,
+          kind: 'circuit',
+          countdown: 0,
+          elapsed: 196.6,
+          progress: 0.7,
+          lap: 2,
+          laps: 3,
+          position: 2,
+          entrants: 8,
+          offRoute: false,
+          live: null,
+          challenge: null,
+          gate: null,
+          rivals: {
+            ahead: { car: 1, name: 'A deliberately long rival name', metres: 10020 },
+            behind: { car: 2, name: 'Another lengthy opponent name', metres: 14.9 },
+          },
+        },
+      }),
+    race,
+  );
+  for (const [width, height] of [
+    [1440, 900],
+    [900, 640],
+    [360, 780],
+    [640, 360],
+  ]) {
+    await page.setViewportSize({ width, height });
+    await expect(page.locator('#festRivals')).toBeVisible();
+    const layout = await page.evaluate(() => {
+      const panel = document.getElementById('festEvent')!,
+        row = document.getElementById('festRivals')!,
+        p = panel.getBoundingClientRect(),
+        r = row.getBoundingClientRect();
+      return {
+        left: p.left,
+        right: p.right,
+        bottom: p.bottom,
+        clipped: panel.scrollWidth > panel.clientWidth,
+        inside: r.left >= p.left && r.right <= p.right && r.bottom <= p.bottom,
+        numbers: [...row.querySelectorAll('em')].every((node) => {
+          const rect = node.getBoundingClientRect();
+          return rect.left >= r.left && rect.right <= r.right;
+        }),
+      };
+    });
+    expect(layout.left, `${width} px`).toBeGreaterThanOrEqual(0);
+    expect(layout.right, `${width} px`).toBeLessThanOrEqual(width);
+    expect(layout.bottom, `${height} px`).toBeLessThan(height - 140);
+    expect(layout).toMatchObject({ clipped: false, inside: true, numbers: true });
+  }
 });

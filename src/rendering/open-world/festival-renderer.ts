@@ -31,6 +31,7 @@ import {
   configureSky,
   lightingDirection,
   shadowAnchor,
+  skyFogPalette,
   SkyEnvironment,
   type LightingMode,
 } from '../daylight.ts';
@@ -86,6 +87,7 @@ import { driftFeedback, type DriftCue } from '../../simulation/open-world/drift-
 import { HorizonGuidance } from './horizon-guidance.ts';
 import { FestivalTrails } from './festival-trails.ts';
 import { HorizonDressing } from './horizon-dressing.ts';
+import { FestivalAtmosphere } from './festival-atmosphere.ts';
 import {
   createFestivalContactOffset,
   festivalContactEnabled,
@@ -120,6 +122,7 @@ export class FestivalRenderer {
   readonly streetLights: StreetLightPools;
   readonly buildings: Buildings;
   readonly dressing: HorizonDressing;
+  readonly atmosphere: FestivalAtmosphere;
   details: SolvaneDetails | null = null;
   private detailLoading: Promise<boolean> | null = null;
   streetDetails: StreetDetails | null = null;
@@ -253,6 +256,7 @@ export class FestivalRenderer {
     this.buildings = new Buildings(structures);
     this.dressing = new HorizonDressing(world, structures);
     this.water = new Water(world.field);
+    this.atmosphere = new FestivalAtmosphere(world.field.region.seaLevel);
     this.markers = new EventMarkers(events, (x, z) => this.groundHeight(x, z));
     this.reflection.probeExclusions.push(this.markers.root);
     scene.add(
@@ -271,6 +275,13 @@ export class FestivalRenderer {
     );
     installSpecularIBL(scene);
     installSpecularIBLMaterial(this.terrain.material);
+    // These materials belong to this region. Catalogue cars use shared
+    // materials, and navigation emissives retain their own presentation.
+    this.atmosphere.installMaterial(this.terrain.material);
+    for (const root of [this.roads.root, this.buildings.root, this.water.root])
+      this.atmosphere.install(root);
+    this.atmosphere.watch(this.dressing.root);
+    this.atmosphere.watch(this.vegetation.root);
     this.composer = new EffectComposer(renderer);
     this.scenePass = new SceneAmbientPass(scene, this.camera, this.graphics.msaa);
     this.composer.addPass(this.scenePass);
@@ -374,6 +385,7 @@ export class FestivalRenderer {
     this.detailLoading = SolvaneDetails.load(this.world, this.structures, () => this.disposed)
       .then((kit) => {
         this.details = kit;
+        this.atmosphere.install(kit.root);
         this.scene.add(kit.root);
         this.reflection.probeExclusions.push(kit.aero);
         this.guidance.useFlagTemplate(kit.flagTemplate(this.preset === 'low'));
@@ -401,6 +413,7 @@ export class FestivalRenderer {
           return false;
         }
         this.streetDetails = kit;
+        this.atmosphere.install(kit.root);
         this.scene.add(kit.root);
         return true;
       })
@@ -716,9 +729,17 @@ export class FestivalRenderer {
     if (saturation !== null) iblUniforms.apexSkyIrradianceSaturation.value = saturation;
     this.renderer.toneMappingExposure = daylight.exposure;
     const fog = this.scene.fog as T.FogExp2;
-    // The region is kilometres deep: the circuit haze, thinned.
+    // Stock fog remains the fallback for unlit signs/particles. World-owned
+    // materials use the sky's extinction with the region's valley falloff.
     fog.density = daylight.fogDensity * 0.3;
     fog.color.setRGB(daylight.fogRed, daylight.fogGreen, daylight.fogBlue);
+    this.atmosphere.update(
+      daylight.haze,
+      daylight.cover,
+      presented[H.RAIN],
+      mode,
+      photoPalette ?? skyFogPalette(daylight.cover, mode),
+    );
     const uniforms = this.sky.material.uniforms;
     uniforms.cloudCover.value = daylight.cover;
     uniforms.skyRadiance.value = daylight.skyRadiance;
@@ -828,6 +849,7 @@ export class FestivalRenderer {
   dispose() {
     if (this.disposed) return;
     this.disposed = true;
+    this.atmosphere.dispose();
     scannedGround.detach(this.renderer);
     this.terrain.dispose();
     this.roads.dispose();

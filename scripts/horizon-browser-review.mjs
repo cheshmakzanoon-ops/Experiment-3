@@ -40,6 +40,8 @@ page.on('response', (response) => {
     failedAssets.push({ status: response.status(), url: response.url() });
 });
 const state = () => page.evaluate(() => window.horizonReview.state());
+const hasSourceFingerprint = (identity) =>
+  typeof identity?.fingerprint === 'string' && /^[0-9a-f]{64}$/.test(identity.fingerprint);
 const pass = (name, details = {}) => {
   steps.push({ name, passed: true, ...details });
   console.log('PASS', name, JSON.stringify(details));
@@ -57,7 +59,8 @@ try {
   const identityResponse = await page.request.get(`${baseURL}/BUILD_IDENTITY.json`);
   if (identityResponse.ok()) {
     try {
-      sourceIdentity = await identityResponse.json();
+      const identity = await identityResponse.json();
+      if (hasSourceFingerprint(identity)) sourceIdentity = identity;
     } catch {
       /* Development server has no build identity. */
     }
@@ -69,6 +72,20 @@ try {
   await page.locator('#loading').waitFor({ state: 'hidden' });
   await page.waitForFunction(() => window.horizonReview?.state().draws >= 1);
   const initial = await state();
+  if (!sourceIdentity) sourceIdentity = initial.sourceIdentity ?? null;
+  if (sourceIdentityPath) {
+    assert(hasSourceFingerprint(reviewSourceIdentity), 'Review identity must contain a source fingerprint.');
+    assert.equal(
+      initial.sourceIdentity?.fingerprint,
+      reviewSourceIdentity.fingerprint,
+      'The live fixture must match the requested review source before driving.',
+    );
+    assert.equal(
+      sourceIdentity?.fingerprint,
+      reviewSourceIdentity.fingerprint,
+      'The recorded source identity must match the live review source.',
+    );
+  }
   assert.equal(initial.status.vehicleId, 'tc1');
   assert(initial.status.discovered.includes('harbour-welcome'));
   assert(
@@ -192,6 +209,65 @@ try {
       window.horizonReview.state().status.mode === 'running' &&
       window.horizonReview.state().status.autopilot,
   );
+  // Draw and sample in one synchronous browser task, so an incoming worker
+  // status cannot change a rival between the model and DOM observations.
+  const rivalHud = await page.evaluate(() => {
+    window.horizonReview.draw();
+    const status = window.horizonReview.state().status;
+    const root = document.querySelector('#festRivals');
+    const label = root?.querySelector(':scope > small');
+    const visible = (element) =>
+      !!element && element.getClientRects().length > 0 && getComputedStyle(element).visibility === 'visible';
+    return {
+      mode: status.mode,
+      rivals: status.event?.rivals ?? null,
+      visible: visible(root),
+      label: label?.textContent,
+      labelVisible: visible(label),
+      rowCount: root?.querySelectorAll('[data-relation]').length,
+      rows: Object.fromEntries(['ahead', 'behind'].map((side) => {
+        const row = root?.querySelector(`[data-relation="${side}"]`);
+        const name = row?.querySelector('b');
+        return [side, row ? {
+          visible: visible(row),
+          relation: row.querySelector('small')?.textContent,
+          name: name?.textContent,
+          nameElements: name?.childElementCount,
+          gap: row.querySelector('em')?.textContent,
+        } : null];
+      })),
+    };
+  });
+  assert.equal(rivalHud.mode, 'running');
+  assert(rivalHud.rivals?.ahead || rivalHud.rivals?.behind, 'A running race must expose a live rival.');
+  assert.equal(rivalHud.visible, true);
+  assert.equal(rivalHud.labelVisible, true);
+  assert.equal(rivalHud.label, 'ROUTE GAP');
+  assert.equal(rivalHud.rowCount, Object.values(rivalHud.rivals).filter(Boolean).length);
+  for (const side of ['ahead', 'behind']) {
+    const expected = rivalHud.rivals[side], actual = rivalHud.rows[side];
+    if (!expected) {
+      assert.equal(actual, null, `No stale ${side} rival should remain.`);
+      continue;
+    }
+    assert(actual, `The ${side} rival must have a HUD row.`);
+    assert.equal(actual.visible, true);
+    assert.equal(actual.relation, side.toUpperCase());
+    assert.equal(actual.name, expected.name, 'Rival names must render as literal text.');
+    assert.equal(actual.nameElements, 0, 'Rival names must not create HTML elements.');
+    assert(Number.isFinite(expected.metres) && expected.metres >= 0);
+    assert.equal(
+      actual.gap,
+      expected.metres >= 1000
+        ? `${(expected.metres / 1000).toFixed(1)} KM`
+        : `${Math.round(expected.metres)} M`,
+      `The ${side} route gap must match the sampled worker status.`,
+    );
+  }
+  pass('live worker rivals match the visible route-gap HUD', {
+    rivals: rivalHud.rivals,
+    displayed: rivalHud.rows,
+  });
   await capture('journey-event');
   pass('discovered-event travel, start card, countdown, real rivals and route presentation');
 
@@ -221,7 +297,8 @@ try {
   assert.equal(result.completed, true);
   assert.equal(result.assisted, true, 'Autopilot verification must be marked assisted.');
   await capture('journey-results');
-  pass('one typed completed result and visible results card', { result });
+  assert.equal(await page.locator('#festRivals').isVisible(), false, 'Completed results must hide rival gaps.');
+  pass('one typed completed result and visible results card', { result, rivalHudHidden: true });
 
   phase = 'result retry';
   await page.locator('#festResults [data-fest="retry"]').focus();
@@ -265,7 +342,8 @@ try {
   await page.locator('#festResults [data-fest="continue"]').click();
   await page.waitForFunction(() => window.horizonReview.state().status.mode === 'free');
   await draw();
-  pass('results Continue returns to free roam');
+  assert.equal(await page.locator('#festRivals').isVisible(), false, 'Free roam must hide rival gaps.');
+  pass('results Continue returns to free roam', { rivalHudHidden: true });
 
   phase = 'exit';
   await page.keyboard.press('Escape');

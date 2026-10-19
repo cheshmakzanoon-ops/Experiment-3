@@ -1,0 +1,292 @@
+{
+  "version": 1,
+  "recordedDate": "2026-10-19",
+  "scope": "Festival / Solvane Coast (Horizon) R5",
+  "integratedBaseCommit": "08be765b0c9abab1f29c4603e2405715b7cd84c8",
+  "sourceIdentity": {
+    "version": 1,
+    "commit": null,
+    "fingerprint": "c538b01ff753a3f3b9a14f2bfb58dc70ad8eda4f69f75a51ce520eb2d1bd2cb8"
+  },
+  "sourceIdentityScope": "Vite fingerprints src, package-lock.json, index.html and vite.config.ts. The precommit source was dirty, so commit is null. Review scripts, fixture and tests are separately hashed below.",
+  "sourceFiles": {
+    "e2e/49-festival-menu-access.spec.ts": "1e92da1f3ea27f7ec2da87a11c79699fc545916908d902910fba90ceb5a47581",
+    "e2e/fixtures/horizon-session.ts": "011359e1a17161e46c070efd570bfd33c3f2b6e6e7ce8a9bb3a891ca5fca3457",
+    "scripts/horizon-browser-review.mjs": "98f05587667a2baf9d9d3806c1db4349167a9e62c520fb78109c516178591179",
+    "scripts/horizon-coast-review.mjs": "c721f0fe7acde3e0717ef032cd9c01c94dd7729c9712938d524ce1257f2a7c19",
+    "src/rendering/open-world/festival-renderer.ts": "fcffdf23a2818e181f7cdfe62e62ae332a103231d42129579c14acb25645d602",
+    "src/rendering/open-world/festival-atmosphere.ts": "0521f03aedafd240aa2adf0469d2ea5e2140cfd65a9e43964c000061fd4ffd96",
+    "src/rendering/open-world/coastal-water.ts": "7316bd9390785e6f38c7c6c221c9243d860f9ca0f9d2cedbd3629158365dabd0",
+    "src/rendering/open-world/terrain-material.ts": "ff7419ecc38e1151e510634971b341cd0ffe5ace2b04fcb1d2a792c0d159e761",
+    "src/rendering/open-world/water.ts": "edd080054dd749895ea318b70f9fd47a50436b245a673a723f67d7b2c3793ffc",
+    "src/simulation/open-world/route-driver.ts": "33657c0414c12cdbf1856292b5bc1f21a602f46fd76d1d891795fed840ecf492",
+    "src/simulation/open-world/rival-gap.ts": "4adce694fb1cdec6de944cfe8d2eac0020eb8f3cf14ffcaf710c9df9aeaccdd6",
+    "src/simulation/open-world/session.ts": "97adec621d4187cbb5af44fe892be28c2c36d94f457ad00d5609a6c4a9050c0c",
+    "src/ui/festival-hud.ts": "45c2b387848835d5a7f4258b90545b120c2e42295b56b88dca6ec982f1341464",
+    "src/ui/festival-hud.css": "c7b21db535f3e594cd3773063d396edfe14ad2ff3ae64db6504785c7fc759392",
+    "tests/festival-atmosphere.test.ts": "b71a59552c669c0caa3e589d969e619ba7b12eca1ac1b6ae4197f3ad6230e545",
+    "tests/festival-coastal-water.test.ts": "e98fd9464e9927dcc4a8c6c80e7a1a59630117702ed119029e620eecbb996790",
+    "tests/festival-rival-passing.test.ts": "81ebb18bd699dd7e60e6e495ea1d8e18ca1a558b88b790582e1987854a2a4519"
+  },
+  "references": {
+    "ledger": "HORIZON_R4_REFERENCE_REVIEW.json",
+    "reviewPack": "Recovered compressed review pack, not original full-resolution bytes",
+    "filesVerified": 100,
+    "compressedBytes": 27546467,
+    "mismatches": 0,
+    "manifestSha256": "167fe168603d4f5b7fdedf964d41d046da8136352e238c96718c20c00e2f2eb7",
+    "directlyViewedThisTurn": ["028", "029", "032", "036", "040", "044", "080", "081", "087"],
+    "techniqueTransfers": {
+      "coastalShallowsAndBrokenWash": ["087"],
+      "AerialDepth": ["029", "032", "036", "044"]
+    },
+    "notAnAll100SceneRebuild": true
+  },
+  "gates": {
+    "typecheck": {
+      "passed": true,
+      "command": "node node_modules/typescript/bin/tsc --noEmit",
+      "scope": "merged source"
+    },
+    "lint": {
+      "passed": true,
+      "command": "npm run lint",
+      "scope": "full repository"
+    },
+    "content": {
+      "passed": true,
+      "command": "npm run validate:content"
+    },
+    "build": {
+      "passed": true,
+      "command": "npm run build",
+      "includes": ["standard prebuild / pinned player LOD generation", "TypeScript", "Vite"],
+      "warning": "Existing bundle-size warnings remain."
+    },
+    "premergeFullVitest": {
+      "command": "node node_modules/vitest/vitest.mjs run --configLoader runner --cache=false --reporter=default",
+      "firstInvocationExitCode": 1,
+      "files": 443,
+      "passedFiles": 440,
+      "failedFiles": 3,
+      "passedCases": 3705,
+      "failedCases": 8,
+      "uncollectedSuite": "tests/supplied-player-lods.test.ts",
+      "durationSeconds": 1515.37,
+      "recoveryRuns": [
+        {
+          "file": "tests/studio-qa-tools.test.ts",
+          "passed": 7,
+          "failed": 0,
+          "reason": "Approved run resolved restricted nested subprocess-output capture."
+        },
+        {
+          "file": "tests/review-tools.test.ts",
+          "passed": 3,
+          "failed": 0,
+          "reason": "Approved run resolved restricted nested subprocess-output capture."
+        },
+        {
+          "file": "tests/supplied-player-lods.test.ts",
+          "passed": 8,
+          "failed": 0,
+          "reason": "Standard production prebuild generated the pinned LOD asset."
+        }
+      ],
+      "distinctPassingCasesAcrossFullRunAndRecoveries": 3721,
+      "scopeNote": "Premerge coverage. This does not claim that the first full invocation passed or that all cases were rerun after the merge."
+    },
+    "postmergeIntegrationVitest": {
+      "passed": 82,
+      "failed": 0,
+      "files": 11,
+      "durationSeconds": 22.79,
+      "includes": [
+        "motocross body input",
+        "rider weight",
+        "shared input",
+        "network codec",
+        "network lifecycle",
+        "session identity",
+        "open-world worker",
+        "Festival session",
+        "ambient traffic",
+        "Festival bikes",
+        "rival passing"
+      ]
+    },
+    "finalShoreAndAtmosphereVitest": {
+      "passed": 19,
+      "failed": 0,
+      "files": {
+        "tests/festival-coastal-water.test.ts": 8,
+        "tests/festival-atmosphere.test.ts": 11
+      },
+      "scope": "Merged source after the rendered-shore correction; eight raycast cases cover actual coarse carved terrain."
+    },
+    "rivalHudBrowser": {
+      "passed": 2,
+      "failed": 0,
+      "file": "e2e/49-festival-menu-access.spec.ts",
+      "selection": "festival rival",
+      "viewports": [
+        [1440, 900],
+        [900, 640],
+        [360, 780],
+        [640, 360]
+      ],
+      "scope": "Premerge DOM fixture, followed by the merged live-worker journey."
+    },
+    "riderInputCompatibility": {
+      "passed": true,
+      "report": "horizon-r5-evidence/rider-input-compatibility.json",
+      "vehicles": ["eh3", "gpr1", "sm450"],
+      "pairedCompleteSnapshotComparisons": 4326,
+      "nonFiniteFields": 0,
+      "resets": 0,
+      "normalizationCases": 36,
+      "scope": "Absent, zero and alternating lean within merged simulation version 3; not a version-2-to-3 comparison."
+    },
+    "realBrowserJourney": {
+      "passed": true,
+      "steps": 11,
+      "report": "horizon-r5-evidence/journey.json",
+      "quality": "low",
+      "viewport": {
+        "width": 960,
+        "height": 540
+      },
+      "manualDistanceMetres": 60.58374395233311,
+      "manualPeakObservedKmh": 65.17137382532168,
+      "stoppedKmh": 0.07394712788524514,
+      "raceCompleted": true,
+      "raceAssisted": true,
+      "raceTimeSeconds": 106.33333333337458,
+      "offRouteSeconds": 0,
+      "pageErrors": 0,
+      "failedAssets": 0
+    },
+    "visualComparison": {
+      "passed": true,
+      "report": "horizon-r5-evidence/visual-review.json",
+      "baselineReport": "horizon-r5-evidence/baseline-views.json",
+      "quality": "medium",
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "lighting": "day",
+      "weather": "clear",
+      "matchedCameras": true,
+      "drawsPerView": 6,
+      "paused": true,
+      "sourceFingerprintMatched": true,
+      "notHardwarePerformance": true,
+      "notPixelSynchronousSimulation": "Each real session loads and travels normally before pausing; presented time differs. Camera, preset, weather, lighting, viewport and deliberate draw count match.",
+      "pageErrors": 0,
+      "warnings": 0,
+      "failedAssets": 0,
+      "views": [
+        {
+          "name": "coast",
+          "before": "horizon-r5-evidence/before-coast.png",
+          "after": "horizon-r5-evidence/after-coast.png",
+          "camera": [-1818, 12, -2732],
+          "target": [-1768, 0, -2682],
+          "webglError": 0,
+          "contextLost": false,
+          "visibleDrawCalls": 372,
+          "visibleTriangles": 1218602,
+          "textureCount": 50
+        },
+        {
+          "name": "valley",
+          "before": "horizon-r5-evidence/before-valley.png",
+          "after": "horizon-r5-evidence/after-valley.png",
+          "camera": [-1900, 420, 2600],
+          "target": [-4000, 660, 4500],
+          "webglError": 0,
+          "contextLost": false,
+          "visibleDrawCalls": 215,
+          "visibleTriangles": 480620,
+          "textureCount": 49
+        }
+      ]
+    }
+  },
+  "visualInspection": {
+    "coast": "The dark strip between the analytic shore overlay and visible coarse-terrain shore is gone in this camera. Continuous field colour replaces the baseline contour stripes; blue-green shallows and pale broken wash meet the rendered sand.",
+    "valley": "A subtle altitude-dependent colour/contrast change is visible with the same geometry. Existing carved-terrain facets and texture repetition remain.",
+    "limits": [
+      "Two fixed day/clear photo compositions, plus the low-preset real session journey; not every camera, quality, weather, GPU or vehicle.",
+      "No hardware FPS measurement; SwiftShader timings are diagnostic only.",
+      "No shoreline fluid simulation, caustics, new planar reflections, volumetric cloud/fog geometry or commercial-reference fidelity certification."
+    ]
+  },
+  "coastConstruction": {
+    "profiles": 641,
+    "rejectedSpans": 11,
+    "chunks": 20,
+    "triangles": 10064,
+    "vertices": 5886,
+    "heightSamples": 28290,
+    "maxRootError": 0.00014164750508131874,
+    "geometryBufferBytes": 342912,
+    "largestChunkRadiusMetres": 542.484,
+    "inlandRowExtensionMetres": 256,
+    "newTextureAssets": 0,
+    "newRenderTargets": 0
+  },
+  "artifacts": [
+    {
+      "path": "horizon-r5-evidence/after-coast.png",
+      "bytes": 1644861,
+      "sha256": "b654ecb4096ac36b36542b611146b9b278cced67afbe6f1444df6b2a0a721504"
+    },
+    {
+      "path": "horizon-r5-evidence/after-valley.png",
+      "bytes": 1224572,
+      "sha256": "5f50355d510ccb719d281409ad780c62888a9fa8b2562a767029c08b183a771a"
+    },
+    {
+      "path": "horizon-r5-evidence/baseline-views.json",
+      "bytes": 3100,
+      "sha256": "9b54b25facdd6909f26e3b13fd30554a5f58e997cd7a285111b47759003ea632"
+    },
+    {
+      "path": "horizon-r5-evidence/before-coast.png",
+      "bytes": 1729526,
+      "sha256": "0c3a7213c4c1f760895d9e582af36202ba9b0d6bd79e6685cfc6d0c82ad6d917"
+    },
+    {
+      "path": "horizon-r5-evidence/before-valley.png",
+      "bytes": 1229361,
+      "sha256": "d54a7884df995d1463b5028f9b0fe32f6865df505a228a24f20c3151cee6175c"
+    },
+    {
+      "path": "horizon-r5-evidence/journey-event.png",
+      "bytes": 526559,
+      "sha256": "c53d0c0731d255d42adb24802851ba5e9fe1184ddf15ea8db455fc0407cc754a"
+    },
+    {
+      "path": "horizon-r5-evidence/journey-results.png",
+      "bytes": 285415,
+      "sha256": "69458a6ae644f3c35bd4d4cc8f9c75ee6b45b9d186ac438d547f9e0620b32d1f"
+    },
+    {
+      "path": "horizon-r5-evidence/journey.json",
+      "bytes": 4840,
+      "sha256": "5c45c8edeb71f53257098baa242e1846fc4275efee5ea2f3303f4c7fce155c7c"
+    },
+    {
+      "path": "horizon-r5-evidence/rider-input-compatibility.json",
+      "bytes": 12240,
+      "sha256": "20410e948f4e7940bc8134db0fd1757587e7f194094634e1d30e3ba6c5190aef"
+    },
+    {
+      "path": "horizon-r5-evidence/visual-review.json",
+      "bytes": 7156,
+      "sha256": "e8c14891ddb380ef2d8a5a73c6286eae847f12b35a957081f95f69c598ce4eab"
+    }
+  ]
+}

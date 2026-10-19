@@ -168,11 +168,14 @@ ${SCAN_COMMON_GLSL}`,
   grass = mix(grass, mix(vec3(0.17, 0.165, 0.15), vec3(0.11, 0.15, 0.06), smoothstep(0.4, 0.7, meso)), town * 0.8);
   vec3 rockC = mix(vec3(0.17, 0.16, 0.145), vec3(0.29, 0.27, 0.24), owFbm(vec2(p.x * 0.05, vOwWorld.y * 0.6), mid));
   rockC *= 0.85 + 0.3 * micro;
-  // Fields: crop strips from the farm pattern, else bare earth.
+  // Farm presence is interpolated tile data, not a row coordinate. Repeating
+  // that scalar with fract() would turn each terrain triangle into hard
+  // green/gold contour bands. Crop variation stays continuous in world space.
   float field = vShade.z;
-  vec3 crop = mix(vec3(0.33, 0.27, 0.12), vec3(0.11, 0.17, 0.04), step(0.62, fract(field * 7.3)));
+  vec3 crop = mix(vec3(0.13, 0.16, 0.052), vec3(0.20, 0.19, 0.075),
+    smoothstep(0.25, 0.8, macro * 0.7 + meso * 0.3));
   vec3 earth = mix(vec3(0.16, 0.115, 0.075), vec3(0.24, 0.19, 0.13), micro);
-  vec3 soilC = mix(earth, crop, field > 0.0 ? 0.75 : 0.0);
+  vec3 soilC = mix(earth, crop, smoothstep(0.06, 0.42, field) * 0.75);
   vec3 sandC = mix(vec3(0.42, 0.37, 0.27), vec3(0.6, 0.54, 0.41), meso) * (0.9 + 0.2 * micro);
   vec3 snowC = vec3(0.82, 0.84, 0.88) * (0.94 + 0.06 * micro) * owSnowTint;
   ${FESTIVAL_SCAN_GLSL}
@@ -218,7 +221,7 @@ normal = apexScanPerturb(normal, owScanN, 1.1);
 #endif`,
       );
   };
-  material.customProgramCacheKey = () => 'festival-terrain-v1';
+  material.customProgramCacheKey = () => 'festival-terrain-v2-continuous-farm';
   scannedGround.register(material, FESTIVAL_SCAN_LAYERS);
   return material;
 }
