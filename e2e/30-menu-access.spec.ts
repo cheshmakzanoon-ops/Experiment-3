@@ -1,5 +1,6 @@
 import { MENU_STARTUP_TIMEOUT_MS } from './menu-startup.ts';
-import { test, expect } from '@playwright/test';
+import { expect } from '@playwright/test';
+import { menuTimingTest as test } from './menu-timing-evidence.ts';
 import { build } from 'vite';
 import { resolve } from 'node:path';
 import { readFile } from 'node:fs/promises';
