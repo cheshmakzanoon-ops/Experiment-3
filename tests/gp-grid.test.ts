@@ -54,6 +54,24 @@ describe('GP three-rider starting grid', () => {
       expect(sim.cars.map((car) => ({ ...car.body.position }))).toEqual(positions);
       expect(sim.cars.every((car) => car.impact === 0)).toBe(true);
       expect(sim.cars[0].s).toBe(sim.cars[grid[count - 1]].s);
+
+      // The constructor's new grid must also enter the normal captured
+      // collision substeps without inventing motion or a first-tick contact.
+      sim.step(1 / 120);
+      expect(sim.tick).toBe(1);
+      expect(sim.collisions.sweptContacts).toBe(0);
+      expect(sim.collisions.sweepLimitReached).toBe(false);
+      expect(sim.collisions.sweepIterationLimits).toBe(0);
+      expect(
+        sim.cars.every(
+          (car) =>
+            car.impact === 0 &&
+            car.body.position.finite() &&
+            car.body.velocity.finite() &&
+            car.body.omega.finite(),
+        ),
+      ).toBe(true);
+      expect(sim.makeFrame().every(Number.isFinite)).toBe(true);
     });
 
   it('retains the existing mixed, superbike and car placements', () => {

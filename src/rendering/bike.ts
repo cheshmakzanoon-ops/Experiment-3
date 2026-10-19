@@ -25,11 +25,9 @@ import { sampleProfile } from './profile-sampling.ts';
 import {
   carBase,
   B,
-  BIKE_BASE,
   F,
   H,
   O,
-  OFFROAD_BASE,
   R,
   RACE_BASE,
   W,
@@ -56,6 +54,14 @@ import {
   forkLocalOffset,
 } from './bike-pit-service.ts';
 import { pitServiceActive } from './pit-presentation.ts';
+import { wheelPhase, wheelValue } from './wheel-pose.ts';
+import {
+  presentationAlpha,
+  sampleBikeField,
+  sampleOffroadField,
+  sampleValue,
+  snapshotSource,
+} from './snapshot-interpolation.ts';
 
 /** Procedural road-racing motorcycle (WP34 presentation, masterplan §17).
  * Original design, no real manufacturer or team: a lofted fairing in
@@ -1992,10 +1998,12 @@ export class BikeShells {
   }
   /** Chassis lean (rad, + left) of entrant `id`, interpolated. */
   static lean(a: Float32Array, b: Float32Array, alpha: number, id: number) {
-    const o = carBase(id) + BIKE_BASE,
-      def = vehicleAt(Math.round(b[carBase(id) + RACE_BASE + R.VEHICLE]));
+    const o = carBase(id),
+      t = presentationAlpha(a, b, o, alpha),
+      source = snapshotSource(a, b, t),
+      def = vehicleAt(Math.round(source[o + RACE_BASE + R.VEHICLE]));
     if (!def.bike) return 0;
-    return chassisLean(T.MathUtils.lerp(a[o + B.LEAN], b[o + B.LEAN], alpha), def.bike);
+    return chassisLean(sampleBikeField(a, b, o, B.LEAN, t), def.bike);
   }
   private build(id: number, definition: VehicleDefinition): Entry {
     const materials = new BikeMaterials(id);
@@ -2068,13 +2076,23 @@ export class BikeShells {
     follow: number,
   ) {
     for (let id = 0; id < cars.length; id++) {
-      const o = carBase(id),
-        definition = vehicleAt(Math.round(b[o + RACE_BASE + R.VEHICLE]));
       let entry = this.entries.get(id);
+      if (id >= b[H.CARS]) {
+        if (entry) {
+          this.dispose(entry);
+          this.entries.delete(id);
+        }
+        continue;
+      }
+      const o = carBase(id),
+        t = presentationAlpha(a, b, o, alpha),
+        source = snapshotSource(a, b, t),
+        definition = vehicleAt(Math.round(source[o + RACE_BASE + R.VEHICLE]));
       if (definition.dynamicsKind !== 'bike' || !definition.bike) {
         if (entry) {
           this.dispose(entry);
           this.entries.delete(id);
+          if (definition.classId === 'formula') cars[id].root.visible = true;
         }
         continue;
       }
@@ -2085,13 +2103,8 @@ export class BikeShells {
       }
       const car = cars[id].root;
       car.visible = false;
-      if (id >= b[H.CARS]) {
-        for (const level of entry.levels) level.root.visible = false;
-        entry.rig.update(null, this.serviceTask, car.position, car.quaternion);
-        continue;
-      }
       // Discrete service fields as the presented frame carries them.
-      const service = this.servicePose(alpha < 1 ? a : b, id, definition);
+      const service = this.servicePose(source, id, definition);
       entry.rig.update(service, this.serviceTask, car.position, car.quaternion);
       this.values.rearWheelOut = service ? service.hubs[1].z - service.mounted[1].z : 0;
       this.values.frontWheelDrop = service ? service.hubs[0].y - service.mounted[0].y : 0;
@@ -2109,7 +2122,12 @@ export class BikeShells {
       if (previous === 1 && level === 2 && distance < 106) level = 1;
       if (previous === 2 && level === 1 && distance > 94) level = 2;
       entry.level = level;
-      entry.levels.forEach((model, i) => (model.root.visible = i === level));
+      for (let i = 0; i < entry.levels.length; i++) {
+        const model = entry.levels[i];
+        model.root.visible = i === level;
+        // A separated rider is parented to the world, outside its LOD root.
+        model.rider.root.visible = i === level;
+      }
       const model = entry.levels[level];
       model.root.position.copy(car.position);
       model.root.quaternion.copy(car.quaternion);
@@ -2117,7 +2135,7 @@ export class BikeShells {
       // recorded lift along its own up axis; the stands stay on the floor.
       if (service)
         model.root.position.add(this.lift.set(0, service.lift, 0).applyQuaternion(car.quaternion));
-      this.pose(model, a, b, alpha, id);
+      this.pose(model, a, b, t, id);
     }
   }
   private pose(
@@ -2128,62 +2146,69 @@ export class BikeShells {
     id: number,
   ) {
     const o = carBase(id),
-      k = o + BIKE_BASE,
       bike = model.definition.bike!,
       v = this.values,
-      lerp = (index: number) => T.MathUtils.lerp(a[index], b[index], t);
-    const wheel = (i: number) => o + WHEEL_BASE + i * WHEEL_STRIDE;
-    v.speed = lerp(o + F.SPEED);
-    v.rpm = lerp(o + F.RPM);
-    v.gear = b[o + F.GEAR];
-    v.fork = lerp(k + B.FORK);
-    v.shock = lerp(k + B.SHOCK);
-    v.steer = lerp(k + B.STEER);
-    v.frontRotation = b[wheel(0) + W.ROTATION];
-    v.rearRotation = b[wheel(2) + W.ROTATION];
-    v.chassisLean = chassisLean(lerp(k + B.LEAN), bike);
-    v.riderOffset = lerp(k + B.RIDER_OFFSET);
-    v.tuck = lerp(k + B.TUCK);
-    v.brake = lerp(o + F.BRAKE);
-    v.rearBrake = lerp(k + B.REAR_BRAKE);
-    v.discTemp = b[wheel(0) + W.DISC_TEMP];
-    v.compound = Math.round(b[o + F.COMPOUND]);
-    v.frontWear = lerp(wheel(0) + W.WEAR);
-    v.rearWear = lerp(wheel(2) + W.WEAR);
-    v.frontSurfaceTemp = lerp(wheel(0) + W.SURFACE_TEMP);
-    v.rearSurfaceTemp = lerp(wheel(2) + W.SURFACE_TEMP);
-    v.frontWater = lerp(wheel(0) + W.WATER);
-    v.rearWater = lerp(wheel(2) + W.WATER);
-    v.compoundColour = COMPOUND_COLOURS[Math.round(b[o + F.COMPOUND])] ?? 0xffffff;
-    const state = BIKE_STATES[Math.round(b[k + B.STATE])] ?? 'riding';
+      source = snapshotSource(a, b, t),
+      front = o + WHEEL_BASE,
+      rear = front + 2 * WHEEL_STRIDE;
+    v.speed = sampleValue(a, b, o + F.SPEED, t);
+    v.rpm = sampleValue(a, b, o + F.RPM, t);
+    v.gear = source[o + F.GEAR];
+    v.fork = sampleBikeField(a, b, o, B.FORK, t);
+    v.shock = sampleBikeField(a, b, o, B.SHOCK, t);
+    v.steer = sampleBikeField(a, b, o, B.STEER, t);
+    v.frontRotation = wheelPhase(a, b, o, front, t);
+    v.rearRotation = wheelPhase(a, b, o, rear, t);
+    v.chassisLean = chassisLean(sampleBikeField(a, b, o, B.LEAN, t), bike);
+    v.riderOffset = sampleBikeField(a, b, o, B.RIDER_OFFSET, t);
+    v.tuck = sampleBikeField(a, b, o, B.TUCK, t);
+    v.brake = sampleValue(a, b, o + F.BRAKE, t);
+    v.rearBrake = sampleBikeField(a, b, o, B.REAR_BRAKE, t);
+    v.discTemp = wheelValue(a, b, o, front, W.DISC_TEMP, t);
+    v.compound = Math.round(source[o + F.COMPOUND]);
+    v.frontWear = wheelValue(a, b, o, front, W.WEAR, t);
+    v.rearWear = wheelValue(a, b, o, rear, W.WEAR, t);
+    v.frontSurfaceTemp = wheelValue(a, b, o, front, W.SURFACE_TEMP, t);
+    v.rearSurfaceTemp = wheelValue(a, b, o, rear, W.SURFACE_TEMP, t);
+    v.frontWater = wheelValue(a, b, o, front, W.WATER, t);
+    v.rearWater = wheelValue(a, b, o, rear, W.WATER, t);
+    v.compoundColour = COMPOUND_COLOURS[v.compound] ?? 0xffffff;
+    const state = BIKE_STATES[Math.round(sampleBikeField(a, b, o, B.STATE, t))] ?? 'riding';
     v.riding = state === 'riding';
-    const ob = o + OFFROAD_BASE;
-    v.standing = lerp(ob + O.STANDING);
-    v.dab = lerp(ob + O.DAB);
-    v.body = lerp(ob + O.BODY);
-    v.mud = b[ob + O.MUD];
-    v.mudWet = b[ob + O.MOISTURE];
-    model.pose(v);
+    v.standing = sampleOffroadField(a, b, o, O.STANDING, t);
+    v.dab = sampleOffroadField(a, b, o, O.DAB, t);
+    v.body = sampleOffroadField(a, b, o, O.BODY, t);
+    v.mud = sampleOffroadField(a, b, o, O.MUD, t);
+    v.mudWet = sampleOffroadField(a, b, o, O.MOISTURE, t);
     const rider = model.rider;
-    if (v.riding) {
-      if (rider.root.parent !== model.sprung) {
-        model.sprung.add(rider.root);
-        rider.root.position.set(0, 0, 0);
-        rider.root.quaternion.identity();
-      }
-      return;
+    if (v.riding && rider.root.parent !== model.sprung) {
+      model.sprung.add(rider.root);
+      rider.root.position.set(0, 0, 0);
+      rider.root.quaternion.identity();
     }
-    // Separated: the rider is a body of its own in the world.
-    if (rider.root.parent !== this.root) this.root.add(rider.root);
+    model.pose(v);
     rider.root.visible = model.root.visible;
-    this.position.set(lerp(k + B.RIDER_X), lerp(k + B.RIDER_Y), lerp(k + B.RIDER_Z));
+    if (v.riding) return;
+    // Separated: the rider is a body of its own in the world. Its origin and
+    // tumble clock change only at the recorded crash/remount boundary.
+    if (rider.root.parent !== this.root) this.root.add(rider.root);
+    this.position.set(
+      sampleBikeField(a, b, o, B.RIDER_X, t),
+      sampleBikeField(a, b, o, B.RIDER_Y, t),
+      sampleBikeField(a, b, o, B.RIDER_Z, t),
+    );
     const ground = model.root.position.y - 0.09;
     const phase = state === 'remount' ? 2 : this.position.y - ground > 0.5 ? 1 : 0;
     rider.root.position.copy(this.position);
     if (phase !== 0) rider.root.position.y -= 0.95;
-    rider.root.rotation.set(0, b[k + B.RIDER_HEADING], 0);
-    rider.separated(phase, b[k + B.RIDER_TUMBLE], b[H.TIME]);
+    rider.root.rotation.set(0, sampleBikeField(a, b, o, B.RIDER_HEADING, t), 0);
+    rider.separated(
+      phase,
+      sampleBikeField(a, b, o, B.RIDER_TUMBLE, t),
+      sampleValue(a, b, H.TIME, t),
+    );
   }
+
   /** Onboard camera for a followed bike in world space. GP prototypes and
    * motocross use their measured model clearances; other road sockets persist. */
   onboard(

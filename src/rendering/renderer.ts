@@ -1158,11 +1158,11 @@ export class RacingRenderer {
       this.audioView.reset();
       this.initialized = false;
     }
-    const time = b[H.TIME],
+    const time = presented[H.TIME],
       o = carBase(this.follow);
     const car = this.cars[this.follow],
-      speed = b[o + F.SPEED];
-    const bikeFollow = !!this.bikeShells && BikeShells.isBike(b, this.follow);
+      speed = presented[o + F.SPEED];
+    const bikeFollow = !!this.bikeShells && BikeShells.isBike(presented, this.follow);
     const followedDefinition = vehicleAt(Math.round(presented[o + RACE_BASE + R.VEHICLE])),
       motocrossFollow =
         bikeFollow &&
@@ -1204,9 +1204,7 @@ export class RacingRenderer {
     }
     // Per-vehicle cabin (cars loose ends 1): a catalogue machine's own eye,
     // onboard mount and lenses; the Formula car keeps its supplied cockpit.
-    const cabin = (this.cabin = bikeFollow
-      ? null
-      : cabinFor(vehicleAt(Math.round(b[o + RACE_BASE + R.VEHICLE]))));
+    const cabin = (this.cabin = bikeFollow ? null : cabinFor(followedDefinition));
     const studio = !!this.photo && this.photo.backdrop !== 'circuit';
     const illumination: LightingMode = studio ? 'day' : this.lighting;
     const daylight = circuitLightState(presented[H.CLOUD], presented[H.RAIN], illumination);

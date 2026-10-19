@@ -33,7 +33,13 @@ function wake(c: Vehicle, cars: Vehicle[]) {
     if (other !== c && c.body.position.distanceSq(other.body.position) < 101 * 101)
       c.wake = Math.max(
         c.wake,
-        aero.wakeOverlap(c.body.position, other.body.position, other.forward, other.speed, c.forward),
+        aero.wakeOverlap(
+          c.body.position,
+          other.body.position,
+          other.forward,
+          other.speed,
+          c.forward,
+        ),
       );
 }
 
@@ -64,10 +70,11 @@ function run() {
       wake(c, cars);
     }
     for (let sub = 0; sub < 2; sub++) {
+      collisions.beginStep(cars);
       const before = performance.now();
       for (const c of cars) c.step(TICK * 0.5, track);
       vehicleMs += performance.now() - before;
-      collisions.solve(cars, track);
+      collisions.solve(cars, track, TICK * 0.5);
     }
     for (const c of cars) c.recoverIfUpset(TICK, track);
     for (const c of cars) updatePit(c, track, TICK, cars);

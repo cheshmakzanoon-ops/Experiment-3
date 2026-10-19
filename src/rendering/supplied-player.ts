@@ -11,7 +11,8 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { clamp, lerp } from '../core/math.ts';
 import { F, H, R, RACE_BASE, W, WHEEL_BASE, WHEEL_STRIDE } from '../simulation/protocol.ts';
 import { COMPOUNDS } from '../simulation/config.ts';
-import { wheelPhase, wheelTravel } from './wheel-pose.ts';
+import { wheelPhase, wheelTravel, wheelValue } from './wheel-pose.ts';
+import { snapshotSource } from './snapshot-interpolation.ts';
 import { serviceWheelOffset } from './pit-crew.ts';
 import { rearLampIntensity } from './rear-signal.ts';
 import manifest from './supplied-player.manifest.json' with { type: 'json' };
@@ -447,6 +448,7 @@ export class SuppliedPlayer {
     return this.lcd.localToWorld(out);
   }
   update(a: Float32Array, b: Float32Array, o: number, t: number, cockpit: boolean) {
+    const source = snapshotSource(a, b, t);
     this.action.time = steeringSample(
       lerp(a[o + F.STEER], b[o + F.STEER], t),
       this.action.getClip().duration,
@@ -462,20 +464,20 @@ export class SuppliedPlayer {
       this.wheels[i].rotation.y = lerp(a[p + W.STEER], b[p + W.STEER], t);
       this.wheels[i].rotation.z = -lerp(a[p + W.CAMBER], b[p + W.CAMBER], t);
       this.spins[i].rotation.x = wheelPhase(a, b, o, p, t);
-      this.wheelBlur.blur[i].value = wheelBlur(lerp(a[p + W.OMEGA], b[p + W.OMEGA], t));
+      this.wheelBlur.blur[i].value = wheelBlur(wheelValue(a, b, o, p, W.OMEGA, t));
       this.spins[i].position.x =
         (i % 2 === 0 ? -1 : 1) *
-        serviceWheelOffset(b[o + F.PIT_PHASE], b[o + F.PIT_CLOCK], b[p + W.LOAD]);
+        serviceWheelOffset(source[o + F.PIT_PHASE], source[o + F.PIT_CLOCK], source[p + W.LOAD]);
     }
-    this.front.visible = b[o + F.FRONT_HEALTH] > 0.08;
-    this.rear.visible = b[o + F.REAR_HEALTH] > 0.08;
-    this.front.scale.x = 0.35 + 0.65 * clamp(b[o + F.FRONT_HEALTH], 0, 1);
-    this.front.rotation.z = (1 - b[o + F.FRONT_HEALTH]) * 0.12;
-    this.rear.rotation.z = (1 - b[o + F.REAR_HEALTH]) * 0.09;
+    this.front.visible = source[o + F.FRONT_HEALTH] > 0.08;
+    this.rear.visible = source[o + F.REAR_HEALTH] > 0.08;
+    this.front.scale.x = 0.35 + 0.65 * clamp(source[o + F.FRONT_HEALTH], 0, 1);
+    this.front.rotation.z = (1 - source[o + F.FRONT_HEALTH]) * 0.12;
+    this.rear.rotation.z = (1 - source[o + F.REAR_HEALTH]) * 0.09;
     if (this.drsFlap)
       this.drsFlap.rotation.x =
         PLAYER_DRS_OPEN * lerp(a[o + RACE_BASE + R.DRS_FLAP], b[o + RACE_BASE + R.DRS_FLAP], t);
-    const style = Object.values(COMPOUNDS)[Math.round(b[o + F.COMPOUND])] ?? COMPOUNDS.medium;
+    const style = Object.values(COMPOUNDS)[Math.round(source[o + F.COMPOUND])] ?? COMPOUNDS.medium;
     this.compound.forEach((m) => m.color.setHex(style.color));
     this.rubber.forEach(({ material, roughness }) => {
       material.roughness = roughness * (1 - 0.3 * clamp(b[H.RAIN] / 14, 0, 1));

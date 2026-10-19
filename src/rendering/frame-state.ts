@@ -1,6 +1,18 @@
-import { K, SKID_BASE } from '../simulation/protocol.ts';
-import { wheelPhase } from './wheel-pose.ts';
-import { Quaternion } from 'three';
+import {
+  BIKE_BASE,
+  BIKE_STRIDE,
+  K,
+  OFFROAD_BASE,
+  OFFROAD_STRIDE,
+  SKID_BASE,
+} from '../simulation/protocol.ts';
+import { wheelPhase, wheelValue } from './wheel-pose.ts';
+import { Quaternion, Vector3 } from 'three';
+import {
+  sampleBikeField,
+  sampleChassisPose,
+  sampleOffroadField,
+} from './snapshot-interpolation.ts';
 import {
   CAR_STRIDE,
   F,
@@ -15,9 +27,6 @@ import {
 // Only continuously varying presentation channels are interpolated. Gear,
 // compound, flags, surface IDs and service phases remain genuine discrete states.
 const SMOOTH_CAR = [
-  F.X,
-  F.Y,
-  F.Z,
   F.VX,
   F.VY,
   F.VZ,
@@ -54,8 +63,8 @@ const SMOOTH_WEATHER = [H.RAIN, H.CLOUD, H.AMBIENT, H.WIND_X, H.WIND_Z] as const
  * timing, CSV or replay storage; those retain original measured snapshots. */
 export class PresentedFrame {
   value = new Float32Array(0);
-  private qa = new Quaternion();
-  private qb = new Quaternion();
+  private readonly position = new Vector3();
+  private readonly orientation = new Quaternion();
   sample(a: Float32Array, b: Float32Array, alpha: number): Float32Array {
     const cars = b[H.CARS];
     if (
@@ -64,7 +73,7 @@ export class PresentedFrame {
       alpha > 1 ||
       !Number.isInteger(cars) ||
       cars < 1 ||
-      cars > 12 ||
+      cars > 32 ||
       a[H.CARS] !== cars ||
       a.length !== b.length ||
       b.length !== HEADER + cars * CAR_STRIDE ||
@@ -81,23 +90,23 @@ export class PresentedFrame {
     for (const field of SMOOTH_WEATHER) this.blend(a, b, field, alpha);
     for (let id = 0; id < cars; id++) {
       const o = carBase(id);
-      for (const field of SMOOTH_CAR) this.blend(a, b, o + field, alpha);
-      this.qa
-        .fromArray(a, o + F.QX)
-        .slerp(this.qb.fromArray(b, o + F.QX), alpha)
-        .normalize();
-      out[o + F.QX] = this.qa.x;
-      out[o + F.QY] = this.qa.y;
-      out[o + F.QZ] = this.qa.z;
-      out[o + F.QW] = this.qa.w;
+      const t = sampleChassisPose(a, b, o, alpha, this.position, this.orientation);
+      if (t === 0) continue;
+      this.position.toArray(out, o + F.X);
+      this.orientation.toArray(out, o + F.QX);
+      for (const field of SMOOTH_CAR) this.blend(a, b, o + field, t);
+      for (let field = 0; field < BIKE_STRIDE; field++)
+        out[o + BIKE_BASE + field] = sampleBikeField(a, b, o, field, t);
+      for (let field = 0; field < OFFROAD_STRIDE; field++)
+        out[o + OFFROAD_BASE + field] = sampleOffroadField(a, b, o, field, t);
       const skid = o + SKID_BASE;
       // Cumulative work survives contacts between visual samples. The first
       // recorded strike already has a real anchor: never blend it from (0,0,0).
       for (const field of SMOOTH_SKID)
         if (field < K.SLIDE_WORK || b[skid + field] >= a[skid + field])
-          this.blend(a, b, skid + field, alpha);
+          this.blend(a, b, skid + field, t);
       for (let field = K.SPARK_X as number; field <= K.VELOCITY_Z; field++) {
-        if (a[skid + K.SPARK_WORK] > 0) this.blend(a, b, skid + field, alpha);
+        if (a[skid + K.SPARK_WORK] > 0) this.blend(a, b, skid + field, t);
         else out[skid + field] = b[skid + field];
       }
       const normalLength = Math.hypot(
@@ -111,12 +120,11 @@ export class PresentedFrame {
       for (let wheel = 0; wheel < 4; wheel++) {
         const p = o + WHEEL_BASE + wheel * WHEEL_STRIDE;
         for (let field = 0; field < WHEEL_STRIDE; field++)
-          if (field !== W.SURFACE && field !== W.PUNCTURED && field !== W.ROTATION)
-            this.blend(a, b, p + field, alpha);
-        out[p + W.ROTATION] = wheelPhase(a, b, o, p, alpha);
+          if (field !== W.ROTATION) out[p + field] = wheelValue(a, b, o, p, field, t);
+        out[p + W.ROTATION] = wheelPhase(a, b, o, p, t);
         const counter = o + F.MARBLE_PICKUP_FR + wheel;
         // A replacement tire starts a new counter, not a negative pickup ramp.
-        if (b[counter] >= a[counter]) this.blend(a, b, counter, alpha);
+        if (b[counter] >= a[counter]) this.blend(a, b, counter, t);
       }
     }
     return out;

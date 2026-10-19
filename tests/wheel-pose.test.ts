@@ -49,3 +49,52 @@ it('interpolates actual suspension travel and reuses wheel phase in presentation
   expect(a).toEqual(before[0]);
   expect(b).toEqual(before[1]);
 });
+
+it('uses measured angular acceleration within the lifted whole-turn interval', () => {
+  const { a, b } = pair(0, 0.1),
+    dt = b[H.TIME];
+  a[wheel + W.OMEGA] = 0;
+  b[wheel + W.OMEGA] = 20;
+  b[wheel + W.ROTATION] = (6 + 10 * dt) % TAU;
+  for (const alpha of [0.1, 0.25, 0.5, 0.8])
+    expect(wheelPhase(a, b, car, wheel, alpha)).toBeCloseTo(6 + 10 * dt * alpha * alpha, 6);
+});
+
+it('limits impulse slopes without overshoot or a spurious backwards turn', () => {
+  const { a, b } = pair(0, 0.1);
+  a[wheel + W.OMEGA] = 1000;
+  b[wheel + W.OMEGA] = -1000;
+  b[wheel + W.ROTATION] = 6.1;
+  let previous = 6;
+  for (let i = 1; i < 100; i++) {
+    const phase = wheelPhase(a, b, car, wheel, i / 100);
+    expect(phase).toBeGreaterThanOrEqual(previous);
+    expect(phase).toBeLessThanOrEqual(b[wheel + W.ROTATION]);
+    previous = phase;
+  }
+});
+
+it('preserves a coherent low-speed reversal inside one measured interval', () => {
+  const { a, b } = pair(0, 0.1);
+  a[wheel + W.OMEGA] = 2;
+  b[wheel + W.OMEGA] = -2;
+  b[wheel + W.ROTATION] = 6;
+  expect(wheelPhase(a, b, car, wheel, 0.5)).toBeCloseTo(6.05, 6);
+  expect(wheelPhase(a, b, car, wheel, 1)).toBe(6);
+});
+
+it('holds wheel phase at resets and remains independent of playback query order', () => {
+  const { a, b } = pair(200);
+  const expected = wheelPhase(a, b, car, wheel, 0.4);
+  for (const alpha of [1, 0.1, 0.9, 0, 0.4]) wheelPhase(a, b, car, wheel, alpha);
+  expect(wheelPhase(a, b, car, wheel, 0.4)).toBe(expected);
+  b[car + F.X] = 100;
+  expect(wheelPhase(a, b, car, wheel, 0.4)).toBe(6);
+  expect(wheelPhase(a, b, car, wheel, 1)).toBe(b[wheel + W.ROTATION]);
+});
+
+it('does not produce NaN rotation from an unusable angular-velocity sample', () => {
+  const { a, b } = pair();
+  b[wheel + W.OMEGA] = NaN;
+  expect(wheelPhase(a, b, car, wheel, 0.5)).toBe(6);
+});

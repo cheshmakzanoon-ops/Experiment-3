@@ -186,8 +186,9 @@ export class Simulation {
     }
     this.offroad?.beforePhysics(dt, this.autoPlayer);
     for (let sub = 0; sub < 2; sub++) {
+      this.collisions.beginStep(this.cars);
       for (const c of this.cars) c.step(dt * 0.5, this.track);
-      this.collisions.solve(this.cars, this.track);
+      this.collisions.solve(this.cars, this.track, dt * 0.5);
     }
     for (const c of this.cars) c.recoverIfUpset(dt, this.track);
     this.recoverStranded(dt);

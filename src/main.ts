@@ -9,6 +9,7 @@ import { GridPresentationClock } from './core/grid-presentation.ts';
 import { GridPresentationPanel } from './ui/grid-presentation.ts';
 import './ui/grid-presentation.css';
 import { menuPreview, shouldDrawMenu } from './rendering/menu-preview.ts';
+import { LiveFrameClock } from './rendering/live-frame-clock.ts';
 import { motocrossMenuPreview } from './rendering/offroad/menu-bike.ts';
 import { VEHICLES, vehicleAt } from './simulation/vehicles.ts';
 import { shouldDrawReplay } from './rendering/replay-presentation.ts';
@@ -196,7 +197,7 @@ export class GameApp {
   private worker: Worker | null = null;
   private current: Float32Array | null = null;
   private previous: Float32Array | null = null;
-  private receivedAt = 0;
+  private readonly liveFrames = new LiveFrameClock();
   private state: State = 'loading';
   private options: SessionOptions = { ...DEFAULT_OPTIONS };
   /** Display-only menu snapshot. Keep worker frames intact for transfer-pool
@@ -570,6 +571,7 @@ export class GameApp {
     this.menuMachineFrame = preview;
     this.current = preview;
     this.previous = preview;
+    this.liveFrames.observe(preview, performance.now());
     this.state = 'menu';
     // The loading screen stays up until the first menu frame is drawn: the
     // menu never appears over an undrawn canvas, and what it reports about the
@@ -581,6 +583,7 @@ export class GameApp {
   private workerPause = new PauseHandshake();
   private post(message: ClientMessage, transfer: Transferable[] = []) {
     if (!this.worker) return;
+    if (message.type === 'pause') this.liveFrames.setPaused(message.value);
     this.worker.postMessage(
       message.type === 'pause' ? this.workerPause.request(message.value) : message,
       transfer,
@@ -752,6 +755,7 @@ export class GameApp {
     this.comparison = false;
     this.current = null;
     this.previous = null;
+    this.liveFrames.reset();
     this.renderer?.reset();
     this.worker?.terminate();
     if (this.renderer) this.renderer.engineering = null;
@@ -934,7 +938,7 @@ export class GameApp {
       this.previous = this.current;
     } else this.previous = next;
     this.current = next;
-    this.receivedAt = performance.now();
+    this.liveFrames.observe(next, performance.now());
     if (this.state === 'driving') {
       this.radioCaption.show(this.radio.observe(next, this.options.laps));
       this.rumble.update(
@@ -1047,9 +1051,10 @@ export class GameApp {
     if (idle && this.renderedState === this.state && time - this.renderedAt < 1000 / 15) return;
     this.renderedAt = time;
     this.renderedState = this.state;
-    let a = this.previous,
-      b = this.current,
-      alpha = clamp((time - this.receivedAt) / Math.max(8, (b[H.TIME] - a[H.TIME]) * 1000), 0, 1);
+    const live = this.liveFrames.sample(performance.now());
+    let a = live?.a ?? this.current,
+      b = live?.b ?? this.current,
+      alpha = live?.alpha ?? 1;
     if (this.state === 'menu' && this.menuMachineFrame) {
       a = b = this.menuMachineFrame;
       alpha = 0;

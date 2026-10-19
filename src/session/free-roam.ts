@@ -19,6 +19,7 @@ import { vehicleAt } from '../simulation/vehicles.ts';
 import type { LightingMode } from '../rendering/daylight.ts';
 import { FestivalRenderer } from '../rendering/open-world/festival-renderer.ts';
 import { FestivalRiders } from '../rendering/festival-riders.ts';
+import { LiveFrameClock } from '../rendering/live-frame-clock.ts';
 import { TrafficCars } from '../rendering/traffic-cars.ts';
 import type { GraphicsOptions, QualityPreset } from '../rendering/options.ts';
 import type { AudioView } from '../audio/spatial.ts';
@@ -101,12 +102,9 @@ export class FestivalSession {
   private hud: FestivalHud | null = null;
   private current: Float32Array | null = null;
   private previous: Float32Array | null = null;
-  private receivedAt = 0;
+  private readonly liveFrames = new LiveFrameClock();
   private lastTime = 0;
   private status: FestivalStatus | null = null;
-  /** Ambient traffic blocks paired with `previous`/`current`. */
-  private trafficPrevious: Float32Array | null = null;
-  private trafficCurrent: Float32Array | null = null;
   private traffic: TrafficCars | null = null;
   private riders: FestivalRiders | null = null;
   private controls: FestivalControls | null = null;
@@ -291,7 +289,9 @@ export class FestivalSession {
       await this.travel(options.travel);
   }
   private post(message: ToOpenWorld, transfer: Transferable[] = []) {
-    if (!this.disposed) this.worker.postMessage(message, transfer);
+    if (this.disposed) return;
+    if (message.type === 'pause') this.liveFrames.setPaused(message.value);
+    this.worker.postMessage(message, transfer);
   }
   private fail(error: Error) {
     if (this.readyReject) {
@@ -315,9 +315,11 @@ export class FestivalSession {
           ]);
         this.previous = this.current ?? frame;
         this.current = frame;
-        this.trafficPrevious = this.trafficCurrent;
-        this.trafficCurrent = msg.traffic ? new Float32Array(msg.traffic) : null;
-        this.receivedAt = performance.now();
+        this.liveFrames.observe(
+          frame,
+          performance.now(),
+          msg.traffic ? new Float32Array(msg.traffic) : null,
+        );
         if (this.readyResolve) {
           this.readyResolve();
           this.readyResolve = null;
@@ -526,19 +528,18 @@ export class FestivalSession {
   }
   /** One animation frame. */
   frame(time: number) {
-    const renderer = this.renderer,
-      a = this.previous,
-      b = this.current;
-    if (!renderer || !a || !b || this.disposed || this.travelling) return;
+    const renderer = this.renderer;
+    if (!renderer || !this.current || this.disposed || this.travelling) return;
+    const live = this.liveFrames.sample(performance.now());
+    if (!live) return;
+    const { a, b, alpha } = live;
     const wall = Math.max(0.001, (time - (this.lastTime || time - 16)) / 1000);
     this.lastTime = time;
-    const span = Math.max(8, (b[H.TIME] - a[H.TIME]) * 1000),
-      alpha = Math.min(1, Math.max(0, (performance.now() - this.receivedAt) / span));
     // Posed before the draw, from the same interpolation as the cars.
     this.riders?.update(a, b, alpha, renderer.camera, this.host.quality);
     this.traffic?.update(
-      this.trafficPrevious,
-      this.trafficCurrent,
+      live.auxiliaryA,
+      live.auxiliaryB,
       alpha,
       renderer.night,
       b[H.TIME],

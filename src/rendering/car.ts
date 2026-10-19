@@ -46,7 +46,8 @@ import { TireCarcass } from './tire-carcass.ts';
 import { anthraciteRimMaterial, wheelCoverMaterial } from './studio/wheel-blur.ts';
 import { wheelBlur } from './studio/tyre-letters.ts';
 import { bindTireSurface, tireHeatAppearance, tireWetAppearance } from './tire-finish.ts';
-import { wheelPhase, wheelTravel } from './wheel-pose.ts';
+import { wheelPhase, wheelTravel, wheelValue } from './wheel-pose.ts';
+import { sampleChassisPose, sampleValue, snapshotSource } from './snapshot-interpolation.ts';
 import * as T from 'three';
 import { DriverRig } from './driver.ts';
 import { serviceWheelOffset } from './pit-crew.ts';
@@ -100,8 +101,6 @@ export class FormulaCar {
   readonly accent: T.MeshPhysicalMaterial;
   readonly identityTexture: T.CanvasTexture;
   readonly reflectivePaint: T.MeshPhysicalMaterial[] = [];
-  private qa = new T.Quaternion();
-  private qb = new T.Quaternion();
   private v = new T.Vector3();
   private linkChord = new T.Vector3();
   private linkThickness = new T.Vector3();
@@ -656,17 +655,12 @@ export class FormulaCar {
     time: number,
     cockpit: boolean,
   ) {
-    this.root.position.set(
-      lerp(a[o + F.X], b[o + F.X], t),
-      lerp(a[o + F.Y], b[o + F.Y], t),
-      lerp(a[o + F.Z], b[o + F.Z], t),
-    );
-    this.qa.set(a[o + F.QX], a[o + F.QY], a[o + F.QZ], a[o + F.QW]);
-    this.qb.set(b[o + F.QX], b[o + F.QY], b[o + F.QZ], b[o + F.QW]);
-    this.root.quaternion.copy(this.qa).slerp(this.qb, t);
+    t = sampleChassisPose(a, b, o, t, this.root.position, this.root.quaternion);
+    const source = snapshotSource(a, b, t);
+    time = sampleValue(a, b, H.TIME, t);
     if (this.suppliedPlayer) {
-      if (this.displayClock.due(b[H.TIME], b[o + F.GEAR])) {
-        drawSteeringDisplay(this.ctx, b, o);
+      if (this.displayClock.due(time, source[o + F.GEAR])) {
+        drawSteeringDisplay(this.ctx, source, o);
         this.display.needsUpdate = true;
       }
       this.suppliedPlayer.update(a, b, o, t, cockpit);
@@ -682,8 +676,18 @@ export class FormulaCar {
       clamp((contactWater * Math.abs(b[o + F.SPEED])) / 25, 0, 1),
     );
     for (const material of this.reflectivePaint)
-      setPaintObservation(material, wetPaint, b[o + F.FRONT_HEALTH], b[o + F.REAR_HEALTH]);
-    setPaintObservation(this.accent, wetPaint, b[o + F.FRONT_HEALTH], b[o + F.REAR_HEALTH]);
+      setPaintObservation(
+        material,
+        wetPaint,
+        source[o + F.FRONT_HEALTH],
+        source[o + F.REAR_HEALTH],
+      );
+    setPaintObservation(
+      this.accent,
+      wetPaint,
+      source[o + F.FRONT_HEALTH],
+      source[o + F.REAR_HEALTH],
+    );
     // Update before the reduced-car return, using recorded interpolation rather
     // than a render timer. Pauses, seeks and hysteretic LOD handoffs stay in phase.
     this.rainLight.emissiveIntensity = rearLampIntensity(
@@ -693,28 +697,28 @@ export class FormulaCar {
     // Every visible representation shares this wheel's live material. Observe
     // snapshots before any LOD return; pit swaps and replay seeks cannot leave
     // reduced tyres clean/slick while the near representation is worn or wet.
-    const compoundIndex = Math.round(b[o + F.COMPOUND]);
+    const compoundIndex = Math.round(source[o + F.COMPOUND]);
     const compound = COMPOUND_STYLES[compoundIndex] ?? COMPOUNDS.medium;
     for (let i = 0; i < 4; i++) {
       const p = o + WHEEL_BASE + i * WHEEL_STRIDE;
       this.rings[i].color.setHex(compound.color);
       // D12 sidewall band in the compound colour; art smears with wheel speed.
       this.treads[i].band.value.setHex(compound.color);
-      this.treads[i].side.value.x = wheelBlur(b[p + W.OMEGA]);
+      this.treads[i].side.value.x = wheelBlur(wheelValue(a, b, o, p, W.OMEGA, t));
       this.treads[i].condition.value.set(
-        b[p + W.DIRT],
-        b[p + W.WEAR],
-        b[p + W.BLISTERING],
-        b[p + W.GRAINING],
+        wheelValue(a, b, o, p, W.DIRT, t),
+        wheelValue(a, b, o, p, W.WEAR, t),
+        wheelValue(a, b, o, p, W.BLISTERING, t),
+        wheelValue(a, b, o, p, W.GRAINING, t),
       );
       this.treads[i].surface.value.x = tireWetAppearance(
         b[H.RAIN],
-        b[p + W.WATER],
-        b[p + W.LOAD],
+        wheelValue(a, b, o, p, W.WATER, t),
+        wheelValue(a, b, o, p, W.LOAD, t),
         b[o + F.SPEED],
       );
       this.treads[i].surface.value.y = compoundIndex === 3 ? 1 : compoundIndex === 4 ? 2 : 0;
-      this.treads[i].heat.value = tireHeatAppearance(b[p + W.SURFACE_TEMP]);
+      this.treads[i].heat.value = tireHeatAppearance(wheelValue(a, b, o, p, W.SURFACE_TEMP, t));
     }
     let coverBlur = -Infinity;
     for (const tread of this.treads) coverBlur = Math.max(coverBlur, tread.side.value.x);
@@ -741,10 +745,11 @@ export class FormulaCar {
     this.reduced.forEach((car, index) => (car.root.visible = level === index + 1));
   }
   private poseReduced(reduced: ReducedCar, a: Float32Array, b: Float32Array, o: number, t: number) {
+    const source = snapshotSource(a, b, t);
     for (let i = 0; i < 4; i++) {
       const p = o + WHEEL_BASE + i * WHEEL_STRIDE;
       reduced.wheels[i].position.y = 0.05 - wheelTravel(a, b, p, t);
-      const radius = (lerp(a[p + W.RADIUS], b[p + W.RADIUS], t) || 0.335) / 0.335;
+      const radius = (wheelValue(a, b, o, p, W.RADIUS, t) || 0.335) / 0.335;
       // The reduced cylinder's axle is local Y; neither rim nor hub scales.
       reduced.tires[i].scale.set(radius, 1, radius);
       reduced.wheels[i].rotation.y = lerp(a[p + W.STEER], b[p + W.STEER], t);
@@ -752,14 +757,14 @@ export class FormulaCar {
       reduced.spins[i].rotation.x = wheelPhase(a, b, o, p, t);
       reduced.spins[i].position.x =
         Math.sign(WHEEL_POSITIONS[i][0]) *
-        serviceWheelOffset(b[o + F.PIT_PHASE], b[o + F.PIT_CLOCK], b[p + W.LOAD]);
+        serviceWheelOffset(source[o + F.PIT_PHASE], source[o + F.PIT_CLOCK], source[p + W.LOAD]);
       reduced.brakes[i].rotation.x = reduced.spins[i].rotation.x;
     }
-    reduced.front.visible = b[o + F.FRONT_HEALTH] > 0.08;
-    reduced.rear.visible = b[o + F.REAR_HEALTH] > 0.08;
-    reduced.front.scale.x = 0.35 + 0.65 * b[o + F.FRONT_HEALTH];
-    reduced.front.rotation.z = (1 - b[o + F.FRONT_HEALTH]) * 0.12;
-    reduced.rear.rotation.z = (1 - b[o + F.REAR_HEALTH]) * 0.09;
+    reduced.front.visible = source[o + F.FRONT_HEALTH] > 0.08;
+    reduced.rear.visible = source[o + F.REAR_HEALTH] > 0.08;
+    reduced.front.scale.x = 0.35 + 0.65 * source[o + F.FRONT_HEALTH];
+    reduced.front.rotation.z = (1 - source[o + F.FRONT_HEALTH]) * 0.12;
+    reduced.rear.rotation.z = (1 - source[o + F.REAR_HEALTH]) * 0.09;
   }
   private poseDetailed(
     a: Float32Array,
@@ -769,17 +774,18 @@ export class FormulaCar {
     time: number,
     cockpit: boolean,
   ) {
+    const source = snapshotSource(a, b, t);
     this.steering.rotation.z = -lerp(a[o + F.STEER], b[o + F.STEER], t) * 2.2;
     this.driver.update(
       time,
-      b[o + F.GEAR],
-      b[o + F.ERS_MODE],
+      source[o + F.GEAR],
+      source[o + F.ERS_MODE],
       lerp(a[o + F.G_LAT], b[o + F.G_LAT], t),
       lerp(a[o + F.G_LONG], b[o + F.G_LONG], t),
       lerp(a[o + F.G_VERT], b[o + F.G_VERT], t),
     );
     this.helmet.rotation.set(this.driver.headPitch, 0, this.driver.headRoll);
-    this.cockpitControls.update(b, o);
+    this.cockpitControls.update(source, o);
     this.helmet.visible = !cockpit;
     for (let i = 0; i < 4; i++) {
       const p = o + WHEEL_BASE + i * WHEEL_STRIDE,
@@ -792,30 +798,34 @@ export class FormulaCar {
       this.wheelSpins[i].rotation.x = wheelPhase(a, b, o, p, t);
       this.wheelSpins[i].position.x =
         Math.sign(WHEEL_POSITIONS[i][0]) *
-        serviceWheelOffset(b[o + F.PIT_PHASE], b[o + F.PIT_CLOCK], b[p + W.LOAD]);
+        serviceWheelOffset(source[o + F.PIT_PHASE], source[o + F.PIT_CLOCK], source[p + W.LOAD]);
       this.brakeRotors[i].rotation.x = this.wheelSpins[i].rotation.x;
-      this.discs[i].emissiveIntensity = clamp((b[p + W.DISC_TEMP] - 500) / 450, 0, 2);
+      this.discs[i].emissiveIntensity = clamp(
+        (wheelValue(a, b, o, p, W.DISC_TEMP, t) - 500) / 450,
+        0,
+        2,
+      );
       this.carcasses[i].update(
         this.wheelSpins[i].rotation.x,
-        lerp(a[p + W.RADIUS], b[p + W.RADIUS], t),
-        lerp(a[p + W.LOAD], b[p + W.LOAD], t),
-        lerp(a[p + W.PRESSURE], b[p + W.PRESSURE], t),
-        lerp(a[p + W.FLAT], b[p + W.FLAT], t),
+        wheelValue(a, b, o, p, W.RADIUS, t),
+        wheelValue(a, b, o, p, W.LOAD, t),
+        wheelValue(a, b, o, p, W.PRESSURE, t),
+        wheelValue(a, b, o, p, W.FLAT, t),
       );
     }
     this.updateSuspension(this.wheelPivots);
-    this.frontWing.visible = b[o + F.FRONT_HEALTH] > 0.08;
-    this.rearWing.visible = b[o + F.REAR_HEALTH] > 0.08;
-    this.frontWing.scale.x = 0.35 + 0.65 * b[o + F.FRONT_HEALTH];
-    this.frontWing.rotation.z = (1 - b[o + F.FRONT_HEALTH]) * 0.12;
-    this.rearWing.rotation.z = (1 - b[o + F.REAR_HEALTH]) * 0.09;
-    if (this.id === 0 && this.displayClock.due(b[H.TIME], b[o + F.GEAR])) {
-      drawSteeringDisplay(this.ctx, b, o);
+    this.frontWing.visible = source[o + F.FRONT_HEALTH] > 0.08;
+    this.rearWing.visible = source[o + F.REAR_HEALTH] > 0.08;
+    this.frontWing.scale.x = 0.35 + 0.65 * source[o + F.FRONT_HEALTH];
+    this.frontWing.rotation.z = (1 - source[o + F.FRONT_HEALTH]) * 0.12;
+    this.rearWing.rotation.z = (1 - source[o + F.REAR_HEALTH]) * 0.09;
+    if (this.id === 0 && this.displayClock.due(time, source[o + F.GEAR])) {
+      drawSteeringDisplay(this.ctx, source, o);
       for (let j = 0; j < this.shiftLeds.count; j++)
         this.shiftLeds.setColorAt(
           j,
           this.indicatorColor.setHex(
-            shiftLight(b[o + F.RPM], j)
+            shiftLight(sampleValue(a, b, o + F.RPM, t), j)
               ? j < 5
                 ? 0x6fec9b
                 : j < 8

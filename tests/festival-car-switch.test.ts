@@ -93,6 +93,61 @@ function watchResources(root: T.Object3D) {
 }
 
 describe('festival garage presentation', () => {
+  it('holds Formula actions and body identity until their recorded sample boundary', () => {
+    stubCanvas();
+    const cars = new FestivalCars(),
+      sample = new PresentedFrame();
+    const a = snapshot('apx01', 10, [0, 1, 0], 0),
+      b = snapshot('apx01', 10.1, [0.2, 1, 0], 0.1);
+    b[carBase(0) + F.GEAR] = 3;
+    b[carBase(0) + F.ERS_MODE] = 2;
+    b[carBase(0) + F.FRONT_HEALTH] = 0;
+    b[carBase(0) + F.PIT_PHASE] = 3;
+    b[carBase(0) + F.PIT_CLOCK] = 1.8;
+    for (let wheel = 0; wheel < 4; wheel++)
+      a[carBase(0) + WHEEL_BASE + wheel * WHEEL_STRIDE + W.LOAD] = b[
+        carBase(0) + WHEEL_BASE + wheel * WHEEL_STRIDE + W.LOAD
+      ] = 0;
+    try {
+      cars.update(a, a, a, 1, 1 / 60, 0);
+      const formula = (cars as unknown as { formula: Map<number, FormulaCar> }).formula.get(0)!;
+      const driver = vi.spyOn(formula.driver, 'update');
+      const controls = vi.spyOn(formula.cockpitControls, 'update');
+      const shown = sample.sample(a, b, 0.5);
+      cars.update(a, b, shown, 0.5, 1 / 60, 0);
+      expectPose(formula.root, shown);
+      expect(driver.mock.calls.at(-1)!.slice(1, 3)).toEqual([1, 0]);
+      expect(controls).toHaveBeenLastCalledWith(a, carBase(0));
+      expect(formula.frontWing.visible).toBe(true);
+      expect(Math.abs(formula.wheelSpins[0].position.x)).toBe(0);
+      cars.update(a, b, sample.sample(a, b, 1), 1, 1 / 60, 0);
+      expect(driver.mock.calls.at(-1)!.slice(1, 3)).toEqual([3, 2]);
+      expect(formula.frontWing.visible).toBe(false);
+      expect(Math.abs(formula.wheelSpins[0].position.x)).toBeGreaterThan(0);
+
+      const road = snapshot('rh3', 10.2, [5, 1, 2], 0.5);
+      cars.update(b, road, sample.sample(b, road, 0.9), 0.9, 1 / 60, 0);
+      expect(formula.root.visible).toBe(true);
+      expect(cars.bodies.count).toBe(0);
+      expectPose(formula.root, b);
+      cars.update(b, road, sample.sample(b, road, 1), 1, 1 / 60, 0);
+      expect(formula.root.visible).toBe(false);
+      expect(cars.bodies.count).toBe(1);
+      expectPose(cars.bodies.root.children[0], road);
+
+      const back = snapshot('apx01', 10.3, [8, 1, 3], 0.7);
+      cars.update(road, back, sample.sample(road, back, 0.9), 0.9, 1 / 60, 0);
+      expect(formula.root.visible).toBe(false);
+      expectPose(cars.bodies.root.children[0], road);
+      cars.update(road, back, sample.sample(road, back, 1), 1, 1 / 60, 0);
+      expect(formula.root.visible).toBe(true);
+      expect(cars.bodies.count).toBe(0);
+      expectPose(formula.root, back);
+    } finally {
+      cars.dispose();
+    }
+  });
+
   it('poses a road body from the current holder after using and reusing a Formula car', () => {
     stubCanvas();
     const cars = new FestivalCars();

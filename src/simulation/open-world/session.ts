@@ -833,8 +833,9 @@ export class OpenWorldSimulation {
     if (traffic) traffic.step(dt, this.player);
     else if (this.traffic.cars.length) this.traffic.clear();
     for (let sub = 0; sub < 2; sub++) {
+      this.collisions.beginStep(contact);
       for (const c of this.cars) c.step(dt * 0.5, track);
-      this.collisions.solve(contact, track);
+      this.collisions.solve(contact, track, dt * 0.5);
       for (const c of this.cars) this.collideStatic(c);
       if (traffic && traffic.cars.length) traffic.collide(this.player);
     }

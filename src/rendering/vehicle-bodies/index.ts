@@ -3,8 +3,8 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { lerp } from '../../core/math.ts';
 import {
   F,
+  H,
   O,
-  OFFROAD_BASE,
   R,
   RACE_BASE,
   W,
@@ -14,7 +14,12 @@ import {
 } from '../../simulation/protocol.ts';
 import { vehicleAt, type VehicleDefinition } from '../../simulation/vehicles.ts';
 import type { ShadowSubstitute } from '../shadow-proxies.ts';
-import { wheelPhase, wheelTravel } from '../wheel-pose.ts';
+import { wheelPhase, wheelTravel, wheelValue } from '../wheel-pose.ts';
+import {
+  presentationAlpha,
+  sampleOffroadField,
+  snapshotSource,
+} from '../snapshot-interpolation.ts';
 import { bodySheetFor, type BodySheet } from './body-sheet.ts';
 import { buildClosedBody, ClosedBodyModel } from './closed-body.ts';
 import { carMaterials, emptyLod, type BuiltLod, type CarMaterials } from './common.ts';
@@ -245,15 +250,19 @@ export class VehicleBodies {
     // mirrors off) stops posing the feed LODs' wheels.
     if (++this.framesSinceFeed > 30) for (const body of this.bodies.values()) body.feedLevel = null;
     for (let id = 0; id < cars.length; id++) {
-      const o = carBase(id),
-        definition = vehicleAt(Math.round(b[o + RACE_BASE + R.VEHICLE]));
       let body = this.bodies.get(id);
+      if (id >= b[H.CARS]) {
+        if (body) body.root.visible = false;
+        continue;
+      }
+      const o = carBase(id),
+        t = presentationAlpha(a, b, o, alpha),
+        source = snapshotSource(a, b, t),
+        definition = vehicleAt(Math.round(source[o + RACE_BASE + R.VEHICLE]));
       const sheet = bodySheetFor(definition);
       if (!sheet) {
-        if (body?.root.visible) {
-          body.root.visible = false;
-          cars[id].root.visible = true;
-        }
+        if (body) body.root.visible = false;
+        cars[id].root.visible = true;
         continue;
       }
       if (!body || body.definition !== definition) {
@@ -267,13 +276,13 @@ export class VehicleBodies {
       body.root.position.copy(host.position);
       body.root.quaternion.copy(host.quaternion);
       // Off-road (WP41): the mud and dust the car has picked up (O.MUD).
-      const mud = b[o + OFFROAD_BASE + O.MUD];
+      const mud = sampleOffroadField(a, b, o, O.MUD, t);
       if (mud > 0.001 && !body.mud) installMudOn(body.root, (body.mud = mudUniforms()));
       if (body.mud) {
         body.mud.offroadMud.value = Math.min(1, Math.max(0, mud));
         body.mud.offroadMudWet.value = Math.min(
           1,
-          Math.max(0, b[o + OFFROAD_BASE + O.MOISTURE] * 1.6),
+          Math.max(0, sampleOffroadField(a, b, o, O.MOISTURE, t) * 1.6),
         );
       }
       const level = Math.max(0, Math.min(2, Math.round(cars[id].lodLevel ?? 0)));
@@ -281,9 +290,9 @@ export class VehicleBodies {
         body.lods.forEach((lod, i) => (lod.group.visible = i === level));
         body.level = level;
       }
-      const front = b[o + F.FRONT_HEALTH] > 0.08,
-        rear = b[o + F.REAR_HEALTH] > 0.08;
-      const brake = lerp(a[o + F.BRAKE], b[o + F.BRAKE], alpha);
+      const front = source[o + F.FRONT_HEALTH] > 0.08,
+        rear = source[o + F.REAR_HEALTH] > 0.08;
+      const brake = lerp(a[o + F.BRAKE], b[o + F.BRAKE], t);
       body.materials.tail.emissiveIntensity = brake > 0.05 ? 3.2 : headlights ? 1.1 : 0.55;
       body.materials.head.emissiveIntensity = headlights ? 2.6 : 0.35;
       const positions = body.definition.wheelPositions;
@@ -297,13 +306,13 @@ export class VehicleBodies {
         body.wheels[shown].forEach((wheel, i) => {
           const p = o + WHEEL_BASE + i * WHEEL_STRIDE;
           wheel.update(
-            positions[i][1] - wheelTravel(a, b, p, alpha),
-            lerp(a[p + W.STEER], b[p + W.STEER], alpha),
-            lerp(a[p + W.CAMBER], b[p + W.CAMBER], alpha),
-            wheelPhase(a, b, o, p, alpha),
-            lerp(a[p + W.LOAD], b[p + W.LOAD], alpha),
-            lerp(a[p + W.PRESSURE], b[p + W.PRESSURE], alpha),
-            b[p + W.DISC_TEMP],
+            positions[i][1] - wheelTravel(a, b, p, t),
+            lerp(a[p + W.STEER], b[p + W.STEER], t),
+            lerp(a[p + W.CAMBER], b[p + W.CAMBER], t),
+            wheelPhase(a, b, o, p, t),
+            wheelValue(a, b, o, p, W.LOAD, t),
+            wheelValue(a, b, o, p, W.PRESSURE, t),
+            wheelValue(a, b, o, p, W.DISC_TEMP, t),
           );
         });
         for (const { mesh, link } of body.links[shown]) {
@@ -316,7 +325,7 @@ export class VehicleBodies {
           mesh.scale.set(1, length, 1);
         }
       }
-      this.poseCabin(body, id, level, a, b, o, alpha, view);
+      this.poseCabin(body, id, level, a, b, o, t, view);
     }
   }
   /** The near cabin: detail only for the followed car and cars within
@@ -353,7 +362,7 @@ export class VehicleBodies {
     cabin.steering.rotation.z =
       -lerp(a[o + F.STEER], b[o + F.STEER], alpha) * cabin.layout.wheel.ratio;
     // Only the followed car redraws its instruments (a canvas upload each tick).
-    if (followed) cabin.display?.update(b, o);
+    if (followed) cabin.display?.update(snapshotSource(a, b, alpha), o);
   }
   private readonly feedShown: Built[] = [];
   private framesSinceFeed = 0;
