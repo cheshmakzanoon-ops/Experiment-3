@@ -17,8 +17,9 @@ import {
  * v4: chassis/wheel angular momentum coupling and continuous chassis contact;
  * v5: motocross sprung-contact traction and independent rear-pedal control;
  * v6: GP current-load traction limiting during split-grip brake/drive overlap;
+ * v7: retain the motocross hard stop through deep-contact recovery;
  * prior records remain in their original physics category. */
-export const SIMULATION_VERSION = 6;
+export const SIMULATION_VERSION = 7;
 /** Fixed physics tick used by the worker and headless simulation. */
 export const SIMULATION_TICK_HZ = 120;
 

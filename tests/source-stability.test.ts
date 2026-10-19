@@ -49,6 +49,48 @@ it('rejects deleted input even when the child command fails', () => {
   expect(changedSource(before, snapshotSource(root))).toEqual(['src/example.ts']);
 });
 
+it.each(['browser-backend.json', 'browser-progress.json'])(
+  'permits creation and rewriting of the generated root receipt %s',
+  (path) => {
+    const root = fixture();
+    for (const sequence of [1, 2]) {
+      const report = JSON.stringify({ sequence });
+      expect(
+        runWithStableSource(root, process.execPath, [
+          '-e',
+          `require('node:fs').writeFileSync(${JSON.stringify(path)}, ${JSON.stringify(report)})`,
+        ]),
+      ).toBe(0);
+      expect(readFileSync(join(root, path), 'utf8')).toBe(report);
+    }
+  },
+);
+
+it.each([
+  'src/browser-backend.json',
+  'docs/browser-backend.json',
+  'public/browser-backend.json',
+  'src/browser-progress.json',
+  'docs/browser-progress.json',
+  'public/browser-progress.json',
+  'src/example.ts',
+  'package.json',
+])('still rejects changes to %s while generating the root browser receipts', (path) => {
+  const root = fixture();
+  writeFileSync(join(root, path), 'original input');
+  const before = snapshotSource(root);
+  expect(
+    runWithStableSource(root, process.execPath, [
+      '-e',
+      `const fs = require('node:fs');
+       fs.writeFileSync('browser-backend.json', '{"renderer":"mesa"}');
+       fs.writeFileSync('browser-progress.json', '{"event":"begin"}');
+       fs.writeFileSync(${JSON.stringify(path)}, 'changed input');`,
+    ]),
+  ).toBe(1);
+  expect(changedSource(before, snapshotSource(root))).toEqual([path]);
+});
+
 it('permits only the named disposable player LOD derivative and output directories', () => {
   const root = fixture();
   const before = snapshotSource(root);

@@ -38,16 +38,16 @@ const legacyGhost = () => {
   };
 };
 describe('WP12 recorded identity and schema policy', () => {
-  it.each([2, 3, 4, 5])(
+  it.each([2, 3, 4, 5, 6])(
     'keeps physics v%i records out of the current physics category',
     (physics) => {
-      expect(SIMULATION_VERSION).toBe(6);
+      expect(SIMULATION_VERSION).toBe(7);
       expect(
         recordIncompatibility(
           { circuit: 'aurel', vehicle: 'apx01', physics },
           { circuit: 'aurel', vehicle: 'apx01', physics: SIMULATION_VERSION },
         ),
-      ).toBe(`recorded with physics v${physics}; current physics is v6`);
+      ).toBe(`recorded with physics v${physics}; current physics is v7`);
       expect(leaderboardKey('aurel', 'apx01', physics)).not.toBe(
         leaderboardKey('aurel', 'apx01', SIMULATION_VERSION),
       );
@@ -55,7 +55,7 @@ describe('WP12 recorded identity and schema policy', () => {
   );
   it.each(['gpr1', 'gpr2'])('separates %s records after the GP traction update', (vehicle) => {
     const category = recordCategory({ circuit: 'aurel', vehicles: [vehicle] });
-    expect(category).toEqual({ circuit: 'aurel', vehicle, physics: 6 });
+    expect(category).toEqual({ circuit: 'aurel', vehicle, physics: SIMULATION_VERSION });
     expect(leaderboardKey(category.circuit, category.vehicle, category.physics)).not.toBe(
       leaderboardKey(category.circuit, category.vehicle, 5),
     );
@@ -64,7 +64,15 @@ describe('WP12 recorded identity and schema policy', () => {
     ).toBeNull();
     expect(
       validateGhost({ ...legacyGhost(), vehicle, physics: 6 }, 'aurel', 3000, category),
-    ).toMatchObject({ vehicle, physics: 6 });
+    ).toBeNull();
+    expect(
+      validateGhost(
+        { ...legacyGhost(), vehicle, physics: SIMULATION_VERSION },
+        'aurel',
+        3000,
+        category,
+      ),
+    ).toMatchObject({ vehicle, physics: SIMULATION_VERSION });
   });
   it('hashes content, not object identity', () => {
     expect(circuitHash(AUREL)).toBe(circuitHash({ ...AUREL }));

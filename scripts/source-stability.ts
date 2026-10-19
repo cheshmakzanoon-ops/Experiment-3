@@ -8,12 +8,14 @@ import { fileURLToPath } from 'node:url';
 // Asset authoring and formatting remain explicit commands outside this guard.
 const INPUT_DIRECTORIES = ['src', 'public', 'scripts', 'tests', 'e2e', 'docs', '.github'];
 const GENERATED_ASSET = 'public/models/supplied-player-lods.bin.gz';
+const GENERATED_BROWSER_RECEIPTS = ['browser-backend.json', 'browser-progress.json'];
 export type SourceSnapshot = Map<string, string>;
 
 export function snapshotSource(root: string): SourceSnapshot {
   const result: SourceSnapshot = new Map();
   function visit(relative: string) {
-    if (relative === GENERATED_ASSET) return;
+    // Browser setup/reporting writes root run evidence; same-named inputs stay protected.
+    if (relative === GENERATED_ASSET || GENERATED_BROWSER_RECEIPTS.includes(relative)) return;
     const path = join(root, relative);
     const stat = lstatSync(path);
     if (stat.isSymbolicLink()) {

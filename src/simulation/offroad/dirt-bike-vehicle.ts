@@ -134,6 +134,9 @@ export class DirtBikeVehicle extends BikeVehicle {
   private takeoffX = 0;
   private takeoffZ = 0;
   private freeSteps = 0;
+  /** A projected terrain overlap keeps its compliant stop until the stroke
+   * releases; it must not refill stiff bump-stop travel on the next tick. */
+  private projectedContact = false;
   private bottomPeak = 0;
   private pendingLanding: LandingRecord | null = null;
   landingTarget = 0;
@@ -223,6 +226,7 @@ export class DirtBikeVehicle extends BikeVehicle {
     this.airborne = false;
     this.airTime = 0;
     this.freeSteps = 0;
+    this.projectedContact = false;
     this.rearSpin = this.dynamics.speed / this.bikeSpec.rearWheelRadius;
     this.frontSpin = this.dynamics.speed / this.bikeSpec.frontWheelRadius;
     this.writeBody(this.lastTrack!, 0);
@@ -755,6 +759,7 @@ export class DirtBikeVehicle extends BikeVehicle {
       fa = spec.cgToFront,
       ra = spec.cgToRear,
       m = d.mass;
+    if (!this.riding) this.projectedContact = false;
     if (!this.riding && this.airborne) {
       // Riderless flight: ballistic until the machine is down at its lying
       // height over the ground below, then laid there (never dropped mid-air).
@@ -794,7 +799,13 @@ export class DirtBikeVehicle extends BikeVehicle {
     let cF = this.contacts[0].height - freeF,
       cR = this.contacts[2].height - freeR;
     const penetration = Math.max(cF - spec.forkTravel, cR - spec.shockTravel);
-    if (penetration > DEEP_CONTACT) {
+    // After projection, crossing back below the deep-error threshold does
+    // not restore centimetres of stored bump-stop energy. Keep the same
+    // hard stop for this bottomed stroke, then release it within travel so
+    // ordinary compression, rebound and ramp launches keep their response.
+    if (penetration <= 0) this.projectedContact = false;
+    if (penetration > DEEP_CONTACT) this.projectedContact = true;
+    if (this.projectedContact && penetration > STOP_COMPLIANCE) {
       const correction = penetration - STOP_COMPLIANCE;
       this.cgY += correction;
       cF -= correction;

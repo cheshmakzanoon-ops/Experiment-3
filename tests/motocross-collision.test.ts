@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest';
+import { applyEntry, InputLog, Resimulation } from '../src/core/flashback.ts';
 import { mod, Vec3 } from '../src/core/math.ts';
 import { BikeVehicle } from '../src/simulation/bike-vehicle.ts';
 import { CollisionSolver } from '../src/simulation/collision.ts';
-import { DEFAULT_OPTIONS, DEFAULT_SETUP } from '../src/simulation/config.ts';
+import { controls, DEFAULT_OPTIONS, DEFAULT_SETUP } from '../src/simulation/config.ts';
 import { MX_250, MX_450 } from '../src/simulation/offroad/dirt-bikes.ts';
 import { DirtBikeVehicle } from '../src/simulation/offroad/dirt-bike-vehicle.ts';
 import { rigTrack } from '../src/simulation/offroad/jump-rig.ts';
@@ -55,34 +56,37 @@ describe('motocross collision and sprung vertical velocity', () => {
     }
   });
 
-  it.each([MX_250, MX_450])('keeps physical heave continuous through $id placement and remount', (definition) => {
-    const track = rigTrack('valley-ridge-mx'),
-      bike = new DirtBikeVehicle(0, 'medium', DEFAULT_SETUP, 'sport', definition),
-      dt = 1 / 240;
-    bike.place(track, 593.852);
-    expect(bike.body.velocity.y).toBe(0);
-    for (let i = 0; i < 60; i++) {
+  it.each([MX_250, MX_450])(
+    'keeps physical heave continuous through $id placement and remount',
+    (definition) => {
+      const track = rigTrack('valley-ridge-mx'),
+        bike = new DirtBikeVehicle(0, 'medium', DEFAULT_SETUP, 'sport', definition),
+        dt = 1 / 240;
+      bike.place(track, 593.852);
+      expect(bike.body.velocity.y).toBe(0);
+      for (let i = 0; i < 60; i++) {
+        const previousY = bike.body.position.y;
+        bike.step(dt, track);
+        expect(bike.body.velocity.y).toBeCloseTo((bike.body.position.y - previousY) / dt, 10);
+      }
+      bike.restart(track);
+      expect(bike.body.velocity.y).toBe(0);
+      expect(bike.dynamics.state).toBe('remount');
+      for (let i = 0; i < 120; i++) {
+        const previousY = bike.body.position.y;
+        bike.step(dt, track);
+        expect(bike.body.velocity.y).toBeCloseTo((bike.body.position.y - previousY) / dt, 10);
+        expect(bike.body.velocity.finite()).toBe(true);
+      }
+      const p = track.at(30, trackPoint());
+      bike.placeFree(track, p.x, p.z, Math.atan2(p.tx, p.tz), p.y);
+      expect(bike.body.velocity.y).toBe(0);
       const previousY = bike.body.position.y;
       bike.step(dt, track);
       expect(bike.body.velocity.y).toBeCloseTo((bike.body.position.y - previousY) / dt, 10);
-    }
-    bike.restart(track);
-    expect(bike.body.velocity.y).toBe(0);
-    expect(bike.dynamics.state).toBe('remount');
-    for (let i = 0; i < 120; i++) {
-      const previousY = bike.body.position.y;
-      bike.step(dt, track);
-      expect(bike.body.velocity.y).toBeCloseTo((bike.body.position.y - previousY) / dt, 10);
-      expect(bike.body.velocity.finite()).toBe(true);
-    }
-    const p = track.at(30, trackPoint());
-    bike.placeFree(track, p.x, p.z, Math.atan2(p.tx, p.tz), p.y);
-    expect(bike.body.velocity.y).toBe(0);
-    const previousY = bike.body.position.y;
-    bike.step(dt, track);
-    expect(bike.body.velocity.y).toBeCloseTo((bike.body.position.y - previousY) / dt, 10);
-    expect(bike.dynamics.crashes).toBe(0);
-  });
+      expect(bike.dynamics.crashes).toBe(0);
+    },
+  );
 });
 
 describe('motocross barriers between adjacent stadium lanes', () => {
@@ -109,8 +113,7 @@ describe('motocross barriers between adjacent stadium lanes', () => {
       before = new Vec3().copy(bike.body.position);
     new CollisionSolver().solve([bike], track);
     const inward =
-      (bike.body.position.x - before.x) * p.nx +
-      (bike.body.position.z - before.z) * p.nz;
+      (bike.body.position.x - before.x) * p.nx + (bike.body.position.z - before.z) * p.nz;
     expect(inward).toBeGreaterThan(0);
     expect(inward).toBeLessThan(0.4);
     expect(bike.body.position.finite() && bike.body.velocity.finite()).toBe(true);
@@ -155,13 +158,7 @@ describe('motocross barriers between adjacent stadium lanes', () => {
         collisions = new CollisionSolver();
       // Real free placement on flat ground, then throttle across the median
       // toward the neighbouring jump. No AI or fabricated airborne state.
-      bike.placeFree(
-        track,
-        p.x - p.nx * 5,
-        p.z - p.nz * 5,
-        Math.atan2(-p.nx, -p.nz),
-        0,
-      );
+      bike.placeFree(track, p.x - p.nx * 5, p.z - p.nz * 5, Math.atan2(-p.nx, -p.nz), 0);
       bike.dynamics.speed = 10;
       bike.gear = 2;
       bike.input.throttle = 0.2;
@@ -184,6 +181,64 @@ describe('motocross barriers between adjacent stadium lanes', () => {
       expect(bike.body.position.finite()).toBe(true);
     },
   );
+
+  it('reconstructs a projected median contact and its remaining stroke from logged inputs', () => {
+    const options = {
+      ...DEFAULT_OPTIONS,
+      mode: 'practice' as const,
+      assist: 'raw' as const,
+      circuit: 'arena-nord-sx' as const,
+      ruleset: 'motocross-moto' as const,
+      opponents: 0,
+      vehicles: ['mx450'],
+    };
+    // Both runs begin from the same real grounded approach as the contact
+    // regression above. Only the subsequent controls come from the journal.
+    const place = (sim: Simulation) => {
+      const p = sim.track.at(36, trackPoint()),
+        bike = sim.cars[0] as DirtBikeVehicle;
+      bike.placeFree(sim.track, p.x - p.nx * 5, p.z - p.nz * 5, Math.atan2(-p.nx, -p.nz), 0);
+      bike.dynamics.speed = 10;
+      bike.gear = 2;
+      return bike;
+    };
+    const sim = new Simulation(options),
+      bike = place(sim),
+      log = new InputLog(),
+      dt = 1 / 120;
+    let rewindTick = 0,
+      savedFrame: Float32Array | null = null;
+    for (let n = 0; n < 5 / dt; n++) {
+      const input = { ...controls(), throttle: sim.tick < 48 ? 0.2 : 0 },
+        previousY = bike.cgY;
+      sim.setInput(input);
+      log.input(sim.tick, input);
+      sim.step(dt);
+      // The large pose correction beyond physical heave identifies the
+      // deep terrain contact without reaching into private solver state.
+      if (!rewindTick && bike.riding && bike.cgY - previousY - bike.vy * dt > 0.08) {
+        rewindTick = sim.tick;
+        savedFrame = sim.makeFrame();
+      }
+    }
+    expect(rewindTick).toBeGreaterThan(0);
+    expect(bike.dynamics.crashes).toBe(1);
+    const rewind = new Resimulation(options, log.entries, rewindTick);
+    place(rewind.simulation);
+    while (!rewind.run()) void 0;
+    expect(rewind.simulation.makeFrame()).toEqual(savedFrame);
+    let index = log.entries.findIndex((entry) => entry.tick >= rewindTick);
+    while (rewind.simulation.tick < sim.tick) {
+      while (
+        index >= 0 &&
+        index < log.entries.length &&
+        log.entries[index].tick <= rewind.simulation.tick
+      )
+        applyEntry(rewind.simulation, log.entries[index++]);
+      rewind.simulation.step(dt);
+    }
+    expect(rewind.simulation.makeFrame()).toEqual(sim.makeFrame());
+  });
 });
 
 describe('shared paved-circuit barriers', () => {
@@ -200,8 +255,7 @@ describe('shared paved-circuit barriers', () => {
     const before = new Vec3().copy(vehicle.body.position);
     new CollisionSolver().solve([vehicle], track);
     const inward =
-      (vehicle.body.position.x - before.x) * p.nx +
-      (vehicle.body.position.z - before.z) * p.nz;
+      (vehicle.body.position.x - before.x) * p.nx + (vehicle.body.position.z - before.z) * p.nz;
     expect(inward).toBeGreaterThan(0);
     expect(vehicle.body.position.finite() && vehicle.body.velocity.finite()).toBe(true);
   });
