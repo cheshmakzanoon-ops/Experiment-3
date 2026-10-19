@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "status": "passed-focused-regressions",
+  "scope": "Recovered wheel/chassis increment; not a complete repository or browser acceptance gate",
+  "baseCommit": "2dc5a0ae6d7076e633ac87cf0a4ae4f067fa97d4",
+  "physicsVersion": 4,
+  "snapshotProtocol": 13,
+  "networkProtocol": 2,
+  "assembledAtUTC": "2026-10-19T15:27:20.532859+00:00",
+  "testFiles": 3,
+  "testsPassed": 24,
+  "vitestSeconds": 27.64,
+  "files": {
+    "src/simulation/rigid.ts": "08c32ae36662f45d25c6ef5acf15f01dc5332463973ccaa3b1959bba6e10d61b",
+    "src/simulation/vehicle.ts": "400a144c1531852af6295e2611a3b17ca76a946240adbc05b9b84016eef0ce48",
+    "src/simulation/wheel-momentum.ts": "46eef7c2e24ec379282988c53ddbd2ea01aec3c04f84a359027536813838ac66",
+    "src/core/session-identity.ts": "71af088445e64714fbe3c3d7f97cb1429cedfc246fec2d81f0283c6eaa12a0de",
+    "tests/wheel-momentum.test.ts": "41666f6a67aa046451b1c75487f3e52e100aec735df60199a04bc9e7631c91ac",
+    "tests/session-identity.test.ts": "444696caf539b65f1548876ef5b902309743945db6bfca77d01270328cade15c",
+    "docs/production/WHEEL_MOMENTUM.md": "737b9d98f8a88fc993c92ceb6fc541bcb787e4e2a9007e14ed512a9b1afec37b"
+  },
+  "commands": [
+    {
+      "command": [
+        "node_modules/.bin/prettier",
+        "--write",
+        "src/simulation/rigid.ts",
+        "src/simulation/vehicle.ts",
+        "src/simulation/wheel-momentum.ts",
+        "src/core/session-identity.ts",
+        "tests/wheel-momentum.test.ts",
+        "tests/session-identity.test.ts",
+        "docs/production/WHEEL_MOMENTUM.md"
+      ],
+      "startedAtUTC": "2026-10-19T15:25:05.219163+00:00",
+      "exitCode": 0,
+      "log": "src/simulation/rigid.ts 536ms (unchanged)\nsrc/simulation/vehicle.ts 789ms (unchanged)\nsrc/simulation/wheel-momentum.ts 14ms (unchanged)\nsrc/core/session-identity.ts 91ms (unchanged)\ntests/wheel-momentum.test.ts 94ms\ntests/session-identity.test.ts 40ms\ndocs/production/WHEEL_MOMENTUM.md 279ms (unchanged)\n",
+      "logSHA256": "68bf0d5f252de28ffbfc7a106fd9bbebf76aa16e172467223d983a459148f276"
+    },
+    {
+      "command": [
+        "node_modules/.bin/eslint",
+        "src/simulation/rigid.ts",
+        "src/simulation/vehicle.ts",
+        "src/simulation/wheel-momentum.ts",
+        "src/core/session-identity.ts",
+        "tests/wheel-momentum.test.ts",
+        "tests/session-identity.test.ts"
+      ],
+      "startedAtUTC": "2026-10-19T15:25:07.971056+00:00",
+      "exitCode": 0,
+      "log": "",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "npm",
+        "test",
+        "--",
+        "tests/wheel-momentum.test.ts",
+        "tests/integrator-stability.test.ts",
+        "tests/session-identity.test.ts"
+      ],
+      "startedAtUTC": "2026-10-19T15:25:14.766392+00:00",
+      "exitCode": 0,
+      "log": "npm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> apex-formula-laboratory@0.1.0 pretest\n> npm run generate:player-lods\n\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> apex-formula-laboratory@0.1.0 generate:player-lods\n> node --experimental-strip-types scripts/build-player-lods.mjs\n\nmesh 0: 32262 -> 8860 near triangles\nmesh 1: 50456 -> 29174 near triangles\nmesh 2: 241852 -> 131054 near triangles\nmesh 3: 44752 -> 10318 near triangles\nmesh 4: 2 -> 2 near triangles\nmesh 5: 7108 -> 2946 near triangles\nmesh 6: 504 -> 416 near triangles\nmesh 7: 752047 -> 406205 near triangles\nmesh 8: 51920 -> 47482 near triangles\nmesh 9: 21133 -> 21025 near triangles\nmesh 10: 38706 -> 37002 near triangles\nmesh 11: 51680 -> 39384 near triangles\nmesh 12: 51680 -> 39342 near triangles\nmesh 13: 51680 -> 39360 near triangles\nmesh 14: 51680 -> 39396 near triangles\nmesh 15: 108 -> 108 near triangles\nmesh 16: 108 -> 108 near triangles\nmesh 17: 7440 -> 3472 near triangles\n{\n  \"version\": 2,\n  \"generator\": \"meshoptimizer@0.25.0 / exact livery surfaces, locked seams, opaque triangle cache order\",\n  \"sourceSHA256\": \"013a47f059bf34a0a28bd31ae8f407f07ed6e2b55755753aed9a942c895e132b\",\n  \"sha256\": \"2bcd661c78be3df21090c042c43ffd2fb828b9db42465d1fd4111fac8d48437d\",\n  \"compressedSHA256\": \"1553e32eef4a6f89d02fb8f44a45f000620ee8539466d41704654e5f5dd09b58\",\n  \"bytes\": 13037000,\n  \"compressedBytes\": 4213368,\n  \"primitives\": 172,\n  \"triangles\": [\n    1455118,\n    855654,\n    814806,\n    797386\n  ],\n  \"cacheModel\": {\n    \"name\": \"FIFO-16 vertex misses, not hardware timings\",\n    \"levels\": [\n      {\n        \"before\": 992010,\n        \"after\": 622914\n      },\n      {\n        \"before\": 952099,\n        \"after\": 595999\n      },\n      {\n        \"before\": 933925,\n        \"after\": 583328\n      }\n    ]\n  },\n  \"levels\": [\n    {\n      \"name\": \"efficient-close\",\n      \"ratio\": 0.15,\n      \"error\": 0.002\n    },\n    {\n      \"name\": \"medium\",\n      \"ratio\": 0.075,\n      \"error\": 0.006\n    },\n    {\n      \"name\": \"distant\",\n      \"ratio\": 0.025,\n      \"error\": 0.012\n    }\n  ]\n}\n\n> apex-formula-laboratory@0.1.0 test\n> vitest run tests/wheel-momentum.test.ts tests/integrator-stability.test.ts tests/session-identity.test.ts\n\n\n RUN  v3.2.4 /workspace/scratch/d3afbe35c2f7/Experiment-3\n\n \u2713 tests/integrator-stability.test.ts (7 tests) 2508ms\n   \u2713 integrator stability at 60, 120 and 240 Hz > caps the internal step: one 1/60 s call integrates four 1/240 s substeps  435ms\n   \u2713 integrator stability at 60, 120 and 240 Hz > never injects energy when apx01 is dropped onto its springs and tyres  463ms\n   \u2713 integrator stability at 60, 120 and 240 Hz > never injects energy when tc1 is dropped onto its springs and tyres  548ms\n   \u2713 integrator stability at 60, 120 and 240 Hz > coasts with monotonically falling energy (drag, rolling loss, dampers only)  317ms\n   \u2713 integrator stability at 60, 120 and 240 Hz > gives the same stop and step-steer response at every rate  349ms\n \u2713 tests/wheel-momentum.test.ts (12 tests) 346ms\n \u2713 tests/session-identity.test.ts (5 tests) 35ms\n\n Test Files  3 passed (3)\n      Tests  24 passed (24)\n   Start at  23:25:37\n   Duration  27.64s (transform 6.37s, setup 0ms, collect 19.89s, tests 2.89s, environment 8ms, prepare 1.06s)\n\n",
+      "logSHA256": "3b364f738587e46cacdb43b88e62cabaaf92dc9aae7ce29e9da094982ff476a5"
+    }
+  ],
+  "recoveryNote": "The execution environment reset before the previous engine tree was published. Its earlier test and benchmark results do not certify this reconstructed source."
+}

@@ -33,6 +33,7 @@ import {
   type Setup,
 } from './config.ts';
 import { RigidBody } from './rigid.ts';
+import { wheelAngularMomentum } from './wheel-momentum.ts';
 import { brakeEfficiency, makeTire, slipScale, solveTire, type Tire } from './tire.ts';
 import { surfaceSample, trackPoint, type Track } from './track.ts';
 /** The Formula car's wheel centres (renderer/tests); entrants use their definition. */
@@ -96,6 +97,8 @@ export class Vehicle {
   /** Per-wheel drive torque from a catalogue driveline (vehicle-catalogue). */
   private readonly driveTorque = new Float64Array(4);
   private readonly wheelOmega = new Float64Array(4);
+  private readonly spinBefore = new Vec3();
+  private readonly spinAfter = new Vec3();
   engineOutputTorque = 0;
   gear = 1;
   shiftClock = 0;
@@ -329,6 +332,7 @@ export class Vehicle {
     for (let k = 0; k < count; k++) this.integrate(dt / count, track);
   }
   private integrate(dt: number, track: Track) {
+    wheelAngularMomentum(this.tires, this.wheelSteering, this.wheelCamber, this.spinBefore);
     const b = this.body,
       spec = this.spec,
       dynamics = this.physics,
@@ -773,7 +777,8 @@ export class Vehicle {
           }
         }
     }
-    b.integrate(dt);
+    wheelAngularMomentum(this.tires, this.wheelSteering, this.wheelCamber, this.spinAfter);
+    b.integrate(dt, this.spinBefore, this.spinAfter);
     b.orientation.inverseRotate(b.acceleration, this.localAccel);
     this.gLong = this.localAccel.z / G;
     this.gLat = this.localAccel.x / G;

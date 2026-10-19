@@ -36,7 +36,10 @@ export class RigidBody {
     out.set(out.x / this.inertia.x, out.y / this.inertia.y, out.z / this.inertia.z);
     return this.orientation.rotate(out, out);
   }
-  integrate(dt: number) {
+  /** Internal rotor momentum endpoints are expressed in body coordinates.
+   * Their change exchanges angular impulse with the chassis symmetrically;
+   * fixed rotor momentum contributes gyroscopic torque during the drift. */
+  integrate(dt: number, spinStart?: Vec3, spinEnd: Vec3 | undefined = spinStart) {
     const { x: ix, y: iy, z: iz } = this.inertia;
     const q = this.orientation;
     if (
@@ -49,6 +52,8 @@ export class RigidBody {
       !this.force.finite() ||
       !this.torque.finite() ||
       !this.omega.finite() ||
+      (spinStart !== undefined && !spinStart.finite()) ||
+      (spinEnd !== undefined && !spinEnd.finite()) ||
       !Number.isFinite(q.x + q.y + q.z + q.w) ||
       Math.abs(Math.hypot(q.x, q.y, q.z, q.w) - 1) > 1e-5
     )
@@ -60,12 +65,18 @@ export class RigidBody {
     this.orientation.inverseRotate(this.omega, this.localOmega);
     this.orientation.inverseRotate(this.torque, this.localTorque);
 
-    // Kick / torque-free drift / kick: external world torque changes angular
-    // momentum by exactly torque * dt. The drift solves Euler's equations at
-    // the body midpoint, conserving free-spin energy and momentum magnitude.
-    const x0 = this.localOmega.x + (this.localTorque.x * dt) / (2 * ix);
-    const y0 = this.localOmega.y + (this.localTorque.y * dt) / (2 * iy);
-    const z0 = this.localOmega.z + (this.localTorque.z * dt) / (2 * iz);
+    // Kick / gyrostat drift / kick. Moving from hStart to hMid and from
+    // hMid to hEnd transfers -deltaH/2 at each boundary. World external torque
+    // changes total (chassis + rotor) angular momentum by exactly torque*dt.
+    const hx = ((spinStart?.x ?? 0) + (spinEnd?.x ?? 0)) * 0.5,
+      hy = ((spinStart?.y ?? 0) + (spinEnd?.y ?? 0)) * 0.5,
+      hz = ((spinStart?.z ?? 0) + (spinEnd?.z ?? 0)) * 0.5,
+      dx = (spinEnd?.x ?? 0) - (spinStart?.x ?? 0),
+      dy = (spinEnd?.y ?? 0) - (spinStart?.y ?? 0),
+      dz = (spinEnd?.z ?? 0) - (spinStart?.z ?? 0);
+    const x0 = this.localOmega.x + (this.localTorque.x * dt - dx) / (2 * ix);
+    const y0 = this.localOmega.y + (this.localTorque.y * dt - dy) / (2 * iy);
+    const z0 = this.localOmega.z + (this.localTorque.z * dt - dz) / (2 * iz);
     const kx = (iy - iz) / ix,
       ky = (iz - ix) / iy,
       kz = (ix - iy) / iz;
@@ -78,20 +89,20 @@ export class RigidBody {
       const mx = (x0 + x) * 0.5,
         my = (y0 + y) * 0.5,
         mz = (z0 + z) * 0.5;
-      const fx = x - x0 - dt * kx * my * mz;
-      const fy = y - y0 - dt * ky * mz * mx;
-      const fz = z - z0 - dt * kz * mx * my;
+      const fx = x - x0 - dt * kx * my * mz - (dt * (hy * mz - hz * my)) / ix;
+      const fy = y - y0 - dt * ky * mz * mx - (dt * (hz * mx - hx * mz)) / iy;
+      const fz = z - z0 - dt * kz * mx * my - (dt * (hx * my - hy * mx)) / iz;
       if (Math.max(Math.abs(fx), Math.abs(fy), Math.abs(fz)) < tolerance) {
         converged = true;
         break;
       }
       // Analytic inverse of the 3x3 midpoint Jacobian (diagonal entries = 1).
-      const a = -0.5 * dt * kx * mz,
-        b = -0.5 * dt * kx * my;
-      const c = -0.5 * dt * ky * mz,
-        d = -0.5 * dt * ky * mx;
-      const e = -0.5 * dt * kz * my,
-        f = -0.5 * dt * kz * mx;
+      const a = -0.5 * dt * kx * mz + (0.5 * dt * hz) / ix,
+        b = -0.5 * dt * kx * my - (0.5 * dt * hy) / ix;
+      const c = -0.5 * dt * ky * mz - (0.5 * dt * hz) / iy,
+        d = -0.5 * dt * ky * mx + (0.5 * dt * hx) / iy;
+      const e = -0.5 * dt * kz * my + (0.5 * dt * hy) / iz,
+        f = -0.5 * dt * kz * mx - (0.5 * dt * hx) / iz;
       const determinant = 1 - d * f - a * (c - d * e) + b * (c * f - e);
       if (!Number.isFinite(determinant) || Math.abs(determinant) < 1e-12)
         throw new Error('Singular rigid-body midpoint solve');
@@ -106,7 +117,10 @@ export class RigidBody {
     // Paired with the midpoint drift, it preserves the WORLD momentum vector,
     // not just its magnitude. Never substitute the endpoint angular velocity.
     this.orientation.integrateWorld(this.midpoint, dt);
-    this.orientation.rotate(this.localOmega.set(x, y, z), this.omega);
+    this.orientation.rotate(
+      this.localOmega.set(x - dx / (2 * ix), y - dy / (2 * iy), z - dz / (2 * iz)),
+      this.omega,
+    );
     this.inverseInertia(this.torque, this.localTorque);
     this.omega.addScaled(this.localTorque, dt * 0.5);
     this.angularAcceleration

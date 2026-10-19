@@ -14,8 +14,9 @@ import {
  * v2: combined-slip/thermal/relaxation tyres, hub suspension, powertrain lags,
  * aero platform and ground materials (docs/production/PHYSICS_MODEL.md).
  * v3: independently controlled motocross rider weight and finite air stroke;
+ * v4: chassis/wheel angular momentum coupling and continuous chassis contact;
  * prior records remain in their original physics category. */
-export const SIMULATION_VERSION = 3;
+export const SIMULATION_VERSION = 4;
 /** Fixed physics tick used by the worker and headless simulation. */
 export const SIMULATION_TICK_HZ = 120;
 
