@@ -5,8 +5,12 @@ on:
     paths:
       - 'src/main.ts'
       - 'src/rendering/bike*'
+      - 'src/rendering/rider.ts'
+      - 'src/rendering/renderer.ts'
+      - 'src/rendering/menu-preview.ts'
       - 'src/rendering/gp-*'
       - 'src/simulation/bike*'
+      - 'src/simulation/gp-*'
       - 'src/storage/replay-pages.ts'
       - 'src/core/session-identity.ts'
       - 'src/rendering/live-frame-clock.ts'
@@ -20,6 +24,7 @@ on:
       - 'e2e/motorcycle-presentation.spec.ts'
       - 'e2e/gp-rear-chassis.spec.ts'
       - 'e2e/gp-rider-contact.spec.ts'
+      - 'e2e/gp-fork-crown.spec.ts'
       - 'e2e/30-menu-access.spec.ts'
       - 'e2e/menu-timing-evidence.ts'
       - 'e2e/settings-transition.spec.ts'
@@ -36,6 +41,7 @@ on:
       - 'tests/wheel-pose.test.ts'
       - 'tests/collision-continuous.test.ts'
       - 'tests/menu-frame-pacing.test.ts'
+      - 'tests/menu-startup-sky.test.ts'
       - 'tests/menu-preview-receipt.test.ts'
       - 'tests/rotation-interpolation.test.ts'
       - 'tests/menu-presentation.test.ts'
@@ -85,6 +91,9 @@ jobs:
           node --experimental-transform-types scripts/source-stability.ts --
           npm test --
           tests/gp-rear-chassis.test.ts tests/gp-rider-contact.test.ts
+          tests/gp-rider-garment.test.ts tests/gp-rider-suit.test.ts
+          tests/gp-fork-crown.test.ts tests/bike-cockpit-view.test.ts
+          tests/gp-front-contact-steering.test.ts
           tests/gp-chain-integrity.test.ts tests/bike-bodies.test.ts
           tests/gp-drive-traction.test.ts tests/gp-rear-pedal.test.ts
           tests/gp-engine-braking.test.ts tests/gp-seamless-braking.test.ts
@@ -100,6 +109,7 @@ jobs:
           tests/menu-presentation.test.ts tests/gpu-frame-gate.test.ts
           tests/menu-preview.test.ts tests/settings-transition.test.ts
           tests/menu-preview-receipt.test.ts tests/rotation-interpolation.test.ts
+          tests/menu-startup-sky.test.ts
           --reporter=default --reporter=json
           --outputFile=${{ runner.temp }}/motogp-unit-tests.json
       - name: Preserve complete test results
@@ -119,7 +129,7 @@ jobs:
       matrix:
         include:
           - scene: presentation
-            specs: e2e/41-motogp-reference.spec.ts e2e/motorcycle-presentation.spec.ts e2e/gp-rear-chassis.spec.ts
+            specs: e2e/41-motogp-reference.spec.ts e2e/motorcycle-presentation.spec.ts e2e/gp-rear-chassis.spec.ts e2e/gp-fork-crown.spec.ts
           - scene: rider-contact
             specs: e2e/gp-rider-contact.spec.ts
           - scene: dry-riding

@@ -280,7 +280,7 @@ export function captureBikeSequence(
             extension = context.getExtension('WEBGL_debug_renderer_info');
           return extension ? String(context.getParameter(extension.UNMASKED_RENDERER_WEBGL)) : null;
         })(),
-        bounds: new T.Box3().setFromObject(bike.root),
+        bounds: new T.Box3().setFromObject(bike.root, true),
       };
       return result;
     });

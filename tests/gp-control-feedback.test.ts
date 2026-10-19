@@ -83,15 +83,27 @@ describe('GP control feedback reads the actual two tyre contacts', () => {
     });
   });
 
-  it('requires actual load transfer and the right input before warning of wheel lift', () => {
+  it('holds the steering warning through throttle release until front contact recovers', () => {
     const frame = riding();
+    expect(gpControlFeedback(frame)).toBeNull();
     frame[b + B.PITCH] = 0.15;
-    expect(gpControlFeedback(frame)).toBeNull();
     frame[b + B.FRONT_LOAD] = 30;
-    expect(gpControlFeedback(frame)?.action).toBe('FRONT LIFT');
+    expect(gpControlFeedback(frame)).toMatchObject({
+      action: 'FRONT LIFT',
+      detail: 'Settle front to restore steering',
+    });
     frame[o + F.THROTTLE] = 0;
-    expect(gpControlFeedback(frame)).toBeNull();
+    expect(gpControlFeedback(frame)?.action).toBe('FRONT LIFT');
+    const lifted = frame.slice();
     frame[b + B.FRONT_LOAD] = 1600;
+    expect(gpControlFeedback(frame)?.action).toBe('FRONT LIFT');
+    frame[b + B.PITCH] = 0.001;
+    expect(gpControlFeedback(frame)?.action).toBe('FRONT LIFT');
+    frame[b + B.PITCH] = 0;
+    expect(gpControlFeedback(frame)).toBeNull();
+    // A recorded lifted frame restores the advice without a control-history
+    // latch. Only actual touchdown clears it, not throttle or load recovery.
+    expect(gpControlFeedback(lifted)?.action).toBe('FRONT LIFT');
     frame[b + B.REAR_LOAD] = 30;
     expect(gpControlFeedback(frame)?.action).toBe('LIGHT REAR');
     frame[o + F.BRAKE] = 0;

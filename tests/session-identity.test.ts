@@ -38,22 +38,22 @@ const legacyGhost = () => {
   };
 };
 describe('WP12 recorded identity and schema policy', () => {
-  it.each([2, 3, 4, 5, 6, 7, 8, 9])(
+  it.each([2, 3, 4, 5, 6, 7, 8, 9, 10])(
     'keeps physics v%i records out of the current physics category',
     (physics) => {
-      expect(SIMULATION_VERSION).toBe(10);
+      expect(SIMULATION_VERSION).toBe(11);
       expect(
         recordIncompatibility(
           { circuit: 'aurel', vehicle: 'apx01', physics },
           { circuit: 'aurel', vehicle: 'apx01', physics: SIMULATION_VERSION },
         ),
-      ).toBe(`recorded with physics v${physics}; current physics is v10`);
+      ).toBe(`recorded with physics v${physics}; current physics is v11`);
       expect(leaderboardKey('aurel', 'apx01', physics)).not.toBe(
         leaderboardKey('aurel', 'apx01', SIMULATION_VERSION),
       );
     },
   );
-  it.each(['gpr1', 'gpr2'])('separates %s records after the GP traction update', (vehicle) => {
+  it.each(['gpr1', 'gpr2'])('separates %s records after GP contact model updates', (vehicle) => {
     const category = recordCategory({ circuit: 'aurel', vehicles: [vehicle] });
     expect(category).toEqual({ circuit: 'aurel', vehicle, physics: SIMULATION_VERSION });
     expect(leaderboardKey(category.circuit, category.vehicle, category.physics)).not.toBe(
@@ -64,6 +64,9 @@ describe('WP12 recorded identity and schema policy', () => {
     ).toBeNull();
     expect(
       validateGhost({ ...legacyGhost(), vehicle, physics: 6 }, 'aurel', 3000, category),
+    ).toBeNull();
+    expect(
+      validateGhost({ ...legacyGhost(), vehicle, physics: 10 }, 'aurel', 3000, category),
     ).toBeNull();
     expect(
       validateGhost(

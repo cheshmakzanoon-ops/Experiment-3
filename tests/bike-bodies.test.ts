@@ -53,7 +53,9 @@ const BINS = 20;
  * machine together). */
 function signature(root: T.Object3D) {
   root.updateMatrixWorld(true);
-  const box = new T.Box3().setFromObject(root),
+  // Animated cloth keeps a conservative culling envelope. Measure its posed
+  // vertices here so collision and silhouette checks assess actual geometry.
+  const box = new T.Box3().setFromObject(root, true),
     top = new Array<number>(BINS).fill(0),
     side = new Array<number>(BINS).fill(0),
     v = new T.Vector3();
@@ -61,7 +63,7 @@ function signature(root: T.Object3D) {
     if (!(o instanceof T.Mesh)) return;
     const p = (o.geometry as T.BufferGeometry).getAttribute('position');
     for (let i = 0; i < p.count; i++) {
-      v.fromBufferAttribute(p, i).applyMatrix4(o.matrixWorld);
+      o.getVertexPosition(i, v).applyMatrix4(o.matrixWorld);
       const b = Math.min(
         BINS - 1,
         Math.floor(((v.z - box.min.z) / (box.max.z - box.min.z)) * BINS),

@@ -11,6 +11,7 @@ import { addGPIdentity } from './bike-livery.ts';
 import { gpBodywork, gpUpperCowl } from './gp-bodywork.ts';
 import { gpRadialBrakeCaliper } from './gp-radial-caliper.ts';
 import { gpDiscGlow } from './gp-disc-glow.ts';
+import { gpForkCrowns } from './gp-fork-crown.ts';
 import { gpForgedWheel, gpTyreCompoundMarkings } from './gp-forged-wheel.ts';
 import { bindGpTyre, installGpTyreFinish, type GpTyreAppearance } from './gp-tyre-finish.ts';
 import { gpCoolingLouvers } from './gp-cooling-louvers.ts';
@@ -864,7 +865,7 @@ export class BikeModel {
         -0.15,
         FORK_OFFSET,
       );
-      if (detail !== 'far')
+      if (detail !== 'far' && !gpPrototype)
         add(
           this.steer,
           new T.CylinderGeometry(0.031, 0.031, 0.03, sides / 2),
@@ -874,6 +875,7 @@ export class BikeModel {
           FORK_OFFSET,
         );
     }
+    if (gpPrototype && detail !== 'far') this.steer.add(...gpForkCrowns(detail, m, FORK_OFFSET));
     if (detail !== 'far' && full) {
       add(
         this.steer,
@@ -893,38 +895,40 @@ export class BikeModel {
         // Nested anodised cap, hex adjuster and slotted screw, all attached to
         // the same steering group. Fork travel and the grip targets are intact.
         for (const side of [-1, 1]) {
-          add(
-            this.steer,
-            new T.CylinderGeometry(0.027, 0.027, 0.006, 20),
-            m.forkUpper,
-            side * 0.105,
-            0.035,
-            FORK_OFFSET,
-          );
-          add(
-            this.steer,
-            new T.CylinderGeometry(0.0165, 0.0165, 0.007, 6),
-            m.aluminium,
-            side * 0.105,
-            0.0415,
-            FORK_OFFSET,
-          );
-          add(
-            this.steer,
-            new T.CylinderGeometry(0.0065, 0.0065, 0.004, 12),
-            m.forkLower,
-            side * 0.105,
-            0.047,
-            FORK_OFFSET,
-          );
-          add(
-            this.steer,
-            new T.BoxGeometry(0.009, 0.0008, 0.0013),
-            m.aluminium,
-            side * 0.105,
-            0.0494,
-            FORK_OFFSET,
-          );
+          if (!gpPrototype) {
+            add(
+              this.steer,
+              new T.CylinderGeometry(0.027, 0.027, 0.006, 20),
+              m.forkUpper,
+              side * 0.105,
+              0.035,
+              FORK_OFFSET,
+            );
+            add(
+              this.steer,
+              new T.CylinderGeometry(0.0165, 0.0165, 0.007, 6),
+              m.aluminium,
+              side * 0.105,
+              0.0415,
+              FORK_OFFSET,
+            );
+            add(
+              this.steer,
+              new T.CylinderGeometry(0.0065, 0.0065, 0.004, 12),
+              m.forkLower,
+              side * 0.105,
+              0.047,
+              FORK_OFFSET,
+            );
+            add(
+              this.steer,
+              new T.BoxGeometry(0.009, 0.0008, 0.0013),
+              m.aluminium,
+              side * 0.105,
+              0.0494,
+              FORK_OFFSET,
+            );
+          }
           add(
             this.steer,
             new T.CylinderGeometry(0.006, 0.006, 0.007, 6),

@@ -1,4 +1,5 @@
 import { clamp, G, lerp } from '../core/math.ts';
+import { GP_FRONT_SETTLE_RATE, gpFrontSteeringContact } from './gp-front-contact.ts';
 
 /** Reduced-order road-racing motorcycle model (WP33, masterplan §8). It began
  * as an isolated research model that settled the control contract and the
@@ -78,6 +79,10 @@ export interface BikeParameters {
    * transfer. The previous normal load can overstate rear grip while the
    * front lever and throttle overlap on different contact surfaces. */
   currentDriveTraction?: boolean;
+  /** GP bar steering loses authority when the front contact unloads or is
+   * still descending. The gate uses existing load and pitch; it is not a
+   * complete single-wheel balance or rear-tyre camber-thrust model. */
+  frontContactSteering?: boolean;
 }
 export const BIKE: BikeParameters = Object.freeze({
   mass: 157 + 72,
@@ -205,7 +210,25 @@ export class Bike {
     this.rearLoad = (p.mass * G * p.cgToFront) / p.wheelbase;
   }
   get curvature() {
-    return (Math.tan(this.steer) / this.p.wheelbase) * Math.cos(this.lean);
+    const p = this.p,
+      geometric = (Math.tan(this.steer) / p.wheelbase) * Math.cos(this.lean);
+    if (!p.frontContactSteering) return geometric;
+    // A turned handlebar cannot transmit road steering through an unloaded
+    // front tyre. Fade only in the lowest 5% of its static normal load, below
+    // the 8% retained by the least intrusive GP wheelie-control map. Ordinary
+    // two-contact riding therefore keeps its existing curvature exactly.
+    // Normal load may return before the wheel descends; the existing wheelie
+    // pitch keeps road steering off until its final contact transition. The
+    // same getter feeds roll, lateral force budgets, yaw, tyre heat and body
+    // angular velocity, so the loss is physical rather than a visual pose.
+    const staticFront =
+      (this.mass * G * p.cgToRear) / p.wheelbase +
+      (p.downforce ?? 0) * this.speed * this.speed * (p.downforceFront ?? 0.6);
+    return (
+      geometric *
+      clamp(this.frontLoad / (0.05 * staticFront), 0, 1) *
+      gpFrontSteeringContact(this.pitch, p.wheelbase)
+    );
   }
   /** Lateral acceleration the rider's hang-off adds at a lean, in units of g. */
   riderGain(offset = this.riderOffset, lean = this.lean) {
@@ -430,9 +453,15 @@ export class Bike {
         : staticRear + transfer < 0
           ? transfer + staticRear
           : 0;
+    const settlingFront = p.frontContactSteering && excess === 0 && this.pitch > 0;
     let pitchRate = excess !== 0 ? (excess / (m * G)) * 3 : -this.pitch * 4;
+    if (settlingFront) pitchRate = Math.min(pitchRate, -GP_FRONT_SETTLE_RATE);
     if (a.wheelie && this.pitch > (p.wheelieLimit ?? 0.12) && pitchRate > 0) pitchRate = -1.5;
     this.pitch = clamp(this.pitch + pitchRate * dt, -0.5, 0.9);
+    // Contact ends the GP descent; closing the final gap cannot itself
+    // overshoot into a stoppie. Real braking-induced negative pitch still
+    // follows the existing excess-load branch above.
+    if (settlingFront) this.pitch = Math.max(0, this.pitch);
     if (this.pitch > 0.75 || this.pitch < -0.4) return this.fall('highside');
     this.speed = Math.max(0, this.speed + ax * dt);
     // --- Roll balance: gravity vs centripetal torque, rider offset helps.

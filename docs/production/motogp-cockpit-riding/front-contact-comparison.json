@@ -1,0 +1,245 @@
+{
+  "scope": "GP-R1/R2 steering follows front contact through lift, descent, and finite touchdown",
+  "comparison": "The baseline disables only frontContactSteering, restoring both the original geometric-curvature getter and original exponential pitch settling. The updated case uses the complete current GP opt-in.",
+  "modelLimit": "The 5% static-front-load transition, 2 mm geometric contact tolerance, and 0.2 rad/s final settling rate are authored response tuning. This is not a measured full wheelie/tyre-deflection model. Quasi-static load and front hydraulic braking remain inherited approximations.",
+  "fixture": {
+    "startSpeedMps": 14,
+    "input": {
+      "lean": 0.15,
+      "rider": 0.15,
+      "throttle": 1,
+      "drive": 6000,
+      "frontBrake": 0,
+      "rearBrake": 0
+    },
+    "liftDurationS": 0.25,
+    "recoveryDurationS": 1.25,
+    "recoveryThrottle": 0,
+    "recoveryDriveN": 0
+  },
+  "sourceSha256": {
+    "src/simulation/bike.ts": "348ce347bb4c9eeffc0cc7d5a263528e6f9afc326518a0eeac52913596b62b1f",
+    "src/simulation/bike-vehicle.ts": "d0dff2a8495f396a696a63d031db270cec33e16eb9ae57948a165b7bb13cbedc",
+    "src/simulation/gp-front-contact.ts": "b98fd97de63feff43ba77f4fc36f3a91e1761e5ca91a90d927a3d9044f68396e",
+    "src/simulation/bike-definitions.ts": "e075dd421d9a61b9564e2918da316a0ebe92816aa4871b8662d2ac357bffe3a6",
+    "tests/gp-front-contact-steering.test.ts": "48bbfd6ffe3b24620e35dbb6f8074c3ad0458ec85e14e8da280145cd047ed8b3"
+  },
+  "cases": [
+    {
+      "model": "gpr1",
+      "timestepHz": 120,
+      "baseline": {
+        "zeroLoadSteps": 29,
+        "accumulatedAbsoluteLiftYawRad": 0.010834668930538074,
+        "peakLiftLateralAccelerationMps2": 2.260669402212005,
+        "peakSlip": 1.9559453737302706,
+        "release": {
+          "speedMps": 19.746317231853133,
+          "pitchRad": 0.37816245245816177,
+          "leanRad": 0.051594435190195166
+        },
+        "firstRelease": {
+          "frontLoadN": 1253.2670274353459,
+          "pitchRad": 0.365557037376223,
+          "frontClearanceM": 0.5183308923339678,
+          "curvature": 0.0019684460523659414
+        },
+        "loadedAirSteps": 150,
+        "accumulatedAbsoluteLoadedAirYawRad": 0.08524160137540557,
+        "peakLoadedAirLateralAccelerationMps2": 1.4327753332458826,
+        "touchdownS": null,
+        "finalPitchRad": 0.002339860051082135,
+        "finalFrontClearanceM": 0.003392793978173681,
+        "finalState": "riding",
+        "crashes": 0
+      },
+      "updated": {
+        "zeroLoadSteps": 29,
+        "accumulatedAbsoluteLiftYawRad": 0,
+        "peakLiftLateralAccelerationMps2": 0,
+        "peakSlip": 1.9559453737302706,
+        "release": {
+          "speedMps": 19.746317231853133,
+          "pitchRad": 0.37816245245816177,
+          "leanRad": 0.015347538357927184
+        },
+        "firstRelease": {
+          "frontLoadN": 1253.2670274353459,
+          "pitchRad": 0.365557037376223,
+          "frontClearanceM": 0.5183308923339678,
+          "curvature": 0
+        },
+        "loadedAirSteps": 88,
+        "accumulatedAbsoluteLoadedAirYawRad": 0,
+        "peakLoadedAirLateralAccelerationMps2": 0,
+        "touchdownS": 0.75,
+        "finalPitchRad": 0,
+        "finalFrontClearanceM": 0,
+        "finalState": "riding",
+        "crashes": 0
+      }
+    },
+    {
+      "model": "gpr1",
+      "timestepHz": 240,
+      "baseline": {
+        "zeroLoadSteps": 59,
+        "accumulatedAbsoluteLiftYawRad": 0.011479810991033455,
+        "peakLiftLateralAccelerationMps2": 2.4383165910340368,
+        "peakSlip": 1.9559453737302706,
+        "release": {
+          "speedMps": 19.883938843186417,
+          "pitchRad": 0.39430736313864645,
+          "leanRad": 0.050285667219255335
+        },
+        "firstRelease": {
+          "frontLoadN": 1253.414284887208,
+          "pitchRad": 0.3877355737530023,
+          "frontClearanceM": 0.5482349280537603,
+          "curvature": 0.0018777665384742178
+        },
+        "loadedAirSteps": 300,
+        "accumulatedAbsoluteLoadedAirYawRad": 0.08460645800224371,
+        "peakLoadedAirLateralAccelerationMps2": 1.433013984825618,
+        "touchdownS": null,
+        "finalPitchRad": 0.002547201281438913,
+        "finalFrontClearanceM": 0.003693437864101653,
+        "finalState": "riding",
+        "crashes": 0
+      },
+      "updated": {
+        "zeroLoadSteps": 59,
+        "accumulatedAbsoluteLiftYawRad": 0,
+        "peakLiftLateralAccelerationMps2": 0,
+        "peakSlip": 1.9559453737302706,
+        "release": {
+          "speedMps": 19.883938843186417,
+          "pitchRad": 0.39430736313864645,
+          "leanRad": 0.008935277054803497
+        },
+        "firstRelease": {
+          "frontLoadN": 1253.414284887208,
+          "pitchRad": 0.3877355737530023,
+          "frontClearanceM": 0.5482349280537603,
+          "curvature": 0
+        },
+        "loadedAirSteps": 181,
+        "accumulatedAbsoluteLoadedAirYawRad": 0,
+        "peakLoadedAirLateralAccelerationMps2": 0,
+        "touchdownS": 0.7625,
+        "finalPitchRad": 0,
+        "finalFrontClearanceM": 0,
+        "finalState": "riding",
+        "crashes": 0
+      }
+    },
+    {
+      "model": "gpr2",
+      "timestepHz": 120,
+      "baseline": {
+        "zeroLoadSteps": 29,
+        "accumulatedAbsoluteLiftYawRad": 0.01077886239287006,
+        "peakLiftLateralAccelerationMps2": 2.2543793832649675,
+        "peakSlip": 1.8738357800155416,
+        "release": {
+          "speedMps": 19.74512423471216,
+          "pitchRad": 0.3754592364591495,
+          "leanRad": 0.05181770233462484
+        },
+        "firstRelease": {
+          "frontLoadN": 1226.519908455595,
+          "pitchRad": 0.3629439285771779,
+          "frontClearanceM": 0.5147904784474591,
+          "curvature": 0.001991890901909091
+        },
+        "loadedAirSteps": 150,
+        "accumulatedAbsoluteLoadedAirYawRad": 0.08547143569011155,
+        "peakLoadedAirLateralAccelerationMps2": 1.4341943176260366,
+        "touchdownS": null,
+        "finalPitchRad": 0.0023231340459369406,
+        "finalFrontClearanceM": 0.0033685413366307867,
+        "finalState": "riding",
+        "crashes": 0
+      },
+      "updated": {
+        "zeroLoadSteps": 29,
+        "accumulatedAbsoluteLiftYawRad": 0,
+        "peakLiftLateralAccelerationMps2": 0,
+        "peakSlip": 1.8738357800155416,
+        "release": {
+          "speedMps": 19.74512423471216,
+          "pitchRad": 0.3754592364591495,
+          "leanRad": 0.015734990628262783
+        },
+        "firstRelease": {
+          "frontLoadN": 1226.519908455595,
+          "pitchRad": 0.3629439285771779,
+          "frontClearanceM": 0.5147904784474591,
+          "curvature": 0
+        },
+        "loadedAirSteps": 88,
+        "accumulatedAbsoluteLoadedAirYawRad": 0,
+        "peakLoadedAirLateralAccelerationMps2": 0,
+        "touchdownS": 0.75,
+        "finalPitchRad": 0,
+        "finalFrontClearanceM": 0,
+        "finalState": "riding",
+        "crashes": 0
+      }
+    },
+    {
+      "model": "gpr2",
+      "timestepHz": 240,
+      "baseline": {
+        "zeroLoadSteps": 59,
+        "accumulatedAbsoluteLiftYawRad": 0.011425421111204542,
+        "peakLiftLateralAccelerationMps2": 2.4347608135636016,
+        "peakSlip": 1.8738357800155416,
+        "release": {
+          "speedMps": 19.878143573826573,
+          "pitchRad": 0.39092276390664993,
+          "leanRad": 0.05051294581046073
+        },
+        "firstRelease": {
+          "frontLoadN": 1226.748655138544,
+          "pitchRad": 0.3844073845082058,
+          "frontClearanceM": 0.5437642617994892,
+          "curvature": 0.0019035090324029539
+        },
+        "loadedAirSteps": 300,
+        "accumulatedAbsoluteLoadedAirYawRad": 0.08485801319535506,
+        "peakLoadedAirLateralAccelerationMps2": 1.4344155893423656,
+        "touchdownS": null,
+        "finalPitchRad": 0.0025253369788495014,
+        "finalFrontClearanceM": 0.003661734727315678,
+        "finalState": "riding",
+        "crashes": 0
+      },
+      "updated": {
+        "zeroLoadSteps": 59,
+        "accumulatedAbsoluteLiftYawRad": 0,
+        "peakLiftLateralAccelerationMps2": 0,
+        "peakSlip": 1.8738357800155416,
+        "release": {
+          "speedMps": 19.878143573826573,
+          "pitchRad": 0.39092276390664993,
+          "leanRad": 0.009205497698469626
+        },
+        "firstRelease": {
+          "frontLoadN": 1226.748655138544,
+          "pitchRad": 0.3844073845082058,
+          "frontClearanceM": 0.5437642617994892,
+          "curvature": 0
+        },
+        "loadedAirSteps": 180,
+        "accumulatedAbsoluteLoadedAirYawRad": 0,
+        "peakLoadedAirLateralAccelerationMps2": 0,
+        "touchdownS": 0.7625,
+        "finalPitchRad": 0,
+        "finalFrontClearanceM": 0,
+        "finalState": "riding",
+        "crashes": 0
+      }
+    }
+  ]
+}

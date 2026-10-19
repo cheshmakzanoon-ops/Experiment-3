@@ -67,7 +67,7 @@ for (const id of ['gpr1', 'gpr2']) {
         expect(result.glError).toBe(0);
         expect(result.sourceFrameUnchanged).toBe(true);
         expect(result.instance).toBe(sequence[0].instance);
-        expect(result.triangles).toBe(id === 'gpr1' ? 107617 : 99916);
+        expect(result.triangles).toBe(id === 'gpr1' ? 100713 : 93012);
         expect(result.calls).toBeLessThan(220);
         if (i > 1) expect(result.resources).toEqual(sequence[1].resources);
         if (i < 2)
@@ -109,7 +109,7 @@ test('gpr1 rider recovery restores the original wrist and ankle cuff pose after 
   for (const result of recovery) {
     expect(result.glError).toBe(0);
     expect(result.instance).toBe(recovery[0].instance);
-    expect(result.triangles).toBe(107617);
+    expect(result.triangles).toBe(100713);
   }
   await info.attach('gpr1-rider-recovery.png', {
     body: Buffer.from(recovery[0].image.split(',')[1], 'base64'),

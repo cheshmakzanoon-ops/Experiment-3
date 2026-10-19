@@ -93,7 +93,9 @@ describe('GP fitted racing leathers', () => {
         gp = new Rider(colours, detail, 'leathers', 2, true);
       const a = inventory(legacy.root),
         b = inventory(gp.root);
-      expect(b.triangles).toBe(a.triangles);
+      // Continuous GP skins replace the capped segments and overlapping
+      // joint patches; keep the original cost ceiling as topology improves.
+      expect(b.triangles).toBeLessThanOrEqual(a.triangles);
       expect(b.meshes).toBeLessThanOrEqual(a.meshes);
       expect(b.materials.size).toBe(a.materials.size);
       expect(b.textures.size).toBe(a.textures.size - (detail === 'far' ? 0 : 2));
@@ -120,8 +122,14 @@ describe('GP fitted racing leathers', () => {
         expect(anchors(gp)).toEqual(anchors(legacy));
         // Recovery changes only the GP foot's attachment and calf cuff.
         // Preserve the existing torso and limb trajectories for every kit.
-        expect(gp.root.children.map((child) => child.matrixWorld.elements)).toEqual(
-          legacy.root.children.map((child) => child.matrixWorld.elements),
+        expect(
+          gp.root.children
+            .filter((child) => child instanceof T.Group)
+            .map((child) => child.matrixWorld.elements),
+        ).toEqual(
+          legacy.root.children
+            .filter((child) => child instanceof T.Group)
+            .map((child) => child.matrixWorld.elements),
         );
       }
       legacy.dispose();

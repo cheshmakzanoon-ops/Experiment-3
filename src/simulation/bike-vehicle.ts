@@ -127,6 +127,7 @@ export class BikeVehicle extends Vehicle {
       parameters.engineBrakeReleaseThrottle = GP_ENGINE_BRAKE_RELEASE_THROTTLE;
       parameters.independentRearBrake = true;
       parameters.currentDriveTraction = true;
+      parameters.frontContactSteering = true;
     }
     this.dynamics = new Bike(this.riderAids, parameters);
     this.gearing = this.setup.gearing;

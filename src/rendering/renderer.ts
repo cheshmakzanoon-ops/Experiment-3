@@ -40,7 +40,7 @@ import type { LightPools } from './studio/light-pools.ts';
 import { setBrandLedLighting } from './studio/trackside-branding.ts';
 import { REAR_LAMP, REAR_LAMP_PHYSICAL_GAIN } from './rear-signal.ts';
 import { setAerialExtinction } from './studio/aerial-perspective.ts';
-import { BIKE_SHOWROOM, MENU_CAR_DATUM, SHOWROOM } from './menu-preview.ts';
+import { BIKE_SHOWROOM, MENU_CAR_DATUM, MENU_CLOUD_COVER, SHOWROOM } from './menu-preview.ts';
 import { focusOnSubject, subjectLens, type SubjectLens } from './studio/subject-focus.ts';
 import { reflectInWetRoad } from './wet-reflection.ts';
 import { ghostPose, type GhostPose } from '../core/ghost-lap.ts';
@@ -525,9 +525,10 @@ export class RacingRenderer {
       this.venueLighting.registerSightlines(this.circuit.sightlines),
     );
     this.circuit.construction.add('Environment lighting', 1, () => {
-      // Bake every haze level of the physical sky behind the loading screen.
+      // Bake the atmosphere and the exact showroom cloud/PMREM bins here;
+      // warming a cloudless sky leaves cold captures for the first menu draw.
       prewarmSky(this.lighting);
-      this.environment.update(this.renderer, this.scene, 0);
+      this.environment.update(this.renderer, this.scene, MENU_CLOUD_COVER, this.lighting);
     });
     // Bind after every static venue task and spatial batching; early binding
     // misses the district, grandstand, foliage and infrastructure materials.
@@ -590,6 +591,8 @@ export class RacingRenderer {
     const renderer = new RacingRenderer(canvas, track, true, showroomOnly);
     // Night venues open floodlit (a live sky, if enabled, still overrides).
     if (track.circuit.catalogue?.night) renderer.lighting = 'night';
+    // The initial studio preview uses daylight even when its selected venue is night.
+    const initialSkyLighting: LightingMode = showroomOnly ? 'day' : renderer.lighting;
     // The starting settings decide the far shadow map baked while loading;
     // applied later, a different map size would discard it and bake again on
     // the first rendered frame.
@@ -599,9 +602,9 @@ export class RacingRenderer {
       renderer.setCars(1),
     );
     try {
-      // The showroom and a clear session open under the venue's clear sky.
+      // Load the photographs sampled by the same weather used in the showroom.
       progress({ completed: 0, total: 1, fraction: 0, label: 'Loading photographed sky' });
-      await renderer.photoSky.ready(0, renderer.lighting, 15000);
+      await renderer.photoSky.ready(MENU_CLOUD_COVER, initialSkyLighting, 15000);
       // Photographed track, verge and terrain surfaces (Medium and above).
       progress({ completed: 0, total: 1, fraction: 0, label: 'Loading photographed ground' });
       if (!showroomOnly) await scannedGround.ready(20000);
@@ -626,8 +629,13 @@ export class RacingRenderer {
         // an unrelated complete Aurel circuit, its pit kits and far shadow.
         progress({ completed: 0, total: 1, fraction: 0, label: 'Preparing vehicle showroom' });
         renderer.setCars(1);
-        prewarmSky(renderer.lighting);
-        renderer.environment.update(renderer.renderer, renderer.scene, 0, renderer.lighting);
+        prewarmSky(initialSkyLighting);
+        renderer.environment.update(
+          renderer.renderer,
+          renderer.scene,
+          MENU_CLOUD_COVER,
+          initialSkyLighting,
+        );
         return renderer;
       }
       progress({

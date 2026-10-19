@@ -1,0 +1,240 @@
+{
+  "scope": "GP fork crowns; measured steering subtree isolates concurrent rider work",
+  "baselineCommit": "7e535707db77f409d941b7776573b945964091ec",
+  "reference": {
+    "archiveBytes": 36997717,
+    "archiveSha256": "478517180397aa7022b508264e2e6383f721ea930a4035ef314e2e8fb421e7c6",
+    "manifestSha256": "f023269e46872465e9f69e41bb97e82be2a7d821cc28c27fa6559f8751176ef2",
+    "images": 100,
+    "idsExact": true,
+    "hashMismatches": [],
+    "reference74Sha256": "77cb2de81910f464a6cf6033b46c5e3de2ef5a1f43d7baf2238abc31a8ef5eeb"
+  },
+  "sourceSha256": {
+    "baselineBike": "cbbf9c75a62afb28c1debab0d7ba1861428386ae55cf1e9e77468b75515589a1",
+    "src/rendering/bike.ts": "de59a2d549c9b210f3cf45703b25901914f612871341e42d864cc63dc211253b",
+    "src/rendering/gp-fork-crown.ts": "fbdd8b4cf787bc69741836f878bd7c7394d95cf371443f63e10c7d1b9ef5ede3",
+    "tests/gp-fork-crown.test.ts": "8663e09bc15f046f136b999295be2fa91ca3927cbc2131381662fa9b9649e2c9"
+  },
+  "visibility": {
+    "method": "First opaque intersection from production onboard camera; GP1 and GP2 high, static sag, speed42, tuck0.75, three screw-face points per side. Before targets y0.0498 z0.03; after y0.068 z0.032; x=side*0.105 + {-0.002,0,0.002}, transformed by actual steering matrix.",
+    "before": {
+      "visible": 0,
+      "total": 12,
+      "minimumOcclusionDistanceM": 0.032677773228857836,
+      "maximumOcclusionDistanceM": 0.03437317461660863
+    },
+    "after": {
+      "visible": 12,
+      "total": 12,
+      "maximumTargetErrorM": 5.290378160861935e-9
+    }
+  },
+  "steeringInventory": [
+    {
+      "detail": "high",
+      "before": {
+        "meshes": 26,
+        "triangles": 17002,
+        "bytes": 1190788,
+        "materialCount": 14,
+        "geometrySha256": "1cea51eede34ef7d4c76fef1bc4433f89f4241970a37195c1da6935f5063ce27",
+        "poseSha256": "b9b702876799727494409fd54d09fd2b152bbc290850fba780eec9a8b5b73c12"
+      },
+      "after": {
+        "meshes": 26,
+        "triangles": 17874,
+        "bytes": 1218804,
+        "materialCount": 14,
+        "geometrySha256": "6cbbc508c85bfdc493efa05bdafafdd08e96fb7e222f720175243033a5a5cf3f",
+        "poseSha256": "b9b702876799727494409fd54d09fd2b152bbc290850fba780eec9a8b5b73c12"
+      },
+      "gpr2GeometryMatches": true
+    },
+    {
+      "detail": "mid",
+      "before": {
+        "meshes": 13,
+        "triangles": 5596,
+        "bytes": 308056,
+        "materialCount": 11,
+        "geometrySha256": "c9cd630dd4ee16845439615552dd9974e9a1efe736761dfab2b7835ba814e9a4",
+        "poseSha256": "927440a5a06456fbb9f9bd74c0544f2a46846deb98b55c46e534c9b35f5a1c01"
+      },
+      "after": {
+        "meshes": 13,
+        "triangles": 6076,
+        "bytes": 321432,
+        "materialCount": 11,
+        "geometrySha256": "10a7127ae0275c270de723e1766b6d85ac426436fda83d5bf0833c55065dd403",
+        "poseSha256": "927440a5a06456fbb9f9bd74c0544f2a46846deb98b55c46e534c9b35f5a1c01"
+      },
+      "gpr2GeometryMatches": true
+    },
+    {
+      "detail": "far",
+      "before": {
+        "meshes": 11,
+        "triangles": 1116,
+        "bytes": 69304,
+        "materialCount": 9,
+        "geometrySha256": "a079845b97dec5dd65f5ca8b65d55249c656aefaf3b9a0b202f768eb69b7161b",
+        "poseSha256": "306236cd6914f844d3557cb555d98db1a3a8cfd6f4c420c1a07e66ff84e212a5"
+      },
+      "after": {
+        "meshes": 11,
+        "triangles": 1116,
+        "bytes": 69304,
+        "materialCount": 9,
+        "geometrySha256": "a079845b97dec5dd65f5ca8b65d55249c656aefaf3b9a0b202f768eb69b7161b",
+        "poseSha256": "306236cd6914f844d3557cb555d98db1a3a8cfd6f4c420c1a07e66ff84e212a5"
+      },
+      "gpr2GeometryMatches": true
+    }
+  ],
+  "combinedHighInventoryIncludingSeparateRiderChange": {
+    "gpr1": {
+      "meshes": 97,
+      "triangles": 100713,
+      "bytes": 4222016,
+      "materialCount": 34,
+      "geometrySha256": "b5fd39a0634638a75ea3b745df5253d481fd36ad9409bdc77de88c0b44d7cc6f",
+      "poseSha256": "09e9be2ab93ff47e4a9ad4852fed400a3da063a5aa0753ca4660005697c83293"
+    },
+    "gpr2": {
+      "meshes": 96,
+      "triangles": 93012,
+      "bytes": 3989812,
+      "materialCount": 34,
+      "geometrySha256": "05ee8082d9e68873aac4268e8ddb8deea306d7cb63683f0432a9fdbd9c48d766",
+      "poseSha256": "c600246f8d2d2d0b1085b1a1b316b6267aa99f6b6de60dcf8133ba329b25449c"
+    }
+  },
+  "unchangedGeometryAndPose": [
+    {
+      "id": "gpr1",
+      "detail": "far",
+      "geometrySha256": "d648dedc92df189546c40ec636170149116a16565796b6eaf63ca63a40356c6a",
+      "poseSha256": "7ecbc32ce1d39325facb40432e9dbaba441d51f6a31555e81c065355a75e98f5",
+      "geometryMatches": true,
+      "poseMatches": true
+    },
+    {
+      "id": "gpr2",
+      "detail": "far",
+      "geometrySha256": "e4d2e74717bb888299d7dc7d89103a27598e3f5443a44d475f196c948370123e",
+      "poseSha256": "00e83634813593fb274da1bd83d1b8f0485d45e84a3bb3bdde89e1821fe5d85a",
+      "geometryMatches": true,
+      "poseMatches": true
+    },
+    {
+      "id": "sbk1000",
+      "detail": "high",
+      "geometrySha256": "2e2d1b947ff8bada3337a9e1c570af1283d0ea5a1a9f591883899336006448a0",
+      "poseSha256": "c401f4c2096f5bd8d5d5129b4e045be6e4b11c61130468b0c37785edbc821d6f",
+      "geometryMatches": true,
+      "poseMatches": true
+    },
+    {
+      "id": "sbk1000",
+      "detail": "mid",
+      "geometrySha256": "16a67349a0b7a91a744a0e10771d6d01f4195d4443ad73967b7c79eeb57d512e",
+      "poseSha256": "6a788a1569cc57a0f6f0d62872485f3af3c568bf4e391dbab2d32b1f811525c0",
+      "geometryMatches": true,
+      "poseMatches": true
+    },
+    {
+      "id": "sbk1000",
+      "detail": "far",
+      "geometrySha256": "c8bade4c821570fdca7f7d01e48a29189e6c1bef708575435099e5b3dcf67ab3",
+      "poseSha256": "ad00ba30ac66aca203e520e65d74e1b03e7fe797fd4b6e59e033f05f316c6b26",
+      "geometryMatches": true,
+      "poseMatches": true
+    },
+    {
+      "id": "ss600",
+      "detail": "high",
+      "geometrySha256": "78b9cb41b54d5683e1ea9989e9cf3797677d05b7b60b983d744341ffbf3d8f0e",
+      "poseSha256": "918d73ae2fed42ea112ba6fd7d6f386742fa7ebcca58db3d5c155ffabce10923",
+      "geometryMatches": true,
+      "poseMatches": true
+    },
+    {
+      "id": "ss600",
+      "detail": "mid",
+      "geometrySha256": "f3f9db38ccb842b4daf99a9a5a2edc479d53b610498d0ad6ef7cbbb582b03dd1",
+      "poseSha256": "76c0512d7f9cdc99ed1c4fb53c0b7c5032dbfff4952424d221c9e76857c67845",
+      "geometryMatches": true,
+      "poseMatches": true
+    },
+    {
+      "id": "ss600",
+      "detail": "far",
+      "geometrySha256": "e3fabd92b36b3cb422062444376f6681f1c1fa48d6507b937c54fa975d1c36bc",
+      "poseSha256": "7bde6de9d301f6718463cec20f31b75513cad0c97eb8f3682db0558bc2e78253",
+      "geometryMatches": true,
+      "poseMatches": true
+    },
+    {
+      "id": "nr900",
+      "detail": "high",
+      "geometrySha256": "3282ebbcc49d56900e1ab27a20ca3da4e23faf2a349170cc77e7734e43d40a68",
+      "poseSha256": "f4d4f6699e739de274c94457be5f75a09d717435ce6189f7696f23efecdd9840",
+      "geometryMatches": true,
+      "poseMatches": true
+    },
+    {
+      "id": "nr900",
+      "detail": "mid",
+      "geometrySha256": "31166b4921e66a3a4c511d6b8f2d9df0872bafd4260564e3c416376ae9cb662c",
+      "poseSha256": "921989f7083777cf83d372634514621aa75aa9434a4b41abdda16d1bdf255ac1",
+      "geometryMatches": true,
+      "poseMatches": true
+    },
+    {
+      "id": "nr900",
+      "detail": "far",
+      "geometrySha256": "0c5e8cd7dcf4bd58751024ecad1a990cdedfc56d41d27e2f55ae0dcfa2e57fde",
+      "poseSha256": "490ee0506e6ad63433c5305ae7dd83465b52d2203607b5e8563d7ea6301986dc",
+      "geometryMatches": true,
+      "poseMatches": true
+    },
+    {
+      "id": "cr750",
+      "detail": "high",
+      "geometrySha256": "e2897891328863bb9548085a2692496868c6bcc463bff8d367780069c0e25afe",
+      "poseSha256": "e83db3028a922b05fbe560e1e063ff0cfe38f748b32ed6373e709ad9d5c1c167",
+      "geometryMatches": true,
+      "poseMatches": true
+    },
+    {
+      "id": "cr750",
+      "detail": "mid",
+      "geometrySha256": "a3b9f40d83ac31d02f7f960bd10f9e28b6cad1103bc857c7e76ecc852acef4ea",
+      "poseSha256": "f6fb73604a252631afa4fe2af5b1d232f9be1e6ae823381c390be894690ad7ab",
+      "geometryMatches": true,
+      "poseMatches": true
+    },
+    {
+      "id": "cr750",
+      "detail": "far",
+      "geometrySha256": "dcb6d3b2d9bb814d11592e5b34163048e71ceb77f3c6c9cfa8474b4e12bbe60d",
+      "poseSha256": "d44918fbe8d0037324edd8a7c8d20f8e68417366afc5dd22589350fdb2a110ed",
+      "geometryMatches": true,
+      "poseMatches": true
+    }
+  ],
+  "focusedTests": {
+    "command": "vitest run tests/gp-fork-crown.test.ts tests/bike-cockpit-view.test.ts",
+    "passed": 13,
+    "failed": 0,
+    "files": 2,
+    "newCrownTests": 5,
+    "existingCockpitTests": 8
+  },
+  "limits": [
+    "All100 reviewed; only selected construction details applied.",
+    "Ray and inventory results do not establish browser rendering performance or normal menu acceptance.",
+    "Images do not establish physical dimensions or physics coefficients."
+  ]
+}

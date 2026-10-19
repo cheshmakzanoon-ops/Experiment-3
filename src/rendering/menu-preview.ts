@@ -44,6 +44,11 @@ export const BIKE_SHOWROOM = Object.freeze({
 /** The preview car's origin above the road (FormulaCar hub anchor datum). */
 export const MENU_CAR_DATUM = VEHICLE.restLength + VEHICLE.wheelRadius - 0.05;
 
+/** Match the snapshot's Float32 value exactly when warming the showroom sky.
+ * A zero-cover warmup leaves its cloud panorama and upper PMREM bin cold;
+ * an unquantized 0.12 still forces a new atlas blend on the first draw. */
+export const MENU_CLOUD_COVER = Math.fround(0.12);
+
 /** Static menu presentation, not a simulated or award-eligible driving session.
  * Keep the track coordinate, world pose and wheel dimensions consistent: the
  * studio/HQ floor samples F.S, not the position of an unrelated grid-start cell.
@@ -67,7 +72,7 @@ export function menuPreview(
   frame[H.CARS] = 1;
   frame[H.LENGTH] = track.length;
   frame[H.AMBIENT] = 24;
-  frame[H.CLOUD] = 0.12;
+  frame[H.CLOUD] = MENU_CLOUD_COVER;
   frame[o + F.X] = p.x;
   // FormulaCar's actual hub anchor is +0.05 m; the wheel extends down by
   // restLength + radius. Previously the preview was a further 19 mm too low.

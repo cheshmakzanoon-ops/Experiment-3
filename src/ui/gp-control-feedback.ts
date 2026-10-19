@@ -1,4 +1,5 @@
 import { gpBrakeEfficiency } from '../simulation/gp-brake-fade.ts';
+import { gpFrontSteeringContact } from '../simulation/gp-front-contact.ts';
 import {
   B,
   BIKE_BASE,
@@ -46,11 +47,12 @@ export function gpControlFeedback(frame: Float32Array): GPControlFeedback | null
     brake = frame[o + F.BRAKE],
     throttle = frame[o + F.THROTTLE],
     lean = Math.abs(frame[b + B.LEAN]),
+    pitch = frame[b + B.PITCH],
     frontLoad = frame[b + B.FRONT_LOAD],
     rearLoad = frame[b + B.REAR_LOAD],
     totalLoad = frontLoad + rearLoad;
   if (
-    ![speed, brake, throttle, lean, frontLoad, rearLoad].every(Number.isFinite) ||
+    ![speed, brake, throttle, lean, pitch, frontLoad, rearLoad].every(Number.isFinite) ||
     speed < 4 ||
     frontLoad < 0 ||
     rearLoad < 0 ||
@@ -70,12 +72,20 @@ export function gpControlFeedback(frame: Float32Array): GPControlFeedback | null
     if (frame[offset + W.PUNCTURED] > 0)
       return feedback(`${end} PUNCTURE`, 'Slow down · return to the pits');
 
-  // Loads distinguish an actually unloading axle from ordinary suspension
-  // movement on a hill. Pitch confirms a wheel lift before naming the front.
+  // Rear load distinguishes an unloading axle from suspension movement.
   if (speed > 8 && brake > 0.15 && rearLoad / totalLoad < 0.07)
     return feedback('LIGHT REAR', 'Ease front brake before turn-in');
-  if (speed > 8 && throttle > 0.2 && frontLoad / totalLoad < 0.07 && frame[b + B.PITCH] > 0.03)
-    return feedback('FRONT LIFT', 'Roll off gently · settle the front');
+  // B.PITCH is the recorded wheelie attitude; the road slope is separate.
+  // Keep the cue through coasting descent even after the quasi-static load
+  // recovers, using the same touchdown contact as the steering solver.
+  if (
+    speed > 8 &&
+    gpFrontSteeringContact(
+      pitch,
+      vehicleAt(Math.round(frame[o + RACE_BASE + R.VEHICLE])).spec.wheelbase,
+    ) < 1
+  )
+    return feedback('FRONT LIFT', 'Settle front to restore steering');
 
   // Read the same fade curve as the GP brake solver. Ambient weather or a
   // generic temperature warning cannot establish a loss of braking torque.

@@ -21,8 +21,9 @@ import {
  * v8: coupled unilateral axle solve and wheel-plane contact/link-force geometry;
  * v9: independently sampled player motocross front/rear contact grip;
  * v10: player motocross first-tyre landing prediction and incoming-impact grading;
+ * v11: GP steering follows front load and finite wheelie touchdown;
  * prior records remain in their original physics category. */
-export const SIMULATION_VERSION = 10;
+export const SIMULATION_VERSION = 11;
 /** Fixed physics tick used by the worker and headless simulation. */
 export const SIMULATION_TICK_HZ = 120;
 

@@ -7,6 +7,7 @@ import { batchBikeRigidMeshes } from './bike-rigid-batch.ts';
 import { sampleProfile } from './profile-sampling.ts';
 import { tagMudExposure } from './offroad/mud.ts';
 import { gpRacingBoot, installGpLeatherFinish } from './gp-rider-gear.ts';
+import { GpRiderGarment } from './gp-rider-garment.ts';
 import {
   GP_BOOT_ANKLE,
   GP_BOOT_PEG,
@@ -364,6 +365,7 @@ export class Rider {
   private readonly feet: T.Group[] = [];
   private readonly bootCuffs: (T.Object3D | undefined)[] = [];
   private readonly motocrossGarments: T.SkinnedMesh[] = [];
+  private readonly gpGarments: GpRiderGarment[] = [];
   private readonly exteriorForearms = [0, 1].map(() => ({
     position: new T.Vector3(),
     quaternion: new T.Quaternion(),
@@ -803,14 +805,13 @@ export class Rider {
       material: T.Material,
     ) => {
       const bone = new Bone(length, this.root);
-      // MX sleeves and pants span both solved bones below. Keeping a second
-      // rigid capsule here would reintroduce a spherical elbow through them.
-      if (mx) return bone;
+      // GP leathers and MX textiles span the solved bones below. A second
+      // capped volume here would poke through the continuous skin at a bend.
+      if (mx || gpSuit) return bone;
       const geometry =
         detail !== 'far'
           ? bodyLoft(roadLimbSections(shape, length), sides, 1)
           : limbGeometry(r0, r1, length, sides);
-      if (gpSuit) shapeGpSuitGeometry(geometry, shape);
       const segment = part(bone.group, geometry, material);
       segment.name = `Rider ${shape} leather volume`;
       return bone;
@@ -846,9 +847,34 @@ export class Rider {
             garment.name = `Motocross continuous ${label} ${kind}`;
             this.motocrossGarments.push(garment);
           }
+        } else if (gpSuit) {
+          for (const [upper, lower, kind, attachment] of [
+            [
+              this.upperArms[i],
+              this.forearms[i],
+              'sleeve',
+              [side * RIDER.shoulderWidth, RIDER.spine - 0.04, 0],
+            ],
+            [this.thighs[i], this.shins[i], 'pants', [side * RIDER.hipWidth, 0, 0]],
+          ] as const) {
+            const garment = new GpRiderGarment(
+              this.root,
+              this.torso,
+              upper.group,
+              lower.group,
+              upper.length,
+              lower.length,
+              attachment,
+              kind,
+              detail,
+              leather,
+            );
+            garment.mesh.name = `GP continuous fitted ${label} ${kind}`;
+            this.gpGarments.push(garment);
+          }
         }
       }
-      if (detail !== 'far' && !mx) {
+      if (detail !== 'far' && !mx && !gpSuit) {
         const foldSides = detail === 'high' ? 12 : 8;
         const shoulderStretch = part(
           this.upperArms[i].group,
@@ -859,35 +885,15 @@ export class Rider {
             7,
             foldSides,
           ),
-          gpSuit ? leather : flex,
+          flex,
         );
         shoulderStretch.name = 'Conforming shoulder accordion insert';
         const hipStretch = part(
           this.thighs[i].group,
           leatherPanelGeometry(roadLimbSections('thigh', RIDER.thigh), 0.042, 0.157, 9, foldSides),
-          gpSuit ? leather : flex,
+          flex,
         );
         hipStretch.name = 'Conforming hip accordion insert';
-        if (gpSuit) {
-          // Match the underlying skin UVs, keeping the existing seams and
-          // artwork aligned when the leather stretches over a shoulder/hip.
-          for (const [insert, shape, length] of [
-            [shoulderStretch, 'upper-arm', RIDER.upperArm],
-            [hipStretch, 'thigh', RIDER.thigh],
-          ] as const) {
-            const sections = roadLimbSections(shape, length),
-              first = sections[0][0],
-              last = sections[sections.length - 1][0],
-              uv = insert.geometry.getAttribute('uv'),
-              positions = insert.geometry.getAttribute('position');
-            for (let vertex = 0; vertex < uv.count; vertex++)
-              uv.setXY(
-                vertex,
-                T.MathUtils.lerp(0.53, 0.97, uv.getX(vertex)),
-                (positions.getY(vertex) - first) / (last - first),
-              );
-          }
-        }
         const elbowFlex = part(
           this.upperArms[i].group,
           new T.SphereGeometry(0.039, sides, sides / 2),
@@ -933,22 +939,24 @@ export class Rider {
       if (detail !== 'far' && !mx) {
         // The armour sits under shaped leather. Only the small replaceable
         // polymer pads are exposed; a metallic sphere would read as a hinge.
-        const elbow = part(
-          this.forearms[i].group,
-          bodyLoft(
-            [
-              [-0.028, -0.02, 0.012, 0.013, 0.016],
-              [0.004, -0.025, 0.035, 0.02, 0.031],
-              [0.039, -0.025, 0.038, 0.022, 0.037],
-              [0.082, -0.021, 0.031, 0.018, 0.029],
-              [0.118, -0.01, 0.015, 0.012, 0.015],
-            ],
-            sides,
-            1,
-          ),
-          panel,
-        );
-        elbow.name = 'Leather-covered elbow protector';
+        if (!gpSuit) {
+          const elbow = part(
+            this.forearms[i].group,
+            bodyLoft(
+              [
+                [-0.028, -0.02, 0.012, 0.013, 0.016],
+                [0.004, -0.025, 0.035, 0.02, 0.031],
+                [0.039, -0.025, 0.038, 0.022, 0.037],
+                [0.082, -0.021, 0.031, 0.018, 0.029],
+                [0.118, -0.01, 0.015, 0.012, 0.015],
+              ],
+              sides,
+              1,
+            ),
+            panel,
+          );
+          elbow.name = 'Leather-covered elbow protector';
+        }
         const elbowPad = part(
           this.forearms[i].group,
           new RoundedBoxGeometry(0.037, 0.053, 0.009, 2, 0.004),
@@ -956,23 +964,25 @@ export class Rider {
         );
         elbowPad.position.set(side * 0.008, 0.035, -0.063);
         elbowPad.rotation.y = side * 0.12;
-        const knee = part(
-          this.shins[i].group,
-          bodyLoft(
-            [
-              [-0.044, 0.025, 0.017, 0.02, 0.019],
-              [-0.015, 0.025, 0.047, 0.048, 0.031],
-              [0.036, 0.019, 0.054, 0.052, 0.037],
-              [0.095, 0.009, 0.047, 0.047, 0.035],
-              [0.158, 0.005, 0.028, 0.032, 0.024],
-              [0.18, 0.004, 0.006, 0.009, 0.009],
-            ],
-            sides,
-            0.92,
-          ),
-          panel,
-        );
-        knee.name = 'Leather-covered knee and shin protector';
+        if (!gpSuit) {
+          const knee = part(
+            this.shins[i].group,
+            bodyLoft(
+              [
+                [-0.044, 0.025, 0.017, 0.02, 0.019],
+                [-0.015, 0.025, 0.047, 0.048, 0.031],
+                [0.036, 0.019, 0.054, 0.052, 0.037],
+                [0.095, 0.009, 0.047, 0.047, 0.035],
+                [0.158, 0.005, 0.028, 0.032, 0.024],
+                [0.18, 0.004, 0.006, 0.009, 0.009],
+              ],
+              sides,
+              0.92,
+            ),
+            panel,
+          );
+          knee.name = 'Leather-covered knee and shin protector';
+        }
         const backing = part(
           this.shins[i].group,
           new RoundedBoxGeometry(0.007, 0.1, 0.082, 2, 0.003),
@@ -1221,6 +1231,7 @@ export class Rider {
       this.captureExteriorArms();
       if (this.motocrossFirstPerson) this.onboardArms();
     }
+    for (const garment of this.gpGarments) garment.updatePose();
   }
   /** Separated rider: `phase` 0 sliding/tumbling, 1 standing/jogging, 2 at the bike. */
   separated(phase: number, tumble: number, time: number) {
@@ -1274,9 +1285,11 @@ export class Rider {
       }
     }
     if (this.kit === 'motocross') this.captureExteriorArms();
+    for (const garment of this.gpGarments) garment.updatePose();
   }
   dispose() {
     for (const garment of this.motocrossGarments) garment.skeleton.dispose();
+    for (const garment of this.gpGarments) garment.dispose();
     this.root.traverse((o) => {
       if (o instanceof T.Mesh) o.geometry.dispose();
     });
