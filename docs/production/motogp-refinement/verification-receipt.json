@@ -1,0 +1,369 @@
+{
+  "baseline_commit": "4d207318915d7d32d5485a2e579c221672a523b4",
+  "source_sha256": {
+    "e2e/41-motogp-reference.spec.ts": "e9ac7b0b369ff48cccfd84618cd59c6ceff7e9534f2386ddc8dd2b39fbb5aa40",
+    "e2e/42-motogp-environment.spec.ts": "5ec34d7578ce86445faa5c6b28184a65a7ffbcfbfca16af4d2dff918203efa80",
+    "e2e/fixtures/motogp-environment-review.ts": "af4a44c41d26c7f576754312fb6f852ab7faab8750a582c37f5574d389aafe03",
+    "e2e/fixtures/motogp-reference-review.ts": "5b805dbe4b7507c32d5f91b4a138cbe53c64f34a27b4221cea12176c844957b7",
+    "e2e/gp-brake-lever.spec.ts": "6d854475ee40afe00fe2b850af83a958a6217923e2a9595ad8e28e351f6ee12a",
+    "src/rendering/bike-livery.ts": "d40c3ed7a49d8eb4e2750c93f2ca4d35cde0c9cf921037b48e9f793b1e4b7cba",
+    "src/rendering/bike.ts": "f72bf0a4af7c80629a82c6629d1530129e6431dee3338e7f2771b99bf28cb87b",
+    "src/rendering/circuit.ts": "682fcb83a3c3fee16537300153b529d93240db9c524843346cfefc71c5c7c257",
+    "src/rendering/gp-rider-suit.ts": "2393d59f2e2ad7c5ebaedcf24bb5cffb8d4697b5b33d2e0e620de76be9836799",
+    "src/rendering/renderer.ts": "8a4fbaf04ac1460e8f87660ff2dfecc6a9ecfa1b5272ad38b750c2d32822ba89",
+    "src/rendering/rider.ts": "3732137f7797e51013edd978069d7ed4576a31edcbdd7a4b54548115f5e5d81f",
+    "src/rendering/studio/road-detail.ts": "ad52fe8d71e03a6c2bb1a2d681801383fb4f89c3eabe616e7d63dbae06aa4878",
+    "src/rendering/tyre-marks.ts": "73544f6ccf4268b5364519b8bfd554070c447360ce76dddb0109ba4ff8a3e60a",
+    "src/simulation/bike-vehicle.ts": "606ea9696e19c09f37d9b45a4279ea319f1afc15dfea82beb348c5c5ded79f7b",
+    "tests/bike-cockpit-view.test.ts": "7f973124f0dbe83cccbb2a0050f6189c025669fcc2483eaa4cf63622c57153f5",
+    "tests/gp-brake-lever.test.ts": "fc4256c6412e565a3f6d149fc9e7618aba6825e3dfb6ad59b4cf45961c29f25d",
+    "tests/gp-rider-suit.test.ts": "9612dc40c1f253192db3b5f66ecbc3bb91d89dbb2e02a2d5274f57512ff565f8",
+    "tests/gp-seamless-braking.test.ts": "c2fbdfb213f356e44b2bd92c153dee255225e094040374630c90c4bd24f6acda",
+    "tests/road-detail.test.ts": "d145cc6828e2442e34476fe04189cb098b0032f87af5b589f99dd789421b28f1",
+    "tests/scanned-ground.test.ts": "8c439cc5b1047deaaff3ea06995b92baf673e757094fc65f2894e1cf0151c142",
+    "tests/startup.test.ts": "ee6cf1bd832e4722c826a786dd10bb3d7fd15aa5e35196c429dc6adb0a3b8581",
+    "tests/tyre-marks.test.ts": "90c7877647f24309e5aabe96da1911f8af20ab069fd3dcc9f432fee643631beb"
+  },
+  "source_frozen_for_final_checks": true,
+  "build": {
+    "command": "npm run build",
+    "status": "passed",
+    "vite_duration_seconds": 19.59,
+    "build_identity": {
+      "version": 1,
+      "commit": null,
+      "fingerprint": "e07369f7686bde18d3143e804a84cf0e622cf30989043cfd9ff782d7b195a273"
+    },
+    "notes": [
+      "TypeScript and Vite passed.",
+      "Existing large-bundle warning remains.",
+      "Build was produced from the frozen uncommitted source, so its commit field is null."
+    ]
+  },
+  "lint": {
+    "command": "npm run lint",
+    "status": "passed"
+  },
+  "content_validation": {
+    "command": "npm run validate:content",
+    "status": "passed",
+    "context": "Completed in the broad check; content definitions were not changed afterwards."
+  },
+  "final_focused_tests": {
+    "command": "npx vitest run tests/gp-seamless-braking.test.ts tests/gp-rider-suit.test.ts tests/gp-brake-lever.test.ts tests/bike-cockpit-view.test.ts tests/road-detail.test.ts tests/tyre-marks.test.ts tests/scanned-ground.test.ts tests/startup.test.ts tests/race-view-continuity.test.ts tests/vehicle-definitions.test.ts",
+    "status": "passed",
+    "files_passed": 10,
+    "tests_passed": 92,
+    "duration_seconds": 34.71,
+    "errors": 0
+  },
+  "broad_repository_check": {
+    "command": "npm run check",
+    "status": "failed",
+    "duration_seconds": 2287.97,
+    "files_passed": 433,
+    "files_failed": 4,
+    "tests_passed": 3660,
+    "tests_failed": 4,
+    "worker_rpc_errors": 2,
+    "overlapped_source_edits": true,
+    "failed_suites": [
+      "tests/bike-cockpit-view.test.ts",
+      "tests/gp-rider-suit.test.ts",
+      "tests/tyre-marks.test.ts",
+      "tests/vehicle-definitions.test.ts"
+    ],
+    "follow_up": "All four affected suites passed in the final frozen 92-test run. The entire broad check was not rerun to a clean result.",
+    "failure_observations": [
+      "Three failures occurred after edited expectations reached a worker retaining earlier module state.",
+      "The car mixed-field case exceeded its existing 120-second limit."
+    ]
+  },
+  "gpu_fixture_evidence": {
+    "model_and_front_lever": "model-and-lever-checks.json",
+    "road_environment": "surface-receipt.json",
+    "classification": "Production components rendered with verified software WebGL2; distinct from full-application sessions."
+  },
+  "live_application_attempts": [
+    {
+      "label": "Initial live journey",
+      "backend": "Mesa llvmpipe",
+      "configuration_notes": [
+        "Original two specs, deadlines and assertions; isolated preview of the frozen production build."
+      ],
+      "stats": {
+        "startTime": "2026-10-19T03:20:53.866Z",
+        "duration": 610654.604,
+        "expected": 0,
+        "skipped": 0,
+        "unexpected": 2,
+        "flaky": 0
+      },
+      "errors": [],
+      "cases": [
+        {
+          "file": "motogp-riding-flow.spec.ts",
+          "title": "GP practice rides through named corner guidance, cockpit, pause and recorded replay",
+          "status": "unexpected",
+          "results": [
+            {
+              "status": "failed",
+              "duration": 257036,
+              "error": {
+                "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeHidden\u001b[2m()\u001b[22m failed\n\nLocator:  locator('#modal')\nExpected: hidden\nReceived: visible\nTimeout:  60000ms\n\nCall log:\n\u001b[2m  - Expect \"toBeHidden\" with timeout 60000ms\u001b[22m\n\u001b[2m  - waiting for locator('#modal')\u001b[22m\n\u001b[2m    2 \u00d7 locator resolved to <dialog open=\"\" id=\"modal\">\u2026</dialog>\u001b[22m\n\u001b[2m      - unexpected value \"visible\"\u001b[22m\n",
+                "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeHidden\u001b[2m()\u001b[22m failed\n\nLocator:  locator('#modal')\nExpected: hidden\nReceived: visible\nTimeout:  60000ms\n\nCall log:\n\u001b[2m  - Expect \"toBeHidden\" with timeout 60000ms\u001b[22m\n\u001b[2m  - waiting for locator('#modal')\u001b[22m\n\u001b[2m    2 \u00d7 locator resolved to <dialog open=\"\" id=\"modal\">\u2026</dialog>\u001b[22m\n\u001b[2m      - unexpected value \"visible\"\u001b[22m\n\n    at /workspace/scratch/7be409b9e5ac/motobound/e2e/motogp-riding-flow.spec.ts:78:40",
+                "location": {
+                  "file": "/workspace/scratch/7be409b9e5ac/motobound/e2e/motogp-riding-flow.spec.ts",
+                  "column": 40,
+                  "line": 78
+                },
+                "snippet": "  76 |   await page.locator('[name=quality]').selectOption('low');\n  77 |   await page.getByRole('button', { name: 'APPLY & SAVE', exact: true }).click();\n> 78 |   await expect(page.locator('#modal')).toBeHidden();\n     |                                        ^\n  79 |   await page.selectOption('#circuit', 'poggio-alto');\n  80 |   await page.selectOption('#vehicle', 'gpr1');\n  81 |   await page.selectOption('#mode', 'practice');"
+              },
+              "errors": [
+                {
+                  "location": {
+                    "file": "/workspace/scratch/7be409b9e5ac/motobound/e2e/motogp-riding-flow.spec.ts",
+                    "column": 40,
+                    "line": 78
+                  },
+                  "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeHidden\u001b[2m()\u001b[22m failed\n\nLocator:  locator('#modal')\nExpected: hidden\nReceived: visible\nTimeout:  60000ms\n\nCall log:\n\u001b[2m  - Expect \"toBeHidden\" with timeout 60000ms\u001b[22m\n\u001b[2m  - waiting for locator('#modal')\u001b[22m\n\u001b[2m    2 \u00d7 locator resolved to <dialog open=\"\" id=\"modal\">\u2026</dialog>\u001b[22m\n\u001b[2m      - unexpected value \"visible\"\u001b[22m\n\n\n  76 |   await page.locator('[name=quality]').selectOption('low');\n  77 |   await page.getByRole('button', { name: 'APPLY & SAVE', exact: true }).click();\n> 78 |   await expect(page.locator('#modal')).toBeHidden();\n     |                                        ^\n  79 |   await page.selectOption('#circuit', 'poggio-alto');\n  80 |   await page.selectOption('#vehicle', 'gpr1');\n  81 |   await page.selectOption('#mode', 'practice');\n    at /workspace/scratch/7be409b9e5ac/motobound/e2e/motogp-riding-flow.spec.ts:78:40"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "file": "motogp-wet-riding.spec.ts",
+          "title": "GP wet practice renders live two-tyre spray, advances normally and holds on pause",
+          "status": "unexpected",
+          "results": [
+            {
+              "status": "failed",
+              "duration": 231139,
+              "error": {
+                "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m failed\n\nLocator:  locator('#menu')\nExpected: visible\nReceived: hidden\nTimeout:  180000ms\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 180000ms\u001b[22m\n\u001b[2m  - waiting for locator('#menu')\u001b[22m\n\u001b[2m    25 \u00d7 locator resolved to <section id=\"menu\" hidden=\"\" class=\"menu\" data-bike=\"false\" data-discipline=\"circuit\">\u2026</section>\u001b[22m\n\u001b[2m       - unexpected value \"hidden\"\u001b[22m\n",
+                "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m failed\n\nLocator:  locator('#menu')\nExpected: visible\nReceived: hidden\nTimeout:  180000ms\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 180000ms\u001b[22m\n\u001b[2m  - waiting for locator('#menu')\u001b[22m\n\u001b[2m    25 \u00d7 locator resolved to <section id=\"menu\" hidden=\"\" class=\"menu\" data-bike=\"false\" data-discipline=\"circuit\">\u2026</section>\u001b[22m\n\u001b[2m       - unexpected value \"hidden\"\u001b[22m\n\n    at /workspace/scratch/7be409b9e5ac/motobound/e2e/motogp-wet-riding.spec.ts:38:39",
+                "location": {
+                  "file": "/workspace/scratch/7be409b9e5ac/motobound/e2e/motogp-wet-riding.spec.ts",
+                  "column": 39,
+                  "line": 38
+                },
+                "snippet": "  36 |\n  37 |   await page.goto('/');\n> 38 |   await expect(page.locator('#menu')).toBeVisible({ timeout: MENU_STARTUP_TIMEOUT_MS });\n     |                                       ^\n  39 |   await page.getByRole('button', { name: 'GARAGE & SETTINGS', exact: true }).click();\n  40 |   await page.locator('[name=quality]').selectOption('low');\n  41 |   await page.locator('.presentation-details > summary').click();"
+              },
+              "errors": [
+                {
+                  "location": {
+                    "file": "/workspace/scratch/7be409b9e5ac/motobound/e2e/motogp-wet-riding.spec.ts",
+                    "column": 39,
+                    "line": 38
+                  },
+                  "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m failed\n\nLocator:  locator('#menu')\nExpected: visible\nReceived: hidden\nTimeout:  180000ms\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 180000ms\u001b[22m\n\u001b[2m  - waiting for locator('#menu')\u001b[22m\n\u001b[2m    25 \u00d7 locator resolved to <section id=\"menu\" hidden=\"\" class=\"menu\" data-bike=\"false\" data-discipline=\"circuit\">\u2026</section>\u001b[22m\n\u001b[2m       - unexpected value \"hidden\"\u001b[22m\n\n\n  36 |\n  37 |   await page.goto('/');\n> 38 |   await expect(page.locator('#menu')).toBeVisible({ timeout: MENU_STARTUP_TIMEOUT_MS });\n     |                                       ^\n  39 |   await page.getByRole('button', { name: 'GARAGE & SETTINGS', exact: true }).click();\n  40 |   await page.locator('[name=quality]').selectOption('low');\n  41 |   await page.locator('.presentation-details > summary').click();\n    at /workspace/scratch/7be409b9e5ac/motobound/e2e/motogp-wet-riding.spec.ts:38:39"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "stats": {
+        "startTime": "2026-10-19T03:37:15.671Z",
+        "duration": 620579.734,
+        "expected": 0,
+        "skipped": 0,
+        "unexpected": 2,
+        "flaky": 0
+      },
+      "errors": [],
+      "cases": [
+        {
+          "file": "motogp-riding-flow.spec.ts",
+          "title": "GP practice rides through named corner guidance, cockpit, pause and recorded replay",
+          "status": "unexpected",
+          "results": [
+            {
+              "status": "timedOut",
+              "duration": 310749,
+              "error": {
+                "message": "\u001b[31mTest timeout of 300000ms exceeded.\u001b[39m",
+                "stack": "\u001b[31mTest timeout of 300000ms exceeded.\u001b[39m"
+              },
+              "errors": [
+                {
+                  "message": "\u001b[31mTest timeout of 300000ms exceeded.\u001b[39m"
+                },
+                {
+                  "location": {
+                    "file": "/workspace/scratch/7be409b9e5ac/motobound/e2e/motogp-riding-flow.spec.ts",
+                    "column": 73,
+                    "line": 77
+                  },
+                  "message": "Error: locator.click: Test timeout of 300000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: 'APPLY & SAVE', exact: true })\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"submit\" class=\"primary\">APPLY & SAVE</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\n\n  75 |   await page.getByRole('button', { name: 'GARAGE & SETTINGS', exact: true }).click();\n  76 |   await page.locator('[name=quality]').selectOption('low');\n> 77 |   await page.getByRole('button', { name: 'APPLY & SAVE', exact: true }).click();\n     |                                                                         ^\n  78 |   await expect(page.locator('#modal')).toBeHidden();\n  79 |   await page.selectOption('#circuit', 'poggio-alto');\n  80 |   await page.selectOption('#vehicle', 'gpr1');\n    at /workspace/scratch/7be409b9e5ac/motobound/e2e/motogp-riding-flow.spec.ts:77:73"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "file": "motogp-wet-riding.spec.ts",
+          "title": "GP wet practice renders live two-tyre spray, advances normally and holds on pause",
+          "status": "unexpected",
+          "results": [
+            {
+              "status": "timedOut",
+              "duration": 306053,
+              "error": {
+                "message": "\u001b[31mTest timeout of 300000ms exceeded.\u001b[39m",
+                "stack": "\u001b[31mTest timeout of 300000ms exceeded.\u001b[39m"
+              },
+              "errors": [
+                {
+                  "message": "\u001b[31mTest timeout of 300000ms exceeded.\u001b[39m"
+                },
+                {
+                  "location": {
+                    "file": "/workspace/scratch/7be409b9e5ac/motobound/e2e/motogp-wet-riding.spec.ts",
+                    "column": 57,
+                    "line": 41
+                  },
+                  "message": "Error: locator.click: Test timeout of 300000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.presentation-details > summary')\u001b[22m\n\u001b[2m    - locator resolved to <summary>Individual graphics controls</summary>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\n\n  39 |   await page.getByRole('button', { name: 'GARAGE & SETTINGS', exact: true }).click();\n  40 |   await page.locator('[name=quality]').selectOption('low');\n> 41 |   await page.locator('.presentation-details > summary').click();\n     |                                                         ^\n  42 |   await page.locator('[name=graphics_particleDensity]').press('End');\n  43 |   await expect(page.locator('[name=graphics_particleDensity]')).toHaveValue('1');\n  44 |   await page.getByRole('button', { name: 'APPLY & SAVE', exact: true }).click();\n    at /workspace/scratch/7be409b9e5ac/motobound/e2e/motogp-wet-riding.spec.ts:41:57"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "label": "Mesa live retry",
+      "backend": "Mesa llvmpipe",
+      "configuration_notes": [
+        "Original two specs, deadlines and assertions.",
+        "LP_NUM_THREADS=2; trace off; isolated preview port 4973."
+      ]
+    },
+    {
+      "label": "Final SwiftShader live journey",
+      "backend": "SwiftShader WebGL2",
+      "configuration_notes": [
+        "Original two specs, 1280x800 viewport, Low selected through the settings UI, original assertions and deadlines.",
+        "Trace off; isolated preview port 4974."
+      ],
+      "stats": {
+        "startTime": "2026-10-19T03:53:16.823Z",
+        "duration": 496631.55299999996,
+        "expected": 0,
+        "skipped": 0,
+        "unexpected": 2,
+        "flaky": 0
+      },
+      "errors": [],
+      "cases": [
+        {
+          "file": "motogp-riding-flow.spec.ts",
+          "title": "GP practice rides through named corner guidance, cockpit, pause and recorded replay",
+          "status": "unexpected",
+          "results": [
+            {
+              "status": "failed",
+              "duration": 304852,
+              "error": {
+                "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mfalse\u001b[39m\nReceived: \u001b[31mtrue\u001b[39m\n\nCall Log:\n- Test timeout of 300000ms exceeded",
+                "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mfalse\u001b[39m\nReceived: \u001b[31mtrue\u001b[39m\n\nCall Log:\n- Test timeout of 300000ms exceeded\n    at seek (/workspace/scratch/7be409b9e5ac/motobound/e2e/motogp-riding-flow.spec.ts:181:5)\n    at /workspace/scratch/7be409b9e5ac/motobound/e2e/motogp-riding-flow.spec.ts:193:3",
+                "location": {
+                  "file": "/workspace/scratch/7be409b9e5ac/motobound/e2e/motogp-riding-flow.spec.ts",
+                  "column": 5,
+                  "line": 181
+                },
+                "snippet": "  179 |       element.dispatchEvent(new Event('input', { bubbles: true }));\n  180 |     }, seconds);\n> 181 |     await expect.poll(async () => (await diag()).replaySeekPending).toBe(false);\n      |     ^\n  182 |     await expect\n  183 |       .poll(async () => Math.abs((await diag()).replayPosition - seconds))\n  184 |       .toBeLessThan(0.02);"
+              },
+              "errors": [
+                {
+                  "location": {
+                    "file": "/workspace/scratch/7be409b9e5ac/motobound/e2e/motogp-riding-flow.spec.ts",
+                    "column": 5,
+                    "line": 181
+                  },
+                  "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mfalse\u001b[39m\nReceived: \u001b[31mtrue\u001b[39m\n\nCall Log:\n- Test timeout of 300000ms exceeded\n\n  179 |       element.dispatchEvent(new Event('input', { bubbles: true }));\n  180 |     }, seconds);\n> 181 |     await expect.poll(async () => (await diag()).replaySeekPending).toBe(false);\n      |     ^\n  182 |     await expect\n  183 |       .poll(async () => Math.abs((await diag()).replayPosition - seconds))\n  184 |       .toBeLessThan(0.02);\n    at seek (/workspace/scratch/7be409b9e5ac/motobound/e2e/motogp-riding-flow.spec.ts:181:5)\n    at /workspace/scratch/7be409b9e5ac/motobound/e2e/motogp-riding-flow.spec.ts:193:3"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "file": "motogp-wet-riding.spec.ts",
+          "title": "GP wet practice renders live two-tyre spray, advances normally and holds on pause",
+          "status": "unexpected",
+          "results": [
+            {
+              "status": "failed",
+              "duration": 181521,
+              "error": {
+                "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m failed\n\nLocator:  locator('#menu')\nExpected: visible\nReceived: hidden\nTimeout:  180000ms\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 180000ms\u001b[22m\n\u001b[2m  - waiting for locator('#menu')\u001b[22m\n\u001b[2m    17 \u00d7 locator resolved to <section id=\"menu\" hidden=\"\" class=\"menu\" data-bike=\"false\" data-discipline=\"circuit\">\u2026</section>\u001b[22m\n\u001b[2m       - unexpected value \"hidden\"\u001b[22m\n",
+                "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m failed\n\nLocator:  locator('#menu')\nExpected: visible\nReceived: hidden\nTimeout:  180000ms\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 180000ms\u001b[22m\n\u001b[2m  - waiting for locator('#menu')\u001b[22m\n\u001b[2m    17 \u00d7 locator resolved to <section id=\"menu\" hidden=\"\" class=\"menu\" data-bike=\"false\" data-discipline=\"circuit\">\u2026</section>\u001b[22m\n\u001b[2m       - unexpected value \"hidden\"\u001b[22m\n\n    at /workspace/scratch/7be409b9e5ac/motobound/e2e/motogp-wet-riding.spec.ts:38:39",
+                "location": {
+                  "file": "/workspace/scratch/7be409b9e5ac/motobound/e2e/motogp-wet-riding.spec.ts",
+                  "column": 39,
+                  "line": 38
+                },
+                "snippet": "  36 |\n  37 |   await page.goto('/');\n> 38 |   await expect(page.locator('#menu')).toBeVisible({ timeout: MENU_STARTUP_TIMEOUT_MS });\n     |                                       ^\n  39 |   await page.getByRole('button', { name: 'GARAGE & SETTINGS', exact: true }).click();\n  40 |   await page.locator('[name=quality]').selectOption('low');\n  41 |   await page.locator('.presentation-details > summary').click();"
+              },
+              "errors": [
+                {
+                  "location": {
+                    "file": "/workspace/scratch/7be409b9e5ac/motobound/e2e/motogp-wet-riding.spec.ts",
+                    "column": 39,
+                    "line": 38
+                  },
+                  "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m failed\n\nLocator:  locator('#menu')\nExpected: visible\nReceived: hidden\nTimeout:  180000ms\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 180000ms\u001b[22m\n\u001b[2m  - waiting for locator('#menu')\u001b[22m\n\u001b[2m    17 \u00d7 locator resolved to <section id=\"menu\" hidden=\"\" class=\"menu\" data-bike=\"false\" data-discipline=\"circuit\">\u2026</section>\u001b[22m\n\u001b[2m       - unexpected value \"hidden\"\u001b[22m\n\n\n  36 |\n  37 |   await page.goto('/');\n> 38 |   await expect(page.locator('#menu')).toBeVisible({ timeout: MENU_STARTUP_TIMEOUT_MS });\n     |                                       ^\n  39 |   await page.getByRole('button', { name: 'GARAGE & SETTINGS', exact: true }).click();\n  40 |   await page.locator('[name=quality]').selectOption('low');\n  41 |   await page.locator('.presentation-details > summary').click();\n    at /workspace/scratch/7be409b9e5ac/motobound/e2e/motogp-wet-riding.spec.ts:38:39"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "physical_device_fps_benchmark": false,
+  "human_gameplay_test": false,
+  "artifact_sha256": {
+    "apex-gp-dry.png": "a8fc6747995b4a5508fe11637566d878d84e92cd0a6a18fde4c74b535004bb86",
+    "apex-gp-wet.png": "f97635b079e2512975fd91aac7056bd152c06807c4a2ce4b93dbc29073959d80",
+    "braking-bike.png": "dda2aa51d9bceda5bd048388faad6b64c10efc1e860953c2ed66875d5c68b6b7",
+    "braking-comparison.json": "77b438ada3c736a356c2408310411234bb6deb5dbd9865f6201d10bced4d2781",
+    "braking-gp.png": "22ac11e0cc462b96584a7ac2652844037a53e7235c4ed0e0b358df081c5f7ddb",
+    "cockpit-after.png": "f99b4608320c1e9656f2f02c60921823aeb10cbe02cf646d3060f54c07df9e6e",
+    "cockpit-before.png": "b0efa1781be277705d7bb509254730a4ecf0c1d8b1e92f9d3b2a3be22fbabe87",
+    "environment-material-metrics.json": "fb5fe4edd8ff669fa77dbd504a82e8afea41f6056e0cb7f2ce11e94cc43d160f",
+    "gpr1-after.png": "93214c4de4aa36de28b3a58c4ab65f0b26245a438961da0c766cef0d752365c8",
+    "gpr2-after.png": "54d9da0060aa5cd0b77947077e995fb4fe93867cd19587ae79fb7363ed7439f2",
+    "lever-released.png": "b4fae625480b85faced88b9e97b4c8a6ba1c1c68b36cff23d5edec3f72ae2fae",
+    "lever-squeezed.png": "431c99383f8c64f392c8d03b39aaf80f66b026870bfd85bf2c07ad8765412163",
+    "live-low-chase.png": "90d323a1ad76cc3d70c985dda08a288993ea3dd16579ccd32c1849d337b4aa8d",
+    "live-low-cockpit.png": "0da762b83358f4f55e70ed5e05239a900f63191a8208366108998e7c8b127873",
+    "model-and-lever-checks.json": "1680083f2b84e1dc6072012c216893088ba89435b58ad362e07d95a3175cb2d4",
+    "recorded-low-cockpit.png": "66f7d48f129967849b245235834e3f4d68bb960bd09b1477cf1b38adcc509ef8",
+    "rider-after.png": "4e25c000816d51c2c0b64e37944426407f632348048e19f51190b03d758d5567",
+    "rider-before.png": "0c5cbfb8672929592582505e5fd80d100be3667e01a0e20cc2ee9f2cd0d4cfc3",
+    "rider-wet.png": "cfbcbdc695d7c7b22d3d6372167348b5914920a8167f38e111ab951885937142",
+    "surface-receipt.json": "25c134d012b9be73013e0773b0f4adacd80b362b0cccdaa0bf398dc3fdfbc010"
+  },
+  "limitations": [
+    "Full application journey outcome is recorded separately from production-component fixture passes.",
+    "No physical-device frame-rate or commercial-game fidelity parity claim."
+  ],
+  "live_application_status": "Not passed locally. Final clear session reached manual driving, AI demonstration, corner guidance, cockpit, pause and first recorded replay frame; the later backward seek exceeded the total test deadline. Final wet session timed out at initial menu startup.",
+  "live_application_captures": {
+    "live-low-chase.png": "Actual four-rider GP-R1 Poggio Alto practice after manual launch, in AI demonstration.",
+    "live-low-cockpit.png": "Actual moving cockpit and named corner guidance, Low graphics,1280x800.",
+    "recorded-low-cockpit.png": "First recorded replay checkpoint; later rewind and resume assertions did not complete."
+  },
+  "live_application_uncompleted_assertions": [
+    "Clear: backward-seek completion, restored-guide comparison, replay exit and resumed driving.",
+    "Wet: GP selection, entry, live tyre spray, advancement and pause checks."
+  ],
+  "limits_and_observations": [
+    "Software renderer only; physical-device frame rates unmeasured.",
+    "Both full-application specs failed locally. Isolated GP rendering/replay gates passed.",
+    "Shared settings and replay-controller source were not modified by this pass.",
+    "Existing procedural cloud appearance and simplified Low-detail model geometry remain visible in the actual session captures."
+  ]
+}

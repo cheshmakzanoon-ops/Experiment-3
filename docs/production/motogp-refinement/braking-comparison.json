@@ -1,0 +1,303 @@
+{
+  "baseline_commit": "4d207318915d7d32d5485a2e579c221672a523b4",
+  "scenario": {
+    "speed_m_per_s": 40,
+    "engine_brake_map": 3,
+    "gear_change": [
+      4,
+      3
+    ],
+    "step_hz": 240,
+    "warmup_steps": 12,
+    "throttle": 0,
+    "description": "Controlled actual BikeVehicle coast trace through both shift-clock edges; ordinary Simulation snapshot compatibility traces are retained for the other road motorcycles."
+  },
+  "source_sha256": "606ea9696e19c09f37d9b45a4279ea319f1afc15dfea82beb348c5c5ded79f7b",
+  "regression_test": "tests/gp-seamless-braking.test.ts",
+  "comparison": {
+    "gp": {
+      "gpr1": {
+        "before": {
+          "edgeSamples": [
+            {
+              "ms": -4.166666666666667,
+              "gear": 4,
+              "shiftClock": 0,
+              "engineBrakeForce": 406.9808600665468,
+              "ax": -3.258827688729931,
+              "frontLoad": 1459.5770782208485
+            },
+            {
+              "ms": 0,
+              "gear": 3,
+              "shiftClock": 0.015833333333333335,
+              "engineBrakeForce": 0,
+              "ax": -1.596732141298756,
+              "frontLoad": 1285.528477091417
+            },
+            {
+              "ms": 4.166666666666667,
+              "gear": 3,
+              "shiftClock": 0.011666666666666669,
+              "engineBrakeForce": 0,
+              "ax": -1.5962381991001933,
+              "frontLoad": 1285.5141719487488
+            },
+            {
+              "ms": 8.333333333333334,
+              "gear": 3,
+              "shiftClock": 0.007500000000000002,
+              "engineBrakeForce": 0,
+              "ax": -1.595707215386523,
+              "frontLoad": 1285.4998736191048
+            },
+            {
+              "ms": 12.5,
+              "gear": 3,
+              "shiftClock": 0.0033333333333333357,
+              "engineBrakeForce": 0,
+              "ax": -1.595176445774145,
+              "frontLoad": 1285.485582431886
+            },
+            {
+              "ms": 16.666666666666668,
+              "gear": 3,
+              "shiftClock": 0,
+              "engineBrakeForce": 491.82754327764115,
+              "ax": -3.6021053733569954,
+              "frontLoad": 1495.7699720601292
+            },
+            {
+              "ms": 20.833333333333332,
+              "gear": 3,
+              "shiftClock": 0,
+              "engineBrakeForce": 497.372855777641,
+              "ax": -3.6236251139453497,
+              "frontLoad": 1498.1088301451712
+            }
+          ],
+          "largestAxStep": 2.0069289275828504,
+          "largestFrontLoadStep": 210.28438962824316,
+          "minEngineBrake": 0
+        },
+        "after": {
+          "edgeSamples": [
+            {
+              "ms": -4.166666666666667,
+              "gear": 4,
+              "shiftClock": 0,
+              "engineBrakeForce": 406.9808600665468,
+              "ax": -3.258827688729931,
+              "frontLoad": 1459.5770782208485
+            },
+            {
+              "ms": 0,
+              "gear": 3,
+              "shiftClock": 0.015833333333333335,
+              "engineBrakeForce": 469.6462932776411,
+              "ax": -3.513655878612028,
+              "frontLoad": 1486.342754217029
+            },
+            {
+              "ms": 4.166666666666667,
+              "gear": 3,
+              "shiftClock": 0.011666666666666669,
+              "engineBrakeForce": 475.1916057776411,
+              "ax": -3.535237974404891,
+              "frontLoad": 1488.682382701088
+            },
+            {
+              "ms": 8.333333333333334,
+              "gear": 3,
+              "shiftClock": 0.007500000000000002,
+              "engineBrakeForce": 480.73691827764105,
+              "ax": -3.556776918655566,
+              "frontLoad": 1491.0218295884392
+            },
+            {
+              "ms": 12.5,
+              "gear": 3,
+              "shiftClock": 0.0033333333333333357,
+              "engineBrakeForce": 486.2822307776411,
+              "ax": -3.5783099759684647,
+              "frontLoad": 1493.3610954797543
+            },
+            {
+              "ms": 16.666666666666668,
+              "gear": 3,
+              "shiftClock": 0,
+              "engineBrakeForce": 491.82754327764115,
+              "ax": -3.599837155240385,
+              "frontLoad": 1495.7001806431476
+            },
+            {
+              "ms": 20.833333333333332,
+              "gear": 3,
+              "shiftClock": 0,
+              "engineBrakeForce": 497.372855777641,
+              "ax": -3.6213584654055504,
+              "frontLoad": 1498.039085347881
+            }
+          ],
+          "largestAxStep": 0.254828189882097,
+          "largestFrontLoadStep": 26.765675996180562,
+          "minEngineBrake": 406.9808600665468
+        }
+      },
+      "gpr2": {
+        "before": {
+          "edgeSamples": [
+            {
+              "ms": -4.166666666666667,
+              "gear": 4,
+              "shiftClock": 0,
+              "engineBrakeForce": 335.0368884089366,
+              "ax": -3.1920214979393187,
+              "frontLoad": 1419.3851024145638
+            },
+            {
+              "ms": 0,
+              "gear": 3,
+              "shiftClock": 0.015833333333333335,
+              "engineBrakeForce": 0,
+              "ax": -1.8234428771544338,
+              "frontLoad": 1278.3925752632306
+            },
+            {
+              "ms": 4.166666666666667,
+              "gear": 3,
+              "shiftClock": 0.011666666666666669,
+              "engineBrakeForce": 0,
+              "ax": -1.822788445950136,
+              "frontLoad": 1278.366317678808
+            },
+            {
+              "ms": 8.333333333333334,
+              "gear": 3,
+              "shiftClock": 0.007500000000000002,
+              "engineBrakeForce": 0,
+              "ax": -1.822105116871672,
+              "frontLoad": 1278.3400745245292
+            },
+            {
+              "ms": 12.5,
+              "gear": 3,
+              "shiftClock": 0.0033333333333333357,
+              "engineBrakeForce": 0,
+              "ax": -1.821422120252316,
+              "frontLoad": 1278.3138462108675
+            },
+            {
+              "ms": 16.666666666666668,
+              "gear": 3,
+              "shiftClock": 0,
+              "engineBrakeForce": 408.7837031590769,
+              "ax": -3.4892444688660875,
+              "frontLoad": 1450.2587078495046
+            },
+            {
+              "ms": 20.833333333333332,
+              "gear": 3,
+              "shiftClock": 0,
+              "engineBrakeForce": 414.50370315907685,
+              "ax": -3.5113448129556377,
+              "frontLoad": 1452.6148540116897
+            }
+          ],
+          "largestAxStep": 1.6678223486137715,
+          "largestFrontLoadStep": 171.94486163863712,
+          "minEngineBrake": 0
+        },
+        "after": {
+          "edgeSamples": [
+            {
+              "ms": -4.166666666666667,
+              "gear": 4,
+              "shiftClock": 0,
+              "engineBrakeForce": 335.0368884089366,
+              "ax": -3.1920214979393187,
+              "frontLoad": 1419.3851024145638
+            },
+            {
+              "ms": 0,
+              "gear": 3,
+              "shiftClock": 0.015833333333333335,
+              "engineBrakeForce": 385.90370315907694,
+              "ax": -3.398560107911351,
+              "frontLoad": 1440.7382710749803
+            },
+            {
+              "ms": 4.166666666666667,
+              "gear": 3,
+              "shiftClock": 0.011666666666666669,
+              "engineBrakeForce": 391.62370315907685,
+              "ax": -3.42071952595731,
+              "frontLoad": 1443.0956842113967
+            },
+            {
+              "ms": 8.333333333333334,
+              "gear": 3,
+              "shiftClock": 0.007500000000000002,
+              "engineBrakeForce": 397.3437031590769,
+              "ax": -3.442842630682094,
+              "frontLoad": 1445.4527959045345
+            },
+            {
+              "ms": 12.5,
+              "gear": 3,
+              "shiftClock": 0.0033333333333333357,
+              "engineBrakeForce": 403.06370315907685,
+              "ax": -3.4649586632789577,
+              "frontLoad": 1447.809607019396
+            },
+            {
+              "ms": 16.666666666666668,
+              "gear": 3,
+              "shiftClock": 0,
+              "engineBrakeForce": 408.7837031590769,
+              "ax": -3.487067634420136,
+              "frontLoad": 1450.1661180020035
+            },
+            {
+              "ms": 20.833333333333332,
+              "gear": 3,
+              "shiftClock": 0,
+              "engineBrakeForce": 414.50370315907685,
+              "ax": -3.509169554823078,
+              "frontLoad": 1452.522329300289
+            }
+          ],
+          "largestAxStep": 0.20653860997203255,
+          "largestFrontLoadStep": 21.353168660416486,
+          "minEngineBrake": 335.0368884089366
+        }
+      }
+    },
+    "nonGP": {
+      "sbk1000": {
+        "traceExactlyEqual": true,
+        "snapshotExactlyEqual": true,
+        "sha256": "b50b67a122b2e2fd5f1ac6b6b222e41e2c54643ed39a65a5529cc621dbf29e90",
+        "bytes": 1268
+      },
+      "ss600": {
+        "traceExactlyEqual": true,
+        "snapshotExactlyEqual": true,
+        "sha256": "7251f1021e3c9ecf4c75d9d645ebc7b4bb533622302b23994ea71675d1a205a2",
+        "bytes": 1268
+      },
+      "nr900": {
+        "traceExactlyEqual": true,
+        "snapshotExactlyEqual": true,
+        "sha256": "aa521304968a6643daf397493fcd15c20d3dc979d32bedbe84416c527f6d239a",
+        "bytes": 1268
+      },
+      "cr750": {
+        "traceExactlyEqual": true,
+        "snapshotExactlyEqual": true,
+        "sha256": "7e614edd9c8aea541ba82f8377ff5432ecec815b6da2c8ab2be13aedb52571c4",
+        "bytes": 1268
+      }
+    }
+  }
+}

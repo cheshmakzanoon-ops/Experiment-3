@@ -221,6 +221,7 @@ describe('racing surface layer', () => {
       'surfaceDeposits',
       'roadLampRadius',
       'apexMotorcycleSurface',
+      'apexGpSurface',
     ]);
     const f = shader.fragmentShader;
     const line = f.indexOf('apexLineMask = apexCore * apexRubber');
@@ -247,9 +248,9 @@ describe('racing surface layer', () => {
     expect(shader.vertexShader).toContain('attribute vec2 apexLine;');
     expect(shader.vertexShader).toContain('attribute float edgeMetres;');
     expect(material.customProgramCacheKey()).toContain('road-macro-v1');
-    expect(material.customProgramCacheKey()).toContain('|road-detail-v6');
+    expect(material.customProgramCacheKey()).toContain('|road-detail-v7');
     // The wet road hook is not a studio chain, so only the newer key is listed.
-    expect(studioHookKeys(material)).toEqual(['road-detail-v6']);
+    expect(studioHookKeys(material)).toEqual(['road-detail-v7']);
     material.dispose();
     state.dispose();
   });
@@ -257,19 +258,27 @@ describe('racing surface layer', () => {
     stubCanvas();
     const material = surfaceMaterial('asphalt', undefined, true),
       state = new T.DataTexture(new Uint8Array(4), 1, 1),
-      motorcycle = { value: 0 };
+      motorcycle = { value: 0 },
+      grandPrix = { value: 0 };
     installWetRoad(material, state, true);
-    installRoadDetail(material, 3000, motorcycle);
+    installRoadDetail(material, 3000, motorcycle, START_GRID, grandPrix);
     const shader = compile(material),
       key = material.customProgramCacheKey(),
       version = material.version;
     expect(shader.uniforms.apexMotorcycleSurface).toBe(motorcycle);
+    expect(shader.uniforms.apexGpSurface).toBe(grandPrix);
     motorcycle.value = 1;
     expect(shader.uniforms.apexMotorcycleSurface.value).toBe(1);
     expect(material.customProgramCacheKey()).toBe(key);
     expect(material.version).toBe(version);
+    grandPrix.value = 1;
+    expect(shader.uniforms.apexGpSurface.value).toBe(1);
+    expect(material.customProgramCacheKey()).toBe(key);
+    expect(material.version).toBe(version);
+    grandPrix.value = 0;
     motorcycle.value = 0;
     expect(shader.uniforms.apexMotorcycleSurface.value).toBe(0);
+    expect(shader.uniforms.apexGpSurface.value).toBe(0);
     material.dispose();
     state.dispose();
   });

@@ -233,13 +233,21 @@ export class BikeVehicle extends Vehicle {
    * the cornering budget and makes force/thermal telemetry disagree with motion. */
   protected requestedEngineBraking(throttle: number) {
     const d = this.dynamics,
-      spec = this.spec;
+      spec = this.spec,
+      seamlessGP =
+        (this.definition.id === 'gpr1' || this.definition.id === 'gpr2') &&
+        this.bikeSpec.gearbox === 'seamless';
+    // The GP's 20 ms shift clock prevents another gear selection; it is not
+    // an open clutch. Positive torque already stays engaged on this gearbox,
+    // and coast torque must follow the same contract. Cutting it here then
+    // restoring it abruptly unweights/reloads the front during every
+    // downshift. The actual gear/rpm request still passes through rear ABS.
     if (
       !this.riding ||
       this.engineBrake <= 0 ||
       throttle > (d.p.engineBrakeReleaseThrottle ?? 0.02) ||
       d.speed < 3 ||
-      this.shiftClock > 0
+      (this.shiftClock > 0 && !seamlessGP)
     )
       return 0;
     const ratio = spec.gearRatios[this.gear + 1] * spec.finalDrive * this.gearing;

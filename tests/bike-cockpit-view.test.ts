@@ -1,11 +1,17 @@
 import * as T from 'three';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
-import { BikeMaterials, BikeModel, BikeShells, staticSag } from '../src/rendering/bike.ts';
+import {
+  BikeMaterials,
+  BikeModel,
+  BikeShells,
+  bikeOnboardFov,
+  staticSag,
+} from '../src/rendering/bike.ts';
 import { bikeFirstPersonView, bikeInstrumentReadout } from '../src/rendering/bike-cockpit.ts';
-import { tcamFov } from '../src/rendering/cockpit-framing.ts';
 import { VEHICLES } from '../src/simulation/vehicles.ts';
 import { DEFAULT_OPTIONS } from '../src/simulation/config.ts';
 import { Simulation } from '../src/simulation/world.ts';
+import { tcamFov } from '../src/rendering/cockpit-framing.ts';
 import { inspectBikeCockpit } from '../e2e/fixtures/bike-cockpit-contract.ts';
 
 beforeAll(() => {
@@ -23,6 +29,31 @@ beforeAll(() => {
 afterAll(() => vi.unstubAllGlobals());
 
 describe('GP cockpit real-camera contract', () => {
+  it('preserves every other bike and tail camera when improving GP control visibility', () => {
+    const shells = new BikeShells(),
+      root = new T.Object3D(),
+      eye = new T.Vector3(),
+      direction = new T.Vector3();
+    for (const definition of [undefined, ...Object.values(VEHICLES).filter((d) => d.bike)]) {
+      const gp = definition?.classId === 'gp-bike',
+        offroad = !!definition?.bike?.offroad;
+      shells.onboard(root, eye, direction, false, definition);
+      expect(eye.toArray()).toEqual(
+        offroad ? [0, 1.05, -0.4] : gp ? [0, 0.5, 0.18] : [0, 0.435, 0.34],
+      );
+      const pitch = offroad ? -0.4 : -0.14;
+      expect(direction.toArray()).toEqual([0, Math.sin(pitch), Math.cos(pitch)]);
+      for (const speed of [0, 42, 90]) {
+        expect(bikeOnboardFov(speed, definition)).toBe(
+          tcamFov(speed) + (offroad ? 10 : gp ? 6 : 0),
+        );
+        expect(bikeOnboardFov(speed, definition, true)).toBe(tcamFov(speed));
+      }
+      shells.onboard(root, eye, direction, true, definition);
+      expect(eye.toArray()).toEqual([0, 0.78, -0.95]);
+      expect(direction.toArray()).toEqual([0, Math.sin(-0.12), Math.cos(-0.12)]);
+    }
+  });
   it('does not mislabel corrupt gear samples as reverse', () => {
     for (const gear of [undefined, NaN, Infinity, -Infinity])
       expect(bikeInstrumentReadout({ gear }, 16000).gear).toBe('N');
@@ -103,11 +134,11 @@ describe('GP cockpit real-camera contract', () => {
               });
               model.root.position.set(17, 0.62, -11);
               model.root.rotation.set(0.06, 0.7, -lean, 'YXZ');
-              shells.onboard(model.root, camera.position, direction);
+              shells.onboard(model.root, camera.position, direction, false, definition);
               camera.up.set(0, 1, 0).applyQuaternion(model.root.quaternion);
               camera.lookAt(camera.position.clone().add(direction));
               camera.aspect = aspect;
-              camera.fov = tcamFov(load > 0 ? 0 : 90);
+              camera.fov = bikeOnboardFov(load > 0 ? 0 : 90, definition);
               camera.updateProjectionMatrix();
               const result = inspectBikeCockpit(model.root, camera);
               expect(result.facing).toBeGreaterThan(0.7);

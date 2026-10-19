@@ -1,9 +1,15 @@
 import * as T from 'three';
 import { inspectBikeCockpit } from './bike-cockpit-contract.ts';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
-import { BikeMaterials, BikeModel, BikeShells, staticSag } from '../../src/rendering/bike.ts';
+import {
+  BikeMaterials,
+  BikeModel,
+  BikeShells,
+  bikeOnboardFov,
+  staticSag,
+  type BikePoseValues,
+} from '../../src/rendering/bike.ts';
 import { WeatherPresentation } from '../../src/rendering/weather-presentation.ts';
-import { tcamFov } from '../../src/rendering/cockpit-framing.ts';
 import { H } from '../../src/simulation/protocol.ts';
 import { VEHICLES } from '../../src/simulation/vehicles.ts';
 
@@ -17,6 +23,8 @@ export function captureBikeSequence(
     time: number;
     /** Explicit optical control only; omitted samples use the real material. */
     windscreen?: 'production' | 'legacy-volume';
+    /** Replayable front-lever input; other pose channels remain fixed. */
+    frontBrake?: number;
   }[] = [{ wet: false, time: 2 }],
 ) {
   const renderer = new T.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
@@ -47,7 +55,7 @@ export function captureBikeSequence(
   const bike = new BikeModel(def, 0, detail, materials, true);
   const productionScreenThickness = materials.screen.thickness;
   const sag = staticSag(def);
-  bike.pose({
+  const pose: BikePoseValues = {
     fork: sag.fork,
     shock: sag.shock,
     steer: 0,
@@ -64,7 +72,8 @@ export function captureBikeSequence(
     speed: 42,
     gear: 4,
     rpm: 12200,
-  });
+  };
+  bike.pose(pose);
   bike.root.position.y = def.bike!.cgHeight;
   if (view === 'corner') {
     bike.root.rotation.z = -0.88;
@@ -88,17 +97,41 @@ export function captureBikeSequence(
   else if (view === 'rear') camera.position.set(-2.5, 1.8, -3.0);
   else camera.position.set(-2.8, 1.65, 3.35);
   camera.lookAt(0, 0.68, 0);
+  // Inspect the actual garment skin at a useful reference-photo distance.
+  // These views keep the same BikeModel, light, materials and riding pose.
+  if (view === 'rider-rear' || view === 'rider-side') {
+    camera.position.set(
+      ...((view === 'rider-rear' ? [-1.45, 1.65, -1.85] : [2.35, 1.45, 0]) as [
+        number,
+        number,
+        number,
+      ]),
+    );
+    camera.lookAt(0, view === 'rider-rear' ? 1.03 : 1, view === 'rider-rear' ? -0.15 : -0.08);
+    camera.fov = 32;
+    camera.updateProjectionMatrix();
+  }
   if (view === 'onboard') {
     bike.rider.setFirstPerson(true);
     const direction = new T.Vector3();
-    new BikeShells().onboard(bike.root, camera.position, direction);
-    camera.fov = tcamFov(42);
+    new BikeShells().onboard(bike.root, camera.position, direction, false, def);
+    camera.fov = bikeOnboardFov(42, def);
     camera.lookAt(camera.position.clone().add(direction));
+    camera.updateProjectionMatrix();
+  }
+  if (view === 'brake-lever') {
+    // Macro mechanical inspection, explicitly separate from the riding eye.
+    // Keep the complete real model, including its glove, fairing and steering.
+    const lever = bike.root.getObjectByName('GP front-brake lever pivot');
+    if (!lever) throw new Error('The selected model has no articulated GP lever');
+    const focus = lever.getWorldPosition(new T.Vector3());
+    camera.position.copy(focus).add(new T.Vector3(-0.34, 0.3, 0.12));
+    camera.lookAt(focus.add(new T.Vector3(-0.055, -0.005, -0.025)));
+    camera.fov = 36;
     camera.updateProjectionMatrix();
   }
   scene.updateMatrixWorld(true);
   camera.updateMatrixWorld(true);
-  const cockpit = view === 'onboard' ? inspectBikeCockpit(bike.root, camera) : null;
   // Instancing shares storage, not triangle submission. Count every link,
   // keeping the existing model budget meaningful after procedural instancing.
   let triangles = 0;
@@ -144,6 +177,7 @@ export function captureBikeSequence(
       };
     });
     return samples.map((sample) => {
+      bike.pose({ ...pose, brake: sample.frontBrake ?? pose.brake });
       // Reproduce the previous GP volume setting on this SAME real curved
       // windscreen, display, camera and renderer. Production samples restore
       // the authored material value rather than prescribing the candidate.
@@ -177,7 +211,14 @@ export function captureBikeSequence(
         resources: resources(),
         preparation,
         hash,
-        cockpit,
+        cockpit: view === 'onboard' ? inspectBikeCockpit(bike.root, camera) : null,
+        frontBrake: sample.frontBrake ?? pose.brake,
+        frontBrakeLever: (() => {
+          const lever = bike.root.getObjectByName('GP front-brake lever pivot');
+          return lever
+            ? { angle: lever.rotation.y, world: lever.getWorldPosition(new T.Vector3()).toArray() }
+            : null;
+        })(),
         windscreen: {
           mode: sample.windscreen ?? 'production',
           thickness: materials.screen.thickness,

@@ -659,6 +659,7 @@ export class BikeModel {
   private readonly matrix = new T.Matrix4();
   private readonly rings: T.Mesh[] = [];
   private readonly gpChain?: GPChainDrive;
+  private readonly gpFrontBrakeLever?: T.Group;
   private readonly cockpit?: BikeCockpit;
   private disposed = false;
   constructor(
@@ -965,6 +966,19 @@ export class BikeModel {
           0.05,
         );
         lever.rotation.y = side * 0.3;
+        if (gpPrototype && side < 0) {
+          // REF 017, 057, 065, 073: the right-hand front-brake lever turns
+          // about its machined pivot toward the grip. Keep the existing mesh
+          // behind an articulation boundary so rigid batching cannot freeze it.
+          const pivot = new T.Group();
+          pivot.name = 'GP front-brake lever pivot';
+          pivot.position.set(-0.211, -0.034, 0.03);
+          this.steer.add(pivot);
+          lever.position.sub(pivot.position);
+          lever.name = 'GP articulated front-brake lever';
+          pivot.add(lever);
+          this.gpFrontBrakeLever = pivot;
+        }
         // Compact switch housing, lever pivot and bar end. REF_022/030 show
         // these mechanical layers even when the rider is fully tucked.
         add(
@@ -1756,6 +1770,9 @@ export class BikeModel {
         accent: new T.Color(scheme.accent).getHex(),
       },
       detail,
+      'leathers',
+      2,
+      gpPrototype,
     );
     this.rider.seat.set(0, 0.3, -0.32);
     this.rider.pegs[0].set(0.17, -0.2, -0.3);
@@ -1785,6 +1802,11 @@ export class BikeModel {
     this.sprung.rotation.x = Math.atan2(df - dr, L);
     this.sprung.position.y = -(dr + ((df - dr) * b.cgToRear) / L);
     this.steer.rotation.y = v.steer;
+    // Presented front-brake input only: rear pedal, wheel speed and elapsed
+    // display time do not pull the hand lever. An absolute pose restores on seek.
+    if (this.gpFrontBrakeLever)
+      this.gpFrontBrakeLever.rotation.y =
+        -0.4 * (Number.isFinite(v.brake) ? T.MathUtils.clamp(v.brake, 0, 1) : 0);
     this.forkLower.position.y = -(FORK_LENGTH + this.sag.fork - v.fork);
     this.frontSpin.rotation.x = v.frontRotation;
     this.rearSpin.rotation.x = v.rearRotation;
@@ -1897,6 +1919,15 @@ export const BIKE_ONBOARD = Object.freeze({
   tail: [0, 0.78, -0.95] as const,
   tailPitch: -0.12,
 });
+/** GP eye clears the steering bridge while retaining the original road
+ * pitch. The modest rearward/upward move reveals the controls below the
+ * display; the wider lens preserves peripheral track visibility. The mount
+ * is checked against the full-tuck rider and both prototypes' instruments. */
+export const GP_ONBOARD = Object.freeze({
+  eye: [0, 0.5, 0.18] as const,
+  pitch: BIKE_ONBOARD.pitch,
+  fovExtra: 6,
+});
 /** Helmet-height motocross eye above the raised bars and number board. The
  * GP windscreen socket sits directly behind the MX plate, obscuring the road. */
 export const MOTOCROSS_ONBOARD = Object.freeze({
@@ -1904,9 +1935,16 @@ export const MOTOCROSS_ONBOARD = Object.freeze({
   pitch: -0.4,
   fovExtra: 10,
 });
-/** Dirt and supermoto bars need their own lens; road and tail views are unchanged. */
+/** GP and off-road controls have their own framing; other road/tail lenses stay unchanged. */
 export function bikeOnboardFov(speed: number, definition?: VehicleDefinition, tail = false) {
-  return tcamFov(speed) + (!tail && definition?.bike?.offroad ? MOTOCROSS_ONBOARD.fovExtra : 0);
+  const extra = tail
+    ? 0
+    : definition?.bike?.offroad
+      ? MOTOCROSS_ONBOARD.fovExtra
+      : definition?.classId === 'gp-bike'
+        ? GP_ONBOARD.fovExtra
+        : 0;
+  return tcamFov(speed) + extra;
 }
 /** Per-entrant bike presentation over the snapshot pose (WP34). Formula and
  * touring representations are hidden for bike entrants; LODs follow lens-
@@ -2138,8 +2176,8 @@ export class BikeShells {
     rider.root.rotation.set(0, b[k + B.RIDER_HEADING], 0);
     rider.separated(phase, b[k + B.RIDER_TUMBLE], b[H.TIME]);
   }
-  /** Onboard camera for a followed bike in world space. Motocross uses the
-   * raised bar layout; road bikes retain their windscreen socket. */
+  /** Onboard camera for a followed bike in world space. GP prototypes and
+   * motocross use their measured model clearances; other road sockets persist. */
   onboard(
     root: T.Object3D,
     eye: T.Vector3,
@@ -2148,7 +2186,11 @@ export class BikeShells {
     definition?: VehicleDefinition,
   ) {
     const mx = !!definition?.bike?.offroad,
-      profile = mx ? MOTOCROSS_ONBOARD : BIKE_ONBOARD,
+      profile = mx
+        ? MOTOCROSS_ONBOARD
+        : definition?.classId === 'gp-bike'
+          ? GP_ONBOARD
+          : BIKE_ONBOARD,
       mount = tail ? BIKE_ONBOARD.tail : profile.eye,
       pitch = tail ? BIKE_ONBOARD.tailPitch : profile.pitch;
     eye.set(mount[0], mount[1], mount[2]).applyQuaternion(root.quaternion).add(root.position);

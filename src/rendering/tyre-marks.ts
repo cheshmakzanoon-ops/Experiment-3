@@ -1,5 +1,5 @@
 import * as T from 'three';
-import { clamp, Random } from '../core/math.ts';
+import { clamp, Random, smooth } from '../core/math.ts';
 import { envelopeCornerSpeed } from '../simulation/ai.ts';
 import { GP_R1 } from '../simulation/bike-definitions.ts';
 import { racingLineFor } from '../simulation/racing-line.ts';
@@ -45,6 +45,16 @@ export const TYRE_MARKS = Object.freeze({
 export const BIKE_TYRE_MARKS = Object.freeze({
   width: 0.18,
   strength: [0.16, 0.37] as const,
+  maximumPasses: 8,
+});
+
+/** Occasional GP slip strokes, staggered through the braking zone rather
+ * than every tyre locking for the final 60 m into each apex. The original
+ * REF_030/031 provide the varied contact-path cue, not measured slip data. */
+export const GP_TYRE_MARKS = Object.freeze({
+  width: 0.18,
+  length: [6, 34] as const,
+  strength: [0.14, 0.31] as const,
   maximumPasses: 8,
 });
 
@@ -156,7 +166,9 @@ export function tyreMarks(
   zones = tyreMarkZones(track),
   seed = 5417,
   motorcycle = false,
+  grandPrix = false,
 ): TyreMark[] {
+  grandPrix = grandPrix && motorcycle;
   const line = racingLineFor(track),
     random = new Random(seed),
     p = trackPoint(),
@@ -165,32 +177,61 @@ export function tyreMarks(
     const length = zone.end - zone.start;
     const count = Math.round(
       motorcycle
-        ? clamp(zone.strength / 4.5, 3, BIKE_TYRE_MARKS.maximumPasses)
+        ? clamp(
+            zone.strength / 4.5,
+            3,
+            grandPrix ? GP_TYRE_MARKS.maximumPasses : BIKE_TYRE_MARKS.maximumPasses,
+          )
         : clamp(zone.strength / 2.2, 4, 16),
     );
     for (let m = 0; m < count; m++) {
       const passOffset = (random.next() - 0.5) * 1.4;
       // Braking streaks are pairs 20-60 m long that run into the apex, where
       // the downforce has fallen and the wheels lock; exit marks start there.
+      // GP releases are stratified across the approach, with seeded variation
+      // inside each share, so a long brake zone retains both early and late passes.
       const braking = zone.kind === 'braking';
-      const t0 = braking ? 0.88 + random.next() * 0.12 : random.next() * 0.25,
+      const t0 = braking
+          ? grandPrix
+            ? 0.44 + ((m + random.next()) / count) * 0.54
+            : 0.88 + random.next() * 0.12
+          : random.next() * 0.25,
         markLength = braking
-          ? clamp(
-              length * (0.45 + random.next() * 0.5),
-              TYRE_MARKS.brakingLength[0],
-              TYRE_MARKS.brakingLength[1],
-            )
+          ? grandPrix
+            ? Math.min(
+                length,
+                clamp(
+                  length * (0.18 + random.next() * 0.3),
+                  GP_TYRE_MARKS.length[0],
+                  GP_TYRE_MARKS.length[1],
+                ),
+              )
+            : clamp(
+                length * (0.45 + random.next() * 0.5),
+                TYRE_MARKS.brakingLength[0],
+                TYRE_MARKS.brakingLength[1],
+              )
           : clamp(length * (0.25 + random.next() * 0.45), 6, 60);
-      const from = zone.start + t0 * length - (braking ? markLength : 0);
+      const from =
+        zone.start +
+        (grandPrix && braking ? Math.max(markLength, t0 * length) : t0 * length) -
+        (braking ? markLength : 0);
       const drift = (random.next() - 0.5) * (motorcycle ? 0.9 : 0.6),
         strength = motorcycle
-          ? BIKE_TYRE_MARKS.strength[0] +
-            random.next() * (BIKE_TYRE_MARKS.strength[1] - BIKE_TYRE_MARKS.strength[0])
+          ? grandPrix
+            ? GP_TYRE_MARKS.strength[0] +
+              random.next() * (GP_TYRE_MARKS.strength[1] - GP_TYRE_MARKS.strength[0])
+            : BIKE_TYRE_MARKS.strength[0] +
+              random.next() * (BIKE_TYRE_MARKS.strength[1] - BIKE_TYRE_MARKS.strength[0])
           : 0.3 + random.next() * 0.32;
       // Under braking both axles mark; out of slow corners the rear pair.
       for (const side of motorcycle ? [0] : [-1, 1]) {
         if (!motorcycle && braking && random.next() < 0.25) continue;
-        const width = motorcycle ? BIKE_TYRE_MARKS.width : TYRE_MARKS.width;
+        const width = motorcycle
+          ? grandPrix
+            ? GP_TYRE_MARKS.width
+            : BIKE_TYRE_MARKS.width
+          : TYRE_MARKS.width;
         const samples = Math.max(2, Math.ceil(markLength / 1.2) + 1);
         const s = new Float32Array(samples),
           lateral = new Float32Array(samples),
@@ -202,19 +243,31 @@ export function tyreMarks(
           const limit = p.width - width;
           s[k] = at;
           lateral[k] = clamp(
-            line.offsetAt(at) + passOffset + drift * u + side * TYRE_MARKS.halfTrack,
+            line.offsetAt(at) +
+              passOffset +
+              drift * u +
+              side * TYRE_MARKS.halfTrack +
+              (grandPrix ? Math.sin(u * Math.PI) * drift * 0.42 : 0),
             -limit,
             limit,
           );
           // Braking streaks build as load transfers and the tyre starts to
           // lock, darkest near the apex, then lift off within the last metres.
           // Exits fade as the tyres hook up.
-          const envelope = braking
-            ? Math.min(1, u / 0.3) ** 0.7 * Math.min(1, (1 - u) / 0.06)
-            : (1 - u) ** 1.3;
+          const envelope = grandPrix
+            ? braking
+              ? smooth(0, 0.23, u) * (1 - smooth(0.64, 1, u))
+              : smooth(0, 0.08, u) * (1 - u) ** 1.3
+            : braking
+              ? Math.min(1, u / 0.3) ** 0.7 * Math.min(1, (1 - u) / 0.06)
+              : (1 - u) ** 1.3;
           // The longitudinal slip varies as the rear hooks up; it is not an
           // unbroken ink stroke. Seeded pass variation survives replay seeks.
-          const breakup = motorcycle ? 0.62 + 0.38 * Math.sin(u * 10 + m * 1.7) ** 2 : 1;
+          const breakup = grandPrix
+            ? 0.3 + 0.7 * Math.sin(u * (8.2 + m * 0.37) + m * 1.7) ** 2
+            : motorcycle
+              ? 0.62 + 0.38 * Math.sin(u * 10 + m * 1.7) ** 2
+              : 1;
           alpha[k] = strength * envelope * breakup;
         }
         marks.push(motorcycle ? { s, lateral, alpha, width } : { s, lateral, alpha });
@@ -358,13 +411,16 @@ export function buildTyreMarks(
   return meshes;
 }
 
-/** A maximum of two cached, culled mark layers. Switching followed vehicle,
+type TyreMarkFamily = 'car' | 'motorcycle' | 'gp';
+
+/** A maximum of three cached, culled mark layers. GP uses its own history;
+ * other road motorcycles retain their original surface. Switching followed vehicle,
  * replay or menus only changes visibility after a layer's first construction.
  * Geometry generation stays out of the steady-state draw loop. */
 export class TyreMarkPresentation {
   readonly root = new T.Group();
-  private readonly layers = new Map<boolean, T.Group>();
-  private motorcycle = false;
+  private readonly layers = new Map<TyreMarkFamily, T.Group>();
+  private family: TyreMarkFamily = 'car';
   private ready = false;
   private material: T.MeshStandardMaterial | undefined;
 
@@ -382,39 +438,51 @@ export class TyreMarkPresentation {
     this.showLayer();
   }
 
-  setMotorcycle(enabled: boolean) {
-    if (this.motorcycle === enabled) return false;
-    this.motorcycle = enabled;
+  setMotorcycle(enabled: boolean, grandPrix = false) {
+    const family: TyreMarkFamily = enabled ? (grandPrix ? 'gp' : 'motorcycle') : 'car';
+    if (this.family === family) return false;
+    this.family = family;
     if (this.ready) this.showLayer();
     return true;
   }
 
   private showLayer() {
-    if (!this.layers.has(this.motorcycle)) {
+    if (!this.layers.has(this.family)) {
+      const motorcycle = this.family !== 'car',
+        grandPrix = this.family === 'gp';
       const layer = new T.Group();
-      layer.name = this.motorcycle ? 'Motorcycle contact trails' : 'Four-wheel contact trails';
-      const zones = tyreMarkZones(this.track, this.motorcycle);
+      layer.name = grandPrix
+        ? 'GP contact trails'
+        : motorcycle
+          ? 'Motorcycle contact trails'
+          : 'Four-wheel contact trails';
+      const zones = tyreMarkZones(this.track, motorcycle);
       buildTyreMarks(
         this.track,
         layer,
-        tyreMarks(this.track, zones, 5417, this.motorcycle),
+        tyreMarks(this.track, zones, 5417, motorcycle, grandPrix),
         this.state,
         (this.material ??= tyreMarkMaterial(this.state)),
       );
-      this.layers.set(this.motorcycle, layer);
+      this.layers.set(this.family, layer);
       this.root.add(layer);
     }
-    for (const [motorcycle, layer] of this.layers) layer.visible = motorcycle === this.motorcycle;
+    for (const [family, layer] of this.layers) layer.visible = family === this.family;
     this.root.updateMatrixWorld(true);
   }
 
   diagnostics() {
-    const active = this.layers.get(this.motorcycle);
+    const active = this.layers.get(this.family);
     return {
-      mode: this.motorcycle ? 'motorcycle' : 'car',
+      mode: this.family,
       cachedLayers: this.layers.size,
       activeMeshes: active?.children.length ?? 0,
-      treadWidth: this.motorcycle ? BIKE_TYRE_MARKS.width : TYRE_MARKS.width,
+      treadWidth:
+        this.family === 'gp'
+          ? GP_TYRE_MARKS.width
+          : this.family === 'motorcycle'
+            ? BIKE_TYRE_MARKS.width
+            : TYRE_MARKS.width,
     };
   }
 }

@@ -136,6 +136,7 @@ export class CircuitScene {
   readonly wetReflection = new WetRoadReflection();
   readonly roadMaterial: T.MeshStandardMaterial;
   private readonly motorcycleSurface = { value: 0 };
+  private readonly gpSurface = { value: 0 };
   private readonly tyreRubber: TyreMarkPresentation;
   readonly stateBytes = new Uint8Array(CELL_ROWS * CELL_COLS * 4);
   readonly startLamps: T.MeshStandardMaterial[] = [];
@@ -204,6 +205,7 @@ export class CircuitScene {
       track.length,
       this.motorcycleSurface,
       surfaceGridFor(track),
+      this.gpSurface,
     );
     // Sub-cell puddles and an emerging dry line (D22).
     installWetDetail(this.roadMaterial);
@@ -548,10 +550,11 @@ export class CircuitScene {
   /** Follow the actual snapshot's vehicle family. A uniform changes road
    * deposits immediately; the bounded mark cache switches once per transition,
    * so menu/replay changes never append another copy of the surface geometry. */
-  setMotorcyclePresentation(enabled: boolean) {
-    const changed = this.tyreRubber.setMotorcycle(enabled);
+  setMotorcyclePresentation(enabled: boolean, grandPrix = false) {
+    const changed = this.tyreRubber.setMotorcycle(enabled, grandPrix);
     if (!changed) return;
     this.motorcycleSurface.value = enabled ? 1 : 0;
+    this.gpSurface.value = enabled && grandPrix ? 1 : 0;
     this.surfaces.invalidateTransforms();
   }
   /** Read-only identity of constructed groups, not planned sites or an art approval.

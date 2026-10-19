@@ -1,0 +1,3979 @@
+{
+  "baseline_commit": "4d207318915d7d32d5485a2e579c221672a523b4",
+  "backend": "ANGLE Vulkan SwiftShader Device (Subzero), WebGL2",
+  "hardware_fps_benchmark": false,
+  "tests": [
+    {
+      "file": "41-motogp-reference.spec.ts",
+      "title": "GP reference R1.1: authored LODs, production onboard and same-instance wet rewind on WebGL2",
+      "status": "passed",
+      "duration_ms": 183766
+    },
+    {
+      "file": "gp-brake-lever.spec.ts",
+      "title": "GP front lever renders recorded squeeze, hold, release and rewind without new resources",
+      "status": "passed",
+      "duration_ms": 73975
+    }
+  ],
+  "source_sha256": {
+    "e2e/41-motogp-reference.spec.ts": "e9ac7b0b369ff48cccfd84618cd59c6ceff7e9534f2386ddc8dd2b39fbb5aa40",
+    "e2e/42-motogp-environment.spec.ts": "5ec34d7578ce86445faa5c6b28184a65a7ffbcfbfca16af4d2dff918203efa80",
+    "e2e/fixtures/motogp-environment-review.ts": "af4a44c41d26c7f576754312fb6f852ab7faab8750a582c37f5574d389aafe03",
+    "e2e/fixtures/motogp-reference-review.ts": "5b805dbe4b7507c32d5f91b4a138cbe53c64f34a27b4221cea12176c844957b7",
+    "e2e/gp-brake-lever.spec.ts": "6d854475ee40afe00fe2b850af83a958a6217923e2a9595ad8e28e351f6ee12a",
+    "src/rendering/bike-livery.ts": "d40c3ed7a49d8eb4e2750c93f2ca4d35cde0c9cf921037b48e9f793b1e4b7cba",
+    "src/rendering/bike.ts": "f72bf0a4af7c80629a82c6629d1530129e6431dee3338e7f2771b99bf28cb87b",
+    "src/rendering/circuit.ts": "682fcb83a3c3fee16537300153b529d93240db9c524843346cfefc71c5c7c257",
+    "src/rendering/gp-rider-suit.ts": "2393d59f2e2ad7c5ebaedcf24bb5cffb8d4697b5b33d2e0e620de76be9836799",
+    "src/rendering/renderer.ts": "8a4fbaf04ac1460e8f87660ff2dfecc6a9ecfa1b5272ad38b750c2d32822ba89",
+    "src/rendering/rider.ts": "3732137f7797e51013edd978069d7ed4576a31edcbdd7a4b54548115f5e5d81f",
+    "src/rendering/studio/road-detail.ts": "ad52fe8d71e03a6c2bb1a2d681801383fb4f89c3eabe616e7d63dbae06aa4878",
+    "src/rendering/tyre-marks.ts": "73544f6ccf4268b5364519b8bfd554070c447360ce76dddb0109ba4ff8a3e60a",
+    "src/simulation/bike-vehicle.ts": "606ea9696e19c09f37d9b45a4279ea319f1afc15dfea82beb348c5c5ded79f7b",
+    "tests/bike-cockpit-view.test.ts": "7f973124f0dbe83cccbb2a0050f6189c025669fcc2483eaa4cf63622c57153f5",
+    "tests/gp-brake-lever.test.ts": "fc4256c6412e565a3f6d149fc9e7618aba6825e3dfb6ad59b4cf45961c29f25d",
+    "tests/gp-rider-suit.test.ts": "9612dc40c1f253192db3b5f66ecbc3bb91d89dbb2e02a2d5274f57512ff565f8",
+    "tests/gp-seamless-braking.test.ts": "c2fbdfb213f356e44b2bd92c153dee255225e094040374630c90c4bd24f6acda",
+    "tests/road-detail.test.ts": "d145cc6828e2442e34476fe04189cb098b0032f87af5b589f99dd789421b28f1",
+    "tests/scanned-ground.test.ts": "8c439cc5b1047deaaff3ea06995b92baf673e757094fc65f2894e1cf0151c142",
+    "tests/startup.test.ts": "ee6cf1bd832e4722c826a786dd10bb3d7fd15aa5e35196c429dc6adb0a3b8581",
+    "tests/tyre-marks.test.ts": "90c7877647f24309e5aabe96da1911f8af20ab069fd3dcc9f432fee643631beb"
+  },
+  "metrics": {
+    "0-metrics.json": {
+      "instance": "b4e94c6b-626a-4c38-9217-c0ba65714930",
+      "sourceFrameUnchanged": true,
+      "resources": {
+        "geometries": 121,
+        "textures": 23,
+        "programs": 56
+      },
+      "preparation": [
+        {
+          "wet": false,
+          "time": 2,
+          "sourceFrameUnchanged": true,
+          "resources": {
+            "geometries": 121,
+            "textures": 23,
+            "programs": 56
+          },
+          "addedPrograms": []
+        },
+        {
+          "wet": false,
+          "time": 2,
+          "sourceFrameUnchanged": true,
+          "resources": {
+            "geometries": 121,
+            "textures": 23,
+            "programs": 56
+          },
+          "addedPrograms": []
+        },
+        {
+          "wet": false,
+          "time": 2,
+          "sourceFrameUnchanged": true,
+          "resources": {
+            "geometries": 121,
+            "textures": 23,
+            "programs": 56
+          },
+          "addedPrograms": []
+        }
+      ],
+      "hash": 536735540,
+      "cockpit": null,
+      "frontBrake": 0.05,
+      "frontBrakeLever": {
+        "angle": -0.020000000000000004,
+        "world": [
+          -0.211,
+          0.9081172342479972,
+          0.4284315382623263
+        ]
+      },
+      "windscreen": {
+        "mode": "production",
+        "thickness": 0,
+        "ior": 1.49,
+        "transmission": 1,
+        "opacity": 1,
+        "transparent": false
+      },
+      "weather": {
+        "source": "presented-snapshot",
+        "dampness": 0,
+        "time": 2,
+        "rain": 0,
+        "meanWater": 0,
+        "materialRoles": {
+          "metal": 7,
+          "rubber": 1,
+          "paint": 10,
+          "leather": 5,
+          "fabric": 1
+        },
+        "roadMaterials": 0,
+        "offTrackWetness": "mean-track-water-and-rain approximation",
+        "extraTextures": 0,
+        "extraDraws": 0
+      },
+      "triangles": 109337,
+      "submittedTriangles": 215377,
+      "calls": 217,
+      "glError": 0,
+      "bounds": {
+        "isBox3": true,
+        "min": {
+          "x": -0.4675225103713595,
+          "y": -0.0962548337573153,
+          "z": -1.1265229848524594
+        },
+        "max": {
+          "x": 0.4675225103713595,
+          "y": 1.3246317426996335,
+          "z": 1.0962548337573153
+        }
+      }
+    },
+    "1-metrics.json": {
+      "instance": "fe63b8b9-ebfe-438f-adab-d6c003babb4e",
+      "sourceFrameUnchanged": true,
+      "resources": {
+        "geometries": 98,
+        "textures": 20,
+        "programs": 47
+      },
+      "preparation": [
+        {
+          "wet": false,
+          "time": 2,
+          "sourceFrameUnchanged": true,
+          "resources": {
+            "geometries": 98,
+            "textures": 20,
+            "programs": 47
+          },
+          "addedPrograms": []
+        },
+        {
+          "wet": false,
+          "time": 2,
+          "sourceFrameUnchanged": true,
+          "resources": {
+            "geometries": 98,
+            "textures": 20,
+            "programs": 47
+          },
+          "addedPrograms": []
+        },
+        {
+          "wet": false,
+          "time": 2,
+          "sourceFrameUnchanged": true,
+          "resources": {
+            "geometries": 98,
+            "textures": 20,
+            "programs": 47
+          },
+          "addedPrograms": []
+        }
+      ],
+      "hash": 3242050256,
+      "cockpit": null,
+      "frontBrake": 0.05,
+      "frontBrakeLever": null,
+      "windscreen": {
+        "mode": "production",
+        "thickness": 0,
+        "ior": 1.49,
+        "transmission": 1,
+        "opacity": 1,
+        "transparent": false
+      },
+      "weather": {
+        "source": "presented-snapshot",
+        "dampness": 0,
+        "time": 2,
+        "rain": 0,
+        "meanWater": 0,
+        "materialRoles": {
+          "rubber": 1,
+          "paint": 8,
+          "metal": 7,
+          "leather": 5,
+          "fabric": 1
+        },
+        "roadMaterials": 0,
+        "offTrackWetness": "mean-track-water-and-rain approximation",
+        "extraTextures": 0,
+        "extraDraws": 0
+      },
+      "triangles": 43448,
+      "submittedTriangles": 85270,
+      "calls": 171,
+      "glError": 0,
+      "bounds": {
+        "isBox3": true,
+        "min": {
+          "x": -0.4675225103713595,
+          "y": -0.0962548337573153,
+          "z": -1.1263786515243932
+        },
+        "max": {
+          "x": 0.4675225103713595,
+          "y": 1.3246317426996335,
+          "z": 1.0962548337573153
+        }
+      }
+    },
+    "2-metrics.json": {
+      "instance": "baad4f59-fdf6-4c5a-b01b-229b56b8eeea",
+      "sourceFrameUnchanged": true,
+      "resources": {
+        "geometries": 58,
+        "textures": 14,
+        "programs": 36
+      },
+      "preparation": [
+        {
+          "wet": false,
+          "time": 2,
+          "sourceFrameUnchanged": true,
+          "resources": {
+            "geometries": 58,
+            "textures": 14,
+            "programs": 36
+          },
+          "addedPrograms": []
+        },
+        {
+          "wet": false,
+          "time": 2,
+          "sourceFrameUnchanged": true,
+          "resources": {
+            "geometries": 58,
+            "textures": 14,
+            "programs": 36
+          },
+          "addedPrograms": []
+        },
+        {
+          "wet": false,
+          "time": 2,
+          "sourceFrameUnchanged": true,
+          "resources": {
+            "geometries": 58,
+            "textures": 14,
+            "programs": 36
+          },
+          "addedPrograms": []
+        }
+      ],
+      "hash": 2491160670,
+      "cockpit": null,
+      "frontBrake": 0.05,
+      "frontBrakeLever": null,
+      "windscreen": {
+        "mode": "production",
+        "thickness": 0,
+        "ior": 1.49,
+        "transmission": 1,
+        "opacity": 1,
+        "transparent": false
+      },
+      "weather": {
+        "source": "presented-snapshot",
+        "dampness": 0,
+        "time": 2,
+        "rain": 0,
+        "meanWater": 0,
+        "materialRoles": {
+          "rubber": 1,
+          "paint": 6,
+          "metal": 5,
+          "leather": 5,
+          "fabric": 1
+        },
+        "roadMaterials": 0,
+        "offTrackWetness": "mean-track-water-and-rain approximation",
+        "extraTextures": 0,
+        "extraDraws": 0
+      },
+      "triangles": 12588,
+      "submittedTriangles": 24388,
+      "calls": 92,
+      "glError": 0,
+      "bounds": {
+        "isBox3": true,
+        "min": {
+          "x": -0.4587200557784863,
+          "y": -0.08284788694054462,
+          "z": -1.0699999928474426
+        },
+        "max": {
+          "x": 0.4587200557784863,
+          "y": 1.3206173585488759,
+          "z": 1.0902676593794478
+        }
+      }
+    },
+    "3-metrics.json": {
+      "instance": "f8cc48d1-b4ff-4362-85af-b750f0a6684a",
+      "sourceFrameUnchanged": true,
+      "resources": {
+        "geometries": 116,
+        "textures": 23,
+        "programs": 56
+      },
+      "preparation": [
+        {
+          "wet": false,
+          "time": 2,
+          "sourceFrameUnchanged": true,
+          "resources": {
+            "geometries": 116,
+            "textures": 23,
+            "programs": 56
+          },
+          "addedPrograms": []
+        },
+        {
+          "wet": false,
+          "time": 2,
+          "sourceFrameUnchanged": true,
+          "resources": {
+            "geometries": 116,
+            "textures": 23,
+            "programs": 56
+          },
+          "addedPrograms": []
+        },
+        {
+          "wet": false,
+          "time": 2,
+          "sourceFrameUnchanged": true,
+          "resources": {
+            "geometries": 116,
+            "textures": 23,
+            "programs": 56
+          },
+          "addedPrograms": []
+        }
+      ],
+      "hash": 378915937,
+      "cockpit": null,
+      "frontBrake": 0.05,
+      "frontBrakeLever": {
+        "angle": -0.020000000000000004,
+        "world": [
+          -0.211,
+          0.9081172342479972,
+          0.4484315382623263
+        ]
+      },
+      "windscreen": {
+        "mode": "production",
+        "thickness": 0,
+        "ior": 1.49,
+        "transmission": 1,
+        "opacity": 1,
+        "transparent": false
+      },
+      "weather": {
+        "source": "presented-snapshot",
+        "dampness": 0,
+        "time": 2,
+        "rain": 0,
+        "meanWater": 0,
+        "materialRoles": {
+          "metal": 7,
+          "rubber": 1,
+          "paint": 10,
+          "fabric": 1,
+          "leather": 5
+        },
+        "roadMaterials": 0,
+        "offTrackWetness": "mean-track-water-and-rain approximation",
+        "extraTextures": 0,
+        "extraDraws": 0
+      },
+      "triangles": 101636,
+      "submittedTriangles": 202412,
+      "calls": 207,
+      "glError": 0,
+      "bounds": {
+        "isBox3": true,
+        "min": {
+          "x": -0.4654921646542646,
+          "y": -0.0962548337573153,
+          "z": -1.1049506470828327
+        },
+        "max": {
+          "x": 0.4654921646542646,
+          "y": 1.3146317426996332,
+          "z": 1.1162548337573153
+        }
+      }
+    },
+    "4-metrics.json": {
+      "instance": "e6042003-cd69-47d7-a5b7-31675479711a",
+      "sourceFrameUnchanged": true,
+      "resources": {
+        "geometries": 121,
+        "textures": 23,
+        "programs": 56
+      },
+      "preparation": [
+        {
+          "wet": false,
+          "time": 2,
+          "sourceFrameUnchanged": true,
+          "resources": {
+            "geometries": 121,
+            "textures": 23,
+            "programs": 56
+          },
+          "addedPrograms": []
+        },
+        {
+          "wet": false,
+          "time": 2,
+          "sourceFrameUnchanged": true,
+          "resources": {
+            "geometries": 121,
+            "textures": 23,
+            "programs": 56
+          },
+          "addedPrograms": []
+        },
+        {
+          "wet": false,
+          "time": 2,
+          "sourceFrameUnchanged": true,
+          "resources": {
+            "geometries": 121,
+            "textures": 23,
+            "programs": 56
+          },
+          "addedPrograms": []
+        }
+      ],
+      "hash": 2391033716,
+      "cockpit": null,
+      "frontBrake": 0.05,
+      "frontBrakeLever": {
+        "angle": -0.020000000000000004,
+        "world": [
+          -0.211,
+          0.9081172342479972,
+          0.4284315382623263
+        ]
+      },
+      "windscreen": {
+        "mode": "production",
+        "thickness": 0,
+        "ior": 1.49,
+        "transmission": 1,
+        "opacity": 1,
+        "transparent": false
+      },
+      "weather": {
+        "source": "presented-snapshot",
+        "dampness": 1,
+        "time": 2,
+        "rain": 20,
+        "meanWater": 0.6000000238418579,
+        "materialRoles": {
+          "metal": 7,
+          "rubber": 1,
+          "paint": 10,
+          "leather": 5,
+          "fabric": 1
+        },
+        "roadMaterials": 0,
+        "offTrackWetness": "mean-track-water-and-rain approximation",
+        "extraTextures": 0,
+        "extraDraws": 0
+      },
+      "triangles": 109337,
+      "submittedTriangles": 215377,
+      "calls": 217,
+      "glError": 0,
+      "bounds": {
+        "isBox3": true,
+        "min": {
+          "x": -0.4675225103713595,
+          "y": -0.0962548337573153,
+          "z": -1.1265229848524594
+        },
+        "max": {
+          "x": 0.4675225103713595,
+          "y": 1.3246317426996335,
+          "z": 1.0962548337573153
+        }
+      }
+    },
+    "5-metrics.json": {
+      "instance": "70c622a6-f6e0-4d76-8d05-2c16384eed7c",
+      "sourceFrameUnchanged": true,
+      "resources": {
+        "geometries": 121,
+        "textures": 23,
+        "programs": 56
+      },
+      "preparation": [
+        {
+          "wet": false,
+          "time": 2,
+          "sourceFrameUnchanged": true,
+          "resources": {
+            "geometries": 121,
+            "textures": 23,
+            "programs": 56
+          },
+          "addedPrograms": []
+        },
+        {
+          "wet": false,
+          "time": 2,
+          "sourceFrameUnchanged": true,
+          "resources": {
+            "geometries": 121,
+            "textures": 23,
+            "programs": 56
+          },
+          "addedPrograms": []
+        },
+        {
+          "wet": false,
+          "time": 2,
+          "sourceFrameUnchanged": true,
+          "resources": {
+            "geometries": 121,
+            "textures": 23,
+            "programs": 56
+          },
+          "addedPrograms": []
+        }
+      ],
+      "hash": 536735540,
+      "cockpit": null,
+      "frontBrake": 0.05,
+      "frontBrakeLever": {
+        "angle": -0.020000000000000004,
+        "world": [
+          -0.211,
+          0.9081172342479972,
+          0.4284315382623263
+        ]
+      },
+      "windscreen": {
+        "mode": "production",
+        "thickness": 0,
+        "ior": 1.49,
+        "transmission": 1,
+        "opacity": 1,
+        "transparent": false
+      },
+      "weather": {
+        "source": "presented-snapshot",
+        "dampness": 0,
+        "time": 2,
+        "rain": 0,
+        "meanWater": 0,
+        "materialRoles": {
+          "metal": 7,
+          "rubber": 1,
+          "paint": 10,
+          "leather": 5,
+          "fabric": 1
+        },
+        "roadMaterials": 0,
+        "offTrackWetness": "mean-track-water-and-rain approximation",
+        "extraTextures": 0,
+        "extraDraws": 0
+      },
+      "triangles": 109337,
+      "submittedTriangles": 215377,
+      "calls": 217,
+      "glError": 0,
+      "bounds": {
+        "isBox3": true,
+        "min": {
+          "x": -0.4675225103713595,
+          "y": -0.0962548337573153,
+          "z": -1.1265229848524594
+        },
+        "max": {
+          "x": 0.4675225103713595,
+          "y": 1.3246317426996335,
+          "z": 1.0962548337573153
+        }
+      }
+    },
+    "gpr1-onboard-contract.json": {
+      "instance": "cc0391ca-590b-4699-9f83-19bc7e8b039a",
+      "sourceFrameUnchanged": true,
+      "resources": {
+        "geometries": 114,
+        "textures": 17,
+        "programs": 45
+      },
+      "preparation": [
+        {
+          "wet": false,
+          "time": 2,
+          "sourceFrameUnchanged": true,
+          "resources": {
+            "geometries": 114,
+            "textures": 17,
+            "programs": 45
+          },
+          "addedPrograms": []
+        },
+        {
+          "wet": false,
+          "time": 2,
+          "sourceFrameUnchanged": true,
+          "resources": {
+            "geometries": 114,
+            "textures": 17,
+            "programs": 45
+          },
+          "addedPrograms": []
+        },
+        {
+          "wet": false,
+          "time": 2,
+          "sourceFrameUnchanged": true,
+          "resources": {
+            "geometries": 114,
+            "textures": 17,
+            "programs": 45
+          },
+          "addedPrograms": []
+        }
+      ],
+      "hash": 3495741961,
+      "cockpit": {
+        "centre": [
+          0,
+          0.9362641543837289,
+          0.5928578455731615
+        ],
+        "facing": 0.9549564516801772,
+        "corners": [
+          [
+            -0.1522631883478778,
+            -0.5608082864748455,
+            0.8565945650420502
+          ],
+          [
+            0.1522631883478778,
+            -0.5608082864748455,
+            0.8565945650420502
+          ],
+          [
+            -0.14009350722450453,
+            -0.32849273744739615,
+            0.8681162540246695
+          ],
+          [
+            0.14009350722450453,
+            -0.32849273744739615,
+            0.8681162540246695
+          ]
+        ],
+        "samples": [
+          {
+            "visible": true,
+            "blocker": "GP instrument display /  / PlaneGeometry"
+          },
+          {
+            "visible": true,
+            "blocker": "GP instrument display /  / PlaneGeometry"
+          },
+          {
+            "visible": true,
+            "blocker": "GP instrument display /  / PlaneGeometry"
+          },
+          {
+            "visible": true,
+            "blocker": "GP instrument display /  / PlaneGeometry"
+          },
+          {
+            "visible": true,
+            "blocker": "GP instrument display /  / PlaneGeometry"
+          },
+          {
+            "visible": true,
+            "blocker": "GP instrument display /  / PlaneGeometry"
+          },
+          {
+            "visible": true,
+            "blocker": "GP instrument display /  / PlaneGeometry"
+          },
+          {
+            "visible": true,
+            "blocker": "GP instrument display /  / PlaneGeometry"
+          },
+          {
+            "visible": true,
+            "blocker": "GP instrument display /  / PlaneGeometry"
+          }
+        ],
+        "visibleSamples": 9
+      },
+      "frontBrake": 0.05,
+      "frontBrakeLever": {
+        "angle": -0.020000000000000004,
+        "world": [
+          -0.211,
+          0.9081172342479972,
+          0.4284315382623263
+        ]
+      },
+      "windscreen": {
+        "mode": "production",
+        "thickness": 0,
+        "ior": 1.49,
+        "transmission": 1,
+        "opacity": 1,
+        "transparent": false
+      },
+      "weather": {
+        "source": "presented-snapshot",
+        "dampness": 0,
+        "time": 2,
+        "rain": 0,
+        "meanWater": 0,
+        "materialRoles": {
+          "metal": 7,
+          "rubber": 1,
+          "paint": 10,
+          "leather": 5,
+          "fabric": 1
+        },
+        "roadMaterials": 0,
+        "offTrackWetness": "mean-track-water-and-rain approximation",
+        "extraTextures": 0,
+        "extraDraws": 0
+      },
+      "triangles": 109337,
+      "submittedTriangles": 66589,
+      "calls": 50,
+      "glError": 0,
+      "bounds": {
+        "isBox3": true,
+        "min": {
+          "x": -0.4675225103713595,
+          "y": -0.0962548337573153,
+          "z": -1.1265229848524594
+        },
+        "max": {
+          "x": 0.4675225103713595,
+          "y": 1.3246317426996335,
+          "z": 1.0962548337573153
+        }
+      }
+    },
+    "gpr2-onboard-contract.json": {
+      "instance": "532d2e99-a9bf-459e-b74b-dcdb5c28e26b",
+      "sourceFrameUnchanged": true,
+      "resources": {
+        "geometries": 109,
+        "textures": 19,
+        "programs": 46
+      },
+      "preparation": [
+        {
+          "wet": false,
+          "time": 2,
+          "sourceFrameUnchanged": true,
+          "resources": {
+            "geometries": 109,
+            "textures": 19,
+            "programs": 46
+          },
+          "addedPrograms": []
+        },
+        {
+          "wet": false,
+          "time": 2,
+          "sourceFrameUnchanged": true,
+          "resources": {
+            "geometries": 109,
+            "textures": 19,
+            "programs": 46
+          },
+          "addedPrograms": []
+        },
+        {
+          "wet": false,
+          "time": 2,
+          "sourceFrameUnchanged": true,
+          "resources": {
+            "geometries": 109,
+            "textures": 19,
+            "programs": 46
+          },
+          "addedPrograms": []
+        }
+      ],
+      "hash": 3756047866,
+      "cockpit": {
+        "centre": [
+          0,
+          0.9262641543837289,
+          0.5928578455731615
+        ],
+        "facing": 0.954956451680177,
+        "corners": [
+          [
+            -0.1522631883478778,
+            -0.560808286474845,
+            0.8565945650420502
+          ],
+          [
+            0.1522631883478778,
+            -0.560808286474845,
+            0.8565945650420502
+          ],
+          [
+            -0.14009350722450453,
+            -0.32849273744739543,
+            0.8681162540246695
+          ],
+          [
+            0.14009350722450453,
+            -0.32849273744739543,
+            0.8681162540246695
+          ]
+        ],
+        "samples": [
+          {
+            "visible": true,
+            "blocker": "GP instrument display /  / PlaneGeometry"
+          },
+          {
+            "visible": true,
+            "blocker": "GP instrument display /  / PlaneGeometry"
+          },
+          {
+            "visible": true,
+            "blocker": "GP instrument display /  / PlaneGeometry"
+          },
+          {
+            "visible": true,
+            "blocker": "GP instrument display /  / PlaneGeometry"
+          },
+          {
+            "visible": true,
+            "blocker": "GP instrument display /  / PlaneGeometry"
+          },
+          {
+            "visible": true,
+            "blocker": "GP instrument display /  / PlaneGeometry"
+          },
+          {
+            "visible": true,
+            "blocker": "GP instrument display /  / PlaneGeometry"
+          },
+          {
+            "visible": true,
+            "blocker": "GP instrument display /  / PlaneGeometry"
+          },
+          {
+            "visible": true,
+            "blocker": "GP instrument display /  / PlaneGeometry"
+          }
+        ],
+        "visibleSamples": 9
+      },
+      "frontBrake": 0.05,
+      "frontBrakeLever": {
+        "angle": -0.020000000000000004,
+        "world": [
+          -0.211,
+          0.9081172342479972,
+          0.4484315382623263
+        ]
+      },
+      "windscreen": {
+        "mode": "production",
+        "thickness": 0,
+        "ior": 1.49,
+        "transmission": 1,
+        "opacity": 1,
+        "transparent": false
+      },
+      "weather": {
+        "source": "presented-snapshot",
+        "dampness": 0,
+        "time": 2,
+        "rain": 0,
+        "meanWater": 0,
+        "materialRoles": {
+          "metal": 7,
+          "rubber": 1,
+          "paint": 10,
+          "fabric": 1,
+          "leather": 5
+        },
+        "roadMaterials": 0,
+        "offTrackWetness": "mean-track-water-and-rain approximation",
+        "extraTextures": 0,
+        "extraDraws": 0
+      },
+      "triangles": 101636,
+      "submittedTriangles": 64360,
+      "calls": 56,
+      "glError": 0,
+      "bounds": {
+        "isBox3": true,
+        "min": {
+          "x": -0.4654921646542646,
+          "y": -0.0962548337573153,
+          "z": -1.1049506470828327
+        },
+        "max": {
+          "x": 0.4654921646542646,
+          "y": 1.3146317426996332,
+          "z": 1.1162548337573153
+        }
+      }
+    },
+    "sbk1000-onboard-contract.json": {
+      "instance": "fa716dd1-b835-4e71-83fe-94e25ddf803d",
+      "sourceFrameUnchanged": true,
+      "resources": {
+        "geometries": 98,
+        "textures": 14,
+        "programs": 36
+      },
+      "preparation": [
+        {
+          "wet": false,
+          "time": 2,
+          "sourceFrameUnchanged": true,
+          "resources": {
+            "geometries": 98,
+            "textures": 14,
+            "programs": 36
+          },
+          "addedPrograms": []
+        },
+        {
+          "wet": false,
+          "time": 2,
+          "sourceFrameUnchanged": true,
+          "resources": {
+            "geometries": 98,
+            "textures": 14,
+            "programs": 36
+          },
+          "addedPrograms": []
+        },
+        {
+          "wet": false,
+          "time": 2,
+          "sourceFrameUnchanged": true,
+          "resources": {
+            "geometries": 98,
+            "textures": 14,
+            "programs": 36
+          },
+          "addedPrograms": []
+        }
+      ],
+      "hash": 2161114144,
+      "cockpit": {
+        "centre": [
+          0,
+          0.9562641543837289,
+          0.5928578455731615
+        ],
+        "facing": 0.9607822416911271,
+        "corners": [
+          [
+            -0.286510771181995,
+            -0.763284349184124,
+            0.7595680424958308
+          ],
+          [
+            0.286510771181995,
+            -0.763284349184124,
+            0.7595680424958308
+          ],
+          [
+            -0.25015423465915343,
+            -0.33163656339729897,
+            0.7901726541116109
+          ],
+          [
+            0.25015423465915343,
+            -0.33163656339729897,
+            0.7901726541116109
+          ]
+        ],
+        "samples": [
+          {
+            "visible": true,
+            "blocker": "GP instrument display /  / PlaneGeometry"
+          },
+          {
+            "visible": true,
+            "blocker": "GP instrument display /  / PlaneGeometry"
+          },
+          {
+            "visible": true,
+            "blocker": "GP instrument display /  / PlaneGeometry"
+          },
+          {
+            "visible": true,
+            "blocker": "GP instrument display /  / PlaneGeometry"
+          },
+          {
+            "visible": true,
+            "blocker": "GP instrument display /  / PlaneGeometry"
+          },
+          {
+            "visible": true,
+            "blocker": "GP instrument display /  / PlaneGeometry"
+          },
+          {
+            "visible": true,
+            "blocker": "GP instrument display /  / PlaneGeometry"
+          },
+          {
+            "visible": true,
+            "blocker": "GP instrument display /  / PlaneGeometry"
+          },
+          {
+            "visible": true,
+            "blocker": "GP instrument display /  / PlaneGeometry"
+          }
+        ],
+        "visibleSamples": 9
+      },
+      "frontBrake": 0.05,
+      "frontBrakeLever": null,
+      "windscreen": {
+        "mode": "production",
+        "thickness": 0.003,
+        "ior": 1.49,
+        "transmission": 0.92,
+        "opacity": 1,
+        "transparent": true
+      },
+      "weather": {
+        "source": "presented-snapshot",
+        "dampness": 0,
+        "time": 2,
+        "rain": 0,
+        "meanWater": 0,
+        "materialRoles": {
+          "rubber": 1,
+          "paint": 10,
+          "metal": 6,
+          "fabric": 1,
+          "leather": 5
+        },
+        "roadMaterials": 0,
+        "offTrackWetness": "mean-track-water-and-rain approximation",
+        "extraTextures": 0,
+        "extraDraws": 0
+      },
+      "triangles": 81720,
+      "submittedTriangles": 30296,
+      "calls": 33,
+      "glError": 0,
+      "bounds": {
+        "isBox3": true,
+        "min": {
+          "x": -0.46668103329765687,
+          "y": -0.0962548337573153,
+          "z": -1.134115242502875
+        },
+        "max": {
+          "x": 0.46668103329765687,
+          "y": 1.3446317426996335,
+          "z": 1.0862548337573152
+        }
+      }
+    },
+    "ss600-onboard-contract.json": {
+      "instance": "a5441883-7990-4fd0-9d3b-a1bc9e786c23",
+      "sourceFrameUnchanged": true,
+      "resources": {
+        "geometries": 98,
+        "textures": 14,
+        "programs": 38
+      },
+      "preparation": [
+        {
+          "wet": false,
+          "time": 2,
+          "sourceFrameUnchanged": true,
+          "resources": {
+            "geometries": 98,
+            "textures": 14,
+            "programs": 38
+          },
+          "addedPrograms": []
+        },
+        {
+          "wet": false,
+          "time": 2,
+          "sourceFrameUnchanged": true,
+          "resources": {
+            "geometries": 98,
+            "textures": 14,
+            "programs": 38
+          },
+          "addedPrograms": []
+        },
+        {
+          "wet": false,
+          "time": 2,
+          "sourceFrameUnchanged": true,
+          "resources": {
+            "geometries": 98,
+            "textures": 14,
+            "programs": 38
+          },
+          "addedPrograms": []
+        }
+      ],
+      "hash": 1128780812,
+      "cockpit": {
+        "centre": [
+          0,
+          0.9162641543837289,
+          0.5928578455731615
+        ],
+        "facing": 0.9607822416911271,
+        "corners": [
+          [
+            -0.28651077118199514,
+            -0.7632843491841249,
+            0.7595680424958308
+          ],
+          [
+            0.28651077118199514,
+            -0.7632843491841249,
+            0.7595680424958308
+          ],
+          [
+            -0.25015423465915343,
+            -0.3316365633972976,
+            0.7901726541116109
+          ],
+          [
+            0.25015423465915343,
+            -0.3316365633972976,
+            0.7901726541116109
+          ]
+        ],
+        "samples": [
+          {
+            "visible": true,
+            "blocker": "GP instrument display /  / PlaneGeometry"
+          },
+          {
+            "visible": true,
+            "blocker": "GP instrument display /  / PlaneGeometry"
+          },
+          {
+            "visible": true,
+            "blocker": "GP instrument display /  / PlaneGeometry"
+          },
+          {
+            "visible": true,
+            "blocker": "GP instrument display /  / PlaneGeometry"
+          },
+          {
+            "visible": true,
+            "blocker": "GP instrument display /  / PlaneGeometry"
+          },
+          {
+            "visible": true,
+            "blocker": "GP instrument display /  / PlaneGeometry"
+          },
+          {
+            "visible": true,
+            "blocker": "GP instrument display /  / PlaneGeometry"
+          },
+          {
+            "visible": true,
+            "blocker": "GP instrument display /  / PlaneGeometry"
+          },
+          {
+            "visible": true,
+            "blocker": "GP instrument display /  / PlaneGeometry"
+          }
+        ],
+        "visibleSamples": 9
+      },
+      "frontBrake": 0.05,
+      "frontBrakeLever": null,
+      "windscreen": {
+        "mode": "production",
+        "thickness": 0.003,
+        "ior": 1.49,
+        "transmission": 0.92,
+        "opacity": 1,
+        "transparent": true
+      },
+      "weather": {
+        "source": "presented-snapshot",
+        "dampness": 0,
+        "time": 2,
+        "rain": 0,
+        "meanWater": 0,
+        "materialRoles": {
+          "rubber": 1,
+          "paint": 10,
+          "metal": 6,
+          "fabric": 1,
+          "leather": 5
+        },
+        "roadMaterials": 0,
+        "offTrackWetness": "mean-track-water-and-rain approximation",
+        "extraTextures": 0,
+        "extraDraws": 0
+      },
+      "triangles": 81664,
+      "submittedTriangles": 30344,
+      "calls": 35,
+      "glError": 0,
+      "bounds": {
+        "isBox3": true,
+        "min": {
+          "x": -0.47367031579036756,
+          "y": -0.0962548337573153,
+          "z": -1.0798438340633556
+        },
+        "max": {
+          "x": 0.47367031579036756,
+          "y": 1.3046317426996332,
+          "z": 1.0562548337573152
+        }
+      }
+    },
+    "gpr1-optics-metrics.json": [
+      {
+        "instance": "3aef160a-d21e-434c-a165-14b78311b73a",
+        "sourceFrameUnchanged": true,
+        "resources": {
+          "geometries": 114,
+          "textures": 17,
+          "programs": 45
+        },
+        "preparation": [
+          {
+            "wet": false,
+            "time": 2,
+            "sourceFrameUnchanged": true,
+            "resources": {
+              "geometries": 114,
+              "textures": 17,
+              "programs": 45
+            },
+            "addedPrograms": []
+          },
+          {
+            "wet": false,
+            "time": 2,
+            "sourceFrameUnchanged": true,
+            "resources": {
+              "geometries": 114,
+              "textures": 17,
+              "programs": 45
+            },
+            "addedPrograms": []
+          },
+          {
+            "wet": false,
+            "time": 2,
+            "sourceFrameUnchanged": true,
+            "resources": {
+              "geometries": 114,
+              "textures": 17,
+              "programs": 45
+            },
+            "addedPrograms": []
+          }
+        ],
+        "hash": 372606181,
+        "cockpit": {
+          "centre": [
+            0,
+            0.9362641543837289,
+            0.5928578455731615
+          ],
+          "facing": 0.9549564516801772,
+          "corners": [
+            [
+              -0.1522631883478778,
+              -0.5608082864748455,
+              0.8565945650420502
+            ],
+            [
+              0.1522631883478778,
+              -0.5608082864748455,
+              0.8565945650420502
+            ],
+            [
+              -0.14009350722450453,
+              -0.32849273744739615,
+              0.8681162540246695
+            ],
+            [
+              0.14009350722450453,
+              -0.32849273744739615,
+              0.8681162540246695
+            ]
+          ],
+          "samples": [
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            },
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            },
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            },
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            },
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            },
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            },
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            },
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            },
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            }
+          ],
+          "visibleSamples": 9
+        },
+        "frontBrake": 0.05,
+        "frontBrakeLever": {
+          "angle": -0.020000000000000004,
+          "world": [
+            -0.211,
+            0.9081172342479972,
+            0.4284315382623263
+          ]
+        },
+        "windscreen": {
+          "mode": "legacy-volume",
+          "thickness": 0.002,
+          "ior": 1.49,
+          "transmission": 1,
+          "opacity": 1,
+          "transparent": false
+        },
+        "weather": {
+          "source": "presented-snapshot",
+          "dampness": 0,
+          "time": 2,
+          "rain": 0,
+          "meanWater": 0,
+          "materialRoles": {
+            "metal": 7,
+            "rubber": 1,
+            "paint": 10,
+            "leather": 5,
+            "fabric": 1
+          },
+          "roadMaterials": 0,
+          "offTrackWetness": "mean-track-water-and-rain approximation",
+          "extraTextures": 0,
+          "extraDraws": 0
+        },
+        "triangles": 109337,
+        "submittedTriangles": 66589,
+        "calls": 50,
+        "glError": 0,
+        "bounds": {
+          "isBox3": true,
+          "min": {
+            "x": -0.4675225103713595,
+            "y": -0.0962548337573153,
+            "z": -1.1265229848524594
+          },
+          "max": {
+            "x": 0.4675225103713595,
+            "y": 1.3246317426996335,
+            "z": 1.0962548337573153
+          }
+        }
+      },
+      {
+        "instance": "3aef160a-d21e-434c-a165-14b78311b73a",
+        "sourceFrameUnchanged": true,
+        "resources": {
+          "geometries": 114,
+          "textures": 17,
+          "programs": 45
+        },
+        "preparation": [
+          {
+            "wet": false,
+            "time": 2,
+            "sourceFrameUnchanged": true,
+            "resources": {
+              "geometries": 114,
+              "textures": 17,
+              "programs": 45
+            },
+            "addedPrograms": []
+          },
+          {
+            "wet": false,
+            "time": 2,
+            "sourceFrameUnchanged": true,
+            "resources": {
+              "geometries": 114,
+              "textures": 17,
+              "programs": 45
+            },
+            "addedPrograms": []
+          },
+          {
+            "wet": false,
+            "time": 2,
+            "sourceFrameUnchanged": true,
+            "resources": {
+              "geometries": 114,
+              "textures": 17,
+              "programs": 45
+            },
+            "addedPrograms": []
+          }
+        ],
+        "hash": 3495741961,
+        "cockpit": {
+          "centre": [
+            0,
+            0.9362641543837289,
+            0.5928578455731615
+          ],
+          "facing": 0.9549564516801772,
+          "corners": [
+            [
+              -0.1522631883478778,
+              -0.5608082864748455,
+              0.8565945650420502
+            ],
+            [
+              0.1522631883478778,
+              -0.5608082864748455,
+              0.8565945650420502
+            ],
+            [
+              -0.14009350722450453,
+              -0.32849273744739615,
+              0.8681162540246695
+            ],
+            [
+              0.14009350722450453,
+              -0.32849273744739615,
+              0.8681162540246695
+            ]
+          ],
+          "samples": [
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            },
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            },
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            },
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            },
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            },
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            },
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            },
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            },
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            }
+          ],
+          "visibleSamples": 9
+        },
+        "frontBrake": 0.05,
+        "frontBrakeLever": {
+          "angle": -0.020000000000000004,
+          "world": [
+            -0.211,
+            0.9081172342479972,
+            0.4284315382623263
+          ]
+        },
+        "windscreen": {
+          "mode": "production",
+          "thickness": 0,
+          "ior": 1.49,
+          "transmission": 1,
+          "opacity": 1,
+          "transparent": false
+        },
+        "weather": {
+          "source": "presented-snapshot",
+          "dampness": 0,
+          "time": 2,
+          "rain": 0,
+          "meanWater": 0,
+          "materialRoles": {
+            "metal": 7,
+            "rubber": 1,
+            "paint": 10,
+            "leather": 5,
+            "fabric": 1
+          },
+          "roadMaterials": 0,
+          "offTrackWetness": "mean-track-water-and-rain approximation",
+          "extraTextures": 0,
+          "extraDraws": 0
+        },
+        "triangles": 109337,
+        "submittedTriangles": 66589,
+        "calls": 50,
+        "glError": 0,
+        "bounds": {
+          "isBox3": true,
+          "min": {
+            "x": -0.4675225103713595,
+            "y": -0.0962548337573153,
+            "z": -1.1265229848524594
+          },
+          "max": {
+            "x": 0.4675225103713595,
+            "y": 1.3246317426996335,
+            "z": 1.0962548337573153
+          }
+        }
+      },
+      {
+        "instance": "3aef160a-d21e-434c-a165-14b78311b73a",
+        "sourceFrameUnchanged": true,
+        "resources": {
+          "geometries": 114,
+          "textures": 17,
+          "programs": 45
+        },
+        "preparation": [
+          {
+            "wet": false,
+            "time": 2,
+            "sourceFrameUnchanged": true,
+            "resources": {
+              "geometries": 114,
+              "textures": 17,
+              "programs": 45
+            },
+            "addedPrograms": []
+          },
+          {
+            "wet": false,
+            "time": 2,
+            "sourceFrameUnchanged": true,
+            "resources": {
+              "geometries": 114,
+              "textures": 17,
+              "programs": 45
+            },
+            "addedPrograms": []
+          },
+          {
+            "wet": false,
+            "time": 2,
+            "sourceFrameUnchanged": true,
+            "resources": {
+              "geometries": 114,
+              "textures": 17,
+              "programs": 45
+            },
+            "addedPrograms": []
+          }
+        ],
+        "hash": 3495741961,
+        "cockpit": {
+          "centre": [
+            0,
+            0.9362641543837289,
+            0.5928578455731615
+          ],
+          "facing": 0.9549564516801772,
+          "corners": [
+            [
+              -0.1522631883478778,
+              -0.5608082864748455,
+              0.8565945650420502
+            ],
+            [
+              0.1522631883478778,
+              -0.5608082864748455,
+              0.8565945650420502
+            ],
+            [
+              -0.14009350722450453,
+              -0.32849273744739615,
+              0.8681162540246695
+            ],
+            [
+              0.14009350722450453,
+              -0.32849273744739615,
+              0.8681162540246695
+            ]
+          ],
+          "samples": [
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            },
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            },
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            },
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            },
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            },
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            },
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            },
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            },
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            }
+          ],
+          "visibleSamples": 9
+        },
+        "frontBrake": 0.05,
+        "frontBrakeLever": {
+          "angle": -0.020000000000000004,
+          "world": [
+            -0.211,
+            0.9081172342479972,
+            0.4284315382623263
+          ]
+        },
+        "windscreen": {
+          "mode": "production",
+          "thickness": 0,
+          "ior": 1.49,
+          "transmission": 1,
+          "opacity": 1,
+          "transparent": false
+        },
+        "weather": {
+          "source": "presented-snapshot",
+          "dampness": 0,
+          "time": 2,
+          "rain": 0,
+          "meanWater": 0,
+          "materialRoles": {
+            "metal": 7,
+            "rubber": 1,
+            "paint": 10,
+            "leather": 5,
+            "fabric": 1
+          },
+          "roadMaterials": 0,
+          "offTrackWetness": "mean-track-water-and-rain approximation",
+          "extraTextures": 0,
+          "extraDraws": 0
+        },
+        "triangles": 109337,
+        "submittedTriangles": 66589,
+        "calls": 50,
+        "glError": 0,
+        "bounds": {
+          "isBox3": true,
+          "min": {
+            "x": -0.4675225103713595,
+            "y": -0.0962548337573153,
+            "z": -1.1265229848524594
+          },
+          "max": {
+            "x": 0.4675225103713595,
+            "y": 1.3246317426996335,
+            "z": 1.0962548337573153
+          }
+        }
+      },
+      {
+        "instance": "3aef160a-d21e-434c-a165-14b78311b73a",
+        "sourceFrameUnchanged": true,
+        "resources": {
+          "geometries": 114,
+          "textures": 17,
+          "programs": 45
+        },
+        "preparation": [
+          {
+            "wet": false,
+            "time": 2,
+            "sourceFrameUnchanged": true,
+            "resources": {
+              "geometries": 114,
+              "textures": 17,
+              "programs": 45
+            },
+            "addedPrograms": []
+          },
+          {
+            "wet": false,
+            "time": 2,
+            "sourceFrameUnchanged": true,
+            "resources": {
+              "geometries": 114,
+              "textures": 17,
+              "programs": 45
+            },
+            "addedPrograms": []
+          },
+          {
+            "wet": false,
+            "time": 2,
+            "sourceFrameUnchanged": true,
+            "resources": {
+              "geometries": 114,
+              "textures": 17,
+              "programs": 45
+            },
+            "addedPrograms": []
+          }
+        ],
+        "hash": 372606181,
+        "cockpit": {
+          "centre": [
+            0,
+            0.9362641543837289,
+            0.5928578455731615
+          ],
+          "facing": 0.9549564516801772,
+          "corners": [
+            [
+              -0.1522631883478778,
+              -0.5608082864748455,
+              0.8565945650420502
+            ],
+            [
+              0.1522631883478778,
+              -0.5608082864748455,
+              0.8565945650420502
+            ],
+            [
+              -0.14009350722450453,
+              -0.32849273744739615,
+              0.8681162540246695
+            ],
+            [
+              0.14009350722450453,
+              -0.32849273744739615,
+              0.8681162540246695
+            ]
+          ],
+          "samples": [
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            },
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            },
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            },
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            },
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            },
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            },
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            },
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            },
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            }
+          ],
+          "visibleSamples": 9
+        },
+        "frontBrake": 0.05,
+        "frontBrakeLever": {
+          "angle": -0.020000000000000004,
+          "world": [
+            -0.211,
+            0.9081172342479972,
+            0.4284315382623263
+          ]
+        },
+        "windscreen": {
+          "mode": "legacy-volume",
+          "thickness": 0.002,
+          "ior": 1.49,
+          "transmission": 1,
+          "opacity": 1,
+          "transparent": false
+        },
+        "weather": {
+          "source": "presented-snapshot",
+          "dampness": 0,
+          "time": 2,
+          "rain": 0,
+          "meanWater": 0,
+          "materialRoles": {
+            "metal": 7,
+            "rubber": 1,
+            "paint": 10,
+            "leather": 5,
+            "fabric": 1
+          },
+          "roadMaterials": 0,
+          "offTrackWetness": "mean-track-water-and-rain approximation",
+          "extraTextures": 0,
+          "extraDraws": 0
+        },
+        "triangles": 109337,
+        "submittedTriangles": 66589,
+        "calls": 50,
+        "glError": 0,
+        "bounds": {
+          "isBox3": true,
+          "min": {
+            "x": -0.4675225103713595,
+            "y": -0.0962548337573153,
+            "z": -1.1265229848524594
+          },
+          "max": {
+            "x": 0.4675225103713595,
+            "y": 1.3246317426996335,
+            "z": 1.0962548337573153
+          }
+        }
+      }
+    ],
+    "gpr2-optics-metrics.json": [
+      {
+        "instance": "72c15164-b752-4067-a854-7517bf16832f",
+        "sourceFrameUnchanged": true,
+        "resources": {
+          "geometries": 109,
+          "textures": 19,
+          "programs": 46
+        },
+        "preparation": [
+          {
+            "wet": false,
+            "time": 2,
+            "sourceFrameUnchanged": true,
+            "resources": {
+              "geometries": 109,
+              "textures": 19,
+              "programs": 46
+            },
+            "addedPrograms": []
+          },
+          {
+            "wet": false,
+            "time": 2,
+            "sourceFrameUnchanged": true,
+            "resources": {
+              "geometries": 109,
+              "textures": 19,
+              "programs": 46
+            },
+            "addedPrograms": []
+          },
+          {
+            "wet": false,
+            "time": 2,
+            "sourceFrameUnchanged": true,
+            "resources": {
+              "geometries": 109,
+              "textures": 19,
+              "programs": 46
+            },
+            "addedPrograms": []
+          }
+        ],
+        "hash": 945801515,
+        "cockpit": {
+          "centre": [
+            0,
+            0.9262641543837289,
+            0.5928578455731615
+          ],
+          "facing": 0.954956451680177,
+          "corners": [
+            [
+              -0.1522631883478778,
+              -0.560808286474845,
+              0.8565945650420502
+            ],
+            [
+              0.1522631883478778,
+              -0.560808286474845,
+              0.8565945650420502
+            ],
+            [
+              -0.14009350722450453,
+              -0.32849273744739543,
+              0.8681162540246695
+            ],
+            [
+              0.14009350722450453,
+              -0.32849273744739543,
+              0.8681162540246695
+            ]
+          ],
+          "samples": [
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            },
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            },
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            },
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            },
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            },
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            },
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            },
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            },
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            }
+          ],
+          "visibleSamples": 9
+        },
+        "frontBrake": 0.05,
+        "frontBrakeLever": {
+          "angle": -0.020000000000000004,
+          "world": [
+            -0.211,
+            0.9081172342479972,
+            0.4484315382623263
+          ]
+        },
+        "windscreen": {
+          "mode": "legacy-volume",
+          "thickness": 0.002,
+          "ior": 1.49,
+          "transmission": 1,
+          "opacity": 1,
+          "transparent": false
+        },
+        "weather": {
+          "source": "presented-snapshot",
+          "dampness": 0,
+          "time": 2,
+          "rain": 0,
+          "meanWater": 0,
+          "materialRoles": {
+            "metal": 7,
+            "rubber": 1,
+            "paint": 10,
+            "fabric": 1,
+            "leather": 5
+          },
+          "roadMaterials": 0,
+          "offTrackWetness": "mean-track-water-and-rain approximation",
+          "extraTextures": 0,
+          "extraDraws": 0
+        },
+        "triangles": 101636,
+        "submittedTriangles": 64360,
+        "calls": 56,
+        "glError": 0,
+        "bounds": {
+          "isBox3": true,
+          "min": {
+            "x": -0.4654921646542646,
+            "y": -0.0962548337573153,
+            "z": -1.1049506470828327
+          },
+          "max": {
+            "x": 0.4654921646542646,
+            "y": 1.3146317426996332,
+            "z": 1.1162548337573153
+          }
+        }
+      },
+      {
+        "instance": "72c15164-b752-4067-a854-7517bf16832f",
+        "sourceFrameUnchanged": true,
+        "resources": {
+          "geometries": 109,
+          "textures": 19,
+          "programs": 46
+        },
+        "preparation": [
+          {
+            "wet": false,
+            "time": 2,
+            "sourceFrameUnchanged": true,
+            "resources": {
+              "geometries": 109,
+              "textures": 19,
+              "programs": 46
+            },
+            "addedPrograms": []
+          },
+          {
+            "wet": false,
+            "time": 2,
+            "sourceFrameUnchanged": true,
+            "resources": {
+              "geometries": 109,
+              "textures": 19,
+              "programs": 46
+            },
+            "addedPrograms": []
+          },
+          {
+            "wet": false,
+            "time": 2,
+            "sourceFrameUnchanged": true,
+            "resources": {
+              "geometries": 109,
+              "textures": 19,
+              "programs": 46
+            },
+            "addedPrograms": []
+          }
+        ],
+        "hash": 3756047866,
+        "cockpit": {
+          "centre": [
+            0,
+            0.9262641543837289,
+            0.5928578455731615
+          ],
+          "facing": 0.954956451680177,
+          "corners": [
+            [
+              -0.1522631883478778,
+              -0.560808286474845,
+              0.8565945650420502
+            ],
+            [
+              0.1522631883478778,
+              -0.560808286474845,
+              0.8565945650420502
+            ],
+            [
+              -0.14009350722450453,
+              -0.32849273744739543,
+              0.8681162540246695
+            ],
+            [
+              0.14009350722450453,
+              -0.32849273744739543,
+              0.8681162540246695
+            ]
+          ],
+          "samples": [
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            },
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            },
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            },
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            },
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            },
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            },
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            },
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            },
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            }
+          ],
+          "visibleSamples": 9
+        },
+        "frontBrake": 0.05,
+        "frontBrakeLever": {
+          "angle": -0.020000000000000004,
+          "world": [
+            -0.211,
+            0.9081172342479972,
+            0.4484315382623263
+          ]
+        },
+        "windscreen": {
+          "mode": "production",
+          "thickness": 0,
+          "ior": 1.49,
+          "transmission": 1,
+          "opacity": 1,
+          "transparent": false
+        },
+        "weather": {
+          "source": "presented-snapshot",
+          "dampness": 0,
+          "time": 2,
+          "rain": 0,
+          "meanWater": 0,
+          "materialRoles": {
+            "metal": 7,
+            "rubber": 1,
+            "paint": 10,
+            "fabric": 1,
+            "leather": 5
+          },
+          "roadMaterials": 0,
+          "offTrackWetness": "mean-track-water-and-rain approximation",
+          "extraTextures": 0,
+          "extraDraws": 0
+        },
+        "triangles": 101636,
+        "submittedTriangles": 64360,
+        "calls": 56,
+        "glError": 0,
+        "bounds": {
+          "isBox3": true,
+          "min": {
+            "x": -0.4654921646542646,
+            "y": -0.0962548337573153,
+            "z": -1.1049506470828327
+          },
+          "max": {
+            "x": 0.4654921646542646,
+            "y": 1.3146317426996332,
+            "z": 1.1162548337573153
+          }
+        }
+      },
+      {
+        "instance": "72c15164-b752-4067-a854-7517bf16832f",
+        "sourceFrameUnchanged": true,
+        "resources": {
+          "geometries": 109,
+          "textures": 19,
+          "programs": 46
+        },
+        "preparation": [
+          {
+            "wet": false,
+            "time": 2,
+            "sourceFrameUnchanged": true,
+            "resources": {
+              "geometries": 109,
+              "textures": 19,
+              "programs": 46
+            },
+            "addedPrograms": []
+          },
+          {
+            "wet": false,
+            "time": 2,
+            "sourceFrameUnchanged": true,
+            "resources": {
+              "geometries": 109,
+              "textures": 19,
+              "programs": 46
+            },
+            "addedPrograms": []
+          },
+          {
+            "wet": false,
+            "time": 2,
+            "sourceFrameUnchanged": true,
+            "resources": {
+              "geometries": 109,
+              "textures": 19,
+              "programs": 46
+            },
+            "addedPrograms": []
+          }
+        ],
+        "hash": 3756047866,
+        "cockpit": {
+          "centre": [
+            0,
+            0.9262641543837289,
+            0.5928578455731615
+          ],
+          "facing": 0.954956451680177,
+          "corners": [
+            [
+              -0.1522631883478778,
+              -0.560808286474845,
+              0.8565945650420502
+            ],
+            [
+              0.1522631883478778,
+              -0.560808286474845,
+              0.8565945650420502
+            ],
+            [
+              -0.14009350722450453,
+              -0.32849273744739543,
+              0.8681162540246695
+            ],
+            [
+              0.14009350722450453,
+              -0.32849273744739543,
+              0.8681162540246695
+            ]
+          ],
+          "samples": [
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            },
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            },
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            },
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            },
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            },
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            },
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            },
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            },
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            }
+          ],
+          "visibleSamples": 9
+        },
+        "frontBrake": 0.05,
+        "frontBrakeLever": {
+          "angle": -0.020000000000000004,
+          "world": [
+            -0.211,
+            0.9081172342479972,
+            0.4484315382623263
+          ]
+        },
+        "windscreen": {
+          "mode": "production",
+          "thickness": 0,
+          "ior": 1.49,
+          "transmission": 1,
+          "opacity": 1,
+          "transparent": false
+        },
+        "weather": {
+          "source": "presented-snapshot",
+          "dampness": 0,
+          "time": 2,
+          "rain": 0,
+          "meanWater": 0,
+          "materialRoles": {
+            "metal": 7,
+            "rubber": 1,
+            "paint": 10,
+            "fabric": 1,
+            "leather": 5
+          },
+          "roadMaterials": 0,
+          "offTrackWetness": "mean-track-water-and-rain approximation",
+          "extraTextures": 0,
+          "extraDraws": 0
+        },
+        "triangles": 101636,
+        "submittedTriangles": 64360,
+        "calls": 56,
+        "glError": 0,
+        "bounds": {
+          "isBox3": true,
+          "min": {
+            "x": -0.4654921646542646,
+            "y": -0.0962548337573153,
+            "z": -1.1049506470828327
+          },
+          "max": {
+            "x": 0.4654921646542646,
+            "y": 1.3146317426996332,
+            "z": 1.1162548337573153
+          }
+        }
+      },
+      {
+        "instance": "72c15164-b752-4067-a854-7517bf16832f",
+        "sourceFrameUnchanged": true,
+        "resources": {
+          "geometries": 109,
+          "textures": 19,
+          "programs": 46
+        },
+        "preparation": [
+          {
+            "wet": false,
+            "time": 2,
+            "sourceFrameUnchanged": true,
+            "resources": {
+              "geometries": 109,
+              "textures": 19,
+              "programs": 46
+            },
+            "addedPrograms": []
+          },
+          {
+            "wet": false,
+            "time": 2,
+            "sourceFrameUnchanged": true,
+            "resources": {
+              "geometries": 109,
+              "textures": 19,
+              "programs": 46
+            },
+            "addedPrograms": []
+          },
+          {
+            "wet": false,
+            "time": 2,
+            "sourceFrameUnchanged": true,
+            "resources": {
+              "geometries": 109,
+              "textures": 19,
+              "programs": 46
+            },
+            "addedPrograms": []
+          }
+        ],
+        "hash": 945801515,
+        "cockpit": {
+          "centre": [
+            0,
+            0.9262641543837289,
+            0.5928578455731615
+          ],
+          "facing": 0.954956451680177,
+          "corners": [
+            [
+              -0.1522631883478778,
+              -0.560808286474845,
+              0.8565945650420502
+            ],
+            [
+              0.1522631883478778,
+              -0.560808286474845,
+              0.8565945650420502
+            ],
+            [
+              -0.14009350722450453,
+              -0.32849273744739543,
+              0.8681162540246695
+            ],
+            [
+              0.14009350722450453,
+              -0.32849273744739543,
+              0.8681162540246695
+            ]
+          ],
+          "samples": [
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            },
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            },
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            },
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            },
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            },
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            },
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            },
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            },
+            {
+              "visible": true,
+              "blocker": "GP instrument display /  / PlaneGeometry"
+            }
+          ],
+          "visibleSamples": 9
+        },
+        "frontBrake": 0.05,
+        "frontBrakeLever": {
+          "angle": -0.020000000000000004,
+          "world": [
+            -0.211,
+            0.9081172342479972,
+            0.4484315382623263
+          ]
+        },
+        "windscreen": {
+          "mode": "legacy-volume",
+          "thickness": 0.002,
+          "ior": 1.49,
+          "transmission": 1,
+          "opacity": 1,
+          "transparent": false
+        },
+        "weather": {
+          "source": "presented-snapshot",
+          "dampness": 0,
+          "time": 2,
+          "rain": 0,
+          "meanWater": 0,
+          "materialRoles": {
+            "metal": 7,
+            "rubber": 1,
+            "paint": 10,
+            "fabric": 1,
+            "leather": 5
+          },
+          "roadMaterials": 0,
+          "offTrackWetness": "mean-track-water-and-rain approximation",
+          "extraTextures": 0,
+          "extraDraws": 0
+        },
+        "triangles": 101636,
+        "submittedTriangles": 64360,
+        "calls": 56,
+        "glError": 0,
+        "bounds": {
+          "isBox3": true,
+          "min": {
+            "x": -0.4654921646542646,
+            "y": -0.0962548337573153,
+            "z": -1.1049506470828327
+          },
+          "max": {
+            "x": 0.4654921646542646,
+            "y": 1.3146317426996332,
+            "z": 1.1162548337573153
+          }
+        }
+      }
+    ],
+    "same-instance-weather-metrics.json": [
+      {
+        "instance": "e20f8432-2d66-40f1-ab96-71b57371effe",
+        "sourceFrameUnchanged": true,
+        "resources": {
+          "geometries": 121,
+          "textures": 23,
+          "programs": 56
+        },
+        "preparation": [
+          {
+            "wet": false,
+            "time": 2,
+            "sourceFrameUnchanged": true,
+            "resources": {
+              "geometries": 121,
+              "textures": 23,
+              "programs": 56
+            },
+            "addedPrograms": []
+          },
+          {
+            "wet": false,
+            "time": 2,
+            "sourceFrameUnchanged": true,
+            "resources": {
+              "geometries": 121,
+              "textures": 23,
+              "programs": 56
+            },
+            "addedPrograms": []
+          },
+          {
+            "wet": false,
+            "time": 2,
+            "sourceFrameUnchanged": true,
+            "resources": {
+              "geometries": 121,
+              "textures": 23,
+              "programs": 56
+            },
+            "addedPrograms": []
+          }
+        ],
+        "hash": 536735540,
+        "cockpit": null,
+        "frontBrake": 0.05,
+        "frontBrakeLever": {
+          "angle": -0.020000000000000004,
+          "world": [
+            -0.211,
+            0.9081172342479972,
+            0.4284315382623263
+          ]
+        },
+        "windscreen": {
+          "mode": "production",
+          "thickness": 0,
+          "ior": 1.49,
+          "transmission": 1,
+          "opacity": 1,
+          "transparent": false
+        },
+        "weather": {
+          "source": "presented-snapshot",
+          "dampness": 0,
+          "time": 2,
+          "rain": 0,
+          "meanWater": 0,
+          "materialRoles": {
+            "metal": 7,
+            "rubber": 1,
+            "paint": 10,
+            "leather": 5,
+            "fabric": 1
+          },
+          "roadMaterials": 0,
+          "offTrackWetness": "mean-track-water-and-rain approximation",
+          "extraTextures": 0,
+          "extraDraws": 0
+        },
+        "triangles": 109337,
+        "submittedTriangles": 215377,
+        "calls": 217,
+        "glError": 0,
+        "bounds": {
+          "isBox3": true,
+          "min": {
+            "x": -0.4675225103713595,
+            "y": -0.0962548337573153,
+            "z": -1.1265229848524594
+          },
+          "max": {
+            "x": 0.4675225103713595,
+            "y": 1.3246317426996335,
+            "z": 1.0962548337573153
+          }
+        }
+      },
+      {
+        "instance": "e20f8432-2d66-40f1-ab96-71b57371effe",
+        "sourceFrameUnchanged": true,
+        "resources": {
+          "geometries": 121,
+          "textures": 23,
+          "programs": 56
+        },
+        "preparation": [
+          {
+            "wet": false,
+            "time": 2,
+            "sourceFrameUnchanged": true,
+            "resources": {
+              "geometries": 121,
+              "textures": 23,
+              "programs": 56
+            },
+            "addedPrograms": []
+          },
+          {
+            "wet": false,
+            "time": 2,
+            "sourceFrameUnchanged": true,
+            "resources": {
+              "geometries": 121,
+              "textures": 23,
+              "programs": 56
+            },
+            "addedPrograms": []
+          },
+          {
+            "wet": false,
+            "time": 2,
+            "sourceFrameUnchanged": true,
+            "resources": {
+              "geometries": 121,
+              "textures": 23,
+              "programs": 56
+            },
+            "addedPrograms": []
+          }
+        ],
+        "hash": 2391033716,
+        "cockpit": null,
+        "frontBrake": 0.05,
+        "frontBrakeLever": {
+          "angle": -0.020000000000000004,
+          "world": [
+            -0.211,
+            0.9081172342479972,
+            0.4284315382623263
+          ]
+        },
+        "windscreen": {
+          "mode": "production",
+          "thickness": 0,
+          "ior": 1.49,
+          "transmission": 1,
+          "opacity": 1,
+          "transparent": false
+        },
+        "weather": {
+          "source": "presented-snapshot",
+          "dampness": 1,
+          "time": 10,
+          "rain": 20,
+          "meanWater": 0.6000000238418579,
+          "materialRoles": {
+            "metal": 7,
+            "rubber": 1,
+            "paint": 10,
+            "leather": 5,
+            "fabric": 1
+          },
+          "roadMaterials": 0,
+          "offTrackWetness": "mean-track-water-and-rain approximation",
+          "extraTextures": 0,
+          "extraDraws": 0
+        },
+        "triangles": 109337,
+        "submittedTriangles": 215377,
+        "calls": 217,
+        "glError": 0,
+        "bounds": {
+          "isBox3": true,
+          "min": {
+            "x": -0.4675225103713595,
+            "y": -0.0962548337573153,
+            "z": -1.1265229848524594
+          },
+          "max": {
+            "x": 0.4675225103713595,
+            "y": 1.3246317426996335,
+            "z": 1.0962548337573153
+          }
+        }
+      },
+      {
+        "instance": "e20f8432-2d66-40f1-ab96-71b57371effe",
+        "sourceFrameUnchanged": true,
+        "resources": {
+          "geometries": 121,
+          "textures": 23,
+          "programs": 56
+        },
+        "preparation": [
+          {
+            "wet": false,
+            "time": 2,
+            "sourceFrameUnchanged": true,
+            "resources": {
+              "geometries": 121,
+              "textures": 23,
+              "programs": 56
+            },
+            "addedPrograms": []
+          },
+          {
+            "wet": false,
+            "time": 2,
+            "sourceFrameUnchanged": true,
+            "resources": {
+              "geometries": 121,
+              "textures": 23,
+              "programs": 56
+            },
+            "addedPrograms": []
+          },
+          {
+            "wet": false,
+            "time": 2,
+            "sourceFrameUnchanged": true,
+            "resources": {
+              "geometries": 121,
+              "textures": 23,
+              "programs": 56
+            },
+            "addedPrograms": []
+          }
+        ],
+        "hash": 2391033716,
+        "cockpit": null,
+        "frontBrake": 0.05,
+        "frontBrakeLever": {
+          "angle": -0.020000000000000004,
+          "world": [
+            -0.211,
+            0.9081172342479972,
+            0.4284315382623263
+          ]
+        },
+        "windscreen": {
+          "mode": "production",
+          "thickness": 0,
+          "ior": 1.49,
+          "transmission": 1,
+          "opacity": 1,
+          "transparent": false
+        },
+        "weather": {
+          "source": "presented-snapshot",
+          "dampness": 1,
+          "time": 10,
+          "rain": 20,
+          "meanWater": 0.6000000238418579,
+          "materialRoles": {
+            "metal": 7,
+            "rubber": 1,
+            "paint": 10,
+            "leather": 5,
+            "fabric": 1
+          },
+          "roadMaterials": 0,
+          "offTrackWetness": "mean-track-water-and-rain approximation",
+          "extraTextures": 0,
+          "extraDraws": 0
+        },
+        "triangles": 109337,
+        "submittedTriangles": 215377,
+        "calls": 217,
+        "glError": 0,
+        "bounds": {
+          "isBox3": true,
+          "min": {
+            "x": -0.4675225103713595,
+            "y": -0.0962548337573153,
+            "z": -1.1265229848524594
+          },
+          "max": {
+            "x": 0.4675225103713595,
+            "y": 1.3246317426996335,
+            "z": 1.0962548337573153
+          }
+        }
+      },
+      {
+        "instance": "e20f8432-2d66-40f1-ab96-71b57371effe",
+        "sourceFrameUnchanged": true,
+        "resources": {
+          "geometries": 121,
+          "textures": 23,
+          "programs": 56
+        },
+        "preparation": [
+          {
+            "wet": false,
+            "time": 2,
+            "sourceFrameUnchanged": true,
+            "resources": {
+              "geometries": 121,
+              "textures": 23,
+              "programs": 56
+            },
+            "addedPrograms": []
+          },
+          {
+            "wet": false,
+            "time": 2,
+            "sourceFrameUnchanged": true,
+            "resources": {
+              "geometries": 121,
+              "textures": 23,
+              "programs": 56
+            },
+            "addedPrograms": []
+          },
+          {
+            "wet": false,
+            "time": 2,
+            "sourceFrameUnchanged": true,
+            "resources": {
+              "geometries": 121,
+              "textures": 23,
+              "programs": 56
+            },
+            "addedPrograms": []
+          }
+        ],
+        "hash": 536735540,
+        "cockpit": null,
+        "frontBrake": 0.05,
+        "frontBrakeLever": {
+          "angle": -0.020000000000000004,
+          "world": [
+            -0.211,
+            0.9081172342479972,
+            0.4284315382623263
+          ]
+        },
+        "windscreen": {
+          "mode": "production",
+          "thickness": 0,
+          "ior": 1.49,
+          "transmission": 1,
+          "opacity": 1,
+          "transparent": false
+        },
+        "weather": {
+          "source": "presented-snapshot",
+          "dampness": 0,
+          "time": 2,
+          "rain": 0,
+          "meanWater": 0,
+          "materialRoles": {
+            "metal": 7,
+            "rubber": 1,
+            "paint": 10,
+            "leather": 5,
+            "fabric": 1
+          },
+          "roadMaterials": 0,
+          "offTrackWetness": "mean-track-water-and-rain approximation",
+          "extraTextures": 0,
+          "extraDraws": 0
+        },
+        "triangles": 109337,
+        "submittedTriangles": 215377,
+        "calls": 217,
+        "glError": 0,
+        "bounds": {
+          "isBox3": true,
+          "min": {
+            "x": -0.4675225103713595,
+            "y": -0.0962548337573153,
+            "z": -1.1265229848524594
+          },
+          "max": {
+            "x": 0.4675225103713595,
+            "y": 1.3246317426996335,
+            "z": 1.0962548337573153
+          }
+        }
+      }
+    ],
+    "gpr1-lever-metrics.json": [
+      {
+        "instance": "bb1d1f6a-e27c-4c6d-9da5-f1a851e828ec",
+        "sourceFrameUnchanged": true,
+        "resources": {
+          "geometries": 120,
+          "textures": 22,
+          "programs": 54
+        },
+        "preparation": [
+          {
+            "wet": false,
+            "time": 2,
+            "sourceFrameUnchanged": true,
+            "resources": {
+              "geometries": 120,
+              "textures": 22,
+              "programs": 54
+            },
+            "addedPrograms": []
+          },
+          {
+            "wet": false,
+            "time": 2,
+            "sourceFrameUnchanged": true,
+            "resources": {
+              "geometries": 120,
+              "textures": 22,
+              "programs": 54
+            },
+            "addedPrograms": []
+          },
+          {
+            "wet": false,
+            "time": 2,
+            "sourceFrameUnchanged": true,
+            "resources": {
+              "geometries": 120,
+              "textures": 22,
+              "programs": 54
+            },
+            "addedPrograms": []
+          }
+        ],
+        "hash": 8855317,
+        "cockpit": null,
+        "frontBrake": 0,
+        "frontBrakeLever": {
+          "angle": 0,
+          "world": [
+            -0.211,
+            0.9081172342479972,
+            0.4284315382623263
+          ]
+        },
+        "windscreen": {
+          "mode": "production",
+          "thickness": 0,
+          "ior": 1.49,
+          "transmission": 1,
+          "opacity": 1,
+          "transparent": false
+        },
+        "weather": {
+          "source": "presented-snapshot",
+          "dampness": 0,
+          "time": 2,
+          "rain": 0,
+          "meanWater": 0,
+          "materialRoles": {
+            "metal": 7,
+            "rubber": 1,
+            "paint": 10,
+            "leather": 5,
+            "fabric": 1
+          },
+          "roadMaterials": 0,
+          "offTrackWetness": "mean-track-water-and-rain approximation",
+          "extraTextures": 0,
+          "extraDraws": 0
+        },
+        "triangles": 109337,
+        "submittedTriangles": 193073,
+        "calls": 175,
+        "glError": 0,
+        "bounds": {
+          "isBox3": true,
+          "min": {
+            "x": -0.4681486651458797,
+            "y": -0.0962548337573153,
+            "z": -1.1265229848524594
+          },
+          "max": {
+            "x": 0.4681486651458797,
+            "y": 1.316964157849547,
+            "z": 1.0962548337573153
+          }
+        }
+      },
+      {
+        "instance": "bb1d1f6a-e27c-4c6d-9da5-f1a851e828ec",
+        "sourceFrameUnchanged": true,
+        "resources": {
+          "geometries": 120,
+          "textures": 22,
+          "programs": 54
+        },
+        "preparation": [
+          {
+            "wet": false,
+            "time": 2,
+            "sourceFrameUnchanged": true,
+            "resources": {
+              "geometries": 120,
+              "textures": 22,
+              "programs": 54
+            },
+            "addedPrograms": []
+          },
+          {
+            "wet": false,
+            "time": 2,
+            "sourceFrameUnchanged": true,
+            "resources": {
+              "geometries": 120,
+              "textures": 22,
+              "programs": 54
+            },
+            "addedPrograms": []
+          },
+          {
+            "wet": false,
+            "time": 2,
+            "sourceFrameUnchanged": true,
+            "resources": {
+              "geometries": 120,
+              "textures": 22,
+              "programs": 54
+            },
+            "addedPrograms": []
+          }
+        ],
+        "hash": 819956721,
+        "cockpit": null,
+        "frontBrake": 1,
+        "frontBrakeLever": {
+          "angle": -0.4,
+          "world": [
+            -0.211,
+            0.9081172342479972,
+            0.4284315382623263
+          ]
+        },
+        "windscreen": {
+          "mode": "production",
+          "thickness": 0,
+          "ior": 1.49,
+          "transmission": 1,
+          "opacity": 1,
+          "transparent": false
+        },
+        "weather": {
+          "source": "presented-snapshot",
+          "dampness": 0,
+          "time": 3,
+          "rain": 0,
+          "meanWater": 0,
+          "materialRoles": {
+            "metal": 7,
+            "rubber": 1,
+            "paint": 10,
+            "leather": 5,
+            "fabric": 1
+          },
+          "roadMaterials": 0,
+          "offTrackWetness": "mean-track-water-and-rain approximation",
+          "extraTextures": 0,
+          "extraDraws": 0
+        },
+        "triangles": 109337,
+        "submittedTriangles": 186969,
+        "calls": 173,
+        "glError": 0,
+        "bounds": {
+          "isBox3": true,
+          "min": {
+            "x": -0.45501474759900223,
+            "y": -0.0962548337573153,
+            "z": -1.1265229848524594
+          },
+          "max": {
+            "x": 0.45501474759900223,
+            "y": 1.4639501530167789,
+            "z": 1.0962548337573153
+          }
+        }
+      },
+      {
+        "instance": "bb1d1f6a-e27c-4c6d-9da5-f1a851e828ec",
+        "sourceFrameUnchanged": true,
+        "resources": {
+          "geometries": 120,
+          "textures": 22,
+          "programs": 54
+        },
+        "preparation": [
+          {
+            "wet": false,
+            "time": 2,
+            "sourceFrameUnchanged": true,
+            "resources": {
+              "geometries": 120,
+              "textures": 22,
+              "programs": 54
+            },
+            "addedPrograms": []
+          },
+          {
+            "wet": false,
+            "time": 2,
+            "sourceFrameUnchanged": true,
+            "resources": {
+              "geometries": 120,
+              "textures": 22,
+              "programs": 54
+            },
+            "addedPrograms": []
+          },
+          {
+            "wet": false,
+            "time": 2,
+            "sourceFrameUnchanged": true,
+            "resources": {
+              "geometries": 120,
+              "textures": 22,
+              "programs": 54
+            },
+            "addedPrograms": []
+          }
+        ],
+        "hash": 819956721,
+        "cockpit": null,
+        "frontBrake": 1,
+        "frontBrakeLever": {
+          "angle": -0.4,
+          "world": [
+            -0.211,
+            0.9081172342479972,
+            0.4284315382623263
+          ]
+        },
+        "windscreen": {
+          "mode": "production",
+          "thickness": 0,
+          "ior": 1.49,
+          "transmission": 1,
+          "opacity": 1,
+          "transparent": false
+        },
+        "weather": {
+          "source": "presented-snapshot",
+          "dampness": 0,
+          "time": 3,
+          "rain": 0,
+          "meanWater": 0,
+          "materialRoles": {
+            "metal": 7,
+            "rubber": 1,
+            "paint": 10,
+            "leather": 5,
+            "fabric": 1
+          },
+          "roadMaterials": 0,
+          "offTrackWetness": "mean-track-water-and-rain approximation",
+          "extraTextures": 0,
+          "extraDraws": 0
+        },
+        "triangles": 109337,
+        "submittedTriangles": 186969,
+        "calls": 173,
+        "glError": 0,
+        "bounds": {
+          "isBox3": true,
+          "min": {
+            "x": -0.45501474759900223,
+            "y": -0.0962548337573153,
+            "z": -1.1265229848524594
+          },
+          "max": {
+            "x": 0.45501474759900223,
+            "y": 1.4639501530167789,
+            "z": 1.0962548337573153
+          }
+        }
+      },
+      {
+        "instance": "bb1d1f6a-e27c-4c6d-9da5-f1a851e828ec",
+        "sourceFrameUnchanged": true,
+        "resources": {
+          "geometries": 120,
+          "textures": 22,
+          "programs": 54
+        },
+        "preparation": [
+          {
+            "wet": false,
+            "time": 2,
+            "sourceFrameUnchanged": true,
+            "resources": {
+              "geometries": 120,
+              "textures": 22,
+              "programs": 54
+            },
+            "addedPrograms": []
+          },
+          {
+            "wet": false,
+            "time": 2,
+            "sourceFrameUnchanged": true,
+            "resources": {
+              "geometries": 120,
+              "textures": 22,
+              "programs": 54
+            },
+            "addedPrograms": []
+          },
+          {
+            "wet": false,
+            "time": 2,
+            "sourceFrameUnchanged": true,
+            "resources": {
+              "geometries": 120,
+              "textures": 22,
+              "programs": 54
+            },
+            "addedPrograms": []
+          }
+        ],
+        "hash": 3180416188,
+        "cockpit": null,
+        "frontBrake": 0.5,
+        "frontBrakeLever": {
+          "angle": -0.2,
+          "world": [
+            -0.211,
+            0.9081172342479972,
+            0.4284315382623263
+          ]
+        },
+        "windscreen": {
+          "mode": "production",
+          "thickness": 0,
+          "ior": 1.49,
+          "transmission": 1,
+          "opacity": 1,
+          "transparent": false
+        },
+        "weather": {
+          "source": "presented-snapshot",
+          "dampness": 1,
+          "time": 8,
+          "rain": 20,
+          "meanWater": 0.6000000238418579,
+          "materialRoles": {
+            "metal": 7,
+            "rubber": 1,
+            "paint": 10,
+            "leather": 5,
+            "fabric": 1
+          },
+          "roadMaterials": 0,
+          "offTrackWetness": "mean-track-water-and-rain approximation",
+          "extraTextures": 0,
+          "extraDraws": 0
+        },
+        "triangles": 109337,
+        "submittedTriangles": 186969,
+        "calls": 173,
+        "glError": 0,
+        "bounds": {
+          "isBox3": true,
+          "min": {
+            "x": -0.46136828337222235,
+            "y": -0.0962548337573153,
+            "z": -1.1265229848524594
+          },
+          "max": {
+            "x": 0.46136828337222235,
+            "y": 1.3923837324922537,
+            "z": 1.0962548337573153
+          }
+        }
+      },
+      {
+        "instance": "bb1d1f6a-e27c-4c6d-9da5-f1a851e828ec",
+        "sourceFrameUnchanged": true,
+        "resources": {
+          "geometries": 120,
+          "textures": 22,
+          "programs": 54
+        },
+        "preparation": [
+          {
+            "wet": false,
+            "time": 2,
+            "sourceFrameUnchanged": true,
+            "resources": {
+              "geometries": 120,
+              "textures": 22,
+              "programs": 54
+            },
+            "addedPrograms": []
+          },
+          {
+            "wet": false,
+            "time": 2,
+            "sourceFrameUnchanged": true,
+            "resources": {
+              "geometries": 120,
+              "textures": 22,
+              "programs": 54
+            },
+            "addedPrograms": []
+          },
+          {
+            "wet": false,
+            "time": 2,
+            "sourceFrameUnchanged": true,
+            "resources": {
+              "geometries": 120,
+              "textures": 22,
+              "programs": 54
+            },
+            "addedPrograms": []
+          }
+        ],
+        "hash": 8855317,
+        "cockpit": null,
+        "frontBrake": 0,
+        "frontBrakeLever": {
+          "angle": 0,
+          "world": [
+            -0.211,
+            0.9081172342479972,
+            0.4284315382623263
+          ]
+        },
+        "windscreen": {
+          "mode": "production",
+          "thickness": 0,
+          "ior": 1.49,
+          "transmission": 1,
+          "opacity": 1,
+          "transparent": false
+        },
+        "weather": {
+          "source": "presented-snapshot",
+          "dampness": 0,
+          "time": 2,
+          "rain": 0,
+          "meanWater": 0,
+          "materialRoles": {
+            "metal": 7,
+            "rubber": 1,
+            "paint": 10,
+            "leather": 5,
+            "fabric": 1
+          },
+          "roadMaterials": 0,
+          "offTrackWetness": "mean-track-water-and-rain approximation",
+          "extraTextures": 0,
+          "extraDraws": 0
+        },
+        "triangles": 109337,
+        "submittedTriangles": 193073,
+        "calls": 175,
+        "glError": 0,
+        "bounds": {
+          "isBox3": true,
+          "min": {
+            "x": -0.4681486651458797,
+            "y": -0.0962548337573153,
+            "z": -1.1265229848524594
+          },
+          "max": {
+            "x": 0.4681486651458797,
+            "y": 1.316964157849547,
+            "z": 1.0962548337573153
+          }
+        }
+      }
+    ],
+    "gpr2-lever-metrics.json": [
+      {
+        "instance": "02a4a324-29a8-43ab-9a82-35823301c9b3",
+        "sourceFrameUnchanged": true,
+        "resources": {
+          "geometries": 114,
+          "textures": 22,
+          "programs": 55
+        },
+        "preparation": [
+          {
+            "wet": false,
+            "time": 2,
+            "sourceFrameUnchanged": true,
+            "resources": {
+              "geometries": 114,
+              "textures": 22,
+              "programs": 54
+            },
+            "addedPrograms": []
+          },
+          {
+            "wet": false,
+            "time": 2,
+            "sourceFrameUnchanged": true,
+            "resources": {
+              "geometries": 114,
+              "textures": 22,
+              "programs": 54
+            },
+            "addedPrograms": []
+          },
+          {
+            "wet": false,
+            "time": 2,
+            "sourceFrameUnchanged": true,
+            "resources": {
+              "geometries": 114,
+              "textures": 22,
+              "programs": 54
+            },
+            "addedPrograms": []
+          }
+        ],
+        "hash": 998956520,
+        "cockpit": null,
+        "frontBrake": 0,
+        "frontBrakeLever": {
+          "angle": 0,
+          "world": [
+            -0.211,
+            0.9081172342479972,
+            0.4484315382623263
+          ]
+        },
+        "windscreen": {
+          "mode": "production",
+          "thickness": 0,
+          "ior": 1.49,
+          "transmission": 1,
+          "opacity": 1,
+          "transparent": false
+        },
+        "weather": {
+          "source": "presented-snapshot",
+          "dampness": 0,
+          "time": 2,
+          "rain": 0,
+          "meanWater": 0,
+          "materialRoles": {
+            "metal": 7,
+            "rubber": 1,
+            "paint": 10,
+            "fabric": 1,
+            "leather": 5
+          },
+          "roadMaterials": 0,
+          "offTrackWetness": "mean-track-water-and-rain approximation",
+          "extraTextures": 0,
+          "extraDraws": 0
+        },
+        "triangles": 101636,
+        "submittedTriangles": 182276,
+        "calls": 173,
+        "glError": 0,
+        "bounds": {
+          "isBox3": true,
+          "min": {
+            "x": -0.46615829188080604,
+            "y": -0.0962548337573153,
+            "z": -1.1049506470828327
+          },
+          "max": {
+            "x": 0.46615829188080604,
+            "y": 1.306964157849547,
+            "z": 1.1162548337573153
+          }
+        }
+      },
+      {
+        "instance": "02a4a324-29a8-43ab-9a82-35823301c9b3",
+        "sourceFrameUnchanged": true,
+        "resources": {
+          "geometries": 114,
+          "textures": 22,
+          "programs": 55
+        },
+        "preparation": [
+          {
+            "wet": false,
+            "time": 2,
+            "sourceFrameUnchanged": true,
+            "resources": {
+              "geometries": 114,
+              "textures": 22,
+              "programs": 54
+            },
+            "addedPrograms": []
+          },
+          {
+            "wet": false,
+            "time": 2,
+            "sourceFrameUnchanged": true,
+            "resources": {
+              "geometries": 114,
+              "textures": 22,
+              "programs": 54
+            },
+            "addedPrograms": []
+          },
+          {
+            "wet": false,
+            "time": 2,
+            "sourceFrameUnchanged": true,
+            "resources": {
+              "geometries": 114,
+              "textures": 22,
+              "programs": 54
+            },
+            "addedPrograms": []
+          }
+        ],
+        "hash": 93171300,
+        "cockpit": null,
+        "frontBrake": 1,
+        "frontBrakeLever": {
+          "angle": -0.4,
+          "world": [
+            -0.211,
+            0.9081172342479972,
+            0.4484315382623263
+          ]
+        },
+        "windscreen": {
+          "mode": "production",
+          "thickness": 0,
+          "ior": 1.49,
+          "transmission": 1,
+          "opacity": 1,
+          "transparent": false
+        },
+        "weather": {
+          "source": "presented-snapshot",
+          "dampness": 0,
+          "time": 3,
+          "rain": 0,
+          "meanWater": 0,
+          "materialRoles": {
+            "metal": 7,
+            "rubber": 1,
+            "paint": 10,
+            "fabric": 1,
+            "leather": 5
+          },
+          "roadMaterials": 0,
+          "offTrackWetness": "mean-track-water-and-rain approximation",
+          "extraTextures": 0,
+          "extraDraws": 0
+        },
+        "triangles": 101636,
+        "submittedTriangles": 175148,
+        "calls": 169,
+        "glError": 0,
+        "bounds": {
+          "isBox3": true,
+          "min": {
+            "x": -0.4524813457988668,
+            "y": -0.0962548337573153,
+            "z": -1.1049506470828327
+          },
+          "max": {
+            "x": 0.4524813457988668,
+            "y": 1.4539501530167787,
+            "z": 1.1162548337573153
+          }
+        }
+      },
+      {
+        "instance": "02a4a324-29a8-43ab-9a82-35823301c9b3",
+        "sourceFrameUnchanged": true,
+        "resources": {
+          "geometries": 114,
+          "textures": 22,
+          "programs": 55
+        },
+        "preparation": [
+          {
+            "wet": false,
+            "time": 2,
+            "sourceFrameUnchanged": true,
+            "resources": {
+              "geometries": 114,
+              "textures": 22,
+              "programs": 54
+            },
+            "addedPrograms": []
+          },
+          {
+            "wet": false,
+            "time": 2,
+            "sourceFrameUnchanged": true,
+            "resources": {
+              "geometries": 114,
+              "textures": 22,
+              "programs": 54
+            },
+            "addedPrograms": []
+          },
+          {
+            "wet": false,
+            "time": 2,
+            "sourceFrameUnchanged": true,
+            "resources": {
+              "geometries": 114,
+              "textures": 22,
+              "programs": 54
+            },
+            "addedPrograms": []
+          }
+        ],
+        "hash": 93171300,
+        "cockpit": null,
+        "frontBrake": 1,
+        "frontBrakeLever": {
+          "angle": -0.4,
+          "world": [
+            -0.211,
+            0.9081172342479972,
+            0.4484315382623263
+          ]
+        },
+        "windscreen": {
+          "mode": "production",
+          "thickness": 0,
+          "ior": 1.49,
+          "transmission": 1,
+          "opacity": 1,
+          "transparent": false
+        },
+        "weather": {
+          "source": "presented-snapshot",
+          "dampness": 0,
+          "time": 3,
+          "rain": 0,
+          "meanWater": 0,
+          "materialRoles": {
+            "metal": 7,
+            "rubber": 1,
+            "paint": 10,
+            "fabric": 1,
+            "leather": 5
+          },
+          "roadMaterials": 0,
+          "offTrackWetness": "mean-track-water-and-rain approximation",
+          "extraTextures": 0,
+          "extraDraws": 0
+        },
+        "triangles": 101636,
+        "submittedTriangles": 175148,
+        "calls": 169,
+        "glError": 0,
+        "bounds": {
+          "isBox3": true,
+          "min": {
+            "x": -0.4524813457988668,
+            "y": -0.0962548337573153,
+            "z": -1.1049506470828327
+          },
+          "max": {
+            "x": 0.4524813457988668,
+            "y": 1.4539501530167787,
+            "z": 1.1162548337573153
+          }
+        }
+      },
+      {
+        "instance": "02a4a324-29a8-43ab-9a82-35823301c9b3",
+        "sourceFrameUnchanged": true,
+        "resources": {
+          "geometries": 114,
+          "textures": 22,
+          "programs": 55
+        },
+        "preparation": [
+          {
+            "wet": false,
+            "time": 2,
+            "sourceFrameUnchanged": true,
+            "resources": {
+              "geometries": 114,
+              "textures": 22,
+              "programs": 54
+            },
+            "addedPrograms": []
+          },
+          {
+            "wet": false,
+            "time": 2,
+            "sourceFrameUnchanged": true,
+            "resources": {
+              "geometries": 114,
+              "textures": 22,
+              "programs": 54
+            },
+            "addedPrograms": []
+          },
+          {
+            "wet": false,
+            "time": 2,
+            "sourceFrameUnchanged": true,
+            "resources": {
+              "geometries": 114,
+              "textures": 22,
+              "programs": 54
+            },
+            "addedPrograms": []
+          }
+        ],
+        "hash": 1986063352,
+        "cockpit": null,
+        "frontBrake": 0.5,
+        "frontBrakeLever": {
+          "angle": -0.2,
+          "world": [
+            -0.211,
+            0.9081172342479972,
+            0.4484315382623263
+          ]
+        },
+        "windscreen": {
+          "mode": "production",
+          "thickness": 0,
+          "ior": 1.49,
+          "transmission": 1,
+          "opacity": 1,
+          "transparent": false
+        },
+        "weather": {
+          "source": "presented-snapshot",
+          "dampness": 1,
+          "time": 8,
+          "rain": 20,
+          "meanWater": 0.6000000238418579,
+          "materialRoles": {
+            "metal": 7,
+            "rubber": 1,
+            "paint": 10,
+            "fabric": 1,
+            "leather": 5
+          },
+          "roadMaterials": 0,
+          "offTrackWetness": "mean-track-water-and-rain approximation",
+          "extraTextures": 0,
+          "extraDraws": 0
+        },
+        "triangles": 101636,
+        "submittedTriangles": 174548,
+        "calls": 167,
+        "glError": 0,
+        "bounds": {
+          "isBox3": true,
+          "min": {
+            "x": -0.45989271172354046,
+            "y": -0.0962548337573153,
+            "z": -1.1049506470828327
+          },
+          "max": {
+            "x": 0.45989271172354046,
+            "y": 1.3823837324922537,
+            "z": 1.1162548337573153
+          }
+        }
+      },
+      {
+        "instance": "02a4a324-29a8-43ab-9a82-35823301c9b3",
+        "sourceFrameUnchanged": true,
+        "resources": {
+          "geometries": 114,
+          "textures": 22,
+          "programs": 55
+        },
+        "preparation": [
+          {
+            "wet": false,
+            "time": 2,
+            "sourceFrameUnchanged": true,
+            "resources": {
+              "geometries": 114,
+              "textures": 22,
+              "programs": 54
+            },
+            "addedPrograms": []
+          },
+          {
+            "wet": false,
+            "time": 2,
+            "sourceFrameUnchanged": true,
+            "resources": {
+              "geometries": 114,
+              "textures": 22,
+              "programs": 54
+            },
+            "addedPrograms": []
+          },
+          {
+            "wet": false,
+            "time": 2,
+            "sourceFrameUnchanged": true,
+            "resources": {
+              "geometries": 114,
+              "textures": 22,
+              "programs": 54
+            },
+            "addedPrograms": []
+          }
+        ],
+        "hash": 998956520,
+        "cockpit": null,
+        "frontBrake": 0,
+        "frontBrakeLever": {
+          "angle": 0,
+          "world": [
+            -0.211,
+            0.9081172342479972,
+            0.4484315382623263
+          ]
+        },
+        "windscreen": {
+          "mode": "production",
+          "thickness": 0,
+          "ior": 1.49,
+          "transmission": 1,
+          "opacity": 1,
+          "transparent": false
+        },
+        "weather": {
+          "source": "presented-snapshot",
+          "dampness": 0,
+          "time": 2,
+          "rain": 0,
+          "meanWater": 0,
+          "materialRoles": {
+            "metal": 7,
+            "rubber": 1,
+            "paint": 10,
+            "fabric": 1,
+            "leather": 5
+          },
+          "roadMaterials": 0,
+          "offTrackWetness": "mean-track-water-and-rain approximation",
+          "extraTextures": 0,
+          "extraDraws": 0
+        },
+        "triangles": 101636,
+        "submittedTriangles": 182276,
+        "calls": 173,
+        "glError": 0,
+        "bounds": {
+          "isBox3": true,
+          "min": {
+            "x": -0.46615829188080604,
+            "y": -0.0962548337573153,
+            "z": -1.1049506470828327
+          },
+          "max": {
+            "x": 0.46615829188080604,
+            "y": 1.306964157849547,
+            "z": 1.1162548337573153
+          }
+        }
+      }
+    ]
+  }
+}

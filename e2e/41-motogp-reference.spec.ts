@@ -82,6 +82,34 @@ test('GP reference R1.1: authored LODs, production onboard and same-instance wet
     hashes.push(result.hash);
     triangleCounts.push(result.triangles);
   }
+  // Garment observations use the same production instance through a wet/held/
+  // rewound sequence. A fresh construction cannot prove shader reversal.
+  const riderSequence = await page.evaluate(() =>
+    (
+      window as unknown as { MotoGPReview: { captureBikeSequence: typeof captureBikeSequence } }
+    ).MotoGPReview.captureBikeSequence('rider-rear', 'high', 'gpr1', [
+      { wet: false, time: 2 },
+      { wet: true, time: 10 },
+      { wet: true, time: 10 },
+      { wet: false, time: 2 },
+    ]),
+  );
+  for (const [i, result] of riderSequence.entries()) {
+    expectPrepared(result);
+    expect(result.glError).toBe(0);
+    expect(result.calls).toBeLessThan(220);
+    expect(result.triangles).toBeLessThan(110000);
+    expect(result.sourceFrameUnchanged).toBe(true);
+    expect(result.instance).toBe(riderSequence[0].instance);
+    if (i < 2)
+      await info.attach(`gp-rider-suit-${i === 0 ? 'dry' : 'wet'}.png`, {
+        body: Buffer.from(result.image.split(',')[1], 'base64'),
+        contentType: 'image/png',
+      });
+  }
+  expect(riderSequence[0].hash).not.toBe(riderSequence[1].hash);
+  expect(riderSequence[1].hash).toBe(riderSequence[2].hash);
+  expect(riderSequence[0].hash).toBe(riderSequence[3].hash);
   // Use the production onboard mount and lens, not a convenient exterior angle.
   for (const id of ['gpr1', 'gpr2', 'sbk1000', 'ss600']) {
     const result = await page.evaluate(

@@ -184,9 +184,21 @@ export function addGPIdentity(root: T.Group, materials: BikeMaterials, entrant =
   }
 }
 
-export function riderPanelTexture(colours: RiderColours, torso: boolean) {
+export function riderPanelTexture(colours: RiderColours, torso: boolean, outwardReadable = false) {
   const css = (hex: number) => `#${hex.toString(16).padStart(6, '0')}`;
   return canvasTexture(1024, 512, (c) => {
+    const word = (...args: Parameters<typeof drawWordmark>) => {
+      // The body loft uses +cos(phi), unlike the helmet's -cos(phi). Reverse
+      // ink about its existing centre so each word reads outward; keep panel
+      // backgrounds, UV seams, neck bands and the front zip in their places.
+      if (outwardReadable) {
+        c.save();
+        c.translate(args[2] * 2, 0);
+        c.scale(-1, 1);
+      }
+      drawWordmark(...args);
+      if (outwardReadable) c.restore();
+    };
     c.fillStyle = css(colours.primary);
     c.fillRect(0, 0, 1024, 512);
     c.fillStyle = css(colours.secondary);
@@ -219,22 +231,22 @@ export function riderPanelTexture(colours: RiderColours, torso: boolean) {
       c.setLineDash([]);
       c.strokeStyle = '#e4e6e0';
       if (torso) {
-        drawWordmark(c, 'MOTOBOUND', x + 256, 151, 30, { weight: 0.19, slant: 0.13 });
-        drawWordmark(c, 'WORKS RACING', x + 256, 195, 13, { weight: 0.14, tracking: 0.2 });
+        word(c, 'MOTOBOUND', x + 256, 151, 30, { weight: 0.19, slant: 0.13 });
+        word(c, 'WORKS RACING', x + 256, 195, 13, { weight: 0.14, tracking: 0.2 });
         c.fillStyle = '#d9ddd6';
         c.fillRect(x + 81, 224, 344, 67);
         c.strokeStyle = '#1b262a';
-        drawWordmark(c, 'MERIDIAN OIL', x + 253, 258, 28, {
+        word(c, 'MERIDIAN OIL', x + 253, 258, 28, {
           weight: 0.19,
           width: 0.88,
           slant: 0.1,
         });
         c.strokeStyle = '#e4e6e0';
-        drawWordmark(c, 'KESTREL', x + 151, 320, 14, { weight: 0.16, tracking: 0.1 });
-        drawWordmark(c, 'VOLTEX', x + 353, 320, 15, { weight: 0.18, slant: 0.15 });
+        word(c, 'KESTREL', x + 151, 320, 14, { weight: 0.16, tracking: 0.1 });
+        word(c, 'VOLTEX', x + 353, 320, 15, { weight: 0.18, slant: 0.15 });
       } else {
-        drawWordmark(c, 'WORKS', x + 250, 182, 30, { weight: 0.21, slant: 0.18 });
-        drawWordmark(c, 'RACING', x + 250, 220, 15, { weight: 0.15, tracking: 0.3 });
+        word(c, 'WORKS', x + 250, 182, 30, { weight: 0.21, slant: 0.18 });
+        word(c, 'RACING', x + 250, 220, 15, { weight: 0.15, tracking: 0.3 });
       }
       c.fillStyle = css(colours.secondary);
     }

@@ -8,6 +8,12 @@ import { sampleProfile } from './profile-sampling.ts';
 import { mxAuthoredGeometry } from './offroad/authored-kit.ts';
 import { tagMudExposure } from './offroad/mud.ts';
 import { gpRacingBoot, installGpLeatherFinish } from './gp-rider-gear.ts';
+import {
+  GP_AIRBAG_PROFILE,
+  installGpSuitFinish,
+  shapeGpSuitGeometry,
+  smoothGpSuitSeams,
+} from './gp-rider-suit.ts';
 import { motocrossFabricMaps, motocrossGraphics } from './offroad/motocross-detail.ts';
 import {
   addMotocrossBoot,
@@ -362,9 +368,11 @@ export class Rider {
     readonly detail: RiderDetail = 'high',
     readonly kit: RiderKit = 'leathers',
     readonly raceNumber = 2,
+    readonly gp = false,
   ) {
     const sides = detail === 'high' ? 20 : detail === 'mid' ? 12 : 6;
     const mx = kit === 'motocross';
+    const gpSuit = gp && !mx && detail !== 'far';
     // Textile kit: matte woven fabric with a soft sheen, no lacquer.
     const leather = new T.MeshPhysicalMaterial(
       mx
@@ -441,15 +449,26 @@ export class Rider {
       helmet.roughness = 0.29;
       helmet.clearcoat = 0.78;
       helmet.clearcoatRoughness = 0.18;
-      const surface = bikeSurfaceMaps('leather');
-      Object.assign(leather, surface);
-      Object.assign(panel, surface);
+      if (!gpSuit) {
+        const surface = bikeSurfaceMaps('leather');
+        Object.assign(leather, surface);
+        Object.assign(panel, surface);
+      }
+      // GP hide now uses its metre-space finish. Retaining UV hide maps here
+      // stretches their grain across the airbag dye swatch and duplicates two
+      // texture allocations per rider/LOD without adding physical detail.
       leather.normalScale.set(0.09, 0.09);
       panel.normalScale.set(0.08, 0.08);
       leather.roughness = 0.72;
       leather.clearcoat = 0.035;
       panel.roughness = 0.75;
       panel.clearcoat = 0.025;
+      if (gpSuit) {
+        leather.roughness = 0.63;
+        leather.clearcoat = 0.055;
+        leather.clearcoatRoughness = 0.43;
+        panel.roughness = 0.69;
+      }
       Object.assign(glove, bikeSurfaceMaps('seat'));
       glove.normalScale.set(0.2, 0.2);
       slider.roughness = 0.79;
@@ -513,16 +532,19 @@ export class Rider {
       helmet.color.setHex(0xffffff);
     }
     if (!mx && detail !== 'far') {
-      leather.map = riderPanelTexture(colours, false);
+      leather.map = riderPanelTexture(colours, false, gpSuit);
       leather.color.setHex(0xffffff);
-      torsoLeather.map = riderPanelTexture(colours, true);
+      torsoLeather.map = riderPanelTexture(colours, true, gpSuit);
       torsoLeather.color.setHex(0xffffff);
       helmet.map = helmetLiveryTexture(colours);
       helmet.color.setHex(0xffffff);
     }
     this.materials.push(torsoLeather);
     if (!mx && detail !== 'far')
-      for (const material of [leather, panel, torsoLeather]) installGpLeatherFinish(material);
+      for (const material of [leather, panel, torsoLeather]) {
+        if (gpSuit) installGpSuitFinish(material, material !== panel);
+        else installGpLeatherFinish(material);
+      }
     for (const m of [leather, panel, torsoLeather])
       tagWeatherSurface(m, mx ? 'fabric' : 'leather', 0.85);
     tagWeatherSurface(flex, 'fabric', 0.65);
@@ -546,7 +568,15 @@ export class Rider {
           [0.55, 0.03, 0.08, 0.05, 0.05],
         ]
       : [
-          [-0.06, 0, 0.15, 0.1, 0.09],
+          // Round the GP pelvis into its seat panel; the previous wide open
+          // bottom ring showed a hollow suit from the normal chase camera.
+          [
+            gpSuit ? -0.085 : -0.06,
+            0,
+            gpSuit ? 0.003 : 0.15,
+            gpSuit ? 0.003 : 0.1,
+            gpSuit ? 0.003 : 0.09,
+          ],
           [0.05, 0, 0.165, 0.11, 0.1],
           [0.17, 0.01, 0.145, 0.093, 0.092],
           [0.3, 0.02, 0.172, 0.128, 0.105],
@@ -558,26 +588,38 @@ export class Rider {
       mx && detail !== 'far'
         ? mxAuthoredGeometry('torso', detail)
         : fabric(bodyLoft(torsoSections, sides));
+    if (gpSuit) shapeGpSuitGeometry(torsoGeometry, 'torso');
     part(this.torso, torsoGeometry, torsoLeather).name = mx
       ? 'Motocross sculpted textile torso'
       : 'Rider leather torso';
     // Aero hump (spine protector and airbag housing) on the back.
-    if (detail !== 'far' && !mx)
-      part(
-        this.torso,
-        bodyLoft(
-          [
-            [0.12, -0.075, 0.012, 0.016, 0.018],
-            [0.23, -0.1, 0.068, 0.025, 0.046],
-            [0.36, -0.104, 0.086, 0.024, 0.052],
-            [0.46, -0.085, 0.072, 0.021, 0.048],
-            [0.54, -0.048, 0.032, 0.014, 0.027],
-            [0.57, -0.035, 0.003, 0.003, 0.004],
-          ],
-          sides,
-        ),
-        panel,
+    if (detail !== 'far' && !mx) {
+      const hump = bodyLoft(
+        gpSuit
+          ? GP_AIRBAG_PROFILE
+          : [
+              [0.12, -0.075, 0.012, 0.016, 0.018],
+              [0.23, -0.1, 0.068, 0.025, 0.046],
+              [0.36, -0.104, 0.086, 0.024, 0.052],
+              [0.46, -0.085, 0.072, 0.021, 0.048],
+              [0.54, -0.048, 0.032, 0.014, 0.027],
+              [0.57, -0.035, 0.003, 0.003, 0.004],
+            ],
+        sides,
       );
+      if (gpSuit) {
+        // Dye and a narrow nape insert come from an unprinted part of the
+        // existing torso atlas. Reuse its material without repeating labels
+        // across the raised housing; the object-space finish supplies grain.
+        const uv = hump.getAttribute('uv');
+        for (let i = 0; i < uv.count; i++)
+          uv.setXY(i, 0.43 + uv.getX(i) * 0.009, 0.73 + uv.getY(i) * 0.14);
+        smoothGpSuitSeams(hump);
+      }
+      part(this.torso, hump, gpSuit ? torsoLeather : panel).name = gpSuit
+        ? 'Integrated GP leather airbag housing'
+        : 'Rider aero hump';
+    }
     // Contrast side panels and a shoulder cap per side.
     for (const side of [1, -1]) {
       if (detail === 'far') break;
@@ -747,6 +789,7 @@ export class Rider {
           : !mx && detail !== 'far'
             ? bodyLoft(roadLimbSections(shape, length), sides, 1)
             : limbGeometry(r0, r1, length, sides);
+      if (gpSuit) shapeGpSuitGeometry(geometry, shape);
       // The Blender cloth already carries intentional tension and compression
       // folds; applying a second procedural displacement would distort them.
       const segment = part(
@@ -781,15 +824,35 @@ export class Rider {
             7,
             foldSides,
           ),
-          flex,
+          gpSuit ? leather : flex,
         );
         shoulderStretch.name = 'Conforming shoulder accordion insert';
         const hipStretch = part(
           this.thighs[i].group,
           leatherPanelGeometry(roadLimbSections('thigh', RIDER.thigh), 0.042, 0.157, 9, foldSides),
-          flex,
+          gpSuit ? leather : flex,
         );
         hipStretch.name = 'Conforming hip accordion insert';
+        if (gpSuit) {
+          // Match the underlying skin UVs, keeping the existing seams and
+          // artwork aligned when the leather stretches over a shoulder/hip.
+          for (const [insert, shape, length] of [
+            [shoulderStretch, 'upper-arm', RIDER.upperArm],
+            [hipStretch, 'thigh', RIDER.thigh],
+          ] as const) {
+            const sections = roadLimbSections(shape, length),
+              first = sections[0][0],
+              last = sections[sections.length - 1][0],
+              uv = insert.geometry.getAttribute('uv'),
+              positions = insert.geometry.getAttribute('position');
+            for (let vertex = 0; vertex < uv.count; vertex++)
+              uv.setXY(
+                vertex,
+                T.MathUtils.lerp(0.53, 0.97, uv.getX(vertex)),
+                (positions.getY(vertex) - first) / (last - first),
+              );
+          }
+        }
         const elbowFlex = part(
           this.upperArms[i].group,
           new T.SphereGeometry(0.039, sides, sides / 2),

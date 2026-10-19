@@ -4,7 +4,7 @@ import { resolve } from 'node:path';
 import { readFileSync } from 'node:fs';
 import type { captureCircuitSurfaces } from './fixtures/motogp-environment-review.ts';
 
-test('GP surface references: real ribbon shaders, single tyre rubber, wet holds and bounded family switches on WebGL2', async ({
+test('GP surface references: staggered tyre rubber, wet holds and bounded three-family switches on WebGL2', async ({
   page,
 }, info) => {
   const bundle = await build({
@@ -70,13 +70,33 @@ test('GP surface references: real ribbon shaders, single tyre rubber, wet holds 
     expect(capture.nonzero).toBeGreaterThan(300000);
     expect(capture.calls).toBeLessThan(70);
     expect(capture.triangles).toBeLessThan(100000);
-    expect(capture.rubber.cachedLayers).toBe(2);
+    expect(capture.rubber.cachedLayers).toBe(3);
   }
   expect(find('apex-bike-dry').hash).not.toBe(find('apex-car-dry').hash);
   expect(find('apex-bike-dry').hash).toBe(find('apex-bike-held').hash);
   expect(find('apex-bike-dry').hash).not.toBe(find('apex-bike-wet').hash);
   expect(find('apex-bike-wet').hash).toBe(find('apex-bike-wet-held').hash);
   expect(find('apex-bike-dry').hash).toBe(find('apex-bike-rewound').hash);
+  expect(find('apex-gp-dry').hash).not.toBe(find('apex-bike-dry').hash);
+  expect(find('apex-gp-dry').hash).toBe(find('apex-gp-held').hash);
+  expect(find('apex-gp-dry').hash).not.toBe(find('apex-gp-wet').hash);
+  expect(find('apex-gp-wet').hash).toBe(find('apex-gp-wet-held').hash);
+  expect(find('apex-gp-dry').hash).toBe(find('apex-gp-rewound').hash);
+  expect(find('apex-gp-no-rubber').hash).toBe(find('apex-bike-no-rubber').hash);
+  expect(find('apex-gp-no-rubber').hash).not.toBe(find('apex-gp-road-rubber').hash);
+  expect(find('apex-car-dry').hash).toBe(find('apex-car-restored').hash);
+  // GP adds no active draws and uses fewer triangles for its shorter strokes.
+  expect(find('apex-gp-dry').calls).toBeLessThanOrEqual(find('apex-bike-dry').calls);
+  expect(find('apex-gp-dry').triangles).toBeLessThan(find('apex-bike-dry').triangles);
+  expect(find('braking-gp').hash).not.toBe(find('braking-bike').hash);
+  expect(find('braking-gp').hash).not.toBe(find('braking-gp-road-only').hash);
+  expect(find('braking-gp').hash).toBe(find('braking-gp-restored').hash);
+  expect(find('braking-gp').calls).toBeGreaterThan(find('braking-gp-road-only').calls);
+  expect(find('braking-gp').resources).toEqual(find('braking-gp-restored').resources);
+  const gpGeometry = result.rubberGeometry.find((layer) => layer.name === 'GP contact trails');
+  expect(gpGeometry).toBeDefined();
+  expect(gpGeometry!.bytes).toBeLessThan(300000);
+  expect(gpGeometry!.triangles).toBeLessThan(6000);
   expect(find('launch-bike').hash).not.toBe(find('launch-car').hash);
   expect(find('launch-bike').hash).toBe(find('launch-bike-restored').hash);
   // Camera changes legitimately upload additional culled ribbon geometries;
@@ -88,6 +108,15 @@ test('GP surface references: real ribbon shaders, single tyre rubber, wet holds 
     'apex-bike-wet',
     'apex-bike-wet-held',
     'apex-bike-rewound',
+    'apex-gp-dry',
+    'apex-gp-held',
+    'apex-gp-wet',
+    'apex-gp-wet-held',
+    'apex-gp-rewound',
+    'apex-bike-no-rubber',
+    'apex-gp-no-rubber',
+    'apex-gp-road-rubber',
+    'apex-car-restored',
   ])
     expect(find(name).resources).toEqual(result.before);
   expect(find('launch-bike').resources).toEqual(find('launch-bike-restored').resources);

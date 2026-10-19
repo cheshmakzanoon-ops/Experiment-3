@@ -59,6 +59,7 @@ export async function captureCircuitSurfaces(assets: Record<string, string>) {
   const state = new T.DataTexture(stateBytes, CELL_COLS, CELL_ROWS, T.RGBAFormat);
   state.magFilter = state.minFilter = T.LinearFilter;
   const motorcycleSurface = { value: 0 };
+  const gpSurface = { value: 0 };
   const tyreRubber = new TyreMarkPresentation(track, state);
   const surfaces = new StaticTransformGroup();
   scene.add(surfaces);
@@ -68,11 +69,12 @@ export async function captureCircuitSurfaces(assets: Record<string, string>) {
     track,
     surfaces,
     motorcycleSurface,
+    gpSurface,
     tyreRubber,
   }) as CircuitScene;
   const road = surfaceMaterial('asphalt', undefined, true);
   installWetRoad(road, state, true);
-  installRoadDetail(road, track.length, motorcycleSurface, surfaceGridFor(track));
+  installRoadDetail(road, track.length, motorcycleSurface, surfaceGridFor(track), gpSurface);
   installWetDetail(road);
   installScannedAsphalt(road);
   const runoff = surfaceMaterial('asphalt', 'paint');
@@ -157,13 +159,13 @@ export async function captureCircuitSurfaces(assets: Record<string, string>) {
   function resources() {
     return { ...renderer.info.memory, programs: renderer.info.programs?.length ?? 0 };
   }
-  function setWater(wet: boolean) {
+  function setWater(wet: boolean, rubber = 105) {
     for (let row = 0; row < CELL_ROWS; row++)
       for (let col = 0; col < CELL_COLS; col++) {
         const i = (row * CELL_COLS + col) * 4;
         const edge = Math.abs((col / (CELL_COLS - 1)) * 2 - 1);
         stateBytes[i] = wet ? Math.round(90 + edge * 60) : 0;
-        stateBytes[i + 1] = 105;
+        stateBytes[i + 1] = rubber;
         stateBytes[i + 2] = 0;
         stateBytes[i + 3] = 255;
       }
@@ -179,13 +181,16 @@ export async function captureCircuitSurfaces(assets: Record<string, string>) {
       at.z + at.nz * lateral,
     );
   }
-  function view(kind: 'apex' | 'edge' | 'launch') {
+  function view(kind: 'apex' | 'edge' | 'launch' | 'braking') {
     if (kind === 'apex') {
       camera.position.copy(point(565, track.at(565, p).width - 3.4, 1.6));
       camera.lookAt(point(594, track.at(594, p).width - 3.2, 0.5));
     } else if (kind === 'edge') {
       camera.position.copy(point(588, track.at(588, p).width + 5.8, 2.2));
       camera.lookAt(point(596, track.at(596, p).width + 0.2, 0.05));
+    } else if (kind === 'braking') {
+      camera.position.copy(point(494, 1.7, 1.6));
+      camera.lookAt(point(529, 2.7, 0.25));
     } else {
       camera.position.copy(point(track.length - 37, 7.8, 7));
       camera.lookAt(point(track.length - 26, 1.2, 0));
@@ -214,6 +219,23 @@ export async function captureCircuitSurfaces(assets: Record<string, string>) {
       rubber: tyreRubber.diagnostics(),
     });
   }
+  function rubberGeometry() {
+    return tyreRubber.root.children.map((layer) => {
+      let bytes = 0,
+        vertices = 0,
+        triangles = 0;
+      layer.traverse((object) => {
+        if (!(object instanceof T.Mesh)) return;
+        const geometry = object.geometry as T.BufferGeometry;
+        for (const attribute of Object.values(geometry.attributes))
+          bytes += attribute.array.byteLength;
+        bytes += geometry.index?.array.byteLength ?? 0;
+        vertices += geometry.getAttribute('position').count;
+        triangles += (geometry.index?.count ?? 0) / 3;
+      });
+      return { name: layer.name, meshes: layer.children.length, bytes, vertices, triangles };
+    });
+  }
   try {
     // Real shipped WebP bytes, through the production PBR loader. They reach
     // the same APEX_SCAN_HEX high-preset programs without a network dependency.
@@ -224,11 +246,14 @@ export async function captureCircuitSurfaces(assets: Record<string, string>) {
     }
     setWater(false);
     view('apex');
-    // Compile/upload both bounded cached mark layers before resource checks.
+    // Compile/upload the three bounded cached mark layers before resource checks.
     circuit.setMotorcyclePresentation(false);
     renderer.render(scene, camera);
     circuit.setMotorcyclePresentation(true);
     renderer.render(scene, camera);
+    circuit.setMotorcyclePresentation(true, true);
+    renderer.render(scene, camera);
+    circuit.setMotorcyclePresentation(true);
     const before = resources();
     draw('apex-bike-dry');
     circuit.setMotorcyclePresentation(false);
@@ -241,23 +266,64 @@ export async function captureCircuitSurfaces(assets: Record<string, string>) {
     draw('apex-bike-wet-held');
     setWater(false);
     draw('apex-bike-rewound');
+    circuit.setMotorcyclePresentation(true, true);
+    draw('apex-gp-dry');
+    for (let i = 0; i < 60; i++) circuit.setMotorcyclePresentation(i % 3 !== 0, i % 3 === 2);
+    circuit.setMotorcyclePresentation(true, true);
+    draw('apex-gp-held');
+    setWater(true);
+    draw('apex-gp-wet');
+    draw('apex-gp-wet-held');
+    setWater(false);
+    draw('apex-gp-rewound');
+    // Isolate the rubber field from the seeded historical slip strokes. With
+    // no laid rubber, GP must not leave a synthetic guide on the asphalt.
+    tyreRubber.root.visible = false;
+    setWater(false, 0);
+    circuit.setMotorcyclePresentation(true);
+    draw('apex-bike-no-rubber');
+    circuit.setMotorcyclePresentation(true, true);
+    draw('apex-gp-no-rubber');
+    setWater(false);
+    draw('apex-gp-road-rubber');
+    tyreRubber.root.visible = true;
+    circuit.setMotorcyclePresentation(false);
+    draw('apex-car-restored');
+    circuit.setMotorcyclePresentation(true);
     view('edge');
     draw('kerb-runoff-verge');
+    view('braking');
+    circuit.setMotorcyclePresentation(true);
+    draw('braking-bike');
+    circuit.setMotorcyclePresentation(true, true);
+    draw('braking-gp');
+    // This view intersects the GP brake-zone strokes themselves, so the
+    // shared wet/atmosphere mark program and its cached geometry are exercised.
+    tyreRubber.root.visible = false;
+    draw('braking-gp-road-only');
+    tyreRubber.root.visible = true;
+    draw('braking-gp-restored');
     view('launch');
     circuit.setMotorcyclePresentation(false);
     renderer.render(scene, camera);
     circuit.setMotorcyclePresentation(true);
     renderer.render(scene, camera);
+    circuit.setMotorcyclePresentation(true, true);
+    renderer.render(scene, camera);
+    circuit.setMotorcyclePresentation(true);
     draw('launch-bike');
     circuit.setMotorcyclePresentation(false);
     draw('launch-car');
     circuit.setMotorcyclePresentation(true);
     draw('launch-bike-restored');
+    circuit.setMotorcyclePresentation(true, true);
+    draw('launch-gp');
     return {
       scope:
         'Production circuit surface components, two bounded Aurel segments, high scanned materials; not a full race',
       captures,
       before,
+      rubberGeometry: rubberGeometry(),
       after: resources(),
       scanned: scannedGround.diagnostics(),
       glError: renderer.getContext().getError(),

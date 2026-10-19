@@ -6,6 +6,7 @@ import { racingLineFor } from '../src/simulation/racing-line.ts';
 import {
   TYRE_MARKS,
   BIKE_TYRE_MARKS,
+  GP_TYRE_MARKS,
   TyreMarkPresentation,
   buildTyreMarks,
   installTyreMarkWater,
@@ -31,6 +32,80 @@ const track = (id: 'aurel' | 'vellamar') =>
   new Track('clear', false, undefined, circuitDefinition(id));
 
 describe('laid tyre rubber', () => {
+  it('staggers GP slip strokes within the brake zone with feathered starts and releases', () => {
+    const t = track('aurel'),
+      zone = { kind: 'braking' as const, start: 490, end: 610, strength: 38 },
+      marks = tyreMarks(t, [zone], 5417, true, true),
+      point = trackPoint();
+    expect(marks.length).toBeGreaterThan(2);
+    expect(marks.length).toBeLessThanOrEqual(GP_TYRE_MARKS.maximumPasses);
+    expect(tyreMarks(t, [zone], 5417, true, true)).toEqual(marks);
+    const ends = marks.map((mark) => mark.s[mark.s.length - 1]);
+    // Slip releases throughout the braking approach; it does not send every
+    // stroke into the same apex or leave a continuous ideal-line instruction.
+    expect(Math.max(...ends) - Math.min(...ends)).toBeGreaterThan(30);
+    expect(Math.max(...ends)).toBeGreaterThan(zone.end - 15);
+    for (const mark of marks) {
+      const end = mark.s.length - 1;
+      expect(mark.s[0]).toBeGreaterThanOrEqual(zone.start);
+      expect(mark.s[end]).toBeLessThanOrEqual(zone.end);
+      expect(mark.s[end] - mark.s[0]).toBeLessThanOrEqual(GP_TYRE_MARKS.length[1] + 1e-4);
+      expect(mark.alpha[0]).toBe(0);
+      expect(mark.alpha[end]).toBe(0);
+      expect(Math.max(...mark.alpha)).toBeGreaterThan(0.05);
+      for (let i = 0; i < mark.s.length; i++) {
+        t.at(mark.s[i], point);
+        expect(Math.abs(mark.lateral[i]) + mark.width! / 2).toBeLessThan(point.width);
+        expect(mark.alpha[i]).toBeGreaterThanOrEqual(0);
+        expect(mark.alpha[i]).toBeLessThanOrEqual(GP_TYRE_MARKS.strength[1]);
+      }
+    }
+    expect(marks).not.toEqual(tyreMarks(t, [zone], 5417, true));
+    // A mismatched GP hint must never change car rendering or its RNG stream.
+    expect(tyreMarks(t, [zone], 5417, false, true)).toEqual(tyreMarks(t, [zone], 5417, false));
+  });
+
+  it('retains three lazy family layers and one shared material through repeated GP replay switches', () => {
+    stubCanvas();
+    const t = track('aurel'),
+      state = new T.DataTexture(new Uint8Array(4), 1, 1),
+      parent = new T.Group(),
+      presentation = new TyreMarkPresentation(t, state);
+    presentation.setMotorcycle(true, true);
+    expect(presentation.root.children).toHaveLength(0);
+    presentation.build(parent);
+    expect(presentation.diagnostics().mode).toBe('gp');
+    expect(presentation.diagnostics().cachedLayers).toBe(1);
+    presentation.setMotorcycle(true);
+    expect(presentation.diagnostics().mode).toBe('motorcycle');
+    presentation.setMotorcycle(false);
+    const geometries = new Set<T.BufferGeometry>(),
+      materials = new Set<T.MeshStandardMaterial>(),
+      objects: T.Object3D[] = [];
+    presentation.root.traverse((object) => {
+      objects.push(object);
+      if (object instanceof T.Mesh) {
+        geometries.add(object.geometry);
+        materials.add(object.material as T.MeshStandardMaterial);
+      }
+    });
+    for (let i = 0; i < 90; i++) presentation.setMotorcycle(i % 3 !== 0, i % 3 === 2);
+    const restored: T.Object3D[] = [];
+    presentation.root.traverse((object) => restored.push(object));
+    expect(restored).toEqual(objects);
+    expect(presentation.diagnostics().cachedLayers).toBe(3);
+    expect(presentation.diagnostics().mode).toBe('gp');
+    expect(presentation.root.children.filter((layer) => layer.visible)).toHaveLength(1);
+    expect(materials.size).toBe(1);
+    expect(parent.children).toEqual([presentation.root]);
+    for (const geometry of geometries) geometry.dispose();
+    for (const material of materials) {
+      material.alphaMap?.dispose();
+      material.dispose();
+    }
+    state.dispose();
+  });
+
   it('lays single narrow motorcycle contact paths instead of paired car wheel tracks', () => {
     const t = track('aurel'),
       zones = [{ kind: 'braking' as const, start: 500, end: 560, strength: 24 }],

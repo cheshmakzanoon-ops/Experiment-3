@@ -879,7 +879,11 @@ export class RacingRenderer {
       // and uploads on the first GPU fence instead of the compilation stage.
       // The same models, LOD policy, warmup views and completion gate remain.
       this.bikeShells.update(frame, frame, 1, this.cars, this.camera, this.quality, this.follow);
-      this.circuit.setMotorcyclePresentation(BikeShells.isBike(frame, this.follow));
+      this.circuit.setMotorcyclePresentation(
+        BikeShells.isBike(frame, this.follow),
+        vehicleAt(Math.round(frame[carBase(this.follow) + RACE_BASE + R.VEHICLE])).classId ===
+          'gp-bike',
+      );
       if (this.photoSky?.enabled) {
         progress('Loading the photographed sky…');
         await this.photoSky.ready(frame[H.CLOUD], this.lighting);
@@ -1163,7 +1167,7 @@ export class RacingRenderer {
         bikeFollow &&
         followedDefinition.classId === 'motocross' &&
         !!followedDefinition.bike?.offroad;
-    this.circuit.setMotorcyclePresentation(bikeFollow);
+    this.circuit.setMotorcyclePresentation(bikeFollow, followedDefinition.classId === 'gp-bike');
     const bikeView =
       bikeFollow && !motocrossFollow
         ? motorcycleChase(

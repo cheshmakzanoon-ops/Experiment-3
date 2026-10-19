@@ -77,6 +77,21 @@ export const ROAD_DETAIL = Object.freeze({
   profileStep: 2,
 });
 
+/** GP rubber settles into several nearby contact paths, strongest around the
+ * braking profile. REF_030/031 show separate, wandering passes; REF_014/039
+ * show open tarmac between corners. These are appearance dimensions, not a
+ * grip model. The simulation's rubber channel remains the sole amplitude. */
+export const GP_ROAD_RUBBER = Object.freeze({
+  /** Slowly varying path spacing and width, metres. */
+  spacing: [0.26, 0.86] as const,
+  width: [0.24, 0.34] as const,
+  wander: 0.38,
+  /** Variation length along the lap, closed at the start line. */
+  variationLength: 44,
+  /** Light upright traffic, stronger braking/corner polish. */
+  deposit: [0.34, 0.88] as const,
+});
+
 /** Start-grid slots, as the simulation places cars (world.ts) and the circuit
  * paints the boxes: the front row this many metres before the line, rows
  * `spacing` apart, columns at +-`lateral` metres. */
@@ -312,6 +327,7 @@ varying vec2 vApexLine;
 varying float vApexBikeBrake;
 varying float vEdgeMetres;
 uniform float apexMotorcycleSurface;
+uniform float apexGpSurface;
 // Value noise that repeats every 'period' cells along y, so lap-distance
 // patterns close exactly at the start line.
 float apexLapNoise(vec2 p, float period) {
@@ -330,17 +346,21 @@ export function installRoadDetail(
   lapLength: number,
   motorcycle: T.IUniform<number> = { value: 0 },
   grid: SurfaceGrid = START_GRID,
+  grandPrix: T.IUniform<number> = { value: 0 },
 ) {
   if (!Number.isFinite(lapLength) || lapLength <= 0) throw new Error('Invalid road lap length');
   const R = ROAD_DETAIL,
+    GP = GP_ROAD_RUBBER,
     G = grid,
     L = LAUNCH_RUBBER,
     launchBack = G.front + (G.rows - 1) * G.spacing + L.axle;
   // Striation cells along the lap: an integer count, so the pattern closes.
   const alongCells = Math.max(1, Math.round(lapLength / 18)),
-    streakCells = Math.max(1, Math.round(lapLength / R.streakLength));
-  return chainShaderHook(material, 'road-detail-v6', (shader) => {
+    streakCells = Math.max(1, Math.round(lapLength / R.streakLength)),
+    gpCells = Math.max(1, Math.round(lapLength / GP.variationLength));
+  return chainShaderHook(material, 'road-detail-v7', (shader) => {
     shader.uniforms.apexMotorcycleSurface = motorcycle;
+    shader.uniforms.apexGpSurface = grandPrix;
     for (const needed of [
       'vec4 roadState',
       'varying vec2 vRoadMetres',
@@ -384,6 +404,34 @@ export function installRoadDetail(
         float apexRubber = smoothstep(0.0, ${g(R.rubberFull)}, roadState.g);
         float apexSigma = mix(${g(R.lineSigma)}, 0.56, apexMotorcycleSurface);
         float apexCore = exp(-0.5 * (apexX / apexSigma) * (apexX / apexSigma));
+        float gpFootprint = max(fwidth(apexX), 1e-4);
+        // Only GP changes the distribution. Cars and other motorcycles keep
+        // the original calculation exactly, including their wet response.
+        if (apexGpSurface > 0.5) {
+          float gpPhase = vRoadMetres.y / ${g(lapLength)} * ${g(gpCells)};
+          float gpFlow = apexLapNoise(vec2(2.31, gpPhase), ${g(gpCells)});
+          float gpOffset = (gpFlow - 0.5) * ${g(GP.wander)};
+          float gpSpread = mix(${g(GP.spacing[0])}, ${g(GP.spacing[1])}, apexBrake);
+          float gpWidth = mix(${g(GP.width[0])}, ${g(GP.width[1])}, apexBrake);
+          // Gaussian pixel filtering broadens unresolved contact paths while
+          // preserving their integrated coverage, so they cannot flicker into
+          // dark dotted guide lines at riding-camera distance.
+          float gpFilteredWidth = sqrt(gpWidth * gpWidth + gpFootprint * gpFootprint / 12.0);
+          // Three populations of passes overlap softly. Their lateral
+          // positions and strengths drift independently over tens of metres;
+          // no repeated paired wheel tracks or painted centre guide.
+          float gpLeft = apexLapNoise(vec2(5.73, gpPhase + 3.7), ${g(gpCells)});
+          float gpRight = apexLapNoise(vec2(9.17, gpPhase + 8.2), ${g(gpCells)});
+          vec3 gpDistance = (vec3(apexX - gpOffset) - vec3(
+            -gpSpread * (0.7 + 0.6 * gpLeft),
+            (gpRight - gpLeft) * 0.24,
+            gpSpread * (0.7 + 0.6 * gpRight))) / gpFilteredWidth;
+          vec3 gpPaths = exp(-0.5 * gpDistance * gpDistance);
+          float gpPolish = dot(gpPaths, vec3(
+            0.3 + 0.12 * gpLeft, 0.4 + 0.12 * gpFlow, 0.3 + 0.12 * gpRight));
+          apexCore = gpPolish * (gpWidth / gpFilteredWidth) *
+            mix(${g(GP.deposit[0])}, ${g(GP.deposit[1])}, apexBrake);
+        }
         // Laid rubber is streaky: many passes a tyre wide, a little off the
         // mean line. Fine lateral striations, varying slowly along the lap and
         // converging to their mean before they would alias.

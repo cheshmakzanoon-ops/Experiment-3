@@ -1,0 +1,209 @@
+{
+  "before_commit": "4d20731",
+  "test": "e2e/42-motogp-environment.spec.ts",
+  "status": "passed",
+  "test_stats": {
+    "startTime": "2026-10-19T03:09:26.082Z",
+    "duration": 168077.47100000002,
+    "expected": 1,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "baseline_compatibility_hash_equal": {
+    "apex-bike-dry": true,
+    "apex-car-dry": true,
+    "apex-bike-held": true,
+    "apex-bike-wet": true,
+    "apex-bike-wet-held": true,
+    "apex-bike-rewound": true,
+    "kerb-runoff-verge": true,
+    "launch-bike": true,
+    "launch-car": true,
+    "launch-bike-restored": true
+  },
+  "gp_geometry": [
+    {
+      "name": "Four-wheel contact trails",
+      "meshes": 4,
+      "bytes": 546880,
+      "vertices": 8846,
+      "triangles": 8584
+    },
+    {
+      "name": "Motorcycle contact trails",
+      "meshes": 6,
+      "bytes": 246156,
+      "vertices": 3978,
+      "triangles": 3898
+    },
+    {
+      "name": "GP contact trails",
+      "meshes": 7,
+      "bytes": 170392,
+      "vertices": 2756,
+      "triangles": 2676
+    }
+  ],
+  "sample_metrics": {
+    "apex-gp-dry": {
+      "name": "apex-gp-dry",
+      "hash": 3647989174,
+      "nonzero": 400000,
+      "calls": 16,
+      "triangles": 27388,
+      "resources": {
+        "geometries": 18,
+        "textures": 20,
+        "programs": 6
+      },
+      "rubber": {
+        "mode": "gp",
+        "cachedLayers": 3,
+        "activeMeshes": 7,
+        "treadWidth": 0.18
+      }
+    },
+    "apex-bike-dry": {
+      "name": "apex-bike-dry",
+      "hash": 1456878152,
+      "nonzero": 400000,
+      "calls": 16,
+      "triangles": 27840,
+      "resources": {
+        "geometries": 18,
+        "textures": 20,
+        "programs": 6
+      },
+      "rubber": {
+        "mode": "motorcycle",
+        "cachedLayers": 3,
+        "activeMeshes": 6,
+        "treadWidth": 0.18
+      }
+    },
+    "apex-car-dry": {
+      "name": "apex-car-dry",
+      "hash": 1527667693,
+      "nonzero": 400000,
+      "calls": 16,
+      "triangles": 27392,
+      "resources": {
+        "geometries": 18,
+        "textures": 20,
+        "programs": 6
+      },
+      "rubber": {
+        "mode": "car",
+        "cachedLayers": 3,
+        "activeMeshes": 4,
+        "treadWidth": 0.3
+      }
+    },
+    "braking-gp": {
+      "name": "braking-gp",
+      "hash": 2880859933,
+      "nonzero": 400000,
+      "calls": 22,
+      "triangles": 38868,
+      "resources": {
+        "geometries": 24,
+        "textures": 20,
+        "programs": 6
+      },
+      "rubber": {
+        "mode": "gp",
+        "cachedLayers": 3,
+        "activeMeshes": 7,
+        "treadWidth": 0.18
+      }
+    },
+    "braking-gp-road-only": {
+      "name": "braking-gp-road-only",
+      "hash": 1375524198,
+      "nonzero": 400000,
+      "calls": 21,
+      "triangles": 38520,
+      "resources": {
+        "geometries": 24,
+        "textures": 20,
+        "programs": 6
+      },
+      "rubber": {
+        "mode": "gp",
+        "cachedLayers": 3,
+        "activeMeshes": 7,
+        "treadWidth": 0.18
+      }
+    },
+    "apex-gp-wet": {
+      "name": "apex-gp-wet",
+      "hash": 3122511074,
+      "nonzero": 400000,
+      "calls": 16,
+      "triangles": 27388,
+      "resources": {
+        "geometries": 18,
+        "textures": 20,
+        "programs": 6
+      },
+      "rubber": {
+        "mode": "gp",
+        "cachedLayers": 3,
+        "activeMeshes": 7,
+        "treadWidth": 0.18
+      }
+    },
+    "launch-gp": {
+      "name": "launch-gp",
+      "hash": 1617651448,
+      "nonzero": 400000,
+      "calls": 14,
+      "triangles": 27936,
+      "resources": {
+        "geometries": 38,
+        "textures": 20,
+        "programs": 6
+      },
+      "rubber": {
+        "mode": "gp",
+        "cachedLayers": 3,
+        "activeMeshes": 7,
+        "treadWidth": 0.18
+      }
+    }
+  },
+  "gl_error": 0,
+  "scope": "Production circuit surface components, two bounded Aurel segments, high scanned materials; not a full race",
+  "physical_hardware_validated": false,
+  "backend": {
+    "api": "WebGL2",
+    "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+    "classification": "software",
+    "verified_by": "Existing Playwright globalSetup backend verification in the actual passing environment gate",
+    "chromium_executable": "/root/.cache/ms-playwright/chromium-1193/chrome-linux/chrome"
+  },
+  "execution": {
+    "command": "npx playwright test --config=/tmp/gp-circuit-e2e.config.ts",
+    "configuration_note": "Temporary config imports the repository Playwright config; selects the environment spec, sets cached Chromium and output paths, and omits the unnecessary webServer for this embedded fixture. Existing backend verification, assertions, and original 300-second test deadline remain enabled."
+  },
+  "source_sha256_at_handoff": {
+    "src/rendering/studio/road-detail.ts": "ad52fe8d71e03a6c2bb1a2d681801383fb4f89c3eabe616e7d63dbae06aa4878",
+    "src/rendering/tyre-marks.ts": "73544f6ccf4268b5364519b8bfd554070c447360ce76dddb0109ba4ff8a3e60a",
+    "src/rendering/circuit.ts": "682fcb83a3c3fee16537300153b529d93240db9c524843346cfefc71c5c7c257",
+    "src/rendering/renderer.ts": "8a4fbaf04ac1460e8f87660ff2dfecc6a9ecfa1b5272ad38b750c2d32822ba89",
+    "tests/road-detail.test.ts": "d145cc6828e2442e34476fe04189cb098b0032f87af5b589f99dd789421b28f1",
+    "tests/tyre-marks.test.ts": "90c7877647f24309e5aabe96da1911f8af20ab069fd3dcc9f432fee643631beb",
+    "tests/scanned-ground.test.ts": "8c439cc5b1047deaaff3ea06995b92baf673e757094fc65f2894e1cf0151c142",
+    "tests/startup.test.ts": "ee6cf1bd832e4722c826a786dd10bb3d7fd15aa5e35196c429dc6adb0a3b8581",
+    "e2e/fixtures/motogp-environment-review.ts": "af4a44c41d26c7f576754312fb6f852ab7faab8750a582c37f5574d389aafe03",
+    "e2e/42-motogp-environment.spec.ts": "5ec34d7578ce86445faa5c6b28184a65a7ffbcfbfca16af4d2dff918203efa80"
+  },
+  "selected_artifact_sha256": {
+    "apex-gp-dry.png": "a8fc6747995b4a5508fe11637566d878d84e92cd0a6a18fde4c74b535004bb86",
+    "apex-gp-wet.png": "f97635b079e2512975fd91aac7056bd152c06807c4a2ce4b93dbc29073959d80",
+    "braking-gp.png": "22ac11e0cc462b96584a7ac2652844037a53e7235c4ed0e0b358df081c5f7ddb",
+    "braking-bike.png": "dda2aa51d9bceda5bd048388faad6b64c10efc1e860953c2ed66875d5c68b6b7",
+    "environment-material-metrics.json": "fb5fe4edd8ff669fa77dbd504a82e8afea41f6056e0cb7f2ce11e94cc43d160f"
+  }
+}

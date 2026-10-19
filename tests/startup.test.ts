@@ -89,11 +89,15 @@ function fixture(vehicle = 'apx01') {
   return { target, calls, sample, typed: target as unknown as RacingRenderer };
 }
 it.each([
-  { vehicle: 'apx01', motorcycle: false },
-  { vehicle: 'gpr1', motorcycle: true },
+  { vehicle: 'apx01', motorcycle: false, grandPrix: false },
+  { vehicle: 'gpr1', motorcycle: true, grandPrix: true },
+  { vehicle: 'gpr2', motorcycle: true, grandPrix: true },
+  { vehicle: 'sbk1000', motorcycle: true, grandPrix: false },
+  { vehicle: 'ss600', motorcycle: true, grandPrix: false },
+  { vehicle: 'mx450', motorcycle: true, grandPrix: false },
 ])(
   'yields construction, compiles and warms $vehicle camera passes without modifying simulation time',
-  async ({ vehicle, motorcycle }) => {
+  async ({ vehicle, motorcycle, grandPrix }) => {
     const { target, typed, sample, calls } = fixture(vehicle);
     const yieldFrame = vi.fn(async () => {
       calls.push('yield');
@@ -121,7 +125,10 @@ it.each([
       target.quality,
       target.follow,
     );
-    expect(target.circuit.setMotorcyclePresentation).toHaveBeenCalledExactlyOnceWith(motorcycle);
+    expect(target.circuit.setMotorcyclePresentation).toHaveBeenCalledExactlyOnceWith(
+      motorcycle,
+      grandPrix,
+    );
     expect(calls.indexOf('bike-materials')).toBeLessThan(calls.indexOf('compile'));
     expect(calls.indexOf(`motorcycle-surface:${motorcycle}`)).toBeLessThan(
       calls.indexOf('compile'),
