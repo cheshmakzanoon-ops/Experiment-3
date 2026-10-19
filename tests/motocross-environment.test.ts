@@ -91,7 +91,8 @@ describe('reference-informed MX environments', () => {
       const dressing = new MxCourseDressing(track);
       expect(dressing.stats.stakes).toBeGreaterThan(60);
       expect(dressing.stats.jumpMarkers).toBeGreaterThan(8);
-      expect(finiteGeometry(dressing.root)).toBeLessThan(14);
+      // Two shared-geometry understory layers add two outdoor submissions.
+      expect(finiteGeometry(dressing.root)).toBeLessThanOrEqual(14);
       const m = new T.Matrix4(),
         point = trackPoint(),
         p = new T.Vector3();

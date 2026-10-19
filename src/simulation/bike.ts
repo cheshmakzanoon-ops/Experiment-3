@@ -179,9 +179,9 @@ export class Bike {
    * multiplier, sine of the uphill gradient along the heading, drag scale
    * (rider tuck) and whether the separated rider is back at the bike. */
   grip = 1;
-  /** Optional per-contact grip for GP prototypes. The adapter keeps `grip`
+  /** Optional per-contact grip for GP prototypes and player motocross. The adapter keeps `grip`
    * at the lower value for conservative lean intent, but an intact rear
-   * contact must not lose its drive grip because the front crosses a kerb
+   * contact must not lose its drive grip because the front crosses a kerb or mud
    * (or vice versa under braking). Other motorcycles retain shared grip.
    * These are sampled environment inputs, not integrated/replay state. */
   frontGrip?: number;

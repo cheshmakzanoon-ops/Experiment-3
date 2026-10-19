@@ -32,6 +32,23 @@ export interface LandingChallengeResult {
   kind: 'target' | 'short' | 'long' | 'rough';
   /** Repeating an already cleared feature never inflates course progress. */
   first: boolean;
+  /** Speed in m/s in the first observed airborne snapshot, not the advised
+   * approach speed. A rendering interval can put this just beyond the lip. */
+  takeoffSpeed: number;
+  /** Signed metres outside the actual downslope pocket: negative is short,
+   * positive is past it, zero is anywhere inside. Its centre is not a second,
+   * arbitrary target: every clean landing inside the zone counts equally. */
+  miss: number;
+  /** Metres closer than the best clean attempt. Before the first clean one,
+   * compare the last settled attempt so a rough-short to clean-target recovery
+   * is visible. A rough contact itself never earns an improvement. */
+  improvedBy: number;
+}
+
+export interface LandingChallengeHistory {
+  attempts: number;
+  last: LandingChallengeResult;
+  best: LandingChallengeResult | null;
 }
 
 /** Optional solo objective: land cleanly in every authored downslope zone.
@@ -40,6 +57,8 @@ export interface LandingChallengeResult {
  * Progress is session-local; no career, storage or simulation writes. */
 export class MotocrossLandingChallenge {
   readonly cleared = new Set<number>();
+  /** At most one record per surveyed feature; live session only. */
+  readonly history = new Map<number, LandingChallengeHistory>();
   last: LandingChallengeResult | null = null;
   private course: object | null = null;
   private machine = '';
@@ -49,11 +68,18 @@ export class MotocrossLandingChallenge {
   private previousEligible = false;
   private airborne = false;
   private airTime = 0;
-  private flight: JumpSurvey | null = null;
-  private pending: { jump: JumpSurvey; at: number; s: number; clean: boolean } | null = null;
+  private flight: { jump: JumpSurvey; takeoffSpeed: number } | null = null;
+  private pending: {
+    jump: JumpSurvey;
+    takeoffSpeed: number;
+    at: number;
+    s: number;
+    clean: boolean;
+  } | null = null;
 
   reset() {
     this.cleared.clear();
+    this.history.clear();
     this.course = null;
     this.machine = '';
     this.time = -Infinity;
@@ -119,15 +145,15 @@ export class MotocrossLandingChallenge {
         this.flight = null;
         if (this.previousEligible && sample.speed > LANDING_RULES.rollingHopSpeed) {
           const observedTravel = Math.max(3, delta + 1);
-          this.flight =
-            sample.jumps.find(
-              (jump) =>
-                isMotocrossLandingTarget(jump) &&
-                this.previousS >= jump.start - observedTravel &&
-                this.previousS <= jump.takeoff + 1 &&
-                s >= jump.start - 1 &&
-                s <= jump.takeoff + observedTravel,
-            ) ?? null;
+          const jump = sample.jumps.find(
+            (jump) =>
+              isMotocrossLandingTarget(jump) &&
+              this.previousS >= jump.start - observedTravel &&
+              this.previousS <= jump.takeoff + 1 &&
+              s >= jump.start - 1 &&
+              s <= jump.takeoff + observedTravel,
+          );
+          if (jump) this.flight = { jump, takeoffSpeed: sample.speed };
         }
         this.airTime = 0;
       }
@@ -136,7 +162,7 @@ export class MotocrossLandingChallenge {
       if (this.airborne) {
         if (this.flight && Math.max(this.airTime, sample.airTime) > 0.2)
           this.pending = {
-            jump: this.flight,
+            ...this.flight,
             at: sample.time,
             s,
             clean: sample.landing.kind === 'clean',
@@ -147,7 +173,7 @@ export class MotocrossLandingChallenge {
       if (this.pending) {
         this.pending.clean &&= sample.landing.kind === 'clean';
         if (sample.time - this.pending.at >= LANDING_RULES.settleSeconds) {
-          const { jump, at, s: landedS, clean } = this.pending;
+          const { jump, takeoffSpeed, at, s: landedS, clean } = this.pending;
           const error =
             mod(landedS - jump.landing + sample.length / 2, sample.length) - sample.length / 2;
           const halfZone = jump.landingLength / 2;
@@ -160,7 +186,19 @@ export class MotocrossLandingChallenge {
                 : 'target';
           const first = kind === 'target' && !this.cleared.has(jump.takeoff);
           if (kind === 'target') this.cleared.add(jump.takeoff);
-          this.last = { jump, at, kind, first };
+          const miss =
+            error < -halfZone ? error + halfZone : error > halfZone ? error - halfZone : 0;
+          const previous = this.history.get(jump.takeoff);
+          const best = previous?.best ?? null;
+          const reference = best ?? previous?.last;
+          const improvedBy =
+            clean && reference ? Math.max(0, Math.abs(reference.miss) - Math.abs(miss)) : 0;
+          this.last = { jump, at, kind, first, takeoffSpeed, miss, improvedBy };
+          this.history.set(jump.takeoff, {
+            attempts: (previous?.attempts ?? 0) + 1,
+            last: this.last,
+            best: clean && (!best || Math.abs(miss) < Math.abs(best.miss)) ? this.last : best,
+          });
           this.pending = null;
         }
       }

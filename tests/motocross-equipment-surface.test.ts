@@ -47,6 +47,10 @@ describe('motocross equipment surface and ownership', () => {
         expect(geometry.index!.count / 3).toBeLessThan(4500);
         for (const attribute of Object.values(geometry.attributes))
           expect(Array.from(attribute.array).every(Number.isFinite)).toBe(true);
+        // The longer chin must stay inside the single helmet atlas, rather
+        // than stretching its lowest texel over an out-of-range strip.
+        const uv = geometry.getAttribute('uv');
+        expect(Array.from(uv.array).every((value) => value >= 0 && value <= 1)).toBe(true);
       } finally {
         geometry.dispose();
         material.dispose();

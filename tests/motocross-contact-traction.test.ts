@@ -121,7 +121,7 @@ describe('motocross suspension contact traction', () => {
       bike.input.brake = 1;
       bike.step(DT, track);
       expect(bike.dynamics.frontBrakeForce).toBeLessThanOrEqual(
-        supported * bike.dynamics.p.mu * bike.dynamics.grip + 1e-8,
+        supported * bike.dynamics.p.mu * bike.dynamics.frontGrip! + 1e-8,
       );
       return bike.dynamics.frontBrakeForce;
     };
@@ -169,11 +169,12 @@ describe('motocross suspension contact traction', () => {
           rearLoad = bike.forceRear;
         bike.step(DT, track);
         if (wasGrounded) {
-          const mu = bike.dynamics.p.mu * bike.dynamics.grip;
-          expect(bike.dynamics.frontBrakeForce).toBeLessThanOrEqual(mu * frontLoad + 1e-8);
+          const frontMu = bike.dynamics.p.mu * bike.dynamics.frontGrip!,
+            rearMu = bike.dynamics.p.mu * bike.dynamics.rearGrip!;
+          expect(bike.dynamics.frontBrakeForce).toBeLessThanOrEqual(frontMu * frontLoad + 1e-8);
           expect(
             Math.abs(bike.dynamics.driveForce - bike.dynamics.rearBrakeForce),
-          ).toBeLessThanOrEqual(mu * rearLoad + 1e-8);
+          ).toBeLessThanOrEqual(rearMu * rearLoad + 1e-8);
           if (frontLoad === 0) {
             frontFree++;
             expect(bike.dynamics.frontBrakeForce).toBe(0);

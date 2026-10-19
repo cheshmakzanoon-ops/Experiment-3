@@ -1,0 +1,230 @@
+{
+  "schemaVersion": 1,
+  "recordedDate": "2026-10-19",
+  "baseCommit": "f476cee649cf1386bce659bf5eeacccb48fa4650",
+  "codeTree": "e8e82c121f88858b2082a6d45324c29fda420f3c",
+  "simulationVersion": 9,
+  "build": {
+    "status": "passed",
+    "sourceCommitLabel": null,
+    "sourceFingerprint": "75b4fc0cd2b977e9f1e15d949459505657ea744c6d020ad914d037455306110b",
+    "independentlyRehashedFiles": 738,
+    "sourceStable": true,
+    "wrapperSeconds": 619.818,
+    "viteDuration": "3m 17s",
+    "modules": 719,
+    "command": [
+      "node",
+      "--experimental-transform-types",
+      "scripts/source-stability.ts",
+      "--",
+      "bash",
+      "-c",
+      "node node_modules/typescript/bin/tsc --noEmit && node node_modules/vite/bin/vite.js build"
+    ],
+    "notes": [
+      "Existing generated LOD asset was prepared by the earlier successful prebuild.",
+      "Build ran on the integrated worktree; its commit label is null, not an invented final commit.",
+      "Vite reported the existing large-chunk warning."
+    ]
+  },
+  "regressions": {
+    "status": "one-timeout",
+    "passed": 203,
+    "timedOut": 1,
+    "total": 204,
+    "passedFiles": 19,
+    "failedFiles": 1,
+    "totalFiles": 20,
+    "durationSeconds": 424.91,
+    "wrapperSeconds": 461.946,
+    "sourceStable": true,
+    "unhandledErrors": 0,
+    "pool": "threads",
+    "workers": 1,
+    "fileParallelism": false,
+    "timeout": {
+      "file": "tests/motocross-collision.test.ts",
+      "test": "keeps the seeded eight-rider stadium start free of spurious high-energy launches",
+      "limitMs": 30000,
+      "reportedMs": 37579,
+      "observedFailure": "Test timed out in 30000ms.",
+      "notes": "No assertion mismatch was reported; this does not establish completion of that test."
+    },
+    "files": [
+      "tests/motocross-garment.test.ts",
+      "tests/motocross-body-pose.test.ts",
+      "tests/motocross-cockpit-view.test.ts",
+      "tests/motocross-lever-contact.test.ts",
+      "tests/motocross-equipment-surface.test.ts",
+      "tests/motocross-uv-footprint.test.ts",
+      "tests/gp-rider-contact.test.ts",
+      "tests/gp-rider-suit.test.ts",
+      "tests/motocross-riding.test.ts",
+      "tests/motocross-rider-weight.test.ts",
+      "tests/motocross-collision.test.ts",
+      "tests/session-identity.test.ts",
+      "tests/motocross-contact-traction.test.ts",
+      "tests/motocross-wheel-pickup.test.ts",
+      "tests/motocross-tyre-contact.test.ts",
+      "tests/motocross-hud.test.ts",
+      "tests/motocross-landing-challenge.test.ts",
+      "tests/motocross-rhythm-coach.test.ts",
+      "tests/motocross-environment.test.ts",
+      "tests/motocross-shoulder-plants.test.ts"
+    ]
+  },
+  "earlierChecks": {
+    "lint": {
+      "status": "passed",
+      "command": "npm run lint",
+      "scope": "eslint src tests e2e scripts",
+      "logModifiedAt": "2026-10-19T20:29:51.447Z"
+    },
+    "content": {
+      "status": "passed",
+      "command": "npm run validate:content",
+      "result": "Content valid",
+      "logModifiedAt": "2026-10-19T20:34:50.883Z",
+      "notes": "Definition and shipment metadata checks; this invocation does not verify all asset hashes."
+    },
+    "limitation": "These commands covered the motocross changes before the incoming engine f476cee6 fast-forward. They are not a fresh lint/content claim for that incoming engine code."
+  },
+  "componentBrowser": {
+    "status": "two-passed-two-timeouts",
+    "passed": 2,
+    "timedOut": 2,
+    "total": 4,
+    "duration": "17.1 minutes",
+    "backend": "SwiftShader",
+    "physicalHardwareValidated": false,
+    "sourceStable": true,
+    "command": "PLAYWRIGHT_HTML_OUTPUT_DIR=/tmp/mx-components-report node --experimental-transform-types scripts/source-stability.ts -- node node_modules/@playwright/test/cli.js test e2e/42-motocross-bike.spec.ts e2e/48-motocross-practice.spec.ts e2e/52-motocross-shoulder-plants.spec.ts --config playwright.motocross.config.ts --output test-results/mx-components-v9",
+    "cases": [
+      {
+        "spec": "e2e/42-motocross-bike.spec.ts",
+        "status": "timeout",
+        "limitMs": 300000,
+        "duration": "5.2 minutes",
+        "completedCaptures": 10,
+        "notes": "Both bikes at high/mid/far detail plus standing-side, braced-front, inside-foot-dab and rear-components. Their attached geometry/contact assertions passed. Timeout during helmet capture before the remaining onboard/mud/drivetrain checks."
+      },
+      {
+        "spec": "e2e/48-motocross-practice.spec.ts",
+        "test": "solo landing targets, held-brake guidance and autopilot exclusion use the visible production HUD",
+        "status": "timeout",
+        "limitMs": 300000,
+        "duration": "5.1 minutes"
+      },
+      {
+        "spec": "e2e/48-motocross-practice.spec.ts",
+        "test": "synthetic retry snapshots show measured placement and keep the longest practice note clear of controls",
+        "status": "passed",
+        "duration": "3.1 minutes",
+        "widths": [390, 1280],
+        "circuits": ["valley-ridge-mx", "arena-nord-sx"],
+        "scope": "Production HUD/CSS/font layout with synthetic component snapshots; not a full-game drive."
+      },
+      {
+        "spec": "e2e/52-motocross-shoulder-plants.spec.ts",
+        "test": "production MX shoulder plants compile and reproduce held and rewound wind pixels",
+        "status": "passed",
+        "duration": "2.5 minutes",
+        "scope": "Isolated production TerrainView and MxCourseDressing, fixed inspection lighting. Outer world ground is not part of this fixture."
+      }
+    ]
+  },
+  "gameplayBrowser": {
+    "status": "startup-readiness-timeout",
+    "spec": "e2e/45-motocross-gameplay.spec.ts",
+    "duration": "4.3 minutes",
+    "sourceStable": true,
+    "backend": "SwiftShader",
+    "physicalHardwareValidated": false,
+    "menuSelector": "#menu",
+    "readinessLimitMs": 180000,
+    "hiddenResolutions": 61,
+    "requestedQuality": "low",
+    "qualitySelectionReached": false,
+    "motocrossVenueEntryReached": false,
+    "drivingAssertionsReached": false,
+    "gameplayScreenshotProduced": false,
+    "retries": 0,
+    "command": "APEX_MOTOCROSS_JOURNEY_QUALITY=low PLAYWRIGHT_HTML_OUTPUT_DIR=/tmp/mx-gameplay-report node --experimental-transform-types scripts/source-stability.ts -- node node_modules/@playwright/test/cli.js test e2e/45-motocross-gameplay.spec.ts --config playwright.motocross.config.ts --output test-results/mx-gameplay-v9",
+    "notes": "The menu remained hidden before any visible quality selection or motocross entry. This is not a successful play-through and does not isolate the startup bottleneck.",
+    "traceObservation": {
+      "networkResources": 170,
+      "httpErrorsRecorded": 0,
+      "requestFailuresRecorded": 0,
+      "consoleOrPageErrorsRecorded": 0,
+      "visibleLoader": "Almost ready · 90%",
+      "detail": "100% · Scene ready…",
+      "menuHidden": true,
+      "scope": "Last recorded startup frame and DOM; no CPU profile or consumer-device performance inference."
+    }
+  },
+  "referenceProvenance": {
+    "reviewedImages": 100,
+    "sourceAudit": "../motocross-contact-reference-review-20261019.json",
+    "indexedObservations": "../motocross-reference-review-20261019.json",
+    "currentSourceHashMatches": 100,
+    "originalArchiveHashMatches": 0,
+    "notes": "The current-source collection was checked against the existing audit. The unavailable original archive was not revalidated. Images guide appearance and riding context, not measured physics coefficients."
+  },
+  "limitations": [
+    "These are scoped regression and software-rendered component results, not full-game release acceptance.",
+    "Photographic parity and consumer GPU/mobile performance have not been established.",
+    "Procedural elbow/shoulder folds remain visibly angular in close inspection.",
+    "Original deadlines, assertion thresholds, and retry counts were retained."
+  ],
+  "artifacts": [
+    {
+      "file": "renderer-receipt.json",
+      "bytes": 369,
+      "sha256": "f1537375721c6a9664c673b9545e728c2aff3d053640088891e5324577a93ccf",
+      "gitBlob": "1f61d29d65c0b33f6fc7f4f25103f47cfff80100"
+    },
+    {
+      "file": "shoulder-plants.json",
+      "bytes": 3401,
+      "sha256": "8d412ada55a28629b2294a2c5d4e097d20db75fa404fa6e1ae5ae492cbd5c3ac",
+      "gitBlob": "e469f080dc074334fade82e54512bbbe929855b6"
+    },
+    {
+      "file": "shoulder-wind-11.png",
+      "bytes": 1237284,
+      "sha256": "1ecf6483ac08d56c2d69ac23b5efea5bc1d0f96eb5bf33d73e563636e9599114",
+      "gitBlob": "07203853ca99e44d6f5257a17d13c2bf1c6d5f2c"
+    },
+    {
+      "file": "standing-side-metrics.json",
+      "bytes": 1693,
+      "sha256": "a042936b3c3af8ff5e1a9734b45909dffa8710ac59f103607415cf355514c05e",
+      "gitBlob": "5df52ef943c81c894524a0c9d65768c5d6513a86"
+    },
+    {
+      "file": "standing-side.png",
+      "bytes": 368572,
+      "sha256": "81ca37c6c5bfa93f775bde7d811b0e193bbf672ebaf47bd413fcc876b71b1d96",
+      "gitBlob": "08f0c216856e757152e2a75a01cc6b56beacfd1f"
+    },
+    {
+      "file": "startup-readiness.jpeg",
+      "bytes": 35344,
+      "sha256": "5ff0fce3150cc10f58917bcaed2572c76c52a11a144fafe1edd697f21787acc6",
+      "gitBlob": "34aaab365a21b1b3bb63fa66cf48491167862b53"
+    },
+    {
+      "file": "valley-ridge-mx-retry-layout-390.json",
+      "bytes": 29019,
+      "sha256": "e1958a257ee528f7409aadab3dd6b3c2b2c5cfc1523f28344cd7a8abc902028b",
+      "gitBlob": "6ad038b29e45855f1a5f0f37e76a5c5c38dbfae0"
+    },
+    {
+      "file": "valley-ridge-mx-retry-longest-note-390.png",
+      "bytes": 29844,
+      "sha256": "4c0d3f8b5c364f9f62653b677ce6888cffed50d790820e2d7b03511ccf981329",
+      "gitBlob": "bea2326a43214bce9273351ee9889f69a2bab04a"
+    }
+  ]
+}

@@ -142,6 +142,41 @@ describe('passive wheel contact impulse', () => {
 });
 
 describe('motocross wheel pickup on actual surveyed landings', () => {
+  it('spins up a locked front tyre using its own contact grip, including a sudden wet patch', () => {
+    const sample = (wetEnd: 'front' | 'rear') => {
+      const { bike, track } = land(launch());
+      // This is the actual rear-first RIDGE TABLE landing. Wait until the
+      // spring supports the still-locked front, without fabricating a load
+      // or enabling pickup state directly.
+      for (let i = 0; i < 60 && bike.forceFront <= 0; i++) bike.step(DT, track);
+      expect(bike.forceFront).toBeGreaterThan(0);
+      expect(bike.frontSpin).toBe(0);
+      const load = bike.forceFront;
+      // Isolate one contact's water-film discontinuity on the already
+      // sampled soil. Actual terrain-material entry/exit is covered by the
+      // creek tests; here the large difference exposes a shared-budget bug
+      // even though the lean aid is still retaining its dry-soil target.
+      for (let i = 0; i < 4; i++) bike.contacts[i].water = i < 2 === (wetEnd === 'front') ? 2 : 0;
+      bike.step(DT, track);
+      const d = bike.dynamics,
+        pickupForce = -bike.tires[0].fx;
+      expect(d.frontBrakeForce).toBe(0);
+      expect(pickupForce).toBeGreaterThan(0);
+      expect(pickupForce).toBeLessThanOrEqual(load * d.p.mu * d.frontGrip! + 1e-8);
+      // The existing rolling-reference advection and this finite contact
+      // impulse both contribute to rotor speed; its recovery must slow
+      // when THIS wheel's contact gets wet, not when the other one does.
+      expect(bike.frontSpin).toBeGreaterThan(0);
+      expect(bike.riding).toBe(true);
+      return { pickupForce, spin: bike.frontSpin, grip: d.frontGrip!, leanGrip: d.grip };
+    };
+    const frontWet = sample('front'),
+      rearWet = sample('rear');
+    expect(frontWet.grip).toBeLessThan(frontWet.leanGrip * 0.6);
+    expect(rearWet.pickupForce).toBeGreaterThan(frontWet.pickupForce * 1.8);
+    expect(rearWet.spin).toBeGreaterThan(frontWet.spin * 1.8);
+  });
+
   it.each([MX_250, MX_450])(
     '$id retains stopped front-wheel rotation through touchdown and picks it up only under load',
     (definition) => {

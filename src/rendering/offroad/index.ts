@@ -88,6 +88,7 @@ export class OffroadScene {
     this.stadium?.update(frame[H.TIME]);
     const time = frame[H.TIME],
       dt = Number.isFinite(this.lastTime) ? clamp(time - this.lastTime, 0, 0.1) : 0;
+    this.dressing?.update(time);
     // Even a sub-frame reverse seek can cross a takeoff/contact edge.
     // Drop particles and edge history before reading that earlier snapshot.
     if (time < this.lastTime) this.roost.clear();

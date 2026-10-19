@@ -13,38 +13,256 @@ function part(parent: T.Object3D, g: T.BufferGeometry, m: T.Material, x = 0, y =
   return mesh;
 }
 
-/** Small authored folds interrupt the perfect tubes at the waist and elbows.
- * They are baked once and inherit the existing contact-preserving rider IK. */
-export function drapeMotocrossFabric(g: T.BufferGeometry, amplitude = 0.003) {
-  const p = g.getAttribute('position');
-  g.computeBoundingBox();
-  const box = g.boundingBox!,
-    height = Math.max(0.01, box.max.y - box.min.y);
-  for (let i = 0; i < p.count; i++) {
-    const x = p.getX(i),
-      y = p.getY(i),
-      z = p.getZ(i),
-      r = Math.hypot(x, z);
-    if (r < 0.012) continue;
-    const t = (y - box.min.y) / height,
-      angle = Math.atan2(z, x);
-    const folds =
-      amplitude * (0.35 + 0.65 * Math.sin(t * Math.PI) ** 2) * Math.sin(t * 31 + angle * 3.5);
-    p.setXYZ(i, x * (1 + folds / r), y, z * (1 + folds / r));
+type ClothSection = readonly [number, number, number, number, number];
+export type MotocrossGarment = 'jersey' | 'seat' | 'sleeve' | 'pants';
+
+/** Metre-space textile sections, not anatomical capsules. Reference 004's
+ * loose lower back and 020's broad underarms sit above a cinched separate
+ * waistband; 026's pants gather over the knee and the top of the boot. */
+const JERSEY_SECTIONS: readonly ClothSection[] = [
+  [0.043, 0, 0.145, 0.094, 0.096],
+  [0.062, -0.002, 0.157, 0.112, 0.114],
+  [0.104, -0.007, 0.17, 0.119, 0.137],
+  [0.165, -0.008, 0.17, 0.121, 0.133],
+  [0.26, -0.002, 0.177, 0.128, 0.124],
+  [0.35, 0.008, 0.193, 0.131, 0.112],
+  [0.418, 0.015, 0.2, 0.125, 0.102],
+  [0.452, 0.018, 0.19, 0.111, 0.094],
+  [0.491, 0.022, 0.15, 0.079, 0.073],
+  [0.522, 0.026, 0.096, 0.061, 0.056],
+  [0.542, 0.028, 0.064, 0.054, 0.052],
+];
+const SEAT_SECTIONS: readonly ClothSection[] = [
+  [-0.078, -0.006, 0.03, 0.025, 0.034],
+  [-0.044, -0.005, 0.132, 0.094, 0.1],
+  [0, -0.004, 0.149, 0.099, 0.109],
+  [0.047, -0.002, 0.151, 0.097, 0.107],
+  [0.093, 0, 0.143, 0.091, 0.098],
+];
+
+function garmentSections(kind: MotocrossGarment, upper: number, lower: number): ClothSection[] {
+  if (kind === 'jersey') return JERSEY_SECTIONS.map((section) => [...section]);
+  if (kind === 'seat') return SEAT_SECTIONS.map((section) => [...section]);
+  const arm = kind === 'sleeve';
+  const proximal: readonly ClothSection[] = arm
+    ? [
+        [-0.14, 0, 0.027, 0.028, 0.032],
+        [-0.035, -0.003, 0.049, 0.047, 0.055],
+        [0.09, -0.004, 0.06, 0.054, 0.066],
+        [0.29, -0.004, 0.059, 0.052, 0.064],
+        [0.54, -0.003, 0.052, 0.047, 0.057],
+        [0.78, -0.001, 0.047, 0.043, 0.05],
+        [1, 0, 0.046, 0.043, 0.048],
+      ]
+    : [
+        [-0.12, 0, 0.042, 0.043, 0.047],
+        [-0.025, -0.002, 0.073, 0.08, 0.079],
+        [0.15, 0, 0.086, 0.091, 0.084],
+        [0.35, 0.002, 0.084, 0.09, 0.078],
+        [0.61, 0.003, 0.072, 0.08, 0.069],
+        [0.82, 0.003, 0.062, 0.069, 0.061],
+        [1, 0.003, 0.059, 0.062, 0.058],
+      ];
+  const distal: readonly ClothSection[] = arm
+    ? [
+        [0.12, -0.002, 0.048, 0.049, 0.052],
+        [0.29, -0.004, 0.049, 0.049, 0.052],
+        [0.5, -0.003, 0.043, 0.042, 0.046],
+        [0.76, -0.001, 0.034, 0.034, 0.037],
+        [0.94, 0, 0.028, 0.029, 0.031],
+        [1.025, 0, 0.026, 0.028, 0.028],
+      ]
+    : [
+        [0.12, 0.003, 0.059, 0.059, 0.059],
+        [0.26, -0.001, 0.055, 0.052, 0.058],
+        [0.43, -0.003, 0.047, 0.045, 0.049],
+        [0.64, -0.002, 0.04, 0.038, 0.043],
+        [1.02, 0, 0.03, 0.032, 0.032],
+      ];
+  return [
+    ...proximal.map(
+      ([t, z, width, front, back]): ClothSection => [t * upper, z, width, front, back],
+    ),
+    ...distal.map(
+      ([t, z, width, front, back]): ClothSection => [upper + t * lower, z, width, front, back],
+    ),
+  ];
+}
+
+/** Closed cloth loft with finite cap UV footprints and a welded smooth wrap.
+ * Folds occupy compression zones; quiet broad fabric spans stay readable.
+ * The same longitudinal UV wraps once across each whole sleeve or pant leg,
+ * so the garment no longer repeats a new printed stripe at every joint. */
+export function motocrossGarmentGeometry(
+  kind: MotocrossGarment,
+  detail: RiderDetail,
+  upper = 0.29,
+  lower = 0.28,
+) {
+  const sections = garmentSections(kind, upper, lower),
+    ys = sections.map((section) => section[0]),
+    axes = [1, 2, 3, 4].map((axis) => sections.map((section) => section[axis])),
+    sides = detail === 'high' ? 28 : detail === 'mid' ? 16 : 8,
+    rows =
+      kind === 'seat'
+        ? detail === 'high'
+          ? 16
+          : detail === 'mid'
+            ? 10
+            : 6
+        : detail === 'high'
+          ? 64
+          : detail === 'mid'
+            ? 36
+            : 18,
+    positions: number[] = [],
+    uv: number[] = [],
+    indices: number[] = [],
+    skinIndices: number[] = [],
+    skinWeights: number[] = [],
+    first = ys[0],
+    last = ys[ys.length - 1],
+    articulated = kind === 'sleeve' || kind === 'pants',
+    transition = kind === 'sleeve' ? 0.067 : 0.086;
+  const append = (x: number, y: number, z: number, u: number, v: number) => {
+    positions.push(x, y, z);
+    uv.push(u, v);
+    if (articulated) {
+      const weight = T.MathUtils.smoothstep(y, upper - transition, upper + transition);
+      skinIndices.push(0, 1, 0, 0);
+      skinWeights.push(1 - weight, weight, 0, 0);
+    }
+  };
+  for (let row = 0; row <= rows; row++) {
+    const t = row / rows,
+      y = T.MathUtils.lerp(first, last, t),
+      [centre, width, front, back] = axes.map((values) => sampleProfile(ys, values, y));
+    for (let column = 0; column <= sides; column++) {
+      const angle = (column / sides) * Math.PI * 2,
+        c = Math.cos(angle),
+        s = Math.sin(angle),
+        envelope = Math.sin(t * Math.PI) ** 0.8;
+      let fold = 0;
+      if (kind === 'jersey') {
+        const hem = Math.exp(-(((y - 0.115) / 0.07) ** 2)),
+          underarm = Math.exp(-(((y - 0.365) / 0.082) ** 2)),
+          side = Math.abs(c) ** 3;
+        fold =
+          0.0026 * Math.sin(angle * 7 + y * 11) * envelope +
+          0.0064 * hem * Math.sin(y * 116 + s * 4 + c * 3) +
+          0.0045 * underarm * side * Math.sin(y * 87 + s * 5);
+      } else if (articulated) {
+        const joint = Math.exp(-(((y - upper) / (kind === 'sleeve' ? 0.075 : 0.105)) ** 2)),
+          hip = kind === 'pants' ? Math.exp(-(((y - 0.105) / 0.075) ** 2)) : 0,
+          cuff = Math.exp(-(((y - (upper + lower * 0.88)) / 0.043) ** 2));
+        fold =
+          (0.0058 * joint * (0.65 + s * 0.35) + 0.0037 * hip) *
+            Math.sin((y - upper) * 127 + c * 3.8) +
+          0.002 * cuff * Math.sin(y * 169 + s * 3) +
+          0.0013 * envelope * Math.sin(y * 39 + angle * 5);
+      } else fold = 0.002 * envelope * Math.sin(y * 90 + angle * 5);
+      // Rounded cloth facets give fabric a planar drape instead of a latex tube.
+      const roundness = kind === 'jersey' ? 0.86 : 0.94,
+        shape = (value: number) => Math.sign(value) * Math.abs(value) ** roundness;
+      append(
+        shape(c) * (width + fold),
+        y,
+        centre + shape(s) * ((s > 0 ? front : back) + fold),
+        column / sides,
+        t,
+      );
+      if (row < rows && column < sides) {
+        const a = row * (sides + 1) + column,
+          b = a + sides + 1;
+        indices.push(a, b, a + 1, a + 1, b, b + 1);
+      }
+    }
   }
-  g.computeVertexNormals();
-  return g;
+  // Duplicate cap corners retain their own planar UV and hard inside rim.
+  for (const row of [0, rows]) {
+    const y = row === 0 ? first : last,
+      centreZ = sampleProfile(ys, axes[0], y),
+      cap = positions.length / 3,
+      ring = row * (sides + 1);
+    append(0, y, centreZ, 0.5, row === 0 ? 0.012 : 0.988);
+    for (let column = 0; column <= sides; column++) {
+      const vertex = (ring + column) * 3,
+        x = positions[vertex],
+        z = positions[vertex + 2];
+      append(x, y, z, 0.5 + x * 0.12, (row === 0 ? 0.012 : 0.988) + (z - centreZ) * 0.06);
+    }
+    for (let column = 0; column < sides; column++) {
+      const a = cap + 1 + column;
+      if (row === 0) indices.push(cap, a, a + 1);
+      else indices.push(cap, a + 1, a);
+    }
+  }
+  const geometry = new T.BufferGeometry();
+  geometry.name = `Motocross continuous ${kind} (${detail})`;
+  geometry.setAttribute('position', new T.Float32BufferAttribute(positions, 3));
+  geometry.setAttribute('uv', new T.Float32BufferAttribute(uv, 2));
+  geometry.setIndex(indices);
+  if (articulated) {
+    geometry.setAttribute('skinIndex', new T.Uint16BufferAttribute(skinIndices, 4));
+    geometry.setAttribute('skinWeight', new T.Float32BufferAttribute(skinWeights, 4));
+  }
+  geometry.computeVertexNormals();
+  const normals = geometry.getAttribute('normal'),
+    seam = new T.Vector3(),
+    other = new T.Vector3();
+  for (let row = 0; row <= rows; row++) {
+    const a = row * (sides + 1),
+      b = a + sides;
+    seam.fromBufferAttribute(normals, a).add(other.fromBufferAttribute(normals, b)).normalize();
+    normals.setXYZ(a, seam.x, seam.y, seam.z);
+    normals.setXYZ(b, seam.x, seam.y, seam.z);
+  }
+  geometry.computeBoundingBox();
+  geometry.computeBoundingSphere();
+  return geometry;
+}
+
+/** Two tiny render bones inherit the already solved IK transforms. The skin
+ * spans the elbow/knee instead of intersecting two capped rigid meshes. This
+ * adds no simulation state, pose history, per-frame buffers or CPU cloth pass. */
+export function addMotocrossGarment(
+  parent: T.Group,
+  proximal: T.Group,
+  distal: T.Group,
+  upper: number,
+  lower: number,
+  kind: 'sleeve' | 'pants',
+  detail: RiderDetail,
+  material: T.Material,
+) {
+  const bones = [new T.Bone(), new T.Bone()];
+  proximal.add(bones[0]);
+  distal.add(bones[1]);
+  const skeleton = new T.Skeleton(bones, [
+    new T.Matrix4(),
+    new T.Matrix4().makeTranslation(0, -upper, 0),
+  ]);
+  const mesh = new T.SkinnedMesh(motocrossGarmentGeometry(kind, detail, upper, lower), material);
+  mesh.name = `Motocross continuous ${kind}`;
+  mesh.bind(skeleton, new T.Matrix4());
+  // An envelope of the entire local riding/recovery rig avoids stale automatic
+  // bind-pose bounds while the bones move. It is independent of world travel.
+  mesh.boundingSphere = new T.Sphere(new T.Vector3(0, 0.3, 0), 1.65);
+  mesh.boundingBox = new T.Box3(new T.Vector3(-1.2, -1.15, -1.3), new T.Vector3(1.2, 1.8, 1.3));
+  mesh.castShadow = mesh.receiveShadow = true;
+  parent.add(mesh);
+  return mesh;
 }
 
 // Neck-centred assembly uses the same 150 mm shell offset as the road rig, but
 // an MX shell has its own projected chin, lower cheek rail and taller eye port.
 // Columns are [height, half-width, forward extent, rearward extent], in metres.
 const MX_HELMET_PROFILE = [
-  [-0.135, 0.062, 0.113, 0.062],
-  [-0.118, 0.085, 0.185, 0.084],
-  [-0.089, 0.108, 0.216, 0.11],
-  [-0.063, 0.122, 0.207, 0.13],
-  [-0.038, 0.132, 0.184, 0.14],
+  [-0.15, 0.046, 0.168, 0.056],
+  [-0.127, 0.078, 0.232, 0.083],
+  [-0.096, 0.107, 0.244, 0.11],
+  [-0.067, 0.12, 0.224, 0.13],
+  [-0.038, 0.132, 0.19, 0.14],
   [0.005, 0.136, 0.179, 0.142],
   [0.038, 0.134, 0.174, 0.138],
   [0.065, 0.124, 0.162, 0.128],
@@ -55,16 +273,20 @@ const MX_HELMET_PROFILE = [
 ] as const;
 const MX_HEIGHTS = MX_HELMET_PROFILE.map((p) => p[0]);
 const MX_RADII = [1, 2, 3].map((axis) => MX_HELMET_PROFILE.map((p) => p[axis]));
+const helmetV = (y: number) =>
+  (y - MX_HEIGHTS[0]) / (MX_HEIGHTS[MX_HEIGHTS.length - 1] - MX_HEIGHTS[0]);
 
 function motocrossHelmetPoint(y: number, phi: number, offset = 0) {
   const front = Math.max(0, Math.sin(phi)),
-    jaw = 1 - T.MathUtils.smoothstep(y, -0.07, -0.025);
+    jaw = 1 - T.MathUtils.smoothstep(y, -0.067, -0.025);
   return new T.Vector3(
     -Math.cos(phi) *
       (sampleProfile(MX_HEIGHTS, MX_RADII[0], y) + offset) *
-      (1 - 0.075 * jaw * front ** 4),
-    y,
-    Math.sin(phi) * (sampleProfile(MX_HEIGHTS, MX_RADII[front > 0 ? 1 : 2], y) + offset),
+      (1 - 0.11 * jaw * front ** 4),
+    y + 0.018 * jaw * (1 - front),
+    Math.sin(phi) *
+      (front > 0 ? front ** (jaw * 0.7) : 1) *
+      (sampleProfile(MX_HEIGHTS, MX_RADII[front > 0 ? 1 : 2], y) + offset),
   );
 }
 
@@ -123,7 +345,7 @@ function motocrossEyePortReturn(detail: RiderDetail) {
     for (const offset of [0, -0.013]) {
       const p = motocrossHelmetPoint(y, phi, offset);
       positions.push(p.x, p.y, p.z);
-      uv.push(phi / (Math.PI * 2), (y + 0.135) / 0.285);
+      uv.push(phi / (Math.PI * 2), helmetV(y));
     }
   for (let i = 0; i < outline.length; i++) {
     const a = i * 2,
@@ -155,7 +377,7 @@ export function motocrossHelmetShell(detail: RiderDetail = 'high') {
     for (let column = 0; column <= columns; column++) {
       const p = motocrossHelmetPoint(ys[row], (column / columns) * Math.PI * 2);
       positions.push(p.x, p.y, p.z);
-      uv.push(column / columns, (ys[row] + 0.135) / 0.285);
+      uv.push(column / columns, helmetV(ys[row]));
       if (row < ys.length - 1 && column < columns) {
         const inEyePort =
           ys[row] >= -0.038 - 1e-9 &&
@@ -211,9 +433,9 @@ function peakGeometry(detail: RiderDetail) {
       for (let i = 0; i <= columns; i++) {
         const v = j / rows,
           u = (i / columns) * 2 - 1;
-        const width = 0.096 + Math.sin(v * Math.PI) * 0.024;
-        const y = 0.26 - v * v * 0.027 + 0.008 * (1 - u * u) - (under ? 0.0045 : 0);
-        pos.push(u * width, y, 0.038 + v * (0.225 - 0.015 * Math.abs(u)));
+        const width = 0.11 + Math.sin(v * Math.PI) * 0.023 - v * 0.009;
+        const y = 0.272 - v * v * 0.039 + 0.011 * (1 - u * u) - (under ? 0.0045 : 0);
+        pos.push(u * width, y, 0.035 + v * (0.268 - 0.039 * Math.abs(u) ** 1.4));
         uv.push(i / columns, 1 - v);
         if (j < rows && i < columns) {
           const a = base + j * (columns + 1) + i,
@@ -247,14 +469,14 @@ function peakGeometry(detail: RiderDetail) {
 }
 
 function gogglePoint(u: number, v: number) {
-  const x = (u * 2 - 1) * 0.106 * (1 - 0.04 * Math.abs(v * 2 - 1)),
+  const x = (u * 2 - 1) * 0.112 * (1 - 0.105 * Math.abs(v * 2 - 1) ** 2),
     edge = Math.abs(u * 2 - 1);
-  const bottom = 0.132 + Math.exp(-(((u - 0.5) * 12) ** 2)) * 0.012 + edge ** 4 * 0.007;
-  const top = 0.205 - edge ** 2 * 0.012;
+  const bottom = 0.129 + Math.exp(-(((u - 0.5) * 11) ** 2)) * 0.021 + edge ** 4 * 0.01;
+  const top = 0.207 - edge ** 2 * 0.009;
   return new T.Vector3(
     x,
     T.MathUtils.lerp(bottom, top, v),
-    0.198 - edge * edge * 0.037 - (v - 0.5) ** 2 * 0.01,
+    0.204 - edge * edge * 0.041 - (v - 0.5) ** 2 * 0.014,
   );
 }
 
@@ -342,7 +564,7 @@ export function addMotocrossHelmet(
   strap.name = 'Motocross woven goggle strap';
   const vent = part(
     head,
-    motocrossHelmetPatch(-0.112, -0.066, 1.12, Math.PI - 1.12, 0.0015),
+    motocrossHelmetPatch(-0.13, -0.076, 1.05, Math.PI - 1.05, 0.002),
     trim,
     0,
     0.15,
@@ -350,10 +572,10 @@ export function addMotocrossHelmet(
   );
   vent.name = 'Motocross integrated chin intake';
   for (let i = 0; i < 3; i++) {
-    const y = -0.105 + i * 0.012;
+    const y = -0.121 + i * 0.015;
     part(
       head,
-      motocrossHelmetPatch(y, y + 0.0035, 1.12, Math.PI - 1.12, 0.004, 1, 16),
+      motocrossHelmetPatch(y, y + 0.003, 1.05, Math.PI - 1.05, 0.005, 1, 16),
       accent,
       0,
       0.15,
@@ -361,12 +583,24 @@ export function addMotocrossHelmet(
     );
   }
   for (const side of [-1, 1]) {
+    // Outriggers bridge the curved goggle frame to the woven side strap;
+    // they cast a narrow shadow behind the foam instead of floating at the eye.
+    const outrigger = part(
+      head,
+      new RoundedBoxGeometry(0.012, 0.029, 0.097, 2, 0.005),
+      trim,
+      side * 0.125,
+      0.169,
+      0.121,
+    );
+    outrigger.name = 'Motocross goggle strap outrigger';
+    outrigger.rotation.y = side * -0.27;
     const fastener = part(
       head,
       new T.CylinderGeometry(0.007, 0.007, 0.006, 8),
       accent,
       side * 0.12,
-      0.24,
+      0.255,
       0.065,
     );
     fastener.rotation.z = Math.PI / 2;

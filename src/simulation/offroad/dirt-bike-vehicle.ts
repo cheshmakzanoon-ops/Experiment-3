@@ -290,13 +290,26 @@ export class DirtBikeVehicle extends BikeVehicle {
     // the load the suspension actually carries, and berm support.
     // Smoothed: a hop or a rut edge does not change the rider's lean budget
     // within one step (the core's lean aid assumes a slowly varying grip).
-    const surface = Math.min(this.surfaceGrip(0), this.surfaceGrip(2)),
-      target = surface * clamp(this.loadGrip, 0.85, 1.15) * this.bankSupport(surface);
+    const frontSurface = this.surfaceGrip(0),
+      rearSurface = this.surfaceGrip(2),
+      surface = Math.min(frontSurface, rearSurface),
+      loadSupport = clamp(this.loadGrip, 0.85, 1.15),
+      bankSupport = this.bankSupport(surface),
+      target = surface * loadSupport * bankSupport;
     this.smoothGrip =
       this.smoothGrip > 0
         ? this.smoothGrip + (target - this.smoothGrip) * Math.min(1, dt / 0.35)
         : target;
     d.grip = this.smoothGrip;
+    // The lean aid keeps its settled intent over chop, but contact friction
+    // belongs to the soil currently under each tyre. Sharing the smoothed minimum
+    // made a front wheel entering mud steal rear drive, a muddy rear weaken
+    // front braking, and either wheel retain dry-soil grip after entry.
+    // Preserve the surveyed bank/load calibration; actual suspension loads
+    // still cap each contact before the force solve below. AI and supermoto
+    // retain their calibrated shared map, including after a player handover.
+    d.frontGrip = this.playerMotocross ? frontSurface * loadSupport * bankSupport : undefined;
+    d.rearGrip = this.playerMotocross ? rearSurface * loadSupport * bankSupport : undefined;
     d.slope = Math.sin(this.roadPitch);
     this.posture(dt, course, track);
     this.tuck = 0;
@@ -599,8 +612,7 @@ export class DirtBikeVehicle extends BikeVehicle {
       this.frontSpin = Math.max(0, this.frontSpin + deltaSpeed / spec.frontWheelRadius);
     if (this.forceRear > 0)
       this.rearSpin = Math.max(0, this.rearSpin + deltaSpeed / spec.rearWheelRadius);
-    const lateral = d.mass * Math.abs(d.speed * d.speed * d.curvature),
-      mu = d.p.mu * d.grip;
+    const lateral = d.mass * Math.abs(d.speed * d.speed * d.curvature);
     const pickup = (front: boolean) => {
       const radius = front ? spec.frontWheelRadius : spec.rearWheelRadius,
         inertia = front ? this.spec.wheelInertia : this.air.spinInertia,
@@ -608,6 +620,7 @@ export class DirtBikeVehicle extends BikeVehicle {
         load = front ? this.forceFront : this.forceRear,
         share = (front ? spec.cgToRear : spec.cgToFront) / this.spec.wheelbase,
         existing = front ? d.frontBrakeForce : d.driveForce - d.rearBrakeForce,
+        mu = d.p.mu * ((front ? d.frontGrip : d.rearGrip) ?? d.grip),
         capacity = Math.sqrt(Math.max(0, (mu * load) ** 2 - (lateral * share) ** 2)),
         spare = Math.max(0, capacity - Math.abs(existing)),
         impulse = wheelPickupImpulse(d.speed, spin, radius, inertia, d.mass, spare * dt);

@@ -124,6 +124,50 @@ function harness() {
 }
 
 describe('motocross HUD flight transitions', () => {
+  it('uses measured retry distance and takeoff speed without replacing the next approach reference', () => {
+    const h = harness(),
+      jump = offroadCourse(h.track.circuit)!.jumps[0],
+      b = carBase(0);
+    function attempt(time: number, short: number) {
+      const land = jump.landing - jump.landingLength / 2 - short;
+      h.pose(0, 20);
+      h.frame[b + F.S] = jump.takeoff - 0.5;
+      h.present(time, false, 0);
+      h.frame[b + F.S] = jump.takeoff + 0.5;
+      h.present(time + 0.05, true, 0.05);
+      h.frame[b + F.S] = (jump.takeoff + land) / 2;
+      h.present(time + 0.45, true, 0.45);
+      h.frame[b + F.S] = land;
+      h.present(time + 0.85, false, 0.85);
+      h.pose(0, 24);
+      return h.present(time + 1.11, false, 0.85);
+    }
+    const first = attempt(1, 4);
+    expect(first).toContain('SHORT OF TARGET');
+    expect(first).toContain('4.0 M');
+    expect(first).toContain('Takeoff 72 km/h');
+    expect(first).not.toContain('CLOSER THIS TIME');
+    const improved = attempt(5, 1.5);
+    expect(improved).toContain('CLOSER THIS TIME');
+    expect(improved).toContain('1.5 M');
+    expect(improved).toContain('2.5 m closer');
+    expect(improved).not.toContain('TARGET LANDED');
+    // Returning to this feature uses its observed takeoff, not the later
+    // 24 m/s exit speed or an invented replacement for the reference.
+    h.frame[b + F.S] = jump.start - 45;
+    const recall = h.present(12, false, 0);
+    expect(recall).toContain('Last takeoff 72 km/h · 1.5 m short');
+    expect(recall).toContain('LIP ~');
+    // Automatic/replayed footage cannot issue personal approach advice.
+    expect(h.present(12, false, 0, 0.1, 2, 0, false)).not.toContain('Last takeoff');
+    expect(h.present(12, false, 0, 0.1, 2, 0, true, true)).not.toContain('Last takeoff');
+    h.flags(FLAG.DOUBLE_YELLOW);
+    const caution = h.present(12.1, false, 0);
+    expect(caution).toContain('ROLL THE NEXT JUMP');
+    expect(caution).not.toContain('Last takeoff');
+    expect(caution).not.toContain('LIP ~');
+  });
+
   it('only asks for brake release while the player owns the controls', () => {
     const h = harness(),
       b = carBase(0),
@@ -136,6 +180,29 @@ describe('motocross HUD flight transitions', () => {
     expect(h.present(1, true, 0.5, 0.1, 2, 0, false)).not.toContain('RELEASE THE BRAKE');
     expect(h.present(1, true, 0.5, 0.1, 2, 0, true, true)).not.toContain('RELEASE THE BRAKE');
     expect(h.present(1, true, 0.5)).toContain('RELEASE THE BRAKE');
+  });
+
+  it('does not advise slowing the next approach after a measured short hard landing', () => {
+    const h = harness(),
+      jump = offroadCourse(h.track.circuit)!.jumps[0],
+      b = carBase(0),
+      land = jump.landing - jump.landingLength / 2 - 1.5;
+    h.pose(0, 20);
+    h.frame[b + F.S] = jump.takeoff - 0.5;
+    h.present(1, false, 0);
+    h.frame[b + F.S] = jump.takeoff + 0.5;
+    h.present(1.05, true, 0.05);
+    h.frame[b + F.S] = (jump.takeoff + land) / 2;
+    h.present(1.45, true, 0.45);
+    h.frame[b + F.S] = land;
+    h.present(1.85, false, 0.85, 0.1, 7, 0.5);
+    const settled = h.present(2.11, false, 0.85, 0.1, 7, 0.5);
+    expect(settled).toContain('HARD LANDING');
+    expect(settled).toContain('TARGET NOT CLEARED');
+    expect(settled).toContain('1.5 m short · rough contact');
+    expect(settled).toContain('Reach the downslope');
+    expect(settled).not.toContain('Ease');
+    expect(settled).not.toContain('CLOSER THIS TIME');
   });
 
   it('explains a target rejected for rough settlement after its bottoming pulse decays', () => {
@@ -158,7 +225,7 @@ describe('motocross HUD flight transitions', () => {
     h.frame[b + F.S] = jump.landing + 3;
     const settled = h.present(2.11, false, 0.85);
     expect(settled).toContain('TARGET NOT CLEARED');
-    expect(settled).toContain('SETTLE THE LANDING');
+    expect(settled).toContain('HARD LANDING');
     expect(settled).toContain('rough contact');
     expect(settled).not.toContain('TARGET LANDED');
     expect(settled).not.toContain('CLEAN LANDING');
@@ -170,8 +237,10 @@ describe('motocross HUD flight transitions', () => {
     // The last airborne snapshot precedes contact; the landing snapshot
     // retains the measured final 0.80 s, not the previously seen 0.72 s.
     const landed = h.present(1.08, false, 0.8);
-    expect(landed).toContain('CLEAN LANDING');
+    expect(landed).toContain('SETTLING');
+    expect(landed).not.toContain('CLEAN LANDING');
     expect(landed).toContain('0.80 S');
+    expect(h.present(1.4, false, 0.8)).toContain('CLEAN LANDING');
     expect(h.present(1.8, true, 0.04)).toContain('0.04 S');
     const afterHop = h.present(1.82, false, 0.06);
     expect(afterHop).toContain('LAST JUMP');
@@ -181,15 +250,16 @@ describe('motocross HUD flight transitions', () => {
     expect(afterHop).not.toContain('0.06 S');
   });
 
-  it('does not apply a tiny early rebound landing to the previous jump grade', () => {
+  it('identifies an early rebound without assigning its separate pitch to the previous jump', () => {
     const h = harness();
     h.present(1, true, 0.8);
-    expect(h.present(1.02, false, 0.82)).toContain('CLEAN LANDING');
+    expect(h.present(1.02, false, 0.82)).toContain('SETTLING');
     h.present(1.09, true, 0.03);
     // A new, short rebound lands inside the old jump's quarter-second
     // settlement window with its own poor pitch and normal-speed fields.
     const rebound = h.present(1.12, false, 0.06, -0.6, 2.5);
-    expect(rebound).toContain('CLEAN LANDING');
+    expect(rebound).toContain('LANDING BOUNCE');
+    expect(rebound).not.toContain('CLEAN LANDING');
     expect(rebound).toContain('0.82 S');
     expect(rebound).not.toContain('NOSE LOW');
   });
@@ -197,7 +267,7 @@ describe('motocross HUD flight transitions', () => {
   it('still revises a continuous grounded settlement when measured bottoming arrives', () => {
     const h = harness();
     h.present(1, true, 0.8);
-    expect(h.present(1.02, false, 0.82)).toContain('CLEAN LANDING');
+    expect(h.present(1.02, false, 0.82)).toContain('SETTLING');
     const bottomed = h.present(1.18, false, 0.82, 0.1, 2, 0.7);
     expect(bottomed).toContain('HARD LANDING');
     expect(bottomed).toContain('0.82 S');
@@ -215,20 +285,23 @@ describe('motocross HUD flight transitions', () => {
     // the exact same time keeps that feedback instead of resetting it.
     h.present(0.97, true, 0.02);
     const landed = h.present(1.3, false, 0.35);
-    expect(landed).toContain('CLEAN LANDING');
+    expect(landed).toContain('SETTLING');
     expect(landed).toContain('0.35 S');
     expect(h.present(1.3, false, 0.35)).toBe(landed);
+    expect(h.present(1.6, false, 0.35)).toContain('CLEAN LANDING');
   });
 
   it('explains whip recovery from the presented pose and only acknowledges it after a clean settlement', () => {
     const h = harness();
     h.pose(0.42);
+    h.present(0.9, false, 0);
     const whipping = h.present(1, true, 0.4);
     expect(whipping).toContain('BRING IT BACK');
     expect(whipping).toContain('Release steering to square the wheels');
     h.pose(0.01);
     const contact = h.present(1.4, false, 0.8);
-    expect(contact).toContain('CLEAN LANDING');
+    expect(contact).toContain('SETTLING');
+    expect(contact).not.toContain('CLEAN LANDING');
     expect(contact).not.toContain('WHIP LANDED');
     const settled = h.present(1.68, false, 0.8);
     expect(settled).toContain('WHIP LANDED');
@@ -265,6 +338,52 @@ describe('motocross HUD flight transitions', () => {
     expect(settled).toContain('CLEAN LANDING');
     expect(settled).not.toContain('WHIP LANDED');
   });
+
+  it('does not turn a bottomed whip into a clean reward as its impact pulse fades', () => {
+    const h = harness();
+    h.pose(0.42);
+    h.present(0.9, false, 0);
+    h.present(1, true, 0.4);
+    h.pose(0);
+    h.present(1.4, false, 0.8);
+    expect(h.present(1.5, false, 0.8, 0.1, 2, 0.7)).toContain('HARD LANDING');
+    const settled = h.present(1.7, false, 0.8);
+    expect(settled).toContain('HARD LANDING');
+    expect(settled).not.toContain('WHIP LANDED');
+    expect(settled).not.toContain('CLEAN LANDING');
+    expect(settled).not.toContain('CLEAN IN A ROW');
+  });
+
+  it.each(['autopilot', 'replay', 'caution', 'pit', 'off-course', 'retired'] as const)(
+    'does not credit a %s takeoff after returning to ordinary manual riding midair',
+    (source) => {
+      const h = harness(),
+        b = carBase(0),
+        jump = offroadCourse(h.track.circuit)!.jumps[0];
+      h.pose(0, 20);
+      h.frame[b + F.S] = jump.takeoff - 0.5;
+      h.present(1, false, 0);
+      h.pose(0.42, 20);
+      h.frame[b + F.S] = jump.takeoff + 0.5;
+      if (source === 'caution') h.flags(FLAG.DOUBLE_YELLOW);
+      if (source === 'pit') h.frame[b + F.IN_PIT] = 1;
+      if (source === 'retired') h.frame[b + F.RETIRED] = 1;
+      if (source === 'off-course') h.frame[b + F.LATERAL] = 100;
+      h.present(1.05, true, 0.05, 0.1, 2, 0, source !== 'autopilot', source === 'replay');
+      h.flags(FLAG.GREEN);
+      h.frame[b + F.IN_PIT] = h.frame[b + F.RETIRED] = h.frame[b + F.LATERAL] = 0;
+      h.frame[b + F.S] = (jump.takeoff + jump.landing) / 2;
+      h.present(1.45, true, 0.45);
+      h.pose(0, 20);
+      h.frame[b + F.S] = jump.landing;
+      h.present(1.85, false, 0.85);
+      const landed = h.present(2.11, false, 0.85);
+      expect(landed).not.toContain('TARGET LANDED');
+      expect(landed).not.toContain('WHIP LANDED');
+      expect(landed).not.toContain('CLEAN IN A ROW');
+      expect(h.present(5, false, 0)).toContain('TARGETS 0/5');
+    },
+  );
 });
 
 describe('motocross HUD race-control priority', () => {
@@ -303,9 +422,10 @@ describe('motocross HUD race-control priority', () => {
   it('does not let landing praise hide a new caution', () => {
     const h = harness();
     h.present(1, true, 0.8);
-    expect(h.present(1.02, false, 0.82)).toContain('CLEAN LANDING');
+    expect(h.present(1.02, false, 0.82)).toContain('SETTLING');
+    expect(h.present(1.3, false, 0.82)).toContain('CLEAN LANDING');
     h.flags(FLAG.DOUBLE_YELLOW);
-    const text = h.present(1.1, false, 0.82);
+    const text = h.present(1.4, false, 0.82);
     expect(text).toContain('DOUBLE YELLOW');
     expect(text).not.toContain('CLEAN LANDING');
   });

@@ -9,6 +9,13 @@ import { Track, trackPoint } from '../../simulation/track.ts';
 import { inStandFootprint } from '../grandstand.ts';
 import { installScannedMaps, libraryAlbedo } from '../ground/scanned-ground.ts';
 import { terrainFor } from '../terrain.ts';
+import { valueNoise } from '../terrain-profile.ts';
+import {
+  mxShoulderPlantGeometry,
+  mxShoulderPlantMaterial,
+  MX_SHOULDER_WIND_RADIUS,
+  type MxPlantKind,
+} from './mx-shoulder-plants.ts';
 
 /** Original event graphics, shared by the course/stadium. Four horizontal
  * rows, individually mapped onto cloth/signs. No source-image pixels, real
@@ -78,6 +85,8 @@ export interface MxDressingStats {
   banners: number;
   jumpMarkers: number;
   grassClumps: number;
+  fernClumps: number;
+  shrubs: number;
   stones: number;
   canopies: number;
 }
@@ -94,6 +103,8 @@ export class MxCourseDressing {
     banners: 0,
     jumpMarkers: 0,
     grassClumps: 0,
+    fernClumps: 0,
+    shrubs: 0,
     stones: 0,
     canopies: 0,
   };
@@ -104,6 +115,7 @@ export class MxCourseDressing {
   private readonly frame = new T.Matrix4();
   private readonly object = new T.Object3D();
   private readonly surface: TrackTerrainSurface;
+  private readonly plantTime = { value: 0 };
   constructor(private readonly track: Track) {
     const surface = Track.offroadOf(track);
     if (
@@ -338,35 +350,129 @@ export class MxCourseDressing {
       surface = this.surface;
     const grassPoses: T.Matrix4[] = [],
       grassColours: T.Color[] = [],
+      fernPoses: T.Matrix4[] = [],
+      fernColours: T.Color[] = [],
+      shrubPoses: T.Matrix4[] = [],
+      shrubColours: T.Color[] = [],
       stonePoses: T.Matrix4[] = [];
-    const ground = terrainFor(track);
-    for (let i = 0; i < 2700; i++) {
+    const ground = terrainFor(track),
+      plantGeometry = {
+        grass: mxShoulderPlantGeometry('grass'),
+        fern: mxShoulderPlantGeometry('fern'),
+        scrub: mxShoulderPlantGeometry('scrub'),
+      };
+    // The same low-frequency field clusters all three plant layers. Bare
+    // loam gaps and short inner tufts leave room for the outside berm line.
+    const patchAt = (x: number, z: number) => valueNoise(x * 0.055 + 7.2, z * 0.055 - 3.4);
+    const normal = new T.Vector3(),
+      up = new T.Vector3(0, 1, 0),
+      origin = new T.Vector3(),
+      corner = new T.Vector3(),
+      nearest = trackPoint();
+    const plantPose = (s: number, lateral: number, scale: number, kind: MxPlantKind) => {
+      const at = track.at(s, this.point),
+        x = at.x + at.nx * lateral,
+        z = at.z + at.nz * lateral;
+      // The course render mesh clips its inside band before it folds over a
+      // hairpin. A root cannot be grounded to that removed part of the mesh.
+      const l = track.nearest(x, z, nearest);
+      if (Math.abs(mod(nearest.s - s + track.length / 2, track.length) - track.length / 2) > 3)
+        return false;
+      const ds = 0.18,
+        across =
+          (surface.terrain.baseHeight(s, lateral + ds) -
+            surface.terrain.baseHeight(s, lateral - ds)) /
+          (2 * ds),
+        along =
+          (surface.terrain.baseHeight(s + ds, lateral) -
+            surface.terrain.baseHeight(s - ds, lateral)) /
+          (2 * ds);
+      track.at(s, this.point);
+      normal
+        .set(
+          -across * this.point.nx - along * this.point.tx,
+          1,
+          -across * this.point.nz - along * this.point.tz,
+        )
+        .normalize();
+      if (normal.y < 0.72 || Math.abs(l - lateral) > 0.25) return false;
+      origin.set(x, surface.terrain.baseHeight(s, lateral) - 0.025, z);
+      this.object.position.copy(origin);
+      this.object.quaternion.setFromUnitVectors(up, normal);
+      this.object.rotateY(random.next() * Math.PI * 2);
+      this.object.scale.setScalar(scale);
+      this.object.updateMatrix();
+      // Bound the actual sloped, rotated geometry, including maximum wind
+      // travel. A guessed radius misses tall leaves leaning toward the lane.
+      const box = plantGeometry[kind].boundingBox!;
+      let radius = 0;
+      for (const cx of [box.min.x, box.max.x])
+        for (const cy of [box.min.y, box.max.y])
+          for (const cz of [box.min.z, box.max.z]) {
+            corner.set(cx, cy, cz).applyMatrix4(this.object.matrix);
+            radius = Math.max(radius, Math.hypot(corner.x - x, corner.z - z));
+          }
+      radius += scale * MX_SHOULDER_WIND_RADIUS;
+      const side = Math.sign(lateral);
+      // TerrainView stops the inside band at 85% of the curvature radius.
+      // Check the adjoining render rows too: nearest-lane agreement alone
+      // can still leave a root standing over a clipped hairpin triangle.
+      for (const station of [s - radius - 1, s, s + radius + 1]) {
+        track.at(station, nearest);
+        if (
+          nearest.curvature * lateral > 0 &&
+          Math.abs(nearest.curvature) > 1e-4 &&
+          Math.abs(lateral) + radius + 0.12 > 0.85 / Math.abs(nearest.curvature)
+        )
+          return false;
+      }
+      if (
+        Math.abs(lateral) + radius > -surface.terrain.lateralMin - 0.12 ||
+        Math.abs(Math.abs(lateral) - track.boundaryAt(this.point, side)) < radius + 0.4 ||
+        (side === track.pit.side && track.isPitSection(s)) ||
+        inStandFootprint(track, x, z, radius + 0.4)
+      )
+        return false;
+      // The margin also covers the chord between the eight footprint probes.
+      for (let k = 0; k < 8; k++) {
+        const a = (k * Math.PI) / 4,
+          l = track.nearest(x + Math.cos(a) * radius, z + Math.sin(a) * radius, nearest);
+        if (Math.abs(l) < surface.course.legalWidth(nearest.width, nearest.s, l) + 0.25)
+          return false;
+      }
+      return true;
+    };
+    for (let i = 0; i < 3900; i++) {
       const s = random.next() * track.length,
         side = random.next() < 0.5 ? -1 : 1;
       const p = track.at(s, this.point);
-      const l = side * (surface.course.legalWidth(p.width, s, side) + 2.6 + random.next() * 2.7);
-      if (!this.clear(s, l, 0.8)) continue;
-      this.pose(s, l);
-      // Sparse islands, with gaps, continue the turf into the exposed loam.
-      const scale = 0.22 + random.next() * 0.35;
-      this.object.rotateY(random.next() * Math.PI * 2);
-      this.object.scale.set(scale, scale * (0.65 + random.next() * 0.5), scale);
-      this.object.updateMatrix();
+      const outer = random.next(),
+        l = side * (surface.course.legalWidth(p.width, s, side) + 0.85 + outer * 4.4),
+        x = p.x + p.nx * l,
+        z = p.z + p.nz * l,
+        patch = patchAt(x, z),
+        scale = 0.36 + outer * 0.25 + patch * 0.3;
+      if (random.next() > 0.48 + patch * 0.64 || !plantPose(s, l, scale, 'grass')) continue;
       grassPoses.push(this.object.matrix.clone());
       grassColours.push(
         new T.Color().setHSL(
-          0.18 + random.next() * 0.05,
-          0.22 + random.next() * 0.15,
-          0.19 + random.next() * 0.13,
+          0.18 + random.next() * 0.055,
+          0.24 + random.next() * 0.16,
+          0.31 + random.next() * 0.12,
         ),
       );
       if (i % 13 !== 0) continue;
+      track.at(s, this.point);
       const far = side * (p.width + 9 + random.next() * 12),
-        x = p.x + p.nx * far,
-        z = p.z + p.nz * far;
-      if (!this.clear(s, far, 4) || inStandFootprint(track, x, z, 4) || track.isPitSection(s))
+        rockX = p.x + p.nx * far,
+        rockZ = p.z + p.nz * far;
+      if (
+        !this.clear(s, far, 4) ||
+        inStandFootprint(track, rockX, rockZ, 4) ||
+        track.isPitSection(s)
+      )
         continue;
-      this.object.position.set(x, ground.height(x, z) + 0.3, z);
+      this.object.position.set(rockX, ground.height(rockX, rockZ) + 0.3, rockZ);
       this.object.rotation.set(
         random.next() * 0.7,
         random.next() * Math.PI * 2,
@@ -377,52 +483,65 @@ export class MxCourseDressing {
       this.object.updateMatrix();
       stonePoses.push(this.object.matrix.clone());
     }
-    const blades: T.BufferGeometry[] = [];
-    for (let i = 0; i < 7; i++) {
-      const a = i * 2.399,
-        dx = Math.cos(a),
-        dz = Math.sin(a);
-      const g = new T.BufferGeometry();
-      g.setAttribute(
-        'position',
-        new T.Float32BufferAttribute(
-          [
-            dx * 0.11 - dz * 0.03,
-            0,
-            dz * 0.11 + dx * 0.03,
-            dx * 0.11 + dz * 0.03,
-            0,
-            dz * 0.11 - dx * 0.03,
-            dx * 0.26,
-            0.72 + (i % 3) * 0.15,
-            dz * 0.26,
-          ],
-          3,
+    // Darker intermediate-height plants sit behind the cropped grass, in
+    // connected patches rather than a uniform strip of identical bushes.
+    for (let i = 0; i < 1150; i++) {
+      const s = random.next() * track.length,
+        side = random.next() < 0.5 ? -1 : 1,
+        p = track.at(s, this.point),
+        l = side * (surface.course.legalWidth(p.width, s, side) + 2.4 + random.next() * 3.1),
+        patch = patchAt(p.x + p.nx * l, p.z + p.nz * l);
+      if (patch < 0.46 || random.next() > patch * 0.9) continue;
+      const fern = i % 3 !== 0,
+        scale = (fern ? 0.66 : 0.85) + random.next() * 0.4;
+      if (!plantPose(s, l, scale, fern ? 'fern' : 'scrub')) continue;
+      (fern ? fernPoses : shrubPoses).push(this.object.matrix.clone());
+      (fern ? fernColours : shrubColours).push(
+        new T.Color().setHSL(
+          0.21 + random.next() * 0.055,
+          0.25 + random.next() * 0.16,
+          0.25 + random.next() * 0.11,
         ),
       );
-      g.computeVertexNormals();
-      blades.push(g);
     }
-    const grass = mergeGeometries(blades, false)!;
-    blades.forEach((g) => g.dispose());
-    const grassMaterial = new T.MeshStandardMaterial({
-      color: 0xffffff,
-      roughness: 0.96,
-      side: T.DoubleSide,
-      name: 'MX mixed shoulder grass',
-    });
+    const grassMaterial = mxShoulderPlantMaterial(this.plantTime);
     const rockMaterial = new T.MeshStandardMaterial({
       color: 0x807a68,
       roughness: 0.92,
       name: 'MX weathered shoulder stones',
     });
     installScannedMaps(rockMaterial, 'rock', libraryAlbedo(rockMaterial));
-    this.instances('MX shoulder grass islands', grass, grassMaterial, grassPoses, grassColours);
+    this.instances(
+      'MX shoulder grass islands',
+      plantGeometry.grass,
+      grassMaterial,
+      grassPoses,
+      grassColours,
+    );
+    this.instances(
+      'MX shoulder fern fans',
+      plantGeometry.fern,
+      grassMaterial,
+      fernPoses,
+      fernColours,
+    );
+    this.instances(
+      'MX shoulder broadleaf scrub',
+      plantGeometry.scrub,
+      grassMaterial,
+      shrubPoses,
+      shrubColours,
+    );
     this.instances('MX shoulder stones', new T.IcosahedronGeometry(1, 1), rockMaterial, stonePoses);
-    if (!grassPoses.length) grassMaterial.dispose();
+    if (!grassPoses.length && !fernPoses.length && !shrubPoses.length) grassMaterial.dispose();
     if (!stonePoses.length) rockMaterial.dispose();
     this.stats.grassClumps = grassPoses.length;
+    this.stats.fernClumps = fernPoses.length;
+    this.stats.shrubs = shrubPoses.length;
     this.stats.stones = stonePoses.length;
+  }
+  update(time: number) {
+    if (Number.isFinite(time)) this.plantTime.value = Math.max(0, time);
   }
   dispose() {
     this.root.remove(this.trackside.root);
@@ -431,6 +550,9 @@ export class MxCourseDressing {
       materials = new Set<T.Material>();
     this.root.traverse((o) => {
       if (!(o instanceof T.Mesh)) return;
+      // Instance buffers belong to the mesh, separately from shared geometry
+      // and materials; releasing only those leaves GPU instance data resident.
+      if (o instanceof T.InstancedMesh) o.dispose();
       geometries.add(o.geometry);
       for (const m of Array.isArray(o.material) ? o.material : [o.material]) materials.add(m);
     });

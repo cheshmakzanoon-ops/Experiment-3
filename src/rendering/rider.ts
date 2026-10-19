@@ -5,7 +5,6 @@ import { helmetLiveryTexture, riderPanelTexture } from './bike-livery.ts';
 import { bikeSurfaceMaps } from './bike-surface-detail.ts';
 import { batchBikeRigidMeshes } from './bike-rigid-batch.ts';
 import { sampleProfile } from './profile-sampling.ts';
-import { mxAuthoredGeometry } from './offroad/authored-kit.ts';
 import { tagMudExposure } from './offroad/mud.ts';
 import { gpRacingBoot, installGpLeatherFinish } from './gp-rider-gear.ts';
 import {
@@ -28,8 +27,9 @@ import {
 import { motocrossFabricMaps, motocrossGraphics } from './offroad/motocross-detail.ts';
 import {
   addMotocrossBoot,
+  addMotocrossGarment,
   addMotocrossHelmet,
-  drapeMotocrossFabric,
+  motocrossGarmentGeometry,
   motocrossHelmetShell,
 } from './offroad/motocross-gear.ts';
 import {
@@ -363,6 +363,7 @@ export class Rider {
   private readonly hands: T.Group[] = [];
   private readonly feet: T.Group[] = [];
   private readonly bootCuffs: (T.Object3D | undefined)[] = [];
+  private readonly motocrossGarments: T.SkinnedMesh[] = [];
   private readonly exteriorForearms = [0, 1].map(() => ({
     position: new T.Vector3(),
     quaternion: new T.Quaternion(),
@@ -569,7 +570,6 @@ export class Rider {
     this.root.name = 'Rider';
     this.torso.name = 'Rider torso';
     this.root.add(this.torso);
-    const fabric = (g: T.BufferGeometry) => (mx && detail !== 'far' ? drapeMotocrossFabric(g) : g);
     // Torso: pelvis at the origin, spine along +Y, chest forward (+Z).
     const torsoSections: readonly BodySection[] = mx
       ? [
@@ -598,14 +598,20 @@ export class Rider {
           [0.5, 0.02, 0.17, 0.08, 0.08],
           [0.55, 0.03, 0.08, 0.05, 0.05],
         ];
-    const torsoGeometry =
-      mx && detail !== 'far'
-        ? mxAuthoredGeometry('torso', detail)
-        : fabric(bodyLoft(torsoSections, sides));
+    const torsoGeometry = mx
+      ? motocrossGarmentGeometry('jersey', detail)
+      : bodyLoft(torsoSections, sides);
     if (gpSuit) shapeGpSuitGeometry(torsoGeometry, 'torso');
     part(this.torso, torsoGeometry, torsoLeather).name = mx
       ? 'Motocross sculpted textile torso'
       : 'Rider leather torso';
+    if (mx) {
+      part(this.torso, motocrossGarmentGeometry('seat', detail), leather).name =
+        'Motocross separate trouser waist';
+      const neck = part(this.torso, new T.CylinderGeometry(0.041, 0.046, 0.075, sides), flex);
+      neck.name = 'Motocross neck liner above textile collar';
+      neck.position.set(0, 0.56, 0.029);
+    }
     // Aero hump (spine protector and airbag housing) on the back.
     if (detail !== 'far' && !mx) {
       const hump = bodyLoft(
@@ -718,7 +724,7 @@ export class Rider {
     }
     // Head and helmet: neck pivot at the top of the spine.
     this.head.name = 'Rider head and helmet';
-    this.head.position.set(0, RIDER.spine + 0.04, 0.03);
+    this.head.position.set(0, RIDER.spine + (mx ? 0.078 : 0.04), 0.03);
     this.torso.add(this.head);
     const shell = part(
       this.head,
@@ -797,21 +803,16 @@ export class Rider {
       material: T.Material,
     ) => {
       const bone = new Bone(length, this.root);
+      // MX sleeves and pants span both solved bones below. Keeping a second
+      // rigid capsule here would reintroduce a spherical elbow through them.
+      if (mx) return bone;
       const geometry =
-        mx && detail !== 'far'
-          ? mxAuthoredGeometry(shape, detail)
-          : !mx && detail !== 'far'
-            ? bodyLoft(roadLimbSections(shape, length), sides, 1)
-            : limbGeometry(r0, r1, length, sides);
+        detail !== 'far'
+          ? bodyLoft(roadLimbSections(shape, length), sides, 1)
+          : limbGeometry(r0, r1, length, sides);
       if (gpSuit) shapeGpSuitGeometry(geometry, shape);
-      // The Blender cloth already carries intentional tension and compression
-      // folds; applying a second procedural displacement would distort them.
-      const segment = part(
-        bone.group,
-        mx && detail !== 'far' ? geometry : fabric(geometry),
-        material,
-      );
-      segment.name = mx ? `Motocross sculpted ${shape}` : `Rider ${shape} leather volume`;
+      const segment = part(bone.group, geometry, material);
+      segment.name = `Rider ${shape} leather volume`;
       return bone;
     };
     this.upperArms = [0, 1].map(() => limb('upper-arm', 0.046, 0.038, RIDER.upperArm, leather));
@@ -827,6 +828,25 @@ export class Rider {
         this.forearms[i].group.name = `${family} ${label} forearm`;
         this.thighs[i].group.name = `${family} ${label} thigh`;
         this.shins[i].group.name = `${family} ${label} shin`;
+        if (mx) {
+          for (const [upper, lower, kind] of [
+            [this.upperArms[i], this.forearms[i], 'sleeve'],
+            [this.thighs[i], this.shins[i], 'pants'],
+          ] as const) {
+            const garment = addMotocrossGarment(
+              this.root,
+              upper.group,
+              lower.group,
+              upper.length,
+              lower.length,
+              kind,
+              detail,
+              leather,
+            );
+            garment.name = `Motocross continuous ${label} ${kind}`;
+            this.motocrossGarments.push(garment);
+          }
+        }
       }
       if (detail !== 'far' && !mx) {
         const foldSides = detail === 'high' ? 12 : 8;
@@ -910,23 +930,7 @@ export class Rider {
           seam.name = 'Stitched leather panel boundary';
         }
       }
-      if (detail !== 'far' && mx) {
-        // Low-profile protection under textile; no metallic road sliders.
-        const brace = part(
-          this.shins[i].group,
-          new T.SphereGeometry(0.059, sides, sides / 2),
-          panel,
-        );
-        brace.position.set(0, 0.01, 0.005);
-        brace.scale.set(1.05, 1.4, 0.92);
-        const guard = part(
-          this.forearms[i].group,
-          new T.SphereGeometry(0.042, sides, sides / 2),
-          panel,
-        );
-        guard.scale.set(1, 1.3, 0.9);
-        guard.position.set(side * 0.01, 0.02, -0.02);
-      } else if (detail !== 'far') {
+      if (detail !== 'far' && !mx) {
         // The armour sits under shaped leather. Only the small replaceable
         // polymer pads are exposed; a metallic sphere would read as a hinge.
         const elbow = part(
@@ -1272,6 +1276,7 @@ export class Rider {
     if (this.kit === 'motocross') this.captureExteriorArms();
   }
   dispose() {
+    for (const garment of this.motocrossGarments) garment.skeleton.dispose();
     this.root.traverse((o) => {
       if (o instanceof T.Mesh) o.geometry.dispose();
     });

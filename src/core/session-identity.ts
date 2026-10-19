@@ -19,8 +19,9 @@ import {
  * v6: GP current-load traction limiting during split-grip brake/drive overlap;
  * v7: retain the motocross hard stop through deep-contact recovery;
  * v8: coupled unilateral axle solve and wheel-plane contact/link-force geometry;
+ * v9: independently sampled player motocross front/rear contact grip;
  * prior records remain in their original physics category. */
-export const SIMULATION_VERSION = 8;
+export const SIMULATION_VERSION = 9;
 /** Fixed physics tick used by the worker and headless simulation. */
 export const SIMULATION_TICK_HZ = 120;
 

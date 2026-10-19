@@ -86,8 +86,63 @@ describe('solo surveyed landing targets', () => {
       h.tick({ time: 2.11 });
       expect(h.challenge.cleared.size).toBe(0);
       expect(h.challenge.last?.kind).toBe(kind);
+      expect(h.challenge.last?.miss).toBeCloseTo(kind === 'short' ? -1 : 1, 8);
+      expect(h.challenge.history.get(j.takeoff)?.attempts).toBe(1);
     },
   );
+
+  it('remembers observed takeoff speed and rewards improvement toward the whole downslope pocket', () => {
+    const h = harness(),
+      jump = jumps[0],
+      shortEdge = jump.landing - jump.landingLength / 2;
+    h.fly(1, 0, shortEdge - 4);
+    h.tick({ time: 2.11, speed: 35 });
+    expect(h.challenge.last).toMatchObject({ takeoffSpeed: 20, improvedBy: 0 });
+    expect(h.challenge.last?.miss).toBeCloseTo(-4, 8);
+    h.fly(4, 0, shortEdge - 1.5);
+    h.tick({ time: 5.11 });
+    expect(h.challenge.last?.takeoffSpeed).toBe(35);
+    expect(h.challenge.last?.improvedBy).toBeCloseTo(2.5, 8);
+    h.fly(7, 0, jump.landing + jump.landingLength / 2 + 3);
+    h.tick({ time: 8.11 });
+    expect(h.challenge.last).toMatchObject({ kind: 'long', improvedBy: 0 });
+    expect(h.challenge.history.get(jump.takeoff)?.best?.miss).toBeCloseTo(-1.5, 8);
+    h.fly(10, 0, shortEdge + 0.2);
+    h.tick({ time: 11.11 });
+    expect(h.challenge.last).toMatchObject({ kind: 'target', first: true, miss: 0 });
+    expect(h.challenge.last?.improvedBy).toBeCloseTo(1.5, 8);
+    // Landing at the centre is not worth more than another clean part of the
+    // pocket. No incentive to chase a geometrically arbitrary point.
+    h.fly(13);
+    h.tick({ time: 14.11 });
+    expect(h.challenge.last).toMatchObject({ kind: 'target', first: false, improvedBy: 0 });
+    const record = h.challenge.history.get(jump.takeoff)!;
+    expect(record.attempts).toBe(5);
+    expect(record.best?.at).toBe(10.85);
+    expect(h.challenge.history.size).toBe(1);
+    h.tick({ time: 14.11 });
+    expect(h.challenge.history.get(jump.takeoff)?.attempts).toBe(5);
+  });
+
+  it('keeps retry history per feature and never celebrates a closer but rough contact', () => {
+    const h = harness(),
+      jump = jumps[0];
+    h.fly(1, 0, jump.landing - jump.landingLength / 2 - 4);
+    h.tick({ time: 2.11 });
+    h.fly(4);
+    h.tick({ time: 4.95, landing: hard });
+    h.tick({ time: 5.11, landing: clean });
+    expect(h.challenge.last).toMatchObject({ kind: 'rough', miss: 0, improvedBy: 0 });
+    expect(h.challenge.history.get(jump.takeoff)?.best?.miss).toBeCloseTo(-4, 8);
+    h.fly(8, 1);
+    h.tick({ time: 9.11 });
+    expect(h.challenge.history.size).toBe(2);
+    expect(h.challenge.history.get(jumps[1].takeoff)?.last).toMatchObject({
+      kind: 'target',
+      improvedBy: 0,
+    });
+    expect(h.challenge.history.get(jump.takeoff)?.last.kind).toBe('rough');
+  });
 
   it('retains a late bottom-out through settlement even after its telemetry decays', () => {
     const h = harness();
@@ -133,6 +188,7 @@ describe('solo surveyed landing targets', () => {
       });
       h.tick({ time: 2.3, eligible: true, lateral: 0, crashed: false });
       expect(h.challenge.cleared.size).toBe(0);
+      expect(h.challenge.history.size).toBe(0);
     },
   );
 
@@ -143,6 +199,7 @@ describe('solo surveyed landing targets', () => {
     h.tick({ time: 2, eligible: true });
     h.tick({ time: 2.3 });
     expect(h.challenge.cleared.size).toBe(0);
+    expect(h.challenge.history.size).toBe(0);
   });
 
   it('keeps earned targets across a dropped frame interval but resets a new run or seek', () => {
@@ -152,12 +209,14 @@ describe('solo surveyed landing targets', () => {
       h.tick({ time: 2.11 });
       h.tick({ time: 10 });
       expect(h.challenge.cleared.size).toBe(1);
+      expect(h.challenge.history.size).toBe(1);
       h.tick({
         time: changed === 'seek' ? 9 : changed === 'invalid' ? NaN : 10.1,
         ...(changed === 'course' ? { course: {} } : {}),
         ...(changed === 'machine' ? { machine: 'mx250:raw' } : {}),
       });
       expect(h.challenge.cleared.size).toBe(0);
+      expect(h.challenge.history.size).toBe(0);
     }
   });
 
@@ -180,5 +239,6 @@ describe('solo surveyed landing targets', () => {
     h.tick({ time: 2.3 });
     expect(h.challenge.cleared.size).toBe(1);
     expect(h.challenge.last).toBeNull();
+    expect(h.challenge.history.get(jumps[0].takeoff)?.attempts).toBe(1);
   });
 });

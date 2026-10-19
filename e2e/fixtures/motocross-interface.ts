@@ -17,6 +17,7 @@ import {
   carBase,
 } from '../../src/simulation/protocol.ts';
 import { offroadCourse } from '../../src/simulation/offroad/venues.ts';
+import { jumpHoldSpeed } from '../../src/simulation/offroad/jump-target.ts';
 import { Track } from '../../src/simulation/track.ts';
 import { VEHICLES } from '../../src/simulation/vehicles.ts';
 import { Simulation } from '../../src/simulation/world.ts';
@@ -167,30 +168,55 @@ export function mountMotocrossHud(
  * The real physics/survey feasibility is exercised in the simulation rig;
  * this checks visible progress, exclusions and layout only. */
 export function sampleMotocrossPractice(
-  stage: 'ground' | 'air' | 'flight' | 'contact' | 'settled' | 'riding',
+  stage: 'ground' | 'air' | 'flight' | 'contact' | 'settled' | 'riding' | 'approach',
   automatic = false,
   heldBrake = false,
   replay = false,
+  details: {
+    timeOffset?: number;
+    /** Signed metres outside the surveyed zone; zero is its centre. */
+    miss?: number;
+    takeoffSpeed?: number;
+    exitSpeed?: number;
+    approachPace?: 'build' | 'hold' | 'ease';
+    rough?: boolean;
+    wet?: boolean;
+    caution?: boolean;
+  } = {},
 ) {
   if (!simulation || !frame) throw new Error('Mount a motocross HUD first');
   const jump = offroadCourse(simulation.track.circuit)!.jumps[0];
   const base = carBase(0),
     o = base + OFFROAD_BASE;
+  const miss = details.miss ?? 0;
+  const landingS =
+    jump.landing + (miss === 0 ? 0 : Math.sign(miss) * (jump.landingLength / 2 + Math.abs(miss)));
   const samples = {
     ground: [1, jump.takeoff - 0.5, 0, 0],
     air: [1.05, jump.takeoff + 0.5, 1, 0.05],
-    flight: [1.45, (jump.takeoff + jump.landing) / 2, 1, 0.45],
-    contact: [1.85, jump.landing, 0, 0.85],
-    settled: [2.11, jump.landing + 3, 0, 0.85],
-    riding: [4.9, jump.landing + 45, 0, 0.85],
+    flight: [1.45, (jump.takeoff + landingS) / 2, 1, 0.45],
+    contact: [1.85, landingS, 0, 0.85],
+    settled: [2.11, landingS + 3, 0, 0.85],
+    riding: [4.9, landingS + 45, 0, 0.85],
+    approach: [6.1, jump.start - 45, 0, 0],
   } as const;
-  const [time, s, airborne, airTime] = samples[stage];
+  const [sampleTime, s, airborne, airTime] = samples[stage];
+  const time = sampleTime + (details.timeOffset ?? 0);
+  const reference = jumpHoldSpeed(jump);
+  const speed =
+    stage === 'approach'
+      ? reference +
+        (details.approachPace === 'build' ? -3 : details.approachPace === 'ease' ? 3 : 0)
+      : stage === 'settled' || stage === 'riding'
+        ? (details.exitSpeed ?? details.takeoffSpeed ?? 20)
+        : (details.takeoffSpeed ?? 20);
   frame[H.TIME] = frame[H.RACE_TIME] = time;
   frame[H.TICK] = Math.round(time * 120);
   frame[H.PHASE] = 2;
-  frame[H.FLAG] = frame[base + F.LOCAL_FLAG] = FLAG.GREEN;
+  frame[H.FLAG] = frame[base + F.LOCAL_FLAG] = details.caution ? FLAG.DOUBLE_YELLOW : FLAG.GREEN;
+  frame[base + F.CAUTION_SPEED] = details.caution ? 8 : 0;
   frame[base + F.S] = s;
-  frame[base + F.SPEED] = frame[base + F.VZ] = 20;
+  frame[base + F.SPEED] = frame[base + F.VZ] = speed;
   frame[base + F.LATERAL] = frame[base + F.VX] = 0;
   frame[base + F.QX] = frame[base + F.QY] = frame[base + F.QZ] = 0;
   frame[base + F.QW] = 1;
@@ -199,15 +225,62 @@ export function sampleMotocrossPractice(
   frame[o + O.AIRBORNE] = airborne;
   frame[o + O.AIR_TIME] = airTime;
   frame[o + O.LANDING_PITCH] = 0.1;
-  frame[o + O.LANDING_SPEED] = 2;
-  frame[o + O.BOTTOM] = 0;
+  frame[o + O.LANDING_SPEED] = details.rough ? 7 : 2;
+  frame[o + O.BOTTOM] = details.rough ? 0.7 : 0;
+  frame[o + O.MOISTURE] = details.wet ? 0.7 : 0.28;
   for (const wheel of [0, 2]) {
     const w = base + WHEEL_BASE + wheel * WHEEL_STRIDE;
     frame[w + W.RADIUS] = 0.34;
-    frame[w + W.OMEGA] = heldBrake && wheel === 0 ? 2 : 20 / 0.34;
+    frame[w + W.OMEGA] = heldBrake && wheel === 0 ? 2 : speed / 0.34;
   }
   ui.showMode(replay ? 'replay' : 'driving');
   ui.update(frame, renderer, automatic, 1);
+}
+
+/** Read real production text and layout boxes. This does not change styles,
+ * hide controls, or substitute fixture text to make a long note fit. */
+export function measureMotocrossPractice() {
+  const rect = (node: Element) => {
+    const b = node.getBoundingClientRect();
+    return { x: b.x, y: b.y, right: b.right, bottom: b.bottom, width: b.width, height: b.height };
+  };
+  const panel = document.querySelector<HTMLElement>('.mx-ride-hud')!;
+  const note = panel.querySelector<HTMLElement>('.mx-ride-note')!;
+  const range = document.createRange();
+  range.selectNodeContents(note);
+  const controls = [
+    ...document.querySelectorAll<HTMLElement>(
+      '.touch-controls button, .hud-actions button, .hud-top button',
+    ),
+  ].flatMap((node) => {
+    const box = rect(node),
+      style = getComputedStyle(node);
+    if (
+      box.width <= 1 ||
+      box.height <= 1 ||
+      style.visibility === 'hidden' ||
+      style.display === 'none'
+    )
+      return [];
+    return [{ label: node.getAttribute('aria-label') ?? node.textContent, rect: box }];
+  });
+  return {
+    panel: { ...rect(panel), overflowX: panel.scrollWidth - panel.clientWidth },
+    note: {
+      ...rect(note),
+      text: note.textContent ?? '',
+      overflowX: note.scrollWidth - note.clientWidth,
+      overflowY: note.scrollHeight - note.clientHeight,
+      lines: [...range.getClientRects()].map((line) => ({
+        x: line.x,
+        right: line.right,
+        y: line.y,
+        bottom: line.bottom,
+      })),
+    },
+    controls,
+    documentOverflowX: document.documentElement.scrollWidth - window.innerWidth,
+  };
 }
 
 /** One later presentation, with skipped simulation ticks, must show this

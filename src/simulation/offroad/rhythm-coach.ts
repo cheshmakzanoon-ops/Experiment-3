@@ -51,10 +51,14 @@ export function motocrossApproachCue(
 
 export interface RhythmSnapshot {
   course: object;
+  /** Machine and assist setting define one comparable practice run. */
+  machine: string;
   time: number;
   airborne: boolean;
   airTime: number;
   crashed: boolean;
+  /** Human riding, on course and outside cautions, pit travel and replay. */
+  eligible: boolean;
   landing: MotocrossLandingFeedback;
 }
 
@@ -67,47 +71,69 @@ export class MotocrossRhythm {
   best = 0;
   completed = 0;
   private course: object | null = null;
+  private machine = '';
   private time = -Infinity;
   private airborne = false;
   private airTime = 0;
+  private ready = false;
+  private flightEligible = false;
   private pending: { at: number; clean: boolean } | null = null;
   reset() {
     this.streak = this.best = this.completed = 0;
+    this.suspend();
+    this.course = null;
+    this.machine = '';
+    this.time = -Infinity;
+  }
+  /** Reviewing footage preserves the session best and completed attempts,
+   * but an interrupted flight cannot join an uninterrupted clean run. */
+  suspend() {
+    this.streak = 0;
     this.pending = null;
     this.airborne = false;
     this.airTime = 0;
-    this.course = null;
-    this.time = -Infinity;
+    this.ready = this.flightEligible = false;
   }
   update(sample: RhythmSnapshot) {
     if (!Number.isFinite(sample.time) || !Number.isFinite(sample.airTime)) {
       this.reset();
       return;
     }
-    if (sample.course !== this.course || sample.time < this.time || sample.time > this.time + 2)
+    if (
+      sample.course !== this.course ||
+      sample.machine !== this.machine ||
+      sample.time < this.time ||
+      sample.time > this.time + 2
+    )
       this.reset();
     // Re-presenting a paused packet must not age settlement or register a flight.
-    if (sample.time === this.time) return;
+    if (sample.time === this.time) {
+      if (!sample.eligible || sample.crashed) this.suspend();
+      return;
+    }
     this.time = sample.time;
     this.course = sample.course;
-    if (sample.crashed) {
-      this.streak = 0;
-      this.pending = null;
-      this.airborne = false;
-      this.airTime = 0;
+    this.machine = sample.machine;
+    if (!sample.eligible || sample.crashed) {
+      this.suspend();
+      this.airborne = sample.airborne;
       return;
     }
     if (sample.airborne) {
-      if (!this.airborne && this.pending) {
-        // An early rebound is not a settled landing. Preserve the personal best
-        // but do not count it as clean, even if the first contact looked good.
-        this.streak = 0;
-        this.pending = null;
+      if (!this.airborne) {
+        this.flightEligible = this.ready && !this.pending;
+        if (this.pending) {
+          // An early rebound is not a settled landing. Preserve the personal best
+          // but do not count it as clean, even if the first contact looked good.
+          this.streak = 0;
+          this.pending = null;
+        }
       }
       this.airTime = Math.max(0, sample.airTime);
     } else {
-      if (this.airborne && Math.max(this.airTime, sample.airTime) > 0.2)
+      if (this.airborne && this.flightEligible && Math.max(this.airTime, sample.airTime) > 0.2)
         this.pending = { at: sample.time, clean: sample.landing.kind === 'clean' };
+      this.flightEligible = false;
       if (this.pending) {
         // The worst observed result in the spring-settlement window wins.
         this.pending.clean &&= sample.landing.kind === 'clean';
@@ -120,5 +146,6 @@ export class MotocrossRhythm {
       }
     }
     this.airborne = sample.airborne;
+    this.ready = !sample.airborne;
   }
 }
