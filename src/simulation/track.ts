@@ -127,6 +127,31 @@ export class Track {
     );
     return this.contactMesh.cast(origin, down, maximum, out);
   }
+  /** Tire-support query in wheel-centre distance. Custom analytic cast
+   * overrides and deformable terrain retain their authoritative geometry;
+   * paved circuit triangles additionally supply the finite crown envelope. */
+  castTire(
+    origin: Vec3,
+    down: Vec3,
+    maximum: number,
+    radius: number,
+    halfWidth: number,
+    axle: Vec3,
+    out: SurfaceSample,
+    point: Vec3,
+  ) {
+    if (this.#offroad || this.cast !== Track.prototype.cast) {
+      const distance = this.cast(origin, down, maximum, out);
+      if (!Number.isFinite(distance)) return Infinity;
+      point.copy(origin).addScaled(down, distance);
+      return distance - radius / Math.max(0.15, -down.dot(out.normal));
+    }
+    this.contactMesh ??= new TrackContactMesh(
+      this,
+      this.circuit.samples ? Math.max(8192, Math.ceil(this.length / 0.9)) : undefined,
+    );
+    return this.contactMesh.castTire(origin, down, maximum, radius, halfWidth, axle, out, point);
+  }
   private queryPoint = trackPoint();
   readonly weather: WeatherTimeline;
   rain = 0;

@@ -46,7 +46,13 @@ import { TireCarcass } from './tire-carcass.ts';
 import { anthraciteRimMaterial, wheelCoverMaterial } from './studio/wheel-blur.ts';
 import { wheelBlur } from './studio/tyre-letters.ts';
 import { bindTireSurface, tireHeatAppearance, tireWetAppearance } from './tire-finish.ts';
-import { wheelPhase, wheelTravel, wheelValue } from './wheel-pose.ts';
+import { wheelPhase, wheelValue } from './wheel-pose.ts';
+import {
+  contactCylinderRadius,
+  contactHubLength,
+  sampleWheelContact,
+  wheelContactPose,
+} from './wheel-contact.ts';
 import { sampleChassisPose, sampleValue, snapshotSource } from './snapshot-interpolation.ts';
 import * as T from 'three';
 import { DriverRig } from './driver.ts';
@@ -61,6 +67,7 @@ import { WHEEL_POSITIONS } from '../simulation/vehicle.ts';
 import { clamp, lerp } from '../core/math.ts';
 const COMPOUND_STYLES = Object.values(COMPOUNDS);
 export class FormulaCar {
+  private readonly contactPose = wheelContactPose();
   readonly root = new T.Group();
   readonly suppliedPlayer: SuppliedPlayer | null;
   readonly mirrors: T.Mesh[] = [];
@@ -748,8 +755,15 @@ export class FormulaCar {
     const source = snapshotSource(a, b, t);
     for (let i = 0; i < 4; i++) {
       const p = o + WHEEL_BASE + i * WHEEL_STRIDE;
-      reduced.wheels[i].position.y = 0.05 - wheelTravel(a, b, p, t);
-      const radius = (wheelValue(a, b, o, p, W.RADIUS, t) || 0.335) / 0.335;
+      const contact = sampleWheelContact(a, b, o, i, t, this.contactPose);
+      reduced.wheels[i].position.y = 0.05 - contactHubLength(contact, a, b, p, t);
+      const radius =
+        contactCylinderRadius(
+          contact,
+          wheelValue(a, b, o, p, W.RADIUS, t) || 0.335,
+          0.245,
+          i < 2 ? 0.155 : 0.19,
+        ) / 0.335;
       // The reduced cylinder's axle is local Y; neither rim nor hub scales.
       reduced.tires[i].scale.set(radius, 1, radius);
       reduced.wheels[i].rotation.y = lerp(a[p + W.STEER], b[p + W.STEER], t);
@@ -790,7 +804,8 @@ export class FormulaCar {
     for (let i = 0; i < 4; i++) {
       const p = o + WHEEL_BASE + i * WHEEL_STRIDE,
         pivot = this.wheelPivots[i];
-      pivot.position.y = 0.05 - wheelTravel(a, b, p, t);
+      const contact = sampleWheelContact(a, b, o, i, t, this.contactPose);
+      pivot.position.y = 0.05 - contactHubLength(contact, a, b, p, t);
       pivot.rotation.y = lerp(a[p + W.STEER], b[p + W.STEER], t);
       // Tire-force camber is signed about the rolling direction; the visual
       // axle uses the opposite local-Z rotation. Negative setup camber leans in.
@@ -811,6 +826,7 @@ export class FormulaCar {
         wheelValue(a, b, o, p, W.LOAD, t),
         wheelValue(a, b, o, p, W.PRESSURE, t),
         wheelValue(a, b, o, p, W.FLAT, t),
+        contact,
       );
     }
     this.updateSuspension(this.wheelPivots);

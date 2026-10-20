@@ -7,6 +7,13 @@ export function suppliedDecalCoverageControl(material: T.Material) {
   return coverageControls.get(material) ?? null;
 }
 
+/** A material copy retaining its shader hook must expose that same hook's
+ * coverage switch to diagnostics, rather than creating an unused new switch. */
+export function inheritSuppliedCoverageControl(source: T.Material, copy: T.Material) {
+  const control = coverageControls.get(source);
+  if (control) coverageControls.set(copy, control);
+}
+
 function skipEmptyDecalCoverage(material: T.MeshStandardMaterial) {
   if (
     coverageControls.has(material) ||

@@ -4,7 +4,15 @@ import { loadSuppliedPlayer } from '../../src/rendering/supplied-player.ts';
 import { drawSteeringDisplay } from '../../src/rendering/steering-display.ts';
 import { Simulation } from '../../src/simulation/world.ts';
 import { controls, DEFAULT_OPTIONS } from '../../src/simulation/config.ts';
-import { carBase, F, W, WHEEL_BASE, WHEEL_STRIDE } from '../../src/simulation/protocol.ts';
+import {
+  C,
+  carBase,
+  F,
+  W,
+  WHEEL_BASE,
+  WHEEL_CONTACT_BASE,
+  wheelContactBase,
+} from '../../src/simulation/protocol.ts';
 
 /** Uses the shipped binary, its actual skeleton, and production simulation
  * snapshots. This studio fixture verifies fit/rig, not a full-lap FPS target. */
@@ -118,7 +126,10 @@ export async function captureSuppliedPlayer(url: string) {
       mode,
       image: canvas.toDataURL('image/png'),
       screen: screen.toArray(),
-      suspension: [0, 1, 2, 3].map((i) => frame[o + WHEEL_BASE + i * WHEEL_STRIDE + W.LENGTH]),
+      // The physical axle follows the solved suspension hub. W.LENGTH still
+      // includes radial compression and is only the geometric floor datum.
+      measuredContact: frame[o + WHEEL_CONTACT_BASE],
+      suspension: [0, 1, 2, 3].map((i) => frame[wheelContactBase(o, i) + C.HUB_LENGTH]),
       wheelWorld: player.wheels.map((wheel) => wheel.getWorldPosition(new T.Vector3()).toArray()),
       chassisY: chassis.position.y,
       steer: frame[o + F.STEER],

@@ -14,17 +14,18 @@ import {
   camberGrip,
   camberShift,
   carcassStiffness,
-  combinedForces,
   FORMULA_SLICK,
+  lateralContact,
   longitudinalContact,
   longitudinalRelaxationLength,
+  prepareLateralContact,
   prepareLongitudinalContact,
   prepareSlip,
   pressureGrip,
   relaxationLength,
   relaxSlip,
   slipState,
-  transientLongitudinalForce,
+  transientCombinedForces,
   type TyreConstruction,
 } from './tyre-force.ts';
 import { advanceWheelTemperatures, hotPressure, type ThermalInputs } from './tyre-thermal.ts';
@@ -73,7 +74,8 @@ export interface Tire {
   looseGrip?: number;
   /** Carcass construction: slip stiffness, camber, relaxation, pressure laws. */
   construction: TyreConstruction;
-  /** Relaxed (lagged) slip angle entering the force law (rad). */
+  /** Filtered slip-angle diagnostic (rad), retained for telemetry continuity.
+   * The force itself uses the elastic contact states below, not this lag. */
   relaxedAngle: number;
   /** Signed longitudinal elastic contact deformation (m), never a visual lag. */
   longitudinalDeflection: number;
@@ -86,6 +88,21 @@ export interface Tire {
   longitudinalRelaxationHeat: number;
   /** Backward-Euler spring loss (W), recorded separately from physical heat. */
   longitudinalNumericalDissipation: number;
+  /** Signed lateral slip deformation (m); patch-to-rim displacement is its
+   * negative, and lateral force is −Ky*lateralDeflection. */
+  lateralDeflection: number;
+  /** Recoverable lateral contact-spring energy (J). */
+  lateralEnergy: number;
+  /** Lateral sliding/projection loss during this substep (W). */
+  lateralDissipation: number;
+  /** Released lateral reservoir energy (W); heats the carcass without wear. */
+  lateralRelaxationHeat: number;
+  /** Lateral backward-Euler spring loss (W), separate from physical heat. */
+  lateralNumericalDissipation: number;
+  /** Signed power entering the lateral reduction through its equivalent
+   * camber-velocity bias (W). This is an explicit geometric boundary port,
+   * not a claimed solved camber torque or extra friction heat. */
+  camberPower: number;
   /** Road-relative inclination used by the force law (rad, + toward +lateral). */
   inclination: number;
   /** Radial deflection of the carcass (m) and contact-patch length (m). */
@@ -170,6 +187,12 @@ export function makeTire(
     longitudinalDissipation: 0,
     longitudinalRelaxationHeat: 0,
     longitudinalNumericalDissipation: 0,
+    lateralDeflection: 0,
+    lateralEnergy: 0,
+    lateralDissipation: 0,
+    lateralRelaxationHeat: 0,
+    lateralNumericalDissipation: 0,
+    camberPower: 0,
     inclination: 0,
     deflection: 0,
     patchLength: 0.14,
@@ -184,13 +207,22 @@ export function makeTire(
 }
 /** Teleport/recovery starts a new contact; retained patch strain must not
  * apply a force at the new position or be counted as fresh thermal work. */
-export function resetLongitudinalContact(t: Tire) {
+export function resetTireContact(t: Tire) {
   t.longitudinalDeflection = 0;
   t.longitudinalEnergy = 0;
   t.longitudinalDissipation = 0;
   t.longitudinalRelaxationHeat = 0;
   t.longitudinalNumericalDissipation = 0;
+  t.lateralDeflection = 0;
+  t.lateralEnergy = 0;
+  t.lateralDissipation = 0;
+  t.lateralRelaxationHeat = 0;
+  t.lateralNumericalDissipation = 0;
+  t.camberPower = 0;
+  t.relaxedAngle = 0;
 }
+/** Compatibility for older placement callers; both patch axes must reset. */
+export const resetLongitudinalContact = resetTireContact;
 /** Surface friction this tyre sees: loose-surface constructions keep part of
  * the grip grass and gravel remove from a slick. */
 function surfaceGrip(t: Tire, s: SurfaceSample) {
@@ -286,6 +318,7 @@ export function ellipse(fx: number, fy: number, limit: number, out: { fx: number
 }
 const SLIP = slipState();
 const LONGITUDINAL = longitudinalContact();
+const LATERAL = lateralContact();
 const CONTACT_FORCE = { fx: 0, fy: 0 };
 const THERMAL: ThermalInputs = {
   slipPower: 0,
@@ -301,8 +334,8 @@ const THERMAL: ThermalInputs = {
 /** Backward Euler wheel solve with dissipative brake complementarity. Bisection
  * resolves the stiff low-speed wheel mode without arbitrary angular-velocity
  * clamps. Forces come from the combined-slip law (tyre-force.ts) with the
- * relaxed lateral slip angle and an elastic longitudinal contact solved at
- * every trial wheel speed. Its recoverable energy is separate from sliding
+ * instantaneous steady slip and two elastic contact axes solved at every
+ * trial wheel speed. Their recoverable energies are separate from sliding
  * heat and numerical dissipation. Camber is road-relative inclination signed
  * toward +lateral; `airTemp` defaults to the road temperature. */
 export function solveTire(
@@ -331,7 +364,7 @@ export function solveTire(
     old = t.omega,
     regularization = Math.max(2.5, Math.abs(vLong));
   t.angle = Math.atan2(vLat, Math.hypot(vLong, 3));
-  // Transient lateral slip: the carcass deflection lags the contact velocity.
+  // Retained telemetry diagnostic; explicit patch strain now governs force.
   t.relaxedAngle =
     t.load < 1
       ? t.angle
@@ -356,13 +389,15 @@ export function solveTire(
   );
   // Camber: patch-size factor on the peak (scales D and the reference slips
   // together so slip stiffness is unchanged) and thrust as a slip-angle shift.
-  const alpha = t.relaxedAngle - camberShift(k, t.load, SLIP, camber, vLong),
+  const shift = clamp(camberShift(k, t.load, SLIP, camber, vLong), -Math.PI / 4, Math.PI / 4),
+    alpha = t.angle - shift,
     camberFactor = camberGrip(k, camber, alpha / SLIP.alphaRef);
   SLIP.dx *= camberFactor;
   SLIP.dy *= camberFactor;
   SLIP.kappaRef *= camberFactor;
   SLIP.alphaRef *= camberFactor;
   SLIP.alpha = alpha;
+  if (t.load < 1) SLIP.dx = SLIP.dy = 0;
   const cap = SLIP.dx;
   prepareLongitudinalContact(
     SLIP,
@@ -372,21 +407,37 @@ export function solveTire(
     dt,
     LONGITUDINAL,
   );
+  // Rotating the finite contact-velocity vector by the equivalent camber
+  // angle preserves its bounded magnitude and the sign of the steady force.
+  // At zero camber this is EXACTLY vLat, even for a sideways/reversing car;
+  // the force target still uses the calibrated atan2 slip angle above.
+  // Capping the equivalent angle only bounds extreme unloaded/near-zero-grip
+  // inputs; normal vehicle cambers remain far inside this geometric limit.
+  const lateralTransport = Math.hypot(vLong, 3),
+    lateralSlipSpeed = vLat * Math.cos(shift) - lateralTransport * Math.sin(shift),
+    // At alpha=0, vLat=transport*tan(shift), hence d(sy)/d(alpha)
+    // = transport/cos(shift). This keeps the zero-slip rate continuous.
+    zeroLateralTransport = lateralTransport / Math.cos(shift);
+  prepareLateralContact(
+    SLIP,
+    t,
+    zeroLateralTransport,
+    t.load < 1 ? 0 : relaxationLength(k, t.load, t.pressure, t.wear, vLong),
+    dt,
+    LATERAL,
+  );
   const evalForce = (omega: number, recordState = false) => {
     const slipSpeed = omega * r - vLong;
-    if (t.load < 1) {
-      CONTACT_FORCE.fx = 0;
-      CONTACT_FORCE.fy = 0;
-    } else combinedForces(SLIP, slipSpeed / regularization, CONTACT_FORCE);
-    const longitudinalLimit =
-      cap * Math.sqrt(Math.max(0, 1 - (CONTACT_FORCE.fy / Math.max(1e-9, SLIP.dy)) ** 2));
-    return transientLongitudinalForce(
+    return transientCombinedForces(
+      SLIP,
       LONGITUDINAL,
+      LATERAL,
       slipSpeed,
-      CONTACT_FORCE.fx,
-      longitudinalLimit,
+      regularization,
+      lateralSlipSpeed,
+      CONTACT_FORCE,
       recordState,
-    );
+    ).fx;
   };
   const torqueAtZero = drive - evalForce(0) * r;
   let omega = 0;
@@ -422,7 +473,17 @@ export function solveTire(
   t.longitudinalDissipation = LONGITUDINAL.dissipation;
   t.longitudinalRelaxationHeat = LONGITUDINAL.relaxationHeat;
   t.longitudinalNumericalDissipation = LONGITUDINAL.numericalDissipation;
-  t.energy = t.longitudinalDissipation + Math.abs(t.fy * vLat);
+  t.lateralDeflection = LATERAL.deflection;
+  t.lateralEnergy = LATERAL.energy;
+  t.lateralDissipation = LATERAL.dissipation;
+  t.lateralRelaxationHeat = LATERAL.relaxationHeat;
+  t.lateralNumericalDissipation = LATERAL.numericalDissipation;
+  // Actual lateral slip work plus this signed geometric input equals work
+  // at the reduced spring: −Fy*vLat + camberPower = −Fy*lateralSlipSpeed.
+  // The equivalent-camber approximation has no separately solved torsional
+  // patch/steering mode; report its power port instead of hiding extra work.
+  t.camberPower = 0 + t.fy * (vLat - lateralSlipSpeed);
+  t.energy = t.longitudinalDissipation + t.lateralDissipation;
   t.peakSlip = SLIP.kappaRef;
   t.usage = Math.hypot(t.fx / Math.max(1, SLIP.dx), t.fy / Math.max(1, SLIP.dy));
   if (t.load < 1) {
@@ -457,10 +518,10 @@ export function solveTire(
     material.rolling;
   t.groundDrag =
     t.load < 1 ? 0 : groundDrag(material, t.sinkage, k.width, vLong, surface.water, t.aquaplane);
-  // Sliding work gives heat; recoverable longitudinal deformation and the
-  // implicit integrator's numerical spring loss are not tyre temperature.
+  // Sliding work gives heat; recoverable contact deformation and the
+  // implicit integrator's numerical spring losses are not tyre temperature.
   THERMAL.slipPower = t.energy;
-  THERMAL.carcassPower = t.longitudinalRelaxationHeat;
+  THERMAL.carcassPower = t.longitudinalRelaxationHeat + t.lateralRelaxationHeat;
   THERMAL.load = t.load;
   THERMAL.speed = vLong;
   THERMAL.airTemp = airTemp;
@@ -511,7 +572,13 @@ export function solveTire(
         t.longitudinalEnergy +
         t.longitudinalDissipation +
         t.longitudinalRelaxationHeat +
-        t.longitudinalNumericalDissipation,
+        t.longitudinalNumericalDissipation +
+        t.lateralDeflection +
+        t.lateralEnergy +
+        t.lateralDissipation +
+        t.lateralRelaxationHeat +
+        t.lateralNumericalDissipation +
+        t.camberPower,
     )
   )
     throw new Error('Non-finite tire state');

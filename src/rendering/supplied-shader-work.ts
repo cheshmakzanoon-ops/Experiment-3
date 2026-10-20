@@ -6,6 +6,13 @@ export function suppliedShaderWorkControl(material: T.Material) {
   return controls.get(material) ?? null;
 }
 
+/** Static tire material copies share source textures and retain the installed
+ * shader hooks; make their active switch visible to the same GPU oracle. */
+export function inheritSuppliedShaderWorkControl(source: T.Material, copy: T.Material) {
+  const control = controls.get(source);
+  if (control) controls.set(copy, control);
+}
+
 /** Preserve every source attribute and lighting operation. Zero-weight skin
  * influences contribute exactly zero; a shared packed glTF roughness/metalness
  * texture has the same sampler, UV transform and lookup in both stages. */

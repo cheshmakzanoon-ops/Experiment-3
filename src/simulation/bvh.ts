@@ -104,6 +104,11 @@ export class TriangleBVH {
     }
     return true;
   }
+  /** Triangle at a leaf's ordered position. Shape queries share this static
+   * hierarchy without copying its geometry or build-time permutation. */
+  orderedTriangle(position: number): number {
+    return this.order[position];
+  }
   raycast(origin: Vec3, direction: Vec3, maximum: number, out: RayHit): boolean {
     if (!origin.finite() || !direction.finite() || !Number.isFinite(maximum) || maximum < 0)
       throw new Error('Invalid ray');

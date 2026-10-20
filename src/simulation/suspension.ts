@@ -5,9 +5,10 @@ import type { Setup } from './config.ts';
  * Each corner is a massless hub between the chassis and the tyre: the
  * suspension (progressive spring, bump stop, bump/rebound damper with a
  * low/high-speed knee, anti-roll bar) acts on hub travel x, the tyre's radial
- * stiffness and damping on the deflection X − x, where X is the total
- * geometric compression from the contact query. Hub force balance
- *     k_t·(X − x) + c_t·(Ẋ − ẋ) = F_spring(x) + F_bump(x) + F_damper(ẋ) + k_arb·(x − x_other)
+ * stiffness and damping on the normal deflection c_n·(X − x), where X is
+ * geometric compression along the suspension axis and c_n = up·roadNormal.
+ * Holding that contact normal over a substep, the axis force balance is
+ *     c_n²·[k_t·(X − x) + c_t·(Ẋ − ẋ)] = F_spring(x) + F_bump(x) + F_damper(ẋ) + k_arb·(x − x_other)
  * is solved with backward Euler and a coupled two-corner Newton solve for
  * each axle. Tyres push only, and mechanical droop stops carry an extension
  * reaction. A convex-work line search resolves the changing contact, damper
@@ -26,10 +27,11 @@ import type { Setup } from './config.ts';
  * roll/pitch mass centre that keeps total load transfer at its calibrated
  * value. Roll-centre height and side-view anti geometry then split that
  * transfer into an elastic share (springs/bars: body roll and pitch) and a
- * geometric share that the links put straight into the tyre loads,
- *     ΔN = −(h_rc/y)·Fy − tanθ·Fx·sign(z),
- * without changing the total, and jack the body when outer and inner forces
- * differ. Zero heights reproduce the former, purely elastic transfer. */
+ * geometric share that the links put straight into the tyre loads. The
+ * chassis-up generalized load Q = −(h_rc/y)·Fy − tanθ·Fx·sign(z) contributes
+ * Q/c_n to road-normal force. This divides the modeled transfer between
+ * elastic and link paths; unequal outer/inner forces also jack the body.
+ * Zero heights reproduce the former, purely elastic transfer. */
 export interface DamperCurve {
   /** Low-speed ride damping at the contact patch (N s/m), bump and rebound. */
   readonly bump: number;
@@ -233,12 +235,16 @@ function damperWork(h: CornerHardware, v: number, dt: number) {
 export class HubSolver {
   /** Hub travel (m, + bump) per corner: the integrated state. */
   readonly travel = new Float64Array(4);
-  /** Tyre radial force (N) per corner after the solve. */
+  /** Tyre road-normal force (N) per corner after the solve; its suspension-axis
+   * generalized force is tyreForce * normalCosine. */
   readonly tyreForce = new Float64Array(4);
-  /** Total compression X (m) and its rate Ẋ (m/s); contact flags. */
+  /** Total compression X (m) and its rate Ẋ (m/s), along the suspension axis. */
   readonly compression = new Float64Array(4);
   readonly rate = new Float64Array(4);
   readonly contact = new Uint8Array(4);
+  /** Positive cosine between chassis up and road normal, held for this step.
+   * Unity preserves the aligned-road hardware and standalone solver API. */
+  readonly normalCosine = new Float64Array(4).fill(1);
   /** Per-corner tyre radial stiffness this step (pressure dependent). */
   readonly tyreRate = new Float64Array(4);
   private readonly previous = new Float64Array(4);
@@ -246,6 +252,13 @@ export class HubSolver {
   reset() {
     this.travel.fill(0);
     this.tyreForce.fill(0);
+    // Placement/recovery starts without a measured road contact. Snapshot
+    // presentation can run before the next gather/solve; it must not publish
+    // a previous road's compression or normal as a new grounded tire pose.
+    this.compression.fill(0);
+    this.rate.fill(0);
+    this.contact.fill(0);
+    this.normalCosine.fill(1);
   }
   private r = 0;
   private slope = 0;
@@ -256,12 +269,14 @@ export class HubSolver {
       v = (x - this.previous[i]) / dt,
       suspension = springForce(h, x) + damperForce(h, v) + h.barRate * (x - other),
       stiffness = springSlope(h, x) + damperSlope(h, v) / dt + h.barRate;
-    const kt = this.tyreRate[i],
+    const projection = this.normalCosine[i] ** 2,
+      kt = this.tyreRate[i] * projection,
+      ct = h.tyreDamping * projection,
       tyre = this.contact[i]
-        ? Math.max(0, kt * (this.compression[i] - x) + h.tyreDamping * (this.rate[i] - v))
+        ? Math.max(0, kt * (this.compression[i] - x) + ct * (this.rate[i] - v))
         : 0;
     this.r = tyre - suspension;
-    this.slope = stiffness + (tyre > 0 ? kt + h.tyreDamping / dt : 0);
+    this.slope = stiffness + (tyre > 0 ? kt + ct / dt : 0);
   }
   /** Scalar work potential whose negative derivative is the corner residual
    * before the bar. Taking the positive part of the tyre force gives a convex
@@ -269,16 +284,16 @@ export class HubSolver {
   private cornerWork(i: number, x: number, dt: number) {
     const h = this.hardware[i],
       v = (x - this.previous[i]) / dt,
+      projection = this.normalCosine[i] ** 2,
+      kt = this.tyreRate[i] * projection,
+      ct = h.tyreDamping * projection,
       tyre = this.contact[i]
-        ? Math.max(
-            0,
-            this.tyreRate[i] * (this.compression[i] - x) + h.tyreDamping * (this.rate[i] - v),
-          )
+        ? Math.max(0, kt * (this.compression[i] - x) + ct * (this.rate[i] - v))
         : 0;
     return (
       springWork(h, x) +
       damperWork(h, v, dt) +
-      (tyre > 0 ? (0.5 * tyre * tyre) / (this.tyreRate[i] + h.tyreDamping / dt) : 0)
+      (tyre > 0 ? (0.5 * tyre * tyre) / (kt + ct / dt) : 0)
     );
   }
   private axleWork(i: number, x: number, y: number, dt: number) {
@@ -339,9 +354,14 @@ export class HubSolver {
       }
     }
   }
-  /** Backward-Euler hub travel and non-negative tyre force for both axles. */
+  /** Backward-Euler axis travel and non-negative road-normal tyre force. */
   solve(dt: number) {
     if (!Number.isFinite(dt) || !(dt > 0)) throw new Error('Invalid suspension timestep');
+    for (let i = 0; i < 4; i++) {
+      const cosine = this.normalCosine[i];
+      if (!Number.isFinite(cosine) || cosine <= 0 || cosine > 1)
+        throw new Error('Invalid suspension contact cosine');
+    }
     this.previous.set(this.travel);
     this.solveAxle(0, dt);
     this.solveAxle(2, dt);
@@ -349,7 +369,8 @@ export class HubSolver {
       const h = this.hardware[i],
         v = (this.travel[i] - this.previous[i]) / dt;
       this.tyreForce[i] = this.contact[i]
-        ? Math.max(
+        ? this.normalCosine[i] *
+          Math.max(
             0,
             this.tyreRate[i] * (this.compression[i] - this.travel[i]) +
               h.tyreDamping * (this.rate[i] - v),
@@ -364,9 +385,10 @@ export class HubSolver {
 export function kinematicCamber(staticCamber: number, gain: number, travel: number, side: number) {
   return (staticCamber - gain * travel) * side;
 }
-/** Geometric (link) load transfer at one contact (N, + into the ground):
+/** Geometric (link) load transfer at one contact (N along chassis up):
  * lateral jacking through the roll centre at `y` (car-local lateral position
- * of the patch) and side-view anti geometry at `z` for force Fx. */
+ * of the patch) and side-view anti geometry at `z` for force Fx. Divide this
+ * generalized load by up·roadNormal when adding it to road-normal force. */
 export function geometricLoad(
   axle: AxleSuspension,
   y: number,

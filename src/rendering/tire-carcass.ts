@@ -4,6 +4,7 @@ import * as T from 'three';
 import { clamp } from '../core/math.ts';
 import { mesh } from './geometry.ts';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import type { WheelContactPose } from './wheel-contact.ts';
 
 const BEAD = 0.245,
   NOMINAL = 0.335;
@@ -38,6 +39,13 @@ export class TireCarcass {
   private lastPhase = NaN;
   private lastRadius = NaN;
   private lastDeflection = NaN;
+  private lastPhysical = false;
+  private lastLongitudinal = NaN;
+  private lastLateral = NaN;
+  private lastNormalX = NaN;
+  private lastNormalY = NaN;
+  private lastNormalZ = NaN;
+  private lastPlane = NaN;
   constructor(
     half: number,
     tread: T.Material,
@@ -104,13 +112,20 @@ export class TireCarcass {
       });
       // Conservative immutable bounds cover every permitted crown/sidewall pose.
       geometry.boundingBox = new T.Box3(
-        new T.Vector3(-half - 0.015, -0.36, -0.36),
-        new T.Vector3(half + 0.015, 0.36, 0.36),
+        new T.Vector3(-half - 0.065, -0.4, -0.4),
+        new T.Vector3(half + 0.065, 0.4, 0.4),
       );
-      geometry.boundingSphere = new T.Sphere(new T.Vector3(), Math.hypot(half + 0.015, 0.36));
+      geometry.boundingSphere = new T.Sphere(new T.Vector3(), Math.hypot(half + 0.065, 0.4));
     }
   }
-  update(phase: number, recordedRadius: number, load: number, pressure: number, flatSpot = 0) {
+  update(
+    phase: number,
+    recordedRadius: number,
+    load: number,
+    pressure: number,
+    flatSpot = 0,
+    contact?: WheelContactPose,
+  ) {
     // Invalid external fixture data is never allowed to poison a GPU buffer.
     if (![phase, recordedRadius, load, pressure, flatSpot].every(Number.isFinite))
       throw new Error('Non-finite tire presentation state');
@@ -119,19 +134,54 @@ export class TireCarcass {
         BEAD + 0.007,
         NOMINAL,
       ),
-      deflection = tireDeflection(radius, load, pressure || 155);
+      physical = contact?.valid === true,
+      deflection = physical
+        ? clamp(contact.radial, 0, Math.max(0, radius - BEAD - 0.006))
+        : tireDeflection(radius, load, pressure || 155),
+      longitudinal = physical ? clamp(contact.longitudinal, -0.04, 0.04) : 0,
+      lateral = physical ? clamp(contact.lateral, -0.04, 0.04) : 0,
+      normalLength = physical ? Math.hypot(contact.normalX, contact.normalY, contact.normalZ) : 1,
+      nx = physical ? contact.normalX / normalLength : 0,
+      ny = physical ? contact.normalY / normalLength : 1,
+      nz = physical ? contact.normalZ / normalLength : 0,
+      flatRadius = physical ? clamp(contact.planeDistance, BEAD + 0.006, radius) : radius;
+    if (!Number.isFinite(deflection + longitudinal + lateral + nx + ny + nz + flatRadius))
+      throw new Error('Non-finite tire contact presentation');
+    if (physical && (Math.hypot(ny, nz) < 1e-8 || contact.radial < 0))
+      throw new Error('Invalid tire contact presentation');
     if (
       phase === this.lastPhase &&
       radius === this.lastRadius &&
-      deflection === this.lastDeflection
+      deflection === this.lastDeflection &&
+      physical === this.lastPhysical &&
+      longitudinal === this.lastLongitudinal &&
+      lateral === this.lastLateral &&
+      nx === this.lastNormalX &&
+      ny === this.lastNormalY &&
+      nz === this.lastNormalZ &&
+      flatRadius === this.lastPlane
     )
       return;
     this.lastPhase = phase;
     this.lastRadius = radius;
     this.lastDeflection = deflection;
+    this.lastPhysical = physical;
+    this.lastLongitudinal = longitudinal;
+    this.lastLateral = lateral;
+    this.lastNormalX = nx;
+    this.lastNormalY = ny;
+    this.lastNormalZ = nz;
+    this.lastPlane = flatRadius;
     const sn = Math.sin(phase),
       cs = Math.cos(phase),
-      free = radius + deflection;
+      free = physical ? radius : radius + deflection,
+      plane = Math.max(1e-8, Math.hypot(ny, nz)),
+      // RoadContactFrame: forward = axle cross normal; lateral = normal cross forward.
+      fy = -nz / plane,
+      fz = ny / plane,
+      lx = plane,
+      ly = (-nx * ny) / plane,
+      lz = (-nx * nz) / plane;
     for (const surface of this.surfaces) {
       const { geometry, positions, original, seams, direct } = surface;
       const weights = surface.weight,
@@ -148,9 +198,27 @@ export class TireCarcass {
           bulge = Math.max(0, -rollingY / Math.max(0.01, free)) ** 4 * weight * deflection * 0.35;
         // Deform in the non-spinning axle frame, then return to mesh space.
         // The contact patch stays below the axle while the UVs rotate with it.
-        const px = x + Math.sign(x) * bulge,
+        let px = x + Math.sign(x) * bulge,
           py = bottom * cs + rollingZ * sn,
           pz = -bottom * sn + rollingZ * cs;
+        if (physical) {
+          // Start from the free crown at the measured radius. The physical hub
+          // position is supplied separately; flatten once along the actual road
+          // normal, then shear in that tangent plane. The rim/bead never move.
+          const low = clamp(-(x * nx + rollingY * ny + rollingZ * nz) / Math.max(0.01, free), 0, 1),
+            patch = low ** 4 * weight;
+          px = x + Math.sign(x) * deflection * 0.35 * patch - lateral * lx * patch;
+          let axleY = rollingY + (longitudinal * fy - lateral * ly) * patch,
+            axleZ = rollingZ + (longitudinal * fz - lateral * lz) * patch;
+          const penetration = -flatRadius - (px * nx + axleY * ny + axleZ * nz);
+          if (deflection > 0 && weight > 0 && penetration > 0) {
+            px += nx * penetration;
+            axleY += ny * penetration;
+            axleZ += nz * penetration;
+          }
+          py = axleY * cs + axleZ * sn;
+          pz = -axleY * sn + axleZ * cs;
+        }
         if (direct) {
           direct.position[3 * i] = px;
           direct.position[3 * i + 1] = py;

@@ -3,6 +3,8 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { clamp } from '../../core/math.ts';
 import { revolveX, roundedBox, type Pt } from './loft.ts';
 import { discMaterial, sharedMaterials, tyreMaterial, type TreadPattern } from './materials.ts';
+import { RecordedTire } from '../recorded-tire.ts';
+import type { WheelContactPose } from '../wheel-contact.ts';
 
 /** Wheel assemblies for procedural bodies (WP30). Each corner is a pivot
  * (steer + camber, at the hub) carrying a non-spinning tyre whose loaded
@@ -268,6 +270,7 @@ export class WheelAssembly {
   readonly pose: { value: T.Vector4 };
   readonly disc: T.MeshStandardMaterial | null;
   readonly radius: number;
+  readonly contact: RecordedTire;
   constructor(radius: number, side: number, front: boolean, sheet: WheelSheet, detail: Detail) {
     this.radius = radius;
     const half = sheet.width[front ? 0 : 1] / 2;
@@ -276,6 +279,8 @@ export class WheelAssembly {
     this.pose.value.set(0, 0, radius, 0);
     this.tyre = new T.Mesh(tyreGeometry(radius, sheet.rimRadius, half, detail), rubber.material);
     this.tyre.name = 'Tyre (non-spinning, loaded)';
+    this.contact = new RecordedTire(radius, sheet.rimRadius);
+    this.contact.bind(this.tyre);
     this.pivot.add(this.tyre, this.spin);
     const rim = new T.Mesh(
       rimGeometry(sheet, half, side, detail),
@@ -311,6 +316,8 @@ export class WheelAssembly {
     load: number,
     pressure: number,
     discTemp: number,
+    contact?: WheelContactPose,
+    recordedRadius = this.radius,
   ) {
     this.pivot.position.y = hubY;
     this.pivot.rotation.set(0, steer, -camber);
@@ -319,6 +326,9 @@ export class WheelAssembly {
     const stiffness = 260000 * clamp((pressure || 155) / 155, 0.3, 2) * (this.radius / 0.335);
     const deflection = clamp(Math.max(0, load) / stiffness, 0, this.radius * 0.06);
     this.pose.value.set(phase, deflection, this.radius, deflection * 0.6);
+    // The rubber mesh stays in the non-spinning axle frame; only its tread
+    // artwork uses phase. Its physical strain comes directly from the snapshot.
+    this.contact.update(0, recordedRadius, 0, contact);
     if (this.disc) this.disc.emissiveIntensity = clamp((discTemp - 500) / 450, 0, 2);
   }
 }

@@ -14,7 +14,13 @@ import {
 } from '../../simulation/protocol.ts';
 import { vehicleAt, type VehicleDefinition } from '../../simulation/vehicles.ts';
 import type { ShadowSubstitute } from '../shadow-proxies.ts';
-import { wheelPhase, wheelTravel, wheelValue } from '../wheel-pose.ts';
+import { wheelPhase, wheelValue } from '../wheel-pose.ts';
+import {
+  contactCylinderRadius,
+  contactHubLength,
+  sampleWheelContact,
+  wheelContactPose,
+} from '../wheel-contact.ts';
 import {
   presentationAlpha,
   sampleOffroadField,
@@ -75,6 +81,11 @@ interface Built {
   mud?: MudUniforms;
 }
 const LOD_NAMES = ['near', 'mid', 'far'];
+interface ShadowWheel {
+  first: number;
+  local: Float32Array;
+}
+const shadowWheels = new WeakMap<T.Mesh, ShadowWheel[]>();
 export function buildVehicleBody(id: number, definition: VehicleDefinition, sheet: BodySheet) {
   const frame = bodyFrame(definition);
   const cabin = { layout: cabinLayout(definition, sheet), def: definition };
@@ -158,7 +169,7 @@ function admitsLight(material: T.Material | undefined) {
     !!material.userData.vehicleGlass
   );
 }
-/** One depth-only mesh: the far body and four wheel cylinders at rest. The
+/** One depth-only mesh: the far body and four posed wheel cylinders. The
  * glazing and the cabin lid are left out, so the sun reaches the near
  * cabin through the windows while the roof and body still shade it. */
 function shadowProxy(far: T.Group, wheels: WheelAssembly[], def: VehicleDefinition) {
@@ -201,6 +212,27 @@ function shadowProxy(far: T.Group, wheels: WheelAssembly[], def: VehicleDefiniti
     return f;
   });
   const merged = mergeGeometries(flat, false);
+  // Preserve the small wheel sections for frame-driven axle/radius updates;
+  // the body remains static and the shadow retains one draw call.
+  let first = 0;
+  const moving: ShadowWheel[] = [];
+  flat.forEach((g, i) => {
+    const position = g.getAttribute('position');
+    if (i >= flat.length - 4) {
+      const wheel = wheels[i - flat.length + 4];
+      const local = Float32Array.from(position.array);
+      for (let vertex = 0; vertex < position.count; vertex++) {
+        local[vertex * 3] -= wheel.pivot.position.x;
+        local[vertex * 3 + 1] -= wheel.pivot.position.y;
+        local[vertex * 3 + 2] -= wheel.pivot.position.z;
+      }
+      moving.push({ first, local });
+    }
+    first += position.count;
+  });
+  (merged.getAttribute('position') as T.BufferAttribute).setUsage(T.DynamicDrawUsage);
+  merged.computeBoundingSphere();
+  merged.boundingSphere!.radius += 0.5;
   for (const g of parts) g.dispose();
   for (const g of flat) if (!parts.includes(g)) g.dispose();
   const proxy = new T.Mesh(merged, new T.MeshBasicMaterial({ colorWrite: false }));
@@ -208,9 +240,13 @@ function shadowProxy(far: T.Group, wheels: WheelAssembly[], def: VehicleDefiniti
   proxy.castShadow = true;
   proxy.receiveShadow = false;
   proxy.visible = false;
+  shadowWheels.set(proxy, moving);
   return proxy;
 }
 export class VehicleBodies {
+  private readonly contactPose = wheelContactPose();
+  private readonly shadowPoint = new T.Vector3();
+  private readonly shadowRotation = new T.Euler();
   readonly root = new T.Group();
   private readonly bodies = new Map<number, Built>();
   /** Called once per newly built body (renderer material installers). */
@@ -296,6 +332,38 @@ export class VehicleBodies {
       body.materials.tail.emissiveIntensity = brake > 0.05 ? 3.2 : headlights ? 1.1 : 0.55;
       body.materials.head.emissiveIntensity = headlights ? 2.6 : 0.35;
       const positions = body.definition.wheelPositions;
+      // Keep the cheap merged shadow's wheels on the same physical hubs.
+      // A bounded round-cylinder envelope is sufficient at shadow-map detail.
+      const proxyPosition = body.proxy.geometry.getAttribute('position');
+      shadowWheels.get(body.proxy)?.forEach(({ first, local }, i) => {
+        const p = o + WHEEL_BASE + i * WHEEL_STRIDE;
+        const contact = sampleWheelContact(a, b, o, i, t, this.contactPose);
+        const radius =
+          contactCylinderRadius(
+            contact,
+            wheelValue(a, b, o, p, W.RADIUS, t) || body.wheels[2][i].radius,
+            body.wheels[2][i].contact.bead,
+            0.13,
+          ) / body.wheels[2][i].radius;
+        const hub = positions[i][1] - contactHubLength(contact, a, b, p, t);
+        this.shadowRotation.set(
+          0,
+          lerp(a[p + W.STEER], b[p + W.STEER], t),
+          -lerp(a[p + W.CAMBER], b[p + W.CAMBER], t),
+        );
+        for (let v = 0; v < local.length / 3; v++) {
+          this.shadowPoint
+            .set(local[v * 3], local[v * 3 + 1] * radius, local[v * 3 + 2] * radius)
+            .applyEuler(this.shadowRotation);
+          proxyPosition.setXYZ(
+            first + v,
+            this.shadowPoint.x + positions[i][0],
+            this.shadowPoint.y + hub,
+            this.shadowPoint.z + positions[i][2],
+          );
+        }
+      });
+      proxyPosition.needsUpdate = true;
       // The main view's LOD, and the coarser one a rear-view feed shows.
       for (const shown of body.feedLevel !== null && body.feedLevel !== level
         ? [level, body.feedLevel]
@@ -305,14 +373,17 @@ export class VehicleBodies {
         for (const e of lod.rear) e.visible = rear;
         body.wheels[shown].forEach((wheel, i) => {
           const p = o + WHEEL_BASE + i * WHEEL_STRIDE;
+          const contact = sampleWheelContact(a, b, o, i, t, this.contactPose);
           wheel.update(
-            positions[i][1] - wheelTravel(a, b, p, t),
+            positions[i][1] - contactHubLength(contact, a, b, p, t),
             lerp(a[p + W.STEER], b[p + W.STEER], t),
             lerp(a[p + W.CAMBER], b[p + W.CAMBER], t),
             wheelPhase(a, b, o, p, t),
             wheelValue(a, b, o, p, W.LOAD, t),
             wheelValue(a, b, o, p, W.PRESSURE, t),
             wheelValue(a, b, o, p, W.DISC_TEMP, t),
+            contact,
+            wheelValue(a, b, o, p, W.RADIUS, t),
           );
         });
         for (const { mesh, link } of body.links[shown]) {
@@ -445,6 +516,8 @@ export class VehicleBodies {
     const materials = new Set<T.Material>([paint, accent, helmet, head, tail, board]);
     for (const wheels of body.wheels)
       for (const wheel of wheels) {
+        if (wheel.tyre.customDepthMaterial) materials.add(wheel.tyre.customDepthMaterial);
+        if (wheel.tyre.customDistanceMaterial) materials.add(wheel.tyre.customDistanceMaterial);
         for (const material of Array.isArray(wheel.tyre.material)
           ? wheel.tyre.material
           : [wheel.tyre.material])

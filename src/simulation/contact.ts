@@ -1,6 +1,7 @@
 import { clamp, TAU, Vec3 } from '../core/math.ts';
 import { TriangleBVH, rayHit } from './bvh.ts';
 import type { Track, SurfaceSample } from './track.ts';
+import { TireFootprint } from './tire-footprint.ts';
 
 /** One authored height law feeds the contact mesh and rendered kerbs. */
 export function kerbHeight(s: number, across: number): number {
@@ -23,6 +24,8 @@ export class TrackContactMesh {
   readonly normals: Float64Array;
   readonly indices: Uint32Array;
   private hit = rayHit();
+  private readonly tireHit = rayHit();
+  readonly tireFootprint: TireFootprint;
   constructor(
     readonly track: Track,
     readonly rows = 8192,
@@ -80,6 +83,7 @@ export class TrackContactMesh {
       }
     }
     this.bvh = new TriangleBVH(this.vertices, this.indices, this.normals);
+    this.tireFootprint = new TireFootprint(this.bvh);
   }
   cast(origin: Vec3, down: Vec3, maximum: number, surface: SurfaceSample) {
     if (!this.bvh.raycast(origin, down, maximum, this.hit)) return Infinity;
@@ -87,5 +91,43 @@ export class TrackContactMesh {
     surface.height = this.hit.point.y;
     surface.normal.copy(this.hit.normal);
     return this.hit.distance;
+  }
+  /** Centre-ray support plus a width-bounded rounded tire-crown envelope.
+   * Returns uncompressed wheel-centre distance along the suspension axis;
+   * `point` is the actual force/velocity contact point on the road mesh. */
+  castTire(
+    origin: Vec3,
+    down: Vec3,
+    maximum: number,
+    radius: number,
+    halfWidth: number,
+    axle: Vec3,
+    surface: SurfaceSample,
+    point: Vec3,
+  ) {
+    const distance = this.cast(origin, down, maximum, surface),
+      length = Number.isFinite(distance)
+        ? distance - radius / Math.max(0.15, -down.dot(surface.normal))
+        : Infinity;
+    if (Number.isFinite(distance)) point.copy(this.hit.point);
+    if (
+      this.tireFootprint.cast(
+        origin,
+        down,
+        maximum,
+        radius,
+        Math.min(radius, halfWidth),
+        axle,
+        length,
+        this.tireHit,
+      )
+    ) {
+      point.copy(this.tireHit.point);
+      this.track.sample(point.x, point.z, surface, point.y);
+      surface.height = point.y;
+      surface.normal.copy(this.tireHit.normal);
+      return this.tireHit.distance;
+    }
+    return length;
   }
 }

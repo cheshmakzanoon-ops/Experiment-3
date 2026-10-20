@@ -11,7 +11,9 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { clamp, lerp } from '../core/math.ts';
 import { F, H, R, RACE_BASE, W, WHEEL_BASE, WHEEL_STRIDE } from '../simulation/protocol.ts';
 import { COMPOUNDS } from '../simulation/config.ts';
-import { wheelPhase, wheelTravel, wheelValue } from './wheel-pose.ts';
+import { wheelPhase, wheelValue } from './wheel-pose.ts';
+import { contactHubLength, sampleWheelContact, wheelContactPose } from './wheel-contact.ts';
+import { bindSuppliedTire, type RecordedTire } from './recorded-tire.ts';
 import { snapshotSource } from './snapshot-interpolation.ts';
 import { serviceWheelOffset } from './pit-crew.ts';
 import { rearLampIntensity } from './rear-signal.ts';
@@ -174,6 +176,8 @@ function release(root: T.Object3D) {
   root.traverse((o) => {
     if (o instanceof T.Mesh) {
       geometries.add(o.geometry);
+      if (o.customDepthMaterial) materials.add(o.customDepthMaterial);
+      if (o.customDistanceMaterial) materials.add(o.customDistanceMaterial);
       for (const m of Array.isArray(o.material) ? o.material : [o.material]) {
         materials.add(m);
         for (const v of Object.values(m)) if (v instanceof T.Texture) textures.add(v);
@@ -306,6 +310,8 @@ export class SuppliedPlayer {
   private readonly rain: T.MeshStandardMaterial[] = [];
   private readonly compound: T.MeshStandardMaterial[] = [];
   private readonly wheelBlur: SuppliedWheelBlur;
+  private readonly contactTires: RecordedTire[];
+  private readonly contactPose = wheelContactPose();
   private readonly rubber: { material: T.MeshStandardMaterial; roughness: number }[] = [];
   private readonly lcd: T.Mesh;
   readonly skinBounds: SuppliedSkinBounds;
@@ -404,6 +410,25 @@ export class SuppliedPlayer {
     for (const m of this.wheelBlur.materials.flat())
       if (m instanceof T.MeshStandardMaterial && m.name.startsWith('Tyre | compound'))
         this.compound.push(m);
+    const bindings = this.spins.map((spin) => bindSuppliedTire(spin));
+    this.contactTires = bindings.map((binding) => binding.tire);
+    // Rubber material copies retain the prior hooks but must also receive
+    // weather/compound updates. Dispose only detached, no-longer-used sources.
+    this.compound.length = this.rubber.length = 0;
+    const used = new Set<T.Material>();
+    root.traverse((o) => {
+      if (!(o instanceof T.Mesh)) return;
+      for (const m of Array.isArray(o.material) ? o.material : [o.material]) {
+        if (used.has(m)) continue;
+        used.add(m);
+        if (!(m instanceof T.MeshStandardMaterial)) continue;
+        if (m.name.startsWith('Tyre | compound')) this.compound.push(m);
+        if (m.name.startsWith('Tyre | lightly'))
+          this.rubber.push({ material: m, roughness: m.roughness });
+      }
+    });
+    const detached = new Set(bindings.flatMap((binding) => [...binding.detached]));
+    for (const m of detached) if (!used.has(m)) m.dispose();
     const clip = clips.find((c) => c.name === manifest.steeringClip);
     if (!clip || clip.duration <= 0) throw new Error('Missing supplied driver steering animation');
     this.mixer = new T.AnimationMixer(root);
@@ -459,11 +484,19 @@ export class SuppliedPlayer {
     });
     for (let i = 0; i < 4; i++) {
       const p = o + WHEEL_BASE + i * WHEEL_STRIDE;
+      const contact = sampleWheelContact(a, b, o, i, t, this.contactPose);
       // Root carries the nominal datum; keep world hubs identical to physics.
-      this.wheels[i].position.y = 0.05 + PLAYER_SUSPENSION_DATUM - wheelTravel(a, b, p, t);
+      this.wheels[i].position.y =
+        0.05 + PLAYER_SUSPENSION_DATUM - contactHubLength(contact, a, b, p, t);
       this.wheels[i].rotation.y = lerp(a[p + W.STEER], b[p + W.STEER], t);
       this.wheels[i].rotation.z = -lerp(a[p + W.CAMBER], b[p + W.CAMBER], t);
       this.spins[i].rotation.x = wheelPhase(a, b, o, p, t);
+      this.contactTires[i].update(
+        this.spins[i].rotation.x,
+        wheelValue(a, b, o, p, W.RADIUS, t),
+        wheelValue(a, b, o, p, W.FLAT, t),
+        contact,
+      );
       this.wheelBlur.blur[i].value = wheelBlur(wheelValue(a, b, o, p, W.OMEGA, t));
       this.spins[i].position.x =
         (i % 2 === 0 ? -1 : 1) *

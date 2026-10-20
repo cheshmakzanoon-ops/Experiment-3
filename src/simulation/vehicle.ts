@@ -31,7 +31,7 @@ import { wheelAngularMomentum } from './wheel-momentum.ts';
 import {
   brakeEfficiency,
   makeTire,
-  resetLongitudinalContact,
+  resetTireContact,
   slipScale,
   solveTire,
   type Tire,
@@ -80,7 +80,7 @@ export class Vehicle {
   readonly hub: HubSolver;
   /** Intake and turbo state of the engine. */
   readonly engine = new EngineState();
-  /** Geometric (link) load transfer per corner from the last tread forces (N). */
+  /** Geometric link load from the last tread forces (N along chassis up). */
   readonly jacking = new Float64Array(4);
   /** Slipstream (tow) fraction behind another car this step (drag only). */
   slipstream = 0;
@@ -164,6 +164,7 @@ export class Vehicle {
   private relativeAir = new Vec3();
   private surface = surfaceSample();
   private axis = new Vec3();
+  private tireAxle = new Vec3();
   private down = new Vec3(0, -1, 0);
   constructor(
     readonly id: number,
@@ -247,7 +248,7 @@ export class Vehicle {
     this.pitLastS = s;
     this.lateral = offset;
     this.hub.reset();
-    for (const tire of this.tires) resetLongitudinalContact(tire);
+    for (const tire of this.tires) resetTireContact(tire);
     this.jacking.fill(0);
     this.aeroFront = this.aeroRear = NaN;
   }
@@ -524,6 +525,9 @@ export class Vehicle {
     const regenWheel = axleMotor ? 0 : 2;
     const hub = this.hub,
       tyreDef = dynamics.tyre;
+    // Current steering with the previous solved hub travel orients this
+    // step's finite tire crown. Alignment is refreshed after the hub solve.
+    this.updateWheelAlignment();
     for (let i = 0; i < 4; i++) {
       const pos = this.wheelPositions[i],
         t = this.tires[i],
@@ -531,19 +535,42 @@ export class Vehicle {
         s = this.contacts[i];
       b.orientation.rotate(this.localPoint.set(pos[0], pos[1], pos[2]), origin).add(b.position);
       this.down.copy(this.up).scale(-1);
-      const distance = track.cast(origin, this.down, 1.5, s);
-      if (!Number.isFinite(distance)) track.sample(origin.x, origin.z, s, origin.y);
-      const cosine = Math.max(0.15, this.up.dot(s.normal)),
+      const contact = this.contactPoints[i],
+        radius = t.radius - t.flatSpot * 0.002 * (1 + Math.cos(t.rotation));
+      let supportLength: number;
+      if (track.castTire) {
+        const camber = this.wheelCamber[i],
+          steering = this.wheelSteering[i],
+          c = Math.cos(camber);
+        b.orientation.rotate(
+          this.tireAxle.set(c * Math.cos(steering), -Math.sin(camber), -c * Math.sin(steering)),
+          this.tireAxle,
+        );
+        supportLength = track.castTire(
+          origin,
+          this.down,
+          1.5,
+          radius,
+          tyreDef.width * 0.5,
+          this.tireAxle,
+          s,
+          contact,
+        );
+      } else {
+        // Open-world and other Track-shaped adapters own their analytic casts.
+        const distance = track.cast(origin, this.down, 1.5, s);
+        supportLength = distance - radius / Math.max(0.15, this.up.dot(s.normal));
+        if (Number.isFinite(distance)) contact.copy(origin).addScaled(this.down, distance);
+      }
+      if (!Number.isFinite(supportLength)) {
+        track.sample(origin.x, origin.z, s, origin.y);
+        contact.set(origin.x, s.height, origin.z);
+      }
+      const cosine = clamp(this.up.dot(s.normal), 0.15, 1),
         rest =
           spec.restLength + (i < 2 ? this.setup.frontRide - 0.065 : this.setup.rearRide - 0.075),
         // Deformable ground sits lower by the tyre's sinkage (surface-material.ts).
-        length =
-          distance +
-          t.sinkage / cosine -
-          (t.radius - t.flatSpot * 0.002 * (1 + Math.cos(t.rotation))) / cosine;
-      const contact = this.contactPoints[i];
-      if (Number.isFinite(distance)) contact.copy(origin).addScaled(this.down, distance);
-      else contact.set(origin.x, s.height, origin.z);
+        length = supportLength + t.sinkage / cosine;
       b.pointVelocity(contact, this.pointVelocities[i]);
       const compression = Number.isFinite(length) ? rest - length : -1;
       // Radial tyre stiffness rises with inflation pressure; a flat carcass is soft.
@@ -553,7 +580,10 @@ export class Vehicle {
         clamp(1 + tyreDef.verticalPressureGain * dp, 0.5, 1.6) *
         (t.punctured ? 0.25 : 1);
       hub.compression[i] = compression;
-      hub.rate[i] = -this.pointVelocities[i].dot(s.normal);
+      hub.normalCosine[i] = cosine;
+      // The query returns suspension-axis travel. Project normal gap speed
+      // into that same coordinate; HubSolver projects radial force/work back.
+      hub.rate[i] = -this.pointVelocities[i].dot(s.normal) / cosine;
       hub.contact[i] = compression > 0 && this.up.y >= 0.25 ? 1 : 0;
       this.lengthScratch[i] = length;
       this.restScratch[i] = rest;
@@ -564,11 +594,13 @@ export class Vehicle {
       const t = this.tires[i],
         length = this.lengthScratch[i],
         rest = this.restScratch[i];
-      // Geometric wheel travel as before (suspension plus tyre deflection);
-      // the hub's own travel is hub.travel and the deflection t.deflection.
+      // Geometric wheel travel retains its suspension-axis coordinate. The
+      // carcass deflection is radial for contact length, sinkage and rendering.
       t.length = Math.min(rest + 0.05, Math.max(0.06, length));
       t.compression = Number.isFinite(length) ? Math.max(0, rest - length) : 0;
-      t.deflection = hub.contact[i] ? Math.max(0, hub.compression[i] - hub.travel[i]) : 0;
+      t.deflection = hub.contact[i]
+        ? hub.normalCosine[i] * Math.max(0, hub.compression[i] - hub.travel[i])
+        : 0;
       this.hubs[i].copy(this.origins[i]).addScaled(this.up, -t.length);
       this.normalLoads[i] = hub.tyreForce[i];
     }
@@ -576,9 +608,11 @@ export class Vehicle {
     b.orientation.rotate(this.axis.set(1, 0, 0), this.lateralAxis);
     let generatorWorkW = 0;
     for (let i = 0; i < 4; i++) {
-      // Spring share plus the geometric (link) share of load transfer.
+      // Spring share is already road-normal. The link share is a generalized
+      // chassis-up load, so the same virtual-work projection supplies Q/cosine.
       this.normalLoads[i] = hub.contact[i]
-        ? Math.max(0, this.normalLoads[i] + this.jacking[i]) * (1 - this.cornerDamage[i] * 0.5)
+        ? Math.max(0, this.normalLoads[i] + this.jacking[i] / hub.normalCosine[i]) *
+          (1 - this.cornerDamage[i] * 0.5)
         : 0;
       const t = this.tires[i],
         s = this.contacts[i];

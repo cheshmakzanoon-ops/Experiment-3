@@ -114,6 +114,16 @@ export class SuppliedDrawRanges {
           .multiply(mesh.matrixWorld);
         if (!allFinite(this.matrix.elements) || this.matrix.determinant() === 0) return;
         this.frustum.setFromProjectionMatrix(this.matrix, camera.coordinateSystem);
+        // Shader-deformed rubber can enter the view from outside an authored
+        // triangle block. Expand the local frustum by its bounded displacement
+        // box, retaining the original indices/order and every LOD's cached boxes.
+        const margin = Number(mesh.userData.vertexDisplacementMargin ?? 0);
+        if (!Number.isFinite(margin) || margin < 0) return;
+        if (margin > 0)
+          for (const plane of this.frustum.planes)
+            plane.constant +=
+              margin *
+              (Math.abs(plane.normal.x) + Math.abs(plane.normal.y) + Math.abs(plane.normal.z));
         for (const p of this.frustum.planes)
           if (
             !Number.isFinite(p.normal.x) ||

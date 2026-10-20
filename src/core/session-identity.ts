@@ -23,8 +23,9 @@ import {
  * v10: player motocross first-tyre landing prediction and incoming-impact grading;
  * v11: GP steering follows front load and finite wheelie touchdown;
  * v12: passive longitudinal tyre compliance and coupled rotor/tyre heat;
+ * v13: coupled lateral/longitudinal contact energy and finite tyre footprint;
  * prior records remain in their original physics category. */
-export const SIMULATION_VERSION = 12;
+export const SIMULATION_VERSION = 13;
 /** Fixed physics tick used by the worker and headless simulation. */
 export const SIMULATION_TICK_HZ = 120;
 

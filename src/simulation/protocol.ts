@@ -1,7 +1,7 @@
 import type { TerrainRenderDelta } from './offroad/course-terrain.ts';
 import type { Compound, Controls, SessionOptions } from './config.ts';
 export const HEADER = 24,
-  CAR_STRIDE = 298,
+  CAR_STRIDE = 331,
   WHEEL_BASE = 96,
   WHEEL_STRIDE = 26,
   DEBRIS_BASE = 200,
@@ -15,10 +15,34 @@ export const HEADER = 24,
   OFFROAD_BASE = 277,
   OFFROAD_STRIDE = 16,
   WHEEL_MOTION_BASE = 293,
-  WHEEL_MOTION_STRIDE = 5;
-/** v14 appends exact wheel winding after the v13 off-road block. Every
+  WHEEL_MOTION_STRIDE = 5,
+  WHEEL_CONTACT_BASE = 298,
+  WHEEL_CONTACT_STRIDE = 8,
+  WHEEL_CONTACT_SIZE = 1 + 4 * WHEEL_CONTACT_STRIDE;
+/** v15 appends measured carcass displacement, radial compression, hub
+ * distance and the road normal in the non-spinning wheel frame. Every
  * earlier per-entrant offset is unchanged. */
-export const PROTOCOL_VERSION = 14;
+export const PROTOCOL_VERSION = 15;
+/** The contact block begins with a valid-wheel bitmask. Four eight-float
+ * records follow it. Zero-mask synthetic and motorcycle snapshots retain
+ * the presentation fallback without claiming measured car-carcass state.
+ * Lengths are metres. LONGITUDINAL displaces the patch forward; LATERAL is
+ * the signed strain opposing leftward slip (patch displacement is -LATERAL).
+ * RADIAL is compression along the road normal. HUB_LENGTH is the physical
+ * axle distance below its suspension station, not total geometric travel. */
+export const C = {
+  LONGITUDINAL: 0,
+  LATERAL: 1,
+  RADIAL: 2,
+  HUB_LENGTH: 3,
+  NORMAL_X: 4,
+  NORMAL_Y: 5,
+  NORMAL_Z: 6,
+  /** Normal distance from the physical axle to the solved contact plane. */
+  PLANE_DISTANCE: 7,
+} as const;
+export const wheelContactBase = (car: number, wheel: number) =>
+  car + WHEEL_CONTACT_BASE + 1 + wheel * WHEEL_CONTACT_STRIDE;
 /** Wheel winding is stored separately from its bounded ROTATION phase, so a
  * long session does not lose sub-turn precision to an enormous Float32 angle.
  * VALID is a bit mask (bit 0..3 = FR/FL/RR/RL); zero-initialized synthetic poses
@@ -321,7 +345,8 @@ export const carBase = (id: number) => HEADER + id * CAR_STRIDE;
  * block with its offset, stride and count, so new entity families add blocks
  * instead of mutating magic offsets, and decoders can reject what they do not
  * understand. v12 appended the 'bike' entity block after the v11 blocks and
- * v13 the 'offroad' block after it and v14 the 'wheel-motion' block. Older
+ * v13 the 'offroad' block after it, v14 the 'wheel-motion' block, and v15 the
+ * 'wheel-contact' block. Older
  * recordings are rejected explicitly by version (their stride differs),
  * never re-read at the wrong offsets.
  * R.VEHICLE selects the entity family. */
@@ -339,6 +364,7 @@ export const SNAPSHOT_SCHEMA = Object.freeze({
     { name: 'bike', offset: BIKE_BASE, stride: BIKE_STRIDE, count: 1 },
     { name: 'offroad', offset: OFFROAD_BASE, stride: OFFROAD_STRIDE, count: 1 },
     { name: 'wheel-motion', offset: WHEEL_MOTION_BASE, stride: WHEEL_MOTION_STRIDE, count: 1 },
+    { name: 'wheel-contact', offset: WHEEL_CONTACT_BASE, stride: WHEEL_CONTACT_SIZE, count: 1 },
   ]),
 });
 /** Reason a snapshot cannot be decoded by this build, or null. Unknown

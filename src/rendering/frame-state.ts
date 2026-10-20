@@ -7,8 +7,12 @@ import {
   SKID_BASE,
   M,
   WHEEL_MOTION_BASE,
+  C,
+  WHEEL_CONTACT_BASE,
+  wheelContactBase,
 } from '../simulation/protocol.ts';
 import { wheelPhase, wheelValue } from './wheel-pose.ts';
+import { sampleWheelContact, wheelContactPose } from './wheel-contact.ts';
 import { Quaternion, Vector3 } from 'three';
 import {
   sampleBikeField,
@@ -67,6 +71,7 @@ export class PresentedFrame {
   value = new Float32Array(0);
   private readonly position = new Vector3();
   private readonly orientation = new Quaternion();
+  private readonly contact = wheelContactPose();
   sample(a: Float32Array, b: Float32Array, alpha: number): Float32Array {
     const cars = b[H.CARS];
     if (
@@ -127,6 +132,19 @@ export class PresentedFrame {
         for (let field = 0; field < WHEEL_STRIDE; field++)
           if (field !== W.ROTATION) out[p + field] = wheelValue(a, b, o, p, field, t);
         out[p + W.ROTATION] = wheelPhase(a, b, o, p, t);
+        const contact = sampleWheelContact(a, b, o, wheel, t, this.contact),
+          c = wheelContactBase(o, wheel);
+        if (contact.valid) {
+          out[o + WHEEL_CONTACT_BASE] |= 1 << wheel;
+          out[c + C.LONGITUDINAL] = contact.longitudinal;
+          out[c + C.LATERAL] = contact.lateral;
+          out[c + C.RADIAL] = contact.radial;
+          out[c + C.HUB_LENGTH] = contact.hubLength;
+          out[c + C.NORMAL_X] = contact.normalX;
+          out[c + C.NORMAL_Y] = contact.normalY;
+          out[c + C.NORMAL_Z] = contact.normalZ;
+          out[c + C.PLANE_DISTANCE] = contact.planeDistance;
+        } else out[o + WHEEL_CONTACT_BASE] &= ~(1 << wheel);
         const counter = o + F.MARBLE_PICKUP_FR + wheel;
         // A replacement tire starts a new counter, not a negative pickup ramp.
         if (b[counter] >= a[counter]) this.blend(a, b, counter, t);

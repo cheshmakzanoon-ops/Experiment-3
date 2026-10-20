@@ -16,11 +16,11 @@ import { clamp, smooth } from '../core/math.ts';
  *    direction costs the other a calibrated, moderate share;
  *  - camber thrust as an equivalent slip-angle shift Cγ·γ/Cα (saturates with
  *    the lateral force, never adds outside the ellipse);
- *  - first-order lateral relaxation (transient slip lag), faded out at low
- *    speed where the deflection model has no damping, integrated exactly;
- *  - longitudinal elastic contact deformation, solved implicitly with wheel
- *    spin. Its positive sliding rate recovers the same steady force curve
- *    while separately accounting for stored energy and dissipated work. */
+ *  - longitudinal AND lateral elastic contact deformation, solved implicitly
+ *    at every trial wheel speed. Positive sliding rates recover the same
+ *    steady force curves; a shared friction-ellipse projection removes excess
+ *    strain without creating energy. Stored energy, physical dissipation and
+ *    numerical loss remain separate. Both modes fade out at walking speed. */
 export interface SlipCurve {
   /** Shape factor C (peak sharpness / post-peak fall-off). */
   readonly C: number;
@@ -70,8 +70,8 @@ export interface TyreConstruction {
   /** Longitudinal small-slip relaxation length (m) at Fz0 and nominal pressure.
    * The corresponding contact spring stiffness is Kκ / σx (N/m). */
   readonly longitudinalRelaxationLength: number;
-  /** Speeds (m/s) between which the lag fades in. Below the first the force
-   * follows slip instantly (the deflection mode would be undamped there). */
+  /** Speeds (m/s) between which contact compliance fades in. Below the first
+   * the original algebraic force law retains the calibrated low-speed creep. */
   readonly relaxationFade: readonly [number, number];
   /** Hot gauge pressure (kPa) at which pressure-stiffness factors are 1. */
   readonly nominalPressure: number;
@@ -178,7 +178,7 @@ export interface SlipState {
   /** Reference slips κ* and α* (σ = 1). */
   kappaRef: number;
   alphaRef: number;
-  /** Lateral slip after relaxation and camber shift (rad), as σy·α*. */
+  /** Steady contact slip after camber shift (rad), as σy·α*. */
   alpha: number;
   /** Combined-slip weighting coefficients of this tyre. */
   by1: number;
@@ -367,6 +367,12 @@ export interface LongitudinalContactMemory {
   longitudinalDeflection: number;
   longitudinalEnergy: number;
 }
+/** Lateral patch displacement relative to the rim is −lateralDeflection:
+ * positive lateral slip builds y > 0 and a restoring force Fy = −Ky y. */
+export interface LateralContactMemory {
+  lateralDeflection: number;
+  lateralEnergy: number;
+}
 /** One prepared contact and its trial solution. Reused across the bracketed
  * wheel solve; preparation reads tyre memory once, trials never modify it. */
 export interface LongitudinalContact {
@@ -399,6 +405,11 @@ export const longitudinalContact = (): LongitudinalContact => ({
   relaxationHeat: 0,
   numericalDissipation: 0,
 });
+/** The two orthogonal springs share the same passive integration and work
+ * accounting. The historical longitudinal names remain an API-compatible
+ * spelling for this common scalar contact state. */
+export type LateralContact = LongitudinalContact;
+export const lateralContact = longitudinalContact;
 /** Prepare an energy-preserving change of contact stiffness. At vanishing
  * relaxation length the model becomes the existing algebraic tyre law and
  * the remaining deformation relaxes into heat. This also gives an unloaded
@@ -425,6 +436,28 @@ export function prepareLongitudinalContact(
   out.zeroSlipRate = (out.stiffness * regularizedSpeed) / Math.max(1e-9, slope);
   return out;
 }
+/** Prepare the lateral spring from cornering stiffness and relaxation
+ * length. Its zero-slip rate is multiplied by the trial longitudinal-slip
+ * weighting in transientCombinedForces, because locking/spinning changes
+ * lateral force capacity during the SAME wheel-speed solve. */
+export function prepareLateralContact(
+  state: SlipState,
+  memory: LateralContactMemory,
+  transportSpeed: number,
+  length: number,
+  dt: number,
+  out: LateralContact,
+) {
+  out.dt = dt;
+  out.oldEnergy = Math.max(0, memory.lateralEnergy);
+  out.stiffness = length < 1e-4 ? 0 : state.corneringStiffness / length;
+  out.oldDeflection =
+    out.stiffness > 0
+      ? Math.sign(memory.lateralDeflection) * Math.sqrt((2 * out.oldEnergy) / out.stiffness)
+      : 0;
+  out.zeroSlipRate = (out.stiffness * transportSpeed) / Math.max(1e-9, state.corneringStiffness);
+  return out;
+}
 /** Passive elastic/sliding contact reduction:
  *
  *   Fx = Kx x,  dx/dt = s − λx,  λ = Kx s/Fsteady(s/V) ≥ 0.
@@ -448,15 +481,17 @@ export function transientLongitudinalForce(
   steadyForce: number,
   forceLimit: number,
   recordState = true,
+  zeroSlipRate = contact.zeroSlipRate,
 ) {
   const k = contact.stiffness,
     dt = contact.dt;
   if (k === 0) {
-    if (!recordState) return steadyForce;
-    contact.force = steadyForce;
+    const force = clamp(steadyForce, -forceLimit, forceLimit);
+    if (!recordState) return force;
+    contact.force = force;
     contact.deflection = 0;
     contact.energy = 0;
-    contact.dissipation = Math.max(0, steadyForce * slipSpeed);
+    contact.dissipation = Math.max(0, force * slipSpeed);
     contact.relaxationHeat = contact.oldEnergy / dt;
     contact.numericalDissipation = 0;
     return contact.force;
@@ -464,7 +499,7 @@ export function transientLongitudinalForce(
   const rate =
       Math.abs(slipSpeed) > 1e-9 && Math.abs(steadyForce) > 1e-12
         ? (k * slipSpeed) / steadyForce
-        : contact.zeroSlipRate,
+        : zeroSlipRate,
     divisor = 1 + dt * rate,
     trial = (contact.oldDeflection + dt * slipSpeed) / divisor,
     force = clamp(k * trial, -forceLimit, forceLimit);
@@ -480,6 +515,83 @@ export function transientLongitudinalForce(
   contact.dissipation = k * rate * x * x + Math.max(0, (force * projection) / dt);
   contact.numericalDissipation = (0.5 * k * (x - contact.oldDeflection) ** 2) / dt;
   return force;
+}
+const STEADY_CONTACT = { fx: 0, fy: 0 };
+/** Coupled transient forces inside the wheel root. Each axis first solves
+ * x = (x_old + dt*s)/(1 + dt*lambda), lambda = K*s/Fsteady >= 0.
+ * If the pair exceeds the current friction ellipse, both forces are reduced
+ * by the same nonnegative factor. No axis gets an arbitrary priority.
+ *
+ * For either axis, projected force F and strain x still satisfy
+ * F*s*dt = delta(0.5*K*x*x) + physical loss*dt + numerical loss*dt.
+ * Projection only shortens each strain in its own force direction, so its
+ * work is dissipative even during reversals and sudden load/grip changes.
+ * Pure longitudinal callers keep the existing scalar helper above.
+ *
+ * `lateralSlipSpeed` is the signed velocity resisted by the lateral spring.
+ * Fy has the opposite sign. Camber's kinematic bias and its work port are
+ * resolved by the caller; no small-angle approximation is imposed here.
+ * Force-only probes do not change either prepared or recorded spring state. */
+export function transientCombinedForces(
+  state: SlipState,
+  longitudinal: LongitudinalContact,
+  lateral: LateralContact,
+  longitudinalSlipSpeed: number,
+  regularizedSpeed: number,
+  lateralSlipSpeed: number,
+  out: { fx: number; fy: number },
+  recordState = true,
+) {
+  const kappa = longitudinalSlipSpeed / regularizedSpeed;
+  combinedForces(state, kappa, STEADY_CONTACT);
+  // d(-Fy)/d(alpha) at alpha=0, including trial longitudinal-slip weighting.
+  const lateralRate =
+      lateral.stiffness > 0 &&
+      (Math.abs(lateralSlipSpeed) <= 1e-9 || Math.abs(STEADY_CONTACT.fy) <= 1e-12)
+        ? lateral.zeroSlipRate * Math.sqrt(1 + ((state.by1 * kappa) / state.kappaRef) ** 2)
+        : lateral.zeroSlipRate,
+    trialX = transientLongitudinalForce(
+      longitudinal,
+      longitudinalSlipSpeed,
+      STEADY_CONTACT.fx,
+      state.dx,
+      false,
+    ),
+    trialY = transientLongitudinalForce(
+      lateral,
+      lateralSlipSpeed,
+      0 - STEADY_CONTACT.fy,
+      state.dy,
+      false,
+      lateralRate,
+    ),
+    normalizedX = trialX / Math.max(1e-9, state.dx),
+    normalizedY = trialY / Math.max(1e-9, state.dy),
+    // Individual axis bounds keep each normalized component in [−1,1], so
+    // squaring cannot overflow. Most probes need no square root at all.
+    usageSquared = normalizedX * normalizedX + normalizedY * normalizedY,
+    scale = usageSquared > 1 ? 1 / Math.sqrt(usageSquared) : 1,
+    fx = trialX * scale,
+    resistY = trialY * scale;
+  if (recordState) {
+    transientLongitudinalForce(
+      longitudinal,
+      longitudinalSlipSpeed,
+      STEADY_CONTACT.fx,
+      Math.abs(fx),
+    );
+    transientLongitudinalForce(
+      lateral,
+      lateralSlipSpeed,
+      0 - STEADY_CONTACT.fy,
+      Math.abs(resistY),
+      true,
+      lateralRate,
+    );
+  }
+  out.fx = fx;
+  out.fy = 0 - resistY;
+  return out;
 }
 /** Effective relaxation length (m): grows ~√load, shortens with pressure and
  * wear (stiffer carcass/shorter tread), and fades to zero at low speed. */

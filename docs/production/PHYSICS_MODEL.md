@@ -1,21 +1,21 @@
-# Physics model (simulation version 12)
+# Physics model (simulation version 13)
 
 This is the engineering reference for the vehicle physics behind every car in a session: tyres,
 suspension, drivetrain, aerodynamics, ground materials and integration. Every coefficient is an
 original engineering calibration. None is a manufacturer data set, a fitted test-rig curve or CFD.
-The model stays deterministic: no randomness, no wall clock, bounded deterministic solves, and an
-allocation-free hot path. It runs inside the existing 120 Hz worker tick with two 240 Hz vehicle
-substeps.
+The force model uses bounded deterministic solves and reusable contact state, with no wall-clock
+dependence. It runs inside the existing 120 Hz worker tick with two 240 Hz vehicle substeps.
 
-`SIMULATION_VERSION` is **12** (`src/core/session-identity.ts`). Lap times can change, so under
+`SIMULATION_VERSION` is **13** (`src/core/session-identity.ts`). Lap times can change, so under
 decision D8 records, ghosts and boards are split by physics version. Earlier records retain their
 original physics category. Pre-identity saves still read as version 1. Unsupported snapshot
 formats are rejected explicitly; deterministic resimulation (flashback) only ever re-runs the
-current version. The original v2 force-law reference below includes the v8 axle/contact-frame
-corrections and v12 longitudinal-compliance/rotor-thermal changes. The historical measurements
-in sections 7–8 retain their original version scope. See
-[ENGINE_DYNAMICS_V12.md](ENGINE_DYNAMICS_V12.md) for current changes, public iRacing references,
-measurements and limits, and [ENGINE_DYNAMICS_V8.md](ENGINE_DYNAMICS_V8.md) for the earlier solve.
+current version. The original v2 force-law reference below includes the v8 axle/contact-frame,
+v12 longitudinal-compliance/rotor-thermal and v13 coupled-contact/finite-footprint changes. The
+historical measurements in sections 7–8 retain their original version scope. See
+[ENGINE_DYNAMICS_V13.md](ENGINE_DYNAMICS_V13.md) for current changes, public references,
+measurements and limits, [ENGINE_DYNAMICS_V12.md](ENGINE_DYNAMICS_V12.md) for the preceding
+contact/thermal work, and [ENGINE_DYNAMICS_V8.md](ENGINE_DYNAMICS_V8.md) for the earlier axle solve.
 
 ## Module map
 
@@ -28,6 +28,8 @@ measurements and limits, and [ENGINE_DYNAMICS_V8.md](ENGINE_DYNAMICS_V8.md) for 
 | `tire.ts` | Tyre state, peak friction, implicit wheel-spin solve, wear/damage, ground contact terms |
 | `suspension.ts` | Massless-hub corners: springs, stops, dampers, bars, tyre radial; kinematics; geometric load transfer |
 | `road-contact.ts` | Wheel-plane/road-plane rolling tangent and road-relative inclination; shared velocity/force frame |
+| `tire-footprint.ts`, `contact.ts` | Continuous rounded-crown sweep over road triangles, retaining the original planar centre support |
+| `wheel-contact-state.ts` | Recorded tangential strains, radial compression, physical axle travel and road contact plane |
 | `powertrain.ts` | Engine torque map, throttle lag, turbo, friction/pumping; gearbox shift time |
 | `differential.ts` | One module: the catalogue driveline (open/LSD/locked axles, AWD centre, `distributeDrive`) and the stick-torque model (open, spool, viscous, clutch-pack LSD, Torsen) |
 | `aero.ts`, `aero-map.ts` | Ride-height/pitch map, floor centre of pressure, convective lag, plunge damping, dirty air, slipstream |
@@ -54,25 +56,27 @@ frozen data, and the resolved object is cached per definition. The packages are:
 
 The vehicle field holding the resolved package is `Vehicle.physics`. GP and motocross bikes use
 their own two-wheel force, suspension and thermal models; `BikeVehicle` uses `dynamics` for its
-own state. The v12 car contact/rotor solve does not replace those models. All three vehicle
-solvers share the new bounded-phase/whole-turn wheel recording.
+own state. The v12/v13 car contact/rotor solve does not replace those models. All three vehicle
+solvers share bounded-phase/whole-turn wheel recording. The new protocol-15 car-contact block is
+explicitly invalid for motorcycles, whose own measured suspension/presentation channels remain
+authoritative.
 
 ## 0. Integration
 
 * **Substep cap.** `Vehicle.step(dt)` splits any call longer than `MAX_SUBSTEP = 1/240 s` into equal
-  substeps. A 60, 120 or 240 Hz caller therefore integrates identical physics (calibration timestep
-  drift is now at most 0.2%; it was up to 5.2% before). The world already steps at 240 Hz, so in-game
-  behaviour is unchanged.
+  substeps. The 120 Hz worker already advances cars through two 240 Hz substeps. Different outer
+  update rates can still change control, collision and wake timing; the v13 six-car calibration
+  reports at most 0.2% displayed drift between its 120 and 240 Hz fixtures.
 * **Rigid body.** As before: semi-implicit Euler for translation; for rotation a kick/drift/kick
   scheme with an implicit midpoint Euler free-body drift (`rigid.ts`).
 * **Stiff internal states are implicit or exact:**
 
 | State | Scheme | Property |
 |---|---|---|
-| Wheel spin ω and longitudinal deformation | backward Euler, coupled bracketed bisection | dissipative brake complementarity; separate elastic, physical-heat and numerical-loss budgets |
-| Hub travel (tyre radial + suspension) | backward Euler, coupled 2×2 Newton per axle, unilateral contact and droop active sets | mirrored force balance; convex-work line search through contact, damper and stop transitions |
+| Wheel spin ω and both tangential contact deformations | backward Euler, coupled bracketed bisection and shared friction-ellipse projection | dissipative brake complementarity; separate elastic, physical-heat and numerical-loss budgets |
+| Suspension hub travel (coupled through tire radial force) | backward Euler, coupled 2×2 Newton per axle, unilateral contact and droop active sets | mirrored force balance; convex-work line search through contact, damper and stop transitions |
 | Tyre and rotor temperatures | backward Euler on a 4×4 tridiagonal M-matrix | equal/opposite rotor-core exchange; conserves heat with losses closed; bounded passive cooling |
-| Lateral slip relaxation, intake, turbo, aero lag, sinkage | exact first-order exponential | no overshoot at any step |
+| Intake, turbo, aero lag, sinkage | exact first-order exponential | no overshoot at any step |
 | Differential locking | stick torque with road-reaction feedforward, under-relaxed feedback | a locked axle stays synchronized at 60 Hz |
 
 * **Operator splitting order per substep:** controls → engine/clutch → differential → hub solve
@@ -174,27 +178,74 @@ power spins). The MF weighting keeps saturation physics and a moderate interior 
   `n×forward`; the same orthonormal frame resolves slip velocity and reconstructs tyre force.
   An axle parallel to the road normal has no unique rolling tangent and produces no tread traction.
 
-### 1.4 Transient slip (relaxation length)
+### 1.4 Tangential contact deformation
+
+Both force directions have an elastic displacement in metres and a recoverable energy state.
+For positive lateral contact slip, `y` is positive and the restoring force is `Fy = −Ky·y`.
+The physical patch displacement relative to the rim is therefore `(x, −y)` in the forward/left
+road-tangent frame. Instantaneous slip feeds the calibrated steady law; a filtered diagnostic
+`relaxedAngle` remains available but no longer controls lateral force.
 
 ```
-dα_r/dt = (|v_x|/σ)·(α_ss − α_r),   integrated exactly: α_r ← α_ss + (α_r − α_ss)·e^(−|v_x|·dt/σ)
-σ = σ0·√(Fz/Fz0)·(1 − 0.35·Δp/p0)·(1 − 0.3·wear)·smooth(3, 12, |v_x|)
+σx = 0.22 m (Formula), 0.29 m (touring/family)
+σy = 0.32 m (Formula), 0.42 m (touring/family)
+σ = σ0·√(Fz/Fz0)·(1 − 0.35·Δp/p0)·(1 − 0.3·wear)·smooth(3, 12, |vx|)
+Kx = Kκ/σx;  Ky = Kα/σy
+sx = ωr − vx;  sy = vy·cos(β) − hypot(vx,3)·sin(β)
+λx = Kx·sx/Fx_steady ≥ 0;  λy = Ky·sy/(−Fy_steady) ≥ 0
+x_trial = (x_old + dt·sx)/(1 + dt·λx)
+y_trial = (y_old + dt·sy)/(1 + dt·λy)
 ```
 
-σ0 is 0.32 m on the Formula slick and 0.42 m on the touring slick. Below 3 m/s the lag is removed:
-the deflection mode has no damping there, and the regularized slip already acts as a damper.
-Longitudinal deformation now has a separate passive state, coupled inside that wheel-inertia solve:
+β is the existing equivalent camber slip-angle shift (§1.3), so `sy = vy` at zero camber.
+At vanishing slip the analytic combined-slip stiffness supplies the finite limiting rate.
+Every trial wheel speed computes both forces and reduces their pair onto the current friction
+ellipse when necessary. The converged wheel root alone commits either spring's state. The same
+projected `Fx` enters the wheel torque residual and the chassis force.
+
+For either spring, with restoring-force magnitude convention `F = K·x`, the discrete identity is
 
 ```
-Kx = Kκ/σx;  s = ωr − vx;  λ = Kx·s/Fsteady(s/Vreg) ≥ 0
-x_new = (x_old + dt·s)/(1 + dt·λ);  Fx = Kx·x_new;  U = ½Kx·x_new²
+F·s·dt = Δ(½K·x²) + physical sliding/projection loss·dt + ½K·(x_new−x_old)²
 ```
 
-The zero-slip rate uses the combined-slip stiffness. The force is constrained to the current
-friction ellipse, and stiffness changes preserve stored energy before that constraint. Reference
-longitudinal lengths are 0.22 m Formula and 0.29 m touring/family, with the same load/pressure/wear
-scaling and low-speed fade as above. Sliding/projection heat, internal carcass release and
-numerical integrator loss are accounted separately. See the v12 reference for the work identity.
+The final term is numerical integration loss, not physical heat. A force reversal can return only
+previously stored spring energy. Changes in prepared stiffness remap displacement while preserving
+that energy. Loss of contact and the walking-speed algebraic fallback release the remaining
+reservoir directly into the carcass, without counting it as tread abrasion or road slip work.
+
+Camber remains a reduced kinematic thrust model. Its explicit signed power port is
+`P_camber = Fy·(vy−sy)`: actual tangential slip work plus this port equals the two contact energy/loss
+budgets. The model does not return this port through a separate camber/overturning torque, so the
+identity does not establish conservation for a complete tire/chassis system at nonzero camber.
+The two strains use the instantaneous tire frame; torsional patch transport is not modelled.
+`scripts/contact-pulse.ts` provides a reproducible signed impulse/reversal work audit, with an
+optional checkout path for comparing two revisions under identical inputs.
+
+### 1.4.1 Finite road footprint
+
+On paved circuit meshes, `Track.castTire()` retains the centre-ray support and adds a continuous
+ellipsoid sweep against the existing triangle BVH. Its rolling and radial semiaxes are the tire
+radius; its axle semiaxis is half the construction's tread width. Scaling only the axle coordinate
+maps that query into exact sphere/triangle face, edge and vertex roots. The earliest valid support
+provides the contact point and normal used for point velocity, force application and recording.
+The axle semiaxis is capped at the current rolling radius; a very wide or collapsed tire therefore
+uses a conservatively narrower envelope rather than an unsupported wider-than-tall crown.
+
+The rounded crown begins climbing a reachable raised edge before the centre ray crosses it, and
+its shoulder response varies continuously with lateral position. It introduces no extra spatial
+point samples or visual smoothing. Since the ellipsoid fits inside the former radius sphere, the
+original planar centre support remains authoritative on a plane. Surface ownership is sampled at
+the actual support point, including its vertical road layer.
+
+The existing station-to-road reach and above-station rejection are retained. Near-vertical
+triangles and support normals are excluded from this suspension query; chassis collision remains
+responsible for side impacts. An analytic/custom `cast()` override or deformable terrain retains
+its existing authoritative query. The rounded crown is a geometric envelope, not a deformable
+contact-pressure distribution, an unsprung wheel-hop model or a general tire-sidewall collider.
+Only support height is continuous at a new feature's onset: selecting one contact can switch its
+normal. Gradual force sharing between multiple patches is not modelled. The sweep runs along the
+suspension axis at each substep, not continuously along the vehicle's full forward trajectory.
 
 ### 1.5 Pressure
 
@@ -221,7 +272,7 @@ C_S·dT_S/dt = 0.62·P_slip + 0.4·P_roll − 85(T_S−T_C) − (12+1.25v)(T_S�
 C_C·dT_C/dt = 0.6·P_roll + P_internal + 85(T_S−T_C) − 30(T_C−T_G) − (4+0.08v)(T_C−T_air)
 C_G·dT_G/dt = 30(T_C−T_G) − (2+0.05v)(T_G−T_air) + 0.6(T_disc−T_G)
 C_D·dT_D/dt = P_friction_brake − 0.6(T_D−T_G) − (25+4v)(T_D−T_air)
-P_slip = longitudinal sliding/projection loss + |Fy·v_sy|
+P_slip = longitudinal sliding/projection loss + lateral sliding/projection loss
 P_internal = internal carcass relaxation heat; P_roll = 0.0012·Fz·|v|
 P_friction_brake = friction brake torque · |ω_new|; v = |speed|; w = water depth (mm)
 p_hot = (p_cold + 101.325)·(T_G + 273.15)/(T_set + 273.15) − 101.325     (absolute-pressure gas law)
@@ -240,13 +291,22 @@ p_hot = (p_cold + 101.325)·(T_G + 273.15)/(T_set + 273.15) − 101.325     (abs
 
 ## 2. Suspension
 
-Each corner is a **massless hub** between the chassis and the tyre. X is the geometric compression
-from the contact query and x the hub travel (+ bump).
+Each corner is a **massless hub** between the chassis and the tyre. X is geometric compression
+from the contact query and x is hub travel (+ bump), both along the suspension axis. For a contact
+normal n and chassis-up axis u, c is their positive bounded cosine. Normal tire stiffness and
+damping project by c² into the hub's generalized force equation:
 
 ```
-k_t(p)·(X − x) + c_t·(Ẋ − ẋ) = k_w·x·(1 + ½·prog·x/travel) + k_stop·max(0, x − g)² + D(ẋ) + k_bar·(x − x_other)
+c = max(0.15, u·n);  Ẋ = −v_contact·n/c
+c²·[k_t(p)·(X − x) + c_t·(Ẋ − ẋ)] = k_w·x·(1 + ½·prog·x/travel) + k_stop·max(0, x − g)² + D(ẋ) + k_bar·(x − x_other)
 D(v) = c_b·v  (bump, v ≤ v_kb),  c_b·v_kb + r_b·c_b·(v − v_kb)  above the knee;  rebound alike
 ```
+
+The solved generalized tire force divides by c to recover road-normal force. Geometric link
+jacking uses the chassis-axis force convention and receives the same division before entering
+normal tire load. `Tire.deflection = c·max(0, X−x)` is physical radial compression, also used by
+contact-area/sinkage and recording. This keeps rates, spring work and forces conjugate for the
+prepared contact frame; rotating/changing contact geometry remains operator split by substep.
 
 * Backward Euler (§0) solves both corners of an axle together with an analytic 2×2 Newton step.
   The anti-roll bar therefore couples both residuals in the same update, without an ordered
@@ -290,8 +350,9 @@ Roll-centre height and side-view anti geometry then split that transfer into:
 * a geometric share that the links put straight into the tyre loads:
 
 ```
-ΔN_i = −(h_rc/y_i)·Fy_i − tanθ·Fx_i·sign(z_i),   h_rc = h0 + gain·mean axle travel
-Σ y_i·ΔN_i = −h_rc·ΣFy   (moment-equivalent: the total transfer is unchanged)
+Q_i = −(h_rc/y_i)·Fy_i − tanθ·Fx_i·sign(z_i),   h_rc = h0 + gain·mean axle travel
+ΔN_i = Q_i/c_i   (Q_i is chassis-axis generalized force; ΔN_i is road-normal load)
+Σ y_i·Q_lateral,i = −h_rc·ΣFy   (lateral link-force moment identity)
 ```
 
 Here `Fx_i` and `Fy_i` are the **applied force projected onto chassis axes**, including the rolling
@@ -618,8 +679,10 @@ The overhead is unchanged by the merge.
 ## 9. Tests
 
 The table and alignment-expectation change in this section describe the original v2
-validation. Current v12 additions and execution outcomes are recorded in
-[ENGINE_DYNAMICS_V12.md](ENGINE_DYNAMICS_V12.md#5-verification).
+validation. Preceding v12 additions and execution outcomes are recorded in
+[ENGINE_DYNAMICS_V12.md](ENGINE_DYNAMICS_V12.md#5-verification). Current coupled-contact,
+finite-footprint and recorded-deformation results are in
+[ENGINE_DYNAMICS_V13.md](ENGINE_DYNAMICS_V13.md#5-validation-and-practical-limits).
 
 | File | Covers |
 |---|---|
@@ -641,9 +704,11 @@ recorded angle includes camber gain.
 
 * **Massless hubs.** There is no wheel-hop mode (about 20 Hz). Damping is specified at the contact
   patch.
-* **Reduced transient model.** Longitudinal compliance has a passive elastic state; lateral
-  relaxation retains the existing angle-lag approximation. This is not a fully coupled 2D bristle
-  model, and low-speed relaxation still fades into the algebraic force law.
+* **Reduced transient model.** Both tangential directions have passive elastic states, calibrated
+  steady-slip targets and a shared friction-ellipse projection. They use the instantaneous tire
+  frame, without torsional patch transport or a spatial bristle distribution. Walking-speed
+  fallback still uses the algebraic force law. Camber's geometric power port is explicit but is
+  not returned through a solved camber/overturning moment.
 * **Calibrated combined slip.** The weighting coefficients are a gameplay-stable calibration, not a
   fitted data set. A locked wheel keeps about 34% of its pure cornering force (a brush tyre would
   keep about 16%).

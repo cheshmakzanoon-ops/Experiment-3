@@ -37,6 +37,28 @@ function fixture() {
 }
 
 describe('source-preserving supplied draw ranges', () => {
+  it('retains blocks that bounded GPU deformation can move into the view', () => {
+    const f = fixture();
+    try {
+      f.before();
+      expect(f.geometry.drawRange).toEqual({ start: 384, count: 384 });
+      f.after();
+      f.mesh.userData.vertexDisplacementMargin = 5;
+      f.before();
+      expect(f.geometry.drawRange).toEqual({ start: 0, count: Infinity });
+      f.after();
+      f.mesh.userData.vertexDisplacementMargin = 0;
+      f.before();
+      expect(f.geometry.drawRange).toEqual({ start: 384, count: 384 });
+      f.after();
+      f.mesh.userData.vertexDisplacementMargin = NaN;
+      f.before();
+      expect(f.geometry.drawRange).toEqual({ start: 0, count: Infinity });
+      f.after();
+    } finally {
+      f.ranges.dispose();
+    }
+  });
   it('trims only invisible contiguous ends and restores exact indices and range after submission', () => {
     const f = fixture(),
       index = f.geometry.index!,

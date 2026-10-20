@@ -26,6 +26,9 @@ test('supplied RB19 and R06: actual binary fit, both locks, POV, T-cam and rewin
   if (!chunk || chunk.type !== 'chunk') throw new Error('Missing player fixture chunk');
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
+  page.on('console', (message) => {
+    if (message.type() === 'error') errors.push(message.text());
+  });
   await page.route('**/player-model-probe', (r) =>
     r.fulfill({
       contentType: 'text/html',
@@ -73,6 +76,7 @@ test('supplied RB19 and R06: actual binary fit, both locks, POV, T-cam and rewin
     paused = result.results[4],
     rewind = result.results[5];
   for (const c of result.results) {
+    expect(c.measuredContact).toBe(15);
     expect(c.diagnostics.sha256).toBe(manifest.sha256);
     expect(c.diagnostics.joints).toBe(manifest.joints);
     expect(c.diagnostics.heightMapsRestored).toBe(10);
