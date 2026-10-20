@@ -425,6 +425,7 @@ export class RacingRenderer {
     );
     this.scene.add(this.debris.mesh, this.pitCrew.root, this.vehicleBodies.root);
     this.scene.add(this.bikeShells.root);
+    this.bikeShells.track = track;
     // Catalogue bodies and bikes get the same material installers as the Formula cars.
     this.vehicleBodies.onBuild = this.bikeShells.install = (root) => {
       this.textures.register(root);

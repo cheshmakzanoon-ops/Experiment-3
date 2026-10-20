@@ -1,6 +1,7 @@
 import * as T from 'three';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { Rider, type RiderPose } from '../src/rendering/rider.ts';
+import { gpRiderStance } from '../src/rendering/gp-rider-motion.ts';
 
 beforeAll(() => {
   const context = new Proxy(
@@ -69,10 +70,15 @@ describe('GP articulated spine and connected one-piece suit', () => {
             for (const braking of [0, 1]) {
               const pose = { ...base, lean, offset: lean * 0.2, tuck, braking };
               rider.ride(pose);
-              const expectedSeat = rider.seat.clone();
-              expectedSeat.x += pose.offset * 0.6;
-              expectedSeat.y -= Math.abs(pose.offset) * 0.15 + tuck * 0.03;
-              expectedSeat.z += braking * 0.05 - tuck * 0.05;
+              const stance = gpRiderStance(pose, {
+                  x: 0,
+                  y: 0,
+                  z: 0,
+                  pitch: 0,
+                  into: 0,
+                  yaw: 0,
+                }),
+                expectedSeat = rider.seat.clone().add(new T.Vector3(stance.x, stance.y, stance.z));
               expect(pelvis.position.distanceTo(expectedSeat)).toBeLessThan(1e-12);
               const angle = relative
                 .copy(pelvis.quaternion)

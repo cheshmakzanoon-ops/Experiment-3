@@ -44,6 +44,24 @@ const STYLES = Object.freeze({
     pitch: 20,
     profile: 'sun visor',
   },
+  steinhorn: {
+    label: 'STEINHORN  /  ALPENRING',
+    background: '#2b6874',
+    steel: 0x3e4b50,
+    roof: 0xd3d7d6,
+    seats: [0x2a7f91, 0xa9b0ae, 0x9b2e2c, 0x323d42],
+    pitch: 14,
+    profile: 'alpine ridge',
+  },
+  'zafra-night': {
+    label: 'ZAFRA  /  NIGHT GRAND PRIX',
+    background: '#7d5d31',
+    steel: 0x4b4339,
+    roof: 0xd9cfb8,
+    seats: [0xb08a42, 0x2f6f52, 0x8f8776, 0x3a3a36],
+    pitch: 18,
+    profile: 'desert dune',
+  },
 });
 
 type GpVenue = keyof typeof STYLES;
@@ -73,6 +91,14 @@ function roofHeight(venue: GpVenue, u: number, z: number) {
     }
     case 'montejaral':
       return 6.76 + t * 0.7 - 0.78 * Math.sin(Math.PI * t) + 0.2 * wave;
+    case 'steinhorn': {
+      // A pitched alpine ridge repeated along the stand, shedding snow both ways.
+      const ridge = 1 - Math.abs(((((z / STYLES[venue].pitch) % 1) + 1) % 1) * 2 - 1);
+      return 6.2 + t * 1.15 + 0.62 * ridge * Math.sin(Math.PI * t);
+    }
+    case 'zafra-night':
+      // Low dune swells: a deep sun/dew shade sweeping up to the rear.
+      return 6.3 + t * 1.5 + 0.42 * Math.sin(Math.PI * t * 0.85) + 0.3 * wave * t;
   }
 }
 

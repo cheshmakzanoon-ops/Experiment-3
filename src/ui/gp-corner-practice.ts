@@ -22,6 +22,8 @@ export interface GpPracticeContext {
   human: boolean;
   replay: boolean;
   assist: string;
+  /** Live riding on track (driving or paused), outside replay and photo views. */
+  live?: boolean;
 }
 
 export interface GpPracticeCorner {

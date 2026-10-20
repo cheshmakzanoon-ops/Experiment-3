@@ -99,7 +99,7 @@ function streakRig(venue: Track = track) {
 }
 
 describe('personal GP corner practice', () => {
-  it.each(['poggio-alto', 'cape-wrenna', 'haarveld', 'montejaral'])(
+  it.each(['poggio-alto', 'cape-wrenna', 'haarveld', 'montejaral', 'steinhorn', 'zafra-night'])(
     '%s uses ordered nonoverlapping measured corner windows',
     (id) => {
       const venue = new Track('clear', false, undefined, circuitDefinition(id));

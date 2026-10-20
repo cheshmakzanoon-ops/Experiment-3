@@ -63,6 +63,28 @@ export const GP_PADDOCK_STYLES: Readonly<Record<string, GpPaddockStyle>> = {
     shade: 4,
     sawtooth: 0,
   },
+  steinhorn: {
+    accent: 0x2f7f8e,
+    roof: [
+      [-9.8, 11.3],
+      [-6.5, 11.55],
+      [0.5, 11.2],
+      [7.1, 10.92],
+    ],
+    shade: 2,
+    sawtooth: 0.7,
+  },
+  'zafra-night': {
+    accent: 0xae8c48,
+    roof: [
+      [-10.4, 11.0],
+      [-6.5, 11.32],
+      [0, 11.5],
+      [7.1, 11.12],
+    ],
+    shade: 3,
+    sawtooth: 0,
+  },
 };
 
 export interface GpPaddockBay {

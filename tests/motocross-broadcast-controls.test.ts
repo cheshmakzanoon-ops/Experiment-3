@@ -10,6 +10,8 @@ import { trackInfrastructurePlan } from '../src/rendering/track-infrastructure.t
 // SHA256(JSON.stringify(tracksideRigs(new Track('clear', false, undefined, definition)))).
 // These 44 venue signatures cover all 880 original non-MX/SX CameraRig records.
 // The fixture is embedded so the regression has no dependency on scratch files.
+/** Venues authored after the control capture have no historical signature. */
+const ADDED_AFTER_CONTROL = ['steinhorn', 'zafra-night'] as const;
 const ORIGINAL_NON_MX_SIGNATURES = {
   aurel: '2e7146774fbdbfe3b968ca71248204bae1329f08dd33d2b9f056296dc0e1d5c3',
   vellamar: 'ef47691fc49c677f4b6e5b7dbdba21b634896668d088ee30cb7091279516e1b4',
@@ -127,9 +129,16 @@ describe('replay-camera control preservation outside MX/SX', () => {
     const controlIds = Object.values(CIRCUITS)
       .filter((circuit) => !['motocross', 'supercross'].includes(circuit.offroad?.kind ?? ''))
       .map((circuit) => circuit.id)
+      .filter((id) => !ADDED_AFTER_CONTROL.includes(id as (typeof ADDED_AFTER_CONTROL)[number]))
       .sort();
     expect(Object.keys(ORIGINAL_NON_MX_SIGNATURES).sort()).toEqual(controlIds);
     expect(controlIds).toHaveLength(44);
+  });
+
+  it.each(ADDED_AFTER_CONTROL)('%s (added after the control) has the full camera rig set', (id) => {
+    expect(tracksideRigs(new Track('clear', false, undefined, circuitDefinition(id)))).toHaveLength(
+      20,
+    );
   });
 
   it.each(Object.entries(ORIGINAL_NON_MX_SIGNATURES))(

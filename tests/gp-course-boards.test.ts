@@ -11,7 +11,14 @@ import {
   gpCourseBoardPlan,
 } from '../src/rendering/venue-kit/gp-course-boards.ts';
 
-const gpVenues = ['poggio-alto', 'cape-wrenna', 'haarveld', 'montejaral'] as const;
+const gpVenues = [
+  'poggio-alto',
+  'cape-wrenna',
+  'haarveld',
+  'montejaral',
+  'steinhorn',
+  'zafra-night',
+] as const;
 
 describe('GP physical approach references', () => {
   it.each(gpVenues)(

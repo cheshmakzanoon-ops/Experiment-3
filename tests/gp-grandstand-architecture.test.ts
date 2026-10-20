@@ -11,7 +11,14 @@ import {
   gpGrandstandStyle,
 } from '../src/rendering/venue-kit/gp-grandstand-architecture.ts';
 
-const venues = ['poggio-alto', 'cape-wrenna', 'haarveld', 'montejaral'] as const;
+const venues = [
+  'poggio-alto',
+  'cape-wrenna',
+  'haarveld',
+  'montejaral',
+  'steinhorn',
+  'zafra-night',
+] as const;
 function materials() {
   return Object.fromEntries(
     ['concrete', 'steel', 'roof', 'underside', 'seats', 'people', 'sign'].map((name) => [
@@ -154,14 +161,14 @@ describe('GP spectator-side venue architecture', () => {
     Object.values(m).forEach((material) => material.dispose());
   });
 
-  it('gives the four venues visibly different roof profiles without changing other venues', () => {
+  it('gives every GP venue a visibly different roof profile without changing other venues', () => {
     const signatures = venues.map((id) => {
       const g = gpGrandstandRoofGeometry(id, 80),
         signature = [...g.getAttribute('position').array].join(',');
       g.dispose();
       return signature;
     });
-    expect(new Set(signatures).size).toBe(4);
+    expect(new Set(signatures).size).toBe(venues.length);
     for (const id of ['aurel', 'parco-reale', 'valley-ridge-mx'] as const) {
       const track = new Track('clear', false, undefined, CIRCUITS[id]),
         parent = new T.Group(),

@@ -14,7 +14,14 @@ import {
   installRunoffFinish,
 } from '../src/rendering/studio/kerb-runoff-finish.ts';
 
-const venues = ['poggio-alto', 'cape-wrenna', 'haarveld', 'montejaral'] as const;
+const venues = [
+  'poggio-alto',
+  'cape-wrenna',
+  'haarveld',
+  'montejaral',
+  'steinhorn',
+  'zafra-night',
+] as const;
 const tracks = new Map(
   venues.map((id) => [id, new Track('clear', false, undefined, CIRCUITS[id])]),
 );

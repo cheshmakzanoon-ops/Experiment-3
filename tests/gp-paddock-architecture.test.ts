@@ -9,7 +9,14 @@ import {
   gpPaddockRoofGeometry,
 } from '../src/rendering/venue-kit/gp-paddock-architecture.ts';
 
-const venues = ['poggio-alto', 'cape-wrenna', 'haarveld', 'montejaral'] as const;
+const venues = [
+  'poggio-alto',
+  'cape-wrenna',
+  'haarveld',
+  'montejaral',
+  'steinhorn',
+  'zafra-night',
+] as const;
 
 describe('GP layered pit architecture', () => {
   it.each(venues)('%s fits the garage row, keeps the lane open and bounds resources', (id) => {
@@ -106,14 +113,14 @@ describe('GP layered pit architecture', () => {
     material.dispose();
   });
 
-  it('keeps the four roof silhouettes distinct and rejects invalid dimensions', () => {
+  it('keeps every venue's roof silhouette distinct and rejects invalid dimensions', () => {
     const signatures = venues.map((id) => {
       const geometry = gpPaddockRoofGeometry(id, 9),
         signature = [...geometry.getAttribute('position').array].join(',');
       geometry.dispose();
       return signature;
     });
-    expect(new Set(signatures).size).toBe(4);
+    expect(new Set(signatures).size).toBe(venues.length);
     for (const width of [0, -1, NaN, Infinity])
       expect(() => gpPaddockRoofGeometry('haarveld', width)).toThrow();
   });

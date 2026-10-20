@@ -46,6 +46,9 @@ export const CATALOGUE_CIRCUIT_IDS = Object.freeze([
   'gantry-point',
   'gantry-point-reverse',
   'salt-flat',
+  // Motorcycle GP wave (appended): alpine amphitheatre and desert night race.
+  'steinhorn',
+  'zafra-night',
 ] as const);
 export type CatalogueCircuitId = (typeof CATALOGUE_CIRCUIT_IDS)[number];
 /** Terrain venues (src/simulation/offroad/venues.ts), after the catalogue. */

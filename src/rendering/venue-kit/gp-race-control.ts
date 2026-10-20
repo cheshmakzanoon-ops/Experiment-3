@@ -36,6 +36,14 @@ export const GP_CONTROL_STYLES: Readonly<Record<string, GpControlStyle>> = Objec
   },
   haarveld: { accent: 0x405f88, silhouette: 'folded', height: 18.2, width: 12.1, depth: 11.4 },
   montejaral: { accent: 0xa37a48, silhouette: 'shaded', height: 16.3, width: 13.4, depth: 12.3 },
+  steinhorn: { accent: 0x2f7f8e, silhouette: 'stepped', height: 18.6, width: 12.2, depth: 11.6 },
+  'zafra-night': {
+    accent: 0xae8c48,
+    silhouette: 'folded',
+    height: 17.4,
+    width: 13.1,
+    depth: 12.0,
+  },
 });
 
 export interface GpRaceControlSite {

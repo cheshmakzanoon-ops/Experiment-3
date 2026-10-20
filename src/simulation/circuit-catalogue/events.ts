@@ -228,6 +228,27 @@ const WAVE_TWO: readonly WaveTwoEvent[] = [
     30120,
     'clear',
   ],
+  // Motorcycle GP wave: the alpine amphitheatre and the floodlit desert race.
+  [
+    'steinhorn-gp-motorcycle',
+    'STEINHORN ALPENRING GP',
+    'steinhorn',
+    'gp-motorcycle',
+    5,
+    cycle(['gpr1', 'gpr2'], 10),
+    30121,
+    'clear',
+  ],
+  [
+    'zafra-night-gp-motorcycle',
+    'ZAFRA NIGHT GRAND PRIX',
+    'zafra-night',
+    'gp-motorcycle',
+    5,
+    cycle(['gpr2', 'gpr1'], 10),
+    30122,
+    'clear',
+  ],
 ];
 
 /** Built-in events on catalogue layouts (WP29-WP30, masterplan §11.3). Each

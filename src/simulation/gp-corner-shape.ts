@@ -78,9 +78,20 @@ export function gpCornerShapes(track: Track): readonly GPCornerShape[] {
   });
 }
 
+/** Dedicated original motorcycle-GP venues, in menu order. */
+export const GP_COURSE_IDS = Object.freeze([
+  'poggio-alto',
+  'cape-wrenna',
+  'haarveld',
+  'montejaral',
+  'steinhorn',
+  'zafra-night',
+] as const);
+export type GpCourseId = (typeof GP_COURSE_IDS)[number];
+
 /** Dedicated original motorcycle-GP venues. Shared between their course
  * furniture and reference planning; selecting another vehicle does not change
  * the physical venue or hide its permanent braking landmarks. */
 export function isGpCourse(track: Track) {
-  return ['poggio-alto', 'cape-wrenna', 'haarveld', 'montejaral'].includes(track.circuit.id);
+  return GP_COURSE_IDS.includes(track.circuit.id as GpCourseId);
 }

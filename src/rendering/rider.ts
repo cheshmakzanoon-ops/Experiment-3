@@ -10,7 +10,13 @@ import { gpRacingBoot, installGpLeatherFinish } from './gp-rider-gear.ts';
 import { GpRiderGarment } from './gp-rider-garment.ts';
 import { addGpRacingGlove } from './gp-rider-glove.ts';
 import type { GpBrakeFingers } from './gp-brake-fingers.ts';
-import { gpHeadFrame, gpKneeOut } from './gp-rider-motion.ts';
+import {
+  gpHeadFrame,
+  gpHelmetBuffet,
+  gpKneeOut,
+  gpRiderStance,
+  type GpRiderStance,
+} from './gp-rider-motion.ts';
 import { GpRiderSpine } from './gp-rider-spine.ts';
 import {
   GP_BOOT_ANKLE,
@@ -96,6 +102,12 @@ export interface RiderPose extends MotocrossRiderMotionInput {
   dab?: number;
   /** Body fore/aft over the bike: -1 back (throttle) .. +1 forward. */
   body?: number;
+  /** GP: presented throttle 0..1 (exit drive posture). */
+  throttle?: number;
+  /** GP: inside-leg dangle into a braking zone, -1 right .. +1 left. */
+  dangle?: number;
+  /** GP: front-wheel rotation phase (rad), a replay-safe oscillator. */
+  phase?: number;
 }
 export type RiderDetail = 'high' | 'mid' | 'far';
 /** Road leathers, or an off-road kit (textile jersey and pants, peaked
@@ -420,6 +432,7 @@ export class Rider {
   private readonly q = new T.Quaternion();
   private readonly euler = new T.Euler();
   private readonly v = [0, 1, 2, 3, 4, 5].map(() => new T.Vector3());
+  private readonly stance: GpRiderStance = { x: 0, y: 0, z: 0, pitch: 0, into: 0, yaw: 0 };
   constructor(
     colours: RiderColours,
     readonly detail: RiderDetail = 'high',
@@ -1225,15 +1238,19 @@ export class Rider {
       dab = T.MathUtils.clamp(pose.dab ?? 0, -1, 1),
       body = T.MathUtils.clamp(pose.body ?? 0, -1, 1);
     const [pelvis, shoulder, joint, hip, pole, target] = this.v;
-    // Hang off: the hips slide toward the inside and drop off the seat.
-    pelvis.copy(this.seat);
-    pelvis.x += offset * 0.6;
-    pelvis.y -= Math.abs(offset) * 0.15;
-    pelvis.z += braking * 0.05 - tuck * 0.05;
-    pelvis.y -= tuck * 0.03;
     // Off-road: up on the pegs (knees flexed) and fore/aft over the bike.
     const mx = this.kit === 'motocross';
     const gpContact = this.gp && !mx;
+    const stance = gpContact ? gpRiderStance(pose, this.stance) : null;
+    // Hang off: the hips slide toward the inside and drop off the seat.
+    pelvis.copy(this.seat);
+    if (stance) pelvis.add(joint.set(stance.x, stance.y, stance.z));
+    else {
+      pelvis.x += offset * 0.6;
+      pelvis.y -= Math.abs(offset) * 0.15;
+      pelvis.z += braking * 0.05 - tuck * 0.05;
+      pelvis.y -= tuck * 0.03;
+    }
     const motion = mx ? sampleMotocrossRiderMotion(pose, this.motocrossMotion) : null;
     // The original 30 cm rise exceeded a dirt rider's leg reach. Keep the
     // ankles planted on their pegs with flex left in the knees for a landing.
@@ -1245,16 +1262,20 @@ export class Rider {
     }
     // The body leans further into the corner than the bike; tucks on the
     // straight; sits up and braces under braking.
-    const into = T.MathUtils.clamp(
-      mx ? -lean * 0.3 + offset * 0.2 : lean * 0.22 + offset * 0.5,
-      -0.32,
-      0.32,
-    );
-    let pitch = T.MathUtils.lerp(1.05, 1.42, tuck) - braking * 0.3 + Math.abs(lean) * 0.1;
+    const into = stance
+      ? stance.into
+      : T.MathUtils.clamp(
+          mx ? -lean * 0.3 + offset * 0.2 : lean * 0.22 + offset * 0.5,
+          -0.32,
+          0.32,
+        );
+    let pitch = stance
+      ? stance.pitch
+      : T.MathUtils.lerp(1.05, 1.42, tuck) - braking * 0.3 + Math.abs(lean) * 0.1;
     // An off-road rider sits up; standing, bends at the hips over the bars.
     if (mx) pitch = 0.36 + braking * 0.12 + body * 0.16 + standing * 0.23 + motion!.torsoPitch;
     else pitch = T.MathUtils.lerp(pitch, 0.78 + body * 0.25, standing);
-    const yaw = T.MathUtils.clamp(offset * 0.9, -0.3, 0.3) + pose.steer * 0.3;
+    const yaw = stance ? stance.yaw : T.MathUtils.clamp(offset * 0.9, -0.3, 0.3) + pose.steer * 0.3;
     this.euler.set(pitch, yaw, -into, 'ZYX');
     this.torso.position.copy(pelvis);
     this.torso.quaternion.setFromEuler(this.euler);
@@ -1262,8 +1283,14 @@ export class Rider {
     const upperTorso = this.gpSpine?.chest ?? this.torso;
     // GP sight follows the road frame after the articulated chest; other
     // kits retain their authored pose, including the MX landing response.
-    if (gpContact) gpHeadFrame(pose, upperTorso.quaternion, this.head.quaternion);
-    else
+    if (gpContact) {
+      gpHeadFrame(pose, upperTorso.quaternion, this.head.quaternion);
+      const buffet = gpHelmetBuffet(pose);
+      if (buffet)
+        this.head.quaternion.multiply(
+          this.q.setFromEuler(this.euler.set(buffet * 0.35, buffet, buffet * 0.6)),
+        );
+    } else
       this.head.rotation.set(
         -pitch + 0.3 + tuck * 0.12 + (motion?.gazePitch ?? 0),
         lean * 0.3 + pose.steer * 0.6,
@@ -1281,12 +1308,18 @@ export class Rider {
       // Seated corners use relaxed shoulders; standing attack/bracing still
       // raises the elbows. A fixed high, wide pole made every MX pose read as
       // the same horizontal T-pose, even while sitting at the gate.
+      // GP: the inside elbow drops towards the road at full lean and both
+      // elbows open under braking (REF 027/030/092).
+      const elbowDown = stance && inside ? T.MathUtils.smoothstep(Math.abs(lean), 0.35, 1) : 0,
+        elbowWide = stance ? braking * (1 - tuck) * 0.08 : 0;
       pole
         .copy(shoulder)
         .add(
           target.set(
-            side * (mx ? 0.3 : 0.35),
-            mx ? -0.24 + standing * 0.12 + Math.max(0, body) * 0.1 + motion!.elbowLift : -0.3,
+            side * ((mx ? 0.3 : 0.35) + elbowDown * 0.12 + elbowWide),
+            mx
+              ? -0.24 + standing * 0.12 + Math.max(0, body) * 0.1 + motion!.elbowLift
+              : -0.3 - elbowDown * 0.16,
             mx ? 0.04 : -0.1,
           ),
         );
@@ -1344,6 +1377,16 @@ export class Rider {
         gpBootFrame(this.q, i === 1 ? pose.rearBraking : 0);
         gpContactJoint(this.pegs[i], this.q, GP_BOOT_PEG, GP_BOOT_ANKLE, target);
         target.y += GP_FOOTPEG_RADIUS;
+        // Inside leg swung off the peg into the braking zone: out, down and
+        // slightly forward, the knee opening wide (REF 052/092).
+        const swing = Math.max(0, side * T.MathUtils.clamp(pose.dangle ?? 0, -1, 1));
+        if (swing > 0) {
+          target.x += side * 0.2 * swing;
+          target.y -= 0.12 * swing;
+          target.z += 0.09 * swing;
+          pole.x += side * 0.3 * swing;
+          pole.y -= 0.08 * swing;
+        }
         twoBone(this.thighs[i], this.shins[i], hip, target, pole, joint);
         gpAttachAtJoint(
           this.feet[i],

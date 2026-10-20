@@ -40,7 +40,14 @@ describe('GP architectural approach landmarks', () => {
   });
   afterAll(() => vi.unstubAllGlobals());
 
-  it.each(['poggio-alto', 'cape-wrenna', 'haarveld', 'montejaral'] as const)(
+  it.each([
+    'poggio-alto',
+    'cape-wrenna',
+    'haarveld',
+    'montejaral',
+    'steinhorn',
+    'zafra-night',
+  ] as const)(
     '%s keeps real road clearance, grounds its supports and bounds visible resources',
     (id) => {
       const track = new Track('clear', false, undefined, CIRCUITS[id]),
@@ -52,7 +59,10 @@ describe('GP architectural approach landmarks', () => {
       expect(gpCourseBridgeSite(kit.context)).toEqual(site);
       const corner = track.circuit.corners[site.corner],
         shape = gpCornerShapes(track)[site.corner];
-      expect(mod(corner.s - shape.entry - site.s, track.length)).toBeCloseTo(site.approachDistance, 6);
+      expect(mod(corner.s - shape.entry - site.s, track.length)).toBeCloseTo(
+        site.approachDistance,
+        6,
+      );
       expect(site.approachDistance).toBeGreaterThanOrEqual(240);
       expect(site.approachDistance).toBeLessThanOrEqual(400);
       for (const offset of [-40, -20, 0, 20, 40]) {
@@ -114,7 +124,9 @@ describe('GP architectural approach landmarks', () => {
       camera.updateMatrixWorld(true);
       kit.update(camera, false);
       expect(cell.object.visible).toBe(false);
-      expect(track.points.map((p) => [p.x, p.y, p.z, p.width, p.bank, p.curvature])).toEqual(before);
+      expect(track.points.map((p) => [p.x, p.y, p.z, p.width, p.bank, p.curvature])).toEqual(
+        before,
+      );
       root.traverse((object) => {
         if (object instanceof T.Mesh) object.geometry.dispose();
       });

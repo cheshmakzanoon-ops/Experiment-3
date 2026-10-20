@@ -54,7 +54,9 @@ import { COMPOUNDS } from '../simulation/config.ts';
 import { liveryScheme } from './car-livery.ts';
 import { canvasTexture } from './geometry.ts';
 import { detailDistance } from './view-detail.ts';
-import { Rider, type RiderDetail } from './rider.ts';
+import { Rider, type RiderDetail, type RiderPose } from './rider.ts';
+import { gpLegDangle, gpTurnAhead } from './gp-rider-motion.ts';
+import type { Track } from '../simulation/track.ts';
 import { bikeSheetFor } from './bike-sheet.ts';
 import { isDirtBike } from '../simulation/offroad/dirt-bikes.ts';
 import { factoryBikeSag } from '../simulation/offroad/suspension-geometry.ts';
@@ -2049,6 +2051,9 @@ export class BikeModel {
         speed: v.speed,
         suspensionPitch: this.sprung.rotation.x,
         rearBraking: v.rearBrake,
+        throttle: v.throttle,
+        dangle: v.dangle,
+        phase: v.frontRotation,
       });
     }
   }
@@ -2094,6 +2099,10 @@ export interface BikePoseValues extends GpTyreAppearance {
    * and front wheel out of the fork (down), from the shared service pose. */
   rearWheelOut?: number;
   frontWheelDrop?: number;
+  /** GP rider body language: presented throttle and the inside-leg dangle
+   * (-1 right .. +1 left) derived from the road ahead of the snapshot. */
+  throttle?: number;
+  dangle?: number;
 }
 interface Entry {
   definition: VehicleDefinition;
@@ -2118,8 +2127,10 @@ export const BIKE_ONBOARD = Object.freeze({
  * display; the wider lens preserves peripheral track visibility. The mount
  * is checked against the full-tuck rider and both prototypes' instruments. */
 export const GP_ONBOARD = Object.freeze({
-  eye: [0, 0.5, 0.18] as const,
-  pitch: BIKE_ONBOARD.pitch,
+  eye: [0, 0.535, 0.16] as const,
+  // REF 017/074/088: the helmet looks along the road, with the horizon near
+  // mid-frame and the instruments and fork caps low in the view.
+  pitch: -0.075,
   fovExtra: 6,
 });
 /** Helmet-height motocross eye above the raised bars and number board. The
@@ -2163,6 +2174,8 @@ export class BikeShells {
     compoundColour: 0xffffff,
     riding: true,
   };
+  /** Presented circuit, for the road-ahead cue in the GP rider's posture. */
+  track?: Track;
   private readonly position = new T.Vector3();
   private readonly service = new BikeServicePose();
   private readonly serviceTask = new BikeWheelTask();
@@ -2344,6 +2357,14 @@ export class BikeShells {
     v.tuck = sampleBikeField(a, b, o, B.TUCK, t);
     v.brake = sampleValue(a, b, o + F.BRAKE, t);
     v.rearBrake = sampleBikeField(a, b, o, B.REAR_BRAKE, t);
+    v.throttle = sampleValue(a, b, o + F.THROTTLE, t);
+    v.dangle =
+      model.definition.classId === 'gp-bike' && this.track
+        ? gpLegDangle(
+            { lean: v.chassisLean, braking: v.brake, speed: v.speed } as RiderPose,
+            gpTurnAhead(this.track, source[o + F.S], v.speed),
+          )
+        : 0;
     v.discTemp = wheelValue(a, b, o, front, W.DISC_TEMP, t);
     v.compound = Math.round(source[o + F.COMPOUND]);
     v.frontWear = wheelValue(a, b, o, front, W.WEAR, t);

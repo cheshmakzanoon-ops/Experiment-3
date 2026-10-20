@@ -7,6 +7,7 @@ import {
   type GpSuitRegion,
 } from '../src/rendering/gp-rider-suit.ts';
 import { Rider } from '../src/rendering/rider.ts';
+import { gpRiderStance } from '../src/rendering/gp-rider-motion.ts';
 import { BikeMaterials, BikeModel } from '../src/rendering/bike.ts';
 import { VEHICLES } from '../src/simulation/vehicles.ts';
 import { studioHookKeys } from '../src/rendering/studio/shader-hooks.ts';
@@ -115,11 +116,14 @@ describe('GP fitted racing leathers', () => {
         // contact. Their limb lengths and actual mesh contact have a separate
         // production-model contract in gp-rider-contact.test.ts.
         expect(anchors(gp).contacts).toEqual(anchors(legacy).contacts);
-        // The seat position remains fixed while GP chest/pelvis articulation
-        // and road-relative gaze intentionally differ from the old rigid pose.
-        expect(gp.root.getObjectByName('Rider torso')!.position.toArray()).toEqual(
-          legacy.root.getObjectByName('Rider torso')!.position.toArray(),
-        );
+        // The seat anchor is shared; the GP pelvis follows its own authored
+        // racing stance (deeper hang-off, low tuck) from that same anchor.
+        const stance = gpRiderStance(pose, { x: 0, y: 0, z: 0, pitch: 0, into: 0, yaw: 0 });
+        expect(
+          gp.root
+            .getObjectByName('Rider torso')!
+            .position.distanceTo(gp.seat.clone().add(new T.Vector3(stance.x, stance.y, stance.z))),
+        ).toBeLessThan(1e-12);
       }
       for (const phase of [0, 1, 2]) {
         legacy.separated(phase, 0.75, 2);

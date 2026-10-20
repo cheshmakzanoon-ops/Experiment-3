@@ -563,6 +563,7 @@ export class Interface {
       human: !automatic,
       replay: mode === 'replay',
       assist: this.options.assist,
+      live: mode === 'driving' || mode === 'paused',
     });
   }
   setText(id: string, value: string) {

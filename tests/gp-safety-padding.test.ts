@@ -35,7 +35,14 @@ function context(track: Track) {
   }) as VenueKitContext;
 }
 
-const courseIds = ['poggio-alto', 'cape-wrenna', 'haarveld', 'montejaral'] as const;
+const courseIds = [
+  'poggio-alto',
+  'cape-wrenna',
+  'haarveld',
+  'montejaral',
+  'steinhorn',
+  'zafra-night',
+] as const;
 function track(id: string) {
   return new Track('clear', false, undefined, circuitDefinition(id));
 }

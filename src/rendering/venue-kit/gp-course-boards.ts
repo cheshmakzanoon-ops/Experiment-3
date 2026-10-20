@@ -99,6 +99,8 @@ const ACCENTS: Record<string, string> = {
   'cape-wrenna': '#3c7395',
   haarveld: '#345aa0',
   montejaral: '#bc7733',
+  steinhorn: '#2d8fa1',
+  'zafra-night': '#c09a45',
 };
 
 /** One bounded atlas per venue, generated once at construction. Corners and

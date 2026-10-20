@@ -1,7 +1,7 @@
 import { afterAll, describe, expect, it } from 'vitest';
 import * as T from 'three';
 import type { BikeMaterials } from '../src/rendering/bike.ts';
-import { gpBodywork, gpUpperCowl } from '../src/rendering/gp-bodywork.ts';
+import { gpBodywork, gpLinedWell, gpUpperCowl } from '../src/rendering/gp-bodywork.ts';
 import source from '../src/rendering/assets/gp-bodywork.mesh.json';
 
 const material = new T.MeshStandardMaterial();
@@ -21,9 +21,19 @@ describe('GP instrument-well specular continuity', () => {
   it.each(['high', 'mid'] as const)(
     '%s has a smooth well rim without changing geometry or the other bodywork normals',
     (detail) => {
-      const group = gpBodywork(materials, detail);
+      const group = gpBodywork(materials, detail),
+        lined = gpLinedWell(source[detail]);
       try {
-        for (const [i, part] of source[detail].entries()) {
+        // The well's interior moves from the paint batch to the carbon batch;
+        // every authored triangle is still drawn exactly once.
+        const triangles = (parts: typeof lined) => parts.reduce((n, p) => n + p.index.length, 0);
+        expect(triangles(lined)).toBe(triangles(source[detail]));
+        expect(lined.length).toBe(source[detail].length);
+        const paintBefore = source[detail].find((p) => p.material === 'paint')!,
+          paintAfter = lined.find((p) => p.material === 'paint')!;
+        expect(paintAfter.index.length).toBeLessThan(paintBefore.index.length);
+        expect(paintAfter.position).toBe(paintBefore.position);
+        for (const [i, part] of lined.entries()) {
           const mesh = group.children[i] as T.Mesh;
           const geometry = mesh.geometry;
           expect(geometry.getAttribute('position').array).toEqual(new Float32Array(part.position));

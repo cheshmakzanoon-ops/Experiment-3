@@ -1,6 +1,7 @@
 import styles from './bike-hud.css?inline';
 import { bikeReadout } from './bike-readout.ts';
 import { GPRidingCues } from './gp-riding-cues.ts';
+import { GpRideMoments, type GpMoment } from './gp-ride-moments.ts';
 import {
   GpCornerPractice,
   gpPracticeDelta,
@@ -16,6 +17,8 @@ export class BikeHud {
   private readonly nodes: Record<string, HTMLElement> = {};
   private readonly ridingCues = new GPRidingCues();
   private readonly practice = new GpCornerPractice();
+  readonly moments = new GpRideMoments();
+  private shownMoment: GpMoment | null = null;
   constructor(private readonly hud: HTMLElement) {
     const style = document.createElement('style');
     style.textContent = styles;
@@ -39,7 +42,18 @@ export class BikeHud {
     const cluster = hud.querySelector('.instruments')!;
     cluster.prepend(heading);
     cluster.append(feedback);
-    hud.append(style);
+    // Riding highlights sit above the road, clear of the cluster and banners.
+    const moment = document.createElement('div');
+    moment.id = 'gpMoment';
+    moment.className = 'gp-moment';
+    moment.hidden = true;
+    moment.setAttribute('role', 'status');
+    moment.setAttribute('aria-live', 'polite');
+    moment.innerHTML =
+      '<b id="gpMomentTitle"></b><span id="gpMomentDetail"></span><small id="gpMomentScore"></small>';
+    hud.append(moment, style);
+    this.nodes.gpMoment = moment;
+    for (const node of moment.querySelectorAll<HTMLElement>('[id]')) this.nodes[node.id] = node;
     for (const node of [
       ...feedback.querySelectorAll<HTMLElement>('[id]'),
       ...heading.querySelectorAll<HTMLElement>('[id]'),
@@ -50,16 +64,23 @@ export class BikeHud {
   }
   resetPractice() {
     this.practice.reset();
+    this.moments.reset();
     this.nodes.gpPractice.hidden = true;
+    this.nodes.gpMoment.hidden = true;
   }
   suspendPractice() {
     this.practice.suspend();
+    this.moments.suspend();
     this.nodes.gpPractice.hidden = true;
   }
   /** Timing consumes each original worker snapshot, independently of drawing.
    * PresentedFrame has an interpolated clock but discrete track stations. */
   observePractice(frame: Float32Array, track: Track, context: GpPracticeContext) {
     this.practice.observe(frame, track, context);
+    this.moments.observe(frame, {
+      live: !context.replay && (context.live ?? true),
+      human: context.human,
+    });
   }
   update(frame: Float32Array, track?: Track) {
     // MX has its own jump/landing status stack and tested instrument layout.
@@ -85,8 +106,10 @@ export class BikeHud {
     }
     if (!readout) {
       this.nodes.gpPractice.hidden = true;
+      this.nodes.gpMoment.hidden = true;
       return;
     }
+    this.showMoment(this.moments.latest(frame[H.TIME]));
     const set = (id: string, text: string) => {
       if (this.nodes[id].textContent !== text) this.nodes[id].textContent = text;
     };
@@ -190,5 +213,31 @@ export class BikeHud {
         cue.direction === 'none' ? cue.corner : `${cue.corner}, ${cue.direction}`,
       );
     }
+  }
+  private showMoment(moment: GpMoment | null) {
+    const node = this.nodes.gpMoment;
+    if (!moment) {
+      if (!node.hidden) node.hidden = true;
+      this.shownMoment = null;
+      return;
+    }
+    if (moment === this.shownMoment && !node.hidden) return;
+    this.shownMoment = moment;
+    node.dataset.kind = moment.kind;
+    this.nodes.gpMomentTitle.textContent = moment.title;
+    this.nodes.gpMomentDetail.textContent = moment.detail;
+    const score = this.moments.score.toLocaleString('en-GB');
+    this.nodes.gpMomentScore.textContent =
+      moment.points > 0
+        ? `+${moment.points}${moment.flow > 1 ? `  ·  FLOW ×${moment.flow}` : ''}  ·  ${score}`
+        : moment.kind === 'reset'
+          ? `RIDE SCORE ${score}`
+          : '';
+    this.nodes.gpMomentScore.hidden = !this.nodes.gpMomentScore.textContent;
+    // Restart the entrance animation for each new highlight.
+    node.hidden = false;
+    node.classList.remove('gp-moment-in');
+    void node.offsetWidth;
+    node.classList.add('gp-moment-in');
   }
 }

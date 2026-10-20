@@ -281,9 +281,171 @@ const montejaral: CircuitSpec = {
   ],
 };
 
+/** Alpine amphitheatre: a short, steep clockwise lap in a mountain bowl. The
+ * start climbs into a tight right, a long uphill drag reaches the hairpin at
+ * the top of the valley, a downhill run sets up a heavy stop, and the lap
+ * falls back through linked lefts and fast downhill rights to the stands.
+ * REF 044/045/046/047: snow peaks over a conifer valley, painted cyan run-off
+ * and steep grass banks. Clockwise. */
+const steinhorn: CircuitSpec = {
+  ...bikeGp,
+  id: 'steinhorn',
+  bikeClasses: MODERN_BIKE_CLASSES,
+  name: 'STEINHORN / ALPENRING',
+  short: 'STEINHORN',
+  venue: 'steinhorn',
+  venueName: 'Steinhorn Alpenring',
+  layout: 'Grand Prix',
+  description:
+    'A mountain amphitheatre: steep uphill stops into tight rights, a hairpin at the top of the valley and fast downhill sweepers.',
+  theme: 'alpine',
+  heading: 20,
+  length: 4318,
+  referenceLength: 4318,
+  y0: 40,
+  elevationSmoothing: 45,
+  pit: gpPit(1),
+  path: [
+    S(320, {
+      drs: true,
+      w: 7.4,
+      y: 47,
+      stands: 'left',
+      barrier: { kind: 'concrete', side: 'left' },
+    }),
+    S(107, { drs: true, w: 7.4, y: 51 }),
+    A(32, -88, {
+      name: 'GIPFEL',
+      y: 53,
+      runoff: { out: 'asphalt' },
+      barrier: { side: 'out', offset: 24, kind: 'tyre' },
+      stands: 'out',
+    }),
+    S(423, { y: 66 }),
+    A(500, -14, { y: 72 }),
+    S(417, { drs: true, y: 82 }),
+    A(22, -140, {
+      name: 'KEHRE',
+      y: 84,
+      runoff: { out: 'asphalt' },
+      barrier: { side: 'out', offset: 22, kind: 'tyre' },
+      stands: 'out',
+    }),
+    S(447, { drs: true, y: 60 }),
+    A(40, -92, {
+      name: 'SCHLUCHT',
+      y: 56,
+      runoff: { out: 'gravel' },
+      barrier: { side: 'out', offset: 22, kind: 'tyre' },
+      stands: 'out',
+    }),
+    S(116, { y: 52 }),
+    A(95, 78, { name: 'ALMHÜTTE', y: 48 }),
+    S(82, { y: 45 }),
+    A(70, 108, { name: 'FELSEN', y: 41, stands: 'out' }),
+    S(299, { y: 35 }),
+    A(110, -56, { name: 'TANNEN', y: 31, runoff: { out: 'gravel' } }),
+    S(167, { y: 29 }),
+    A(60, -60, { name: 'BACHLAUF', y: 30, stands: 'out' }),
+    S(116, { y: 33 }),
+    A(150, -36, { name: 'WALDKANTE', y: 35, runoff: { out: 'gravel' } }),
+    S(76, { y: 36 }),
+    A(70, -60, {
+      name: 'ARENA',
+      y: 38,
+      runoff: { out: 'asphalt' },
+      barrier: { side: 'out', offset: 22, kind: 'tyre' },
+      stands: 'out',
+    }),
+    S(267, { drs: true, w: 7.4, y: 40, barrier: { kind: 'concrete', side: 'left' } }),
+  ],
+};
+
+/** Desert night race: a floodlit clockwise lap on flat sand. A kilometre
+ * straight ends in a 300 km/h stop into the first right; the rest of the lap
+ * is a chain of long, fast rights broken by a hairpin and short lefts.
+ * REF 064/072: a dark sky over brightly lit asphalt and the pit straight.
+ * Wide asphalt run-off on the heavy stops. Clockwise. */
+const zafraNight: CircuitSpec = {
+  ...bikeGp,
+  id: 'zafra-night',
+  bikeClasses: ALL_BIKE_CLASSES,
+  name: 'ZAFRA / NIGHT GRAND PRIX',
+  short: 'ZAFRA NIGHT',
+  venue: 'zafra',
+  venueName: 'Zafra International Circuit',
+  layout: 'Grand Prix',
+  description:
+    'Under the floodlights: a kilometre straight into a 300 km/h stop, then a chain of long, fast rights through the desert night.',
+  theme: 'night-desert',
+  night: true,
+  heading: 0,
+  length: 5380,
+  referenceLength: 5380,
+  y0: 6,
+  elevationSmoothing: 90,
+  runoff: { straight: 'asphalt', outside: 'gravel', inside: 'grass' },
+  pit: gpPit(1),
+  path: [
+    S(665, {
+      drs: true,
+      w: 7.6,
+      y: 6,
+      stands: 'left',
+      barrier: { kind: 'concrete', side: 'left' },
+    }),
+    A(40, -100, {
+      name: 'BAWABA',
+      y: 6,
+      runoff: { out: 'asphalt' },
+      barrier: { side: 'out', offset: 26, kind: 'tyre' },
+      stands: 'out',
+    }),
+    S(254, { y: 6 }),
+    A(120, 50, { name: 'RIMAL', y: 6.5 }),
+    S(96, { y: 7 }),
+    A(150, -60, { name: 'SARAB', y: 7, runoff: { out: 'gravel' } }),
+    S(361, { y: 7.5 }),
+    A(32, -100, {
+      name: 'MUNHANA',
+      y: 7.5,
+      runoff: { out: 'asphalt' },
+      barrier: { side: 'out', offset: 22, kind: 'tyre' },
+      stands: 'out',
+    }),
+    S(205, { y: 7 }),
+    A(60, 110, { name: 'NAKHIL', y: 6.5 }),
+    S(115, { y: 6 }),
+    A(90, -70, { name: 'QAFILA', y: 6, runoff: { out: 'gravel' } }),
+    S(166, { y: 6 }),
+    A(120, -60, { name: 'BURJ', y: 6, runoff: { out: 'gravel' }, stands: 'out' }),
+    S(120, { y: 6 }),
+    A(200, 40, { y: 6 }),
+    S(121, { y: 6 }),
+    A(80, -40, { name: 'WAHAT', y: 6 }),
+    S(239, { y: 6 }),
+    A(55, -70, { name: 'QAMAR', y: 6, stands: 'out' }),
+    S(108, { y: 6 }),
+    A(70, 80, { name: 'HILAL', y: 6 }),
+    S(161, { y: 6 }),
+    A(130, -80, { name: 'NUJUM', y: 6, runoff: { out: 'gravel' } }),
+    S(145, { y: 6 }),
+    A(110, -60, {
+      name: 'MANARA',
+      y: 6,
+      runoff: { out: 'asphalt' },
+      barrier: { side: 'out', offset: 22, kind: 'tyre' },
+      stands: 'out',
+    }),
+    S(499, { drs: true, w: 7.6, y: 6, barrier: { kind: 'concrete', side: 'left' } }),
+  ],
+};
+
 export const MOTORCYCLE_GP_SPECS: readonly CircuitSpec[] = [
   poggioAlto,
   capeWrenna,
   haarveld,
   montejaral,
+  steinhorn,
+  zafraNight,
 ];

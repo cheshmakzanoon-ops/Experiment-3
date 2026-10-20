@@ -14,6 +14,8 @@ const COURSES: Record<string, { corner: string; accent: number; crown: number }>
   'cape-wrenna': { corner: 'COLD SPOT', accent: 0x3c7395, crown: 0.4 },
   haarveld: { corner: 'TURFSTEEK', accent: 0x345aa0, crown: 0.95 },
   montejaral: { corner: 'HORQUILLA', accent: 0xa76c36, crown: 0.55 },
+  steinhorn: { corner: 'SCHLUCHT', accent: 0x2d7f8f, crown: 0.7 },
+  'zafra-night': { corner: 'MUNHANA', accent: 0xa98a42, crown: 0.45 },
 };
 
 export interface GpCourseBridgeSite {

@@ -9,7 +9,14 @@ import {
   GP_CONTROL_STYLES,
 } from '../src/rendering/venue-kit/gp-race-control.ts';
 
-const venues = ['poggio-alto', 'cape-wrenna', 'haarveld', 'montejaral'] as const;
+const venues = [
+  'poggio-alto',
+  'cape-wrenna',
+  'haarveld',
+  'montejaral',
+  'steinhorn',
+  'zafra-night',
+] as const;
 
 // Construction-only canvas. The existing production paddock browser fixture
 // checks actual lettering, lighting, weather restoration and GPU disposal.

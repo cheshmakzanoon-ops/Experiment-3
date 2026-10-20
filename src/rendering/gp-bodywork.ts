@@ -82,6 +82,93 @@ function smoothCowlNormals(geometry: T.BufferGeometry) {
   normal.needsUpdate = true;
 }
 
+/** Corner-angle smoothed normals of the full authored paint batch. */
+function smoothedCowlNormals(part: (typeof bodywork.high)[number]) {
+  const geometry = new T.BufferGeometry();
+  geometry.setAttribute('position', new T.Float32BufferAttribute(part.position, 3));
+  geometry.setAttribute('normal', new T.Float32BufferAttribute(part.normal, 3));
+  geometry.setIndex(part.index);
+  smoothCowlNormals(geometry);
+  const normals = Array.from(geometry.getAttribute('normal').array as Float32Array);
+  geometry.dispose();
+  return normals;
+}
+
+/** The open instrument well's interior, in the authored chassis frame: its
+ * inward walls span |x| < 0.125 m, y 0.22-0.30 m and z 0.45-0.71 m. */
+const WELL = Object.freeze({ x: 0.13, y: [0.2, 0.316] as const, z: [0.44, 0.715] as const });
+const linedSources = new WeakMap<object, typeof bodywork.high>();
+
+/** REF 017/074/088: inside the cowl the fairing is unpainted carbon around the
+ * display; only the outer skin carries the livery. Move the well's visible
+ * interior triangles (walls and floor, not the hidden underside) from the paint
+ * batch into the existing carbon batch. Triangle totals and draw calls stay the
+ * same, and the change is computed once per authored source. */
+export function gpLinedWell(source: typeof bodywork.high): typeof bodywork.high {
+  const cached = linedSources.get(source);
+  if (cached) return cached;
+  const authored = source.find((part) => part.material === 'paint'),
+    carbon = source.find((part) => part.material === 'carbon');
+  if (!authored || !carbon) return source;
+  // Smooth the lip over the complete authored cowl before the split, so the
+  // painted rim keeps the continuous normals its well walls gave it.
+  const paint = { ...authored, normal: smoothedCowlNormals(authored) };
+  const keep: number[] = [],
+    lining: number[] = [],
+    p = paint.position,
+    vertex = (i: number, axis: number) => p[i * 3 + axis];
+  for (let t = 0; t < paint.index.length; t += 3) {
+    const [a, b, c] = [paint.index[t], paint.index[t + 1], paint.index[t + 2]];
+    const centre = [0, 1, 2].map(
+      (axis) => (vertex(a, axis) + vertex(b, axis) + vertex(c, axis)) / 3,
+    );
+    // Geometric face normal; only its vertical part decides visibility.
+    const ux = vertex(b, 0) - vertex(a, 0),
+      uy = vertex(b, 1) - vertex(a, 1),
+      uz = vertex(b, 2) - vertex(a, 2),
+      vx = vertex(c, 0) - vertex(a, 0),
+      vy = vertex(c, 1) - vertex(a, 1),
+      vz = vertex(c, 2) - vertex(a, 2),
+      nx = uy * vz - uz * vy,
+      ny = uz * vx - ux * vz,
+      nz = ux * vy - uy * vx,
+      length = Math.hypot(nx, ny, nz) || 1;
+    const inside =
+      Math.abs(centre[0]) < WELL.x &&
+      centre[1] > WELL.y[0] &&
+      centre[1] < WELL.y[1] &&
+      centre[2] > WELL.z[0] &&
+      centre[2] < WELL.z[1] &&
+      ny / length > -0.2;
+    (inside ? lining : keep).push(a, b, c);
+  }
+  if (!lining.length) return source;
+  const appended = {
+    ...carbon,
+    position: [...carbon.position],
+    normal: [...carbon.normal],
+    uv: [...carbon.uv],
+    index: [...carbon.index],
+  };
+  const remap = new Map<number, number>();
+  for (const i of lining) {
+    let target = remap.get(i);
+    if (target === undefined) {
+      target = appended.position.length / 3;
+      remap.set(i, target);
+      appended.position.push(p[i * 3], p[i * 3 + 1], p[i * 3 + 2]);
+      appended.normal.push(paint.normal[i * 3], paint.normal[i * 3 + 1], paint.normal[i * 3 + 2]);
+      appended.uv.push(paint.uv[i * 2], paint.uv[i * 2 + 1]);
+    }
+    appended.index.push(target);
+  }
+  const result = source.map((part) =>
+    part === authored ? { ...paint, index: keep } : part === carbon ? appended : part,
+  );
+  linedSources.set(source, result);
+  return result;
+}
+
 /** Original Blender-authored GP-R1 bodywork, in the existing chassis frame.
  * Only the rigid sprung shell is replaced. Forks, wheels, controls, rider IK
  * and pit-service articulation retain their production owners. No async swap
@@ -122,9 +209,9 @@ function buildGroup(
 export function gpBodywork(materials: BikeMaterials, detail: RiderDetail): T.Group {
   return buildGroup(
     materials,
-    detail === 'high' ? bodywork.high : bodywork.mid,
+    // Lined sources already carry the smoothed cowl normals.
+    gpLinedWell(detail === 'high' ? bodywork.high : bodywork.mid),
     `GP-R1 authored shell (${detail})`,
-    true,
   );
 }
 /** Full-fairing catalogue bikes share the open instrument well, not the GP-R1

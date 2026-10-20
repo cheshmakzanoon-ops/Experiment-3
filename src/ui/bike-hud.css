@@ -441,3 +441,96 @@
     display: none;
   }
 }
+
+/* Riding highlights (REF 004/027/052/092 moments): a short, high-contrast
+   callout above the road. Never covers the rider, the apex or the cluster. */
+.gp-moment {
+  display: none;
+}
+#hud[data-bike='true'] .gp-moment:not([hidden]) {
+  position: absolute;
+  top: max(122px, 17vh);
+  left: 50%;
+  transform: translateX(-50%);
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  min-width: calc(190px * var(--ui-scale, 1));
+  max-width: calc(100vw - 32px);
+  padding: 7px 18px 8px;
+  border-radius: 10px;
+  border-bottom: 3px solid var(--moment-accent, #79dcc5);
+  background: linear-gradient(180deg, #0a121bd9, #060b10c4);
+  box-shadow: 0 8px 26px #0005;
+  color: #f2f6f8;
+  pointer-events: none;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  --moment-accent: #79dcc5;
+}
+#hud[data-bike='true'] .gp-moment[data-kind='elbow'] {
+  --moment-accent: #ffb547;
+}
+#hud[data-bike='true'] .gp-moment[data-kind='stop'],
+#hud[data-bike='true'] .gp-moment[data-kind='stoppie'] {
+  --moment-accent: #ff6a55;
+}
+#hud[data-bike='true'] .gp-moment[data-kind='overtake'],
+#hud[data-bike='true'] .gp-moment[data-kind='top-speed'] {
+  --moment-accent: #8fb8ff;
+}
+#hud[data-bike='true'] .gp-moment[data-kind='reset'] {
+  --moment-accent: #8a96a3;
+  color: #c9d2da;
+}
+.gp-moment > b {
+  font-size: calc(21px * var(--ui-scale, 1));
+  font-style: italic;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  line-height: 1.05;
+}
+.gp-moment > span {
+  font-size: calc(11px * var(--ui-scale, 1));
+  letter-spacing: 0.05em;
+  color: #c4d0da;
+}
+.gp-moment > small {
+  font-size: calc(10px * var(--ui-scale, 1));
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--moment-accent, #79dcc5);
+}
+.gp-moment.gp-moment-in {
+  animation: gp-moment-in 2.6s ease-out both;
+}
+@keyframes gp-moment-in {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-8px) scale(0.94);
+  }
+  9% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1.03);
+  }
+  16%,
+  82% {
+    opacity: 1;
+    transform: translateX(-50%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-50%) scale(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gp-moment.gp-moment-in {
+    animation: none;
+  }
+}
+@media (max-height: 520px) {
+  #hud[data-bike='true'] .gp-moment:not([hidden]) {
+    top: 64px;
+    padding: 4px 12px 5px;
+  }
+}

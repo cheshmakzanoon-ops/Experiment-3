@@ -48,6 +48,24 @@ const DESIGNS: Readonly<Record<string, GpEdgeDesign>> = Object.freeze({
     kerbStyle: 0,
     runoffStyle: 1,
   }),
+  // REF044/045/098: cyan escape paint beside red-and-white kerbs under the
+  // mountains; REF064/072: saturated green aprons that read under floodlights.
+  steinhorn: Object.freeze({
+    id: 'alpine-cyan-and-signal-red',
+    kerb: Object.freeze([0xad2b2b, 0xd0cfc8] as const),
+    apron: 0x2a8ea3,
+    marking: 0xcdd1cc,
+    kerbStyle: 0,
+    runoffStyle: 2,
+  }),
+  'zafra-night': Object.freeze({
+    id: 'desert-night-green-and-sand',
+    kerb: Object.freeze([0xa5352b, 0xd3cdbd] as const),
+    apron: 0x2e7d55,
+    marking: 0xd0cab8,
+    kerbStyle: 1,
+    runoffStyle: 0,
+  }),
 });
 
 export function gpEdgeDesign(track: Track): GpEdgeDesign | null {
