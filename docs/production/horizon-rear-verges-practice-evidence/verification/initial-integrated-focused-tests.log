@@ -1,0 +1,104 @@
+
+ RUN  v3.2.4 /workspace/scratch/b60b57e087a1/Experiment-3
+
+ ✓ tests/festival-career.test.ts > festival region as a career venue > registers the region as a festival venue with every authored event, and opens the discipline 24ms
+ ✓ tests/festival-career.test.ts > festival region as a career venue > derives unlocks from the event kind, discovery and the machine 97ms
+ ✓ tests/festival-career.test.ts > festival results into the career economy > produces a typed, valid result from the session (version 2 with a run id) 6ms
+ ✓ tests/festival-career.test.ts > festival results into the career economy > pays a festival run exactly once per run id, with reputation for new stars only 30ms
+ ✓ tests/festival-career.test.ts > festival results into the career economy > settles without paying: autopilot, unfinished, not your machine, locked event 30ms
+ ✓ tests/festival-career.test.ts > festival results into the career economy > pays the loaned machine at the recovery rate when the career lent it 6ms
+ ✓ tests/festival-career.test.ts > festival results into the career economy > keeps loaned runs apart: a later run in your own machine still earns the stars, first completion and reputation 18ms
+ ✓ tests/festival-career.test.ts > festival results into the career economy > lends a car for the festival, not the cheapest machine (the road motorcycle) 23ms
+ ✓ tests/festival-career.test.ts > festival results into the career economy > drives the career loan without saving it as the festival machine 19ms
+ ✓ tests/festival-career.test.ts > festival results into the career economy > lists festival events as coming, with the reason, when no festival region is a venue 113ms
+ ✓ tests/festival-career.test.ts > festival results into the career economy > consumes festival-result events through the controller, once per run, and lists discoveries 285ms
+ ✓ tests/festival-career.test.ts > festival results into the career economy > leaves festival runs outside the career alone: no career written, no career toast 10ms
+ ✓ tests/festival-career.test.ts > festival results into the career economy > gives star results a text alternative in the hub and plain words in the ledger 23ms
+ ✓ tests/festival-career.test.ts > festival results into the career economy > migrates a version 1 career save to version 2 with empty festival records 43ms
+ ✓ tests/festival-club-circuit.test.ts > Saltmarsh club course connectivity and legal laps > joins the public farm road with one access and two distinct loop directions 879ms
+ ✓ tests/festival-club-circuit.test.ts > Saltmarsh club course connectivity and legal laps > saltmarsh-club-race follows one complete, continuous club lap 415ms
+ ✓ tests/festival-club-circuit.test.ts > Saltmarsh club course connectivity and legal laps > saltmarsh-practice follows one complete, continuous club lap 166ms
+ ✓ tests/festival-club-circuit.test.ts > Saltmarsh club course connectivity and legal laps > credits the full two-lap checkpoint sequence and refuses an infield rejoin 1604ms
+ ✓ tests/festival-club-circuit.test.ts > Saltmarsh physical driving corridor > uses bare asphalt at the centre and tyre-readable paint at both authored edge lines 30ms
+ ✓ tests/festival-club-circuit.test.ts > Saltmarsh physical driving corridor > keeps the full running width paved with finite, grade-limited banked contact through every corner 7854ms
+ ✓ tests/festival-club-circuit.test.ts > Saltmarsh physical driving corridor > keeps every solid structure outside the running corridor, including the access 337ms
+ ✓ tests/festival-club-circuit.test.ts > Saltmarsh physical driving corridor > places all four rh3 race-grid chassis on asphalt without overlap 2981ms
+ ✓ tests/festival-club-circuit.test.ts > Saltmarsh physical driving corridor > places all four sc7 race-grid chassis on asphalt without overlap 2814ms
+ ✓ tests/festival-club-circuit.test.ts > Saltmarsh normal session commands > starts, retries, returns to the garage and launches solo practice in the selected car 4327ms
+ ✓ tests/festival-rear-construction.test.ts > Festival rear shoulder, lamps and side intakes > opens real rear lamp pockets while retaining the painted bridge and pocket perimeter 641ms
+ ✓ tests/festival-rear-construction.test.ts > Festival rear shoulder, lamps and side intakes > cuts both SC7 side intakes into the curved skin and places their closed throat inside the body 572ms
+ ✓ tests/festival-rear-construction.test.ts > Festival rear shoulder, lamps and side intakes > cuts a sealed, painted registration well and shapes the lower bumper independently of the tailgate 1267ms
+ ✓ tests/festival-rear-construction.test.ts > Festival rear shoulder, lamps and side intakes > keeps the side duct perimeter sealed to the evaluated body, without a protruding square frame 283ms
+ ✓ tests/festival-rear-construction.test.ts > Festival rear shoulder, lamps and side intakes > closes the SC7 lower cap-to-side junction under oblique rear-quarter rays 411ms
+ ✓ tests/festival-rear-construction.test.ts > Festival rear shoulder, lamps and side intakes > curves only the rear overhang while preserving a monotone surface and the wheel envelope 137ms
+ ✓ tests/festival-rear-construction.test.ts > Festival rear shoulder, lamps and side intakes > retains finite smooth normals, material batches, and a bounded geometry increase at every LOD 381ms
+ ✓ tests/festival-vehicle-detail.test.ts > Festival vehicle exterior construction > cuts real fascia apertures while keeping their painted perimeter closed 290ms
+ ✓ tests/festival-vehicle-detail.test.ts > Festival vehicle exterior construction > lets a front-view ray reach the recessed radiator rather than a painted blocking face 14606ms
+ ✓ tests/festival-vehicle-detail.test.ts > Festival vehicle exterior construction > builds open exhaust bores with a solid metallic lip and inner wall 100ms
+ ✓ tests/festival-vehicle-detail.test.ts > Festival vehicle exterior construction > terminates rear cooling apertures inside a dark duct at chase-view angles 11143ms
+ ✓ tests/festival-vehicle-detail.test.ts > Festival vehicle exterior construction > keeps all optical emitters on the existing lamp materials and batches the extra finish roles 2085ms
+ ✓ tests/festival-vehicle-detail.test.ts > Festival vehicle exterior construction > releases replaced and cleared cars once while preserving other cars and shared finishes 4921ms
+ ✓ tests/festival-car-switch.test.ts > festival garage presentation > holds Formula actions and body identity until their recorded sample boundary 5466ms
+ ✓ tests/festival-car-switch.test.ts > festival garage presentation > poses a road body from the current holder after using and reusing a Formula car 3736ms
+ ✓ tests/festival-car-switch.test.ts > festival garage presentation > selects rival Formula LODs from camera distance and the selected quality 4082ms
+ ✓ tests/festival-car-switch.test.ts > festival garage presentation > releases every procedural Formula resource once and preserves shared atlases and borrowed feeds 7867ms
+ ✓ tests/festival-nose-construction.test.ts > RH3 and SC7 integrated front ends > cuts actual lamp holes, retains nearby painted skin and exposes recessed optics 24187ms
+ ✓ tests/festival-nose-construction.test.ts > RH3 and SC7 integrated front ends > closes curved cooling ducts at front-quarter heights without exposing the world behind the bumper 32896ms
+ × tests/festival-nose-construction.test.ts > RH3 and SC7 integrated front ends > curves the painted nose and its ducts while leaving wheel arches exactly at their previous positions 14225ms
+   → expected 414 to be greater than 580
+ ✓ tests/festival-nose-construction.test.ts > RH3 and SC7 integrated front ends > keeps the nose mapping monotone, bounded and normal-consistent 7420ms
+ ✓ tests/festival-verge-planting.test.ts > Festival maintained verge and seedhead planting > restores the bounded near meadow when a loaded photo-grass scene switches to Low 15ms
+ ✓ tests/festival-verge-planting.test.ts > Festival maintained verge and seedhead planting > roots dense broken bands on the real Saltmarsh surface and keeps entire clumps outside every shoulder 264ms
+ ✓ tests/festival-verge-planting.test.ts > Festival maintained verge and seedhead planting > remains deterministic and removes roots inside an occupied roadside footprint 841ms
+ ✓ tests/festival-verge-planting.test.ts > Festival fallback tree species and rooting > selects broadleaf atlas crowns for broadleaf placements at both LODs and preserves bark/collider scale 158ms
+ ✓ tests/festival-verge-planting.test.ts > Festival fallback tree species and rooting > uses a porous rooted shrub crown instead of a solid polyhedron and releases tile instances 11ms
+ ✓ tests/festival-vehicle-glazing.test.ts > Festival bonded glazing > recesses every used pane vertex while retaining the original body surface and normals 2483ms
+ ✓ tests/festival-vehicle-glazing.test.ts > Festival bonded glazing > closes a curved pane edge without painting across its central sightline 57ms
+ ✓ tests/festival-vehicle-glazing.test.ts > Festival bonded glazing > uses detached glass only on Festival near/mid bodies and retains the existing material roles 7763ms
+ ✓ tests/festival-circuit-pace.test.ts > same-car circuit practice sectors > interpolates physical sector crossings consistently across sample rates 8ms
+ ✓ tests/festival-circuit-pace.test.ts > same-car circuit practice sectors > compares all sectors with one complete best run and only replaces a faster clean run 3ms
+ ✓ tests/festival-circuit-pace.test.ts > same-car circuit practice sectors > keeps a off-road run readable without accepting a record 1ms
+ ✓ tests/festival-circuit-pace.test.ts > same-car circuit practice sectors > keeps a contact run readable without accepting a record 0ms
+ ✓ tests/festival-circuit-pace.test.ts > same-car circuit practice sectors > keeps a reset run readable without accepting a record 0ms
+ ✓ tests/festival-circuit-pace.test.ts > same-car circuit practice sectors > keeps a autopilot run readable without accepting a record 1ms
+ ✓ tests/festival-circuit-pace.test.ts > same-car circuit practice sectors > does not earn another sector by reversing and re-driving the same metres 1ms
+ ✓ tests/festival-circuit-pace.test.ts > same-car circuit practice sectors > rejects teleports and non-finite clocks and makes finishing idempotent 1ms
+ ✓ tests/festival-circuit-pace.test.ts > practice session integration > invalidates a reset or enabled autopilot immediately and excludes multi-rival races 1422ms
+ ✓ tests/festival-circuit-pace.test.ts > practice session integration > closes a legal lap at its real finish gate, reuses the same-car best, and isolates a car change 1124ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/festival-nose-construction.test.ts > RH3 and SC7 integrated front ends > curves the painted nose and its ducts while leaving wheel arches exactly at their previous positions
+AssertionError: expected 414 to be greater than 580
+ ❯ tests/festival-nose-construction.test.ts:198:23
+    196|           }
+    197|         }
+    198|         expect(fixed).toBeGreaterThan(before.count * 0.5);
+       |                       ^
+    199|         expect(swept).toBeGreaterThan(10);
+    200|         if (detail < 2) {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+⎯⎯⎯⎯⎯⎯ Unhandled Errors ⎯⎯⎯⎯⎯⎯
+
+Vitest caught 1 unhandled error during the test run.
+This might cause false positive tests. Resolve unhandled errors to make sure your tests are not affected.
+
+⎯⎯⎯⎯⎯⎯ Unhandled Error ⎯⎯⎯⎯⎯⎯⎯
+Error: [vitest-worker]: Timeout calling "onTaskUpdate"
+ ❯ Object.onTimeoutError ../../22070f4442c4/Experiment-3/node_modules/vitest/dist/chunks/rpc.-pEldfrD.js:53:10
+ ❯ Timeout._onTimeout ../../22070f4442c4/Experiment-3/node_modules/vitest/dist/chunks/index.B521nVV-.js:59:62
+ ❯ listOnTimeout node:internal/timers:635:17
+ ❯ processTimers node:internal/timers:571:7
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+
+
+ Test Files  1 failed | 8 passed (9)
+      Tests  1 failed | 62 passed (63)
+     Errors  1 error
+   Start at  16:31:40
+   Duration  364.30s (transform 38.25s, setup 0ms, collect 129.83s, tests 213.03s, environment 7ms, prepare 7.41s)
+
+JSON report written to /dev/shm/horizon-b60-validation/tests.json

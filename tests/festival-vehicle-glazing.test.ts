@@ -132,9 +132,14 @@ describe('Festival bonded glazing', () => {
           opaque = root.getObjectByName('Greenhouse') as T.Mesh,
           improved = id !== 'rl2' && detail < 2;
         expect(!!glass.geometry.userData.festivalGlazing).toBe(improved);
-        expect(
-          glass.geometry.getAttribute('position') === opaque.geometry.getAttribute('position'),
-        ).toBe(!improved);
+        // The new RH3 rear shoulder reaches the distant greenhouse. Its
+        // material groups need independent chord refinement, even without
+        // the near/mid bonded recess. Non-curved generic bodies still share.
+        const rearCurve = 'rearSweep' in bodySheetFor(VEHICLES[id])!;
+        if (improved || !rearCurve)
+          expect(
+            glass.geometry.getAttribute('position') === opaque.geometry.getAttribute('position'),
+          ).toBe(!improved);
         const materials = new Set<T.Material>();
         root.traverse((node) => {
           if (node instanceof T.Mesh)

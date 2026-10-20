@@ -1,0 +1,329 @@
+{
+  "baselineCommitForChangedModules": "93576d20a3b52cc5e28959910b4b408418f53d3b",
+  "changed": [
+    "src/rendering/open-world/horizon-dressing.ts",
+    "src/rendering/open-world/vegetation.ts"
+  ],
+  "source": {
+    "src/rendering/open-world/horizon-dressing.ts": {
+      "before": "cb5e5a7302bcecaf5183f8e3f6d1171072963252fd3d4a37e5f489f9bc28d9f5",
+      "after": "6df0812ce5a6a52d6a4f686d56f99a139bd88f19caa95f453bbc608aa95f952f"
+    },
+    "src/rendering/open-world/vegetation.ts": {
+      "before": "dcdad9f7a74848c34d624a7f4804740833a7b8957dd19261c3df35d9bc203046",
+      "after": "dd7919f9dd4c27476f5a612e72dec19a3417bc9a72064b0303a8b0110f9a3b7e"
+    }
+  },
+  "introducedSource": {
+    "src/rendering/open-world/festival-meadow.ts": "85587a4d9a95945ad855da049e1f5859d0ac9480cf27d312b90bef46784ebe5a"
+  },
+  "fixtureSha256": "190b743499abb121c372e864433f254f9209204903acbcb2398271ecaa7ad5e0",
+  "fixtureHtmlSha256": "a6d1eaa684703020a8c89fd2c22e8b4f5fd5236c8ca882c18694dbb6281d2a2b",
+  "limits": {
+    "variantMs": 180000,
+    "launchMs": 60000
+  },
+  "limitations": [
+    "Fixed component lighting; no full-world compositor, photographed packs, player input, or hardware frame-rate claim",
+    "Baseline substitutes only listed modules into the same frozen current source graph"
+  ],
+  "backend": "swiftshader",
+  "variants": [
+    {
+      "variant": "before",
+      "views": [
+        {
+          "name": "club-verge",
+          "camera": {
+            "eye": [
+              -1658.9599338928433,
+              58.05739267449943,
+              -1540.9508942607085
+            ],
+            "target": [
+              -1604.9888277661873,
+              58.02925710189585,
+              -1542.6458985146576
+            ],
+            "quality": "medium"
+          },
+          "meadow": {
+            "calls": 2,
+            "submittedInstances": 173,
+            "submittedTriangles": 11418
+          },
+          "planting": {
+            "trees": {
+              "tiles": 9,
+              "instances": 149
+            },
+            "meadowClumps": 39928
+          },
+          "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+          "contextLost": false,
+          "render": {
+            "calls": 44,
+            "triangles": 85704,
+            "memory": {
+              "geometries": 35,
+              "textures": 4
+            }
+          },
+          "image": {
+            "file": "before-club-verge.png",
+            "bytes": 606164,
+            "sha256": "29906bc3dae2d69691039996248f1e48d28a8700110dac1fa460e6243f243738"
+          }
+        },
+        {
+          "name": "club-low",
+          "camera": {
+            "eye": [
+              -1658.9599338928433,
+              58.05739267449943,
+              -1540.9508942607085
+            ],
+            "target": [
+              -1604.9888277661873,
+              58.02925710189585,
+              -1542.6458985146576
+            ],
+            "quality": "low"
+          },
+          "meadow": {
+            "calls": 0,
+            "submittedInstances": 0,
+            "submittedTriangles": 0
+          },
+          "planting": {
+            "trees": {
+              "tiles": 9,
+              "instances": 149
+            },
+            "meadowClumps": 39928
+          },
+          "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+          "contextLost": false,
+          "render": {
+            "calls": 42,
+            "triangles": 74286,
+            "memory": {
+              "geometries": 35,
+              "textures": 4
+            }
+          },
+          "image": {
+            "file": "before-club-low.png",
+            "bytes": 600157,
+            "sha256": "7a441b1807421ea3c6b39769db3dc787caacc211321d1d0831cc1aa42d2a334a"
+          }
+        },
+        {
+          "name": "club-planting",
+          "camera": {
+            "eye": [
+              -1641.6612548828125,
+              64.09547424316406,
+              -1442.672119140625
+            ],
+            "target": [
+              -1669.6612548828125,
+              64.22575428009033,
+              -1469.672119140625
+            ],
+            "quality": "medium"
+          },
+          "meadow": {
+            "calls": 2,
+            "submittedInstances": 173,
+            "submittedTriangles": 11418
+          },
+          "planting": {
+            "trees": {
+              "tiles": 9,
+              "instances": 149
+            },
+            "meadowClumps": 39928
+          },
+          "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+          "contextLost": false,
+          "render": {
+            "calls": 49,
+            "triangles": 98071,
+            "memory": {
+              "geometries": 56,
+              "textures": 7
+            }
+          },
+          "image": {
+            "file": "before-club-planting.png",
+            "bytes": 220398,
+            "sha256": "0feea52df3658f3cdc24c85ad3436c8562b6ddd6976ce180572e5de34c2e80a7"
+          }
+        }
+      ],
+      "servedModules": {
+        "src/rendering/open-world/horizon-dressing.ts": "cb5e5a7302bcecaf5183f8e3f6d1171072963252fd3d4a37e5f489f9bc28d9f5",
+        "src/rendering/open-world/vegetation.ts": "dcdad9f7a74848c34d624a7f4804740833a7b8957dd19261c3df35d9bc203046"
+      }
+    },
+    {
+      "variant": "after",
+      "views": [
+        {
+          "name": "club-verge",
+          "camera": {
+            "eye": [
+              -1658.9599338928433,
+              58.05739267449943,
+              -1540.9508942607085
+            ],
+            "target": [
+              -1604.9888277661873,
+              58.02925710189585,
+              -1542.6458985146576
+            ],
+            "quality": "medium"
+          },
+          "meadow": {
+            "calls": 4,
+            "submittedInstances": 510,
+            "submittedTriangles": 78540
+          },
+          "planting": {
+            "trees": {
+              "tiles": 9,
+              "instances": 149
+            },
+            "meadowClumps": 38886,
+            "meadowPlanMs": 4033.39999999851
+          },
+          "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+          "contextLost": false,
+          "render": {
+            "calls": 46,
+            "triangles": 155426,
+            "memory": {
+              "geometries": 35,
+              "textures": 4
+            }
+          },
+          "image": {
+            "file": "after-club-verge.png",
+            "bytes": 636142,
+            "sha256": "f72065e8cca59a9c666d194066686d8d08adaecf695ae78e3209ad99e38d60f6"
+          }
+        },
+        {
+          "name": "club-low",
+          "camera": {
+            "eye": [
+              -1658.9599338928433,
+              58.05739267449943,
+              -1540.9508942607085
+            ],
+            "target": [
+              -1604.9888277661873,
+              58.02925710189585,
+              -1542.6458985146576
+            ],
+            "quality": "low"
+          },
+          "meadow": {
+            "calls": 4,
+            "submittedInstances": 189,
+            "submittedTriangles": 29106
+          },
+          "planting": {
+            "trees": {
+              "tiles": 9,
+              "instances": 149
+            },
+            "meadowClumps": 38886,
+            "meadowPlanMs": 4033.39999999851
+          },
+          "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+          "contextLost": false,
+          "render": {
+            "calls": 46,
+            "triangles": 105992,
+            "memory": {
+              "geometries": 35,
+              "textures": 4
+            }
+          },
+          "image": {
+            "file": "after-club-low.png",
+            "bytes": 617618,
+            "sha256": "aac83af29e1cec88640cff3d2285b048ba0226aa2d8ea6ec6120b88414613843"
+          }
+        },
+        {
+          "name": "club-planting",
+          "camera": {
+            "eye": [
+              -1641.6612548828125,
+              64.09547424316406,
+              -1442.672119140625
+            ],
+            "target": [
+              -1669.6612548828125,
+              64.22575428009033,
+              -1469.672119140625
+            ],
+            "quality": "medium"
+          },
+          "meadow": {
+            "calls": 2,
+            "submittedInstances": 272,
+            "submittedTriangles": 41888
+          },
+          "planting": {
+            "trees": {
+              "tiles": 9,
+              "instances": 149
+            },
+            "meadowClumps": 38886,
+            "meadowPlanMs": 4033.39999999851
+          },
+          "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+          "contextLost": false,
+          "render": {
+            "calls": 49,
+            "triangles": 132805,
+            "memory": {
+              "geometries": 56,
+              "textures": 7
+            }
+          },
+          "image": {
+            "file": "after-club-planting.png",
+            "bytes": 232236,
+            "sha256": "86f6621d36c10ed7fae0d35df1bcc7b05b627b3624fb246cc956f6b3c6b3e11b"
+          }
+        }
+      ],
+      "servedModules": {
+        "src/rendering/open-world/horizon-dressing.ts": "6df0812ce5a6a52d6a4f686d56f99a139bd88f19caa95f453bbc608aa95f952f",
+        "src/rendering/open-world/vegetation.ts": "dd7919f9dd4c27476f5a612e72dec19a3417bc9a72064b0303a8b0110f9a3b7e",
+        "src/rendering/open-world/festival-meadow.ts": "85587a4d9a95945ad855da049e1f5859d0ac9480cf27d312b90bef46784ebe5a"
+      }
+    }
+  ],
+  "comparisons": [
+    {
+      "name": "club-verge",
+      "changedPixels": 19485
+    },
+    {
+      "name": "club-low",
+      "changedPixels": 10906
+    },
+    {
+      "name": "club-planting",
+      "changedPixels": 15577
+    }
+  ],
+  "errors": [],
+  "passed": true
+}

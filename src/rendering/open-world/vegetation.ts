@@ -1,8 +1,11 @@
 import * as T from 'three';
-import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { TREE_SPECIES } from '../../simulation/open-world/placement.ts';
 import { foliageAtlas, installFoliageAtlas, treeGeometry } from '../landscape.ts';
-import { materials } from '../materials/index.ts';
+import {
+  foliageSwayAmplitude,
+  installFoliageShading,
+  installFoliageWind,
+} from '../studio/foliage-shading.ts';
 import type { TileMeshData } from '../../workers/open-world-protocol.ts';
 import { TILE_TREE_STRIDE } from './tile-data.ts';
 import { FESTIVAL_PALETTE } from '../assets/sky-catalogue.ts';
@@ -12,51 +15,36 @@ import type { VegetationLibrary } from '../vegetation/library.ts';
 import { photoPlants } from '../vegetation/planting.ts';
 import { plantHash, plantTint, SPECIES, treeRole } from '../vegetation/species.ts';
 
-/** A conifer crown: three stacked, irregular cone tiers (unit height). */
-function coniferGeometry(segments: number, tiers: number) {
-  const parts: T.BufferGeometry[] = [];
-  for (let k = 0; k < tiers; k++) {
-    const t = k / tiers,
-      radius = 0.27 * (1 - t * 0.72),
-      height = 0.48 * (1 - t * 0.35),
-      base = 0.18 + t * 0.58;
-    const cone = new T.ConeGeometry(radius, height, segments, 2, true);
-    cone.translate(0, base + height / 2, 0);
-    // Ragged, drooping edge.
-    const p = cone.getAttribute('position');
-    for (let i = 0; i < p.count; i++) {
-      const y = p.getY(i) - base;
-      if (y < height * 0.2) {
-        const a = Math.atan2(p.getZ(i), p.getX(i));
-        const wobble = 1 + 0.18 * Math.sin(a * 5 + k * 1.7) + 0.08 * Math.sin(a * 11 + k);
-        p.setXYZ(i, p.getX(i) * wobble, p.getY(i) - 0.03 * wobble, p.getZ(i) * wobble);
-      }
-    }
-    cone.computeVertexNormals();
-    // Crown normals lean outward and up (soft, volumetric lighting).
-    const n = cone.getAttribute('normal');
-    const v = new T.Vector3();
-    for (let i = 0; i < n.count; i++) {
-      v.set(p.getX(i), 0.35, p.getZ(i)).normalize();
-      n.setXYZ(i, v.x, v.y, v.z);
-    }
-    parts.push(cone);
+/** Each card represents many leaves with different orientations. Strong
+ * horizontal radial normals lit the crossing planes as separate slabs.
+ * Favour the aggregate crown's upward leaf lighting; the atlas and existing
+ * crown occlusion still shade its interior, base and individual leaf clusters.
+ * Keep this grade local to Festival fallback geometry. */
+function canopyNormals(geometry: T.BufferGeometry) {
+  const positions = geometry.getAttribute('position'),
+    normals = geometry.getAttribute('normal'),
+    direction = new T.Vector3();
+  for (let i = 0; i < positions.count; i++) {
+    direction
+      .set(
+        positions.getX(i) * 0.48,
+        Math.max(0.48, 0.48 + (positions.getY(i) - 0.42) * 0.55),
+        positions.getZ(i) * 0.48,
+      )
+      .normalize();
+    normals.setXYZ(i, direction.x, direction.y, direction.z);
   }
-  const merged = mergeGeometries(parts, false)!;
-  parts.forEach((g) => g.dispose());
-  return merged;
 }
-function shrubGeometry() {
-  const g = new T.IcosahedronGeometry(0.5, 1);
+
+/** Root the porous multi-card crown at soil level. The tree shader's crown
+ * reshaping is disabled for these low cards: a shrub has no clear trunk. */
+function shrubGeometry(crown: T.BufferGeometry) {
+  const g = crown.clone();
   const p = g.getAttribute('position');
-  for (let i = 0; i < p.count; i++) {
-    const x = p.getX(i),
-      y = p.getY(i),
-      z = p.getZ(i),
-      k = 1 + 0.22 * Math.sin(x * 9.1 + z * 5.3) + 0.12 * Math.sin(y * 13.7);
-    p.setXYZ(i, x * k, Math.max(-0.1, y * 0.7 * k) + 0.32, z * k);
-  }
-  g.computeVertexNormals();
+  for (let i = 0; i < p.count; i++) p.setY(i, Math.max(0, p.getY(i) - 0.19) * 0.86);
+  g.getAttribute('cardCentre').array.fill(0);
+  g.computeBoundingBox();
+  g.computeBoundingSphere();
   return g;
 }
 
@@ -67,7 +55,7 @@ interface TileTrees {
 /**
  * Instanced vegetation on the near terrain tiles: broadleaf trees from the
  * shared foliage-card crowns and atlas (the same crowns as the circuit
- * planting), conifers as ragged stacked tiers, shrubs; full trees with
+ * planting), porous conifer branches and leaf-card shrubs; full trees with
  * shadows on the finest tiles, cheap three-card impostor crowns on the next
  * level, nothing beyond (the terrain's forest tint carries the far woods).
  * Instances come from the deterministic placement the physics colliders use.
@@ -78,15 +66,11 @@ export class Vegetation {
   private readonly foliage: T.MeshStandardMaterial;
   private readonly depth: T.MeshDepthMaterial;
   private readonly bark: T.MeshStandardMaterial;
-  private readonly needles: T.MeshStandardMaterial;
-  private readonly shrub: T.MeshStandardMaterial;
   private readonly geometry: {
     leaf: T.BufferGeometry;
     trunk: T.BufferGeometry;
     distant: T.BufferGeometry;
-    conifer: T.BufferGeometry;
     coniferTrunk: T.BufferGeometry;
-    coniferFar: T.BufferGeometry;
     shrub: T.BufferGeometry;
   };
   stats = { tiles: 0, instances: 0 };
@@ -99,14 +83,21 @@ export class Vegetation {
       leaf: leafGeometry,
       trunk: trunkGeometry,
       distant: distantLeafGeometry,
-      conifer: coniferGeometry(9, 4),
       coniferTrunk: new T.CylinderGeometry(0.014, 0.03, 0.3, 6).translate(0, 0.15, 0),
-      coniferFar: coniferGeometry(5, 2),
-      shrub: shrubGeometry(),
+      shrub: shrubGeometry(leafGeometry),
     };
-    this.foliage = new T.MeshStandardMaterial({ map: foliageAtlas(), side: T.DoubleSide, alphaTest: 0.45, roughness: 1 });
+    for (const geometry of [this.geometry.leaf, this.geometry.distant, this.geometry.shrub])
+      canopyNormals(geometry);
+    this.foliage = new T.MeshStandardMaterial({
+      map: foliageAtlas(),
+      side: T.DoubleSide,
+      alphaTest: 0.45,
+      roughness: 1,
+    });
     this.foliage.name = 'Festival broadleaf foliage';
     installFoliageAtlas(this.foliage);
+    installFoliageShading(this.foliage);
+    installFoliageWind(this.foliage);
     this.depth = new T.MeshDepthMaterial({
       depthPacking: T.RGBADepthPacking,
       map: this.foliage.map,
@@ -114,10 +105,8 @@ export class Vegetation {
       side: T.DoubleSide,
     });
     installFoliageAtlas(this.depth);
+    installFoliageWind(this.depth);
     this.bark = new T.MeshStandardMaterial({ color: 0x5b5242, roughness: 1 });
-    this.needles = materials.vegetation({ color: 0x24361f, translucency: 0.2 });
-    this.needles.side = T.FrontSide;
-    this.shrub = materials.vegetation({ color: 0x3a4a24, translucency: 0.3 });
   }
   /** Use the photographic plants for every tile built from now on (set
    * before streaming starts; null returns to the procedural crowns). */
@@ -161,7 +150,15 @@ export class Vegetation {
     const library = this.photo!,
       trees = data.trees,
       forest = new PhotoForest(library);
-    const planned: { x: number; y: number; z: number; height: number; width: number; yaw: number; conifer: boolean }[] = [];
+    const planned: {
+      x: number;
+      y: number;
+      z: number;
+      height: number;
+      width: number;
+      yaw: number;
+      conifer: boolean;
+    }[] = [];
     const shrubs: PhotoPlant[] = [];
     const shrub = library.get(SPECIES.shrub);
     for (let i = 0; i < trees.length; i += TILE_TREE_STRIDE) {
@@ -184,7 +181,15 @@ export class Vegetation {
         continue;
       }
       const conifer = kind === TREE_SPECIES.CONIFER;
-      planned.push({ x, y, z, height: h, width: conifer ? h * 0.5 : h * 0.8, yaw: trees[i + 4], conifer });
+      planned.push({
+        x,
+        y,
+        z,
+        height: h,
+        width: conifer ? h * 0.5 : h * 0.8,
+        yaw: trees[i + 4],
+        conifer,
+      });
     }
     forest.add(
       photoPlants(planned, library, FESTIVAL_PALETTE, (t) =>
@@ -206,19 +211,40 @@ export class Vegetation {
     for (let i = 0; i < trees.length; i += TILE_TREE_STRIDE) buckets[trees[i + 3]]?.push(i);
     const transform = new T.Object3D(),
       color = new T.Color();
-    const add = (indices: number[], geometry: T.BufferGeometry, material: T.Material, kind: number, shadows: boolean) => {
+    const add = (
+      indices: number[],
+      geometry: T.BufferGeometry,
+      material: T.Material,
+      kind: number,
+      shadows: boolean,
+    ) => {
       if (!indices.length) return;
       const mesh = new T.InstancedMesh(geometry, material, indices.length);
+      let maximumHeight = 0;
       indices.forEach((i, k) => {
         const h = trees[i + 2],
-          w = kind === TREE_SPECIES.CONIFER ? h * 0.5 : kind === TREE_SPECIES.SHRUB ? h * 1.3 : h * 0.62;
-        transform.position.set(trees[i], trees[i + 6] - 0.15, trees[i + 1]);
+          tint = trees[i + 5],
+          // The atlas derives species from width/height. The former .62
+          // broadleaf ratio silently selected the conifer tile (< .73).
+          // Preserve bark dimensions/collision anchors while correcting crowns.
+          w =
+            kind === TREE_SPECIES.CONIFER
+              ? h * 0.5
+              : kind === TREE_SPECIES.SHRUB
+                ? h * 1.3
+                : h * (material === this.bark ? 0.62 : 0.82 + tint * 0.31);
+        maximumHeight = Math.max(maximumHeight, h);
+        transform.position.set(
+          trees[i],
+          trees[i + 6] - (kind === TREE_SPECIES.SHRUB ? 0.045 : 0.15),
+          trees[i + 1],
+        );
         transform.rotation.set(0, trees[i + 4], 0);
         transform.scale.set(w, h, w);
         transform.updateMatrix();
         mesh.setMatrixAt(k, transform.matrix);
-        const tint = trees[i + 5];
-        if (kind === TREE_SPECIES.BROADLEAF) color.setRGB(0.78 + 0.25 * tint, 0.85 + 0.15 * tint, 0.68 + 0.12 * tint);
+        if (kind === TREE_SPECIES.BROADLEAF)
+          color.setRGB(0.78 + 0.25 * tint, 0.85 + 0.15 * tint, 0.68 + 0.12 * tint);
         else color.setRGB(0.85 + 0.2 * tint, 0.9 + 0.12 * tint, 0.85 + 0.1 * tint);
         mesh.setColorAt(k, color);
       });
@@ -227,6 +253,14 @@ export class Vegetation {
       if (material === this.foliage) mesh.customDepthMaterial = this.depth;
       mesh.computeBoundingBox();
       mesh.computeBoundingSphere();
+      if (material === this.foliage) {
+        // The shared shader caps wind strength at 1.5 and normalised height
+        // at 1.2. Cover its maximum sway/flutter, including tight shrub cards,
+        // so animation cannot disappear at a frustum or shadow boundary.
+        const windMargin = foliageSwayAmplitude(maximumHeight, 12, 1) * 1.44;
+        mesh.boundingBox!.expandByScalar(windMargin);
+        mesh.boundingSphere!.radius += windMargin;
+      }
       mesh.matrixAutoUpdate = false;
       group.add(mesh);
     };
@@ -234,12 +268,12 @@ export class Vegetation {
     if (near) {
       add(broadleaf, this.geometry.leaf, this.foliage, TREE_SPECIES.BROADLEAF, true);
       add(broadleaf, this.geometry.trunk, this.bark, TREE_SPECIES.BROADLEAF, true);
-      add(conifer, this.geometry.conifer, this.needles, TREE_SPECIES.CONIFER, true);
+      add(conifer, this.geometry.leaf, this.foliage, TREE_SPECIES.CONIFER, true);
       add(conifer, this.geometry.coniferTrunk, this.bark, TREE_SPECIES.CONIFER, true);
-      add(shrubs, this.geometry.shrub, this.shrub, TREE_SPECIES.SHRUB, false);
+      add(shrubs, this.geometry.shrub, this.foliage, TREE_SPECIES.SHRUB, false);
     } else {
       add(broadleaf, this.geometry.distant, this.foliage, TREE_SPECIES.BROADLEAF, false);
-      add(conifer, this.geometry.coniferFar, this.needles, TREE_SPECIES.CONIFER, false);
+      add(conifer, this.geometry.distant, this.foliage, TREE_SPECIES.CONIFER, false);
     }
     group.userData.instances = broadleaf.length + conifer.length + (near ? shrubs.length : 0);
     group.name = `Vegetation L${level}`;
@@ -249,6 +283,7 @@ export class Vegetation {
   dispose() {
     this.sync(new Map());
     for (const g of Object.values(this.geometry)) g.dispose();
-    for (const m of [this.foliage, this.depth, this.bark, this.needles, this.shrub]) m.dispose();
+    this.foliage.map?.dispose();
+    for (const m of [this.foliage, this.depth, this.bark]) m.dispose();
   }
 }

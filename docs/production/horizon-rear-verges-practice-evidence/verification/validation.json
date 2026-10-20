@@ -1,0 +1,156 @@
+{
+  "generatedAt": "2026-10-20T08:50:25.296521+00:00",
+  "integratedBase": "84472529313a7f8912513eeb1b698566fab1b2bc",
+  "sourceFingerprint": "a8d081390e9bbe7ab3cd9ed45d7eb4ed75d9a2a2ef6dedb35bcb6b522703d404",
+  "fingerprintScope": "src recursively, package-lock.json, index.html and vite.config.ts, full relative path string sort; path + NUL + bytes + NUL",
+  "steps": [
+    {
+      "name": "integration-tests",
+      "command": [
+        "node",
+        "--max-old-space-size=2048",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "--config",
+        "/dev/shm/horizon-b60-validation/vitest.config.mjs",
+        "tests/aero-wind.test.ts",
+        "tests/session-identity.test.ts",
+        "tests/festival-rival-passing.test.ts",
+        "-t",
+        "production aerodynamics in the air-relative frame|WP12 recorded identity and schema policy|keeps the SC7 rear tyres loaded",
+        "--reporter=json",
+        "--outputFile=/dev/shm/horizon-b60-validation/integration-tests.json"
+      ],
+      "exitCode": 0,
+      "passed": true,
+      "elapsedMs": 23655,
+      "log": "integration-tests.log"
+    },
+    {
+      "name": "physical-clean",
+      "command": [
+        "node",
+        "--max-old-space-size=2048",
+        "--experimental-transform-types",
+        "scripts/horizon-practice-validation.ts",
+        "/dev/shm/horizon-b60-validation/physical-clean.json"
+      ],
+      "exitCode": 0,
+      "passed": true,
+      "elapsedMs": 25866,
+      "log": "physical-clean.log"
+    },
+    {
+      "name": "physical-off-road",
+      "command": [
+        "node",
+        "--max-old-space-size=2048",
+        "--experimental-transform-types",
+        "scripts/horizon-practice-validation.ts",
+        "/dev/shm/horizon-b60-validation/physical-off-road.json",
+        "--stress"
+      ],
+      "exitCode": 0,
+      "passed": true,
+      "elapsedMs": 14759,
+      "log": "physical-off-road.log"
+    },
+    {
+      "name": "typescript",
+      "command": [
+        "node",
+        "--max-old-space-size=2048",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit"
+      ],
+      "exitCode": 0,
+      "passed": true,
+      "elapsedMs": 172825,
+      "log": "typescript.log"
+    },
+    {
+      "name": "eslint-integrated-changes",
+      "command": [
+        "node",
+        "--max-old-space-size=2048",
+        "node_modules/eslint/bin/eslint.js",
+        "e2e/42-motocross-bike.spec.ts",
+        "e2e/53-motocross-course-landmarks.spec.ts",
+        "e2e/fixtures/motocross-bike-review.ts",
+        "e2e/fixtures/motocross-course-landmarks.ts",
+        "src/core/session-identity.ts",
+        "src/rendering/bike.ts",
+        "src/rendering/offroad/dirt-bike-model.ts",
+        "src/rendering/offroad/motocross-gear.ts",
+        "src/rendering/offroad/motocross-metal-finish.ts",
+        "src/rendering/offroad/motocross-rider-motion.ts",
+        "src/rendering/offroad/mx-braking-bumps.ts",
+        "src/rendering/offroad/terrain-view.ts",
+        "src/rendering/rider.ts",
+        "src/simulation/differential.ts",
+        "src/simulation/offroad/braking-bumps.ts",
+        "src/simulation/offroad/course.ts",
+        "src/simulation/offroad/dirt-bike-vehicle.ts",
+        "src/simulation/offroad/suspension-geometry.ts",
+        "src/simulation/offroad/venues.ts",
+        "src/simulation/suspension.ts",
+        "src/simulation/vehicle.ts",
+        "tests/aero-wind.test.ts",
+        "tests/differential-passivity.test.ts",
+        "tests/differential.test.ts",
+        "tests/festival-nose-construction.test.ts",
+        "tests/motocross-braking-bumps.test.ts",
+        "tests/motocross-control-animation.test.ts",
+        "tests/motocross-lever-contact.test.ts",
+        "tests/motocross-metal-finish.test.ts",
+        "tests/motocross-reference-geometry.test.ts",
+        "tests/motocross-rider-motion.test.ts",
+        "tests/motocross-sprung-pose.test.ts",
+        "tests/motocross-terrain-continuity.test.ts",
+        "tests/session-identity.test.ts",
+        "tests/suspension-projection.test.ts",
+        "tests/suspension.test.ts"
+      ],
+      "exitCode": 0,
+      "passed": true,
+      "elapsedMs": 79270,
+      "log": "eslint-integrated-changes.log"
+    },
+    {
+      "name": "content",
+      "command": [
+        "node",
+        "--max-old-space-size=2048",
+        "--experimental-transform-types",
+        "scripts/validate-content.ts"
+      ],
+      "exitCode": 0,
+      "passed": true,
+      "elapsedMs": 36659,
+      "log": "content.log"
+    },
+    {
+      "name": "production-build",
+      "command": [
+        "node",
+        "--max-old-space-size=2048",
+        "--experimental-transform-types",
+        "/dev/shm/horizon-b60-validation/build.mjs"
+      ],
+      "exitCode": 0,
+      "passed": true,
+      "elapsedMs": 98292,
+      "log": "production-build.log"
+    }
+  ],
+  "passed": true,
+  "notes": [
+    "Final integration after main advanced from c4f674 to 844725. All 81 recorded Festival implementation files stayed byte-identical; see festival-integration.json.",
+    "The nine-file Festival regression set passed 63/63 on c4f674 plus this revision. Those unchanged component tests are retained under pre-v15 instead of needlessly repeated. Final integration exercises aero wind, simulation identity and the existing 25-second SC7 physical opening manoeuvre, followed by actual RH3 clean and off-road practice drives.",
+    "The original full lint pass covered src, tests, e2e and scripts; this final pass lints every incoming changed TS/JS module plus the corrected wheel-anchor test. Full TypeScript, content and production compilation run on the final source.",
+    "Direct CLIs avoid unchanged supplied-character LOD prehooks. Actual production Vite config is retained; temporary bundle output omits public asset duplication, and content validation checks the real assets.",
+    "One isolated thread and JSON reporting are used; no dependency source or worker RPC deadline is patched. Tests keep 120-second timeout and commands a fixed 600-second phase limit. No entire repository suite or npm run check claim."
+  ],
+  "finalSourceFingerprint": "a8d081390e9bbe7ab3cd9ed45d7eb4ed75d9a2a2ef6dedb35bcb6b522703d404",
+  "sourceStable": true
+}

@@ -1,0 +1,84 @@
+{
+  "generatedAt": "2026-10-20T08:18:51.618256+00:00",
+  "integratedBase": "c4f674e86de7d9a0e80812bdbf7ac885f2a71a53",
+  "sourceFingerprint": "bcabfcc7ae2d687de612ce8a7d675e6c359c43304e9f54b7e403ecad639d071d",
+  "fingerprintScope": "All src files, package-lock.json, index.html, vite.config.ts; sorted relative path + NUL + bytes + NUL",
+  "steps": [
+    {
+      "name": "typescript",
+      "command": [
+        "node",
+        "--max-old-space-size=2048",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit"
+      ],
+      "exitCode": 0,
+      "passed": true,
+      "elapsedMs": 212024,
+      "log": "typescript.log"
+    },
+    {
+      "name": "eslint",
+      "command": [
+        "node",
+        "--max-old-space-size=2048",
+        "node_modules/eslint/bin/eslint.js",
+        "src",
+        "tests",
+        "e2e",
+        "scripts"
+      ],
+      "exitCode": 0,
+      "passed": true,
+      "elapsedMs": 330952,
+      "log": "eslint.log"
+    },
+    {
+      "name": "content",
+      "command": [
+        "node",
+        "--max-old-space-size=2048",
+        "--experimental-transform-types",
+        "scripts/validate-content.ts"
+      ],
+      "exitCode": 0,
+      "passed": true,
+      "elapsedMs": 221868,
+      "log": "content.log"
+    },
+    {
+      "name": "focused-tests",
+      "command": [
+        "node",
+        "--max-old-space-size=2048",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "--config",
+        "/dev/shm/horizon-b60-validation/vitest.config.mjs",
+        "tests/festival-circuit-pace.test.ts",
+        "tests/festival-car-switch.test.ts",
+        "tests/festival-career.test.ts",
+        "tests/festival-club-circuit.test.ts",
+        "tests/festival-verge-planting.test.ts",
+        "tests/festival-rear-construction.test.ts",
+        "tests/festival-nose-construction.test.ts",
+        "tests/festival-vehicle-detail.test.ts",
+        "tests/festival-vehicle-glazing.test.ts",
+        "--reporter=verbose",
+        "--reporter=json",
+        "--outputFile=/dev/shm/horizon-b60-validation/tests.json"
+      ],
+      "exitCode": 1,
+      "passed": false,
+      "elapsedMs": 368890,
+      "log": "focused-tests.log"
+    }
+  ],
+  "passed": false,
+  "notes": [
+    "Direct CLIs avoid unchanged supplied-character LOD prehooks. The production Vite config is retained; public assets are validated separately instead of copied into temporary bundle output.",
+    "No full npm check or complete repository test-suite claim. This is the targeted Festival regression set and production compilation."
+  ],
+  "finalSourceFingerprint": "bcabfcc7ae2d687de612ce8a7d675e6c359c43304e9f54b7e403ecad639d071d",
+  "sourceStable": true
+}

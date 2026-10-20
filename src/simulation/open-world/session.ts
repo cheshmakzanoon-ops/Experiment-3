@@ -40,6 +40,7 @@ import { activityProgress, type FestivalActivityProgress } from './activity-prog
 import { NearMissDetector } from './near-miss.ts';
 import { rivalGaps, type FestivalRivalGaps } from './rival-gap.ts';
 import { FestivalRacecraft, type FestivalRacecraftStatus } from './racecraft.ts';
+import { CircuitPace, type CircuitPaceRecord, type CircuitPaceStatus } from './circuit-pace.ts';
 import {
   DriftMeter,
   isRace,
@@ -150,6 +151,8 @@ export interface FestivalStatus {
     rivals?: FestivalRivalGaps | null;
     /** Manual tow-and-pass feedback, separate from competitive results. */
     racecraft?: FestivalRacecraftStatus | null;
+    /** Measured sectors against this car's clean practice best in this session. */
+    practice?: CircuitPaceStatus | null;
     /** Next checkpoint position (world) for the guidance arrow/marker. */
     gate: { x: number; z: number } | null;
   } | null;
@@ -181,6 +184,7 @@ interface Run {
    * run-up, and measure only the distance covered after they start timing. */
   entryDistance: number;
   racecraft: FestivalRacecraft | null;
+  practice: CircuitPace | null;
 }
 // Depart east along Harbour Front's right-hand lane. Its centreline is
 // z=-2600; the opposite side would point the player into oncoming traffic.
@@ -226,6 +230,9 @@ export class OpenWorldSimulation {
   /** Ambient traffic (kinematic cars around the player in free roam). */
   readonly traffic: AmbientTraffic;
   readonly skills = new FestivalSkillChain();
+  /** Weather preset and assists are fixed for this session; weather may
+   * evolve. Event/car keys keep each machine's practice target separate. */
+  private readonly practiceRecords = new Map<string, CircuitPaceRecord>();
   trafficEnabled: boolean;
   mode: FestivalMode = 'free';
   tick = 0;
@@ -326,7 +333,10 @@ export class OpenWorldSimulation {
   // --- Placement ----------------------------------------------------------
   /** Put a car at rest on the ground at (x, z) facing `heading` (rad, from +z). */
   placeAt(car: Vehicle, x: number, z: number, heading: number, layerY?: number) {
-    if (car === this.player) this.skills.reset();
+    if (car === this.player) {
+      this.skills.reset();
+      this.run?.practice?.invalidate('reset');
+    }
     this.run?.racecraft?.reset();
     const ground = this.track.groundHeight(x, z, layerY);
     const b = car.body;
@@ -467,6 +477,7 @@ export class OpenWorldSimulation {
           if (this.run) {
             this.run.assisted = true;
             this.run.racecraft?.reset();
+            this.run.practice?.invalidate('autopilot');
           }
         }
         this.autopilotDriver = null;
@@ -606,6 +617,16 @@ export class OpenWorldSimulation {
       lost: 0,
       entryDistance,
       racecraft: race ? new FestivalRacecraft(event.graph) : null,
+      practice:
+        event.spec.kind === 'circuit' &&
+        event.laps === 1 &&
+        rivals === 0 &&
+        player.definition.dynamicsKind === 'four-wheel'
+          ? new CircuitPace(
+              Math.max(1, event.distance - entryDistance),
+              this.practiceRecords.get(`${event.spec.id}:${player.definition.id}`) ?? null,
+            )
+          : null,
     };
     this.parked = false;
     this.autopilotDriver = null;
@@ -651,6 +672,10 @@ export class OpenWorldSimulation {
       }))
       .sort((a, b) => a.key - b.key);
     const position = ranking.findIndex((r) => r.i === 0) + 1;
+    const practice = run.practice?.finish(completed && !abandoned, elapsed) ?? null;
+    const practiceRecord = run.practice?.record();
+    if (practiceRecord)
+      this.practiceRecords.set(`${spec.id}:${this.player.definition.id}`, practiceRecord);
     const result: FestivalResult = {
       kind: 'festival-result',
       version: 2,
@@ -688,6 +713,7 @@ export class OpenWorldSimulation {
       })),
       at: this.time,
       assisted: run.assisted,
+      practice,
     };
     result.stars = starsFor(spec, result);
     this.results.push(result);
@@ -728,6 +754,12 @@ export class OpenWorldSimulation {
       return;
     }
     if (this.mode !== 'running') return;
+    if (run.practice) {
+      if (run.assisted || this.autopilot) run.practice.invalidate('autopilot');
+      if (!this.track.query.onRoad) run.practice.invalidate('off-road');
+      if ((this.collisions.touched & 1) !== 0 || this.player.impact > 0.25)
+        run.practice.invalidate('contact');
+    }
     // The player's ground was sampled last in step(): drift validity reads it.
     run.drift?.update(
       this.player,
@@ -758,6 +790,18 @@ export class OpenWorldSimulation {
       if (done) p.finishTime = this.time;
     }
     const player = run.participants[0];
+    if (run.practice) {
+      if (player.progress.offRoute) run.practice.invalidate('off-road');
+      run.practice.sample(
+        // RouteProgress marks a lap before the graph's closing seam.
+        // Use the legal finish explicitly rather than double-counting
+        // the final-edge station after that lap counter advances.
+        player.finishTime !== null
+          ? run.practice.length
+          : path.progressDistance(player.progress.edge, player.progress.s) - run.entryDistance,
+        Math.max(0, (player.finishTime ?? this.time) - run.start),
+      );
+    }
     if (player.progress.offRoute) run.offRoute += step;
     if (player.finishTime !== null) {
       if (event.spec.kind === 'speed-trap') run.trapKmh = this.player.speed * 3.6;
@@ -1215,6 +1259,7 @@ export class OpenWorldSimulation {
           this.mode === 'running' && !this.autopilot && !run.assisted
             ? (run.racecraft?.status() ?? null)
             : null,
+        practice: run.practice?.status(elapsed) ?? null,
         gate: gatePoint,
       };
     }

@@ -29,6 +29,7 @@ import {
   festivalDetailFor,
 } from './festival-detail.ts';
 import { cutFestivalBodyPockets, warpFestivalNose } from './festival-nose.ts';
+import { warpFestivalRear } from './festival-rear.ts';
 
 /** Closed-wheel bodies (GT, prototype, saloon, roadster, rally, truck, road
  * supercar) generated from a ClosedSheet. The lower body is one loft of
@@ -1072,12 +1073,13 @@ export function buildClosedBody(
     }
     parts.build(lod.group, detail === 0);
   }
-  if (s.frontSweep) {
+  if (s.frontSweep || s.rearSweep) {
     const transformed = new Set<T.BufferGeometry>();
     lod.group.traverse((node) => {
       if (!(node instanceof T.Mesh) || transformed.has(node.geometry)) return;
       transformed.add(node.geometry);
       warpFestivalNose(node.geometry, model, detail);
+      warpFestivalRear(node.geometry, model, detail);
     });
   }
 }

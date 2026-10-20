@@ -1,0 +1,71 @@
+{
+  "generatedAt": "2026-10-20T09:35:22.209628+00:00",
+  "integratedBase": "0fb423ef8d278122745319d0e852a7ee53203a59",
+  "sourceFingerprint": "e64e4224af341b31c340f5dad8ec689acfa43c9aac8c0b42c2f86907316e3419",
+  "sourceScope": "src recursively, package-lock.json, index.html and vite.config.ts, full relative path string sort; path + NUL + bytes + NUL",
+  "testFiles": [
+    "tests/motocross-ai.test.ts",
+    "tests/motocross-sprung-pose.test.ts",
+    "tests/tire-contact-animation.test.ts"
+  ],
+  "testNamePattern": "recorded carcass deformation|recorded GPU tire binding|waits for current traffic before helping|GPU inspection offsets prescribe supported chassis",
+  "steps": [
+    {
+      "name": "late-integration-tests",
+      "command": [
+        "node",
+        "--max-old-space-size=2048",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "--config",
+        "/dev/shm/horizon-b60-validation/vitest.config.mjs",
+        "--reporter=json",
+        "--outputFile=/dev/shm/horizon-b60-validation/late-integration-tests.json",
+        "--testNamePattern",
+        "recorded carcass deformation|recorded GPU tire binding|waits for current traffic before helping|GPU inspection offsets prescribe supported chassis",
+        "tests/motocross-ai.test.ts",
+        "tests/motocross-sprung-pose.test.ts",
+        "tests/tire-contact-animation.test.ts"
+      ],
+      "exitCode": 0,
+      "passed": true,
+      "elapsedMs": 41161,
+      "log": "late-integration-tests.log"
+    },
+    {
+      "name": "late-integration-eslint",
+      "command": [
+        "node",
+        "--max-old-space-size=1024",
+        "node_modules/eslint/bin/eslint.js",
+        "e2e/fixtures/motocross-bike-review.ts",
+        "e2e/fixtures/tire-contact.ts",
+        "src/rendering/recorded-tire.ts",
+        "src/simulation/ai.ts",
+        "src/simulation/bike-ai.ts",
+        "src/simulation/offroad/ai.ts",
+        "tests/motocross-ai.test.ts",
+        "tests/motocross-sprung-pose.test.ts",
+        "tests/tire-contact-animation.test.ts"
+      ],
+      "exitCode": 0,
+      "passed": true,
+      "elapsedMs": 10399,
+      "log": "late-integration-eslint.log"
+    }
+  ],
+  "passed": true,
+  "scopeNotes": [
+    "Four upstream production files changed after the successful 6537 combined TypeScript/build gate: recorded-tire.ts and three AI modules. All 81 recorded Festival files remain unchanged.",
+    "This late gate selects the incoming changed cases and all tyre contact-animation cases from three files and lints all 9 incoming TS files. Other assertions are skipped, not counted as passed. The earlier full-file attempt was interrupted and remains incomplete. It does not rerun or relabel the earlier full TypeScript/build, physical drives, component images or full-world failure.",
+    "Tests retain the existing isolated single-thread configuration and 120-second test timeout. Each command is capped at 600 seconds. Independent tests and lint run concurrently."
+  ],
+  "finalSourceFingerprint": "e64e4224af341b31c340f5dad8ec689acfa43c9aac8c0b42c2f86907316e3419",
+  "sourceStable": true,
+  "testCounts": {
+    "numPassedTests": 13,
+    "numFailedTests": 0,
+    "numPendingTests": 35,
+    "numTotalTests": 48
+  }
+}

@@ -14,6 +14,13 @@ import {
   festivalLampPane,
   type FestivalLampPocket,
 } from './festival-nose.ts';
+import {
+  addFestivalSideDucts,
+  addFestivalTailLights,
+  addFestivalRearBodywork,
+  festivalRegistrationPocket,
+  festivalTailPockets,
+} from './festival-rear.ts';
 
 /** Original festival body furniture, authored from the construction principles
  * in reference IDs 001–025 and 089–100. No screenshot, logo or licensed mesh is
@@ -294,6 +301,12 @@ export function festivalFasciaCap(model: ClosedBodyModel, detail: Detail, rear =
     const contour = roundedOutline(mouth.width, mouth.height, mouth.radius, detail === 0 ? 4 : 2);
     shape.holes.push(new T.Path(contour.map(([x, y]) => new T.Vector2(x + mouth.x, y + mouth.y))));
   }
+  if (rear) {
+    for (const pocket of festivalTailPockets(model))
+      shape.holes.push(new T.Path(asVectors(pocket.outline)));
+    const registration = festivalRegistrationPocket(model);
+    if (registration) shape.holes.push(new T.Path(asVectors(registration.outline)));
+  }
   const geometry = new T.ShapeGeometry(shape).translate(0, 0, z);
   // An array material needs an explicit draw group in Three.js.
   geometry.addGroup(0, geometry.index?.count ?? geometry.getAttribute('position').count, 0);
@@ -573,6 +586,10 @@ function addHeadlamps(parts: Parts, model: ClosedBodyModel, mats: CarMaterials, 
 }
 
 function addTailLamps(parts: Parts, model: ClosedBodyModel, mats: CarMaterials, detail: Detail) {
+  if (model.s.rearSweep) {
+    addFestivalTailLights(parts, model, mats, detail, opticalCover, darkOptics);
+    return;
+  }
   const { f, s } = model;
   const z = model.zRear - 0.006;
   const half = model.halfWidth(model.zRear) * 0.8;
@@ -794,7 +811,8 @@ function addVents(parts: Parts, model: ClosedBodyModel, mats: CarMaterials, deta
       const edge = surround(roundedOutline(0.231, 0.275, 0.018, 3), 0.005).rotateX(-Math.PI / 2);
       parts.add(edge, mats.paint, inLocal(at, 0, 0.008, 0));
     }
-  if (s.sideIntake)
+  if (s.rearSweep && s.sideIntake) addFestivalSideDucts(parts, model, detail, darkOptics);
+  else if (s.sideIntake)
     for (const side of [-1, 1]) {
       const z = f.rearAxle + f.radius + 0.36,
         y = f.y(s.belt) - 0.04;
@@ -1074,6 +1092,7 @@ export function buildFestivalDetail(
   addFascia(parts, model, mats, detail, true);
   addHeadlamps(parts, model, mats, detail);
   addTailLamps(parts, model, mats, detail);
+  addFestivalRearBodywork(parts, model, mats, detail);
   addExhausts(parts, model, detail);
   addVents(parts, model, mats, detail);
   if (detail === 0) addHardware(parts, model, mats, greenhouse, glazing);

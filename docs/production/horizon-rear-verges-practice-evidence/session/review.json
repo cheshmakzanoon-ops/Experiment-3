@@ -1,0 +1,115 @@
+{
+  "passed": false,
+  "generatedAt": "2026-10-20T08:08:30.103Z",
+  "quality": "medium",
+  "viewport": {
+    "width": 1120,
+    "height": 700
+  },
+  "backend": "swiftshader",
+  "budgetsMs": {
+    "startup": 180000,
+    "frame": 180000,
+    "action": 30000,
+    "entireReview": 600000,
+    "shutdown": 15000
+  },
+  "sourceFingerprint": "e5817a170c0f827f0c4cafc97dfea0559e87c0a8eb3c0a286fcc4fb276aeae2b",
+  "fixtureSha256": {
+    "e2e/fixtures/horizon-session.html": "1cb9f2cc2c0e8ff4f6b8338a9c6f5495aed0299842936a20406cc1981982ab91",
+    "e2e/fixtures/horizon-session.ts": "22354ee6e461eceeaa943f853e507d1613c4e547690127260768336439d69071",
+    "scripts/horizon-practice-session-review.mjs": "9a31392326eedb9ba231323c9a1f5c87ef18cd96bc032893138de96f23461e93"
+  },
+  "scope": "Real production FestivalSession, renderer, workers, InputController, and HUD; brief native input and two paused views",
+  "limitations": [
+    "No full lap, human playtest, or hardware frame-rate claim",
+    "Automatic GPU submissions are stopped between explicit production draws; worker physics and native input remain active",
+    "Startup measures session readiness plus the initial submitted frame; paused frame readbacks have their own 180-second deadlines"
+  ],
+  "phase": "startup and initial production draw",
+  "steps": [],
+  "captures": [],
+  "errors": [],
+  "failedAssets": [],
+  "failedRequests": [],
+  "loadingStages": [
+    {
+      "text": "Loading festival",
+      "hidden": false,
+      "elapsedMs": 4516.129339
+    },
+    {
+      "text": "Building the Solvane festival region\u2026",
+      "hidden": false,
+      "elapsedMs": 29037.720451000005
+    },
+    {
+      "text": "Planning event routes and town streets\u2026",
+      "hidden": false,
+      "elapsedMs": 30703.832091
+    },
+    {
+      "text": "Building roads, buildings and water\u2026",
+      "hidden": false,
+      "elapsedMs": 33949.310965
+    },
+    {
+      "text": "Loading photographed trees\u2026",
+      "hidden": false,
+      "elapsedMs": 76659.462775
+    },
+    {
+      "text": "Loading authored coastal details\u2026",
+      "hidden": false,
+      "elapsedMs": 76661.836034
+    },
+    {
+      "text": "Starting the festival simulation\u2026",
+      "hidden": false,
+      "elapsedMs": 85408.852197
+    },
+    {
+      "text": "Streaming terrain around Port Ilse\u2026",
+      "hidden": false,
+      "elapsedMs": 100888.416517
+    },
+    {
+      "text": "Loading the photographed sky\u2026",
+      "hidden": false,
+      "elapsedMs": 103573.866064
+    },
+    {
+      "text": "Loading photographed ground\u2026",
+      "hidden": false,
+      "elapsedMs": 104059.06017900001
+    },
+    {
+      "text": "Travelling to Saltmarsh Practice Lap\u2026",
+      "hidden": false,
+      "elapsedMs": 104522.219584
+    },
+    {
+      "text": "Travelling to Saltmarsh Practice Lap\u2026",
+      "hidden": true,
+      "elapsedMs": 106130.981878
+    }
+  ],
+  "failure": {
+    "phase": "startup and initial production draw",
+    "message": "Festival startup exceeded 180000 ms",
+    "stack": "Error: Festival startup exceeded 180000 ms\n    at Timeout.<anonymous> (file:///workspace/scratch/b60b57e087a1/Experiment-3/scripts/horizon-practice-session-review.mjs:72:24)\n    at listOnTimeout (node:internal/timers:635:17)\n    at process.processTimers (node:internal/timers:571:7)"
+  },
+  "sourceStable": true,
+  "failureState": {
+    "unavailable": "failure observation exceeded 5000 ms"
+  },
+  "cleanupError": "browser shutdown exceeded 15000 ms",
+  "elapsedMs": 211917.383891,
+  "postRunCleanup": {
+    "checkedAt": "2026-10-20T08:13:22Z",
+    "method": "Exact unique TMPDIR environment match in /proc plus command-line check for the profile/script/port",
+    "ownedProcessesRemaining": [],
+    "runnerExited": true,
+    "note": "The bounded browser.close call timed out at 15 s; this subsequent check confirms whether its processes remain. The original failure and cleanup error are preserved."
+  }
+}

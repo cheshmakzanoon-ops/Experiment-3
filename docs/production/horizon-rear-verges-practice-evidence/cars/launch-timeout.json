@@ -1,0 +1,81 @@
+{
+  "kind": "horizon-isolated-production-vehicle-comparison",
+  "selectedShots": [
+    "rh3-rear-quarter",
+    "sc7-rear-quarter",
+    "sc7-side-duct"
+  ],
+  "resourceBudget": {
+    "calls": 0,
+    "geometries": 0,
+    "textures": 0,
+    "materials": 0
+  },
+  "generatedAt": "2026-10-20T07:59:50.333Z",
+  "sourceBoundary": {
+    "method": "One frozen current application source snapshot; baseline replaces exactly the listed vehicle modules with saved original bytes. All imports retain their normal production module IDs. New modules remain in both snapshots and are used only if imported by that variant.",
+    "differingFiles": [
+      "src/rendering/vehicle-bodies/body-sheet.ts",
+      "src/rendering/vehicle-bodies/closed-body.ts",
+      "src/rendering/vehicle-bodies/festival-detail.ts",
+      "src/rendering/vehicle-bodies/festival-nose.ts"
+    ],
+    "baselineCommitForThoseFiles": "93576d20a3b52cc5e28959910b4b408418f53d3b",
+    "frozenFileCount": 784,
+    "fixtures": {
+      "e2e/fixtures/horizon-r7-vehicle.html": "d5dea3dc2352e9a031713cbd3de5f64d2dbec55110681e269f6df418e723d267",
+      "e2e/fixtures/horizon-r7-vehicle.ts": "45ebb1d2e79d26579a602090f0b8f575243593f793205d89dd64274367ec3477",
+      "scripts/horizon-r7-vehicle-review.mjs": "e5b9e0615f5ff92efed3432a1f957719dec4363f1ebb485e13ca7750846cb166",
+      "scripts/browser-backend.ts": "66022b027020928f169549b661bf27c366359c62efe04b7ca1d108335c3feaed"
+    },
+    "before": {
+      "fingerprint": "424d5e822a2b0024e72478b8187a93efe0da11b027ab6ca539f088054bf5e0a2",
+      "files": {
+        "src/rendering/vehicle-bodies/body-sheet.ts": "794ad6c41a518a36560f237e60135a7abcc61adf3fc486e6557ddde27d3dadce",
+        "src/rendering/vehicle-bodies/closed-body.ts": "0c54ddbd52cadc2da9f7941201555ac7c756045c7a1f98397e10ae1baf232b7f",
+        "src/rendering/vehicle-bodies/festival-detail.ts": "f4ad1475a775cde233935b3ff89e2b4c8468302ca46ec076ae02132d93ae7bba",
+        "src/rendering/vehicle-bodies/festival-nose.ts": "827a4e94c18f2d2a91e8ed6d2acb71206a52f23605f2684901054c4211ed7c77"
+      }
+    },
+    "after": {
+      "fingerprint": "e5817a170c0f827f0c4cafc97dfea0559e87c0a8eb3c0a286fcc4fb276aeae2b",
+      "files": {
+        "src/rendering/vehicle-bodies/body-sheet.ts": "d6e0631d6309a57460c880f44aa815d33966771cd4107989c292dc440ef36111",
+        "src/rendering/vehicle-bodies/closed-body.ts": "b228f4b266d3c0758ed0300670a82d95b763cd829c62148c60c483efe17f24f0",
+        "src/rendering/vehicle-bodies/festival-detail.ts": "3b052a4e8bbdb4b8d1d4dbdb1740e6a40cd05bbbd277cf091e9f30d36ee1b7ef",
+        "src/rendering/vehicle-bodies/festival-nose.ts": "1cc567fcc851a2d7d5b348083183a72ef94442ceaa02593be1ddaafec27a9dd7"
+      }
+    },
+    "fullOldApplicationClaimed": false
+  },
+  "environment": {
+    "backend": "swiftshader",
+    "oneBrowser": true,
+    "sequentialPages": true
+  },
+  "limits": {
+    "launchMs": 60000,
+    "variantMs": 180000,
+    "closeMs": 15000
+  },
+  "limitations": {
+    "isolatedProductionVehicle": true,
+    "fullWorldRenderer": false,
+    "motionOrPhysicsComparison": false,
+    "targetDevicePerformance": false,
+    "humanVisualAcceptance": false,
+    "calibratedPhysicalLighting": false,
+    "sourcePhotosRenderedInFixture": false
+  },
+  "variants": [],
+  "comparisons": [],
+  "errors": [],
+  "failedAssets": [],
+  "warnings": [],
+  "passed": false,
+  "failure": {
+    "message": "Chromium launch exceeded 60000 ms",
+    "stack": "Error: Chromium launch exceeded 60000 ms\n    at Timeout.<anonymous> (file:///workspace/scratch/b60b57e087a1/Experiment-3/scripts/horizon-r7-vehicle-review.mjs:168:24)\n    at listOnTimeout (node:internal/timers:635:17)\n    at process.processTimers (node:internal/timers:571:7)"
+  },
+  "wallMs": 60073.24686
+}

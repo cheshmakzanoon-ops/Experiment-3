@@ -1,0 +1,1413 @@
+{
+  "passed": true,
+  "productionHud": true,
+  "productionCircuitPace": true,
+  "syntheticStatus": true,
+  "webgl": false,
+  "font": "Saira Variable (production dependency)",
+  "sourceSha256": {
+    "src/ui/festival-hud.ts": "39f95587e721cc2df9f5fa5a4619b4347afdddac9972e3c011b308ad9b7bd911",
+    "src/ui/festival-hud.css": "2b68f7fc03999cc028bd4e219dec7ae3e1cee12300dadbc0a2b667a03aaf9ff2",
+    "src/simulation/open-world/circuit-pace.ts": "2272b536d3f6f1352e6f3f9b53677bdd8acf89d33cdf414e7657271d441e11bf",
+    "e2e/fixtures/horizon-practice-hud.ts": "7640130fbd702eb7eea2d124a96182d2a065f0ab3f90984895944be33ab81b68"
+  },
+  "cases": [
+    {
+      "name": "running same-car session best and measured sectors",
+      "passed": true,
+      "state": {
+        "practiceVisible": true,
+        "resultVisible": false,
+        "practice": {
+          "x": 509,
+          "y": 123,
+          "right": 771,
+          "bottom": 258,
+          "width": 262,
+          "height": 135,
+          "clientWidth": 262,
+          "scrollWidth": 262
+        },
+        "event": {
+          "x": 485,
+          "y": 24,
+          "right": 795,
+          "bottom": 279,
+          "width": 310,
+          "height": 255,
+          "clientWidth": 310,
+          "scrollWidth": 310
+        },
+        "result": {
+          "x": 0,
+          "y": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0,
+          "clientWidth": 0,
+          "scrollWidth": 0
+        },
+        "speed": {
+          "x": 1021.390625,
+          "y": 600.15625,
+          "right": 1250,
+          "bottom": 772,
+          "width": 228.609375,
+          "height": 171.84375,
+          "clientWidth": 227,
+          "scrollWidth": 227
+        },
+        "minimap": {
+          "x": 30,
+          "y": 536,
+          "right": 246,
+          "bottom": 772,
+          "width": 216,
+          "height": 236,
+          "clientWidth": 214,
+          "scrollWidth": 214
+        },
+        "practiceText": "SESSION BEST 1:40.00 \u00b7 SAME CARS10:32.00\u22121.33 SS20:32.00\u22121.33 SS30:10.88RUNNINGSTAY ON THE ROAD \u00b7 KEEP IT CLEAN",
+        "resultText": "",
+        "eventRow": "TIME1:14.88",
+        "splitCount": 3,
+        "resultRows": 0,
+        "state": "clean",
+        "activeLabel": null,
+        "pageWidth": 1280,
+        "viewportWidth": 1280,
+        "acceptedRecord": null,
+        "actions": []
+      }
+    },
+    {
+      "name": "first benchmark prompt",
+      "passed": true,
+      "state": {
+        "practiceVisible": true,
+        "resultVisible": false,
+        "practice": {
+          "x": 509,
+          "y": 123,
+          "right": 771,
+          "bottom": 258,
+          "width": 262,
+          "height": 135,
+          "clientWidth": 262,
+          "scrollWidth": 262
+        },
+        "event": {
+          "x": 485,
+          "y": 24,
+          "right": 795,
+          "bottom": 279,
+          "width": 310,
+          "height": 255,
+          "clientWidth": 310,
+          "scrollWidth": 310
+        },
+        "result": {
+          "x": 0,
+          "y": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0,
+          "clientWidth": 0,
+          "scrollWidth": 0
+        },
+        "speed": {
+          "x": 1021.390625,
+          "y": 600.15625,
+          "right": 1250,
+          "bottom": 772,
+          "width": 228.609375,
+          "height": 171.84375,
+          "clientWidth": 227,
+          "scrollWidth": 227
+        },
+        "minimap": {
+          "x": 30,
+          "y": 536,
+          "right": 246,
+          "bottom": 772,
+          "width": 216,
+          "height": 236,
+          "clientWidth": 214,
+          "scrollWidth": 214
+        },
+        "practiceText": "SET YOUR FIRST CLEAN LAPS10:32.00SETS20:32.00SETS30:10.88RUNNINGSTAY ON THE ROAD \u00b7 KEEP IT CLEAN",
+        "resultText": "",
+        "eventRow": "TIME1:14.88",
+        "splitCount": 3,
+        "resultRows": 0,
+        "state": "clean",
+        "activeLabel": null,
+        "pageWidth": 1280,
+        "viewportWidth": 1280,
+        "acceptedRecord": null,
+        "actions": []
+      }
+    },
+    {
+      "name": "invalid offroad",
+      "passed": true,
+      "state": {
+        "practiceVisible": true,
+        "resultVisible": false,
+        "practice": {
+          "x": 503,
+          "y": 123,
+          "right": 777,
+          "bottom": 258,
+          "width": 274,
+          "height": 135,
+          "clientWidth": 274,
+          "scrollWidth": 274
+        },
+        "event": {
+          "x": 479,
+          "y": 24,
+          "right": 801,
+          "bottom": 279,
+          "width": 322,
+          "height": 255,
+          "clientWidth": 322,
+          "scrollWidth": 322
+        },
+        "result": {
+          "x": 0,
+          "y": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0,
+          "clientWidth": 0,
+          "scrollWidth": 0
+        },
+        "speed": {
+          "x": 1021.390625,
+          "y": 600.15625,
+          "right": 1250,
+          "bottom": 772,
+          "width": 228.609375,
+          "height": 171.84375,
+          "clientWidth": 227,
+          "scrollWidth": 227
+        },
+        "minimap": {
+          "x": 30,
+          "y": 536,
+          "right": 246,
+          "bottom": 772,
+          "width": 216,
+          "height": 236,
+          "clientWidth": 214,
+          "scrollWidth": 214
+        },
+        "practiceText": "SESSION BEST 1:40.00 \u00b7 SAME CARS10:32.00UNRANKEDS20:32.00UNRANKEDS30:10.88UNRANKEDLEFT THE ROUTE \u00b7 FINISH TO PRACTISE, RETRY FOR A CLEAN TIME",
+        "resultText": "",
+        "eventRow": "TIME1:14.88",
+        "splitCount": 3,
+        "resultRows": 0,
+        "state": "invalid",
+        "activeLabel": null,
+        "pageWidth": 1280,
+        "viewportWidth": 1280,
+        "acceptedRecord": null,
+        "actions": []
+      }
+    },
+    {
+      "name": "invalid autopilot",
+      "passed": true,
+      "state": {
+        "practiceVisible": true,
+        "resultVisible": false,
+        "practice": {
+          "x": 509,
+          "y": 123,
+          "right": 771,
+          "bottom": 258,
+          "width": 262,
+          "height": 135,
+          "clientWidth": 262,
+          "scrollWidth": 262
+        },
+        "event": {
+          "x": 485,
+          "y": 24,
+          "right": 795,
+          "bottom": 279,
+          "width": 310,
+          "height": 255,
+          "clientWidth": 310,
+          "scrollWidth": 310
+        },
+        "result": {
+          "x": 0,
+          "y": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0,
+          "clientWidth": 0,
+          "scrollWidth": 0
+        },
+        "speed": {
+          "x": 1021.390625,
+          "y": 600.15625,
+          "right": 1250,
+          "bottom": 772,
+          "width": 228.609375,
+          "height": 171.84375,
+          "clientWidth": 227,
+          "scrollWidth": 227
+        },
+        "minimap": {
+          "x": 30,
+          "y": 536,
+          "right": 246,
+          "bottom": 772,
+          "width": 216,
+          "height": 236,
+          "clientWidth": 214,
+          "scrollWidth": 214
+        },
+        "practiceText": "SESSION BEST 1:40.00 \u00b7 SAME CARS10:32.00UNRANKEDS20:32.00UNRANKEDS30:10.88UNRANKEDAUTOPILOT \u00b7 FINISH TO PRACTISE, RETRY FOR A CLEAN TIME",
+        "resultText": "",
+        "eventRow": "TIME1:14.88",
+        "splitCount": 3,
+        "resultRows": 0,
+        "state": "invalid",
+        "activeLabel": null,
+        "pageWidth": 1280,
+        "viewportWidth": 1280,
+        "acceptedRecord": null,
+        "actions": []
+      }
+    },
+    {
+      "name": "completed new-best result and retry callback",
+      "passed": true,
+      "state": {
+        "practiceVisible": false,
+        "resultVisible": true,
+        "practice": {
+          "x": 0,
+          "y": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0,
+          "clientWidth": 0,
+          "scrollWidth": 0
+        },
+        "event": {
+          "x": 0,
+          "y": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0,
+          "clientWidth": 0,
+          "scrollWidth": 0
+        },
+        "result": {
+          "x": 345,
+          "y": 96,
+          "right": 935,
+          "bottom": 521,
+          "width": 590,
+          "height": 425,
+          "clientWidth": 588,
+          "scrollWidth": 588
+        },
+        "speed": {
+          "x": 1021.390625,
+          "y": 600.15625,
+          "right": 1250,
+          "bottom": 772,
+          "width": 228.609375,
+          "height": 171.84375,
+          "clientWidth": 227,
+          "scrollWidth": 227
+        },
+        "minimap": {
+          "x": 30,
+          "y": 536,
+          "right": 246,
+          "bottom": 772,
+          "width": 216,
+          "height": 236,
+          "clientWidth": 214,
+          "scrollWidth": 214
+        },
+        "practiceText": "SESSION BEST 1:40.00 \u00b7 SAME CARS10:32.00UNRANKEDS20:32.00UNRANKEDS30:10.88UNRANKEDAUTOPILOT \u00b7 FINISH TO PRACTISE, RETRY FOR A CLEAN TIME",
+        "resultText": "Circuit \u00b7 RESULTSaltmarsh Practice Lap \u2014 NEW SESSION BEST\n      \n      Time 1:36.00\n      \u22124.00 S VS SESSION BEST 1:40.00Same car \u00b7 this Festival sessionSECTORTIMEVS BEST LAPSECTOR 10:32.00\u22121.33 SSECTOR 20:32.00\u22121.33 SSECTOR 30:32.00\u22121.33 S\n      CONTINUE ENTERTRY AGAIN",
+        "eventRow": "TIME1:36.00",
+        "splitCount": 3,
+        "resultRows": 3,
+        "state": "invalid",
+        "activeLabel": "retry",
+        "pageWidth": 1280,
+        "viewportWidth": 1280,
+        "acceptedRecord": {
+          "time": 96,
+          "crossings": [
+            31.999999999999996,
+            63.99999999999999,
+            96
+          ]
+        },
+        "actions": [
+          "retry:saltmarsh-practice"
+        ]
+      }
+    },
+    {
+      "name": "invalid completed run never claims a benchmark",
+      "passed": true,
+      "state": {
+        "practiceVisible": false,
+        "resultVisible": true,
+        "practice": {
+          "x": 0,
+          "y": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0,
+          "clientWidth": 0,
+          "scrollWidth": 0
+        },
+        "event": {
+          "x": 0,
+          "y": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0,
+          "clientWidth": 0,
+          "scrollWidth": 0
+        },
+        "result": {
+          "x": 345,
+          "y": 96,
+          "right": 935,
+          "bottom": 521,
+          "width": 590,
+          "height": 425,
+          "clientWidth": 588,
+          "scrollWidth": 588
+        },
+        "speed": {
+          "x": 1021.390625,
+          "y": 600.15625,
+          "right": 1250,
+          "bottom": 772,
+          "width": 228.609375,
+          "height": 171.84375,
+          "clientWidth": 227,
+          "scrollWidth": 227
+        },
+        "minimap": {
+          "x": 30,
+          "y": 536,
+          "right": 246,
+          "bottom": 772,
+          "width": 216,
+          "height": 236,
+          "clientWidth": 214,
+          "scrollWidth": 214
+        },
+        "practiceText": "SESSION BEST 1:40.00 \u00b7 SAME CARS10:32.00UNRANKEDS20:32.00UNRANKEDS30:10.88UNRANKEDAUTOPILOT \u00b7 FINISH TO PRACTISE, RETRY FOR A CLEAN TIME",
+        "resultText": "Circuit \u00b7 RESULTSaltmarsh Practice Lap \u2014 PRACTICE COMPLETE\n      \n      Time 1:36.00 \u00b7 autopilot assisted\n      AUTOPILOT \u00b7 NOT A CLEAN BENCHMARKSame car \u00b7 this Festival sessionSECTORTIMEVS BEST LAPSECTOR 10:32.00\u2014SECTOR 20:32.00\u2014SECTOR 30:32.00\u2014\n      CONTINUE ENTERTRY AGAIN",
+        "eventRow": "TIME1:36.00",
+        "splitCount": 3,
+        "resultRows": 3,
+        "state": "invalid",
+        "activeLabel": "continue",
+        "pageWidth": 1280,
+        "viewportWidth": 1280,
+        "acceptedRecord": null,
+        "actions": [
+          "retry:saltmarsh-practice"
+        ]
+      }
+    },
+    {
+      "name": "immediate menu suppression",
+      "passed": true,
+      "state": {
+        "practiceVisible": false,
+        "resultVisible": false,
+        "practice": {
+          "x": 0,
+          "y": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0,
+          "clientWidth": 0,
+          "scrollWidth": 0
+        },
+        "event": {
+          "x": 485,
+          "y": 24,
+          "right": 795,
+          "bottom": 134,
+          "width": 310,
+          "height": 110,
+          "clientWidth": 310,
+          "scrollWidth": 310
+        },
+        "result": {
+          "x": 0,
+          "y": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0,
+          "clientWidth": 0,
+          "scrollWidth": 0
+        },
+        "speed": {
+          "x": 1021.390625,
+          "y": 600.15625,
+          "right": 1250,
+          "bottom": 772,
+          "width": 228.609375,
+          "height": 171.84375,
+          "clientWidth": 227,
+          "scrollWidth": 227
+        },
+        "minimap": {
+          "x": 30,
+          "y": 536,
+          "right": 246,
+          "bottom": 772,
+          "width": 216,
+          "height": 236,
+          "clientWidth": 214,
+          "scrollWidth": 214
+        },
+        "practiceText": "SESSION BEST 1:40.00 \u00b7 SAME CARS10:32.00\u22121.33 SS20:32.00\u22121.33 SS30:10.88RUNNINGSTAY ON THE ROAD \u00b7 KEEP IT CLEAN",
+        "resultText": "Circuit \u00b7 RESULTSaltmarsh Practice Lap \u2014 PRACTICE COMPLETE\n      \n      Time 1:36.00 \u00b7 autopilot assisted\n      AUTOPILOT \u00b7 NOT A CLEAN BENCHMARKSame car \u00b7 this Festival sessionSECTORTIMEVS BEST LAPSECTOR 10:32.00\u2014SECTOR 20:32.00\u2014SECTOR 30:32.00\u2014\n      CONTINUE ENTERTRY AGAIN",
+        "eventRow": "TIME1:14.88",
+        "splitCount": 3,
+        "resultRows": 3,
+        "state": "clean",
+        "activeLabel": "resume",
+        "pageWidth": 1280,
+        "viewportWidth": 1280,
+        "acceptedRecord": null,
+        "actions": [
+          "retry:saltmarsh-practice"
+        ]
+      }
+    },
+    {
+      "name": "immediate map suppression",
+      "passed": true,
+      "state": {
+        "practiceVisible": false,
+        "resultVisible": false,
+        "practice": {
+          "x": 0,
+          "y": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0,
+          "clientWidth": 0,
+          "scrollWidth": 0
+        },
+        "event": {
+          "x": 485,
+          "y": 24,
+          "right": 795,
+          "bottom": 134,
+          "width": 310,
+          "height": 110,
+          "clientWidth": 310,
+          "scrollWidth": 310
+        },
+        "result": {
+          "x": 0,
+          "y": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0,
+          "clientWidth": 0,
+          "scrollWidth": 0
+        },
+        "speed": {
+          "x": 1021.390625,
+          "y": 600.15625,
+          "right": 1250,
+          "bottom": 772,
+          "width": 228.609375,
+          "height": 171.84375,
+          "clientWidth": 227,
+          "scrollWidth": 227
+        },
+        "minimap": {
+          "x": 30,
+          "y": 536,
+          "right": 246,
+          "bottom": 772,
+          "width": 216,
+          "height": 236,
+          "clientWidth": 214,
+          "scrollWidth": 214
+        },
+        "practiceText": "SESSION BEST 1:40.00 \u00b7 SAME CARS10:32.00\u22121.33 SS20:32.00\u22121.33 SS30:10.88RUNNINGSTAY ON THE ROAD \u00b7 KEEP IT CLEAN",
+        "resultText": "Circuit \u00b7 RESULTSaltmarsh Practice Lap \u2014 PRACTICE COMPLETE\n      \n      Time 1:36.00 \u00b7 autopilot assisted\n      AUTOPILOT \u00b7 NOT A CLEAN BENCHMARKSame car \u00b7 this Festival sessionSECTORTIMEVS BEST LAPSECTOR 10:32.00\u2014SECTOR 20:32.00\u2014SECTOR 30:32.00\u2014\n      CONTINUE ENTERTRY AGAIN",
+        "eventRow": "TIME1:14.88",
+        "splitCount": 3,
+        "resultRows": 3,
+        "state": "clean",
+        "activeLabel": "mapClose",
+        "pageWidth": 1280,
+        "viewportWidth": 1280,
+        "acceptedRecord": null,
+        "actions": [
+          "retry:saltmarsh-practice"
+        ]
+      }
+    },
+    {
+      "name": "immediate photo suppression",
+      "passed": true,
+      "state": {
+        "practiceVisible": false,
+        "resultVisible": false,
+        "practice": {
+          "x": 0,
+          "y": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0,
+          "clientWidth": 0,
+          "scrollWidth": 0
+        },
+        "event": {
+          "x": 0,
+          "y": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0,
+          "clientWidth": 0,
+          "scrollWidth": 0
+        },
+        "result": {
+          "x": 0,
+          "y": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0,
+          "clientWidth": 0,
+          "scrollWidth": 0
+        },
+        "speed": {
+          "x": 0,
+          "y": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0,
+          "clientWidth": 0,
+          "scrollWidth": 0
+        },
+        "minimap": {
+          "x": 0,
+          "y": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0,
+          "clientWidth": 0,
+          "scrollWidth": 0
+        },
+        "practiceText": "SESSION BEST 1:40.00 \u00b7 SAME CARS10:32.00\u22121.33 SS20:32.00\u22121.33 SS30:10.88RUNNINGSTAY ON THE ROAD \u00b7 KEEP IT CLEAN",
+        "resultText": "Circuit \u00b7 RESULTSaltmarsh Practice Lap \u2014 PRACTICE COMPLETE\n      \n      Time 1:36.00 \u00b7 autopilot assisted\n      AUTOPILOT \u00b7 NOT A CLEAN BENCHMARKSame car \u00b7 this Festival sessionSECTORTIMEVS BEST LAPSECTOR 10:32.00\u2014SECTOR 20:32.00\u2014SECTOR 30:32.00\u2014\n      CONTINUE ENTERTRY AGAIN",
+        "eventRow": "TIME1:14.88",
+        "splitCount": 3,
+        "resultRows": 3,
+        "state": "clean",
+        "activeLabel": "photoClose",
+        "pageWidth": 1280,
+        "viewportWidth": 1280,
+        "acceptedRecord": null,
+        "actions": [
+          "retry:saltmarsh-practice"
+        ]
+      }
+    },
+    {
+      "name": "portrait running bounds",
+      "passed": true,
+      "state": {
+        "practiceVisible": true,
+        "resultVisible": false,
+        "practice": {
+          "x": 91,
+          "y": 150,
+          "right": 299,
+          "bottom": 285,
+          "width": 208,
+          "height": 135,
+          "clientWidth": 208,
+          "scrollWidth": 208
+        },
+        "event": {
+          "x": 80,
+          "y": 73,
+          "right": 310,
+          "bottom": 301,
+          "width": 230,
+          "height": 228,
+          "clientWidth": 230,
+          "scrollWidth": 230
+        },
+        "result": {
+          "x": 0,
+          "y": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0,
+          "clientWidth": 0,
+          "scrollWidth": 0
+        },
+        "speed": {
+          "x": 218.59375,
+          "y": 713.609375,
+          "right": 380,
+          "bottom": 834,
+          "width": 161.40625,
+          "height": 120.390625,
+          "clientWidth": 159,
+          "scrollWidth": 159
+        },
+        "minimap": {
+          "x": 10,
+          "y": 694,
+          "right": 135,
+          "bottom": 834,
+          "width": 125,
+          "height": 140,
+          "clientWidth": 123,
+          "scrollWidth": 123
+        },
+        "practiceText": "SESSION BEST 1:40.00 \u00b7 SAME CARS10:32.00\u22121.33 SS20:32.00\u22121.33 SS30:10.88RUNNINGSTAY ON THE ROAD \u00b7 KEEP IT CLEAN",
+        "resultText": "Circuit \u00b7 RESULTSaltmarsh Practice Lap \u2014 PRACTICE COMPLETE\n      \n      Time 1:36.00 \u00b7 autopilot assisted\n      AUTOPILOT \u00b7 NOT A CLEAN BENCHMARKSame car \u00b7 this Festival sessionSECTORTIMEVS BEST LAPSECTOR 10:32.00\u2014SECTOR 20:32.00\u2014SECTOR 30:32.00\u2014\n      CONTINUE ENTERTRY AGAIN",
+        "eventRow": "TIME1:14.88",
+        "splitCount": 3,
+        "resultRows": 3,
+        "state": "clean",
+        "activeLabel": "photoClose",
+        "pageWidth": 390,
+        "viewportWidth": 390,
+        "acceptedRecord": null,
+        "actions": [
+          "retry:saltmarsh-practice"
+        ]
+      }
+    },
+    {
+      "name": "portrait autopilot bounds",
+      "passed": true,
+      "state": {
+        "practiceVisible": true,
+        "resultVisible": false,
+        "practice": {
+          "x": 91,
+          "y": 150,
+          "right": 299,
+          "bottom": 310,
+          "width": 208,
+          "height": 160,
+          "clientWidth": 208,
+          "scrollWidth": 208
+        },
+        "event": {
+          "x": 80,
+          "y": 73,
+          "right": 310,
+          "bottom": 326,
+          "width": 230,
+          "height": 253,
+          "clientWidth": 230,
+          "scrollWidth": 230
+        },
+        "result": {
+          "x": 0,
+          "y": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0,
+          "clientWidth": 0,
+          "scrollWidth": 0
+        },
+        "speed": {
+          "x": 218.59375,
+          "y": 713.609375,
+          "right": 380,
+          "bottom": 834,
+          "width": 161.40625,
+          "height": 120.390625,
+          "clientWidth": 159,
+          "scrollWidth": 159
+        },
+        "minimap": {
+          "x": 10,
+          "y": 694,
+          "right": 135,
+          "bottom": 834,
+          "width": 125,
+          "height": 140,
+          "clientWidth": 123,
+          "scrollWidth": 123
+        },
+        "practiceText": "SESSION BEST 1:40.00 \u00b7 SAME CARS10:32.00UNRANKEDS20:32.00UNRANKEDS30:10.88UNRANKEDAUTOPILOT \u00b7 FINISH TO PRACTISE, RETRY FOR A CLEAN TIME",
+        "resultText": "Circuit \u00b7 RESULTSaltmarsh Practice Lap \u2014 PRACTICE COMPLETE\n      \n      Time 1:36.00 \u00b7 autopilot assisted\n      AUTOPILOT \u00b7 NOT A CLEAN BENCHMARKSame car \u00b7 this Festival sessionSECTORTIMEVS BEST LAPSECTOR 10:32.00\u2014SECTOR 20:32.00\u2014SECTOR 30:32.00\u2014\n      CONTINUE ENTERTRY AGAIN",
+        "eventRow": "TIME1:14.88",
+        "splitCount": 3,
+        "resultRows": 3,
+        "state": "invalid",
+        "activeLabel": null,
+        "pageWidth": 390,
+        "viewportWidth": 390,
+        "acceptedRecord": null,
+        "actions": [
+          "retry:saltmarsh-practice"
+        ]
+      }
+    },
+    {
+      "name": "portrait completed bounds",
+      "passed": true,
+      "state": {
+        "practiceVisible": false,
+        "resultVisible": true,
+        "practice": {
+          "x": 0,
+          "y": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0,
+          "clientWidth": 0,
+          "scrollWidth": 0
+        },
+        "event": {
+          "x": 0,
+          "y": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0,
+          "clientWidth": 0,
+          "scrollWidth": 0
+        },
+        "result": {
+          "x": 15.6015625,
+          "y": 101.265625,
+          "right": 374.3984375,
+          "bottom": 526.265625,
+          "width": 358.796875,
+          "height": 425,
+          "clientWidth": 357,
+          "scrollWidth": 357
+        },
+        "speed": {
+          "x": 218.59375,
+          "y": 713.609375,
+          "right": 380,
+          "bottom": 834,
+          "width": 161.40625,
+          "height": 120.390625,
+          "clientWidth": 159,
+          "scrollWidth": 159
+        },
+        "minimap": {
+          "x": 10,
+          "y": 694,
+          "right": 135,
+          "bottom": 834,
+          "width": 125,
+          "height": 140,
+          "clientWidth": 123,
+          "scrollWidth": 123
+        },
+        "practiceText": "SESSION BEST 1:40.00 \u00b7 SAME CARS10:32.00UNRANKEDS20:32.00UNRANKEDS30:10.88UNRANKEDAUTOPILOT \u00b7 FINISH TO PRACTISE, RETRY FOR A CLEAN TIME",
+        "resultText": "Circuit \u00b7 RESULTSaltmarsh Practice Lap \u2014 NEW SESSION BEST\n      \n      Time 1:36.00\n      \u22124.00 S VS SESSION BEST 1:40.00Same car \u00b7 this Festival sessionSECTORTIMEVS BEST LAPSECTOR 10:32.00\u22121.33 SSECTOR 20:32.00\u22121.33 SSECTOR 30:32.00\u22121.33 S\n      CONTINUE ENTERTRY AGAIN",
+        "eventRow": "TIME1:36.00",
+        "splitCount": 3,
+        "resultRows": 3,
+        "state": "invalid",
+        "activeLabel": "continue",
+        "pageWidth": 390,
+        "viewportWidth": 390,
+        "acceptedRecord": {
+          "time": 96,
+          "crossings": [
+            31.999999999999996,
+            63.99999999999999,
+            96
+          ]
+        },
+        "actions": [
+          "retry:saltmarsh-practice"
+        ]
+      }
+    },
+    {
+      "name": "compact running bounds",
+      "passed": true,
+      "state": {
+        "practiceVisible": true,
+        "resultVisible": false,
+        "practice": {
+          "x": 83.5,
+          "y": 150,
+          "right": 291.5,
+          "bottom": 285,
+          "width": 208,
+          "height": 135,
+          "clientWidth": 208,
+          "scrollWidth": 208
+        },
+        "event": {
+          "x": 72.5,
+          "y": 73,
+          "right": 302.5,
+          "bottom": 301,
+          "width": 230,
+          "height": 228,
+          "clientWidth": 230,
+          "scrollWidth": 230
+        },
+        "result": {
+          "x": 0,
+          "y": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0,
+          "clientWidth": 0,
+          "scrollWidth": 0
+        },
+        "speed": {
+          "x": 203.59375,
+          "y": 536.609375,
+          "right": 365,
+          "bottom": 657,
+          "width": 161.40625,
+          "height": 120.390625,
+          "clientWidth": 159,
+          "scrollWidth": 159
+        },
+        "minimap": {
+          "x": 10,
+          "y": 517,
+          "right": 135,
+          "bottom": 657,
+          "width": 125,
+          "height": 140,
+          "clientWidth": 123,
+          "scrollWidth": 123
+        },
+        "practiceText": "SESSION BEST 1:40.00 \u00b7 SAME CARS10:32.00\u22121.33 SS20:32.00\u22121.33 SS30:10.88RUNNINGSTAY ON THE ROAD \u00b7 KEEP IT CLEAN",
+        "resultText": "Circuit \u00b7 RESULTSaltmarsh Practice Lap \u2014 NEW SESSION BEST\n      \n      Time 1:36.00\n      \u22124.00 S VS SESSION BEST 1:40.00Same car \u00b7 this Festival sessionSECTORTIMEVS BEST LAPSECTOR 10:32.00\u22121.33 SSECTOR 20:32.00\u22121.33 SSECTOR 30:32.00\u22121.33 S\n      CONTINUE ENTERTRY AGAIN",
+        "eventRow": "TIME1:14.88",
+        "splitCount": 3,
+        "resultRows": 3,
+        "state": "clean",
+        "activeLabel": "continue",
+        "pageWidth": 375,
+        "viewportWidth": 375,
+        "acceptedRecord": null,
+        "actions": [
+          "retry:saltmarsh-practice"
+        ]
+      }
+    },
+    {
+      "name": "compact autopilot bounds",
+      "passed": true,
+      "state": {
+        "practiceVisible": true,
+        "resultVisible": false,
+        "practice": {
+          "x": 83.5,
+          "y": 150,
+          "right": 291.5,
+          "bottom": 310,
+          "width": 208,
+          "height": 160,
+          "clientWidth": 208,
+          "scrollWidth": 208
+        },
+        "event": {
+          "x": 72.5,
+          "y": 73,
+          "right": 302.5,
+          "bottom": 326,
+          "width": 230,
+          "height": 253,
+          "clientWidth": 230,
+          "scrollWidth": 230
+        },
+        "result": {
+          "x": 0,
+          "y": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0,
+          "clientWidth": 0,
+          "scrollWidth": 0
+        },
+        "speed": {
+          "x": 203.59375,
+          "y": 536.609375,
+          "right": 365,
+          "bottom": 657,
+          "width": 161.40625,
+          "height": 120.390625,
+          "clientWidth": 159,
+          "scrollWidth": 159
+        },
+        "minimap": {
+          "x": 10,
+          "y": 517,
+          "right": 135,
+          "bottom": 657,
+          "width": 125,
+          "height": 140,
+          "clientWidth": 123,
+          "scrollWidth": 123
+        },
+        "practiceText": "SESSION BEST 1:40.00 \u00b7 SAME CARS10:32.00UNRANKEDS20:32.00UNRANKEDS30:10.88UNRANKEDAUTOPILOT \u00b7 FINISH TO PRACTISE, RETRY FOR A CLEAN TIME",
+        "resultText": "Circuit \u00b7 RESULTSaltmarsh Practice Lap \u2014 NEW SESSION BEST\n      \n      Time 1:36.00\n      \u22124.00 S VS SESSION BEST 1:40.00Same car \u00b7 this Festival sessionSECTORTIMEVS BEST LAPSECTOR 10:32.00\u22121.33 SSECTOR 20:32.00\u22121.33 SSECTOR 30:32.00\u22121.33 S\n      CONTINUE ENTERTRY AGAIN",
+        "eventRow": "TIME1:14.88",
+        "splitCount": 3,
+        "resultRows": 3,
+        "state": "invalid",
+        "activeLabel": null,
+        "pageWidth": 375,
+        "viewportWidth": 375,
+        "acceptedRecord": null,
+        "actions": [
+          "retry:saltmarsh-practice"
+        ]
+      }
+    },
+    {
+      "name": "compact completed bounds",
+      "passed": true,
+      "state": {
+        "practiceVisible": false,
+        "resultVisible": true,
+        "practice": {
+          "x": 0,
+          "y": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0,
+          "clientWidth": 0,
+          "scrollWidth": 0
+        },
+        "event": {
+          "x": 0,
+          "y": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0,
+          "clientWidth": 0,
+          "scrollWidth": 0
+        },
+        "result": {
+          "x": 15,
+          "y": 80.03125,
+          "right": 360,
+          "bottom": 505.03125,
+          "width": 345,
+          "height": 425,
+          "clientWidth": 343,
+          "scrollWidth": 343
+        },
+        "speed": {
+          "x": 203.59375,
+          "y": 536.609375,
+          "right": 365,
+          "bottom": 657,
+          "width": 161.40625,
+          "height": 120.390625,
+          "clientWidth": 159,
+          "scrollWidth": 159
+        },
+        "minimap": {
+          "x": 10,
+          "y": 517,
+          "right": 135,
+          "bottom": 657,
+          "width": 125,
+          "height": 140,
+          "clientWidth": 123,
+          "scrollWidth": 123
+        },
+        "practiceText": "SESSION BEST 1:40.00 \u00b7 SAME CARS10:32.00UNRANKEDS20:32.00UNRANKEDS30:10.88UNRANKEDAUTOPILOT \u00b7 FINISH TO PRACTISE, RETRY FOR A CLEAN TIME",
+        "resultText": "Circuit \u00b7 RESULTSaltmarsh Practice Lap \u2014 NEW SESSION BEST\n      \n      Time 1:36.00\n      \u22124.00 S VS SESSION BEST 1:40.00Same car \u00b7 this Festival sessionSECTORTIMEVS BEST LAPSECTOR 10:32.00\u22121.33 SSECTOR 20:32.00\u22121.33 SSECTOR 30:32.00\u22121.33 S\n      CONTINUE ENTERTRY AGAIN",
+        "eventRow": "TIME1:36.00",
+        "splitCount": 3,
+        "resultRows": 3,
+        "state": "invalid",
+        "activeLabel": "continue",
+        "pageWidth": 375,
+        "viewportWidth": 375,
+        "acceptedRecord": {
+          "time": 96,
+          "crossings": [
+            31.999999999999996,
+            63.99999999999999,
+            96
+          ]
+        },
+        "actions": [
+          "retry:saltmarsh-practice"
+        ]
+      }
+    },
+    {
+      "name": "landscape running bounds",
+      "passed": true,
+      "state": {
+        "practiceVisible": true,
+        "resultVisible": false,
+        "practice": {
+          "x": 318,
+          "y": 150,
+          "right": 526,
+          "bottom": 285,
+          "width": 208,
+          "height": 135,
+          "clientWidth": 208,
+          "scrollWidth": 208
+        },
+        "event": {
+          "x": 307,
+          "y": 73,
+          "right": 537,
+          "bottom": 301,
+          "width": 230,
+          "height": 228,
+          "clientWidth": 230,
+          "scrollWidth": 230
+        },
+        "result": {
+          "x": 0,
+          "y": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0,
+          "clientWidth": 0,
+          "scrollWidth": 0
+        },
+        "speed": {
+          "x": 672.59375,
+          "y": 259.609375,
+          "right": 834,
+          "bottom": 380,
+          "width": 161.40625,
+          "height": 120.390625,
+          "clientWidth": 159,
+          "scrollWidth": 159
+        },
+        "minimap": {
+          "x": 10,
+          "y": 240,
+          "right": 135,
+          "bottom": 380,
+          "width": 125,
+          "height": 140,
+          "clientWidth": 123,
+          "scrollWidth": 123
+        },
+        "practiceText": "SESSION BEST 1:40.00 \u00b7 SAME CARS10:32.00\u22121.33 SS20:32.00\u22121.33 SS30:10.88RUNNINGSTAY ON THE ROAD \u00b7 KEEP IT CLEAN",
+        "resultText": "Circuit \u00b7 RESULTSaltmarsh Practice Lap \u2014 NEW SESSION BEST\n      \n      Time 1:36.00\n      \u22124.00 S VS SESSION BEST 1:40.00Same car \u00b7 this Festival sessionSECTORTIMEVS BEST LAPSECTOR 10:32.00\u22121.33 SSECTOR 20:32.00\u22121.33 SSECTOR 30:32.00\u22121.33 S\n      CONTINUE ENTERTRY AGAIN",
+        "eventRow": "TIME1:14.88",
+        "splitCount": 3,
+        "resultRows": 3,
+        "state": "clean",
+        "activeLabel": "continue",
+        "pageWidth": 844,
+        "viewportWidth": 844,
+        "acceptedRecord": null,
+        "actions": [
+          "retry:saltmarsh-practice"
+        ]
+      }
+    },
+    {
+      "name": "landscape autopilot bounds",
+      "passed": true,
+      "state": {
+        "practiceVisible": true,
+        "resultVisible": false,
+        "practice": {
+          "x": 295.5,
+          "y": 150,
+          "right": 548.5,
+          "bottom": 285,
+          "width": 253,
+          "height": 135,
+          "clientWidth": 253,
+          "scrollWidth": 253
+        },
+        "event": {
+          "x": 284.5,
+          "y": 73,
+          "right": 559.5,
+          "bottom": 301,
+          "width": 275,
+          "height": 228,
+          "clientWidth": 275,
+          "scrollWidth": 275
+        },
+        "result": {
+          "x": 0,
+          "y": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0,
+          "clientWidth": 0,
+          "scrollWidth": 0
+        },
+        "speed": {
+          "x": 672.59375,
+          "y": 259.609375,
+          "right": 834,
+          "bottom": 380,
+          "width": 161.40625,
+          "height": 120.390625,
+          "clientWidth": 159,
+          "scrollWidth": 159
+        },
+        "minimap": {
+          "x": 10,
+          "y": 240,
+          "right": 135,
+          "bottom": 380,
+          "width": 125,
+          "height": 140,
+          "clientWidth": 123,
+          "scrollWidth": 123
+        },
+        "practiceText": "SESSION BEST 1:40.00 \u00b7 SAME CARS10:32.00UNRANKEDS20:32.00UNRANKEDS30:10.88UNRANKEDAUTOPILOT \u00b7 FINISH TO PRACTISE, RETRY FOR A CLEAN TIME",
+        "resultText": "Circuit \u00b7 RESULTSaltmarsh Practice Lap \u2014 NEW SESSION BEST\n      \n      Time 1:36.00\n      \u22124.00 S VS SESSION BEST 1:40.00Same car \u00b7 this Festival sessionSECTORTIMEVS BEST LAPSECTOR 10:32.00\u22121.33 SSECTOR 20:32.00\u22121.33 SSECTOR 30:32.00\u22121.33 S\n      CONTINUE ENTERTRY AGAIN",
+        "eventRow": "TIME1:14.88",
+        "splitCount": 3,
+        "resultRows": 3,
+        "state": "invalid",
+        "activeLabel": null,
+        "pageWidth": 844,
+        "viewportWidth": 844,
+        "acceptedRecord": null,
+        "actions": [
+          "retry:saltmarsh-practice"
+        ]
+      }
+    },
+    {
+      "name": "landscape completed bounds",
+      "passed": true,
+      "state": {
+        "practiceVisible": false,
+        "resultVisible": true,
+        "practice": {
+          "x": 0,
+          "y": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0,
+          "clientWidth": 0,
+          "scrollWidth": 0
+        },
+        "event": {
+          "x": 0,
+          "y": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0,
+          "clientWidth": 0,
+          "scrollWidth": 0
+        },
+        "result": {
+          "x": 127,
+          "y": 46.796875,
+          "right": 717,
+          "bottom": 358.796875,
+          "width": 590,
+          "height": 312,
+          "clientWidth": 588,
+          "scrollWidth": 588
+        },
+        "speed": {
+          "x": 672.59375,
+          "y": 259.609375,
+          "right": 834,
+          "bottom": 380,
+          "width": 161.40625,
+          "height": 120.390625,
+          "clientWidth": 159,
+          "scrollWidth": 159
+        },
+        "minimap": {
+          "x": 10,
+          "y": 240,
+          "right": 135,
+          "bottom": 380,
+          "width": 125,
+          "height": 140,
+          "clientWidth": 123,
+          "scrollWidth": 123
+        },
+        "practiceText": "SESSION BEST 1:40.00 \u00b7 SAME CARS10:32.00UNRANKEDS20:32.00UNRANKEDS30:10.88UNRANKEDAUTOPILOT \u00b7 FINISH TO PRACTISE, RETRY FOR A CLEAN TIME",
+        "resultText": "Circuit \u00b7 RESULTSaltmarsh Practice Lap \u2014 NEW SESSION BEST\n      \n      Time 1:36.00\n      \u22124.00 S VS SESSION BEST 1:40.00Same car \u00b7 this Festival sessionSECTORTIMEVS BEST LAPSECTOR 10:32.00\u22121.33 SSECTOR 20:32.00\u22121.33 SSECTOR 30:32.00\u22121.33 S\n      CONTINUE ENTERTRY AGAIN",
+        "eventRow": "TIME1:36.00",
+        "splitCount": 3,
+        "resultRows": 3,
+        "state": "invalid",
+        "activeLabel": "continue",
+        "pageWidth": 844,
+        "viewportWidth": 844,
+        "acceptedRecord": {
+          "time": 96,
+          "crossings": [
+            31.999999999999996,
+            63.99999999999999,
+            96
+          ]
+        },
+        "actions": [
+          "retry:saltmarsh-practice"
+        ]
+      }
+    },
+    {
+      "name": "dispose removes HUD",
+      "passed": true,
+      "state": null
+    }
+  ],
+  "errors": [],
+  "screenshots": [
+    "running-desktop.png",
+    "completed-desktop.png",
+    "completed-invalid.png",
+    "portrait-running.png",
+    "portrait-autopilot.png",
+    "portrait-completed.png",
+    "compact-running.png",
+    "compact-autopilot.png",
+    "compact-completed.png",
+    "landscape-running.png",
+    "landscape-autopilot.png",
+    "landscape-completed.png"
+  ],
+  "limitations": [
+    "DOM/layout/callback evidence only; no driving, physics completion, persistence, or hardware performance claim"
+  ],
+  "sourceStable": true,
+  "visualInspection": {
+    "method": "Four images inspected individually in the initial run; all 12 final-run screenshots freshly compared byte for byte and are identical to that inspected run.",
+    "individuallyViewedInInitialRun": [
+      "running-desktop.png",
+      "compact-autopilot.png",
+      "portrait-completed.png",
+      "landscape-running.png"
+    ],
+    "earlierInspection": {
+      "viewed": [
+        "running-desktop.png",
+        "compact-autopilot.png",
+        "portrait-completed.png",
+        "landscape-running.png"
+      ],
+      "findings": [
+        "Sector cells, current time, and same-car session best are legible and stay inside their panel.",
+        "Invalid autopilot state remains readable on the 375 px viewport with wrapped advice and explicit UNRANKED sector labels.",
+        "The result card presents all three sectors, scoped session comparison, and visible Continue/Try Again actions at 390 px width.",
+        "The 844 by 390 landscape practice panel remains clear of the minimap and speed readout."
+      ],
+      "scope": "Synthetic status rendered with the production HUD and Saira font on a neutral background; not an in-game driving capture."
+    },
+    "byteIdenticalScreenshots": [
+      {
+        "file": "running-desktop.png",
+        "sha256": "3ba84820dd4ed76018f7441003c6fe347dc2d198ca0cfb71df2898e1399f9b45"
+      },
+      {
+        "file": "completed-desktop.png",
+        "sha256": "4e9434af165243a402a94ed3b2ecb8f25309f700388a2ac7b0b8fc133cd03efd"
+      },
+      {
+        "file": "completed-invalid.png",
+        "sha256": "e5e249346ea5efd659b6240e18b3b889934d778eb64d978d9886ba5516060155"
+      },
+      {
+        "file": "portrait-running.png",
+        "sha256": "1603334150985f634c6c87e785372e12cd044aff223a7adfe8ed460c8d8dfb28"
+      },
+      {
+        "file": "portrait-autopilot.png",
+        "sha256": "1f257a437f2dd36d3bbcc16f66f3383c2ec0f74a3e88f5693ad2ee5945d012c9"
+      },
+      {
+        "file": "portrait-completed.png",
+        "sha256": "509509c9c7d500504245b4ed947820208d0caecd3b3c28e88775a8ffba722ad2"
+      },
+      {
+        "file": "compact-running.png",
+        "sha256": "979d231b1779075b80b15f23f03bc0add61a7ad6f6c3611168e2863cd0375a90"
+      },
+      {
+        "file": "compact-autopilot.png",
+        "sha256": "cd5e2ca7e5a6d1017cb3f636fd92034f7d8931075f0aa494558ef1fa84f629b7"
+      },
+      {
+        "file": "compact-completed.png",
+        "sha256": "0955fa8a1b6656ab7f3eae833091f645b6c4fa59111eacf536efb3baa0172402"
+      },
+      {
+        "file": "landscape-running.png",
+        "sha256": "d84d4b83c540df826fa9dc3715011d30a43356ffb017d13c52b74cdbddb65744"
+      },
+      {
+        "file": "landscape-autopilot.png",
+        "sha256": "e509f0966da4c876e390b050b405fa5e115313bb3643da647437b4d6af953abc"
+      },
+      {
+        "file": "landscape-completed.png",
+        "sha256": "6eae49df443f23b438d098b1d7341f47fb62a6a15bdceae0d3db86c485186f4c"
+      }
+    ],
+    "scope": "Actual FestivalHud/CircuitPace with explicitly synthetic status; no rendered driving or hardware performance claim."
+  }
+}

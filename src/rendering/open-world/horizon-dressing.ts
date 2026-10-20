@@ -1,16 +1,18 @@
 import * as T from 'three';
 import { hash01 } from '../../simulation/open-world/noise.ts';
-import { StructureGrid, type Structure } from '../../simulation/open-world/placement.ts';
+import type { Structure } from '../../simulation/open-world/placement.ts';
 import { carvedGroundHeight } from '../../simulation/open-world/ground-height.ts';
 import type { OpenWorld } from '../../simulation/open-world/world.ts';
 import { trackPoint } from '../../simulation/track.ts';
 import type { QualityPreset } from '../options.ts';
+import { installCanopyNormals } from '../canopy-normals.ts';
 import { TrackGrass, type GrassClump } from '../vegetation/grass.ts';
 import { PhotoForest, type PhotoPlant } from '../vegetation/forest.ts';
 import type { VegetationLibrary } from '../vegetation/library.ts';
 import { VEGETATION } from '../vegetation/materials.ts';
 import { SPECIES } from '../vegetation/species.ts';
 import type { FestivalPracticalSocket } from './festival-practical-lights.ts';
+import { FESTIVAL_MEADOW, festivalMeadowGeometry, festivalMeadowPlan } from './festival-meadow.ts';
 
 /** Original Solvane scenery derived from the reference review's visual
  * principles: human-scale commercial detail, legible road edges, layered
@@ -154,50 +156,6 @@ function signAtlas() {
   return texture;
 }
 
-/** Real blade silhouettes, curved along three segments, retain volume when
- * no photographic plant pack is loaded. Vertex colours distinguish green
- * basal leaves from pale dry tips; there is no transparent overdraw. */
-function meadowGeometry() {
-  const position: number[] = [],
-    normal: number[] = [],
-    color: number[] = [],
-    indices: number[] = [];
-  for (let blade = 0; blade < 11; blade++) {
-    const a = blade * 2.399963,
-      h = 0.35 + hash01(blade, 2, 916) * 0.65;
-    const radius = 0.03 + hash01(blade, 3, 916) * 0.22;
-    const x = Math.sin(a) * radius,
-      z = Math.cos(a) * radius;
-    const dx = Math.cos(a),
-      dz = -Math.sin(a),
-      bend = 0.1 + hash01(blade, 4, 916) * 0.28;
-    const start = position.length / 3;
-    for (let row = 0; row <= 3; row++) {
-      const t = row / 3,
-        w = (1 - t) * (0.018 + hash01(blade, 5, 916) * 0.022);
-      const bx = x + Math.sin(a) * bend * t * t,
-        bz = z + Math.cos(a) * bend * t * t;
-      for (const side of [-1, 1]) {
-        position.push(bx + dx * w * side, h * t, bz + dz * w * side);
-        const n = new T.Vector3(Math.sin(a) * 0.3, 0.85, Math.cos(a) * 0.3).normalize();
-        normal.push(n.x, n.y, n.z);
-        color.push(0.3 + 0.38 * t, 0.39 + 0.25 * t, 0.13 + 0.2 * t);
-      }
-      if (row) {
-        const i = start + row * 2;
-        indices.push(i - 2, i, i - 1, i - 1, i, i + 1);
-      }
-    }
-  }
-  const g = new T.BufferGeometry();
-  g.setAttribute('position', new T.Float32BufferAttribute(position, 3));
-  g.setAttribute('normal', new T.Float32BufferAttribute(normal, 3));
-  g.setAttribute('color', new T.Float32BufferAttribute(color, 3));
-  g.setIndex(indices);
-  g.computeBoundingSphere();
-  return g;
-}
-
 /** A working boat with a swept, chine-defined hull. Width and sheer change
  * at every station; it is not a scaled box pretending to be a hull. */
 function workboatHull() {
@@ -261,6 +219,7 @@ export class HorizonDressing {
     triangles: 0,
     shopSigns: 0,
     meadowClumps: 0,
+    meadowPlanMs: 0,
     planters: 0,
     boats: 0,
     lanterns: 0,
@@ -287,7 +246,7 @@ export class HorizonDressing {
   private readonly meadow = new T.Group();
   private readonly meadowChunks: { mesh: T.InstancedMesh; center: T.Vector3; radius: number }[] =
     [];
-  private readonly meadowGeometry = meadowGeometry();
+  private readonly meadowGeometry = festivalMeadowGeometry();
   private readonly meadowMaterial = new T.MeshStandardMaterial({
     color: 0xffffff,
     vertexColors: true,
@@ -769,58 +728,16 @@ export class HorizonDressing {
   }
 
   private buildMeadow() {
-    const p = trackPoint(),
-      q = trackPoint(),
-      structures = new StructureGrid(this.structures);
-    const net = this.world.network,
-      field = this.world.field;
-    const groups = new Map<string, GrassClump[]>();
-    for (const edge of net.edges) {
-      if (edge.roadClass === 'town' || edge.roadClass === 'runway') continue;
-      const step = edge.roadClass === 'dirt' ? 8 : 12;
-      for (let station = 18; station < edge.length - 18; station += step) {
-        net.at(edge.offset + station, p);
-        for (const side of [-1, 1]) {
-          const h = hash01(Math.round(station), edge.index * side, 0x17e2);
-          const lateral = side * (edge.spec.halfWidth + edge.spec.shoulder + 2.8 + h * 4.5);
-          const x = p.x + p.nx * lateral,
-            z = p.z + p.nz * lateral;
-          const roadDistance = Math.abs(net.nearest(x, z, q));
-          const nearest = net.edges[net.edgeOf[net.lastSegment]];
-          if (roadDistance < nearest.spec.halfWidth + nearest.spec.shoulder + 2) continue;
-          const ground = field.height(x, z);
-          if (
-            ground < field.region.seaLevel + 1.5 ||
-            ground > field.snowLine(x, z) - 35 ||
-            structures.blocks(x, z, 2)
-          )
-            continue;
-          if (field.flatWeight('town', x, z) > 0.35 || field.flatWeight('airfield', x, z) > 0.45)
-            continue;
-          const valley = field.valleyAt(x, z);
-          if (valley.distance < field.region.valley.channel + 4) continue;
-          const y = carvedGroundHeight(this.world.carver, x, z);
-          for (let k = 0; k < 4; k++) {
-            const theta = h * Math.PI * 2 + k * 2.399963,
-              radius = k * 0.22;
-            const clump: GrassClump = {
-              x: x + Math.sin(theta) * radius,
-              y: y - 0.045,
-              z: z + Math.cos(theta) * radius,
-              width: 0.62 + h * 0.35,
-              height: 0.72 + hash01(k, edge.index, Math.round(station)) * 0.45,
-              yaw: theta,
-              tile: Math.floor(h * 8),
-              tint: h,
-            };
-            const key = `${Math.floor(clump.x / CHUNK)},${Math.floor(clump.z / CHUNK)}`;
-            const group = groups.get(key);
-            if (group) group.push(clump);
-            else groups.set(key, [clump]);
-            this.clumps.push(clump);
-          }
-        }
-      }
+    const groups = new Map<string, GrassClump[]>(),
+      started = performance.now(),
+      plan = festivalMeadowPlan(this.world, this.structures);
+    this.stats.meadowPlanMs = performance.now() - started;
+    for (const clump of plan) this.clumps.push(clump);
+    for (const clump of this.clumps) {
+      const key = `${Math.floor(clump.x / FESTIVAL_MEADOW.chunk)},${Math.floor(clump.z / FESTIVAL_MEADOW.chunk)}`;
+      const group = groups.get(key);
+      if (group) group.push(clump);
+      else groups.set(key, [clump]);
     }
     this.meadowMaterial.onBeforeCompile = (shader) => {
       shader.uniforms.solvaneTime = this.windTime;
@@ -841,11 +758,23 @@ transformed.x += sin(solvaneTime * 1.7 + solvaneWorld.x * 0.11 + solvaneWorld.z 
 transformed.z += cos(solvaneTime * 1.2 + solvaneWorld.z * 0.08) * position.y * position.y * 0.05 * solvaneFade;`,
         );
     };
-    this.meadowMaterial.customProgramCacheKey = () => 'solvane-meadow-silhouette-v1';
+    this.meadowMaterial.customProgramCacheKey = () => 'solvane-meadow-seedhead-v2';
+    // These authored tuft normals describe the aggregate upward leaf light,
+    // not each flat ribbon's front face. Keep that light on both sides rather
+    // than turning half of every green base into black back-facing strips.
+    installCanopyNormals(this.meadowMaterial);
     const transform = new T.Object3D(),
       color = new T.Color();
     for (const [key, clumps] of groups) {
+      // Stable spatially interleaved ordering makes lower quality tiers a
+      // thinner version of the whole verge, never a missing half of a chunk.
+      clumps.sort(
+        (a, b) =>
+          hash01(Math.round(a.x * 20), Math.round(a.z * 20), 4391) -
+          hash01(Math.round(b.x * 20), Math.round(b.z * 20), 4391),
+      );
       const mesh = new T.InstancedMesh(this.meadowGeometry, this.meadowMaterial, clumps.length);
+      mesh.userData.fullCount = clumps.length;
       mesh.name = `Solvane meadow ${key}`;
       clumps.forEach((clump, i) => {
         transform.position.set(clump.x, clump.y, clump.z);
@@ -866,6 +795,7 @@ transformed.z += cos(solvaneTime * 1.2 + solvaneWorld.z * 0.08) * position.y * p
       mesh.receiveShadow = true;
       mesh.computeBoundingSphere();
       const sphere = mesh.boundingSphere!;
+      sphere.radius += 0.25; // Wind-tip displacement, in world metres.
       this.meadowChunks.push({ mesh, center: sphere.center.clone(), radius: sphere.radius });
       this.meadow.add(mesh);
     }
@@ -977,17 +907,21 @@ if (diffuseColor.a < 0.01) discard;`,
         !(this.authoredBoats && mesh.userData.legacyBoat) &&
         this.eye.distanceTo(sphere.center) - sphere.radius < reach;
     }
-    const distance =
-      preset === 'low' ? 0 : preset === 'medium' ? 75 : preset === 'high' ? 115 : 150;
+    const distance = FESTIVAL_MEADOW.range[preset];
     this.meadowRange.value = distance;
-    for (const chunk of this.meadowChunks)
-      chunk.mesh.visible =
-        distance > 0 && this.eye.distanceTo(chunk.center) - chunk.radius < distance;
+    for (const chunk of this.meadowChunks) {
+      chunk.mesh.count = Math.ceil(
+        (chunk.mesh.userData.fullCount as number) * FESTIVAL_MEADOW.density[preset],
+      );
+      chunk.mesh.visible = this.eye.distanceTo(chunk.center) - chunk.radius < distance;
+    }
     if (this.photoGrass) {
       const photoDistance = VEGETATION.grass[preset];
       this.photoGrass.update(camera, photoDistance);
       this.photoGrass.root.visible = photoDistance > 0;
-      this.meadow.visible = false;
+      // A high-to-low quality change keeps the bounded geometry fallback;
+      // loading a photographic library must not permanently erase the verge.
+      this.meadow.visible = photoDistance <= 0;
     } else this.meadow.visible = true;
     this.photoPocket?.update(camera, preset);
   }

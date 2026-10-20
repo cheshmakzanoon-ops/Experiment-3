@@ -1,0 +1,193 @@
+{
+  "kind": "horizon-practice-physical-controls-validation",
+  "method": "External RouteDriver at skill 0.82, speed cap Infinity m/s, supplies controls to production 120 Hz simulation.",
+  "limits": "Scripted controls; no human input, rendered-frame or hardware-performance claim.",
+  "generatedAt": "2026-10-20T07:39:40.352Z",
+  "expected": "Reject the off-road stress lap",
+  "sourceScope": "src/core, src/simulation, package-lock.json and this validation runner",
+  "sourceBefore": "fdfee2aa9c8b04a21326aaeddf6984b79b2233521544116fb27ab8f5e4745812",
+  "sourceAfter": "fdfee2aa9c8b04a21326aaeddf6984b79b2233521544116fb27ab8f5e4745812",
+  "observedOffRoad": {
+    "at": 13.216666666666557,
+    "x": -1639.903312532419,
+    "z": -1112.9413086793286
+  },
+  "passed": true,
+  "result": {
+    "kind": "festival-result",
+    "version": 2,
+    "runId": "festival-73021:1",
+    "regionId": "solvane",
+    "eventId": "saltmarsh-practice",
+    "eventName": "Saltmarsh Practice Lap",
+    "eventKind": "circuit",
+    "vehicleId": "rh3",
+    "completed": true,
+    "abandoned": false,
+    "position": 1,
+    "entrants": 1,
+    "time": 100.63333333336188,
+    "trapKmh": null,
+    "averageKmh": null,
+    "driftScore": null,
+    "driftLines": [],
+    "stars": 3,
+    "legalDistance": 3170.3686478821814,
+    "offRouteSeconds": 0,
+    "standings": [
+      {
+        "car": 0,
+        "name": "YOU",
+        "vehicleId": "rh3",
+        "time": 100.63333333336188,
+        "progress": 0.9963249865917494
+      }
+    ],
+    "at": 103.63333333336188,
+    "assisted": false,
+    "practice": {
+      "sector": 3,
+      "sectorElapsed": 0,
+      "referenceTime": null,
+      "splits": [
+        {
+          "sector": 1,
+          "time": 44.32981157375716,
+          "delta": null
+        },
+        {
+          "sector": 2,
+          "time": 24.640814530209376,
+          "delta": null
+        },
+        {
+          "sector": 3,
+          "time": 31.662707229395338,
+          "delta": null
+        }
+      ],
+      "valid": false,
+      "reason": "off-road",
+      "time": 100.63333333336188,
+      "delta": null,
+      "newBest": false
+    }
+  },
+  "splits": [
+    {
+      "sector": 2,
+      "sectorElapsed": 0.078521759574123,
+      "referenceTime": null,
+      "splits": [
+        {
+          "sector": 1,
+          "time": 44.32981157375716,
+          "delta": null
+        }
+      ],
+      "valid": false,
+      "reason": "off-road"
+    },
+    {
+      "sector": 3,
+      "sectorElapsed": 0.037707229370170126,
+      "referenceTime": null,
+      "splits": [
+        {
+          "sector": 1,
+          "time": 44.32981157375716,
+          "delta": null
+        },
+        {
+          "sector": 2,
+          "time": 24.640814530209376,
+          "delta": null
+        }
+      ],
+      "valid": false,
+      "reason": "off-road"
+    }
+  ],
+  "retry": {
+    "sector": 1,
+    "sectorElapsed": 0,
+    "referenceTime": null,
+    "splits": [],
+    "valid": true,
+    "reason": null
+  },
+  "assisted": {
+    "sector": 1,
+    "sectorElapsed": 0,
+    "referenceTime": null,
+    "splits": [],
+    "valid": false,
+    "reason": "autopilot"
+  },
+  "otherCar": {
+    "sector": 1,
+    "sectorElapsed": 0,
+    "referenceTime": null,
+    "splits": [],
+    "valid": true,
+    "reason": null
+  },
+  "completedPosition": {
+    "x": -1529.341954194851,
+    "y": 82.84310198084862,
+    "z": -899.857023103703
+  },
+  "postSwitchPosition": {
+    "x": -1536.9361710742294,
+    "y": 81.86893311886706,
+    "z": -911.1129890106528
+  },
+  "beforeRetry": {
+    "mode": "finished",
+    "event": {
+      "id": "saltmarsh-practice",
+      "name": "Saltmarsh Practice Lap",
+      "kind": "circuit",
+      "countdown": 0,
+      "elapsed": 100.63333333336188,
+      "progress": 0.9963249865917494,
+      "lap": 1,
+      "laps": 1,
+      "position": 1,
+      "entrants": 1,
+      "offRoute": false,
+      "live": null,
+      "challenge": null,
+      "rivals": null,
+      "racecraft": null,
+      "practice": {
+        "sector": 3,
+        "sectorElapsed": 0,
+        "referenceTime": null,
+        "splits": [
+          {
+            "sector": 1,
+            "time": 44.32981157375716,
+            "delta": null
+          },
+          {
+            "sector": 2,
+            "time": 24.640814530209376,
+            "delta": null
+          },
+          {
+            "sector": 3,
+            "time": 31.662707229395338,
+            "delta": null
+          }
+        ],
+        "valid": false,
+        "reason": "off-road"
+      },
+      "gate": {
+        "x": -1783.4718179684758,
+        "z": -1136.1453882352698
+      }
+    }
+  }
+}

@@ -165,26 +165,74 @@ describe('RH3 and SC7 integrated front ends', () => {
     for (const id of ['rh3', 'sc7']) {
       const { model, body } = build(id),
         baseline = build(id, false).body;
-      for (const detail of [0, 1, 2]) {
+      for (const detail of [0, 1, 2] as const) {
         const revised = component(body.lods[detail].group, 'Body (lofted)').geometry;
         const original = component(baseline.lods[detail].group, 'Body (lofted)').geometry;
         const before = original.getAttribute('position'),
           after = revised.getAttribute('position');
-        const fixedLimit = model.f.frontAxle + model.f.radius + 0.045;
-        let fixed = 0,
-          swept = 0;
+        const fixedLimit = model.f.frontAxle + model.f.radius + 0.045,
+          rearLimit = model.f.rearAxle - model.f.radius - 0.045;
+        // Rear curvature and real side pockets append independent vertices.
+        // Compare physical positions rather than assuming matching buffer
+        // indices after those separate subdivisions.
+        const pointKey = (x: number, y: number, z: number) =>
+          `${Math.fround(x)},${Math.fround(y)},${Math.fround(z)}`;
+        const revisedPoints = new Set<string>(),
+          originalPoints = new Set<string>(),
+          protectedBounds = new T.Box3(),
+          point = new T.Vector3();
+        for (let i = 0; i < after.count; i++)
+          revisedPoints.add(pointKey(after.getX(i), after.getY(i), after.getZ(i)));
+        let swept = 0;
         for (let i = 0; i < before.count; i++) {
-          if (before.getZ(i) <= fixedLimit) {
-            if (
-              before.getX(i) !== after.getX(i) ||
-              before.getY(i) !== after.getY(i) ||
-              before.getZ(i) !== after.getZ(i)
-            )
-              throw new Error(`${id}/LOD${detail}: geometry moved behind the nose at vertex ${i}`);
-            fixed++;
-          } else if (before.getZ(i) - after.getZ(i) > 0.03) swept++;
+          const x = before.getX(i),
+            y = before.getY(i),
+            z = before.getZ(i);
+          originalPoints.add(pointKey(x, y, z));
+          if (z <= fixedLimit && z >= rearLimit) {
+            if (!revisedPoints.has(pointKey(x, y, z)))
+              throw new Error(`${id}/LOD${detail}: wheel-envelope vertex moved at ${i}`);
+            protectedBounds.expandByPoint(point.set(x, y, z));
+          } else if (z > fixedLimit) {
+            const mapped = festivalNoseZ(model, x, z);
+            if (z - mapped > 0.03 && revisedPoints.has(pointKey(x, y, mapped))) swept++;
+          }
         }
-        expect(fixed).toBeGreaterThan(before.count * 0.75);
+        // Independent rear refinement changes the total vertex count. Cover
+        // the protected region in metres instead of as a fraction of that
+        // unrelated tessellation, then check actual wheel-well construction.
+        expect(protectedBounds.min.z, `${id}/LOD${detail} rear arch coverage`).toBeLessThan(
+          model.f.rearAxle - model.f.radius - 0.04,
+        );
+        expect(protectedBounds.max.z, `${id}/LOD${detail} front arch coverage`).toBeGreaterThan(
+          model.f.frontAxle + model.f.radius + 0.04,
+        );
+        for (const [axleName, axle] of [
+          ['front', model.f.frontAxle],
+          ['rear', model.f.rearAxle],
+        ] as const) {
+          const archRadius = model.f.radius + 0.045,
+            stations = model.stations(detail).filter((z) => Math.abs(z - axle) < archRadius);
+          expect(stations.length, `${id}/LOD${detail} ${axleName} arch exists`).toBeGreaterThan(2);
+          for (const fraction of [-0.65, 0, 0.65]) {
+            const target = axle + fraction * archRadius,
+              z = stations.reduce((nearest, value) =>
+                Math.abs(value - target) < Math.abs(nearest - target) ? value : nearest,
+              ),
+              control = model.control(z);
+            for (const side of [-1, 1])
+              for (const [part, [x, y]] of [
+                ['tub ceiling', control[2]],
+                ['inner arch lip', control[3]],
+                ['outer arch lip', control[4]],
+              ] as const) {
+                const key = pointKey(side * x, y, z),
+                  label = `${id}/LOD${detail} ${axleName}/${side}/${fraction} ${part}`;
+                expect(originalPoints.has(key), `${label} baseline anchor exists`).toBe(true);
+                expect(revisedPoints.has(key), `${label} stays at its physical position`).toBe(true);
+              }
+          }
+        }
         expect(swept).toBeGreaterThan(10);
         if (detail < 2) {
           const fascia = component(body.lods[detail].group, 'Sculpted front fascia').geometry;

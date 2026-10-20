@@ -1020,7 +1020,7 @@ export const SOLVANE: RegionDefinition = Object.freeze({
       laps: 1,
       rivals: 0,
       blurb:
-        'One clear lap to learn the braking points and try your next car. Use Retry at the finish for another run.',
+        'One clear lap, three sectors. Set a clean time, then Retry to beat your session best in the same car. Keep to the road and avoid contact.',
     },
   ],
 } as RegionDefinition);

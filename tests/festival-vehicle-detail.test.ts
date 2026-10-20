@@ -14,6 +14,7 @@ import {
   festivalFasciaOpenings,
 } from '../src/rendering/vehicle-bodies/festival-detail.ts';
 import { festivalNoseZ } from '../src/rendering/vehicle-bodies/festival-nose.ts';
+import { festivalRearZ } from '../src/rendering/vehicle-bodies/festival-rear.ts';
 
 function modelFor(id: string) {
   const def = VEHICLES[id];
@@ -109,7 +110,7 @@ describe('Festival vehicle exterior construction', () => {
                 const at = new T.Vector3(
                   opening.x + x * opening.width,
                   opening.y + y * opening.height,
-                  model.zRear,
+                  festivalRearZ(model, opening.x + x * opening.width, model.zRear),
                 );
                 const direction = new T.Vector3(0, -slope, 1).normalize();
                 const ray = new T.Raycaster(
@@ -123,7 +124,9 @@ describe('Festival vehicle exterior construction', () => {
                 expect(
                   hit.point.z,
                   `${id} rear duct closes before the engine/cabin`,
-                ).toBeLessThanOrEqual(model.zRear + opening.depth + 0.015);
+                ).toBeLessThanOrEqual(
+                  festivalRearZ(model, hit.point.x, model.zRear + opening.depth + 0.015),
+                );
                 if ((hit.object as T.Mesh).material === sharedMaterials.plastic()) linerHits++;
               }
         }

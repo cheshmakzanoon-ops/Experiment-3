@@ -1,0 +1,81 @@
+{
+  "generatedAt": "2026-10-20T09:15:02.490655+00:00",
+  "integratedBase": "6537fa7b2fe437c6b52cfca8ca9f6f4a7f1da416",
+  "sourceFingerprint": "f9038749a41da649beb24746d8e94c58d4d06348a2d9c38bcc97f4e527703000",
+  "sourceScope": "src recursively, package-lock.json, index.html and vite.config.ts, full relative path string sort; path + NUL + bytes + NUL",
+  "steps": [
+    {
+      "name": "post-gp-typescript",
+      "command": [
+        "node",
+        "--max-old-space-size=2048",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit"
+      ],
+      "exitCode": 0,
+      "passed": true,
+      "elapsedMs": 251055,
+      "log": "post-gp-typescript.log"
+    },
+    {
+      "name": "post-gp-eslint",
+      "command": [
+        "node",
+        "--max-old-space-size=2048",
+        "node_modules/eslint/bin/eslint.js",
+        "e2e/fixtures/gp-edge-review.ts",
+        "e2e/fixtures/motorcycle-presentation.ts",
+        "e2e/gp-brake-lever.spec.ts",
+        "e2e/gp-edge-design.spec.ts",
+        "e2e/motorcycle-presentation.spec.ts",
+        "src/rendering/bike.ts",
+        "src/rendering/circuit.ts",
+        "src/rendering/gp-brake-fingers.ts",
+        "src/rendering/gp-front-brake.ts",
+        "src/rendering/gp-rider-glove.ts",
+        "src/rendering/gp-rider-spine.ts",
+        "src/rendering/rider.ts",
+        "src/rendering/studio/kerb-runoff-finish.ts",
+        "src/rendering/venue-kit/gp-edge-design.ts",
+        "src/rendering/venue-plan.ts",
+        "src/ui/bike-hud.ts",
+        "src/ui/gp-corner-practice.ts",
+        "tests/bike-animation.test.ts",
+        "tests/gp-brake-fingers.test.ts",
+        "tests/gp-brake-lever.test.ts",
+        "tests/gp-corner-practice.test.ts",
+        "tests/gp-edge-design.test.ts",
+        "tests/gp-rider-contact.test.ts",
+        "tests/gp-rider-garment.test.ts",
+        "tests/gp-rider-silhouette.test.ts",
+        "tests/gp-rider-spine.test.ts",
+        "tests/gp-rider-suit.test.ts"
+      ],
+      "exitCode": 0,
+      "passed": true,
+      "elapsedMs": 27339,
+      "log": "post-gp-eslint.log"
+    },
+    {
+      "name": "post-gp-production-build",
+      "command": [
+        "node",
+        "--max-old-space-size=2048",
+        "--experimental-transform-types",
+        "/dev/shm/horizon-b60-validation/post-gp-build.mjs"
+      ],
+      "exitCode": 0,
+      "passed": true,
+      "elapsedMs": 202890,
+      "log": "post-gp-production-build.log"
+    }
+  ],
+  "passed": true,
+  "scopeNotes": [
+    "A later MotoGP rendering/UI commit was integrated after the physics-v16 verification. All 81 recorded Festival files and the exact 156-file physical subset remain byte-identical; see post-gp-integration.json for the measured count and paths.",
+    "The existing 63 Festival regressions, 26 physical/identity integration assertions, two RH3 practice drives, content validation and component captures retain their original recorded scopes. No duplicate physics/render checks were run for unchanged inputs. This gate compiles the new combined render/UI application and lints every newly changed TS/JS file.",
+    "Each command retains a 600-second limit. The actual production Vite config is retained; duplicate public asset copy is disabled in the temporary build output."
+  ],
+  "finalSourceFingerprint": "f9038749a41da649beb24746d8e94c58d4d06348a2d9c38bcc97f4e527703000",
+  "sourceStable": true
+}

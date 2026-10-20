@@ -81,6 +81,9 @@ export interface ClosedSheet {
   /** Optional original swept nose with bonded lamp pockets; maximum outer
    * corner inset in metres. Applied beyond the front wheel arch only. */
   frontSweep?: number;
+  /** Original rear shoulder sweep, applied only behind the rear tyre envelope.
+   * Rear fascia, lamps and trim use the same curved surface. */
+  rearSweep?: number;
   sideIntake: boolean;
   roofScoop: boolean;
   bonnetVents: boolean;
@@ -628,6 +631,7 @@ export const BODY_SHEETS: Readonly<Record<string, BodySheet>> = Object.freeze({
     lamps: { front: 'slim', rear: 'strip' },
     grille: 0.3,
     frontSweep: 0.28,
+    rearSweep: 0.24,
     sideIntake: true,
     roofScoop: false,
     bonnetVents: true,
@@ -1494,6 +1498,7 @@ export const BODY_SHEETS: Readonly<Record<string, BodySheet>> = Object.freeze({
     lamps: { front: 'slim', rear: 'bar' },
     grille: 0.9,
     frontSweep: 0.22,
+    rearSweep: 0.18,
     sideIntake: false,
     roofScoop: false,
     bonnetVents: false,

@@ -1,6 +1,7 @@
 import './festival-hud.css';
 import type { DriftCue } from '../simulation/open-world/drift-feedback.ts';
 import type { FestivalActivityProgress } from '../simulation/open-world/activity-progress.ts';
+import type { CircuitPaceReason } from '../simulation/open-world/circuit-pace.ts';
 import type { PaceCue } from '../rendering/open-world/pace-coach.ts';
 import {
   EVENT_KIND_LABEL,
@@ -42,6 +43,16 @@ const clock = (seconds: number) => {
   return `${m}:${s.toFixed(2).padStart(5, '0')}`;
 };
 const stars = (n: number) => '★'.repeat(n) + '☆'.repeat(Math.max(0, 3 - n));
+const practiceReason: Record<CircuitPaceReason, string> = {
+  'off-road': 'LEFT THE ROUTE',
+  contact: 'CONTACT',
+  reset: 'CAR RESET',
+  autopilot: 'AUTOPILOT',
+  incomplete: 'LAP INCOMPLETE',
+  'invalid-progress': 'ROUTE INTERRUPTED',
+};
+const splitDelta = (value: number) =>
+  `${Math.abs(value) < 0.005 ? '±' : value < 0 ? '−' : '+'}${Math.abs(value).toFixed(2)} S`;
 
 /**
  * Festival heads-up display and menus: road name, speed-limit sign and
@@ -92,7 +103,7 @@ export class FestivalHud {
       <div class="fest-hint" id="festHint"><kbd>C</kbd> CAMERA · <kbd>T</kbd> MAP · <kbd>ESC</kbd> MENU</div>
       <div class="fest-explore" id="festExplore"><span class="fest-eyebrow">THE ROAD IS YOURS</span><b id="festExploreName">Explore Solvane Coast</b><small id="festExploreDistance"></small></div>
       <div class="fest-skills" id="festSkills" hidden role="status"><span id="festSkillLabel"></span><div><b id="festSkillScore">0</b><i id="festSkillMultiplier">×1.0</i></div><small id="festSkillBank"></small><div class="fest-chain-track"><i id="festSkillTimer"></i></div></div>
-      <div class="fest-event" id="festEvent" hidden><h2 id="festEventName"></h2><div class="fest-row" id="festEventRow"></div><div class="fest-rivals" id="festRivals" hidden aria-label="Rival gaps along the race route"><small>ROUTE GAP</small><div id="festRivalsRow"></div></div><div class="fest-challenge fest-racecraft" id="festRacecraft" hidden aria-label="Slipstream pass"><div><b id="festRacecraftLabel"></b><span id="festRacecraftTarget"></span></div><small id="festRacecraftAdvice"></small><div class="fest-challenge-track" role="progressbar" aria-label="Slipstream pass progress" aria-valuemin="0" aria-valuemax="100" id="festRacecraftMeter"><i id="festRacecraftFill"></i></div></div><div class="fest-challenge" id="festChallenge" hidden aria-label="Live activity target"><div><b id="festChallengeStars"></b><span id="festChallengeTarget"></span></div><small id="festChallengeAdvice"></small><div class="fest-challenge-track" role="progressbar" aria-label="Progress to activity star target" aria-valuemin="0" aria-valuemax="100" id="festChallengeMeter"><i id="festChallengeFill"></i></div></div><div class="fest-progress"><i id="festProgress"></i></div></div>
+      <div class="fest-event" id="festEvent" hidden><h2 id="festEventName"></h2><div class="fest-row" id="festEventRow"></div><div class="fest-practice" id="festPractice" hidden aria-label="Practice sector timing"><b id="festPracticeBest"></b><div id="festPracticeSplits"></div><small id="festPracticeAdvice"></small></div><div class="fest-rivals" id="festRivals" hidden aria-label="Rival gaps along the race route"><small>ROUTE GAP</small><div id="festRivalsRow"></div></div><div class="fest-challenge fest-racecraft" id="festRacecraft" hidden aria-label="Slipstream pass"><div><b id="festRacecraftLabel"></b><span id="festRacecraftTarget"></span></div><small id="festRacecraftAdvice"></small><div class="fest-challenge-track" role="progressbar" aria-label="Slipstream pass progress" aria-valuemin="0" aria-valuemax="100" id="festRacecraftMeter"><i id="festRacecraftFill"></i></div></div><div class="fest-challenge" id="festChallenge" hidden aria-label="Live activity target"><div><b id="festChallengeStars"></b><span id="festChallengeTarget"></span></div><small id="festChallengeAdvice"></small><div class="fest-challenge-track" role="progressbar" aria-label="Progress to activity star target" aria-valuemin="0" aria-valuemax="100" id="festChallengeMeter"><i id="festChallengeFill"></i></div></div><div class="fest-progress"><i id="festProgress"></i></div></div>
       <div class="fest-countdown" id="festCountdown" hidden></div>
       <div class="fest-message" id="festMessage" role="status" aria-live="polite" hidden></div>
       <div class="fest-card" id="festCard" hidden role="dialog" aria-label="Event"></div>
@@ -547,6 +558,38 @@ export class FestivalHud {
     }
     // Running event.
     const ev = status.event;
+    const practice = status.mode === 'running' ? ev?.practice : null;
+    this.show('festPractice', !!practice && !this.menuOpen && !this.mapOpen && !this.photoOpen);
+    if (practice) {
+      const panel = this.get('festPractice');
+      panel.dataset.state = practice.valid ? 'clean' : 'invalid';
+      this.text(
+        'festPracticeBest',
+        practice.referenceTime === null
+          ? 'SET YOUR FIRST CLEAN LAP'
+          : `SESSION BEST ${clock(practice.referenceTime)} · SAME CAR`,
+      );
+      this.text(
+        'festPracticeAdvice',
+        practice.reason
+          ? `${practiceReason[practice.reason]} · FINISH TO PRACTISE, RETRY FOR A CLEAN TIME`
+          : 'STAY ON THE ROAD · KEEP IT CLEAN',
+      );
+      const html = [1, 2, 3]
+        .map((sector) => {
+          const split = practice.splits[sector - 1];
+          const active = !split && sector === practice.sector;
+          const trend = !practice.valid
+            ? 'invalid'
+            : (split?.delta ?? 0) < -0.005
+              ? 'ahead'
+              : 'neutral';
+          return `<span data-state="${active ? 'active' : trend}"><small>S${sector}</small><b>${split ? clock(split.time) : active ? clock(practice.sectorElapsed) : '—'}</b><em>${!practice.valid ? 'UNRANKED' : split?.delta != null ? splitDelta(split.delta) : split ? 'SET' : active ? 'RUNNING' : 'NEXT'}</em></span>`;
+        })
+        .join('');
+      const row = this.get('festPracticeSplits');
+      if (row.innerHTML !== html) row.innerHTML = html;
+    }
     const rivals = status.mode === 'running' && ev && isRace(ev.kind as never) ? ev.rivals : null;
     this.show('festRivals', !!rivals && !this.menuOpen && !this.mapOpen && !this.photoOpen);
     if (rivals) {
@@ -621,7 +664,7 @@ export class FestivalHud {
       this.text('festEventName', ev.name);
       const race = isRace(ev.kind as never);
       const cells: [string, string][] = [];
-      if (race) cells.push(['POSITION', `${ev.position}/${ev.entrants}`]);
+      if (race && !ev.practice) cells.push(['POSITION', `${ev.position}/${ev.entrants}`]);
       if (ev.laps > 1) cells.push(['LAP', `${ev.lap}/${ev.laps}`]);
       cells.push(['TIME', clock(ev.elapsed)]);
       if (ev.live) cells.push([ev.live.label, ev.live.value]);
@@ -733,13 +776,26 @@ export class FestivalHud {
       .join('');
     const headline = r.abandoned
       ? 'DID NOT FINISH'
-      : r.position === 1
-        ? 'WINNER'
-        : `P${r.position} OF ${r.entrants}`;
+      : r.practice
+        ? r.practice.newBest
+          ? 'NEW SESSION BEST'
+          : r.practice.valid
+            ? 'CLEAN LAP'
+            : 'PRACTICE COMPLETE'
+        : r.position === 1
+          ? 'WINNER'
+          : `P${r.position} OF ${r.entrants}`;
+    const practice = r.practice;
+    const splitRows = practice?.splits
+      .map(
+        (split) =>
+          `<tr><td>SECTOR ${split.sector}</td><td>${clock(split.time)}</td><td>${practice.valid && split.delta !== null ? splitDelta(split.delta) : '—'}</td></tr>`,
+      )
+      .join('');
     return `<div class="fest-kind">${escapeHtml(EVENT_KIND_LABEL[r.eventKind])} · RESULT</div><h2>${escapeHtml(r.eventName)} — ${headline}</h2>
-      <div class="fest-stars" aria-label="${r.stars} of 3 stars">${stars(r.stars)}</div>
+      ${practice ? '' : `<div class="fest-stars" aria-label="${r.stars} of 3 stars">${stars(r.stars)}</div>`}
       ${r.time !== null ? `<div>Time ${clock(r.time)}${r.assisted ? ' · autopilot assisted' : ''}</div>` : ''}
-      <table>${rows}</table>
+      ${practice ? `<div class="fest-practice-summary">${practice.reason ? `${practiceReason[practice.reason]} · NOT A CLEAN BENCHMARK` : practice.referenceTime === null ? 'FIRST CLEAN BENCHMARK SET' : `${splitDelta(practice.delta ?? 0)} VS SESSION BEST ${clock(practice.referenceTime)}`}<small>Same car · this Festival session</small></div><table aria-label="Practice sector results"><thead><tr><th>SECTOR</th><th>TIME</th><th>VS BEST LAP</th></tr></thead><tbody>${splitRows}</tbody></table>` : `<table>${rows}</table>`}
       <div class="fest-result-actions"><button class="fest-primary" data-fest="continue">CONTINUE <kbd>ENTER</kbd></button>${this.callbacks.retry ? `<button class="fest-secondary" data-fest="retry" data-value="${escapeHtml(r.eventId)}">TRY AGAIN</button>` : ''}</div>`;
   }
   /** Pause menu (free roam): resume, reset, time of day, machine, autopilot,

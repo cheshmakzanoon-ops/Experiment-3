@@ -1289,9 +1289,62 @@
 }
 
 /* Dialog state changes synchronously, including when simulation time is paused. */
+.fest-practice {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #ffffff26;
+  font-variant-numeric: tabular-nums;
+}
+.fest-practice > b {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+}
+#festPracticeSplits {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin: 8px 0;
+}
+#festPracticeSplits > span {
+  display: grid;
+  gap: 2px;
+  padding: 6px;
+  background: #ffffff0b;
+  border-bottom: 2px solid #ffffff32;
+}
+#festPracticeSplits small,
+#festPracticeSplits em,
+.fest-practice > small {
+  font-size: 9px;
+  font-style: normal;
+  color: #c8d3d2;
+}
+#festPracticeSplits b {
+  font-size: 14px;
+}
+#festPracticeSplits [data-state='active'] {
+  border-color: #ebd2a0;
+}
+#festPracticeSplits [data-state='ahead'] em {
+  color: #9ae2d2;
+}
+.fest-practice[data-state='invalid'] > small {
+  color: #ffc5a9;
+}
+.fest-practice-summary {
+  margin-top: 10px;
+  color: #cce9dd;
+}
+.fest-practice-summary small {
+  display: block;
+  color: #b9c7c8;
+}
 .fest-menu-active > .fest-drift,
 .fest-menu-active > .fest-pace,
+.fest-menu-active .fest-practice,
 .fest-map-active > .fest-drift,
-.fest-map-active > .fest-pace {
+.fest-map-active > .fest-pace,
+.fest-map-active .fest-practice {
   display: none;
 }

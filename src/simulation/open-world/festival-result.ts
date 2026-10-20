@@ -1,5 +1,6 @@
 import type { ScoreLine } from '../../core/scoring.ts';
 import type { FestivalEventKind } from './region-data.ts';
+import type { CircuitPaceResult } from './circuit-pace.ts';
 
 /** The festival's typed result contract and event-kind vocabulary, without
  * the route planner (the career and the HUD import this module). */
@@ -58,10 +59,17 @@ export interface FestivalResult {
   /** Legal route distance credited by RouteProgress (m) and time off-route (s). */
   legalDistance: number;
   offRouteSeconds: number;
-  standings: { car: number; name: string; vehicleId: string; time: number | null; progress: number }[];
+  standings: {
+    car: number;
+    name: string;
+    vehicleId: string;
+    time: number | null;
+    progress: number;
+  }[];
   /** Simulation time the result was produced (s). */
   at: number;
   /** The AI drove the player's car for part of the event (not a record). */
   assisted: boolean;
+  /** Optional measured solo-circuit splits, separate from career settlement. */
+  practice?: CircuitPaceResult | null;
 }
-
