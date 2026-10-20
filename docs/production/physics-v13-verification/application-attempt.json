@@ -1,0 +1,41 @@
+{
+  "classification": "Incomplete application verification; no final test result or source-guard completion observed.",
+  "localApplicationSource": "V13 with corrected tire shader, on aad08a3 MotoGP/motocross integration; before upstream 8e45d33 frontend changes.",
+  "productionFingerprint": "5b56870dfb45a4caccabb379070c87314b9af7d5e229479c09f6c4399ff3624b",
+  "selectedTests": [
+    "browser session, cameras, pause safety, telemetry and replay",
+    "recorded telemetry exports and replay leaves live physics paused"
+  ],
+  "testFile": "e2e/application.spec.ts",
+  "backend": "ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)",
+  "workers": 1,
+  "originalTestDeadlineMs": 300000,
+  "viewport": [
+    1440,
+    900
+  ],
+  "sourceOrWorkloadChangesDuringAttempt": false,
+  "lastConfirmedProgress": {
+    "firstTest": "Startup/showroom assertions completed; paddock screenshot saved; low preset applied; circuit entry reached.",
+    "logEvaluationHeartbeatSeconds": 271,
+    "logCleanupHeartbeatSeconds": [
+      302,
+      332,
+      541,
+      572
+    ],
+    "finalTestResultObserved": false,
+    "secondTestStartObserved": false,
+    "laterDrivingCameraTelemetryReplayAssertionsConfirmed": false
+  },
+  "interruption": "exec-server transport disconnected; failed to resume exec-server session: recovery timed out after 25s",
+  "recovery": {
+    "durableCompletionReceiptPresent": false,
+    "jsonReportPresent": false,
+    "originalSourceGuardPid": 270335,
+    "originalSourceGuardStillRunning": false,
+    "originalGuardExitStatus": null
+  },
+  "retriesAfterInterruption": 0,
+  "limitation": "The log does not identify a completed assertion failure or establish why execution disconnected. No pass or whole-game performance claim is made."
+}

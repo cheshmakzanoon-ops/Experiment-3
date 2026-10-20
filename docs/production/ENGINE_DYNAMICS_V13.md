@@ -2,7 +2,7 @@
 
 This update starts from `9cfeef8ef6ea050561b62d3db2ad2f22a52b3cd7` on `main`. It extends
 the existing v12 longitudinal-contact and thermal work in three places: lateral elastic
-contact, finite-width support over paved road geometry, and animation driven by measured
+contact, finite-width support over paved road geometry, and animation driven by simulated
 contact state. The 120 Hz worker, maximum 1/240 s vehicle substep, steady tire curves,
 vehicle coefficients and existing acceptance bands are retained.
 
@@ -15,6 +15,17 @@ accepted calibration and sustained-driving runs after both integrations. The sec
 also changes shared scene preparation for pure GP grids; Formula and catalogue grids retain
 the existing full-scene compilation path. Validation provenance below distinguishes the
 earlier accepted build from the final combined tree.
+
+The upgrade was published on `main` as
+[`0bb24350121947b165aa3ee810d7a7c22e1c32e2`](https://github.com/cheshmakzanoon-ops/Experiment-3/commit/0bb24350121947b165aa3ee810d7a7c22e1c32e2).
+Publication also preserves the later MotoGP documentation commit `03ebf890` and
+motocross mechanics/berm-practice commit `8e45d33`, using the latter's complete tree as
+the base. All 50 upgrade files match the original local implementation's Git blob hashes.
+The later motocross addition changes shared frontend preparation and rider presentation,
+but does not change this tire solver, contact protocol or replay implementation. Its
+pit-service preparation argument defaults to the previous behavior; the new practice
+measurements use existing symbolic snapshot fields. The local successful build predates
+that latest frontend addition, so it is not a build receipt for the complete published tree.
 
 The force upgrade applies to the shared **four-wheel car solver**: Formula, touring,
 road/festival and off-road cars. Finite crown geometry applies to paved circuit meshes;
@@ -380,11 +391,32 @@ reported no changed inputs. The shared host reached its 8 GB memory limit and re
 additional OOM kills, but those observations do not prove the cause of every browser failure.
 Test deadlines, viewport, rendering workloads and assertions were not reduced.
 
-The normal post-correction build was killed during TypeScript checking with exit 137.
+The first normal post-correction build was killed during TypeScript checking with exit 137.
 A 1 GB build-heap attempt then exhausted its JavaScript heap during TypeScript, with exit 134.
-Neither reached Vite and neither is counted as a successful updated production bundle.
-Final combined-source build and application outcomes are recorded after their remaining
-checks complete.
+Neither reached Vite. A subsequent normal build with a 1.5 GB heap **passed** on the
+`aad08a3` integration plus V13, including the corrected shader. The original preparation
+suite passed **9/9**, pinned player LOD validation passed, `tsc --noEmit` and Vite completed,
+and the outer source guard exited **0** at **2026-10-20 04:28:45 UTC**. Vite transformed
+739 modules and built in 2 min 8 s, retaining its existing large-chunk advisory. The actual
+build fingerprint is `5b56870dfb45a4caccabb379070c87314b9af7d5e229479c09f6c4399ff3624b`.
+The preparation and rendering counts overlap other focused tests and must not be added
+to the 499-test total as distinct new coverage.
+
+The two unchanged full-application driving/telemetry/replay tests were then selected on
+that fresh bundle. The first passed startup and showroom assertions, saved the paddock
+capture, applied the existing low preset and reached circuit entry. The execution service
+subsequently disconnected. The recovered log records evaluation through 271 s and context
+cleanup heartbeats through 572 s, but **no final test result, second-test start, durable
+completion receipt or JSON report**. The original source-guard process was confirmed gone;
+its exit status was not recovered. Both requested journeys therefore remain **unverified**.
+No workload or deadline was changed, and neither test was restarted after the interruption.
+
+At **2026-10-20 04:45:05 UTC**, all seven GitHub workflows scheduled for the published
+implementation commit were **queued**, with no conclusion. This includes
+[Build and validation](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39370993416)
+and [MotoGP focused review](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39370993426).
+This is a dated status observation, not a CI pass. Subsequent documentation-only commits
+and live workflow results are separate from that observation.
 
 ### Committed measurement evidence
 
@@ -400,6 +432,15 @@ The following files retain the actual generated reports rather than reconstructe
   hashes and the recorded energy-accounting sequence.
 - [Passed GPU tire measurements](physics-v13-verification/recorded-tire-gpu.json) and
   [observed browser backend](physics-v13-verification/browser-backend.json).
+- [Successful local build receipt](physics-v13-verification/final-build-receipt.json),
+  [complete build log](physics-v13-verification/final-build.log) and
+  [actual build identity](physics-v13-verification/final-build-identity.json).
+- [Recovered application log](physics-v13-verification/application-attempt.log).
+
+The [application-attempt summary](physics-v13-verification/application-attempt.json),
+[publication identity](physics-v13-verification/publication-identity.json) and
+[dated CI observation](physics-v13-verification/ci-observation.json) are explicitly labeled
+status/provenance summaries. They do not replace missing application or CI completion results.
 
 The remaining model boundaries are material: calibrated steady force curves rather than
 measured manufacturer data, massless suspension hubs, a reduced rounded road envelope,
