@@ -1,0 +1,1421 @@
+{
+  "scope": "Paired GP-only boot correction within isolated original production Rider, non-rider meshes detached; only gp-rider-gear.ts differs between phases, all other sources frozen; original 1280x800, camera, lights, shadows and poses",
+  "sourceCommit": "9cfeef8ef6ea050561b62d3db2ad2f22a52b3cd7",
+  "ownFiles": [
+    {
+      "path": "src/rendering/gp-rider-gear.ts",
+      "before": "90ded9ad8362442d7357108bd84c50ed3f836180524886db9996359fc6914a18",
+      "after": "5f94ed20e9dfd55b85035b16438447383ef4a50ef4671a0814ceaa965ce639a8"
+    }
+  ],
+  "commonSources": [
+    {
+      "path": "e2e/fixtures/motogp-reference-review.ts",
+      "sha256": "3994c36013eb986b7a5c1b6126cf1316ed403a303719254f24a688aeebbf183b"
+    },
+    {
+      "path": "src/rendering/bike.ts",
+      "sha256": "401a4863bd24403cd0c33cc5bcf192bf84d48db834f46d1aba1586846df31f84"
+    },
+    {
+      "path": "src/rendering/weather-presentation.ts",
+      "sha256": "d7729e74f77971240f1a24cc3defe302434c92286b21bbd1d43d593500220bad"
+    },
+    {
+      "path": "src/simulation/protocol.ts",
+      "sha256": "883b3e0ed403243061c40e51dda372e1da26138ce57c12280c6c4d916e37e4b7"
+    },
+    {
+      "path": "src/simulation/vehicles.ts",
+      "sha256": "d362e0a36d566ba8cfe866e84a2b3014e2d6bf2307b07c286e52335334f0b090"
+    },
+    {
+      "path": "src/simulation/bike-definitions.ts",
+      "sha256": "e075dd421d9a61b9564e2918da316a0ebe92816aa4871b8662d2ac357bffe3a6"
+    },
+    {
+      "path": "src/simulation/vehicle-catalogue/index.ts",
+      "sha256": "ed281de1db31688b40ebf7b5900a20857934717e993e22391d7630242116068b"
+    },
+    {
+      "path": "src/simulation/offroad/dirt-bikes.ts",
+      "sha256": "ab5d57ba61c3f2e08c35c869dbe3694d83d20eb533da03ed7a5b3bf4712fdf2f"
+    },
+    {
+      "path": "src/core/math.ts",
+      "sha256": "e46e109d81774003aae58c52f77cd9ae2831a856ba6c9ba8878909c2c4383bd2"
+    },
+    {
+      "path": "src/simulation/vehicle-catalogue/builder.ts",
+      "sha256": "e2776bd76d94467498430c27d726d02ce3786762a4b6a93f859f6f9093a7912a"
+    },
+    {
+      "path": "src/simulation/vehicle-catalogue/touring-club.ts",
+      "sha256": "18f8f95393837aa7531430ca59175ef6ba6ae518ddee5ae127134d9acdae1bc0"
+    },
+    {
+      "path": "src/simulation/vehicle-catalogue/small-road.ts",
+      "sha256": "d15a264998c750f8a4ee19ea7f464ba7e2597a24aec7c4fe2a21837f7b505bb7"
+    },
+    {
+      "path": "src/simulation/vehicle-catalogue/gt.ts",
+      "sha256": "78a02c349c0e431def3a2d114c7be409eacc1f53f4ec2371d585184e48df564c"
+    },
+    {
+      "path": "src/simulation/vehicle-catalogue/formula.ts",
+      "sha256": "e0e3ccc8fd187467d7b047c48d7fb9f80815d72684017c7157290f78787daaa2"
+    },
+    {
+      "path": "src/simulation/vehicle-catalogue/endurance.ts",
+      "sha256": "0639678d503ee22d5684f302aaf80e46822975a901a1f6bb580806a92d3e0a70"
+    },
+    {
+      "path": "src/simulation/vehicle-catalogue/dirt.ts",
+      "sha256": "09d2171018c2bf2f14ad52c7139a629866cfc75988540624a84d22de02693114"
+    },
+    {
+      "path": "src/simulation/vehicle-catalogue/single-seaters.ts",
+      "sha256": "3d9cb011aca30965afa966bd5fbd0f80fd6e02beaa3aa0bef0c762513c9bd164"
+    },
+    {
+      "path": "src/simulation/vehicle-catalogue/prototypes.ts",
+      "sha256": "99b898854c42087dae8f1768ed1c80442a04a373ea22fcb521b8a05d84cf9d47"
+    },
+    {
+      "path": "src/simulation/vehicle-catalogue/gt-layouts.ts",
+      "sha256": "6c26da7c64ce4fd8d7a16e5a7961ca1e24b528a0177cc856ab729db112361b1e"
+    },
+    {
+      "path": "src/simulation/vehicle-catalogue/touring-club-2.ts",
+      "sha256": "5dd81dc1f389e4d3c5caf7824391de3136c6d3cb7ba41680bd586155ca72446f"
+    },
+    {
+      "path": "src/simulation/vehicle-catalogue/dirt-2.ts",
+      "sha256": "ffa6bbcf58d533ec0193dc3e24fa08e323a502098f81ee59f5fcc5dd90a3b733"
+    },
+    {
+      "path": "src/simulation/vehicle-catalogue/experimental.ts",
+      "sha256": "09fa03be94df01d053289c0a31b2c7ab8d9c51593207972ef2b65d3e5a784c25"
+    },
+    {
+      "path": "src/simulation/vehicle-catalogue/road-festival.ts",
+      "sha256": "e28c3bbae13e119c5a0d333292a36a8a4948a3071b86c884cf1dafd94d19790e"
+    },
+    {
+      "path": "src/simulation/differential.ts",
+      "sha256": "def7d4ee3c3166dd921ebf90cbbbabff8e278243f6652711a24d3875c914d01a"
+    },
+    {
+      "path": "src/simulation/vehicle-catalogue/common.ts",
+      "sha256": "b0c6464cf0b7974ae930a050aa54edb675100ce62c6efd8506090da40a382ede"
+    },
+    {
+      "path": "src/rendering/gp-appearance.ts",
+      "sha256": "2887d298600cadb0280a0c963772de9dbc1070661b966b773625050be28fd981"
+    },
+    {
+      "path": "src/rendering/bike-rigid-batch.ts",
+      "sha256": "3090b46ddb8e705f846932d338cb028624d23899cbede62490334abf35aca2fb"
+    },
+    {
+      "path": "src/rendering/bike-livery.ts",
+      "sha256": "92cf9503b684986cdf72ef78f8d39057da4f8c94703148c1bca46a5e9e1d1eb6"
+    },
+    {
+      "path": "src/rendering/gp-r2-aero.ts",
+      "sha256": "2ab31643fda77802c4832957da8264127e99d02938b645d1100a02809bf73b12"
+    },
+    {
+      "path": "src/rendering/gp-bodywork.ts",
+      "sha256": "b9648b459d369190995bec58bee064f6a1793f2616cbefbc54edfcfbd30ac409"
+    },
+    {
+      "path": "src/rendering/gp-radial-caliper.ts",
+      "sha256": "dba1b58b99d5c582d37bc169e5b73f0c0f0dc220c7afdb920bf17d1d6e6ce7a2"
+    },
+    {
+      "path": "src/rendering/gp-disc-glow.ts",
+      "sha256": "935645a98bb14bfc7a4cf55eb4f8d2f8e17630f7b82ed94731b1f76c4a762256"
+    },
+    {
+      "path": "src/rendering/gp-fork-crown.ts",
+      "sha256": "fbdd8b4cf787bc69741836f878bd7c7394d95cf371443f63e10c7d1b9ef5ede3"
+    },
+    {
+      "path": "src/rendering/gp-forged-wheel.ts",
+      "sha256": "8a72683c234030d6fa72bbda8ab0a2ef90edaa1232ff41af60b702d6c808bbb5"
+    },
+    {
+      "path": "src/rendering/gp-tyre-finish.ts",
+      "sha256": "8252c45e2e53b348d1328c0a3277e810b02b028b4da9b7e66f02349977015532"
+    },
+    {
+      "path": "src/rendering/gp-cooling-louvers.ts",
+      "sha256": "f32f42de3aeb37613da5f8ea60133053d5fb429652ee2e93a2809dac44c13e4b"
+    },
+    {
+      "path": "src/rendering/gp-radiator.ts",
+      "sha256": "39c2f5a1d74ed68a47eef5205026815f8c9793e3c9bd0d6304d2cafa27839c3d"
+    },
+    {
+      "path": "src/rendering/gp-chain-drive.ts",
+      "sha256": "c7b665ecdafc79e9960e0ccca084028f2a4cb52d92c6b330e694f4b85e9891f7"
+    },
+    {
+      "path": "src/rendering/gp-rear-chassis.ts",
+      "sha256": "18a90293a59ff0fdac12a6f9e3967d258bdebc11df32f568ae056f60a193a2a9"
+    },
+    {
+      "path": "src/rendering/bike-surface-detail.ts",
+      "sha256": "fa23b463dcd1c7331aa5359d0667b8b8eb11df7eb6dc04bd74c4e37d0636148e"
+    },
+    {
+      "path": "src/rendering/bike-cockpit.ts",
+      "sha256": "4bd18dc7eacb48fd7f137a19b96c36051a5d2f293c21f87ed15bbe03d09922c0"
+    },
+    {
+      "path": "src/rendering/cockpit-framing.ts",
+      "sha256": "fc4e04237480187117f4ae281b936e194a4352b8ce48d3979d05f0bb4e4b1999"
+    },
+    {
+      "path": "src/rendering/materials.ts",
+      "sha256": "ba0ce3209220fb07aba7fcc92b3f01e5c727801c9e132a2147926d8f58c17eef"
+    },
+    {
+      "path": "src/rendering/profile-sampling.ts",
+      "sha256": "a4960247a99d96d5e6e43f2e8189cace09774615c228ba315a8a0cbd630c24af"
+    },
+    {
+      "path": "src/simulation/bike.ts",
+      "sha256": "348ce347bb4c9eeffc0cc7d5a263528e6f9afc326518a0eeac52913596b62b1f"
+    },
+    {
+      "path": "src/simulation/config.ts",
+      "sha256": "5f161e455401d26cd7e618cc35bbb5640f0ac05662de36e584fcee5c8ae8c30e"
+    },
+    {
+      "path": "src/rendering/car-livery.ts",
+      "sha256": "f800e50359382a1e4e59720a3d027dd6e8c28a697e057490e87e020c88e4a970"
+    },
+    {
+      "path": "src/rendering/geometry.ts",
+      "sha256": "c120aa6b3b8ad80f6a600d77fc3717c4638f89c3ab4bc36fea520345ebfacd26"
+    },
+    {
+      "path": "src/rendering/view-detail.ts",
+      "sha256": "8ef0b52b5b40f165a6b1faaf6cd0e2ec2453b56904b7027ade6e852f3ed0b514"
+    },
+    {
+      "path": "src/rendering/rider.ts",
+      "sha256": "77325e7d0ab8d235bc638b80c7d6b628e1a322571ff13716572bbc07dcfd5286"
+    },
+    {
+      "path": "src/rendering/bike-sheet.ts",
+      "sha256": "cf3dae04eb8a711e8ca3ca91cce9d97b622b6061e28bc1932a95244246e076dc"
+    },
+    {
+      "path": "src/rendering/offroad/dirt-bike-model.ts",
+      "sha256": "617741f8a26cbd192aa5e5e6e109271ffb8b3aa401bd8e25da1513ab546599d6"
+    },
+    {
+      "path": "src/rendering/offroad/mud.ts",
+      "sha256": "a9552a5be762bb24e5758c2898da8c1575cbd6c7e98fbe6f40629ad5a58fa45b"
+    },
+    {
+      "path": "src/rendering/bike-pit-service.ts",
+      "sha256": "e18b597b2d2c4f04ceea38596750ba82d389c235a5869a3a36d45e214011fad2"
+    },
+    {
+      "path": "src/rendering/pit-presentation.ts",
+      "sha256": "21aabbf1fcd55f7cbf3cac4fab6fa37386cbe167b9d1c1912695ca8368e8d245"
+    },
+    {
+      "path": "src/rendering/wheel-pose.ts",
+      "sha256": "7df9f17cc8c26c411e876ad12daa41d82c31970fe9fc99b604c0a58d72680b4e"
+    },
+    {
+      "path": "src/rendering/snapshot-interpolation.ts",
+      "sha256": "29cd6c2e13a8a9fb13cc5d1cdecf67907e929d5f26c965edd60594b215ce4ca7"
+    },
+    {
+      "path": "src/simulation/aero-map.ts",
+      "sha256": "8322cbb61e600c5a835b4d909da03f73ec766b045ce81e8cfd04cbf588f7c8c6"
+    },
+    {
+      "path": "src/simulation/powertrain.ts",
+      "sha256": "12c3859d0b4fef04fa8ee8d3b07824b352cb335ceb697e869eda85c23b859307"
+    },
+    {
+      "path": "src/simulation/tire-families.ts",
+      "sha256": "f0cd77285932df6ca2a56a683bf644c24d3f7a818770910c44f92abb653434df"
+    },
+    {
+      "path": "src/rendering/studio/shader-hooks.ts",
+      "sha256": "8ae51033f242d1100a6008975d6f5be3f55fd37e8f3be6399f5f731cc8da0488"
+    },
+    {
+      "path": "src/rendering/assets/gp-bodywork.mesh.json",
+      "sha256": "72a7fb6e2e47c2be0abd1b89495f74d1e9c64dc1f4c755540aa8b0983dadd3d4"
+    },
+    {
+      "path": "src/rendering/studio/brand-atlas.ts",
+      "sha256": "dca85756467bfc3420acb61a5cba7592dd7b988d60152a6d01dcd5fd5ef817e6"
+    },
+    {
+      "path": "src/rendering/options.ts",
+      "sha256": "c66a8907e7e9d5db3ad67a097127be3a07bb78b58fa79fc16922a5cce8aed95f"
+    },
+    {
+      "path": "src/rendering/light-footprint.ts",
+      "sha256": "1a413c931d1c9131e00cf288131e64c684660700348baef5e5e821c136e9639b"
+    },
+    {
+      "path": "src/rendering/wet-reflection.ts",
+      "sha256": "30b1429e26cd941704664c5410c3ea132daab5331a090e2c4dc8e921e4a12f56"
+    },
+    {
+      "path": "src/rendering/road-macro.ts",
+      "sha256": "b485e2eba0c910b26cdaffd0c380a582bdfff60a0f54dd2232fcc88fe2105e48"
+    },
+    {
+      "path": "src/rendering/tire-finish.ts",
+      "sha256": "88dfb36154b2771fcf7685da11a9f29a5af0110cb3b9b6aab1a5e79976ca3bbc"
+    },
+    {
+      "path": "src/rendering/chain-geometry.ts",
+      "sha256": "c7c753f5b435d9cf24be8e17edd6ce684a86410ae2d27a4fb4665d91bac369de"
+    },
+    {
+      "path": "src/simulation/gp-front-contact.ts",
+      "sha256": "b98fd97de63feff43ba77f4fc36f3a91e1761e5ca91a90d927a3d9044f68396e"
+    },
+    {
+      "path": "src/simulation/circuits.ts",
+      "sha256": "7b0208025d6c0cb25a49bc757e7c69b1fdcb651bdb66803ee75648de24752c90"
+    },
+    {
+      "path": "src/simulation/events.ts",
+      "sha256": "6231f596497857b0eda19a786b2e1444c6df413505f677b63d4dd7c64b5370e4"
+    },
+    {
+      "path": "src/simulation/pit-service.ts",
+      "sha256": "799c8a8f3de91121765d9f7780ebeeeea788e247f694f2eeedf05d5100da7bd7"
+    },
+    {
+      "path": "src/rendering/pit-footwork.ts",
+      "sha256": "4e4d629c42823d62aef33aca888794af663c0b770ba57ec91336914d5e731b10"
+    },
+    {
+      "path": "src/rendering/studio/tyre-letters.ts",
+      "sha256": "24020f4b77b5a51bd50f6cef311e947deb2e2bfafb04d69079e441e1ae85c693"
+    },
+    {
+      "path": "src/rendering/periodic-coverage.ts",
+      "sha256": "2f7b90ef97cabf43cf156027b41866951bd380eb9fb8af68b4ccc4c8133157f0"
+    },
+    {
+      "path": "src/rendering/paint-finish.ts",
+      "sha256": "8b51eff5c0d39157124211e24dc1d52bcd1005ff1b00ade04c2c5343022b0f0e"
+    },
+    {
+      "path": "src/rendering/gp-rider-garment.ts",
+      "sha256": "c11a2c90c8fccfe2653b424971ac7bb318f5d1605342374cb38b1ae204b05e0f"
+    },
+    {
+      "path": "src/rendering/gp-rider-contact.ts",
+      "sha256": "0a30229dd51fdf43a1b0a5cee8a1bc6f72f982d640fa4645fb76a6d9a9f7227c"
+    },
+    {
+      "path": "src/rendering/gp-rider-suit.ts",
+      "sha256": "ca49ed0796c27d1b5995038969862bceee2651361ce6ba4867a608914b5f2e49"
+    },
+    {
+      "path": "src/rendering/offroad/motocross-detail.ts",
+      "sha256": "3800be75956b862f3ca631aa3dab02b5d55fd17978a3b114f81ad59f9be9c238"
+    },
+    {
+      "path": "src/rendering/offroad/motocross-gear.ts",
+      "sha256": "a2b1b46a352d517867d92726395b2796eb8d912e7a8fc8b13e5cebcc2e917d61"
+    },
+    {
+      "path": "src/rendering/helmet-shell.ts",
+      "sha256": "f5f151c6e496c7231f81153c805cdd4b6e9e7d60831ee7bd511de2da5a229f45"
+    },
+    {
+      "path": "src/simulation/circuit-catalogue/index.ts",
+      "sha256": "9ebcd4dd3b631c2c27ce5955d9ef24ac71622a71800457649260a843c1b67f45"
+    },
+    {
+      "path": "src/simulation/circuit-catalogue/venue-data.ts",
+      "sha256": "c48b27ca5e49bb131960fb05e4dcaff3c0b5c492bdcdb5def489d5344aa1f8d7"
+    },
+    {
+      "path": "src/simulation/offroad/venues.ts",
+      "sha256": "f7130a30bb70c375bfbf0aa949428156ee088d255b118e354eaba6a583766508"
+    },
+    {
+      "path": "src/simulation/vehicle.ts",
+      "sha256": "c89d7fb39b7ef7686e2a2b2da20d9ba8986b08d5dc57adbc52c5b204ba620708"
+    },
+    {
+      "path": "src/rendering/offroad/motocross-chain-drive.ts",
+      "sha256": "b0141e00ae21d920bb925587782a9da1edc66cb6e5a505936b4a02e9db5ff682"
+    },
+    {
+      "path": "src/rendering/offroad/motocross-mechanics.ts",
+      "sha256": "eedd94b2ca90c8be2b59a19794a9c12466c73af0a6af5b7af9cb2b224cfb6a93"
+    },
+    {
+      "path": "src/rendering/offroad/number-plate-uv.ts",
+      "sha256": "aa9dc67d42853b9c9882b99add2abbd7d65770f93640cc852a88f5b703a6cf39"
+    },
+    {
+      "path": "src/simulation/circuit-catalogue/events.ts",
+      "sha256": "8d89c3696663168b70b85a80be05ef4fcbd23e8eb5d6d1c583302411573eb720"
+    },
+    {
+      "path": "src/simulation/vehicle-classes.ts",
+      "sha256": "70f3f650e51b975ab76dec71931ecba27290e307710ef6c6a8f720a66a076b28"
+    },
+    {
+      "path": "src/simulation/catalogue-events.ts",
+      "sha256": "ab2f64fa925f5a170531efeca109c95323b8bd3c616868e43e015211ce36980a"
+    },
+    {
+      "path": "src/simulation/offroad/formats.ts",
+      "sha256": "8f80f9eacd13cf1a80b727c3ef4ad2ed0cb792a35f4e480b5e5bde6279608c5a"
+    },
+    {
+      "path": "src/simulation/circuit-catalogue/builder.ts",
+      "sha256": "b6c7b9cdfb5dd2067f95cd9bc4d638cb5a2d4c957140a24b45d0ea2e4cf4444e"
+    },
+    {
+      "path": "src/simulation/circuit-catalogue/dsl.ts",
+      "sha256": "3e4e980d31fa1ab9424e86084f37dcaad10265669d015656003e35e59952c0a6"
+    },
+    {
+      "path": "src/simulation/offroad/course.ts",
+      "sha256": "0a961097fe796b0d0e34dc974c59200466dce1569b06d4cd9d401a239e4fc20a"
+    },
+    {
+      "path": "src/simulation/offroad/course-terrain.ts",
+      "sha256": "15cf18d425f8b6fc04612cff9f39fd068509e2fc28b78f4aa82ca8ab54f43edc"
+    },
+    {
+      "path": "src/simulation/offroad/profile.ts",
+      "sha256": "7d94f8c4a3b2bf414c2950afcec20323fc7cb603d3bdc509493c7f442749a2ce"
+    },
+    {
+      "path": "src/simulation/circuit-catalogue/endurance.ts",
+      "sha256": "0d5a4c8914d3b214fbb6dc1ade62946a7c995aa81d8a57022b97f7aee0ace261"
+    },
+    {
+      "path": "src/simulation/circuit-catalogue/industrial.ts",
+      "sha256": "38c6ac91871dbc636fa79c9813612dae189d1ba3176c574b60fa65412d8bd0cb"
+    },
+    {
+      "path": "src/simulation/circuit-catalogue/motorcycle-gp.ts",
+      "sha256": "8dd2de0842929ed80bb876b6cb5a8760ec2896841da86560f1cf4909d66fed15"
+    },
+    {
+      "path": "src/simulation/circuit-catalogue/night-and-street.ts",
+      "sha256": "4833619d220db7bf321c18510df4e83aef5cbea8ec088f40636379e9feb74d37"
+    },
+    {
+      "path": "src/simulation/circuit-catalogue/real-world-classics.ts",
+      "sha256": "562832bea489c70327f09db1e493808d803ac1b8c1a972811ea003be04241c68"
+    },
+    {
+      "path": "src/simulation/circuit-catalogue/real-world.ts",
+      "sha256": "09daee5348767edae8aef65ad920d79403d1807f4b2ae41fa11ef7ffe23bcecc"
+    },
+    {
+      "path": "src/simulation/circuit-catalogue/unconventional.ts",
+      "sha256": "a6d5b3b91b0faf02d0b7ac0d38fc719649ac8cb6526465621d6372ae2f5439c5"
+    },
+    {
+      "path": "src/simulation/road-contact.ts",
+      "sha256": "1d38e02c09ea1791b1d7ea69f715455f411fef38651236643f24f477aa25fe57"
+    },
+    {
+      "path": "src/simulation/skid-contact.ts",
+      "sha256": "ca3a97e965f0ba6507031847d981fca847345be071dfc65a2e2d7470527a27f0"
+    },
+    {
+      "path": "src/simulation/marshal.ts",
+      "sha256": "20b38f49047e2e2ccc27ce3bf1c3cc5b07c3bd01144ce32c0982169c9518ce6f"
+    },
+    {
+      "path": "src/simulation/clutch.ts",
+      "sha256": "f511e6588d5326ac7573ae566c405589bc904c31a94ceddbb40d5eb110b863c4"
+    },
+    {
+      "path": "src/simulation/damage.ts",
+      "sha256": "2b0268d4c9572e88c8d370d1649a579f151d55a2b5d801849197adaa2a7f95ad"
+    },
+    {
+      "path": "src/simulation/aero.ts",
+      "sha256": "072678c4ce515b222475a02e4f1eda20f21042640dcc74127f1a9bb7f048fef5"
+    },
+    {
+      "path": "src/simulation/suspension.ts",
+      "sha256": "b5499460a767950c79e48df43c53c4314bb969d209d2d106ffbaeb266f8dd556"
+    },
+    {
+      "path": "src/simulation/vehicle-dynamics.ts",
+      "sha256": "6a5ee4f60c340b6afeebb1f4811ba6c2d8f08728453dae0b1b6fdc01272e4344"
+    },
+    {
+      "path": "src/simulation/drs.ts",
+      "sha256": "1c6459cbcdc915387a4ab5ce80e03e232a3c191bccce41f4798e2ff468e60e16"
+    },
+    {
+      "path": "src/simulation/rigid.ts",
+      "sha256": "08c32ae36662f45d25c6ef5acf15f01dc5332463973ccaa3b1959bba6e10d61b"
+    },
+    {
+      "path": "src/simulation/wheel-momentum.ts",
+      "sha256": "46eef7c2e24ec379282988c53ddbd2ea01aec3c04f84a359027536813838ac66"
+    },
+    {
+      "path": "src/simulation/tire.ts",
+      "sha256": "184fbe5801ac24e4508ed8c181cba9fa9094781b19ff94f0195836ca9cdde62d"
+    },
+    {
+      "path": "src/simulation/track.ts",
+      "sha256": "5d13ce425b1872325294630559a0317cbf6177f7e240b4eae7aacac2d86e7fbc"
+    },
+    {
+      "path": "src/simulation/surface-material.ts",
+      "sha256": "ba30aa9ac645a3f2f876a24870387fedefec3a6f66dd33eb9b9dfbf13532919b"
+    },
+    {
+      "path": "src/simulation/terrain.ts",
+      "sha256": "7f5cd88652e9f085429816d16f949802c72240aafaddf8b2412ccd1b10009679"
+    },
+    {
+      "path": "src/simulation/tyre-force.ts",
+      "sha256": "c0a90db1826f0ad750115254726b84e71ed00bb8272156e594111dc8ac3f589c"
+    },
+    {
+      "path": "src/simulation/racing-line.ts",
+      "sha256": "30e541a6c9f624f6809c47eb9447428593e9882ecf806f9db66fe20f9fda0923"
+    },
+    {
+      "path": "src/simulation/contact.ts",
+      "sha256": "6585ffb6957db45e1be40c8e171fbdb3b1702897c7469bf0f89894a2ec547c69"
+    },
+    {
+      "path": "src/simulation/surface-drainage.ts",
+      "sha256": "1a4b181fbb06c72f24170bec027155c7f30c53e3572ecbfaf01d94be1fead1bd"
+    },
+    {
+      "path": "src/simulation/weather.ts",
+      "sha256": "f848f2f7ec82c777f057b10ffa54fe2b226e7dc8a89754c86a5f211674794168"
+    },
+    {
+      "path": "src/simulation/contamination.ts",
+      "sha256": "be99152f738ba230ac65986f83df15869f5227db80bf93737e4c337186b9f005"
+    },
+    {
+      "path": "src/simulation/tyre-thermal.ts",
+      "sha256": "1bd4601060633aa54cc8680b0ca121ee4cff5b33484199096fd27944e1163182"
+    },
+    {
+      "path": "src/simulation/wheel-rotation.ts",
+      "sha256": "e7f1a5e4aac194cd2e8021a8420034e06c98888ec6054d9ac54b54865d0817ef"
+    },
+    {
+      "path": "src/simulation/bvh.ts",
+      "sha256": "36fa58bac53dcdeb0caca18df4bd6d1de1afe26a69a04147d0992e722e537397"
+    },
+    {
+      "path": "src/simulation/brake-thermal.ts",
+      "sha256": "ea1dd82070364d8972bdfbfff849a4eeda1b857cb759db8c3761529372d9d78c"
+    }
+  ],
+  "bundles": {
+    "before": "6e40125c4a044de1174eb0e657db2516f4542e5cd0da18614106c8a3c3d04a53",
+    "after": "2130b284ea4ceee13c879553848a4f2c34e53de044ea512aadb3554745432476"
+  },
+  "reports": [
+    {
+      "phase": "before",
+      "view": "rider-rear",
+      "elapsedMs": 22934,
+      "rows": [
+        {
+          "instance": "34749504-24ac-467f-bc1c-7d657d586024",
+          "sourceFrameUnchanged": true,
+          "resources": {
+            "geometries": 48,
+            "textures": 12,
+            "programs": 17
+          },
+          "preparation": [
+            {
+              "wet": false,
+              "time": 2,
+              "sourceFrameUnchanged": true,
+              "resources": {
+                "geometries": 48,
+                "textures": 12,
+                "programs": 17
+              },
+              "addedPrograms": []
+            },
+            {
+              "wet": false,
+              "time": 2,
+              "sourceFrameUnchanged": true,
+              "resources": {
+                "geometries": 48,
+                "textures": 12,
+                "programs": 17
+              },
+              "addedPrograms": []
+            },
+            {
+              "wet": false,
+              "time": 2,
+              "sourceFrameUnchanged": true,
+              "resources": {
+                "geometries": 48,
+                "textures": 12,
+                "programs": 17
+              },
+              "addedPrograms": []
+            }
+          ],
+          "hash": 2948437633,
+          "cockpit": null,
+          "frontBrake": 0.05,
+          "riderPose": {
+            "lean": 0,
+            "offset": 0,
+            "tuck": 0.75,
+            "steer": 0,
+            "fork": 0.03884886853448276,
+            "shock": 0.03053384754990926,
+            "recovery": null
+          },
+          "frontBrakeLever": {
+            "angle": -0.020000000000000004,
+            "world": [
+              -0.211,
+              0.9081172342479972,
+              0.4284315382623263
+            ]
+          },
+          "windscreen": {
+            "mode": "production",
+            "thickness": 0,
+            "ior": 1.49,
+            "transmission": 1,
+            "opacity": 1,
+            "transparent": false
+          },
+          "weather": {
+            "source": "presented-snapshot",
+            "dampness": 0,
+            "time": 2,
+            "rain": 0,
+            "meanWater": 0,
+            "materialRoles": {
+              "metal": 7,
+              "rubber": 1,
+              "paint": 10,
+              "leather": 5,
+              "fabric": 1
+            },
+            "roadMaterials": 0,
+            "offTrackWetness": "mean-track-water-and-rain approximation",
+            "extraTextures": 0,
+            "extraDraws": 0
+          },
+          "triangles": 32344,
+          "submittedTriangles": 31950,
+          "calls": 36,
+          "glError": 0,
+          "backend": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+          "bounds": {
+            "isBox3": true,
+            "min": {
+              "x": -0.4389742822866973,
+              "y": 0.4152872486751459,
+              "z": -0.4815701576703462
+            },
+            "max": {
+              "x": 0.4378852440325806,
+              "y": 1.2814494498304128,
+              "z": 0.3961960112781191
+            }
+          }
+        },
+        {
+          "instance": "34749504-24ac-467f-bc1c-7d657d586024",
+          "sourceFrameUnchanged": true,
+          "resources": {
+            "geometries": 48,
+            "textures": 12,
+            "programs": 17
+          },
+          "preparation": [
+            {
+              "wet": false,
+              "time": 2,
+              "sourceFrameUnchanged": true,
+              "resources": {
+                "geometries": 48,
+                "textures": 12,
+                "programs": 17
+              },
+              "addedPrograms": []
+            },
+            {
+              "wet": false,
+              "time": 2,
+              "sourceFrameUnchanged": true,
+              "resources": {
+                "geometries": 48,
+                "textures": 12,
+                "programs": 17
+              },
+              "addedPrograms": []
+            },
+            {
+              "wet": false,
+              "time": 2,
+              "sourceFrameUnchanged": true,
+              "resources": {
+                "geometries": 48,
+                "textures": 12,
+                "programs": 17
+              },
+              "addedPrograms": []
+            }
+          ],
+          "hash": 3514193167,
+          "cockpit": null,
+          "frontBrake": 1,
+          "riderPose": {
+            "lean": 1.05,
+            "offset": 0.21,
+            "tuck": 0,
+            "steer": 0.315,
+            "fork": 0.03884886853448276,
+            "shock": 0.03053384754990926,
+            "recovery": null
+          },
+          "frontBrakeLever": {
+            "angle": -0.4,
+            "world": [
+              0.17732230269433202,
+              0.6307750049771721,
+              0.48677350840357114
+            ]
+          },
+          "windscreen": {
+            "mode": "production",
+            "thickness": 0,
+            "ior": 1.49,
+            "transmission": 1,
+            "opacity": 1,
+            "transparent": false
+          },
+          "weather": {
+            "source": "presented-snapshot",
+            "dampness": 1,
+            "time": 4,
+            "rain": 20,
+            "meanWater": 0.6000000238418579,
+            "materialRoles": {
+              "metal": 7,
+              "rubber": 1,
+              "paint": 10,
+              "leather": 5,
+              "fabric": 1
+            },
+            "roadMaterials": 0,
+            "offTrackWetness": "mean-track-water-and-rain approximation",
+            "extraTextures": 0,
+            "extraDraws": 0
+          },
+          "triangles": 32344,
+          "submittedTriangles": 28578,
+          "calls": 27,
+          "glError": 0,
+          "backend": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+          "bounds": {
+            "isBox3": true,
+            "min": {
+              "x": -0.27475575986492234,
+              "y": -0.2047506702911301,
+              "z": -0.4815701576703464
+            },
+            "max": {
+              "x": 0.8339029918501238,
+              "y": 0.7577768466282775,
+              "z": 0.4841666554093918
+            }
+          }
+        },
+        {
+          "instance": "34749504-24ac-467f-bc1c-7d657d586024",
+          "sourceFrameUnchanged": true,
+          "resources": {
+            "geometries": 48,
+            "textures": 12,
+            "programs": 17
+          },
+          "preparation": [
+            {
+              "wet": false,
+              "time": 2,
+              "sourceFrameUnchanged": true,
+              "resources": {
+                "geometries": 48,
+                "textures": 12,
+                "programs": 17
+              },
+              "addedPrograms": []
+            },
+            {
+              "wet": false,
+              "time": 2,
+              "sourceFrameUnchanged": true,
+              "resources": {
+                "geometries": 48,
+                "textures": 12,
+                "programs": 17
+              },
+              "addedPrograms": []
+            },
+            {
+              "wet": false,
+              "time": 2,
+              "sourceFrameUnchanged": true,
+              "resources": {
+                "geometries": 48,
+                "textures": 12,
+                "programs": 17
+              },
+              "addedPrograms": []
+            }
+          ],
+          "hash": 3514193167,
+          "cockpit": null,
+          "frontBrake": 1,
+          "riderPose": {
+            "lean": 1.05,
+            "offset": 0.21,
+            "tuck": 0,
+            "steer": 0.315,
+            "fork": 0.03884886853448276,
+            "shock": 0.03053384754990926,
+            "recovery": null
+          },
+          "frontBrakeLever": {
+            "angle": -0.4,
+            "world": [
+              0.17732230269433202,
+              0.6307750049771721,
+              0.48677350840357114
+            ]
+          },
+          "windscreen": {
+            "mode": "production",
+            "thickness": 0,
+            "ior": 1.49,
+            "transmission": 1,
+            "opacity": 1,
+            "transparent": false
+          },
+          "weather": {
+            "source": "presented-snapshot",
+            "dampness": 1,
+            "time": 4,
+            "rain": 20,
+            "meanWater": 0.6000000238418579,
+            "materialRoles": {
+              "metal": 7,
+              "rubber": 1,
+              "paint": 10,
+              "leather": 5,
+              "fabric": 1
+            },
+            "roadMaterials": 0,
+            "offTrackWetness": "mean-track-water-and-rain approximation",
+            "extraTextures": 0,
+            "extraDraws": 0
+          },
+          "triangles": 32344,
+          "submittedTriangles": 28578,
+          "calls": 27,
+          "glError": 0,
+          "backend": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+          "bounds": {
+            "isBox3": true,
+            "min": {
+              "x": -0.27475575986492234,
+              "y": -0.2047506702911301,
+              "z": -0.4815701576703464
+            },
+            "max": {
+              "x": 0.8339029918501238,
+              "y": 0.7577768466282775,
+              "z": 0.4841666554093918
+            }
+          }
+        },
+        {
+          "instance": "34749504-24ac-467f-bc1c-7d657d586024",
+          "sourceFrameUnchanged": true,
+          "resources": {
+            "geometries": 48,
+            "textures": 12,
+            "programs": 17
+          },
+          "preparation": [
+            {
+              "wet": false,
+              "time": 2,
+              "sourceFrameUnchanged": true,
+              "resources": {
+                "geometries": 48,
+                "textures": 12,
+                "programs": 17
+              },
+              "addedPrograms": []
+            },
+            {
+              "wet": false,
+              "time": 2,
+              "sourceFrameUnchanged": true,
+              "resources": {
+                "geometries": 48,
+                "textures": 12,
+                "programs": 17
+              },
+              "addedPrograms": []
+            },
+            {
+              "wet": false,
+              "time": 2,
+              "sourceFrameUnchanged": true,
+              "resources": {
+                "geometries": 48,
+                "textures": 12,
+                "programs": 17
+              },
+              "addedPrograms": []
+            }
+          ],
+          "hash": 2948437633,
+          "cockpit": null,
+          "frontBrake": 0.05,
+          "riderPose": {
+            "lean": 0,
+            "offset": 0,
+            "tuck": 0.75,
+            "steer": 0,
+            "fork": 0.03884886853448276,
+            "shock": 0.03053384754990926,
+            "recovery": null
+          },
+          "frontBrakeLever": {
+            "angle": -0.020000000000000004,
+            "world": [
+              -0.211,
+              0.9081172342479972,
+              0.4284315382623263
+            ]
+          },
+          "windscreen": {
+            "mode": "production",
+            "thickness": 0,
+            "ior": 1.49,
+            "transmission": 1,
+            "opacity": 1,
+            "transparent": false
+          },
+          "weather": {
+            "source": "presented-snapshot",
+            "dampness": 0,
+            "time": 2,
+            "rain": 0,
+            "meanWater": 0,
+            "materialRoles": {
+              "metal": 7,
+              "rubber": 1,
+              "paint": 10,
+              "leather": 5,
+              "fabric": 1
+            },
+            "roadMaterials": 0,
+            "offTrackWetness": "mean-track-water-and-rain approximation",
+            "extraTextures": 0,
+            "extraDraws": 0
+          },
+          "triangles": 32344,
+          "submittedTriangles": 31950,
+          "calls": 36,
+          "glError": 0,
+          "backend": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+          "bounds": {
+            "isBox3": true,
+            "min": {
+              "x": -0.4389742822866973,
+              "y": 0.4152872486751459,
+              "z": -0.4815701576703462
+            },
+            "max": {
+              "x": 0.4378852440325806,
+              "y": 1.2814494498304128,
+              "z": 0.3961960112781191
+            }
+          }
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "view": "rider-rear",
+      "elapsedMs": 38561,
+      "rows": [
+        {
+          "instance": "0751dd70-70f1-497c-8df2-ce0aa876aa22",
+          "sourceFrameUnchanged": true,
+          "resources": {
+            "geometries": 48,
+            "textures": 12,
+            "programs": 17
+          },
+          "preparation": [
+            {
+              "wet": false,
+              "time": 2,
+              "sourceFrameUnchanged": true,
+              "resources": {
+                "geometries": 48,
+                "textures": 12,
+                "programs": 17
+              },
+              "addedPrograms": []
+            },
+            {
+              "wet": false,
+              "time": 2,
+              "sourceFrameUnchanged": true,
+              "resources": {
+                "geometries": 48,
+                "textures": 12,
+                "programs": 17
+              },
+              "addedPrograms": []
+            },
+            {
+              "wet": false,
+              "time": 2,
+              "sourceFrameUnchanged": true,
+              "resources": {
+                "geometries": 48,
+                "textures": 12,
+                "programs": 17
+              },
+              "addedPrograms": []
+            }
+          ],
+          "hash": 3895477953,
+          "cockpit": null,
+          "frontBrake": 0.05,
+          "riderPose": {
+            "lean": 0,
+            "offset": 0,
+            "tuck": 0.75,
+            "steer": 0,
+            "fork": 0.03884886853448276,
+            "shock": 0.03053384754990926,
+            "recovery": null
+          },
+          "frontBrakeLever": {
+            "angle": -0.020000000000000004,
+            "world": [
+              -0.211,
+              0.9081172342479972,
+              0.4284315382623263
+            ]
+          },
+          "windscreen": {
+            "mode": "production",
+            "thickness": 0,
+            "ior": 1.49,
+            "transmission": 1,
+            "opacity": 1,
+            "transparent": false
+          },
+          "weather": {
+            "source": "presented-snapshot",
+            "dampness": 0,
+            "time": 2,
+            "rain": 0,
+            "meanWater": 0,
+            "materialRoles": {
+              "metal": 7,
+              "rubber": 1,
+              "paint": 10,
+              "leather": 5,
+              "fabric": 1
+            },
+            "roadMaterials": 0,
+            "offTrackWetness": "mean-track-water-and-rain approximation",
+            "extraTextures": 0,
+            "extraDraws": 0
+          },
+          "triangles": 32344,
+          "submittedTriangles": 31950,
+          "calls": 36,
+          "glError": 0,
+          "backend": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+          "bounds": {
+            "isBox3": true,
+            "min": {
+              "x": -0.4389742822866973,
+              "y": 0.41512793014566407,
+              "z": -0.4829870025722708
+            },
+            "max": {
+              "x": 0.4378852440325806,
+              "y": 1.2814494498304128,
+              "z": 0.3961960112781191
+            }
+          }
+        },
+        {
+          "instance": "0751dd70-70f1-497c-8df2-ce0aa876aa22",
+          "sourceFrameUnchanged": true,
+          "resources": {
+            "geometries": 48,
+            "textures": 12,
+            "programs": 17
+          },
+          "preparation": [
+            {
+              "wet": false,
+              "time": 2,
+              "sourceFrameUnchanged": true,
+              "resources": {
+                "geometries": 48,
+                "textures": 12,
+                "programs": 17
+              },
+              "addedPrograms": []
+            },
+            {
+              "wet": false,
+              "time": 2,
+              "sourceFrameUnchanged": true,
+              "resources": {
+                "geometries": 48,
+                "textures": 12,
+                "programs": 17
+              },
+              "addedPrograms": []
+            },
+            {
+              "wet": false,
+              "time": 2,
+              "sourceFrameUnchanged": true,
+              "resources": {
+                "geometries": 48,
+                "textures": 12,
+                "programs": 17
+              },
+              "addedPrograms": []
+            }
+          ],
+          "hash": 755058639,
+          "cockpit": null,
+          "frontBrake": 1,
+          "riderPose": {
+            "lean": 1.05,
+            "offset": 0.21,
+            "tuck": 0,
+            "steer": 0.315,
+            "fork": 0.03884886853448276,
+            "shock": 0.03053384754990926,
+            "recovery": null
+          },
+          "frontBrakeLever": {
+            "angle": -0.4,
+            "world": [
+              0.17732230269433202,
+              0.6307750049771721,
+              0.48677350840357114
+            ]
+          },
+          "windscreen": {
+            "mode": "production",
+            "thickness": 0,
+            "ior": 1.49,
+            "transmission": 1,
+            "opacity": 1,
+            "transparent": false
+          },
+          "weather": {
+            "source": "presented-snapshot",
+            "dampness": 1,
+            "time": 4,
+            "rain": 20,
+            "meanWater": 0.6000000238418579,
+            "materialRoles": {
+              "metal": 7,
+              "rubber": 1,
+              "paint": 10,
+              "leather": 5,
+              "fabric": 1
+            },
+            "roadMaterials": 0,
+            "offTrackWetness": "mean-track-water-and-rain approximation",
+            "extraTextures": 0,
+            "extraDraws": 0
+          },
+          "triangles": 32344,
+          "submittedTriangles": 28578,
+          "calls": 27,
+          "glError": 0,
+          "backend": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+          "bounds": {
+            "isBox3": true,
+            "min": {
+              "x": -0.2753355773347451,
+              "y": -0.2047506702911301,
+              "z": -0.482987002572271
+            },
+            "max": {
+              "x": 0.8339029918501238,
+              "y": 0.7577768466282775,
+              "z": 0.4841666554093918
+            }
+          }
+        },
+        {
+          "instance": "0751dd70-70f1-497c-8df2-ce0aa876aa22",
+          "sourceFrameUnchanged": true,
+          "resources": {
+            "geometries": 48,
+            "textures": 12,
+            "programs": 17
+          },
+          "preparation": [
+            {
+              "wet": false,
+              "time": 2,
+              "sourceFrameUnchanged": true,
+              "resources": {
+                "geometries": 48,
+                "textures": 12,
+                "programs": 17
+              },
+              "addedPrograms": []
+            },
+            {
+              "wet": false,
+              "time": 2,
+              "sourceFrameUnchanged": true,
+              "resources": {
+                "geometries": 48,
+                "textures": 12,
+                "programs": 17
+              },
+              "addedPrograms": []
+            },
+            {
+              "wet": false,
+              "time": 2,
+              "sourceFrameUnchanged": true,
+              "resources": {
+                "geometries": 48,
+                "textures": 12,
+                "programs": 17
+              },
+              "addedPrograms": []
+            }
+          ],
+          "hash": 755058639,
+          "cockpit": null,
+          "frontBrake": 1,
+          "riderPose": {
+            "lean": 1.05,
+            "offset": 0.21,
+            "tuck": 0,
+            "steer": 0.315,
+            "fork": 0.03884886853448276,
+            "shock": 0.03053384754990926,
+            "recovery": null
+          },
+          "frontBrakeLever": {
+            "angle": -0.4,
+            "world": [
+              0.17732230269433202,
+              0.6307750049771721,
+              0.48677350840357114
+            ]
+          },
+          "windscreen": {
+            "mode": "production",
+            "thickness": 0,
+            "ior": 1.49,
+            "transmission": 1,
+            "opacity": 1,
+            "transparent": false
+          },
+          "weather": {
+            "source": "presented-snapshot",
+            "dampness": 1,
+            "time": 4,
+            "rain": 20,
+            "meanWater": 0.6000000238418579,
+            "materialRoles": {
+              "metal": 7,
+              "rubber": 1,
+              "paint": 10,
+              "leather": 5,
+              "fabric": 1
+            },
+            "roadMaterials": 0,
+            "offTrackWetness": "mean-track-water-and-rain approximation",
+            "extraTextures": 0,
+            "extraDraws": 0
+          },
+          "triangles": 32344,
+          "submittedTriangles": 28578,
+          "calls": 27,
+          "glError": 0,
+          "backend": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+          "bounds": {
+            "isBox3": true,
+            "min": {
+              "x": -0.2753355773347451,
+              "y": -0.2047506702911301,
+              "z": -0.482987002572271
+            },
+            "max": {
+              "x": 0.8339029918501238,
+              "y": 0.7577768466282775,
+              "z": 0.4841666554093918
+            }
+          }
+        },
+        {
+          "instance": "0751dd70-70f1-497c-8df2-ce0aa876aa22",
+          "sourceFrameUnchanged": true,
+          "resources": {
+            "geometries": 48,
+            "textures": 12,
+            "programs": 17
+          },
+          "preparation": [
+            {
+              "wet": false,
+              "time": 2,
+              "sourceFrameUnchanged": true,
+              "resources": {
+                "geometries": 48,
+                "textures": 12,
+                "programs": 17
+              },
+              "addedPrograms": []
+            },
+            {
+              "wet": false,
+              "time": 2,
+              "sourceFrameUnchanged": true,
+              "resources": {
+                "geometries": 48,
+                "textures": 12,
+                "programs": 17
+              },
+              "addedPrograms": []
+            },
+            {
+              "wet": false,
+              "time": 2,
+              "sourceFrameUnchanged": true,
+              "resources": {
+                "geometries": 48,
+                "textures": 12,
+                "programs": 17
+              },
+              "addedPrograms": []
+            }
+          ],
+          "hash": 3895477953,
+          "cockpit": null,
+          "frontBrake": 0.05,
+          "riderPose": {
+            "lean": 0,
+            "offset": 0,
+            "tuck": 0.75,
+            "steer": 0,
+            "fork": 0.03884886853448276,
+            "shock": 0.03053384754990926,
+            "recovery": null
+          },
+          "frontBrakeLever": {
+            "angle": -0.020000000000000004,
+            "world": [
+              -0.211,
+              0.9081172342479972,
+              0.4284315382623263
+            ]
+          },
+          "windscreen": {
+            "mode": "production",
+            "thickness": 0,
+            "ior": 1.49,
+            "transmission": 1,
+            "opacity": 1,
+            "transparent": false
+          },
+          "weather": {
+            "source": "presented-snapshot",
+            "dampness": 0,
+            "time": 2,
+            "rain": 0,
+            "meanWater": 0,
+            "materialRoles": {
+              "metal": 7,
+              "rubber": 1,
+              "paint": 10,
+              "leather": 5,
+              "fabric": 1
+            },
+            "roadMaterials": 0,
+            "offTrackWetness": "mean-track-water-and-rain approximation",
+            "extraTextures": 0,
+            "extraDraws": 0
+          },
+          "triangles": 32344,
+          "submittedTriangles": 31950,
+          "calls": 36,
+          "glError": 0,
+          "backend": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+          "bounds": {
+            "isBox3": true,
+            "min": {
+              "x": -0.4389742822866973,
+              "y": 0.41512793014566407,
+              "z": -0.4829870025722708
+            },
+            "max": {
+              "x": 0.4378852440325806,
+              "y": 1.2814494498304128,
+              "z": 0.3961960112781191
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

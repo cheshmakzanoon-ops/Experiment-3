@@ -1,0 +1,239 @@
+{
+  "reviewedCodeCommit": "aad08a3a5449181d6812973c1e6db29d3f621586",
+  "observedAt": "2026-10-20 04:19:01 UTC",
+  "scope": "Snapshot of GitHub Actions for the published code commit. Queued and in-progress jobs are not passing evidence.",
+  "completedEvidence": {
+    "focusedUnit": {
+      "jobId": 118449895416,
+      "passed": 514,
+      "failed": 0,
+      "files": 45,
+      "durationSeconds": 83.64,
+      "sourceStabilityGuard": true,
+      "report": "ci-unit-tests.json",
+      "artifactId": 12240219341,
+      "artifactSha256": "0f4d5783a0d89f9ba247ca410cd0ccb0ea69ab57490e72bf767b3c3a562b0605"
+    },
+    "productionBuild": {
+      "jobId": 118449894878,
+      "stepName": "Run npm run build",
+      "stepConclusion": "success",
+      "command": "tsc --noEmit && vite build",
+      "scope": "Successful build step in the garage job for this exact commit; the whole garage job and original GP riding matrix are separate results."
+    }
+  },
+  "runs": [
+    {
+      "id": 39368241259,
+      "name": "MotoGP focused review",
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39368241259",
+      "jobs": [
+        {
+          "id": 118449895291,
+          "name": "build",
+          "status": "queued",
+          "conclusion": null,
+          "run_id": 39368241259,
+          "logs_url": null,
+          "steps": null
+        },
+        {
+          "id": 118449895416,
+          "name": "unit",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 39368241259,
+          "logs_url": null,
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3
+            },
+            {
+              "name": "Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4
+            },
+            {
+              "name": "MotoGP geometry, driving, guidance, recording and compatibility contracts",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5
+            },
+            {
+              "name": "Preserve complete test results",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 11
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 12
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 13
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 39368241205,
+      "name": "Build and validation",
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39368241205",
+      "jobs": [
+        {
+          "id": 118449895521,
+          "name": "validate",
+          "status": "queued",
+          "conclusion": null,
+          "run_id": 39368241205,
+          "logs_url": null,
+          "steps": null
+        },
+        {
+          "id": 118449895545,
+          "name": "unit-tests",
+          "status": "queued",
+          "conclusion": null,
+          "run_id": 39368241205,
+          "logs_url": null,
+          "steps": null
+        },
+        {
+          "id": 118449895655,
+          "name": "offroad-scenarios",
+          "status": "queued",
+          "conclusion": null,
+          "run_id": 39368241205,
+          "logs_url": null,
+          "steps": null
+        },
+        {
+          "id": 118449895676,
+          "name": "scenarios",
+          "status": "queued",
+          "conclusion": null,
+          "run_id": 39368241205,
+          "logs_url": null,
+          "steps": null
+        }
+      ]
+    },
+    {
+      "id": 39368241201,
+      "name": "A22 garage integration validation",
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39368241201",
+      "jobs": [
+        {
+          "id": 118449894878,
+          "name": "garage",
+          "status": "in_progress",
+          "conclusion": null,
+          "run_id": 39368241201,
+          "logs_url": null,
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3
+            },
+            {
+              "name": "Run npm ci --no-audit --no-fund",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4
+            },
+            {
+              "name": "Run npm test -- tests/hero-garage.test.ts",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5
+            },
+            {
+              "name": "Run npm run build",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6
+            },
+            {
+              "name": "Run npx playwright install --with-deps chromium",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 7
+            },
+            {
+              "name": "Run sudo apt-get update && sudo apt-get install -y xvfb libgl1-mesa-dri libegl-mesa0 mesa-utils",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 8
+            },
+            {
+              "name": "Normal application startup and three real-circuit lighting surveys",
+              "status": "in_progress",
+              "conclusion": null,
+              "number": 9
+            },
+            {
+              "name": "Run actions/upload-artifact@v4",
+              "status": "pending",
+              "conclusion": null,
+              "number": 10
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "status": "pending",
+              "conclusion": null,
+              "number": 19
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "pending",
+              "conclusion": null,
+              "number": 20
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

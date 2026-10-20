@@ -1,0 +1,51 @@
+{
+  "stats": {
+    "startTime": "2026-10-20T03:08:56.319Z",
+    "duration": 748545.8809999999,
+    "expected": 1,
+    "skipped": 0,
+    "unexpected": 2,
+    "flaky": 0
+  },
+  "tests": [
+    {
+      "file": "gp-course-boards.spec.ts",
+      "title": "GP course markers and protective covers render through dry, wet, held and restored views",
+      "status": "passed",
+      "durationMs": 22527,
+      "errors": []
+    },
+    {
+      "file": "motogp-riding-flow.spec.ts",
+      "title": "GP practice rides through named corner guidance, cockpit, pause and recorded replay",
+      "status": "failed",
+      "durationMs": 349589,
+      "errors": [
+        {
+          "location": {
+            "file": "/workspace/scratch/3c56136299d4/Experiment-3/e2e/race-entry.ts",
+            "column": 3,
+            "line": 6
+          },
+          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoMatch\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected pattern: \u001b[32m/^(driving|briefing)$/\u001b[39m\nReceived string:  \u001b[31m\"loading\"\u001b[39m\n\nCall Log:\n- Timeout 180000ms exceeded while waiting on the predicate\n\n   at race-entry.ts:6\n\n  4 |  * preferences, inject simulation data, or auto-dismiss the new pregame test. */\n  5 | export async function finishRaceEntry(page: Page) {\n> 6 |   await expect\n    |   ^\n  7 |     .poll(\n  8 |       async () => {\n  9 |         const d = await page.evaluate(() => window.apexDiagnostics());\n    at finishRaceEntry (/workspace/scratch/3c56136299d4/Experiment-3/e2e/race-entry.ts:6:3)\n    at /workspace/scratch/3c56136299d4/Experiment-3/e2e/motogp-riding-flow.spec.ts:106:3"
+        }
+      ]
+    },
+    {
+      "file": "motogp-wet-riding.spec.ts",
+      "title": "GP wet practice renders live two-tyre spray, advances normally and holds on pause",
+      "status": "failed",
+      "durationMs": 310652,
+      "errors": [
+        {
+          "location": {
+            "file": "/workspace/scratch/3c56136299d4/Experiment-3/e2e/race-entry.ts",
+            "column": 3,
+            "line": 6
+          },
+          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoMatch\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected pattern: \u001b[32m/^(driving|briefing)$/\u001b[39m\nReceived string:  \u001b[31m\"loading\"\u001b[39m\n\nCall Log:\n- Timeout 180000ms exceeded while waiting on the predicate\n\n   at race-entry.ts:6\n\n  4 |  * preferences, inject simulation data, or auto-dismiss the new pregame test. */\n  5 | export async function finishRaceEntry(page: Page) {\n> 6 |   await expect\n    |   ^\n  7 |     .poll(\n  8 |       async () => {\n  9 |         const d = await page.evaluate(() => window.apexDiagnostics());\n    at finishRaceEntry (/workspace/scratch/3c56136299d4/Experiment-3/e2e/race-entry.ts:6:3)\n    at /workspace/scratch/3c56136299d4/Experiment-3/e2e/motogp-wet-riding.spec.ts:53:3"
+        }
+      ]
+    }
+  ]
+}

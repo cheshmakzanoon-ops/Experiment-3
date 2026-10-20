@@ -1,0 +1,166 @@
+{
+  "scope": "Controlled paired GP-R2 compact nose and flatter tail inspection, not an original-repository baseline",
+  "runnerExitCode": 0,
+  "backend": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+  "phaseDeadlineMs": 300000,
+  "viewport": [
+    1280,
+    800
+  ],
+  "beforeScope": {
+    "module": "before-bike.ts",
+    "basis": "Controlled final-source substitution only; not an exact pre-silhouette code revision: catalogue upper cowl and unflattened tail replace the final compact cowl and flattened crown.",
+    "substitutions": [
+      "GP-R2 gpCompactCowl(m, detail) -> gpUpperCowl(m, detail)",
+      "Remove flattenGpR2Tail(tail.geometry) call and shallow-tail diagnostic name"
+    ],
+    "unchanged": "Final formed aero, projected entrant identity, original materials, mechanics, camera, lighting and weather implementation remain common.",
+    "currentExclusionsRetained": [
+      {
+        "detail": "Obsolete GP-R2 decorative black circle intake",
+        "geometry": "CircleGeometry(0.03, 16)",
+        "placement": [
+          0,
+          0.15,
+          0.957
+        ],
+        "status": "Remains removed, as in final production source. The before fixture does not restore it.",
+        "inventoryTriangles": 16
+      }
+    ],
+    "comparisonToArchivedAeroOnlyCandidate": {
+      "archivedReceipt": "../after-metrics.json",
+      "archivedCompleteModelTriangles": 95868,
+      "controlledCompleteModelTriangles": 95852,
+      "archivedSubmittedDrawCalls": 117,
+      "controlledSubmittedDrawCalls": 115,
+      "reason": "The old decorative 16-triangle circle is absent from the controlled before. Current aero, projected paint and all shared dependencies remain common to the controlled pair."
+    }
+  },
+  "sourceUnchangedAfterCapture": {
+    "src/rendering/bike.ts": true,
+    "src/rendering/gp-bodywork.ts": true,
+    "src/rendering/gp-r2-aero.ts": true,
+    "src/rendering/bike-livery.ts": true,
+    "src/rendering/assets/gp-bodywork.mesh.json": true,
+    "tests/gp-r2-bodywork.test.ts": true,
+    "tests/gp-mesh-clearance.ts": true
+  },
+  "sourceSha256": {
+    "src/rendering/bike.ts": "401a4863bd24403cd0c33cc5bcf192bf84d48db834f46d1aba1586846df31f84",
+    "src/rendering/gp-bodywork.ts": "b9648b459d369190995bec58bee064f6a1793f2616cbefbc54edfcfbd30ac409",
+    "src/rendering/gp-r2-aero.ts": "2ab31643fda77802c4832957da8264127e99d02938b645d1100a02809bf73b12",
+    "src/rendering/bike-livery.ts": "92cf9503b684986cdf72ef78f8d39057da4f8c94703148c1bca46a5e9e1d1eb6",
+    "src/rendering/assets/gp-bodywork.mesh.json": "72a7fb6e2e47c2be0abd1b89495f74d1e9c64dc1f4c755540aa8b0983dadd3d4",
+    "tests/gp-r2-bodywork.test.ts": "ba3eb7d2201d0b2f8b08508e7d4f13ed8115a65395f98c496080fed59c8014c0",
+    "tests/gp-mesh-clearance.ts": "a4190390991ff500792401a13a70704ae87031f4ed9e7395359379f271f67dfa"
+  },
+  "bundleSha256": "cba9618da67217001c5109c0c2bdd18f1de29a4daa01cdada477e5fc05b70249",
+  "framesPerPhase": 12,
+  "originalEarlierReceiptsPreservedInParentDirectory": true,
+  "versions": {
+    "before": {
+      "completeModelTriangles": 95852,
+      "submittedTriangles": 124884,
+      "submittedDrawCalls": 115,
+      "residentResources": {
+        "geometries": 70,
+        "textures": 18,
+        "programs": 49
+      },
+      "glErrors": 0,
+      "pageOrConsoleErrors": [],
+      "sequences": [
+        {
+          "view": "three-quarter",
+          "dryWetHeldRewindHashes": [
+            2508707485,
+            947905373,
+            947905373,
+            2508707485
+          ]
+        },
+        {
+          "view": "side",
+          "dryWetHeldRewindHashes": [
+            678157629,
+            546857058,
+            546857058,
+            678157629
+          ]
+        },
+        {
+          "view": "front",
+          "dryWetHeldRewindHashes": [
+            2316031615,
+            1681098714,
+            1681098714,
+            2316031615
+          ]
+        }
+      ]
+    },
+    "after": {
+      "completeModelTriangles": 93813,
+      "submittedTriangles": 121587,
+      "submittedDrawCalls": 117,
+      "residentResources": {
+        "geometries": 71,
+        "textures": 18,
+        "programs": 49
+      },
+      "glErrors": 0,
+      "pageOrConsoleErrors": [],
+      "sequences": [
+        {
+          "view": "three-quarter",
+          "dryWetHeldRewindHashes": [
+            3418112271,
+            4060655922,
+            4060655922,
+            3418112271
+          ]
+        },
+        {
+          "view": "side",
+          "dryWetHeldRewindHashes": [
+            1855939904,
+            57001574,
+            57001574,
+            1855939904
+          ]
+        },
+        {
+          "view": "front",
+          "dryWetHeldRewindHashes": [
+            4183107108,
+            1964203577,
+            1964203577,
+            4183107108
+          ]
+        }
+      ]
+    }
+  },
+  "finalVisualJudgment": "Broader compact nose with recessed slot and flatter aft crown visibly improve the silhouette. The exposed tank/frame integration, retained saddle-to-tail rise, and very faint unchanged screen still limit realism.",
+  "acceptanceLimit": "Isolated production bodywork only; rider hidden. Complete dry/wet riding flows have not passed the original entry preparation deadlines.",
+  "difference": {
+    "completeModelTriangles": -2039,
+    "submittedTriangles": -3297,
+    "submittedDrawCalls": 2
+  },
+  "images": {
+    "after-front-dry.png": "c52480d0420759755fb2f39350281ba4a095d1e30ec9df082ddc7bdd948af90d",
+    "after-front-wet.png": "39b602fc13cc1db8dc24263785cd6b6e63f2089905277237906c20f30763849f",
+    "after-side-dry.png": "15b50c54ab935dbaba2be66e92860e744a670a700c1b4213dd3214c7ada46f50",
+    "after-side-wet.png": "67127e43565345604c104b68a4c48cd300a4959b2b78d5756566adfa5f756a87",
+    "after-three-quarter-dry.png": "3b69496ac1a3a8a8ec83af67beda11a5c43a9455501c3e38605c38f74a652b21",
+    "after-three-quarter-wet.png": "c509b283a7f82ba92c468c226baadf85d417f96decdfdc38f956601d0c24b62d",
+    "before-front-dry.png": "1d8aa961553a285ffa5bd2964fdd5f2f9fe591a82de302d807be89b250eba236",
+    "before-front-wet.png": "83b3490382df40b0146e3e8561b7617261d9aa0b1edd9c2e1b870e91ba60b9f6",
+    "before-side-dry.png": "2c238c8b838a2a5a25bb341775db66964bf3806690cf537e519d2a724b564269",
+    "before-side-wet.png": "1b488ebde398074d097ec6247bf256233913898c7bee8f8aad48ea3e617b013c",
+    "before-three-quarter-dry.png": "a02df7489de90cf495b8f7f7290f907144efb53d63ed705c17043a8e3f0b22e9",
+    "before-three-quarter-wet.png": "9a5fd0c20e25f05c33fafebc8e3b34e2e34f6b15c5ca106d9385cd86d9d69aac"
+  }
+}

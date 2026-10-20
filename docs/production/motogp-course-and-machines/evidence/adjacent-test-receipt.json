@@ -1,0 +1,81 @@
+{
+  "kind": "Structured receipt assembled from completed Vitest exec output; not a native Vitest JSON report",
+  "command": "npx vitest run tests/gp-cowl-normals.test.ts tests/bike-cockpit-view.test.ts tests/gp-appearance.test.ts tests/gp-rear-chassis.test.ts tests/bike-bodies.test.ts tests/bike-steering-detail.test.ts --maxWorkers=1",
+  "cwd": "/workspace/scratch/3c56136299d4/Experiment-3",
+  "exitCode": 0,
+  "durationSeconds": 91.18,
+  "filesPassed": 6,
+  "testsPassed": 38,
+  "testsFailed": 0,
+  "files": [
+    {
+      "path": "tests/gp-cowl-normals.test.ts",
+      "testsPassed": 3,
+      "status": "passed"
+    },
+    {
+      "path": "tests/bike-cockpit-view.test.ts",
+      "testsPassed": 8,
+      "status": "passed"
+    },
+    {
+      "path": "tests/gp-appearance.test.ts",
+      "testsPassed": 13,
+      "status": "passed"
+    },
+    {
+      "path": "tests/gp-rear-chassis.test.ts",
+      "testsPassed": 10,
+      "status": "passed"
+    },
+    {
+      "path": "tests/bike-bodies.test.ts",
+      "testsPassed": 2,
+      "status": "passed"
+    },
+    {
+      "path": "tests/bike-steering-detail.test.ts",
+      "testsPassed": 2,
+      "status": "passed"
+    }
+  ],
+  "sourceSha256": {
+    "src/rendering/bike.ts": "401a4863bd24403cd0c33cc5bcf192bf84d48db834f46d1aba1586846df31f84",
+    "src/rendering/gp-bodywork.ts": "b9648b459d369190995bec58bee064f6a1793f2616cbefbc54edfcfbd30ac409",
+    "src/rendering/gp-r2-aero.ts": "2ab31643fda77802c4832957da8264127e99d02938b645d1100a02809bf73b12",
+    "src/rendering/bike-livery.ts": "92cf9503b684986cdf72ef78f8d39057da4f8c94703148c1bca46a5e9e1d1eb6",
+    "tests/gp-r2-bodywork.test.ts": "ba3eb7d2201d0b2f8b08508e7d4f13ed8115a65395f98c496080fed59c8014c0",
+    "tests/gp-mesh-clearance.ts": "a4190390991ff500792401a13a70704ae87031f4ed9e7395359379f271f67dfa",
+    "tests/gp-cowl-normals.test.ts": "776ada089a29f729d1914ce6420adb6a7315f0893a09307173c25dc920788eec",
+    "tests/bike-cockpit-view.test.ts": "7f973124f0dbe83cccbb2a0050f6189c025669fcc2483eaa4cf63622c57153f5",
+    "tests/gp-appearance.test.ts": "44c2df7979b35c46830f11d3bbb4e289ed49e9cb4728b7160ad185cbd09dac15",
+    "tests/gp-rear-chassis.test.ts": "c326c58883b1975054d46dd00ca6942f1327ae1c9422da4c19842873c8385267",
+    "tests/bike-bodies.test.ts": "5fe6c0680b60c49228eeffd6adde2768a7345c9c2c3ed5df611c3aae97f5bd49",
+    "tests/bike-steering-detail.test.ts": "aa87eb699dd0ffc7f1da2a27d5bce5e558e62ddef39079686639679da8785a41"
+  },
+  "previousFocusedGate": {
+    "file": "tests/gp-r2-bodywork.test.ts",
+    "testsPassed": 13,
+    "exitCode": 0,
+    "durationSeconds": 14.29,
+    "startTimeAsReportedByVitest": "11:43:44"
+  },
+  "formatAndLint": {
+    "eslint": "passed for six owned source/test files",
+    "prettierCheck": "passed for six owned source/test files",
+    "gitDiffCheck": "passed for owned paths"
+  },
+  "clearanceScope": {
+    "variants": [
+      "high",
+      "mid"
+    ],
+    "posesPerVariant": 9,
+    "columnSpacingMeters": 0.006,
+    "maximumAllowedLocalRegressionMeters": 0.002,
+    "surfaces": "Actual paint and merged dark return/duct triangle hits against moving steering assembly occupied intervals",
+    "positiveControl": "A closed shell containing a small inner solid reports no surface intrusion; a crossing solid reports intrusion for both closed shell and open plane."
+  },
+  "limitation": "Full-game dry/wet preparation acceptance has not passed; this receipt covers CPU geometry/material/cockpit and rig contracts only.",
+  "startTimeAsReportedByVitest": "11:44:48"
+}

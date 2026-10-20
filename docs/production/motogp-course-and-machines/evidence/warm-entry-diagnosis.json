@@ -1,0 +1,271 @@
+{
+  "schemaVersion": 1,
+  "run": {
+    "classification": "Final-source warm-cache browser entry attempts; dry and wet results kept distinct",
+    "cacheQualification": "The parent reports a populated shader cache; the traces do not measure individual shader-cache hits.",
+    "sourceFingerprint": "23222e0cd8518eb89f1923c02710f9160353590fd445678704266e9ad6e38cd0",
+    "buildCommit": null,
+    "outerTestDeadlineMs": 300000,
+    "entryPredicateTimeoutMs": 180000,
+    "viewport": [
+      1280,
+      800
+    ],
+    "quality": "low",
+    "session": {
+      "circuit": "poggio-alto",
+      "vehicle": "gpr1",
+      "riders": 4,
+      "mode": "practice"
+    },
+    "laterGeometryRevisionsIncluded": false,
+    "method": "Read-only inspection of existing trace events, DOM snapshots, recorded pixels, network responses and corresponding production code. No code/test edits or new browser/GPU run."
+  },
+  "timingReference": "Each case uses seconds from its own test.trace context-options.monotonicTime; these are not elapsed times from launching the overall browser command.",
+  "cases": {
+    "dry": {
+      "trace": "/dev/shm/motogp-review-3c56136299d4-final-results/motogp-riding-flow-GP-prac-da324-t-pause-and-recorded-replay/trace.zip",
+      "weather": "clear",
+      "compound": "medium",
+      "traceOriginMs": 32611.244,
+      "timeline": [
+        {
+          "seconds": 49.219,
+          "event": "Initial menu-visible assertion completed"
+        },
+        {
+          "seconds": 70.564,
+          "event": "GP-R1 menu preview confirmed current"
+        },
+        {
+          "startSeconds": 71.011,
+          "endSeconds": 77.719,
+          "event": "ENTER CIRCUIT click"
+        },
+        {
+          "seconds": 120.686,
+          "event": "DOM reports 100% Scene ready"
+        },
+        {
+          "seconds": 120.796,
+          "event": "Renderer exists; selected Poggio/GP-R1 session options assigned"
+        },
+        {
+          "seconds": 125.737,
+          "event": "Last diagnostic: four-rider physics frame present; preparation building fallback Formula car 4/4"
+        },
+        {
+          "seconds": 125.878,
+          "event": "Later DOM snapshot reports Building GP motorcycles and riders"
+        },
+        {
+          "seconds": 131.278,
+          "event": "Last recorded pixel shows PREPARING GRAPHICS at 90%"
+        },
+        {
+          "seconds": 292.865,
+          "event": "finishRaceEntry primary failure: 180000 ms poll exceeded; received loading"
+        },
+        {
+          "startSeconds": 125.906,
+          "endSeconds": 364.432,
+          "event": "Pending raceBriefing visibility call ends with Test ended"
+        },
+        {
+          "seconds": 366.411,
+          "event": "After Hooks completed"
+        }
+      ],
+      "lastDiagnostic": {
+        "state": "loading",
+        "optionsCorrect": true,
+        "physicsFrameLength": 1216,
+        "physicsCars": 4,
+        "vehicleCodes": [
+          2,
+          2,
+          2,
+          2
+        ],
+        "preparationStatus": "preparing",
+        "preparationElapsedMs": 3094.7,
+        "lastStage": "Building original Formula car 4 / 4\u2026",
+        "stageError": null,
+        "warmupFrames": 0,
+        "gpuSubmittedFrames": 0,
+        "gridMode": "original",
+        "shadowSize": 0,
+        "constructionTasks": 673,
+        "constructionWorkMs": 20878.2,
+        "maximumConstructionTaskMs": 8651.8
+      },
+      "boundary": "Race entry did not reach driving or briefing. Later pixels prove it advanced beyond the stale fallback-car diagnostic and GP motorcycle construction to graphics preparation. The display title maps to material compilation and shadow-caster preparation, so the precise final substage cannot be recovered from the last pixel alone.",
+      "primaryError": "finishRaceEntry: Expected /^(driving|briefing)$/; received loading; Timeout 180000ms exceeded while waiting on the predicate.",
+      "secondaryError": "locator.isVisible: Test ended.",
+      "network": {
+        "responses": 183,
+        "status200": 183,
+        "recordedFailures": 0
+      },
+      "browserEvents": {
+        "console": 0,
+        "pageError": 0,
+        "targetCrashReported": false
+      },
+      "lastPixel": "/workspace/scratch/3c56136299d4/motogp-course-review/warm-last-screen-1.jpeg"
+    },
+    "wet": {
+      "trace": "/dev/shm/motogp-review-3c56136299d4-final-results/motogp-wet-riding-GP-wet-p-8a485-normally-and-holds-on-pause/trace.zip",
+      "weather": "rain",
+      "compound": "wet",
+      "timeline": [
+        {
+          "seconds": 54.693,
+          "event": "Initial menu-visible assertion completed"
+        },
+        {
+          "startSeconds": 73.484,
+          "endSeconds": 87.84,
+          "event": "ENTER CIRCUIT click"
+        },
+        {
+          "seconds": 120.089,
+          "event": "DOM reports 100% Scene ready"
+        },
+        {
+          "seconds": 121.207,
+          "event": "Renderer exists; correct selected wet GP session options assigned"
+        },
+        {
+          "seconds": 123.8,
+          "event": "Last diagnostic: four-rider frame present; preparation building fallback Formula car 4/4"
+        },
+        {
+          "seconds": 123.929,
+          "event": "DOM reports Building GP motorcycles and riders"
+        },
+        {
+          "seconds": 127.974,
+          "event": "DOM reports Compiling circuit and vehicle materials"
+        },
+        {
+          "seconds": 144.184,
+          "event": "DOM reports Warming shadows and scene reflections"
+        },
+        {
+          "seconds": 144.238,
+          "event": "Last recorded pixel shows SETTING UP CAMERAS at 90%"
+        },
+        {
+          "seconds": 270.986,
+          "event": "finishRaceEntry primary failure: 180000 ms poll exceeded; received loading"
+        },
+        {
+          "startSeconds": 145.192,
+          "endSeconds": 298.339,
+          "event": "Pending diagnostic evaluation reports Target crashed"
+        },
+        {
+          "seconds": 312.883,
+          "event": "After Hooks completed"
+        }
+      ],
+      "lastDiagnostic": {
+        "state": "loading",
+        "optionsCorrect": true,
+        "physicsFrameLength": 1216,
+        "preparationStatus": "preparing",
+        "preparationElapsedMs": 2409.6,
+        "lastStage": "Building original Formula car 4 / 4\u2026",
+        "stageError": null,
+        "warmupFrames": 0,
+        "gpuSubmittedFrames": 0,
+        "shadowSize": 0,
+        "constructionTasks": 673,
+        "constructionWorkMs": 14206.8,
+        "maximumConstructionTaskMs": 7048
+      },
+      "boundary": "Race entry did not reach driving or briefing. Later DOM snapshots prove material compilation returned and the first chase warmup stage began. No completion of the first chase draw, pit-service warmup or GPU-completion gate is recorded.",
+      "primaryError": "finishRaceEntry: Expected /^(driving|briefing)$/; received loading; Timeout 180000ms exceeded while waiting on the predicate.",
+      "secondaryError": "page.evaluate: Target crashed. Reported after the primary timeout; the trace does not determine when the underlying crash occurred or prove it caused the preceding timeout.",
+      "network": {
+        "responses": 183,
+        "status200": 183,
+        "recordedFailures": 0
+      },
+      "browserEvents": {
+        "console": 0,
+        "pageError": 0,
+        "targetCrashReported": true
+      },
+      "lastPixel": "/workspace/scratch/3c56136299d4/motogp-course-review/warm-wet-last-screen.jpeg"
+    }
+  },
+  "codeFindings": [
+    {
+      "source": "src/main.ts",
+      "line": 1020,
+      "finding": "The ordinary requestAnimationFrame path returns while state is loading, before normal scene drawing. An unintended normal loading-frame draw is not supported by this path."
+    },
+    {
+      "source": "src/main.ts",
+      "line": 889,
+      "finding": "The first physics snapshot resolves readiness before renderer.prepare. Both warm traces reach this preparation phase; circuit construction and worker readiness are not their first unreached boundaries."
+    },
+    {
+      "source": "src/rendering/renderer.ts",
+      "line": 808,
+      "finding": "setCars constructs full FormulaCar objects. prepare builds these fallback roots before BikeShells.update builds GP models and hides Formula roots."
+    },
+    {
+      "source": "src/rendering/bike.ts",
+      "line": 2100,
+      "finding": "Each bike entry constructs high/mid/far models plus a service rig; update hides the corresponding Formula root. Later warm-run loading labels show this stage was passed."
+    },
+    {
+      "source": "src/rendering/renderer.ts",
+      "line": 916,
+      "finding": "Preparation compiles the whole live scene before the first chase draw. The next explicit draw is inside the chase/cockpit warmup loop, not the ordinary loading rAF."
+    },
+    {
+      "source": "src/rendering/preparation.ts",
+      "line": 6,
+      "finding": "compileSceneTarget preserves render-target state and calls renderer.compileAsync(scene,camera). It does not currently narrow compilation to GP-owned visible/required vehicle subtrees."
+    },
+    {
+      "source": "node_modules/three/src/renderers/WebGLRenderer.js",
+      "line": 1354,
+      "finding": "Three compile uses scene.traverse, not traverseVisible, for renderable materials. Hidden Formula/RB19 roots and inactive bike LODs/service rigs therefore remain in whole-scene shader preparation. compileAsync first calls compile synchronously, then polls program readiness."
+    },
+    {
+      "source": "src/rendering/far-shadow.ts",
+      "line": 216,
+      "finding": "Shadow-caster warmup returns immediately when renderer.shadowMap.enabled is false. The low preset recorded in these traces has shadowSize=0, which renderer.setQuality maps to disabled shadow maps."
+    }
+  ],
+  "actionableInference": {
+    "dry": "Whole-scene material compilation is the leading code-supported cost candidate after the final recorded graphics label. The trace lacks a stack or returned preparation receipt after that label, so this is not a proved per-material root cause.",
+    "wet": "The later boundary is first chase scene warmup, followed by a target-crash report. Compilation alone cannot explain the wet observation because its compilation phase completed.",
+    "targetedInvestigation": "Assess excluding only confirmed-hidden Formula/RB19 fallback roots from GP compilation while preserving all GP LODs, circuit/environment, required pit material warmups, original draws and deadlines. Separately inspect first-chase submission/completion and browser crash diagnostics; do not infer OOM from Target crashed alone."
+  },
+  "acceptance": {
+    "dryDrivingReached": false,
+    "wetDrivingReached": false,
+    "liveRidingCockpitPauseReplayAssertionsReached": false,
+    "isolatedCourseResult": "Parent reports separate final-source course fixture passed; it does not replace these incomplete full-game journeys.",
+    "errorsQualification": "No recorded page/console/HTTP errors is not a completed graphics acceptance result; wet has a recorded Playwright target-crash error."
+  },
+  "coldComparison": {
+    "diagnosis": "/workspace/scratch/3c56136299d4/motogp-course-review/cold-entry-diagnosis.json",
+    "fingerprint": "18c9d1d0250de636a4061c3512ac2aa630d7c47aa2a9d536adb8271458c6e36f",
+    "scope": "Prefinal source, before board-face depth and concrete-backing corrections.",
+    "boundary": "Circuit construction before renderer publication; outer 300000 ms deadline expired.",
+    "distinction": "Both final-source warm attempts progressed further and failed the inner 180000 ms entry predicate. They must not be merged with the earlier cold result or attributed to later geometry changes."
+  },
+  "limits": [
+    "The last returned diagnostics precede later loading DOM/pixel evidence; they are stale with respect to the final reached stage.",
+    "No CPU stack, GPU crash dump, complete post-stage preparation receipt or shader-cache-hit measurement is available in the inspected traces.",
+    "The traces do not establish that the new boards, covers, rider materials or GP-R2 bodywork caused either failure. The selected full-game bike was GP-R1.",
+    "No timeout, assertion, visible workload or source file was changed during this diagnosis."
+  ]
+}

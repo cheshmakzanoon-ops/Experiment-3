@@ -1,0 +1,14 @@
+{
+  "command": "node --experimental-transform-types scripts/source-stability.ts -- npm run build",
+  "exitCode": 137,
+  "lastOutput": "Killed",
+  "boundary": "TypeScript check started; Vite build had not started in the captured log.",
+  "observedAfterExit": {
+    "memoryCurrentBytes": 8371703808,
+    "memoryMaxBytes": 8589934592,
+    "oomEvents": 16,
+    "oomKills": 5
+  },
+  "interpretation": "Resource pressure is supported by the near-cap usage and OOM counters. No before/after counter delta or killed PID is available, so these counters do not alone identify this process.",
+  "nextAction": "Repeat the same guarded build after the unit worker and isolated browser have exited; no source, workload or threshold change."
+}

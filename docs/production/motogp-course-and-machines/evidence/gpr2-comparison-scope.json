@@ -1,0 +1,58 @@
+{
+  "scope": "Controlled paired GP-R2 compact nose and flatter tail inspection, not an original-repository baseline",
+  "before": {
+    "module": "before-bike.ts",
+    "basis": "Controlled final-source substitution only; not an exact pre-silhouette code revision: catalogue upper cowl and unflattened tail replace the final compact cowl and flattened crown.",
+    "substitutions": [
+      "GP-R2 gpCompactCowl(m, detail) -> gpUpperCowl(m, detail)",
+      "Remove flattenGpR2Tail(tail.geometry) call and shallow-tail diagnostic name"
+    ],
+    "unchanged": "Final formed aero, projected entrant identity, original materials, mechanics, camera, lighting and weather implementation remain common.",
+    "currentExclusionsRetained": [
+      {
+        "detail": "Obsolete GP-R2 decorative black circle intake",
+        "geometry": "CircleGeometry(0.03, 16)",
+        "placement": [
+          0,
+          0.15,
+          0.957
+        ],
+        "status": "Remains removed, as in final production source. The before fixture does not restore it.",
+        "inventoryTriangles": 16
+      }
+    ],
+    "comparisonToArchivedAeroOnlyCandidate": {
+      "archivedReceipt": "../after-metrics.json",
+      "archivedCompleteModelTriangles": 95868,
+      "controlledCompleteModelTriangles": 95852,
+      "archivedSubmittedDrawCalls": 117,
+      "controlledSubmittedDrawCalls": 115,
+      "reason": "The old decorative 16-triangle circle is absent from the controlled before. Current aero, projected paint and all shared dependencies remain common to the controlled pair."
+    }
+  },
+  "after": {
+    "module": "../../Experiment-3/src/rendering/bike.ts",
+    "basis": "Frozen final production source"
+  },
+  "rider": "Hidden in both variants; this inspection does not validate rider rendering or full gameplay.",
+  "images": "before/after-{three-quarter,side,front}-{dry,wet}.png",
+  "sourceSha256": {
+    "src/rendering/bike.ts": "401a4863bd24403cd0c33cc5bcf192bf84d48db834f46d1aba1586846df31f84",
+    "src/rendering/gp-bodywork.ts": "b9648b459d369190995bec58bee064f6a1793f2616cbefbc54edfcfbd30ac409",
+    "src/rendering/gp-r2-aero.ts": "2ab31643fda77802c4832957da8264127e99d02938b645d1100a02809bf73b12",
+    "src/rendering/bike-livery.ts": "92cf9503b684986cdf72ef78f8d39057da4f8c94703148c1bca46a5e9e1d1eb6",
+    "src/rendering/assets/gp-bodywork.mesh.json": "72a7fb6e2e47c2be0abd1b89495f74d1e9c64dc1f4c755540aa8b0983dadd3d4",
+    "tests/gp-r2-bodywork.test.ts": "ba3eb7d2201d0b2f8b08508e7d4f13ed8115a65395f98c496080fed59c8014c0",
+    "tests/gp-mesh-clearance.ts": "a4190390991ff500792401a13a70704ae87031f4ed9e7395359379f271f67dfa"
+  },
+  "fixtureSha256": {
+    "before-bike.ts": "3da51603ecbae7ff2754e1759004c06a17a2c80cae593ae5d7cc9dfd0c60bd88",
+    "bodywork.ts": "c20fa42fa3fcf981b84b0d7ad8f6bb744961eb017e142c98b51fa91a4fd95e55",
+    "run.mjs": "753ee83a519f80484e8151be335a27df56e957ff72cb415e3a388e0fccce856c"
+  },
+  "limits": [
+    "Software WebGL isolated production-bodywork review only.",
+    "Full dry/wet riding flow previously failed the original entry preparation deadlines.",
+    "6 mm clearance grid at 18 suspension/steering poses is sampled evidence, not continuous collision proof."
+  ]
+}

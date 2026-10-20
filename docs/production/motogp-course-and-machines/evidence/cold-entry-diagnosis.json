@@ -1,0 +1,147 @@
+{
+  "schemaVersion": 1,
+  "run": {
+    "classification": "cold-entry diagnostic",
+    "test": "GP practice rides through named corner guidance, cockpit, pause and recorded replay",
+    "startedAtUtc": "2026-10-20T02:52:08.963Z",
+    "testDeadlineMs": 300000,
+    "reportedDurationMsIncludingTeardown": 318819,
+    "deadlineUnchanged": true,
+    "session": {
+      "circuit": "poggio-alto",
+      "vehicle": "gpr1",
+      "mode": "practice",
+      "riders": 4,
+      "weather": "clear",
+      "quality": "low",
+      "qualitySelectedThroughUi": true
+    }
+  },
+  "sourceScope": {
+    "recordedBuildFingerprint": "18c9d1d0250de636a4061c3512ac2aa630d7c47aa2a9d536adb8271458c6e36f",
+    "recordedBuildCommit": null,
+    "stage": "Before final course visual corrections",
+    "subsequentCorrectionsNotCovered": [
+      "Course-board printed-face depth bias",
+      "Subdivision of the previous 20 m concrete backing chord that obscured protective covers"
+    ],
+    "diagnosisMethod": "Read-only inspection of the existing trace, saved error context and result JSON; no additional browser run or test"
+  },
+  "finding": {
+    "firstUnreachedBoundary": "Completion of RacingRenderer.create during circuit construction, before finishRaceEntry can observe driving or briefing",
+    "lastReturnedApplicationState": "loading",
+    "lastReturnedRenderer": "undefined",
+    "interpretation": "Menu startup, settings application and GP preview consumed most of the shared test deadline; race entry was initiated with about 61.5 seconds remaining and circuit construction had not completed at timeout.",
+    "causalLimit": "The trace does not identify the exact construction task occupying the final unrecorded interval and does not establish that new boards, padding, bikes or riders caused the timeout."
+  },
+  "timeline": [
+    {
+      "elapsedSeconds": 124.6,
+      "event": "Initial menu visible"
+    },
+    {
+      "elapsedSeconds": 127.135,
+      "event": "Low quality selected through settings UI"
+    },
+    {
+      "elapsedSeconds": 127.32,
+      "event": "APPLY & SAVE clicked"
+    },
+    {
+      "startSeconds": 129.451,
+      "endSeconds": 188.866,
+      "durationSeconds": 59.415,
+      "event": "Wait for settings modal to close"
+    },
+    {
+      "elapsedSeconds": 189.085,
+      "event": "GP-R1 selected for Poggio Alto practice"
+    },
+    {
+      "startSeconds": 192.874,
+      "endSeconds": 236.629,
+      "durationSeconds": 43.755,
+      "event": "Preview diagnostic call; returned stale APX-01 preview"
+    },
+    {
+      "elapsedSeconds": 237.776,
+      "event": "GP-R1 preview confirmed current",
+      "requestedRevision": 5,
+      "completedRevision": 5
+    },
+    {
+      "startSeconds": 238.521,
+      "endSeconds": 251.048,
+      "durationSeconds": 12.527,
+      "event": "ENTER CIRCUIT click",
+      "remainingDeadlineSecondsAtClick": 61.479
+    },
+    {
+      "startSeconds": 263.249,
+      "endSeconds": 272.576,
+      "event": "Loading labels advance through garage, blankets, logistics, wheel guns, jacks and pit-building frontage"
+    },
+    {
+      "elapsedSeconds": 272.733,
+      "event": "Construction queue begins",
+      "rawLoadingText": "0% \u00b7 Circuit asphalt\u2026"
+    },
+    {
+      "elapsedSeconds": 283.115,
+      "event": "Last complete trace snapshot",
+      "rawLoadingText": "28% \u00b7 Physical kerb geometry\u2026",
+      "displayedPercent": 24
+    },
+    {
+      "elapsedSeconds": 284.206,
+      "event": "Final diagnostic evaluation starts; no corresponding completion recorded in browser trace",
+      "callId": "call@143"
+    },
+    {
+      "elapsedSeconds": 300,
+      "event": "Unchanged test deadline expires while finishRaceEntry still observes loading"
+    },
+    {
+      "elapsedSeconds": null,
+      "event": "Later saved failure context",
+      "displayedStage": "Building the circuit",
+      "displayedPercent": 82,
+      "timingNote": "Failure-context capture occurs after the last complete trace snapshot; its exact elapsed capture time was not established."
+    }
+  ],
+  "recordedErrors": {
+    "resourceResponseCount": 182,
+    "statusCounts": {
+      "200": 182
+    },
+    "responseScope": "All recorded resource responses, including local blob resources, had status 200.",
+    "networkFailures": 0,
+    "consoleEvents": 0,
+    "pageErrorEvents": 0,
+    "shaderErrorMessages": 0,
+    "slowestResponseSeconds": 5.753,
+    "slowestResponseResource": "/assets/index-DvjKEi26.js",
+    "slowestSessionModelResponseSeconds": 2.371,
+    "observationLimit": "No errors were recorded in the available browser trace; this is not a completed graphics or gameplay acceptance result."
+  },
+  "acceptance": {
+    "completeRidingAcceptance": false,
+    "drivingOrBriefingReached": false,
+    "liveRidingCockpitPauseReplayAssertionsReached": false,
+    "wetJourney": "Skipped after the dry test reached the maximum allowed failure count",
+    "earlierIsolatedCourseGlTest": "Passed separately before the dry journey; also precedes final course visual corrections",
+    "subsequentRunPolicy": "Any later successful unchanged-deadline journeys using the existing shader cache must be reported separately as warm runs."
+  },
+  "provenance": {
+    "traceZip": "/dev/shm/motogp-review-3c56136299d4-results/motogp-riding-flow-GP-prac-da324-t-pause-and-recorded-replay/trace.zip",
+    "errorContextMarkdown": "/dev/shm/motogp-review-3c56136299d4-results/motogp-riding-flow-GP-prac-da324-t-pause-and-recorded-replay/error-context.md",
+    "menuScreenshot": "/dev/shm/motogp-review-3c56136299d4-results/motogp-riding-flow-GP-prac-da324-t-pause-and-recorded-replay/attachments/01-gp-poggio-practice-menu-png-e63634ebab5bce124aaf5db37902466ab0dd16cc.png",
+    "browserResultsJson": "/dev/shm/motogp-review-3c56136299d4-browser-results.json",
+    "traceMembersInspected": [
+      "test.trace",
+      "0-trace.trace",
+      "0-trace.network"
+    ],
+    "timeReference": "Seconds relative to test-runner trace monotonicTime 80240.771 ms"
+  }
+}
