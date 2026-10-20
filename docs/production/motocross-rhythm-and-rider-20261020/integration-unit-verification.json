@@ -1,0 +1,244 @@
+{
+  "numTotalTestSuites": 12,
+  "numPassedTestSuites": 12,
+  "numFailedTestSuites": 0,
+  "numPendingTestSuites": 0,
+  "numTotalTests": 48,
+  "numPassedTests": 48,
+  "numFailedTests": 0,
+  "numPendingTests": 0,
+  "numTodoTests": 0,
+  "startTime": 1792524742346,
+  "success": true,
+  "command": "npx vitest run tests/gp-rider-motion.test.ts tests/motocross-spine.test.ts tests/gp-rider-spine.test.ts tests/gp-rider-deformation.test.ts tests/motocross-tyre-finish.test.ts tests/motocross-flow-practice.test.ts --reporter=json --outputFile=report.json",
+  "suites": [
+    {
+      "file": "tests/gp-rider-deformation.test.ts",
+      "status": "passed",
+      "assertions": [
+        {
+          "name": "GP attachment volume and flex-driven leather high retains the hip and shoulder cross-section through tuck, hang-off, braking and recovery",
+          "status": "passed"
+        },
+        {
+          "name": "GP attachment volume and flex-driven leather mid retains the hip and shoulder cross-section through tuck, hang-off, braking and recovery",
+          "status": "passed"
+        },
+        {
+          "name": "GP attachment volume and flex-driven leather sleeve compression remains millimetre scale and leaves sewn, protected and cuff boundaries fixed",
+          "status": "passed"
+        },
+        {
+          "name": "GP attachment volume and flex-driven leather pants compression remains millimetre scale and leaves sewn, protected and cuff boundaries fixed",
+          "status": "passed"
+        },
+        {
+          "name": "GP attachment volume and flex-driven leather relaxes and gathers with solved joint flex, replaying identical shapes without buffer writes",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "tests/gp-rider-motion.test.ts",
+      "status": "passed",
+      "assertions": [
+        {
+          "name": "GP riding motion on the actual articulated rider looks through either corner on sloping roads without tuck, braking or suspension tipping the sight into the road",
+          "status": "passed"
+        },
+        {
+          "name": "GP riding motion on the actual articulated rider uses slow-speed steering to look into manoeuvres and closes/reopens the knees continuously",
+          "status": "passed"
+        },
+        {
+          "name": "GP riding motion on the actual articulated rider high presses only the right rear-brake toe with the forefoot and ankle still connected",
+          "status": "passed"
+        },
+        {
+          "name": "GP riding motion on the actual articulated rider mid presses only the right rear-brake toe with the forefoot and ankle still connected",
+          "status": "passed"
+        },
+        {
+          "name": "GP riding motion on the actual articulated rider far presses only the right rear-brake toe with the forefoot and ankle still connected",
+          "status": "passed"
+        },
+        {
+          "name": "GP riding motion on the actual articulated rider restores a held riding pose exactly after a seek or recovery without adding render resources",
+          "status": "passed"
+        },
+        {
+          "name": "GP riding motion on the actual articulated rider isolates non-GP leathers motion from GP-only suspension and rear-pedal inputs",
+          "status": "passed"
+        },
+        {
+          "name": "GP riding motion on the actual articulated rider isolates non-GP motocross motion from GP-only suspension and rear-pedal inputs",
+          "status": "passed"
+        },
+        {
+          "name": "GP riding motion on the actual articulated rider retains speed-independent motion for non-GP leathers",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "tests/gp-rider-spine.test.ts",
+      "status": "passed",
+      "assertions": [
+        {
+          "name": "GP articulated spine and connected one-piece suit high bends more in a tuck than under upright braking while the seat and pelvis stay planted",
+          "status": "passed"
+        },
+        {
+          "name": "GP articulated spine and connected one-piece suit mid bends more in a tuck than under upright braking while the seat and pelvis stay planted",
+          "status": "passed"
+        },
+        {
+          "name": "GP articulated spine and connected one-piece suit high keeps the collar and shoulder skin on the chest, and the seat skin on the pelvis",
+          "status": "passed"
+        },
+        {
+          "name": "GP articulated spine and connected one-piece suit mid keeps the collar and shoulder skin on the chest, and the seat skin on the pelvis",
+          "status": "passed"
+        },
+        {
+          "name": "GP articulated spine and connected one-piece suit restores the same skin after holds, direction changes and every recovery phase without buffer writes",
+          "status": "passed"
+        },
+        {
+          "name": "GP articulated spine and connected one-piece suit leaves road, motocross and distant GP riders on their existing rigid torso path",
+          "status": "passed"
+        },
+        {
+          "name": "GP articulated spine and connected one-piece suit treats a non-finite front-brake snapshot as released across the connected torso, head and hands",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "tests/motocross-flow-practice.test.ts",
+      "status": "passed",
+      "assertions": [
+        {
+          "name": "linked motocross practice sections valley-ridge-mx links actual surveyed features without changing their profiles",
+          "status": "passed"
+        },
+        {
+          "name": "linked motocross practice sections arena-nord-sx links actual surveyed features without changing their profiles",
+          "status": "passed"
+        },
+        {
+          "name": "linked motocross practice sections records every valley-ridge-mx section only after the ordered targets and exit",
+          "status": "passed"
+        },
+        {
+          "name": "linked motocross practice sections records every arena-nord-sx section only after the ordered targets and exit",
+          "status": "passed"
+        },
+        {
+          "name": "linked motocross practice sections compares only completed runs in the same entry soil, independently of presentation spacing",
+          "status": "passed"
+        },
+        {
+          "name": "linked motocross practice sections rejects an interrupted or rolled sequence",
+          "status": "passed"
+        },
+        {
+          "name": "linked motocross practice sections rejects an interrupted or rough sequence",
+          "status": "passed"
+        },
+        {
+          "name": "linked motocross practice sections rejects an interrupted or off-course sequence",
+          "status": "passed"
+        },
+        {
+          "name": "linked motocross practice sections rejects an interrupted or automatic sequence",
+          "status": "passed"
+        },
+        {
+          "name": "linked motocross practice sections rejects an interrupted or crash sequence",
+          "status": "passed"
+        },
+        {
+          "name": "linked motocross practice sections rejects an interrupted or teleport sequence",
+          "status": "passed"
+        },
+        {
+          "name": "linked motocross practice sections rejects an interrupted or reverse sequence",
+          "status": "passed"
+        },
+        {
+          "name": "linked motocross practice sections counts stops in elapsed time but paused packets cannot advance or duplicate a sequence",
+          "status": "passed"
+        },
+        {
+          "name": "linked motocross practice sections preserves earned records across replay and continuity breaks, but never the partial section",
+          "status": "passed"
+        },
+        {
+          "name": "linked motocross practice sections accepts a new complete traversal after a rewind without reusing a future landing timestamp",
+          "status": "passed"
+        },
+        {
+          "name": "linked motocross practice sections never reconstructs a missing entry or credits a previous individual target",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "tests/motocross-spine.test.ts",
+      "status": "passed",
+      "assertions": [
+        {
+          "name": "motocross articulated torso and corner gaze high rounds the jersey during absorption without moving its waistband or adding triangles",
+          "status": "passed"
+        },
+        {
+          "name": "motocross articulated torso and corner gaze mid rounds the jersey during absorption without moving its waistband or adding triangles",
+          "status": "passed"
+        },
+        {
+          "name": "motocross articulated torso and corner gaze far rounds the jersey during absorption without moving its waistband or adding triangles",
+          "status": "passed"
+        },
+        {
+          "name": "motocross articulated torso and corner gaze keeps the collar and neck liner seated on the upper jersey through compression and countersteering",
+          "status": "passed"
+        },
+        {
+          "name": "motocross articulated torso and corner gaze carries presented speed through the production bike to distinguish steering from countersteering",
+          "status": "passed"
+        },
+        {
+          "name": "motocross articulated torso and corner gaze reconstructs held and rewound cloth through recovery and camera toggles without writing vertex buffers",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "tests/motocross-tyre-finish.test.ts",
+      "status": "passed",
+      "assertions": [
+        {
+          "name": "recorded motocross tyre finish keeps separate front/rear observations and restores a held or rewound state exactly",
+          "status": "passed"
+        },
+        {
+          "name": "recorded motocross tyre finish preserves the opaque mud layer regardless of install order (false)",
+          "status": "passed"
+        },
+        {
+          "name": "recorded motocross tyre finish preserves the opaque mud layer regardless of install order (true)",
+          "status": "passed"
+        },
+        {
+          "name": "recorded motocross tyre finish front tread and carcass batch into one draw without losing axle coordinates or the physical envelope",
+          "status": "passed"
+        },
+        {
+          "name": "recorded motocross tyre finish rear tread and carcass batch into one draw without losing axle coordinates or the physical envelope",
+          "status": "passed"
+        }
+      ]
+    }
+  ]
+}

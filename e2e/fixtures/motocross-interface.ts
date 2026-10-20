@@ -19,6 +19,7 @@ import {
 import { offroadCourse } from '../../src/simulation/offroad/venues.ts';
 import { jumpHoldSpeed } from '../../src/simulation/offroad/jump-target.ts';
 import { motocrossBermSectors } from '../../src/simulation/offroad/berm-practice.ts';
+import { motocrossFlowSections } from '../../src/simulation/offroad/flow-practice.ts';
 import { Track, trackPoint } from '../../src/simulation/track.ts';
 import { VEHICLES } from '../../src/simulation/vehicles.ts';
 import { Simulation } from '../../src/simulation/world.ts';
@@ -284,6 +285,59 @@ export function sampleMotocrossBermPractice(
   ui.showMode(details.replay ? 'replay' : 'driving');
   ui.update(frame, renderer, !!details.automatic, 1);
   return { name: sector.name, length: sector.length };
+}
+
+/** Synthetic continuous survey traversal for sequence/HUD layout checks.
+ * Both production practice judges run; this is not a physics playthrough. */
+export function sampleMotocrossFlowPractice(
+  sectionIndex: number,
+  distance: number,
+  time: number,
+  speed = 18,
+  details: { caution?: boolean; automatic?: boolean; replay?: boolean } = {},
+) {
+  if (!simulation || !frame) throw new Error('Mount a motocross HUD first');
+  const course = offroadCourse(simulation.track.circuit)!;
+  const section = motocrossFlowSections(course)[sectionIndex];
+  const s = section.from + distance;
+  const flight = section.jumps.find((jump) => s >= jump.takeoff && s < jump.landing);
+  const previous = [...section.jumps].reverse().find((jump) => s >= jump.takeoff);
+  const base = carBase(0),
+    o = base + OFFROAD_BASE;
+  const p = simulation.track.at(s, trackPoint());
+  frame[H.TIME] = frame[H.RACE_TIME] = time;
+  frame[H.TICK] = Math.round(time * 120);
+  frame[H.PHASE] = 2;
+  frame[H.FLAG] = frame[base + F.LOCAL_FLAG] = details.caution ? FLAG.DOUBLE_YELLOW : FLAG.GREEN;
+  frame[base + F.CAUTION_SPEED] = details.caution ? 8 : 0;
+  frame[base + F.S] = s;
+  frame[base + F.SPEED] = speed;
+  frame[base + F.VX] = p.tx * speed;
+  frame[base + F.VZ] = p.tz * speed;
+  const yaw = Math.atan2(p.tx, p.tz);
+  frame[base + F.QX] = frame[base + F.QZ] = 0;
+  frame[base + F.QY] = Math.sin(yaw / 2);
+  frame[base + F.QW] = Math.cos(yaw / 2);
+  frame[base + F.BRAKE] =
+    frame[base + F.IN_PIT] =
+    frame[base + F.RETIRED] =
+    frame[base + F.LATERAL] =
+      0;
+  frame[base + BIKE_BASE + B.STATE] = 0;
+  frame[o + O.AIRBORNE] = Number(!!flight);
+  frame[o + O.AIR_TIME] = previous ? (Math.min(s, previous.landing) - previous.takeoff) / speed : 0;
+  frame[o + O.LANDING_PITCH] = 0.1;
+  frame[o + O.LANDING_SPEED] = 2;
+  frame[o + O.BOTTOM] = 0;
+  frame[o + O.MOISTURE] = 0.28;
+  ui.showMode(details.replay ? 'replay' : 'driving');
+  ui.update(frame, renderer, !!details.automatic, 1);
+  return {
+    name: section.name,
+    length: section.length,
+    count: section.jumps.length,
+    firstSettled: section.jumps[0].landing - section.from + speed * 0.4,
+  };
 }
 
 /** Read real production text and layout boxes. This does not change styles,

@@ -24,6 +24,11 @@ import { addMotocrossRadiators } from './motocross-radiators.ts';
 import { motocrossWheelHub, motocrossWheelSpokes } from './motocross-wheel-detail.ts';
 import { installMotocrossMetalFinish } from './motocross-metal-finish.ts';
 import {
+  bindMotocrossTyre,
+  installMotocrossTyreFinish,
+  type MotocrossTyreFinish,
+} from './motocross-tyre-finish.ts';
+import {
   addMotocrossPowertrain,
   motocrossAxleLug,
   motocrossExpansionChamber,
@@ -100,6 +105,7 @@ export class DirtBikeModel {
   private readonly matrix = new T.Matrix4();
   private readonly plastics: T.MeshStandardMaterial[] = [];
   private readonly chain?: MotocrossChainDrive;
+  private readonly tyreFinish?: MotocrossTyreFinish;
   private disposed = false;
   constructor(
     readonly definition: VehicleDefinition,
@@ -215,6 +221,8 @@ export class DirtBikeModel {
       rearR = b.rearWheelRadius,
       frontRim = supermoto ? 0.2159 : 0.2667,
       rearRim = supermoto ? 0.2159 : 0.2286;
+    if (!supermoto)
+      this.tyreFinish = installMotocrossTyreFinish(tyreMaterial, frontR, frontRim, rearR, rearRim);
     const wheel = (
       spin: T.Group,
       radius: number,
@@ -225,15 +233,21 @@ export class DirtBikeModel {
       // When distant tread blocks disappear, their envelope stays in the
       // carcass so a LOD switch cannot make the wheel shrink off the ground.
       const knob = supermoto || detail === 'far' ? 0 : 0.016;
-      add(
-        spin,
-        tyreGeometry(radius - knob, halfWidth, halfWidth * 1.15, rim + 0.012, sides),
-        tyreMaterial,
-      );
+      const carcass = tyreGeometry(radius - knob, halfWidth, halfWidth * 1.15, rim + 0.012, sides);
+      add(spin, supermoto ? carcass : bindMotocrossTyre(carcass, front), tyreMaterial);
       if (knob > 0 && detail !== 'far')
         add(
           spin,
-          motocrossTread(radius, halfWidth, knob, detail === 'high' ? 44 : 24),
+          bindMotocrossTyre(
+            motocrossTread(
+              radius,
+              halfWidth,
+              knob,
+              detail === 'high' ? 44 : 24,
+              front ? 'front' : 'rear',
+            ),
+            front,
+          ),
           tyreMaterial,
         );
       // Rim hoop, hub and spokes.
@@ -1171,6 +1185,7 @@ export class DirtBikeModel {
     this.m.disc.emissiveIntensity = 0;
     this.mud.offroadMud.value = T.MathUtils.clamp(v.mud ?? 0, 0, 1);
     this.mud.offroadMudWet.value = T.MathUtils.clamp((v.mudWet ?? 0) * 1.6, 0, 1);
+    this.tyreFinish?.update(v);
     if (v.riding) {
       this.steerMount.updateMatrix();
       this.steer.updateMatrix();
@@ -1201,6 +1216,7 @@ export class DirtBikeModel {
         tuck: 0,
         braking: v.brake,
         steer: v.steer,
+        speed: v.speed,
         standing: v.standing ?? 0,
         dab: v.dab ?? 0,
         body: v.body ?? 0,

@@ -249,7 +249,8 @@ describe('motocross continuous textile skin', () => {
     const rider = new Rider(colours, 'high', 'motocross'),
       skins = garments(rider).filter((skin) => skin.name.endsWith('sleeve')),
       torso = rider.root.getObjectByName('Rider torso')!,
-      jerseyGeometry = motocrossGarmentGeometry('jersey', 'high'),
+      jerseySkin = rider.root.getObjectByName('Motocross sculpted textile torso') as T.SkinnedMesh,
+      jerseyGeometry = jerseySkin.geometry.clone(),
       material = new T.MeshBasicMaterial({ side: T.DoubleSide }),
       jersey = new T.Mesh(jerseyGeometry, material),
       ray = new T.Raycaster(),
@@ -271,6 +272,16 @@ describe('motocross continuous textile skin', () => {
       ]) {
         rider.ride(pose);
         rider.root.updateMatrixWorld(true);
+        // Use the rendered spine-deformed surface as the volume, not the
+        // former rigid jersey. This keeps the root-contact test independent
+        // of the shoulder's assigned bone or its skin weights.
+        const jerseyPositions = jerseyGeometry.getAttribute('position');
+        for (let i = 0; i < jerseyPositions.count; i++) {
+          jerseySkin.getVertexPosition(i, point);
+          jerseyPositions.setXYZ(i, point.x, point.y, point.z);
+        }
+        jerseyGeometry.computeBoundingBox();
+        jerseyGeometry.computeBoundingSphere();
         const inverse = torso.matrixWorld.clone().invert();
         for (const skin of skins) {
           const positions = skin.geometry.getAttribute('position'),

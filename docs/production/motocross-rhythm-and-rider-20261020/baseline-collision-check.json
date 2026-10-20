@@ -1,0 +1,97 @@
+{
+  "schema": 1,
+  "conclusion": "Preexisting assertion failure reproduced identically on the initial commit and the worktree. Test and physics remain unchanged.",
+  "baselineCommit": "81ee98b646ce88fe0d48f427f5e80e9a65fcc347",
+  "baselinePreparation": "git archive of 81ee98b src tests/motocross-collision.test.ts package.json vitest.config.ts tsconfig.json; extracted into /tmp/mx-collision-baseline-81ee98b with existing node_modules linked. No shared Git mutation.",
+  "test": "motocross collision and sprung vertical velocity > does not turn a real tilted two-bike position correction into the next contact impulse",
+  "failure": {
+    "file": "tests/motocross-collision.test.ts",
+    "line": 44,
+    "expected": "absolute vertical position correction > 0.005 m",
+    "actualMetres": 0.004894227191281075
+  },
+  "runs": [
+    {
+      "tree": "worktree with initial HEAD81ee98b plus this motocross pass",
+      "command": "npx vitest run tests/motocross-collision.test.ts --reporter=verbose",
+      "passed": 10,
+      "failed": 1,
+      "skipped": 0,
+      "exitCode": 1,
+      "durationSeconds": 9.27
+    },
+    {
+      "tree": "isolated initial commit",
+      "cwd": "/tmp/mx-collision-baseline-81ee98b",
+      "command": "/workspace/scratch/b5d4ab955c82/Experiment-3/node_modules/.bin/vitest run tests/motocross-collision.test.ts -t 'real tilted two-bike' --reporter=verbose",
+      "passed": 0,
+      "failed": 1,
+      "skipped": 10,
+      "exitCode": 1,
+      "durationSeconds": 2.21
+    }
+  ],
+  "sourceIdentity": {
+    "headWhenReportWritten": "c46ef21416f53082e673f2c3398775601ae64a62",
+    "note": "Parent integrated incoming Festival work after the reproduction. These decisive collision/vehicle/terrain inputs still match the initial commit byte-for-byte.",
+    "inputs": {
+      "tests/motocross-collision.test.ts": {
+        "sha256": "d2380bbc517f60406916cb612be3d8621fe5272103295b52b6bf8838fef0b8c5",
+        "matchesBaseline": true
+      },
+      "src/core/math.ts": {
+        "sha256": "e46e109d81774003aae58c52f77cd9ae2831a856ba6c9ba8878909c2c4383bd2",
+        "matchesBaseline": true
+      },
+      "src/simulation/collision.ts": {
+        "sha256": "4f85907e1a79b8f8c8dc2213aec44140e60b955c9a6e59f7f8c264e5220fa895",
+        "matchesBaseline": true
+      },
+      "src/simulation/obb.ts": {
+        "sha256": "14185b3ad455cd7eba9f371cdc686d839fd2729ed936e1dd808196414d392b19",
+        "matchesBaseline": true
+      },
+      "src/simulation/offroad/dirt-bike-vehicle.ts": {
+        "sha256": "5bed629d53fa46f3c410fe01e0283cf0d98284456e55fa3bedb1f993fbae95d6",
+        "matchesBaseline": true
+      },
+      "src/simulation/offroad/dirt-bikes.ts": {
+        "sha256": "ab5d57ba61c3f2e08c35c869dbe3694d83d20eb533da03ed7a5b3bf4712fdf2f",
+        "matchesBaseline": true
+      },
+      "src/simulation/offroad/venues.ts": {
+        "sha256": "4b439f57482138176bbd4cb4c7212ace1266e5764fd2b10bc53c3f39a3d54891",
+        "matchesBaseline": true
+      }
+    }
+  },
+  "followupProbe": {
+    "method": "Same placements, bikes, 1/240 s steps and collision solver as the failing test. Observe corrections and subsequent authoritative heave without changing source physics or injecting forces.",
+    "overlapDepthMetres": 0.12256194092863382,
+    "contactNormalY": 0.17514010124073875,
+    "bikes": [
+      {
+        "machine": "mx250",
+        "massKg": 178,
+        "correctionYMetres": 0.005072948970738622,
+        "uncorrectedDerivativeErrorMetresPerSecond": 1.2175077529772693,
+        "nextReportedHeaveMetresPerSecond": 0.0296733313402342,
+        "nextAuthoritativeHeaveMetresPerSecond": 0.0296733313402342,
+        "speedAfterSecondSolveMetresPerSecond": 0.029674296753422376,
+        "crashes": 0
+      },
+      {
+        "machine": "mx450",
+        "massKg": 184.5,
+        "correctionYMetres": -0.004894227191281075,
+        "uncorrectedDerivativeErrorMetresPerSecond": -1.174614525907458,
+        "nextReportedHeaveMetresPerSecond": -0.00417550728286642,
+        "nextAuthoritativeHeaveMetresPerSecond": -0.00417550728286642,
+        "speedAfterSecondSolveMetresPerSecond": 0.004182362496498737,
+        "crashes": 0
+      }
+    ],
+    "reasoning": "The fixed 5 mm setup precondition lies between the two observed corrections. Unequal masses receive unequal displacements: MX250 correction is 5.073 mm; MX450 is 4.894 mm. The subsequent reported heave exactly matches the authoritative pose derivative and remains below the existing 0.2 m/s bound; both post-solve speeds remain below 0.25 m/s with zero crashes. No product fault introduced by this pass was found."
+  },
+  "disposition": "Retain existing test and physics unchanged and disclose this baseline failure. A future test-only repair should express whether correction/dt would expose a significant false-heave error, rather than blindly lowering the 5 mm number."
+}

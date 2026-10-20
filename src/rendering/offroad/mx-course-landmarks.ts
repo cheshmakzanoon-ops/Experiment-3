@@ -4,6 +4,7 @@ import { Random } from '../../core/math.ts';
 import type { OffroadCourse } from '../../simulation/offroad/course.ts';
 import { TrackTerrainSurface } from '../../simulation/offroad/course-terrain.ts';
 import type { JumpSurvey } from '../../simulation/offroad/profile.ts';
+import { motocrossFlowSections } from '../../simulation/offroad/flow-practice.ts';
 import { Track } from '../../simulation/track.ts';
 import { installScannedMaps, libraryAlbedo } from '../ground/scanned-ground.ts';
 import { chainShaderHook, injectAfter, injectDeclarations } from '../studio/shader-hooks.ts';
@@ -49,20 +50,34 @@ function guideAtlas(course: OffroadCourse) {
   if (!c) throw new Error('MX jump guides require a 2D drawing context');
   c.fillStyle = '#1d2b2b';
   c.fillRect(0, 0, canvas.width, canvas.height);
+  const sections = motocrossFlowSections(course);
   for (const [index, jump] of course.jumps.entries()) {
     const y = index * rowHeight,
       profile = mxJumpGuideProfile(course, jump),
       max = Math.max(1, ...profile.samples.map((p) => p.h)),
       px = (s: number) => 360 + ((s - profile.from) / (profile.to - profile.from)) * 615,
       py = (h: number) => y + 200 - (h / max) * 100;
-    c.fillStyle = '#d08049';
+    const section = sections.find((section) => section.jumps.includes(jump));
+    const sequence = section ? section.jumps.indexOf(jump) + 1 : 0;
+    c.fillStyle = section?.id === 1 ? '#7aada6' : '#d08049';
     c.fillRect(0, y, 15, rowHeight);
     c.fillStyle = '#d4dcb8';
     c.font = '800 74px "Saira Variable", Saira, Arial, sans-serif';
     c.textBaseline = 'middle';
     c.fillText(String(index + 1).padStart(2, '0'), 37, y + 78);
     c.font = '700 25px "Saira Variable", Saira, Arial, sans-serif';
-    c.fillText(jump.kind.replace('-', ' ').toUpperCase(), 39, y + 144, 290);
+    c.fillText(
+      section
+        ? `FLOW ${section.id + 1}  ·  ${sequence}/${section.jumps.length}`
+        : jump.kind.replace('-', ' ').toUpperCase(),
+      39,
+      y + 140,
+      290,
+    );
+    if (section) {
+      c.font = '700 20px "Saira Variable", Saira, Arial, sans-serif';
+      c.fillText(section.name, 39, y + 174, 290);
+    }
     c.fillStyle = '#f4edde';
     c.font = '800 39px "Saira Variable", Saira, Arial, sans-serif';
     c.fillText(jump.name, 362, y + 42, 610);

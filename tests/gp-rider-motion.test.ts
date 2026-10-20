@@ -210,18 +210,37 @@ describe('GP riding motion on the actual articulated rider', () => {
   });
 
   it.each(['leathers', 'motocross'] as const)(
-    'preserves the existing non-GP %s motion when GP-only inputs are supplied',
+    'isolates non-GP %s motion from GP-only suspension and rear-pedal inputs',
     (kit) => {
       const rider = new Rider(colours, 'mid', kit);
       try {
-        const value = { ...base, lean: 0.6, offset: 0.12, standing: 0.5, body: 0.2 };
-        rider.ride(value);
-        const before = transforms(rider.root);
-        rider.ride({ ...value, speed: 1, suspensionPitch: 0.12, rearBraking: 1 });
-        expect(transforms(rider.root)).toEqual(before);
+        // Speed is shared riding information: MX uses it to blend slow
+        // steering into corner gaze. Hold it fixed while varying GP inputs.
+        for (const speed of [1, 6, 50]) {
+          const value = { ...base, speed, lean: 0.6, offset: 0.12, standing: 0.5, body: 0.2 };
+          rider.ride(value);
+          const before = transforms(rider.root);
+          rider.ride({ ...value, suspensionPitch: 0.12, rearBraking: 1 });
+          expect(transforms(rider.root)).toEqual(before);
+        }
       } finally {
         rider.dispose();
       }
     },
   );
+
+  it('retains speed-independent motion for non-GP leathers', () => {
+    const rider = new Rider(colours, 'mid', 'leathers');
+    try {
+      const value = { ...base, lean: 0.6, offset: 0.12, standing: 0.5, body: 0.2 };
+      rider.ride(value);
+      const before = transforms(rider.root);
+      for (const speed of [1, 6, 50]) {
+        rider.ride({ ...value, speed });
+        expect(transforms(rider.root)).toEqual(before);
+      }
+    } finally {
+      rider.dispose();
+    }
+  });
 });

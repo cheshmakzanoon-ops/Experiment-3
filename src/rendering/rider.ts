@@ -44,6 +44,7 @@ import {
   type MotocrossRiderMotion,
   type MotocrossRiderMotionInput,
 } from './offroad/motocross-rider-motion.ts';
+import { MotocrossRiderSpine, motocrossHeadFrame } from './offroad/motocross-rider-spine.ts';
 import {
   addMotocrossBoot,
   addMotocrossGarment,
@@ -405,6 +406,7 @@ export class Rider {
   };
   private readonly gpGarments: GpRiderGarment[] = [];
   private readonly gpSpine?: GpRiderSpine;
+  private readonly motocrossSpine?: MotocrossRiderSpine;
   private readonly gpBrakeFingers?: GpBrakeFingers;
   private readonly exteriorForearms = [0, 1].map(() => ({
     position: new T.Vector3(),
@@ -636,7 +638,8 @@ export class Rider {
     this.torso.name = 'Rider torso';
     this.root.add(this.torso);
     if (gpSuit) this.gpSpine = new GpRiderSpine(this.root, this.torso);
-    const upperTorso = this.gpSpine?.chest ?? this.torso;
+    if (mx) this.motocrossSpine = new MotocrossRiderSpine(this.root, this.torso);
+    const upperTorso = this.gpSpine?.chest ?? this.motocrossSpine?.chest ?? this.torso;
     // Torso: pelvis at the origin, spine along +Y, chest forward (+Z).
     const torsoSections: readonly BodySection[] = mx
       ? [
@@ -665,15 +668,16 @@ export class Rider {
         ? gpTorsoGeometry(detail)
         : bodyLoft(torsoSections, sides);
     if (gpSuit) shapeGpSuitGeometry(torsoGeometry, 'torso');
-    part(this.torso, torsoGeometry, torsoLeather).name = mx
-      ? 'Motocross sculpted textile torso'
-      : 'Rider leather torso';
+    const torsoMesh = part(this.torso, torsoGeometry, torsoLeather);
+    torsoMesh.name = mx ? 'Motocross sculpted textile torso' : 'Rider leather torso';
+    this.motocrossSpine?.bind(torsoMesh);
     if (mx) {
       part(this.torso, motocrossGarmentGeometry('seat', detail), leather).name =
         'Motocross separate trouser waist';
       const neck = part(this.torso, new T.CylinderGeometry(0.041, 0.046, 0.075, sides), flex);
       neck.name = 'Motocross neck liner above textile collar';
       neck.position.set(0, 0.56, 0.029);
+      this.motocrossSpine!.bind(neck);
     }
     // Aero hump (spine protector and airbag housing) on the back.
     if (detail !== 'far' && !mx && !gpSuit) {
@@ -734,6 +738,9 @@ export class Rider {
       collar.rotation.x = Math.PI / 2;
       collar.position.set(0, 0.536, 0.027);
       collar.scale.y = 0.88;
+      // The neck opening follows the upper jersey through spine flexion.
+      // Keep the skin under the torso's first-person visibility boundary.
+      this.motocrossSpine!.bind(collar);
     }
     if (detail !== 'far' && !mx) {
       // A turned leather collar closes the neck opening instead of leaving
@@ -1165,7 +1172,7 @@ export class Rider {
         shoulder.position.set(0, 0, 0);
         shoulder.quaternion.identity();
       } else {
-        this.torso.add(shoulder);
+        (this.motocrossSpine?.chest ?? this.torso).add(shoulder);
         shoulder.position.set(side * (RIDER.shoulderWidth - 0.025), RIDER.spine - 0.045, 0.008);
         // Garment +Y exits the side of the jersey, +Z faces the upper shoulder.
         // The root sits inside its armhole; the rest blends into the solved arm.
@@ -1259,10 +1266,13 @@ export class Rider {
     this.torso.position.copy(pelvis);
     this.torso.quaternion.setFromEuler(this.euler);
     this.gpSpine?.ride(pose, pelvis, pitch, yaw, -into);
-    const upperTorso = this.gpSpine?.chest ?? this.torso;
+    this.motocrossSpine?.ride(pose, pelvis, pitch, yaw, -into);
+    const upperTorso = this.gpSpine?.chest ?? this.motocrossSpine?.chest ?? this.torso;
     // GP sight follows the road frame after the articulated chest; other
     // kits retain their authored pose, including the MX landing response.
     if (gpContact) gpHeadFrame(pose, upperTorso.quaternion, this.head.quaternion);
+    else if (mx)
+      motocrossHeadFrame(pose, upperTorso.quaternion, motion!.gazePitch, this.head.quaternion);
     else
       this.head.rotation.set(
         -pitch + 0.3 + tuck * 0.12 + (motion?.gazePitch ?? 0),
@@ -1403,6 +1413,7 @@ export class Rider {
     this.euler.set(lying ? Math.PI / 2 - 0.1 : 0.12, 0, lying ? tumble : 0, 'ZYX');
     this.torso.quaternion.setFromEuler(this.euler);
     this.gpSpine?.reset();
+    this.motocrossSpine?.reset();
     this.head.rotation.set(lying ? -0.6 : -0.1, 0, 0);
     this.headShadow.quaternion.copy(this.head.quaternion);
     const stride = phase === 1 ? Math.sin(time * 9) * 0.45 : 0;
@@ -1468,6 +1479,7 @@ export class Rider {
   dispose() {
     this.gpBrakeFingers?.dispose();
     this.gpSpine?.dispose();
+    this.motocrossSpine?.dispose();
     for (const garment of this.motocrossGarments) garment.skeleton.dispose();
     for (const boot of this.motocrossBoots) boot.dispose();
     for (const garment of this.gpGarments) garment.dispose();

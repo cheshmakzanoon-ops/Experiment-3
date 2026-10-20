@@ -27,6 +27,10 @@ export interface MotocrossPoseSample {
   speed?: number;
   frontRotation?: number;
   rearRotation?: number;
+  frontWear?: number;
+  rearWear?: number;
+  frontWater?: number;
+  rearWater?: number;
 }
 
 /** Prescribe the recorded chassis for synthetic suspension samples supported
@@ -107,10 +111,14 @@ export function captureMotocrossBike(
   else if (view === 'rear') camera.position.set(-2.85, 1.9, -3.5);
   else if (view === 'helmet') camera.position.set(0.75, 1.75, 1.2);
   else if (view === 'drivetrain') camera.position.set(1.45, 0.67, -0.54);
+  else if (view === 'rear-tyre') camera.position.set(-0.9, 0.76, -1.65);
+  else if (view === 'front-tyre') camera.position.set(-0.72, 0.57, 1.65);
   else camera.position.set(-3.05, 1.72, 3.6);
   camera.lookAt(0, view === 'helmet' ? 1.59 : 0.93, 0);
   if (view === 'motion-side') camera.lookAt(0, 1.12, 0);
   if (view === 'drivetrain') camera.lookAt(0.095, 0.38, -0.45);
+  if (view === 'rear-tyre') camera.lookAt(0, 0.36, -0.68);
+  if (view === 'front-tyre') camera.lookAt(0, 0.36, 0.72);
   if (view === 'bodywork') model.rider.root.visible = false;
   let triangles = 0,
     finiteGeometry = true;
@@ -182,6 +190,11 @@ export function captureMotocrossBike(
         body: sample.body ?? 0,
         mud: sample.mud ?? 0,
         mudWet: sample.wet ?? 0,
+        frontWear: sample.frontWear ?? 0,
+        rearWear: sample.rearWear ?? 0,
+        frontWater: sample.frontWater ?? 0,
+        rearWater: sample.rearWater ?? 0,
+        speed: sample.speed ?? 0,
       });
       model.root.position.y =
         (explicitChassis ? def.bike!.cgHeight : chassis.height) -
@@ -223,6 +236,10 @@ export function captureMotocrossBike(
         contacts,
         motion: {
           pelvis: model.rider.root.getObjectByName('Rider torso')!.position.toArray(),
+          pelvisQuaternion: model.rider.root.getObjectByName('Rider torso')!.quaternion.toArray(),
+          chestQuaternion: model.rider.root
+            .getObjectByName('Motocross upper chest')!
+            .quaternion.toArray(),
           helmetForward: new T.Vector3(0, 0, 1)
             .applyQuaternion(
               model.rider.root

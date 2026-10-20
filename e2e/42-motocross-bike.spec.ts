@@ -185,6 +185,52 @@ test('Motocross MX450: reversible mud on the same production instance', async ({
   expect(sequence[0].hash).toBe(sequence[3].hash);
 });
 
+test('Motocross MX450: recorded tyre wear and wetness rewind without resource churn', async ({
+  review,
+}) => {
+  const { capture, attach } = review;
+  const wornWet = { rearWear: 0.72, rearWater: 0.8, rearRotation: 0.2 };
+  const sequence = await capture({
+    id: 'mx450',
+    detail: 'high',
+    view: 'rear-tyre',
+    samples: [{ rearRotation: 0.2 }, wornWet, wornWet, { rearRotation: 0.2 }],
+  });
+  for (const [i, result] of sequence.entries()) {
+    await attach(`recorded-tyre-surface-${i}`, result);
+    expect(result.instance).toBe(sequence[0].instance);
+    expect(result.resources).toEqual(sequence[0].resources);
+  }
+  expect(sequence[0].hash).not.toBe(sequence[1].hash);
+  expect(sequence[1].hash).toBe(sequence[2].hash);
+  expect(sequence[0].hash).toBe(sequence[3].hash);
+});
+
+test('Motocross MX250: articulated chest and corner gaze retain contact through a reversible lean change', async ({
+  review,
+}) => {
+  const { capture, attach } = review;
+  const left = { lean: -0.45, steer: 0.12, standing: 0.35, speed: 20 };
+  const right = { lean: 0.45, steer: -0.12, standing: 0.35, speed: 20 };
+  const sequence = await capture({
+    id: 'mx250',
+    detail: 'high',
+    view: 'rear',
+    samples: [left, right, right, left],
+  });
+  for (const [i, result] of sequence.entries()) {
+    await attach(`articulated-corner-${i}`, result);
+    expect(result.instance).toBe(sequence[0].instance);
+    expect(result.resources).toEqual(sequence[0].resources);
+    expect(result.motion.chestQuaternion).not.toEqual(result.motion.pelvisQuaternion);
+  }
+  expect(sequence[0].motion.helmetForward[0]).toBeLessThan(0);
+  expect(sequence[1].motion.helmetForward[0]).toBeGreaterThan(0);
+  expect(sequence[0].hash).not.toBe(sequence[1].hash);
+  expect(sequence[1].hash).toBe(sequence[2].hash);
+  expect(sequence[0].hash).toBe(sequence[3].hash);
+});
+
 test('Motocross MX450: suspension absorption, gaze and lever are reversible on the production rig', async ({
   review,
 }) => {

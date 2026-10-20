@@ -604,15 +604,36 @@ export function motocrossRotor(radius: number, detail: RiderDetail, sprocket = f
 
 /** Staggered centre blocks and angled shoulder lugs. The outer tyre radius is
  * exact: wheel-ground contact does not change when the close detail appears. */
-export function motocrossTread(radius: number, halfWidth: number, height: number, count: number) {
+export function motocrossTread(
+  radius: number,
+  halfWidth: number,
+  height: number,
+  count: number,
+  axle: 'front' | 'rear' = 'rear',
+) {
   const parts: T.BufferGeometry[] = [];
   for (let k = 0; k < count; k++) {
     const a = (k / count) * Math.PI * 2;
     const rows = k % 2 === 0 ? [0, -0.9, 0.9] : [-0.43, 0.43, -0.94, 0.94];
     for (const row of rows) {
       const shoulder = Math.abs(row) > 0.8;
-      const g = motocrossLug(shoulder ? halfWidth * 0.5 : halfWidth * 0.58, height, 0.026);
+      // The narrow front has longitudinal steering blocks and clear channels.
+      // The rear exposes broader transverse driving faces with open shoulders.
+      // References 005/009/014 supply the visual distinction, not tyre tuning.
+      const front = axle === 'front';
+      const g = motocrossLug(
+        halfWidth * (shoulder ? 0.5 : front ? 0.46 : 0.74),
+        height,
+        shoulder ? 0.026 : front ? 0.037 : 0.025,
+      );
       const p = g.getAttribute('position');
+      // Offset the leading/trailing edges into a shallow chevron. The existing
+      // closed chamfered topology is retained, without extra triangles.
+      for (let i = 0; i < p.count; i++)
+        p.setZ(
+          i,
+          p.getZ(i) + p.getX(i) * (shoulder ? Math.sign(row) * 0.26 : front ? 0.18 : -0.12),
+        );
       g.rotateZ(shoulder ? -Math.sign(row) * 0.46 : row * 0.12);
       g.translate(
         row * halfWidth * 0.84,

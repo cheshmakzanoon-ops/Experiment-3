@@ -1,0 +1,4574 @@
+{
+  "backend": "Chromium ANGLE Vulkan SwiftShader CPU software GPU",
+  "physicalHardwareFPSCertified": false,
+  "imageManifest": [
+    {
+      "file": "bike-mx250-high.png",
+      "source": "/tmp/motocross-evidence/final-gpu/42-motocross-bike-Motocros-edb14-ar-geometry-and-LOD-budgets/mx250-high.png",
+      "sha256": "713b74f475e96ead573bc13b0c66672768bdb062dfe8f5fee4a2920da3072509"
+    },
+    {
+      "file": "rider-suspension-compressed.png",
+      "source": "/tmp/motocross-evidence/final-gpu/42-motocross-bike-Motocros-e904a-sible-on-the-production-rig/suspension-motion-1.png",
+      "sha256": "7730d820fd2b570870a6921ab99539bea243b1fad535f533a304a9921ebd5328"
+    },
+    {
+      "file": "rider-corner-countersteer.png",
+      "source": "/tmp/motocross-evidence/final-gpu/42-motocross-bike-Motocros-5527a-gh-a-reversible-lean-change/articulated-corner-1.png",
+      "sha256": "1fcfe41102c1f34313179a6149420bcf4b346a9dd69c22fa58ed5c9a6b1b83b1"
+    },
+    {
+      "file": "valley-flow-board.png",
+      "source": "/tmp/motocross-evidence/final-gpu/53-motocross-course-landma-b512b-surveyed-jump-profile-signs/valley-ridge-mx-jump-guide.png",
+      "sha256": "2b32e74ecd5625ccab91e104b4b3ec3cbb875f9f32d375169b824f5bfbb6afae"
+    },
+    {
+      "file": "arena-flow-board.png",
+      "source": "/tmp/motocross-evidence/final-gpu/53-motocross-course-landma-b512b-surveyed-jump-profile-signs/arena-nord-sx-jump-guide.png",
+      "sha256": "0f48803779d21ab0f78c7f433973f9eb2f31fdb32c904f1f6de1653c7ef73d42"
+    },
+    {
+      "file": "valley-production-race.png",
+      "source": "/tmp/motocross-evidence/journey/45-motocross-gameplay-real-52ab8-eras-pause-and-venue-switch/valley-ridge-mx-actual-chase.png",
+      "sha256": "d1dd61e8f948ea4d0ca6719d767f6ad4117c4b9fdc4d176aeeb55c438626f542"
+    },
+    {
+      "file": "arena-production-race.png",
+      "source": "/tmp/motocross-evidence/journey/45-motocross-gameplay-real-52ab8-eras-pause-and-venue-switch/arena-nord-sx-actual-chase.png",
+      "sha256": "d57936bdc68ff81ccbaccd4fbc9e3ba28484c350bb42c6f3d8f6ca3cf5e97012"
+    },
+    {
+      "file": "tyre-dry.png",
+      "source": "/tmp/motocross-evidence/bikes/recorded-tyre-surface-0.png",
+      "sha256": "4cbc2473612ec95379548c46c3f3e7c844e4f78fdb62bcfb8789308efa3d32ca",
+      "scope": "tyre-state fixture before the subsequent collar-only fix"
+    },
+    {
+      "file": "tyre-wet.png",
+      "source": "/tmp/motocross-evidence/bikes/recorded-tyre-surface-1.png",
+      "sha256": "31e4e2f285e00d53a470182b42fe98e5a480c0a2cb5a2fd4e147da58a6fa0892",
+      "scope": "tyre-state fixture before the subsequent collar-only fix"
+    }
+  ],
+  "captures": [
+    {
+      "capture": "articulated-corner-0-metrics",
+      "scope": "production-model component fixture",
+      "metrics": {
+        "instance": "062199ce-1f15-4e1c-93da-3ab815f8e0af",
+        "hash": 1015141762,
+        "triangles": 129254,
+        "submittedTriangles": 129256,
+        "finiteGeometry": true,
+        "contacts": [
+          {
+            "handError": 5.721958498152797e-17,
+            "ankleError": 0.0001258227258075506,
+            "wristJointError": 2.280617143682994e-16,
+            "ankleJointError": 0,
+            "calfAttachmentError": 3.379462171739212e-16,
+            "calfSamples": 3736,
+            "skinMeshes": 3,
+            "soleContactFound": true
+          },
+          {
+            "handError": 2.498001805406602e-16,
+            "ankleError": 0.0014386063941370097,
+            "wristJointError": 1.3877787807814457e-17,
+            "ankleJointError": 6.245004513516506e-17,
+            "calfAttachmentError": 3.35945672305943e-16,
+            "calfSamples": 3736,
+            "skinMeshes": 3,
+            "soleContactFound": true
+          }
+        ],
+        "motion": {
+          "pelvis": [
+            0,
+            0.2595,
+            -0.22075
+          ],
+          "pelvisQuaternion": [
+            0.18460509231117003,
+            0.028827610990755273,
+            -0.048819674154411324,
+            0.9811761147484214
+          ],
+          "chestQuaternion": [
+            0.21912544320219834,
+            0.002790840387681187,
+            -0.06973207989759996,
+            0.9731976615182166
+          ],
+          "helmetForward": [
+            -0.06338167543195164,
+            -0.3588095848432407,
+            0.9312563798675744
+          ],
+          "frontLever": -0.25
+        },
+        "cockpit": null,
+        "chain": {
+          "hash": 946742078,
+          "counts": [
+            96,
+            192
+          ],
+          "versions": [
+            1,
+            1
+          ],
+          "finite": true
+        },
+        "calls": 74,
+        "glError": 0,
+        "bounds": {
+          "isBox3": true,
+          "min": {
+            "x": -0.6366843341369247,
+            "y": 0.0029705651662983446,
+            "z": -1.0807738304138184
+          },
+          "max": {
+            "x": 0.4196942401185726,
+            "y": 1.7719616380525829,
+            "z": 1.104517046538499
+          }
+        },
+        "resources": {
+          "geometries": 86,
+          "textures": 31,
+          "programs": 29
+        },
+        "mud": 0,
+        "wetness": 0,
+        "materials": [
+          "Frame aluminium",
+          "",
+          "Motocross moulded knobby rubber",
+          "Motocross anodised rim and hub",
+          "Motocross stainless wave rotor",
+          "Fork stanchion (low-friction coating)",
+          "Motocross cast aluminium water-cooled engine",
+          "Off-road plastics",
+          "Radial caliper",
+          "Fork outer tube (anodised)",
+          "Motocross factory number board",
+          "Titanium exhaust (heat tint)",
+          "Rider jersey and pants (textile)",
+          "Rider stretch fabric and seams",
+          "Motocross composite helmet shell",
+          "Motocross smoked coated goggle lens",
+          "Motocross equipment trim",
+          "Motocross flexible glove textile",
+          "Motocross moulded boot shell",
+          "Rider armour caps",
+          "Motocross magnesium engine cover",
+          "Motocross layered factory plastics",
+          "Textured seat pad",
+          "Off-road black plastics",
+          "Motocross roller chain"
+        ]
+      }
+    },
+    {
+      "capture": "articulated-corner-1-metrics",
+      "scope": "production-model component fixture",
+      "metrics": {
+        "instance": "062199ce-1f15-4e1c-93da-3ab815f8e0af",
+        "hash": 3574914611,
+        "triangles": 129254,
+        "submittedTriangles": 129256,
+        "finiteGeometry": true,
+        "contacts": [
+          {
+            "handError": 2.498001805406602e-16,
+            "ankleError": 0.00012582272580732856,
+            "wristJointError": 1.3877787807814457e-17,
+            "ankleJointError": 6.245004513516506e-17,
+            "calfAttachmentError": 2.486410087150353e-16,
+            "calfSamples": 3736,
+            "skinMeshes": 3,
+            "soleContactFound": true
+          },
+          {
+            "handError": 5.721958498152797e-17,
+            "ankleError": 0.0014386063941368016,
+            "wristJointError": 2.280617143682994e-16,
+            "ankleJointError": 0,
+            "calfAttachmentError": 2.830524433501838e-16,
+            "calfSamples": 3736,
+            "skinMeshes": 3,
+            "soleContactFound": true
+          }
+        ],
+        "motion": {
+          "pelvis": [
+            0,
+            0.2595,
+            -0.22075
+          ],
+          "pelvisQuaternion": [
+            0.18460509231117003,
+            -0.028827610990755273,
+            0.048819674154411324,
+            0.9811761147484214
+          ],
+          "chestQuaternion": [
+            0.21912544320219834,
+            -0.002790840387681187,
+            0.06973207989759996,
+            0.9731976615182166
+          ],
+          "helmetForward": [
+            0.06338167543195164,
+            -0.3588095848432407,
+            0.9312563798675744
+          ],
+          "frontLever": -0.25
+        },
+        "cockpit": null,
+        "chain": {
+          "hash": 946742078,
+          "counts": [
+            96,
+            192
+          ],
+          "versions": [
+            1,
+            1
+          ],
+          "finite": true
+        },
+        "calls": 74,
+        "glError": 0,
+        "bounds": {
+          "isBox3": true,
+          "min": {
+            "x": -0.43794063174977055,
+            "y": 0.0029705651662983446,
+            "z": -1.0807738304138184
+          },
+          "max": {
+            "x": 0.6366843341369247,
+            "y": 1.7719616380525829,
+            "z": 1.104382436289639
+          }
+        },
+        "resources": {
+          "geometries": 86,
+          "textures": 31,
+          "programs": 29
+        },
+        "mud": 0,
+        "wetness": 0,
+        "materials": [
+          "Frame aluminium",
+          "",
+          "Motocross moulded knobby rubber",
+          "Motocross anodised rim and hub",
+          "Motocross stainless wave rotor",
+          "Fork stanchion (low-friction coating)",
+          "Motocross cast aluminium water-cooled engine",
+          "Off-road plastics",
+          "Radial caliper",
+          "Fork outer tube (anodised)",
+          "Motocross factory number board",
+          "Titanium exhaust (heat tint)",
+          "Rider jersey and pants (textile)",
+          "Rider stretch fabric and seams",
+          "Motocross composite helmet shell",
+          "Motocross smoked coated goggle lens",
+          "Motocross equipment trim",
+          "Motocross flexible glove textile",
+          "Motocross moulded boot shell",
+          "Rider armour caps",
+          "Motocross magnesium engine cover",
+          "Motocross layered factory plastics",
+          "Textured seat pad",
+          "Off-road black plastics",
+          "Motocross roller chain"
+        ]
+      }
+    },
+    {
+      "capture": "articulated-corner-2-metrics",
+      "scope": "production-model component fixture",
+      "metrics": {
+        "instance": "062199ce-1f15-4e1c-93da-3ab815f8e0af",
+        "hash": 3574914611,
+        "triangles": 129254,
+        "submittedTriangles": 129256,
+        "finiteGeometry": true,
+        "contacts": [
+          {
+            "handError": 2.498001805406602e-16,
+            "ankleError": 0.00012582272580732856,
+            "wristJointError": 1.3877787807814457e-17,
+            "ankleJointError": 6.245004513516506e-17,
+            "calfAttachmentError": 2.486410087150353e-16,
+            "calfSamples": 3736,
+            "skinMeshes": 3,
+            "soleContactFound": true
+          },
+          {
+            "handError": 5.721958498152797e-17,
+            "ankleError": 0.0014386063941368016,
+            "wristJointError": 2.280617143682994e-16,
+            "ankleJointError": 0,
+            "calfAttachmentError": 2.830524433501838e-16,
+            "calfSamples": 3736,
+            "skinMeshes": 3,
+            "soleContactFound": true
+          }
+        ],
+        "motion": {
+          "pelvis": [
+            0,
+            0.2595,
+            -0.22075
+          ],
+          "pelvisQuaternion": [
+            0.18460509231117003,
+            -0.028827610990755273,
+            0.048819674154411324,
+            0.9811761147484214
+          ],
+          "chestQuaternion": [
+            0.21912544320219834,
+            -0.002790840387681187,
+            0.06973207989759996,
+            0.9731976615182166
+          ],
+          "helmetForward": [
+            0.06338167543195164,
+            -0.3588095848432407,
+            0.9312563798675744
+          ],
+          "frontLever": -0.25
+        },
+        "cockpit": null,
+        "chain": {
+          "hash": 946742078,
+          "counts": [
+            96,
+            192
+          ],
+          "versions": [
+            1,
+            1
+          ],
+          "finite": true
+        },
+        "calls": 74,
+        "glError": 0,
+        "bounds": {
+          "isBox3": true,
+          "min": {
+            "x": -0.43794063174977055,
+            "y": 0.0029705651662983446,
+            "z": -1.0807738304138184
+          },
+          "max": {
+            "x": 0.6366843341369247,
+            "y": 1.7719616380525829,
+            "z": 1.104382436289639
+          }
+        },
+        "resources": {
+          "geometries": 86,
+          "textures": 31,
+          "programs": 29
+        },
+        "mud": 0,
+        "wetness": 0,
+        "materials": [
+          "Frame aluminium",
+          "",
+          "Motocross moulded knobby rubber",
+          "Motocross anodised rim and hub",
+          "Motocross stainless wave rotor",
+          "Fork stanchion (low-friction coating)",
+          "Motocross cast aluminium water-cooled engine",
+          "Off-road plastics",
+          "Radial caliper",
+          "Fork outer tube (anodised)",
+          "Motocross factory number board",
+          "Titanium exhaust (heat tint)",
+          "Rider jersey and pants (textile)",
+          "Rider stretch fabric and seams",
+          "Motocross composite helmet shell",
+          "Motocross smoked coated goggle lens",
+          "Motocross equipment trim",
+          "Motocross flexible glove textile",
+          "Motocross moulded boot shell",
+          "Rider armour caps",
+          "Motocross magnesium engine cover",
+          "Motocross layered factory plastics",
+          "Textured seat pad",
+          "Off-road black plastics",
+          "Motocross roller chain"
+        ]
+      }
+    },
+    {
+      "capture": "articulated-corner-3-metrics",
+      "scope": "production-model component fixture",
+      "metrics": {
+        "instance": "062199ce-1f15-4e1c-93da-3ab815f8e0af",
+        "hash": 1015141762,
+        "triangles": 129254,
+        "submittedTriangles": 129256,
+        "finiteGeometry": true,
+        "contacts": [
+          {
+            "handError": 5.721958498152797e-17,
+            "ankleError": 0.0001258227258075506,
+            "wristJointError": 2.280617143682994e-16,
+            "ankleJointError": 0,
+            "calfAttachmentError": 3.379462171739212e-16,
+            "calfSamples": 3736,
+            "skinMeshes": 3,
+            "soleContactFound": true
+          },
+          {
+            "handError": 2.498001805406602e-16,
+            "ankleError": 0.0014386063941370097,
+            "wristJointError": 1.3877787807814457e-17,
+            "ankleJointError": 6.245004513516506e-17,
+            "calfAttachmentError": 3.35945672305943e-16,
+            "calfSamples": 3736,
+            "skinMeshes": 3,
+            "soleContactFound": true
+          }
+        ],
+        "motion": {
+          "pelvis": [
+            0,
+            0.2595,
+            -0.22075
+          ],
+          "pelvisQuaternion": [
+            0.18460509231117003,
+            0.028827610990755273,
+            -0.048819674154411324,
+            0.9811761147484214
+          ],
+          "chestQuaternion": [
+            0.21912544320219834,
+            0.002790840387681187,
+            -0.06973207989759996,
+            0.9731976615182166
+          ],
+          "helmetForward": [
+            -0.06338167543195164,
+            -0.3588095848432407,
+            0.9312563798675744
+          ],
+          "frontLever": -0.25
+        },
+        "cockpit": null,
+        "chain": {
+          "hash": 946742078,
+          "counts": [
+            96,
+            192
+          ],
+          "versions": [
+            1,
+            1
+          ],
+          "finite": true
+        },
+        "calls": 74,
+        "glError": 0,
+        "bounds": {
+          "isBox3": true,
+          "min": {
+            "x": -0.6366843341369247,
+            "y": 0.0029705651662983446,
+            "z": -1.0807738304138184
+          },
+          "max": {
+            "x": 0.4196942401185726,
+            "y": 1.7719616380525829,
+            "z": 1.104517046538499
+          }
+        },
+        "resources": {
+          "geometries": 86,
+          "textures": 31,
+          "programs": 29
+        },
+        "mud": 0,
+        "wetness": 0,
+        "materials": [
+          "Frame aluminium",
+          "",
+          "Motocross moulded knobby rubber",
+          "Motocross anodised rim and hub",
+          "Motocross stainless wave rotor",
+          "Fork stanchion (low-friction coating)",
+          "Motocross cast aluminium water-cooled engine",
+          "Off-road plastics",
+          "Radial caliper",
+          "Fork outer tube (anodised)",
+          "Motocross factory number board",
+          "Titanium exhaust (heat tint)",
+          "Rider jersey and pants (textile)",
+          "Rider stretch fabric and seams",
+          "Motocross composite helmet shell",
+          "Motocross smoked coated goggle lens",
+          "Motocross equipment trim",
+          "Motocross flexible glove textile",
+          "Motocross moulded boot shell",
+          "Rider armour caps",
+          "Motocross magnesium engine cover",
+          "Motocross layered factory plastics",
+          "Textured seat pad",
+          "Off-road black plastics",
+          "Motocross roller chain"
+        ]
+      }
+    },
+    {
+      "capture": "mx250-production-onboard-0-metrics",
+      "scope": "production-model component fixture",
+      "metrics": {
+        "instance": "6d2a0dd2-ad7b-4070-a9c6-ecf785519245",
+        "hash": 2346988282,
+        "triangles": 129254,
+        "submittedTriangles": 79678,
+        "finiteGeometry": true,
+        "contacts": [
+          {
+            "handError": 2.237726045655905e-16,
+            "ankleError": 0.00012582272580734244,
+            "wristJointError": 4.85722573273506e-17,
+            "ankleJointError": 3.925231146709438e-17,
+            "calfAttachmentError": 2.3551386880256624e-16,
+            "calfSamples": 3736,
+            "skinMeshes": 3,
+            "soleContactFound": true
+          },
+          {
+            "handError": 2.237726045655905e-16,
+            "ankleError": 0.0014386063941369126,
+            "wristJointError": 4.85722573273506e-17,
+            "ankleJointError": 2.7755575615628914e-17,
+            "calfAttachmentError": 2.342840229615247e-16,
+            "calfSamples": 3736,
+            "skinMeshes": 3,
+            "soleContactFound": true
+          }
+        ],
+        "motion": {
+          "pelvis": [
+            0,
+            0.2,
+            -0.24
+          ],
+          "pelvisQuaternion": [
+            0.16178577438264508,
+            0,
+            0,
+            0.9868259031903286
+          ],
+          "chestQuaternion": [
+            0.17902957342582418,
+            0,
+            0,
+            0.9838436927881214
+          ],
+          "helmetForward": [
+            0,
+            -0.2955202066613396,
+            0.955336489125606
+          ],
+          "frontLever": -0.25
+        },
+        "cockpit": {
+          "eye": [
+            0,
+            1.9,
+            -0.39999999999999997
+          ],
+          "fov": 68,
+          "headVisible": false,
+          "torsoVisible": false,
+          "handsVisible": [
+            true,
+            true
+          ],
+          "sleeveEntries": [
+            [
+              -1.5046132414636573,
+              -3.7564296535998016,
+              0.7913063790833572
+            ],
+            [
+              1.5046132414636573,
+              -3.7564296535998016,
+              0.7913063790833572
+            ]
+          ],
+          "controls": [
+            {
+              "name": "Motocross bar pad",
+              "ndc": [
+                0,
+                -0.48534510123167984,
+                0.91417900699609
+              ],
+              "visible": true,
+              "distance": 0.7295375127574589,
+              "hitDistance": 0.6987936671897227,
+              "blocker": " / Off-road plastics"
+            },
+            {
+              "name": "Motocross left grip",
+              "ndc": [
+                -0.4882858264871807,
+                -0.5591263184715689,
+                0.9128898807401985
+              ],
+              "visible": true,
+              "distance": 0.8140542628671914,
+              "hitDistance": 0.7620873063091255,
+              "blocker": " / Motocross flexible glove textile"
+            },
+            {
+              "name": "Motocross right grip",
+              "ndc": [
+                0.4882858264871807,
+                -0.5591263184715689,
+                0.9128898807401985
+              ],
+              "visible": true,
+              "distance": 0.8140542628671914,
+              "hitDistance": 0.7620873063091255,
+              "blocker": " / Motocross flexible glove textile"
+            }
+          ],
+          "visibleControls": 3,
+          "forward": [
+            {
+              "x": -0.37499999999999994,
+              "y": 0,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": -0.37499999999999994,
+              "y": 0.3,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": -0.37499999999999994,
+              "y": 0.6,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": -0.18749999999999997,
+              "y": 0,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": -0.18749999999999997,
+              "y": 0.3,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": -0.18749999999999997,
+              "y": 0.6,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": 0,
+              "y": 0,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": 0,
+              "y": 0.3,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": 0,
+              "y": 0.6,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": 0.18749999999999997,
+              "y": 0,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": 0.18749999999999997,
+              "y": 0.3,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": 0.18749999999999997,
+              "y": 0.6,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": 0.37499999999999994,
+              "y": 0,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": 0.37499999999999994,
+              "y": 0.3,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": 0.37499999999999994,
+              "y": 0.6,
+              "clear": true,
+              "blocker": "none"
+            }
+          ],
+          "clearForwardSamples": 15
+        },
+        "chain": {
+          "hash": 946742078,
+          "counts": [
+            96,
+            192
+          ],
+          "versions": [
+            1,
+            1
+          ],
+          "finite": true
+        },
+        "calls": 41,
+        "glError": 0,
+        "bounds": {
+          "isBox3": true,
+          "min": {
+            "x": -0.5345515602857498,
+            "y": 2.2330575993878554e-07,
+            "z": -1.0807738304138184
+          },
+          "max": {
+            "x": 0.533732545598967,
+            "y": 1.84791029255188,
+            "z": 1.1049997989282956
+          }
+        },
+        "resources": {
+          "geometries": 77,
+          "textures": 26,
+          "programs": 27
+        },
+        "mud": 0,
+        "wetness": 0,
+        "materials": [
+          "Frame aluminium",
+          "",
+          "Motocross moulded knobby rubber",
+          "Motocross anodised rim and hub",
+          "Motocross stainless wave rotor",
+          "Fork stanchion (low-friction coating)",
+          "Motocross cast aluminium water-cooled engine",
+          "Off-road plastics",
+          "Radial caliper",
+          "Fork outer tube (anodised)",
+          "Motocross factory number board",
+          "Titanium exhaust (heat tint)",
+          "Rider jersey and pants (textile)",
+          "Rider stretch fabric and seams",
+          "Motocross composite helmet shell",
+          "Motocross smoked coated goggle lens",
+          "Motocross equipment trim",
+          "Motocross flexible glove textile",
+          "Motocross moulded boot shell",
+          "Rider armour caps",
+          "Motocross magnesium engine cover",
+          "Motocross layered factory plastics",
+          "Textured seat pad",
+          "Off-road black plastics",
+          "Motocross roller chain"
+        ]
+      }
+    },
+    {
+      "capture": "mx250-production-onboard-1-metrics",
+      "scope": "production-model component fixture",
+      "metrics": {
+        "instance": "6d2a0dd2-ad7b-4070-a9c6-ecf785519245",
+        "hash": 3419933405,
+        "triangles": 129254,
+        "submittedTriangles": 79678,
+        "finiteGeometry": true,
+        "contacts": [
+          {
+            "handError": 6.938893903907228e-17,
+            "ankleError": 0.00012582272580750897,
+            "wristJointError": 1.734723475976807e-17,
+            "ankleJointError": 3.925231146709438e-17,
+            "calfAttachmentError": 3.4359788356585895e-16,
+            "calfSamples": 3736,
+            "skinMeshes": 3,
+            "soleContactFound": true
+          },
+          {
+            "handError": 8.326672684688674e-17,
+            "ankleError": 0.001438606394136635,
+            "wristJointError": 1.3877787807814457e-17,
+            "ankleJointError": 5.551115123125783e-17,
+            "calfAttachmentError": 2.391654643720554e-16,
+            "calfSamples": 3736,
+            "skinMeshes": 3,
+            "soleContactFound": true
+          }
+        ],
+        "motion": {
+          "pelvis": [
+            0,
+            0.37,
+            -0.1255
+          ],
+          "pelvisQuaternion": [
+            0.265499669604684,
+            0.013709090563040191,
+            -0.003775659795251389,
+            0.9640060843526084
+          ],
+          "chestQuaternion": [
+            0.3437813084713868,
+            0.01690161549565608,
+            -0.006188731949973078,
+            0.9388772267640693
+          ],
+          "helmetForward": [
+            1.3414567597579094e-18,
+            -0.29552020666133966,
+            0.955336489125606
+          ],
+          "frontLever": -0.25
+        },
+        "cockpit": {
+          "eye": [
+            0,
+            1.9,
+            -0.39999999999999997
+          ],
+          "fov": 69.25,
+          "headVisible": false,
+          "torsoVisible": false,
+          "handsVisible": [
+            true,
+            true
+          ],
+          "sleeveEntries": [
+            [
+              -1.5639478951654562,
+              -4.2352795548934905,
+              0.7693633720020955
+            ],
+            [
+              1.3716176343061945,
+              -3.1850527708942797,
+              0.8101921183643329
+            ]
+          ],
+          "controls": [
+            {
+              "name": "Motocross bar pad",
+              "ndc": [
+                0.004687592419993008,
+                -0.4736667755840013,
+                0.9141963738756395
+              ],
+              "visible": true,
+              "distance": 0.7296272869869124,
+              "hitDistance": 0.6988796581935051,
+              "blocker": " / Off-road plastics"
+            },
+            {
+              "name": "Motocross left grip",
+              "ndc": [
+                -0.4835032301268827,
+                -0.641128051258394,
+                0.9092031842412274
+              ],
+              "visible": true,
+              "distance": 0.7979841483498615,
+              "hitDistance": 0.7458493542109985,
+              "blocker": " / Motocross flexible glove textile"
+            },
+            {
+              "name": "Motocross right grip",
+              "ndc": [
+                0.4640016739930487,
+                -0.4568793471055312,
+                0.9163572187061941
+              ],
+              "visible": true,
+              "distance": 0.8301288853840768,
+              "hitDistance": 0.7787246112777678,
+              "blocker": " / Motocross flexible glove textile"
+            }
+          ],
+          "visibleControls": 3,
+          "forward": [
+            {
+              "x": -0.37499999999999994,
+              "y": 0,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": -0.37499999999999994,
+              "y": 0.3,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": -0.37499999999999994,
+              "y": 0.6,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": -0.18749999999999997,
+              "y": 0,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": -0.18749999999999997,
+              "y": 0.3,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": -0.18749999999999997,
+              "y": 0.6,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": 0,
+              "y": 0,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": 0,
+              "y": 0.3,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": 0,
+              "y": 0.6,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": 0.18749999999999997,
+              "y": 0,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": 0.18749999999999997,
+              "y": 0.3,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": 0.18749999999999997,
+              "y": 0.6,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": 0.37499999999999994,
+              "y": 0,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": 0.37499999999999994,
+              "y": 0.3,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": 0.37499999999999994,
+              "y": 0.6,
+              "clear": true,
+              "blocker": "none"
+            }
+          ],
+          "clearForwardSamples": 15
+        },
+        "chain": {
+          "hash": 946742078,
+          "counts": [
+            96,
+            192
+          ],
+          "versions": [
+            1,
+            1
+          ],
+          "finite": true
+        },
+        "calls": 41,
+        "glError": 0,
+        "bounds": {
+          "isBox3": true,
+          "min": {
+            "x": -0.5465142759192498,
+            "y": -0.0007463310379706711,
+            "z": -1.0807738304138184
+          },
+          "max": {
+            "x": 0.5165920477802508,
+            "y": 1.9319247234458694,
+            "z": 1.104517046538499
+          }
+        },
+        "resources": {
+          "geometries": 77,
+          "textures": 26,
+          "programs": 27
+        },
+        "mud": 0,
+        "wetness": 0,
+        "materials": [
+          "Frame aluminium",
+          "",
+          "Motocross moulded knobby rubber",
+          "Motocross anodised rim and hub",
+          "Motocross stainless wave rotor",
+          "Fork stanchion (low-friction coating)",
+          "Motocross cast aluminium water-cooled engine",
+          "Off-road plastics",
+          "Radial caliper",
+          "Fork outer tube (anodised)",
+          "Motocross factory number board",
+          "Titanium exhaust (heat tint)",
+          "Rider jersey and pants (textile)",
+          "Rider stretch fabric and seams",
+          "Motocross composite helmet shell",
+          "Motocross smoked coated goggle lens",
+          "Motocross equipment trim",
+          "Motocross flexible glove textile",
+          "Motocross moulded boot shell",
+          "Rider armour caps",
+          "Motocross magnesium engine cover",
+          "Motocross layered factory plastics",
+          "Textured seat pad",
+          "Off-road black plastics",
+          "Motocross roller chain"
+        ]
+      }
+    },
+    {
+      "capture": "mx250-production-onboard-2-metrics",
+      "scope": "production-model component fixture",
+      "metrics": {
+        "instance": "6d2a0dd2-ad7b-4070-a9c6-ecf785519245",
+        "hash": 3372591782,
+        "triangles": 129254,
+        "submittedTriangles": 79678,
+        "finiteGeometry": true,
+        "contacts": [
+          {
+            "handError": 1.1102230246251565e-16,
+            "ankleError": 0.00012582272580745346,
+            "wristJointError": 0,
+            "ankleJointError": 2.7755575615628914e-17,
+            "calfAttachmentError": 2.37549462997806e-16,
+            "calfSamples": 3736,
+            "skinMeshes": 3,
+            "soleContactFound": true
+          },
+          {
+            "handError": 8.441528768080324e-17,
+            "ankleError": 0.0014386063941381755,
+            "wristJointError": 1.3877787807814457e-17,
+            "ankleJointError": 2.7755575615628914e-17,
+            "calfAttachmentError": 2.7894008272968645e-16,
+            "calfSamples": 3736,
+            "skinMeshes": 3,
+            "soleContactFound": true
+          }
+        ],
+        "motion": {
+          "pelvis": [
+            0,
+            0.37,
+            -0.208
+          ],
+          "pelvisQuaternion": [
+            0.22011045434100257,
+            -0.027844165514334128,
+            0.04030618741245227,
+            0.9742440667475888
+          ],
+          "chestQuaternion": [
+            0.28202726608264417,
+            -0.01112341179548677,
+            0.05792061170060198,
+            0.9575918199505495
+          ],
+          "helmetForward": [
+            0.05491437672319373,
+            -0.3346384472726093,
+            0.9407451944262486
+          ],
+          "frontLever": -0.43000000000000005
+        },
+        "cockpit": {
+          "eye": [
+            0.3600426978282239,
+            1.8002385557455152,
+            -0.39999999999999997
+          ],
+          "fov": 69.5,
+          "headVisible": false,
+          "torsoVisible": false,
+          "handsVisible": [
+            true,
+            true
+          ],
+          "sleeveEntries": [
+            [
+              -1.3159848904113323,
+              -2.9565340015844295,
+              0.818598335938775
+            ],
+            [
+              1.60054879049882,
+              -4.530253560228813,
+              0.757152362569243
+            ]
+          ],
+          "controls": [
+            {
+              "name": "Motocross bar pad",
+              "ndc": [
+                -0.006975941700389772,
+                -0.47091854260360505,
+                0.9142180141279349
+              ],
+              "visible": true,
+              "distance": 0.7297391864289611,
+              "hitDistance": 0.6989868420190085,
+              "blocker": " / Off-road plastics"
+            },
+            {
+              "name": "Motocross left grip",
+              "ndc": [
+                -0.4532670031582359,
+                -0.4126502315282764,
+                0.9179996796788609
+              ],
+              "visible": true,
+              "distance": 0.8380970264847903,
+              "hitDistance": 0.7871000569527151,
+              "blocker": " / Motocross flexible glove textile"
+            },
+            {
+              "name": "Motocross right grip",
+              "ndc": [
+                0.48179264938119626,
+                -0.6871955016160233,
+                0.9072897826547504
+              ],
+              "visible": true,
+              "distance": 0.7900248418502392,
+              "hitDistance": 0.7380701613341565,
+              "blocker": " / Motocross flexible glove textile"
+            }
+          ],
+          "visibleControls": 3,
+          "forward": [
+            {
+              "x": -0.37499999999999994,
+              "y": 0,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": -0.37499999999999994,
+              "y": 0.3,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": -0.37499999999999994,
+              "y": 0.6,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": -0.18749999999999997,
+              "y": 0,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": -0.18749999999999997,
+              "y": 0.3,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": -0.18749999999999997,
+              "y": 0.6,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": 0,
+              "y": 0,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": 0,
+              "y": 0.3,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": 0,
+              "y": 0.6,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": 0.18749999999999997,
+              "y": 0,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": 0.18749999999999997,
+              "y": 0.3,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": 0.18749999999999997,
+              "y": 0.6,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": 0.37499999999999994,
+              "y": 0,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": 0.37499999999999994,
+              "y": 0.3,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": 0.37499999999999994,
+              "y": 0.6,
+              "clear": true,
+              "blocker": "none"
+            }
+          ],
+          "clearForwardSamples": 15
+        },
+        "chain": {
+          "hash": 946742078,
+          "counts": [
+            96,
+            192
+          ],
+          "versions": [
+            1,
+            1
+          ],
+          "finite": true
+        },
+        "calls": 41,
+        "glError": 0,
+        "bounds": {
+          "isBox3": true,
+          "min": {
+            "x": -0.4124898611108495,
+            "y": 0.002027602774634374,
+            "z": -1.0807738304138184
+          },
+          "max": {
+            "x": 0.6422907602681147,
+            "y": 1.8983074323432239,
+            "z": 1.1029071256537049
+          }
+        },
+        "resources": {
+          "geometries": 77,
+          "textures": 26,
+          "programs": 27
+        },
+        "mud": 0,
+        "wetness": 0,
+        "materials": [
+          "Frame aluminium",
+          "",
+          "Motocross moulded knobby rubber",
+          "Motocross anodised rim and hub",
+          "Motocross stainless wave rotor",
+          "Fork stanchion (low-friction coating)",
+          "Motocross cast aluminium water-cooled engine",
+          "Off-road plastics",
+          "Radial caliper",
+          "Fork outer tube (anodised)",
+          "Motocross factory number board",
+          "Titanium exhaust (heat tint)",
+          "Rider jersey and pants (textile)",
+          "Rider stretch fabric and seams",
+          "Motocross composite helmet shell",
+          "Motocross smoked coated goggle lens",
+          "Motocross equipment trim",
+          "Motocross flexible glove textile",
+          "Motocross moulded boot shell",
+          "Rider armour caps",
+          "Motocross magnesium engine cover",
+          "Motocross layered factory plastics",
+          "Textured seat pad",
+          "Off-road black plastics",
+          "Motocross roller chain"
+        ]
+      }
+    },
+    {
+      "capture": "mx450-production-onboard-0-metrics",
+      "scope": "production-model component fixture",
+      "metrics": {
+        "instance": "a0257955-3e67-422b-9a52-6a1318ea0b34",
+        "hash": 1837026397,
+        "triangles": 126154,
+        "submittedTriangles": 76908,
+        "finiteGeometry": true,
+        "contacts": [
+          {
+            "handError": 2.2887833992611187e-16,
+            "ankleError": 0.00012582272580734244,
+            "wristJointError": 4.85722573273506e-17,
+            "ankleJointError": 3.925231146709438e-17,
+            "calfAttachmentError": 3.3766115072321297e-16,
+            "calfSamples": 3736,
+            "skinMeshes": 3,
+            "soleContactFound": true
+          },
+          {
+            "handError": 2.2887833992611187e-16,
+            "ankleError": 0.0014386063941369681,
+            "wristJointError": 4.85722573273506e-17,
+            "ankleJointError": 2.7755575615628914e-17,
+            "calfAttachmentError": 3.387999773988765e-16,
+            "calfSamples": 3736,
+            "skinMeshes": 3,
+            "soleContactFound": true
+          }
+        ],
+        "motion": {
+          "pelvis": [
+            0,
+            0.2,
+            -0.24
+          ],
+          "pelvisQuaternion": [
+            0.16178577438264508,
+            0,
+            0,
+            0.9868259031903286
+          ],
+          "chestQuaternion": [
+            0.17902957342582418,
+            0,
+            0,
+            0.9838436927881214
+          ],
+          "helmetForward": [
+            0,
+            -0.2955202066613396,
+            0.955336489125606
+          ],
+          "frontLever": -0.25
+        },
+        "cockpit": {
+          "eye": [
+            0,
+            1.9100000000000001,
+            -0.4
+          ],
+          "fov": 68,
+          "headVisible": false,
+          "torsoVisible": false,
+          "handsVisible": [
+            true,
+            true
+          ],
+          "sleeveEntries": [
+            [
+              -1.4844419730299343,
+              -3.7530801852097526,
+              0.7941142429636645
+            ],
+            [
+              1.4844419730299343,
+              -3.7530801852097526,
+              0.7941142429636645
+            ]
+          ],
+          "controls": [
+            {
+              "name": "Motocross bar pad",
+              "ndc": [
+                0,
+                -0.5022195285754508,
+                0.9146625303279138
+              ],
+              "visible": true,
+              "distance": 0.7361426867758996,
+              "hitDistance": 0.7055241387594435,
+              "blocker": " / Off-road plastics"
+            },
+            {
+              "name": "Motocross left grip",
+              "ndc": [
+                -0.4855182413291998,
+                -0.5758324083242137,
+                0.9133878700889094
+              ],
+              "visible": true,
+              "distance": 0.820275029380964,
+              "hitDistance": 0.7686988306956449,
+              "blocker": " / Motocross flexible glove textile"
+            },
+            {
+              "name": "Motocross right grip",
+              "ndc": [
+                0.4855182413291998,
+                -0.5758324083242137,
+                0.9133878700889094
+              ],
+              "visible": true,
+              "distance": 0.820275029380964,
+              "hitDistance": 0.7686988306956449,
+              "blocker": " / Motocross flexible glove textile"
+            }
+          ],
+          "visibleControls": 3,
+          "forward": [
+            {
+              "x": -0.37499999999999994,
+              "y": 0,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": -0.37499999999999994,
+              "y": 0.3,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": -0.37499999999999994,
+              "y": 0.6,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": -0.18749999999999997,
+              "y": 0,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": -0.18749999999999997,
+              "y": 0.3,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": -0.18749999999999997,
+              "y": 0.6,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": 0,
+              "y": 0,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": 0,
+              "y": 0.3,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": 0,
+              "y": 0.6,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": 0.18749999999999997,
+              "y": 0,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": 0.18749999999999997,
+              "y": 0.3,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": 0.18749999999999997,
+              "y": 0.6,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": 0.37499999999999994,
+              "y": 0,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": 0.37499999999999994,
+              "y": 0.3,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": 0.37499999999999994,
+              "y": 0.6,
+              "clear": true,
+              "blocker": "none"
+            }
+          ],
+          "clearForwardSamples": 15
+        },
+        "chain": {
+          "hash": 532227945,
+          "counts": [
+            96,
+            192
+          ],
+          "versions": [
+            1,
+            1
+          ],
+          "finite": true
+        },
+        "calls": 41,
+        "glError": 0,
+        "bounds": {
+          "isBox3": true,
+          "min": {
+            "x": -0.5345515602857498,
+            "y": 2.2330575993878554e-07,
+            "z": -1.0807738304138184
+          },
+          "max": {
+            "x": 0.533732545598967,
+            "y": 1.8579102925518802,
+            "z": 1.1049997989282956
+          }
+        },
+        "resources": {
+          "geometries": 77,
+          "textures": 26,
+          "programs": 27
+        },
+        "mud": 0,
+        "wetness": 0,
+        "materials": [
+          "Frame aluminium",
+          "",
+          "Motocross moulded knobby rubber",
+          "Motocross anodised rim and hub",
+          "Motocross stainless wave rotor",
+          "Fork stanchion (low-friction coating)",
+          "Motocross cast aluminium water-cooled engine",
+          "Off-road plastics",
+          "Radial caliper",
+          "Fork outer tube (anodised)",
+          "Motocross factory number board",
+          "Titanium exhaust (heat tint)",
+          "Rider jersey and pants (textile)",
+          "Rider stretch fabric and seams",
+          "Motocross composite helmet shell",
+          "Motocross smoked coated goggle lens",
+          "Motocross equipment trim",
+          "Motocross flexible glove textile",
+          "Motocross moulded boot shell",
+          "Rider armour caps",
+          "Motocross magnesium engine cover",
+          "Motocross layered factory plastics",
+          "Textured seat pad",
+          "Off-road black plastics",
+          "Motocross roller chain"
+        ]
+      }
+    },
+    {
+      "capture": "mx450-production-onboard-1-metrics",
+      "scope": "production-model component fixture",
+      "metrics": {
+        "instance": "a0257955-3e67-422b-9a52-6a1318ea0b34",
+        "hash": 3956174172,
+        "triangles": 126154,
+        "submittedTriangles": 76908,
+        "finiteGeometry": true,
+        "contacts": [
+          {
+            "handError": 6.938893903907228e-17,
+            "ankleError": 0.00012582272580750897,
+            "wristJointError": 1.734723475976807e-17,
+            "ankleJointError": 3.925231146709438e-17,
+            "calfAttachmentError": 3.444376352465766e-16,
+            "calfSamples": 3736,
+            "skinMeshes": 3,
+            "soleContactFound": true
+          },
+          {
+            "handError": 5.551115123125783e-17,
+            "ankleError": 0.001438606394136635,
+            "wristJointError": 1.3877787807814457e-17,
+            "ankleJointError": 5.551115123125783e-17,
+            "calfAttachmentError": 2.387624894196368e-16,
+            "calfSamples": 3736,
+            "skinMeshes": 3,
+            "soleContactFound": true
+          }
+        ],
+        "motion": {
+          "pelvis": [
+            0,
+            0.37,
+            -0.1255
+          ],
+          "pelvisQuaternion": [
+            0.265499669604684,
+            0.013709090563040191,
+            -0.003775659795251389,
+            0.9640060843526084
+          ],
+          "chestQuaternion": [
+            0.3437813084713868,
+            0.01690161549565608,
+            -0.006188731949973078,
+            0.9388772267640693
+          ],
+          "helmetForward": [
+            1.3414567597579094e-18,
+            -0.29552020666133966,
+            0.955336489125606
+          ],
+          "frontLever": -0.25
+        },
+        "cockpit": {
+          "eye": [
+            0,
+            1.9100000000000001,
+            -0.4
+          ],
+          "fov": 69.25,
+          "headVisible": false,
+          "torsoVisible": false,
+          "handsVisible": [
+            true,
+            true
+          ],
+          "sleeveEntries": [
+            [
+              -1.5408170173829163,
+              -4.223301190880502,
+              0.7727855974721883
+            ],
+            [
+              1.3548671818275189,
+              -3.1879877716325105,
+              0.8125192504846647
+            ]
+          ],
+          "controls": [
+            {
+              "name": "Motocross bar pad",
+              "ndc": [
+                0.004661416206565175,
+                -0.4901496176610996,
+                0.9146797037712896
+              ],
+              "visible": true,
+              "distance": 0.7362303284754479,
+              "hitDistance": 0.7056081351581092,
+              "blocker": " / Off-road plastics"
+            },
+            {
+              "name": "Motocross left grip",
+              "ndc": [
+                -0.48064843875138735,
+                -0.6575673975165408,
+                0.9097437139564579
+              ],
+              "visible": true,
+              "distance": 0.8045694059735338,
+              "hitDistance": 0.7528333315819165,
+              "blocker": " / Motocross flexible glove textile"
+            },
+            {
+              "name": "Motocross right grip",
+              "ndc": [
+                0.46147495383443926,
+                -0.47304434670311096,
+                0.9168167809547693
+              ],
+              "visible": true,
+              "distance": 0.835994308423796,
+              "hitDistance": 0.7849616161832919,
+              "blocker": " / Motocross flexible glove textile"
+            }
+          ],
+          "visibleControls": 3,
+          "forward": [
+            {
+              "x": -0.37499999999999994,
+              "y": 0,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": -0.37499999999999994,
+              "y": 0.3,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": -0.37499999999999994,
+              "y": 0.6,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": -0.18749999999999997,
+              "y": 0,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": -0.18749999999999997,
+              "y": 0.3,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": -0.18749999999999997,
+              "y": 0.6,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": 0,
+              "y": 0,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": 0,
+              "y": 0.3,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": 0,
+              "y": 0.6,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": 0.18749999999999997,
+              "y": 0,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": 0.18749999999999997,
+              "y": 0.3,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": 0.18749999999999997,
+              "y": 0.6,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": 0.37499999999999994,
+              "y": 0,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": 0.37499999999999994,
+              "y": 0.3,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": 0.37499999999999994,
+              "y": 0.6,
+              "clear": true,
+              "blocker": "none"
+            }
+          ],
+          "clearForwardSamples": 15
+        },
+        "chain": {
+          "hash": 532227945,
+          "counts": [
+            96,
+            192
+          ],
+          "versions": [
+            1,
+            1
+          ],
+          "finite": true
+        },
+        "calls": 41,
+        "glError": 0,
+        "bounds": {
+          "isBox3": true,
+          "min": {
+            "x": -0.5465142759192498,
+            "y": -0.0007463310379706711,
+            "z": -1.0807738304138184
+          },
+          "max": {
+            "x": 0.5165920477802508,
+            "y": 1.9419247234458694,
+            "z": 1.104517046538499
+          }
+        },
+        "resources": {
+          "geometries": 77,
+          "textures": 26,
+          "programs": 27
+        },
+        "mud": 0,
+        "wetness": 0,
+        "materials": [
+          "Frame aluminium",
+          "",
+          "Motocross moulded knobby rubber",
+          "Motocross anodised rim and hub",
+          "Motocross stainless wave rotor",
+          "Fork stanchion (low-friction coating)",
+          "Motocross cast aluminium water-cooled engine",
+          "Off-road plastics",
+          "Radial caliper",
+          "Fork outer tube (anodised)",
+          "Motocross factory number board",
+          "Titanium exhaust (heat tint)",
+          "Rider jersey and pants (textile)",
+          "Rider stretch fabric and seams",
+          "Motocross composite helmet shell",
+          "Motocross smoked coated goggle lens",
+          "Motocross equipment trim",
+          "Motocross flexible glove textile",
+          "Motocross moulded boot shell",
+          "Rider armour caps",
+          "Motocross magnesium engine cover",
+          "Motocross layered factory plastics",
+          "Textured seat pad",
+          "Off-road black plastics",
+          "Motocross roller chain"
+        ]
+      }
+    },
+    {
+      "capture": "mx450-production-onboard-2-metrics",
+      "scope": "production-model component fixture",
+      "metrics": {
+        "instance": "a0257955-3e67-422b-9a52-6a1318ea0b34",
+        "hash": 4202947213,
+        "triangles": 126154,
+        "submittedTriangles": 76908,
+        "finiteGeometry": true,
+        "contacts": [
+          {
+            "handError": 2.220446049250313e-16,
+            "ankleError": 0.00012582272580745346,
+            "wristJointError": 1.3877787807814457e-17,
+            "ankleJointError": 2.7755575615628914e-17,
+            "calfAttachmentError": 2.387624894196368e-16,
+            "calfSamples": 3736,
+            "skinMeshes": 3,
+            "soleContactFound": true
+          },
+          {
+            "handError": 2.2247786310271853e-16,
+            "ankleError": 0.0014386063941383004,
+            "wristJointError": 1.3877787807814457e-17,
+            "ankleJointError": 2.7755575615628914e-17,
+            "calfAttachmentError": 2.9796874070320123e-16,
+            "calfSamples": 3736,
+            "skinMeshes": 3,
+            "soleContactFound": true
+          }
+        ],
+        "motion": {
+          "pelvis": [
+            0,
+            0.37,
+            -0.208
+          ],
+          "pelvisQuaternion": [
+            0.22011045434100257,
+            -0.027844165514334128,
+            0.04030618741245227,
+            0.9742440667475888
+          ],
+          "chestQuaternion": [
+            0.28202726608264417,
+            -0.01112341179548677,
+            0.05792061170060198,
+            0.9575918199505495
+          ],
+          "helmetForward": [
+            0.05491437672319373,
+            -0.3346384472726093,
+            0.9407451944262486
+          ],
+          "frontLever": -0.43000000000000005
+        },
+        "cockpit": {
+          "eye": [
+            0.3600426978282239,
+            1.809632282873989,
+            -0.4
+          ],
+          "fov": 69.5,
+          "headVisible": false,
+          "torsoVisible": false,
+          "handsVisible": [
+            true,
+            true
+          ],
+          "sleeveEntries": [
+            [
+              -1.300614508081373,
+              -2.96182399696591,
+              0.8207258262037473
+            ],
+            [
+              1.5756467636154163,
+              -4.512815678788797,
+              0.760942363822792
+            ]
+          ],
+          "controls": [
+            {
+              "name": "Motocross bar pad",
+              "ndc": [
+                -0.00693699668925121,
+                -0.48732368217881,
+                0.9147011030434875
+              ],
+              "visible": true,
+              "distance": 0.7363395703079711,
+              "hitDistance": 0.7057128332705699,
+              "blocker": " / Off-road plastics"
+            },
+            {
+              "name": "Motocross left grip",
+              "ndc": [
+                -0.4508465195610043,
+                -0.4286534137284381,
+                0.9184415747928307
+              ],
+              "visible": true,
+              "distance": 0.8437895769060689,
+              "hitDistance": 0.7931518365568024,
+              "blocker": " / Motocross flexible glove textile"
+            },
+            {
+              "name": "Motocross right grip",
+              "ndc": [
+                0.47888886014485094,
+                -0.7036026946723578,
+                0.9078530739181173
+              ],
+              "visible": true,
+              "distance": 0.7967942190975715,
+              "hitDistance": 0.7453077760707141,
+              "blocker": " / Motocross flexible glove textile"
+            }
+          ],
+          "visibleControls": 3,
+          "forward": [
+            {
+              "x": -0.37499999999999994,
+              "y": 0,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": -0.37499999999999994,
+              "y": 0.3,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": -0.37499999999999994,
+              "y": 0.6,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": -0.18749999999999997,
+              "y": 0,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": -0.18749999999999997,
+              "y": 0.3,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": -0.18749999999999997,
+              "y": 0.6,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": 0,
+              "y": 0,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": 0,
+              "y": 0.3,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": 0,
+              "y": 0.6,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": 0.18749999999999997,
+              "y": 0,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": 0.18749999999999997,
+              "y": 0.3,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": 0.18749999999999997,
+              "y": 0.6,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": 0.37499999999999994,
+              "y": 0,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": 0.37499999999999994,
+              "y": 0.3,
+              "clear": true,
+              "blocker": "none"
+            },
+            {
+              "x": 0.37499999999999994,
+              "y": 0.6,
+              "clear": true,
+              "blocker": "none"
+            }
+          ],
+          "clearForwardSamples": 15
+        },
+        "chain": {
+          "hash": 532227945,
+          "counts": [
+            96,
+            192
+          ],
+          "versions": [
+            1,
+            1
+          ],
+          "finite": true
+        },
+        "calls": 41,
+        "glError": 0,
+        "bounds": {
+          "isBox3": true,
+          "min": {
+            "x": -0.40622031040348294,
+            "y": 0.002027602774634374,
+            "z": -1.0807738304138184
+          },
+          "max": {
+            "x": 0.6388617821169166,
+            "y": 1.9077011594716975,
+            "z": 1.1029071256537049
+          }
+        },
+        "resources": {
+          "geometries": 77,
+          "textures": 26,
+          "programs": 27
+        },
+        "mud": 0,
+        "wetness": 0,
+        "materials": [
+          "Frame aluminium",
+          "",
+          "Motocross moulded knobby rubber",
+          "Motocross anodised rim and hub",
+          "Motocross stainless wave rotor",
+          "Fork stanchion (low-friction coating)",
+          "Motocross cast aluminium water-cooled engine",
+          "Off-road plastics",
+          "Radial caliper",
+          "Fork outer tube (anodised)",
+          "Motocross factory number board",
+          "Titanium exhaust (heat tint)",
+          "Rider jersey and pants (textile)",
+          "Rider stretch fabric and seams",
+          "Motocross composite helmet shell",
+          "Motocross smoked coated goggle lens",
+          "Motocross equipment trim",
+          "Motocross flexible glove textile",
+          "Motocross moulded boot shell",
+          "Rider armour caps",
+          "Motocross magnesium engine cover",
+          "Motocross layered factory plastics",
+          "Textured seat pad",
+          "Off-road black plastics",
+          "Motocross roller chain"
+        ]
+      }
+    },
+    {
+      "capture": "mx450-far-metrics",
+      "scope": "production-model component fixture",
+      "metrics": {
+        "instance": "3483a572-93ec-4234-a2d9-42b78224adc2",
+        "hash": 1725752773,
+        "triangles": 11604,
+        "submittedTriangles": 11606,
+        "finiteGeometry": true,
+        "contacts": [
+          {
+            "handError": 2.482534153247273e-16,
+            "ankleError": 0.0014126783185169495,
+            "wristJointError": 2.2301825219878386e-16,
+            "ankleJointError": 3.925231146709438e-17,
+            "calfAttachmentError": 2.3055512673781017e-16,
+            "calfSamples": 56,
+            "skinMeshes": 2,
+            "soleContactFound": true
+          },
+          {
+            "handError": 2.482534153247273e-16,
+            "ankleError": 0.0010390495911568737,
+            "wristJointError": 2.2301825219878386e-16,
+            "ankleJointError": 2.7755575615628914e-17,
+            "calfAttachmentError": 2.435541875787129e-16,
+            "calfSamples": 56,
+            "skinMeshes": 2,
+            "soleContactFound": true
+          }
+        ],
+        "motion": {
+          "pelvis": [
+            0,
+            0.2,
+            -0.24
+          ],
+          "pelvisQuaternion": [
+            0.16178577438264508,
+            0,
+            0,
+            0.9868259031903286
+          ],
+          "chestQuaternion": [
+            0.17902957342582418,
+            0,
+            0,
+            0.9838436927881214
+          ],
+          "helmetForward": [
+            0,
+            -0.2955202066613396,
+            0.955336489125606
+          ],
+          "frontLever": null
+        },
+        "cockpit": null,
+        "chain": null,
+        "calls": 45,
+        "glError": 0,
+        "bounds": {
+          "isBox3": true,
+          "min": {
+            "x": -0.4208545684814453,
+            "y": 0.004302114360619724,
+            "z": -1.0807451009750366
+          },
+          "max": {
+            "x": 0.4208545684814453,
+            "y": 1.8579102925518802,
+            "z": 1.1005603016828513
+          }
+        },
+        "resources": {
+          "geometries": 57,
+          "textures": 17,
+          "programs": 17
+        },
+        "mud": 0,
+        "wetness": 0,
+        "materials": [
+          "Motocross moulded knobby rubber",
+          "Motocross anodised rim and hub",
+          "Fork stanchion (low-friction coating)",
+          "Motocross cast aluminium water-cooled engine",
+          "Radial caliper",
+          "Fork outer tube (anodised)",
+          "Frame aluminium",
+          "",
+          "Motocross factory number board",
+          "Off-road plastics",
+          "Titanium exhaust (heat tint)",
+          "Rider jersey and pants (textile)",
+          "Rider stretch fabric and seams",
+          "Motocross composite helmet shell",
+          "Motocross smoked coated goggle lens",
+          "Motocross moulded boot shell",
+          "Motocross magnesium engine cover",
+          "Motocross layered factory plastics",
+          "Textured seat pad"
+        ]
+      }
+    },
+    {
+      "capture": "mx450-high-metrics",
+      "scope": "production-model component fixture",
+      "metrics": {
+        "instance": "2e99adaf-f34a-4ebb-80c6-d614f90acbd2",
+        "hash": 34842887,
+        "triangles": 126154,
+        "submittedTriangles": 126156,
+        "finiteGeometry": true,
+        "contacts": [
+          {
+            "handError": 2.482534153247273e-16,
+            "ankleError": 0.00012582272580734244,
+            "wristJointError": 2.2301825219878386e-16,
+            "ankleJointError": 3.925231146709438e-17,
+            "calfAttachmentError": 3.3766115072321297e-16,
+            "calfSamples": 3736,
+            "skinMeshes": 3,
+            "soleContactFound": true
+          },
+          {
+            "handError": 2.482534153247273e-16,
+            "ankleError": 0.0014386063941369681,
+            "wristJointError": 2.2301825219878386e-16,
+            "ankleJointError": 2.7755575615628914e-17,
+            "calfAttachmentError": 3.387999773988765e-16,
+            "calfSamples": 3736,
+            "skinMeshes": 3,
+            "soleContactFound": true
+          }
+        ],
+        "motion": {
+          "pelvis": [
+            0,
+            0.2,
+            -0.24
+          ],
+          "pelvisQuaternion": [
+            0.16178577438264508,
+            0,
+            0,
+            0.9868259031903286
+          ],
+          "chestQuaternion": [
+            0.17902957342582418,
+            0,
+            0,
+            0.9838436927881214
+          ],
+          "helmetForward": [
+            0,
+            -0.2955202066613396,
+            0.955336489125606
+          ],
+          "frontLever": -0.25
+        },
+        "cockpit": null,
+        "chain": {
+          "hash": 532227945,
+          "counts": [
+            96,
+            192
+          ],
+          "versions": [
+            1,
+            1
+          ],
+          "finite": true
+        },
+        "calls": 74,
+        "glError": 0,
+        "bounds": {
+          "isBox3": true,
+          "min": {
+            "x": -0.4208545684814453,
+            "y": 2.2330575993878554e-07,
+            "z": -1.0807738304138184
+          },
+          "max": {
+            "x": 0.4208545684814453,
+            "y": 1.8579102925518802,
+            "z": 1.1049997989282956
+          }
+        },
+        "resources": {
+          "geometries": 86,
+          "textures": 31,
+          "programs": 29
+        },
+        "mud": 0,
+        "wetness": 0,
+        "materials": [
+          "Frame aluminium",
+          "",
+          "Motocross moulded knobby rubber",
+          "Motocross anodised rim and hub",
+          "Motocross stainless wave rotor",
+          "Fork stanchion (low-friction coating)",
+          "Motocross cast aluminium water-cooled engine",
+          "Off-road plastics",
+          "Radial caliper",
+          "Fork outer tube (anodised)",
+          "Motocross factory number board",
+          "Titanium exhaust (heat tint)",
+          "Rider jersey and pants (textile)",
+          "Rider stretch fabric and seams",
+          "Motocross composite helmet shell",
+          "Motocross smoked coated goggle lens",
+          "Motocross equipment trim",
+          "Motocross flexible glove textile",
+          "Motocross moulded boot shell",
+          "Rider armour caps",
+          "Motocross magnesium engine cover",
+          "Motocross layered factory plastics",
+          "Textured seat pad",
+          "Off-road black plastics",
+          "Motocross roller chain"
+        ]
+      }
+    },
+    {
+      "capture": "mx450-mid-metrics",
+      "scope": "production-model component fixture",
+      "metrics": {
+        "instance": "ff06f87f-8d3e-4b45-a659-9de9ee5b015b",
+        "hash": 2650203076,
+        "triangles": 61424,
+        "submittedTriangles": 61426,
+        "finiteGeometry": true,
+        "contacts": [
+          {
+            "handError": 2.482534153247273e-16,
+            "ankleError": 0.0012920114625326745,
+            "wristJointError": 2.2301825219878386e-16,
+            "ankleJointError": 3.925231146709438e-17,
+            "calfAttachmentError": 3.387999773988765e-16,
+            "calfSamples": 2979,
+            "skinMeshes": 3,
+            "soleContactFound": true
+          },
+          {
+            "handError": 2.482534153247273e-16,
+            "ankleError": 0.0029282797234384678,
+            "wristJointError": 2.2301825219878386e-16,
+            "ankleJointError": 2.7755575615628914e-17,
+            "calfAttachmentError": 3.368045037175248e-16,
+            "calfSamples": 2979,
+            "skinMeshes": 3,
+            "soleContactFound": true
+          }
+        ],
+        "motion": {
+          "pelvis": [
+            0,
+            0.2,
+            -0.24
+          ],
+          "pelvisQuaternion": [
+            0.16178577438264508,
+            0,
+            0,
+            0.9868259031903286
+          ],
+          "chestQuaternion": [
+            0.17902957342582418,
+            0,
+            0,
+            0.9838436927881214
+          ],
+          "helmetForward": [
+            0,
+            -0.2955202066613396,
+            0.955336489125606
+          ],
+          "frontLever": null
+        },
+        "cockpit": null,
+        "chain": {
+          "hash": 532227945,
+          "counts": [
+            96,
+            192
+          ],
+          "versions": [
+            1,
+            1
+          ],
+          "finite": true
+        },
+        "calls": 69,
+        "glError": 0,
+        "bounds": {
+          "isBox3": true,
+          "min": {
+            "x": -0.4208545684814453,
+            "y": 2.104742921443803e-05,
+            "z": -1.080732822418213
+          },
+          "max": {
+            "x": 0.4208545684814453,
+            "y": 1.8579102925518802,
+            "z": 1.1049789525707858
+          }
+        },
+        "resources": {
+          "geometries": 81,
+          "textures": 31,
+          "programs": 29
+        },
+        "mud": 0,
+        "wetness": 0,
+        "materials": [
+          "",
+          "Motocross moulded knobby rubber",
+          "Motocross anodised rim and hub",
+          "Motocross stainless wave rotor",
+          "Fork stanchion (low-friction coating)",
+          "Motocross cast aluminium water-cooled engine",
+          "Off-road plastics",
+          "Radial caliper",
+          "Fork outer tube (anodised)",
+          "Frame aluminium",
+          "Motocross factory number board",
+          "Titanium exhaust (heat tint)",
+          "Rider jersey and pants (textile)",
+          "Rider stretch fabric and seams",
+          "Motocross composite helmet shell",
+          "Motocross smoked coated goggle lens",
+          "Motocross equipment trim",
+          "Motocross flexible glove textile",
+          "Motocross moulded boot shell",
+          "Rider armour caps",
+          "Motocross magnesium engine cover",
+          "Motocross layered factory plastics",
+          "Textured seat pad",
+          "Off-road black plastics",
+          "Motocross roller chain"
+        ]
+      }
+    },
+    {
+      "capture": "suspension-motion-0-metrics",
+      "scope": "production-model component fixture",
+      "metrics": {
+        "instance": "4a3b628c-c0c2-4f32-b52b-d544e7246f05",
+        "hash": 707827093,
+        "triangles": 126154,
+        "submittedTriangles": 126156,
+        "finiteGeometry": true,
+        "contacts": [
+          {
+            "handError": 2.2887833992611187e-16,
+            "ankleError": 0.00012582272580700937,
+            "wristJointError": 5.551115123125783e-17,
+            "ankleJointError": 0,
+            "calfAttachmentError": 2.498001805406602e-16,
+            "calfSamples": 3736,
+            "skinMeshes": 3,
+            "soleContactFound": true
+          },
+          {
+            "handError": 2.2887833992611187e-16,
+            "ankleError": 0.0014386063941372873,
+            "wristJointError": 5.551115123125783e-17,
+            "ankleJointError": 0,
+            "calfAttachmentError": 2.7894008272968645e-16,
+            "calfSamples": 3736,
+            "skinMeshes": 3,
+            "soleContactFound": true
+          }
+        ],
+        "motion": {
+          "pelvis": [
+            0,
+            0.37,
+            -0.15525
+          ],
+          "pelvisQuaternion": [
+            0.23369384631729836,
+            0,
+            0,
+            0.9723102314556948
+          ],
+          "chestQuaternion": [
+            0.30696269219636757,
+            0,
+            0,
+            0.9517215483530664
+          ],
+          "helmetForward": [
+            0,
+            -0.34139437284707397,
+            0.9399201467084068
+          ],
+          "frontLever": -0.25
+        },
+        "cockpit": null,
+        "chain": {
+          "hash": 532227945,
+          "counts": [
+            96,
+            192
+          ],
+          "versions": [
+            1,
+            1
+          ],
+          "finite": true
+        },
+        "calls": 74,
+        "glError": 0,
+        "bounds": {
+          "isBox3": true,
+          "min": {
+            "x": -0.5054351943562936,
+            "y": 0.14850853586813656,
+            "z": -1.1696028290208633
+          },
+          "max": {
+            "x": 0.5047572826256264,
+            "y": 2.2070923642094376,
+            "z": 0.9767170011736721
+          }
+        },
+        "resources": {
+          "geometries": 86,
+          "textures": 31,
+          "programs": 29
+        },
+        "mud": 0,
+        "wetness": 0,
+        "materials": [
+          "Frame aluminium",
+          "",
+          "Motocross moulded knobby rubber",
+          "Motocross anodised rim and hub",
+          "Motocross stainless wave rotor",
+          "Fork stanchion (low-friction coating)",
+          "Motocross cast aluminium water-cooled engine",
+          "Off-road plastics",
+          "Radial caliper",
+          "Fork outer tube (anodised)",
+          "Motocross factory number board",
+          "Titanium exhaust (heat tint)",
+          "Rider jersey and pants (textile)",
+          "Rider stretch fabric and seams",
+          "Motocross composite helmet shell",
+          "Motocross smoked coated goggle lens",
+          "Motocross equipment trim",
+          "Motocross flexible glove textile",
+          "Motocross moulded boot shell",
+          "Rider armour caps",
+          "Motocross magnesium engine cover",
+          "Motocross layered factory plastics",
+          "Textured seat pad",
+          "Off-road black plastics",
+          "Motocross roller chain"
+        ]
+      }
+    },
+    {
+      "capture": "suspension-motion-1-metrics",
+      "scope": "production-model component fixture",
+      "metrics": {
+        "instance": "4a3b628c-c0c2-4f32-b52b-d544e7246f05",
+        "hash": 1751176609,
+        "triangles": 126154,
+        "submittedTriangles": 126156,
+        "finiteGeometry": true,
+        "contacts": [
+          {
+            "handError": 8.326672684688674e-17,
+            "ankleError": 0.00012582272580778653,
+            "wristJointError": 0,
+            "ankleJointError": 2.7755575615628914e-17,
+            "calfAttachmentError": 4.509747244882934e-16,
+            "calfSamples": 3736,
+            "skinMeshes": 3,
+            "soleContactFound": true
+          },
+          {
+            "handError": 8.326672684688674e-17,
+            "ankleError": 0.0014386063941365934,
+            "wristJointError": 0,
+            "ankleJointError": 2.7755575615628914e-17,
+            "calfAttachmentError": 2.6766507790745728e-16,
+            "calfSamples": 3736,
+            "skinMeshes": 3,
+            "soleContactFound": true
+          }
+        ],
+        "motion": {
+          "pelvis": [
+            0,
+            0.3300341077913994,
+            -0.12262831856158779
+          ],
+          "pelvisQuaternion": [
+            0.28450154724452786,
+            0,
+            0,
+            0.9586755810051019
+          ],
+          "chestQuaternion": [
+            0.3709046320092099,
+            0,
+            0,
+            0.928670961080464
+          ],
+          "helmetForward": [
+            0,
+            -0.34139437284707386,
+            0.9399201467084068
+          ],
+          "frontLever": -0.41000000000000003
+        },
+        "cockpit": null,
+        "chain": {
+          "hash": 532227945,
+          "counts": [
+            96,
+            192
+          ],
+          "versions": [
+            1,
+            1
+          ],
+          "finite": true
+        },
+        "calls": 74,
+        "glError": 0,
+        "bounds": {
+          "isBox3": true,
+          "min": {
+            "x": -0.48782816783390615,
+            "y": 0.28978612109645757,
+            "z": -1.1605882548355781
+          },
+          "max": {
+            "x": 0.48913843259263845,
+            "y": 2.1066402520457754,
+            "z": 0.940642911136004
+          }
+        },
+        "resources": {
+          "geometries": 86,
+          "textures": 31,
+          "programs": 29
+        },
+        "mud": 0,
+        "wetness": 0,
+        "materials": [
+          "Frame aluminium",
+          "",
+          "Motocross moulded knobby rubber",
+          "Motocross anodised rim and hub",
+          "Motocross stainless wave rotor",
+          "Fork stanchion (low-friction coating)",
+          "Motocross cast aluminium water-cooled engine",
+          "Off-road plastics",
+          "Radial caliper",
+          "Fork outer tube (anodised)",
+          "Motocross factory number board",
+          "Titanium exhaust (heat tint)",
+          "Rider jersey and pants (textile)",
+          "Rider stretch fabric and seams",
+          "Motocross composite helmet shell",
+          "Motocross smoked coated goggle lens",
+          "Motocross equipment trim",
+          "Motocross flexible glove textile",
+          "Motocross moulded boot shell",
+          "Rider armour caps",
+          "Motocross magnesium engine cover",
+          "Motocross layered factory plastics",
+          "Textured seat pad",
+          "Off-road black plastics",
+          "Motocross roller chain"
+        ]
+      }
+    },
+    {
+      "capture": "suspension-motion-2-metrics",
+      "scope": "production-model component fixture",
+      "metrics": {
+        "instance": "4a3b628c-c0c2-4f32-b52b-d544e7246f05",
+        "hash": 1751176609,
+        "triangles": 126154,
+        "submittedTriangles": 126156,
+        "finiteGeometry": true,
+        "contacts": [
+          {
+            "handError": 8.326672684688674e-17,
+            "ankleError": 0.00012582272580778653,
+            "wristJointError": 0,
+            "ankleJointError": 2.7755575615628914e-17,
+            "calfAttachmentError": 4.509747244882934e-16,
+            "calfSamples": 3736,
+            "skinMeshes": 3,
+            "soleContactFound": true
+          },
+          {
+            "handError": 8.326672684688674e-17,
+            "ankleError": 0.0014386063941365934,
+            "wristJointError": 0,
+            "ankleJointError": 2.7755575615628914e-17,
+            "calfAttachmentError": 2.6766507790745728e-16,
+            "calfSamples": 3736,
+            "skinMeshes": 3,
+            "soleContactFound": true
+          }
+        ],
+        "motion": {
+          "pelvis": [
+            0,
+            0.3300341077913994,
+            -0.12262831856158779
+          ],
+          "pelvisQuaternion": [
+            0.28450154724452786,
+            0,
+            0,
+            0.9586755810051019
+          ],
+          "chestQuaternion": [
+            0.3709046320092099,
+            0,
+            0,
+            0.928670961080464
+          ],
+          "helmetForward": [
+            0,
+            -0.34139437284707386,
+            0.9399201467084068
+          ],
+          "frontLever": -0.41000000000000003
+        },
+        "cockpit": null,
+        "chain": {
+          "hash": 532227945,
+          "counts": [
+            96,
+            192
+          ],
+          "versions": [
+            1,
+            1
+          ],
+          "finite": true
+        },
+        "calls": 74,
+        "glError": 0,
+        "bounds": {
+          "isBox3": true,
+          "min": {
+            "x": -0.48782816783390615,
+            "y": 0.28978612109645757,
+            "z": -1.1605882548355781
+          },
+          "max": {
+            "x": 0.48913843259263845,
+            "y": 2.1066402520457754,
+            "z": 0.940642911136004
+          }
+        },
+        "resources": {
+          "geometries": 86,
+          "textures": 31,
+          "programs": 29
+        },
+        "mud": 0,
+        "wetness": 0,
+        "materials": [
+          "Frame aluminium",
+          "",
+          "Motocross moulded knobby rubber",
+          "Motocross anodised rim and hub",
+          "Motocross stainless wave rotor",
+          "Fork stanchion (low-friction coating)",
+          "Motocross cast aluminium water-cooled engine",
+          "Off-road plastics",
+          "Radial caliper",
+          "Fork outer tube (anodised)",
+          "Motocross factory number board",
+          "Titanium exhaust (heat tint)",
+          "Rider jersey and pants (textile)",
+          "Rider stretch fabric and seams",
+          "Motocross composite helmet shell",
+          "Motocross smoked coated goggle lens",
+          "Motocross equipment trim",
+          "Motocross flexible glove textile",
+          "Motocross moulded boot shell",
+          "Rider armour caps",
+          "Motocross magnesium engine cover",
+          "Motocross layered factory plastics",
+          "Textured seat pad",
+          "Off-road black plastics",
+          "Motocross roller chain"
+        ]
+      }
+    },
+    {
+      "capture": "suspension-motion-3-metrics",
+      "scope": "production-model component fixture",
+      "metrics": {
+        "instance": "4a3b628c-c0c2-4f32-b52b-d544e7246f05",
+        "hash": 707827093,
+        "triangles": 126154,
+        "submittedTriangles": 126156,
+        "finiteGeometry": true,
+        "contacts": [
+          {
+            "handError": 2.2887833992611187e-16,
+            "ankleError": 0.00012582272580700937,
+            "wristJointError": 5.551115123125783e-17,
+            "ankleJointError": 0,
+            "calfAttachmentError": 2.498001805406602e-16,
+            "calfSamples": 3736,
+            "skinMeshes": 3,
+            "soleContactFound": true
+          },
+          {
+            "handError": 2.2887833992611187e-16,
+            "ankleError": 0.0014386063941372873,
+            "wristJointError": 5.551115123125783e-17,
+            "ankleJointError": 0,
+            "calfAttachmentError": 2.7894008272968645e-16,
+            "calfSamples": 3736,
+            "skinMeshes": 3,
+            "soleContactFound": true
+          }
+        ],
+        "motion": {
+          "pelvis": [
+            0,
+            0.37,
+            -0.15525
+          ],
+          "pelvisQuaternion": [
+            0.23369384631729836,
+            0,
+            0,
+            0.9723102314556948
+          ],
+          "chestQuaternion": [
+            0.30696269219636757,
+            0,
+            0,
+            0.9517215483530664
+          ],
+          "helmetForward": [
+            0,
+            -0.34139437284707397,
+            0.9399201467084068
+          ],
+          "frontLever": -0.25
+        },
+        "cockpit": null,
+        "chain": {
+          "hash": 532227945,
+          "counts": [
+            96,
+            192
+          ],
+          "versions": [
+            1,
+            1
+          ],
+          "finite": true
+        },
+        "calls": 74,
+        "glError": 0,
+        "bounds": {
+          "isBox3": true,
+          "min": {
+            "x": -0.5054351943562936,
+            "y": 0.14850853586813656,
+            "z": -1.1696028290208633
+          },
+          "max": {
+            "x": 0.5047572826256264,
+            "y": 2.2070923642094376,
+            "z": 0.9767170011736721
+          }
+        },
+        "resources": {
+          "geometries": 86,
+          "textures": 31,
+          "programs": 29
+        },
+        "mud": 0,
+        "wetness": 0,
+        "materials": [
+          "Frame aluminium",
+          "",
+          "Motocross moulded knobby rubber",
+          "Motocross anodised rim and hub",
+          "Motocross stainless wave rotor",
+          "Fork stanchion (low-friction coating)",
+          "Motocross cast aluminium water-cooled engine",
+          "Off-road plastics",
+          "Radial caliper",
+          "Fork outer tube (anodised)",
+          "Motocross factory number board",
+          "Titanium exhaust (heat tint)",
+          "Rider jersey and pants (textile)",
+          "Rider stretch fabric and seams",
+          "Motocross composite helmet shell",
+          "Motocross smoked coated goggle lens",
+          "Motocross equipment trim",
+          "Motocross flexible glove textile",
+          "Motocross moulded boot shell",
+          "Rider armour caps",
+          "Motocross magnesium engine cover",
+          "Motocross layered factory plastics",
+          "Textured seat pad",
+          "Off-road black plastics",
+          "Motocross roller chain"
+        ]
+      }
+    },
+    {
+      "capture": "mx250-far-metrics",
+      "scope": "production-model component fixture",
+      "metrics": {
+        "instance": "4df0cd98-303e-443b-9c4b-a10dca4aab53",
+        "hash": 1881951757,
+        "triangles": 11764,
+        "submittedTriangles": 11766,
+        "finiteGeometry": true,
+        "contacts": [
+          {
+            "handError": 2.2887833992611187e-16,
+            "ankleError": 0.001412678318516894,
+            "wristJointError": 1.3877787807814457e-17,
+            "ankleJointError": 3.925231146709438e-17,
+            "calfAttachmentError": 2.3551386880256624e-16,
+            "calfSamples": 56,
+            "skinMeshes": 2,
+            "soleContactFound": true
+          },
+          {
+            "handError": 2.2887833992611187e-16,
+            "ankleError": 0.0010390495911568182,
+            "wristJointError": 1.3877787807814457e-17,
+            "ankleJointError": 2.7755575615628914e-17,
+            "calfAttachmentError": 2.435541875787129e-16,
+            "calfSamples": 56,
+            "skinMeshes": 2,
+            "soleContactFound": true
+          }
+        ],
+        "motion": {
+          "pelvis": [
+            0,
+            0.2,
+            -0.24
+          ],
+          "pelvisQuaternion": [
+            0.16178577438264508,
+            0,
+            0,
+            0.9868259031903286
+          ],
+          "chestQuaternion": [
+            0.17902957342582418,
+            0,
+            0,
+            0.9838436927881214
+          ],
+          "helmetForward": [
+            0,
+            -0.2955202066613396,
+            0.955336489125606
+          ],
+          "frontLever": null
+        },
+        "cockpit": null,
+        "chain": null,
+        "calls": 45,
+        "glError": 0,
+        "bounds": {
+          "isBox3": true,
+          "min": {
+            "x": -0.4208545684814453,
+            "y": 0.004302114360619724,
+            "z": -1.0807451009750366
+          },
+          "max": {
+            "x": 0.4208545684814453,
+            "y": 1.84791029255188,
+            "z": 1.1005603016828513
+          }
+        },
+        "resources": {
+          "geometries": 57,
+          "textures": 17,
+          "programs": 17
+        },
+        "mud": 0,
+        "wetness": 0,
+        "materials": [
+          "Motocross moulded knobby rubber",
+          "Motocross anodised rim and hub",
+          "Fork stanchion (low-friction coating)",
+          "Motocross cast aluminium water-cooled engine",
+          "Radial caliper",
+          "Fork outer tube (anodised)",
+          "Frame aluminium",
+          "",
+          "Motocross factory number board",
+          "Off-road plastics",
+          "Titanium exhaust (heat tint)",
+          "Rider jersey and pants (textile)",
+          "Rider stretch fabric and seams",
+          "Motocross composite helmet shell",
+          "Motocross smoked coated goggle lens",
+          "Motocross moulded boot shell",
+          "Motocross magnesium engine cover",
+          "Motocross layered factory plastics",
+          "Textured seat pad"
+        ]
+      }
+    },
+    {
+      "capture": "mx250-high-metrics",
+      "scope": "production-model component fixture",
+      "metrics": {
+        "instance": "aabee319-35d8-4b8e-b91f-bd0b0a235e00",
+        "hash": 50502003,
+        "triangles": 129254,
+        "submittedTriangles": 129256,
+        "finiteGeometry": true,
+        "contacts": [
+          {
+            "handError": 2.2887833992611187e-16,
+            "ankleError": 0.00012582272580734244,
+            "wristJointError": 1.3877787807814457e-17,
+            "ankleJointError": 3.925231146709438e-17,
+            "calfAttachmentError": 2.3551386880256624e-16,
+            "calfSamples": 3736,
+            "skinMeshes": 3,
+            "soleContactFound": true
+          },
+          {
+            "handError": 2.2887833992611187e-16,
+            "ankleError": 0.0014386063941369126,
+            "wristJointError": 1.3877787807814457e-17,
+            "ankleJointError": 2.7755575615628914e-17,
+            "calfAttachmentError": 2.342840229615247e-16,
+            "calfSamples": 3736,
+            "skinMeshes": 3,
+            "soleContactFound": true
+          }
+        ],
+        "motion": {
+          "pelvis": [
+            0,
+            0.2,
+            -0.24
+          ],
+          "pelvisQuaternion": [
+            0.16178577438264508,
+            0,
+            0,
+            0.9868259031903286
+          ],
+          "chestQuaternion": [
+            0.17902957342582418,
+            0,
+            0,
+            0.9838436927881214
+          ],
+          "helmetForward": [
+            0,
+            -0.2955202066613396,
+            0.955336489125606
+          ],
+          "frontLever": -0.25
+        },
+        "cockpit": null,
+        "chain": {
+          "hash": 946742078,
+          "counts": [
+            96,
+            192
+          ],
+          "versions": [
+            1,
+            1
+          ],
+          "finite": true
+        },
+        "calls": 74,
+        "glError": 0,
+        "bounds": {
+          "isBox3": true,
+          "min": {
+            "x": -0.4208545684814453,
+            "y": 2.2330575993878554e-07,
+            "z": -1.0807738304138184
+          },
+          "max": {
+            "x": 0.4208545684814453,
+            "y": 1.84791029255188,
+            "z": 1.1049997989282956
+          }
+        },
+        "resources": {
+          "geometries": 86,
+          "textures": 31,
+          "programs": 29
+        },
+        "mud": 0,
+        "wetness": 0,
+        "materials": [
+          "Frame aluminium",
+          "",
+          "Motocross moulded knobby rubber",
+          "Motocross anodised rim and hub",
+          "Motocross stainless wave rotor",
+          "Fork stanchion (low-friction coating)",
+          "Motocross cast aluminium water-cooled engine",
+          "Off-road plastics",
+          "Radial caliper",
+          "Fork outer tube (anodised)",
+          "Motocross factory number board",
+          "Titanium exhaust (heat tint)",
+          "Rider jersey and pants (textile)",
+          "Rider stretch fabric and seams",
+          "Motocross composite helmet shell",
+          "Motocross smoked coated goggle lens",
+          "Motocross equipment trim",
+          "Motocross flexible glove textile",
+          "Motocross moulded boot shell",
+          "Rider armour caps",
+          "Motocross magnesium engine cover",
+          "Motocross layered factory plastics",
+          "Textured seat pad",
+          "Off-road black plastics",
+          "Motocross roller chain"
+        ]
+      }
+    },
+    {
+      "capture": "mx250-mid-metrics",
+      "scope": "production-model component fixture",
+      "metrics": {
+        "instance": "56bc8fdb-3137-49a2-9d71-9296e40e2e46",
+        "hash": 1290478253,
+        "triangles": 63016,
+        "submittedTriangles": 63018,
+        "finiteGeometry": true,
+        "contacts": [
+          {
+            "handError": 2.2887833992611187e-16,
+            "ankleError": 0.001292011462532619,
+            "wristJointError": 1.3877787807814457e-17,
+            "ankleJointError": 3.925231146709438e-17,
+            "calfAttachmentError": 2.3263411494723067e-16,
+            "calfSamples": 2979,
+            "skinMeshes": 3,
+            "soleContactFound": true
+          },
+          {
+            "handError": 2.2887833992611187e-16,
+            "ankleError": 0.0029282797234384123,
+            "wristJointError": 1.3877787807814457e-17,
+            "ankleJointError": 2.7755575615628914e-17,
+            "calfAttachmentError": 2.3551386880256624e-16,
+            "calfSamples": 2979,
+            "skinMeshes": 3,
+            "soleContactFound": true
+          }
+        ],
+        "motion": {
+          "pelvis": [
+            0,
+            0.2,
+            -0.24
+          ],
+          "pelvisQuaternion": [
+            0.16178577438264508,
+            0,
+            0,
+            0.9868259031903286
+          ],
+          "chestQuaternion": [
+            0.17902957342582418,
+            0,
+            0,
+            0.9838436927881214
+          ],
+          "helmetForward": [
+            0,
+            -0.2955202066613396,
+            0.955336489125606
+          ],
+          "frontLever": null
+        },
+        "cockpit": null,
+        "chain": {
+          "hash": 946742078,
+          "counts": [
+            96,
+            192
+          ],
+          "versions": [
+            1,
+            1
+          ],
+          "finite": true
+        },
+        "calls": 69,
+        "glError": 0,
+        "bounds": {
+          "isBox3": true,
+          "min": {
+            "x": -0.4208545684814453,
+            "y": 2.104742921443803e-05,
+            "z": -1.080732822418213
+          },
+          "max": {
+            "x": 0.4208545684814453,
+            "y": 1.84791029255188,
+            "z": 1.1049789525707858
+          }
+        },
+        "resources": {
+          "geometries": 81,
+          "textures": 31,
+          "programs": 29
+        },
+        "mud": 0,
+        "wetness": 0,
+        "materials": [
+          "",
+          "Motocross moulded knobby rubber",
+          "Motocross anodised rim and hub",
+          "Motocross stainless wave rotor",
+          "Fork stanchion (low-friction coating)",
+          "Motocross cast aluminium water-cooled engine",
+          "Off-road plastics",
+          "Radial caliper",
+          "Fork outer tube (anodised)",
+          "Frame aluminium",
+          "Motocross factory number board",
+          "Titanium exhaust (heat tint)",
+          "Rider jersey and pants (textile)",
+          "Rider stretch fabric and seams",
+          "Motocross composite helmet shell",
+          "Motocross smoked coated goggle lens",
+          "Motocross equipment trim",
+          "Motocross flexible glove textile",
+          "Motocross moulded boot shell",
+          "Rider armour caps",
+          "Motocross magnesium engine cover",
+          "Motocross layered factory plastics",
+          "Textured seat pad",
+          "Off-road black plastics",
+          "Motocross roller chain"
+        ]
+      }
+    },
+    {
+      "capture": "arena-nord-sx-jump-guide",
+      "scope": "production course components in fixture; not complete world",
+      "metrics": {
+        "label": "jump-guide",
+        "glError": 0,
+        "calls": 32,
+        "triangles": 2130380,
+        "landmarks": [],
+        "guides": [
+          {
+            "name": "TRIPLE",
+            "station": 117.86410262099287
+          },
+          {
+            "name": "TABLETOP",
+            "station": 366.67975348510356
+          },
+          {
+            "name": "FINISH TRIPLE",
+            "station": 436.6394814831143
+          }
+        ],
+        "brakingLines": [
+          {
+            "name": "STAGE TURN ENTRY",
+            "from": 201.85077506754575,
+            "to": 225.84592868447407,
+            "centre": 1.25,
+            "halfWidth": 2.6,
+            "height": 0.065,
+            "spacing": 3.4
+          }
+        ],
+        "brakingField": null,
+        "brakingShaderCompiled": false,
+        "terrainUnchanged": true,
+        "pixels": null,
+        "budget": {
+          "draws": 3,
+          "triangles": 186
+        },
+        "soilScans": {
+          "preset": "high",
+          "enabled": true,
+          "hex": true,
+          "resident": [
+            "concrete",
+            "rock",
+            "meadow",
+            "forest",
+            "dryEarth",
+            "wetEarth",
+            "gravel"
+          ],
+          "failed": [],
+          "formats": {
+            "concrete": {
+              "color": "ktx2",
+              "normal": "ktx2",
+              "orm": "ktx2"
+            },
+            "rock": {
+              "color": "ktx2",
+              "normal": "ktx2",
+              "orm": "ktx2"
+            },
+            "meadow": {
+              "color": "ktx2",
+              "normal": "ktx2",
+              "orm": "ktx2"
+            },
+            "forest": {
+              "color": "ktx2",
+              "normal": "ktx2",
+              "orm": "ktx2"
+            },
+            "dryEarth": {
+              "color": "ktx2",
+              "normal": "ktx2",
+              "orm": "ktx2"
+            },
+            "wetEarth": {
+              "color": "ktx2",
+              "normal": "ktx2",
+              "orm": "ktx2"
+            },
+            "gravel": {
+              "color": "ktx2",
+              "normal": "ktx2",
+              "orm": "ktx2"
+            }
+          },
+          "normalResidency": {
+            "concrete": "source",
+            "rock": "source",
+            "meadow": "source",
+            "forest": "source",
+            "dryEarth": "source",
+            "wetEarth": "source",
+            "gravel": "source"
+          },
+          "materials": 3,
+          "scanned": 3
+        },
+        "view": {
+          "camera": [
+            89.76176900259726,
+            1.3352689426582842,
+            -3.4895936202001554
+          ],
+          "lookAt": [
+            87.11177940465097,
+            1.2352689426582841,
+            -0.06456936761792953
+          ]
+        }
+      }
+    },
+    {
+      "capture": "valley-ridge-mx-barn",
+      "scope": "production course components in fixture; not complete world",
+      "metrics": {
+        "label": "barn",
+        "glError": 0,
+        "calls": 23,
+        "triangles": 157276,
+        "landmarks": [
+          {
+            "kind": "barn",
+            "name": "BARN DOUBLE"
+          },
+          {
+            "kind": "quarry",
+            "name": "QUARRY"
+          },
+          {
+            "kind": "ridge-deck",
+            "name": "SKY TRIPLE"
+          }
+        ],
+        "guides": [
+          {
+            "name": "RIDGE TABLE",
+            "station": 170.49243881411735
+          },
+          {
+            "name": "BARN DOUBLE",
+            "station": 282.4547119149247
+          },
+          {
+            "name": "CREEK KICKER",
+            "station": 378.42081232947794
+          },
+          {
+            "name": "SKY TRIPLE",
+            "station": 566.9393096048436
+          },
+          {
+            "name": "SUMMIT TABLE",
+            "station": 688.3373169407953
+          },
+          {
+            "name": "VALLEY DOUBLE",
+            "station": 738.3275893394648
+          }
+        ],
+        "brakingLines": [
+          {
+            "name": "QUARRY ENTRY",
+            "from": 224.48356553856866,
+            "to": 252.4766641020308,
+            "centre": 1.5,
+            "halfWidth": 3.1,
+            "height": 0.1,
+            "spacing": 3.8
+          },
+          {
+            "name": "SKY BERM ENTRY",
+            "from": 625.9339986715463,
+            "to": 651.9306307626262,
+            "centre": -1.5,
+            "halfWidth": 3.1,
+            "height": 0.085,
+            "spacing": 3.6
+          }
+        ],
+        "brakingField": null,
+        "brakingShaderCompiled": false,
+        "terrainUnchanged": true,
+        "pixels": null,
+        "budget": {
+          "draws": 12,
+          "triangles": 28976
+        },
+        "soilScans": {
+          "preset": "high",
+          "enabled": true,
+          "hex": true,
+          "resident": [
+            "concrete",
+            "rock",
+            "meadow",
+            "forest",
+            "dryEarth",
+            "wetEarth",
+            "gravel"
+          ],
+          "failed": [],
+          "formats": {
+            "concrete": {
+              "color": "ktx2",
+              "normal": "ktx2",
+              "orm": "ktx2"
+            },
+            "rock": {
+              "color": "ktx2",
+              "normal": "ktx2",
+              "orm": "ktx2"
+            },
+            "meadow": {
+              "color": "ktx2",
+              "normal": "ktx2",
+              "orm": "ktx2"
+            },
+            "forest": {
+              "color": "ktx2",
+              "normal": "ktx2",
+              "orm": "ktx2"
+            },
+            "dryEarth": {
+              "color": "ktx2",
+              "normal": "ktx2",
+              "orm": "ktx2"
+            },
+            "wetEarth": {
+              "color": "ktx2",
+              "normal": "ktx2",
+              "orm": "ktx2"
+            },
+            "gravel": {
+              "color": "ktx2",
+              "normal": "ktx2",
+              "orm": "ktx2"
+            }
+          },
+          "normalResidency": {
+            "concrete": "source",
+            "rock": "source",
+            "meadow": "source",
+            "forest": "source",
+            "dryEarth": "source",
+            "wetEarth": "source",
+            "gravel": "source"
+          },
+          "materials": 4,
+          "scanned": 4
+        },
+        "view": {
+          "camera": [
+            -14.999999999999986,
+            9.734531180682886,
+            -7.42202103630995
+          ],
+          "lookAt": [
+            -34.999999999999986,
+            6.734531180682886,
+            -14.222021036309949
+          ]
+        }
+      }
+    },
+    {
+      "capture": "valley-ridge-mx-jump-guide",
+      "scope": "production course components in fixture; not complete world",
+      "metrics": {
+        "label": "jump-guide",
+        "glError": 0,
+        "calls": 40,
+        "triangles": 296844,
+        "landmarks": [
+          {
+            "kind": "barn",
+            "name": "BARN DOUBLE"
+          },
+          {
+            "kind": "quarry",
+            "name": "QUARRY"
+          },
+          {
+            "kind": "ridge-deck",
+            "name": "SKY TRIPLE"
+          }
+        ],
+        "guides": [
+          {
+            "name": "RIDGE TABLE",
+            "station": 170.49243881411735
+          },
+          {
+            "name": "BARN DOUBLE",
+            "station": 282.4547119149247
+          },
+          {
+            "name": "CREEK KICKER",
+            "station": 378.42081232947794
+          },
+          {
+            "name": "SKY TRIPLE",
+            "station": 566.9393096048436
+          },
+          {
+            "name": "SUMMIT TABLE",
+            "station": 688.3373169407953
+          },
+          {
+            "name": "VALLEY DOUBLE",
+            "station": 738.3275893394648
+          }
+        ],
+        "brakingLines": [
+          {
+            "name": "QUARRY ENTRY",
+            "from": 224.48356553856866,
+            "to": 252.4766641020308,
+            "centre": 1.5,
+            "halfWidth": 3.1,
+            "height": 0.1,
+            "spacing": 3.8
+          },
+          {
+            "name": "SKY BERM ENTRY",
+            "from": 625.9339986715463,
+            "to": 651.9306307626262,
+            "centre": -1.5,
+            "halfWidth": 3.1,
+            "height": 0.085,
+            "spacing": 3.6
+          }
+        ],
+        "brakingField": null,
+        "brakingShaderCompiled": false,
+        "terrainUnchanged": true,
+        "pixels": null,
+        "budget": {
+          "draws": 12,
+          "triangles": 28976
+        },
+        "soilScans": {
+          "preset": "high",
+          "enabled": true,
+          "hex": true,
+          "resident": [
+            "concrete",
+            "rock",
+            "meadow",
+            "forest",
+            "dryEarth",
+            "wetEarth",
+            "gravel"
+          ],
+          "failed": [],
+          "formats": {
+            "concrete": {
+              "color": "ktx2",
+              "normal": "ktx2",
+              "orm": "ktx2"
+            },
+            "rock": {
+              "color": "ktx2",
+              "normal": "ktx2",
+              "orm": "ktx2"
+            },
+            "meadow": {
+              "color": "ktx2",
+              "normal": "ktx2",
+              "orm": "ktx2"
+            },
+            "forest": {
+              "color": "ktx2",
+              "normal": "ktx2",
+              "orm": "ktx2"
+            },
+            "dryEarth": {
+              "color": "ktx2",
+              "normal": "ktx2",
+              "orm": "ktx2"
+            },
+            "wetEarth": {
+              "color": "ktx2",
+              "normal": "ktx2",
+              "orm": "ktx2"
+            },
+            "gravel": {
+              "color": "ktx2",
+              "normal": "ktx2",
+              "orm": "ktx2"
+            }
+          },
+          "normalResidency": {
+            "concrete": "source",
+            "rock": "source",
+            "meadow": "source",
+            "forest": "source",
+            "dryEarth": "source",
+            "wetEarth": "source",
+            "gravel": "source"
+          },
+          "materials": 4,
+          "scanned": 4
+        },
+        "view": {
+          "camera": [
+            85.8189660187845,
+            2.4742341646668815,
+            -44.71310886459449
+          ],
+          "lookAt": [
+            81.67688742281173,
+            2.3742341646668814,
+            -43.449613354201055
+          ]
+        }
+      }
+    },
+    {
+      "capture": "valley-ridge-mx-quarry",
+      "scope": "production course components in fixture; not complete world",
+      "metrics": {
+        "label": "quarry",
+        "glError": 0,
+        "calls": 27,
+        "triangles": 173784,
+        "landmarks": [
+          {
+            "kind": "barn",
+            "name": "BARN DOUBLE"
+          },
+          {
+            "kind": "quarry",
+            "name": "QUARRY"
+          },
+          {
+            "kind": "ridge-deck",
+            "name": "SKY TRIPLE"
+          }
+        ],
+        "guides": [
+          {
+            "name": "RIDGE TABLE",
+            "station": 170.49243881411735
+          },
+          {
+            "name": "BARN DOUBLE",
+            "station": 282.4547119149247
+          },
+          {
+            "name": "CREEK KICKER",
+            "station": 378.42081232947794
+          },
+          {
+            "name": "SKY TRIPLE",
+            "station": 566.9393096048436
+          },
+          {
+            "name": "SUMMIT TABLE",
+            "station": 688.3373169407953
+          },
+          {
+            "name": "VALLEY DOUBLE",
+            "station": 738.3275893394648
+          }
+        ],
+        "brakingLines": [
+          {
+            "name": "QUARRY ENTRY",
+            "from": 224.48356553856866,
+            "to": 252.4766641020308,
+            "centre": 1.5,
+            "halfWidth": 3.1,
+            "height": 0.1,
+            "spacing": 3.8
+          },
+          {
+            "name": "SKY BERM ENTRY",
+            "from": 625.9339986715463,
+            "to": 651.9306307626262,
+            "centre": -1.5,
+            "halfWidth": 3.1,
+            "height": 0.085,
+            "spacing": 3.6
+          }
+        ],
+        "brakingField": null,
+        "brakingShaderCompiled": false,
+        "terrainUnchanged": true,
+        "pixels": null,
+        "budget": {
+          "draws": 12,
+          "triangles": 28976
+        },
+        "soilScans": {
+          "preset": "high",
+          "enabled": true,
+          "hex": true,
+          "resident": [
+            "concrete",
+            "rock",
+            "meadow",
+            "forest",
+            "dryEarth",
+            "wetEarth",
+            "gravel"
+          ],
+          "failed": [],
+          "formats": {
+            "concrete": {
+              "color": "ktx2",
+              "normal": "ktx2",
+              "orm": "ktx2"
+            },
+            "rock": {
+              "color": "ktx2",
+              "normal": "ktx2",
+              "orm": "ktx2"
+            },
+            "meadow": {
+              "color": "ktx2",
+              "normal": "ktx2",
+              "orm": "ktx2"
+            },
+            "forest": {
+              "color": "ktx2",
+              "normal": "ktx2",
+              "orm": "ktx2"
+            },
+            "dryEarth": {
+              "color": "ktx2",
+              "normal": "ktx2",
+              "orm": "ktx2"
+            },
+            "wetEarth": {
+              "color": "ktx2",
+              "normal": "ktx2",
+              "orm": "ktx2"
+            },
+            "gravel": {
+              "color": "ktx2",
+              "normal": "ktx2",
+              "orm": "ktx2"
+            }
+          },
+          "normalResidency": {
+            "concrete": "source",
+            "rock": "source",
+            "meadow": "source",
+            "forest": "source",
+            "dryEarth": "source",
+            "wetEarth": "source",
+            "gravel": "source"
+          },
+          "materials": 4,
+          "scanned": 4
+        },
+        "view": {
+          "camera": [
+            -7.4193821305333465,
+            8.328241127845317,
+            -54.98289274394057
+          ],
+          "lookAt": [
+            3.8488682440037607,
+            5.328241127845317,
+            -32.275798401054146
+          ]
+        }
+      }
+    },
+    {
+      "capture": "valley-ridge-mx-ridge-deck",
+      "scope": "production course components in fixture; not complete world",
+      "metrics": {
+        "label": "ridge-deck",
+        "glError": 0,
+        "calls": 19,
+        "triangles": 113848,
+        "landmarks": [
+          {
+            "kind": "barn",
+            "name": "BARN DOUBLE"
+          },
+          {
+            "kind": "quarry",
+            "name": "QUARRY"
+          },
+          {
+            "kind": "ridge-deck",
+            "name": "SKY TRIPLE"
+          }
+        ],
+        "guides": [
+          {
+            "name": "RIDGE TABLE",
+            "station": 170.49243881411735
+          },
+          {
+            "name": "BARN DOUBLE",
+            "station": 282.4547119149247
+          },
+          {
+            "name": "CREEK KICKER",
+            "station": 378.42081232947794
+          },
+          {
+            "name": "SKY TRIPLE",
+            "station": 566.9393096048436
+          },
+          {
+            "name": "SUMMIT TABLE",
+            "station": 688.3373169407953
+          },
+          {
+            "name": "VALLEY DOUBLE",
+            "station": 738.3275893394648
+          }
+        ],
+        "brakingLines": [
+          {
+            "name": "QUARRY ENTRY",
+            "from": 224.48356553856866,
+            "to": 252.4766641020308,
+            "centre": 1.5,
+            "halfWidth": 3.1,
+            "height": 0.1,
+            "spacing": 3.8
+          },
+          {
+            "name": "SKY BERM ENTRY",
+            "from": 625.9339986715463,
+            "to": 651.9306307626262,
+            "centre": -1.5,
+            "halfWidth": 3.1,
+            "height": 0.085,
+            "spacing": 3.6
+          }
+        ],
+        "brakingField": null,
+        "brakingShaderCompiled": false,
+        "terrainUnchanged": true,
+        "pixels": null,
+        "budget": {
+          "draws": 12,
+          "triangles": 28976
+        },
+        "soilScans": {
+          "preset": "high",
+          "enabled": true,
+          "hex": true,
+          "resident": [
+            "concrete",
+            "rock",
+            "meadow",
+            "forest",
+            "dryEarth",
+            "wetEarth",
+            "gravel"
+          ],
+          "failed": [],
+          "formats": {
+            "concrete": {
+              "color": "ktx2",
+              "normal": "ktx2",
+              "orm": "ktx2"
+            },
+            "rock": {
+              "color": "ktx2",
+              "normal": "ktx2",
+              "orm": "ktx2"
+            },
+            "meadow": {
+              "color": "ktx2",
+              "normal": "ktx2",
+              "orm": "ktx2"
+            },
+            "forest": {
+              "color": "ktx2",
+              "normal": "ktx2",
+              "orm": "ktx2"
+            },
+            "dryEarth": {
+              "color": "ktx2",
+              "normal": "ktx2",
+              "orm": "ktx2"
+            },
+            "wetEarth": {
+              "color": "ktx2",
+              "normal": "ktx2",
+              "orm": "ktx2"
+            },
+            "gravel": {
+              "color": "ktx2",
+              "normal": "ktx2",
+              "orm": "ktx2"
+            }
+          },
+          "normalResidency": {
+            "concrete": "source",
+            "rock": "source",
+            "meadow": "source",
+            "forest": "source",
+            "dryEarth": "source",
+            "wetEarth": "source",
+            "gravel": "source"
+          },
+          "materials": 4,
+          "scanned": 4
+        },
+        "view": {
+          "camera": [
+            -8.21925838506417,
+            12.233024344963493,
+            86
+          ],
+          "lookAt": [
+            -15.019258385064171,
+            9.233024344963493,
+            106
+          ]
+        }
+      }
+    },
+    {
+      "capture": "recorded-tyre-surface-0-metrics",
+      "scope": "production tyre component fixture before collar-only correction",
+      "metrics": {
+        "instance": "41876afa-0426-4579-b785-69388c65ef87",
+        "hash": 85950375,
+        "triangles": 126154,
+        "submittedTriangles": 103012,
+        "finiteGeometry": true,
+        "contacts": [
+          {
+            "handError": 2.482534153247273e-16,
+            "ankleError": 0.00012582272580734244,
+            "wristJointError": 2.2301825219878386e-16,
+            "ankleJointError": 3.925231146709438e-17,
+            "calfAttachmentError": 3.3766115072321297e-16,
+            "calfSamples": 3736,
+            "skinMeshes": 3,
+            "soleContactFound": true
+          },
+          {
+            "handError": 2.482534153247273e-16,
+            "ankleError": 0.0014386063941369681,
+            "wristJointError": 2.2301825219878386e-16,
+            "ankleJointError": 2.7755575615628914e-17,
+            "calfAttachmentError": 3.387999773988765e-16,
+            "calfSamples": 3736,
+            "skinMeshes": 3,
+            "soleContactFound": true
+          }
+        ],
+        "motion": {
+          "pelvis": [
+            0,
+            0.2,
+            -0.24
+          ],
+          "pelvisQuaternion": [
+            0.16178577438264508,
+            0,
+            0,
+            0.9868259031903286
+          ],
+          "chestQuaternion": [
+            0.17902957342582418,
+            0,
+            0,
+            0.9838436927881214
+          ],
+          "helmetForward": [
+            0,
+            -0.2955202066613396,
+            0.955336489125606
+          ],
+          "frontLever": -0.25
+        },
+        "cockpit": null,
+        "chain": {
+          "hash": 1857252922,
+          "counts": [
+            96,
+            192
+          ],
+          "versions": [
+            2,
+            2
+          ],
+          "finite": true
+        },
+        "calls": 55,
+        "glError": 0,
+        "bounds": {
+          "isBox3": true,
+          "min": {
+            "x": -0.4208545684814453,
+            "y": 2.2330575993878554e-07,
+            "z": -1.0807738304138184
+          },
+          "max": {
+            "x": 0.4208545684814453,
+            "y": 1.8579102925518802,
+            "z": 1.1049997989282956
+          }
+        },
+        "resources": {
+          "geometries": 86,
+          "textures": 28,
+          "programs": 29
+        },
+        "mud": 0,
+        "wetness": 0,
+        "materials": [
+          "Frame aluminium",
+          "",
+          "Motocross moulded knobby rubber",
+          "Motocross anodised rim and hub",
+          "Motocross stainless wave rotor",
+          "Fork stanchion (low-friction coating)",
+          "Motocross cast aluminium water-cooled engine",
+          "Off-road plastics",
+          "Radial caliper",
+          "Fork outer tube (anodised)",
+          "Motocross factory number board",
+          "Titanium exhaust (heat tint)",
+          "Rider jersey and pants (textile)",
+          "Rider stretch fabric and seams",
+          "Motocross composite helmet shell",
+          "Motocross smoked coated goggle lens",
+          "Motocross equipment trim",
+          "Motocross flexible glove textile",
+          "Motocross moulded boot shell",
+          "Rider armour caps",
+          "Motocross magnesium engine cover",
+          "Motocross layered factory plastics",
+          "Textured seat pad",
+          "Off-road black plastics",
+          "Motocross roller chain"
+        ]
+      }
+    },
+    {
+      "capture": "recorded-tyre-surface-1-metrics",
+      "scope": "production tyre component fixture before collar-only correction",
+      "metrics": {
+        "instance": "41876afa-0426-4579-b785-69388c65ef87",
+        "hash": 2743264263,
+        "triangles": 126154,
+        "submittedTriangles": 103012,
+        "finiteGeometry": true,
+        "contacts": [
+          {
+            "handError": 2.482534153247273e-16,
+            "ankleError": 0.00012582272580734244,
+            "wristJointError": 2.2301825219878386e-16,
+            "ankleJointError": 3.925231146709438e-17,
+            "calfAttachmentError": 3.3766115072321297e-16,
+            "calfSamples": 3736,
+            "skinMeshes": 3,
+            "soleContactFound": true
+          },
+          {
+            "handError": 2.482534153247273e-16,
+            "ankleError": 0.0014386063941369681,
+            "wristJointError": 2.2301825219878386e-16,
+            "ankleJointError": 2.7755575615628914e-17,
+            "calfAttachmentError": 3.387999773988765e-16,
+            "calfSamples": 3736,
+            "skinMeshes": 3,
+            "soleContactFound": true
+          }
+        ],
+        "motion": {
+          "pelvis": [
+            0,
+            0.2,
+            -0.24
+          ],
+          "pelvisQuaternion": [
+            0.16178577438264508,
+            0,
+            0,
+            0.9868259031903286
+          ],
+          "chestQuaternion": [
+            0.17902957342582418,
+            0,
+            0,
+            0.9838436927881214
+          ],
+          "helmetForward": [
+            0,
+            -0.2955202066613396,
+            0.955336489125606
+          ],
+          "frontLever": -0.25
+        },
+        "cockpit": null,
+        "chain": {
+          "hash": 1857252922,
+          "counts": [
+            96,
+            192
+          ],
+          "versions": [
+            2,
+            2
+          ],
+          "finite": true
+        },
+        "calls": 55,
+        "glError": 0,
+        "bounds": {
+          "isBox3": true,
+          "min": {
+            "x": -0.4208545684814453,
+            "y": 2.2330575993878554e-07,
+            "z": -1.0807738304138184
+          },
+          "max": {
+            "x": 0.4208545684814453,
+            "y": 1.8579102925518802,
+            "z": 1.1049997989282956
+          }
+        },
+        "resources": {
+          "geometries": 86,
+          "textures": 28,
+          "programs": 29
+        },
+        "mud": 0,
+        "wetness": 0,
+        "materials": [
+          "Frame aluminium",
+          "",
+          "Motocross moulded knobby rubber",
+          "Motocross anodised rim and hub",
+          "Motocross stainless wave rotor",
+          "Fork stanchion (low-friction coating)",
+          "Motocross cast aluminium water-cooled engine",
+          "Off-road plastics",
+          "Radial caliper",
+          "Fork outer tube (anodised)",
+          "Motocross factory number board",
+          "Titanium exhaust (heat tint)",
+          "Rider jersey and pants (textile)",
+          "Rider stretch fabric and seams",
+          "Motocross composite helmet shell",
+          "Motocross smoked coated goggle lens",
+          "Motocross equipment trim",
+          "Motocross flexible glove textile",
+          "Motocross moulded boot shell",
+          "Rider armour caps",
+          "Motocross magnesium engine cover",
+          "Motocross layered factory plastics",
+          "Textured seat pad",
+          "Off-road black plastics",
+          "Motocross roller chain"
+        ]
+      }
+    },
+    {
+      "capture": "recorded-tyre-surface-2-metrics",
+      "scope": "production tyre component fixture before collar-only correction",
+      "metrics": {
+        "instance": "41876afa-0426-4579-b785-69388c65ef87",
+        "hash": 2743264263,
+        "triangles": 126154,
+        "submittedTriangles": 103012,
+        "finiteGeometry": true,
+        "contacts": [
+          {
+            "handError": 2.482534153247273e-16,
+            "ankleError": 0.00012582272580734244,
+            "wristJointError": 2.2301825219878386e-16,
+            "ankleJointError": 3.925231146709438e-17,
+            "calfAttachmentError": 3.3766115072321297e-16,
+            "calfSamples": 3736,
+            "skinMeshes": 3,
+            "soleContactFound": true
+          },
+          {
+            "handError": 2.482534153247273e-16,
+            "ankleError": 0.0014386063941369681,
+            "wristJointError": 2.2301825219878386e-16,
+            "ankleJointError": 2.7755575615628914e-17,
+            "calfAttachmentError": 3.387999773988765e-16,
+            "calfSamples": 3736,
+            "skinMeshes": 3,
+            "soleContactFound": true
+          }
+        ],
+        "motion": {
+          "pelvis": [
+            0,
+            0.2,
+            -0.24
+          ],
+          "pelvisQuaternion": [
+            0.16178577438264508,
+            0,
+            0,
+            0.9868259031903286
+          ],
+          "chestQuaternion": [
+            0.17902957342582418,
+            0,
+            0,
+            0.9838436927881214
+          ],
+          "helmetForward": [
+            0,
+            -0.2955202066613396,
+            0.955336489125606
+          ],
+          "frontLever": -0.25
+        },
+        "cockpit": null,
+        "chain": {
+          "hash": 1857252922,
+          "counts": [
+            96,
+            192
+          ],
+          "versions": [
+            2,
+            2
+          ],
+          "finite": true
+        },
+        "calls": 55,
+        "glError": 0,
+        "bounds": {
+          "isBox3": true,
+          "min": {
+            "x": -0.4208545684814453,
+            "y": 2.2330575993878554e-07,
+            "z": -1.0807738304138184
+          },
+          "max": {
+            "x": 0.4208545684814453,
+            "y": 1.8579102925518802,
+            "z": 1.1049997989282956
+          }
+        },
+        "resources": {
+          "geometries": 86,
+          "textures": 28,
+          "programs": 29
+        },
+        "mud": 0,
+        "wetness": 0,
+        "materials": [
+          "Frame aluminium",
+          "",
+          "Motocross moulded knobby rubber",
+          "Motocross anodised rim and hub",
+          "Motocross stainless wave rotor",
+          "Fork stanchion (low-friction coating)",
+          "Motocross cast aluminium water-cooled engine",
+          "Off-road plastics",
+          "Radial caliper",
+          "Fork outer tube (anodised)",
+          "Motocross factory number board",
+          "Titanium exhaust (heat tint)",
+          "Rider jersey and pants (textile)",
+          "Rider stretch fabric and seams",
+          "Motocross composite helmet shell",
+          "Motocross smoked coated goggle lens",
+          "Motocross equipment trim",
+          "Motocross flexible glove textile",
+          "Motocross moulded boot shell",
+          "Rider armour caps",
+          "Motocross magnesium engine cover",
+          "Motocross layered factory plastics",
+          "Textured seat pad",
+          "Off-road black plastics",
+          "Motocross roller chain"
+        ]
+      }
+    },
+    {
+      "capture": "recorded-tyre-surface-3-metrics",
+      "scope": "production tyre component fixture before collar-only correction",
+      "metrics": {
+        "instance": "41876afa-0426-4579-b785-69388c65ef87",
+        "hash": 85950375,
+        "triangles": 126154,
+        "submittedTriangles": 103012,
+        "finiteGeometry": true,
+        "contacts": [
+          {
+            "handError": 2.482534153247273e-16,
+            "ankleError": 0.00012582272580734244,
+            "wristJointError": 2.2301825219878386e-16,
+            "ankleJointError": 3.925231146709438e-17,
+            "calfAttachmentError": 3.3766115072321297e-16,
+            "calfSamples": 3736,
+            "skinMeshes": 3,
+            "soleContactFound": true
+          },
+          {
+            "handError": 2.482534153247273e-16,
+            "ankleError": 0.0014386063941369681,
+            "wristJointError": 2.2301825219878386e-16,
+            "ankleJointError": 2.7755575615628914e-17,
+            "calfAttachmentError": 3.387999773988765e-16,
+            "calfSamples": 3736,
+            "skinMeshes": 3,
+            "soleContactFound": true
+          }
+        ],
+        "motion": {
+          "pelvis": [
+            0,
+            0.2,
+            -0.24
+          ],
+          "pelvisQuaternion": [
+            0.16178577438264508,
+            0,
+            0,
+            0.9868259031903286
+          ],
+          "chestQuaternion": [
+            0.17902957342582418,
+            0,
+            0,
+            0.9838436927881214
+          ],
+          "helmetForward": [
+            0,
+            -0.2955202066613396,
+            0.955336489125606
+          ],
+          "frontLever": -0.25
+        },
+        "cockpit": null,
+        "chain": {
+          "hash": 1857252922,
+          "counts": [
+            96,
+            192
+          ],
+          "versions": [
+            2,
+            2
+          ],
+          "finite": true
+        },
+        "calls": 55,
+        "glError": 0,
+        "bounds": {
+          "isBox3": true,
+          "min": {
+            "x": -0.4208545684814453,
+            "y": 2.2330575993878554e-07,
+            "z": -1.0807738304138184
+          },
+          "max": {
+            "x": 0.4208545684814453,
+            "y": 1.8579102925518802,
+            "z": 1.1049997989282956
+          }
+        },
+        "resources": {
+          "geometries": 86,
+          "textures": 28,
+          "programs": 29
+        },
+        "mud": 0,
+        "wetness": 0,
+        "materials": [
+          "Frame aluminium",
+          "",
+          "Motocross moulded knobby rubber",
+          "Motocross anodised rim and hub",
+          "Motocross stainless wave rotor",
+          "Fork stanchion (low-friction coating)",
+          "Motocross cast aluminium water-cooled engine",
+          "Off-road plastics",
+          "Radial caliper",
+          "Fork outer tube (anodised)",
+          "Motocross factory number board",
+          "Titanium exhaust (heat tint)",
+          "Rider jersey and pants (textile)",
+          "Rider stretch fabric and seams",
+          "Motocross composite helmet shell",
+          "Motocross smoked coated goggle lens",
+          "Motocross equipment trim",
+          "Motocross flexible glove textile",
+          "Motocross moulded boot shell",
+          "Rider armour caps",
+          "Motocross magnesium engine cover",
+          "Motocross layered factory plastics",
+          "Textured seat pad",
+          "Off-road black plastics",
+          "Motocross roller chain"
+        ]
+      }
+    }
+  ]
+}

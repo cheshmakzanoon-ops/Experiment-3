@@ -33,6 +33,11 @@ import {
   type BermPracticeSector,
 } from '../simulation/offroad/berm-practice.ts';
 import {
+  motocrossFlowSections,
+  MotocrossFlowPractice,
+  type MotocrossFlowSection,
+} from '../simulation/offroad/flow-practice.ts';
+import {
   assessMotocrossLanding,
   LANDING_RULES,
   motocrossAlignment,
@@ -91,6 +96,8 @@ export class OffroadHud {
   private readonly rhythm = new MotocrossRhythm();
   private readonly targets = new MotocrossLandingChallenge();
   private readonly berms = new MotocrossBermPractice();
+  private readonly flow = new MotocrossFlowPractice();
+  private flowSections: readonly MotocrossFlowSection[] = [];
   private bermSectors: readonly BermPracticeSector[] = [];
   private bermResult: BermPracticeResult | null = null;
   private bermResultShownAt: number | null = null;
@@ -258,6 +265,16 @@ export class OffroadHud {
       heading += ` · RUN ${this.rhythm.streak}/3`;
     if (options.mode === 'practice' && targetCount > 0 && playerControlled)
       heading = `PRACTICE · TARGETS ${this.targets.cleared.size}/${targetCount}`;
+    const flow = this.flow.active;
+    if (options.mode === 'practice' && playerControlled) {
+      if (flow)
+        heading = `FLOW ${flow.section.id + 1} · ${flow.linked}/${flow.section.jumps.length} LINKED`;
+      else {
+        const approaching = this.flowSections.find((section) => section.jumps[0] === next);
+        if (approaching && distance > 0 && distance < 100)
+          heading = `FLOW ${approaching.id + 1} · ${approaching.name}`;
+      }
+    }
     const speed = frame[base + F.SPEED];
     const imminentJump = !!next && distance <= Math.max(25, speed * 1.5);
     const active = this.berms.active;
@@ -425,6 +442,13 @@ export class OffroadHud {
             count === targetCount
               ? 'Every landing target cleared. Link them into one flowing lap.'
               : `${target.improvedBy >= 0.1 ? `${target.improvedBy.toFixed(1)} m closer · ` : ''}${target.jump.name} ${target.first ? 'cleared' : 'confirmed'} · ${targetCount - count} targets left.`;
+          if (flow && flow.linked > 0) {
+            tag = `FLOW ${flow.section.id + 1} · ${flow.linked}/${flow.section.jumps.length} LINKED`;
+            const nextTarget = flow.section.jumps[flow.linked];
+            note = nextTarget
+              ? `${flow.section.name}: next ${nextTarget.name.toLowerCase()}. Carry the drive between landings.`
+              : `${flow.section.name}: every target linked. Carry a smooth drive through the exit.`;
+          }
         } else if (target.kind === 'rough') {
           tag = 'TARGET NOT CLEARED';
           // O.BOTTOM decays after contact. The target keeps every observed
@@ -460,6 +484,31 @@ export class OffroadHud {
         }
       }
       progress = Math.round(clamp((this.airUntil - time) / 2.8, 0, 1) * 100);
+    }
+    const completedFlow = this.flow.last;
+    if (
+      options.mode === 'practice' &&
+      playerControlled &&
+      completedFlow &&
+      time >= completedFlow.at &&
+      time - completedFlow.at < 4 &&
+      !crashed &&
+      !caution &&
+      !airborne &&
+      !imminentJump &&
+      (!this.landing || (this.landingSettled && this.landing.kind === 'clean'))
+    ) {
+      heading = `FLOW ${completedFlow.section.id + 1} · ${completedFlow.section.name}`;
+      tag = completedFlow.improved ? 'NEW PERSONAL BEST' : 'SECTION LINKED';
+      title = `${completedFlow.section.jumps.length} CLEAN TARGETS`;
+      metric = `${completedFlow.seconds.toFixed(2)} S`;
+      const comparison =
+        completedFlow.delta === null
+          ? 'First complete run'
+          : `${completedFlow.delta < -0.005 ? '−' : '+'}${Math.abs(completedFlow.delta).toFixed(2)} s to your previous best`;
+      note = `${comparison} · exit ${Math.round(completedFlow.exitSpeed * 3.6)} km/h · ${completedFlow.soil} entry.`;
+      tone = 'clean';
+      progress = Math.round(clamp(1 - (time - completedFlow.at) / 4, 0, 1) * 100);
     }
     node.hidden = false;
     node.dataset.tone = tone;
@@ -531,6 +580,8 @@ export class OffroadHud {
       this.rhythm.reset();
       this.targets.reset();
       this.berms.reset();
+      this.flow.reset();
+      this.flowSections = [];
       this.bermSectors = [];
       this.bermResult = null;
       this.bermResultShownAt = null;
@@ -560,7 +611,10 @@ export class OffroadHud {
     const eligible =
       controlEligible &&
       Math.abs(frame[player + F.LATERAL]) <= Math.max(0, this.targetPoint.width - 0.3);
-    if (track !== this.lastTrack) this.bermSectors = motocrossBermSectors(track, course);
+    if (track !== this.lastTrack) {
+      this.bermSectors = motocrossBermSectors(track, course);
+      this.flowSections = motocrossFlowSections(course);
+    }
     if (time < this.lastTime) this.bermResultDismissed = true;
     // Snapshot time is nondecreasing outside a seek. Even a short rewind
     // across a takeoff must not look like a new touchdown in this frame.
@@ -659,6 +713,7 @@ export class OffroadHud {
       this.targets.suspend();
       this.rhythm.suspend();
       this.berms.suspend();
+      this.flow.suspend();
     } else if (motocross && options.mode === 'practice') {
       const s = frame[player + F.S];
       this.rhythm.update({
@@ -705,10 +760,30 @@ export class OffroadHud {
         crashed,
         eligible: controlEligible,
       });
+      this.flow.update({
+        course: track,
+        machine,
+        sections: this.flowSections,
+        length: track.length,
+        time,
+        s,
+        speed: frame[player + F.SPEED],
+        lateral: frame[player + F.LATERAL],
+        legalHalfWidth: Math.max(
+          0,
+          course.legalWidth(this.targetPoint.width, s, frame[player + F.LATERAL]) - 0.3,
+        ),
+        moisture: frame[o + O.MOISTURE],
+        airborne,
+        crashed,
+        eligible: controlEligible,
+        landing: this.targets.last,
+      });
     } else {
       this.targets.reset();
       this.rhythm.reset();
       this.berms.reset();
+      this.flow.reset();
     }
     this.wasAirborne = airborne;
     this.previousEligible = eligible && !airborne;

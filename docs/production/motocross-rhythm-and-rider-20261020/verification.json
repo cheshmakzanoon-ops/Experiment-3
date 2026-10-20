@@ -1,0 +1,115 @@
+{
+  "date": "2026-10-20",
+  "initialBaseCommit": "81ee98b646ce88fe0d48f427f5e80e9a65fcc347",
+  "integratedParentCommit": "c5469f43f6f6d3f67e58205f0ce9711bebb11acf",
+  "finalProductionBuildIdentity": {
+    "version": 1,
+    "commit": null,
+    "fingerprint": "cc0c478eb8c3eb57e7273c7fd34928e9d15bea59df12feae21c60b7a1edfb8be"
+  },
+  "build": {
+    "command": "npm run build",
+    "exitCode": 0,
+    "includes": "tsc --noEmit, pinned player LOD generation, Vite production build",
+    "warning": "Existing production chunks exceed the 500 kB advice threshold."
+  },
+  "lint": {
+    "command": "npm run lint",
+    "exitCode": 0
+  },
+  "content": {
+    "command": "npm run validate:content",
+    "exitCode": 0,
+    "result": "Content valid"
+  },
+  "broadUnitRun": {
+    "report": "initial-unit-verification.json",
+    "passed": 626,
+    "failed": 3,
+    "total": 629,
+    "scope": "All motocross-*, bike-animation, bike-pose-kinematics and gp-rider-* test files. This is the original wider run, not an all-green claim."
+  },
+  "riderIsolationFollowup": {
+    "command": "npx vitest run tests/gp-rider-motion.test.ts tests/motocross-spine.test.ts tests/gp-rider-spine.test.ts",
+    "passed": 22,
+    "failed": 0,
+    "productionCodeChanged": false,
+    "resolution": "Separate shared speed input from GP-only suspensionPitch/rearBraking in isolation coverage."
+  },
+  "remainingBaselineFailures": [
+    {
+      "name": "Cape Wrenna historical camera golden",
+      "report": "baseline-camera-check.json",
+      "currentEqualsInitialBase": true,
+      "modified": false
+    },
+    {
+      "name": "Motocross tilted collision setup displacement precondition",
+      "report": "baseline-collision-check.json",
+      "currentEqualsInitialBase": true,
+      "modified": false
+    }
+  ],
+  "flowPhysics": {
+    "report": "flow-physics-verification.json",
+    "completed": 8,
+    "expected": 8,
+    "scope": "Continuous real simulation, scripted public controls, dry Sport, one initialization before each section."
+  },
+  "flowUI": {
+    "report": "flow-ui-verification.json",
+    "browserTestsPassed": 1,
+    "capturedStates": 16,
+    "scope": "Production interface with synthetic continuous snapshots; both widths, all sections."
+  },
+  "finalGPU": {
+    "report": "motocross-final-gpu-summary.json",
+    "passed": 7,
+    "failed": 0,
+    "scope": "Final corrected production models in component fixtures, both onboard views, course boards."
+  },
+  "initialGPU": {
+    "report": "motocross-bike-gpu-summary.json",
+    "passed": 5,
+    "failed": 0,
+    "scope": "Earlier model checks, including recorded tyre-state replay; before collar-only correction."
+  },
+  "productionJourney": {
+    "summary": "motocross-journey-summary.json",
+    "data": "motocross-production-journey.json",
+    "passed": 1,
+    "failed": 0,
+    "testedSourceFingerprint": "456513a0f728a1a8af7e9cd39f82a5be50acb5af4beb65d5e88d014d4e491cb6",
+    "scope": "Both venues through normal menus, real worker, eight riders, human throttle/body inputs followed by explicitly enabled AI demonstration, cameras and pause. Low setting selected via production UI. Before final collar-only correction and subsequent concurrent MotoGP and Festival updates; affected shared code checked after integration."
+  },
+  "renderDetails": "render-verification.json",
+  "referenceProvenance": "reference-review.json",
+  "backend": "Chromium / ANGLE / Vulkan SwiftShader, CPU software renderer",
+  "physicalHardwarePerformanceCertified": false,
+  "sourceSHA256": {
+    "e2e/42-motocross-bike.spec.ts": "3afe68fffe358a8538182b5cf86d11e9a660837e821913ea40872fb7113d7432",
+    "e2e/55-motocross-flow-practice.spec.ts": "9e4381b342bac122fc9f459570b78a423d7b0ae5f1e568441a89ab97d1e4c71c",
+    "e2e/fixtures/motocross-bike-review.ts": "f332ddf5107f0016a27a6b814bbe2f950692ec660a40922865eb7ad9b58684cd",
+    "e2e/fixtures/motocross-interface.ts": "7a98a523dcf92aff4e1db21b6f7118d2d9f4936d7dc6faed08e4e199ed60e75f",
+    "scripts/motocross-flow-feasibility.ts": "d2683533a259e432dc0a54b78753c298b04f80d0756860e2b66ee59b913e5db1",
+    "src/rendering/offroad/dirt-bike-model.ts": "837cc0f49036f72c46fd6e42811b108c82a52414af755b88bc63ff630d2ad7a8",
+    "src/rendering/offroad/motocross-detail.ts": "0c64a649c1f5cca8002fc0b23e6ca2269e1940d21b70c3fb0420a8eaa44ffc64",
+    "src/rendering/offroad/motocross-rider-spine.ts": "bf134530581cb5b6f05af888af1e9a03c19f32cb30e96b4397027cc580c37338",
+    "src/rendering/offroad/motocross-tyre-finish.ts": "fa8df8fe38eac998447dd6ad7166d879fa78bacbf6f9bdb69e6d1de276e0bd4b",
+    "src/rendering/offroad/mx-course-landmarks.ts": "123b4981f9ad25248314bdeb90f73e81ba6e348bddf6f0d8ca6267ac80eca668",
+    "src/rendering/rider.ts": "5c3ce67fd5ca1b275a3b0716e4596183ca70903dca9ee5138748e3911b11e61f",
+    "src/simulation/offroad/flow-practice.ts": "1aaa1bf18f724593b3a3fc1b1169bc43510e28be210b9913c0ccc301ba343552",
+    "src/ui/offroad-hud.ts": "0761663e3e5abceaf008d8cdb4aa431d55095fd4aa46486d5ec0b77ec606e324",
+    "tests/gp-rider-motion.test.ts": "f562fae36335bd7f3370fbec104d00002ed83eeb611a07d028dcff7f32e4eb81",
+    "tests/motocross-flow-practice.test.ts": "6dd4b4388601a9a4696d0b088f7e131576f8e1fe889f6e80a7c6fb11ac71bd57",
+    "tests/motocross-garment.test.ts": "55c423065f585c8683d28e722c50749111c65eea98a3b129f52cd707e72914e8",
+    "tests/motocross-spine.test.ts": "9f36e1e780d688692b7355e098e8c1a9806e97c2bb3c24d81f62858007e2e426",
+    "tests/motocross-tyre-finish.test.ts": "2d298209318c73c9425cf8d3a77de250ec8938ef1bf300362d385bed567e6b5c"
+  },
+  "integrationUnitRun": {
+    "report": "integration-unit-verification.json",
+    "passed": 48,
+    "failed": 0,
+    "scope": "After concurrent MotoGP and Festival integration: GP/MX spine and gaze, incoming GP garment deformation, MX tyre finish and linked-section state machine."
+  }
+}

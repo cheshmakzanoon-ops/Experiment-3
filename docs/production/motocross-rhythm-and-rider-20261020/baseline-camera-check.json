@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "investigationDate": "2026-10-20",
+  "scope": "Targeted reproduction of the Cape Wrenna historical camera golden failure; no camera behavior or test expectation was changed.",
+  "classification": "Preexisting in the initial checkout under the current test environment; the current motocross pass produces byte-identical Cape Wrenna camera records.",
+  "baselineCommit": "81ee98b646ce88fe0d48f427f5e80e9a65fcc347",
+  "testName": "replay-camera control preservation outside MX/SX > cape-wrenna retains all 20 original camera records exactly",
+  "expectedHistoricalSha256": "f11ead5b8859413f1ad3344e4a6bea96c963bdcf105ff5e0503ede9a37a6d4df",
+  "signatureMethod": "SHA256(JSON.stringify(tracksideRigs(new Track('clear', false, undefined, circuitDefinition('cape-wrenna')))))",
+  "isolation": {
+    "method": "Read-only git archive exported into a separate scratch directory; no worktree, checkout, branch or index mutation.",
+    "archiveCommand": "git archive --format=tar 81ee98b646ce88fe0d48f427f5e80e9a65fcc347 src tests/motocross-broadcast-controls.test.ts package.json package-lock.json vitest.config.ts tsconfig.json",
+    "archiveExtraction": "Python tarfile streaming extraction with filter=data into the baseline workingDirectory recorded below.",
+    "dependencies": "Isolated node_modules symlink points to the current checkout installed dependencies; package-lock.json is byte-identical between baseline and current.",
+    "runtime": "Node.js v24.19.0; Vitest 3.2.4"
+  },
+  "runs": {
+    "baseline": {
+      "workingDirectory": "/workspace/scratch/b5d4ab955c82/mx-broadcast-baseline-81ee98b",
+      "command": "node_modules/.bin/vitest run tests/motocross-broadcast-controls.test.ts -t 'cape-wrenna retains all 20 original camera records exactly'",
+      "exitCode": 1,
+      "testFilesFailed": 1,
+      "testsFailed": 1,
+      "testsSkipped": 50,
+      "assertion": "tests/motocross-broadcast-controls.test.ts:141:79",
+      "receivedSha256": "59ac948f5dee4b887111ae7c76be41166e2cb06466215ea530fc81e7883596b1",
+      "rigRecords": 20,
+      "serializedRigBytes": 4485
+    },
+    "current": {
+      "workingDirectory": "/workspace/scratch/b5d4ab955c82/Experiment-3",
+      "command": "node_modules/.bin/vitest run tests/motocross-broadcast-controls.test.ts -t 'cape-wrenna retains all 20 original camera records exactly'",
+      "exitCode": 1,
+      "testFilesFailed": 1,
+      "testsFailed": 1,
+      "testsSkipped": 50,
+      "assertion": "tests/motocross-broadcast-controls.test.ts:141:79",
+      "receivedSha256": "59ac948f5dee4b887111ae7c76be41166e2cb06466215ea530fc81e7883596b1",
+      "rigRecords": 20,
+      "serializedRigBytes": 4485
+    }
+  },
+  "completeRigJsonByteIdentical": true,
+  "sourceComparison": [
+    {
+      "file": "package-lock.json",
+      "byteIdentical": true,
+      "sha256": "d85b97d2e51497b62414087966db13b740b174fe4b96663d29447644948d2969"
+    },
+    {
+      "file": "tests/motocross-broadcast-controls.test.ts",
+      "byteIdentical": true,
+      "sha256": "60a25956471243df4d64ded69321d60df1a2da6542a4538f365ee1c8ad5c713e"
+    },
+    {
+      "file": "src/rendering/trackside.ts",
+      "byteIdentical": true,
+      "sha256": "028d9c598598f80ed2559ffb4db11c3b49c0e38832ec80b598d8c6ebec7582c4"
+    },
+    {
+      "file": "src/rendering/grandstand.ts",
+      "byteIdentical": true,
+      "sha256": "a33891eca893a136796c8c493a88420f6244ecb15dac6b9c4086a78e758b4c35"
+    },
+    {
+      "file": "src/simulation/track.ts",
+      "byteIdentical": true,
+      "sha256": "433fc340b5e798351650be21e07ab9d9e3b055af254070e9c7fd76158b237946"
+    },
+    {
+      "file": "src/simulation/circuits.ts",
+      "byteIdentical": true,
+      "sha256": "7b0208025d6c0cb25a49bc757e7c69b1fdcb651bdb66803ee75648de24752c90"
+    },
+    {
+      "file": "src/simulation/circuit-catalogue/motorcycle-gp.ts",
+      "byteIdentical": true,
+      "sha256": "8dd2de0842929ed80bb876b6cb5a8760ec2896841da86560f1cf4909d66fed15"
+    }
+  ],
+  "historicalMismatchCause": "Not established. This proves the failure already exists at the initial HEAD; it does not explain the difference from the older historical golden. Repository history available during this investigation was shallow.",
+  "decision": "Leave the historical golden and unrelated Cape Wrenna cameras unchanged. Disclose this baseline failure separately from the motocross pass results; investigate its older source history before any intentional expectation update."
+}

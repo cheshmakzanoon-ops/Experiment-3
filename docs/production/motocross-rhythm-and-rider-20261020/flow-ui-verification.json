@@ -1,0 +1,374 @@
+{
+  "schema": 1,
+  "preparedAt": "2026-10-20T18:31:41.458013+00:00",
+  "scope": {
+    "implementation": "Production OffroadHud, Interface, MotocrossLandingChallenge and MotocrossFlowPractice.",
+    "browserInputs": "Explicitly synthetic continuous forward snapshots following the existing jump surveys; takeoff, touchdown, settling and exit samples are passed through the production judges.",
+    "establishes": [
+      "Named sequence progression",
+      "First and improved completed-run displays",
+      "Mobile and desktop layout clearance",
+      "Caution priority",
+      "No duplicate credit from held snapshots",
+      "New complete runs work after a backwards presentation seek"
+    ],
+    "doesNotEstablish": [
+      "Full-game menu-to-riding completion",
+      "Physically achievable linked trajectories",
+      "Human ride testing",
+      "GPU or mobile frame rate"
+    ]
+  },
+  "sections": [
+    {
+      "venue": "valley-ridge-mx",
+      "name": "RIDGE TO BARN",
+      "jumps": [
+        "RIDGE TABLE",
+        "BARN DOUBLE"
+      ]
+    },
+    {
+      "venue": "valley-ridge-mx",
+      "name": "SKY TO VALLEY",
+      "jumps": [
+        "SKY TRIPLE",
+        "SUMMIT TABLE",
+        "VALLEY DOUBLE"
+      ]
+    },
+    {
+      "venue": "arena-nord-sx",
+      "name": "RHYTHM LANE",
+      "jumps": [
+        "TRIPLE",
+        "LANE DOUBLE"
+      ]
+    },
+    {
+      "venue": "arena-nord-sx",
+      "name": "FINISH RUN",
+      "jumps": [
+        "TABLETOP",
+        "FINISH TRIPLE"
+      ]
+    }
+  ],
+  "timing": "Entry is 8 m before the first surveyed face; exit is 8 m after the final feature/landing pocket. Crossing times are interpolated. The production landing judge must confirm every named target in order. Records are specific to the session machine/assist and entry soil category.",
+  "unitRuns": [
+    {
+      "command": "npx vitest run tests/motocross-flow-practice.test.ts tests/motocross-hud.test.ts tests/motocross-course-landmarks.test.ts tests/motocross-landing-challenge.test.ts tests/motocross-rhythm-coach.test.ts --reporter=dot",
+      "testFilesPassed": 5,
+      "testsPassed": 76,
+      "testsFailed": 0,
+      "exitCode": 0,
+      "durationSeconds": 9.79,
+      "sourceScope": "Completed before the per-traversal rollback fix and its additional regression; do not present this as a final 77-test aggregate run."
+    },
+    {
+      "command": "npx vitest run tests/motocross-flow-practice.test.ts --reporter=dot",
+      "testFilesPassed": 1,
+      "testsPassed": 16,
+      "testsFailed": 0,
+      "exitCode": 0,
+      "durationSeconds": 3.09,
+      "sourceScope": "After the rollback fix. Earned best durations survive a seek; the consumed landing timestamp belongs to the new traversal, and stale future timestamps cannot count."
+    }
+  ],
+  "browserRun": {
+    "command": "PLAYWRIGHT_BROWSERS_PATH=/tmp/motobound-browsers npx playwright test --config .cache/playwright-mx-flow.config.ts",
+    "configScope": "Temporary isolated configuration selecting e2e/55-motocross-flow-practice.spec.ts, one Chromium worker, production preview at port 4198, 180 s test deadline.",
+    "testsPassed": 1,
+    "testsFailed": 0,
+    "exitCode": 0,
+    "caseDurationSeconds": 11.5,
+    "totalDurationSeconds": 13.0,
+    "viewportWidths": [
+      390,
+      1280
+    ],
+    "viewportHeight": 800,
+    "capturedStates": 16,
+    "assertions": [
+      "First linked target is visible",
+      "All four named sections complete",
+      "Second faster run displays NEW PERSONAL BEST",
+      "Displayed section duration matches sampled traversal",
+      "No horizontal panel overflow",
+      "No note overflow",
+      "No covered interactive controls",
+      "Double-yellow caution supersedes result display",
+      "No page errors"
+    ],
+    "normalConfigReproduction": "PLAYWRIGHT_BROWSERS_PATH=/tmp/motobound-browsers npx playwright test --config playwright.motocross.config.ts e2e/55-motocross-flow-practice.spec.ts"
+  },
+  "lint": {
+    "command": "npx eslint src/simulation/offroad/flow-practice.ts src/ui/offroad-hud.ts src/rendering/offroad/mx-course-landmarks.ts tests/motocross-flow-practice.test.ts e2e/fixtures/motocross-interface.ts e2e/55-motocross-flow-practice.spec.ts",
+    "exitCode": 0,
+    "scope": "Focused pass after rollback changes; subsequent evidence-retention-only additions to the browser test should be covered by the integrated lint."
+  },
+  "retainedScreenshots": [
+    {
+      "path": "flow-sky-to-valley-mobile-best.png",
+      "source": "test-results/mx-flow/55-motocross-flow-practice-f2d78--keep-mobile-controls-clear/valley-ridge-mx-flow-2-best-390.png",
+      "sha256": "84cc6718acd0f86c639e00e92ae7b23d7fd4dd69419797c3bee057c225977093",
+      "bytes": 27689
+    },
+    {
+      "path": "flow-rhythm-lane-desktop-first.png",
+      "source": "test-results/mx-flow/55-motocross-flow-practice-f2d78--keep-mobile-controls-clear/arena-nord-sx-flow-1-first-1280.png",
+      "sha256": "aaf1c91400f68ed521a13ddb2bc0b4d435bc25931bebaf2f9671f47fa52ef445",
+      "bytes": 41247
+    }
+  ],
+  "captures": [
+    {
+      "case": "arena-nord-sx-flow-1-best-1280",
+      "section": "RHYTHM LANE",
+      "requiredTargets": 2,
+      "sampledSectionSeconds": "3.59",
+      "observedFirstLinkedProgress": true,
+      "viewportWidth": 1280,
+      "panelOverflowX": 0,
+      "noteOverflowX": 0,
+      "noteOverflowY": 0,
+      "overlappedControls": [],
+      "result": "pass",
+      "screenshot": "test-results/mx-flow/55-motocross-flow-practice-f2d78--keep-mobile-controls-clear/arena-nord-sx-flow-1-best-1280.png",
+      "measurements": "test-results/mx-flow/55-motocross-flow-practice-f2d78--keep-mobile-controls-clear/arena-nord-sx-flow-1-best-1280.json"
+    },
+    {
+      "case": "arena-nord-sx-flow-1-best-390",
+      "section": "RHYTHM LANE",
+      "requiredTargets": 2,
+      "sampledSectionSeconds": "3.59",
+      "observedFirstLinkedProgress": true,
+      "viewportWidth": 390,
+      "panelOverflowX": 0,
+      "noteOverflowX": 0,
+      "noteOverflowY": 1,
+      "overlappedControls": [],
+      "result": "pass",
+      "screenshot": "test-results/mx-flow/55-motocross-flow-practice-f2d78--keep-mobile-controls-clear/arena-nord-sx-flow-1-best-390.png",
+      "measurements": "test-results/mx-flow/55-motocross-flow-practice-f2d78--keep-mobile-controls-clear/arena-nord-sx-flow-1-best-390.json"
+    },
+    {
+      "case": "arena-nord-sx-flow-1-first-1280",
+      "section": "RHYTHM LANE",
+      "requiredTargets": 2,
+      "sampledSectionSeconds": "4.49",
+      "observedFirstLinkedProgress": true,
+      "viewportWidth": 1280,
+      "panelOverflowX": 0,
+      "noteOverflowX": 0,
+      "noteOverflowY": 0,
+      "overlappedControls": [],
+      "result": "pass",
+      "screenshot": "test-results/mx-flow/55-motocross-flow-practice-f2d78--keep-mobile-controls-clear/arena-nord-sx-flow-1-first-1280.png",
+      "measurements": "test-results/mx-flow/55-motocross-flow-practice-f2d78--keep-mobile-controls-clear/arena-nord-sx-flow-1-first-1280.json"
+    },
+    {
+      "case": "arena-nord-sx-flow-1-first-390",
+      "section": "RHYTHM LANE",
+      "requiredTargets": 2,
+      "sampledSectionSeconds": "4.49",
+      "observedFirstLinkedProgress": true,
+      "viewportWidth": 390,
+      "panelOverflowX": 0,
+      "noteOverflowX": 0,
+      "noteOverflowY": 1,
+      "overlappedControls": [],
+      "result": "pass",
+      "screenshot": "test-results/mx-flow/55-motocross-flow-practice-f2d78--keep-mobile-controls-clear/arena-nord-sx-flow-1-first-390.png",
+      "measurements": "test-results/mx-flow/55-motocross-flow-practice-f2d78--keep-mobile-controls-clear/arena-nord-sx-flow-1-first-390.json"
+    },
+    {
+      "case": "arena-nord-sx-flow-2-best-1280",
+      "section": "FINISH RUN",
+      "requiredTargets": 2,
+      "sampledSectionSeconds": "5.31",
+      "observedFirstLinkedProgress": true,
+      "viewportWidth": 1280,
+      "panelOverflowX": 0,
+      "noteOverflowX": 0,
+      "noteOverflowY": 0,
+      "overlappedControls": [],
+      "result": "pass",
+      "screenshot": "test-results/mx-flow/55-motocross-flow-practice-f2d78--keep-mobile-controls-clear/arena-nord-sx-flow-2-best-1280.png",
+      "measurements": "test-results/mx-flow/55-motocross-flow-practice-f2d78--keep-mobile-controls-clear/arena-nord-sx-flow-2-best-1280.json"
+    },
+    {
+      "case": "arena-nord-sx-flow-2-best-390",
+      "section": "FINISH RUN",
+      "requiredTargets": 2,
+      "sampledSectionSeconds": "5.31",
+      "observedFirstLinkedProgress": true,
+      "viewportWidth": 390,
+      "panelOverflowX": 0,
+      "noteOverflowX": 0,
+      "noteOverflowY": 1,
+      "overlappedControls": [],
+      "result": "pass",
+      "screenshot": "test-results/mx-flow/55-motocross-flow-practice-f2d78--keep-mobile-controls-clear/arena-nord-sx-flow-2-best-390.png",
+      "measurements": "test-results/mx-flow/55-motocross-flow-practice-f2d78--keep-mobile-controls-clear/arena-nord-sx-flow-2-best-390.json"
+    },
+    {
+      "case": "arena-nord-sx-flow-2-first-1280",
+      "section": "FINISH RUN",
+      "requiredTargets": 2,
+      "sampledSectionSeconds": "6.64",
+      "observedFirstLinkedProgress": true,
+      "viewportWidth": 1280,
+      "panelOverflowX": 0,
+      "noteOverflowX": 0,
+      "noteOverflowY": 0,
+      "overlappedControls": [],
+      "result": "pass",
+      "screenshot": "test-results/mx-flow/55-motocross-flow-practice-f2d78--keep-mobile-controls-clear/arena-nord-sx-flow-2-first-1280.png",
+      "measurements": "test-results/mx-flow/55-motocross-flow-practice-f2d78--keep-mobile-controls-clear/arena-nord-sx-flow-2-first-1280.json"
+    },
+    {
+      "case": "arena-nord-sx-flow-2-first-390",
+      "section": "FINISH RUN",
+      "requiredTargets": 2,
+      "sampledSectionSeconds": "6.64",
+      "observedFirstLinkedProgress": true,
+      "viewportWidth": 390,
+      "panelOverflowX": 0,
+      "noteOverflowX": 0,
+      "noteOverflowY": 1,
+      "overlappedControls": [],
+      "result": "pass",
+      "screenshot": "test-results/mx-flow/55-motocross-flow-practice-f2d78--keep-mobile-controls-clear/arena-nord-sx-flow-2-first-390.png",
+      "measurements": "test-results/mx-flow/55-motocross-flow-practice-f2d78--keep-mobile-controls-clear/arena-nord-sx-flow-2-first-390.json"
+    },
+    {
+      "case": "valley-ridge-mx-flow-1-best-1280",
+      "section": "RIDGE TO BARN",
+      "requiredTargets": 2,
+      "sampledSectionSeconds": "7.77",
+      "observedFirstLinkedProgress": true,
+      "viewportWidth": 1280,
+      "panelOverflowX": 0,
+      "noteOverflowX": 0,
+      "noteOverflowY": 0,
+      "overlappedControls": [],
+      "result": "pass",
+      "screenshot": "test-results/mx-flow/55-motocross-flow-practice-f2d78--keep-mobile-controls-clear/valley-ridge-mx-flow-1-best-1280.png",
+      "measurements": "test-results/mx-flow/55-motocross-flow-practice-f2d78--keep-mobile-controls-clear/valley-ridge-mx-flow-1-best-1280.json"
+    },
+    {
+      "case": "valley-ridge-mx-flow-1-best-390",
+      "section": "RIDGE TO BARN",
+      "requiredTargets": 2,
+      "sampledSectionSeconds": "7.77",
+      "observedFirstLinkedProgress": true,
+      "viewportWidth": 390,
+      "panelOverflowX": 0,
+      "noteOverflowX": 0,
+      "noteOverflowY": 1,
+      "overlappedControls": [],
+      "result": "pass",
+      "screenshot": "test-results/mx-flow/55-motocross-flow-practice-f2d78--keep-mobile-controls-clear/valley-ridge-mx-flow-1-best-390.png",
+      "measurements": "test-results/mx-flow/55-motocross-flow-practice-f2d78--keep-mobile-controls-clear/valley-ridge-mx-flow-1-best-390.json"
+    },
+    {
+      "case": "valley-ridge-mx-flow-1-first-1280",
+      "section": "RIDGE TO BARN",
+      "requiredTargets": 2,
+      "sampledSectionSeconds": "9.71",
+      "observedFirstLinkedProgress": true,
+      "viewportWidth": 1280,
+      "panelOverflowX": 0,
+      "noteOverflowX": 0,
+      "noteOverflowY": 0,
+      "overlappedControls": [],
+      "result": "pass",
+      "screenshot": "test-results/mx-flow/55-motocross-flow-practice-f2d78--keep-mobile-controls-clear/valley-ridge-mx-flow-1-first-1280.png",
+      "measurements": "test-results/mx-flow/55-motocross-flow-practice-f2d78--keep-mobile-controls-clear/valley-ridge-mx-flow-1-first-1280.json"
+    },
+    {
+      "case": "valley-ridge-mx-flow-1-first-390",
+      "section": "RIDGE TO BARN",
+      "requiredTargets": 2,
+      "sampledSectionSeconds": "9.71",
+      "observedFirstLinkedProgress": true,
+      "viewportWidth": 390,
+      "panelOverflowX": 0,
+      "noteOverflowX": 0,
+      "noteOverflowY": 1,
+      "overlappedControls": [],
+      "result": "pass",
+      "screenshot": "test-results/mx-flow/55-motocross-flow-practice-f2d78--keep-mobile-controls-clear/valley-ridge-mx-flow-1-first-390.png",
+      "measurements": "test-results/mx-flow/55-motocross-flow-practice-f2d78--keep-mobile-controls-clear/valley-ridge-mx-flow-1-first-390.json"
+    },
+    {
+      "case": "valley-ridge-mx-flow-2-best-1280",
+      "section": "SKY TO VALLEY",
+      "requiredTargets": 3,
+      "sampledSectionSeconds": "10.67",
+      "observedFirstLinkedProgress": true,
+      "viewportWidth": 1280,
+      "panelOverflowX": 0,
+      "noteOverflowX": 0,
+      "noteOverflowY": 0,
+      "overlappedControls": [],
+      "result": "pass",
+      "screenshot": "test-results/mx-flow/55-motocross-flow-practice-f2d78--keep-mobile-controls-clear/valley-ridge-mx-flow-2-best-1280.png",
+      "measurements": "test-results/mx-flow/55-motocross-flow-practice-f2d78--keep-mobile-controls-clear/valley-ridge-mx-flow-2-best-1280.json"
+    },
+    {
+      "case": "valley-ridge-mx-flow-2-best-390",
+      "section": "SKY TO VALLEY",
+      "requiredTargets": 3,
+      "sampledSectionSeconds": "10.67",
+      "observedFirstLinkedProgress": true,
+      "viewportWidth": 390,
+      "panelOverflowX": 0,
+      "noteOverflowX": 0,
+      "noteOverflowY": 1,
+      "overlappedControls": [],
+      "result": "pass",
+      "screenshot": "test-results/mx-flow/55-motocross-flow-practice-f2d78--keep-mobile-controls-clear/valley-ridge-mx-flow-2-best-390.png",
+      "measurements": "test-results/mx-flow/55-motocross-flow-practice-f2d78--keep-mobile-controls-clear/valley-ridge-mx-flow-2-best-390.json"
+    },
+    {
+      "case": "valley-ridge-mx-flow-2-first-1280",
+      "section": "SKY TO VALLEY",
+      "requiredTargets": 3,
+      "sampledSectionSeconds": "13.34",
+      "observedFirstLinkedProgress": true,
+      "viewportWidth": 1280,
+      "panelOverflowX": 0,
+      "noteOverflowX": 0,
+      "noteOverflowY": 0,
+      "overlappedControls": [],
+      "result": "pass",
+      "screenshot": "test-results/mx-flow/55-motocross-flow-practice-f2d78--keep-mobile-controls-clear/valley-ridge-mx-flow-2-first-1280.png",
+      "measurements": "test-results/mx-flow/55-motocross-flow-practice-f2d78--keep-mobile-controls-clear/valley-ridge-mx-flow-2-first-1280.json"
+    },
+    {
+      "case": "valley-ridge-mx-flow-2-first-390",
+      "section": "SKY TO VALLEY",
+      "requiredTargets": 3,
+      "sampledSectionSeconds": "13.34",
+      "observedFirstLinkedProgress": true,
+      "viewportWidth": 390,
+      "panelOverflowX": 0,
+      "noteOverflowX": 0,
+      "noteOverflowY": 1,
+      "overlappedControls": [],
+      "result": "pass",
+      "screenshot": "test-results/mx-flow/55-motocross-flow-practice-f2d78--keep-mobile-controls-clear/valley-ridge-mx-flow-2-first-390.png",
+      "measurements": "test-results/mx-flow/55-motocross-flow-practice-f2d78--keep-mobile-controls-clear/valley-ridge-mx-flow-2-first-390.json"
+    }
+  ],
+  "sourceHashesAtSummary": {
+    "src/simulation/offroad/flow-practice.ts": "1aaa1bf18f724593b3a3fc1b1169bc43510e28be210b9913c0ccc301ba343552",
+    "src/ui/offroad-hud.ts": "0761663e3e5abceaf008d8cdb4aa431d55095fd4aa46486d5ec0b77ec606e324",
+    "src/rendering/offroad/mx-course-landmarks.ts": "123b4981f9ad25248314bdeb90f73e81ba6e348bddf6f0d8ca6267ac80eca668",
+    "tests/motocross-flow-practice.test.ts": "6dd4b4388601a9a4696d0b088f7e131576f8e1fe889f6e80a7c6fb11ac71bd57",
+    "e2e/fixtures/motocross-interface.ts": "7a98a523dcf92aff4e1db21b6f7118d2d9f4936d7dc6faed08e4e199ed60e75f",
+    "e2e/55-motocross-flow-practice.spec.ts": "9e4381b342bac122fc9f459570b78a423d7b0ae5f1e568441a89ab97d1e4c71c"
+  }
+}

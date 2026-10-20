@@ -1,0 +1,451 @@
+{
+  "numTotalTestSuites": 154,
+  "numPassedTestSuites": 148,
+  "numFailedTestSuites": 6,
+  "numPendingTestSuites": 0,
+  "numTotalTests": 629,
+  "numPassedTests": 626,
+  "numFailedTests": 3,
+  "numPendingTests": 0,
+  "numTodoTests": 0,
+  "startTime": 1792520857981,
+  "success": false,
+  "command": "npx vitest run tests/motocross-*.test.ts tests/bike-animation.test.ts tests/bike-pose-kinematics.test.ts tests/gp-rider-*.test.ts --reporter=json --outputFile=report.json",
+  "suites": [
+    {
+      "file": "tests/bike-animation.test.ts",
+      "status": "passed",
+      "assertions": 5,
+      "failed": []
+    },
+    {
+      "file": "tests/bike-pose-kinematics.test.ts",
+      "status": "passed",
+      "assertions": 13,
+      "failed": []
+    },
+    {
+      "file": "tests/gp-rider-contact.test.ts",
+      "status": "passed",
+      "assertions": 7,
+      "failed": []
+    },
+    {
+      "file": "tests/gp-rider-garment.test.ts",
+      "status": "passed",
+      "assertions": 4,
+      "failed": []
+    },
+    {
+      "file": "tests/gp-rider-glove.test.ts",
+      "status": "passed",
+      "assertions": 9,
+      "failed": []
+    },
+    {
+      "file": "tests/gp-rider-motion.test.ts",
+      "status": "failed",
+      "assertions": 8,
+      "failed": [
+        {
+          "name": "GP riding motion on the actual articulated rider preserves the existing non-GP motocross motion when GP-only inputs are supplied",
+          "messages": [
+            "AssertionError: expected [ \u2026(62) ] to deeply equal [ \u2026(62) ]\n    at /workspace/scratch/b5d4ab955c82/Experiment-3/tests/gp-rider-motion.test.ts:221:40\n    at file:///workspace/scratch/b5d4ab955c82/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:863:59\n    at file:///workspace/scratch/b5d4ab955c82/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11\n    at file:///workspace/scratch/b5d4ab955c82/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26\n    at file:///workspace/scratch/b5d4ab955c82/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1897:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///workspace/scratch/b5d4ab955c82/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1863:10)\n    at runTest (file:///workspace/scratch/b5d4ab955c82/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1574:12)\n    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at runSuite (file:///workspace/scratch/b5d4ab955c82/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1729:8)"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "tests/gp-rider-silhouette.test.ts",
+      "status": "passed",
+      "assertions": 4,
+      "failed": []
+    },
+    {
+      "file": "tests/gp-rider-spine.test.ts",
+      "status": "passed",
+      "assertions": 7,
+      "failed": []
+    },
+    {
+      "file": "tests/gp-rider-suit.test.ts",
+      "status": "passed",
+      "assertions": 12,
+      "failed": []
+    },
+    {
+      "file": "tests/motocross-ai.test.ts",
+      "status": "passed",
+      "assertions": 17,
+      "failed": []
+    },
+    {
+      "file": "tests/motocross-authored-kit.test.ts",
+      "status": "passed",
+      "assertions": 11,
+      "failed": []
+    },
+    {
+      "file": "tests/motocross-berm-practice.test.ts",
+      "status": "passed",
+      "assertions": 24,
+      "failed": []
+    },
+    {
+      "file": "tests/motocross-body-input.test.ts",
+      "status": "passed",
+      "assertions": 10,
+      "failed": []
+    },
+    {
+      "file": "tests/motocross-body-pose.test.ts",
+      "status": "passed",
+      "assertions": 5,
+      "failed": []
+    },
+    {
+      "file": "tests/motocross-brake-cue.test.ts",
+      "status": "passed",
+      "assertions": 9,
+      "failed": []
+    },
+    {
+      "file": "tests/motocross-braking-bumps.test.ts",
+      "status": "passed",
+      "assertions": 9,
+      "failed": []
+    },
+    {
+      "file": "tests/motocross-broadcast-controls.test.ts",
+      "status": "failed",
+      "assertions": 51,
+      "failed": [
+        {
+          "name": "replay-camera control preservation outside MX/SX cape-wrenna retains all 20 original camera records exactly",
+          "messages": [
+            "AssertionError: expected '59ac948f5dee4b887111ae7c76be41166e2cb\u2026' to be 'f11ead5b8859413f1ad3344e4a6bea96c963b\u2026' // Object.is equality\n    at /workspace/scratch/b5d4ab955c82/Experiment-3/tests/motocross-broadcast-controls.test.ts:141:79\n    at file:///workspace/scratch/b5d4ab955c82/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:861:59\n    at file:///workspace/scratch/b5d4ab955c82/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11\n    at file:///workspace/scratch/b5d4ab955c82/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26\n    at file:///workspace/scratch/b5d4ab955c82/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1897:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///workspace/scratch/b5d4ab955c82/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1863:10)\n    at runTest (file:///workspace/scratch/b5d4ab955c82/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1574:12)\n    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at runSuite (file:///workspace/scratch/b5d4ab955c82/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1729:8)"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "tests/motocross-broadcast-placement.test.ts",
+      "status": "passed",
+      "assertions": 2,
+      "failed": []
+    },
+    {
+      "file": "tests/motocross-camera.test.ts",
+      "status": "passed",
+      "assertions": 9,
+      "failed": []
+    },
+    {
+      "file": "tests/motocross-castings.test.ts",
+      "status": "passed",
+      "assertions": 16,
+      "failed": []
+    },
+    {
+      "file": "tests/motocross-chain-drive.test.ts",
+      "status": "passed",
+      "assertions": 15,
+      "failed": []
+    },
+    {
+      "file": "tests/motocross-cockpit-view.test.ts",
+      "status": "passed",
+      "assertions": 3,
+      "failed": []
+    },
+    {
+      "file": "tests/motocross-collision.test.ts",
+      "status": "failed",
+      "assertions": 11,
+      "failed": [
+        {
+          "name": "motocross collision and sprung vertical velocity does not turn a real tilted two-bike position correction into the next contact impulse",
+          "messages": [
+            "AssertionError: expected 0.004894227191281075 to be greater than 0.005\n    at /workspace/scratch/b5d4ab955c82/Experiment-3/tests/motocross-collision.test.ts:44:66\n    at file:///workspace/scratch/b5d4ab955c82/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11\n    at file:///workspace/scratch/b5d4ab955c82/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26\n    at file:///workspace/scratch/b5d4ab955c82/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1897:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///workspace/scratch/b5d4ab955c82/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1863:10)\n    at runTest (file:///workspace/scratch/b5d4ab955c82/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1574:12)\n    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at runSuite (file:///workspace/scratch/b5d4ab955c82/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1729:8)\n    at runSuite (file:///workspace/scratch/b5d4ab955c82/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1729:8)"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "tests/motocross-contact-traction.test.ts",
+      "status": "passed",
+      "assertions": 10,
+      "failed": []
+    },
+    {
+      "file": "tests/motocross-control-animation.test.ts",
+      "status": "passed",
+      "assertions": 4,
+      "failed": []
+    },
+    {
+      "file": "tests/motocross-cooling-wheels.test.ts",
+      "status": "passed",
+      "assertions": 10,
+      "failed": []
+    },
+    {
+      "file": "tests/motocross-course-landmarks.test.ts",
+      "status": "passed",
+      "assertions": 5,
+      "failed": []
+    },
+    {
+      "file": "tests/motocross-course-sites.test.ts",
+      "status": "passed",
+      "assertions": 3,
+      "failed": []
+    },
+    {
+      "file": "tests/motocross-course-wear.test.ts",
+      "status": "passed",
+      "assertions": 5,
+      "failed": []
+    },
+    {
+      "file": "tests/motocross-environment.test.ts",
+      "status": "passed",
+      "assertions": 9,
+      "failed": []
+    },
+    {
+      "file": "tests/motocross-equipment-contact.test.ts",
+      "status": "passed",
+      "assertions": 7,
+      "failed": []
+    },
+    {
+      "file": "tests/motocross-equipment-surface.test.ts",
+      "status": "passed",
+      "assertions": 9,
+      "failed": []
+    },
+    {
+      "file": "tests/motocross-flow-practice.test.ts",
+      "status": "passed",
+      "assertions": 16,
+      "failed": []
+    },
+    {
+      "file": "tests/motocross-garment.test.ts",
+      "status": "passed",
+      "assertions": 7,
+      "failed": []
+    },
+    {
+      "file": "tests/motocross-grid-preparation.test.ts",
+      "status": "passed",
+      "assertions": 2,
+      "failed": []
+    },
+    {
+      "file": "tests/motocross-hud.test.ts",
+      "status": "passed",
+      "assertions": 28,
+      "failed": []
+    },
+    {
+      "file": "tests/motocross-landing-challenge.test.ts",
+      "status": "passed",
+      "assertions": 17,
+      "failed": []
+    },
+    {
+      "file": "tests/motocross-landing-prediction.test.ts",
+      "status": "passed",
+      "assertions": 9,
+      "failed": []
+    },
+    {
+      "file": "tests/motocross-lever-contact.test.ts",
+      "status": "passed",
+      "assertions": 4,
+      "failed": []
+    },
+    {
+      "file": "tests/motocross-mechanics.test.ts",
+      "status": "passed",
+      "assertions": 16,
+      "failed": []
+    },
+    {
+      "file": "tests/motocross-metal-finish.test.ts",
+      "status": "passed",
+      "assertions": 5,
+      "failed": []
+    },
+    {
+      "file": "tests/motocross-mouldings.test.ts",
+      "status": "passed",
+      "assertions": 10,
+      "failed": []
+    },
+    {
+      "file": "tests/motocross-presentation.test.ts",
+      "status": "passed",
+      "assertions": 4,
+      "failed": []
+    },
+    {
+      "file": "tests/motocross-race-control.test.ts",
+      "status": "passed",
+      "assertions": 6,
+      "failed": []
+    },
+    {
+      "file": "tests/motocross-reference-geometry.test.ts",
+      "status": "passed",
+      "assertions": 10,
+      "failed": []
+    },
+    {
+      "file": "tests/motocross-reference-review.test.ts",
+      "status": "passed",
+      "assertions": 2,
+      "failed": []
+    },
+    {
+      "file": "tests/motocross-rhythm-coach.test.ts",
+      "status": "passed",
+      "assertions": 11,
+      "failed": []
+    },
+    {
+      "file": "tests/motocross-rider-equipment.test.ts",
+      "status": "passed",
+      "assertions": 10,
+      "failed": []
+    },
+    {
+      "file": "tests/motocross-rider-motion.test.ts",
+      "status": "passed",
+      "assertions": 6,
+      "failed": []
+    },
+    {
+      "file": "tests/motocross-rider-weight.test.ts",
+      "status": "passed",
+      "assertions": 14,
+      "failed": []
+    },
+    {
+      "file": "tests/motocross-riding.test.ts",
+      "status": "passed",
+      "assertions": 21,
+      "failed": []
+    },
+    {
+      "file": "tests/motocross-roost-budget.test.ts",
+      "status": "passed",
+      "assertions": 1,
+      "failed": []
+    },
+    {
+      "file": "tests/motocross-roost-contact.test.ts",
+      "status": "passed",
+      "assertions": 5,
+      "failed": []
+    },
+    {
+      "file": "tests/motocross-shoulder-plants.test.ts",
+      "status": "passed",
+      "assertions": 6,
+      "failed": []
+    },
+    {
+      "file": "tests/motocross-shoulder-recovery.test.ts",
+      "status": "passed",
+      "assertions": 2,
+      "failed": []
+    },
+    {
+      "file": "tests/motocross-soil-morphology.test.ts",
+      "status": "passed",
+      "assertions": 4,
+      "failed": []
+    },
+    {
+      "file": "tests/motocross-soil-transition.test.ts",
+      "status": "passed",
+      "assertions": 7,
+      "failed": []
+    },
+    {
+      "file": "tests/motocross-spine.test.ts",
+      "status": "passed",
+      "assertions": 6,
+      "failed": []
+    },
+    {
+      "file": "tests/motocross-sprung-pose.test.ts",
+      "status": "passed",
+      "assertions": 21,
+      "failed": []
+    },
+    {
+      "file": "tests/motocross-stadium-crowd.test.ts",
+      "status": "passed",
+      "assertions": 3,
+      "failed": []
+    },
+    {
+      "file": "tests/motocross-terrain-continuity.test.ts",
+      "status": "passed",
+      "assertions": 5,
+      "failed": []
+    },
+    {
+      "file": "tests/motocross-terrain-shadow.test.ts",
+      "status": "passed",
+      "assertions": 9,
+      "failed": []
+    },
+    {
+      "file": "tests/motocross-thermal.test.ts",
+      "status": "passed",
+      "assertions": 3,
+      "failed": []
+    },
+    {
+      "file": "tests/motocross-tyre-contact.test.ts",
+      "status": "passed",
+      "assertions": 6,
+      "failed": []
+    },
+    {
+      "file": "tests/motocross-tyre-finish.test.ts",
+      "status": "passed",
+      "assertions": 5,
+      "failed": []
+    },
+    {
+      "file": "tests/motocross-uv-footprint.test.ts",
+      "status": "passed",
+      "assertions": 7,
+      "failed": []
+    },
+    {
+      "file": "tests/motocross-venue-integration.test.ts",
+      "status": "passed",
+      "assertions": 4,
+      "failed": []
+    },
+    {
+      "file": "tests/motocross-wheel-pickup.test.ts",
+      "status": "passed",
+      "assertions": 11,
+      "failed": []
+    },
+    {
+      "file": "tests/motocross-worked-soil.test.ts",
+      "status": "passed",
+      "assertions": 3,
+      "failed": []
+    }
+  ]
+}
