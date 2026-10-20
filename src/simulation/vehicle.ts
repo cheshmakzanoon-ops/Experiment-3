@@ -2,6 +2,7 @@ import { RoadContactFrame } from './road-contact.ts';
 import { SkidContact, SKID_CONTACT } from './skid-contact.ts';
 import { MARSHAL } from './marshal.ts';
 import { FrictionClutch } from './clutch.ts';
+import { drivingSlip } from './driving-assists.ts';
 import { carrierOmega, distributeDrive, drivenInertiaFactor } from './differential.ts';
 import { TIRE_FAMILIES } from './tire-families.ts';
 import { DebrisPool } from './damage.ts';
@@ -275,14 +276,23 @@ export class Vehicle {
   /** A gripping tyre ties its wheel to the vehicle: refer that share of the
    * vehicle's inertia to the clutch while the driven tyres grip, the wheel's
    * own while they spin (EngineSpec.clutchCoupling). Without it a light,
-   * low-inertia engine through a tall reduction slips a locked clutch. */
+   * low-inertia engine through a tall reduction slips a locked clutch.
+   * Contact/slip come from the preceding tyre solve (operator splitting):
+   * loss or reacquisition changes the referral on the following substep.
+   * This is an effective grounded inertia, not a simultaneous clutch/road
+   * constraint solve. Every driven contact must support load; an unloaded
+   * wheel cannot borrow chassis mass to synchronize an airborne driveline. */
   private coupleClutch(share: number) {
     const t = this.tires,
+      supported =
+        this.frontShare === null
+          ? t[this.drivenLeft].load > 1 && t[this.drivenRight].load > 1
+          : t.every((wheel) => wheel.load > 1),
       slip =
         this.frontShare === null
           ? Math.max(Math.abs(t[this.drivenLeft].slip), Math.abs(t[this.drivenRight].slip))
           : Math.max(...t.map((x) => Math.abs(x.slip))),
-      grip = clamp(1 - slip / 0.12, 0, 1),
+      grip = supported ? clamp(1 - slip / 0.12, 0, 1) : 0,
       wheels = this.frontShare === null ? 2 : 4,
       vehicle = (this.body.mass * this.spec.wheelRadius ** 2) / wheels;
     this.clutch.wheelInertia =
@@ -373,7 +383,18 @@ export class Vehicle {
         scale = 1.6;
       for (let i = 0; i < 4; i++) {
         if (this.frontShare === null && i !== this.drivenLeft && i !== this.drivenRight) continue;
-        slip = Math.max(slip, t[i].slip);
+        // These retained contact velocities/bases belong to the same solved
+        // substep as tire.slip. A chassis speed magnitude cannot distinguish
+        // reversing, a steered wheel, or opposite wheel travel during a spin.
+        slip = Math.max(
+          slip,
+          drivingSlip(
+            t[i].slip,
+            this.pointVelocities[i].dot(this.contactFrames[i].forward),
+            t[i].omega * t[i].radius,
+            this.input.reverse ? -1 : this.gear,
+          ),
+        );
         scale = Math.min(scale, slipScale(t[i]));
       }
       this.throttle /= 1 + Math.max(0, slip - 0.16 * scale) * 4.5;
@@ -635,8 +656,14 @@ export class Vehicle {
           0.5;
       // ABS must release *both* sources of wheel braking. Leaving generator
       // torque untouched can keep a rear wheel locked while friction is released.
+      const brakingSlip = drivingSlip(
+        t.slip,
+        long,
+        t.omega * t.radius,
+        this.input.reverse ? -1 : this.gear,
+      );
       const release =
-        this.assist === 'sport' ? 1 / (1 + Math.max(0, -t.slip - 0.14 * slipScale(t)) * 9) : 1;
+        this.assist === 'sport' ? 1 / (1 + Math.max(0, -brakingSlip - 0.14 * slipScale(t)) * 9) : 1;
       const regenerating = i >= regenWheel && i < regenWheel + 2;
       const friction =
         Math.max(0, total - (regenerating ? regenTorque : 0)) *

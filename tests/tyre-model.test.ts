@@ -176,7 +176,7 @@ describe('transient slip (relaxation length)', () => {
     // After rolling one relaxation length the deflection reaches 1 - 1/e.
     expect(relaxSlip(0, 1, 30, 0.3, 0.01)).toBeCloseTo(1 - Math.exp(-1), 12);
   });
-  it('builds lateral force over distance in the production tyre and is instant at walking pace', () => {
+  it('builds lateral force over distance and retains finite contact compliance at walking pace', () => {
     const fast = makeTire('medium'),
       s = surfaceSample();
     fast.omega = 40 / fast.radius;
@@ -186,8 +186,24 @@ describe('transient slip (relaxation length)', () => {
     expect(first).toBeLessThan(Math.abs(fast.fy) * 0.7);
     expect(fast.relaxedAngle).toBeCloseTo(fast.angle, 6);
     const slow = makeTire('medium');
+    slow.omega = 1 / slow.radius;
     solveTire(slow, 1, 0.1, 3000, 0, 0, s, 0, 1 / 240);
-    expect(slow.relaxedAngle).toBe(slow.angle);
+    const firstSlowForce = Math.abs(slow.fy),
+      firstSlowAngle = slow.relaxedAngle;
+    // Low speed no longer bypasses the elastic patch. Its finite strain and
+    // stored energy resist the lateral motion immediately, then build over
+    // further travel; the retained slip-angle diagnostic also evolves rather
+    // than jumping directly to the steady angle.
+    expect(slow.fy).toBeLessThan(0);
+    expect(slow.lateralDeflection).toBeGreaterThan(0);
+    expect(slow.lateralEnergy).toBeGreaterThan(0);
+    expect(firstSlowAngle).toBeGreaterThan(0);
+    expect(firstSlowAngle).toBeLessThan(slow.angle);
+    for (let i = 0; i < 60; i++) solveTire(slow, 1, 0.1, 3000, 0, 0, s, 0, 1 / 240);
+    expect(Math.abs(slow.fy)).toBeGreaterThan(firstSlowForce);
+    expect(slow.relaxedAngle).toBeGreaterThan(firstSlowAngle);
+    expect(slow.relaxedAngle).toBeLessThan(slow.angle);
+    expect(slow.usage).toBeLessThanOrEqual(1 + 1e-12);
   });
 });
 

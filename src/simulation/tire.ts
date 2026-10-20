@@ -7,6 +7,7 @@ import {
   groundDrag,
   materialGrip,
   rollingCoefficient,
+  rubberGrip,
   sinkageTarget,
   surfaceMaterial,
 } from './surface-material.ts';
@@ -320,7 +321,7 @@ export function peakGrip(t: Tire, load: number, s: SurfaceSample, speed: number)
     (1 - 0.18 * t.blistering - 0.12 * t.graining) *
     (t.punctured ? 0.28 : 1) *
     pressureGrip(k, t.pressure) *
-    (1 + s.rubber * 0.05 * (1 - wetRatio) - s.marbles * 0.14)
+    (rubberGrip(m, s.rubber, s.water) - s.marbles * 0.14)
   );
 }
 export function ellipse(fx: number, fy: number, limit: number, out: { fx: number; fy: number }) {

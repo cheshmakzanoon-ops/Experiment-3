@@ -1373,15 +1373,18 @@ export class RacingRenderer {
     } else {
       const seated = cameraMode === 'cockpit' || cameraMode === 'pod';
       if (seated) {
-        if (cameraDt > 0)
-          this.inertia.step(
-            cameraDt,
-            b[o + F.G_LAT],
-            b[o + F.G_LONG],
-            b[o + F.G_VERT],
-            b[o + F.IMPACT],
-            this.shake,
-          );
+        // The eyes and chassis share the same presentation time. Sampling the
+        // newer raw snapshot here made recoil precede the visible braking or
+        // contact. A zero-time call only establishes the force baseline after
+        // reset, so the first moving frame has a measured ramp to integrate.
+        this.inertia.step(
+          cameraDt,
+          presented[o + F.G_LAT],
+          presented[o + F.G_LONG],
+          presented[o + F.G_VERT],
+          presented[o + F.IMPACT],
+          this.shake,
+        );
         if (cabin) {
           if (cameraMode === 'cockpit') cabinEye(cabin, this.inertia.offset, this.desired);
           else mountEye(cabin, this.inertia.offset, this.desired);

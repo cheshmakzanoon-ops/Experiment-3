@@ -3,12 +3,8 @@ import { AUREL, STANDARD_PIT, type CircuitDefinition } from '../circuits.ts';
 import type { WeatherPreset } from '../config.ts';
 import { SURFACE, trackPoint, type SurfaceSample, type Track, type TrackPoint } from '../track.ts';
 import { MATERIAL } from '../surface-material.ts';
-import {
-  advanceWater,
-  weatherKeyframes,
-  WeatherTimeline,
-  type WeatherKeyframe,
-} from '../weather.ts';
+import { SurfaceThermalStep } from '../surface-thermal.ts';
+import { weatherKeyframes, WeatherTimeline, type WeatherKeyframe } from '../weather.ts';
 import { MAX_ROAD_CANDIDATES, ROAD_FLAG, roadCandidates } from './road-network.ts';
 import { festivalMarkings, type FestivalMarkings } from './festival-markings.ts';
 import { smoothstep } from './noise.ts';
@@ -130,6 +126,7 @@ export class OpenWorldTrack {
   readonly rubber = new Float32Array(0);
   readonly marbles = new Float32Array(0);
   readonly temperature = new Float32Array(0);
+  readonly substrateTemperature = new Float32Array(0);
   readonly drainage = new Float32Array(0);
   readonly sheltered = new Uint8Array(0);
   readonly hash = new Map<string, number[]>();
@@ -145,6 +142,11 @@ export class OpenWorldTrack {
   surfaceClock = 0;
   /** Standing water on a reference road surface (mm). */
   wetness: number;
+  /** The festival adapter has one reference climate column rather than a
+   * circuit grid. Its contact temperature still retains pavement history. */
+  #surfaceTemperature = 0;
+  #substrateTemperature = 0;
+  readonly #thermal = new SurfaceThermalStep();
   /** Last nearest(): lateral offset and segment, for boundaryAt. */
   private lastLateral = 0;
   private lastSegment = 0;
@@ -189,6 +191,8 @@ export class OpenWorldTrack {
     this.weather = new WeatherTimeline(keyframes);
     this.weather.sample(0, this);
     this.wetness = preset === 'rain' ? 0.9 : 0;
+    this.#surfaceTemperature = preset === 'rain' ? 22 : this.ambient + 12 * (1 - this.cloud);
+    this.#substrateTemperature = this.#surfaceTemperature;
     this.circuit = Object.freeze({
       ...AUREL,
       name: world.region.name,
@@ -561,7 +565,7 @@ export class OpenWorldTrack {
     // A light general rubber coat on public asphalt; no racing line.
     out.rubber = physics.code === SURFACE.ASPHALT || physics.code === SURFACE.PAINT ? 0.08 : 0;
     out.marbles = 0;
-    out.temp = this.ambient + 12 * (1 - this.cloud);
+    out.temp = this.#surfaceTemperature;
     return out;
   }
   /** Ray along `down` from `origin` to the ground (Track.cast contract):
@@ -617,19 +621,26 @@ export class OpenWorldTrack {
   // --- Time ---------------------------------------------------------------
   evolve(dt: number, time: number) {
     if (!Number.isFinite(dt) || dt <= 0) throw new Error('Invalid weather timestep');
-    this.weather.sample(time, this);
+    if (!Number.isFinite(time)) throw new Error('Invalid weather sample time');
     this.surfaceClock += dt;
-    if (this.surfaceClock < 0.5) return;
-    const step = this.surfaceClock;
-    this.surfaceClock = 0;
-    // A drained road: rain fills it, run-off and evaporation empty it.
-    const evaporation = (1 - this.cloud) * 0.0006;
-    this.wetness = advanceWater(
-      this.wetness,
-      Math.max(0, this.rain / 3600 - evaporation),
-      0.004,
-      step,
-    );
+    const step = 0.5;
+    while (this.surfaceClock >= step - 1e-9) {
+      this.weather.sample(time - this.surfaceClock + step, this);
+      this.#thermal
+        .prepare(step, this)
+        .advanceWet(
+          this.#surfaceTemperature,
+          this.#substrateTemperature,
+          this.wetness,
+          this.rain / 3600,
+          0.004,
+        );
+      this.wetness = this.#thermal.water;
+      this.#surfaceTemperature = this.#thermal.surface;
+      this.#substrateTemperature = this.#thermal.substrate;
+      this.surfaceClock = Math.max(0, this.surfaceClock - step);
+    }
+    this.weather.sample(time, this);
   }
   interact() {}
   meanWater() {

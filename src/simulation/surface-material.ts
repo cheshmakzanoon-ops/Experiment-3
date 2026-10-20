@@ -317,6 +317,25 @@ export function materialGrip(m: SurfaceMaterial, waterMm: number, tempC: number)
   return grip;
 }
 
+/** Laid rubber helps on dry sealed pavement but becomes slippery under a
+ * water film. Use the sampled contact depth, not rain intensity: a drying
+ * racing line can regain its advantage while rain remains elsewhere.
+ *
+ * Original reduced calibration: retain the existing 5% dry gain, bound the
+ * fully wetted loss at 18%, and use 0.35 of the material's macrotexture depth
+ * as the film transition scale. These are authored coefficients, not measured
+ * iRacing or tyre data. The qualitative inversion follows iRacing's public
+ * Rain Q&A (2024-06-17). This models the road/rubber interface only; compound
+ * drainage and speed/load/pressure-dependent aquaplaning remain separate.
+ * Loose and unsealed materials do not carry a rubbered racing line. */
+export function rubberGrip(m: SurfaceMaterial, rubber: number, waterMm: number) {
+  if (!m.sealed) return 1;
+  const coverage = clamp(rubber, 0, 1),
+    depth = Math.max(0, waterMm),
+    wet = depth / (depth + Math.max(0.05, 0.35 * m.textureMm));
+  return 1 + coverage * (0.05 * (1 - wet) - 0.18 * wet);
+}
+
 /** Equilibrium sinkage (m) of a contact patch of `area` m² carrying `load` N.
  * Bekker's pressure-sinkage law p = k·zⁿ, capped at the material's depth. */
 export function sinkageTarget(m: SurfaceMaterial, load: number, area: number) {

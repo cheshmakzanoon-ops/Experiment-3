@@ -28,8 +28,10 @@ import {
  * v15: compliant link loads, passive differential impulses, relative-wind aero
  * and fixed-geometry motocross suspension equilibrium;
  * v16: continuous motocross chop transitions and authored braking-bump lines;
+ * v17: wet rubber grip inversion, layered pavement heat/water coupling and
+ * direction-aware wheel-slip assists and contact-aware airborne clutch inertia;
  * prior records remain in their original physics category. */
-export const SIMULATION_VERSION = 16;
+export const SIMULATION_VERSION = 17;
 /** Fixed physics tick used by the worker and headless simulation. */
 export const SIMULATION_TICK_HZ = 120;
 

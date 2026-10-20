@@ -2,14 +2,11 @@ import { racingLineFor } from './racing-line.ts';
 import { TrackContactMesh, kerbHeight } from './contact.ts';
 import { surfaceDrainageRate } from './surface-drainage.ts';
 import { surfaceMaterial } from './surface-material.ts';
+import { SurfaceThermalStep } from './surface-thermal.ts';
+import { TYRE_THERMAL } from './tyre-thermal.ts';
 import { clamp, lerp, mod, smooth, Vec3 } from '../core/math.ts';
 import type { WeatherPreset } from './config.ts';
-import {
-  WeatherTimeline,
-  weatherKeyframes,
-  advanceWater,
-  type WeatherKeyframe,
-} from './weather.ts';
+import { WeatherTimeline, weatherKeyframes, type WeatherKeyframe } from './weather.ts';
 import { AUREL, STANDARD_PIT, type CircuitDefinition, type PitLaneDefinition } from './circuits.ts';
 import { RUNOFF } from './circuit-catalogue/venue-data.ts';
 import type { OffroadSurface } from './offroad/types.ts';
@@ -100,6 +97,8 @@ export class Track {
   readonly rubber = new Float32Array(CELL_ROWS * CELL_COLS);
   readonly marbles = new Float32Array(CELL_ROWS * CELL_COLS);
   readonly temperature = new Float32Array(CELL_ROWS * CELL_COLS);
+  /** Thermal history beneath the road, separate from the tire-contact surface. */
+  readonly substrateTemperature = new Float32Array(CELL_ROWS * CELL_COLS);
   readonly drainage = new Float32Array(CELL_ROWS * CELL_COLS);
   readonly hash = new Map<string, number[]>();
   readonly length: number;
@@ -108,6 +107,10 @@ export class Track {
   /** Water-grid rows under a roof (tunnels): 1 where rain cannot fall. */
   readonly sheltered = new Uint8Array(CELL_ROWS);
   private contactMesh: TrackContactMesh | null = null;
+  readonly #surfaceHeat = new Float64Array(CELL_ROWS * CELL_COLS);
+  readonly #cellArea = new Float64Array(CELL_ROWS * CELL_COLS);
+  readonly #exposedThermal = new SurfaceThermalStep();
+  readonly #coveredThermal = new SurfaceThermalStep();
   /** Terrain venues (offroad/): the authoritative deformable ground, which
    * contact, casts and the rendered terrain read; null on paved circuits. A
    * private field read through `Track.offroadOf`, so an adapter that stands
@@ -240,11 +243,7 @@ export class Track {
         const p = this.points[i],
           gain = circuit.bankGain(p.s / this.length);
         if (gain > 0)
-          p.bank = clamp(
-            p.bank - gain * smoothed[i],
-            -circuit.maxBank,
-            circuit.maxBank,
-          );
+          p.bank = clamp(p.bank - gain * smoothed[i], -circuit.maxBank, circuit.maxBank);
       }
     }
     Object.assign(this.points[count], this.points[0], { s: this.length });
@@ -271,7 +270,12 @@ export class Track {
     const line = racingLineFor(this),
       rowPoint = trackPoint();
     for (let i = 0; i < this.water.length; i++) {
-      this.temperature[i] = preset === 'rain' ? 22 : 34;
+      this.temperature[i] = this.sheltered[Math.floor(i / CELL_COLS)]
+        ? this.ambient
+        : preset === 'rain'
+          ? 22
+          : 34;
+      this.substrateTemperature[i] = this.temperature[i];
       this.water[i] =
         preset === 'rain' && !this.sheltered[Math.floor(i / CELL_COLS)]
           ? 0.7 + 0.35 * (0.5 + 0.5 * Math.sin(i * 0.27))
@@ -280,6 +284,7 @@ export class Track {
         col = i % CELL_COLS,
         s = ((row + 0.5) / CELL_ROWS) * this.length;
       this.at(s, rowPoint);
+      this.#cellArea[i] = (this.length / CELL_ROWS) * ((2 * rowPoint.width) / CELL_COLS);
       const lateral = (((col + 0.5) / CELL_COLS) * 2 - 1) * rowPoint.width;
       const fromLine = (lateral - line.offsetAt(s)) / 1.8;
       this.rubber[i] = 0.035 + 0.415 * Math.exp(-0.5 * fromLine * fromLine);
@@ -344,7 +349,11 @@ export class Track {
           (y as number) -
             lerp(a.y, b.y, t) -
             lerp(a.bank, b.bank, t) *
-              clamp(((x - a.x) * dz - (z - a.z) * dx) / (Math.sqrt(dx * dx + dz * dz) || 1), -12, 12),
+              clamp(
+                ((x - a.x) * dz - (z - a.z) * dx) / (Math.sqrt(dx * dx + dz * dz) || 1),
+                -12,
+                12,
+              ),
         ) > ROUTE_LAYER_GAP
       ) {
         if (d < other) {
@@ -385,7 +394,8 @@ export class Track {
   }
   /** Barrier distance at an already-resolved track point (no allocation). */
   boundaryAt(p: TrackPoint, side: number) {
-    const wall = p.width + (this.circuit.barrier ? this.circuit.barrier(p.s, side < 0 ? -1 : 1) : 11);
+    const wall =
+      p.width + (this.circuit.barrier ? this.circuit.barrier(p.s, side < 0 ? -1 : 1) : 11);
     return side !== this.pit.side ? wall : Math.max(wall, Math.abs(this.pitOffset(p.s)) + 5);
   }
   /** Run-off surface beyond the paint band at a resolved station (shared by
@@ -503,23 +513,41 @@ export class Track {
   }
   evolve(dt: number, time: number) {
     if (!Number.isFinite(dt) || dt <= 0) throw new Error('Invalid weather timestep');
-    this.weather.sample(time, this);
+    if (!Number.isFinite(time)) throw new Error('Invalid weather sample time');
     this.surfaceClock += dt;
-    if (this.surfaceClock < 0.5) return;
-    const step = this.surfaceClock;
-    this.surfaceClock = 0;
-    for (let r = 0; r < CELL_ROWS; r++)
-      for (let c = 0; c < CELL_COLS; c++) {
-        const i = r * CELL_COLS + c,
-          depression = 0.65 + 0.35 * Math.sin(r * 0.113 + c * 0.4) ** 2,
-          rainfall = this.sheltered[r] ? 0 : (this.rain / 3600) * depression,
-          drainage = this.drainage[i],
-          evaporation = (1 - this.cloud) * 0.0006;
-        this.water[i] = advanceWater(this.water[i], rainfall - evaporation, drainage, step);
-        this.rubber[i] = Math.max(0, this.rubber[i] - this.rain * 0.000001 * step);
-        const target = this.ambient + 14 * (1 - this.cloud);
-        this.temperature[i] += (target - this.temperature[i]) * -Math.expm1(-0.015 * step);
-      }
+    // Fixed surface ticks retain the remainder instead of stretching every
+    // update to whichever render/worker call first crossed the half-second.
+    // Long calls visit the same weather endpoints as ordinary worker ticks.
+    const step = 0.5;
+    while (this.surfaceClock >= step - 1e-9) {
+      this.weather.sample(time - this.surfaceClock + step, this);
+      this.#exposedThermal.prepare(step, this);
+      this.#coveredThermal.prepare(step, this, true);
+      for (let r = 0; r < CELL_ROWS; r++)
+        for (let c = 0; c < CELL_COLS; c++) {
+          const i = r * CELL_COLS + c,
+            depression = 0.65 + 0.35 * Math.sin(r * 0.113 + c * 0.4) ** 2,
+            rainfall = this.sheltered[r] ? 0 : (this.rain / 3600) * depression,
+            thermal = this.sheltered[r] ? this.#coveredThermal : this.#exposedThermal;
+          // Rain carries sensible heat as well as water. Match the local
+          // catchment rate used by the film balance, including depressions.
+          thermal.advanceWet(
+            this.temperature[i],
+            this.substrateTemperature[i],
+            this.water[i],
+            rainfall,
+            this.drainage[i],
+            this.#surfaceHeat[i] / (this.#cellArea[i] * step),
+          );
+          this.water[i] = thermal.water;
+          this.temperature[i] = thermal.surface;
+          this.substrateTemperature[i] = thermal.substrate;
+          this.#surfaceHeat[i] = 0;
+          this.rubber[i] = Math.max(0, this.rubber[i] - rainfall * 0.0036 * step);
+        }
+      this.surfaceClock = Math.max(0, this.surfaceClock - step);
+    }
+    this.weather.sample(time, this);
   }
   interact(
     cell: number,
@@ -538,6 +566,10 @@ export class Track {
     // Do not manufacture rubber at a stationary loaded contact or deposit it in
     // the road's clamped edge cell when the actual wheel is in grass or pits.
     const movingLoad = load * Math.min(1, Math.abs(speed));
+    // The tire thermal solver retains slipShare of the dissipated tread work.
+    // Deposit only its complementary road share; accumulate in double
+    // precision so a small per-wheel tick is not lost in the Float32 grid.
+    this.#surfaceHeat[cell] += (1 - TYRE_THERMAL.slipShare) * Math.max(0, energy) * dt;
     this.rubber[cell] = Math.min(1, this.rubber[cell] + (movingLoad * 1e-9 + energy * 8e-10) * dt);
     this.water[cell] = Math.max(0, this.water[cell] - Math.abs(speed) * 0.00025 * dt);
     this.marbles[cell] = Math.max(

@@ -19,8 +19,12 @@ export interface WeatherState {
   windZ: number;
 }
 const LIMITS: Record<keyof WeatherKeyframe, readonly [number, number]> = {
-  timeSec: [0, 86400], cloudCover01: [0, 1], rainRateMmHr: [0, 100],
-  ambientTempC: [-30, 60], windSpeedMS: [0, 40], windDirection: [-Math.PI * 2, Math.PI * 2],
+  timeSec: [0, 86400],
+  cloudCover01: [0, 1],
+  rainRateMmHr: [0, 100],
+  ambientTempC: [-30, 60],
+  windSpeedMS: [0, 40],
+  windDirection: [-Math.PI * 2, Math.PI * 2],
 };
 
 /** Validated, immutable weather data. Sampling is allocation-free, seekable and
@@ -31,38 +35,50 @@ export class WeatherTimeline {
   constructor(frames: readonly WeatherKeyframe[]) {
     if (!Array.isArray(frames) || frames.length < 1 || frames.length > 256)
       throw new Error('Weather timeline requires 1–256 keyframes');
-    this.keyframes = Object.freeze(frames.map((frame, index) => {
-      if (!frame || typeof frame !== 'object') throw new Error('Invalid weather keyframe');
-      const copy = {} as WeatherKeyframe;
-      for (const key of Object.keys(LIMITS) as (keyof WeatherKeyframe)[]) {
-        const value = frame[key], [min, max] = LIMITS[key];
-        if (typeof value !== 'number' || !Number.isFinite(value) || value < min || value > max)
-          throw new Error(`Invalid weather ${key}`);
-        copy[key] = value;
-      }
-      if ((index === 0 && copy.timeSec !== 0) || (index > 0 && copy.timeSec <= frames[index - 1].timeSec))
-        throw new Error('Weather times must start at zero and increase strictly');
-      return Object.freeze(copy);
-    }));
+    this.keyframes = Object.freeze(
+      frames.map((frame, index) => {
+        if (!frame || typeof frame !== 'object') throw new Error('Invalid weather keyframe');
+        const copy = {} as WeatherKeyframe;
+        for (const key of Object.keys(LIMITS) as (keyof WeatherKeyframe)[]) {
+          const value = frame[key],
+            [min, max] = LIMITS[key];
+          if (typeof value !== 'number' || !Number.isFinite(value) || value < min || value > max)
+            throw new Error(`Invalid weather ${key}`);
+          copy[key] = value;
+        }
+        if (
+          (index === 0 && copy.timeSec !== 0) ||
+          (index > 0 && copy.timeSec <= frames[index - 1].timeSec)
+        )
+          throw new Error('Weather times must start at zero and increase strictly');
+        return Object.freeze(copy);
+      }),
+    );
   }
   sample(timeSec: number, out: WeatherState): WeatherState {
     if (!Number.isFinite(timeSec)) throw new Error('Invalid weather sample time');
     const frames = this.keyframes;
-    let lo = 0, hi = frames.length - 1;
+    let lo = 0,
+      hi = frames.length - 1;
     while (hi - lo > 1) {
       const mid = (lo + hi) >>> 1;
       if (frames[mid].timeSec <= timeSec) lo = mid;
       else hi = mid;
     }
-    const a = frames[lo], b = frames[hi];
+    const a = frames[lo],
+      b = frames[hi];
     const t = hi === lo ? 0 : smooth(a.timeSec, b.timeSec, timeSec);
     out.cloud = lerp(a.cloudCover01, b.cloudCover01, t);
     out.rain = lerp(a.rainRateMmHr, b.rainRateMmHr, t);
     out.ambient = lerp(a.ambientTempC, b.ambientTempC, t);
     // Interpolate direction on the short arc: 350° -> 10° crosses north, not south.
-    const angle = a.windDirection + Math.atan2(
-      Math.sin(b.windDirection - a.windDirection), Math.cos(b.windDirection - a.windDirection),
-    ) * t;
+    const angle =
+      a.windDirection +
+      Math.atan2(
+        Math.sin(b.windDirection - a.windDirection),
+        Math.cos(b.windDirection - a.windDirection),
+      ) *
+        t;
     const speed = lerp(a.windSpeedMS, b.windSpeedMS, t);
     out.windX = Math.sin(angle) * speed;
     out.windZ = Math.cos(angle) * speed;
@@ -70,14 +86,27 @@ export class WeatherTimeline {
   }
 }
 
-const calmSpeed = Math.hypot(1.5, 0.6), calmDirection = Math.atan2(1.5, 0.6);
+const calmSpeed = Math.hypot(1.5, 0.6),
+  calmDirection = Math.atan2(1.5, 0.6);
 /** Original scenario calibration, not a real-world meteorological forecast.
  * Clear and rain retain the previous constant conditions. The changing preset
  * now contains a complete advancing storm and retreat, not permanent rain. */
 export function weatherKeyframes(preset: WeatherPreset): readonly WeatherKeyframe[] {
-  const frame = (timeSec: number, cloudCover01: number, rainRateMmHr: number,
-    ambientTempC: number, windSpeedMS = calmSpeed, windDirection = calmDirection): WeatherKeyframe =>
-    ({ timeSec, cloudCover01, rainRateMmHr, ambientTempC, windSpeedMS, windDirection });
+  const frame = (
+    timeSec: number,
+    cloudCover01: number,
+    rainRateMmHr: number,
+    ambientTempC: number,
+    windSpeedMS = calmSpeed,
+    windDirection = calmDirection,
+  ): WeatherKeyframe => ({
+    timeSec,
+    cloudCover01,
+    rainRateMmHr,
+    ambientTempC,
+    windSpeedMS,
+    windDirection,
+  });
   if (preset === 'clear') return [frame(0, 0.12, 0, 24)];
   if (preset === 'rain') return [frame(0, 0.95, 24, 19)];
   return [
@@ -97,12 +126,25 @@ export function weatherKeyframes(preset: WeatherPreset): readonly WeatherKeyfram
 /** Exact constant-input first-order surface step. k is drainage/second,
  * source is rainfall minus evaporation in mm/second. Unlike forward Euler,
  * bounded water and temperature remain stable for a delayed surface update. */
-export function advanceWater(waterMm: number, sourceMmSec: number, drainagePerSec: number, dt: number) {
-  if (![waterMm, sourceMmSec, drainagePerSec, dt].every(Number.isFinite) ||
-      waterMm < 0 || drainagePerSec < 0 || dt < 0) throw new Error('Invalid surface water step');
+export function advanceWater(
+  waterMm: number,
+  sourceMmSec: number,
+  drainagePerSec: number,
+  dt: number,
+) {
+  if (
+    !Number.isFinite(waterMm) ||
+    !Number.isFinite(sourceMmSec) ||
+    !Number.isFinite(drainagePerSec) ||
+    !Number.isFinite(dt) ||
+    waterMm < 0 ||
+    drainagePerSec < 0 ||
+    dt < 0
+  )
+    throw new Error('Invalid surface water step');
   if (drainagePerSec < 1e-12) return Math.max(0, waterMm + sourceMmSec * dt);
   const gain = -Math.expm1(-drainagePerSec * dt);
-  return Math.max(0, waterMm * (1 - gain) + sourceMmSec * gain / drainagePerSec);
+  return Math.max(0, waterMm * (1 - gain) + (sourceMmSec * gain) / drainagePerSec);
 }
 
 /** The render state is transported with each physics/replay frame, never sampled
