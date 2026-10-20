@@ -8,6 +8,7 @@ import { sampleProfile } from './profile-sampling.ts';
 import { tagMudExposure } from './offroad/mud.ts';
 import { gpRacingBoot, installGpLeatherFinish } from './gp-rider-gear.ts';
 import { GpRiderGarment } from './gp-rider-garment.ts';
+import { addGpRacingGlove } from './gp-rider-glove.ts';
 import {
   GP_BOOT_ANKLE,
   GP_BOOT_PEG,
@@ -1030,13 +1031,15 @@ export class Rider {
       if (mx) hand.name = `Motocross ${i === 0 ? 'left' : 'right'} hand`;
       else if (gp) hand.name = `GP ${i === 0 ? 'left' : 'right'} hand`;
       if (mx) addMotocrossGlove(hand, detail, side, glove, mxGloveBack!, flex);
+      else if (gp && detail !== 'far')
+        addGpRacingGlove(hand, detail, side, { leather: glove, panel, armour });
       else
         part(
           hand,
           new RoundedBoxGeometry(0.069, 0.047, 0.079, detail === 'far' ? 1 : 3, 0.017),
           glove,
         ).position.set(0, 0.0, 0.016);
-      if (detail !== 'far' && !mx) {
+      if (detail !== 'far' && !mx && !gp) {
         for (let finger = 0; finger < 4; finger++) {
           const x = -0.025 + finger * 0.0165;
           const points = [
@@ -1051,7 +1054,7 @@ export class Rider {
         thumb.position.set(side * 0.036, -0.01, 0.007);
         thumb.rotation.set(0.85, 0, side * 0.4);
       }
-      if (detail === 'high' && !mx) {
+      if (detail === 'high' && !mx && !gp) {
         const knuckleBacking = part(
           hand,
           new RoundedBoxGeometry(0.062, 0.008, 0.027, 2, 0.006),

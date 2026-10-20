@@ -5,6 +5,7 @@ import { B, BIKE_BASE, F, H, R, RACE_BASE, carBase } from '../simulation/protoco
 import { trackPoint, type Track } from '../simulation/track.ts';
 import { vehicleAt } from '../simulation/vehicles.ts';
 import { gpControlFeedback } from './gp-control-feedback.ts';
+import { nearbyTraffic } from './proximity.ts';
 import {
   gpCornerPhase,
   gpCornerShapes,
@@ -189,6 +190,31 @@ export class GPRidingCues {
         lean > 0.25 ? 'Light pedal · keep steering smooth' : 'Use front brake for a strong stop';
       cue.tone = 'brake';
       cue.tow = 0;
+    }
+    // The existing side arrows and this advice share one physical overlap
+    // query. Never invite a passing move through an occupied corridor.
+    // REF077/090: independent rider space in close racing. The original
+    // warning thresholds are gameplay tuning; reference stills do not
+    // establish safe numerical racing distances.
+    const traffic = onRoute ? nearbyTraffic(frame) : null,
+      left = traffic?.left === 'overlap',
+      right = traffic?.right === 'overlap';
+    if (left || right) {
+      cue.tow = 0;
+      if (brake > 0.12) {
+        cue.action = lean > 0.22 ? 'TRAIL BRAKING' : 'BRAKING';
+        cue.detail =
+          lean > 0.22
+            ? 'Ease brake as lean builds · leave racing room'
+            : 'Brake in your lane · leave racing room';
+        cue.tone = 'brake';
+      } else if (rearBrake > 0.12) {
+        cue.detail = 'Light pedal · leave racing room';
+      } else {
+        cue.action = left && right ? 'RIDERS BOTH SIDES' : left ? 'RIDER LEFT' : 'RIDER RIGHT';
+        cue.detail = 'Hold your line · leave racing room';
+        cue.tone = 'caution';
+      }
     }
     if (control) {
       cue.action = control.action;

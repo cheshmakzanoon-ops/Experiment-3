@@ -3,7 +3,7 @@ import { build } from 'vite';
 import { resolve } from 'node:path';
 import type { captureGpCourse } from './fixtures/gp-course-review.ts';
 
-test('GP course markers and protective covers render through dry, wet, held and restored views', async ({
+test('GP course markers, protective covers and approach bridge render through dry, wet, held and restored views', async ({
   page,
 }, info) => {
   const bundle = await build({
@@ -45,7 +45,9 @@ test('GP course markers and protective covers render through dry, wet, held and 
   });
   expect(report.covers).toBeGreaterThan(20);
   expect(report.markerGroups).toBeGreaterThanOrEqual(12);
-  const [approach, held, padding, wet, rewind] = report.captures;
+  const [approach, held, padding, wet, rewind, bridge, bridgeHeld, bridgeWet, bridgeRestored] = report.captures;
+  expect(report.bridgeMeshes).toBe(5);
+  expect(report.bridgeSite.approachDistance).toBeGreaterThanOrEqual(240);
   for (const capture of report.captures) {
     expect(capture.error).toBe(0);
     expect(capture.calls).toBeGreaterThan(5);
@@ -57,5 +59,9 @@ test('GP course markers and protective covers render through dry, wet, held and 
   expect(rewind.hash).toBe(approach.hash);
   expect(padding.hash).not.toBe(approach.hash);
   expect(wet.hash).not.toBe(padding.hash);
+  expect(bridgeHeld.hash).toBe(bridge.hash);
+  expect(bridgeRestored.hash).toBe(bridge.hash);
+  expect(bridgeWet.hash).not.toBe(bridge.hash);
+  expect(bridge.hash).not.toBe(approach.hash);
   expect(errors).toEqual([]);
 });

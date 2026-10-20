@@ -27,7 +27,7 @@ export function captureBikeSequence(
     frontBrake?: number;
     /** Explicit production-model pose controls for contact/recovery review. */
     pose?: Partial<
-      Pick<BikePoseValues, 'chassisLean' | 'riderOffset' | 'tuck' | 'steer' | 'fork' | 'shock'>
+      Pick<BikePoseValues, 'chassisLean' | 'riderOffset' | 'tuck' | 'steer' | 'fork' | 'shock' | 'frontRotation'>
     >;
     recovery?: 0 | 1 | 2;
   }[] = [{ wet: false, time: 2 }],
@@ -115,6 +115,14 @@ export function captureBikeSequence(
     );
     camera.lookAt(0, view === 'rider-rear' ? 1.03 : 1, view === 'rider-rear' ? -0.15 : -0.08);
     camera.fov = 32;
+    camera.updateProjectionMatrix();
+  }
+  if (view === 'front-brake') {
+    // Production wheel, rotor, caliper and fork remain assembled. This
+    // close mechanical view supplements, rather than replaces, riding views.
+    camera.position.set(1.05, 0.65, def.bike!.cgToFront + 0.35);
+    camera.lookAt(0, def.bike!.frontWheelRadius, def.bike!.cgToFront);
+    camera.fov = 35;
     camera.updateProjectionMatrix();
   }
   if (view === 'rear-chassis') {
@@ -247,6 +255,7 @@ export function captureBikeSequence(
         hash,
         cockpit: view === 'onboard' ? inspectBikeCockpit(bike.root, camera) : null,
         frontBrake: sample.frontBrake ?? pose.brake,
+        frontWheelRotation: bike.root.getObjectByName('GP front wheel spin')?.rotation.x ?? null,
         riderPose: {
           lean: samplePose.chassisLean,
           offset: samplePose.riderOffset,

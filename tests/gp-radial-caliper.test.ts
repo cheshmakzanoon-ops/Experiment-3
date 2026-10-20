@@ -36,10 +36,11 @@ describe('MotoGP forged radial brake: geometry and ownership', () => {
   it('does not accept a non-physical left/right side', () => {
     expect(() => gpRadialBrakeCaliper(0 as -1, materials())).toThrow();
   });
-  it('preserves the authored envelope and open rotor slot on both mirrored sides', () => {
-    // Observed envelope of the incoming R4 caliper before tessellation repair.
-    const originalMin = [-0.04969999939203262, -0.058975204825401306, -0.05208366736769676];
-    const originalMax = [0.09161368757486343, 0.15692932903766632, 0.06553204357624054];
+  it('preserves the YZ envelope while fitting the 8 mm rotor on both mirrored sides', () => {
+    // The original casting shape is retained; each half moves 7 mm inward.
+    // This measured envelope also guards against accidentally shrinking Y/Z.
+    const originalMin = [-0.04269999939203262, -0.058975204825401306, -0.05208366736769676];
+    const originalMax = [0.08461368757486343, 0.15692932903766632, 0.06553204357624054];
     for (const side of [-1, 1] as const) {
       const m = materials();
       const group = gpRadialBrakeCaliper(side, m);
@@ -59,7 +60,7 @@ describe('MotoGP forged radial brake: geometry and ownership', () => {
           );
         }
         // Independent rays start within the actual rotor gap and first hit
-        // the pad backing at either 11 mm rotor face, never a housing bridge.
+        // the pad backing at either 4 mm rotor face, never a housing bridge.
         for (const y of [-0.025, 0, 0.025]) {
           for (const direction of [-1, 1]) {
             const hits = new T.Raycaster(

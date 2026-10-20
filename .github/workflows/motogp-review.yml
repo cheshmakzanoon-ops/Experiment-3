@@ -27,9 +27,11 @@ on:
       - 'src/ui/interface.ts'
       - 'src/ui/loading-copy.ts'
       - 'src/ui/gp-*'
+      - 'src/ui/proximity.ts'
       - 'e2e/*motogp*'
       - 'e2e/motorcycle-presentation.spec.ts'
       - 'e2e/gp-rear-chassis.spec.ts'
+      - 'e2e/gp-front-brake.spec.ts'
       - 'e2e/gp-rider-contact.spec.ts'
       - 'e2e/gp-fork-crown.spec.ts'
       - 'e2e/gp-course-boards.spec.ts'
@@ -100,12 +102,27 @@ jobs:
           node-version: '22'
           cache: npm
       - run: node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
+      - name: Changed MotoGP source and review lint
+        run: >-
+          node --experimental-transform-types scripts/source-stability.ts --
+          npx eslint
+          src/rendering/gp-brake-rotor.ts src/rendering/gp-radial-caliper.ts
+          src/rendering/bike.ts src/rendering/gp-rider-glove.ts src/rendering/rider.ts
+          src/rendering/venue-kit/gp-course-bridge.ts src/rendering/venue-kit/structures.ts
+          src/ui/proximity.ts src/ui/gp-riding-cues.ts
+          tests/gp-brake-rotor.test.ts tests/gp-radial-caliper.test.ts
+          tests/gp-rider-glove.test.ts tests/gp-course-bridge.test.ts tests/gp-proximity.test.ts
+          e2e/gp-front-brake.spec.ts e2e/gp-rider-contact.spec.ts e2e/gp-course-boards.spec.ts
+          e2e/fixtures/motogp-reference-review.ts e2e/fixtures/gp-course-review.ts
       - name: MotoGP geometry, driving, guidance, recording and compatibility contracts
         run: >-
           node --experimental-transform-types scripts/source-stability.ts --
           npm test --
           tests/gp-rear-chassis.test.ts tests/gp-rider-contact.test.ts
           tests/gp-rider-garment.test.ts tests/gp-rider-suit.test.ts
+          tests/gp-rider-glove.test.ts tests/gp-brake-rotor.test.ts
+          tests/gp-radial-caliper.test.ts tests/gp-course-bridge.test.ts
+          tests/gp-proximity.test.ts tests/proximity.test.ts
           tests/gp-r5-materials.test.ts tests/preparation.test.ts
           tests/gp-r2-bodywork.test.ts tests/gp-course-boards.test.ts
           tests/gp-safety-padding.test.ts
@@ -147,7 +164,7 @@ jobs:
       matrix:
         include:
           - scene: presentation
-            specs: e2e/41-motogp-reference.spec.ts e2e/motorcycle-presentation.spec.ts e2e/gp-rear-chassis.spec.ts e2e/gp-fork-crown.spec.ts
+            specs: e2e/41-motogp-reference.spec.ts e2e/motorcycle-presentation.spec.ts e2e/gp-rear-chassis.spec.ts e2e/gp-fork-crown.spec.ts e2e/gp-front-brake.spec.ts
           - scene: rider-contact
             specs: e2e/gp-rider-contact.spec.ts
           - scene: course-construction

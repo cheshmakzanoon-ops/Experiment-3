@@ -1,13 +1,15 @@
 import * as T from 'three';
+import { GP_FRONT_DISC } from './gp-brake-rotor.ts';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
 /** Original, mechanically scaled high-LOD GP radial monobloc.
  *
  * Motorcycle axes: +X to rider's left, +Y up, +Z forward. The caliper stays
  * on the fork lower, not the wheel-spin node; the floating carbon rotor alone
- * spins. The gap at X=0 leaves clearance for the existing 22 mm rotor. The
- * Blender source (tools/motogp/author_gp_radial_caliper.py) is the editable
- * high-resolution look-development counterpart of this low-draw runtime mesh.
+ * spins. Pads meet the 8 mm carbon band's faces. The two jaws move 7 mm
+ * inward from the historical 22 mm rotor study while keeping their YZ shape.
+ * The Blender source (tools/motogp/author_gp_radial_caliper.py) retains that
+ * earlier look-development study; this runtime fit is authoritative.
  * REF 001/003/018/020/022/028/060/096: cast body, piston bosses, radial
  * mounting bolts, friction pads, hydraulic banjo and flexible hose.
  */
@@ -19,10 +21,10 @@ export interface GPRadialMaterials {
 }
 
 export const GP_RADIAL_BRAKE = Object.freeze({
-  rotorThickness: 0.022,
+  rotorThickness: GP_FRONT_DISC.thickness,
   pistonCount: 4,
   bodyHalfWidth: 0.007,
-  jawCentre: 0.028,
+  jawCentre: 0.021,
   maxTriangles: 9000,
   maxDraws: 4,
 });
@@ -89,28 +91,30 @@ export function gpRadialBrakeCaliper(side: -1 | 1, materials: GPRadialMaterials)
   for (const sign of [-1, 1] as const) {
     place(forgedBody(), 0, sign * GP_RADIAL_BRAKE.jawCentre);
     // Four independent, machined piston/annulus stacks. A real central cavity
-    // shows black pad backing through the two 7-mm jaw-to-rotor clearances.
+    // shows the pad backing between the housing and the carbon friction band.
     for (const y of [-0.03, 0.021]) {
-      place(cylinder(0.018, 0.003), 1, sign * 0.04, y, -0.004, 0, 0, Math.PI / 2);
-      place(cylinder(0.012, 0.003), 0, sign * 0.042, y, -0.004, 0, 0, Math.PI / 2);
+      place(cylinder(0.018, 0.003), 1, sign * 0.033, y, -0.004, 0, 0, Math.PI / 2);
+      place(cylinder(0.012, 0.003), 0, sign * 0.035, y, -0.004, 0, 0, Math.PI / 2);
     }
     for (const y of [-0.042, 0.038]) {
       // Radial titanium bolts and hex heads are modelled in three dimensions.
-      place(cylinder(0.007, 0.009, 12), 2, sign * 0.043, y, -0.027, 0, 0, Math.PI / 2);
-      place(cylinder(0.0035, 0.0014, 6), 3, sign * 0.049, y, -0.027, 0, 0, Math.PI / 2);
+      place(cylinder(0.007, 0.009, 12), 2, sign * 0.036, y, -0.027, 0, 0, Math.PI / 2);
+      place(cylinder(0.0035, 0.0014, 6), 3, sign * 0.042, y, -0.027, 0, 0, Math.PI / 2);
     }
-    place(new T.BoxGeometry(0.008, 0.087, 0.018), 3, sign * 0.015, -0.006, 0.015);
+    place(new T.BoxGeometry(0.008, 0.087, 0.018), 3, sign * 0.008, -0.006, 0.015);
   }
-  for (const y of [-0.047, 0.042]) place(new T.BoxGeometry(0.054, 0.013, 0.019), 0, 0, y, -0.029);
+  // Back bridges stay outside the 170 mm rotor sweep at the production
+  // caliper offset (Y=-20 mm, Z=-135 mm); the old forward bridge crossed it.
+  for (const y of [-0.047, 0.042]) place(new T.BoxGeometry(0.04, 0.013, 0.014), 0, 0, y, -0.043);
   // Non-spinning banjo, washer, bleed nipple and steel-braided hydraulic line.
-  place(cylinder(0.008, 0.019, 16), 2, 0.044, 0.05, -0.024, 0, 0, Math.PI / 2);
-  place(cylinder(0.009, 0.0017, 20), 1, 0.053, 0.05, -0.024, 0, 0, Math.PI / 2);
-  place(cylinder(0.0033, 0.015, 12), 2, -0.042, 0.051, 0.014, 0, 0, Math.PI / 2);
+  place(cylinder(0.008, 0.019, 16), 2, 0.037, 0.05, -0.024, 0, 0, Math.PI / 2);
+  place(cylinder(0.009, 0.0017, 20), 1, 0.046, 0.05, -0.024, 0, 0, Math.PI / 2);
+  place(cylinder(0.0033, 0.015, 12), 2, -0.035, 0.051, 0.014, 0, 0, Math.PI / 2);
   const hose = new T.CatmullRomCurve3([
-    new T.Vector3(0.044, 0.051, -0.024),
-    new T.Vector3(0.052, 0.082, -0.013),
-    new T.Vector3(0.081, 0.12, 0.004),
-    new T.Vector3(0.089, 0.155, 0.04),
+    new T.Vector3(0.037, 0.051, -0.024),
+    new T.Vector3(0.045, 0.082, -0.013),
+    new T.Vector3(0.074, 0.12, 0.004),
+    new T.Vector3(0.082, 0.155, 0.04),
   ]);
   place(new T.TubeGeometry(hose, 20, 0.0027, 6, false), 3);
   const group = new T.Group();

@@ -12,6 +12,7 @@ import { paddockSpan } from './plan.ts';
 import { chunks, sweep, unwrap, venuePoint } from './sweep.ts';
 import { isGpCourse } from '../../simulation/gp-corner-shape.ts';
 import { buildGpCourseBoards } from './gp-course-boards.ts';
+import { buildGpCourseBridge } from './gp-course-bridge.ts';
 
 /** Box with metre-scaled UVs (one facade tile = 14 m x 28 m) so window rows
  * stay the same size on every building. */
@@ -485,6 +486,7 @@ export function buildLightTowers(kit: VenueKitContext) {
 export function buildBoards(kit: VenueKitContext) {
   if (isGpCourse(kit.track)) {
     buildGpCourseBoards(kit);
+    buildGpCourseBridge(kit);
     return;
   }
   const track = kit.track,

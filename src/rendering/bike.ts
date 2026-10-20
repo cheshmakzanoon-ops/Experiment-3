@@ -11,6 +11,7 @@ import { addGPIdentity, type GpIdentitySurfaces } from './bike-livery.ts';
 import { gpR2Aero } from './gp-r2-aero.ts';
 import { gpBodywork, gpCompactCowl, gpUpperCowl } from './gp-bodywork.ts';
 import { gpRadialBrakeCaliper } from './gp-radial-caliper.ts';
+import { gpBrakeRotor, GP_FRONT_DISC } from './gp-brake-rotor.ts';
 import { gpDiscGlow } from './gp-disc-glow.ts';
 import { gpForkCrowns } from './gp-fork-crown.ts';
 import { gpForgedWheel, gpTyreCompoundMarkings } from './gp-forged-wheel.ts';
@@ -848,9 +849,15 @@ export class BikeModel {
         add(spin, new T.CylinderGeometry(rim, rim, halfWidth * 1.4, 10), m.wheel).rotation.z =
           Math.PI / 2;
       if (front) {
-        // Twin carbon discs on floating carriers (one steel disc on a
-        // classic machine).
-        for (const side of look.wheels === 'spoked' ? [1] : [1, -1]) {
+        // GP carbon bands have a correctly scaled open carrier and floating
+        // bobbins. All parts rotate with the wheel; calipers stay on the fork.
+        if (gpPrototype) {
+          for (const side of [-1, 1])
+            for (const disc of gpBrakeRotor(detail, m)) {
+              disc.position.x = side * GP_FRONT_DISC.sideOffset;
+              spin.add(disc);
+            }
+        } else for (const side of look.wheels === 'spoked' ? [1] : [1, -1]) {
           add(
             spin,
             detail === 'high' ? ventedRotor(sides) : ringGeometry(0.17, 0.115, 0.022, sides),
@@ -1187,6 +1194,7 @@ export class BikeModel {
     // Undo the rake so the guard arcs over the top of the tyre.
     guard.rotation.set(RAKE, 0, gpPrototype && detail !== 'far' ? 0 : Math.PI / 2);
     if (gpPrototype && detail !== 'far') guard.name = 'Crowned carbon front fender';
+    if (gpPrototype) this.frontSpin.name = 'GP front wheel spin';
     this.forkLower.add(this.frontSpin);
     this.frontSpin.position.set(0, 0, FORK_OFFSET);
     wheel(this.frontSpin, frontR, 0.06, b.crownRadius, true);

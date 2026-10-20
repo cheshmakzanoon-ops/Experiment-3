@@ -1,0 +1,110 @@
+{
+  "runtime": "Isolated V8; actual Three.js r180 build/three.cjs; standalone module TypeScript annotations removed, equivalent minimal assertion runner (not npm Vitest or tsc)",
+  "threeBlobSha": "ca4833532c363b72477b2e8a6f47cc0e2fc7b09a",
+  "testCases": [
+    {
+      "name": "high keeps a complete 340 mm friction annulus, eight-millimetre faces and the shared pad fit",
+      "assertions": 198,
+      "status": "pass"
+    },
+    {
+      "name": "mid keeps a complete 340 mm friction annulus, eight-millimetre faces and the shared pad fit",
+      "assertions": 198,
+      "status": "pass"
+    },
+    {
+      "name": "far keeps a complete 340 mm friction annulus, eight-millimetre faces and the shared pad fit",
+      "assertions": 198,
+      "status": "pass"
+    },
+    {
+      "name": "high shows real carrier windows, connected webs and open floating-bobbin bores",
+      "assertions": 36,
+      "status": "pass"
+    },
+    {
+      "name": "mid shows real carrier windows, connected webs and open floating-bobbin bores",
+      "assertions": 36,
+      "status": "pass"
+    },
+    {
+      "name": "keeps both stationary calipers clear of the full spinning friction band",
+      "assertions": 16631,
+      "status": "pass"
+    },
+    {
+      "name": "keeps every detail level bounded, finite and owned by the existing wheel materials",
+      "assertions": 43,
+      "status": "pass"
+    }
+  ],
+  "assertions": 17340,
+  "rotorInventory": [
+    {
+      "detail": "high",
+      "triangles": [
+        512,
+        792,
+        720
+      ],
+      "total": 2024,
+      "frictionRayChecks": 48,
+      "windowRays": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "detail": "mid",
+      "triangles": [
+        256,
+        504,
+        528
+      ],
+      "total": 1288,
+      "frictionRayChecks": 48,
+      "windowRays": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "detail": "far",
+      "triangles": [
+        128
+      ],
+      "total": 128,
+      "frictionRayChecks": 48,
+      "windowRays": []
+    }
+  ],
+  "sweepRegression": [
+    {
+      "version": "old",
+      "checks": 15840,
+      "inside": 18,
+      "near": 0
+    },
+    {
+      "version": "new",
+      "checks": 15840,
+      "inside": 0,
+      "near": 0
+    }
+  ],
+  "rotorInventoryDelta": {
+    "oldBand": 1288,
+    "oldSixBobbins": 192,
+    "oldDiscTotal": 1480,
+    "newDiscTotal": 2024,
+    "highPairDelta": 1088
+  }
+}
