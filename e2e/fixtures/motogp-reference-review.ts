@@ -27,7 +27,18 @@ export function captureBikeSequence(
     frontBrake?: number;
     /** Explicit production-model pose controls for contact/recovery review. */
     pose?: Partial<
-      Pick<BikePoseValues, 'chassisLean' | 'riderOffset' | 'tuck' | 'steer' | 'fork' | 'shock' | 'frontRotation'>
+      Pick<
+        BikePoseValues,
+        | 'chassisLean'
+        | 'riderOffset'
+        | 'tuck'
+        | 'steer'
+        | 'fork'
+        | 'shock'
+        | 'frontRotation'
+        | 'rearBrake'
+        | 'speed'
+      >
     >;
     recovery?: 0 | 1 | 2;
   }[] = [{ wet: false, time: 2 }],
@@ -263,12 +274,20 @@ export function captureBikeSequence(
           steer: samplePose.steer,
           fork: samplePose.fork,
           shock: samplePose.shock,
+          rearBrake: samplePose.rearBrake,
+          speed: samplePose.speed,
           recovery: sample.recovery ?? null,
         },
         frontBrakeLever: (() => {
           const lever = bike.root.getObjectByName('GP front-brake lever pivot');
           return lever
             ? { angle: lever.rotation.y, world: lever.getWorldPosition(new T.Vector3()).toArray() }
+            : null;
+        })(),
+        rearBrakePedal: (() => {
+          const pedal = bike.root.getObjectByName('GP rear-brake pedal pivot');
+          return pedal
+            ? { angle: pedal.rotation.x, world: pedal.getWorldPosition(new T.Vector3()).toArray() }
             : null;
         })(),
         windscreen: {

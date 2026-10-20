@@ -1,4 +1,5 @@
 import { mod } from '../../core/math.ts';
+import { isGpCourse } from '../../simulation/gp-corner-shape.ts';
 import { trackPoint, type Track } from '../../simulation/track.ts';
 import type { CatalogueMeta, VenueSpan } from '../../simulation/circuit-catalogue/venue-data.ts';
 import type { StandSpec, VenuePlan } from '../venue-plan.ts';
@@ -112,7 +113,12 @@ export function catalogueVenuePlan(track: Track): VenuePlan {
       )
     )
       continue;
-    stands.push({ s: Math.round(s), side: span.side, length: Math.round(span.length) });
+    const site = { s: Math.round(s), side: span.side, length: Math.round(span.length) };
+    // A long GP terrace can cut back across its own curved corridor even
+    // when no other section is nearby. Reject that site before filling the
+    // authored stand budget, so later safe spectator locations can replace it.
+    if (isGpCourse(track) && !standClear(track, site)) continue;
+    stands.push(site);
     if (stands.length >= style.stands + 2) break;
   }
   const plan: VenuePlan = Object.freeze({
@@ -144,6 +150,20 @@ function standClear(track: Track, site: StandSpec) {
   const p = track.at(mod(site.s, track.length), trackPoint()),
     near = trackPoint();
   const base = site.side * (track.boundary(site.s, site.side) + 7);
+  if (isGpCourse(track)) {
+    const length = site.length + 1.5,
+      samples = Math.ceil(length / 8);
+    for (const u of [-2, 6, 13])
+      for (let sample = 0; sample <= samples; sample++) {
+        const v = -length / 2 + (length * sample) / samples,
+          lateral = base + site.side * u,
+          x = p.x + p.nx * lateral + p.tx * v,
+          z = p.z + p.nz * lateral + p.tz * v,
+          l = track.nearest(x, z, near);
+        if (Math.abs(l) < track.boundaryAt(near, l < 0 ? -1 : 1) + 4) return false;
+      }
+    return true;
+  }
   for (const u of [-2, 6, 13])
     for (const v of [-site.length / 2, 0, site.length / 2]) {
       const l0 = base + site.side * u,

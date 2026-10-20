@@ -39,6 +39,23 @@ export interface GpCornerAttempt {
   exitSpeed: number;
   condition: 'dry' | 'damp' | 'wet';
   delta: number | null;
+  /** Exit speed compared with the previous fastest complete run, in m/s. */
+  exitDelta: number | null;
+}
+
+// Fixed spatial splits keep a best-run trace bounded and comparable at the
+// same road position. This is observed personal pace, never an ideal line.
+const PACE_SPLITS = 32;
+interface PersonalBest {
+  seconds: number;
+  exitSpeed: number;
+  pace: Float64Array;
+}
+
+/** Suppress signed zero while retaining the sign of a meaningful advantage. */
+export function gpPracticeDelta(seconds: number) {
+  const rounded = Math.round(Math.abs(seconds) * 100);
+  return `${rounded === 0 ? '±' : seconds < 0 ? '−' : '+'}${(rounded / 100).toFixed(2)} s`;
 }
 
 interface Sample {
@@ -85,9 +102,11 @@ export class GpCornerPractice {
     elapsed: number;
     progress: number;
     best: number | null;
+    /** Elapsed-time difference at this position against the fastest clean run. */
+    delta: number | null;
   } | null = null;
   last: GpCornerAttempt | null = null;
-  private readonly best = new Map<string, number>();
+  private readonly best = new Map<string, PersonalBest>();
   private track: Track | null = null;
   private corners: readonly GpPracticeCorner[] = [];
   private machine = '';
@@ -95,6 +114,8 @@ export class GpCornerPractice {
   private started = 0;
   private apexSeen = false;
   private key = '';
+  private pace = new Float64Array(PACE_SPLITS + 1);
+  private nextSplit = 1;
   private readonly road = trackPoint();
 
   get eligible() {
@@ -225,7 +246,10 @@ export class GpCornerPractice {
     }
     // A stopped bike keeps the clock running instead of winning by waiting.
     if (distance <= 0) {
-      if (this.active) this.active.elapsed = time - this.started;
+      if (this.active) {
+        this.active.elapsed = time - this.started;
+        this.comparePace();
+      }
       return;
     }
     // Windows do not overlap. Handle an exit before looking for the next
@@ -238,11 +262,14 @@ export class GpCornerPractice {
         this.key = `${corner.index}:${sample.compound}:${sample.condition}`;
         this.started = lerp(previous.time, time, entry / distance);
         this.apexSeen = false;
+        this.pace = new Float64Array(PACE_SPLITS + 1);
+        this.nextSplit = 1;
         this.active = {
           corner,
           elapsed: time - this.started,
           progress: 0,
-          best: this.best.get(this.key) ?? null,
+          best: this.best.get(this.key)?.seconds ?? null,
+          delta: null,
         };
         this.advance(previous, sample, distance);
         break;
@@ -259,21 +286,43 @@ export class GpCornerPractice {
     const exit = mod(corner.from + corner.length - previous.s, length);
     active.elapsed = sample.time - this.started;
     active.progress = clamp(mod(sample.s - corner.from, length) / corner.length, 0, 1);
+    // Every split is crossed using the original simulation samples. Sampling
+    // the display clock instead would let a different render rate change pace.
+    while (this.nextSplit <= PACE_SPLITS) {
+      const station = corner.from + (this.nextSplit / PACE_SPLITS) * corner.length,
+        toSplit = mod(station - previous.s, length);
+      if (toSplit > distance) break;
+      this.pace[this.nextSplit++] =
+        lerp(previous.time, sample.time, toSplit / distance) - this.started;
+    }
+    this.comparePace();
     if (exit > distance) return;
     const at = lerp(previous.time, sample.time, exit / distance),
       seconds = at - this.started;
     if (this.apexSeen && seconds > 0) {
       const best = this.best.get(this.key);
+      const exitSpeed = lerp(previous.speed, sample.speed, exit / distance);
       this.last = {
         corner,
         at,
         seconds,
-        exitSpeed: lerp(previous.speed, sample.speed, exit / distance),
+        exitSpeed,
         condition: sample.condition,
-        delta: best === undefined ? null : seconds - best,
+        delta: best === undefined ? null : seconds - best.seconds,
+        exitDelta: best === undefined ? null : exitSpeed - best.exitSpeed,
       };
-      if (best === undefined || seconds < best) this.best.set(this.key, seconds);
+      if (best === undefined || seconds < best.seconds)
+        this.best.set(this.key, { seconds, exitSpeed, pace: this.pace });
     }
     this.active = null;
+  }
+
+  private comparePace() {
+    const active = this.active!,
+      best = this.best.get(this.key);
+    if (!best) return;
+    const position = active.progress * PACE_SPLITS,
+      split = Math.min(PACE_SPLITS - 1, Math.floor(position));
+    active.delta = active.elapsed - lerp(best.pace[split], best.pace[split + 1], position - split);
   }
 }

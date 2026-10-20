@@ -923,7 +923,7 @@ export class CircuitScene {
       root.userData.placement = site;
       this.props.add(root);
     });
-    const stands = standMaterials();
+    const stands = standMaterials(this.track);
     // The indoor bowl already supplies stands, aisles, crowd and roof.
     for (const site of this.track.circuit.offroad?.kind === 'supercross'
       ? []

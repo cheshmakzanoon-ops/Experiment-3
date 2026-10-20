@@ -1,0 +1,79 @@
+{
+  "attempt": 1,
+  "test": "e2e/motogp-riding-flow.spec.ts: GP practice rides through named corner guidance, cockpit, pause and recorded replay",
+  "buildFingerprint": "0a66f37b021e17af86d2475377cafb796957945676101fd2940753cf2adca75c",
+  "result": "failed: standard test deadline exceeded before session entry",
+  "standardTestDeadlineMs": 300000,
+  "actualScope": "Menu selection and circuit/session preparation only; last observed application state was loading.",
+  "selectedSession": {
+    "circuit": "poggio-alto",
+    "vehicle": "gpr1",
+    "mode": "practice",
+    "opponents": 3,
+    "quality": "low",
+    "weather": "clear"
+  },
+  "journeyCoverage": {
+    "gpMenuReached": true,
+    "enterCircuitClicked": true,
+    "drivingReached": false,
+    "rideAssertions": "not reached; no pass claimed",
+    "replayAssertions": "not reached; no pass claimed",
+    "failureLocation": "e2e/race-entry.ts: finishRaceEntry",
+    "failureMessage": "Test timeout of 300000ms exceeded; expected driving or briefing, received loading."
+  },
+  "lastCapturedPreparation": {
+    "status": "preparing",
+    "elapsedMs": 8967.89999999851,
+    "error": null,
+    "stages": [
+      { "label": "Building original Formula car 2 / 4", "elapsedMs": 1088.5, "complete": true },
+      { "label": "Building original Formula car 3 / 4", "elapsedMs": 1839.7000000029802, "complete": true },
+      { "label": "Building original Formula car 4 / 4", "elapsedMs": 4840.0999999940395, "complete": true },
+      { "label": "Building GP motorcycles and riders", "elapsedMs": 1198.7000000029802, "complete": false }
+    ]
+  },
+  "completedCircuitConstruction": {
+    "tasks": 673,
+    "yields": 353,
+    "workMilliseconds": 61464.000000074506,
+    "maximumTaskMilliseconds": 19467.10000000149,
+    "cancelled": false,
+    "measurement": "Application-reported main-thread construction task wall times, not an OS CPU profile."
+  },
+  "newRendererGpuQueueAtLastDiagnostic": {
+    "pending": false,
+    "submitted": 0,
+    "completed": 0,
+    "failure": null
+  },
+  "traceTimingMs": {
+    "clock": "Playwright trace-relative monotonic timestamps; not elapsed time since ENTER CIRCUIT.",
+    "enterCircuitClick": { "start": 144987.474, "end": 154175.611 },
+    "lastDiagnosticBeforeRendererAvailable": { "callId": "call@189", "end": 301314.786 },
+    "firstDiagnosticWithBuiltRenderer": { "callId": "call@193", "end": 305081.684, "preparation": null },
+    "nextDiagnostic": { "callId": "call@197", "end": 306590.237, "preparation": null },
+    "lastBrowserEvaluation": { "callId": "call@201", "start": 308199.617, "end": 317583.735 },
+    "correspondingTestStep": { "callId": "pw:api@177", "start": 308199.33, "end": 407487.07 },
+    "timeoutTeardownStarted": 318619.336,
+    "lastBrowserScreencast": 318693.141,
+    "lastEvaluationAfterSnapshotRecorded": false,
+    "lateCompletionCaveat": "The browser evaluation recorded its result before timeout, but the test-layer step completed about 89.9 seconds later during teardown. The requested after-call snapshot is absent. This interval cannot be assigned to motorcycle construction, shader compilation, disk activity, or any other application operation from this trace alone."
+  },
+  "interpretation": {
+    "observed": "About 160 seconds after the ENTER CIRCUIT click began elapsed before the first diagnostic exposed the completed circuit renderer. The final captured diagnostic had only 8.97 seconds of session preparation and 1.20 seconds in the motorcycle stage. Earlier polls continued to show circuit loading.",
+    "notEstablished": "A sustained motorcycle-construction stall, a shader-compilation failure, or a disk-related root cause. No production ride or replay success was observed.",
+    "displayedProgress": "The 90% loading value is monotonic UI carry-over from scene-ready; the motorcycle stage itself supplies 42%. It is not measured motorcycle readiness."
+  },
+  "runtimeErrors": {
+    "observation": "No runtime errors were observed in the captured browser trace; this does not establish absence of errors after capture stopped.",
+    "capturedConsoleEvents": 0,
+    "capturedPageErrorEvents": 0
+  },
+  "sources": {
+    "traceArchive": "/tmp/gp-ride-playwright-results/motogp-riding-flow-GP-prac-da324-t-pause-and-recorded-replay/trace.zip",
+    "browserTrace": "0-trace.trace",
+    "testTrace": "test.trace",
+    "decodedLastDiagnostic": "/tmp/gp-riding-loading-diagnostic.json"
+  }
+}

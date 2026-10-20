@@ -9,6 +9,7 @@ import { tagMudExposure } from './offroad/mud.ts';
 import { gpRacingBoot, installGpLeatherFinish } from './gp-rider-gear.ts';
 import { GpRiderGarment } from './gp-rider-garment.ts';
 import { addGpRacingGlove } from './gp-rider-glove.ts';
+import { gpHeadFrame, gpKneeOut } from './gp-rider-motion.ts';
 import {
   GP_BOOT_ANKLE,
   GP_BOOT_PEG,
@@ -67,6 +68,12 @@ export interface RiderPose {
   /** 0 coasting .. 1 hard braking. */
   braking: number;
   steer: number;
+  /** Presented road speed (m/s); distinguishes slow steering from countersteer. */
+  speed?: number;
+  /** Sprung chassis pitch relative to the bike frame, in radians. */
+  suspensionPitch?: number;
+  /** Independent rear pedal; the front lever must not animate the right foot. */
+  rearBraking?: number;
   /** Off-road (WP41): 0 seated .. 1 standing on the pegs. */
   standing?: number;
   /** Foot dab: -1 right foot down .. +1 left foot down. */
@@ -1188,13 +1195,16 @@ export class Rider {
     this.euler.set(pitch, yaw, -into, 'ZYX');
     this.torso.position.copy(pelvis);
     this.torso.quaternion.setFromEuler(this.euler);
-    // Head: chin over the tank when tucked, eyes toward the horizon and the apex.
-    this.head.rotation.set(
-      -pitch + 0.3 + tuck * 0.12,
-      lean * 0.3 + pose.steer * 0.6,
-      (into + lean) * 0.45,
-      'YXZ',
-    );
+    // GP sight is solved after the torso so tuck/suspension cannot roll its
+    // gaze into the asphalt. Other road kits and MX retain their authored pose.
+    if (gpContact) gpHeadFrame(pose, this.torso.quaternion, this.head.quaternion);
+    else
+      this.head.rotation.set(
+        -pitch + 0.3 + tuck * 0.12,
+        lean * 0.3 + pose.steer * 0.6,
+        (into + lean) * 0.45,
+        'YXZ',
+      );
     this.headShadow.quaternion.copy(this.head.quaternion);
     for (let i = 0; i < 2; i++) {
       const side = i === 0 ? 1 : -1;
@@ -1245,12 +1255,20 @@ export class Rider {
         .applyQuaternion(this.torso.quaternion)
         .add(pelvis);
       // Feet on the pegs; the inside knee opens toward the road when hung off.
-      const out = mx ? (inside ? 0.18 : 0.12) : inside ? 0.35 + Math.abs(offset) * 1.4 : 0.25;
+      const out = gpContact
+        ? gpKneeOut(lean, offset, side)
+        : mx
+          ? inside
+            ? 0.18
+            : 0.12
+          : inside
+            ? 0.35 + Math.abs(offset) * 1.4
+            : 0.25;
       pole.copy(hip).add(target.set(side * out, 0.15, 0.55));
       // A dabbed foot leaves its peg toward the ground ahead of it.
       const down = side * dab > 0 ? Math.abs(dab) : 0;
       if (gpContact && down === 0) {
-        gpBootFrame(this.q);
+        gpBootFrame(this.q, i === 1 ? pose.rearBraking : 0);
         gpContactJoint(this.pegs[i], this.q, GP_BOOT_PEG, GP_BOOT_ANKLE, target);
         target.y += GP_FOOTPEG_RADIUS;
         twoBone(this.thighs[i], this.shins[i], hip, target, pole, joint);

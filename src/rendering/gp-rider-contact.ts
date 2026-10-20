@@ -10,6 +10,8 @@ export const GP_GLOVE_WRIST = Object.freeze([0, 0, -0.025] as const);
 // up its tube lets the lower opening swing away from the shoe during crouch.
 export const GP_BOOT_ANKLE = Object.freeze([0, -0.014, -0.018] as const);
 export const GP_BOOT_PEG = Object.freeze([0, 0.033, 0.09] as const);
+/** Sole point resting on the rear-brake toe spindle, ahead of the peg. */
+export const GP_BOOT_PEDAL = Object.freeze([0, 0.033, 0.19] as const);
 /** Radius of the existing rearset cylinder, whose anchor marks its centre. */
 export const GP_FOOTPEG_RADIUS = 0.012;
 
@@ -20,7 +22,9 @@ const x = new T.Vector3(),
 // Boot +Y points into the sole, +Z to the toe. A modest toe-down angle leaves
 // the ball of the foot on the rearset and the heel raised. The separate cuff
 // follows the shin, so this ankle bend never rotates the sleeve off the leg.
-const bootFrame = new T.Quaternion().setFromEuler(new T.Euler(0.16, 0, Math.PI));
+const bootFrame = new T.Quaternion().setFromEuler(new T.Euler(0.16, 0, Math.PI)),
+  bootActuation = new T.Quaternion(),
+  bootAxis = new T.Vector3(1, 0, 0);
 
 /** +X spans the actual grip; the knuckles face up in the bike's sprung frame.
  * The axis already includes clip-on cant, steering-axis rake and live steer. */
@@ -32,8 +36,15 @@ export function gpGripFrame(axis: T.Vector3, target: T.Quaternion) {
   return target.setFromRotationMatrix(basis);
 }
 
-export function gpBootFrame(target: T.Quaternion) {
-  return target.copy(bootFrame);
+/** Shared by the boot and rearset pedal so independent rear-brake input
+ * articulates both around the planted forefoot, including in paused replays. */
+export function gpRearBrakeAngle(input = 0) {
+  return (Number.isFinite(input) ? T.MathUtils.clamp(input, 0, 1) : 0) * 0.12;
+}
+
+export function gpBootFrame(target: T.Quaternion, rearBraking = 0) {
+  bootActuation.setFromAxisAngle(bootAxis, gpRearBrakeAngle(rearBraking));
+  return target.copy(bootFrame).premultiply(bootActuation);
 }
 
 /** Place the anatomical joint behind the held point, without moving the

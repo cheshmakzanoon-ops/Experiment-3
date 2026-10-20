@@ -1,0 +1,131 @@
+{
+  "version": 1,
+  "baseCommit": "3410e58b39c94ea58288de05c382a3576b33f00b",
+  "sourceFingerprint": "7f10ca66e8be92281b3a89df35e2e986b1f5803b5317a434c25ea8cf84c6c097",
+  "staticChecks": {
+    "lint": {
+      "command": "npm run lint",
+      "result": "passed"
+    },
+    "content": {
+      "command": "npm run validate:content",
+      "result": "passed"
+    }
+  },
+  "productionBuild": {
+    "command": "npm run build",
+    "result": "passed",
+    "typecheck": "passed",
+    "identity": {
+      "version": 1,
+      "commit": null,
+      "fingerprint": "7f10ca66e8be92281b3a89df35e2e986b1f5803b5317a434c25ea8cf84c6c097"
+    },
+    "note": "Standard production configuration and normal public-asset copy, after preserving concurrent physics-v14. Existing large-chunk warning remains."
+  },
+  "focusedUnitChecks": {
+    "result": "passed",
+    "tests": 98,
+    "files": 8,
+    "receipt": "evidence/unit-summary.json",
+    "command": "vitest run tests/gp-corner-practice.test.ts tests/gp-rider-motion.test.ts tests/gp-rider-contact.test.ts tests/gp-rearsets.test.ts tests/gp-riding-cues.test.ts tests/gp-rear-pedal.test.ts tests/gp-grandstand-architecture.test.ts tests/secondary-grandstands.test.ts --pool=threads --maxWorkers=1",
+    "afterFestivalIntegration": true,
+    "afterPhysicsIntegration": true,
+    "sourceFingerprint": "7f10ca66e8be92281b3a89df35e2e986b1f5803b5317a434c25ea8cf84c6c097"
+  },
+  "browser": {
+    "backend": "ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)",
+    "physicalGpuBenchmark": false,
+    "motion": {
+      "result": "passed",
+      "cases": 4,
+      "spec": "e2e/gp-rider-motion.spec.ts",
+      "scope": [
+        "GP-R1 and GP-R2 high-detail production BikeModel",
+        "corner-direction and rear-pedal actuation",
+        "identical held and restored image hashes",
+        "stable resources; unchanged source frame; zero WebGL errors"
+      ],
+      "runBeforeFestivalIntegration": true,
+      "gpProductionFilesChangedByIntegration": false,
+      "runBeforePhysicsIntegration": true
+    },
+    "integratedFixtures": {
+      "result": "passed",
+      "cases": 2,
+      "specs": [
+        "e2e/gp-grandstand-architecture.spec.ts",
+        "e2e/motorcycle-presentation.spec.ts: GP personal corner timing"
+      ],
+      "receipt": "evidence/integrated-fixture-summary.json",
+      "runBeforePhysicsIntegration": true,
+      "gpProductionFilesChangedByIntegration": false
+    },
+    "productionJourney": {
+      "result": "failed",
+      "spec": "e2e/motogp-riding-flow.spec.ts",
+      "graphics": "low",
+      "machine": "gpr1",
+      "track": "poggio-alto",
+      "riders": 4,
+      "attempts": 2,
+      "scope": "Both attempts timed out at session entry. No full riding or recorded-replay pass.",
+      "runBeforePhysicsIntegration": true,
+      "sourceFingerprint": "0a66f37b021e17af86d2475377cafb796957945676101fd2940753cf2adca75c",
+      "baseCommit": "93576d20a3b52cc5e28959910b4b408418f53d3b",
+      "receipts": [
+        "evidence/production-journey-attempt-1.json",
+        "evidence/production-journey-attempt-2.json"
+      ],
+      "attempt1": "Overall 300000ms test deadline reached after circuit construction, near the start of motorcycle preparation.",
+      "attempt2": "180000ms session-entry predicate deadline reached. Motorcycle construction completed; material compilation was the latest captured stage.",
+      "finalCombinedSourceJourney": "not run; no full-session pass claimed"
+    }
+  },
+  "referenceAudit": {
+    "images": 100,
+    "contactSheetsReviewed": 10,
+    "fullResolutionInspections": [
+      4,
+      18,
+      32,
+      36,
+      65,
+      71,
+      77
+    ],
+    "receipt": "reference-integrity.json",
+    "mapping": "reference-review.json"
+  },
+  "resolvedValidationIssues": [
+    {
+      "check": "GP grandstand aggregate triangle cap",
+      "finding": "The original 1.7M cap underestimated retained crowd geometry. Actual unchanged fallback submits 2,680,856 triangles in the 80m fixture; new stand submits 2,694,106.",
+      "resolution": "Measure retained seat/crowd geometry and matrix hashes, assert architecture budgets and exact render increment over a rendered fallback; all four venues passed.",
+      "addedArchitectureTriangles": 13250
+    }
+  ],
+  "limits": [
+    "Focused regression coverage, not a run of the entire repository test suite.",
+    "Software WebGL results verify correctness and repeatability, not physical-device frame rate.",
+    "Isolated model, architecture and synthetic-telemetry HUD captures are labeled fixtures, not full-game screenshots.",
+    "The live pace comparison interpolates 32 spatial splits from a prior clean run.",
+    "Rider motion is authored from reference posture; no motion capture or recovered biomechanical measurements.",
+    "The complete graphical riding/replay path remains unverified: both unchanged production journey attempts timed out before riding, and the later physics integration was not browser-journey validated."
+  ],
+  "productionBuildBeforePhysicsIntegration": {
+    "command": "npm run build",
+    "result": "passed",
+    "typecheck": "passed",
+    "identity": {
+      "version": 1,
+      "commit": null,
+      "fingerprint": "0a66f37b021e17af86d2475377cafb796957945676101fd2940753cf2adca75c"
+    },
+    "note": "Standard production configuration and normal public-asset copy; existing chunk-size warning remains."
+  },
+  "preservedConcurrentCommits": [
+    "93576d20a3b52cc5e28959910b4b408418f53d3b",
+    "3410e58b39c94ea58288de05c382a3576b33f00b"
+  ]
+}

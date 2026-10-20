@@ -17,6 +17,10 @@ import * as T from 'three';
 import { Track, trackPoint } from '../simulation/track.ts';
 import { clamp, Random } from '../core/math.ts';
 import { box, mesh, rod, label, unprintedBack } from './geometry.ts';
+import {
+  buildGpGrandstandArchitecture,
+  gpGrandstandStyle,
+} from './venue-kit/gp-grandstand-architecture.ts';
 
 /** Original site plan: front edges stay behind the physical barrier. Shared by
  * structure construction and vegetation exclusion, not separate random layouts. */
@@ -63,17 +67,32 @@ export function inStandFootprint(
   }
   return false;
 }
-export function standMaterials() {
+export function standMaterials(track?: Track) {
+  const gpStyle = track ? gpGrandstandStyle(track.circuit.id) : null;
   const materials = {
     concrete: new T.MeshStandardMaterial({ color: 0x878880, roughness: 0.93 }),
-    steel: new T.MeshStandardMaterial({ color: 0x454e51, metalness: 0.72, roughness: 0.45 }),
-    roof: new T.MeshStandardMaterial({ color: 0xc6c9c7, metalness: 0.42, roughness: 0.58 }),
+    steel: new T.MeshStandardMaterial({
+      color: gpStyle?.steel ?? 0x454e51,
+      metalness: 0.72,
+      roughness: 0.45,
+    }),
+    roof: new T.MeshStandardMaterial({
+      color: gpStyle?.roof ?? 0xc6c9c7,
+      metalness: 0.42,
+      roughness: 0.58,
+    }),
     underside: new T.MeshStandardMaterial({ color: 0x606963, roughness: 0.9 }),
     seats: installStadiumSeat(new T.MeshStandardMaterial({ color: 0xffffff, roughness: 0.46 })),
     people: new T.MeshStandardMaterial({ color: 0xffffff, roughness: 1 }),
     sign: unprintedBack(
       new T.MeshStandardMaterial({
-        map: label('A U R E L    /    GRAND CIRCUIT', '#273536', '#e5e2d7', 1024, 128),
+        map: label(
+          gpStyle?.label ?? 'A U R E L    /    GRAND CIRCUIT',
+          gpStyle?.background ?? '#273536',
+          '#e5e2d7',
+          1024,
+          128,
+        ),
         roughness: 0.7,
         side: T.DoubleSide,
       }),
@@ -82,6 +101,7 @@ export function standMaterials() {
   installVenueFinish(materials.concrete, 'stone');
   installVenueFinish(materials.steel, 'metal');
   installVenueFinish(materials.roof, 'metal');
+  materials.sign.userData.venueLabel = gpStyle?.label ?? 'A U R E L    /    GRAND CIRCUIT';
   return materials;
 }
 let sharedFlagMaterial: T.MeshStandardMaterial | null = null;
@@ -102,7 +122,7 @@ export function buildGrandstand(
 ) {
   const frame = standFrame(track, site),
     root = new T.Group();
-  root.name = `Aurel grandstand ${site.s}m`;
+  root.name = `${track.circuit.name} grandstand ${site.s}m`;
   root.position.set(frame.x, frame.y, frame.z);
   root.rotation.y = frame.yaw;
   props.add(root);
@@ -110,6 +130,7 @@ export function buildGrandstand(
     L = site.length;
   const hero = complex?.accepts(site) ?? false;
   const authoredSecondary = secondary?.accepts(site) ?? false;
+  const gpStyle = gpGrandstandStyle(track.circuit.id);
   if (hero) complex!.architecture(root, site, frame, sightlines);
   else if (authoredSecondary) {
     secondary!.architecture(root, site, frame, sightlines);
@@ -117,6 +138,8 @@ export function buildGrandstand(
     const sign = mesh(root, new T.PlaneGeometry(L * 0.72, 0.62), m.sign, side * -1.82, 5.53, 0);
     sign.rotation.y = (-side * Math.PI) / 2;
     sign.castShadow = false;
+  } else if (gpStyle) {
+    buildGpGrandstandArchitecture(track, root, site, frame, m, sightlines);
   } else {
     // Terraced concrete decks with open sightlines and a continuous front walkway.
     box(root, m.concrete, side * 0.3, -0.12, 0, 2.5, 0.24, L);
@@ -205,7 +228,7 @@ export function buildGrandstand(
   // stands have no per-camera detail switching).
   const seatGeometry = stadiumSeatGeometry(2);
   // Weathered stadium plastic: oxblood, slate, grey and navy blocks, not toy red.
-  const seatPalette = [0x6a2b28, 0x34414b, 0x7f8589, 0x26313b];
+  const seatPalette = gpStyle?.seats ?? [0x6a2b28, 0x34414b, 0x7f8589, 0x26313b];
   // D21: shirts from CROWD_PALETTE (mostly dark neutrals, muted team kit) in small cohorts.
   for (let row = 0; row < rows; row++)
     for (let col = 0; col < columns; col++) {

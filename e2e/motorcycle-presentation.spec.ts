@@ -435,12 +435,16 @@ test('GP personal corner timing: responsive layout, raw-frame cadence and handof
         await page.evaluate(() => window.MotorcycleHudFixture.showGpPracticeRun(30, 50, false));
         await expect(page.locator('#gpPracticeLabel')).toHaveText('T1 · PRACTICE');
         await expect(page.locator('#gpPracticeDetail')).toHaveText(
-          `Your best ${(length / 40).toFixed(2)} s`,
+          /^−\d+\.\d{2} s vs best · target \d+\.\d{2} s$/,
+        );
+        await expect(page.locator('#gpPracticeDetail')).toContainText(
+          `target ${(length / 40).toFixed(2)} s`,
         );
         await page.evaluate(() => window.MotorcycleHudFixture.showGpPracticeRun(60, 50));
         await expect(page.locator('#gpPracticeLabel')).toHaveText('T1 · NEW BEST');
         await expect(page.locator('#gpPracticeTime')).toHaveText(`${(length / 50).toFixed(2)} s`);
         await expect(page.locator('#gpPractice')).toHaveAttribute('data-improved', 'true');
+        await expect(page.locator('#gpPracticeDetail')).toContainText('exit 180 km/h (+36)');
         const bounds = await page.locator('.instruments').evaluate((node) => {
           const rect = node.getBoundingClientRect();
           return {
@@ -495,7 +499,7 @@ test('GP personal corner timing: responsive layout, raw-frame cadence and handof
       expect(result.time).toBe(`${(length / 40).toFixed(2)} s`);
       expect(result.label).toBe('T1 · CORNER TIME');
       expect(result.detail).toBe(
-        `${i === 0 ? 'First clean run' : '+0.00 s'} · exit 144 km/h · dry`,
+        `${i === 0 ? 'First clean run' : '±0.00 s'} · exit 144 km/h · dry`,
       );
       if (cadences[i] < 60) expect(result.observations).toBeGreaterThan(result.presentations);
       if (cadences[i] > 60) expect(result.presentations).toBeGreaterThan(result.observations);

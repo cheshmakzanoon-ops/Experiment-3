@@ -1,7 +1,7 @@
 import styles from './bike-hud.css?inline';
 import { bikeReadout } from './bike-readout.ts';
 import { GPRidingCues } from './gp-riding-cues.ts';
-import { GpCornerPractice, type GpPracticeContext } from './gp-corner-practice.ts';
+import { GpCornerPractice, gpPracticeDelta, type GpPracticeContext } from './gp-corner-practice.ts';
 import { H } from '../simulation/protocol.ts';
 import type { Track } from '../simulation/track.ts';
 
@@ -116,6 +116,7 @@ export class BikeHud {
     this.nodes.gpPractice.hidden = !(showPractice && (attempt || showResult));
     if (!this.nodes.gpPractice.hidden) {
       const improved = !!showResult && result!.delta !== null && result!.delta < -0.005;
+      const exitDelta = result?.exitDelta == null ? null : Math.round(result.exitDelta * 3.6);
       this.nodes.gpPractice.dataset.improved = String(improved);
       set(
         'gpPracticeLabel',
@@ -129,8 +130,8 @@ export class BikeHud {
         attempt
           ? attempt.best === null
             ? 'Bank a clean entry-to-exit run'
-            : `Your best ${attempt.best.toFixed(2)} s`
-          : `${result!.delta === null ? 'First clean run' : `${result!.delta < -0.005 ? '−' : '+'}${Math.abs(result!.delta).toFixed(2)} s`} · exit ${Math.round(result!.exitSpeed * 3.6)} km/h · ${result!.condition}`,
+            : `${gpPracticeDelta(attempt.delta ?? 0)} vs best · target ${attempt.best.toFixed(2)} s`
+          : `${result!.delta === null ? 'First clean run' : gpPracticeDelta(result!.delta)} · exit ${Math.round(result!.exitSpeed * 3.6)} km/h${exitDelta ? ` (${exitDelta > 0 ? '+' : '−'}${Math.abs(exitDelta)})` : ''} · ${result!.condition}`,
       );
     }
     this.nodes.gpCraft.hidden = !cue;

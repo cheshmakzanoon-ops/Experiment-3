@@ -19,6 +19,7 @@ import { SURFACE, Track, trackPoint } from '../src/simulation/track.ts';
 import {
   GpCornerPractice,
   gpPracticeCorners,
+  gpPracticeDelta,
   type GpPracticeContext,
 } from '../src/ui/gp-corner-practice.ts';
 
@@ -115,6 +116,93 @@ describe('personal GP corner practice', () => {
     expect(h.practice.last?.delta).toBeCloseTo(h.corner.length / 50 - h.corner.length / 40, 4);
     h.run(60, 45);
     expect(h.practice.last?.delta).toBeCloseTo(h.corner.length / 45 - h.corner.length / 50, 4);
+  });
+
+  it('shows time gained at the same road position, including stationary lost time', () => {
+    const h = rig();
+    h.run(1, 40);
+    h.sample(-5, 30, 50);
+    h.sample(15, 30.4, 50);
+    expect(h.practice.active?.delta).toBeCloseTo(15 / 50 - 15 / 40, 4);
+    h.sample(15, 31.4, 0);
+    expect(h.practice.active?.delta).toBeCloseTo(15 / 50 + 1 - 15 / 40, 4);
+    const held = h.practice.active?.delta;
+    h.sample(15, 31.4, 0);
+    expect(h.practice.active?.delta).toBe(held);
+  });
+
+  it('compares against the best spatial pace instead of scaling its total corner time', () => {
+    const h = rig(),
+      midpoint = h.corner.length / 2;
+    // One complete clean run: quick entry followed by a slower exit. The
+    // reference profile needs to remember where time was actually spent.
+    const timeAt = (d: number) =>
+      1 + Math.min(d + 5, midpoint + 5) / 50 + Math.max(0, d - midpoint) / 25;
+    h.sample(-5, timeAt(-5), 50);
+    for (let d = 0; d < midpoint; d += 5) h.sample(d, timeAt(d), 50);
+    h.sample(midpoint, timeAt(midpoint), 50);
+    for (let d = midpoint + 5; d < h.corner.length + 5; d += 5) h.sample(d, timeAt(d), 25);
+    h.sample(h.corner.length + 5, timeAt(h.corner.length + 5), 25);
+    expect(h.practice.last).not.toBeNull();
+    h.sample(-5, 60, 40);
+    for (let d = 0; d < midpoint; d += 5) h.sample(d, 60 + (d + 5) / 40, 40);
+    h.sample(midpoint, 60 + (midpoint + 5) / 40, 40);
+    expect(h.practice.active?.delta).toBeCloseTo(midpoint / 40 - midpoint / 50, 3);
+    expect(h.practice.active!.delta).toBeGreaterThan(0);
+    // Linear scaling of the final time would incorrectly call this faster.
+    expect(h.practice.active!.elapsed - h.practice.active!.best! / 2).toBeLessThan(0);
+  });
+
+  it('stores the fastest complete trace and compares its associated exit speed', () => {
+    const h = rig();
+    h.run(1, 40);
+    expect(h.practice.last?.exitDelta).toBeNull();
+    h.run(30, 50);
+    expect(h.practice.last?.exitDelta).toBeCloseTo(10);
+    h.run(60, 45);
+    expect(h.practice.last?.exitDelta).toBeCloseTo(-5);
+    h.sample(-5, 90, 40);
+    h.sample(15, 90.5, 40);
+    expect(h.practice.active?.delta).toBeCloseTo(15 / 40 - 15 / 50, 4);
+  });
+
+  it('retains best pace across invalid attempts but never credits their split samples', () => {
+    const h = rig();
+    h.run(1, 40);
+    h.sample(-5, 30, 50);
+    h.sample(15, 30.4, 50);
+    h.sample(25, 30.6, 50, (f) => {
+      f[rear + W.SURFACE] = SURFACE.GRAVEL;
+    });
+    expect(h.practice.active).toBeNull();
+    h.sample(-5, 60, 45);
+    h.sample(13, 60.4, 45);
+    expect(h.practice.active?.best).toBeCloseTo(h.corner.length / 40, 4);
+    expect(h.practice.active?.delta).toBeCloseTo(13 / 45 - 13 / 40, 4);
+    h.practice.reset();
+    h.sample(-5, 90);
+    h.sample(15, 90.5);
+    expect(h.practice.active?.delta).toBeNull();
+  });
+
+  it('keeps live best pace independent of render repeats and original sample spacing', () => {
+    for (const spacing of [1, 8, 29, 47]) {
+      const h = rig();
+      h.run(1, 40, spacing);
+      h.sample(-5, 30, 50);
+      h.sample(15, 30.4, 50);
+      const delta = h.practice.active?.delta;
+      for (let repeat = 0; repeat < 5; repeat++) h.sample(15, 30.4, 50);
+      expect(h.practice.active?.delta).toBe(delta);
+      expect(delta).toBeCloseTo(-0.075, 4);
+    }
+  });
+
+  it('formats meaningful gains/losses and neutral rounding without a false signed zero', () => {
+    expect(gpPracticeDelta(-0.075)).toBe('−0.08 s');
+    expect(gpPracticeDelta(0.075)).toBe('+0.08 s');
+    expect(gpPracticeDelta(-0.004)).toBe('±0.00 s');
+    expect(gpPracticeDelta(0)).toBe('±0.00 s');
   });
 
   it('separates wetness and compounds, and resets targets when assistance or session changes', () => {

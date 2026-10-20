@@ -1,0 +1,124 @@
+{
+  "review": "All 100 originals reviewed on ten existing numbered contact sheets in this pass; selected originals inspected at full size by the bike, rider and track agents.",
+  "contactSheets": [
+    "REF001\u2013REF010",
+    "REF011\u2013REF020",
+    "REF021\u2013REF030",
+    "REF031\u2013REF040",
+    "REF041\u2013REF050",
+    "REF051\u2013REF060",
+    "REF061\u2013REF070",
+    "REF071\u2013REF080",
+    "REF081\u2013REF090",
+    "REF091\u2013REF100"
+  ],
+  "fullResolution": [
+    4,
+    18,
+    32,
+    36,
+    65,
+    71,
+    77
+  ],
+  "mapping": [
+    {
+      "work": "Helmet sight and head banking",
+      "references": [
+        2,
+        10,
+        18,
+        20,
+        56,
+        65,
+        95,
+        96,
+        98
+      ],
+      "implementation": [
+        "src/rendering/gp-rider-motion.ts",
+        "src/rendering/rider.ts"
+      ],
+      "limits": "Authored bounded motion, not recovered human kinematics. Road heading/grade retained; wheelie pitch is not cancelled."
+    },
+    {
+      "work": "Continuous inside-knee deployment",
+      "references": [
+        2,
+        4,
+        20,
+        27,
+        30,
+        37,
+        67,
+        71,
+        98
+      ],
+      "implementation": [
+        "src/rendering/gp-rider-motion.ts"
+      ],
+      "limits": "Stills establish postures, not timing curves; the smooth transition is an original animation choice."
+    },
+    {
+      "work": "Boot, rearset, pedal connection",
+      "references": [
+        4,
+        18,
+        59,
+        65,
+        71
+      ],
+      "implementation": [
+        "src/rendering/gp-rearsets.ts",
+        "src/rendering/gp-rider-contact.ts"
+      ],
+      "limits": "Mechanical construction and dimensions are authored; contact positions preserve the existing rig."
+    },
+    {
+      "work": "Venue-specific grandstand silhouette",
+      "references": [
+        1,
+        6,
+        14,
+        16,
+        32,
+        36,
+        37,
+        53,
+        55,
+        62,
+        74,
+        77,
+        82,
+        88,
+        89,
+        90,
+        94
+      ],
+      "implementation": [
+        "src/rendering/grandstand.ts",
+        "src/rendering/venue-kit/gp-grandstand-architecture.ts",
+        "src/rendering/venue-kit/plan.ts"
+      ],
+      "limits": "Four fictional venues; no branded architecture or texture is extracted from the supplied imagery."
+    },
+    {
+      "work": "Personal live corner-pace feedback",
+      "references": [
+        13,
+        15,
+        17,
+        27,
+        35,
+        83
+      ],
+      "implementation": [
+        "src/ui/gp-corner-practice.ts",
+        "src/ui/bike-hud.ts"
+      ],
+      "limits": "References inform compact training presentation. Timing feature, fixed spatial splits and thresholds are original game design."
+    }
+  ],
+  "contextOnly": "The mixed pack also includes supermoto, dirt-bike, road-bike, menus, people and duplicated trailer viewpoints. These remain context, not proof that a MotoGP-specific change applies to every image.",
+  "runtimeSourcePixelsAdded": false
+}

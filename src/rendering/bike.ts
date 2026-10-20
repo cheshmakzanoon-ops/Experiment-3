@@ -22,6 +22,7 @@ import { gpCoolingLouvers } from './gp-cooling-louvers.ts';
 import { gpRadiator } from './gp-radiator.ts';
 import { GPChainDrive } from './gp-chain-drive.ts';
 import { GPRearSuspension, gpRearBody, gpRearSwingarm } from './gp-rear-chassis.ts';
+import { GPRearsets } from './gp-rearsets.ts';
 import { bikeSurfaceMaps } from './bike-surface-detail.ts';
 import { BikeCockpit } from './bike-cockpit.ts';
 import { tcamFov } from './cockpit-framing.ts';
@@ -733,6 +734,7 @@ export class BikeModel {
   private readonly rings: T.Mesh[] = [];
   private readonly gpChain?: GPChainDrive;
   private readonly gpRearSuspension?: GPRearSuspension;
+  private readonly gpRearsets?: GPRearsets;
   private readonly gpFrontBrakeLever?: T.Group;
   private readonly cockpit?: BikeCockpit;
   private disposed = false;
@@ -1763,25 +1765,31 @@ export class BikeModel {
       addGPIdentity(this.sprung, m, id, { model: 'GP-R2', flanks, nose, tail, tank });
     }
     if (gp) this.sprung.add(...gpRearBody(detail, m).children);
-    // Footpegs (rearsets).
-    for (const side of [1, -1]) {
-      add(
-        this.sprung,
-        new T.CylinderGeometry(0.012, 0.012, 0.08, 8),
-        m.aluminium,
-        side * 0.17,
-        -0.2,
-        -0.3,
-      ).rotation.z = Math.PI / 2;
-      if (detail === 'high')
+    // GP rearsets preserve the planted foot anchors while replacing the
+    // solid brackets with open machined hangers and fitted carbon heel guards.
+    if (gp) {
+      this.gpRearsets = new GPRearsets(detail, m);
+      addGpRigidFinish(this.sprung, this.gpRearsets.root, [m.aluminium, m.steel, m.carbon]);
+    } else {
+      for (const side of [1, -1]) {
         add(
           this.sprung,
-          new T.BoxGeometry(0.03, 0.09, 0.07),
+          new T.CylinderGeometry(0.012, 0.012, 0.08, 8),
           m.aluminium,
-          side * 0.13,
-          -0.17,
-          -0.28,
-        );
+          side * 0.17,
+          -0.2,
+          -0.3,
+        ).rotation.z = Math.PI / 2;
+        if (detail === 'high')
+          add(
+            this.sprung,
+            new T.BoxGeometry(0.03, 0.09, 0.07),
+            m.aluminium,
+            side * 0.13,
+            -0.17,
+            -0.28,
+          );
+      }
     }
     // The GP damper below joins real hardpoints on the sprung frame and arm.
     // Other motorcycles retain the original spring and its recorded scaling.
@@ -1939,6 +1947,7 @@ export class BikeModel {
     const b = this.definition.bike!,
       L = this.definition.spec.wheelbase;
     this.cockpit?.update(v);
+    this.gpRearsets?.update(v.rearBrake);
     this.m.tyreFinish.update(v, this.definition.id === 'gpr1' || this.definition.id === 'gpr2');
     // Sprung mass dips and pitches on the springs; the tyres stay on the road.
     const df = (v.fork - this.sag.fork) * Math.cos(RAKE),
@@ -2006,6 +2015,9 @@ export class BikeModel {
         tuck: v.tuck,
         braking: v.brake,
         steer: v.steer,
+        speed: v.speed,
+        suspensionPitch: this.sprung.rotation.x,
+        rearBraking: v.rearBrake,
       });
     }
   }

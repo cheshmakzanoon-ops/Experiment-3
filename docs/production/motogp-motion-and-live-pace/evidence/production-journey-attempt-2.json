@@ -1,0 +1,89 @@
+{
+  "attempt": 2,
+  "test": "e2e/motogp-riding-flow.spec.ts: GP practice rides through named corner guidance, cockpit, pause and recorded replay",
+  "baseCommit": "93576d2",
+  "buildFingerprint": "0a66f37b021e17af86d2475377cafb796957945676101fd2940753cf2adca75c",
+  "buildScope": "Unchanged pre-integration build. This attempt does not validate the later concurrent physics integration or subsequent build.",
+  "commandExitCode": 1,
+  "result": "failed: race-entry predicate deadline exceeded while loading graphics",
+  "standardTestDeadlineMs": 300000,
+  "raceEntryPredicateDeadlineMs": 180000,
+  "actualFailureDeadline": "180000ms race-entry predicate; the report does not identify the overall 300000ms deadline as the failure.",
+  "actualScope": "Menu selection and circuit/session preparation only; last observed application state was loading, with motorcycle construction complete and material compilation in progress.",
+  "selectedSession": {
+    "circuit": "poggio-alto",
+    "vehicle": "gpr1",
+    "mode": "practice",
+    "opponents": 3,
+    "quality": "low",
+    "weather": "clear"
+  },
+  "journeyCoverage": {
+    "gpMenuReached": true,
+    "enterCircuitClicked": true,
+    "drivingObserved": false,
+    "rideAssertions": "not reached; no pass claimed",
+    "replayAssertions": "not reached; no pass claimed",
+    "failureLocation": "e2e/race-entry.ts: finishRaceEntry",
+    "failureMessage": "Timeout 180000ms exceeded while waiting on the predicate; expected driving or briefing, received loading."
+  },
+  "lastCapturedPreparation": {
+    "status": "preparing",
+    "elapsedMs": 67429,
+    "error": null,
+    "stages": [
+      { "label": "Building original Formula car 2 / 4", "elapsedMs": 2029.6000000014901, "complete": true },
+      { "label": "Building original Formula car 3 / 4", "elapsedMs": 1631.3999999985099, "complete": true },
+      { "label": "Building original Formula car 4 / 4", "elapsedMs": 2470, "complete": true },
+      { "label": "Building GP motorcycles and riders", "elapsedMs": 48520, "complete": true },
+      { "label": "Compiling circuit and vehicle materials", "elapsedMs": 12775.79999999702, "complete": false }
+    ]
+  },
+  "completedCircuitConstruction": {
+    "tasks": 673,
+    "yields": 319,
+    "workMilliseconds": 53649.70000008494,
+    "maximumTaskMilliseconds": 18793.70000000298,
+    "cancelled": false,
+    "measurement": "Application-reported main-thread construction task wall times, not an OS CPU profile."
+  },
+  "newRendererGpuQueueAtLastDiagnostic": {
+    "pending": false,
+    "submitted": 0,
+    "completed": 0,
+    "failure": null
+  },
+  "traceTimingMs": {
+    "clock": "Playwright trace-relative monotonic timestamps; not elapsed time since ENTER CIRCUIT.",
+    "enterCircuitClick": { "start": 123494.894, "end": 133989.814 },
+    "firstDiagnosticWithBuiltRenderer": { "callId": "call@179", "start": 243122.518, "end": 243321.773, "preparation": null },
+    "firstCapturedCompilingStage": { "callId": "call@191", "start": 306731.556, "end": 307553.396, "compilingElapsedMs": 6612.79999999702 },
+    "lastBrowserEvaluation": { "callId": "call@203", "start": 312790.388, "end": 313729.341 },
+    "correspondingTestStep": { "callId": "pw:api@178", "start": 312789.535, "end": 313911.138 },
+    "timeoutTeardownStarted": 314120.888,
+    "lastBrowserScreencast": 315428.106,
+    "lastEvaluationAfterSnapshotRecorded": true,
+    "completionCaveat": "The last evaluation and its after-call snapshot completed before teardown. Report/test-run durations include framework and teardown time and must not be treated as motorcycle or shader-work durations."
+  },
+  "reportTimingsMs": {
+    "raceEntryPredicateStep": 180074,
+    "testResultDuration": 334966,
+    "runDuration": 410704.559
+  },
+  "interpretation": {
+    "observed": "The motorcycle stage completed in 48.52 seconds. The final captured diagnostic was still compiling circuit and vehicle materials after 12.78 seconds in that stage, with no new-renderer warmup frame submitted. The race-entry predicate expired before driving or briefing was observed.",
+    "notEstablished": "A shader error, an indefinite compilation stall, or a disk-related root cause. No production ride or replay success was observed."
+  },
+  "runtimeErrors": {
+    "observation": "No runtime errors were observed in the captured browser trace; this does not establish absence of errors after capture stopped.",
+    "capturedConsoleEvents": 0,
+    "capturedPageErrorEvents": 0
+  },
+  "sources": {
+    "playwrightReport": "/tmp/gp-ride-retry-results.json",
+    "traceArchive": "/tmp/gp-ride-retry-results/motogp-riding-flow-GP-prac-da324-t-pause-and-recorded-replay/trace.zip",
+    "browserTrace": "0-trace.trace",
+    "testTrace": "test.trace",
+    "failureScreenshot": "/tmp/gp-ride-retry-results/motogp-riding-flow-GP-prac-da324-t-pause-and-recorded-replay/test-failed-1.png"
+  }
+}
