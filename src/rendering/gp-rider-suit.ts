@@ -1,17 +1,114 @@
 import * as T from 'three';
+import { sampleProfile } from './profile-sampling.ts';
 import { chainShaderHook, injectAfter, injectDeclarations } from './studio/shader-hooks.ts';
 
-/** Original GP airbag housing: a broad nape and a shallow taper into the
- * lumbar panel, using the same six profile stations as the spine protector.
- * Reference observations: MotoGP26 REF_018, REF_065 and REF_071. */
-export const GP_AIRBAG_PROFILE = [
-  [0.12, -0.075, 0.012, 0.018, 0.013],
-  [0.23, -0.096, 0.058, 0.024, 0.026],
-  [0.36, -0.104, 0.079, 0.026, 0.045],
-  [0.46, -0.086, 0.084, 0.025, 0.065],
-  [0.54, -0.052, 0.05, 0.019, 0.047],
-  [0.565, -0.036, 0.003, 0.003, 0.004],
+/** Original fitted torso, in metres from the unchanged pelvis joint.
+ * [height, centre Z, half width, front depth, rear depth]. REF018/065/071
+ * show a continuous seat, waist and shoulder saddle, not separate capsules.
+ * The low pelvis retains enough volume to cover the moving trouser roots. */
+export const GP_TORSO_PROFILE = [
+  [-0.085, -0.005, 0.035, 0.03, 0.028],
+  [-0.045, -0.008, 0.128, 0.087, 0.088],
+  [0.005, -0.005, 0.169, 0.105, 0.107],
+  [0.05, 0, 0.164, 0.112, 0.108],
+  [0.125, 0.006, 0.148, 0.107, 0.102],
+  [0.2, 0.012, 0.148, 0.112, 0.107],
+  [0.3, 0.018, 0.172, 0.127, 0.109],
+  [0.395, 0.018, 0.192, 0.123, 0.107],
+  [0.44, 0.02, 0.194, 0.112, 0.1],
+  [0.48, 0.022, 0.163, 0.091, 0.087],
+  [0.515, 0.026, 0.108, 0.06, 0.062],
+  [0.55, 0.03, 0.071, 0.05, 0.051],
 ] as const;
+
+const TORSO_HEIGHTS = GP_TORSO_PROFILE.map(([y]) => y);
+const TORSO_AXES = [1, 2, 3, 4].map((axis) => GP_TORSO_PROFILE.map((row) => row[axis]));
+/** The aero housing grows out of the same skin with a broad, tangent base.
+ * It stays between the shoulder blades and blends into the lumbar panel;
+ * there is no second shiny shell, intersection seam or duplicate torso map. */
+const HOUSING = [
+  [0.14, 0, 0.06],
+  [0.17, 0, 0.07],
+  [0.22, 0.014, 0.085],
+  [0.34, 0.037, 0.112],
+  [0.435, 0.055, 0.105],
+  [0.49, 0.032, 0.087],
+  [0.525, 0, 0.065],
+  [0.54, 0, 0.055],
+] as const;
+const HOUSING_HEIGHTS = HOUSING.map(([y]) => y);
+const HOUSING_RISE = HOUSING.map(([, rise]) => rise);
+const HOUSING_WIDTH = HOUSING.map(([, , width]) => width);
+
+/** Continuous torso with a shaped pelvis, shoulder slope and integrated aero
+ * housing. A fixed sample budget replaces both old torso and hump meshes;
+ * changing the profile's station count cannot silently inflate render cost. */
+export function gpTorsoGeometry(detail: 'high' | 'mid') {
+  const sides = detail === 'high' ? 28 : 16,
+    rows = detail === 'high' ? 30 : 15,
+    first = GP_TORSO_PROFILE[0][0],
+    last = GP_TORSO_PROFILE[GP_TORSO_PROFILE.length - 1][0],
+    positions: number[] = [],
+    uv: number[] = [],
+    indices: number[] = [];
+  for (let row = 0; row <= rows; row++) {
+    const y = T.MathUtils.lerp(first, last, row / rows),
+      [centre, width, front, back] = TORSO_AXES.map((axis) =>
+        sampleProfile(TORSO_HEIGHTS, axis, y),
+      ),
+      rise = sampleProfile(HOUSING_HEIGHTS, HOUSING_RISE, y),
+      housingWidth = sampleProfile(HOUSING_HEIGHTS, HOUSING_WIDTH, y);
+    for (let column = 0; column <= sides; column++) {
+      const angle = (column / sides) * Math.PI * 2,
+        c = Math.cos(angle),
+        s = Math.sin(angle),
+        shape = (value: number) => Math.sign(value) * Math.abs(value) ** 0.8,
+        x = shape(c) * width,
+        shoulderBlend = Math.max(0, 1 - (x / housingWidth) ** 2),
+        housing = s < 0 ? rise * shoulderBlend ** 2 : 0;
+      positions.push(x, y, centre + shape(s) * (s > 0 ? front : back) - housing);
+      uv.push(column / sides, row / rows);
+      if (row < rows && column < sides) {
+        const a = row * (sides + 1) + column,
+          b = a + sides + 1;
+        indices.push(a, b, a + 1, a + 1, b, b + 1);
+      }
+    }
+  }
+  // Caps sit inside the seat and collar. Their separate planar UVs keep
+  // leather derivatives valid and close the old hollow underside completely.
+  for (const row of [0, rows]) {
+    const y = T.MathUtils.lerp(first, last, row / rows),
+      centre = sampleProfile(TORSO_HEIGHTS, TORSO_AXES[0], y),
+      cap = positions.length / 3,
+      ring = row * (sides + 1),
+      v = row === 0 ? 0.015 : 0.985;
+    positions.push(0, y, centre);
+    uv.push(0.5, v);
+    for (let column = 0; column <= sides; column++) {
+      const i = (ring + column) * 3,
+        x = positions[i],
+        z = positions[i + 2];
+      positions.push(x, y, z);
+      uv.push(0.5 + x * 0.15, v + (z - centre) * 0.1);
+    }
+    for (let column = 0; column < sides; column++) {
+      const a = cap + column + 1;
+      if (row === 0) indices.push(cap, a, a + 1);
+      else indices.push(cap, a + 1, a);
+    }
+  }
+  const geometry = new T.BufferGeometry();
+  geometry.name = 'GP continuous seat, torso and aero housing';
+  geometry.setAttribute('position', new T.Float32BufferAttribute(positions, 3));
+  geometry.setAttribute('uv', new T.Float32BufferAttribute(uv, 2));
+  geometry.setIndex(indices);
+  geometry.computeVertexNormals();
+  smoothGpSuitSeams(geometry);
+  geometry.computeBoundingBox();
+  geometry.computeBoundingSphere();
+  return geometry;
+}
 
 export type GpSuitRegion = 'torso' | 'upper-arm' | 'forearm' | 'thigh' | 'shin';
 /** Metres. Cut and pressure folds alter the existing skin only; the IK

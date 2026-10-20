@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 import { build } from 'vite';
 import { resolve } from 'node:path';
 import { readFile } from 'node:fs/promises';
@@ -12,9 +12,7 @@ declare global {
   }
 }
 
-test('motorcycle HUD: responsive production layout, real tyre channels and bike/car restoration', async ({
-  page,
-}, info) => {
+async function mountMotorcycleHud(page: Page) {
   const built = await build({
     configFile: false,
     logLevel: 'error',
@@ -47,6 +45,13 @@ test('motorcycle HUD: responsive production layout, real tyre channels and bike/
   }
   await page.addScriptTag({ content: chunk.code });
   await page.evaluate(() => window.MotorcycleHudFixture.mountMotorcycleHud());
+  return errors;
+}
+
+test('motorcycle HUD: responsive production layout, real tyre channels and bike/car restoration', async ({
+  page,
+}, info) => {
+  const errors = await mountMotorcycleHud(page);
   await test.step('each presented motorcycle snapshot updates instruments without repeated calls', async () => {
     const samples = [
       { time: 20, speed: 25, gear: 2, rpm: 6100, lean: 0, displayLean: '0°' },
@@ -387,6 +392,128 @@ test('motorcycle HUD: responsive production layout, real tyre channels and bike/
   await expect(page.locator('.car-label')).toContainText('APX-01');
   await info.attach('layout-measurements.json', {
     body: JSON.stringify(measurements, null, 2),
+    contentType: 'application/json',
+  });
+  expect(errors).toEqual([]);
+});
+
+test('GP personal corner timing: responsive layout, raw-frame cadence and handoffs', async ({
+  page,
+}, info) => {
+  const errors = await mountMotorcycleHud(page);
+  const measurements: {
+    viewport: { width: number; height: number };
+    scale: number;
+    bounds: {
+      left: number;
+      right: number;
+      top: number;
+      bottom: number;
+      scroll: number;
+      client: number;
+    };
+  }[] = [];
+  await test.step('personal corner attempts show measured improvements without obscuring the road', async () => {
+    for (const viewport of [
+      { width: 1440, height: 900 },
+      { width: 960, height: 600 },
+      { width: 390, height: 844 },
+    ]) {
+      await page.setViewportSize(viewport);
+      for (const scale of [1, 1.35]) {
+        const length = await page.evaluate((scale) => {
+          document.documentElement.style.setProperty('--ui-scale', String(scale));
+          return window.MotorcycleHudFixture.beginGpPractice();
+        }, scale);
+        await page.evaluate(() => window.MotorcycleHudFixture.showGpPracticeRun());
+        await expect(page.locator('#gpPractice')).toBeVisible();
+        await expect(page.locator('#gpPracticeLabel')).toHaveText('T1 · CORNER TIME');
+        await expect(page.locator('#gpPracticeTime')).toHaveText(`${(length / 40).toFixed(2)} s`);
+        await expect(page.locator('#gpPracticeDetail')).toHaveText(
+          'First clean run · exit 144 km/h · dry',
+        );
+        await page.evaluate(() => window.MotorcycleHudFixture.showGpPracticeRun(30, 50, false));
+        await expect(page.locator('#gpPracticeLabel')).toHaveText('T1 · PRACTICE');
+        await expect(page.locator('#gpPracticeDetail')).toHaveText(
+          `Your best ${(length / 40).toFixed(2)} s`,
+        );
+        await page.evaluate(() => window.MotorcycleHudFixture.showGpPracticeRun(60, 50));
+        await expect(page.locator('#gpPracticeLabel')).toHaveText('T1 · NEW BEST');
+        await expect(page.locator('#gpPracticeTime')).toHaveText(`${(length / 50).toFixed(2)} s`);
+        await expect(page.locator('#gpPractice')).toHaveAttribute('data-improved', 'true');
+        const bounds = await page.locator('.instruments').evaluate((node) => {
+          const rect = node.getBoundingClientRect();
+          return {
+            left: rect.left,
+            right: rect.right,
+            top: rect.top,
+            bottom: rect.bottom,
+            scroll: node.scrollWidth,
+            client: node.clientWidth,
+          };
+        });
+        expect(bounds.left).toBeGreaterThanOrEqual(0);
+        expect(bounds.right).toBeLessThanOrEqual(viewport.width);
+        expect(bounds.top).toBeGreaterThan(viewport.height * 0.45);
+        expect(bounds.bottom).toBeLessThanOrEqual(viewport.height - 48);
+        expect(bounds.scroll).toBeLessThanOrEqual(bounds.client + 1);
+        measurements.push({ viewport, scale, bounds });
+        if (scale === 1) {
+          const path = info.outputPath(`gp-corner-practice-${viewport.width}.png`);
+          await page.screenshot({ path });
+          await info.attach(`gp-corner-practice-${viewport.width}.png`, {
+            path,
+            contentType: 'image/png',
+          });
+        }
+        for (const control of ['ai', 'replay'] as const) {
+          await page.evaluate(
+            (control) => window.MotorcycleHudFixture.showGpPracticeRun(90, 40, true, control),
+            control,
+          );
+          await expect(page.locator('#gpPractice')).toBeHidden();
+        }
+        await page.evaluate(() => {
+          window.MotorcycleHudFixture.restartGpPractice();
+          window.MotorcycleHudFixture.showGpPracticeRun(1, 40);
+        });
+        await expect(page.locator('#gpPracticeDetail')).toHaveText(
+          'First clean run · exit 144 km/h · dry',
+        );
+      }
+    }
+  });
+  await test.step('raw corner timing is independent of real PresentedFrame cadence', async () => {
+    const length = await page.evaluate(() => window.MotorcycleHudFixture.beginGpPractice());
+    const cadences = [30, 48, 60, 90, 120, 144];
+    for (let i = 0; i < cadences.length; i++) {
+      const result = await page.evaluate(
+        ({ hz, start }) => window.MotorcycleHudFixture.showGpPracticeCadence(hz, start),
+        { hz: cadences[i], start: 1 + i * 10 },
+      );
+      expect(result.visible).toBe(true);
+      expect(result.time).toBe(`${(length / 40).toFixed(2)} s`);
+      expect(result.label).toBe('T1 · CORNER TIME');
+      expect(result.detail).toBe(
+        `${i === 0 ? 'First clean run' : '+0.00 s'} · exit 144 km/h · dry`,
+      );
+      if (cadences[i] < 60) expect(result.observations).toBeGreaterThan(result.presentations);
+      if (cadences[i] > 60) expect(result.presentations).toBeGreaterThan(result.observations);
+    }
+  });
+  await test.step('between-frame control and replay handoffs cancel partial attempts; pause retains them', async () => {
+    for (const kind of ['ai', 'replay', 'pause'] as const) {
+      await page.evaluate((kind) => window.MotorcycleHudFixture.showGpPracticeHandoff(kind), kind);
+      if (kind === 'pause') {
+        await expect(page.locator('#gpPractice')).toBeVisible();
+        await expect(page.locator('#gpPracticeDetail')).toHaveText(
+          'First clean run · exit 144 km/h · dry',
+        );
+      } else await expect(page.locator('#gpPractice')).toBeHidden();
+    }
+  });
+  await info.attach('gp-corner-practice-diagnostics.json', {
+    body: JSON.stringify({ measurements, errors }, null, 2),
     contentType: 'application/json',
   });
   expect(errors).toEqual([]);

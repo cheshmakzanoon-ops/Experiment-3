@@ -3,6 +3,32 @@
   display: none;
 }
 
+.gp-practice:not([hidden]) {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 2px 6px;
+  padding-top: 5px;
+  border-top: 1px solid #b4c4d22e;
+  font-size: calc(9px * var(--ui-scale, 1));
+  font-variant-numeric: tabular-nums;
+  color: #bdcbd7;
+}
+.gp-practice > small {
+  grid-column: 1 / -1;
+  font-size: calc(8px * var(--ui-scale, 1));
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+.gp-practice[data-improved='true'] > b {
+  color: #79dcc5;
+}
+/* The personal timer shares space with secondary telemetry. Keep the live
+   corner cue, speed and control meters low in the peripheral cluster; tyre
+   and rider detail remain available in the vehicle panel. */
+#hud[data-bike='true']:has(#gpPractice:not([hidden])) :is(.gp-tyres, .gp-rider) {
+  display: none;
+}
+
 /* REF 013/017/074: compact peripheral instruments; the road and rider remain
    visible. Existing speed, gear, revs and race-control nodes stay authoritative. */
 #hud[data-bike='true'] :is(.f1-shape, .f1-drs, .f1-status, .f1-shift, .f1-tyres, #ersMode),
@@ -377,12 +403,19 @@
    condition remains in the vehicle panel; secondary readouts must not push
    the instruments over the road when the player enlarges the interface. */
 @media (max-height: 679px) and (min-width: 681px) {
+  #hud[data-f1][data-bike='true']:has(#gpPractice:not([hidden])) .resources {
+    display: none;
+  }
+  #hud[data-bike='true'] .gp-practice {
+    padding-top: 2px;
+  }
   #hud[data-bike='true'] .gp-craft:not([hidden]) {
     padding-block: 3px;
     gap: 2px;
     margin-bottom: 0;
   }
   #hud[data-bike='true'] #gpAdvice,
+  #hud[data-bike='true'] #gpPracticeDetail,
   #hud[data-bike='true'] .gp-tyres {
     display: none;
   }

@@ -143,6 +143,7 @@ test('GP practice rides through named corner guidance, cockpit, pause and record
   await page.keyboard.press('g');
   await expect.poll(async () => (await diag()).auto).toBe(true);
   await expect.poll(async () => (await diag()).frame?.[carBase(0) + F.SPEED]).toBeGreaterThan(15);
+  await expect(page.locator('#gpPractice')).toBeHidden();
   // Exercise the real secondary keyboard control through the worker. The GP
   // rear pedal must not create front hydraulic braking in Sport assistance.
   await page.keyboard.press('g');
@@ -240,6 +241,7 @@ test('GP practice rides through named corner guidance, cockpit, pause and record
   await seek(cornerPosition);
   await expect(page.locator('#gpCorner')).toHaveText(/^T\d+ · /);
   const replayLayout = await readableGuide();
+  await expect(page.locator('#gpPractice')).toBeHidden();
   const heldGuide = await guide();
   const heldReplay = await diag();
   expect(heldReplay.renderer?.startingGrid).toMatchObject({

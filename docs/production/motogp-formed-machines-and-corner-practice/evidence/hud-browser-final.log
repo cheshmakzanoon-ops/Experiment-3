@@ -1,0 +1,64 @@
+Observed swiftshader test backend: ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)
+
+Running 1 test using 1 worker
+
+(node:314828) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:314828) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[browser-progress] START  >  > motorcycle-presentation.spec.ts > motorcycle HUD: responsive production layout, real tyre channels and bike/car restoration
+[browser-progress] 34s  >  > motorcycle-presentation.spec.ts > motorcycle HUD: responsive production layout, real tyre channels and bike/car restoration / Evaluate
+[browser-progress] 65s  >  > motorcycle-presentation.spec.ts > motorcycle HUD: responsive production layout, real tyre channels and bike/car restoration / Evaluate
+[browser-progress] 101s  >  > motorcycle-presentation.spec.ts > motorcycle HUD: responsive production layout, real tyre channels and bike/car restoration / Evaluate
+[browser-progress] 169s  >  > motorcycle-presentation.spec.ts > motorcycle HUD: responsive production layout, real tyre channels and bike/car restoration / Evaluate
+[browser-progress] 199s  >  > motorcycle-presentation.spec.ts > motorcycle HUD: responsive production layout, real tyre channels and bike/car restoration / Evaluate
+[browser-progress] 229s  >  > motorcycle-presentation.spec.ts > motorcycle HUD: responsive production layout, real tyre channels and bike/car restoration / Expect "toHaveAttribute"
+[browser-progress] 260s  >  > motorcycle-presentation.spec.ts > motorcycle HUD: responsive production layout, real tyre channels and bike/car restoration / Screenshot
+[browser-progress] 290s  >  > motorcycle-presentation.spec.ts > motorcycle HUD: responsive production layout, real tyre channels and bike/car restoration / Expect "toHaveAttribute"
+[browser-progress] 320s  >  > motorcycle-presentation.spec.ts > motorcycle HUD: responsive production layout, real tyre channels and bike/car restoration / Fixture "browser"
+  ✘  1 e2e/motorcycle-presentation.spec.ts:42:1 › motorcycle HUD: responsive production layout, real tyre channels and bike/car restoration (5.1m)
+
+
+  1) e2e/motorcycle-presentation.spec.ts:42:1 › motorcycle HUD: responsive production layout, real tyre channels and bike/car restoration › corner phases remain readable through a long exit and restore after a seek 
+
+    [31mTest timeout of 300000ms exceeded.[39m
+
+    Error: page.screenshot: Test timeout of 300000ms exceeded.
+    Call log:
+    [2m  - taking page screenshot[22m
+    [2m  - waiting for fonts to load...[22m
+    [2m  - fonts loaded[22m
+
+
+      274 |         if (scale === 1) {
+      275 |           const path = info.outputPath(`gp-corner-phase-${viewport.width}.png`);
+    > 276 |           await page.screenshot({ path });
+          |                      ^
+      277 |           await info.attach(`gp-corner-phase-${viewport.width}.png`, {
+      278 |             path,
+      279 |             contentType: 'image/png',
+        at /workspace/scratch/4644f1120b2d/Experiment-3/e2e/motorcycle-presentation.spec.ts:276:22
+        at /workspace/scratch/4644f1120b2d/Experiment-3/e2e/motorcycle-presentation.spec.ts:201:3
+
+    attachment #1: motorcycle-hud-1440.png (image/png) ─────────────────────────────────────────────
+    ../motogp-evidence/browser-hud-final/motorcycle-presentation-mo-870c0-ls-and-bike-car-restoration/attachments/motorcycle-hud-1440-png-a2ea6c104282435979249c6a55ca7cc32070b9d9.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: motorcycle-hud-960.png (image/png) ──────────────────────────────────────────────
+    ../motogp-evidence/browser-hud-final/motorcycle-presentation-mo-870c0-ls-and-bike-car-restoration/attachments/motorcycle-hud-960-png-a421c621fa6ddf59779b9dc72627df1b40c5fdca.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: motorcycle-hud-390.png (image/png) ──────────────────────────────────────────────
+    ../motogp-evidence/browser-hud-final/motorcycle-presentation-mo-870c0-ls-and-bike-car-restoration/attachments/motorcycle-hud-390-png-415e0970eb3fa27a74fe8e2da13307bccd61087b.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #4: gp-corner-phase-1440.png (image/png) ────────────────────────────────────────────
+    ../motogp-evidence/browser-hud-final/motorcycle-presentation-mo-870c0-ls-and-bike-car-restoration/attachments/gp-corner-phase-1440-png-8348ebfd5d6aa3c53f74e5f7a27fc5cf5d0f51fe.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../motogp-evidence/browser-hud-final/motorcycle-presentation-mo-870c0-ls-and-bike-car-restoration/error-context.md
+
+  Slow test file: e2e/motorcycle-presentation.spec.ts (5.1m)
+  Consider running tests from slow files in parallel. See: https://playwright.dev/docs/test-parallel
+  1 failed
+    e2e/motorcycle-presentation.spec.ts:42:1 › motorcycle HUD: responsive production layout, real tyre channels and bike/car restoration 

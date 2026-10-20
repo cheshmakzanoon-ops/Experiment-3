@@ -1,0 +1,26 @@
+{
+  "test": "motorcycle HUD: responsive production layout, real tyre channels and bike/car restoration",
+  "stats": {
+    "startTime": "2026-10-20T05:54:09.196Z",
+    "duration": 338411.62299999996,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  },
+  "status": "timedOut",
+  "duration_ms": 305931,
+  "errors": [
+    {
+      "message": "\u001b[31mTest timeout of 300000ms exceeded.\u001b[39m"
+    },
+    {
+      "location": {
+        "file": "/workspace/scratch/4644f1120b2d/Experiment-3/e2e/motorcycle-presentation.spec.ts",
+        "column": 22,
+        "line": 276
+      },
+      "message": "Error: page.screenshot: Test timeout of 300000ms exceeded.\nCall log:\n\u001b[2m  - taking page screenshot\u001b[22m\n\u001b[2m  - waiting for fonts to load...\u001b[22m\n\u001b[2m  - fonts loaded\u001b[22m\n\n\n  274 |         if (scale === 1) {\n  275 |           const path = info.outputPath(`gp-corner-phase-${viewport.width}.png`);\n> 276 |           await page.screenshot({ path });\n      |                      ^\n  277 |           await info.attach(`gp-corner-phase-${viewport.width}.png`, {\n  278 |             path,\n  279 |             contentType: 'image/png',\n    at /workspace/scratch/4644f1120b2d/Experiment-3/e2e/motorcycle-presentation.spec.ts:276:22\n    at /workspace/scratch/4644f1120b2d/Experiment-3/e2e/motorcycle-presentation.spec.ts:201:3"
+    }
+  ]
+}

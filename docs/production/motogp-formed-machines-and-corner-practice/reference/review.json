@@ -1,0 +1,52 @@
+{
+  "archive": "reference/MotoGP26/MotoGP26_PS5_100_Reference_Images.zip",
+  "review": {
+    "contact_sheet_images_inspected": 100,
+    "original_images_sha256_verified": 100,
+    "unique_original_images": 100,
+    "scope": "All 100 images reviewed in contact sheets; listed originals additionally inspected at full resolution for the implemented changes. Mixed reference set includes GP, other motorcycle modes and interface views."
+  },
+  "observations": [
+    {
+      "references": [4, 18, 60, 76],
+      "feature": "Formed GP frame, sculpted GP-R2 tank, saddle and connected thin fairing",
+      "observation": "Tank-to-saddle continuity, formed frame mass, inset hardware and clear steering well. Original dimensions; no image-derived engineering measurements.",
+      "implementation": [
+        "src/rendering/gp-main-frame.ts",
+        "src/rendering/bike.ts",
+        "src/rendering/gp-r2-fairing.ts"
+      ]
+    },
+    {
+      "references": [18, 65, 71, 98],
+      "feature": "Continuous rider suit",
+      "observation": "One connected pelvis/waist/shoulder silhouette, broad integrated aero housing, embedded garment roots across tuck and corner poses.",
+      "implementation": [
+        "src/rendering/gp-rider-suit.ts",
+        "src/rendering/gp-rider-garment.ts",
+        "src/rendering/rider.ts"
+      ]
+    },
+    {
+      "references": [32, 34, 62, 63, 77],
+      "feature": "Four distinct GP pit complexes",
+      "observation": "Repeated garage bays, upper terraces, recessed glass, overhanging roofs and readable exposed supports. Original venue-specific architecture follows existing pit geometry.",
+      "implementation": [
+        "src/rendering/venue-kit/gp-paddock-architecture.ts",
+        "src/rendering/venue-kit/structures.ts"
+      ]
+    },
+    {
+      "references": [15, 27, 35, 83],
+      "feature": "Compact personal corner-practice feedback",
+      "observation": "Compact timing and training feedback is a presentation cue. The entry/apex/exit windows, record rules and thresholds are original code, not measured from screenshots.",
+      "implementation": [
+        "src/ui/gp-corner-practice.ts",
+        "src/ui/bike-hud.ts",
+        "src/ui/bike-hud.css"
+      ]
+    }
+  ],
+  "authorship": "New geometry is procedural Three.js/TypeScript. No reference pixels or branded source-game assets were copied into runtime assets.",
+  "limits": "This is a targeted improvement pass, not a claim that all references have been reproduced or that the procedural game has reached photographic realism."
+}

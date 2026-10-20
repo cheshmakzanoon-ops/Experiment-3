@@ -21,10 +21,10 @@ import {
   gpGripFrame,
 } from './gp-rider-contact.ts';
 import {
-  GP_AIRBAG_PROFILE,
+  GP_TORSO_PROFILE,
+  gpTorsoGeometry,
   installGpSuitFinish,
   shapeGpSuitGeometry,
-  smoothGpSuitSeams,
 } from './gp-rider-suit.ts';
 import { motocrossFabricMaps, motocrossGraphics } from './offroad/motocross-detail.ts';
 import {
@@ -610,26 +610,22 @@ export class Rider {
           [0.5, 0.02, 0.17, 0.08, 0.08],
           [0.55, 0.03, 0.08, 0.05, 0.05],
         ]
-      : [
-          // Round the GP pelvis into its seat panel; the previous wide open
-          // bottom ring showed a hollow suit from the normal chase camera.
-          [
-            gpSuit ? -0.085 : -0.06,
-            0,
-            gpSuit ? 0.003 : 0.15,
-            gpSuit ? 0.003 : 0.1,
-            gpSuit ? 0.003 : 0.09,
-          ],
-          [0.05, 0, 0.165, 0.11, 0.1],
-          [0.17, 0.01, 0.145, 0.093, 0.092],
-          [0.3, 0.02, 0.172, 0.128, 0.105],
-          [0.42, 0.02, 0.2, 0.128, 0.1],
-          [0.5, 0.02, 0.17, 0.08, 0.08],
-          [0.55, 0.03, 0.08, 0.05, 0.05],
-        ];
+      : gpSuit
+        ? GP_TORSO_PROFILE
+        : [
+            [-0.06, 0, 0.15, 0.1, 0.09],
+            [0.05, 0, 0.165, 0.11, 0.1],
+            [0.17, 0.01, 0.145, 0.093, 0.092],
+            [0.3, 0.02, 0.172, 0.128, 0.105],
+            [0.42, 0.02, 0.2, 0.128, 0.1],
+            [0.5, 0.02, 0.17, 0.08, 0.08],
+            [0.55, 0.03, 0.08, 0.05, 0.05],
+          ];
     const torsoGeometry = mx
       ? motocrossGarmentGeometry('jersey', detail)
-      : bodyLoft(torsoSections, sides);
+      : gpSuit
+        ? gpTorsoGeometry(detail)
+        : bodyLoft(torsoSections, sides);
     if (gpSuit) shapeGpSuitGeometry(torsoGeometry, 'torso');
     part(this.torso, torsoGeometry, torsoLeather).name = mx
       ? 'Motocross sculpted textile torso'
@@ -642,32 +638,19 @@ export class Rider {
       neck.position.set(0, 0.56, 0.029);
     }
     // Aero hump (spine protector and airbag housing) on the back.
-    if (detail !== 'far' && !mx) {
+    if (detail !== 'far' && !mx && !gpSuit) {
       const hump = bodyLoft(
-        gpSuit
-          ? GP_AIRBAG_PROFILE
-          : [
-              [0.12, -0.075, 0.012, 0.016, 0.018],
-              [0.23, -0.1, 0.068, 0.025, 0.046],
-              [0.36, -0.104, 0.086, 0.024, 0.052],
-              [0.46, -0.085, 0.072, 0.021, 0.048],
-              [0.54, -0.048, 0.032, 0.014, 0.027],
-              [0.57, -0.035, 0.003, 0.003, 0.004],
-            ],
+        [
+          [0.12, -0.075, 0.012, 0.016, 0.018],
+          [0.23, -0.1, 0.068, 0.025, 0.046],
+          [0.36, -0.104, 0.086, 0.024, 0.052],
+          [0.46, -0.085, 0.072, 0.021, 0.048],
+          [0.54, -0.048, 0.032, 0.014, 0.027],
+          [0.57, -0.035, 0.003, 0.003, 0.004],
+        ],
         sides,
       );
-      if (gpSuit) {
-        // Dye and a narrow nape insert come from an unprinted part of the
-        // existing torso atlas. Reuse its material without repeating labels
-        // across the raised housing; the object-space finish supplies grain.
-        const uv = hump.getAttribute('uv');
-        for (let i = 0; i < uv.count; i++)
-          uv.setXY(i, 0.43 + uv.getX(i) * 0.009, 0.73 + uv.getY(i) * 0.14);
-        smoothGpSuitSeams(hump);
-      }
-      part(this.torso, hump, gpSuit ? torsoLeather : panel).name = gpSuit
-        ? 'Integrated GP leather airbag housing'
-        : 'Rider aero hump';
+      part(this.torso, hump, panel).name = 'Rider aero hump';
     }
     // Contrast side panels and a shoulder cap per side.
     for (const side of [1, -1]) {

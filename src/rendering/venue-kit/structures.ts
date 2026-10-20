@@ -13,6 +13,7 @@ import { chunks, sweep, unwrap, venuePoint } from './sweep.ts';
 import { isGpCourse } from '../../simulation/gp-corner-shape.ts';
 import { buildGpCourseBoards } from './gp-course-boards.ts';
 import { buildGpCourseBridge } from './gp-course-bridge.ts';
+import { buildGpPaddockArchitecture } from './gp-paddock-architecture.ts';
 
 /** Box with metre-scaled UVs (one facade tile = 14 m x 28 m) so window rows
  * stay the same size on every building. */
@@ -77,17 +78,21 @@ export function buildPaddock(kit: VenueKitContext) {
   const length = 12 * spacing + 6,
     mid = frame(track, centre, side * (front + 6.5), 0);
   const base = mid.p.y + mid.p.bank * clamp(side * front, -12, 12);
-  const block = new T.Mesh(facadeBox(length, 4.2, 14, 14, 9, base), m.facades[1]);
-  block.position.set(mid.position.x, base + 8.4, mid.position.z);
-  block.rotation.y = mid.yaw + Math.PI / 2;
-  block.castShadow = block.receiveShadow = true;
-  block.name = 'Paddock hospitality floor';
-  root.add(block);
-  const roof = new T.Mesh(new T.BoxGeometry(length + 4, 0.5, 18), paddock.cladding);
-  roof.position.set(mid.position.x, base + 10.8, mid.position.z);
-  roof.rotation.y = mid.yaw + Math.PI / 2;
-  roof.castShadow = true;
-  root.add(roof);
+  const gpArchitecture = buildGpPaddockArchitecture(track, paddock);
+  if (gpArchitecture) root.add(gpArchitecture);
+  else {
+    const block = new T.Mesh(facadeBox(length, 4.2, 14, 14, 9, base), m.facades[1]);
+    block.position.set(mid.position.x, base + 8.4, mid.position.z);
+    block.rotation.y = mid.yaw + Math.PI / 2;
+    block.castShadow = block.receiveShadow = true;
+    block.name = 'Paddock hospitality floor';
+    root.add(block);
+    const roof = new T.Mesh(new T.BoxGeometry(length + 4, 0.5, 18), paddock.cladding);
+    roof.position.set(mid.position.x, base + 10.8, mid.position.z);
+    roof.rotation.y = mid.yaw + Math.PI / 2;
+    roof.castShadow = true;
+    root.add(roof);
+  }
   const towerS = centre + length / 2 + 10,
     tower = frame(track, towerS, side * (front + 7), 0);
   const control = new T.Mesh(facadeBox(14, 18, 14, 14, 9, tower.p.y), m.facades[2]);

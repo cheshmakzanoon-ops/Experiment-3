@@ -968,6 +968,7 @@ export class GameApp {
       this.previous = this.current;
     } else this.previous = next;
     this.current = next;
+    this.ui.observePractice(next, this.auto);
     this.liveFrames.observe(next, performance.now());
     if (this.state === 'driving') {
       this.radioCaption.show(this.radio.observe(next, this.options.laps));
@@ -2312,6 +2313,7 @@ export class GameApp {
         this.interruptReview('Driver changed');
         if (this.state === 'driving' || this.state === 'paused') {
           this.auto = !this.auto;
+          this.ui.setPracticeDriver(this.auto);
           this.usedDemonstration ||= this.auto;
           this.post({ type: 'autopilot', value: this.auto });
           this.ui.toast(

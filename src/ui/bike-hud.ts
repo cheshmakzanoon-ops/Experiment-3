@@ -1,6 +1,8 @@
 import styles from './bike-hud.css?inline';
 import { bikeReadout } from './bike-readout.ts';
 import { GPRidingCues } from './gp-riding-cues.ts';
+import { GpCornerPractice, type GpPracticeContext } from './gp-corner-practice.ts';
+import { H } from '../simulation/protocol.ts';
 import type { Track } from '../simulation/track.ts';
 
 /** Reflows the live speed/gear/controls into a peripheral GP cluster and adds
@@ -8,6 +10,7 @@ import type { Track } from '../simulation/track.ts';
 export class BikeHud {
   private readonly nodes: Record<string, HTMLElement> = {};
   private readonly ridingCues = new GPRidingCues();
+  private readonly practice = new GpCornerPractice();
   constructor(private readonly hud: HTMLElement) {
     const style = document.createElement('style');
     style.textContent = styles;
@@ -19,6 +22,7 @@ export class BikeHud {
         <div class="gp-next"><b id="gpTurnArrow" aria-hidden="true">↑</b><span id="gpCorner">STRAIGHT</span><small id="gpCornerDistance"></small></div>
         <div id="gpCornerProgress" class="gp-phase" hidden role="meter" aria-label="Corner progress" aria-valuemin="0" aria-valuemax="100"><span>ENTRY</span><span>APEX</span><span>EXIT</span><i id="gpPhaseFill" aria-hidden="true"></i></div>
         <div class="gp-cue"><b id="gpAction"></b><span id="gpTow" hidden></span></div><small id="gpAdvice"></small>
+        <div id="gpPractice" class="gp-practice" hidden aria-label="Personal corner practice"><span id="gpPracticeLabel"></span><b id="gpPracticeTime"></b><small id="gpPracticeDetail"></small></div>
       </div>
       <div class="gp-lean"><span>LEAN</span><div class="gp-lean-track" aria-hidden="true"><i id="gpLeanMarker"></i></div><b id="gpLean">0°</b></div>
       <div class="gp-rear-brake" title="Independent rear-brake pedal input; combined braking assistance can also apply the rear brake"><span>REAR PEDAL</span><div aria-hidden="true"><i id="gpRearBrakeBar"></i></div><b id="gpRearBrake">0%</b></div>
@@ -38,6 +42,19 @@ export class BikeHud {
       this.nodes[node.id] = node;
     this.nodes.gpWordmark = hud.querySelector('.f1-wordmark')!;
     hud.dataset.bike = 'false';
+  }
+  resetPractice() {
+    this.practice.reset();
+    this.nodes.gpPractice.hidden = true;
+  }
+  suspendPractice() {
+    this.practice.suspend();
+    this.nodes.gpPractice.hidden = true;
+  }
+  /** Timing consumes each original worker snapshot, independently of drawing.
+   * PresentedFrame has an interpolated clock but discrete track stations. */
+  observePractice(frame: Float32Array, track: Track, context: GpPracticeContext) {
+    this.practice.observe(frame, track, context);
   }
   update(frame: Float32Array, track?: Track) {
     // MX has its own jump/landing status stack and tested instrument layout.
@@ -61,7 +78,10 @@ export class BikeHud {
         this.hud.querySelector(`#proximity${side} > span`)!.textContent =
           `${readout ? 'RIDER' : 'CAR'} ${side.toUpperCase()}`;
     }
-    if (!readout) return;
+    if (!readout) {
+      this.nodes.gpPractice.hidden = true;
+      return;
+    }
     const set = (id: string, text: string) => {
       if (this.nodes[id].textContent !== text) this.nodes[id].textContent = text;
     };
@@ -88,6 +108,31 @@ export class BikeHud {
     set('gpElectronics', `TC/WC ${readout.intervention}%`);
     this.nodes.gpElectronics.dataset.active = String(readout.intervention > 0);
     const cue = track ? this.ridingCues.read(frame, track) : null;
+    const attempt = this.practice.active,
+      result = this.practice.last;
+    const showPractice = !!cue && cue.tone !== 'caution' && this.practice.eligible;
+    const showResult =
+      !attempt && result && frame[H.TIME] >= result.at && frame[H.TIME] - result.at < 6;
+    this.nodes.gpPractice.hidden = !(showPractice && (attempt || showResult));
+    if (!this.nodes.gpPractice.hidden) {
+      const improved = !!showResult && result!.delta !== null && result!.delta < -0.005;
+      this.nodes.gpPractice.dataset.improved = String(improved);
+      set(
+        'gpPracticeLabel',
+        attempt
+          ? `T${attempt.corner.index + 1} · PRACTICE`
+          : `T${result!.corner.index + 1} · ${improved ? 'NEW BEST' : 'CORNER TIME'}`,
+      );
+      set('gpPracticeTime', `${(attempt?.elapsed ?? result!.seconds).toFixed(2)} s`);
+      set(
+        'gpPracticeDetail',
+        attempt
+          ? attempt.best === null
+            ? 'Bank a clean entry-to-exit run'
+            : `Your best ${attempt.best.toFixed(2)} s`
+          : `${result!.delta === null ? 'First clean run' : `${result!.delta < -0.005 ? '−' : '+'}${Math.abs(result!.delta).toFixed(2)} s`} · exit ${Math.round(result!.exitSpeed * 3.6)} km/h · ${result!.condition}`,
+      );
+    }
     this.nodes.gpCraft.hidden = !cue;
     if (cue) {
       set('gpCorner', cue.corner);

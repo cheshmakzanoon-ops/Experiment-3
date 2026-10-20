@@ -228,6 +228,7 @@ export class Interface {
   /** F1-style layout: cluster, tower header, sector panel, banners, tags. */
   private readonly f1: F1Hud;
   private readonly bikeHud: BikeHud;
+  private practiceAutomatic = false;
   private readonly trackMap: TrackMap;
   private revThresholds = revLedThresholds();
   private revVehicle = '';
@@ -500,6 +501,9 @@ export class Interface {
   }
   /** Session context line on the loading screen (null hides it). */
   loadingSession(options: SessionOptions | null) {
+    // Restarting on the same loaded circuit does not rebuild the renderer or
+    // call setTrack. Personal corner records belong to this session only.
+    if (options) this.bikeHud.resetPractice();
     const line = this.get('loadingSession');
     line.hidden = !options;
     if (!options) return;
@@ -540,6 +544,26 @@ export class Interface {
     this.get('debug').hidden ||= mode === 'photo';
     this.replayBar.hidden = mode !== 'replay';
     this.element.dataset.mode = mode;
+    // Cancel a partial attempt immediately, including a replay/photo visit
+    // which begins and ends between worker snapshots. Pausing keeps its clock.
+    if (mode !== 'driving' && mode !== 'paused') this.bikeHud.suspendPractice();
+  }
+  setPracticeDriver(automatic: boolean) {
+    if (this.practiceAutomatic === automatic) return;
+    this.practiceAutomatic = automatic;
+    this.bikeHud.suspendPractice();
+  }
+  /** Original worker frames only: station and simulation time share a sample.
+   * HUD presentation can run at any cadence without changing a personal best. */
+  observePractice(frame: Float32Array, automatic: boolean) {
+    this.setPracticeDriver(automatic);
+    const mode = this.element.dataset.mode;
+    this.bikeHud.observePractice(frame, this.track, {
+      practice: this.options.mode === 'practice' && (mode === 'driving' || mode === 'paused'),
+      human: !automatic,
+      replay: mode === 'replay',
+      assist: this.options.assist,
+    });
   }
   setText(id: string, value: string) {
     writeText(this.get(id), value);
@@ -570,6 +594,8 @@ export class Interface {
 
     this.hud.dataset.camera = renderer.mode;
     this.hud.dataset.motocross = String(!!motocrossKind(this.track.circuit.id));
+    const mode = this.element.dataset.mode;
+    this.setPracticeDriver(auto);
     this.bikeHud.update(frame, this.track);
     for (const side of ['Left', 'Right'] as const) {
       const node = this.get(`proximity${side}`);
@@ -580,7 +606,6 @@ export class Interface {
     }
     // Flight/contact transitions must be seen on every presented frame, even
     // while the lower-frequency timing panels skip their DOM refresh.
-    const mode = this.element.dataset.mode;
     this.offroadHud.update(frame, this.track, this.options, !auto, mode === 'replay');
     this.motocrossStatus.update(this.hud.dataset.motocross === 'true');
     // Motorcycle instruments follow every presented snapshot. Car panels may
@@ -808,6 +833,7 @@ export class Interface {
   /** Replace the displayed circuit (menu captions, length and minimap). */
   setTrack(track: Track) {
     this.track = track;
+    this.bikeHud.resetPractice();
     this.panelTick = this.panelTime = -Infinity;
     const name = track.circuit.name;
     this.get('minimapCaption').textContent = name;

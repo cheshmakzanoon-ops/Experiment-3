@@ -13,19 +13,19 @@ function sections(kind: GpGarment, upper: number, lower: number): Section[] {
   const sleeve = kind === 'sleeve';
   const proximal: readonly Section[] = sleeve
     ? [
-        [-0.13, 0, 0.025, 0.03, 0.033],
-        [-0.06, 0, 0.046, 0.044, 0.052],
-        [0.06, 0.003, 0.055, 0.05, 0.058],
-        [0.24, 0.004, 0.056, 0.052, 0.059],
+        [-0.13, 0, 0.018, 0.021, 0.023],
+        [-0.06, 0, 0.041, 0.04, 0.047],
+        [0.06, 0.003, 0.051, 0.048, 0.054],
+        [0.24, 0.004, 0.055, 0.051, 0.057],
         [0.48, 0.003, 0.05, 0.046, 0.054],
         [0.75, 0.001, 0.041, 0.038, 0.047],
         [1, -0.005, 0.038, 0.037, 0.054],
       ]
     : [
-        [-0.14, -0.003, 0.034, 0.038, 0.042],
-        [-0.06, -0.003, 0.068, 0.075, 0.079],
-        [0.06, 0, 0.08, 0.084, 0.084],
-        [0.24, 0.003, 0.082, 0.086, 0.079],
+        [-0.1, -0.003, 0.026, 0.029, 0.03],
+        [-0.04, -0.003, 0.054, 0.059, 0.058],
+        [0.06, 0, 0.075, 0.079, 0.076],
+        [0.24, 0.003, 0.08, 0.083, 0.074],
         [0.46, 0.004, 0.073, 0.077, 0.069],
         [0.74, 0.004, 0.06, 0.065, 0.057],
         [1, 0.012, 0.055, 0.061, 0.053],
@@ -181,6 +181,9 @@ export class GpRiderGarment {
   private readonly attachment = new T.Bone();
   private readonly bend = new T.Bone();
   private readonly relative = new T.Quaternion();
+  private readonly swing = new T.Quaternion();
+  private readonly limbAxis = new T.Vector3();
+  private readonly openingAxis = new T.Vector3();
   constructor(
     parent: T.Group,
     private readonly torso: T.Group,
@@ -195,6 +198,12 @@ export class GpRiderGarment {
   ) {
     this.attachment.name = `GP ${kind} attachment to torso`;
     this.attachment.position.fromArray(at);
+    // The sewn opening belongs to the torso. A sleeve opens out through the
+    // side of the shoulder; trousers open down from the pelvis. Rotating this
+    // first ring with the solved limb exposed its cap above the shoulder or
+    // behind the hip in a tuck. The existing weights blend into the IK bone
+    // over the short saddle, leaving all joint/contact positions unchanged.
+    this.openingAxis.set(kind === 'sleeve' ? Math.sign(at[0]) : 0, kind === 'pants' ? -1 : 0, 0);
     torso.add(this.attachment);
     const upperBone = new T.Bone(),
       lowerBone = new T.Bone();
@@ -222,12 +231,16 @@ export class GpRiderGarment {
     parent.add(this.mesh);
   }
   updatePose() {
-    // Anchor the opening to the torso even when a shoulder protracts to keep
-    // the outside hand on its grip. Orient the opening with its moving limb.
+    // Keep the opening's normal fixed while taking the nearest roll from the
+    // moving limb. A fully fixed X/Z frame can oppose the IK frame by half a
+    // turn, causing linear skinning to pinch a shoulder/hip almost flat.
     this.attachment.quaternion
       .copy(this.torso.quaternion)
       .invert()
       .multiply(this.proximal.quaternion);
+    this.limbAxis.set(0, 1, 0).applyQuaternion(this.attachment.quaternion);
+    this.swing.setFromUnitVectors(this.limbAxis, this.openingAxis);
+    this.attachment.quaternion.premultiply(this.swing);
     this.relative.copy(this.proximal.quaternion).invert().multiply(this.distal.quaternion);
     this.bend.quaternion.identity().slerp(this.relative, 0.5);
   }

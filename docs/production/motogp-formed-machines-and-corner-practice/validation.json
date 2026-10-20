@@ -1,0 +1,119 @@
+{
+  "version": 1,
+  "recorded_at_utc": "2026-10-20T06:08:49.170624+00:00",
+  "scope": "Procedural GP bikes, riders, four pit architectures and personal corner practice",
+  "reference_images": {
+    "count": 100,
+    "all_sha256_match": true,
+    "unique": 100,
+    "review": "All contact sheets; selected originals full-resolution; see reference/review.json"
+  },
+  "checks": [
+    {
+      "name": "Targeted regression suite",
+      "status": "passed",
+      "tests": 104,
+      "files": 10,
+      "evidence": "evidence/regression-tests.log"
+    },
+    {
+      "name": "Machine frame/tank/family",
+      "status": "passed",
+      "tests": 32,
+      "evidence": "evidence/machine-tests.log"
+    },
+    {
+      "name": "Final GP-R2 fairing",
+      "status": "passed",
+      "tests": 6,
+      "evidence": "evidence/fairing-tests.log"
+    },
+    {
+      "name": "Final body identity/LOD rerun",
+      "status": "passed",
+      "tests": 15,
+      "overlap": "Repeats two suites from the 32-machine-test run.",
+      "evidence": "evidence/fairing-regression-tests.log"
+    },
+    {
+      "name": "Dedicated practice HUD browser",
+      "status": "passed",
+      "tests": 1,
+      "scope": "Six viewport/scale combinations, six presentation cadences, same-track restart, pause and AI/replay handoffs",
+      "evidence": "evidence/practice-final-summary.json"
+    },
+    {
+      "name": "Actual MotoGP game journey",
+      "status": "passed",
+      "tests": 1,
+      "scope": "GP-R1, Poggio Alto, Low quality, four riders, manual launch/rear pedal, AI demonstration, cockpit, pause and replay",
+      "evidence": "evidence/journey-summary.json"
+    },
+    {
+      "name": "Legacy broad motorcycle HUD browser",
+      "status": "timed_out",
+      "tests": 1,
+      "limit_seconds": 300,
+      "stage": "Screenshot capture in existing corner-phase step; remaining checks unverified",
+      "evidence": "evidence/legacy-hud-result.json"
+    },
+    {
+      "name": "Four GP architecture WebGL fixtures",
+      "status": "passed",
+      "scope": "All four venues; corrected Cape Wrenna cap rerender; GL/resource/weather checks",
+      "evidence": ["evidence/gp-paddock-render-receipt.json", "evidence/final-cape-receipt.json"]
+    },
+    {
+      "name": "Final machine WebGL views",
+      "status": "passed",
+      "draw_calls": 189,
+      "triangles": 100640,
+      "webgl_error": 0,
+      "evidence": "evidence/machine-render-metrics.json"
+    },
+    {
+      "name": "TypeScript",
+      "status": "passed",
+      "command": "tsc --noEmit",
+      "exit_code": 0,
+      "evidence": "evidence/typecheck-result.json"
+    },
+    {
+      "name": "ESLint",
+      "status": "passed",
+      "scope": "Full repository, then all 23 changed source/test files",
+      "evidence": ["evidence/lint.log", "evidence/changed-lint-final.log"]
+    },
+    {
+      "name": "Content validation",
+      "status": "passed",
+      "evidence": "evidence/content.log"
+    },
+    {
+      "name": "Production Vite build",
+      "status": "passed",
+      "public_copy": false,
+      "unchanged_public_assets_linked": true,
+      "evidence": ["evidence/build-formatted-final.log", "evidence/build-identity.json"]
+    },
+    {
+      "name": "Post-journey formatting equivalence",
+      "status": "passed",
+      "scope": "bike.ts canonical esbuild output identical after whitespace formatting",
+      "evidence": "evidence/bike-format-equivalence.json"
+    },
+    {
+      "name": "Formatting",
+      "status": "passed",
+      "scope": "All 23 changed source/test files plus README and validation manifest",
+      "evidence": "evidence/format-final.log"
+    }
+  ],
+  "limitations": [
+    "Software WebGL validation is not a hardware frame-rate benchmark.",
+    "Full actual-game journey covers one GP circuit and GP-R1 at Low quality.",
+    "A complete human-earned corner record in the real game and complete human laps were not covered by that journey; the model and dedicated HUD fixture cover successful timed records.",
+    "The legacy broad HUD browser case timed out; it is not claimed as passing.",
+    "Procedural visual improvement is not a claim of photographic realism."
+  ]
+}

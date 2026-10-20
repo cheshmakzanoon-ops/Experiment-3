@@ -1,0 +1,151 @@
+{
+  "config": {
+    "configFile": "/workspace/scratch/4644f1120b2d/Experiment-3/.motogp-playwright.config.ts",
+    "rootDir": "/workspace/scratch/4644f1120b2d/Experiment-3/e2e",
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": "/workspace/scratch/4644f1120b2d/Experiment-3/scripts/browser-backend-setup.ts",
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "../motogp-evidence/practice-final-summary.json"
+        }
+      ],
+      [
+        "/workspace/scratch/4644f1120b2d/Experiment-3/scripts/browser-progress-reporter.mjs",
+        null
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "/workspace/scratch/4644f1120b2d/motogp-evidence/browser-practice-final",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "/workspace/scratch/4644f1120b2d/Experiment-3/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 300000
+      }
+    ],
+    "shard": null,
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.55.1",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "motorcycle-presentation.spec.ts",
+      "file": "motorcycle-presentation.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "GP personal corner timing: responsive layout, raw-frame cadence and handoffs",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 300000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 130011,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "personal corner attempts show measured improvements without obscuring the road",
+                      "duration": 93349
+                    },
+                    {
+                      "title": "raw corner timing is independent of real PresentedFrame cadence",
+                      "duration": 9297
+                    },
+                    {
+                      "title": "between-frame control and replay handoffs cancel partial attempts; pause retains them",
+                      "duration": 390
+                    }
+                  ],
+                  "startTime": "2026-10-20T05:50:45.882Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "gp-corner-practice-1440.png",
+                      "contentType": "image/png",
+                      "path": "/workspace/scratch/4644f1120b2d/motogp-evidence/browser-practice-final/motorcycle-presentation-GP-8583e--frame-cadence-and-handoffs/attachments/gp-corner-practice-1440-png-6ccb3b9f6a03ace9e6769e3fcbe02d8a7e4b4bea.png"
+                    },
+                    {
+                      "name": "gp-corner-practice-960.png",
+                      "contentType": "image/png",
+                      "path": "/workspace/scratch/4644f1120b2d/motogp-evidence/browser-practice-final/motorcycle-presentation-GP-8583e--frame-cadence-and-handoffs/attachments/gp-corner-practice-960-png-ac5f1de9efe08b735affa8e5b734f9971d5005f9.png"
+                    },
+                    {
+                      "name": "gp-corner-practice-390.png",
+                      "contentType": "image/png",
+                      "path": "/workspace/scratch/4644f1120b2d/motogp-evidence/browser-practice-final/motorcycle-presentation-GP-8583e--frame-cadence-and-handoffs/attachments/gp-corner-practice-390-png-e4182a7f68be57a7dcbf6f96a9cb22f224e5db20.png"
+                    },
+                    {
+                      "name": "gp-corner-practice-diagnostics.json",
+                      "contentType": "application/json",
+                      "body": "ewogICJtZWFzdXJlbWVudHMiOiBbCiAgICB7CiAgICAgICJ2aWV3cG9ydCI6IHsKICAgICAgICAid2lkdGgiOiAxNDQwLAogICAgICAgICJoZWlnaHQiOiA5MDAKICAgICAgfSwKICAgICAgInNjYWxlIjogMSwKICAgICAgImJvdW5kcyI6IHsKICAgICAgICAibGVmdCI6IDExMjMuMTI1LAogICAgICAgICJyaWdodCI6IDE0MDEuMTI1LAogICAgICAgICJ0b3AiOiA1MTIuMzEyNSwKICAgICAgICAiYm90dG9tIjogODM0LAogICAgICAgICJzY3JvbGwiOiAyNzYsCiAgICAgICAgImNsaWVudCI6IDI3NgogICAgICB9CiAgICB9LAogICAgewogICAgICAidmlld3BvcnQiOiB7CiAgICAgICAgIndpZHRoIjogMTQ0MCwKICAgICAgICAiaGVpZ2h0IjogOTAwCiAgICAgIH0sCiAgICAgICJzY2FsZSI6IDEuMzUsCiAgICAgICJib3VuZHMiOiB7CiAgICAgICAgImxlZnQiOiAxMDI1LjgyODEyNSwKICAgICAgICAicmlnaHQiOiAxNDAxLjEyNSwKICAgICAgICAidG9wIjogNDQzLjQyMTg3NSwKICAgICAgICAiYm90dG9tIjogODM0LAogICAgICAgICJzY3JvbGwiOiAzNzMsCiAgICAgICAgImNsaWVudCI6IDM3MwogICAgICB9CiAgICB9LAogICAgewogICAgICAidmlld3BvcnQiOiB7CiAgICAgICAgIndpZHRoIjogOTYwLAogICAgICAgICJoZWlnaHQiOiA2MDAKICAgICAgfSwKICAgICAgInNjYWxlIjogMSwKICAgICAgImJvdW5kcyI6IHsKICAgICAgICAibGVmdCI6IDcxOCwKICAgICAgICAicmlnaHQiOiA5NDgsCiAgICAgICAgInRvcCI6IDMzMC44OTA2MjUsCiAgICAgICAgImJvdHRvbSI6IDU0MywKICAgICAgICAic2Nyb2xsIjogMjI4LAogICAgICAgICJjbGllbnQiOiAyMjgKICAgICAgfQogICAgfSwKICAgIHsKICAgICAgInZpZXdwb3J0IjogewogICAgICAgICJ3aWR0aCI6IDk2MCwKICAgICAgICAiaGVpZ2h0IjogNjAwCiAgICAgIH0sCiAgICAgICJzY2FsZSI6IDEuMzUsCiAgICAgICJib3VuZHMiOiB7CiAgICAgICAgImxlZnQiOiA2MzcuNSwKICAgICAgICAicmlnaHQiOiA5NDgsCiAgICAgICAgInRvcCI6IDI4MC44NDM3NSwKICAgICAgICAiYm90dG9tIjogNTQzLAogICAgICAgICJzY3JvbGwiOiAzMDksCiAgICAgICAgImNsaWVudCI6IDMwOQogICAgICB9CiAgICB9LAogICAgewogICAgICAidmlld3BvcnQiOiB7CiAgICAgICAgIndpZHRoIjogMzkwLAogICAgICAgICJoZWlnaHQiOiA4NDQKICAgICAgfSwKICAgICAgInNjYWxlIjogMSwKICAgICAgImJvdW5kcyI6IHsKICAgICAgICAibGVmdCI6IDE0OCwKICAgICAgICAicmlnaHQiOiAzNzgsCiAgICAgICAgInRvcCI6IDQ1Ny4wOTM3NSwKICAgICAgICAiYm90dG9tIjogNzM3LAogICAgICAgICJzY3JvbGwiOiAyMjgsCiAgICAgICAgImNsaWVudCI6IDIyOAogICAgICB9CiAgICB9LAogICAgewogICAgICAidmlld3BvcnQiOiB7CiAgICAgICAgIndpZHRoIjogMzkwLAogICAgICAgICJoZWlnaHQiOiA4NDQKICAgICAgfSwKICAgICAgInNjYWxlIjogMS4zNSwKICAgICAgImJvdW5kcyI6IHsKICAgICAgICAibGVmdCI6IDY3LjUsCiAgICAgICAgInJpZ2h0IjogMzc4LAogICAgICAgICJ0b3AiOiAzOTIuMzI4MTI1LAogICAgICAgICJib3R0b20iOiA3MzcsCiAgICAgICAgInNjcm9sbCI6IDMwOSwKICAgICAgICAiY2xpZW50IjogMzA5CiAgICAgIH0KICAgIH0KICBdLAogICJlcnJvcnMiOiBbXQp9"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e2111030aae4ee6984db-49f121c4bb36da8be41d",
+          "file": "motorcycle-presentation.spec.ts",
+          "line": 465,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-10-20T05:50:35.365Z",
+    "duration": 157552.752,
+    "expected": 1,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}
