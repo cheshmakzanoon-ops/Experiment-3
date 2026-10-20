@@ -1,0 +1,3693 @@
+{
+  "schemaVersion": 1,
+  "status": "implementation-published-validation-completed-with-limits",
+  "assembledAt": "2026-10-20T00:40:25.100474+00:00",
+  "repository": "https://github.com/cheshmakzanoon-ops/Experiment-3",
+  "scope": "Code-only motocross landing prediction/impact feedback, light-aware dust and menu startup changes, guided by the original 100-image reference collection.",
+  "resultSummary": {
+    "implementation": "Code changes and HUD fixture correction are published on main. Concurrent MotoGP/menu work and the later engine dynamics commit are preserved.",
+    "testedSourceCommit": "0004d10009b6e88ec65fdb3fbd663e1dee3f5eb3",
+    "testedBuildFingerprint": "ce6f4d664a3e797bfb3751abe66bf6274f2ebfc7645a3992831f957b98841d00",
+    "fullProjectAcceptance": "not-established",
+    "latestLocalResults": {
+      "lint": "passed",
+      "contentValidation": "passed",
+      "typecheckAndProductionBuild": "passed",
+      "targetedUnitTests": "40 passed across 4 files; no worker RPC errors",
+      "hudFixture": "1 unchanged-deadline scenario passed all four viewport/scale layouts after advancing the synthetic settling timeline",
+      "motocrossJourney": "1 passed, exit 0, 937661 ms; both venues and all 12 captures",
+      "motocrossJourneyQuality": "Native default Medium startup followed by visible Low selection; verified SwiftShader"
+    },
+    "earlierScopedResults": {
+      "landingComparison": "24-case development comparison passed within its stated one-feature/source-identity limits",
+      "dustLighting": "2 local WebGL component tests passed; both also passed the primary-source CI component suite",
+      "primarySourceCIPrepare": "47 scoped files / 418 tests passed on 4a8fd573; separate from current-source targeted local results"
+    },
+    "unresolved": "Current full-quality CI gate screenshot failed; broader local AI deadline/RPC failures, historical Photo/Aurel failures and unfinished CI jobs remain explicit below.",
+    "postValidationIntegration": "Report publication is based on engine commit e7cbd04d, while the latest executed local tests remain pinned to 0004d100. Incoming physics/protocol/wheel-recording changes were not revalidated in this motocross pass."
+  },
+  "originalReferences": {
+    "purpose": "Verify the original 100-image archive and guide code-only motocross appearance/contact decisions; reference review is not game acceptance.",
+    "sourceIndex": {
+      "path": "docs/production/motocross-reference-review-20261019.json",
+      "sha256": "8adf7508727cdd711ebf38c05c4c2476e12045724ad406910a9d434c7682b432"
+    },
+    "archive": {
+      "filename": "Motocross_PS5_100_Developer_Reference_Images.zip",
+      "bytes": 47893403,
+      "sha256": "d8c8fbb62974432e8feafa853917deb45765dccc18be7d1da8ece9be512a9c73"
+    },
+    "coverage": {
+      "expected": 100,
+      "decoded": 100,
+      "uniqueHashes": 100,
+      "matchingIndexedOriginalHashes": 100,
+      "individualOriginalResolutionReviewedIds": [
+        "006",
+        "023",
+        "036",
+        "057",
+        "066",
+        "067",
+        "094",
+        "095",
+        "096"
+      ],
+      "contactSheetReview": {
+        "count": 100,
+        "firstId": "001",
+        "lastId": "100",
+        "allIdsInInclusiveRange": true,
+        "sheets": 5,
+        "imagesPerSheet": 20
+      }
+    },
+    "observations": [
+      {
+        "id": "006",
+        "referencePath": "01_Bikes_and_Components/006_SX6_airborne_side_profile.jpg",
+        "observation": "The airborne side view separates both tyre bottoms from the chassis and shows extended suspension with the rider maintaining bent limbs; wheel contact geometry must remain distinct from chassis clearance."
+      },
+      {
+        "id": "023",
+        "referencePath": "02_Riders_and_Gear/023_MXGP21_foreground_rider_with_pursuing_pack.jpg",
+        "observation": "Warm translucent dust separates the close rider from the pursuing pack without hiding the bikes."
+      },
+      {
+        "id": "036",
+        "referencePath": "03_Tracks_Terrain_and_Environments/036_MXGP21_mxgp_pack_on_an_outdoor_circuit.jpg",
+        "observation": "Dust concentrates around lower wheels and thins above the riders knees."
+      },
+      {
+        "id": "057",
+        "referencePath": "04_Gameplay_Cameras_and_Race_Composition/057_SX25_synchronized_stadium_jump.jpg",
+        "observation": "Two airborne bikes show different pitch and rider positions over a clearly shaped landing face; approach and landing geometry remain legible in the gameplay view."
+      },
+      {
+        "id": "066",
+        "referencePath": "04_Gameplay_Cameras_and_Race_Composition/066_MXGP21_congested_mxgp_corner.jpg",
+        "observation": "Barrier lettering, boots and tyre silhouettes remain visible through diffuse earth-coloured dust; solid fragments remain distinct."
+      },
+      {
+        "id": "067",
+        "referencePath": "04_Gameplay_Cameras_and_Race_Composition/067_MXGP21_rider_cresting_an_outdoor_jump.jpg",
+        "observation": "The front wheel is raised above the crest while the rear is closer to the terrain, supporting independent front/rear clearance checks rather than a single chassis-height cue."
+      },
+      {
+        "id": "094",
+        "referencePath": "06_Lighting_Weather_Dirt_and_FX/094_MXATV_close_atv_corner_with_dirt_roost.jpg",
+        "observation": "Angular opaque clods coexist with a softer low cloud. ATV appearance context, not motorcycle physics evidence."
+      },
+      {
+        "id": "095",
+        "referencePath": "06_Lighting_Weather_Dirt_and_FX/095_MXATV_backlit_motorcycle_jump_under_stadium_lamps.jpg",
+        "observation": "Warm rear-origin dust appears against cooler sky and backlighting with distinct dark fragments and a visibly raised front tyre."
+      },
+      {
+        "id": "096",
+        "referencePath": "06_Lighting_Weather_Dirt_and_FX/096_MXATV_mountain_jump_with_dust_trail.jpg",
+        "observation": "A warm trailing cloud contrasts with cooler surroundings while dark rear-tyre contact and rut relief remain legible."
+      }
+    ],
+    "currentResponseComparison": {
+      "validDecoded": 100,
+      "matchesPreviousCurrentHashes": 100,
+      "matchesArchivedOriginalHashes": 0,
+      "differenceExplanation": "Not established; these responses are not byte-identical original-archive images."
+    },
+    "limits": [
+      "All 100 originals were reviewed on five labelled 20-image contact sheets; only the nine listed originals were additionally inspected individually at their decoded resolution.",
+      "Screenshots guide appearance, translucency and contact placement; they do not measure scattering, impact forces or gameplay thresholds.",
+      "References are not packaged into the game as runtime assets.",
+      "The original archive was recovered during this pass; earlier reports describing its unavailability remain historical records. Current URL responses match the prior current-response audit but are not byte-identical originals."
+    ]
+  },
+  "landingPrediction": {
+    "baselineCommit": "2509d00",
+    "source": "src/simulation/offroad/dirt-bike-vehicle.ts",
+    "venue": "valley-ridge-mx",
+    "feature": "RIDGE TABLE",
+    "measurement": "Actual time until first production tyre contact, sampled through final 200 ms of flight",
+    "method": "Both runs use identical original definitions and real terrain. AI rides the surveyed approach, then hands off at actual takeoff to the requested human assist and fore/aft command. Baseline source extracted read-only from git; only relative import paths rewritten for the isolated /tmp runner. Results are simulated time, not wall-clock timings.",
+    "caseCount": 24,
+    "beforeMaximumErrorMs": 175.83333333333363,
+    "afterMaximumErrorMs": 18.958333333333233,
+    "beforeMaximumTerminalSlopeErrorDegrees": 13.053833128167229,
+    "afterMaximumTerminalSlopeErrorDegrees": 1.370669352359498,
+    "afterMeanCaseErrorMs": 9.126157407407089,
+    "regressionLimits": {
+      "timeErrorMs": 35,
+      "terminalSlopeErrorRadians": 0.06
+    },
+    "referencesReviewed": [
+      "006",
+      "057",
+      "067"
+    ],
+    "referenceLimits": "Reference images support extended-wheel geometry and slope-aligned posture, not force values or crash thresholds.",
+    "status": "scoped-simulation-comparison-passed",
+    "limits": [
+      "One surveyed Ridge Table approach, two machines, two assist settings, three held rider commands and two simulation step sizes; not a claim about every jump, rut, crash, rider skill level or complete race.",
+      "Time errors are simulated time until production tyre contact, not wall-clock execution time or human response time.",
+      "Reference stills guide geometry/posture; they do not establish impact forces, scoring or crash thresholds.",
+      "The comparison receipt names baseline 2509d00 but does not embed the candidate source fingerprint. Final integrated source identity and regression acceptance are recorded separately."
+    ],
+    "caseColumns": [
+      "machine",
+      "assist",
+      "riderLean",
+      "dtSeconds",
+      "before.maximumTimeErrorMs",
+      "before.meanTimeErrorMs",
+      "before.terminalSlopeErrorDegrees",
+      "after.maximumTimeErrorMs",
+      "after.meanTimeErrorMs",
+      "after.terminalSlopeErrorDegrees"
+    ],
+    "cases": [
+      [
+        "mx250",
+        "raw",
+        -1,
+        0.008333333333333333,
+        170.00000000000054,
+        110.83333333333373,
+        9.516735375857117,
+        8.74999999999994,
+        7.947048611110728,
+        0.31863863117983116
+      ],
+      [
+        "mx250",
+        "raw",
+        0,
+        0.008333333333333333,
+        145.00000000000063,
+        80.8333333333337,
+        8.230230449188872,
+        15.312499999999934,
+        14.240451388888497,
+        0.8539582874657128
+      ],
+      [
+        "mx250",
+        "raw",
+        1,
+        0.008333333333333333,
+        136.6666666666673,
+        70.83333333333371,
+        5.223848682057784,
+        18.958333333333233,
+        17.417534722221824,
+        1.370669352359498
+      ],
+      [
+        "mx250",
+        "sport",
+        -1,
+        0.008333333333333333,
+        161.66666666666723,
+        100.8333333333337,
+        9.14983823757264,
+        11.249999999999941,
+        10.043402777777393,
+        0.3971697062537826
+      ],
+      [
+        "mx250",
+        "sport",
+        0,
+        0.008333333333333333,
+        153.33333333333394,
+        90.8333333333337,
+        8.72091057789651,
+        12.708333333333277,
+        10.885416666666279,
+        0.5346803947383296
+      ],
+      [
+        "mx250",
+        "sport",
+        1,
+        0.008333333333333333,
+        145.00000000000063,
+        80.8333333333337,
+        8.230230449188872,
+        13.437499999999932,
+        11.245659722221834,
+        0.7605646675859687
+      ],
+      [
+        "mx450",
+        "raw",
+        -1,
+        0.008333333333333333,
+        161.66666666666723,
+        109.16666666666704,
+        13.053833128167229,
+        14.583333333333272,
+        13.411458333332943,
+        0.792484566632898
+      ],
+      [
+        "mx450",
+        "raw",
+        0,
+        0.008333333333333333,
+        145.00000000000063,
+        92.50000000000037,
+        11.912104037389785,
+        14.374999999999932,
+        13.433159722221836,
+        0.9994327925253553
+      ],
+      [
+        "mx450",
+        "raw",
+        1,
+        0.008333333333333333,
+        128.33333333333402,
+        75.83333333333374,
+        10.520786692253854,
+        10.729166666666606,
+        9.939236111110734,
+        0.9237161472318333
+      ],
+      [
+        "mx450",
+        "sport",
+        -1,
+        0.008333333333333333,
+        153.33333333333394,
+        100.8333333333337,
+        12.514333202665778,
+        13.333333333333274,
+        12.395833333332947,
+        0.7321165455920912
+      ],
+      [
+        "mx450",
+        "sport",
+        0,
+        0.008333333333333333,
+        145.00000000000063,
+        92.50000000000037,
+        11.912104037389785,
+        14.791666666666602,
+        13.33767361111072,
+        0.9141923639009073
+      ],
+      [
+        "mx450",
+        "sport",
+        1,
+        0.008333333333333333,
+        136.6666666666673,
+        84.16666666666706,
+        11.247450872528274,
+        14.687499999999932,
+        12.573784722221822,
+        1.0190922741780282
+      ],
+      [
+        "mx250",
+        "raw",
+        -1,
+        0.004166666666666667,
+        164.16666666666723,
+        107.91666666666694,
+        12.117034331982747,
+        5.729166666666634,
+        5.325520833333087,
+        0.250843322692439
+      ],
+      [
+        "mx250",
+        "raw",
+        0,
+        0.004166666666666667,
+        151.66666666666669,
+        92.08333333333361,
+        9.546178148053892,
+        7.604166666666629,
+        7.23307291666642,
+        0.46860746277857185
+      ],
+      [
+        "mx250",
+        "raw",
+        1,
+        0.004166666666666667,
+        135.00000000000009,
+        75.41666666666696,
+        4.393439086399035,
+        11.354166666666623,
+        10.366753472221975,
+        0.6769923198718836
+      ],
+      [
+        "mx250",
+        "sport",
+        -1,
+        0.004166666666666667,
+        160.0000000000006,
+        103.75000000000027,
+        11.915965812340799,
+        7.916666666666636,
+        7.174479166666425,
+        0.3388613392841963
+      ],
+      [
+        "mx250",
+        "sport",
+        0,
+        0.004166666666666667,
+        155.83333333333334,
+        97.91666666666694,
+        11.467141338043964,
+        4.99999999999999,
+        3.8975694444441964,
+        0.23933912322544007
+      ],
+      [
+        "mx250",
+        "sport",
+        1,
+        0.004166666666666667,
+        147.50000000000006,
+        87.91666666666696,
+        9.267449945786606,
+        6.041666666666628,
+        4.4596354166664245,
+        0.37650387159692617
+      ],
+      [
+        "mx450",
+        "raw",
+        -1,
+        0.004166666666666667,
+        175.83333333333363,
+        117.91666666666694,
+        11.582801151537836,
+        7.08333333333329,
+        6.697048611110859,
+        0.40845062025056544
+      ],
+      [
+        "mx450",
+        "raw",
+        0,
+        0.004166666666666667,
+        159.166666666667,
+        102.91666666666693,
+        12.296662557145634,
+        5.937499999999965,
+        5.627170138888649,
+        0.44919499698534404
+      ],
+      [
+        "mx450",
+        "raw",
+        1,
+        0.004166666666666667,
+        138.33333333333374,
+        82.08333333333363,
+        10.5288540606491,
+        5.729166666666634,
+        5.013020833333063,
+        0.5206154578110316
+      ],
+      [
+        "mx450",
+        "sport",
+        -1,
+        0.004166666666666667,
+        167.5000000000003,
+        111.25000000000028,
+        12.897576994253594,
+        7.708333333333291,
+        7.309027777777526,
+        0.4423264221729075
+      ],
+      [
+        "mx450",
+        "sport",
+        0,
+        0.004166666666666667,
+        159.166666666667,
+        102.91666666666693,
+        12.296662557145634,
+        4.687499999999964,
+        3.8237847222219745,
+        0.2929144680741581
+      ],
+      [
+        "mx450",
+        "sport",
+        1,
+        0.004166666666666667,
+        150.8333333333337,
+        94.58333333333361,
+        11.633672014645853,
+        6.562499999999966,
+        5.230034722221978,
+        0.5147437430516392
+      ]
+    ]
+  },
+  "lightingComponents": {
+    "status": "scoped-browser-components-passed",
+    "fixture": "e2e/fixtures/motocross-roost-lighting.ts",
+    "playwright": {
+      "version": "1.55.1",
+      "workers": 1,
+      "retries": 0,
+      "headless": true,
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "launchArgs": [
+        "--use-gl=angle",
+        "--use-angle=swiftshader",
+        "--enable-unsafe-swiftshader"
+      ],
+      "stats": {
+        "startTime": "2026-10-19T22:16:37.432Z",
+        "duration": 37895.623,
+        "expected": 2,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "errors": [],
+      "tests": [
+        {
+          "file": "e2e/51-motocross-roost-lighting.spec.ts",
+          "title": "opaque motocross soil fragments respond to scene lighting while dust and contact remain bounded",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "results": [
+            {
+              "status": "passed",
+              "duration": 20533,
+              "retry": 0,
+              "startTime": "2026-10-19T22:16:43.402Z"
+            }
+          ]
+        },
+        {
+          "file": "e2e/51-motocross-roost-lighting.spec.ts",
+          "title": "motocross dust scatters actual sun and lamp light without glowing in the dark or allocating on replay",
+          "status": "expected",
+          "expectedStatus": "passed",
+          "results": [
+            {
+              "status": "passed",
+              "duration": 10532,
+              "retry": 0,
+              "startTime": "2026-10-19T22:17:04.531Z"
+            }
+          ]
+        }
+      ]
+    },
+    "dust": {
+      "adapter": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "dust": 50,
+      "capacity": 2400,
+      "sourceUnchanged": true,
+      "samples": [
+        [
+          "dark",
+          2166375365,
+          [
+            0,
+            0,
+            0
+          ],
+          0,
+          0,
+          "native"
+        ],
+        [
+          "front-lit",
+          3705541348,
+          [
+            67531,
+            51908,
+            32924
+          ],
+          0.3809075,
+          0.0118875,
+          "native"
+        ],
+        [
+          "back-lit",
+          1960288117,
+          [
+            304414,
+            274071,
+            226587
+          ],
+          2.01268,
+          0.0174025,
+          "native"
+        ],
+        [
+          "back-lit-held",
+          1960288117,
+          [
+            304414,
+            274071,
+            226587
+          ],
+          2.01268,
+          0.0174025,
+          "native"
+        ],
+        [
+          "sky-lit",
+          2273506933,
+          [
+            146000,
+            146658,
+            163002
+          ],
+          1.13915,
+          0.0161575,
+          "native"
+        ],
+        [
+          "lamp-near",
+          3924599808,
+          [
+            134191,
+            59803,
+            16911
+          ],
+          0.5272625,
+          0.0139875,
+          "native"
+        ],
+        [
+          "lamp-far",
+          3887530159,
+          [
+            5916,
+            0,
+            0
+          ],
+          0.01479,
+          0,
+          "native"
+        ],
+        [
+          "spot-blue",
+          761304961,
+          [
+            13327,
+            32866,
+            60539
+          ],
+          0.26683,
+          0.0104175,
+          "native"
+        ],
+        [
+          "spot-away",
+          2166375365,
+          [
+            0,
+            0,
+            0
+          ],
+          0,
+          0,
+          "native"
+        ],
+        [
+          "fog",
+          2422066853,
+          [
+            176766,
+            205180,
+            230160
+          ],
+          1.530265,
+          0.016845,
+          "native"
+        ],
+        [
+          "sky-restored",
+          2273506933,
+          [
+            146000,
+            146658,
+            163002
+          ],
+          1.13915,
+          0.0161575,
+          "native"
+        ],
+        [
+          "sky-dpr2",
+          2273506933,
+          [
+            146000,
+            146658,
+            163002
+          ],
+          1.13915,
+          0.0161575,
+          "native"
+        ],
+        [
+          "sky-resized-back",
+          2273506933,
+          [
+            146000,
+            146658,
+            163002
+          ],
+          1.13915,
+          0.0161575,
+          "native"
+        ]
+      ],
+      "atmosphere": {
+        "materialCount": 1,
+        "samples": [
+          [
+            "atmosphere-native-fog",
+            2422066853,
+            [
+              176766,
+              205180,
+              230160
+            ],
+            1.530265,
+            0.016845,
+            "native"
+          ],
+          [
+            "atmosphere-clear",
+            117472470,
+            [
+              146009,
+              146696,
+              163072
+            ],
+            1.1394425,
+            0.01616,
+            "localAtmosphere"
+          ],
+          [
+            "atmosphere-local-fog",
+            977806549,
+            [
+              146475,
+              147631,
+              164144
+            ],
+            1.145625,
+            0.0161775,
+            "localAtmosphere"
+          ],
+          [
+            "atmosphere-local-held",
+            977806549,
+            [
+              146475,
+              147631,
+              164144
+            ],
+            1.145625,
+            0.0161775,
+            "localAtmosphere"
+          ],
+          [
+            "atmosphere-restored",
+            117472470,
+            [
+              146009,
+              146696,
+              163072
+            ],
+            1.1394425,
+            0.01616,
+            "localAtmosphere"
+          ]
+        ]
+      },
+      "sharedSampleFields": {
+        "width": 800,
+        "height": 500,
+        "calls": 1,
+        "glError": 0
+      },
+      "resourceSets": {
+        "native": {
+          "geometries": 1,
+          "textures": 0,
+          "programs": 1
+        },
+        "localAtmosphere": {
+          "geometries": 1,
+          "textures": 0,
+          "programs": 2
+        }
+      },
+      "method": "Vite bundles production Roost/MxDustMaterial and LocalAtmosphere into an isolated browser fixture. A deterministic mx450 snapshot emits dry roost for 40 updates at 1/60 s on real Valley Ridge terrain. Captures vary actual directional, hemisphere, point and spot lights, native fog and CSS/DPR dimensions while holding the emitted cloud. The atmosphere comparison translates cloud and camera together into authored pocket 0, installs twice, then checks clear, cloud=1/rain=20, held and disabled states. See the retained fixture for exact lamp parameters.",
+      "metricDefinitions": {
+        "hash": "32-bit FNV-1a over 8-bit RGB readback bytes; alpha excluded for dust samples.",
+        "rgb": "Sum of each 8-bit framebuffer channel across all pixels.",
+        "energy": "Sum of RGB channel totals divided by width*height; display-space brightness metric, not physical radiance.",
+        "coverage": "Fraction of pixels whose 8-bit R+G+B exceeds 9.",
+        "resources": "Three.js renderer inventory after capture; resourceSet names the factored inventory for each sample."
+      },
+      "limits": [
+        "Controlled component test on Chromium/ANGLE SwiftShader, not a physical-GPU performance benchmark or a played race.",
+        "Aerial perspective adds one cached program when the production atmosphere hook first compiles; repeated hooked captures retain that inventory.",
+        "Black-background comparisons isolate dust response and do not establish full-scene artistic approval or optical calibration.",
+        "sourceUnchanged verifies the supplied simulation snapshot; the fixture does not measure human enjoyment or real-world scattering coefficients.",
+        "Dust uses a bounded point-particle lighting approximation with a fixed forward-scattering phase and averaged sky/ground illumination; it does not integrate a volumetric density field or particle self-shadowing."
+      ],
+      "sampleColumns": [
+        "label",
+        "hash",
+        "rgb",
+        "energy",
+        "coverage",
+        "resourceSet"
+      ],
+      "dprProtocol": "800x500 CSS at DPR 1 versus 400x250 CSS at DPR 2, both 800x500 physical pixels, followed by restoration."
+    },
+    "opaqueFragmentRegression": {
+      "status": "passed for dry and wet roost",
+      "drawingBuffer": {
+        "width": 1120,
+        "height": 700
+      },
+      "sharedResourceInventory": {
+        "geometries": 4,
+        "textures": 1
+      },
+      "cases": [
+        {
+          "wet": false,
+          "clods": 104,
+          "active": 154,
+          "sourceUnchanged": true
+        },
+        {
+          "wet": true,
+          "clods": 144,
+          "active": 144,
+          "sourceUnchanged": true
+        }
+      ],
+      "checks": "Opposite directional lights change fragment pixels; held frames match; hiding clods removes exactly one draw; clod triangles=count*20; every sample retains resources and GL error 0.",
+      "receiptInputs": [
+        "dryRoostLighting",
+        "wetRoostLighting"
+      ]
+    },
+    "sourceIdentityLimit": "The component report has no embedded commit or application fingerprint; final merged application/build acceptance remains separate."
+  },
+  "startupExperiment": {
+    "status": "pre-rebase-scoped-experiment-only",
+    "method": "One baseline run and one candidate run, sequential, with a new headless Chromium browser/page for each. A native UI probe wraps selected WebGL calls and records a 1-second visibility/progress sampler while CDP samples CPU stacks. Vite serves immutable source snapshots with HMR/watch disabled using the same repository public assets/dependencies.",
+    "sourceBasis": "Baseline source is 2509d00; candidate is that baseline plus then-current main.ts and rendering/renderer.ts. These snapshots predate incoming 7e53570, final boot wording, Photo lighting preservation/overlay completion, and the other motocross changes.",
+    "settings": {
+      "quality": "medium",
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "savedPreferences": "none; no preseeded storage",
+      "launchArgs": [
+        "--use-gl=angle",
+        "--use-angle=swiftshader",
+        "--enable-unsafe-swiftshader"
+      ]
+    },
+    "timingOrigins": {
+      "measurementElapsedWallMs": "Date.now delta for the complete probe, including navigation, waits, click/screenshot when reached, and profiler stop; not a menu-ready measurement.",
+      "selectedProbeFields": "Milliseconds from page performance.now(); UI visibility has 1-second observation granularity and may be delayed by blocked callbacks."
+    },
+    "runs": [
+      {
+        "snapshot": "baseline",
+        "identity": {
+          "fingerprint": "19526479e062db009ee46a215d347ca7607581f2c880741702c46b238862b5c9",
+          "mainSha256": "44300c90dead0e341377a02b7867d2297856302e7bd1543c7c8f2c16bf2cdada",
+          "rendererSha256": "8074f2045ac3640a344ed96eee9771a8a0f94271c6c012edab14845d4e6c1588"
+        },
+        "outcome": "menu-timeout",
+        "menuLocatorDeadlineMs": 180000,
+        "settingsClickDeadlineMs": 15000,
+        "measurementElapsedWallMs": 191130,
+        "firstObservedMenuVisiblePerformanceMs": null,
+        "selectedProbeFields": [
+          {
+            "kind": "context",
+            "at": 11530
+          },
+          {
+            "kind": "fenceSync",
+            "at": 186136,
+            "elapsed": 0,
+            "calls": 1,
+            "result": null
+          },
+          {
+            "kind": "progress",
+            "at": 186173,
+            "hidden": true,
+            "frames": 1024
+          }
+        ]
+      },
+      {
+        "snapshot": "candidate",
+        "identity": {
+          "fingerprint": "07824c3e3be39bd3f17bcf0b246ecbba9452f45ef90eb16dcf4d388bdbd6135a",
+          "mainSha256": "bbcfd061233f1c12db6545976750e53d0d8de5e68781b937db7bc5fc501015db",
+          "rendererSha256": "d1758be3393ca304c5a47450eb0032450d4e211874c1e86f30d4fa2a780137a8"
+        },
+        "outcome": "settings-clicked",
+        "menuLocatorDeadlineMs": 180000,
+        "settingsClickDeadlineMs": 15000,
+        "measurementElapsedWallMs": 113529,
+        "firstObservedMenuVisiblePerformanceMs": 99121,
+        "selectedProbeFields": [
+          {
+            "kind": "context",
+            "at": 12280
+          },
+          {
+            "kind": "fenceSync",
+            "at": 51822,
+            "elapsed": 0,
+            "calls": 1,
+            "result": null
+          },
+          {
+            "kind": "clientWaitSync",
+            "at": 98333,
+            "elapsed": 0,
+            "calls": 2441,
+            "result": 37148
+          },
+          {
+            "kind": "fenceSync",
+            "at": 98706,
+            "elapsed": 0,
+            "calls": 2,
+            "result": null
+          },
+          {
+            "kind": "progress",
+            "at": 99121,
+            "hidden": false,
+            "frames": 3069
+          }
+        ]
+      }
+    ],
+    "limits": [
+      "One observation per snapshot; no repeated-trial statistic or general speedup estimate.",
+      "OS/file caches and shared asset/dependency caches were not controlled.",
+      "Candidate first observed visible UI is 99,121 ms; 98,333 ms is a distinct native GPU fence-completion record and is not labelled menu-ready.",
+      "Baseline did not expose the menu within its unchanged 180-second locator deadline; 191,130 ms is complete probe wall duration, not a successful baseline readiness time.",
+      "SwiftShader timings do not predict physical-GPU or end-user startup speed. These snapshots do not establish final merged-build acceptance."
+    ],
+    "adapter": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+  },
+  "inputReceipts": {
+    "originalReferenceAudit": {
+      "filename": "compact-reference-audit.json",
+      "bytes": 4412,
+      "sha256": "33dfebe97f6e860984cd9cfdc50c46381e0d14a31df5509e42c4977171994d1d"
+    },
+    "landingComparison": {
+      "filename": "motocross-landing-prediction-validation.json",
+      "bytes": 12767,
+      "sha256": "370e327a21c69d9b9cb85018b6fafa52a958480e14b28a504c426ecf42f18ab7"
+    },
+    "dustLightResponse": {
+      "filename": "mx-final-dust-light-response.json",
+      "bytes": 7085,
+      "sha256": "537dbd9498a0a4a5226484abf569d28635894a8fec613e2075cda0f4a78eb0ca"
+    },
+    "dryRoostLighting": {
+      "filename": "mx-final-dry-roost-lighting.json",
+      "bytes": 1169,
+      "sha256": "d0224478ed3669b18a7dba4a00582289398f1977a243861c89ac0a851feb6d02"
+    },
+    "wetRoostLighting": {
+      "filename": "mx-final-wet-roost-lighting.json",
+      "bytes": 1169,
+      "sha256": "d7dddc3a2fab38eecbb34ddca623300a44092234e1cf9b3d2e88dab7d9389e8f"
+    },
+    "componentPlaywrightReport": {
+      "filename": "motocross-dust-results.json",
+      "bytes": 690169,
+      "sha256": "e117b86aa5ebb5488ab8b5d52e734f769b4d4c05217a62ade06907292c15b76b"
+    },
+    "startupBaselineTiming": {
+      "filename": "mx-startup-baseline-timing.json",
+      "bytes": 10029,
+      "sha256": "d607e8c8eff8084f00b8604da75606cc4141366b562a07950baa9112d5213c10"
+    },
+    "startupCandidateTiming": {
+      "filename": "mx-startup-candidate-timing.json",
+      "bytes": 6541,
+      "sha256": "8660932685082df2b2154f90186c4d0b5a1d49fd32b52f1c1f9acb4b78be590a"
+    },
+    "startupSnapshotIdentities": {
+      "filename": "mx-startup-snapshot-identities.json",
+      "bytes": 602,
+      "sha256": "30bc7dc3b0e94d8dd7b22dc5e40dbb1aebae6356810bfd109dd6a86afc39c286"
+    },
+    "ciSourceSnapshot": {
+      "filename": "motocross-ci-source-status-latest.json",
+      "bytes": 18041,
+      "sha256": "d3eba3c2408240ca9d089658cc0bddce41c48a684cba224900117645d49ab7ab"
+    },
+    "localFinalMotocrossJourney": {
+      "filename": "mx45-final-run-identity.json",
+      "bytes": 3095,
+      "sha256": "cfe26cd9e27406b6577f7d9309fbbeeca10c2f8164ac8b071102c5f6d5da16c7"
+    },
+    "focusedPhoto": {
+      "filename": "mx-photo-return-probe.json",
+      "bytes": 2796,
+      "sha256": "a4744925f222736f3de9dc144f4118fc2ff7733d560bff2bb5fdae0bfebff5fd"
+    },
+    "sameAurelPausedGrid": {
+      "filename": "mx30-final-run-identity.json",
+      "bytes": 3775,
+      "sha256": "94b741486649da5f6dd509f236c46019a63c6f88482407fb21429f11a58183df"
+    },
+    "ciFinalStatusForPublishedUpgrade": {
+      "filename": "motocross-ci-final-status.json",
+      "bytes": 18991,
+      "sha256": "7db46da4b61d4ad8f22b9e22ef2b19cd95697eb81595d2cdc7ddd3b91f78ab5c"
+    },
+    "hudFixtureCorrection": {
+      "filename": "motocross-hud-fixture-correction-receipt.json",
+      "bytes": 7110,
+      "sha256": "65c5a316cefb3cf60a9465acdc1de26b1e61b3830fbacfa639cb4317a2b40df7"
+    },
+    "latestTargetedUnits": {
+      "filename": "motocross-latest-unit-results.json",
+      "bytes": 14423,
+      "sha256": "9559987cd3b7dbf6171767bce62a7c4400f3847be2d3679d98cac943300e5a44"
+    },
+    "ciCurrentSourceSnapshot": {
+      "filename": "motocross-ci-current-source-status.json",
+      "bytes": 6760,
+      "sha256": "c5b1719dc35d7d66ffeb0850bce8c57f19442d750821103bc07dd6e975574acf"
+    },
+    "latestMotocrossJourney": {
+      "filename": "mx45-prewarmed-run-identity.json",
+      "bytes": 21908,
+      "sha256": "7a85dd9bd36758928c3e856ffe61699cd30285119c9d268af6cb8e344689cf6d"
+    },
+    "ciPublicationSnapshot": {
+      "filename": "motocross-ci-publication-status.json",
+      "bytes": 5425,
+      "sha256": "be41642daae37f8300afd7e909f7b7049c86ddf1933ce21d54efb4ec09b700f6"
+    },
+    "ciCurrentSourceJourneyFailure": {
+      "filename": "motocross-ci-current-journey-failure.json",
+      "bytes": 5072,
+      "sha256": "85532f8ef41a503c2eb8f4befc0cb4a6ee0653b9413a95760772825fefa415e7"
+    },
+    "latestChaseVisualReview": {
+      "filename": "mx45-prewarmed-chase-visual-review.json",
+      "bytes": 677,
+      "sha256": "fe814f60d49ce3e226be7f825d688526f57df4f38fbc72b0bda1a49038a2f573"
+    }
+  },
+  "timeoutInvestigation": {
+    "sourceCommit": "e7bf896",
+    "scope": "Read-only investigation while the integrated MX/offroad suite remained running with frozen source. No test execution, instrumentation or source changes were performed for this investigation.",
+    "reportedInitialFailures": [
+      {
+        "file": "tests/offroad.test.ts",
+        "test": "penalises a missed joker at the flag, the last car to finish included",
+        "elapsedSecondsReportedByRoot": 143.6,
+        "originalDeadlineSeconds": 120
+      },
+      {
+        "file": "tests/motocross-collision.test.ts",
+        "test": "keeps the seeded eight-rider stadium start free of spurious high-energy launches",
+        "elapsedSecondsReportedByRoot": 64.2,
+        "originalDeadlineSeconds": 30
+      }
+    ],
+    "codePathFindings": [
+      {
+        "test": "missed joker",
+        "selectedVenue": "kestrel-rx",
+        "selectedVehicles": [
+          "rcx6",
+          "rcx6"
+        ],
+        "sourcePath": [
+          "tests/offroad.test.ts selects two four-wheel rallycross cars",
+          "src/simulation/world.ts Simulation constructor calls createEntrant",
+          "src/simulation/offroad/session.ts createEntrant uses DirtBikeVehicle only when isDirtBike(definition) is true",
+          "The rcx6 definitions use the ordinary four-wheel Vehicle adapter"
+        ],
+        "newPlayerLandingPredictorReachable": false,
+        "reason": "Neither entrant is a DirtBikeVehicle, so the changed motocross step or landing forecast is not executed by this test."
+      },
+      {
+        "test": "seeded eight-rider stadium start",
+        "selectedVenue": "arena-nord-sx",
+        "selectedVehicles": "Eight mx450 bikes, with sim.autoPlayer = true before stepping",
+        "sourcePath": [
+          "src/simulation/world.ts Simulation.step calls ai[i].update for every entrant because i > 0 or autoPlayer is true",
+          "src/simulation/offroad/ai.ts DirtBikeAIDriver.update calls BikeAIDriver.update",
+          "src/simulation/bike-ai.ts BikeAIDriver.update marks riding bikes with c.aiControlled()",
+          "src/simulation/bike-vehicle.ts aiControlled defaults to exactly two physics substeps",
+          "src/simulation/world.ts Simulation.step performs exactly two c.step(dt * 0.5) calls per AI update",
+          "src/simulation/offroad/dirt-bike-vehicle.ts reads aiSteps > 0 before decrementing it and sets playerMotocross only when ai is false",
+          "The new predictPlayerLanding call is gated by playerMotocross inside riding flight; AI keeps the original predictLanding path"
+        ],
+        "newPlayerLandingPredictorReachableDuringAIRiding": false,
+        "nonRidingQualification": "BikeAIDriver.update returns early for fallen riders, so the AI mark may expire during recovery. Those states use coast/recovery rather than the riding-flight method and cannot invoke the new predictor either.",
+        "remainingChangedOperationsOnLegacyPath": "Additional boolean branches and two scalar incoming-state reads exist in the shared adapter. No added terrain forecast loop runs on the normal AI path; their individual overhead was not profiled."
+      }
+    ],
+    "priorWholeFileReceipt": {
+      "source": "node_modules/.vite/vitest/da39a3ee5e6b4b0d3255bfef95601890afd80709/results.json",
+      "cacheModifiedUTC": "2026-10-19T22:25:29.805503+00:00",
+      "vitestVersion": "3.2.4",
+      "files": [
+        {
+          "file": "tests/offroad.test.ts",
+          "durationMs": 125752.378249,
+          "failed": false
+        },
+        {
+          "file": "tests/motocross-collision.test.ts",
+          "durationMs": 29938.483183999997,
+          "failed": false
+        }
+      ],
+      "sumWholeFileDurationMs": 155690.861433,
+      "earlierRunConsole": {
+        "filesPassed": 2,
+        "assertionsPassed": 35,
+        "wallDurationSeconds": 139.44,
+        "reportedSummedTestDurationSeconds": 155.69,
+        "processExitCode": 1,
+        "unhandledError": "[vitest-worker]: Timeout calling onTaskUpdate"
+      },
+      "limits": "These are preserved whole-file durations, not individual-test timings. They match the earlier two-file run's summed test duration. Although all 35 tests passed without per-case deadline failures in that run, its worker RPC error means it is not a clean suite gate."
+    },
+    "resourceObservation": {
+      "source": "Read-only /sys/fs/cgroup counters during the active integrated run",
+      "cpuMax": "3200000 400000",
+      "quotaEquivalentCores": 8,
+      "osCpuCount": 9,
+      "samples": [
+        {
+          "monotonicSeconds": 28231.781389747,
+          "cpuUsageUsec": 114708521723,
+          "periods": 127893,
+          "throttledPeriods": 21649,
+          "throttledUsec": 5297235392,
+          "memoryCurrentBytes": 7116193792,
+          "memoryMaximumBytes": 8589934592
+        },
+        {
+          "monotonicSeconds": 28266.719875945,
+          "cpuUsageUsec": 114978553406,
+          "periods": 127980,
+          "throttledPeriods": 21689,
+          "throttledUsec": 5302828769,
+          "memoryCurrentBytes": 6654840832,
+          "memoryMaximumBytes": 8589934592,
+          "memoryEvents": {
+            "low": 0,
+            "high": 0,
+            "max": 205892,
+            "oom": 0,
+            "oom_kill": 0,
+            "oom_group_kill": 0
+          }
+        }
+      ],
+      "intervalElapsedSeconds": 34.938486198,
+      "intervalCpuSeconds": 270.031683,
+      "intervalAverageCpuCoresApproximately": 7.73,
+      "intervalNewPeriods": 87,
+      "intervalNewThrottledPeriods": 40,
+      "intervalAdditionalCumulativeThrottleSeconds": 5.593377,
+      "unavailableDiagnostics": [
+        "cpu.pressure and memory.pressure were absent from the exposed cgroup filesystem",
+        "ps failed with 'fatal library error, lookup self'; process-level attribution was unavailable"
+      ],
+      "limits": "The paired counters directly demonstrate active CPU quota pressure during this audit. They do not identify the responsible processes or quantify how much of either earlier test overrun was caused by that pressure. Memory use was substantial but the exposed cumulative OOM and OOM-kill counters were zero. The historical memory max counter is not attributed to the audit interval because no initial memory.events sample was collected."
+    },
+    "conclusion": "No concrete direct runtime regression from the new player-only landing forecast was found in the inspected execution paths. Active CPU quota pressure was observed but does not establish the cause or make the failures harmless. The isolated retry under the original deadlines has finished: RCX6 missed-joker passed, while the AI stadium start and qualifying/two-moto simulations still exceeded their deadlines; one worker RPC timeout also remained. The later CI prepare run passed its 47 scoped test files / 418 tests, including motocross contracts, but does not include the full broader local workload. Deadlines and assertions were not changed."
+  },
+  "ciSourceSnapshot": {
+    "schemaVersion": 1,
+    "snapshotAt": "2026-10-19T23:10:22.742127+00:00",
+    "repository": "https://github.com/cheshmakzanoon-ops/Experiment-3",
+    "sourceCommit": "4a8fd5734aa89f86238fe96d78a23043a587cc94",
+    "remoteMain": {
+      "queryUrl": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/git/ref/heads/main",
+      "ref": "refs/heads/main",
+      "sha": "4a8fd5734aa89f86238fe96d78a23043a587cc94",
+      "objectType": "commit",
+      "matchesPublishedSource": true
+    },
+    "method": "One read-only refresh of the two exact source workflow runs, their jobs, and remote main via public GitHub REST API. Subsequently read the completed journey and prepare job logs through the GitHub connector and inspected selected members of the journey artifact via HTTP ZIP ranges. No reruns, cancellations, repository mutations, or new browser runs.",
+    "runs": [
+      {
+        "id": 39337236264,
+        "name": "Motocross committed-source review",
+        "html_url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39337236264",
+        "event": "push",
+        "head_sha": "4a8fd5734aa89f86238fe96d78a23043a587cc94",
+        "run_number": 15,
+        "run_attempt": 1,
+        "status": "in_progress",
+        "conclusion": null,
+        "created_at": "2026-10-19T22:46:10Z",
+        "updated_at": "2026-10-19T23:04:02Z",
+        "run_started_at": "2026-10-19T22:46:10Z",
+        "jobCount": 3,
+        "jobs": [
+          {
+            "id": 118349663550,
+            "name": "prepare",
+            "html_url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39337236264/job/118349663550",
+            "status": "completed",
+            "conclusion": "success",
+            "started_at": "2026-10-19T22:54:44Z",
+            "completed_at": "2026-10-19T22:57:58Z",
+            "stepOutcomes": {
+              "success": 12
+            },
+            "relevantSteps": [
+              {
+                "name": "Reproduce the committed mesh and independently reopen its saved editable source",
+                "number": 6,
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Lint, content, motocross contracts and the production build",
+                "number": 7,
+                "status": "completed",
+                "conclusion": "success"
+              }
+            ]
+          },
+          {
+            "id": 118353991458,
+            "name": "browser (models-world)",
+            "html_url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39337236264/job/118353991458",
+            "status": "in_progress",
+            "conclusion": null,
+            "started_at": "2026-10-19T23:04:01Z",
+            "completed_at": null,
+            "stepOutcomes": {
+              "success": 7,
+              "in_progress": 1,
+              "pending": 3
+            },
+            "relevantSteps": [
+              {
+                "name": "Verify every authored mip of the shipped dry, wet and forest ground normals",
+                "number": 7,
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Original full-quality world and real-input acceptance assertions",
+                "number": 8,
+                "status": "in_progress",
+                "conclusion": null
+              }
+            ]
+          },
+          {
+            "id": 118353991473,
+            "name": "browser (journey)",
+            "html_url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39337236264/job/118353991473",
+            "status": "completed",
+            "conclusion": "failure",
+            "started_at": "2026-10-19T22:59:27Z",
+            "completed_at": "2026-10-19T23:06:34Z",
+            "stepOutcomes": {
+              "success": 9,
+              "skipped": 2,
+              "failure": 1
+            },
+            "relevantSteps": [
+              {
+                "name": "Verify every authored mip of the shipped dry, wet and forest ground normals",
+                "number": 7,
+                "status": "completed",
+                "conclusion": "skipped"
+              },
+              {
+                "name": "Original full-quality world and real-input acceptance assertions",
+                "number": 8,
+                "status": "completed",
+                "conclusion": "failure"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 39337236310,
+        "name": "Build and validation",
+        "html_url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39337236310",
+        "event": "push",
+        "head_sha": "4a8fd5734aa89f86238fe96d78a23043a587cc94",
+        "run_number": 669,
+        "run_attempt": 1,
+        "status": "queued",
+        "conclusion": null,
+        "created_at": "2026-10-19T22:46:10Z",
+        "updated_at": "2026-10-19T22:46:10Z",
+        "run_started_at": "2026-10-19T22:46:10Z",
+        "jobCount": 4,
+        "jobs": [
+          {
+            "id": 118349659409,
+            "name": "unit-tests",
+            "html_url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39337236310/job/118349659409",
+            "status": "queued",
+            "conclusion": null,
+            "started_at": "2026-10-19T22:46:11Z",
+            "completed_at": null,
+            "stepOutcomes": {},
+            "relevantSteps": []
+          },
+          {
+            "id": 118349659754,
+            "name": "validate",
+            "html_url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39337236310/job/118349659754",
+            "status": "queued",
+            "conclusion": null,
+            "started_at": "2026-10-19T22:46:11Z",
+            "completed_at": null,
+            "stepOutcomes": {},
+            "relevantSteps": []
+          },
+          {
+            "id": 118349659800,
+            "name": "scenarios",
+            "html_url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39337236310/job/118349659800",
+            "status": "queued",
+            "conclusion": null,
+            "started_at": "2026-10-19T22:46:11Z",
+            "completed_at": null,
+            "stepOutcomes": {},
+            "relevantSteps": []
+          },
+          {
+            "id": 118349659816,
+            "name": "offroad-scenarios",
+            "html_url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39337236310/job/118349659816",
+            "status": "queued",
+            "conclusion": null,
+            "started_at": "2026-10-19T22:46:11Z",
+            "completed_at": null,
+            "stepOutcomes": {},
+            "relevantSteps": []
+          }
+        ]
+      }
+    ],
+    "failureDetails": [
+      {
+        "runId": 39337236264,
+        "jobId": 118353991473,
+        "jobConclusion": "failure",
+        "testFile": "e2e/45-motocross-gameplay.spec.ts",
+        "testTitle": "real motocross player entry, eight-rider gate, riding, cameras, pause and venue switch",
+        "failedStep": "Original full-quality world and real-input acceptance assertions",
+        "failedCall": "page.screenshot",
+        "error": "TimeoutError: page.screenshot: Timeout 60000ms exceeded.",
+        "timeoutMs": 60000,
+        "helperSourceLine": 26,
+        "callerSourceLine": 102,
+        "requestedImage": "valley-ridge-mx-actual-gate.png",
+        "boundary": "After GO TO THE GATE: the state=driving and motocross HUD visibility assertions passed before the screenshot call. The subsequent race-phase polling and driving assertions were not reached.",
+        "buildIdentity": {
+          "commit": "4a8fd5734aa89f86238fe96d78a23043a587cc94",
+          "fingerprint": "b6b9c1a8dd2bce67a80c4212d922c44470e889248d0b6fb082b9c0a809ef57fd"
+        },
+        "matchesPublishedSourceAndRootDistFingerprint": true,
+        "jobLogSource": {
+          "jobUrl": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39337236264/job/118353991473",
+          "localFailureExcerpt": "/tmp/motocross-ci-source-journey-failure.log",
+          "artifactBrowserLogMember": "_temp/mx-qa/browser.log"
+        },
+        "loggedMilestones": [
+          {
+            "at": "2026-10-19T23:01:09.2459948Z",
+            "event": "Selecting Valley Ridge / mx450"
+          },
+          {
+            "at": "2026-10-19T23:01:28.1120410Z",
+            "event": "Menu image captured"
+          },
+          {
+            "at": "2026-10-19T23:01:28.1122352Z",
+            "event": "Preparing complete session"
+          },
+          {
+            "at": "2026-10-19T23:05:08.7760632Z",
+            "event": "Prepared at held eight-rider gate"
+          },
+          {
+            "at": "2026-10-19T23:06:28.8013949Z",
+            "event": "Post-release screenshot timed out"
+          }
+        ],
+        "artifact": {
+          "id": 12227369062,
+          "name": "motocross-committed-qa-journey",
+          "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39337236264/artifacts/12227369062",
+          "archiveBytes": 71985354,
+          "archiveSha256ReportedByUploadAction": "22aa750105e4b101c314d197c86fa2e7518daaeb9d69981236266866b6a4512e",
+          "fullArchiveDigestLocallyVerified": false,
+          "method": "Read ZIP directory and selected error context, backend and nested trace members by HTTP ranges; no full archive or additional screenshot download.",
+          "errorContextMember": "Experiment-3/Experiment-3/test-results/motocross/45-motocross-gameplay-real-52ab8-eras-pause-and-venue-switch/error-context.md",
+          "traceMember": "Experiment-3/Experiment-3/test-results/motocross/45-motocross-gameplay-real-52ab8-eras-pause-and-venue-switch/trace.zip",
+          "traceEventMember": "0-trace.trace",
+          "testStepMember": "test.trace",
+          "backendMember": "Experiment-3/Experiment-3/browser-backend.json"
+        },
+        "backendProbe": {
+          "requested": "mesa",
+          "renderer": "ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)",
+          "vendor": "Google Inc. (Mesa)",
+          "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+          "pixel": [
+            64,
+            128,
+            191,
+            255
+          ],
+          "error": 0,
+          "softwareRendererDetected": true,
+          "physicalHardwareValidated": false
+        },
+        "backendProbeLimit": "The zero GL error and color pixel belong to the backend preflight probe, not to the failed game screenshot.",
+        "renderConfiguration": {
+          "qualityContext": "Unmodified default Medium in the CI journey on Mesa. Separate local SwiftShader run also failed at default Medium: it timed out at initial menu visibility before reaching the requested visible Low selection or motocross entry.",
+          "buffer": [
+            1280,
+            800
+          ],
+          "graphics": {
+            "resolutionScale": 1,
+            "textureSize": 512,
+            "shadowSize": 2048,
+            "reflections": "environment",
+            "mirrorQuality": "medium",
+            "particleDensity": 0.65,
+            "vegetationDensity": 1,
+            "crowd": true,
+            "bloom": true,
+            "autoExposure": true,
+            "localFog": true,
+            "motionBlur": 0.35,
+            "antialias": true,
+            "anisotropy": 8,
+            "msaa": 2,
+            "ambientOcclusion": true,
+            "filmGrade": true,
+            "temporalAA": false,
+            "lensEffects": true,
+            "cockpitFov": 54,
+            "ssr": false,
+            "taaSharpen": 0,
+            "aoTemporal": false,
+            "toneMapper": "aces",
+            "physicalBloom": false,
+            "chromaticAberration": false,
+            "lightShafts": false,
+            "shadowCascades": 2,
+            "replayDof": false
+          }
+        },
+        "sharedDiagnostics": {
+          "presentationPurpose": "circuit",
+          "preparation": {
+            "status": "complete",
+            "elapsedMs": 206680.09999999998,
+            "error": null
+          },
+          "slowestPreparationStages": [
+            {
+              "label": "Warming shadows and scene reflections\u2026",
+              "elapsedMs": 112882.30000000002,
+              "complete": true
+            },
+            {
+              "label": "Warming cockpit, mirrors and post-processing\u2026",
+              "elapsedMs": 65341.40000000002,
+              "complete": true
+            },
+            {
+              "label": "Compiling circuit and vehicle materials\u2026",
+              "elapsedMs": 14121.700000000012,
+              "complete": true
+            },
+            {
+              "label": "Warming offscreen pit-service materials\u2026",
+              "elapsedMs": 8728,
+              "complete": true
+            }
+          ],
+          "warmupFrames": 2,
+          "gpuMilliseconds": 63720.268312,
+          "gpuTimerSupported": true,
+          "frameMs": 11006.320037500001,
+          "renderCPUms": 15020.7196,
+          "studioFrame": {
+            "source": "presented-snapshot",
+            "time": 0,
+            "updates": 3,
+            "cuts": 3,
+            "cars": 8
+          }
+        },
+        "diagnosticSamples": [
+          {
+            "traceCallId": "call@57",
+            "phase": "held eight-rider gate",
+            "traceEndTimeMs": 287345.025,
+            "state": "paused",
+            "workerPause": {
+              "pending": false,
+              "paused": true,
+              "tick": 0,
+              "sequence": 1
+            },
+            "gpuFrameQueue": {
+              "pending": true,
+              "submitted": 5,
+              "completed": 4,
+              "deferredCallbacks": 14,
+              "flushRefreshes": 0,
+              "pendingMs": 747.2000000000116,
+              "activeWaitMs": 0,
+              "failure": null,
+              "latencyMs": 66.0600000000326
+            },
+            "presentation": {
+              "time": 0,
+              "frames": 4,
+              "elapsed": 0
+            },
+            "inputPolls": 1049
+          },
+          {
+            "traceCallId": "call@63",
+            "phase": "after GO TO THE GATE",
+            "traceEndTimeMs": 288153.19,
+            "state": "driving",
+            "workerPause": {
+              "pending": false,
+              "paused": false,
+              "tick": 0,
+              "sequence": 2
+            },
+            "gpuFrameQueue": {
+              "pending": true,
+              "submitted": 5,
+              "completed": 4,
+              "deferredCallbacks": 17,
+              "flushRefreshes": 1,
+              "pendingMs": 1543.7999999999884,
+              "activeWaitMs": 17.399999999965075,
+              "failure": null,
+              "latencyMs": 66.0600000000326
+            },
+            "presentation": {
+              "time": 0,
+              "frames": 4,
+              "elapsed": 0
+            },
+            "inputPolls": 1099
+          }
+        ],
+        "screenshotTrace": {
+          "timeBasis": "Playwright server-monotonic milliseconds, separate from UTC job-log timestamps.",
+          "callId": "call@67",
+          "stepId": "pw:api@106",
+          "startTimeMs": 288210.313,
+          "endTimeMs": 348222.39,
+          "durationMs": 60012.077,
+          "error": {
+            "name": "TimeoutError",
+            "message": "Timeout 60000ms exceeded."
+          },
+          "logs": [
+            {
+              "timeMs": 288216.319,
+              "message": "taking page screenshot"
+            },
+            {
+              "timeMs": 288220.496,
+              "message": "waiting for fonts to load..."
+            },
+            {
+              "timeMs": 288221.221,
+              "message": "fonts loaded"
+            }
+          ]
+        },
+        "errorContextSummary": [
+          "START GATE / READY / WAIT FOR THE DROP / GATE 1",
+          "Position 1/8, 0 KPH, 1800 RPM",
+          "CHASE and AI OFF",
+          "No application-error or context-loss overlay recorded in the page snapshot"
+        ],
+        "recordedConsolePageErrorOrCrashEvents": [],
+        "assessment": "The worker unpause acknowledgement had settled and the renderer reported preparation complete. The last GPU timer sample was 63720.268312 ms with one submitted frame still pending. This is consistent with severe software-rendering/readback latency, but does not prove the screenshot cause or any subsequent simulation progress. No shader/context-loss event was recorded in the available trace. The 60 s capture failure remains a failed CI gate.",
+        "limits": [
+          "Last observed simulation/worker tick and presentation time were zero; the trace does not establish race progression after release.",
+          "No physical GPU was validated.",
+          "No exception deadlines or workflow assertions were changed.",
+          "Pending models-world and general Build and validation results were not accepted or inferred from this evidence."
+        ],
+        "localRunDistinctionSource": "/tmp/mx45-final-run-identity.json"
+      }
+    ],
+    "limits": "Workflow and remote-head states apply only at snapshotAt. Completed job logs and the associated trace were inspected afterward without another status poll. The failed CI journey is not completed gameplay acceptance; queued or running jobs remain unresolved at this snapshot.",
+    "prepareReceipt": {
+      "runId": 39337236264,
+      "jobId": 118349663550,
+      "source": "GitHub workflow-job log, step 7: Lint, content, motocross contracts and the production build",
+      "jobUrl": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39337236264/job/118349663550",
+      "logExcerpt": "/tmp/motocross-ci-source-prepare-receipt.log",
+      "command": "node --experimental-transform-types scripts/source-stability.ts -- bash -c 'npm run lint && npm run validate:content && npx vitest run tests/motocross-*.test.ts tests/normal-residency.test.ts tests/texture-loader-lifecycle.test.ts tests/gp-r5-materials.test.ts tests/gp-engine-braking.test.ts && npm run build'",
+      "followedBy": "git diff --exit-code",
+      "conclusion": "success",
+      "lint": "passed",
+      "contentValidation": {
+        "result": "Content valid",
+        "loggedAt": "2026-10-19T22:55:54.4010670Z"
+      },
+      "scopedUnitTests": {
+        "filesPassed": 47,
+        "filesTotal": 47,
+        "testsPassed": 418,
+        "testsTotal": 418,
+        "durationSeconds": 84.46,
+        "filesLoggedAt": "2026-10-19T22:57:19.2468953Z",
+        "testsLoggedAt": "2026-10-19T22:57:19.2469579Z"
+      },
+      "productionBuild": {
+        "result": "passed",
+        "viteBuildSeconds": 12.59,
+        "loggedAt": "2026-10-19T22:57:51.5375616Z"
+      },
+      "limits": "Scoped unit-test selection shown by the exact command; these counts are not the full repository test suite or browser acceptance."
+    },
+    "recordCompaction": "Routine job setup/teardown step arrays are omitted; all job outcomes, failed steps, measured test outcomes, failure details and original receipt hashes are retained."
+  },
+  "publishedUpgradeValidation": {
+    "status": "completed-with-failed-validation-gates",
+    "buildIdentity": {
+      "version": 1,
+      "commit": null,
+      "fingerprint": "b6b9c1a8dd2bce67a80c4212d922c44470e889248d0b6fb082b9c0a809ef57fd"
+    },
+    "lint": {
+      "status": "passed",
+      "command": "npm run lint"
+    },
+    "contentValidation": {
+      "status": "passed",
+      "command": "npm run validate:content"
+    },
+    "productionBuild": {
+      "status": "passed",
+      "command": "node --experimental-transform-types scripts/source-stability.ts -- npm run build",
+      "exitCode": 0,
+      "sourceCommit": "4a8fd5734aa89f86238fe96d78a23043a587cc94",
+      "sourceTree": "24e46a18dee5d09014dafc9719f4047102519bc3",
+      "typescript": "passed",
+      "vite": "passed",
+      "viteReportedDuration": "1m 39s",
+      "inputStability": "No application input files changed while the guarded build ran.",
+      "buildIdentitySha256": "690b293d98ac382f4b5beaf174a3a17de1865d593757bb8d84c0801e319f8bc5",
+      "logSha256": "7932ef25c3f2e9a17e5af59799c6e7087ed64816721909877bad27e6f02d212b",
+      "warnings": [
+        "Vite reported existing output chunks larger than 500 kB.",
+        "Node experimental transform-types warning and npm http-proxy environment warning."
+      ],
+      "identityNote": "The local build embeds a null commit field because no CI commit environment value was supplied. Its source fingerprint is recorded alongside the verified clean Git commit and source-stability guard."
+    },
+    "integratedTests": {
+      "status": "failed-two-deadlines-remain-after-isolated-retry",
+      "command": "npx vitest run tests/motocross-*.test.ts tests/offroad.test.ts tests/offroad-meeting.test.ts tests/startup.test.ts tests/session-identity.test.ts tests/menu-frame-pacing.test.ts tests/menu-preview-receipt.test.ts --maxWorkers=1 --no-file-parallelism",
+      "files": 49,
+      "reportedPassedTests": 480,
+      "failedTests": 3,
+      "totalTests": 483,
+      "skippedTests": 0,
+      "workerRpcErrors": 3,
+      "runtimeSeconds": 1469.51,
+      "receiptSha256": "85873430d337a7db7b51d7ad24576cd18ddbcb8772472476a5f60a09e37acd56",
+      "failures": [
+        {
+          "test": "WP42 off-road formats > penalises a missed joker at the flag, the last car to finish included 143641ms",
+          "reason": "Test timed out in 120000ms."
+        },
+        {
+          "test": "motocross barriers between adjacent stadium lanes > keeps the seeded eight-rider stadium start free of spurious high-energy launches 64176ms",
+          "reason": "Test timed out in 30000ms."
+        },
+        {
+          "test": "two-moto meeting: production sessions > chains real qualifying and two real motos into the combined classification 302929ms",
+          "reason": "Test timed out in 300000ms."
+        }
+      ],
+      "limit": "The aggregate invocation exited1 with deadline failures and worker RPC errors. Reported passing assertions do not make this a clean aggregate gate.",
+      "isolatedRetry": {
+        "status": "failed",
+        "command": "npx vitest run tests/offroad.test.ts tests/motocross-collision.test.ts tests/offroad-meeting.test.ts --maxWorkers=1 --no-file-parallelism -t 'penalises a missed joker|keeps the seeded eight-rider stadium start|chains real qualifying and two real motos'",
+        "sourceCommit": "4a8fd5734aa89f86238fe96d78a23043a587cc94",
+        "exitCode": 1,
+        "selectedTests": 3,
+        "passedTests": 1,
+        "failedTests": 2,
+        "skippedByNameFilter": 39,
+        "workerRpcErrors": 1,
+        "runtimeSeconds": 559.91,
+        "cases": [
+          {
+            "file": "motocross-collision.test.ts",
+            "test": "motocross barriers between adjacent stadium lanes keeps the seeded eight-rider stadium start free of spurious high-energy launches",
+            "status": "failed",
+            "durationMs": 55357.541359999996,
+            "originalDeadlineMs": 30000,
+            "failureType": "deadline-exceeded"
+          },
+          {
+            "file": "offroad-meeting.test.ts",
+            "test": "two-moto meeting: production sessions chains real qualifying and two real motos into the combined classification",
+            "status": "failed",
+            "durationMs": 300470.708293,
+            "originalDeadlineMs": 300000,
+            "failureType": "deadline-exceeded"
+          },
+          {
+            "file": "offroad.test.ts",
+            "test": "WP42 off-road formats penalises a missed joker at the flag, the last car to finish included",
+            "status": "passed",
+            "durationMs": 87088.966217,
+            "originalDeadlineMs": 120000,
+            "failureType": null
+          }
+        ],
+        "receiptSha256": "ae119c8a1d156ed8dfb7937d73e60cfbb63d13cb7ae81b0316d50e634565dbad",
+        "logSha256": "93c3a430a77d518bafba1508b96b5a24ddebc29deecee53c383753a06aeeabc4",
+        "sourceGuard": "No application input files changed during the guarded retry.",
+        "limit": "The original deadlines, seeded workloads and assertions were preserved. The two remaining AI simulation deadlines and the worker RPC error remain unresolved; this is not a clean gate."
+      }
+    },
+    "journeys": {
+      "status": "incomplete-with-failed-gates",
+      "localMotocross": {
+        "command": "APEX_BROWSER_BACKEND=swiftshader APEX_MOTOCROSS_JOURNEY_QUALITY=low playwright test e2e/45-motocross-gameplay.spec.ts --workers=1",
+        "sourceCommit": "4a8fd5734aa89f86238fe96d78a23043a587cc94",
+        "sourceTree": "24e46a18dee5d09014dafc9719f4047102519bc3",
+        "buildIdentity": {
+          "version": 1,
+          "commit": null,
+          "fingerprint": "b6b9c1a8dd2bce67a80c4212d922c44470e889248d0b6fb082b9c0a809ef57fd"
+        },
+        "backend": {
+          "requested": "swiftshader",
+          "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+          "vendor": "Google Inc. (Google)",
+          "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+          "pixel": [
+            64,
+            128,
+            191,
+            255
+          ],
+          "error": 0,
+          "softwareRendererDetected": true,
+          "physicalHardwareValidated": false
+        },
+        "quality": {
+          "requestedOptIn": "low",
+          "actualAtFailure": "default Medium",
+          "visibleLowSelectionReached": false
+        },
+        "limits": "Original workload, assertions, viewport, screenshots, deadlines, single worker, and zero retries retained. SwiftShader at default Medium; the requested Low setting was never reached, and no MX gameplay acceptance was obtained. This result is separate from the Mesa/default CI journey.",
+        "result": {
+          "status": "failed",
+          "exitCode": 1,
+          "boundary": "Initial menu visibility before settings or motocross entry",
+          "assertion": "expect(page.locator('#menu')).toBeVisible({ timeout: MENU_STARTUP_TIMEOUT_MS })",
+          "location": "e2e/45-motocross-gameplay.spec.ts:31",
+          "deadlineMs": 180000,
+          "menuObservationsHidden": 81,
+          "renderedSourceFingerprint": "b6b9c1a8dd2bce67a80c4212d922c44470e889248d0b6fb082b9c0a809ef57fd",
+          "finalLoaderDetail": "0% \u00b7 Preparing vehicle showroom\u2026",
+          "loadingBusy": true,
+          "consoleOrPageErrorsInTrace": 0,
+          "capturedNetworkResponses": 91,
+          "allCapturedResponsesStatus200": true,
+          "gpuQueueDiagnosticsCaptured": false,
+          "limits": "Trace does not include a runtime GPU fence or CPU profile. The first-frame completion gate was not reached, but this run alone cannot separate CPU compilation from pending GPU execution."
+        },
+        "progressReport": {
+          "version": 1,
+          "event": "failed",
+          "timestamp": "2026-10-19T23:18:24.356Z",
+          "active": [],
+          "completed": [
+            {
+              "id": "63247aa4b2714caaca71-ad2e482fa544f6a6d6c9",
+              "title": " >  > 45-motocross-gameplay.spec.ts > real motocross player entry, eight-rider gate, riding, cameras, pause and venue switch",
+              "file": "/workspace/scratch/451aa99e35f9/Experiment-3/e2e/45-motocross-gameplay.spec.ts",
+              "status": "failed",
+              "durationMs": 237780
+            }
+          ]
+        },
+        "evidence": {
+          "trace": "/tmp/mx45-final-playwright/45-motocross-gameplay-real-52ab8-eras-pause-and-venue-switch/trace.zip",
+          "traceSha256": "11be6d5881fd1c2eedeeaf7fded4f3f7348ff70d4dbcd30c481a5f08817ad9c4",
+          "log": "/tmp/mx45-final-run.log",
+          "errorContext": "/tmp/mx45-final-playwright/45-motocross-gameplay-real-52ab8-eras-pause-and-venue-switch/error-context.md"
+        }
+      },
+      "ciMotocross": {
+        "status": "failed",
+        "resultLocation": "ciSourceSnapshot.failureDetails",
+        "scope": "Reached the real Valley Ridge scene, eight-rider grid, driving state and MX HUD. The required gate screenshot exceeded its unchanged 60-second deadline. No later riding, flight, camera, pause or stadium-venue acceptance was obtained."
+      },
+      "focusedPhoto": {
+        "scope": "Focused production cold-showroom Photo rebuild and return; not the complete e2e07 livery/export journey or a hardware performance benchmark.",
+        "viewport": {
+          "width": 640,
+          "height": 400
+        },
+        "deadlinesMs": {
+          "total": 300000,
+          "coldMenu": 90000,
+          "action": 15000,
+          "expectation": 60000
+        },
+        "quality": "Default Medium boot, then Low selected through the visible production settings form",
+        "expectedBuild": {
+          "version": 1,
+          "commit": null,
+          "fingerprint": "b6b9c1a8dd2bce67a80c4212d922c44470e889248d0b6fb082b9c0a809ef57fd"
+        },
+        "outcome": "failed",
+        "events": [
+          {
+            "kind": "cold-menu-ready",
+            "elapsedMs": 88066,
+            "buildIdentity": {
+              "commit": null,
+              "fingerprint": "b6b9c1a8dd2bce67a80c4212d922c44470e889248d0b6fb082b9c0a809ef57fd"
+            },
+            "backend": {
+              "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+              "vendor": "Google Inc. (Google)",
+              "physicalHardwareValidated": false
+            },
+            "purpose": "showroom",
+            "gpuFrameQueue": {
+              "pending": false,
+              "submitted": 1,
+              "completed": 1,
+              "deferredCallbacks": 2189,
+              "flushRefreshes": 40,
+              "pendingMs": 0,
+              "activeWaitMs": 0,
+              "failure": null,
+              "latencyMs": 41311.10000000149
+            }
+          },
+          {
+            "kind": "low-selected",
+            "elapsedMs": 111260
+          },
+          {
+            "kind": "photo-requested",
+            "elapsedMs": 118125
+          },
+          {
+            "kind": "failure",
+            "elapsedMs": 178187
+          }
+        ],
+        "errors": [],
+        "backend": {
+          "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+          "vendor": "Google Inc. (Google)",
+          "physicalHardwareValidated": false
+        },
+        "failure": "expect(locator).toBeVisible() failed\n\nLocator:  locator('#photoStudio')\nExpected: visible\nReceived: hidden\nTimeout:  60000ms\n\nCall log:\n\u001b[2m  - Expect \"to.be.visible\" with timeout 60000ms\u001b[22m\n\u001b[2m  - waiting for locator('#photoStudio')\u001b[22m\n\u001b[2m    39 \u00d7 locator resolved to <section hidden=\"\" id=\"photoStudio\" class=\"photo-studio\"></section>\u001b[22m\n\u001b[2m       - unexpected value \"hidden\"\u001b[22m\n",
+        "postRequestDiagnostics": {
+          "constructionStage": null,
+          "preparationStage": null,
+          "loadingCopy": null,
+          "reason": "The prepared probe did not sample runtime diagnostics after the Photo request before its original 60-second visibility expectation failed."
+        },
+        "unverifiedAssertions": [
+          "Full circuit purpose and construction count after rebuild",
+          "Loading overlay hidden and aria-busy=false in Photo",
+          "Photo return to menu",
+          "Usable Garage control after returning"
+        ],
+        "unreachedAssertions": [
+          "Completed full-circuit construction",
+          "Loading overlay hidden and aria-busy false",
+          "Native Photo return action",
+          "Usable Garage after returning from Photo"
+        ]
+      },
+      "sameAurelPausedGrid": {
+        "test": "27H.6 menu access: 640x400 settings persist and the normal paused grid starts",
+        "command": "APEX_BROWSER_BACKEND=swiftshader playwright test e2e/30-menu-access.spec.ts --grep 640x400 settings persist --workers=1",
+        "sourceCommit": "4a8fd5734aa89f86238fe96d78a23043a587cc94",
+        "buildIdentity": {
+          "version": 1,
+          "commit": null,
+          "fingerprint": "b6b9c1a8dd2bce67a80c4212d922c44470e889248d0b6fb082b9c0a809ef57fd"
+        },
+        "backend": {
+          "requested": "swiftshader",
+          "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+          "vendor": "Google Inc. (Google)",
+          "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+          "pixel": [
+            64,
+            128,
+            191,
+            255
+          ],
+          "error": 0,
+          "softwareRendererDetected": true,
+          "physicalHardwareValidated": false
+        },
+        "viewport": {
+          "width": 640,
+          "height": 400
+        },
+        "quality": "Default Medium; native Low selection was never reached",
+        "status": "failed",
+        "exitCode": 1,
+        "deadlineMs": 180000,
+        "failure": "Initial #menu visibility expectation timed out before any settings, reload, or paused-grid step.",
+        "menuObservationsHidden": 91,
+        "nativeTiming": {
+          "origin": "Milliseconds since document timeOrigin; unmodified native GL results",
+          "firstFenceSubmittedMs": 76232.19999999925,
+          "lastCapturedWaitMs": 197557.8999999985,
+          "lastNativeWaitResult": 37147,
+          "lastNativeWaitMeaning": "TIMEOUT_EXPIRED",
+          "firstFencePendingAtLeastMs": 121325.69999999925,
+          "lastRetainedHeartbeat": {
+            "kind": "timer",
+            "at": 197571.59999999776,
+            "browserFrames": 4387,
+            "lastBrowserFrame": 197557.80000000075,
+            "activeCallback": 0,
+            "callbacks": 4079,
+            "origin": 1792452514223.2,
+            "receivedAt": 1792452711796
+          },
+          "successfulFenceCompletionsCaptured": 0,
+          "submittedFenceMilestonesCaptured": 1,
+          "contextLossMilestonesCaptured": 0,
+          "fullAttachment": "/tmp/mx30-final-menu-timing.json",
+          "retainedEvents": 4096,
+          "totalEvents": 16625,
+          "nodeDropped": 12529,
+          "browserDroppedByDocument": {
+            "1792452514223.2": 0
+          }
+        },
+        "postFailureSnapshot": "The later error-context snapshot contains the menu; exact GPU completion/reveal time was not captured in the retained timing attachment.",
+        "consoleOrPageErrorsCaptured": 0,
+        "networkResponsesCaptured": 91,
+        "allCapturedResponsesStatus200": true,
+        "unverified": [
+          "Native settings save and reload persistence",
+          "Same-Aurel full-circuit rebuild",
+          "Paused-grid preparation and settled worker pause"
+        ],
+        "interpretation": "Native first-frame GPU work remained pending after at least 121 seconds while application callbacks and browser heartbeats continued. This does not establish a lifecycle deadlock or a physical-hardware performance result. The original startup gate still failed.",
+        "progressReport": {
+          "version": 1,
+          "event": "failed",
+          "timestamp": "2026-10-19T23:32:39.760Z",
+          "active": [],
+          "completed": [
+            {
+              "id": "4e6e65a34911da55f23e-1629a880df3ab2f717cb",
+              "title": " >  > 30-menu-access.spec.ts > 27H.6 menu access: 640x400 settings persist and the normal paused grid starts",
+              "file": "/workspace/scratch/451aa99e35f9/Experiment-3/e2e/30-menu-access.spec.ts",
+              "status": "failed",
+              "durationMs": 213707
+            }
+          ]
+        },
+        "evidence": {
+          "trace": "/tmp/mx30-final-playwright/30-menu-access-27H-6-menu--d5087-e-normal-paused-grid-starts/trace.zip",
+          "traceSha256": "dfa227922fea374dc25ad7ae041f88a65242596a33213c02d05ca8c7bb5cefe7",
+          "log": "/tmp/mx30-final-run.log",
+          "errorContext": "/tmp/mx30-final-playwright/30-menu-access-27H-6-menu--d5087-e-normal-paused-grid-starts/error-context.md"
+        }
+      }
+    },
+    "notes": "These results apply to the published 4a8fd573 source and matching b6b9c1a8 build fingerprint. Lint, content and build passed; CI prepare passed 47 scoped files / 418 tests. Local broader tests and all three planned browser checks failed their stated gates. CI world/model checks passed 11 of 12 cases, including both dust and all world cases; the failed HUD synthetic sample did not advance simulation time past the existing settling interval. Its fixture correction and later main integration are recorded separately.",
+    "sourceCommit": "4a8fd5734aa89f86238fe96d78a23043a587cc94",
+    "sourceTree": "24e46a18dee5d09014dafc9719f4047102519bc3",
+    "localInitialRunCommit": "e7bf896ee38ca05a793ae9bb2d7a21e595f35eff",
+    "sourceEquivalence": "The published source tree exactly matched the clean local tree used by the broad run; local main was then aligned to the published commit without source-file changes."
+  },
+  "ciFinalStatusForPublishedUpgrade": {
+    "schemaVersion": 1,
+    "snapshotStartedAt": "2026-10-19T23:34:38.701970+00:00",
+    "snapshotAt": "2026-10-19T23:34:39.209670+00:00",
+    "repository": "https://github.com/cheshmakzanoon-ops/Experiment-3",
+    "sourceCommit": "4a8fd5734aa89f86238fe96d78a23043a587cc94",
+    "remoteMain": {
+      "queryUrl": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/git/ref/heads/main",
+      "ref": "refs/heads/main",
+      "sha": "85ceda37b9893ffe1f407e08f4ae1e3a5018e736",
+      "matchesPublishedSource": false,
+      "limits": "The final observed remote head differs from the tested source commit. This snapshot does not inspect or validate the changes in that newer head."
+    },
+    "method": "One final read-only public GitHub REST refresh of the two exact source workflow runs, their jobs, and remote main. No workflow reruns, cancellations, artifact downloads, or repository mutations.",
+    "runs": [
+      {
+        "id": 39337236264,
+        "name": "Motocross committed-source review",
+        "html_url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39337236264",
+        "event": "push",
+        "head_sha": "4a8fd5734aa89f86238fe96d78a23043a587cc94",
+        "run_number": 15,
+        "run_attempt": 1,
+        "status": "completed",
+        "conclusion": "failure",
+        "created_at": "2026-10-19T22:46:10Z",
+        "updated_at": "2026-10-19T23:19:10Z",
+        "run_started_at": "2026-10-19T22:46:10Z",
+        "matchesPublishedSource": true,
+        "jobCount": 3,
+        "jobs": [
+          {
+            "id": 118349663550,
+            "name": "prepare",
+            "html_url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39337236264/job/118349663550",
+            "status": "completed",
+            "conclusion": "success",
+            "started_at": "2026-10-19T22:54:44Z",
+            "completed_at": "2026-10-19T22:57:58Z"
+          },
+          {
+            "id": 118353991458,
+            "name": "browser (models-world)",
+            "html_url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39337236264/job/118353991458",
+            "status": "completed",
+            "conclusion": "failure",
+            "started_at": "2026-10-19T23:04:01Z",
+            "completed_at": "2026-10-19T23:19:09Z",
+            "failedSteps": [
+              {
+                "name": "Original full-quality world and real-input acceptance assertions",
+                "number": 8,
+                "status": "completed",
+                "conclusion": "failure"
+              }
+            ]
+          },
+          {
+            "id": 118353991473,
+            "name": "browser (journey)",
+            "html_url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39337236264/job/118353991473",
+            "status": "completed",
+            "conclusion": "failure",
+            "started_at": "2026-10-19T22:59:27Z",
+            "completed_at": "2026-10-19T23:06:34Z",
+            "failedSteps": [
+              {
+                "name": "Original full-quality world and real-input acceptance assertions",
+                "number": 8,
+                "status": "completed",
+                "conclusion": "failure"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 39337236310,
+        "name": "Build and validation",
+        "html_url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39337236310",
+        "event": "push",
+        "head_sha": "4a8fd5734aa89f86238fe96d78a23043a587cc94",
+        "run_number": 669,
+        "run_attempt": 1,
+        "status": "queued",
+        "conclusion": null,
+        "created_at": "2026-10-19T22:46:10Z",
+        "updated_at": "2026-10-19T22:46:10Z",
+        "run_started_at": "2026-10-19T22:46:10Z",
+        "matchesPublishedSource": true,
+        "jobCount": 4,
+        "jobs": [
+          {
+            "id": 118349659409,
+            "name": "unit-tests",
+            "html_url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39337236310/job/118349659409",
+            "status": "queued",
+            "conclusion": null,
+            "started_at": "2026-10-19T22:46:11Z",
+            "completed_at": null
+          },
+          {
+            "id": 118349659754,
+            "name": "validate",
+            "html_url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39337236310/job/118349659754",
+            "status": "queued",
+            "conclusion": null,
+            "started_at": "2026-10-19T22:46:11Z",
+            "completed_at": null
+          },
+          {
+            "id": 118349659800,
+            "name": "scenarios",
+            "html_url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39337236310/job/118349659800",
+            "status": "queued",
+            "conclusion": null,
+            "started_at": "2026-10-19T22:46:11Z",
+            "completed_at": null
+          },
+          {
+            "id": 118349659816,
+            "name": "offroad-scenarios",
+            "html_url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39337236310/job/118349659816",
+            "status": "queued",
+            "conclusion": null,
+            "started_at": "2026-10-19T22:46:11Z",
+            "completed_at": null
+          }
+        ]
+      }
+    ],
+    "newFailureDetails": [
+      {
+        "runId": 39337236264,
+        "jobId": 118353991458,
+        "jobName": "browser (models-world)",
+        "jobConclusion": "failure",
+        "stepNumber": 8,
+        "failedStep": "Original full-quality world and real-input acceptance assertions",
+        "jobUrl": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39337236264/job/118353991458",
+        "source": "Read-only GitHub workflow-job logs; inspected the relevant test-results/error tail only. No artifact download.",
+        "logExcerpt": "/tmp/motocross-ci-final-models-world-failure.log",
+        "testFile": "e2e/44-motocross-interface.spec.ts",
+        "testTitle": "motocross entry, live race alerts and landing HUD remain usable at small sizes",
+        "assertionSourceLine": 246,
+        "priorAction": "window.MotocrossInterface.sampleMotocrossHud('clean')",
+        "assertion": "expect(page.locator('.mx-ride-hud')).toHaveAttribute('data-tone', 'clean')",
+        "expected": "clean",
+        "received": "landing",
+        "locatorResolutionsWithUnexpectedValue": 64,
+        "timeoutMs": 60000,
+        "error": "Error: expect(locator).toHaveAttribute(expected) failed",
+        "errorLoggedAt": "2026-10-19T23:19:04.0197803Z",
+        "summary": {
+          "total": 12,
+          "passed": 11,
+          "failed": 1,
+          "durationAsLogged": "14.0m",
+          "workers": 1
+        },
+        "testResults": [
+          {
+            "number": 1,
+            "file": "e2e/42-motocross-bike.spec.ts",
+            "sourceLine": 6,
+            "title": "Motocross reference R2: production bikes, reachable riding poses and reversible mud on WebGL2",
+            "status": "passed",
+            "durationAsLogged": "18.7s",
+            "loggedAt": "2026-10-19T23:05:22.0686739Z"
+          },
+          {
+            "number": 2,
+            "file": "e2e/43-motocross-world.spec.ts",
+            "sourceLine": 7,
+            "title": "MX and SX production terrain loads photographed soil with correct macros and reversible wetness on WebGL2",
+            "status": "passed",
+            "durationAsLogged": "7.1m",
+            "loggedAt": "2026-10-19T23:12:26.1115563Z"
+          },
+          {
+            "number": 3,
+            "file": "e2e/43-motocross-world.spec.ts",
+            "sourceLine": 100,
+            "title": "MX and SX terrain preserves lit slopes and real jump shadows with native filtering",
+            "status": "passed",
+            "durationAsLogged": "2.3m",
+            "loggedAt": "2026-10-19T23:14:44.3237153Z"
+          },
+          {
+            "number": 4,
+            "file": "e2e/43-motocross-world.spec.ts",
+            "sourceLine": 100,
+            "title": "MX and SX terrain preserves lit slopes and real jump shadows with production filtering",
+            "status": "passed",
+            "durationAsLogged": "2.3m",
+            "loggedAt": "2026-10-19T23:17:01.4957980Z"
+          },
+          {
+            "number": 5,
+            "file": "e2e/44-motocross-interface.spec.ts",
+            "sourceLine": 12,
+            "title": "motocross entry, live race alerts and landing HUD remain usable at small sizes",
+            "status": "failed",
+            "durationAsLogged": "1.1m",
+            "loggedAt": "2026-10-19T23:18:07.2547344Z"
+          },
+          {
+            "number": 6,
+            "file": "e2e/46-motocross-normal-residency.spec.ts",
+            "sourceLine": 10,
+            "title": "multi-tap ground normals preserve decoded texels at every mip and across renderer replacement",
+            "status": "passed",
+            "durationAsLogged": "1.4s",
+            "loggedAt": "2026-10-19T23:18:09.2724675Z"
+          },
+          {
+            "number": 7,
+            "file": "e2e/46-motocross-normal-residency.spec.ts",
+            "sourceLine": 10,
+            "title": "linear-sRGB KTX2 normals preserve decoded texels at every mip and across renderer replacement",
+            "status": "passed",
+            "durationAsLogged": "1.1s",
+            "loggedAt": "2026-10-19T23:18:10.4000383Z"
+          },
+          {
+            "number": 8,
+            "file": "e2e/48-motocross-practice.spec.ts",
+            "sourceLine": 31,
+            "title": "solo landing targets, held-brake guidance and autopilot exclusion use the visible production HUD",
+            "status": "passed",
+            "durationAsLogged": "5.1s",
+            "loggedAt": "2026-10-19T23:18:15.4741384Z"
+          },
+          {
+            "number": 9,
+            "file": "e2e/48-motocross-practice.spec.ts",
+            "sourceLine": 123,
+            "title": "synthetic retry snapshots show measured placement and keep the longest practice note clear of controls",
+            "status": "passed",
+            "durationAsLogged": "4.9s",
+            "loggedAt": "2026-10-19T23:18:20.3432043Z"
+          },
+          {
+            "number": 10,
+            "file": "e2e/51-motocross-roost-lighting.spec.ts",
+            "sourceLine": 9,
+            "title": "opaque motocross soil fragments respond to scene lighting while dust and contact remain bounded",
+            "status": "passed",
+            "durationAsLogged": "2.5s",
+            "loggedAt": "2026-10-19T23:18:22.8197469Z"
+          },
+          {
+            "number": 11,
+            "file": "e2e/51-motocross-roost-lighting.spec.ts",
+            "sourceLine": 74,
+            "title": "motocross dust scatters actual sun and lamp light without glowing in the dark or allocating on replay",
+            "status": "passed",
+            "durationAsLogged": "2.2s",
+            "loggedAt": "2026-10-19T23:18:25.0016712Z"
+          },
+          {
+            "number": 12,
+            "file": "e2e/52-motocross-shoulder-plants.spec.ts",
+            "sourceLine": 6,
+            "title": "production MX shoulder plants compile and reproduce held and rewound wind pixels",
+            "status": "passed",
+            "durationAsLogged": "38.9s",
+            "loggedAt": "2026-10-19T23:19:03.9089772Z"
+          }
+        ],
+        "normalMipPreflight": {
+          "status": "passed",
+          "surfaces": [
+            "ground-forest-floor",
+            "ground-dry-earth",
+            "ground-wet-earth"
+          ],
+          "claimAsLogged": "Every authored mip survives residency and renderer replacement"
+        },
+        "backend": {
+          "requested": "mesa",
+          "renderer": "ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)",
+          "environment": {
+            "LIBGL_ALWAYS_SOFTWARE": "true",
+            "GALLIUM_DRIVER": "llvmpipe",
+            "LP_NUM_THREADS": "4"
+          },
+          "physicalHardwareValidated": false
+        },
+        "artifactReportedInLog": {
+          "id": 12228503458,
+          "name": "motocross-committed-qa-models-world",
+          "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39337236264/artifacts/12228503458",
+          "downloadedForThisReview": false
+        },
+        "limits": "The log establishes a failed HUD tone assertion after the clean fixture sample, not its underlying cause. It does not clear the independent journey screenshot failure. Prior detailed source/build fingerprint trace remains in the separate earlier receipt."
+      }
+    ],
+    "detailedPriorFailureReceipt": "/tmp/motocross-ci-source-status-latest.json",
+    "limits": "Workflow and remote-head status apply only at snapshotAt. The newly failed models-world log was inspected afterward without another status poll. The earlier detailed journey failure receipt is preserved separately. Queued Build and validation jobs are unresolved; passing component checks do not clear either failed browser gate.",
+    "recordCompaction": "Routine job setup/teardown step arrays are omitted; all job outcomes, failed steps, measured test outcomes, failure details and original receipt hashes are retained."
+  },
+  "finalAcceptance": {
+    "status": "local-scoped-validation-passed-with-unresolved-ci-and-broader-gates",
+    "baseCommit": "85ceda37b9893ffe1f407e08f4ae1e3a5018e736",
+    "preservedConcurrentCommit": "85ceda37b9893ffe1f407e08f4ae1e3a5018e736",
+    "concurrentChange": "MotoGP rider, fork and front-contact changes, physics version 11, and exact Float32 showroom cloud/PMREM warmup. Root fast-forwarded main without discarding source changes.",
+    "fixtureCorrection": {
+      "schemaVersion": 1,
+      "status": "targeted-component-test-passed",
+      "recordedAt": "2026-10-19T23:46:16.289594+00:00",
+      "cause": {
+        "classification": "pre-existing-synthetic-fixture-clock-bug",
+        "oldSamples": "air at H.TIME=10, then first grounded clean sample repeated three times at H.TIME=10.05",
+        "productionContract": "First contact starts landingAt. A clean grade remains SETTLING/data-tone=landing until H.TIME-landingAt >= 0.25 s. Snapshot time must advance; repeated presentations and wall-clock waits do not settle a held frame.",
+        "provisionalDisplayIntroducedAt": "2509d005",
+        "oldFixturePredatedContract": true,
+        "flightPredictionAndImpactSolverRanInFixture": false,
+        "evidence": "Fixture constructs Simulation/makeFrame and writes explicit synthetic channels; it never calls Simulation.step. Relevant UI/grading/fixture/test sources had empty diff 2509d00..85ceda37 before this correction."
+      },
+      "changes": {
+        "files": [
+          "e2e/fixtures/motocross-interface.ts",
+          "e2e/44-motocross-interface.spec.ts"
+        ],
+        "description": "Added explicit contact and second-flight stages; advance snapshot ticks/time coherently, retain completed airtime after touchdown, use one production Interface.update per sample. Added first-contact SETTLING/landing-tone and second-flight air-tone assertions.",
+        "originalAssertionsPreserved": true,
+        "assertionsAdded": 3,
+        "productionFilesChanged": false,
+        "gradingThresholdsChanged": false,
+        "timeline": [
+          {
+            "stage": "air",
+            "tick": 1200,
+            "timeSeconds": 10.0,
+            "airborne": true,
+            "airTimeSeconds": 0.84
+          },
+          {
+            "stage": "contact",
+            "tick": 1206,
+            "timeSeconds": 10.05,
+            "airborne": false,
+            "airTimeSeconds": 0.89
+          },
+          {
+            "stage": "clean",
+            "tick": 1237,
+            "timeSeconds": 10.308333333333334,
+            "airborne": false,
+            "airTimeSeconds": 0.89
+          },
+          {
+            "stage": "hard-air",
+            "tick": 1344,
+            "timeSeconds": 11.2,
+            "airborne": true,
+            "airTimeSeconds": 0.84
+          },
+          {
+            "stage": "hard",
+            "tick": 1350,
+            "timeSeconds": 11.25,
+            "airborne": false,
+            "airTimeSeconds": 0.89
+          },
+          {
+            "stage": "crash",
+            "tick": 1356,
+            "timeSeconds": 11.3,
+            "airborne": false,
+            "airTimeSeconds": 0.89
+          },
+          {
+            "stage": "rewind",
+            "tick": 120,
+            "timeSeconds": 1.0,
+            "airborne": false,
+            "airTimeSeconds": 0
+          },
+          {
+            "stage": "redline",
+            "tick": 126,
+            "timeSeconds": 1.05,
+            "airborne": false,
+            "airTimeSeconds": 0
+          }
+        ],
+        "intentionalBackwardTime": "rewind only; other ordered sample stages advance",
+        "contactToCleanSeconds": 0.25833333333333336
+      },
+      "source": {
+        "baseCommit": "85ceda37b9893ffe1f407e08f4ae1e3a5018e736",
+        "headAfterTest": "4ee01549c2d9ee9d31174eced57acd6638a0961f",
+        "filesSha256Before": {
+          "e2e/fixtures/motocross-interface.ts": "e6d9acb2b610c413ca0072a30ebf2f8267f1ccd913ba22fd1973fc4a7c5c2c4e",
+          "e2e/44-motocross-interface.spec.ts": "7e5c1dea0540c45a1c1c2e3f780e8558b2a9a91c6b73558b42adec718a2ffa5e"
+        },
+        "filesSha256After": {
+          "e2e/fixtures/motocross-interface.ts": "e6d9acb2b610c413ca0072a30ebf2f8267f1ccd913ba22fd1973fc4a7c5c2c4e",
+          "e2e/44-motocross-interface.spec.ts": "7e5c1dea0540c45a1c1c2e3f780e8558b2a9a91c6b73558b42adec718a2ffa5e"
+        },
+        "filesUnchangedAcrossTest": true,
+        "patchSha256": "d5bb4300b0ae7865f3dad39c8cf2b824c40813609293906c3ebbf89369516e5d",
+        "productionFilesMatchBaseAfterTest": {
+          "src/ui/offroad-hud.ts": true,
+          "src/ui/interface.ts": true,
+          "src/simulation/offroad/riding-feedback.ts": true,
+          "src/simulation/offroad/dirt-bike-vehicle.ts": true
+        },
+        "uncommittedAtTestStart": true,
+        "identityNote": "The run began on baseCommit plus the recorded two-file patch. HEAD-after-test was captured after the parent was notified that browser execution had finished. Both changed-file hashes match before/after; the listed production sources also match the base. No whole-application build acceptance is inferred.",
+        "trackedChangesAtReceipt": []
+      },
+      "verification": {
+        "command": "APEX_BROWSER_BACKEND=swiftshader node node_modules/@playwright/test/cli.js test --config=/tmp/motocross-hud-fixture.config.mts --workers=1",
+        "exitCode": 0,
+        "workers": 1,
+        "retries": 0,
+        "testTimeoutMs": 300000,
+        "expectTimeoutMs": 60000,
+        "gatesUnchanged": true,
+        "configuration": "Imports repository playwright.config.ts. Overrides only targeted file/output/report paths, disables unused preview webServer, and relocates unchanged backend verification output to /tmp.",
+        "backend": {
+          "requested": "swiftshader",
+          "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+          "vendor": "Google Inc. (Google)",
+          "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+          "pixel": [
+            64,
+            128,
+            191,
+            255
+          ],
+          "error": 0,
+          "softwareRendererDetected": true,
+          "physicalHardwareValidated": false
+        },
+        "stats": {
+          "startTime": "2026-10-19T23:41:25.096Z",
+          "duration": 232301.361,
+          "expected": 1,
+          "skipped": 0,
+          "unexpected": 0,
+          "flaky": 0
+        },
+        "errors": [],
+        "specs": [
+          {
+            "title": "motocross entry, live race alerts and landing HUD remain usable at small sizes",
+            "file": "44-motocross-interface.spec.ts",
+            "line": 4,
+            "ok": true,
+            "tests": [
+              {
+                "status": "expected",
+                "expectedStatus": "passed",
+                "timeout": 300000,
+                "results": [
+                  {
+                    "status": "passed",
+                    "durationMs": 220021,
+                    "retry": 0,
+                    "errors": []
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "viewportAndScaleMatrix": [
+          [
+            1280,
+            800,
+            1
+          ],
+          [
+            1280,
+            800,
+            1.35
+          ],
+          [
+            640,
+            400,
+            1
+          ],
+          [
+            375,
+            667,
+            1.35
+          ]
+        ],
+        "initialRestrictedLaunch": {
+          "testExecuted": false,
+          "exitCode": 1,
+          "failure": "Chromium backend setup launch blocked by restricted exec sandbox: sandbox_host_linux.cc:41, Operation not permitted",
+          "receipt": "/tmp/motocross-hud-fixture-verification/sandbox-launch-results.json",
+          "resolution": "Identical test command rerun via approved elevated execution; no browser flags or test gates relaxed."
+        },
+        "report": "/tmp/motocross-hud-fixture-verification/playwright-results.json"
+      },
+      "limits": [
+        "Synthetic production-UI component coverage, not a physics flight, played race, GPU performance benchmark, or full application acceptance.",
+        "This targeted pass does not resolve previously reported full-scene browser or long-running AI test failures."
+      ],
+      "publishedCommit": "0004d10009b6e88ec65fdb3fbd663e1dee3f5eb3",
+      "publishedTree": "f1df41a74e5375ccb30f09d62833eb87cae270f5",
+      "publicationEquivalence": "The GitHub commit tree exactly matched clean local commit 4ee01549. Local main was aligned to the published commit without application/test file changes before the latest guarded build."
+    },
+    "productionBuild": {
+      "status": "passed",
+      "sourceCommit": "0004d10009b6e88ec65fdb3fbd663e1dee3f5eb3",
+      "sourceTree": "f1df41a74e5375ccb30f09d62833eb87cae270f5",
+      "command": "node --experimental-transform-types scripts/source-stability.ts -- bash -c: npm run lint && npm run validate:content && targeted four-file Vitest run && npm run build",
+      "exitCode": 0,
+      "typescript": "passed",
+      "vite": "passed",
+      "viteReportedDurationSeconds": 55.81,
+      "modulesTransformed": 724,
+      "buildIdentity": {
+        "version": 1,
+        "commit": null,
+        "fingerprint": "ce6f4d664a3e797bfb3751abe66bf6274f2ebfc7645a3992831f957b98841d00"
+      },
+      "sourceGuard": "No application inputs changed during the complete guarded lint/content/unit/build invocation. Worktree clean after completion.",
+      "logSha256": "b21d38dc66ec15ef452606c339009b75d8cb77205da73e6d811958d07f715b71",
+      "buildIdentitySha256": "8215e832afb3bfd221106bddd912428f659c55f99955f756121a8d8ba62fa113",
+      "warnings": [
+        "Vite reports output chunks larger than 500 kB.",
+        "Existing Node experimental-transform and npm http-proxy environment warnings."
+      ],
+      "identityLimit": "Local Vite commit field is null because no CI commit variable was supplied; the verified clean source commit and stable application fingerprint identify this build."
+    },
+    "targetedUnits": {
+      "status": "passed",
+      "sourceCommit": "0004d10009b6e88ec65fdb3fbd663e1dee3f5eb3",
+      "command": "npx vitest run tests/startup.test.ts tests/menu-startup-sky.test.ts tests/motocross-landing-prediction.test.ts tests/session-identity.test.ts --maxWorkers=1 --no-file-parallelism",
+      "reportedDurationSeconds": 77.71,
+      "files": [
+        {
+          "file": "tests/menu-startup-sky.test.ts",
+          "status": "passed",
+          "testCount": 5,
+          "failedCases": []
+        },
+        {
+          "file": "tests/motocross-landing-prediction.test.ts",
+          "status": "passed",
+          "testCount": 9,
+          "failedCases": []
+        },
+        {
+          "file": "tests/session-identity.test.ts",
+          "status": "passed",
+          "testCount": 14,
+          "failedCases": []
+        },
+        {
+          "file": "tests/startup.test.ts",
+          "status": "passed",
+          "testCount": 12,
+          "failedCases": []
+        }
+      ],
+      "passedTests": 40,
+      "failedTests": 0,
+      "skippedTests": 0,
+      "success": true,
+      "reportedWorkerRpcErrors": 0,
+      "receiptSha256": "9559987cd3b7dbf6171767bce62a7c4400f3847be2d3679d98cac943300e5a44"
+    },
+    "motocrossJourney": {
+      "schemaVersion": 1,
+      "scope": "One second real MX45 attempt after the exact showroom cloud-cover/daylight prewarm source change. Earlier 4a8fd57 failures remain separate historical results.",
+      "startedAtUtc": "2026-10-20T00:13:30.571106+00:00",
+      "head": "0004d10009b6e88ec65fdb3fbd663e1dee3f5eb3",
+      "tree": "f1df41a74e5375ccb30f09d62833eb87cae270f5",
+      "gitStatusAtStart": "",
+      "buildIdentity": {
+        "version": 1,
+        "commit": null,
+        "fingerprint": "ce6f4d664a3e797bfb3751abe66bf6274f2ebfc7645a3992831f957b98841d00"
+      },
+      "test": {
+        "file": "e2e/45-motocross-gameplay.spec.ts",
+        "sha256": "1a48e95195f439b8ca2e08ec18223589108ab2e1de0ed2d50fb46b401b051068",
+        "testTimeoutMs": 1200000,
+        "firstMenuTimeoutMs": 180000,
+        "screenshotTimeoutMs": 60000,
+        "sessionPreparationTimeoutMs": 300000,
+        "rideProgressTimeoutMs": 180000,
+        "workers": 1,
+        "retries": 0,
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        },
+        "assertionsAndCaptures": "Original committed test, unchanged"
+      },
+      "command": "APEX_BROWSER_BACKEND=swiftshader APEX_MOTOCROSS_JOURNEY_QUALITY=low PLAYWRIGHT_HTML_OUTPUT_DIR=/tmp/mx45-prewarmed-report ./node_modules/.bin/playwright test e2e/45-motocross-gameplay.spec.ts --workers=1 --output=/tmp/mx45-prewarmed-playwright",
+      "quality": {
+        "initial": "default Medium",
+        "requestedThroughVisibleSettings": "low",
+        "selectionReached": true,
+        "actualAfterVisibleSettings": "Low",
+        "settingsTransitionCompleted": {
+          "startedAtUtc": "2026-10-20T00:15:49.315Z",
+          "durationMs": 153,
+          "completedAtUtc": "2026-10-20T00:15:49.468Z",
+          "passed": true
+        }
+      },
+      "physicalHardwareValidated": false,
+      "status": "passed",
+      "artifactPaths": {
+        "log": "/tmp/mx45-prewarmed-run.log",
+        "playwright": "/tmp/mx45-prewarmed-playwright",
+        "htmlReport": "/tmp/mx45-prewarmed-report"
+      },
+      "finalizedAtUtc": "2026-10-20T00:33:59.409483+00:00",
+      "result": {
+        "exitCode": 0,
+        "status": "passed",
+        "attemptsForThisBuild": 1,
+        "retryIndex": 0,
+        "testStartedAtUtc": "2026-10-20T00:13:49.279Z",
+        "testFinishedAtUtc": "2026-10-20T00:29:26.940Z",
+        "testDurationMs": 937661,
+        "runnerStartedAtUtc": "2026-10-20T00:13:44.574000+00:00",
+        "runnerDurationMs": 950454.259,
+        "stats": {
+          "total": 1,
+          "expected": 1,
+          "unexpected": 0,
+          "flaky": 0,
+          "skipped": 0,
+          "ok": true
+        },
+        "testErrors": [],
+        "runnerErrors": [],
+        "applicationPageAndConsoleErrorAssertionPassed": true,
+        "firstFailedBoundary": null,
+        "noRetryConclusion": "This one attempt passed after the concrete showroom prewarm source change. No retry, extra browser, Photo rerun, or Aurel rerun followed it."
+      },
+      "backend": {
+        "requested": "swiftshader",
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+        "vendor": "Google Inc. (Google)",
+        "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+        "pixel": [
+          64,
+          128,
+          191,
+          255
+        ],
+        "error": 0,
+        "softwareRendererDetected": true,
+        "physicalHardwareValidated": false
+      },
+      "backendEvidence": "Existing native WebGL preflight for this test invocation; software renderer explicitly identified. It does not certify physical hardware performance.",
+      "sourceAtFinish": {
+        "head": "0004d10009b6e88ec65fdb3fbd663e1dee3f5eb3",
+        "tree": "f1df41a74e5375ccb30f09d62833eb87cae270f5",
+        "gitStatus": "",
+        "buildIdentity": {
+          "version": 1,
+          "commit": null,
+          "fingerprint": "ce6f4d664a3e797bfb3751abe66bf6274f2ebfc7645a3992831f957b98841d00"
+        },
+        "testSha256": "1a48e95195f439b8ca2e08ec18223589108ab2e1de0ed2d50fb46b401b051068"
+      },
+      "identityEvidence": {
+        "sourceAndDistCheckedBeforeAndAfter": true,
+        "servedBy": "The existing Playwright configuration started its local Vite production preview from this repository.",
+        "embeddedCommit": "null in local Vite environment; parent guarded build and clean HEAD/tree tie the artifact to 0004d100.",
+        "runtimeFingerprintDirectlyRetained": false,
+        "runtimeFingerprintLimit": "The unchanged passing MX45 test retains its screenshots and journey telemetry, but does not separately attach the runtime fingerprint. Source and dist identity are recorded directly."
+      },
+      "initialMenu": {
+        "visibilityGate": {
+          "startedAtUtc": "2026-10-20T00:14:02.317Z",
+          "durationMs": 104105,
+          "completedAtUtc": "2026-10-20T00:15:46.422Z",
+          "passed": true
+        },
+        "presentationPurpose": "showroom",
+        "constructionTasks": 0,
+        "completedGpuFrameAssertionPassed": true,
+        "defaultMediumBeforeSettings": true
+      },
+      "venues": [
+        {
+          "circuit": "valley-ridge-mx",
+          "machine": "mx450",
+          "lighting": "day",
+          "reachedGates": {
+            "selectedMachinePreviewAndCompletedFrame": "passed",
+            "completeCircuitBriefing": {
+              "startedAtUtc": "2026-10-20T00:17:11.222Z",
+              "durationMs": 201728,
+              "completedAtUtc": "2026-10-20T00:20:32.950Z",
+              "passed": true
+            },
+            "heldGrid": {
+              "passed": true,
+              "riders": 8,
+              "tick": 0,
+              "auto": false,
+              "allRidersSelectedMachine": true,
+              "safetyCarPhase": 0
+            },
+            "drivingStateAndMxHud": "passed",
+            "finiteFrameValues": "passed",
+            "allSixNativeCaptures": "passed"
+          },
+          "construction": {
+            "tasks": 53,
+            "yields": 22,
+            "workMilliseconds": 36302.70000001043,
+            "maximumTaskMilliseconds": 27047.39999999851,
+            "cancelled": false
+          },
+          "preparation": {
+            "status": "complete",
+            "elapsedMs": 116367.90000000596,
+            "error": null
+          },
+          "rendering": {
+            "purpose": "circuit",
+            "quality": "Low",
+            "width": 1080,
+            "height": 675,
+            "graphics": {
+              "resolutionScale": 0.75,
+              "textureSize": 256,
+              "shadowSize": 0,
+              "antialias": true,
+              "msaa": 0,
+              "ambientOcclusion": false,
+              "bloom": false
+            }
+          },
+          "humanControls": {
+            "mode": "Real S/Q/Z/W key events through the production app and worker, with auto false; diagnostics only observed.",
+            "brake": {
+              "key": "s",
+              "heldDuringBothBodySamples": true,
+              "bothSpeedBelow1MpsAssertionsPassed": true,
+              "exactBrakeSpeedsRetained": false
+            },
+            "forwardBody": {
+              "key": "q",
+              "body": 0.9680895805358887,
+              "requiredGreaterThan": 0.55
+            },
+            "backBody": {
+              "key": "z",
+              "body": -0.9675276875495911,
+              "requiredLessThan": -0.55
+            },
+            "throttle": {
+              "key": "w",
+              "sampleTimeSeconds": 34.25,
+              "speedMps": 3.4346842765808105,
+              "input": 1,
+              "auto": false
+            }
+          },
+          "aiDemonstration": {
+            "explicitlyEnabledWithKey": "g",
+            "autoEnabledAssertionPassed": true,
+            "startedAtSimulationSeconds": 34.650001525878906,
+            "observedSimulationSeconds": 20.433330535888672,
+            "observedRenderedSeconds": 10.662364959716797,
+            "signedForwardProgressM": 271.1093444824219,
+            "maximumRecordedAirTimeSeconds": 1.100000023841858,
+            "recordedTouchdown": {
+              "tick": 6160,
+              "time": 51.33333206176758,
+              "s": 210.27325439453125,
+              "progressM": 218.5970458984375,
+              "speed": 13.559907913208008,
+              "airborne": false,
+              "airTime": 1.100000023841858,
+              "landingSpeed": 4.1439666748046875,
+              "landingPitch": 0.0375496931374073,
+              "safetyCarPhase": 0,
+              "presentedTime": 45.3123664855957
+            },
+            "maximumSafetyCarPhase": 0,
+            "observationCount": 30,
+            "progressFlightTouchdownAndRenderedRidingGate": "passed"
+          },
+          "cameraPauseReturn": {
+            "chaseCapture": "passed",
+            "onboardCameraSelectionAndCapture": "passed",
+            "pauseAcknowledgmentSettled": "passed",
+            "pauseTickHeldAcrossCapture": 9654,
+            "workerPaused": true,
+            "pauseCapture": "passed",
+            "returnToSelectedMachinePaddock": "passed",
+            "menuPreviewTimeResetToZero": "passed",
+            "presentationTimeResetToZero": "passed"
+          },
+          "captures": [
+            {
+              "path": "/tmp/mx45-prewarmed-playwright/45-motocross-gameplay-real-52ab8-eras-pause-and-venue-switch/valley-ridge-mx-actual-menu.png",
+              "bytes": 652877,
+              "sha256": "ba247204810d1267c0766a65b1d460827064cf8b8e4a47441b6b93849111d2c7",
+              "name": "menu",
+              "width": 1440,
+              "height": 900,
+              "timing": {
+                "startedAtUtc": "2026-10-20T00:17:01.338Z",
+                "durationMs": 2352,
+                "completedAtUtc": "2026-10-20T00:17:03.690Z",
+                "passed": true
+              }
+            },
+            {
+              "path": "/tmp/mx45-prewarmed-playwright/45-motocross-gameplay-real-52ab8-eras-pause-and-venue-switch/valley-ridge-mx-actual-gate.png",
+              "bytes": 1445765,
+              "sha256": "fff42415ee7ba62e539d066e93d0eaf9308489b88ba32d336e1813af2b8420d2",
+              "name": "gate",
+              "width": 1440,
+              "height": 900,
+              "timing": {
+                "startedAtUtc": "2026-10-20T00:20:33.643Z",
+                "durationMs": 17374,
+                "completedAtUtc": "2026-10-20T00:20:51.017Z",
+                "passed": true
+              }
+            },
+            {
+              "path": "/tmp/mx45-prewarmed-playwright/45-motocross-gameplay-real-52ab8-eras-pause-and-venue-switch/valley-ridge-mx-actual-weight-back.png",
+              "bytes": 1295069,
+              "sha256": "3f883ca290d023d67de349ac2188dbfb16401c40d6c70239014dd4336ea6107b",
+              "name": "weight-back",
+              "width": 1440,
+              "height": 900,
+              "timing": {
+                "startedAtUtc": "2026-10-20T00:20:54.862Z",
+                "durationMs": 18195,
+                "completedAtUtc": "2026-10-20T00:21:13.057Z",
+                "passed": true
+              }
+            },
+            {
+              "path": "/tmp/mx45-prewarmed-playwright/45-motocross-gameplay-real-52ab8-eras-pause-and-venue-switch/valley-ridge-mx-actual-chase.png",
+              "bytes": 1409098,
+              "sha256": "bcf54609e2c95ce1f59178bcdfc4a4c28eedd89bd4fb955cc2695c068474736c",
+              "name": "chase",
+              "width": 1440,
+              "height": 900,
+              "timing": {
+                "startedAtUtc": "2026-10-20T00:21:38.065Z",
+                "durationMs": 9655,
+                "completedAtUtc": "2026-10-20T00:21:47.720Z",
+                "passed": true
+              }
+            },
+            {
+              "path": "/tmp/mx45-prewarmed-playwright/45-motocross-gameplay-real-52ab8-eras-pause-and-venue-switch/valley-ridge-mx-actual-onboard.png",
+              "bytes": 1511468,
+              "sha256": "6b47851ae8319f6e3722d48a5a4b82bcd92728bd2e3c02c341b63dbab5de3b52",
+              "name": "onboard",
+              "width": 1440,
+              "height": 900,
+              "timing": {
+                "startedAtUtc": "2026-10-20T00:21:57.708Z",
+                "durationMs": 6372,
+                "completedAtUtc": "2026-10-20T00:22:04.080Z",
+                "passed": true
+              }
+            },
+            {
+              "path": "/tmp/mx45-prewarmed-playwright/45-motocross-gameplay-real-52ab8-eras-pause-and-venue-switch/valley-ridge-mx-actual-pause.png",
+              "bytes": 430538,
+              "sha256": "33709bd77564571d34f44de85f56466190553d889e781ca5622baf66543f014d",
+              "name": "pause",
+              "width": 1440,
+              "height": 900,
+              "timing": {
+                "startedAtUtc": "2026-10-20T00:22:04.882Z",
+                "durationMs": 6798,
+                "completedAtUtc": "2026-10-20T00:22:11.680Z",
+                "passed": true
+              }
+            }
+          ],
+          "fullTelemetryArtifact": {
+            "path": "/tmp/mx45-prewarmed-valley-ridge-mx-journey.json",
+            "bytes": 99518,
+            "sha256": "e5ccbfe3fbea208ee62ca2623aecac619a8b043664ced6279d8d831d2c3f112e"
+          }
+        },
+        {
+          "circuit": "arena-nord-sx",
+          "machine": "mx250",
+          "lighting": "night",
+          "reachedGates": {
+            "selectedMachinePreviewAndCompletedFrame": "passed",
+            "completeCircuitBriefing": {
+              "startedAtUtc": "2026-10-20T00:23:38.639Z",
+              "durationMs": 157047,
+              "completedAtUtc": "2026-10-20T00:26:15.686Z",
+              "passed": true
+            },
+            "heldGrid": {
+              "passed": true,
+              "riders": 8,
+              "tick": 0,
+              "auto": false,
+              "allRidersSelectedMachine": true,
+              "safetyCarPhase": 0
+            },
+            "drivingStateAndMxHud": "passed",
+            "finiteFrameValues": "passed",
+            "allSixNativeCaptures": "passed"
+          },
+          "construction": {
+            "tasks": 43,
+            "yields": 15,
+            "workMilliseconds": 41349.9999999702,
+            "maximumTaskMilliseconds": 29386.39999999851,
+            "cancelled": false
+          },
+          "preparation": {
+            "status": "complete",
+            "elapsedMs": 98879.89999999851,
+            "error": null
+          },
+          "rendering": {
+            "purpose": "circuit",
+            "quality": "Low",
+            "width": 1080,
+            "height": 675,
+            "graphics": {
+              "resolutionScale": 0.75,
+              "textureSize": 256,
+              "shadowSize": 0,
+              "antialias": true,
+              "msaa": 0,
+              "ambientOcclusion": false,
+              "bloom": false
+            }
+          },
+          "humanControls": {
+            "mode": "Real S/Q/Z/W key events through the production app and worker, with auto false; diagnostics only observed.",
+            "brake": {
+              "key": "s",
+              "heldDuringBothBodySamples": true,
+              "bothSpeedBelow1MpsAssertionsPassed": true,
+              "exactBrakeSpeedsRetained": false
+            },
+            "forwardBody": {
+              "key": "q",
+              "body": 0.8580538034439087,
+              "requiredGreaterThan": 0.55
+            },
+            "backBody": {
+              "key": "z",
+              "body": -0.7232348322868347,
+              "requiredLessThan": -0.55
+            },
+            "throttle": {
+              "key": "w",
+              "sampleTimeSeconds": 23.891666412353516,
+              "speedMps": 6.412445068359375,
+              "input": 1,
+              "auto": false
+            }
+          },
+          "aiDemonstration": {
+            "explicitlyEnabledWithKey": "g",
+            "autoEnabledAssertionPassed": true,
+            "startedAtSimulationSeconds": 24.325000762939453,
+            "observedSimulationSeconds": 21.375,
+            "observedRenderedSeconds": 15.416664123535156,
+            "signedForwardProgressM": 163.3946990966797,
+            "maximumRecordedAirTimeSeconds": 0.7833333611488342,
+            "recordedTouchdown": {
+              "tick": 4942,
+              "time": 41.18333435058594,
+              "s": 142.267333984375,
+              "progressM": 144.8165283203125,
+              "speed": 4.785469055175781,
+              "airborne": false,
+              "airTime": 0.46666666865348816,
+              "landingSpeed": 4.387843608856201,
+              "landingPitch": -0.6194928884506226,
+              "safetyCarPhase": 0,
+              "presentedTime": 39.74166488647461
+            },
+            "maximumSafetyCarPhase": 0,
+            "observationCount": 31,
+            "progressFlightTouchdownAndRenderedRidingGate": "passed"
+          },
+          "cameraPauseReturn": {
+            "chaseCapture": "passed",
+            "onboardCameraSelectionAndCapture": "passed",
+            "pauseAcknowledgmentSettled": "passed",
+            "pauseTickHeldAcrossCapture": 10460,
+            "workerPaused": true,
+            "pauseCapture": "passed",
+            "returnToSelectedMachinePaddock": "passed",
+            "menuPreviewTimeResetToZero": "passed",
+            "presentationTimeResetToZero": "passed"
+          },
+          "captures": [
+            {
+              "path": "/tmp/mx45-prewarmed-playwright/45-motocross-gameplay-real-52ab8-eras-pause-and-venue-switch/arena-nord-sx-actual-menu.png",
+              "bytes": 1249776,
+              "sha256": "f1f57c42f5f3854cbd15dd402e5cc049889185c398048d66c2452ec8918681a5",
+              "name": "menu",
+              "width": 1440,
+              "height": 900,
+              "timing": {
+                "startedAtUtc": "2026-10-20T00:23:12.682Z",
+                "durationMs": 14556,
+                "completedAtUtc": "2026-10-20T00:23:27.238Z",
+                "passed": true
+              }
+            },
+            {
+              "path": "/tmp/mx45-prewarmed-playwright/45-motocross-gameplay-real-52ab8-eras-pause-and-venue-switch/arena-nord-sx-actual-gate.png",
+              "bytes": 1400312,
+              "sha256": "f74539514879c4785a396f73c921c1aff6b9ad5eb26131e61e7659a67cfd786e",
+              "name": "gate",
+              "width": 1440,
+              "height": 900,
+              "timing": {
+                "startedAtUtc": "2026-10-20T00:26:16.412Z",
+                "durationMs": 11410,
+                "completedAtUtc": "2026-10-20T00:26:27.822Z",
+                "passed": true
+              }
+            },
+            {
+              "path": "/tmp/mx45-prewarmed-playwright/45-motocross-gameplay-real-52ab8-eras-pause-and-venue-switch/arena-nord-sx-actual-weight-back.png",
+              "bytes": 1276250,
+              "sha256": "3c4c99c7583cf082f6eb8d1e5b3cb5b30cf881b43056f60f5ec5ce3147952669",
+              "name": "weight-back",
+              "width": 1440,
+              "height": 900,
+              "timing": {
+                "startedAtUtc": "2026-10-20T00:26:31.045Z",
+                "durationMs": 10853,
+                "completedAtUtc": "2026-10-20T00:26:41.898Z",
+                "passed": true
+              }
+            },
+            {
+              "path": "/tmp/mx45-prewarmed-playwright/45-motocross-gameplay-real-52ab8-eras-pause-and-venue-switch/arena-nord-sx-actual-chase.png",
+              "bytes": 1255840,
+              "sha256": "a67945d6078c5b9ad4c5f37566b74160eb72550b0a13ee59c86cba58872b40aa",
+              "name": "chase",
+              "width": 1440,
+              "height": 900,
+              "timing": {
+                "startedAtUtc": "2026-10-20T00:27:21.164Z",
+                "durationMs": 12773,
+                "completedAtUtc": "2026-10-20T00:27:33.937Z",
+                "passed": true
+              }
+            },
+            {
+              "path": "/tmp/mx45-prewarmed-playwright/45-motocross-gameplay-real-52ab8-eras-pause-and-venue-switch/arena-nord-sx-actual-onboard.png",
+              "bytes": 1579604,
+              "sha256": "b3c2242a741866c5dc9756ec7866d4f9c66d986c81d4a71a7794cf50abc5b3c1",
+              "name": "onboard",
+              "width": 1440,
+              "height": 900,
+              "timing": {
+                "startedAtUtc": "2026-10-20T00:27:54.297Z",
+                "durationMs": 17305,
+                "completedAtUtc": "2026-10-20T00:28:11.602Z",
+                "passed": true
+              }
+            },
+            {
+              "path": "/tmp/mx45-prewarmed-playwright/45-motocross-gameplay-real-52ab8-eras-pause-and-venue-switch/arena-nord-sx-actual-pause.png",
+              "bytes": 422038,
+              "sha256": "b714f9f9a909c258b825ad5c1a35b8b20699899924855293ed597bb27592bdc3",
+              "name": "pause",
+              "width": 1440,
+              "height": 900,
+              "timing": {
+                "startedAtUtc": "2026-10-20T00:28:12.412Z",
+                "durationMs": 25374,
+                "completedAtUtc": "2026-10-20T00:28:37.786Z",
+                "passed": true
+              }
+            }
+          ],
+          "fullTelemetryArtifact": {
+            "path": "/tmp/mx45-prewarmed-arena-nord-sx-journey.json",
+            "bytes": 99021,
+            "sha256": "888c275eb0dc920d3a9163d8d469ae8a69f5ac395207593e1ae769bc3c655ae3"
+          }
+        }
+      ],
+      "artifacts": {
+        "log": {
+          "path": "/tmp/mx45-prewarmed-run.log",
+          "bytes": 8088,
+          "sha256": "a083ce286190d35d6afc9c40657fecef861bc4757f5714eafb7a8d3a96d52d8b"
+        },
+        "htmlReport": {
+          "path": "/tmp/mx45-prewarmed-report/index.html",
+          "bytes": 590264,
+          "sha256": "e8f777a8465858fa068e05387f88906c59a834667cada57671c8eb66c6c57051"
+        },
+        "decodedReportSummary": {
+          "path": "/tmp/mx45-prewarmed-report.json",
+          "bytes": 4442,
+          "sha256": "dbc8207d7f709630c0ad8a9f1499013c79b34fbc622c7f7cb262c09a61fb647f"
+        },
+        "decodedTestReport": {
+          "path": "/tmp/mx45-prewarmed-63247aa4b2714caaca71.json",
+          "bytes": 979884,
+          "sha256": "8f9ffba82cb8c894bdfd3bfbbbc693d9fb40751e9026f3fd7a029c50af42d9bd"
+        },
+        "productionJourneyAttachment": {
+          "path": "/tmp/mx45-prewarmed-motocross-production-journey.json",
+          "bytes": 236260,
+          "sha256": "96905d949dc5d12c7d7f6f70c6ca44a571585bf3eddf1e710bac6adb093539ea"
+        },
+        "progress": {
+          "path": "/tmp/mx45-prewarmed-browser-progress.json",
+          "bytes": 481,
+          "sha256": "1e08f2cde6f14e47f7e5b8c5f1525455a67e0eae89a3f6ef529272cbcadc9e70"
+        },
+        "retainedTrace": {
+          "path": null,
+          "sha256": null,
+          "reason": "The unchanged configuration retains traces only on failure; this attempt passed."
+        },
+        "errorContext": {
+          "path": null,
+          "sha256": null,
+          "reason": "No failed gate or error context in this passed attempt."
+        }
+      },
+      "scopeLimits": [
+        "SwiftShader functional acceptance at Low after a default Medium cold boot; 1440x900 viewport with the actual Low render size 1080x675.",
+        "Human brake/body/throttle controls and explicitly enabled AI demonstration are recorded separately. AI progress is not represented as a fully human-ridden course.",
+        "No physical hardware FPS, Medium riding, High/Ultra rendering, or hyperrealism certification is inferred from this result.",
+        "Historical 4a8fd57 local cold-menu and Photo/Aurel failures, plus the separate Mesa/default-Medium CI screenshot failure, remain recorded against their original source. This newer-source pass does not rewrite them.",
+        "No raw protocol frame arrays or full trace data are embedded here; the full unchanged test attachments remain in /tmp with hashes."
+      ],
+      "cleanup": {
+        "generatedProgressMovedTo": "/tmp/mx45-prewarmed-browser-progress.json",
+        "ownedPreviewAndBrowserProcessesObservedRemaining": false,
+        "unrelatedProcessesLeftUntouched": true,
+        "repositoryStatusCleanAfterCleanup": true,
+        "sourceEditsByThisAttempt": false
+      }
+    },
+    "sourceCommit": "0004d10009b6e88ec65fdb3fbd663e1dee3f5eb3",
+    "sourceTree": "f1df41a74e5375ccb30f09d62833eb87cae270f5",
+    "lint": {
+      "status": "passed",
+      "command": "npm run lint"
+    },
+    "contentValidation": {
+      "status": "passed",
+      "command": "npm run validate:content"
+    },
+    "visualReview": {
+      "filename": "valley-ridge-mx-actual-chase.png",
+      "bytes": 1409098,
+      "sha256": "bcf54609e2c95ce1f59178bcdfc4a4c28eedd89bd4fb955cc2695c068474736c",
+      "dimensions": [
+        1440,
+        900
+      ],
+      "review": "Root visually inspected the captured production Valley Ridge chase view. Bike/rider, rutted terrain, track boundaries and HUD are visible with no loading/modal overlay. This is the native Low-preset functional capture, not a full-quality artistic comparison, dust-lighting calibration or hardware performance benchmark.",
+      "capturedBy": "Unchanged e2e/45-motocross-gameplay.spec.ts during current 0004d100 source journey; complete-journey result recorded separately."
+    },
+    "currentSourceCI": {
+      "status": "incomplete-with-failed-journey-gate",
+      "statusSnapshot": "ciPublicationSnapshot",
+      "failureEvidence": "ciCurrentSourceJourneyFailure",
+      "interpretation": "The passed local Low/SwiftShader journey does not clear the separate failed default-Medium/Mesa gate capture or the unfinished CI jobs."
+    },
+    "otherBrowserCoverage": {
+      "photo": "No latest-source rerun; the failed focused 4a8fd573 Photo check remains under publishedUpgradeValidation.",
+      "sameAurel": "No latest-source rerun; the failed 4a8fd573 menu/Aurel check remains under publishedUpgradeValidation."
+    }
+  },
+  "ciCurrentSourceSnapshot": {
+    "schemaVersion": 1,
+    "snapshotStartedAt": "2026-10-20T00:18:27.354247+00:00",
+    "snapshotAt": "2026-10-20T00:18:28.137242+00:00",
+    "repository": "https://github.com/cheshmakzanoon-ops/Experiment-3",
+    "sourceCommit": "0004d10009b6e88ec65fdb3fbd663e1dee3f5eb3",
+    "method": "One read-only public GitHub REST snapshot: current-source workflow runs, jobs for the two relevant current-source workflows, and the previously queued general workflow on the historical source. No polling, reruns, cancellations, artifacts, browsers, or tests.",
+    "currentSourceRuns": [
+      {
+        "id": 39346077181,
+        "name": "Publish validated playable release",
+        "head_sha": "0004d10009b6e88ec65fdb3fbd663e1dee3f5eb3",
+        "html_url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39346077181",
+        "status": "completed",
+        "conclusion": "skipped",
+        "run_attempt": 1
+      },
+      {
+        "id": 39345385037,
+        "name": "Build and validation",
+        "head_sha": "0004d10009b6e88ec65fdb3fbd663e1dee3f5eb3",
+        "html_url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39345385037",
+        "status": "queued",
+        "conclusion": null,
+        "run_attempt": 1
+      },
+      {
+        "id": 39345385371,
+        "name": "Motocross committed-source review",
+        "head_sha": "0004d10009b6e88ec65fdb3fbd663e1dee3f5eb3",
+        "html_url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39345385371",
+        "status": "queued",
+        "conclusion": null,
+        "run_attempt": 1
+      }
+    ],
+    "relevantCurrentSourceRuns": [
+      {
+        "id": 39345385037,
+        "name": "Build and validation",
+        "head_sha": "0004d10009b6e88ec65fdb3fbd663e1dee3f5eb3",
+        "html_url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39345385037",
+        "status": "queued",
+        "conclusion": null,
+        "run_attempt": 1,
+        "jobs": [
+          {
+            "id": 118376608258,
+            "name": "scenarios",
+            "html_url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39345385037/job/118376608258",
+            "status": "queued",
+            "conclusion": null,
+            "completed_at": null,
+            "failedSteps": [],
+            "activeSteps": []
+          },
+          {
+            "id": 118376608443,
+            "name": "validate",
+            "html_url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39345385037/job/118376608443",
+            "status": "queued",
+            "conclusion": null,
+            "completed_at": null,
+            "failedSteps": [],
+            "activeSteps": []
+          },
+          {
+            "id": 118376608572,
+            "name": "offroad-scenarios",
+            "html_url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39345385037/job/118376608572",
+            "status": "queued",
+            "conclusion": null,
+            "completed_at": null,
+            "failedSteps": [],
+            "activeSteps": []
+          },
+          {
+            "id": 118376608733,
+            "name": "unit-tests",
+            "html_url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39345385037/job/118376608733",
+            "status": "queued",
+            "conclusion": null,
+            "completed_at": null,
+            "failedSteps": [],
+            "activeSteps": []
+          }
+        ]
+      },
+      {
+        "id": 39345385371,
+        "name": "Motocross committed-source review",
+        "head_sha": "0004d10009b6e88ec65fdb3fbd663e1dee3f5eb3",
+        "html_url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39345385371",
+        "status": "queued",
+        "conclusion": null,
+        "run_attempt": 1,
+        "jobs": [
+          {
+            "id": 118377010468,
+            "name": "prepare",
+            "html_url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39345385371/job/118377010468",
+            "status": "completed",
+            "conclusion": "success",
+            "completed_at": "2026-10-20T00:16:16Z",
+            "failedSteps": [],
+            "activeSteps": []
+          },
+          {
+            "id": 118380713398,
+            "name": "browser (journey)",
+            "html_url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39345385371/job/118380713398",
+            "status": "in_progress",
+            "conclusion": null,
+            "completed_at": null,
+            "failedSteps": [],
+            "activeSteps": [
+              {
+                "number": 8,
+                "name": "Original full-quality world and real-input acceptance assertions"
+              }
+            ]
+          },
+          {
+            "id": 118380713494,
+            "name": "browser (models-world)",
+            "html_url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39345385371/job/118380713494",
+            "status": "queued",
+            "conclusion": null,
+            "completed_at": null,
+            "failedSteps": [],
+            "activeSteps": []
+          }
+        ]
+      }
+    ],
+    "historicalGeneralRun": {
+      "id": 39337236310,
+      "name": "Build and validation",
+      "head_sha": "4a8fd5734aa89f86238fe96d78a23043a587cc94",
+      "html_url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39337236310",
+      "status": "queued",
+      "conclusion": null,
+      "run_attempt": 1,
+      "jobs": [
+        {
+          "id": 118349659409,
+          "name": "unit-tests",
+          "html_url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39337236310/job/118349659409",
+          "status": "queued",
+          "conclusion": null,
+          "completed_at": null,
+          "failedSteps": [],
+          "activeSteps": []
+        },
+        {
+          "id": 118349659754,
+          "name": "validate",
+          "html_url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39337236310/job/118349659754",
+          "status": "queued",
+          "conclusion": null,
+          "completed_at": null,
+          "failedSteps": [],
+          "activeSteps": []
+        },
+        {
+          "id": 118349659800,
+          "name": "scenarios",
+          "html_url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39337236310/job/118349659800",
+          "status": "queued",
+          "conclusion": null,
+          "completed_at": null,
+          "failedSteps": [],
+          "activeSteps": []
+        },
+        {
+          "id": 118349659816,
+          "name": "offroad-scenarios",
+          "html_url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39337236310/job/118349659816",
+          "status": "queued",
+          "conclusion": null,
+          "completed_at": null,
+          "failedSteps": [],
+          "activeSteps": []
+        }
+      ]
+    },
+    "limits": "Run/job states are observed at this snapshot. Passing or unresolved statuses are not claims about unrun checks; historical-source results do not validate the current source."
+  },
+  "evidenceReview": {
+    "scope": "Independent read-only checks of retained evidence against source and receipts, without running additional tests.",
+    "landingCases": "All 24 rows and displayed aggregate errors recompute; simulation-time, one-feature and missing candidate-fingerprint limitations retained.",
+    "hudFixture": "Published tick timeline, extra settling assertions, original deadlines and equivalent tested source tree confirmed.",
+    "references": "Original 100-image identity, contact-sheet scope and nine individual full-resolution reviews verified.",
+    "failedGates": "Historical broad and isolated deadline/RPC failures remain failed; latest targeted passes do not replace them.",
+    "dustModel": "Explicit bounded appearance approximation added after source review."
+  },
+  "sourcePublication": {
+    "branch": "main",
+    "implementationCommit": "4a8fd5734aa89f86238fe96d78a23043a587cc94",
+    "implementationUrl": "https://github.com/cheshmakzanoon-ops/Experiment-3/commit/4a8fd5734aa89f86238fe96d78a23043a587cc94",
+    "hudFixtureCorrectionCommit": "0004d10009b6e88ec65fdb3fbd663e1dee3f5eb3",
+    "hudFixtureCorrectionUrl": "https://github.com/cheshmakzanoon-ops/Experiment-3/commit/0004d10009b6e88ec65fdb3fbd663e1dee3f5eb3",
+    "testedSourceCommit": "0004d10009b6e88ec65fdb3fbd663e1dee3f5eb3",
+    "testedSourceTree": "f1df41a74e5375ccb30f09d62833eb87cae270f5",
+    "testedBuildFingerprint": "ce6f4d664a3e797bfb3751abe66bf6274f2ebfc7645a3992831f957b98841d00",
+    "preservedConcurrentCommits": [
+      "7e535707db77f409d941b7776573b945964091ec",
+      "85ceda37b9893ffe1f407e08f4ae1e3a5018e736",
+      "e7cbd04d8f5225d2b742dcc1bd39f9a6da444978"
+    ],
+    "physicsVersionQualification": "The motocross change advanced version 9 to 10; concurrent GP work advanced it to 11, which is the tested 0004d100 source. After validation, the preserved engine dynamics commit advanced main to version 12. No test result here is relabelled as validation of that later source.",
+    "runtimeScope": "Player mx250/mx450 first-tyre forecast and incoming landing impact; MX/SX dust lighting; deferred showroom construction and complete circuit/Photo transitions. No new runtime package or reference bitmap was added by these commits.",
+    "newDustResources": "The existing fixed 2400-slot pool and separate opaque instanced clods are retained. Light-aware dust adds no texture or dust draw call; production atmosphere uses its cached shader variant.",
+    "publicationMethod": "Source changes were published to main with expected-head protection and local/remote full-tree equivalence checks. Evidence is a subsequent documentation-only commit.",
+    "testedPhysicsVersion": 11,
+    "reportParentCommit": "e7cbd04d8f5225d2b742dcc1bd39f9a6da444978",
+    "reportParentPhysicsVersion": 12
+  },
+  "ciPublicationSnapshot": {
+    "schemaVersion": 1,
+    "snapshotStartedAt": "2026-10-20T00:31:18.074231+00:00",
+    "snapshotAt": "2026-10-20T00:31:20.097087+00:00",
+    "repository": "https://github.com/cheshmakzanoon-ops/Experiment-3",
+    "sourceCommit": "0004d10009b6e88ec65fdb3fbd663e1dee3f5eb3",
+    "method": "One final read-only public GitHub REST snapshot of workflows on this exact source and jobs for its Motocross committed-source review and Build and validation runs. No waiting, retries, workflow mutations, logs, artifacts, browsers, or tests.",
+    "currentSourceRuns": [
+      {
+        "id": 39346077181,
+        "name": "Publish validated playable release",
+        "head_sha": "0004d10009b6e88ec65fdb3fbd663e1dee3f5eb3",
+        "html_url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39346077181",
+        "status": "completed",
+        "conclusion": "skipped",
+        "run_attempt": 1
+      },
+      {
+        "id": 39345385037,
+        "name": "Build and validation",
+        "head_sha": "0004d10009b6e88ec65fdb3fbd663e1dee3f5eb3",
+        "html_url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39345385037",
+        "status": "queued",
+        "conclusion": null,
+        "run_attempt": 1
+      },
+      {
+        "id": 39345385371,
+        "name": "Motocross committed-source review",
+        "head_sha": "0004d10009b6e88ec65fdb3fbd663e1dee3f5eb3",
+        "html_url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39345385371",
+        "status": "in_progress",
+        "conclusion": null,
+        "run_attempt": 1
+      }
+    ],
+    "relevantCurrentSourceRuns": [
+      {
+        "id": 39345385037,
+        "name": "Build and validation",
+        "head_sha": "0004d10009b6e88ec65fdb3fbd663e1dee3f5eb3",
+        "html_url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39345385037",
+        "status": "queued",
+        "conclusion": null,
+        "run_attempt": 1,
+        "jobs": [
+          {
+            "id": 118376608258,
+            "name": "scenarios",
+            "html_url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39345385037/job/118376608258",
+            "status": "queued",
+            "conclusion": null,
+            "completed_at": null,
+            "failedSteps": [],
+            "activeSteps": []
+          },
+          {
+            "id": 118376608443,
+            "name": "validate",
+            "html_url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39345385037/job/118376608443",
+            "status": "queued",
+            "conclusion": null,
+            "completed_at": null,
+            "failedSteps": [],
+            "activeSteps": []
+          },
+          {
+            "id": 118376608572,
+            "name": "offroad-scenarios",
+            "html_url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39345385037/job/118376608572",
+            "status": "queued",
+            "conclusion": null,
+            "completed_at": null,
+            "failedSteps": [],
+            "activeSteps": []
+          },
+          {
+            "id": 118376608733,
+            "name": "unit-tests",
+            "html_url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39345385037/job/118376608733",
+            "status": "queued",
+            "conclusion": null,
+            "completed_at": null,
+            "failedSteps": [],
+            "activeSteps": []
+          }
+        ]
+      },
+      {
+        "id": 39345385371,
+        "name": "Motocross committed-source review",
+        "head_sha": "0004d10009b6e88ec65fdb3fbd663e1dee3f5eb3",
+        "html_url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39345385371",
+        "status": "in_progress",
+        "conclusion": null,
+        "run_attempt": 1,
+        "jobs": [
+          {
+            "id": 118377010468,
+            "name": "prepare",
+            "html_url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39345385371/job/118377010468",
+            "status": "completed",
+            "conclusion": "success",
+            "completed_at": "2026-10-20T00:16:16Z",
+            "failedSteps": [],
+            "activeSteps": []
+          },
+          {
+            "id": 118380713398,
+            "name": "browser (journey)",
+            "html_url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39345385371/job/118380713398",
+            "status": "completed",
+            "conclusion": "failure",
+            "completed_at": "2026-10-20T00:23:42Z",
+            "failedSteps": [
+              {
+                "number": 8,
+                "name": "Original full-quality world and real-input acceptance assertions",
+                "status": "completed",
+                "conclusion": "failure"
+              }
+            ],
+            "activeSteps": []
+          },
+          {
+            "id": 118380713494,
+            "name": "browser (models-world)",
+            "html_url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39345385371/job/118380713494",
+            "status": "in_progress",
+            "conclusion": null,
+            "completed_at": null,
+            "failedSteps": [],
+            "activeSteps": [
+              {
+                "number": 8,
+                "name": "Original full-quality world and real-input acceptance assertions"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "previousSnapshotPreserved": "/tmp/motocross-ci-current-source-status.json",
+    "limits": "These CI states apply only at snapshot time. Local gameplay acceptance is a separate receipt; no passing local result is used to change a failed or pending CI conclusion."
+  },
+  "ciCurrentSourceJourneyFailure": {
+    "schemaVersion": 1,
+    "retrievedAt": "2026-10-20T00:34:19.474661+00:00",
+    "repository": "https://github.com/cheshmakzanoon-ops/Experiment-3",
+    "sourceCommit": "0004d10009b6e88ec65fdb3fbd663e1dee3f5eb3",
+    "workflowRunId": 39345385371,
+    "jobId": 118380713398,
+    "jobUrl": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39345385371/job/118380713398",
+    "method": "One read-only retrieval of the failed job log through the GitHub workflow-job log connector; only its identity, backend and bounded failure excerpt retained. Read the already-local exact-commit e2e source to resolve the caller line. No status poll, rerun, browser launch, trace or artifact download.",
+    "result": {
+      "status": "failed",
+      "exitCode": 1,
+      "testsFailed": 1,
+      "durationAsLogged": "5.9m",
+      "failedStep": "Original full-quality world and real-input acceptance assertions",
+      "error": "TimeoutError: page.screenshot: Timeout 60000ms exceeded.",
+      "failedCall": "page.screenshot",
+      "timeoutMs": 60000,
+      "testFile": "e2e/45-motocross-gameplay.spec.ts",
+      "testTitle": "real motocross player entry, eight-rider gate, riding, cameras, pause and venue switch",
+      "helperLocation": "26:16",
+      "callerLocation": "102:11",
+      "requestedCapture": "valley-ridge-mx-actual-gate.png",
+      "callLog": [
+        "taking page screenshot",
+        "waiting for fonts to load...",
+        "fonts loaded"
+      ],
+      "boundary": "The exact source places the failed capture after GO TO THE GATE, the driving-state assertion, and visible motocross-HUD assertion. The later race-phase and riding assertions were not reached.",
+      "boundaryEvidence": {
+        "source": "0004d10009b6e88ec65fdb3fbd663e1dee3f5eb3:e2e/45-motocross-gameplay.spec.ts",
+        "lines": [
+          {
+            "line": 98,
+            "text": "    await expect(page.locator('#raceBriefing')).toContainText('RIDERS');"
+          },
+          {
+            "line": 99,
+            "text": "    await page.getByRole('button', { name: 'GO TO THE GATE', exact: true }).click();"
+          },
+          {
+            "line": 100,
+            "text": "    await expect.poll(async () => (await diag()).state).toBe('driving');"
+          },
+          {
+            "line": 101,
+            "text": "    await expect(page.locator('.mx-ride-hud')).toBeVisible();"
+          },
+          {
+            "line": 102,
+            "text": "    await capture(`${circuit}-actual-gate.png`);"
+          },
+          {
+            "line": 103,
+            "text": "    await expect.poll(async () => (await diag()).frame?.[H.PHASE] ?? 0).toBe(2);"
+          }
+        ]
+      }
+    },
+    "identity": {
+      "checkoutCommitPrinted": "0004d10009b6e88ec65fdb3fbd663e1dee3f5eb3",
+      "checkoutCommitLoggedAt": "2026-10-20T00:16:53.9528964Z",
+      "runtimeBuildFingerprintPrinted": null,
+      "runtimeBuildIdentityAvailableFromLog": false,
+      "limit": "The job checkout SHA is printed. The actual browser build fingerprint is not printed, and was not independently read from a trace in this diagnostic."
+    },
+    "backend": {
+      "requested": "mesa",
+      "renderer": "ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)",
+      "loggedAt": "2026-10-20T00:17:41.8748322Z",
+      "physicalHardwareValidated": false
+    },
+    "milestones": [
+      {
+        "at": "2026-10-20T00:18:23.1160287Z",
+        "event": "Selecting valley-ridge-mx and mx450"
+      },
+      {
+        "at": "2026-10-20T00:18:41.7080232Z",
+        "event": "Captured valley-ridge-mx-actual-menu.png"
+      },
+      {
+        "at": "2026-10-20T00:18:41.7092491Z",
+        "event": "Preparing complete Valley Ridge session"
+      },
+      {
+        "at": "2026-10-20T00:22:19.0260861Z",
+        "event": "Valley Ridge prepared at held eight-rider gate"
+      },
+      {
+        "at": "2026-10-20T00:23:37.8542339Z",
+        "event": "Post-release gate capture timed out"
+      }
+    ],
+    "explicitShaderOrContextLossErrorsPrinted": [],
+    "evidence": {
+      "logExcerpt": "/tmp/motocross-ci-current-journey-failure.log",
+      "logExcerptBytes": 5291,
+      "logExcerptSha256": "d932125286437aa35d3e33dcc2c7cad8b23aa375f92cbdcc1c443306579e20ae",
+      "tracePathReportedButNotDownloaded": "test-results/motocross/45-motocross-gameplay-real-52ab8-eras-pause-and-venue-switch/trace.zip",
+      "errorContextPathReportedButNotDownloaded": "test-results/motocross/45-motocross-gameplay-real-52ab8-eras-pause-and-venue-switch/error-context.md"
+    },
+    "limits": [
+      "This new log independently establishes the 60 s screenshot failure at the exact-source gate-capture call; no cause is inferred from the historical CI failure.",
+      "No explicit shader or context-loss error was printed. Absence in the job log does not prove that no rendering error occurred.",
+      "The source comment about a lost/stalled software readback describes test intent and is not a diagnosis of this failure.",
+      "No GPU timer, frame-queue state or later simulation progress was captured by this log-only diagnostic.",
+      "The successful local two-venue MX45 run remains a separate result with its own source/build/backend/quality receipt; it does not change this failed CI gate."
+    ]
+  },
+  "remainingAcceptanceLimits": [
+    "After this validation finished, main advanced to engine dynamics commit e7cbd04d8f5225d2b742dcc1bd39f9a6da444978, physics version 12 / snapshot protocol 14. That concurrent source was preserved and this report alone rebased onto it. The 0004d100 test results are not presented as a new build or gameplay run of the later main.",
+    "The current-source default-Medium/Mesa CI journey failed its unchanged 60000 ms first Valley Ridge gate screenshot after circuit preparation, driving-state handoff and visible HUD. A log-only diagnostic establishes that boundary, not the rendering cause or subsequent riding progress.",
+    "The broader local 4a8fd573-equivalent run failed three deadlines and reported three worker RPC errors. An isolated retry passed the RCX6 joker case but still failed the AI stadium-start and qualifying/two-moto deadlines and reported one RPC error. Latest 40 targeted passes do not clear that workload.",
+    "The older focused Photo and same-Aurel checks failed their recorded gates. Neither was rerun on the latest source; the new two-venue MX45 pass does not claim Photo/Aurel acceptance.",
+    "At the final 2026-10-20 00:31:20 UTC CI status snapshot, current-source models-world was still in progress and general Build and validation jobs were queued. The release workflow was skipped. No later completion or all-green CI status is claimed.",
+    "The passed two-venue local journey used a default Medium boot followed by the visible native Low opt-in on SwiftShader. Brake, rider-body and throttle inputs were real player controls; longer course, flight and touchdown observations used explicitly enabled AI demonstration. This is not physical-GPU FPS, full-quality riding, human enjoyment or photographic-parity certification.",
+    "The 24-case landing comparison covers one surveyed Ridge Table approach and does not embed its candidate fingerprint. Dust uses a bounded point-particle appearance model without volumetric density integration or particle self-shadowing. Original reference stills guide geometry and appearance, not numerical optical or impact calibration."
+  ],
+  "postValidationIntegration": {
+    "commit": "e7cbd04d8f5225d2b742dcc1bd39f9a6da444978",
+    "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/commit/e7cbd04d8f5225d2b742dcc1bd39f9a6da444978",
+    "title": "Improve contact dynamics, brake heat exchange and recorded wheel motion",
+    "observedAfterValidation": true,
+    "method": "Fetched and inspected the incoming descendant of 0004d100; rebased only this documentation commit onto it with no conflict. The source implementation and HUD correction were already ancestors of the incoming main.",
+    "changedApplicationFiles": [
+      "src/core/session-identity.ts",
+      "src/rendering/frame-state.ts",
+      "src/rendering/wheel-pose.ts",
+      "src/simulation/bike-vehicle.ts",
+      "src/simulation/brake-thermal.ts",
+      "src/simulation/offroad/dirt-bike-vehicle.ts",
+      "src/simulation/open-world/session.ts",
+      "src/simulation/protocol.ts",
+      "src/simulation/tire.ts",
+      "src/simulation/tyre-force.ts",
+      "src/simulation/tyre-thermal.ts",
+      "src/simulation/vehicle.ts",
+      "src/simulation/wheel-rotation.ts",
+      "src/simulation/world.ts",
+      "src/storage/recorders.ts"
+    ],
+    "directMotocrossDiff": "Replaces wrapped wheel rotation accumulation with advanceWheelRotation and adds its import; the first-tyre landing predictor is unchanged in the inspected diff.",
+    "physicsVersion": 12,
+    "snapshotProtocolVersion": 14,
+    "validation": "Static diff inspection only in this pass. No additional build, simulation or browser attempt was run after integration. All earlier results retain their original tested commit/build identities."
+  }
+}
