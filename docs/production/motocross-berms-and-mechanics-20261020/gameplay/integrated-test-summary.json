@@ -1,0 +1,57 @@
+{
+  "sourceCommit": "f73fea56353e0df373ee0c61d1e61fb5d05a1bac",
+  "productionFingerprint": "52d442a805b0a01aa2731c260d715a661a2ab6385e790ca694c02aa30796f303",
+  "stats": {
+    "startTime": "2026-10-20T05:08:31.642Z",
+    "duration": 560690.357,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  },
+  "results": [
+    {
+      "title": "real motocross player entry, eight-rider gate, riding, cameras, pause and venue switch",
+      "status": "failed",
+      "durationMs": 534578,
+      "errors": [
+        {
+          "message": "Error: expect(locator).toBeVisible() failed\n\nLocator:  locator('#raceBriefing')\nExpected: visible\nReceived: <element(s) not found>\nTimeout:  300000ms\n\nCall log:\n  - Expect \"toBeVisible\" with timeout 300000ms\n  - waiting for locator('#raceBriefing')\n\n\n  80 |     // those production checks intact while allowing software compilation its\n  81 |     // own bounded readiness interval; this is not a load-time benchmark.\n> 82 |     await expect(page.locator('#raceBriefing')).toBeVisible({ timeout: 300000 });\n     |                                                 ^\n  83 |     console.info(`[MX journey] ${circuit} is prepared at the held eight-rider gate`);\n  84 |     const initialized = await diag();\n  85 |     expect(initialized.renderer?.presentationPurpose).toBe('circuit');\n    at <checkout>/e2e/45-motocross-gameplay.spec.ts:82:49",
+          "location": {
+            "file": "<checkout>/e2e/45-motocross-gameplay.spec.ts",
+            "column": 49,
+            "line": 82
+          }
+        }
+      ]
+    }
+  ],
+  "backend": "ANGLE / Mesa llvmpipe (LLVM20.1.2,256 bits), OpenGL4.5",
+  "quality": "low",
+  "exitCode": 1,
+  "failure": "Race briefing was not observed within the unchanged 300000ms preparation expectation.",
+  "lastCompletedActions": [
+    "Default showroom/menu opened",
+    "Low quality selected through visible settings",
+    "Outdoor MX and MX450 selected",
+    "Selected-machine showroom frame completed and was captured",
+    "ENTER CIRCUIT clicked"
+  ],
+  "laterAssertionsReached": false,
+  "fullJourneyComplete": false,
+  "finalCleanupSnapshotContainsRaceBriefing": true,
+  "snapshotEvidence": "integrated-error-context.md",
+  "memoryObservation": {
+    "sharedCgroupUsageBytes": 8589836288,
+    "cgroupLimitBytes": 8589934592,
+    "causalAttribution": "The runtime was at its shared memory limit during the delay. This observation alone does not establish the failure cause."
+  },
+  "rawTraceSHA256": "361b63c4b5b15326c4fb4e48fb90e38f19275b59e57eb45d1256704a475a914a",
+  "rawTraceBytes": 29575280,
+  "rootCause": "Not established. The race briefing is present in a DOM snapshot collected 128.239 ms after the timed-out assertion returned; later journey checks were not reached.",
+  "budgetChanges": false,
+  "productionSourceChangedForAttempt": false,
+  "traceEvidence": "integrated-trace-summary.json",
+  "briefingSnapshotAfterTimeoutMs": 128.239,
+  "normalization": "ANSI colour escapes removed and absolute checkout paths replaced with <checkout>; the test error and timing are unchanged."
+}

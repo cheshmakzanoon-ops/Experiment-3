@@ -1,0 +1,67 @@
+
+ RUN  v3.2.4 <checkout>
+
+ ✓ tests/motocross-hud.test.ts > motocross HUD flight transitions > queues a short-exit berm result through the jump and safety cues, then displays it once 465ms
+ ✓ tests/motocross-hud.test.ts > motocross HUD flight transitions > expires an unseen berm result after twelve simulation seconds without losing its record 8ms
+ ✓ tests/motocross-hud.test.ts > motocross HUD flight transitions > shows measured legal-bank practice, remembers its best and keeps safety cues first 11ms
+ ✓ tests/motocross-hud.test.ts > motocross HUD flight transitions > uses measured retry distance and takeoff speed without replacing the next approach reference 3ms
+ ✓ tests/motocross-hud.test.ts > motocross HUD flight transitions > only asks for brake release while the player owns the controls 1ms
+ ✓ tests/motocross-hud.test.ts > motocross HUD flight transitions > does not advise slowing the next approach after a measured short hard landing 2ms
+ ✓ tests/motocross-hud.test.ts > motocross HUD flight transitions > explains a target rejected for rough settlement after its bottoming pulse decays 2ms
+ ✓ tests/motocross-hud.test.ts > motocross HUD flight transitions > uses final touchdown airtime and keeps it with the last qualifying jump through a tiny hop 2ms
+ ✓ tests/motocross-hud.test.ts > motocross HUD flight transitions > identifies an early rebound without assigning its separate pitch to the previous jump 4ms
+ ✓ tests/motocross-hud.test.ts > motocross HUD flight transitions > still revises a continuous grounded settlement when measured bottoming arrives 2ms
+ ✓ tests/motocross-hud.test.ts > motocross HUD flight transitions > does not invent a landing when a short backward seek crosses from flight to ground 1ms
+ ✓ tests/motocross-hud.test.ts > motocross HUD flight transitions > explains whip recovery from the presented pose and only acknowledges it after a clean settlement 6ms
+ ✓ tests/motocross-hud.test.ts > motocross HUD flight transitions > retains a crossed touchdown grade after friction removes its sideways motion 1ms
+ ✓ tests/motocross-hud.test.ts > motocross HUD flight transitions > does not reward an early rebound or carry a previous whip through a replay seek 6ms
+ ✓ tests/motocross-hud.test.ts > motocross HUD flight transitions > does not turn a bottomed whip into a clean reward as its impact pulse fades 1ms
+ ✓ tests/motocross-hud.test.ts > motocross HUD flight transitions > does not credit a autopilot takeoff after returning to ordinary manual riding midair 1ms
+ ✓ tests/motocross-hud.test.ts > motocross HUD flight transitions > does not credit a replay takeoff after returning to ordinary manual riding midair 1ms
+ ✓ tests/motocross-hud.test.ts > motocross HUD flight transitions > does not credit a caution takeoff after returning to ordinary manual riding midair 1ms
+ ✓ tests/motocross-hud.test.ts > motocross HUD flight transitions > does not credit a pit takeoff after returning to ordinary manual riding midair 1ms
+ ✓ tests/motocross-hud.test.ts > motocross HUD flight transitions > does not credit a off-course takeoff after returning to ordinary manual riding midair 1ms
+ ✓ tests/motocross-hud.test.ts > motocross HUD flight transitions > does not credit a retired takeoff after returning to ordinary manual riding midair 1ms
+ ✓ tests/motocross-hud.test.ts > motocross HUD race-control priority > replaces acceleration and gap targets under global caution 1 1ms
+ ✓ tests/motocross-hud.test.ts > motocross HUD race-control priority > replaces acceleration and gap targets under global caution 3 3ms
+ ✓ tests/motocross-hud.test.ts > motocross HUD race-control priority > obeys the player sector flag 1 even while the global flag is green 1ms
+ ✓ tests/motocross-hud.test.ts > motocross HUD race-control priority > obeys the player sector flag 3 even while the global flag is green 0ms
+ ✓ tests/motocross-hud.test.ts > motocross HUD race-control priority > does not tell a rider already in flight to roll a jump 2ms
+ ✓ tests/motocross-hud.test.ts > motocross HUD race-control priority > does not let landing praise hide a new caution 0ms
+ ✓ tests/motocross-environment.test.ts > reference-informed MX environments > keeps valley-ridge-mx race lines clear while batching surveyed course furniture 21354ms
+ ✓ tests/motocross-environment.test.ts > reference-informed MX environments > keeps arena-nord-sx race lines clear while batching surveyed course furniture 5636ms
+ ✓ tests/motocross-environment.test.ts > reference-informed MX environments > keeps render heights exact while adding MX-only grading and a single color decode 4450ms
+ ✓ tests/motocross-environment.test.ts > reference-informed MX environments > uses prepared earth rather than the synthetic turf slot for the actual SX course macro 2460ms
+ ✓ tests/motocross-environment.test.ts > reference-informed MX environments > builds a stadium with real truss members and under 16 material batches 880ms
+ ✓ tests/motocross-environment.test.ts > reference-informed MX environments > opens the welded gate on the same snapshot release without filling its aperture 10ms
+ ✓ tests/motocross-environment.test.ts > MX contact, dust and landing presentation > clears particles and airborne edge history on a short reverse seek 23ms
+ ✓ tests/motocross-environment.test.ts > MX contact, dust and landing presentation > uses bounded mixed particle sizes, pauses airborne emission, and clears on rewind 16ms
+ ✓ tests/motocross-environment.test.ts > MX contact, dust and landing presentation > emits one impact burst on landing and wet soil suppresses broad dust 14ms
+ ✓ tests/motocross-berm-practice.test.ts > authored berm practice sectors > valley-ridge-mx identifies actual named banks and uses their physical outside sign 372ms
+ ✓ tests/motocross-berm-practice.test.ts > authored berm practice sectors > arena-nord-sx identifies actual named banks and uses their physical outside sign 98ms
+ ✓ tests/motocross-berm-practice.test.ts > observed berm entry, apex and exit > records the traversed line, elapsed time and interpolated exit speed only once 10ms
+ ✓ tests/motocross-berm-practice.test.ts > observed berm entry, apex and exit > measures equivalent traversals at different presentation rates 1ms
+ ✓ tests/motocross-berm-practice.test.ts > observed berm entry, apex and exit > continues timing a stopped bike, and the wait is included in the result 0ms
+ ✓ tests/motocross-berm-practice.test.ts > observed berm entry, apex and exit > keeps each tried line and compares only the same corner and soil category 1ms
+ ✓ tests/motocross-berm-practice.test.ts > observed berm entry, apex and exit > accepts the rideable outer bank beyond the groomed width and samples line at the apex 0ms
+ ✓ tests/motocross-berm-practice.test.ts > observed berm entry, apex and exit > measures a bank which crosses the lap seam 1ms
+ ✓ tests/motocross-berm-practice.test.ts > observed berm entry, apex and exit > does not credit a spawn or return of human control inside the bank 0ms
+ ✓ tests/motocross-berm-practice.test.ts > observed berm entry, apex and exit > invalidates a partial run on cut without discarding the earned best 3ms
+ ✓ tests/motocross-berm-practice.test.ts > observed berm entry, apex and exit > invalidates a partial run on crash without discarding the earned best 0ms
+ ✓ tests/motocross-berm-practice.test.ts > observed berm entry, apex and exit > invalidates a partial run on air without discarding the earned best 0ms
+ ✓ tests/motocross-berm-practice.test.ts > observed berm entry, apex and exit > invalidates a partial run on autopilot without discarding the earned best 0ms
+ ✓ tests/motocross-berm-practice.test.ts > observed berm entry, apex and exit > invalidates a partial run on teleport without discarding the earned best 0ms
+ ✓ tests/motocross-berm-practice.test.ts > observed berm entry, apex and exit > invalidates a partial run on reverse without discarding the earned best 0ms
+ ✓ tests/motocross-berm-practice.test.ts > observed berm entry, apex and exit > invalidates a partial run on seek without discarding the earned best 0ms
+ ✓ tests/motocross-berm-practice.test.ts > observed berm entry, apex and exit > invalidates a partial run on gap without discarding the earned best 1ms
+ ✓ tests/motocross-berm-practice.test.ts > observed berm entry, apex and exit > cancels on an ineligible repeated packet, and replay suspension preserves records 2ms
+ ✓ tests/motocross-berm-practice.test.ts > observed berm entry, apex and exit > resets comparison for another course, machine or invalid packet 0ms
+ ✓ tests/motocross-presentation.test.ts > motocross reference presentation > all offered rides resolve to eligible real sessions on both venues and both bikes 14ms
+ ✓ tests/motocross-presentation.test.ts > motocross reference presentation > the showroom uses the chosen motorcycle rig dimensions and never invents race progress 226ms
+ ✓ tests/motocross-presentation.test.ts > motocross reference presentation > keeps the new discipline presentation scoped to motocross and supercross 2ms
+ ✓ tests/motocross-presentation.test.ts > motocross reference presentation > motocross event entry retains real event and meeting actions with relevant rules 1ms
+
+ Test Files  4 passed (4)
+      Tests  59 passed (59)
+   Start at  12:22:48
+   Duration  74.76s (transform 15.24s, setup 0ms, collect 34.80s, tests 36.14s, environment 1ms, prepare 1.05s)

@@ -1,0 +1,360 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "commit": "8e45d33d5bef350e33943306fc531698f6bfa3c2",
+    "tree": "518ca890283d2267884b9edbbe0543b9b0b987e0",
+    "branch": "main",
+    "buildFingerprint": "0d49880c2b14a45376478796062abd9795a0c602c7d9b8f97ea980a41d621072",
+    "buildIdentityCommitField": null
+  },
+  "references": {
+    "archive": "Motocross_PS5_100_Developer_Reference_Images.zip",
+    "archiveSHA256": "d8c8fbb62974432e8feafa853917deb45765dccc18be7d1da8ece9be512a9c73",
+    "verifiedJPEGHashes": 100,
+    "contactSheetImagesReviewed": 100,
+    "individuallyOpenedOriginals": [
+      1,
+      2,
+      5,
+      7,
+      42,
+      70,
+      82
+    ],
+    "runtimeReferencePixelsAdded": false
+  },
+  "checks": {
+    "typecheck": {
+      "status": "passed",
+      "command": "tsc --noEmit",
+      "evidence": "logs/typecheck-and-interrupted-bundle.log",
+      "note": "npm run build reached Vite after tsc via &&; the subsequent first bundling process was interrupted by the execution environment."
+    },
+    "productionBundle": {
+      "status": "passed",
+      "command": "NODE_OPTIONS=--max-old-space-size=2048 node node_modules/vite/bin/vite.js build",
+      "exitCode": 0,
+      "modulesTransformed": 738,
+      "evidence": "logs/production-bundle.log",
+      "note": "Completed in a separate run after the interrupted bundle. Existing large-chunk warning remains."
+    },
+    "repositoryLint": {
+      "status": "passed",
+      "command": "npm run lint",
+      "evidence": "logs/lint.log"
+    },
+    "contentValidation": {
+      "status": "passed",
+      "command": "npm run validate:content",
+      "evidence": "logs/content.log"
+    },
+    "focusedTests": {
+      "distinctCasesCovered": 115,
+      "modelsAndStartupInitial": {
+        "total": 56,
+        "passed": 55,
+        "failed": 1,
+        "evidence": "logs/models-startup-initial.log",
+        "failedCase": "buries both sleeve roots inside the real jersey surface across raised-elbow and dab poses",
+        "failure": "minimum visible shoulder radius 0.0320813 m was below required 0.038 m"
+      },
+      "correction": "Move the torso-to-arm skinning transfer into the buried armhole; preserve the narrower visible sleeve profile.",
+      "correctedGarmentAndOnboard": {
+        "total": 10,
+        "passed": 10,
+        "failed": 0,
+        "evidence": "logs/garment-onboard-corrected.log"
+      },
+      "finalGameplayEnvironmentAndPresentation": {
+        "total": 59,
+        "passed": 59,
+        "failed": 0,
+        "evidence": "logs/gameplay-environment.log"
+      },
+      "note": "115 distinct cases across the focused batches, with the affected garment/onboard subset rerun after correction. This is not a claim that the whole repository test suite ran or that all 115 were rerun in one final batch."
+    },
+    "componentBrowser": {
+      "status": "passed",
+      "tests": 2,
+      "durationMs": 164762.129,
+      "backend": "Chromium / SwiftShader",
+      "sourceTests": [
+        "e2e/44-motocross-interface.spec.ts",
+        "e2e/54-motocross-berm-practice.spec.ts"
+      ],
+      "evidence": [
+        "logs/component-browser.log",
+        "ui/component-test-summary.json"
+      ],
+      "syntheticFrameInputs": true,
+      "fullGameJourney": false,
+      "bermViewports": [
+        {
+          "width": 390,
+          "height": 800
+        },
+        {
+          "width": 1280,
+          "height": 800
+        }
+      ],
+      "bermVenues": [
+        "valley-ridge-mx",
+        "arena-nord-sx"
+      ],
+      "note": "Production UI components and CSS. The faster synthetic inside-line pass validates comparison presentation; it does not establish that inside lines are physically faster."
+    },
+    "fullGameJourney": {
+      "status": "passed",
+      "sourceTest": "e2e/45-motocross-gameplay.spec.ts",
+      "tests": 1,
+      "durationMs": 571395.8620000001,
+      "quality": "low",
+      "backend": "ANGLE / Mesa llvmpipe (LLVM20.1.2,256 bits), OpenGL4.5",
+      "normalApplicationAndWorker": true,
+      "diagnosticsReadOnly": true,
+      "stateInjection": false,
+      "consoleAndPageErrors": 0,
+      "evidence": [
+        "logs/full-game-browser.log",
+        "gameplay/test-summary.json",
+        "gameplay/production-journey.json"
+      ],
+      "controlSequence": "Human body-forward, body-back and throttle; explicitly enabled AI demonstration for progress, flight and touchdown; visible camera/pause/paddock controls.",
+      "venues": [
+        {
+          "circuit": "valley-ridge-mx",
+          "machine": "mx450",
+          "human": {
+            "time": 23.491666793823242,
+            "speed": 7.57050085067749,
+            "throttle": 1,
+            "auto": false,
+            "bodyForward": 0.8198891282081604,
+            "bodyBack": -0.9928427934646606
+          },
+          "observedAIForwardProgressM": 230.62890625,
+          "maximumObservedAirTimeSeconds": 1.1291667222976685,
+          "recordedTouchdown": true,
+          "maxSafetyCarPhase": 0,
+          "pauseHeldAtTick": 6345
+        },
+        {
+          "circuit": "arena-nord-sx",
+          "machine": "mx250",
+          "human": {
+            "time": 25.491666793823242,
+            "speed": 6.1651201248168945,
+            "throttle": 1,
+            "auto": false,
+            "bodyForward": 0.919643223285675,
+            "bodyBack": -0.7227410674095154
+          },
+          "observedAIForwardProgressM": 158.47787475585938,
+          "maximumObservedAirTimeSeconds": 0.7916666865348816,
+          "recordedTouchdown": true,
+          "maxSafetyCarPhase": 0,
+          "pauseHeldAtTick": 6473
+        }
+      ],
+      "limits": [
+        "Not a complete manually ridden race or lap.",
+        "Does not replace a manually ridden berm-practice check.",
+        "Software renderer and Low quality are not a target-hardware frame-time benchmark."
+      ]
+    },
+    "finalModelCaptures": {
+      "status": "passed-with-isolated-retry",
+      "sourceCommit": "8e45d33d5bef350e33943306fc531698f6bfa3c2",
+      "backend": "Chromium / SwiftShader",
+      "quality": "high",
+      "captures": [
+        {
+          "name": "seated-three-quarter",
+          "machine": "mx450",
+          "triangles": 126154,
+          "calls": 74,
+          "glError": 0,
+          "finiteGeometry": true,
+          "maximumHandErrorM": 0.019999999999999955,
+          "maximumAnkleErrorM": 0.020000000000000046
+        },
+        {
+          "name": "standing-braced-front",
+          "machine": "mx450",
+          "triangles": 126154,
+          "calls": 74,
+          "glError": 0,
+          "finiteGeometry": true,
+          "maximumHandErrorM": 0.019999999999999914,
+          "maximumAnkleErrorM": 0.020000000000000157
+        },
+        {
+          "name": "standing-attack-side",
+          "machine": "mx450",
+          "triangles": 126154,
+          "calls": 74,
+          "glError": 0,
+          "finiteGeometry": true,
+          "maximumHandErrorM": 0.020000000000000087,
+          "maximumAnkleErrorM": 0.019999999999999834
+        },
+        {
+          "name": "inside-boot-corner",
+          "machine": "mx450",
+          "triangles": 126154,
+          "calls": 74,
+          "glError": 0,
+          "finiteGeometry": true,
+          "maximumHandErrorM": 0.020000000000000108,
+          "maximumAnkleErrorM": 0.020000000000000094
+        },
+        {
+          "name": "helmet-sleeves",
+          "machine": "mx450",
+          "triangles": 126154,
+          "calls": 37,
+          "glError": 0,
+          "finiteGeometry": true,
+          "maximumHandErrorM": 0.019999999999999955,
+          "maximumAnkleErrorM": 0.020000000000000046
+        },
+        {
+          "name": "mx250-three-quarter",
+          "machine": "mx250",
+          "triangles": 129254,
+          "calls": 74,
+          "glError": 0,
+          "finiteGeometry": true,
+          "maximumHandErrorM": 0.020000000000000087,
+          "maximumAnkleErrorM": 0.020000000000000046
+        }
+      ],
+      "evidence": "bike/source-manifest.json",
+      "initialFailure": "Sixth sequential fixture call (MX250) returned WebGL error1282 and shader validation errors.",
+      "resolution": "Fresh Chromium process rendered MX250 successfully with the same production source.",
+      "exactRootCauseEstablished": false,
+      "hardwarePerformanceBenchmark": false
+    }
+  },
+  "ci": {
+    "implementationSHA": "8e45d33d5bef350e33943306fc531698f6bfa3c2",
+    "reviewTimeUTC": "2026-10-20T05:23:26Z",
+    "buildStatus": "queued",
+    "motocrossStatus": "cancelled",
+    "otherFailedWorkflows": [
+      "Settings transition validation",
+      "Settings interaction validation",
+      "A22 garage integration validation"
+    ],
+    "repositoryCIGreen": false,
+    "evidence": "ci-review.json",
+    "buildRun": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39370614870",
+    "motocrossRun": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39370614796"
+  },
+  "limits": [
+    "No new track layout or motocross physics model is claimed.",
+    "Reference images are commercial-game screenshots and promotional material, not measured real-world photographs.",
+    "Component renders and UI fixtures are separately identified from full application journeys.",
+    "No target-hardware frame-time or GPU-performance measurement is claimed.",
+    "Photorealistic parity with the supplied references has not been established."
+  ],
+  "logNormalization": "Absolute checkout/scratch paths were replaced with <checkout>/<scratch>. Trailing line whitespace and extra blank lines at EOF were removed; diagnostic messages and results are retained.",
+  "integration": {
+    "sourceCommit": "f73fea56353e0df373ee0c61d1e61fb5d05a1bac",
+    "sourceTree": "48aeb5a7d6a220be7a71bda0ec2de110034b764f",
+    "reason": "A subsequent car-tire physics update changed the shared snapshot contract (protocol 14 to 15, entrant stride 298 to 331). Preserve it and verify the combined source.",
+    "motocrossModelAndCourseSourceChanged": false,
+    "runtimePhysicsIdentity": 13,
+    "protocolVersion": 15,
+    "entrantStrideFloats": 331,
+    "focusedChecks": {
+      "status": "passed",
+      "files": [
+        "tests/wheel-contact-recording.test.ts",
+        "tests/session-identity.test.ts",
+        "tests/snapshot-interpolation.test.ts",
+        "tests/wheel-winding-recording.test.ts",
+        "tests/motocross-hud.test.ts"
+      ],
+      "total": 79,
+      "passed": 79,
+      "failed": 0,
+      "evidence": "logs/integrated-protocol-tests.log"
+    },
+    "productionBuild": {
+      "status": "passed",
+      "command": "NODE_OPTIONS=--max-old-space-size=2048 node node_modules/vite/bin/vite.js build",
+      "exitCode": 0,
+      "modulesTransformed": 742,
+      "evidence": "logs/integrated-production-bundle.log",
+      "identity": {
+        "version": 1,
+        "commit": null,
+        "fingerprint": "52d442a805b0a01aa2731c260d715a661a2ab6385e790ca694c02aa30796f303"
+      },
+      "identityEvidence": "gameplay/integrated-build-identity.json",
+      "note": "Full TypeScript validation passed in the preceding chained command. Vite completed separately after increasing its local heap allowance. Existing large-chunk warning remains."
+    },
+    "fullGameJourney": {
+      "status": "failed",
+      "sourceTest": "e2e/45-motocross-gameplay.spec.ts",
+      "exitCode": 1,
+      "quality": "low",
+      "backend": "ANGLE / Mesa llvmpipe (LLVM20.1.2,256 bits), OpenGL4.5",
+      "durationMs": 560690.357,
+      "failureExpectation": "#raceBriefing visible within 300000 ms",
+      "failureVenue": "valley-ridge-mx",
+      "failureMachine": "mx450",
+      "ridingAndSecondVenueAssertionsReached": false,
+      "finalCleanupSnapshotContainsRaceBriefing": true,
+      "rootCauseEstablished": false,
+      "sharedRuntimeAtMemoryLimitObserved": true,
+      "evidence": [
+        "logs/integrated-game-browser.log",
+        "gameplay/integrated-test-summary.json",
+        "gameplay/integrated-error-context.md"
+      ],
+      "limits": [
+        "The complete two-venue pass belongs to 8e45d33, not this later combined source.",
+        "A race briefing visible during failure cleanup does not turn the timed-out expectation into a pass.",
+        "No timeout/GPU completion gate was weakened."
+      ],
+      "traceEvidence": "gameplay/integrated-trace-summary.json",
+      "briefingSnapshotAfterTimeoutMs": 128.239,
+      "capturedNetworkResponseCount": 183,
+      "capturedNon200NetworkResponses": 0,
+      "capturedProtocolWorkerOrWebGLExceptions": 0,
+      "errorAbsenceScope": "Available browser trace and log; not proof of absence outside those captures."
+    },
+    "typecheck": {
+      "status": "passed",
+      "command": "tsc --noEmit",
+      "evidence": "logs/integrated-typecheck-and-heap-limited-bundle.log",
+      "scope": "The chained build reached Vite after the full TypeScript checker."
+    },
+    "firstBundleAttempt": {
+      "status": "failed",
+      "exitCode": 134,
+      "nodeHeapLimitMiB": 1536,
+      "reason": "V8 JavaScript heap limit reached while rendering chunks; full TypeScript check had already passed.",
+      "productionCodeChangedForRetry": false
+    },
+    "unchangedMotocrossPaths": [
+      "src/rendering/offroad",
+      "src/rendering/rider.ts",
+      "src/simulation/offroad",
+      "src/ui/offroad-hud.ts",
+      "e2e/45-motocross-gameplay.spec.ts"
+    ]
+  },
+  "publicationBase": {
+    "commit": "9b598d8cb063fd9663d583d5d684467b8e0fc8f8",
+    "tree": "7faa490a77ade4c930dbde257b41240e590d0c39",
+    "preservedConcurrentCommits": [
+      "04fefd3c623809d208e2f76b170c6b6246a8eea1",
+      "9b598d8cb063fd9663d583d5d684467b8e0fc8f8"
+    ],
+    "scope": "Deployment and MotoGP updates after the recorded integration check. No new full build or browser pass is claimed for this later parent. Shared rider changes target GP gloves; MX rendering, off-road simulation, HUD and e2e/45 are unchanged from f73fea5."
+  }
+}

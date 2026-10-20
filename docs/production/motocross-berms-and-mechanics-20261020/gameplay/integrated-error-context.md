@@ -1,0 +1,148 @@
+# Page snapshot
+
+```yaml
+- generic [active]:
+  - generic:
+    - generic:
+      - generic:
+        - button "VEHICLE" [ref=e2] [cursor=pointer]
+        - button "Pause session" [ref=e3] [cursor=pointer]: Ⅱ
+      - generic:
+        - img
+        - generic:
+          - generic:
+            - generic: "1"
+          - generic:
+            - generic: "0"
+            - generic: KPH
+          - generic:
+            - generic: "1800"
+            - generic: RPM
+        - generic:
+          - text: BATT
+          - generic:
+            - text: FUEL
+            - generic: 5.5 KG
+        - generic:
+          - emphasis: M
+      - navigation:
+        - button "C CHASE" [ref=e4] [cursor=pointer]:
+          - generic [ref=e5] [cursor=pointer]: C
+          - generic [ref=e6] [cursor=pointer]: CHASE
+        - button "T DATA" [ref=e7] [cursor=pointer]:
+          - generic [ref=e8] [cursor=pointer]: T
+          - text: DATA
+        - button "R REPLAY" [ref=e9] [cursor=pointer]:
+          - generic [ref=e10] [cursor=pointer]: R
+          - text: REPLAY
+        - button "G AI OFF" [ref=e11] [cursor=pointer]:
+          - generic [ref=e12] [cursor=pointer]: G
+          - generic [ref=e13] [cursor=pointer]: AI OFF
+      - region "Live race information":
+        - complementary "Live race classification" [ref=e14]:
+          - generic [ref=e15]:
+            - generic [ref=e16]:
+              - generic [ref=e17]: APEX
+              - emphasis [ref=e18]: RACE
+            - generic [ref=e19]:
+              - generic [ref=e20]: LAP
+              - generic [ref=e21]: "1"
+              - generic [ref=e22]: / 3
+          - generic [ref=e23]:
+            - generic [ref=e24]:
+              - generic [ref=e25]: "1"
+              - generic "Alex River" [ref=e27]: RIVER
+              - generic [ref=e28]: LEADER
+            - generic [ref=e29]:
+              - generic [ref=e30]: "2"
+              - generic "A. MOREAU" [ref=e32]: MOREAU
+              - generic [ref=e33]: —
+            - generic [ref=e34]:
+              - generic [ref=e35]: "3"
+              - generic "K. SATO" [ref=e37]: SATO
+              - generic [ref=e38]: —
+            - generic [ref=e39]:
+              - generic [ref=e40]: "4"
+              - generic "M. VEGA" [ref=e42]: VEGA
+              - generic [ref=e43]: —
+            - generic [ref=e44]:
+              - generic [ref=e45]: "5"
+              - generic "N. LIND" [ref=e47]: LIND
+              - generic [ref=e48]: —
+        - generic:
+          - generic:
+            - generic:
+              - generic: S1
+            - generic:
+              - generic: S2
+            - generic:
+              - generic: S3
+          - generic:
+            - generic: "1"
+            - generic: / 8
+          - generic:
+            - generic: —:——.———
+          - text: BEST
+      - generic:
+        - generic:
+          - generic: "2"
+          - generic: MOREAU
+        - generic:
+          - generic: "3"
+          - generic: SATO
+        - generic:
+          - generic: "4"
+          - generic: VEGA
+        - generic:
+          - generic: "5"
+          - generic: LIND
+        - generic:
+          - generic: "6"
+          - generic: SILVA
+      - generic:
+        - region "Motocross riding and practice information":
+          - generic:
+            - generic: START GATE
+            - generic: READY
+          - generic:
+            - strong: WAIT FOR THE DROP
+            - generic: GATE 1
+          - generic: Settle the bike. Pick your line into the first berm.
+        - status: GATE 1
+    - dialog [ref=e49]:
+      - region "Motocross race briefing" [ref=e51]:
+        - generic [ref=e52]: DIRT SERIES / MOTOCROSS
+        - heading "Valley Ridge Motocross Park — National" [level=2] [ref=e53]
+        - paragraph [ref=e54]: Choose your line into turn one. The race begins at the gate drop.
+        - generic [ref=e55]:
+          - img "VALLEY RIDGE layout outline" [ref=e56]
+          - generic [ref=e59]:
+            - generic [ref=e60]: LOAM · SAND · CREEK MUD
+            - strong [ref=e61]: THROUGH THE RIDGE
+            - paragraph [ref=e62]: 6 jump features · 6 named turns
+        - generic [ref=e63]:
+          - generic [ref=e64]:
+            - term [ref=e65]: YOUR GATE
+            - definition [ref=e66]:
+              - text: "1"
+              - generic [ref=e67]: / 8 RIDERS
+          - generic [ref=e68]:
+            - term [ref=e69]: RACE DISTANCE
+            - definition [ref=e70]:
+              - text: "3"
+              - generic [ref=e71]: LAPS
+          - generic [ref=e72]:
+            - term [ref=e73]: RIDE MODE
+            - definition [ref=e74]: ASSISTED
+          - generic [ref=e75]:
+            - term [ref=e76]: SURFACE
+            - definition [ref=e77]: HILLSIDE LOAM
+        - paragraph [ref=e78]: Brake before the jump face. Throttle lifts the nose in flight; brake lowers it. Aim to meet the downslope with both wheels aligned.
+        - generic [ref=e79]:
+          - button "WATCH GATE PREPARATION" [ref=e80] [cursor=pointer]
+          - button "GO TO THE GATE" [ref=e81] [cursor=pointer]
+          - button "BACK TO PADDOCK" [ref=e82] [cursor=pointer]
+        - generic [ref=e83]:
+          - checkbox "Use Quick Start for future races" [ref=e84]
+          - text: Use Quick Start for future races
+```

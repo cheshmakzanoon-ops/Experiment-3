@@ -1,0 +1,58 @@
+[2m[WebServer] [22m(node:287441) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+Observed mesa test backend: ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)
+
+Running 1 test using 1 worker
+
+(node:287628) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:287628) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[MX journey] Selected low through the production settings form
+[MX journey] Selecting valley-ridge-mx and mx450
+[MX journey] Captured valley-ridge-mx-actual-menu.png
+[MX journey] Preparing the complete valley-ridge-mx session
+  ✘  1 e2e/45-motocross-gameplay.spec.ts:10:1 › real motocross player entry, eight-rider gate, riding, cameras, pause and venue switch (8.9m)
+
+
+  1) e2e/45-motocross-gameplay.spec.ts:10:1 › real motocross player entry, eight-rider gate, riding, cameras, pause and venue switch
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m()[22m failed
+
+    Locator:  locator('#raceBriefing')
+    Expected: visible
+    Received: <element(s) not found>
+    Timeout:  300000ms
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 300000ms[22m
+    [2m  - waiting for locator('#raceBriefing')[22m
+
+
+      80 |     // those production checks intact while allowing software compilation its
+      81 |     // own bounded readiness interval; this is not a load-time benchmark.
+    > 82 |     await expect(page.locator('#raceBriefing')).toBeVisible({ timeout: 300000 });
+         |                                                 ^
+      83 |     console.info(`[MX journey] ${circuit} is prepared at the held eight-rider gate`);
+      84 |     const initialized = await diag();
+      85 |     expect(initialized.renderer?.presentationPurpose).toBe('circuit');
+        at <checkout>/e2e/45-motocross-gameplay.spec.ts:82:49
+
+    attachment #1: valley-ridge-mx-actual-menu.png (image/png) ─────────────────────────────────────
+    ../mx-browser-integrated/45-motocross-gameplay-real-52ab8-eras-pause-and-venue-switch/attachments/valley-ridge-mx-actual-menu-png-41bde587ccba021a9a03502de21659e93f68442c.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../mx-browser-integrated/45-motocross-gameplay-real-52ab8-eras-pause-and-venue-switch/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../mx-browser-integrated/45-motocross-gameplay-real-52ab8-eras-pause-and-venue-switch/trace.zip
+    Usage:
+
+        npx playwright show-trace ../mx-browser-integrated/45-motocross-gameplay-real-52ab8-eras-pause-and-venue-switch/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  Slow test file: e2e/45-motocross-gameplay.spec.ts (8.9m)
+  Consider running tests from slow files in parallel. See: https://playwright.dev/docs/test-parallel
+  1 failed
+    e2e/45-motocross-gameplay.spec.ts:10:1 › real motocross player entry, eight-rider gate, riding, cameras, pause and venue switch

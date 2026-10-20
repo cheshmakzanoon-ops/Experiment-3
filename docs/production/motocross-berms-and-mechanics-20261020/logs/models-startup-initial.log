@@ -1,0 +1,24 @@
+
+ RUN  v3.2.4 <checkout>
+
+··············x·········································
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/motocross-garment.test.ts > motocross continuous textile skin > buries both sleeve roots inside the real jersey surface across raised-elbow and dab poses
+AssertionError: expected 0.03208130980623885 to be greater than 0.038
+ ❯ tests/motocross-garment.test.ts:311:37
+    309|           expect(buried).toBeGreaterThan(28);
+    310|           expect(minRootDepth).toBeGreaterThan(0.008);
+    311|           expect(minShoulderRadius).toBeGreaterThan(0.038);
+       |                                     ^
+    312|         }
+    313|       }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 5 passed (6)
+      Tests  1 failed | 55 passed (56)
+   Start at  12:19:18
+   Duration  100.01s (transform 28.54s, setup 0ms, collect 62.43s, tests 30.09s, environment 5ms, prepare 3.50s)

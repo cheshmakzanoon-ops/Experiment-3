@@ -1,0 +1,166 @@
+{
+  "sourceCommit": "f73fea56353e0df373ee0c61d1e61fb5d05a1bac",
+  "classification": "Failed bounded production-gameplay verification on the integrated source; late briefing evidence does not convert the failed readiness assertion into a pass.",
+  "test": {
+    "file": "e2e/45-motocross-gameplay.spec.ts",
+    "title": "real motocross player entry, eight-rider gate, riding, cameras, pause and venue switch",
+    "unchangedForThisAttempt": true,
+    "outcome": "failed",
+    "failedAssertionLine": 82,
+    "failedLocator": "#raceBriefing",
+    "expected": "visible",
+    "received": "<element(s) not found>",
+    "readinessTimeoutMs": 300000,
+    "testTimeoutMs": 1200000,
+    "retryOrBudgetChangeAfterFailure": false,
+    "venueReached": "valley-ridge-mx",
+    "selectedMachine": "mx450",
+    "qualityPreset": "low",
+    "qualitySelection": "Production settings form",
+    "viewport": {
+      "width": 1280,
+      "height": 800
+    },
+    "backend": "ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)"
+  },
+  "evidence": {
+    "trace": {
+      "fileName": "trace.zip",
+      "sizeBytes": 29575280,
+      "sha256": "361b63c4b5b15326c4fb4e48fb90e38f19275b59e57eb45d1256704a475a914a",
+      "reviewedEntries": [
+        "test.trace",
+        "0-trace.trace",
+        "0-trace.network",
+        "resources/page@fd344bece64d5a067954f85c6a415bbe-1792473444828.jpeg",
+        "resources/page@fd344bece64d5a067954f85c6a415bbe-1792473445028.jpeg",
+        "resources/page@fd344bece64d5a067954f85c6a415bbe-1792473448055.jpeg"
+      ]
+    },
+    "errorContext": "error-context.md",
+    "executionLog": "mx-browser-integrated.log",
+    "reviewMethod": "Read-only inspection of saved trace records, network responses, screencast images, final DOM snapshot, execution log and unchanged test source. No browser or test rerun."
+  },
+  "timeline": {
+    "clock": "Playwright trace monotonic milliseconds; these are trace timestamps, not simulation time.",
+    "events": [
+      {
+        "timestampMs": 240569.91,
+        "entry": "test.trace",
+        "callId": "expect@82",
+        "event": "Test-level visibility expectation starts."
+      },
+      {
+        "timestampMs": 240581.81,
+        "entry": "0-trace.trace",
+        "callId": "call@59",
+        "event": "Browser-level #raceBriefing visibility expectation starts with timeout 300000 ms."
+      },
+      {
+        "timestampMs": 241540.401,
+        "entry": "0-trace.trace",
+        "snapshotName": "before@call@59",
+        "event": "Before-expectation DOM snapshot collected."
+      },
+      {
+        "timestampMs": 241555.465,
+        "entry": "0-trace.trace",
+        "callId": "call@59",
+        "event": "Expectation log records toBeVisible with timeout 300000 ms."
+      },
+      {
+        "timestampMs": 241555.49,
+        "entry": "0-trace.trace",
+        "callId": "call@59",
+        "event": "Expectation log records waiting for locator('#raceBriefing')."
+      },
+      {
+        "timestampMs": 538106.208,
+        "entry": "0-trace.trace",
+        "event": "Screencast still shows the loader: SETTING UP CAMERAS, 90%."
+      },
+      {
+        "timestampMs": 538306.103,
+        "entry": "0-trace.trace",
+        "event": "Screencast shows the loader: SETTING UP THE COCKPIT, 90%."
+      },
+      {
+        "timestampMs": 541333.691,
+        "entry": "0-trace.trace",
+        "event": "Last screencast before the failed call returns still shows the loader: WARMING UP TYRES, 94%."
+      },
+      {
+        "timestampMs": 541546.628,
+        "entry": "0-trace.trace",
+        "callId": "call@59",
+        "event": "Visibility expectation returns timedOut: true, matches: false, received element(s) not found."
+      },
+      {
+        "timestampMs": 541674.867,
+        "entry": "0-trace.trace",
+        "snapshotName": "after@call@59",
+        "event": "DOM snapshot contains an open modal with #raceBriefing, Motocross race briefing and GO TO THE GATE. The loading container is hidden."
+      },
+      {
+        "timestampMs": 541686.777,
+        "entry": "test.trace",
+        "callId": "expect@82",
+        "event": "Test-level expectation records the failed visibility assertion."
+      }
+    ],
+    "browserExpectationElapsedMs": 300964.818,
+    "afterSnapshotDelayFromTimedOutReturnMs": 128.239,
+    "interpretation": "The final DOM is later evidence than the failed expectation. The last preceding screencast still shows loading. These observations support a late readiness transition, but do not establish the exact instant the briefing became available or why the readiness deadline was missed."
+  },
+  "finalDom": {
+    "snapshotName": "after@call@59",
+    "timestampMs": 541674.867,
+    "modalOpen": true,
+    "raceBriefingIdPresent": true,
+    "briefingLabel": "Motocross race briefing",
+    "venueHeading": "Valley Ridge Motocross Park — National",
+    "goToTheGateButtonPresent": true,
+    "loadingContainerHidden": true,
+    "retainedHiddenLoaderText": "Waiting for completed cockpit GPU work…",
+    "limitation": "A retained hidden progress message does not identify the bottleneck. The DOM snapshot does not establish a passed readiness assertion, initialized-grid diagnostics, or subsequent gameplay."
+  },
+  "capturedErrorsAndNetwork": {
+    "scope": "Available saved trace and execution log only; the test stopped before its final collected-error assertion.",
+    "browserTraceConsoleRecords": 0,
+    "protocolRejectionCaptured": false,
+    "workerExceptionCaptured": false,
+    "pageExceptionCaptured": false,
+    "webglCompileOrContextLossErrorCaptured": false,
+    "networkResponseCount": 183,
+    "networkHttp200Count": 183,
+    "networkHttpErrorResponseCount": 0,
+    "terminalError": "The #raceBriefing visibility expectation timed out.",
+    "intermediatePollErrors": "Earlier apx01-versus-mx450 and showroom-frame-count expectation records are intermediate expect.poll attempts. Those polls subsequently progressed and are not separate terminal test failures.",
+    "limitation": "Absence of a captured error is not proof that every subsystem was healthy, nor a diagnosis of the delay."
+  },
+  "resourceObservation": {
+    "sharedCgroupMemoryBytesObservedDuringDelay": 8589836288,
+    "approximateSharedLimit": "8 GiB",
+    "source": "Root-agent observation during the delayed run, separate from the Playwright trace.",
+    "memoryPressureProvenCause": false,
+    "interpretation": "Near-limit memory usage is relevant context, but the available evidence does not prove that memory pressure caused this timeout."
+  },
+  "unexecutedLaterAssertions": [
+    "Outdoor initialized-grid diagnostics, including complete preparation and all eight selected-machine entrant records.",
+    "GO TO THE GATE action and transition into driving.",
+    "Player body controls and real course traversal.",
+    "Qualifying flight, touchdown and rendered riding.",
+    "Chase and onboard camera checks.",
+    "Pause and return-to-paddock checks.",
+    "Arena Nord Supercross / MX250 selection, preparation and gameplay journey."
+  ],
+  "conclusion": {
+    "rootCause": "Unestablished",
+    "concreteCodeDefectDemonstrated": false,
+    "supportedFinding": "The integrated build missed the unchanged bounded outdoor readiness assertion; a post-timeout snapshot then showed the briefing.",
+    "notEstablished": "The trace does not isolate a source regression, resource contention, GPU preparation delay, or scheduling delay as the cause.",
+    "earlierPassedJourneySourceCommit": "8e45d33d5bef350e33943306fc531698f6bfa3c2",
+    "earlierPassInheritedByIntegratedSource": false,
+    "reportingBoundary": "Preserve the failed integrated result. Attribute the earlier successful two-venue gameplay journey to its exact 8e45d33 source; do not claim a passed f73fea5 gameplay journey."
+  }
+}

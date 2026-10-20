@@ -1,0 +1,125 @@
+{
+  "sourceCommit": "8e45d33d5bef350e33943306fc531698f6bfa3c2",
+  "sourceTree": "518ca890283d2267884b9edbbe0543b9b0b987e0",
+  "fixture": "e2e/fixtures/motocross-bike-review.ts",
+  "quality": "high",
+  "viewport": {
+    "width": 1280,
+    "height": 800
+  },
+  "renderer": "Chromium / SwiftShader",
+  "productionGeometryMaterialsAndRig": true,
+  "componentLighting": true,
+  "fullGameJourney": false,
+  "modifiedSourcePaths": [],
+  "captureAttempts": [
+    {
+      "mode": "One browser, six sequential fixture calls",
+      "accepted": [
+        "seated-three-quarter",
+        "standing-braced-front",
+        "standing-attack-side",
+        "inside-boot-corner",
+        "helmet-sleeves"
+      ],
+      "rejected": "mx250-three-quarter",
+      "reason": "The sixth call returned GL_INVALID_OPERATION (1282) and shader validation errors. Its image is not included as final evidence.",
+      "log": "../logs/model-captures-initial.log"
+    },
+    {
+      "mode": "Fresh Chromium process, one MX250 fixture call",
+      "accepted": [
+        "mx250-three-quarter"
+      ],
+      "glError": 0,
+      "consoleErrors": [],
+      "productionCodeChangedForRetry": false,
+      "sourceManifest": {
+        "baseCommit": "8e45d33d5bef350e33943306fc531698f6bfa3c2",
+        "modifiedSourceSHA256": {},
+        "capturedAt": "2026-10-20T05:00:59.263Z",
+        "renderer": "Chromium / SwiftShader",
+        "componentFixture": true,
+        "fullGameJourney": false
+      },
+      "log": "../logs/model-capture-mx250-isolated.log"
+    }
+  ],
+  "interpretation": "Fresh-process isolation passed without changing model or shader code. The exact cause of the shared-browser failure was not established. All six selected images have finite geometry, GL error 0 and contact distances below 0.03 m.",
+  "captures": [
+    {
+      "name": "seated-three-quarter",
+      "machine": "mx450",
+      "triangles": 126154,
+      "calls": 74,
+      "glError": 0,
+      "finiteGeometry": true,
+      "maximumHandErrorM": 0.019999999999999955,
+      "maximumAnkleErrorM": 0.020000000000000046
+    },
+    {
+      "name": "standing-braced-front",
+      "machine": "mx450",
+      "triangles": 126154,
+      "calls": 74,
+      "glError": 0,
+      "finiteGeometry": true,
+      "maximumHandErrorM": 0.019999999999999914,
+      "maximumAnkleErrorM": 0.020000000000000157
+    },
+    {
+      "name": "standing-attack-side",
+      "machine": "mx450",
+      "triangles": 126154,
+      "calls": 74,
+      "glError": 0,
+      "finiteGeometry": true,
+      "maximumHandErrorM": 0.020000000000000087,
+      "maximumAnkleErrorM": 0.019999999999999834
+    },
+    {
+      "name": "inside-boot-corner",
+      "machine": "mx450",
+      "triangles": 126154,
+      "calls": 74,
+      "glError": 0,
+      "finiteGeometry": true,
+      "maximumHandErrorM": 0.020000000000000108,
+      "maximumAnkleErrorM": 0.020000000000000094
+    },
+    {
+      "name": "helmet-sleeves",
+      "machine": "mx450",
+      "triangles": 126154,
+      "calls": 37,
+      "glError": 0,
+      "finiteGeometry": true,
+      "maximumHandErrorM": 0.019999999999999955,
+      "maximumAnkleErrorM": 0.020000000000000046
+    },
+    {
+      "name": "mx250-three-quarter",
+      "machine": "mx250",
+      "triangles": 129254,
+      "calls": 74,
+      "glError": 0,
+      "finiteGeometry": true,
+      "maximumHandErrorM": 0.020000000000000087,
+      "maximumAnkleErrorM": 0.020000000000000046
+    }
+  ],
+  "sha256": {
+    "seated-three-quarter.png": "0e1df397554359649ce3d7a42decbd7bb936eed061b8291fe6724d8029091067",
+    "seated-three-quarter.json": "a58286df0ad6875f30c63eda7034738d6b2c9d5a493be8b02e68048e0a23a6c0",
+    "standing-braced-front.png": "01ecc39bb1ba4901905df0fc1b571031dda6c622257d1ef0afa733ff806bfc94",
+    "standing-braced-front.json": "c63ae4076686cc680d44c510125f2f4b35eac0eabce5bc84dbb00bfbc6e57592",
+    "standing-attack-side.png": "b6928f5ad4ea3ff822e58511c5c65ac8bc7530c02da4eed5cc58d3b09af7b285",
+    "standing-attack-side.json": "3dca40a73d0f7cadd079e615d8721b87dd729e1285d8d4756465199890e89c9b",
+    "inside-boot-corner.png": "caffc789687239aca8aab83ad9dd9e449081240a29eacc01e77a40b61cf117a7",
+    "inside-boot-corner.json": "59e2c73d287e8f85640737b157846e27c6de021103b539094ac9f80811a579e0",
+    "helmet-sleeves.png": "45ab8ad07cf9890a21ab1da5d082ff00c1bd94cf0e31cc823e0ef7a21bb29c0a",
+    "helmet-sleeves.json": "9571f2aea11dd33e5ab177c1dbc3252aadafa191262930ced556aeb99ad61166",
+    "mx250-three-quarter.png": "d4a412811ac30805ef59695bf89adb3d8a2fc2d61595c80f60c71b5c6c1d4e75",
+    "mx250-three-quarter.json": "4f4c89e08a3c257280f90800ccb41aa0fba41530d6deea510c895c965a99eefa"
+  }
+}

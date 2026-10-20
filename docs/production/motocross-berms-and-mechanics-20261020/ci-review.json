@@ -1,0 +1,112 @@
+{
+  "sourceCommit": "8e45d33d5bef350e33943306fc531698f6bfa3c2",
+  "reviewTimeUTC": "2026-10-20T05:23:26Z",
+  "source": "GitHub Actions workflow and job APIs, with decoded logs read for the three failed jobs.",
+  "runs": [
+    {
+      "name": "MotoGP focused review",
+      "status": "queued",
+      "conclusion": null,
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39370614833"
+    },
+    {
+      "name": "Build and validation",
+      "status": "queued",
+      "conclusion": null,
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39370614870"
+    },
+    {
+      "name": "Settings transition validation",
+      "status": "completed",
+      "conclusion": "failure",
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39370614846"
+    },
+    {
+      "name": "A55-A60 Quarry validation",
+      "status": "in_progress",
+      "conclusion": null,
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39370614911"
+    },
+    {
+      "name": "A22 garage integration validation",
+      "status": "completed",
+      "conclusion": "failure",
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39370614916"
+    },
+    {
+      "name": "Settings interaction validation",
+      "status": "completed",
+      "conclusion": "failure",
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39370614765"
+    },
+    {
+      "name": "A12 secondary-stand validation",
+      "status": "in_progress",
+      "conclusion": null,
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39370614827"
+    },
+    {
+      "name": "Cockpit framing evidence",
+      "status": "completed",
+      "conclusion": "cancelled",
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39370614753"
+    },
+    {
+      "name": "Motocross committed-source review",
+      "status": "completed",
+      "conclusion": "cancelled",
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39370614796"
+    },
+    {
+      "name": "Scenery shadow budget",
+      "status": "in_progress",
+      "conclusion": null,
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39370614821"
+    },
+    {
+      "name": "A51-A54 vegetation validation",
+      "status": "completed",
+      "conclusion": "cancelled",
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39370614840"
+    }
+  ],
+  "failedJobSummaries": [
+    {
+      "workflow": "Settings transition validation",
+      "jobId": 118457419976,
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39370614846/job/118457419976",
+      "passed": 5,
+      "failed": 1,
+      "findings": [
+        "e2e/30-menu-access.spec.ts:134 — paused-grid startup expected paused but observed loading after 60000 ms."
+      ]
+    },
+    {
+      "workflow": "Settings interaction validation",
+      "jobId": 118457419565,
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39370614765/job/118457419565",
+      "passed": 3,
+      "failed": 4,
+      "findings": [
+        "e2e/08-reference-implementation.spec.ts:40 — screenshot operation exceeded the 300000 ms test deadline.",
+        "e2e/08-reference-implementation.spec.ts:71 — nearby lighting count expected 4, observed 0 after 60000 ms.",
+        "e2e/08-reference-implementation.spec.ts:142 — programme start expected driving, observed loading after 90000 ms.",
+        "e2e/30-menu-access.spec.ts:134 — paused-grid startup expected paused, observed loading after 60000 ms."
+      ]
+    },
+    {
+      "workflow": "A22 garage integration validation",
+      "jobId": 118457420521,
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39370614916/job/118457420521",
+      "passed": 3,
+      "failed": 2,
+      "findings": [
+        "e2e/26-aurel-environment.spec.ts:5 — frontage diagnostics unavailable at startup.",
+        "e2e/43-hero-garage.spec.ts:11 — expected garage diagnostic object was null."
+      ]
+    }
+  ],
+  "attribution": "These observations establish workflow failures, not which implementation change caused them. They were not resolved by the motocross evidence pass.",
+  "repositoryCIGreen": false,
+  "deploymentVerified": false
+}
