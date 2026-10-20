@@ -1,0 +1,371 @@
+{
+  "date": "2026-10-20",
+  "simulationVersion": 18,
+  "inspectionBaseline": "81ee98b646ce88fe0d48f427f5e80e9a65fcc347",
+  "sourceSHA256": "29db7a970b3f6418a7c94dba4bbd690d2f2d4bdd7438409f249d40eca7d3eb69",
+  "limitations": [
+    "Controlled numerical consistency tests; no measured real-vehicle calibration or iRacing equivalence.",
+    "Browser tests use verified ANGLE Vulkan SwiftShader, not physical-GPU performance measurements."
+  ],
+  "wheelSolver": {
+    "command": "node --experimental-transform-types scripts/wheel-solver-probe.ts",
+    "seed": 123456789,
+    "rotorInertiasKgM2": [0.06, 1.35, 5],
+    "stepSeconds": [0.0010416666666666667, 0.004166666666666667, 0.016666666666666666],
+    "baseline": {
+      "maxResidualNm": 1.2558518485,
+      "maxRootWorkMismatchJ": 1.8394797195
+    },
+    "updated": {
+      "updates": 12000,
+      "maxResidualNm": 1.6996182239381596e-8,
+      "maxRootWorkMismatchJ": 8.580813262061441e-8,
+      "maxWholeWheelWorkMismatchJ": 8.581082511227578e-8,
+      "sourceSHA256": "c55d556fc08a0f2afeaebf99e17650c069e2a978825be4a857d19ed6601411cd",
+      "exitCode": 0,
+      "scope": "Measured on source c55d556fc08a0f2afeaebf99e17650c069e2a978825be4a857d19ed6601411cd before the final motocross integration. That commit changes none of the v18 tire, vehicle, suspension, regeneration, reset or pose-derivative modules; its flow challenge only observes motion and does not feed forces into physics."
+    }
+  },
+  "productionDynamics": {
+    "sourceSHA256": "c55d556fc08a0f2afeaebf99e17650c069e2a978825be4a857d19ed6601411cd",
+    "fixedDtSeconds": 0.004166666666666667,
+    "fixture": "Isolated analytic runway/skidpad/kerbs with the production Vehicle solver",
+    "passed": true,
+    "cases": [
+      {
+        "name": "braking-100kmh",
+        "passed": true,
+        "measurements": {
+          "distanceM": 19.378181169688613,
+          "stopSeconds": 1.4625,
+          "lateralDriftM": -2.4682483989301893e-16,
+          "minimumSlip": -1,
+          "peakLoadN": 5403.325903938652,
+          "discTemperaturesC": [
+            317.71387839518815, 317.71387839518815, 317.35913432373997, 317.35913432373997
+          ]
+        }
+      },
+      {
+        "name": "braking-200kmh",
+        "passed": true,
+        "measurements": {
+          "distanceM": 55.89582030068866,
+          "stopSeconds": 2.3666666666666667,
+          "lateralDriftM": -6.760024526492367e-16,
+          "minimumSlip": -1,
+          "peakLoadN": 7380.653897691372,
+          "discTemperaturesC": [
+            320.3568266634172, 320.3568266634172, 322.58481584103345, 322.58481584103345
+          ]
+        }
+      },
+      {
+        "name": "braking-300kmh",
+        "passed": true,
+        "measurements": {
+          "distanceM": 97.55629903035091,
+          "stopSeconds": 2.9583333333333335,
+          "lateralDriftM": 1.3451303775798037e-15,
+          "minimumSlip": -1,
+          "peakLoadN": 13148.686443208355,
+          "discTemperaturesC": [
+            340.57462584127353, 340.57462584127353, 334.5166678039517, 334.5166678039517
+          ]
+        }
+      },
+      {
+        "name": "braking-speed-order",
+        "passed": true,
+        "measurements": [19.378181169688613, 55.89582030068866, 97.55629903035091]
+      },
+      {
+        "name": "skidpad-15mps",
+        "passed": true,
+        "measurements": {
+          "commandedSpeedMps": 15,
+          "meanSpeedMps": 15.031884378793109,
+          "radialRmsErrorM": 0.04662238781076319,
+          "measuredLateralG": 0.2881808693407818,
+          "kinematicLateralG": 0.28818366645976035
+        }
+      },
+      {
+        "name": "skidpad-25mps",
+        "passed": true,
+        "measurements": {
+          "commandedSpeedMps": 25,
+          "meanSpeedMps": 24.94523561152051,
+          "radialRmsErrorM": 0.32615197773646787,
+          "measuredLateralG": 0.7897972414560009,
+          "kinematicLateralG": 0.7899463243089502
+        }
+      },
+      {
+        "name": "skidpad-35mps",
+        "passed": true,
+        "measurements": {
+          "commandedSpeedMps": 35,
+          "meanSpeedMps": 34.72674147459106,
+          "radialRmsErrorM": 1.1318979166029208,
+          "measuredLateralG": 1.513888716137932,
+          "kinematicLateralG": 1.5157087476402815
+        }
+      },
+      {
+        "name": "slalom-repeated-steering",
+        "passed": true,
+        "measurements": {
+          "cyclePeakYawRadps": [
+            0.2019769135333851, 0.2019628623358219, 0.20195936936660477, 0.20195578952009405,
+            0.2019521440839489, 0.20194845110679574
+          ],
+          "recoveredYawRadps": 5.8159923696360326e-9
+        }
+      },
+      {
+        "name": "low-kerb",
+        "passed": true,
+        "measurements": {
+          "peakCompressionM": 0.02928447618920116,
+          "peakLoadN": 4188.828144658294,
+          "peakVerticalG": 0.3715334368425568,
+          "skidWorkJ": 0,
+          "finalHeightM": 0.5174569384794769
+        }
+      },
+      {
+        "name": "high-kerb",
+        "passed": true,
+        "measurements": {
+          "peakCompressionM": 0.03867980862646592,
+          "peakLoadN": 5860.742942811073,
+          "peakVerticalG": 0.6669145281963181,
+          "skidWorkJ": 0,
+          "finalHeightM": 0.5174569573385971
+        }
+      },
+      {
+        "name": "sausage-kerb",
+        "passed": true,
+        "measurements": {
+          "peakCompressionM": 0.04941430043504569,
+          "peakLoadN": 7683.125951123465,
+          "peakVerticalG": 1.5485961775715766,
+          "skidWorkJ": 0,
+          "finalHeightM": 0.5174569965308142
+        }
+      }
+    ],
+    "exitCode": 0,
+    "identicalToPreviousSourceSHA256": "2a2099fea04b5ee0d027338027d5c002432e670d9db905148d1c554301236ffd",
+    "scope": "Measured on source c55d556fc08a0f2afeaebf99e17650c069e2a978825be4a857d19ed6601411cd before the final motocross integration. That commit changes none of the v18 tire, vehicle, suspension, regeneration, reset or pose-derivative modules; its flow challenge only observes motion and does not feed forces into physics."
+  },
+  "browserFocused": {
+    "passed": true,
+    "tests": 4,
+    "durationSeconds": 26.9,
+    "specifications": [
+      "e2e/01-worker-portability.spec.ts",
+      "e2e/02-wheel-fidelity.spec.ts",
+      "e2e/tire-contact.spec.ts",
+      "e2e/motion.spec.ts"
+    ],
+    "backend": "ANGLE Vulkan SwiftShader (Subzero)",
+    "sourceSHA256": "870bb4640be96a3ce6917db3e00b3f1f67c20f5b9af83e346946df1d64733323",
+    "scope": "Completed before the independent Festival, MotoGP and motocross additions; their affected integration paths were checked separately on the merged sources. The newly integrated rendering paths do not have refreshed browser receipts from this v18 task."
+  },
+  "fullCheck": {
+    "status": "accepted_after_documented_rechecks",
+    "description": "Complete regression scan followed by explicit failure resolution and final merged-source integration, lint, content, type, and production-build acceptance. The initial full-scan shell command itself exited 1; no reported test failure remains unresolved.",
+    "fullScan": {
+      "integrationBase": "c46ef21",
+      "sourceSHA256": "870bb4640be96a3ce6917db3e00b3f1f67c20f5b9af83e346946df1d64733323",
+      "command": "npm run lint && npm run validate:content && npm test -- --maxWorkers=2 && npm run build",
+      "exitCode": 1,
+      "lintPassed": true,
+      "contentValidationPassed": true,
+      "buildReached": false,
+      "testFiles": 553,
+      "passedFiles": 550,
+      "failedFiles": 3,
+      "tests": 4891,
+      "passedTests": 4882,
+      "failedTests": 9,
+      "durationSeconds": 940.84
+    },
+    "failureResolution": [
+      {
+        "file": "tests/studio-qa-tools.test.ts",
+        "initialFailedTests": 6,
+        "cause": "Sandbox subprocess capture returned EPERM and empty stdout/stderr; reproduced unchanged on baseline 0d47645.",
+        "action": "Reran unchanged with subprocess access.",
+        "passedTests": 7,
+        "productionOrTestChanges": false
+      },
+      {
+        "file": "tests/review-tools.test.ts",
+        "initialFailedTests": 2,
+        "cause": "The same sandbox spawnSync EPERM restriction returned empty JSON output; reproduced unchanged on baseline 0d47645.",
+        "action": "Reran unchanged with subprocess access.",
+        "passedTests": 3,
+        "productionOrTestChanges": false
+      },
+      {
+        "file": "tests/frontend-retail.test.ts",
+        "initialFailedTests": 1,
+        "cause": "Prototype-only test fake omitted the Bike HUD always created by the real constructor; reproduced unchanged on baseline 0d47645.",
+        "action": "Supplied the missing fake dependency, retained all label assertions, and asserted reset invocation.",
+        "passedTests": 4,
+        "productionChanges": false
+      }
+    ],
+    "newRegressionTests": {
+      "total": 50,
+      "suites": {
+        "tests/wheel-solver-accuracy.test.ts": 2,
+        "tests/tire-motion-invariance.test.ts": 7,
+        "tests/suspension-droop-direction.test.ts": 9,
+        "tests/regenerative-braking.test.ts": 17,
+        "tests/presentation-velocity.test.ts": 12,
+        "tests/open-world-reset-occupancy.test.ts": 3
+      }
+    },
+    "festivalIntegration": {
+      "integrationBase": "47de488ddefb3c2a4d3daf513d0841c7c0ea6d07",
+      "sourceSHA256": "2a2099fea04b5ee0d027338027d5c002432e670d9db905148d1c554301236ffd",
+      "command": "npm run lint && npm run validate:content && node node_modules/vitest/vitest.mjs run --maxWorkers=2 tests/festival-side-construction.test.ts tests/festival-road-surface.test.ts tests/festival-car-surface.test.ts tests/festival-rear-construction.test.ts tests/festival-vehicle-detail.test.ts tests/festival-car-finish.test.ts tests/festival-circuit-markings.test.ts tests/frontend-retail.test.ts tests/studio-qa-tools.test.ts tests/review-tools.test.ts && npm run build",
+      "exitCode": 0,
+      "lintPassed": true,
+      "contentValidationPassed": true,
+      "testFiles": 10,
+      "tests": 55,
+      "testsPassed": 55,
+      "testDurationSeconds": 20.31,
+      "subprocessAccess": "permitted",
+      "typeCheckPassed": true,
+      "productionBuildPassed": true,
+      "viteBuildDurationSeconds": 16.35,
+      "buildWarnings": ["Existing large-chunk advisory; build completed successfully."],
+      "scope": "Historical 47de488 merge gate: 41 directly affected Festival integration checks and all 14 tests in the three full-scan failure suites. Counts overlap the full scan and must not be added as unique tests."
+    },
+    "motogpIntegration": {
+      "integrationBase": "c5469f43f6f6d3f67e58205f0ce9711bebb11acf",
+      "sourceSHA256": "c55d556fc08a0f2afeaebf99e17650c069e2a978825be4a857d19ed6601411cd",
+      "status": "accepted_after_hydraulic_fixture_recheck",
+      "lintPassed": true,
+      "contentValidationPassed": true,
+      "initialFocusedRun": {
+        "command": "node node_modules/vitest/vitest.mjs run --maxWorkers=2 tests/gp-front-hydraulics.test.ts tests/gp-rider-deformation.test.ts tests/gp-race-control.test.ts tests/gp-corner-practice.test.ts tests/gp-fork-crown.test.ts tests/frontend-retail.test.ts tests/presentation-velocity.test.ts",
+        "testFiles": 7,
+        "tests": 94,
+        "passedTests": 90,
+        "failedTests": 4,
+        "durationSeconds": 8.38,
+        "cause": "The independent MotoGP update adds one moving hose mesh at both LODs and one reservoir batch at Mid; the existing fork-crown budget still counted the older assembly."
+      },
+      "consumerRun": {
+        "command": "node node_modules/vitest/vitest.mjs run --maxWorkers=2 tests/gp-rider-garment.test.ts tests/gp-rider-contact.test.ts tests/gp-radial-caliper.test.ts tests/gp-control-feedback.test.ts tests/gp-brake-lever.test.ts tests/motorcycle-presentation.test.ts",
+        "exitCode": 0,
+        "testFiles": 6,
+        "tests": 33,
+        "passedTests": 33,
+        "durationSeconds": 5.96
+      },
+      "fixtureRecheck": {
+        "command": "node_modules/.bin/eslint tests/gp-fork-crown.test.ts && node node_modules/vitest/vitest.mjs run --maxWorkers=2 tests/gp-fork-crown.test.ts tests/gp-front-hydraulics.test.ts && node_modules/.bin/tsc --noEmit",
+        "exitCode": 0,
+        "testFiles": 2,
+        "tests": 12,
+        "passedTests": 12,
+        "testDurationSeconds": 5.67,
+        "action": "Explicitly identify the steering-owned dynamic paired hose and Mid reservoir material batch before applying the unchanged 21/9 historical remainder budget; retain six wheel materials, crown visibility, replay identity, and the opaque-lid negative control.",
+        "productionChanges": false
+      },
+      "resolvedCoverage": {
+        "testFiles": 13,
+        "distinctTests": 127,
+        "unresolvedFailures": 0,
+        "note": "Coverage across the two focused groups plus the fixture recheck; the twelve rechecks are already contained in the 127 distinct tests."
+      },
+      "typeCheckPassed": true,
+      "productionBuildPassed": true,
+      "buildExitCode": 0,
+      "viteBuildDurationSeconds": 16.89,
+      "buildCommand": "npm run build",
+      "buildWarnings": ["Existing large-chunk advisory; build completed successfully."],
+      "scope": "The incoming MotoGP commit changes rendering, UI and review tooling, with no changes to the v18 physics solver or pose derivatives. Its new rendering paths have geometry/integration checks and a build, not a refreshed browser receipt."
+    },
+    "finalIntegration": {
+      "integrationBase": "96ad59dc178bff0c4b68dd6f1a9614739f09b218",
+      "sourceSHA256": "29db7a970b3f6418a7c94dba4bbd690d2f2d4bdd7438409f249d40eca7d3eb69",
+      "command": "npm run lint && npm run validate:content && node node_modules/vitest/vitest.mjs run --maxWorkers=2 tests/gp-rider-motion.test.ts tests/motocross-flow-practice.test.ts tests/motocross-garment.test.ts tests/motocross-spine.test.ts tests/motocross-tyre-finish.test.ts tests/gp-rider-contact.test.ts tests/presentation-velocity.test.ts && npm run build",
+      "exitCode": 0,
+      "lintPassed": true,
+      "contentValidationPassed": true,
+      "testFiles": 7,
+      "tests": 62,
+      "passedTests": 62,
+      "testDurationSeconds": 7.36,
+      "typeCheckPassed": true,
+      "productionBuildPassed": true,
+      "viteBuildDurationSeconds": 16.58,
+      "buildWarnings": ["Existing large-chunk advisory; build completed successfully."],
+      "scope": "Final motocross integration covers the shared rider path, incoming garment/spine/tire-finish/flow changes, GP attachment compatibility, and exact presented velocities. The new spine is isolated to the motocross kit. Counts overlap previous runs and are not a unique full-suite total."
+    }
+  },
+  "liveApplication": {
+    "status": "passed",
+    "tests": 1,
+    "runnerDuration": "5.0 minutes (rounded by Playwright)",
+    "command": "node_modules/.bin/playwright test e2e/application.spec.ts --grep 'browser session, cameras, pause safety, telemetry and replay'",
+    "backend": "ANGLE Vulkan SwiftShader (Subzero)",
+    "assertions": [
+      "Built showroom and circuit initialization",
+      "Live driving speed above 15 m/s",
+      "Four wheel engineering channels with positive road load",
+      "Cockpit placement, driver rig and functioning mirrors",
+      "Pause holds the physics tick; resume advances it",
+      "No browser console or page errors"
+    ],
+    "scope": "Completed before the event-reset correction and independent Festival/MotoGP/motocross additions; circuit vehicle physics and chassis-derivative implementation are unchanged since this run. The selected test validates live-session behavior; recorded tire rewind and motion vectors are covered by the focused browser specifications.",
+    "sourceSHA256": "b9af28771451a739db4abd1cf58605b1de55f01ab65016addb79eb7f79e63fb1"
+  },
+  "integrationBase": "96ad59dc178bff0c4b68dd6f1a9614739f09b218",
+  "baselineCorrections": {
+    "reproducedOn": "0d47645",
+    "eventReset": {
+      "problem": "The old event reset can overlap a rival chassis.",
+      "oldInitialImpact": 0.181414,
+      "correctedInitialImpact": 0,
+      "correctedProgressAfter12Seconds": 0.126756103,
+      "regressions": [
+        "Angled chassis occupancy and settling",
+        "Occupied route start and clear retry",
+        "Closed-circuit closing seam without progress gain"
+      ]
+    },
+    "fixtures": [
+      {
+        "file": "tests/a61-rival.test.ts",
+        "correction": "Author and assert the measured C.HUB_LENGTH independently of diagnostic W.LENGTH at every LOD."
+      },
+      {
+        "file": "tests/motocross-collision.test.ts",
+        "correction": "Move the initial second bike 8 cm closer; retain every response tolerance and verify the original false-heave mutation still fails."
+      },
+      {
+        "file": "tests/motocross-broadcast-controls.test.ts",
+        "correction": "Assert the documented Cape Wrenna camera-2 displacement from prior grandstand removal; retain all 44 original hashes and other camera fields."
+      },
+      {
+        "file": "tests/gp-fork-crown.test.ts",
+        "correction": "Assert the six existing carbon-rotor wheel material batches and retain the 21/9 non-wheel steering mesh budgets."
+      },
+      {
+        "file": "tests/frontend-retail.test.ts",
+        "correction": "Supply the always-initialized Bike HUD in the prototype-only UI fake, keep every loading-label assertion, and verify one reset per session and none on hiding."
+      }
+    ]
+  }
+}

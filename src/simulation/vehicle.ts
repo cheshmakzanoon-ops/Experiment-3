@@ -3,6 +3,7 @@ import { SkidContact, SKID_CONTACT } from './skid-contact.ts';
 import { MARSHAL } from './marshal.ts';
 import { FrictionClutch } from './clutch.ts';
 import { drivingSlip } from './driving-assists.ts';
+import { RegenerativeBrakes } from './regenerative-braking.ts';
 import { carrierOmega, distributeDrive, drivenInertiaFactor } from './differential.ts';
 import { TIRE_FAMILIES } from './tire-families.ts';
 import { DebrisPool } from './damage.ts';
@@ -32,6 +33,7 @@ import { wheelAngularMomentum } from './wheel-momentum.ts';
 import {
   brakeEfficiency,
   makeTire,
+  peakGrip,
   resetTireContact,
   slipScale,
   solveTire,
@@ -74,6 +76,7 @@ export class Vehicle {
   battery: number;
   rpm: number;
   readonly clutch: FrictionClutch;
+  readonly brakes: RegenerativeBrakes;
   /** Tyre, suspension, powertrain, differential and aero-platform blocks
    * (vehicle-dynamics.ts). Not `dynamics`: BikeVehicle uses that name. */
   readonly physics: VehicleDynamics;
@@ -99,6 +102,8 @@ export class Vehicle {
   /** Per-wheel drive torque from a catalogue driveline (vehicle-catalogue). */
   private readonly driveTorque = new Float64Array(4);
   private readonly wheelOmega = new Float64Array(4);
+  private readonly brakeDemand = new Float64Array(4);
+  private readonly brakeRelease = new Float64Array(4);
   private readonly spinBefore = new Vec3();
   private readonly spinAfter = new Vec3();
   engineOutputTorque = 0;
@@ -196,6 +201,9 @@ export class Vehicle {
     const dynamics = (this.physics = vehicleDynamics(definition));
     this.frontShare =
       definition.drivetrain === 'awd' ? (definition.driveline?.centre?.frontShare ?? 0.5) : null;
+    this.brakes = new RegenerativeBrakes(
+      definition.hybridAxle || definition.drivetrain === 'fwd' ? 1 : (this.frontShare ?? 0),
+    );
     // A catalogue power unit (spec.engine) carries its own clutch and inertia;
     // otherwise the engine block of the vehicle's dynamics (powertrain.ts).
     const engine = spec.engine;
@@ -495,19 +503,7 @@ export class Vehicle {
       this.fuel - ((Math.max(0, ice) * shaft) / (0.43 * 43e6) + (this.fuel > 0 ? 0.00045 : 0)) * dt,
     );
     const frontOmega = axleMotor ? Math.abs((this.tires[0].omega + this.tires[1].omega) * 0.5) : 0;
-    const motorAxleOmega = axleMotor ? frontOmega : rearOmega;
     const axleMotorTorque = axleMotor ? motorPower / Math.max(2 * frontOmega, 10) : 0;
-    const rearFriction =
-        spec.brakeTorque *
-        (axleMotor ? this.setup.brakeBias : 1 - this.setup.brakeBias) *
-        this.brake *
-        0.5,
-      regenPower = Math.min(
-        spec.regenPowerW * this.brake,
-        (spec.maxBatteryJ - this.battery) / dt,
-        rearFriction * 2 * motorAxleOmega * 0.65,
-      ),
-      regenTorque = regenPower / Math.max(2 * motorAxleOmega, 10);
     // A catalogue driveline (differential.ts: open/LSD/locked axles and an AWD
     // centre) distributes the drive; otherwise the driven-axle differential of
     // the vehicle's dynamics (the APX-01/TC-1 viscous axle, or an override).
@@ -525,11 +521,7 @@ export class Vehicle {
         this.setup.diffPower,
         this.setup.diffCoast,
       );
-      if (axleMotor) {
-        this.driveTorque[0] += axleMotorTorque;
-        this.driveTorque[1] += axleMotorTorque;
-      }
-    } else
+    } else {
       differentialTorques(
         this.diff,
         wheelTorque,
@@ -547,7 +539,14 @@ export class Vehicle {
         -this.tires[this.drivenRight].fx * this.tires[this.drivenRight].radius +
           this.tires[this.drivenRight].rollingTorque,
       );
-    const regenWheel = axleMotor ? 0 : 2;
+      this.driveTorque.fill(0);
+      this.driveTorque[this.drivenLeft] = this.diffOut.first;
+      this.driveTorque[this.drivenRight] = this.diffOut.second;
+    }
+    if (axleMotor) {
+      this.driveTorque[0] += axleMotorTorque;
+      this.driveTorque[1] += axleMotorTorque;
+    }
     const hub = this.hub,
       tyreDef = dynamics.tyre;
     // Current steering with the previous solved hub travel orients this
@@ -609,7 +608,12 @@ export class Vehicle {
       // The query returns suspension-axis travel. Project normal gap speed
       // into that same coordinate; HubSolver projects radial force/work back.
       hub.rate[i] = -this.pointVelocities[i].dot(s.normal) / cosine;
-      hub.contact[i] = compression > 0 && this.up.y >= 0.25 ? 1 : 0;
+      // A wheel can still reach the road below its zero-travel plane. The
+      // unilateral hub solve decides whether it actually carries load.
+      hub.contact[i] =
+        Number.isFinite(length) && compression > -hub.hardware[i].droop && this.up.y >= 0.25
+          ? 1
+          : 0;
       // Link forces push on the same compliant hub/tyre series as the spring.
       // Feed back the preceding substep's force while this contact is a
       // candidate; a missed road cast cannot leave a stale geometric load.
@@ -625,7 +629,7 @@ export class Vehicle {
         rest = this.restScratch[i];
       // Geometric wheel travel retains its suspension-axis coordinate. The
       // carcass deflection is radial for contact length, sinkage and rendering.
-      t.length = Math.min(rest + 0.05, Math.max(0.06, length));
+      t.length = Math.min(rest + hub.hardware[i].droop, Math.max(0.06, length));
       t.compression = Number.isFinite(length) ? Math.max(0, rest - length) : 0;
       t.deflection = hub.contact[i]
         ? hub.normalCosine[i] * Math.max(0, hub.compression[i] - hub.travel[i])
@@ -635,7 +639,7 @@ export class Vehicle {
     }
     this.updateWheelAlignment();
     b.orientation.rotate(this.axis.set(1, 0, 0), this.lateralAxis);
-    let generatorWorkW = 0;
+    let regenerativeDirectionStable = true;
     for (let i = 0; i < 4; i++) {
       // The hub solve already includes the link share in radial contact force.
       // Adding it again here would bypass carcass compliance and duplicate it.
@@ -648,35 +652,75 @@ export class Vehicle {
       if (!basis.set(b.orientation, this.wheelSteering[i], s.normal, this.wheelCamber[i]))
         this.normalLoads[i] = 0;
       const long = this.pointVelocities[i].dot(basis.forward),
-        lat = this.pointVelocities[i].dot(basis.lateral),
         total =
           spec.brakeTorque *
           (i < 2 ? this.setup.brakeBias : 1 - this.setup.brakeBias) *
           this.brake *
           0.5;
-      // ABS must release *both* sources of wheel braking. Leaving generator
-      // torque untouched can keep a rear wheel locked while friction is released.
       const brakingSlip = drivingSlip(
         t.slip,
         long,
         t.omega * t.radius,
         this.input.reverse ? -1 : this.gear,
       );
-      const release =
+      this.brakeRelease[i] =
         this.assist === 'sport' ? 1 / (1 + Math.max(0, -brakingSlip - 0.14 * slipScale(t)) * 9) : 1;
-      const regenerating = i >= regenWheel && i < regenWheel + 2;
-      const friction =
-        Math.max(0, total - (regenerating ? regenTorque : 0)) *
-        brakeEfficiency(t.discTemp) *
-        release;
-      const driven = driveline
-          ? this.driveTorque[i]
-          : i === this.drivenLeft
-            ? this.diffOut.first
-            : i === this.drivenRight
-              ? this.diffOut.second
-              : 0,
-        regen = regenerating ? regenTorque * release : 0;
+      this.brakeDemand[i] = total * brakeEfficiency(t.discTemp);
+      if (this.brakes.weights[i] > 0 && spec.regenPowerW > 0 && this.brake > 0) {
+        const load = this.normalLoads[i],
+          planarSpeed = Math.hypot(long, this.pointVelocities[i].dot(basis.lateral)),
+          treadTorqueBound =
+            load < 1
+              ? 0
+              : load *
+                Math.max(0.001, peakGrip(t, load, s, planarSpeed)) *
+                t.construction.longitudinalFriction *
+                t.nominalRadius;
+        // solveTire selects its brake half-line from the torque at omega=0.
+        // The ellipse bounds |Fx| and rolling torque is zero there. This
+        // sufficient bound guarantees the completed wheel keeps its current
+        // sign, even with unknown contact strain. Without it an output could
+        // reverse mid-step and impersonate an independent generator. Friction
+        // supplies the identical total braking whenever the bound is uncertain.
+        if (
+          (t.inertia * Math.abs(t.omega)) / dt + Math.sign(t.omega) * this.driveTorque[i] <=
+          this.brakeDemand[i] * this.brakeRelease[i] + treadTorqueBound + 1e-6
+        )
+          regenerativeDirectionStable = false;
+      }
+    }
+    // First establish all four brake/ABS demands. A shared motor respects the
+    // most restrictive connected ABS channel; friction supplies the remainder
+    // at each wheel. A crankshaft generator cannot act through neutral or an
+    // open clutch. A separate front motor remains connected independently.
+    this.brakes.prepare(
+      this.brakeDemand,
+      this.brakeRelease,
+      this.tires,
+      spec.regenPowerW * this.brake,
+      spec.maxBatteryJ - this.battery,
+      dt,
+      !regenerativeDirectionStable ? 0 : axleMotor ? 1 : ratio === 0 ? 0 : this.clutch.engagement,
+      // Reserve the remaining clutch capacity in the generator's direction.
+      // A saturated back-driven clutch cannot transmit extra generator torque.
+      axleMotor
+        ? Infinity
+        : Math.abs(ratio) *
+            Math.max(
+              0,
+              this.clutch.capacity * this.clutch.engagement +
+                Math.sign(ratio * signedRearOmega) * this.clutch.transmittedTorque,
+            ),
+    );
+    for (let i = 0; i < 4; i++) {
+      const t = this.tires[i],
+        s = this.contacts[i],
+        basis = this.contactFrames[i],
+        long = this.pointVelocities[i].dot(basis.forward),
+        lat = this.pointVelocities[i].dot(basis.lateral),
+        friction = this.brakes.friction[i];
+      const driven = this.driveTorque[i],
+        regen = this.brakes.regenerative[i];
       const previousPickup = t.marblePickup;
       solveTire(
         t,
@@ -691,7 +735,6 @@ export class Vehicle {
         regen,
         track.ambient,
       );
-      generatorWorkW += regen * Math.abs(t.omega);
       const groundResistance = Math.tanh(long * 2) * (t.groundRolling * t.load + t.groundDrag);
       // Carcass rolling resistance is already in the implicit wheel root and
       // reaches the chassis through Fx. Its reduced axial moment is external
@@ -727,6 +770,12 @@ export class Vehicle {
               linkLongitudinal,
               linkLateral,
               (hub.travel[i & 2] + hub.travel[(i & 2) + 1]) * 0.5,
+              drivingSlip(
+                1,
+                this.pointVelocities[i].dot(this.forward),
+                t.omega * t.radius * Math.cos(this.wheelSteering[i]),
+                this.input.reverse ? -1 : this.gear,
+              ),
             )
           : 0;
       track.interact(
@@ -741,11 +790,7 @@ export class Vehicle {
     }
     // Actual generator work is limited by the requested power and battery
     // headroom, even if angular speed changed during the implicit wheel solve.
-    const recovered = Math.min(
-      spec.maxBatteryJ - this.battery,
-      regenPower * 0.78 * dt,
-      generatorWorkW * 0.78 * dt,
-    );
+    const recovered = this.brakes.recoveredEnergy(this.tires, dt, spec.maxBatteryJ - this.battery);
     this.battery += recovered;
     this.regenerationPower = recovered / dt;
     this.relativeAir.copy(b.velocity);

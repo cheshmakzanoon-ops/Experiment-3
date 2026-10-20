@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { developerMode } from '../src/ui/dev-mode.ts';
 import { LOADING_TIPS, loadingStage } from '../src/ui/loading-copy.ts';
 import { conditions, circuitTitle, Interface, SESSION_TITLES } from '../src/ui/interface.ts';
@@ -59,7 +59,9 @@ describe('retail front end', () => {
 
   it('uses the whole GP field for loading context and retains MX and mixed-field labels', () => {
     const line = { hidden: true, textContent: '' };
+    const resetPractice = vi.fn();
     const ui = {
+      bikeHud: { resetPractice },
       get: (id: string) => {
         expect(id).toBe('loadingSession');
         return line;
@@ -72,6 +74,7 @@ describe('retail front end', () => {
       ['arena-nord-sx', ['mx250', 'mx250', 'mx250', 'mx250'], '4 riders'],
       ['aurel', undefined, '4 cars'],
     ] as const) {
+      resetPractice.mockClear();
       Interface.prototype.loadingSession.call(ui, {
         ...DEFAULT_OPTIONS,
         mode: 'practice',
@@ -79,13 +82,16 @@ describe('retail front end', () => {
         opponents: 3,
         vehicles: vehicles ? [...vehicles] : undefined,
       });
+      expect(resetPractice).toHaveBeenCalledOnce();
       expect(line.hidden).toBe(false);
       expect(line.textContent).toContain(entrants);
       expect(line.textContent).toContain('Free Practice');
       expect(line.textContent).toContain('Dry');
     }
+    resetPractice.mockClear();
     Interface.prototype.loadingSession.call(ui, null);
     expect(line.hidden).toBe(true);
+    expect(resetPractice).not.toHaveBeenCalled();
   });
 
   it('names sessions, circuits and conditions in player language', () => {

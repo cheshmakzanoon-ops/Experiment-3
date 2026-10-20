@@ -396,7 +396,12 @@ export function kinematicCamber(staticCamber: number, gain: number, travel: numb
  * lateral jacking through the roll centre at `y` (car-local lateral position
  * of the patch) and side-view anti geometry at `z` for force Fx. Pass this
  * generalized load to HubSolver so the same compliant tyre supplies its
- * projected road-normal reaction. */
+ * projected road-normal reaction. `travelDirection` is the sign of the
+ * chassis-longitudinal contact motion, with wheel/drive direction as the
+ * near-rest fallback. Braking opposes travel in either direction; the force
+ * and its resulting link load retain their original chassis-frame signs.
+ * The direction selects the reduced brake/drive force path, not an extra
+ * force or an assumption that a reverse force always comes from the brakes. */
 export function geometricLoad(
   axle: AxleSuspension,
   y: number,
@@ -404,9 +409,10 @@ export function geometricLoad(
   fx: number,
   fy: number,
   meanTravel: number,
+  travelDirection = 1,
 ) {
   const rc = Math.max(-0.2, axle.rollCentreHeight + axle.rollCentreGain * meanTravel),
-    slope = fx < 0 ? axle.antiBrake : axle.antiDrive;
+    slope = fx * travelDirection < 0 ? axle.antiBrake : axle.antiDrive;
   return (
     -(rc / (Math.abs(y) < 0.05 ? 0.05 * Math.sign(y || 1) : y)) * fy - slope * fx * Math.sign(z)
   );

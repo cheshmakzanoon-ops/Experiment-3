@@ -4,6 +4,7 @@ import { writeWheelContact } from '../wheel-contact-state.ts';
 import { wakeFields } from '../aero.ts';
 import { BikeVehicle, createVehicle, writeBikeBlock } from '../bike-vehicle.ts';
 import { CollisionSolver } from '../collision.ts';
+import { BoxContact, ChassisBox } from '../obb.ts';
 import {
   COMPOUNDS,
   controls,
@@ -375,7 +376,6 @@ export class OpenWorldSimulation {
       slot = run?.participants.findIndex((p) => p.car === old) ?? -1;
     const fresh = this.makeCar(index, old.definition.id);
     fresh.input.throttle = 0;
-    this.cars[index] = fresh;
     if (run && slot >= 0) {
       // Back onto the event route at the last legal progress: near it (the
       // closest route point to the car within a short window) but never
@@ -383,14 +383,50 @@ export class OpenWorldSimulation {
       // only moves of up to its maxStep, matches the placed car at once and
       // a shortcut gains nothing.
       const participant = run.participants[slot];
-      participant.car = fresh;
       const path = run.event.path,
         legal = path.progressDistance(participant.progress.edge, participant.progress.s),
         found = path.locate(pos.x, pos.z, legal, RESET_WINDOW, this.located);
       let ahead = found - legal;
       if (path.closed)
         ahead = (((ahead % path.length) + path.length * 1.5) % path.length) - path.length / 2;
-      const d = ahead > RESET_AHEAD ? legal + RESET_AHEAD : found;
+      // Search backwards from the same bounded target if another chassis
+      // occupies it. Never jump forward around traffic, or back across an
+      // edge RouteProgress can no longer accept (including the route start).
+      const edgeStart = path.progressDistance(participant.progress.edge, 0),
+        minimum = Math.max(
+          legal - RESET_WINDOW,
+          path.closed && edgeStart > legal ? edgeStart - path.length : edgeStart,
+        ),
+        target = Math.max(minimum, legal + Math.min(ahead, RESET_AHEAD)),
+        spawn = new ChassisBox(),
+        occupied = new ChassisBox(),
+        contact = new BoxContact(),
+        [hx, hy, hz] = fresh.definition.halfExtents;
+      // Half a metre of horizontal clearance; the vertical padding also
+      // covers the new suspension settling from placeAt's raised pose.
+      spawn.half = [hx + 0.5, hy + 0.62, hz + 0.5];
+      let d = target;
+      for (;;) {
+        const p = path.at(d, this.pp),
+          b = fresh.body;
+        b.position.set(p.x, this.track.groundHeight(p.x, p.z, p.y + 0.5) + 0.62, p.z);
+        b.orientation.x = b.orientation.y = b.orientation.z = 0;
+        b.orientation.w = 1;
+        b.orientation.yaw(Math.atan2(p.tx, p.tz));
+        spawn.update(b);
+        const blocked = this.cars.some((car) => {
+          if (car === old) return false;
+          occupied.half = car.definition.halfExtents;
+          return contact.intersect(spawn, occupied.update(car.body));
+        });
+        if (!blocked) break;
+        if (d <= minimum) {
+          if (index === 0) this.say('Road occupied; try reset again');
+          return;
+        }
+        d = Math.max(minimum, d - 1);
+      }
+      this.cars[index] = participant.car = fresh;
       this.placeOnPath(fresh, path, d, 0);
       const driver = run.drivers[slot];
       if (driver) {
@@ -398,6 +434,7 @@ export class OpenWorldSimulation {
         run.drivers[slot]!.relocate(d);
       }
     } else {
+      this.cars[index] = fresh;
       const p = this.point,
         lateral = this.track.nearest(pos.x, pos.z, p, pos.y),
         e = this.world.network.edges[this.world.network.edgeOf[this.world.network.lastSegment]],

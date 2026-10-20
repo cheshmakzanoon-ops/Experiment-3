@@ -30,8 +30,10 @@ import {
  * v16: continuous motocross chop transitions and authored braking-bump lines;
  * v17: wet rubber grip inversion, layered pavement heat/water coupling and
  * direction-aware wheel-slip assists and contact-aware airborne clutch inertia;
+ * v18: converged tire torque roots, planar water/cooling and lockup wear,
+ * droop-reachable suspension, directional link geometry and connected brake blending;
  * prior records remain in their original physics category. */
-export const SIMULATION_VERSION = 17;
+export const SIMULATION_VERSION = 18;
 /** Fixed physics tick used by the worker and headless simulation. */
 export const SIMULATION_TICK_HZ = 120;
 

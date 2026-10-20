@@ -350,8 +350,75 @@ const THERMAL: ThermalInputs = {
   discTemp: 0,
   wear: 0,
 };
-/** Backward Euler wheel solve with dissipative brake complementarity. Bisection
- * resolves the stiff low-speed wheel mode without arbitrary angular-velocity
+/** Brent's safeguarded interpolation keeps a sign-changing torque bracket.
+ * Smooth wheel modes usually converge in a handful of evaluations; stiff
+ * contact transitions retain bisection's safety. Unlike a fixed iteration
+ * count, convergence is tied to physical torque error, with a roundoff floor
+ * on wheel speed. The caller supplies the brake-complementarity half-line,
+ * so a nonmonotone post-peak tyre curve cannot reverse the brake's work. */
+function solveWheelRoot(
+  low: number,
+  high: number,
+  residual: (omega: number) => number,
+  torqueTolerance: number,
+) {
+  let a = low,
+    b = high,
+    fa = residual(a),
+    fb = residual(b),
+    c = a,
+    fc = fa,
+    step = b - a,
+    previousStep = step;
+  for (let iteration = 0; iteration < 64; iteration++) {
+    if ((fb > 0 && fc > 0) || (fb < 0 && fc < 0)) {
+      c = a;
+      fc = fa;
+      step = previousStep = b - a;
+    }
+    if (Math.abs(fc) < Math.abs(fb)) {
+      // Preserve the old best point as the opposite bracket endpoint.
+      a = b;
+      fa = fb;
+      b = c;
+      fb = fc;
+      c = a;
+      fc = fa;
+    }
+    const tolerance = 4 * Number.EPSILON * Math.abs(b) + 1e-12,
+      halfBracket = (c - b) * 0.5;
+    if (Math.abs(fb) <= torqueTolerance || Math.abs(halfBracket) <= tolerance) return b;
+    if (Math.abs(previousStep) >= tolerance && Math.abs(fa) > Math.abs(fb)) {
+      const ratio = fb / fa;
+      let p: number, q: number;
+      if (a === c) {
+        p = 2 * halfBracket * ratio;
+        q = 1 - ratio;
+      } else {
+        const qa = fa / fc,
+          qb = fb / fc;
+        p = ratio * (2 * halfBracket * qa * (qa - qb) - (b - a) * (qb - 1));
+        q = (qa - 1) * (qb - 1) * (ratio - 1);
+      }
+      if (p > 0) q = -q;
+      p = Math.abs(p);
+      if (
+        2 * p <
+        Math.min(3 * halfBracket * q - Math.abs(tolerance * q), Math.abs(previousStep * q))
+      ) {
+        previousStep = step;
+        step = p / q;
+      } else step = previousStep = halfBracket;
+    } else step = previousStep = halfBracket;
+    a = b;
+    fa = fb;
+    b += Math.abs(step) > tolerance ? step : Math.sign(halfBracket) * tolerance;
+    fb = residual(b);
+  }
+  return b;
+}
+/** Backward Euler wheel solve with dissipative brake complementarity. A
+ * safeguarded torque root resolves the stiff low-speed wheel mode without arbitrary angular-velocity
  * clamps. Forces come from the combined-slip law (tyre-force.ts) with the
  * instantaneous steady slip and two elastic contact axes solved at every
  * trial wheel speed. Their recoverable energies are separate from sliding
@@ -381,6 +448,10 @@ export function solveTire(
   const r = t.radius,
     I = t.inertia,
     old = t.omega,
+    // Convection and water displacement see the entire road-plane motion.
+    // Signed rolling transport remains separate for slip, carcass renewal,
+    // sinkage and wheel-axis resistance below.
+    planarSpeed = Math.hypot(vLong, vLat),
     regularization = Math.max(2.5, Math.abs(vLong));
   t.angle = Math.atan2(vLat, Math.hypot(vLong, 3));
   // Retained telemetry diagnostic; explicit patch strain now governs force.
@@ -395,7 +466,7 @@ export function solveTire(
           dt,
         );
   const ideal = COMPOUNDS[t.compound].ideal,
-    mu = peakGrip(t, t.load, surface, vLong);
+    mu = peakGrip(t, t.load, surface, planarSpeed);
   prepareSlip(
     k,
     t.load,
@@ -424,7 +495,7 @@ export function solveTire(
     t.compound,
     t.load,
     surface.water,
-    vLong,
+    planarSpeed,
     t.wear,
     t.pressure,
     material.textureMm,
@@ -506,20 +577,19 @@ export function solveTire(
     // Keep the sliding root on the side selected by brake complementarity.
     // A non-monotone post-peak tyre curve must never choose a root whose
     // brake torque points WITH the solved wheel rotation.
-    let lo = sign > 0 ? Math.max(0, old - delta - 0.01) : old - delta - 0.01,
+    const lo = sign > 0 ? Math.max(0, old - delta - 0.01) : old - delta - 0.01,
       hi = sign < 0 ? Math.min(0, old + delta + 0.01) : old + delta + 0.01;
-    for (let n = 0; n < 16; n++) {
-      const mid = (lo + hi) * 0.5,
-        residual =
-          (I * (mid - old)) / dt - drive + brake * sign + evalForce(mid) * r - rollingTorque(mid);
-      if (residual === 0) {
-        lo = hi = mid;
-        break;
-      }
-      if (residual > 0) hi = mid;
-      else lo = mid;
-    }
-    omega = (lo + hi) * 0.5;
+    omega = solveWheelRoot(
+      lo,
+      hi,
+      (trial) =>
+        (I * (trial - old)) / dt -
+        drive +
+        brake * sign +
+        evalForce(trial) * r -
+        rollingTorque(trial),
+      1e-8 + 1e-12 * (Math.abs(drive) + brake + cap * r + rollingMoment),
+    );
   }
   t.omega = omega;
   t.rollingTorque = rollingTorque(omega);
@@ -559,7 +629,7 @@ export function solveTire(
   THERMAL.carcassPower = t.longitudinalRelaxationHeat + t.lateralRelaxationHeat;
   THERMAL.rollingPower = t.rollingDissipation;
   THERMAL.load = t.load;
-  THERMAL.speed = vLong;
+  THERMAL.speed = planarSpeed;
   THERMAL.airTemp = airTemp;
   THERMAL.trackTemp = surface.temp;
   THERMAL.waterMm = surface.water;
@@ -593,7 +663,9 @@ export function solveTire(
     0,
     1,
   );
-  if (vLong > 12 && t.slip < -0.8 && t.load > 700)
+  // Either direction of travel can scrub a held tread patch. Rapid reverse
+  // wheelspin distributes wear around the circumference and is not a lockup.
+  if (Math.abs(vLong) > 12 && Math.abs(omega * r) < 0.2 * Math.abs(vLong) && t.load > 700)
     t.flatSpot = clamp(t.flatSpot + (Math.abs(t.fx * vLong) * dt) / 2e7, 0, 1);
   updateContamination(t, surface, t.load, vLong, omega, dt);
   if (

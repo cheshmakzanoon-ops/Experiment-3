@@ -182,12 +182,60 @@ describe('GP fork crowns above the real opaque fork tubes', () => {
           if (!initial) initial = current;
           else if (value === values[0]) expect(current).toEqual(initial);
         }
-        // Keep fixed hardware in the existing material batches, including mid LOD.
-        let meshes = 0;
+        // The later carbon-rotor revision adds an aluminium carrier batch at
+        // high LOD and aluminium plus steel at mid LOD; see
+        // docs/production/motogp-brakes-gloves-and-racecraft/README.md.
+        // Account for those exact rotating materials without increasing the
+        // fixed hardware budget: the original 26/13 totals included 5/4 wheel
+        // meshes, leaving 21/9 for the unchanged rest of this steering subtree.
+        const meshes: T.Mesh[] = [];
         steering.traverse((object) => {
-          if (object instanceof T.Mesh) meshes++;
+          if (object instanceof T.Mesh) meshes.push(object);
         });
-        expect(meshes).toBe(detail === 'high' ? 26 : 13);
+        const spin = steering.getObjectByName('GP front wheel spin')!,
+          wheelMeshes: T.Mesh[] = [];
+        expect(spin).toBeDefined();
+        spin.traverse((object) => {
+          if (object instanceof T.Mesh) wheelMeshes.push(object);
+        });
+        expect(wheelMeshes).toHaveLength(6);
+        for (const material of [
+          materials.rubber,
+          materials.band,
+          materials.wheel,
+          materials.disc,
+          materials.aluminium,
+          materials.steel,
+        ])
+          expect(wheelMeshes.filter((mesh) => mesh.material === material)).toHaveLength(1);
+        // The connected-hydraulics revision adds one deforming paired hose at
+        // both LODs and the previously High-only reservoir batch at Mid. Its
+        // other rigid hardware joins existing material batches; see
+        // docs/production/motogp-hydraulics-and-corner-feedback/README.md.
+        // Identify only those additions before checking the historical budget.
+        const hydraulics = steering.getObjectByName('GP connected front hydraulic lines')!,
+          hoses = steering.getObjectByName('GP compliant paired brake hoses') as T.Mesh;
+        expect(hydraulics.parent).toBe(steering);
+        expect(hydraulics.children).toHaveLength(1);
+        expect(hoses).toBeInstanceOf(T.Mesh);
+        expect(hoses.parent).toBe(hydraulics);
+        expect(hoses.material).toBe(materials.dark);
+        expect(hoses.geometry.name).toBe('GP constant-length suspension brake hoses');
+        const positions = hoses.geometry.getAttribute('position') as T.BufferAttribute,
+          normals = hoses.geometry.getAttribute('normal') as T.BufferAttribute;
+        expect(positions.count).toBe(detail === 'high' ? 350 : 182);
+        expect(positions.usage).toBe(T.DynamicDrawUsage);
+        expect(normals.usage).toBe(T.DynamicDrawUsage);
+        const reservoirs = meshes.filter((mesh) => mesh.material === materials.reservoir);
+        expect(reservoirs).toHaveLength(1);
+        expect(reservoirs[0].parent?.name).toBe('Batched rigid motorcycle detail');
+        expect(reservoirs[0].parent?.parent).toBe(steering);
+        // High already included its fluid pot in the original 21; Mid's new
+        // reservoir is the sole additional rigid-material batch.
+        const hydraulicAddition = 1 + (detail === 'mid' ? reservoirs.length : 0);
+        expect(meshes.length - wheelMeshes.length - hydraulicAddition).toBe(
+          detail === 'high' ? 21 : 9,
+        );
         if (id === 'gpr1' && detail === 'high') {
           // Reinstate the former opaque lid as an independent failing control.
           // A check for mesh existence alone would still pass this obstruction.

@@ -9,7 +9,16 @@ import { DriverAsset } from '../src/rendering/driver-asset.ts';
 import type { ReducedCar } from '../src/rendering/lod.ts';
 import { Simulation } from '../src/simulation/world.ts';
 import { DEFAULT_OPTIONS } from '../src/simulation/config.ts';
-import { F, H, W, WHEEL_BASE, WHEEL_STRIDE, carBase } from '../src/simulation/protocol.ts';
+import {
+  C,
+  F,
+  H,
+  W,
+  WHEEL_BASE,
+  WHEEL_STRIDE,
+  carBase,
+  wheelContactBase,
+} from '../src/simulation/protocol.ts';
 import { WHEEL_POSITIONS } from '../src/simulation/vehicle.ts';
 import { DEFAULT_LIVERY } from '../src/storage/livery.ts';
 
@@ -231,6 +240,9 @@ it('preserves actual FormulaCar steering, service, damage, replay rewind and mir
           const w = o + WHEEL_BASE + i * WHEEL_STRIDE;
           frame[w + W.STEER] = i < 2 ? steer : 0;
           frame[w + W.LENGTH] = 0.21 + i * 0.015;
+          // The live snapshot owns a valid measured contact block. Its hub
+          // distance is distinct from total geometric travel in W.LENGTH.
+          frame[wheelContactBase(o, i) + C.HUB_LENGTH] = 0.19 + i * 0.017;
           frame[w + W.CAMBER] = i % 2 ? -0.045 : 0.045;
           frame[w + W.ROTATION] = 1.23;
         }
@@ -243,7 +255,10 @@ it('preserves actual FormulaCar steering, service, damage, replay rewind and mir
           expect(pivots[i].position.x).toBe(WHEEL_POSITIONS[i][0]);
           expect(pivots[i].position.z).toBe(WHEEL_POSITIONS[i][2]);
           expect(pivots[i].rotation.y).toBeCloseTo(frame[w + W.STEER], 6);
-          expect(pivots[i].position.y).toBeCloseTo(0.05 - frame[w + W.LENGTH], 6);
+          expect(pivots[i].position.y).toBeCloseTo(
+            0.05 - frame[wheelContactBase(o, i) + C.HUB_LENGTH],
+            6,
+          );
         }
       }
     }

@@ -33,12 +33,6 @@ import {
 // Only continuously varying presentation channels are interpolated. Gear,
 // compound, flags, surface IDs and service phases remain genuine discrete states.
 const SMOOTH_CAR = [
-  F.VX,
-  F.VY,
-  F.VZ,
-  F.WX,
-  F.WY,
-  F.WZ,
   F.SPEED,
   F.STEER,
   F.RPM,
@@ -71,6 +65,8 @@ export class PresentedFrame {
   value = new Float32Array(0);
   private readonly position = new Vector3();
   private readonly orientation = new Quaternion();
+  private readonly velocity = new Vector3();
+  private readonly angularVelocity = new Vector3();
   private readonly contact = wheelContactPose();
   sample(a: Float32Array, b: Float32Array, alpha: number): Float32Array {
     const cars = b[H.CARS];
@@ -97,13 +93,24 @@ export class PresentedFrame {
     for (const field of SMOOTH_WEATHER) this.blend(a, b, field, alpha);
     for (let id = 0; id < cars; id++) {
       const o = carBase(id);
-      const t = sampleChassisPose(a, b, o, alpha, this.position, this.orientation);
+      const t = sampleChassisPose(
+        a,
+        b,
+        o,
+        alpha,
+        this.position,
+        this.orientation,
+        this.velocity,
+        this.angularVelocity,
+      );
       if (t === 0) continue;
       // An interpolated pose carries an unwrapped display phase, not another
       // measured winding sample. Do not let it masquerade as raw solver data.
       if (t < 1) out[o + WHEEL_MOTION_BASE + M.VALID] = 0;
       this.position.toArray(out, o + F.X);
       this.orientation.toArray(out, o + F.QX);
+      this.velocity.toArray(out, o + F.VX);
+      this.angularVelocity.toArray(out, o + F.WX);
       for (const field of SMOOTH_CAR) this.blend(a, b, o + field, t);
       for (let field = 0; field < BIKE_STRIDE; field++)
         out[o + BIKE_BASE + field] = sampleBikeField(a, b, o, field, t);

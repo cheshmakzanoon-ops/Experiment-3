@@ -85,6 +85,9 @@ export interface ThermalInputs {
    * contact slip. Explicit zero disables compatibility speed-based heat. */
   rollingPower?: number;
   load: number;
+  /** Road-plane translation speed for convection/water cooling. Production
+   * supplies hypot(longitudinal, lateral); signed scalar legacy inputs remain
+   * accepted. This must not be wheel rim speed during a stationary burnout. */
   speed: number;
   airTemp: number;
   trackTemp: number;

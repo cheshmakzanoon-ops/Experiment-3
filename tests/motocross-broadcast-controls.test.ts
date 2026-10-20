@@ -133,12 +133,39 @@ describe('replay-camera control preservation outside MX/SX', () => {
   });
 
   it.each(Object.entries(ORIGINAL_NON_MX_SIGNATURES))(
-    '%s retains all 20 original camera records exactly',
+    '%s retains historical controls outside documented venue-site corrections',
     (id, signature) => {
       const track = new Track('clear', false, undefined, circuitDefinition(id));
       const rigs = tracksideRigs(track);
       expect(rigs).toHaveLength(20);
-      expect(createHash('sha256').update(JSON.stringify(rigs)).digest('hex')).toBe(signature);
+      let historicalRigs = rigs;
+      if (id === 'cape-wrenna') {
+        // The later GP clearance revision removes the unsafe terrace at 549 m
+        // (docs/production/motogp-motion-and-live-pace/README.md). Camera 2 is
+        // therefore no longer pulled 0.6 m inward to avoid that stand. Keep the
+        // original hash: verify this one displacement in the local road frame,
+        // then restore only its historical x/z for the byte-exact comparison.
+        // Its height, metadata, and all 19 other records remain protected.
+        const rig = rigs[2],
+          originalX = 384.2549952034956,
+          originalZ = -453.3339179511074,
+          source = track.at(rig.centerS + (track.length / 20) * 0.18, trackPoint()),
+          dx = rig.position.x - originalX,
+          dz = rig.position.z - originalZ;
+        expect(dx * source.nx + dz * source.nz).toBeCloseTo(-0.6, 10);
+        expect(dx * source.tx + dz * source.tz).toBeCloseTo(0, 10);
+        historicalRigs = rigs.map((camera) =>
+          camera.id === 2
+            ? {
+                ...camera,
+                position: camera.position.clone().set(originalX, camera.position.y, originalZ),
+              }
+            : camera,
+        );
+      }
+      expect(createHash('sha256').update(JSON.stringify(historicalRigs)).digest('hex')).toBe(
+        signature,
+      );
     },
   );
 });

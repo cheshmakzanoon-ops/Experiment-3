@@ -1,4 +1,5 @@
 import { Quaternion, Vector3 } from 'three';
+import { slerpDerivative } from './quaternion-derivative.ts';
 import {
   B,
   BIKE_BASE,
@@ -19,6 +20,10 @@ const targetQuaternion = new Quaternion();
 const sampledQuaternion = new Quaternion();
 const rotationControlA = new Quaternion();
 const rotationControlB = new Quaternion();
+const sampledRotationRate = new Quaternion(0, 0, 0, 0);
+const rotationControlRateA = new Quaternion(0, 0, 0, 0);
+const rotationControlRateB = new Quaternion(0, 0, 0, 0);
+const zeroRotationRate = new Quaternion(0, 0, 0, 0);
 const TAU = Math.PI * 2;
 
 /** A discrete action belongs to the older sample until the newer sample's time.
@@ -184,6 +189,7 @@ function sampleChassisRotation(
   dt: number,
   t: number,
   continuous: boolean,
+  angularVelocity?: Vector3,
 ) {
   const quaternion = sampledQuaternion;
   quaternion.fromArray(a, car + F.QX).normalize();
@@ -237,14 +243,61 @@ function sampleChassisRotation(
     rotationControl(rotationControlB, targetQuaternion, bx, by, bz, -dt / 3);
     // Spherical de Casteljau evaluation. Fixed scratch quaternions also avoid
     // adding garbage collection work to a 32-entrant presentation frame.
-    quaternion.slerp(rotationControlA, t);
-    rotationControlA.slerp(rotationControlB, t);
-    rotationControlB.slerp(targetQuaternion, t);
-    quaternion.slerp(rotationControlA, t);
-    rotationControlA.slerp(rotationControlB, t);
-    quaternion.slerp(rotationControlA, t);
+    if (angularVelocity) {
+      sampledRotationRate.set(0, 0, 0, 0);
+      rotationControlRateA.set(0, 0, 0, 0);
+      rotationControlRateB.set(0, 0, 0, 0);
+      slerpDerivative(quaternion, sampledRotationRate, rotationControlA, rotationControlRateA, t);
+      slerpDerivative(
+        rotationControlA,
+        rotationControlRateA,
+        rotationControlB,
+        rotationControlRateB,
+        t,
+      );
+      slerpDerivative(
+        rotationControlB,
+        rotationControlRateB,
+        targetQuaternion,
+        zeroRotationRate,
+        t,
+      );
+      slerpDerivative(quaternion, sampledRotationRate, rotationControlA, rotationControlRateA, t);
+      slerpDerivative(
+        rotationControlA,
+        rotationControlRateA,
+        rotationControlB,
+        rotationControlRateB,
+        t,
+      );
+      slerpDerivative(quaternion, sampledRotationRate, rotationControlA, rotationControlRateA, t);
+    } else {
+      quaternion.slerp(rotationControlA, t);
+      rotationControlA.slerp(rotationControlB, t);
+      rotationControlB.slerp(targetQuaternion, t);
+      quaternion.slerp(rotationControlA, t);
+      rotationControlA.slerp(rotationControlB, t);
+      quaternion.slerp(rotationControlA, t);
+    }
+  } else if (angularVelocity) {
+    sampledRotationRate.set(0, 0, 0, 0);
+    slerpDerivative(quaternion, sampledRotationRate, targetQuaternion, zeroRotationRate, t);
   } else quaternion.slerp(targetQuaternion, t);
-  return quaternion.normalize();
+  quaternion.normalize();
+  if (angularVelocity) {
+    // For a world-frame rate, omega = 2 * q'(t) * conjugate(q(t)) / dt.
+    // Differentiating the rendered curve also covers the bounded SLERP fallback:
+    // stale, absent or impulsive measured rates cannot drive a different blur.
+    const q = quaternion,
+      d = sampledRotationRate,
+      scale = 2 / dt;
+    angularVelocity.set(
+      Math.fround((d.x * q.w - d.w * q.x - d.y * q.z + d.z * q.y) * scale),
+      Math.fround((d.y * q.w - d.w * q.y - d.z * q.x + d.x * q.z) * scale),
+      Math.fround((d.z * q.w - d.w * q.z - d.x * q.y + d.y * q.x) * scale),
+    );
+  }
+  return quaternion;
 }
 
 /** Cubic endpoint reconstruction, not render-time physics integration. */
@@ -261,7 +314,10 @@ export function hermite(start: number, end: number, tangentA: number, tangentB: 
 
 /** All visible chassis roots and PresentedFrame use exactly these Float32 poses.
  * No per-frame objects are created. Snapshot endpoint velocities shape the
- * intermediate path only when measured motion and contact state support it. */
+ * intermediate path only when measured motion and contact state support it.
+ * Optional velocity outputs differentiate that path for effects and blur; they
+ * never feed physics or overwrite the measured recording. Endpoints and reset
+ * holds retain the original recorded state. */
 export function sampleChassisPose(
   a: Float32Array,
   b: Float32Array,
@@ -269,12 +325,16 @@ export function sampleChassisPose(
   alpha: number,
   position: Vector3,
   quaternion: Quaternion,
+  velocity?: Vector3,
+  angularVelocity?: Vector3,
 ) {
   const t = presentationAlpha(a, b, car, alpha),
     source = snapshotSource(a, b, t);
   if (t === 0 || t === 1) {
     position.fromArray(source, car + F.X);
     quaternion.fromArray(source, car + F.QX);
+    velocity?.fromArray(source, car + F.VX);
+    angularVelocity?.fromArray(source, car + F.WX);
     return t;
   }
   const dt = b[H.TIME] - a[H.TIME],
@@ -285,8 +345,19 @@ export function sampleChassisPose(
       v = car + F.VX + axis;
     const value = smooth ? hermite(a[p], b[p], a[v] * dt, b[v] * dt, t) : sampleValue(a, b, p, t);
     position.setComponent(axis, Math.fround(value));
+    if (velocity) {
+      // Analytic derivative of the SAME position polynomial. Linear blending of
+      // measured velocities is only correct for constant acceleration; changing
+      // brake/drive forces otherwise made motion blur disagree with the model.
+      const rate = smooth
+        ? (6 * t * (1 - t) * (b[p] - a[p])) / dt +
+          (3 * t * t - 4 * t + 1) * a[v] +
+          (3 * t * t - 2 * t) * b[v]
+        : (b[p] - a[p]) / dt;
+      velocity.setComponent(axis, Math.fround(rate));
+    }
   }
-  const orientation = sampleChassisRotation(a, b, car, dt, t, continuous);
+  const orientation = sampleChassisRotation(a, b, car, dt, t, continuous, angularVelocity);
   // Publish once: an Object3D quaternion callback also rebuilds its Euler pose.
   // Intermediate control evaluations stay in callback-free shared scratch.
   quaternion.set(

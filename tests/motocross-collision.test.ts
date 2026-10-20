@@ -33,10 +33,11 @@ describe('motocross collision and sprung vertical velocity', () => {
       ],
       collisions = new CollisionSolver();
     // Both bikes start from ordinary static placement on the actual gap
-    // mound. Their tilted chassis overlap by 7.6 cm; no force or velocity
-    // is assigned to manufacture an impact.
+    // mound. Their tilted chassis overlap by about 19 cm, producing a clear
+    // >5 mm vertical correction on both bikes. No force or velocity is
+    // assigned to manufacture an impact.
     bikes[0].place(track, 593.852, -0.667);
-    bikes[1].place(track, 591.752, -0.667);
+    bikes[1].place(track, 591.832, -0.667);
     for (const bike of bikes) bike.step(dt, track);
     const authoritativeY = bikes.map((bike) => bike.body.position.y);
     collisions.solve(bikes, track);
@@ -48,8 +49,9 @@ describe('motocross collision and sprung vertical velocity', () => {
       expect(Math.abs(bike.body.velocity.y)).toBeLessThan(0.2);
     }
     collisions.solve(bikes, track);
-    // Previously the 1 cm depenetration became +/-2.5 m/s of false heave,
-    // then the next solve accelerated the stationary bikes to 1.8–1.9 m/s.
+    // Differentiating the collision-corrected Y would turn these ~9 mm
+    // corrections into more than 2 m/s of false heave, then accelerate the
+    // nearly stationary bikes to about 2 m/s in the next collision solve.
     for (const bike of bikes) {
       expect(bike.body.velocity.length()).toBeLessThan(0.25);
       expect(bike.dynamics.crashes).toBe(0);

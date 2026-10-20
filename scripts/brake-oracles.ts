@@ -15,6 +15,10 @@ export const brakeOracles: Record<string, () => void> = {
     const release = 1 / (1 + (1 - 0.14) * 9), results: number[] = [];
     for (const assist of ['sport', 'raw'] as const) {
       const { car, track } = vehicle(30, assist); car.input.brake = 0.35;
+      // Establish a connected running driveline for this ABS comparison. A
+      // wheel-speed teleport with the engine still at idle first saturates
+      // the back-driven clutch, leaving no capacity for a shaft generator.
+      car.clutch.engineOmega = car.tires[2].omega * car.spec.gearRatios[car.gear + 1] * car.spec.finalDrive;
       car.tires[2].slip = car.tires[3].slip = -1;
       const before = car.battery; car.step(1 / 240, track);
       assert(car.regenerationPower > 0);
