@@ -242,8 +242,13 @@ test('motocross entry, live race alerts and landing HUD remain usable at small s
     await page.evaluate(() => window.MotocrossInterface.sampleMotocrossHud('air'));
     await expect(hud).toContainText('0.84 S');
     await expect(hud).toHaveAttribute('data-tone', 'air');
+    await page.evaluate(() => window.MotocrossInterface.sampleMotocrossHud('contact'));
+    await expect(hud).toContainText('SETTLING');
+    await expect(hud).toHaveAttribute('data-tone', 'landing');
     await page.evaluate(() => window.MotocrossInterface.sampleMotocrossHud('clean'));
     await expect(hud).toHaveAttribute('data-tone', 'clean');
+    await page.evaluate(() => window.MotocrossInterface.sampleMotocrossHud('hard-air'));
+    await expect(hud).toHaveAttribute('data-tone', 'air');
     await page.evaluate(() => window.MotocrossInterface.sampleMotocrossHud('hard'));
     await expect(hud).toHaveAttribute('data-tone', 'heavy');
     await page.evaluate(() => window.MotocrossInterface.sampleMotocrossHud('crash'));

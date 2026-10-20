@@ -300,16 +300,30 @@ export function sampleSparseMotocrossHud(tick: number) {
 /** Explicit synthetic samples isolate the UI's flight/landing/replay state
  * machine; physical acceptance is covered by the riding and offroad tests. */
 export function sampleMotocrossHud(
-  sample: 'air' | 'clean' | 'hard' | 'crash' | 'rewind' | 'redline',
+  sample: 'air' | 'contact' | 'clean' | 'hard-air' | 'hard' | 'crash' | 'rewind' | 'redline',
 ) {
   if (!simulation || !frame) throw new Error('Mount a motocross HUD first');
-  const o = carBase(0);
+  // Settlement uses snapshot time, not repeated UI updates or wall time.
+  // The clean contact settles over 31 worker ticks; the hard grade belongs
+  // to a later flight, rather than changing an already settled landing.
+  const samples = {
+    air: [1200, 1, 0.84],
+    contact: [1206, 0, 0.89],
+    clean: [1237, 0, 0.89],
+    'hard-air': [1344, 1, 0.84],
+    hard: [1350, 0, 0.89],
+    crash: [1356, 0, 0.89],
+    rewind: [120, 0, 0],
+    redline: [126, 0, 0],
+  } as const;
+  const [tick, airborne, airTime] = samples[sample],
+    o = carBase(0);
   frame[H.PHASE] = 2;
-  frame[H.TIME] = sample === 'rewind' ? 1 : sample === 'air' ? 10 : 10.05;
-  frame[H.RACE_TIME] = frame[H.TIME];
+  frame[H.TICK] = tick;
+  frame[H.TIME] = frame[H.RACE_TIME] = tick / 120;
   frame[o + O.START + OFFROAD_BASE] = 2;
-  frame[o + OFFROAD_BASE + O.AIRBORNE] = sample === 'air' ? 1 : 0;
-  frame[o + OFFROAD_BASE + O.AIR_TIME] = sample === 'air' ? 0.84 : 0;
+  frame[o + OFFROAD_BASE + O.AIRBORNE] = airborne;
+  frame[o + OFFROAD_BASE + O.AIR_TIME] = airTime;
   frame[o + OFFROAD_BASE + O.LANDING_PITCH] = 0.1;
   frame[o + OFFROAD_BASE + O.LANDING_SPEED] = sample === 'hard' ? 6.8 : 2.4;
   frame[o + OFFROAD_BASE + O.BOTTOM] = sample === 'hard' ? 0.7 : 0;
@@ -317,7 +331,7 @@ export function sampleMotocrossHud(
   frame[o + F.SPEED] = 19;
   frame[o + F.GEAR] = 3;
   frame[o + F.RPM] = sample === 'redline' ? VEHICLES.mx450.spec.shiftRPM : 7800;
-  for (let i = 0; i < 3; i++) ui.update(frame, renderer, false, 1);
+  ui.update(frame, renderer, false, 1);
 }
 
 /** A real race-control banner and real arbiter caption from one explicitly
