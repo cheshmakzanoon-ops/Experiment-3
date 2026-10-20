@@ -433,6 +433,7 @@ export class Rider {
   private readonly euler = new T.Euler();
   private readonly v = [0, 1, 2, 3, 4, 5].map(() => new T.Vector3());
   private readonly stance: GpRiderStance = { x: 0, y: 0, z: 0, pitch: 0, into: 0, yaw: 0 };
+  private torsoShadowOnly?: T.MeshBasicMaterial;
   constructor(
     colours: RiderColours,
     readonly detail: RiderDetail = 'high',
@@ -1148,6 +1149,25 @@ export class Rider {
     this.head.visible = !active;
     this.headShadow.visible = active && this.kit !== 'motocross';
     this.headShadow.quaternion.copy(this.head.quaternion);
+    if (this.gpSpine) {
+      // A braced or tucked GP chest reaches in front of the fixed onboard lens.
+      // Like the helmet, the followed rider's own torso is not drawn into that
+      // view; it keeps writing the same skinned silhouette to the shadow map.
+      if (active && !this.torsoShadowOnly) {
+        this.torsoShadowOnly = new T.MeshBasicMaterial({
+          name: 'Onboard torso shadow only',
+          transparent: true,
+          opacity: 0,
+          colorWrite: false,
+          depthWrite: false,
+        });
+        this.materials.push(this.torsoShadowOnly);
+      }
+      for (const mesh of this.gpSpine.meshes) {
+        mesh.userData.riderMaterial ??= mesh.material;
+        mesh.material = active ? this.torsoShadowOnly! : mesh.userData.riderMaterial;
+      }
+    }
     if (this.kit === 'motocross') {
       const previous = this.motocrossFirstPerson;
       this.motocrossFirstPerson = active && motocross;

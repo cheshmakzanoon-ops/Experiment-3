@@ -297,7 +297,7 @@ const steinhorn: CircuitSpec = {
   venueName: 'Steinhorn Alpenring',
   layout: 'Grand Prix',
   description:
-    'A mountain amphitheatre: steep uphill stops into tight rights, a hairpin at the top of the valley and fast downhill sweepers.',
+    'A mountain amphitheatre: steep uphill stops into tight corners, a hairpin at the top of the valley and fast downhill sweepers.',
   theme: 'alpine',
   heading: 20,
   length: 4318,
@@ -376,7 +376,7 @@ const zafraNight: CircuitSpec = {
   venueName: 'Zafra International Circuit',
   layout: 'Grand Prix',
   description:
-    'Under the floodlights: a kilometre straight into a 300 km/h stop, then a chain of long, fast rights through the desert night.',
+    'Under the floodlights: a kilometre straight into a 300 km/h stop, then a chain of long, fast sweepers through the desert night.',
   theme: 'night-desert',
   night: true,
   heading: 0,

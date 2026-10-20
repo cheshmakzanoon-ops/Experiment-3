@@ -113,7 +113,7 @@ describe('GP layered pit architecture', () => {
     material.dispose();
   });
 
-  it('keeps every venue's roof silhouette distinct and rejects invalid dimensions', () => {
+  it('keeps every venue roof silhouette distinct and rejects invalid dimensions', () => {
     const signatures = venues.map((id) => {
       const geometry = gpPaddockRoofGeometry(id, 9),
         signature = [...geometry.getAttribute('position').array].join(',');

@@ -2127,10 +2127,8 @@ export const BIKE_ONBOARD = Object.freeze({
  * display; the wider lens preserves peripheral track visibility. The mount
  * is checked against the full-tuck rider and both prototypes' instruments. */
 export const GP_ONBOARD = Object.freeze({
-  eye: [0, 0.535, 0.16] as const,
-  // REF 017/074/088: the helmet looks along the road, with the horizon near
-  // mid-frame and the instruments and fork caps low in the view.
-  pitch: -0.075,
+  eye: [0, 0.5, 0.18] as const,
+  pitch: BIKE_ONBOARD.pitch,
   fovExtra: 6,
 });
 /** Helmet-height motocross eye above the raised bars and number board. The

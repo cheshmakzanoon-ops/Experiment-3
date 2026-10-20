@@ -114,6 +114,7 @@ scripts/, tools/ Validation and asset tooling
 | [Architecture](docs/ARCHITECTURE.md) | Application structure and simulation/rendering boundaries. |
 | [Physics model](docs/production/PHYSICS_MODEL.md) | Vehicle dynamics, tyres, suspension, drivetrain and surface interaction. |
 | [Circuit catalogue](docs/CIRCUIT_CATALOGUE.md) | Venues, layouts and implementation notes. |
+| [MotoGP riders, tracks and ride moments](docs/MOTOGP_RIDERS_TRACKS_PASS.md) | Racing rider stance and leg dangle, carbon cowl well, the Steinhorn and Zafra Night GP circuits, and ride-highlight callouts. |
 | [MotoGP contact and control update](docs/MOTOGP_THREEJS_CONTACT_PASS.md) | Independent tyre grip, GP braking preview, two-contact effects, mechanical detail and riding feedback. |
 | [MotoGP Three.js riding update](docs/MOTOGP_THREEJS_REFERENCE_REVIEW.md) | 100-image trace, forged wheels and tyre finish, bike grounding, corner guidance and GP racecraft. |
 | [MotoGP R2 improvements](docs/MOTOGP_R2_DELIVERY.md) | All 100 reference reviews, bike/rider and circuit changes, motorcycle interface, braking corrections and visual evidence. |
