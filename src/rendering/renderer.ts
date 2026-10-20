@@ -874,6 +874,9 @@ export class RacingRenderer {
     cancelled: () => boolean,
     yieldFrame: () => Promise<void> = () =>
       new Promise((resolve) => requestAnimationFrame(() => resolve())),
+    // The live session supplies its ruleset capability. Inspection/replay
+    // callers without session rules retain the complete service warmup.
+    pitService = true,
   ) {
     return this.preparation.run(progress, async (progress) => {
       if (this.showroomOnly) throw new Error('Build the selected circuit before preparing a race');
@@ -944,7 +947,7 @@ export class RacingRenderer {
           this.changeCamera(mode);
           this.draw(frame, frame, 1, 1 / 120, false, true);
           this.warmupFrames++;
-          if (mode === 'chase') {
+          if (mode === 'chase' && pitService) {
             progress('Warming offscreen pit-service materials…');
             await this.warmPitPresentation(frame, cancelled, yieldFrame);
             if (cancelled()) return false;

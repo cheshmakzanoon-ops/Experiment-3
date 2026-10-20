@@ -18,7 +18,8 @@ import {
 } from '../../src/simulation/protocol.ts';
 import { offroadCourse } from '../../src/simulation/offroad/venues.ts';
 import { jumpHoldSpeed } from '../../src/simulation/offroad/jump-target.ts';
-import { Track } from '../../src/simulation/track.ts';
+import { motocrossBermSectors } from '../../src/simulation/offroad/berm-practice.ts';
+import { Track, trackPoint } from '../../src/simulation/track.ts';
 import { VEHICLES } from '../../src/simulation/vehicles.ts';
 import { Simulation } from '../../src/simulation/world.ts';
 import { FLAG } from '../../src/simulation/marshal.ts';
@@ -235,6 +236,54 @@ export function sampleMotocrossPractice(
   }
   ui.showMode(replay ? 'replay' : 'driving');
   ui.update(frame, renderer, automatic, 1);
+}
+
+/** Explicit synthetic corner traversal for UI/readout/layout verification.
+ * It uses the production sector boundaries; it is not a physics recording. */
+export function sampleMotocrossBermPractice(
+  distance: number,
+  time: number,
+  speed = 14,
+  details: {
+    line?: 'inside' | 'middle' | 'outside';
+    automatic?: boolean;
+    replay?: boolean;
+    caution?: boolean;
+    wet?: boolean;
+  } = {},
+) {
+  if (!simulation || !frame) throw new Error('Mount a motocross HUD first');
+  const course = offroadCourse(simulation.track.circuit)!;
+  const sector = motocrossBermSectors(simulation.track, course).find(
+    (candidate) => candidate.name === (course.kind === 'motocross' ? 'OAK BERM' : 'STAGE TURN'),
+  )!;
+  const base = carBase(0),
+    o = base + OFFROAD_BASE,
+    p = simulation.track.at(sector.from + distance, trackPoint());
+  frame[H.TIME] = frame[H.RACE_TIME] = time;
+  frame[H.TICK] = Math.round(time * 120);
+  frame[H.PHASE] = 2;
+  frame[H.FLAG] = frame[base + F.LOCAL_FLAG] = details.caution ? FLAG.DOUBLE_YELLOW : FLAG.GREEN;
+  frame[base + F.CAUTION_SPEED] = details.caution ? 8 : 0;
+  frame[base + F.S] = sector.from + distance;
+  frame[base + F.SPEED] = speed;
+  frame[base + F.VX] = p.tx * speed;
+  frame[base + F.VZ] = p.tz * speed;
+  frame[base + F.LATERAL] =
+    sector.outside *
+    sector.halfWidth *
+    (details.line === 'inside' ? -0.68 : details.line === 'outside' ? 0.68 : 0);
+  const yaw = Math.atan2(p.tx, p.tz);
+  frame[base + F.QX] = frame[base + F.QZ] = 0;
+  frame[base + F.QY] = Math.sin(yaw / 2);
+  frame[base + F.QW] = Math.cos(yaw / 2);
+  frame[base + F.BRAKE] = frame[base + F.IN_PIT] = frame[base + F.RETIRED] = 0;
+  frame[base + BIKE_BASE + B.STATE] = 0;
+  frame[o + O.AIRBORNE] = frame[o + O.AIR_TIME] = frame[o + O.BOTTOM] = 0;
+  frame[o + O.MOISTURE] = details.wet ? 0.7 : 0.28;
+  ui.showMode(details.replay ? 'replay' : 'driving');
+  ui.update(frame, renderer, !!details.automatic, 1);
+  return { name: sector.name, length: sector.length };
 }
 
 /** Read real production text and layout boxes. This does not change styles,

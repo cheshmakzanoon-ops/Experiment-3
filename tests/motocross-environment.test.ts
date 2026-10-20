@@ -98,6 +98,25 @@ describe('reference-informed MX environments', () => {
         point = trackPoint(),
         p = new T.Vector3();
       const stakes = dressing.root.getObjectByName('MX course-edge stakes') as T.InstancedMesh;
+      // The broad faces read as flexible blades without extending the old
+      // tapered-pole envelope or adding triangles/draws beside tight SX lanes.
+      const position = stakes.geometry.getAttribute('position'),
+        normal = stakes.geometry.getAttribute('normal');
+      stakes.geometry.computeBoundingBox();
+      const bounds = stakes.geometry.boundingBox!,
+        size = bounds.getSize(new T.Vector3());
+      expect(bounds.min.y).toBeCloseTo(0, 6);
+      expect(bounds.max.y).toBeCloseTo(0.82, 6);
+      expect(size.x).toBeGreaterThan(size.z * 3);
+      expect(size.z).toBeGreaterThan(0);
+      expect((stakes.geometry.index?.count ?? position.count) / 3).toBeLessThanOrEqual(28);
+      expect([...normal.array].every(Number.isFinite)).toBe(true);
+      for (let i = 0; i < position.count; i++) {
+        const oldRadius = 0.034 - (0.007 * position.getY(i)) / 0.82;
+        expect(Math.hypot(position.getX(i), position.getZ(i))).toBeLessThanOrEqual(
+          oldRadius + 1e-7,
+        );
+      }
       for (let i = 0; i < stakes.count; i++) {
         stakes.getMatrixAt(i, m);
         p.setFromMatrixPosition(m);

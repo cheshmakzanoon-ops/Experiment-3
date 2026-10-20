@@ -50,11 +50,11 @@ function garmentSections(kind: MotocrossGarment, upper: number, lower: number): 
         // 004/020 show that shoulder volume tapering into the elbow, rather
         // than a capped cylinder perched on the edge of the jersey.
         [-0.3, 0, 0.042, 0.046, 0.044],
-        [-0.12, -0.003, 0.073, 0.078, 0.067],
-        [0.065, -0.003, 0.08, 0.084, 0.071],
-        [0.24, -0.004, 0.078, 0.075, 0.066],
-        [0.46, -0.004, 0.063, 0.06, 0.057],
-        [0.7, -0.002, 0.051, 0.047, 0.05],
+        [-0.12, -0.003, 0.067, 0.071, 0.062],
+        [0.065, -0.003, 0.064, 0.069, 0.06],
+        [0.24, -0.004, 0.062, 0.062, 0.057],
+        [0.46, -0.004, 0.056, 0.055, 0.053],
+        [0.7, -0.002, 0.05, 0.047, 0.049],
         [1, 0, 0.045, 0.042, 0.047],
       ]
     : [
@@ -102,6 +102,7 @@ export function motocrossGarmentGeometry(
   upper = 0.29,
   lower = 0.28,
   shoulderAttached = false,
+  elbowSupported = false,
 ) {
   const sections = garmentSections(kind, upper, lower),
     ys = sections.map((section) => section[0]),
@@ -135,10 +136,25 @@ export function motocrossGarmentGeometry(
       const weight = T.MathUtils.smoothstep(y, upper - transition, upper + transition),
         shoulder =
           shoulderAttached && kind === 'sleeve'
-            ? 1 - T.MathUtils.smoothstep(y, -upper * 0.2, upper * 0.22)
+            ? // Transfer ownership inside the buried armhole. Blending the
+              // torso and raised arm across the visible deltoid flattens a
+              // correctly sized sleeve when the rider steers at full reach.
+              1 - T.MathUtils.smoothstep(y, -upper * 0.24, upper * 0.04)
             : 0;
-      skinIndices.push(0, 1, shoulderAttached ? 2 : 0, 0);
-      skinWeights.push((1 - weight) * (1 - shoulder), weight, (1 - weight) * shoulder, 0);
+      // A linear blend of two ninety-degree arm transforms collapses the
+      // elbow's cross-section. A bisector bone carries the cloth over the
+      // joint, retaining its rounded volume without inflating the whole arm.
+      const bend =
+        elbowSupported && kind === 'sleeve'
+          ? 1 - T.MathUtils.smoothstep(Math.abs(y - upper), 0, transition)
+          : 0;
+      skinIndices.push(0, 1, shoulderAttached ? 2 : 0, elbowSupported ? 3 : 0);
+      skinWeights.push(
+        (1 - weight) * (1 - shoulder) * (1 - bend),
+        weight * (1 - bend),
+        (1 - weight) * shoulder * (1 - bend),
+        bend,
+      );
     }
   };
   for (let row = 0; row <= rows; row++) {
@@ -234,6 +250,28 @@ export function motocrossGarmentGeometry(
  * also retain its buried armhole on the torso as the elbow lifts, so its root
  * cannot rotate out of the jersey. This adds no simulation state, pose history,
  * per-frame buffers or CPU cloth pass. */
+export class MotocrossGarmentMesh extends T.SkinnedMesh {
+  private readonly elbow: T.Bone | null;
+  constructor(
+    geometry: T.BufferGeometry,
+    material: T.Material,
+    private readonly proximal: T.Group,
+    private readonly distal: T.Group,
+    elbow: T.Bone | null,
+  ) {
+    super(geometry, material);
+    this.elbow = elbow;
+  }
+  /** The solved limbs and the support bone share the rider's local frame.
+   * Re-evaluate directly from this pose, including replay and camera changes;
+   * no spring history or new simulation state is involved. */
+  updatePose() {
+    if (!this.elbow) return;
+    this.elbow.position.copy(this.distal.position);
+    this.elbow.quaternion.copy(this.proximal.quaternion).slerp(this.distal.quaternion, 0.5);
+  }
+}
+
 export function addMotocrossGarment(
   parent: T.Group,
   proximal: T.Group,
@@ -253,10 +291,20 @@ export function addMotocrossGarment(
     bones.push(shoulder);
     inverses.push(new T.Matrix4());
   }
+  const elbow = shoulder && kind === 'sleeve' ? new T.Bone() : null;
+  if (elbow) {
+    elbow.name = 'Motocross sleeve elbow volume';
+    parent.add(elbow);
+    bones.push(elbow);
+    inverses.push(new T.Matrix4().makeTranslation(0, -upper, 0));
+  }
   const skeleton = new T.Skeleton(bones, inverses);
-  const mesh = new T.SkinnedMesh(
-    motocrossGarmentGeometry(kind, detail, upper, lower, bones.length === 3),
+  const mesh = new MotocrossGarmentMesh(
+    motocrossGarmentGeometry(kind, detail, upper, lower, !!shoulder, !!elbow),
     material,
+    proximal,
+    distal,
+    elbow,
   );
   mesh.name = `Motocross continuous ${kind}`;
   mesh.bind(skeleton, new T.Matrix4());

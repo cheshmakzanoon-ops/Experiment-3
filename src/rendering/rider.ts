@@ -33,6 +33,7 @@ import {
   addMotocrossHelmet,
   motocrossGarmentGeometry,
   motocrossHelmetShell,
+  type MotocrossGarmentMesh,
 } from './offroad/motocross-gear.ts';
 import {
   helmetShell,
@@ -365,7 +366,7 @@ export class Rider {
   private readonly hands: T.Group[] = [];
   private readonly feet: T.Group[] = [];
   private readonly bootCuffs: (T.Object3D | undefined)[] = [];
-  private readonly motocrossGarments: T.SkinnedMesh[] = [];
+  private readonly motocrossGarments: MotocrossGarmentMesh[] = [];
   private readonly motocrossShoulders: T.Bone[] = [];
   private readonly gpGarments: GpRiderGarment[] = [];
   private readonly exteriorForearms = [0, 1].map(() => ({
@@ -1114,6 +1115,7 @@ export class Rider {
           this.upperArms[i].group.position.copy(this.exteriorUpperArms[i].position);
           this.upperArms[i].group.quaternion.copy(this.exteriorUpperArms[i].quaternion);
         }
+      for (const garment of this.motocrossGarments) garment.updatePose();
     }
   }
   private attachMotocrossShoulders(onboard: boolean) {
@@ -1159,6 +1161,7 @@ export class Rider {
       this.upperArms[i].aim(shoulder, elbow, pole);
       this.forearms[i].aim(elbow, this.grips[i], pole);
     }
+    for (const garment of this.motocrossGarments) garment.updatePose();
   }
   /** Riding pose in the bike's (sprung) frame. */
   ride(pose: RiderPose) {
@@ -1214,9 +1217,18 @@ export class Rider {
         .set(side * RIDER.shoulderWidth, RIDER.spine - 0.04, 0.0)
         .applyQuaternion(this.torso.quaternion)
         .add(pelvis);
+      // Seated corners use relaxed shoulders; standing attack/bracing still
+      // raises the elbows. A fixed high, wide pole made every MX pose read as
+      // the same horizontal T-pose, even while sitting at the gate.
       pole
         .copy(shoulder)
-        .add(target.set(side * 0.35, mx ? -0.08 + standing * 0.15 : -0.3, mx ? 0.08 : -0.1));
+        .add(
+          target.set(
+            side * (mx ? 0.3 : 0.35),
+            mx ? -0.24 + standing * 0.12 + Math.max(0, body) * 0.1 : -0.3,
+            mx ? 0.04 : -0.1,
+          ),
+        );
       if (gpContact) {
         gpGripFrame(this.gripAxes[i], this.q);
         gpContactJoint(this.grips[i], this.q, GP_GLOVE_GRIP, GP_GLOVE_WRIST, target);
@@ -1281,6 +1293,7 @@ export class Rider {
     }
     if (this.kit === 'motocross') {
       this.captureExteriorArms();
+      for (const garment of this.motocrossGarments) garment.updatePose();
       if (this.motocrossFirstPerson) this.onboardArms();
     }
     for (const garment of this.gpGarments) garment.updatePose();
@@ -1336,7 +1349,10 @@ export class Rider {
         this.bootCuffs[i]?.quaternion.copy(this.feet[i].quaternion).invert();
       }
     }
-    if (this.kit === 'motocross') this.captureExteriorArms();
+    if (this.kit === 'motocross') {
+      this.captureExteriorArms();
+      for (const garment of this.motocrossGarments) garment.updatePose();
+    }
     for (const garment of this.gpGarments) garment.updatePose();
   }
   dispose() {

@@ -79,6 +79,35 @@ export function mxAtlasRow(g: T.BufferGeometry, row: number) {
   return g;
 }
 
+/** Thin, gently bowed plastic blades catch the light like the flexible
+ * course markers in the reference banks. The complete silhouette stays
+ * inside the former tapered pole, preserving adjacent-lane clearance. */
+function mxCourseStakeGeometry() {
+  const outline = new T.Shape()
+    .moveTo(-0.014, 0)
+    .lineTo(0.014, 0)
+    .lineTo(0.026, 0.6)
+    .lineTo(0.026, 0.755)
+    .lineTo(0.018, 0.82)
+    .lineTo(-0.018, 0.82)
+    .lineTo(-0.026, 0.755)
+    .lineTo(-0.026, 0.6)
+    .closePath();
+  const geometry = new T.ExtrudeGeometry(outline, {
+    depth: 0.009,
+    bevelEnabled: false,
+    steps: 1,
+    curveSegments: 1,
+  }).translate(0, 0, -0.0045);
+  const position = geometry.getAttribute('position');
+  for (let i = 0; i < position.count; i++)
+    position.setZ(i, position.getZ(i) + 0.006 * Math.sin((Math.PI * position.getY(i)) / 0.82));
+  geometry.computeVertexNormals();
+  geometry.computeBoundingBox();
+  geometry.computeBoundingSphere();
+  return geometry;
+}
+
 export interface MxDressingStats {
   stakes: number;
   blocks: number;
@@ -158,7 +187,7 @@ export class MxCourseDressing {
     const stakes: T.Matrix4[] = [],
       blocks: T.Matrix4[] = [],
       markers: T.Matrix4[] = [];
-    const pole = new T.CylinderGeometry(0.027, 0.034, 0.82, 7).translate(0, 0.41, 0);
+    const pole = mxCourseStakeGeometry();
     const block = mxAuthoredGeometry('safety-pad', 'mid')
       .scale(0.55 / 0.68, 0.38 / 0.58, 1.6 / 2.1)
       .rotateY(Math.PI / 2)

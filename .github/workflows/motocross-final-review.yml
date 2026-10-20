@@ -125,7 +125,7 @@ jobs:
           if [ '${{ matrix.suite }}' = journey ]; then
             specs=(e2e/45-motocross-gameplay.spec.ts)
           else
-            specs=(e2e/42-motocross-bike.spec.ts e2e/43-motocross-world.spec.ts e2e/44-motocross-interface.spec.ts e2e/46-motocross-normal-residency.spec.ts e2e/48-motocross-practice.spec.ts e2e/51-motocross-roost-lighting.spec.ts e2e/52-motocross-shoulder-plants.spec.ts)
+            specs=(e2e/42-motocross-bike.spec.ts e2e/43-motocross-world.spec.ts e2e/44-motocross-interface.spec.ts e2e/46-motocross-normal-residency.spec.ts e2e/48-motocross-practice.spec.ts e2e/51-motocross-roost-lighting.spec.ts e2e/52-motocross-shoulder-plants.spec.ts e2e/53-motocross-course-landmarks.spec.ts e2e/54-motocross-berm-practice.spec.ts)
           fi
           node --experimental-transform-types scripts/source-stability.ts -- xvfb-run -a -s '-screen 0 1920x1080x24' npx playwright test "${specs[@]}" --config playwright.motocross.config.ts 2>&1 | tee "$RUNNER_TEMP/mx-qa/browser.log"
           git diff --exit-code

@@ -52,7 +52,7 @@ export const MOTOCROSS_RIDE_PRESETS = Object.freeze([
   {
     id: 'learn',
     title: 'Learn the jumps',
-    detail: 'Solo landing targets · assists',
+    detail: 'Jumps · berm lines · assists',
     mode: 'practice',
     opponents: 0,
     assist: 'sport',

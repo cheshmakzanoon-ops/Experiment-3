@@ -26,6 +26,13 @@ import {
 } from '../simulation/offroad/landing-challenge.ts';
 import { motocrossBrakeHeldInFlight } from './motocross-brake-cue.ts';
 import {
+  motocrossBermSectors,
+  motocrossBermSoil,
+  MotocrossBermPractice,
+  type BermPracticeResult,
+  type BermPracticeSector,
+} from '../simulation/offroad/berm-practice.ts';
+import {
   assessMotocrossLanding,
   LANDING_RULES,
   motocrossAlignment,
@@ -69,6 +76,8 @@ const LANDING_SEVERITY = {
   hard: 3,
   crash: 4,
 } as const;
+const BERM_RESULT_QUEUE_SECONDS = 12;
+const BERM_RESULT_SHOW_SECONDS = 2.6;
 /** The off-road readout for the player's entrant (WP42): one compact line
  * over the race HUD on terrain venues. Motocross / supercross: the gate pick
  * while held, the release, a jump start, the holeshot and the last jump's
@@ -81,6 +90,11 @@ export class OffroadHud {
   private rideFields: HTMLElement[] = [];
   private readonly rhythm = new MotocrossRhythm();
   private readonly targets = new MotocrossLandingChallenge();
+  private readonly berms = new MotocrossBermPractice();
+  private bermSectors: readonly BermPracticeSector[] = [];
+  private bermResult: BermPracticeResult | null = null;
+  private bermResultShownAt: number | null = null;
+  private bermResultDismissed = false;
   private readonly targetPoint = trackPoint();
   private airUntil = 0;
   private airTime = 0;
@@ -120,7 +134,7 @@ export class OffroadHud {
     if (!this.ride) {
       this.ride = document.createElement('section');
       this.ride.className = 'mx-ride-hud';
-      this.ride.setAttribute('aria-label', 'Motocross jump and landing information');
+      this.ride.setAttribute('aria-label', 'Motocross riding and practice information');
       // The numeric airtime changes continuously, so this is deliberately not
       // a live region. Only the discrete start/holeshot line uses role=status.
       this.ride.innerHTML =
@@ -133,6 +147,32 @@ export class OffroadHud {
       this.hud.append(this.ride);
     }
     return this.ride;
+  }
+  private presentableBermResult(time: number, safe: boolean) {
+    const result = this.berms.last;
+    if (result !== this.bermResult) {
+      this.bermResult = result;
+      this.bermResultShownAt = null;
+      this.bermResultDismissed = false;
+    }
+    if (!result || this.bermResultDismissed) return null;
+    const age = time - result.at;
+    // A short exit often leads straight onto a jump. Hold the measured
+    // result until the approach, flight and landing have had their turn.
+    // Only the latest corner is queued; old results never build a backlog.
+    if (
+      age < 0 ||
+      (this.bermResultShownAt === null && age >= BERM_RESULT_QUEUE_SECONDS) ||
+      (this.bermResultShownAt !== null &&
+        (time < this.bermResultShownAt ||
+          time - this.bermResultShownAt >= BERM_RESULT_SHOW_SECONDS))
+    ) {
+      this.bermResultDismissed = true;
+      return null;
+    }
+    if (!safe) return null;
+    this.bermResultShownAt ??= time;
+    return result;
   }
   private updateRide(
     frame: Float32Array,
@@ -218,6 +258,75 @@ export class OffroadHud {
       heading += ` · RUN ${this.rhythm.streak}/3`;
     if (options.mode === 'practice' && targetCount > 0 && playerControlled)
       heading = `PRACTICE · TARGETS ${this.targets.cleared.size}/${targetCount}`;
+    const speed = frame[base + F.SPEED];
+    const imminentJump = !!next && distance <= Math.max(25, speed * 1.5);
+    const active = this.berms.active;
+    const result = this.presentableBermResult(
+      time,
+      options.mode === 'practice' &&
+        playerControlled &&
+        !crashed &&
+        !caution &&
+        !airborne &&
+        (!this.landing || time >= this.airUntil) &&
+        !imminentJump &&
+        !active &&
+        speed >= 0 &&
+        frame[base + F.IN_PIT] < 0.5 &&
+        frame[base + F.RETIRED] < 0.5,
+    );
+    if (options.mode === 'practice' && playerControlled) {
+      // Corners share the existing card. A close jump, its flight/landing,
+      // recovery and race control keep priority over a practice stopwatch.
+      if (!imminentJump) {
+        if (active) {
+          heading = 'BERM PRACTICE';
+          tag = `${active.line.toUpperCase()} LINE`;
+          title = active.sector.name;
+          metric = `${active.elapsed.toFixed(2)} S`;
+          const record = this.berms.record(active.sector, active.soil);
+          note = record
+            ? `Your best ${record.best.seconds.toFixed(2)} s · ${record.best.line} line. Keep the exit smooth.`
+            : 'Choose your arc and carry a smooth drive out of the bank.';
+          progress = Math.round(active.progress * 100);
+        } else if (result) {
+          heading = 'BERM PRACTICE';
+          tag = result.improved ? 'NEW PERSONAL BEST' : `${result.line.toUpperCase()} LINE`;
+          title = result.sector.name;
+          metric = `${result.seconds.toFixed(2)} S`;
+          const comparison =
+            result.delta === null
+              ? 'First timed run'
+              : `${result.delta < -0.005 ? '−' : '+'}${Math.abs(result.delta).toFixed(2)} s to your previous best`;
+          note = `${comparison} · exit ${Math.round(result.exitSpeed * 3.6)} km/h · ${result.soil} soil.`;
+          tone = result.improved ? 'clean' : 'approach';
+          progress = Math.round(
+            clamp(1 - (time - this.bermResultShownAt!) / BERM_RESULT_SHOW_SECONDS, 0, 1) * 100,
+          );
+        } else {
+          let nearest: BermPracticeSector | null = null;
+          let bermDistance = Infinity;
+          for (const sector of this.bermSectors) {
+            const d = mod(sector.from - s, track.length);
+            if (d < bermDistance) {
+              nearest = sector;
+              bermDistance = d;
+            }
+          }
+          if (nearest && bermDistance < Math.min(70, distance)) {
+            heading = 'BERM PRACTICE';
+            tag = 'COMPARE YOUR LINES';
+            title = nearest.name;
+            metric = `${Math.round(bermDistance)} M`;
+            const record = this.berms.record(nearest, motocrossBermSoil(frame[o + O.MOISTURE]));
+            note = record
+              ? `Your best ${record.best.seconds.toFixed(2)} s · ${record.best.line} line. Try another arc.`
+              : 'Try the inside or a wider arc. Compare your own time and exit speed.';
+            progress = Math.round(clamp(1 - bermDistance / 70, 0, 1) * 100);
+          }
+        }
+      }
+    }
     if (options.mode === 'race' && frame[H.PHASE] < PHASE.RACING) {
       heading = 'START GATE';
       tag = 'READY';
@@ -414,6 +523,11 @@ export class OffroadHud {
       this.lastTrack = null;
       this.rhythm.reset();
       this.targets.reset();
+      this.berms.reset();
+      this.bermSectors = [];
+      this.bermResult = null;
+      this.bermResultShownAt = null;
+      this.bermResultDismissed = false;
       return;
     }
     const format = rulesetFor(options).format,
@@ -428,15 +542,19 @@ export class OffroadHud {
     const cautioned = [frame[H.FLAG], frame[player + F.LOCAL_FLAG]].some(
       (flag) => flag === FLAG.YELLOW || flag === FLAG.DOUBLE_YELLOW,
     );
-    const eligible =
+    const controlEligible =
       playerControlled &&
       !replay &&
       !crashed &&
       !cautioned &&
       frame[player + F.IN_PIT] < 0.5 &&
       frame[player + F.RETIRED] < 0.5 &&
-      frame[player + F.SPEED] >= 0 &&
+      frame[player + F.SPEED] >= 0;
+    const eligible =
+      controlEligible &&
       Math.abs(frame[player + F.LATERAL]) <= Math.max(0, this.targetPoint.width - 0.3);
+    if (track !== this.lastTrack) this.bermSectors = motocrossBermSectors(track, course);
+    if (time < this.lastTime) this.bermResultDismissed = true;
     // Snapshot time is nondecreasing outside a seek. Even a short rewind
     // across a takeoff must not look like a new touchdown in this frame.
     if (
@@ -533,6 +651,7 @@ export class OffroadHud {
     if (replay) {
       this.targets.suspend();
       this.rhythm.suspend();
+      this.berms.suspend();
     } else if (motocross && options.mode === 'practice') {
       const s = frame[player + F.S];
       this.rhythm.update({
@@ -561,9 +680,28 @@ export class OffroadHud {
         eligible,
         landing: feedback,
       });
+      this.berms.update({
+        course: track,
+        machine,
+        sectors: this.bermSectors,
+        length: track.length,
+        time,
+        s,
+        speed: frame[player + F.SPEED],
+        lateral: frame[player + F.LATERAL],
+        legalHalfWidth: Math.max(
+          0,
+          course.legalWidth(this.targetPoint.width, s, frame[player + F.LATERAL]) - 0.3,
+        ),
+        moisture: frame[o + O.MOISTURE],
+        airborne,
+        crashed,
+        eligible: controlEligible,
+      });
     } else {
       this.targets.reset();
       this.rhythm.reset();
+      this.berms.reset();
     }
     this.wasAirborne = airborne;
     this.previousEligible = eligible && !airborne;

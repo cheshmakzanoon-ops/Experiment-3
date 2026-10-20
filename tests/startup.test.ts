@@ -4,6 +4,8 @@ import { expect, it, vi } from 'vitest';
 import { RacingRenderer } from '../src/rendering/renderer.ts';
 import { CAR_STRIDE, HEADER, H, R, RACE_BASE, carBase } from '../src/simulation/protocol.ts';
 import { vehicleIndex } from '../src/simulation/vehicles.ts';
+import { rulesetFor } from '../src/simulation/events.ts';
+import type { SessionOptions } from '../src/simulation/config.ts';
 
 function fixture(vehicle = 'apx01') {
   const calls: string[] = [];
@@ -142,6 +144,63 @@ it.each([
     expect(calls.indexOf('shadow-casters')).toBeLessThan(calls.indexOf('draw'));
   },
 );
+it.each([
+  { vehicle: 'mx450', mode: 'race', ruleset: 'motocross-moto', service: false },
+  { vehicle: 'mx250', mode: 'race', ruleset: 'motocross-moto', service: false },
+  { vehicle: 'mx450', mode: 'practice', ruleset: undefined, service: true },
+  { vehicle: 'mx250', mode: 'time-trial', ruleset: undefined, service: true },
+  { vehicle: 'gpr1', mode: 'race', ruleset: 'gp-motorcycle', service: true },
+  { vehicle: 'apx01', mode: 'race', ruleset: 'formula-grand-prix', service: true },
+])(
+  'warms only reachable pit service while completing both GPU views: $vehicle / $mode / $ruleset',
+  async ({ vehicle, mode, ruleset, service }) => {
+    const { target, typed, sample } = fixture(vehicle);
+    const before = sample.slice();
+    const progress = vi.fn();
+    const permitted = rulesetFor({ mode: mode as SessionOptions['mode'], ruleset }).service
+      .pitStops;
+    expect(permitted).toBe(service);
+    expect(
+      await RacingRenderer.prototype.prepare.call(
+        typed,
+        sample,
+        progress,
+        () => false,
+        async () => {},
+        permitted,
+      ),
+    ).toBe(true);
+    expect(target.warmPitPresentation).toHaveBeenCalledTimes(service ? 1 : 0);
+    const stages = progress.mock.calls.map(([message]) => String(message));
+    expect(stages.some((message) => message.includes('pit-service'))).toBe(service);
+    expect(target.renderer.compileAsync).toHaveBeenCalledTimes(3);
+    expect(target.warmShadowCasters).toHaveBeenCalledTimes(1);
+    expect(target.draw).toHaveBeenCalledTimes(2);
+    expect(target.waitForPreparedFrame).toHaveBeenCalledTimes(2);
+    expect(target.warmupFrames).toBe(2);
+    expect(target.mode).toBe('pod');
+    expect(sample).toEqual(before);
+    expect(target.preparation.snapshot()?.status).toBe('complete');
+  },
+);
+it('keeps the GPU completion gate when a no-service motocross warmup stalls', async () => {
+  const { target, typed, sample } = fixture('mx450');
+  target.waitForPreparedFrame.mockRejectedValueOnce(new Error('GPU preparation did not complete'));
+  await expect(
+    RacingRenderer.prototype.prepare.call(
+      typed,
+      sample,
+      vi.fn(),
+      () => false,
+      async () => {},
+      rulesetFor({ mode: 'race', ruleset: 'motocross-moto' }).service.pitStops,
+    ),
+  ).rejects.toThrow('GPU preparation did not complete');
+  expect(target.warmPitPresentation).not.toHaveBeenCalled();
+  expect(target.draw).toHaveBeenCalledTimes(1);
+  expect(target.preparation.snapshot()?.status).toBe('failed');
+  expect(target.mode).toBe('pod');
+});
 it.each([
   { vehicles: ['gpr1', 'gpr2', 'gpr1'], bikeBuilds: 0 },
   { vehicles: ['apx01', 'gpr1', 'gpr2'], bikeBuilds: 1 },

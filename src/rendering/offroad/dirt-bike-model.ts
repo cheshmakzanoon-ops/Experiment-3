@@ -19,6 +19,8 @@ import { installMudOn, tagMudExposure, type MudUniforms } from './mud.ts';
 import { forkLocalOffset } from '../bike-pit-service.ts';
 import { batchBikeRigidMeshes } from '../bike-rigid-batch.ts';
 import { MotocrossChainDrive } from './motocross-chain-drive.ts';
+import { addMotocrossRadiators } from './motocross-radiators.ts';
+import { motocrossWheelHub, motocrossWheelSpokes } from './motocross-wheel-detail.ts';
 import {
   addMotocrossPowertrain,
   motocrossAxleLug,
@@ -225,17 +227,28 @@ export class DirtBikeModel {
         const lip = add(spin, new T.TorusGeometry(rim, 0.006, 6, sides), rimMaterial, side * 0.019);
         lip.rotation.y = Math.PI / 2;
       }
-      add(spin, new T.CylinderGeometry(0.034, 0.034, 0.092, 12), rimMaterial).rotation.z =
-        Math.PI / 2;
+      if (supermoto || detail === 'far')
+        add(spin, new T.CylinderGeometry(0.034, 0.034, 0.092, 12), rimMaterial).rotation.z =
+          Math.PI / 2;
+      else add(spin, motocrossWheelHub(detail), rimMaterial);
       if (detail !== 'far') {
-        add(spin, spokes(rim, detail === 'high' ? 36 : 20), this.m.steel, 0, 0, 0, false);
-        for (const side of [-1, 1])
-          add(
-            spin,
-            new T.CylinderGeometry(0.048, 0.048, 0.008, 12),
-            rimMaterial,
-            side * 0.041,
-          ).rotation.z = Math.PI / 2;
+        add(
+          spin,
+          supermoto ? spokes(rim, detail === 'high' ? 36 : 20) : motocrossWheelSpokes(rim, detail),
+          this.m.steel,
+          0,
+          0,
+          0,
+          false,
+        );
+        if (supermoto)
+          for (const side of [-1, 1])
+            add(
+              spin,
+              new T.CylinderGeometry(0.048, 0.048, 0.008, 12),
+              rimMaterial,
+              side * 0.041,
+            ).rotation.z = Math.PI / 2;
         add(
           spin,
           motocrossRotor(front ? 0.131 : 0.117, detail),
@@ -668,56 +681,59 @@ export class DirtBikeModel {
       supermoto ? -0.02 : 0,
     ).name = 'Motocross curved protective sump scoop';
     // Radiators either side of the frame, under the wing shrouds.
+    if (!supermoto) addMotocrossRadiators(this.sprung, detail, this.m);
     for (const side of [1, -1]) {
-      add(
-        this.sprung,
-        new RoundedBoxGeometry(0.104, 0.266, 0.031, 1, 0.008),
-        this.m.aluminium,
-        side * 0.115,
-        -0.105,
-        0.19,
-      );
-      add(
-        this.sprung,
-        new T.BoxGeometry(0.087, 0.236, 0.009),
-        this.m.dark,
-        side * 0.115,
-        -0.105,
-        0.209,
-      );
-      if (detail !== 'far') {
-        for (let k = 0; k < 13; k++)
-          add(
-            this.sprung,
-            new T.BoxGeometry(0.087, 0.0035, 0.011),
-            this.m.steel,
-            side * 0.115,
-            -0.214 + k * 0.018,
-            0.218,
-          );
-        for (let k = 0; k < 4; k++)
-          add(
-            this.sprung,
-            new T.BoxGeometry(0.004, 0.242, 0.015),
-            dark,
-            side * (0.08 + k * 0.024),
-            -0.105,
-            0.222,
-          );
+      if (supermoto) {
         add(
           this.sprung,
-          tube(
-            [
-              [side * 0.119, -0.24, 0.18],
-              [side * 0.11, -0.27, 0.13],
-              [side * 0.076, -0.225, 0.04],
-            ],
-            0.011,
-            12,
-            6,
-          ),
-          dark,
+          new RoundedBoxGeometry(0.104, 0.266, 0.031, 1, 0.008),
+          this.m.aluminium,
+          side * 0.115,
+          -0.105,
+          0.19,
         );
+        add(
+          this.sprung,
+          new T.BoxGeometry(0.087, 0.236, 0.009),
+          this.m.dark,
+          side * 0.115,
+          -0.105,
+          0.209,
+        );
+        if (detail !== 'far') {
+          for (let k = 0; k < 13; k++)
+            add(
+              this.sprung,
+              new T.BoxGeometry(0.087, 0.0035, 0.011),
+              this.m.steel,
+              side * 0.115,
+              -0.214 + k * 0.018,
+              0.218,
+            );
+          for (let k = 0; k < 4; k++)
+            add(
+              this.sprung,
+              new T.BoxGeometry(0.004, 0.242, 0.015),
+              dark,
+              side * (0.08 + k * 0.024),
+              -0.105,
+              0.222,
+            );
+          add(
+            this.sprung,
+            tube(
+              [
+                [side * 0.119, -0.24, 0.18],
+                [side * 0.11, -0.27, 0.13],
+                [side * 0.076, -0.225, 0.04],
+              ],
+              0.011,
+              12,
+              6,
+            ),
+            dark,
+          );
+        }
       }
       const shroud = add(
         this.sprung,

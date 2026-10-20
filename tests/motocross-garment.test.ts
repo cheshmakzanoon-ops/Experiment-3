@@ -2,6 +2,7 @@ import * as T from 'three';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { Rider, RIDER, type RiderPose } from '../src/rendering/rider.ts';
 import {
+  addMotocrossGarment,
   motocrossGarmentGeometry,
   type MotocrossGarment,
 } from '../src/rendering/offroad/motocross-gear.ts';
@@ -39,6 +40,73 @@ function garments(rider: Rider) {
 }
 
 describe('motocross continuous textile skin', () => {
+  it('preserves the actual sleeve cross-section through a bent elbow without pose history', () => {
+    const root = new T.Group(),
+      upper = new T.Group(),
+      lower = new T.Group(),
+      shoulder = new T.Bone(),
+      material = new T.MeshBasicMaterial();
+    root.add(upper, lower, shoulder);
+    lower.position.y = RIDER.upperArm;
+    const sleeve = addMotocrossGarment(
+      root,
+      upper,
+      lower,
+      RIDER.upperArm,
+      RIDER.forearm,
+      'sleeve',
+      'high',
+      material,
+      shoulder,
+    );
+    const positions = sleeve.geometry.getAttribute('position'),
+      uv = sleeve.geometry.getAttribute('uv'),
+      ring: number[] = [];
+    let closest = Infinity,
+      ringY = 0;
+    for (let i = 0; i < positions.count; i++) {
+      if (uv.getX(i) !== 0) continue;
+      const distance = Math.abs(positions.getY(i) - RIDER.upperArm);
+      if (distance < closest) {
+        closest = distance;
+        ringY = positions.getY(i);
+      }
+    }
+    for (let i = 0; i < positions.count; i++) if (positions.getY(i) === ringY) ring.push(i);
+    const point = new T.Vector3(),
+      inverse = new T.Quaternion();
+    const areaAt = (angle: number) => {
+      lower.rotation.z = angle;
+      sleeve.updatePose();
+      root.updateMatrixWorld(true);
+      inverse.setFromAxisAngle(new T.Vector3(0, 0, 1), -angle / 2);
+      const outline = ring.map((vertex) => {
+        sleeve.getVertexPosition(vertex, point);
+        point.sub(lower.position).applyQuaternion(inverse);
+        return [point.x, point.z];
+      });
+      let area = 0;
+      for (let i = 1; i < outline.length; i++)
+        area += outline[i - 1][0] * outline[i][1] - outline[i][0] * outline[i - 1][1];
+      return Math.abs(area / 2);
+    };
+    try {
+      const rest = areaAt(0);
+      expect(rest).toBeGreaterThan(0.004);
+      const bent = areaAt(Math.PI / 2);
+      // Conventional two-bone blending shrinks this section to about 71%.
+      // Inspect the real posed surface, not support-bone names or weights.
+      expect(bent / rest).toBeGreaterThan(0.94);
+      expect(areaAt(-Math.PI * 0.75) / rest).toBeGreaterThan(0.94);
+      expect(areaAt(Math.PI / 2)).toBeCloseTo(bent, 10);
+      expect(areaAt(0)).toBeCloseTo(rest, 10);
+    } finally {
+      sleeve.skeleton.dispose();
+      sleeve.geometry.dispose();
+      material.dispose();
+    }
+  });
+
   it.each(['high', 'mid', 'far'] as const)(
     '%s cloth has finite closed caps, smooth wrap normals and bounded skin/UV storage',
     (detail) => {

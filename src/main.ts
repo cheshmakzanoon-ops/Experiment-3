@@ -92,7 +92,7 @@ import { TelemetryExport } from './storage/telemetry-export.ts';
 import { SessionReplay } from './storage/replay-pages.ts';
 import { RadioArbiter } from './core/radio.ts';
 import { Rumble, rumbleFrom } from './input/rumble.ts';
-import { EVENTS, eventSession } from './simulation/events.ts';
+import { EVENTS, eventSession, rulesetFor } from './simulation/events.ts';
 import { eventHub } from './ui/event-cards.ts';
 import { RadioCaption } from './ui/radio-caption.ts';
 import { TelemetryRecorder } from './storage/recorders.ts';
@@ -896,6 +896,8 @@ export class GameApp {
       this.current,
       (message) => this.ui.loading(message),
       () => this.errorStopped || this.disposed || generation !== this.generation,
+      undefined,
+      rulesetFor(this.options).service.pitStops,
     );
     if (!warmed || this.errorStopped || this.disposed || generation !== this.generation) return;
     const cars = this.options.opponents + 1;

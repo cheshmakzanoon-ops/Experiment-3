@@ -18,6 +18,7 @@ import {
 import { vehicleIndex } from '../src/simulation/vehicles.ts';
 import { OffroadHud } from '../src/ui/offroad-hud.ts';
 import { FLAG } from '../src/simulation/marshal.ts';
+import { motocrossBermSectors } from '../src/simulation/offroad/berm-practice.ts';
 
 /** Text/style targets for the production HUD's DOM writes. Layout and browser
  * behavior are covered by the UI Playwright fixture; these tests exercise
@@ -123,7 +124,139 @@ function harness() {
   };
 }
 
+function finishShortExitBerm() {
+  const h = harness(),
+    base = carBase(0),
+    course = offroadCourse(h.track.circuit)!,
+    sector = motocrossBermSectors(h.track, course).find(
+      (candidate) => candidate.name === 'QUARRY',
+    )!,
+    jump = course.nextJump(sector.to)!.jump;
+  h.pose(0, 20);
+  h.frame[base + F.LATERAL] = sector.outside * sector.halfWidth * 0.6;
+  let text = '';
+  const steps = Math.ceil((sector.length + 1) / 2);
+  for (let step = 0; step <= steps; step++) {
+    h.frame[base + F.S] = sector.from - 0.5 + step * 2;
+    text = h.present(1 + (step * 2) / 20, false, 0);
+  }
+  // QUARRY exits less than 18 m before the double. The judge still records
+  // the complete corner while its last samples yield to the approach cue.
+  expect(jump.start - sector.to).toBeLessThan(18);
+  expect(text).toContain(jump.name);
+  expect(text).not.toContain('First timed run');
+  return { h, base, sector, jump, finishedAt: h.frame[H.TIME] };
+}
+
 describe('motocross HUD flight transitions', () => {
+  it('queues a short-exit berm result through the jump and safety cues, then displays it once', () => {
+    const { h, base, sector, jump, finishedAt } = finishShortExitBerm();
+    h.frame[base + F.LATERAL] = 0;
+    h.frame[base + F.S] = jump.takeoff - 0.5;
+    expect(h.present(finishedAt + 0.95, false, 0)).toContain(jump.name);
+    h.frame[base + F.S] = jump.takeoff + 0.5;
+    expect(h.present(finishedAt + 1, true, 0.05)).toContain('IN FLIGHT');
+    h.frame[base + F.S] = (jump.takeoff + jump.landing) / 2;
+    expect(h.present(finishedAt + 1.4, true, 0.45)).not.toContain('First timed run');
+    h.frame[base + F.S] = jump.landing;
+    expect(h.present(finishedAt + 1.9, false, 0.95)).toContain('SETTLING');
+    h.pose(0, 2);
+    h.frame[base + F.S] = jump.end + 1;
+    expect(h.present(finishedAt + 2.2, false, 0.95)).toContain('LAST JUMP');
+    for (const elapsed of [3.2, 4.2]) {
+      h.frame[base + F.S] = jump.end + 1 + (elapsed - 2.2) * 2;
+      expect(h.present(finishedAt + elapsed, false, 0.95)).toContain('LAST JUMP');
+    }
+    // The landing hold is over. Caution, automatic control and replay must
+    // not secretly start the result's display timer while hiding its text.
+    h.flags(FLAG.DOUBLE_YELLOW);
+    h.frame[base + F.S] = jump.end + 6;
+    expect(h.present(finishedAt + 4.71, false, 0.95)).toContain('ROLL THE NEXT JUMP');
+    h.flags(FLAG.GREEN);
+    h.frame[base + F.S] = jump.end + 8;
+    expect(h.present(finishedAt + 5.71, false, 0.95, 0.1, 2, 0, false)).not.toContain(
+      'First timed run',
+    );
+    h.frame[base + F.S] = jump.end + 10;
+    expect(h.present(finishedAt + 6.71, false, 0.95, 0.1, 2, 0, true, true)).not.toContain(
+      'First timed run',
+    );
+    h.frame[base + F.S] = jump.end + 12;
+    const shownAt = finishedAt + 7.71,
+      result = h.present(shownAt, false, 0.95);
+    expect(result).toContain('QUARRY');
+    expect(result).toContain(`${(sector.length / 20).toFixed(2)} S`);
+    expect(result).toContain('OUTSIDE LINE');
+    expect(result).toContain('First timed run');
+    expect(result).toContain('exit 72 km/h');
+    for (let i = 0; i < 20; i++) expect(h.present(shownAt, false, 0.95)).toBe(result);
+    h.frame[base + F.S] = jump.end + 14.6;
+    expect(h.present(shownAt + 1.3, false, 0.95)).toBe(result);
+    h.frame[base + F.S] = jump.end + 17.22;
+    expect(h.present(shownAt + 2.61, false, 0.95)).not.toContain('First timed run');
+    expect(h.present(shownAt + 2.61, false, 0.95)).not.toContain('QUARRY');
+  });
+
+  it('expires an unseen berm result after twelve simulation seconds without losing its record', () => {
+    const { h, base, sector, jump, finishedAt } = finishShortExitBerm();
+    h.pose(0, 0);
+    // Waiting before the same nearby jump leaves no safe display interval.
+    for (let elapsed = 1; elapsed <= 13; elapsed++)
+      expect(h.present(finishedAt + elapsed, false, 0)).not.toContain('First timed run');
+    h.frame[base + F.S] = jump.end + 1;
+    expect(h.present(finishedAt + 13.1, false, 0)).not.toContain('First timed run');
+    // A seek cannot revive an expired result when human control resumes.
+    h.present(finishedAt + 4, false, 0, 0.1, 2, 0, true, true);
+    expect(h.present(finishedAt + 4, false, 0)).not.toContain('First timed run');
+    h.frame[base + F.S] = sector.from - 10;
+    const recall = h.present(finishedAt + 4.1, false, 0);
+    expect(recall).toContain('QUARRY');
+    expect(recall).toContain(`Your best ${(sector.length / 20).toFixed(2)} s`);
+    expect(recall).not.toContain('First timed run');
+  });
+
+  it('shows measured legal-bank practice, remembers its best and keeps safety cues first', () => {
+    const h = harness(),
+      b = carBase(0),
+      sector = motocrossBermSectors(h.track, offroadCourse(h.track.circuit)!).find(
+        (candidate) => candidate.name === 'OAK BERM',
+      )!;
+    const pass = (start: number, speed: number, lateral: number) => {
+      h.pose(0, speed);
+      h.frame[b + F.LATERAL] = lateral;
+      let text = '';
+      for (let d = 0; d < sector.length + 2; d += 2) {
+        h.frame[b + F.S] = sector.from - 0.5 + d;
+        text = h.present(start + d / speed, false, 0);
+        if (d > 4 && d < sector.length / 2) {
+          expect(text).toContain('BERM PRACTICE');
+          expect(text).toContain('OAK BERM');
+        }
+      }
+      return text;
+    };
+    // The bank is legal beyond the 4.7 m centre strip used by jump targets.
+    const first = pass(1, 20, 5.2);
+    expect(first).toContain('OUTSIDE LINE');
+    expect(first).toContain('First timed run');
+    expect(first).toContain('exit 72 km/h');
+    const faster = pass(20, 24, -3);
+    expect(faster).toContain('NEW PERSONAL BEST');
+    expect(faster).toContain('exit 86 km/h');
+    expect(faster).toContain('to your previous best');
+    h.flags(FLAG.DOUBLE_YELLOW);
+    const caution = h.present(h.frame[H.TIME], false, 0);
+    expect(caution).toContain('ROLL THE NEXT JUMP');
+    expect(caution).not.toContain('NEW PERSONAL BEST');
+    h.flags(FLAG.GREEN);
+    expect(h.present(h.frame[H.TIME], false, 0, 0.1, 2, 0, false)).not.toContain('BERM PRACTICE');
+    expect(h.present(h.frame[H.TIME], false, 0, 0.1, 2, 0, true, true)).not.toContain(
+      'BERM PRACTICE',
+    );
+    h.frame[b + RACE_BASE + R.VEHICLE] = vehicleIndex('mx250');
+    expect(pass(30, 20, 0)).toContain('First timed run');
+  });
+
   it('uses measured retry distance and takeoff speed without replacing the next approach reference', () => {
     const h = harness(),
       jump = offroadCourse(h.track.circuit)!.jumps[0],
