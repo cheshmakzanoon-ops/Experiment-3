@@ -151,7 +151,9 @@ export class DirtBikeAIDriver extends BikeAIDriver {
     // assistance still starts only on a tick asking for drive.
     if (c.aiTarget <= 0.5 || c.input.throttle <= 0.2 || c.input.brake >= 0.1) return;
     this.stuck += dt;
-    if (this.stuck < STUCK_SECONDS) return;
+    // Pedals hold the last traffic decision between planner updates. A
+    // newly arrived rider must be sampled before committing a marshal push.
+    if (this.stuck < STUCK_SECONDS || !this.trafficRefreshed) return;
     this.stuck = 0;
     // At the course edge facing the course, never back on a face it could
     // not climb (the adapter's restart point).

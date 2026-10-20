@@ -17,6 +17,7 @@ import { B, BIKE_BASE, F, carBase } from '../src/simulation/protocol.ts';
 import type { SurfaceSample, Track, TrackPoint } from '../src/simulation/track.ts';
 import { VEHICLES } from '../src/simulation/vehicles.ts';
 import { Simulation } from '../src/simulation/world.ts';
+import { motocrossInspectionChassis } from '../e2e/fixtures/motocross-bike-review.ts';
 
 beforeAll(() => {
   const noop = () => undefined;
@@ -85,6 +86,54 @@ const flatTrack = {
 } as unknown as Track;
 
 describe('motocross authoritative sprung-chassis presentation', () => {
+  it.each(['mx250', 'mx450'])(
+    '%s GPU inspection offsets prescribe supported chassis heave and pitch',
+    (id) => {
+      const definition = VEHICLES[id],
+        b = definition.bike!,
+        sag = staticSag(definition),
+        materials = new BikeMaterials(0),
+        model = new DirtBikeModel(definition, 0, 'mid', materials, mudUniforms()),
+        front = model.root.getObjectByName('Motocross front spinning wheel')!,
+        rear = model.root.getObjectByName('Motocross rear suspension hub')!,
+        point = new T.Vector3();
+      try {
+        // Preserve the GPU drivetrain's actual asymmetric travel sample.
+        // Its old nominal root drove the rear wheel 10 mm through the floor.
+        const fork = sag.fork + 0.04,
+          shock = sag.shock - 0.01,
+          chassis = motocrossInspectionChassis(definition, fork, shock),
+          sin = Math.sin(chassis.pitch),
+          cos = Math.cos(chassis.pitch);
+        // Independent forward gap equations: both prescribed compressions
+        // must terminate at the support plane, using fixed free-wheel mounts.
+        expect(
+          chassis.height + b.cgToFront * sin - (b.cgHeight + sag.fork) * cos + fork,
+        ).toBeCloseTo(0, 12);
+        expect(
+          chassis.height - b.cgToRear * sin - (b.cgHeight + sag.shock) * cos + shock,
+        ).toBeCloseTo(0, 12);
+        expect(chassis.pitch).toBeLessThan(-0.03);
+        model.root.position.y = chassis.height;
+        model.root.rotation.set(-chassis.pitch, 0, 0);
+        for (const rearRotation of [0.2, 1.1, 1.1, 0.2]) {
+          model.pose(pose(fork, shock, { rearRotation }));
+          model.root.updateMatrixWorld(true);
+          // The drawing's raked fork/circular arm differs slightly from the
+          // reduced vertical contact equations at nonzero pitch; it must not
+          // inherit the full 10 mm error of an incoherent synthetic root.
+          expect(Math.abs(front.getWorldPosition(point).y - b.frontWheelRadius)).toBeLessThan(
+            0.001,
+          );
+          expect(Math.abs(rear.getWorldPosition(point).y - b.rearWheelRadius)).toBeLessThan(0.001);
+        }
+      } finally {
+        model.dispose();
+        materials.dispose();
+      }
+    },
+  );
+
   it.each(['mx250', 'mx450', 'sm450'])(
     '%s factory presentation sag matches the production rising-rate suspension',
     (id) => {

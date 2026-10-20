@@ -13,6 +13,7 @@ export const RECORDED_TIRE_GLSL = /* glsl */ `
 uniform mat4 contactToWheel;
 uniform mat4 contactFromWheel;
 uniform vec4 contactShape; // authored crown radius, bead radius, spin phase, valid
+uniform vec2 contactSpin; // sin/cos computed once from the recorded wheel phase
 uniform vec3 contactCompression; // free radius, radial compression, plane distance
 uniform vec3 contactNormal;
 uniform vec2 contactShear; // forward strain, lateral slip strain
@@ -24,7 +25,10 @@ vec3 recordedTirePosition( vec3 original ) {
   float crown = clamp( ( radial - contactShape.y ) / ( contactShape.x - contactShape.y ), 0.0, 1.0 );
   // Scaling only the crown leaves the rim and bead at their authored radius.
   p.yz *= 1.0 + ( contactCompression.x - contactShape.x ) * crown / max( contactShape.y, radial );
-  float sn = sin( contactShape.z ), cs = cos( contactShape.z );
+  // Share the CPU pose's rotation across every vertex and shadow pass. GPU
+  // trig approximations need not preserve sin^2 + cos^2 = 1; using them for
+  // this forward/inverse pair can scale even an unloaded tyre and its bead.
+  float sn = contactSpin.x, cs = contactSpin.y;
   p.yz = vec2( p.y * cs - p.z * sn, p.y * sn + p.z * cs );
   float low = clamp( -dot( p, contactNormal ) / max( 0.01, contactCompression.x ), 0.0, 1.0 );
   float contactWeight = low * low * low * low * crown;
@@ -74,6 +78,7 @@ const boundsMargin = new WeakMap<T.BufferGeometry, number>();
 export class RecordedTire {
   readonly uniforms: {
     contactShape: T.IUniform<T.Vector4>;
+    contactSpin: T.IUniform<T.Vector2>;
     contactCompression: T.IUniform<T.Vector3>;
     contactNormal: T.IUniform<T.Vector3>;
     contactShear: T.IUniform<T.Vector2>;
@@ -86,6 +91,7 @@ export class RecordedTire {
       throw new Error('Invalid tire bind dimensions');
     this.uniforms = {
       contactShape: { value: new T.Vector4(radius, bead, 0, 0) },
+      contactSpin: { value: new T.Vector2(0, 1) },
       contactCompression: { value: new T.Vector3(radius, 0, radius) },
       contactNormal: { value: new T.Vector3(0, 1, 0) },
       contactShear: { value: new T.Vector2() },
@@ -98,6 +104,7 @@ export class RecordedTire {
     // Menus and GP/MX therefore retain their own authored presentation paths.
     u.contactShape.value.z = 0;
     u.contactShape.value.w = 0;
+    u.contactSpin.value.set(0, 1);
     u.contactCompression.value.set(this.radius, 0, this.radius);
     u.contactNormal.value.set(0, 1, 0);
     u.contactShear.value.set(0, 0);
@@ -126,6 +133,7 @@ export class RecordedTire {
     );
     u.contactShape.value.z = phase;
     u.contactShape.value.w = 1;
+    u.contactSpin.value.set(Math.sin(phase), Math.cos(phase));
     u.contactCompression.value.set(
       free,
       clamp(contact.radial, 0, free - this.bead - 0.006),
@@ -151,7 +159,7 @@ export class RecordedTire {
       contactFromWheel: { value: toWheel.clone().invert() },
     };
     const install = (material: T.Material, normals: boolean) => {
-      chainShaderHook(material, 'recorded-tire-contact-v1', (shader) => {
+      chainShaderHook(material, 'recorded-tire-contact-v2', (shader) => {
         Object.assign(shader.uniforms, binding);
         injectDeclarations(shader, 'common', RECORDED_TIRE_GLSL, 'vertex');
         // Override a legacy load-only deformation only when measured data exists.

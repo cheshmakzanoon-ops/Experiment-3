@@ -281,6 +281,50 @@ describe('motocross stationary drive effort', () => {
     expect(bike.dynamics.crashes).toBe(0);
   });
 
+  it('waits for current traffic before helping when a rider arrives at the effort threshold', () => {
+    const { sim, bike, traffic, ai } = wetBeachedRider();
+    // Four seconds of uninterrupted real drive approach the assistance
+    // threshold between the shared traffic planner's successive updates.
+    for (let i = 0; i < 120 * 4; i++) {
+      traffic.place(sim.track, 355.4, -1.52);
+      sim.step(1 / 120);
+    }
+    expect(bike.riding).toBe(true);
+    expect(bike.speed).toBeLessThan(0.5);
+    expect(bike.input.throttle).toBeGreaterThan(0.2);
+    expect(bike.input.brake).toBeLessThan(0.1);
+    expect(ai.decisions.pushes).toBe(0);
+    // The rival arrives while the cached pedals still request drive. The
+    // next physics tick must not start a push before traffic is reassessed.
+    for (let i = 0; i < 120; i++) {
+      traffic.place(sim.track, 318.2, -1.52);
+      sim.step(1 / 120);
+      expect(ai.decisions.pushes).toBe(0);
+      if (i >= 12) {
+        expect(bike.input.throttle).toBeLessThan(0.01);
+        expect(bike.input.brake).toBeGreaterThan(0.9);
+      }
+    }
+    expect(Math.abs(bike.s - 315.4)).toBeLessThan(0.05);
+    // The queue pauses the earned effort. Once clear, the next ordinary
+    // traffic assessment can release assistance without another four seconds.
+    let releasedAfter = -1;
+    for (let i = 0; i < 24; i++) {
+      traffic.place(sim.track, 355.4, -1.52);
+      sim.step(1 / 120);
+      if (ai.decisions.pushes) {
+        releasedAfter = (i + 1) / 120;
+        break;
+      }
+    }
+    expect(releasedAfter).toBeGreaterThan(0);
+    expect(releasedAfter).toBeLessThanOrEqual(0.1);
+    expect(ai.decisions.pushes).toBe(1);
+    expect(bike.input.throttle).toBeGreaterThan(0.2);
+    expect(bike.input.brake).toBeLessThan(0.1);
+    expect(bike.dynamics.crashes).toBe(0);
+  });
+
   it('keeps a continuously brake-held traffic queue stationary without assistance', () => {
     const { sim, bike, traffic, ai } = wetBeachedRider();
     let maxThrottle = 0, minBrake = 1, movement = 0;

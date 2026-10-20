@@ -3,7 +3,7 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { BikeMaterials, BikeShells, bikeOnboardFov, staticSag } from '../../src/rendering/bike.ts';
 import { DirtBikeModel } from '../../src/rendering/offroad/dirt-bike-model.ts';
 import { mudUniforms } from '../../src/rendering/offroad/mud.ts';
-import { VEHICLES } from '../../src/simulation/vehicles.ts';
+import { VEHICLES, type VehicleDefinition } from '../../src/simulation/vehicles.ts';
 import type { RiderDetail } from '../../src/rendering/rider.ts';
 import { inspectMotocrossCockpit } from './motocross-cockpit-contract.ts';
 
@@ -26,6 +26,33 @@ export interface MotocrossPoseSample {
   speed?: number;
   frontRotation?: number;
   rearRotation?: number;
+}
+
+/** Prescribe the recorded chassis for synthetic suspension samples supported
+ * on level ground. Production snapshots already carry this heave and pitch;
+ * changing travel under a stationary nominal root instead describes a wheel
+ * driven through the floor. Solve the two fixed-reference contact gaps,
+ * without sampling the rendered mesh or correcting its ground clearance. */
+export function motocrossInspectionChassis(
+  definition: VehicleDefinition,
+  fork: number,
+  shock: number,
+) {
+  const b = definition.bike!,
+    sag = staticSag(definition),
+    front = T.MathUtils.clamp(fork, 0, b.forkTravel),
+    rear = T.MathUtils.clamp(shock, 0, b.shockTravel),
+    frontHeight = b.cgHeight + sag.fork,
+    rearHeight = b.cgHeight + sag.shock,
+    difference = frontHeight - rearHeight,
+    wheelbase = definition.spec.wheelbase,
+    pitch =
+      Math.asin(T.MathUtils.clamp((rear - front) / Math.hypot(wheelbase, difference), -0.6, 0.6)) +
+      Math.atan2(difference, wheelbase);
+  return {
+    pitch,
+    height: b.cgToRear * Math.sin(pitch) + rearHeight * Math.cos(pitch) - rear,
+  };
 }
 
 /** Actual production DirtBikeModel in a controlled inspection scene. The
@@ -122,13 +149,22 @@ export function captureMotocrossBike(
   };
   try {
     return samples.map((sample, sampleIndex) => {
+      const fork = sag.fork + (sample.forkOffset ?? 0),
+        shock = sag.shock + (sample.shockOffset ?? 0),
+        chassis = motocrossInspectionChassis(def, fork, shock),
+        explicitChassis = sample.pitch !== undefined || sample.elevation !== undefined;
       // Production assigns the chassis quaternion before solving the rider.
-      // Keep the inspection fixture on that same ordering: pitch/gaze and
-      // suspension absorption must see the frame that will actually render.
-      model.root.rotation.set(sample.pitch ?? 0, 0, -(sample.lean ?? 0), 'YXZ');
+      // Explicit airborne inspection inputs remain independent of suspension
+      // travel; other samples prescribe a supported chassis from that travel.
+      model.root.rotation.set(
+        explicitChassis ? (sample.pitch ?? 0) : -chassis.pitch,
+        0,
+        -(sample.lean ?? 0),
+        'YXZ',
+      );
       model.pose({
-        fork: sag.fork + (sample.forkOffset ?? 0),
-        shock: sag.shock + (sample.shockOffset ?? 0),
+        fork,
+        shock,
         steer: sample.steer ?? 0,
         frontRotation: sample.frontRotation ?? 0,
         rearRotation: sample.rearRotation ?? 0,
@@ -147,7 +183,8 @@ export function captureMotocrossBike(
         mudWet: sample.wet ?? 0,
       });
       model.root.position.y =
-        def.bike!.cgHeight * Math.cos(sample.lean ?? 0) +
+        (explicitChassis ? def.bike!.cgHeight : chassis.height) -
+        def.bike!.cgHeight * (1 - Math.cos(sample.lean ?? 0)) +
         0.045 * Math.sin(Math.abs(sample.lean ?? 0)) +
         (sample.elevation ?? 0);
       model.rider.setFirstPerson(view === 'onboard', true);

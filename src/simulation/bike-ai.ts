@@ -51,6 +51,8 @@ export class BikeAIDriver extends AIDriver {
     super(bike, skill, seed);
   }
   override update(dt: number, track: Track, cars: Vehicle[], race: RaceDirector) {
+    // A rider-down update can return before the shared planner runs.
+    this.trafficRefreshed = false;
     const c = this.bike,
       d = c.dynamics,
       command = c.input;

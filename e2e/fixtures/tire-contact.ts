@@ -131,6 +131,7 @@ void main() {
     gl.uniformMatrix4fv(location('contactToWheel'), false, toWheel.elements);
     gl.uniformMatrix4fv(location('contactFromWheel'), false, fromWheel.elements);
     gl.uniform4fv(location('contactShape'), control.uniforms.contactShape.value.toArray());
+    gl.uniform2fv(location('contactSpin'), control.uniforms.contactSpin.value.toArray());
     gl.uniform3fv(
       location('contactCompression'),
       control.uniforms.contactCompression.value.toArray(),

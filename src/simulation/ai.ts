@@ -153,6 +153,8 @@ export class AIDriver {
   private lastUpdate = -Infinity;
   private desiredOffset = 0;
   private trafficSpeed = 100;
+  /** True only when this update sampled the surrounding traffic. */
+  protected trafficRefreshed = false;
   private stuckTime = 0;
   /** Seconds left of a latched reverse-out manoeuvre (cars). */
   private recoveryTime = 0;
@@ -178,6 +180,7 @@ export class AIDriver {
     this.floorEnv = { ...car.definition.ai };
   }
   update(dt: number, track: Track, cars: Vehicle[], race: RaceDirector) {
+    this.trafficRefreshed = false;
     const c = this.car,
       command = c.input;
     command.shift = 0;
@@ -241,6 +244,7 @@ export class AIDriver {
       );
       this.desiredOffset = this.laneOverride(track, c.s, plan.offset);
       this.trafficSpeed = plan.speedLimit;
+      this.trafficRefreshed = true;
       this.decision = plan.decision;
       // Passing a stalled car, the planner's lane is where the car goes: the
       // start position's residual offset (launch) is folded into the lane

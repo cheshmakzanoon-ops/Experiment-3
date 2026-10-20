@@ -201,16 +201,18 @@ describe('recorded GPU tire binding', () => {
     expect(wheel.contact.uniforms.contactShape.value.z).toBe(0);
     expect(wheel.contact.uniforms.contactShape.value.w).toBe(1);
     for (const shader of [lit, depth, distance]) {
+      expect(shader.uniforms.contactSpin).toBe(wheel.contact.uniforms.contactSpin);
       expect(shader.uniforms.contactCompression).toBe(wheel.contact.uniforms.contactCompression);
       expect(shader.uniforms.contactShear).toBe(wheel.contact.uniforms.contactShear);
       expect(shader.vertexShader).toContain('transformed = recordedTirePosition( position )');
     }
     expect(lit.vertexShader).toContain('objectNormal = normalize( dn )');
-    expect(studioHookKeys(rim.material as T.Material)).not.toContain('recorded-tire-contact-v1');
+    expect(studioHookKeys(rim.material as T.Material)).not.toContain('recorded-tire-contact-v2');
     expect(rim.geometry.getAttribute('position').array).toEqual(rimPosition);
     expect(rim.scale.toArray()).toEqual([1, 1, 1]);
     wheel.update(-0.1, 0, 0, 0, 2000, 155, 0, wheelContactPose());
     expect(wheel.contact.uniforms.contactShape.value.w).toBe(0);
+    expect(wheel.contact.uniforms.contactSpin.value.toArray()).toEqual([0, 1]);
     expect(wheel.contact.uniforms.contactShear.value.toArray()).toEqual([0, 0]);
   });
 
