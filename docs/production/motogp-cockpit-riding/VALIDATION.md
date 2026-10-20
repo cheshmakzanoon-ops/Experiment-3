@@ -18,7 +18,7 @@ not combined into one test total or one clean-commit acceptance claim.
 | Follow-up before `e7cbd04`, fingerprint `bd53fbce...` | Production build and final scoped ESLint                            | Passed                                                                                                                     |
 | Same pre-`e7cbd04` follow-up, actual Mesa WebGL       | Applied context reuse / original wet / original dry browser command | **2 passed, 1 failed**: context reuse 15.717 s and wet 257.873 s passed; dry reached its original 300 s execution deadline |
 | Published `85ceda3`, hosted CI                        | Production build and focused units                                  | Passed; **439/439 tests in 38 files**                                                                                      |
-| Same published `85ceda3`, hosted CI                   | Browser groups                                                      | Rider 7/7, presentation 6/6, dry 1/1, menu/settings 6/6 passed; wet pending                                                |
+| Same published `85ceda3`, hosted CI                   | Browser groups                                                      | **21/21 browser tests passed**: rider 7, presentation 6, dry 1, wet 1, menu/settings 6                                     |
 
 The post-integration gate covers startup, frontend loading, session identity,
 GP front-contact steering, GP control feedback, snapshot interpolation, wheel
@@ -288,18 +288,29 @@ The focused unit job passed at 00:07 UTC on 20 October: **439/439 tests in
 complete focused run on the published source, including the earlier geometry
 measurement correction.
 
-At 00:45 UTC on 20 October 2026, browser groups had these results:
+The complete hosted run finished successfully at **00:52:32 UTC on 20 October
+2026**. All seven jobs passed, including **21/21 browser tests** across these
+five groups:
 
-| Browser group                                                 | Result                                      |
-| ------------------------------------------------------------- | ------------------------------------------- |
-| Rider contact and poses                                       | 7/7 passed; artifact 12230904873            |
-| Presentation, including the original broad reference workload | 6/6 passed; artifact 12231771586            |
-| Original dry application journey                              | 1/1 passed; artifact 12231975790            |
-| Original wet application journey                              | Queued; no executed steps at the checkpoint |
-| Menu entry and settings                                       | 6/6 passed; artifact 12231309702            |
+| Browser group                                                 | Result                           |
+| ------------------------------------------------------------- | -------------------------------- |
+| Rider contact and poses                                       | 7/7 passed; artifact 12230904873 |
+| Presentation, including the original broad reference workload | 6/6 passed; artifact 12231771586 |
+| Original dry application journey                              | 1/1 passed; artifact 12231975790 |
+| Original wet application journey                              | 1/1 passed; artifact 12233470298 |
+| Menu entry and settings                                       | 6/6 passed; artifact 12231309702 |
 
 The successful hosted dry case is separate from the retained local Mesa timeout.
-The workflow as a whole remains pending until its wet group completes. These
+The wet job completed successfully at 00:52:31 UTC, followed by the successful
+workflow conclusion one second later. Its unchanged live wet-riding and pause
+case passed in 1.5 minutes on the observed Mesa backend. These
 hosted results belong to published commit `85ceda3`; they do not include the
 loading-feedback/context-reuse follow-up or the later main physics/protocol
 changes. The follow-up has the separately identified local receipts above.
+
+The subsequently published loading/context follow-up is
+[`b6f3ede`](https://github.com/cheshmakzanoon-ops/Experiment-3/commit/b6f3edea0fc3fe624e04ffbd0ca45b7a8f5f1044).
+Its own [MotoGP CI run](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39350085945)
+was queued when checked. The green `85ceda3` run is not represented as a hosted
+pass for that newer source; its production build, 96-test integration gate, and
+scoped local browser evidence are identified separately above.
