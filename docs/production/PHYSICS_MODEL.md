@@ -1,4 +1,4 @@
-# Physics model (simulation version 8)
+# Physics model (simulation version 12)
 
 This is the engineering reference for the vehicle physics behind every car in a session: tyres,
 suspension, drivetrain, aerodynamics, ground materials and integration. Every coefficient is an
@@ -7,19 +7,24 @@ The model stays deterministic: no randomness, no wall clock, bounded determinist
 allocation-free hot path. It runs inside the existing 120 Hz worker tick with two 240 Hz vehicle
 substeps.
 
-`SIMULATION_VERSION` is **8** (`src/core/session-identity.ts`). Lap times can change, so under
+`SIMULATION_VERSION` is **12** (`src/core/session-identity.ts`). Lap times can change, so under
 decision D8 records, ghosts and boards are split by physics version. Earlier records retain their
-original physics category. Pre-identity saves still read as version 1. Earlier recordings remain
-presentation replays; deterministic resimulation (flashback) only ever re-runs the current version.
-The original v2 force-law reference below now includes the v8 axle and contact-frame corrections;
-[ENGINE_DYNAMICS_V8.md](ENGINE_DYNAMICS_V8.md) records their measurements and validation scope.
+original physics category. Pre-identity saves still read as version 1. Unsupported snapshot
+formats are rejected explicitly; deterministic resimulation (flashback) only ever re-runs the
+current version. The original v2 force-law reference below includes the v8 axle/contact-frame
+corrections and v12 longitudinal-compliance/rotor-thermal changes. The historical measurements
+in sections 7–8 retain their original version scope. See
+[ENGINE_DYNAMICS_V12.md](ENGINE_DYNAMICS_V12.md) for current changes, public iRacing references,
+measurements and limits, and [ENGINE_DYNAMICS_V8.md](ENGINE_DYNAMICS_V8.md) for the earlier solve.
 
 ## Module map
 
 | Module | Responsibility |
 |---|---|
 | `tyre-force.ts` | Pure-slip curves, slip stiffness, combined-slip weighting, camber, pressure, relaxation |
-| `tyre-thermal.ts` | Three-node (surface/carcass/core) thermal network, hot pressure |
+| `tyre-thermal.ts` | Coupled surface/carcass/core/rotor thermal network, hot pressure; separate three-node boundary API |
+| `brake-thermal.ts` | Effective rotor heat capacity and ambient cooling parameters |
+| `wheel-rotation.ts` | Bounded wheel phase plus signed whole turns for unambiguous recorded motion |
 | `tire.ts` | Tyre state, peak friction, implicit wheel-spin solve, wear/damage, ground contact terms |
 | `suspension.ts` | Massless-hub corners: springs, stops, dampers, bars, tyre radial; kinematics; geometric load transfer |
 | `road-contact.ts` | Wheel-plane/road-plane rolling tangent and road-relative inclination; shared velocity/force frame |
@@ -35,9 +40,8 @@ The original v2 force-law reference below now includes the v8 axle and contact-f
 frozen data, and the resolved object is cached per definition. The packages are:
 
 * **APX-01 (`formula`) and TC-1 (`touring`):** the calibrated packages described below.
-* **Catalogue cars and motorcycles** (every `vehicle-catalogue/` sheet names a `tireFamily`; bikes
-  have `dynamicsKind: 'bike'`): a neutral package that keeps the behaviour their sheets were fitted
-  against. It has:
+* **Catalogue cars** (every `vehicle-catalogue/` sheet names a `tireFamily`): a neutral package
+  that keeps the behaviour their sheets were fitted against. It has:
   * the legacy-reproducing suspension geometry (`defaultSuspension()`);
   * legacy throttle response and 0.09 s shifts;
   * the former aero platform and wake (`NEUTRAL_AERO_DYNAMICS`);
@@ -46,10 +50,12 @@ frozen data, and the resolved object is cached per definition. The packages are:
     `tireGrip` is relative to the Formula slick at that load.
 
   Their power unit (`spec.engine`) and driveline come from the sheet. They share the combined-slip
-  law, thermal model, hub suspension, ground materials and integration with everything else.
+  law, thermal model, hub suspension, ground materials and integration with the other cars.
 
-The vehicle field holding the resolved package is `Vehicle.physics`; `BikeVehicle` uses `dynamics`
-for its own two-wheel state.
+The vehicle field holding the resolved package is `Vehicle.physics`. GP and motocross bikes use
+their own two-wheel force, suspension and thermal models; `BikeVehicle` uses `dynamics` for its
+own state. The v12 car contact/rotor solve does not replace those models. All three vehicle
+solvers share the new bounded-phase/whole-turn wheel recording.
 
 ## 0. Integration
 
@@ -63,10 +69,10 @@ for its own two-wheel state.
 
 | State | Scheme | Property |
 |---|---|---|
-| Wheel spin ω | backward Euler, bracketed bisection (unchanged) | brake cannot reverse a wheel |
+| Wheel spin ω and longitudinal deformation | backward Euler, coupled bracketed bisection | dissipative brake complementarity; separate elastic, physical-heat and numerical-loss budgets |
 | Hub travel (tyre radial + suspension) | backward Euler, coupled 2×2 Newton per axle, unilateral contact and droop active sets | mirrored force balance; convex-work line search through contact, damper and stop transitions |
-| Tyre temperatures | backward Euler on a 3×3 tridiagonal M-matrix | conserves heat exactly with losses closed; never overshoots |
-| Slip relaxation, intake, turbo, aero lag, sinkage | exact first-order exponential | no overshoot at any step |
+| Tyre and rotor temperatures | backward Euler on a 4×4 tridiagonal M-matrix | equal/opposite rotor-core exchange; conserves heat with losses closed; bounded passive cooling |
+| Lateral slip relaxation, intake, turbo, aero lag, sinkage | exact first-order exponential | no overshoot at any step |
 | Differential locking | stick torque with road-reaction feedforward, under-relaxed feedback | a locked axle stays synchronized at 60 Hz |
 
 * **Operator splitting order per substep:** controls → engine/clutch → differential → hub solve
@@ -177,7 +183,18 @@ dα_r/dt = (|v_x|/σ)·(α_ss − α_r),   integrated exactly: α_r ← α_ss + 
 
 σ0 is 0.32 m on the Formula slick and 0.42 m on the touring slick. Below 3 m/s the lag is removed:
 the deflection mode has no damping there, and the regularized slip already acts as a damper.
-Longitudinal transients come from the implicit wheel inertia solve, not a second relaxation state.
+Longitudinal deformation now has a separate passive state, coupled inside that wheel-inertia solve:
+
+```
+Kx = Kκ/σx;  s = ωr − vx;  λ = Kx·s/Fsteady(s/Vreg) ≥ 0
+x_new = (x_old + dt·s)/(1 + dt·λ);  Fx = Kx·x_new;  U = ½Kx·x_new²
+```
+
+The zero-slip rate uses the combined-slip stiffness. The force is constrained to the current
+friction ellipse, and stiffness changes preserve stored energy before that constraint. Reference
+longitudinal lengths are 0.22 m Formula and 0.29 m touring/family, with the same load/pressure/wear
+scaling and low-speed fade as above. Sliding/projection heat, internal carcass release and
+numerical integrator loss are accounted separately. See the v12 reference for the work identity.
 
 ### 1.5 Pressure
 
@@ -193,22 +210,27 @@ The hot pressure p comes from the core temperature (§1.6). It enters:
 The patch length `l = 2·√(2r·(δ + z))` comes from the radial deflection δ and sinkage z. It feeds
 sinkage pressure and compaction resistance.
 
-### 1.6 Three-node thermal model
+### 1.6 Coupled tyre and rotor thermal model
 
 Nodes: tread surface S (9 kJ/K, ×(1 − 0.4·wear)), carcass C (52 kJ/K), and core G (inflation gas
-and liner, 7 kJ/K).
+and liner, 7 kJ/K), plus the effective brake rotor D (16 kJ/K).
 
 ```
 C_S·dT_S/dt = 0.62·P_slip + 0.4·P_roll − 85(T_S−T_C) − (12+1.25v)(T_S−T_air) − 8(T_S−T_track)
               − w(130+0.6v)(T_S−T_air)
-C_C·dT_C/dt = 0.6·P_roll + 85(T_S−T_C) − 30(T_C−T_G) − (4+0.08v)(T_C−T_air)
+C_C·dT_C/dt = 0.6·P_roll + P_internal + 85(T_S−T_C) − 30(T_C−T_G) − (4+0.08v)(T_C−T_air)
 C_G·dT_G/dt = 30(T_C−T_G) − (2+0.05v)(T_G−T_air) + 0.6(T_disc−T_G)
-P_slip = |Fx·v_sx| + |Fy·v_sy|,   P_roll = 0.0012·Fz·|v|,   w = water depth (mm)
+C_D·dT_D/dt = P_friction_brake − 0.6(T_D−T_G) − (25+4v)(T_D−T_air)
+P_slip = longitudinal sliding/projection loss + |Fy·v_sy|
+P_internal = internal carcass relaxation heat; P_roll = 0.0012·Fz·|v|
+P_friction_brake = friction brake torque · |ω_new|; v = |speed|; w = water depth (mm)
 p_hot = (p_cold + 101.325)·(T_G + 273.15)/(T_set + 273.15) − 101.325     (absolute-pressure gas law)
 ```
 
 * The track and water terms act only while the tyre is loaded.
-* Brake heat reaches the gas through the rim.
+* Brake heat reaches the gas through the rim, with equal heat removed from the finite rotor.
+* Internal deformation release does not contribute to tread wear or road slip work.
+* Regeneration and backward-Euler numerical wheel/contact loss do not heat the disc as friction.
 * Rain cools the surface directly.
 * The grip window is evaluated at `0.3·T_S + 0.7·T_C`.
 * Wear thins the tread, so a worn tyre heats faster.
@@ -595,6 +617,10 @@ The overhead is unchanged by the merge.
 
 ## 9. Tests
 
+The table and alignment-expectation change in this section describe the original v2
+validation. Current v12 additions and execution outcomes are recorded in
+[ENGINE_DYNAMICS_V12.md](ENGINE_DYNAMICS_V12.md#5-verification).
+
 | File | Covers |
 |---|---|
 | `tests/tyre-model.test.ts` | Pure-slip equivalence, ellipse bound, combined weighting, load-saturating stiffness, low-μ peak slip, camber thrust/optimum, pressure, wear, relaxation (exact, low-speed fade), gravel contact, aquaplaning dependencies |
@@ -615,8 +641,9 @@ recorded angle includes camber gain.
 
 * **Massless hubs.** There is no wheel-hop mode (about 20 Hz). Damping is specified at the contact
   patch.
-* **Lateral-only relaxation.** There is no longitudinal relaxation state, and no low-speed MF
-  damping term (the lag is faded out instead).
+* **Reduced transient model.** Longitudinal compliance has a passive elastic state; lateral
+  relaxation retains the existing angle-lag approximation. This is not a fully coupled 2D bristle
+  model, and low-speed relaxation still fades into the algebraic force law.
 * **Calibrated combined slip.** The weighting coefficients are a gameplay-stable calibration, not a
   fitted data set. A locked wheel keeps about 34% of its pure cornering force (a brush tyre would
   keep about 16%).
@@ -631,7 +658,7 @@ recorded angle includes camber gain.
   (`distributeDrive`), which has no road-reaction feedforward. The stick-torque model can evaluate
   the same specs (`fromSpec`), but switching the catalogue to it would need a recalibration pass.
   Turbo boost has no rpm × load map: it follows engine speed and throttle only.
-* **Catalogue geometry.** Catalogue cars and motorcycles run the neutral package: no camber gain,
+* **Catalogue geometry.** Catalogue cars run the neutral package: no camber gain,
   roll centre or anti-geometry, legacy throttle response, and the former aero platform. They gain the
   tyre, thermal, hub and ground models. Per-car `dynamics` blocks are the next calibration step.
 * **AI tuning.** The AI capability envelopes were not refitted. The AI keeps its margins and

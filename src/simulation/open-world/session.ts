@@ -1,4 +1,5 @@
 import { clamp, Vec3 } from '../../core/math.ts';
+import { writeWheelRotation } from '../wheel-rotation.ts';
 import { wakeFields } from '../aero.ts';
 import { BikeVehicle, createVehicle, writeBikeBlock } from '../bike-vehicle.ts';
 import { CollisionSolver } from '../collision.ts';
@@ -1398,6 +1399,7 @@ function writeCar(out: Float32Array, id: number, c: Vehicle) {
     out[p + 6] = piece.mass;
     out[p + 7] = Number(piece.active);
   }
+  writeWheelRotation(out, o, c.tires);
   for (let i = 0; i < 4; i++) {
     const w = c.tires[i],
       p = o + WHEEL_BASE + i * WHEEL_STRIDE;

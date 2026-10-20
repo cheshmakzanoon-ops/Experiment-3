@@ -1,7 +1,7 @@
 import type { TerrainRenderDelta } from './offroad/course-terrain.ts';
 import type { Compound, Controls, SessionOptions } from './config.ts';
 export const HEADER = 24,
-  CAR_STRIDE = 293,
+  CAR_STRIDE = 298,
   WHEEL_BASE = 96,
   WHEEL_STRIDE = 26,
   DEBRIS_BASE = 200,
@@ -13,10 +13,24 @@ export const HEADER = 24,
   BIKE_BASE = 257,
   BIKE_STRIDE = 20,
   OFFROAD_BASE = 277,
-  OFFROAD_STRIDE = 16;
-/** v12 appended the motorcycle block (BIKE_BASE); v13 appends the off-road
- * block (OFFROAD_BASE). Every v12 offset is unchanged. */
-export const PROTOCOL_VERSION = 13;
+  OFFROAD_STRIDE = 16,
+  WHEEL_MOTION_BASE = 293,
+  WHEEL_MOTION_STRIDE = 5;
+/** v14 appends exact wheel winding after the v13 off-road block. Every
+ * earlier per-entrant offset is unchanged. */
+export const PROTOCOL_VERSION = 14;
+/** Wheel winding is stored separately from its bounded ROTATION phase, so a
+ * long session does not lose sub-turn precision to an enormous Float32 angle.
+ * VALID is a bit mask (bit 0..3 = FR/FL/RR/RL); zero-initialized synthetic poses
+ * do not claim measured winding. Counts are signed, exactly represented integer
+ * turns. A tire replacement acquires a fresh winding origin. */
+export const M = {
+  VALID: 0,
+  TURNS_FR: 1,
+  TURNS_FL: 2,
+  TURNS_RR: 3,
+  TURNS_RL: 4,
+} as const;
 /** Race-rules tail per car (protocol v11). DRS: 0 off, 1 available, 2 open. */
 export const R = {
   DRS: 0,
@@ -307,8 +321,9 @@ export const carBase = (id: number) => HEADER + id * CAR_STRIDE;
  * block with its offset, stride and count, so new entity families add blocks
  * instead of mutating magic offsets, and decoders can reject what they do not
  * understand. v12 appended the 'bike' entity block after the v11 blocks and
- * v13 the 'offroad' block after it; older recordings are rejected explicitly
- * by version (their stride differs), never re-read at the wrong offsets.
+ * v13 the 'offroad' block after it and v14 the 'wheel-motion' block. Older
+ * recordings are rejected explicitly by version (their stride differs),
+ * never re-read at the wrong offsets.
  * R.VEHICLE selects the entity family. */
 export const SNAPSHOT_SCHEMA = Object.freeze({
   version: PROTOCOL_VERSION,
@@ -323,6 +338,7 @@ export const SNAPSHOT_SCHEMA = Object.freeze({
     { name: 'race', offset: RACE_BASE, stride: RACE_STRIDE, count: 1 },
     { name: 'bike', offset: BIKE_BASE, stride: BIKE_STRIDE, count: 1 },
     { name: 'offroad', offset: OFFROAD_BASE, stride: OFFROAD_STRIDE, count: 1 },
+    { name: 'wheel-motion', offset: WHEEL_MOTION_BASE, stride: WHEEL_MOTION_STRIDE, count: 1 },
   ]),
 });
 /** Reason a snapshot cannot be decoded by this build, or null. Unknown

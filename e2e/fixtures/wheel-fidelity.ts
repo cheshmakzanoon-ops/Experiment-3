@@ -5,7 +5,15 @@ import { TireCarcass } from '../../src/rendering/tire-carcass.ts';
 import { treadMaterial } from '../../src/rendering/materials.ts';
 import { Simulation } from '../../src/simulation/world.ts';
 import { DEFAULT_OPTIONS } from '../../src/simulation/config.ts';
-import { H, W, WHEEL_BASE, WHEEL_STRIDE, carBase } from '../../src/simulation/protocol.ts';
+import {
+  H,
+  M,
+  W,
+  WHEEL_BASE,
+  WHEEL_MOTION_BASE,
+  WHEEL_STRIDE,
+  carBase,
+} from '../../src/simulation/protocol.ts';
 
 /** Actual production geometry and real simulation snapshots for alignment.
  * The isolated loaded/unloaded/puncture pictures are declared controlled tire
@@ -167,9 +175,66 @@ export function verifyWheelFidelity() {
         })),
       });
     }
+    // Controlled sparse-motion records: these deliberately decouple endpoint
+    // omega from integrated travel. Read the actual production wheel-spin
+    // groups, including the visible reduced geometry, rather than only calling
+    // the interpolation helper under test.
+    const winding = [];
+    for (const fixture of [
+      { name: 'early-lock', travel: 3, omegaA: 300, omegaB: 0, dt: 1 / 15 },
+      { name: 'spin-burst', travel: 8 * Math.PI * 2 + 1.2, omegaA: 0, omegaB: 0, dt: 1 / 15 },
+      { name: 'reverse-gap', travel: -400, omegaA: -200, omegaB: -200, dt: 2 },
+    ]) {
+      const left = a.slice(),
+        right = a.slice(),
+        start = 0.25,
+        end = start + fixture.travel,
+        turns = Math.floor(end / (Math.PI * 2)),
+        motion = o + WHEEL_MOTION_BASE;
+      left[H.TIME] = 0;
+      right[H.TIME] = fixture.dt;
+      left[motion + M.VALID] = right[motion + M.VALID] = 15;
+      for (let i = 0; i < 4; i++) {
+        const p = o + WHEEL_BASE + i * WHEEL_STRIDE;
+        left[p + W.ROTATION] = start;
+        right[p + W.ROTATION] = end - turns * Math.PI * 2;
+        left[p + W.OMEGA] = fixture.omegaA;
+        right[p + W.OMEGA] = fixture.omegaB;
+        left[motion + M.TURNS_FR + i] = 100;
+        right[motion + M.TURNS_FR + i] = 100 + turns;
+      }
+      for (const distance of [0, 100, 1000]) {
+        car.setLod(distance, 'medium', false);
+        const samples = [];
+        // Repeat a paused sample after seeking elsewhere to detect frame-clock
+        // accumulation masquerading as a pose reconstructed from a recording.
+        for (const alpha of [0.25, 0.5, 0.75, 0.99, 0.1, 0.5]) {
+          car.update(left, right, o, alpha, 1 / 60, alpha * fixture.dt, false);
+          const spins =
+            car.lodLevel === 0
+              ? car.wheelSpins
+              : visibleReducedWheelPivots(car.root).map((pivot) => {
+                  const groups = pivot.children.filter(
+                    (child): child is T.Group => child instanceof T.Group,
+                  );
+                  if (groups.length !== 1) throw new Error('Ambiguous reduced wheel spin');
+                  return groups[0];
+                });
+          samples.push({ alpha, phases: spins.map((spin) => spin.rotation.x) });
+        }
+        winding.push({
+          name: fixture.name,
+          travel: fixture.travel,
+          start,
+          level: car.lodLevel,
+          samples,
+        });
+      }
+    }
     return {
       high,
       lods,
+      winding,
       rigidUnchanged,
       sourcesUnchanged:
         a.every((v, i) => v === originals[0][i]) && b.every((v, i) => v === originals[1][i]),

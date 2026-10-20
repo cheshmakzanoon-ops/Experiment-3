@@ -66,6 +66,24 @@ test('actual wheel geometry follows recorded alignment without deforming rigid p
       expect(wheel.scale).toEqual([1, 1, 1]);
     }
   }
+  expect(measured.winding).toHaveLength(9);
+  for (const fixture of measured.winding) {
+    expect([0, 1, 2]).toContain(fixture.level);
+    expect(fixture.samples[1].phases).toEqual(fixture.samples[5].phases);
+    for (const sample of fixture.samples) {
+      expect(sample.phases).toHaveLength(4);
+      for (const phase of sample.phases) {
+        if (fixture.name === 'early-lock') {
+          expect(phase).toBeGreaterThanOrEqual(fixture.start);
+          expect(phase).toBeLessThanOrEqual(fixture.start + fixture.travel + 1e-6);
+          if (sample.alpha === 0.99) expect(phase).toBeCloseTo(fixture.start + fixture.travel, 4);
+        } else if (fixture.name === 'spin-burst' && sample.alpha === 0.5)
+          expect(phase).toBeCloseTo(fixture.start + fixture.travel / 2, 5);
+        else if (fixture.name === 'reverse-gap')
+          expect(phase).toBeCloseTo(fixture.start + fixture.travel * sample.alpha, 5);
+      }
+    }
+  }
   expect(measured.loadChangedPixels).toBeGreaterThan(100);
   expect(measured.punctureChangedPixels).toBeGreaterThan(1000);
   expect(measured.memoryAfter).toBe(measured.memoryBefore);

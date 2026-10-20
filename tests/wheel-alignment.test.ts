@@ -7,6 +7,9 @@ import {
   O,
   OFFROAD_BASE,
   OFFROAD_STRIDE,
+  M,
+  WHEEL_MOTION_BASE,
+  WHEEL_MOTION_STRIDE,
   R,
   RACE_BASE,
   RACE_STRIDE,
@@ -78,7 +81,7 @@ it('records the exact Ackermann, toe and camber angles used by each physical tir
 it('initial garage snapshots contain alignment and protocol regions never overlap', () => {
   const sim = new Simulation({ ...DEFAULT_OPTIONS, opponents: 11 });
   const frame = sim.makeFrame();
-  expect(PROTOCOL_VERSION).toBe(13);
+  expect(PROTOCOL_VERSION).toBe(14);
   expect(frame.length).toBe(HEADER + CAR_STRIDE * 12);
   expect(new Set(Object.values(W)).size).toBe(Object.keys(W).length);
   expect(Math.max(...Object.values(F))).toBeLessThan(WHEEL_BASE);
@@ -96,7 +99,9 @@ it('initial garage snapshots contain alignment and protocol regions never overla
   expect(BIKE_BASE + BIKE_STRIDE).toBe(OFFROAD_BASE);
   expect(new Set(Object.values(O)).size).toBe(Object.keys(O).length);
   expect(Math.max(...Object.values(O))).toBeLessThan(OFFROAD_STRIDE);
-  expect(OFFROAD_BASE + OFFROAD_STRIDE).toBe(CAR_STRIDE);
+  expect(OFFROAD_BASE + OFFROAD_STRIDE).toBe(WHEEL_MOTION_BASE);
+  expect(Math.max(...Object.values(M))).toBeLessThan(WHEEL_MOTION_STRIDE);
+  expect(WHEEL_MOTION_BASE + WHEEL_MOTION_STRIDE).toBe(CAR_STRIDE);
   expect(Math.max(...Object.values(H))).toBeLessThan(HEADER);
   for (let id = 0; id < 12; id++)
     for (let i = 0; i < 4; i++) {

@@ -22,8 +22,9 @@ import {
  * v9: independently sampled player motocross front/rear contact grip;
  * v10: player motocross first-tyre landing prediction and incoming-impact grading;
  * v11: GP steering follows front load and finite wheelie touchdown;
+ * v12: passive longitudinal tyre compliance and coupled rotor/tyre heat;
  * prior records remain in their original physics category. */
-export const SIMULATION_VERSION = 11;
+export const SIMULATION_VERSION = 12;
 /** Fixed physics tick used by the worker and headless simulation. */
 export const SIMULATION_TICK_HZ = 120;
 

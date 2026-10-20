@@ -28,7 +28,14 @@ import {
 } from './config.ts';
 import { RigidBody } from './rigid.ts';
 import { wheelAngularMomentum } from './wheel-momentum.ts';
-import { brakeEfficiency, makeTire, slipScale, solveTire, type Tire } from './tire.ts';
+import {
+  brakeEfficiency,
+  makeTire,
+  resetLongitudinalContact,
+  slipScale,
+  solveTire,
+  type Tire,
+} from './tire.ts';
 import { surfaceSample, trackPoint, type Track } from './track.ts';
 /** The Formula car's wheel centres (renderer/tests); entrants use their definition. */
 export const WHEEL_POSITIONS = FORMULA_APX01.wheelPositions;
@@ -240,6 +247,7 @@ export class Vehicle {
     this.pitLastS = s;
     this.lateral = offset;
     this.hub.reset();
+    for (const tire of this.tires) resetLongitudinalContact(tire);
     this.jacking.fill(0);
     this.aeroFront = this.aeroRear = NaN;
   }

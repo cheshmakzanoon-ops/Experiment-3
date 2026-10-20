@@ -1,4 +1,6 @@
-/** Three-node tyre thermal model (docs/production/PHYSICS_MODEL.md §1.6).
+import { BRAKE_THERMAL, type BrakeThermalParameters } from './brake-thermal.ts';
+
+/** Tyre and rotor thermal model (docs/production/PHYSICS_MODEL.md §1.6).
  *
  * Nodes: tread SURFACE (thin layer that sees sliding friction), CARCASS
  * (tread bulk, belts and sidewalls: hysteresis), CORE (inflation gas and inner
@@ -6,9 +8,11 @@
  *   surface ← share·Pslip + (1-k)·Proll,  carcass ← k·Proll,
  *   surface ↔ carcass ↔ core conduction,  surface → air (forced convection),
  *   surface → track (contact conduction),  surface → water film (rain),
- *   carcass → air (sidewall),  core → rim/air,  brake disc → core (rim).
- * The coupled linear system is advanced with backward Euler (a 3×3
- * tridiagonal M-matrix solve), so it is unconditionally stable and cannot
+ *   carcass → air (sidewall),  core → rim/air,  brake disc ↔ core (rim).
+ * The tyre-only entry point has three nodes and an imposed rotor temperature;
+ * production cars include the finite rotor as a fourth node. Both are advanced
+ * with backward Euler (a tridiagonal M-matrix solve), so passive exchange with
+ * positive capacities/nonnegative conductances is stable and cannot
  * overshoot the bounding temperatures at any timestep. Original engineering
  * calibration, not measured thermal data. Units: J/K, W/K, °C, m/s, mm. */
 export interface TyreThermalParameters {
@@ -66,9 +70,16 @@ export interface TyreTemperatures {
   carcassTemp: number;
   coreTemp: number;
 }
+export interface WheelTemperatures extends TyreTemperatures {
+  discTemp: number;
+}
 export interface ThermalInputs {
-  /** Contact slip power |Fx·Vsx| + |Fy·Vsy| (W). */
+  /** Physically dissipated contact sliding/projection power (W). Elastic
+   * energy storage and numerical integrator loss are excluded. */
   slipPower: number;
+  /** Internal carcass relaxation heat (W), fully retained by the tyre. This
+   * can occur without tread/road contact and therefore causes no tread wear. */
+  carcassPower?: number;
   load: number;
   speed: number;
   airTemp: number;
@@ -84,12 +95,46 @@ export function advanceTyreTemperatures(
   dt: number,
   p: TyreThermalParameters = TYRE_THERMAL,
 ) {
-  if (!(dt > 0)) throw new Error('Invalid tyre thermal timestep');
+  return advanceThermalNodes(t, input, dt, p);
+}
+
+/** Coupled rotor and tyre update. The rotor is a fourth finite heat reservoir,
+ * not an imposed temperature: every joule conducted into the core is removed
+ * from the rotor in the same solve. Only friction brake work heats the rotor;
+ * electrical regeneration is supplied separately by the wheel solver.
+ *
+ * Backward Euler on the four-node tridiagonal M-matrix conserves internal
+ * heat and keeps passive cooling inside the initial/environment temperature
+ * bounds, even for large timesteps. Existing three-node callers retain their
+ * explicitly imposed disc-temperature boundary condition. */
+export function advanceWheelTemperatures(
+  t: WheelTemperatures,
+  input: ThermalInputs,
+  brakePower: number,
+  dt: number,
+  p: TyreThermalParameters = TYRE_THERMAL,
+  brake: BrakeThermalParameters = BRAKE_THERMAL,
+) {
+  if (!(brake.capacity > 0 && Number.isFinite(brake.capacity)))
+    throw new Error('Invalid brake heat capacity');
+  advanceThermalNodes(t, input, dt, p, brake, brakePower);
+  return t;
+}
+
+function advanceThermalNodes<T extends TyreTemperatures & { discTemp?: number }>(
+  t: T,
+  input: ThermalInputs,
+  dt: number,
+  p: TyreThermalParameters,
+  brake?: BrakeThermalParameters,
+  brakePower = 0,
+) {
+  if (!(dt > 0 && Number.isFinite(dt))) throw new Error('Invalid tyre thermal timestep');
   const v = Math.abs(input.speed),
     loaded = input.load > 1 ? 1 : 0,
     rolling = p.hysteresis * Math.max(0, input.load) * v,
     qs = p.slipShare * Math.max(0, input.slipPower) + (1 - p.hysteresisCarcassShare) * rolling,
-    qc = p.hysteresisCarcassShare * rolling,
+    qc = p.hysteresisCarcassShare * rolling + Math.max(0, input.carcassPower ?? 0),
     cs = (p.surfaceCapacity * (1 - p.wearCapacityLoss * Math.min(1, Math.max(0, input.wear)))) / dt,
     cc = p.carcassCapacity / dt,
     cg = p.coreCapacity / dt,
@@ -107,15 +152,26 @@ export function advanceTyreTemperatures(
     a3 = cg + gcg + gga + gd,
     b1 = cs * t.surfaceTemp + qs + gsa * input.airTemp + gst * input.trackTemp + gw * input.airTemp,
     b2 = cc * t.carcassTemp + qc + gca * input.airTemp,
-    b3 = cg * t.coreTemp + gga * input.airTemp + gd * input.discTemp;
+    b3 = cg * t.coreTemp + gga * input.airTemp + (brake ? 0 : gd * input.discTemp);
   const c1 = -gsc / a1,
     d1 = b1 / a1,
     m2 = a2 + gsc * c1,
     c2 = -gcg / m2,
     d2 = (b2 + gsc * d1) / m2,
     m3 = a3 + gcg * c2,
-    core = (b3 + gcg * d2) / m3,
-    carcass = d2 - c2 * core,
+    d3 = (b3 + gcg * d2) / m3;
+  let core = d3;
+  if (brake) {
+    const cd = brake.capacity / dt,
+      gda = brake.airBase + brake.airSpeed * v,
+      a4 = cd + gd + gda,
+      b4 = cd * t.discTemp! + Math.max(0, brakePower) + gda * input.airTemp,
+      c3 = -gd / m3,
+      disc = (b4 + gd * d3) / (a4 + gd * c3);
+    t.discTemp = disc;
+    core = d3 - c3 * disc;
+  }
+  const carcass = d2 - c2 * core,
     surface = d1 - c1 * carcass;
   t.coreTemp = core;
   t.carcassTemp = carcass;

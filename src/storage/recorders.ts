@@ -1,4 +1,4 @@
-import { K, SKID_BASE } from '../simulation/protocol.ts';
+import { K, SKID_BASE, WHEEL_MOTION_BASE, WHEEL_MOTION_STRIDE } from '../simulation/protocol.ts';
 import { drawTelemetry, type TelemetryView } from './telemetry-plots.ts';
 import {
   F,
@@ -59,7 +59,8 @@ const REPLAY_FIELDS = [
 // The full-session application recorder retains complete versioned snapshots.
 const REPLAY_WHEELS = Object.values(W);
 const REPLAY_SKID = Object.values(K);
-const RC = REPLAY_FIELDS.length + REPLAY_WHEELS.length * 4 + REPLAY_SKID.length;
+const RC =
+  REPLAY_FIELDS.length + REPLAY_WHEELS.length * 4 + REPLAY_SKID.length + WHEEL_MOTION_STRIDE;
 /** A bounded 20-minute, 15 Hz pose recorder; camera interpolation stays at display rate.
  * It never retains scene objects or transferable worker buffers. */
 export class ReplayRecorder {
@@ -91,6 +92,8 @@ export class ReplayRecorder {
         for (const f of REPLAY_WHEELS)
           this.data[index++] = frame[b + WHEEL_BASE + w * WHEEL_STRIDE + f];
       for (const f of REPLAY_SKID) this.data[index++] = frame[b + SKID_BASE + f];
+      for (let f = 0; f < WHEEL_MOTION_STRIDE; f++)
+        this.data[index++] = frame[b + WHEEL_MOTION_BASE + f];
     }
     this.head = (this.head + 1) % this.capacity;
     this.count = Math.min(this.count + 1, this.capacity);
@@ -118,6 +121,7 @@ export class ReplayRecorder {
       for (let w = 0; w < 4; w++)
         for (const f of REPLAY_WHEELS) out[b + WHEEL_BASE + w * WHEEL_STRIDE + f] = this.data[p++];
       for (const f of REPLAY_SKID) out[b + SKID_BASE + f] = this.data[p++];
+      for (let f = 0; f < WHEEL_MOTION_STRIDE; f++) out[b + WHEEL_MOTION_BASE + f] = this.data[p++];
     }
   }
   sample(seconds: number, a: Float32Array, b: Float32Array) {

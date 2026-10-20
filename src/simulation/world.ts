@@ -1,4 +1,5 @@
 import { circuitDefinition, type CircuitDefinition } from './circuits.ts';
+import { writeWheelRotation } from './wheel-rotation.ts';
 import { K, SKID_BASE } from './protocol.ts';
 import { clamp } from '../core/math.ts';
 import type { AIDriver } from './ai.ts';
@@ -409,6 +410,7 @@ export class Simulation {
         out[p + 6] = piece.mass;
         out[p + 7] = Number(piece.active);
       }
+      writeWheelRotation(out, o, c.tires);
       for (let i = 0; i < 4; i++) {
         const w = c.tires[i],
           p = o + WHEEL_BASE + i * WHEEL_STRIDE;

@@ -31,7 +31,19 @@ test('browser session, cameras, pause safety, telemetry and replay', async ({ pa
     }
   });
   await ready(page);
-  const construction = (await diag(page)).renderer!.construction;
+  const showroom = (await diag(page)).renderer!;
+  expect(showroom.presentationPurpose).toBe('showroom');
+  expect(showroom.construction.tasks).toBe(0);
+  expect(showroom.construction.cancelled).toBe(false);
+  expect(showroom.gpuFrameQueue.completed).toBeGreaterThan(0);
+  await page.screenshot({ path: testInfo.outputPath('01-paddock.png') });
+  await page.getByRole('button', { name: 'GARAGE & SETTINGS', exact: true }).click();
+  await page.locator('[name=quality]').selectOption('low');
+  await page.getByRole('button', { name: 'APPLY & SAVE' }).click();
+  await begin(page);
+  const circuit = (await diag(page)).renderer!;
+  expect(circuit.presentationPurpose).toBe('circuit');
+  const construction = circuit.construction;
   expect(construction.tasks).toBeGreaterThan(100);
   expect(construction.yields).toBeGreaterThan(2);
   expect(construction.cancelled).toBe(false);
@@ -39,11 +51,6 @@ test('browser session, cameras, pause safety, telemetry and replay', async ({ pa
     body: JSON.stringify(construction, null, 2),
     contentType: 'application/json',
   });
-  await page.screenshot({ path: testInfo.outputPath('01-paddock.png') });
-  await page.getByRole('button', { name: 'GARAGE & SETTINGS', exact: true }).click();
-  await page.locator('[name=quality]').selectOption('low');
-  await page.getByRole('button', { name: 'APPLY & SAVE' }).click();
-  await begin(page);
   await page.keyboard.press('g');
   await expect
     .poll(

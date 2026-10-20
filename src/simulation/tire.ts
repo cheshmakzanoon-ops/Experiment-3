@@ -16,19 +16,25 @@ import {
   carcassStiffness,
   combinedForces,
   FORMULA_SLICK,
-  longitudinalForce,
+  longitudinalContact,
+  longitudinalRelaxationLength,
+  prepareLongitudinalContact,
   prepareSlip,
   pressureGrip,
   relaxationLength,
   relaxSlip,
   slipState,
+  transientLongitudinalForce,
   type TyreConstruction,
 } from './tyre-force.ts';
-import { advanceTyreTemperatures, hotPressure, type ThermalInputs } from './tyre-thermal.ts';
+import { advanceWheelTemperatures, hotPressure, type ThermalInputs } from './tyre-thermal.ts';
+import { advanceWheelRotation } from './wheel-rotation.ts';
 export interface Tire {
   compound: Compound;
   omega: number;
   rotation: number;
+  /** Signed whole turns; preserves winding between sparse replay snapshots. */
+  turns: number;
   load: number;
   fx: number;
   fy: number;
@@ -69,6 +75,17 @@ export interface Tire {
   construction: TyreConstruction;
   /** Relaxed (lagged) slip angle entering the force law (rad). */
   relaxedAngle: number;
+  /** Signed longitudinal elastic contact deformation (m), never a visual lag. */
+  longitudinalDeflection: number;
+  /** Recoverable longitudinal contact-spring energy (J). */
+  longitudinalEnergy: number;
+  /** Longitudinal sliding/constraint relaxation heat for this substep (W). */
+  longitudinalDissipation: number;
+  /** Internal stored-energy release (W); heats carcass, without scuffing the
+   * tread or transferring slip work to the road when contact disappears. */
+  longitudinalRelaxationHeat: number;
+  /** Backward-Euler spring loss (W), recorded separately from physical heat. */
+  longitudinalNumericalDissipation: number;
   /** Road-relative inclination used by the force law (rad, + toward +lateral). */
   inclination: number;
   /** Radial deflection of the carcass (m) and contact-patch length (m). */
@@ -118,6 +135,7 @@ export function makeTire(
     compound,
     omega: 0,
     rotation: 0,
+    turns: 0,
     load: 0,
     fx: 0,
     fy: 0,
@@ -147,6 +165,11 @@ export function makeTire(
     gripScale,
     construction,
     relaxedAngle: 0,
+    longitudinalDeflection: 0,
+    longitudinalEnergy: 0,
+    longitudinalDissipation: 0,
+    longitudinalRelaxationHeat: 0,
+    longitudinalNumericalDissipation: 0,
     inclination: 0,
     deflection: 0,
     patchLength: 0.14,
@@ -158,6 +181,15 @@ export function makeTire(
     usage: 0,
     ...(looseGrip > 0 ? { looseGrip } : {}),
   };
+}
+/** Teleport/recovery starts a new contact; retained patch strain must not
+ * apply a force at the new position or be counted as fresh thermal work. */
+export function resetLongitudinalContact(t: Tire) {
+  t.longitudinalDeflection = 0;
+  t.longitudinalEnergy = 0;
+  t.longitudinalDissipation = 0;
+  t.longitudinalRelaxationHeat = 0;
+  t.longitudinalNumericalDissipation = 0;
 }
 /** Surface friction this tyre sees: loose-surface constructions keep part of
  * the grip grass and gravel remove from a slick. */
@@ -253,8 +285,11 @@ export function ellipse(fx: number, fy: number, limit: number, out: { fx: number
   out.fy = fy / Math.max(1, use);
 }
 const SLIP = slipState();
+const LONGITUDINAL = longitudinalContact();
+const CONTACT_FORCE = { fx: 0, fy: 0 };
 const THERMAL: ThermalInputs = {
   slipPower: 0,
+  carcassPower: 0,
   load: 0,
   speed: 0,
   airTemp: 0,
@@ -266,9 +301,10 @@ const THERMAL: ThermalInputs = {
 /** Backward Euler wheel solve with dissipative brake complementarity. Bisection
  * resolves the stiff low-speed wheel mode without arbitrary angular-velocity
  * clamps. Forces come from the combined-slip law (tyre-force.ts) with the
- * relaxed slip angle and camber `camber` (road-relative inclination, signed
- * toward +lateral); temperatures from the three-node model (tyre-thermal.ts).
- * `airTemp` defaults to the road temperature. */
+ * relaxed lateral slip angle and an elastic longitudinal contact solved at
+ * every trial wheel speed. Its recoverable energy is separate from sliding
+ * heat and numerical dissipation. Camber is road-relative inclination signed
+ * toward +lateral; `airTemp` defaults to the road temperature. */
 export function solveTire(
   t: Tire,
   vLong: number,
@@ -328,34 +364,70 @@ export function solveTire(
   SLIP.alphaRef *= camberFactor;
   SLIP.alpha = alpha;
   const cap = SLIP.dx;
-  const evalForce = (omega: number) =>
-    t.load < 1 ? 0 : longitudinalForce(SLIP, (omega * r - vLong) / regularization);
+  prepareLongitudinalContact(
+    SLIP,
+    t,
+    regularization,
+    t.load < 1 ? 0 : longitudinalRelaxationLength(k, t.load, t.pressure, t.wear, vLong),
+    dt,
+    LONGITUDINAL,
+  );
+  const evalForce = (omega: number, recordState = false) => {
+    const slipSpeed = omega * r - vLong;
+    if (t.load < 1) {
+      CONTACT_FORCE.fx = 0;
+      CONTACT_FORCE.fy = 0;
+    } else combinedForces(SLIP, slipSpeed / regularization, CONTACT_FORCE);
+    const longitudinalLimit =
+      cap * Math.sqrt(Math.max(0, 1 - (CONTACT_FORCE.fy / Math.max(1e-9, SLIP.dy)) ** 2));
+    return transientLongitudinalForce(
+      LONGITUDINAL,
+      slipSpeed,
+      CONTACT_FORCE.fx,
+      longitudinalLimit,
+      recordState,
+    );
+  };
   const torqueAtZero = drive - evalForce(0) * r;
   let omega = 0;
   if (Math.abs((I * old) / dt + torqueAtZero) > brake) {
     const sign = Math.sign((I * old) / dt + torqueAtZero) || 1,
       delta = ((Math.abs(drive) + brake + cap * r) * dt) / I;
-    let lo = old - delta - 0.01,
-      hi = old + delta + 0.01;
+    // Keep the sliding root on the side selected by brake complementarity.
+    // A non-monotone post-peak tyre curve must never choose a root whose
+    // brake torque points WITH the solved wheel rotation.
+    let lo = sign > 0 ? Math.max(0, old - delta - 0.01) : old - delta - 0.01,
+      hi = sign < 0 ? Math.min(0, old + delta + 0.01) : old + delta + 0.01;
     for (let n = 0; n < 16; n++) {
       const mid = (lo + hi) * 0.5,
         residual = (I * (mid - old)) / dt - drive + brake * sign + evalForce(mid) * r;
+      if (residual === 0) {
+        lo = hi = mid;
+        break;
+      }
       if (residual > 0) hi = mid;
       else lo = mid;
     }
     omega = (lo + hi) * 0.5;
   }
   t.omega = omega;
-  t.rotation = (t.rotation + omega * dt) % (Math.PI * 2);
+  advanceWheelRotation(t, omega * dt);
   t.slip = (omega * r - vLong) / regularization;
-  combinedForces(SLIP, t.slip, t);
-  t.energy = Math.abs(t.fx * (omega * r - vLong)) + Math.abs(t.fy * vLat);
+  // Commit contact memory once, using exactly the force used by the wheel
+  // residual. Trial evaluations above must not advance the carcass state.
+  t.fx = evalForce(omega, true);
+  t.fy = CONTACT_FORCE.fy;
+  t.longitudinalDeflection = LONGITUDINAL.deflection;
+  t.longitudinalEnergy = LONGITUDINAL.energy;
+  t.longitudinalDissipation = LONGITUDINAL.dissipation;
+  t.longitudinalRelaxationHeat = LONGITUDINAL.relaxationHeat;
+  t.longitudinalNumericalDissipation = LONGITUDINAL.numericalDissipation;
+  t.energy = t.longitudinalDissipation + Math.abs(t.fy * vLat);
   t.peakSlip = SLIP.kappaRef;
   t.usage = Math.hypot(t.fx / Math.max(1, SLIP.dx), t.fy / Math.max(1, SLIP.dy));
   if (t.load < 1) {
     t.fx = 0;
     t.fy = 0;
-    t.energy = 0;
     t.usage = 0;
   }
   // Contact patch, ground sinkage, rolling resistance and ground drag.
@@ -385,8 +457,10 @@ export function solveTire(
     material.rolling;
   t.groundDrag =
     t.load < 1 ? 0 : groundDrag(material, t.sinkage, k.width, vLong, surface.water, t.aquaplane);
-  // Force times slip-speed gives watts, not a cosmetic heating timer.
+  // Sliding work gives heat; recoverable longitudinal deformation and the
+  // implicit integrator's numerical spring loss are not tyre temperature.
   THERMAL.slipPower = t.energy;
+  THERMAL.carcassPower = t.longitudinalRelaxationHeat;
   THERMAL.load = t.load;
   THERMAL.speed = vLong;
   THERMAL.airTemp = airTemp;
@@ -394,7 +468,11 @@ export function solveTire(
   THERMAL.waterMm = surface.water;
   THERMAL.discTemp = t.discTemp;
   THERMAL.wear = t.wear;
-  advanceTyreTemperatures(t, THERMAL, dt);
+  // Friction and electrical braking share the implicit wheel speed, but only
+  // frictional work heats the disc. Keep backward-Euler numerical wheel loss
+  // separate from physical heat. Rotor/core conduction is equal and opposite
+  // within the finite four-node solve, using this session's ambient air.
+  advanceWheelTemperatures(t, THERMAL, Math.max(0, brake - regen) * Math.abs(omega), dt);
   t.pressure = hotPressure(t.punctured ? 12 : t.coldPressure, t.coreTemp, ideal - 5);
   t.wear = clamp(
     t.wear +
@@ -421,12 +499,21 @@ export function solveTire(
   if (vLong > 12 && t.slip < -0.8 && t.load > 700)
     t.flatSpot = clamp(t.flatSpot + (Math.abs(t.fx * vLong) * dt) / 2e7, 0, 1);
   updateContamination(t, surface, t.load, vLong, omega, dt);
-  t.discTemp +=
-    ((Math.max(0, brake - regen) * Math.abs(omega) -
-      (t.discTemp - 24) * (25 + Math.abs(vLong) * 4)) *
-      dt) /
-    16000;
-  if (!Number.isFinite(t.omega + t.fx + t.fy + t.surfaceTemp + t.coreTemp + t.relaxedAngle))
+  if (
+    !Number.isFinite(
+      t.omega +
+        t.fx +
+        t.fy +
+        t.surfaceTemp +
+        t.coreTemp +
+        t.relaxedAngle +
+        t.longitudinalDeflection +
+        t.longitudinalEnergy +
+        t.longitudinalDissipation +
+        t.longitudinalRelaxationHeat +
+        t.longitudinalNumericalDissipation,
+    )
+  )
     throw new Error('Non-finite tire state');
 }
 export function brakeEfficiency(temp: number) {

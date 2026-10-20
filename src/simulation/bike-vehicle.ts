@@ -1,4 +1,5 @@
 import { gpBrakeEfficiency } from './gp-brake-fade.ts';
+import { advanceWheelRotation } from './wheel-rotation.ts';
 import { GP_ENGINE_BRAKE_RELEASE_THROTTLE, gpEngineBrakingGain } from './gp-engine-braking.ts';
 import { approach, clamp, G, lerp, mod, Quat, Vec3 } from '../core/math.ts';
 import { BIKE_STATES, Bike, EXPERT, NOVICE, type BikeAssists } from './bike.ts';
@@ -612,7 +613,7 @@ export class BikeVehicle extends Vehicle {
         ideal = COMPOUNDS[t.compound].ideal;
       const rolling = riding || d.state === 'remount';
       t.omega = rolling ? d.speed / t.radius : t.omega * Math.exp(-1.5 * dt);
-      t.rotation = mod(t.rotation + t.omega * dt, TAU);
+      advanceWheelRotation(t, t.omega * dt);
       t.load = riding ? (front ? d.frontLoad : d.rearLoad) : 0;
       t.fx = riding ? (front ? -d.frontBrakeForce : d.driveForce - d.rearBrakeForce) : 0;
       t.fy = riding ? (m * lateral * (front ? spec.cgToRear : spec.cgToFront)) / L : 0;

@@ -5,6 +5,8 @@ import {
   OFFROAD_BASE,
   OFFROAD_STRIDE,
   SKID_BASE,
+  M,
+  WHEEL_MOTION_BASE,
 } from '../simulation/protocol.ts';
 import { wheelPhase, wheelValue } from './wheel-pose.ts';
 import { Quaternion, Vector3 } from 'three';
@@ -92,6 +94,9 @@ export class PresentedFrame {
       const o = carBase(id);
       const t = sampleChassisPose(a, b, o, alpha, this.position, this.orientation);
       if (t === 0) continue;
+      // An interpolated pose carries an unwrapped display phase, not another
+      // measured winding sample. Do not let it masquerade as raw solver data.
+      if (t < 1) out[o + WHEEL_MOTION_BASE + M.VALID] = 0;
       this.position.toArray(out, o + F.X);
       this.orientation.toArray(out, o + F.QX);
       for (const field of SMOOTH_CAR) this.blend(a, b, o + field, t);

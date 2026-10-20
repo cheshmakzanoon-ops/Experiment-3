@@ -1,4 +1,5 @@
 import { approach, clamp, G, lerp, mod, Vec3 } from '../../core/math.ts';
+import { advanceWheelRotation } from '../wheel-rotation.ts';
 import { NOVICE } from '../bike.ts';
 import { BIKE_RECOVERY, BikeVehicle, bikeOrientation } from '../bike-vehicle.ts';
 import { chassisLean } from '../bike-definitions.ts';
@@ -14,7 +15,6 @@ import { LANDING_RULES } from './riding-feedback.ts';
 import { wheelPickupImpulse } from './wheel-pickup.ts';
 import { RiderWeight } from './rider-weight.ts';
 
-const TAU = Math.PI * 2;
 /** How far (m) the rider's body moves fore/aft over the pegs at full lean;
  * on the ground that shifts the system CG (a weight-shift pitch torque). */
 const RIDER_REACH = 0.25;
@@ -1224,7 +1224,7 @@ export class DirtBikeVehicle extends BikeVehicle {
           : rolling
             ? d.speed / t.radius
             : t.omega * Math.exp(-1.5 * dt);
-      t.rotation = mod(t.rotation + t.omega * dt, TAU);
+      advanceWheelRotation(t, t.omega * dt);
       t.load = riding ? (front ? this.forceFront : this.forceRear) : 0;
       const grounded = riding && !this.airborne;
       t.fx = grounded

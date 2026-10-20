@@ -1,4 +1,4 @@
-import { F, H, W } from '../simulation/protocol.ts';
+import { F, H, M, W, WHEEL_BASE, WHEEL_MOTION_BASE, WHEEL_STRIDE } from '../simulation/protocol.ts';
 import { lerp, TAU } from '../core/math.ts';
 import {
   hermite,
@@ -8,8 +8,12 @@ import {
 } from './snapshot-interpolation.ts';
 
 export function tireAlpha(a: Float32Array, b: Float32Array, car: number, alpha: number) {
+  const phaseA = a[car + F.PIT_PHASE],
+    phaseB = b[car + F.PIT_PHASE];
   return alpha < 1 &&
-    (b[car + F.COMPOUND] !== a[car + F.COMPOUND] || b[car + F.PIT_STOPS] !== a[car + F.PIT_STOPS])
+    (b[car + F.COMPOUND] !== a[car + F.COMPOUND] ||
+      b[car + F.PIT_STOPS] !== a[car + F.PIT_STOPS] ||
+      ((phaseB === 4 || phaseB === 5) && ((phaseA >= 0 && phaseA < 4) || phaseA === 6)))
     ? 0
     : alpha;
 }
@@ -35,10 +39,9 @@ export function wheelValue(
   return sampleValue(a, b, wheel + field, t);
 }
 
-/** Lift a wrapped phase using the recorded angular velocities. Shortest-arc
- * interpolation alone makes a fast rolling wheel rotate backwards at 15 Hz.
- * Between adjacent samples the trapezoidal angular-speed estimate selects the
- * nearest whole-turn count; it is not a re-simulation of an unrecorded tire. */
+/** Exact measured turns prevent aliasing when a wheel locks or spins up between
+ * sparse snapshots. Endpoint velocities alone cannot distinguish those histories.
+ * Synthetic poses without winding retain the earlier angular-speed estimate. */
 export function wheelPhase(
   a: Float32Array,
   b: Float32Array,
@@ -53,13 +56,42 @@ export function wheelPhase(
   if (alpha >= 1) return end;
   const dt = b[H.TIME] - a[H.TIME];
   // A discontinuity or tire replacement is a new baseline, never a spun-back tire.
-  if (!(dt > 0 && dt <= 0.5) || tireAlpha(a, b, car, alpha) === 0) return start;
+  if (!(dt > 0) || tireAlpha(a, b, car, alpha) === 0) return start;
+  const index = (wheel - car - WHEEL_BASE) / WHEEL_STRIDE,
+    motion = car + WHEEL_MOTION_BASE,
+    maskA = a[motion + M.VALID],
+    maskB = b[motion + M.VALID],
+    turnsA = a[motion + M.TURNS_FR + index],
+    turnsB = b[motion + M.TURNS_FR + index],
+    measured =
+      Number.isInteger(index) &&
+      index >= 0 &&
+      index < 4 &&
+      Number.isInteger(maskA) &&
+      Number.isInteger(maskB) &&
+      maskA >= 0 &&
+      maskA <= 15 &&
+      maskB >= 0 &&
+      maskB <= 15 &&
+      (maskA & maskB & (1 << index)) !== 0 &&
+      Number.isInteger(turnsA) &&
+      Number.isInteger(turnsB) &&
+      Math.abs(turnsA) <= 0xffffff &&
+      Math.abs(turnsB) <= 0xffffff;
+  if (dt > 0.5 && !measured) return start;
   let tangentA = a[wheel + W.OMEGA] * dt,
     tangentB = b[wheel + W.OMEGA] * dt;
   const predicted = (tangentA + tangentB) * 0.5;
   const difference = end - start;
-  const lifted = difference + TAU * Math.round((predicted - difference) / TAU);
-  if (!Number.isFinite(lifted + tangentA + tangentB)) return start;
+  const lifted =
+    difference + TAU * (measured ? turnsB - turnsA : Math.round((predicted - difference) / TAU));
+  if (!Number.isFinite(lifted)) return start;
+  // A long gap retains exact net rotations, but its interior acceleration and
+  // contact changes are unresolved. Do not freeze a moving wheel or invent a
+  // cubic trajectory from distant endpoint velocities.
+  if (measured && (dt > 0.5 || !Number.isFinite(tangentA + tangentB)))
+    return start + lifted * alpha;
+  if (!Number.isFinite(tangentA + tangentB)) return start;
   // A small, coherent reversal can genuinely turn around within one sample.
   // Otherwise limit slopes to preserve direction and prevent impulse overshoot.
   const reversal =
