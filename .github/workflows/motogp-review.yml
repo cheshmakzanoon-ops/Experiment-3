@@ -7,6 +7,7 @@ on:
       - 'src/rendering/bike*'
       - 'src/rendering/rider.ts'
       - 'src/rendering/renderer.ts'
+      - 'src/rendering/webgl-renderer.ts'
       - 'src/rendering/menu-preview.ts'
       - 'src/rendering/gp-*'
       - 'src/simulation/bike*'
@@ -19,6 +20,8 @@ on:
       - 'src/rendering/menu-frame-pacing.ts'
       - 'src/rendering/menu-preview-receipt.ts'
       - 'src/ui/bike-hud*'
+      - 'src/ui/interface.ts'
+      - 'src/ui/loading-copy.ts'
       - 'src/ui/gp-*'
       - 'e2e/*motogp*'
       - 'e2e/motorcycle-presentation.spec.ts'
@@ -29,6 +32,8 @@ on:
       - 'e2e/menu-timing-evidence.ts'
       - 'e2e/settings-transition.spec.ts'
       - 'e2e/gpu-frame-gate.spec.ts'
+      - 'e2e/gpu-context-reuse.spec.ts'
+      - 'e2e/fixtures/webgl-renderer-reuse.ts'
       - 'tests/gp-*'
       - 'tests/bike*'
       - 'tests/replay-*'
@@ -48,6 +53,8 @@ on:
       - 'tests/gpu-frame-gate.test.ts'
       - 'tests/menu-preview.test.ts'
       - 'tests/settings-transition.test.ts'
+      - 'tests/startup.test.ts'
+      - 'tests/frontend-retail.test.ts'
       - 'e2e/fixtures/*motogp*'
       - 'e2e/fixtures/motorcycle-presentation.ts'
       - '.github/workflows/motogp-review.yml'
@@ -110,6 +117,7 @@ jobs:
           tests/menu-preview.test.ts tests/settings-transition.test.ts
           tests/menu-preview-receipt.test.ts tests/rotation-interpolation.test.ts
           tests/menu-startup-sky.test.ts
+          tests/startup.test.ts tests/frontend-retail.test.ts
           --reporter=default --reporter=json
           --outputFile=${{ runner.temp }}/motogp-unit-tests.json
       - name: Preserve complete test results
@@ -137,7 +145,7 @@ jobs:
           - scene: wet-riding
             specs: e2e/motogp-wet-riding.spec.ts
           - scene: menu-entry
-            specs: e2e/30-menu-access.spec.ts e2e/settings-transition.spec.ts e2e/gpu-frame-gate.spec.ts
+            specs: e2e/30-menu-access.spec.ts e2e/settings-transition.spec.ts e2e/gpu-frame-gate.spec.ts e2e/gpu-context-reuse.spec.ts
     env:
       APEX_BROWSER_BACKEND: mesa
       LIBGL_ALWAYS_SOFTWARE: 'true'

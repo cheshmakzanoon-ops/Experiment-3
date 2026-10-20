@@ -113,6 +113,7 @@ import { PitCrewView, serviceWheelOffset } from './pit-crew.ts';
 import { MotionBlur } from './motion-blur.ts';
 import { GpuTimer } from './gpu-timer.ts';
 import { GpuFrameGate } from './gpu-frame-gate.ts';
+import { createWebGLRenderer } from './webgl-renderer.ts';
 import { TextureBudget } from './texture-budget.ts';
 import {
   graphicsPreset,
@@ -404,21 +405,8 @@ export class RacingRenderer {
   ) {
     // Before any material program compiles (idempotent, shared chunk).
     installSpecularAntialiasing();
-    const context = canvas.getContext('webgl2', {
-      antialias: true,
-      alpha: false,
-      powerPreference: 'high-performance',
-    });
-    if (!context)
-      throw new Error(
-        'This browser or graphics driver does not provide WebGL2. Enable hardware acceleration, then reload.',
-      );
-    this.renderer = new T.WebGLRenderer({
-      canvas,
-      context,
-      antialias: true,
-      powerPreference: 'high-performance',
-    });
+    const { renderer, context } = createWebGLRenderer(canvas);
+    this.renderer = renderer;
     this.gpuTimer = new GpuTimer(context);
     this.drawLedger = attachDrawLedger(this.renderer);
     this.gpuFrames = new GpuFrameGate(context);
@@ -906,6 +894,11 @@ export class RacingRenderer {
       // them for the first time inside the chase draw put cold shader linking
       // and uploads on the first GPU fence instead of the compilation stage.
       // The same models, LOD policy, warmup views and completion gate remain.
+      if (gpGridForFrame(frame)) {
+        progress('Building GP motorcycles and riders…');
+        await yieldFrame();
+        if (cancelled()) return false;
+      }
       this.bikeShells.update(frame, frame, 1, this.cars, this.camera, this.quality, this.follow);
       this.circuit.setMotorcyclePresentation(
         BikeShells.isBike(frame, this.follow),

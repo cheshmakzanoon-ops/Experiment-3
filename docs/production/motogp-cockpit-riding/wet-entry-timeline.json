@@ -1,0 +1,335 @@
+{
+  "schemaVersion": 1,
+  "kind": "read-only retained Playwright trace review",
+  "trace": {
+    "path": "/tmp/motogp-mesa-flow-results/motogp-wet-riding-GP-wet-p-8a485-normally-and-holds-on-pause/trace.zip",
+    "sha256": "0ae16e8985b3d56f360867c1e42916b8deae511572bcc74a3a4ad3c6bb001496",
+    "test": "GP wet practice renders live two-tyre spray, advances normally and holds on pause",
+    "buildIdentity": {
+      "commit": null,
+      "fingerprint": "ce6f4d664a3e797bfb3751abe66bf6274f2ebfc7645a3992831f957b98841d00"
+    }
+  },
+  "clock": {
+    "unit": "monotonic milliseconds from Playwright trace; absolute values belong to this trace clock only",
+    "enterCircuitActionStartMs": 457795.172,
+    "finishRaceEntryStartMs": 482778.769,
+    "note": "ENTER CIRCUIT reference is the action start, not the exact page event dispatch. DOM/screenshot times identify observations, not exact stage starts or execution duration."
+  },
+  "measuredActionDurationsMs": {
+    "pageGoto": 18677.13,
+    "waitForVisibleMenuAfterGoto": 46332.393,
+    "applyAndSaveClick": 1818.702,
+    "waitForHiddenSettingsModal": 14758.476,
+    "enterCircuitClick": 24967.056,
+    "finishRaceEntryPoll": 180009.225,
+    "finalRaceBriefingIsVisibleThroughTeardownCancellation": 120523.099
+  },
+  "timeline": [
+    {
+      "event": "Navigate to / starts",
+      "monotonicMs": 373879.747,
+      "secondsSinceEnterCircuitActionStart": -83.915425,
+      "secondsSinceFinishRaceEntryStart": -108.899022
+    },
+    {
+      "event": "Navigate to / completes",
+      "monotonicMs": 392556.877,
+      "secondsSinceEnterCircuitActionStart": -65.238295,
+      "secondsSinceFinishRaceEntryStart": -90.221892
+    },
+    {
+      "event": "Menu visibility assertion completes",
+      "monotonicMs": 438906.168,
+      "secondsSinceEnterCircuitActionStart": -18.889004,
+      "secondsSinceFinishRaceEntryStart": -43.872601
+    },
+    {
+      "event": "Low graphics plus full particle-density settings applied; modal hidden assertion completes",
+      "monotonicMs": 456750.247,
+      "secondsSinceEnterCircuitActionStart": -1.044925,
+      "secondsSinceFinishRaceEntryStart": -26.028522
+    },
+    {
+      "event": "ENTER CIRCUIT action starts",
+      "monotonicMs": 457795.172,
+      "secondsSinceEnterCircuitActionStart": 0.0,
+      "secondsSinceFinishRaceEntryStart": -24.983597
+    },
+    {
+      "event": "ENTER CIRCUIT action completes",
+      "monotonicMs": 482762.228,
+      "secondsSinceEnterCircuitActionStart": 24.967056,
+      "secondsSinceFinishRaceEntryStart": -0.016541
+    },
+    {
+      "event": "finishRaceEntry poll starts",
+      "monotonicMs": 482778.769,
+      "secondsSinceEnterCircuitActionStart": 24.983597,
+      "secondsSinceFinishRaceEntryStart": 0.0
+    },
+    {
+      "event": "DOM first observes physical kerb geometry construction",
+      "monotonicMs": 495984.982,
+      "secondsSinceEnterCircuitActionStart": 38.18981,
+      "secondsSinceFinishRaceEntryStart": 13.206213,
+      "rawLabel": "11% \u00b7 Physical kerb geometry\u2026"
+    },
+    {
+      "event": "DOM first observes Scene ready; loader still visible",
+      "monotonicMs": 550713.199,
+      "secondsSinceEnterCircuitActionStart": 92.918027,
+      "secondsSinceFinishRaceEntryStart": 67.93443,
+      "rawLabel": "100% \u00b7 Scene ready\u2026",
+      "visibleStage": "Almost ready",
+      "visiblePercent": 90
+    },
+    {
+      "event": "Last completed poll iteration asserts loading",
+      "monotonicMs": 552290.705,
+      "secondsSinceEnterCircuitActionStart": 94.495533,
+      "secondsSinceFinishRaceEntryStart": 69.511936,
+      "callId": "expect@138"
+    },
+    {
+      "event": "Last diagnostics browser evaluation completes",
+      "monotonicMs": 558221.265,
+      "secondsSinceEnterCircuitActionStart": 100.426093,
+      "secondsSinceFinishRaceEntryStart": 75.442496,
+      "callId": "call@153"
+    },
+    {
+      "event": "DOM observes material compilation",
+      "monotonicMs": 563669.44,
+      "secondsSinceEnterCircuitActionStart": 105.874268,
+      "secondsSinceFinishRaceEntryStart": 80.890671,
+      "rawLabel": "Compiling circuit and vehicle materials\u2026"
+    },
+    {
+      "event": "Last diagnostics action including after-snapshot completes at runner",
+      "monotonicMs": 563694.066,
+      "secondsSinceEnterCircuitActionStart": 105.898894,
+      "secondsSinceFinishRaceEntryStart": 80.915297,
+      "callId": "pw:api@139"
+    },
+    {
+      "event": "Final raceBriefing.isVisible action starts",
+      "monotonicMs": 563701.015,
+      "secondsSinceEnterCircuitActionStart": 105.905843,
+      "secondsSinceFinishRaceEntryStart": 80.922246,
+      "callId": "pw:api@140 / call@155"
+    },
+    {
+      "event": "Last DOM snapshot observes shadow compilation",
+      "monotonicMs": 595453.032,
+      "secondsSinceEnterCircuitActionStart": 137.65786,
+      "secondsSinceFinishRaceEntryStart": 112.674263,
+      "rawLabel": "Compiling shadow casters around the circuit\u2026"
+    },
+    {
+      "event": "Final raceBriefing.isVisible library log emitted",
+      "monotonicMs": 595463.117,
+      "secondsSinceEnterCircuitActionStart": 137.667945,
+      "secondsSinceFinishRaceEntryStart": 112.684348,
+      "message": "checking visibility of locator('#raceBriefing')"
+    },
+    {
+      "event": "Last screencast observes camera setup",
+      "monotonicMs": 595616.754,
+      "secondsSinceEnterCircuitActionStart": 137.821582,
+      "secondsSinceFinishRaceEntryStart": 112.837985,
+      "visibleStage": "SETTING UP CAMERAS",
+      "visiblePercent": 90
+    },
+    {
+      "event": "finishRaceEntry 180-second poll fails",
+      "monotonicMs": 662787.994,
+      "secondsSinceEnterCircuitActionStart": 204.992822,
+      "secondsSinceFinishRaceEntryStart": 180.009225
+    },
+    {
+      "event": "Pending raceBriefing.isVisible action canceled during test teardown",
+      "monotonicMs": 684224.114,
+      "secondsSinceEnterCircuitActionStart": 226.428942,
+      "secondsSinceFinishRaceEntryStart": 201.445345,
+      "error": "locator.isVisible: Test ended."
+    }
+  ],
+  "finalCompletedDiagnostics": {
+    "evaluationStart": {
+      "monotonicMs": 553295.322,
+      "secondsSinceEnterCircuitActionStart": 95.50015,
+      "secondsSinceFinishRaceEntryStart": 70.516553
+    },
+    "libraryEvaluationEnd": {
+      "monotonicMs": 558221.265,
+      "secondsSinceEnterCircuitActionStart": 100.426093,
+      "secondsSinceFinishRaceEntryStart": 75.442496
+    },
+    "runnerActionEnd": {
+      "monotonicMs": 563694.066,
+      "secondsSinceEnterCircuitActionStart": 105.898894,
+      "secondsSinceFinishRaceEntryStart": 80.915297
+    },
+    "note": "This is the final returned diagnostics value, not diagnostics at timeout. Only relevant fields are retained here; full frame/material payloads are intentionally omitted.",
+    "state": "loading",
+    "options": {
+      "mode": "practice",
+      "opponents": 3,
+      "weather": "rain",
+      "assist": "sport",
+      "compound": "wet",
+      "circuit": "poggio-alto",
+      "vehicles": ["gpr1", "gpr1", "gpr1", "gpr1"]
+    },
+    "workerPause": {
+      "pending": false,
+      "paused": true,
+      "tick": null,
+      "sequence": 0
+    },
+    "gridPresentation": {
+      "time": 0,
+      "playing": false,
+      "complete": false,
+      "automatic": false,
+      "briefing": false
+    },
+    "frameSummary": {
+      "present": true,
+      "cars": 4,
+      "tick": 0,
+      "raceTime": 0,
+      "phase": 2
+    },
+    "presentation": {
+      "time": 0,
+      "frames": 3,
+      "elapsed": 0
+    },
+    "renderer": {
+      "presentationPurpose": "circuit",
+      "preparation": {
+        "status": "preparing",
+        "elapsedMs": 5573.099999997765,
+        "error": null,
+        "stages": [
+          {
+            "label": "Building original Formula car 2 / 4\u2026",
+            "elapsedMs": 2237.60000000149,
+            "complete": true
+          },
+          {
+            "label": "Building original Formula car 3 / 4\u2026",
+            "elapsedMs": 2555.89999999851,
+            "complete": true
+          },
+          {
+            "label": "Building original Formula car 4 / 4\u2026",
+            "elapsedMs": 778.1999999992549,
+            "complete": false
+          }
+        ]
+      },
+      "construction": {
+        "tasks": 673,
+        "yields": 246,
+        "workMilliseconds": 28655.29999994859,
+        "maximumTaskMilliseconds": 10881.800000000745,
+        "cancelled": false
+      },
+      "warmupFrames": 0,
+      "warmupPitPasses": 0,
+      "gpuFrameQueue": {
+        "pending": false,
+        "submitted": 0,
+        "completed": 0,
+        "deferredCallbacks": 0,
+        "flushRefreshes": 0,
+        "pendingMs": 0,
+        "activeWaitMs": 0,
+        "failure": null,
+        "latencyMs": 0
+      },
+      "startingGrid": {
+        "mode": "original",
+        "cachedLayers": 1,
+        "slots": 12
+      }
+    },
+    "inputPolls": 1707
+  },
+  "finalVisibleStage": {
+    "monotonicMs": 595616.754,
+    "secondsSinceEnterCircuitActionStart": 137.821582,
+    "secondsSinceFinishRaceEntryStart": 112.837985,
+    "image": "/tmp/motogp-wet-trace-review/last-visible-stage.jpg",
+    "title": "SETTING UP CAMERAS",
+    "percent": 90,
+    "context": "Free Practice \u00b7 Poggio Alto Autodromo \u00b7 4 cars \u00b7 Wet",
+    "qualification": "The preceding DOM snapshot (163.722 ms earlier) still reported shadow compilation. Camera setup is visible, but no raw label/diagnostics were captured afterward. Existing loading-copy maps both warming shadows/scene reflections and waiting for completed chase GPU work to this same title. The 90% bar is an authored monotonic estimate retained after Scene ready, not measured completion."
+  },
+  "staleResultQualification": {
+    "timeoutReceived": "loading",
+    "lastCompletedPollValueAgeAtTimeoutMs": 110497.289,
+    "lastDiagnosticsLibraryEndAgeAtTimeoutMs": 104566.729,
+    "lastScreenshotAgeAtTimeoutMs": 67171.24,
+    "explanation": "The final poll callback obtained diagnostics, then its #raceBriefing.isVisible operation never returned before timeout. The error therefore repeats a prior completed poll value. Later DOM and screenshot evidence proves renderer preparation advanced after that value. No fresh state observation exists at the deadline."
+  },
+  "observedErrorsAndWarnings": {
+    "pageErrorEvents": 0,
+    "consoleErrorEvents": 0,
+    "consoleWarnings": [
+      {
+        "text": "WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures",
+        "location": {
+          "url": "http://127.0.0.1:4173/assets/three-iLFyWdco.js",
+          "lineNumber": 3815,
+          "columnNumber": 0
+        },
+        "monotonicMs": 474194.13,
+        "secondsSinceEnterCircuitActionStart": 16.398958,
+        "secondsSinceFinishRaceEntryStart": -8.584639
+      },
+      {
+        "text": "WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures",
+        "location": {
+          "url": "http://127.0.0.1:4173/assets/three-iLFyWdco.js",
+          "lineNumber": 3815,
+          "columnNumber": 0
+        },
+        "monotonicMs": 474194.745,
+        "secondsSinceEnterCircuitActionStart": 16.399573,
+        "secondsSinceFinishRaceEntryStart": -8.584024
+      }
+    ],
+    "testError": "Timeout 180000ms exceeded while waiting on the predicate; expected /^(driving|briefing)$/, last received loading.",
+    "teardownCancellation": "locator.isVisible: Test ended. This occurs after poll failure and is not a page JavaScript error.",
+    "network": {
+      "recordedResourceSnapshots": 183,
+      "recordedStatusCounts": {
+        "200": 183
+      },
+      "lastRecordedResourceComplete": {
+        "monotonicMs": 550784.3,
+        "secondsSinceEnterCircuitActionStart": 92.989128,
+        "secondsSinceFinishRaceEntryStart": 68.005531
+      },
+      "qualification": "All recorded resource snapshots have HTTP/blob status 200. No fetch failure is recorded; this is not a claim that a trace snapshot list independently rules out every unrecorded pending request."
+    }
+  },
+  "conclusions": {
+    "established": "Wet race-entry acceptance timed out after scene construction completed, a four-rider worker frame arrived, material/shadow preparation was observed, and a camera-setup label became visible. Normal driving, spray, pause and resume assertions were not reached.",
+    "concreteBlockingStageIdentified": false,
+    "narrowestSupportedRegion": "Renderer preparation after initial material compilation, at or after the shadow/camera setup boundary. The final Playwright visibility operation also became unresponsive through timeout.",
+    "notEstablished": [
+      "Exact active renderer substage at the deadline",
+      "A CPU compilation/draw bottleneck, GPU fence wait, browser/driver blockage, or their relative contributions",
+      "Software rendering as the cause",
+      "The two texImage3D warnings as the cause",
+      "A worker-initialization failure",
+      "A current application loading state freshly sampled at timeout"
+    ],
+    "changesMade": "No repository edits, no rerun, no timeout changes; extraction and this receipt were saved only under /tmp."
+  }
+}

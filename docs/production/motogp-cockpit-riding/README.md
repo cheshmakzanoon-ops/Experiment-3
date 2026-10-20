@@ -82,8 +82,10 @@ The [comparison receipt](front-contact-comparison.json) includes inputs and hash
 This remains a reduced motorcycle model. The load ramp, contact tolerance, and
 settling rate are authored response tuning. Full single-wheel balance, rear-tyre
 camber steering, and the inherited quasi-static front hydraulic braking model
-are outside this correction. Physics category **11** separates older lap and
-ghost records; no new replay state or transport schema is needed.
+are outside this correction. This GP correction introduced physics category
+**11** without adding replay state or changing the transport schema. The later
+shared engine update is preserved: the integrated source uses physics **12**
+and snapshot protocol **14**, including its recorded wheel motion.
 
 ## Prepare the sky actually used by the menu
 
@@ -96,6 +98,28 @@ The incoming showroom-only startup is preserved, with its initial preparation
 using the same daylight illumination as the studio even for a night venue.
 The displayed weather, quality settings, GPU completion gates, and browser test
 deadlines are unchanged.
+
+GP loading also identifies the field as riders and gives motorcycle construction
+its own visible preparation stage. It yields for the loader to repaint and checks
+cancellation before building the bike models. This makes the stage and cancellation
+behavior explicit; it does not remove the inherited Formula host construction or
+claim a measured startup-time reduction.
+
+The menu-to-circuit renderer handoff also clears stale texture-upload flags before
+Three.js creates its fallback 3D textures. A real WebGL regression reproduces the
+old invalid uploads and verifies that the replacement renderer allocates them
+successfully while retaining ordinary 2D texture orientation. This fixes a
+reproduced graphics-state defect; full circuit-entry timing is recorded separately.
+
+## Actual in-game view
+
+![GP-R1 cockpit during live wet practice](gpr1-live-wet-cockpit.png)
+
+This unedited browser capture comes from the completed four-rider wet practice
+journey at Poggio Alto. It uses the original test's Low preset with full particle
+density. The exposed fork controls are visible during actual cornering alongside
+the existing guidance HUD. This is separate from the neutral model-review views
+used to inspect garment contact and instrument visibility.
 
 ## Review and try it
 

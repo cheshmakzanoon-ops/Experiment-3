@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { developerMode } from '../src/ui/dev-mode.ts';
 import { LOADING_TIPS, loadingStage } from '../src/ui/loading-copy.ts';
-import { conditions, circuitTitle, SESSION_TITLES } from '../src/ui/interface.ts';
+import { conditions, circuitTitle, Interface, SESSION_TITLES } from '../src/ui/interface.ts';
+import { DEFAULT_OPTIONS } from '../src/simulation/config.ts';
 
 describe('retail front end', () => {
   it('enables developer tools only with an explicit ?dev query', () => {
@@ -22,6 +23,7 @@ describe('retail front end', () => {
       '70% · Loading A07 start gantry',
       'Preparing grid, race timing and recording buffers…',
       'Building original Formula car 4 / 8…',
+      'Building GP motorcycles and riders…',
       'Compiling circuit and vehicle materials…',
       'Compiling shadow casters around the circuit…',
       'Warming shadows and scene reflections…',
@@ -53,6 +55,37 @@ describe('retail front end', () => {
       fraction: 0.9,
     });
     expect(LOADING_TIPS.length).toBeGreaterThan(3);
+  });
+
+  it('uses the whole GP field for loading context and retains MX and mixed-field labels', () => {
+    const line = { hidden: true, textContent: '' };
+    const ui = {
+      get: (id: string) => {
+        expect(id).toBe('loadingSession');
+        return line;
+      },
+    } as unknown as Interface;
+    for (const [circuit, vehicles, entrants] of [
+      ['poggio-alto', ['gpr1', 'gpr2', 'gpr1', 'gpr2'], '4 riders'],
+      ['poggio-alto', ['gpr1', 'apx01', 'gpr2', 'apx01'], '4 cars'],
+      ['valley-ridge-mx', ['mx450', 'mx450', 'mx450', 'mx450'], '4 riders'],
+      ['arena-nord-sx', ['mx250', 'mx250', 'mx250', 'mx250'], '4 riders'],
+      ['aurel', undefined, '4 cars'],
+    ] as const) {
+      Interface.prototype.loadingSession.call(ui, {
+        ...DEFAULT_OPTIONS,
+        mode: 'practice',
+        circuit,
+        opponents: 3,
+        vehicles: vehicles ? [...vehicles] : undefined,
+      });
+      expect(line.hidden).toBe(false);
+      expect(line.textContent).toContain(entrants);
+      expect(line.textContent).toContain('Free Practice');
+      expect(line.textContent).toContain('Dry');
+    }
+    Interface.prototype.loadingSession.call(ui, null);
+    expect(line.hidden).toBe(true);
   });
 
   it('names sessions, circuits and conditions in player language', () => {

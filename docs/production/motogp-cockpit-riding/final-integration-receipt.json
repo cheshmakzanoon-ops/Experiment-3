@@ -1,0 +1,92 @@
+{
+  "sourceBaseCommit": "e7cbd04d8f5225d2b742dcc1bd39f9a6da444978",
+  "sourceDescription": "Incoming physics 12 and snapshot protocol 14 preserved; local GP loader and renderer-context changes applied. Source-stability guard passed for both commands. Review documents and images were finalized after the guarded runtime checks.",
+  "buildIdentity": {
+    "version": 1,
+    "commit": null,
+    "fingerprint": "be7406dfc83a2b48079a454522cdb95da559e4c680aa3fd131a15ae5c14a6e54"
+  },
+  "phases": [
+    {
+      "phase": "tests",
+      "exitCode": 0,
+      "durationSeconds": 55.092,
+      "log": "/tmp/motogp-e7-integration-tests.log"
+    },
+    {
+      "phase": "build",
+      "exitCode": 0,
+      "durationSeconds": 127.416,
+      "log": "/tmp/motogp-e7-integration-build.log"
+    }
+  ],
+  "unitTests": {
+    "total": 96,
+    "passed": 96,
+    "failed": 0,
+    "files": 8,
+    "filesAndCounts": {
+      "tests/startup.test.ts": 15,
+      "tests/frontend-retail.test.ts": 4,
+      "tests/session-identity.test.ts": 15,
+      "tests/gp-front-contact-steering.test.ts": 10,
+      "tests/gp-control-feedback.test.ts": 9,
+      "tests/snapshot-interpolation.test.ts": 20,
+      "tests/wheel-winding.test.ts": 17,
+      "tests/wheel-winding-recording.test.ts": 6
+    }
+  },
+  "changedCodeFiles": [
+    {
+      "path": ".github/workflows/motogp-review.yml",
+      "bytes": 7492,
+      "sha256": "097f0b9dc38e0fe8966fb89ac78c37c2f6b17b947f5b7e9081791327a4369422"
+    },
+    {
+      "path": "src/rendering/renderer.ts",
+      "bytes": 110149,
+      "sha256": "ee9216e9b8573ba3edc27d2ef6b1a6dfbdfef3d6833085e8c6eb97419e002ba6"
+    },
+    {
+      "path": "src/rendering/webgl-renderer.ts",
+      "bytes": 988,
+      "sha256": "e9f00c8d1ab451125dc9f6ac24ff2040d311c75d0f3153909ef42220cde04eef"
+    },
+    {
+      "path": "src/ui/interface.ts",
+      "bytes": 74124,
+      "sha256": "90c2b6fae25c245c318ec34c730542366d2f1143ab347a5784a338bedd08de3e"
+    },
+    {
+      "path": "src/ui/loading-copy.ts",
+      "bytes": 3705,
+      "sha256": "210611e98a14707be2b4d4790b69c1813904fb0eee53901a4f1d18ddde7301d0"
+    },
+    {
+      "path": "tests/startup.test.ts",
+      "bytes": 10104,
+      "sha256": "7acfa3a973ca50b9048e81b9bda5397c68206c37e05e2276aa66f20e4aac9bd1"
+    },
+    {
+      "path": "tests/frontend-retail.test.ts",
+      "bytes": 4614,
+      "sha256": "fe88bc2a3d38149a53456d2af08df40db40bdf215a43418273d0c8b723760cde"
+    },
+    {
+      "path": "e2e/gpu-context-reuse.spec.ts",
+      "bytes": 3459,
+      "sha256": "4059101c19e5ca7baa20a76be95dc1dc88f9edaaed83507f1d1c9d3bf43abf32"
+    },
+    {
+      "path": "e2e/fixtures/webgl-renderer-reuse.ts",
+      "bytes": 5479,
+      "sha256": "4dbdeafb405b73605d2de9c856e24034cee15c31149dcaf594cb756b07a99bd1"
+    }
+  ],
+  "browserEvidence": "The retained final local browser run predates e7 integration and is explicitly attributed to base 0004 plus the same GP follow-up. It passed the actual context-reuse regression and full wet journey; dry entry timed out. See final-webgl-journey-receipt.json and VALIDATION.md.",
+  "scope": "Production TypeScript/Vite build and focused integration tests. Not a claim of a post-e7 full browser run, complete repository CI acceptance, or hardware GPU frame rate.",
+  "laterPreservedCommit": {
+    "sha": "5bb13e3c6089d138aff06fef1508b71a82bb8402",
+    "scope": "Adds only docs/production/motocross-landing-dust-validation-20261019.json. Integrated after the gate with no runtime or test-source change."
+  }
+}

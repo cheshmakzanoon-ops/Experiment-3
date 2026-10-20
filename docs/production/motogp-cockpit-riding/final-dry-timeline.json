@@ -1,0 +1,385 @@
+{
+  "schemaVersion": 1,
+  "scope": "Final applied-source local Mesa dry-journey trace; read-only extraction",
+  "trace": {
+    "path": "/tmp/motogp-final-isolated-results/motogp-riding-flow-GP-prac-da324-t-pause-and-recorded-replay/trace.zip",
+    "sha256": "3db474eb8360fee913c6d3660779a74bb9bef32da7ad89b7774ea7b2194b95cc",
+    "buildIdentity": {
+      "commit": null,
+      "fingerprint": "bd53fbce898638e54ac582995a9fcdb532735b1e90d2ccd866953077097be2c4"
+    },
+    "title": "motogp-riding-flow.spec.ts:22 \u203a GP practice rides through named corner guidance, cockpit, pause and recorded replay",
+    "sourceAttribution": {
+      "baseCheckoutCommit": "0004d10009b6e88ec65fdb3fbd663e1dee3f5eb3",
+      "localFollowupIncluded": true,
+      "basis": "Root source-stability/build report; base commit also observed with read-only git log after this run. The trace reports commit null and the fingerprint below is its direct build identity.",
+      "doesNotCoverCommit": "e7cbd04d8f5225d2b742dcc1bd39f9a6da444978"
+    }
+  },
+  "clock": {
+    "entryReference": "ENTER CIRCUIT action starts, not exact page event dispatch",
+    "entryStartMonotonicMs": 145730.732,
+    "finishRaceEntryStartMonotonicMs": 157861.841,
+    "observations": "DOM/screenshot timestamps identify observations, not exact internal stage start times or phase durations."
+  },
+  "testOutcome": {
+    "passed": false,
+    "testDeadlineMs": 300000,
+    "finishRaceEntryPollBudgetMs": 180000,
+    "observedPollElapsedMs": 175954.458,
+    "deadlineReached": "Overall 300000 ms test timeout; the 180000 ms entry poll was interrupted about 4.05 s before its own budget expired.",
+    "message": "Error: expect(received).toMatch(expected)\n\nExpected pattern: /^(driving|briefing)$/\nReceived string:  \"loading\"\n\nCall Log:\n- Test timeout of 300000ms exceeded",
+    "drivingAssertionsReached": false
+  },
+  "actionDurationsMs": {
+    "navigation": 19107.336,
+    "waitForVisibleMenuAfterNavigation": 63576.432,
+    "applySettingsClick": 478.184,
+    "waitForSettingsModalHidden": 12425.583,
+    "waitForGpShowroomPresentation": 9856.527,
+    "enterCircuitClick": 12119.347,
+    "lastCompletedDiagnosticsAction": 5258.602,
+    "subsequentVisibilityQuery": 15049.146,
+    "finalUncompletedDiagnosticsActionThroughTeardown": 59048.532
+  },
+  "timeline": [
+    {
+      "event": "Navigation starts",
+      "monotonicMs": 36078.992,
+      "entrySeconds": -109.65174,
+      "pollSeconds": -121.782849
+    },
+    {
+      "event": "Menu visibility assertion passes",
+      "monotonicMs": 118771.522,
+      "entrySeconds": -26.95921,
+      "pollSeconds": -39.090319
+    },
+    {
+      "event": "Low settings modal hidden assertion passes",
+      "monotonicMs": 133994.387,
+      "entrySeconds": -11.736345,
+      "pollSeconds": -23.867454
+    },
+    {
+      "event": "GP-R1 showroom presentation poll passes",
+      "monotonicMs": 145149.276,
+      "entrySeconds": -0.581456,
+      "pollSeconds": -12.712565
+    },
+    {
+      "event": "ENTER CIRCUIT action starts",
+      "monotonicMs": 145730.732,
+      "entrySeconds": 0.0,
+      "pollSeconds": -12.131109
+    },
+    {
+      "event": "ENTER CIRCUIT action completes",
+      "monotonicMs": 157850.079,
+      "entrySeconds": 12.119347,
+      "pollSeconds": -0.011762
+    },
+    {
+      "event": "finishRaceEntry poll starts",
+      "monotonicMs": 157861.841,
+      "entrySeconds": 12.131109,
+      "pollSeconds": 0.0
+    },
+    {
+      "event": "DOM observes completed scene construction",
+      "monotonicMs": 264160.344,
+      "entrySeconds": 118.429612,
+      "pollSeconds": 106.298503,
+      "rawLabel": "100% \u00b7 Scene ready\u2026"
+    },
+    {
+      "event": "Last diagnostics returns from browser",
+      "monotonicMs": 280030.512,
+      "entrySeconds": 134.29978,
+      "pollSeconds": 122.168671
+    },
+    {
+      "event": "DOM observes GP motorcycle construction after that diagnostics sample",
+      "monotonicMs": 280161.063,
+      "entrySeconds": 134.430331,
+      "pollSeconds": 122.299222,
+      "rawLabel": "Building GP motorcycles and riders\u2026"
+    },
+    {
+      "event": "DOM observes material compilation",
+      "monotonicMs": 285904.755,
+      "entrySeconds": 140.174023,
+      "pollSeconds": 128.042914,
+      "rawLabel": "Compiling circuit and vehicle materials\u2026"
+    },
+    {
+      "event": "Last screenshot observes camera setup",
+      "monotonicMs": 295124.755,
+      "entrySeconds": 149.394023,
+      "pollSeconds": 137.262914,
+      "visibleLabel": "SETTING UP CAMERAS",
+      "percent": 90
+    },
+    {
+      "event": "Last DOM snapshot observes chase-view warmup",
+      "monotonicMs": 295241.408,
+      "entrySeconds": 149.510676,
+      "pollSeconds": 137.379567,
+      "rawLabel": "Warming shadows and scene reflections\u2026"
+    },
+    {
+      "event": "Last complete poll iteration returns loading from its earlier diagnostics object",
+      "monotonicMs": 295247.258,
+      "entrySeconds": 149.516526,
+      "pollSeconds": 137.385417
+    },
+    {
+      "event": "Final diagnostics browser action starts; never returns a value",
+      "monotonicMs": 296256.112,
+      "entrySeconds": 150.52538,
+      "pollSeconds": 138.394271
+    },
+    {
+      "event": "Overall test deadline interrupts entry poll",
+      "monotonicMs": 333816.299,
+      "entrySeconds": 188.085567,
+      "pollSeconds": 175.954458
+    },
+    {
+      "event": "Pending diagnostics action canceled during teardown",
+      "monotonicMs": 355299.91,
+      "entrySeconds": 209.569178,
+      "pollSeconds": 197.438069,
+      "error": "page.evaluate: Test ended."
+    }
+  ],
+  "finalReturnedDiagnostics": {
+    "evaluationStart": {
+      "monotonicMs": 274929.196,
+      "entrySeconds": 129.198464,
+      "pollSeconds": 117.067355
+    },
+    "libraryEnd": {
+      "monotonicMs": 280030.512,
+      "entrySeconds": 134.29978,
+      "pollSeconds": 122.168671
+    },
+    "runnerEnd": {
+      "monotonicMs": 280186.52,
+      "entrySeconds": 134.455788,
+      "pollSeconds": 122.324679
+    },
+    "state": "loading",
+    "options": {
+      "mode": "practice",
+      "opponents": 3,
+      "circuit": "poggio-alto",
+      "vehicles": ["gpr1", "gpr1", "gpr1", "gpr1"],
+      "weather": "clear",
+      "compound": "medium"
+    },
+    "workerPause": {
+      "pending": false,
+      "paused": true,
+      "tick": null,
+      "sequence": 0
+    },
+    "gridPresentation": {
+      "time": 0,
+      "playing": false,
+      "complete": false,
+      "automatic": false,
+      "briefing": false
+    },
+    "frameSummary": {
+      "present": true,
+      "cars": 4,
+      "tick": 0,
+      "raceTime": 0
+    },
+    "presentation": {
+      "time": 0,
+      "frames": 4,
+      "menuCovered": false,
+      "elapsed": 0
+    },
+    "renderer": {
+      "presentationPurpose": "circuit",
+      "preparation": {
+        "status": "preparing",
+        "elapsedMs": 5912.19999999553,
+        "error": null,
+        "stages": [
+          {
+            "label": "Building original Formula car 2 / 4\u2026",
+            "elapsedMs": 2648,
+            "complete": true
+          },
+          {
+            "label": "Building original Formula car 3 / 4\u2026",
+            "elapsedMs": 1381.5,
+            "complete": true
+          },
+          {
+            "label": "Building original Formula car 4 / 4\u2026",
+            "elapsedMs": 1878.5,
+            "complete": false
+          }
+        ]
+      },
+      "construction": {
+        "tasks": 673,
+        "yields": 244,
+        "workMilliseconds": 37127.80000001937,
+        "maximumTaskMilliseconds": 19714.10000000149,
+        "cancelled": false
+      },
+      "warmupFrames": 0,
+      "warmupPitPasses": 0,
+      "gpuFrameQueue": {
+        "pending": false,
+        "submitted": 0,
+        "completed": 0,
+        "deferredCallbacks": 0,
+        "flushRefreshes": 0,
+        "pendingMs": 0,
+        "activeWaitMs": 0,
+        "failure": null,
+        "latencyMs": 0
+      },
+      "startingGrid": {
+        "mode": "original",
+        "cachedLayers": 1,
+        "slots": 12
+      }
+    },
+    "qualification": "The preparation stage and GPU counters in this object precede later GP-building/material/chase-warmup DOM observations. They do not describe the application at the timeout."
+  },
+  "lastVisibleAndDomEvidence": {
+    "screenshot": {
+      "path": "/tmp/motogp-final-journey-analysis/dry-last-visible.jpg",
+      "monotonicMs": 295124.755,
+      "entrySeconds": 149.394023,
+      "pollSeconds": 137.262914,
+      "title": "SETTING UP CAMERAS",
+      "percent": 90,
+      "context": "Free Practice \u00b7 Poggio Alto Autodromo \u00b7 4 riders \u00b7 Dry"
+    },
+    "dom": {
+      "monotonicMs": 295241.408,
+      "entrySeconds": 149.510676,
+      "pollSeconds": 137.379567,
+      "rawLabel": "Warming shadows and scene reflections\u2026",
+      "appMode": "loading",
+      "raceBriefingPresent": false
+    },
+    "qualification": "The exact last raw label identifies the chase-view warmup announcement, before its draw/completion is confirmed. The 90% bar is a monotonic authored estimate, not measured completed GPU work."
+  },
+  "staleResultQualification": {
+    "finalErrorReceived": "loading",
+    "underlyingDiagnosticsAgeAtTimeoutMs": 53785.787,
+    "lastCompletedPollAssertionAgeAtTimeoutMs": 38569.041,
+    "lastDomAgeAtTimeoutMs": 38574.891,
+    "explanation": "The last completed callback retained a diagnostics object while a visibility query took another 15.05 s. Its subsequent loading result was therefore already old when returned. A further diagnostics query never completed. No application state, preparation completion, or GL status was freshly sampled at the deadline."
+  },
+  "observedErrorsAndGlEvidence": {
+    "consoleEvents": 0,
+    "consoleWarnings": 0,
+    "consoleErrors": 0,
+    "pageErrors": 0,
+    "texImage3DWarnings": 0,
+    "preparationErrorAtLastReturnedSample": null,
+    "gpuFrameQueueFailureAtLastReturnedSample": null,
+    "directGlErrorSamples": "No gl.getError sample is present in this application trace. Absence of warnings is not a complete GL-error census.",
+    "testError": "Error: expect(received).toMatch(expected)\n\nExpected pattern: /^(driving|briefing)$/\nReceived string:  \"loading\"\n\nCall Log:\n- Test timeout of 300000ms exceeded",
+    "teardownCancellation": "page.evaluate: Test ended.; follows the overall test timeout",
+    "network": {
+      "count": 183,
+      "statusCounts": {
+        "200": 183
+      },
+      "lastComplete": 264280.75800000003
+    }
+  },
+  "conclusion": {
+    "established": "The local final build passed menu/settings/GP-preview entry and reached four-rider circuit preparation. The last raw stage is Warming shadows and scene reflections. The overall test deadline expired while a further diagnostics query was unresponsive.",
+    "concreteBlockingOperationIdentified": false,
+    "narrowestObservedStage": "Chase-view renderer warmup announcement; no later raw stage or completion sample is retained.",
+    "cannotEstablish": [
+      "Whether work stopped inside an animation-frame yield, camera change, draw, graphics driver operation, or later unobserved work",
+      "Renderer/worker state at the exact timeout",
+      "Any causal contribution from context-upload warnings: none are recorded in this final dry application trace"
+    ],
+    "environmentBoundary": "This receipt reports the local Mesa run only. The separately reported hosted exact85 dry pass is not contradicted or independently revalidated by this local trace."
+  },
+  "changesMade": "No repository source/test/doc edits, no tests/builds/retries, no deadline changes; artifacts saved only under /tmp/motogp-final-journey-analysis.",
+  "relatedRunLog": {
+    "path": "/tmp/motogp-final-isolated.log",
+    "sha256": "af8e656e0e1bad988b3ffcf6757fbe8b2715b15d1488e06654b71da45f0604b6",
+    "observedBackend": "ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)",
+    "cases": [
+      {
+        "case": "gpu-context-reuse",
+        "outcome": "passed",
+        "reportedDuration": "15.7s"
+      },
+      {
+        "case": "motogp-riding-flow dry",
+        "outcome": "failed",
+        "reportedDuration": "5.4m"
+      },
+      {
+        "case": "motogp-wet-riding",
+        "outcome": "passed",
+        "reportedDuration": "4.3m"
+      }
+    ],
+    "summary": "2 passed, 1 failed (11.0m)",
+    "durationQualification": "These are the log reporter durations, not exact per-case elapsed millisecond values.",
+    "runnerWarnings": [
+      "Node ExperimentalWarning: Transform Types is an experimental feature",
+      "npm warns Unknown env config http-proxy",
+      "NO_COLOR env is ignored due to FORCE_COLOR being set"
+    ],
+    "runnerWarningsQualification": "Runner/tooling warnings; they are not browser console warnings or evidence of a renderer failure."
+  },
+  "relatedExactReport": {
+    "path": "/tmp/motogp-final-isolated-report/index.html",
+    "sha256": "31782712f3e5ac329e1b367fa4be31f88c57145f0ce4bbb144e8846534e0ce79",
+    "source": "Embedded report.json, compact per-test duration/outcome fields only",
+    "startTimeUnixMs": 1792456053630,
+    "durationMs": 659866.652,
+    "stats": {
+      "total": 3,
+      "expected": 2,
+      "unexpected": 1,
+      "flaky": 0,
+      "skipped": 0,
+      "ok": false
+    },
+    "cases": [
+      {
+        "file": "motogp-riding-flow.spec.ts",
+        "testId": "a7b02cd66514e3fef602-85c0d206f81bc6335742",
+        "durationMs": 321798,
+        "outcome": "unexpected",
+        "ok": false
+      },
+      {
+        "file": "gpu-context-reuse.spec.ts",
+        "testId": "60b32d707d632841c049-ef05116690bf4632ca80",
+        "durationMs": 15717,
+        "outcome": "expected",
+        "ok": true
+      },
+      {
+        "file": "motogp-wet-riding.spec.ts",
+        "testId": "f35b63a4ef41778fcbbe-63c96b88e066e68b0623",
+        "durationMs": 257873,
+        "outcome": "expected",
+        "ok": true
+      }
+    ],
+    "durationQualification": "Per-test reporter duration includes timed-out test teardown; the dry test execution deadline remains 300000 ms."
+  }
+}

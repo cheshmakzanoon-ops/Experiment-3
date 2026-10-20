@@ -1,6 +1,7 @@
 import { installRaceDayHud, updateRaceDayHud } from './race-day-hud.ts';
 import { BikeHud } from './bike-hud.ts';
 import { vehicleAt, vehicleDefinition } from '../simulation/vehicles.ts';
+import { gpGridForVehicles } from '../simulation/gp-grid.ts';
 import {
   SESSION_RULES_FIELDS,
   machineOptions,
@@ -503,6 +504,7 @@ export class Interface {
     line.hidden = !options;
     if (!options) return;
     const timed = options.mode === 'time-trial' || options.mode === 'practice';
+    const riders = !!motocrossKind(options.circuit) || gpGridForVehicles(options.vehicles);
     const weather = { clear: 'Dry', changeable: 'Changeable', rain: 'Wet' }[options.weather];
     line.textContent = [
       motocrossSessionTitle(options) ?? SESSION_TITLES[options.mode],
@@ -510,9 +512,7 @@ export class Interface {
       options.mode === 'qualifying' || timed
         ? ''
         : `${options.laps} ${options.laps === 1 ? 'lap' : 'laps'}`,
-      options.mode === 'time-trial'
-        ? ''
-        : `${options.opponents + 1} ${motocrossKind(options.circuit) ? 'riders' : 'cars'}`,
+      options.mode === 'time-trial' ? '' : `${options.opponents + 1} ${riders ? 'riders' : 'cars'}`,
       weather,
     ]
       .filter(Boolean)

@@ -1,0 +1,220 @@
+{
+  "sourceBaseCommit": "0004d10009b6e88ec65fdb3fbd663e1dee3f5eb3",
+  "sourceDescription": "Base main plus applied local GP loader feedback and renderer context-reuse follow-up. Browser execution predates incoming e7cbd04; no claim of a post-e7 browser run.",
+  "buildIdentity": {
+    "commit": null,
+    "fingerprint": "bd53fbce898638e54ac582995a9fcdb532735b1e90d2ccd866953077097be2c4"
+  },
+  "backend": "ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)",
+  "viewport": {
+    "width": 1280,
+    "height": 800
+  },
+  "infrastructure": "Dedicated local preview port 42837; original tests, assertions, deadlines, settings, backend and viewport retained. Port 4173 was occupied by another workspace and was not stopped.",
+  "stats": {
+    "total": 3,
+    "expected": 2,
+    "unexpected": 1,
+    "flaky": 0,
+    "skipped": 0,
+    "ok": false
+  },
+  "durationMs": 659866.652,
+  "cases": [
+    {
+      "file": "e2e/motogp-riding-flow.spec.ts",
+      "name": "GP practice rides through named corner guidance, cockpit, pause and recorded replay",
+      "status": "failed",
+      "durationMs": 321798,
+      "testSourceSHA256": "ab7730edc55d78a9999798e8658b3034b4e5e9254cc4300fbc354d54e21818ee"
+    },
+    {
+      "file": "e2e/gpu-context-reuse.spec.ts",
+      "name": "renderer context reuse clears fallback upload state and preserves 2D texture orientation",
+      "status": "passed",
+      "durationMs": 15717,
+      "testSourceSHA256": "4059101c19e5ca7baa20a76be95dc1dc88f9edaaed83507f1d1c9d3bf43abf32"
+    },
+    {
+      "file": "e2e/motogp-wet-riding.spec.ts",
+      "name": "GP wet practice renders live two-tyre spray, advances normally and holds on pause",
+      "status": "passed",
+      "durationMs": 257873,
+      "testSourceSHA256": "8c970e85b908bd0c688fade497c0385784c21a1543e7eeb26cc93bfe086f3e3b"
+    }
+  ],
+  "contextReuse": {
+    "result": "passed",
+    "receipt": "context-reuse-receipt.json",
+    "durationMs": 15717,
+    "scope": "Actual production creation helper; negative controls deliberately dirty each unpack flag separately; exact 2D upload orientation checks."
+  },
+  "dry": {
+    "result": "failed",
+    "receipt": "final-dry-timeline.json",
+    "reason": "Overall 300000ms test deadline expired during circuit entry; entry poll elapsed 175.954 s; no completed driving or replay assertions. Last observations are stale and do not establish an exact blocking operation."
+  },
+  "wet": {
+    "result": "passed",
+    "durationMs": 257873,
+    "workload": "Actual four-rider wet GP-R1 practice; low preset with particle density 1",
+    "options": {
+      "mode": "practice",
+      "circuit": "poggio-alto",
+      "opponents": 3,
+      "weather": "rain",
+      "compound": "wet",
+      "vehicles": ["gpr1", "gpr1", "gpr1", "gpr1"]
+    },
+    "graphics": {
+      "resolutionScale": 0.75,
+      "textureSize": 256,
+      "shadowSize": 0,
+      "reflections": "environment",
+      "mirrorQuality": "low",
+      "particleDensity": 1,
+      "vegetationDensity": 0.5,
+      "crowd": false,
+      "bloom": false,
+      "autoExposure": false,
+      "localFog": false,
+      "motionBlur": 0,
+      "antialias": true,
+      "anisotropy": 2,
+      "msaa": 0,
+      "ambientOcclusion": false,
+      "filmGrade": true,
+      "temporalAA": false,
+      "lensEffects": false,
+      "cockpitFov": 54,
+      "ssr": false,
+      "taaSharpen": 0,
+      "aoTemporal": false,
+      "toneMapper": "aces",
+      "physicalBloom": false,
+      "chromaticAberration": false,
+      "lightShafts": false,
+      "shadowCascades": 2,
+      "replayDof": false
+    },
+    "startingGrid": {
+      "mode": "gp",
+      "cachedLayers": 2,
+      "slots": 12
+    },
+    "chase": {
+      "state": "driving",
+      "auto": true,
+      "presentedCamera": "chase",
+      "presentation": {
+        "time": 17.132442474365234,
+        "frames": 6,
+        "elapsed": 4,
+        "resets": 4,
+        "boundedCatchups": 2,
+        "omittedSeconds": 7.225001335144043,
+        "particles": {
+          "capacity": 4200,
+          "contactCapacity": 3600,
+          "rainCapacity": 600,
+          "active": [1055, 0, 0, 528, 0, 0],
+          "spawned": [1110, 0, 0, 1920, 0, 0],
+          "velocityX": [0.207526372866683, 0, 0, 1.5, 0, 0],
+          "velocityZ": [0.5303548421984389, 0, 0, 0.6000000238418579, 0, 0],
+          "windX": 1.5,
+          "windZ": 0.6000000238418579
+        }
+      }
+    },
+    "paused": {
+      "workerPause": {
+        "pending": false,
+        "paused": true,
+        "tick": 3027,
+        "sequence": 2
+      },
+      "presentation": {
+        "time": 31.1324405670166,
+        "frames": 14,
+        "elapsed": 17.14242935180664,
+        "resets": 4,
+        "boundedCatchups": 4,
+        "omittedSeconds": 8.08257007598877,
+        "particles": {
+          "capacity": 4200,
+          "contactCapacity": 3600,
+          "rainCapacity": 600,
+          "active": [593, 0, 0, 518, 0, 0],
+          "spawned": [969, 0, 0, 3487, 0, 0],
+          "velocityX": [1.5622726516016017, 0, 0, 1.5, 0, 0],
+          "velocityZ": [1.0792518811925467, 0, 0, 0.6000000238418579, 0, 0],
+          "windX": 1.5,
+          "windZ": 0.6000000238418579
+        }
+      }
+    },
+    "held": {
+      "workerPause": {
+        "pending": false,
+        "paused": true,
+        "tick": 3027,
+        "sequence": 2
+      },
+      "presentation": {
+        "time": 31.1324405670166,
+        "frames": 18,
+        "elapsed": 17.14242935180664,
+        "resets": 4,
+        "boundedCatchups": 4,
+        "omittedSeconds": 8.08257007598877,
+        "particles": {
+          "capacity": 4200,
+          "contactCapacity": 3600,
+          "rainCapacity": 600,
+          "active": [593, 0, 0, 518, 0, 0],
+          "spawned": [969, 0, 0, 3487, 0, 0],
+          "velocityX": [1.5622726516016017, 0, 0, 1.5, 0, 0],
+          "velocityZ": [1.0792518811925467, 0, 0, 0.6000000238418579, 0, 0],
+          "windX": 1.5,
+          "windZ": 0.6000000238418579
+        }
+      }
+    },
+    "completedAssertions": [
+      "Actual four-rider GP-R1 Poggio wet practice entered through normal menu and settings UI",
+      "Original Low preset with full particle density selected through UI",
+      "All four entrants moving, riding and not retired",
+      "Both tyre water channels positive and spray particles active",
+      "Normal presentation time progression",
+      "Chase and cockpit cameras rendered",
+      "Worker pause acknowledged; final snapshot, particles and effect clock held",
+      "Resume advanced the live simulation by more than 60 ticks",
+      "No page or console errors"
+    ],
+    "pageAndConsoleErrors": [],
+    "captures": [
+      {
+        "originalName": "gp-live-wet-chase.png",
+        "retainedPath": null,
+        "bytes": 719218,
+        "sha256": "f6a656fbdffcc5fc63a62b58b92fe62ac22b4af4e777cb93b0cef946cc90bc21",
+        "unedited": true
+      },
+      {
+        "originalName": "gp-live-wet-cockpit.png",
+        "retainedPath": "gpr1-live-wet-cockpit.png",
+        "bytes": 805717,
+        "sha256": "1795c23a815e26baaf81bc653e0c1bc8d7e8e13b8d03df6a6aeafc322a5bb152",
+        "unedited": true
+      },
+      {
+        "originalName": "gp-live-wet-pause.png",
+        "retainedPath": null,
+        "bytes": 254515,
+        "sha256": "f0b945cd468d30995d04ce4c72e8c31bfce8767fba5a281eb36480fffef37c2d",
+        "unedited": true
+      }
+    ],
+    "visualReview": "Root visually inspected the unedited chase and cockpit images. The cockpit shows the exposed GP fork adjusters in actual wet cornering, with other riders and the existing corner-guidance HUD. This was Low quality; it is not a High-preset image or a physical-GPU performance measurement."
+  }
+}

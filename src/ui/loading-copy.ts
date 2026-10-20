@@ -44,6 +44,7 @@ export function loadingStage(raw: string, previous = 0): LoadingStage {
   }
   const stages: readonly [RegExp, string, number][] = [
     [/bodywork, materials and/i, 'Loading circuit', 0],
+    [/^building GP motorcycles and riders$/i, 'Preparing motorcycles', 0.42],
     [/^building (.+)$/i, '', 0.02],
     [/grid, race timing|recording buffers/i, 'Preparing session', 0.05],
     [/compiling circuit and vehicle/i, 'Preparing graphics', 0.45],

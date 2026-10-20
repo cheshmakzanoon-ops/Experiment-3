@@ -142,6 +142,42 @@ it.each([
     expect(calls.indexOf('shadow-casters')).toBeLessThan(calls.indexOf('draw'));
   },
 );
+it.each([
+  { vehicles: ['gpr1', 'gpr2', 'gpr1'], bikeBuilds: 0 },
+  { vehicles: ['apx01', 'gpr1', 'gpr2'], bikeBuilds: 1 },
+  { vehicles: ['mx450', 'mx450', 'mx450'], bikeBuilds: 1 },
+])(
+  'allows cancellation before motorcycle construction only for a complete GP field: $vehicles',
+  async ({ vehicles, bikeBuilds }) => {
+    const { target, typed, sample } = fixture(vehicles[1]);
+    vehicles.forEach((vehicle, id) => {
+      sample[carBase(id) + RACE_BASE + R.VEHICLE] = vehicleIndex(vehicle);
+    });
+    // Existing hosts isolate the new yield from the original per-car yields.
+    target.setCars(vehicles.length);
+    const before = sample.slice();
+    const progress = vi.fn();
+    let cancelled = false;
+    expect(
+      await RacingRenderer.prototype.prepare.call(
+        typed,
+        sample,
+        progress,
+        () => cancelled,
+        async () => {
+          // The stage must already be reported when the browser can repaint.
+          expect(progress).toHaveBeenCalled();
+          cancelled = true;
+        },
+      ),
+    ).toBe(false);
+    expect(target.bikeShells.update).toHaveBeenCalledTimes(bikeBuilds);
+    expect(target.renderer.compileAsync).not.toHaveBeenCalled();
+    expect(target.draw).not.toHaveBeenCalled();
+    expect(target.preparation.snapshot()?.status).toBe('cancelled');
+    expect(sample).toEqual(before);
+  },
+);
 it('stops cancelled construction before touching any further GPU resources', async () => {
   const { target, typed, sample } = fixture();
   let cancelled = false;
