@@ -1,0 +1,133 @@
+{
+  "version": 1,
+  "date": "2026-10-20",
+  "simulationVersion": 17,
+  "engineCommit": "7911ff7ecd3c628036f01d36ad0f6eb76c3f5fa3",
+  "engineTree": "2d1f93197456f78ab2eb335db2c09f711be9091e",
+  "upstreamBase": "8be64a63c762f91d87addb2c553b6e0643a647d0",
+  "sourceFingerprint": "4a678500a4809b57bd30c76b7796deb5d2d652abf5eea3c5baf9f0fd463a6780",
+  "focusedRuns": [
+    {
+      "scope": "wet rubber, tire model, material grip",
+      "passed": 30,
+      "total": 30
+    },
+    {
+      "scope": "surface, substrate and water energy accounting",
+      "passed": 15,
+      "total": 15
+    },
+    {
+      "scope": "camera dynamics, framing and presentation continuity",
+      "passed": 63,
+      "total": 63
+    },
+    {
+      "scope": "directional assists, airborne and existing clutch behavior",
+      "passed": 24,
+      "total": 24
+    }
+  ],
+  "focusedRunsNote": "Separate successful subsystem runs during implementation; not a claim that the entire repository suite passed on the final commit.",
+  "additionalSurfaceIntegration": {
+    "weatherCasesPassed": 10,
+    "openWorldCasesPassed": 26,
+    "note": "Passed in an earlier combined 49-case thermal/weather/open-world run; the thermal file later increased from 13 to 15 passing cases."
+  },
+  "deterministicReplay": {
+    "status": "passed",
+    "cases": 2,
+    "source": "tests/flashback-determinism.test.ts",
+    "sourceSha256": "76dadbd1850050fd4fada237861942c9633138b4d2511a1aa9c354ab2c2ad802",
+    "runner": "Existing test bodies with Vitest describe/it/expect replaced by a synchronous Node assert bridge. Physical inputs and assertions retained; the original Vitest wall-time deadline was not enforced.",
+    "checks": [
+      "3000 logged ticks reproduced bitwise, twice",
+      "rewind to tick 2000, resume with changed inputs, then reproduce the new timeline"
+    ]
+  },
+  "lint": {
+    "status": "passed",
+    "changedTypeScriptFiles": 19,
+    "note": "18 changed source/test files in the final root ESLint run; the separate checked-in grip probe also passed ESLint."
+  },
+  "gripProbe": {
+    "status": "passed",
+    "path": "scripts/physics-v17-grip-probe.ts",
+    "cases": 8,
+    "massKg": 250,
+    "startSpeedKph": 100,
+    "cutoffSpeedKph": 5,
+    "brakeTorqueNm": 4000,
+    "waterMm": 0.6,
+    "hz": [240, 480],
+    "distanceM": {
+      "dryClean": [23.0325, 23.0552],
+      "dryFullRubber": [21.9232, 21.9428],
+      "wetClean": [50.4065, 50.4305],
+      "wetFullRubber": [56.4945, 56.5213]
+    },
+    "maximumTimestepDifferencePercent": 0.0982087,
+    "calibrationClaim": "Isolated production-tire diagnostic; not measured full-car calibration.",
+    "distanceValuesRoundedToDecimals": 4
+  },
+  "cameraProbe": {
+    "renderRatesFps": [20, 60, 144, 240, 1000],
+    "idealImpactRamp": [0, 0.4],
+    "rampSeconds": 0.25,
+    "analyticDisplacementM": 0.0003217970200495814,
+    "maximumReportedErrorM": 1e-18,
+    "note": "Specified ideal signal, not arbitrary undersampling or measured human biomechanics."
+  },
+  "productionBundle": {
+    "status": "passed",
+    "nodeHeapMiB": 2560,
+    "sourceCommit": "7911ff7ecd3c628036f01d36ad0f6eb76c3f5fa3",
+    "unchangedPublicAssetTree": "2e291e068d7974d776bc92152db98282f9f6e7ea",
+    "method": "Production Vite configuration with an identical clean public asset tree reused read-only; output directed to temporary storage.",
+    "exitCode": 0,
+    "modulesTransformed": 772,
+    "elapsedSecondsReported": 143,
+    "buildIdentity": {
+      "version": 1,
+      "commit": "7911ff7ecd3c628036f01d36ad0f6eb76c3f5fa3",
+      "fingerprint": "4a678500a4809b57bd30c76b7796deb5d2d652abf5eea3c5baf9f0fd463a6780"
+    },
+    "warning": "Large chunks remain; minified entry chunk 15616.34 kB (gzip 4698.43 kB). No device-performance certification.",
+    "earlierAttempts": [
+      {
+        "nodeHeapMiB": 768,
+        "exitCode": 134,
+        "result": "JavaScript heap exhaustion after module transformation"
+      },
+      {
+        "nodeHeapMiB": 1536,
+        "exitCode": 134,
+        "result": "JavaScript heap exhaustion during chunk rendering"
+      }
+    ]
+  },
+  "incompleteChecks": [
+    "The broader 21-file integrated Vitest attempt was interrupted during the same memory pressure; no whole-suite pass claim.",
+    "The SwiftShader adapter was verified, but the camera/weather browser acceptance attempt was interrupted before completion. No browser acceptance or physical-GPU performance pass claim.",
+    "An isolated Vercel validation runner could not be created: API access was denied (403), and no CLI fallback was installed."
+  ],
+  "githubCI": {
+    "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/39408674981",
+    "lastObservedStatus": "queued",
+    "fullSuitePassed": false
+  },
+  "physicalLimits": [
+    "Original reduced coefficients, not iRacing proprietary data or measured venue/vehicle calibration.",
+    "Grounded effective clutch inertia is approximate and uses prior-substep contact support.",
+    "Festival uses one climate column and no spatial traffic heating.",
+    "GP/motocross retain their existing reduced tire thermal models.",
+    "Road receives tire-slip heat, but conductive tire-road exchange is not a closed reciprocal global energy system."
+  ],
+  "finalTypeScript": {
+    "status": "passed",
+    "command": "node --max-old-space-size=2560 node_modules/typescript/bin/tsc --noEmit",
+    "exitCode": 0,
+    "scope": "Complete repository tsconfig: production source, tests, browser fixtures, scripts and root TypeScript configuration files."
+  },
+  "resourceRecovery": "Earlier compiler attempts were interrupted under shared 8 GiB memory pressure. The final complete TypeScript check and production bundle both passed with a 2560 MiB Node heap. Failed lower-heap bundle attempts are retained in the productionBundle record."
+}
