@@ -75,7 +75,15 @@ describe('authored berm practice sectors', () => {
         for (let d = 0; d <= s.length; d += 0.25) {
           const at = mod(s.from + d, track.length);
           expect(course.jumpAt(at), `${s.name} at ${d}`).toBeNull();
-          expect(course.isRough(at), `${s.name} at ${d}`).toBe(false);
+          // Entry braking bumps are now part of the line choice; full-width
+          // whoops/chop remain excluded from a grounded corner comparison.
+          expect(
+            course.rough.some(
+              (rough) =>
+                mod(at - rough.from, track.length) <= mod(rough.to - rough.from, track.length),
+            ),
+            `${s.name} at ${d}`,
+          ).toBe(false);
         }
       }
     },
@@ -83,6 +91,88 @@ describe('authored berm practice sectors', () => {
 });
 
 describe('observed berm entry, apex and exit', () => {
+  it('compares the same station of a real best run, including its varying speed', () => {
+    const h = harness();
+    h.tick({ time: 0, s: 16, speed: 10 });
+    h.tick({ time: 1.4, s: 30 });
+    h.tick({ time: 2.4, s: 40 });
+    h.tick({ time: 3.4, s: 50, speed: 30 });
+    h.tick({ time: 4.4, s: 80 });
+    const best = h.practice.record(sector, 'dry')!.best;
+    expect(best.seconds).toBeCloseTo(4, 8);
+    expect(best.splitTimes).toHaveLength(33);
+    expect(best.splitTimes[0]).toBe(0);
+    expect(best.splitTimes[16]).toBeCloseTo(3, 8);
+    expect(best.splitTimes[32]).toBeCloseTo(best.seconds, 8);
+    h.tick({ time: 10, s: 16, speed: 15 });
+    h.tick({ time: 11.6, s: 40 });
+    h.tick({ time: 10 + 34 / 15, s: 50 });
+    expect(h.practice.active?.elapsed).toBeCloseTo(2, 8);
+    // Half of the full PB is 2 s, but the recorded apex took 3 s.
+    expect(h.practice.active?.delta).toBeCloseTo(-1, 8);
+    expect(h.practice.record(sector, 'dry')!.best).toBe(best);
+  });
+
+  it('keeps spatial splits and live gaps consistent across presentation rates', () => {
+    for (const spacing of [1, 4, 8, 17]) {
+      const h = harness();
+      h.traverse(1, 20, 3, spacing);
+      h.tick({ time: 1 + 68 / 20, s: 84 });
+      const trace = h.practice.record(sector, 'dry')!.best.splitTimes;
+      for (let i = 0; i < trace.length; i++)
+        expect(trace[i], `spacing ${spacing}, station ${i}`).toBeCloseTo((i / 32) * 3, 8);
+      for (let d = 0; d < 34; d += spacing)
+        h.tick({ time: 10 + d / 24, s: 16 + d, speed: 24, lateral: -3 });
+      h.tick({ time: 10 + 34 / 24, s: 50 });
+      expect(h.practice.active?.delta, `spacing ${spacing}`).toBeCloseTo(-0.25, 8);
+    }
+  });
+
+  it('counts a stop as lost time but repeated paused frames do not change the gap', () => {
+    const h = harness();
+    h.traverse(1, 20);
+    h.tick({ time: 10, s: 16, speed: 20 });
+    h.tick({ time: 11.7, s: 50 });
+    expect(h.practice.active?.delta).toBeCloseTo(0, 8);
+    h.tick({ time: 12.7, speed: 0 });
+    expect(h.practice.active?.delta).toBeCloseTo(1, 8);
+    h.tick({ time: 12.7 });
+    expect(h.practice.active?.delta).toBeCloseTo(1, 8);
+    h.tick({ time: 13.7, s: 60, speed: 20 });
+    h.tick({ time: 14.7, s: 80 });
+    const last = h.practice.last!;
+    expect(last.splitTimes[16]).toBeCloseTo(1.5, 8);
+    expect(last.splitTimes[32]).toBeCloseTo(4.5, 8);
+    expect(last.seconds).toBeCloseTo(last.splitTimes[32], 8);
+  });
+
+  it('never substitutes a dry or other-machine run for missing comparable evidence', () => {
+    const h = harness();
+    h.tick({ time: 0, s: 16 });
+    h.tick({ time: 1, s: 36 });
+    expect(h.practice.active?.delta).toBeNull();
+    h.traverse(5, 20);
+    h.tick({ time: 10, s: 16, moisture: 0.8 });
+    h.tick({ time: 11, s: 36 });
+    expect(h.practice.active?.delta).toBeNull();
+    h.tick({ time: 15, s: 16, moisture: 0.2 });
+    h.tick({ time: 16, s: 36 });
+    expect(h.practice.active?.delta).toBeCloseTo(0, 8);
+    h.tick({ time: 16.1, s: 38, moisture: 0.8 });
+    expect(h.practice.active?.delta).toBeNull();
+    h.tick({ time: 20, s: 16, moisture: 0.2, machine: 'mx250:sport' });
+    h.tick({ time: 21, s: 36 });
+    expect(h.practice.active?.delta).toBeNull();
+  });
+
+  it('interpolates live comparison through a bank across the lap seam', () => {
+    const h = harness({ ...sector, from: 280, apex: 10, to: 40 });
+    h.traverse(1, 20);
+    h.tick({ time: 10, s: 276, speed: 24 });
+    h.tick({ time: 10 + 34 / 24, s: 10 });
+    expect(h.practice.active?.delta).toBeCloseTo(-0.25, 8);
+  });
+
   it('records the traversed line, elapsed time and interpolated exit speed only once', () => {
     const h = harness();
     h.tick({ time: 0, s: 18, lateral: -3, speed: 20 });

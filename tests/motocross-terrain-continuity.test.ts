@@ -277,6 +277,7 @@ describe('continuous motocross terrain lighting and live rut receivers', () => {
           'color',
           'mxBrakingWork',
           'mxCourse',
+          'mxCourseWear',
           'mxCourseWidth',
           'mxSoilMix',
           'normal',

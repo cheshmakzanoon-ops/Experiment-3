@@ -30,6 +30,15 @@ import {
   shapeGpSuitGeometry,
 } from './gp-rider-suit.ts';
 import { motocrossFabricMaps, motocrossGraphics } from './offroad/motocross-detail.ts';
+import type { MotocrossBootSkin } from './offroad/motocross-boot-skin.ts';
+import {
+  MX_BOOT_ANKLE,
+  MX_BOOT_PEG,
+  MX_GLOVE_GRIP,
+  MX_GLOVE_WRIST,
+  motocrossBootFrame,
+  motocrossSoleContact,
+} from './offroad/motocross-rider-contact.ts';
 import {
   sampleMotocrossRiderMotion,
   type MotocrossRiderMotion,
@@ -368,7 +377,7 @@ export class Rider {
    * grips (after steering) and the two foot pegs. Index 0 left (+X), 1 right. */
   readonly seat = new T.Vector3(0, 0.3, -0.24);
   readonly grips = [new T.Vector3(0.3, 0.24, 0.35), new T.Vector3(-0.3, 0.24, 0.35)];
-  /** Cylinder axes in this same sprung frame; supplied from the real GP bars. */
+  /** Cylinder axes in this same sprung frame; supplied from the real bars. */
   readonly gripAxes = [new T.Vector3(1, 0, 0), new T.Vector3(1, 0, 0)];
   /** Blade contact points in this rider-root frame, supplied by the GP lever. */
   brakeFingerTargets?: readonly [T.Vector3, T.Vector3];
@@ -384,6 +393,8 @@ export class Rider {
   private readonly feet: T.Group[] = [];
   private readonly bootCuffs: (T.Object3D | undefined)[] = [];
   private readonly motocrossGarments: MotocrossGarmentMesh[] = [];
+  private readonly motocrossBoots: MotocrossBootSkin[] = [];
+  private readonly motocrossContact = new T.Vector3();
   private readonly motocrossShoulders: T.Bone[] = [];
   private readonly motocrossMotion: MotocrossRiderMotion = {
     pelvisDrop: 0,
@@ -1090,7 +1101,10 @@ export class Rider {
       const foot = new T.Group();
       if (mx) foot.name = `Motocross ${i === 0 ? 'left' : 'right'} boot`;
       else if (gp) foot.name = `GP ${i === 0 ? 'left' : 'right'} foot`;
-      if (mx) addMotocrossBoot(foot, detail, side, mxBoot!, flex, armour);
+      // The planted boot frame has +Y down, +Z forward and +X toward bike
+      // right. Mirror its lateral buckles so they remain outside both legs.
+      if (mx)
+        this.motocrossBoots.push(addMotocrossBoot(foot, detail, -side, mxBoot!, flex, armour));
       else
         foot.add(
           gpRacingBoot(detail, side, { leather: glove, panel, sole: flex, armour, slider }, gp),
@@ -1135,6 +1149,7 @@ export class Rider {
           this.forearms[i].group.quaternion.copy(this.exteriorForearms[i].quaternion);
           this.upperArms[i].group.position.copy(this.exteriorUpperArms[i].position);
           this.upperArms[i].group.quaternion.copy(this.exteriorUpperArms[i].quaternion);
+          if (this.riding) this.attachMotocrossHand(i);
         }
       for (const garment of this.motocrossGarments) garment.updatePose();
     }
@@ -1166,21 +1181,36 @@ export class Rider {
       this.exteriorUpperArms[i].quaternion.copy(this.upperArms[i].group.quaternion);
     }
   }
+  private attachMotocrossHand(i: number) {
+    // This cylinder-frame math is also used by the GP rig; MX supplies its
+    // own actual bar axis and its own glove's wrist/grip landmarks.
+    gpGripFrame(this.gripAxes[i], this.q);
+    gpAttachAtJoint(
+      this.hands[i],
+      this.forearms[i].group.quaternion,
+      RIDER.forearm,
+      this.q,
+      MX_GLOVE_WRIST,
+    );
+  }
   private onboardArms() {
-    const [elbow, pole, offset, shoulder] = this.v;
+    const [elbow, pole, offset, shoulder, wrist] = this.v;
     for (let i = 0; i < this.forearms.length; i++) {
       const side = i === 0 ? 1 : -1;
       // Preserve the authored forearm length and the exact hand contact. The
       // exterior standing elbow pole lies above this fixed bike-frame camera;
       // the first-person pole instead carries each sleeve out of the lower view.
+      gpGripFrame(this.gripAxes[i], this.q);
+      gpContactJoint(this.grips[i], this.q, MX_GLOVE_GRIP, MX_GLOVE_WRIST, wrist);
       offset.set(side * 0.09, -0.13, -0.23).normalize();
-      elbow.copy(this.grips[i]).addScaledVector(offset, RIDER.forearm);
+      elbow.copy(wrist).addScaledVector(offset, RIDER.forearm);
       offset.set(side * 0.015, -0.16, -0.24).normalize();
       shoulder.copy(elbow).addScaledVector(offset, RIDER.upperArm);
-      pole.copy(this.grips[i]);
+      pole.copy(wrist);
       pole.z += 1;
       this.upperArms[i].aim(shoulder, elbow, pole);
-      this.forearms[i].aim(elbow, this.grips[i], pole);
+      this.forearms[i].aim(elbow, wrist, pole);
+      this.attachMotocrossHand(i);
     }
     for (const garment of this.motocrossGarments) garment.updatePose();
   }
@@ -1260,9 +1290,15 @@ export class Rider {
             mx ? 0.04 : -0.1,
           ),
         );
-      if (gpContact) {
+      if (gpContact || mx) {
         gpGripFrame(this.gripAxes[i], this.q);
-        gpContactJoint(this.grips[i], this.q, GP_GLOVE_GRIP, GP_GLOVE_WRIST, target);
+        gpContactJoint(
+          this.grips[i],
+          this.q,
+          mx ? MX_GLOVE_GRIP : GP_GLOVE_GRIP,
+          mx ? MX_GLOVE_WRIST : GP_GLOVE_WRIST,
+          target,
+        );
         // A braking rider can protract the outside shoulder within the suit.
         // Preserve a little elbow flex at full hang-off rather than letting
         // the fixed-length IK silently shorten its wrist target off the grip.
@@ -1279,7 +1315,7 @@ export class Rider {
           this.forearms[i].group.quaternion,
           RIDER.forearm,
           this.q,
-          GP_GLOVE_WRIST,
+          mx ? MX_GLOVE_WRIST : GP_GLOVE_WRIST,
         );
         if (i === 1)
           this.gpBrakeFingers?.update(braking, this.brakeFingerTargets, this.grips[i], this.q);
@@ -1319,6 +1355,22 @@ export class Rider {
         // Inverse ankle rotation keeps the existing cuff on the shin while
         // its forefoot rests on the rearset. No skinning or vertex uploads.
         this.bootCuffs[i]?.quaternion.copy(this.feet[i].quaternion).invert();
+      } else if (mx) {
+        // Solve the ankle above the contact patch. The boot sole stays on
+        // the serrations while its calf follows this independently solved
+        // shin, including standing absorption and a continuous foot dab.
+        motocrossSoleContact(this.pegs[i], side, dab, this.motocrossContact);
+        motocrossBootFrame(this.q, down);
+        gpContactJoint(this.motocrossContact, this.q, MX_BOOT_PEG, MX_BOOT_ANKLE, target);
+        twoBone(this.thighs[i], this.shins[i], hip, target, pole, joint);
+        gpAttachAtJoint(
+          this.feet[i],
+          this.shins[i].group.quaternion,
+          RIDER.shin,
+          this.q,
+          MX_BOOT_ANKLE,
+        );
+        this.motocrossBoots[i].updatePose();
       } else if (down > 0) {
         // Motocross: project the boot ahead of the peg, heel close to the
         // surface. The former 86 cm drop put the target far below the track.
@@ -1326,7 +1378,7 @@ export class Rider {
         target.lerpVectors(this.pegs[i], target, down);
         twoBone(this.thighs[i], this.shins[i], hip, target, pole, joint);
       } else twoBone(this.thighs[i], this.shins[i], hip, this.pegs[i], pole, joint);
-      if (!gpContact || down > 0) {
+      if (!mx && (!gpContact || down > 0)) {
         this.feet[i].position.set(0, RIDER.shin + 0.02, 0);
         this.feet[i].rotation.set(mx ? -0.07 - down * 0.15 : -0.35, 0, 0);
         this.bootCuffs[i]?.quaternion.identity();
@@ -1374,6 +1426,21 @@ export class Rider {
       pole.copy(a).add(b.set(side * 0.1, 0, 0.6).applyQuaternion(this.torso.quaternion));
       twoBone(this.thighs[i], this.shins[i], a, c, pole, joint);
       this.feet[i].rotation.set(-1.4, 0, 0);
+      if (this.kit === 'motocross') {
+        // Recovery starts from its own joint frames, not the last steering
+        // angle or standing ankle pose retained by a previous riding frame.
+        this.hands[i].position.set(0, RIDER.forearm + 0.02, 0);
+        this.hands[i].rotation.set(0.2, 0, 0);
+        motocrossBootFrame(this.q).premultiply(this.torso.quaternion);
+        gpAttachAtJoint(
+          this.feet[i],
+          this.shins[i].group.quaternion,
+          RIDER.shin,
+          this.q,
+          MX_BOOT_ANKLE,
+        );
+        this.motocrossBoots[i].updatePose();
+      }
       if (this.gp && this.kit !== 'motocross') {
         // A held recovery frame must not inherit the last riding wrist/ankle
         // transforms, including after a replay jumps directly out of a turn.
@@ -1402,6 +1469,7 @@ export class Rider {
     this.gpBrakeFingers?.dispose();
     this.gpSpine?.dispose();
     for (const garment of this.motocrossGarments) garment.skeleton.dispose();
+    for (const boot of this.motocrossBoots) boot.dispose();
     for (const garment of this.gpGarments) garment.dispose();
     this.root.traverse((o) => {
       if (o instanceof T.Mesh) o.geometry.dispose();

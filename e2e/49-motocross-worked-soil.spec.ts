@@ -37,19 +37,20 @@ test('MX and SX prepared traffic remains visible and reversible with resident pr
   await page.addScriptTag({ content: script.code });
   for (const circuit of ['valley-ridge-mx', 'arena-nord-sx'] as const) {
     const result = await page.evaluate(
-      (circuit) =>
+      ({ circuit, compact }) =>
         (
           window as unknown as {
             MotocrossWorkedSoil: {
               captureMotocrossWorkedSoil: typeof captureMotocrossWorkedSoil;
             };
           }
-        ).MotocrossWorkedSoil.captureMotocrossWorkedSoil(circuit),
-      circuit,
+        ).MotocrossWorkedSoil.captureMotocrossWorkedSoil(circuit, { compact }),
+      { circuit, compact: process.env.APEX_MX_SOIL_COMPACT === '1' },
     );
     expect(result.sourceUnchanged).toBe(true);
     expect(result.geometry.courseWidthBytes).toBe(result.geometry.vertices * 4);
-    expect(result.hooks).toContain('mx-groomed-soil-v3');
+    expect(result.geometry.courseWearBytes).toBe(result.geometry.vertices * 16);
+    expect(result.hooks).toContain('mx-groomed-soil-v4');
     expect(result.hooks).toContain('mx-soil-morphology-v2');
     expect(result.scans.failed).toEqual([]);
     for (const { samples } of result.results) {
@@ -63,7 +64,9 @@ test('MX and SX prepared traffic remains visible and reversible with resident pr
       expect(samples[0].hash).not.toBe(samples[1].hash);
       expect(samples[1].hash).toBe(samples[2].hash);
       expect(samples[0].hash).toBe(samples[3].hash);
-      for (const sample of samples.slice(0, 2))
+      expect(samples[0].hash).not.toBe(samples[4].hash);
+      expect(samples[0].hash).toBe(samples[5].hash);
+      for (const sample of [samples[0], samples[1], samples[4]])
         await info.attach(`${circuit}-${sample.label}.png`, {
           body: Buffer.from(sample.image.split(',')[1], 'base64'),
           contentType: 'image/png',

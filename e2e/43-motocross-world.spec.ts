@@ -66,7 +66,7 @@ test('MX and SX production terrain loads photographed soil with correct macros a
         expect(sample.hash).not.toBe(0);
         expect(sample.bikes).toBe(8);
         expect(sample.terrainCells).toBeGreaterThan(50);
-        expect(sample.soilHooks).toContain('mx-groomed-soil-v3');
+        expect(sample.soilHooks).toContain('mx-groomed-soil-v4');
         expect(sample.soilScans.active).toBe(true);
         expect(sample.soilScans.macro).toBe('dryEarth');
         expect(sample.soilScans.compiledMacroSampler).toBe('apexScanDryEarthC');

@@ -1,0 +1,47 @@
+{
+  "schema": 1,
+  "sourceCheckpoint": "38621c69f00d636454f3ffbb794ed6c48245f2e0",
+  "headAfter": "38621c69f00d636454f3ffbb794ed6c48245f2e0",
+  "sourceTree": "8144229c41f0c37ab9184074b8d5c5d7b3ff82ea",
+  "command": [
+    "npm",
+    "run",
+    "build",
+    "--",
+    "--outDir",
+    "<temporary-output>/dist",
+    "--emptyOutDir"
+  ],
+  "exitCode": 0,
+  "exitCodeEvidence": "The original wrapper only entered its failing identity assertion inside the code === 0 branch after waiting for npm run build. TypeScript and Vite completed normally; the enclosing verification wrapper then exited 1.",
+  "elapsedSeconds": null,
+  "elapsedUnavailableReason": "The wrapper stopped at its post-build fingerprint assertion before writing its elapsed-time receipt. No total build duration is reconstructed.",
+  "viteReportedDuration": "1m 48s",
+  "transformedModules": 775,
+  "buildIdentity": {
+    "version": 1,
+    "commit": "38621c69f00d636454f3ffbb794ed6c48245f2e0",
+    "fingerprint": "eaf5f5df3556f653ed9376633dba7f48a105e4ce0482bc90c82c7e341206687d"
+  },
+  "sourceVerified": {
+    "fingerprint": "eaf5f5df3556f653ed9376633dba7f48a105e4ce0482bc90c82c7e341206687d",
+    "inputFiles": 794,
+    "gitBlobMatches": 794,
+    "sourceWorktreeClean": true,
+    "algorithm": "The same sourceFiles traversal and full-string Array.sort ordering as vite.config.ts; path + NUL + bytes + NUL SHA-256."
+  },
+  "identityVerification": {
+    "initialWrapperExitCode": 1,
+    "initialFailure": "AssertionError comparing emitted fingerprint to the verification helper digest.",
+    "initialHelperFingerprint": "0189e8c1f527d2d104ae56921314ffae35d386bc4cca722eb50e2e5937392867",
+    "cause": "Python pathlib.Path ordering compares path components, unlike JavaScript full-path string sorting. No source difference was found.",
+    "correction": "Recompute with the exact Node/Vite ordering and independently compare every input against its committed Git blob.",
+    "finalStatus": "passed",
+    "finalFingerprint": "eaf5f5df3556f653ed9376633dba7f48a105e4ce0482bc90c82c7e341206687d",
+    "committedInputBlobMatches": 794,
+    "sourceOrBuildGateChanged": false,
+    "productionBuildRepeated": false
+  },
+  "receipt": "build.txt",
+  "outputLocationOnly": "Normal pinned-LOD prebuild, TypeScript and Vite production build; only generated output and temporary/cache storage were relocated."
+}

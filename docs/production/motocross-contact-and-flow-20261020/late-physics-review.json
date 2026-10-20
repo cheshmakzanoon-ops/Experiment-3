@@ -1,0 +1,118 @@
+{
+  "schema": "motocross-late-physics-integration-review-v1",
+  "date": "2026-10-20",
+  "scope": "Static Git-object source review of physics v17 integration. This receipt records no new test, build, browser or GPU execution.",
+  "mergedCheckpoint": "38621c69f00d636454f3ffbb794ed6c48245f2e0",
+  "preservedRemoteMain": "7911ff7ecd3c628036f01d36ad0f6eb76c3f5fa3",
+  "incomingParent": "8be64a63c762f91d87addb2c553b6e0643a647d0",
+  "buildIdentityProvidedByIntegrationOwner": {
+    "inputFiles": 794,
+    "fingerprint": "eaf5f5df3556f653ed9376633dba7f48a105e4ce0482bc90c82c7e341206687d",
+    "recomputedByThisReview": false,
+    "ownedInputs": 28,
+    "onlyChangedOwnedInput": "src/rendering/renderer.ts",
+    "rendererSHA256": "64dd525a4f0dd5ec94df4595307719b36439ec9237be1bb29365d2bd0da122f7",
+    "orderingCorrection": "The integration owner corrected its initial Python Path-component sort to the full-string lexical ordering used by Vite; the corrected Node recomputation matches the emitted build and all 794 committed input blobs."
+  },
+  "completedSourceReview": {
+    "offroadWaterAndThermalDependency": {
+      "finding": "Track.evolve now uses fixed 0.5-second coupled water/surface/substrate updates without excluding offroad venues. Track.sample copies grid water and temperature into successful offroad contact samples. DirtBikeVehicle reaches peakGrip through BikeVehicle.surfaceGrip, so changed water-film evolution can change wet motocross traction.",
+      "path": [
+        "src/simulation/track.ts: Track.evolve and Track.sample",
+        "src/simulation/surface-thermal.ts: SurfaceThermalStep",
+        "src/simulation/offroad/course-terrain.ts: TrackTerrainSurface.sample",
+        "src/simulation/bike-vehicle.ts: BikeVehicle.surfaceGrip",
+        "src/simulation/tire.ts: peakGrip",
+        "src/simulation/offroad/dirt-bike-vehicle.ts: front/rear surfaceGrip"
+      ],
+      "qualification": "Both water and temperature channels are shared. The identified direct effect on ordinary MX soil is water-dependent grip; material temperature also enters materialGrip, whose melt response is gated by meltSensitive materials. This review does not claim a calibrated soil thermal model."
+    },
+    "unsealedRubber": {
+      "finding": "rubberGrip returns 1 for unsealed materials. Track.sample already zeroes rubber and marbles on unsealed offroad contacts. The new rubber inversion therefore adds no rubber-line effect to ordinary motocross dirt.",
+      "remainingScope": "Sealed rallycross, supermoto and paved contacts can receive the new rubber behavior."
+    },
+    "courseWearAndPractice": {
+      "unchangedProductionFiles": [
+        "src/rendering/offroad/mx-course-wear.ts",
+        "src/rendering/offroad/mx-soil-detail.ts",
+        "src/rendering/offroad/terrain-view.ts",
+        "src/simulation/offroad/berm-practice.ts",
+        "src/ui/offroad-hud.ts"
+      ],
+      "unchangedCourseInputs": [
+        "src/simulation/offroad/course.ts",
+        "src/simulation/offroad/venues.ts",
+        "src/simulation/offroad/course-terrain.ts"
+      ],
+      "finding": "Jump/berm surveys and the static launch/landing/gap/berm weights remain unchanged. CourseTerrain.weather, soil moisture, O.MOISTURE, dry/damp/wet classification and actual same-station PB interpolation remain unchanged. Real attempt times may change through the shared water physics; the comparator still measures real passage times.",
+      "recordLifetime": "Berm practice history is session-local, with its existing course/machine resets and eligibility rules."
+    },
+    "recordCompatibility": {
+      "simulationVersion": 17,
+      "source": "src/core/session-identity.ts",
+      "finding": "Persistent records use the new simulation version; prior physics records retain their original identity category."
+    },
+    "fourWheelBoundary": {
+      "finding": "Direction-aware drivingSlip ABS/TC changes and supported-contact clutch inertia are applied in Vehicle stepping. DirtBikeVehicle and BikeVehicle retain their overridden bike stepping/drive paths.",
+      "sources": [
+        "src/simulation/driving-assists.ts",
+        "src/simulation/vehicle.ts",
+        "src/simulation/bike-vehicle.ts",
+        "src/simulation/offroad/dirt-bike-vehicle.ts"
+      ]
+    },
+    "runtimeBoundary": {
+      "presentedForces": "RacingRenderer now feeds inertial-camera acceleration and impact from the PresentedFrame values rather than the newer raw snapshot; zero-time samples establish the force baseline.",
+      "warmupPreserved": "The motorcycle hidden-Formula-host compilation exclusions and existing GPU completion gates are unchanged by this incoming revision.",
+      "motocrossChase": "Motocross chase remains on its independent motocrossCamera update path.",
+      "motorcycleOnboard": "BikeShells.onboard supplies the measured motorcycle mount after the generic seated-camera calculation. This change is not evidence of newly verified motocross recoil.",
+      "sources": [
+        "src/rendering/renderer.ts",
+        "src/rendering/camera-dynamics.ts",
+        "src/rendering/bike.ts"
+      ]
+    }
+  },
+  "recommendedIntegrationChecks": {
+    "coreFiles": [
+      "tests/surface-thermal.test.ts",
+      "tests/wet-rubber-grip.test.ts",
+      "tests/motocross-contact-traction.test.ts",
+      "tests/motocross-berm-practice.test.ts",
+      "tests/session-identity.test.ts"
+    ],
+    "focusedOffroadCases": {
+      "file": "tests/offroad.test.ts",
+      "names": [
+        "is deterministic run to run and identical after a re-simulation",
+        "gives loose-ground tyres their recovery on terrain-venue soil only"
+      ]
+    },
+    "incomingFeatureGatesOutsideTheMxForceSolver": [
+      "tests/driving-assists.test.ts",
+      "tests/airborne-clutch.test.ts",
+      "tests/camera-dynamics.test.ts"
+    ],
+    "compile": "Normal TypeScript and full production build on the merged source, with the integration owner recording its exact final input fingerprint."
+  },
+  "priorEvidenceScope": [
+    "Existing terrain and rider GPU captures remain controlled component evidence from their recorded source versions. No repeat GPU coverage is claimed for this merge.",
+    "Unlike the Festival-only delta, v17 changes shared Track/Tire dependencies. Earlier import-closure invariance findings cannot be extended to this physics revision.",
+    "Unchanged visual wear/contact source does not establish unchanged live wet traction, full application startup success or hardware performance."
+  ],
+  "executionStatusAtReviewTime": {
+    "staticSourceReview": "completed",
+    "sourceEditsByThisReview": false,
+    "testsRunByThisReview": false,
+    "buildRunByThisReview": false,
+    "browserOrGpuRunByThisReview": false,
+    "targetedCpuResults": "Pending integration-owner receipt; this review makes no run or pass claim.",
+    "finalBuildResults": "Pending integration-owner receipt; this review makes no build-pass claim."
+  },
+  "completedIntegrationEvidence": {
+    "cpu": "late-physics-checks.json",
+    "build": "late-physics-build.json",
+    "ownerSourceManifest": "verification.json",
+    "note": "The source reviewer did not execute these checks; the linked receipts were added by the integration owner after the source review."
+  }
+}

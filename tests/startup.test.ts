@@ -7,16 +7,16 @@ import { vehicleIndex } from '../src/simulation/vehicles.ts';
 import { rulesetFor } from '../src/simulation/events.ts';
 import type { SessionOptions } from '../src/simulation/config.ts';
 
-function fixture(vehicle = 'apx01') {
+function fixture(vehicle = 'apx01', entrants = 3) {
   const calls: string[] = [];
   let bound: T.WebGLRenderTarget | null = null;
-  const sample = new Float32Array(HEADER + CAR_STRIDE * 3);
-  sample[H.CARS] = 3;
+  const sample = new Float32Array(HEADER + CAR_STRIDE * entrants);
+  sample[H.CARS] = entrants;
   sample[H.TIME] = 0;
   const follow = 1;
   sample[carBase(follow) + RACE_BASE + R.VEHICLE] = vehicleIndex(vehicle);
   const target = {
-    cars: [] as { update: ReturnType<typeof vi.fn> }[],
+    cars: [] as { root: T.Group; update: ReturnType<typeof vi.fn> }[],
     follow,
     quality: 'high',
     bikeShells: {
@@ -29,8 +29,8 @@ function fixture(vehicle = 'apx01') {
         calls.push(`motorcycle-surface:${enabled}`);
       }),
     },
-    scene: {},
-    camera: {},
+    scene: new T.Scene(),
+    camera: new T.PerspectiveCamera(),
     mode: 'pod',
     preparation: new PreparationTrace(),
     composer: { readBuffer: new T.WebGLRenderTarget(8, 8, { type: T.HalfFloatType }) },
@@ -45,7 +45,11 @@ function fixture(vehicle = 'apx01') {
       calls.push('shadow-casters');
     }),
     setCars(n: number) {
-      while (this.cars.length < n) this.cars.push({ update: vi.fn() });
+      while (this.cars.length < n) {
+        const root = new T.Group();
+        this.scene.add(root);
+        this.cars.push({ root, update: vi.fn() });
+      }
       calls.push(`cars:${n}`);
     },
     renderer: {
@@ -61,7 +65,7 @@ function fixture(vehicle = 'apx01') {
       setViewport: vi.fn(),
       setScissor: vi.fn(),
       setScissorTest: vi.fn(),
-      compileAsync: vi.fn(async () => {
+      compileAsync: vi.fn(async (_scene: T.Object3D, _camera: T.Camera, _targetScene?: T.Scene) => {
         expect(bound).toBe(target.composer.readBuffer);
         calls.push('compile');
       }),
@@ -90,6 +94,97 @@ function fixture(vehicle = 'apx01') {
   };
   return { target, calls, sample, typed: target as unknown as RacingRenderer };
 }
+it.each([
+  { label: 'MX250 gate', machines: Array<string>(8).fill('mx250') },
+  { label: 'MX450 gate', machines: Array<string>(8).fill('mx450') },
+  { label: 'mixed exhibition', machines: ['mx250', 'apx01', 'mx450', 'gpr1'] },
+  { label: 'Formula grid', machines: ['apx01', 'apx01', 'apx01'] },
+])(
+  'keeps bike LODs and omits hidden Formula hosts during preparation: $label',
+  async ({ machines }) => {
+    const { target, typed, sample } = fixture(machines[1], machines.length),
+      geometry = new T.BufferGeometry(),
+      material = new T.MeshStandardMaterial(),
+      retained: T.Object3D[] = [],
+      omitted: T.Object3D[] = [];
+    target.setCars(machines.length);
+    const mesh = (parent: T.Object3D) => {
+      const object = new T.Mesh(geometry, material);
+      parent.add(object);
+      return object;
+    };
+    retained.push(mesh(target.scene));
+    const bikeRoots: T.Group[] = [];
+    machines.forEach((machine, id) => {
+      sample[carBase(id) + RACE_BASE + R.VEHICLE] = vehicleIndex(machine);
+      const host = mesh(target.cars[id].root);
+      if (machine === 'apx01') retained.push(host);
+      else {
+        omitted.push(host);
+        const bike = new T.Group();
+        bikeRoots.push(bike);
+        target.scene.add(bike);
+        // Low-distance LOD and service geometry are hidden now but may be
+        // needed later. Only the unrelated Formula host may be omitted.
+        for (let level = 0; level < 4; level++) {
+          const detail = new T.Group();
+          detail.visible = level === 0;
+          bike.add(detail);
+          retained.push(mesh(detail));
+        }
+      }
+    });
+    target.bikeShells.update.mockImplementation(() => {
+      machines.forEach((machine, id) => {
+        target.cars[id].root.visible = machine === 'apx01';
+      });
+    });
+    target.draw.mockImplementation(() => {
+      // Camera-specific equipment can appear during the chase/onboard warmup.
+      // Each later compile must inspect the current tree, not a stale list.
+      if (bikeRoots[0]) retained.push(mesh(bikeRoots[0]));
+    });
+    target.renderer.compileAsync.mockImplementation(async (view, camera, originalScene) => {
+      expect(camera).toBe(target.camera);
+      if (bikeRoots.length) {
+        expect(view).not.toBe(target.scene);
+        expect(originalScene).toBe(target.scene);
+      } else {
+        expect(view).toBe(target.scene);
+        expect(originalScene).toBeUndefined();
+      }
+      const compiled: T.Object3D[] = [];
+      view.traverse((object) => {
+        if (object instanceof T.Mesh) compiled.push(object);
+      });
+      expect(new Set(compiled)).toEqual(new Set(retained));
+      for (const object of omitted) expect(compiled).not.toContain(object);
+      for (const car of target.cars) expect(car.root.parent).toBe(target.scene);
+    });
+    const before = sample.slice();
+    try {
+      expect(
+        await RacingRenderer.prototype.prepare.call(
+          typed,
+          sample,
+          vi.fn(),
+          () => false,
+          async () => {},
+          false,
+        ),
+      ).toBe(true);
+      expect(target.renderer.compileAsync).toHaveBeenCalledTimes(3);
+      expect(target.waitForPreparedFrame).toHaveBeenCalledTimes(2);
+      expect(target.warmShadowCasters).toHaveBeenCalledTimes(1);
+      expect(target.preparation.snapshot()?.status).toBe('complete');
+      expect(sample).toEqual(before);
+    } finally {
+      geometry.dispose();
+      material.dispose();
+      target.composer.readBuffer.dispose();
+    }
+  },
+);
 it.each([
   { vehicle: 'apx01', motorcycle: false, grandPrix: false },
   { vehicle: 'gpr1', motorcycle: true, grandPrix: true },

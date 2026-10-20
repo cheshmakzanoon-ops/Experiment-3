@@ -956,7 +956,7 @@ export class DirtBikeModel {
           new T.BoxGeometry(0.098, 0.014, 0.009),
           this.m.steel,
           side * 0.17,
-          -0.449,
+          detail === 'high' ? -0.449 : -0.4385,
           z,
         );
       add(
@@ -964,7 +964,7 @@ export class DirtBikeModel {
         new T.BoxGeometry(0.011, 0.014, 0.059),
         this.m.steel,
         side * 0.217,
-        -0.449,
+        detail === 'high' ? -0.449 : -0.4385,
         -0.1,
       );
       if (detail === 'high')
@@ -1175,8 +1175,10 @@ export class DirtBikeModel {
       this.steerMount.updateMatrix();
       this.steer.updateMatrix();
       this.matrix.multiplyMatrices(this.steerMount.matrix, this.steer.matrix);
-      for (let i = 0; i < 2; i++)
+      for (let i = 0; i < 2; i++) {
         this.rider.grips[i].copy(this.gripLocal[i]).applyMatrix4(this.matrix);
+        this.rider.gripAxes[i].set(1, 0, 0).transformDirection(this.matrix);
+      }
       // Read the authoritative rendered chassis frame once for gaze.
       // Suspension travel separately drives the rider's compression response.
       this.scratch.set(0, 0, 1).applyQuaternion(this.root.quaternion);

@@ -257,6 +257,42 @@ describe('motocross HUD flight transitions', () => {
     expect(pass(30, 20, 0)).toContain('First timed run');
   });
 
+  it('shows live time gained and lost against the recorded corner at the same station', () => {
+    const h = harness(),
+      b = carBase(0),
+      sector = motocrossBermSectors(h.track, offroadCourse(h.track.circuit)!).find(
+        (candidate) => candidate.name === 'OAK BERM',
+      )!;
+    h.pose(0, 20);
+    for (let d = -1; d <= sector.length + 1; d += 2) {
+      h.frame[b + F.S] = sector.from + d;
+      h.present(1 + (d + 1) / 20, false, 0);
+    }
+    const attempt = (start: number, speed: number) => {
+      h.pose(0, speed);
+      h.frame[b + F.S] = sector.from - 1;
+      h.present(start, false, 0);
+      h.frame[b + F.S] = sector.from + 10;
+      return h.present(start + 11 / speed, false, 0);
+    };
+    const faster = attempt(20, 25);
+    expect(faster).toContain('LIVE · VS YOUR BEST');
+    expect(faster).toContain('−0.10 S');
+    expect(faster).toContain('s elapsed');
+    const slower = attempt(30, 10);
+    expect(slower).toContain('LIVE · VS YOUR BEST');
+    expect(slower).toContain('+0.50 S');
+    h.flags(FLAG.YELLOW);
+    const caution = h.present(h.frame[H.TIME], false, 0);
+    expect(caution).toContain('ROLL THE NEXT JUMP');
+    expect(caution).not.toContain('VS YOUR BEST');
+    h.flags(FLAG.GREEN);
+    expect(h.present(h.frame[H.TIME], false, 0, 0.1, 2, 0, false)).not.toContain('VS YOUR BEST');
+    expect(h.present(h.frame[H.TIME], false, 0, 0.1, 2, 0, true, true)).not.toContain(
+      'VS YOUR BEST',
+    );
+  });
+
   it('uses measured retry distance and takeoff speed without replacing the next approach reference', () => {
     const h = harness(),
       jump = offroadCourse(h.track.circuit)!.jumps[0],

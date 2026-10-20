@@ -4,6 +4,11 @@ import { BikeMaterials, type BikePoseValues } from '../src/rendering/bike.ts';
 import { DirtBikeModel } from '../src/rendering/offroad/dirt-bike-model.ts';
 import { mudUniforms } from '../src/rendering/offroad/mud.ts';
 import { VEHICLES } from '../src/simulation/vehicles.ts';
+import {
+  MX_BOOT_PEG,
+  MX_GLOVE_GRIP,
+  MX_PEG_TOP,
+} from '../src/rendering/offroad/motocross-rider-contact.ts';
 
 beforeAll(() => {
   const ctx = new Proxy(
@@ -52,7 +57,7 @@ describe('motocross fore/aft weight-shift contact', () => {
     },
   );
   it.each(['mx250', 'mx450', 'sm450'])(
-    '%s keeps wrists and boots attached through body stroke, steering and independent travel',
+    '%s keeps actual glove and sole contacts attached through body stroke, steering and independent travel',
     (id) => {
       const definition = VEHICLES[id],
         materials = new BikeMaterials(0),
@@ -105,19 +110,21 @@ describe('motocross fore/aft weight-shift contact', () => {
                         steer,
                         side,
                       });
-                      hands[side].getWorldPosition(point);
+                      point.fromArray(MX_GLOVE_GRIP).applyMatrix4(hands[side].matrixWorld);
                       target.copy(model.rider.grips[side]).applyMatrix4(model.sprung.matrixWorld);
                       const handError = point.distanceTo(target);
-                      boots[side].getWorldPosition(point);
-                      target.copy(model.rider.pegs[side]).applyMatrix4(model.sprung.matrixWorld);
+                      point.fromArray(MX_BOOT_PEG).applyMatrix4(boots[side].matrixWorld);
+                      target.copy(model.rider.pegs[side]);
+                      target.y += MX_PEG_TOP;
+                      target.applyMatrix4(model.sprung.matrixWorld);
                       const ankleError = point.distanceTo(target);
                       if (handError > worstHand.error) worstHand = { error: handError, context };
                       if (ankleError > worstAnkle.error)
                         worstAnkle = { error: ankleError, context };
                     }
                   }
-        expect(worstHand.error, worstHand.context).toBeLessThan(0.03);
-        expect(worstAnkle.error, worstAnkle.context).toBeLessThan(0.03);
+        expect(worstHand.error, worstHand.context).toBeLessThan(1e-6);
+        expect(worstAnkle.error, worstAnkle.context).toBeLessThan(1e-6);
       } finally {
         model.dispose();
         materials.dispose();

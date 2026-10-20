@@ -3,6 +3,7 @@ import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { Rider, RIDER, type RiderPose } from '../src/rendering/rider.ts';
 import {
   addMotocrossGarment,
+  MotocrossGarmentMesh,
   motocrossGarmentGeometry,
   type MotocrossGarment,
 } from '../src/rendering/offroad/motocross-gear.ts';
@@ -34,7 +35,7 @@ const basePose: RiderPose = {
 function garments(rider: Rider) {
   const result: T.SkinnedMesh[] = [];
   rider.root.traverse((object) => {
-    if (object instanceof T.SkinnedMesh) result.push(object);
+    if (object instanceof MotocrossGarmentMesh) result.push(object);
   });
   return result;
 }

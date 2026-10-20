@@ -1,0 +1,772 @@
+{
+  "schemaVersion": 1,
+  "scope": "Production TerrainView and soil shaders in an isolated fixture, both motocross venues; final source hashes recorded below.",
+  "runnerSummary": {
+    "startTime": "2026-10-20T09:14:06.345Z",
+    "duration": 265861.453,
+    "expected": 1,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "testSpec": "e2e/49-motocross-worked-soil.spec.ts",
+  "backend": {
+    "kind": "SwiftShader",
+    "identity": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+    "hardwarePerformanceValidated": false
+  },
+  "captureOptions": {
+    "environment": "APEX_MX_SOIL_COMPACT=1",
+    "width": 640,
+    "height": 400,
+    "shadowMapSize": 512,
+    "defaultFixtureWidth": 1120,
+    "defaultFixtureHeight": 700,
+    "defaultFixtureShadowMapSize": 1536
+  },
+  "sourceFiles": {
+    "src/rendering/offroad/mx-course-wear.ts": "3c52d1562a24f0c24271850ff0be9b8034e03f56d8a84883bd962945716d185f",
+    "src/rendering/offroad/mx-soil-detail.ts": "ec3c4cbfed2bb2248cbb2b809de53fc3bf672fd9323fccf09d073641ae69e6c4",
+    "src/rendering/offroad/terrain-view.ts": "a2133d46d72f0378b4aabadab14e1c6f62c2bc1694b984238c3930ab4a5e8645",
+    "e2e/fixtures/motocross-worked-soil.ts": "3d4879f2b5f9b334e374b1b9f8b0eb58ba3b38f0eaafe374c81a9562c33d4ed6"
+  },
+  "checks": {
+    "sourceUnchanged": true,
+    "glErrors": 0,
+    "dryWetHashesDifferent": true,
+    "heldWetHashesEqual": true,
+    "replayRestoresPreparedHashes": true,
+    "zeroingFeatureWeightsChangesPixels": true,
+    "restoringFeatureWeightsRestoresPixels": true,
+    "drawTriangleAndResourceCountsUnchangedAcrossStates": true
+  },
+  "venues": [
+    {
+      "circuit": "valley-ridge-mx",
+      "capture": {
+        "width": 640,
+        "height": 400,
+        "shadowMapSize": 512
+      },
+      "results": [
+        {
+          "angle": "approach",
+          "cameraPose": {
+            "station": 187.49243881411726,
+            "width": 5,
+            "camera": [
+              78.01002249637588,
+              4.373549691921956,
+              -53.997989217391066
+            ],
+            "target": [
+              65.01002368321699,
+              1.777218909971003,
+              -54
+            ]
+          },
+          "samples": [
+            {
+              "label": "approach-prepared",
+              "hash": 3582959941,
+              "glError": 0,
+              "calls": 8,
+              "triangles": 72800,
+              "resources": {
+                "geometries": 9,
+                "textures": 11,
+                "programs": 2
+              }
+            },
+            {
+              "label": "approach-wet",
+              "hash": 2950143151,
+              "glError": 0,
+              "calls": 8,
+              "triangles": 72800,
+              "resources": {
+                "geometries": 9,
+                "textures": 11,
+                "programs": 2
+              }
+            },
+            {
+              "label": "approach-wet-held",
+              "hash": 2950143151,
+              "glError": 0,
+              "calls": 8,
+              "triangles": 72800,
+              "resources": {
+                "geometries": 9,
+                "textures": 11,
+                "programs": 2
+              }
+            },
+            {
+              "label": "approach-prepared-restored",
+              "hash": 3582959941,
+              "glError": 0,
+              "calls": 8,
+              "triangles": 72800,
+              "resources": {
+                "geometries": 9,
+                "textures": 11,
+                "programs": 2
+              }
+            },
+            {
+              "label": "approach-generic-traffic",
+              "hash": 3245118914,
+              "glError": 0,
+              "calls": 8,
+              "triangles": 72800,
+              "resources": {
+                "geometries": 9,
+                "textures": 11,
+                "programs": 2
+              }
+            },
+            {
+              "label": "approach-course-wear-restored",
+              "hash": 3582959941,
+              "glError": 0,
+              "calls": 8,
+              "triangles": 72800,
+              "resources": {
+                "geometries": 9,
+                "textures": 11,
+                "programs": 2
+              }
+            }
+          ]
+        },
+        {
+          "angle": "berm",
+          "cameraPose": {
+            "station": 138.231635049003,
+            "width": 5.229176785460466,
+            "camera": [
+              98.36749041900198,
+              7.501071989546272,
+              -80.03514525446717
+            ],
+            "target": [
+              106.34206887938957,
+              1.301071989546272,
+              -72.0098042412066
+            ]
+          },
+          "samples": [
+            {
+              "label": "berm-prepared",
+              "hash": 207106303,
+              "glError": 0,
+              "calls": 1,
+              "triangles": 9600,
+              "resources": {
+                "geometries": 10,
+                "textures": 11,
+                "programs": 2
+              }
+            },
+            {
+              "label": "berm-wet",
+              "hash": 3318041264,
+              "glError": 0,
+              "calls": 1,
+              "triangles": 9600,
+              "resources": {
+                "geometries": 10,
+                "textures": 11,
+                "programs": 2
+              }
+            },
+            {
+              "label": "berm-wet-held",
+              "hash": 3318041264,
+              "glError": 0,
+              "calls": 1,
+              "triangles": 9600,
+              "resources": {
+                "geometries": 10,
+                "textures": 11,
+                "programs": 2
+              }
+            },
+            {
+              "label": "berm-prepared-restored",
+              "hash": 207106303,
+              "glError": 0,
+              "calls": 1,
+              "triangles": 9600,
+              "resources": {
+                "geometries": 10,
+                "textures": 11,
+                "programs": 2
+              }
+            },
+            {
+              "label": "berm-generic-traffic",
+              "hash": 3563859457,
+              "glError": 0,
+              "calls": 1,
+              "triangles": 9600,
+              "resources": {
+                "geometries": 10,
+                "textures": 11,
+                "programs": 2
+              }
+            },
+            {
+              "label": "berm-course-wear-restored",
+              "hash": 207106303,
+              "glError": 0,
+              "calls": 1,
+              "triangles": 9600,
+              "resources": {
+                "geometries": 10,
+                "textures": 11,
+                "programs": 2
+              }
+            }
+          ]
+        },
+        {
+          "angle": "jump",
+          "cameraPose": {
+            "station": 313.4667149818128,
+            "width": 5,
+            "camera": [
+              -37.18420993311244,
+              18.974422978231082,
+              -11.850021803032057
+            ],
+            "target": [
+              -17.999999999999986,
+              4.449235457445939,
+              -4.998518255491895
+            ]
+          },
+          "samples": [
+            {
+              "label": "jump-prepared",
+              "hash": 4221515679,
+              "glError": 0,
+              "calls": 6,
+              "triangles": 57600,
+              "resources": {
+                "geometries": 10,
+                "textures": 11,
+                "programs": 2
+              }
+            },
+            {
+              "label": "jump-wet",
+              "hash": 2569085095,
+              "glError": 0,
+              "calls": 6,
+              "triangles": 57600,
+              "resources": {
+                "geometries": 10,
+                "textures": 11,
+                "programs": 2
+              }
+            },
+            {
+              "label": "jump-wet-held",
+              "hash": 2569085095,
+              "glError": 0,
+              "calls": 6,
+              "triangles": 57600,
+              "resources": {
+                "geometries": 10,
+                "textures": 11,
+                "programs": 2
+              }
+            },
+            {
+              "label": "jump-prepared-restored",
+              "hash": 4221515679,
+              "glError": 0,
+              "calls": 6,
+              "triangles": 57600,
+              "resources": {
+                "geometries": 10,
+                "textures": 11,
+                "programs": 2
+              }
+            },
+            {
+              "label": "jump-generic-traffic",
+              "hash": 4038493231,
+              "glError": 0,
+              "calls": 6,
+              "triangles": 57600,
+              "resources": {
+                "geometries": 10,
+                "textures": 11,
+                "programs": 2
+              }
+            },
+            {
+              "label": "jump-course-wear-restored",
+              "hash": 4221515679,
+              "glError": 0,
+              "calls": 6,
+              "triangles": 57600,
+              "resources": {
+                "geometries": 10,
+                "textures": 11,
+                "programs": 2
+              }
+            }
+          ]
+        }
+      ],
+      "sourceUnchanged": true,
+      "geometry": {
+        "meshes": 10,
+        "vertices": 47430,
+        "courseWidthBytes": 189720,
+        "courseWearBytes": 758880,
+        "attributesBytes": 6640200
+      },
+      "hooks": [
+        "library-soil-v1",
+        "library-wet-surface-v1",
+        "scanned-soil-v1",
+        "mx-groomed-soil-v4",
+        "mx-soil-morphology-v2",
+        "mx-physical-braking-lines-v1",
+        "mx-terrain-receiver-plane-v1"
+      ],
+      "scans": {
+        "preset": "high",
+        "enabled": true,
+        "hex": true,
+        "resident": [
+          "meadow",
+          "forest",
+          "dryEarth",
+          "wetEarth",
+          "gravel"
+        ],
+        "failed": [],
+        "formats": {
+          "meadow": {
+            "color": "ktx2",
+            "normal": "ktx2",
+            "orm": "ktx2"
+          },
+          "forest": {
+            "color": "ktx2",
+            "normal": "ktx2",
+            "orm": "ktx2"
+          },
+          "dryEarth": {
+            "color": "ktx2",
+            "normal": "ktx2",
+            "orm": "ktx2"
+          },
+          "wetEarth": {
+            "color": "ktx2",
+            "normal": "ktx2",
+            "orm": "ktx2"
+          },
+          "gravel": {
+            "color": "ktx2",
+            "normal": "ktx2",
+            "orm": "ktx2"
+          }
+        },
+        "normalResidency": {
+          "meadow": "source",
+          "forest": "source",
+          "dryEarth": "source",
+          "wetEarth": "source",
+          "gravel": "source"
+        },
+        "materials": 1,
+        "scanned": 1
+      },
+      "renderer": "WebKit WebGL"
+    },
+    {
+      "circuit": "arena-nord-sx",
+      "capture": {
+        "width": 640,
+        "height": 400,
+        "shadowMapSize": 512
+      },
+      "results": [
+        {
+          "angle": "approach",
+          "cameraPose": {
+            "station": 134.86410262099292,
+            "width": 4.376644357421841,
+            "camera": [
+              77.98755227320589,
+              3.2,
+              -7.002578102387982
+            ],
+            "target": [
+              64.98821756896093,
+              0.3623926540793978,
+              -6.999999999999998
+            ]
+          },
+          "samples": [
+            {
+              "label": "approach-prepared",
+              "hash": 2240404272,
+              "glError": 0,
+              "calls": 7,
+              "triangles": 45446,
+              "resources": {
+                "geometries": 7,
+                "textures": 7,
+                "programs": 2
+              }
+            },
+            {
+              "label": "approach-wet",
+              "hash": 2512744370,
+              "glError": 0,
+              "calls": 7,
+              "triangles": 45446,
+              "resources": {
+                "geometries": 7,
+                "textures": 7,
+                "programs": 2
+              }
+            },
+            {
+              "label": "approach-wet-held",
+              "hash": 2512744370,
+              "glError": 0,
+              "calls": 7,
+              "triangles": 45446,
+              "resources": {
+                "geometries": 7,
+                "textures": 7,
+                "programs": 2
+              }
+            },
+            {
+              "label": "approach-prepared-restored",
+              "hash": 2240404272,
+              "glError": 0,
+              "calls": 7,
+              "triangles": 45446,
+              "resources": {
+                "geometries": 7,
+                "textures": 7,
+                "programs": 2
+              }
+            },
+            {
+              "label": "approach-generic-traffic",
+              "hash": 3821067509,
+              "glError": 0,
+              "calls": 7,
+              "triangles": 45446,
+              "resources": {
+                "geometries": 7,
+                "textures": 7,
+                "programs": 2
+              }
+            },
+            {
+              "label": "approach-course-wear-restored",
+              "hash": 2240404272,
+              "glError": 0,
+              "calls": 7,
+              "triangles": 45446,
+              "resources": {
+                "geometries": 7,
+                "textures": 7,
+                "programs": 2
+              }
+            }
+          ]
+        },
+        {
+          "angle": "berm",
+          "cameraPose": {
+            "station": 110.88030274809535,
+            "width": 4.829799818470301,
+            "camera": [
+              79.28233656070164,
+              6.641241368010407,
+              -22.142020506755582
+            ],
+            "target": [
+              87.1297486355008,
+              0.4412413680104064,
+              -13.992288994104626
+            ]
+          },
+          "samples": [
+            {
+              "label": "berm-prepared",
+              "hash": 3222990146,
+              "glError": 0,
+              "calls": 3,
+              "triangles": 19890,
+              "resources": {
+                "geometries": 7,
+                "textures": 7,
+                "programs": 2
+              }
+            },
+            {
+              "label": "berm-wet",
+              "hash": 2448831783,
+              "glError": 0,
+              "calls": 3,
+              "triangles": 19890,
+              "resources": {
+                "geometries": 7,
+                "textures": 7,
+                "programs": 2
+              }
+            },
+            {
+              "label": "berm-wet-held",
+              "hash": 2448831783,
+              "glError": 0,
+              "calls": 3,
+              "triangles": 19890,
+              "resources": {
+                "geometries": 7,
+                "textures": 7,
+                "programs": 2
+              }
+            },
+            {
+              "label": "berm-prepared-restored",
+              "hash": 3222990146,
+              "glError": 0,
+              "calls": 3,
+              "triangles": 19890,
+              "resources": {
+                "geometries": 7,
+                "textures": 7,
+                "programs": 2
+              }
+            },
+            {
+              "label": "berm-generic-traffic",
+              "hash": 1644531727,
+              "glError": 0,
+              "calls": 3,
+              "triangles": 19890,
+              "resources": {
+                "geometries": 7,
+                "textures": 7,
+                "programs": 2
+              }
+            },
+            {
+              "label": "berm-course-wear-restored",
+              "hash": 3222990146,
+              "glError": 0,
+              "calls": 3,
+              "triangles": 19890,
+              "resources": {
+                "geometries": 7,
+                "textures": 7,
+                "programs": 2
+              }
+            }
+          ]
+        },
+        {
+          "angle": "jump",
+          "cameraPose": {
+            "station": 181.29397809416258,
+            "width": 4.199999999999989,
+            "camera": [
+              24.058342095791282,
+              12.01,
+              -22.39999999999999
+            ],
+            "target": [
+              18.558342095791282,
+              0.35,
+              -6.999999999999995
+            ]
+          },
+          "samples": [
+            {
+              "label": "jump-prepared",
+              "hash": 2975915248,
+              "glError": 0,
+              "calls": 6,
+              "triangles": 42044,
+              "resources": {
+                "geometries": 7,
+                "textures": 7,
+                "programs": 2
+              }
+            },
+            {
+              "label": "jump-wet",
+              "hash": 1321244071,
+              "glError": 0,
+              "calls": 6,
+              "triangles": 42044,
+              "resources": {
+                "geometries": 7,
+                "textures": 7,
+                "programs": 2
+              }
+            },
+            {
+              "label": "jump-wet-held",
+              "hash": 1321244071,
+              "glError": 0,
+              "calls": 6,
+              "triangles": 42044,
+              "resources": {
+                "geometries": 7,
+                "textures": 7,
+                "programs": 2
+              }
+            },
+            {
+              "label": "jump-prepared-restored",
+              "hash": 2975915248,
+              "glError": 0,
+              "calls": 6,
+              "triangles": 42044,
+              "resources": {
+                "geometries": 7,
+                "textures": 7,
+                "programs": 2
+              }
+            },
+            {
+              "label": "jump-generic-traffic",
+              "hash": 3537854710,
+              "glError": 0,
+              "calls": 6,
+              "triangles": 42044,
+              "resources": {
+                "geometries": 7,
+                "textures": 7,
+                "programs": 2
+              }
+            },
+            {
+              "label": "jump-course-wear-restored",
+              "hash": 2975915248,
+              "glError": 0,
+              "calls": 6,
+              "triangles": 42044,
+              "resources": {
+                "geometries": 7,
+                "textures": 7,
+                "programs": 2
+              }
+            }
+          ]
+        }
+      ],
+      "sourceUnchanged": true,
+      "geometry": {
+        "meshes": 7,
+        "vertices": 30527,
+        "courseWidthBytes": 122108,
+        "courseWearBytes": 488432,
+        "attributesBytes": 4273780
+      },
+      "hooks": [
+        "library-soil-v1",
+        "library-wet-surface-v1",
+        "scanned-soil-v1",
+        "mx-groomed-soil-v4",
+        "mx-soil-morphology-v2",
+        "mx-physical-braking-lines-v1",
+        "mx-terrain-receiver-plane-v1"
+      ],
+      "scans": {
+        "preset": "high",
+        "enabled": true,
+        "hex": true,
+        "resident": [
+          "meadow",
+          "forest",
+          "dryEarth",
+          "wetEarth",
+          "gravel"
+        ],
+        "failed": [],
+        "formats": {
+          "meadow": {
+            "color": "ktx2",
+            "normal": "ktx2",
+            "orm": "ktx2"
+          },
+          "forest": {
+            "color": "ktx2",
+            "normal": "ktx2",
+            "orm": "ktx2"
+          },
+          "dryEarth": {
+            "color": "ktx2",
+            "normal": "ktx2",
+            "orm": "ktx2"
+          },
+          "wetEarth": {
+            "color": "ktx2",
+            "normal": "ktx2",
+            "orm": "ktx2"
+          },
+          "gravel": {
+            "color": "ktx2",
+            "normal": "ktx2",
+            "orm": "ktx2"
+          }
+        },
+        "normalResidency": {
+          "meadow": "source",
+          "forest": "source",
+          "dryEarth": "source",
+          "wetEarth": "source",
+          "gravel": "source"
+        },
+        "materials": 1,
+        "scanned": 1
+      },
+      "renderer": "WebKit WebGL"
+    }
+  ],
+  "retainedCaptures": [
+    {
+      "file": "valley-ridge-mx-jump-prepared.png",
+      "bytes": 411519,
+      "sha256": "175319e26ed251828471ed8a83347ba4cc29dcff80dfe6e3e168a03c110bae99"
+    },
+    {
+      "file": "valley-ridge-mx-jump-generic-traffic.png",
+      "bytes": 411560,
+      "sha256": "b1cd5d24a368b98defe24bb27e51ed1a2d63ee99c5baeb66449e43e4053eca3c"
+    },
+    {
+      "file": "arena-nord-sx-berm-prepared.png",
+      "bytes": 414533,
+      "sha256": "94b8753e175c5a2d6360d90d4241897d7b6ccbe4cb5a7467ddb16549a6facd79"
+    },
+    {
+      "file": "arena-nord-sx-berm-wet.png",
+      "bytes": 392016,
+      "sha256": "067efc09e01d0fefc0ea47d0223d21ef68b0084681625d64a160c7fedcfda099"
+    }
+  ],
+  "limitations": [
+    "Software renderer only; no physical-device FPS measured.",
+    "Terrain fixture omits world dressing, full application startup and a live player-input journey.",
+    "Prepared soil wear is an authored visual approximation tied to real course surveys, not a new contact or grip model."
+  ]
+}

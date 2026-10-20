@@ -1,0 +1,56 @@
+{
+  "checkedAt": "2026-10-20T10:18:02Z",
+  "stats": {
+    "startTime": "2026-10-20T10:07:35.868Z",
+    "duration": 581718.8319999999,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  },
+  "results": [
+    {
+      "title": "real motocross player entry, eight-rider gate, riding, cameras, pause and venue switch",
+      "status": "failed",
+      "startTime": "2026-10-20T10:12:38.511Z",
+      "duration": 249743,
+      "errors": [
+        {
+          "location": {
+            "file": "/workspace/scratch/2722987e9955/Experiment-3/e2e/45-motocross-gameplay.spec.ts",
+            "column": 39,
+            "line": 31
+          },
+          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m failed\n\nLocator:  locator('#menu')\nExpected: visible\nReceived: hidden\nTimeout:  180000ms\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 180000ms\u001b[22m\n\u001b[2m  - waiting for locator('#menu')\u001b[22m\n\u001b[2m    23 \u00d7 locator resolved to <section id=\"menu\" hidden=\"\" class=\"menu\" data-bike=\"false\" data-discipline=\"circuit\">\u2026</section>\u001b[22m\n\u001b[2m       - unexpected value \"hidden\"\u001b[22m\n\n\n  29 |   };\n  30 |   await page.goto('/');\n> 31 |   await expect(page.locator('#menu')).toBeVisible({ timeout: MENU_STARTUP_TIMEOUT_MS });\n     |                                       ^\n  32 |   const entryPresentation = (await diag()).renderer!;\n  33 |   expect(entryPresentation.presentationPurpose).toBe('showroom');\n  34 |   expect(entryPresentation.construction.tasks).toBe(0);\n    at /workspace/scratch/2722987e9955/Experiment-3/e2e/45-motocross-gameplay.spec.ts:31:39"
+        }
+      ],
+      "stdout": [],
+      "stderr": [],
+      "attachments": []
+    }
+  ],
+  "receipts": [
+    {
+      "path": "/workspace/scratch/2722987e9955/mx-production-journey-mesa-report.json",
+      "bytes": 6770,
+      "sha256": "70d72564aba83e91d98ce4991ecab9e01f8b3485bf4bcff5d66335f5e7b8f8e0"
+    },
+    {
+      "path": "/workspace/scratch/2722987e9955/mx-production-journey-mesa-backend.json",
+      "bytes": 325,
+      "sha256": "9ddbe9ad44808a6870cd07050381a6a34e2a1dba36490aa7bd029cec6a6d15ed"
+    },
+    {
+      "path": "/workspace/scratch/2722987e9955/mx-production-journey-mesa-served-build.json",
+      "bytes": 409,
+      "sha256": "42814bb61e045b3e89b61dc642141d8cf6136cb7d8721324cf35394589cdfbca"
+    },
+    {
+      "path": "/workspace/scratch/2722987e9955/mx-production-journey-mesa-xvfb.log",
+      "bytes": 3522,
+      "sha256": "f55e2a6894d1dfbec3e5fcb281a8d1d729dfe04923cdfe02ca3a4e801739b3f2"
+    }
+  ],
+  "ownedProcessesRemaining": [],
+  "note": "Unchanged e2e/45 full journey failed the initial menu visibility assertion before Low or either venue. No gameplay or screenshot stage reached. Tested served fingerprint 96452ad0cd4219d361c26e7b827b613ef9b7c0cb0347769fc796d7c710635ca9; later merged source is not the tested build."
+}

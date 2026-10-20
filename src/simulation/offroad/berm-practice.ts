@@ -89,6 +89,9 @@ export interface BermPracticeResult {
   line: BermLine;
   soil: BermSoil;
   exitSpeed: number;
+  /** Elapsed times at evenly spaced stations, including entry and exit.
+   * A fixed spatial trace makes a live comparison independent of frame rate. */
+  splitTimes: readonly number[];
   /** Signed difference from the earlier best in this soil category. */
   delta: number | null;
   improved: boolean;
@@ -111,6 +114,20 @@ interface ActiveBerm {
   line: BermLine;
   soil: BermSoil;
   apexSeen: boolean;
+  splitTimes: number[];
+  /** Seconds ahead of (negative) or behind the best at this same station. */
+  delta: number | null;
+}
+
+const BERM_SPLITS = 32;
+
+/** Interpolate the recorded passage time at a course station. The reference
+ * is an actual completed traversal, never the fraction of a whole-sector PB. */
+function passageTime(result: BermPracticeResult, progress: number) {
+  if (result.splitTimes.length !== BERM_SPLITS + 1) return null;
+  const at = clamp(progress, 0, 1) * BERM_SPLITS;
+  const lower = Math.min(BERM_SPLITS - 1, Math.floor(at));
+  return lerp(result.splitTimes[lower], result.splitTimes[lower + 1], at - lower);
 }
 
 /** Session-local, snapshot-driven corner timing. Only a complete, observed
@@ -205,6 +222,8 @@ export class MotocrossBermPractice {
             line: motocrossBermLine(lerp(this.lateral, sample.lateral, fraction), sector),
             soil: motocrossBermSoil(lerp(this.moisture, sample.moisture, fraction)),
             apexSeen: false,
+            splitTimes: [0],
+            delta: null,
           };
           break;
         }
@@ -228,6 +247,17 @@ export class MotocrossBermPractice {
           0,
           1,
         );
+        // Samples can cross several stations at low presentation rates. Each
+        // crossing uses the observed segment's time, including its interpolated
+        // entry/exit, rather than stamping every split with the current frame.
+        const travelled = mod(s - active.sector.from, sample.length);
+        const previousTravelled = travelled - step;
+        while (active.splitTimes.length <= BERM_SPLITS) {
+          const station = (active.splitTimes.length / BERM_SPLITS) * active.sector.length;
+          if (station > travelled) break;
+          const fraction = clamp((station - previousTravelled) / step, 0, 1);
+          active.splitTimes.push(lerp(this.time, sample.time, fraction) - active.startedAt);
+        }
         if (exitDistance <= step) {
           const fraction = exitDistance / step;
           const at = lerp(this.time, sample.time, fraction);
@@ -241,6 +271,7 @@ export class MotocrossBermPractice {
               line: active.line,
               soil: active.soil,
               exitSpeed: lerp(this.speed, sample.speed, fraction),
+              splitTimes: active.splitTimes,
               delta: previous ? seconds - previous.best.seconds : null,
               improved: !!previous && seconds < previous.best.seconds - 0.005,
             };
@@ -259,8 +290,16 @@ export class MotocrossBermPractice {
         }
       }
     }
-    if (this.active && plausible)
+    if (this.active && plausible) {
       this.active.elapsed = Math.max(0, sample.time - this.active.startedAt);
+      const active = this.active;
+      const reference = this.record(active.sector, active.soil)?.best;
+      const passage =
+        reference && motocrossBermSoil(sample.moisture) === active.soil
+          ? passageTime(reference, active.progress)
+          : null;
+      active.delta = passage === null ? null : active.elapsed - passage;
+    }
     this.time = sample.time;
     this.s = s;
     this.speed = sample.speed;

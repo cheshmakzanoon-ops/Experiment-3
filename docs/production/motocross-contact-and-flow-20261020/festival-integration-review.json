@@ -1,0 +1,290 @@
+{
+  "schema": "motocross-festival-integration-review-v1",
+  "date": "2026-10-20",
+  "reviewMethod": "Read-only Git-object source and literal relative-import analysis, followed by source hash comparison. No tests, build, browser or GPU execution performed for this review.",
+  "incomingCommit": "8be64a63c762f91d87addb2c553b6e0643a647d0",
+  "incomingBase": "0fb423ef8d278122745319d0e852a7ee53203a59",
+  "priorCheckpoint": "53eb4ca683a5e6c00f660bb50b147efac60c6b99",
+  "mergedCommit": "374853ddd1e5574b159c474a111770d9b7830826",
+  "mergedTree": "f517c47c3de1f8ce983f533a4455c5688cd2df3f",
+  "incomingProductionFiles": [
+    "src/rendering/open-world/festival-meadow.ts",
+    "src/rendering/open-world/horizon-dressing.ts",
+    "src/rendering/open-world/vegetation.ts",
+    "src/rendering/vehicle-bodies/body-curvature.ts",
+    "src/rendering/vehicle-bodies/body-sheet.ts",
+    "src/rendering/vehicle-bodies/closed-body.ts",
+    "src/rendering/vehicle-bodies/festival-detail.ts",
+    "src/rendering/vehicle-bodies/festival-nose.ts",
+    "src/rendering/vehicle-bodies/festival-rear.ts",
+    "src/simulation/open-world/circuit-pace.ts",
+    "src/simulation/open-world/festival-result.ts",
+    "src/simulation/open-world/region-data.ts",
+    "src/simulation/open-world/session.ts",
+    "src/ui/festival-hud.css",
+    "src/ui/festival-hud.ts"
+  ],
+  "ownedInputBaseline": {
+    "receipt": "verification.json",
+    "checkpointRecordedAtReview": "53eb4ca683a5e6c00f660bb50b147efac60c6b99",
+    "receiptSHA256AtReview": "4d1fa6f21b3aa9ca9381f9dc2e6f78c5e774b123ebb2a3c15701b1e42daeb84a",
+    "inputCount": 28,
+    "currentWorkingFilesMatchingRecordedHashes": 28,
+    "directIncomingOverlap": []
+  },
+  "importClosureReview": {
+    "basisCommit": "53eb4ca683a5e6c00f660bb50b147efac60c6b99",
+    "comparisonCommit": "374853ddd1e5574b159c474a111770d9b7830826",
+    "method": "Conservative traversal of literal relative source imports/re-exports and literal dynamic imports; type-only imports are included. Package imports, assets and computed runtime URLs are outside this source graph. This revision changes no package manifest, lockfile or public assets.",
+    "scopes": [
+      {
+        "entry": "e2e/fixtures/motocross-worked-soil.ts",
+        "sourceFilesIncludingEntryAndTypeImports": 125,
+        "incomingChangedFilesInClosure": [],
+        "blobChangesAcrossMerge": []
+      },
+      {
+        "entry": "e2e/fixtures/motocross-bike-review.ts",
+        "sourceFilesIncludingEntryAndTypeImports": 161,
+        "incomingChangedFilesInClosure": [],
+        "blobChangesAcrossMerge": []
+      },
+      {
+        "entry": "src/ui/offroad-hud.ts",
+        "sourceFilesIncludingEntryAndTypeImports": 96,
+        "incomingChangedFilesInClosure": [],
+        "blobChangesAcrossMerge": []
+      },
+      {
+        "entry": "src/rendering/circuit.ts",
+        "sourceFilesIncludingEntryAndTypeImports": 347,
+        "incomingChangedFilesInClosure": [],
+        "blobChangesAcrossMerge": []
+      }
+    ]
+  },
+  "sharedRendererAndFestivalGatesReviewed": [
+    {
+      "source": "src/rendering/vehicle-bodies/body-sheet.ts",
+      "finding": "bodySheetFor returns null whenever dynamicsKind is not four-wheel. MX definitions therefore cannot reach buildClosedBody. rearSweep additions apply only to the two authored Festival car sheets."
+    },
+    {
+      "source": "src/rendering/vehicle-bodies/index.ts",
+      "finding": "VehicleBodies.update consults bodySheetFor before building a body. The shared main renderer imports the revised car modules, but the new closed-body tessellation is not constructed for motocross entrants."
+    },
+    {
+      "source": "src/rendering/vehicle-bodies/closed-body.ts",
+      "finding": "The new rear deformation is gated by frontSweep/rearSweep at construction; warpFestivalRear immediately returns without rearSweep. Festival rear/nose references introduce no observed top-level model construction."
+    },
+    {
+      "source": "src/rendering/open-world/vegetation.ts",
+      "finding": "Changed tile vegetation belongs to Festival. Its canopy normal changes operate on geometry created by treeGeometry or a local clone, and its atlas/material instances are owned by that renderer."
+    },
+    {
+      "source": "src/rendering/circuit.ts",
+      "finding": "Motocross uses the unchanged CircuitScene landscape/PhotoPlanting paths. The full conservative CircuitScene import closure has no incoming changed files."
+    },
+    {
+      "source": "src/rendering/renderer.ts",
+      "finding": "The motorcycle hidden-Formula-host exclusion remains byte-identical to the prior checkpoint. This is distinct from the incoming Festival car construction."
+    },
+    {
+      "source": "src/simulation/open-world/session.ts",
+      "finding": "Incoming circuit-pace state and Festival HUD/result changes are confined to open-world session paths; the offroad HUD and berm-practice dependency closure is unchanged."
+    }
+  ],
+  "ownedProductionSourceChecks": {
+    "src/rendering/offroad/dirt-bike-model.ts": {
+      "sha256": "393f14566b6332df84545e207ede6666d3be5ec4cdcf698ecd675668ccbf0f08",
+      "matchesRecordedVerification": true,
+      "unchangedBlobFromPriorCheckpoint": true,
+      "workingTreeMatchesMergedBlob": true
+    },
+    "src/rendering/offroad/motocross-boot-skin.ts": {
+      "sha256": "a1b985418e36960f7b1081015f03df1f24b8bc65c7a05045156adae5a8fa79bd",
+      "matchesRecordedVerification": true,
+      "unchangedBlobFromPriorCheckpoint": true,
+      "workingTreeMatchesMergedBlob": true
+    },
+    "src/rendering/offroad/motocross-rider-contact.ts": {
+      "sha256": "18592c2c9904856fc62e4029fe37d1c14311e30c6b57d684b967c2b0382fe2ee",
+      "matchesRecordedVerification": true,
+      "unchangedBlobFromPriorCheckpoint": true,
+      "workingTreeMatchesMergedBlob": true
+    },
+    "src/rendering/offroad/motocross-rider-equipment.ts": {
+      "sha256": "1dc6b00810741be942c39331c21d5031e6b0fa52924d0ee8ac9378c718b35b01",
+      "matchesRecordedVerification": true,
+      "unchangedBlobFromPriorCheckpoint": true,
+      "workingTreeMatchesMergedBlob": true
+    },
+    "src/rendering/offroad/mx-course-wear.ts": {
+      "sha256": "3c52d1562a24f0c24271850ff0be9b8034e03f56d8a84883bd962945716d185f",
+      "matchesRecordedVerification": true,
+      "unchangedBlobFromPriorCheckpoint": true,
+      "workingTreeMatchesMergedBlob": true
+    },
+    "src/rendering/offroad/mx-soil-detail.ts": {
+      "sha256": "ec3c4cbfed2bb2248cbb2b809de53fc3bf672fd9323fccf09d073641ae69e6c4",
+      "matchesRecordedVerification": true,
+      "unchangedBlobFromPriorCheckpoint": true,
+      "workingTreeMatchesMergedBlob": true
+    },
+    "src/rendering/offroad/terrain-view.ts": {
+      "sha256": "a2133d46d72f0378b4aabadab14e1c6f62c2bc1694b984238c3930ab4a5e8645",
+      "matchesRecordedVerification": true,
+      "unchangedBlobFromPriorCheckpoint": true,
+      "workingTreeMatchesMergedBlob": true
+    },
+    "src/rendering/renderer.ts": {
+      "sha256": "50550ef7165240afaeab02a6618928c279003ae3f3bd1a55f04f873563eb7d09",
+      "matchesRecordedVerification": true,
+      "unchangedBlobFromPriorCheckpoint": true,
+      "workingTreeMatchesMergedBlob": true
+    },
+    "src/rendering/rider.ts": {
+      "sha256": "595d66d3346fa140f674dee55f54183585ca123038217dcacbed518655adf952",
+      "matchesRecordedVerification": true,
+      "unchangedBlobFromPriorCheckpoint": true,
+      "workingTreeMatchesMergedBlob": true
+    },
+    "src/simulation/offroad/berm-practice.ts": {
+      "sha256": "cf16f0666d01ddf3ccbb26185d09f05116a36c2f64b7b226816f49d93241b8f2",
+      "matchesRecordedVerification": true,
+      "unchangedBlobFromPriorCheckpoint": true,
+      "workingTreeMatchesMergedBlob": true
+    },
+    "src/ui/offroad-hud.ts": {
+      "sha256": "10f93e4d2963b17d7d7844040983cb8bc8d1b0dc091026620cdfae11c9550fe4",
+      "matchesRecordedVerification": true,
+      "unchangedBlobFromPriorCheckpoint": true,
+      "workingTreeMatchesMergedBlob": true
+    }
+  },
+  "existingComponentReceiptChecks": [
+    {
+      "receipt": "terrain-source-evidence.json",
+      "productionSourcesStillMatch": true,
+      "sourceComparisons": [
+        {
+          "path": "src/rendering/offroad/mx-course-wear.ts",
+          "recordedSHA256": "3c52d1562a24f0c24271850ff0be9b8034e03f56d8a84883bd962945716d185f",
+          "mergedSHA256": "3c52d1562a24f0c24271850ff0be9b8034e03f56d8a84883bd962945716d185f",
+          "matches": true
+        },
+        {
+          "path": "src/rendering/offroad/mx-soil-detail.ts",
+          "recordedSHA256": "ec3c4cbfed2bb2248cbb2b809de53fc3bf672fd9323fccf09d073641ae69e6c4",
+          "mergedSHA256": "ec3c4cbfed2bb2248cbb2b809de53fc3bf672fd9323fccf09d073641ae69e6c4",
+          "matches": true
+        },
+        {
+          "path": "src/rendering/offroad/terrain-view.ts",
+          "recordedSHA256": "a2133d46d72f0378b4aabadab14e1c6f62c2bc1694b984238c3930ab4a5e8645",
+          "mergedSHA256": "a2133d46d72f0378b4aabadab14e1c6f62c2bc1694b984238c3930ab4a5e8645",
+          "matches": true
+        },
+        {
+          "path": "e2e/fixtures/motocross-worked-soil.ts",
+          "recordedSHA256": "3d4879f2b5f9b334e374b1b9f8b0eb58ba3b38f0eaafe374c81a9562c33d4ed6",
+          "mergedSHA256": "3d4879f2b5f9b334e374b1b9f8b0eb58ba3b38f0eaafe374c81a9562c33d4ed6",
+          "matches": true
+        }
+      ]
+    },
+    {
+      "receipt": "rider-gpu-validation.json",
+      "productionSourcesStillMatch": true,
+      "sourceComparisons": [
+        {
+          "path": "src/rendering/rider.ts",
+          "recordedSHA256": "595d66d3346fa140f674dee55f54183585ca123038217dcacbed518655adf952",
+          "mergedSHA256": "595d66d3346fa140f674dee55f54183585ca123038217dcacbed518655adf952",
+          "matches": true
+        },
+        {
+          "path": "src/rendering/offroad/motocross-rider-contact.ts",
+          "recordedSHA256": "18592c2c9904856fc62e4029fe37d1c14311e30c6b57d684b967c2b0382fe2ee",
+          "mergedSHA256": "18592c2c9904856fc62e4029fe37d1c14311e30c6b57d684b967c2b0382fe2ee",
+          "matches": true
+        },
+        {
+          "path": "src/rendering/offroad/motocross-boot-skin.ts",
+          "recordedSHA256": "a1b985418e36960f7b1081015f03df1f24b8bc65c7a05045156adae5a8fa79bd",
+          "mergedSHA256": "a1b985418e36960f7b1081015f03df1f24b8bc65c7a05045156adae5a8fa79bd",
+          "matches": true
+        },
+        {
+          "path": "src/rendering/offroad/motocross-rider-equipment.ts",
+          "recordedSHA256": "1dc6b00810741be942c39331c21d5031e6b0fa52924d0ee8ac9378c718b35b01",
+          "mergedSHA256": "1dc6b00810741be942c39331c21d5031e6b0fa52924d0ee8ac9378c718b35b01",
+          "matches": true
+        },
+        {
+          "path": "src/rendering/offroad/dirt-bike-model.ts",
+          "recordedSHA256": "393f14566b6332df84545e207ede6666d3be5ec4cdcf698ecd675668ccbf0f08",
+          "mergedSHA256": "393f14566b6332df84545e207ede6666d3be5ec4cdcf698ecd675668ccbf0f08",
+          "matches": true
+        },
+        {
+          "path": "e2e/fixtures/motocross-bike-review.ts",
+          "recordedSHA256": "a73a1a84ba5b89e70671b17ebc24702eda8ea71225813f1ff58bb6c6bc53a2d1",
+          "mergedSHA256": "312006780033b84cfc83e0cb646eda3ab916844531cf93f2cf591dcca32bec50",
+          "matches": false
+        },
+        {
+          "path": "e2e/fixtures/motocross-rider-contact-contract.ts",
+          "recordedSHA256": "4dbc3950650434e2d3f493660940bdab96ba8e2a5b0b3963e3023e33dc4c0a1f",
+          "mergedSHA256": "4dbc3950650434e2d3f493660940bdab96ba8e2a5b0b3963e3023e33dc4c0a1f",
+          "matches": true
+        }
+      ]
+    },
+    {
+      "receipt": "berm-hud-evidence.json",
+      "productionSourcesStillMatch": true,
+      "sourceComparisons": [
+        {
+          "path": "e2e/54-motocross-berm-practice.spec.ts",
+          "recordedSHA256": "bb700ac18378210e29e8fee6d34dc17d25fc54b9d7d74ec8ca2ec57d95fb806b",
+          "mergedSHA256": "bb700ac18378210e29e8fee6d34dc17d25fc54b9d7d74ec8ca2ec57d95fb806b",
+          "matches": true
+        },
+        {
+          "path": "src/simulation/offroad/berm-practice.ts",
+          "recordedSHA256": "cf16f0666d01ddf3ccbb26185d09f05116a36c2f64b7b226816f49d93241b8f2",
+          "mergedSHA256": "cf16f0666d01ddf3ccbb26185d09f05116a36c2f64b7b226816f49d93241b8f2",
+          "matches": true
+        },
+        {
+          "path": "src/ui/offroad-hud.ts",
+          "recordedSHA256": "10f93e4d2963b17d7d7844040983cb8bc8d1b0dc091026620cdfae11c9550fe4",
+          "mergedSHA256": "10f93e4d2963b17d7d7844040983cb8bc8d1b0dc091026620cdfae11c9550fe4",
+          "matches": true
+        },
+        {
+          "path": "src/ui/motocross.css",
+          "recordedSHA256": "78464943062ee7be35587de8a6da1f33ff2dd27e00eecb1edce5042198772fe8",
+          "mergedSHA256": "78464943062ee7be35587de8a6da1f33ff2dd27e00eecb1edce5042198772fe8",
+          "matches": true
+        }
+      ]
+    }
+  ],
+  "receiptScope": [
+    "Terrain and rider GPU receipts remain their original controlled SwiftShader component captures; this review does not convert them into fresh merged-tree GPU runs or hardware performance evidence.",
+    "The rider GPU receipt records source commit 8c975770. Its motocross-bike-review fixture hash differs from checkpoint 53eb and this merge because the earlier upstream supported-chassis helper had already changed. The rider receipt already documents that limitation; production rider sources match and this Festival revision adds no further fixture or closure change.",
+    "HUD receipt retains its actual original test scope. Full application startup observations remain attached to the source/build on which they were made; this source review does not claim that a complete journey passed."
+  ],
+  "recommendedFinalCompileScope": {
+    "minimum": "Run the normal TypeScript check and complete production build on merged commit 374853ddd1e5574b159c474a111770d9b7830826 (or its unchanged source tree), recording the exact tree and build identity. The normal application build must include the shared renderer and Festival modules; a motocross-only fixture bundle is insufficient for that import integration check.",
+    "motocrossComponentRetest": "No additional terrain/rider/HUD GPU replay is indicated by this Festival delta: all reviewed dependency blobs and owned production hashes remain unchanged. Preserve prior receipts at their original scopes.",
+    "onlyIfIncomingFeatureRegressionGateIsRequired": [
+      "tests/festival-rear-construction.test.ts",
+      "tests/festival-nose-construction.test.ts",
+      "tests/festival-verge-planting.test.ts",
+      "tests/festival-circuit-pace.test.ts"
+    ],
+    "avoidUnnecessaryExpansion": "The all-catalogue vehicle-body suite constructs every car and is broader than the identified motocross integration risk. Do not repeat broad GPU captures solely for this merge."
+  }
+}

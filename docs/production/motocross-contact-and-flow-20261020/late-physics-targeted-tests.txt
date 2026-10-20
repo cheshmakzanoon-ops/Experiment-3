@@ -1,0 +1,48 @@
+
+ RUN  v3.2.4 /workspace/scratch/2722987e9955/Experiment-3
+
+ ✓ tests/motocross-berm-practice.test.ts (24 tests) 771ms
+   ✓ authored berm practice sectors > valley-ridge-mx identifies actual named banks and uses their physical outside sign  487ms
+ ✓ tests/startup.test.ts (26 tests) 1023ms
+ ✓ tests/surface-thermal.test.ts (15 tests) 4284ms
+   ✓ production circuit and festival surface evolution > keeps the same thermal/water history across differently scheduled surface calls  661ms
+   ✓ production circuit and festival surface evolution > gives festival tire contacts thermal memory and permits actual evaporation after rain  3228ms
+ ✓ tests/tyre-model.test.ts (15 tests) 184ms
+ ✓ tests/motocross-contact-traction.test.ts (10 tests) 4951ms
+   ✓ motocross suspension contact traction > 'mx250' starts and replaces the machine on loaded static sag  562ms
+   ✓ motocross suspension contact traction > 'mx250' lets Sport trim the rear without pulling the front lever or its full fork dive  1642ms
+   ✓ motocross suspension contact traction > 'mx450' lets Sport trim the rear without pulling the front lever or its full fork dive  599ms
+   ✓ motocross suspension contact traction > 'mx250' can cover a real wheelie with the rear pedal while its lifted front cannot brake the ground  507ms
+   ✓ motocross suspension contact traction > 'mx250' unloads drive over real braking bumps and lands the surveyed table without phantom traction  753ms
+   ✓ motocross suspension contact traction > 'mx450' unloads drive over real braking bumps and lands the surveyed table without phantom traction  588ms
+ ✓ tests/camera-dynamics.test.ts (16 tests) 1541ms
+   ✓ production cockpit force timeline > drives the camera from the same delayed snapshot time as the visible chassis  947ms
+ ✓ tests/motocross-camera.test.ts (9 tests) 897ms
+   ✓ motocross chase composition > clears the physical terrain and sightline at every surveyed outdoor and arena jump  813ms
+ ✓ tests/motocross-equipment-contact.test.ts (7 tests) 12312ms
+   ✓ motocross equipment contact and continuous ankle articulation > mx250 high keeps real soles, wrists and calves attached in both camera presentations  4053ms
+   ✓ motocross equipment contact and continuous ankle articulation > mx250 mid keeps real soles, wrists and calves attached in both camera presentations  2485ms
+   ✓ motocross equipment contact and continuous ankle articulation > mx450 high keeps real soles, wrists and calves attached in both camera presentations  3147ms
+   ✓ motocross equipment contact and continuous ankle articulation > mx450 mid keeps real soles, wrists and calves attached in both camera presentations  1522ms
+   ✓ motocross equipment contact and continuous ankle articulation > replays identical skinned geometry after riding, camera switches and recovery without reallocating buffers  624ms
+ ✓ tests/camera.test.ts (31 tests) 2442ms
+   ✓ freezes actual trackside gaze and cockpit spring state at a paused presentation time  689ms
+   ✓ keeps the filtered cockpit heading within its driver-response bound at 90 FPS  918ms
+ ✓ tests/wet-rubber-grip.test.ts (7 tests) 1522ms
+   ✓ local wet rubber grip > is continuous and bounded through wetting and drying, with no effect on clean pavement  844ms
+   ✓ local wet rubber grip > changes actual tyre braking distance in opposite directions on dry and wet rubber  344ms
+   ✓ local wet rubber grip > reaches GP front and rear grip separately through the real session adapter  303ms
+ ✓ tests/secondary-stand-camera.test.ts (4 tests) 32ms
+ ✓ tests/airborne-clutch.test.ts (6 tests) 5471ms
+   ✓ grounded clutch inertia referral > cannot create airborne rotational energy in sk125 at engine/wheel speeds 100/0  1997ms
+   ✓ grounded clutch inertia referral > cannot create airborne rotational energy in sk125 at engine/wheel speeds 1000/60  2120ms
+   ✓ grounded clutch inertia referral > cannot create airborne rotational energy in dk100 at engine/wheel speeds 100/0  689ms
+ ✓ tests/session-identity.test.ts (20 tests) 393ms
+ ✓ tests/driving-assists.test.ts (11 tests) 126ms
+
+ Test Files  14 passed (14)
+      Tests  201 passed (201)
+   Start at  18:50:22
+   Duration  240.47s (transform 55.56s, setup 0ms, collect 171.49s, tests 35.95s, environment 15ms, prepare 9.06s)
+
+JSON report written to /dev/shm/mx-production-journey-2722987e9955/late-physics-tests/targeted-vitest.json

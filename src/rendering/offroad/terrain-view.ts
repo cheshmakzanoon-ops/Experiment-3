@@ -18,6 +18,7 @@ import { installMxTerrainShadow } from './mx-terrain-shadow.ts';
 import { MxTerrainNormalEdges } from './mx-terrain-normal-edges.ts';
 import { brakingBumpSample, sampleBrakingBumps } from '../../simulation/offroad/braking-bumps.ts';
 import { installMxBrakingBumps } from './mx-braking-bumps.ts';
+import { mxCourseWearSample, sampleMxCourseWear } from './mx-course-wear.ts';
 
 /** Soil albedo per kind (sRGB; the soil detail map multiplies it). */
 export const SOIL_COLOURS: Readonly<Record<SoilKind, number>> = Object.freeze({
@@ -110,6 +111,7 @@ export class TerrainView {
       q = trackPoint(),
       colour = new T.Color();
     const sample = this.motocross ? mxSoilSample() : null,
+      wear = this.motocross ? mxCourseWearSample() : null,
       braking = this.motocross ? brakingBumpSample() : null,
       brakingSpans = t.course.spec.brakingBumps ?? [],
       brakingHeight = Math.max(0.001, ...brakingSpans.map((span) => span.height));
@@ -137,6 +139,7 @@ export class TerrainView {
       layers = new Float32Array(count * 4),
       mxCourse = this.motocross ? new Float32Array(count * 4) : null,
       mxCourseWidth = this.motocross ? new Float32Array(count) : null,
+      mxCourseWear = this.motocross ? new Float32Array(count * 4) : null,
       mxSoilMix = this.motocross ? new Float32Array(count * 4) : null,
       mxBrakingWork = this.motocross ? new Float32Array(count * 2) : null,
       uv = new Float32Array(count * 2),
@@ -147,6 +150,7 @@ export class TerrainView {
     for (let r = 0; r < vz; r++) {
       const s = Math.min(L, (first + r) * stepAlong);
       track.at(s, p);
+      if (wear) sampleMxCourseWear(t.course, s, p.curvature, wear);
       // Inside a tight turn the band would fold over the centre of curvature.
       const inside = Math.abs(p.curvature) > 1e-4 ? 0.85 / Math.abs(p.curvature) : Infinity;
       for (let c = 0; c < vx; c++) {
@@ -215,6 +219,12 @@ export class TerrainView {
               : 1;
           mxCourse[k * 4 + 3] = clamp(p.curvature * 20, -1, 1);
           if (mxCourseWidth) mxCourseWidth[k] = p.width;
+          if (mxCourseWear && wear) {
+            mxCourseWear[k * 4] = wear.launch;
+            mxCourseWear[k * 4 + 1] = wear.landing;
+            mxCourseWear[k * 4 + 2] = wear.air;
+            mxCourseWear[k * 4 + 3] = wear.berm;
+          }
         }
       }
     }
@@ -242,6 +252,7 @@ export class TerrainView {
     if (mxCourse) geometry.setAttribute('mxCourse', new T.BufferAttribute(mxCourse, 4));
     if (mxCourseWidth)
       geometry.setAttribute('mxCourseWidth', new T.BufferAttribute(mxCourseWidth, 1));
+    if (mxCourseWear) geometry.setAttribute('mxCourseWear', new T.BufferAttribute(mxCourseWear, 4));
     if (mxSoilMix) geometry.setAttribute('mxSoilMix', new T.BufferAttribute(mxSoilMix, 4));
     if (mxBrakingWork)
       geometry.setAttribute('mxBrakingWork', new T.BufferAttribute(mxBrakingWork, 2));

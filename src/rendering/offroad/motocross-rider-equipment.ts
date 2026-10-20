@@ -2,6 +2,7 @@ import * as T from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { sampleProfile } from '../profile-sampling.ts';
 import type { RiderDetail } from '../rider.ts';
+import { MotocrossBootSkin } from './motocross-boot-skin.ts';
 
 function part(parent: T.Group, geometry: T.BufferGeometry, material: T.Material, name: string) {
   const mesh = new T.Mesh(geometry, material);
@@ -203,7 +204,8 @@ export function motocrossBootSole(detail: RiderDetail, side: number) {
 
 /** Four low-profile closures, a separate shin plate, medial grip pad and
  * ankle flex bellows follow the continuous boot instead of wrapping it in
- * floating torus bands. Everything remains rigid under the solved ankle. */
+ * floating torus bands. A short ankle skin connects the planted forefoot to
+ * the shin-following calf without breaking the continuous surface. */
 export function addMotocrossBoot(
   foot: T.Group,
   detail: RiderDetail,
@@ -214,7 +216,7 @@ export function addMotocrossBoot(
 ) {
   part(foot, motocrossBootShell(detail, side), boot, 'Motocross continuous calf instep and toe');
   part(foot, motocrossBootSole(detail, side), flex, 'Motocross shaped rubber sole');
-  if (detail === 'far') return;
+  if (detail === 'far') return new MotocrossBootSkin(foot);
   part(
     foot,
     bootPanel(detail, side, -0.304, -0.132, 0.73, 2.41, 0.0034),
@@ -328,6 +330,7 @@ export function addMotocrossBoot(
         tread.rotation.y = x * 0.12;
       }
     }
+  return new MotocrossBootSkin(foot);
 }
 
 /** Metacarpal volume tapers into a short textile cuff. The dorsal panel is

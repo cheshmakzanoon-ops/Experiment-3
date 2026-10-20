@@ -88,10 +88,14 @@ const test = base.extend<{ review: Review }>({
       }
       expect(result.bounds.min.y).toBeGreaterThan(-0.006);
       for (const contact of result.contacts) {
-        // Bone endpoints carry a deliberate 2 cm wrist/ankle offset; anything
-        // beyond 3 cm is lost reach rather than that geometric inset.
-        expect(contact.handError).toBeLessThan(0.03);
-        expect(contact.ankleError).toBeLessThan(0.03);
+        // Measure the real glove hold and skinned sole, not bone origins.
+        expect(contact.handError).toBeLessThan(1e-6);
+        expect(contact.ankleError).toBeLessThan(0.009);
+        expect(contact.soleContactFound).toBe(true);
+        expect(contact.wristJointError).toBeLessThan(1e-6);
+        expect(contact.ankleJointError).toBeLessThan(1e-6);
+        expect(contact.calfAttachmentError).toBeLessThan(1e-6);
+        expect(contact.calfSamples).toBeGreaterThan(10);
       }
     };
     await use({ capture, attach });

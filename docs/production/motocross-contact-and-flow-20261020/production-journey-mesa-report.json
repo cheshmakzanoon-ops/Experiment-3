@@ -1,0 +1,141 @@
+{
+  "config": {
+    "configFile": "/workspace/scratch/2722987e9955/Experiment-3/playwright.motocross.config.ts",
+    "rootDir": "/workspace/scratch/2722987e9955/Experiment-3/e2e",
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": "/workspace/scratch/2722987e9955/Experiment-3/scripts/browser-backend-setup.ts",
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "line"
+      ],
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "/dev/shm/mx-production-journey-2722987e9955/mesa-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "/workspace/scratch/2722987e9955/Experiment-3/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*-motocross-*.spec.ts",
+          "**/11-phase27c.spec.ts",
+          "**/41-motogp-reference.spec.ts",
+          "**/42-motogp-environment.spec.ts",
+          "**/motorcycle-presentation.spec.ts"
+        ],
+        "timeout": 300000
+      }
+    ],
+    "shard": null,
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.55.1",
+    "workers": 1,
+    "webServer": {
+      "command": "npm run preview -- --host 127.0.0.1 --port 4197 --strictPort",
+      "url": "http://127.0.0.1:4197",
+      "reuseExistingServer": false,
+      "timeout": 30000
+    }
+  },
+  "suites": [
+    {
+      "title": "45-motocross-gameplay.spec.ts",
+      "file": "45-motocross-gameplay.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "real motocross player entry, eight-rider gate, riding, cameras, pause and venue switch",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 1200000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 249743,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m failed\n\nLocator:  locator('#menu')\nExpected: visible\nReceived: hidden\nTimeout:  180000ms\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 180000ms\u001b[22m\n\u001b[2m  - waiting for locator('#menu')\u001b[22m\n\u001b[2m    23 × locator resolved to <section id=\"menu\" hidden=\"\" class=\"menu\" data-bike=\"false\" data-discipline=\"circuit\">…</section>\u001b[22m\n\u001b[2m       - unexpected value \"hidden\"\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m failed\n\nLocator:  locator('#menu')\nExpected: visible\nReceived: hidden\nTimeout:  180000ms\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 180000ms\u001b[22m\n\u001b[2m  - waiting for locator('#menu')\u001b[22m\n\u001b[2m    23 × locator resolved to <section id=\"menu\" hidden=\"\" class=\"menu\" data-bike=\"false\" data-discipline=\"circuit\">…</section>\u001b[22m\n\u001b[2m       - unexpected value \"hidden\"\u001b[22m\n\n    at /workspace/scratch/2722987e9955/Experiment-3/e2e/45-motocross-gameplay.spec.ts:31:39",
+                    "location": {
+                      "file": "/workspace/scratch/2722987e9955/Experiment-3/e2e/45-motocross-gameplay.spec.ts",
+                      "column": 39,
+                      "line": 31
+                    },
+                    "snippet": "  29 |   };\n  30 |   await page.goto('/');\n> 31 |   await expect(page.locator('#menu')).toBeVisible({ timeout: MENU_STARTUP_TIMEOUT_MS });\n     |                                       ^\n  32 |   const entryPresentation = (await diag()).renderer!;\n  33 |   expect(entryPresentation.presentationPurpose).toBe('showroom');\n  34 |   expect(entryPresentation.construction.tasks).toBe(0);"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/workspace/scratch/2722987e9955/Experiment-3/e2e/45-motocross-gameplay.spec.ts",
+                        "column": 39,
+                        "line": 31
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m failed\n\nLocator:  locator('#menu')\nExpected: visible\nReceived: hidden\nTimeout:  180000ms\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 180000ms\u001b[22m\n\u001b[2m  - waiting for locator('#menu')\u001b[22m\n\u001b[2m    23 × locator resolved to <section id=\"menu\" hidden=\"\" class=\"menu\" data-bike=\"false\" data-discipline=\"circuit\">…</section>\u001b[22m\n\u001b[2m       - unexpected value \"hidden\"\u001b[22m\n\n\n  29 |   };\n  30 |   await page.goto('/');\n> 31 |   await expect(page.locator('#menu')).toBeVisible({ timeout: MENU_STARTUP_TIMEOUT_MS });\n     |                                       ^\n  32 |   const entryPresentation = (await diag()).renderer!;\n  33 |   expect(entryPresentation.presentationPurpose).toBe('showroom');\n  34 |   expect(entryPresentation.construction.tasks).toBe(0);\n    at /workspace/scratch/2722987e9955/Experiment-3/e2e/45-motocross-gameplay.spec.ts:31:39"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-20T10:12:38.511Z",
+                  "annotations": [],
+                  "attachments": [],
+                  "errorLocation": {
+                    "file": "/workspace/scratch/2722987e9955/Experiment-3/e2e/45-motocross-gameplay.spec.ts",
+                    "column": 39,
+                    "line": 31
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "63247aa4b2714caaca71-ad2e482fa544f6a6d6c9",
+          "file": "45-motocross-gameplay.spec.ts",
+          "line": 10,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-10-20T10:07:35.868Z",
+    "duration": 581718.8319999999,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  }
+}

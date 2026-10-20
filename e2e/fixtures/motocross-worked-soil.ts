@@ -9,20 +9,28 @@ import { rigTrack } from '../../src/simulation/offroad/jump-rig.ts';
 import { Track, trackPoint } from '../../src/simulation/track.ts';
 
 type Circuit = 'valley-ridge-mx' | 'arena-nord-sx';
-const WIDTH = 1120,
-  HEIGHT = 700;
+interface SoilCaptureOptions {
+  /** A bounded local software-renderer capture; normal browser CI keeps
+   * the original full-size viewport and shadow coverage. */
+  compact?: boolean;
+}
 
 /** The production terrain alone, photographed from a normal approach and an
  * oblique berm inspection. This isolates soil changes; it is not application
  * lighting, a gameplay performance test, or a replacement collision surface. */
-export async function captureMotocrossWorkedSoil(circuit: Circuit) {
+export async function captureMotocrossWorkedSoil(
+  circuit: Circuit,
+  options: SoilCaptureOptions = {},
+) {
+  const width = options.compact ? 640 : 1120,
+    height = options.compact ? 400 : 700;
   const track = rigTrack(circuit),
     surface = Track.offroadOf(track) as TrackTerrainSurface,
     terrain = surface.terrain,
     view = new TerrainView(track),
     sourceHash = terrain.hash();
   const renderer = new T.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
-  renderer.setSize(WIDTH, HEIGHT);
+  renderer.setSize(width, height);
   renderer.setPixelRatio(1);
   renderer.outputColorSpace = T.SRGBColorSpace;
   renderer.toneMapping = T.ACESFilmicToneMapping;
@@ -30,10 +38,10 @@ export async function captureMotocrossWorkedSoil(circuit: Circuit) {
   renderer.shadowMap.type = T.PCFSoftShadowMap;
   const scene = new T.Scene();
   scene.background = new T.Color(0xb7c7d2);
-  const camera = new T.PerspectiveCamera(55, WIDTH / HEIGHT, 0.1, 700),
+  const camera = new T.PerspectiveCamera(55, width / height, 0.1, 700),
     key = new T.DirectionalLight(0xfff2dd, 2.8);
   key.castShadow = true;
-  key.shadow.mapSize.set(1536, 1536);
+  key.shadow.mapSize.setScalar(options.compact ? 512 : 1536);
   Object.assign(key.shadow.camera, {
     left: -36,
     right: 36,
@@ -47,9 +55,15 @@ export async function captureMotocrossWorkedSoil(circuit: Circuit) {
   const meshes = view.group.children as T.Mesh[],
     p = trackPoint(),
     q = trackPoint();
-  const position = (kind: 'approach' | 'berm') => {
+  const position = (kind: 'approach' | 'berm' | 'jump') => {
     const berm = surface.course.spec.berms[0],
-      station = kind === 'approach' ? surface.course.jumps[0].start - 1 : (berm.from + berm.to) / 2;
+      jump = surface.course.jumps.find((jump) => jump.kind === 'double') ?? surface.course.jumps[0],
+      station =
+        kind === 'approach'
+          ? surface.course.jumps[0].start - 1
+          : kind === 'jump'
+            ? (jump.takeoff + jump.landing) / 2
+            : (berm.from + berm.to) / 2;
     track.at(station, p);
     const side = berm.side ?? -Math.sign(p.curvature),
       targetLateral = kind === 'berm' ? side * p.width * 0.45 : 0,
@@ -63,11 +77,19 @@ export async function captureMotocrossWorkedSoil(circuit: Circuit) {
       camera.position.set(q.x, terrain.baseHeight(q.s, 0) + 3.2, q.z);
       track.at(station + 6, q);
       camera.lookAt(q.x, terrain.baseHeight(q.s, 0) + 0.6, q.z);
-    } else {
+    } else if (kind === 'berm') {
       camera.position.set(
         target.x - p.tx * 8 - p.nx * side * 8,
         target.y + 6.2,
         target.z - p.tz * 8 - p.nz * side * 8,
+      );
+      camera.lookAt(target);
+    } else {
+      const span = Math.max(22, jump.end - jump.start);
+      camera.position.set(
+        target.x - p.nx * span * 0.7 - p.tx * span * 0.25,
+        target.y + span * 0.53,
+        target.z - p.nz * span * 0.7 - p.tz * span * 0.25,
       );
       camera.lookAt(target);
     }
@@ -84,8 +106,8 @@ export async function captureMotocrossWorkedSoil(circuit: Circuit) {
   const capture = (label: string) => {
     renderer.render(scene, camera);
     const gl = renderer.getContext(),
-      pixels = new Uint8Array(WIDTH * HEIGHT * 4);
-    gl.readPixels(0, 0, WIDTH, HEIGHT, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+      pixels = new Uint8Array(width * height * 4);
+    gl.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
     let hash = 2166136261;
     for (const byte of pixels) hash = Math.imul(hash ^ byte, 16777619) >>> 0;
     return {
@@ -110,7 +132,7 @@ export async function captureMotocrossWorkedSoil(circuit: Circuit) {
         `Worked-soil scans unavailable: ${JSON.stringify(scannedGround.diagnostics())}`,
       );
     const results = [];
-    for (const angle of ['approach', 'berm'] as const) {
+    for (const angle of ['approach', 'berm', 'jump'] as const) {
       const cameraPose = position(angle);
       view.record({ reset: true, wetness: 0, blocks: new Float32Array() }, 0, true);
       const prepared = capture(`${angle}-prepared`);
@@ -119,10 +141,31 @@ export async function captureMotocrossWorkedSoil(circuit: Circuit) {
         held = capture(`${angle}-wet-held`);
       view.showAt(0);
       const restored = capture(`${angle}-prepared-restored`);
-      results.push({ angle, cameraPose, samples: [prepared, wet, held, restored] });
+      // Disable only the added feature weights, preserving the same geometry,
+      // scans, light, shader and camera. Restore those exact bytes afterwards.
+      const attributes = meshes.map((mesh) => {
+        const attribute = mesh.geometry.getAttribute('mxCourseWear') as T.BufferAttribute;
+        return { attribute, original: attribute.array.slice() };
+      });
+      for (const { attribute } of attributes) {
+        attribute.array.fill(0);
+        attribute.needsUpdate = true;
+      }
+      const generic = capture(`${angle}-generic-traffic`);
+      for (const { attribute, original } of attributes) {
+        attribute.array.set(original);
+        attribute.needsUpdate = true;
+      }
+      const featureRestored = capture(`${angle}-course-wear-restored`);
+      results.push({
+        angle,
+        cameraPose,
+        samples: [prepared, wet, held, restored, generic, featureRestored],
+      });
     }
     return {
       circuit,
+      capture: { width, height, shadowMapSize: key.shadow.mapSize.x },
       results,
       sourceUnchanged: sourceHash === terrain.hash(),
       geometry: {
@@ -133,6 +176,10 @@ export async function captureMotocrossWorkedSoil(circuit: Circuit) {
         ),
         courseWidthBytes: meshes.reduce(
           (sum, mesh) => sum + (mesh.geometry.getAttribute('mxCourseWidth')?.array.byteLength ?? 0),
+          0,
+        ),
+        courseWearBytes: meshes.reduce(
+          (sum, mesh) => sum + (mesh.geometry.getAttribute('mxCourseWear')?.array.byteLength ?? 0),
           0,
         ),
         attributesBytes: meshes.reduce(
@@ -147,6 +194,7 @@ export async function captureMotocrossWorkedSoil(circuit: Circuit) {
       },
       hooks: studioHookKeys(view.material),
       scans: scannedGround.diagnostics(),
+      renderer: renderer.getContext().getParameter(renderer.getContext().RENDERER) as string,
     };
   } finally {
     scannedGround.detach(renderer);

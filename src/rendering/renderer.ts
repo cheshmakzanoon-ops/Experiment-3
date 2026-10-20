@@ -904,6 +904,15 @@ export class RacingRenderer {
         if (cancelled()) return false;
       }
       this.bikeShells.update(frame, frame, 1, this.cars, this.camera, this.quality, this.follow);
+      // Formula hosts supply each motorcycle's pose, but their hidden bodies
+      // never render. Three's compiler traverses invisible subtrees, so exclude
+      // those hosts for MX and mixed fields too, independently of GP grid rules.
+      // The compilation helper still retains a host if it becomes visible;
+      // bike LODs, riders, service parts and the original scene lighting remain.
+      const motorcycleHosts = this.cars
+        .filter((_, id) => id < total && BikeShells.isBike(frame, id))
+        .map((car) => car.root);
+      const hiddenHosts = motorcycleHosts.length ? motorcycleHosts : undefined;
       this.circuit.setMotorcyclePresentation(
         BikeShells.isBike(frame, this.follow),
         vehicleAt(Math.round(frame[carBase(this.follow) + RACE_BASE + R.VEHICLE])).classId ===
@@ -927,7 +936,7 @@ export class RacingRenderer {
         this.scene,
         this.camera,
         this.composer.readBuffer,
-        gpGrid ? this.cars.map((car) => car.root) : undefined,
+        hiddenHosts,
       );
       if (cancelled()) return false;
       progress('Compiling shadow casters around the circuit…');
@@ -957,7 +966,7 @@ export class RacingRenderer {
             this.scene,
             this.camera,
             this.composer.readBuffer,
-            gpGrid ? this.cars.map((car) => car.root) : undefined,
+            hiddenHosts,
           );
           // Shader linking alone does not finish GPU uploads or the warmup draw.
           // Keep the worker paused until its actual submission has completed.

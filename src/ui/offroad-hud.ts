@@ -288,6 +288,13 @@ export class OffroadHud {
           note = record
             ? `Your best ${record.best.seconds.toFixed(2)} s · ${record.best.line} line. Keep the exit smooth.`
             : 'Choose your arc and carry a smooth drive out of the bank.';
+          if (record && active.delta !== null) {
+            tag = 'LIVE · VS YOUR BEST';
+            const ahead = active.delta < -0.005;
+            metric = `${ahead ? '−' : '+'}${Math.abs(active.delta).toFixed(2)} S`;
+            note = `${active.elapsed.toFixed(2)} s elapsed · ${active.line} line. Best ${record.best.seconds.toFixed(2)} s on ${record.best.line}.`;
+            tone = ahead ? 'clean' : active.delta > 0.005 ? 'heavy' : 'approach';
+          }
           progress = Math.round(active.progress * 100);
         } else if (result) {
           heading = 'BERM PRACTICE';

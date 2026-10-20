@@ -6,6 +6,7 @@ import { mudUniforms } from '../../src/rendering/offroad/mud.ts';
 import { VEHICLES, type VehicleDefinition } from '../../src/simulation/vehicles.ts';
 import type { RiderDetail } from '../../src/rendering/rider.ts';
 import { inspectMotocrossCockpit } from './motocross-cockpit-contract.ts';
+import { inspectMotocrossRiderContacts } from './motocross-rider-contact-contract.ts';
 
 export interface MotocrossPoseSample {
   standing?: number;
@@ -198,21 +199,7 @@ export function captureMotocrossBike(
       }
       scene.updateMatrixWorld(true);
       const cockpit = view === 'onboard' ? inspectMotocrossCockpit(model, camera) : null;
-      const contacts = [0, 1].map((i) => {
-        const label = i === 0 ? 'left' : 'right',
-          side = i === 0 ? 1 : -1;
-        const hand = model.rider.root.getObjectByName(`Motocross ${label} hand`)!;
-        const boot = model.rider.root.getObjectByName(`Motocross ${label} boot`)!;
-        const grip = model.rider.grips[i].clone().applyMatrix4(model.sprung.matrixWorld);
-        const target = model.rider.pegs[i].clone();
-        const dab = Math.max(0, side * (sample.dab ?? 0));
-        target.add(new T.Vector3(side * 0.2, -0.015, 0.32).multiplyScalar(dab));
-        target.applyMatrix4(model.sprung.matrixWorld);
-        return {
-          handError: hand.getWorldPosition(new T.Vector3()).distanceTo(grip),
-          ankleError: boot.getWorldPosition(new T.Vector3()).distanceTo(target),
-        };
-      });
+      const contacts = inspectMotocrossRiderContacts(model, sample.dab ?? 0);
       // Three r180 builds shadow programs before the first render's light
       // setup. Compile the actual posed scene once to initialize that light
       // state, as the production loader does. Otherwise frame two adds two

@@ -1,0 +1,73 @@
+{
+  "sourceFiles": {
+    "src/rendering/offroad/mx-course-wear.ts": "3c52d1562a24f0c24271850ff0be9b8034e03f56d8a84883bd962945716d185f",
+    "src/rendering/offroad/mx-soil-detail.ts": "ec3c4cbfed2bb2248cbb2b809de53fc3bf672fd9323fccf09d073641ae69e6c4",
+    "src/rendering/offroad/terrain-view.ts": "a2133d46d72f0378b4aabadab14e1c6f62c2bc1694b984238c3930ab4a5e8645",
+    "e2e/fixtures/motocross-worked-soil.ts": "3d4879f2b5f9b334e374b1b9f8b0eb58ba3b38f0eaafe374c81a9562c33d4ed6"
+  },
+  "unitTests": {
+    "files": 4,
+    "testsPassed": 17,
+    "filesTested": [
+      "motocross-course-wear.test.ts",
+      "motocross-worked-soil.test.ts",
+      "motocross-soil-morphology.test.ts",
+      "motocross-terrain-continuity.test.ts"
+    ]
+  },
+  "referenceOriginalsInspected": [
+    "035",
+    "059"
+  ],
+  "firstGpuPass": {
+    "status": "passed",
+    "durationSecondsApprox": 252,
+    "receipt": "List-only reporter; attachments not retained. Final-source rerun is retained separately."
+  },
+  "finalGpuRun": {
+    "status": "passed",
+    "durationMs": 265861.453,
+    "testCount": 1,
+    "unexpected": 0,
+    "backend": "SwiftShader (software rendering; no hardware performance claim)",
+    "report": "/workspace/scratch/2722987e9955/mx-course-wear-gpu-report.json",
+    "captures": "/workspace/scratch/2722987e9955/mx-course-wear-captures",
+    "viewsPerVenue": [
+      "approach",
+      "berm",
+      "jump"
+    ],
+    "statesPerView": [
+      "prepared",
+      "wet",
+      "wet-held",
+      "prepared-restored",
+      "generic-traffic",
+      "course-wear-restored"
+    ],
+    "capture": {
+      "width": 640,
+      "height": 400,
+      "shadowMapSize": 512
+    },
+    "productionSourceHashesStillMatch": true
+  },
+  "visualInspection": {
+    "viewed": [
+      "valley-ridge-mx-jump-prepared.png",
+      "valley-ridge-mx-jump-generic-traffic.png",
+      "arena-nord-sx-berm-prepared.png",
+      "arena-nord-sx-berm-wet.png",
+      "arena-nord-sx-berm-generic-traffic.png",
+      "valley-ridge-mx-approach-prepared.png",
+      "valley-ridge-mx-approach-wet.png",
+      "valley-ridge-mx-berm-prepared.png"
+    ],
+    "observations": [
+      "Takeoff and landing passages remain more defined than the quieter gap centre.",
+      "Berm loaded shelf remains dark and smoothly continuous against the loose upper soil.",
+      "Wet state darkens the same material without erasing the prepared pattern.",
+      "Terrain-only fixture deliberately excludes the surrounding world and course dressing. Tiny bright slivers visible on the SX inner bend remain present with feature weights zeroed; not introduced by these wear weights."
+    ]
+  }
+}

@@ -15,11 +15,12 @@ export const MX_SOIL_COLOURS: Readonly<Record<SoilKind, number>> = Object.freeze
   turf: 0x627044,
 });
 
-export const MX_SOIL_DETAIL_HOOK = 'mx-groomed-soil-v3';
+export const MX_SOIL_DETAIL_HOOK = 'mx-groomed-soil-v4';
 
 const DECLARATIONS = /* glsl */ `
 varying vec4 vMxCourse;
 varying float vMxCourseWidth;
+varying vec4 vMxCourseWear;
 uniform float mxCourseLength;
 float mxPreparedGroove = 0.0;
 float mxPreparedRelief = 0.0;
@@ -55,11 +56,17 @@ float mxTrafficNoise( float station, float frequency, float seed ) {
 vec4 mxWheelPass( vec2 p, float lane, float spacing, float corner, float pixel ) {
   float seed = lane * 9.73 + 41.0;
   float variation = mxSoilHash( vec2( lane, 18.7 ) );
-  float drift = ( mxTrafficNoise( p.y, 0.093, seed ) - 0.5 ) * spacing * 0.94;
+  float loadedFace = max( vMxCourseWear.x, vMxCourseWear.y );
+  // Riders arrive and leave a jump in straighter passages than a corner.
+  // Drift returns continuously as the landing fans back into the lap.
+  float drift = ( mxTrafficNoise( p.y, 0.093, seed ) - 0.5 ) * spacing * 0.94
+    * ( 1.0 - loadedFace * 0.65 );
   float centre = ( lane + ( variation - 0.5 ) * 0.27 ) * spacing + drift;
   float d = abs( p.x - centre );
   float width = ( 0.068 + 0.046 * variation ) * ( 1.0 + abs( corner ) * 0.46 );
   float pressure = smoothstep( 0.26, 0.72, mxTrafficNoise( p.y, 0.20, seed + 3.0 ) );
+  pressure = mix( pressure, 0.66 + pressure * 0.34, loadedFace * 0.82 );
+  pressure *= 1.0 - vMxCourseWear.z * 0.66;
   float spread = 0.29 + 0.20 * mxTrafficNoise( p.y, 0.11, seed + 8.0 );
   float edge = max( pixel, fwidth( d ) );
   float resolved = 1.0 - smoothstep( width * 0.7, width * 3.5, edge );
@@ -96,9 +103,14 @@ const COLOUR = /* glsl */ `{
   float onSoil = clamp( vMxCourse.z, 0.0, 1.0 );
   float pixel = max( fwidth( p.x ), 0.001 );
   float halfWidth = max( vMxCourseWidth, 1.0 );
+  float berm = abs( vMxCourseWear.w );
+  float wallSide = sign( vMxCourseWear.w );
+  float wallAcross = p.x * wallSide / halfWidth;
+  float corner = mix( vMxCourse.w, -wallSide, berm * 0.6 );
   float spacing = clamp( halfWidth * 0.19, 0.88, 1.22 )
-    * ( 1.0 - abs( vMxCourse.w ) * 0.10 );
-  float shift = -vMxCourse.w * halfWidth * 0.16
+    * ( 1.0 - abs( corner ) * 0.10 )
+    * ( 1.0 - vMxCourseWear.x * 0.045 - vMxCourseWear.y * 0.035 );
+  float shift = -corner * halfWidth * 0.16
     + ( mxTrafficNoise( p.y, 0.027, 6.4 ) - 0.5 ) * 0.46;
   vec2 traffic = vec2( p.x - shift, p.y );
   // Torn soil edges are millimetres/centimetres, subordinate to the tyre
@@ -111,10 +123,12 @@ const COLOUR = /* glsl */ `{
     mxTrafficNoise( p.y, 1.7, tearAcross + 74.0 ), tearBlend );
   traffic.x += ( tear - 0.5 ) * 0.055 * tearFade;
   float lane = floor( traffic.x / spacing + 0.5 );
-  vec4 passes = mxWheelPass( traffic, lane - 1.0, spacing, vMxCourse.w, pixel );
-  passes = max( passes, mxWheelPass( traffic, lane, spacing, vMxCourse.w, pixel ) );
-  passes = max( passes, mxWheelPass( traffic, lane + 1.0, spacing, vMxCourse.w, pixel ) );
-  float shoulder = 1.0 - smoothstep( halfWidth * 0.76, halfWidth + 0.35, abs( p.x ) );
+  vec4 passes = mxWheelPass( traffic, lane - 1.0, spacing, corner, pixel );
+  passes = max( passes, mxWheelPass( traffic, lane, spacing, corner, pixel ) );
+  passes = max( passes, mxWheelPass( traffic, lane + 1.0, spacing, corner, pixel ) );
+  float bermWidth = berm * smoothstep( 0.25, 0.75, wallAcross );
+  float shoulder = 1.0 - smoothstep( halfWidth * 0.76 + bermWidth * 0.45,
+    halfWidth + 0.35 + bermWidth * 0.4, abs( p.x ) );
   passes *= shoulder;
   float broad = mxSoilNoise( p * vec2( 0.3, 0.085 ) );
   float broken = mxSoilNoise( p * vec2( 2.1, 0.67 ) );
@@ -127,21 +141,36 @@ const COLOUR = /* glsl */ `{
   float tread = passes.w;
   float aggregateFade = 1.0 - smoothstep( 0.035, 0.12, length( fwidth( p ) ) );
   float aggregate = smoothstep( 0.63, 0.84, mxSoilNoise( p * 19.0 ) ) * aggregateFade;
+  // A bank's lower ridden shelf is pressed, while the upper lip retains
+  // pale loose crumbs. The side and span come from the physical wall,
+  // rather than every corner receiving an imaginary banked groove.
+  float bermShelf = berm * smoothstep( 0.2, 0.56, wallAcross )
+    * ( 1.0 - smoothstep( 0.78, 1.03, wallAcross ) );
+  float bermLip = berm * smoothstep( 0.78, 0.98, wallAcross )
+    * ( 1.0 - smoothstep( 1.1, 1.28, wallAcross ) );
   mxPreparedPacked = onSoil * clamp( passes.z * ( 0.70 + broad * 0.30 )
-    + vApexSoil.y * 0.60, 0.0, 1.0 );
+    + bermShelf * 0.22 + vApexSoil.y * 0.60, 0.0, 1.0 );
+  mxPreparedPacked *= 1.0 - bermLip * 0.32 * ( 1.0 - vApexSoil.y );
   mxPreparedAggregate = onSoil * aggregate * ( 1.0 - mxPreparedPacked * 0.65 );
+  mxPreparedAggregate *= 1.0 + bermLip * 0.8;
   mxPreparedGroove = onSoil * clamp( passes.x + vApexSoil.z * 5.0, 0.0, 1.0 );
   float rakeUnridden = rake * ( 1.0 - passes.z * 0.88 ) * ( 0.35 + broken * 0.65 );
+  // Short longitudinal landing scuffs sit inside the existing tyre width.
+  // Use the loaded passages so airborne/grass surfaces cannot acquire them.
+  float touchdown = vMxCourseWear.y * passes.x *
+    ( 0.35 + 0.65 * mxTrafficNoise( p.y, 0.48, 91.0 ) );
   // Centimetre-scale skin only. The existing deformed CourseTerrain mesh
   // continues to own every jump, braking bump, wheel contact and shadow.
   mxPreparedRelief = onSoil * ( 0.0045 * rakeUnridden
-    - 0.020 * passes.x - 0.006 * passes.z + 0.009 * passes.y - 0.0035 * tread )
+    - 0.020 * passes.x - 0.006 * passes.z + 0.009 * passes.y - 0.0035 * tread
+    - 0.005 * touchdown )
     + 0.003 * mxPreparedAggregate;
   mxPreparedWet = clamp( vApexSoil.x + apexSoilWetness, 0.0, 1.0 );
   float grainTone = 0.92 + 0.15 * broad + 0.045 * broken;
   diffuseColor.rgb *= mix( 1.0, grainTone, onSoil )
     * ( 1.0 - mxPreparedPacked * 0.18 - mxPreparedGroove * 0.21
-      + onSoil * passes.y * 0.095 + mxPreparedAggregate * 0.13 - tread * 0.045 );
+      + onSoil * passes.y * 0.095 + mxPreparedAggregate * 0.13 - tread * 0.045
+      - onSoil * touchdown * 0.065 + onSoil * bermLip * 0.055 );
   // 043/059/092: wet loam reflects chiefly along its depressions. Dry raised
   // aggregate remains rough; the complete course never becomes one mirror.
   float dampPatch = smoothstep( 0.38, 0.86, mxPreparedWet )
@@ -172,13 +201,13 @@ export function installMxSoilDetail(material: T.MeshPhysicalMaterial, courseLeng
     injectDeclarations(
       shader,
       'common',
-      'attribute vec4 mxCourse;\nattribute float mxCourseWidth;\nvarying vec4 vMxCourse;\nvarying float vMxCourseWidth;',
+      'attribute vec4 mxCourse;\nattribute float mxCourseWidth;\nattribute vec4 mxCourseWear;\nvarying vec4 vMxCourse;\nvarying float vMxCourseWidth;\nvarying vec4 vMxCourseWear;',
       'vertex',
     );
     injectAfter(
       shader,
       'begin_vertex',
-      'vMxCourse = mxCourse;\nvMxCourseWidth = mxCourseWidth;',
+      'vMxCourse = mxCourse;\nvMxCourseWidth = mxCourseWidth;\nvMxCourseWear = mxCourseWear;',
       'vertex',
     );
     injectAfter(shader, 'common', DECLARATIONS, 'fragment');

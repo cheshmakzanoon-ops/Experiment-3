@@ -1,0 +1,293 @@
+{
+  "generatedAt": "2026-10-20T10:21:42Z",
+  "outcome": "Full production journey unverified: both unchanged runs failed the initial menu visibility assertion.",
+  "test": {
+    "spec": "e2e/45-motocross-gameplay.spec.ts",
+    "config": "playwright.motocross.config.ts",
+    "viewport": {
+      "width": 1280,
+      "height": 800
+    },
+    "workers": 1,
+    "trace": "off",
+    "menuDeadlineMs": 180000,
+    "requestedJourneyQuality": "low",
+    "qualityMethod": "Existing visible production settings form; no test reached this step.",
+    "sourceOrAssertionOrTimeoutChanges": false
+  },
+  "testedBuild": {
+    "fingerprint": "96452ad0cd4219d361c26e7b827b613ef9b7c0cb0347769fc796d7c710635ca9",
+    "observedSourceHeadBeforeRemoteMerge": "53eb4ca683a5e6c00f660bb50b147efac60c6b99",
+    "sourceInputCount": 788,
+    "entry": "assets/index-D6Ey1I8d.js",
+    "scope": "Served dist only. Parent later merged newer remote source; this receipt does not claim that newer build was exercised.",
+    "manifestCommitNote": "commit=null is not interpreted as an uncommitted build. Exact content fingerprint was independently matched."
+  },
+  "attempts": [
+    {
+      "backend": "swiftshader",
+      "stats": {
+        "startTime": "2026-10-20T09:52:32.760Z",
+        "duration": 241233.139,
+        "expected": 0,
+        "skipped": 0,
+        "unexpected": 1,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "name": "real motocross player entry, eight-rider gate, riding, cameras, pause and venue switch",
+          "status": "failed",
+          "startTime": "2026-10-20T09:52:52.873Z",
+          "durationMs": 219303,
+          "attachmentCount": 1
+        }
+      ],
+      "failedAt": "Initial #menu visible assertion",
+      "menuDeadlineMs": 180000,
+      "lowSelected": false,
+      "outdoorEntered": false,
+      "playerAccelerationChecked": false,
+      "stadiumEntered": false,
+      "backendReceipt": "swiftshader-backend.json",
+      "report": "production-journey-swiftshader-report.json",
+      "errorContext": "startup-timeout-context.md"
+    },
+    {
+      "backend": "mesa",
+      "stats": {
+        "startTime": "2026-10-20T10:07:35.868Z",
+        "duration": 581718.8319999999,
+        "expected": 0,
+        "skipped": 0,
+        "unexpected": 1,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "name": "real motocross player entry, eight-rider gate, riding, cameras, pause and venue switch",
+          "status": "failed",
+          "startTime": "2026-10-20T10:12:38.511Z",
+          "durationMs": 249743,
+          "attachmentCount": 0
+        }
+      ],
+      "failedAt": "Initial #menu visible assertion",
+      "menuDeadlineMs": 180000,
+      "lowSelected": false,
+      "outdoorEntered": false,
+      "playerAccelerationChecked": false,
+      "stadiumEntered": false,
+      "backendReceipt": "mesa-backend.json",
+      "report": "production-journey-mesa-report.json",
+      "errorContext": null
+    }
+  ],
+  "backendChecks": [
+    {
+      "requested": "swiftshader",
+      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "vendor": "Google Inc. (Google)",
+      "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+      "pixel": [
+        64,
+        128,
+        191,
+        255
+      ],
+      "error": 0,
+      "softwareRendererDetected": true,
+      "physicalHardwareValidated": false
+    },
+    {
+      "requested": "mesa",
+      "renderer": "ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)",
+      "vendor": "Google Inc. (Mesa)",
+      "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+      "pixel": [
+        64,
+        128,
+        191,
+        255
+      ],
+      "error": 0,
+      "softwareRendererDetected": true,
+      "physicalHardwareValidated": false
+    }
+  ],
+  "diagnostic": {
+    "kind": "Separate bounded read-only SwiftShader startup probe, not a journey pass",
+    "report": "startup-probe.json.gz",
+    "budgetMs": 180000,
+    "navigationWaitUntil": "domcontentloaded",
+    "settingsOrGameStateModified": false,
+    "outcome": "menu-visible",
+    "menuVisibleAtMs": 141393,
+    "rendererFirstObservedAtMs": 93675,
+    "observedShowroomGpuWait": "At 93.675 s, app state was menu but DOM menu remained hidden; one submitted GPU frame had not completed. At 141.393 s it had completed and the DOM menu became visible.",
+    "pageErrorCount": 0,
+    "failedRequestCount": 0,
+    "httpFailureCount": 0,
+    "responseCount": 92,
+    "storage": "Read-only storage estimate and IndexedDB enumeration completed. No evidence of blocked storage initialization.",
+    "screenshot": "The separate 5 s diagnostic screenshot timed out; no screenshot retained.",
+    "timeline": [
+      {
+        "elapsedMs": 22533,
+        "rawLoadingText": "Preparing circuit and car systems\u2026",
+        "state": "loading",
+        "menuVisible": false
+      },
+      {
+        "elapsedMs": 29523,
+        "rawLoadingText": "0% \u00b7 Loading photographed sky\u2026",
+        "state": "loading",
+        "menuVisible": false
+      },
+      {
+        "elapsedMs": 35595,
+        "rawLoadingText": "0% \u00b7 Loading your RB19 car and R06 driver/cockpit\u2026",
+        "state": "loading",
+        "menuVisible": false
+      },
+      {
+        "elapsedMs": 93675,
+        "rawLoadingText": "0% \u00b7 Preparing vehicle showroom\u2026",
+        "state": "menu",
+        "menuVisible": false
+      },
+      {
+        "elapsedMs": 98765,
+        "rawLoadingText": "0% \u00b7 Preparing vehicle showroom\u2026",
+        "state": "menu",
+        "menuVisible": false
+      },
+      {
+        "elapsedMs": 104220,
+        "rawLoadingText": "0% \u00b7 Preparing vehicle showroom\u2026",
+        "state": "menu",
+        "menuVisible": false
+      },
+      {
+        "elapsedMs": 109273,
+        "rawLoadingText": "0% \u00b7 Preparing vehicle showroom\u2026",
+        "state": "menu",
+        "menuVisible": false
+      },
+      {
+        "elapsedMs": 114844,
+        "rawLoadingText": "0% \u00b7 Preparing vehicle showroom\u2026",
+        "state": "menu",
+        "menuVisible": false
+      },
+      {
+        "elapsedMs": 120093,
+        "rawLoadingText": "0% \u00b7 Preparing vehicle showroom\u2026",
+        "state": "menu",
+        "menuVisible": false
+      },
+      {
+        "elapsedMs": 125243,
+        "rawLoadingText": "0% \u00b7 Preparing vehicle showroom\u2026",
+        "state": "menu",
+        "menuVisible": false
+      },
+      {
+        "elapsedMs": 130420,
+        "rawLoadingText": "0% \u00b7 Preparing vehicle showroom\u2026",
+        "state": "menu",
+        "menuVisible": false
+      },
+      {
+        "elapsedMs": 136005,
+        "rawLoadingText": "0% \u00b7 Preparing vehicle showroom\u2026",
+        "state": "menu",
+        "menuVisible": false
+      },
+      {
+        "elapsedMs": 141393,
+        "rawLoadingText": "0% \u00b7 Preparing vehicle showroom\u2026",
+        "state": "menu",
+        "menuVisible": true
+      }
+    ]
+  },
+  "otherAttempts": [
+    {
+      "kind": "Initial infrastructure attempt",
+      "outcome": "ENOSPC while creating Playwright artifact directories; no gameplay assertion ran."
+    },
+    {
+      "kind": "First startup probe",
+      "report": "startup-probe-first.json",
+      "outcome": "Probe evaluation guard expired after assets began loading; this is not an app assertion result. Revised probe retained the full 180 s observation budget."
+    }
+  ],
+  "captures": {
+    "journeyScreenshots": 0,
+    "note": "Neither full journey reached its first screenshot step. Mesa emitted no attachment. SwiftShader error-context Markdown was retained."
+  },
+  "processCleanup": {
+    "checkedAt": "2026-10-20T10:18:02Z",
+    "ownedBrowserPlaywrightPreviewRemaining": 0,
+    "subsequentXvfbInventoryCount": 0,
+    "note": "No retries or background browser work remain. Xvfb log contains only nonfatal xkbcomp key warnings."
+  },
+  "interpretation": "Backend framebuffer checks passed and a separate startup probe reached the visible menu, but both actual full tests exceeded the unchanged menu deadline. These results do not establish a full menu-to-MX journey pass, sustained gameplay performance, or physical-GPU performance. The precise cause of variable startup timing is not proven by these receipts.",
+  "receipts": [
+    {
+      "path": "journey-build-source.json",
+      "bytes": 798,
+      "sha256": "181decf91cb23221620ee95e1219558e591678ac8248bbda9164f3d55c90c712"
+    },
+    {
+      "path": "production-journey-swiftshader-report.json",
+      "bytes": 7088,
+      "sha256": "b46a3e15e64ca36cccb077fc3fb80ce8c55cbb700f0574bb6b2c7dc74394a479"
+    },
+    {
+      "path": "swiftshader-backend.json",
+      "bytes": 369,
+      "sha256": "f1537375721c6a9664c673b9545e728c2aff3d053640088891e5324577a93ccf"
+    },
+    {
+      "path": "startup-timeout-context.md",
+      "bytes": 535,
+      "sha256": "e4f9a5b41656550ead94aae162dc90e79dfea5e0525cb2670b6964114d356d6e"
+    },
+    {
+      "path": "production-journey-mesa-report.json",
+      "bytes": 6770,
+      "sha256": "70d72564aba83e91d98ce4991ecab9e01f8b3485bf4bcff5d66335f5e7b8f8e0"
+    },
+    {
+      "path": "mesa-backend.json",
+      "bytes": 325,
+      "sha256": "9ddbe9ad44808a6870cd07050381a6a34e2a1dba36490aa7bd029cec6a6d15ed"
+    },
+    {
+      "path": "journey-served-build.json",
+      "bytes": 409,
+      "sha256": "42814bb61e045b3e89b61dc642141d8cf6136cb7d8721324cf35394589cdfbca"
+    },
+    {
+      "path": "mesa-attempt.json",
+      "bytes": 2993,
+      "sha256": "2ff3e6ea22a8f2401f053c844b8d6cdc0d391ad68494ae02aa53daf98076049d"
+    },
+    {
+      "path": "startup-probe.json.gz",
+      "bytes": 86503,
+      "sha256": "695e1765489ffa6e5a46d13550fa3d967490a49f193a8bf4c867ffe3c58022fc",
+      "uncompressedSHA256": "5b5f2e9aad1febc94c3de038c13150509240eba993b568aae6e97b3172ef3c07",
+      "uncompressedBytes": 499396,
+      "compression": "gzip"
+    },
+    {
+      "path": "startup-probe-first.json",
+      "bytes": 16424,
+      "sha256": "fb5a22e2aa031c75a710ce52f269d63f90e0065eb3a6e60a77da8b6304f71991"
+    }
+  ],
+  "packaging": "Receipt paths are relative to this report; the full read-only startup trace is losslessly retained as gzip alongside the compact observations."
+}

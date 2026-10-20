@@ -1,4 +1,9 @@
 import * as T from 'three';
+import {
+  MX_BOOT_PEG,
+  MX_GLOVE_GRIP,
+  MX_PEG_TOP,
+} from '../src/rendering/offroad/motocross-rider-contact.ts';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { BikeMaterials, staticSag, type BikePoseValues } from '../src/rendering/bike.ts';
 import { Rider, RIDER, type RiderPose } from '../src/rendering/rider.ts';
@@ -218,7 +223,7 @@ describe('motocross suspension-driven rider motion', () => {
                     });
                     model.root.updateMatrixWorld(true);
                     for (let side = 0; side < 2; side++) {
-                      hands[side].getWorldPosition(point);
+                      point.fromArray(MX_GLOVE_GRIP).applyMatrix4(hands[side].matrixWorld);
                       target.copy(rider.grips[side]).applyMatrix4(model.sprung.matrixWorld);
                       const distance = point.distanceTo(target);
                       if (distance > handError) {
@@ -232,13 +237,15 @@ describe('motocross suspension-driven rider motion', () => {
                           braking,
                         });
                       }
-                      boots[side].getWorldPosition(point);
-                      target.copy(rider.pegs[side]).applyMatrix4(model.sprung.matrixWorld);
+                      point.fromArray(MX_BOOT_PEG).applyMatrix4(boots[side].matrixWorld);
+                      target.copy(rider.pegs[side]);
+                      target.y += MX_PEG_TOP;
+                      target.applyMatrix4(model.sprung.matrixWorld);
                       bootError = Math.max(bootError, point.distanceTo(target));
                     }
                   }
-        expect(handError, context).toBeLessThan(0.03);
-        expect(bootError).toBeLessThan(0.03);
+        expect(handError, context).toBeLessThan(1e-6);
+        expect(bootError).toBeLessThan(1e-6);
       } finally {
         model.dispose();
         materials.dispose();
