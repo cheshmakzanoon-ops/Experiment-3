@@ -24,8 +24,9 @@ import {
  * v11: GP steering follows front load and finite wheelie touchdown;
  * v12: passive longitudinal tyre compliance and coupled rotor/tyre heat;
  * v13: coupled lateral/longitudinal contact energy and finite tyre footprint;
+ * v14: static tyre support, work-coupled rolling loss and measured bike pose rates;
  * prior records remain in their original physics category. */
-export const SIMULATION_VERSION = 13;
+export const SIMULATION_VERSION = 14;
 /** Fixed physics tick used by the worker and headless simulation. */
 export const SIMULATION_TICK_HZ = 120;
 

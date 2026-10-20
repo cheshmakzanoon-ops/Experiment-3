@@ -212,14 +212,19 @@ describe('GP front-contact steering', () => {
         releaseTick = sim.tick;
         input(0, 0.15);
       }
+      const heading = bike.dynamics.heading;
       sim.step(FLASHBACK.dt);
       if (liftTick && !releaseTick) {
         const frame = sim.makeFrame();
         expect(bike.dynamics.frontLoad).toBe(0);
         expect(frame[base + BIKE_BASE + B.FRONT_LOAD]).toBe(0);
-        expect(Math.abs(frame[base + F.WY])).toBe(0);
+        // A pitched bike's world-Y angular velocity also contains roll.
+        // The lifted front must stop steering the travel heading, while
+        // snapshots retain the actual measured three-axis chassis motion.
+        expect(bike.dynamics.heading).toBe(heading);
+        expect(Math.abs(bike.dynamics.curvature)).toBe(0);
+        expect(frame[base + F.WY]).toBe(Math.fround(bike.body.omega.y));
         expect(Math.abs(frame[base + WHEEL_BASE + W.FY])).toBe(0);
-        expect(Math.abs(bike.body.omega.y)).toBe(0);
         frames.set(sim.tick, frame);
       }
       if (
@@ -230,7 +235,9 @@ describe('GP front-contact steering', () => {
         const frame = sim.makeFrame();
         descendingFrames++;
         expect(bike.dynamics.frontLoad).toBeGreaterThan(100);
-        expect(Math.abs(frame[base + F.WY])).toBe(0);
+        expect(bike.dynamics.heading).toBe(heading);
+        expect(Math.abs(bike.dynamics.curvature)).toBe(0);
+        expect(frame[base + F.WY]).toBe(Math.fround(bike.body.omega.y));
         expect(Math.abs(frame[base + WHEEL_BASE + W.FY])).toBe(0);
         expect(gpFrontSteeringContact(frame[base + BIKE_BASE + B.PITCH], bike.spec.wheelbase)).toBe(
           0,

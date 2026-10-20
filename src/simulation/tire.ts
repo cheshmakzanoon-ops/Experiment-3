@@ -83,19 +83,19 @@ export interface Tire {
   longitudinalEnergy: number;
   /** Longitudinal sliding/constraint relaxation heat for this substep (W). */
   longitudinalDissipation: number;
-  /** Internal stored-energy release (W); heats carcass, without scuffing the
-   * tread or transferring slip work to the road when contact disappears. */
+  /** Internal material damping/stored-energy release (W); heats carcass
+   * without scuffing the tread or assigning internal work to the road. */
   longitudinalRelaxationHeat: number;
   /** Backward-Euler spring loss (W), recorded separately from physical heat. */
   longitudinalNumericalDissipation: number;
   /** Signed lateral slip deformation (m); patch-to-rim displacement is its
-   * negative, and lateral force is −Ky*lateralDeflection. */
+   * negative. Elastic lateral force is −Ky*lateralDeflection. */
   lateralDeflection: number;
   /** Recoverable lateral contact-spring energy (J). */
   lateralEnergy: number;
   /** Lateral sliding/projection loss during this substep (W). */
   lateralDissipation: number;
-  /** Released lateral reservoir energy (W); heats the carcass without wear. */
+  /** Lateral material damping/reservoir release (W); heats carcass without wear. */
   lateralRelaxationHeat: number;
   /** Lateral backward-Euler spring loss (W), separate from physical heat. */
   lateralNumericalDissipation: number;
@@ -112,6 +112,14 @@ export interface Tire {
   sinkage: number;
   /** Rolling-resistance coefficient and ground drag (N) of this step. */
   rolling: number;
+  /** Translational rolling loss on the ground (compaction/roughness), kept
+   * separate from carcass hysteresis so soil work cannot heat the tyre. */
+  groundRolling: number;
+  /** Signed EXTERNAL road moment about the positive wheel axle (N m).
+   * Apply this to total chassis/rotor momentum as well as the wheel solve. */
+  rollingTorque: number;
+  /** Carcass rolling moment work (W); independent of contact slip heat. */
+  rollingDissipation: number;
   groundDrag: number;
   /** Fraction of the contact lost to the water film (0 dry … 1 planing). */
   aquaplane: number;
@@ -198,6 +206,9 @@ export function makeTire(
     patchLength: 0.14,
     sinkage: 0,
     rolling: 0.015,
+    groundRolling: 0,
+    rollingTorque: 0,
+    rollingDissipation: 0,
     groundDrag: 0,
     aquaplane: 0,
     peakSlip: REFERENCE_PEAK_SLIP,
@@ -208,6 +219,10 @@ export function makeTire(
 /** Teleport/recovery starts a new contact; retained patch strain must not
  * apply a force at the new position or be counted as fresh thermal work. */
 export function resetTireContact(t: Tire) {
+  t.fx = 0;
+  t.fy = 0;
+  t.energy = 0;
+  t.usage = 0;
   t.longitudinalDeflection = 0;
   t.longitudinalEnergy = 0;
   t.longitudinalDissipation = 0;
@@ -220,6 +235,8 @@ export function resetTireContact(t: Tire) {
   t.lateralNumericalDissipation = 0;
   t.camberPower = 0;
   t.relaxedAngle = 0;
+  t.rollingTorque = 0;
+  t.rollingDissipation = 0;
 }
 /** Compatibility for older placement callers; both patch axes must reset. */
 export const resetLongitudinalContact = resetTireContact;
@@ -323,6 +340,7 @@ const CONTACT_FORCE = { fx: 0, fy: 0 };
 const THERMAL: ThermalInputs = {
   slipPower: 0,
   carcassPower: 0,
+  rollingPower: 0,
   load: 0,
   speed: 0,
   airTemp: 0,
@@ -399,6 +417,44 @@ export function solveTire(
   SLIP.alpha = alpha;
   if (t.load < 1) SLIP.dx = SLIP.dy = 0;
   const cap = SLIP.dx;
+  // Prepare geometry/ground loss before the wheel root. None of these terms
+  // depends on a trial omega; sinkage advances exactly once per substep.
+  t.aquaplane = aquaplaning(
+    t.compound,
+    t.load,
+    surface.water,
+    vLong,
+    t.wear,
+    t.pressure,
+    material.textureMm,
+  );
+  t.patchLength = clamp(2 * Math.sqrt(2 * r * (Math.max(0, t.deflection) + t.sinkage)), 0.06, 0.4);
+  t.sinkage = advanceSinkage(
+    t.sinkage,
+    sinkageTarget(material, t.load, k.width * t.patchLength),
+    vLong,
+    dt,
+  );
+  const rollingScale =
+      k.rollingResistance *
+      (k.nominalPressure / Math.max(60, t.pressure)) ** k.rollingPressureExponent,
+    // Surface resistance above the paved reference is an effective ground
+    // loss. Retain its calibrated total, but do not deposit gravel/soil work
+    // in the tyre. This is an explicit reduced split, not measured hysteresis.
+    carcassRolling =
+      Math.min(surface.resistance, surfaceMaterial(SURFACE.ASPHALT).rolling) * rollingScale;
+  t.rolling =
+    surface.resistance * rollingScale +
+    rollingCoefficient(material, t.sinkage, t.patchLength) -
+    material.rolling;
+  t.groundRolling = Math.max(0, t.rolling - carcassRolling);
+  t.groundDrag =
+    t.load < 1 ? 0 : groundDrag(material, t.sinkage, k.width, vLong, surface.water, t.aquaplane);
+  const rollingMoment = t.load < 1 ? 0 : (carcassRolling + (t.punctured ? 0.13 : 0)) * t.load * r;
+  // Oppose solved rotation, including reverse and stationary burnouts. A
+  // locked or unloaded wheel has no carcass rolling work. The smooth sign
+  // retains the former near-rest resistance scale without a sticky clamp.
+  const rollingTorque = (omega: number) => 0 - rollingMoment * Math.tanh(omega * r * 2);
   prepareLongitudinalContact(
     SLIP,
     t,
@@ -437,13 +493,15 @@ export function solveTire(
       lateralSlipSpeed,
       CONTACT_FORCE,
       recordState,
+      vLong,
+      k.contactDampingTime,
     ).fx;
   };
   const torqueAtZero = drive - evalForce(0) * r;
   let omega = 0;
   if (Math.abs((I * old) / dt + torqueAtZero) > brake) {
     const sign = Math.sign((I * old) / dt + torqueAtZero) || 1,
-      delta = ((Math.abs(drive) + brake + cap * r) * dt) / I;
+      delta = ((Math.abs(drive) + brake + cap * r + rollingMoment) * dt) / I;
     // Keep the sliding root on the side selected by brake complementarity.
     // A non-monotone post-peak tyre curve must never choose a root whose
     // brake torque points WITH the solved wheel rotation.
@@ -451,7 +509,8 @@ export function solveTire(
       hi = sign < 0 ? Math.min(0, old + delta + 0.01) : old + delta + 0.01;
     for (let n = 0; n < 16; n++) {
       const mid = (lo + hi) * 0.5,
-        residual = (I * (mid - old)) / dt - drive + brake * sign + evalForce(mid) * r;
+        residual =
+          (I * (mid - old)) / dt - drive + brake * sign + evalForce(mid) * r - rollingTorque(mid);
       if (residual === 0) {
         lo = hi = mid;
         break;
@@ -462,6 +521,8 @@ export function solveTire(
     omega = (lo + hi) * 0.5;
   }
   t.omega = omega;
+  t.rollingTorque = rollingTorque(omega);
+  t.rollingDissipation = Math.max(0, -t.rollingTorque * omega);
   advanceWheelRotation(t, omega * dt);
   t.slip = (omega * r - vLong) / regularization;
   // Commit contact memory once, using exactly the force used by the wheel
@@ -491,37 +552,11 @@ export function solveTire(
     t.fy = 0;
     t.usage = 0;
   }
-  // Contact patch, ground sinkage, rolling resistance and ground drag.
-  t.aquaplane = aquaplaning(
-    t.compound,
-    t.load,
-    surface.water,
-    vLong,
-    t.wear,
-    t.pressure,
-    material.textureMm,
-  );
-  t.patchLength = clamp(2 * Math.sqrt(2 * r * (Math.max(0, t.deflection) + t.sinkage)), 0.06, 0.4);
-  t.sinkage = advanceSinkage(
-    t.sinkage,
-    sinkageTarget(material, t.load, k.width * t.patchLength),
-    vLong,
-    dt,
-  );
-  // Rigid rolling loss of this carcass (hysteresis falls as pressure rises)
-  // plus the compaction work of deformable ground.
-  t.rolling =
-    surface.resistance *
-      k.rollingResistance *
-      (k.nominalPressure / Math.max(60, t.pressure)) ** k.rollingPressureExponent +
-    rollingCoefficient(material, t.sinkage, t.patchLength) -
-    material.rolling;
-  t.groundDrag =
-    t.load < 1 ? 0 : groundDrag(material, t.sinkage, k.width, vLong, surface.water, t.aquaplane);
   // Sliding work gives heat; recoverable contact deformation and the
   // implicit integrator's numerical spring losses are not tyre temperature.
   THERMAL.slipPower = t.energy;
   THERMAL.carcassPower = t.longitudinalRelaxationHeat + t.lateralRelaxationHeat;
+  THERMAL.rollingPower = t.rollingDissipation;
   THERMAL.load = t.load;
   THERMAL.speed = vLong;
   THERMAL.airTemp = airTemp;
@@ -578,7 +613,10 @@ export function solveTire(
         t.lateralDissipation +
         t.lateralRelaxationHeat +
         t.lateralNumericalDissipation +
-        t.camberPower,
+        t.camberPower +
+        t.rollingTorque +
+        t.rollingDissipation +
+        t.groundRolling,
     )
   )
     throw new Error('Non-finite tire state');

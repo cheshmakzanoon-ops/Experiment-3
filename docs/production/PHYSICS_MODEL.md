@@ -1,4 +1,4 @@
-# Physics model (simulation version 13)
+# Physics model (simulation version 14)
 
 This is the engineering reference for the vehicle physics behind every car in a session: tyres,
 suspension, drivetrain, aerodynamics, ground materials and integration. Every coefficient is an
@@ -6,48 +6,53 @@ original engineering calibration. None is a manufacturer data set, a fitted test
 The force model uses bounded deterministic solves and reusable contact state, with no wall-clock
 dependence. It runs inside the existing 120 Hz worker tick with two 240 Hz vehicle substeps.
 
-`SIMULATION_VERSION` is **13** (`src/core/session-identity.ts`). Lap times can change, so under
+`SIMULATION_VERSION` is **14** (`src/core/session-identity.ts`). Lap times can change, so under
 decision D8 records, ghosts and boards are split by physics version. Earlier records retain their
 original physics category. Pre-identity saves still read as version 1. Unsupported snapshot
 formats are rejected explicitly; deterministic resimulation (flashback) only ever re-runs the
 current version. The original v2 force-law reference below includes the v8 axle/contact-frame,
-v12 longitudinal-compliance/rotor-thermal and v13 coupled-contact/finite-footprint changes. The
-historical measurements in sections 7–8 retain their original version scope. See
-[ENGINE_DYNAMICS_V13.md](ENGINE_DYNAMICS_V13.md) for current changes, public references,
-measurements and limits, [ENGINE_DYNAMICS_V12.md](ENGINE_DYNAMICS_V12.md) for the preceding
-contact/thermal work, and [ENGINE_DYNAMICS_V8.md](ENGINE_DYNAMICS_V8.md) for the earlier axle solve.
+v12 longitudinal-compliance/rotor-thermal, v13 coupled-contact/finite-footprint, and v14 static
+contact, mechanical rolling-work and motorcycle pose-rate changes. The historical measurements
+in sections 7–8 retain their original version scope; they are not new v14 measurements. See
+[ENGINE_DYNAMICS_V14.md](ENGINE_DYNAMICS_V14.md) for current changes, public references,
+validation and limits, [ENGINE_DYNAMICS_V13.md](ENGINE_DYNAMICS_V13.md) for the preceding coupled
+contact/footprint work, [ENGINE_DYNAMICS_V12.md](ENGINE_DYNAMICS_V12.md) for the earlier rotor
+thermal work, and [ENGINE_DYNAMICS_V8.md](ENGINE_DYNAMICS_V8.md) for the axle solve. These are
+original reduced models informed by public engineering descriptions, not a reproduction of
+iRacing's proprietary tire model or source code.
 
 ## Module map
 
-| Module | Responsibility |
-|---|---|
-| `tyre-force.ts` | Pure-slip curves, slip stiffness, combined-slip weighting, camber, pressure, relaxation |
-| `tyre-thermal.ts` | Coupled surface/carcass/core/rotor thermal network, hot pressure; separate three-node boundary API |
-| `brake-thermal.ts` | Effective rotor heat capacity and ambient cooling parameters |
-| `wheel-rotation.ts` | Bounded wheel phase plus signed whole turns for unambiguous recorded motion |
-| `tire.ts` | Tyre state, peak friction, implicit wheel-spin solve, wear/damage, ground contact terms |
-| `suspension.ts` | Massless-hub corners: springs, stops, dampers, bars, tyre radial; kinematics; geometric load transfer |
-| `road-contact.ts` | Wheel-plane/road-plane rolling tangent and road-relative inclination; shared velocity/force frame |
-| `tire-footprint.ts`, `contact.ts` | Continuous rounded-crown sweep over road triangles, retaining the original planar centre support |
-| `wheel-contact-state.ts` | Recorded tangential strains, radial compression, physical axle travel and road contact plane |
-| `powertrain.ts` | Engine torque map, throttle lag, turbo, friction/pumping; gearbox shift time |
-| `differential.ts` | One module: the catalogue driveline (open/LSD/locked axles, AWD centre, `distributeDrive`) and the stick-torque model (open, spool, viscous, clutch-pack LSD, Torsen) |
-| `aero.ts`, `aero-map.ts` | Ride-height/pitch map, floor centre of pressure, convective lag, plunge damping, dirty air, slipstream |
-| `surface-material.ts` | Ground material table: friction, wetting, slip stiffness, sinkage, compaction, bulldozing, water drag |
-| `vehicle-dynamics.ts` | Per-vehicle parameter blocks resolved from a `VehicleDefinition` |
-| `vehicle.ts` | Call sites: substep cap, order of operations, force application |
+| Module                            | Responsibility                                                                                                                                                        |
+| --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `tyre-force.ts`                   | Pure-slip curves, combined weighting, camber, pressure, elastic/static contact, material damping and motion-dependent renewal                                         |
+| `tyre-thermal.ts`                 | Coupled surface/carcass/core/rotor thermal network, explicit mechanical work inputs, hot pressure; three-node boundary API                                            |
+| `brake-thermal.ts`                | Effective rotor heat capacity and ambient cooling parameters                                                                                                          |
+| `wheel-rotation.ts`               | Bounded wheel phase plus signed whole turns for unambiguous recorded motion                                                                                           |
+| `pose-kinematics.ts`              | World angular velocity and acceleration measured from successive authoritative GP/MX chassis orientations                                                             |
+| `tire.ts`                         | Tyre state, implicit wheel/contact/rolling-moment solve, separate work budgets, wear/damage and ground losses                                                         |
+| `suspension.ts`                   | Massless-hub corners: springs, stops, dampers, bars, tyre radial; kinematics; geometric load transfer                                                                 |
+| `road-contact.ts`                 | Wheel-plane/road-plane rolling tangent and road-relative inclination; shared velocity/force frame                                                                     |
+| `tire-footprint.ts`, `contact.ts` | Continuous rounded-crown sweep over road triangles, retaining the original planar centre support                                                                      |
+| `wheel-contact-state.ts`          | Recorded tangential strains, radial compression, physical axle travel and road contact plane                                                                          |
+| `powertrain.ts`                   | Engine torque map, throttle lag, turbo, friction/pumping; gearbox shift time                                                                                          |
+| `differential.ts`                 | One module: the catalogue driveline (open/LSD/locked axles, AWD centre, `distributeDrive`) and the stick-torque model (open, spool, viscous, clutch-pack LSD, Torsen) |
+| `aero.ts`, `aero-map.ts`          | Ride-height/pitch map, floor centre of pressure, convective lag, plunge damping, dirty air, slipstream                                                                |
+| `surface-material.ts`             | Ground material table: friction, wetting, slip stiffness, sinkage, compaction, bulldozing, water drag                                                                 |
+| `vehicle-dynamics.ts`             | Per-vehicle parameter blocks resolved from a `VehicleDefinition`                                                                                                      |
+| `vehicle.ts`                      | Call sites: substep cap, order of operations, force application                                                                                                       |
 
 `VehicleDefinition.dynamics` (optional) overrides any block for one vehicle. Without it,
 `vehicleDynamics()` picks a package, so a newly added definition is always complete. The blocks are
 frozen data, and the resolved object is cached per definition. The packages are:
 
-* **APX-01 (`formula`) and TC-1 (`touring`):** the calibrated packages described below.
-* **Catalogue cars** (every `vehicle-catalogue/` sheet names a `tireFamily`): a neutral package
+- **APX-01 (`formula`) and TC-1 (`touring`):** the calibrated packages described below.
+- **Catalogue cars** (every `vehicle-catalogue/` sheet names a `tireFamily`): a neutral package
   that keeps the behaviour their sheets were fitted against. It has:
-  * the legacy-reproducing suspension geometry (`defaultSuspension()`);
-  * legacy throttle response and 0.09 s shifts;
-  * the former aero platform and wake (`NEUTRAL_AERO_DYNAMICS`);
-  * a tyre carcass by family: the Formula slick for `formula-slick`, otherwise `FAMILY_CARCASS`.
+  - the legacy-reproducing suspension geometry (`defaultSuspension()`);
+  - legacy throttle response and 0.09 s shifts;
+  - the former aero platform and wake (`NEUTRAL_AERO_DYNAMICS`);
+  - a tyre carcass by family: the Formula slick for `formula-slick`, otherwise `FAMILY_CARCASS`.
     That is the closed-wheel carcass at the Formula slick's 2200 N load reference, because
     `tireGrip` is relative to the Formula slick at that load.
 
@@ -56,41 +61,70 @@ frozen data, and the resolved object is cached per definition. The packages are:
 
 The vehicle field holding the resolved package is `Vehicle.physics`. GP and motocross bikes use
 their own two-wheel force, suspension and thermal models; `BikeVehicle` uses `dynamics` for its
-own state. The v12/v13 car contact/rotor solve does not replace those models. All three vehicle
-solvers share bounded-phase/whole-turn wheel recording. The new protocol-15 car-contact block is
+own state. The v14 car contact/rotor/rolling solve does not replace those models. The motorcycle
+adapters now measure the derivatives of their own authoritative poses (§0.1). All three vehicle
+solvers share bounded-phase/whole-turn wheel recording. The protocol-15 car-contact block is
 explicitly invalid for motorcycles, whose own measured suspension/presentation channels remain
 authoritative.
 
 ## 0. Integration
 
-* **Substep cap.** `Vehicle.step(dt)` splits any call longer than `MAX_SUBSTEP = 1/240 s` into equal
+- **Substep cap.** `Vehicle.step(dt)` splits any call longer than `MAX_SUBSTEP = 1/240 s` into equal
   substeps. The 120 Hz worker already advances cars through two 240 Hz substeps. Different outer
-  update rates can still change control, collision and wake timing; the v13 six-car calibration
-  reports at most 0.2% displayed drift between its 120 and 240 Hz fixtures.
-* **Rigid body.** As before: semi-implicit Euler for translation; for rotation a kick/drift/kick
+  update rates can still change control, collision and wake timing. The historical v13 six-car
+  calibration reported at most 0.2% displayed drift between its 120 and 240 Hz fixtures; current
+  verification is recorded separately in `ENGINE_DYNAMICS_V14.md`.
+- **Rigid body.** As before: semi-implicit Euler for translation; for rotation a kick/drift/kick
   scheme with an implicit midpoint Euler free-body drift (`rigid.ts`).
-* **Stiff internal states are implicit or exact:**
+- **Stiff internal states are implicit or exact:**
 
-| State | Scheme | Property |
-|---|---|---|
-| Wheel spin ω and both tangential contact deformations | backward Euler, coupled bracketed bisection and shared friction-ellipse projection | dissipative brake complementarity; separate elastic, physical-heat and numerical-loss budgets |
-| Suspension hub travel (coupled through tire radial force) | backward Euler, coupled 2×2 Newton per axle, unilateral contact and droop active sets | mirrored force balance; convex-work line search through contact, damper and stop transitions |
-| Tyre and rotor temperatures | backward Euler on a 4×4 tridiagonal M-matrix | equal/opposite rotor-core exchange; conserves heat with losses closed; bounded passive cooling |
-| Intake, turbo, aero lag, sinkage | exact first-order exponential | no overshoot at any step |
-| Differential locking | stick torque with road-reaction feedforward, under-relaxed feedback | a locked axle stays synchronized at 60 Hz |
+| State                                                                       | Scheme                                                                                           | Property                                                                                                                |
+| --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
+| Wheel spin ω, axial rolling moment and both tangential contact deformations | backward Euler, coupled bracketed bisection and shared friction-ellipse projection               | static preload retention, dissipative brake complementarity; separate elastic, physical-heat and numerical-loss budgets |
+| Suspension hub travel (coupled through tire radial force)                   | backward Euler, coupled 2×2 Newton per axle, unilateral contact and droop active sets            | mirrored force balance; convex-work line search through contact, damper and stop transitions                            |
+| Tyre and rotor temperatures                                                 | backward Euler on a 4×4 tridiagonal M-matrix                                                     | equal/opposite rotor-core exchange; conserves heat with losses closed; bounded passive cooling                          |
+| Intake, turbo, aero lag, sinkage                                            | exact first-order exponential                                                                    | no overshoot at any step                                                                                                |
+| Differential locking                                                        | stick torque with previous tread-reaction and rolling-moment feedforward, under-relaxed feedback | a locked axle stays synchronized at 60 Hz                                                                               |
 
-* **Operator splitting order per substep:** controls → engine/clutch → differential → hub solve
+- **Operator splitting order per substep:** controls → engine/clutch → differential → hub solve
   (suspension and tyre radial) → kinematics → tyre solves (forces into the body) → aero (lagged
   heights, plunge damping, floor centre of pressure) → floor/skid contact → jacks → body integration.
   Geometric load transfer uses the previous substep's tread forces (4.2 ms lag).
-* **Regression tests at multiple rates** (`tests/integrator-stability.test.ts`):
-  * A drop onto springs and tyres never gains energy at 60, 120 or 240 Hz, and settles to the same
+- **Regression tests at multiple rates** (`tests/integrator-stability.test.ts`):
+  - A drop onto springs and tyres never gains energy at 60, 120 or 240 Hz, and settles to the same
     height within 1 mm.
-  * Coasting energy falls monotonically.
-  * Stopping distance agrees within 1% across rates, and step-steer yaw within 2%.
-  * Kerb strikes at 60 Hz stay bounded.
-  * Porpoising check (`tests/aero-platform.test.ts`): a heave disturbance at the floor's stall knee
+  - Coasting energy falls monotonically.
+  - Stopping distance agrees within 1% across rates, and step-steer yaw within 2%.
+  - Kerb strikes at 60 Hz stay bounded.
+  - Porpoising check (`tests/aero-platform.test.ts`): a heave disturbance at the floor's stall knee
     decays at every rate.
+
+### 0.1 Authoritative motorcycle pose rates
+
+GP and motocross keep their existing reduced force and suspension coordinates. Their adapters
+construct the authoritative chassis quaternion, then `OrientationKinematics` measures its world
+angular displacement. It does not integrate a second orientation or replace the bike dynamics.
+
+```
+delta_q = q_new · inverse(q_previous)
+omega_world = shortest_arc_rotation_vector(delta_q) / dt
+angular_acceleration = (omega_new − omega_previous) / ((dt + dt_previous) / 2)
+```
+
+The rates are averages over their measured intervals, so acceleration uses the separation of
+the interval midpoints, including unequal substeps. The calculation includes simultaneous yaw,
+pitch and roll, the GP tyre-crown lean correction, wheelie/touchdown pitch, and MX airborne pitch
+and whip. It publishes those rates to `body.omega` and `body.angularAcceleration`, keeping
+rigid-body point velocities and the adapter's collision-delta baseline consistent with the pose.
+Quaternion sign changes do not create motion. Shortest-arc sampling assumes less than π radians
+of rotation per step.
+
+Placement and recovery samples (`dt = 0`), changes to the fallen-bike pose convention, and the
+core's remount-to-riding coordinate reset establish a fresh baseline. They do not manufacture an
+angular impulse. Subsequent continuous falling or remount motion is measured even when the
+reduced core reports zero `leanRate`. GP vertical velocity also uses the previous authoritative
+written height, following the existing MX convention; collision depenetration is not counted as
+physical heave. These are derivative/adapter corrections, not a full motorcycle multibody solve.
 
 ## 1. Tyre
 
@@ -107,32 +141,33 @@ F0(σ) = D · sin(C · atan(X − E·(X − atan X))),   X = X0·σ,   X0 = tan(
 atan2(v_y, hypot(v_x, 3)). Both keep the former low-speed regularization. With E = 0 the peak sits
 at σ = 1.
 
-* **Peak force** `D = μ·Fz`, with μ from `peakGrip()`. The factors are:
-  * compound μ and tyre-family scale;
-  * load sensitivity `(Fz/Fz0)^−0.105`;
-  * grip window at the blended temperature `0.3·T_surface + 0.7·T_carcass`;
-  * water film penalty and aquaplaning (§5.3);
-  * wear `(1 − 0.5·wear)`;
-  * dirt, flat spots, blistering/graining and puncture;
-  * contact-patch pressure optimum `1 − 0.12·((p − 165)/65)²`;
-  * laid rubber and marbles;
-  * the ground material's friction and wetting (§5).
-* **Slip stiffness is a carcass property.**
+- **Peak force** `D = μ·Fz`, with μ from `peakGrip()`. The factors are:
+  - compound μ and tyre-family scale;
+  - load sensitivity `(Fz/Fz0)^−0.105`;
+  - grip window at the blended temperature `0.3·T_surface + 0.7·T_carcass`;
+  - water film penalty and aquaplaning (§5.3);
+  - wear `(1 − 0.5·wear)`;
+  - dirt, flat spots, blistering/graining and puncture;
+  - contact-patch pressure optimum `1 − 0.12·((p − 165)/65)²`;
+  - laid rubber and marbles;
+  - the ground material's friction and wetting (§5).
+- **Slip stiffness is a carcass property.**
 
   ```
   Kα = kα·Fz·(Fz/Fz0)^−0.12 · (μ/μref)^0.6 · Π(p, wear, T) · k_ground
   Kx = kx·Fz·(μ/μref)^0.6 · Π(p, wear, T) · k_ground
   ```
 
-  * The cornering stiffness saturates with load, so the peak slip angle grows with load.
-  * The longitudinal stiffness stays proportional to load (the usual MF result).
-  * On lower friction the peak slip is smaller, as the brush model predicts: on ice the peak arrives
+  - The cornering stiffness saturates with load, so the peak slip angle grows with load.
+  - The longitudinal stiffness stays proportional to load (the usual MF result).
+  - On lower friction the peak slip is smaller, as the brush model predicts: on ice the peak arrives
     at under half the dry slip.
-  * Π combines three factors:
-    * pressure, `1 + 0.25·Δp/p0`;
-    * wear, `1 + 0.15·wear` (shorter tread blocks are stiffer);
-    * cold rubber, `1 + 0.0015·(T_ideal − T_carcass)`.
-* **Former shape kept at nominal conditions.** At Fz0, μref, dry asphalt and nominal pressure the
+  - Π combines three factors:
+    - pressure, `1 + 0.25·Δp/p0`;
+    - wear, `1 + 0.15·wear` (shorter tread blocks are stiffer);
+    - cold rubber, `1 + 0.0015·(T_ideal − T_carcass)`.
+
+- **Former shape kept at nominal conditions.** At Fz0, μref, dry asphalt and nominal pressure the
   APX-01 slick reproduces the former pure curves exactly (B = 7.2/10.5, C = 1.28/1.3, E = 0.15). A
   unit test checks this against the former formula.
 
@@ -149,9 +184,9 @@ if (Fx/Dx)² + (Fy/Dy)² > 1: scale both onto the ellipse
 
 by1 = bx1 = 0.7 and by2 = bx2 = 0.6, which gives:
 
-* A spinning tyre (κ = 5) keeps less than 15% of its cornering force.
-* Drive slip at 30% of the peak slip costs it 2–3%.
-* Every force stays inside the ellipse.
+- A spinning tyre (κ = 5) keeps less than 15% of its cornering force.
+- Drive slip at 30% of the peak slip costs it 2–3%.
+- Every force stays inside the ellipse.
 
 `k_c` is the ground coupling (§5). On loose ground part of the lateral resistance is rut-wall
 ploughing, which wheelspin does not remove.
@@ -163,15 +198,15 @@ power spins). The MF weighting keeps saturation physics and a moderate interior 
 
 ### 1.3 Camber
 
-* **Thrust** is an equivalent slip-angle shift, `α_eff = α − Cγ·γ·s(v)/Kα`. Cγ is 0.35·Fz per rad
+- **Thrust** is an equivalent slip-angle shift, `α_eff = α − Cγ·γ·s(v)/Kα`. Cγ is 0.35·Fz per rad
   (0.45 on TC-1). The factor `s(v) = smooth(0.3, 3, |v|)` makes it build only while rolling. Because
   it is a shift, the thrust saturates with the lateral force.
-* **Patch factor** `1 − kγ·(γ − γopt·ι)²`, where ι = −tanh(2·σy) is the direction of the lateral
+- **Patch factor** `1 − kγ·(γ − γopt·ι)²`, where ι = −tanh(2·σy) is the direction of the lateral
   force:
-  * the optimum inclination leans into the force (γopt = 0.03 rad Formula, 0.045 TC-1);
-  * straight running prefers none;
-  * D, κ* and α* are scaled together, so slip stiffness is unchanged.
-* **γ is road-relative.** `RoadContactFrame` rotates the wheel axle using chassis orientation,
+  - the optimum inclination leans into the force (γopt = 0.03 rad Formula, 0.045 TC-1);
+  - straight running prefers none;
+  - D, κ* and α* are scaled together, so slip stiffness is unchanged.
+- **γ is road-relative.** `RoadContactFrame` rotates the wheel axle using chassis orientation,
   steering and kinematic camber (static plus camber gain, §2). For its unit world axle `a` and unit
   road normal `n`, `γ = atan2(-a·n, |a×n|)`. This includes the combined effect of pitch, steering
   and banking. The forward rolling tangent is `normalize(a×n)` and the lateral tangent is
@@ -181,7 +216,8 @@ power spins). The MF weighting keeps saturation physics and a moderate interior 
 ### 1.4 Tangential contact deformation
 
 Both force directions have an elastic displacement in metres and a recoverable energy state.
-For positive lateral contact slip, `y` is positive and the restoring force is `Fy = −Ky·y`.
+For positive lateral contact slip, `y` is positive and the elastic restoring component is
+`Fy_elastic = −Ky·y`. A parallel material dashpot adds a rate-dependent force near standstill.
 The physical patch displacement relative to the rim is therefore `(x, −y)` in the forward/left
 road-tangent frame. Instantaneous slip feeds the calibrated steady law; a filtered diagnostic
 `relaxedAngle` remains available but no longer controls lateral force.
@@ -189,30 +225,70 @@ road-tangent frame. Instantaneous slip feeds the calibrated steady law; a filter
 ```
 σx = 0.22 m (Formula), 0.29 m (touring/family)
 σy = 0.32 m (Formula), 0.42 m (touring/family)
-σ = σ0·√(Fz/Fz0)·(1 − 0.35·Δp/p0)·(1 − 0.3·wear)·smooth(3, 12, |vx|)
+σ = σ0·clamp(√(Fz/Fz0), 0.4, 2)·clamp(1 − 0.35·Δp/p0, 0.7, 1.3)·(1 − 0.3·clamp(wear,0,1))
 Kx = Kκ/σx;  Ky = Kα/σy
 sx = ωr − vx;  sy = vy·cos(β) − hypot(vx,3)·sin(β)
-λx = Kx·sx/Fx_steady ≥ 0;  λy = Ky·sy/(−Fy_steady) ≥ 0
+u_x = max(2.5, |vx|);  u_y = hypot(vx,3)/cos(β)
+v_motion = max(|vx|, |ωr|, |sy|)
+b = smooth(1, 3, v_motion)
+renewal(u) = 1 if v_motion ≥ 3, otherwise b + (1−b)·clamp(v_motion/u, 0, 1)
+λx = renewal(u_x)·Kx·sx/Fx_steady ≥ 0
+λy = renewal(u_y)·Ky·sy/(−Fy_steady) ≥ 0
 x_trial = (x_old + dt·sx)/(1 + dt·λx)
 y_trial = (y_old + dt·sy)/(1 + dt·λy)
+c_i = K_i·τ_material·(1 − smooth(1,3,v_motion));  τ_material = 0.004 s
+F_i_trial = K_i·z_i_trial + c_i·s_i
 ```
 
 β is the existing equivalent camber slip-angle shift (§1.3), so `sy = vy` at zero camber.
-At vanishing slip the analytic combined-slip stiffness supplies the finite limiting rate.
-Every trial wheel speed computes both forces and reduces their pair onto the current friction
-ellipse when necessary. The converged wheel root alone commits either spring's state. The same
-projected `Fx` enters the wheel torque residual and the chassis force.
+At vanishing slip the analytic combined-slip stiffness supplies the finite limiting rate before
+the nonnegative renewal multiplier is applied. Contact spring stiffness no longer fades out at
+walking speed: `relaxationFade` remains in construction data only for compatibility. At zero
+road, rim and lateral motion the renewal rate is exactly zero, so a bounded static preload can
+hold a parked car without continual numerical creep or heat. Increasing road translation, wheel
+rotation or lateral sliding renews the footprint; stationary wheelspin therefore still reaches
+the moving contact law. The standalone helper preserves its prior moving-law contract when its
+optional `roadSpeed` input is omitted; production `solveTire()` always supplies it.
 
-For either spring, with restoring-force magnitude convention `F = K·x`, the discrete identity is
+The authored `TyreConstruction.contactDampingTime` is 4 ms for the current constructions. It is
+a material calibration, independent of the integration timestep. Viscosity damps the new parked
+car's shear/pitch mode, remains finite below 1 m/s, and smoothly vanishes by 3 m/s of actual
+motion. A stationary preload still produces no viscous force or heat because its slip speed is
+zero. Its work heats the carcass without contributing to tread abrasion.
+
+Every trial wheel speed computes both total spring-plus-dashpot forces. Each axis first applies
+its force cap, then the pair receives a common nonnegative friction-ellipse scale when needed.
+The final factor `a_i` for an axis lies in `[0,1]`, includes both projections, and scales its
+elastic strain and dashpot force together:
 
 ```
-F·s·dt = Δ(½K·x²) + physical sliding/projection loss·dt + ½K·(x_new−x_old)²
+z_i_new = a_i·z_i_trial
+Fx = Kx·x_new + a_x·c_x·sx
+Fy = −(Ky·y_new + a_y·c_y·sy)
+P_viscous,i = a_i·c_i·s_i² ≥ 0
 ```
 
-The final term is numerical integration loss, not physical heat. A force reversal can return only
-previously stored spring energy. Changes in prepared stiffness remap displacement while preserving
-that energy. Loss of contact and the walking-speed algebraic fallback release the remaining
-reservoir directly into the carcass, without counting it as tread abrasion or road slip work.
+The converged wheel root alone commits either spring's state. Force-only probes use the same
+coefficient and projection as that commit. The projected `Fx` enters both the wheel torque
+residual and the chassis force. Spring and dashpot forces can cancel while elastic deformation
+remains nonzero; strain is therefore not reconstructed from total force divided by stiffness.
+
+For either axis, using `z` for its elastic strain and `F` for its total resisting force
+(`Fx` longitudinally, `−Fy` laterally), the discrete identity is
+
+```
+F·s·dt = Δ(½K·z²) + (physical sliding/projection loss + P_viscous)·dt + ½K·(z_new−z_old)²
+```
+
+Only the elastic component `K·z`, rather than total force, enters the projection-loss calculation.
+This keeps that loss nonnegative through spring/dashpot cancellation and reversal. The final term
+is numerical integration loss, not physical heat. A force reversal can return only previously
+stored spring energy. Changes in prepared stiffness remap displacement while preserving that
+energy. Loss of contact, or a caller explicitly selecting zero relaxation length, releases
+the remaining reservoir directly into the carcass without counting it as tread abrasion or road
+slip work. There is no walking-speed algebraic fallback in the production tyre. Placement clears
+both contact reservoirs, force/slip-work diagnostics and rolling torque/work, so a differential
+cannot reuse a road force from the old location.
 
 Camber remains a reduced kinematic thrust model. Its explicit signed power port is
 `P_camber = Fy·(vy−sy)`: actual tangential slip work plus this port equals the two contact energy/loss
@@ -251,15 +327,47 @@ suspension axis at each substep, not continuously along the vehicle's full forwa
 
 The hot pressure p comes from the core temperature (§1.6). It enters:
 
-* contact-patch grip (§1.1);
-* slip stiffness;
-* relaxation length;
-* radial stiffness, `k_t·(1 + 0.7·Δp/p0)`, which changes the effective ride rate (§2);
-* rolling resistance `c_rr·(p0/p)^0.3`;
-* aquaplaning onset `V ∝ √p` (§5.3).
+- contact-patch grip (§1.1);
+- slip stiffness;
+- relaxation length;
+- radial stiffness, `k_t·(1 + 0.7·Δp/p0)`, which changes the effective ride rate (§2);
+- rolling resistance `c_rr·(p0/p)^0.3`;
+- aquaplaning onset `V ∝ √p` (§5.3).
 
 The patch length `l = 2·√(2r·(δ + z))` comes from the radial deflection δ and sinkage z. It feeds
 sinkage pressure and compaction resistance.
+
+### 1.5.1 Rolling loss and wheel torque
+
+The carcass rolling moment is solved with wheel rotation. Ground compaction, excess surface
+resistance, bulldozing and displaced-water drag remain translational losses. The split preserves
+the calibrated total free-rolling coefficient while preventing gravel/soil work from heating the
+tyre. With surface resistance `c_surface`, paved reference `c_paved = 0.015`, and construction
+factor `k_rr`:
+
+```
+scale = k_rr·(p_nominal/max(60,p))^rollingPressureExponent
+c_carcass = min(c_surface, c_paved)·scale
+c_total = c_surface·scale + z/((n+1)·max(0.05,l))
+c_ground = max(0, c_total − c_carcass)
+M = Fz·r·(c_carcass + (punctured ? 0.13 : 0))     (zero for Fz < 1 N)
+tau_roll(ω) = −M·tanh(2·ωr)
+I·(ω_new−ω_old)/dt = drive + tau_roll(ω_new) − brake·sign(ω_new) − Fx·r
+P_roll = −tau_roll(ω_new)·ω_new ≥ 0
+```
+
+The bracket bound includes `M`, and every trial uses the same signed moment. Static brake
+complementarity is unchanged because the rolling moment vanishes at zero rotation. Locked
+sliding tyres can still generate contact slip heat, but generate no rolling work. Loaded spinning
+tyres can generate rolling heat even when the vehicle is stationary; unloaded tyres cannot.
+
+`Tire.rolling` retains `c_total` as its diagnostic meaning; `groundRolling` stores `c_ground`,
+`rollingTorque` stores the signed moment and `rollingDissipation` stores its power. The vehicle
+applies `Fx − tanh(2·vx)·(Fz·c_ground + F_drag)` as the longitudinal force and separately applies
+`tau_roll·RoadContactFrame.axle` to total chassis-plus-wheel angular momentum. That external
+moment prevents the wheel-spin change from being mistaken for an internal brake reaction.
+Carcass loss is not subtracted again as body drag. The moment is an axial reduction, not a solved
+shifted contact-pressure distribution or an additional camber/overturning moment (§10).
 
 ### 1.6 Coupled tyre and rotor thermal model
 
@@ -273,21 +381,28 @@ C_C·dT_C/dt = 0.6·P_roll + P_internal + 85(T_S−T_C) − 30(T_C−T_G) − (4
 C_G·dT_G/dt = 30(T_C−T_G) − (2+0.05v)(T_G−T_air) + 0.6(T_disc−T_G)
 C_D·dT_D/dt = P_friction_brake − 0.6(T_D−T_G) − (25+4v)(T_D−T_air)
 P_slip = longitudinal sliding/projection loss + lateral sliding/projection loss
-P_internal = internal carcass relaxation heat; P_roll = 0.0012·Fz·|v|
+P_internal = internal material damping + contact-reservoir release; P_roll = −tau_roll(ω_new)·ω_new
 P_friction_brake = friction brake torque · |ω_new|; v = |speed|; w = water depth (mm)
 p_hot = (p_cold + 101.325)·(T_G + 273.15)/(T_set + 273.15) − 101.325     (absolute-pressure gas law)
 ```
 
-* The track and water terms act only while the tyre is loaded.
-* Brake heat reaches the gas through the rim, with equal heat removed from the finite rotor.
-* Internal deformation release does not contribute to tread wear or road slip work.
-* Regeneration and backward-Euler numerical wheel/contact loss do not heat the disc as friction.
-* Rain cools the surface directly.
-* The grip window is evaluated at `0.3·T_S + 0.7·T_C`.
-* Wear thins the tread, so a worn tyre heats faster.
-* Blistering and graining follow the surface and carcass windows, as before.
-* The network was calibrated against the former two-node model on an Aurel AI lap: mean surface
-  within 1.5 K, carcass within 0.7 K, hot pressure within 1.5 kPa.
+- The track and water terms act only while the tyre is loaded.
+- Production cars supply `ThermalInputs.rollingPower` from the wheel's actual rolling work (§1.5.1).
+  An explicit zero suppresses speed-based heat. Only callers omitting that input use the legacy
+  compatibility estimate `0.0012·Fz·|v|`; translational speed still sets air/water cooling.
+- Ground deformation and compaction work do not enter this tyre thermal network. Rolling
+  hysteresis is separate from `P_slip`, so it does not directly create tread abrasion or tyre marks.
+- Brake heat reaches the gas through the rim, with equal heat removed from the finite rotor.
+- Internal shear damping and deformation release do not contribute to tread wear or road slip work.
+- Regeneration and backward-Euler numerical wheel/contact loss do not heat the disc as friction.
+- Rain cools the surface directly.
+- The grip window is evaluated at `0.3·T_S + 0.7·T_C`.
+- Wear thins the tread, so a worn tyre heats faster.
+- Blistering and graining follow the surface and carcass windows, as before.
+- The original v2 thermal calibration against the former two-node model on an Aurel AI lap found
+  mean surface within 1.5 K, carcass within 0.7 K and hot pressure within 1.5 kPa. Those are
+  historical measurements. V14 replaces the smaller effective rolling-heat estimate with actual
+  carcass work, so its warm-up and pressure results must be assessed separately.
 
 ## 2. Suspension
 
@@ -308,12 +423,12 @@ normal tire load. `Tire.deflection = c·max(0, X−x)` is physical radial compre
 contact-area/sinkage and recording. This keeps rates, spring work and forces conjugate for the
 prepared contact frame; rotating/changing contact geometry remains operator split by substep.
 
-* Backward Euler (§0) solves both corners of an axle together with an analytic 2×2 Newton step.
+- Backward Euler (§0) solves both corners of an axle together with an analytic 2×2 Newton step.
   The anti-roll bar therefore couples both residuals in the same update, without an ordered
   left/right approximation.
-* The tyre cannot pull: its radial force is clamped to zero inside every residual evaluation.
+- The tyre cannot pull: its radial force is clamped to zero inside every residual evaluation.
   Contact loss changes the active force branch as part of the coupled solve.
-* An active set enforces the droop strap; its reaction carries force that would extend the hub
+- An active set enforces the droop strap; its reaction carries force that would extend the hub
   beyond the stop. A convex-work line search handles changes in the contact, damper and stop
   branches. The solve accepts at most 1e-6 N unconstrained force residual, uses at most 24 Newton
   iterations per axle and reports a convergence failure instead of accepting an imbalanced axle.
@@ -322,10 +437,10 @@ prepared contact frame; rotating/changing contact geometry remains operator spli
 definition's dampers are what a seven-post rig measures (wheel and tyre in series). The module
 derives the hardware at the tyre's nominal radial stiffness:
 
-* `k_w = k_r·k_t/(k_t − k_r)`;
-* bar rates by the same inversion of `k_r + 2·k_arb`;
-* dampers ×1/s² with `s = k_t/(k_t + k_w)`;
-* the stop gap ×s.
+- `k_w = k_r·k_t/(k_t − k_r)`;
+- bar rates by the same inversion of `k_r + 2·k_arb`;
+- dampers ×1/s² with `s = k_t/(k_t + k_w)`;
+- the stop gap ×s.
 
 So static and quasi-static ride heights, roll and pitch reproduce the former model, and existing
 setups keep their meaning. Pressure changes then alter the effective rates physically. The former
@@ -334,10 +449,10 @@ ratios 0.55/0.7.
 
 **Kinematics.**
 
-* Camber gain (rad of negative camber per m of bump; Formula 0.3/0.2, TC-1 0.55/0.35) and bump steer
+- Camber gain (rad of negative camber per m of bump; Formula 0.3/0.2, TC-1 0.55/0.35) and bump steer
   act on hub travel.
-* `kinematicCamber = (γ_static − gain·x)·side` is what the snapshot's W.CAMBER now reports.
-* The tyre uses the road-relative value (§1.3).
+- `kinematicCamber = (γ_static − gain·x)·side` is what the snapshot's W.CAMBER now reports.
+- The tyre uses the road-relative value (§1.3).
 
 **Load transfer.** Tread forces still enter the chassis at `VehicleSpec.linkCentreHeight` above the
 patch. This is the calibrated correction between the rigid body's reference point (about 0.52 m
@@ -346,8 +461,8 @@ calibrated value and the car sliding rather than rolling over at full lock.
 
 Roll-centre height and side-view anti geometry then split that transfer into:
 
-* an elastic share (springs and bars: body roll and pitch);
-* a geometric share that the links put straight into the tyre loads:
+- an elastic share (springs and bars: body roll and pitch);
+- a geometric share that the links put straight into the tyre loads:
 
 ```
 Q_i = −(h_rc/y_i)·Fy_i − tanθ·Fx_i·sign(z_i),   h_rc = h0 + gain·mean axle travel
@@ -355,15 +470,17 @@ Q_i = −(h_rc/y_i)·Fy_i − tanθ·Fx_i·sign(z_i),   h_rc = h0 + gain·mean a
 Σ y_i·Q_lateral,i = −h_rc·ΣFy   (lateral link-force moment identity)
 ```
 
-Here `Fx_i` and `Fy_i` are the **applied force projected onto chassis axes**, including the rolling
-and ground drag already applied at the patch. They are not the raw force components in the steered
-wheel frame. This keeps the link geometry consistent under combined steering, braking and banking.
+Here `Fx_i` and `Fy_i` are the **applied translational force projected onto chassis axes**: tread
+force with the longitudinal ground-resistance force subtracted. Carcass rolling loss already
+affects the solved tread force through wheel torque (§1.5.1). Its separate external axle moment
+is not converted into link jacking. These chassis-axis projections keep the link geometry
+consistent under combined steering, braking and banking.
 
-* Jacking appears whenever the outer and inner forces differ.
-* Formula: roll centres 0.03 m front and 0.06 m rear (dropping 0.3 m per m of squat); anti-dive
+- Jacking appears whenever the outer and inner forces differ.
+- Formula: roll centres 0.03 m front and 0.06 m rear (dropping 0.3 m per m of squat); anti-dive
   tanθ 0.012 (about 25%), anti-squat 0.022.
-* TC-1: roll centres 0.05/0.08 m, front anti-lift 0.015.
-* With roll centres, the production car rolls measurably less while its total lateral load transfer
+- TC-1: roll centres 0.05/0.08 m, front anti-lift 0.015.
+- With roll centres, the production car rolls measurably less while its total lateral load transfer
   stays within 10% (unit test).
 
 **Tyre radial stiffness:** 330 kN/m Formula, 260 kN/m TC-1, pressure dependent, with radial damping
@@ -380,11 +497,11 @@ T = map(rpm, θ_eff)·(1 − b + b·boost) − c_pump·(1 − θ_eff)·ω − (a
 boost: τ = spool time building, × dump fraction decaying; target smooth(rpm_lo, rpm_hi, rpm)·θ_eff
 ```
 
-* The map is the definition's full-load curve times θ^progression, or an explicit rpm × throttle
+- The map is the definition's full-load curve times θ^progression, or an explicit rpm × throttle
   table (bilinear).
-* Pumping loss is 0.01 N m s on the Formula car and 0.03 on TC-1.
-* Crank inertia comes from the block: 0.34 Formula, 0.21 TC-1.
-* Turbo lag is available. Neither original car uses it (the Formula car's energy recovery removes
+- Pumping loss is 0.01 N m s on the Formula car and 0.03 on TC-1.
+- Crank inertia comes from the block: 0.34 Formula, 0.21 TC-1.
+- Turbo lag is available. Neither original car uses it (the Formula car's energy recovery removes
   lag). Four catalogue cars whose briefs name it do (`CatalogueSheet.turbo` on the legacy engine
   block): HF-86 (boost share 0.55, spool 0.8 s), GB-4 (0.5, 0.5 s), RR-4 (0.4, 0.45 s) and PR-3
   (0.4, 0.3 s), dump fraction 0.3–0.35. Their spool thresholds sit below the working range, so the
@@ -392,16 +509,16 @@ boost: τ = spool time building, × dump fraction decaying; target smooth(rpm_lo
 
 **Gearbox:**
 
-* Shift time is per definition: Formula 0.06 s (formerly 0.09), TC-1 0.11 s.
-* The cut fraction is 1 for a dog box; 0 makes the box seamless, so the clutch stays engaged.
+- Shift time is per definition: Formula 0.06 s (formerly 0.09), TC-1 0.11 s.
+- The cut fraction is 1 for a dog box; 0 makes the box seamless, so the clutch stays engaged.
 
 **Differentials** (`differential.ts`, a single module):
 
-* **Catalogue drivelines.** A definition with a `driveline` (open/`lsd()`/locked axles, an AWD
+- **Catalogue drivelines.** A definition with a `driveline` (open/`lsd()`/locked axles, an AWD
   centre with `frontShare`) runs through `distributeDrive()`. That path is the catalogue's own
   calibrated equal-speed projection, limited by `lockingCapacity()`, and is unchanged by this work.
   It also feeds the AWD carrier speed (`carrierOmega()`) to the clutch.
-* **Everything else** runs the stick-torque model below. `fromSpec()` converts a catalogue
+- **Everything else** runs the stick-torque model below. `fromSpec()` converts a catalogue
   `DifferentialSpec` into it with the same capacity (unit test), so either content form can drive
   either path.
 
@@ -413,24 +530,24 @@ Torsen: L = clamp(β·L_stick, ±½|T|·(TBR−1)/(TBR+1))
 L_stick = (β·Δω + dt·(((1−s)T + R2)/I2 − (sT + R1)/I1)) / (dt·(1/I1 + 1/I2))
 ```
 
-* R1 and R2 are the road reaction torques predicted from the previous step (−Fx·r), since the tyres
-  are solved after the differential.
-* β under-relaxes only the speed-difference feedback.
-* Setup diffPower/diffCoast scale the locking around the definition's values.
-* `resolveDifferential()` also accepts model names ('open', 'locked'/'spool', 'lsd'/'clutch',
+- R1 and R2 are the road reaction torques predicted from the previous step
+  (`−Fx·r + tau_roll`), since the tyres are solved after the differential.
+- β under-relaxes only the speed-difference feedback.
+- Setup diffPower/diffCoast scale the locking around the definition's values.
+- `resolveDifferential()` also accepts model names ('open', 'locked'/'spool', 'lsd'/'clutch',
   'viscous', 'torsen') and catalogue specs, so another content source can declare one.
-* The stick-torque presets are `OPEN_AXLE`, `SPOOL`, `CLUTCH_LSD`, `TORSEN` and `LEGACY_AXLE`. The
+- The stick-torque presets are `OPEN_AXLE`, `SPOOL`, `CLUTCH_LSD`, `TORSEN` and `LEGACY_AXLE`. The
   names `OPEN` and `LOCKED` belong to the catalogue specs.
-* `drivelineTorques()` composes a stick-torque centre differential (share `split` to the front) with
+- `drivelineTorques()` composes a stick-torque centre differential (share `split` to the front) with
   the axle differentials for 'rwd', 'fwd' or 'awd'.
-* **Defaults kept:** APX-01 and TC-1 use `LEGACY_AXLE`, the former viscous coupling
+- **Defaults kept:** APX-01 and TC-1 use `LEGACY_AXLE`, the former viscous coupling
   (55·setting N m s/rad, capped at 1050 N m). It is reproduced exactly (unit test).
 
 ## 4. Aerodynamics
 
-* **Map.** The existing 9×9 front/rear ride-height floor table and pitch responses
+- **Map.** The existing 9×9 front/rear ride-height floor table and pitch responses
   (`aero-map.ts`).
-* **Floor centre of pressure** (`AeroDynamics`):
+- **Floor centre of pressure** (`AeroDynamics`):
 
   ```
   z_cp = z0 + k_pitch·(pitch − pitch_ref) + k_h·(h_mean − h_ref)
@@ -439,30 +556,31 @@ L_stick = (β·Δω + dt·(((1−s)T + R2)/I2 − (sT + R1)/I1)) / (dt·(1/I1 + 
   On the Formula car k_pitch is −4 m/rad and k_h −1.5 m/m, bounded to ±1.5 m. It moves forward as
   the nose drops or the floor nears the ground, which gives rake and heave balance sensitivity. The
   floor load is applied there (previously at the mass centre).
-* **Convective lag.** The underbody flow sees ride heights lagged by L/V: exact lag, L = 0.5 m
+
+- **Convective lag.** The underbody flow sees ride heights lagged by L/V: exact lag, L = 0.5 m
   Formula, 0.4 m TC-1.
-* **Plunge damping (porpoising safety).** Each axle station gets `F = −½ρV·S·ż` (S = 3 m² Formula,
+- **Plunge damping (porpoising safety).** Each axle station gets `F = −½ρV·S·ż` (S = 3 m² Formula,
   1.2 m² TC-1). Without it, a lag in the floor's stall region adds negative heave damping. Measured:
   a 0.6 m/s heave kick at a 4.5 cm ride on 90 kN/m springs at 270 km/h decays below 10% within 2.5 s
   at 60, 120 and 240 Hz.
-* **Wake.**
-  * **Dirty air** keeps the existing `wakeOverlap` volume. It reduces front, rear and floor load.
-  * **Slipstream** is a separate channel, `slipstreamOverlap`: longer (decay length 70 m) and
+- **Wake.**
+  - **Dirty air** keeps the existing `wakeOverlap` volume. It reduces front, rear and floor load.
+  - **Slipstream** is a separate channel, `slipstreamOverlap`: longer (decay length 70 m) and
     narrower (radius 1.0 + 0.022·d m). It reduces drag only: `aero(..., tow)` gives
     `drag·(1 − 0.16·tow)`.
-  * Each leader scales both channels by its body: the TC-1 throws 30% of the Formula car's dirty air
+  - Each leader scales both channels by its body: the TC-1 throws 30% of the Formula car's dirty air
     and tows 1.15× as well.
-  * Both channels are exactly zero beyond 100 m, so the world's 101 m proximity cull stays exact
+  - Both channels are exactly zero beyond 100 m, so the world's 101 m proximity cull stays exact
     (property test).
-  * `wakeFields()` in `aero.ts` computes both for the world loop.
-* **Fan-assisted floor** (`VehicleDefinition.fan`, only the experimental XF-2). An auxiliary
+  - `wakeFields()` in `aero.ts` computes both for the world loop.
+- **Fan-assisted floor** (`VehicleDefinition.fan`, only the experimental XF-2). An auxiliary
   engine's fans evacuate a skirted floor, so the suction does not scale with V²: `F_fan =
-  F·clamp(1 − (h − h_seal)/fade, 0, 1)·floorHealth`, applied at the fan station with the measured
+F·clamp(1 − (h − h_seal)/fade, 0, 1)·floorHealth`, applied at the fan station with the measured
   (not flow-lagged) mean floor clearance, because the skirts leak the moment the floor lifts. XF-2:
   F = 7 kN, h_seal = static clearance + 12 mm, fade 50 mm. It is reported apart from ClA
   (`aero.fanN` in `docs/vehicle-calibration.json`). Every other definition lacks the field, so their
   physics and content hashes are unchanged.
-  * The AI envelope separates the fan's share of its base limits (`CapabilityEnvelope.fanBase`):
+  - The AI envelope separates the fan's share of its base limits (`CapabilityEnvelope.fanBase`):
     the calibration fits the lateral and braking envelopes again with the fan removed, and the
     difference of the bases is the share (`fanEnvelopeShare` in the report; XF-2 7.63 m/s² lateral,
     12.80 m/s² braking). `floorEnvelope` in `ai.ts` scales that share with floor health, as the
@@ -470,31 +588,32 @@ L_stick = (β·Δω + dt·(((1−s)T + R2)/I2 − (sT + R1)/I1)) / (dt·(1/I1 + 
 
 ## 5. Ground materials
 
-`MATERIALS` (`surface-material.ts`), indexed by surface id. Ids 0–5 are the circuit ids in snapshots;
-6–10 are new.
+`MATERIALS` (`surface-material.ts`), indexed by surface id. Ids 0–5 are the original circuit ids in
+snapshots; 6–11 extend the table for terrain and winter surfaces.
 
-| id | material | μ | wet μ factor | stiffness | fall-off | coupling | rigid c_rr | sink modulus / max | bulldoze (static / v²) |
-|---|---|---|---|---|---|---|---|---|---|
-| 0 | asphalt | 1 | 1 | 1 | 1 | 1 | 0.015 | — | — |
-| 1 | paint | 0.94 | 0.82 | 1 | 1.1 | 1 | 0.015 | — | — |
-| 2 | kerb | 0.91 | 0.86 | 0.95 | 1.05 | 1 | 0.015 | — | — |
-| 3 | grass | 0.53 | 0.85 | 0.7 | 0.8 | 0.35 | 0.06 | 6 MPa/m, 20 mm | 6 kN/m², 2 |
-| 4 | gravel | 0.40 | 0.95 | 0.45 | 0 | 0.25 | 0.115 | 1.5 MPa/m, 80 mm | 18 kN/m², 9 |
-| 5 | pit asphalt | 1 | 0.97 | 1 | 1 | 1 | 0.015 | — | — |
-| 6 | dirt | 0.68 | 0.70 | 0.6 | 0.4 | 0.5 | 0.04 | 5 MPa/m, 20 mm | 8 kN/m², 3 |
-| 7 | mud | 0.42 | 0.85 | 0.4 | 0.3 | 0.3 | 0.08 | 0.6 MPa/m, 120 mm | 22 kN/m², 12 |
-| 8 | sand | 0.50 | 1.10 | 0.4 | 0 | 0.25 | 0.09 | 0.8 MPa/m^1.1, 100 mm | 24 kN/m², 11 |
-| 9 | snow | 0.30 | 0.80 | 0.5 | 0.5 | 0.5 | 0.03 | 0.4 MPa/m, 60 mm | 5 kN/m², 2 |
-| 10 | ice | 0.12 | 0.60 | 0.85 | 1.2 | 1 | 0.01 | — | — |
+| id  | material    | μ    | wet μ factor | stiffness | fall-off | coupling | rigid c_rr | sink modulus / max    | bulldoze (static / v²) |
+| --- | ----------- | ---- | ------------ | --------- | -------- | -------- | ---------- | --------------------- | ---------------------- |
+| 0   | asphalt     | 1    | 1            | 1         | 1        | 1        | 0.015      | —                     | —                      |
+| 1   | paint       | 0.94 | 0.82         | 1         | 1.1      | 1        | 0.015      | —                     | —                      |
+| 2   | kerb        | 0.91 | 0.86         | 0.95      | 1.05     | 1        | 0.015      | —                     | —                      |
+| 3   | grass       | 0.53 | 0.85         | 0.7       | 0.8      | 0.35     | 0.06       | 6 MPa/m, 20 mm        | 6 kN/m², 2             |
+| 4   | gravel      | 0.40 | 0.95         | 0.45      | 0        | 0.25     | 0.115      | 1.5 MPa/m, 80 mm      | 18 kN/m², 9            |
+| 5   | pit asphalt | 1    | 0.97         | 1         | 1        | 1        | 0.015      | —                     | —                      |
+| 6   | dirt        | 0.68 | 0.70         | 0.6       | 0.4      | 0.5      | 0.04       | 5 MPa/m, 20 mm        | 8 kN/m², 3             |
+| 7   | mud         | 0.42 | 0.85         | 0.4       | 0.3      | 0.3      | 0.08       | 0.6 MPa/m, 120 mm     | 22 kN/m², 12           |
+| 8   | sand        | 0.50 | 1.10         | 0.4       | 0        | 0.25     | 0.09       | 0.8 MPa/m^1.1, 100 mm | 24 kN/m², 11           |
+| 9   | snow        | 0.30 | 0.80         | 0.5       | 0.5      | 0.5      | 0.03       | 0.4 MPa/m, 60 mm      | 5 kN/m², 2             |
+| 10  | ice         | 0.12 | 0.60         | 0.85      | 1.2      | 1        | 0.01       | —                     | —                      |
+| 11  | gravel road | 0.62 | 0.86         | 0.55      | 0.3      | 0.45     | 0.03       | 9 MPa/m, 12 mm        | 6 kN/m², 2.5           |
 
 ### 5.1 Friction terms
 
-* **Friction:** `μ_ground = μ·(1 + (wetμ − 1)·w/(w + w_ref))`. Ice and snow lose up to 45% toward
+- **Friction:** `μ_ground = μ·(1 + (wetμ − 1)·w/(w + w_ref))`. Ice and snow lose up to 45% toward
   0 °C (meltwater film).
-* **Fall-off:** `C_eff = 1 + (C − 1)·falloff`. Loose ground keeps ploughing force at large slip.
-* **Stiffness** scales Kα and Kx, so loose ground needs more slip.
-* **Coupling** scales by1 and bx1 (§1.2).
-* The circuit's grass and gravel friction and rigid resistance now come from this table
+- **Fall-off:** `C_eff = 1 + (C − 1)·falloff`. Loose ground keeps ploughing force at large slip.
+- **Stiffness** scales Kα and Kx, so loose ground needs more slip.
+- **Coupling** scales by1 and bx1 (§1.2).
+- The circuit's grass and gravel friction and rigid resistance now come from this table
   (`Track.sample`).
 
 ### 5.2 Sinkage, compaction and drag
@@ -502,16 +621,24 @@ L_stick = (β·Δω + dt·(((1−s)T + R2)/I2 − (sT + R1)/I1)) / (dt·(1/I1 + 
 ```
 sinkage target z* = min(z_max, (Fz / (b·l·k))^(1/n))      (Bekker p = k·zⁿ)
 z ← exact lag toward z*, τ = 0.06 + 0.25/(1 + |v|)  (plastic yield; no spring feedback)
-c_rr = c_rigid·carcass·(p0/p)^0.3 + z/((n+1)·l)                         (compaction work)
+c_total = c_surface·carcass·(p0/p)^0.3 + z/((n+1)·max(0.05,l))          (includes compaction work)
 F_drag = z·b·(k_b·min(1,|v|) + k_bv·v²)  +  100·b·depth·v²·(1 − 0.7·planing)   (bulldozing, water displacement)
+F_ground = tanh(2·vx)·(Fz·c_ground + F_drag)
 ```
 
-* At nominal load the grass and gravel rolling totals are 0.070 and 0.137 on the APX-01 (whose
-  low-loss carcass factor is 0.9), close to the former 0.08 and 0.16. At 20 m/s gravel adds about
-  130 N of bulldozing drag per tyre.
-* Sinkage lowers the effective ground in the suspension geometry, so a car in gravel sits lower and
+Section 1.5.1 splits `c_total` into the carcass coefficient used by the axial rolling moment and
+the residual `c_ground`. Only the latter enters `F_ground`; the ground's deformation work is not
+assigned to tyre heat. The asphalt-sized baseline in that split is an engineering calibration,
+not a measured decomposition of soil and rubber losses.
+
+- The original v2 calibration at nominal load found grass and gravel rolling totals of 0.070 and
+  0.137 on the APX-01 (whose low-loss carcass factor is 0.9), close to the former 0.08 and 0.16.
+  At 20 m/s gravel added about 130 N of bulldozing drag per tyre. These are historical reference
+  measurements, not a new v14 calibration run.
+- Sinkage lowers the effective ground in the suspension geometry, so a car in gravel sits lower and
   can ground its floor.
-* Standing water costs about 4% of wet top speed (heavy-rain AI scenario: 293 → 281 km/h).
+- The original v2 heavy-rain AI scenario lost about 4% of wet top speed to standing water
+  (293 → 281 km/h).
 
 ### 5.3 Aquaplaning
 
@@ -521,32 +648,34 @@ g = (grooves: 1 − 0.55·wear)·clamp(0.75 + 0.3125·texture_mm, 0.6, 1.25)
 u = √(Fz/2200)·√(p/160)
 ```
 
-* Groove depth is 2.5 mm on intermediates and 4 mm on wets. Worn grooved tyres plane earlier.
-* Smooth paint (0.25 mm texture) planes earlier.
-* Higher inflation pressure raises the onset speed (the classic V ∝ √p law).
-* At nominal conditions this equals the former curve.
+- Groove depth is 2.5 mm on intermediates and 4 mm on wets. Worn grooved tyres plane earlier.
+- Smooth paint (0.25 mm texture) planes earlier.
+- Higher inflation pressure raises the onset speed (the classic V ∝ √p law).
+- At nominal conditions this equals the former curve.
 
 ### 5.4 Other users
 
 The motorcycle prototype (`bike.ts`) and terrain tiles use the same table:
 
-* friction circle `μ_tyre · materialGrip(material, water, temp)`;
-* `TERRAIN_MATERIAL` maps hardpack and loam to dirt, sand to sand, mud to mud.
+- friction circle `μ_tyre · materialGrip(material, water, temp)`;
+- `TERRAIN_MATERIAL` maps hardpack and loam to dirt, sand to sand, mud to mud.
 
 ## 6. Driver-model adaptations
 
-The tyres now saturate physically in combination, so the AI and assists were made relative to the
-tyre's actual state instead of the former fixed slip numbers.
+This section retains the original force-model driver adaptations and their recorded start/wet-review
+measurements. They are historical calibration evidence, not a new v14 AI refit. When combined-slip
+saturation was introduced, the AI and assists were made relative to the tyre's actual state
+instead of the former fixed slip numbers.
 
-* **Peak slip and utilization.** `Tire.peakSlip` is the present peak slip ratio. `Tire.usage` is the
+- **Peak slip and utilization.** `Tire.peakSlip` is the present peak slip ratio. `Tire.usage` is the
   combined friction-ellipse use.
-* **Peak-relative thresholds.** Traction control (0.16), ABS (0.14), AI wheelspin (0.08) and AI lock
+- **Peak-relative thresholds.** Traction control (0.16), ABS (0.14), AI wheelspin (0.08) and AI lock
   (0.12) are now scaled by `peakSlip/0.25`, so they are unchanged on the dry reference slick.
-* **Friction-limit feedback.**
-  * The AI eases the throttle when the driven axle passes 0.9 utilization.
-  * It eases the brake when the rear passes 0.9.
-  * It eases the brake when the steered front passes 0.92 while turning.
-* **Grid start and handover.** The lane logic is the former one. In addition, the car's offset
+- **Friction-limit feedback.**
+  - The AI eases the throttle when the driven axle passes 0.9 utilization.
+  - It eases the brake when the rear passes 0.9.
+  - It eases the brake when the steered front passes 0.92 while turning.
+- **Grid start and handover.** The lane logic is the former one. In addition, the car's offset
   from its lane where the AI takes it fades with distance travelled:
   `launch ← launch·exp(−v·dt/50 m)`. The AI takes a car at its grid slot, and again after more than
   0.5 s without AI control (a player handing over, a remounted rider). Previously the car aimed
@@ -554,66 +683,70 @@ tyre's actual state instead of the former fixed slip numbers.
   journey runs `assist: 'raw'`) and lays a remounting rider over at walking pace. Now there is no
   lateral demand at standstill: a car holds its line and merges over the first 100–150 m. A
   remounted motorcycle covers 340 m in its first 10 s (300 m required) instead of 286 m.
-* **Why 50 m.** Two start-sensitive scenario tests bound the length:
-  * the mid-field racing-line test needs the opening-lap reshuffle (player within 18 m of one rival
+- **Why 50 m.** Two start-sensitive scenario tests bound the length:
+  - the mid-field racing-line test needs the opening-lap reshuffle (player within 18 m of one rival
     for ≥ 5 s);
-  * the wet-review test needs in-line following from the grid (≥ 3 s behind one car).
+  - the wet-review test needs in-line following from the grid (≥ 3 s behind one car).
 
-  | Start behaviour | Mid-field, test seed | Mid-field, seeds 1–3 | Wet following (geometric) |
-  |---|---|---|---|
-  | Grid column held | 2.9 s | 2.6–2.7 s | 3.5 s |
-  | 12 m fade | 9.7 s | 10.5–10.7 s | 2.0 s |
-  | 30 m fade | 4.9 s | 8.3–9.1 s | 9.5 s |
-  | **50 m fade** | **8.3 s** | **5.2–8.5 s** | **5.5 s** |
+  | Start behaviour  | Mid-field, test seed | Mid-field, seeds 1–3 | Wet following (geometric) |
+  | ---------------- | -------------------- | -------------------- | ------------------------- |
+  | Grid column held | 2.9 s                | 2.6–2.7 s            | 3.5 s                     |
+  | 12 m fade        | 9.7 s                | 10.5–10.7 s          | 2.0 s                     |
+  | 30 m fade        | 4.9 s                | 8.3–9.1 s            | 9.5 s                     |
+  | **50 m fade**    | **8.3 s**            | **5.2–8.5 s**        | **5.5 s**                 |
 
   The mid-field columns of the first two rows were measured before the integration merge.
   Baseline physics with the full-lock start gave 9.5 s (3.4–7.9 s on seeds 1–3). The outcome is not
   monotonic in the length, so these two tests remain sensitive to any change in start behaviour.
-* **Hosted wet-following session.** The hosted wet-following review (e2e/29) records one
+
+- **Hosted wet-following session.** The hosted wet-following review (e2e/29) records one
   deterministic session: Aurel, test seed, 8 cars, rain, full wets, AI driving the player, five laps.
   The browser worker reproduces it tick for tick. Its recorder needs 3 s of same-leader wet following.
   Frames more than 1 s apart break the run, and hosted software rendering has exceeded that near the
   launch. The longest following starting at least 15 s after the green, sampled at 30 Hz:
 
-  | Start behaviour | Mid-field slot | Back slot |
-  |---|---|---|
-  | Baseline (53b6130) | 9.3 s | 9.5 s |
-  | 0 / 12 / 35 m fade | 10.3 / 7.0 / 10.5 s | 6.3 / 10.2 / 3.8 s |
-  | 40 / 60 / 75 / 100 m fade | none / none / none / none | none / 4.7 / none / 8.6 s |
-  | **50 m fade** | **3.4 s** (9.3 s only at the launch) | **8.9 s** (and 8.1 s) |
+  | Start behaviour           | Mid-field slot                       | Back slot                 |
+  | ------------------------- | ------------------------------------ | ------------------------- |
+  | Baseline (53b6130)        | 9.3 s                                | 9.5 s                     |
+  | 0 / 12 / 35 m fade        | 10.3 / 7.0 / 10.5 s                  | 6.3 / 10.2 / 3.8 s        |
+  | 40 / 60 / 75 / 100 m fade | none / none / none / none            | none / 4.7 / none / 8.6 s |
+  | **50 m fade**             | **3.4 s** (9.3 s only at the launch) | **8.9 s** (and 8.1 s)     |
 
   Run 38685156128 finished both mid-field views unqualified. The review therefore starts from the back
   slot (`REVIEW_START_SLOTS`), and `tests/wet-review-start.test.ts` replays that session. The test
   requires following after the launch at a 0.9 s cadence. A change in start or racing behaviour that
   fails it needs a re-measured slot, not a relaxed review.
 
-## 7. Calibration evidence
+## 7. Historical v2 calibration evidence
 
-`npm run test:vehicles` measures each car at 1/240 s and 1/120 s. The value shown is the 1/240 s
-result. Drift is the difference between the two timesteps: baseline / v2.
+The measurements in this section archive the original v2 integration. They are not claims about
+the current v14 calibration; current verification and measured outcomes are recorded in
+[ENGINE_DYNAMICS_V14.md](ENGINE_DYNAMICS_V14.md). `npm run test:vehicles` measured each car at
+1/240 s and 1/120 s. The value shown is the 1/240 s result. Drift is the difference between the
+two timesteps: baseline / v2.
 
-| Metric | Band | APX-01 baseline | APX-01 v2 | TC-1 baseline | TC-1 v2 |
-|---|---|---|---|---|---|
-| 0–100 km/h (s) | 2.3–3.2 / 4.8–7.5 | 2.59 | 2.60 | 5.13 (drift 5.2%) | 4.93 (0.0%) |
-| Top speed (km/h) | 320–360 / 205–255 | **319.8 (outside)** | 320.6 | 231.9 | 232.3 |
-| 100–0 km/h (m) | 15–32 / 26–42 | 18.96 | 19.24 | 28.80 | 28.09 |
-| Lateral at 80 km/h (g) | 1.8–3.2 / 1.0–1.45 | 1.97 | 1.95 | 1.30 | 1.33 |
-| Lateral fit (base m/s², aero) | — | 15.53, 6.74e-3 | 15.58, 6.38e-3 | 12.72, 1.06e-4 | 13.04, 1.16e-4 |
-| Largest timestep drift | — | 1.16% | 0.2% | 5.19% | 0.0% |
+| Metric                        | Band               | APX-01 baseline     | APX-01 v2      | TC-1 baseline     | TC-1 v2        |
+| ----------------------------- | ------------------ | ------------------- | -------------- | ----------------- | -------------- |
+| 0–100 km/h (s)                | 2.3–3.2 / 4.8–7.5  | 2.59                | 2.60           | 5.13 (drift 5.2%) | 4.93 (0.0%)    |
+| Top speed (km/h)              | 320–360 / 205–255  | **319.8 (outside)** | 320.6          | 231.9             | 232.3          |
+| 100–0 km/h (m)                | 15–32 / 26–42      | 18.96               | 19.24          | 28.80             | 28.09          |
+| Lateral at 80 km/h (g)        | 1.8–3.2 / 1.0–1.45 | 1.97                | 1.95           | 1.30              | 1.33           |
+| Lateral fit (base m/s², aero) | —                  | 15.53, 6.74e-3      | 15.58, 6.38e-3 | 12.72, 1.06e-4    | 13.04, 1.16e-4 |
+| Largest timestep drift        | —                  | 1.16%               | 0.2%           | 5.19%             | 0.0%           |
 
 The APX-01's top speed was retuned into its band with the slick's carcass rolling-resistance factor
 (0.9) and a load-proportional longitudinal stiffness. The AI capability envelopes in
 `vehicles.ts` were left unchanged: the fitted limits moved by less than 3%.
 
-**Catalogue cars and motorcycles** (from the integration branch) all stay inside every band at both
-timesteps. Relative to that branch's own calibration:
+**Catalogue cars and motorcycles** from that v2 integration-branch run stayed inside every band
+at both timesteps. Relative to that branch's own calibration:
 
-* braking distances are 0.9–1.6% longer;
-* lateral limits move by −2.4% to +1.0%;
-* 0–100 km/h and top speed change by at most 0.6%;
-* the motorcycles are unchanged (their adapter has its own tyre model).
+- braking distances were 0.9–1.6% longer;
+- lateral limits moved by −2.4% to +1.0%;
+- 0–100 km/h and top speed changed by at most 0.6%;
+- the motorcycles were unchanged by v2 (their adapter has its own tyre model).
 
-The tightest margins are SK-125 braking (18.67 m against an 18 m floor), DX-8 braking (39.28 m
+The tightest margins were SK-125 braking (18.67 m against an 18 m floor), DX-8 braking (39.28 m
 against 38 m) and APX-01 top speed (320.55 km/h against 320 km/h). A first pass gave the closed-wheel
 families the touring carcass's 3300 N load reference. That raised their peak friction by about 4%,
 and six cars stopped up to 0.5 m short of their braking floors. `FAMILY_CARCASS` restores the
@@ -621,45 +754,46 @@ and six cars stopped up to 0.5 m short of their braking floors. `FAMILY_CARCASS`
 
 `npm run test:dynamics` (isolated rigs), baseline → v2:
 
-| Rig | Measurement | Baseline | v2 |
-|---|---|---|---|
-| Braking from 100/200/300 km/h | Stopping distance (m) | 18.8 / 54.9 / 96.4 | 19.1 / 55.6 / 97.2 |
-| Skidpad at 15/25/35 m/s | Lateral (g) | 0.289 / 0.792 / 1.52 | same to 0.003 |
-| Slalom | Peak yaw | bounded, recovered | bounded, recovered |
-| Sausage kerb | Peak vertical (g) | 0.76 | 1.56 |
+| Rig                           | Measurement           | Baseline             | v2                 |
+| ----------------------------- | --------------------- | -------------------- | ------------------ |
+| Braking from 100/200/300 km/h | Stopping distance (m) | 18.8 / 54.9 / 96.4   | 19.1 / 55.6 / 97.2 |
+| Skidpad at 15/25/35 m/s       | Lateral (g)           | 0.289 / 0.792 / 1.52 | same to 0.003      |
+| Slalom                        | Peak yaw              | bounded, recovered   | bounded, recovered |
+| Sausage kerb                  | Peak vertical (g)     | 0.76                 | 1.56               |
 
 The kerb strike is harsher in v2 because it now passes through the stiff radial tyre instead of the
 damper alone. The bounded-load assertions still hold.
 
 Scenarios (`npm run test:physics`, 4 cars, 320 s) and the AI lap probe:
 
-| Measure | Baseline | v2 |
-|---|---|---|
-| Clear best laps | 49.4–51.0 s | 49.6–51.3 s |
-| Changeable best laps | 51.4–55.0 s | 51.4–55.6 s |
-| Rain best laps | 64.7–67.3 s | 66.0–69.2 s |
-| Rain top speed | 293 km/h | 281 km/h |
-| Wet pits, 10 cars on slicks, serviced | 240.9 s, zero impacts | 240.5 s, zero impacts |
-| AI lap: tyre surface temperature (F/R) | 82/93 °C | 81/91 °C |
-| AI lap: carcass temperature | 85–87 °C | 85–87 °C |
-| AI lap: hot pressure | 154/148 kPa | 153/146 kPa |
-| AI lap: single-car best (dry) | 49.84 s | 49.90 s |
+| Measure                                | Baseline              | v2                    |
+| -------------------------------------- | --------------------- | --------------------- |
+| Clear best laps                        | 49.4–51.0 s           | 49.6–51.3 s           |
+| Changeable best laps                   | 51.4–55.0 s           | 51.4–55.6 s           |
+| Rain best laps                         | 64.7–67.3 s           | 66.0–69.2 s           |
+| Rain top speed                         | 293 km/h              | 281 km/h              |
+| Wet pits, 10 cars on slicks, serviced  | 240.9 s, zero impacts | 240.5 s, zero impacts |
+| AI lap: tyre surface temperature (F/R) | 82/93 °C              | 81/91 °C              |
+| AI lap: carcass temperature            | 85–87 °C              | 85–87 °C              |
+| AI lap: hot pressure                   | 154/148 kPa           | 153/146 kPa           |
+| AI lap: single-car best (dry)          | 49.84 s               | 49.90 s               |
 
-## 8. Cost
+## 8. Historical v2 cost
 
-`node --experimental-transform-types scripts/physics-cost.ts --repeat 3 --seconds 60` runs 20
-production cars with production AI for 60 s on Aurel: a 120 Hz tick with two 240 Hz substeps, in the
-same order as `Simulation.step`. Baseline and v2 were run interleaved on the same machine while it
-was shared with other jobs.
+This section preserves the original v2 performance comparison. It does not measure the additional
+work introduced through v14. `node --experimental-transform-types scripts/physics-cost.ts --repeat 3
+--seconds 60` ran 20 production cars with production AI for 60 s on Aurel: a 120 Hz tick with two
+240 Hz substeps, in the same order as `Simulation.step`. Baseline and v2 were run interleaved on
+the same machine while it was shared with other jobs.
 
 Five interleaved rounds of 60 simulated seconds each:
 
-| Measure | Baseline (median, range) | v2 (median, range) | Change |
-|---|---|---|---|
-| Process CPU per 120 Hz tick | 3.90 ms (3.85–3.96) | 4.38 ms (4.33–4.40) | **+12%** |
-| Wall time per tick | 5.39 ms (4.42–6.09) | 6.14 ms (4.86–6.76) | +14% |
-| `Vehicle.step` wall time per tick | 4.51 ms (3.71–5.10) | 5.15 ms (4.11–5.68) | +14% |
-| `Vehicle.step` wall time per car-substep | 113 µs | 129 µs | +14% |
+| Measure                                  | Baseline (median, range) | v2 (median, range)  | Change   |
+| ---------------------------------------- | ------------------------ | ------------------- | -------- |
+| Process CPU per 120 Hz tick              | 3.90 ms (3.85–3.96)      | 4.38 ms (4.33–4.40) | **+12%** |
+| Wall time per tick                       | 5.39 ms (4.42–6.09)      | 6.14 ms (4.86–6.76) | +14%     |
+| `Vehicle.step` wall time per tick        | 4.51 ms (3.71–5.10)      | 5.15 ms (4.11–5.68) | +14%     |
+| `Vehicle.step` wall time per car-substep | 113 µs                   | 129 µs              | +14%     |
 
 The budget is +40%. On an idle machine before any change, the baseline measured 3.58 ms per tick
 (76 µs per car-substep). The wall times above are inflated by other jobs, and CPU time is the steady
@@ -671,62 +805,86 @@ take about 10%. The lateral terms of the combined law are cached across the impl
 After the merge with the integration branch (car catalogue, motorcycles, circuit catalogue), I ran
 three interleaved rounds against that branch's tip:
 
-* process CPU per tick: 4.17 ms (4.12–4.18) → 4.69 ms (4.68–4.85), **+12%**;
-* `Vehicle.step` per car-substep on the two quieter rounds: 87–89 µs → 99–103 µs, +14%.
+- process CPU per tick: 4.17 ms (4.12–4.18) → 4.69 ms (4.68–4.85), **+12%**;
+- `Vehicle.step` per car-substep on the two quieter rounds: 87–89 µs → 99–103 µs, +14%.
 
-The overhead is unchanged by the merge.
+The v2 overhead was unchanged by that merge.
 
 ## 9. Tests
 
-The table and alignment-expectation change in this section describe the original v2
-validation. Preceding v12 additions and execution outcomes are recorded in
-[ENGINE_DYNAMICS_V12.md](ENGINE_DYNAMICS_V12.md#5-verification). Current coupled-contact,
-finite-footprint and recorded-deformation results are in
+The table describes current regression coverage, including the v14 additions. It is not a test-run
+result. Current execution outcomes are recorded in
+[ENGINE_DYNAMICS_V14.md](ENGINE_DYNAMICS_V14.md). Earlier verification is archived in
+[ENGINE_DYNAMICS_V12.md](ENGINE_DYNAMICS_V12.md#5-verification) and
 [ENGINE_DYNAMICS_V13.md](ENGINE_DYNAMICS_V13.md#5-validation-and-practical-limits).
 
-| File | Covers |
-|---|---|
-| `tests/tyre-model.test.ts` | Pure-slip equivalence, ellipse bound, combined weighting, load-saturating stiffness, low-μ peak slip, camber thrust/optimum, pressure, wear, relaxation (exact, low-speed fade), gravel contact, aquaplaning dependencies |
-| `tests/tyre-thermal.test.ts` | Exact heat conservation, unconditional stability/no overshoot, steady state, layer ordering, rain and speed cooling, brake heat into pressure, absolute gas law, worn tread |
-| `tests/suspension.test.ts` | Series ride rates, roll with bars, damper asymmetry/knee continuity, progression, bump stop, implicit stability with a 5 MN/m tyre at 1/30 s, unilateral contact, camber gain sign, road inclination, moment-equivalent geometric transfer, production-car roll vs roll centre |
-| `tests/differential.test.ts` | Exact former coupling, torque conservation, LSD capacity and ramps, Torsen bias, locked axle at 60–240 Hz, model names, centre split, rwd/fwd/awd composition, catalogue spec bridge (same capacity) |
-| `tests/drivetrain.test.ts` (catalogue) | Catalogue driveline: LSD capacity and ramps, torque conservation and AWD split, split-μ and AWD launches, gravel tyres, front-axle hybrid |
-| `tests/powertrain.test.ts` | Exact former torque, throttle lag, turbo spool/dump, torque table, pumping, shift cut vs seamless |
-| `tests/surface-material.test.ts` | Ids and former values, friction ordering, wet paint/grass, ice melt, sinkage, compaction, bulldozing, water drag, bike/terrain use, circuit samples |
-| `tests/aero-platform.test.ts` | Centre-of-pressure migration, exact lag, plunge damping, slipstream vs wake footprints, exact 101 m cull, channel independence, leader scaling, porpoising-safe heave at 60/120/240 Hz |
-| `tests/integrator-stability.test.ts` | Substep equivalence, no energy gain on a drop (both cars), monotone coast energy, rate-independent stop/step-steer, bounded 60 Hz kerb strikes |
+| File                                                                  | Covers                                                                                                                                                                                                                                                                         |
+| --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `tests/static-contact.test.ts`                                        | Zero-motion preload without decay or heat, spring/dashpot cancellation, passive projected viscous work through reversal and the damping transition, contact loss, stationary wheelspin, and 10° inclines/cross-slopes that hold and release at 60/120/240 Hz                   |
+| `tests/rolling-resistance.test.ts`                                    | Signed forward/reverse torque and work, locked/unloaded/spinning contacts, pressure response, loose-ground heat separation, production thermal balance, and the external rolling moment in total vehicle angular momentum                                                      |
+| `tests/bike-pose-kinematics.test.ts`                                  | Independent quaternion reconstruction, world angular rates on tilted axes, midpoint acceleration with unequal intervals, GP pitch/crown motion, MX airborne pitch/whip, placement/remount resets, and separation of collision corrections from authoritative motion            |
+| `tests/longitudinal-contact.test.ts`, `tests/lateral-contact.test.ts` | Elastic contact work, shared combined-slip projection, brake complementarity, wheel/contact residual including rolling work, and contact-state reset                                                                                                                           |
+| `tests/wheel-momentum.test.ts`                                        | Wheel-spin inertia, internal drive/brake reactions, gyroscopic response, and total chassis-plus-wheel angular momentum                                                                                                                                                         |
+| `tests/wheel-thermal.test.ts`                                         | Explicit rolling-work input and exact-zero override of a nonzero compatibility estimate, finite rotor conservation, thermal work/boundary balance, and friction-brake versus regeneration heat                                                                                 |
+| `tests/session-identity.test.ts`                                      | Simulation v14 identity in recorded categories, content hashes, older-record compatibility, and snapshot block layout                                                                                                                                                          |
+| `tests/tyre-model.test.ts`                                            | Pure-slip equivalence, ellipse bound, combined weighting, load-saturating stiffness, low-μ peak slip, camber thrust/optimum, pressure, wear, exact diagnostic relaxation and distance-dependent production force buildup, gravel contact, aquaplaning dependencies             |
+| `tests/tyre-thermal.test.ts`                                          | Exact heat conservation, unconditional stability/no overshoot, steady state, layer ordering, rain and speed cooling, brake heat into pressure, absolute gas law, worn tread                                                                                                    |
+| `tests/suspension.test.ts`                                            | Series ride rates, roll with bars, damper asymmetry/knee continuity, progression, bump stop, implicit stability with a 5 MN/m tyre at 1/30 s, unilateral contact, camber gain sign, road inclination, moment-equivalent geometric transfer, production-car roll vs roll centre |
+| `tests/differential.test.ts`                                          | Exact former coupling, torque conservation, LSD capacity and ramps, Torsen bias, locked axle at 60–240 Hz, model names, centre split, rwd/fwd/awd composition, catalogue spec bridge (same capacity)                                                                           |
+| `tests/drivetrain.test.ts` (catalogue)                                | Catalogue driveline: LSD capacity and ramps, torque conservation and AWD split, split-μ and AWD launches, gravel tyres, front-axle hybrid                                                                                                                                      |
+| `tests/powertrain.test.ts`                                            | Exact former torque, throttle lag, turbo spool/dump, torque table, pumping, shift cut vs seamless                                                                                                                                                                              |
+| `tests/surface-material.test.ts`                                      | Ids and former values, friction ordering, wet paint/grass, ice melt, sinkage, compaction, bulldozing, water drag, bike/terrain use, circuit samples                                                                                                                            |
+| `tests/aero-platform.test.ts`                                         | Centre-of-pressure migration, exact lag, plunge damping, slipstream vs wake footprints, exact 101 m cull, channel independence, leader scaling, porpoising-safe heave at 60/120/240 Hz                                                                                         |
+| `tests/integrator-stability.test.ts`                                  | Substep equivalence, no energy gain and settled motion after a drop (both cars), monotone coast energy, rate-independent stop/step-steer, bounded 60 Hz kerb strikes                                                                                                           |
 
-One existing expectation changed. `tests/wheel-alignment.test.ts` now computes the recorded camber
-with `kinematicCamber(static, gain, hub travel)`, at the same 7-digit tolerance, because the
-recorded angle includes camber gain.
+The original v2 update changed one existing alignment expectation:
+`tests/wheel-alignment.test.ts` computes recorded camber with
+`kinematicCamber(static, gain, hub travel)`, at the same 7-digit tolerance, because the recorded
+angle includes camber gain.
 
 ## 10. Known limits
 
-* **Massless hubs.** There is no wheel-hop mode (about 20 Hz). Damping is specified at the contact
+- **Massless hubs.** There is no wheel-hop mode (about 20 Hz). Damping is specified at the contact
   patch.
-* **Reduced transient model.** Both tangential directions have passive elastic states, calibrated
-  steady-slip targets and a shared friction-ellipse projection. They use the instantaneous tire
-  frame, without torsional patch transport or a spatial bristle distribution. Walking-speed
-  fallback still uses the algebraic force law. Camber's geometric power port is explicit but is
-  not returned through a solved camber/overturning moment.
-* **Calibrated combined slip.** The weighting coefficients are a gameplay-stable calibration, not a
-  fitted data set. A locked wheel keeps about 34% of its pure cornering force (a brush tyre would
-  keep about 16%).
-* **Thermal model limits.** It is lumped: no tread-width temperature distribution. Rolling
-  hysteresis heat (0.0012·Fz·v) is an effective coefficient, smaller than the full rolling
-  resistance power.
-* **Geometry approximations.** The link-centre correction stands in for the rigid body's high
+- **Reduced transient model.** Both tangential directions have passive elastic states, calibrated
+  steady-slip targets and a shared friction-ellipse projection. Their stiffness remains finite
+  at rest, and patch renewal follows actual motion. The two bristles use the instantaneous tyre
+  frame, without torsional patch transport or a spatial bristle distribution. Camber's geometric
+  power port is explicit but is not returned through a solved camber/overturning moment. Changing
+  contact frames are operator split; scalar passivity in a prepared frame does not establish an
+  exact energy balance for arbitrary frame transport. The low-speed parallel dashpot is an
+  authored material-time calibration, not a measured frequency-dependent viscoelastic model.
+- **Calibrated combined slip.** The weighting coefficients are a gameplay-stable calibration, not a
+  fitted data set. In the moving steady law a locked wheel keeps about 34% of its pure cornering
+  force (the comparison brush law kept about 16%).
+- **Axial rolling reduction.** The external moment acts on the wheel axle. It does not solve the
+  shifted pressure resultant, off-axis moments or contact-patch overturning. Rolling heat closes
+  the model's scalar wheel-spin work; no additional port couples absolute axial speed to chassis
+  rotation. This is not a full tyre/chassis first-law model under arbitrary camber and rotating
+  contact frames. The asphalt-sized carcass baseline and the loose-ground split are calibration
+  choices, not measured rubber/soil loss coefficients.
+- **Thermal model limits.** The four-node network is lumped, with no tread-width temperature grid
+  or finite-element heat solve. Production cars use actual rolling torque work; the legacy
+  `0.0012·Fz·|v|` estimate remains only for callers that omit the explicit work input. Heat
+  capacities, conductances and the carcass/surface split are calibrated parameters, not a measured
+  tyre construction.
+- **Motorcycle kinematics.** GP and MX retain their reduced two-wheel dynamics. V14 measures
+  interval-average rates from the pose those models publish and resets across discontinuous
+  placement/convention changes. It adds neither a second orientation integrator nor a full
+  multibody motorcycle solver. Shortest-arc quaternion sampling assumes less than π radians of
+  physical rotation per substep.
+- **Geometry approximations.** The link-centre correction stands in for the rigid body's high
   reference point. Roll-centre migration is linear in heave, with none in roll.
-* **Ground deformation.** Sinkage is per tyre and does not persist on the circuit (the terrain tiles
+- **Ground deformation.** Sinkage is per tyre and does not persist on the circuit (the terrain tiles
   in `terrain.ts` do persist). Bulldozing and water drag act longitudinally only.
-* **Two differential paths.** Catalogue AWD/LSD cars use the catalogue's equal-speed projection
+- **Two differential paths.** Catalogue AWD/LSD cars use the catalogue's equal-speed projection
   (`distributeDrive`), which has no road-reaction feedforward. The stick-torque model can evaluate
   the same specs (`fromSpec`), but switching the catalogue to it would need a recalibration pass.
   Turbo boost has no rpm × load map: it follows engine speed and throttle only.
-* **Catalogue geometry.** Catalogue cars run the neutral package: no camber gain,
+- **Catalogue geometry.** Catalogue cars run the neutral package: no camber gain,
   roll centre or anti-geometry, legacy throttle response, and the former aero platform. They gain the
   tyre, thermal, hub and ground models. Per-car `dynamics` blocks are the next calibration step.
-* **AI tuning.** The AI capability envelopes were not refitted. The AI keeps its margins and
+- **AI tuning.** The AI capability envelopes were not refitted. The AI keeps its margins and
   friction-limit feedback.
 
 ## Off-road machines and terrain (WP37–WP38)
@@ -777,4 +935,3 @@ depth; asphalt cells never deform. Session wetness rises with rain and falls in 
 Determinism: the field is a pure function of the step sequence (identical across runs and after a
 flashback re-simulation; `hash()` fingerprints it). No relaxation runs inside a session; a new
 session starts on prepared ground.
-

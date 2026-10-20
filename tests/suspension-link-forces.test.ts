@@ -51,9 +51,11 @@ it.each([-0.3, 0.3])(
         angle = car.wheelSteering[i],
         // On this flat, unpitched body, the contact and chassis frames differ
         // only by steering. Resolve the measured patch force independently.
-        rolling =
-          Math.tanh(22 * Math.cos(angle) * 2) * (tyre.rolling * tyre.load + tyre.groundDrag),
-        bodyLateral = (tyre.fx - rolling) * Math.sin(angle) + tyre.fy * Math.cos(angle);
+        // Carcass rolling loss is an axle torque in the implicit wheel solve;
+        // only ground compaction supplies this separate longitudinal force.
+        groundResistance =
+          Math.tanh(22 * Math.cos(angle) * 2) * (tyre.groundRolling * tyre.load + tyre.groundDrag),
+        bodyLateral = (tyre.fx - groundResistance) * Math.sin(angle) + tyre.fy * Math.cos(angle);
       actualMoment += car.wheelPositions[i][0] * car.jacking[i];
       expectedMoment -= height * bodyLateral;
       tyreFrameMoment -= height * tyre.fy;
@@ -76,9 +78,10 @@ it.each([-0.3, 0.3])(
     for (let i = 0; i < 2; i++) {
       const tyre = car.tires[i],
         angle = car.wheelSteering[i],
-        rolling =
-          Math.tanh(22 * Math.cos(angle) * 2) * (tyre.rolling * tyre.load + tyre.groundDrag),
-        bodyLongitudinal = (tyre.fx - rolling) * Math.cos(angle) - tyre.fy * Math.sin(angle);
+        groundResistance =
+          Math.tanh(22 * Math.cos(angle) * 2) * (tyre.groundRolling * tyre.load + tyre.groundDrag),
+        bodyLongitudinal =
+          (tyre.fx - groundResistance) * Math.cos(angle) - tyre.fy * Math.sin(angle);
       expectedTotal -= anti * bodyLongitudinal;
       actualTotal += car.jacking[i];
       tyreFrameTotal -= anti * tyre.fx;

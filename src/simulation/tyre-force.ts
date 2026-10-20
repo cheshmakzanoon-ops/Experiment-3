@@ -20,7 +20,8 @@ import { clamp, smooth } from '../core/math.ts';
  *    at every trial wheel speed. Positive sliding rates recover the same
  *    steady force curves; a shared friction-ellipse projection removes excess
  *    strain without creating energy. Stored energy, physical dissipation and
- *    numerical loss remain separate. Both modes fade out at walking speed. */
+ *    numerical loss remain separate. At rest a bounded elastic/bristle patch
+ *    retains static traction instead of requiring numerical creep. */
 export interface SlipCurve {
   /** Shape factor C (peak sharpness / post-peak fall-off). */
   readonly C: number;
@@ -70,8 +71,11 @@ export interface TyreConstruction {
   /** Longitudinal small-slip relaxation length (m) at Fz0 and nominal pressure.
    * The corresponding contact spring stiffness is Kκ / σx (N/m). */
   readonly longitudinalRelaxationLength: number;
-  /** Speeds (m/s) between which contact compliance fades in. Below the first
-   * the original algebraic force law retains the calibrated low-speed creep. */
+  /** Tangential material damping time (s): low-speed viscosity c = K·τ.
+   * An authored carcass calibration, independent of the integration step. */
+  readonly contactDampingTime: number;
+  /** Historical moving-contact calibration window (m/s), retained for data
+   * compatibility. Contact compliance now also exists at rest. */
   readonly relaxationFade: readonly [number, number];
   /** Hot gauge pressure (kPa) at which pressure-stiffness factors are 1. */
   readonly nominalPressure: number;
@@ -116,6 +120,7 @@ export const FORMULA_SLICK: TyreConstruction = Object.freeze({
   camberSensitivity: 9,
   relaxationLength: 0.32,
   longitudinalRelaxationLength: 0.22,
+  contactDampingTime: 0.004,
   relaxationFade: Object.freeze([3, 12] as const),
   nominalPressure: 160,
   pressureOptimum: 165,
@@ -378,6 +383,9 @@ export interface LateralContactMemory {
 export interface LongitudinalContact {
   stiffness: number;
   zeroSlipRate: number;
+  /** Velocity regularization used by the calibrated steady curve. Actual
+   * contact transport replaces its fictitious renewal near standstill. */
+  referenceSpeed: number;
   oldDeflection: number;
   oldEnergy: number;
   dt: number;
@@ -386,8 +394,8 @@ export interface LongitudinalContact {
   energy: number;
   /** Physical contact sliding/projection loss, W. */
   dissipation: number;
-  /** Internal contact-reservoir release, W; heats the carcass without wear
-   * or a road-work share, including on an unloaded tyre. */
+  /** Internal material damping/contact-reservoir release, W; heats the
+   * carcass without wear or a road-work share, including on an unloaded tyre. */
   relaxationHeat: number;
   /** Backward-Euler spring loss, W; deliberately not passed off as heat. */
   numericalDissipation: number;
@@ -395,6 +403,7 @@ export interface LongitudinalContact {
 export const longitudinalContact = (): LongitudinalContact => ({
   stiffness: 0,
   zeroSlipRate: 0,
+  referenceSpeed: 0,
   oldDeflection: 0,
   oldEnergy: 0,
   dt: 1,
@@ -423,6 +432,7 @@ export function prepareLongitudinalContact(
   out: LongitudinalContact,
 ) {
   out.dt = dt;
+  out.referenceSpeed = regularizedSpeed;
   out.oldEnergy = Math.max(0, memory.longitudinalEnergy);
   out.stiffness = length < 1e-4 ? 0 : state.slipStiffness / length;
   out.oldDeflection =
@@ -449,6 +459,7 @@ export function prepareLateralContact(
   out: LateralContact,
 ) {
   out.dt = dt;
+  out.referenceSpeed = transportSpeed;
   out.oldEnergy = Math.max(0, memory.lateralEnergy);
   out.stiffness = length < 1e-4 ? 0 : state.corneringStiffness / length;
   out.oldDeflection =
@@ -460,18 +471,20 @@ export function prepareLateralContact(
 }
 /** Passive elastic/sliding contact reduction:
  *
- *   Fx = Kx x,  dx/dt = s − λx,  λ = Kx s/Fsteady(s/V) ≥ 0.
+ *   Fx = Kx x + c s,  dx/dt = s − λx,  λ = Kx s/Fsteady(s/V) ≥ 0.
  *
- * It retains the complete calibrated steady combined-slip force (including
- * its post-peak fall-off), but stores U=½Kx x² during contact deformation.
+ * The moving, zero-viscosity branch retains the calibrated steady combined
+ * force (including its post-peak fall-off), while storing U=½Kx x².
  * At small slip λ→V/σx; strong sliding renews the patch more quickly. The
  * backward-Euler trial is algebraic and uses the SAME trial slip speed as
  * the implicit wheel residual. Its force is projected onto the remaining
  * longitudinal share of the ellipse, including after an abrupt load change.
  *
  * For fixed prepared parameters its exact discrete work identity is
- * Fx·s·dt = ΔU + (sliding + projection)·dt + ½Kx·(x−x_old)².
+ * Fx·s·dt = ΔU + (sliding + projection + viscous)·dt + ½Kx·(x−x_old)².
  * The final term is numerical dissipation, kept separate from tyre heat.
+ * A bounded nonnegative projection scales the trial spring strain and the
+ * parallel dashpot together; viscous work heats the carcass without wear.
  * Negative instantaneous slip work can therefore only return stored U.
  * `recordState=false` evaluates the same force without writing trial state or
  * unused work budgets; only the converged wheel root needs those outputs. */
@@ -482,11 +495,14 @@ export function transientLongitudinalForce(
   forceLimit: number,
   recordState = true,
   zeroSlipRate = contact.zeroSlipRate,
+  renewalScale = 1,
+  viscosity = 0,
+  projectionScale = 1,
 ) {
   const k = contact.stiffness,
     dt = contact.dt;
   if (k === 0) {
-    const force = clamp(steadyForce, -forceLimit, forceLimit);
+    const force = clamp(steadyForce, -forceLimit, forceLimit) * projectionScale;
     if (!recordState) return force;
     contact.force = force;
     contact.deflection = 0;
@@ -497,26 +513,47 @@ export function transientLongitudinalForce(
     return contact.force;
   }
   const rate =
-      Math.abs(slipSpeed) > 1e-9 && Math.abs(steadyForce) > 1e-12
+      renewalScale *
+      (Math.abs(slipSpeed) > 1e-9 && Math.abs(steadyForce) > 1e-12
         ? (k * slipSpeed) / steadyForce
-        : zeroSlipRate,
+        : zeroSlipRate),
     divisor = 1 + dt * rate,
     trial = (contact.oldDeflection + dt * slipSpeed) / divisor,
-    force = clamp(k * trial, -forceLimit, forceLimit);
+    unlimitedForce = k * trial + viscosity * slipSpeed,
+    force = clamp(unlimitedForce, -forceLimit, forceLimit) * projectionScale;
   if (!recordState) return force;
-  const x = force / k,
+  const scale =
+      (Math.abs(unlimitedForce) > forceLimit ? forceLimit / Math.abs(unlimitedForce) : 1) *
+      projectionScale,
+    // An exact spring/dashpot cancellation can have zero total force and
+    // nonzero strain. Preserve it; never reconstruct that strain from F/K.
+    // The zero-viscosity branch retains the previous moving-law arithmetic.
+    x = viscosity === 0 ? force / k : trial * scale,
+    elasticForce = k * x,
     projection = divisor * (trial - x);
   contact.force = force;
   contact.deflection = x;
   contact.energy = 0.5 * k * x * x;
-  contact.relaxationHeat = 0;
-  // The projection removes deformation in the force direction; both terms
-  // are nonnegative. The max only removes roundoff at an inactive constraint.
-  contact.dissipation = k * rate * x * x + Math.max(0, (force * projection) / dt);
+  contact.relaxationHeat = scale * viscosity * slipSpeed * slipSpeed;
+  // Projection removes strain along the elastic force, which can oppose the
+  // total force during a reversal. Both losses are nonnegative; max removes
+  // only roundoff at an inactive constraint.
+  contact.dissipation = k * rate * x * x + Math.max(0, (elasticForce * projection) / dt);
   contact.numericalDissipation = (0.5 * k * (x - contact.oldDeflection) ** 2) / dt;
   return force;
 }
 const STEADY_CONTACT = { fx: 0, fy: 0 };
+/** Static contact cannot renew its tread at the artificial 2.5/3 m/s used to
+ * regularize slip ratios. Replace that rate with actual contact transport
+ * near rest, and recover the calibrated rolling rate smoothly by 3 m/s.
+ * A nonnegative scale preserves the contact's exact passive work identity.
+ * At zero motion it is exactly zero: preload holds without creeping. */
+export function contactRenewalScale(referenceSpeed: number, motionSpeed: number) {
+  if (motionSpeed >= 3) return 1;
+  const moving = smooth(1, 3, Math.max(0, motionSpeed)),
+    transport = clamp(motionSpeed / Math.max(1e-9, referenceSpeed), 0, 1);
+  return moving + (1 - moving) * transport;
+}
 /** Coupled transient forces inside the wheel root. Each axis first solves
  * x = (x_old + dt*s)/(1 + dt*lambda), lambda = K*s/Fsteady >= 0.
  * If the pair exceeds the current friction ellipse, both forces are reduced
@@ -526,6 +563,9 @@ const STEADY_CONTACT = { fx: 0, fy: 0 };
  * F*s*dt = delta(0.5*K*x*x) + physical loss*dt + numerical loss*dt.
  * Projection only shortens each strain in its own force direction, so its
  * work is dissipative even during reversals and sudden load/grip changes.
+ * Below 3 m/s a parallel material dashpot damps the otherwise underdamped
+ * parked-car shear/pitch mode. Its c = K·τ coefficient uses the authored
+ * construction time, never dt, and smoothly vanishes on the moving law.
  * Pure longitudinal callers keep the existing scalar helper above.
  *
  * `lateralSlipSpeed` is the signed velocity resisted by the lateral spring.
@@ -541,9 +581,28 @@ export function transientCombinedForces(
   lateralSlipSpeed: number,
   out: { fx: number; fy: number },
   recordState = true,
+  roadSpeed?: number,
+  dampingTime = FORMULA_SLICK.contactDampingTime,
 ) {
   const kappa = longitudinalSlipSpeed / regularizedSpeed;
   combinedForces(state, kappa, STEADY_CONTACT);
+  // Road translation, the trial rim speed and lateral sweep all renew or
+  // slide the footprint. Including rim motion keeps a stationary burnout
+  // on the moving force law; a braked static patch has no renewal at all.
+  // Omitted roadSpeed preserves the standalone moving-law helper contract.
+  const motion =
+      roadSpeed === undefined
+        ? Infinity
+        : Math.max(
+            Math.abs(roadSpeed),
+            Math.abs(roadSpeed + longitudinalSlipSpeed),
+            Math.abs(lateralSlipSpeed),
+          ),
+    renewX = contactRenewalScale(longitudinal.referenceSpeed, motion),
+    renewY = contactRenewalScale(lateral.referenceSpeed, motion),
+    materialTime = Math.max(0, dampingTime) * (1 - smooth(1, 3, motion)),
+    viscosityX = longitudinal.stiffness * materialTime,
+    viscosityY = lateral.stiffness * materialTime;
   // d(-Fy)/d(alpha) at alpha=0, including trial longitudinal-slip weighting.
   const lateralRate =
       lateral.stiffness > 0 &&
@@ -556,6 +615,9 @@ export function transientCombinedForces(
       STEADY_CONTACT.fx,
       state.dx,
       false,
+      longitudinal.zeroSlipRate,
+      renewX,
+      viscosityX,
     ),
     trialY = transientLongitudinalForce(
       lateral,
@@ -564,6 +626,8 @@ export function transientCombinedForces(
       state.dy,
       false,
       lateralRate,
+      renewY,
+      viscosityY,
     ),
     normalizedX = trialX / Math.max(1e-9, state.dx),
     normalizedY = trialY / Math.max(1e-9, state.dy),
@@ -578,56 +642,58 @@ export function transientCombinedForces(
       longitudinal,
       longitudinalSlipSpeed,
       STEADY_CONTACT.fx,
-      Math.abs(fx),
+      state.dx,
+      true,
+      longitudinal.zeroSlipRate,
+      renewX,
+      viscosityX,
+      scale,
     );
     transientLongitudinalForce(
       lateral,
       lateralSlipSpeed,
       0 - STEADY_CONTACT.fy,
-      Math.abs(resistY),
+      state.dy,
       true,
       lateralRate,
+      renewY,
+      viscosityY,
+      scale,
     );
   }
   out.fx = fx;
   out.fy = 0 - resistY;
   return out;
 }
-/** Effective relaxation length (m): grows ~√load, shortens with pressure and
- * wear (stiffer carcass/shorter tread), and fades to zero at low speed. */
+/** Effective relaxation length (m): grows ~√load and shortens with pressure
+ * and wear. A stationary footprint still has finite elastic compliance;
+ * its renewal rate, rather than its spring, goes to zero at standstill. */
 export function relaxationLength(
   c: TyreConstruction,
   load: number,
   pressure: number,
   wear: number,
-  speed: number,
+  _speed: number,
 ) {
-  return c.relaxationLength * relaxationScale(c, load, pressure, wear, speed);
+  return c.relaxationLength * relaxationScale(c, load, pressure, wear);
 }
 /** Small-slip longitudinal relaxation follows the construction's separate
- * length, with the same load/pressure/tread and walking-speed limits. */
+ * length, with the same load/pressure/tread dependence. */
 export function longitudinalRelaxationLength(
   c: TyreConstruction,
   load: number,
   pressure: number,
   wear: number,
-  speed: number,
+  _speed: number,
 ) {
-  return c.longitudinalRelaxationLength * relaxationScale(c, load, pressure, wear, speed);
+  return c.longitudinalRelaxationLength * relaxationScale(c, load, pressure, wear);
 }
-function relaxationScale(
-  c: TyreConstruction,
-  load: number,
-  pressure: number,
-  wear: number,
-  speed: number,
-) {
+function relaxationScale(c: TyreConstruction, load: number, pressure: number, wear: number) {
   const dp = (pressure - c.nominalPressure) / c.nominalPressure;
   return (
     clamp(Math.sqrt(Math.max(load, 0) / c.nominalLoad), 0.4, 2) *
     clamp(1 - 0.35 * dp, 0.7, 1.3) *
-    (1 - 0.3 * clamp(wear, 0, 1)) *
-    smooth(c.relaxationFade[0], c.relaxationFade[1], Math.abs(speed))
+    (1 - 0.3 * clamp(wear, 0, 1))
   );
 }
 /** Exact first-order slip lag dα/dt = (V/σ)(α_ss − α) over a step with the

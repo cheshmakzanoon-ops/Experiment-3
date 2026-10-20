@@ -246,7 +246,10 @@ describe('elastic lateral contact in the production wheel solve', () => {
       road.grip = i % 250 < 140 ? 1 : 0.12;
       solveTire(tire, speed, sideways, load, drive, brake, road, 0, dt);
       const residual =
-        (tire.inertia * (tire.omega - oldOmega)) / dt - drive + tire.fx * tire.radius;
+        (tire.inertia * (tire.omega - oldOmega)) / dt -
+        drive +
+        tire.fx * tire.radius -
+        tire.rollingTorque;
       if (tire.omega === 0) expect(Math.abs(residual)).toBeLessThanOrEqual(brake + 1e-9);
       else expect(Math.abs(residual + brake * Math.sign(tire.omega))).toBeLessThan(0.4);
       const workX = tire.fx * (tire.omega * tire.radius - speed) * dt,

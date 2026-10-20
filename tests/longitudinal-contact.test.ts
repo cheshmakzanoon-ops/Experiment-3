@@ -183,8 +183,10 @@ describe('passive longitudinal contact deformation', () => {
     expect(forces[2]).toBeGreaterThan(0);
   });
 
-  it('fades into the existing walking-speed law and discharges remaining energy once', () => {
-    expect(longitudinalRelaxationLength(FORMULA_SLICK, 2200, 160, 0, 1)).toBe(0);
+  it('keeps finite static compliance and discharges energy once when contact is explicitly removed', () => {
+    expect(longitudinalRelaxationLength(FORMULA_SLICK, 2200, 160, 0, 0)).toBe(
+      FORMULA_SLICK.longitudinalRelaxationLength,
+    );
     const state = forceLaw(),
       memory = { longitudinalDeflection: 0.01, longitudinalEnergy: 9 },
       contact = longitudinalContact();
@@ -240,7 +242,11 @@ describe('longitudinal contact inside the production wheel solve', () => {
         brake = i % 220 < 110 ? 0 : 2500;
       road.grip = i % 300 < 150 ? 1 : 0.15;
       solveTire(tire, speed, Math.sin(i * 0.014) * 6, 2200, drive, brake, road, 0, dt);
-      const withoutBrake = (tire.inertia * (tire.omega - old)) / dt - drive + tire.fx * tire.radius;
+      const withoutBrake =
+        (tire.inertia * (tire.omega - old)) / dt -
+        drive +
+        tire.fx * tire.radius -
+        tire.rollingTorque;
       if (tire.omega === 0) expect(Math.abs(withoutBrake)).toBeLessThanOrEqual(brake + 1e-9);
       else expect(Math.abs(withoutBrake + brake * Math.sign(tire.omega))).toBeLessThan(0.4);
       const signedWork = tire.fx * (tire.omega * tire.radius - speed) * dt,
@@ -274,7 +280,16 @@ describe('longitudinal contact inside the production wheel solve', () => {
         physicalHeat = (tire.longitudinalDissipation + tire.longitudinalRelaxationHeat) * dt,
         springLoss = tire.longitudinalNumericalDissipation * dt,
         wheelLoss = 0.5 * tire.inertia * (tire.omega - oldOmega) ** 2,
-        balance = oldEnergy - now - hubWork - brakeWork - physicalHeat - springLoss - wheelLoss;
+        rollingWork = tire.rollingDissipation * dt,
+        balance =
+          oldEnergy -
+          now -
+          hubWork -
+          brakeWork -
+          physicalHeat -
+          rollingWork -
+          springLoss -
+          wheelLoss;
       // Original fixed 16-iteration bisection bounds the torque error. This
       // oracle checks physical units and all work channels without recomputing
       // the contact update itself.
@@ -303,6 +318,8 @@ describe('longitudinal contact inside the production wheel solve', () => {
     const tire = makeTire('medium'),
       road = surfaceSample(),
       dt = 1 / 240;
+    // Isolate contact memory from the separately tested rolling torque.
+    road.resistance = 0;
     tire.omega = 40 / tire.radius;
     for (let i = 0; i < 40; i++) solveTire(tire, 40, 0, 2200, 500, 0, road, 0, dt);
     const stored = tire.longitudinalEnergy,
@@ -339,7 +356,8 @@ describe('longitudinal contact inside the production wheel solve', () => {
       solveTire(a, speed, 0, 2200, drive, 4000, road, 0, dt);
       solveTire(b, speed, 0, 2200, drive, 4000, road, 0, dt);
       expect(a.omega).toBe(0);
-      expect(a.longitudinalEnergy).toBe(0);
+      expect(a.longitudinalEnergy).toBeGreaterThanOrEqual(0);
+      if (i < 100) expect(a.longitudinalEnergy).toBeCloseTo(20, 9);
       expect(a).toEqual(b);
     }
   });

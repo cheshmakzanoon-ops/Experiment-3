@@ -38,7 +38,8 @@ export interface TyreThermalParameters {
   readonly discToCore: number;
   /** Share of contact slip power entering the tread (the rest heats the road). */
   readonly slipShare: number;
-  /** Rolling hysteresis power per (N·m/s), and the share deposited in the carcass. */
+  /** Compatibility rolling heat per (N·m/s) for callers without explicit
+   * mechanical work; production cars supply their solved rollingPower. */
   readonly hysteresis: number;
   readonly hysteresisCarcassShare: number;
   /** Tread surface heat capacity lost at full wear (thinner tread). */
@@ -80,6 +81,9 @@ export interface ThermalInputs {
   /** Internal carcass relaxation heat (W), fully retained by the tyre. This
    * can occur without tread/road contact and therefore causes no tread wear. */
   carcassPower?: number;
+  /** Dissipated carcass rolling work (W), excluding ground compaction and
+   * contact slip. Explicit zero disables compatibility speed-based heat. */
+  rollingPower?: number;
   load: number;
   speed: number;
   airTemp: number;
@@ -132,7 +136,7 @@ function advanceThermalNodes<T extends TyreTemperatures & { discTemp?: number }>
   if (!(dt > 0 && Number.isFinite(dt))) throw new Error('Invalid tyre thermal timestep');
   const v = Math.abs(input.speed),
     loaded = input.load > 1 ? 1 : 0,
-    rolling = p.hysteresis * Math.max(0, input.load) * v,
+    rolling = Math.max(0, input.rollingPower ?? p.hysteresis * Math.max(0, input.load) * v),
     qs = p.slipShare * Math.max(0, input.slipPower) + (1 - p.hysteresisCarcassShare) * rolling,
     qc = p.hysteresisCarcassShare * rolling + Math.max(0, input.carcassPower ?? 0),
     cs = (p.surfaceCapacity * (1 - p.wearCapacityLoss * Math.min(1, Math.max(0, input.wear)))) / dt,

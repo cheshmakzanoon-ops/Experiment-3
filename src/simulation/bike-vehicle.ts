@@ -1,5 +1,6 @@
 import { gpBrakeEfficiency } from './gp-brake-fade.ts';
 import { advanceWheelRotation } from './wheel-rotation.ts';
+import { OrientationKinematics } from './pose-kinematics.ts';
 import { GP_ENGINE_BRAKE_RELEASE_THROTTLE, gpEngineBrakingGain } from './gp-engine-braking.ts';
 import { approach, clamp, G, lerp, mod, Quat, Vec3 } from '../core/math.ts';
 import { BIKE_STATES, Bike, EXPERT, NOVICE, type BikeAssists } from './bike.ts';
@@ -99,6 +100,9 @@ export class BikeVehicle extends Vehicle {
   protected groundY = 0;
   protected readonly remount = { x: 0, z: 0, heading: 0, active: false };
   protected readonly written = { position: new Vec3(), velocity: new Vec3(), omega: new Vec3() };
+  private readonly orientationKinematics = new OrientationKinematics();
+  private writtenFallen = false;
+  private writtenState: Bike['state'] = 'riding';
   protected readonly pivot = new Vec3();
   protected readonly offset = new Vec3();
   protected readonly scratch = new Vec3();
@@ -689,7 +693,9 @@ export class BikeVehicle extends Vehicle {
     this.contactPoints[1].copy(front);
     this.contactPoints[3].copy(rear);
     this.roadPitch = Math.asin(clamp((front.y - rear.y) / L, -0.5, 0.5));
-    const previousY = b.position.y;
+    // Depenetration is a position correction, not physical vertical motion.
+    // Differentiate the preceding authoritative pose, as the MX adapter does.
+    const previousY = this.written.position.y;
     const fallen = Math.abs(d.lean) > 1.2;
     const pitch = this.roadPitch + (fallen ? 0 : d.pitch);
     // The chassis rolls on its tyre crowns: its lean exceeds the contact-to-CG lean.
@@ -712,8 +718,7 @@ export class BikeVehicle extends Vehicle {
       dt > 0 && Math.abs(b.position.y - previousY) < 0.5 ? (b.position.y - previousY) / dt : 0,
       ch * d.speed - sh * this.slide,
     );
-    const yawRate = (this.riding ? d.speed * d.curvature : 0) + this.yawKick;
-    b.omega.set(-sh * d.leanRate, yawRate, -ch * d.leanRate);
+    this.writeAngularKinematics(dt, fallen);
     b.orientation.rotate(this.scratch.set(0, 0, 1), this.forward);
     b.orientation.rotate(this.scratch.set(0, 1, 0), this.up);
     b.orientation.inverseRotate(b.velocity, this.localVelocity);
@@ -735,6 +740,23 @@ export class BikeVehicle extends Vehicle {
     this.written.position.copy(b.position);
     this.written.velocity.copy(b.velocity);
     this.written.omega.copy(b.omega);
+  }
+  /** Both bike adapters publish rates of their actual chassis orientation.
+   * Removing/restoring the tyre-crown lean correction on a fallen-bike boundary
+   * is a discrete pose convention, not an angular impulse. Subsequent fall and
+   * remount motion is measured even when the reduced core's leanRate is zero.
+   * Finishing a remount explicitly resets the core's lean/pitch coordinates. */
+  protected writeAngularKinematics(dt: number, fallen: boolean) {
+    const b = this.body,
+      reset = this.writtenState === 'remount' && this.dynamics.state === 'riding';
+    this.orientationKinematics.sample(
+      b.orientation,
+      !reset && fallen === this.writtenFallen ? dt : 0,
+      b.omega,
+      b.angularAcceleration,
+    );
+    this.writtenFallen = fallen;
+    this.writtenState = this.dynamics.state;
   }
   protected copySample(from: Vehicle['contacts'][number], to: Vehicle['contacts'][number]) {
     to.s = from.s;

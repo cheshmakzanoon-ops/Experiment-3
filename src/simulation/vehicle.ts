@@ -518,9 +518,12 @@ export class Vehicle {
         this.tires[this.drivenRight].inertia,
         dt,
         this.diffOut,
-        // Road reactions of the last step predict the tyres' share (−Fx·r).
-        -this.tires[this.drivenLeft].fx * this.tires[this.drivenLeft].radius,
-        -this.tires[this.drivenRight].fx * this.tires[this.drivenRight].radius,
+        // Previous tread reaction and external axial rolling moment predict
+        // each tyre's share of the driven axle's angular acceleration.
+        -this.tires[this.drivenLeft].fx * this.tires[this.drivenLeft].radius +
+          this.tires[this.drivenLeft].rollingTorque,
+        -this.tires[this.drivenRight].fx * this.tires[this.drivenRight].radius +
+          this.tires[this.drivenRight].rollingTorque,
       );
     const regenWheel = axleMotor ? 0 : 2;
     const hub = this.hub,
@@ -658,8 +661,12 @@ export class Vehicle {
         track.ambient,
       );
       generatorWorkW += regen * Math.abs(t.omega);
-      const rolling =
-        Math.tanh(long * 2) * ((t.rolling + (t.punctured ? 0.13 : 0)) * t.load + t.groundDrag);
+      const groundResistance = Math.tanh(long * 2) * (t.groundRolling * t.load + t.groundDrag);
+      // Carcass rolling resistance is already in the implicit wheel root and
+      // reaches the chassis through Fx. Its reduced axial moment is external
+      // to chassis + rotors: omitting it here would falsely react that moment
+      // into the chassis as though it were an internal friction brake.
+      b.torque.addScaled(basis.axle, t.rollingTorque);
       // Wheel load acts at the patch. Tread forces reach the sprung mass through
       // the suspension links, i.e. at the link centre above the patch;
       // applying them at ground level overstated the overturning moment so a
@@ -670,7 +677,7 @@ export class Vehicle {
       b.apply(this.force, this.contactPoints[i]);
       this.force
         .set(0, 0, 0)
-        .addScaled(basis.forward, t.fx - rolling)
+        .addScaled(basis.forward, t.fx - groundResistance)
         .addScaled(basis.lateral, t.fy);
       this.point.copy(this.contactPoints[i]).addScaled(this.up, spec.linkCentreHeight);
       b.apply(this.force, this.point);

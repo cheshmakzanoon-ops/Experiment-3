@@ -38,16 +38,16 @@ const legacyGhost = () => {
   };
 };
 describe('WP12 recorded identity and schema policy', () => {
-  it.each([2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])(
+  it.each([2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13])(
     'keeps physics v%i records out of the current physics category',
     (physics) => {
-      expect(SIMULATION_VERSION).toBe(13);
+      expect(SIMULATION_VERSION).toBe(14);
       expect(
         recordIncompatibility(
           { circuit: 'aurel', vehicle: 'apx01', physics },
           { circuit: 'aurel', vehicle: 'apx01', physics: SIMULATION_VERSION },
         ),
-      ).toBe(`recorded with physics v${physics}; current physics is v13`);
+      ).toBe(`recorded with physics v${physics}; current physics is v${SIMULATION_VERSION}`);
       expect(leaderboardKey('aurel', 'apx01', physics)).not.toBe(
         leaderboardKey('aurel', 'apx01', SIMULATION_VERSION),
       );

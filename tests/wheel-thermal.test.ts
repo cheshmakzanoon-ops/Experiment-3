@@ -51,6 +51,27 @@ function storedHeat(t: WheelTemperatures) {
 }
 
 describe('coupled brake and tyre thermal network', () => {
+  it('uses an explicit rolling-work input, including an exact zero override', () => {
+    const held = temperatures(40),
+      rolling = temperatures(40),
+      before = storedHeat(rolling),
+      power = 2500,
+      dt = 0.25;
+    const input = environment({ load: 3000, speed: 50, rollingPower: 0 });
+    const explicitWork = { ...isolatedTyre, hysteresis: TYRE_THERMAL.hysteresis };
+    advanceWheelTemperatures(held, input, 0, dt, explicitWork, isolatedBrake);
+    advanceWheelTemperatures(
+      rolling,
+      { ...input, rollingPower: power },
+      0,
+      dt,
+      explicitWork,
+      isolatedBrake,
+    );
+    expect(storedHeat(held)).toBeCloseTo(before, 8);
+    expect(storedHeat(rolling) - before).toBeCloseTo(power * dt, 8);
+  });
+
   it('removes every joule of conducted brake heat from its finite rotor reservoir', () => {
     const t = temperatures(30, 900),
       before = storedHeat(t);

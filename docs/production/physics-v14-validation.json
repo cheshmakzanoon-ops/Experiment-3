@@ -1,0 +1,1411 @@
+{
+  "schemaVersion": 1,
+  "simulationVersion": 14,
+  "scope": "Original reduced vehicle simulation; controlled fixtures and source-level work/pose checks, not measured real-car or iRacing equivalence.",
+  "source": {
+    "integratedGitParent": "93576d20a3b52cc5e28959910b4b408418f53d3b",
+    "measuredCandidate": {
+      "git": {
+        "head": "9b598d8cb063fd9663d583d5d684467b8e0fc8f8",
+        "dirty": true
+      },
+      "before": {
+        "scope": ["src/core/**", "src/simulation/**", "scripts/dynamics-fixtures.ts"],
+        "fileCount": 152,
+        "sha256": "3e96b4e98a30e78a3b45aa38bed4e59315ff342db38bb47f54e56e87c9df948b"
+      },
+      "after": {
+        "scope": ["src/core/**", "src/simulation/**", "scripts/dynamics-fixtures.ts"],
+        "fileCount": 152,
+        "sha256": "3e96b4e98a30e78a3b45aa38bed4e59315ff342db38bb47f54e56e87c9df948b"
+      },
+      "stable": true,
+      "harnessSHA256": "c6e775edebf64fde7c2968db7a0e11c25842375516e9e0b53f61a765c4a2c912"
+    },
+    "baselineGitRevision": "f73fea56353e0df373ee0c61d1e61fb5d05a1bac",
+    "baselineExtractedSource": {
+      "git": null,
+      "before": {
+        "scope": ["src/core/**", "src/simulation/**", "scripts/dynamics-fixtures.ts"],
+        "fileCount": 151,
+        "sha256": "c73ad54c2726e46ce8634edc196aaaeb81383f2e45b97014a76b3ddadff6dfdb"
+      },
+      "after": {
+        "scope": ["src/core/**", "src/simulation/**", "scripts/dynamics-fixtures.ts"],
+        "fileCount": 151,
+        "sha256": "c73ad54c2726e46ce8634edc196aaaeb81383f2e45b97014a76b3ddadff6dfdb"
+      },
+      "stable": true,
+      "harnessSHA256": "c6e775edebf64fde7c2968db7a0e11c25842375516e9e0b53f61a765c4a2c912"
+    },
+    "note": "Benchmarks measured the uncommitted candidate against its recorded Git parent; content hashes identify the measured source. Concurrent 2618e1 documentation, 54c886d GP presentation/corner-practice, and 93576d2 Festival/open-world changes were incorporated before publication. Numerical reports retain their original full-source hashes. The final application source, successful build stages and Mesa browser failure are recorded separately. preIntegrationBrowserJourney retains the earlier SwiftShader failure on its original graphical build.",
+    "postGpIntegrationSource": {
+      "fingerprintVersion": 2,
+      "sourceSHA256": "18179b54df7710b4f1789e2de76298a065d677954e6847b3c7688b5cd32ef9da",
+      "simulationSHA256": "c881f85ef6dbc9410fd1d32812993e3291c6220491a9ac7cee4cf157f4332dfc",
+      "staticBenchmarkScopeSHA256": "3e96b4e98a30e78a3b45aa38bed4e59315ff342db38bb47f54e56e87c9df948b",
+      "unchangedIncomingNumericalTrees": {
+        "src/core": "643cef24283289efd337ebf38e88b756bcc9a919",
+        "src/simulation": "6e99d5ed272f92bcb755809e0fb52ecbfd83a1f4",
+        "src/storage": "bc7e76cd45af8b7bb1dceb8575780b208ba55739",
+        "scripts": "2ffc1c6968528a7c48184d78e120cbeee3e511f4"
+      },
+      "staticBenchmarkScopeHashFormat": "SHA-256 of JSON.stringify(ordered [relative POSIX path, file SHA-256] pairs); distinct from the adjacent fingerprint v2 source/simulation fields."
+    },
+    "finalIntegratedSource": {
+      "fingerprintVersion": 2,
+      "sourceSHA256": "46e08e525f8483996535c0b47d98510f78459e8669325e0668d2980071a4e63b",
+      "simulationSHA256": "e86d148824f6ed96cf9baf56e735af8cb07b920f9130f469d88114e43fd6915b",
+      "closedTrackCoreSimulationSHA256": "4be6c0c1f44a29482611bbc8fb3bf7557184e78b655c5c69fc71da049f90ecfe",
+      "closedTrackCoreSimulationScope": "src/core and src/simulation excluding src/simulation/open-world",
+      "incomingFilesMaterializedBeforeBuildStarted": true
+    },
+    "closedTrackDependencyAudit": {
+      "passed": true,
+      "measuredClosedTrackSHA256": "4be6c0c1f44a29482611bbc8fb3bf7557184e78b655c5c69fc71da049f90ecfe",
+      "finalClosedTrackSHA256": "4be6c0c1f44a29482611bbc8fb3bf7557184e78b655c5c69fc71da049f90ecfe",
+      "includedFiles": 128,
+      "measuredExcludedOpenWorldFiles": 23,
+      "scope": "src/core/** and src/simulation/** excluding src/simulation/open-world/**; fingerprint v2",
+      "unchangedLocalImportClosures": {
+        "Vehicle": 77,
+        "dynamicsFixture": 78,
+        "vehicleCalibration": 91,
+        "dynamicsBenchmark": 79,
+        "integratedDriving": 107,
+        "sessionIdentity": 78
+      },
+      "unresolvedLocalImports": 0,
+      "limitation": "Closed-track evidence does not validate newly incorporated Festival castTire/painted contact, road/route-driver, or travel behavior."
+    }
+  },
+  "staticContact": {
+    "command": "node --experimental-transform-types scripts/static-contact-benchmark.ts [checkout]",
+    "inputSHA256": "857c0a8732464ee669b7424a840ac0ef8c5c70fc2945f26054cd99993c2b62ed",
+    "scenario": {
+      "gradeDegrees": 10,
+      "settleSeconds": 8,
+      "observationSeconds": 20,
+      "axes": ["x", "z"],
+      "ratesHz": [60, 120, 240],
+      "vehicle": "apx01",
+      "compound": "medium",
+      "assistance": "sport",
+      "fuelKg": 0,
+      "gear": 0,
+      "automaticShifting": false,
+      "throttle": 0,
+      "brake": 1,
+      "placementS": 0,
+      "placementOffsetM": 0
+    },
+    "baseline": [
+      {
+        "axis": "x",
+        "rateHz": 60,
+        "driftM": -0.6060463707633442,
+        "endSpeedMps": 0.030779547507945444,
+        "wheelsLocked": true
+      },
+      {
+        "axis": "x",
+        "rateHz": 120,
+        "driftM": -0.6060463707633442,
+        "endSpeedMps": 0.030779547507945444,
+        "wheelsLocked": true
+      },
+      {
+        "axis": "x",
+        "rateHz": 240,
+        "driftM": -0.6060463707633442,
+        "endSpeedMps": 0.030779547507945444,
+        "wheelsLocked": true
+      },
+      {
+        "axis": "z",
+        "rateHz": 60,
+        "driftM": -0.3468873859094179,
+        "endSpeedMps": 0.017617623308229177,
+        "wheelsLocked": true
+      },
+      {
+        "axis": "z",
+        "rateHz": 120,
+        "driftM": -0.3468873859094179,
+        "endSpeedMps": 0.017617623308229177,
+        "wheelsLocked": true
+      },
+      {
+        "axis": "z",
+        "rateHz": 240,
+        "driftM": -0.3468873859094179,
+        "endSpeedMps": 0.017617623308229177,
+        "wheelsLocked": true
+      }
+    ],
+    "candidate": [
+      {
+        "axis": "x",
+        "rateHz": 60,
+        "driftM": -9.299210090851773e-7,
+        "endSpeedMps": 4.8928266162648516e-8,
+        "wheelsLocked": true
+      },
+      {
+        "axis": "x",
+        "rateHz": 120,
+        "driftM": -9.299210090851773e-7,
+        "endSpeedMps": 4.8928266162648516e-8,
+        "wheelsLocked": true
+      },
+      {
+        "axis": "x",
+        "rateHz": 240,
+        "driftM": -9.299210090851773e-7,
+        "endSpeedMps": 4.8928266162648516e-8,
+        "wheelsLocked": true
+      },
+      {
+        "axis": "z",
+        "rateHz": 60,
+        "driftM": -4.849051165045637e-7,
+        "endSpeedMps": 2.317188714757528e-8,
+        "wheelsLocked": true
+      },
+      {
+        "axis": "z",
+        "rateHz": 120,
+        "driftM": -4.849051165045637e-7,
+        "endSpeedMps": 2.317188714757528e-8,
+        "wheelsLocked": true
+      },
+      {
+        "axis": "z",
+        "rateHz": 240,
+        "driftM": -4.849051165045637e-7,
+        "endSpeedMps": 2.317188714757528e-8,
+        "wheelsLocked": true
+      }
+    ]
+  },
+  "unitTests": {
+    "carGate": {
+      "passed": true,
+      "tests": 153,
+      "passedTests": 153,
+      "failedTests": 0,
+      "files": [
+        {
+          "path": "tests/brake-coupling.test.ts",
+          "status": "passed",
+          "tests": 4
+        },
+        {
+          "path": "tests/clutch.test.ts",
+          "status": "passed",
+          "tests": 7
+        },
+        {
+          "path": "tests/differential.test.ts",
+          "status": "passed",
+          "tests": 9
+        },
+        {
+          "path": "tests/integrator-stability.test.ts",
+          "status": "passed",
+          "tests": 7
+        },
+        {
+          "path": "tests/lateral-contact.test.ts",
+          "status": "passed",
+          "tests": 11
+        },
+        {
+          "path": "tests/longitudinal-contact.test.ts",
+          "status": "passed",
+          "tests": 14
+        },
+        {
+          "path": "tests/physics.test.ts",
+          "status": "passed",
+          "tests": 21
+        },
+        {
+          "path": "tests/powertrain.test.ts",
+          "status": "passed",
+          "tests": 6
+        },
+        {
+          "path": "tests/rolling-resistance.test.ts",
+          "status": "passed",
+          "tests": 10
+        },
+        {
+          "path": "tests/static-contact.test.ts",
+          "status": "passed",
+          "tests": 8
+        },
+        {
+          "path": "tests/suspension-coupling.test.ts",
+          "status": "passed",
+          "tests": 6
+        },
+        {
+          "path": "tests/suspension-link-forces.test.ts",
+          "status": "passed",
+          "tests": 4
+        },
+        {
+          "path": "tests/suspension-projection.test.ts",
+          "status": "passed",
+          "tests": 6
+        },
+        {
+          "path": "tests/suspension.test.ts",
+          "status": "passed",
+          "tests": 9
+        },
+        {
+          "path": "tests/wheel-momentum.test.ts",
+          "status": "passed",
+          "tests": 12
+        },
+        {
+          "path": "tests/wheel-thermal.test.ts",
+          "status": "passed",
+          "tests": 19
+        }
+      ]
+    },
+    "poseAndIdentity": {
+      "passed": true,
+      "tests": 40,
+      "passedTests": 40,
+      "failedTests": 0,
+      "files": [
+        {
+          "path": "tests/bike-pose-kinematics.test.ts",
+          "status": "passed",
+          "tests": 13
+        },
+        {
+          "path": "tests/gp-front-contact-steering.test.ts",
+          "status": "passed",
+          "tests": 10
+        },
+        {
+          "path": "tests/session-identity.test.ts",
+          "status": "passed",
+          "tests": 17
+        }
+      ]
+    }
+  },
+  "build": {
+    "status": "passed",
+    "passed": true,
+    "integratedGitParent": "93576d20a3b52cc5e28959910b4b408418f53d3b",
+    "validationMode": "TypeScript and Vite completed in two invocations on unchanged source and configuration.",
+    "stages": [
+      {
+        "name": "TypeScript",
+        "command": "tsc --noEmit (first stage of NODE_OPTIONS=--max-old-space-size=3072 npm run build --ignore-scripts)",
+        "passed": true,
+        "exitCode": 0,
+        "containingCommandExitCode": 1,
+        "note": "The containing npm command subsequently failed during bundle output with ENOSPC; that failure is retained in buildAttempts."
+      },
+      {
+        "name": "Vite",
+        "command": "TMPDIR=/dev/shm/experiment3-v14-tmp NODE_OPTIONS=--max-old-space-size=3072 node_modules/.bin/vite build --configLoader runner --outDir /dev/shm/experiment3-v14-dist",
+        "passed": true,
+        "exitCode": 0,
+        "durationSecondsReported": 74,
+        "modulesTransformed": 754,
+        "logSHA256": "f38eac1553f85b55eccc2a350a0066ca74243943171d1986d7793d4bc76776c5"
+      }
+    ],
+    "applicationFingerprint": "b67578b68e3068c808933864329d5a54609c5473bec43b672caff62a14247b91",
+    "sourceCommit": null,
+    "sourceIdentityMatchesBuild": true,
+    "entryBundle": "assets/index-BCjLs6DG.js",
+    "entryBundleSHA256": "7db7f8061568d08b9c079c5633bdccedaee3a447929096d59a047b7ee662e2e8",
+    "publicFilesVerified": 231,
+    "publicFilesByteForByteEqual": true,
+    "existingLargeChunkWarning": true,
+    "note": "The successful bundle uses the repository configuration and full public-asset copy. Only the configuration loader and output/temp location were selected on the CLI to avoid writing temporary config/output on the full overlay. No source, dependencies, production bundle settings, public files, or test thresholds changed. The build used tracked/generated player assets; prebuild was not repeated in these final invocations."
+  },
+  "lint": {
+    "scope": "All 18 changed TypeScript source, tests and benchmark files",
+    "passed": true,
+    "exitCode": 0
+  },
+  "calibration": {
+    "command": "node --experimental-transform-types scripts/vehicle-calibration.ts --strict --only=apx01,tc1",
+    "baselineExitCode": 0,
+    "candidateExitCode": 0,
+    "note": "Values and rate drift are the original validator's printed precision; target bands were unchanged.",
+    "baseline": {
+      "apx01": {
+        "accel0to100": {
+          "inBand": true,
+          "at240Hz": 2.56,
+          "at120Hz": 2.56,
+          "targetBand": [2.3, 3.2],
+          "reportedRateDriftPercent": 0.2
+        },
+        "topSpeed": {
+          "inBand": true,
+          "at240Hz": 320.55,
+          "at120Hz": 320.54,
+          "targetBand": [320.0, 360.0],
+          "reportedRateDriftPercent": 0.0
+        },
+        "braking100Distance": {
+          "inBand": true,
+          "at240Hz": 19.28,
+          "at120Hz": 19.28,
+          "targetBand": [15.0, 32.0],
+          "reportedRateDriftPercent": 0.0
+        },
+        "lateral80G": {
+          "inBand": true,
+          "at240Hz": 1.94,
+          "at120Hz": 1.94,
+          "targetBand": [1.8, 3.2],
+          "reportedRateDriftPercent": 0.0
+        }
+      },
+      "tc1": {
+        "accel0to100": {
+          "inBand": true,
+          "at240Hz": 4.95,
+          "at120Hz": 4.95,
+          "targetBand": [4.8, 7.5],
+          "reportedRateDriftPercent": 0.1
+        },
+        "topSpeed": {
+          "inBand": true,
+          "at240Hz": 232.25,
+          "at120Hz": 232.24,
+          "targetBand": [205.0, 255.0],
+          "reportedRateDriftPercent": 0.0
+        },
+        "braking100Distance": {
+          "inBand": true,
+          "at240Hz": 28.23,
+          "at120Hz": 28.23,
+          "targetBand": [26.0, 42.0],
+          "reportedRateDriftPercent": 0.0
+        },
+        "lateral80G": {
+          "inBand": true,
+          "at240Hz": 1.33,
+          "at120Hz": 1.33,
+          "targetBand": [1.0, 1.45],
+          "reportedRateDriftPercent": 0.0
+        }
+      }
+    },
+    "candidate": {
+      "apx01": {
+        "accel0to100": {
+          "inBand": true,
+          "at240Hz": 2.54,
+          "at120Hz": 2.53,
+          "targetBand": [2.3, 3.2],
+          "reportedRateDriftPercent": 0.2
+        },
+        "topSpeed": {
+          "inBand": true,
+          "at240Hz": 320.67,
+          "at120Hz": 320.67,
+          "targetBand": [320.0, 360.0],
+          "reportedRateDriftPercent": 0.0
+        },
+        "braking100Distance": {
+          "inBand": true,
+          "at240Hz": 19.43,
+          "at120Hz": 19.43,
+          "targetBand": [15.0, 32.0],
+          "reportedRateDriftPercent": 0.0
+        },
+        "lateral80G": {
+          "inBand": true,
+          "at240Hz": 1.95,
+          "at120Hz": 1.95,
+          "targetBand": [1.8, 3.2],
+          "reportedRateDriftPercent": 0.0
+        }
+      },
+      "tc1": {
+        "accel0to100": {
+          "inBand": true,
+          "at240Hz": 4.94,
+          "at120Hz": 4.93,
+          "targetBand": [4.8, 7.5],
+          "reportedRateDriftPercent": 0.1
+        },
+        "topSpeed": {
+          "inBand": true,
+          "at240Hz": 232.4,
+          "at120Hz": 232.39,
+          "targetBand": [205.0, 255.0],
+          "reportedRateDriftPercent": 0.0
+        },
+        "braking100Distance": {
+          "inBand": true,
+          "at240Hz": 28.55,
+          "at120Hz": 28.55,
+          "targetBand": [26.0, 42.0],
+          "reportedRateDriftPercent": 0.0
+        },
+        "lateral80G": {
+          "inBand": true,
+          "at240Hz": 1.33,
+          "at120Hz": 1.33,
+          "targetBand": [1.0, 1.45],
+          "reportedRateDriftPercent": 0.0
+        }
+      }
+    }
+  },
+  "dynamicsBenchmark": {
+    "sourceSHA256": "a0eb4b6c801371715d31ec061d1c4b7703b56e55eb3c1f9cb4a5271c59f6e35d",
+    "fixedDtSeconds": 0.004166666666666667,
+    "fixture": "Isolated analytic runway/skidpad/kerbs with the production Vehicle solver",
+    "passed": true,
+    "cases": [
+      {
+        "name": "braking-100kmh",
+        "passed": true,
+        "measurements": {
+          "distanceM": 19.376471165752484,
+          "stopSeconds": 1.4625,
+          "lateralDriftM": 1.9849298893779734e-16,
+          "minimumSlip": -1,
+          "peakLoadN": 5394.842920723029,
+          "discTemperaturesC": [
+            317.7156125441768, 317.7156125441768, 317.2646565838763, 317.2646565838763
+          ]
+        }
+      },
+      {
+        "name": "braking-200kmh",
+        "passed": true,
+        "measurements": {
+          "distanceM": 55.893753730508955,
+          "stopSeconds": 2.3666666666666667,
+          "lateralDriftM": 3.110279697447968e-16,
+          "minimumSlip": -1,
+          "peakLoadN": 7380.840217689352,
+          "discTemperaturesC": [
+            320.3577821964289, 320.3577821964289, 322.3192119846555, 322.3192119846555
+          ]
+        }
+      },
+      {
+        "name": "braking-300kmh",
+        "passed": true,
+        "measurements": {
+          "distanceM": 97.55594636719549,
+          "stopSeconds": 2.9583333333333335,
+          "lateralDriftM": -1.9908147571078015e-16,
+          "minimumSlip": -1,
+          "peakLoadN": 13175.415288320546,
+          "discTemperaturesC": [
+            340.57844928561565, 340.57844928561565, 333.86516066404886, 333.86516066404886
+          ]
+        }
+      },
+      {
+        "name": "braking-speed-order",
+        "passed": true,
+        "measurements": [19.376471165752484, 55.893753730508955, 97.55594636719549]
+      },
+      {
+        "name": "skidpad-15mps",
+        "passed": true,
+        "measurements": {
+          "commandedSpeedMps": 15,
+          "meanSpeedMps": 15.031818618176965,
+          "radialRmsErrorM": 0.04661471046619699,
+          "measuredLateralG": 0.2881783948022781,
+          "kinematicLateralG": 0.28818111733494506
+        }
+      },
+      {
+        "name": "skidpad-25mps",
+        "passed": true,
+        "measurements": {
+          "commandedSpeedMps": 25,
+          "meanSpeedMps": 24.945228948727188,
+          "radialRmsErrorM": 0.3255780307893294,
+          "measuredLateralG": 0.7898030744793951,
+          "kinematicLateralG": 0.7899515466840207
+        }
+      },
+      {
+        "name": "skidpad-35mps",
+        "passed": true,
+        "measurements": {
+          "commandedSpeedMps": 35,
+          "meanSpeedMps": 34.72666482509044,
+          "radialRmsErrorM": 1.1268291237993593,
+          "measuredLateralG": 1.5139752660106132,
+          "kinematicLateralG": 1.5157967574098357
+        }
+      },
+      {
+        "name": "slalom-repeated-steering",
+        "passed": true,
+        "measurements": {
+          "cyclePeakYawRadps": [
+            0.20199957352730685, 0.2019867447364128, 0.20198234914223231, 0.20197810745045053,
+            0.20197609533721478, 0.20197148382417282
+          ],
+          "recoveredYawRadps": 1.1073286987561034e-6
+        }
+      },
+      {
+        "name": "low-kerb",
+        "passed": true,
+        "measurements": {
+          "peakCompressionM": 0.029308684768605875,
+          "peakLoadN": 4197.544973226704,
+          "peakVerticalG": 0.3710269618754929,
+          "skidWorkJ": 0,
+          "finalHeightM": 0.517457185431025
+        }
+      },
+      {
+        "name": "high-kerb",
+        "passed": true,
+        "measurements": {
+          "peakCompressionM": 0.03865059348122496,
+          "peakLoadN": 5862.546672778183,
+          "peakVerticalG": 0.6643528814479308,
+          "skidWorkJ": 0,
+          "finalHeightM": 0.5174571924641626
+        }
+      },
+      {
+        "name": "sausage-kerb",
+        "passed": true,
+        "measurements": {
+          "peakCompressionM": 0.04937524430921619,
+          "peakLoadN": 7686.549163543343,
+          "peakVerticalG": 1.5511909921818374,
+          "skidWorkJ": 0,
+          "finalHeightM": 0.5174572239199736
+        }
+      }
+    ]
+  },
+  "wheelWorkStress": {
+    "seed": "0x14ca4ca5",
+    "solves": 12000,
+    "locked": 4463,
+    "forward": 3782,
+    "reverse": 3755,
+    "fadeWindow": 5046,
+    "damped": 6683,
+    "unloaded": 120,
+    "maxTorqueResidual": 1.1313204062375917,
+    "maxLockViolation": 0,
+    "maxForceDifference": 0,
+    "probeStateMutations": 0,
+    "maxSpringWorkError": 3.694822225952521e-13,
+    "maxWholeWorkError": 0.18275169318534523,
+    "maxWholeWorkAfterResidual": 1.8010636385068501e-12,
+    "maxThermalWorkError": 3.6731577779391955e-9,
+    "maxUsage": 1.0000000000000004,
+    "invalidChannels": 0,
+    "minDissipation": 0,
+    "cancellation": [
+      {
+        "initial": 0.005,
+        "probe": 0,
+        "force": 0,
+        "strain": 0.004,
+        "internalHeat": 4,
+        "error": 0
+      },
+      {
+        "initial": 0.003,
+        "probe": -0.5,
+        "force": -0.5,
+        "strain": 0.0005,
+        "internalHeat": 1,
+        "error": 8.673617379884035e-19
+      }
+    ],
+    "maxTorqueByDt": {
+      "0.0010416666666666667": 0.11794943318227524,
+      "0.004166666666666667": 0.24565962887982096,
+      "0.008333333333333333": 0.47118487829720834,
+      "0.016666666666666666": 1.1313204062375917
+    }
+  },
+  "wheelWorkStressInterpretation": {
+    "productionMaximumStepSeconds": 0.004166666666666667,
+    "maxProductionSizedTorqueResidualNm": 0.24565962887982096,
+    "note": "Direct 1/60 and 1/120 helper calls bypass Vehicle substepping. Worst oversized residuals refined inside their original 16-iteration brackets; no universal root-uniqueness claim is made.",
+    "reviewerHarness": {
+      "committed": false,
+      "kind": "Retained local review harness; the repository does not contain a portable reproduction command for this stress audit.",
+      "sha256": "c0f968e0d0093509982018c5394dbbf7a92af9016096638ad8a9e3a8002d228c"
+    }
+  },
+  "integratedDriving": {
+    "status": "passed",
+    "exitCode": 0,
+    "command": "node --experimental-transform-types scripts/integrated-driving.ts",
+    "report": {
+      "sourceSHA256": "3094316f80c42d1702e02e1d53e6786b6494bf4e5ec54a46029b6d1752728054",
+      "simulationSHA256": "c881f85ef6dbc9410fd1d32812993e3291c6220491a9ac7cee4cf157f4332dfc",
+      "fingerprintVersion": 2,
+      "scriptSHA256": "065847a7c74f810bd0a40e8f6a2f1736e5c5301899b90f1552846a30ee676721",
+      "scope": "Continuous production-physics/input, numeric replay and CSV fixture. NOT the complete manual audiovisual section-146 acceptance.",
+      "fixture": {
+        "seed": 4417,
+        "laps": 8,
+        "cars": 6,
+        "weather": "changeable",
+        "assist": "raw",
+        "brakeBias": 0.66,
+        "dt": 0.008333333333333333,
+        "mutations": "Player control requests only; no poses, forces, health, fuel, lap counters or tire resets.",
+        "replayStore": "in-memory page adapter; IndexedDB and GPU require browser tests"
+      },
+      "passed": true,
+      "failures": [],
+      "checks": {
+        "completeInputSequence": true,
+        "allCarsClassified": true,
+        "launchWheelspin": true,
+        "highSpeedGears": true,
+        "genuineWake": true,
+        "lockAndRecovery": true,
+        "kerbGrassSuspension": true,
+        "retainedDirtThenCleaning": true,
+        "thermalWearAndERS": true,
+        "wetCompoundTransition": true,
+        "physicalFrontDamageAndAeroLoss": true,
+        "telemetryClock": true,
+        "replayActualHistory": true,
+        "csvActualState": true
+      },
+      "seen": {
+        "spin": 5.987260691038711,
+        "wake": 0.27137916384804417,
+        "speed": 80.17140435316485,
+        "gear": 8,
+        "lock": 1,
+        "kerb": 5.708333333333407,
+        "grass": 36.34166666666525,
+        "dirt": 0.9998931329715126,
+        "cleanedDirt": 0.001361219893969618,
+        "compression": 0.07819206805993384,
+        "wear": 0.0809216266527547,
+        "temp": 109.11217057537456,
+        "ers": 100000,
+        "wet": 1.6340129078765,
+        "changedGrip": 1.9600587838658032,
+        "frontDamage": 0.02386973663819303,
+        "dirtyAirAfterPit": 0.05140548727972044,
+        "maximumImpact": 0.07981721601125195
+      },
+      "events": [
+        {
+          "time": 5.04975574843122,
+          "event": "follow",
+          "s": 2969.244581355597,
+          "speed": 22.02263691571214,
+          "lateral": -1.5734790828572214
+        },
+        {
+          "time": 40.0414224150959,
+          "event": "brake",
+          "s": 1773.9182648202595,
+          "speed": 50.048641567504575,
+          "lateral": 2.5330945592668335
+        },
+        {
+          "time": 40.49975574842921,
+          "event": "release",
+          "s": 1794.236603010656,
+          "speed": 38.17736772865681,
+          "lateral": 2.8406558146131395
+        },
+        {
+          "time": 41.508089081762485,
+          "event": "prepare-excursion",
+          "s": 1830.9521251938077,
+          "speed": 36.7840349047933,
+          "lateral": -0.15711933850814166
+        },
+        {
+          "time": 60.03308908176303,
+          "event": "decelerate",
+          "s": 0.06995063338263208,
+          "speed": 80.16534788753854,
+          "lateral": 3.6280001963485775
+        },
+        {
+          "time": 62.39975574843158,
+          "event": "grass",
+          "s": 103.53736375848348,
+          "speed": 13.916824748973855,
+          "lateral": -2.856224901862519
+        },
+        {
+          "time": 76.39975574844273,
+          "event": "return",
+          "s": 232.3935828048452,
+          "speed": 9.194103897493298,
+          "lateral": -14.657106748227529
+        },
+        {
+          "time": 86.39975574845069,
+          "event": "weather",
+          "s": 348.5416395245297,
+          "speed": 11.83150657313511,
+          "lateral": -0.03613182290678365
+        },
+        {
+          "time": 205.50808908173664,
+          "event": "rejoined",
+          "s": 330.07276466760595,
+          "speed": 12.848277809446671,
+          "lateral": 0.0009618277196662652
+        },
+        {
+          "time": 269.29142241501194,
+          "event": "contact",
+          "s": 0.012892471262603067,
+          "speed": 68.15944074338206,
+          "lateral": 1.1709894712574844
+        },
+        {
+          "time": 291.29975574832525,
+          "event": "recover-contact",
+          "s": 419.2503777224797,
+          "speed": 14.282202047872197,
+          "lateral": -18.412586584221074
+        },
+        {
+          "time": 305.30808908164585,
+          "event": "finish",
+          "s": 577.0663473392092,
+          "speed": 11.817108281539136,
+          "lateral": 0.0594911902522475
+        }
+      ],
+      "unlockedSeconds": 18.52499999999959,
+      "damageFrontLoss": 0.023869736638193362,
+      "damageBalanceLoss": 0.004541768063788809,
+      "telemetry": {
+        "rows": 36971,
+        "channels": 228,
+        "verifiedCsvRows": 41,
+        "intervalTicks": 2
+      },
+      "replay": {
+        "frames": 9242,
+        "durationSeconds": 616.0666951462626,
+        "maximumResidentBytes": 16468320,
+        "seeks": [
+          {
+            "index": 40,
+            "time": 615,
+            "tick": 73800,
+            "passed": true
+          },
+          {
+            "index": 12,
+            "time": 195,
+            "tick": 23400,
+            "passed": true
+          },
+          {
+            "index": 0,
+            "time": 15,
+            "tick": 1800,
+            "passed": true
+          },
+          {
+            "index": 24,
+            "time": 375,
+            "tick": 45000,
+            "passed": true
+          }
+        ]
+      },
+      "raceTime": 610.3414224147018,
+      "cars": [
+        {
+          "id": 0,
+          "finishTime": 602.4080090456013,
+          "retired": false,
+          "laps": 7,
+          "pitStops": 1,
+          "frontHealth": 0.976130263361807
+        },
+        {
+          "id": 1,
+          "finishTime": 576.794654144978,
+          "retired": false,
+          "laps": 8,
+          "pitStops": 1,
+          "frontHealth": 1
+        },
+        {
+          "id": 2,
+          "finishTime": 610.3336371579375,
+          "retired": false,
+          "laps": 8,
+          "pitStops": 1,
+          "frontHealth": 1
+        },
+        {
+          "id": 3,
+          "finishTime": 595.5179948919179,
+          "retired": false,
+          "laps": 8,
+          "pitStops": 1,
+          "frontHealth": 1
+        },
+        {
+          "id": 4,
+          "finishTime": 591.3759485163806,
+          "retired": false,
+          "laps": 8,
+          "pitStops": 1,
+          "frontHealth": 1
+        },
+        {
+          "id": 5,
+          "finishTime": 606.4381423585635,
+          "retired": false,
+          "laps": 8,
+          "pitStops": 1,
+          "frontHealth": 1
+        }
+      ]
+    }
+  },
+  "browserJourney": {
+    "version": 1,
+    "status": "failed",
+    "exitCode": 1,
+    "createdUTC": "2026-10-20T07:14:35.785239+00:00",
+    "source": {
+      "head": "93576d20a3b52cc5e28959910b4b408418f53d3b",
+      "candidate": "93576d2 plus staged v14 engine changes",
+      "buildIdentity": {
+        "version": 1,
+        "commit": null,
+        "fingerprint": "b67578b68e3068c808933864329d5a54609c5473bec43b672caff62a14247b91"
+      },
+      "servedIdentityVerified": true,
+      "entryBundle": "assets/index-BCjLs6DG.js",
+      "entryBundleSHA256": "7db7f8061568d08b9c079c5633bdccedaee3a447929096d59a047b7ee662e2e8",
+      "testSHA256": "e965af469d35ccfa99d1912cfda08ffd2f6327497e941141a1bd089133ec6f04",
+      "configSHA256": "052691e0974ab8073a021fa80fe1cda54bdff3863c6fd9ffebeba6462b2852fd"
+    },
+    "command": [
+      "xvfb-run",
+      "-a",
+      "-s",
+      "-screen 0 1920x1080x24",
+      "/workspace/scratch/801e99c64f2c/Experiment-3/node_modules/.bin/playwright",
+      "test",
+      "--config",
+      "/workspace/scratch/801e99c64f2c/Experiment-3/playwright.config.ts",
+      "e2e/motogp-riding-flow.spec.ts",
+      "--workers=1",
+      "--output=/dev/shm/v14-integrated-mesa-run/results"
+    ],
+    "cwd": "/dev/shm/v14-integrated-mesa-run",
+    "environment": {
+      "APEX_BROWSER_BACKEND": "mesa",
+      "LIBGL_ALWAYS_SOFTWARE": "true",
+      "CHROMIUM_PATH": "/root/.cache/ms-playwright/chromium-1193/chrome-linux/chrome",
+      "TMPDIR": "/dev/shm/v14-integrated-mesa-run/tmp",
+      "XDG_CACHE_HOME": "/dev/shm/v14-integrated-mesa-run/cache",
+      "PLAYWRIGHT_HTML_OUTPUT_DIR": "/dev/shm/v14-integrated-mesa-run/report",
+      "GIT_OPTIONAL_LOCKS": "0"
+    },
+    "backend": {
+      "requested": "mesa",
+      "renderer": "ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)",
+      "vendor": "Google Inc. (Mesa)",
+      "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+      "pixel": [64, 128, 191, 255],
+      "error": 0,
+      "softwareRendererDetected": true,
+      "physicalHardwareValidated": false
+    },
+    "workload": {
+      "test": "e2e/motogp-riding-flow.spec.ts",
+      "title": "GP practice rides through named corner guidance, cockpit, pause and recorded replay",
+      "attempts": 1,
+      "workers": 1,
+      "retries": 0,
+      "testTimeoutMs": 300000,
+      "expectTimeoutMs": 60000,
+      "menuStartupTimeoutMs": 180000,
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "testAndConfigurationUnchanged": true,
+      "qualitySelection": "Low through the original Garage & Settings UI",
+      "reportedDurationMs": 268473
+    },
+    "passedMilestones": [
+      {
+        "milestone": "Verified candidate served at localhost and original Mesa framebuffer preflight passed"
+      },
+      {
+        "milestone": "Page navigation completed",
+        "elapsedMs": 19326.768
+      },
+      {
+        "milestone": "Initial menu visible within existing startup allowance",
+        "elapsedMs": 152266.321
+      },
+      {
+        "milestone": "Garage & Settings opened",
+        "elapsedMs": 157164.917
+      },
+      {
+        "milestone": "Selected Low quality",
+        "elapsedMs": 157289.395
+      },
+      {
+        "milestone": "Clicked Apply & Save; recorded DOM marked form aria-busy=true and button SAVING\u2026",
+        "elapsedMs": 162324.519
+      }
+    ],
+    "firstFailedBoundary": {
+      "path": "e2e/motogp-riding-flow.spec.ts",
+      "line": 91,
+      "assertion": "expect(page.locator('#modal')).toBeHidden()",
+      "expected": "hidden",
+      "received": "visible",
+      "timeoutMs": 60000,
+      "recordedVisiblePolls": 23,
+      "testRunnerErrorElapsedMs": 232881.017,
+      "stage": "Applying Low quality in the initial menu, before GP session selection"
+    },
+    "laterEvidence": {
+      "postFailureSnapshotElapsedMs": 232870.859,
+      "modalClosedInPostFailureSnapshot": true,
+      "settingsFormBusyAttributeRemoved": true,
+      "submitLabelRestored": "APPLY & SAVE",
+      "failureScreenshotVisuallyInspected": true,
+      "failureScreenshotShows": "Initial Aurel/APX-01 showroom menu; modal had closed by screenshot capture; no GP session or fatal error panel visible"
+    },
+    "observations": {
+      "consoleMessages": 0,
+      "consoleErrors": 0,
+      "pageErrorEvents": 0,
+      "recordedRequests": 92,
+      "recordedResponseCodes": {
+        "200": 92
+      },
+      "failedRecordedRequests": 0,
+      "apexDiagnosticsCalls": 0,
+      "runtimeTransitionPhaseMeasured": false,
+      "runtimeWorkerOrRendererDiagnosticsMeasured": false
+    },
+    "sourceOrdering": {
+      "settingsPath": [
+        "src/ui/interface.ts form.onsubmit",
+        "src/main.ts applySettings",
+        "src/core/settings-transition.ts runSettingsChange",
+        "src/rendering/renderer.ts prepareQuality",
+        "settings persistence transaction",
+        "modalClose after transaction outcome"
+      ],
+      "rendererPreparation": "Drains previous prepared frame, changes quality, yields, and compiles the scene target before settings apply/save.",
+      "workerPath": "src/main.ts constructs PhysicsWorker only inside start(); test never reached ENTER CIRCUIT or GP selection. Initial menu uses a display-only snapshot.",
+      "gpWorkerStarted": false,
+      "gpWorkerConclusionBasis": "Unexecuted session-entry action and existing source ordering; no runtime worker diagnostics were sampled."
+    },
+    "interpretation": {
+      "observedLogicException": false,
+      "proven": "The original 60-second modal-closure assertion expired while the transition was still observed as busy; later retained DOM/screenshot show closure.",
+      "inference": "This run demonstrates a settings-transition timing failure rather than a permanently stuck modal. Renderer preparation is part of that transition.",
+      "notProven": "Which transaction phase consumed the delay, whether it was GPU/CPU scheduling or persistence, and whether a code regression caused that delay."
+    },
+    "unexecuted": [
+      "GP-R1/Poggio Alto/four-rider session selection and menu identity checks",
+      "Circuit entry and GP worker initialization",
+      "Authoritative GP pose channels and four-rider snapshot assertions",
+      "Manual throttle and rear-pedal controls",
+      "AI demonstration and named corner guidance",
+      "Moving chase and cockpit render assertions/screenshots",
+      "Pause handshake, recorded replay seeking/restoration and resume",
+      "New practice-panel hidden assertions for AI/replay"
+    ],
+    "limits": [
+      "Mesa llvmpipe is a software renderer; physical GPU operation is unverified.",
+      "No successful GP gameplay or replay validation is claimed for this combined candidate.",
+      "The earlier SwiftShader failure remains a separate pre-54c run on fingerprint a44a1e8f2f08afcd70d9c19531e6f5e831349ae52f63944b502f012fbbe78991.",
+      "The committed upstream Mesa pass used an earlier different source build and is not this candidate result."
+    ],
+    "cleanup": {
+      "journeyExitedNormally": true,
+      "forcedBrowserTeardown": false,
+      "ownedPreviewStoppedAfterRun": true,
+      "repositoryBrowserProgressExists": false,
+      "repositoryBrowserBackendExists": false,
+      "sourceOrTestEdits": false,
+      "generatedReportsRemainOnlyInPrivateRunDirectory": true
+    },
+    "artifacts": [
+      {
+        "bytes": 1292,
+        "sha256": "f820aa171bea689d304181d9e3ce930f628d1567b899a87edf964d84b8b4a01c",
+        "name": "launch.json"
+      },
+      {
+        "bytes": 407,
+        "sha256": "99197795aac40ee260dc95c6ddd7a6e8d5f9a3afd9ebdab545a282e929f758a4",
+        "name": "served-build.json"
+      },
+      {
+        "bytes": 325,
+        "sha256": "9ddbe9ad44808a6870cd07050381a6a34e2a1dba36490aa7bd029cec6a6d15ed",
+        "name": "browser-backend.json"
+      },
+      {
+        "bytes": 472,
+        "sha256": "faec66ee7fa96073805796a8f156b01b9ef934753afbbecd430889795b358e1e",
+        "name": "browser-progress.json"
+      },
+      {
+        "bytes": 5156,
+        "sha256": "c413c4676933ac2f62ded8562ecc1d59a605351c16a20102678a8f75e28d442e",
+        "name": "journey.log"
+      },
+      {
+        "bytes": 39,
+        "sha256": "ecbd7eb35ac4acd913ff89a5390ee30069b6e910709e5626dc3f8fc34eadb53f",
+        "name": "preview.log"
+      },
+      {
+        "bytes": 592,
+        "sha256": "552146b48e8360e8027cd967bc4e9a01c6bbea44eb361ca9341856fffbee8d04",
+        "name": "preview-cleanup.json"
+      },
+      {
+        "bytes": 12717,
+        "sha256": "c3b0ebfa8919323791508440b4884487883205592d1aecefec3333df57e12405",
+        "name": "modal-snapshot-evidence.json"
+      },
+      {
+        "bytes": 10823,
+        "sha256": "e2629ae7d487fcbbcc63c1786b4a162bb7bc6133a50182f8d1416b6f453bf66a",
+        "name": "trace-summary.json"
+      },
+      {
+        "bytes": 17246932,
+        "sha256": "6eaec405b2c3a7460153360a305d30af667dea484d99e5c28bda6a6b605ee9de",
+        "name": "trace.zip"
+      },
+      {
+        "bytes": 443876,
+        "sha256": "e7bd6b83c1781dfb7be46146bbb12ad1aab4ad50553c84b2966b2f0ce3233fd6",
+        "name": "test-failed-1.png"
+      },
+      {
+        "bytes": 11139,
+        "sha256": "e35c041da60f1597088c6948bbd201dbe9baab83eddd25921c2fbd9f0a8010ce",
+        "name": "error-context.md"
+      }
+    ],
+    "rawReceiptSHA256": "ea5bf6fb88184b9821835b7cf8bdd07dbbf2ae85e368301d4fe25916c20fd407",
+    "evidenceRetention": "This compact receipt retains the exact final candidate, workload, first failure, observations and raw artifact hashes. Raw logs, screenshots and browser traces are local review outputs and are not committed."
+  },
+  "preIntegrationBuild": {
+    "command": "npm run build --ignore-scripts",
+    "passed": true,
+    "exitCode": 0,
+    "note": "TypeScript and production Vite build; unchanged player LOD assets had already been generated by the successful full npm run build prebuild.",
+    "modulesTransformed": 746,
+    "entryBundle": "dist/assets/index-Lve_tyDL.js",
+    "entryBundleSHA256": "37c6871911932e5528c67e0f5eef5f2741f73234c3f40863b5de250d17f8b183",
+    "existingLargeChunkWarning": true,
+    "applicationFingerprint": "a44a1e8f2f08afcd70d9c19531e6f5e831349ae52f63944b502f012fbbe78991"
+  },
+  "buildAttempts": [
+    {
+      "command": "npm run build --ignore-scripts",
+      "integratedGitParent": "54c886dae43f6687a2d1c27f89eab96b3468c2e5",
+      "exitCode": 137,
+      "passed": false,
+      "lastStage": "tsc --noEmit",
+      "output": "Killed",
+      "note": "The process was terminated before compiler completion or bundling; it did not report a TypeScript diagnostic."
+    },
+    {
+      "command": "NODE_OPTIONS='--max-old-space-size=1024' npm run build --ignore-scripts",
+      "integratedGitParent": "54c886dae43f6687a2d1c27f89eab96b3468c2e5",
+      "exitCode": 134,
+      "passed": false,
+      "lastStage": "tsc --noEmit",
+      "output": "FATAL ERROR: Ineffective mark-compacts near heap limit Allocation failed - JavaScript heap out of memory",
+      "note": "The 1 GiB heap cap was insufficient for TypeScript; no compiler diagnostic was reported."
+    },
+    {
+      "command": "NODE_OPTIONS='--max-old-space-size=1536' npm run build --ignore-scripts",
+      "integratedGitParent": "93576d20a3b52cc5e28959910b4b408418f53d3b",
+      "exitCode": 134,
+      "passed": false,
+      "lastStage": "tsc --noEmit",
+      "output": "FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory",
+      "note": "The 1.5 GiB heap cap was insufficient for TypeScript; no compiler diagnostic was reported."
+    },
+    {
+      "command": "NODE_OPTIONS='--max-old-space-size=3072' npm run build --ignore-scripts",
+      "integratedGitParent": "93576d20a3b52cc5e28959910b4b408418f53d3b",
+      "exitCode": 2,
+      "passed": false,
+      "lastStage": "tsc --noEmit",
+      "missingTrackedInputs": [
+        "docs/TRACK_INFRASTRUCTURE_RENDER_BASELINE.json",
+        "docs/PLAYER_INDEX_CACHE_AUDIT.json",
+        "docs/production/motocross-reference-review-20261017.json",
+        "public/models/solvane/detail-kit.manifest.json",
+        "public/models/solvane/street-kit.manifest.json"
+      ],
+      "note": "Sparse-checkout reapplication had omitted tracked JSON inputs. Their patterns and all public assets were restored; each required JSON was verified byte-for-byte against HEAD before the final rerun."
+    },
+    {
+      "command": "NODE_OPTIONS=--max-old-space-size=3072 npm run build --ignore-scripts",
+      "integratedGitParent": "93576d20a3b52cc5e28959910b4b408418f53d3b",
+      "exitCode": 1,
+      "passed": false,
+      "typeScriptPassed": true,
+      "typeScriptExitCode": 0,
+      "lastStage": "Vite rendering/writing chunks after 754 modules transformed",
+      "output": "ENOSPC: no space left on device, write",
+      "logSHA256": "0a550d9bfdf314e7209fadbcbc0b5f173c58772d1e2d59c6bc7a5a5852173008",
+      "note": "TypeScript completed successfully after tracked sparse-checkout inputs were restored. The Vite write failed on the full shared overlay filesystem. Source and configuration were unchanged for the following successful Vite-only invocation."
+    }
+  ],
+  "preIntegrationBrowserJourney": {
+    "version": 1,
+    "story": "Actual GP-R1 menu setup, four-rider Poggio Alto practice, manual controls, camera changes, pause and recorded replay through the production worker and Three.js renderer.",
+    "status": "failed",
+    "test": "e2e/motogp-riding-flow.spec.ts",
+    "testTitle": "GP practice rides through named corner guidance, cockpit, pause and recorded replay",
+    "command": "CHROMIUM_PATH=/root/.cache/ms-playwright/chromium-1193/chrome-linux/chrome APEX_BROWSER_BACKEND=swiftshader PLAYWRIGHT_HTML_OUTPUT_DIR=/tmp/experiment3-v14-gp-browser-authorized-report node_modules/.bin/playwright test e2e/motogp-riding-flow.spec.ts --workers=1 --output=/tmp/experiment3-v14-gp-browser-authorized-results",
+    "unchangedWorkload": {
+      "testTimeoutMs": 300000,
+      "menuTimeoutMs": 180000,
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "workers": 1,
+      "retries": 0,
+      "quality": "low selected through existing Settings UI"
+    },
+    "applicationJourneysExecuted": 1,
+    "backend": {
+      "requested": "swiftshader",
+      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "vendor": "Google Inc. (Google)",
+      "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+      "pixel": [64, 128, 191, 255],
+      "error": 0,
+      "softwareRendererDetected": true,
+      "physicalHardwareValidated": false
+    },
+    "buildIdentity": {
+      "commit": null,
+      "fingerprint": "a44a1e8f2f08afcd70d9c19531e6f5e831349ae52f63944b502f012fbbe78991"
+    },
+    "distIdentityMatchesTrace": true,
+    "completedMilestones": [
+      "Local preview server and explicit SwiftShader framebuffer probe",
+      "Cold menu visible within original menu deadline",
+      "Normal settings UI selected Low and saved it",
+      "Poggio Alto, GP-R1, practice, four riders, clear weather, medium tyres and Sport aids selected",
+      "GP machine label, four-rider option, available session rule and menuPreview.machine assertions",
+      "Actual GP menu screenshot captured and visually inspected",
+      "ENTER CIRCUIT click completed"
+    ],
+    "milestoneTrace": [
+      {
+        "title": "Click getByRole('button', { name: 'GARAGE & SETTINGS', exact: true })",
+        "startedMs": 115720.619,
+        "finishedMs": 117459.168,
+        "error": null
+      },
+      {
+        "title": "Select option locator('[name=quality]')",
+        "startedMs": 117464.297,
+        "finishedMs": 117665.587,
+        "error": null
+      },
+      {
+        "title": "Click getByRole('button', { name: 'APPLY & SAVE', exact: true })",
+        "startedMs": 117668.608,
+        "finishedMs": 119702.956,
+        "error": null
+      },
+      {
+        "title": "Select option locator('#circuit')",
+        "startedMs": 122715.379,
+        "finishedMs": 148345.113,
+        "error": null
+      },
+      {
+        "title": "Select option locator('#vehicle')",
+        "startedMs": 148353.322,
+        "finishedMs": 148492.017,
+        "error": null
+      },
+      {
+        "title": "Select option locator('#mode')",
+        "startedMs": 148502.044,
+        "finishedMs": 148700.507,
+        "error": null
+      },
+      {
+        "title": "Select option locator('#opponents')",
+        "startedMs": 148709.409,
+        "finishedMs": 148927.054,
+        "error": null
+      },
+      {
+        "title": "Select option locator('#weather')",
+        "startedMs": 148930.052,
+        "finishedMs": 149023.327,
+        "error": null
+      },
+      {
+        "title": "Select option locator('#compound')",
+        "startedMs": 149030.171,
+        "finishedMs": 149117.767,
+        "error": null
+      },
+      {
+        "title": "Select option locator('#assist')",
+        "startedMs": 149121.326,
+        "finishedMs": 149187.324,
+        "error": null
+      },
+      {
+        "title": "Attach \"01-gp-poggio-practice-menu.png\"",
+        "startedMs": 196284.756,
+        "finishedMs": 196301.694,
+        "error": null
+      },
+      {
+        "title": "Click getByRole('button', { name: 'ENTER CIRCUIT', exact: true })",
+        "startedMs": 196312.624,
+        "finishedMs": 209046.914,
+        "error": null
+      }
+    ],
+    "firstFailedBoundary": {
+      "name": "Circuit presentation rebuild during session entry",
+      "assertion": "finishRaceEntry expected /^(driving|briefing)$/ but received loading",
+      "source": "e2e/race-entry.ts:6, called by e2e/motogp-riding-flow.spec.ts:106",
+      "reason": "Original 300000 ms test deadline exceeded before driving or briefing readiness",
+      "lastRecordedLoadingStage": {
+        "elapsedMs": 298679.485,
+        "loadingStage": "Loading circuit",
+        "loadingPercent": "44%",
+        "loadingText": "52% \u00b7 Track surface\u2026"
+      },
+      "failureScreenshot": {
+        "playerText": "Loading circuit",
+        "percent": 48
+      },
+      "laterErrorContext": {
+        "playerText": "Loading circuit",
+        "percent": 84
+      },
+      "progressInterpretation": "Circuit construction advanced during failure capture/teardown; no completed session entry was observed.",
+      "sourceInference": "main.ts awaits switchCircuit -> buildRenderer -> RacingRenderer.create before assigning the new session options or constructing PhysicsWorker. Final renderer=null and tick=null are consistent with that presentation rebuild remaining incomplete.",
+      "rootCauseProven": false
+    },
+    "lastDiagnostics": {
+      "elapsedMs": 299068.323,
+      "state": "loading",
+      "gridPresentation": {
+        "time": 0,
+        "playing": false,
+        "complete": false,
+        "automatic": false,
+        "briefing": false
+      },
+      "workerPause": {
+        "pending": false,
+        "paused": true,
+        "tick": null,
+        "sequence": 0
+      },
+      "settingsTransition": {
+        "busy": false,
+        "phase": "idle"
+      },
+      "renderer": null,
+      "presentation": null,
+      "replaySamples": 0,
+      "replayError": null,
+      "recordingWarnings": [],
+      "auto": false,
+      "usedDemonstration": false,
+      "frameTick": 0,
+      "frameCars": 1,
+      "frameInterpretation": "Retained menu/default frame; no new GP session frame reached the driving assertions."
+    },
+    "unexecuted": [
+      "GP session worker identity/grid assertions after finishRaceEntry",
+      "Manual throttle and independent rear-pedal driving controls",
+      "Moving four-rider physics and presentation continuity",
+      "Chase and cockpit riding views",
+      "Recorded replay samples, pause handshake, seek/restore and resume"
+    ],
+    "traceErrors": {
+      "consoleErrors": [],
+      "pageErrors": [],
+      "consoleWarnings": [
+        {
+          "message": "THREE.WebGLRenderer: KHR_parallel_shader_compile extension not supported.",
+          "elapsedMs": 122473.197
+        }
+      ],
+      "recordedNetworkRequests": 182,
+      "recordedNetworkFailures": []
+    },
+    "processResult": {
+      "exitCode": 1,
+      "testDurationIncludingTeardownMs": 388196,
+      "forcedCleanup": false,
+      "relaunchAfterApplicationFailure": false
+    },
+    "limitations": [
+      "One software-rendered functional journey; no physical GPU acceptance.",
+      "The live-driving and replay sections were not executed.",
+      "No baseline browser comparison was run, so this timeout does not establish a regression caused by the physics edits."
+    ],
+    "evidenceSHA256": {
+      "journeyLog": "132a05ff2925c9e10c50dd840538ab68330d1dc686e820b1a135c524579ebe12",
+      "trace": "c98a8c0ebf70aa1220c4403c41dce7659f481319e9353cbb855e7b5725963d89",
+      "menuScreenshot": "ec711144b58e8006c3431475f3a530612bbbd573f360275960161e24e8f62e93",
+      "failureScreenshot": "2a3ed10c0c61993a3d0f7302ecddc343323deca05a0d95620c1f7f737df3a222"
+    },
+    "evidenceRetention": "Compact trace-derived receipt retained here. SHA-256 values identify local raw logs, screenshots and trace; the raw browser artifacts are not committed.",
+    "candidateScope": "Observed before integration of 54c886d GP presentation/corner-practice changes. The trace fingerprint matches preIntegrationBuild; it is not the final integrated graphical build."
+  }
+}

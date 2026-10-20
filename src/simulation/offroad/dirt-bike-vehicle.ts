@@ -1,4 +1,4 @@
-import { approach, clamp, G, lerp, mod, Vec3 } from '../../core/math.ts';
+import { approach, clamp, G, lerp, mod } from '../../core/math.ts';
 import { advanceWheelRotation } from '../wheel-rotation.ts';
 import { NOVICE } from '../bike.ts';
 import { BIKE_RECOVERY, BikeVehicle, bikeOrientation } from '../bike-vehicle.ts';
@@ -152,8 +152,6 @@ export class DirtBikeVehicle extends BikeVehicle {
   private pickupFrontForce = 0;
   private pickupRearForce = 0;
   private readonly probe = surfaceSample();
-  private readonly heading3 = new Vec3();
-  private readonly left3 = new Vec3();
   constructor(
     id: number,
     compound: Compound = 'medium',
@@ -1269,8 +1267,8 @@ export class DirtBikeVehicle extends BikeVehicle {
       L = this.spec.wheelbase;
     // The tyre contact points follow the whipped chassis, while velocity
     // keeps following the independent centre-of-mass travel heading.
-    let h = d.heading + this.airYaw,
-      sh = Math.sin(h),
+    let h = d.heading + this.airYaw;
+    const sh = Math.sin(h),
       ch = Math.cos(h);
     const front = this.contactPoints[0],
       rear = this.contactPoints[2];
@@ -1299,8 +1297,6 @@ export class DirtBikeVehicle extends BikeVehicle {
     }
     // Touchdown commits chassis yaw to the grounded heading in vertical().
     h = d.heading + this.airYaw;
-    sh = Math.sin(h);
-    ch = Math.cos(h);
     const fallen = !this.airborne && Math.abs(d.lean) > 1.2;
     // The sprung model carries squat, dive and wheelies itself; the core's
     // relative pitch only guards its own loop-out limit.
@@ -1327,15 +1323,7 @@ export class DirtBikeVehicle extends BikeVehicle {
       dt > 0 && Math.abs(b.position.y - previousY) < 0.5 ? (b.position.y - previousY) / dt : 0,
       travelCos * planar - travelSin * this.slide,
     );
-    const yawRate =
-      (this.riding && !this.airborne ? d.speed * d.curvature : this.airYawRate) + this.yawKick;
-    this.heading3.set(sh, 0, ch);
-    this.left3.set(ch, 0, -sh);
-    b.omega.set(
-      -sh * d.leanRate + this.left3.x * -this.pitchRate,
-      yawRate,
-      -ch * d.leanRate + this.left3.z * -this.pitchRate,
-    );
+    this.writeAngularKinematics(dt, fallen);
     b.orientation.rotate(this.scratch.set(0, 0, 1), this.forward);
     b.orientation.rotate(this.scratch.set(0, 1, 0), this.up);
     b.orientation.inverseRotate(b.velocity, this.localVelocity);
