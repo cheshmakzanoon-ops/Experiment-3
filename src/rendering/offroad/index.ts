@@ -13,6 +13,7 @@ import { Stadium } from './stadium.ts';
 import { StartGate } from './start-gate.ts';
 import { TerrainView } from './terrain-view.ts';
 import { MxCourseDressing } from './mx-course-dressing.ts';
+import { MxCourseLandmarks } from './mx-course-landmarks.ts';
 
 export { installMud, installMudOn, mudUniforms, type MudUniforms } from './mud.ts';
 export { DirtBikeModel } from './dirt-bike-model.ts';
@@ -29,6 +30,7 @@ export class OffroadScene {
   gate: StartGate | null = null;
   stadium: Stadium | null = null;
   dressing: MxCourseDressing | null = null;
+  landmarks: MxCourseLandmarks | null = null;
   readonly roost: Roost;
   private lastTime = NaN;
   private readonly pending: {
@@ -66,11 +68,16 @@ export class OffroadScene {
         this.stadium = new Stadium(track);
         this.group.add(this.stadium.root);
       });
-    if (course.kind === 'motocross' || course.kind === 'supercross')
+    if (course.kind === 'motocross' || course.kind === 'supercross') {
       construction.add('MX course furniture and shoulders', 3, () => {
         this.dressing = new MxCourseDressing(track);
         this.group.add(this.dressing.root);
       });
+      construction.add('MX course identities and jump profiles', 2, () => {
+        this.landmarks = new MxCourseLandmarks(track);
+        this.group.add(this.landmarks.root);
+      });
+    }
   }
   /** A worker surface keyframe's terrain export. */
   record(delta: TerrainRenderDelta | undefined, time: number, live: boolean) {
@@ -100,6 +107,7 @@ export class OffroadScene {
     this.gate?.dispose();
     this.stadium?.dispose();
     this.dressing?.dispose();
+    this.landmarks?.dispose();
     this.roost.dispose();
   }
 }

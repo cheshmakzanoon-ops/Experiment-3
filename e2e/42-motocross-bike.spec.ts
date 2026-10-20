@@ -1,11 +1,25 @@
-import { expect, test } from '@playwright/test';
+import { expect, test as base } from '@playwright/test';
 import { build } from 'vite';
-import { resolve } from 'node:path';
+import { mkdir, writeFile } from 'node:fs/promises';
+import { dirname, resolve } from 'node:path';
 import type { captureMotocrossBike } from './fixtures/motocross-bike-review.ts';
 
-test('Motocross reference R2: production bikes, reachable riding poses and reversible mud on WebGL2', async ({
-  page,
-}, info) => {
+type CaptureOptions = {
+  id: string;
+  detail: 'high' | 'mid' | 'far';
+  view?: string;
+  samples?: Parameters<typeof captureMotocrossBike>[3];
+};
+type CaptureResult = ReturnType<typeof captureMotocrossBike>[number];
+type Review = {
+  capture: (options: CaptureOptions) => Promise<ReturnType<typeof captureMotocrossBike>>;
+  attach: (name: string, result: CaptureResult) => Promise<void>;
+};
+
+// One fixture bundle per worker; each independent contract still receives a
+// fresh page and the original production geometry/material constructors.
+let bundleCode: Promise<string> | undefined;
+async function compileReview() {
   const bundle = await build({
     configFile: false,
     logLevel: 'error',
@@ -22,55 +36,75 @@ test('Motocross reference R2: production bikes, reachable riding poses and rever
   if (!('output' in output)) throw new Error('Missing motocross GPU fixture output');
   const chunk = output.output.find((entry) => entry.type === 'chunk');
   if (!chunk || chunk.type !== 'chunk') throw new Error('Missing motocross GPU fixture chunk');
-  const errors: string[] = [];
-  page.on('pageerror', (error) => errors.push(error.message));
-  page.on('console', (message) => {
-    if (message.type() === 'error') errors.push(message.text());
-  });
-  await page.setContent('<!doctype html><title>Motocross production-model GPU review</title>');
-  await page.addScriptTag({ content: chunk.code });
-  const capture = (options: {
-    id: string;
-    detail: 'high' | 'mid' | 'far';
-    view?: string;
-    samples?: Parameters<typeof captureMotocrossBike>[3];
-  }) =>
-    page.evaluate(
-      (c) =>
-        (
-          window as unknown as {
-            MotocrossReview: { captureMotocrossBike: typeof captureMotocrossBike };
-          }
-        ).MotocrossReview.captureMotocrossBike(c.id, c.detail, c.view, c.samples),
-      options,
-    );
-  const attach = async (name: string, result: ReturnType<typeof captureMotocrossBike>[number]) => {
-    await info.attach(`${name}.png`, {
-      body: Buffer.from(result.image.split(',')[1], 'base64'),
-      contentType: 'image/png',
+  return chunk.code;
+}
+
+const test = base.extend<{ review: Review }>({
+  review: async ({ page }, use, info) => {
+    const errors: string[] = [];
+    page.on('pageerror', (error) => errors.push(error.message));
+    page.on('console', (message) => {
+      if (message.type() === 'error') errors.push(message.text());
     });
-    await info.attach(`${name}-metrics.json`, {
-      body: JSON.stringify(result, (key, value) => (key === 'image' ? undefined : value), 2),
-      contentType: 'application/json',
-    });
-    expect(result.glError).toBe(0);
-    expect(result.finiteGeometry).toBe(true);
-    expect(result.hash).not.toBe(0);
-    expect(result.calls).toBeLessThan(200);
-    expect(result.triangles).toBeLessThan(130000);
-    if (result.chain) {
-      expect(result.chain.finite).toBe(true);
-      expect(result.chain.counts).toEqual([96, 192]);
-    }
-    expect(result.bounds.min.y).toBeGreaterThan(-0.006);
-    for (const contact of result.contacts) {
-      // Bone endpoints carry a deliberate 2 cm wrist/ankle offset; anything
-      // beyond 3 cm is lost reach rather than that geometric inset.
-      expect(contact.handError).toBeLessThan(0.03);
-      expect(contact.ankleError).toBeLessThan(0.03);
-    }
-  };
-  for (const id of ['mx450', 'mx250']) {
+    await page.setContent('<!doctype html><title>Motocross production-model GPU review</title>');
+    bundleCode ??= compileReview();
+    await page.addScriptTag({ content: await bundleCode });
+    const capture = (options: CaptureOptions) =>
+      page.evaluate(
+        (c) =>
+          (
+            window as unknown as {
+              MotocrossReview: { captureMotocrossBike: typeof captureMotocrossBike };
+            }
+          ).MotocrossReview.captureMotocrossBike(c.id, c.detail, c.view, c.samples),
+        options,
+      );
+    const attach = async (name: string, result: CaptureResult) => {
+      // Keep successful evidence as named files even with the line reporter;
+      // attachments alone otherwise survive only inside retained traces.
+      const imagePath = info.outputPath(`${name}.png`),
+        metricsPath = info.outputPath(`${name}-metrics.json`);
+      await mkdir(dirname(imagePath), { recursive: true });
+      await Promise.all([
+        writeFile(imagePath, Buffer.from(result.image.split(',')[1], 'base64')),
+        writeFile(
+          metricsPath,
+          JSON.stringify(result, (key, value) => (key === 'image' ? undefined : value), 2),
+        ),
+      ]);
+      await info.attach(`${name}.png`, { path: imagePath, contentType: 'image/png' });
+      await info.attach(`${name}-metrics.json`, {
+        path: metricsPath,
+        contentType: 'application/json',
+      });
+      expect(result.glError).toBe(0);
+      expect(result.finiteGeometry).toBe(true);
+      expect(result.hash).not.toBe(0);
+      expect(result.calls).toBeLessThan(200);
+      expect(result.triangles).toBeLessThan(130000);
+      if (result.chain) {
+        expect(result.chain.finite).toBe(true);
+        expect(result.chain.counts).toEqual([96, 192]);
+      }
+      expect(result.bounds.min.y).toBeGreaterThan(-0.006);
+      for (const contact of result.contacts) {
+        // Bone endpoints carry a deliberate 2 cm wrist/ankle offset; anything
+        // beyond 3 cm is lost reach rather than that geometric inset.
+        expect(contact.handError).toBeLessThan(0.03);
+        expect(contact.ankleError).toBeLessThan(0.03);
+      }
+    };
+    await use({ capture, attach });
+    expect(errors).toEqual([]);
+  },
+});
+
+// Contracts keep the configured 300 s per-case budget and every original
+// sample/assertion. A slow earlier model cannot consume the onboard, mud or
+// drivetrain contract's entire deadline before that contract begins.
+for (const id of ['mx450', 'mx250'])
+  test(`Motocross ${id}: production high/mid/far geometry and LOD budgets`, async ({ review }) => {
+    const { capture, attach } = review;
     const triangles: number[] = [];
     for (const detail of ['high', 'mid', 'far'] as const) {
       const [result] = await capture({ id, detail });
@@ -80,18 +114,24 @@ test('Motocross reference R2: production bikes, reachable riding poses and rever
     }
     expect(triangles[0]).toBeGreaterThan(triangles[1]);
     expect(triangles[1]).toBeGreaterThan(triangles[2]);
-  }
-  for (const [name, view, sample] of [
-    ['standing-side', 'side', { standing: 1, body: 0.6 }],
-    ['braced-front', 'front', { standing: 1, body: -0.8, steer: 0.12 }],
-    ['inside-foot-dab', 'front', { dab: 1, lean: 0.55, steer: 0.12 }],
-    ['rear-components', 'rear', { standing: 0.45 }],
-    ['helmet-and-gear', 'helmet', {}],
-  ] as const) {
+  });
+
+for (const [name, view, sample] of [
+  ['standing-side', 'side', { standing: 1, body: 0.6 }],
+  ['braced-front', 'front', { standing: 1, body: -0.8, steer: 0.12 }],
+  ['inside-foot-dab', 'front', { dab: 1, lean: 0.55, steer: 0.12 }],
+  ['rear-components', 'rear', { standing: 0.45 }],
+  ['helmet-and-gear', 'helmet', {}],
+] as const)
+  test(`Motocross MX450 reachable pose: ${name}`, async ({ review }) => {
+    const { capture, attach } = review;
     const [result] = await capture({ id: 'mx450', detail: 'high', view, samples: [sample] });
     await attach(name, result);
-  }
-  for (const id of ['mx250', 'mx450']) {
+  });
+
+for (const id of ['mx250', 'mx450'])
+  test(`Motocross ${id}: production onboard visibility and contacts`, async ({ review }) => {
+    const { capture, attach } = review;
     const samples = await capture({
       id,
       detail: 'high',
@@ -121,7 +161,10 @@ test('Motocross reference R2: production bikes, reachable riding poses and rever
         expect(z).toBeLessThan(1);
       }
     }
-  }
+  });
+
+test('Motocross MX450: reversible mud on the same production instance', async ({ review }) => {
+  const { capture, attach } = review;
   const sequence = await capture({
     id: 'mx450',
     detail: 'high',
@@ -136,10 +179,14 @@ test('Motocross reference R2: production bikes, reachable riding poses and rever
   expect(sequence[0].hash).not.toBe(sequence[1].hash);
   expect(sequence[1].hash).toBe(sequence[2].hash);
   expect(sequence[0].hash).toBe(sequence[3].hash);
-  for (const [id, detail] of [
-    ['mx450', 'high'],
-    ['mx250', 'mid'],
-  ] as const) {
+});
+
+for (const [id, detail] of [
+  ['mx450', 'high'],
+  ['mx250', 'mid'],
+] as const)
+  test(`Motocross ${id} ${detail}: reversible drivetrain wheel phase`, async ({ review }) => {
+    const { capture, attach } = review;
     const drive = await capture({
       id,
       detail,
@@ -164,6 +211,4 @@ test('Motocross reference R2: production bikes, reachable riding poses and rever
     expect(drive[0].hash).not.toBe(drive[1].hash);
     expect(drive[1].hash).toBe(drive[2].hash);
     expect(drive[0].hash).toBe(drive[3].hash);
-  }
-  expect(errors).toEqual([]);
-});
+  });

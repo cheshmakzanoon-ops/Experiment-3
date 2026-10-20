@@ -1,0 +1,146 @@
+{
+  "schemaVersion": 1,
+  "title": "Failed final motocross application journey",
+  "sourceFingerprint": "3ab53fd367f375c3ed08769e38f4871b13cc295cf8aaf2ee46b1e4c7ef133037",
+  "status": "failed",
+  "test": {
+    "repositoryPath": "e2e/45-motocross-gameplay.spec.ts",
+    "title": "real motocross player entry, eight-rider gate, riding, cameras, pause and venue switch",
+    "failureLine": 82,
+    "selector": "#raceBriefing",
+    "assertion": "toBeVisible",
+    "timeoutMs": 300000,
+    "received": "element(s) not found"
+  },
+  "environment": {
+    "browser": "Chromium",
+    "rendering": "software GPU",
+    "qualityPreset": "low",
+    "viewport": {
+      "width": 1280,
+      "height": 800
+    },
+    "operatingSystem": "Linux"
+  },
+  "observed": {
+    "actualMenu": {
+      "venue": "valley-ridge-mx",
+      "machine": "mx450",
+      "rideMode": "Race the pack",
+      "image": "actual-menu.jpg",
+      "description": "Actual application menu captured before entering the circuit; not a riding screenshot."
+    },
+    "lastRecordedFrame": {
+      "progressPercent": 90,
+      "stage": "Setting up cameras",
+      "image": "last-recorded-loading-frame.jpg",
+      "description": "Last available trace screencast frame. This precedes the later failure DOM snapshot."
+    },
+    "failureDomSnapshot": {
+      "progressPercent": 90,
+      "stage": "Readying the pit crew",
+      "course": "Valley Ridge Motocross Park — National",
+      "session": "3 laps; 8 riders; Dry",
+      "file": "error-context.md"
+    },
+    "raceBriefingReached": false,
+    "completedRideVerified": false,
+    "stadiumVenueSwitchVerified": false
+  },
+  "notVerified": [
+    "Race gate and player riding in the full application",
+    "In-race camera changes and pause/resume",
+    "Switching into and riding Arena Nord SX",
+    "Hardware-GPU performance or full-application high-quality performance"
+  ],
+  "trace": {
+    "originalArchiveName": "trace.zip",
+    "originalBytes": 29181411,
+    "originalSha256": "d6a3554b3deb5ec3484ae82c4614f8ae3a8f21beb1fa5c9d38fccf3eb6e4e19e",
+    "archiveBundled": false,
+    "omissionReason": "The 29 MB original trace is represented by this compact receipt and selected original screenshots.",
+    "screencastFrames": 49,
+    "consoleEventCounts": {
+      "warning": 1
+    },
+    "consoleErrors": [],
+    "pageErrors": [],
+    "consoleWarnings": [
+      {
+        "text": "THREE.WebGLRenderer: KHR_parallel_shader_compile extension not supported.",
+        "traceEntry": "0-trace.trace"
+      }
+    ],
+    "errorClassification": "No page-error or console-error events were found in the trace. Retried expect.poll mismatches and the final Playwright assertion failure are test-runner events, not application errors."
+  },
+  "artifacts": [
+    {
+      "file": "actual-menu.jpg",
+      "role": "actual menu before circuit entry",
+      "dimensions": [
+        1280,
+        800
+      ],
+      "sha256": "e7f1d3af33aa3f0136a65ff17318415712c89b132d364bb31f9e9fb7e500769b",
+      "originalName": "valley-ridge-mx-actual-menu.png",
+      "originalPngSha256": "90784afbf015c8e708298983d745d9d5a69c00ec056b39602f5974ff2f5e5a86",
+      "originalBytes": 531738,
+      "conversion": "JPEG quality 92, same dimensions and framing; no added imagery"
+    },
+    {
+      "file": "last-recorded-loading-frame.jpg",
+      "role": "last trace screencast frame",
+      "dimensions": [
+        800,
+        500
+      ],
+      "sha256": "8948ba9133491265d87210f834996d98c67ab8bba743965043c978e865ac0b50",
+      "originalTraceEntry": "resources/page@973ac91f9f2674edae102b7bd1e27d32-1792462578700.jpeg",
+      "originalSha256": "8948ba9133491265d87210f834996d98c67ab8bba743965043c978e865ac0b50",
+      "originalBytes": 41616,
+      "traceViewport": [
+        1280,
+        800
+      ],
+      "traceTimestampMs": 497106.705,
+      "copyMethod": "Original encoded JPEG bytes copied unchanged; the encoded frame is smaller than the recorded viewport."
+    },
+    {
+      "file": "error-context.md",
+      "role": "failure DOM snapshot",
+      "sha256": "5abfb9ca366080f1a494eabef6975c0ae52f401815e9a8528caa606ce3e17f52",
+      "originalSha256": "5abfb9ca366080f1a494eabef6975c0ae52f401815e9a8528caa606ce3e17f52",
+      "copyMethod": "Exact copy"
+    },
+    {
+      "file": "run-log.txt",
+      "role": "combined browser-run log",
+      "sha256": "45d04abeef4cbecf7b7d9e0fd8df062f616b91fdea0582654eee7eaba2edbde7",
+      "originalName": "mx-final-bikes-gameplay.log",
+      "originalSha256": "cf57094f079bc97876ecfee55fbaf0b1aa77603bf881b7383c0dee100d008d29",
+      "normalization": [
+        "ANSI terminal control sequences removed",
+        "Absolute repository/artifact paths normalized to portable paths; omitted trace identified explicitly",
+        "Trailing spaces and trailing blank lines removed"
+      ]
+    }
+  ],
+  "sharedMemoryObservation": {
+    "measurementSource": "Implementation owner observed the shared cgroup during the stall and after the run exited.",
+    "duringStall": {
+      "memoryCurrentBytes": 8589828096,
+      "memoryMaxBytes": 8589934592,
+      "memoryEvents": {
+        "max": 506727,
+        "oom": 0,
+        "oom_kill": 0
+      }
+    },
+    "afterExit": {
+      "memoryCurrentBytes": 6780727296,
+      "ownBrowserProcessesAlive": 0
+    },
+    "scope": "Shared cgroup containing other work; memory event counters are cumulative, not a measured per-test delta.",
+    "interpretation": "Shared memory pressure was observed near the cgroup limit. These observations do not establish that pressure was the sole cause of the loading failure; no application-specific OOM cause was established."
+  }
+}

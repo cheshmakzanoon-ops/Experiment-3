@@ -2,7 +2,7 @@ import * as T from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { sampleProfile } from '../profile-sampling.ts';
 import type { RiderDetail } from '../rider.ts';
-import { mouldedPanel } from './motocross-detail.ts';
+export { addMotocrossBoot, addMotocrossGlove } from './motocross-rider-equipment.ts';
 
 function part(parent: T.Object3D, g: T.BufferGeometry, m: T.Material, x = 0, y = 0, z = 0) {
   const mesh = new T.Mesh(g, m);
@@ -46,13 +46,16 @@ function garmentSections(kind: MotocrossGarment, upper: number, lower: number): 
   const arm = kind === 'sleeve';
   const proximal: readonly ClothSection[] = arm
     ? [
-        [-0.14, 0, 0.027, 0.028, 0.032],
-        [-0.035, -0.003, 0.049, 0.047, 0.055],
-        [0.09, -0.004, 0.06, 0.054, 0.066],
-        [0.29, -0.004, 0.059, 0.052, 0.064],
-        [0.54, -0.003, 0.052, 0.047, 0.057],
-        [0.78, -0.001, 0.047, 0.043, 0.05],
-        [1, 0, 0.046, 0.043, 0.048],
+        // The buried armhole opens into a broad deltoid and underarm span.
+        // 004/020 show that shoulder volume tapering into the elbow, rather
+        // than a capped cylinder perched on the edge of the jersey.
+        [-0.3, 0, 0.042, 0.046, 0.044],
+        [-0.12, -0.003, 0.073, 0.078, 0.067],
+        [0.065, -0.003, 0.08, 0.084, 0.071],
+        [0.24, -0.004, 0.078, 0.075, 0.066],
+        [0.46, -0.004, 0.063, 0.06, 0.057],
+        [0.7, -0.002, 0.051, 0.047, 0.05],
+        [1, 0, 0.045, 0.042, 0.047],
       ]
     : [
         [-0.12, 0, 0.042, 0.043, 0.047],
@@ -98,6 +101,7 @@ export function motocrossGarmentGeometry(
   detail: RiderDetail,
   upper = 0.29,
   lower = 0.28,
+  shoulderAttached = false,
 ) {
   const sections = garmentSections(kind, upper, lower),
     ys = sections.map((section) => section[0]),
@@ -128,9 +132,13 @@ export function motocrossGarmentGeometry(
     positions.push(x, y, z);
     uv.push(u, v);
     if (articulated) {
-      const weight = T.MathUtils.smoothstep(y, upper - transition, upper + transition);
-      skinIndices.push(0, 1, 0, 0);
-      skinWeights.push(1 - weight, weight, 0, 0);
+      const weight = T.MathUtils.smoothstep(y, upper - transition, upper + transition),
+        shoulder =
+          shoulderAttached && kind === 'sleeve'
+            ? 1 - T.MathUtils.smoothstep(y, -upper * 0.2, upper * 0.22)
+            : 0;
+      skinIndices.push(0, 1, shoulderAttached ? 2 : 0, 0);
+      skinWeights.push((1 - weight) * (1 - shoulder), weight, (1 - weight) * shoulder, 0);
     }
   };
   for (let row = 0; row <= rows; row++) {
@@ -222,9 +230,10 @@ export function motocrossGarmentGeometry(
   return geometry;
 }
 
-/** Two tiny render bones inherit the already solved IK transforms. The skin
- * spans the elbow/knee instead of intersecting two capped rigid meshes. This
- * adds no simulation state, pose history, per-frame buffers or CPU cloth pass. */
+/** Tiny render bones inherit the already solved IK transforms. A sleeve can
+ * also retain its buried armhole on the torso as the elbow lifts, so its root
+ * cannot rotate out of the jersey. This adds no simulation state, pose history,
+ * per-frame buffers or CPU cloth pass. */
 export function addMotocrossGarment(
   parent: T.Group,
   proximal: T.Group,
@@ -234,15 +243,21 @@ export function addMotocrossGarment(
   kind: 'sleeve' | 'pants',
   detail: RiderDetail,
   material: T.Material,
+  shoulder?: T.Bone,
 ) {
   const bones = [new T.Bone(), new T.Bone()];
   proximal.add(bones[0]);
   distal.add(bones[1]);
-  const skeleton = new T.Skeleton(bones, [
-    new T.Matrix4(),
-    new T.Matrix4().makeTranslation(0, -upper, 0),
-  ]);
-  const mesh = new T.SkinnedMesh(motocrossGarmentGeometry(kind, detail, upper, lower), material);
+  const inverses = [new T.Matrix4(), new T.Matrix4().makeTranslation(0, -upper, 0)];
+  if (shoulder && kind === 'sleeve') {
+    bones.push(shoulder);
+    inverses.push(new T.Matrix4());
+  }
+  const skeleton = new T.Skeleton(bones, inverses);
+  const mesh = new T.SkinnedMesh(
+    motocrossGarmentGeometry(kind, detail, upper, lower, bones.length === 3),
+    material,
+  );
   mesh.name = `Motocross continuous ${kind}`;
   mesh.bind(skeleton, new T.Matrix4());
   // An envelope of the entire local riding/recovery rig avoids stale automatic
@@ -259,13 +274,13 @@ export function addMotocrossGarment(
 // Columns are [height, half-width, forward extent, rearward extent], in metres.
 const MX_HELMET_PROFILE = [
   [-0.15, 0.046, 0.168, 0.056],
-  [-0.127, 0.078, 0.232, 0.083],
-  [-0.096, 0.107, 0.244, 0.11],
-  [-0.067, 0.12, 0.224, 0.13],
-  [-0.038, 0.132, 0.19, 0.14],
-  [0.005, 0.136, 0.179, 0.142],
-  [0.038, 0.134, 0.174, 0.138],
-  [0.065, 0.124, 0.162, 0.128],
+  [-0.127, 0.066, 0.232, 0.072],
+  [-0.096, 0.098, 0.244, 0.095],
+  [-0.067, 0.116, 0.224, 0.117],
+  [-0.038, 0.128, 0.19, 0.131],
+  [0.005, 0.134, 0.179, 0.134],
+  [0.038, 0.132, 0.174, 0.132],
+  [0.065, 0.123, 0.162, 0.126],
   [0.094, 0.103, 0.122, 0.105],
   [0.123, 0.074, 0.086, 0.077],
   [0.141, 0.037, 0.043, 0.039],
@@ -278,12 +293,19 @@ const helmetV = (y: number) =>
 
 function motocrossHelmetPoint(y: number, phi: number, offset = 0) {
   const front = Math.max(0, Math.sin(phi)),
-    jaw = 1 - T.MathUtils.smoothstep(y, -0.067, -0.025);
-  return new T.Vector3(
-    -Math.cos(phi) *
+    jaw = 1 - T.MathUtils.smoothstep(y, -0.067, -0.025),
+    x =
+      -Math.cos(phi) *
       (sampleProfile(MX_HEIGHTS, MX_RADII[0], y) + offset) *
-      (1 - 0.11 * jaw * front ** 4),
-    y + 0.018 * jaw * (1 - front),
+      (1 - 0.16 * jaw * front ** 4),
+    crown = T.MathUtils.smoothstep(y, 0.05, 0.105) * (1 - T.MathUtils.smoothstep(y, 0.135, 0.15)),
+    ridge = 0.005 * crown * Math.exp(-(((Math.abs(x) - 0.045) / 0.016) ** 2));
+  // 004/005 show a compact rear shell with a deep chin wing and long crown
+  // creases. Shape those into the shell; floating vent blocks do not change
+  // a spherical outline. The actual opening and goggle attachment stay fixed.
+  return new T.Vector3(
+    x,
+    y + 0.045 * jaw * (1 - front) + ridge,
     Math.sin(phi) *
       (front > 0 ? front ** (jaw * 0.7) : 1) *
       (sampleProfile(MX_HEIGHTS, MX_RADII[front > 0 ? 1 : 2], y) + offset),
@@ -421,12 +443,17 @@ export function motocrossHelmetShell(detail: RiderDetail = 'high') {
   return g;
 }
 
-function peakGeometry(detail: RiderDetail) {
-  const rows = detail === 'high' ? 9 : 5,
-    columns = detail === 'high' ? 14 : 8;
+export function motocrossHelmetPeak(detail: RiderDetail) {
+  const rows = detail === 'high' ? 12 : detail === 'mid' ? 8 : 5,
+    columns = detail === 'high' ? 20 : detail === 'mid' ? 12 : 8;
   const pos: number[] = [],
     uv: number[] = [],
     index: number[] = [];
+  const aperture = (row: number, column: number) => {
+    const v = (row + 0.5) / rows,
+      u = Math.abs(((column + 0.5) / columns) * 2 - 1);
+    return detail !== 'far' && v > 0.12 && v < 0.47 && u > 0.32 && u < 0.62;
+  };
   for (const under of [false, true]) {
     const base = pos.length / 3;
     for (let j = 0; j <= rows; j++)
@@ -434,10 +461,15 @@ function peakGeometry(detail: RiderDetail) {
         const v = j / rows,
           u = (i / columns) * 2 - 1;
         const width = 0.11 + Math.sin(v * Math.PI) * 0.023 - v * 0.009;
-        const y = 0.272 - v * v * 0.039 + 0.011 * (1 - u * u) - (under ? 0.0045 : 0);
+        const y =
+          0.272 -
+          v * v * 0.039 +
+          0.011 * (1 - u * u) +
+          0.007 * Math.exp(-((u / 0.2) ** 2)) * Math.sin(v * Math.PI) -
+          (under ? 0.0045 : 0);
         pos.push(u * width, y, 0.035 + v * (0.268 - 0.039 * Math.abs(u) ** 1.4));
         uv.push(i / columns, 1 - v);
-        if (j < rows && i < columns) {
+        if (j < rows && i < columns && !aperture(j, i)) {
           const a = base + j * (columns + 1) + i,
             b = a + columns + 1;
           if (under) index.push(a, a + 1, b, a + 1, b + 1, b);
@@ -445,27 +477,59 @@ function peakGeometry(detail: RiderDetail) {
         }
       }
   }
-  // Close the front and side lips so the peak remains a thin moulding in
-  // backlit and underside views, rather than a pair of unrelated sheets.
+  // Return every perimeter edge, including the two real vent apertures.
+  // Cutout walls retain the 4.5 mm moulded thickness in a backlit view.
   const stride = (rows + 1) * (columns + 1);
-  for (let i = 0; i < columns; i++) {
-    const a = rows * (columns + 1) + i,
-      b = a + stride;
-    index.push(a, a + 1, b, a + 1, b + 1, b);
-  }
+  const rim = (a: number, b: number) => index.push(a, a + stride, b, b, a + stride, b + stride);
   for (let row = 0; row < rows; row++)
-    for (const column of [0, columns]) {
+    for (let column = 0; column < columns; column++) {
+      if (aperture(row, column)) continue;
       const a = row * (columns + 1) + column,
         b = a + columns + 1;
-      if (column === 0) index.push(a, a + stride, b, b, a + stride, b + stride);
-      else index.push(a, b, a + stride, b, b + stride, a + stride);
+      if (row === 0 || aperture(row - 1, column)) rim(a + 1, a);
+      if (row === rows - 1 || aperture(row + 1, column)) rim(b, b + 1);
+      if (column === 0 || aperture(row, column - 1)) rim(a, b);
+      if (column === columns - 1 || aperture(row, column + 1)) rim(b + 1, a + 1);
     }
   const g = new T.BufferGeometry();
   g.setAttribute('position', new T.Float32BufferAttribute(pos, 3));
   g.setAttribute('uv', new T.Float32BufferAttribute(uv, 2));
   g.setIndex(index);
   g.computeVertexNormals();
+  g.computeBoundingBox();
+  g.computeBoundingSphere();
   return g;
+}
+
+/** Thin lateral wings carry the peak down to its actual shell pivots. */
+function peakSideMount(side: number) {
+  const outline = [
+      [0.112, 0.274, 0.047],
+      [0.125, 0.27, 0.14],
+      [0.111, 0.224, 0.106],
+      [0.107, 0.225, 0.067],
+    ],
+    positions: number[] = [],
+    uv: number[] = [],
+    indices = [0, 1, 2, 0, 2, 3, 4, 6, 5, 4, 7, 6];
+  for (const inside of [false, true])
+    for (const [x, y, z] of outline) {
+      positions.push(side * (x - (inside ? 0.003 : 0)), y, z);
+      uv.push((z - 0.047) / 0.093, (y - 0.224) / 0.05);
+    }
+  for (let i = 0; i < 4; i++) {
+    const next = (i + 1) % 4;
+    indices.push(i, i + 4, next, next, i + 4, next + 4);
+  }
+  if (side < 0)
+    for (let i = 0; i < indices.length; i += 3)
+      [indices[i + 1], indices[i + 2]] = [indices[i + 2], indices[i + 1]];
+  const geometry = new T.BufferGeometry();
+  geometry.setAttribute('position', new T.Float32BufferAttribute(positions, 3));
+  geometry.setAttribute('uv', new T.Float32BufferAttribute(uv, 2));
+  geometry.setIndex(indices);
+  geometry.computeVertexNormals();
+  return geometry;
 }
 
 function gogglePoint(u: number, v: number) {
@@ -490,7 +554,7 @@ export function addMotocrossHelmet(
   trim: T.Material,
   accent: T.Material,
 ) {
-  part(head, peakGeometry(detail), shell).name = 'Motocross swept helmet peak';
+  part(head, motocrossHelmetPeak(detail), shell).name = 'Motocross swept vented helmet peak';
   part(
     head,
     motocrossHelmetPatch(-0.038, 0.065, Math.PI / 8, (Math.PI * 7) / 8, -0.013),
@@ -595,15 +659,20 @@ export function addMotocrossHelmet(
     );
     outrigger.name = 'Motocross goggle strap outrigger';
     outrigger.rotation.y = side * -0.27;
+    part(head, peakSideMount(side), trim).name = 'Motocross peak side support';
+    const pivot = motocrossHelmetPoint(0.073, side > 0 ? Math.PI - 0.455 : 0.455).add(
+      new T.Vector3(side * 0.003, 0.15, 0.02),
+    );
     const fastener = part(
       head,
       new T.CylinderGeometry(0.007, 0.007, 0.006, 8),
       accent,
-      side * 0.12,
-      0.255,
-      0.065,
+      pivot.x,
+      pivot.y,
+      pivot.z,
     );
     fastener.rotation.z = Math.PI / 2;
+    fastener.name = 'Motocross peak pivot on shell';
     const phi = side > 0 ? 0.64 : Math.PI - 0.96;
     part(
       head,
@@ -622,103 +691,4 @@ export function addMotocrossHelmet(
       0.02,
     );
   }
-}
-
-/** Off-road boots have a distinct calf, shin protector, ankle hinge, toe box,
- * rubber sole and four buckles. Coordinates match the existing ankle group. */
-export function addMotocrossBoot(
-  foot: T.Group,
-  detail: RiderDetail,
-  side: number,
-  boot: T.Material,
-  flex: T.Material,
-  metal: T.Material,
-) {
-  const sides = detail === 'high' ? 16 : detail === 'mid' ? 10 : 6;
-  const shaft = new T.LatheGeometry(
-    [
-      new T.Vector2(0.045, -0.325),
-      new T.Vector2(0.057, -0.3),
-      new T.Vector2(0.061, -0.23),
-      new T.Vector2(0.054, -0.14),
-      new T.Vector2(0.043, -0.052),
-      new T.Vector2(0.044, -0.004),
-    ],
-    sides,
-  );
-  part(foot, shaft, boot).scale.set(0.93, 1, 0.9);
-  part(
-    foot,
-    new RoundedBoxGeometry(0.089, 0.074, 0.234, detail === 'far' ? 1 : 3, 0.026),
-    boot,
-    0,
-    -0.016,
-    0.045,
-  );
-  part(foot, new RoundedBoxGeometry(0.096, 0.017, 0.251, 2, 0.007), flex, 0, 0.025, 0.052);
-  if (detail === 'far') return;
-  const protector = part(
-    foot,
-    mouldedPanel(
-      [
-        [-0.035, 0.1],
-        [-0.043, 0.062],
-        [-0.031, -0.084],
-        [0.03, -0.084],
-        [0.043, 0.062],
-        [0.035, 0.1],
-      ],
-      0.007,
-      0.003,
-    ),
-    boot,
-    0,
-    -0.204,
-    0.052,
-  );
-  protector.name = 'Motocross moulded shin protector';
-  const inset = part(
-    foot,
-    new RoundedBoxGeometry(0.044, 0.09, 0.008, 2, 0.006),
-    flex,
-    0,
-    -0.208,
-    0.059,
-  );
-  inset.rotation.z = side * 0.13;
-  for (let i = 0; i < 4; i++) {
-    const y = -0.061 - i * 0.064;
-    const strap = part(foot, new T.TorusGeometry(0.052, 0.004, 5, sides), flex, 0, y, 0);
-    strap.rotation.x = Math.PI / 2;
-    strap.scale.set(1, 0.91, 1);
-    const buckle = part(
-      foot,
-      new RoundedBoxGeometry(0.019, 0.014, 0.03, 2, 0.004),
-      metal,
-      side * 0.052,
-      y,
-      0.018,
-    );
-    buckle.name = 'Motocross boot buckle';
-  }
-  const hinge = part(
-    foot,
-    new T.CylinderGeometry(0.018, 0.018, 0.008, 12),
-    flex,
-    side * 0.046,
-    -0.059,
-    -0.004,
-  );
-  hinge.rotation.z = Math.PI / 2;
-  part(foot, new RoundedBoxGeometry(0.073, 0.02, 0.055, 2, 0.005), flex, 0, -0.054, 0.07);
-  if (detail === 'high')
-    for (let rib = 0; rib < 4; rib++)
-      part(
-        foot,
-        new RoundedBoxGeometry(0.068, 0.005, 0.01, 2, 0.002),
-        boot,
-        0,
-        -0.066,
-        0.033 + rib * 0.021,
-      );
 }

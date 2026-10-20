@@ -1,6 +1,6 @@
 import * as T from 'three';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
-import { Rider, type RiderPose } from '../src/rendering/rider.ts';
+import { Rider, RIDER, type RiderPose } from '../src/rendering/rider.ts';
 import {
   motocrossGarmentGeometry,
   type MotocrossGarment,
@@ -115,8 +115,8 @@ describe('motocross continuous textile skin', () => {
           positions = geometry.getAttribute('position'),
           uv = geometry.getAttribute('uv'),
           weights = geometry.getAttribute('skinWeight'),
-          inverse = skin.matrixWorld.clone().invert(),
-          upper = skin.skeleton.boneInverses[1].elements[13] * -1;
+          indices = geometry.getAttribute('skinIndex'),
+          inverse = skin.matrixWorld.clone().invert();
         let blended = 0,
           previousWrap = -1,
           maxWeightError = 0,
@@ -126,20 +126,24 @@ describe('motocross continuous textile skin', () => {
           inBox = true;
         for (let i = 0; i < positions.count; i++) {
           const w0 = weights.getX(i),
-            w1 = weights.getY(i);
-          maxWeightError = Math.max(maxWeightError, Math.abs(w0 + w1 - 1));
+            w1 = weights.getY(i),
+            w2 = weights.getZ(i),
+            w3 = weights.getW(i);
+          maxWeightError = Math.max(maxWeightError, Math.abs(w0 + w1 + w2 + w3 - 1));
           if (w0 > 0 && w1 > 0) blended++;
           skin.getVertexPosition(i, point);
           inSphere &&= skin.boundingSphere!.containsPoint(point);
           inBox &&= skin.boundingBox!.containsPoint(point);
-          if (w0 === 1 || w1 === 1) {
-            expected.fromBufferAttribute(positions, i);
-            if (w1 === 1) expected.y -= upper;
-            expected
-              .applyMatrix4(skin.skeleton.bones[w1 === 1 ? 1 : 0].matrixWorld)
-              .applyMatrix4(inverse);
-            maxCuffError = Math.max(maxCuffError, point.distanceTo(expected));
-          }
+          for (let component = 0; component < 4; component++)
+            if (weights.getComponent(i, component) === 1) {
+              const bone = indices.getComponent(i, component);
+              expected
+                .fromBufferAttribute(positions, i)
+                .applyMatrix4(skin.skeleton.boneInverses[bone])
+                .applyMatrix4(skin.skeleton.bones[bone].matrixWorld)
+                .applyMatrix4(inverse);
+              maxCuffError = Math.max(maxCuffError, point.distanceTo(expected));
+            }
           if (uv.getX(i) === 0) previousWrap = i;
           if (uv.getX(i) === 1 && previousWrap >= 0) {
             skin.getVertexPosition(previousWrap, seam);
@@ -168,6 +172,80 @@ describe('motocross continuous textile skin', () => {
       rider.separated(1, 0, 0.53);
       check();
     } finally {
+      rider.dispose();
+    }
+  });
+
+  it('buries both sleeve roots inside the real jersey surface across raised-elbow and dab poses', () => {
+    const rider = new Rider(colours, 'high', 'motocross'),
+      skins = garments(rider).filter((skin) => skin.name.endsWith('sleeve')),
+      torso = rider.root.getObjectByName('Rider torso')!,
+      jerseyGeometry = motocrossGarmentGeometry('jersey', 'high'),
+      material = new T.MeshBasicMaterial({ side: T.DoubleSide }),
+      jersey = new T.Mesh(jerseyGeometry, material),
+      ray = new T.Raycaster(),
+      point = new T.Vector3(),
+      centre = new T.Vector3(),
+      direction = new T.Vector3(0, 0, 1),
+      ring: T.Vector3[] = [];
+    // Use the actual jersey loft as a volume test, independently of skin
+    // indices or attachment names. Both ray directions must exit its surface:
+    // a cap hovering beside the shoulder cannot satisfy this contact test.
+    rider.root.position.set(407, 3.2, -180);
+    rider.root.rotation.set(0.22, 1.14, -0.38);
+    try {
+      for (const pose of [
+        { ...basePose, standing: 1, body: 0.6 },
+        { ...basePose, standing: 1, body: -0.8, steer: 0.12 },
+        { ...basePose, standing: 0, dab: 1, lean: 0.55, steer: 0.12 },
+        { ...basePose, standing: 0, dab: -1, lean: -0.55, steer: -0.12 },
+      ]) {
+        rider.ride(pose);
+        rider.root.updateMatrixWorld(true);
+        const inverse = torso.matrixWorld.clone().invert();
+        for (const skin of skins) {
+          const positions = skin.geometry.getAttribute('position'),
+            uv = skin.geometry.getAttribute('uv'),
+            rootY = positions.getY(0),
+            toTorso = inverse.clone().multiply(skin.matrixWorld);
+          let buried = 0,
+            minRootDepth = Infinity,
+            minShoulderRadius = Infinity;
+          for (let i = 0; i < positions.count; i++) {
+            if (Math.abs(positions.getY(i) - rootY) < 1e-7) {
+              skin.getVertexPosition(i, point).applyMatrix4(toTorso);
+              for (const sign of [-1, 1]) {
+                direction.set(0, 0, sign);
+                ray.set(point, direction);
+                const hits = ray.intersectObject(jersey, false);
+                expect(hits.length, `${skin.name}: sleeve root outside torso`).toBeGreaterThan(0);
+                minRootDepth = Math.min(minRootDepth, hits[0].distance);
+              }
+              buried++;
+            }
+            // Inspect deformed shoulder rings as well: attaching the cap must
+            // not trade a detached root for a narrow skinning crease outside it.
+            const y = positions.getY(i);
+            if (y >= 0 && y <= RIDER.upperArm * 0.4) {
+              if (uv.getX(i) === 0) ring.length = 0;
+              ring.push(skin.getVertexPosition(i, new T.Vector3()));
+              if (uv.getX(i) === 1) {
+                centre.set(0, 0, 0);
+                for (let j = 0; j < ring.length - 1; j++) centre.add(ring[j]);
+                centre.multiplyScalar(1 / (ring.length - 1));
+                for (const vertex of ring)
+                  minShoulderRadius = Math.min(minShoulderRadius, vertex.distanceTo(centre));
+              }
+            }
+          }
+          expect(buried).toBeGreaterThan(28);
+          expect(minRootDepth).toBeGreaterThan(0.008);
+          expect(minShoulderRadius).toBeGreaterThan(0.038);
+        }
+      }
+    } finally {
+      jerseyGeometry.dispose();
+      material.dispose();
       rider.dispose();
     }
   });

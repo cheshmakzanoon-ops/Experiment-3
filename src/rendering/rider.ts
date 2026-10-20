@@ -29,6 +29,7 @@ import { motocrossFabricMaps, motocrossGraphics } from './offroad/motocross-deta
 import {
   addMotocrossBoot,
   addMotocrossGarment,
+  addMotocrossGlove,
   addMotocrossHelmet,
   motocrossGarmentGeometry,
   motocrossHelmetShell,
@@ -365,6 +366,7 @@ export class Rider {
   private readonly feet: T.Group[] = [];
   private readonly bootCuffs: (T.Object3D | undefined)[] = [];
   private readonly motocrossGarments: T.SkinnedMesh[] = [];
+  private readonly motocrossShoulders: T.Bone[] = [];
   private readonly gpGarments: GpRiderGarment[] = [];
   private readonly exteriorForearms = [0, 1].map(() => ({
     position: new T.Vector3(),
@@ -512,7 +514,17 @@ export class Rider {
           name: 'Motocross equipment trim',
         })
       : null;
+    const mxGloveBack = mx
+      ? new T.MeshPhysicalMaterial({
+          color: colours.primary,
+          roughness: 0.83,
+          sheen: 0.25,
+          sheenRoughness: 0.8,
+          name: 'Motocross flexible glove textile',
+        })
+      : null;
     if (mxBoot && mxTrim) this.materials.push(mxBoot, mxTrim);
+    if (mxGloveBack) this.materials.push(mxGloveBack);
     if (mx) {
       // A coated polycarbonate goggle lens has a dark eye cavity behind it.
       // The old pale, mostly metallic visor turned into an opaque cyan slab.
@@ -547,6 +559,13 @@ export class Rider {
       torsoLeather.map = motocrossGraphics(colours, 'jersey', raceNumber);
       helmet.map = motocrossGraphics(colours, 'helmet', raceNumber);
       helmet.color.setHex(0xffffff);
+      Object.assign(mxGloveBack!, weave);
+      mxGloveBack!.normalScale.set(0.18, 0.18);
+      Object.assign(glove, bikeSurfaceMaps('seat'));
+      glove.normalScale.set(0.16, 0.16);
+      glove.roughness = 0.78;
+      Object.assign(mxBoot!, bikeSurfaceMaps('paint'));
+      mxBoot!.normalScale.set(0.15, 0.15);
     }
     if (!mx && detail !== 'far') {
       leather.map = riderPanelTexture(colours, false, gpSuit);
@@ -566,6 +585,7 @@ export class Rider {
       tagWeatherSurface(m, mx ? 'fabric' : 'leather', 0.85);
     tagWeatherSurface(flex, 'fabric', 0.65);
     tagWeatherSurface(glove, 'leather', 0.8);
+    if (mxGloveBack) tagWeatherSurface(mxGloveBack, 'fabric', 0.85);
     tagWeatherSurface(helmet, 'paint');
     tagWeatherSurface(armour, 'metal', 0.7);
     tagWeatherSurface(slider, 'paint', 0.6);
@@ -834,6 +854,11 @@ export class Rider {
             [this.upperArms[i], this.forearms[i], 'sleeve'],
             [this.thighs[i], this.shins[i], 'pants'],
           ] as const) {
+            const shoulder = kind === 'sleeve' ? new T.Bone() : undefined;
+            if (shoulder) {
+              shoulder.name = `Motocross ${label} jersey armhole`;
+              this.motocrossShoulders.push(shoulder);
+            }
             const garment = addMotocrossGarment(
               this.root,
               upper.group,
@@ -843,6 +868,7 @@ export class Rider {
               kind,
               detail,
               leather,
+              shoulder,
             );
             garment.name = `Motocross continuous ${label} ${kind}`;
             this.motocrossGarments.push(garment);
@@ -997,12 +1023,14 @@ export class Rider {
       const hand = new T.Group();
       if (mx) hand.name = `Motocross ${i === 0 ? 'left' : 'right'} hand`;
       else if (gp) hand.name = `GP ${i === 0 ? 'left' : 'right'} hand`;
-      part(
-        hand,
-        new RoundedBoxGeometry(0.069, 0.047, 0.079, detail === 'far' ? 1 : 3, 0.017),
-        glove,
-      ).position.set(0, 0.0, 0.016);
-      if (detail !== 'far') {
+      if (mx) addMotocrossGlove(hand, detail, side, glove, mxGloveBack!, flex);
+      else
+        part(
+          hand,
+          new RoundedBoxGeometry(0.069, 0.047, 0.079, detail === 'far' ? 1 : 3, 0.017),
+          glove,
+        ).position.set(0, 0.0, 0.016);
+      if (detail !== 'far' && !mx) {
         for (let finger = 0; finger < 4; finger++) {
           const x = -0.025 + finger * 0.0165;
           const points = [
@@ -1017,10 +1045,7 @@ export class Rider {
         thumb.position.set(side * 0.036, -0.01, 0.007);
         thumb.rotation.set(0.85, 0, side * 0.4);
       }
-      if (detail === 'high' && mx) {
-        const knuckle = part(hand, new RoundedBoxGeometry(0.062, 0.013, 0.027, 3, 0.006), armour);
-        knuckle.position.set(0, 0.025, 0.025);
-      } else if (detail === 'high') {
+      if (detail === 'high' && !mx) {
         const knuckleBacking = part(
           hand,
           new RoundedBoxGeometry(0.062, 0.008, 0.027, 2, 0.006),
@@ -1049,6 +1074,7 @@ export class Rider {
       this.feet.push(foot);
       this.bootCuffs.push(foot.getObjectByName('GP ankle-hinged boot cuff'));
     }
+    this.attachMotocrossShoulders(false);
     for (const group of [
       this.torso,
       this.head,
@@ -1072,6 +1098,8 @@ export class Rider {
       const previous = this.motocrossFirstPerson;
       this.motocrossFirstPerson = active && motocross;
       this.torso.visible = !this.motocrossFirstPerson;
+      if (previous !== this.motocrossFirstPerson)
+        this.attachMotocrossShoulders(this.motocrossFirstPerson);
       for (const arm of this.upperArms) arm.group.visible = true;
       if (this.motocrossFirstPerson && this.riding) this.onboardArms();
       else if (previous)
@@ -1081,6 +1109,25 @@ export class Rider {
           this.upperArms[i].group.position.copy(this.exteriorUpperArms[i].position);
           this.upperArms[i].group.quaternion.copy(this.exteriorUpperArms[i].quaternion);
         }
+    }
+  }
+  private attachMotocrossShoulders(onboard: boolean) {
+    for (let i = 0; i < this.motocrossShoulders.length; i++) {
+      const shoulder = this.motocrossShoulders[i],
+        side = i === 0 ? 1 : -1;
+      if (onboard) {
+        // The whole armhole follows the lowered first-person presentation;
+        // a hidden torso must not pull this broader sleeve through the lens.
+        this.upperArms[i].group.add(shoulder);
+        shoulder.position.set(0, 0, 0);
+        shoulder.quaternion.identity();
+      } else {
+        this.torso.add(shoulder);
+        shoulder.position.set(side * (RIDER.shoulderWidth - 0.025), RIDER.spine - 0.045, 0.008);
+        // Garment +Y exits the side of the jersey, +Z faces the upper shoulder.
+        // The root sits inside its armhole; the rest blends into the solved arm.
+        shoulder.rotation.set(0, (-side * Math.PI) / 2, (-side * Math.PI) / 2, 'ZYX');
+      }
     }
   }
   private captureExteriorArms() {

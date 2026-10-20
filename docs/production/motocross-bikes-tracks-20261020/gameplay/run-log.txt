@@ -1,0 +1,76 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+[WebServer] npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+[WebServer] (node:196400) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Observed swiftshader test backend: ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)
+
+Running 13 tests using 1 worker
+
+(node:196540) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+(node:196540) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1/13] e2e/42-motocross-bike.spec.ts:87:38 › Motocross mx450: production high/mid/far geometry and LOD budgets
+[2/13] e2e/42-motocross-bike.spec.ts:87:38 › Motocross mx250: production high/mid/far geometry and LOD budgets
+[3/13] e2e/42-motocross-bike.spec.ts:120:41 › Motocross MX450 reachable pose: standing-side
+[4/13] e2e/42-motocross-bike.spec.ts:120:41 › Motocross MX450 reachable pose: braced-front
+[5/13] e2e/42-motocross-bike.spec.ts:120:41 › Motocross MX450 reachable pose: inside-foot-dab
+[6/13] e2e/42-motocross-bike.spec.ts:120:41 › Motocross MX450 reachable pose: rear-components
+[7/13] e2e/42-motocross-bike.spec.ts:120:41 › Motocross MX450 reachable pose: helmet-and-gear
+[8/13] e2e/42-motocross-bike.spec.ts:135:38 › Motocross mx250: production onboard visibility and contacts
+[9/13] e2e/42-motocross-bike.spec.ts:135:38 › Motocross mx450: production onboard visibility and contacts
+[10/13] e2e/42-motocross-bike.spec.ts:181:1 › Motocross MX450: reversible mud on the same production instance
+[11/13] e2e/42-motocross-bike.spec.ts:209:67 › Motocross mx450 high: reversible drivetrain wheel phase
+[12/13] e2e/42-motocross-bike.spec.ts:209:67 › Motocross mx250 mid: reversible drivetrain wheel phase
+[13/13] e2e/45-motocross-gameplay.spec.ts:10:1 › real motocross player entry, eight-rider gate, riding, cameras, pause and venue switch
+e2e/45-motocross-gameplay.spec.ts:10:1 › real motocross player entry, eight-rider gate, riding, cameras, pause and venue switch
+[MX journey] Selected low through the production settings form
+
+[MX journey] Selecting valley-ridge-mx and mx450
+
+[MX journey] Captured valley-ridge-mx-actual-menu.png
+
+[MX journey] Preparing the complete valley-ridge-mx session
+
+  1) e2e/45-motocross-gameplay.spec.ts:10:1 › real motocross player entry, eight-rider gate, riding, cameras, pause and venue switch
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator:  locator('#raceBriefing')
+    Expected: visible
+    Received: <element(s) not found>
+    Timeout:  300000ms
+
+    Call log:
+      - Expect "toBeVisible" with timeout 300000ms
+      - waiting for locator('#raceBriefing')
+
+
+      80 |     // those production checks intact while allowing software compilation its
+      81 |     // own bounded readiness interval; this is not a load-time benchmark.
+    > 82 |     await expect(page.locator('#raceBriefing')).toBeVisible({ timeout: 300000 });
+         |                                                 ^
+      83 |     console.info(`[MX journey] ${circuit} is prepared at the held eight-rider gate`);
+      84 |     const initialized = await diag();
+      85 |     expect(initialized.renderer?.presentationPurpose).toBe('circuit');
+        at e2e/45-motocross-gameplay.spec.ts:82:49
+
+    attachment #1: valley-ridge-mx-actual-menu.png (image/png) ─────────────────────────────────────
+    ../../../..attachments/valley-ridge-mx-actual-menu-png-6faeaa03630c9a73e7b72ded97777ead51a0849d.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../../..error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../../../..trace.zip (not bundled; see failure-receipt.json)
+    Usage:
+
+        npx playwright show-trace ../../../..trace.zip (not bundled; see failure-receipt.json)
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────

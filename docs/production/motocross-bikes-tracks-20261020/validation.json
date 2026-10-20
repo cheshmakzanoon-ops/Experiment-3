@@ -1,0 +1,196 @@
+{
+  "schemaVersion": 1,
+  "title": "Motocross bikes, riders and tracks validation receipt",
+  "recordDate": "2026-10-20",
+  "overallStatus": "source and focused/component checks succeeded; full-application gameplay journey failed during loading",
+  "buildIdentity": {
+    "repositoryPath": "dist/BUILD_IDENTITY.json",
+    "fileSha256": "938a4c2a2847bd1820b105fb3af66785ef3368e5a87d0df129f65dc92fa7a55c",
+    "version": 1,
+    "commit": null,
+    "fingerprint": "3ab53fd367f375c3ed08769e38f4871b13cc295cf8aaf2ee46b1e4c7ef133037"
+  },
+  "sourceState": "Source frozen for these final receipts; no additional tests were run while writing this documentation.",
+  "finalSourceChecks": {
+    "evidenceBasis": "Final command outcomes supplied by the implementation owner",
+    "checks": [
+      {
+        "command": "tsc --noEmit",
+        "status": "passed"
+      },
+      {
+        "command": "vite build",
+        "status": "passed"
+      },
+      {
+        "command": "npm run lint",
+        "status": "passed"
+      },
+      {
+        "command": "npm run validate:content",
+        "status": "passed"
+      }
+    ]
+  },
+  "unitTests": {
+    "status": "passed across incremental runs",
+    "distinctTests": 111,
+    "distinctFiles": 13,
+    "oneCombinedFinalInvocation": false,
+    "evidenceBasis": "Incremental run outcomes supplied by the implementation owner; this is the deduplicated union, not a new single-suite execution.",
+    "runGroups": [
+      {
+        "group": "bike",
+        "tests": 66
+      },
+      {
+        "group": "rider",
+        "tests": 33
+      },
+      {
+        "group": "course",
+        "tests": 21
+      }
+    ],
+    "deduplication": {
+      "sharedFile": "tests/motocross-equipment-surface.test.ts",
+      "testsCountedInBothBikeAndRider": 9,
+      "calculation": "66 + 33 + 21 - 9 = 111"
+    },
+    "files": [
+      {
+        "repositoryPath": "tests/motocross-mechanics.test.ts",
+        "passedTests": 16
+      },
+      {
+        "repositoryPath": "tests/motocross-chain-drive.test.ts",
+        "passedTests": 15
+      },
+      {
+        "repositoryPath": "tests/motocross-mouldings.test.ts",
+        "passedTests": 10
+      },
+      {
+        "repositoryPath": "tests/motocross-equipment-surface.test.ts",
+        "passedTests": 9
+      },
+      {
+        "repositoryPath": "tests/motocross-castings.test.ts",
+        "passedTests": 16
+      },
+      {
+        "repositoryPath": "tests/motocross-rider-equipment.test.ts",
+        "passedTests": 10
+      },
+      {
+        "repositoryPath": "tests/motocross-garment.test.ts",
+        "passedTests": 6
+      },
+      {
+        "repositoryPath": "tests/motocross-body-pose.test.ts",
+        "passedTests": 5
+      },
+      {
+        "repositoryPath": "tests/motocross-cockpit-view.test.ts",
+        "passedTests": 3
+      },
+      {
+        "repositoryPath": "tests/motocross-course-landmarks.test.ts",
+        "passedTests": 5
+      },
+      {
+        "repositoryPath": "tests/motocross-course-sites.test.ts",
+        "passedTests": 3
+      },
+      {
+        "repositoryPath": "tests/motocross-environment.test.ts",
+        "passedTests": 9
+      },
+      {
+        "repositoryPath": "tests/motocross-venue-integration.test.ts",
+        "passedTests": 4
+      }
+    ]
+  },
+  "browserChecks": {
+    "bike42": {
+      "repositoryPath": "e2e/42-motocross-bike.spec.ts",
+      "status": "all 12 cases observed to advance without reported failures; final runner JSON unavailable",
+      "cases": 12,
+      "captureMetricsSaved": 29,
+      "allSavedCaptureGlErrorsZero": true,
+      "allSavedCaptureGeometryFinite": true,
+      "metrics": "bike/metrics.json",
+      "captureManifest": "bike/capture-manifest.json",
+      "runnerFinalJsonWritten": false,
+      "evidenceBasis": "Combined line log advanced through all 12 bike contracts to gameplay case 13; all 29 capture metrics exist. This receipt does not substitute a final Playwright JSON report.",
+      "runLog": "gameplay/run-log.txt"
+    },
+    "course53": {
+      "repositoryPath": "e2e/53-motocross-course-landmarks.spec.ts",
+      "status": "passed",
+      "passedCases": 1,
+      "capturesSaved": 5,
+      "allSavedCaptureGlErrorsZero": true,
+      "captureManifest": "course/capture-manifest.json",
+      "captureMetrics": [
+        "course/arena-nord-sx-jump-guide.json",
+        "course/valley-ridge-mx-barn.json",
+        "course/valley-ridge-mx-jump-guide.json",
+        "course/valley-ridge-mx-quarry.json",
+        "course/valley-ridge-mx-ridge-deck.json"
+      ],
+      "scope": "Controlled production OffroadScene rendering; outdoor substrate uses local sampled patches, not full CircuitScene scenery."
+    },
+    "gameplay45": {
+      "repositoryPath": "e2e/45-motocross-gameplay.spec.ts",
+      "status": "failed",
+      "failureLine": 82,
+      "failedSelector": "#raceBriefing",
+      "timeoutMs": 300000,
+      "venueAttempted": "valley-ridge-mx",
+      "qualityPreset": "low",
+      "renderer": "software GPU",
+      "finalDomLoadingStage": "Readying the pit crew",
+      "finalDomProgressPercent": 90,
+      "fullRideVerified": false,
+      "sxVenueSwitchVerified": false,
+      "failureReceipt": "gameplay/failure-receipt.json"
+    }
+  },
+  "modelTriangleCounts": {
+    "metric": "Expanded complete bike/rider model triangles, including instances; not frame-rate measurements",
+    "models": {
+      "mx250": {
+        "high": 122906,
+        "mid": 59692,
+        "far": 11452
+      },
+      "mx450": {
+        "high": 119806,
+        "mid": 58100,
+        "far": 11292
+      }
+    },
+    "highDetailCeiling": 130000
+  },
+  "landmarkGeometry": {
+    "draws": 12,
+    "triangles": 28976,
+    "budget": {
+      "draws": 16,
+      "triangles": 42000
+    },
+    "contactProbe": "geometry-contact-verification.json",
+    "scope": "Focused generated-mesh contact/envelope probe; no full-application riding inference."
+  },
+  "referenceAudit": "reference-audit.json",
+  "limitations": [
+    "The full-application gameplay test failed while loading before the race briefing. No completed MX ride, in-race controls journey or SX venue switch is verified by this run.",
+    "The bike/component captures demonstrate controlled production models and shader execution; they do not establish full-game frame rate or high-quality hardware-GPU performance.",
+    "The final combined browser runner did not write its final JSON report. Bike observations are supported by the line log and complete saved capture metrics.",
+    "Shared cgroup memory pressure was observed during the failed load; the failure receipt preserves the measurements without asserting sole causation.",
+    "The 111 unit tests are a deduplicated union of incremental passing runs across 13 files, not one final combined invocation.",
+    "Some close-up forms remain visibly procedural. No photographic parity or real-world physical calibration is established by the reference imagery."
+  ]
+}
