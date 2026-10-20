@@ -890,11 +890,12 @@ export class RacingRenderer {
       this.setCars(total);
       for (let i = 0; i < total; i++)
         this.cars[i].update(frame, frame, carBase(i), 1, 1 / 120, frame[H.TIME], false);
+      const gpGrid = gpGridForFrame(frame);
       // Construct the actual motorcycle materials before compileAsync. Building
       // them for the first time inside the chase draw put cold shader linking
       // and uploads on the first GPU fence instead of the compilation stage.
       // The same models, LOD policy, warmup views and completion gate remain.
-      if (gpGridForFrame(frame)) {
+      if (gpGrid) {
         progress('Building GP motorcycles and riders…');
         await yieldFrame();
         if (cancelled()) return false;
@@ -918,7 +919,13 @@ export class RacingRenderer {
       progress('Compiling circuit and vehicle materials…');
       await yieldFrame();
       if (cancelled()) return false;
-      await compileSceneTarget(this.renderer, this.scene, this.camera, this.composer.readBuffer);
+      await compileSceneTarget(
+        this.renderer,
+        this.scene,
+        this.camera,
+        this.composer.readBuffer,
+        gpGrid ? this.cars.map((car) => car.root) : undefined,
+      );
       if (cancelled()) return false;
       progress('Compiling shadow casters around the circuit…');
       await yieldFrame();
@@ -947,6 +954,7 @@ export class RacingRenderer {
             this.scene,
             this.camera,
             this.composer.readBuffer,
+            gpGrid ? this.cars.map((car) => car.root) : undefined,
           );
           // Shader linking alone does not finish GPU uploads or the warmup draw.
           // Keep the worker paused until its actual submission has completed.

@@ -578,7 +578,12 @@ export class Rider {
     this.materials.push(torsoLeather);
     if (!mx && detail !== 'far')
       for (const material of [leather, panel, torsoLeather]) {
-        if (gpSuit) installGpSuitFinish(material, material !== panel);
+        if (gpSuit)
+          installGpSuitFinish(
+            material,
+            material !== panel,
+            material === torsoLeather ? 'torso' : material === leather ? 'limb' : 'plain',
+          );
         else installGpLeatherFinish(material);
       }
     for (const m of [leather, panel, torsoLeather])

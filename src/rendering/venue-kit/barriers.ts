@@ -1,6 +1,7 @@
 import * as T from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { mod } from '../../core/math.ts';
+import { isGpCourse } from '../../simulation/gp-corner-shape.ts';
 import { trackPoint } from '../../simulation/track.ts';
 import type { BarrierKind } from '../../simulation/circuit-catalogue/venue-data.ts';
 import { barrierGeometry } from '../circuit-barriers.ts';
@@ -8,6 +9,11 @@ import { catchFenceMaterial } from '../circuit-finish.ts';
 import { inSpan } from './plan.ts';
 import { kitMesh, type VenueKitContext } from './context.ts';
 import { chunks, sweep, venuePoint } from './sweep.ts';
+import {
+  buildGpSafetyPadding,
+  gpSafetyPaddingPlan,
+  type GpPaddingSite,
+} from './gp-safety-padding.ts';
 
 /** Galvanised double W-beam (armco) rail section, outward u, height v. */
 const W_BEAM: readonly (readonly [number, number])[] = [
@@ -67,6 +73,7 @@ export function buildBarrierChunk(kit: VenueKitContext, from: number, to: number
   const posts: T.Matrix4[] = [],
     tyres: T.Matrix4[] = [],
     fencePosts: T.Matrix4[] = [];
+  const padding: GpPaddingSite[] = [];
   const fence: T.BufferGeometry[] = [];
   const mat = new T.Matrix4(),
     q = new T.Quaternion(),
@@ -82,8 +89,16 @@ export function buildBarrierChunk(kit: VenueKitContext, from: number, to: number
     for (const [c0, c1] of chunks(a, b, 20)) {
       if (pitWall((c0 + c1) / 2)) continue;
       const kind: BarrierKind = span.kind;
-      if (kind === 'concrete' || kind === 'tyre')
-        push(m.concrete, barrierGeometry(track, c0, c1, side));
+      if (kind === 'concrete' || kind === 'tyre') {
+        // A 20 m endpoint chord cuts inside tight GP bends and can hide
+        // covers which correctly follow the physical boundary. Retain the
+        // existing concrete profile, but sample its tyre-wall backing at
+        // the catalogue's two-metre setback scale. All pieces still merge
+        // into the original material draw and 60 m culling chunk.
+        const backing = kind === 'tyre' && isGpCourse(track) ? chunks(c0, c1, 2) : [[c0, c1]];
+        for (const [start, end] of backing)
+          push(m.concrete, barrierGeometry(track, start, end, side));
+      }
       if (kind === 'safer') {
         push(m.concrete, sweep(track, c0, c1, side, SAFER_WALL, { step: 5 }));
         push(m.saferFoam, sweep(track, c0, c1, side, SAFER_SKIN, { step: 5 }));
@@ -100,16 +115,19 @@ export function buildBarrierChunk(kit: VenueKitContext, from: number, to: number
         }
       }
       if (kind === 'tyre') {
-        // Two-deep wall of bolted tyre stacks (one instance per four-high
-        // stack) in front of the concrete, faced with a conveyor belt.
-        for (let s = c0; s < c1; s += 0.64)
-          for (const depth of [-0.38, -1.0]) {
-            track.at(mod(s, L), p);
-            const l = side * (track.boundaryAt(p, side) + depth);
-            const pos = venuePoint(track, s, l, 0.48, p);
-            tyres.push(mat.compose(pos, q.identity(), new T.Vector3(1, 1, 1)).clone());
-          }
-        push(m.tyreBand, sweep(track, c0, c1, side, BELT, { step: 4 }));
+        if (isGpCourse(track)) padding.push(...gpSafetyPaddingPlan(kit, c0, c1, side));
+        else {
+          // Two-deep wall of bolted tyre stacks (one instance per four-high
+          // stack) in front of the concrete, faced with a conveyor belt.
+          for (let s = c0; s < c1; s += 0.64)
+            for (const depth of [-0.38, -1.0]) {
+              track.at(mod(s, L), p);
+              const l = side * (track.boundaryAt(p, side) + depth);
+              const pos = venuePoint(track, s, l, 0.48, p);
+              tyres.push(mat.compose(pos, q.identity(), new T.Vector3(1, 1, 1)).clone());
+            }
+          push(m.tyreBand, sweep(track, c0, c1, side, BELT, { step: 4 }));
+        }
       }
       if (kind === 'rock') push(m.rock, sweep(track, c0, c1, side, ROCK_WALL, { step: 3 }));
       // Catch fence over concrete, tyre and SAFER walls at speed and by stands.
@@ -138,6 +156,8 @@ export function buildBarrierChunk(kit: VenueKitContext, from: number, to: number
   }
   const group = new T.Group();
   group.name = `Venue kit barriers ${Math.round(from)}-${Math.round(to)} m`;
+  const covers = buildGpSafetyPadding(kit, padding);
+  if (covers) group.add(covers);
   for (const [material, list] of solids) {
     const g = mergeGeometries(list, false)!;
     list.forEach((x) => x.dispose());

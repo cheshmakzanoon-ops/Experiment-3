@@ -72,7 +72,11 @@ function union(intervals: Interval[]): Interval[] {
 /** Outward-facing triangles describe the occupied material. Each mesh can
  * contain several batched shells; an oriented winding sweep retains their
  * union without filling the air between a sole, rib and protective slider. */
-function rasterize(meshes: readonly T.Mesh[], grid: MeshColumnGrid) {
+function rasterize(
+  meshes: readonly T.Mesh[],
+  grid: MeshColumnGrid,
+  surfaces?: Map<number, number[]>,
+) {
   const result = new Map<number, Interval[]>(),
     point = new T.Vector3();
   for (const mesh of meshes) {
@@ -125,6 +129,8 @@ function rasterize(meshes: readonly T.Mesh[], grid: MeshColumnGrid) {
         }
     }
     for (const [key, column] of hits) {
+      if (surfaces)
+        surfaces.set(key, [...(surfaces.get(key) ?? []), ...column.map((hit) => hit.y)]);
       const intervals = occupied(column);
       if (intervals.length) result.set(key, [...(result.get(key) ?? []), ...intervals]);
     }
@@ -172,5 +178,56 @@ export function meshColumnOverlap(
     firstColumns: a.size,
     secondColumns: b.size,
     worst,
+  };
+}
+
+/** A cowl loft encloses space which contains the fork; that does not make
+ * the whole enclosed volume solid composite. Check whether its actual upper
+ * or lower surface cuts into a moving solid, rather than rejecting a fork
+ * wholly inside the fairing. Read all original triangle hits, including open
+ * edge returns that cannot produce a closed occupied interval themselves. */
+export function meshSurfaceIntrusion(
+  surface: readonly T.Mesh[],
+  solid: readonly T.Mesh[],
+  grid: MeshColumnGrid,
+) {
+  const a = new Map<number, number[]>();
+  rasterize(surface, grid, a);
+  const b = rasterize(solid, grid),
+    depths = new Map<number, number>(),
+    heights = new Map<number, number>();
+  let maximumDepth = 0,
+    comparedColumns = 0;
+  let worst: { x: number; y: number; z: number; solid: Interval } | undefined;
+  for (const [key, boundaries] of a) {
+    const intervals = b.get(key);
+    if (!intervals?.length) continue;
+    comparedColumns++;
+    for (const y of boundaries)
+      for (const interval of intervals) {
+        const depth = Math.min(y - interval[0], interval[1] - y);
+        if (depth > (depths.get(key) ?? 0)) {
+          depths.set(key, depth);
+          heights.set(key, y);
+        }
+        if (depth > maximumDepth) {
+          maximumDepth = depth;
+          worst = {
+            x: grid.x + (key % grid.columns) * grid.step,
+            y,
+            z: grid.z + Math.floor(key / grid.columns) * grid.step,
+            solid: interval,
+          };
+        }
+      }
+  }
+  return {
+    maximumDepth,
+    comparedColumns,
+    surfaceColumns: a.size,
+    solidColumns: b.size,
+    worst,
+    depths,
+    heights,
   };
 }

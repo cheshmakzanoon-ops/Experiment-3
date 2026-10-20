@@ -155,6 +155,15 @@ export function gpGarmentGeometry(
   geometry.name = `GP continuous fitted ${kind} (${detail})`;
   geometry.setAttribute('position', new T.Float32BufferAttribute(positions, 3));
   geometry.setAttribute('uv', new T.Float32BufferAttribute(uv, 2));
+  // Two constant cut coordinates distinguish sleeve/trouser tailoring on the
+  // shared leather material. Capture the joint in bind metres: the shader
+  // follows skinning without CPU vertex rewrites or another material draw.
+  const cut = new Float32Array((positions.length / 3) * 2);
+  for (let i = 0; i < cut.length; i += 2) {
+    cut[i] = kind === 'sleeve' ? 1 : 2;
+    cut[i + 1] = upper;
+  }
+  geometry.setAttribute('gpSuitCut', new T.BufferAttribute(cut, 2));
   geometry.setAttribute('skinIndex', new T.Uint16BufferAttribute(skinIndices, 4));
   geometry.setAttribute('skinWeight', new T.Float32BufferAttribute(skinWeights, 4));
   geometry.setIndex(indices);

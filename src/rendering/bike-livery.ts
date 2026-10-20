@@ -10,11 +10,26 @@ import type { RiderColours } from './rider.ts';
 
 /** Original typography and paint masks, not copied team marks. One atlas and
  * one merged draw serve both flanks, the nose and the tail. Projection follows
- * the final Blender surfaces; there are no floating circular number plates. */
-export function addGPIdentity(root: T.Group, materials: BikeMaterials, entrant = 0) {
-  const shell = root.children.find(
-    (o) => o instanceof T.Mesh && o.name === 'GP bodywork / paint',
-  ) as T.Mesh | undefined;
+ * the final painted surfaces; there are no floating circular number plates. */
+export interface GpIdentitySurfaces {
+  model: 'GP-R2';
+  flanks: T.Mesh;
+  nose: T.Mesh;
+  tail: T.Mesh;
+  tank: T.Mesh;
+}
+
+export function addGPIdentity(
+  root: T.Group,
+  materials: BikeMaterials,
+  entrant = 0,
+  surfaces?: GpIdentitySurfaces,
+) {
+  const shell =
+    surfaces?.nose ??
+    (root.children.find((o) => o instanceof T.Mesh && o.name === 'GP bodywork / paint') as
+      | T.Mesh
+      | undefined);
   if (!shell) return;
   const number = String((entrant % 98) + 2).padStart(2, '0');
   const scheme = liveryScheme(entrant);
@@ -73,7 +88,7 @@ export function addGPIdentity(root: T.Group, materials: BikeMaterials, entrant =
     word(scheme.partners[1], 715, 350, 330, 25);
     c.fillStyle = ink;
     c.fillRect(486, 328, 3, 42);
-    word('GP-R1  /  WORKS TEAM', 483, 410, 568, 17);
+    word(`${surfaces?.model ?? 'GP-R1'}  /  WORKS TEAM`, 483, 410, 568, 17);
     word('COMPOSITE SYSTEMS', 520, 482, 442, 15);
     // The prominent race number has a dark backing and a cream outline, not
     // a floating circular plate. All glyphs are original canvas paths, so
@@ -131,15 +146,16 @@ export function addGPIdentity(root: T.Group, materials: BikeMaterials, entrant =
   material.name = 'Original GP conformal identity atlas';
   tagWeatherSurface(material, 'paint');
   materials.list.push(material);
-  shell.updateMatrixWorld(true);
+  root.updateMatrixWorld(true);
   const pieces: T.BufferGeometry[] = [];
   const project = (
+    target: T.Mesh,
     position: T.Vector3,
     rotation: T.Euler,
     size: T.Vector3,
     box: readonly number[],
   ) => {
-    const g = new DecalGeometry(shell, position, rotation, size);
+    const g = new DecalGeometry(target, position, rotation, size);
     const uv = g.getAttribute('uv');
     for (let i = 0; i < uv.count; i++)
       uv.setXY(i, box[0] + uv.getX(i) * box[2], box[1] + uv.getY(i) * box[3]);
@@ -148,24 +164,28 @@ export function addGPIdentity(root: T.Group, materials: BikeMaterials, entrant =
   };
   for (const side of [-1, 1])
     project(
+      surfaces?.flanks ?? shell,
       new T.Vector3(side * 0.212, -0.216, 0.095),
       new T.Euler(0, (side * Math.PI) / 2, 0),
       new T.Vector3(0.57, 0.28, 0.14),
       [0, 0.5, 0.5, 0.5],
     );
   project(
+    surfaces?.nose ?? shell,
     new T.Vector3(0, 0.237, 0.822),
     new T.Euler(-0.86, 0, 0),
     new T.Vector3(0.255, 0.186, 0.22),
     [0.5, 0.5, 0.5, 0.5],
   );
   project(
+    surfaces?.tail ?? shell,
     new T.Vector3(0, 0.333, -0.665),
     new T.Euler(-Math.PI / 2, 0, Math.PI),
     new T.Vector3(0.145, 0.22, 0.12),
     [0, 0, 0.5, 0.5],
   );
   project(
+    surfaces?.tank ?? shell,
     new T.Vector3(0, 0.32, -0.055),
     new T.Euler(-Math.PI / 2, 0, Math.PI),
     new T.Vector3(0.14, 0.14, 0.11),

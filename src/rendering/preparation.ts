@@ -1,5 +1,32 @@
 import * as T from 'three';
 
+/** Borrow renderables without reparenting them. Three's compilation traverses
+ * invisible objects too, so keep inactive bike LODs and service parts. Only
+ * explicitly supplied roots that are still hidden may omit their subtrees. */
+function compilationView(scene: T.Scene, hiddenRoots: readonly T.Object3D[]) {
+  const omitted = new Set(hiddenRoots.filter((root) => root.visible === false));
+  const renderables: T.Object3D[] = [];
+  const visit = (object: T.Object3D) => {
+    if (omitted.has(object)) return;
+    if (
+      (object as T.Mesh).isMesh ||
+      (object as T.Points).isPoints ||
+      (object as T.Line).isLine ||
+      (object as T.Sprite).isSprite
+    )
+      renderables.push(object);
+    for (const child of object.children) visit(child);
+  };
+  visit(scene);
+  const view = new T.Object3D();
+  view.traverse = (callback) => {
+    for (const object of renderables) callback(object);
+  };
+  // Empty children leave traverseVisible light-free. compileAsync collects
+  // lights, fog and environment from the original target scene exactly once.
+  return view;
+}
+
 /** Compile the programs actually used by the linear scene pass, rather than
  * unused canvas/tone-mapped variants. Never leave an offscreen target bound
  * while awaiting parallel compilation, cancellation or a UI repaint. */
@@ -8,6 +35,7 @@ export function compileSceneTarget(
   scene: T.Scene,
   camera: T.Camera,
   target: T.WebGLRenderTarget,
+  hiddenRoots?: readonly T.Object3D[],
 ) {
   const previous = renderer.getRenderTarget();
   const face = renderer.getActiveCubeFace(),
@@ -17,7 +45,9 @@ export function compileSceneTarget(
   const scissorTest = renderer.getScissorTest();
   try {
     renderer.setRenderTarget(target);
-    return renderer.compileAsync(scene, camera);
+    return hiddenRoots
+      ? renderer.compileAsync(compilationView(scene, hiddenRoots), camera, scene)
+      : renderer.compileAsync(scene, camera);
   } finally {
     renderer.setRenderTarget(previous, face, mip);
     renderer.setViewport(viewport);

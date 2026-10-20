@@ -7,9 +7,13 @@ on:
       - 'src/rendering/bike*'
       - 'src/rendering/rider.ts'
       - 'src/rendering/renderer.ts'
+      - 'src/rendering/preparation.ts'
       - 'src/rendering/webgl-renderer.ts'
       - 'src/rendering/menu-preview.ts'
       - 'src/rendering/gp-*'
+      - 'src/rendering/venue-kit/gp-*'
+      - 'src/rendering/venue-kit/barriers.ts'
+      - 'src/rendering/venue-kit/structures.ts'
       - 'src/simulation/bike*'
       - 'src/simulation/gp-*'
       - 'src/storage/replay-pages.ts'
@@ -28,6 +32,7 @@ on:
       - 'e2e/gp-rear-chassis.spec.ts'
       - 'e2e/gp-rider-contact.spec.ts'
       - 'e2e/gp-fork-crown.spec.ts'
+      - 'e2e/gp-course-boards.spec.ts'
       - 'e2e/30-menu-access.spec.ts'
       - 'e2e/menu-timing-evidence.ts'
       - 'e2e/settings-transition.spec.ts'
@@ -35,6 +40,7 @@ on:
       - 'e2e/gpu-context-reuse.spec.ts'
       - 'e2e/fixtures/webgl-renderer-reuse.ts'
       - 'tests/gp-*'
+      - 'tests/preparation.test.ts'
       - 'tests/bike*'
       - 'tests/replay-*'
       - 'tests/recording.test.ts'
@@ -57,6 +63,7 @@ on:
       - 'tests/frontend-retail.test.ts'
       - 'e2e/fixtures/*motogp*'
       - 'e2e/fixtures/motorcycle-presentation.ts'
+      - 'e2e/fixtures/gp-course-review.ts'
       - '.github/workflows/motogp-review.yml'
   workflow_dispatch:
 permissions:
@@ -99,6 +106,9 @@ jobs:
           npm test --
           tests/gp-rear-chassis.test.ts tests/gp-rider-contact.test.ts
           tests/gp-rider-garment.test.ts tests/gp-rider-suit.test.ts
+          tests/gp-r5-materials.test.ts tests/preparation.test.ts
+          tests/gp-r2-bodywork.test.ts tests/gp-course-boards.test.ts
+          tests/gp-safety-padding.test.ts
           tests/gp-fork-crown.test.ts tests/bike-cockpit-view.test.ts
           tests/gp-front-contact-steering.test.ts
           tests/gp-chain-integrity.test.ts tests/bike-bodies.test.ts
@@ -140,6 +150,8 @@ jobs:
             specs: e2e/41-motogp-reference.spec.ts e2e/motorcycle-presentation.spec.ts e2e/gp-rear-chassis.spec.ts e2e/gp-fork-crown.spec.ts
           - scene: rider-contact
             specs: e2e/gp-rider-contact.spec.ts
+          - scene: course-construction
+            specs: e2e/gp-course-boards.spec.ts
           - scene: dry-riding
             specs: e2e/motogp-riding-flow.spec.ts
           - scene: wet-riding

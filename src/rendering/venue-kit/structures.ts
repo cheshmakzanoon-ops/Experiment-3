@@ -10,6 +10,8 @@ import { inStandFootprint } from '../grandstand.ts';
 import { kitMesh, type VenueKitContext } from './context.ts';
 import { paddockSpan } from './plan.ts';
 import { chunks, sweep, unwrap, venuePoint } from './sweep.ts';
+import { isGpCourse } from '../../simulation/gp-corner-shape.ts';
+import { buildGpCourseBoards } from './gp-course-boards.ts';
 
 /** Box with metre-scaled UVs (one facade tile = 14 m x 28 m) so window rows
  * stay the same size on every building. */
@@ -481,6 +483,10 @@ export function buildLightTowers(kit: VenueKitContext) {
 /** Braking boards (150/100/50 m) on the outside before every named corner
  * reached from a straight, and a venue sign on the main straight. */
 export function buildBoards(kit: VenueKitContext) {
+  if (isGpCourse(kit.track)) {
+    buildGpCourseBoards(kit);
+    return;
+  }
   const track = kit.track,
     p = trackPoint(),
     group = new T.Group();

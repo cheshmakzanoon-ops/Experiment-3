@@ -7,8 +7,9 @@ import {
 import * as T from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { batchBikeRigidMeshes } from './bike-rigid-batch.ts';
-import { addGPIdentity } from './bike-livery.ts';
-import { gpBodywork, gpUpperCowl } from './gp-bodywork.ts';
+import { addGPIdentity, type GpIdentitySurfaces } from './bike-livery.ts';
+import { gpR2Aero } from './gp-r2-aero.ts';
+import { gpBodywork, gpCompactCowl, gpUpperCowl } from './gp-bodywork.ts';
 import { gpRadialBrakeCaliper } from './gp-radial-caliper.ts';
 import { gpDiscGlow } from './gp-disc-glow.ts';
 import { gpForkCrowns } from './gp-fork-crown.ts';
@@ -154,6 +155,34 @@ export function superLoft(input: readonly Section[], sides: number, exponent = 2
   g.setIndex(indices);
   g.computeVertexNormals();
   return g;
+}
+/** Flatten only the GP-R2 tail's aft crown. Each sampled ring retains its
+ * exact bottom and width; the saddle and rider contact region are unchanged.
+ * Changing loft station tangents instead would also reshape the seat root. */
+export function flattenGpR2Tail(geometry: T.BufferGeometry) {
+  const position = geometry.getAttribute('position'),
+    rings = new Map<number, { min: number; max: number }>();
+  for (let i = 0; i < position.count; i++) {
+    const z = position.getZ(i),
+      y = position.getY(i),
+      ring = rings.get(z) ?? { min: y, max: y };
+    ring.min = Math.min(ring.min, y);
+    ring.max = Math.max(ring.max, y);
+    rings.set(z, ring);
+  }
+  for (let i = 0; i < position.count; i++) {
+    const z = position.getZ(i),
+      ring = rings.get(z)!;
+    if (z >= -0.48 || ring.max <= 0.33) continue;
+    const blend = T.MathUtils.smoothstep(-z, 0.48, 0.6),
+      scale = 1 - (blend * (ring.max - 0.33)) / (ring.max - ring.min);
+    position.setY(i, ring.min + (position.getY(i) - ring.min) * scale);
+  }
+  position.needsUpdate = true;
+  geometry.computeVertexNormals();
+  geometry.computeBoundingBox();
+  geometry.computeBoundingSphere();
+  return geometry;
 }
 /** Open sheet over the upper arc of each section (windscreen bubble). */
 function arcSheet(input: readonly Section[], from: number, to: number, columns: number) {
@@ -1325,13 +1354,19 @@ export class BikeModel {
       bottom: number,
       topWidth = 1,
     ): Section => ({ z, y, w, top, bottom, topWidth });
+    const r2Surfaces: Partial<GpIdentitySurfaces> = {};
     // Upper fairing: a wedge nose over the front wheel, clear of fork travel,
     // whose cheeks drop behind the wheel to meet the lower fairing.
-    if (full && !authored) this.sprung.add(gpUpperCowl(m, detail));
+    if (full && !authored) {
+      const cowl = definition.id === 'gpr2' ? gpCompactCowl(m, detail) : gpUpperCowl(m, detail);
+      this.sprung.add(cowl);
+      if (definition.id === 'gpr2')
+        r2Surfaces.nose = cowl.getObjectByName('GP bodywork / paint') as T.Mesh;
+    }
     // Lower fairing and belly pan: behind the wheel, its rear edge rising
     // toward the footpegs; the frame beams stay exposed above it.
-    if (full && !authored)
-      add(
+    if (full && !authored) {
+      const fairing = add(
         this.sprung,
         superLoft(
           [
@@ -1345,10 +1380,16 @@ export class BikeModel {
           sides,
           3.2,
         ),
-        m.secondary,
+        definition.id === 'gpr2' ? m.paint : m.secondary,
       );
-    // Accent stripe along the lower fairing.
-    if (full && !authored && detail !== 'far')
+      if (definition.id === 'gpr2') {
+        fairing.name = 'GP-R2 continuous painted lower fairing';
+        r2Surfaces.flanks = fairing;
+      }
+    }
+    // GP-R2 paint sweeps conform to its shell through the identity projection.
+    // Other catalogue bikes retain the original separate accent stripe.
+    if (full && !authored && definition.id !== 'gpr2' && detail !== 'far')
       add(
         this.sprung,
         superLoft(
@@ -1363,7 +1404,7 @@ export class BikeModel {
         m.accent,
       );
     // Number plates on the nose and the flanks.
-    if (full && !authored && detail !== 'far') {
+    if (full && !authored && definition.id !== 'gpr2' && detail !== 'far') {
       const plate = add(
         this.sprung,
         new T.CircleGeometry(0.062, 24),
@@ -1459,7 +1500,9 @@ export class BikeModel {
         lamp.rotation.set(-0.9, side * 0.3, 0);
       }
     // Box wing (biplane with joined end plates) low on the fairing flanks.
-    if (look.wings === 'box' && detail !== 'far')
+    if (definition.id === 'gpr2' && detail !== 'far')
+      addGpRigidFinish(this.sprung, gpR2Aero(detail, m), [m.paint, m.carbon]);
+    else if (look.wings === 'box' && detail !== 'far')
       for (const side of [1, -1]) {
         for (const y of [0.02, -0.08]) {
           const foil = add(
@@ -1602,8 +1645,8 @@ export class BikeModel {
     // classic machine has a big rounded steel tank, a naked bike a sculpted
     // tank with knee scallops that reaches further forward.
     const tankScale = classic ? 1.18 : naked ? 1.08 : 1;
-    if (!authored)
-      add(
+    if (!authored) {
+      const tank = add(
         this.sprung,
         superLoft(
           [
@@ -1618,6 +1661,8 @@ export class BikeModel {
         ),
         wings ? m.carbon : m.paint,
       );
+      if (definition.id === 'gpr2') r2Surfaces.tank = tank;
+    }
     // Seat unit and tail hump with the rain/brake light: the race tail, a
     // short roadster tail with a pillion pad, or a classic flat seat ending in
     // a rounded hump.
@@ -1632,7 +1677,7 @@ export class BikeModel {
         ]);
       add(this.sprung, new T.BoxGeometry(0.05, 0.025, 0.012), m.lamp, 0, 0.302, -0.83, false);
     } else if (look.tail === 'race') {
-      add(
+      const tail = add(
         this.sprung,
         superLoft(
           [
@@ -1647,6 +1692,11 @@ export class BikeModel {
         ),
         m.paint,
       );
+      if (definition.id === 'gpr2') {
+        flattenGpR2Tail(tail.geometry);
+        tail.name = 'GP-R2 shallow tail cowl';
+        r2Surfaces.tail = tail;
+      }
       add(this.sprung, new T.BoxGeometry(0.2, 0.025, 0.26), m.seat, 0, 0.232, -0.3);
       add(this.sprung, new T.BoxGeometry(0.05, 0.025, 0.012), m.lamp, 0, 0.302, -0.83, false);
     } else if (look.tail === 'stubby') {
@@ -1683,6 +1733,11 @@ export class BikeModel {
       );
       add(this.sprung, new T.BoxGeometry(0.22, 0.03, 0.38), m.seat, 0, 0.235, -0.28);
       add(this.sprung, new T.BoxGeometry(0.08, 0.04, 0.012), m.lamp, 0, 0.3, -0.73, false);
+    }
+    if (definition.id === 'gpr2' && detail !== 'far') {
+      const { flanks, nose, tail, tank } = r2Surfaces;
+      if (!flanks || !nose || !tail || !tank) throw new Error('Incomplete GP-R2 identity surfaces');
+      addGPIdentity(this.sprung, m, id, { model: 'GP-R2', flanks, nose, tail, tank });
     }
     if (gp) this.sprung.add(...gpRearBody(detail, m).children);
     // Footpegs (rearsets).

@@ -172,6 +172,73 @@ describe('GP R5 anatomical boot and leather finish', () => {
       Object.values(material).forEach((m) => m.dispose());
     },
   );
+  it.each(['high', 'mid', 'far'] as const)(
+    'gives the GP %s boot a closed toe and continuous sidewall without increasing its budget or moving the sole contact',
+    (detail) => {
+      const material = {
+          leather: new T.MeshStandardMaterial(),
+          panel: new T.MeshStandardMaterial(),
+          sole: new T.MeshStandardMaterial(),
+          armour: new T.MeshStandardMaterial(),
+          slider: new T.MeshStandardMaterial(),
+        },
+        road = gpRacingBoot(detail, 1, material),
+        gp = gpRacingBoot(detail, 1, material, true);
+      const inventory = (root: T.Object3D) => {
+        let triangles = 0,
+          meshes = 0;
+        root.traverse((o) => {
+          if (!(o instanceof T.Mesh)) return;
+          meshes++;
+          triangles += (o.geometry.index?.count ?? o.geometry.getAttribute('position').count) / 3;
+        });
+        return { triangles, meshes };
+      };
+      try {
+        road.updateMatrixWorld(true);
+        gp.updateMatrixWorld(true);
+        expect(inventory(gp)).toEqual(inventory(road));
+        const size = new T.Box3().setFromObject(gp).getSize(new T.Vector3());
+        expect(size.x).toBeLessThanOrEqual(GP_BOOT_ENVELOPE.width);
+        expect(size.y).toBeLessThanOrEqual(GP_BOOT_ENVELOPE.height);
+        expect(size.z).toBeLessThanOrEqual(GP_BOOT_ENVELOPE.length);
+        const hit = (root: T.Object3D, origin: T.Vector3, direction: T.Vector3) =>
+          new T.Raycaster(origin, direction).intersectObject(root, true)[0];
+        // The ball of the foot retains the exact original sole surface, not
+        // merely a helper landmark that could float above changed geometry.
+        const down = new T.Vector3(0, -1, 0),
+          sole = new T.Vector3(0, 0.08, 0.09),
+          before = hit(road, sole, down),
+          after = hit(gp, sole, down);
+        expect(before).toBeDefined();
+        expect(after).toBeDefined();
+        expect((after.object as T.Mesh).material).toBe(material.sole);
+        expect(after.point.distanceTo(before.point)).toBeLessThan(1e-7);
+        // Two separated toe witnesses distinguish a blunt reinforced face
+        // from the old pinched tip, at all three submitted LODs.
+        for (const x of [-0.018, 0.018]) {
+          const origin = new T.Vector3(x, 0.004, 0.25),
+            direction = new T.Vector3(0, 0, -1);
+          expect(hit(gp, origin, direction).point.z).toBeGreaterThan(0.195);
+          expect(hit(road, origin, direction).point.z).toBeLessThan(0.195);
+        }
+        // Just above the sole, the sidewall now reaches its outer welt. The
+        // old capsule exposes the sole first because its underside recedes.
+        const origin = new T.Vector3(0.08, 0.024, 0.1),
+          direction = new T.Vector3(-1, 0, 0),
+          wall = hit(gp, origin, direction);
+        expect((wall.object as T.Mesh).material).toBe(material.panel);
+        expect(wall.point.x).toBeGreaterThan(0.035);
+        expect((hit(road, origin, direction).object as T.Mesh).material).toBe(material.sole);
+      } finally {
+        for (const root of [road, gp])
+          root.traverse((o) => {
+            if (o instanceof T.Mesh) o.geometry.dispose();
+          });
+        Object.values(material).forEach((m) => m.dispose());
+      }
+    },
+  );
   it('rejects an invalid foot handedness rather than silently inverting its slider', () => {
     const m = new T.MeshStandardMaterial();
     expect(() =>
