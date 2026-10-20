@@ -261,7 +261,7 @@ describe('continuous motocross terrain lighting and live rut receivers', () => {
     view.dispose();
   });
 
-  it('keeps maximum permitted rut displacement inside fixed bounds without extra GPU attributes', () => {
+  it('keeps maximum permitted rut displacement inside fixed bounds with stable terrain attributes', () => {
     const view = new TerrainView(rigTrack('valley-ridge-mx')),
       point = new T.Vector3();
     for (const mesh of meshesOf(view)) {
@@ -275,6 +275,7 @@ describe('continuous motocross terrain lighting and live rut receivers', () => {
           'apexSoilLayers',
           'apexSoilState',
           'color',
+          'mxBrakingWork',
           'mxCourse',
           'mxCourseWidth',
           'mxSoilMix',

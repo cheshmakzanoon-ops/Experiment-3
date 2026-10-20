@@ -1,0 +1,1211 @@
+{
+  "schemaVersion": 1,
+  "title": "Completed two-venue production motocross journey at the 3410e58 integration boundary",
+  "status": "passed",
+  "processExitCode": 0,
+  "processExitCodeEvidence": "The validation owner polled the running shell session and observed exit 0; the Playwright JSON and log independently record one passing test.",
+  "testedSource": {
+    "baseCommit": "3410e58b39c94ea58288de05c382a3576b33f00b",
+    "fingerprint": "ce20e4e8f9db04da1f214f66b1fcad995c79ba4f3352868f8db322b3a6a5dd19",
+    "simulationVersion": 15,
+    "manifest": "physics-integration-source-manifest.json",
+    "manifestReceipt": {
+      "file": "physics-integration-source-manifest.json",
+      "bytes": 3164,
+      "sha256": "40720d3a40dfbf4680aad43e4b2452c35f972ce12bee437631fb4bcac5ba256c"
+    },
+    "buildIdentity": {
+      "version": 1,
+      "commit": null,
+      "fingerprint": "ce20e4e8f9db04da1f214f66b1fcad995c79ba4f3352868f8db322b3a6a5dd19"
+    },
+    "buildIdentityReceipt": {
+      "file": "final-dist/BUILD_IDENTITY.json",
+      "bytes": 122,
+      "sha256": "56937698317ea569f85f3ecfd145dd9f3b526f76508e8ecf5318c09b6ac9aba6"
+    },
+    "assetVerification": {
+      "checkedAgainstGit": "3410e58b39c94ea58288de05c382a3576b33f00b",
+      "verifiedGitBlobs": 230,
+      "generatedLodAsset": {
+        "path": "public/models/supplied-player-lods.bin.gz",
+        "verifiedAgainst": "src/rendering/supplied-player-lods.manifest.json",
+        "compressedSha256": "1553e32eef4a6f89d02fb8f44a45f000620ee8539466d41704654e5f5dd09b58",
+        "uncompressedSha256": "2bcd661c78be3df21090c042c43ffd2fb828b9db42465d1fd4111fac8d48437d"
+      }
+    },
+    "assetScope": "This is the preserved source-asset verification receipt, not a claim that the journey fetched every asset.",
+    "laterMergeExcluded": "This browser run preceded c4f674e86de7d9a0e80812bdbf7ac885f2a71a53. It does not validate the later published-source fingerprint."
+  },
+  "test": {
+    "file": "e2e/45-motocross-gameplay.spec.ts",
+    "title": "real motocross player entry, eight-rider gate, riding, cameras, pause and venue switch",
+    "expectedStatus": "passed",
+    "observedStatus": "passed",
+    "retry": 0,
+    "runner": "Playwright 1.55.1",
+    "reportStats": {
+      "startTime": "2026-10-20T07:46:49.449Z",
+      "duration": 1042738.36,
+      "expected": 1,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "testStartTime": "2026-10-20T07:46:55.748Z",
+    "testDurationMs": 982698,
+    "testSourceInTrace": {
+      "member": "resources/src@043a5f3a3d6c37b4ee1a1247a47d509ec0b6c630.txt",
+      "bytes": 13385,
+      "sha256": "1a48e95195f439b8ca2e08ec18223589108ab2e1de0ed2d50fb46b401b051068"
+    },
+    "testSourceMatchesEarlierFailedRun": true,
+    "earlierTraceTestSource": {
+      "member": "resources/src@043a5f3a3d6c37b4ee1a1247a47d509ec0b6c630.txt",
+      "bytes": 13385,
+      "sha256": "1a48e95195f439b8ca2e08ec18223589108ab2e1de0ed2d50fb46b401b051068"
+    },
+    "testSourceMatchesCurrentFileAtReceiptCreation": true,
+    "functionalAssertions": "The captured test source is byte-identical to the earlier run. No functional assertions, timeouts or error checks were relaxed for this success."
+  },
+  "environment": {
+    "viewportPixels": [
+      960,
+      600
+    ],
+    "viewportEvidence": "Browser context-options in the trace and all twelve actual PNG dimensions agree.",
+    "requestedQuality": "low",
+    "qualitySelection": "Applied through the visible production GARAGE & SETTINGS form before venue selection.",
+    "graphicsBackend": "ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)",
+    "browserContexts": [
+      {
+        "browser": "chromium",
+        "viewport": {
+          "width": 960,
+          "height": 600
+        },
+        "baseURL": "http://127.0.0.1:5301"
+      }
+    ],
+    "observedInternalRenderPixels": [
+      720,
+      450
+    ],
+    "scope": "Software-GPU functional validation at Low; not hardware FPS certification or a high-quality scene benchmark."
+  },
+  "assertions": {
+    "bothSelectedMachineShowroomFramesSubmitted": true,
+    "bothCompleteSessionsPreparedAtHeldEightRiderGate": true,
+    "playerBodyAndThrottleInputsPassedBeforeAi": true,
+    "bothRealProgressFlightTouchdownAndPresentedRidingPollsPassed": true,
+    "framesFiniteAndSelectedMachinesPreserved": true,
+    "noMotocrossPaceCarObserved": true,
+    "bothChaseOnboardAndPauseCapturesCompleted": true,
+    "bothPauseTickHoldChecksPassed": true,
+    "bothReturnsToPaddockCompleted": true,
+    "finalPageAndConsoleErrorArrayAssertionPassed": true,
+    "finalCombinedJourneyAttachmentProduced": true
+  },
+  "venues": [
+    {
+      "circuit": "valley-ridge-mx",
+      "machine": "mx450",
+      "status": "completed",
+      "mode": "normal application, player throttle followed by explicitly enabled AI demonstration",
+      "gate": {
+        "riders": 8,
+        "allRidersUseSelectedMachine": true,
+        "initialTick": 0,
+        "autoInitially": false,
+        "safetyCarPhase": 0,
+        "basis": "Passed unchanged production-entry assertions."
+      },
+      "playerInputChecks": {
+        "humanTimeSeconds": 18.491666793823242,
+        "speedMps": 5.875482082366943,
+        "throttle": 1,
+        "auto": false,
+        "bodyForward": 0.9090956449508667,
+        "bodyBack": -0.9976242780685425,
+        "method": "Held S with Q and Z separately to check body response while stationary, released them, held W for player acceleration, then released W."
+      },
+      "aiHandover": {
+        "control": "G",
+        "explicitlyEnabled": true,
+        "startedAtSeconds": 19.108333587646484,
+        "scope": "The subsequent progress/flight/touchdown sequence is the normal AI demonstration, not manually ridden full laps."
+      },
+      "observedRiding": {
+        "progressM": 274.1434631347656,
+        "progressDefinition": "Signed station deltas across lap wrap; backwards travel cannot count as forward progress.",
+        "maximumRecordedAirTimeSeconds": 1.0958333015441895,
+        "maximumSafetyCarPhase": 0,
+        "firstRecordedTouchdown": {
+          "tick": 4248,
+          "time": 35.400001525878906,
+          "s": 210.15847778320312,
+          "progressM": 213.73898315429688,
+          "speed": 13.268360137939453,
+          "airborne": false,
+          "airTime": 1.0958333015441895,
+          "landingSpeed": 4.223543643951416,
+          "landingPitch": 0.030291538685560226,
+          "safetyCarPhase": 0,
+          "presentedTime": 33.741668701171875
+        },
+        "lastObservation": {
+          "tick": 4815,
+          "time": 40.125,
+          "s": 270.5629577636719,
+          "progressM": 274.1434631347656,
+          "speed": 8.887825965881348,
+          "airborne": false,
+          "airTime": 1.0958333015441895,
+          "landingSpeed": 4.223543643951416,
+          "landingPitch": 0.030291538685560226,
+          "safetyCarPhase": 0,
+          "presentedTime": 39.40639877319336
+        },
+        "sampleCount": 29,
+        "observations": [
+          {
+            "tick": 2308,
+            "time": 19.233333587646484,
+            "s": 917.3505859375,
+            "progressM": 1.24700927734375,
+            "speed": 10.34992504119873,
+            "airborne": false,
+            "airTime": 0,
+            "landingSpeed": 0,
+            "landingPitch": 0,
+            "safetyCarPhase": 0,
+            "presentedTime": 18.600000381469727
+          },
+          {
+            "tick": 2364,
+            "time": 19.700000762939453,
+            "s": 3.0737733840942383,
+            "progressM": 6.654278755187988,
+            "speed": 12.61271858215332,
+            "airborne": false,
+            "airTime": 0,
+            "landingSpeed": 0,
+            "landingPitch": 0,
+            "safetyCarPhase": 0,
+            "presentedTime": 19.45709991455078
+          },
+          {
+            "tick": 2432,
+            "time": 20.266666412353516,
+            "s": 10.817830085754395,
+            "progressM": 14.398335456848145,
+            "speed": 15.24531078338623,
+            "airborne": false,
+            "airTime": 0,
+            "landingSpeed": 0,
+            "landingPitch": 0,
+            "safetyCarPhase": 0,
+            "presentedTime": 19.45709991455078
+          },
+          {
+            "tick": 2535,
+            "time": 21.125,
+            "s": 25.268573760986328,
+            "progressM": 28.849079132080078,
+            "speed": 18.16719627380371,
+            "airborne": false,
+            "airTime": 0,
+            "landingSpeed": 0,
+            "landingPitch": 0,
+            "safetyCarPhase": 0,
+            "presentedTime": 20.666667938232422
+          },
+          {
+            "tick": 2614,
+            "time": 21.78333282470703,
+            "s": 38.29533767700195,
+            "progressM": 41.8758430480957,
+            "speed": 21.01869773864746,
+            "airborne": false,
+            "airTime": 0,
+            "landingSpeed": 0,
+            "landingPitch": 0,
+            "safetyCarPhase": 0,
+            "presentedTime": 21.483333587646484
+          },
+          {
+            "tick": 2684,
+            "time": 22.366666793823242,
+            "s": 50.935401916503906,
+            "progressM": 54.515907287597656,
+            "speed": 21.846172332763672,
+            "airborne": false,
+            "airTime": 0,
+            "landingSpeed": 0,
+            "landingPitch": 0,
+            "safetyCarPhase": 0,
+            "presentedTime": 22.24913215637207
+          },
+          {
+            "tick": 2755,
+            "time": 22.95833396911621,
+            "s": 63.35527038574219,
+            "progressM": 66.93577575683594,
+            "speed": 20.194494247436523,
+            "airborne": false,
+            "airTime": 0,
+            "landingSpeed": 0,
+            "landingPitch": 0,
+            "safetyCarPhase": 0,
+            "presentedTime": 22.24913215637207
+          },
+          {
+            "tick": 2825,
+            "time": 23.54166603088379,
+            "s": 74.66559600830078,
+            "progressM": 78.24610137939453,
+            "speed": 18.707218170166016,
+            "airborne": false,
+            "airTime": 0,
+            "landingSpeed": 0,
+            "landingPitch": 0,
+            "safetyCarPhase": 0,
+            "presentedTime": 23.174999237060547
+          },
+          {
+            "tick": 2935,
+            "time": 24.45833396911621,
+            "s": 90.70077514648438,
+            "progressM": 94.28128051757812,
+            "speed": 16.37771224975586,
+            "airborne": false,
+            "airTime": 0,
+            "landingSpeed": 0,
+            "landingPitch": 0,
+            "safetyCarPhase": 0,
+            "presentedTime": 23.174999237060547
+          },
+          {
+            "tick": 2963,
+            "time": 24.691667556762695,
+            "s": 94.44810485839844,
+            "progressM": 98.02861022949219,
+            "speed": 15.781872749328613,
+            "airborne": false,
+            "airTime": 0,
+            "landingSpeed": 0,
+            "landingPitch": 0,
+            "safetyCarPhase": 0,
+            "presentedTime": 24.691667556762695
+          },
+          {
+            "tick": 2987,
+            "time": 24.891666412353516,
+            "s": 97.5363540649414,
+            "progressM": 101.11685943603516,
+            "speed": 15.25374984741211,
+            "airborne": false,
+            "airTime": 0,
+            "landingSpeed": 0,
+            "landingPitch": 0,
+            "safetyCarPhase": 0,
+            "presentedTime": 24.691667556762695
+          },
+          {
+            "tick": 3073,
+            "time": 25.608333587646484,
+            "s": 107.54121398925781,
+            "progressM": 111.12171936035156,
+            "speed": 12.703676223754883,
+            "airborne": false,
+            "airTime": 0,
+            "landingSpeed": 0,
+            "landingPitch": 0,
+            "safetyCarPhase": 0,
+            "presentedTime": 25.09166717529297
+          },
+          {
+            "tick": 3201,
+            "time": 26.674999237060547,
+            "s": 122.4249267578125,
+            "progressM": 126.00543212890625,
+            "speed": 10.288727760314941,
+            "airborne": false,
+            "airTime": 0,
+            "landingSpeed": 0,
+            "landingPitch": 0,
+            "safetyCarPhase": 0,
+            "presentedTime": 26.258934020996094
+          },
+          {
+            "tick": 3282,
+            "time": 27.350000381469727,
+            "s": 129.6955108642578,
+            "progressM": 133.27601623535156,
+            "speed": 9.256949424743652,
+            "airborne": false,
+            "airTime": 0,
+            "landingSpeed": 0,
+            "landingPitch": 0,
+            "safetyCarPhase": 0,
+            "presentedTime": 26.258934020996094
+          },
+          {
+            "tick": 3370,
+            "time": 28.08333396911621,
+            "s": 136.5361328125,
+            "progressM": 140.11663818359375,
+            "speed": 8.628116607666016,
+            "airborne": false,
+            "airTime": 0,
+            "landingSpeed": 0,
+            "landingPitch": 0,
+            "safetyCarPhase": 0,
+            "presentedTime": 27.441667556762695
+          },
+          {
+            "tick": 3520,
+            "time": 29.33333396911621,
+            "s": 147.7800750732422,
+            "progressM": 151.36058044433594,
+            "speed": 8.679174423217773,
+            "airborne": false,
+            "airTime": 0,
+            "landingSpeed": 0,
+            "landingPitch": 0,
+            "safetyCarPhase": 0,
+            "presentedTime": 28.492067337036133
+          },
+          {
+            "tick": 3619,
+            "time": 30.15833282470703,
+            "s": 156.11270141601562,
+            "progressM": 159.69320678710938,
+            "speed": 9.530654907226562,
+            "airborne": false,
+            "airTime": 0,
+            "landingSpeed": 0,
+            "landingPitch": 0,
+            "safetyCarPhase": 0,
+            "presentedTime": 29.541667938232422
+          },
+          {
+            "tick": 3723,
+            "time": 31.024999618530273,
+            "s": 164.07528686523438,
+            "progressM": 167.65579223632812,
+            "speed": 10.117538452148438,
+            "airborne": false,
+            "airTime": 0,
+            "landingSpeed": 0,
+            "landingPitch": 0,
+            "safetyCarPhase": 0,
+            "presentedTime": 29.541667938232422
+          },
+          {
+            "tick": 3814,
+            "time": 31.78333282470703,
+            "s": 171.0925750732422,
+            "progressM": 174.67308044433594,
+            "speed": 10.216318130493164,
+            "airborne": false,
+            "airTime": 0,
+            "landingSpeed": 0,
+            "landingPitch": 0,
+            "safetyCarPhase": 0,
+            "presentedTime": 31.069368362426758
+          },
+          {
+            "tick": 3948,
+            "time": 32.900001525878906,
+            "s": 183.73455810546875,
+            "progressM": 187.3150634765625,
+            "speed": 11.359213829040527,
+            "airborne": false,
+            "airTime": 0,
+            "landingSpeed": 0,
+            "landingPitch": 0,
+            "safetyCarPhase": 0,
+            "presentedTime": 32.55833435058594
+          },
+          {
+            "tick": 3993,
+            "time": 33.275001525878906,
+            "s": 187.97802734375,
+            "progressM": 191.55853271484375,
+            "speed": 11.300558090209961,
+            "airborne": false,
+            "airTime": 0,
+            "landingSpeed": 0,
+            "landingPitch": 0,
+            "safetyCarPhase": 0,
+            "presentedTime": 32.55833435058594
+          },
+          {
+            "tick": 4103,
+            "time": 34.19166564941406,
+            "s": 197.21865844726562,
+            "progressM": 200.79916381835938,
+            "speed": 10.000821113586426,
+            "airborne": true,
+            "airTime": 0.44583332538604736,
+            "landingSpeed": 0,
+            "landingPitch": 0,
+            "safetyCarPhase": 0,
+            "presentedTime": 33.741668701171875
+          },
+          {
+            "tick": 4248,
+            "time": 35.400001525878906,
+            "s": 210.15847778320312,
+            "progressM": 213.73898315429688,
+            "speed": 13.268360137939453,
+            "airborne": false,
+            "airTime": 1.0958333015441895,
+            "landingSpeed": 4.223543643951416,
+            "landingPitch": 0.030291538685560226,
+            "safetyCarPhase": 0,
+            "presentedTime": 33.741668701171875
+          },
+          {
+            "tick": 4311,
+            "time": 35.92499923706055,
+            "s": 217.63267517089844,
+            "progressM": 221.2131805419922,
+            "speed": 14.492057800292969,
+            "airborne": false,
+            "airTime": 1.0958333015441895,
+            "landingSpeed": 4.223543643951416,
+            "landingPitch": 0.030291538685560226,
+            "safetyCarPhase": 0,
+            "presentedTime": 35.78333282470703
+          },
+          {
+            "tick": 4435,
+            "time": 36.95833206176758,
+            "s": 232.30882263183594,
+            "progressM": 235.8893280029297,
+            "speed": 15.277511596679688,
+            "airborne": false,
+            "airTime": 1.0958333015441895,
+            "landingSpeed": 4.223543643951416,
+            "landingPitch": 0.030291538685560226,
+            "safetyCarPhase": 0,
+            "presentedTime": 35.78333282470703
+          },
+          {
+            "tick": 4534,
+            "time": 37.78333282470703,
+            "s": 244.5381317138672,
+            "progressM": 248.11863708496094,
+            "speed": 14.386058807373047,
+            "airborne": false,
+            "airTime": 1.0958333015441895,
+            "landingSpeed": 4.223543643951416,
+            "landingPitch": 0.030291538685560226,
+            "safetyCarPhase": 0,
+            "presentedTime": 36.991668701171875
+          },
+          {
+            "tick": 4614,
+            "time": 38.45000076293945,
+            "s": 252.7600860595703,
+            "progressM": 256.34059143066406,
+            "speed": 11.632695198059082,
+            "airborne": false,
+            "airTime": 1.0958333015441895,
+            "landingSpeed": 4.223543643951416,
+            "landingPitch": 0.030291538685560226,
+            "safetyCarPhase": 0,
+            "presentedTime": 37.90833282470703
+          },
+          {
+            "tick": 4684,
+            "time": 39.03333282470703,
+            "s": 258.82794189453125,
+            "progressM": 262.408447265625,
+            "speed": 10.227179527282715,
+            "airborne": false,
+            "airTime": 1.0958333015441895,
+            "landingSpeed": 4.223543643951416,
+            "landingPitch": 0.030291538685560226,
+            "safetyCarPhase": 0,
+            "presentedTime": 37.90833282470703
+          },
+          {
+            "tick": 4815,
+            "time": 40.125,
+            "s": 270.5629577636719,
+            "progressM": 274.1434631347656,
+            "speed": 8.887825965881348,
+            "airborne": false,
+            "airTime": 1.0958333015441895,
+            "landingSpeed": 4.223543643951416,
+            "landingPitch": 0.030291538685560226,
+            "safetyCarPhase": 0,
+            "presentedTime": 39.40639877319336
+          }
+        ],
+        "maxAirTimeLimit": "Maximum recorded air time may belong to a different or still-active flight than the first recorded touchdown; it is not substituted for that touchdown record."
+      },
+      "renderedRiding": {
+        "presentedTimeSeconds": 39.40639877319336,
+        "frames": 36,
+        "cameraAtRiddenSample": "chase",
+        "presentedCameraAtRiddenSample": "chase",
+        "renderPixels": [
+          720,
+          450
+        ],
+        "reportedFrameFiniteAssertionPassed": true
+      },
+      "cameraAndPause": {
+        "chaseCaptureCompleted": true,
+        "cockpitSwitchAssertionPassed": true,
+        "onboardCaptureCompleted": true,
+        "pauseMenuVisible": true,
+        "pauseAcknowledged": true,
+        "pausedWorkerTick": 5913,
+        "tickHeldAcrossPauseCapture": true,
+        "pauseCaptureCompleted": true,
+        "basis": "Passed camera, pause acknowledgement, workerPause.paused and unchanged-tick assertions plus attached screenshots."
+      },
+      "returnToPaddock": {
+        "completed": true,
+        "menuVisible": true,
+        "menuPreviewTimeResetToZero": true,
+        "presentationTimeResetToZero": true,
+        "completionLogged": true
+      },
+      "softwareRendererSnapshot": {
+        "fps": 0.2663586077102074,
+        "frameMs": 3754.3370893723063,
+        "gpuMilliseconds": 1962.688874,
+        "renderCPUms": 292.02959039329556,
+        "drawCalls": 265,
+        "triangles": 909596,
+        "textures": 417,
+        "geometries": 1611
+      }
+    },
+    {
+      "circuit": "arena-nord-sx",
+      "machine": "mx250",
+      "status": "completed",
+      "mode": "normal application, player throttle followed by explicitly enabled AI demonstration",
+      "gate": {
+        "riders": 8,
+        "allRidersUseSelectedMachine": true,
+        "initialTick": 0,
+        "autoInitially": false,
+        "safetyCarPhase": 0,
+        "basis": "Passed unchanged production-entry assertions."
+      },
+      "playerInputChecks": {
+        "humanTimeSeconds": 19.141666412353516,
+        "speedMps": 5.0208001136779785,
+        "throttle": 1,
+        "auto": false,
+        "bodyForward": 0.965252161026001,
+        "bodyBack": -0.9987290501594543,
+        "method": "Held S with Q and Z separately to check body response while stationary, released them, held W for player acceleration, then released W."
+      },
+      "aiHandover": {
+        "control": "G",
+        "explicitlyEnabled": true,
+        "startedAtSeconds": 19.741666793823242,
+        "scope": "The subsequent progress/flight/touchdown sequence is the normal AI demonstration, not manually ridden full laps."
+      },
+      "observedRiding": {
+        "progressM": 151.8911590576172,
+        "progressDefinition": "Signed station deltas across lap wrap; backwards travel cannot count as forward progress.",
+        "maximumRecordedAirTimeSeconds": 0.5541666746139526,
+        "maximumSafetyCarPhase": 0,
+        "firstRecordedTouchdown": {
+          "tick": 4651,
+          "time": 38.75833511352539,
+          "s": 143.7313232421875,
+          "progressM": 146.74957275390625,
+          "speed": 4.967242240905762,
+          "airborne": false,
+          "airTime": 0.46666666865348816,
+          "landingSpeed": 4.384661674499512,
+          "landingPitch": -0.6289768815040588,
+          "safetyCarPhase": 0,
+          "presentedTime": 38.141666412353516
+        },
+        "lastObservation": {
+          "tick": 4813,
+          "time": 40.108333587646484,
+          "s": 148.87290954589844,
+          "progressM": 151.8911590576172,
+          "speed": 3.8896188735961914,
+          "airborne": true,
+          "airTime": 0.5541666746139526,
+          "landingSpeed": 4.384661674499512,
+          "landingPitch": -0.6289768815040588,
+          "safetyCarPhase": 0,
+          "presentedTime": 38.141666412353516
+        },
+        "sampleCount": 24,
+        "observations": [
+          {
+            "tick": 2391,
+            "time": 19.924999237060547,
+            "s": 614.1563720703125,
+            "progressM": 1.6827392578125,
+            "speed": 9.741277694702148,
+            "airborne": false,
+            "airTime": 0,
+            "landingSpeed": 0,
+            "landingPitch": 0,
+            "safetyCarPhase": 0,
+            "presentedTime": 18.941667556762695
+          },
+          {
+            "tick": 2439,
+            "time": 20.325000762939453,
+            "s": 2.9148948192596436,
+            "progressM": 5.9331443309783936,
+            "speed": 11.31550121307373,
+            "airborne": false,
+            "airTime": 0,
+            "landingSpeed": 0,
+            "landingPitch": 0,
+            "safetyCarPhase": 0,
+            "presentedTime": 18.941667556762695
+          },
+          {
+            "tick": 2535,
+            "time": 21.125,
+            "s": 12.386299133300781,
+            "progressM": 15.404548645019531,
+            "speed": 12.195249557495117,
+            "airborne": false,
+            "airTime": 0,
+            "landingSpeed": 0,
+            "landingPitch": 0,
+            "safetyCarPhase": 0,
+            "presentedTime": 20.325000762939453
+          },
+          {
+            "tick": 2606,
+            "time": 21.71666717529297,
+            "s": 19.5932559967041,
+            "progressM": 22.61150550842285,
+            "speed": 12.206918716430664,
+            "airborne": false,
+            "airTime": 0,
+            "landingSpeed": 0,
+            "landingPitch": 0,
+            "safetyCarPhase": 0,
+            "presentedTime": 20.325000762939453
+          },
+          {
+            "tick": 2677,
+            "time": 22.308332443237305,
+            "s": 26.799732208251953,
+            "progressM": 29.817981719970703,
+            "speed": 12.207625389099121,
+            "airborne": false,
+            "airTime": 0,
+            "landingSpeed": 0,
+            "landingPitch": 0,
+            "safetyCarPhase": 0,
+            "presentedTime": 20.325000762939453
+          },
+          {
+            "tick": 2811,
+            "time": 23.424999237060547,
+            "s": 40.39763641357422,
+            "progressM": 43.41588592529297,
+            "speed": 12.206241607666016,
+            "airborne": false,
+            "airTime": 0,
+            "landingSpeed": 0,
+            "landingPitch": 0,
+            "safetyCarPhase": 0,
+            "presentedTime": 22.308332443237305
+          },
+          {
+            "tick": 2915,
+            "time": 24.29166603088379,
+            "s": 50.95802688598633,
+            "progressM": 53.97627639770508,
+            "speed": 12.206841468811035,
+            "airborne": false,
+            "airTime": 0,
+            "landingSpeed": 0,
+            "landingPitch": 0,
+            "safetyCarPhase": 0,
+            "presentedTime": 22.308332443237305
+          },
+          {
+            "tick": 3009,
+            "time": 25.075000762939453,
+            "s": 60.43802261352539,
+            "progressM": 63.45627212524414,
+            "speed": 12.20529556274414,
+            "airborne": false,
+            "airTime": 0,
+            "landingSpeed": 0,
+            "landingPitch": 0,
+            "safetyCarPhase": 0,
+            "presentedTime": 22.308332443237305
+          },
+          {
+            "tick": 3160,
+            "time": 26.33333396911621,
+            "s": 71.87629699707031,
+            "progressM": 74.89454650878906,
+            "speed": 6.031155109405518,
+            "airborne": false,
+            "airTime": 0,
+            "landingSpeed": 0,
+            "landingPitch": 0,
+            "safetyCarPhase": 0,
+            "presentedTime": 25.075000762939453
+          },
+          {
+            "tick": 3233,
+            "time": 26.941667556762695,
+            "s": 75.02132415771484,
+            "progressM": 78.0395736694336,
+            "speed": 5.22645902633667,
+            "airborne": false,
+            "airTime": 0,
+            "landingSpeed": 0,
+            "landingPitch": 0,
+            "safetyCarPhase": 0,
+            "presentedTime": 25.075000762939453
+          },
+          {
+            "tick": 3326,
+            "time": 27.71666717529297,
+            "s": 79.02264404296875,
+            "progressM": 82.0408935546875,
+            "speed": 5.380595684051514,
+            "airborne": false,
+            "airTime": 0,
+            "landingSpeed": 0,
+            "landingPitch": 0,
+            "safetyCarPhase": 0,
+            "presentedTime": 27.59166717529297
+          },
+          {
+            "tick": 3420,
+            "time": 28.5,
+            "s": 83.40216064453125,
+            "progressM": 86.42041015625,
+            "speed": 5.769130229949951,
+            "airborne": false,
+            "airTime": 0,
+            "landingSpeed": 0,
+            "landingPitch": 0,
+            "safetyCarPhase": 0,
+            "presentedTime": 27.59166717529297
+          },
+          {
+            "tick": 3543,
+            "time": 29.524999618530273,
+            "s": 88.62788391113281,
+            "progressM": 91.64613342285156,
+            "speed": 6.305396556854248,
+            "airborne": false,
+            "airTime": 0,
+            "landingSpeed": 0,
+            "landingPitch": 0,
+            "safetyCarPhase": 0,
+            "presentedTime": 29.441667556762695
+          },
+          {
+            "tick": 3613,
+            "time": 30.108333587646484,
+            "s": 93.0773696899414,
+            "progressM": 96.09561920166016,
+            "speed": 8.761836051940918,
+            "airborne": false,
+            "airTime": 0,
+            "landingSpeed": 0,
+            "landingPitch": 0,
+            "safetyCarPhase": 0,
+            "presentedTime": 29.441667556762695
+          },
+          {
+            "tick": 3648,
+            "time": 30.399999618530273,
+            "s": 95.4649887084961,
+            "progressM": 98.48323822021484,
+            "speed": 8.50430679321289,
+            "airborne": false,
+            "airTime": 0,
+            "landingSpeed": 0,
+            "landingPitch": 0,
+            "safetyCarPhase": 0,
+            "presentedTime": 29.441667556762695
+          },
+          {
+            "tick": 3696,
+            "time": 30.799999237060547,
+            "s": 99.16116333007812,
+            "progressM": 102.17941284179688,
+            "speed": 7.40988826751709,
+            "airborne": false,
+            "airTime": 0,
+            "landingSpeed": 0,
+            "landingPitch": 0,
+            "safetyCarPhase": 0,
+            "presentedTime": 30.600000381469727
+          },
+          {
+            "tick": 3720,
+            "time": 31,
+            "s": 100.68067169189453,
+            "progressM": 103.69892120361328,
+            "speed": 6.637245178222656,
+            "airborne": false,
+            "airTime": 0,
+            "landingSpeed": 0,
+            "landingPitch": 0,
+            "safetyCarPhase": 0,
+            "presentedTime": 30.600000381469727
+          },
+          {
+            "tick": 3862,
+            "time": 32.18333435058594,
+            "s": 109.92118835449219,
+            "progressM": 112.93943786621094,
+            "speed": 4.912646293640137,
+            "airborne": false,
+            "airTime": 0,
+            "landingSpeed": 0,
+            "landingPitch": 0,
+            "safetyCarPhase": 0,
+            "presentedTime": 30.600000381469727
+          },
+          {
+            "tick": 3967,
+            "time": 33.05833435058594,
+            "s": 114.26309204101562,
+            "progressM": 117.28134155273438,
+            "speed": 4.873798370361328,
+            "airborne": false,
+            "airTime": 0,
+            "landingSpeed": 0,
+            "landingPitch": 0,
+            "safetyCarPhase": 0,
+            "presentedTime": 30.600000381469727
+          },
+          {
+            "tick": 4077,
+            "time": 33.974998474121094,
+            "s": 118.93547821044922,
+            "progressM": 121.95372772216797,
+            "speed": 5.686973571777344,
+            "airborne": false,
+            "airTime": 0,
+            "landingSpeed": 0,
+            "landingPitch": 0,
+            "safetyCarPhase": 0,
+            "presentedTime": 33.375
+          },
+          {
+            "tick": 4557,
+            "time": 37.974998474121094,
+            "s": 140.3200225830078,
+            "progressM": 143.33827209472656,
+            "speed": 3.8964903354644775,
+            "airborne": true,
+            "airTime": 0.3375000059604645,
+            "landingSpeed": 0,
+            "landingPitch": 0,
+            "safetyCarPhase": 0,
+            "presentedTime": 33.375
+          },
+          {
+            "tick": 4651,
+            "time": 38.75833511352539,
+            "s": 143.7313232421875,
+            "progressM": 146.74957275390625,
+            "speed": 4.967242240905762,
+            "airborne": false,
+            "airTime": 0.46666666865348816,
+            "landingSpeed": 4.384661674499512,
+            "landingPitch": -0.6289768815040588,
+            "safetyCarPhase": 0,
+            "presentedTime": 38.141666412353516
+          },
+          {
+            "tick": 4741,
+            "time": 39.50833511352539,
+            "s": 146.53416442871094,
+            "progressM": 149.5524139404297,
+            "speed": 4.093099594116211,
+            "airborne": false,
+            "airTime": 0.46666666865348816,
+            "landingSpeed": 4.384661674499512,
+            "landingPitch": -0.6289768815040588,
+            "safetyCarPhase": 0,
+            "presentedTime": 38.141666412353516
+          },
+          {
+            "tick": 4813,
+            "time": 40.108333587646484,
+            "s": 148.87290954589844,
+            "progressM": 151.8911590576172,
+            "speed": 3.8896188735961914,
+            "airborne": true,
+            "airTime": 0.5541666746139526,
+            "landingSpeed": 4.384661674499512,
+            "landingPitch": -0.6289768815040588,
+            "safetyCarPhase": 0,
+            "presentedTime": 38.141666412353516
+          }
+        ],
+        "maxAirTimeLimit": "Maximum recorded air time may belong to a different or still-active flight than the first recorded touchdown; it is not substituted for that touchdown record."
+      },
+      "renderedRiding": {
+        "presentedTimeSeconds": 38.141666412353516,
+        "frames": 70,
+        "cameraAtRiddenSample": "chase",
+        "presentedCameraAtRiddenSample": "chase",
+        "renderPixels": [
+          720,
+          450
+        ],
+        "reportedFrameFiniteAssertionPassed": true
+      },
+      "cameraAndPause": {
+        "chaseCaptureCompleted": true,
+        "cockpitSwitchAssertionPassed": true,
+        "onboardCaptureCompleted": true,
+        "pauseMenuVisible": true,
+        "pauseAcknowledged": true,
+        "pausedWorkerTick": 6769,
+        "tickHeldAcrossPauseCapture": true,
+        "pauseCaptureCompleted": true,
+        "basis": "Passed camera, pause acknowledgement, workerPause.paused and unchanged-tick assertions plus attached screenshots."
+      },
+      "returnToPaddock": {
+        "completed": true,
+        "menuVisible": true,
+        "menuPreviewTimeResetToZero": true,
+        "presentationTimeResetToZero": true,
+        "completionLogged": true
+      },
+      "softwareRendererSnapshot": {
+        "fps": 0.13968586700116473,
+        "frameMs": 7158.920379480208,
+        "gpuMilliseconds": 23105.021161,
+        "renderCPUms": 2703.7512122293642,
+        "drawCalls": 371,
+        "triangles": 2654060,
+        "textures": 414,
+        "geometries": 1545
+      }
+    }
+  ],
+  "errorsAndWarnings": {
+    "playwrightReportErrors": [],
+    "testResultErrors": [],
+    "pageAndConsoleErrorsCollectedByTest": 0,
+    "errorCountBasis": "The unchanged final expect(errors).toEqual([]) completed before the combined JSON attachment was emitted.",
+    "traceConsoleErrorEvents": 0,
+    "tracePageErrorEvents": 0,
+    "traceContextLossEvents": 0,
+    "traceScanScope": "Scanned every .trace JSON event; console/event messages were checked for context-lost signals. No broader driver-health claim is made.",
+    "warnings": [
+      "Node reported that FORCE_COLOR overrides NO_COLOR.",
+      "Playwright labelled the 16.4-minute test file slow; the whole run took 1042738.36 ms."
+    ]
+  },
+  "evidence": {
+    "report": {
+      "file": "final-gameplay-tests.json",
+      "bytes": 606384,
+      "sha256": "87c4684958a0e28d3525f3fefcb998ab9ae9b3dc3752b444616e6c14f8fbfadb"
+    },
+    "runLog": {
+      "file": "final-gameplay-browser.log",
+      "bytes": 2139,
+      "sha256": "e41141f489f96596c1bbaef182b4db777949ac3ca56233e85c0759ed6b7f37f6"
+    },
+    "trace": {
+      "file": "final-gameplay-results/45-motocross-gameplay-real-52ab8-eras-pause-and-venue-switch/trace.zip",
+      "bytes": 45826971,
+      "sha256": "0822807cf67ce63cf4ed96398e2d0fb4717e184230d80a761f32b61ecde70c21"
+    },
+    "traceEventCounts": {
+      "context-options": 2,
+      "before": 628,
+      "after": 628,
+      "stdout": 23,
+      "event": 1,
+      "frame-snapshot": 405,
+      "log": 253,
+      "screencast-frame": 183,
+      "input": 13
+    },
+    "decodedJsonAttachments": [
+      {
+        "attachment": "valley-ridge-mx-journey.json",
+        "encodingInReport": "base64",
+        "decodedBytes": 102474,
+        "decodedSha256": "2e528b712edabf6570934e1a3ccbc31fd7008318347c1f2878268096ff9255b9"
+      },
+      {
+        "attachment": "arena-nord-sx-journey.json",
+        "encodingInReport": "base64",
+        "decodedBytes": 99144,
+        "decodedSha256": "d27b252fee9adf9c13d77d0a715e3f539350d5e5f725cc640593527de600a248"
+      },
+      {
+        "attachment": "motocross-production-journey.json",
+        "encodingInReport": "base64",
+        "decodedBytes": 241315,
+        "decodedSha256": "5777322ce26d59c1bc80d51cba3417a420a0ff3ed6dc1da9adb6325392454775"
+      }
+    ],
+    "originalPngAttachments": [
+      {
+        "attachment": "valley-ridge-mx-actual-menu.png",
+        "file": "final-gameplay-results/45-motocross-gameplay-real-52ab8-eras-pause-and-venue-switch/attachments/valley-ridge-mx-actual-menu-png-6b0ecbca89101f511b5e7852d2ceed0fd2710530.png",
+        "bytes": 328850,
+        "sha256": "6f5ea378fe88f289d1fd20ace99ca8f2666bc17c9027ff920f063c9a5fd8a58f",
+        "pixels": [
+          960,
+          600
+        ]
+      },
+      {
+        "attachment": "valley-ridge-mx-actual-gate.png",
+        "file": "final-gameplay-results/45-motocross-gameplay-real-52ab8-eras-pause-and-venue-switch/attachments/valley-ridge-mx-actual-gate-png-679519148a7b0532585fe2c3c04812f10d6dcee4.png",
+        "bytes": 662534,
+        "sha256": "36b2411c6491dd880f3ac70a77990ca4a45760e99edb3a2e81de9c35728bc261",
+        "pixels": [
+          960,
+          600
+        ]
+      },
+      {
+        "attachment": "valley-ridge-mx-actual-weight-back.png",
+        "file": "final-gameplay-results/45-motocross-gameplay-real-52ab8-eras-pause-and-venue-switch/attachments/valley-ridge-mx-actual-weight-back-png-61201946b5bb5cc3dfe672cd8544f98b9ea2d7ef.png",
+        "bytes": 601733,
+        "sha256": "dd5be1fa97afc4e4eb6c055e698ee0d32849d15b02cbd2a7a43bd59dbc8f8472",
+        "pixels": [
+          960,
+          600
+        ]
+      },
+      {
+        "attachment": "valley-ridge-mx-actual-chase.png",
+        "file": "final-gameplay-results/45-motocross-gameplay-real-52ab8-eras-pause-and-venue-switch/attachments/valley-ridge-mx-actual-chase-png-58c65fd4c274748d8ced641b5904ef3e8a079911.png",
+        "bytes": 632156,
+        "sha256": "a8bfb05fbf272d9464a1e3ce2c6e331bc200192b5ac47c2be4fe0939881863c0",
+        "pixels": [
+          960,
+          600
+        ]
+      },
+      {
+        "attachment": "valley-ridge-mx-actual-onboard.png",
+        "file": "final-gameplay-results/45-motocross-gameplay-real-52ab8-eras-pause-and-venue-switch/attachments/valley-ridge-mx-actual-onboard-png-5f639d2afbafdfafc53786bf6c1b550136ad9362.png",
+        "bytes": 664798,
+        "sha256": "bd624b11dbed5726be3d36ddb956408abdefe616ad89f4852281a9be98cdb8d3",
+        "pixels": [
+          960,
+          600
+        ]
+      },
+      {
+        "attachment": "valley-ridge-mx-actual-pause.png",
+        "file": "final-gameplay-results/45-motocross-gameplay-real-52ab8-eras-pause-and-venue-switch/attachments/valley-ridge-mx-actual-pause-png-1f720183635cf98efa447d67f886053fe58bf4d4.png",
+        "bytes": 184139,
+        "sha256": "44ac618ec5d2d64372690749455ba01fe1bf5a99e3dafe81b7b16dad9f5ca957",
+        "pixels": [
+          960,
+          600
+        ]
+      },
+      {
+        "attachment": "arena-nord-sx-actual-menu.png",
+        "file": "final-gameplay-results/45-motocross-gameplay-real-52ab8-eras-pause-and-venue-switch/attachments/arena-nord-sx-actual-menu-png-77853133976c14f8f242cbe575b08af6b2aaf2f0.png",
+        "bytes": 587011,
+        "sha256": "fb592cdb73135a516f14386a63ac40f05cabeaeecdffc6716c4eb6a1e9e333a2",
+        "pixels": [
+          960,
+          600
+        ]
+      },
+      {
+        "attachment": "arena-nord-sx-actual-gate.png",
+        "file": "final-gameplay-results/45-motocross-gameplay-real-52ab8-eras-pause-and-venue-switch/attachments/arena-nord-sx-actual-gate-png-ccc6d3de7bdf1813e9e15e96369a44f13e916c10.png",
+        "bytes": 662975,
+        "sha256": "b5009c46fc34b2b79da51e93ddaa88c7f599289e06a014a7973bf542043029e1",
+        "pixels": [
+          960,
+          600
+        ]
+      },
+      {
+        "attachment": "arena-nord-sx-actual-weight-back.png",
+        "file": "final-gameplay-results/45-motocross-gameplay-real-52ab8-eras-pause-and-venue-switch/attachments/arena-nord-sx-actual-weight-back-png-12b78ae1cb3a87bb5eda1268ffb95e9765aaed4d.png",
+        "bytes": 606528,
+        "sha256": "c6c759c4579e0d48ec06b4c377fd8a3b62ed2ab88e8db43aff4920d6f8e189e8",
+        "pixels": [
+          960,
+          600
+        ]
+      },
+      {
+        "attachment": "arena-nord-sx-actual-chase.png",
+        "file": "final-gameplay-results/45-motocross-gameplay-real-52ab8-eras-pause-and-venue-switch/attachments/arena-nord-sx-actual-chase-png-65bc55cca3943f36e73a46225e77c15a83c4d9ac.png",
+        "bytes": 595873,
+        "sha256": "be9250af3c8fa3c77e0fb9fa610d735cadaf7d6d803203de9fdad038dcbd4221",
+        "pixels": [
+          960,
+          600
+        ]
+      },
+      {
+        "attachment": "arena-nord-sx-actual-onboard.png",
+        "file": "final-gameplay-results/45-motocross-gameplay-real-52ab8-eras-pause-and-venue-switch/attachments/arena-nord-sx-actual-onboard-png-a3fb08ac787978eeacab3f41e4aaf68ad5d4490a.png",
+        "bytes": 589800,
+        "sha256": "5431ba1187389d360e670d4feb3a3b8d10b45ce274e7f5105eadb8d1f5a8d510",
+        "pixels": [
+          960,
+          600
+        ]
+      },
+      {
+        "attachment": "arena-nord-sx-actual-pause.png",
+        "file": "final-gameplay-results/45-motocross-gameplay-real-52ab8-eras-pause-and-venue-switch/attachments/arena-nord-sx-actual-pause-png-4ad46fdd3bd64e2e61e672488f89a0dcc667a633.png",
+        "bytes": 178608,
+        "sha256": "70f5da28ba691c37148f5eee1acaf93b42e597f68357115ed30333d31c82ccf4",
+        "pixels": [
+          960,
+          600
+        ]
+      }
+    ],
+    "handling": "Embedded JSON was decoded internally. The receipt retains compact telemetry and attachment hashes; large raw frame arrays and renderer payloads remain in the original report/trace."
+  },
+  "earlierFailure": {
+    "receipt": "preintegration-gameplay.json",
+    "receiptHash": "a5731bade412907e280a3134db4b2a6d3600d84c3dfa5cd8c97bb8b12faa9bf6",
+    "status": "failed",
+    "viewportPixels": [
+      1440,
+      900
+    ],
+    "sourceBoundary": "54c886d / 6d6a739e1de29593f9f5262c46f655edb73530a5ad2b3239f043f592c6e47b7d",
+    "failure": "Arena chase screenshot timed out after 60000 ms after its riding assertions completed.",
+    "resolution": "Unresolved causal explanation. This successful later run used a different source boundary and smaller viewport; it does not prove that resolution fixed the earlier timeout."
+  },
+  "limits": [
+    "The test checks ordinary player body/throttle input, then hands riding to the explicitly enabled G-key AI demonstration. It is not a manual full-lap test.",
+    "Recorded course progress and touchdown are functional observations; they do not establish complete race balance, subjective enjoyment or physically measured biomechanics.",
+    "The Low-quality Mesa/llvmpipe run and its software-renderer timings do not establish high-quality or physical-hardware frame rate.",
+    "Only the tested 3410e58/ce20e4 boundary is covered here. Later GP/shared-rider integration has separate source/test/build evidence."
+  ]
+}

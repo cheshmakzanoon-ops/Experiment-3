@@ -14,6 +14,7 @@ import {
   type BikePoseValues,
 } from '../bike.ts';
 import { liveryScheme } from '../car-livery.ts';
+import { tagWeatherSurface } from '../weather-presentation.ts';
 import { Rider, type RiderDetail } from '../rider.ts';
 import { installMudOn, tagMudExposure, type MudUniforms } from './mud.ts';
 import { forkLocalOffset } from '../bike-pit-service.ts';
@@ -21,6 +22,7 @@ import { batchBikeRigidMeshes } from '../bike-rigid-batch.ts';
 import { MotocrossChainDrive } from './motocross-chain-drive.ts';
 import { addMotocrossRadiators } from './motocross-radiators.ts';
 import { motocrossWheelHub, motocrossWheelSpokes } from './motocross-wheel-detail.ts';
+import { installMotocrossMetalFinish } from './motocross-metal-finish.ts';
 import {
   addMotocrossPowertrain,
   motocrossAxleLug,
@@ -74,6 +76,9 @@ export class DirtBikeModel {
   readonly onboardControls = new T.Group();
   private readonly steerMount = new T.Group();
   private readonly steer = new T.Group();
+  /** Real right-hand lever pivot. The clutch remains unactuated: the current
+   * presented bike-pose contract has no clutch channel. */
+  private readonly frontBrakeLever = new T.Group();
   private readonly forkLower = new T.Group();
   private readonly frontSpin = new T.Group();
   private readonly rearWheel = new T.Group();
@@ -176,21 +181,32 @@ export class DirtBikeModel {
     const castMaterial = supermoto
       ? this.m.aluminium
       : new T.MeshStandardMaterial({
-          color: 0xa5a49d,
-          metalness: 0.72,
-          roughness: 0.53,
+          color: 0x92938d,
+          metalness: 0.78,
+          roughness: 0.59,
           name: 'Motocross cast aluminium water-cooled engine',
         });
     const magnesiumMaterial = supermoto
       ? this.m.dark
       : new T.MeshStandardMaterial({
-          color: 0x69665f,
-          metalness: 0.68,
-          roughness: 0.48,
+          color: 0x5e5b54,
+          metalness: 0.66,
+          roughness: 0.56,
           name: 'Motocross magnesium engine cover',
         });
     this.plastics.push(shroudMaterial, rimMaterial, rotorMaterial, chainMaterial, tyreMaterial);
-    if (!supermoto) this.plastics.push(castMaterial, magnesiumMaterial);
+    if (!supermoto) {
+      this.plastics.push(castMaterial, magnesiumMaterial);
+      // Engine cases are partly sheltered by the shrouds and frame. Use the
+      // existing recorded-weather response with an authored exposure, while
+      // deposited mud continues to come from this entrant's own coat state.
+      tagWeatherSurface(castMaterial, 'metal', 0.4);
+      tagWeatherSurface(magnesiumMaterial, 'metal', 0.4);
+    }
+    if (!supermoto && detail !== 'far') {
+      installMotocrossMetalFinish(castMaterial, 'aluminium');
+      installMotocrossMetalFinish(magnesiumMaterial, 'magnesium');
+    }
     if (detail !== 'far')
       for (const material of [primary, dark, board, shroudMaterial])
         installMotocrossPlasticFinish(material);
@@ -366,24 +382,38 @@ export class DirtBikeModel {
       this.gripLocal[side > 0 ? 0 : 1].set(side * 0.36, barY, barZ);
       controlSight(`Motocross ${side > 0 ? 'left' : 'right'} grip`, side * 0.36, barY, barZ);
       if (detail === 'high') {
+        // The inboard end is the pivot, not the centre of the blade. Keep the
+        // terminal ball and blade in this same articulation boundary so they
+        // remain joined when the recorded front brake pulls the lever in.
+        const leverParent = side < 0 ? this.frontBrakeLever : this.steer;
+        if (side < 0) {
+          this.frontBrakeLever.name = 'Motocross front brake lever pivot';
+          this.frontBrakeLever.position.set(
+            side * (0.3 - Math.cos(0.25) * 0.07),
+            barY - 0.01,
+            barZ + 0.07 + Math.sin(0.25) * 0.07,
+          );
+          this.frontBrakeLever.rotation.y = -0.25;
+          this.steer.add(this.frontBrakeLever);
+        }
         const lever = add(
-          this.steer,
+          leverParent,
           new RoundedBoxGeometry(0.14, 0.008, 0.016, 2, 0.004),
           this.m.aluminium,
-          side * 0.3,
-          barY - 0.01,
-          barZ + 0.07,
+          side < 0 ? side * 0.07 : side * 0.3,
+          side < 0 ? 0 : barY - 0.01,
+          side < 0 ? 0 : barZ + 0.07,
         );
-        lever.rotation.y = side * 0.25;
+        lever.rotation.y = side < 0 ? 0 : side * 0.25;
         // Join the ball to the actual outer blade endpoint after its yaw.
         // An independent forward offset leaves a visible gap from the cockpit.
         add(
-          this.steer,
+          leverParent,
           new T.SphereGeometry(0.006, 8, 6),
           this.m.aluminium,
-          side * (0.3 + Math.cos(0.25) * 0.07),
-          barY - 0.01,
-          barZ + 0.07 - Math.sin(0.25) * 0.07,
+          side < 0 ? side * 0.14 : side * (0.3 + Math.cos(0.25) * 0.07),
+          side < 0 ? 0 : barY - 0.01,
+          side < 0 ? 0 : barZ + 0.07 - Math.sin(0.25) * 0.07,
         );
         add(
           this.steer,
@@ -1075,6 +1105,7 @@ export class DirtBikeModel {
     for (const group of [
       this.sprung,
       this.steer,
+      this.frontBrakeLever,
       this.forkLower,
       this.frontSpin,
       this.rearSpin,
@@ -1096,6 +1127,10 @@ export class DirtBikeModel {
     this.sprung.position.set(0, 0, 0);
     this.sprung.quaternion.identity();
     this.steer.rotation.y = v.steer;
+    // The rear pedal has its own input; it must not squeeze the front lever.
+    // This direct snapshot mapping also holds still on pause and rewinds
+    // exactly without a presentation-only animation clock.
+    this.frontBrakeLever.rotation.y = -0.25 - T.MathUtils.clamp(v.brake, 0, 1) * 0.2;
     // The off-road adapter records vertical wheel travel, not piston travel.
     // Convert it to the raked telescope's stroke; steering around that axis
     // must not change its extension or produce another chassis displacement.
@@ -1142,6 +1177,22 @@ export class DirtBikeModel {
       this.matrix.multiplyMatrices(this.steerMount.matrix, this.steer.matrix);
       for (let i = 0; i < 2; i++)
         this.rider.grips[i].copy(this.gripLocal[i]).applyMatrix4(this.matrix);
+      // Read the authoritative rendered chassis frame once for gaze.
+      // Suspension travel separately drives the rider's compression response.
+      this.scratch.set(0, 0, 1).applyQuaternion(this.root.quaternion);
+      const chassisPitch = -Math.asin(T.MathUtils.clamp(this.scratch.y, -1, 1));
+      const compression =
+        (T.MathUtils.clamp(
+          (v.fork - this.sag.fork) / Math.max(0.01, b.forkTravel - this.sag.fork),
+          0,
+          1,
+        ) +
+          T.MathUtils.clamp(
+            (v.shock - this.sag.shock) / Math.max(0.01, b.shockTravel - this.sag.shock),
+            0,
+            1,
+          )) *
+        0.5;
       this.rider.ride({
         lean: v.chassisLean,
         offset: v.riderOffset * 0.4,
@@ -1151,6 +1202,8 @@ export class DirtBikeModel {
         standing: v.standing ?? 0,
         dab: v.dab ?? 0,
         body: v.body ?? 0,
+        chassisPitch,
+        compression,
       });
     }
   }

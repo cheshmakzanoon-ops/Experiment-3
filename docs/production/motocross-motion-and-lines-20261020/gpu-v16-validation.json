@@ -1,0 +1,469 @@
+{
+  "schemaVersion": 1,
+  "status": "passed",
+  "processExitCode": 0,
+  "testedBoundary": {
+    "baseCommit": "ca9e09861a7fa8b5dfc73dda7b5fad626294512d",
+    "simulationVersion": 16,
+    "sourceFingerprint": "d4bc1b881f2e2c81ceff1adce8f30824df7ef3615ad29eb05904cebc9050ff27",
+    "sourceManifestSha256": "529c614989fa2021574360da03b45348cf9fbd47ff54b86e480e16c07191ad75",
+    "recordedSourceHashCount": 22,
+    "allRecordedSourceHashesMatchBeforeAndAfter": true,
+    "sourceManifestUnchangedDuringRun": true,
+    "selectedSourceSha256": {
+      "e2e/42-motocross-bike.spec.ts": "b366383503bd3c6fc7156ae7d34833f3c132b03e658366f981c95602288c8a2a",
+      "e2e/fixtures/motocross-bike-review.ts": "1412c81557ea275f659cacd1686d4d2a14e11bf1049d932d804094a201194192",
+      "e2e/fixtures/motocross-cockpit-contract.ts": "4433e2cadbfe000aeff6e773ee9a7e868604bcadf62a5dbaac3b8ba91cdc2c08",
+      "scripts/browser-backend-setup.ts": "b2a7cf39d52d4353e845319a3ce562e50f4003aaea1c9762e119e2a1f1eec769",
+      "scripts/browser-backend.ts": "66022b027020928f169549b661bf27c366359c62efe04b7ca1d108335c3feaed",
+      "src/rendering/offroad/dirt-bike-model.ts": "5e1ea151e6bf52cdf0855920c246cf792fc1c1b2d1d25a4234938be3a2ad969f",
+      "src/rendering/rider.ts": "e23aa0ae45bf9d438f8e4b4d7c905e76131f3ebf6e25417e6c7e5429fcfe4067",
+      ".mx-v16-gpu.config.ts": "d2aeb40999482b131edd1502a2254a667e7240d687dc4eb8056bebb97257621b"
+    }
+  },
+  "scope": "Three unchanged e2e/42 production DirtBikeModel inspection contracts. The fixture is compiled in memory with Vite and loaded with page.setContent; no application server, live race worker or track traversal is exercised by this run.",
+  "runtime": {
+    "viewport": {
+      "width": 1280,
+      "height": 800
+    },
+    "captureResolution": {
+      "width": 1280,
+      "height": 800
+    },
+    "workers": 1,
+    "retries": 0,
+    "caseTimeoutMs": 300000,
+    "expectTimeoutMs": 60000,
+    "headless": true,
+    "backend": {
+      "requested": "swiftshader",
+      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "vendor": "Google Inc. (Google)",
+      "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+      "pixel": [
+        64,
+        128,
+        191,
+        255
+      ],
+      "error": 0,
+      "softwareRendererDetected": true,
+      "physicalHardwareValidated": false
+    },
+    "backendSetup": "scripts/browser-backend-setup.ts",
+    "launchArgs": [
+      "--use-gl=angle",
+      "--use-angle=swiftshader",
+      "--enable-unsafe-swiftshader"
+    ],
+    "configuration": ".mx-v16-gpu.config.ts",
+    "temporaryDirectory": "/dev/shm/mx-2f46-validation/v16-gpu-tmp",
+    "serverRequired": false
+  },
+  "execution": {
+    "command": [
+      "node",
+      "node_modules/@playwright/test/cli.js",
+      "test",
+      "e2e/42-motocross-bike.spec.ts",
+      "--config",
+      ".mx-v16-gpu.config.ts",
+      "--grep",
+      "Motocross mx250: production high/mid/far geometry and LOD budgets$|Motocross mx450: production onboard visibility and contacts$|Motocross MX450: suspension absorption, gaze and lever are reversible on the production rig$"
+    ],
+    "startedAt": "2026-10-20T08:28:14.240277+00:00",
+    "completedAt": "2026-10-20T08:36:11.266163+00:00",
+    "processWallSeconds": 477.0262262620017,
+    "playwrightStats": {
+      "startTime": "2026-10-20T08:31:37.441Z",
+      "duration": 273735.13100000005,
+      "expected": 3,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "cases": [
+      {
+        "title": "Motocross mx250: production high/mid/far geometry and LOD budgets",
+        "status": "passed",
+        "durationMs": 176812,
+        "retry": 0,
+        "errors": []
+      },
+      {
+        "title": "Motocross mx450: production onboard visibility and contacts",
+        "status": "passed",
+        "durationMs": 27480,
+        "retry": 0,
+        "errors": []
+      },
+      {
+        "title": "Motocross MX450: suspension absorption, gaze and lever are reversible on the production rig",
+        "status": "passed",
+        "durationMs": 51516,
+        "retry": 0,
+        "errors": []
+      }
+    ],
+    "captureCount": 10,
+    "reportErrors": [],
+    "pageAndConsoleErrorAssertion": "The original fixture teardown assertion passed for each of the three cases.",
+    "warnings": [
+      "Node reported that NO_COLOR is ignored while FORCE_COLOR is set."
+    ],
+    "earlierSelectionAttempt": {
+      "processExitCode": 1,
+      "reason": "The initial CLI grep anchored the case title at the start of Playwright full titles, so no tests were selected. Backend verification passed; no test case executed.",
+      "correction": "Removed only the leading title anchors, verified exactly three selected cases with --list, then ran unchanged tests/configuration. This is a preserved command selection failure, not a passing or retried test.",
+      "process": {
+        "path": "/dev/shm/mx-2f46-validation/v16-gpu-selection-attempt/v16-gpu-process.json",
+        "bytes": 1261,
+        "sha256": "3b58f4ef3c2b83c22a1311790d50ec0aac3e56ff4f4688408aaf56d1072b06b5"
+      },
+      "log": {
+        "path": "/dev/shm/mx-2f46-validation/v16-gpu-selection-attempt/v16-gpu-browser.log",
+        "bytes": 294,
+        "sha256": "0e75ef06ee23faf4853bcb66cf6373c12785fcfcacfa4e8cb152b3af851e11b9"
+      }
+    }
+  },
+  "contracts": {
+    "allTenCaptures": {
+      "finiteGeometry": true,
+      "glError": 0,
+      "nonzeroPixelHashes": true,
+      "maxDrawCalls": 75,
+      "drawCallLimitExclusive": 200,
+      "maxModelTriangles": 129254,
+      "modelTriangleLimitExclusive": 130000,
+      "minBoundsY": -0.0008076482958452313,
+      "minBoundsYLimitExclusive": -0.006,
+      "maxHandErrorM": 0.020000000000000087,
+      "maxAnkleErrorM": 0.0200000000000003,
+      "contactLimitExclusiveM": 0.03,
+      "contactInterpretation": "The approximately 0.02 m errors are the model deliberate wrist/ankle inset; these are reachable contact checks, not zero-error contacts.",
+      "chainCountsWherePresent": [
+        96,
+        192
+      ],
+      "chainTransformsFiniteWherePresent": true
+    },
+    "mx250LOD": {
+      "detailOrder": [
+        "high",
+        "mid",
+        "far"
+      ],
+      "modelTriangles": [
+        129254,
+        63016,
+        11764
+      ],
+      "strictlyDecreasing": true
+    },
+    "mx450Onboard": {
+      "poseCount": 3,
+      "headAndTorsoHiddenAllPoses": true,
+      "bothHandsVisibleAllPoses": true,
+      "visibleControlsEachPose": 3,
+      "clearForwardSamplesEachPose": 15,
+      "sleeveAndControlProjectionAssertions": "passed unchanged"
+    },
+    "mx450ReversibleMotion": {
+      "sequence": [
+        "relaxed",
+        "compressed",
+        "compressed",
+        "relaxed"
+      ],
+      "fixturePose": {
+        "standing": 1,
+        "body": 0.35,
+        "pitchRadians": 0.22,
+        "elevationM": 0.3,
+        "compressedForkOffsetM": 0.13,
+        "compressedShockOffsetM": 0.13,
+        "compressedBrake": 0.8
+      },
+      "interpretation": "Controlled elevated pose at 0.3 m, not a simulated landing.",
+      "pelvisDropM": 0.039965892208600584,
+      "frontLeverPullRadians": 0.16000000000000003,
+      "helmetForwardEachPose": [
+        [
+          0,
+          -0.341394372847074,
+          0.9399201467084068
+        ],
+        [
+          0,
+          -0.341394372847074,
+          0.9399201467084068
+        ],
+        [
+          0,
+          -0.341394372847074,
+          0.9399201467084068
+        ],
+        [
+          0,
+          -0.341394372847074,
+          0.9399201467084068
+        ]
+      ],
+      "pixelHashSequence": [
+        1321544350,
+        2264921396,
+        2264921396,
+        1321544350
+      ],
+      "sameProductionInstance": true,
+      "resourcesUnchangedAcrossSequence": true,
+      "resources": {
+        "geometries": 87,
+        "textures": 28,
+        "programs": 22
+      },
+      "repeatedAndRewoundMotionIdentical": true,
+      "repeatedAndRewoundPngBytesIdentical": true
+    }
+  },
+  "captures": [
+    {
+      "name": "mx250-high",
+      "originalPng": "v16-gpu-results/42-motocross-bike-Motocros-edb14-ar-geometry-and-LOD-budgets/mx250-high.png",
+      "pngSha256": "f8f4f9d609257e86fe83150db3cd34ea550605035d621cdae96b87a2264633a8",
+      "metricsSha256": "5e85cd39e34f6a2fec6c53a2e87c03c70c8b40976a3e47ed70eff401357223a8",
+      "pixelHash": 551936144,
+      "triangles": 129254,
+      "submittedTriangles": 129256,
+      "drawCalls": 75,
+      "resources": {
+        "geometries": 87,
+        "textures": 28,
+        "programs": 22
+      },
+      "maxHandErrorM": 0.020000000000000087,
+      "maxAnkleErrorM": 0.020000000000000046
+    },
+    {
+      "name": "mx250-mid",
+      "originalPng": "v16-gpu-results/42-motocross-bike-Motocros-edb14-ar-geometry-and-LOD-budgets/mx250-mid.png",
+      "pngSha256": "cf52a4a6a2fc060249856d5f0ec148836acbbabe3710c690d5b580e2c4cd7803",
+      "metricsSha256": "6cbc0171db792bf74c6f9b8bf4a4c09b18a1eaeb87363e604e8ebb8eed603a9f",
+      "pixelHash": 1821261324,
+      "triangles": 63016,
+      "submittedTriangles": 63018,
+      "drawCalls": 70,
+      "resources": {
+        "geometries": 82,
+        "textures": 28,
+        "programs": 22
+      },
+      "maxHandErrorM": 0.020000000000000087,
+      "maxAnkleErrorM": 0.020000000000000046
+    },
+    {
+      "name": "mx250-far",
+      "originalPng": "v16-gpu-results/42-motocross-bike-Motocros-edb14-ar-geometry-and-LOD-budgets/mx250-far.png",
+      "pngSha256": "506c5c69e67e3394ee7d2778a986eb00d33fb2b5dfc40931e3d2f5854d5207c0",
+      "metricsSha256": "a97a2c1a9a017b40ff94fab11dcca4235aa59eac9731cb9acadaa808099ab409",
+      "pixelHash": 2505759883,
+      "triangles": 11764,
+      "submittedTriangles": 11766,
+      "drawCalls": 45,
+      "resources": {
+        "geometries": 57,
+        "textures": 14,
+        "programs": 15
+      },
+      "maxHandErrorM": 0.020000000000000087,
+      "maxAnkleErrorM": 0.020000000000000046
+    },
+    {
+      "name": "mx450-production-onboard-0",
+      "originalPng": "v16-gpu-results/42-motocross-bike-Motocros-83d1d-ard-visibility-and-contacts/mx450-production-onboard-0.png",
+      "pngSha256": "9255f2e680a668bb950e196af8bae75d55812aa488edbc1b6adf3999cb21986f",
+      "metricsSha256": "ab327452faa759a91327106d64f97c485f1f9f4fc342f13d5d3e1272a9bd33b2",
+      "pixelHash": 1145348868,
+      "triangles": 126154,
+      "submittedTriangles": 63364,
+      "drawCalls": 36,
+      "resources": {
+        "geometries": 79,
+        "textures": 22,
+        "programs": 22
+      },
+      "maxHandErrorM": 0.019999999999999987,
+      "maxAnkleErrorM": 0.020000000000000046
+    },
+    {
+      "name": "mx450-production-onboard-1",
+      "originalPng": "v16-gpu-results/42-motocross-bike-Motocros-83d1d-ard-visibility-and-contacts/mx450-production-onboard-1.png",
+      "pngSha256": "6877d1e916d80f717a35ce35e362b44fa33d12409a5ecae52198c70cbed8e454",
+      "metricsSha256": "14011bb1c17bc2a8c868e07213c164f4850e7f9db9cba5d6441d079d972476bf",
+      "pixelHash": 2867947648,
+      "triangles": 126154,
+      "submittedTriangles": 63364,
+      "drawCalls": 36,
+      "resources": {
+        "geometries": 79,
+        "textures": 22,
+        "programs": 22
+      },
+      "maxHandErrorM": 0.02000000000000005,
+      "maxAnkleErrorM": 0.020000000000000014
+    },
+    {
+      "name": "mx450-production-onboard-2",
+      "originalPng": "v16-gpu-results/42-motocross-bike-Motocros-83d1d-ard-visibility-and-contacts/mx450-production-onboard-2.png",
+      "pngSha256": "897d8e9d4be760008c397f3c116d3f98fef0e6063622fe9f278ecdd28af44072",
+      "metricsSha256": "11df662a8c9dbdf027c035f67eb8088ad248456b68cf1a869342505db6d22ed4",
+      "pixelHash": 234489129,
+      "triangles": 126154,
+      "submittedTriangles": 63364,
+      "drawCalls": 36,
+      "resources": {
+        "geometries": 79,
+        "textures": 22,
+        "programs": 22
+      },
+      "maxHandErrorM": 0.019999999999999983,
+      "maxAnkleErrorM": 0.020000000000000046
+    },
+    {
+      "name": "suspension-motion-0",
+      "originalPng": "v16-gpu-results/42-motocross-bike-Motocros-e904a-sible-on-the-production-rig/suspension-motion-0.png",
+      "pngSha256": "56941cef836dbcf8c2800d53aac60a9d63aaa6428477f4c93626cc1f549ab554",
+      "metricsSha256": "313f9e8bdf26416c072cd2732205d48d07fe09589d4cb2a24e9a5b2e65250ec0",
+      "pixelHash": 1321544350,
+      "triangles": 126154,
+      "submittedTriangles": 126156,
+      "drawCalls": 75,
+      "resources": {
+        "geometries": 87,
+        "textures": 28,
+        "programs": 22
+      },
+      "maxHandErrorM": 0.02000000000000002,
+      "maxAnkleErrorM": 0.020000000000000066
+    },
+    {
+      "name": "suspension-motion-1",
+      "originalPng": "v16-gpu-results/42-motocross-bike-Motocros-e904a-sible-on-the-production-rig/suspension-motion-1.png",
+      "pngSha256": "9fa67ee220cec5fb22e96b1591fb490eb9799137b38ed879c9e81419cc48b862",
+      "metricsSha256": "19a940c32387bae38256ed04fb4e723f80177b5a390acf7062bcaf8813156995",
+      "pixelHash": 2264921396,
+      "triangles": 126154,
+      "submittedTriangles": 126156,
+      "drawCalls": 75,
+      "resources": {
+        "geometries": 87,
+        "textures": 28,
+        "programs": 22
+      },
+      "maxHandErrorM": 0.02,
+      "maxAnkleErrorM": 0.0200000000000003
+    },
+    {
+      "name": "suspension-motion-2",
+      "originalPng": "v16-gpu-results/42-motocross-bike-Motocros-e904a-sible-on-the-production-rig/suspension-motion-2.png",
+      "pngSha256": "9fa67ee220cec5fb22e96b1591fb490eb9799137b38ed879c9e81419cc48b862",
+      "metricsSha256": "19a940c32387bae38256ed04fb4e723f80177b5a390acf7062bcaf8813156995",
+      "pixelHash": 2264921396,
+      "triangles": 126154,
+      "submittedTriangles": 126156,
+      "drawCalls": 75,
+      "resources": {
+        "geometries": 87,
+        "textures": 28,
+        "programs": 22
+      },
+      "maxHandErrorM": 0.02,
+      "maxAnkleErrorM": 0.0200000000000003
+    },
+    {
+      "name": "suspension-motion-3",
+      "originalPng": "v16-gpu-results/42-motocross-bike-Motocros-e904a-sible-on-the-production-rig/suspension-motion-3.png",
+      "pngSha256": "56941cef836dbcf8c2800d53aac60a9d63aaa6428477f4c93626cc1f549ab554",
+      "metricsSha256": "313f9e8bdf26416c072cd2732205d48d07fe09589d4cb2a24e9a5b2e65250ec0",
+      "pixelHash": 1321544350,
+      "triangles": 126154,
+      "submittedTriangles": 126156,
+      "drawCalls": 75,
+      "resources": {
+        "geometries": 87,
+        "textures": 28,
+        "programs": 22
+      },
+      "maxHandErrorM": 0.02000000000000002,
+      "maxAnkleErrorM": 0.020000000000000066
+    }
+  ],
+  "reviewImage": {
+    "path": "rider-compressed-v16.jpg",
+    "bytes": 136481,
+    "sha256": "dde12cbfe73d1253184a401990761afd2f6d853521d3de8bdd64f53784d22437",
+    "originalPng": {
+      "path": "/dev/shm/mx-2f46-validation/v16-gpu-results/42-motocross-bike-Motocros-e904a-sible-on-the-production-rig/suspension-motion-1.png",
+      "bytes": 302524,
+      "sha256": "9fa67ee220cec5fb22e96b1591fb490eb9799137b38ed879c9e81419cc48b862"
+    },
+    "width": 1280,
+    "height": 800,
+    "encoding": {
+      "format": "JPEG",
+      "quality": 94,
+      "subsampling": 0
+    },
+    "pixelContentChanges": "None besides PNG-to-JPEG encoding; no resizing, cropping, retouching or redrawing.",
+    "visualInspection": "Viewed the original compressed-pose PNG and original mx250-high PNG. No claim of inspecting all ten images.",
+    "caption": "MX450 production rig in a controlled compressed suspension pose, elevated 0.3 m above the inspection floor; not a live landing or track screenshot."
+  },
+  "evidence": {
+    "v16-gpu-tests.json": {
+      "path": "/dev/shm/mx-2f46-validation/v16-gpu-tests.json",
+      "bytes": 12683,
+      "sha256": "c10cb668c209193d39909b5f477988d28c8596ea928a3644b6711f7ca908bf38"
+    },
+    "v16-gpu-browser.log": {
+      "path": "/dev/shm/mx-2f46-validation/v16-gpu-browser.log",
+      "bytes": 899,
+      "sha256": "379afdfcad0fcd28f5285dfa3b8b8401e8ba4f43311e2a303d3675ab1faebefe"
+    },
+    "v16-gpu-process.json": {
+      "path": "/dev/shm/mx-2f46-validation/v16-gpu-process.json",
+      "bytes": 1389,
+      "sha256": "b5e182362ad04522ac55121ce9d346becc4ffc83f2f0a93fbcfa3c50bc12a1a4"
+    },
+    "v16-gpu-browser-backend.json": {
+      "path": "/dev/shm/mx-2f46-validation/v16-gpu-browser-backend.json",
+      "bytes": 369,
+      "sha256": "f1537375721c6a9664c673b9545e728c2aff3d053640088891e5324577a93ccf"
+    },
+    "v16-gpu-source-manifest.json": {
+      "path": "/dev/shm/mx-2f46-validation/v16-gpu-source-manifest.json",
+      "bytes": 3164,
+      "sha256": "529c614989fa2021574360da03b45348cf9fbd47ff54b86e480e16c07191ad75"
+    },
+    "v16-gpu-selected-tests.log": {
+      "path": "/dev/shm/mx-2f46-validation/v16-gpu-selected-tests.log",
+      "bytes": 373,
+      "sha256": "64f22652e38c51277af999fa8aef94c9d6f8cc666a7061e0c7174c2bc10adc6f"
+    },
+    "pre-v16-browser-backend.json": {
+      "path": "/dev/shm/mx-2f46-validation/pre-v16-browser-backend.json",
+      "bytes": 325,
+      "sha256": "9ddbe9ad44808a6870cd07050381a6a34e2a1dba36490aa7bd029cec6a6d15ed"
+    }
+  },
+  "limits": [
+    "SwiftShader is a software renderer. This run validates compilation, selected geometric/contact/visibility contracts and reversible pose output; it does not validate physical GPU performance or hardware FPS.",
+    "High/mid/far name model detail levels inside the isolated lit fixture, not the full application graphics presets or photographic parity.",
+    "The posed suspension/gaze sequence does not establish measured human biomechanics, live landing quality or complete replay behavior.",
+    "Only these three existing cases were rerun. Weather/mud-specific browser cases, all venue rendering and full-application gameplay were not rerun for v16.",
+    "gameplay-validation.json remains the historical successful two-venue v15 run at base 3410e58 / fingerprint ce20e4; it is not evidence of a v16 full-application journey.",
+    "The earlier 1440x900 full-application screenshot timeout remains unresolved in preintegration-gameplay.json.",
+    "The original GPU receipt and captures were preserved. The previous Mesa backend receipt was copied before this SwiftShader setup overwrote the ignored browser-backend.json."
+  ]
+}

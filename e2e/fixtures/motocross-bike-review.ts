@@ -12,10 +12,15 @@ export interface MotocrossPoseSample {
   dab?: number;
   body?: number;
   lean?: number;
+  /** Render-frame X angle, positive nose-down. */
+  pitch?: number;
+  /** Height above the fixture floor for controlled airborne-pose inspection. */
+  elevation?: number;
   steer?: number;
   mud?: number;
   wet?: number;
   brake?: number;
+  rearBrake?: number;
   forkOffset?: number;
   shockOffset?: number;
   speed?: number;
@@ -69,12 +74,14 @@ export function captureMotocrossBike(
   scene.add(model.root);
   const camera = new T.PerspectiveCamera(36, 1280 / 800, 0.03, 80);
   if (view === 'side') camera.position.set(3.9, 1.43, 0.06);
+  else if (view === 'motion-side') camera.position.set(4.5, 1.68, 0.06);
   else if (view === 'front') camera.position.set(0.38, 1.5, 4.1);
   else if (view === 'rear') camera.position.set(-2.85, 1.9, -3.5);
   else if (view === 'helmet') camera.position.set(0.75, 1.75, 1.2);
   else if (view === 'drivetrain') camera.position.set(1.45, 0.67, -0.54);
   else camera.position.set(-3.05, 1.72, 3.6);
   camera.lookAt(0, view === 'helmet' ? 1.59 : 0.93, 0);
+  if (view === 'motion-side') camera.lookAt(0, 1.12, 0);
   if (view === 'drivetrain') camera.lookAt(0.095, 0.38, -0.45);
   if (view === 'bodywork') model.rider.root.visible = false;
   let triangles = 0,
@@ -115,6 +122,10 @@ export function captureMotocrossBike(
   };
   try {
     return samples.map((sample, sampleIndex) => {
+      // Production assigns the chassis quaternion before solving the rider.
+      // Keep the inspection fixture on that same ordering: pitch/gaze and
+      // suspension absorption must see the frame that will actually render.
+      model.root.rotation.set(sample.pitch ?? 0, 0, -(sample.lean ?? 0), 'YXZ');
       model.pose({
         fork: sag.fork + (sample.forkOffset ?? 0),
         shock: sag.shock + (sample.shockOffset ?? 0),
@@ -125,7 +136,7 @@ export function captureMotocrossBike(
         riderOffset: 0,
         tuck: 0,
         brake: sample.brake ?? 0,
-        rearBrake: 0,
+        rearBrake: sample.rearBrake ?? 0,
         discTemp: 0,
         compoundColour: 0xffffff,
         riding: true,
@@ -135,10 +146,10 @@ export function captureMotocrossBike(
         mud: sample.mud ?? 0,
         mudWet: sample.wet ?? 0,
       });
-      model.root.rotation.z = -(sample.lean ?? 0);
       model.root.position.y =
         def.bike!.cgHeight * Math.cos(sample.lean ?? 0) +
-        0.045 * Math.sin(Math.abs(sample.lean ?? 0));
+        0.045 * Math.sin(Math.abs(sample.lean ?? 0)) +
+        (sample.elevation ?? 0);
       model.rider.setFirstPerson(view === 'onboard', true);
       if (view === 'onboard') {
         const direction = new T.Vector3();
@@ -186,6 +197,18 @@ export function captureMotocrossBike(
         submittedTriangles: renderer.info.render.triangles,
         finiteGeometry,
         contacts,
+        motion: {
+          pelvis: model.rider.root.getObjectByName('Rider torso')!.position.toArray(),
+          helmetForward: new T.Vector3(0, 0, 1)
+            .applyQuaternion(
+              model.rider.root
+                .getObjectByName('Rider head and helmet')!
+                .getWorldQuaternion(new T.Quaternion()),
+            )
+            .toArray(),
+          frontLever:
+            model.root.getObjectByName('Motocross front brake lever pivot')?.rotation.y ?? null,
+        },
         cockpit,
         chain: inspectChain(),
         calls: renderer.info.render.calls,

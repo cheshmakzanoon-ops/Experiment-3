@@ -29,6 +29,11 @@ import {
 } from './gp-rider-suit.ts';
 import { motocrossFabricMaps, motocrossGraphics } from './offroad/motocross-detail.ts';
 import {
+  sampleMotocrossRiderMotion,
+  type MotocrossRiderMotion,
+  type MotocrossRiderMotionInput,
+} from './offroad/motocross-rider-motion.ts';
+import {
   addMotocrossBoot,
   addMotocrossGarment,
   addMotocrossGlove,
@@ -60,7 +65,7 @@ export interface RiderColours {
   secondary: number;
   accent: number;
 }
-export interface RiderPose {
+export interface RiderPose extends MotocrossRiderMotionInput {
   /** Chassis lean (rad, + left) and hang-off offset (m, + left). */
   lean: number;
   offset: number;
@@ -376,6 +381,13 @@ export class Rider {
   private readonly bootCuffs: (T.Object3D | undefined)[] = [];
   private readonly motocrossGarments: MotocrossGarmentMesh[] = [];
   private readonly motocrossShoulders: T.Bone[] = [];
+  private readonly motocrossMotion: MotocrossRiderMotion = {
+    pelvisDrop: 0,
+    pelvisBack: 0,
+    torsoPitch: 0,
+    elbowLift: 0,
+    gazePitch: 0,
+  };
   private readonly gpGarments: GpRiderGarment[] = [];
   private readonly exteriorForearms = [0, 1].map(() => ({
     position: new T.Vector3(),
@@ -1176,10 +1188,15 @@ export class Rider {
     // Off-road: up on the pegs (knees flexed) and fore/aft over the bike.
     const mx = this.kit === 'motocross';
     const gpContact = this.gp && !mx;
+    const motion = mx ? sampleMotocrossRiderMotion(pose, this.motocrossMotion) : null;
     // The original 30 cm rise exceeded a dirt rider's leg reach. Keep the
     // ankles planted on their pegs with flex left in the knees for a landing.
     pelvis.y += standing * (mx ? 0.17 : 0.3);
     pelvis.z += mx ? standing * 0.055 + body * 0.085 : standing * 0.04 - body * 0.1;
+    if (motion) {
+      pelvis.y -= motion.pelvisDrop;
+      pelvis.z -= motion.pelvisBack;
+    }
     // The body leans further into the corner than the bike; tucks on the
     // straight; sits up and braces under braking.
     const into = T.MathUtils.clamp(
@@ -1189,20 +1206,19 @@ export class Rider {
     );
     let pitch = T.MathUtils.lerp(1.05, 1.42, tuck) - braking * 0.3 + Math.abs(lean) * 0.1;
     // An off-road rider sits up; standing, bends at the hips over the bars.
-    if (mx) pitch = 0.36 + braking * 0.12 + body * 0.16 + standing * 0.23;
+    if (mx) pitch = 0.36 + braking * 0.12 + body * 0.16 + standing * 0.23 + motion!.torsoPitch;
     else pitch = T.MathUtils.lerp(pitch, 0.78 + body * 0.25, standing);
     const yaw = T.MathUtils.clamp(offset * 0.9, -0.3, 0.3) + pose.steer * 0.3;
     this.euler.set(pitch, yaw, -into, 'ZYX');
     this.torso.position.copy(pelvis);
     this.torso.quaternion.setFromEuler(this.euler);
-    // GP sight is solved after the torso so tuck/suspension cannot roll its
-    // gaze into the asphalt. Other road kits and MX retain their authored pose.
+    // GP sight follows the road frame; other kits retain their authored pose.
     if (gpContact) gpHeadFrame(pose, this.torso.quaternion, this.head.quaternion);
     else
       this.head.rotation.set(
-        -pitch + 0.3 + tuck * 0.12,
+        -pitch + 0.3 + tuck * 0.12 + (motion?.gazePitch ?? 0),
         lean * 0.3 + pose.steer * 0.6,
-        (into + lean) * 0.45,
+        (into + lean) * (mx ? 0.78 : 0.45),
         'YXZ',
       );
     this.headShadow.quaternion.copy(this.head.quaternion);
@@ -1221,7 +1237,7 @@ export class Rider {
         .add(
           target.set(
             side * (mx ? 0.3 : 0.35),
-            mx ? -0.24 + standing * 0.12 + Math.max(0, body) * 0.1 : -0.3,
+            mx ? -0.24 + standing * 0.12 + Math.max(0, body) * 0.1 + motion!.elbowLift : -0.3,
             mx ? 0.04 : -0.1,
           ),
         );

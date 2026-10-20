@@ -3,6 +3,7 @@ import { MATERIAL } from '../surface-material.ts';
 import type { Track, TrackPoint } from '../track.ts';
 import { LongitudinalProfile, type JumpSurvey } from './profile.ts';
 import type { OffroadKind } from './types.ts';
+import { brakingBumpSample, sampleBrakingBumps, type BrakingBumpSpec } from './braking-bumps.ts';
 
 /** Off-road course data (WP37-WP41): everything a terrain venue adds to its
  * catalogue centreline — the longitudinal jump profile, berms, soil kinds,
@@ -98,6 +99,8 @@ export interface OffroadCourseSpec {
   rough?: readonly { from: number; to: number }[];
   /** Small-scale chop amplitude in rough spans (m). */
   chop?: number;
+  /** Physical, line-specific corner-entry ridges with a smooth alternate line. */
+  brakingBumps?: readonly BrakingBumpSpec[];
   joker?: JokerSpec;
   gate?: GateSpec;
   stage?: StageSpec;
@@ -123,6 +126,7 @@ export class OffroadCourse {
   readonly jumps: readonly JumpSurvey[];
   readonly rough: readonly { from: number; to: number }[];
   private readonly scratch = { h: 0, dh: 0 };
+  private readonly brakingScratch = brakingBumpSample();
   constructor(
     readonly spec: OffroadCourseSpec,
     profile: LongitudinalProfile,
@@ -230,21 +234,55 @@ export class OffroadCourse {
         h += 0.22 * bump;
       }
     }
-    if (this.spec.chop && this.isRough(s) && a < w) {
-      // Braking chop: short deterministic bumps across the line.
-      const k1 = (Math.PI * 2) / 1.7,
-        k2 = (Math.PI * 2) / 0.9;
-      h +=
-        this.spec.chop *
-        (0.6 * Math.sin(s * k1) * Math.cos(lateral * 1.3) + 0.4 * Math.sin(s * k2 + lateral));
-      ds +=
-        this.spec.chop *
-        (0.6 * k1 * Math.cos(s * k1) * Math.cos(lateral * 1.3) +
-          0.4 * k2 * Math.cos(s * k2 + lateral));
-      dl +=
-        this.spec.chop *
-        (-0.6 * 1.3 * Math.sin(s * k1) * Math.sin(lateral * 1.3) +
-          0.4 * Math.cos(s * k2 + lateral));
+    if (this.spec.chop && a < w) {
+      // Existing small chop fades continuously at rough-span boundaries
+      // and the track edge. Switching the height off abruptly made a
+      // small physical ledge and a lighting seam on otherwise smooth soil.
+      let along = 0,
+        dAlong = 0;
+      for (const rough of this.rough) {
+        const span = mod(rough.to - rough.from, this.length),
+          into = mod(s - rough.from, this.length);
+        if (!(span > 0) || into >= span) continue;
+        const ramp = Math.min(3.4, span / 3),
+          entry = smooth(0, ramp, into),
+          exit = 1 - smooth(span - ramp, span, into),
+          envelope = entry * exit,
+          dEnvelope = dSmooth(0, ramp, into) * exit - entry * dSmooth(span - ramp, span, into);
+        // Union of supports also stays smooth if authored spans overlap.
+        dAlong = dAlong * (1 - envelope) + dEnvelope * (1 - along);
+        along += (1 - along) * envelope;
+      }
+      if (along > 0) {
+        const k1 = (Math.PI * 2) / 1.7,
+          k2 = (Math.PI * 2) / 0.9,
+          edge = Math.max(0, w - 1.1),
+          lane = 1 - smooth(edge, w, a),
+          dLane = -dSmooth(edge, w, a) * Math.sign(lateral),
+          wave =
+            0.6 * Math.sin(s * k1) * Math.cos(lateral * 1.3) + 0.4 * Math.sin(s * k2 + lateral),
+          waveS =
+            0.6 * k1 * Math.cos(s * k1) * Math.cos(lateral * 1.3) +
+            0.4 * k2 * Math.cos(s * k2 + lateral),
+          waveL =
+            -0.6 * 1.3 * Math.sin(s * k1) * Math.sin(lateral * 1.3) +
+            0.4 * Math.cos(s * k2 + lateral);
+        h += this.spec.chop * along * lane * wave;
+        ds += this.spec.chop * lane * (dAlong * wave + along * waveS);
+        dl += this.spec.chop * along * (dLane * wave + lane * waveL);
+      }
+    }
+    if (this.spec.brakingBumps) {
+      const bumps = sampleBrakingBumps(
+        this.spec.brakingBumps,
+        s,
+        lateral,
+        this.length,
+        this.brakingScratch,
+      );
+      h += bumps.h;
+      ds += bumps.ds;
+      dl += bumps.dl;
     }
     out.h = h;
     out.ds = ds;
@@ -254,6 +292,8 @@ export class OffroadCourse {
   isRough(s: number) {
     s = mod(s, this.length);
     for (const r of this.rough) if (inSpan(s, r.from, r.to, this.length)) return true;
+    for (const r of this.spec.brakingBumps ?? [])
+      if (inSpan(s, r.from, r.to, this.length)) return true;
     return false;
   }
   /** Soil kind and extra moisture at (s, lateral) on a road of half-width w. */

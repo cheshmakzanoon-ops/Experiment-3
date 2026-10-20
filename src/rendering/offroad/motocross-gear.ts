@@ -121,6 +121,7 @@ export function motocrossGarmentGeometry(
             ? 36
             : 18,
     positions: number[] = [],
+    flexed: number[] = [],
     uv: number[] = [],
     indices: number[] = [],
     skinIndices: number[] = [],
@@ -129,8 +130,18 @@ export function motocrossGarmentGeometry(
     last = ys[ys.length - 1],
     articulated = kind === 'sleeve' || kind === 'pants',
     transition = kind === 'sleeve' ? 0.067 : 0.086;
-  const append = (x: number, y: number, z: number, u: number, v: number) => {
+  const append = (x: number, y: number, z: number, u: number, v: number, crease = 0) => {
     positions.push(x, y, z);
+    // One fixed deformation target is evaluated by the renderer before
+    // skinning. Its weight follows the solved bend; no vertex writes are
+    // needed while riding, pausing, switching view or rewinding a replay.
+    if (articulated && detail !== 'far') {
+      if (crease !== 0) {
+        const centre = sampleProfile(ys, axes[0], y),
+          radius = Math.max(0.001, Math.hypot(x, z - centre));
+        flexed.push(x + (x / radius) * crease, y, z + ((z - centre) / radius) * crease);
+      } else flexed.push(x, y, z);
+    }
     uv.push(u, v);
     if (articulated) {
       const weight = T.MathUtils.smoothstep(y, upper - transition, upper + transition),
@@ -180,7 +191,7 @@ export function motocrossGarmentGeometry(
           hip = kind === 'pants' ? Math.exp(-(((y - 0.105) / 0.075) ** 2)) : 0,
           cuff = Math.exp(-(((y - (upper + lower * 0.88)) / 0.043) ** 2));
         fold =
-          (0.0058 * joint * (0.65 + s * 0.35) + 0.0037 * hip) *
+          (0.0018 * joint * (0.65 - s * 0.35) + 0.0037 * hip) *
             Math.sin((y - upper) * 127 + c * 3.8) +
           0.002 * cuff * Math.sin(y * 169 + s * 3) +
           0.0013 * envelope * Math.sin(y * 39 + angle * 5);
@@ -194,6 +205,16 @@ export function motocrossGarmentGeometry(
         centre + shape(s) * ((s > 0 ? front : back) + fold),
         column / sides,
         t,
+        articulated && detail !== 'far'
+          ? // The pole sits on the outside of the elbow/knee. Cloth gathers
+            // on -Z, the inside crease, while the outer panel stays taut.
+            0.0048 *
+              Math.exp(-(((y - upper) / (kind === 'sleeve' ? 0.072 : 0.095)) ** 2)) *
+              (1 - T.MathUtils.smoothstep(Math.abs(y - upper), transition * 0.65, transition)) *
+              T.MathUtils.smoothstep(Math.abs(y - upper), 0, 0.006) *
+              Math.max(0, -s) ** 1.4 *
+              Math.sin((y - upper) * 142 + c * 3.4)
+          : 0,
       );
       if (row < rows && column < sides) {
         const a = row * (sides + 1) + column,
@@ -241,6 +262,26 @@ export function motocrossGarmentGeometry(
     normals.setXYZ(a, seam.x, seam.y, seam.z);
     normals.setXYZ(b, seam.x, seam.y, seam.z);
   }
+  if (articulated && detail !== 'far') {
+    const posed = geometry.clone(),
+      positions = new T.Float32BufferAttribute(flexed, 3);
+    posed.setAttribute('position', positions);
+    posed.computeVertexNormals();
+    const flexNormals = posed.getAttribute('normal');
+    for (let row = 0; row <= rows; row++) {
+      const a = row * (sides + 1),
+        b = a + sides;
+      seam
+        .fromBufferAttribute(flexNormals, a)
+        .add(other.fromBufferAttribute(flexNormals, b))
+        .normalize();
+      flexNormals.setXYZ(a, seam.x, seam.y, seam.z);
+      flexNormals.setXYZ(b, seam.x, seam.y, seam.z);
+    }
+    geometry.morphAttributes.position = [positions];
+    geometry.morphAttributes.normal = [flexNormals];
+    posed.dispose();
+  }
   geometry.computeBoundingBox();
   geometry.computeBoundingSphere();
   return geometry;
@@ -252,6 +293,8 @@ export function motocrossGarmentGeometry(
  * per-frame buffers or CPU cloth pass. */
 export class MotocrossGarmentMesh extends T.SkinnedMesh {
   private readonly elbow: T.Bone | null;
+  private readonly proximalDirection = new T.Vector3();
+  private readonly distalDirection = new T.Vector3();
   constructor(
     geometry: T.BufferGeometry,
     material: T.Material,
@@ -266,9 +309,19 @@ export class MotocrossGarmentMesh extends T.SkinnedMesh {
    * Re-evaluate directly from this pose, including replay and camera changes;
    * no spring history or new simulation state is involved. */
   updatePose() {
-    if (!this.elbow) return;
-    this.elbow.position.copy(this.distal.position);
-    this.elbow.quaternion.copy(this.proximal.quaternion).slerp(this.distal.quaternion, 0.5);
+    if (this.elbow) {
+      this.elbow.position.copy(this.distal.position);
+      this.elbow.quaternion.copy(this.proximal.quaternion).slerp(this.distal.quaternion, 0.5);
+    }
+    if (this.morphTargetInfluences?.length) {
+      this.proximalDirection.set(0, 1, 0).applyQuaternion(this.proximal.quaternion);
+      this.distalDirection.set(0, 1, 0).applyQuaternion(this.distal.quaternion);
+      this.morphTargetInfluences[0] = T.MathUtils.smoothstep(
+        1 - this.proximalDirection.dot(this.distalDirection),
+        0.08,
+        1.15,
+      );
+    }
   }
 }
 

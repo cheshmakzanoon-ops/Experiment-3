@@ -181,6 +181,34 @@ test('Motocross MX450: reversible mud on the same production instance', async ({
   expect(sequence[0].hash).toBe(sequence[3].hash);
 });
 
+test('Motocross MX450: suspension absorption, gaze and lever are reversible on the production rig', async ({
+  review,
+}) => {
+  const { capture, attach } = review;
+  const relaxed = { standing: 1, body: 0.35, pitch: 0.22, elevation: 0.3 };
+  const compressed = { ...relaxed, forkOffset: 0.13, shockOffset: 0.13, brake: 0.8 };
+  // Controlled geometry inspection: these are posed fixture samples, not
+  // claimed simulated landings. MX45 separately exercises the live worker.
+  const sequence = await capture({
+    id: 'mx450',
+    detail: 'high',
+    view: 'motion-side',
+    samples: [relaxed, compressed, compressed, relaxed],
+  });
+  for (const [i, result] of sequence.entries()) {
+    await attach(`suspension-motion-${i}`, result);
+    expect(result.instance).toBe(sequence[0].instance);
+    expect(result.resources).toEqual(sequence[0].resources);
+  }
+  expect(sequence[1].motion.pelvis[1]).toBeLessThan(sequence[0].motion.pelvis[1] - 0.025);
+  expect(sequence[1].motion.frontLever).toBeLessThan(sequence[0].motion.frontLever! - 0.1);
+  expect(sequence[0].hash).not.toBe(sequence[1].hash);
+  expect(sequence[1].hash).toBe(sequence[2].hash);
+  expect(sequence[0].hash).toBe(sequence[3].hash);
+  expect(sequence[1].motion).toEqual(sequence[2].motion);
+  expect(sequence[0].motion).toEqual(sequence[3].motion);
+});
+
 for (const [id, detail] of [
   ['mx450', 'high'],
   ['mx250', 'mid'],

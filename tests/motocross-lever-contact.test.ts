@@ -79,31 +79,35 @@ describe('MX lever terminal contact on actual production aluminium triangles', (
           materials = new BikeMaterials(0);
         const model = new DirtBikeModel(definition, 0, 'high', materials, mudUniforms());
         try {
-          const steer = model.onboardControls.parent!,
-            solids = aluminiumSolids(steer, materials.aluminium);
-          const balls = solids.filter(
-            (s) =>
-              side * s.centre.x > 0.34 &&
-              Math.abs(s.centre.y - 0.28) < 1e-5 &&
-              s.size.toArray().every((n) => Math.abs(n - 0.012) < 1e-5),
-          );
-          const blades = solids.filter(
-            (s) =>
-              side * s.centre.x > 0.25 &&
-              side * s.centre.x < 0.33 &&
-              Math.abs(s.centre.y - 0.28) < 1e-5 &&
-              Math.abs(s.size.y - 0.008) < 1e-5 &&
-              s.size.x > 0.12 &&
-              s.size.x < 0.16,
-          );
-          expect(balls).toHaveLength(1);
-          expect(blades).toHaveLength(1);
-          const ball = balls[0],
-            blade = blades[0],
-            sag = staticSag(definition);
+          const steer = model.onboardControls.parent!;
+          const parts = () => {
+            const solids = aluminiumSolids(steer, materials.aluminium);
+            const balls = solids.filter(
+              (s) =>
+                side * s.centre.x > 0.34 &&
+                Math.abs(s.centre.y - 0.28) < 1e-5 &&
+                // A rotated, eight-segment sphere has slightly smaller axis
+                // bounds than its analytic diameter. The actual mesh still
+                // identifies the terminal without assuming an unrotated ball.
+                s.size.toArray().every((n) => n > 0.011 && n < 0.0121),
+            );
+            const blades = solids.filter(
+              (s) =>
+                side * s.centre.x > 0.25 &&
+                side * s.centre.x < 0.33 &&
+                Math.abs(s.centre.y - 0.28) < 1e-5 &&
+                Math.abs(s.size.y - 0.008) < 1e-5 &&
+                s.size.x > 0.12 &&
+                s.size.x < 0.16,
+            );
+            expect(balls).toHaveLength(1);
+            expect(blades).toHaveLength(1);
+            return { ball: balls[0], blade: blades[0] };
+          };
+          const sag = staticSag(definition);
           const triangle = new T.Triangle(),
             closest = new T.Vector3();
-          const distanceToBlade = (point: T.Vector3) => {
+          const distanceToBlade = (point: T.Vector3, blade: ReturnType<typeof parts>['blade']) => {
             let distance = Infinity;
             for (const t of blade.triangles) {
               triangle.a.copy(t.a).applyMatrix4(steer.matrixWorld);
@@ -140,14 +144,17 @@ describe('MX lever terminal contact on actual production aluminium triangles', (
             model.root.rotation.set(0.08, 0.7, -0.25);
             model.root.position.set(7, 1.2, -4);
             model.root.updateMatrixWorld(true);
+            // Read the current moving geometry after each brake/suspension
+            // pose. A cached neutral solid would miss a detached moving ball.
+            const { ball, blade } = parts();
             const world = ball.centre.clone().applyMatrix4(steer.matrixWorld);
-            expect(distanceToBlade(world)).toBeLessThan(0.006 - 0.0005);
+            expect(distanceToBlade(world, blade)).toBeLessThan(0.006 - 0.0005);
             // The previous authored ball centre is a negative control: the
             // same real blade must reject that visibly detached placement.
             const old = new T.Vector3(side * 0.37, 0.28, -0.06 + 0.085).applyMatrix4(
               steer.matrixWorld,
             );
-            expect(distanceToBlade(old)).toBeGreaterThan(0.006 + 0.01);
+            expect(distanceToBlade(old, blade)).toBeGreaterThan(0.006 + 0.01);
           }
         } finally {
           model.dispose();

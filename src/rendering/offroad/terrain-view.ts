@@ -16,6 +16,8 @@ import { installMxSoilMorphology, MX_SOIL_MORPHOLOGY_KINDS } from './mx-soil-mor
 import { mxSoilSample, sampleMxSoilTransition } from './mx-soil-transition.ts';
 import { installMxTerrainShadow } from './mx-terrain-shadow.ts';
 import { MxTerrainNormalEdges } from './mx-terrain-normal-edges.ts';
+import { brakingBumpSample, sampleBrakingBumps } from '../../simulation/offroad/braking-bumps.ts';
+import { installMxBrakingBumps } from './mx-braking-bumps.ts';
 
 /** Soil albedo per kind (sRGB; the soil detail map multiplies it). */
 export const SOIL_COLOURS: Readonly<Record<SoilKind, number>> = Object.freeze({
@@ -92,6 +94,7 @@ export class TerrainView {
     if (this.motocross) {
       installMxSoilDetail(this.material, track.length);
       installMxSoilMorphology(this.material);
+      installMxBrakingBumps(this.material);
       installMxTerrainShadow(this.material);
     }
     for (let first = 0; first < t.renderRows; first += CHUNK_ROWS)
@@ -106,7 +109,10 @@ export class TerrainView {
       p = trackPoint(),
       q = trackPoint(),
       colour = new T.Color();
-    const sample = this.motocross ? mxSoilSample() : null;
+    const sample = this.motocross ? mxSoilSample() : null,
+      braking = this.motocross ? brakingBumpSample() : null,
+      brakingSpans = t.course.spec.brakingBumps ?? [],
+      brakingHeight = Math.max(0.001, ...brakingSpans.map((span) => span.height));
     const palette = this.motocross
       ? SOIL_KINDS.map((kind) => new T.Color(MX_SOIL_COLOURS[kind]))
       : [];
@@ -132,6 +138,7 @@ export class TerrainView {
       mxCourse = this.motocross ? new Float32Array(count * 4) : null,
       mxCourseWidth = this.motocross ? new Float32Array(count) : null,
       mxSoilMix = this.motocross ? new Float32Array(count * 4) : null,
+      mxBrakingWork = this.motocross ? new Float32Array(count * 2) : null,
       uv = new Float32Array(count * 2),
       base = new Float32Array(count),
       keep = new Uint8Array(count);
@@ -191,6 +198,11 @@ export class TerrainView {
         colours[k * 3] = colour.r;
         colours[k * 3 + 1] = colour.g;
         colours[k * 3 + 2] = colour.b;
+        if (braking && mxBrakingWork) {
+          sampleBrakingBumps(brakingSpans, s, lateral, L, braking);
+          mxBrakingWork[k * 2] = braking.work;
+          mxBrakingWork[k * 2 + 1] = clamp(braking.h / brakingHeight, 0, 1);
+        }
         if (mxCourse) {
           mxCourse[k * 4] = lateral;
           mxCourse[k * 4 + 1] = s;
@@ -231,6 +243,8 @@ export class TerrainView {
     if (mxCourseWidth)
       geometry.setAttribute('mxCourseWidth', new T.BufferAttribute(mxCourseWidth, 1));
     if (mxSoilMix) geometry.setAttribute('mxSoilMix', new T.BufferAttribute(mxSoilMix, 4));
+    if (mxBrakingWork)
+      geometry.setAttribute('mxBrakingWork', new T.BufferAttribute(mxBrakingWork, 2));
     geometry.setAttribute('uv', new T.BufferAttribute(uv, 2));
     geometry.setAttribute('uv1', new T.BufferAttribute(uv.slice(), 2));
     geometry.setIndex(index);

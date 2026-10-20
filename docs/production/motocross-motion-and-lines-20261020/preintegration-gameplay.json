@@ -1,0 +1,264 @@
+{
+  "schemaVersion": 1,
+  "title": "Pre-integration production motocross journey: Valley flow completed; Arena chase capture timed out",
+  "scope": "Historical functional evidence from the 54c886d-based source capture. This is not a passing two-venue test and does not validate the later 3410e58 / physics-v15 integration.",
+  "capturedSource": {
+    "baseCommit": "54c886dae43f6687a2d1c27f89eab96b3468c2e5",
+    "fingerprint": "6d6a739e1de29593f9f5262c46f655edb73530a5ad2b3239f043f592c6e47b7d",
+    "sourceManifest": "preintegration-source-manifest.json",
+    "sourceManifestSha256": "b40480f500ef9ba5a83d5260ecca15ccc933adc679a9325f319bccf5ef3555e9",
+    "laterIntegrationExcluded": "3410e58 and the subsequent physics-v15 resolution"
+  },
+  "rawEvidence": {
+    "report": {
+      "file": "gameplay-tests.json",
+      "sha256": "f5f8f1aa84a3bddebd10d620d7ba3749c314942d6fcef2aaeca76405b07f34aa",
+      "bytes": 150479
+    },
+    "runLog": {
+      "file": "gameplay-browser.log",
+      "sha256": "aac26df86549aa791ca63c38646cc04791929691b9aadfef3f73b777e19ea316",
+      "bytes": 10049
+    },
+    "valleyInlineJson": {
+      "attachment": "valley-ridge-mx-journey.json",
+      "encodingInPlaywrightReport": "base64",
+      "decodedBytes": 100753,
+      "decodedSha256": "ef047ea994ef345e538c9310b29f9c7a64e44727de844b252dddf7218cb082f6",
+      "handling": "Decoded internally; summarized below without copying the large frame/renderer payload."
+    }
+  },
+  "run": {
+    "testFile": "45-motocross-gameplay.spec.ts",
+    "testTitle": "real motocross player entry, eight-rider gate, riding, cameras, pause and venue switch",
+    "status": "failed",
+    "processExitCode": 1,
+    "processExitCodeEvidence": "Observed process exit supplied by the validation owner; Playwright report and run log independently record one failed test.",
+    "expectedStatus": "passed",
+    "reportStats": {
+      "startTime": "2026-10-20T07:11:25.921Z",
+      "duration": 977163.9400000001,
+      "expected": 0,
+      "skipped": 0,
+      "unexpected": 1,
+      "flaky": 0
+    },
+    "testStartTime": "2026-10-20T07:12:16.310Z",
+    "testDurationMs": 852943,
+    "retry": 0,
+    "requestedQuality": "low",
+    "qualitySelection": "The visible production GARAGE & SETTINGS form applied Low before venue selection.",
+    "graphicsBackend": "ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)",
+    "mode": "normal application, player throttle followed by explicitly enabled AI demonstration"
+  },
+  "failure": {
+    "venue": "arena-nord-sx",
+    "operation": "page.screenshot",
+    "intendedCapture": "arena-nord-sx-actual-chase.png",
+    "timeoutMs": 60000,
+    "message": "TimeoutError: page.screenshot: Timeout 60000ms exceeded.\nCall log:\n  - taking page screenshot\n  - waiting for fonts to load...\n  - fonts loaded\n",
+    "helperLocation": "e2e/45-motocross-gameplay.spec.ts:26:16",
+    "callLocation": "e2e/45-motocross-gameplay.spec.ts:231:11",
+    "completedBeforeFailure": "The real progress, qualifying flight, recorded touchdown and rendered-riding polling assertion completed, followed by finite-frame, selected-machine and safety-car-phase assertions.",
+    "causeLimit": "The report proves a screenshot timeout after fonts loaded. It does not establish a root cause or a gameplay crash."
+  },
+  "valleyRidge": {
+    "status": "Completed this venue flow before the later Arena failure",
+    "circuit": "valley-ridge-mx",
+    "machine": "mx450",
+    "completed": [
+      "Selected machine showroom frame submitted",
+      "Prepared full circuit at held eight-rider gate, tick zero, all riders using MX450",
+      "Entered driving through GO TO THE GATE and observed the motocross HUD",
+      "Held both player body controls while stationary, then used real player throttle",
+      "Explicitly enabled the normal AI demonstration with G",
+      "Observed signed course progress, qualifying flight, finite touchdown and advancing rendered presentation",
+      "Captured chase, switched to cockpit and captured onboard view",
+      "Paused through the visible menu and verified the worker tick stayed fixed",
+      "Returned to selected-machine paddock with menu/presentation time reset"
+    ],
+    "humanPhase": {
+      "time": 20.16666603088379,
+      "speed": 12.671965599060059,
+      "throttle": 1,
+      "auto": false,
+      "bodyForward": 0.6284192800521851,
+      "bodyBack": -0.9844624400138855
+    },
+    "aiStartedAtSeconds": 20.924999237060547,
+    "progressM": 211.18098831176758,
+    "maxRecordedAirTimeSeconds": 1.100000023841858,
+    "maxSafetyCarPhase": 0,
+    "firstRecordedTouchdown": {
+      "tick": 4830,
+      "time": 40.25,
+      "s": 212.18934631347656,
+      "progressM": 199.38476943969727,
+      "speed": 14.599116325378418,
+      "airborne": false,
+      "airTime": 1.100000023841858,
+      "landingSpeed": 4.158540725708008,
+      "landingPitch": 0.034157536923885345,
+      "safetyCarPhase": 0,
+      "presentedTime": 38.983333587646484
+    },
+    "observedSamples": 27,
+    "lastObservation": {
+      "tick": 4925,
+      "time": 41.04166793823242,
+      "s": 223.98556518554688,
+      "progressM": 211.18098831176758,
+      "speed": 15.885553359985352,
+      "airborne": false,
+      "airTime": 1.100000023841858,
+      "landingSpeed": 4.158540725708008,
+      "landingPitch": 0.034157536923885345,
+      "safetyCarPhase": 0,
+      "presentedTime": 38.983333587646484
+    },
+    "heldPauseTick": 6750,
+    "returnToPaddockConfirmedInLog": true,
+    "presentationAtRiddenSample": {
+      "timeSeconds": 38.983333587646484,
+      "submittedFrames": 30,
+      "camera": "chase",
+      "presentedCamera": "chase",
+      "renderPixels": [
+        1080,
+        675
+      ]
+    },
+    "softwareRendererSnapshot": {
+      "fps": 0.2781937573698441,
+      "frameMs": 3594.6169657234695,
+      "gpuMilliseconds": 1161.660815,
+      "renderCPUms": 448.1943397992601,
+      "drawCalls": 400,
+      "triangles": 1018280,
+      "textures": 417,
+      "geometries": 1611
+    },
+    "performanceLimit": "These diagnostics describe this software-GPU functional run and are not a physical-hardware FPS benchmark."
+  },
+  "arenaNord": {
+    "status": "Real riding observed; stopped at chase screenshot timeout before camera/pause/return checks",
+    "circuit": "arena-nord-sx",
+    "machine": "mx250",
+    "completed": [
+      "Selected MX250 showroom frame and captured menu",
+      "Prepared full circuit at held eight-rider gate, tick zero, all riders using MX250",
+      "Entered driving and captured gate",
+      "Held forward/back body controls while stationary and captured weight-back pose",
+      "Used real player throttle before explicitly enabling AI demonstration",
+      "Passed combined real-progress, qualifying-flight, touchdown and rendered-riding polling assertion",
+      "Passed subsequent no-pace-car, finite-frame, selected-machine and submitted-presentation-frame checks"
+    ],
+    "passedBounds": {
+      "aiRidingIntervalSeconds": {
+        "minimum": 20
+      },
+      "signedForwardProgressM": {
+        "minimum": 100
+      },
+      "recordedAirTime": "Greater than LANDING_RULES.minimumAirTime",
+      "recordedTouchdown": {
+        "airborne": false,
+        "landingSpeedGreaterThan": 0.05,
+        "landingPitchFinite": true
+      },
+      "renderedRidingIntervalSeconds": {
+        "minimum": 10
+      },
+      "maximumObservedSafetyCarPhase": 0
+    },
+    "boundsEvidence": "Completed named Playwright poll and the subsequent success log before the failing chase-capture call. These are assertion bounds, not retained exact Arena measurements.",
+    "exactJourneyTelemetryAvailable": false,
+    "exactTelemetryLimit": "The per-venue journey JSON is attached only after pause. Arena failed earlier, so no Arena JSON telemetry attachment was produced.",
+    "notCompleted": [
+      "Chase screenshot attachment",
+      "Cockpit camera switch and onboard screenshot",
+      "Pause and held-tick check",
+      "Return to paddock"
+    ]
+  },
+  "captures": {
+    "attachedOriginalImages": [
+      {
+        "name": "valley-ridge-mx-actual-menu.png",
+        "originalPath": "gameplay-results/45-motocross-gameplay-real-52ab8-eras-pause-and-venue-switch/attachments/valley-ridge-mx-actual-menu-png-98807726908f00b8548924e7f05bf26d66396323.png",
+        "sha256": "1c2fe94978202ca372f35855cc2d75e15ed48709d96db50aea3ecdbd79e5e7a4",
+        "bytes": 659511
+      },
+      {
+        "name": "valley-ridge-mx-actual-gate.png",
+        "originalPath": "gameplay-results/45-motocross-gameplay-real-52ab8-eras-pause-and-venue-switch/attachments/valley-ridge-mx-actual-gate-png-347b0aa056e21ac6565908d5aad629200b9838fb.png",
+        "sha256": "bed811728a12a3f47aebf3463f70df28cf06973f0945eef7792f5494fcb82bd2",
+        "bytes": 1421847
+      },
+      {
+        "name": "valley-ridge-mx-actual-weight-back.png",
+        "originalPath": "gameplay-results/45-motocross-gameplay-real-52ab8-eras-pause-and-venue-switch/attachments/valley-ridge-mx-actual-weight-back-png-fe02317a8322fa4bdf4fe15f5fa2e025d7eeb410.png",
+        "sha256": "240b8c8afb865ab44df559bfdf863aeec964bf0e95a22d52b63606f99c6a68f3",
+        "bytes": 1310661
+      },
+      {
+        "name": "valley-ridge-mx-actual-chase.png",
+        "originalPath": "gameplay-results/45-motocross-gameplay-real-52ab8-eras-pause-and-venue-switch/attachments/valley-ridge-mx-actual-chase-png-b953e0e65e6d1d8656b3c5d8410e0364bbefb1da.png",
+        "sha256": "ee1681610429a6978002fca4ddccb52400287795f9d25bc8ce968c013408dc8d",
+        "bytes": 1496218
+      },
+      {
+        "name": "valley-ridge-mx-actual-onboard.png",
+        "originalPath": "gameplay-results/45-motocross-gameplay-real-52ab8-eras-pause-and-venue-switch/attachments/valley-ridge-mx-actual-onboard-png-e54748359cecac14ca1e409d7dcfc7c71837095e.png",
+        "sha256": "5ec3a0bdf3e416364e6eb57874c15e4edfee453a24979cf4a4ee95be2bf82fb7",
+        "bytes": 1442861
+      },
+      {
+        "name": "valley-ridge-mx-actual-pause.png",
+        "originalPath": "gameplay-results/45-motocross-gameplay-real-52ab8-eras-pause-and-venue-switch/attachments/valley-ridge-mx-actual-pause-png-6e0e9d56e23c70a9bca084a0d54e59332836226a.png",
+        "sha256": "bc4b5f2453258e9827455a5fb70f53d895e32cbff3a93ca78a029b026169ca59",
+        "bytes": 412202
+      },
+      {
+        "name": "arena-nord-sx-actual-menu.png",
+        "originalPath": "gameplay-results/45-motocross-gameplay-real-52ab8-eras-pause-and-venue-switch/attachments/arena-nord-sx-actual-menu-png-8e14812ec229f91ade6b7e4bc2540f7c1fa8dea8.png",
+        "sha256": "8573f51a2e06a9dbd9c94e0259ac60b27aadd9e3c0f497614fcc3db6f2f89b90",
+        "bytes": 1250440
+      },
+      {
+        "name": "arena-nord-sx-actual-gate.png",
+        "originalPath": "gameplay-results/45-motocross-gameplay-real-52ab8-eras-pause-and-venue-switch/attachments/arena-nord-sx-actual-gate-png-3d50badc18519136cdb6b3bfc7557539a0ca1025.png",
+        "sha256": "85205d2bb449ffaa876a1d7c309116a2cc763dd6469c060cecd43bdcccd17f3a",
+        "bytes": 1387019
+      },
+      {
+        "name": "arena-nord-sx-actual-weight-back.png",
+        "originalPath": "gameplay-results/45-motocross-gameplay-real-52ab8-eras-pause-and-venue-switch/attachments/arena-nord-sx-actual-weight-back-png-717ffb7cdd5edfa25f68815c8e4e40ba5767537c.png",
+        "sha256": "dd96c91df64f2b3247b644b533fded471537e5acd67cc8c654f534f9e771e7d3",
+        "bytes": 1283349
+      }
+    ],
+    "preservedPreview": {
+      "file": "valley-ridge-live.jpg",
+      "originalCapture": "valley-ridge-mx-actual-chase.png",
+      "originalPngSha256": "ee1681610429a6978002fca4ddccb52400287795f9d25bc8ce968c013408dc8d",
+      "sha256": "d0a5601572a8ef3cf4af364bb29c664980849a17ae54a58bda5ef649c9b5c887",
+      "pixels": [
+        1440,
+        900
+      ],
+      "encoding": "JPEG quality 94; original dimensions; no retouching or scene changes",
+      "bytes": 431633,
+      "scope": "Normal production application; low quality selected through visible settings; player throttle followed by explicitly enabled AI demonstration."
+    },
+    "provenanceFile": "capture-provenance.json",
+    "previewOriginalHashVerified": true
+  },
+  "validationLimits": [
+    "The overall test failed with process exit 1; completed Valley checks do not turn it into a passing run.",
+    "No Arena chase, onboard or pause image was attached by this failed run.",
+    "The final combined journey JSON and final page/console-error assertion were not reached; empty Playwright stderr is not evidence of an error-free application.",
+    "The test exercised ordinary player keys followed by an explicitly enabled AI demonstration; it did not establish a complete manually ridden lap.",
+    "This receipt retains pre-integration evidence only; final source checks and any later runtime results must be reported separately."
+  ]
+}

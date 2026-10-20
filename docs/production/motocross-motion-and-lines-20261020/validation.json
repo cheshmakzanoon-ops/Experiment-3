@@ -1,0 +1,600 @@
+{
+  "schemaVersion": 1,
+  "title": "Earlier motocross physics, application and GP-integration validation history",
+  "baseCommit": "3410e58b39c94ea58288de05c382a3576b33f00b",
+  "sourceFingerprint": "ce20e4e8f9db04da1f214f66b1fcad995c79ba4f3352868f8db322b3a6a5dd19",
+  "simulationVersion": 15,
+  "sourceManifest": "physics-integration-source-manifest.json",
+  "scope": "Primary receipts here apply to 3410e58/ce20e4 and the separately recorded c4f674e/98f5 GP integration. Final ca9e098/v16 validation is in final-validation.json. Historical results retain their exact source identities.",
+  "sourceGatesComplete": true,
+  "applicationJourneyStatus": "passed",
+  "summary": {
+    "featureTestsPassed": 75,
+    "featureFiles": 8,
+    "kinematicsTestsPassed": 48,
+    "kinematicsFiles": 4,
+    "distinctTestsPassed": 123,
+    "distinctTestFiles": 12,
+    "testCountMethod": "Two clean invocations with disjoint file lists; not a single 123-test invocation. Historical tests are not added again.",
+    "controlledTrackTraversalsPassed": 18,
+    "controlledTrackTraversalsFailed": 0,
+    "typecheckExitCode": 0,
+    "lintExitCode": 0,
+    "lintFiles": 22,
+    "originalBuildExitCode": 1,
+    "ramBuildRetryExitCode": 0
+  },
+  "featureTests": {
+    "status": "passed",
+    "exitCode": 0,
+    "command": [
+      "node",
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "tests/motocross-braking-bumps.test.ts",
+      "tests/motocross-terrain-continuity.test.ts",
+      "tests/motocross-metal-finish.test.ts",
+      "tests/motocross-rider-motion.test.ts",
+      "tests/motocross-lever-contact.test.ts",
+      "tests/motocross-garment.test.ts",
+      "tests/motocross-riding.test.ts",
+      "tests/session-identity.test.ts",
+      "--maxWorkers=1",
+      "--reporter=default",
+      "--reporter=json",
+      "--outputFile=/dev/shm/mx-2f46-validation/final-feature-tests.json"
+    ],
+    "wrapperDurationSeconds": 177.389,
+    "vitestSummary": {
+      "numTotalTests": 75,
+      "numPassedTests": 75,
+      "numFailedTests": 0,
+      "numPendingTests": 0,
+      "numTodoTests": 0,
+      "success": true
+    },
+    "testFiles": [
+      {
+        "file": "tests/motocross-braking-bumps.test.ts",
+        "status": "passed",
+        "passed": 9,
+        "failed": 0
+      },
+      {
+        "file": "tests/motocross-garment.test.ts",
+        "status": "passed",
+        "passed": 7,
+        "failed": 0
+      },
+      {
+        "file": "tests/motocross-lever-contact.test.ts",
+        "status": "passed",
+        "passed": 4,
+        "failed": 0
+      },
+      {
+        "file": "tests/motocross-metal-finish.test.ts",
+        "status": "passed",
+        "passed": 5,
+        "failed": 0
+      },
+      {
+        "file": "tests/motocross-rider-motion.test.ts",
+        "status": "passed",
+        "passed": 6,
+        "failed": 0
+      },
+      {
+        "file": "tests/motocross-riding.test.ts",
+        "status": "passed",
+        "passed": 21,
+        "failed": 0
+      },
+      {
+        "file": "tests/motocross-terrain-continuity.test.ts",
+        "status": "passed",
+        "passed": 5,
+        "failed": 0
+      },
+      {
+        "file": "tests/session-identity.test.ts",
+        "status": "passed",
+        "passed": 18,
+        "failed": 0
+      }
+    ],
+    "report": "final-feature-tests.json",
+    "log": "final-features.log",
+    "note": "Vitest numTotalTestSuites includes nested describe suites; the testResults list and console summary establish eight files."
+  },
+  "kinematicsTests": {
+    "status": "passed",
+    "exitCode": 0,
+    "command": [
+      "node",
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "tests/bike-pose-kinematics.test.ts",
+      "tests/snapshot-interpolation.test.ts",
+      "tests/motocross-control-animation.test.ts",
+      "tests/motocross-collision.test.ts",
+      "--maxWorkers=1",
+      "--fileParallelism=false",
+      "--reporter=verbose"
+    ],
+    "environment": {
+      "TMPDIR": "/dev/shm/mx-2f46-validation"
+    },
+    "reportedDurationSeconds": 57.42,
+    "passed": 48,
+    "failed": 0,
+    "testFiles": [
+      {
+        "file": "tests/bike-pose-kinematics.test.ts",
+        "passed": 13
+      },
+      {
+        "file": "tests/motocross-collision.test.ts",
+        "passed": 11
+      },
+      {
+        "file": "tests/motocross-control-animation.test.ts",
+        "passed": 4
+      },
+      {
+        "file": "tests/snapshot-interpolation.test.ts",
+        "passed": 20
+      }
+    ],
+    "log": "kinematics-focused.log",
+    "scope": "Authoritative GP/MX pose kinematics, snapshot interpolation, model-to-rider gaze and lever integration, and collision behaviour."
+  },
+  "gates": [
+    {
+      "name": "features",
+      "exitCode": 0,
+      "seconds": 177.389,
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "tests/motocross-braking-bumps.test.ts",
+        "tests/motocross-terrain-continuity.test.ts",
+        "tests/motocross-metal-finish.test.ts",
+        "tests/motocross-rider-motion.test.ts",
+        "tests/motocross-lever-contact.test.ts",
+        "tests/motocross-garment.test.ts",
+        "tests/motocross-riding.test.ts",
+        "tests/session-identity.test.ts",
+        "--maxWorkers=1",
+        "--reporter=default",
+        "--reporter=json",
+        "--outputFile=/dev/shm/mx-2f46-validation/final-feature-tests.json"
+      ],
+      "log": "final-features.log"
+    },
+    {
+      "name": "typecheck",
+      "exitCode": 0,
+      "seconds": 219.963,
+      "command": [
+        "node",
+        "--max-old-space-size=2048",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit"
+      ],
+      "log": "final-typecheck.log"
+    },
+    {
+      "name": "lint",
+      "exitCode": 0,
+      "seconds": 21.17,
+      "command": [
+        "node",
+        "--max-old-space-size=1536",
+        "node_modules/eslint/bin/eslint.js",
+        "e2e/42-motocross-bike.spec.ts",
+        "e2e/53-motocross-course-landmarks.spec.ts",
+        "e2e/fixtures/motocross-bike-review.ts",
+        "e2e/fixtures/motocross-course-landmarks.ts",
+        "src/core/session-identity.ts",
+        "src/rendering/offroad/dirt-bike-model.ts",
+        "src/rendering/offroad/motocross-gear.ts",
+        "src/rendering/offroad/motocross-metal-finish.ts",
+        "src/rendering/offroad/motocross-rider-motion.ts",
+        "src/rendering/offroad/mx-braking-bumps.ts",
+        "src/rendering/offroad/terrain-view.ts",
+        "src/rendering/rider.ts",
+        "src/simulation/offroad/braking-bumps.ts",
+        "src/simulation/offroad/course.ts",
+        "src/simulation/offroad/venues.ts",
+        "tests/motocross-braking-bumps.test.ts",
+        "tests/motocross-control-animation.test.ts",
+        "tests/motocross-lever-contact.test.ts",
+        "tests/motocross-metal-finish.test.ts",
+        "tests/motocross-rider-motion.test.ts",
+        "tests/motocross-terrain-continuity.test.ts",
+        "tests/session-identity.test.ts"
+      ],
+      "log": "final-lint.log"
+    },
+    {
+      "name": "build",
+      "exitCode": 1,
+      "seconds": 151.009,
+      "command": [
+        "node",
+        "--max-old-space-size=2048",
+        "--input-type=module",
+        "-e",
+        "import { build } from 'vite'; await build({build:{outDir:'/tmp/mx-2f46-final-dist',emptyOutDir:true,copyPublicDir:false}});"
+      ],
+      "log": "final-build.log"
+    },
+    {
+      "name": "build-ram",
+      "exitCode": 0,
+      "seconds": 92.619,
+      "command": [
+        "node",
+        "--max-old-space-size=2048",
+        "--input-type=module",
+        "-e",
+        "import { build } from 'vite'; await build({configLoader:'native',cacheDir:'/dev/shm/mx-2f46-validation/vite-cache',build:{outDir:'/dev/shm/mx-2f46-validation/final-dist',emptyOutDir:true,copyPublicDir:false}});"
+      ],
+      "log": "final-build-ram.log",
+      "retryReason": "Original output target reached the shared filesystem ENOSPC limit; source unchanged."
+    }
+  ],
+  "build": {
+    "status": "passed-on-unchanged-source-retry",
+    "originalAttempt": {
+      "exitCode": 1,
+      "reason": "ENOSPC: no space left on device, write",
+      "outputDirectory": "/tmp/mx-2f46-final-dist",
+      "log": "final-build.log"
+    },
+    "successfulRetry": {
+      "exitCode": 0,
+      "outputDirectory": "/dev/shm/mx-2f46-validation/final-dist",
+      "cacheDirectory": "/dev/shm/mx-2f46-validation/vite-cache",
+      "configLoader": "native",
+      "copyPublicDir": false,
+      "transformedModules": 758,
+      "log": "final-build-ram.log"
+    },
+    "identity": {
+      "version": 1,
+      "commit": null,
+      "fingerprint": "ce20e4e8f9db04da1f214f66b1fcad995c79ba4f3352868f8db322b3a6a5dd19"
+    },
+    "identityMatchesSourceFingerprint": true,
+    "identityCommitExplanation": "The source fingerprint identifies the uncommitted integrated build; BUILD_IDENTITY.commit is null and is not replaced with an invented commit.",
+    "assetScope": "The build used copyPublicDir:false, then linked verified source public assets for the production journey. Asset verification is preserved in physics-integration-source-manifest.json; the compilation output is not claimed as a portable self-contained distribution."
+  },
+  "warnings": [
+    {
+      "category": "bundle-size",
+      "severity": "warning",
+      "message": "Some chunks are larger than 500 kB after minification.",
+      "sourceLog": "final-build-ram.log",
+      "buildFailed": false
+    },
+    {
+      "category": "environment-storage",
+      "severity": "failed-original-attempt",
+      "message": "The first build could not write output because the shared filesystem was full. The unchanged-source RAM-output retry passed.",
+      "sourceLog": "final-build.log"
+    }
+  ],
+  "trackTraversals": {
+    "status": "passed",
+    "receipt": "physics-v15-track-validation.json",
+    "baseCommit": "3410e58b39c94ea58288de05c382a3576b33f00b",
+    "sourceFingerprint": "ce20e4e8f9db04da1f214f66b1fcad995c79ba4f3352868f8db322b3a6a5dd19",
+    "comparisons": 9,
+    "individualTraversals": 18,
+    "completed": 18,
+    "failed": 0,
+    "crashes": 0,
+    "recordedCombinations": "MX450 at 9 m/s; MX250 and MX450 at 13 m/s; all three entries, each compared on worked and smooth lanes.",
+    "worstWorkedForkRangeM": 0.08878306892182737,
+    "maximumWorkedAirborneTicks": 7,
+    "maximumQuietAirborneTicks": 0,
+    "measurementTickSeconds": 0.004166666666666667,
+    "scope": "Controlled production-physics traversals, not full laps, a manual race or a hardware benchmark."
+  },
+  "historicalGpuFixtures": {
+    "status": "passed",
+    "cases": 4,
+    "captures": 13,
+    "baseCommit": "54c886dae43f6687a2d1c27f89eab96b3468c2e5",
+    "sourceFingerprint": "6d6a739e1de29593f9f5262c46f655edb73530a5ad2b3239f043f592c6e47b7d",
+    "sourceManifest": "preintegration-source-manifest.json",
+    "metrics": "gpu-metrics.json",
+    "captureProvenance": "capture-provenance.json",
+    "allGlErrorsZero": true,
+    "maximumContactErrorM": 0.020000000000000087,
+    "contactContractM": 0.03,
+    "maximumMeshInterpolationErrorM": 0.012001420428452647,
+    "meshInterpolationContractM": 0.02,
+    "unchangedChangedRendererFiles": [
+      "src/rendering/offroad/dirt-bike-model.ts",
+      "src/rendering/offroad/motocross-gear.ts",
+      "src/rendering/offroad/motocross-metal-finish.ts",
+      "src/rendering/offroad/motocross-rider-motion.ts",
+      "src/rendering/offroad/mx-braking-bumps.ts",
+      "src/rendering/offroad/terrain-view.ts",
+      "src/rendering/rider.ts"
+    ],
+    "sourceComparison": "The seven changed renderer files and inspection fixtures match between preintegration-source-manifest.json and physics-integration-source-manifest.json. The intermediate GP merge preserves the MX expressions. Final ca9e098 changes suspension and chassis rendering and is separately checked in gpu-v16-validation.json.",
+    "scope": "MX250 high/mid/far, MX450 cockpit and reversible suspension/lever poses, and all three entry lines under controlled inspection lighting."
+  },
+  "historicalApplicationJourney": {
+    "receipt": "preintegration-gameplay.json",
+    "sourceManifest": "preintegration-source-manifest.json",
+    "baseCommit": "54c886dae43f6687a2d1c27f89eab96b3468c2e5",
+    "sourceFingerprint": "6d6a739e1de29593f9f5262c46f655edb73530a5ad2b3239f043f592c6e47b7d",
+    "status": "failed",
+    "exitCode": 1,
+    "viewport": [
+      1440,
+      900
+    ],
+    "quality": "low",
+    "completed": "Valley Ridge riding, camera switch, pause and return; Arena progress, qualifying flight, touchdown and rendered-riding assertions.",
+    "failure": "Arena chase screenshot timed out after 60000 ms before its camera/pause/return flow.",
+    "limit": "The cause is unproven. A later lower-resolution run does not by itself demonstrate that resolution fixed the timeout."
+  },
+  "applicationJourney": {
+    "status": "passed",
+    "exitCode": 0,
+    "receipt": "gameplay-validation.json",
+    "baseCommit": "3410e58b39c94ea58288de05c382a3576b33f00b",
+    "sourceFingerprint": "ce20e4e8f9db04da1f214f66b1fcad995c79ba4f3352868f8db322b3a6a5dd19",
+    "viewport": [
+      960,
+      600
+    ],
+    "quality": "low",
+    "graphicsBackend": "ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)",
+    "reportStats": {
+      "startTime": "2026-10-20T07:46:49.449Z",
+      "duration": 1042738.36,
+      "expected": 1,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "completedVenues": [
+      "Valley Ridge MX / MX450",
+      "Arena Nord SX / MX250"
+    ],
+    "scope": "Both full production journeys completed with player-input assertions followed by explicit G-key AI handover, real progress/flight/touchdown, camera switch, pause/tick hold and return. Final error assertion passed. Not a manual full-lap or hardware-performance test.",
+    "limit": "This passing run precedes the final GP and MX physics integrations. Final v16 geometry, motion, traversals and GPU model checks are recorded separately. The earlier higher-resolution screenshot timeout remains causally unresolved."
+  },
+  "evidenceFiles": {
+    "final-gates.json": {
+      "file": "final-gates.json",
+      "bytes": 3673,
+      "sha256": "f1dfa9e693aad116b3d0a5b1aaf58dd272dafc5be2b8444d33cd020c6137bf89"
+    },
+    "final-feature-tests.json": {
+      "file": "final-feature-tests.json",
+      "bytes": 29167,
+      "sha256": "9589a716883b8d3674f1ef0ee4ef4f7f1d46ee0f6ae1f06d46384313de8aa6fc"
+    },
+    "final-features.log": {
+      "file": "final-features.log",
+      "bytes": 5468,
+      "sha256": "7c80065ac7b53864fb224d166dd00bb28006ae1e7c25a4ddf145caba767dc757"
+    },
+    "kinematics-focused.log": {
+      "file": "kinematics-focused.log",
+      "bytes": 8527,
+      "sha256": "4e8f044645e9079d21ed38296cef8d76df7e849c8b50870cb0e7d7a33bb72511"
+    },
+    "final-typecheck.log": {
+      "file": "final-typecheck.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "final-lint.log": {
+      "file": "final-lint.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "final-build.log": {
+      "file": "final-build.log",
+      "bytes": 567,
+      "sha256": "51171499e5e3ebafe45d4f86e7119f42e7f5676d421127611044eddef44e8971"
+    },
+    "final-build-ram.log": {
+      "file": "final-build-ram.log",
+      "bytes": 2766,
+      "sha256": "aa3eb9606a467796350d0e6f42126c05c2107cadac744774933015aaaae25fa3"
+    },
+    "final-dist/BUILD_IDENTITY.json": {
+      "file": "final-dist/BUILD_IDENTITY.json",
+      "bytes": 122,
+      "sha256": "56937698317ea569f85f3ecfd145dd9f3b526f76508e8ecf5318c09b6ac9aba6"
+    },
+    "gameplay-validation.json": {
+      "file": "gameplay-validation.json",
+      "bytes": 43767,
+      "sha256": "30fcd2bd1d53663e2125a1b326f696666e0c0ef1fc8213ff2b6e6ee7309a3cfe"
+    },
+    "postmerge-gates.json": {
+      "file": "postmerge-gates.json",
+      "bytes": 3733,
+      "sha256": "5790aeec5df6f2d46c0bcbf17c90e6c530f5ec80606b1352df854ee2485a8bfa"
+    },
+    "postmerge-motion-tests.json": {
+      "file": "postmerge-motion-tests.json",
+      "bytes": 10951,
+      "sha256": "655e6239587defc2da3d5b880bbb6e24bc4864fbdc63ceb2c6690e8c83abc54f"
+    },
+    "published-dist/BUILD_IDENTITY.json": {
+      "file": "published-dist/BUILD_IDENTITY.json",
+      "bytes": 122,
+      "sha256": "b042e2fbaa334096a89e22e6bf34c1f7650cef9b04b6408f34821ca26d354cbb"
+    }
+  },
+  "gpIntegration": {
+    "baseCommit": "c4f674e86de7d9a0e80812bdbf7ac885f2a71a53",
+    "sourceFingerprint": "98f5ced82375bdb68f0ca056069753fcc2e0cea78e59bb584095b3f0ab7feeb2",
+    "simulationVersion": 15,
+    "sourceManifest": "gp-integration-source-manifest.json",
+    "status": "passed",
+    "sourceGatesComplete": true,
+    "gates": [
+      {
+        "name": "shared-motion",
+        "exitCode": 0,
+        "seconds": 93.26,
+        "command": [
+          "node",
+          "node_modules/vitest/vitest.mjs",
+          "run",
+          "tests/motocross-rider-motion.test.ts",
+          "tests/motocross-control-animation.test.ts",
+          "tests/gp-rider-motion.test.ts",
+          "tests/gp-rearsets.test.ts",
+          "--maxWorkers=1",
+          "--fileParallelism=false",
+          "--reporter=default",
+          "--reporter=json",
+          "--outputFile=/dev/shm/mx-2f46-validation/postmerge-motion-tests.json"
+        ],
+        "log": "postmerge-shared-motion.log",
+        "logSha256": "d5f9c70acd9f0677ced05d2af2e1066228e641ecb4567b15ff9aab200e1004d4"
+      },
+      {
+        "name": "content",
+        "exitCode": 0,
+        "seconds": 42.882,
+        "command": [
+          "node",
+          "--experimental-transform-types",
+          "scripts/validate-content.ts"
+        ],
+        "log": "postmerge-content.log",
+        "logSha256": "edb21e133c101748e614c7703aac7aaca256e97225956be75a0051faa99505d1"
+      },
+      {
+        "name": "lint",
+        "exitCode": 0,
+        "seconds": 17.981,
+        "command": [
+          "node",
+          "--max-old-space-size=1536",
+          "node_modules/eslint/bin/eslint.js",
+          "e2e/42-motocross-bike.spec.ts",
+          "e2e/53-motocross-course-landmarks.spec.ts",
+          "e2e/fixtures/motocross-bike-review.ts",
+          "e2e/fixtures/motocross-course-landmarks.ts",
+          "src/core/session-identity.ts",
+          "src/rendering/offroad/dirt-bike-model.ts",
+          "src/rendering/offroad/motocross-gear.ts",
+          "src/rendering/offroad/motocross-metal-finish.ts",
+          "src/rendering/offroad/motocross-rider-motion.ts",
+          "src/rendering/offroad/mx-braking-bumps.ts",
+          "src/rendering/offroad/terrain-view.ts",
+          "src/rendering/rider.ts",
+          "src/simulation/offroad/braking-bumps.ts",
+          "src/simulation/offroad/course.ts",
+          "src/simulation/offroad/venues.ts",
+          "tests/motocross-braking-bumps.test.ts",
+          "tests/motocross-control-animation.test.ts",
+          "tests/motocross-lever-contact.test.ts",
+          "tests/motocross-metal-finish.test.ts",
+          "tests/motocross-rider-motion.test.ts",
+          "tests/motocross-terrain-continuity.test.ts",
+          "tests/session-identity.test.ts"
+        ],
+        "log": "postmerge-lint.log",
+        "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "typecheck",
+        "exitCode": 0,
+        "seconds": 230.07,
+        "command": [
+          "node",
+          "--max-old-space-size=2048",
+          "node_modules/typescript/bin/tsc",
+          "--noEmit"
+        ],
+        "log": "postmerge-typecheck.log",
+        "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "build",
+        "exitCode": 0,
+        "seconds": 131.996,
+        "command": [
+          "node",
+          "--max-old-space-size=2048",
+          "--input-type=module",
+          "-e",
+          "import { build } from 'vite'; await build({configLoader:'native',cacheDir:'/dev/shm/mx-2f46-validation/vite-cache',build:{outDir:'/dev/shm/mx-2f46-validation/published-dist',emptyOutDir:true,copyPublicDir:false}});"
+        ],
+        "log": "postmerge-build.log",
+        "logSha256": "feb2a6cb6969719af5f824f6b430345851fc6cdc968e16713b1fe2d76c9030f3"
+      }
+    ],
+    "buildIdentity": {
+      "version": 1,
+      "commit": null,
+      "fingerprint": "98f5ced82375bdb68f0ca056069753fcc2e0cea78e59bb584095b3f0ab7feeb2"
+    },
+    "verifiedPublicAssets": {
+      "checkedAgainstGit": "c4f674e86de7d9a0e80812bdbf7ac885f2a71a53",
+      "verifiedGitBlobs": 230,
+      "generatedLodAsset": {
+        "path": "public/models/supplied-player-lods.bin.gz",
+        "verifiedAgainst": "src/rendering/supplied-player-lods.manifest.json",
+        "compressedSha256": "1553e32eef4a6f89d02fb8f44a45f000620ee8539466d41704654e5f5dd09b58",
+        "uncompressedSha256": "2bcd661c78be3df21090c042c43ffd2fb828b9db42465d1fd4111fac8d48437d"
+      }
+    },
+    "sharedMotionTests": {
+      "passed": 25,
+      "failed": 0,
+      "files": 4,
+      "fileResults": [
+        {
+          "file": "tests/gp-rearsets.test.ts",
+          "status": "passed",
+          "passed": 7
+        },
+        {
+          "file": "tests/gp-rider-motion.test.ts",
+          "status": "passed",
+          "passed": 8
+        },
+        {
+          "file": "tests/motocross-control-animation.test.ts",
+          "status": "passed",
+          "passed": 4
+        },
+        {
+          "file": "tests/motocross-rider-motion.test.ts",
+          "status": "passed",
+          "passed": 6
+        }
+      ]
+    },
+    "integrationReview": {
+      "changedOwnFilesSincePassingPhysicsBrowserBoundary": [
+        "src/rendering/rider.ts"
+      ],
+      "unchangedOwnFiles": 21,
+      "sharedRiderResolution": "GP head framing, knee-out and rear-brake boot movement remain guarded by gpContact = this.gp && !mx. MX gaze, roll compensation, pelvis, torso, elbow and knee expressions are preserved.",
+      "trackContinuity": "All 15 source hashes in track-validation.json still match the final files. No simulation change arrived with c4f674e.",
+      "browserRerunAfterFinalMerge": false,
+      "browserEvidenceScope": "The full production browser receipt remains pinned to 3410e58 / ce20e4; it is not relabelled as the final build."
+    }
+  },
+  "finalIntegrationReceipt": "final-validation.json"
+}

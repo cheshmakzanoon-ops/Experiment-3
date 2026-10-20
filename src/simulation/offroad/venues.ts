@@ -240,6 +240,28 @@ const VALLEY_RIDGE = venue(
       berms: berms(valleyPath, at),
       chop: 0.025,
       rough: [{ from: at(2, 0), to: at(2, 18) }],
+      // Worked inside entries, after the previous landing has settled.
+      // The opposite half of each straight remains a smoother wide line.
+      brakingBumps: [
+        {
+          name: 'QUARRY ENTRY',
+          from: at(2, 58),
+          to: at(2, 86),
+          centre: 1.5,
+          halfWidth: 3.1,
+          height: 0.1,
+          spacing: 3.8,
+        },
+        {
+          name: 'SKY BERM ENTRY',
+          from: at(8, 119),
+          to: at(8, 145),
+          centre: -1.5,
+          halfWidth: 3.1,
+          height: 0.085,
+          spacing: 3.6,
+        },
+      ],
       gate: { s: length - 10, slots: 10, spacing: 1.15, holeshot: at(1, 8) },
     };
   },
@@ -332,6 +354,17 @@ const ARENA_NORD = venue(
       moisture: 0.18,
       zones: [{ from: at(4, 8), to: at(4, 60), soil: 'loam' }],
       berms: berms(arenaPath, at),
+      brakingBumps: [
+        {
+          name: 'STAGE TURN ENTRY',
+          from: at(2, 80),
+          to: at(2, 104),
+          centre: 1.25,
+          halfWidth: 2.6,
+          height: 0.065,
+          spacing: 3.4,
+        },
+      ],
       indoor: true,
       gate: { s: length - 8, slots: 10, spacing: 1.1, holeshot: at(1, 4) },
     };

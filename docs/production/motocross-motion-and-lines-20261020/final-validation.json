@@ -1,0 +1,317 @@
+{
+  "schemaVersion": 1,
+  "title": "Final motocross v16 integration validation",
+  "status": "passed",
+  "source": {
+    "baseCommit": "ca9e09861a7fa8b5dfc73dda7b5fad626294512d",
+    "fingerprint": "d4bc1b881f2e2c81ceff1adce8f30824df7ef3615ad29eb05904cebc9050ff27",
+    "simulationVersion": 16,
+    "manifest": "source-manifest.json"
+  },
+  "summary": {
+    "targetedTestsPassed": 62,
+    "targetedTestFiles": 6,
+    "controlledTraversalsPassed": 18,
+    "controlledTraversalCrashes": 0,
+    "gpuCasesPassed": 3,
+    "contentValidationExitCode": 0,
+    "lintExitCode": 0,
+    "lintFiles": 22,
+    "typecheckExitCode": 0,
+    "buildExitCode": 0,
+    "fullApplicationJourneyRerunAfterFinalPhysicsIntegration": false
+  },
+  "motionAndGeometry": {
+    "schemaVersion": 1,
+    "source": {
+      "baseCommit": "ca9e09861a7fa8b5dfc73dda7b5fad626294512d",
+      "fingerprint": "d4bc1b881f2e2c81ceff1adce8f30824df7ef3615ad29eb05904cebc9050ff27",
+      "simulationVersion": 16
+    },
+    "command": "node node_modules/vitest/vitest.mjs run tests/motocross-reference-geometry.test.ts tests/motocross-sprung-pose.test.ts tests/motocross-rider-motion.test.ts tests/motocross-control-animation.test.ts tests/motocross-lever-contact.test.ts tests/session-identity.test.ts --maxWorkers=1 --fileParallelism=false --reporter=verbose --reporter=json --outputFile.json=/dev/shm/mx-2f46-validation/v16-motion-tests.json",
+    "processExitCode": 0,
+    "durationSeconds": 114.11,
+    "singleWorker": true,
+    "attempts": 1,
+    "passed": true,
+    "filesPassed": 6,
+    "filesTotal": 6,
+    "casesPassed": 62,
+    "casesFailed": 0,
+    "casesPending": 0,
+    "casesTotal": 62,
+    "unhandledOrRpcErrorsInCombinedLog": [],
+    "files": [
+      {
+        "file": "motocross-control-animation.test.ts",
+        "status": "passed",
+        "cases": 4
+      },
+      {
+        "file": "motocross-lever-contact.test.ts",
+        "status": "passed",
+        "cases": 4
+      },
+      {
+        "file": "motocross-reference-geometry.test.ts",
+        "status": "passed",
+        "cases": 10
+      },
+      {
+        "file": "motocross-rider-motion.test.ts",
+        "status": "passed",
+        "cases": 6
+      },
+      {
+        "file": "motocross-sprung-pose.test.ts",
+        "status": "passed",
+        "cases": 19
+      },
+      {
+        "file": "session-identity.test.ts",
+        "status": "passed",
+        "cases": 19
+      }
+    ],
+    "artifacts": {
+      "combinedLog": "/dev/shm/mx-2f46-validation/v16-motion-tests.log",
+      "vitestJson": "/dev/shm/mx-2f46-validation/v16-motion-tests.json"
+    },
+    "scope": "Targeted unit and integration checks for fixed MX suspension geometry, authoritative chassis pose, rider motion, gaze/lever animation, lever contact, and simulation identity. No browser run in this gate.",
+    "sha256": {
+      "combinedLog": "23e04acc20e1516782c6042743a63042a2a0e26e98f709fc35afe07bf6349122",
+      "vitestJson": "1104d9c31710a10255d0b676d1ea655f6dd83d8d5d050182e665de5d53e3854d"
+    },
+    "timingsSeconds": {
+      "total": 114.11,
+      "transform": 14.51,
+      "setup": 0.0,
+      "collect": 54.3,
+      "tests": 42.07,
+      "environment": 0.003,
+      "prepare": 2.16
+    }
+  },
+  "sourceGates": {
+    "baseCommit": "ca9e09861a7fa8b5dfc73dda7b5fad626294512d",
+    "sourceFingerprint": "d4bc1b881f2e2c81ceff1adce8f30824df7ef3615ad29eb05904cebc9050ff27",
+    "simulationVersion": 16,
+    "gates": [
+      {
+        "name": "content",
+        "exitCode": 0,
+        "seconds": 17.704,
+        "command": [
+          "node",
+          "--experimental-transform-types",
+          "scripts/validate-content.ts"
+        ],
+        "log": "v16-content.log",
+        "logSha256": "7b775dcd0ae0601c194322103613801ab716e8279a83c5683298bbf5d2b9a39a"
+      },
+      {
+        "name": "lint",
+        "exitCode": 0,
+        "seconds": 30.262,
+        "command": [
+          "node",
+          "--max-old-space-size=1536",
+          "node_modules/eslint/bin/eslint.js",
+          "e2e/42-motocross-bike.spec.ts",
+          "e2e/53-motocross-course-landmarks.spec.ts",
+          "e2e/fixtures/motocross-bike-review.ts",
+          "e2e/fixtures/motocross-course-landmarks.ts",
+          "src/core/session-identity.ts",
+          "src/rendering/offroad/dirt-bike-model.ts",
+          "src/rendering/offroad/motocross-gear.ts",
+          "src/rendering/offroad/motocross-metal-finish.ts",
+          "src/rendering/offroad/motocross-rider-motion.ts",
+          "src/rendering/offroad/mx-braking-bumps.ts",
+          "src/rendering/offroad/terrain-view.ts",
+          "src/rendering/rider.ts",
+          "src/simulation/offroad/braking-bumps.ts",
+          "src/simulation/offroad/course.ts",
+          "src/simulation/offroad/venues.ts",
+          "tests/motocross-braking-bumps.test.ts",
+          "tests/motocross-control-animation.test.ts",
+          "tests/motocross-lever-contact.test.ts",
+          "tests/motocross-metal-finish.test.ts",
+          "tests/motocross-rider-motion.test.ts",
+          "tests/motocross-terrain-continuity.test.ts",
+          "tests/session-identity.test.ts"
+        ],
+        "log": "v16-lint.log",
+        "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "typecheck",
+        "exitCode": 0,
+        "seconds": 548.035,
+        "command": [
+          "node",
+          "--max-old-space-size=2048",
+          "node_modules/typescript/bin/tsc",
+          "--noEmit"
+        ],
+        "log": "v16-typecheck.log",
+        "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "build",
+        "exitCode": 0,
+        "seconds": 222.514,
+        "command": [
+          "node",
+          "--max-old-space-size=2048",
+          "--input-type=module",
+          "-e",
+          "import { build } from 'vite'; await build({configLoader:'native',cacheDir:'/dev/shm/mx-2f46-validation/vite-cache',build:{outDir:'/dev/shm/mx-2f46-validation/v16-dist',emptyOutDir:true,copyPublicDir:false}});"
+        ],
+        "log": "v16-build.log",
+        "logSha256": "26ec06e3a974633ad89ead765dada19e661125fea385260a5c9a010e50cf9b4c"
+      }
+    ],
+    "complete": true,
+    "buildIdentity": {
+      "version": 1,
+      "commit": null,
+      "fingerprint": "d4bc1b881f2e2c81ceff1adce8f30824df7ef3615ad29eb05904cebc9050ff27"
+    },
+    "publicAssets": 231
+  },
+  "trackTraversals": {
+    "receipt": "track-validation.json",
+    "sourceFingerprint": "d4bc1b881f2e2c81ceff1adce8f30824df7ef3615ad29eb05904cebc9050ff27",
+    "revalidation": {
+      "completedAtUtc": "2026-10-20T08:21:45.910Z",
+      "priorEvidenceReceipt": "physics-v15-track-validation.json",
+      "priorEvidenceReceiptSha256": "8a9b920b6da00566523b49622ec5fce03d8b91b13a8e726d25fa86585e9b7a13",
+      "priorEvidenceBaseCommit": "3410e58b39c94ea58288de05c382a3576b33f00b",
+      "priorSimulationVersion": 15,
+      "baseCommit": "ca9e09861a7fa8b5dfc73dda7b5fad626294512d",
+      "simulationVersion": 16,
+      "sourceFingerprint": "d4bc1b881f2e2c81ceff1adce8f30824df7ef3615ad29eb05904cebc9050ff27",
+      "processExitCode": 0,
+      "directControlledTraversalsPassed": 18,
+      "directControlledTraversalsFailed": 0,
+      "measurementMethodUnchanged": true,
+      "scratchRunnerSha256": "52858737e7b9c6433af286f530c50d7ecae94e9e8f181881c6219115cfaf204f",
+      "sameRunnerAsPhysicsV15": true,
+      "comparisonToPrior": {
+        "maximumForkRangeDeltaM": 9.615002230192737e-06,
+        "maximumFrontForceRangeDeltaN": 0.004765905864474007,
+        "allAirborneTickCountsUnchanged": true,
+        "allCompletionAndCrashResultsUnchanged": true,
+        "feedbackControllerSpeedTargetsAndLaneInputsUnchanged": true,
+        "maximumMeasuredSpeedRangeEndpointDeltaMps": 2.1946586770127396e-09,
+        "maximumMeasuredWindowLaneErrorDeltaM": 1.0498379943157943e-09,
+        "maximumFinishLaneErrorDeltaM": 2.659513498315391e-09,
+        "allMeasurementWindowSampleCountsUnchanged": true,
+        "interpretation": "These are fresh version 16 measurements. The revised static equilibrium changes the numerical responses slightly; the original completion, no-crash, lane-holding and bounded-airtime contracts still pass with unchanged scripted controls."
+      },
+      "finiteAngularState": "Asserted finite world angular velocity and acceleration on every integrated step of all 18 traversals.",
+      "worstWorkedForkRangeM": 0.08878302675015012,
+      "maximumWorkedAirborneTicks": 7,
+      "maximumQuietAirborneTicks": 0,
+      "maximumMeasuredWindowLaneErrorM": 0.008579221868836306,
+      "maximumFinishLaneErrorM": 0.05687061321259845,
+      "crashes": 0,
+      "incomingPhysicsAssessment": "Incoming ca9e098 fixes off-road wheel reference geometry and solves current-load/preload static spring equilibrium with the new suspension-geometry dependency. Version 15 response values are preserved separately; this receipt records a fresh run on version 16. The unchanged direct rig retains AI/NOVICE aids and does not include race collision impulses.",
+      "testExecutionScope": "Exactly one invocation of the unchanged direct runner executed all 18 controlled traversals on settled version 16 source. No browser, build, broad suite or unit-test runner was launched for this receipt update."
+    },
+    "scope": "Controlled production-physics lane traversals and focused terrain checks; not full laps, a manual ride, a hardware benchmark or evidence of photorealistic parity."
+  },
+  "gpuInspection": {
+    "receipt": "gpu-v16-validation.json",
+    "sourceFingerprint": "d4bc1b881f2e2c81ceff1adce8f30824df7ef3615ad29eb05904cebc9050ff27",
+    "status": "passed",
+    "processExitCode": 0,
+    "cases": 3,
+    "scope": "Production model constructors and shaders in controlled inspection fixtures: MX250 high/mid/far, MX450 onboard, and MX450 held/reversed suspension, gaze and brake poses. Software renderer; no hardware FPS or complete-scene benchmark."
+  },
+  "sourceAssets": {
+    "checkedAgainstGit": "ca9e09861a7fa8b5dfc73dda7b5fad626294512d",
+    "verifiedGitBlobs": 230,
+    "generatedLodAsset": {
+      "path": "public/models/supplied-player-lods.bin.gz",
+      "verifiedAgainst": "src/rendering/supplied-player-lods.manifest.json",
+      "compressedSha256": "1553e32eef4a6f89d02fb8f44a45f000620ee8539466d41704654e5f5dd09b58",
+      "uncompressedSha256": "2bcd661c78be3df21090c042c43ffd2fb828b9db42465d1fd4111fac8d48437d"
+    }
+  },
+  "integration": {
+    "upstreamPhysicsBase": "ca9e09861a7fa8b5dfc73dda7b5fad626294512d",
+    "retainedChanges": "Incoming fixed suspension reference geometry, current preload/fuel equilibrium, authoritative chassis pose, raked fork travel, rigid swingarm and moving hubs/caliper are retained. The rider reads authoritative chassis pitch directly; front-lever and standing-brace changes coexist with those mechanics.",
+    "recordCompatibility": "Published v15 physics stays distinct from the added course relief through simulation version 16. Prior records remain in their original categories.",
+    "retainedGP": "The GP-specific head, knee and rear-brake boot branches remain present from c4f674e. Earlier shared GP/MX integration checks are preserved in validation.json and gp-integration-source-manifest.json."
+  },
+  "historicalEvidence": {
+    "priorValidation": "validation.json",
+    "fullApplicationJourney": {
+      "receipt": "gameplay-validation.json",
+      "status": "passed",
+      "processExitCode": 0,
+      "baseCommit": "3410e58b39c94ea58288de05c382a3576b33f00b",
+      "sourceFingerprint": "ce20e4e8f9db04da1f214f66b1fcad995c79ba4f3352868f8db322b3a6a5dd19",
+      "simulationVersion": 15,
+      "viewport": [
+        960,
+        600
+      ],
+      "quality": "low",
+      "scope": "Both complete production venue journeys passed before the final GP and MX physics integrations. The unchanged test checked real player controls then explicit AI handover, progress, flight/touchdown, cameras, pause and return. This result is not relabelled as the final v16 build."
+    },
+    "earlierFailure": {
+      "receipt": "preintegration-gameplay.json",
+      "status": "failed",
+      "scope": "The earlier 1440x900 Low/Mesa Arena chase screenshot timeout remains causally unresolved. The later smaller-viewport success does not establish the cause."
+    },
+    "earlierGpuFixtures": {
+      "receipt": "gpu-metrics.json",
+      "sourceManifest": "preintegration-source-manifest.json",
+      "cases": 4,
+      "captures": 13,
+      "scope": "Earlier presentation and terrain captures retain their original source identity; current bike geometry is checked separately in gpu-v16-validation.json."
+    }
+  },
+  "limits": [
+    "Controlled track entries use the existing AI/NOVICE rig and no race collision-solver pass.",
+    "The full production journey remains historical; final v16 has targeted physics and integration tests, controlled traversals, and real GPU model fixtures.",
+    "Software rendering does not establish hardware frame rate, memory improvement or photographic parity."
+  ],
+  "evidenceFiles": {
+    "source-manifest.json": {
+      "file": "source-manifest.json",
+      "bytes": 3164,
+      "sha256": "529c614989fa2021574360da03b45348cf9fbd47ff54b86e480e16c07191ad75"
+    },
+    "track-validation.json": {
+      "file": "track-validation.json",
+      "bytes": 20185,
+      "sha256": "f5ab1fc94448c8a78c94e7b6d95a67b73322f6e6ad56fab07ae158af398fe341"
+    },
+    "gpu-v16-validation.json": {
+      "file": "gpu-v16-validation.json",
+      "bytes": 18260,
+      "sha256": "ca653f926163caf786db0b6c7dbb94974f2bf9c28a070c3b37a4629bf718bbd0"
+    },
+    "v16-motion-gate.json": {
+      "file": "v16-motion-gate.json",
+      "bytes": 2320,
+      "sha256": "b7b1d2df7bd32ef0a4e0768d68e19e0f1cece9f56aa9590d60c41592f3a317b0"
+    },
+    "v16-source-gates.json": {
+      "file": "v16-source-gates.json",
+      "bytes": 3008,
+      "sha256": "877de46388fc2279bf30bb61d4c500091ed932b200207a767ac4906ee3858489"
+    },
+    "BUILD_IDENTITY.json": {
+      "file": "BUILD_IDENTITY.json",
+      "bytes": 122,
+      "sha256": "b4161d92cf9b7bbc4619fc6b9b5372e4ce57a2f6a915a8ab2fd9f202be8a6143"
+    }
+  },
+  "warnings": [
+    "Existing Vite warning: some chunks exceed 500 kB after minification. Build exited 0."
+  ]
+}

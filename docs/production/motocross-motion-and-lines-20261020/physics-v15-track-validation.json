@@ -1,0 +1,500 @@
+{
+  "scope": "Controlled production-physics lane traversals and focused terrain checks; not full laps, a manual ride, a hardware benchmark or evidence of photorealistic parity.",
+  "baseCommit": "3410e58b39c94ea58288de05c382a3576b33f00b",
+  "sourceSha256": {
+    "src/simulation/offroad/braking-bumps.ts": "33f87c67f9146f52a500450232be671e7ec632e31ed23d195a62f2c351e4dfaf",
+    "src/simulation/offroad/course.ts": "eafa8e56f4770fd913d76209444e627189646095120777230faa3968c5e24e99",
+    "src/simulation/offroad/venues.ts": "4b439f57482138176bbd4cb4c7212ace1266e5764fd2b10bc53c3f39a3d54891",
+    "src/simulation/offroad/dirt-bike-vehicle.ts": "83f0459a3e1295ae5c7fa36bc5dd9db83bbb0befe6d1fe8bf9d230a5090886e1",
+    "src/rendering/offroad/terrain-view.ts": "d4db8682d312f739412d0a277463ea8beb53be4d45359eb8e5b5019d37c9ac34",
+    "src/rendering/offroad/mx-braking-bumps.ts": "41b4e246f4c8a47b57cf894cf3f1c76e73154f71d156fe23ac21d760017ed1b0",
+    "src/simulation/bike-vehicle.ts": "b084fcd33c76e27c773c74459f59000f43bbbe4c67474b41b65ec6a873ddc13e",
+    "src/simulation/pose-kinematics.ts": "9f3d5dcb5562ea3751dc8ab6806ca0ffab729667e91b6c8b2647b3c2d5d00bb7",
+    "src/simulation/offroad/jump-rig.ts": "1670e6a47702b5b770f4d21876f4ee0439293b17330a2fb545d02d338cf1d9b0",
+    "src/simulation/offroad/dirt-bikes.ts": "ab5d57ba61c3f2e08c35c869dbe3694d83d20eb533da03ed7a5b3bf4712fdf2f",
+    "src/simulation/bike.ts": "348ce347bb4c9eeffc0cc7d5a263528e6f9afc326518a0eeac52913596b62b1f",
+    "src/simulation/tire.ts": "ef5f552ae02e41a250d443448e1f2d111ed5733c35f255439772c920831ee642",
+    "src/simulation/tyre-force.ts": "ab735c1f2d06c1c25857e77e61aad477ba12e831adc6d03d9e809c727b4ca8a1",
+    "src/simulation/tyre-thermal.ts": "b6ffd49ea3ed93c58959b9e3b54b797cdc4e6786509eeda126a567810d161728",
+    "src/core/session-identity.ts": "ab12bccf11357f6ac09259c3d387c1e900ecdf6db559ed063658a3daa43fa209"
+  },
+  "implementation": {
+    "geometry": "Shared deterministic C1 relief, with analytic along/across derivatives, tapered run-in/run-out and compact lateral support.",
+    "existingFix": "Generic small chop now fades smoothly at rough-span boundaries and at track edges instead of switching its height off abruptly.",
+    "sections": [
+      {
+        "venue": "valley-ridge-mx",
+        "name": "QUARRY ENTRY",
+        "authoredSegment": 2,
+        "authoredLocalFromM": 58,
+        "authoredLocalToM": 86,
+        "centreM": 1.5,
+        "halfWidthM": 3.1,
+        "maximumHeightM": 0.1,
+        "crestSpacingM": 3.8
+      },
+      {
+        "venue": "valley-ridge-mx",
+        "name": "SKY BERM ENTRY",
+        "authoredSegment": 8,
+        "authoredLocalFromM": 119,
+        "authoredLocalToM": 145,
+        "centreM": -1.5,
+        "halfWidthM": 3.1,
+        "maximumHeightM": 0.085,
+        "crestSpacingM": 3.6
+      },
+      {
+        "venue": "arena-nord-sx",
+        "name": "STAGE TURN ENTRY",
+        "authoredSegment": 2,
+        "authoredLocalFromM": 80,
+        "authoredLocalToM": 104,
+        "centreM": 1.25,
+        "halfWidthM": 2.6,
+        "maximumHeightM": 0.065,
+        "crestSpacingM": 3.4
+      }
+    ],
+    "visuals": "A static vec2 per terrain vertex encodes the same physical worked-line footprint and raised-soil height. Subtle albedo/roughness changes show worn clay and exposed crests. Geometry and its normals supply relief; no extra sampler, draw or per-frame allocation.",
+    "renderSampling": "Existing terrain mesh remains 0.5 m lateral by 1 m longitudinal; physical contact samples the smooth field. Mesh approximation between vertices is tested, not claimed pointwise identical.",
+    "courses": "Existing course centreline, legal width, berms, jump dimensions/surveys, runouts and dressing placement remain unchanged."
+  },
+  "references": {
+    "individuallyViewedByTrackAgent": [
+      "043",
+      "046"
+    ],
+    "reviewAgentAdditionalIds": [
+      "024",
+      "072",
+      "092"
+    ],
+    "basis": "Existing game screenshots show worked soil, several ridden lines, broken ridge highlights and smoother parallel passages. They do not measure dimensions or establish braking as the cause of photographed bumps. Heights, spacing and placement are original gameplay authoring."
+  },
+  "method": {
+    "dtSeconds": 0.004166666666666667,
+    "placement": "Production rigBike, then public place at 5 m before each authored entry on its worked lane or quiet parallel lane. Starting speed is set to the requested target and gear to 2.",
+    "control": "Each physics step calls the existing rideLine throttle/brake/heading feedback at 9 or 13 m/s. Steering adds chosenLateral*0.08 to its centreline command and clamps to [-1,1], so both cases follow comparable straight lanes.",
+    "noStateFabrication": "After initial placement/speed/gear, only rider controls are written. No wheel force, suspension travel, airborne state, position or attitude is assigned.",
+    "comparison": "Reset terrain before each independent traversal. Compare same motorcycle and course section with identical speed target, scripted driver and no input to artificial animation.",
+    "window": "Measure fork range, front-contact force range and count airborne ticks from 5 m after entry to 3 m before exit, excluding the transition ramps.",
+    "completion": "Integrate until course station reaches the entry end, with 1600 steps maximum. All recorded traversals reached the end with zero crashes.",
+    "airborneMetric": "Total sampled two-tyre airborne ticks in the measurement window, not maximum flight duration or a full-lap statistic.",
+    "speedLabels": "9 and 13 m/s are control targets (32.4 and 46.8 km/h), not claimed measured constant speeds.",
+    "riderProfile": "The existing rigBike retains aiControlled(1e9), its calibrated AI/NOVICE riding and air-pitch aids. Player-specific brake/traction behavior is covered separately by existing riding tests.",
+    "collisionScope": "Direct DirtBikeVehicle.step integration on production terrain; no race collision-solver pass or multiplayer interaction is inserted.",
+    "quietLanePrecision": "The revalidation reuses the recorded quiet-lane inputs exactly. The 65% width relation is checked within 1e-12 m to allow coordinate roundoff."
+  },
+  "traversals": [
+    {
+      "venue": "valley-ridge-mx",
+      "section": "QUARRY ENTRY",
+      "bike": "mx450",
+      "targetSpeedMps": 9,
+      "wornLaneM": 1.5,
+      "quietLaneM": -3.25,
+      "wornForkRangeM": 0.05386504465542805,
+      "quietForkRangeM": 0.0006413042859137463,
+      "wornFrontForceRangeN": 1861.15802465682,
+      "quietFrontForceRangeN": 4.493411653791895,
+      "wornAirborneTicks": 0,
+      "quietAirborneTicks": 0,
+      "bothCompleted": true,
+      "crashes": 0,
+      "measuredSpeedRangeMps": {
+        "worn": [
+          9.220995085499023,
+          9.281218914360005
+        ],
+        "quiet": [
+          9.2505431167007,
+          9.252490302789875
+        ]
+      },
+      "sampleTicks": {
+        "worn": 520,
+        "quiet": 518
+      },
+      "maximumLaneErrorM": {
+        "worn": 0.008579221674161808,
+        "quiet": 0.008179726925604314
+      },
+      "finishLaneErrorM": {
+        "worn": 0.05680337878934072,
+        "quiet": 0.056870613303492856
+      }
+    },
+    {
+      "venue": "valley-ridge-mx",
+      "section": "SKY BERM ENTRY",
+      "bike": "mx450",
+      "targetSpeedMps": 9,
+      "wornLaneM": -1.5,
+      "quietLaneM": 3.25,
+      "wornForkRangeM": 0.04412178217630862,
+      "quietForkRangeM": 0.000500449149602844,
+      "wornFrontForceRangeN": 1796.4272227707206,
+      "quietFrontForceRangeN": 6.474504135092047,
+      "wornAirborneTicks": 0,
+      "quietAirborneTicks": 0,
+      "bothCompleted": true,
+      "crashes": 0,
+      "measuredSpeedRangeMps": {
+        "worn": [
+          9.248039949941871,
+          9.299789556849621
+        ],
+        "quiet": [
+          9.270801462592043,
+          9.274621644493608
+        ]
+      },
+      "sampleTicks": {
+        "worn": 465,
+        "quiet": 466
+      },
+      "maximumLaneErrorM": {
+        "worn": 0.006683926601878554,
+        "quiet": 0.006675387278548328
+      },
+      "finishLaneErrorM": {
+        "worn": 0.02653176155915271,
+        "quiet": 0.025282877992224062
+      }
+    },
+    {
+      "venue": "arena-nord-sx",
+      "section": "STAGE TURN ENTRY",
+      "bike": "mx450",
+      "targetSpeedMps": 9,
+      "wornLaneM": 1.25,
+      "quietLaneM": -2.73,
+      "wornForkRangeM": 0.0329952789088251,
+      "quietForkRangeM": 5.916183399262698e-05,
+      "wornFrontForceRangeN": 1496.7250741140256,
+      "quietFrontForceRangeN": 0.3718190945018023,
+      "wornAirborneTicks": 0,
+      "quietAirborneTicks": 0,
+      "bothCompleted": true,
+      "crashes": 0,
+      "measuredSpeedRangeMps": {
+        "worn": [
+          9.244967742006027,
+          9.28341292591874
+        ],
+        "quiet": [
+          9.264385368708535,
+          9.264454636832964
+        ]
+      },
+      "sampleTicks": {
+        "worn": 414,
+        "quiet": 414
+      },
+      "maximumLaneErrorM": {
+        "worn": 0.006920274316069008,
+        "quiet": 0.007028757089047488
+      },
+      "finishLaneErrorM": {
+        "worn": 0.018917207061072805,
+        "quiet": 0.01893345309615624
+      }
+    },
+    {
+      "venue": "valley-ridge-mx",
+      "section": "QUARRY ENTRY",
+      "bike": "mx250",
+      "targetSpeedMps": 13,
+      "wornLaneM": 1.5,
+      "quietLaneM": -3.25,
+      "wornForkRangeM": 0.08530845034296183,
+      "quietForkRangeM": 0.0011133283576051922,
+      "wornFrontForceRangeN": 2039.7476191085148,
+      "quietFrontForceRangeN": 4.2857808448471815,
+      "wornAirborneTicks": 7,
+      "quietAirborneTicks": 0,
+      "bothCompleted": true,
+      "crashes": 0,
+      "measuredSpeedRangeMps": {
+        "worn": [
+          13.095902885066675,
+          13.149220827392408
+        ],
+        "quiet": [
+          13.127124863158638,
+          13.129901390031588
+        ]
+      },
+      "sampleTicks": {
+        "worn": 366,
+        "quiet": 365
+      },
+      "maximumLaneErrorM": {
+        "worn": 0.007903126601257027,
+        "quiet": 0.007853774145855752
+      },
+      "finishLaneErrorM": {
+        "worn": 0.05426676264777508,
+        "quiet": 0.054176058380573267
+      }
+    },
+    {
+      "venue": "valley-ridge-mx",
+      "section": "QUARRY ENTRY",
+      "bike": "mx450",
+      "targetSpeedMps": 13,
+      "wornLaneM": 1.5,
+      "quietLaneM": -3.25,
+      "wornForkRangeM": 0.08878306892182737,
+      "quietForkRangeM": 0.0007514367698774893,
+      "wornFrontForceRangeN": 2114.7546775703304,
+      "quietFrontForceRangeN": 4.258315830031961,
+      "wornAirborneTicks": 7,
+      "quietAirborneTicks": 0,
+      "bothCompleted": true,
+      "crashes": 0,
+      "measuredSpeedRangeMps": {
+        "worn": [
+          13.167530671004494,
+          13.216127588548082
+        ],
+        "quiet": [
+          13.195249959304117,
+          13.197531416313922
+        ]
+      },
+      "sampleTicks": {
+        "worn": 364,
+        "quiet": 363
+      },
+      "maximumLaneErrorM": {
+        "worn": 0.007865991546205597,
+        "quiet": 0.007783524872475134
+      },
+      "finishLaneErrorM": {
+        "worn": 0.05439382655999769,
+        "quiet": 0.05428026196922486
+      }
+    },
+    {
+      "venue": "valley-ridge-mx",
+      "section": "SKY BERM ENTRY",
+      "bike": "mx250",
+      "targetSpeedMps": 13,
+      "wornLaneM": -1.5,
+      "quietLaneM": 3.25,
+      "wornForkRangeM": 0.07139263404216635,
+      "quietForkRangeM": 0.000630692223172552,
+      "wornFrontForceRangeN": 2020.679497220151,
+      "quietFrontForceRangeN": 6.311045548142374,
+      "wornAirborneTicks": 1,
+      "quietAirborneTicks": 0,
+      "bothCompleted": true,
+      "crashes": 0,
+      "measuredSpeedRangeMps": {
+        "worn": [
+          13.135824479010143,
+          13.18681426404478
+        ],
+        "quiet": [
+          13.16010776843772,
+          13.166812336519323
+        ]
+      },
+      "sampleTicks": {
+        "worn": 329,
+        "quiet": 329
+      },
+      "maximumLaneErrorM": {
+        "worn": 0.006968760384371331,
+        "quiet": 0.006955528892580887
+      },
+      "finishLaneErrorM": {
+        "worn": 0.028655619388423537,
+        "quiet": 0.027641694755072166
+      }
+    },
+    {
+      "venue": "valley-ridge-mx",
+      "section": "SKY BERM ENTRY",
+      "bike": "mx450",
+      "targetSpeedMps": 13,
+      "wornLaneM": -1.5,
+      "quietLaneM": 3.25,
+      "wornForkRangeM": 0.07431333726723942,
+      "quietForkRangeM": 0.0005682383445566042,
+      "wornFrontForceRangeN": 2092.6692743245885,
+      "quietFrontForceRangeN": 6.8437275440627445,
+      "wornAirborneTicks": 0,
+      "quietAirborneTicks": 0,
+      "bothCompleted": true,
+      "crashes": 0,
+      "measuredSpeedRangeMps": {
+        "worn": [
+          13.19874386605703,
+          13.246183202915788
+        ],
+        "quiet": [
+          13.220248641092292,
+          13.225001030465688
+        ]
+      },
+      "sampleTicks": {
+        "worn": 326,
+        "quiet": 326
+      },
+      "maximumLaneErrorM": {
+        "worn": 0.006981912025615822,
+        "quiet": 0.006968245407993567
+      },
+      "finishLaneErrorM": {
+        "worn": 0.029635344173367217,
+        "quiet": 0.027111406573809393
+      }
+    },
+    {
+      "venue": "arena-nord-sx",
+      "section": "STAGE TURN ENTRY",
+      "bike": "mx250",
+      "targetSpeedMps": 13,
+      "wornLaneM": 1.25,
+      "quietLaneM": -2.73,
+      "wornForkRangeM": 0.04661679547357949,
+      "quietForkRangeM": 0.00011072199376034597,
+      "wornFrontForceRangeN": 1845.434633214994,
+      "quietFrontForceRangeN": 0.927762168416848,
+      "wornAirborneTicks": 0,
+      "quietAirborneTicks": 0,
+      "bothCompleted": true,
+      "crashes": 0,
+      "measuredSpeedRangeMps": {
+        "worn": [
+          13.131689512310096,
+          13.16653283717465
+        ],
+        "quiet": [
+          13.149650759016678,
+          13.150190638566452
+        ]
+      },
+      "sampleTicks": {
+        "worn": 292,
+        "quiet": 291
+      },
+      "maximumLaneErrorM": {
+        "worn": 0.006678671387025492,
+        "quiet": 0.006490563864609111
+      },
+      "finishLaneErrorM": {
+        "worn": 0.018387719604534336,
+        "quiet": 0.01842061686926133
+      }
+    },
+    {
+      "venue": "arena-nord-sx",
+      "section": "STAGE TURN ENTRY",
+      "bike": "mx450",
+      "targetSpeedMps": 13,
+      "wornLaneM": 1.25,
+      "quietLaneM": -2.73,
+      "wornForkRangeM": 0.049101664783672984,
+      "quietForkRangeM": 0.00016263232315474885,
+      "wornFrontForceRangeN": 1916.705656787839,
+      "quietFrontForceRangeN": 0.3666907329318292,
+      "wornAirborneTicks": 0,
+      "quietAirborneTicks": 0,
+      "bothCompleted": true,
+      "crashes": 0,
+      "measuredSpeedRangeMps": {
+        "worn": [
+          13.195685218512986,
+          13.228242694510513
+        ],
+        "quiet": [
+          13.212336007993152,
+          13.212461837862977
+        ]
+      },
+      "sampleTicks": {
+        "worn": 290,
+        "quiet": 290
+      },
+      "maximumLaneErrorM": {
+        "worn": 0.006490034308716419,
+        "quiet": 0.006581884192940812
+      },
+      "finishLaneErrorM": {
+        "worn": 0.018355238533683815,
+        "quiet": 0.018388354818891006
+      }
+    }
+  ],
+  "tests": {
+    "newFocusedInitial": "7/7 passed before adding production riding regressions and the between-vertex sampling bound.",
+    "terrainEnvironmentMorphologyInitial": "17/18 passed. The sole failure was the previous exact GPU-attribute whitelist omitting the intentional mxBrakingWork attribute; contract updated and all 5 terrain-continuity cases passed on rerun.",
+    "eslint": "Passed for production changes, new tests and inspection fixture.",
+    "gitDiffCheck": "Passed.",
+    "newFocusedFinal": {
+      "file": "tests/motocross-braking-bumps.test.ts",
+      "passed": 9,
+      "failed": 0,
+      "includes": "Both bikes at both speed targets on all three entries; field/mesh error <0.02 m across authored spans."
+    },
+    "terrainContinuityFinal": {
+      "file": "tests/motocross-terrain-continuity.test.ts",
+      "passed": 5,
+      "failed": 0,
+      "note": "Intentional mxBrakingWork attribute included in the static vertex-contract whitelist."
+    },
+    "environment": {
+      "file": "tests/motocross-environment.test.ts",
+      "passed": 9,
+      "failed": 0
+    },
+    "morphology": {
+      "file": "tests/motocross-soil-morphology.test.ts",
+      "passed": 4,
+      "failed": 0
+    },
+    "existingRiding": {
+      "file": "tests/motocross-riding.test.ts",
+      "passed": 21,
+      "failed": 0,
+      "scope": "Production takeoff/landing, brake and air control, whip recovery, AI and supermoto compatibility."
+    },
+    "totalDistinctFinalCases": 48,
+    "lastOptimization": "Skipped the old chop trigonometry when its already-computed smooth envelope is zero; same zero height/derivatives outside support.",
+    "provenance": {
+      "baseCommit": "2618e1016319e694a871fff5c8ad25dd154d5de7",
+      "scope": "The unit-test counts below are historical results from the initial track implementation. They were not rerun during this post-merge receipt update; the parent coordinates the integrated focused gate on current source."
+    }
+  },
+  "simulationVersion": 15,
+  "sourceFingerprint": "ce20e4e8f9db04da1f214f66b1fcad995c79ba4f3352868f8db322b3a6a5dd19",
+  "sourceManifest": "source-manifest.json",
+  "postMergeRevalidation": {
+    "completedAtUtc": "2026-10-20T07:31:49.998Z",
+    "priorEvidenceBaseCommit": "2618e1016319e694a871fff5c8ad25dd154d5de7",
+    "baseCommit": "3410e58b39c94ea58288de05c382a3576b33f00b",
+    "simulationVersion": 15,
+    "sourceFingerprint": "ce20e4e8f9db04da1f214f66b1fcad995c79ba4f3352868f8db322b3a6a5dd19",
+    "directControlledTraversalsPassed": 18,
+    "directControlledTraversalsFailed": 0,
+    "measurementMethodUnchanged": true,
+    "scratchRunnerSha256": "52858737e7b9c6433af286f530c50d7ecae94e9e8f181881c6219115cfaf204f",
+    "comparisonToPrior": {
+      "maximumForkRangeDeltaM": 4.163336342344337e-17,
+      "maximumFrontForceRangeDeltaN": 2.2737367544323206e-13,
+      "allAirborneTickCountsUnchanged": true,
+      "allCompletionAndCrashResultsUnchanged": true
+    },
+    "finiteAngularState": "Asserted finite world angular velocity and acceleration on every integrated step of all 18 traversals.",
+    "worstWorkedForkRangeM": 0.08878306892182737,
+    "maximumWorkedAirborneTicks": 7,
+    "maximumQuietAirborneTicks": 0,
+    "crashes": 0,
+    "incomingPhysicsAssessment": "The MX adapter now derives angular rates from its actual authoritative pose. These direct traversals do not exercise collision impulses; new quaternion/pose contracts and full riding coverage are delegated to the integrated focused test run. Common car tyre static-contact, rolling-torque and thermal paths are not used by this reduced MX rig; peakGrip is unchanged.",
+    "testExecutionScope": "Only the 18 direct controlled traversals ran for this receipt update. No browser, build, broad suite or unit-test runner was launched."
+  }
+}
