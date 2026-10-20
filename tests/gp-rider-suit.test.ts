@@ -87,7 +87,7 @@ describe('GP fitted racing leathers', () => {
     },
   );
 
-  it('does not alter garment anchors or increase rider topology, draws or textures', () => {
+  it('retains bike contacts, recovery poses and the original topology/material budget', () => {
     for (const detail of ['high', 'mid', 'far'] as const) {
       const legacy = new Rider(colours, detail),
         gp = new Rider(colours, detail, 'leathers', 2, true);
@@ -114,7 +114,12 @@ describe('GP fitted racing leathers', () => {
         // GP wrists/ankles now target the anatomical joint behind each held
         // contact. Their limb lengths and actual mesh contact have a separate
         // production-model contract in gp-rider-contact.test.ts.
-        expect(anchors(gp)).toEqual(anchors(legacy));
+        expect(anchors(gp).contacts).toEqual(anchors(legacy).contacts);
+        // The seat position remains fixed while GP chest/pelvis articulation
+        // and road-relative gaze intentionally differ from the old rigid pose.
+        expect(gp.root.getObjectByName('Rider torso')!.position.toArray()).toEqual(
+          legacy.root.getObjectByName('Rider torso')!.position.toArray(),
+        );
       }
       for (const phase of [0, 1, 2]) {
         legacy.separated(phase, 0.75, 2);
@@ -125,6 +130,7 @@ describe('GP fitted racing leathers', () => {
         expect(
           gp.root.children
             .filter((child) => child instanceof T.Group)
+            .filter((child) => child.name !== 'GP lumbar spine' && child.name !== 'GP upper chest')
             .map((child) => child.matrixWorld.elements),
         ).toEqual(
           legacy.root.children

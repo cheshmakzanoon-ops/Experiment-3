@@ -1,0 +1,46 @@
+{
+  "backend": "Mesa llvmpipe / Chromium 1193",
+  "configuredTimeoutMs": 300000,
+  "originalAssertions": true,
+  "stats": {
+    "startTime": "2026-10-20T08:24:45.322Z",
+    "duration": 526771.612,
+    "expected": 1,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  },
+  "sourceFingerprint": "74eaa92f5373cf941a7942bc3bccd82caf8179878a3eda8706f5d444956c250b",
+  "tests": [
+    {
+      "title": "motorcycle HUD: responsive production layout, real tyre channels and bike/car restoration",
+      "status": "timedOut",
+      "durationMs": 378665,
+      "errors": [
+        {
+          "message": "\u001b[31mTest timeout of 300000ms exceeded.\u001b[39m"
+        },
+        {
+          "location": {
+            "file": "/workspace/scratch/6ed7d13250c1/Experiment-3/e2e/motorcycle-presentation.spec.ts",
+            "column": 51,
+            "line": 316
+          },
+          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('#gpAction')\nExpected string: \u001b[32m\"FRONT ON WET KERB\"\u001b[39m\nReceived string: \u001b[31m\"\"\u001b[39m\n\nCall log:\n\u001b[2m  - Expect \"toHaveText\" with timeout 60000ms\u001b[22m\n\u001b[2m  - waiting for locator('#gpAction')\u001b[22m\n\n\n  314 |             sample,\n  315 |           );\n> 316 |           await expect(page.locator('#gpAction')).toHaveText(action);\n      |                                                   ^\n  317 |           await expect(page.locator('#gpCraft')).toHaveAttribute('data-tone', 'caution');\n  318 |           await expect(page.locator('#gpTow')).toBeHidden();\n  319 |           if (action === 'FRONT ON GRASS') {\n    at /workspace/scratch/6ed7d13250c1/Experiment-3/e2e/motorcycle-presentation.spec.ts:316:51\n    at /workspace/scratch/6ed7d13250c1/Experiment-3/e2e/motorcycle-presentation.spec.ts:285:3"
+        }
+      ],
+      "retainedAttachments": []
+    },
+    {
+      "title": "GP personal corner timing: responsive layout, raw-frame cadence and handoffs",
+      "status": "passed",
+      "durationMs": 94192,
+      "errors": [],
+      "retainedAttachments": [
+        "final-gp-corner-practice-390.png",
+        "final-gp-corner-practice-diagnostics.json"
+      ]
+    }
+  ],
+  "note": "The new practice-card case passed after the portrait CSS fix. The broader motorcycle case timed out while checking a wet-kerb warning; investigation is recorded in the final validation receipt."
+}

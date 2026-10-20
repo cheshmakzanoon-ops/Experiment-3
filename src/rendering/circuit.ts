@@ -80,11 +80,17 @@ import { installCarGrounding } from './studio/car-grounding.ts';
 import { installLightPools } from './studio/light-pools.ts';
 import { buildForestBelts } from './studio/forest-belts.ts';
 import { venueKitFor, type VenueKit } from './venue-kit/index.ts';
+import { gpCornerPaint, gpEdgeDesign } from './venue-kit/gp-edge-design.ts';
 import { batchScene, box, canvasTexture, label, mesh, unprintedBack } from './geometry.ts';
 import { offroadSceneFor, type OffroadScene } from './offroad/index.ts';
 import { isMotocrossVenue } from './offroad/mx-boundary.ts';
 /** Lit start lamp emission (D28: bright enough to bloom at night and in daylight). */
 export const START_LAMP_EMISSIVE = 25;
+/** Same pit-lane membership as TrackContactMesh and Track.sample, including
+ * left-side pit lanes. Rendering must never show a kerb across a flat merge. */
+export function circuitKerbHeight(track: Track, s: number, lateral: number, across: number) {
+  return track.inPitLane(s, lateral) ? 0 : kerbHeight(s, across);
+}
 interface RibbonOptions {
   start?: number;
   end?: number;
@@ -220,8 +226,9 @@ export class CircuitScene {
     installWetDetail(this.roadMaterial);
     const grass = surfaceMaterial('grass');
     const runOff = surfaceMaterial('asphalt', 'paint');
-    // D15: painted bands, chevrons or astroturf per corner (no flat tint).
-    installRunoffFinish(runOff, track.length);
+    // GP venues have a coherent palette and road-shaped aprons; other venue
+    // families retain their authored bands, chevrons and artificial turf.
+    installRunoffFinish(runOff, track.length, gpEdgeDesign(track));
     const gravel = surfaceMaterial('gravel');
     for (const material of [this.roadMaterial, grass, runOff, gravel])
       this.surfaceMaterials.add(material);
@@ -294,7 +301,7 @@ export class CircuitScene {
       roughness: 0.85,
     });
     installCircuitFinish(kerb, 'kerb');
-    installKerbFinish(kerb, track.length);
+    installKerbFinish(kerb, track.length, gpEdgeDesign(track));
     for (const m of [white, kerb]) {
       this.surfaceMaterials.add(m);
       installCarGrounding(m);
@@ -307,12 +314,7 @@ export class CircuitScene {
           track.at(s, this.temp);
           return side * (this.temp.width + t * 1.1);
         },
-        height: (s, l, t) => {
-          const pit = track.pitOffset(s);
-          return track.isPitSection(s) && pit > 3 && Math.abs(l - pit) < 3.6
-            ? 0
-            : kerbHeight(s, t * 1.1);
-        },
+        height: (s, l, t) => circuitKerbHeight(track, s, l, t * 1.1),
         step: 0.16,
         stripes: true,
         columns: 6,
@@ -679,6 +681,7 @@ export class CircuitScene {
       bikeBrake: number[] = [],
       kerb: number[] = [],
       runoff: number[] = [],
+      gpPaint: number[] = [],
       indices: number[] = [];
     const p = trackPoint(),
       line: [number, number] = [0, 0];
@@ -711,6 +714,7 @@ export class CircuitScene {
           runoff.push(runoffStyleAt(this.track, s));
           const side = Math.sign(l) || 1;
           runoff.push(kerbUsage(Math.abs(apexLineAt(this.track, s, side * p.width, line)[0])));
+          gpPaint.push(gpCornerPaint(this.track, s, l));
         }
       }
     }
@@ -752,6 +756,8 @@ export class CircuitScene {
       );
     }
     if (options.runoff) {
+      if (gpEdgeDesign(this.track))
+        g.setAttribute('gpCornerPaint', new T.Float32BufferAttribute(gpPaint, 1));
       g.setAttribute(
         'runoffStyle',
         new T.Float32BufferAttribute(

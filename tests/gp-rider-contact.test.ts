@@ -122,8 +122,10 @@ describe('GP rider contact pose on the actual production machine', () => {
                 expect(point(hand, GP_GLOVE_GRIP).distanceTo(rider.grips[i])).toBeLessThan(1e-7);
                 expect(axis(hand, [1, 0, 0]).dot(rider.gripAxes[i])).toBeCloseTo(1, 10);
                 expect(axis(hand, [0, 1, 0]).y).toBeGreaterThan(0.9);
-                const torso = rider.root.getObjectByName('Rider torso')!,
-                  nominalShoulder = point(torso, [
+                const chest =
+                    rider.root.getObjectByName('GP upper chest') ??
+                    rider.root.getObjectByName('Rider torso')!,
+                  nominalShoulder = point(chest, [
                     i === 0 ? RIDER.shoulderWidth : -RIDER.shoulderWidth,
                     RIDER.spine - 0.04,
                     0,

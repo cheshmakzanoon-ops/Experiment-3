@@ -1,0 +1,91 @@
+{
+  "kind": "supporting-diagnostic",
+  "date": "2026-10-20",
+  "browserPass": false,
+  "browserResult": {
+    "test": "motorcycle HUD: responsive production layout, real tyre channels and bike/car restoration",
+    "report": "/tmp/motogp-hud-final-report.json",
+    "status": "timedOut",
+    "testDeadlineMs": 300000,
+    "reportedDurationMs": 378665,
+    "assertion": "e2e/motorcycle-presentation.spec.ts:316",
+    "expectedAction": "FRONT ON WET KERB",
+    "reportedReceivedString": "",
+    "matcherLog": [
+      "Expect toHaveText with timeout 60000ms",
+      "waiting for locator('#gpAction')"
+    ],
+    "completedLocatorObservationRecorded": false,
+    "screenshot": "/tmp/motogp-hud-final-results/motorcycle-presentation-mo-870c0-ls-and-bike-car-restoration/test-failed-1.png",
+    "accessibilitySnapshot": "/tmp/motogp-hud-final-results/motorcycle-presentation-mo-870c0-ls-and-bike-car-restoration/error-context.md",
+    "observedViewport": {
+      "width": 960,
+      "height": 600
+    },
+    "observedActionInBothArtifacts": "CAUTION",
+    "observedActionContext": "CAUTION is the last sample in the six-case loop preceding the next FRONT ON WET KERB sample."
+  },
+  "matcherInterpretation": {
+    "playwrightVersion": "1.55.1",
+    "source": [
+      "node_modules/playwright-core/lib/server/frames.js:1133-1203",
+      "node_modules/playwright/lib/matchers/toMatchText.js:45-54"
+    ],
+    "receivedValue": "frames.js records received only after an injected locator query completes; interruption before any completed observation can return no received value.",
+    "formatting": "toMatchText.js formats received || \"\", so absent received is printed as an empty string.",
+    "finding": "The overall test deadline expired with an assertion pending. Its log contains no resolved element or unexpected value; the reported empty string does not establish that the production HUD rendered empty text."
+  },
+  "productionCueDiagnostic": {
+    "browserUsed": false,
+    "domOrLayoutChecked": false,
+    "workingDirectory": "/workspace/scratch/6ed7d13250c1/Experiment-3",
+    "executedCommand": "node --experimental-transform-types --input-type=module",
+    "inputMethod": "stdin heredoc with delimiter 'JS'",
+    "stdinScriptCopy": "docs/production/motogp-flex-and-corner-flow/evidence/gp-hud-cue-diagnosis.mjs",
+    "stdinScriptSha256": "a4b3715605cd7803565625febcee89813c6fb467b45f3ebd438bdfa4f317ece2",
+    "reproduceCommand": "node --experimental-transform-types --input-type=module < docs/production/motogp-flex-and-corner-flow/evidence/gp-hud-cue-diagnosis.mjs",
+    "factory": "Exact motorcycleHudFrame function extracted from e2e/fixtures/motorcycle-presentation.ts using the TypeScript AST, then transpiled without modifying it.",
+    "consumer": "Production GPRidingCues with one retained instance and fresh fixture telemetry for every sample.",
+    "samples": 36,
+    "construction": "Six cases repeated for the three existing viewport labels and two scale labels. These labels only identify the original loop; this Node diagnostic does not exercise viewport or CSS behavior.",
+    "viewportLabels": [
+      [
+        1440,
+        900
+      ],
+      [
+        960,
+        600
+      ],
+      [
+        390,
+        844
+      ]
+    ],
+    "scaleLabels": [
+      1,
+      1.35
+    ],
+    "expectedActions": [
+      "FRONT ON WET KERB",
+      "REAR ON WET PAINT",
+      "FRONT BRAKE HOT",
+      "POWER LIMITED",
+      "FRONT ON GRASS",
+      "CAUTION"
+    ],
+    "checksPerSample": [
+      "action equals expected action",
+      "tone equals caution",
+      "tow equals zero"
+    ],
+    "result": "All 36 samples matched, including every CAUTION to FRONT ON WET KERB transition.",
+    "exitCode": 0
+  },
+  "limitations": [
+    "Supporting diagnostic only; the broader browser test remains incomplete and is not counted as a browser pass.",
+    "The reason for the browser query delay is not proved by this report or the Node diagnostic; resource contention is not established.",
+    "No browser was launched for this diagnosis. No production code, fixture behavior, assertions, deadlines, or viewports were changed.",
+    "The receipt was written from the completed diagnostic; no additional test was run to create it."
+  ]
+}

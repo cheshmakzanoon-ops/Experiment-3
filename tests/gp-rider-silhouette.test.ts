@@ -105,22 +105,22 @@ describe('GP torso and limb silhouette continuity', () => {
     '%s embeds the sleeve and trouser end caps inside the torso through riding and recovery',
     (detail) => {
       const rider = new Rider(colours, detail, 'leathers', 2, true),
-        torso = rider.root.getObjectByName('Rider torso')!,
         material = new T.MeshBasicMaterial({ side: T.DoubleSide }),
-        shell = new T.Mesh(shapeGpSuitGeometry(gpTorsoGeometry(detail), 'torso'), material),
+        shell = rider.root.getObjectByName('Rider leather torso') as T.SkinnedMesh,
+        originalMaterial = shell.material,
         garments: T.SkinnedMesh[] = [],
         point = new T.Vector3(),
-        intoTorso = new T.Matrix4(),
         ray = new T.Raycaster(),
         direction = new T.Vector3(0.019, 0.013, 1).normalize(),
         exposed: string[] = [];
       let minSaddleDiameter = 1;
+      shell.material = material;
       rider.root.traverse((object) => {
-        if (object instanceof T.SkinnedMesh) garments.push(object);
+        if (object instanceof T.SkinnedMesh && object.name.startsWith('GP continuous fitted'))
+          garments.push(object);
       });
       const check = (label: string) => {
         rider.root.updateMatrixWorld(true);
-        intoTorso.copy(torso.matrixWorld).invert();
         for (const garment of garments) {
           const positions = garment.geometry.getAttribute('position'),
             uv = garment.geometry.getAttribute('uv'),
@@ -141,14 +141,15 @@ describe('GP torso and limb silhouette continuity', () => {
               minSaddleDiameter = Math.min(minSaddleDiameter, a.distanceTo(b) / bind);
             }
             if (Math.abs(positions.getY(i) - minimum) > 1e-7) continue;
-            garment
-              .getVertexPosition(i, point)
-              .applyMatrix4(garment.matrixWorld)
-              .applyMatrix4(intoTorso);
+            garment.getVertexPosition(i, point).applyMatrix4(garment.matrixWorld);
             ray.set(point, direction);
-            // The cap must be inside the closed torso volume: one forward
-            // exit, never zero (outside) or two (outside behind the shell).
-            if (ray.intersectObject(shell).length !== 1)
+            // A curved waist can leave and re-enter the ray before its final
+            // exit. Odd crossing parity tests the closed deformed volume;
+            // requiring exactly one exit incorrectly assumes a convex torso.
+            const crossings = ray
+              .intersectObject(shell)
+              .filter((hit, at, hits) => at === 0 || hit.distance - hits[at - 1].distance > 1e-7);
+            if (crossings.length % 2 !== 1)
               exposed.push(`${label}: ${garment.name} ${i} ${point.toArray().join(',')}`);
           }
         }
@@ -167,8 +168,8 @@ describe('GP torso and limb silhouette continuity', () => {
         expect(exposed.slice(0, 10)).toEqual([]);
         expect(minSaddleDiameter).toBeGreaterThan(0.5);
       } finally {
+        shell.material = originalMaterial;
         rider.dispose();
-        shell.geometry.dispose();
         material.dispose();
       }
     },

@@ -432,6 +432,9 @@ test('GP personal corner timing: responsive layout, raw-frame cadence and handof
         await expect(page.locator('#gpPracticeDetail')).toHaveText(
           'First clean run · exit 144 km/h · dry',
         );
+        await expect(page.locator('#gpPracticeStreak')).toHaveText('CLEAN STREAK 1 · BEST 1');
+        if (viewport.height >= 680) await expect(page.locator('#gpPracticeStreak')).toBeVisible();
+        else await expect(page.locator('#gpPracticeStreak')).toBeHidden();
         await page.evaluate(() => window.MotorcycleHudFixture.showGpPracticeRun(30, 50, false));
         await expect(page.locator('#gpPracticeLabel')).toHaveText('T1 · PRACTICE');
         await expect(page.locator('#gpPracticeDetail')).toHaveText(
@@ -504,6 +507,23 @@ test('GP personal corner timing: responsive layout, raw-frame cadence and handof
       if (cadences[i] < 60) expect(result.observations).toBeGreaterThan(result.presentations);
       if (cadences[i] > 60) expect(result.presentations).toBeGreaterThan(result.observations);
     }
+  });
+  await test.step('manual successive corners display a clean streak and preserve the session best through handoffs', async () => {
+    await page.evaluate(() => {
+      window.MotorcycleHudFixture.beginGpPractice();
+      window.MotorcycleHudFixture.showGpPracticeStreak();
+    });
+    await expect(page.locator('#gpPracticeStreak')).toBeVisible();
+    await expect(page.locator('#gpPracticeStreak')).toHaveText('CLEAN STREAK 3 · BEST 3');
+    await page.evaluate(() => window.MotorcycleHudFixture.showGpPracticeRun(200, 40, true, 'ai'));
+    await expect(page.locator('#gpPractice')).toBeHidden();
+    await page.evaluate(() => window.MotorcycleHudFixture.showGpPracticeRun(300, 40));
+    await expect(page.locator('#gpPracticeStreak')).toHaveText('CLEAN STREAK 1 · BEST 3');
+    await page.evaluate(() => {
+      window.MotorcycleHudFixture.restartGpPractice();
+      window.MotorcycleHudFixture.showGpPracticeRun();
+    });
+    await expect(page.locator('#gpPracticeStreak')).toHaveText('CLEAN STREAK 1 · BEST 1');
   });
   await test.step('between-frame control and replay handoffs cancel partial attempts; pause retains them', async () => {
     for (const kind of ['ai', 'replay', 'pause'] as const) {

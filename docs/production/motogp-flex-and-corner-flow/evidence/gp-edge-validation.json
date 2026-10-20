@@ -1,0 +1,110 @@
+{
+  "scope": "Four GP venue edge materials on bounded actual CircuitScene.ribbon geometry, with production surface and weather shader chains.",
+  "spec": "e2e/gp-edge-design.spec.ts",
+  "fixture": "e2e/fixtures/gp-edge-review.ts",
+  "backend": {
+    "name": "SwiftShader",
+    "browser": "Playwright Chromium headless shell 1193",
+    "headless": true,
+    "launchArgs": [
+      "--use-gl=angle",
+      "--use-angle=swiftshader",
+      "--enable-unsafe-swiftshader"
+    ],
+    "workers": 1,
+    "retries": 0,
+    "timeoutMs": 300000,
+    "expectTimeoutMs": 60000,
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "fixtureRenderSize": {
+      "width": 960,
+      "height": 600
+    },
+    "trace": "off",
+    "temporaryConfig": "/tmp/motogp-edge-run/playwright.config.mjs"
+  },
+  "firstAttempt": {
+    "status": "passed",
+    "venueIds": [
+      "poggio-alto",
+      "cape-wrenna",
+      "haarveld",
+      "montejaral"
+    ],
+    "testDurationText": "2.2m",
+    "runDurationText": "2.3m",
+    "durationPrecision": "Rounded Playwright list-reporter output; no exact duration was retained.",
+    "stdout": "  \u2713  1 e2e/gp-edge-design.spec.ts:4:1 \u203a four GP venue edge schemes render through dry, wet and restored production materials (2.2m)\n\n  1 passed (2.3m)\n",
+    "checks": {
+      "fourDistinctVenueSchemes": "passed",
+      "drawCallsPerCapture": {
+        "greaterThan": 4,
+        "lessThan": 70,
+        "status": "passed"
+      },
+      "trianglesPerCapture": {
+        "lessThan": 110000,
+        "status": "passed"
+      },
+      "zeroWebGlErrors": "passed",
+      "zeroPageAndConsoleErrors": "passed",
+      "heldAndRestoredPixelsMatchDryExactly": "passed",
+      "wetPixelsDifferFromDry": "passed",
+      "geometryTextureAndProgramCountsStableAcrossWeatherStates": "passed"
+    },
+    "perCaptureMetrics": null,
+    "attachmentLimitation": "The temporary list-only reporter did not persist in-memory PNG or JSON attachments. The pass and assertion ranges above are known; exact individual hashes and resource counts were not retained."
+  },
+  "artifactRetentionAttempt": {
+    "status": "timed_out",
+    "sameFixtureAndAssertions": true,
+    "onlyConfigChange": "Add JSON reporter to retain the existing PNG and metrics attachments.",
+    "stats": {
+      "startTime": "2026-10-20T07:58:07.322Z",
+      "duration": 329383.39900000003,
+      "expected": 0,
+      "skipped": 0,
+      "unexpected": 1,
+      "flaky": 0
+    },
+    "failure": "Test timeout of 300000ms exceeded inside page.evaluate.",
+    "testDurationText": "5.2m",
+    "environmentObservation": "Shared executor contention was observed during this attempt; even a small process-status command and the parent agent's patch request queued for over 30 seconds. No application or shader assertion failure was reported before the deadline.",
+    "completedDryImages": [
+      {
+        "path": "poggio-alto-dry.png",
+        "width": 960,
+        "height": 600,
+        "bytes": 1053894
+      }
+    ],
+    "perCaptureMetrics": null,
+    "metricLimitation": "The final four-venue receipt is attached after the loop and was not reached. Only the completed Poggio Alto dry image was retained."
+  },
+  "imageReview": {
+    "path": "poggio-alto-dry.png",
+    "inspected": true,
+    "observations": [
+      "The red and chalk kerb paint is coherent on both road edges.",
+      "The broad inner sage apron follows the apex and carries existing paint wear and scuffs.",
+      "The outside apron carries directional chevrons; the inner apex apron does not.",
+      "No broken joins, floating edge surfaces or black shader fallback were visible in the captured area."
+    ]
+  },
+  "supportingChecks": {
+    "unitCommand": "node node_modules/vitest/vitest.mjs run tests/gp-edge-design.test.ts tests/kerb-runoff.test.ts tests/gp-wet-finish-order.test.ts --reporter=dot",
+    "unitFilesPassed": 3,
+    "unitTestsPassed": 21,
+    "unitDurationSeconds": 81.6,
+    "scopedEslint": "passed on all seven changed TypeScript files",
+    "diffWhitespaceCheck": "passed"
+  },
+  "limitations": [
+    "This bounded edge fixture is not a full-scene performance or complete race-journey benchmark.",
+    "Only the retained Poggio Alto image was visually inspected; all four venues passed the first numerical render check.",
+    "No third rendering run was launched after the contended retention attempt."
+  ]
+}

@@ -1,5 +1,6 @@
 import type { Track } from '../simulation/track.ts';
 import { catalogueVenuePlan } from './venue-kit/plan.ts';
+import { gpEdgeDesign } from './venue-kit/gp-edge-design.ts';
 
 /** Per-circuit authored venue content. Every site is expressed in the
  * circuit's own lap distance and side (+1 = right of travel, the pit side), so
@@ -169,15 +170,19 @@ function cornerAt(track: Track, s: number) {
   }
   return -1;
 }
-/** Kerb scheme index (into KERB_STYLES) at lap distance `s`: the second named
- * corner is the blue complex, the fourth the yellow/green corner. */
+/** Kerb scheme index (into KERB_STYLES) at lap distance `s`. GP courses retain
+ * their venue palette; the generic plan varies the second and fourth corners. */
 export function kerbStyleAt(track: Track, s: number) {
+  const gp = gpEdgeDesign(track);
+  if (gp) return gp.kerbStyle;
   const corner = cornerAt(track, s);
   return corner === 1 ? 1 : corner === 3 ? 2 : 0;
 }
-/** Run-off finish index (into RUNOFF_STYLES) at `s`: green bands on the
- * straights, corners cycling red, astroturf, blue, yellow. */
+/** Run-off finish index (into RUNOFF_STYLES) at `s`. GP courses use their
+ * consistent paved apron; other courses keep the generic corner finishes. */
 export function runoffStyleAt(track: Track, s: number) {
+  const gp = gpEdgeDesign(track);
+  if (gp) return gp.runoffStyle;
   const corner = cornerAt(track, s);
   if (corner < 0) return 0;
   return [1, 4, 2, 3][corner % 4];

@@ -23,6 +23,11 @@ import { gpRadiator } from './gp-radiator.ts';
 import { GPChainDrive } from './gp-chain-drive.ts';
 import { GPRearSuspension, gpRearBody, gpRearSwingarm } from './gp-rear-chassis.ts';
 import { GPRearsets } from './gp-rearsets.ts';
+import {
+  gpFrontBrakeAngle,
+  gpFrontBrakeFingerTarget,
+  gpFrontBrakeGeometry,
+} from './gp-front-brake.ts';
 import { bikeSurfaceMaps } from './bike-surface-detail.ts';
 import { BikeCockpit } from './bike-cockpit.ts';
 import { tcamFov } from './cockpit-framing.ts';
@@ -740,6 +745,7 @@ export class BikeModel {
   private readonly gpRearSuspension?: GPRearSuspension;
   private readonly gpRearsets?: GPRearsets;
   private readonly gpFrontBrakeLever?: T.Group;
+  private readonly gpBrakeTargets: [T.Vector3, T.Vector3] = [new T.Vector3(), new T.Vector3()];
   private readonly cockpit?: BikeCockpit;
   private disposed = false;
   constructor(
@@ -1054,7 +1060,9 @@ export class BikeModel {
       if (detail === 'high') {
         const lever = add(
           this.steer,
-          new RoundedBoxGeometry(0.15, 0.008, 0.016, 2, 0.003),
+          gpPrototype && side < 0
+            ? gpFrontBrakeGeometry()
+            : new RoundedBoxGeometry(0.15, 0.008, 0.016, 2, 0.003),
           m.aluminium,
           side * 0.28,
           -0.04,
@@ -1062,14 +1070,14 @@ export class BikeModel {
         );
         lever.rotation.y = side * 0.3;
         if (gpPrototype && side < 0) {
-          // REF 017, 057, 065, 073: the right-hand front-brake lever turns
-          // about its machined pivot toward the grip. Keep the existing mesh
-          // behind an articulation boundary so rigid batching cannot freeze it.
+          // REF065/076: the swept blade and covered fingers share the actual
+          // lever hinge. REF057/073 guide glove construction, not control motion.
           const pivot = new T.Group();
           pivot.name = 'GP front-brake lever pivot';
           pivot.position.set(-0.211, -0.034, 0.03);
           this.steer.add(pivot);
-          lever.position.sub(pivot.position);
+          lever.position.set(0, 0, 0);
+          lever.rotation.set(0, 0, 0);
           lever.name = 'GP articulated front-brake lever';
           pivot.add(lever);
           this.gpFrontBrakeLever = pivot;
@@ -1933,6 +1941,7 @@ export class BikeModel {
     this.rider.seat.set(0, 0.3, -0.32);
     this.rider.pegs[0].set(0.17, -0.2, -0.3);
     this.rider.pegs[1].set(-0.17, -0.2, -0.3);
+    if (this.gpFrontBrakeLever) this.rider.brakeFingerTargets = this.gpBrakeTargets;
     this.sprung.add(this.rider.root);
     for (const group of [
       this.sprung,
@@ -1961,9 +1970,7 @@ export class BikeModel {
     this.steer.rotation.y = v.steer;
     // Presented front-brake input only: rear pedal, wheel speed and elapsed
     // display time do not pull the hand lever. An absolute pose restores on seek.
-    if (this.gpFrontBrakeLever)
-      this.gpFrontBrakeLever.rotation.y =
-        -0.4 * (Number.isFinite(v.brake) ? T.MathUtils.clamp(v.brake, 0, 1) : 0);
+    if (this.gpFrontBrakeLever) this.gpFrontBrakeLever.rotation.y = gpFrontBrakeAngle(v.brake);
     this.forkLower.position.y = -(FORK_LENGTH + this.sag.fork - v.fork);
     this.frontSpin.rotation.x = v.frontRotation;
     this.rearSpin.rotation.x = v.rearRotation;
@@ -2012,6 +2019,12 @@ export class BikeModel {
         this.rider.grips[i].copy(this.gripLocal[i]).applyMatrix4(this.matrix);
         if (this.rider.gp)
           this.rider.gripAxes[i].copy(this.gripAxisLocal[i]).transformDirection(this.matrix);
+      }
+      if (this.gpFrontBrakeLever) {
+        this.gpFrontBrakeLever.updateMatrix();
+        this.matrix.multiply(this.gpFrontBrakeLever.matrix);
+        gpFrontBrakeFingerTarget(0, this.gpBrakeTargets[0]).applyMatrix4(this.matrix);
+        gpFrontBrakeFingerTarget(1, this.gpBrakeTargets[1]).applyMatrix4(this.matrix);
       }
       this.rider.ride({
         lean: v.chassisLean,

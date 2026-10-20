@@ -2,6 +2,7 @@ import * as T from 'three';
 import { sampleProfile } from './profile-sampling.ts';
 import { GP_GLOVE_GRIP } from './gp-rider-contact.ts';
 import type { RiderDetail } from './rider.ts';
+import { GpBrakeFingers } from './gp-brake-fingers.ts';
 
 type Detail = Exclude<RiderDetail, 'far'>;
 type Section = readonly [number, number, number, number, number];
@@ -22,9 +23,7 @@ const PALM: readonly Section[] = [
 const stations = PALM.map((s) => s[0]);
 const dimensions = [1, 2, 3, 4].map((axis) => PALM.map((s) => s[axis]));
 const palmAt = (z: number, angle: number, lift = 0) => {
-  const [centre, width, up, down] = dimensions.map((values) =>
-    sampleProfile(stations, values, z),
-  );
+  const [centre, width, up, down] = dimensions.map((values) => sampleProfile(stations, values, z));
   const sine = Math.sin(angle);
   return new T.Vector3(
     Math.cos(angle) * (width + lift),
@@ -58,8 +57,7 @@ function surface(
       const centre = positions.length / 3,
         ring = row * (columns + 1),
         p = new T.Vector3();
-      for (let j = 0; j < columns; j++)
-        p.add(new T.Vector3().fromArray(positions, (ring + j) * 3));
+      for (let j = 0; j < columns; j++) p.add(new T.Vector3().fromArray(positions, (ring + j) * 3));
       p.multiplyScalar(1 / columns);
       positions.push(p.x, p.y, p.z);
       uvs.push(0.5, row === 0 ? 0 : 1);
@@ -98,18 +96,20 @@ function surface(
  * REF057/073/076 guide the fitted gauntlet, covered finger joints and shallow
  * molded knuckle bridge. Dimensions are authored, not measured from images.
  *
- * Parts remain direct rigid children so the existing hand batch combines them
- * into three materials at high detail and one at mid detail. No new textures,
- * skin bones, animation state or material ownership are introduced. */
+ * Rigid parts keep their existing material batches. The near right hand may
+ * replace its first two fingers with one continuously skinned control mesh;
+ * its thumb, palm, ring and little finger keep their original grip. */
 export function addGpRacingGlove(
   parent: T.Group,
   detail: Detail,
   side: -1 | 1,
   materials: { leather: T.Material; panel: T.Material; armour: T.Material },
+  articulatedBrake = false,
 ) {
   if (side !== -1 && side !== 1) throw new RangeError('Invalid GP glove side');
   const high = detail === 'high',
-    sides = high ? 8 : 6;
+    sides = high ? 8 : 6,
+    controls = articulatedBrake && high && side === -1;
   const add = (geometry: T.BufferGeometry, material: T.Material, name: string) => {
     if (side < 0) {
       geometry.scale(-1, 1, 1);
@@ -148,7 +148,11 @@ export function addGpRacingGlove(
   );
   add(
     surface(2, high ? 8 : 6, (u, v) =>
-      palmAt(T.MathUtils.lerp(-0.055, -0.047, v), T.MathUtils.lerp(0.08, Math.PI - 0.08, u), 0.0015),
+      palmAt(
+        T.MathUtils.lerp(-0.055, -0.047, v),
+        T.MathUtils.lerp(0.08, Math.PI - 0.08, u),
+        0.0015,
+      ),
     ),
     panelMaterial,
     'GP overlapping wrist closure',
@@ -158,6 +162,7 @@ export function addGpRacingGlove(
     ends = [2.78, 3.0, 2.91, 2.58],
     radii = [0.0071, 0.0075, 0.007, 0.0062];
   for (let finger = 0; finger < 4; finger++) {
+    if (controls && finger < 2) continue;
     const fingerAt = (u: number, v: number, lift = 0) => {
       const angle = T.MathUtils.lerp(-0.66, ends[finger], v),
         ring = u * Math.PI * 2,
@@ -233,4 +238,5 @@ export function addGpRacingGlove(
     high ? materials.armour : materials.leather,
     'GP molded metacarpal bridge',
   );
+  return controls ? new GpBrakeFingers(parent, materials.leather) : undefined;
 }

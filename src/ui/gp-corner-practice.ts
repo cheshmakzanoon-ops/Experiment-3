@@ -43,6 +43,14 @@ export interface GpCornerAttempt {
   exitDelta: number | null;
 }
 
+export interface GpCornerStreak {
+  /** Complete consecutive corners under uninterrupted manual control. */
+  current: number;
+  /** Longest observed clean sequence in this practice session. */
+  best: number;
+  next: GpPracticeCorner | null;
+}
+
 // Fixed spatial splits keep a best-run trace bounded and comparable at the
 // same road position. This is observed personal pace, never an ideal line.
 const PACE_SPLITS = 32;
@@ -94,7 +102,8 @@ export function gpPracticeCorners(track: Track): readonly GpPracticeCorner[] {
 /** Session-only observed timings. A complete forward entry/apex/exit is
  * required. Crossings interpolate simulation time, so render rate cannot
  * improve a record. Paused equal-time snapshots do nothing; replay, control
- * handoffs, skipped snapshots and dirty runs cancel only the partial attempt.
+ * handoffs, skipped snapshots and dirty runs cancel the partial attempt and
+ * current clean streak, retaining earned corner records and the best streak.
  * No controls, physics, rewards, persistent storage or replay frames change. */
 export class GpCornerPractice {
   active: {
@@ -106,7 +115,9 @@ export class GpCornerPractice {
     delta: number | null;
   } | null = null;
   last: GpCornerAttempt | null = null;
+  readonly streak: GpCornerStreak = { current: 0, best: 0, next: null };
   private readonly best = new Map<string, PersonalBest>();
+  private readonly following = new Map<number, GpPracticeCorner>();
   private track: Track | null = null;
   private corners: readonly GpPracticeCorner[] = [];
   private machine = '';
@@ -124,6 +135,9 @@ export class GpCornerPractice {
 
   reset() {
     this.best.clear();
+    this.following.clear();
+    this.breakStreak();
+    this.streak.best = 0;
     this.active = this.last = null;
     this.track = null;
     this.machine = '';
@@ -133,6 +147,7 @@ export class GpCornerPractice {
   suspend() {
     this.active = null;
     this.previous = null;
+    this.breakStreak();
   }
 
   observe(frame: Float32Array, track: Track, context: GpPracticeContext) {
@@ -148,6 +163,20 @@ export class GpCornerPractice {
       this.reset();
       this.track = track;
       this.corners = gpPracticeCorners(track);
+      for (const corner of this.corners) {
+        // Circuit labels need not be stored in driving order. A streak links
+        // actual timing windows around the road, including the lap seam.
+        let next = corner,
+          gap = track.length;
+        for (const candidate of this.corners) {
+          const distance = mod(candidate.from - corner.from, track.length);
+          if (distance > 0 && distance < gap) {
+            gap = distance;
+            next = candidate;
+          }
+        }
+        this.following.set(corner.index, next);
+      }
       this.machine = machine;
     }
     if (
@@ -242,6 +271,7 @@ export class GpCornerPractice {
       sample.condition === previous.condition;
     if (!continuous) {
       this.active = null;
+      this.breakStreak();
       return;
     }
     // A stopped bike keeps the clock running instead of winning by waiting.
@@ -259,6 +289,7 @@ export class GpCornerPractice {
       for (const corner of this.corners) {
         const entry = mod(corner.from - previous.s, track.length);
         if (entry <= 0 || entry > distance) continue;
+        if (this.streak.current > 0 && this.streak.next?.index !== corner.index) this.breakStreak();
         this.key = `${corner.index}:${sample.compound}:${sample.condition}`;
         this.started = lerp(previous.time, time, entry / distance);
         this.apexSeen = false;
@@ -313,8 +344,16 @@ export class GpCornerPractice {
       };
       if (best === undefined || seconds < best.seconds)
         this.best.set(this.key, { seconds, exitSpeed, pace: this.pace });
-    }
+      this.streak.current = this.streak.next?.index === corner.index ? this.streak.current + 1 : 1;
+      this.streak.best = Math.max(this.streak.best, this.streak.current);
+      this.streak.next = this.following.get(corner.index) ?? null;
+    } else this.breakStreak();
     this.active = null;
+  }
+
+  private breakStreak() {
+    this.streak.current = 0;
+    this.streak.next = null;
   }
 
   private comparePace() {

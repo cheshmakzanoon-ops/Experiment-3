@@ -1,0 +1,165 @@
+# Page snapshot
+
+```yaml
+- generic:
+  - generic:
+    - generic:
+      - generic:
+        - button "VEHICLE" [ref=e2] [cursor=pointer]
+        - button "Pause session" [ref=e3] [cursor=pointer]: Ⅱ
+      - status: AI DEMONSTRATION · PRESS G TO TAKE CONTROL
+      - generic:
+        - generic:
+          - generic: GP / LIVE
+          - generic: GP-R1 PROTOTYPE
+        - generic:
+          - generic:
+            - generic: "1"
+          - generic:
+            - generic: "151"
+            - generic: KPH
+          - generic:
+            - generic: "15288"
+            - generic: RPM
+        - generic:
+          - generic: BRK
+          - generic: THR
+        - generic:
+          - text: BATT
+          - generic:
+            - text: FUEL
+            - generic: 15.8 KG
+        - generic "Motorcycle telemetry":
+          - generic "Corner and slipstream guide":
+            - generic:
+              - generic: ↱
+              - generic "T4 · CIPRESSI, right": T4 · CIPRESSI
+              - generic: 145 M TO APEX
+            - meter "Corner progress":
+              - generic: ENTRY
+              - generic: APEX
+              - generic: EXIT
+            - generic:
+              - generic: LOOK THROUGH THE TURN
+            - generic: Set your entry speed
+          - generic:
+            - generic: LEAN
+            - generic: L 11°
+          - generic "Independent rear-brake pedal input; combined braking assistance can also apply the rear brake":
+            - generic: REAR PEDAL
+            - generic: 0%
+          - generic:
+            - generic:
+              - generic: FRONT
+              - generic: 91°C
+              - generic: 100% LIFE
+            - generic:
+              - generic: REAR
+              - generic: 92°C
+              - generic: 100% LIFE
+          - generic:
+            - generic: RIDING
+            - generic: TUCK 100%
+            - generic "Combined traction and wheelie control intervention": TC/WC 45%
+      - navigation:
+        - button "C COCKPIT" [ref=e4] [cursor=pointer]:
+          - generic [ref=e5] [cursor=pointer]: C
+          - generic [ref=e6] [cursor=pointer]: COCKPIT
+        - button "P PIT" [ref=e7] [cursor=pointer]:
+          - generic [ref=e8] [cursor=pointer]: P
+          - text: PIT
+        - button "T DATA" [ref=e9] [cursor=pointer]:
+          - generic [ref=e10] [cursor=pointer]: T
+          - text: DATA
+        - button "R REPLAY" [ref=e11] [cursor=pointer]:
+          - generic [ref=e12] [cursor=pointer]: R
+          - text: REPLAY
+        - button "G AI ON" [ref=e13] [cursor=pointer]:
+          - generic [ref=e14] [cursor=pointer]: G
+          - generic [ref=e15] [cursor=pointer]: AI ON
+      - region "Live race information":
+        - complementary "Live race classification" [ref=e16]:
+          - generic [ref=e17]:
+            - generic [ref=e18]:
+              - generic [ref=e19]: GP
+              - emphasis [ref=e20]: PRACTICE
+            - generic [ref=e21]:
+              - generic [ref=e22]: LAP
+              - generic [ref=e23]: "1"
+          - generic [ref=e24]:
+            - generic [ref=e25]:
+              - generic [ref=e26]: "1"
+              - generic "A. MOREAU" [ref=e28]: MOREAU
+              - generic [ref=e29]: "--:--.---"
+              - emphasis [ref=e30]: M
+            - generic [ref=e31]:
+              - generic [ref=e32]: "2"
+              - generic "K. SATO" [ref=e34]: SATO
+              - generic [ref=e35]: "--:--.---"
+              - emphasis [ref=e36]: M
+            - generic [ref=e37]:
+              - generic [ref=e38]: "3"
+              - generic "M. VEGA" [ref=e40]: VEGA
+              - generic [ref=e41]: "--:--.---"
+              - emphasis [ref=e42]: M
+            - generic [ref=e43]:
+              - generic [ref=e44]: "4"
+              - generic "Alex River" [ref=e46]: RIVER
+              - generic [ref=e47]: "--:--.---"
+              - emphasis [ref=e48]: M
+        - generic:
+          - generic:
+            - generic:
+              - generic: S1
+            - generic:
+              - generic: S2
+            - generic:
+              - generic: S3
+          - generic:
+            - generic: "4"
+            - generic: / 4
+          - generic:
+            - generic: 0:39.768
+          - text: BEST
+    - dialog [ref=e49]:
+      - generic [ref=e51]:
+        - banner [ref=e52]:
+          - generic [ref=e53]: PAUSED
+          - heading "Free Practice" [level=2] [ref=e54]
+          - generic [ref=e55]: Poggio Alto Autodromo
+        - generic [ref=e56]:
+          - generic [ref=e57]:
+            - term [ref=e58]: POSITION
+            - definition [ref=e59]:
+              - text: P4
+              - generic [ref=e60]: /4
+          - generic [ref=e61]:
+            - term [ref=e62]: LAP
+            - definition [ref=e63]: "1"
+          - generic [ref=e64]:
+            - term [ref=e65]: BEST LAP
+            - definition [ref=e66]: —:——.———
+          - generic [ref=e67]:
+            - term [ref=e68]: TYRES
+            - definition [ref=e69]:
+              - generic "medium" [ref=e70]: M
+              - text: "100"
+              - generic [ref=e71]: "%"
+          - generic [ref=e72]:
+            - term [ref=e73]: TRACK
+            - definition [ref=e74]:
+              - text: DRY
+              - generic [ref=e75]: 24°C
+        - generic [ref=e76]:
+          - button "RESUME SESSION" [active] [ref=e77] [cursor=pointer]
+          - button "RESTART SESSION" [ref=e78] [cursor=pointer]
+          - button "GARAGE & SETTINGS" [ref=e79] [cursor=pointer]
+          - button "RETURN TO PADDOCK" [ref=e80] [cursor=pointer]
+        - group "More options" [ref=e81]:
+          - button "CHANGE CAMERA" [ref=e82] [cursor=pointer]
+          - button "WATCH REPLAY" [ref=e83] [cursor=pointer]
+          - button "PHOTO STUDIO" [ref=e84] [cursor=pointer]
+          - button "AI DRIVER" [ref=e85] [cursor=pointer]
+          - button "ACADEMY" [ref=e86] [cursor=pointer]
+    - status
+```

@@ -20,7 +20,10 @@ const colours = { primary: 0xc12437, secondary: 0x18212a, accent: 0xf2e9d7 };
 function skins(rider: Rider) {
   const found: T.SkinnedMesh[] = [];
   rider.root.traverse((object) => {
-    if (object instanceof T.SkinnedMesh) found.push(object);
+    // This contract concerns the four continuous limb skins. The torso has
+    // its own shared three-frame spine and deformation/contact checks.
+    if (object instanceof T.SkinnedMesh && object.name.startsWith('GP continuous fitted'))
+      found.push(object);
   });
   return found;
 }

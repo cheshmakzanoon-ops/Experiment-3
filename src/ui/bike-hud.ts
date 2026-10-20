@@ -22,7 +22,7 @@ export class BikeHud {
         <div class="gp-next"><b id="gpTurnArrow" aria-hidden="true">↑</b><span id="gpCorner">STRAIGHT</span><small id="gpCornerDistance"></small></div>
         <div id="gpCornerProgress" class="gp-phase" hidden role="meter" aria-label="Corner progress" aria-valuemin="0" aria-valuemax="100"><span>ENTRY</span><span>APEX</span><span>EXIT</span><i id="gpPhaseFill" aria-hidden="true"></i></div>
         <div class="gp-cue"><b id="gpAction"></b><span id="gpTow" hidden></span></div><small id="gpAdvice"></small>
-        <div id="gpPractice" class="gp-practice" hidden aria-label="Personal corner practice"><span id="gpPracticeLabel"></span><b id="gpPracticeTime"></b><small id="gpPracticeDetail"></small></div>
+        <div id="gpPractice" class="gp-practice" hidden aria-label="Personal corner practice"><span id="gpPracticeLabel"></span><b id="gpPracticeTime"></b><small id="gpPracticeDetail"></small><small id="gpPracticeStreak" hidden></small></div>
       </div>
       <div class="gp-lean"><span>LEAN</span><div class="gp-lean-track" aria-hidden="true"><i id="gpLeanMarker"></i></div><b id="gpLean">0°</b></div>
       <div class="gp-rear-brake" title="Independent rear-brake pedal input; combined braking assistance can also apply the rear brake"><span>REAR PEDAL</span><div aria-hidden="true"><i id="gpRearBrakeBar"></i></div><b id="gpRearBrake">0%</b></div>
@@ -109,11 +109,13 @@ export class BikeHud {
     this.nodes.gpElectronics.dataset.active = String(readout.intervention > 0);
     const cue = track ? this.ridingCues.read(frame, track) : null;
     const attempt = this.practice.active,
-      result = this.practice.last;
+      result = this.practice.last,
+      streak = this.practice.streak;
     const showPractice = !!cue && cue.tone !== 'caution' && this.practice.eligible;
     const showResult =
       !attempt && result && frame[H.TIME] >= result.at && frame[H.TIME] - result.at < 6;
-    this.nodes.gpPractice.hidden = !(showPractice && (attempt || showResult));
+    const showLink = !attempt && !showResult && streak.current > 0 && streak.next;
+    this.nodes.gpPractice.hidden = !(showPractice && (attempt || showResult || showLink));
     if (!this.nodes.gpPractice.hidden) {
       const improved = !!showResult && result!.delta !== null && result!.delta < -0.005;
       const exitDelta = result?.exitDelta == null ? null : Math.round(result.exitDelta * 3.6);
@@ -122,17 +124,28 @@ export class BikeHud {
         'gpPracticeLabel',
         attempt
           ? `T${attempt.corner.index + 1} · PRACTICE`
-          : `T${result!.corner.index + 1} · ${improved ? 'NEW BEST' : 'CORNER TIME'}`,
+          : showLink
+            ? 'CLEAN STREAK'
+            : `T${result!.corner.index + 1} · ${improved ? 'NEW BEST' : 'CORNER TIME'}`,
       );
-      set('gpPracticeTime', `${(attempt?.elapsed ?? result!.seconds).toFixed(2)} s`);
+      set(
+        'gpPracticeTime',
+        showLink
+          ? `${streak.current} ${streak.current === 1 ? 'CORNER' : 'CORNERS'}`
+          : `${(attempt?.elapsed ?? result!.seconds).toFixed(2)} s`,
+      );
       set(
         'gpPracticeDetail',
         attempt
           ? attempt.best === null
             ? 'Bank a clean entry-to-exit run'
             : `${gpPracticeDelta(attempt.delta ?? 0)} vs best · target ${attempt.best.toFixed(2)} s`
-          : `${result!.delta === null ? 'First clean run' : gpPracticeDelta(result!.delta)} · exit ${Math.round(result!.exitSpeed * 3.6)} km/h${exitDelta ? ` (${exitDelta > 0 ? '+' : '−'}${Math.abs(exitDelta)})` : ''} · ${result!.condition}`,
+          : showLink
+            ? `Best ${streak.best} · next T${streak.next!.index + 1} ${streak.next!.name}`
+            : `${result!.delta === null ? 'First clean run' : gpPracticeDelta(result!.delta)} · exit ${Math.round(result!.exitSpeed * 3.6)} km/h${exitDelta ? ` (${exitDelta > 0 ? '+' : '−'}${Math.abs(exitDelta)})` : ''} · ${result!.condition}`,
       );
+      this.nodes.gpPracticeStreak.hidden = !!showLink || streak.best === 0;
+      set('gpPracticeStreak', `CLEAN STREAK ${streak.current} · BEST ${streak.best}`);
     }
     this.nodes.gpCraft.hidden = !cue;
     if (cue) {

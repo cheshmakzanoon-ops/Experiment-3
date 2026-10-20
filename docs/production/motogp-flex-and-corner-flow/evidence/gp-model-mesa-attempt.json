@@ -1,0 +1,142 @@
+{
+  "backend": "Mesa llvmpipe / Chromium 1193",
+  "configuredTimeoutMs": 300000,
+  "originalAssertions": true,
+  "stats": {
+    "startTime": "2026-10-20T08:17:49.694Z",
+    "duration": 189436.656,
+    "expected": 3,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  },
+  "tests": [
+    {
+      "title": "GP front lever renders recorded squeeze, hold, release and rewind without new resources",
+      "status": "passed",
+      "durationMs": 72984,
+      "errors": [],
+      "attachments": [
+        {
+          "path": "mesa-gpr1-lever-released.png",
+          "bytes": 1243858,
+          "retainedInRepo": false
+        },
+        {
+          "path": "mesa-gpr1-lever-squeezed.png",
+          "bytes": 1241749,
+          "retainedInRepo": false
+        },
+        {
+          "path": "mesa-gpr1-lever-metrics.json",
+          "bytes": 12924,
+          "retainedInRepo": true
+        },
+        {
+          "path": "mesa-gpr2-lever-released.png",
+          "bytes": 1216199,
+          "retainedInRepo": false
+        },
+        {
+          "path": "mesa-gpr2-lever-squeezed.png",
+          "bytes": 1211225,
+          "retainedInRepo": false
+        },
+        {
+          "path": "mesa-gpr2-lever-metrics.json",
+          "bytes": 12930,
+          "retainedInRepo": true
+        }
+      ]
+    },
+    {
+      "title": "gpr1 rider-corner animates direction and pedal input with stable held and rewound poses",
+      "status": "passed",
+      "durationMs": 24334,
+      "errors": [],
+      "attachments": [
+        {
+          "path": "mesa-gpr1-rider-corner-resting.png",
+          "bytes": 181552,
+          "retainedInRepo": true
+        },
+        {
+          "path": "mesa-gpr1-rider-corner-actuated.png",
+          "bytes": 208384,
+          "retainedInRepo": true
+        },
+        {
+          "path": "mesa-gpr1-rider-corner-motion.json",
+          "bytes": 10526,
+          "retainedInRepo": true
+        }
+      ]
+    },
+    {
+      "title": "gpr2 rider-corner animates direction and pedal input with stable held and rewound poses",
+      "status": "passed",
+      "durationMs": 25430,
+      "errors": [],
+      "attachments": [
+        {
+          "path": "mesa-gpr2-rider-corner-resting.png",
+          "bytes": 180541,
+          "retainedInRepo": false
+        },
+        {
+          "path": "mesa-gpr2-rider-corner-actuated.png",
+          "bytes": 209366,
+          "retainedInRepo": false
+        },
+        {
+          "path": "mesa-gpr2-rider-corner-motion.json",
+          "bytes": 10524,
+          "retainedInRepo": true
+        }
+      ]
+    },
+    {
+      "title": "GP personal corner timing: responsive layout, raw-frame cadence and handoffs",
+      "status": "failed",
+      "durationMs": 35500,
+      "errors": [
+        {
+          "location": {
+            "file": "/workspace/scratch/6ed7d13250c1/Experiment-3/e2e/motorcycle-presentation.spec.ts",
+            "column": 28,
+            "line": 464
+          },
+          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThan\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: > \u001b[32m379.8\u001b[39m\nReceived:   \u001b[31m375.765625\u001b[39m\n\n  462 |         expect(bounds.left).toBeGreaterThanOrEqual(0);\n  463 |         expect(bounds.right).toBeLessThanOrEqual(viewport.width);\n> 464 |         expect(bounds.top).toBeGreaterThan(viewport.height * 0.45);\n      |                            ^\n  465 |         expect(bounds.bottom).toBeLessThanOrEqual(viewport.height - 48);\n  466 |         expect(bounds.scroll).toBeLessThanOrEqual(bounds.client + 1);\n  467 |         measurements.push({ viewport, scale, bounds });\n    at /workspace/scratch/6ed7d13250c1/Experiment-3/e2e/motorcycle-presentation.spec.ts:464:28\n    at /workspace/scratch/6ed7d13250c1/Experiment-3/e2e/motorcycle-presentation.spec.ts:416:3"
+        }
+      ],
+      "attachments": [
+        {
+          "path": "mesa-gp-corner-practice-1440.png",
+          "bytes": 89250,
+          "retainedInRepo": false
+        },
+        {
+          "path": "mesa-gp-corner-practice-960.png",
+          "bytes": 44956,
+          "retainedInRepo": false
+        },
+        {
+          "path": "mesa-gp-corner-practice-390.png",
+          "bytes": 53264,
+          "retainedInRepo": false
+        },
+        {
+          "path": "mesa-screenshot",
+          "bytes": 76812,
+          "retainedInRepo": false
+        },
+        {
+          "path": "mesa-error-context",
+          "bytes": 2535,
+          "retainedInRepo": false
+        }
+      ]
+    }
+  ],
+  "note": "Models passed. Portrait HUD clearance failed and is fixed in production CSS; its unchanged browser case will be rerun after integrating physics-v15."
+}

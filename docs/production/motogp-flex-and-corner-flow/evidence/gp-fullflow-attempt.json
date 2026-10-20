@@ -1,0 +1,98 @@
+{
+  "spec": "e2e/motogp-riding-flow.spec.ts",
+  "backend": "Mesa llvmpipe / Chromium 1193",
+  "command": "APEX_BROWSER_BACKEND=mesa xvfb-run -a -s '-screen 0 1600x1000x24' node node_modules/@playwright/test/cli.js test --config=/tmp/motogp-fullflow-review.config.mjs",
+  "configOverrides": {
+    "server": "Dedicated production preview on port 4189",
+    "reporters": [
+      "list",
+      "json",
+      "existing browser progress reporter"
+    ],
+    "assertions": "Unchanged",
+    "deadlines": "Unchanged",
+    "workload": "Unchanged"
+  },
+  "sourceFingerprint": "74eaa92f5373cf941a7942bc3bccd82caf8179878a3eda8706f5d444956c250b",
+  "configuredTimeoutMs": 300000,
+  "quality": "Low, selected through the existing settings UI by the original test",
+  "stats": {
+    "startTime": "2026-10-20T08:40:04.684Z",
+    "duration": 365980.87399999995,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  },
+  "tests": [
+    {
+      "title": "GP practice rides through named corner guidance, cockpit, pause and recorded replay",
+      "status": "failed",
+      "durationMs": 324430,
+      "errors": [
+        {
+          "location": {
+            "file": "/workspace/scratch/6ed7d13250c1/Experiment-3/e2e/motogp-riding-flow.spec.ts",
+            "column": 3,
+            "line": 217
+          },
+          "message": "Error: Test timeout of 300000ms exceeded\n\n  215 |   await page.keyboard.press('Escape');\n  216 |   await expect(page.getByRole('button', { name: 'RESUME SESSION', exact: true })).toBeVisible();\n> 217 |   await expect\n      |   ^\n  218 |     .poll(async () => (await diag()).workerPause)\n  219 |     .toMatchObject({ paused: true, pending: false });\n  220 |   const paused = await diag();\n    at /workspace/scratch/6ed7d13250c1/Experiment-3/e2e/motogp-riding-flow.spec.ts:217:3"
+        }
+      ],
+      "retainedAttachments": [
+        {
+          "path": "fullflow-02-gp-moving-chase-guide.png",
+          "bytes": 929218,
+          "sha256": "28d428133c5ad67c7b270572199e64aec5c605d5fd12a503e0c057f20a41a61a",
+          "blobSha": "7bf5a366e0e76cf070290f0d3c969cc4b27bb4d7"
+        },
+        {
+          "path": "fullflow-03-gp-moving-cockpit-guide.png",
+          "bytes": 890795,
+          "sha256": "8f246f11a183ddd0571819a7fbdf49db74aa1513b0e85c7ef9120f7567bb60f4",
+          "blobSha": "a50c8a68e9478043787d67cf3b2f0ed330d26b82"
+        },
+        {
+          "path": "fullflow-error-context.md",
+          "bytes": 5936,
+          "sha256": "2a51359b09432402ba570f147a698924211f17fee193426cbdda9fdd5af4d908",
+          "blobSha": "4a8952ef443dc072594ebd80e7694c5f57f1c95b"
+        }
+      ]
+    }
+  ],
+  "completedBeforeDeadline": [
+    "Menu/settings and four-rider GP-R1 Poggio Alto practice entry",
+    "Manual throttle produces worker input and forward speed without demonstration",
+    "AI on/off handoff",
+    "Independent rear pedal produces rear braking without front hydraulic input",
+    "All four riders moving and not retired at the checked snapshot",
+    "Readable named corner guidance and chase capture",
+    "Cockpit camera and readable guide capture",
+    "Pause menu becomes visible"
+  ],
+  "remainingUnverified": [
+    "Explicit paused-frame freeze assertion",
+    "Recorded replay entry, seeking and restored guide",
+    "Resume from replay to live session",
+    "Final aggregate no-console-errors assertion"
+  ],
+  "failureStage": "Overall 300000ms deadline expired at line217 while waiting for workerPause {paused:true,pending:false}.",
+  "note": "This is an incomplete full-session test, not a pass. Completed earlier assertions and retained captures support only the milestones listed.",
+  "traceDiagnosis": "gp-fullflow-trace-diagnosis.json",
+  "observedAfterDeadline": {
+    "state": "paused",
+    "workerPause": {
+      "pending": false,
+      "paused": true,
+      "tick": 5429,
+      "sequence": 2
+    },
+    "replaySamples": 678,
+    "replayError": null,
+    "recordingWarnings": [],
+    "pollBudgetBeforeTimeoutMs": 15.099,
+    "responseAfterTimeoutMs": 151.185,
+    "nestedMatchAssertion": "completed without error"
+  }
+}

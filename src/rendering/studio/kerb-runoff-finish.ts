@@ -1,6 +1,7 @@
 import * as T from 'three';
 import { chainShaderHook, injectAfter, injectDeclarations } from './shader-hooks.ts';
 import { installTrackEdgeHelpers } from './track-edge-wear.ts';
+import type { GpEdgeDesign } from '../venue-kit/gp-edge-design.ts';
 
 /**
  * Kerbs and run-off (D15 track-kerbs-runoff), chained after the circuit
@@ -84,12 +85,17 @@ export const KERB_HOOK = 'kerb-finish-v3';
 export const RUNOFF_HOOK = 'runoff-finish-v3';
 
 /** Install on the kerb ribbon material (after `installCircuitFinish(m, 'kerb')`). */
-export function installKerbFinish(material: T.MeshStandardMaterial, lapLength = 3600) {
+export function installKerbFinish(
+  material: T.MeshStandardMaterial,
+  lapLength = 3600,
+  gp: GpEdgeDesign | null = null,
+) {
   // Stripe colour is authored in metres in the shader. Disabling the old
   // vertex tint lets construction joints and paint chips survive the colour
   // stage instead of resetting all of them to kerbPaint after color_fragment.
   material.vertexColors = false;
-  return chainShaderHook(material, KERB_HOOK, (shader) => {
+  if (gp) material.userData.gpEdgeDesign = gp.id;
+  return chainShaderHook(material, gp ? `gp-kerb-${gp.id}-v1` : KERB_HOOK, (shader) => {
     installTrackEdgeHelpers(shader, lapLength);
     injectDeclarations(
       shader,
@@ -118,8 +124,8 @@ export function installKerbFinish(material: T.MeshStandardMaterial, lapLength = 
 	// Hand-rolled edges: a centimetre of overlap and a few millimetres of waver.
 	float stripeWaver = ( finishFilteredNoise( vFinishWorld.xz * vec2( 5.3, 4.1 ) ) - .5 ) * ${f(0.008 / KERB.pair)};
 	float second = apexStripeCoverage( stripePhase + stripeWaver, max( fwidth( stripePhase ), ${f(KERB.edgeOverlap / KERB.pair)} ), .25 );
-	vec3 first = vKerbStyle > 1.5 ? ${v3(KERB.colours[2][0])} : vKerbStyle > .5 ? ${v3(KERB.colours[1][0])} : ${v3(KERB.colours[0][0])};
-	vec3 other = vKerbStyle > 1.5 ? ${v3(KERB.colours[2][1])} : ${v3(KERB.colours[0][1])};
+	vec3 first = ${gp ? v3(gp.kerb[0]) : `vKerbStyle > 1.5 ? ${v3(KERB.colours[2][0])} : vKerbStyle > .5 ? ${v3(KERB.colours[1][0])} : ${v3(KERB.colours[0][0])}`};
+	vec3 other = ${gp ? v3(gp.kerb[1]) : `vKerbStyle > 1.5 ? ${v3(KERB.colours[2][1])} : ${v3(KERB.colours[0][1])}`};
 	vec3 paint = mix( first, other, second );
 	// Tyre rubber over the track-side 30 %, where the line uses the kerb.
 	float across = clamp( vKerbAcross / ${f(KERB.width)}, 0.0, 1.0 );
@@ -171,10 +177,25 @@ export function installKerbFinish(material: T.MeshStandardMaterial, lapLength = 
 }
 
 /** Install on the run-off ribbon material (after `installCircuitFinish(m, 'paint')`). */
-export function installRunoffFinish(material: T.MeshStandardMaterial, lapLength = 3600) {
+export function installRunoffFinish(
+  material: T.MeshStandardMaterial,
+  lapLength = 3600,
+  gp: GpEdgeDesign | null = null,
+) {
   material.color.setHex(0xffffff);
-  return chainShaderHook(material, RUNOFF_HOOK, (shader) => {
+  if (gp) material.userData.gpEdgeDesign = gp.id;
+  return chainShaderHook(material, gp ? `gp-runoff-${gp.id}-v1` : RUNOFF_HOOK, (shader) => {
     installTrackEdgeHelpers(shader, lapLength);
+    if (gp) {
+      injectDeclarations(
+        shader,
+        'common',
+        'attribute float gpCornerPaint; varying float vGpCornerPaint;',
+        'vertex',
+      );
+      injectAfter(shader, 'begin_vertex', 'vGpCornerPaint = gpCornerPaint;', 'vertex');
+      injectDeclarations(shader, 'common', 'varying float vGpCornerPaint;', 'fragment');
+    }
     injectDeclarations(
       shader,
       'common',
@@ -214,13 +235,17 @@ export function installRunoffFinish(material: T.MeshStandardMaterial, lapLength 
 		float fibre = finishFilteredNoise( vFinishMetres * vec2( 9.0, 40.0 ) );
 		surface = ${v3(RUNOFF.turf)} * ( .78 + .34 * fibre ) * ( .92 + .16 * grain );
 	} else {
-		vec3 bandColour = style == 1 ? ${v3(RUNOFF.bands[1])} : style == 2 ? ${v3(RUNOFF.bands[2])} : style == 3 ? ${v3(RUNOFF.bands[3])} : ${v3(RUNOFF.bands[0])};
+		vec3 bandColour = ${gp ? v3(gp.apron) : `style == 1 ? ${v3(RUNOFF.bands[1])} : style == 2 ? ${v3(RUNOFF.bands[2])} : style == 3 ? ${v3(RUNOFF.bands[3])} : ${v3(RUNOFF.bands[0])}`};
 		float px = max( fwidth( e ), 1e-4 );
-		float band = smoothstep( ${f(RUNOFF.band[0])} - px, ${f(RUNOFF.band[0])} + px, e ) * ( 1.0 - smoothstep( ${f(RUNOFF.band[1])} - px, ${f(RUNOFF.band[1])} + px, e ) );
+		// GP paint follows each side's real bend: an outer edge on straights,
+		// a broad escape-side panel and a shorter inner apex apron.
+		float bandFrom = ${gp ? 'mix(3.08, 1.18, clamp(abs(vGpCornerPaint), 0., 1.))' : f(RUNOFF.band[0])};
+		float bandTo = ${gp ? '3.84' : f(RUNOFF.band[1])};
+		float band = smoothstep( bandFrom - px, bandFrom + px, e ) * ( 1.0 - smoothstep( bandTo - px, bandTo + px, e ) );
 		// White chevrons inside the band, pointing along the lap.
-		float u = ( e - ${f(RUNOFF.band[0])} ) / ${f(RUNOFF.band[1] - RUNOFF.band[0])};
+		float u = ( e - bandFrom ) / ( bandTo - bandFrom );
 		float chevPhase = vFinishMetres.y / ${f(RUNOFF.chevronPitch)} + abs( u - .5 ) * .6;
-		float chevron = apexStripeCoverage( chevPhase, fwidth( chevPhase ), .07 ) * band;
+		float chevron = apexStripeCoverage( chevPhase, fwidth( chevPhase ), .07 ) * band${gp ? ' * smoothstep(.05, .7, vGpCornerPaint)' : ''};
 		// Road paint is rolled onto the asphalt: the chips carry it, the voids
 		// between them stay darker, so the aggregate reads through the colour.
 		float paintTex = clamp( tex, .8, 1.16 );
@@ -228,7 +253,7 @@ export function installRunoffFinish(material: T.MeshStandardMaterial, lapLength 
 		// (more on the chevrons), never a fresh vinyl print.
 		float paintWear = smoothstep( .5, .85, finishFilteredNoise( vFinishWorld.xz * 1.3 + vec2( 7.1, 2.9 ) ) * .6 + finishFilteredNoise( vFinishWorld.xz * 11.0 ) * .4 );
 		surface = mix( base, bandColour * ( .92 + .14 * grain ) * paintTex, band * .92 * ( 1.0 - .35 * paintWear ) );
-		surface = mix( surface, vec3( .62 ) * paintTex, chevron * .85 * ( 1.0 - .55 * paintWear ) );
+		surface = mix( surface, ${gp ? v3(gp.marking) : 'vec3( .62 )'} * paintTex, chevron * .85 * ( 1.0 - .55 * paintWear ) );
 		// Tyre dirt sprayed off the kerb across the first metre or so.
 		float spray = ( 1.0 - smoothstep( ${f(RUNOFF.from)}, ${f(RUNOFF.from + 1.6)}, e ) ) * smoothstep( .35, .8, finishFilteredNoise( vFinishWorld.xz * vec2( 3.7, 1.1 ) ) );
 		surface = mix( surface, vec3( .07, .065, .06 ), spray * .35 );
@@ -255,7 +280,9 @@ export function installRunoffFinish(material: T.MeshStandardMaterial, lapLength 
     injectAfter(
       shader,
       'roughnessmap_fragment',
-      `roughnessFactor = int( vRunoffStyle + .5 ) == 4 ? .78 : mix( roughnessFactor, .62, step( ${f(RUNOFF.band[0])}, vRunoffEdge ) * step( vRunoffEdge, ${f(RUNOFF.band[1])} ) );`,
+      gp
+        ? `roughnessFactor = mix(roughnessFactor, .7, step(mix(3.08, 1.18, clamp(abs(vGpCornerPaint), 0., 1.)), vRunoffEdge) * step(vRunoffEdge, 3.84));`
+        : `roughnessFactor = int( vRunoffStyle + .5 ) == 4 ? .78 : mix( roughnessFactor, .62, step( ${f(RUNOFF.band[0])}, vRunoffEdge ) * step( vRunoffEdge, ${f(RUNOFF.band[1])} ) );`,
       'fragment',
     );
   });

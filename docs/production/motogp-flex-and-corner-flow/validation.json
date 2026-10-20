@@ -1,0 +1,673 @@
+{
+  "version": 2,
+  "date": "2026-10-20",
+  "scope": "GP-R1/GP-R2 articulated torso and brake fingers, four GP track-edge schemes, and clean-corner practice streaks",
+  "integration": {
+    "startingCommit": "c4f674e86de7d9a0e80812bdbf7ac885f2a71a53",
+    "publicationParent": "84472529313a7f8912513eeb1b698566fab1b2bc",
+    "parentTree": "b7454fb524dbc152b18d21fd031c42773cd43c54",
+    "upstreamChange": "Physics v16 and the upstream motocross motion/terrain changes were integrated. The shared rider.ts conflict was resolved and reviewed to preserve the GP spine/fingers alongside all incoming sampleMotocrossRiderMotion behavior. The earlier physics-v15 factory-sag integration remains preserved.",
+    "resolvedFiles": [
+      "src/rendering/rider.ts"
+    ],
+    "preservedMotocrossContributions": [
+      "pelvisDrop",
+      "pelvisBack",
+      "torsoPitch",
+      "elbowLift",
+      "gazePitch",
+      "motocross head-roll response"
+    ],
+    "finalSourceFingerprint": "740e256cc3b5a6922d5342e99d61c1ebe61f3268ee63ff5bac0d320a677fe5ee",
+    "fingerprintScope": "785 files: all src files plus package-lock.json, index.html and vite.config.ts, using the Vite build-identity hashing procedure.",
+    "fingerprintIndependentlyRecomputed": true,
+    "earlierProvenance": "The earlier integration, successful production build, static checks and source-change hashes are preserved in integrationHistory, historicalBuilds, historicalStaticChecks and historicalSourceChanges. All browser receipts predate this physics-v16 merge."
+  },
+  "build": {
+    "command": "npm run build",
+    "status": "passed",
+    "sourceStage": "Final physics-v16 source after shared-rider conflict resolution",
+    "publicationParent": "84472529313a7f8912513eeb1b698566fab1b2bc",
+    "expectedSourceFingerprint": "740e256cc3b5a6922d5342e99d61c1ebe61f3268ee63ff5bac0d320a677fe5ee",
+    "note": "The final integrated physics-v16 source completed the production build. commit:null intentionally labels the uncommitted integration build; the independently reproduced content fingerprint identifies the tested source.",
+    "exitCode": 0,
+    "durationSeconds": 423.356,
+    "stages": [
+      "Pinned player-LOD derivative check",
+      "tsc --noEmit",
+      "vite build"
+    ],
+    "modulesTransformed": 766,
+    "viteDurationText": "3m 36s",
+    "buildIdentity": {
+      "version": 1,
+      "commit": null,
+      "fingerprint": "740e256cc3b5a6922d5342e99d61c1ebe61f3268ee63ff5bac0d320a677fe5ee"
+    },
+    "warning": "Existing large-chunk warning (>500 kB after minification); no build error."
+  },
+  "unitChecks": [
+    {
+      "scope": "MotoGP rider, controls, practice and track changes before upstream integration",
+      "runner": "Vitest",
+      "files": 15,
+      "tests": 159,
+      "initialPassed": 158,
+      "initialFailed": 1,
+      "durationSeconds": 501.02,
+      "filesRun": [
+        "tests/gp-rider-spine.test.ts",
+        "tests/gp-brake-fingers.test.ts",
+        "tests/gp-brake-lever.test.ts",
+        "tests/gp-rider-glove.test.ts",
+        "tests/gp-rider-motion.test.ts",
+        "tests/gp-rider-contact.test.ts",
+        "tests/gp-rider-garment.test.ts",
+        "tests/gp-rider-silhouette.test.ts",
+        "tests/gp-rider-suit.test.ts",
+        "tests/gp-corner-practice.test.ts",
+        "tests/gp-edge-design.test.ts",
+        "tests/bike-animation.test.ts",
+        "tests/gp-control-feedback.test.ts",
+        "tests/gp-rear-pedal.test.ts",
+        "tests/gp-braking-approach.test.ts"
+      ],
+      "correction": "The bike-animation interpolation assertion still expected the former 0.4-radian lever stroke. It now expects the shared 0.25-radian stroke (0.1 radians at 40% input). Its five-test file then passed.",
+      "status": "passedAcrossFollowupRuns",
+      "sourceStage": "Earlier MotoGP implementation, before physics-v16 integration; original scope retained"
+    },
+    {
+      "scope": "Track materials and kerbs",
+      "command": "node node_modules/vitest/vitest.mjs run tests/gp-edge-design.test.ts tests/kerb-runoff.test.ts tests/gp-wet-finish-order.test.ts --reporter=dot",
+      "files": 3,
+      "tests": 21,
+      "status": "passed",
+      "durationSeconds": 81.6,
+      "overlapNote": "Twelve gp-edge-design tests also appear in the 15-file MotoGP run.",
+      "sourceStage": "Earlier MotoGP implementation, before physics-v16 integration; original scope retained"
+    },
+    {
+      "scope": "After physics-v15 integration",
+      "command": "node node_modules/vitest/vitest.mjs run tests/bike-animation.test.ts tests/gp-brake-fingers.test.ts tests/gp-rider-spine.test.ts tests/motocross-sprung-pose.test.ts tests/motocross-reference-geometry.test.ts --maxWorkers=1",
+      "files": 5,
+      "tests": 47,
+      "status": "passed",
+      "exitCode": 0,
+      "durationSeconds": 132.25,
+      "overlapNote": "Eighteen GP/bike checks repeat earlier coverage; 29 checks cover upstream motocross suspension compatibility.",
+      "sourceStage": "Physics-v15 integration before the physics-v16 motocross merge"
+    },
+    {
+      "scope": "After physics-v16 motocross integration and shared-rider conflict resolution",
+      "command": "node node_modules/vitest/vitest.mjs run tests/gp-rider-spine.test.ts tests/gp-brake-fingers.test.ts tests/motocross-rider-motion.test.ts tests/motocross-control-animation.test.ts --maxWorkers=1",
+      "sourceStage": "Final merged physics-v16 source",
+      "sourceFingerprint": "740e256cc3b5a6922d5342e99d61c1ebe61f3268ee63ff5bac0d320a677fe5ee",
+      "files": 4,
+      "tests": 23,
+      "status": "passed",
+      "exitCode": 0,
+      "durationSeconds": 97.79,
+      "fileResults": [
+        {
+          "path": "tests/gp-rider-spine.test.ts",
+          "tests": 7,
+          "status": "passed"
+        },
+        {
+          "path": "tests/gp-brake-fingers.test.ts",
+          "tests": 6,
+          "status": "passed"
+        },
+        {
+          "path": "tests/motocross-rider-motion.test.ts",
+          "tests": 6,
+          "status": "passed"
+        },
+        {
+          "path": "tests/motocross-control-animation.test.ts",
+          "tests": 4,
+          "status": "passed"
+        }
+      ],
+      "overlapNote": "The 13 GP spine/finger checks repeat earlier coverage on the newly merged source; the other 10 cover incoming motocross motion and control animation. Counts are not cumulative unique tests."
+    }
+  ],
+  "staticChecks": {
+    "mergedRiderEslint": {
+      "command": "node node_modules/eslint/bin/eslint.js src/rendering/rider.ts",
+      "exitCode": 0,
+      "durationSeconds": 12.061,
+      "status": "passed",
+      "sourceStage": "Resolved shared rider on final physics-v16 source",
+      "sourceFingerprint": "740e256cc3b5a6922d5342e99d61c1ebe61f3268ee63ff5bac0d320a677fe5ee"
+    },
+    "mergedRiderPrettier": {
+      "command": "node node_modules/prettier/bin/prettier.cjs --check src/rendering/rider.ts",
+      "exitCode": 0,
+      "durationSeconds": 1.113,
+      "status": "passed",
+      "sourceStage": "Resolved shared rider on final physics-v16 source",
+      "sourceFingerprint": "740e256cc3b5a6922d5342e99d61c1ebe61f3268ee63ff5bac0d320a677fe5ee"
+    },
+    "finalDiffWhitespace": {
+      "command": "git diff --cached --check",
+      "status": "passed"
+    }
+  },
+  "browserChecks": [
+    {
+      "scope": "Both GP front-brake models, squeeze/hold/release/rewind and stable resources",
+      "backend": "Mesa llvmpipe",
+      "status": "passed",
+      "tests": 1,
+      "durationMs": 72984,
+      "receipt": "evidence/gp-model-mesa-attempt.json",
+      "sourceStage": "Before physics-v15 merge and portrait-only CSS fix; before physics-v16 motocross merge",
+      "publicationSourceRelation": "Historical evidence only; predates the final physics-v16 motocross merge"
+    },
+    {
+      "scope": "GP-R1 and GP-R2 rider corner motion, independent rear pedal, held and rewound poses",
+      "backend": "Mesa llvmpipe",
+      "status": "passed",
+      "tests": 2,
+      "durationsMs": [
+        24334,
+        25430
+      ],
+      "receipt": "evidence/gp-model-mesa-attempt.json",
+      "sourceStage": "Before physics-v15 merge and portrait-only CSS fix; before physics-v16 motocross merge",
+      "publicationSourceRelation": "Historical evidence only; predates the final physics-v16 motocross merge"
+    },
+    {
+      "scope": "All four GP venue edge schemes, dry/wet/restored states",
+      "backend": "SwiftShader",
+      "status": "passed",
+      "tests": 1,
+      "receipt": "evidence/gp-edge-validation.json",
+      "sourceStage": "Before physics-v15 integration and the later physics-v16 motocross merge",
+      "publicationSourceRelation": "Historical evidence only; predates the final physics-v16 motocross merge"
+    },
+    {
+      "scope": "GP personal corner timing and streak HUD across viewport/text scales and handoffs",
+      "backend": "Mesa llvmpipe",
+      "status": "passed",
+      "tests": 1,
+      "durationMs": 94192,
+      "receipt": "evidence/gp-hud-final-attempt.json",
+      "sourceStage": "Physics-v15 integrated source after portrait fix, before physics-v16 motocross merge",
+      "publicationSourceRelation": "Historical evidence only; predates the final physics-v16 motocross merge"
+    },
+    {
+      "scope": "Broader motorcycle HUD, wet/thermal/electronics cues and bike/car restoration",
+      "backend": "Mesa llvmpipe",
+      "status": "timedOut",
+      "configuredTimeoutMs": 300000,
+      "durationMs": 378665,
+      "receipt": "evidence/gp-hud-final-attempt.json",
+      "diagnosis": "evidence/gp-hud-timeout-diagnosis.json",
+      "note": "No completed locator observation supported the reported empty action. Saved screen/context showed the prior CAUTION cue; 36 production cue samples matched in a separate Node diagnostic. This remains an incomplete browser check.",
+      "publicationSourceRelation": "Historical evidence only; predates the final physics-v16 motocross merge",
+      "sourceStage": "Physics-v15 integrated source after portrait fix, before physics-v16 motocross merge"
+    }
+  ],
+  "historicalAttempts": [
+    {
+      "scope": "Model render first attempt",
+      "backend": "SwiftShader",
+      "status": "timedOut",
+      "configuredTimeoutMs": 300000,
+      "receipt": "evidence/gp-model-swiftshader-attempt.json",
+      "note": "Retained both bikes' completed five-state metrics and selected images; a later unchanged-workload Mesa run passed. The SwiftShader attempt itself is not counted as a pass.",
+      "publicationSourceRelation": "Before physics-v16 motocross integration"
+    },
+    {
+      "scope": "Track artifact-retention rerun",
+      "backend": "SwiftShader",
+      "status": "timedOut",
+      "configuredTimeoutMs": 300000,
+      "receipt": "evidence/gp-edge-validation.json",
+      "note": "The first four-venue run passed. The list-only reporter did not retain its in-memory metrics; the later JSON-reporter attempt retained only the Poggio image before the deadline.",
+      "publicationSourceRelation": "Before physics-v16 motocross integration"
+    },
+    {
+      "scope": "Practice portrait layout before fix",
+      "backend": "Mesa llvmpipe",
+      "status": "failed",
+      "receipt": "evidence/gp-model-mesa-attempt.json",
+      "finding": "At 390\u00d7844 and enlarged text, card top was 375.765625px versus required >379.8px.",
+      "correction": "Hide the secondary resource row while the practice card is visible in the narrow layout. Existing assertions and viewports were retained, and the case passed on the physics-v15 source after the portrait fix, before the physics-v16 merge.",
+      "publicationSourceRelation": "Before physics-v16 motocross integration"
+    }
+  ],
+  "browserEnvironment": {
+    "browser": "Playwright Chromium 1193",
+    "playwright": "1.55.1",
+    "mesaRenderer": "ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)",
+    "softwareRendering": true,
+    "workers": 1,
+    "retries": 0,
+    "fixtureDeadlineMs": 300000,
+    "fixtureExpectTimeoutMs": 60000,
+    "weakenedAssertions": false,
+    "raisedDeadlines": false,
+    "physicalGpuBenchmark": false,
+    "observation": "During delayed physics-v15 build/HUD work before the v16 merge, a resource snapshot reported a 42.83 one-minute load, 1,266,192 kB available memory out of 10,230,288 kB and no swap. This observation does not prove the cause of any individual browser timeout."
+  },
+  "referenceAudit": {
+    "receipt": "reference-review.json",
+    "images": 100,
+    "hashesMatched": 100,
+    "uniqueImagePayloads": 100,
+    "review": "All five original contact sheets plus selected full-resolution originals. The stills inform visible construction; joint motion and venue palettes are authored.",
+    "newRuntimeReferenceImagery": false
+  },
+  "review": {
+    "independentSourceReview": "No concrete LOD, snapshot/recovery, cleanup or evidence-overstatement issue found against the integrated source.",
+    "visualReview": "Selected original captured PNGs were inspected: both GP hand states, GP rider corner poses, Poggio track edge and the final portrait practice HUD.",
+    "independentSourceReviewStage": "Reviewed against ca9e098 plus the GP changes, before physics-v16 integration",
+    "mergedRiderConflictReview": "The shared rider resolution was reviewed after the physics-v16 merge, preserving GP spine/fingers and all incoming motocross motion contributions.",
+    "visualReviewStage": "All inspected captures precede physics-v16 integration; no final-v16 browser rendering is claimed."
+  },
+  "limitations": [
+    "All retained browser outcomes and captures predate the final physics-v16 source; they do not establish browser verification of the merged rider.",
+    "The earlier physics-v15 full-session test reached driving and cockpit views, then hit its overall deadline at the pause poll. Replay navigation/resume remain unverified in that run.",
+    "Rendered component fixtures are not a complete-session benchmark.",
+    "Software renderer results do not establish physical-GPU frame rate.",
+    "Static reference images do not establish measured anatomy, motion capture or real-world dimensions.",
+    "The art remains procedural; full photorealism or commercial-title parity is not claimed."
+  ],
+  "fullSession": {
+    "status": "failed",
+    "reason": "Overall test deadline",
+    "configuredTimeoutMs": 300000,
+    "durationMs": 324430,
+    "spec": "e2e/motogp-riding-flow.spec.ts",
+    "receipt": "evidence/gp-fullflow-attempt.json",
+    "traceDiagnosis": "evidence/gp-fullflow-trace-diagnosis.json",
+    "sourceStage": "Earlier physics-v15 integrated production build, before the physics-v16 motocross merge",
+    "sourceFingerprint": "74eaa92f5373cf941a7942bc3bccd82caf8179878a3eda8706f5d444956c250b",
+    "completedAssertions": [
+      "Actual four-rider GP-R1 practice entry",
+      "Manual throttle and forward movement",
+      "Independent rear brake without front hydraulic input",
+      "AI handoffs",
+      "All four riders moving at the checked frame",
+      "Named corner guidance",
+      "Chase and cockpit views",
+      "Pause menu visible"
+    ],
+    "observedAfterDeadline": "The first pause diagnostics response reported pending:false, paused:true, tick:5429, sequence:2, 151.185 ms after the overall timeout. The pause matcher then completed without error, but the test remains failed.",
+    "unexecuted": [
+      "Explicit paused-frame freeze assertion",
+      "Recorded replay navigation and seeks",
+      "Return from replay and resume",
+      "Final aggregate no-console-errors assertion"
+    ],
+    "quality": "Existing Low preset selected through the original normal settings UI; the workload and deadlines were not reduced.",
+    "traceObservations": {
+      "replaySamples": 678,
+      "replayError": null,
+      "recordingWarnings": [],
+      "consoleEvents": 0,
+      "pageErrorEvents": 0,
+      "failedBrowserCalls": 0,
+      "scope": "Retained trace before cleanup; final test aggregate assertion was not reached."
+    },
+    "publicationSourceRelation": "Historical partial journey; not executed against the final physics-v16 source"
+  },
+  "sourceChanges": [
+    {
+      "path": "e2e/fixtures/gp-edge-review.ts",
+      "sha256": "cd5c5f791ca73b64881910cb3e30da9660390bbc7341d2da88d3dbda7e8eb673",
+      "blobSha": "7af6acc343e0da7b8e9fccd2a0252a3fa8174643"
+    },
+    {
+      "path": "e2e/fixtures/motorcycle-presentation.ts",
+      "sha256": "f2b23a13f33ea34ebb6a2c05b951a210145741910aa058a2635df1acb7263dd1",
+      "blobSha": "bbba1c1447aeca62e0cb329046d54dd1d68c9549"
+    },
+    {
+      "path": "e2e/gp-brake-lever.spec.ts",
+      "sha256": "d831e80a8cb4dc0f5908948067431779f7b91e1fb404c83c5d2ed62d230355fd",
+      "blobSha": "1278ff4ec1e078f74d980da9d5088d6792d8b527"
+    },
+    {
+      "path": "e2e/gp-edge-design.spec.ts",
+      "sha256": "273ec7a7b0e78110b153720199ba9c8e246069ca3d3edd248a499a205eb88c54",
+      "blobSha": "5653d298d18bc3281c87b32e387e8235ba966f32"
+    },
+    {
+      "path": "e2e/motorcycle-presentation.spec.ts",
+      "sha256": "f25aa0625c0e273aab3e60021a5fd2138defe6ee21c66c3ee70ea557ccfd0fa8",
+      "blobSha": "4c1438d54d8a72b566c8b34df79f3fa0ae399877"
+    },
+    {
+      "path": "src/rendering/bike.ts",
+      "sha256": "772ecdacd542947d4fbc4465fbf67c8320b62ca4c7944fb9ea18baa8c7cfa469",
+      "blobSha": "ac8a55f283e47c7683ffe3b0d2db70e14c61742c"
+    },
+    {
+      "path": "src/rendering/circuit.ts",
+      "sha256": "230f94cad0ffe2b9967205444194bacab22a1ac7db8d5b200e71629fb4d60950",
+      "blobSha": "9e62f820d7dec5ca31cf446c01771b653a1ceff7"
+    },
+    {
+      "path": "src/rendering/gp-brake-fingers.ts",
+      "sha256": "8be5fa49f6ae7ea364e6d00946406ffa3e1b574c393fadbb2ad8272ed56b26e1",
+      "blobSha": "fb6a16ccf502e9ff5d9e58a22f3f1051c344c055"
+    },
+    {
+      "path": "src/rendering/gp-front-brake.ts",
+      "sha256": "f4749e8b0c56359fe276d8e0db26e7999750b09d42cef0dc17251bd604fed569",
+      "blobSha": "0f4cbd18e2fc5c0d9da750c27cf82243e14d5100"
+    },
+    {
+      "path": "src/rendering/gp-rider-glove.ts",
+      "sha256": "9293c6ed3d2ed4c876968066e086f7a65bb5c7647a906b4cbb3a69a7ad0bea1d",
+      "blobSha": "d5e1c285379f9f4a0e3943afb65367c41ccadc0c"
+    },
+    {
+      "path": "src/rendering/gp-rider-spine.ts",
+      "sha256": "c4b957445f01797e9aab185fc2404bccba7bc4bdc956d9c3442d7c59afa2be29",
+      "blobSha": "43503d4f9e162538596cb7ff8e06f14b149e87af"
+    },
+    {
+      "path": "src/rendering/rider.ts",
+      "sha256": "dc278c012d75d816900a2fa28108239d7e1031c2155897f396a501400d8ed356",
+      "blobSha": "37da75cbee53bf2363ca8480e47b56fa35f76bb5"
+    },
+    {
+      "path": "src/rendering/studio/kerb-runoff-finish.ts",
+      "sha256": "ca68c0f4cc5e8063d3140a4c15b0c94aeaa04ae393929b74f8c68f79cb4f4f9c",
+      "blobSha": "22d1bfac3db4f7787c81d2c65b0541cc7d79ff0a"
+    },
+    {
+      "path": "src/rendering/venue-kit/gp-edge-design.ts",
+      "sha256": "151a74c434c3c8d401ed79c857b49916dce20d0312699c3afd41a72d52cb1e10",
+      "blobSha": "dde26cf992ba47becb610a93c9a01e50c25f881a"
+    },
+    {
+      "path": "src/rendering/venue-plan.ts",
+      "sha256": "d1922681d4162e745f1af0c462796536959a6b37944052000a2f516cbbb086e2",
+      "blobSha": "598319210cfed07897f009d9435a92dfd2285106"
+    },
+    {
+      "path": "src/ui/bike-hud.css",
+      "sha256": "b137d09da0be067969dd3940f41f334b7796d98c7e239fa237bc4b9aded3f55a",
+      "blobSha": "2c35305ee321564c2dc6d5be82217b909449e419"
+    },
+    {
+      "path": "src/ui/bike-hud.ts",
+      "sha256": "d6192fa476b9457b0fc6480219b3176c7c4bcf9964021babb1af02e1279c4b3b",
+      "blobSha": "c6d7a3180ca939b492c401c953d8286e67cc932e"
+    },
+    {
+      "path": "src/ui/gp-corner-practice.ts",
+      "sha256": "901a65c8523eb95dee3f5d88291b55ef714e9f09570d2d34877acb9ce71f490d",
+      "blobSha": "81cf70762055e8879d28c7cdb91b766bb6102542"
+    },
+    {
+      "path": "tests/bike-animation.test.ts",
+      "sha256": "a27fc71cdc0b2fc6cab56dba916aad03ad93a45444f8867d4b30e3cec385697b",
+      "blobSha": "bfe386840f8b1d7b73a0cb020f4eea3e7601fb9d"
+    },
+    {
+      "path": "tests/gp-brake-fingers.test.ts",
+      "sha256": "69bf522ff1912733976bc533687b2cc338a0be45f787f6b3950e87db1dc84642",
+      "blobSha": "a63d1f65b09f92ae2bd7c88afc7328db3737e17d"
+    },
+    {
+      "path": "tests/gp-brake-lever.test.ts",
+      "sha256": "10a13caf898e9a1e3c65b48535cf303e62f63b5c6df6ba6e6fded29ec892806f",
+      "blobSha": "7b4e5a787063395a885caa467ff6ea8d2f396ef4"
+    },
+    {
+      "path": "tests/gp-corner-practice.test.ts",
+      "sha256": "21ddb46174632b53dc82326c2caaae3235e6fd9ed94331fe9671e2dae1417ceb",
+      "blobSha": "ea38aa467df7b5de8ff4d81480a308e8d39714ed"
+    },
+    {
+      "path": "tests/gp-edge-design.test.ts",
+      "sha256": "ec322ce9f0ec42caa59f20310e9ec7f8545db48542821b0080025c4a361a3358",
+      "blobSha": "8be1f1847337d7664d098f158fa331fe93f202c2"
+    },
+    {
+      "path": "tests/gp-rider-contact.test.ts",
+      "sha256": "fe9d6d2c9253756a289ea026f1d582eb5cb2a4b4b9075f85894cfdf7c0851aa4",
+      "blobSha": "8aa9b188f699e75fa0e34e52e981b9f933f79842"
+    },
+    {
+      "path": "tests/gp-rider-garment.test.ts",
+      "sha256": "90b78570a93bccfdcb03b844dba6f67bc0ebc49f51d1cdcceeab9db891bdc845",
+      "blobSha": "7ff0d3a4e3c403e6515318dc262201a2a60d1dee"
+    },
+    {
+      "path": "tests/gp-rider-silhouette.test.ts",
+      "sha256": "63bcc4b6e73cdaba295ff0688b5e2cdad367e59b3b93778a80860914f50b6898",
+      "blobSha": "ee16232c16a2db413b9e5cd14116b7f7e3f401e5"
+    },
+    {
+      "path": "tests/gp-rider-spine.test.ts",
+      "sha256": "8df0b12e4aace921a21905e2c41a6c01ba2aef94f2e31c1089be85ab100cccca",
+      "blobSha": "bd0773d003d938a8f4b58cb421cb228c5f356cb8"
+    },
+    {
+      "path": "tests/gp-rider-suit.test.ts",
+      "sha256": "576ae96c6a834764f02622cd07e675dc288451c851dbea3a7f485d78f2cd3b1b",
+      "blobSha": "df886c4c316376a0f9312988f655977be3878cd4"
+    }
+  ],
+  "integrationHistory": [
+    {
+      "sourceStage": "Physics-v15 integration before the incoming physics-v16 motocross merge",
+      "startingCommit": "c4f674e86de7d9a0e80812bdbf7ac885f2a71a53",
+      "publicationParent": "ca9e09861a7fa8b5dfc73dda7b5fad626294512d",
+      "parentTree": "41de3846817d7a93856fc003f543fa9bbbb9e4b9",
+      "upstreamChange": "Physics v15 was fetched and integrated cleanly. The shared bike.ts now includes its off-road factory sag behavior; the GP static-sag path is unchanged.",
+      "finalSourceFingerprint": "74eaa92f5373cf941a7942bc3bccd82caf8179878a3eda8706f5d444956c250b",
+      "fingerprintScope": "781 files: all src files plus package-lock.json, index.html and vite.config.ts, using the Vite build-identity hashing procedure.",
+      "fingerprintIndependentlyRecomputed": true
+    }
+  ],
+  "historicalBuilds": [
+    {
+      "sourceStage": "Successful physics-v15 production build before the physics-v16 motocross merge",
+      "publicationParent": "ca9e09861a7fa8b5dfc73dda7b5fad626294512d",
+      "command": "npm run build",
+      "status": "passed",
+      "exitCode": 0,
+      "stages": [
+        "Pinned player-LOD derivative check",
+        "tsc --noEmit",
+        "vite build"
+      ],
+      "modulesTransformed": 762,
+      "viteDurationText": "3m 36s",
+      "warning": "Existing large-chunk warning (>500 kB after minification); no build error.",
+      "buildIdentity": {
+        "version": 1,
+        "commit": null,
+        "fingerprint": "74eaa92f5373cf941a7942bc3bccd82caf8179878a3eda8706f5d444956c250b"
+      },
+      "commitLabelNote": "The build was produced from the uncommitted integration tree, so commit:null is intentional. The content fingerprint identifies the tested source."
+    }
+  ],
+  "historicalStaticChecks": [
+    {
+      "sourceStage": "Recorded before the physics-v16 motocross merge; individual scopes and outcomes preserved",
+      "checks": {
+        "contentValidation": {
+          "command": "node --experimental-transform-types scripts/validate-content.ts",
+          "status": "passed",
+          "output": "Content valid"
+        },
+        "scopedEslint": {
+          "status": "passed",
+          "scope": "All changed application, fixture and test TypeScript files, in scoped root/agent runs."
+        },
+        "prettier": {
+          "status": "passed",
+          "scope": "Changed source and test files, including the final portrait CSS fix."
+        },
+        "fullRepositoryLint": {
+          "status": "cancelled",
+          "exitCode": 143,
+          "note": "The optional broad lint run was stopped after scoped checks passed; no full-repository lint pass is claimed."
+        },
+        "finalDiffWhitespace": {
+          "command": "git diff --cached --check",
+          "status": "passed"
+        }
+      }
+    }
+  ],
+  "historicalSourceChanges": [
+    {
+      "sourceStage": "Recorded GP changes on physics-v15 source before the v16 merge",
+      "sourceFingerprint": "74eaa92f5373cf941a7942bc3bccd82caf8179878a3eda8706f5d444956c250b",
+      "files": [
+        {
+          "path": "e2e/fixtures/gp-edge-review.ts",
+          "sha256": "cd5c5f791ca73b64881910cb3e30da9660390bbc7341d2da88d3dbda7e8eb673",
+          "blobSha": "7af6acc343e0da7b8e9fccd2a0252a3fa8174643"
+        },
+        {
+          "path": "e2e/fixtures/motorcycle-presentation.ts",
+          "sha256": "f2b23a13f33ea34ebb6a2c05b951a210145741910aa058a2635df1acb7263dd1",
+          "blobSha": "bbba1c1447aeca62e0cb329046d54dd1d68c9549"
+        },
+        {
+          "path": "e2e/gp-brake-lever.spec.ts",
+          "sha256": "d831e80a8cb4dc0f5908948067431779f7b91e1fb404c83c5d2ed62d230355fd",
+          "blobSha": "1278ff4ec1e078f74d980da9d5088d6792d8b527"
+        },
+        {
+          "path": "e2e/gp-edge-design.spec.ts",
+          "sha256": "273ec7a7b0e78110b153720199ba9c8e246069ca3d3edd248a499a205eb88c54",
+          "blobSha": "5653d298d18bc3281c87b32e387e8235ba966f32"
+        },
+        {
+          "path": "e2e/motorcycle-presentation.spec.ts",
+          "sha256": "f25aa0625c0e273aab3e60021a5fd2138defe6ee21c66c3ee70ea557ccfd0fa8",
+          "blobSha": "4c1438d54d8a72b566c8b34df79f3fa0ae399877"
+        },
+        {
+          "path": "src/rendering/bike.ts",
+          "sha256": "772ecdacd542947d4fbc4465fbf67c8320b62ca4c7944fb9ea18baa8c7cfa469",
+          "blobSha": "ac8a55f283e47c7683ffe3b0d2db70e14c61742c"
+        },
+        {
+          "path": "src/rendering/circuit.ts",
+          "sha256": "230f94cad0ffe2b9967205444194bacab22a1ac7db8d5b200e71629fb4d60950",
+          "blobSha": "9e62f820d7dec5ca31cf446c01771b653a1ceff7"
+        },
+        {
+          "path": "src/rendering/gp-brake-fingers.ts",
+          "sha256": "8be5fa49f6ae7ea364e6d00946406ffa3e1b574c393fadbb2ad8272ed56b26e1",
+          "blobSha": "fb6a16ccf502e9ff5d9e58a22f3f1051c344c055"
+        },
+        {
+          "path": "src/rendering/gp-front-brake.ts",
+          "sha256": "f4749e8b0c56359fe276d8e0db26e7999750b09d42cef0dc17251bd604fed569",
+          "blobSha": "0f4cbd18e2fc5c0d9da750c27cf82243e14d5100"
+        },
+        {
+          "path": "src/rendering/gp-rider-glove.ts",
+          "sha256": "9293c6ed3d2ed4c876968066e086f7a65bb5c7647a906b4cbb3a69a7ad0bea1d",
+          "blobSha": "d5e1c285379f9f4a0e3943afb65367c41ccadc0c"
+        },
+        {
+          "path": "src/rendering/gp-rider-spine.ts",
+          "sha256": "c4b957445f01797e9aab185fc2404bccba7bc4bdc956d9c3442d7c59afa2be29",
+          "blobSha": "43503d4f9e162538596cb7ff8e06f14b149e87af"
+        },
+        {
+          "path": "src/rendering/rider.ts",
+          "sha256": "55a319b26c41c80812f6d7ba5005654dcc1fa632b6ea8a5d4a1342d90cf17a03",
+          "blobSha": "1407545607054f6a9cbb34aa117ae882c2da854f"
+        },
+        {
+          "path": "src/rendering/studio/kerb-runoff-finish.ts",
+          "sha256": "ca68c0f4cc5e8063d3140a4c15b0c94aeaa04ae393929b74f8c68f79cb4f4f9c",
+          "blobSha": "22d1bfac3db4f7787c81d2c65b0541cc7d79ff0a"
+        },
+        {
+          "path": "src/rendering/venue-kit/gp-edge-design.ts",
+          "sha256": "151a74c434c3c8d401ed79c857b49916dce20d0312699c3afd41a72d52cb1e10",
+          "blobSha": "dde26cf992ba47becb610a93c9a01e50c25f881a"
+        },
+        {
+          "path": "src/rendering/venue-plan.ts",
+          "sha256": "d1922681d4162e745f1af0c462796536959a6b37944052000a2f516cbbb086e2",
+          "blobSha": "598319210cfed07897f009d9435a92dfd2285106"
+        },
+        {
+          "path": "src/ui/bike-hud.css",
+          "sha256": "b137d09da0be067969dd3940f41f334b7796d98c7e239fa237bc4b9aded3f55a",
+          "blobSha": "2c35305ee321564c2dc6d5be82217b909449e419"
+        },
+        {
+          "path": "src/ui/bike-hud.ts",
+          "sha256": "d6192fa476b9457b0fc6480219b3176c7c4bcf9964021babb1af02e1279c4b3b",
+          "blobSha": "c6d7a3180ca939b492c401c953d8286e67cc932e"
+        },
+        {
+          "path": "src/ui/gp-corner-practice.ts",
+          "sha256": "901a65c8523eb95dee3f5d88291b55ef714e9f09570d2d34877acb9ce71f490d",
+          "blobSha": "81cf70762055e8879d28c7cdb91b766bb6102542"
+        },
+        {
+          "path": "tests/bike-animation.test.ts",
+          "sha256": "a27fc71cdc0b2fc6cab56dba916aad03ad93a45444f8867d4b30e3cec385697b",
+          "blobSha": "bfe386840f8b1d7b73a0cb020f4eea3e7601fb9d"
+        },
+        {
+          "path": "tests/gp-brake-fingers.test.ts",
+          "sha256": "69bf522ff1912733976bc533687b2cc338a0be45f787f6b3950e87db1dc84642",
+          "blobSha": "a63d1f65b09f92ae2bd7c88afc7328db3737e17d"
+        },
+        {
+          "path": "tests/gp-brake-lever.test.ts",
+          "sha256": "10a13caf898e9a1e3c65b48535cf303e62f63b5c6df6ba6e6fded29ec892806f",
+          "blobSha": "7b4e5a787063395a885caa467ff6ea8d2f396ef4"
+        },
+        {
+          "path": "tests/gp-corner-practice.test.ts",
+          "sha256": "21ddb46174632b53dc82326c2caaae3235e6fd9ed94331fe9671e2dae1417ceb",
+          "blobSha": "ea38aa467df7b5de8ff4d81480a308e8d39714ed"
+        },
+        {
+          "path": "tests/gp-edge-design.test.ts",
+          "sha256": "ec322ce9f0ec42caa59f20310e9ec7f8545db48542821b0080025c4a361a3358",
+          "blobSha": "8be1f1847337d7664d098f158fa331fe93f202c2"
+        },
+        {
+          "path": "tests/gp-rider-contact.test.ts",
+          "sha256": "fe9d6d2c9253756a289ea026f1d582eb5cb2a4b4b9075f85894cfdf7c0851aa4",
+          "blobSha": "8aa9b188f699e75fa0e34e52e981b9f933f79842"
+        },
+        {
+          "path": "tests/gp-rider-garment.test.ts",
+          "sha256": "90b78570a93bccfdcb03b844dba6f67bc0ebc49f51d1cdcceeab9db891bdc845",
+          "blobSha": "7ff0d3a4e3c403e6515318dc262201a2a60d1dee"
+        },
+        {
+          "path": "tests/gp-rider-silhouette.test.ts",
+          "sha256": "63bcc4b6e73cdaba295ff0688b5e2cdad367e59b3b93778a80860914f50b6898",
+          "blobSha": "ee16232c16a2db413b9e5cd14116b7f7e3f401e5"
+        },
+        {
+          "path": "tests/gp-rider-spine.test.ts",
+          "sha256": "8df0b12e4aace921a21905e2c41a6c01ba2aef94f2e31c1089be85ab100cccca",
+          "blobSha": "bd0773d003d938a8f4b58cb421cb228c5f356cb8"
+        },
+        {
+          "path": "tests/gp-rider-suit.test.ts",
+          "sha256": "576ae96c6a834764f02622cd07e675dc288451c851dbea3a7f485d78f2cd3b1b",
+          "blobSha": "df886c4c316376a0f9312988f655977be3878cd4"
+        }
+      ]
+    }
+  ],
+  "sourceChangesScope": "Current GP patch files after physics-v16 integration; hashes refreshed from the working tree. These are distinct from the historicalSourceChanges retained for earlier evidence."
+}

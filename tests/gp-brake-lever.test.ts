@@ -2,6 +2,7 @@ import * as T from 'three';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { BikeMaterials, BikeModel, staticSag } from '../src/rendering/bike.ts';
 import { VEHICLES } from '../src/simulation/vehicles.ts';
+import { gpFrontBrakeTip } from '../src/rendering/gp-front-brake.ts';
 
 // Geometry and articulation checks only; actual materials are drawn by the
 // production-model browser fixture with a real Canvas/WebGL implementation.
@@ -55,7 +56,7 @@ describe('GP front-brake lever follows the presented hand control', () => {
       const geometry = lever.geometry,
         material = lever.material,
         originalVertices = Array.from(geometry.getAttribute('position').array),
-        tip = new T.Vector3(-0.075, 0, 0);
+        tip = gpFrontBrakeTip(new T.Vector3());
       const inSteeringFrame = () => {
         model.root.updateMatrixWorld(true);
         return tip.clone().applyMatrix4(lever.matrix).applyMatrix4(pivot.matrix);
@@ -77,7 +78,7 @@ describe('GP front-brake lever follows the presented hand control', () => {
         expect(pivot.position.toArray()).toEqual([-0.211, -0.034, 0.03]);
         previousZ = squeezedTip.z;
       }
-      expect(releasedTip.z - previousZ).toBeGreaterThan(0.045);
+      expect(releasedTip.z - previousZ).toBeGreaterThan(0.025);
       model.pose(pose(id, 0.5));
       inSteeringFrame();
       const held = lever.matrixWorld.elements.slice();
@@ -95,7 +96,7 @@ describe('GP front-brake lever follows the presented hand control', () => {
         expect(pivot.rotation.y).toBeCloseTo(0);
       }
       model.pose(pose(id, 2));
-      expect(pivot.rotation.y).toBeCloseTo(-0.4);
+      expect(pivot.rotation.y).toBeCloseTo(-0.25);
     } finally {
       model.dispose();
       materials.dispose();

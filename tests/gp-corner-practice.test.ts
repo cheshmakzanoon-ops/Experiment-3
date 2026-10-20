@@ -77,6 +77,26 @@ function rig(venue: Track = track) {
   return { practice, corner, sample, run };
 }
 
+function streakRig(venue: Track = track) {
+  const h = rig(venue),
+    corners = [...gpPracticeCorners(venue)].sort(
+      (a, b) =>
+        mod(a.from - h.corner.from, venue.length) - mod(b.from - h.corner.from, venue.length),
+    ),
+    after = (index: number) =>
+      mod(corners[index].from - h.corner.from, venue.length) + corners[index].length + 5;
+  let distance = -5;
+  const time = () => 1 + (distance + 5) / 40;
+  h.sample(distance, time());
+  function rideTo(end: number, edit?: (frame: Float32Array) => void, context = human) {
+    while (distance < end) {
+      distance = Math.min(end, distance + 8);
+      h.sample(distance, time(), 40, edit, context);
+    }
+  }
+  return { ...h, corners, after, rideTo, time, distance: () => distance };
+}
+
 describe('personal GP corner practice', () => {
   it.each(['poggio-alto', 'cape-wrenna', 'haarveld', 'montejaral'])(
     '%s uses ordered nonoverlapping measured corner windows',
@@ -379,5 +399,154 @@ describe('personal GP corner practice', () => {
     h.sample(13, 2.65, 0);
     for (let d = 21; d <= h.corner.length + 8; d += 8) h.sample(d, 3.05 + (d - 21) / 40);
     expect(h.practice.last?.seconds).toBeCloseTo(h.corner.length / 40 + 2.4, 3);
+  });
+
+  describe('clean corner streaks', () => {
+    it('links complete corners in road order through the lap seam without duplicate-frame credit', () => {
+      const h = streakRig();
+      h.rideTo(h.after(0));
+      expect(h.practice.streak).toEqual({ current: 1, best: 1, next: h.corners[1] });
+      for (let i = 0; i < 5; i++) h.sample(h.distance(), h.time());
+      expect(h.practice.streak.current).toBe(1);
+      h.rideTo(h.after(1));
+      expect(h.practice.streak).toEqual({ current: 2, best: 2, next: h.corners[2] });
+      h.rideTo(track.length + h.after(1));
+      expect(h.practice.streak).toEqual({
+        current: h.corners.length + 2,
+        best: h.corners.length + 2,
+        next: h.corners[2],
+      });
+    });
+
+    it('requires the next actual corner even when circuit labels are stored in another order', () => {
+      const reordered = {
+        length: track.length,
+        circuit: {
+          ...track.circuit,
+          corners: [...track.circuit.corners].reverse(),
+        },
+        at: (s: number, out = trackPoint()) => track.at(s, out),
+      } as unknown as Track;
+      const h = streakRig(reordered);
+      h.rideTo(h.after(2));
+      expect(h.practice.streak.current).toBe(3);
+      expect(h.practice.streak.next).toEqual(h.corners[3]);
+      expect(h.practice.last?.corner).toEqual(h.corners[2]);
+    });
+
+    it.each([
+      [
+        'track cut',
+        (f: Float32Array) => {
+          f[rear + W.SURFACE] = SURFACE.GRASS;
+        },
+      ],
+      [
+        'collision',
+        (f: Float32Array) => {
+          f[o + F.IMPACT] = 1;
+        },
+      ],
+      [
+        'crash',
+        (f: Float32Array) => {
+          f[b + B.STATE] = 1;
+        },
+      ],
+      [
+        'yellow flag',
+        (f: Float32Array) => {
+          f[o + F.LOCAL_FLAG] = FLAG.YELLOW;
+        },
+      ],
+      [
+        'pit autopilot',
+        (f: Float32Array) => {
+          f[o + RACE_BASE + R.NEXT_COMPOUND] = 1;
+        },
+      ],
+      [
+        'missed cut warning',
+        (f: Float32Array) => {
+          f[o + F.WARNINGS] = 1;
+        },
+      ],
+      [
+        'wetness change',
+        (f: Float32Array) => {
+          f[front + W.WATER] = f[rear + W.WATER] = 0.3;
+        },
+      ],
+      [
+        'compound change',
+        (f: Float32Array) => {
+          f[o + F.COMPOUND] = 2;
+        },
+      ],
+      [
+        'reverse riding',
+        (f: Float32Array) => {
+          f[o + F.VX] *= -1;
+          f[o + F.VZ] *= -1;
+        },
+      ],
+    ] as const)('breaks the current streak on %s but retains earned records', (_, edit) => {
+      const h = streakRig();
+      h.rideTo(h.after(1));
+      const earned = h.practice.last;
+      h.rideTo(h.distance() + 8, edit);
+      expect(h.practice.streak).toEqual({ current: 0, best: 2, next: null });
+      expect(h.practice.last).toBe(earned);
+      h.rideTo(h.after(2));
+      expect(h.practice.streak.current).toBe(1);
+      expect(h.practice.streak.best).toBe(2);
+      // A later retry still compares against the earlier clean personal best.
+      h.run(500, 50);
+      expect(h.practice.last?.delta).toBeCloseTo(h.corner.length / 50 - h.corner.length / 40, 4);
+      expect(h.practice.streak.current).toBe(1);
+      expect(h.practice.streak.best).toBe(2);
+    });
+
+    it.each([
+      ['AI demonstration', { ...human, human: false }],
+      ['replay', { ...human, replay: true }],
+      ['race', { ...human, practice: false }],
+    ] as const)('never extends a manual streak through %s', (_, context) => {
+      const h = streakRig();
+      h.rideTo(h.after(1));
+      const earned = h.practice.last;
+      h.rideTo(h.after(2), undefined, context);
+      expect(h.practice.streak).toEqual({ current: 0, best: 2, next: null });
+      expect(h.practice.last).toBe(earned);
+      h.rideTo(h.after(3));
+      expect(h.practice.streak.current).toBe(1);
+      expect(h.practice.streak.best).toBe(2);
+    });
+
+    it.each(['teleport', 'gap', 'rewind'] as const)(
+      'cannot connect a streak across a %s',
+      (kind) => {
+        const h = streakRig();
+        h.rideTo(h.after(1));
+        const earned = h.practice.last;
+        h.sample(
+          h.distance() + (kind === 'teleport' ? 200 : 8),
+          h.time() + (kind === 'gap' ? 2 : kind === 'rewind' ? -1 : 0.2),
+        );
+        expect(h.practice.streak).toEqual({ current: 0, best: 2, next: null });
+        expect(h.practice.last).toBe(earned);
+      },
+    );
+
+    it('clears current and best streaks with the session or assistance setting', () => {
+      const h = streakRig();
+      h.rideTo(h.after(1));
+      h.rideTo(h.distance() + 8, undefined, { ...human, assist: 'expert' });
+      expect(h.practice.streak).toEqual({ current: 0, best: 0, next: null });
+      h.run(500, 50);
+      expect(h.practice.streak.best).toBe(1);
+      h.practice.reset();
+      expect(h.practice.streak).toEqual({ current: 0, best: 0, next: null });
+    });
   });
 });

@@ -52,7 +52,7 @@ test('GP front lever renders recorded squeeze, hold, release and rewind without 
       expect(sample.resources).toEqual(frames[0].resources);
       expect(sample.triangles).toBeLessThan(110000);
       expect(sample.calls).toBeLessThan(220);
-      expect(sample.frontBrakeLever!.angle).toBeCloseTo(-0.4 * sample.frontBrake);
+      expect(sample.frontBrakeLever!.angle).toBeCloseTo(-0.25 * sample.frontBrake);
       expect(sample.frontBrakeLever!.world).toEqual(frames[0].frontBrakeLever!.world);
       if (i < 2)
         await info.attach(`${id}-lever-${i === 0 ? 'released' : 'squeezed'}.png`, {

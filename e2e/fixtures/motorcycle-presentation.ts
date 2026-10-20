@@ -188,6 +188,28 @@ export function showGpPracticeRun(
   sample(end);
 }
 
+/** Continuous observed progress through several real corner windows. */
+export function showGpPracticeStreak() {
+  const corners = gpPracticeCorners(track),
+    first = corners[0],
+    ordered = [...corners].sort(
+      (a, b) => mod(a.from - first.from, track.length) - mod(b.from - first.from, track.length),
+    ),
+    third = ordered[2],
+    end = mod(third.from - first.from, track.length) + third.length + 5;
+  const sample = (distance: number) =>
+    showMotorcycleHud('gpr1', 'chase', false, {
+      station: mod(first.from + distance, track.length),
+      time: 1 + (distance + 5) / 40,
+      speed: 40,
+      brake: 0,
+      rearBrake: 0,
+      intervention: 0,
+    });
+  for (let distance = -5; distance < end; distance += 8) sample(distance);
+  sample(end);
+}
+
 /** The same worker samples with different graphics cadences. The production
  * presentation interpolates its clock while station stays a discrete channel,
  * so feeding these visual frames back into timing would change the result. */

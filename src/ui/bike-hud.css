@@ -22,6 +22,10 @@
 .gp-practice[data-improved='true'] > b {
   color: #79dcc5;
 }
+.gp-practice > #gpPracticeStreak {
+  color: #79dcc5;
+  letter-spacing: 0.04em;
+}
 /* The personal timer shares space with secondary telemetry. Keep the live
    corner cue, speed and control meters low in the peripheral cluster; tyre
    and rider detail remain available in the vehicle panel. */
@@ -394,6 +398,10 @@
     bottom: calc(107px + env(safe-area-inset-bottom, 0px));
     width: min(calc(230px * var(--ui-scale, 1)), calc(100vw - 24px));
   }
+  /* Make room for the full practice and streak readout at enlarged text sizes. */
+  #hud[data-f1][data-bike='true']:has(#gpPractice:not([hidden])) .resources {
+    display: none;
+  }
   #hud[data-bike='true'] .gp-craft:not([hidden]) {
     padding-block: 4px;
     gap: 3px;
@@ -416,6 +424,7 @@
   }
   #hud[data-bike='true'] #gpAdvice,
   #hud[data-bike='true'] #gpPracticeDetail,
+  #hud[data-bike='true'] #gpPracticeStreak,
   #hud[data-bike='true'] .gp-tyres {
     display: none;
   }

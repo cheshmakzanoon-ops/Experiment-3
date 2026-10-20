@@ -9,7 +9,9 @@ import { tagMudExposure } from './offroad/mud.ts';
 import { gpRacingBoot, installGpLeatherFinish } from './gp-rider-gear.ts';
 import { GpRiderGarment } from './gp-rider-garment.ts';
 import { addGpRacingGlove } from './gp-rider-glove.ts';
+import type { GpBrakeFingers } from './gp-brake-fingers.ts';
 import { gpHeadFrame, gpKneeOut } from './gp-rider-motion.ts';
+import { GpRiderSpine } from './gp-rider-spine.ts';
 import {
   GP_BOOT_ANKLE,
   GP_BOOT_PEG,
@@ -368,6 +370,8 @@ export class Rider {
   readonly grips = [new T.Vector3(0.3, 0.24, 0.35), new T.Vector3(-0.3, 0.24, 0.35)];
   /** Cylinder axes in this same sprung frame; supplied from the real GP bars. */
   readonly gripAxes = [new T.Vector3(1, 0, 0), new T.Vector3(1, 0, 0)];
+  /** Blade contact points in this rider-root frame, supplied by the GP lever. */
+  brakeFingerTargets?: readonly [T.Vector3, T.Vector3];
   readonly pegs = [new T.Vector3(0.17, -0.2, -0.3), new T.Vector3(-0.17, -0.2, -0.3)];
   private readonly torso = new T.Group();
   private readonly head = new T.Group();
@@ -389,6 +393,8 @@ export class Rider {
     gazePitch: 0,
   };
   private readonly gpGarments: GpRiderGarment[] = [];
+  private readonly gpSpine?: GpRiderSpine;
+  private readonly gpBrakeFingers?: GpBrakeFingers;
   private readonly exteriorForearms = [0, 1].map(() => ({
     position: new T.Vector3(),
     quaternion: new T.Quaternion(),
@@ -618,6 +624,8 @@ export class Rider {
     this.root.name = 'Rider';
     this.torso.name = 'Rider torso';
     this.root.add(this.torso);
+    if (gpSuit) this.gpSpine = new GpRiderSpine(this.root, this.torso);
+    const upperTorso = this.gpSpine?.chest ?? this.torso;
     // Torso: pelvis at the origin, spine along +Y, chest forward (+Z).
     const torsoSections: readonly BodySection[] = mx
       ? [
@@ -756,7 +764,7 @@ export class Rider {
     // Head and helmet: neck pivot at the top of the spine.
     this.head.name = 'Rider head and helmet';
     this.head.position.set(0, RIDER.spine + (mx ? 0.078 : 0.04), 0.03);
-    this.torso.add(this.head);
+    upperTorso.add(this.head);
     const shell = part(
       this.head,
       mx
@@ -783,7 +791,7 @@ export class Rider {
       this.headShadow.name = 'Onboard helmet shadow proxy';
       this.headShadow.visible = false;
       this.headShadow.position.copy(this.head.position);
-      this.torso.add(this.headShadow);
+      upperTorso.add(this.headShadow);
       const silhouette = part(this.headShadow, new T.SphereGeometry(0.14, 18, 12), shadowOnly);
       silhouette.position.copy(shell.position);
       silhouette.scale.set(0.98, 1.02, 1.07);
@@ -894,7 +902,7 @@ export class Rider {
           ] as const) {
             const garment = new GpRiderGarment(
               this.root,
-              this.torso,
+              kind === 'sleeve' ? upperTorso : this.torso,
               upper.group,
               lower.group,
               upper.length,
@@ -1033,9 +1041,16 @@ export class Rider {
       if (mx) hand.name = `Motocross ${i === 0 ? 'left' : 'right'} hand`;
       else if (gp) hand.name = `GP ${i === 0 ? 'left' : 'right'} hand`;
       if (mx) addMotocrossGlove(hand, detail, side, glove, mxGloveBack!, flex);
-      else if (gp && detail !== 'far')
-        addGpRacingGlove(hand, detail, side, { leather: glove, panel, armour });
-      else
+      else if (gp && detail !== 'far') {
+        const fingers = addGpRacingGlove(
+          hand,
+          detail,
+          side,
+          { leather: glove, panel, armour },
+          detail === 'high' && i === 1,
+        );
+        if (fingers) this.gpBrakeFingers = fingers;
+      } else
         part(
           hand,
           new RoundedBoxGeometry(0.069, 0.047, 0.079, detail === 'far' ? 1 : 3, 0.017),
@@ -1086,6 +1101,7 @@ export class Rider {
       this.bootCuffs.push(foot.getObjectByName('GP ankle-hinged boot cuff'));
     }
     this.attachMotocrossShoulders(false);
+    this.gpSpine?.bindTorso();
     for (const group of [
       this.torso,
       this.head,
@@ -1174,7 +1190,7 @@ export class Rider {
     const lean = pose.lean,
       offset = pose.offset,
       tuck = T.MathUtils.clamp(pose.tuck, 0, 1),
-      braking = T.MathUtils.clamp(pose.braking, 0, 1),
+      braking = Number.isFinite(pose.braking) ? T.MathUtils.clamp(pose.braking, 0, 1) : 0,
       standing = T.MathUtils.clamp(pose.standing ?? 0, 0, 1),
       dab = T.MathUtils.clamp(pose.dab ?? 0, -1, 1),
       body = T.MathUtils.clamp(pose.body ?? 0, -1, 1);
@@ -1212,8 +1228,11 @@ export class Rider {
     this.euler.set(pitch, yaw, -into, 'ZYX');
     this.torso.position.copy(pelvis);
     this.torso.quaternion.setFromEuler(this.euler);
-    // GP sight follows the road frame; other kits retain their authored pose.
-    if (gpContact) gpHeadFrame(pose, this.torso.quaternion, this.head.quaternion);
+    this.gpSpine?.ride(pose, pelvis, pitch, yaw, -into);
+    const upperTorso = this.gpSpine?.chest ?? this.torso;
+    // GP sight follows the road frame after the articulated chest; other
+    // kits retain their authored pose, including the MX landing response.
+    if (gpContact) gpHeadFrame(pose, upperTorso.quaternion, this.head.quaternion);
     else
       this.head.rotation.set(
         -pitch + 0.3 + tuck * 0.12 + (motion?.gazePitch ?? 0),
@@ -1227,8 +1246,8 @@ export class Rider {
       const inside = side * Math.sign(offset || lean) > 0;
       shoulder
         .set(side * RIDER.shoulderWidth, RIDER.spine - 0.04, 0.0)
-        .applyQuaternion(this.torso.quaternion)
-        .add(pelvis);
+        .applyQuaternion(upperTorso.quaternion)
+        .add(upperTorso.position);
       // Seated corners use relaxed shoulders; standing attack/bracing still
       // raises the elbows. A fixed high, wide pole made every MX pose read as
       // the same horizontal T-pose, even while sitting at the gate.
@@ -1262,6 +1281,8 @@ export class Rider {
           this.q,
           GP_GLOVE_WRIST,
         );
+        if (i === 1)
+          this.gpBrakeFingers?.update(braking, this.brakeFingerTargets, this.grips[i], this.q);
       } else {
         twoBone(this.upperArms[i], this.forearms[i], shoulder, this.grips[i], pole, joint);
         this.hands[i].rotation.set(0.2, 0, 0);
@@ -1321,6 +1342,7 @@ export class Rider {
   /** Separated rider: `phase` 0 sliding/tumbling, 1 standing/jogging, 2 at the bike. */
   separated(phase: number, tumble: number, time: number) {
     this.riding = false;
+    this.gpBrakeFingers?.update(0);
     const [pelvis, a, b, joint, pole, c] = this.v;
     const lying = phase === 0;
     pelvis.set(0, lying ? 0.0 : 0.95, 0);
@@ -1328,6 +1350,7 @@ export class Rider {
     // Lying: torso along the slide direction, rolled by the tumble.
     this.euler.set(lying ? Math.PI / 2 - 0.1 : 0.12, 0, lying ? tumble : 0, 'ZYX');
     this.torso.quaternion.setFromEuler(this.euler);
+    this.gpSpine?.reset();
     this.head.rotation.set(lying ? -0.6 : -0.1, 0, 0);
     this.headShadow.quaternion.copy(this.head.quaternion);
     const stride = phase === 1 ? Math.sin(time * 9) * 0.45 : 0;
@@ -1376,6 +1399,8 @@ export class Rider {
     for (const garment of this.gpGarments) garment.updatePose();
   }
   dispose() {
+    this.gpBrakeFingers?.dispose();
+    this.gpSpine?.dispose();
     for (const garment of this.motocrossGarments) garment.skeleton.dispose();
     for (const garment of this.gpGarments) garment.dispose();
     this.root.traverse((o) => {

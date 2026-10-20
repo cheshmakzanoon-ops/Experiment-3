@@ -1,0 +1,110 @@
+{
+  "kind": "supporting-trace-diagnostic",
+  "date": "2026-10-20",
+  "browserPass": false,
+  "source": {
+    "report": "/tmp/motogp-fullflow-review-report.json",
+    "trace": "/tmp/motogp-fullflow-review-results/motogp-riding-flow-GP-prac-da324-t-pause-and-recorded-replay/trace.zip",
+    "traceSha256": "578b4f87885065c4390c525f3217bac62beb3329a8641d2518c1207e5fdff28d",
+    "traceEntries": [
+      "test.trace",
+      "0-trace.trace"
+    ]
+  },
+  "testResult": {
+    "test": "GP practice rides through named corner guidance, cockpit, pause and recorded replay",
+    "reportedStatus": "failed",
+    "configuredTimeoutMs": 300000,
+    "reportedDurationMs": 324430,
+    "failure": "Error: Test timeout of 300000ms exceeded",
+    "location": "e2e/motogp-riding-flow.spec.ts:217",
+    "interpretation": "The overall test deadline interrupted the first workerPause poll. The first diagnostics response returned the expected completed pause state after the outer poll had already timed out."
+  },
+  "timings": {
+    "clock": "Trace monotonic milliseconds; runner and browser trace event times are retained directly.",
+    "escapePressRunner": {
+      "callId": "pw:api@332",
+      "startMs": 328762.554,
+      "endMs": 328963.626
+    },
+    "resumeButtonVisibleRunner": {
+      "callId": "expect@333",
+      "startMs": 328979.242,
+      "endMs": 329100.308,
+      "passed": true
+    },
+    "workerPausePollRunner": {
+      "callId": "test.step@334",
+      "startMs": 329101.383,
+      "timeoutRecordedMs": 329116.482,
+      "elapsedBeforeTimeoutMs": 15.099
+    },
+    "firstDiagnosticsBrowser": {
+      "callId": "call@281",
+      "startMs": 329109.289,
+      "returnMs": 329267.667,
+      "durationMs": 158.378,
+      "returnAfterOuterTimeoutMs": 151.185
+    },
+    "firstDiagnosticsRunner": {
+      "callId": "pw:api@335",
+      "startMs": 329108.914,
+      "returnMs": 329323.492
+    },
+    "nestedObjectMatchRunner": {
+      "callId": "expect@337",
+      "startMs": 329330.928,
+      "endMs": 329331.232,
+      "errorRecorded": false
+    },
+    "earlierCompletedSpans": [
+      {
+        "step": "finishRaceEntry poll toMatch",
+        "durationMs": 130427.257
+      },
+      {
+        "step": "cockpit screenshot",
+        "durationMs": 9022.929
+      }
+    ]
+  },
+  "firstPostEscapeDiagnostics": {
+    "state": "paused",
+    "workerPause": {
+      "pending": false,
+      "paused": true,
+      "tick": 5429,
+      "sequence": 2
+    },
+    "frameTick": 5429,
+    "auto": true,
+    "replaySamples": 678,
+    "replayError": null,
+    "recordingWarnings": [],
+    "replaySeekPending": false,
+    "presentedCamera": "cockpit"
+  },
+  "errorsAndRecording": {
+    "browserTraceConsoleEvents": 0,
+    "browserTracePageErrorEvents": 0,
+    "browserTraceCallErrors": 0,
+    "reportStdout": [],
+    "reportStderr": [],
+    "observedReplayError": null,
+    "observedRecordingWarnings": [],
+    "finalTestErrorsArrayAssertionReached": false
+  },
+  "notExecutedAfterOuterPollFailure": [
+    "Assignment of the post-pause test snapshot, explicit paused-session capture, and repeated frame-tick freeze assertion.",
+    "WATCH REPLAY navigation, playback pause, recorded seek, rewind/restore comparison, replay-layout capture, and replay isolation assertions.",
+    "Replay exit, RESUME SESSION, resumed tick progression, and final grid/demonstration/error assertions.",
+    "The final gp-riding-flow-diagnostics.json attachment."
+  ],
+  "limitations": [
+    "The test retains its failed status. A correct late diagnostics response does not make the complete production journey a browser pass.",
+    "The worker pause is acknowledged in the captured response: paused true, pending false, tick 5429, sequence 2. The trace records response delivery time, not the exact internal acknowledgement arrival time.",
+    "No pause regression is demonstrated by this failure. Replay and resume portions remain unverified in this run.",
+    "The trace shows earlier steps consumed the budget; it does not establish the underlying cause of those delays.",
+    "Read-only trace inspection only. No test runs, production edits, assertion changes, or deadline changes were performed."
+  ]
+}
