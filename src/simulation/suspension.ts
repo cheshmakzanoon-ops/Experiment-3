@@ -8,7 +8,7 @@ import type { Setup } from './config.ts';
  * stiffness and damping on the normal deflection c_n·(X − x), where X is
  * geometric compression along the suspension axis and c_n = up·roadNormal.
  * Holding that contact normal over a substep, the axis force balance is
- *     c_n²·[k_t·(X − x) + c_t·(Ẋ − ẋ)] = F_spring(x) + F_bump(x) + F_damper(ẋ) + k_arb·(x − x_other)
+ *     c_n²·[k_t·(X − x) + c_t·(Ẋ − ẋ)] = F_spring(x) + F_bump(x) + F_damper(ẋ) + k_arb·(x − x_other) + Q
  * is solved with backward Euler and a coupled two-corner Newton solve for
  * each axle. Tyres push only, and mechanical droop stops carry an extension
  * reaction. A convex-work line search resolves the changing contact, damper
@@ -28,8 +28,9 @@ import type { Setup } from './config.ts';
  * value. Roll-centre height and side-view anti geometry then split that
  * transfer into an elastic share (springs/bars: body roll and pitch) and a
  * geometric share that the links put straight into the tyre loads. The
- * chassis-up generalized load Q = −(h_rc/y)·Fy − tanθ·Fx·sign(z) contributes
- * Q/c_n to road-normal force. This divides the modeled transfer between
+ * chassis-up generalized load Q = −(h_rc/y)·Fy − tanθ·Fx·sign(z) pushes down
+ * on the hub and participates in this same radial force balance. This divides
+ * the modeled transfer between
  * elastic and link paths; unequal outer/inner forces also jack the body.
  * Zero heights reproduce the former, purely elastic transfer. */
 export interface DamperCurve {
@@ -245,6 +246,10 @@ export class HubSolver {
   /** Positive cosine between chassis up and road normal, held for this step.
    * Unity preserves the aligned-road hardware and standalone solver API. */
   readonly normalCosine = new Float64Array(4).fill(1);
+  /** Link load along the suspension axis (N), positive pushing the hub down.
+   * Held over a substep like the contact normal. Unlike an extra road force,
+   * it changes the hub/tyre deformation; its work on hub travel is −Q·Δx. */
+  readonly linkLoad = new Float64Array(4);
   /** Per-corner tyre radial stiffness this step (pressure dependent). */
   readonly tyreRate = new Float64Array(4);
   private readonly previous = new Float64Array(4);
@@ -259,6 +264,7 @@ export class HubSolver {
     this.rate.fill(0);
     this.contact.fill(0);
     this.normalCosine.fill(1);
+    this.linkLoad.fill(0);
   }
   private r = 0;
   private slope = 0;
@@ -275,7 +281,7 @@ export class HubSolver {
       tyre = this.contact[i]
         ? Math.max(0, kt * (this.compression[i] - x) + ct * (this.rate[i] - v))
         : 0;
-    this.r = tyre - suspension;
+    this.r = tyre - suspension - this.linkLoad[i];
     this.slope = stiffness + (tyre > 0 ? kt + ct / dt : 0);
   }
   /** Scalar work potential whose negative derivative is the corner residual
@@ -292,6 +298,7 @@ export class HubSolver {
         : 0;
     return (
       springWork(h, x) +
+      this.linkLoad[i] * x +
       damperWork(h, v, dt) +
       (tyre > 0 ? (0.5 * tyre * tyre) / (kt + ct / dt) : 0)
     );
@@ -338,7 +345,7 @@ export class HubSolver {
         dy = boundY ? 0 : ry / ky;
       }
       const work = this.axleWork(i, x, y, dt),
-        roundoff = 16 * Number.EPSILON * Math.max(1, work);
+        roundoff = 16 * Number.EPSILON * Math.max(1, Math.abs(work));
       let scale = 1;
       for (let line = 0; line < 20; line++) {
         const nextX = Math.max(lowerX, x + scale * dx),
@@ -387,8 +394,9 @@ export function kinematicCamber(staticCamber: number, gain: number, travel: numb
 }
 /** Geometric (link) load transfer at one contact (N along chassis up):
  * lateral jacking through the roll centre at `y` (car-local lateral position
- * of the patch) and side-view anti geometry at `z` for force Fx. Divide this
- * generalized load by up·roadNormal when adding it to road-normal force. */
+ * of the patch) and side-view anti geometry at `z` for force Fx. Pass this
+ * generalized load to HubSolver so the same compliant tyre supplies its
+ * projected road-normal reaction. */
 export function geometricLoad(
   axle: AxleSuspension,
   y: number,

@@ -14,6 +14,7 @@ import type { OffroadBikeSpec } from './types.ts';
 import { LANDING_RULES } from './riding-feedback.ts';
 import { wheelPickupImpulse } from './wheel-pickup.ts';
 import { RiderWeight } from './rider-weight.ts';
+import { factoryBikeSag, risingRateSag } from './suspension-geometry.ts';
 
 /** How far (m) the rider's body moves fore/aft over the pegs at full lean;
  * on the ground that shifts the system CG (a weight-shift pitch torque). */
@@ -82,6 +83,9 @@ export interface LandingRecord {
  * tight corners (which also props the lean), body fore/aft. */
 export class DirtBikeVehicle extends BikeVehicle {
   readonly air: OffroadBikeSpec;
+  /** Fixed free-wheel geometry. Setup and fuel act through spring forces
+   * and equilibrium travel, never by moving the suspension's hard points. */
+  private readonly referenceSag: { fork: number; shock: number };
   airborne = false;
   airTime = 0;
   /** CG height (world), vertical speed, system pitch (rad, nose-up +) and rate. */
@@ -162,6 +166,7 @@ export class DirtBikeVehicle extends BikeVehicle {
     super(id, compound, setup, assist, definition);
     if (!definition.bike?.offroad) throw new Error(`${definition.id} has no off-road block`);
     this.air = definition.bike.offroad;
+    this.referenceSag = factoryBikeSag(definition);
   }
   /** Static sag (m) of each end under the bike's own weight. */
   private sag(front: boolean) {
@@ -177,9 +182,7 @@ export class DirtBikeVehicle extends BikeVehicle {
     const b = this.bikeSpec,
       k = front ? b.forkRate : b.shockRate,
       T = front ? b.forkTravel : b.shockTravel;
-    let c = force / k;
-    for (let i = 0; i < 6; i++) c = force / (k * (1 + this.air.progression * (c / T) ** 2));
-    return Math.max(0, c - this.preload(front));
+    return risingRateSag(force, k, T, this.air.progression, this.preload(front));
   }
   private spring(c: number, front: boolean) {
     const b = this.bikeSpec,
@@ -199,15 +202,36 @@ export class DirtBikeVehicle extends BikeVehicle {
     super.placeFree(track, x, z, heading, groundY);
     this.settle();
   }
-  /** Static equilibrium on the ground under both wheels. */
-  private settle() {
+  /** Static contact pose for the current spring load and preload. The fixed
+   * wheel geometry supplies two independent gap equations. Solve their
+   * difference for pitch, then one for heave, instead of changing rest
+   * lengths to keep the chassis at its former nominal height. */
+  private settlePose() {
     const b = this.bikeSpec,
       L = this.spec.wheelbase,
       gF = this.contacts[0].height,
-      gR = this.contacts[2].height;
-    this.pitch = Math.asin(clamp((gF - gR) / L, -0.6, 0.6));
-    const ground = lerp(gR, gF, b.cgToRear / L);
-    this.cgY = ground + b.cgHeight;
+      gR = this.contacts[2].height,
+      HF = b.cgHeight + this.referenceSag.fork,
+      HR = b.cgHeight + this.referenceSag.shock;
+    this.body.mass = this.dynamics.mass = this.definition.spec.dryMass + this.fuel - this.lostMass;
+    const front = this.sag(true),
+      rear = this.sag(false),
+      difference = HF - HR;
+    // L*sin(pitch) - (HF-HR)*cos(pitch) = gF-gR-front+rear.
+    this.pitch =
+      Math.asin(clamp((gF - gR - front + rear) / Math.hypot(L, difference), -0.6, 0.6)) +
+      Math.atan2(difference, L);
+    this.cgY = gR + b.cgToRear * Math.sin(this.pitch) + HR * Math.cos(this.pitch) - rear;
+    // Placement/recovery is a state boundary. Do not retain a preceding
+    // jump's filtered travel in the next snapshot of a settled motorcycle.
+    this.compressionFront = this.fork = front;
+    this.compressionRear = this.shock = rear;
+  }
+  /** Static equilibrium on the ground under both wheels. */
+  private settle() {
+    const b = this.bikeSpec,
+      L = this.spec.wheelbase;
+    this.settlePose();
     this.vy = this.pitchRate = 0;
     this.airYaw = this.airYawRate = 0;
     this.riderWeight.reset();
@@ -215,8 +239,6 @@ export class DirtBikeVehicle extends BikeVehicle {
     this.riderBody = this.automaticBody;
     this.wheelPickup = false;
     this.pickupSpeed = this.dynamics.speed;
-    this.compressionFront = this.sag(true);
-    this.compressionRear = this.sag(false);
     this.forceFront = (this.dynamics.mass * G * b.cgToRear) / L;
     this.forceRear = (this.dynamics.mass * G * b.cgToFront) / L;
     this.tires[0].load = this.tires[1].load = this.forceFront;
@@ -674,7 +696,7 @@ export class DirtBikeVehicle extends BikeVehicle {
    * is, not against the horizon. */
   private loopOutPitch() {
     const spec = this.bikeSpec;
-    return Math.atan(spec.cgToRear / (spec.cgHeight + this.sag(false)));
+    return Math.atan(spec.cgToRear / (spec.cgHeight + this.referenceSag.shock));
   }
   /** A wheelie past its balance point: the rider loops out on the ground. */
   private loopOut() {
@@ -699,8 +721,8 @@ export class DirtBikeVehicle extends BikeVehicle {
       wheelHeading = d.heading + this.airYaw,
       wheelSin = Math.sin(wheelHeading),
       wheelCos = Math.cos(wheelHeading),
-      HF = spec.cgHeight + this.sag(true),
-      HR = spec.cgHeight + this.sag(false),
+      HF = spec.cgHeight + this.referenceSag.fork,
+      HR = spec.cgHeight + this.referenceSag.shock,
       drag = d.p.drag / d.mass,
       damping = 0.3 + 0.5 * this.standing;
     let sampledSlope = 0;
@@ -891,10 +913,8 @@ export class DirtBikeVehicle extends BikeVehicle {
       this.compressionFront = this.compressionRear = 0.02;
       return;
     }
-    const sagF = this.sag(true),
-      sagR = this.sag(false),
-      HF = spec.cgHeight + sagF,
-      HR = spec.cgHeight + sagR;
+    const HF = spec.cgHeight + this.referenceSag.fork,
+      HR = spec.cgHeight + this.referenceSag.shock;
     const sin = Math.sin(this.pitch),
       cos = Math.cos(this.pitch);
     const freeF = this.cgY + fa * sin - HF * cos,
@@ -1289,12 +1309,7 @@ export class DirtBikeVehicle extends BikeVehicle {
     // become a false vertical speed fed back into the next contact impulse.
     const previousY = this.written.position.y;
     if (dt > 0) this.vertical(dt);
-    else if (this.cgY === 0 && this.pitch === 0) {
-      this.pitch = this.roadPitch;
-      this.cgY = lerp(rear.y, front.y, spec.cgToRear / L) + spec.cgHeight;
-      this.compressionFront = this.sag(true);
-      this.compressionRear = this.sag(false);
-    }
+    else if (this.cgY === 0 && this.pitch === 0) this.settlePose();
     // Touchdown commits chassis yaw to the grounded heading in vertical().
     h = d.heading + this.airYaw;
     const fallen = !this.airborne && Math.abs(d.lean) > 1.2;

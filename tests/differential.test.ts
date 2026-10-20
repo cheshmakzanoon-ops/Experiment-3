@@ -20,7 +20,7 @@ import {
 
 const out = differentialOutput();
 describe('differential models', () => {
-  it('reproduces the former viscous axle coupling exactly', () => {
+  it('keeps the original viscous coefficient and cap at the solved wheel speeds', () => {
     const def = resolveDifferential(LEGACY_AXLE, DEFAULT_SETUP);
     for (const [input, a, b, power] of [
       [2000, 80, 83, true],
@@ -29,9 +29,11 @@ describe('differential models', () => {
     ] as const) {
       differentialTorques(def, input, power, a, b, 1.8, 1.8, 1 / 240, out);
       const setting = power ? DEFAULT_SETUP.diffPower : DEFAULT_SETUP.diffCoast,
-        locking = clamp((b - a) * setting * 55, -1050, 1050);
-      expect(out.first).toBeCloseTo(input * 0.5 + locking, 12);
-      expect(out.second).toBeCloseTo(input * 0.5 - locking, 12);
+        nextA = a + out.first / (240 * 1.8),
+        nextB = b + out.second / (240 * 1.8),
+        shear = clamp((nextB - nextA) * setting * 55, -1050, 1050);
+      expect(out.locking).toBeCloseTo(shear, 9);
+      expect(out.first + out.second).toBeCloseTo(input, 12);
     }
   });
   it('conserves torque and moves it toward the slower output for every model', () => {

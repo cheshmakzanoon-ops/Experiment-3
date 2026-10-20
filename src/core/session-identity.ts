@@ -25,8 +25,10 @@ import {
  * v12: passive longitudinal tyre compliance and coupled rotor/tyre heat;
  * v13: coupled lateral/longitudinal contact energy and finite tyre footprint;
  * v14: static tyre support, work-coupled rolling loss and measured bike pose rates;
+ * v15: compliant link loads, passive differential impulses, relative-wind aero
+ * and fixed-geometry motocross suspension equilibrium;
  * prior records remain in their original physics category. */
-export const SIMULATION_VERSION = 14;
+export const SIMULATION_VERSION = 15;
 /** Fixed physics tick used by the worker and headless simulation. */
 export const SIMULATION_TICK_HZ = 120;
 

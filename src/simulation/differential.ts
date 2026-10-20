@@ -3,7 +3,7 @@ import type { Setup } from './config.ts';
 
 /** Driveline differentials (WP17, masterplan §7.1). Definitions that carry a
  * `driveline` use these models; definitions without one (the APX-01 Formula
- * and TC-1 touring car) keep their original viscous axle coupling bit for bit.
+ * and TC-1 touring car) use the viscous axle model below.
  *
  * Every coupling is solved the same way as the clutch: the torque that would
  * equalize the two output speeds within one step (an impulse projection on the
@@ -115,12 +115,19 @@ export function distributeDrive(
   if (drivetrain === 'awd') {
     const centre = driveline.centre ?? OPEN_CENTRE;
     const f = centre.frontShare;
+    // The planetary split itself accelerates the axles unequally when f is
+    // not 1/2. Project the free speeds AFTER that known input impulse. Using
+    // only last step's speeds makes an initially synchronized locked centre
+    // open on every application of drive (and leaves a timestep-sized slip).
+    const axleInertia = 2 * wheelInertia,
+      frontFree = (omega[0] + omega[1]) * 0.5 + (drive * f * dt) / axleInertia,
+      rearFree = (omega[2] + omega[3]) * 0.5 + (drive * (1 - f) * dt) / axleInertia;
     const transfer = lockingTorque(
       centre,
       drive,
-      (omega[0] + omega[1]) * 0.5,
-      (omega[2] + omega[3]) * 0.5,
-      2 * wheelInertia,
+      frontFree,
+      rearFree,
+      axleInertia,
       dt,
       diffPower,
       diffCoast,
@@ -164,7 +171,7 @@ export function distributeDrive(
 /** Stick-torque differential model (docs/production/PHYSICS_MODEL.md §3.3),
  * usable for an axle or, with `split`, a centre differential feeding two
  * axles. It runs the APX-01 and TC-1 axle (LEGACY_AXLE: the former viscous
- * coupling, exact) and any `dynamics.differential` override; a catalogue
+ * coupling coefficient) and any `dynamics.differential` override; a catalogue
  * `driveline` above can be evaluated with it through `fromSpec`.
  *
  * Input torque T (after gearbox and final drive) is split T·s / T·(1−s); a
@@ -172,17 +179,21 @@ export function distributeDrive(
  *     first = s·T + L,  second = (1−s)·T − L.
  * L depends on the model:
  *   open     L = 0
- *   locked   L = β·L_stick (no limit)
- *   viscous  L = clamp(c·Δω, ±L_max)                       (speed sensing)
- *   clutch   L = clamp(β·L_stick, ±(preload + r·|T|))       (Salisbury LSD,
+ *   locked   L = clamp(L_feedback, ±L_max)
+ *   viscous  L = clamp(c·Δω_free / (1 + c·M·dt), ±L_max)  (implicit shear)
+ *   clutch   L = clamp(L_feedback, ±(preload + r·|T|))     (Salisbury LSD,
  *            r = power or coast ramp locking by the sign of T)
- *   torsen   L = clamp(β·L_stick, ±½|T|·(TBR−1)/(TBR+1))    (torque bias ratio)
- * where L_stick is the locking torque that cancels the output speed
- * difference Δω = ω_second − ω_first within this step, including the split's
- * own relative acceleration and a prediction of the road reaction torques on
- * each output (their previous-step values, since the tyres are solved after
- * the differential), and β < 1 under-relaxes it so a locked or stuck clutch
- * pack is stable at any timestep instead of chattering. */
+ *   torsen   L = clamp(L_feedback, ±½|T|·(TBR−1)/(TBR+1)) (torque bias ratio)
+ * where L_feedback = (β·Δω + dt·drift)/(M·dt), with Δω = ω_second − ω_first.
+ * `drift` includes the split's own relative acceleration and a prediction of
+ * the road reaction torques on each output (their previous-step values,
+ * since the tyres are solved after the differential). β < 1 under-relaxes
+ * the historical speed feedback without weakening the predicted road load.
+ * M = 1/I_first + 1/I_second. Every friction impulse is projected between
+ * zero and the impulse that removes Δω_free: a stale road prediction may
+ * reverse the free slip, but cannot make the coupling create kinetic energy
+ * relative to those predicted free speeds. This is an operator-split energy
+ * guarantee; it does not claim to solve simultaneous road/clutch constraints. */
 export type DifferentialKind = 'open' | 'locked' | 'viscous' | 'clutch' | 'torsen';
 export interface DifferentialDefinition {
   readonly kind: DifferentialKind;
@@ -221,8 +232,8 @@ const BASE: DifferentialDefinition = Object.freeze({
 export function differential(overrides: Partial<DifferentialDefinition>): DifferentialDefinition {
   return Object.freeze({ ...BASE, ...overrides });
 }
-/** The former axle coupling: viscous locking of 55·setting N m s/rad,
- * limited to 1050 N m (power setting on throttle, coast setting off it). */
+/** The original axle's viscous coefficient, 55·setting N m s/rad, now solved
+ * implicitly and limited to 1050 N m (power setting on throttle, coast off). */
 export const LEGACY_AXLE = differential({
   kind: 'viscous',
   viscousPower: 55,
@@ -324,25 +335,41 @@ export function differentialTorques(
   reactionSecond = 0,
 ) {
   if (
-    ![input, omegaFirst, omegaSecond, dt, reactionFirst, reactionSecond].every(Number.isFinite) ||
-    dt <= 0
+    ![
+      input,
+      omegaFirst,
+      omegaSecond,
+      inertiaFirst,
+      inertiaSecond,
+      dt,
+      reactionFirst,
+      reactionSecond,
+    ].every(Number.isFinite) ||
+    dt <= 0 ||
+    inertiaFirst <= 0 ||
+    inertiaSecond <= 0
   )
     throw new Error('Invalid differential state');
   const s = def.split,
-    delta = omegaSecond - omegaFirst;
+    delta = omegaSecond - omegaFirst,
+    mobility = (1 / inertiaFirst + 1 / inertiaSecond) * dt,
+    drift =
+      ((1 - s) * input + reactionSecond) / inertiaSecond -
+      (s * input + reactionFirst) / inertiaFirst,
+    freeDelta = delta + drift * dt;
   let locking = 0;
   if (def.kind === 'viscous') {
+    // Fluid shear acts on the solved speed difference, not on a delayed
+    // difference that may overshoot at high viscosity or small wheel inertia.
+    // L = c*(freeDelta - mobility*L), integrated by backward Euler.
+    const viscosity = Math.max(0, onPower ? def.viscousPower : def.viscousCoast);
     locking = clamp(
-      delta * (onPower ? def.viscousPower : def.viscousCoast),
+      (viscosity * freeDelta) / (1 + viscosity * mobility),
       -def.maxLocking,
       def.maxLocking,
     );
   } else if (def.kind !== 'open') {
-    const mobility = (1 / inertiaFirst + 1 / inertiaSecond) * dt,
-      drift =
-        ((1 - s) * input + reactionSecond) / inertiaSecond -
-        (s * input + reactionFirst) / inertiaFirst,
-      stick = (def.stickFraction * delta + drift * dt) / mobility;
+    const stick = (def.stickFraction * delta + drift * dt) / mobility;
     const capacity =
       def.kind === 'locked'
         ? def.maxLocking
@@ -352,6 +379,13 @@ export function differentialTorques(
     const limit = Math.min(capacity, def.maxLocking);
     locking = clamp(stick, -limit, limit);
   }
+  // An equal-and-opposite impulse J removes energy
+  //   J*freeDelta - 1/2*(1/I_first + 1/I_second)*J².
+  // Restricting J to the no-crossing interval makes this nonnegative and
+  // prevents an under-relaxed historical slip from fighting a reversed free
+  // slip after the input and predicted road impulses have been applied.
+  const synchronize = freeDelta / mobility;
+  locking = clamp(locking, Math.min(0, synchronize), Math.max(0, synchronize));
   out.first = s * input + locking;
   out.second = (1 - s) * input - locking;
   out.locking = locking;

@@ -162,6 +162,7 @@ export class Vehicle {
   private localPoint = new Vec3();
   private localAccel = new Vec3();
   private relativeAir = new Vec3();
+  private localAir = new Vec3();
   private surface = surfaceSample();
   private axis = new Vec3();
   private tireAxle = new Vec3();
@@ -588,6 +589,10 @@ export class Vehicle {
       // into that same coordinate; HubSolver projects radial force/work back.
       hub.rate[i] = -this.pointVelocities[i].dot(s.normal) / cosine;
       hub.contact[i] = compression > 0 && this.up.y >= 0.25 ? 1 : 0;
+      // Link forces push on the same compliant hub/tyre series as the spring.
+      // Feed back the preceding substep's force while this contact is a
+      // candidate; a missed road cast cannot leave a stale geometric load.
+      hub.linkLoad[i] = hub.contact[i] ? this.jacking[i] : 0;
       this.lengthScratch[i] = length;
       this.restScratch[i] = rest;
     }
@@ -611,11 +616,10 @@ export class Vehicle {
     b.orientation.rotate(this.axis.set(1, 0, 0), this.lateralAxis);
     let generatorWorkW = 0;
     for (let i = 0; i < 4; i++) {
-      // Spring share is already road-normal. The link share is a generalized
-      // chassis-up load, so the same virtual-work projection supplies Q/cosine.
+      // The hub solve already includes the link share in radial contact force.
+      // Adding it again here would bypass carcass compliance and duplicate it.
       this.normalLoads[i] = hub.contact[i]
-        ? Math.max(0, this.normalLoads[i] + this.jacking[i] / hub.normalCosine[i]) *
-          (1 - this.cornerDamage[i] * 0.5)
+        ? this.normalLoads[i] * (1 - this.cornerDamage[i] * 0.5)
         : 0;
       const t = this.tires[i],
         s = this.contacts[i];
@@ -720,6 +724,10 @@ export class Vehicle {
     this.relativeAir.copy(b.velocity);
     this.relativeAir.x -= track.windX;
     this.relativeAir.z -= track.windZ;
+    // Dynamic pressure and yaw must describe the same relative airflow.
+    // Ground-relative sideslip would miss a crosswind, or count it twice
+    // when wind and vehicle lateral motion cancel.
+    b.orientation.inverseRotate(this.relativeAir, this.localAir);
     const airspeed = this.relativeAir.length();
     // Clearance is measured at actual floor stations, including chassis pitch
     // and local road elevation/bank. CG height alone misses nose dive and rake.
@@ -745,7 +753,7 @@ export class Vehicle {
       this.rearHealth,
       this.floorHealth,
       this.wake,
-      Math.atan2(this.localVelocity.x, Math.abs(this.localVelocity.z) + 1),
+      Math.atan2(this.localAir.x, Math.abs(this.localAir.z) + 1),
       this.aero,
       this.drsFlap,
       this.definition === FORMULA_APX01 ? undefined : bodyAero,
@@ -757,6 +765,10 @@ export class Vehicle {
       b.orientation.rotate(this.localPoint.set(0, 0, z), this.point).add(b.position);
       // Quasi-steady plunge damping of the heaving wing/floor at this station.
       b.pointVelocity(this.point, this.force);
+      // A pitched or banked chassis projects horizontal wind onto body-up.
+      // Keep station angular motion, but measure translation through the air.
+      this.force.x -= track.windX;
+      this.force.z -= track.windZ;
       const damping = plungeDamping(airspeed, this.force.dot(this.up), platform.plungeArea);
       this.force.copy(this.up).scale(-(axle === 0 ? this.aero.front : this.aero.rear) + damping);
       b.apply(this.force, this.point);

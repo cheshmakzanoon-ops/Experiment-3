@@ -201,17 +201,152 @@ describe('suspension-axis and road-normal virtual work', () => {
   it('resets contact projection with contact state and rejects invalid cosines', () => {
     const hub = linearHub();
     hub.normalCosine.fill(0.4);
+    hub.linkLoad.set([800, -800, 400, -400]);
     hub.compression.fill(0.04);
     hub.rate.fill(0.2);
     hub.solve(DT);
     hub.reset();
     expect([...hub.normalCosine]).toEqual([1, 1, 1, 1]);
+    expect([...hub.linkLoad]).toEqual([0, 0, 0, 0]);
     expect([...hub.contact]).toEqual([0, 0, 0, 0]);
     expect([...hub.compression]).toEqual([0, 0, 0, 0]);
     expect([...hub.rate]).toEqual([0, 0, 0, 0]);
     for (const cosine of [0, -0.1, 1.01, NaN, Infinity]) {
       hub.normalCosine[0] = cosine;
       expect(() => hub.solve(DT)).toThrow('Invalid suspension contact cosine');
+    }
+  });
+});
+
+describe('link loads through compliant hubs', () => {
+  it('matches the closed-form series displacement instead of adding a fictitious road force', () => {
+    const hub = linearHub(0),
+      compression = 0.04;
+    hub.normalCosine.set([1, 0.65, 0.9, 0.4]);
+    hub.linkLoad.set([600, -600, 450, -450]);
+    hub.compression.fill(compression);
+    hub.solve(DT);
+    for (let i = 0; i < 4; i++) {
+      const c = hub.normalCosine[i],
+        kt = hub.tyreRate[i],
+        ks = hub.hardware[i].wheelRate,
+        q = hub.linkLoad[i],
+        // Analytic series compliance under a force at the shared hub.
+        expectedTravel = (kt * c * c * compression - q) / (kt * c * c + ks),
+        expectedForce = kt * c * (compression - expectedTravel),
+        unloadedTravel = (kt * c * c * compression) / (kt * c * c + ks),
+        unloadedForce = kt * c * (compression - unloadedTravel);
+      expect(hub.travel[i]).toBeCloseTo(expectedTravel, 12);
+      expect(hub.tyreForce[i]).toBeCloseTo(expectedForce, 8);
+      // The old post-solve addition left travel unchanged and increased load
+      // by Q/c. Series compliance transmits a smaller, stiffness-dependent part.
+      expect(Math.abs(hub.tyreForce[i] - (unloadedForce + q / c))).toBeGreaterThan(50);
+      expect(Math.abs(hub.travel[i] - unloadedTravel)).toBeGreaterThan(0.001);
+    }
+  });
+
+  it('includes link work in the coupled damped axle energy balance', () => {
+    for (const dt of [DT, 1 / 60, 1 / 30]) {
+      const hub = linearHub(18000, 2100, 350);
+      hub.normalCosine.set([1, 0.65, 0.8, 0.45]);
+      hub.compression.fill(0.05);
+      hub.travel.set([0.018, 0.025, 0.03, 0.015]);
+      const energy = () => {
+        let value = 0;
+        for (let i = 0; i < 4; i++) {
+          const x = hub.travel[i],
+            radial = hub.normalCosine[i] * Math.max(0, hub.compression[i] - x);
+          value += 0.5 * hub.hardware[i].wheelRate * x ** 2 + 0.5 * hub.tyreRate[i] * radial ** 2;
+          if (i % 2 === 0) value += 0.5 * hub.hardware[i].barRate * (x - hub.travel[i + 1]) ** 2;
+        }
+        return value;
+      };
+      let previousEnergy = energy();
+      for (let step = 0; step < 100; step++) {
+        const previous = [...hub.travel];
+        // Reversing the external link forces exercises both positive and
+        // negative work, beyond relaxation under a constant added potential.
+        const q = step < 50 ? 500 : -350;
+        hub.linkLoad.set([q, -q, q * 0.7, -q * 0.7]);
+        hub.contact.fill(1);
+        hub.solve(dt);
+        let dissipated = 0,
+          externalWork = 0;
+        for (let i = 0; i < 4; i++) {
+          const dx = hub.travel[i] - previous[i],
+            speed = dx / dt,
+            radialSpeed = -hub.normalCosine[i] * speed;
+          dissipated +=
+            dt *
+            (damperForce(hub.hardware[i], speed) * speed +
+              hub.hardware[i].tyreDamping * radialSpeed ** 2);
+          externalWork -= hub.linkLoad[i] * dx;
+          const suspension =
+            springForce(hub.hardware[i], hub.travel[i]) +
+            damperForce(hub.hardware[i], speed) +
+            hub.hardware[i].barRate * (hub.travel[i] - hub.travel[i ^ 1]);
+          expect(
+            Math.abs(hub.tyreForce[i] * hub.normalCosine[i] - suspension - hub.linkLoad[i]),
+          ).toBeLessThan(1e-6);
+        }
+        const nextEnergy = energy();
+        expect(dissipated).toBeGreaterThanOrEqual(0);
+        expect(nextEnergy + dissipated).toBeLessThanOrEqual(previousEnergy + externalWork + 1e-8);
+        previousEnergy = nextEnergy;
+      }
+    }
+  });
+
+  it('mirrors combined link/bar reactions through tyre release and a mechanical droop stop', () => {
+    const right = linearHub(18000, 2100, 350),
+      left = linearHub(18000, 2100, 350);
+    right.normalCosine.set([1, 0.7, 0.9, 0.8]);
+    right.compression.set([0.005, 0.01, 0.02, 0.01]);
+    right.travel.set([0.004, 0.007, 0.01, 0.008]);
+    // The first force presses a hub onto its extension limit; the second
+    // lifts its tyre clear. Both opposite bar ends must share one iterate.
+    right.linkLoad.set([20000, -20000, 600, -600]);
+    right.hardware[0].droop = 0.001;
+    for (let i = 0; i < 4; i++) {
+      left.normalCosine[i ^ 1] = right.normalCosine[i];
+      left.compression[i ^ 1] = right.compression[i];
+      left.travel[i ^ 1] = right.travel[i];
+      left.linkLoad[i ^ 1] = right.linkLoad[i];
+      left.hardware[i ^ 1].droop = right.hardware[i].droop;
+    }
+    const previous = [...right.travel];
+    right.solve(DT);
+    left.solve(DT);
+    expect(right.travel[0]).toBe(-right.hardware[0].droop);
+    expect(right.tyreForce[1]).toBe(0);
+    expect(right.contact[1]).toBe(0);
+    for (let i = 0; i < 4; i++) {
+      expect(right.travel[i]).toBeCloseTo(left.travel[i ^ 1], 12);
+      expect(right.tyreForce[i]).toBeCloseTo(left.tyreForce[i ^ 1], 7);
+      expect(right.tyreForce[i]).toBeGreaterThanOrEqual(0);
+      const h = right.hardware[i],
+        suspension =
+          springForce(h, right.travel[i]) +
+          damperForce(h, (right.travel[i] - previous[i]) / DT) +
+          h.barRate * (right.travel[i] - right.travel[i ^ 1]),
+        residual = right.tyreForce[i] * right.normalCosine[i] - suspension - right.linkLoad[i];
+      if (right.travel[i] === -h.droop) expect(residual).toBeLessThanOrEqual(1e-6);
+      else expect(Math.abs(residual)).toBeLessThan(1e-6);
+    }
+  });
+
+  it('drops previous contact-derived link loads when the production car is airborne', () => {
+    const track = new DynamicsTrack(),
+      car = new Vehicle(0);
+    car.place(track, 0);
+    car.body.position.y = 6;
+    car.jacking.set([900, -900, 500, -500]);
+    car.step(DT, track);
+    expect([...car.hub.linkLoad]).toEqual([0, 0, 0, 0]);
+    expect([...car.jacking]).toEqual([0, 0, 0, 0]);
+    for (const tire of car.tires) {
+      expect(tire.load).toBe(0);
+      expect(tire.deflection).toBe(0);
     }
   });
 });
@@ -258,6 +393,7 @@ it('uses one work-consistent projection for vehicle gap rate, carcass deformatio
   car.body.velocity.copy(velocity);
   const linkLoads = car.wheelPositions.map(([x, , z]) => geometricLoad(geometry, x, z, fx, fy, 0));
   car.jacking.set(linkLoads);
+  const previous = [...car.hub.travel];
   car.step(DT, track);
   let moment = 0;
   for (let i = 0; i < 4; i++) {
@@ -265,11 +401,16 @@ it('uses one work-consistent projection for vehicle gap rate, carcass deformatio
       tire = car.tires[i],
       [x, , z] = car.wheelPositions[i],
       // Link geometry is defined in the chassis frame. Its lever moment gives
-      // axis load directly; normal force must have the same virtual work.
+      // axis load directly; the solved suspension and radial forces must
+      // balance it at the same actual hub deformation and velocity.
       axisLink = (-height * fy) / x - anti * fx * Math.sign(z),
-      extraNormal = tire.load - hub.tyreForce[i],
-      virtualRise = new Vec3(0, 0.01, 0),
-      normalWork = new Vec3().copy(normal).scale(extraNormal).dot(virtualRise),
+      h = hub.hardware[i],
+      hubVelocity = (hub.travel[i] - previous[i]) / DT,
+      suspension =
+        springForce(h, hub.travel[i]) +
+        damperForce(h, hubVelocity) +
+        h.barRate * (hub.travel[i] - hub.travel[i ^ 1]),
+      solvedAxisLink = tire.load * cosine - suspension,
       axisDeformation = Math.max(0, hub.compression[i] - hub.travel[i]);
     expect(hub.contact[i]).toBe(1);
     expect(tire.load).toBeGreaterThan(100);
@@ -280,9 +421,10 @@ it('uses one work-consistent projection for vehicle gap rate, carcass deformatio
     );
     expect(Math.abs(hub.rate[i] + velocity.dot(normal))).toBeGreaterThan(0.02);
     expect(tire.deflection).toBeCloseTo(cosine * axisDeformation, 12);
-    expect(extraNormal * cosine).toBeCloseTo(axisLink, 7);
-    expect(normalWork).toBeCloseTo(axisLink * virtualRise.y, 9);
-    if (i < 2) moment += x * extraNormal * cosine;
+    expect(tire.load).toBeCloseTo(radialForce(hub, previous, i, DT), 7);
+    expect(tire.load).toBeCloseTo(hub.tyreForce[i], 10);
+    expect(solvedAxisLink).toBeCloseTo(axisLink, 6);
+    if (i < 2) moment += x * solvedAxisLink;
   }
   // Equal front braking forces have cancelling anti moments. The lateral
   // link couple therefore balances the known force at roll-centre height.

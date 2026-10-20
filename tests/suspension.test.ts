@@ -183,7 +183,12 @@ describe('suspension kinematics and geometric load transfer', () => {
         },
       }),
     );
-    expect(Math.abs(geometric.roll)).toBeLessThan(Math.abs(elastic.roll) * 0.85);
+    // Link load changes the suspension spring's share of the deformation,
+    // while the tyre still deflects under the full road load. The former
+    // post-solve load addition bypassed that compliance and overstated the
+    // roll reduction. Keep this a vehicle-level direction/magnitude check;
+    // the exact series-force and energy oracles live in suspension-projection.
+    expect(Math.abs(geometric.roll)).toBeLessThan(Math.abs(elastic.roll) * 0.9);
     expect(Math.abs(geometric.transfer - elastic.transfer)).toBeLessThan(
       0.1 * Math.abs(elastic.transfer),
     );

@@ -509,6 +509,7 @@ export class DirtBikeModel {
         OFFSET - 0.12,
       );
     this.forkLower.add(this.frontSpin);
+    this.frontSpin.name = 'Motocross front spinning wheel';
     this.frontSpin.position.set(0, 0, OFFSET);
     wheel(this.frontSpin, frontR, frontRim, supermoto ? 0.06 : 0.042, true);
     if (detail !== 'far') {
@@ -1058,6 +1059,7 @@ export class DirtBikeModel {
       );
     }
     this.root.add(this.swingarm);
+    this.rearWheel.name = 'Motocross rear suspension hub';
     this.rearWheel.position.copy(this.rearAxle);
     this.rearWheel.add(this.rearSpin);
     this.root.add(this.rearWheel);
@@ -1085,17 +1087,29 @@ export class DirtBikeModel {
   }
   pose(v: BikePoseValues) {
     const b = this.definition.bike!,
-      L = this.definition.spec.wheelbase;
-    const df = (v.fork - this.sag.fork) * Math.cos(RAKE),
-      dr = v.shock - this.sag.shock;
-    this.sprung.rotation.x = Math.atan2(df - dr, L);
-    this.sprung.position.y = -(dr + ((df - dr) * b.cgToRear) / L);
+      fork = T.MathUtils.clamp(v.fork, 0, b.forkTravel),
+      shock = T.MathUtils.clamp(v.shock, 0, b.shockTravel);
+    // DirtBikeVehicle already records the sprung CG's heave and pitch.
+    // Repeating the road-bike body's cosmetic spring offset doubles every
+    // landing/dive and moves a fixed rear wheel with the chassis. Keep the
+    // body rigid to that authoritative root; articulate the hubs instead.
+    this.sprung.position.set(0, 0, 0);
+    this.sprung.quaternion.identity();
     this.steer.rotation.y = v.steer;
-    this.forkLower.position.y = -(FORK + this.sag.fork - v.fork);
+    // The off-road adapter records vertical wheel travel, not piston travel.
+    // Convert it to the raked telescope's stroke; steering around that axis
+    // must not change its extension or produce another chassis displacement.
+    this.forkLower.position.y = -FORK + (fork - this.sag.fork) / Math.cos(RAKE);
     this.frontSpin.rotation.x = v.frontRotation;
     this.rearSpin.rotation.x = v.rearRotation;
     // Pit service wheel exchange (see BikeModel.pose).
-    this.rearWheel.position.copy(this.rearAxle);
+    // The rigid swingarm pivots on a circular arc. Its axle's vertical travel
+    // follows the recorded rear compression; neither the arm nor its chain
+    // stretches to reach a hub pinned to the old ground-reference frame.
+    const dy = this.rearAxle.y + shock - this.sag.shock - this.pivot.y,
+      dz = -Math.sqrt(Math.max(0, this.armLength ** 2 - dy ** 2));
+    this.rearWheel.position.set(this.pivot.x, this.pivot.y + dy, this.pivot.z + dz);
+    this.rearBrake.position.copy(this.rearWheel.position);
     this.rearWheel.position.z -= v.rearWheelOut ?? 0;
     forkLocalOffset(
       this.scratch.set(0, -(v.frontWheelDrop ?? 0), 0),
@@ -1107,10 +1121,8 @@ export class DirtBikeModel {
     this.sprung.updateMatrix();
     const p = this.scratch.copy(this.pivot).applyMatrix4(this.sprung.matrix);
     this.swingarm.position.copy(p);
-    const dy = this.rearAxle.y - p.y,
-      dz = this.rearAxle.z - p.z;
     this.swingarm.rotation.x = Math.atan2(dy, -dz);
-    this.swingarm.scale.z = Math.hypot(dy, dz) / this.armLength;
+    this.swingarm.scale.z = 1;
     if (this.shock) {
       this.swingarm.updateMatrix();
       this.upperEye.copy(this.shockUpper).applyMatrix4(this.sprung.matrix);

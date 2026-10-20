@@ -51,6 +51,7 @@ import { detailDistance } from './view-detail.ts';
 import { Rider, type RiderDetail } from './rider.ts';
 import { bikeSheetFor } from './bike-sheet.ts';
 import { isDirtBike } from '../simulation/offroad/dirt-bikes.ts';
+import { factoryBikeSag } from '../simulation/offroad/suspension-geometry.ts';
 import { DirtBikeModel } from './offroad/dirt-bike-model.ts';
 import { mudUniforms } from './offroad/mud.ts';
 import {
@@ -701,11 +702,14 @@ function addGpRigidFinish(parent: T.Group, assembly: T.Group, finishes: readonly
     parent.add(child);
   }
 }
-/** Static compressions under the bike's own weight (m). */
+/** Factory, zero-preload compressions under the bike's own weight (m).
+ * Off-road bikes use the same rising-rate equilibrium as their vertical
+ * adapter: a linear road-bike sag would sink both visual hubs at rest. */
 export function staticSag(def: VehicleDefinition) {
   const b = def.bike!,
     m = def.spec.dryMass + b.fuel,
     L = def.spec.wheelbase;
+  if (b.offroad) return factoryBikeSag(def);
   return {
     fork: (m * 9.81 * b.cgToRear) / L / b.forkRate,
     shock: (m * 9.81 * b.cgToFront) / L / b.shockRate,
