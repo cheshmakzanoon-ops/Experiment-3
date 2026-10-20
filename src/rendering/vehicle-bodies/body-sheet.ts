@@ -84,6 +84,8 @@ export interface ClosedSheet {
   /** Original rear shoulder sweep, applied only behind the rear tyre envelope.
    * Rear fascia, lamps and trim use the same curved surface. */
   rearSweep?: number;
+  /** Maximum pressed-in lower-flank depth, fading before the wheel openings. */
+  sideSculpt?: number;
   sideIntake: boolean;
   roofScoop: boolean;
   bonnetVents: boolean;
@@ -632,6 +634,7 @@ export const BODY_SHEETS: Readonly<Record<string, BodySheet>> = Object.freeze({
     grille: 0.3,
     frontSweep: 0.28,
     rearSweep: 0.24,
+    sideSculpt: 0.042,
     sideIntake: true,
     roofScoop: false,
     bonnetVents: true,
@@ -1499,6 +1502,7 @@ export const BODY_SHEETS: Readonly<Record<string, BodySheet>> = Object.freeze({
     grille: 0.9,
     frontSweep: 0.22,
     rearSweep: 0.18,
+    sideSculpt: 0.024,
     sideIntake: false,
     roofScoop: false,
     bonnetVents: false,

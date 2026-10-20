@@ -1,4 +1,5 @@
 import * as T from 'three';
+import { addFestivalDoorHandles, addFestivalSills } from './festival-side.ts';
 import type { VehicleDefinition } from '../../simulation/vehicles.ts';
 import type { ClosedSheet, WingSheet } from './body-sheet.ts';
 import type { ClosedBodyModel, Greenhouse } from './closed-body.ts';
@@ -849,25 +850,7 @@ function addHardware(
   const trim = classic ? sharedMaterials.chrome() : sharedMaterials.trim();
   const [ws, rf, rr, rw] = s.cabin;
   for (const side of [-1, 1]) {
-    // Separate handle and inset recess on every road door.
-    for (const station of s.style === 'saloon'
-      ? [(rf + rr) * 0.5 - 0.1, rr - 0.03]
-      : [(rf + rr) * 0.5 + 0.06]) {
-      const z = f.z(station),
-        y = f.y(s.belt) + 0.04;
-      const x = model.sideX(z, y);
-      if (x < 0.1) continue;
-      parts.add(
-        roundedBox(0.012, 0.036, 0.15, 0.011, 2),
-        sharedMaterials.trim(),
-        placed(side * (x + 0.006), y, z),
-      );
-      parts.add(
-        roundedBox(0.022, 0.018, 0.119, 0.007, 2),
-        classic ? sharedMaterials.chrome() : mats.paint,
-        placed(side * (x + 0.018), y + 0.002, z),
-      );
-    }
+    addFestivalDoorHandles(parts, model, mats, side);
     const seal: [number, number, number][] = [];
     for (let k = 0; k <= 18; k++) {
       const z = f.z(ws + ((rw - ws) * k) / 18);
@@ -1093,6 +1076,7 @@ export function buildFestivalDetail(
   addHeadlamps(parts, model, mats, detail);
   addTailLamps(parts, model, mats, detail);
   addFestivalRearBodywork(parts, model, mats, detail);
+  addFestivalSills(parts, model, mats, detail);
   addExhausts(parts, model, detail);
   addVents(parts, model, mats, detail);
   if (detail === 0) addHardware(parts, model, mats, greenhouse, glazing);

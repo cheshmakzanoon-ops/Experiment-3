@@ -5,8 +5,8 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { realpathSync } from 'node:fs';
 import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
-import { join, relative, resolve } from 'node:path';
-import { createServer } from 'vite';
+import { basename, join, relative, resolve } from 'node:path';
+import { createServer, preview } from 'vite';
 import { chromium } from 'playwright';
 import { browserBackend, requireBrowserBackend } from './browser-backend.ts';
 
@@ -16,6 +16,8 @@ const output = resolve(
 );
 const backend = browserBackend(process.env.APEX_BROWSER_BACKEND);
 const fixture = 'e2e/fixtures/horizon-session.html';
+const buildDirectory = process.env.HORIZON_SESSION_BUILD_DIR;
+let fixturePath = fixture;
 const budgets = {
   startup: 180000,
   frame: 180000,
@@ -188,26 +190,65 @@ async function capture(name) {
 }
 try {
   await bounded('entire Festival practice review', budgets.entireReview, async () => {
-    server = await createServer({
-      root,
-      configFile: false,
-      cacheDir: join(output, 'vite-cache'),
-      logLevel: 'warn',
-      define: {
-        __APEX_SOURCE_FINGERPRINT__: JSON.stringify(report.sourceFingerprint),
-        __APEX_SOURCE_COMMIT__: 'null',
-      },
-      worker: { format: 'es' },
-      optimizeDeps: { entries: [fixture], include: ['three'] },
-      server: {
-        host: '127.0.0.1',
-        port: Number(process.env.HORIZON_SESSION_PORT ?? 5319),
-        strictPort: true,
-        hmr: false,
-        fs: { allow: [root, realpathSync(join(root, 'node_modules'))] },
-      },
-    });
-    await server.listen();
+    if (buildDirectory) {
+      const identity = JSON.parse(
+        await readFile(join(buildDirectory, 'BUILD_IDENTITY.json'), 'utf8'),
+      );
+      assert.equal(
+        identity.fingerprint,
+        report.sourceFingerprint,
+        'Production build source fingerprint mismatch',
+      );
+      assert.deepEqual(
+        JSON.parse(await readFile(join(buildDirectory, 'HORIZON_FIXTURE_IDENTITY.json'), 'utf8')),
+        report.fixtureSha256,
+        'Production build fixture identity mismatch',
+      );
+      const built = await preview({
+        root,
+        configFile: false,
+        base: './',
+        build: { outDir: resolve(buildDirectory) },
+        preview: {
+          host: '127.0.0.1',
+          port: Number(process.env.HORIZON_SESSION_PORT ?? 5319),
+          strictPort: true,
+        },
+        logLevel: 'warn',
+      });
+      server = {
+        resolvedUrls: built.resolvedUrls,
+        close: () =>
+          new Promise((resolve, reject) =>
+            built.httpServer.close((error) => (error ? reject(error) : resolve())),
+          ),
+      };
+      fixturePath = basename(fixture);
+      report.servingMode = 'bundled';
+      report.buildIdentity = identity;
+    } else {
+      server = await createServer({
+        root,
+        configFile: false,
+        cacheDir: join(output, 'vite-cache'),
+        logLevel: 'warn',
+        define: {
+          __APEX_SOURCE_FINGERPRINT__: JSON.stringify(report.sourceFingerprint),
+          __APEX_SOURCE_COMMIT__: 'null',
+        },
+        worker: { format: 'es' },
+        optimizeDeps: { entries: [fixture], include: ['three'] },
+        server: {
+          host: '127.0.0.1',
+          port: Number(process.env.HORIZON_SESSION_PORT ?? 5319),
+          strictPort: true,
+          hmr: false,
+          fs: { allow: [root, realpathSync(join(root, 'node_modules'))] },
+        },
+      });
+      await server.listen();
+      report.servingMode = 'development';
+    }
     browser = await chromium.launch({
       headless: backend.headless,
       executablePath: process.env.HORIZON_REVIEW_EXECUTABLE || undefined,
@@ -257,7 +298,7 @@ try {
     const startup = performance.now();
     await bounded('Festival startup', budgets.startup, async () => {
       await page.goto(
-        `${server.resolvedUrls.local[0]}${fixture}?quality=medium&vehicle=rh3&travel=saltmarsh-practice&capture=1&frames=1`,
+        `${server.resolvedUrls.local[0]}${fixturePath}?quality=medium&vehicle=rh3&travel=saltmarsh-practice&capture=1&frames=1`,
         { waitUntil: 'domcontentloaded', timeout: budgets.startup },
       );
       await wait(() => !!window.horizonReview, undefined, budgets.startup);

@@ -23,6 +23,7 @@ import { OW_NOISE_GLSL } from './terrain-material.ts';
 import {
   FestivalRoadFrame,
   festivalRoadProfile,
+  festivalSurfaceContext,
   installFestivalRoadSurface,
 } from './festival-road-surface.ts';
 import { buildFestivalGuardrails } from './festival-guardrails.ts';
@@ -51,6 +52,7 @@ class Builder {
   normals: number[] = [];
   uvs: number[] = [];
   roadData: number[] = [];
+  surfaceData: number[] = [];
   indices: number[] = [];
   get count() {
     return this.positions.length / 3;
@@ -65,11 +67,13 @@ class Builder {
     ny = 1,
     nz = 0,
     road?: readonly [number, number, number, number],
+    surface?: readonly [number, number],
   ) {
     this.positions.push(x, y, z);
     this.normals.push(nx, ny, nz);
     this.uvs.push(u, v);
     if (road) this.roadData.push(...road);
+    if (surface) this.surfaceData.push(...surface);
     return this.count - 1;
   }
   quad(a: number, b: number, c: number, d: number) {
@@ -86,6 +90,11 @@ class Builder {
       if (this.roadData.length !== this.count * 4)
         throw new Error('Festival road metadata must cover every vertex of its material batch');
       g.setAttribute('festivalRoadData', new T.Float32BufferAttribute(this.roadData, 4));
+    }
+    if (this.surfaceData.length) {
+      if (this.surfaceData.length !== this.count * 2)
+        throw new Error('Festival surface metadata must cover every vertex of its material batch');
+      g.setAttribute('festivalSurfaceData', new T.Float32BufferAttribute(this.surfaceData, 2));
     }
     g.setIndex(this.indices);
     g.computeBoundingSphere();
@@ -152,25 +161,68 @@ function pavingMaterial(wet: { value: number }) {
   return material;
 }
 
+/** Cross-section metadata lives on the existing batches, independently of
+ * the road-metre UVs. Paint and shoulders therefore keep metre-scale wear
+ * even when a ribbon changes width or direction. */
+function surfaceCoordinates(shader: T.WebGLProgramParametersWithUniforms) {
+  shader.vertexShader = shader.vertexShader
+    .replace(
+      '#include <common>',
+      '#include <common>\nattribute vec2 festivalSurfaceData;\nvarying vec2 vFestivalSurfaceData;',
+    )
+    .replace(
+      '#include <begin_vertex>',
+      '#include <begin_vertex>\nvFestivalSurfaceData = festivalSurfaceData;',
+    );
+  shader.fragmentShader = shader.fragmentShader.replace(
+    '#include <common>',
+    '#include <common>\nvarying vec2 vFestivalSurfaceData;',
+  );
+}
+
+const PAINT_WEAR = /* glsl */ `
+float festivalPaintWearAt(vec2 metres, vec2 crossSection) {
+  float pixel = max(length(fwidth(metres)), 0.0005);
+  float fine = 1.0 - smoothstep(0.025, 0.15, pixel);
+  float width = max(crossSection.y, 0.001);
+  float edgeDistance = min(crossSection.x, width - crossSection.x);
+  float grain = owNoise(metres * vec2(31.0, 24.0));
+  float flake = smoothstep(0.66, 0.86, grain) * fine;
+  float notches = owNoise(vec2(metres.y * 7.3, metres.x * 1.4));
+  float notchWidth = min(width * 0.12, 0.003 + notches * 0.012);
+  float edge = 1.0 - smoothstep(notchWidth, notchWidth + max(fwidth(crossSection.x), 0.0005), edgeDistance);
+  return max(flake, edge * smoothstep(0.35, 0.78, notches) * fine);
+}
+`;
+
 /** Paint has scuffed edges and sparse worn aggregate, filtered by pixel
  * footprint. Markings remain solid enough to read at speed and at night. */
-function wornPaint(material: T.MeshStandardMaterial) {
+function wornPaint(material: T.MeshStandardMaterial, wet: { value: number }) {
   (material as unknown as { defines: Record<string, string> }).defines = { USE_UV: '' };
   material.onBeforeCompile = (shader) => {
+    surfaceCoordinates(shader);
+    shader.uniforms.festivalPaintWet = wet;
     shader.fragmentShader = shader.fragmentShader
-      .replace('#include <common>', `#include <common>\n${OW_NOISE_GLSL}`)
+      .replace(
+        '#include <common>',
+        `#include <common>\nuniform float festivalPaintWet;\n${OW_NOISE_GLSL}\n${PAINT_WEAR}`,
+      )
       .replace(
         '#include <color_fragment>',
         `#include <color_fragment>
+float festivalPaintWear = festivalPaintWearAt(vUv, vFestivalSurfaceData);
 {
-  float detail = 1.0 - smoothstep(0.025, 0.15, length(fwidth(vUv)));
-  float grain = owNoise(vUv * vec2(31.0, 24.0));
-  float wear = smoothstep(0.66, 0.86, grain) * detail;
-  diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.075), wear * 0.65);
+  float pigment = 0.90 + 0.10 * owNoise(vUv * vec2(2.8, 0.17));
+  diffuseColor.rgb = mix(diffuseColor.rgb * pigment, vec3(0.075), festivalPaintWear * 0.72);
+  diffuseColor.rgb *= 1.0 - festivalPaintWet * 0.18;
 }`,
+      )
+      .replace(
+        '#include <roughnessmap_fragment>',
+        '#include <roughnessmap_fragment>\nroughnessFactor = mix(0.55 + festivalPaintWear * 0.12, 0.32 + festivalPaintWear * 0.07, festivalPaintWet);',
       );
   };
-  material.customProgramCacheKey = () => 'solvane-road-paint-v1';
+  material.customProgramCacheKey = () => 'solvane-road-paint-v2';
   return material;
 }
 
@@ -186,31 +238,32 @@ function apronMaterial(wet: { value: number }) {
   material.polygonOffsetFactor = -2;
   material.polygonOffsetUnits = -6;
   material.onBeforeCompile = (shader) => {
+    surfaceCoordinates(shader);
     shader.uniforms.festivalApronWet = wet;
     shader.fragmentShader = shader.fragmentShader
       .replace(
         '#include <common>',
-        `#include <common>\nuniform float festivalApronWet;\n${OW_NOISE_GLSL}`,
+        `#include <common>\nuniform float festivalApronWet;\n${OW_NOISE_GLSL}\n${PAINT_WEAR}`,
       )
       .replace(
         '#include <color_fragment>',
         `#include <color_fragment>
+float festivalApronWear = festivalPaintWearAt(vUv, vFestivalSurfaceData);
 {
   float wave = sin(vUv.y * 1.9634954);
   float aa = max(fwidth(wave), 0.001);
   float stripe = smoothstep(-aa, aa, wave);
   vec3 paint = mix(vec3(0.61, 0.59, 0.53), vec3(0.43, 0.034, 0.023), stripe);
-  float fine = 1.0 - smoothstep(0.035, 0.18, length(fwidth(vUv)));
-  float wear = smoothstep(0.64, 0.83, owNoise(vUv * 34.0)) * fine;
-  diffuseColor.rgb = mix(paint, vec3(0.066, 0.068, 0.07), wear * 0.65) * (1.0 - festivalApronWet * 0.21);
+  float pigment = 0.90 + 0.10 * owNoise(vUv * vec2(2.8, 0.17));
+  diffuseColor.rgb = mix(paint * pigment, vec3(0.066, 0.068, 0.07), festivalApronWear * 0.72) * (1.0 - festivalApronWet * 0.21);
 }`,
       )
       .replace(
         '#include <roughnessmap_fragment>',
-        '#include <roughnessmap_fragment>\nroughnessFactor = mix(0.64, 0.35, festivalApronWet);',
+        '#include <roughnessmap_fragment>\nroughnessFactor = mix(0.64 + festivalApronWear * 0.1, 0.35 + festivalApronWear * 0.06, festivalApronWet);',
       );
   };
-  material.customProgramCacheKey = () => 'festival-flush-corner-paint-v1';
+  material.customProgramCacheKey = () => 'festival-flush-corner-paint-v2';
   return material;
 }
 
@@ -245,7 +298,7 @@ function dirtMaterial() {
   return material;
 }
 /** Gravel verge strip beside the asphalt. */
-function vergeMaterial() {
+function vergeMaterial(wet: { value: number }) {
   const material = new T.MeshStandardMaterial({ color: 0xffffff, roughness: 0.97, metalness: 0 });
   material.name = 'Festival verge';
   (material as unknown as { defines: Record<string, string> }).defines = { USE_UV: '' };
@@ -253,19 +306,39 @@ function vergeMaterial() {
   material.polygonOffsetFactor = -1;
   material.polygonOffsetUnits = -1;
   material.onBeforeCompile = (shader) => {
+    surfaceCoordinates(shader);
+    shader.uniforms.festivalVergeWet = wet;
     shader.fragmentShader = shader.fragmentShader
-      .replace('#include <common>', `#include <common>\n${OW_NOISE_GLSL}`)
+      .replace(
+        '#include <common>',
+        `#include <common>\nuniform float festivalVergeWet;\n${OW_NOISE_GLSL}`,
+      )
       .replace(
         '#include <color_fragment>',
         `#include <color_fragment>
+float festivalShoulderGrowth = 0.0;
 {
+  float width = max(vFestivalSurfaceData.y, 0.001);
+  float across = clamp(vFestivalSurfaceData.x / width, 0.0, 1.0);
+  float shoulderPatch = owNoise(vUv * vec2(0.75, 0.21));
   float g = owFbm(vUv * vec2(4.0, 1.3), 1.0);
-  diffuseColor.rgb = mix(vec3(0.16, 0.145, 0.12), vec3(0.27, 0.25, 0.21), g);
-  diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.08, 0.11, 0.04), smoothstep(0.62, 0.8, owFbm(vUv * vec2(1.3, 0.4), 1.0)) * 0.7);
+  vec3 gravel = mix(vec3(0.16, 0.145, 0.12), vec3(0.27, 0.25, 0.21), g);
+  float compacted = 1.0 - smoothstep(0.1, 0.55, across);
+  gravel *= 1.0 - compacted * (0.035 + 0.06 * shoulderPatch);
+  festivalShoulderGrowth = smoothstep(0.38, 0.95, across + (shoulderPatch - 0.5) * 0.4);
+  festivalShoulderGrowth *= smoothstep(0.4, 0.75, owFbm(vUv * vec2(1.3, 0.4), 1.0));
+  // Multiply the finished colour so the preceding scanned-detail ratio
+  // continues contributing its chroma as well as normal/roughness detail.
+  diffuseColor.rgb *= mix(gravel, vec3(0.08, 0.11, 0.04), festivalShoulderGrowth * 0.8);
+  diffuseColor.rgb *= 1.0 - festivalVergeWet * mix(0.24, 0.15, festivalShoulderGrowth);
 }`,
+      )
+      .replace(
+        '#include <roughnessmap_fragment>',
+        '#include <roughnessmap_fragment>\nroughnessFactor *= mix(0.97, 0.61, festivalVergeWet) + festivalShoulderGrowth * 0.03;',
       );
   };
-  material.customProgramCacheKey = () => 'festival-verge-v1';
+  material.customProgramCacheKey = () => 'festival-verge-v2';
   return material;
 }
 
@@ -353,9 +426,11 @@ export class RoadMeshes {
     }
     const paint = wornPaint(
       new T.MeshStandardMaterial({ color: 0xd8d8d2, roughness: 0.55, metalness: 0 }),
+      this.pavingWet,
     );
     const yellow = wornPaint(
       new T.MeshStandardMaterial({ color: 0xc9a227, roughness: 0.55, metalness: 0 }),
+      this.pavingWet,
     );
     for (const m of [paint, yellow]) {
       m.polygonOffset = true;
@@ -373,7 +448,7 @@ export class RoadMeshes {
       asphalt,
       town,
       dirt: installScannedDirt(dirtMaterial()),
-      verge: installScannedVerge(vergeMaterial()),
+      verge: installScannedVerge(vergeMaterial(this.pavingWet)),
       paving: pavingMaterial(this.pavingWet),
       paint,
       yellow,
@@ -428,6 +503,7 @@ export class RoadMeshes {
         const b = builder(mx, mz, layer);
         const row = (pt: TrackPoint, v: number) => {
           const profile = spec.surface === 'asphalt' ? festivalRoadProfile(net, e, v) : undefined;
+          const context = profile ? festivalSurfaceContext(e, pt.curvature) : undefined;
           return across.map((l) => {
             const n = frame.normal(pt, l);
             return b.vertex(
@@ -440,6 +516,7 @@ export class RoadMeshes {
               n.y,
               n.z,
               profile,
+              context,
             );
           });
         };
@@ -474,6 +551,11 @@ export class RoadMeshes {
                 n.y,
                 n.z,
                 profile,
+                profile
+                  ? festivalSurfaceContext(e, pt.curvature)
+                  : shoulderLayer === 'verge'
+                    ? [0, spec.shoulder]
+                    : undefined,
               );
               const w = hw + spec.shoulder;
               frame.normal(pt, side * w, true);
@@ -487,6 +569,11 @@ export class RoadMeshes {
                 n.y,
                 n.z,
                 profile,
+                profile
+                  ? festivalSurfaceContext(e, pt.curvature)
+                  : shoulderLayer === 'verge'
+                    ? [spec.shoulder, spec.shoulder]
+                    : undefined,
               );
               return [inner, outer];
             };
@@ -598,6 +685,8 @@ export class RoadMeshes {
             normal.x,
             normal.y,
             normal.z,
+            undefined,
+            [lateral - l0, l1 - l0],
           );
         };
         for (let i = 0; i < steps; i++) {
@@ -727,6 +816,8 @@ export class RoadMeshes {
             n.x,
             n.y,
             n.z,
+            undefined,
+            [l - line.lateral + line.width / 2, line.width],
           );
         };
         const w = line.width / 2;
@@ -761,6 +852,8 @@ export class RoadMeshes {
               n.x,
               n.y,
               n.z,
+              undefined,
+              [ll - l + 0.6, 1.2],
             );
           };
           bb.quad(
@@ -808,6 +901,8 @@ export class RoadMeshes {
             normal.x,
             normal.y,
             normal.z,
+            undefined,
+            [absolute - (spec.halfWidth - w), w],
           );
         });
       const a = row(p, width0),

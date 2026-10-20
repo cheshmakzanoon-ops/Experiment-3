@@ -1371,3 +1371,24 @@
 .fest-map-active .fest-practice {
   display: none;
 }
+
+/* Keep the result heading and focused actions together on short landscape screens. */
+@media (max-height: 500px) and (orientation: landscape) {
+  .fest-results {
+    top: 4vh;
+    max-height: 92vh;
+    padding: 12px 20px;
+  }
+  .fest-results h2 {
+    margin: 4px 0;
+  }
+  .fest-results table {
+    margin: 8px 0;
+  }
+  .fest-results td {
+    padding: 4px 5px;
+  }
+  .fest-results .fest-practice-summary {
+    margin-top: 6px;
+  }
+}

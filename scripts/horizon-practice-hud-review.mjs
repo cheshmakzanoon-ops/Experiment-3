@@ -250,6 +250,19 @@ try {
             );
             assert.ok(state.pageWidth <= width, 'Page has horizontal overflow');
             if (mode === 'running') inside(state.live, width, height, `${name} live delta`);
+            if (mode === 'completed') {
+              const heading = await page.locator('#festResults h2').boundingBox();
+              const focused = await page.locator('#festResults :focus').boundingBox();
+              const withinResult = (box) =>
+                box &&
+                box.x >= state.result.x &&
+                box.y >= state.result.y &&
+                box.x + box.width <= state.result.right &&
+                box.y + box.height <= state.result.bottom;
+              assert.ok(withinResult(heading), `${name} completed heading is clipped`);
+              assert.equal(state.activeLabel, 'continue');
+              assert.ok(withinResult(focused), `${name} focused Continue action is clipped`);
+            }
             await screenshot(`${name}-${mode}`);
             return state;
           });

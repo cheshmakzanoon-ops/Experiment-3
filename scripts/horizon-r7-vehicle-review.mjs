@@ -18,7 +18,7 @@ import { realpathSync } from 'node:fs';
 import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import { basename, extname, join, relative, resolve } from 'node:path';
 import { chromium } from 'playwright';
-import { createServer } from 'vite';
+import { horizonReviewServer } from './horizon-review-server.mjs';
 import { browserBackend, requireBrowserBackend } from './browser-backend.ts';
 
 const root = realpathSync(resolve(process.env.HORIZON_REVIEW_ROOT ?? process.cwd()));
@@ -61,6 +61,7 @@ const fixtureFiles = [
   'e2e/fixtures/horizon-r7-vehicle.ts',
   'scripts/horizon-r7-vehicle-review.mjs',
   'scripts/browser-backend.ts',
+  'scripts/horizon-review-server.mjs',
 ];
 const sha = (bytes) => createHash('sha256').update(bytes).digest('hex');
 async function tree(directory) {
@@ -217,50 +218,54 @@ async function saveFrame(frame, filename) {
 }
 async function serve(snapshot, variant, loads) {
   const dependencyRoot = realpathSync(join(root, 'node_modules'));
-  const instance = await createServer({
-    root,
-    configFile: false,
-    cacheDir: resolve(output, 'vite-cache'),
-    base: './',
-    define: {
-      __APEX_SOURCE_FINGERPRINT__: JSON.stringify(fingerprint(snapshot)),
-      __APEX_SOURCE_COMMIT__: 'null',
-    },
-    plugins: [
-      {
-        name: `horizon-r7-frozen-${variant}`,
-        enforce: 'pre',
-        load(id) {
-          const [file, query = ''] = id.split('?');
-          const parameters = new URLSearchParams(query);
-          const bytes = snapshot.get(file);
-          if (!bytes || !['.ts', '.js', '.json', '.glsl', '.frag', '.vert'].includes(extname(file)))
-            return null;
-          // Match Vite's raw-import contract while keeping shader bytes frozen.
-          // Serving literal GLSL at a ?raw module ID produces invalid JavaScript.
-          if (parameters.has('raw')) {
-            loads.set(relative(root, file).replaceAll('\\', '/'), sha(bytes));
-            return `export default ${JSON.stringify(bytes.toString('utf8'))};`;
-          }
-          if (parameters.has('url') || parameters.has('worker') || parameters.has('sharedworker'))
-            return null;
-          loads.set(relative(root, file).replaceAll('\\', '/'), sha(bytes));
-          return bytes.toString('utf8');
-        },
+  return horizonReviewServer(
+    {
+      root,
+      configFile: false,
+      cacheDir: resolve(output, 'vite-cache'),
+      base: './',
+      define: {
+        __APEX_SOURCE_FINGERPRINT__: JSON.stringify(fingerprint(snapshot)),
+        __APEX_SOURCE_COMMIT__: 'null',
       },
-    ],
-    optimizeDeps: { entries: ['e2e/fixtures/horizon-r7-vehicle.html'], include: ['three'] },
-    server: {
-      host: '127.0.0.1',
-      port,
-      strictPort: true,
-      hmr: false,
-      fs: { strict: true, allow: [root, dependencyRoot] },
+      plugins: [
+        {
+          name: `horizon-r7-frozen-${variant}`,
+          enforce: 'pre',
+          load(id) {
+            const [file, query = ''] = id.split('?');
+            const parameters = new URLSearchParams(query);
+            const bytes = snapshot.get(file);
+            if (
+              !bytes ||
+              !['.ts', '.js', '.json', '.glsl', '.frag', '.vert'].includes(extname(file))
+            )
+              return null;
+            // Match Vite's raw-import contract while keeping shader bytes frozen.
+            // Serving literal GLSL at a ?raw module ID produces invalid JavaScript.
+            if (parameters.has('raw')) {
+              loads.set(relative(root, file).replaceAll('\\', '/'), sha(bytes));
+              return `export default ${JSON.stringify(bytes.toString('utf8'))};`;
+            }
+            if (parameters.has('url') || parameters.has('worker') || parameters.has('sharedworker'))
+              return null;
+            loads.set(relative(root, file).replaceAll('\\', '/'), sha(bytes));
+            return bytes.toString('utf8');
+          },
+        },
+      ],
+      optimizeDeps: { entries: ['e2e/fixtures/horizon-r7-vehicle.html'], include: ['three'] },
+      server: {
+        host: '127.0.0.1',
+        port,
+        strictPort: true,
+        hmr: false,
+        fs: { strict: true, allow: [root, dependencyRoot] },
+      },
+      logLevel: 'warn',
     },
-    logLevel: 'warn',
-  });
-  await instance.listen();
-  return instance;
+    { output, fixture: fixtureFiles[0], variant },
+  );
 }
 
 async function loadFixture(page, url) {
@@ -307,8 +312,10 @@ try {
     };
     report.variants.push(variantRecord);
     console.log('R7_VEHICLE_BEGIN', variant);
+    server = await serve(snapshot, variant, loads);
+    variantRecord.servingMode = server.servingMode;
+    variantRecord.buildMs = server.buildMs;
     await bounded(`${variant} views`, report.limits.variantMs, async () => {
-      server = await serve(snapshot, variant, loads);
       activePage = await browser.newPage({
         viewport: { width: 1120, height: 700 },
         deviceScaleFactor: 1,
@@ -327,10 +334,7 @@ try {
         if (response.status() >= 400)
           report.failedAssets.push({ variant, status: response.status(), url: response.url() });
       });
-      await loadFixture(
-        activePage,
-        `http://127.0.0.1:${port}/e2e/fixtures/horizon-r7-vehicle.html`,
-      );
+      await loadFixture(activePage, server.fixtureUrl);
       const identity = await activePage.evaluate(() => window.horizonR7Vehicle.sourceIdentity());
       assert.equal(
         identity.fingerprint,

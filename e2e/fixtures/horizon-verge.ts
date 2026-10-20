@@ -8,6 +8,7 @@ import { RoadMeshes } from '../../src/rendering/open-world/roads.ts';
 import { buildTileData } from '../../src/rendering/open-world/tile-data.ts';
 import { terrainMaterial } from '../../src/rendering/open-world/terrain-material.ts';
 import { openWorld } from '../../src/simulation/open-world/world.ts';
+import { festivalMarkings } from '../../src/simulation/open-world/festival-markings.ts';
 import {
   StructureGrid,
   regionStructures,
@@ -15,6 +16,7 @@ import {
 } from '../../src/simulation/open-world/placement.ts';
 import { trackPoint } from '../../src/simulation/track.ts';
 import { textures } from '../../src/rendering/materials/library.ts';
+import { materials } from '../../src/rendering/materials/index.ts';
 import { studioUniforms } from '../../src/rendering/studio/studio-frame.ts';
 import type { TileMeshData } from '../../src/workers/open-world-protocol.ts';
 
@@ -101,6 +103,50 @@ const broadleaf = trees
   .filter((tree) => tree[3] === TREE_SPECIES.BROADLEAF)
   .sort((a, b) => Math.hypot(a[0] - p.x, a[1] - p.z) - Math.hypot(b[0] - p.x, b[1] - p.z))[0];
 if (!broadleaf) throw new Error('Review patch needs a real broadleaf placement');
+
+// Review a real painted bend within the original 768 m patch. Selecting the
+// widest admitted apron also avoids a taper tip concealing the paint response.
+const patchX = (Math.floor(p.x / 256) - 1) * 256,
+  patchZ = (Math.floor(p.z / 256) - 1) * 256,
+  apron = festivalMarkings(world.network)
+    .aprons(circuit.index)
+    .filter((a) =>
+      [a.segment, a.segment + 1].every(
+        (i) =>
+          world.network.x[i] > patchX + 35 &&
+          world.network.x[i] < patchX + 768 - 35 &&
+          world.network.z[i] > patchZ + 35 &&
+          world.network.z[i] < patchZ + 768 - 35,
+      ),
+    )
+    .sort((a, b) => b.width0 + b.width1 - (a.width0 + a.width1) || a.segment - b.segment)[0];
+if (!apron) throw new Error('Review patch needs a real curved paint apron');
+const surfaceStation = (world.network.s[apron.segment] + world.network.s[apron.segment + 1]) * 0.5,
+  surfacePoint = trackPoint();
+world.network.at(surfaceStation, surfacePoint);
+function surfaceView(distance: number, lateral: number, lift: number): [number, number, number] {
+  const point = trackPoint(),
+    offset = lateral * apron.side;
+  world.network.at(surfaceStation + distance, point);
+  return [
+    point.x + point.nx * offset,
+    world.network.surfaceHeight(point, offset, circuit.spec.halfWidth, circuit.spec.crown) + lift,
+    point.z + point.nz * offset,
+  ];
+}
+const surfaceCamera = {
+  eye: surfaceView(-3, 4.25, 2.2),
+  target: surfaceView(5, 5, 0.02),
+  quality: 'medium',
+  fov: 52,
+} as const;
+type ReviewShot = {
+  eye: readonly [number, number, number];
+  target: readonly [number, number, number];
+  quality: 'medium' | 'low';
+  fov?: number;
+  wet?: number;
+};
 const shots = {
   'club-verge': {
     eye: [p.x - p.tx * 10, p.y + 1.45, p.z - p.tz * 10],
@@ -117,9 +163,60 @@ const shots = {
     target: [broadleaf[0], broadleaf[6] + broadleaf[2] * 0.44, broadleaf[1]],
     quality: 'medium',
   },
+  'club-surface-apron': {
+    eye: surfaceView(-5, 3.6, 0.95),
+    target: surfaceView(7, 5.35, 0.08),
+    quality: 'medium',
+    fov: 48,
+    wet: 0,
+  },
+  'club-surface-dry': { ...surfaceCamera, wet: 0 },
+  'club-surface-wet': { ...surfaceCamera, wet: 0.72 },
 } as const;
+
+// Hash the physical buffers, including instance transforms, independently of
+// the new material attributes. The runner requires exact before/after equality.
+function geometryIdentity() {
+  let hash = 2166136261,
+    meshes = 0,
+    vertices = 0,
+    triangles = 0;
+  function add(array: ArrayBufferView) {
+    const bytes = new Uint8Array(array.buffer, array.byteOffset, array.byteLength);
+    for (const byte of bytes) hash = Math.imul(hash ^ byte, 16777619) >>> 0;
+  }
+  roads.root.traverse((node) => {
+    if (!(node instanceof T.Mesh)) return;
+    meshes++;
+    const geometry = node.geometry;
+    vertices += geometry.getAttribute('position').count;
+    triangles += (geometry.index?.count ?? geometry.getAttribute('position').count) / 3;
+    for (const name of ['position', 'normal', 'uv']) {
+      const attribute = geometry.getAttribute(name);
+      if (!attribute) continue;
+      add(new Uint32Array([attribute.itemSize, attribute.count]));
+      add(
+        attribute instanceof T.InterleavedBufferAttribute ? attribute.data.array : attribute.array,
+      );
+    }
+    if (geometry.index) add(geometry.index.array);
+    add(new Float64Array(node.matrixWorld.elements));
+    if (node instanceof T.InstancedMesh) {
+      add(new Uint32Array([node.count]));
+      add(node.instanceMatrix.array);
+    }
+  });
+  return { meshes, vertices, triangles, geometryFNV1a: hash.toString(16).padStart(8, '0') };
+}
+scene.updateMatrixWorld(true);
+const roadGeometry = geometryIdentity();
 function capture(name: keyof typeof shots) {
-  const shot = shots[name];
+  const shot: ReviewShot = shots[name],
+    wet = shot.wet ?? 0;
+  roads.setWet(wet);
+  materials.setSurfaceWeather(wet, 0);
+  camera.fov = shot.fov ?? 55;
+  camera.updateProjectionMatrix();
   camera.position.fromArray(shot.eye);
   camera.lookAt(new T.Vector3().fromArray(shot.target));
   camera.updateMatrixWorld(true);
@@ -169,6 +266,9 @@ function capture(name: keyof typeof shots) {
   });
   return {
     camera: shot,
+    weather: { wet, rain: 0 },
+    surfaceFocus: { station: surfaceStation - circuit.offset, curvature: surfacePoint.curvature },
+    roadGeometry,
     first,
     repeat,
     meadow: {

@@ -8,12 +8,23 @@ import { studioHookKeys } from '../src/rendering/studio/shader-hooks.ts';
 import {
   FestivalRoadFrame,
   festivalRoadProfile,
+  festivalSurfaceContext,
   installFestivalRoadSurface,
 } from '../src/rendering/open-world/festival-road-surface.ts';
 import { RoadMeshes } from '../src/rendering/open-world/roads.ts';
 
 const world = openWorld();
 const net = world.network;
+
+function compile(material: T.Material) {
+  const shader = {
+    uniforms: {},
+    vertexShader: T.ShaderLib.physical.vertexShader,
+    fragmentShader: T.ShaderLib.physical.fragmentShader,
+  } as unknown as T.WebGLProgramParametersWithUniforms;
+  material.onBeforeCompile(shader, {} as T.WebGLRenderer);
+  return shader;
+}
 
 function position(edge: RoadEdge, station: number, lateral: number, shoulder = false) {
   const p = trackPoint();
@@ -124,6 +135,30 @@ describe('Festival lane and junction metadata', () => {
     expect(samples.at(-1)).toBe(1);
     expect(samples).toEqual([...samples].sort((a, b) => a - b));
   });
+
+  it('admits the real closed course with signed bend data while public lanes and runways stay separate', () => {
+    const point = trackPoint();
+    let circuitSamples = 0,
+      left = 0,
+      right = 0;
+    for (const edge of net.edges) {
+      for (let i = edge.first; i < edge.last; i += 19) {
+        net.pointOnSegment(i, 0.5, point);
+        const context = festivalSurfaceContext(edge, point.curvature);
+        if (edge.roadClass === 'circuit') {
+          expect(festivalRoadProfile(net, edge, point.s - edge.offset)[1]).toBe(0);
+          expect(context[0]).toBe(1);
+          expect(context[1]).toBe(point.curvature);
+          circuitSamples++;
+          if (context[1] > 0.001) left++;
+          if (context[1] < -0.001) right++;
+        } else expect(context).toEqual([0, 0]);
+      }
+    }
+    expect(circuitSamples).toBeGreaterThan(50);
+    expect(left).toBeGreaterThan(2);
+    expect(right).toBeGreaterThan(2);
+  });
 });
 
 describe('Festival surfacing integration', () => {
@@ -131,15 +166,6 @@ describe('Festival surfacing integration', () => {
     const a = materials.asphalt({ variant: 'worn' });
     const b = materials.asphalt({ variant: 'fresh' });
     const maps = [a.map, a.normalMap, a.roughnessMap, a.aoMap];
-    const compile = (material: T.Material) => {
-      const shader = {
-        uniforms: {},
-        vertexShader: T.ShaderLib.physical.vertexShader,
-        fragmentShader: T.ShaderLib.physical.fragmentShader,
-      } as unknown as T.WebGLProgramParametersWithUniforms;
-      material.onBeforeCompile(shader, {} as T.WebGLRenderer);
-      return shader;
-    };
     try {
       expect(installFestivalRoadSurface(a, 0.9)).toBe(true);
       expect(installFestivalRoadSurface(a, 0.9)).toBe(false);
@@ -151,9 +177,9 @@ describe('Festival surfacing integration', () => {
       expect(sa.uniforms.festivalSurfaceAge.value).toBe(0.9);
       expect(sb.uniforms.festivalSurfaceAge.value).toBe(0.32);
       expect(sa.uniforms.festivalSurfaceAge).not.toBe(sb.uniforms.festivalSurfaceAge);
-      expect(studioHookKeys(a).filter((key) => key === 'festival-road-surface-v1')).toHaveLength(1);
+      expect(studioHookKeys(a).filter((key) => key === 'festival-road-surface-v2')).toHaveLength(1);
       expect(a.customProgramCacheKey()).toContain('library-wet-surface-v1');
-      expect(a.customProgramCacheKey()).toContain('festival-road-surface-v1');
+      expect(a.customProgramCacheKey()).toContain('festival-road-surface-v2');
       // Clearcoat consumes the drainage-modified puddle after the original
       // weather sample. A reordering would silently detach it from rain.
       const f = sa.fragmentShader;
@@ -161,6 +187,10 @@ describe('Festival surfacing integration', () => {
       expect(f.indexOf('apexPuddle *=')).toBeLessThan(f.indexOf('material.clearcoatRoughness'));
       expect(f).toContain('fwidth(q)');
       expect(sa.vertexShader).toContain('vFestivalRoadMetres = uv;');
+      expect(sa.vertexShader).toContain('attribute vec2 festivalSurfaceData;');
+      expect(sa.vertexShader).toContain('vFestivalSurfaceData = festivalSurfaceData;');
+      expect(f).toContain('float circuitUse = clamp(vFestivalSurfaceData.x');
+      expect(f).toContain('float curvature = vFestivalSurfaceData.y;');
     } finally {
       a.dispose();
       b.dispose();
@@ -175,7 +205,7 @@ describe('Festival surfacing integration', () => {
     material.dispose();
   });
 
-  it('builds the real network with complete road data, finite normals and tilted paint', () => {
+  it('builds the real network with complete material metadata, finite normals and matching paint widths', () => {
     const roads = new RoadMeshes(net, world.field);
     let roadVertices = 0,
       tilted = 0,
@@ -185,18 +215,33 @@ describe('Festival surfacing integration', () => {
       invalidNormals = 0,
       largestLengthError = 0,
       lowestUp = 1;
+    let circuitVertices = 0,
+      paintVertices = 0,
+      vergeVertices = 0,
+      invalidContext = 0,
+      largestCurvatureError = 0,
+      largestWidthError = 0;
+    const point = trackPoint();
     try {
       roads.root.traverse((object) => {
         if (!(object instanceof T.Mesh) || object instanceof T.InstancedMesh) return;
         const geometry = object.geometry;
         const normal = geometry.getAttribute('normal');
         const data = geometry.getAttribute('festivalRoadData');
+        const context = geometry.getAttribute('festivalSurfaceData');
+        const uv = geometry.getAttribute('uv');
         const surface =
           object.material === roads.materials.asphalt ||
           object.material === roads.materials.asphaltMajor ||
           object.material === roads.materials.town;
-        if (!surface && !object.name.startsWith('paint ') && !object.name.startsWith('yellow '))
-          return;
+        const paint =
+          object.material === roads.materials.paint ||
+          object.material === roads.materials.yellow ||
+          object.material === roads.materials.apron;
+        const verge = object.material === roads.materials.verge;
+        if (!surface && !paint && !verge) return;
+        expect(context).toBeDefined();
+        expect(context.count).toBe(geometry.getAttribute('position').count);
         if (surface) {
           expect(data).toBeDefined();
           expect(data.count).toBe(geometry.getAttribute('position').count);
@@ -204,6 +249,42 @@ describe('Festival surfacing integration', () => {
           for (let i = 0; i < data.count; i++) {
             if (!(data.getX(i) > 0)) invalidWidths++;
             if (data.getY(i) === 0) runwayVertices++;
+            const edge = net.edges[Math.round(data.getZ(i)) - 17];
+            if (edge.roadClass === 'circuit') {
+              circuitVertices++;
+              if (context.getX(i) !== 1) invalidContext++;
+              if (i % 71 === 0) {
+                net.at(edge.offset + uv.getY(i), point);
+                largestCurvatureError = Math.max(
+                  largestCurvatureError,
+                  Math.abs(context.getY(i) - point.curvature),
+                );
+              }
+            } else {
+              if (context.getX(i) !== 0 || context.getY(i) !== 0) invalidContext++;
+            }
+          }
+        } else {
+          if (paint) paintVertices += context.count;
+          if (verge) vergeVertices += context.count;
+          for (let i = 0; i < context.count; i++) {
+            if (
+              !Number.isFinite(context.getX(i) + context.getY(i)) ||
+              context.getX(i) < -1e-6 ||
+              context.getX(i) > context.getY(i) + 1e-6 ||
+              context.getY(i) < 0
+            )
+              invalidContext++;
+          }
+          // Metadata widths measure the actual existing painted/shoulder
+          // ribbon, including taper endpoints and reversed grid direction.
+          const position = geometry.getAttribute('position');
+          for (let i = 0; i + 1 < context.count; i += 34) {
+            const across = Math.hypot(
+              position.getX(i + 1) - position.getX(i),
+              position.getZ(i + 1) - position.getZ(i),
+            );
+            largestWidthError = Math.max(largestWidthError, Math.abs(across - context.getY(i)));
           }
         }
         for (let i = 0; i < normal.count; i++) {
@@ -220,6 +301,12 @@ describe('Festival surfacing integration', () => {
         }
       });
       expect(roadVertices).toBeGreaterThan(50000);
+      expect(circuitVertices).toBeGreaterThan(5000);
+      expect(paintVertices).toBeGreaterThan(10000);
+      expect(vergeVertices).toBeGreaterThan(10000);
+      expect(invalidContext).toBe(0);
+      expect(largestCurvatureError).toBeLessThan(1e-5);
+      expect(largestWidthError).toBeLessThan(0.002);
       expect(tilted).toBeGreaterThan(10000);
       expect(tiltedPaint).toBeGreaterThan(10000);
       expect(runwayVertices).toBeGreaterThan(1000);
@@ -227,6 +314,29 @@ describe('Festival surfacing integration', () => {
       expect(invalidNormals).toBe(0);
       expect(largestLengthError).toBeLessThan(1e-6);
       expect(lowestUp).toBeGreaterThan(0.8);
+      roads.setWet(0.72);
+      const wetMaterials = [
+        [roads.materials.paint, 'festivalPaintWet'],
+        [roads.materials.yellow, 'festivalPaintWet'],
+        [roads.materials.apron, 'festivalApronWet'],
+        [roads.materials.verge, 'festivalVergeWet'],
+      ] as const;
+      const shaders = wetMaterials.map(([material, key]) => {
+        const shader = compile(material);
+        expect(shader.vertexShader).toContain('vFestivalSurfaceData = festivalSurfaceData;');
+        expect(shader.uniforms[key].value).toBe(0.72);
+        expect(shader.fragmentShader).not.toMatch(/\bfloat\s+patch\b/);
+        return { shader, key };
+      });
+      const verge = shaders.at(-1)!.shader.fragmentShader;
+      expect(verge).toContain('apexScanRough');
+      expect(verge.indexOf('diffuseColor.rgb *= mix(gravel')).toBeGreaterThan(
+        verge.indexOf('apexRatio * mix'),
+      );
+      roads.setWet(2);
+      for (const { shader, key } of shaders) expect(shader.uniforms[key].value).toBe(1);
+      roads.setWet(-2);
+      for (const { shader, key } of shaders) expect(shader.uniforms[key].value).toBe(0);
     } finally {
       roads.dispose();
     }

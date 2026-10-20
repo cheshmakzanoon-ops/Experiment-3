@@ -8,7 +8,7 @@ import { createHash } from 'node:crypto';
 import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import { realpathSync } from 'node:fs';
 import { extname, join, relative, resolve } from 'node:path';
-import { createServer } from 'vite';
+import { horizonReviewServer } from './horizon-review-server.mjs';
 import { chromium } from 'playwright';
 import { browserBackend, requireBrowserBackend } from './browser-backend.ts';
 
@@ -17,13 +17,28 @@ const root = realpathSync(process.cwd()),
   baseline = process.env.HORIZON_VERGE_BASELINE_REF,
   port = Number(process.env.HORIZON_VERGE_PORT ?? 5317),
   backend = browserBackend(process.env.APEX_BROWSER_BACKEND),
-  changed = [
+  changed = JSON.parse(process.env.HORIZON_VERGE_CHANGED_FILES ?? 'null') ?? [
     'src/rendering/open-world/horizon-dressing.ts',
     'src/rendering/open-world/vegetation.ts',
   ],
-  introduced = ['src/rendering/open-world/festival-meadow.ts'],
+  introduced = JSON.parse(process.env.HORIZON_VERGE_INTRODUCED_FILES ?? 'null') ?? [
+    'src/rendering/open-world/festival-meadow.ts',
+  ],
   fixture = 'e2e/fixtures/horizon-verge.html';
 assert(/^[0-9a-f]{40}$/.test(baseline ?? ''), 'Supply the full baseline commit SHA');
+const shots = JSON.parse(process.env.HORIZON_VERGE_SHOTS ?? 'null') ?? [
+  'club-verge',
+  'club-low',
+  'club-planting',
+];
+assert(Array.isArray(changed) && changed.length > 0);
+assert(Array.isArray(introduced) && Array.isArray(shots) && shots.length > 0);
+assert(
+  [...changed, ...introduced].every((file) =>
+    /^src\/rendering\/open-world\/[a-z-]+\.ts$/.test(file),
+  ),
+);
+const surfaceOnly = shots.every((name) => /^club-surface-(apron|dry|wet)$/.test(name));
 const sha = (value) => createHash('sha256').update(value).digest('hex');
 const snapshot = new Map();
 async function freeze(directory) {
@@ -46,6 +61,8 @@ await mkdir(output, { recursive: true });
 const report = {
   baselineCommitForChangedModules: baseline,
   changed,
+  shots,
+  surfaceOnly,
   source: Object.fromEntries(
     changed.map((file) => [
       file,
@@ -100,50 +117,52 @@ try {
   ]) {
     await bounded(report.limits.variantMs, async () => {
       const served = {};
-      server = await createServer({
-        root,
-        configFile: false,
-        cacheDir: join(output, 'vite-cache'),
-        logLevel: 'warn',
-        define: {
-          __APEX_SOURCE_FINGERPRINT__: JSON.stringify('isolated-verge-review'),
-          __APEX_SOURCE_COMMIT__: 'null',
-        },
-        plugins: [
-          {
-            name: `frozen-verge-${variant}`,
-            enforce: 'pre',
-            transformIndexHtml: {
-              order: 'pre',
-              handler(html, context) {
-                return context.path === `/${fixture}` ? frozen.get(join(root, fixture)) : html;
+      server = await horizonReviewServer(
+        {
+          root,
+          configFile: false,
+          cacheDir: join(output, 'vite-cache'),
+          logLevel: 'warn',
+          define: {
+            __APEX_SOURCE_FINGERPRINT__: JSON.stringify('isolated-verge-review'),
+            __APEX_SOURCE_COMMIT__: 'null',
+          },
+          plugins: [
+            {
+              name: `frozen-verge-${variant}`,
+              enforce: 'pre',
+              transformIndexHtml: {
+                order: 'pre',
+                handler(html, context) {
+                  return context.path === `/${fixture}` ? frozen.get(join(root, fixture)) : html;
+                },
+              },
+              load(id) {
+                const [file, query = ''] = id.split('?'),
+                  bytes = frozen.get(file);
+                if (
+                  bytes === undefined ||
+                  !['.ts', '.js', '.json', '.glsl', '.vert', '.frag'].includes(extname(file))
+                )
+                  return null;
+                const params = new URLSearchParams(query);
+                if (params.has('worker') || params.has('url')) return null;
+                served[relative(root, file)] = sha(bytes);
+                return params.has('raw') ? `export default ${JSON.stringify(bytes)};` : bytes;
               },
             },
-            load(id) {
-              const [file, query = ''] = id.split('?'),
-                bytes = frozen.get(file);
-              if (
-                bytes === undefined ||
-                !['.ts', '.js', '.json', '.glsl', '.vert', '.frag'].includes(extname(file))
-              )
-                return null;
-              const params = new URLSearchParams(query);
-              if (params.has('worker') || params.has('url')) return null;
-              served[relative(root, file)] = sha(bytes);
-              return params.has('raw') ? `export default ${JSON.stringify(bytes)};` : bytes;
-            },
+          ],
+          optimizeDeps: { entries: [fixture], include: ['three'] },
+          server: {
+            host: '127.0.0.1',
+            port,
+            strictPort: true,
+            hmr: false,
+            fs: { allow: [root, realpathSync(join(root, 'node_modules'))] },
           },
-        ],
-        optimizeDeps: { entries: [fixture], include: ['three'] },
-        server: {
-          host: '127.0.0.1',
-          port,
-          strictPort: true,
-          hmr: false,
-          fs: { allow: [root, realpathSync(join(root, 'node_modules'))] },
         },
-      });
-      await server.listen();
+        { output, fixture, variant },
+      );
       page = await browser.newPage({
         viewport: { width: 1120, height: 700 },
         deviceScaleFactor: 1,
@@ -158,11 +177,17 @@ try {
           });
       });
       page.setDefaultTimeout(120000);
-      await page.goto(`http://127.0.0.1:${port}/${fixture}`, { waitUntil: 'domcontentloaded' });
+      await page.goto(server.fixtureUrl, { waitUntil: 'domcontentloaded' });
       await page.waitForFunction(() => window.horizonVerge?.capture);
-      const record = { variant, views: [], servedModules: {} };
+      const record = {
+        variant,
+        views: [],
+        servedModules: {},
+        servingMode: server.servingMode,
+        buildMs: server.buildMs,
+      };
       report.variants.push(record);
-      for (const name of ['club-verge', 'club-low', 'club-planting']) {
+      for (const name of shots) {
         const result = await page.evaluate((name) => window.horizonVerge.capture(name), name);
         assert.equal(result.first.glError, 0);
         assert.equal(result.repeat.glError, 0);
@@ -180,10 +205,31 @@ try {
           render: { calls: first.calls, triangles: first.triangles, memory: first.memory },
           image: { file, bytes: png.length, sha256: sha(png) },
         });
-        if (variant === 'before') pixels.set(name, { rgba, camera: result.camera });
+        if (variant === 'before')
+          pixels.set(name, {
+            rgba,
+            camera: result.camera,
+            weather: result.weather,
+            roadGeometry: result.roadGeometry,
+            render: { calls: first.calls, triangles: first.triangles, memory: first.memory },
+          });
         else {
           const previous = pixels.get(name);
           assert.deepEqual(previous.camera, result.camera, 'Camera differed between variants');
+          if (surfaceOnly) {
+            assert(result.roadGeometry, 'Surface review must expose actual road geometry identity');
+            assert.deepEqual(
+              result.roadGeometry,
+              previous.roadGeometry,
+              'Road positions, normals, indices or transforms changed',
+            );
+            assert.deepEqual(result.weather, previous.weather, 'Weather changed between variants');
+            assert.deepEqual(
+              { calls: first.calls, triangles: first.triangles, memory: first.memory },
+              previous.render,
+              'Surface pass added rendering resources',
+            );
+          }
           let changedPixels = 0;
           for (let i = 0; i < rgba.length; i += 4)
             if (

@@ -30,6 +30,7 @@ import {
 } from './festival-detail.ts';
 import { cutFestivalBodyPockets, warpFestivalNose } from './festival-nose.ts';
 import { warpFestivalRear } from './festival-rear.ts';
+import { cutFestivalDoorJoints, shapeFestivalSide } from './festival-side.ts';
 
 /** Closed-wheel bodies (GT, prototype, saloon, roadster, rally, truck, road
  * supercar) generated from a ClosedSheet. The lower body is one loft of
@@ -218,7 +219,10 @@ export class ClosedBodyModel {
   }
   /** Sampled ring at z for a detail level. */
   ring(z: number, detail: Detail): Ring {
-    return { z, half: sampleProfile(this.control(z), SEGMENTS[detail]) };
+    const counts = SEGMENTS[detail],
+      half = sampleProfile(this.control(z), counts);
+    shapeFestivalSide(this, z, half, counts);
+    return { z, half };
   }
   /** First sample of the deck-to-centreline segment (the top under the glass). */
   deckSample(detail: Detail) {
@@ -244,8 +248,8 @@ export class ClosedBodyModel {
     return out.sort((p, q) => p - q).filter((z, i, all) => i === 0 || z - all[i - 1] > 0.0008);
   }
   /** Outer side x of the body at (z, height y) — for placing side furniture. */
-  sideX(z: number, y: number) {
-    const half = sampleProfile(this.control(z), SEGMENTS[0]);
+  sideX(z: number, y: number, detail: Detail = 0) {
+    const half = this.ring(z, detail).half;
     let best = 0;
     for (let i = 0; i < half.length - 1; i++) {
       const [x0, y0] = half[i],
@@ -257,7 +261,7 @@ export class ClosedBodyModel {
   }
   /** Upper surface y at (z, |x|). */
   surfaceY(z: number, x: number) {
-    const half = sampleProfile(this.control(z), SEGMENTS[0]);
+    const half = this.ring(z, 0).half;
     let best = -Infinity;
     for (let i = 4; i < half.length - 1; i++) {
       const [x0, y0] = half[i],
@@ -303,7 +307,9 @@ export class ClosedBodyModel {
       max: [big, f.y(s.belt + 0.3), zc + 0.02],
     });
     const out: PanelGap[] = [];
-    if (s.style !== 'truck' && s.style !== 'roadster') {
+    if (s.sideSculpt) {
+      // These doors have clipped, recessed joints in the actual painted loft.
+    } else if (s.style !== 'truck' && s.style !== 'roadster') {
       out.push(door(f.z(ws) - 0.04), door(f.z((rf + rr) / 2 + 0.12)));
       if (s.style === 'saloon' || s.style === 'rally') out.push(door(f.z(rr) + 0.02));
     } else out.push(door(f.z(ws) - 0.06), door(f.z(rr) + 0.04));
@@ -593,7 +599,10 @@ export function buildClosedBody(
       return model.slot(zMid, j, detail);
     },
   });
-  if (detailedFestival) cutFestivalBodyPockets(lower, model);
+  if (detailedFestival) {
+    cutFestivalBodyPockets(lower, model);
+    cutFestivalDoorJoints(lower, model, detail);
+  }
   parts.addGrouped(
     lower,
     [

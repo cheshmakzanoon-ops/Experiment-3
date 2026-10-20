@@ -112,6 +112,16 @@ export function festivalRoadProfile(
   return [half, lane, edge.index + 17, admission];
 }
 
+/** Closed courses have no public-road lane pitch. Give their material a
+ * separate admission and the signed curvature sampled by the road frame.
+ * Public roads and runways retain their existing lane-specific treatment. */
+export function festivalSurfaceContext(
+  edge: RoadEdge,
+  curvature: number,
+): readonly [number, number] {
+  return edge.roadClass === 'circuit' ? [1, curvature] : [0, 0];
+}
+
 /** Preserve the rendering API while contact and drawing share one width. */
 export { festivalCircuitApronWidth } from '../../simulation/open-world/festival-markings.ts';
 
@@ -135,6 +145,7 @@ float festivalSeal = 0.0;
   float seed = vFestivalRoadData.z;
   float admission = clamp(vFestivalRoadData.w, 0.0, 1.0);
   float roadUse = lanePitch > 0.01 ? 1.0 : 0.0;
+  float circuitUse = clamp(vFestivalSurfaceData.x, 0.0, 1.0);
   float wet = clamp(apexSurfaceWetness * apexWetAmount, 0.0, 1.0);
   float age = clamp(festivalSurfaceAge, 0.0, 1.0);
   float wearNoise = owNoise(vec2(q.x * 0.42 + seed, q.y * 0.095));
@@ -149,12 +160,36 @@ float festivalSeal = 0.0;
   festivalPolish *= (1.0 - smoothstep(halfRoad - 0.3, halfRoad, abs(q.x)));
   diffuseColor.rgb *= 1.0 - festivalPolish * mix(0.025, 0.075, age);
 
+  // Circuit wear is a broad, broken history of use, with stronger polish
+  // through bends. It is independent of the public-road wheel-path mask.
+  if (circuitUse > 0.001) {
+    float curvature = vFestivalSurfaceData.y;
+    float bend = smoothstep(0.0007, 0.006, abs(curvature));
+    float inside = clamp(curvature * 110.0, -0.8, 0.8) * halfRoad * 0.45;
+    float useBand = 1.0 - smoothstep(halfRoad * 0.18, halfRoad * 0.48 + footprint.x, abs(q.x - inside));
+    float brokenUse = smoothstep(0.22, 0.76, owNoise(vec2(q.y * 0.024 + seed, q.x * 0.19)));
+    float circuitWear = useBand * brokenUse * mix(0.2, 1.0, bend) * admission * circuitUse;
+    circuitWear *= 0.62 + 0.38 * wearNoise;
+    diffuseColor.rgb *= 1.0 - circuitWear * mix(0.075, 0.12, age);
+    festivalPolish = max(festivalPolish, circuitWear * 0.85);
+
+    // Broad paving passes and a narrow cold joint follow the road frame.
+    // Derivative filtering lets the joint fade naturally with distance.
+    float pavingPass = floor((q.x + halfRoad) / 3.8);
+    float passTone = owHash(vec2(pavingPass, seed + 7.0));
+    diffuseColor.rgb *= 1.0 + (passTone - 0.5) * 0.034 * admission;
+    float jointX = (owNoise(vec2(q.y * 0.045, seed)) - 0.5) * 0.06;
+    float coldJoint = 1.0 - smoothstep(0.007, 0.014 + footprint.x, abs(q.x - jointX));
+    coldJoint *= admission * (1.0 - smoothstep(0.09, 0.30, footprint.x));
+    diffuseColor.rgb *= 1.0 - coldJoint * 0.32;
+  }
+
   // Settled fines at the edge stay narrow, irregular and subordinate to
   // the road paint. The junction admission prevents a dark border across
   // a joining road. No geometric kerb is introduced here.
   float edgeWidth = 0.16 + wearNoise * 0.30;
   float edgeDust = smoothstep(halfRoad - edgeWidth - footprint.x, halfRoad - 0.025 + footprint.x, abs(q.x));
-  edgeDust *= admission * roadUse * (0.55 + 0.45 * age);
+  edgeDust *= admission * max(roadUse, circuitUse) * (0.55 + 0.45 * age);
   diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(1.17, 1.105, 0.99), edgeDust * 0.6);
 
   // Sparse independently sized utility/resurfacing patches. A bounded
@@ -205,14 +240,16 @@ export function installFestivalRoadSurface(material: T.MeshPhysicalMaterial, age
   if (!material.userData.wetSurface)
     throw new Error('Festival road surfacing needs the existing library wet-surface material');
   const ageUniform = { value: age };
-  return chainShaderHook(material, 'festival-road-surface-v1', (shader) => {
+  return chainShaderHook(material, 'festival-road-surface-v2', (shader) => {
     shader.uniforms.festivalSurfaceAge = ageUniform;
     injectDeclarations(
       shader,
       'common',
       `
 attribute vec4 festivalRoadData;
+attribute vec2 festivalSurfaceData;
 varying vec4 vFestivalRoadData;
+varying vec2 vFestivalSurfaceData;
 varying vec2 vFestivalRoadMetres;`,
       'vertex',
     );
@@ -221,6 +258,7 @@ varying vec2 vFestivalRoadMetres;`,
       'begin_vertex',
       `
 vFestivalRoadData = festivalRoadData;
+vFestivalSurfaceData = festivalSurfaceData;
 vFestivalRoadMetres = uv;`,
       'vertex',
     );
@@ -230,6 +268,7 @@ vFestivalRoadMetres = uv;`,
       `
 uniform float festivalSurfaceAge;
 varying vec4 vFestivalRoadData;
+varying vec2 vFestivalSurfaceData;
 varying vec2 vFestivalRoadMetres;
 ${OW_NOISE_GLSL}`,
       'fragment',
