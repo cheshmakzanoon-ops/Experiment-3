@@ -1,0 +1,1629 @@
+{
+  "kind": "sc7-opening-bend-diagnostic",
+  "sourceStable": true,
+  "sourceHashes": {
+    "src/simulation/open-world/route-driver.ts": "560abfde497fb1cb84be427f465bbd22b569cb2b1f246c498b7af443b6c4b2f4",
+    "src/simulation/open-world/festival-markings.ts": "b8a6e6f97a3ac3f6edbf3ea931cad87fac79373096a79c240e68b86bc5ef3157",
+    "src/simulation/open-world/open-world-track.ts": "4083849c370c4798431003c048f6630f4b17640151c58ae3cf41f15a13cf2d8e"
+  },
+  "rawTraceSHA256": "9ff9b336b26db16041c58e5bdd9b277d3418c4407f51a261f1bcd31333b61b8d",
+  "method": "Selected actual production-simulation snapshots from the unchanged-source pre-fix 120 Hz run. The timeline is sampled at 20 Hz; collision snapshots are recorded immediately before the impulse.",
+  "selectedTimeline": [
+    {
+      "time": 13.608333,
+      "player": {
+        "id": 0,
+        "station": 375.963109,
+        "lateral": 3.939457,
+        "speed": 61.090922,
+        "kmh": 219.927321,
+        "position": [
+          -1326.129942,
+          61.570551,
+          -1525.32411
+        ],
+        "velocity": [
+          59.925233,
+          2.605091,
+          11.591033
+        ],
+        "omega": [
+          -0.00362,
+          -0.069249,
+          -0.07026
+        ],
+        "forward": [
+          0.975763,
+          0.041193,
+          0.214917
+        ],
+        "up": [
+          -0.053207,
+          0.99731,
+          0.050416
+        ],
+        "aiTarget": 61.855184,
+        "aiOffset": 3.350929,
+        "steer": -0.005754,
+        "throttle": 0.321423,
+        "brake": 0,
+        "gLat": -0.362057,
+        "input": {
+          "throttle": 0.32142337915922703,
+          "brake": 0,
+          "clutch": 0,
+          "manualClutch": false,
+          "steer": -0.025169019784361146,
+          "riderLean": 0,
+          "shift": 0,
+          "ers": 1,
+          "pit": false,
+          "reverse": false
+        },
+        "path": {
+          "curvature": -0.001501,
+          "nx": 0.201601,
+          "nz": -0.979468,
+          "tx": 0.979468,
+          "tz": 0.201601,
+          "halfWidth": 5.5
+        },
+        "driver": {
+          "d": 375.454521,
+          "lateral": 3.93306,
+          "decision": "PASS LEFT",
+          "tactical": 3.726177,
+          "understeer": 1.549324,
+          "trafficSpeed": null,
+          "passSide": 1,
+          "passLane": 3.260823,
+          "holdingLine": false,
+          "trafficWidth": 1.030514,
+          "trafficLength": 2.631062,
+          "trafficMotion": 61.004344,
+          "passTarget": 2,
+          "observed": [
+            {
+              "id": 2,
+              "gap": -4.820992,
+              "lateral": -0.10159,
+              "width": 0.983524,
+              "length": 2.528466,
+              "speed": 53.165348,
+              "lateralSpeed": 0.154007
+            },
+            {
+              "id": 3,
+              "gap": -44.318832,
+              "lateral": -3.664292,
+              "width": 1.087706,
+              "length": 2.651389,
+              "speed": 53.827134,
+              "lateralSpeed": -2.953147
+            }
+          ]
+        },
+        "contacts": [
+          {
+            "s": 49352.845854,
+            "lateral": 3.109081,
+            "surface": 0,
+            "grip": 0.98,
+            "water": 0,
+            "height": 61.126303,
+            "peakGrip": 1.36181
+          },
+          {
+            "s": 49352.863615,
+            "lateral": 4.775658,
+            "surface": 1,
+            "grip": 0.9114,
+            "water": 0,
+            "height": 61.231724,
+            "peakGrip": 1.266542
+          },
+          {
+            "s": 49350.163687,
+            "lateral": 3.170743,
+            "surface": 0,
+            "grip": 0.98,
+            "water": 0,
+            "height": 61.019244,
+            "peakGrip": 1.56178
+          },
+          {
+            "s": 49350.188576,
+            "lateral": 4.787228,
+            "surface": 1,
+            "grip": 0.9114,
+            "water": 0,
+            "height": 61.123041,
+            "peakGrip": 1.452434
+          }
+        ],
+        "tires": [
+          {
+            "load": 1978.385485,
+            "fx": -1.437939,
+            "fy": -759.185418,
+            "slip": -1.9e-05,
+            "angle": 0.028783,
+            "relaxedAngle": 0.028695,
+            "usage": 0.280574,
+            "gripScale": 0.77,
+            "dirt": 0,
+            "surfaceTemp": 82.635122,
+            "carcassTemp": 86.878489,
+            "peakSlip": 0.220408
+          },
+          {
+            "load": 2558.472406,
+            "fx": -0.121341,
+            "fy": -1039.363135,
+            "slip": 1.4e-05,
+            "angle": 0.030619,
+            "relaxedAngle": 0.030511,
+            "usage": 0.323959,
+            "gripScale": 0.77,
+            "dirt": 0,
+            "surfaceTemp": 82.725247,
+            "carcassTemp": 86.88042,
+            "peakSlip": 0.202634
+          },
+          {
+            "load": 3190.402147,
+            "fx": 1328.378577,
+            "fy": -1252.149908,
+            "slip": 0.019034,
+            "angle": 0.029159,
+            "relaxedAngle": 0.029069,
+            "usage": 0.378757,
+            "gripScale": 0.8855,
+            "dirt": 0,
+            "surfaceTemp": 90.29783,
+            "carcassTemp": 86.954822,
+            "peakSlip": 0.233588
+          },
+          {
+            "load": 3967.662053,
+            "fx": 1384.529089,
+            "fy": -1311.615294,
+            "slip": 0.016725,
+            "angle": 0.025164,
+            "relaxedAngle": 0.025054,
+            "usage": 0.347812,
+            "gripScale": 0.8855,
+            "dirt": 0,
+            "surfaceTemp": 90.219631,
+            "carcassTemp": 86.956491,
+            "peakSlip": 0.213753
+          }
+        ],
+        "normalLoads": [
+          1978.385485,
+          2558.472406,
+          3190.402147,
+          3967.662053
+        ]
+      }
+    },
+    {
+      "time": 14.308333,
+      "player": {
+        "id": 0,
+        "station": 418.074968,
+        "lateral": 4.617309,
+        "speed": 59.474124,
+        "kmh": 214.106846,
+        "position": [
+          -1284.764524,
+          62.28807,
+          -1516.486189
+        ],
+        "velocity": [
+          57.795801,
+          -0.258888,
+          13.986414
+        ],
+        "omega": [
+          0.020181,
+          -0.166502,
+          -0.045249
+        ],
+        "forward": [
+          0.958282,
+          -0.008371,
+          0.285701
+        ],
+        "up": [
+          -0.006424,
+          0.998688,
+          0.050807
+        ],
+        "aiTarget": 59.150046,
+        "aiOffset": 1.776846,
+        "steer": -0.0164,
+        "throttle": 0.044408,
+        "brake": 0.061626,
+        "gLat": -0.689831,
+        "input": {
+          "throttle": 0.044407960922885015,
+          "brake": 0.06162626813552279,
+          "clutch": 0,
+          "manualClutch": false,
+          "steer": -0.07074525894326146,
+          "riderLean": 0,
+          "shift": 0,
+          "ers": 1,
+          "pit": false,
+          "reverse": false
+        },
+        "path": {
+          "curvature": -0.001023,
+          "nx": 0.244175,
+          "nz": -0.969731,
+          "tx": 0.969731,
+          "tz": 0.244175,
+          "halfWidth": 5.5
+        },
+        "driver": {
+          "d": 417.579418,
+          "lateral": 4.612508,
+          "decision": "RACE LINE",
+          "tactical": 2.247943,
+          "understeer": 1.977732,
+          "trafficSpeed": null,
+          "passSide": 0,
+          "passLane": 0,
+          "holdingLine": false,
+          "trafficWidth": 1.093,
+          "trafficLength": 2.653215,
+          "trafficMotion": 59.540095,
+          "passTarget": null,
+          "observed": [
+            {
+              "id": 2,
+              "gap": -9.504715,
+              "lateral": 0.334129,
+              "width": 0.992565,
+              "length": 2.531761,
+              "speed": 54.551638,
+              "lateralSpeed": 0.655502
+            }
+          ]
+        },
+        "contacts": [
+          {
+            "s": 49394.915523,
+            "lateral": 3.737646,
+            "surface": 0,
+            "grip": 0.98,
+            "water": 0,
+            "height": 61.783411,
+            "peakGrip": 1.361521
+          },
+          {
+            "s": 49394.987776,
+            "lateral": 5.403238,
+            "surface": 0,
+            "grip": 0.98,
+            "water": 0,
+            "height": 61.881759,
+            "peakGrip": 1.361644
+          },
+          {
+            "s": 49392.230918,
+            "lateral": 3.878815,
+            "surface": 0,
+            "grip": 0.98,
+            "water": 0,
+            "height": 61.805236,
+            "peakGrip": 1.561495
+          },
+          {
+            "s": 49392.305897,
+            "lateral": 5.494365,
+            "surface": 0,
+            "grip": 0.98,
+            "water": 0,
+            "height": 61.899749,
+            "peakGrip": 1.561488
+          }
+        ],
+        "tires": [
+          {
+            "load": 1795.821807,
+            "fx": -403.449925,
+            "fy": -1414.514,
+            "slip": -0.011105,
+            "angle": 0.064149,
+            "relaxedAngle": 0.063935,
+            "usage": 0.600523,
+            "gripScale": 0.77,
+            "dirt": 0,
+            "surfaceTemp": 82.393376,
+            "carcassTemp": 86.866979,
+            "peakSlip": 0.218494
+          },
+          {
+            "load": 3755.002427,
+            "fx": -349.622725,
+            "fy": -2775.707155,
+            "slip": -0.005354,
+            "angle": 0.065649,
+            "relaxedAngle": 0.065274,
+            "usage": 0.572618,
+            "gripScale": 0.77,
+            "dirt": 0,
+            "surfaceTemp": 82.572744,
+            "carcassTemp": 86.86965,
+            "peakSlip": 0.21833
+          },
+          {
+            "load": 2767.88,
+            "fx": -81.687306,
+            "fy": -2074.765472,
+            "slip": -0.001582,
+            "angle": 0.05822,
+            "relaxedAngle": 0.057829,
+            "usage": 0.492234,
+            "gripScale": 0.8855,
+            "dirt": 0,
+            "surfaceTemp": 89.978732,
+            "carcassTemp": 86.952252,
+            "peakSlip": 0.233574
+          },
+          {
+            "load": 4505.352473,
+            "fx": -439.819759,
+            "fy": -2988.008454,
+            "slip": -0.004838,
+            "angle": 0.054019,
+            "relaxedAngle": 0.0535,
+            "usage": 0.456726,
+            "gripScale": 0.8855,
+            "dirt": 0,
+            "surfaceTemp": 89.944609,
+            "carcassTemp": 86.954465,
+            "peakSlip": 0.231965
+          }
+        ],
+        "normalLoads": [
+          1795.821807,
+          3755.002427,
+          2767.88,
+          4505.352473
+        ]
+      }
+    },
+    {
+      "time": 14.358333,
+      "player": {
+        "id": 0,
+        "station": 421.030554,
+        "lateral": 4.642099,
+        "speed": 59.358278,
+        "kmh": 213.6898,
+        "position": [
+          -1281.879468,
+          62.271066,
+          -1515.780693
+        ],
+        "velocity": [
+          57.61961,
+          -0.417313,
+          14.207491
+        ],
+        "omega": [
+          0.008783,
+          -0.219232,
+          -0.012901
+        ],
+        "forward": [
+          0.955537,
+          -0.009976,
+          0.294703
+        ],
+        "up": [
+          -0.005483,
+          0.998654,
+          0.051585
+        ],
+        "aiTarget": 58.819182,
+        "aiOffset": 1.767693,
+        "steer": -0.014895,
+        "throttle": 0,
+        "brake": 0.100834,
+        "gLat": -0.551996,
+        "input": {
+          "throttle": 0,
+          "brake": 0.10083369441674576,
+          "clutch": 0,
+          "manualClutch": false,
+          "steer": -0.06418748540436145,
+          "riderLean": 0,
+          "shift": 0,
+          "ers": 1,
+          "pit": false,
+          "reverse": false
+        },
+        "path": {
+          "curvature": -0.001044,
+          "nx": 0.247134,
+          "nz": -0.968981,
+          "tx": 0.968981,
+          "tz": 0.247134,
+          "halfWidth": 5.5
+        },
+        "driver": {
+          "d": 420.535979,
+          "lateral": 4.637934,
+          "decision": "RACE LINE",
+          "tactical": 2.247943,
+          "understeer": 1.964398,
+          "trafficSpeed": null,
+          "passSide": 0,
+          "passLane": 0,
+          "holdingLine": false,
+          "trafficWidth": 1.093,
+          "trafficLength": 2.653215,
+          "trafficMotion": 59.540095,
+          "passTarget": null,
+          "observed": [
+            {
+              "id": 2,
+              "gap": -9.504715,
+              "lateral": 0.334129,
+              "width": 0.992565,
+              "length": 2.531761,
+              "speed": 54.551638,
+              "lateralSpeed": 0.655502
+            }
+          ]
+        },
+        "contacts": [
+          {
+            "s": 49397.865223,
+            "lateral": 3.753415,
+            "surface": 0,
+            "grip": 0.98,
+            "water": 0,
+            "height": 61.763293,
+            "peakGrip": 1.361506
+          },
+          {
+            "s": 49397.948145,
+            "lateral": 5.418452,
+            "surface": 0,
+            "grip": 0.98,
+            "water": 0,
+            "height": 61.86268,
+            "peakGrip": 1.361642
+          },
+          {
+            "s": 49395.182007,
+            "lateral": 3.9116,
+            "surface": 0,
+            "grip": 0.98,
+            "water": 0,
+            "height": 61.792352,
+            "peakGrip": 1.56148
+          },
+          {
+            "s": 49395.267452,
+            "lateral": 5.52658,
+            "surface": 6,
+            "grip": 0.62,
+            "water": 0,
+            "height": 61.87919,
+            "peakGrip": 0.983933
+          }
+        ],
+        "tires": [
+          {
+            "load": 1555.753769,
+            "fx": -519.688286,
+            "fy": -1283.944964,
+            "slip": -0.01725,
+            "angle": 0.066385,
+            "relaxedAngle": 0.066085,
+            "usage": 0.643563,
+            "gripScale": 0.77,
+            "dirt": 0,
+            "surfaceTemp": 82.384762,
+            "carcassTemp": 86.866152,
+            "peakSlip": 0.219623
+          },
+          {
+            "load": 3559.674608,
+            "fx": -661.914134,
+            "fy": -2711.168807,
+            "slip": -0.010523,
+            "angle": 0.067723,
+            "relaxedAngle": 0.067295,
+            "usage": 0.599078,
+            "gripScale": 0.77,
+            "dirt": 0,
+            "surfaceTemp": 82.583153,
+            "carcassTemp": 86.868919,
+            "peakSlip": 0.218863
+          },
+          {
+            "load": 3119.092029,
+            "fx": -387.281372,
+            "fy": -2459.810075,
+            "slip": -0.006986,
+            "angle": 0.064133,
+            "relaxedAngle": 0.06321,
+            "usage": 0.530856,
+            "gripScale": 0.8855,
+            "dirt": 0,
+            "surfaceTemp": 89.971041,
+            "carcassTemp": 86.952082,
+            "peakSlip": 0.232232
+          },
+          {
+            "load": 2885.307579,
+            "fx": -339.267486,
+            "fy": -1168.965208,
+            "slip": -0.013251,
+            "angle": 0.060219,
+            "relaxedAngle": 0.059315,
+            "usage": 0.510069,
+            "gripScale": 0.8855,
+            "dirt": 0,
+            "surfaceTemp": 89.92577,
+            "carcassTemp": 86.954307,
+            "peakSlip": 0.537406
+          }
+        ],
+        "normalLoads": [
+          1555.753769,
+          3559.674608,
+          3119.092029,
+          2885.307579
+        ]
+      }
+    },
+    {
+      "time": 15.008333,
+      "player": {
+        "id": 0,
+        "station": 458.811513,
+        "lateral": 4.42331,
+        "speed": 57.473527,
+        "kmh": 206.904696,
+        "position": [
+          -1245.337766,
+          61.293198,
+          -1505.393119
+        ],
+        "velocity": [
+          54.539672,
+          -2.63045,
+          17.877499
+        ],
+        "omega": [
+          -0.006713,
+          -0.649609,
+          -0.09802
+        ],
+        "forward": [
+          0.840077,
+          -0.059384,
+          0.539207
+        ],
+        "up": [
+          0.031399,
+          0.997647,
+          0.060955
+        ],
+        "aiTarget": 57.039595,
+        "aiOffset": -0.613868,
+        "steer": 0.027294,
+        "throttle": 0.01224,
+        "brake": 0.084787,
+        "gLat": -0.918517,
+        "input": {
+          "throttle": 0.01223967632644396,
+          "brake": 0.08478743304496035,
+          "clutch": 0,
+          "manualClutch": false,
+          "steer": 0.11568987459769055,
+          "riderLean": 0,
+          "shift": 0,
+          "ers": 1,
+          "pit": false,
+          "reverse": false
+        },
+        "path": {
+          "curvature": -0.001348,
+          "nx": 0.290412,
+          "nz": -0.956902,
+          "tx": 0.956902,
+          "tz": 0.290412,
+          "halfWidth": 5.5
+        },
+        "driver": {
+          "d": 458.351155,
+          "lateral": 4.434629,
+          "decision": "RACE LINE",
+          "tactical": 0,
+          "understeer": 1.664398,
+          "trafficSpeed": null,
+          "passSide": 0,
+          "passLane": 0,
+          "holdingLine": false,
+          "trafficWidth": 1.555185,
+          "trafficLength": 2.77199,
+          "trafficMotion": 57.776967,
+          "passTarget": null,
+          "observed": [
+            {
+              "id": 2,
+              "gap": -12.005588,
+              "lateral": 0.599786,
+              "width": 1.024783,
+              "length": 2.543273,
+              "speed": 53.895722,
+              "lateralSpeed": 0.258617
+            }
+          ]
+        },
+        "contacts": [
+          {
+            "s": 49435.390732,
+            "lateral": 3.224716,
+            "surface": 0,
+            "grip": 0.98,
+            "water": 0,
+            "height": 60.726385,
+            "peakGrip": 1.361348
+          },
+          {
+            "s": 49435.846825,
+            "lateral": 4.829275,
+            "surface": 1,
+            "grip": 0.9114,
+            "water": 0,
+            "height": 60.80981,
+            "peakGrip": 1.266878
+          },
+          {
+            "s": 49432.819037,
+            "lateral": 3.984096,
+            "surface": 0,
+            "grip": 0.98,
+            "water": 0,
+            "height": 60.890128,
+            "peakGrip": 1.561692
+          },
+          {
+            "s": 49433.267294,
+            "lateral": 5.539296,
+            "surface": 6,
+            "grip": 0.62,
+            "water": 0,
+            "height": 60.961168,
+            "peakGrip": 0.98391
+          }
+        ],
+        "tires": [
+          {
+            "load": 972.114781,
+            "fx": -778.037126,
+            "fy": -1118.290884,
+            "slip": -0.062504,
+            "angle": 0.211159,
+            "relaxedAngle": 0.209845,
+            "usage": 1,
+            "gripScale": 0.77,
+            "dirt": 0,
+            "surfaceTemp": 82.325051,
+            "carcassTemp": 86.854897,
+            "peakSlip": 0.215992
+          },
+          {
+            "load": 4628.412105,
+            "fx": -668.82266,
+            "fy": -5267.165542,
+            "slip": -0.007532,
+            "angle": 0.20812,
+            "relaxedAngle": 0.20506,
+            "usage": 0.966623,
+            "gripScale": 0.77,
+            "dirt": 0,
+            "surfaceTemp": 83.716923,
+            "carcassTemp": 86.860161,
+            "peakSlip": 0.199019
+          },
+          {
+            "load": 2461.355793,
+            "fx": -195.979942,
+            "fy": -3628.850587,
+            "slip": -0.003773,
+            "angle": 0.270889,
+            "relaxedAngle": 0.267499,
+            "usage": 0.98724,
+            "gripScale": 0.8855,
+            "dirt": 0,
+            "surfaceTemp": 90.97041,
+            "carcassTemp": 86.950406,
+            "peakSlip": 0.227495
+          },
+          {
+            "load": 3919.209232,
+            "fx": -736.332536,
+            "fy": -3005.179752,
+            "slip": -0.019489,
+            "angle": 0.265211,
+            "relaxedAngle": 0.26106,
+            "usage": 0.943896,
+            "gripScale": 0.8855,
+            "dirt": 0,
+            "surfaceTemp": 90.223474,
+            "carcassTemp": 86.952145,
+            "peakSlip": 0.554044
+          }
+        ],
+        "normalLoads": [
+          972.114781,
+          4628.412105,
+          2461.355793,
+          3919.209232
+        ]
+      }
+    }
+  ],
+  "firstPlayerContact": {
+    "time": 16.7,
+    "tick": 2004,
+    "a": 0,
+    "b": null,
+    "player": true,
+    "at": [
+      -1170.412165,
+      58.783363,
+      -1459.105541
+    ],
+    "normal": [
+      -0.629881,
+      0,
+      -0.776692
+    ],
+    "penetration": 0.093877,
+    "cars": [
+      {
+        "id": 0,
+        "station": 544.037684,
+        "lateral": -10.269473,
+        "speed": 44.753734,
+        "kmh": 161.113442,
+        "position": [
+          -1171.552382,
+          58.783363,
+          -1461.54898
+        ],
+        "velocity": [
+          32.544429,
+          2.510413,
+          30.564465
+        ],
+        "omega": [
+          -0.72474,
+          1.394196,
+          -0.968636
+        ],
+        "forward": [
+          0.629679,
+          0.025329,
+          0.776443
+        ],
+        "up": [
+          0.172146,
+          0.970071,
+          -0.171252
+        ],
+        "aiTarget": 20.869788,
+        "aiOffset": -1.027603,
+        "steer": 0.25016,
+        "throttle": 0,
+        "brake": 0.31176,
+        "gLat": 0.356869,
+        "input": {
+          "throttle": 0,
+          "brake": 0.3117598991754788,
+          "clutch": 0,
+          "manualClutch": false,
+          "steer": 0.9410002776053694,
+          "riderLean": 0,
+          "shift": 0,
+          "ers": 1,
+          "pit": false,
+          "reverse": false
+        },
+        "path": {
+          "curvature": -0.002374,
+          "nx": 0.43424,
+          "nz": -0.900797,
+          "tx": 0.900797,
+          "tz": 0.43424,
+          "halfWidth": 5.5
+        },
+        "driver": {
+          "d": 543.682608,
+          "lateral": -10.157815,
+          "decision": "RACE LINE",
+          "tactical": 0,
+          "understeer": 2.071065,
+          "trafficSpeed": null,
+          "passSide": 0,
+          "passLane": 0,
+          "holdingLine": false,
+          "trafficWidth": 2.103275,
+          "trafficLength": 2.774372,
+          "trafficMotion": 42.844562,
+          "passTarget": null,
+          "observed": [
+            {
+              "id": 2,
+              "gap": -15.403609,
+              "lateral": -1.675643,
+              "width": 1.307762,
+              "length": 2.627887,
+              "speed": 43.137093,
+              "lateralSpeed": -3.902234
+            },
+            {
+              "id": 3,
+              "gap": -43.387104,
+              "lateral": -2.315655,
+              "width": 1.458973,
+              "length": 2.754423,
+              "speed": 46.721752,
+              "lateralSpeed": -5.163912
+            }
+          ]
+        },
+        "contacts": [
+          {
+            "s": 49520.446975,
+            "lateral": -11.733309,
+            "surface": 6,
+            "grip": 0.52,
+            "water": 0,
+            "height": 58.496656,
+            "peakGrip": 0.720213
+          },
+          {
+            "s": 49521.16629,
+            "lateral": -10.213541,
+            "surface": 6,
+            "grip": 0.52,
+            "water": 0,
+            "height": 58.337421,
+            "peakGrip": 0.721832
+          },
+          {
+            "s": 49517.938449,
+            "lateral": -10.56567,
+            "surface": 6,
+            "grip": 0.52,
+            "water": 0,
+            "height": 58.397238,
+            "peakGrip": 0.825614
+          },
+          {
+            "s": 49518.700308,
+            "lateral": -9.123808,
+            "surface": 6,
+            "grip": 0.52,
+            "water": 0,
+            "height": 58.118052,
+            "peakGrip": 0.823625
+          }
+        ],
+        "tires": [
+          {
+            "load": 0,
+            "fx": 0,
+            "fy": 0,
+            "slip": -0.309879,
+            "angle": -0.068567,
+            "relaxedAngle": -0.068567,
+            "usage": 0,
+            "gripScale": 0.77,
+            "dirt": 0,
+            "surfaceTemp": 85.098127,
+            "carcassTemp": 86.834238,
+            "peakSlip": 0.443258
+          },
+          {
+            "load": 25477.412922,
+            "fx": -6274.816571,
+            "fy": 7984.099604,
+            "slip": 0.005035,
+            "angle": -0.101488,
+            "relaxedAngle": -0.088616,
+            "usage": 0.707392,
+            "gripScale": 0.77,
+            "dirt": 0,
+            "surfaceTemp": 93.191748,
+            "carcassTemp": 86.857607,
+            "peakSlip": 0.500025
+          },
+          {
+            "load": 0,
+            "fx": 0,
+            "fy": 0,
+            "slip": -0.171635,
+            "angle": 0.077406,
+            "relaxedAngle": 0.077406,
+            "usage": 0,
+            "gripScale": 0.8855,
+            "dirt": 0,
+            "surfaceTemp": 101.497274,
+            "carcassTemp": 86.965298,
+            "peakSlip": 0.619248
+          },
+          {
+            "load": 0,
+            "fx": 0,
+            "fy": 0,
+            "slip": -0.128721,
+            "angle": 0.07603,
+            "relaxedAngle": 0.07603,
+            "usage": 0,
+            "gripScale": 0.8855,
+            "dirt": 0,
+            "surfaceTemp": 111.572822,
+            "carcassTemp": 86.985407,
+            "peakSlip": 0.617845
+          }
+        ],
+        "normalLoads": [
+          0,
+          25477.412922,
+          0,
+          0
+        ]
+      },
+      {
+        "id": 1,
+        "station": 433.976016,
+        "lateral": 0.228885,
+        "speed": 48.39362,
+        "kmh": 174.217033,
+        "position": [
+          -1270.447074,
+          61.917605,
+          -1508.217815
+        ],
+        "velocity": [
+          46.846675,
+          -0.869334,
+          12.129304
+        ],
+        "omega": [
+          0.030947,
+          0.028993,
+          -0.042302
+        ],
+        "forward": [
+          0.966238,
+          -0.015294,
+          0.257196
+        ],
+        "up": [
+          -0.001188,
+          0.997962,
+          0.063804
+        ],
+        "aiTarget": 50.808379,
+        "aiOffset": 0.895025,
+        "steer": 0.000406,
+        "throttle": 0.73661,
+        "brake": 0,
+        "gLat": -0.137155,
+        "input": {
+          "throttle": 0.736610059662291,
+          "brake": 0,
+          "clutch": 0,
+          "manualClutch": false,
+          "steer": 0.0015187064675483402,
+          "riderLean": 0,
+          "shift": 0,
+          "ers": 1,
+          "pit": false,
+          "reverse": false
+        },
+        "path": {
+          "curvature": -0.001141,
+          "nx": 0.260796,
+          "nz": -0.965394,
+          "tx": 0.965394,
+          "tz": 0.260796,
+          "halfWidth": 5.5
+        },
+        "driver": {
+          "d": 433.572796,
+          "lateral": 0.224951,
+          "decision": "PASS LEFT",
+          "tactical": 1.4,
+          "understeer": 1.43265,
+          "trafficSpeed": 50.808379,
+          "passSide": 1,
+          "passLane": 0.893823,
+          "holdingLine": false,
+          "trafficWidth": 0.900505,
+          "trafficLength": 2.397189,
+          "trafficMotion": 48.327749,
+          "passTarget": 3,
+          "observed": [
+            {
+              "id": 3,
+              "gap": 66.840123,
+              "lateral": -2.315655,
+              "width": 1.458973,
+              "length": 2.754423,
+              "speed": 46.721752,
+              "lateralSpeed": -5.163912
+            }
+          ]
+        },
+        "contacts": [
+          {
+            "s": 49410.44494,
+            "lateral": -0.500137,
+            "surface": 0,
+            "grip": 0.98,
+            "water": 0,
+            "height": 61.325534,
+            "peakGrip": 1.308593
+          },
+          {
+            "s": 49410.43669,
+            "lateral": 1.026796,
+            "surface": 0,
+            "grip": 0.98,
+            "water": 0,
+            "height": 61.42199,
+            "peakGrip": 1.30862
+          },
+          {
+            "s": 49407.793676,
+            "lateral": -0.518599,
+            "surface": 0,
+            "grip": 0.98,
+            "water": 0,
+            "height": 61.373817,
+            "peakGrip": 1.301635
+          },
+          {
+            "s": 49407.790665,
+            "lateral": 1.028373,
+            "surface": 0,
+            "grip": 0.98,
+            "water": 0,
+            "height": 61.470592,
+            "peakGrip": 1.301591
+          }
+        ],
+        "tires": [
+          {
+            "load": 3560.715874,
+            "fx": 783.531178,
+            "fy": -226.11098,
+            "slip": 0.010851,
+            "angle": 0.006331,
+            "relaxedAngle": 0.006577,
+            "usage": 0.18441,
+            "gripScale": 0.74,
+            "dirt": 0,
+            "surfaceTemp": 82.733749,
+            "carcassTemp": 86.859757,
+            "peakSlip": 0.212709
+          },
+          {
+            "load": 3720.500574,
+            "fx": 847.922519,
+            "fy": -455.109789,
+            "slip": 0.011305,
+            "angle": 0.007942,
+            "relaxedAngle": 0.008185,
+            "usage": 0.208476,
+            "gripScale": 0.74,
+            "dirt": 0,
+            "surfaceTemp": 82.774666,
+            "carcassTemp": 86.861352,
+            "peakSlip": 0.213083
+          },
+          {
+            "load": 2881.687377,
+            "fx": 755.735817,
+            "fy": -292.871339,
+            "slip": 0.012829,
+            "angle": 0.008138,
+            "relaxedAngle": 0.00861,
+            "usage": 0.220328,
+            "gripScale": 0.74,
+            "dirt": 0,
+            "surfaceTemp": 82.993475,
+            "carcassTemp": 86.860186,
+            "peakSlip": 0.218839
+          },
+          {
+            "load": 2916.026051,
+            "fx": 797.168559,
+            "fy": -201.38855,
+            "slip": 0.0134,
+            "angle": 0.004055,
+            "relaxedAngle": 0.004529,
+            "usage": 0.220853,
+            "gripScale": 0.74,
+            "dirt": 0,
+            "surfaceTemp": 82.915301,
+            "carcassTemp": 86.861102,
+            "peakSlip": 0.219035
+          }
+        ],
+        "normalLoads": [
+          3560.715874,
+          3720.500574,
+          2881.687377,
+          2916.026051
+        ]
+      },
+      {
+        "id": 2,
+        "station": 528.588438,
+        "lateral": -1.841015,
+        "speed": 43.142675,
+        "kmh": 155.313628,
+        "position": [
+          -1181.864268,
+          58.863008,
+          -1475.573935
+        ],
+        "velocity": [
+          37.695604,
+          -0.352816,
+          20.943649
+        ],
+        "omega": [
+          -0.00743,
+          -0.097908,
+          0.024031
+        ],
+        "forward": [
+          0.846137,
+          -0.015599,
+          0.532737
+        ],
+        "up": [
+          -0.015099,
+          0.998469,
+          0.053216
+        ],
+        "aiTarget": 41.900123,
+        "aiOffset": -3.582407,
+        "steer": 0.009879,
+        "throttle": 0,
+        "brake": 0.230142,
+        "gLat": -0.684547,
+        "input": {
+          "throttle": 0,
+          "brake": 0.23014216728699763,
+          "clutch": 0,
+          "manualClutch": false,
+          "steer": 0.03510149379106468,
+          "riderLean": 0,
+          "shift": 0,
+          "ers": 1,
+          "pit": false,
+          "reverse": false
+        },
+        "path": {
+          "curvature": -0.002144,
+          "nx": 0.402583,
+          "nz": -0.915383,
+          "tx": 0.915383,
+          "tz": 0.402583,
+          "halfWidth": 5.5
+        },
+        "driver": {
+          "d": 528.230492,
+          "lateral": -1.808343,
+          "decision": "RACE LINE",
+          "tactical": -2.655519,
+          "understeer": 0.9,
+          "trafficSpeed": null,
+          "passSide": 0,
+          "passLane": 0,
+          "holdingLine": false,
+          "trafficWidth": 1.307762,
+          "trafficLength": 2.627887,
+          "trafficMotion": 43.137093,
+          "passTarget": null,
+          "observed": [
+            {
+              "id": 3,
+              "gap": -27.983495,
+              "lateral": -2.315655,
+              "width": 1.458973,
+              "length": 2.754423,
+              "speed": 46.721752,
+              "lateralSpeed": -5.163912
+            }
+          ]
+        },
+        "contacts": [
+          {
+            "s": 49505.179486,
+            "lateral": -2.792091,
+            "surface": 0,
+            "grip": 0.98,
+            "water": 0,
+            "height": 58.283449,
+            "peakGrip": 1.326682
+          },
+          {
+            "s": 49505.416488,
+            "lateral": -1.192766,
+            "surface": 0,
+            "grip": 0.98,
+            "water": 0,
+            "height": 58.386857,
+            "peakGrip": 1.326963
+          },
+          {
+            "s": 49502.336599,
+            "lateral": -2.358954,
+            "surface": 0,
+            "grip": 0.98,
+            "water": 0,
+            "height": 58.319058,
+            "peakGrip": 1.425559
+          },
+          {
+            "s": 49502.580764,
+            "lateral": -0.780884,
+            "surface": 0,
+            "grip": 0.98,
+            "water": 0,
+            "height": 58.420854,
+            "peakGrip": 1.425686
+          }
+        ],
+        "tires": [
+          {
+            "load": 4362.797543,
+            "fx": -1757.915041,
+            "fy": -2045.397758,
+            "slip": -0.02163,
+            "angle": 0.041694,
+            "relaxedAngle": 0.042439,
+            "usage": 0.508911,
+            "gripScale": 0.75,
+            "dirt": 0,
+            "surfaceTemp": 83.768105,
+            "carcassTemp": 86.858002,
+            "peakSlip": 0.208986
+          },
+          {
+            "load": 6872.462812,
+            "fx": -1956.755843,
+            "fy": -3356.180037,
+            "slip": -0.015642,
+            "angle": 0.043795,
+            "relaxedAngle": 0.044827,
+            "usage": 0.47539,
+            "gripScale": 0.75,
+            "dirt": 0,
+            "surfaceTemp": 84.234129,
+            "carcassTemp": 86.864375,
+            "peakSlip": 0.210491
+          },
+          {
+            "load": 3112.32681,
+            "fx": -1214.387315,
+            "fy": -2256.298916,
+            "slip": -0.019694,
+            "angle": 0.061158,
+            "relaxedAngle": 0.061812,
+            "usage": 0.600644,
+            "gripScale": 0.81,
+            "dirt": 0,
+            "surfaceTemp": 84.674208,
+            "carcassTemp": 86.875403,
+            "peakSlip": 0.223564
+          },
+          {
+            "load": 5384.748101,
+            "fx": -1693.52248,
+            "fy": -3470.034987,
+            "slip": -0.016451,
+            "angle": 0.057079,
+            "relaxedAngle": 0.057938,
+            "usage": 0.545166,
+            "gripScale": 0.81,
+            "dirt": 0,
+            "surfaceTemp": 84.869461,
+            "carcassTemp": 86.879767,
+            "peakSlip": 0.222062
+          }
+        ],
+        "normalLoads": [
+          4362.797543,
+          6872.462812,
+          3112.32681,
+          5384.748101
+        ]
+      },
+      {
+        "id": 3,
+        "station": 500.740542,
+        "lateral": -2.537913,
+        "speed": 46.777116,
+        "kmh": 168.397618,
+        "position": [
+          -1207.800894,
+          59.036951,
+          -1485.37082
+        ],
+        "velocity": [
+          41.543851,
+          -1.501888,
+          21.381482
+        ],
+        "omega": [
+          -0.000995,
+          -0.009146,
+          0.068189
+        ],
+        "forward": [
+          0.854662,
+          -0.038005,
+          0.517791
+        ],
+        "up": [
+          0.006977,
+          0.998068,
+          0.06174
+        ],
+        "aiTarget": 45.137093,
+        "aiOffset": -3.735835,
+        "steer": 0.025336,
+        "throttle": 0,
+        "brake": 0.3,
+        "gLat": -1.027291,
+        "input": {
+          "throttle": 0,
+          "brake": 0.3,
+          "clutch": 0,
+          "manualClutch": false,
+          "steer": 0.0972264941823184,
+          "riderLean": 0,
+          "shift": 0,
+          "ers": 1,
+          "pit": false,
+          "reverse": false
+        },
+        "path": {
+          "curvature": -0.001782,
+          "nx": 0.352128,
+          "nz": -0.935952,
+          "tx": 0.935952,
+          "tz": 0.352128,
+          "halfWidth": 5.5
+        },
+        "driver": {
+          "d": 500.35375,
+          "lateral": -2.492214,
+          "decision": "PASS RIGHT",
+          "tactical": -2.953511,
+          "understeer": 1.17621,
+          "trafficSpeed": 45.137093,
+          "passSide": -1,
+          "passLane": -3.591027,
+          "holdingLine": false,
+          "trafficWidth": 1.458973,
+          "trafficLength": 2.754423,
+          "trafficMotion": 46.721752,
+          "passTarget": 2,
+          "observed": [
+            {
+              "id": 2,
+              "gap": 27.983495,
+              "lateral": -1.675643,
+              "width": 1.307762,
+              "length": 2.627887,
+              "speed": 43.137093,
+              "lateralSpeed": -3.902234
+            }
+          ]
+        },
+        "contacts": [
+          {
+            "s": 49477.497464,
+            "lateral": -3.595706,
+            "surface": 0,
+            "grip": 0.98,
+            "water": 0,
+            "height": 58.511899,
+            "peakGrip": 1.362286
+          },
+          {
+            "s": 49477.803119,
+            "lateral": -1.956847,
+            "surface": 0,
+            "grip": 0.98,
+            "water": 0,
+            "height": 58.611521,
+            "peakGrip": 1.362636
+          },
+          {
+            "s": 49474.832063,
+            "lateral": -3.074257,
+            "surface": 0,
+            "grip": 0.98,
+            "water": 0,
+            "height": 58.611861,
+            "peakGrip": 1.56151
+          },
+          {
+            "s": 49475.137005,
+            "lateral": -1.485988,
+            "surface": 0,
+            "grip": 0.98,
+            "water": 0,
+            "height": 58.707031,
+            "peakGrip": 1.561852
+          }
+        ],
+        "tires": [
+          {
+            "load": 3609.825782,
+            "fx": -2556.857042,
+            "fy": -1895.738006,
+            "slip": -0.040879,
+            "angle": 0.044009,
+            "relaxedAngle": 0.045706,
+            "usage": 0.693261,
+            "gripScale": 0.77,
+            "dirt": 0,
+            "surfaceTemp": 84.10449,
+            "carcassTemp": 86.839441,
+            "peakSlip": 0.212808
+          },
+          {
+            "load": 5926.930172,
+            "fx": -2510.169654,
+            "fy": -3203.031796,
+            "slip": -0.022333,
+            "angle": 0.045935,
+            "relaxedAngle": 0.048207,
+            "usage": 0.553551,
+            "gripScale": 0.77,
+            "dirt": 0,
+            "surfaceTemp": 84.693589,
+            "carcassTemp": 86.845667,
+            "peakSlip": 0.214079
+          },
+          {
+            "load": 4531.245612,
+            "fx": -1803.480073,
+            "fy": -3819.492705,
+            "slip": -0.019201,
+            "angle": 0.072766,
+            "relaxedAngle": 0.075114,
+            "usage": 0.646236,
+            "gripScale": 0.8855,
+            "dirt": 0,
+            "surfaceTemp": 90.997866,
+            "carcassTemp": 86.93554,
+            "peakSlip": 0.228025
+          },
+          {
+            "load": 6523.145914,
+            "fx": -2288.758331,
+            "fy": -5109.091367,
+            "slip": -0.017106,
+            "angle": 0.068755,
+            "relaxedAngle": 0.071614,
+            "usage": 0.607729,
+            "gripScale": 0.8855,
+            "dirt": 0,
+            "surfaceTemp": 92.076683,
+            "carcassTemp": 86.941179,
+            "peakSlip": 0.228382
+          }
+        ],
+        "normalLoads": [
+          3609.825782,
+          5926.930172,
+          4531.245612,
+          6523.145914
+        ]
+      }
+    ]
+  },
+  "playerContacts": [
+    {
+      "time": 16.7,
+      "a": 0,
+      "b": null
+    },
+    {
+      "time": 16.708333,
+      "a": 0,
+      "b": null
+    },
+    {
+      "time": 16.708333,
+      "a": 0,
+      "b": null
+    },
+    {
+      "time": 16.716667,
+      "a": 0,
+      "b": null
+    },
+    {
+      "time": 16.716667,
+      "a": 0,
+      "b": null
+    },
+    {
+      "time": 16.725,
+      "a": 0,
+      "b": null
+    },
+    {
+      "time": 16.725,
+      "a": 0,
+      "b": null
+    },
+    {
+      "time": 16.733333,
+      "a": 0,
+      "b": null
+    },
+    {
+      "time": 16.733333,
+      "a": 0,
+      "b": null
+    },
+    {
+      "time": 16.741667,
+      "a": 0,
+      "b": null
+    },
+    {
+      "time": 17.208333,
+      "a": 0,
+      "b": 2
+    },
+    {
+      "time": 17.208333,
+      "a": 0,
+      "b": 2
+    },
+    {
+      "time": 17.216667,
+      "a": 0,
+      "b": 2
+    },
+    {
+      "time": 17.875,
+      "a": 3,
+      "b": 0
+    },
+    {
+      "time": 17.875,
+      "a": 3,
+      "b": 0
+    }
+  ],
+  "interpretation": "Rear shoulder contact precedes the first static collision. Rival contacts occur afterward. The final physics report and the SC7 physical regression test validate the final fix; these pre-fix snapshots are retained as diagnosis evidence."
+}

@@ -13,6 +13,7 @@ import {
   festivalFasciaCap,
   festivalFasciaOpenings,
 } from '../src/rendering/vehicle-bodies/festival-detail.ts';
+import { festivalNoseZ } from '../src/rendering/vehicle-bodies/festival-nose.ts';
 
 function modelFor(id: string) {
   const def = VEHICLES[id];
@@ -65,17 +66,20 @@ describe('Festival vehicle exterior construction', () => {
       for (const opening of festivalFasciaOpenings(model)) {
         // Probe between decorative grille bars rather than directly at a
         // truck's central chrome crossbar.
+        const x = opening.x + opening.width * 0.11;
         const hit = hits(
           body.lods[0].group,
-          opening.x + opening.width * 0.11,
+          x,
           opening.y + opening.height * 0.21,
           model.zFront + 1,
           -1,
         )[0];
         expect(hit, `${id} radiator exists`).toBeDefined();
-        expect(hit.point.z, `${id} real recessed opening`).toBeLessThan(model.zFront - 0.007);
+        expect(hit.point.z, `${id} real recessed opening`).toBeLessThan(
+          festivalNoseZ(model, x, model.zFront - 0.007),
+        );
         expect(hit.point.z, `${id} bounded duct depth`).toBeGreaterThan(
-          model.zFront - opening.depth - 0.02,
+          festivalNoseZ(model, x, model.zFront - opening.depth - 0.02),
         );
       }
     }

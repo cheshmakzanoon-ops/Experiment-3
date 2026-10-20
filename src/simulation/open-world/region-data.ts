@@ -6,7 +6,7 @@
  * turns into sampled, graded, cambered roads with junctions and bridges.
  * Units: metres, x east, z north, y up. */
 
-export type RoadClass = 'highway' | 'country' | 'mountain' | 'town' | 'dirt' | 'runway';
+export type RoadClass = 'highway' | 'country' | 'mountain' | 'town' | 'dirt' | 'runway' | 'circuit';
 /** Speed classification of a road class (signage and advisory speeds). */
 export type SpeedClass = 'motorway' | 'fast' | 'medium' | 'slow' | 'technical';
 export interface RoadClassSpec {
@@ -29,7 +29,7 @@ export interface RoadClassSpec {
   /** Physics grip and rolling resistance of the running surface. */
   grip: number;
   resistance: number;
-  markings: 'motorway' | 'centre' | 'runway' | 'none';
+  markings: 'motorway' | 'centre' | 'runway' | 'edge' | 'none';
   /** Guardrails where the ground falls away beside the road. */
   guardrails: boolean;
   /** Spline sampling step (m). */
@@ -138,6 +138,23 @@ export const ROAD_CLASSES: Readonly<Record<RoadClass, Readonly<RoadClassSpec>>> 
     markings: 'runway',
     guardrails: false,
     step: 6,
+    priority: 4,
+  }),
+  circuit: Object.freeze({
+    halfWidth: 5.5,
+    shoulder: 1.4,
+    designSpeed: 32,
+    speedClass: 'fast',
+    maxGrade: 0.07,
+    smoothing: 65,
+    crown: 0.012,
+    maxBank: 0.065,
+    surface: 'asphalt',
+    grip: 0.98,
+    resistance: 0.015,
+    markings: 'edge',
+    guardrails: true,
+    step: 3,
     priority: 4,
   }),
 });
@@ -307,7 +324,7 @@ function switchbacks(centre: XZ, corners: readonly (readonly [number, number])[]
 export const SOLVANE: RegionDefinition = Object.freeze({
   id: 'solvane',
   name: 'Solvane Coast',
-  version: 1,
+  version: 2,
   seed: 0x50a1e,
   half: 4096,
   seaLevel: 0,
@@ -578,6 +595,40 @@ export const SOLVANE: RegionDefinition = Object.freeze({
         [-520, -1250],
         [-150, -840],
         [210, -430],
+      ],
+    },
+    {
+      id: 'saltmarsh-club',
+      name: 'Saltmarsh Club Circuit',
+      roadClass: 'circuit',
+      closed: true,
+      // A flowing club course within the existing farmland. The straight
+      // gives two cars room to pass, the broad eastern turn rewards a late
+      // apex, and the linked infield bends require a deliberate weight shift.
+      // A shared control point on the west side is the public access junction.
+      points: [
+        [-1820, -1520],
+        [-1320, -1520],
+        [-1080, -1410],
+        [-990, -1190],
+        [-1080, -940],
+        [-1300, -800],
+        [-1530, -900],
+        [-1650, -1130],
+        [-1830, -1120],
+        [-1980, -970],
+        [-2080, -1180],
+        [-2000, -1420],
+      ],
+    },
+    {
+      id: 'saltmarsh-access',
+      name: 'Saltmarsh Club Access',
+      roadClass: 'country',
+      points: [
+        [-2280, -900],
+        [-2180, -960],
+        [-2080, -1180],
       ],
     },
     {
@@ -937,6 +988,39 @@ export const SOLVANE: RegionDefinition = Object.freeze({
       stars: [110, 160, 210],
       blurb:
         'Build speed along the broad runway and cross the speed gate. Three reachable targets from road cars to supercars.',
+    },
+    {
+      id: 'saltmarsh-club-race',
+      name: 'Saltmarsh Club Race',
+      kind: 'circuit',
+      waypoints: [
+        [-1700, -1520],
+        [-1080, -1410],
+        [-1300, -800],
+        [-1650, -1130],
+        [-1980, -970],
+        [-2000, -1420],
+      ],
+      laps: 2,
+      rivals: 3,
+      blurb:
+        'Two laps of the club course. Use the long straight for a tow, brake for the eastern bend, then link the infield turns.',
+    },
+    {
+      id: 'saltmarsh-practice',
+      name: 'Saltmarsh Practice Lap',
+      kind: 'circuit',
+      waypoints: [
+        [-1530, -900],
+        [-1980, -970],
+        [-2000, -1420],
+        [-1080, -1410],
+        [-1300, -800],
+      ],
+      laps: 1,
+      rivals: 0,
+      blurb:
+        'One clear lap to learn the braking points and try your next car. Use Retry at the finish for another run.',
     },
   ],
 } as RegionDefinition);

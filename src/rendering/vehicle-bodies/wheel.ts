@@ -97,35 +97,103 @@ function revolveSided(profile: readonly Pt[], segments: number, side: number) {
   const mapped = profile.map(([r, a]) => [r, a * side] as const);
   return revolveX(side < 0 ? mapped.reverse() : mapped, segments);
 }
-function rimGeometry(sheet: WheelSheet, half: number, side: number, detail: Detail) {
+/** A continuous forged Y, with a shared root and an open fork. Reference 099
+ * makes the spoke's thin face, bevel and deep sidewall read separately. The
+ * section and dish below are original authored dimensions, not photo measures.
+ * Rotate instead of negatively scaling the right wheel, preserving its winding. */
+function forgedSpoke(rim: number, hub: number, face: number, side: number, detail: Detail) {
+  const inner = hub * 0.89,
+    outer = rim - 0.011,
+    fork = rim * 0.53,
+    rootWidth = rim * 0.19,
+    stemWidth = rim * 0.12,
+    spread = rim * 0.19,
+    tipWidth = rim * 0.062;
+  const outline = [
+    [-rootWidth / 2, inner],
+    [rootWidth / 2, inner],
+    [stemWidth / 2, fork - 0.016],
+    [spread + tipWidth / 2, outer],
+    [spread - tipWidth / 2, outer],
+    [0, fork + 0.012],
+    [-spread + tipWidth / 2, outer],
+    [-spread - tipWidth / 2, outer],
+    [-stemWidth / 2, fork - 0.016],
+  ];
+  const geometry = new T.ExtrudeGeometry(
+    new T.Shape(outline.map(([x, y]) => new T.Vector2(x, y))),
+    {
+      depth: 0.022,
+      bevelEnabled: true,
+      bevelThickness: 0.002,
+      bevelSize: 0.002,
+      bevelSegments: detail === 0 ? 2 : 1,
+      steps: 1,
+      curveSegments: 1,
+    },
+  );
+  const position = geometry.getAttribute('position'),
+    normal = geometry.getAttribute('normal'),
+    dish = 0.04,
+    n = new T.Vector3();
+  for (let i = 0; i < position.count; i++) {
+    const t = clamp((position.getY(i) - inner) / (outer - inner), 0, 1);
+    position.setZ(i, position.getZ(i) - 0.011 + face - dish * (1 - t) ** 2);
+    // Inverse-transpose of the curved dish deformation. Recomputing a flat
+    // non-indexed normal would turn each broad spoke face into visible facets.
+    const slope = (2 * dish * (1 - t)) / (outer - inner);
+    n.set(normal.getX(i), normal.getY(i) - slope * normal.getZ(i), normal.getZ(i)).normalize();
+    normal.setXYZ(i, n.x, n.y, n.z);
+  }
+  return geometry.rotateY((side * Math.PI) / 2);
+}
+
+function rimGeometry(
+  sheet: WheelSheet,
+  half: number,
+  side: number,
+  detail: Detail,
+  festival = false,
+) {
   const rim = sheet.rimRadius,
     face = half * 0.62,
+    barrelInset = Math.min(0.02, rim * (1 - sheet.disc) * 0.28),
     parts: T.BufferGeometry[] = [];
   const seg = SEGMENTS[detail];
   // Barrel (facing the axle, seen through the spokes) and the polished lip.
   parts.push(
     revolveSided(
-      [
-        [rim - 0.012, half * 0.85],
-        [rim - 0.012, -half * 0.85],
-      ],
+      festival
+        ? [
+            [rim - 0.012, half * 0.84],
+            [rim - barrelInset * 0.65, half * 0.43],
+            [rim - barrelInset * 0.8, half * 0.23],
+            [rim - barrelInset, -half * 0.14],
+            [rim - barrelInset * 0.8, -half * 0.58],
+            [rim - 0.012, -half * 0.85],
+          ]
+        : [
+            [rim - 0.012, half * 0.85],
+            [rim - 0.012, -half * 0.85],
+          ],
       seg,
       side,
     ),
   );
-  parts.push(
-    revolveSided(
-      [
-        [rim + 0.006, half * 0.8 - 0.004],
-        [rim + 0.01, half * 0.8 + 0.01],
-        [rim + 0.004, half * 0.8 + 0.018],
-        [rim - 0.03, half * 0.8 + 0.016],
-        [rim - 0.034, half * 0.8 + 0.004],
-      ],
-      seg,
-      side,
-    ),
-  );
+  if (!festival)
+    parts.push(
+      revolveSided(
+        [
+          [rim + 0.006, half * 0.8 - 0.004],
+          [rim + 0.01, half * 0.8 + 0.01],
+          [rim + 0.004, half * 0.8 + 0.018],
+          [rim - 0.03, half * 0.8 + 0.016],
+          [rim - 0.034, half * 0.8 + 0.004],
+        ],
+        seg,
+        side,
+      ),
+    );
   const hubR = Math.max(0.035, rim * 0.24);
   if (sheet.style === 'beadlock' || sheet.style === 'kart' || detail === 2)
     // Dished centre (rim to hub, facing outboard).
@@ -154,22 +222,26 @@ function rimGeometry(sheet: WheelSheet, half: number, side: number, detail: Deta
             : wire
               ? rim * 0.022
               : rim * 0.1;
-    for (let k = 0; k < count; k++)
-      for (let q = 0; q < pair; q++) {
-        // Wire spokes cross: each pair leans a full spoke pitch apart.
-        const spread =
-          pair === 2 ? (q - 0.5) * (sheet.style === 'mesh' ? 0.5 : wire ? 1.6 : 0.2) : 0;
-        const s = spokeGeometry(
-          hubR * 0.9,
-          rim - 0.006,
-          width,
-          wire ? 0.008 : 0.026,
-          side * (wire ? 0.06 : 0.035),
-        );
-        s.rotateX(((k + spread) / count) * Math.PI * 2);
-        s.translate(side * face, 0, 0);
-        parts.push(s);
-      }
+    if (festival && sheet.style === 'split') {
+      for (let k = 0; k < count; k++)
+        parts.push(forgedSpoke(rim, hubR, face, side, detail).rotateX((k / count) * Math.PI * 2));
+    } else
+      for (let k = 0; k < count; k++)
+        for (let q = 0; q < pair; q++) {
+          // Wire spokes cross: each pair leans a full spoke pitch apart.
+          const spread =
+            pair === 2 ? (q - 0.5) * (sheet.style === 'mesh' ? 0.5 : wire ? 1.6 : 0.2) : 0;
+          const s = spokeGeometry(
+            hubR * 0.9,
+            rim - 0.006,
+            width,
+            wire ? 0.008 : 0.026,
+            side * (wire ? 0.06 : 0.035),
+          );
+          s.rotateX(((k + spread) / count) * Math.PI * 2);
+          s.translate(side * face, 0, 0);
+          parts.push(s);
+        }
     if (sheet.style === 'beadlock')
       for (let k = 0; k < 16; k++) {
         const a = (k / 16) * Math.PI * 2;
@@ -206,10 +278,66 @@ function rimGeometry(sheet: WheelSheet, half: number, side: number, detail: Deta
         );
       }
   }
-  return mergeParts(parts);
+  return mergeParts(parts, festival);
 }
-/** Merge non-indexed copies of `parts` (disposing them) with smooth normals. */
-function mergeParts(parts: T.BufferGeometry[]) {
+
+/** One additional shared-metal batch per near/mid road wheel: the bead lip,
+ * brake bell and floating fasteners. Keeping the bell out of the hot friction
+ * material prevents the whole wheel centre glowing with disc temperature. */
+function festivalWheelMetal(sheet: WheelSheet, half: number, side: number, detail: Detail) {
+  const rim = sheet.rimRadius,
+    face = half * 0.62,
+    R = rim * sheet.disc,
+    discX = face - 0.082,
+    segments = SEGMENTS[detail],
+    parts: T.BufferGeometry[] = [
+      revolveSided(
+        [
+          [rim - 0.014, half * 0.8 - 0.006],
+          [rim + 0.004, half * 0.8 - 0.004],
+          [rim + 0.008, half * 0.8 + 0.006],
+          [rim + 0.005, half * 0.8 + 0.014],
+          [rim - 0.01, half * 0.8 + 0.014],
+          [rim - 0.015, half * 0.8 + 0.005],
+          [rim - 0.014, half * 0.8 - 0.006],
+        ],
+        segments,
+        side,
+      ),
+    ];
+  if (sheet.disc > 0) {
+    parts.push(
+      revolveSided(
+        [
+          [R * 0.61, discX + 0.014],
+          [R * 0.49, discX + 0.014],
+          [R * 0.4, face - 0.042],
+          [R * 0.26, face - 0.029],
+          [R * 0.26, face - 0.035],
+          [R * 0.38, face - 0.048],
+          [R * 0.47, discX + 0.007],
+          [R * 0.61, discX + 0.007],
+          [R * 0.61, discX + 0.014],
+        ],
+        segments,
+        side,
+      ),
+    );
+    if (detail === 0)
+      for (let k = 0; k < 10; k++) {
+        const a = (k / 10) * Math.PI * 2;
+        parts.push(
+          new T.CylinderGeometry(0.006, 0.007, 0.008, 8)
+            .rotateZ(Math.PI / 2)
+            .translate(side * (discX + 0.019), Math.cos(a) * R * 0.59, Math.sin(a) * R * 0.59),
+        );
+      }
+  }
+  return mergeParts(parts, true);
+}
+/** Merge non-indexed copies and release each temporary geometry once. Keep
+ * the forged spoke's authored curved normals; legacy wheels retain theirs. */
+function mergeParts(parts: T.BufferGeometry[], preserveNormals = false) {
   const flat = parts.map((g) => {
     const f = g.index ? g.toNonIndexed() : g;
     for (const name of Object.keys(f.attributes))
@@ -217,16 +345,56 @@ function mergeParts(parts: T.BufferGeometry[]) {
     return f;
   });
   const merged = mergeGeometries(flat, false);
-  for (const g of parts) g.dispose();
-  for (const g of flat) g.dispose();
-  merged.computeVertexNormals();
+  for (const g of new Set([...parts, ...flat])) g.dispose();
+  if (!preserveNormals) merged.computeVertexNormals();
   return merged;
 }
-function discGeometry(sheet: WheelSheet, half: number, side: number, detail: Detail) {
+function discGeometry(
+  sheet: WheelSheet,
+  half: number,
+  side: number,
+  detail: Detail,
+  festival = false,
+) {
   const R = sheet.rimRadius * sheet.disc,
     x = side * half * 0.18;
   const seg = SEGMENTS[detail];
-  // A closed ventilated ring, and the bell rising outboard to the hub.
+  if (festival) {
+    const discX = side * (half * 0.62 - 0.082),
+      parts: T.BufferGeometry[] = [];
+    // Two friction plates leave a real 20 mm axial cooling gap. The radial
+    // channels open at both edges: neither edge is capped by a solid cylinder.
+    for (const axial of [-0.013, 0.013])
+      parts.push(
+        revolveX(
+          [
+            [R * 0.58, axial - 0.003],
+            [R, axial - 0.003],
+            [R, axial + 0.003],
+            [R * 0.58, axial + 0.003],
+            [R * 0.58, axial - 0.003],
+          ],
+          seg,
+        ).translate(discX, 0, 0),
+      );
+    const vanes = detail === 0 ? 32 : 20;
+    for (let k = 0; k < vanes; k++)
+      parts.push(
+        new T.BoxGeometry(0.02, R * 0.42, 0.006)
+          .translate(0, R * 0.79, 0)
+          .rotateX((k / vanes) * Math.PI * 2)
+          .translate(discX, 0, 0),
+      );
+    const geometry = mergeParts(parts);
+    geometry.userData.ventilatedRotor = {
+      coolingGapM: 0.02,
+      vanes,
+      innerRadius: R * 0.58,
+      outerRadius: R,
+    };
+    return geometry;
+  }
+  // The legacy wheel uses a closed annulus and a bell rising to the hub.
   return mergeParts([
     revolveX(
       [
@@ -248,8 +416,39 @@ function discGeometry(sheet: WheelSheet, half: number, side: number, detail: Det
     ).translate(x, 0, 0),
   ]);
 }
-function caliperGeometry(sheet: WheelSheet, half: number, side: number) {
+function caliperGeometry(
+  sheet: WheelSheet,
+  half: number,
+  side: number,
+  festival = false,
+  detail: Detail = 0,
+) {
   const R = sheet.rimRadius * sheet.disc;
+  if (festival) {
+    const x = side * (half * 0.62 - 0.082),
+      parts: T.BufferGeometry[] = [],
+      bridgeHeight = Math.min(R * 0.11, (sheet.rimRadius - R) * 0.5),
+      angle = -0.55;
+    // Opposed piston housings and two bridges straddle the rotor. The centre
+    // stays open for the rotating disc; the caliper remains on the upright.
+    for (const axial of [-1, 1]) {
+      for (const offset of [-0.16, 0.16]) {
+        const a = angle + offset;
+        parts.push(
+          roundedBox(0.019, R * 0.3, R * 0.36, 0.009, detail === 0 ? 2 : 1)
+            .translate(x + axial * 0.027, R * 0.86, 0)
+            .rotateX(a),
+        );
+      }
+    }
+    for (const offset of [-0.29, 0.29])
+      parts.push(
+        roundedBox(0.071, bridgeHeight, R * 0.11, Math.min(0.005, bridgeHeight * 0.3), 1)
+          .translate(x, R + bridgeHeight * 0.55, 0)
+          .rotateX(angle + offset),
+      );
+    return mergeParts(parts);
+  }
   // Axial x radial x tangential; straddles the disc edge at the rear-upper
   // quadrant with its outboard face proud of the disc.
   const body = roundedBox(0.075, 0.1, R * 0.62, 0.014, 2);
@@ -271,9 +470,21 @@ export class WheelAssembly {
   readonly disc: T.MeshStandardMaterial | null;
   readonly radius: number;
   readonly contact: RecordedTire;
-  constructor(radius: number, side: number, front: boolean, sheet: WheelSheet, detail: Detail) {
+  constructor(
+    radius: number,
+    side: number,
+    front: boolean,
+    sheet: WheelSheet,
+    detail: Detail,
+    festivalDetail = false,
+  ) {
     this.radius = radius;
     const half = sheet.width[front ? 0 : 1] / 2;
+    // Preserve specialist wire/beadlock/kart and all non-Festival wheel paths.
+    const festival =
+      festivalDetail &&
+      detail < 2 &&
+      ['split', 'straight', 'mesh', 'slotted'].includes(sheet.style);
     const rubber = tyreMaterial(sheet.tread);
     this.pose = rubber.pose;
     this.pose.value.set(0, 0, radius, 0);
@@ -283,18 +494,30 @@ export class WheelAssembly {
     this.contact.bind(this.tyre);
     this.pivot.add(this.tyre, this.spin);
     const rim = new T.Mesh(
-      rimGeometry(sheet, half, side, detail),
+      rimGeometry(sheet, half, side, detail, festival),
       sharedMaterials.rim(sheet.rimColor),
     );
     rim.name = 'Rim';
     this.spin.add(rim);
+    if (festival) {
+      const metal = new T.Mesh(
+        festivalWheelMetal(sheet, half, side, detail),
+        sharedMaterials.rim(0x9ba1a7),
+      );
+      metal.name = 'Machined rim lip and brake bell';
+      this.spin.add(metal);
+      this.pivot.userData.festivalWheel = {
+        forgedForks: sheet.style === 'split',
+        openCoolingChannels: sheet.disc > 0,
+      };
+    }
     if (sheet.disc > 0 && detail < 2) {
       this.disc = discMaterial();
-      const disc = new T.Mesh(discGeometry(sheet, half, side, detail), this.disc);
+      const disc = new T.Mesh(discGeometry(sheet, half, side, detail, festival), this.disc);
       disc.name = 'Brake disc';
       this.spin.add(disc);
       const caliper = new T.Mesh(
-        caliperGeometry(sheet, half, side),
+        caliperGeometry(sheet, half, side, festival, detail),
         sharedMaterials.caliper(sheet.caliperColor),
       );
       caliper.name = 'Brake caliper';

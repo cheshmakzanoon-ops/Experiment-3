@@ -43,6 +43,27 @@ const SHOTS = [
     target: [0, 1.08, -0.65],
     fov: 34,
   },
+  {
+    name: 'rh3-front-wheel',
+    vehicle: 'rh3',
+    eye: [2.08, 0.71, 2.05],
+    target: [0.79, 0.34, 1.22],
+    fov: 34,
+  },
+  {
+    name: 'sc7-front-quarter',
+    vehicle: 'sc7',
+    eye: [3.5, 2.05, 4.65],
+    target: [0, 0.77, 0.15],
+    fov: 38,
+  },
+  {
+    name: 'sc7-front-wheel',
+    vehicle: 'sc7',
+    eye: [2.15, 0.72, 2.02],
+    target: [0.83, 0.35, 1.22],
+    fov: 34,
+  },
 ] as const;
 
 const canvas = document.createElement('canvas');

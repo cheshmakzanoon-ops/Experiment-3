@@ -1,0 +1,86 @@
+{
+  "generatedAt": "2026-10-20T05:24:40.130067+00:00",
+  "validatedAppFingerprint": "902e5d1891cc37323609b9c1e8a2d6badba95026beb760cbe99e85e32ce196bb",
+  "validatedParentCommit": "0bb24350121947b165aa3ee810d7a7c22e1c32e2",
+  "currentAppFingerprint": "7365c3573037ff7d60796bed31daa970dc8540b88cd46f96643510583f76df48",
+  "currentParentCommit": "9b598d8cb063fd9663d583d5d684467b8e0fc8f8",
+  "sourceFileCount": 768,
+  "integrationMethod": "Fast-forward of disjoint upstream commits; all previously modified and new Festival files retained. Reconstruct the earlier source by replacing only changed upstream application files with base-commit bytes, and require its full fingerprint to match the validated snapshot.",
+  "reconstructedValidatedFingerprintMatches": true,
+  "upstreamChangedPaths": [
+    ".github/workflows/deploy-playable-pages.yml",
+    ".github/workflows/motogp-review.yml",
+    "docs/production/ENGINE_DYNAMICS_V13.md",
+    "docs/production/motogp-brakes-gloves-and-racecraft/README.md",
+    "docs/production/motogp-brakes-gloves-and-racecraft/geometry-validation.json",
+    "docs/production/motogp-brakes-gloves-and-racecraft/glove-validation.json",
+    "docs/production/physics-v13-verification/application-attempt.json",
+    "docs/production/physics-v13-verification/application-attempt.log",
+    "docs/production/physics-v13-verification/ci-observation.json",
+    "docs/production/physics-v13-verification/final-build-identity.json",
+    "docs/production/physics-v13-verification/final-build-receipt.json",
+    "docs/production/physics-v13-verification/final-build.log",
+    "docs/production/physics-v13-verification/publication-identity.json",
+    "e2e/fixtures/gp-course-review.ts",
+    "e2e/fixtures/motogp-reference-review.ts",
+    "e2e/gp-course-boards.spec.ts",
+    "e2e/gp-front-brake.spec.ts",
+    "e2e/gp-rider-contact.spec.ts",
+    "src/rendering/bike.ts",
+    "src/rendering/gp-brake-rotor.ts",
+    "src/rendering/gp-radial-caliper.ts",
+    "src/rendering/gp-rider-glove.ts",
+    "src/rendering/rider.ts",
+    "src/rendering/venue-kit/gp-course-bridge.ts",
+    "src/rendering/venue-kit/structures.ts",
+    "src/ui/gp-riding-cues.ts",
+    "src/ui/proximity.ts",
+    "tests/gp-brake-rotor.test.ts",
+    "tests/gp-course-bridge.test.ts",
+    "tests/gp-proximity.test.ts",
+    "tests/gp-radial-caliper.test.ts",
+    "tests/gp-rider-glove.test.ts"
+  ],
+  "upstreamChangedApplicationPaths": [
+    "src/rendering/bike.ts",
+    "src/rendering/gp-brake-rotor.ts",
+    "src/rendering/gp-radial-caliper.ts",
+    "src/rendering/gp-rider-glove.ts",
+    "src/rendering/rider.ts",
+    "src/rendering/venue-kit/gp-course-bridge.ts",
+    "src/rendering/venue-kit/structures.ts",
+    "src/ui/gp-riding-cues.ts",
+    "src/ui/proximity.ts"
+  ],
+  "unchangedScopes": {
+    "src/simulation/": {
+      "unchanged": true,
+      "fileCount": 139,
+      "fingerprint": "5133320940d9ab107c07c237724e961bf09ac7e6b8661a50f33c6d3722900d6b"
+    },
+    "src/rendering/vehicle-bodies/": {
+      "unchanged": true,
+      "fileCount": 16,
+      "fingerprint": "f56b19c84c05167eb6076beb031ad8079fc0dca66cd3b0f840b11ca814b198ce"
+    },
+    "src/rendering/open-world/": {
+      "unchanged": true,
+      "fileCount": 32,
+      "fingerprint": "cc635296c502e9838136760b55c89fe8e228d1bb5b45ef1d29d48f6d7650c53c"
+    },
+    "src/session/free-roam.ts": {
+      "unchanged": true,
+      "fileCount": 1,
+      "fingerprint": "369afb8b3a321b451b497c13a3b59a12894b0dee48a45e7c1dd97d849df1be3d"
+    },
+    "src/ui/festival": {
+      "unchanged": true,
+      "fileCount": 3,
+      "fingerprint": "8c58cdeef3b8983f1d899c52ca000fdd5e92a172d968cffc7dbde4e504011413"
+    }
+  },
+  "limitations": [
+    "The 902e5d build, unit, full-event physics and isolated car reports predate these disjoint upstream updates. The final world report records the combined application fingerprint.",
+    "This identity comparison proves byte equality for listed scopes; it does not claim to retest MotoGP or the new deployment workflow."
+  ]
+}

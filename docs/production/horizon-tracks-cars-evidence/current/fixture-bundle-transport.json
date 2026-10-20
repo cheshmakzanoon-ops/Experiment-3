@@ -1,0 +1,90 @@
+{
+  "generatedAt": "2026-10-20T05:36:20.397556+00:00",
+  "applicationFingerprint": "7365c3573037ff7d60796bed31daa970dc8540b88cd46f96643510583f76df48",
+  "mode": "production Vite bundle of the real Festival integration fixture",
+  "buildExitCode": 0,
+  "buildOverrides": {
+    "base": "/",
+    "publicDir": false,
+    "build": {
+      "outDir": "test-results/horizon-current/club-bundle",
+      "emptyOutDir": true,
+      "copyPublicDir": false,
+      "minify": false,
+      "sourcemap": false,
+      "rollupOptions": {
+        "input": "e2e/fixtures/horizon-session.html"
+      }
+    }
+  },
+  "inherits": "vite.config.ts, source-identity plugin, es2022 target, Three.js chunking, inline real workers",
+  "staticServing": {
+    "host": "127.0.0.1",
+    "port": 5193,
+    "searchOrder": [
+      "test-results/horizon-current/club-bundle",
+      "public"
+    ],
+    "streaming": true,
+    "isolationHeadersChanged": false,
+    "helperSha256": "126fac3f683612ed9917e28714e350d191b05501b32fbc89a8dc2fba56b2e09b"
+  },
+  "files": [
+    {
+      "path": "BUILD_IDENTITY.json",
+      "bytes": 122,
+      "sha256": "37500f3457f8acf88660e5cf5795e65beeedc02ae00ff5d317dbc428b77027b1"
+    },
+    {
+      "path": "e2e/fixtures/horizon-session.html",
+      "bytes": 1252,
+      "sha256": "11bd08276dc188c730ae1c11ba3b70a8b829bf578e994e67a66f09a2670feede"
+    },
+    {
+      "path": "assets/horizon-session-6328r50B.js",
+      "bytes": 5398797,
+      "sha256": "71b452c49451d6976ff54bf1f561f3207c934784a04bbd53f8ad95028b752b8f"
+    },
+    {
+      "path": "assets/three-aSAqwLP9.js",
+      "bytes": 1311362,
+      "sha256": "f2756b2547b0838d37266bc5704b065c751b0b473f705a33d1c039f4ae33d6c3"
+    }
+  ],
+  "transportChecks": [
+    {
+      "path": "/assets/horizon-session-6328r50B.js",
+      "status": 200,
+      "length": "5398797",
+      "type": "application/javascript"
+    },
+    {
+      "path": "/assets/three-aSAqwLP9.js",
+      "status": 200,
+      "length": "1311362",
+      "type": "application/javascript"
+    },
+    {
+      "path": "/assets/horizon-session-Dw6zlUq5.css",
+      "status": 200,
+      "length": "25668",
+      "type": "text/css"
+    },
+    {
+      "path": "/models/solvane/detail-kit.glb",
+      "status": 200,
+      "length": "1794216",
+      "type": "model/gltf-binary"
+    },
+    {
+      "path": "/models/solvane/detail-kit.glb",
+      "status": 206,
+      "contentRange": "bytes 0-15/1794216",
+      "bytes": 16
+    }
+  ],
+  "limitations": [
+    "A focused Festival fixture build, not a new full-product minified build.",
+    "Unminified production-mode chunks are used to bound preparation cost; the unchanged review harness and medium graphics preset exercise the actual Festival implementation."
+  ]
+}

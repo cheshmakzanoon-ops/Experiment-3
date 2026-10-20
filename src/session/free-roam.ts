@@ -79,7 +79,7 @@ export interface FestivalStartOptions {
   seed?: number;
   /** Session identity for result run ids (the career pays each run once). */
   session?: string;
-  /** Fast-travel to this discovered event once the region has streamed in
+  /** Fast-travel to this event once the region has streamed in
    * (a career start). */
   travel?: string;
   /** The machine is the career's loan: driven this session, but not saved
@@ -283,10 +283,9 @@ export class FestivalSession {
     await host.audio?.start().catch(() => undefined);
     host.loaded();
     this.post({ type: 'pause', value: false });
-    // A career start goes straight to its event (discovered: the card opens
-    // on arrival, a skill challenge starts at its entry gate).
-    if (options.travel && this.save.discovered.includes(options.travel))
-      await this.travel(options.travel);
+    // Any selected festival route is reachable on a fresh save. Race cards
+    // open on arrival; skill challenges still start at their entry gates.
+    if (options.travel) await this.travel(options.travel);
   }
   private post(message: ToOpenWorld, transfer: Transferable[] = []) {
     if (this.disposed) return;
@@ -410,7 +409,7 @@ export class FestivalSession {
       this.post({ type: 'command', command, requestId });
     });
   }
-  /** Fast travel to a discovered event: the car is placed at once, and the
+  /** Fast travel to an event: the car is placed at once, and the
    * simulation stays held behind the loading screen until the terrain and
    * cover at the destination are resident (bounded wait), so the player
    * never drives onto coarse or missing ground. */

@@ -1,16 +1,16 @@
 import { clamp, Vec3 } from '../../core/math.ts';
 import { AUREL, STANDARD_PIT, type CircuitDefinition } from '../circuits.ts';
 import type { WeatherPreset } from '../config.ts';
-import {
-  SURFACE,
-  trackPoint,
-  type SurfaceSample,
-  type Track,
-  type TrackPoint,
-} from '../track.ts';
+import { SURFACE, trackPoint, type SurfaceSample, type Track, type TrackPoint } from '../track.ts';
 import { MATERIAL } from '../surface-material.ts';
-import { advanceWater, weatherKeyframes, WeatherTimeline, type WeatherKeyframe } from '../weather.ts';
+import {
+  advanceWater,
+  weatherKeyframes,
+  WeatherTimeline,
+  type WeatherKeyframe,
+} from '../weather.ts';
 import { MAX_ROAD_CANDIDATES, ROAD_FLAG, roadCandidates } from './road-network.ts';
+import { festivalMarkings, type FestivalMarkings } from './festival-markings.ts';
 import { smoothstep } from './noise.ts';
 import { TILE_STEP } from './terrain-tiles.ts';
 import { BIOME, type Biome } from './terrain-field.ts';
@@ -150,6 +150,7 @@ export class OpenWorldTrack {
   private lastSegment = 0;
   private lastLayer = true;
   private readonly point = trackPoint();
+  private readonly circuitMarkings: FestivalMarkings;
   private readonly candidatePoint = trackPoint();
   private readonly candidates = roadCandidates();
   private readonly order = new Int32Array(MAX_ROAD_CANDIDATES);
@@ -181,6 +182,7 @@ export class OpenWorldTrack {
     tileBudget = 64,
   ) {
     this.network = world.network;
+    this.circuitMarkings = festivalMarkings(this.network);
     this.field = world.field;
     this.tiles = world.tileCache(tileBudget);
     this.length = world.network.totalStation;
@@ -258,14 +260,32 @@ export class OpenWorldTrack {
   /** Road surface class at a lateral offset (markings, shoulders); a point
    * further than the half-width from the centreline (a shoulder, or the
    * rounded end of a piece at a junction) is shoulder. */
-  private roadSurface(edge: number, lateral: number, distance: number): WorldSurface {
+  private roadSurface(
+    edge: number,
+    segment: number,
+    station: number,
+    lateral: number,
+    distance: number,
+    x: number,
+    z: number,
+  ): WorldSurface {
     const e = this.network.edges[edge],
       spec = e.spec,
       a = Math.abs(lateral),
       hw = spec.halfWidth;
     if (Math.max(a, distance) > hw)
-      return spec.surface === 'dirt' || e.roadClass !== 'highway' ? WORLD_SURFACE.SHOULDER : WORLD_SURFACE.ASPHALT;
+      return spec.surface === 'dirt' || e.roadClass !== 'highway'
+        ? WORLD_SURFACE.SHOULDER
+        : WORLD_SURFACE.ASPHALT;
     if (spec.surface === 'dirt') return WORLD_SURFACE.DIRT_ROAD;
+    if (spec.markings === 'edge') {
+      // Edge lines, flush red/white aprons and the checker/grid outlines
+      // share their metre-scale footprint with the rendered course. Paint
+      // keeps its own wet-friction response; unpainted box centres do not.
+      return this.circuitMarkings.isPaint(edge, segment, station, lateral, x, z)
+        ? WORLD_SURFACE.MARKING
+        : WORLD_SURFACE.ASPHALT;
+    }
     if (spec.markings !== 'none') {
       // Edge lines, then the centre line (solid on mountain and town roads,
       // dashed elsewhere; the solid width is the physical paint).
@@ -475,7 +495,10 @@ export class OpenWorldTrack {
       if (c.outside[k] !== 0 || Math.abs(roadH[k] - height) > OWNER_TOLERANCE) continue;
       const spec = net.edges[net.edgeOf[c.segment[k]]].spec,
         margin = spec.halfWidth + spec.shoulder - c.distance[k],
-        score = (c.distance[k] <= spec.halfWidth ? 2 : 0) + (spec.surface === 'dirt' ? 0 : 1) + margin / 100;
+        score =
+          (c.distance[k] <= spec.halfWidth ? 2 : 0) +
+          (spec.surface === 'dirt' ? 0 : 1) +
+          margin / 100;
       if (score > rank) {
         rank = score;
         owner = k;
@@ -491,7 +514,7 @@ export class OpenWorldTrack {
       const i = c.segment[owner],
         roadLateral = this.candLateral[owner];
       edge = net.edgeOf[i];
-      surface = this.roadSurface(edge, roadLateral, c.distance[owner]);
+      surface = this.roadSurface(edge, i, this.candS[owner], roadLateral, c.distance[owner], x, z);
       q.bridge = c.bridge[owner] === 1;
       q.layer = true;
       // Station and lateral on the road the point is on.
@@ -514,7 +537,9 @@ export class OpenWorldTrack {
       surface = BIOME_SURFACE[this.field.biome(x, z, height, slope)];
       // Water stands above sea level and in the river channel.
       const valley = this.field.valleyAt(x, z);
-      const level = valley.channel ? Math.max(valley.water, this.field.region.seaLevel) : this.field.region.seaLevel;
+      const level = valley.channel
+        ? Math.max(valley.water, this.field.region.seaLevel)
+        : this.field.region.seaLevel;
       if (height < level - 0.05) {
         q.waterDepth = level - height;
         surface = WORLD_SURFACE.WATER;
@@ -553,7 +578,8 @@ export class OpenWorldTrack {
         denominator = down.x * n.x + down.y * n.y + down.z * n.z;
       if (denominator > -0.05) return Infinity;
       // Plane through (x, height, z) with normal n.
-      t = ((x - origin.x) * n.x + (out.height - origin.y) * n.y + (z - origin.z) * n.z) / denominator;
+      t =
+        ((x - origin.x) * n.x + (out.height - origin.y) * n.y + (z - origin.z) * n.z) / denominator;
       if (t > maximum + 0.5) return Infinity;
       x = origin.x + down.x * t;
       z = origin.z + down.z * t;
@@ -565,6 +591,24 @@ export class OpenWorldTrack {
     const hit = this.castPoint.copy(origin).addScaled(down, t);
     out.height = hit.y;
     return Math.max(0, t);
+  }
+  /** Wheel-centre support on the same analytic road and terrain planes.
+   * Keep the contact point on the ground while accounting for tyre radius
+   * along its normal, including when the suspension ray is tilted. */
+  castTire(
+    origin: Vec3,
+    down: Vec3,
+    maximum: number,
+    radius: number,
+    _halfWidth: number,
+    _axle: Vec3,
+    out: SurfaceSample,
+    point: Vec3,
+  ) {
+    const distance = this.cast(origin, down, maximum, out);
+    if (!Number.isFinite(distance)) return Infinity;
+    point.copy(origin).addScaled(down, distance);
+    return distance - radius / Math.max(0.15, -down.dot(out.normal));
   }
   /** Ground height only (spawning, recovery, scripts). */
   groundHeight(x: number, z: number, y?: number) {
@@ -580,7 +624,12 @@ export class OpenWorldTrack {
     this.surfaceClock = 0;
     // A drained road: rain fills it, run-off and evaporation empty it.
     const evaporation = (1 - this.cloud) * 0.0006;
-    this.wetness = advanceWater(this.wetness, Math.max(0, this.rain / 3600 - evaporation), 0.004, step);
+    this.wetness = advanceWater(
+      this.wetness,
+      Math.max(0, this.rain / 3600 - evaporation),
+      0.004,
+      step,
+    );
   }
   interact() {}
   meanWater() {

@@ -50,7 +50,7 @@ const stars = (n: number) => '★'.repeat(n) + '☆'.repeat(Math.max(0, 3 - n));
  * running event (countdown, position, lap, time, progress, live trap/zone/
  * drift metric); results with stars and standings; messages; the pause menu
  * (resume, reset, time of day, machine from the vehicle registry, autopilot,
- * ambient traffic, travel to discovered events, exit) and a full world map.
+ * ambient traffic, travel to every event, exit) and a full world map.
  */
 export class FestivalHud {
   readonly root: HTMLElement;
@@ -250,6 +250,7 @@ export class FestivalHud {
     const style: Record<string, [string, number]> = {
       highway: ['#f2c14e', 7],
       runway: ['#9aa0a6', 12],
+      circuit: ['#a6d8bd', 5.6],
       country: ['#eef0f2', 4.2],
       mountain: ['#ff9b5e', 4.2],
       town: ['#c9d2e3', 3.4],
@@ -366,8 +367,8 @@ export class FestivalHud {
         )
         .join('');
       this.get('festMapDetail').innerHTML = selected
-        ? `<span class="fest-eyebrow">${discovered.has(selected.spec.id) ? 'DISCOVERED EVENT' : 'EXPLORE THE REGION'}</span><h3>${escapeHtml(selected.spec.name)}</h3><p>${escapeHtml(selected.spec.blurb)}</p>${discovered.has(selected.spec.id) ? `<button class="fest-primary" data-fest="travel" data-value="${escapeHtml(selected.spec.id)}">TRAVEL TO EVENT</button>` : '<p class="fest-muted">Drive near the marker to discover this event and unlock fast travel.</p>'}`
-        : '<span class="fest-eyebrow">CHOOSE YOUR NEXT DRIVE</span><p>Select an event to preview its route. Discovered events are available for fast travel.</p>';
+        ? `<span class="fest-eyebrow">${discovered.has(selected.spec.id) ? 'DISCOVERED EVENT' : 'NEW ROUTE'}</span><h3>${escapeHtml(selected.spec.name)}</h3><p>${escapeHtml(selected.spec.blurb)}</p><button class="fest-primary" data-fest="travel" data-value="${escapeHtml(selected.spec.id)}">TRAVEL TO EVENT</button>`
+        : '<span class="fest-eyebrow">CHOOSE YOUR NEXT DRIVE</span><p>Select an event to preview its route. Every road, race and practice lap is ready to explore.</p>';
       for (const button of this.get('festMap').querySelectorAll<HTMLElement>(
         '[data-fest="mapFilter"]',
       ))
@@ -773,15 +774,14 @@ export class FestivalHud {
       <section><h3>Your machine <span>${this.vehicles.length} AVAILABLE</span></h3><div class="fest-options fest-garage">${this.vehicles.map((v) => `<button data-fest="vehicle" data-value="${escapeHtml(v.id)}" ${pressed(state.vehicle === v.id)}><span>${escapeHtml(v.name)}</span><small>${escapeHtml(v.classId.toUpperCase())} · ${Math.round(v.spec.dryMass).toLocaleString('en')} KG</small></button>`).join('')}</div></section></div><div>
       <section><h3>Autopilot</h3><div class="fest-options"><button data-fest="autopilot" data-value="on" ${pressed(state.autopilot)}>On</button><button data-fest="autopilot" data-value="off" ${pressed(!state.autopilot)}>Off</button></div></section>
       <section><h3>Ambient traffic</h3><div class="fest-options"><button data-fest="traffic" data-value="on" ${pressed(state.traffic !== false)}>Traffic on</button><button data-fest="traffic" data-value="off" ${pressed(state.traffic === false)}>Traffic off</button>${state.inEvent ? '<span>Off while an event runs.</span>' : ''}</div></section>
-      <section><h3>Travel to a discovered event</h3><div class="fest-options">${
-        this.events
-          .filter((e) => state.discovered.includes(e.spec.id))
-          .map(
-            (e) =>
-              `<button data-fest="travel" data-value="${escapeHtml(e.spec.id)}">${escapeHtml(e.spec.name)} · ${escapeHtml(EVENT_KIND_LABEL[e.spec.kind])}</button>`,
-          )
-          .join('') || '<span>Drive near an event marker to discover it.</span>'
-      }</div></section><section class="fest-driving-note"><h3>Make the drive count</h3><p>Link clean speed, drifts, traffic passes and clean landings into a skill chain. Land upright and hold your line to secure airtime points, then return to the road and let the chain bank. Autopilot runs are marked assisted.</p><p><kbd>R</kbd> Reset to road &nbsp; <kbd>G</kbd> Autopilot</p></section></div></div>`;
+      <section><h3>Choose your next drive <span>${this.events.length} AVAILABLE</span></h3><div class="fest-options">${this.events
+        .map(
+          (e) =>
+            `<button data-fest="travel" data-value="${escapeHtml(e.spec.id)}">${escapeHtml(e.spec.name)} · ${escapeHtml(EVENT_KIND_LABEL[e.spec.kind])}</button>`,
+        )
+        .join(
+          '',
+        )}</div></section><section class="fest-driving-note"><h3>Make the drive count</h3><p>Link clean speed, drifts, traffic passes and clean landings into a skill chain. Land upright and hold your line to secure airtime points, then return to the road and let the chain bank. Autopilot runs are marked assisted.</p><p><kbd>R</kbd> Reset to road &nbsp; <kbd>G</kbd> Autopilot</p></section></div></div>`;
     node.querySelector<HTMLElement>('[data-fest="resume"]')?.focus();
   }
   /** Is a dialog that owns Enter visible? */

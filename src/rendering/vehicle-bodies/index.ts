@@ -28,6 +28,7 @@ import {
 } from '../snapshot-interpolation.ts';
 import { bodySheetFor, type BodySheet } from './body-sheet.ts';
 import { buildClosedBody, ClosedBodyModel } from './closed-body.ts';
+import { festivalDetailFor } from './festival-detail.ts';
 import { carMaterials, emptyLod, type BuiltLod, type CarMaterials } from './common.ts';
 import { bodyFrame, type BodyFrame } from './frame.ts';
 import { buildKart, buildOpenWheel, type Link } from './open-wheel.ts';
@@ -120,6 +121,7 @@ export function buildVehicleBody(id: number, definition: VehicleDefinition, shee
         i < 2,
         sheet.wheels,
         detail,
+        !!closed && festivalDetailFor(definition, closed),
       );
       assembly.pivot.position.set(p[0], i < 2 ? frame.hubFront : frame.hubRear, p[2]);
       lod.group.add(assembly.pivot);

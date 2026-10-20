@@ -1,0 +1,72 @@
+{
+  "scope": "Separate focused native-keyboard SC7/practice/photo/capture/exit review; not a pass of the earlier complete nine-step review",
+  "generatedAt": "2026-10-20T05:52:09.304Z",
+  "expectedSourceFingerprint": "7365c3573037ff7d60796bed31daa970dc8540b88cd46f96643510583f76df48",
+  "quality": "medium",
+  "viewport": {
+    "width": 1120,
+    "height": 700
+  },
+  "initialSave": {
+    "discovered": [],
+    "vehicle": "rh3"
+  },
+  "budgetsMs": {
+    "loading": 180000,
+    "interaction": 90000,
+    "captureReadback": 360000,
+    "failureState": 10000,
+    "shutdown": 15000
+  },
+  "priorPointerReview": {
+    "path": "test-results/horizon-current/browser-bundled/review.json",
+    "functionalPassed": false,
+    "sourceFingerprint": "7365c3573037ff7d60796bed31daa970dc8540b88cd46f96643510583f76df48",
+    "failure": "locator.click: Timeout 90000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#festMenu [data-fest=\"photo\"]')\u001b[22m\n\u001b[2m    - locator resolved to <button data-fest=\"photo\" class=\"fest-secondary\">PHOTO MODE</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n",
+    "stepsPassed": [
+      "fresh-save RH3 travels to the real club race marker without discovery gating",
+      "new circuit appears in the world map and returns to driving",
+      "manual RH3 throttle and braking on the actual circuit"
+    ]
+  },
+  "limitations": [
+    "Software GPU; no target-device FPS or photographic-realism claim",
+    "Automatic GPU submissions suppressed; the real worker, input, HUD and production renderer remain active",
+    "Native Enter activation follows verified visible/enabled/focused real UI buttons; no direct command injection or JavaScript click",
+    "Captures are exact fixture canvas PNG readbacks at the main runner inspection camera coordinates; UI overlay is excluded",
+    "No repetition of the failed full-review pointer activation, abandon/retry or RH3 pedal checks"
+  ],
+  "steps": [],
+  "buttons": [],
+  "captures": [],
+  "loadingStages": [],
+  "errors": [],
+  "failedAssets": [],
+  "failedRequests": [],
+  "focusedPassed": false,
+  "resourcesBeforeLaunch": {
+    "memory.current": "7019061248",
+    "memory.max": "8589934592",
+    "memory.events": "low 0\nhigh 0\nmax 1945156\noom 137\noom_kill 22\noom_group_kill 0"
+  },
+  "failure": {
+    "message": "browserType.launch: Target page, context or browser has been closed\nBrowser logs:\n\n<launching> /root/.cache/ms-playwright/chromium_headless_shell-1193/chrome-linux/headless_shell --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phishing-detection --disable-component-extensions-with-background-pages --disable-component-update --no-default-browser-check --disable-default-apps --disable-dev-shm-usage --disable-extensions --disable-features=AcceptCHFrame,AvoidUnnecessaryBeforeUnloadCheckSync,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,Translate,AutoDeElevate --allow-pre-commit-input --disable-hang-monitor --disable-ipc-flooding-protection --disable-popup-blocking --disable-prompt-on-repost --disable-renderer-backgrounding --force-color-profile=srgb --metrics-recording-only --no-first-run --password-store=basic --use-mock-keychain --no-service-autorun --export-tagged-pdf --disable-search-engine-choice-screen --unsafely-disable-devtools-self-xss-warnings --edge-skip-compat-layer-relaunch --enable-automation --headless --hide-scrollbars --mute-audio --blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4 --no-sandbox --no-sandbox --use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --user-data-dir=/tmp/playwright_chromiumdev_profile-rwFGMk --remote-debugging-pipe --no-startup-window\n<launched> pid=16\n[pid=16][err] [1020/135209.446149:FATAL:content/browser/sandbox_host_linux.cc:41] Check failed: . shutdown: Operation not permitted (1)\nCall log:\n\u001b[2m  - <launching> /root/.cache/ms-playwright/chromium_headless_shell-1193/chrome-linux/headless_shell --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phishing-detection --disable-component-extensions-with-background-pages --disable-component-update --no-default-browser-check --disable-default-apps --disable-dev-shm-usage --disable-extensions --disable-features=AcceptCHFrame,AvoidUnnecessaryBeforeUnloadCheckSync,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,Translate,AutoDeElevate --allow-pre-commit-input --disable-hang-monitor --disable-ipc-flooding-protection --disable-popup-blocking --disable-prompt-on-repost --disable-renderer-backgrounding --force-color-profile=srgb --metrics-recording-only --no-first-run --password-store=basic --use-mock-keychain --no-service-autorun --export-tagged-pdf --disable-search-engine-choice-screen --unsafely-disable-devtools-self-xss-warnings --edge-skip-compat-layer-relaunch --enable-automation --headless --hide-scrollbars --mute-audio --blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4 --no-sandbox --no-sandbox --use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --user-data-dir=/tmp/playwright_chromiumdev_profile-rwFGMk --remote-debugging-pipe --no-startup-window\u001b[22m\n\u001b[2m  - <launched> pid=16\u001b[22m\n\u001b[2m  - [pid=16][err] [1020/135209.446149:FATAL:content/browser/sandbox_host_linux.cc:41] Check failed: . shutdown: Operation not permitted (1)\u001b[22m\n\u001b[2m  - [pid=16] <gracefully close start>\u001b[22m\n\u001b[2m  - [pid=16] <kill>\u001b[22m\n\u001b[2m  - [pid=16] <will force kill>\u001b[22m\n\u001b[2m  - [pid=16] exception while trying to kill process: Error: kill ESRCH\u001b[22m\n\u001b[2m  - [pid=16] <process did exit: exitCode=null, signal=SIGTRAP>\u001b[22m\n\u001b[2m  - [pid=16] starting temporary directories cleanup\u001b[22m\n\u001b[2m  - [pid=16] finished temporary directories cleanup\u001b[22m\n\u001b[2m  - [pid=16] <gracefully close end>\u001b[22m\n",
+    "stack": "browserType.launch: Target page, context or browser has been closed\nBrowser logs:\n\n<launching> /root/.cache/ms-playwright/chromium_headless_shell-1193/chrome-linux/headless_shell --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phishing-detection --disable-component-extensions-with-background-pages --disable-component-update --no-default-browser-check --disable-default-apps --disable-dev-shm-usage --disable-extensions --disable-features=AcceptCHFrame,AvoidUnnecessaryBeforeUnloadCheckSync,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,Translate,AutoDeElevate --allow-pre-commit-input --disable-hang-monitor --disable-ipc-flooding-protection --disable-popup-blocking --disable-prompt-on-repost --disable-renderer-backgrounding --force-color-profile=srgb --metrics-recording-only --no-first-run --password-store=basic --use-mock-keychain --no-service-autorun --export-tagged-pdf --disable-search-engine-choice-screen --unsafely-disable-devtools-self-xss-warnings --edge-skip-compat-layer-relaunch --enable-automation --headless --hide-scrollbars --mute-audio --blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4 --no-sandbox --no-sandbox --use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --user-data-dir=/tmp/playwright_chromiumdev_profile-rwFGMk --remote-debugging-pipe --no-startup-window\n<launched> pid=16\n[pid=16][err] [1020/135209.446149:FATAL:content/browser/sandbox_host_linux.cc:41] Check failed: . shutdown: Operation not permitted (1)\nCall log:\n\u001b[2m  - <launching> /root/.cache/ms-playwright/chromium_headless_shell-1193/chrome-linux/headless_shell --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phishing-detection --disable-component-extensions-with-background-pages --disable-component-update --no-default-browser-check --disable-default-apps --disable-dev-shm-usage --disable-extensions --disable-features=AcceptCHFrame,AvoidUnnecessaryBeforeUnloadCheckSync,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,Translate,AutoDeElevate --allow-pre-commit-input --disable-hang-monitor --disable-ipc-flooding-protection --disable-popup-blocking --disable-prompt-on-repost --disable-renderer-backgrounding --force-color-profile=srgb --metrics-recording-only --no-first-run --password-store=basic --use-mock-keychain --no-service-autorun --export-tagged-pdf --disable-search-engine-choice-screen --unsafely-disable-devtools-self-xss-warnings --edge-skip-compat-layer-relaunch --enable-automation --headless --hide-scrollbars --mute-audio --blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4 --no-sandbox --no-sandbox --use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --user-data-dir=/tmp/playwright_chromiumdev_profile-rwFGMk --remote-debugging-pipe --no-startup-window\u001b[22m\n\u001b[2m  - <launched> pid=16\u001b[22m\n\u001b[2m  - [pid=16][err] [1020/135209.446149:FATAL:content/browser/sandbox_host_linux.cc:41] Check failed: . shutdown: Operation not permitted (1)\u001b[22m\n\u001b[2m  - [pid=16] <gracefully close start>\u001b[22m\n\u001b[2m  - [pid=16] <kill>\u001b[22m\n\u001b[2m  - [pid=16] <will force kill>\u001b[22m\n\u001b[2m  - [pid=16] exception while trying to kill process: Error: kill ESRCH\u001b[22m\n\u001b[2m  - [pid=16] <process did exit: exitCode=null, signal=SIGTRAP>\u001b[22m\n\u001b[2m  - [pid=16] starting temporary directories cleanup\u001b[22m\n\u001b[2m  - [pid=16] finished temporary directories cleanup\u001b[22m\n\u001b[2m  - [pid=16] <gracefully close end>\u001b[22m\n\n    at /workspace/scratch/bea6757b1f23/Experiment-3/test-results/horizon-current/focused-review/runner.mjs:134:28"
+  },
+  "resourcesAtFailure": {
+    "memory.current": "7041646592",
+    "memory.max": "8589934592",
+    "memory.events": "low 0\nhigh 0\nmax 1945156\noom 137\noom_kill 22\noom_group_kill 0"
+  },
+  "elapsedMs": 196.70688700000028,
+  "resourcesBeforeCleanup": {
+    "memory.current": "7042166784",
+    "memory.max": "8589934592",
+    "memory.events": "low 0\nhigh 0\nmax 1945156\noom 137\noom_kill 22\noom_group_kill 0"
+  },
+  "resourcesAfterCleanup": {
+    "memory.current": "7042678784",
+    "memory.max": "8589934592",
+    "memory.events": "low 0\nhigh 0\nmax 1945156\noom 137\noom_kill 22\noom_group_kill 0"
+  }
+}

@@ -102,7 +102,7 @@ describe('Festival lane and junction metadata', () => {
       expect(a).toEqual(festivalRoadProfile(net, edge, edge.length / 2));
       expect(a[0]).toBe(edge.spec.halfWidth);
       expect(a[1]).toBe(
-        edge.roadClass === 'runway'
+        edge.roadClass === 'runway' || edge.roadClass === 'circuit'
           ? 0
           : edge.spec.halfWidth / (edge.roadClass === 'highway' ? 2 : 1),
       );

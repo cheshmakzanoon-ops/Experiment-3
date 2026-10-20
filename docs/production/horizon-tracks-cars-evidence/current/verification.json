@@ -1,0 +1,147 @@
+{
+  "version": 1,
+  "generatedAt": "2026-10-20T06:09:18.578192+00:00",
+  "status": "implemented-with-documented-browser-limits",
+  "parentCommitAtFinalAssembly": "54c886dae43f6687a2d1c27f89eab96b3468c2e5",
+  "applicationFingerprint": "2a21aee53d71dd7611766cf50802ab7346dde8676b37dc7347f178055f71cdd4",
+  "earlierValidatedApplicationFingerprint": "902e5d1891cc37323609b9c1e8a2d6badba95026beb760cbe99e85e32ce196bb",
+  "sourceIdentity": {
+    "definition": "SHA-256 over sorted src file paths plus package-lock.json, index.html, and vite.config.ts; each path and byte content is followed by NUL.",
+    "boundaryReport": "upstream-source-boundary.json",
+    "finalStaticReport": "final-static/review.json",
+    "scope": "All Festival simulation, car builders, open-world rendering, free-roam session and Festival UI modules are unchanged across both later integrations. The one shared Interface overlap preserves the incoming GP practice methods and our Festival description.",
+    "publicationBoundaryReport": "publication-source-boundary.json",
+    "publicationStaticReport": "publication-static/review.json"
+  },
+  "checks": {
+    "references": {
+      "passed": true,
+      "images": 100,
+      "report": "reference-audit.json"
+    },
+    "unit": {
+      "passed": true,
+      "testsPassed": 156,
+      "testsFailed": 0,
+      "files": 19,
+      "report": "unit.json",
+      "sourceFingerprint": "902e5d1891cc37323609b9c1e8a2d6badba95026beb760cbe99e85e32ce196bb"
+    },
+    "completeEventPhysics": {
+      "passed": true,
+      "sourceStable": true,
+      "report": "physics.json",
+      "sourceFingerprint": "902e5d1891cc37323609b9c1e8a2d6badba95026beb760cbe99e85e32ce196bb",
+      "runs": [
+        {
+          "vehicle": "rh3",
+          "weather": "clear",
+          "eventId": "saltmarsh-club-race",
+          "laps": 2,
+          "timeSeconds": 196.6333333333161,
+          "peakKmh": 196.88180932467014,
+          "maxLateralM": 4.356015634816109,
+          "playerContacts": 0,
+          "playerOffRouteSeconds": 0,
+          "playerReplacements": 0,
+          "minimumUpright": 0.9952080975512708
+        },
+        {
+          "vehicle": "sc7",
+          "weather": "clear",
+          "eventId": "saltmarsh-club-race",
+          "laps": 2,
+          "timeSeconds": 167.40000000000936,
+          "peakKmh": 246.33031373464644,
+          "maxLateralM": 4.425744787311599,
+          "playerContacts": 0,
+          "playerOffRouteSeconds": 0,
+          "playerReplacements": 0,
+          "minimumUpright": 0.995540125019485
+        },
+        {
+          "vehicle": "rh3",
+          "weather": "rain",
+          "eventId": "saltmarsh-practice",
+          "laps": 1,
+          "timeSeconds": 149.46666666669233,
+          "peakKmh": 154.48707703850963,
+          "maxLateralM": 4.760329267771248,
+          "playerContacts": 0,
+          "playerOffRouteSeconds": 0,
+          "playerReplacements": 0,
+          "minimumUpright": 0.9923949972920113
+        }
+      ]
+    },
+    "currentCarComparisons": {
+      "passed": true,
+      "reports": [
+        "vehicles-rh3/review.json",
+        "vehicles-sc7/review.json"
+      ],
+      "sourceFingerprint": "902e5d1891cc37323609b9c1e8a2d6badba95026beb760cbe99e85e32ce196bb",
+      "scope": "Matched static studio before/after geometry, shader and readback checks; no target-device FPS claim."
+    },
+    "fullProductionBuild": {
+      "passed": true,
+      "report": "validation-stages.json",
+      "identity": "build-identity.json",
+      "sourceFingerprint": "902e5d1891cc37323609b9c1e8a2d6badba95026beb760cbe99e85e32ce196bb",
+      "scope": "Guarded TypeScript and complete Vite production build before the disjoint MotoGP commits."
+    },
+    "currentFixtureBundle": {
+      "passed": true,
+      "sourceFingerprint": "7365c3573037ff7d60796bed31daa970dc8540b88cd46f96643510583f76df48",
+      "identity": "fixture-bundle-identity.json",
+      "buildLog": "fixture-bundle-build.log",
+      "transport": "fixture-bundle-transport.json",
+      "scope": "Production-mode Festival fixture build with original Vite settings except inspection output/minification options; not a second full-product minified build."
+    },
+    "fullBrowser": {
+      "passed": false,
+      "status": "partial",
+      "completedSteps": 3,
+      "report": "browser-diagnostic/bundled-pointer-timeout.json",
+      "originalStartupBudgetMet": false
+    },
+    "focusedBrowser": {
+      "passed": true,
+      "completedSteps": 8,
+      "captures": 2,
+      "sourceFingerprint": "7365c3573037ff7d60796bed31daa970dc8540b88cd46f96643510583f76df48",
+      "report": "world/focused-review.json"
+    },
+    "worldCaptureReview": {
+      "status": "accepted-with-visible-landscape-limits",
+      "images": 3,
+      "report": "world/review.json"
+    },
+    "prePublicationCombinedTypecheckAndLint": {
+      "passed": true,
+      "sourceStable": true,
+      "sourceFingerprint": "7365c3573037ff7d60796bed31daa970dc8540b88cd46f96643510583f76df48",
+      "report": "final-static/review.json"
+    },
+    "publicationCompatibility": {
+      "passed": true,
+      "sourceStable": true,
+      "sourceFingerprint": "2a21aee53d71dd7611766cf50802ab7346dde8676b37dc7347f178055f71cdd4",
+      "report": "publication-static/review.json",
+      "scope": "Publication compatibility after the incoming GP practice commit: whole-project TypeScript plus ESLint on the one overlapping merged UI module. Prior whole-project lint remains recorded at7365c357."
+    }
+  },
+  "remainingLimits": [
+    "The separate focused pass does not replace the failed nine-step pointer review.",
+    "The original 180000 ms startup budget was exceeded in the full bundled review.",
+    "SwiftShader and explicit frame submissions do not establish continuous frame rate or target-hardware performance.",
+    "Brief native pedal input and assisted full-event runs are not a human handling-preference study.",
+    "Captures use the production renderer in the real paused map/photo modes; focused PNGs exclude the HTML HUD overlay.",
+    "The code-driven car and circuit construction is improved; the landscape still visibly limits photographic fidelity.",
+    "A complete final combined-product minified build and final complete mouse-driven nine-step browser pass are not claimed.",
+    "The final publication application includes later MotoGP work. Its whole-project TypeScript and merged-Interface lint passed; world captures and the earlier whole-project lint retain their7365c357 identity."
+  ],
+  "historicalEvidence": "pre-integration/ and all reports outside current/ retain the source identities and outcomes they actually recorded.",
+  "finalizedAt": "2026-10-20T06:27:45.199015+00:00",
+  "worldReviewApplicationFingerprint": "7365c3573037ff7d60796bed31daa970dc8540b88cd46f96643510583f76df48"
+}

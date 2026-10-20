@@ -78,6 +78,9 @@ export interface ClosedSheet {
   mirrors: boolean;
   lamps: LampSheet;
   grille: number;
+  /** Optional original swept nose with bonded lamp pockets; maximum outer
+   * corner inset in metres. Applied beyond the front wheel arch only. */
+  frontSweep?: number;
   sideIntake: boolean;
   roofScoop: boolean;
   bonnetVents: boolean;
@@ -624,6 +627,7 @@ export const BODY_SHEETS: Readonly<Record<string, BodySheet>> = Object.freeze({
     mirrors: true,
     lamps: { front: 'slim', rear: 'strip' },
     grille: 0.3,
+    frontSweep: 0.28,
     sideIntake: true,
     roofScoop: false,
     bonnetVents: true,
@@ -1489,6 +1493,7 @@ export const BODY_SHEETS: Readonly<Record<string, BodySheet>> = Object.freeze({
     mirrors: true,
     lamps: { front: 'slim', rear: 'bar' },
     grille: 0.9,
+    frontSweep: 0.22,
     sideIntake: false,
     roofScoop: false,
     bonnetVents: false,

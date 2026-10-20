@@ -417,7 +417,7 @@ export class Interface {
       }
       if (select('mode') === 'festival') {
         this.get('sessionRules').textContent =
-          'Festival: free roam in the Solvane region, events found by driving to them. Weather and assists apply; a road machine chosen in MACHINE is used, otherwise pick one in the festival menu.';
+          'Festival: explore Solvane, drive to event markers or travel to any route from the world map. Weather and assists apply; a road machine chosen in MACHINE is used, otherwise pick one in the festival menu.';
         return;
       }
       // The circuit matters: the motorcycle rulesets need a bike-safe one.

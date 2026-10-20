@@ -1,0 +1,389 @@
+{
+  "kind": "horizon-isolated-production-vehicle-comparison",
+  "selectedShots": [
+    "rh3-front-quarter"
+  ],
+  "resourceBudget": {
+    "calls": 4,
+    "geometries": 8,
+    "materials": 1,
+    "textures": 0
+  },
+  "generatedAt": "2026-10-20T03:55:27.585Z",
+  "sourceBoundary": {
+    "method": "One frozen current application source snapshot; baseline replaces exactly the listed vehicle modules with saved original bytes. All imports retain their normal production module IDs. New modules remain in both snapshots and are used only if imported by that variant.",
+    "differingFiles": [
+      "src/rendering/vehicle-bodies/body-sheet.ts",
+      "src/rendering/vehicle-bodies/closed-body.ts",
+      "src/rendering/vehicle-bodies/festival-detail.ts",
+      "src/rendering/vehicle-bodies/index.ts",
+      "src/rendering/vehicle-bodies/wheel.ts"
+    ],
+    "baselineCommitForThoseFiles": "9cfeef8ef6ea050561b62d3db2ad2f22a52b3cd7",
+    "frozenFileCount": 758,
+    "fixtures": {
+      "e2e/fixtures/horizon-r7-vehicle.html": "d5dea3dc2352e9a031713cbd3de5f64d2dbec55110681e269f6df418e723d267",
+      "e2e/fixtures/horizon-r7-vehicle.ts": "c553f94182c573b7269dec0f1373475641aaaf576b6b81d653fe50b4174438fa",
+      "scripts/horizon-r7-vehicle-review.mjs": "e5b9e0615f5ff92efed3432a1f957719dec4363f1ebb485e13ca7750846cb166",
+      "scripts/browser-backend.ts": "66022b027020928f169549b661bf27c366359c62efe04b7ca1d108335c3feaed"
+    },
+    "before": {
+      "fingerprint": "2f945a1b55a0f59d7c46763ec934b25ec4220c537a1f473b7b75abc5d63c926b",
+      "files": {
+        "src/rendering/vehicle-bodies/body-sheet.ts": "d7b82401f31945436168e4f02f8e132d830c83e3af802d6f8eacb2a17bb6a61e",
+        "src/rendering/vehicle-bodies/closed-body.ts": "0e60a7f0b6a418c25b5c7e5a0589950e64d35e3dce08c240191ae53eeff5845d",
+        "src/rendering/vehicle-bodies/festival-detail.ts": "8188bd3ce511f700ca55f8189144fce92888d1c0783a28890e0e830a3f4e44c6",
+        "src/rendering/vehicle-bodies/index.ts": "026b4d824dc8150596fd365e9f1186ba381c92c9a1f9270ad570e31494e5ae0f",
+        "src/rendering/vehicle-bodies/wheel.ts": "e69ed318599d7bd513409164e78bc210b0443396cd69c55b26bb18f8bd512c08"
+      }
+    },
+    "after": {
+      "fingerprint": "bfaa89c25af847f88b347ed4abc139db3762b531bd90d70795ce298ee2f9c2ff",
+      "files": {
+        "src/rendering/vehicle-bodies/body-sheet.ts": "794ad6c41a518a36560f237e60135a7abcc61adf3fc486e6557ddde27d3dadce",
+        "src/rendering/vehicle-bodies/closed-body.ts": "0c54ddbd52cadc2da9f7941201555ac7c756045c7a1f98397e10ae1baf232b7f",
+        "src/rendering/vehicle-bodies/festival-detail.ts": "f4ad1475a775cde233935b3ff89e2b4c8468302ca46ec076ae02132d93ae7bba",
+        "src/rendering/vehicle-bodies/index.ts": "94c6b3dff2c215fbff7533de273e49d853c08598d76bdab00c440148705e4808",
+        "src/rendering/vehicle-bodies/wheel.ts": "45d2fe7dd0bd17030656b92b8af7d225210bd0fd420991403b7ea485a6508eec"
+      }
+    },
+    "fullOldApplicationClaimed": false
+  },
+  "environment": {
+    "backend": "swiftshader",
+    "oneBrowser": true,
+    "sequentialPages": true,
+    "browser": "140.0.7339.186"
+  },
+  "limits": {
+    "launchMs": 60000,
+    "variantMs": 180000,
+    "closeMs": 15000
+  },
+  "limitations": {
+    "isolatedProductionVehicle": true,
+    "fullWorldRenderer": false,
+    "motionOrPhysicsComparison": false,
+    "targetDevicePerformance": false,
+    "humanVisualAcceptance": false,
+    "calibratedPhysicalLighting": false,
+    "sourcePhotosRenderedInFixture": false
+  },
+  "variants": [
+    {
+      "variant": "before",
+      "fingerprint": "2f945a1b55a0f59d7c46763ec934b25ec4220c537a1f473b7b75abc5d63c926b",
+      "views": [
+        {
+          "name": "rh3-front-quarter",
+          "vehicle": "rh3",
+          "camera": {
+            "name": "rh3-front-quarter",
+            "vehicle": "rh3",
+            "eye": [
+              3.5,
+              2.35,
+              4.5
+            ],
+            "target": [
+              0,
+              0.96,
+              0.15
+            ],
+            "fov": 38
+          },
+          "sourceIdentity": {
+            "fingerprint": "2f945a1b55a0f59d7c46763ec934b25ec4220c537a1f473b7b75abc5d63c926b",
+            "commit": null
+          },
+          "rendererName": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+          "dimensions": {
+            "width": 1120,
+            "height": 700
+          },
+          "resourceInventory": {
+            "geometries": 108,
+            "materials": 47,
+            "attributeBytes": 7337344,
+            "indexBytes": 253116,
+            "nonFinite": 0
+          },
+          "glazing": [
+            {
+              "name": "Cabin glass",
+              "groups": 1,
+              "construction": {
+                "revision": 1,
+                "recessM": 0.004,
+                "boundaryEdges": 466,
+                "addedTriangles": 1864
+              }
+            }
+          ],
+          "shaderDiagnostics": [
+            {
+              "runnable": true,
+              "programLog": "",
+              "vertexLog": "",
+              "fragmentLog": ""
+            },
+            {
+              "runnable": true,
+              "programLog": "",
+              "vertexLog": "",
+              "fragmentLog": ""
+            },
+            {
+              "runnable": true,
+              "programLog": "",
+              "vertexLog": "",
+              "fragmentLog": ""
+            },
+            {
+              "runnable": true,
+              "programLog": "",
+              "vertexLog": "",
+              "fragmentLog": ""
+            },
+            {
+              "runnable": true,
+              "programLog": "",
+              "vertexLog": "",
+              "fragmentLog": ""
+            },
+            {
+              "runnable": true,
+              "programLog": "",
+              "vertexLog": "",
+              "fragmentLog": ""
+            },
+            {
+              "runnable": true,
+              "programLog": "",
+              "vertexLog": "",
+              "fragmentLog": ""
+            },
+            {
+              "runnable": true,
+              "programLog": "",
+              "vertexLog": "",
+              "fragmentLog": ""
+            },
+            {
+              "runnable": true,
+              "programLog": "",
+              "vertexLog": "",
+              "fragmentLog": ""
+            },
+            {
+              "runnable": true,
+              "programLog": "",
+              "vertexLog": "",
+              "fragmentLog": ""
+            }
+          ],
+          "proceduralBakes": 0,
+          "limitation": "Static isolated production vehicle geometry at LOD0 with a visible near cabin and fixed studio light; no worker, motion, full-world compositor or target-device performance claim.",
+          "image": {
+            "file": "before-rh3-front-quarter.png",
+            "bytes": 349035,
+            "sha256": "fb32385f0d7a735733ea8651e53c13e2bd18e673a926949e734ba101f13063d7",
+            "rgbaSha256": "820cb3e4ac8f928a5952c3e1739f4d4a71f6e8163b3c004af900cfe537b39416",
+            "calls": 57,
+            "triangles": 74240,
+            "memory": {
+              "geometries": 53,
+              "textures": 2
+            },
+            "glError": 0
+          },
+          "repeatDifference": {
+            "changedPixels": 0,
+            "maxChannelDelta": 0,
+            "meanChannelDelta": 0
+          }
+        }
+      ],
+      "servedVehicleModules": {
+        "src/rendering/vehicle-bodies/body-sheet.ts": "d7b82401f31945436168e4f02f8e132d830c83e3af802d6f8eacb2a17bb6a61e",
+        "src/rendering/vehicle-bodies/closed-body.ts": "0e60a7f0b6a418c25b5c7e5a0589950e64d35e3dce08c240191ae53eeff5845d",
+        "src/rendering/vehicle-bodies/festival-detail.ts": "8188bd3ce511f700ca55f8189144fce92888d1c0783a28890e0e830a3f4e44c6",
+        "src/rendering/vehicle-bodies/index.ts": "026b4d824dc8150596fd365e9f1186ba381c92c9a1f9270ad570e31494e5ae0f",
+        "src/rendering/vehicle-bodies/wheel.ts": "e69ed318599d7bd513409164e78bc210b0443396cd69c55b26bb18f8bd512c08"
+      },
+      "wallMs": 74992.155193
+    },
+    {
+      "variant": "after",
+      "fingerprint": "bfaa89c25af847f88b347ed4abc139db3762b531bd90d70795ce298ee2f9c2ff",
+      "views": [
+        {
+          "name": "rh3-front-quarter",
+          "vehicle": "rh3",
+          "camera": {
+            "name": "rh3-front-quarter",
+            "vehicle": "rh3",
+            "eye": [
+              3.5,
+              2.35,
+              4.5
+            ],
+            "target": [
+              0,
+              0.96,
+              0.15
+            ],
+            "fov": 38
+          },
+          "sourceIdentity": {
+            "fingerprint": "bfaa89c25af847f88b347ed4abc139db3762b531bd90d70795ce298ee2f9c2ff",
+            "commit": null
+          },
+          "rendererName": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+          "dimensions": {
+            "width": 1120,
+            "height": 700
+          },
+          "resourceInventory": {
+            "geometries": 116,
+            "materials": 48,
+            "attributeBytes": 9945632,
+            "indexBytes": 685788,
+            "nonFinite": 0
+          },
+          "glazing": [
+            {
+              "name": "Cabin glass",
+              "groups": 1,
+              "construction": {
+                "revision": 1,
+                "recessM": 0.004,
+                "boundaryEdges": 466,
+                "addedTriangles": 1864
+              }
+            }
+          ],
+          "shaderDiagnostics": [
+            {
+              "runnable": true,
+              "programLog": "",
+              "vertexLog": "",
+              "fragmentLog": ""
+            },
+            {
+              "runnable": true,
+              "programLog": "",
+              "vertexLog": "",
+              "fragmentLog": ""
+            },
+            {
+              "runnable": true,
+              "programLog": "",
+              "vertexLog": "",
+              "fragmentLog": ""
+            },
+            {
+              "runnable": true,
+              "programLog": "",
+              "vertexLog": "",
+              "fragmentLog": ""
+            },
+            {
+              "runnable": true,
+              "programLog": "",
+              "vertexLog": "",
+              "fragmentLog": ""
+            },
+            {
+              "runnable": true,
+              "programLog": "",
+              "vertexLog": "",
+              "fragmentLog": ""
+            },
+            {
+              "runnable": true,
+              "programLog": "",
+              "vertexLog": "",
+              "fragmentLog": ""
+            },
+            {
+              "runnable": true,
+              "programLog": "",
+              "vertexLog": "",
+              "fragmentLog": ""
+            },
+            {
+              "runnable": true,
+              "programLog": "",
+              "vertexLog": "",
+              "fragmentLog": ""
+            },
+            {
+              "runnable": true,
+              "programLog": "",
+              "vertexLog": "",
+              "fragmentLog": ""
+            }
+          ],
+          "proceduralBakes": 0,
+          "limitation": "Static isolated production vehicle geometry at LOD0 with a visible near cabin and fixed studio light; no worker, motion, full-world compositor or target-device performance claim.",
+          "image": {
+            "file": "after-rh3-front-quarter.png",
+            "bytes": 346636,
+            "sha256": "9b13392af0d8692f429770667227aea149782dc882b97f2a9821060d139b8dc0",
+            "rgbaSha256": "885e2fafc5200819529ff07a69d9ed68821d46d384a652b410ff9025ba6f55b7",
+            "calls": 61,
+            "triangles": 127108,
+            "memory": {
+              "geometries": 57,
+              "textures": 2
+            },
+            "glError": 0
+          },
+          "repeatDifference": {
+            "changedPixels": 0,
+            "maxChannelDelta": 0,
+            "meanChannelDelta": 0
+          }
+        }
+      ],
+      "servedVehicleModules": {
+        "src/rendering/vehicle-bodies/body-sheet.ts": "794ad6c41a518a36560f237e60135a7abcc61adf3fc486e6557ddde27d3dadce",
+        "src/rendering/vehicle-bodies/closed-body.ts": "0c54ddbd52cadc2da9f7941201555ac7c756045c7a1f98397e10ae1baf232b7f",
+        "src/rendering/vehicle-bodies/festival-detail.ts": "f4ad1475a775cde233935b3ff89e2b4c8468302ca46ec076ae02132d93ae7bba",
+        "src/rendering/vehicle-bodies/index.ts": "94c6b3dff2c215fbff7533de273e49d853c08598d76bdab00c440148705e4808",
+        "src/rendering/vehicle-bodies/wheel.ts": "45d2fe7dd0bd17030656b92b8af7d225210bd0fd420991403b7ea485a6508eec"
+      },
+      "wallMs": 78353.794063
+    }
+  ],
+  "comparisons": [
+    {
+      "name": "rh3-front-quarter",
+      "difference": {
+        "changedPixels": 61090,
+        "maxChannelDelta": 235,
+        "meanChannelDelta": 2.126045493197279
+      },
+      "resourceDelta": {
+        "calls": 4,
+        "triangles": 52868,
+        "geometries": 4,
+        "textures": 0,
+        "materials": 1,
+        "attributeBytes": 2608288,
+        "indexBytes": 432672
+      }
+    }
+  ],
+  "errors": [],
+  "failedAssets": [],
+  "warnings": [
+    {
+      "variant": "before",
+      "message": "[.WebGL-0x7ec007f4e00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+    }
+  ],
+  "passed": true,
+  "wallMs": 155858.11841000002
+}

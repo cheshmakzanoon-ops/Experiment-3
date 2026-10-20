@@ -78,6 +78,32 @@ describe('festival rivals leave room for real cars', () => {
     expect(s.car.aiOffset).toBeLessThan(-2.5);
   });
 
+  it('keeps its passing corridor when the lead weaves away, while leaving room if it moves closer', () => {
+    const s = scenario();
+    s.plan();
+    expect(s.driver.decision).toBe('PASS LEFT');
+    const lane = s.car.aiOffset;
+    s.place(s.car, 230, lane, 30);
+    // The lead is still ahead. Chasing its rightward movement would keep
+    // reversing this car's desired lane before it has cleared the pass.
+    for (const leadLane of [-3, 0, -2.5, 0]) {
+      s.place(s.lead, 255, leadLane, 22);
+      s.plan();
+      expect(s.driver.decision).toBe('PASS LEFT');
+      expect(s.car.aiOffset).toBeGreaterThanOrEqual(lane - 0.1);
+      expect(s.car.aiOffset).toBeLessThan(lane + 0.3);
+    }
+    // Commitment must not stop the driver giving a closing rival room.
+    s.place(s.lead, 255, 1.5, 22);
+    s.plan();
+    expect(s.car.aiOffset).toBeGreaterThan(lane + 1.2);
+    // Once safely passed, ordinary return to the race line still works.
+    s.place(s.lead, 210, 0, 22);
+    s.plan([s.car, s.lead], 20);
+    expect(s.driver.decision).toBe('RACE LINE');
+    expect(s.car.aiOffset).toBeCloseTo(0, 2);
+  });
+
   it('does not merge across a car alongside or a faster car arriving from behind', () => {
     for (const [gap, speed] of [
       [0, 24],
@@ -161,6 +187,15 @@ describe('festival rivals leave room for real cars', () => {
     expect(driver.decision).toBe('FOLLOW');
     expect(s.car.aiOffset).toBeCloseTo(-1.9, 2);
   });
+
+  it('reserves extra edge room for passes without moving an unoccupied racing line', () => {
+    const s = scenario(5.5);
+    s.path.line.fill(3.6);
+    s.place(s.car, 200, 3.6, 60);
+    s.plan([s.car]);
+    expect(s.driver.decision).toBe('RACE LINE');
+    expect(s.car.aiOffset).toBeCloseTo(3.6, 2);
+  });
 });
 
 describe('festival route gap feedback', () => {
@@ -223,6 +258,60 @@ describe('festival route gap feedback', () => {
 });
 
 describe('festival rival physical manoeuvre', () => {
+  it('keeps the SC7 rear tyres loaded through the Saltmarsh opening pass and bend', () => {
+    const sim = new OpenWorldSimulation({
+      vehicle: 'sc7',
+      weather: 'clear',
+      assist: 'sport',
+      seed: 73021,
+      traffic: false,
+      tileBudget: 12,
+      session: 'sc7-saltmarsh-opening-pass-regression',
+    });
+    sim.command({ type: 'autopilot', value: true });
+    sim.command({ type: 'start', event: 'saltmarsh-club-race' });
+    const event = sim.events.find((candidate) => candidate.spec.id === 'saltmarsh-club-race')!;
+    const initial = sim.cars.slice();
+    const player = sim.player;
+    const contact = vi.spyOn(sim.collisions, 'impulse');
+    let offRoute = false,
+      replaced = false,
+      minimumRearLoad = Infinity,
+      peakSpeed = 0;
+    try {
+      // This ordinary grid launch previously put one rear tyre beyond
+      // the asphalt at ~14.3 s, spun across the road and hit a structure
+      // at 16.7 s. Real contacts and the authored grip remain active.
+      for (let tick = 0; tick < 25 * 120; tick++) {
+        sim.step(1 / 120);
+        peakSpeed = Math.max(peakSpeed, sim.player.speed);
+        replaced ||= initial.some((car, index) => sim.cars[index] !== car);
+        if (tick >= 10 * 120 && tick < 18 * 120)
+          minimumRearLoad = Math.min(
+            minimumRearLoad,
+            sim.player.normalLoads[2],
+            sim.player.normalLoads[3],
+          );
+        if (tick % 12 === 0) offRoute ||= sim.status().event?.offRoute === true;
+      }
+      expect(sim.status()).toMatchObject({
+        mode: 'running',
+        event: { id: 'saltmarsh-club-race', entrants: 4, offRoute: false },
+      });
+      expect(contact.mock.calls.filter(([a, b]) => a === player || b === player)).toHaveLength(0);
+      expect(offRoute).toBe(false);
+      expect(replaced).toBe(false);
+      expect(minimumRearLoad).toBeGreaterThan(0);
+      // Require racing pace and actual progress beyond the failed bend.
+      expect(peakSpeed).toBeGreaterThan(50);
+      expect(
+        event.path.locate(player.body.position.x, player.body.position.z, 0, event.path.length),
+      ).toBeGreaterThan(650);
+    } finally {
+      contact.mockRestore();
+    }
+  }, 60_000);
+
   it('overtakes a slower moving car through the real pedals, steering, tyres and contact solver', () => {
     const s = scenario(7.6, 5);
     // Physical acceptance uses the authored race line and road widths.

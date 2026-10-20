@@ -13,6 +13,11 @@ import {
 } from '../../simulation/open-world/road-network.ts';
 import type { TrackPoint } from '../../simulation/track.ts';
 import type { TerrainField } from '../../simulation/open-world/terrain-field.ts';
+import {
+  FESTIVAL_CIRCUIT_PAINT,
+  festivalCircuitLineVisible,
+  festivalMarkings,
+} from '../../simulation/open-world/festival-markings.ts';
 import { materials } from '../materials/index.ts';
 import { OW_NOISE_GLSL } from './terrain-material.ts';
 import {
@@ -20,6 +25,8 @@ import {
   festivalRoadProfile,
   installFestivalRoadSurface,
 } from './festival-road-surface.ts';
+import { buildFestivalGuardrails } from './festival-guardrails.ts';
+import { buildFestivalCircuitCues } from './festival-circuit-cues.ts';
 
 /** Chunk edge (m) for culling road geometry. */
 const CHUNK = 512;
@@ -95,6 +102,7 @@ type Layer =
   | 'paving'
   | 'paint'
   | 'yellow'
+  | 'apron'
   | 'rail'
   | 'concrete'
   | 'post';
@@ -163,6 +171,46 @@ function wornPaint(material: T.MeshStandardMaterial) {
       );
   };
   material.customProgramCacheKey = () => 'solvane-road-paint-v1';
+  return material;
+}
+
+/** Original circuit corner paint lies on the last half metre of asphalt.
+ * It reads as an apex reference without suggesting a raised kerb or a paved
+ * run-off over the simulation's gravel shoulder. Stripes and wear are
+ * filtered in road metres and retain the existing weather response. */
+function apronMaterial(wet: { value: number }) {
+  const material = new T.MeshStandardMaterial({ color: 0xffffff, roughness: 0.64 });
+  material.name = 'Saltmarsh flush corner paint';
+  (material as unknown as { defines: Record<string, string> }).defines = { USE_UV: '' };
+  material.polygonOffset = true;
+  material.polygonOffsetFactor = -2;
+  material.polygonOffsetUnits = -6;
+  material.onBeforeCompile = (shader) => {
+    shader.uniforms.festivalApronWet = wet;
+    shader.fragmentShader = shader.fragmentShader
+      .replace(
+        '#include <common>',
+        `#include <common>\nuniform float festivalApronWet;\n${OW_NOISE_GLSL}`,
+      )
+      .replace(
+        '#include <color_fragment>',
+        `#include <color_fragment>
+{
+  float wave = sin(vUv.y * 1.9634954);
+  float aa = max(fwidth(wave), 0.001);
+  float stripe = smoothstep(-aa, aa, wave);
+  vec3 paint = mix(vec3(0.61, 0.59, 0.53), vec3(0.43, 0.034, 0.023), stripe);
+  float fine = 1.0 - smoothstep(0.035, 0.18, length(fwidth(vUv)));
+  float wear = smoothstep(0.64, 0.83, owNoise(vUv * 34.0)) * fine;
+  diffuseColor.rgb = mix(paint, vec3(0.066, 0.068, 0.07), wear * 0.65) * (1.0 - festivalApronWet * 0.21);
+}`,
+      )
+      .replace(
+        '#include <roughnessmap_fragment>',
+        '#include <roughnessmap_fragment>\nroughnessFactor = mix(0.64, 0.35, festivalApronWet);',
+      );
+  };
+  material.customProgramCacheKey = () => 'festival-flush-corner-paint-v1';
   return material;
 }
 
@@ -252,8 +300,26 @@ export class RoadMeshes {
     emissiveIntensity: 0.02,
     roughness: 0.27,
   });
+  /** Flexible verge boards share one ordinary, vertex-colour material. */
+  readonly circuitCueMaterial = new T.MeshStandardMaterial({
+    color: 0xffffff,
+    roughness: 0.64,
+    vertexColors: true,
+  });
   private readonly pavingWet = { value: 0 };
-  stats = { chunks: 0, triangles: 0, lamps: 0, posts: 0 };
+  stats = {
+    chunks: 0,
+    triangles: 0,
+    lamps: 0,
+    posts: 0,
+    barrierRuns: 0,
+    reflectors: 0,
+    railEndCaps: 0,
+    circuitGrids: 0,
+    circuitBoards: 0,
+    circuitChevrons: 0,
+    circuitCueChunks: 0,
+  };
   constructor(
     readonly network: RoadNetwork,
     readonly field: TerrainField,
@@ -311,6 +377,7 @@ export class RoadMeshes {
       paving: pavingMaterial(this.pavingWet),
       paint,
       yellow,
+      apron: apronMaterial(this.pavingWet),
       rail: Object.assign(materials.metal({ kind: 'bare', metal: 'steel', roughness: 0.42 }), {
         side: T.DoubleSide,
       }),
@@ -324,7 +391,8 @@ export class RoadMeshes {
   private layerOf(e: RoadEdge): Layer {
     if (e.spec.surface === 'dirt') return 'dirt';
     if (e.roadClass === 'town') return 'town';
-    if (e.roadClass === 'highway' || e.roadClass === 'runway') return 'asphaltMajor';
+    if (e.roadClass === 'highway' || e.roadClass === 'runway' || e.roadClass === 'circuit')
+      return 'asphaltMajor';
     return 'asphalt';
   }
   private build() {
@@ -340,8 +408,7 @@ export class RoadMeshes {
     };
     const p = roadPoint(),
       q = roadPoint();
-    const posts: T.Matrix4[] = [],
-      lamps: T.Matrix4[] = [];
+    const lamps: T.Matrix4[] = [];
     for (const e of net.edges) {
       const spec = e.spec,
         hw = spec.halfWidth,
@@ -431,26 +498,18 @@ export class RoadMeshes {
         }
         if (bridge)
           this.bridgeSegment(builder(mx, mz, 'concrete'), p, q, hw + spec.shoulder, height);
-        // Guardrails where the network marks them (not on bridges: parapets).
-        for (const [bit, side] of [
-          [ROAD_FLAG.BARRIER_LEFT, -1],
-          [ROAD_FLAG.BARRIER_RIGHT, 1],
-        ] as const)
-          if (!bridge && net.flags[i] & bit && net.flags[i + 1] & bit)
-            this.railSegment(
-              builder(mx, mz, 'rail'),
-              p,
-              q,
-              side,
-              hw + spec.shoulder + 0.35,
-              height,
-              posts,
-            );
       }
       this.markings(e, builder, frame);
       if (e.roadClass === 'town') this.townLamps(e, lamps);
       this.piers(e, builder);
     }
+    const guardrails = buildFestivalGuardrails(
+      net,
+      this.field,
+      this.materials.rail,
+      this.reflectorMaterial,
+    );
+    this.root.add(guardrails.root);
     // Merge per chunk and layer.
     const triangles = { n: 0 };
     for (const [key, chunk] of chunks) {
@@ -469,36 +528,14 @@ export class RoadMeshes {
       }
       this.root.add(group);
     }
-    // Guardrail posts and town lamps: instanced.
-    if (posts.length) {
-      const post = new T.InstancedMesh(
-        new T.BoxGeometry(0.15, 1, 0.12).translate(0, 0.5, 0),
-        this.materials.post,
-        posts.length,
-      );
-      posts.forEach((m, i) => post.setMatrixAt(i, m));
-      post.name = 'Guardrail posts';
-      post.castShadow = true;
-      post.computeBoundingSphere();
-      this.root.add(post);
-      // Reflectors share existing rail-post anchors: no new obstacle in a
-      // shoulder. The low emission aids legibility, without pretending that
-      // the reflectors themselves illuminate the road.
-      const reflectors = new T.InstancedMesh(
-        new T.BoxGeometry(0.18, 0.09, 0.14).translate(0, 0.9, 0),
-        this.reflectorMaterial,
-        Math.ceil(posts.length / 3),
-      );
-      for (let i = 0, k = 0; i < posts.length; i += 3, k++) reflectors.setMatrixAt(k, posts[i]);
-      reflectors.name = 'Varda and coast guardrail reflectors';
-      reflectors.computeBoundingSphere();
-      this.root.add(reflectors);
-    }
+    // Town lamps retain their shared geometry and instance transforms.
     if (lamps.length) {
       const pole = new T.CylinderGeometry(0.07, 0.1, 7, 6).translate(0, 3.5, 0);
       const arm = new T.BoxGeometry(1.4, 0.08, 0.08).translate(0.6, 7, 0);
       const head = new T.BoxGeometry(0.6, 0.14, 0.32).translate(1.25, 6.92, 0);
       const metal = mergeGeometries([pole, arm], false)!;
+      pole.dispose();
+      arm.dispose();
       const poles = new T.InstancedMesh(metal, this.materials.post, lamps.length);
       const heads = new T.InstancedMesh(head, this.lampMaterial, lamps.length);
       lamps.forEach((m, i) => {
@@ -516,12 +553,79 @@ export class RoadMeshes {
       heads.computeBoundingSphere();
       this.root.add(poles, heads);
     }
+    const grids = this.circuitStartGrids();
+    const cues = buildFestivalCircuitCues(net, this.field, this.circuitCueMaterial);
+    this.root.add(cues.root);
     this.stats = {
       chunks: chunks.size,
-      triangles: triangles.n,
+      triangles: triangles.n + guardrails.stats.triangles + grids.triangles + cues.stats.triangles,
       lamps: lamps.length,
-      posts: posts.length,
+      posts: guardrails.stats.posts,
+      barrierRuns: guardrails.stats.runs,
+      reflectors: guardrails.stats.reflectors,
+      railEndCaps: guardrails.stats.endCaps,
+      circuitGrids: grids.count,
+      circuitBoards: cues.stats.boards,
+      circuitChevrons: cues.stats.chevrons,
+      circuitCueChunks: cues.stats.chunks,
     };
+  }
+  /** Permanent track paint, independent of event-marker visibility. Resolve
+   * only the first leg of an eligible race, using the same planner as the
+   * session; do not rebuild FestivalEvents or add a second practice grid. */
+  private circuitStartGrids() {
+    const net = this.network;
+    const grids = festivalMarkings(net).grids;
+    let triangles = 0;
+    for (const grid of grids) {
+      const edge = net.edges[grid.edge];
+      const { station, direction } = grid;
+      const frame = new FestivalRoadFrame(net, edge);
+      const paint = new Builder();
+      const p = roadPoint(),
+        q = roadPoint();
+      const rectangle = (d0: number, d1: number, l0: number, l1: number) => {
+        const steps = Math.max(1, Math.ceil((d1 - d0) / 1.5));
+        const vertex = (point: TrackPoint, lateral: number) => {
+          const l = direction * lateral;
+          const normal = frame.normal(point, l);
+          return paint.vertex(
+            point.x + point.nx * l,
+            net.surfaceHeight(point, l, edge.spec.halfWidth, edge.spec.crown) + 0.012,
+            point.z + point.nz * l,
+            l,
+            point.s - edge.offset,
+            normal.x,
+            normal.y,
+            normal.z,
+          );
+        };
+        for (let i = 0; i < steps; i++) {
+          net.at(station + direction * (d0 + ((d1 - d0) * i) / steps), p);
+          net.at(station + direction * (d0 + ((d1 - d0) * (i + 1)) / steps), q);
+          paint.quad(vertex(p, l0), vertex(p, l1), vertex(q, l0), vertex(q, l1));
+        }
+      };
+      // Tyre contact and drawing consume the same white checker cells and
+      // grid-box outlines; the unpainted cells remain ordinary asphalt.
+      for (const { d0, d1, l0, l1 } of grid.rectangles) rectangle(d0, d1, l0, l1);
+      const geometry = paint.geometry();
+      if (!geometry) continue;
+      const mesh = new T.Mesh(geometry, this.materials.paint);
+      mesh.name = `Circuit start paint ${grid.event}`;
+      mesh.userData.festivalCircuitGrid = {
+        event: grid.event,
+        edge: edge.index,
+        station,
+        direction,
+        centres: grid.centres,
+      };
+      mesh.receiveShadow = true;
+      mesh.matrixAutoUpdate = false;
+      this.root.add(mesh);
+      triangles += paint.indices.length / 3;
+    }
+    return { count: grids.length, triangles };
   }
   /** Painted lines: edge lines, centre lines and runway markings. */
   private markings(
@@ -569,6 +673,13 @@ export class RoadMeshes {
         layer: 'paint',
         junction: false,
       });
+    } else if (spec.markings === 'edge') {
+      for (const side of [-1, 1])
+        lines.push({
+          ...edgeLine,
+          lateral: side * (hw - FESTIVAL_CIRCUIT_PAINT.edgeInset),
+          width: FESTIVAL_CIRCUIT_PAINT.edgeWidth,
+        });
     } else if (spec.markings === 'centre') {
       lines.push({ ...edgeLine, lateral: -(hw - 0.27) }, { ...edgeLine, lateral: hw - 0.27 });
       const solid = e.roadClass === 'mountain';
@@ -588,13 +699,19 @@ export class RoadMeshes {
       );
     }
     const p = roadPoint();
-    const step = 2;
+    const step = e.roadClass === 'circuit' ? FESTIVAL_CIRCUIT_PAINT.lineStep : 2;
     for (const line of lines) {
       for (let s = 0; s < e.length - step; s += step) {
         if (line.dash > 0 && s % (line.dash + line.gap) >= line.dash) continue;
         net.at(e.offset + s, p);
         // No lines through junction mouths.
-        if (!line.junction && this.inJunction(e, s)) continue;
+        if (
+          !line.junction &&
+          (e.roadClass === 'circuit'
+            ? !festivalCircuitLineVisible(net, e, s)
+            : this.inJunction(e, s))
+        )
+          continue;
         const a = { ...p };
         net.at(e.offset + Math.min(e.length, s + step), p);
         const b = { ...p },
@@ -620,6 +737,7 @@ export class RoadMeshes {
         builderAt.quad(a0, a1, b0, b1);
       }
     }
+    if (e.roadClass === 'circuit') this.cornerAprons(e, builder, frame);
     // Runway thresholds: piano keys across both ends.
     if (spec.markings === 'runway') {
       for (const s of [12, e.length - 42]) {
@@ -664,56 +782,38 @@ export class RoadMeshes {
     }
     return false;
   }
-  private railSegment(
-    b: Builder,
-    p: TrackPoint,
-    q: TrackPoint,
-    side: number,
-    lateral: number,
-    h: SurfaceHeight,
-    posts: T.Matrix4[],
+  private cornerAprons(
+    edge: RoadEdge,
+    builder: (x: number, z: number, layer: Layer) => Builder,
+    frame: FestivalRoadFrame,
   ) {
-    const at = (pt: TrackPoint, dy: number) => [
-      pt.x + pt.nx * side * lateral,
-      h(pt, side * (lateral - 0.4)) + dy,
-      pt.z + pt.nz * side * lateral,
-    ];
-    // Actual rolled W section. Two crests and a central trough catch
-    // different highlights as the car passes instead of reading as a flat
-    // grey ribbon. It stays within 6 cm of the collision-backed rail line.
-    const nx = -p.nx * side,
-      nz = -p.nz * side;
-    const [ax, ay, az] = at(p, 0.6),
-      [bx, by, bz] = at(q, 0.6);
-    const profile = [
-      [0, 0],
-      [0.075, 0.055],
-      [0.155, 0],
-      [0.235, 0.055],
-      [0.31, 0],
-    ];
-    for (let k = 0; k < profile.length - 1; k++) {
-      const [y0, d0] = profile[k],
-        [y1, d1] = profile[k + 1];
-      const gradient = (d1 - d0) / (y1 - y0),
-        norm = Math.hypot(1, gradient);
-      const nnx = nx / norm,
-        nny = -gradient / norm,
-        nnz = nz / norm;
-      const a0 = b.vertex(ax + nx * d0, ay + y0, az + nz * d0, p.s, y0, nnx, nny, nnz);
-      const a1 = b.vertex(ax + nx * d1, ay + y1, az + nz * d1, p.s, y1, nnx, nny, nnz);
-      const b0 = b.vertex(bx + nx * d0, by + y0, bz + nz * d0, q.s, y0, nnx, nny, nnz);
-      const b1 = b.vertex(bx + nx * d1, by + y1, bz + nz * d1, q.s, y1, nnx, nny, nnz);
-      if (side > 0) b.quad(a0, a1, b0, b1);
-      else b.quad(a1, a0, b1, b0);
-    }
-    if (Math.floor(p.s / 4) !== Math.floor(q.s / 4)) {
-      const m = new T.Matrix4().compose(
-        new T.Vector3(ax + p.nx * side * 0.12, ay - 0.6, az + p.nz * side * 0.12),
-        new T.Quaternion().setFromAxisAngle(new T.Vector3(0, 1, 0), Math.atan2(p.nx, p.nz)),
-        new T.Vector3(1, 0.95, 1),
-      );
-      posts.push(m);
+    const net = this.network,
+      spec = edge.spec,
+      p = roadPoint(),
+      q = roadPoint();
+    for (const { segment, side, width0, width1 } of festivalMarkings(net).aprons(edge.index)) {
+      net.pointOnSegment(segment, 0, p);
+      net.pointOnSegment(segment, 1, q);
+      const batch = builder((p.x + q.x) / 2, (p.z + q.z) / 2, 'apron');
+      const row = (pt: TrackPoint, w: number) =>
+        [spec.halfWidth - w, spec.halfWidth].map((absolute) => {
+          const lateral = side * absolute,
+            normal = frame.normal(pt, lateral);
+          return batch.vertex(
+            pt.x + pt.nx * lateral,
+            net.surfaceHeight(pt, lateral, spec.halfWidth, spec.crown) + 0.011,
+            pt.z + pt.nz * lateral,
+            lateral,
+            pt.s - edge.offset,
+            normal.x,
+            normal.y,
+            normal.z,
+          );
+        });
+      const a = row(p, width0),
+        b = row(q, width1);
+      if (side > 0) batch.quad(a[0], a[1], b[0], b[1]);
+      else batch.quad(a[1], a[0], b[1], b[0]);
     }
   }
   /** Bridge deck beam and parapets for one segment. */
@@ -849,5 +949,6 @@ export class RoadMeshes {
     for (const m of Object.values(this.materials)) m.dispose();
     this.lampMaterial.dispose();
     this.reflectorMaterial.dispose();
+    this.circuitCueMaterial.dispose();
   }
 }

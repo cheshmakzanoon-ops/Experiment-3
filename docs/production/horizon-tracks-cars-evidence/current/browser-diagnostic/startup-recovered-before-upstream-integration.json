@@ -1,0 +1,175 @@
+{
+  "scope": "Staged functional interaction review; original startup budget reported separately",
+  "generatedAt": "2026-10-20T04:43:14.482Z",
+  "sourceFingerprint": "7a2f265325d6f2b26a6f1ce32417e52ab517c641819abb027b1cc1b0308c874e",
+  "quality": "medium",
+  "viewport": {
+    "width": 1120,
+    "height": 700
+  },
+  "timing": {
+    "originalStartupBudgetMs": 180000,
+    "automaticDrawsBeforeSuppression": 0,
+    "loadingObservedMs": 23455.025213,
+    "firstFrameReadbackMs": 103648.21593199999,
+    "originalStartupBudgetMet": true
+  },
+  "initialSave": {
+    "discovered": [],
+    "vehicle": "rh3"
+  },
+  "budgetsMs": {
+    "loading": 180000,
+    "coldFrameReview": 360000,
+    "failureState": 10000,
+    "shutdown": 15000
+  },
+  "limitations": [
+    "Software GPU",
+    "Brief manual driving, not a human playtest",
+    "GPU frames submitted explicitly between functional checks",
+    "Still captures use the production map or photo pause so GPU latency cannot extend driving input"
+  ],
+  "steps": [
+    {
+      "name": "fresh-save RH3 travels to the real club race marker without discovery gating"
+    }
+  ],
+  "loadingStages": [
+    {
+      "name": "navigation started",
+      "elapsedMs": 850.7397680000001
+    },
+    {
+      "name": "document loaded",
+      "elapsedMs": 4945.6100670000005
+    },
+    {
+      "name": "fixture module initialized",
+      "elapsedMs": 18600.963978
+    },
+    {
+      "name": "automatic GPU submissions suppressed",
+      "elapsedMs": 18722.657769999998
+    },
+    {
+      "name": "production loading overlay closed",
+      "elapsedMs": 24250.82544
+    },
+    {
+      "name": "production session ready",
+      "elapsedMs": 24285.555877
+    },
+    {
+      "name": "fresh-save race card available",
+      "elapsedMs": 24300.792993
+    }
+  ],
+  "loadingOverlayStages": [
+    {
+      "text": "Loading festival",
+      "hidden": false,
+      "elapsedMs": 961.3794050000001
+    },
+    {
+      "text": "Building the Solvane festival region…",
+      "hidden": false,
+      "elapsedMs": 4943.069059
+    },
+    {
+      "text": "Planning event routes and town streets…",
+      "hidden": false,
+      "elapsedMs": 5594.382339000001
+    },
+    {
+      "text": "Building roads, buildings and water…",
+      "hidden": false,
+      "elapsedMs": 6100.947892
+    },
+    {
+      "text": "Loading photographed trees…",
+      "hidden": false,
+      "elapsedMs": 18563.338467999998
+    },
+    {
+      "text": "Loading authored coastal details…",
+      "hidden": false,
+      "elapsedMs": 18569.702644
+    },
+    {
+      "text": "Starting the festival simulation…",
+      "hidden": false,
+      "elapsedMs": 19484.034831999998
+    },
+    {
+      "text": "Streaming terrain around Port Ilse…",
+      "hidden": false,
+      "elapsedMs": 21953.185958
+    },
+    {
+      "text": "Loading the photographed sky…",
+      "hidden": false,
+      "elapsedMs": 23165.581583
+    },
+    {
+      "text": "Loading photographed ground…",
+      "hidden": false,
+      "elapsedMs": 23274.034472
+    },
+    {
+      "text": "Travelling to Saltmarsh Club Race…",
+      "hidden": false,
+      "elapsedMs": 23370.764415999998
+    },
+    {
+      "text": "Travelling to Saltmarsh Club Race…",
+      "hidden": true,
+      "elapsedMs": 23951.278479
+    }
+  ],
+  "errors": [
+    "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+  ],
+  "failedAssets": [
+    {
+      "status": 403,
+      "url": "http://127.0.0.1:5193/@fs/workspace/scratch/dc3a78c5e144/Experiment-3/node_modules/@fontsource-variable/saira/files/saira-latin-wght-normal.woff2"
+    }
+  ],
+  "captures": [],
+  "functionalPassed": false,
+  "resourcesBeforeLaunch": {
+    "memory.current": "4735770624",
+    "memory.max": "8589934592",
+    "memory.events": "low 0\nhigh 0\nmax 1696903\noom 137\noom_kill 22\noom_group_kill 0"
+  },
+  "roadGeometry": {
+    "chunks": 128,
+    "triangles": 640961,
+    "lamps": 240,
+    "posts": 799,
+    "barrierRuns": 30,
+    "reflectors": 207,
+    "railEndCaps": 60,
+    "circuitGrids": 1,
+    "circuitBoards": 26,
+    "circuitChevrons": 21,
+    "circuitCueChunks": 11
+  },
+  "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+  "failure": {
+    "message": "page.evaluate: Target page, context or browser has been closed",
+    "stack": "page.evaluate: Target page, context or browser has been closed\n    at /workspace/scratch/bea6757b1f23/Experiment-3/scripts/horizon-club-browser-review.mjs:150:16\n    at async bounded (/workspace/scratch/bea6757b1f23/Experiment-3/scripts/horizon-club-browser-review.mjs:87:12)\n    at async capture (/workspace/scratch/bea6757b1f23/Experiment-3/scripts/horizon-club-browser-review.mjs:148:3)\n    at async file:///workspace/scratch/bea6757b1f23/Experiment-3/scripts/horizon-club-browser-review.mjs:253:3"
+  },
+  "resourcesAtFailure": {
+    "memory.current": "6944022528",
+    "memory.max": "8589934592",
+    "memory.events": "low 0\nhigh 0\nmax 1696903\noom 137\noom_kill 22\noom_group_kill 0"
+  },
+  "failureStateError": "page.evaluate: Target page, context or browser has been closed",
+  "resourcesBeforeCleanup": {
+    "memory.current": "6929551360",
+    "memory.max": "8589934592",
+    "memory.events": "low 0\nhigh 0\nmax 1696903\noom 137\noom_kill 22\noom_group_kill 0"
+  }
+}

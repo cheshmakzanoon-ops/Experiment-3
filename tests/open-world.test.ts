@@ -188,6 +188,48 @@ describe('festival world surface (physics adapter)', () => {
     expect(track.boundaryAt(p, 1)).toBeGreaterThan(1000);
     expect(track.pitSpeedZone()).toBe(false);
   });
+  it('supports a tyre one radius above banked paint and asphalt without moving the ground hit', () => {
+    const i = sampleOn('pass', (k) => {
+      const edge = net.edges[net.edgeOf[k]];
+      return !(net.flags[k] & ROAD_FLAG.BRIDGE) && Math.abs(net.bank[k]) > 0.04 &&
+        net.s[k] - edge.offset > 100 && edge.offset + edge.length - net.s[k] > 100;
+    });
+    const p = net.pointOnSegment(i, 0.5, trackPoint()),
+      spec = net.edges[net.edgeOf[i]].spec,
+      down = new Vec3(p.nx * 0.18, -1, p.nz * 0.18).normalize(),
+      axle = new Vec3(p.nx, p.bank, p.nz).normalize(),
+      radius = 0.34;
+    for (const [lateral, material, grip] of [
+      [0, SURFACE.PAINT, 0.93 * spec.grip],
+      [2, SURFACE.ASPHALT, spec.grip],
+    ]) {
+      const ground = new Vec3(
+          p.x + p.nx * lateral,
+          net.surfaceHeight(p, lateral, spec.halfWidth, spec.crown),
+          p.z + p.nz * lateral,
+        ),
+        origin = new Vec3().copy(ground).addScaled(down, -0.85),
+        point = new Vec3(),
+        contact = surfaceSample(),
+        support = track.castTire(origin, down, 1.5, radius, 0.12, axle, contact, point);
+      expect(support).toBeGreaterThan(0.4);
+      expect(support).toBeLessThan(0.6);
+      expect(point.distanceSq(ground)).toBeLessThan(0.005 ** 2);
+      expect(contact.normal.length()).toBeCloseTo(1, 10);
+      expect(contact.normal.y).toBeLessThan(0.9999);
+      // The unloaded crown touches the solved plane: the hub is one
+      // physical radius above it, measured along the road normal.
+      const hub = new Vec3().copy(origin).addScaled(down, support);
+      expect(hub.sub(point).dot(contact.normal)).toBeCloseTo(radius, 10);
+      expect(contact.surface).toBe(material);
+      expect(contact.grip).toBeCloseTo(grip, 10);
+      expect(track.sample(point.x, point.z, surfaceSample(), point.y + 0.5).height)
+        .toBeCloseTo(point.y, 3);
+      point.set(91, 92, 93);
+      expect(track.castTire(origin, down, 0.2, radius, 0.12, axle, contact, point)).toBe(Infinity);
+      expect(point).toEqual(new Vec3(91, 92, 93));
+    }
+  });
 });
 
 describe('festival road surface continuity', () => {

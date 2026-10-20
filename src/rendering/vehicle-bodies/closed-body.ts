@@ -28,6 +28,7 @@ import {
   buildFestivalDetail,
   festivalDetailFor,
 } from './festival-detail.ts';
+import { cutFestivalBodyPockets, warpFestivalNose } from './festival-nose.ts';
 
 /** Closed-wheel bodies (GT, prototype, saloon, roadster, rally, truck, road
  * supercar) generated from a ClosedSheet. The lower body is one loft of
@@ -591,6 +592,7 @@ export function buildClosedBody(
       return model.slot(zMid, j, detail);
     },
   });
+  if (detailedFestival) cutFestivalBodyPockets(lower, model);
   parts.addGrouped(
     lower,
     [
@@ -1069,6 +1071,14 @@ export function buildClosedBody(
       lod.rear.push(g);
     }
     parts.build(lod.group, detail === 0);
+  }
+  if (s.frontSweep) {
+    const transformed = new Set<T.BufferGeometry>();
+    lod.group.traverse((node) => {
+      if (!(node instanceof T.Mesh) || transformed.has(node.geometry)) return;
+      transformed.add(node.geometry);
+      warpFestivalNose(node.geometry, model, detail);
+    });
   }
 }
 /** Catalogue-growth furniture: extractor fans, dive planes, a rally lamp

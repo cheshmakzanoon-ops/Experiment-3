@@ -481,6 +481,7 @@ export class OpenWorldSimulation {
           fresh = this.makeCar(0, cmd.id),
           q = old.body.orientation;
         this.cars[0] = fresh;
+        this.autopilotDriver = null;
         // Heading from the pose itself (`forward` is only updated by a step).
         const heading = Math.atan2(2 * (q.x * q.z + q.w * q.y), 1 - 2 * (q.x * q.x + q.y * q.y));
         this.placeAt(fresh, old.body.position.x, old.body.position.z, heading, old.body.position.y);
@@ -491,7 +492,6 @@ export class OpenWorldSimulation {
       case 'travel': {
         const event = this.events.find((e) => e.spec.id === cmd.event);
         if (!event) throw new Error(`Unknown festival event ${cmd.event}`);
-        if (!this.discovered.has(event.spec.id)) throw new Error('Travel needs a discovered event');
         if (this.run) this.abandon();
         // Travel leaves the old event immediately. An active race still
         // emits its one abandonment; its pending result survives endRun.
@@ -499,8 +499,15 @@ export class OpenWorldSimulation {
         this.skills.reset();
         const fresh = this.makeCar(0, this.player.definition.id);
         this.cars[0] = fresh;
+        this.autopilotDriver = null;
         this.placeOnPath(fresh, event.path, 0, 0);
         this.prefetchAround(fresh, 0);
+        // Exploration records where the driver has been; it does not gate
+        // the open world's roads or practice events. A deliberate return
+        // also reopens a marker the player previously dismissed.
+        this.discovered.add(event.spec.id);
+        this.declined = null;
+        this.cardEvent = null;
         this.parked = true;
         this.say(`Travelled to ${event.spec.name}`);
         break;

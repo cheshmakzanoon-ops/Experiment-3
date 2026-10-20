@@ -1,0 +1,109 @@
+{
+  "sourceFingerprint": "df53ffa1b8ad5a4beecda8068afc0f8b4b1716ee3ce4fcad5ddd5212d643e18c",
+  "integratedMain": "4a8fd57",
+  "build": {
+    "command": "npm run build",
+    "exitCode": 0,
+    "includes": [
+      "TypeScript noEmit",
+      "normal production Vite build"
+    ],
+    "advisory": "Existing large-chunk advisory remains"
+  },
+  "lint": {
+    "wholeProject": true,
+    "integratedChangedFileCount": 43,
+    "exitCode": 0,
+    "additionalIntegrationAndFinalReviewFiles": 23
+  },
+  "contentValidation": {
+    "command": "npm run validate:content",
+    "exitCode": 0,
+    "recheckedAfterAdditionalMain": true
+  },
+  "focusedTests": [
+    {
+      "group": "car construction and catalogue",
+      "tests": 19,
+      "passed": 19
+    },
+    {
+      "group": "road surface and guardrails",
+      "tests": 11,
+      "passed": 11
+    },
+    {
+      "group": "rival passing and club course",
+      "tests": 24,
+      "passed": 24
+    },
+    {
+      "group": "broader open-world regression",
+      "tests": 47,
+      "passed": 47,
+      "timing": "Before the final held-passing-lane change"
+    },
+    {
+      "group": "final session rerun",
+      "tests": 8,
+      "passed": 8,
+      "includedInBroaderCount": true,
+      "command": "vitest run tests/open-world-session.test.ts --maxWorkers=1 --pool=threads",
+      "exitCode": 0,
+      "durationSeconds": 45.44
+    },
+    {
+      "group": "additional-main startup and identity integration",
+      "tests": 19,
+      "passed": 19,
+      "command": "vitest run tests/menu-startup-sky.test.ts tests/session-identity.test.ts --maxWorkers=1 --pool=threads",
+      "exitCode": 0,
+      "durationSeconds": 27.06
+    }
+  ],
+  "unitTestLimitations": [
+    "These groups are targeted regression coverage, not the entire repository test suite.",
+    "One earlier concurrent session-test rerun passed all 8 assertions but exited 1 on a Vitest onTaskUpdate RPC timeout; the later isolated thread-pool rerun above exited 0 with no unhandled errors."
+  ],
+  "completeDriving": "physics.json",
+  "matchedCars": "vehicle-review-summary.json",
+  "browser": {
+    "report": "world/review.json",
+    "functionalPassed": true,
+    "checkpoints": 8,
+    "sourceStable": true,
+    "sourceFingerprint": "df53ffa1b8ad5a4beecda8068afc0f8b4b1716ee3ce4fcad5ddd5212d643e18c",
+    "originalStartupBudgetMet": true,
+    "timing": {
+      "originalStartupBudgetMs": 180000,
+      "automaticDrawsBeforeSuppression": 0,
+      "loadingObservedMs": 42241.372989999996,
+      "firstFrameReadbackMs": 172362.007675,
+      "originalStartupBudgetMet": true
+    },
+    "glErrors": 0,
+    "assetFailures": 0,
+    "javascriptErrors": 0
+  },
+  "additionalIntegratedMain": "85ceda3",
+  "carSourceHashesUnchangedAfterAdditionalIntegration": true,
+  "uniqueTargetedTestsPassed": 120,
+  "finalIntegratedBuild": {
+    "sourceFingerprint": "6b38c73dbbb694d38c697a0f952964df11a998a097e6e84887df0d0158eae72b",
+    "integratedParent": "85ceda37b9893ffe1f407e08f4ae1e3a5018e736",
+    "command": "npm run build",
+    "exitCode": 0,
+    "transformedModules": 726,
+    "viteBuildSeconds": 78,
+    "advisory": "Existing large-chunk advisory retained"
+  },
+  "publicationParent": "0004d10009b6e88ec65fdb3fbd663e1dee3f5eb3",
+  "additionalFixtureOnlyIntegration": {
+    "commit": "0004d10009b6e88ec65fdb3fbd663e1dee3f5eb3",
+    "files": [
+      "e2e/44-motocross-interface.spec.ts",
+      "e2e/fixtures/motocross-interface.ts"
+    ],
+    "productionSourcesUnchanged": true
+  }
+}

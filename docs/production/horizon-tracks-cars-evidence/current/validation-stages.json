@@ -1,0 +1,46 @@
+{
+  "appFingerprint": "902e5d1891cc37323609b9c1e8a2d6badba95026beb760cbe99e85e32ce196bb",
+  "parentCommit": "0bb24350121947b165aa3ee810d7a7c22e1c32e2",
+  "checks": [
+    {
+      "name": "lint",
+      "command": [
+        "npm",
+        "run",
+        "lint"
+      ],
+      "startedAt": "2026-10-20T05:06:11.339947+00:00",
+      "finishedAt": "2026-10-20T05:07:30.377588+00:00",
+      "exitCode": 0,
+      "log": "lint-integrated.log"
+    },
+    {
+      "name": "content",
+      "command": [
+        "npm",
+        "run",
+        "validate:content"
+      ],
+      "startedAt": "2026-10-20T05:07:30.384137+00:00",
+      "finishedAt": "2026-10-20T05:07:41.521367+00:00",
+      "exitCode": 0,
+      "log": "content-integrated.log"
+    },
+    {
+      "name": "build",
+      "command": [
+        "node",
+        "--experimental-transform-types",
+        "scripts/source-stability.ts",
+        "--",
+        "npm",
+        "run",
+        "build"
+      ],
+      "startedAt": "2026-10-20T05:07:41.522193+00:00",
+      "finishedAt": "2026-10-20T05:17:24.051637+00:00",
+      "exitCode": 0,
+      "log": "build-integrated.log"
+    }
+  ]
+}

@@ -1,0 +1,1592 @@
+{
+  "scope": "Separate focused native-keyboard SC7/practice/photo/capture/exit review; not a pass of the earlier complete nine-step review",
+  "generatedAt": "2026-10-20T05:53:26.477Z",
+  "expectedSourceFingerprint": "7365c3573037ff7d60796bed31daa970dc8540b88cd46f96643510583f76df48",
+  "quality": "medium",
+  "viewport": {
+    "width": 1120,
+    "height": 700
+  },
+  "initialSave": {
+    "discovered": [],
+    "vehicle": "rh3"
+  },
+  "budgetsMs": {
+    "loading": 180000,
+    "interaction": 90000,
+    "captureReadback": 360000,
+    "failureState": 10000,
+    "shutdown": 15000
+  },
+  "priorPointerReview": {
+    "path": "test-results/horizon-current/browser-bundled/review.json",
+    "functionalPassed": false,
+    "sourceFingerprint": "7365c3573037ff7d60796bed31daa970dc8540b88cd46f96643510583f76df48",
+    "failure": "locator.click: Timeout 90000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#festMenu [data-fest=\"photo\"]')\u001b[22m\n\u001b[2m    - locator resolved to <button data-fest=\"photo\" class=\"fest-secondary\">PHOTO MODE</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n",
+    "stepsPassed": [
+      "fresh-save RH3 travels to the real club race marker without discovery gating",
+      "new circuit appears in the world map and returns to driving",
+      "manual RH3 throttle and braking on the actual circuit"
+    ]
+  },
+  "limitations": [
+    "Software GPU; no target-device FPS or photographic-realism claim",
+    "Automatic GPU submissions suppressed; the real worker, input, HUD and production renderer remain active",
+    "Native Enter activation follows verified visible/enabled/focused real UI buttons; no direct command injection or JavaScript click",
+    "Captures are exact fixture canvas PNG readbacks at the main runner inspection camera coordinates; UI overlay is excluded",
+    "No repetition of the failed full-review pointer activation, abandon/retry or RH3 pedal checks"
+  ],
+  "steps": [
+    {
+      "name": "fresh-save RH3 practice session loads with automatic rendering suppressed",
+      "elapsedMs": 69200.392179,
+      "draws": 0
+    },
+    {
+      "name": "native Enter selects the actual SC7 before any rendered frame",
+      "elapsedMs": 70188.89636700001,
+      "vehicle": "sc7",
+      "draws": 0
+    },
+    {
+      "name": "real map selection and native travel reach the practice marker in SC7",
+      "elapsedMs": 71398.91865200001
+    },
+    {
+      "name": "native Enter starts the actual solo practice event",
+      "elapsedMs": 372884.255683,
+      "event": "saltmarsh-practice",
+      "vehicle": "sc7",
+      "mode": "running"
+    },
+    {
+      "name": "visible enabled focused Photo Mode button accepts native Enter and pauses the real session",
+      "elapsedMs": 373554.832128
+    },
+    {
+      "name": "two paused production-renderer inspection views captured at the existing authored camera positions",
+      "elapsedMs": 451757.885724
+    },
+    {
+      "name": "Escape returns Photo Mode to normal session input",
+      "elapsedMs": 451843.365539
+    },
+    {
+      "name": "native UI exit removes Festival HUD and releases geometry",
+      "elapsedMs": 452208.947029,
+      "before": {
+        "geometries": 185,
+        "textures": 45
+      },
+      "after": {
+        "geometries": 1,
+        "textures": 21
+      }
+    }
+  ],
+  "buttons": [
+    {
+      "label": "select SC7 in real pause garage",
+      "selector": "#festMenu [data-fest=\"vehicle\"][data-value=\"sc7\"]",
+      "before": {
+        "visible": true,
+        "enabled": true,
+        "text": "SC-7 SUPERCARROAD · 1,480 KG",
+        "action": "vehicle",
+        "value": "sc7",
+        "rect": {
+          "x": 362.859375,
+          "y": 611.296875,
+          "width": 256.875,
+          "height": 57
+        },
+        "inViewport": true,
+        "classes": "",
+        "display": "block",
+        "visibility": "visible",
+        "disabled": false,
+        "focused": false,
+        "hudClasses": "fest-hud fest-menu-active",
+        "ancestors": [
+          {
+            "tag": "BUTTON",
+            "id": "",
+            "classes": "",
+            "hidden": false,
+            "display": "block",
+            "visibility": "visible"
+          },
+          {
+            "tag": "DIV",
+            "id": "",
+            "classes": "fest-options fest-garage",
+            "hidden": false,
+            "display": "grid",
+            "visibility": "visible"
+          },
+          {
+            "tag": "SECTION",
+            "id": "",
+            "classes": "",
+            "hidden": false,
+            "display": "block",
+            "visibility": "visible"
+          },
+          {
+            "tag": "DIV",
+            "id": "",
+            "classes": "",
+            "hidden": false,
+            "display": "block",
+            "visibility": "visible"
+          },
+          {
+            "tag": "DIV",
+            "id": "",
+            "classes": "fest-menu-columns",
+            "hidden": false,
+            "display": "grid",
+            "visibility": "visible"
+          },
+          {
+            "tag": "DIV",
+            "id": "festMenu",
+            "classes": "fest-menu",
+            "hidden": false,
+            "display": "block",
+            "visibility": "visible"
+          }
+        ]
+      },
+      "focused": {
+        "visible": true,
+        "enabled": true,
+        "text": "SC-7 SUPERCARROAD · 1,480 KG",
+        "action": "vehicle",
+        "value": "sc7",
+        "rect": {
+          "x": 362.859375,
+          "y": 558.296875,
+          "width": 256.875,
+          "height": 57
+        },
+        "inViewport": true,
+        "classes": "",
+        "display": "block",
+        "visibility": "visible",
+        "disabled": false,
+        "focused": true,
+        "hudClasses": "fest-hud fest-menu-active",
+        "ancestors": [
+          {
+            "tag": "BUTTON",
+            "id": "",
+            "classes": "",
+            "hidden": false,
+            "display": "block",
+            "visibility": "visible"
+          },
+          {
+            "tag": "DIV",
+            "id": "",
+            "classes": "fest-options fest-garage",
+            "hidden": false,
+            "display": "grid",
+            "visibility": "visible"
+          },
+          {
+            "tag": "SECTION",
+            "id": "",
+            "classes": "",
+            "hidden": false,
+            "display": "block",
+            "visibility": "visible"
+          },
+          {
+            "tag": "DIV",
+            "id": "",
+            "classes": "",
+            "hidden": false,
+            "display": "block",
+            "visibility": "visible"
+          },
+          {
+            "tag": "DIV",
+            "id": "",
+            "classes": "fest-menu-columns",
+            "hidden": false,
+            "display": "grid",
+            "visibility": "visible"
+          },
+          {
+            "tag": "DIV",
+            "id": "festMenu",
+            "classes": "fest-menu",
+            "hidden": false,
+            "display": "block",
+            "visibility": "visible"
+          }
+        ]
+      }
+    },
+    {
+      "label": "open real world map",
+      "selector": "#festMenu [data-fest=\"map\"]",
+      "before": {
+        "visible": true,
+        "enabled": true,
+        "text": "WORLD MAP",
+        "action": "map",
+        "rect": {
+          "x": 433.09375,
+          "y": 189.296875,
+          "width": 98.203125,
+          "height": 39
+        },
+        "inViewport": true,
+        "classes": "fest-secondary",
+        "display": "block",
+        "visibility": "visible",
+        "disabled": false,
+        "focused": false,
+        "hudClasses": "fest-hud fest-menu-active",
+        "ancestors": [
+          {
+            "tag": "BUTTON",
+            "id": "",
+            "classes": "fest-secondary",
+            "hidden": false,
+            "display": "block",
+            "visibility": "visible"
+          },
+          {
+            "tag": "DIV",
+            "id": "",
+            "classes": "fest-menu-actions",
+            "hidden": false,
+            "display": "flex",
+            "visibility": "visible"
+          },
+          {
+            "tag": "DIV",
+            "id": "festMenu",
+            "classes": "fest-menu",
+            "hidden": false,
+            "display": "block",
+            "visibility": "visible"
+          },
+          {
+            "tag": "SECTION",
+            "id": "festivalHud",
+            "classes": "fest-hud fest-menu-active",
+            "hidden": false,
+            "display": "block",
+            "visibility": "visible"
+          },
+          {
+            "tag": "MAIN",
+            "id": "app",
+            "classes": "",
+            "hidden": false,
+            "display": "block",
+            "visibility": "visible"
+          },
+          {
+            "tag": "BODY",
+            "id": "",
+            "classes": "",
+            "hidden": false,
+            "display": "block",
+            "visibility": "visible"
+          }
+        ]
+      },
+      "focused": {
+        "visible": true,
+        "enabled": true,
+        "text": "WORLD MAP",
+        "action": "map",
+        "rect": {
+          "x": 433.09375,
+          "y": 189.296875,
+          "width": 98.203125,
+          "height": 39
+        },
+        "inViewport": true,
+        "classes": "fest-secondary",
+        "display": "block",
+        "visibility": "visible",
+        "disabled": false,
+        "focused": true,
+        "hudClasses": "fest-hud fest-menu-active",
+        "ancestors": [
+          {
+            "tag": "BUTTON",
+            "id": "",
+            "classes": "fest-secondary",
+            "hidden": false,
+            "display": "block",
+            "visibility": "visible"
+          },
+          {
+            "tag": "DIV",
+            "id": "",
+            "classes": "fest-menu-actions",
+            "hidden": false,
+            "display": "flex",
+            "visibility": "visible"
+          },
+          {
+            "tag": "DIV",
+            "id": "festMenu",
+            "classes": "fest-menu",
+            "hidden": false,
+            "display": "block",
+            "visibility": "visible"
+          },
+          {
+            "tag": "SECTION",
+            "id": "festivalHud",
+            "classes": "fest-hud fest-menu-active",
+            "hidden": false,
+            "display": "block",
+            "visibility": "visible"
+          },
+          {
+            "tag": "MAIN",
+            "id": "app",
+            "classes": "",
+            "hidden": false,
+            "display": "block",
+            "visibility": "visible"
+          },
+          {
+            "tag": "BODY",
+            "id": "",
+            "classes": "",
+            "hidden": false,
+            "display": "block",
+            "visibility": "visible"
+          }
+        ]
+      }
+    },
+    {
+      "label": "select Saltmarsh Practice Lap in map",
+      "selector": "#festMap [data-fest=\"mapSelect\"][data-value=\"saltmarsh-practice\"]",
+      "before": {
+        "visible": true,
+        "enabled": true,
+        "text": "Saltmarsh Practice LapCircuit · 3.2 KM●",
+        "action": "mapSelect",
+        "value": "saltmarsh-practice",
+        "rect": {
+          "x": 733.203125,
+          "y": 1076,
+          "width": 316,
+          "height": 52
+        },
+        "inViewport": false,
+        "classes": "",
+        "display": "flex",
+        "visibility": "visible",
+        "disabled": false,
+        "focused": false,
+        "hudClasses": "fest-hud fest-menu-active fest-map-active",
+        "ancestors": [
+          {
+            "tag": "BUTTON",
+            "id": "",
+            "classes": "",
+            "hidden": false,
+            "display": "flex",
+            "visibility": "visible"
+          },
+          {
+            "tag": "DIV",
+            "id": "festMapEvents",
+            "classes": "fest-map-events",
+            "hidden": false,
+            "display": "block",
+            "visibility": "visible"
+          },
+          {
+            "tag": "ASIDE",
+            "id": "",
+            "classes": "",
+            "hidden": false,
+            "display": "flex",
+            "visibility": "visible"
+          },
+          {
+            "tag": "DIV",
+            "id": "",
+            "classes": "fest-map-layout",
+            "hidden": false,
+            "display": "grid",
+            "visibility": "visible"
+          },
+          {
+            "tag": "DIV",
+            "id": "festMap",
+            "classes": "fest-map",
+            "hidden": false,
+            "display": "block",
+            "visibility": "visible"
+          },
+          {
+            "tag": "SECTION",
+            "id": "festivalHud",
+            "classes": "fest-hud fest-menu-active fest-map-active",
+            "hidden": false,
+            "display": "block",
+            "visibility": "visible"
+          }
+        ]
+      },
+      "focused": {
+        "visible": true,
+        "enabled": true,
+        "text": "Saltmarsh Practice LapCircuit · 3.2 KM●",
+        "action": "mapSelect",
+        "value": "saltmarsh-practice",
+        "rect": {
+          "x": 733.203125,
+          "y": 492,
+          "width": 316,
+          "height": 52
+        },
+        "inViewport": true,
+        "classes": "",
+        "display": "flex",
+        "visibility": "visible",
+        "disabled": false,
+        "focused": true,
+        "hudClasses": "fest-hud fest-menu-active fest-map-active",
+        "ancestors": [
+          {
+            "tag": "BUTTON",
+            "id": "",
+            "classes": "",
+            "hidden": false,
+            "display": "flex",
+            "visibility": "visible"
+          },
+          {
+            "tag": "DIV",
+            "id": "festMapEvents",
+            "classes": "fest-map-events",
+            "hidden": false,
+            "display": "block",
+            "visibility": "visible"
+          },
+          {
+            "tag": "ASIDE",
+            "id": "",
+            "classes": "",
+            "hidden": false,
+            "display": "flex",
+            "visibility": "visible"
+          },
+          {
+            "tag": "DIV",
+            "id": "",
+            "classes": "fest-map-layout",
+            "hidden": false,
+            "display": "grid",
+            "visibility": "visible"
+          },
+          {
+            "tag": "DIV",
+            "id": "festMap",
+            "classes": "fest-map",
+            "hidden": false,
+            "display": "block",
+            "visibility": "visible"
+          },
+          {
+            "tag": "SECTION",
+            "id": "festivalHud",
+            "classes": "fest-hud fest-menu-active fest-map-active",
+            "hidden": false,
+            "display": "block",
+            "visibility": "visible"
+          }
+        ]
+      }
+    },
+    {
+      "label": "travel to practice through map",
+      "selector": "#festMapDetail [data-fest=\"travel\"]",
+      "before": {
+        "visible": true,
+        "enabled": true,
+        "text": "TRAVEL TO EVENT",
+        "action": "travel",
+        "value": "saltmarsh-practice",
+        "rect": {
+          "x": 733.203125,
+          "y": 608,
+          "width": 143.203125,
+          "height": 39
+        },
+        "inViewport": true,
+        "classes": "fest-primary",
+        "display": "inline-block",
+        "visibility": "visible",
+        "disabled": false,
+        "focused": false,
+        "hudClasses": "fest-hud fest-menu-active fest-map-active",
+        "ancestors": [
+          {
+            "tag": "BUTTON",
+            "id": "",
+            "classes": "fest-primary",
+            "hidden": false,
+            "display": "inline-block",
+            "visibility": "visible"
+          },
+          {
+            "tag": "DIV",
+            "id": "festMapDetail",
+            "classes": "fest-map-detail",
+            "hidden": false,
+            "display": "block",
+            "visibility": "visible"
+          },
+          {
+            "tag": "ASIDE",
+            "id": "",
+            "classes": "",
+            "hidden": false,
+            "display": "flex",
+            "visibility": "visible"
+          },
+          {
+            "tag": "DIV",
+            "id": "",
+            "classes": "fest-map-layout",
+            "hidden": false,
+            "display": "grid",
+            "visibility": "visible"
+          },
+          {
+            "tag": "DIV",
+            "id": "festMap",
+            "classes": "fest-map",
+            "hidden": false,
+            "display": "block",
+            "visibility": "visible"
+          },
+          {
+            "tag": "SECTION",
+            "id": "festivalHud",
+            "classes": "fest-hud fest-menu-active fest-map-active",
+            "hidden": false,
+            "display": "block",
+            "visibility": "visible"
+          }
+        ]
+      },
+      "focused": {
+        "visible": true,
+        "enabled": true,
+        "text": "TRAVEL TO EVENT",
+        "action": "travel",
+        "value": "saltmarsh-practice",
+        "rect": {
+          "x": 733.203125,
+          "y": 608,
+          "width": 143.203125,
+          "height": 39
+        },
+        "inViewport": true,
+        "classes": "fest-primary",
+        "display": "inline-block",
+        "visibility": "visible",
+        "disabled": false,
+        "focused": true,
+        "hudClasses": "fest-hud fest-menu-active fest-map-active",
+        "ancestors": [
+          {
+            "tag": "BUTTON",
+            "id": "",
+            "classes": "fest-primary",
+            "hidden": false,
+            "display": "inline-block",
+            "visibility": "visible"
+          },
+          {
+            "tag": "DIV",
+            "id": "festMapDetail",
+            "classes": "fest-map-detail",
+            "hidden": false,
+            "display": "block",
+            "visibility": "visible"
+          },
+          {
+            "tag": "ASIDE",
+            "id": "",
+            "classes": "",
+            "hidden": false,
+            "display": "flex",
+            "visibility": "visible"
+          },
+          {
+            "tag": "DIV",
+            "id": "",
+            "classes": "fest-map-layout",
+            "hidden": false,
+            "display": "grid",
+            "visibility": "visible"
+          },
+          {
+            "tag": "DIV",
+            "id": "festMap",
+            "classes": "fest-map",
+            "hidden": false,
+            "display": "block",
+            "visibility": "visible"
+          },
+          {
+            "tag": "SECTION",
+            "id": "festivalHud",
+            "classes": "fest-hud fest-menu-active fest-map-active",
+            "hidden": false,
+            "display": "block",
+            "visibility": "visible"
+          }
+        ]
+      }
+    },
+    {
+      "label": "start real practice event",
+      "selector": "#festCard [data-fest=\"start\"]",
+      "before": {
+        "visible": true,
+        "enabled": true,
+        "text": "START EVENT ENTER",
+        "action": "start",
+        "value": "saltmarsh-practice",
+        "rect": {
+          "x": 748,
+          "y": 432,
+          "width": 163.96875,
+          "height": 39
+        },
+        "inViewport": true,
+        "classes": "fest-primary",
+        "display": "inline-block",
+        "visibility": "visible",
+        "disabled": false,
+        "focused": false,
+        "hudClasses": "fest-hud",
+        "ancestors": [
+          {
+            "tag": "BUTTON",
+            "id": "",
+            "classes": "fest-primary",
+            "hidden": false,
+            "display": "inline-block",
+            "visibility": "visible"
+          },
+          {
+            "tag": "DIV",
+            "id": "festCard",
+            "classes": "fest-card",
+            "hidden": false,
+            "display": "block",
+            "visibility": "visible"
+          },
+          {
+            "tag": "SECTION",
+            "id": "festivalHud",
+            "classes": "fest-hud",
+            "hidden": false,
+            "display": "block",
+            "visibility": "visible"
+          },
+          {
+            "tag": "MAIN",
+            "id": "app",
+            "classes": "",
+            "hidden": false,
+            "display": "block",
+            "visibility": "visible"
+          },
+          {
+            "tag": "BODY",
+            "id": "",
+            "classes": "",
+            "hidden": false,
+            "display": "block",
+            "visibility": "visible"
+          },
+          {
+            "tag": "HTML",
+            "id": "",
+            "classes": "",
+            "hidden": false,
+            "display": "block",
+            "visibility": "visible"
+          }
+        ]
+      },
+      "focused": {
+        "visible": true,
+        "enabled": true,
+        "text": "START EVENT ENTER",
+        "action": "start",
+        "value": "saltmarsh-practice",
+        "rect": {
+          "x": 748,
+          "y": 432,
+          "width": 163.96875,
+          "height": 39
+        },
+        "inViewport": true,
+        "classes": "fest-primary",
+        "display": "inline-block",
+        "visibility": "visible",
+        "disabled": false,
+        "focused": true,
+        "hudClasses": "fest-hud",
+        "ancestors": [
+          {
+            "tag": "BUTTON",
+            "id": "",
+            "classes": "fest-primary",
+            "hidden": false,
+            "display": "inline-block",
+            "visibility": "visible"
+          },
+          {
+            "tag": "DIV",
+            "id": "festCard",
+            "classes": "fest-card",
+            "hidden": false,
+            "display": "block",
+            "visibility": "visible"
+          },
+          {
+            "tag": "SECTION",
+            "id": "festivalHud",
+            "classes": "fest-hud",
+            "hidden": false,
+            "display": "block",
+            "visibility": "visible"
+          },
+          {
+            "tag": "MAIN",
+            "id": "app",
+            "classes": "",
+            "hidden": false,
+            "display": "block",
+            "visibility": "visible"
+          },
+          {
+            "tag": "BODY",
+            "id": "",
+            "classes": "",
+            "hidden": false,
+            "display": "block",
+            "visibility": "visible"
+          },
+          {
+            "tag": "HTML",
+            "id": "",
+            "classes": "",
+            "hidden": false,
+            "display": "block",
+            "visibility": "visible"
+          }
+        ]
+      }
+    },
+    {
+      "label": "open Photo Mode with native Enter",
+      "selector": "#festMenu [data-fest=\"photo\"]",
+      "before": {
+        "visible": true,
+        "enabled": true,
+        "text": "PHOTO MODE",
+        "action": "photo",
+        "rect": {
+          "x": 668.703125,
+          "y": 189.296875,
+          "width": 103,
+          "height": 39
+        },
+        "inViewport": true,
+        "classes": "fest-secondary",
+        "display": "block",
+        "visibility": "visible",
+        "disabled": false,
+        "focused": false,
+        "hudClasses": "fest-hud fest-menu-active",
+        "ancestors": [
+          {
+            "tag": "BUTTON",
+            "id": "",
+            "classes": "fest-secondary",
+            "hidden": false,
+            "display": "block",
+            "visibility": "visible"
+          },
+          {
+            "tag": "DIV",
+            "id": "",
+            "classes": "fest-menu-actions",
+            "hidden": false,
+            "display": "flex",
+            "visibility": "visible"
+          },
+          {
+            "tag": "DIV",
+            "id": "festMenu",
+            "classes": "fest-menu",
+            "hidden": false,
+            "display": "block",
+            "visibility": "visible"
+          },
+          {
+            "tag": "SECTION",
+            "id": "festivalHud",
+            "classes": "fest-hud fest-menu-active",
+            "hidden": false,
+            "display": "block",
+            "visibility": "visible"
+          },
+          {
+            "tag": "MAIN",
+            "id": "app",
+            "classes": "",
+            "hidden": false,
+            "display": "block",
+            "visibility": "visible"
+          },
+          {
+            "tag": "BODY",
+            "id": "",
+            "classes": "",
+            "hidden": false,
+            "display": "block",
+            "visibility": "visible"
+          }
+        ]
+      },
+      "focused": {
+        "visible": true,
+        "enabled": true,
+        "text": "PHOTO MODE",
+        "action": "photo",
+        "rect": {
+          "x": 668.703125,
+          "y": 189.296875,
+          "width": 103,
+          "height": 39
+        },
+        "inViewport": true,
+        "classes": "fest-secondary",
+        "display": "block",
+        "visibility": "visible",
+        "disabled": false,
+        "focused": true,
+        "hudClasses": "fest-hud fest-menu-active",
+        "ancestors": [
+          {
+            "tag": "BUTTON",
+            "id": "",
+            "classes": "fest-secondary",
+            "hidden": false,
+            "display": "block",
+            "visibility": "visible"
+          },
+          {
+            "tag": "DIV",
+            "id": "",
+            "classes": "fest-menu-actions",
+            "hidden": false,
+            "display": "flex",
+            "visibility": "visible"
+          },
+          {
+            "tag": "DIV",
+            "id": "festMenu",
+            "classes": "fest-menu",
+            "hidden": false,
+            "display": "block",
+            "visibility": "visible"
+          },
+          {
+            "tag": "SECTION",
+            "id": "festivalHud",
+            "classes": "fest-hud fest-menu-active",
+            "hidden": false,
+            "display": "block",
+            "visibility": "visible"
+          },
+          {
+            "tag": "MAIN",
+            "id": "app",
+            "classes": "",
+            "hidden": false,
+            "display": "block",
+            "visibility": "visible"
+          },
+          {
+            "tag": "BODY",
+            "id": "",
+            "classes": "",
+            "hidden": false,
+            "display": "block",
+            "visibility": "visible"
+          }
+        ]
+      }
+    },
+    {
+      "label": "hide photo controls with native Enter",
+      "selector": "#festPhoto [data-fest=\"photoHide\"]",
+      "before": {
+        "visible": true,
+        "enabled": true,
+        "text": "HIDE CONTROLS",
+        "action": "photoHide",
+        "rect": {
+          "x": 795.375,
+          "y": 622,
+          "width": 114.40625,
+          "height": 36
+        },
+        "inViewport": true,
+        "classes": "",
+        "display": "block",
+        "visibility": "visible",
+        "disabled": false,
+        "focused": false,
+        "hudClasses": "fest-hud fest-photo-active",
+        "ancestors": [
+          {
+            "tag": "BUTTON",
+            "id": "",
+            "classes": "",
+            "hidden": false,
+            "display": "block",
+            "visibility": "visible"
+          },
+          {
+            "tag": "NAV",
+            "id": "",
+            "classes": "",
+            "hidden": false,
+            "display": "flex",
+            "visibility": "visible"
+          },
+          {
+            "tag": "DIV",
+            "id": "festPhoto",
+            "classes": "fest-photo",
+            "hidden": false,
+            "display": "flex",
+            "visibility": "visible"
+          },
+          {
+            "tag": "SECTION",
+            "id": "festivalHud",
+            "classes": "fest-hud fest-photo-active",
+            "hidden": false,
+            "display": "block",
+            "visibility": "visible"
+          },
+          {
+            "tag": "MAIN",
+            "id": "app",
+            "classes": "",
+            "hidden": false,
+            "display": "block",
+            "visibility": "visible"
+          },
+          {
+            "tag": "BODY",
+            "id": "",
+            "classes": "",
+            "hidden": false,
+            "display": "block",
+            "visibility": "visible"
+          }
+        ]
+      },
+      "focused": {
+        "visible": true,
+        "enabled": true,
+        "text": "HIDE CONTROLS",
+        "action": "photoHide",
+        "rect": {
+          "x": 795.375,
+          "y": 622,
+          "width": 114.40625,
+          "height": 36
+        },
+        "inViewport": true,
+        "classes": "",
+        "display": "block",
+        "visibility": "visible",
+        "disabled": false,
+        "focused": true,
+        "hudClasses": "fest-hud fest-photo-active",
+        "ancestors": [
+          {
+            "tag": "BUTTON",
+            "id": "",
+            "classes": "",
+            "hidden": false,
+            "display": "block",
+            "visibility": "visible"
+          },
+          {
+            "tag": "NAV",
+            "id": "",
+            "classes": "",
+            "hidden": false,
+            "display": "flex",
+            "visibility": "visible"
+          },
+          {
+            "tag": "DIV",
+            "id": "festPhoto",
+            "classes": "fest-photo",
+            "hidden": false,
+            "display": "flex",
+            "visibility": "visible"
+          },
+          {
+            "tag": "SECTION",
+            "id": "festivalHud",
+            "classes": "fest-hud fest-photo-active",
+            "hidden": false,
+            "display": "block",
+            "visibility": "visible"
+          },
+          {
+            "tag": "MAIN",
+            "id": "app",
+            "classes": "",
+            "hidden": false,
+            "display": "block",
+            "visibility": "visible"
+          },
+          {
+            "tag": "BODY",
+            "id": "",
+            "classes": "",
+            "hidden": false,
+            "display": "block",
+            "visibility": "visible"
+          }
+        ]
+      }
+    },
+    {
+      "label": "exit Festival through real pause menu",
+      "selector": "#festMenu [data-fest=\"exit\"]",
+      "before": {
+        "visible": true,
+        "enabled": true,
+        "text": "EXIT FESTIVAL",
+        "action": "exit",
+        "rect": {
+          "x": 446.09375,
+          "y": 189.296875,
+          "width": 110.40625,
+          "height": 39
+        },
+        "inViewport": true,
+        "classes": "fest-secondary",
+        "display": "block",
+        "visibility": "visible",
+        "disabled": false,
+        "focused": false,
+        "hudClasses": "fest-hud fest-in-event fest-menu-active",
+        "ancestors": [
+          {
+            "tag": "BUTTON",
+            "id": "",
+            "classes": "fest-secondary",
+            "hidden": false,
+            "display": "block",
+            "visibility": "visible"
+          },
+          {
+            "tag": "DIV",
+            "id": "",
+            "classes": "fest-menu-actions",
+            "hidden": false,
+            "display": "flex",
+            "visibility": "visible"
+          },
+          {
+            "tag": "DIV",
+            "id": "festMenu",
+            "classes": "fest-menu",
+            "hidden": false,
+            "display": "block",
+            "visibility": "visible"
+          },
+          {
+            "tag": "SECTION",
+            "id": "festivalHud",
+            "classes": "fest-hud fest-in-event fest-menu-active",
+            "hidden": false,
+            "display": "block",
+            "visibility": "visible"
+          },
+          {
+            "tag": "MAIN",
+            "id": "app",
+            "classes": "",
+            "hidden": false,
+            "display": "block",
+            "visibility": "visible"
+          },
+          {
+            "tag": "BODY",
+            "id": "",
+            "classes": "",
+            "hidden": false,
+            "display": "block",
+            "visibility": "visible"
+          }
+        ]
+      },
+      "focused": {
+        "visible": true,
+        "enabled": true,
+        "text": "EXIT FESTIVAL",
+        "action": "exit",
+        "rect": {
+          "x": 446.09375,
+          "y": 189.296875,
+          "width": 110.40625,
+          "height": 39
+        },
+        "inViewport": true,
+        "classes": "fest-secondary",
+        "display": "block",
+        "visibility": "visible",
+        "disabled": false,
+        "focused": true,
+        "hudClasses": "fest-hud fest-in-event fest-menu-active",
+        "ancestors": [
+          {
+            "tag": "BUTTON",
+            "id": "",
+            "classes": "fest-secondary",
+            "hidden": false,
+            "display": "block",
+            "visibility": "visible"
+          },
+          {
+            "tag": "DIV",
+            "id": "",
+            "classes": "fest-menu-actions",
+            "hidden": false,
+            "display": "flex",
+            "visibility": "visible"
+          },
+          {
+            "tag": "DIV",
+            "id": "festMenu",
+            "classes": "fest-menu",
+            "hidden": false,
+            "display": "block",
+            "visibility": "visible"
+          },
+          {
+            "tag": "SECTION",
+            "id": "festivalHud",
+            "classes": "fest-hud fest-in-event fest-menu-active",
+            "hidden": false,
+            "display": "block",
+            "visibility": "visible"
+          },
+          {
+            "tag": "MAIN",
+            "id": "app",
+            "classes": "",
+            "hidden": false,
+            "display": "block",
+            "visibility": "visible"
+          },
+          {
+            "tag": "BODY",
+            "id": "",
+            "classes": "",
+            "hidden": false,
+            "display": "block",
+            "visibility": "visible"
+          }
+        ]
+      }
+    }
+  ],
+  "captures": [
+    {
+      "name": "sc7-track-car",
+      "path": "/workspace/scratch/bea6757b1f23/Experiment-3/test-results/horizon-current/focused-review/sc7-track-car.png",
+      "elapsedMs": 24942.74591400003,
+      "bytes": 1540484,
+      "camera": [
+        -1528.9161376953125,
+        84.88054199218752,
+        -904.2036743164062
+      ],
+      "player": {
+        "x": -1536.9161376953125,
+        "y": 81.6805419921875,
+        "z": -911.2036743164062
+      },
+      "render": {
+        "drawCalls": 233,
+        "triangles": 380141,
+        "renderMs": 26843.7800000003
+      },
+      "memory": {
+        "geometries": 167,
+        "textures": 45
+      },
+      "paused": true,
+      "vehicle": "sc7",
+      "event": "saltmarsh-practice",
+      "glError": 0
+    },
+    {
+      "name": "club-corner-markers",
+      "path": "/workspace/scratch/bea6757b1f23/Experiment-3/test-results/horizon-current/focused-review/club-corner-markers.png",
+      "elapsedMs": 19161.529945999966,
+      "bytes": 1318576,
+      "camera": [
+        -1471.4604,
+        87.4762,
+        -855.1367
+      ],
+      "player": {
+        "x": -1536.9161376953125,
+        "y": 81.6805419921875,
+        "z": -911.2036743164062
+      },
+      "render": {
+        "drawCalls": 182,
+        "triangles": 286002,
+        "renderMs": 24165.42200000057
+      },
+      "memory": {
+        "geometries": 185,
+        "textures": 45
+      },
+      "paused": true,
+      "vehicle": "sc7",
+      "event": "saltmarsh-practice",
+      "glError": 0
+    }
+  ],
+  "loadingStages": [
+    {
+      "text": "Loading festival",
+      "hidden": false,
+      "elapsedMs": 728.8093770000003
+    },
+    {
+      "text": "Building the Solvane festival region…",
+      "hidden": false,
+      "elapsedMs": 2742.0549230000006
+    },
+    {
+      "text": "Planning event routes and town streets…",
+      "hidden": false,
+      "elapsedMs": 5063.788350000001
+    },
+    {
+      "text": "Building roads, buildings and water…",
+      "hidden": false,
+      "elapsedMs": 5676.365958
+    },
+    {
+      "text": "Loading photographed trees…",
+      "hidden": false,
+      "elapsedMs": 51948.938273
+    },
+    {
+      "text": "Loading authored coastal details…",
+      "hidden": false,
+      "elapsedMs": 51958.425049
+    },
+    {
+      "text": "Starting the festival simulation…",
+      "hidden": false,
+      "elapsedMs": 55520.123157
+    },
+    {
+      "text": "Streaming terrain around Port Ilse…",
+      "hidden": false,
+      "elapsedMs": 63213.590178
+    },
+    {
+      "text": "Loading the photographed sky…",
+      "hidden": false,
+      "elapsedMs": 66027.108891
+    },
+    {
+      "text": "Loading photographed ground…",
+      "hidden": false,
+      "elapsedMs": 66430.92619
+    },
+    {
+      "text": "Travelling to Saltmarsh Practice Lap…",
+      "hidden": false,
+      "elapsedMs": 66654.793716
+    },
+    {
+      "text": "Travelling to Saltmarsh Practice Lap…",
+      "hidden": true,
+      "elapsedMs": 68440.98328
+    },
+    {
+      "text": "Travelling to Saltmarsh Practice Lap…",
+      "hidden": false,
+      "elapsedMs": 71203.275719
+    },
+    {
+      "text": "Travelling to Saltmarsh Practice Lap…",
+      "hidden": true,
+      "elapsedMs": 71271.494682
+    }
+  ],
+  "errors": [],
+  "failedAssets": [],
+  "failedRequests": [
+    {
+      "url": "http://127.0.0.1:5193/assets/third-party/texture/sandy-gravel-01/sandy-gravel-01_orm.ktx2",
+      "error": "net::ERR_ABORTED"
+    }
+  ],
+  "focusedPassed": true,
+  "resourcesBeforeLaunch": {
+    "memory.current": "6457356288",
+    "memory.max": "8589934592",
+    "memory.events": "low 0\nhigh 0\nmax 1945156\noom 137\noom_kill 22\noom_group_kill 0"
+  },
+  "automaticDrawsBeforeSuppression": 0,
+  "sourceIdentity": {
+    "fingerprint": "7365c3573037ff7d60796bed31daa970dc8540b88cd46f96643510583f76df48",
+    "commit": null
+  },
+  "initialState": {
+    "sourceIdentity": {
+      "fingerprint": "7365c3573037ff7d60796bed31daa970dc8540b88cd46f96643510583f76df48",
+      "commit": null
+    },
+    "ready": true,
+    "paused": false,
+    "exited": false,
+    "status": {
+      "mode": "card",
+      "time": 0.5583333333333338,
+      "vehicleId": "rh3",
+      "speedKmh": 0.5234332542188639,
+      "autopilot": false,
+      "card": {
+        "id": "saltmarsh-practice",
+        "name": "Saltmarsh Practice Lap",
+        "kind": "circuit",
+        "blurb": "One clear lap to learn the braking points and try your next car. Use Retry at the finish for another run.",
+        "distanceKm": 3.2,
+        "laps": 1,
+        "rivals": 0
+      },
+      "event": null,
+      "result": null,
+      "discovered": [
+        "saltmarsh-practice"
+      ],
+      "road": {
+        "name": "Saltmarsh Club Circuit",
+        "roadClass": "circuit",
+        "limitKmh": 90,
+        "onRoad": true,
+        "surface": "asphalt"
+      },
+      "message": "Travelled to Saltmarsh Practice Lap",
+      "streaming": {
+        "resident": 6,
+        "peakResident": 6,
+        "budget": 64,
+        "generated": 6,
+        "evicted": 0,
+        "stalls": 0,
+        "prefetched": 6,
+        "generationMs": 171.69999998807907,
+        "worstGenerationMs": 41.899999998509884
+      },
+      "traffic": {
+        "enabled": true,
+        "cars": 0
+      },
+      "skills": {
+        "phase": "idle",
+        "score": 0,
+        "multiplier": 1,
+        "total": 0,
+        "bankRemaining": 0,
+        "label": "",
+        "lastBank": 0,
+        "sessionTotal": 0,
+        "bestChain": 0,
+        "sequence": 0,
+        "air": null
+      }
+    },
+    "render": {
+      "drawCalls": 0,
+      "triangles": 0,
+      "renderMs": 0
+    },
+    "camera": "chase",
+    "position": [
+      -1529.9956587269169,
+      85.29246184886651,
+      -900.0046539113918
+    ],
+    "photo": false,
+    "results": [],
+    "draws": 0,
+    "memory": {
+      "geometries": 0,
+      "textures": 0
+    },
+    "player": {
+      "x": -1529.9901123046875,
+      "y": 82.81832885742188,
+      "z": -900.0375366210938
+    },
+    "details": {
+      "loaded": true,
+      "frontage": 1238,
+      "balconies": 1461,
+      "boats": 3,
+      "nearInstances": 0,
+      "farInstances": 0,
+      "drawBatches": 17
+    },
+    "street": {
+      "loaded": true,
+      "planned": 2488,
+      "nearInstances": 0,
+      "farInstances": 0,
+      "draws": 0,
+      "candidates": 0
+    },
+    "contacts": {
+      "cars": 0,
+      "patches": 0,
+      "triangles": 0,
+      "draws": 0,
+      "capacity": 40
+    },
+    "roads": {
+      "chunks": 128,
+      "triangles": 640961,
+      "lamps": 240,
+      "posts": 799,
+      "barrierRuns": 30,
+      "reflectors": 207,
+      "railEndCaps": 60,
+      "circuitGrids": 1,
+      "circuitBoards": 26,
+      "circuitChevrons": 21,
+      "circuitCueChunks": 11
+    },
+    "water": {
+      "profiles": 641,
+      "rejectedSpans": 11,
+      "chunks": 20,
+      "triangles": 10064,
+      "vertices": 5886,
+      "heightSamples": 28290,
+      "maxRootError": 0.00014164750508131874
+    },
+    "atmosphere": {
+      "falloff": [
+        0,
+        0.002380952380952381
+      ],
+      "extinction": [
+        0.00006645682932863635,
+        0.000093478,
+        0.00013991653653911969
+      ]
+    },
+    "pace": null,
+    "lampSockets": [],
+    "practicalLights": {
+      "capacity": 4,
+      "sockets": 638,
+      "visible": 0,
+      "active": 0
+    },
+    "aero": false
+  },
+  "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+  "nativeClicks": [
+    {
+      "action": "vehicle",
+      "value": "sc7",
+      "trusted": true,
+      "detail": 0
+    },
+    {
+      "action": "map",
+      "trusted": true,
+      "detail": 0
+    },
+    {
+      "action": "mapSelect",
+      "value": "saltmarsh-practice",
+      "trusted": true,
+      "detail": 0
+    },
+    {
+      "action": "travel",
+      "value": "saltmarsh-practice",
+      "trusted": true,
+      "detail": 0
+    },
+    {
+      "action": "photo",
+      "trusted": true,
+      "detail": 0
+    },
+    {
+      "action": "photoHide",
+      "trusted": true,
+      "detail": 0
+    },
+    {
+      "action": "exit",
+      "trusted": true,
+      "detail": 0
+    }
+  ],
+  "elapsedMs": 452231.786679,
+  "resourcesBeforeCleanup": {
+    "memory.current": "4979552256",
+    "memory.max": "8589934592",
+    "memory.events": "low 0\nhigh 0\nmax 1951999\noom 137\noom_kill 22\noom_group_kill 0"
+  },
+  "browserClosed": true,
+  "resourcesAfterCleanup": {
+    "memory.current": "3930296320",
+    "memory.max": "8589934592",
+    "memory.events": "low 0\nhigh 0\nmax 1951999\noom 137\noom_kill 22\noom_group_kill 0"
+  }
+}

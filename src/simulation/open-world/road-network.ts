@@ -1343,7 +1343,10 @@ export class RoadNetwork {
   /** Edges meeting a node and the direction they leave it (+1 forward). */
   leaving(node: number) {
     const out: { edge: RoadEdge; dir: 1 | -1 }[] = [];
-    for (const index of this.nodes[node].edges) {
+    // Node incidence records both ends of a self-loop. Emit each directed
+    // exit once, otherwise a club course with one access road gets duplicate
+    // successors in route planning and ambient traffic choices.
+    for (const index of new Set(this.nodes[node].edges)) {
       const e = this.edges[index];
       if (e.from === node) out.push({ edge: e, dir: 1 });
       if (e.to === node) out.push({ edge: e, dir: -1 });

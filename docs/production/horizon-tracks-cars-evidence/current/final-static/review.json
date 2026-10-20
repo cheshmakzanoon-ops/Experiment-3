@@ -1,0 +1,48 @@
+{
+  "generatedAt": "2026-10-20T06:02:20.823737+00:00",
+  "head": "9b598d8cb063fd9663d583d5d684467b8e0fc8f8",
+  "sourceBefore": {
+    "sha256": "7365c3573037ff7d60796bed31daa970dc8540b88cd46f96643510583f76df48",
+    "files": 768
+  },
+  "stages": [
+    {
+      "name": "typecheck",
+      "command": [
+        "node",
+        "--experimental-transform-types",
+        "scripts/source-stability.ts",
+        "--",
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 170.74797143299656,
+      "log": "typecheck.log"
+    },
+    {
+      "name": "lint",
+      "command": [
+        "node",
+        "--experimental-transform-types",
+        "scripts/source-stability.ts",
+        "--",
+        "npm",
+        "run",
+        "lint"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 110.35917033699661,
+      "log": "lint.log"
+    }
+  ],
+  "scope": "Final combined TypeScript and ESLint checks after three disjoint upstream commits; each uses the repository source-stability guard.",
+  "sourceAfter": {
+    "sha256": "7365c3573037ff7d60796bed31daa970dc8540b88cd46f96643510583f76df48",
+    "files": 768
+  },
+  "sourceStable": true,
+  "passed": true,
+  "completedAt": "2026-10-20T06:07:03.702696+00:00"
+}

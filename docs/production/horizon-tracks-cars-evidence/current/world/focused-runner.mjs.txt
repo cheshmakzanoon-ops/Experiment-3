@@ -1,0 +1,264 @@
+/** Separate focused UI/capture coverage. Does not supersede the failed full review.
+ * Run once from repository root: node --experimental-transform-types
+ * test-results/horizon-current/focused-review/runner.mjs
+ */
+import assert from 'node:assert/strict';
+import { readFile, writeFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
+import { chromium } from 'playwright';
+import { browserBackend, requireBrowserBackend } from '../../../scripts/browser-backend.ts';
+
+const output = resolve('test-results/horizon-current/focused-review');
+const expectedSource = '7365c3573037ff7d60796bed31daa970dc8540b88cd46f96643510583f76df48';
+const backend = browserBackend(process.env.APEX_BROWSER_BACKEND);
+const began = performance.now();
+const prior = JSON.parse(await readFile('test-results/horizon-current/browser-bundled/review.json', 'utf8'));
+const report = {
+  scope: 'Separate focused native-keyboard SC7/practice/photo/capture/exit review; not a pass of the earlier complete nine-step review',
+  generatedAt: new Date().toISOString(),
+  expectedSourceFingerprint: expectedSource,
+  quality: 'medium', viewport: { width: 1120, height: 700 },
+  initialSave: { discovered: [], vehicle: 'rh3' },
+  budgetsMs: { loading: 180000, interaction: 90000, captureReadback: 360000, failureState: 10000, shutdown: 15000 },
+  priorPointerReview: {
+    path: 'test-results/horizon-current/browser-bundled/review.json',
+    functionalPassed: prior.functionalPassed,
+    sourceFingerprint: prior.sourceFingerprint,
+    failure: prior.failure?.message,
+    stepsPassed: prior.steps?.map((step) => step.name),
+  },
+  limitations: [
+    'Software GPU; no target-device FPS or photographic-realism claim',
+    'Automatic GPU submissions suppressed; the real worker, input, HUD and production renderer remain active',
+    'Native Enter activation follows verified visible/enabled/focused real UI buttons; no direct command injection or JavaScript click',
+    'Captures are exact fixture canvas PNG readbacks at the main runner inspection camera coordinates; UI overlay is excluded',
+    'No repetition of the failed full-review pointer activation, abandon/retry or RH3 pedal checks',
+  ],
+  steps: [], buttons: [], captures: [], loadingStages: [], errors: [], failedAssets: [], failedRequests: [],
+  focusedPassed: false,
+};
+const save = () => writeFile(resolve(output, 'review.json'), JSON.stringify(report, null, 2) + '\n');
+const resources = async () => {
+  const result = {};
+  for (const key of ['memory.current', 'memory.max', 'memory.events']) {
+    try { result[key] = (await readFile(`/sys/fs/cgroup/${key}`, 'utf8')).trim(); } catch {}
+  }
+  return result;
+};
+async function bounded(label, ms, operation) {
+  let timer;
+  try {
+    return await Promise.race([
+      Promise.resolve().then(operation),
+      new Promise((_, reject) => { timer = setTimeout(() => reject(new Error(`${label} exceeded ${ms} ms`)), ms); }),
+    ]);
+  } finally { clearTimeout(timer); }
+}
+async function pass(name, data = {}) {
+  report.steps.push({ name, elapsedMs: performance.now() - began, ...data });
+  console.log('FOCUSED_PASS', name, JSON.stringify(data));
+  await save();
+}
+let browser, page, forceExit = false;
+const state = () => page.evaluate(() => { const { frame, ...value } = window.horizonReview.state(); return value; });
+const wait = (predicate, arg, timeout = 90000) => page.waitForFunction(predicate, arg, { polling: 100, timeout });
+async function buttonState(locator) {
+  const visible = await locator.isVisible(), enabled = await locator.isEnabled();
+  return { visible, enabled, ...await locator.evaluate((button) => {
+    const rect = button.getBoundingClientRect(), style = getComputedStyle(button);
+    const ancestors = [];
+    for (let node = button; node && ancestors.length < 6; node = node.parentElement) {
+      const css = getComputedStyle(node);
+      ancestors.push({ tag: node.tagName, id: node.id, classes: node.className, hidden: node.hidden, display: css.display, visibility: css.visibility });
+    }
+    return {
+      text: button.textContent?.trim(), action: button.dataset.fest, value: button.dataset.value,
+      rect: { x: rect.x, y: rect.y, width: rect.width, height: rect.height },
+      inViewport: rect.right > 0 && rect.bottom > 0 && rect.left < innerWidth && rect.top < innerHeight,
+      classes: button.className, display: style.display, visibility: style.visibility,
+      disabled: button.disabled, focused: document.activeElement === button,
+      hudClasses: document.querySelector('#festivalHud')?.className, ancestors,
+    };
+  }) };
+}
+async function activate(label, selector) {
+  await bounded(`native activation: ${label}`, report.budgetsMs.interaction, async () => {
+    const button = page.locator(selector);
+    await button.waitFor({ state: 'visible' });
+    const before = await buttonState(button);
+    assert(before.visible && before.enabled && !before.disabled, `${label} must be visible and enabled`);
+    assert(before.rect.width > 0 && before.rect.height > 0, `${label} must have a nonzero layout rectangle`);
+    await button.focus();
+    const focused = await buttonState(button);
+    report.buttons.push({ label, selector, before, focused });
+    await save();
+    assert(focused.focused && focused.inViewport, `${label} must own native keyboard focus in the viewport`);
+    await page.keyboard.press('Enter');
+  });
+}
+async function menu() {
+  if (!(await state()).paused) await page.keyboard.press('Escape');
+  await page.locator('#festMenu').waitFor({ state: 'visible' });
+}
+async function capture(name) {
+  const before = await state();
+  assert(before.paused && before.photo, 'Capture requires the real paused photo mode');
+  const started = performance.now();
+  console.log('FOCUSED_CAPTURE_BEGIN', name);
+  let png = await bounded(`capture ${name}`, report.budgetsMs.captureReadback, () => page.evaluate(() => {
+    window.horizonReview.draw();
+    return window.horizonReview.image();
+  }));
+  assert(png.startsWith('data:image/png;base64,'));
+  const bytes = Buffer.from(png.slice('data:image/png;base64,'.length), 'base64');
+  png = null;
+  assert.equal(bytes.readUInt32BE(16), report.viewport.width);
+  assert.equal(bytes.readUInt32BE(20), report.viewport.height);
+  await writeFile(resolve(output, `${name}.png`), bytes);
+  const after = await state();
+  const glError = await page.evaluate(() => document.querySelector('#world').getContext('webgl2').getError());
+  const entry = { name, path: resolve(output, `${name}.png`), elapsedMs: performance.now() - started, bytes: bytes.length,
+    camera: after.position, player: after.player, render: after.render, memory: after.memory, paused: after.paused,
+    vehicle: after.status.vehicleId, event: after.status.event?.id, glError };
+  report.captures.push(entry);
+  await save();
+  assert.equal(glError, 0, `WebGL error during ${name}`);
+  assert.equal(after.status.vehicleId, 'sc7');
+  assert.equal(after.status.event?.id, 'saltmarsh-practice');
+  console.log('FOCUSED_CAPTURE_DONE', JSON.stringify(entry));
+}
+try {
+  report.resourcesBeforeLaunch = await resources();
+  await save();
+  console.log('FOCUSED_BROWSER_LAUNCH', backend.name);
+  browser = await chromium.launch({
+    executablePath: process.env.HORIZON_REVIEW_EXECUTABLE || undefined,
+    headless: backend.headless, args: ['--no-sandbox', ...backend.args],
+  });
+  page = await browser.newPage({ viewport: report.viewport });
+  page.setDefaultTimeout(report.budgetsMs.interaction);
+  page.on('crash', () => { report.targetCrashed = true; console.error('FOCUSED_CRASH'); });
+  page.on('pageerror', (error) => report.errors.push(error.message));
+  page.on('console', (message) => { if (message.type() === 'error') report.errors.push(message.text()); });
+  page.on('response', (response) => { if (response.status() >= 400) report.failedAssets.push({ status: response.status(), url: response.url() }); });
+  page.on('requestfailed', (request) => report.failedRequests.push({ url: request.url(), error: request.failure()?.errorText }));
+  await page.exposeFunction('recordFocusedLoading', (value) => {
+    const entry = { ...value, elapsedMs: performance.now() - began };
+    report.loadingStages.push(entry);
+    console.log('FOCUSED_LOADING', JSON.stringify(entry));
+  });
+  await page.addInitScript(() => {
+    let previous = '';
+    const observer = new MutationObserver(() => {
+      const overlay = document.querySelector('#loading');
+      if (!overlay) return;
+      const value = { text: overlay.textContent, hidden: overlay.hidden }, key = JSON.stringify(value);
+      if (key !== previous) { previous = key; window.recordFocusedLoading(value).catch(() => {}); }
+    });
+    observer.observe(document, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['hidden'] });
+    window.focusedNativeClicks = [];
+    document.addEventListener('click', (event) => {
+      const button = event.target instanceof Element ? event.target.closest('button[data-fest]') : null;
+      if (button) window.focusedNativeClicks.push({ action: button.dataset.fest, value: button.dataset.value, trusted: event.isTrusted, detail: event.detail });
+    }, true);
+  });
+  await bounded('initial Festival loading', report.budgetsMs.loading, async () => {
+    await page.goto('http://127.0.0.1:5193/e2e/fixtures/horizon-session.html?quality=medium&vehicle=rh3&travel=saltmarsh-practice&capture=1&frames=1',
+      { waitUntil: 'domcontentloaded', timeout: report.budgetsMs.loading });
+    await wait(() => !!window.horizonReview, undefined, report.budgetsMs.loading);
+    report.automaticDrawsBeforeSuppression = (await state()).draws;
+    await page.evaluate(() => window.horizonReview.rendering(false));
+    await page.locator('#loading').waitFor({ state: 'hidden', timeout: report.budgetsMs.loading });
+    await wait(() => window.horizonReview.state().ready && window.horizonReview.state().status?.card?.id === 'saltmarsh-practice', undefined, report.budgetsMs.loading);
+  });
+  const initial = await state();
+  assert.equal(initial.sourceIdentity.fingerprint, expectedSource);
+  assert.equal(initial.status.vehicleId, 'rh3');
+  assert.equal(initial.draws, 0, 'No expensive RH3 frame before selection');
+  report.sourceIdentity = initial.sourceIdentity;
+  report.initialState = initial;
+  await pass('fresh-save RH3 practice session loads with automatic rendering suppressed', { draws: initial.draws });
+  await menu();
+  await activate('select SC7 in real pause garage', '#festMenu [data-fest="vehicle"][data-value="sc7"]');
+  await wait(() => window.horizonReview.state().status.vehicleId === 'sc7' && !window.horizonReview.state().paused);
+  const selected = await state();
+  assert.equal(selected.draws, 0);
+  await pass('native Enter selects the actual SC7 before any rendered frame', { vehicle: selected.status.vehicleId, draws: selected.draws });
+  await menu();
+  await activate('open real world map', '#festMenu [data-fest="map"]');
+  await page.locator('#festMap').waitFor({ state: 'visible' });
+  await activate('select Saltmarsh Practice Lap in map', '#festMap [data-fest="mapSelect"][data-value="saltmarsh-practice"]');
+  assert((await page.locator('#festMapDetail').innerText()).includes('Saltmarsh Practice Lap'));
+  await activate('travel to practice through map', '#festMapDetail [data-fest="travel"]');
+  await page.locator('#loading').waitFor({ state: 'hidden' });
+  await wait(() => window.horizonReview.state().status.card?.id === 'saltmarsh-practice' && !window.horizonReview.state().paused);
+  await pass('real map selection and native travel reach the practice marker in SC7');
+  console.log('FOCUSED_FRAME', 'submit first SC7 frame to populate the real event card; no readback yet');
+  await bounded('first SC7 HUD frame', report.budgetsMs.captureReadback, () => page.evaluate(() => window.horizonReview.draw()));
+  await activate('start real practice event', '#festCard [data-fest="start"]');
+  await wait(() => window.horizonReview.state().status.mode === 'running');
+  const practice = await state();
+  assert.equal(practice.status.event.id, 'saltmarsh-practice');
+  assert.equal(practice.status.vehicleId, 'sc7');
+  await pass('native Enter starts the actual solo practice event', { event: practice.status.event.id, vehicle: practice.status.vehicleId, mode: practice.status.mode });
+  await menu();
+  await activate('open Photo Mode with native Enter', '#festMenu [data-fest="photo"]');
+  await wait(() => window.horizonReview.state().photo && window.horizonReview.state().paused);
+  await page.locator('#festPhoto').waitFor({ state: 'visible' });
+  await activate('hide photo controls with native Enter', '#festPhoto [data-fest="photoHide"]');
+  assert(await page.locator('#festPhoto').evaluate((node) => node.classList.contains('fest-photo-minimal')));
+  await pass('visible enabled focused Photo Mode button accepts native Enter and pauses the real session');
+  report.renderer = await page.evaluate(() => {
+    const gl = document.querySelector('#world').getContext('webgl2'), debug = gl.getExtension('WEBGL_debug_renderer_info');
+    return debug ? gl.getParameter(debug.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER);
+  });
+  requireBrowserBackend(backend.name, report.renderer);
+  const photo = await state();
+  await page.evaluate((p) => window.horizonReview.inspect([p.x + 8, p.y + 3.2, p.z + 7], [p.x, p.y + 0.9, p.z]), photo.player);
+  await capture('sc7-track-car');
+  await page.evaluate(() => window.horizonReview.inspect([-1471.4604, 87.4762, -855.1367], [-1489.7208, 86.0352, -856.8233]));
+  await capture('club-corner-markers');
+  await pass('two paused production-renderer inspection views captured at the existing authored camera positions');
+  await page.keyboard.press('Escape');
+  await wait(() => !window.horizonReview.state().paused && !window.horizonReview.state().photo);
+  await pass('Escape returns Photo Mode to normal session input');
+  await menu();
+  const beforeExit = await state();
+  await activate('exit Festival through real pause menu', '#festMenu [data-fest="exit"]');
+  await wait(() => window.horizonReview.state().exited);
+  const afterExit = await state();
+  assert.equal(afterExit.ready, false);
+  assert.equal(await page.locator('#festivalHud').count(), 0);
+  assert(afterExit.memory.geometries < beforeExit.memory.geometries);
+  await pass('native UI exit removes Festival HUD and releases geometry', { before: beforeExit.memory, after: afterExit.memory });
+  assert.equal(report.errors.length, 0, JSON.stringify(report.errors));
+  assert.equal(report.failedAssets.length, 0, JSON.stringify(report.failedAssets));
+  report.focusedPassed = true;
+} catch (error) {
+  report.failure = { message: error.message, stack: error.stack };
+  report.resourcesAtFailure = await resources();
+  console.error('FOCUSED_FAIL', error.message);
+  await save();
+  if (page) {
+    try { report.failureState = await bounded('failure state', report.budgetsMs.failureState, state); }
+    catch (failure) { report.failureStateError = failure.message; }
+  }
+  process.exitCode = 1;
+} finally {
+  if (page) {
+    try { report.nativeClicks = await bounded('native click observations', 3000, () => page.evaluate(() => window.focusedNativeClicks)); }
+    catch (error) { report.nativeClickObservationError = error.message; }
+  }
+  report.elapsedMs = performance.now() - began;
+  report.resourcesBeforeCleanup = await resources();
+  await save();
+  if (browser) {
+    try { await bounded('owned browser shutdown', report.budgetsMs.shutdown, () => browser.close()); report.browserClosed = true; }
+    catch (error) { report.cleanupError = error.message; report.focusedPassed = false; process.exitCode = 1; forceExit = true; }
+  }
+  report.resourcesAfterCleanup = await resources();
+  await save();
+  console.log('FOCUSED_DONE', JSON.stringify({ focusedPassed: report.focusedPassed, steps: report.steps.length, captures: report.captures.length,
+    elapsedMs: report.elapsedMs, failure: report.failure?.message, browserClosed: report.browserClosed, output }));
+}
+if (forceExit) process.exit(1);

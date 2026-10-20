@@ -36,14 +36,23 @@ describe('festival free-roam session', () => {
     expect(frame[carBase(0) + RACE_BASE + R.VEHICLE]).toBe(vehicleIndex('tc1'));
     expect(status.streaming.resident).toBeLessThanOrEqual(24);
   });
-  it('restores saved discoveries and travels only to discovered events', () => {
+  it('restores exploration history and reaches unvisited events without unlocking them', () => {
     const sim = new OpenWorldSimulation({
       vehicle: 'tc1',
       discovered: ['pass-zone', 'no-such-event'],
     });
     expect([...sim.discovered]).toContain('pass-zone');
     expect(sim.discovered.has('no-such-event')).toBe(false);
-    expect(() => sim.command({ type: 'travel', event: 'quarry-drift' })).toThrow(/discovered/);
+    expect(() => sim.command({ type: 'travel', event: 'no-such-event' })).toThrow(/Unknown/);
+    expect(sim.discovered.has('quarry-drift')).toBe(false);
+    sim.command({ type: 'travel', event: 'quarry-drift' });
+    expect(sim.status().discovered).toContain('quarry-drift');
+    expect(sim.player.definition.id).toBe('tc1');
+    const quarry = sim.events.find((e) => e.spec.id === 'quarry-drift')!.marker;
+    expect(
+      Math.hypot(sim.player.body.position.x - quarry.x, sim.player.body.position.z - quarry.z),
+    ).toBeLessThan(12);
+    expect(sim.discovered.has('saltmarsh-practice')).toBe(false);
     sim.command({ type: 'travel', event: 'pass-zone' });
     const marker = sim.events.find((e) => e.spec.id === 'pass-zone')!.marker;
     const p = sim.player.body.position;
@@ -60,6 +69,50 @@ describe('festival free-roam session', () => {
     expect(sim.status().mode).toBe('running');
     expect(sim.status().event?.id).toBe('pass-zone');
   });
+  it.each(['vehicle', 'travel'] as const)(
+    'binds cruising controls and movement to the new player after %s',
+    (replacement) => {
+      const sim = new OpenWorldSimulation({
+        vehicle: 'tc1',
+        assist: 'sport',
+        seed: 73021,
+        traffic: false,
+        tileBudget: 12,
+      });
+      sim.command({ type: 'autopilot', value: true });
+      let cruising = false;
+      for (let tick = 0; tick < 120; tick++) {
+        sim.step(1 / 120);
+        cruising ||= sim.player.input.throttle > 0.1;
+      }
+      expect(cruising).toBe(true);
+      const oldPlayer = sim.player;
+      if (replacement === 'vehicle') sim.command({ type: 'vehicle', id: 'sc7' });
+      else sim.command({ type: 'travel', event: 'saltmarsh-practice' });
+      const fresh = sim.player;
+      const start = new Vec3().copy(fresh.body.position);
+      expect(fresh).not.toBe(oldPlayer);
+      expect(fresh.definition.id).toBe(replacement === 'vehicle' ? 'sc7' : 'tc1');
+      let commandedThrottle = false,
+        peakSpeed = 0;
+      // The cached cruise driver used to retain the removed car, leaving
+      // this new player's pedals untouched while autopilot remained on.
+      for (let tick = 0; tick < 240; tick++) {
+        sim.step(1 / 120);
+        commandedThrottle ||= fresh.input.throttle > 0.1;
+        peakSpeed = Math.max(peakSpeed, fresh.speed);
+      }
+      expect(sim.player).toBe(fresh);
+      expect(sim.autopilot).toBe(true);
+      expect(commandedThrottle).toBe(true);
+      expect(peakSpeed).toBeGreaterThan(1);
+      expect(
+        Math.hypot(fresh.body.position.x - start.x, fresh.body.position.z - start.z),
+      ).toBeGreaterThan(1);
+    },
+    30_000,
+  );
+
   it('resets an upturned or drowned car onto the nearest road, repaired', () => {
     const sim = new OpenWorldSimulation({ vehicle: 'tc1' });
     const car = sim.player;
@@ -187,6 +240,12 @@ describe('festival free-roam session', () => {
     );
     for (let i = 0; i < 60; i++) sim.step(1 / 120);
     expect(sim.status().mode).toBe('card');
+    // Deliberately travelling back reopens the selected event even when
+    // its card was dismissed without first driving out of the marker.
+    sim.command({ type: 'cancel' });
+    sim.command({ type: 'travel', event: 'valley-sprint' });
+    for (let i = 0; i < 60; i++) sim.step(1 / 120);
+    expect(sim.status().card?.id).toBe('valley-sprint');
   });
 });
 

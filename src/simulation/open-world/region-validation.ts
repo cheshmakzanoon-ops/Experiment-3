@@ -88,10 +88,9 @@ export function sharedPointErrors(region: RegionDefinition, network: RoadNetwork
         node = n;
       }
     }
-    // A loop edge (from and to the same node) is two branches.
-    const branches = node
-      ? node.edges.reduce((sum, e) => sum + (network.edges[e].from === network.edges[e].to ? 2 : 1), 0)
-      : 0;
+    // RoadNetwork records one incidence for each endpoint. A self-loop is
+    // already present twice, so counting it twice again invents two branches.
+    const branches = node?.edges.length ?? 0;
     if (branches !== point.branches)
       errors.push(
         `roads ${point.roads.join(', ')} share (${point.x}, ${point.z}) but the junction there joins ${branches} of ${point.branches} road branches`,

@@ -1,0 +1,39 @@
+{
+  "scope": "Staged functional interaction review; original startup budget reported separately",
+  "generatedAt": "2026-10-20T04:27:00.460Z",
+  "sourceFingerprint": "7a2f265325d6f2b26a6f1ce32417e52ab517c641819abb027b1cc1b0308c874e",
+  "quality": "medium",
+  "viewport": {
+    "width": 1120,
+    "height": 700
+  },
+  "timing": {
+    "originalStartupBudgetMs": 180000
+  },
+  "initialSave": {
+    "discovered": [],
+    "vehicle": "rh3"
+  },
+  "budgetsMs": {
+    "loading": 180000,
+    "coldFrameReview": 360000,
+    "failureState": 10000,
+    "shutdown": 15000
+  },
+  "limitations": [
+    "Software GPU",
+    "Brief manual driving, not a human playtest",
+    "GPU frames submitted explicitly between functional checks",
+    "Still captures use the production map or photo pause so GPU latency cannot extend driving input"
+  ],
+  "steps": [],
+  "errors": [],
+  "failedAssets": [],
+  "captures": [],
+  "functionalPassed": false,
+  "failure": {
+    "message": "Festival loading exceeded 180000 ms",
+    "stack": "Error: Festival loading exceeded 180000 ms\n    at Timeout.<anonymous> (file:///workspace/scratch/bea6757b1f23/Experiment-3/scripts/horizon-club-browser-review.mjs:71:24)\n    at listOnTimeout (node:internal/timers:635:17)\n    at process.processTimers (node:internal/timers:571:7)"
+  },
+  "failureStateError": "page.evaluate: Target crashed "
+}

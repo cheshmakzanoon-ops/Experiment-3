@@ -1,0 +1,238 @@
+{
+  "schema_version": 1,
+  "title": "Current tracks and cars reference audit appendix",
+  "review_date": "2026-10-20",
+  "scope": "Current integration of the original Saltmarsh club course, car construction refinements, bend cues, and shared visual/physical circuit paint. All 100 supplied compressed reference images were reviewed at contact-sheet scale; selected images received additional direct views. This does not claim that all 100 scenes were recreated.",
+  "input_archive": {
+    "name": "Forza-Horizon-6-Reference-Pack-Under-30MB.zip",
+    "path": "/workspace/scratch/7b054fbd913b/horizon-reference-audit/inputs/Forza-Horizon-6-Reference-Pack-Under-30MB.zip",
+    "bytes": 27428348,
+    "sha256": "54c7eead407805b82d0bb29898cdf5271c1fe0b332ce085e95c397ac3f940a26",
+    "manifest_path": "/workspace/scratch/7b054fbd913b/horizon-reference-audit/extracted/manifest.json",
+    "manifest_sha256": "167fe168603d4f5b7fdedf964d41d046da8136352e238c96718c20c00e2f2eb7",
+    "extracted_images_path": "/workspace/scratch/7b054fbd913b/horizon-reference-audit/extracted",
+    "asset_quality": "Existing compressed reference JPEGs, maximum 1920 pixel width, quality 78. A direct full-size view means this supplied JPEG, not a newly fetched uncompressed original.",
+    "source_metadata": "Original URLs and copyright attribution remain as supplied in the manifest; no replacement references were downloaded in this pass."
+  },
+  "integrity_verification": {
+    "numbered_images": 100,
+    "unique_ids": 100,
+    "compressed_files_matching_manifest_bytes_and_sha256": 100,
+    "compressed_hashes_matching_prior_100_image_ledger": 100,
+    "missing_ids": [],
+    "hash_mismatches": [],
+    "verification_scope": "The existing compressed archive and all 100 extracted JPEGs were checked in this current audit. The 403291338-byte original-source archive described by the retained earlier report was not downloaded or freshly verified here."
+  },
+  "visual_review": {
+    "current_contact_sheet_images_visually_reviewed": 100,
+    "current_contact_sheets_opened": 10,
+    "contact_sheet_path": "/workspace/scratch/7b054fbd913b/horizon-reference-audit/contact-sheets",
+    "contact_sheet_names": [
+      "001-010.jpg",
+      "011-020.jpg",
+      "021-030.jpg",
+      "031-040.jpg",
+      "041-050.jpg",
+      "051-060.jpg",
+      "061-070.jpg",
+      "071-080.jpg",
+      "081-090.jpg",
+      "091-100.jpg"
+    ],
+    "method": "All ten existing numbered two-column, five-row contact sheets were opened for visual review. This supports scene composition, car proportions and road-readability observations; tiny mechanical detail is supported only by direct views or explicitly retained earlier close reviews.",
+    "current_direct_full_size_views": [
+      {
+        "id": "019",
+        "path": "/workspace/scratch/7b054fbd913b/horizon-reference-audit/extracted/01_Vehicles_Models/019_FH_6_Cover_Car_GR_GT_02_16x9_WM_4c33d04f17.jpg",
+        "compressed_sha256": "0c86c280b3bcfb60c04768e6a622c133f99404e6ec8683901ad056a1fc0be659",
+        "reviewers": [
+          "car_refinement"
+        ]
+      },
+      {
+        "id": "043",
+        "path": "/workspace/scratch/7b054fbd913b/horizon-reference-audit/extracted/03_Gameplay_Racing/043_FH_6_GTM_Touge_Arashiyama_01_16x9_WM_a79d1aa64a.jpg",
+        "compressed_sha256": "607de8e087a44338ffd153287a327fd9ffc56e76f0a792320b8029c443baa7a5",
+        "reviewers": [
+          "track_refinement"
+        ]
+      },
+      {
+        "id": "050",
+        "path": "/workspace/scratch/7b054fbd913b/horizon-reference-audit/extracted/03_Gameplay_Racing/050_Forza_Horizon6_Pre_Order_05_Touge_16x9_WM_8269eed50a.jpg",
+        "compressed_sha256": "a330d8a40225b1dcb11f580decae4955a2d192c9152088677c129a6b5da28b08",
+        "reviewers": [
+          "reference_review",
+          "track_refinement"
+        ]
+      },
+      {
+        "id": "099",
+        "path": "/workspace/scratch/7b054fbd913b/horizon-reference-audit/extracted/01_Vehicles_Models/099_FH_6_S02_Car_Pass_AUD_R8_GT_23_01_16x9_WM_79ac01acfb.jpg",
+        "compressed_sha256": "f597a0badf8ac65398c95b3ef406d857e11bfbcbb6899ff64b4e4a2c9a3cee0a",
+        "reviewers": [
+          "reference_review"
+        ]
+      }
+    ],
+    "prior_reports_preserved": [
+      {
+        "path": "docs/production/HORIZON_TRACKS_CARS_REFERENCE_REVIEW.json",
+        "scope": "Earlier original-source archive audit and 12 direct views; retained separately and not relabelled as this current compressed-pack inspection.",
+        "direct_image_ids": [
+          "004",
+          "036",
+          "043",
+          "044",
+          "046",
+          "047",
+          "049",
+          "050",
+          "077",
+          "091",
+          "098",
+          "099"
+        ]
+      },
+      {
+        "path": "docs/production/HORIZON_R7_REFERENCE_REVIEW.json",
+        "scope": "Earlier compressed-pack 100-image ledger and nine additional direct views.",
+        "direct_image_ids": [
+          "014",
+          "023",
+          "038",
+          "068",
+          "074",
+          "080",
+          "081",
+          "082",
+          "083"
+        ]
+      }
+    ]
+  },
+  "reference_to_changes": [
+    {
+      "ids": [
+        "046",
+        "047",
+        "050",
+        "077"
+      ],
+      "observed_cues": "Connected course access, distinct asphalt/apron/infield boundaries, connected bends with different radii, and an unobstructed visible start reference.",
+      "implementation": "Original Saltmarsh club circuit with public-road access, a two-lap four-car race, separate solo practice, painted corner aprons and a permanent checker/start grid.",
+      "paths": [
+        "src/simulation/open-world/region-data.ts",
+        "src/simulation/open-world/road-network.ts",
+        "src/simulation/open-world/festival-markings.ts",
+        "src/rendering/open-world/roads.ts"
+      ],
+      "qualification": "The circuit shape, eleven-metre running width, grid dimensions and event rules are authored gameplay choices. The photographs support visual organization rather than measured route dimensions or handling."
+    },
+    {
+      "ids": [
+        "043",
+        "050"
+      ],
+      "observed_cues": "The direction of successive bends remains legible through clear sightlines, repeated road boundaries and restrained local reflective highlights in darkness.",
+      "implementation": "Sparse approach boards and chevrons for both driving directions, positioned beyond the physical shoulders, with surface and rail continuity retained.",
+      "paths": [
+        "src/rendering/open-world/festival-circuit-cues.ts",
+        "src/rendering/open-world/roads.ts"
+      ],
+      "qualification": "The board shapes, 50/100 metre labels and placement distances are original design. Tests read distances from the actual network rather than treating photo perspective as a survey."
+    },
+    {
+      "ids": [
+        "044",
+        "098"
+      ],
+      "observed_cues": "A rolled metal beam has visible longitudinal ridges, an open underside, separate support posts and small reflector faces.",
+      "implementation": "Retained manufactured guardrail profiles, separate posts, end treatments and reflectors outside the driveable envelope.",
+      "paths": [
+        "src/rendering/open-world/festival-guardrails.ts"
+      ],
+      "qualification": "Exact section sizes and collision clearances remain original implementation choices. Detailed source observations are preserved in the earlier direct-view report."
+    },
+    {
+      "ids": [
+        "019",
+        "093",
+        "099"
+      ],
+      "observed_cues": "Continuous reflective body surfaces surround dark recessed openings; grille and lamp borders enclose actual visible depth.",
+      "implementation": "SC7 bonnet vents are clipped openings in the curved hood with a conforming rim, walls, floor and louvres; the body tessellation follows the actual local surface with smooth normals.",
+      "paths": [
+        "src/rendering/vehicle-bodies/festival-nose.ts",
+        "src/rendering/vehicle-bodies/closed-body.ts",
+        "src/rendering/vehicle-bodies/festival-detail.ts"
+      ],
+      "qualification": "SC7 remains an original car. Vent count, dimensions, placement and internal construction transfer the depth cue rather than copy a branded vehicle mesh."
+    },
+    {
+      "ids": [
+        "004",
+        "091",
+        "098",
+        "099"
+      ],
+      "observed_cues": "Different hatch/coupe proportions, layered lamp housings, bright rim lips, inset wheel centres, branching spokes and brakes visibly recessed behind spoke gaps.",
+      "implementation": "Retained distinct RH3/SC7 body and lamp construction, dimensional spoke/barrel/hub separation and recessed braking components.",
+      "paths": [
+        "src/rendering/vehicle-bodies/wheel.ts",
+        "src/rendering/vehicle-bodies/festival-nose.ts",
+        "src/rendering/vehicle-bodies/festival-detail.ts"
+      ],
+      "qualification": "Rotor cooling topology and exact metric geometry are authored details. Still images establish visible form, not mechanical performance or thermal behaviour."
+    },
+    {
+      "ids": [
+        "047",
+        "050",
+        "077"
+      ],
+      "observed_cues": "Painted road-edge and start areas are visually distinct from bare asphalt.",
+      "implementation": "Shared circuit paint layout drives renderer and tyres: red and white apron bands, white checker cells, ten-centimetre grid outlines and fifteen-centimetre edge lines use paint material; dark checker cells and grid interiors keep asphalt material. Both self-loop access mouths omit edge paint.",
+      "paths": [
+        "src/simulation/open-world/festival-markings.ts",
+        "src/simulation/open-world/open-world-track.ts",
+        "src/rendering/open-world/roads.ts",
+        "tests/festival-circuit-markings.test.ts"
+      ],
+      "qualification": "Paint grip and wet-friction response come from the existing simulation material model and gameplay verification. Photographs do not measure grip; shader scuffs do not cause microscopic material switching."
+    }
+  ],
+  "paint_contact_validation": {
+    "status": "passed_in_serialized_root_run",
+    "focused_files": [
+      "tests/festival-club-circuit.test.ts",
+      "tests/festival-circuit-markings.test.ts"
+    ],
+    "focused_test_count": 15,
+    "final_pass_count": 15,
+    "completed_before_resource_interruption": {
+      "club_tests_passed": 10,
+      "marking_tests_passed": 4,
+      "remaining_assertion": "The initial all-triangle sampler included zero-area triangles at collapsed apron taper endpoints. It now excludes triangles that have no rendered area; its corrected rerun was interrupted during module collection by the exec-server outage before tests executed."
+    },
+    "independent_evidence": "Samples actual apron/grid mesh triangle coordinates and raycasts painted/bare taper neighbours, checker cells, grid outline/interior boundaries and circuit edge lines; checks both access mouths and actual tyre peak grip under rain.",
+    "hot_path_cost": "Layout and exact XZ apron quads are cached once per immutable RoadNetwork. Circuit paint sampling performs no route planning or per-query allocation. Only contacts in the outer approximately half metre check apron polygons, with at most three neighbouring quads; grid rectangle scans are culled by their distance range.",
+    "cpu_benchmark_claimed": false,
+    "cpu_note": "No isolated before/after CPU benchmark was completed during the resource interruption. Full driving acceptance and performance evidence are owned by the root integration run.",
+    "material_values_preserved": {
+      "asphalt_class_grip": 0.98,
+      "paint_base_grip": 0.93,
+      "paint_class_scaled_grip": 0.9114,
+      "wet_response": "Existing paint material wet-friction and macrotexture behaviour are passed through to the tyre force law."
+    },
+    "final_evidence": "unit.json",
+    "full_driving_evidence": "physics.json",
+    "validation_boundary": "The 15 circuit/paint tests passed within the 113-test, 15-file run. A subsequent incoming Motocross rendering commit changed none of these circuit, paint or simulation implementations. The final full driving run and integrated production build were completed after that merge."
+  },
+  "limits": [
+    "All 100 images were visually reviewed at contact-sheet scale; this is not a claim that every microscopic detail in every source was inspected or implemented.",
+    "The additional current direct-view list is separate from earlier full-source and compressed-pack reviews.",
+    "No reference screenshot or licensed car mesh was added as a game texture or model in this change.",
+    "Still images cannot prove handling quality, lap safety, performance or human enjoyment; those require independent runtime verification and player judgement."
+  ]
+}

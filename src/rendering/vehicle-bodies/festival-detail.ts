@@ -7,6 +7,13 @@ import { flipWinding, rodGeometry, roundedBox, tubeGeometry, type Pt } from './l
 import { sharedMaterials } from './materials.ts';
 import { Parts, placed } from './parts.ts';
 import type { Detail } from './wheel.ts';
+import {
+  festivalBonnetPockets,
+  festivalLampPockets,
+  festivalLampReveal,
+  festivalLampPane,
+  type FestivalLampPocket,
+} from './festival-nose.ts';
 
 /** Original festival body furniture, authored from the construction principles
  * in reference IDs 001–025 and 089–100. No screenshot, logo or licensed mesh is
@@ -455,6 +462,43 @@ function opticalPanel(width: number, depth: number, height: number, side: number
 }
 function addHeadlamps(parts: Parts, model: ClosedBodyModel, mats: CarMaterials, detail: Detail) {
   const { s } = model;
+  if (s.frontSweep) {
+    for (const pocket of festivalLampPockets(model)) {
+      parts.add(festivalLampReveal(model, pocket), sharedMaterials.trim());
+      parts.add(festivalLampReveal(model, pocket, true), darkOptics);
+      parts.add(
+        opticalPanel(pocket.width * 0.9, pocket.depth * 0.9, 0.005, pocket.side),
+        darkOptics,
+        inLocal(pocket.base, 0, -0.049, 0),
+      );
+      for (let k = 0; k < 3; k++) {
+        const px = ((k + 0.5) / 3 - 0.5) * pocket.width * 0.65;
+        addProjector(parts, inLocal(pocket.base, px, -0.037, -0.005), mats, 0.027, detail);
+      }
+      parts.add(
+        tubeGeometry(
+          [
+            [-pocket.side * pocket.width * 0.43, -0.009, -pocket.depth * 0.2],
+            [-pocket.side * pocket.width * 0.36, -0.009, pocket.depth * 0.27],
+            [pocket.side * pocket.width * 0.25, -0.009, pocket.depth * 0.34],
+            [pocket.side * pocket.width * 0.42, -0.009, pocket.depth * 0.07],
+          ],
+          0.0035,
+          detail === 0 ? 20 : 10,
+          5,
+        ),
+        mats.head,
+        pocket.base,
+      );
+      parts.add(
+        roundedBox(0.014, 0.012, pocket.depth * 0.55, 0.003, 1),
+        amber,
+        inLocal(pocket.base, pocket.side * pocket.width * 0.41, -0.015, 0),
+      );
+      parts.add(festivalLampPane(model, pocket), opticalCover);
+    }
+    return;
+  }
   const z = model.zFront - (s.style === 'truck' ? 0.14 : s.lamps.front === 'pod' ? 0.3 : 0.16);
   for (const side of [-1, 1]) {
     const half = model.halfWidth(z);
@@ -643,9 +687,95 @@ function addExhausts(parts: Parts, model: ClosedBodyModel, detail: Detail) {
     }
 }
 
+/** Conform the complete vent, including blade normals, to the actual bonnet.
+ * The offset remains local height; the nose map later carries every part and
+ * the body together if the forward edge reaches its deformation region. */
+function bonnetSurface(
+  geometry: T.BufferGeometry,
+  model: ClosedBodyModel,
+  pocket: FestivalLampPocket,
+) {
+  const position = geometry.getAttribute('position'),
+    normal = geometry.getAttribute('normal'),
+    x0 = pocket.base.elements[12],
+    z0 = pocket.base.elements[14],
+    n = new T.Vector3();
+  const height = (x: number, z: number) => model.surfaceY(z, Math.abs(x));
+  for (let i = 0; i < position.count; i++) {
+    const x = x0 + position.getX(i),
+      z = z0 + position.getZ(i),
+      dx = (height(x + 0.001, z) - height(x - 0.001, z)) / 0.002,
+      dz = (height(x, z + 0.001) - height(x, z - 0.001)) / 0.002;
+    position.setXYZ(i, x, height(x, z) + position.getY(i), z);
+    n.set(
+      normal.getX(i) - dx * normal.getY(i),
+      normal.getY(i),
+      normal.getZ(i) - dz * normal.getY(i),
+    ).normalize();
+    normal.setXYZ(i, n.x, n.y, n.z);
+  }
+  return geometry;
+}
+
+function bonnetPocketBand(pocket: FestivalLampPocket, wall: boolean) {
+  const positions: number[] = [],
+    indices: number[] = [];
+  for (const [x, z] of pocket.outline)
+    positions.push(
+      x * (wall ? 1 : 1.04),
+      wall ? -0.001 : 0.0008,
+      z * (wall ? 1 : 1.04),
+      x * (wall ? 0.96 : 1),
+      wall ? -0.036 : -0.001,
+      z * (wall ? 0.96 : 1),
+    );
+  for (let i = 0; i < pocket.outline.length; i++) {
+    const a = i * 2,
+      b = ((i + 1) % pocket.outline.length) * 2;
+    indices.push(a, a + 1, b, b, a + 1, b + 1);
+  }
+  const geometry = new T.BufferGeometry();
+  geometry.setAttribute('position', new T.Float32BufferAttribute(positions, 3));
+  geometry.setIndex(indices);
+  geometry.computeVertexNormals();
+  return geometry;
+}
+
+function addBonnetPocket(
+  parts: Parts,
+  model: ClosedBodyModel,
+  pocket: FestivalLampPocket,
+  mats: CarMaterials,
+  detail: Detail,
+) {
+  parts.add(bonnetSurface(bonnetPocketBand(pocket, false), model, pocket), mats.paint);
+  parts.add(bonnetSurface(bonnetPocketBand(pocket, true), model, pocket), darkOptics);
+  const positions = [0, -0.036, 0],
+    indices: number[] = [];
+  for (const [x, z] of pocket.outline) positions.push(x * 0.96, -0.036, z * 0.96);
+  for (let i = 0; i < pocket.outline.length; i++)
+    indices.push(0, ((i + 1) % pocket.outline.length) + 1, i + 1);
+  const floor = new T.BufferGeometry();
+  floor.setAttribute('position', new T.Float32BufferAttribute(positions, 3));
+  floor.setIndex(indices);
+  floor.computeVertexNormals();
+  parts.add(bonnetSurface(floor, model, pocket), darkOptics);
+  const count = detail === 0 ? 6 : 4;
+  for (let k = 0; k < count; k++) {
+    const z = ((k + 0.5) / count - 0.5) * pocket.depth * 0.77;
+    const blade = roundedBox(pocket.width * 0.75, 0.006, 0.025, 0.002, 1)
+      .rotateX(-0.25)
+      .translate(0, -0.011, z);
+    parts.add(bonnetSurface(blade, model, pocket), sharedMaterials.carbonSatin());
+  }
+}
+
 function addVents(parts: Parts, model: ClosedBodyModel, mats: CarMaterials, detail: Detail) {
   const { f, s } = model;
-  if (s.bonnetVents)
+  const pockets = festivalBonnetPockets(model);
+  if (pockets.length)
+    for (const pocket of pockets) addBonnetPocket(parts, model, pocket, mats, detail);
+  else if (s.bonnetVents)
     for (const side of [-1, 1]) {
       const z = (f.frontAxle + f.z(s.cabin[0])) / 2 + 0.05;
       const x = side * model.halfWidth(z) * 0.45;

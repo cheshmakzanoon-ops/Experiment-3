@@ -87,6 +87,9 @@ export class RouteDriver {
   private trafficClock = 0;
   private passTarget: RouteObstacle | null = null;
   private passSide: -1 | 0 | 1 = 0;
+  /** Absolute road lane held through a pass. A rival moving away is room to
+   * keep this corridor, not an instruction to chase its lateral movement. */
+  private passLane = 0;
   private holdingLine = false;
   /** Reused observations: at most the festival's 24 active traffic cars. */
   private readonly observed: TrafficObservation[] = [];
@@ -173,7 +176,11 @@ export class RouteDriver {
     // car's local +X is its left, and positive steer turns left.
     const lookahead = clamp(6 + c.speed * 0.5, 8, 48);
     path.at(this.d + lookahead, this.target);
-    const reach = Math.max(0.25, this.target.halfWidth - c.definition.halfExtents[0] - 0.45);
+    const passing = this.passTarget !== null || this.holdingLine || Math.abs(this.tactical) > 0.1;
+    const reach = Math.max(
+      0.25,
+      this.target.halfWidth - c.definition.halfExtents[0] - this.laneMargin(passing),
+    );
     // A finished car pulls over to the right-hand verge (negative lateral).
     const offset = finished
       ? -reach
@@ -241,11 +248,17 @@ export class RouteDriver {
     }
     // Envelope speed profile along the route ahead (the race line's own
     // curvature, or the centreline's for a lane-keeping driver).
-    const grip = clamp(
-      peakGrip(c.tires[0], 2500, c.contacts[0], Math.max(c.speed, 38)) / env.referenceMu,
-      0.1,
-      1,
-    );
+    // An outside rear tyre can reach paint or the shoulder before the
+    // front-left tyre. Reserve capability for the least grippy contact;
+    // otherwise the driver keeps its asphalt speed while the rear slides.
+    let contactGrip = peakGrip(c.tires[0], 2500, c.contacts[0], Math.max(c.speed, 38));
+    if (!bike)
+      for (let i = 1; i < c.tires.length; i++)
+        contactGrip = Math.min(
+          contactGrip,
+          peakGrip(c.tires[i], 2500, c.contacts[i], Math.max(c.speed, 38)),
+        );
+    const grip = clamp(contactGrip / env.referenceMu, 0.1, 1);
     const aero =
       (env.downforceReference * (0.45 + 0.55 * Math.min(c.frontHealth, c.floorHealth))) /
       (c.spec.dryMass + c.fuel);
@@ -389,10 +402,24 @@ export class RouteDriver {
   private clearTraffic() {
     this.passTarget = null;
     this.passSide = 0;
+    this.passLane = 0;
     this.tactical = 0;
     this.trafficSpeed = Infinity;
     this.holdingLine = false;
     this.observedCount = 0;
+  }
+  /** A pass uses the road's outer lanes, where tracking error puts an
+   * outside tyre over the edge before the car's centre leaves the asphalt.
+   * Leave up to one extra metre at racing speed, including the return from
+   * a pass. Ordinary cruise lanes and motorcycle lean control are unchanged.
+   */
+  private laneMargin(passing: boolean) {
+    return (
+      0.45 +
+      (passing && this.laneOffset === 0 && !(this.car instanceof BikeVehicle)
+        ? clamp((this.car.speed - 20) * 0.025, 0, 1)
+        : 0)
+    );
   }
   /** A merge sweeps the car's footprint, not just its centre. A faster car
    * approaching from behind also owns the lane it will reach in 1.2 s. */
@@ -531,11 +558,19 @@ export class RouteDriver {
     }
     // Look through the manoeuvre: a wide junction followed by a narrow lane
     // is not room for two cars. Four samples keep the planner bounded.
-    let reach = Infinity;
+    let ordinaryReach = Infinity,
+      passReach = Infinity;
     const preview = clamp(c.speed * 2, 25, 65);
     for (let i = 0; i <= 3; i++) {
       path.at(this.d + (preview * i) / 3, this.sample);
-      reach = Math.min(reach, Math.max(0.25, this.sample.halfWidth - ownWidth - 0.45));
+      ordinaryReach = Math.min(
+        ordinaryReach,
+        Math.max(0.25, this.sample.halfWidth - ownWidth - this.laneMargin(false)),
+      );
+      passReach = Math.min(
+        passReach,
+        Math.max(0.25, this.sample.halfWidth - ownWidth - this.laneMargin(true)),
+      );
     }
     let prior: TrafficObservation | null = null;
     for (let i = 0; i < this.observedCount; i++)
@@ -543,25 +578,40 @@ export class RouteDriver {
     if (!this.overtake || !prior || prior.gap < -ownLength - prior.length - 2.5 || prior.gap > 65) {
       this.passTarget = null;
       this.passSide = 0;
+      this.passLane = 0;
     }
+    // Preview room for a new pass without pulling an unoccupied racing line
+    // inward. Keep the extra margin until an existing manoeuvre has settled.
+    const manoeuvring =
+      this.passTarget !== null || this.holdingLine || Math.abs(this.tactical) > 0.1;
+    let reach = manoeuvring ? passReach : ordinaryReach;
     let lane = clamp(baseline, -reach, reach);
     this.holdingLine = false;
     if (this.passTarget && prior) {
-      const target = prior.lateral + this.passSide * (ownWidth + prior.width + 0.85);
+      const clearance = prior.lateral + this.passSide * (ownWidth + prior.width + 0.85),
+        target =
+          this.passSide > 0
+            ? Math.max(this.passLane, clearance)
+            : Math.min(this.passLane, clearance);
+      // Only move farther out when the rival needs the space. Mirroring a
+      // weaving car's lane can demand repeated direction changes while
+      // braking for a bend, even though the chosen passing side is unchanged.
       // If a third car prevents continuing, keep space beside the target.
       // Never reverse passing side while the two footprints overlap.
       lane = clamp(target, -reach, reach);
       if (!this.laneClear(lane)) {
         lane = clamp(this.lateral, -reach, reach);
         this.holdingLine = true;
-      }
+      } else this.passLane = lane;
     } else if (blocked && this.overtake && blocked.speed >= 0 && blocked.speed < c.speed + 3) {
       const preferred = blocked.lateral <= baseline + 0.05 ? 1 : -1;
       for (const side of [preferred, -preferred] as const) {
         const target = blocked.lateral + side * (ownWidth + blocked.width + 0.85);
-        if (Math.abs(target) > reach || !this.laneClear(target)) continue;
+        if (Math.abs(target) > passReach || !this.laneClear(target)) continue;
         this.passTarget = blocked.car;
         this.passSide = side as -1 | 1;
+        this.passLane = target;
+        reach = passReach;
         lane = target;
         break;
       }

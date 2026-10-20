@@ -1,0 +1,59 @@
+{
+  "scope": "Four completed static production-car comparisons, each with identical baseline/after camera and lighting; no full-world or target-device FPS claim.",
+  "carSourceHashes": {
+    "src/rendering/vehicle-bodies/closed-body.ts": "9157c2a0cc70308722b779490ef3e75cbdf5ce829b23c3ed5b092743dccbddfb",
+    "src/rendering/vehicle-bodies/festival-detail.ts": "fb51264e95393eda276abe4736859af1b6589e321a3d28cea1c9b1c59a6a2daa",
+    "src/rendering/vehicle-bodies/body-sheet.ts": "794ad6c41a518a36560f237e60135a7abcc61adf3fc486e6557ddde27d3dadce",
+    "src/rendering/vehicle-bodies/index.ts": "94c6b3dff2c215fbff7533de273e49d853c08598d76bdab00c440148705e4808",
+    "src/rendering/vehicle-bodies/wheel.ts": "45d2fe7dd0bd17030656b92b8af7d225210bd0fd420991403b7ea485a6508eec",
+    "src/rendering/vehicle-bodies/festival-nose.ts": "a4ba953bf24589ac1ff03b660620da81de567b3c69a64f6322b049a96956e0e7"
+  },
+  "completion": "The initial four-view run completed both RH3 after views and then timed out at the 180-second variant deadline. That raw report remains failed. The two missing SC7 comparisons completed successfully in a separate two-view run; all five changed car-file hashes match across both reports and current source.",
+  "completedViews": [
+    {
+      "name": "rh3-front-quarter",
+      "image": "vehicles-rh3/after-rh3-front-quarter.png",
+      "sourceReport": "vehicles-rh3/review.json",
+      "calls": 61,
+      "triangles": 145832,
+      "glError": 0,
+      "repeatChangedPixels": 0,
+      "nonFinite": 0,
+      "shadersRunnable": true
+    },
+    {
+      "name": "rh3-front-wheel",
+      "image": "vehicles-rh3/after-rh3-front-wheel.png",
+      "sourceReport": "vehicles-rh3/review.json",
+      "calls": 49,
+      "triangles": 132284,
+      "glError": 0,
+      "repeatChangedPixels": 0,
+      "nonFinite": 0,
+      "shadersRunnable": true
+    },
+    {
+      "name": "sc7-front-quarter",
+      "image": "vehicles-sc7/after-sc7-front-quarter.png",
+      "sourceReport": "vehicles-sc7/review.json",
+      "calls": 60,
+      "triangles": 131319,
+      "glError": 0,
+      "repeatChangedPixels": 0,
+      "nonFinite": 0,
+      "shadersRunnable": true
+    },
+    {
+      "name": "sc7-front-wheel",
+      "image": "vehicles-sc7/after-sc7-front-wheel.png",
+      "sourceReport": "vehicles-sc7/review.json",
+      "calls": 52,
+      "triangles": 122069,
+      "glError": 0,
+      "repeatChangedPixels": 0,
+      "nonFinite": 0,
+      "shadersRunnable": true
+    }
+  ],
+  "allFourCompletedViewChecksPassed": true
+}

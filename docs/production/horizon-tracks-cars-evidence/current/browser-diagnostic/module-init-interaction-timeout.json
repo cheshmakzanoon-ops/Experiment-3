@@ -1,0 +1,64 @@
+{
+  "scope": "Staged functional interaction review; original startup budget reported separately",
+  "generatedAt": "2026-10-20T04:24:15.584Z",
+  "sourceFingerprint": "7a2f265325d6f2b26a6f1ce32417e52ab517c641819abb027b1cc1b0308c874e",
+  "quality": "medium",
+  "viewport": {
+    "width": 1120,
+    "height": 700
+  },
+  "timing": {
+    "originalStartupBudgetMs": 180000
+  },
+  "initialSave": {
+    "discovered": [],
+    "vehicle": "rh3"
+  },
+  "budgetsMs": {
+    "loading": 180000,
+    "coldFrameReview": 360000,
+    "failureState": 10000,
+    "shutdown": 15000
+  },
+  "limitations": [
+    "Software GPU",
+    "Brief manual driving, not a human playtest",
+    "GPU frames submitted explicitly between functional checks",
+    "Still captures use the production map or photo pause so GPU latency cannot extend driving input"
+  ],
+  "steps": [],
+  "errors": [],
+  "failedAssets": [],
+  "captures": [],
+  "functionalPassed": false,
+  "failure": {
+    "message": "page.waitForFunction: Timeout 30000ms exceeded.",
+    "stack": "page.waitForFunction: Timeout 30000ms exceeded.\n    at wait (/workspace/scratch/bea6757b1f23/Experiment-3/scripts/horizon-club-browser-review.mjs:96:56)\n    at /workspace/scratch/bea6757b1f23/Experiment-3/scripts/horizon-club-browser-review.mjs:152:9"
+  },
+  "failureState": {
+    "sourceIdentity": {
+      "fingerprint": "7a2f265325d6f2b26a6f1ce32417e52ab517c641819abb027b1cc1b0308c874e",
+      "commit": null
+    },
+    "ready": false,
+    "exited": false,
+    "results": [],
+    "draws": 0,
+    "memory": {
+      "geometries": 0,
+      "textures": 0
+    },
+    "player": null,
+    "details": null,
+    "street": null,
+    "contacts": null,
+    "roads": null,
+    "water": null,
+    "atmosphere": null,
+    "pace": null,
+    "lampSockets": [],
+    "practicalLights": null,
+    "aero": false,
+    "frame": null
+  }
+}

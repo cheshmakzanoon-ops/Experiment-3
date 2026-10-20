@@ -1,0 +1,79 @@
+{
+  "scope": "Staged functional interaction review; original startup budget reported separately",
+  "generatedAt": "2026-10-20T05:21:47.113Z",
+  "sourceFingerprint": "7365c3573037ff7d60796bed31daa970dc8540b88cd46f96643510583f76df48",
+  "quality": "medium",
+  "viewport": {
+    "width": 1120,
+    "height": 700
+  },
+  "timing": {
+    "originalStartupBudgetMs": 180000
+  },
+  "initialSave": {
+    "discovered": [],
+    "vehicle": "rh3"
+  },
+  "budgetsMs": {
+    "loading": 180000,
+    "coldFrameReview": 360000,
+    "failureState": 10000,
+    "shutdown": 15000
+  },
+  "limitations": [
+    "Software GPU",
+    "Brief manual driving, not a human playtest",
+    "GPU frames submitted explicitly between functional checks",
+    "Still captures use the production map or photo pause so GPU latency cannot extend driving input"
+  ],
+  "steps": [],
+  "loadingStages": [
+    {
+      "name": "navigation started",
+      "elapsedMs": 58524.635136000004
+    },
+    {
+      "name": "document loaded",
+      "elapsedMs": 70692.705236
+    }
+  ],
+  "loadingOverlayStages": [
+    {
+      "text": "Loading festival",
+      "hidden": false,
+      "elapsedMs": 59967.427800000005
+    }
+  ],
+  "errors": [
+    "Failed to load resource: net::ERR_INSUFFICIENT_RESOURCES"
+  ],
+  "failedAssets": [],
+  "failedRequests": [
+    {
+      "url": "http://127.0.0.1:5193/src/rendering/dry-cloud-density.ts",
+      "error": "net::ERR_INSUFFICIENT_RESOURCES"
+    }
+  ],
+  "captures": [],
+  "functionalPassed": false,
+  "resourcesBeforeLaunch": {
+    "memory.current": "4104130560",
+    "memory.max": "8589934592",
+    "memory.events": "low 0\nhigh 0\nmax 1913768\noom 137\noom_kill 22\noom_group_kill 0"
+  },
+  "failure": {
+    "message": "Festival loading exceeded 180000 ms",
+    "stack": "Error: Festival loading exceeded 180000 ms\n    at Timeout.<anonymous> (file:///workspace/scratch/bea6757b1f23/Experiment-3/scripts/horizon-club-browser-review.mjs:92:24)\n    at listOnTimeout (node:internal/timers:635:17)\n    at process.processTimers (node:internal/timers:571:7)"
+  },
+  "resourcesAtFailure": {
+    "memory.current": "7959605248",
+    "memory.max": "8589934592",
+    "memory.events": "low 0\nhigh 0\nmax 1913768\noom 137\noom_kill 22\noom_group_kill 0"
+  },
+  "failureStateError": "page.evaluate: TypeError: Cannot read properties of undefined (reading 'state')\n    at eval (eval at evaluate (:291:30), <anonymous>:1:28)\n    at UtilityScript.evaluate (<anonymous>:293:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)",
+  "resourcesBeforeCleanup": {
+    "memory.current": "7954939904",
+    "memory.max": "8589934592",
+    "memory.events": "low 0\nhigh 0\nmax 1913768\noom 137\noom_kill 22\noom_group_kill 0"
+  }
+}

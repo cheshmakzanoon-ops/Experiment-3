@@ -1,0 +1,210 @@
+{
+  "generatedAt": "2026-10-20T06:09:18.578192+00:00",
+  "status": "focused-passed-full-review-partial",
+  "sourceFingerprint": "7365c3573037ff7d60796bed31daa970dc8540b88cd46f96643510583f76df48",
+  "quality": "medium",
+  "viewport": {
+    "width": 1120,
+    "height": 700
+  },
+  "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+  "fullNineStepReview": {
+    "passed": false,
+    "report": "../browser-diagnostic/bundled-pointer-timeout.json",
+    "completedStepCount": 3,
+    "completedSteps": [
+      {
+        "name": "fresh-save RH3 travels to the real club race marker without discovery gating"
+      },
+      {
+        "name": "new circuit appears in the world map and returns to driving"
+      },
+      {
+        "name": "manual RH3 throttle and braking on the actual circuit",
+        "speedKmh": 75.38350151184177,
+        "distanceM": 68.18839063770797,
+        "stoppedKmh": 0.20118202646604944
+      }
+    ],
+    "timing": {
+      "originalStartupBudgetMs": 180000,
+      "automaticDrawsBeforeSuppression": 0,
+      "loadingObservedMs": 37194.915373,
+      "firstFrameReadbackMs": 194446.623981,
+      "originalStartupBudgetMet": false
+    },
+    "failure": "locator.click: Timeout 90000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#festMenu [data-fest=\"photo\"]')\u001b[22m\n\u001b[2m    - locator resolved to <button data-fest=\"photo\" class=\"fest-secondary\">PHOTO MODE</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n",
+    "interpretation": "The actual retry reached countdown, but the subsequent Photo Mode pointer click timed out. Its full retry/photo checkpoint is not accepted as passed."
+  },
+  "focusedNativeKeyboardReview": {
+    "passed": true,
+    "report": "focused-review.json",
+    "completedStepCount": 8,
+    "steps": [
+      {
+        "name": "fresh-save RH3 practice session loads with automatic rendering suppressed",
+        "elapsedMs": 69200.392179,
+        "draws": 0
+      },
+      {
+        "name": "native Enter selects the actual SC7 before any rendered frame",
+        "elapsedMs": 70188.89636700001,
+        "vehicle": "sc7",
+        "draws": 0
+      },
+      {
+        "name": "real map selection and native travel reach the practice marker in SC7",
+        "elapsedMs": 71398.91865200001
+      },
+      {
+        "name": "native Enter starts the actual solo practice event",
+        "elapsedMs": 372884.255683,
+        "event": "saltmarsh-practice",
+        "vehicle": "sc7",
+        "mode": "running"
+      },
+      {
+        "name": "visible enabled focused Photo Mode button accepts native Enter and pauses the real session",
+        "elapsedMs": 373554.832128
+      },
+      {
+        "name": "two paused production-renderer inspection views captured at the existing authored camera positions",
+        "elapsedMs": 451757.885724
+      },
+      {
+        "name": "Escape returns Photo Mode to normal session input",
+        "elapsedMs": 451843.365539
+      },
+      {
+        "name": "native UI exit removes Festival HUD and releases geometry",
+        "elapsedMs": 452208.947029,
+        "before": {
+          "geometries": 185,
+          "textures": 45
+        },
+        "after": {
+          "geometries": 1,
+          "textures": 21
+        }
+      }
+    ],
+    "errors": [],
+    "failedAssets": [],
+    "failedRequests": [
+      {
+        "url": "http://127.0.0.1:5193/assets/third-party/texture/sandy-gravel-01/sandy-gravel-01_orm.ktx2",
+        "error": "net::ERR_ABORTED"
+      }
+    ],
+    "nativeActivation": {
+      "buttonsVerifiedVisibleEnabledFocused": true,
+      "trustedNativeClickEvents": [
+        {
+          "action": "vehicle",
+          "value": "sc7",
+          "trusted": true,
+          "detail": 0
+        },
+        {
+          "action": "map",
+          "trusted": true,
+          "detail": 0
+        },
+        {
+          "action": "mapSelect",
+          "value": "saltmarsh-practice",
+          "trusted": true,
+          "detail": 0
+        },
+        {
+          "action": "travel",
+          "value": "saltmarsh-practice",
+          "trusted": true,
+          "detail": 0
+        },
+        {
+          "action": "photo",
+          "trusted": true,
+          "detail": 0
+        },
+        {
+          "action": "photoHide",
+          "trusted": true,
+          "detail": 0
+        },
+        {
+          "action": "exit",
+          "trusted": true,
+          "detail": 0
+        }
+      ]
+    },
+    "browserClosed": true
+  },
+  "captures": [
+    {
+      "name": "club-world-map",
+      "path": "club-world-map.png",
+      "bytes": 382130,
+      "sha256": "a1b1eb890447e40577bad34dc78fc007720d570497dd64eb85d2176a6eadc564",
+      "gitBlobSha": "759170ecdad89e430c48170ad5226a764e96b75c",
+      "width": 1120,
+      "height": 700,
+      "sourceRun": "browser-bundled",
+      "sourceFingerprint": "7365c3573037ff7d60796bed31daa970dc8540b88cd46f96643510583f76df48"
+    },
+    {
+      "name": "sc7-track-car",
+      "path": "sc7-track-car.png",
+      "bytes": 1540484,
+      "sha256": "afa2e6cbae92a02ed37a30af860da22f55809f6329ec5ab57be58335cdcb7aff",
+      "gitBlobSha": "7617da7d12997831c0b46ee4dddff9f3a94e95c4",
+      "width": 1120,
+      "height": 700,
+      "sourceRun": "focused-review",
+      "sourceFingerprint": "7365c3573037ff7d60796bed31daa970dc8540b88cd46f96643510583f76df48"
+    },
+    {
+      "name": "club-corner-markers",
+      "path": "club-corner-markers.png",
+      "bytes": 1318576,
+      "sha256": "447c3c0126301e81eda01b2562b5c0df337884de1f3ac792485ffa7faecbd776",
+      "gitBlobSha": "6a1777d527412ff503cfeda30eea0b4ec11de6e3",
+      "width": 1120,
+      "height": 700,
+      "sourceRun": "focused-review",
+      "sourceFingerprint": "7365c3573037ff7d60796bed31daa970dc8540b88cd46f96643510583f76df48"
+    }
+  ],
+  "uncompletedPlannedCurrentCaptures": [
+    "rh3-club-grid",
+    "sc7-practice-start",
+    "highway-guardrail"
+  ],
+  "visualReview": {
+    "reviewedBy": "Root and separate car/track reviewers inspected the actual PNGs",
+    "accepted": [
+      "SC7 rear body and road contact are visible with no obvious detached component or floating tyre in this view.",
+      "Edge lines and flush corner aprons follow the road and provide clear bend boundaries.",
+      "The foreground 50 m board is readable, planted, shadowed, and beyond the full shoulder.",
+      "The world map shows the connected circuit, two-lap race, solo practice and available travel."
+    ],
+    "limits": [
+      "The rear three-quarter world car image does not verify front bonnet vents, nose or brake detail; current studio pairs cover that construction.",
+      "The marker view does not show the complete far-side bend or every chevron direction.",
+      "Sparse angular vegetation, broad ground and the abrupt photographed mountain transition remain visible realism limits."
+    ]
+  },
+  "limits": [
+    "The separate focused pass does not replace the failed nine-step pointer review.",
+    "The original 180000 ms startup budget was exceeded in the full bundled review.",
+    "SwiftShader and explicit frame submissions do not establish continuous frame rate or target-hardware performance.",
+    "Brief native pedal input and assisted full-event runs are not a human handling-preference study.",
+    "Captures use the production renderer in the real paused map/photo modes; focused PNGs exclude the HTML HUD overlay."
+  ],
+  "archivedRunner": {
+    "path": "focused-runner.mjs.txt",
+    "sha256": "782407d45c7fe9116e3e0db51f75749c02c67dba6510b13b091b1dbb3dca45ec",
+    "note": "Exact runner as executed. Restore to test-results/horizon-current/focused-review/runner.mjs from repository root to preserve its relative browser-backend import. Requires the compiled fixture described in ../fixture-bundle-transport.json and the earlier raw full-review report at its recorded scratch path."
+  }
+}

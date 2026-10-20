@@ -84,7 +84,8 @@ export class FestivalRoadFrame {
   }
 }
 
-/** Geometry metadata: road half-width, actual lane pitch (0 on the runway),
+/** Geometry metadata: road half-width, actual lane pitch (0 on closed
+ * circuits and the runway),
  * deterministic edge identity and wear admission around junction mouths.
  * Stored per vertex so differently sized roads retain the same material and
  * existing spatial batches. */
@@ -94,7 +95,10 @@ export function festivalRoadProfile(
   station: number,
 ): readonly [number, number, number, number] {
   const half = edge.spec.halfWidth;
-  const lane = edge.roadClass === 'runway' ? 0 : half / (edge.roadClass === 'highway' ? 2 : 1);
+  const lane =
+    edge.roadClass === 'runway' || edge.roadClass === 'circuit'
+      ? 0
+      : half / (edge.roadClass === 'highway' ? 2 : 1);
   const mouth = half + 9;
   let admission = 1;
   for (const [node, distance] of [
@@ -107,6 +111,9 @@ export function festivalRoadProfile(
   }
   return [half, lane, edge.index + 17, admission];
 }
+
+/** Preserve the rendering API while contact and drawing share one width. */
+export { festivalCircuitApronWidth } from '../../simulation/open-world/festival-markings.ts';
 
 const f = (value: number) => value.toFixed(5);
 const S = FESTIVAL_ROAD_SURFACE;

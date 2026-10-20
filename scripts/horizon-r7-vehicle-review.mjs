@@ -1,12 +1,15 @@
 /** Bounded isolated production-car comparison with no product feature toggle.
  * Set HORIZON_R7_VEHICLE_BASELINE_DIR to a directory containing saved
  * closed-body.ts and festival-detail.ts, or HORIZON_R7_VEHICLE_BASELINE_REF to
- * a full commit SHA. Only these two modules differ between the frozen source
+ * a full commit SHA. By default only these two modules differ between the frozen source
  * snapshots. A private Vite load hook serves their actual bytes at their normal
  * module IDs, preserving normal TypeScript and import processing.
  *
  * Run: node --experimental-transform-types scripts/horizon-r7-vehicle-review.mjs
- * One Chromium, two sequential pages, four deterministic views per variant.
+ * HORIZON_R7_VEHICLE_CHANGED_FILES, HORIZON_R7_VEHICLE_SHOTS and
+ * HORIZON_R7_VEHICLE_BUDGET accept explicit JSON for later car revisions;
+ * the report records these inputs. The original R7 profile remains the default.
+ * One Chromium, two sequential pages, deterministic views per variant.
  * Outputs are isolated geometry evidence, not a full-world performance claim. */
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
@@ -31,10 +34,28 @@ assert(
 );
 if (baselineRef)
   assert(/^[0-9a-f]{40}$/.test(baselineRef), 'Baseline ref must be a full commit SHA');
-const changedFiles = [
+const changedFiles = JSON.parse(process.env.HORIZON_R7_VEHICLE_CHANGED_FILES ?? 'null') ?? [
   'src/rendering/vehicle-bodies/closed-body.ts',
   'src/rendering/vehicle-bodies/festival-detail.ts',
 ];
+assert(Array.isArray(changedFiles) && changedFiles.length > 0);
+assert(changedFiles.every((file) => /^src\/rendering\/vehicle-bodies\/[a-z-]+\.ts$/.test(file)));
+const selectedShots = JSON.parse(process.env.HORIZON_R7_VEHICLE_SHOTS ?? 'null') ?? [
+  'rh3-front-quarter',
+  'rh3-windscreen',
+  'rh3-side-glass',
+  'sc7-rear-glass',
+];
+assert(Array.isArray(selectedShots) && selectedShots.length > 0);
+const explicitBudget = process.env.HORIZON_R7_VEHICLE_BUDGET;
+const resourceBudget = JSON.parse(
+  explicitBudget ?? '{"calls":0,"geometries":0,"textures":0,"materials":0}',
+);
+for (const key of ['calls', 'geometries', 'textures', 'materials'])
+  assert(
+    Number.isInteger(resourceBudget[key]) && resourceBudget[key] >= 0,
+    `Invalid ${key} budget`,
+  );
 const fixtureFiles = [
   'e2e/fixtures/horizon-r7-vehicle.html',
   'e2e/fixtures/horizon-r7-vehicle.ts',
@@ -85,11 +106,13 @@ const fingerprint = (snapshot) => {
 };
 await mkdir(output, { recursive: true });
 const report = {
-  kind: 'horizon-r7-isolated-vehicle-glazing',
+  kind: 'horizon-isolated-production-vehicle-comparison',
+  selectedShots,
+  resourceBudget,
   generatedAt: new Date().toISOString(),
   sourceBoundary: {
     method:
-      'One frozen current application source snapshot; baseline replaces exactly the two listed vehicle modules with saved original bytes. All imports retain their normal production module IDs.',
+      'One frozen current application source snapshot; baseline replaces exactly the listed vehicle modules with saved original bytes. All imports retain their normal production module IDs. New modules remain in both snapshots and are used only if imported by that variant.',
     differingFiles: changedFiles,
     baselineCommitForThoseFiles: baselineRef ?? null,
     frozenFileCount: current.size,
@@ -314,9 +337,12 @@ try {
         fingerprint(snapshot),
         'Frozen source fingerprint mismatch',
       );
-      const shots = await activePage.evaluate(() => window.horizonR7Vehicle.shots);
-      assert.equal(shots.length, 4, 'Expected four declared camera views');
-      for (const name of shots) {
+      const availableShots = await activePage.evaluate(() => window.horizonR7Vehicle.shots);
+      assert(
+        selectedShots.every((name) => availableShots.includes(name)),
+        'Unknown camera view',
+      );
+      for (const name of selectedShots) {
         const result = await activePage.evaluate(
           (shot) => window.horizonR7Vehicle.capture(shot),
           name,
@@ -370,10 +396,11 @@ try {
           };
           report.comparisons.push({ name, difference: delta, resourceDelta: resources });
           assert(delta.changedPixels > 0, `${name} did not show the changed production geometry`);
-          assert.equal(resources.calls, 0, `${name} added draw calls`);
-          assert.equal(resources.geometries, 0, `${name} added GPU geometry resources`);
-          assert.equal(resources.textures, 0, `${name} added textures`);
-          assert.equal(resources.materials, 0, `${name} added materials`);
+          for (const key of ['calls', 'geometries', 'textures', 'materials']) {
+            if (explicitBudget)
+              assert(resources[key] <= resourceBudget[key], `${name} exceeded ${key} budget`);
+            else assert.equal(resources[key], 0, `${name} added ${key}`);
+          }
           baselinePixels.delete(name);
         }
         console.log('R7_VEHICLE_VIEW', variant, name, first.info.calls, first.info.triangles);

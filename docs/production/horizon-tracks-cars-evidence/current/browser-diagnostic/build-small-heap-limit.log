@@ -1,0 +1,34 @@
+(node:6) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> apex-formula-laboratory@0.1.0 prebuild
+> npm run generate:player-lods
+
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> apex-formula-laboratory@0.1.0 generate:player-lods
+> node --experimental-strip-types scripts/build-player-lods.mjs
+
+Player LODs already match the pinned derivative.
+
+> apex-formula-laboratory@0.1.0 build
+> tsc --noEmit && vite build
+
+
+<--- Last few GCs --->
+
+[45:0xe6f4000]    20385 ms: Scavenge 761.0 (772.0) -> 760.1 (782.0) MB, pooled: 0 MB, 26.05 / 0.00 ms  (average mu = 0.675, current mu = 0.670) allocation failure; 
+[45:0xe6f4000]    20929 ms: Mark-Compact (reduce) 763.7 (782.0) -> 762.8 (771.0) MB, pooled: 0 MB, 38.15 / 0.00 ms  (+ 373.7 ms in 58 steps since start of marking, biggest step 28.3 ms, walltime since start of marking 543 ms) (average mu = 0.647, current 
+FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory
+----- Native stack trace -----
+
+ 1: 0x75356c node::OOMErrorHandler(char const*, v8::OOMDetails const&) [node]
+ 2: 0xc52cd0  [node]
+ 3: 0xc52dbf  [node]
+ 4: 0xef6695  [node]
+ 5: 0xf07ffc  [node]
+ 6: 0xe3e588  [node]
+ 7: 0x13aa61e  [node]
+ 8: 0x1ab39b6  [node]
+Aborted

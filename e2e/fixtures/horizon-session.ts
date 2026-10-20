@@ -80,6 +80,7 @@ const state = () => {
       (internal?.renderer as unknown as { details?: { stats: unknown } })?.details?.stats ?? null,
     street: internal?.renderer?.streetDetails?.stats ?? null,
     contacts: internal?.renderer?.contacts.stats ?? null,
+    roads: internal?.renderer?.roads.stats ?? null,
     water: internal?.renderer?.water.coast.stats ?? null,
     atmosphere: internal?.renderer
       ? {

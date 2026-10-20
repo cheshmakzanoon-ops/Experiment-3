@@ -1,0 +1,194 @@
+{
+  "scope": "Staged functional interaction review; original startup budget reported separately",
+  "generatedAt": "2026-10-19T23:39:40.678Z",
+  "sourceFingerprint": "df53ffa1b8ad5a4beecda8068afc0f8b4b1716ee3ce4fcad5ddd5212d643e18c",
+  "quality": "medium",
+  "viewport": {
+    "width": 1120,
+    "height": 700
+  },
+  "timing": {
+    "originalStartupBudgetMs": 180000,
+    "automaticDrawsBeforeSuppression": 0,
+    "loadingObservedMs": 42241.372989999996,
+    "firstFrameReadbackMs": 172362.007675,
+    "originalStartupBudgetMet": true
+  },
+  "budgetsMs": {
+    "loading": 180000,
+    "coldFrameReview": 360000,
+    "failureState": 10000,
+    "shutdown": 15000
+  },
+  "limitations": [
+    "Software GPU",
+    "Saved discoveries seed travel only",
+    "Brief manual driving, not a human playtest",
+    "GPU frames submitted explicitly between functional checks",
+    "Still captures use the production map or photo pause so GPU latency cannot extend driving input"
+  ],
+  "steps": [
+    {
+      "name": "RH3 loaded at the real club race marker"
+    },
+    {
+      "name": "new circuit appears in the world map and returns to driving"
+    },
+    {
+      "name": "manual RH3 throttle and braking on the actual circuit",
+      "speedKmh": 75.31303459792794,
+      "distanceM": 70.5211057902928,
+      "stoppedKmh": 0.11349453184322406
+    },
+    {
+      "name": "abandon result and Try Again return to a fresh race grid"
+    },
+    {
+      "name": "garage SC7 selection, mapped travel and solo practice start"
+    },
+    {
+      "name": "paused car inspection returns to normal session input"
+    },
+    {
+      "name": "guardrail inspection on the existing collision-backed highway"
+    },
+    {
+      "name": "session exit removes HUD and releases GPU geometry",
+      "before": {
+        "geometries": 628,
+        "textures": 51
+      },
+      "after": {
+        "geometries": 1,
+        "textures": 26
+      }
+    }
+  ],
+  "errors": [],
+  "failedAssets": [],
+  "captures": [
+    {
+      "name": "club-world-map",
+      "camera": [
+        -1707.3281360003703,
+        57.16687739832392,
+        -1536.2758101382017
+      ],
+      "player": {
+        "x": -1701.5257568359375,
+        "y": 55.35894012451172,
+        "z": -1536.6412353515625
+      },
+      "render": {
+        "drawCalls": 440,
+        "triangles": 1594768,
+        "renderMs": 5728.036000000425
+      },
+      "memory": {
+        "geometries": 344,
+        "textures": 50
+      },
+      "paused": true,
+      "glError": 0
+    },
+    {
+      "name": "rh3-club-grid",
+      "camera": [
+        -1624.156214609411,
+        59.65825243153853,
+        -1545.9259901481269
+      ],
+      "player": {
+        "x": -1688.712890625,
+        "y": 55.77067184448242,
+        "z": -1541.70849609375
+      },
+      "render": {
+        "drawCalls": 331,
+        "triangles": 1457128,
+        "renderMs": 5790.1031600005535
+      },
+      "memory": {
+        "geometries": 484,
+        "textures": 50
+      },
+      "paused": true,
+      "glError": 0
+    },
+    {
+      "name": "sc7-practice-start",
+      "camera": [
+        -1525.8747164297645,
+        85.00087561489377,
+        -896.172840155746
+      ],
+      "player": {
+        "x": -1536.9176025390625,
+        "y": 81.68030548095703,
+        "z": -911.2062377929688
+      },
+      "render": {
+        "drawCalls": 256,
+        "triangles": 492094,
+        "renderMs": 11478.568419948655
+      },
+      "memory": {
+        "geometries": 556,
+        "textures": 50
+      },
+      "paused": true,
+      "glError": 0
+    },
+    {
+      "name": "sc7-track-car",
+      "camera": [
+        -1528.9176025390625,
+        84.88030548095703,
+        -904.2062377929686
+      ],
+      "player": {
+        "x": -1536.9176025390625,
+        "y": 81.68030548095703,
+        "z": -911.2062377929688
+      },
+      "render": {
+        "drawCalls": 255,
+        "triangles": 491966,
+        "renderMs": 10335.001577954012
+      },
+      "memory": {
+        "geometries": 556,
+        "textures": 50
+      },
+      "paused": true,
+      "glError": 0
+    },
+    {
+      "name": "highway-guardrail",
+      "camera": [
+        140.5183,
+        39.5552,
+        -2067.3233
+      ],
+      "player": {
+        "x": 650.008544921875,
+        "y": 5.022988796234131,
+        "z": -2599.999755859375
+      },
+      "render": {
+        "drawCalls": 246,
+        "triangles": 1710967,
+        "renderMs": 9463.848105295237
+      },
+      "memory": {
+        "geometries": 628,
+        "textures": 51
+      },
+      "paused": true,
+      "glError": 0
+    }
+  ],
+  "functionalPassed": true,
+  "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+  "sourceStable": true
+}

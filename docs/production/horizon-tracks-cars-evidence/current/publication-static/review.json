@@ -1,0 +1,48 @@
+{
+  "generatedAt": "2026-10-20T06:19:22.693029+00:00",
+  "head": "54c886dae43f6687a2d1c27f89eab96b3468c2e5",
+  "sourceBefore": {
+    "sha256": "2a21aee53d71dd7611766cf50802ab7346dde8676b37dc7347f178055f71cdd4",
+    "files": 772
+  },
+  "stages": [
+    {
+      "name": "typecheck",
+      "command": [
+        "node",
+        "--experimental-transform-types",
+        "scripts/source-stability.ts",
+        "--",
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 342.4525377710015,
+      "log": "typecheck.log"
+    },
+    {
+      "name": "merged-interface-lint",
+      "command": [
+        "node",
+        "--experimental-transform-types",
+        "scripts/source-stability.ts",
+        "--",
+        "node",
+        "node_modules/eslint/bin/eslint.js",
+        "src/ui/interface.ts"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 125.48867867700028,
+      "log": "merged-interface-lint.log"
+    }
+  ],
+  "scope": "Publication compatibility after the incoming GP practice commit: whole-project TypeScript plus ESLint on the one overlapping merged UI module. Prior whole-project lint remains recorded at7365c357.",
+  "sourceAfter": {
+    "sha256": "2a21aee53d71dd7611766cf50802ab7346dde8676b37dc7347f178055f71cdd4",
+    "files": 772
+  },
+  "sourceStable": true,
+  "passed": true,
+  "completedAt": "2026-10-20T06:27:15.309040+00:00"
+}
