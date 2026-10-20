@@ -20,6 +20,7 @@ import {
   GpCornerPractice,
   gpPracticeCorners,
   gpPracticeDelta,
+  gpPracticeSplits,
   type GpPracticeContext,
 } from '../src/ui/gp-corner-practice.ts';
 
@@ -136,6 +137,85 @@ describe('personal GP corner practice', () => {
     expect(h.practice.last?.delta).toBeCloseTo(h.corner.length / 50 - h.corner.length / 40, 4);
     h.run(60, 45);
     expect(h.practice.last?.delta).toBeCloseTo(h.corner.length / 45 - h.corner.length / 50, 4);
+  });
+
+  it('measures both sides of the actual apex independent of snapshot spacing', () => {
+    for (const spacing of [1, 8, 29, 47]) {
+      const h = rig();
+      h.run(1, 40, spacing);
+      const result = h.practice.last!;
+      expect(result.splits.entry).toBeCloseTo(h.corner.apex / 40, 4);
+      expect(result.splits.exit).toBeCloseTo((h.corner.length - h.corner.apex) / 40, 4);
+      expect(result.splits.entry + result.splits.exit).toBeCloseTo(result.seconds, 8);
+      expect(result.splits.entryDelta).toBeNull();
+      expect(result.splits.exitDelta).toBeNull();
+      expect(gpPracticeSplits(result)).toMatch(/^Entry \d+\.\d{2} s · exit \d+\.\d{2} s$/);
+    }
+  });
+
+  it('distinguishes a faster entry from a slower exit against one complete reference run', () => {
+    const h = rig(),
+      apex = h.corner.apex,
+      exitLength = h.corner.length - apex;
+    h.run(1, 40);
+    const run = (start: number, entrySpeed: number, exitSpeed: number) => {
+      const stations = [
+        ...new Set([
+          -5,
+          0,
+          apex,
+          h.corner.length + 5,
+          ...Array.from({ length: Math.ceil((h.corner.length + 10) / 8) }, (_, i) => i * 8 - 5),
+        ]),
+      ].sort((a, b) => a - b);
+      for (const distance of stations) {
+        const time =
+          start +
+          Math.min(distance + 5, apex + 5) / entrySpeed +
+          Math.max(0, distance - apex) / exitSpeed;
+        h.sample(distance, time, distance <= apex ? entrySpeed : exitSpeed);
+      }
+    };
+    run(30, 50, 30);
+    const result = h.practice.last!;
+    expect(result.splits.entryDelta).toBeCloseTo(apex / 50 - apex / 40, 4);
+    expect(result.splits.exitDelta).toBeCloseTo(exitLength / 30 - exitLength / 40, 4);
+    expect(result.splits.entryDelta!).toBeLessThan(0);
+    expect(result.splits.exitDelta!).toBeGreaterThan(0);
+    expect(result.splits.entryDelta! + result.splits.exitDelta!).toBeCloseTo(result.delta!, 8);
+    // A following comparison must use whichever complete run was faster,
+    // including its slower phase. Combining independent split records would
+    // invent a target the player has never ridden.
+    const changedBest = result.seconds < h.corner.length / 40;
+    run(60, 45, 45);
+    expect(h.practice.last!.splits.entryDelta).toBeCloseTo(
+      apex / 45 - apex / (changedBest ? 50 : 40),
+      4,
+    );
+    expect(h.practice.last!.splits.exitDelta).toBeCloseTo(
+      exitLength / 45 - exitLength / (changedBest ? 30 : 40),
+      4,
+    );
+  });
+
+  it('keeps completed phase timings stable across repeated frames and an interrupted retry', () => {
+    const h = rig();
+    h.run(1, 40);
+    const completed = h.practice.last!;
+    h.sample(h.corner.length + 5, 1 + (h.corner.length + 10) / 40);
+    expect(h.practice.last).toBe(completed);
+    h.sample(-5, 30, 50);
+    h.sample(15, 30.4, 50);
+    h.sample(25, 30.6, 50, (frame) => {
+      frame[rear + W.SURFACE] = SURFACE.GRAVEL;
+    });
+    expect(h.practice.active).toBeNull();
+    expect(h.practice.last).toBe(completed);
+    h.run(60, 45);
+    expect(h.practice.last!.splits.entryDelta).toBeCloseTo(
+      h.corner.apex / 45 - h.corner.apex / 40,
+      4,
+    );
   });
 
   it('shows time gained at the same road position, including stationary lost time', () => {

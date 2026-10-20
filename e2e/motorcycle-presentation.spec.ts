@@ -432,11 +432,17 @@ test('GP personal corner timing: responsive layout, raw-frame cadence and handof
         await expect(page.locator('#gpPracticeDetail')).toHaveText(
           'First clean run · exit 144 km/h · dry',
         );
+        await expect(page.locator('#gpPracticeSplit')).toHaveText(
+          /^Entry \d+\.\d{2} s · exit \d+\.\d{2} s$/,
+        );
+        if (viewport.height >= 680) await expect(page.locator('#gpPracticeSplit')).toBeVisible();
+        else await expect(page.locator('#gpPracticeSplit')).toBeHidden();
         await expect(page.locator('#gpPracticeStreak')).toHaveText('CLEAN STREAK 1 · BEST 1');
         if (viewport.height >= 680) await expect(page.locator('#gpPracticeStreak')).toBeVisible();
         else await expect(page.locator('#gpPracticeStreak')).toBeHidden();
         await page.evaluate(() => window.MotorcycleHudFixture.showGpPracticeRun(30, 50, false));
         await expect(page.locator('#gpPracticeLabel')).toHaveText('T1 · PRACTICE');
+        await expect(page.locator('#gpPracticeSplit')).toBeHidden();
         await expect(page.locator('#gpPracticeDetail')).toHaveText(
           /^−\d+\.\d{2} s vs best · target \d+\.\d{2} s$/,
         );
@@ -448,6 +454,9 @@ test('GP personal corner timing: responsive layout, raw-frame cadence and handof
         await expect(page.locator('#gpPracticeTime')).toHaveText(`${(length / 50).toFixed(2)} s`);
         await expect(page.locator('#gpPractice')).toHaveAttribute('data-improved', 'true');
         await expect(page.locator('#gpPracticeDetail')).toContainText('exit 180 km/h (+36)');
+        await expect(page.locator('#gpPracticeSplit')).toHaveText(
+          /^Entry −\d+\.\d{2} s · exit −\d+\.\d{2} s vs best$/,
+        );
         const bounds = await page.locator('.instruments').evaluate((node) => {
           const rect = node.getBoundingClientRect();
           return {
@@ -487,6 +496,7 @@ test('GP personal corner timing: responsive layout, raw-frame cadence and handof
         await expect(page.locator('#gpPracticeDetail')).toHaveText(
           'First clean run · exit 144 km/h · dry',
         );
+        await expect(page.locator('#gpPracticeSplit')).not.toContainText('vs best');
       }
     }
   });

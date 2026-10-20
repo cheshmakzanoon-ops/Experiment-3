@@ -23,9 +23,16 @@ test('GP practice rides through named corner guidance, cockpit, pause and record
   page,
 }, info) => {
   const errors: string[] = [];
+  const requestErrors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
   page.on('console', (message) => {
     if (message.type() === 'error') errors.push(message.text());
+  });
+  page.on('requestfailed', (request) =>
+    requestErrors.push(`${request.url()}: ${request.failure()?.errorText}`),
+  );
+  page.on('response', (response) => {
+    if (response.status() >= 400) requestErrors.push(`${response.status()} ${response.url()}`);
   });
   const diag = () => page.evaluate(() => window.apexDiagnostics());
   const capture = async (name: string) => {
@@ -84,7 +91,68 @@ test('GP practice rides through named corner guidance, cockpit, pause and record
   };
 
   await page.goto('/');
-  await expect(page.locator('#menu')).toBeVisible({ timeout: MENU_STARTUP_TIMEOUT_MS });
+  // A hidden menu can mean an unfinished asset, a GPU fence or a fatal boot
+  // modal. Retain the actual boundary without altering rendering or deadlines.
+  const startupSamples: unknown[] = [];
+  const startupAt = Date.now();
+  let startupClosed = false;
+  let startupSnapshot: Promise<void> | null = null;
+  const captureStartup = () => {
+    if (startupSnapshot) return startupSnapshot;
+    startupSnapshot = page
+      .evaluate(() => {
+        const d = window.apexDiagnostics?.();
+        return {
+          visibility: document.visibilityState,
+          menuHidden: document.querySelector<HTMLElement>('#menu')?.hidden,
+          loadingHidden: document.querySelector<HTMLElement>('#loading')?.hidden,
+          loadingText: document.querySelector('#loadingText')?.textContent,
+          loadingStage: document.querySelector('#loadingStage')?.textContent,
+          error: document.querySelector('#errorMessage')?.textContent,
+          state: d?.state,
+          gpu: d?.renderer?.gpuFrameQueue,
+          preview: d?.menuPreviewPresentation,
+        };
+      })
+      .then((snapshot) => {
+        if (!startupClosed) startupSamples.push({ elapsedMs: Date.now() - startupAt, ...snapshot });
+      })
+      .catch((error: unknown) => {
+        if (!startupClosed)
+          startupSamples.push({ elapsedMs: Date.now() - startupAt, readError: String(error) });
+      })
+      .finally(() => {
+        startupSnapshot = null;
+      });
+    return startupSnapshot;
+  };
+  const startupObserver = setInterval(() => void captureStartup(), 10000);
+  void captureStartup();
+  try {
+    await expect(page.locator('#menu')).toBeVisible({ timeout: MENU_STARTUP_TIMEOUT_MS });
+  } catch (error) {
+    let timeout: ReturnType<typeof setTimeout> | undefined;
+    try {
+      await Promise.race([
+        captureStartup(),
+        new Promise<void>((resolve) => {
+          timeout = setTimeout(resolve, 3000);
+        }),
+      ]);
+      await info.attach('gp-startup-failure.json', {
+        body: JSON.stringify({ startupSamples, errors, requestErrors }, null, 2),
+        contentType: 'application/json',
+      });
+    } catch (attachmentError) {
+      console.warn('Could not retain GP startup diagnostics:', String(attachmentError));
+    } finally {
+      clearTimeout(timeout);
+    }
+    throw error;
+  } finally {
+    startupClosed = true;
+    clearInterval(startupObserver);
+  }
   await page.getByRole('button', { name: 'GARAGE & SETTINGS', exact: true }).click();
   await page.locator('[name=quality]').selectOption('low');
   await page.getByRole('button', { name: 'APPLY & SAVE', exact: true }).click();
@@ -279,6 +347,7 @@ test('GP practice rides through named corner guidance, cockpit, pause and record
       {
         workload:
           'Actual GP-R1 menu entry, four-rider Poggio Alto practice, manual throttle and rear pedal, AI demonstration and recorded replay',
+        startupSamples,
         manualLaunch,
         rearPedal,
         chaseLayout,

@@ -11,18 +11,35 @@ import { WeatherPresentation } from '../../src/rendering/weather-presentation.ts
 import { VenueKitContext } from '../../src/rendering/venue-kit/context.ts';
 import { buildPaddock } from '../../src/rendering/venue-kit/structures.ts';
 import { gpPaddockPlan } from '../../src/rendering/venue-kit/gp-paddock-architecture.ts';
+import { gpRaceControlSite } from '../../src/rendering/venue-kit/gp-race-control.ts';
+
+export interface GpPaddockCapture {
+  venue: string;
+  view: string;
+  wet: boolean;
+  image: string;
+  hash: number;
+  error: number;
+  calls: number;
+  triangles: number;
+  resources: { geometries: number; textures: number };
+}
 
 /** Actual production garages, upper architecture and pit wall in one view.
  * The road datum is production ribbon geometry. Surrounding scenery/actors
  * are deliberately absent; this is a construction/render check, not an FPS
  * result for the complete game. One renderer is reused across all four sites. */
-export function captureGpPaddocks(
+export async function captureGpPaddocks(
   venues: readonly ('poggio-alto' | 'cape-wrenna' | 'haarveld' | 'montejaral')[] = [
     'poggio-alto',
     'cape-wrenna',
     'haarveld',
     'montejaral',
   ],
+  options: {
+    controlOnly?: boolean;
+    onCapture?: (capture: GpPaddockCapture) => Promise<void>;
+  } = {},
 ) {
   const renderer = new T.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
   renderer.setSize(1100, 700);
@@ -36,17 +53,7 @@ export function captureGpPaddocks(
     environment = pmrem.fromScene(environmentScene, 0.04);
   environmentScene.dispose();
   pmrem.dispose();
-  const captures: {
-    venue: string;
-    view: string;
-    wet: boolean;
-    image: string;
-    hash: number;
-    error: number;
-    calls: number;
-    triangles: number;
-    resources: { geometries: number; textures: number };
-  }[] = [];
+  const captures: GpPaddockCapture[] = [];
   const releases: { venue: string; geometries: number; textures: number }[] = [];
   try {
     for (const id of venues) {
@@ -131,13 +138,17 @@ export function captureGpPaddocks(
           at.z + at.nz * lateral,
         );
       };
-      const draw = (view: 'approach' | 'pit', wet: boolean) => {
+      const draw = (view: 'approach' | 'pit' | 'control', wet: boolean) => {
         if (view === 'approach') {
           camera.position.copy(place(centre - 76, -track.pit.side * 20, 5));
           camera.lookAt(place(centre + 7, track.pit.side * (track.pit.offset + 10), 6.5));
-        } else {
+        } else if (view === 'pit') {
           camera.position.copy(place(centre - 19, track.pit.side * (track.pit.offset + 0.2), 1.65));
           camera.lookAt(place(centre + 14, track.pit.side * (track.pit.offset + 6.5), 5.25));
+        } else {
+          const site = gpRaceControlSite(track)!;
+          camera.position.copy(place(site.s - 42, -track.pit.side * 0.7, 1.4));
+          camera.lookAt(new T.Vector3(site.x, site.y + 9, site.z));
         }
         camera.updateMatrixWorld(true);
         weather.surface.value.set(wet ? 1 : 0, 0, 0, 0);
@@ -160,10 +171,19 @@ export function captureGpPaddocks(
         };
       };
       try {
-        draw('approach', false);
-        captures.push(draw('approach', false), draw('pit', false));
-        if (id === 'haarveld')
-          captures.push(draw('pit', false), draw('pit', true), draw('pit', false));
+        if (options.controlOnly) {
+          // A focused art review needs one fully rendered production frame
+          // per venue. Yield it immediately so a slow software backend does
+          // not hold all completed evidence until the final venue finishes.
+          const capture = draw('control', false);
+          captures.push(capture);
+          await options.onCapture?.(capture);
+        } else {
+          draw('approach', false);
+          captures.push(draw('approach', false), draw('pit', false), draw('control', false));
+          if (id === 'haarveld')
+            captures.push(draw('pit', false), draw('pit', true), draw('pit', false));
+        }
       } finally {
         const geometries = new Set<T.BufferGeometry>(),
           materials = new Set<T.Material>(),

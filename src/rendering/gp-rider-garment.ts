@@ -6,6 +6,39 @@ import type { RiderDetail } from './rider.ts';
 type Section = readonly [number, number, number, number, number];
 export type GpGarment = 'sleeve' | 'pants';
 
+const ROOT_FRAMES = 3;
+const ROOT_BONES = [0, 4, 5, 6, 1] as const;
+
+/** Precomputed shape deltas leave the sewn openings, protected joint ring and
+ * cuffs in place. Three applies them before skinning in colour and shadow
+ * passes; the CPU only supplies two bounded weights. */
+function compressionMorphs(geometry: T.BufferGeometry, deltas: readonly number[][]) {
+  const positions = geometry.getAttribute('position'),
+    normals = geometry.getAttribute('normal');
+  geometry.morphTargetsRelative = true;
+  geometry.morphAttributes.position = [];
+  geometry.morphAttributes.normal = [];
+  for (const [index, values] of deltas.entries()) {
+    const delta = new T.Float32BufferAttribute(values, 3),
+      target = new T.BufferGeometry(),
+      targetPositions = new Float32Array(positions.array.length);
+    delta.name = index === 0 ? 'joint compression' : 'root compression';
+    for (let i = 0; i < targetPositions.length; i++)
+      targetPositions[i] = positions.array[i] + delta.array[i];
+    target.setAttribute('position', new T.BufferAttribute(targetPositions, 3));
+    target.setIndex(geometry.index);
+    target.computeVertexNormals();
+    smoothGpSuitSeams(target);
+    const targetNormals = target.getAttribute('normal'),
+      normalDelta = new Float32Array(normals.array.length);
+    for (let i = 0; i < normalDelta.length; i++)
+      normalDelta[i] = targetNormals.array[i] - normals.array[i];
+    geometry.morphAttributes.position.push(delta);
+    geometry.morphAttributes.normal.push(new T.BufferAttribute(normalDelta, 3));
+    target.dispose();
+  }
+}
+
 /** Fitted one-piece leather, observed in MotoGP26 REF_071 and REF_098. The
  * deltoid/quadriceps, protected joint and tapered cuff are a single surface.
  * Stations are [bone fraction, centre Z, width, front depth, rear depth]. */
@@ -51,9 +84,10 @@ function sections(kind: GpGarment, upper: number, lower: number): Section[] {
   ];
 }
 
-/** Four small render bones cover torso attachment, upper limb, bend and lower
- * limb. A dedicated bend ring retains its diameter at deep elbow/knee flex;
- * averaging only upper/lower matrices would flatten it into a pinched hinge. */
+/** The joint has a dedicated bend frame; the opening has three short frames
+ * along a curved saddle. Both retain the garment's cross-section through deep
+ * flex, instead of averaging two opposed transforms into a pinched hinge.
+ * Existing rows and indices are retained: this adds no triangles or draws. */
 export function gpGarmentGeometry(
   kind: GpGarment,
   detail: Exclude<RiderDetail, 'far'>,
@@ -83,19 +117,37 @@ export function gpGarmentGeometry(
     uv: number[] = [],
     indices: number[] = [],
     skinIndices: number[] = [],
-    skinWeights: number[] = [];
-  const append = (x: number, y: number, z: number, u: number, v: number) => {
+    skinWeights: number[] = [],
+    jointMorph: number[] = [],
+    rootMorph: number[] = [];
+  const append = (
+    x: number,
+    y: number,
+    z: number,
+    u: number,
+    v: number,
+    jointRelief = 0,
+    rootRelief = 0,
+  ) => {
     positions.push(x, y, z);
     uv.push(u, v);
-    skinIndices.push(0, 1, 2, 3);
+    const c = Math.cos(u * Math.PI * 2),
+      s = Math.sin(u * Math.PI * 2);
+    jointMorph.push(c * jointRelief, 0, s * jointRelief);
+    rootMorph.push(c * rootRelief, 0, s * rootRelief);
     if (y < attachment) {
-      const t = T.MathUtils.smoothstep(y, 0, attachment);
-      skinWeights.push(1 - t, t, 0, 0);
+      const t = T.MathUtils.clamp(y / attachment, 0, 1) * (ROOT_FRAMES + 1),
+        segment = Math.min(ROOT_FRAMES, Math.floor(t)),
+        weight = t - segment;
+      skinIndices.push(ROOT_BONES[segment], ROOT_BONES[segment + 1], 2, 3);
+      skinWeights.push(1 - weight, weight, 0, 0);
     } else if (y < upper) {
       const t = T.MathUtils.smoothstep(y, upper - bend, upper);
+      skinIndices.push(0, 1, 2, 3);
       skinWeights.push(0, 1 - t, t, 0);
     } else {
       const t = T.MathUtils.smoothstep(y, upper, upper + bend);
+      skinIndices.push(0, 1, 2, 3);
       skinWeights.push(0, 0, 1 - t, t);
     }
   };
@@ -112,16 +164,31 @@ export function gpGarmentGeometry(
         joint = Math.exp(-(((y - upper) / bend) ** 2)),
         root = Math.exp(-(((y - attachment * 0.82) / (attachment * 0.55)) ** 2)),
         inside = kind === 'sleeve' ? Math.max(0, s) ** 2 : Math.max(0, -s) ** 2,
-        fold =
-          (0.0025 * joint * inside * Math.sin((y - upper) * 205 + c * 2.3) +
-            0.0019 * root * Math.sin(y * 242 + s * 2.5)) *
-          Math.sin(t * Math.PI);
+        jointFold =
+          0.0025 * joint * inside * Math.sin((y - upper) * 205 + c * 2.3) * Math.sin(t * Math.PI),
+        rootFold = 0.0019 * root * Math.sin(y * 242 + s * 2.5) * Math.sin(t * Math.PI),
+        distance = Math.abs(y - upper),
+        // The protected ring stays full. Folds gather beside it as the joint
+        // closes and relax on extension; sewn and rigid boundaries are fixed.
+        jointRelief =
+          jointFold *
+          0.78 *
+          T.MathUtils.smoothstep(distance, 0.003, 0.015) *
+          (1 - T.MathUtils.smoothstep(distance, bend * 0.75, bend)),
+        rootRelief =
+          rootFold *
+          0.82 *
+          T.MathUtils.smoothstep(y, 0.004, 0.018) *
+          (1 - T.MathUtils.smoothstep(y, attachment * 0.78, attachment)),
+        fold = jointFold + rootFold - jointRelief - rootRelief;
       append(
         c * (width + fold),
         y,
         centre + s * ((s > 0 ? front : back) + fold),
         column / sides,
         t,
+        jointRelief,
+        rootRelief,
       );
       if (row < rows.length - 1 && column < sides) {
         const a = row * (sides + 1) + column,
@@ -169,13 +236,15 @@ export function gpGarmentGeometry(
   geometry.setIndex(indices);
   geometry.computeVertexNormals();
   smoothGpSuitSeams(geometry);
+  compressionMorphs(geometry, [jointMorph, rootMorph]);
   geometry.computeBoundingBox();
   geometry.computeBoundingSphere();
   return geometry;
 }
 
-/** Skinning follows the existing deterministic IK. No contact target, physics
- * state, pose history, CPU vertex rewrite or additional colour map is needed. */
+/** Shape follows deterministic IK. Root frames preserve volume; precomputed
+ * fold deltas follow solved flex, including braking and hang-off. There are
+ * no new contact targets, render clocks or CPU vertex uploads. */
 export class GpRiderGarment {
   readonly mesh: T.SkinnedMesh;
   private readonly attachment = new T.Bone();
@@ -184,6 +253,14 @@ export class GpRiderGarment {
   private readonly swing = new T.Quaternion();
   private readonly limbAxis = new T.Vector3();
   private readonly openingAxis = new T.Vector3();
+  private readonly roots = Array.from({ length: ROOT_FRAMES }, () => new T.Bone());
+  private readonly rootRotation = new T.Quaternion();
+  private readonly rootStart = new T.Vector3();
+  private readonly rootEnd = new T.Vector3();
+  private readonly rootTangent = new T.Vector3();
+  private readonly limbTangent = new T.Vector3();
+  private readonly rootOffset = new T.Vector3();
+  private readonly attachmentLength: number;
   constructor(
     parent: T.Group,
     private readonly torso: T.Group,
@@ -196,8 +273,13 @@ export class GpRiderGarment {
     detail: Exclude<RiderDetail, 'far'>,
     material: T.Material,
   ) {
+    this.attachmentLength = kind === 'sleeve' ? 0.062 : 0.096;
     this.attachment.name = `GP ${kind} attachment to torso`;
     this.attachment.position.fromArray(at);
+    for (const [index, root] of this.roots.entries()) {
+      root.name = `GP ${kind} attachment saddle ${index + 1}`;
+      parent.add(root);
+    }
     // The sewn opening belongs to the torso. A sleeve opens out through the
     // side of the shoulder; trousers open down from the pelvis. Rotating this
     // first ring with the solved limb exposed its cap above the shoulder or
@@ -211,12 +293,13 @@ export class GpRiderGarment {
     distal.add(lowerBone);
     this.bend.position.y = upper;
     const skeleton = new T.Skeleton(
-      [this.attachment, upperBone, this.bend, lowerBone],
+      [this.attachment, upperBone, this.bend, lowerBone, ...this.roots],
       [
         new T.Matrix4(),
         new T.Matrix4(),
         new T.Matrix4().makeTranslation(0, -upper, 0),
         new T.Matrix4().makeTranslation(0, -upper, 0),
+        ...this.roots.map(() => new T.Matrix4()),
       ],
     );
     this.mesh = new T.SkinnedMesh(gpGarmentGeometry(kind, detail, upper, lower), material);
@@ -241,8 +324,43 @@ export class GpRiderGarment {
     this.limbAxis.set(0, 1, 0).applyQuaternion(this.attachment.quaternion);
     this.swing.setFromUnitVectors(this.limbAxis, this.openingAxis);
     this.attachment.quaternion.premultiply(this.swing);
+    this.rootRotation.copy(this.torso.quaternion).multiply(this.attachment.quaternion);
+    this.rootStart
+      .copy(this.attachment.position)
+      .applyQuaternion(this.torso.quaternion)
+      .add(this.torso.position);
+    this.rootTangent.set(0, 1, 0).applyQuaternion(this.rootRotation);
+    this.limbTangent.set(0, 1, 0).applyQuaternion(this.proximal.quaternion);
+    this.rootEnd
+      .copy(this.proximal.position)
+      .addScaledVector(this.limbTangent, this.attachmentLength);
+    for (let index = 0; index < this.roots.length; index++) {
+      const root = this.roots[index],
+        t = (index + 1) / (ROOT_FRAMES + 1),
+        t2 = t * t,
+        t3 = t2 * t;
+      // A Hermite centreline joins the sewn opening and solved limb with their
+      // endpoint directions. Quaternion frames retain each cross-section.
+      root.position
+        .copy(this.rootStart)
+        .multiplyScalar(2 * t3 - 3 * t2 + 1)
+        .addScaledVector(this.rootTangent, (t3 - 2 * t2 + t) * this.attachmentLength)
+        .addScaledVector(this.rootEnd, -2 * t3 + 3 * t2)
+        .addScaledVector(this.limbTangent, (t3 - t2) * this.attachmentLength);
+      root.quaternion.copy(this.rootRotation).slerp(this.proximal.quaternion, t);
+      this.rootOffset.set(0, t * this.attachmentLength, 0).applyQuaternion(root.quaternion);
+      root.position.sub(this.rootOffset);
+    }
     this.relative.copy(this.proximal.quaternion).invert().multiply(this.distal.quaternion);
     this.bend.quaternion.identity().slerp(this.relative, 0.5);
+    const jointAngle = Math.acos(
+        T.MathUtils.clamp(1 - 2 * (this.relative.x ** 2 + this.relative.z ** 2), -1, 1),
+      ),
+      rootAngle = Math.acos(T.MathUtils.clamp(this.rootTangent.dot(this.limbTangent), -1, 1));
+    // Authored response envelopes, not fabric simulation or measurements
+    // inferred from still photos. Held poses and replay seeks are identical.
+    this.mesh.morphTargetInfluences![0] = T.MathUtils.smoothstep(jointAngle, 0.3, 1.8);
+    this.mesh.morphTargetInfluences![1] = T.MathUtils.smoothstep(rootAngle, 0.2, 1.5);
   }
   dispose() {
     this.mesh.skeleton.dispose();

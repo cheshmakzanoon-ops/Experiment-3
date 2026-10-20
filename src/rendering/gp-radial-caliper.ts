@@ -29,6 +29,14 @@ export const GP_RADIAL_BRAKE = Object.freeze({
   maxDraws: 4,
 });
 
+/** Fork-lower hydraulic lead, shared with the compliant pressure circuit. */
+export const GP_CALIPER_HOSE_PROFILE = [
+  [0.037, 0.051, -0.024],
+  [0.045, 0.082, -0.013],
+  [0.074, 0.12, 0.004],
+  [0.082, 0.155, 0.04],
+] as const;
+
 function forgedBody(): T.BufferGeometry {
   // YZ outline. Deliberate concave waists keep this a forged casting rather
   // than a filleted rectangular box; the bevels catch real highlights.
@@ -110,12 +118,7 @@ export function gpRadialBrakeCaliper(side: -1 | 1, materials: GPRadialMaterials)
   place(cylinder(0.008, 0.019, 16), 2, 0.037, 0.05, -0.024, 0, 0, Math.PI / 2);
   place(cylinder(0.009, 0.0017, 20), 1, 0.046, 0.05, -0.024, 0, 0, Math.PI / 2);
   place(cylinder(0.0033, 0.015, 12), 2, -0.035, 0.051, 0.014, 0, 0, Math.PI / 2);
-  const hose = new T.CatmullRomCurve3([
-    new T.Vector3(0.037, 0.051, -0.024),
-    new T.Vector3(0.045, 0.082, -0.013),
-    new T.Vector3(0.074, 0.12, 0.004),
-    new T.Vector3(0.082, 0.155, 0.04),
-  ]);
+  const hose = new T.CatmullRomCurve3(GP_CALIPER_HOSE_PROFILE.map((p) => new T.Vector3(...p)));
   place(new T.TubeGeometry(hose, 20, 0.0027, 6, false), 3);
   const group = new T.Group();
   group.name = 'GP radial forged four-piston caliper + hydraulic line';

@@ -41,6 +41,14 @@ export interface GpCornerAttempt {
   delta: number | null;
   /** Exit speed compared with the previous fastest complete run, in m/s. */
   exitDelta: number | null;
+  /** Observed entry-to-apex and apex-to-exit times. Both comparisons use
+   * the same fastest complete run, never independently cherry-picked splits. */
+  splits: {
+    entry: number;
+    exit: number;
+    entryDelta: number | null;
+    exitDelta: number | null;
+  };
 }
 
 export interface GpCornerStreak {
@@ -56,6 +64,7 @@ export interface GpCornerStreak {
 const PACE_SPLITS = 32;
 interface PersonalBest {
   seconds: number;
+  entrySeconds: number;
   exitSpeed: number;
   pace: Float64Array;
 }
@@ -64,6 +73,13 @@ interface PersonalBest {
 export function gpPracticeDelta(seconds: number) {
   const rounded = Math.round(Math.abs(seconds) * 100);
   return `${rounded === 0 ? '±' : seconds < 0 ? '−' : '+'}${(rounded / 100).toFixed(2)} s`;
+}
+
+export function gpPracticeSplits(attempt: GpCornerAttempt) {
+  const { entry, exit, entryDelta, exitDelta } = attempt.splits;
+  return entryDelta === null || exitDelta === null
+    ? `Entry ${entry.toFixed(2)} s · exit ${exit.toFixed(2)} s`
+    : `Entry ${gpPracticeDelta(entryDelta)} · exit ${gpPracticeDelta(exitDelta)} vs best`;
 }
 
 interface Sample {
@@ -123,7 +139,7 @@ export class GpCornerPractice {
   private machine = '';
   private previous: Sample | null = null;
   private started = 0;
-  private apexSeen = false;
+  private apexAt: number | null = null;
   private key = '';
   private pace = new Float64Array(PACE_SPLITS + 1);
   private nextSplit = 1;
@@ -146,6 +162,7 @@ export class GpCornerPractice {
 
   suspend() {
     this.active = null;
+    this.apexAt = null;
     this.previous = null;
     this.breakStreak();
   }
@@ -292,7 +309,7 @@ export class GpCornerPractice {
         if (this.streak.current > 0 && this.streak.next?.index !== corner.index) this.breakStreak();
         this.key = `${corner.index}:${sample.compound}:${sample.condition}`;
         this.started = lerp(previous.time, time, entry / distance);
-        this.apexSeen = false;
+        this.apexAt = null;
         this.pace = new Float64Array(PACE_SPLITS + 1);
         this.nextSplit = 1;
         this.active = {
@@ -313,7 +330,8 @@ export class GpCornerPractice {
     const length = this.track!.length,
       corner = active.corner;
     const apex = mod(corner.from + corner.apex - previous.s, length);
-    if (apex <= distance) this.apexSeen = true;
+    if (this.apexAt === null && apex <= distance)
+      this.apexAt = lerp(previous.time, sample.time, apex / distance);
     const exit = mod(corner.from + corner.length - previous.s, length);
     active.elapsed = sample.time - this.started;
     active.progress = clamp(mod(sample.s - corner.from, length) / corner.length, 0, 1);
@@ -330,9 +348,11 @@ export class GpCornerPractice {
     if (exit > distance) return;
     const at = lerp(previous.time, sample.time, exit / distance),
       seconds = at - this.started;
-    if (this.apexSeen && seconds > 0) {
+    if (this.apexAt !== null && this.apexAt >= this.started && this.apexAt <= at && seconds > 0) {
       const best = this.best.get(this.key);
       const exitSpeed = lerp(previous.speed, sample.speed, exit / distance);
+      const entrySeconds = this.apexAt - this.started,
+        exitSeconds = at - this.apexAt;
       this.last = {
         corner,
         at,
@@ -341,9 +361,15 @@ export class GpCornerPractice {
         condition: sample.condition,
         delta: best === undefined ? null : seconds - best.seconds,
         exitDelta: best === undefined ? null : exitSpeed - best.exitSpeed,
+        splits: {
+          entry: entrySeconds,
+          exit: exitSeconds,
+          entryDelta: best === undefined ? null : entrySeconds - best.entrySeconds,
+          exitDelta: best === undefined ? null : exitSeconds - (best.seconds - best.entrySeconds),
+        },
       };
       if (best === undefined || seconds < best.seconds)
-        this.best.set(this.key, { seconds, exitSpeed, pace: this.pace });
+        this.best.set(this.key, { seconds, entrySeconds, exitSpeed, pace: this.pace });
       this.streak.current = this.streak.next?.index === corner.index ? this.streak.current + 1 : 1;
       this.streak.best = Math.max(this.streak.best, this.streak.current);
       this.streak.next = this.following.get(corner.index) ?? null;

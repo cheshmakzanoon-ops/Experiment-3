@@ -1,7 +1,12 @@
 import styles from './bike-hud.css?inline';
 import { bikeReadout } from './bike-readout.ts';
 import { GPRidingCues } from './gp-riding-cues.ts';
-import { GpCornerPractice, gpPracticeDelta, type GpPracticeContext } from './gp-corner-practice.ts';
+import {
+  GpCornerPractice,
+  gpPracticeDelta,
+  gpPracticeSplits,
+  type GpPracticeContext,
+} from './gp-corner-practice.ts';
 import { H } from '../simulation/protocol.ts';
 import type { Track } from '../simulation/track.ts';
 
@@ -22,7 +27,7 @@ export class BikeHud {
         <div class="gp-next"><b id="gpTurnArrow" aria-hidden="true">↑</b><span id="gpCorner">STRAIGHT</span><small id="gpCornerDistance"></small></div>
         <div id="gpCornerProgress" class="gp-phase" hidden role="meter" aria-label="Corner progress" aria-valuemin="0" aria-valuemax="100"><span>ENTRY</span><span>APEX</span><span>EXIT</span><i id="gpPhaseFill" aria-hidden="true"></i></div>
         <div class="gp-cue"><b id="gpAction"></b><span id="gpTow" hidden></span></div><small id="gpAdvice"></small>
-        <div id="gpPractice" class="gp-practice" hidden aria-label="Personal corner practice"><span id="gpPracticeLabel"></span><b id="gpPracticeTime"></b><small id="gpPracticeDetail"></small><small id="gpPracticeStreak" hidden></small></div>
+        <div id="gpPractice" class="gp-practice" hidden aria-label="Personal corner practice"><span id="gpPracticeLabel"></span><b id="gpPracticeTime"></b><small id="gpPracticeDetail"></small><small id="gpPracticeSplit" hidden aria-label="Entry to apex and apex to exit timing"></small><small id="gpPracticeStreak" hidden></small></div>
       </div>
       <div class="gp-lean"><span>LEAN</span><div class="gp-lean-track" aria-hidden="true"><i id="gpLeanMarker"></i></div><b id="gpLean">0°</b></div>
       <div class="gp-rear-brake" title="Independent rear-brake pedal input; combined braking assistance can also apply the rear brake"><span>REAR PEDAL</span><div aria-hidden="true"><i id="gpRearBrakeBar"></i></div><b id="gpRearBrake">0%</b></div>
@@ -144,6 +149,8 @@ export class BikeHud {
             ? `Best ${streak.best} · next T${streak.next!.index + 1} ${streak.next!.name}`
             : `${result!.delta === null ? 'First clean run' : gpPracticeDelta(result!.delta)} · exit ${Math.round(result!.exitSpeed * 3.6)} km/h${exitDelta ? ` (${exitDelta > 0 ? '+' : '−'}${Math.abs(exitDelta)})` : ''} · ${result!.condition}`,
       );
+      this.nodes.gpPracticeSplit.hidden = !showResult;
+      if (showResult) set('gpPracticeSplit', gpPracticeSplits(result!));
       this.nodes.gpPracticeStreak.hidden = !!showLink || streak.best === 0;
       set('gpPracticeStreak', `CLEAN STREAK ${streak.current} · BEST ${streak.best}`);
     }

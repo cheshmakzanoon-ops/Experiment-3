@@ -14,6 +14,7 @@ import { isGpCourse } from '../../simulation/gp-corner-shape.ts';
 import { buildGpCourseBoards } from './gp-course-boards.ts';
 import { buildGpCourseBridge } from './gp-course-bridge.ts';
 import { buildGpPaddockArchitecture } from './gp-paddock-architecture.ts';
+import { buildGpRaceControl } from './gp-race-control.ts';
 
 /** Box with metre-scaled UVs (one facade tile = 14 m x 28 m) so window rows
  * stay the same size on every building. */
@@ -95,12 +96,16 @@ export function buildPaddock(kit: VenueKitContext) {
   }
   const towerS = centre + length / 2 + 10,
     tower = frame(track, towerS, side * (front + 7), 0);
-  const control = new T.Mesh(facadeBox(14, 18, 14, 14, 9, tower.p.y), m.facades[2]);
-  control.position.set(tower.position.x, tower.p.y + 9.6, tower.position.z);
-  control.rotation.y = tower.yaw;
-  control.castShadow = control.receiveShadow = true;
-  control.name = 'Race control tower';
-  root.add(control);
+  const gpControl = buildGpRaceControl(track, paddock);
+  if (gpControl) root.add(gpControl);
+  else {
+    const control = new T.Mesh(facadeBox(14, 18, 14, 14, 9, tower.p.y), m.facades[2]);
+    control.position.set(tower.position.x, tower.p.y + 9.6, tower.position.z);
+    control.rotation.y = tower.yaw;
+    control.castShadow = control.receiveShadow = true;
+    control.name = 'Race control tower';
+    root.add(control);
+  }
   kit.occupy(tower.position.x, tower.position.z, 12);
   // Pit wall: concrete parapet with a mesh screen between track and lane.
   const wallFrom = track.length - pit.divergeEnd,

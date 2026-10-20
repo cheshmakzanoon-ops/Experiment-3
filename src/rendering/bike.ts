@@ -12,6 +12,7 @@ import { gpR2Aero } from './gp-r2-aero.ts';
 import { gpR2LowerFairing } from './gp-r2-fairing.ts';
 import { gpBodywork, gpCompactCowl, gpUpperCowl } from './gp-bodywork.ts';
 import { gpRadialBrakeCaliper } from './gp-radial-caliper.ts';
+import { GPFrontHydraulics } from './gp-front-hydraulics.ts';
 import { gpBrakeRotor, GP_FRONT_DISC } from './gp-brake-rotor.ts';
 import { gpDiscGlow } from './gp-disc-glow.ts';
 import { gpForkCrowns } from './gp-fork-crown.ts';
@@ -745,6 +746,7 @@ export class BikeModel {
   private readonly gpRearSuspension?: GPRearSuspension;
   private readonly gpRearsets?: GPRearsets;
   private readonly gpFrontBrakeLever?: T.Group;
+  private readonly gpFrontHydraulics?: GPFrontHydraulics;
   private readonly gpBrakeTargets: [T.Vector3, T.Vector3] = [new T.Vector3(), new T.Vector3()];
   private readonly cockpit?: BikeCockpit;
   private disposed = false;
@@ -1215,6 +1217,16 @@ export class BikeModel {
     this.forkLower.add(this.frontSpin);
     this.frontSpin.position.set(0, 0, FORK_OFFSET);
     wheel(this.frontSpin, frontR, 0.06, b.crownRadius, true);
+    if (gpPrototype && detail !== 'far')
+      this.gpFrontHydraulics = new GPFrontHydraulics(
+        this.steer,
+        this.forkLower,
+        detail,
+        m,
+        FORK_OFFSET,
+        -FORK_LENGTH - this.sag.fork,
+        b.forkTravel,
+      );
     // ---- Frame, engine, exhaust (sprung).
     const spar = (side: number): [number, number, number][] => [
       [side * 0.07, head.y - 0.02, head.z - 0.04],
@@ -1614,6 +1626,7 @@ export class BikeModel {
       // Wiring and reservoir give onboard views mechanical depth without
       // changing the grip/steering anchors or obscuring the rider's sightline.
       for (const side of [-1, 1]) {
+        if (gpPrototype && side < 0) continue;
         add(
           this.steer,
           tube(
@@ -1972,6 +1985,7 @@ export class BikeModel {
     // display time do not pull the hand lever. An absolute pose restores on seek.
     if (this.gpFrontBrakeLever) this.gpFrontBrakeLever.rotation.y = gpFrontBrakeAngle(v.brake);
     this.forkLower.position.y = -(FORK_LENGTH + this.sag.fork - v.fork);
+    this.gpFrontHydraulics?.update(this.forkLower.position.y);
     this.frontSpin.rotation.x = v.frontRotation;
     this.rearSpin.rotation.x = v.rearRotation;
     this.gpChain?.update(v.rearRotation);
