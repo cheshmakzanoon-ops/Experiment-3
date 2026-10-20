@@ -1300,6 +1300,29 @@
   font-size: 10px;
   letter-spacing: 0.04em;
 }
+.fest-practice-live {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 12px;
+  padding-top: 6px;
+}
+.fest-practice-live small {
+  font-size: 9px;
+  letter-spacing: 0.04em;
+  color: #c8d3d2;
+}
+.fest-practice-live b {
+  font-size: 14px;
+  color: #e6eeee;
+}
+.fest-practice-live[data-trend='ahead'] b {
+  color: #9ae2d2;
+}
+.fest-practice-live[data-trend='behind'] b {
+  color: #ffc5a9;
+}
 #festPracticeSplits {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

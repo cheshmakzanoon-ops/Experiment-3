@@ -74,6 +74,14 @@ function inspect() {
     getComputedStyle(node(selector)).visibility !== 'hidden';
   return {
     practiceVisible: visible('#festPractice'),
+    liveVisible: visible('#festPracticeLive'),
+    liveText: node('#festPracticeLiveValue').textContent,
+    liveTrend: node('#festPracticeLive').dataset.trend,
+    liveAria: node('#festPracticeLive').getAttribute('aria-label'),
+    liveRole: node('#festPracticeLive').getAttribute('role'),
+    liveAriaLive: node('#festPracticeLive').getAttribute('aria-live'),
+    live: box('#festPracticeLive'),
+    liveDelta: lastPace?.status().liveDelta ?? null,
     resultVisible: visible('#festResults'),
     practice: box('#festPractice'),
     event: box('#festEvent'),
@@ -104,9 +112,16 @@ function draw(mode = 'running') {
     : mode.includes('offroad')
       ? 'off-road'
       : null;
-  const pace = timedPace(96, finished ? 1 : 0.78, mode === 'first-run' ? null : reference, reason);
+  const duration = mode === 'behind' ? 104 : mode === 'even' ? 100 : 96;
+  const comparison =
+    mode === 'first-run'
+      ? null
+      : mode === 'legacy-reference'
+        ? { time: reference.time, crossings: reference.crossings }
+        : reference;
+  const pace = timedPace(duration, finished ? 1 : 0.78, comparison, reason);
   lastPace = pace;
-  const elapsed = finished ? 96 : 96 * 0.78;
+  const elapsed = duration * (finished ? 1 : 0.78);
   status.mode = finished ? 'finished' : 'running';
   status.time = elapsed;
   status.speedKmh = 112;

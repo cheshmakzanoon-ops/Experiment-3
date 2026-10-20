@@ -36,7 +36,8 @@ describe('same-car circuit practice sectors', () => {
     const slower = steadyRun(30, baseline, 25);
     expect(slower.result).toMatchObject({ valid: true, newBest: false, delta: 6 });
     expect(slower.pace.record()).toBeNull();
-    expect(baseline).toEqual({ time: 30, crossings: [10, 20, 30] });
+    expect(baseline).toMatchObject({ time: 30, crossings: [10, 20, 30] });
+    expect(baseline.trace?.times).toHaveLength(91);
   });
 
   it.each<CircuitPaceReason>(['off-road', 'contact', 'reset', 'autopilot'])(
@@ -125,13 +126,19 @@ describe('practice session integration', () => {
       8,
     );
     sim.command({ type: 'start', event: 'saltmarsh-practice' });
-    expect(sim.status().event?.practice?.referenceTime).toBe(result!.time);
+    expect(sim.status().event?.practice).toMatchObject({
+      referenceTime: result!.time,
+      liveDelta: 0,
+    });
     sim.command({ type: 'vehicle', id: 'sc7' });
     sim.command({ type: 'start', event: 'saltmarsh-practice' });
-    expect(sim.status().event?.practice?.referenceTime).toBeNull();
+    expect(sim.status().event?.practice).toMatchObject({ referenceTime: null, liveDelta: null });
     sim.command({ type: 'vehicle', id: 'rh3' });
     sim.command({ type: 'start', event: 'saltmarsh-practice' });
-    expect(sim.status().event?.practice?.referenceTime).toBe(result!.time);
+    expect(sim.status().event?.practice).toMatchObject({
+      referenceTime: result!.time,
+      liveDelta: 0,
+    });
     vi.restoreAllMocks();
   });
 });

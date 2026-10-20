@@ -103,7 +103,7 @@ export class FestivalHud {
       <div class="fest-hint" id="festHint"><kbd>C</kbd> CAMERA · <kbd>T</kbd> MAP · <kbd>ESC</kbd> MENU</div>
       <div class="fest-explore" id="festExplore"><span class="fest-eyebrow">THE ROAD IS YOURS</span><b id="festExploreName">Explore Solvane Coast</b><small id="festExploreDistance"></small></div>
       <div class="fest-skills" id="festSkills" hidden role="status"><span id="festSkillLabel"></span><div><b id="festSkillScore">0</b><i id="festSkillMultiplier">×1.0</i></div><small id="festSkillBank"></small><div class="fest-chain-track"><i id="festSkillTimer"></i></div></div>
-      <div class="fest-event" id="festEvent" hidden><h2 id="festEventName"></h2><div class="fest-row" id="festEventRow"></div><div class="fest-practice" id="festPractice" hidden aria-label="Practice sector timing"><b id="festPracticeBest"></b><div id="festPracticeSplits"></div><small id="festPracticeAdvice"></small></div><div class="fest-rivals" id="festRivals" hidden aria-label="Rival gaps along the race route"><small>ROUTE GAP</small><div id="festRivalsRow"></div></div><div class="fest-challenge fest-racecraft" id="festRacecraft" hidden aria-label="Slipstream pass"><div><b id="festRacecraftLabel"></b><span id="festRacecraftTarget"></span></div><small id="festRacecraftAdvice"></small><div class="fest-challenge-track" role="progressbar" aria-label="Slipstream pass progress" aria-valuemin="0" aria-valuemax="100" id="festRacecraftMeter"><i id="festRacecraftFill"></i></div></div><div class="fest-challenge" id="festChallenge" hidden aria-label="Live activity target"><div><b id="festChallengeStars"></b><span id="festChallengeTarget"></span></div><small id="festChallengeAdvice"></small><div class="fest-challenge-track" role="progressbar" aria-label="Progress to activity star target" aria-valuemin="0" aria-valuemax="100" id="festChallengeMeter"><i id="festChallengeFill"></i></div></div><div class="fest-progress"><i id="festProgress"></i></div></div>
+      <div class="fest-event" id="festEvent" hidden><h2 id="festEventName"></h2><div class="fest-row" id="festEventRow"></div><div class="fest-practice" id="festPractice" hidden aria-label="Practice lap and sector timing"><b id="festPracticeBest"></b><div class="fest-practice-live" id="festPracticeLive" role="timer" aria-live="off" hidden><small>LIVE LAP DELTA</small><b id="festPracticeLiveValue"></b></div><div id="festPracticeSplits"></div><small id="festPracticeAdvice"></small></div><div class="fest-rivals" id="festRivals" hidden aria-label="Rival gaps along the race route"><small>ROUTE GAP</small><div id="festRivalsRow"></div></div><div class="fest-challenge fest-racecraft" id="festRacecraft" hidden aria-label="Slipstream pass"><div><b id="festRacecraftLabel"></b><span id="festRacecraftTarget"></span></div><small id="festRacecraftAdvice"></small><div class="fest-challenge-track" role="progressbar" aria-label="Slipstream pass progress" aria-valuemin="0" aria-valuemax="100" id="festRacecraftMeter"><i id="festRacecraftFill"></i></div></div><div class="fest-challenge" id="festChallenge" hidden aria-label="Live activity target"><div><b id="festChallengeStars"></b><span id="festChallengeTarget"></span></div><small id="festChallengeAdvice"></small><div class="fest-challenge-track" role="progressbar" aria-label="Progress to activity star target" aria-valuemin="0" aria-valuemax="100" id="festChallengeMeter"><i id="festChallengeFill"></i></div></div><div class="fest-progress"><i id="festProgress"></i></div></div>
       <div class="fest-countdown" id="festCountdown" hidden></div>
       <div class="fest-message" id="festMessage" role="status" aria-live="polite" hidden></div>
       <div class="fest-card" id="festCard" hidden role="dialog" aria-label="Event"></div>
@@ -573,8 +573,27 @@ export class FestivalHud {
         'festPracticeAdvice',
         practice.reason
           ? `${practiceReason[practice.reason]} · FINISH TO PRACTISE, RETRY FOR A CLEAN TIME`
-          : 'STAY ON THE ROAD · KEEP IT CLEAN',
+          : practice.referenceTime === null
+            ? 'FINISH CLEAN TO SET YOUR LIVE COMPARISON'
+            : practice.liveDelta == null
+              ? 'SET A NEW CLEAN BEST FOR LIVE COMPARISON'
+              : 'SAME ROUTE POSITION · KEEP IT CLEAN',
       );
+      const liveDelta =
+        practice.valid && Number.isFinite(practice.liveDelta) ? practice.liveDelta : null;
+      this.show('festPracticeLive', liveDelta != null);
+      if (liveDelta != null) {
+        const trend = Math.abs(liveDelta) < 0.005 ? 'even' : liveDelta < 0 ? 'ahead' : 'behind';
+        const delta = this.get('festPracticeLive');
+        delta.dataset.trend = trend;
+        delta.setAttribute(
+          'aria-label',
+          trend === 'even'
+            ? 'Live lap delta: even with your best at the same route position'
+            : `Live lap delta: ${trend} by ${Math.abs(liveDelta).toFixed(2)} seconds at the same route position`,
+        );
+        this.text('festPracticeLiveValue', `${trend.toUpperCase()} · ${splitDelta(liveDelta)}`);
+      }
       const html = [1, 2, 3]
         .map((sector) => {
           const split = practice.splits[sector - 1];

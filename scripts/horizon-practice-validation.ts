@@ -75,6 +75,60 @@ const beforeRetry = sim.status();
 const completedPosition = { ...sim.player.body.position };
 sim.command({ type: 'start', event: 'saltmarsh-practice' });
 const retry = sim.status().event?.practice;
+const targetMetres = 120;
+const retrySamples: {
+  elapsed: number;
+  netRouteMetres: number;
+  x: number;
+  z: number;
+  valid: boolean;
+  referenceTime: number | null;
+  liveDelta: number | null;
+}[] = [];
+let retryNetMetres = 0;
+if (!stress && result?.practice?.valid && result.practice.newBest) {
+  const retryDriver = new RouteDriver(sim.player, event.path, skill, 0, speedCap);
+  const start = sim.player.body.position;
+  const entryStation = event.path.locate(start.x, start.z, 0, 60);
+  let station = entryStation;
+  for (let tick = 0; tick < 120 * 30; tick++) {
+    if (sim.mode === 'running') retryDriver.update(1 / 120, sim.cars, false, false);
+    sim.step(1 / 120);
+    if (tick % 12 !== 0 || sim.mode !== 'running') continue;
+    const state = sim.status().event;
+    const position = sim.player.body.position;
+    // Read physical route projection; no positions, timers, progress or
+    // records are changed to manufacture a comparison on the retry.
+    station = event.path.locate(position.x, position.z, station, 60);
+    retryNetMetres = Math.max(0, station - entryStation);
+    if (state?.practice && retryNetMetres >= 10)
+      retrySamples.push({
+        elapsed: state.elapsed,
+        netRouteMetres: retryNetMetres,
+        x: position.x,
+        z: position.z,
+        valid: state.practice.valid,
+        referenceTime: state.practice.referenceTime,
+        liveDelta: state.practice.liveDelta ?? null,
+      });
+    if (retryNetMetres >= targetMetres) break;
+  }
+}
+const retryDrive = {
+  targetMetres,
+  observedNetRouteMetres: retryNetMetres,
+  passed: stress
+    ? null
+    : retryNetMetres >= targetMetres &&
+      retrySamples.length > 0 &&
+      retrySamples.every(
+        (sample) =>
+          sample.valid &&
+          sample.referenceTime === result?.time &&
+          Number.isFinite(sample.liveDelta),
+      ),
+  samples: retrySamples,
+};
 sim.command({ type: 'autopilot', value: true });
 const assisted = sim.status().event?.practice;
 sim.command({ type: 'vehicle', id: 'sc7' });
@@ -85,26 +139,33 @@ const sourceAfter = fingerprint();
 const benchmarkAccepted =
   result?.practice?.valid === true &&
   result.practice.newBest &&
-  retry?.referenceTime === result.time;
+  retry?.referenceTime === result.time &&
+  retry?.liveDelta === 0 &&
+  retryDrive.passed;
 const offRoadRejected =
   observedOffRoad !== null &&
   result?.practice?.valid === false &&
   result.practice.reason === 'off-road' &&
   !result.practice.newBest &&
-  retry?.referenceTime === null;
+  retry?.referenceTime === null &&
+  retry?.liveDelta === null;
 const passed =
   sourceBefore === sourceAfter &&
   result?.completed === true &&
   result.practice?.splits.length === 3 &&
   (stress ? offRoadRejected : benchmarkAccepted) &&
   assisted?.reason === 'autopilot' &&
-  otherCar?.referenceTime === null;
+  assisted?.liveDelta === null &&
+  otherCar?.referenceTime === null &&
+  otherCar?.liveDelta === null;
 const report = {
   kind: 'horizon-practice-physical-controls-validation',
   method: `External RouteDriver at skill ${skill}, speed cap ${speedCap} m/s, supplies controls to production 120 Hz simulation.`,
   limits: 'Scripted controls; no human input, rendered-frame or hardware-performance claim.',
   generatedAt: new Date().toISOString(),
-  expected: stress ? 'Reject the off-road stress lap' : 'Accept a clean same-car benchmark',
+  expected: stress
+    ? 'Reject the off-road stress lap'
+    : 'Accept a clean same-car benchmark and compare its physically driven retry',
   sourceScope: 'src/core, src/simulation, package-lock.json and this validation runner',
   sourceBefore,
   sourceAfter,
@@ -113,6 +174,7 @@ const report = {
   result,
   splits,
   retry,
+  retryDrive,
   assisted,
   otherCar,
   completedPosition,

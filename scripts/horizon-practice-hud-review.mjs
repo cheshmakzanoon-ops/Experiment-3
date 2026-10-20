@@ -4,18 +4,21 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { realpathSync } from 'node:fs';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
-import { join, resolve } from 'node:path';
-import { createServer } from 'vite';
+import { basename, join, resolve } from 'node:path';
+import { createServer, preview } from 'vite';
 import { chromium } from 'playwright';
 
 const root = realpathSync(process.cwd());
 const output = resolve(process.env.HORIZON_HUD_OUTPUT ?? 'test-results/horizon-practice-hud');
 const fixture = 'e2e/fixtures/horizon-practice-hud.html';
+const buildDirectory = process.env.HORIZON_HUD_BUILD_DIR;
 const sourceFiles = [
   'src/ui/festival-hud.ts',
   'src/ui/festival-hud.css',
   'src/simulation/open-world/circuit-pace.ts',
   'e2e/fixtures/horizon-practice-hud.ts',
+  fixture,
+  'scripts/horizon-practice-hud-review.mjs',
 ];
 const hashSources = async () =>
   Object.fromEntries(
@@ -45,6 +48,7 @@ const report = {
   ],
 };
 let server, browser, page, deadline;
+let fixturePath = fixture;
 const check = async (name, work) => {
   try {
     report.cases.push({ name, passed: true, state: await work() });
@@ -66,21 +70,57 @@ const inside = (box, width, height, label) => {
 try {
   await Promise.race([
     (async () => {
-      server = await createServer({
-        root,
-        configFile: false,
-        cacheDir: join(output, 'vite-cache'),
-        logLevel: 'warn',
-        optimizeDeps: { entries: [fixture], include: ['three'] },
-        server: {
-          host: '127.0.0.1',
-          port: Number(process.env.HORIZON_HUD_PORT ?? 5318),
-          strictPort: true,
-          hmr: false,
-          fs: { allow: [root, realpathSync(join(root, 'node_modules'))] },
-        },
-      });
-      await server.listen();
+      if (buildDirectory) {
+        const manifest = JSON.parse(
+          await readFile(join(buildDirectory, 'HORIZON_HUD_FIXTURE_IDENTITY.json'), 'utf8'),
+        );
+        assert.deepEqual(
+          manifest,
+          await hashSources(),
+          'HUD build does not match current reviewed source',
+        );
+        report.buildIdentity = JSON.parse(
+          await readFile(join(buildDirectory, 'BUILD_IDENTITY.json'), 'utf8'),
+        );
+        const built = await preview({
+          root,
+          configFile: false,
+          base: './',
+          build: { outDir: resolve(buildDirectory) },
+          preview: {
+            host: '127.0.0.1',
+            port: Number(process.env.HORIZON_HUD_PORT ?? 5318),
+            strictPort: true,
+          },
+          logLevel: 'warn',
+        });
+        server = {
+          resolvedUrls: built.resolvedUrls,
+          close: () =>
+            new Promise((resolve, reject) =>
+              built.httpServer.close((error) => (error ? reject(error) : resolve())),
+            ),
+        };
+        fixturePath = basename(fixture);
+        report.servingMode = 'bundled';
+      } else {
+        server = await createServer({
+          root,
+          configFile: false,
+          cacheDir: join(output, 'vite-cache'),
+          logLevel: 'warn',
+          optimizeDeps: { entries: [fixture], include: ['three'] },
+          server: {
+            host: '127.0.0.1',
+            port: Number(process.env.HORIZON_HUD_PORT ?? 5318),
+            strictPort: true,
+            hmr: false,
+            fs: { allow: [root, realpathSync(join(root, 'node_modules'))] },
+          },
+        });
+        await server.listen();
+        report.servingMode = 'development';
+      }
       browser = await chromium.launch({
         headless: true,
         executablePath: process.env.HORIZON_REVIEW_EXECUTABLE || undefined,
@@ -96,11 +136,13 @@ try {
       page.on('console', (message) => {
         if (message.type() === 'error') report.errors.push(message.text());
       });
-      await page.goto(`${server.resolvedUrls.local[0]}${fixture}`, {
-        waitUntil: 'networkidle',
+      await page.goto(`${server.resolvedUrls.local[0]}${fixturePath}`, {
+        waitUntil: 'domcontentloaded',
         timeout: 30000,
       });
-      await page.waitForFunction(() => window.practiceHudReview?.ready);
+      await page.waitForFunction(() => window.practiceHudReview?.ready, undefined, {
+        timeout: 30000,
+      });
       await page.evaluate(() => document.fonts.ready);
       await check('running same-car session best and measured sectors', async () => {
         const state = await page.evaluate(() => window.practiceHudReview.draw('running'));
@@ -110,12 +152,36 @@ try {
         assert.match(state.practiceText, /0:32.00/);
         assert.match(state.practiceText, /−1.33 S/);
         assert.doesNotMatch(state.eventRow, /POSITION/);
+        assert.equal(state.liveVisible, true);
+        assert.equal(state.liveTrend, 'ahead');
+        assert(state.liveDelta < 0);
+        assert.match(state.liveText, /AHEAD/);
+        assert.equal(state.liveRole, 'timer');
+        assert.equal(state.liveAriaLive, 'off');
+        assert.match(state.liveAria, /same route position/);
         await screenshot('running-desktop');
         return state;
       });
+      for (const mode of ['behind', 'even', 'legacy-reference'])
+        await check(`live comparison ${mode}`, async () => {
+          const state = await page.evaluate((mode) => window.practiceHudReview.draw(mode), mode);
+          if (mode === 'legacy-reference') {
+            assert.equal(state.liveVisible, false);
+            assert.equal(state.liveDelta, null);
+            assert.match(state.practiceText, /NEW CLEAN BEST/);
+          } else {
+            assert.equal(state.liveVisible, true);
+            assert.equal(state.liveTrend, mode);
+            assert.match(state.liveText, mode === 'behind' ? /BEHIND/ : /EVEN/);
+            if (mode === 'behind') assert(state.liveDelta > 0);
+            else assert(Math.abs(state.liveDelta) < 0.005);
+          }
+          return state;
+        });
       await check('first benchmark prompt', async () => {
         const state = await page.evaluate(() => window.practiceHudReview.draw('first-run'));
         assert.match(state.practiceText, /SET YOUR FIRST CLEAN LAP/);
+        assert.equal(state.liveVisible, false);
         return state;
       });
       for (const mode of ['offroad', 'autopilot'])
@@ -125,6 +191,7 @@ try {
           assert.match(state.practiceText, /UNRANKED/);
           assert.match(state.practiceText, mode === 'autopilot' ? /AUTOPILOT/ : /LEFT THE ROUTE/);
           assert.equal(state.acceptedRecord, null);
+          assert.equal(state.liveVisible, false);
           return state;
         });
       await check('completed new-best result and retry callback', async () => {
@@ -182,6 +249,7 @@ try {
               `${name} ${mode}`,
             );
             assert.ok(state.pageWidth <= width, 'Page has horizontal overflow');
+            if (mode === 'running') inside(state.live, width, height, `${name} live delta`);
             await screenshot(`${name}-${mode}`);
             return state;
           });

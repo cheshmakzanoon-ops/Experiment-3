@@ -1,0 +1,680 @@
+{
+  "kind": "horizon-practice-physical-controls-validation",
+  "method": "External RouteDriver at skill 0.68, speed cap 24 m/s, supplies controls to production 120 Hz simulation.",
+  "limits": "Scripted controls; no human input, rendered-frame or hardware-performance claim.",
+  "generatedAt": "2026-10-20T18:25:41.035Z",
+  "expected": "Accept a clean same-car benchmark and compare its physically driven retry",
+  "sourceScope": "src/core, src/simulation, package-lock.json and this validation runner",
+  "sourceBefore": "17495a865f30d52088d6333114211801644280634c3c54b00face3255f812712",
+  "sourceAfter": "17495a865f30d52088d6333114211801644280634c3c54b00face3255f812712",
+  "observedOffRoad": null,
+  "passed": true,
+  "result": {
+    "kind": "festival-result",
+    "version": 2,
+    "runId": "festival-73021:1",
+    "regionId": "solvane",
+    "eventId": "saltmarsh-practice",
+    "eventName": "Saltmarsh Practice Lap",
+    "eventKind": "circuit",
+    "vehicleId": "rh3",
+    "completed": true,
+    "abandoned": false,
+    "position": 1,
+    "entrants": 1,
+    "time": 141.13333333336658,
+    "trapKmh": null,
+    "averageKmh": null,
+    "driftScore": null,
+    "driftLines": [],
+    "stars": 3,
+    "legalDistance": 3170.3563549397622,
+    "offRouteSeconds": 0,
+    "standings": [
+      {
+        "car": 0,
+        "name": "YOU",
+        "vehicleId": "rh3",
+        "time": 141.13333333336658,
+        "progress": 0.9963211233925283
+      }
+    ],
+    "at": 144.13333333336658,
+    "assisted": false,
+    "practice": {
+      "sector": 3,
+      "sectorElapsed": 0,
+      "referenceTime": null,
+      "splits": [
+        {
+          "sector": 1,
+          "time": 52.65781218489009,
+          "delta": null
+        },
+        {
+          "sector": 2,
+          "time": 43.86832830153831,
+          "delta": null
+        },
+        {
+          "sector": 3,
+          "time": 44.607192846938176,
+          "delta": null
+        }
+      ],
+      "valid": true,
+      "reason": null,
+      "liveDelta": null,
+      "time": 141.13333333336658,
+      "delta": null,
+      "newBest": true
+    }
+  },
+  "splits": [
+    {
+      "sector": 2,
+      "sectorElapsed": 0.05052114844072264,
+      "referenceTime": null,
+      "splits": [
+        {
+          "sector": 1,
+          "time": 52.65781218489009,
+          "delta": null
+        }
+      ],
+      "valid": true,
+      "reason": null,
+      "liveDelta": null
+    },
+    {
+      "sector": 3,
+      "sectorElapsed": 0.08219284693026907,
+      "referenceTime": null,
+      "splits": [
+        {
+          "sector": 1,
+          "time": 52.65781218489009,
+          "delta": null
+        },
+        {
+          "sector": 2,
+          "time": 43.86832830153831,
+          "delta": null
+        }
+      ],
+      "valid": true,
+      "reason": null,
+      "liveDelta": null
+    }
+  ],
+  "retry": {
+    "sector": 1,
+    "sectorElapsed": 0,
+    "referenceTime": 141.13333333336658,
+    "splits": [],
+    "valid": true,
+    "reason": null,
+    "liveDelta": 0
+  },
+  "retryDrive": {
+    "targetMetres": 120,
+    "observedNetRouteMetres": 121.72273663912392,
+    "passed": true,
+    "samples": [
+      {
+        "elapsed": 1.8083333333289602,
+        "netRouteMetres": 10.679702442064809,
+        "x": -1543.60650567786,
+        "z": -919.1644671269845,
+        "valid": true,
+        "referenceTime": 141.13333333336658,
+        "liveDelta": 0.01709499702619799
+      },
+      {
+        "elapsed": 1.9083333333288692,
+        "netRouteMetres": 11.867874464490797,
+        "x": -1544.325760028151,
+        "z": -920.1110086129052,
+        "valid": true,
+        "referenceTime": 141.13333333336658,
+        "liveDelta": 0.030426009705964763
+      },
+      {
+        "elapsed": 2.0083333333287783,
+        "netRouteMetres": 13.162269237438977,
+        "x": -1545.0731598142659,
+        "z": -921.1144164561188,
+        "valid": true,
+        "referenceTime": 141.13333333336658,
+        "liveDelta": 0.03601148227331308
+      },
+      {
+        "elapsed": 2.1083333333286873,
+        "netRouteMetres": 14.477715175670255,
+        "x": -1545.84856901751,
+        "z": -922.1779257566159,
+        "valid": true,
+        "referenceTime": 141.13333333336658,
+        "liveDelta": 0.04003744933958764
+      },
+      {
+        "elapsed": 2.2083333333285964,
+        "netRouteMetres": 15.89369769722498,
+        "x": -1546.649073972388,
+        "z": -923.2982792125481,
+        "valid": true,
+        "referenceTime": 141.13333333336658,
+        "liveDelta": 0.03669468659322517
+      },
+      {
+        "elapsed": 2.3083333333285054,
+        "netRouteMetres": 17.333880308880453,
+        "x": -1547.4746613333216,
+        "z": -924.4792658411463,
+        "valid": true,
+        "referenceTime": 141.13333333336658,
+        "liveDelta": 0.03158690918439122
+      },
+      {
+        "elapsed": 2.4083333333284145,
+        "netRouteMetres": 18.870444127548126,
+        "x": -1548.3227765896963,
+        "z": -925.7181809208618,
+        "valid": true,
+        "referenceTime": 141.13333333336658,
+        "liveDelta": 0.01940087688229486
+      },
+      {
+        "elapsed": 2.5083333333283235,
+        "netRouteMetres": 20.43315610466516,
+        "x": -1549.1930547952118,
+        "z": -927.017034391515,
+        "valid": true,
+        "referenceTime": 141.13333333336658,
+        "liveDelta": 0.009929728350276168
+      },
+      {
+        "elapsed": 2.6083333333282326,
+        "netRouteMetres": 22.08502953854122,
+        "x": -1550.0822037416533,
+        "z": -928.3716099503696,
+        "valid": true,
+        "referenceTime": 141.13333333336658,
+        "liveDelta": 0.014132343957014903
+      },
+      {
+        "elapsed": 2.7083333333281416,
+        "netRouteMetres": 23.755646429649005,
+        "x": -1550.9855093561093,
+        "z": -929.7777766331951,
+        "valid": true,
+        "referenceTime": 141.13333333336658,
+        "liveDelta": 0.017208456209461875
+      },
+      {
+        "elapsed": 2.8083333333280507,
+        "netRouteMetres": 25.496901686349247,
+        "x": -1551.8971736502306,
+        "z": -931.2279050448216,
+        "valid": true,
+        "referenceTime": 141.13333333336658,
+        "liveDelta": 0.016134447101340044
+      },
+      {
+        "elapsed": 2.9083333333279597,
+        "netRouteMetres": 27.268155824775477,
+        "x": -1552.811539742885,
+        "z": -932.7149815922899,
+        "valid": true,
+        "referenceTime": 141.13333333336658,
+        "liveDelta": 0.0147667748396203
+      },
+      {
+        "elapsed": 3.008333333327869,
+        "netRouteMetres": 29.027374051785955,
+        "x": -1553.7190488719664,
+        "z": -934.2230433596524,
+        "valid": true,
+        "referenceTime": 141.13333333336658,
+        "liveDelta": 0.011068222854054177
+      },
+      {
+        "elapsed": 3.108333333327778,
+        "netRouteMetres": 30.8629756198211,
+        "x": -1554.6394708542427,
+        "z": -935.7848481605657,
+        "valid": true,
+        "referenceTime": 141.13333333336658,
+        "liveDelta": 0.01013170913949546
+      },
+      {
+        "elapsed": 3.208333333327687,
+        "netRouteMetres": 32.73751326231286,
+        "x": -1555.5768995971398,
+        "z": -937.4089522343397,
+        "valid": true,
+        "referenceTime": 141.13333333336658,
+        "liveDelta": 0.015732455537206924
+      },
+      {
+        "elapsed": 3.308333333327596,
+        "netRouteMetres": 34.69104972727564,
+        "x": -1556.52871098857,
+        "z": -939.0918169322119,
+        "valid": true,
+        "referenceTime": 141.13333333336658,
+        "liveDelta": 0.017342789120174285
+      },
+      {
+        "elapsed": 3.408333333327505,
+        "netRouteMetres": 36.700856057245346,
+        "x": -1557.4941686398909,
+        "z": -940.833827660722,
+        "valid": true,
+        "referenceTime": 141.13333333336658,
+        "liveDelta": 0.01610531416655947
+      },
+      {
+        "elapsed": 3.508333333327414,
+        "netRouteMetres": 38.749691544376674,
+        "x": -1558.472176629402,
+        "z": -942.6350586745458,
+        "valid": true,
+        "referenceTime": 141.13333333336658,
+        "liveDelta": 0.012900174737691117
+      },
+      {
+        "elapsed": 3.608333333327323,
+        "netRouteMetres": 40.871389545245165,
+        "x": -1559.4610815726212,
+        "z": -944.4943517249354,
+        "valid": true,
+        "referenceTime": 141.13333333336658,
+        "liveDelta": 0.009802600977933285
+      },
+      {
+        "elapsed": 3.708333333327232,
+        "netRouteMetres": 43.04274775274371,
+        "x": -1560.4580983835122,
+        "z": -946.4075752318341,
+        "valid": true,
+        "referenceTime": 141.13333333336658,
+        "liveDelta": 0.012038962118535057
+      },
+      {
+        "elapsed": 3.808333333327141,
+        "netRouteMetres": 45.25634724523616,
+        "x": -1561.4591339162669,
+        "z": -948.3680329947382,
+        "valid": true,
+        "referenceTime": 141.13333333336658,
+        "liveDelta": 0.012933746358046783
+      },
+      {
+        "elapsed": 3.9083333333270502,
+        "netRouteMetres": 47.49333489812625,
+        "x": -1562.4603344352415,
+        "z": -950.3694666477865,
+        "valid": true,
+        "referenceTime": 141.13333333336658,
+        "liveDelta": 0.011567387347996672
+      },
+      {
+        "elapsed": 4.008333333326959,
+        "netRouteMetres": 49.7725875392066,
+        "x": -1563.458681670375,
+        "z": -952.4067239637058,
+        "valid": true,
+        "referenceTime": 141.13333333336658,
+        "liveDelta": 0.008865487570543173
+      },
+      {
+        "elapsed": 4.108333333326868,
+        "netRouteMetres": 52.07682057836428,
+        "x": -1564.4516351663842,
+        "z": -954.4756913391177,
+        "valid": true,
+        "referenceTime": 141.13333333336658,
+        "liveDelta": 0.009358360136165977
+      },
+      {
+        "elapsed": 4.208333333326777,
+        "netRouteMetres": 54.40196990051163,
+        "x": -1565.43735425218,
+        "z": -956.5727561225926,
+        "valid": true,
+        "referenceTime": 141.13333333336658,
+        "liveDelta": 0.009863715382298466
+      },
+      {
+        "elapsed": 4.308333333326686,
+        "netRouteMetres": 56.737403620344594,
+        "x": -1566.4146081308675,
+        "z": -958.694676931845,
+        "valid": true,
+        "referenceTime": 141.13333333336658,
+        "liveDelta": 0.009919912560006239
+      },
+      {
+        "elapsed": 4.4083333333265955,
+        "netRouteMetres": 59.09664132182388,
+        "x": -1567.3825543142943,
+        "z": -960.8385785437604,
+        "valid": true,
+        "referenceTime": 141.13333333336658,
+        "liveDelta": 0.008945986069043066
+      },
+      {
+        "elapsed": 4.5083333333265045,
+        "netRouteMetres": 61.46860238806903,
+        "x": -1568.3404081427154,
+        "z": -963.0020658590399,
+        "valid": true,
+        "referenceTime": 141.13333333336658,
+        "liveDelta": 0.008690622956459393
+      },
+      {
+        "elapsed": 4.608333333326414,
+        "netRouteMetres": 63.851537286524035,
+        "x": -1569.287533090994,
+        "z": -965.183095161274,
+        "valid": true,
+        "referenceTime": 141.13333333336658,
+        "liveDelta": 0.00903823034454998
+      },
+      {
+        "elapsed": 4.708333333326323,
+        "netRouteMetres": 66.24377327134289,
+        "x": -1570.2236281608584,
+        "z": -967.3798033809397,
+        "valid": true,
+        "referenceTime": 141.13333333336658,
+        "liveDelta": 0.009195404871633173
+      },
+      {
+        "elapsed": 4.808333333326232,
+        "netRouteMetres": 68.63965445464828,
+        "x": -1571.1487254786555,
+        "z": -969.5904039089646,
+        "valid": true,
+        "referenceTime": 141.13333333336658,
+        "liveDelta": 0.008787263199794282
+      },
+      {
+        "elapsed": 4.908333333326141,
+        "netRouteMetres": 71.04601505375285,
+        "x": -1572.0626518723388,
+        "z": -971.812448290982,
+        "valid": true,
+        "referenceTime": 141.13333333336658,
+        "liveDelta": 0.008442201286352535
+      },
+      {
+        "elapsed": 5.00833333332605,
+        "netRouteMetres": 73.45589500046435,
+        "x": -1572.9652191428547,
+        "z": -974.04349679899,
+        "valid": true,
+        "referenceTime": 141.13333333336658,
+        "liveDelta": 0.008491482486172153
+      },
+      {
+        "elapsed": 5.108333333325959,
+        "netRouteMetres": 75.86784415465945,
+        "x": -1573.856434837299,
+        "z": -976.2818994107714,
+        "valid": true,
+        "referenceTime": 141.13333333336658,
+        "liveDelta": 0.008450839776067198
+      },
+      {
+        "elapsed": 5.208333333325868,
+        "netRouteMetres": 78.28102562027289,
+        "x": -1574.7366245413689,
+        "z": -978.526455087007,
+        "valid": true,
+        "referenceTime": 141.13333333336658,
+        "liveDelta": 0.0084609470582091
+      },
+      {
+        "elapsed": 5.308333333325777,
+        "netRouteMetres": 80.69276827475551,
+        "x": -1575.6064339544612,
+        "z": -980.7762084802916,
+        "valid": true,
+        "referenceTime": 141.13333333336658,
+        "liveDelta": 0.008352795405962787
+      },
+      {
+        "elapsed": 5.408333333325686,
+        "netRouteMetres": 83.10733628584057,
+        "x": -1576.4665633300933,
+        "z": -983.0304226971899,
+        "valid": true,
+        "referenceTime": 141.13333333336658,
+        "liveDelta": 0.008348329056628856
+      },
+      {
+        "elapsed": 5.508333333325595,
+        "netRouteMetres": 85.52199937742444,
+        "x": -1577.3176700286601,
+        "z": -985.2885384477547,
+        "valid": true,
+        "referenceTime": 141.13333333336658,
+        "liveDelta": 0.008339212793369022
+      },
+      {
+        "elapsed": 5.608333333325504,
+        "netRouteMetres": 87.93664773534556,
+        "x": -1578.1603176497088,
+        "z": -987.5501347589869,
+        "valid": true,
+        "referenceTime": 141.13333333336658,
+        "liveDelta": 0.008330231861465975
+      },
+      {
+        "elapsed": 5.708333333325413,
+        "netRouteMetres": 90.35122247241043,
+        "x": -1578.9950942126832,
+        "z": -989.8148486419233,
+        "valid": true,
+        "referenceTime": 141.13333333336658,
+        "liveDelta": 0.008323523574948588
+      },
+      {
+        "elapsed": 5.808333333325322,
+        "netRouteMetres": 92.7647815941018,
+        "x": -1579.8226526922465,
+        "z": -992.0823328979287,
+        "valid": true,
+        "referenceTime": 141.13333333336658,
+        "liveDelta": 0.008353156407942208
+      },
+      {
+        "elapsed": 5.908333333325231,
+        "netRouteMetres": 95.1793175687335,
+        "x": -1580.6436202530394,
+        "z": -994.3522993169852,
+        "valid": true,
+        "referenceTime": 141.13333333336658,
+        "liveDelta": 0.008341782145131482
+      },
+      {
+        "elapsed": 6.00833333332514,
+        "netRouteMetres": 97.59375708314428,
+        "x": -1581.4585629824248,
+        "z": -996.6245509369226,
+        "valid": true,
+        "referenceTime": 141.13333333336658,
+        "liveDelta": 0.008334650864089355
+      },
+      {
+        "elapsed": 6.108333333325049,
+        "netRouteMetres": 100.00812890965926,
+        "x": -1582.2679635625896,
+        "z": -998.8988873118606,
+        "valid": true,
+        "referenceTime": 141.13333333336658,
+        "liveDelta": 0.008330682451027194
+      },
+      {
+        "elapsed": 6.208333333324958,
+        "netRouteMetres": 102.4223780776415,
+        "x": -1583.072369705136,
+        "z": -1001.1750119848998,
+        "valid": true,
+        "referenceTime": 141.13333333336658,
+        "liveDelta": 0.008313592706528539
+      },
+      {
+        "elapsed": 6.3083333333248675,
+        "netRouteMetres": 104.83623089762386,
+        "x": -1583.8724628784378,
+        "z": -1003.4526012378609,
+        "valid": true,
+        "referenceTime": 141.13333333336658,
+        "liveDelta": 0.008310570162702646
+      },
+      {
+        "elapsed": 6.4083333333247765,
+        "netRouteMetres": 107.2500958385317,
+        "x": -1584.6689433738716,
+        "z": -1005.7312353027404,
+        "valid": true,
+        "referenceTime": 141.13333333336658,
+        "liveDelta": 0.00830698588980372
+      },
+      {
+        "elapsed": 6.5083333333246856,
+        "netRouteMetres": 109.66346433316085,
+        "x": -1585.4624711141485,
+        "z": -1008.0104748667218,
+        "valid": true,
+        "referenceTime": 141.13333333336658,
+        "liveDelta": 0.008324192572874978
+      },
+      {
+        "elapsed": 6.608333333324595,
+        "netRouteMetres": 112.07630461035569,
+        "x": -1586.253735850327,
+        "z": -1010.2900188217812,
+        "valid": true,
+        "referenceTime": 141.13333333336658,
+        "liveDelta": 0.00830405804936074
+      },
+      {
+        "elapsed": 6.708333333324504,
+        "netRouteMetres": 114.48865151647624,
+        "x": -1587.0434539111259,
+        "z": -1012.5696320581744,
+        "valid": true,
+        "referenceTime": 141.13333333336658,
+        "liveDelta": 0.008288439913464174
+      },
+      {
+        "elapsed": 6.808333333324413,
+        "netRouteMetres": 116.90055823821103,
+        "x": -1587.8323523713,
+        "z": -1014.8490839539309,
+        "valid": true,
+        "referenceTime": 141.13333333336658,
+        "liveDelta": 0.008291078386001516
+      },
+      {
+        "elapsed": 6.908333333324322,
+        "netRouteMetres": 119.31192522468973,
+        "x": -1588.6211034759867,
+        "z": -1017.1280438975579,
+        "valid": true,
+        "referenceTime": 141.13333333336658,
+        "liveDelta": 0.008315366016739212
+      },
+      {
+        "elapsed": 7.008333333324231,
+        "netRouteMetres": 121.72273663912392,
+        "x": -1589.4103956245879,
+        "z": -1019.4062373745185,
+        "valid": true,
+        "referenceTime": 141.13333333336658,
+        "liveDelta": 0.008314415338749548
+      }
+    ]
+  },
+  "assisted": {
+    "sector": 1,
+    "sectorElapsed": 7.008333333324231,
+    "referenceTime": 141.13333333336658,
+    "splits": [],
+    "valid": false,
+    "reason": "autopilot",
+    "liveDelta": null
+  },
+  "otherCar": {
+    "sector": 1,
+    "sectorElapsed": 0,
+    "referenceTime": null,
+    "splits": [],
+    "valid": true,
+    "reason": null,
+    "liveDelta": null
+  },
+  "completedPosition": {
+    "x": -1529.1920038072667,
+    "y": 82.82853745059282,
+    "z": -899.9997850530896
+  },
+  "postSwitchPosition": {
+    "x": -1536.9361710742294,
+    "y": 81.86893311886706,
+    "z": -911.1129890106528
+  },
+  "beforeRetry": {
+    "mode": "finished",
+    "event": {
+      "id": "saltmarsh-practice",
+      "name": "Saltmarsh Practice Lap",
+      "kind": "circuit",
+      "countdown": 0,
+      "elapsed": 141.13333333336658,
+      "progress": 0.9963211233925283,
+      "lap": 1,
+      "laps": 1,
+      "position": 1,
+      "entrants": 1,
+      "offRoute": false,
+      "live": null,
+      "challenge": null,
+      "rivals": null,
+      "racecraft": null,
+      "practice": {
+        "sector": 3,
+        "sectorElapsed": 0,
+        "referenceTime": null,
+        "splits": [
+          {
+            "sector": 1,
+            "time": 52.65781218489009,
+            "delta": null
+          },
+          {
+            "sector": 2,
+            "time": 43.86832830153831,
+            "delta": null
+          },
+          {
+            "sector": 3,
+            "time": 44.607192846938176,
+            "delta": null
+          }
+        ],
+        "valid": true,
+        "reason": null,
+        "liveDelta": null
+      },
+      "gate": {
+        "x": -1783.4718179684758,
+        "z": -1136.1453882352698
+      }
+    }
+  }
+}
