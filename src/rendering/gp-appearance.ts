@@ -8,11 +8,13 @@ import type { RiderDetail } from './rider.ts';
 export function calibrateGpMaterials(materials: BikeMaterials, vehicle: string): boolean {
   if (vehicle !== 'gpr1' && vehicle !== 'gpr2') return false;
   if (materials.paint.userData.gpAppearance === 'r5-refined') return true;
+  // Race paint is a deep, polished clear coat over a satin base (REF_018,
+  // REF_028, REF_056): sharp sky reflections over a still-readable colour.
   for (const material of [materials.paint, materials.secondary, materials.accent]) {
     material.metalness = 0;
-    material.roughness = 0.36;
-    material.clearcoat = 0.62;
-    material.clearcoatRoughness = 0.21;
+    material.roughness = 0.3;
+    material.clearcoat = 1;
+    material.clearcoatRoughness = 0.04;
   }
   materials.paint.color.multiplyScalar(0.84);
   materials.paint.userData.gpAppearance = 'r5-refined';
@@ -26,7 +28,9 @@ export function calibrateGpMaterials(materials: BikeMaterials, vehicle: string):
   // Coloured headers supply a vertex attribute, but the old plain-cylinder
   // silencers did not. Mark their missing-attribute fallback explicitly.
   materials.titanium.userData.gpBareTitanium = true;
-  materials.titanium.roughness = 0.4;
+  // Burnished, heat-darkened titanium rather than a chrome-white tube.
+  materials.titanium.color.setHex(0x8f8a84);
+  materials.titanium.roughness = 0.34;
   // Transmission owns the glass pass; do not alpha-composite its two sides
   // over that result again. The curved sheet retains its real geometric edge.
   materials.screen.color.setHex(0xffffff);

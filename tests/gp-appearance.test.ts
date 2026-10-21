@@ -40,7 +40,8 @@ describe('GP refined surface and mechanical contracts', () => {
       expect(m.screen.opacity).toBe(1);
       expect(m.screen.transparent).toBe(false);
       expect(m.paint.metalness).toBe(0);
-      expect(m.paint.roughness).toBe(0.36);
+      expect(m.paint.roughness).toBe(0.3);
+      expect(m.paint.clearcoatRoughness).toBe(0.04);
     } finally {
       m.dispose();
     }

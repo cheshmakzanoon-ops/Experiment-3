@@ -10,7 +10,8 @@ import { batchBikeRigidMeshes } from './bike-rigid-batch.ts';
 import { addGPIdentity, type GpIdentitySurfaces } from './bike-livery.ts';
 import { gpR2Aero } from './gp-r2-aero.ts';
 import { gpR2LowerFairing } from './gp-r2-fairing.ts';
-import { gpBodywork, gpCompactCowl, gpUpperCowl } from './gp-bodywork.ts';
+import { gpCompactCowl, gpUpperCowl } from './gp-bodywork.ts';
+import { gpR3Shell } from './gp-r3-shell.ts';
 import { gpRadialBrakeCaliper } from './gp-radial-caliper.ts';
 import { GPFrontHydraulics } from './gp-front-hydraulics.ts';
 import { gpBrakeRotor, GP_FRONT_DISC } from './gp-brake-rotor.ts';
@@ -19,7 +20,6 @@ import { gpForkCrowns } from './gp-fork-crown.ts';
 import { gpMainFrame, gpR2SeatPad, gpR2Tank, gpR2TankDetails } from './gp-main-frame.ts';
 import { gpForgedWheel, gpTyreCompoundMarkings } from './gp-forged-wheel.ts';
 import { bindGpTyre, installGpTyreFinish, type GpTyreAppearance } from './gp-tyre-finish.ts';
-import { gpCoolingLouvers } from './gp-cooling-louvers.ts';
 import { gpRadiator } from './gp-radiator.ts';
 import { GPChainDrive } from './gp-chain-drive.ts';
 import { GPRearSuspension, gpRearBody, gpRearSwingarm } from './gp-rear-chassis.ts';
@@ -1599,7 +1599,7 @@ export class BikeModel {
     // Windscreen bubble: transmissive near, cheap tinted beyond; its height
     // follows the sheet (a classic screen is low, a naked bike has none).
     const sh = look.screen;
-    if (sh > 0)
+    if (sh > 0 && !authored)
       add(
         this.sprung,
         arcSheet(
@@ -1715,15 +1715,10 @@ export class BikeModel {
     // short roadster tail with a pillion pad, or a classic flat seat ending in
     // a rounded hump.
     if (authored) {
-      const shell = gpBodywork(m, detail);
-      if (detail !== 'far') addGPIdentity(shell, m, id);
-      this.sprung.add(shell);
-      if (detail !== 'far')
-        addGpRigidFinish(this.sprung, gpCoolingLouvers(detail, m.carbon, m.steel), [
-          m.carbon,
-          m.steel,
-        ]);
-      add(this.sprung, new T.BoxGeometry(0.05, 0.025, 0.012), m.lamp, 0, 0.302, -0.83, false);
+      // GP-R3 hard-surface shell: creased panels, box wings, ground-effect
+      // pods and a projected livery atlas replace the inflated legacy shell.
+      this.sprung.add(gpR3Shell(m, detail, id, transmissive));
+      add(this.sprung, new T.BoxGeometry(0.05, 0.022, 0.012), m.lamp, 0, 0.3, -0.872, false);
     } else if (look.tail === 'race') {
       const tail = add(
         this.sprung,

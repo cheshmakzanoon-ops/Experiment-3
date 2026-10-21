@@ -59,7 +59,11 @@ export class TextureBudget {
     if (source) this.apply(texture, source);
   }
   private apply(texture: T.CanvasTexture, source: HTMLCanvasElement) {
-    const factor = Math.min(1, this.limit / Math.max(source.width, source.height));
+    // A hero atlas spread over a whole vehicle (the GP-R3 livery) may claim a
+    // fixed multiple of the preset limit; every other canvas keeps the limit.
+    const scale = texture.userData.textureBudgetScale,
+      limit = this.limit * (typeof scale === 'number' && scale > 1 ? Math.min(scale, 4) : 1),
+      factor = Math.min(1, limit / Math.max(source.width, source.height));
     const width = Math.max(1, Math.round(source.width * factor));
     const height = Math.max(1, Math.round(source.height * factor));
     const current = texture.image as HTMLCanvasElement;
