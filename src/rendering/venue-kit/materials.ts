@@ -1,4 +1,5 @@
 import * as T from 'three';
+import { installGpWallPrint } from './gp-wall-print.ts';
 import { Random } from '../../core/math.ts';
 import { valueNoise } from '../terrain-profile.ts';
 import { canvasTexture } from '../geometry.ts';
@@ -262,6 +263,11 @@ export function venueKitMaterials(style: VenueThemeStyle) {
   rockMaps.normal.repeat.set(1 / 6, 1 / 6);
   const concrete = new T.MeshStandardMaterial({ color: 0xa7a69e, roughness: 0.9 });
   installVenueFinish(concrete, 'stone');
+  // GP venue walls: the same concrete under printed partner boards.
+  const gpWall = new T.MeshStandardMaterial({ color: 0xa7a69e, roughness: 0.78 });
+  gpWall.name = 'GP wall printed partner boards';
+  installVenueFinish(gpWall, 'stone');
+  installGpWallPrint(gpWall);
   const steel = new T.MeshStandardMaterial({ color: 0xb4babd, metalness: 0.82, roughness: 0.34 });
   installVenueFinish(steel, 'metal');
   const darkSteel = new T.MeshStandardMaterial({
@@ -323,6 +329,7 @@ export function venueKitMaterials(style: VenueThemeStyle) {
     runoff,
     rock,
     concrete,
+    gpWall,
     steel,
     darkSteel,
     tyre,

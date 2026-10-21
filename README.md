@@ -119,6 +119,7 @@ scripts/, tools/ Validation and asset tooling
 | [MotoGP Three.js riding update](docs/MOTOGP_THREEJS_REFERENCE_REVIEW.md) | 100-image trace, forged wheels and tyre finish, bike grounding, corner guidance and GP racecraft. |
 | [MotoGP R6 race shell](docs/MOTOGP_R6_RACE_SHELL.md) | Procedural GP-R1/GP-R2 race shell from the 100-image pack, painted liveries with a finish atlas, Fresnel screen, kerb wear and GP rubber, with before/after images and validation. |
 | [MotoGP R2 improvements](docs/MOTOGP_R2_DELIVERY.md) | All 100 reference reviews, bike/rider and circuit changes, motorcycle interface, braking corrections and visual evidence. |
+| [MotoGP R3 visual upgrade](docs/MOTOGP_R3_VISUAL_UPGRADE.md) | Hard-surface GP-R1 bodywork, projected race livery, printed GP walls and padding, mown verges, before/after game captures. |
 | [Motocross reference upgrade](docs/production/motocross-reference-upgrade.md) | All 100 motocross references, detailed bikes and riders, dirt and stadium scenery, riding/camera updates, race reliability and actual gameplay evidence. |
 | [Open-world festival](docs/production/OPEN_WORLD.md) | Solvane Coast, free roam, events, traffic and known limits. |
 | [100-image festival reference record](docs/production/HORIZON_REFERENCE_IMPLEMENTATION.md) | Individual observations and original implementations for every supplied reference, with code links and limits. |

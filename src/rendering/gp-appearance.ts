@@ -9,11 +9,13 @@ import type { RiderDetail } from './rider.ts';
 export function calibrateGpMaterials(materials: BikeMaterials, vehicle: string): boolean {
   if (vehicle !== 'gpr1' && vehicle !== 'gpr2') return false;
   if (materials.paint.userData.gpAppearance === 'r5-refined') return true;
+  // Race paint is a deep, polished clear coat over a satin base (REF_018,
+  // REF_028, REF_056): sharp sky reflections over a still-readable colour.
   for (const material of [materials.paint, materials.secondary, materials.accent]) {
     material.metalness = 0;
-    material.roughness = 0.36;
-    material.clearcoat = 0.62;
-    material.clearcoatRoughness = 0.21;
+    material.roughness = 0.3;
+    material.clearcoat = 1;
+    material.clearcoatRoughness = 0.04;
   }
   materials.paint.color.multiplyScalar(0.84);
   materials.paint.userData.gpAppearance = 'r5-refined';

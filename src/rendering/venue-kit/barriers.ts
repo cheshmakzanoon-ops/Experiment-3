@@ -16,6 +16,20 @@ import {
 } from './gp-safety-padding.ts';
 
 /** Galvanised double W-beam (armco) rail section, outward u, height v. */
+/** A GP wall carrying printed boards: the same concrete profile, with its
+ * station coordinate mirrored where needed so every board reads left to
+ * right from the circuit side. */
+function gpWallGeometry(track: VenueKitContext['track'], start: number, end: number, side: number) {
+  const geometry = barrierGeometry(track, start, end, side),
+    p = track.at((start + end) / 2, trackPoint()),
+    // Viewer on the road looks outward (side * n); is +s on their right?
+    readsRight = p.tx * -(side * p.nz) + p.tz * (side * p.nx) > 0;
+  if (!readsRight) {
+    const uv = geometry.getAttribute('uv');
+    for (let i = 0; i < uv.count; i++) uv.setX(i, -uv.getX(i));
+  }
+  return geometry;
+}
 const W_BEAM: readonly (readonly [number, number])[] = [
   [-0.02, 0.38],
   [-0.09, 0.44],
@@ -97,7 +111,9 @@ export function buildBarrierChunk(kit: VenueKitContext, from: number, to: number
         // into the original material draw and 60 m culling chunk.
         const backing = kind === 'tyre' && isGpCourse(track) ? chunks(c0, c1, 2) : [[c0, c1]];
         for (const [start, end] of backing)
-          push(m.concrete, barrierGeometry(track, start, end, side));
+          if (kind === 'concrete' && isGpCourse(track))
+            push(m.gpWall, gpWallGeometry(track, start, end, side));
+          else push(m.concrete, barrierGeometry(track, start, end, side));
       }
       if (kind === 'safer') {
         push(m.concrete, sweep(track, c0, c1, side, SAFER_WALL, { step: 5 }));
