@@ -166,6 +166,8 @@ export class DirtBikeVehicle extends BikeVehicle {
   private mxFrontFy = 0;
   private mxRearFy = 0;
   private mxLateralAcceleration = 0;
+  private mxFrontSlipPower = 0;
+  private mxRearSlipPower = 0;
   private readonly probe = surfaceSample();
   constructor(
     id: number,
@@ -264,6 +266,7 @@ export class DirtBikeVehicle extends BikeVehicle {
     this.mxReferenceSpeed = this.dynamics.speed;
     this.mxFrontFx = this.mxRearFx = this.mxFrontFy = this.mxRearFy = 0;
     this.mxLateralAcceleration = 0;
+    this.mxFrontSlipPower = this.mxRearSlipPower = 0;
     this.writeBody(this.lastTrack!, 0);
   }
   private lastTrack: Track | null = null;
@@ -380,6 +383,7 @@ export class DirtBikeVehicle extends BikeVehicle {
     if (!mxGround) {
       this.mxFrontFx = this.mxRearFx = this.mxFrontFy = this.mxRearFy = 0;
       this.mxLateralAcceleration = 0;
+      this.mxFrontSlipPower = this.mxRearSlipPower = 0;
     }
     // A test harness can explicitly set road speed without driving the
     // wheels first. This is distinct from collision and landing impulses.
@@ -529,6 +533,8 @@ export class DirtBikeVehicle extends BikeVehicle {
         this.mxFrontFy = contact.front.fy;
         this.mxRearFy = contact.rear.fy;
         this.mxLateralAcceleration = contact.lateralAcceleration;
+        this.mxFrontSlipPower = contact.front.slipPower;
+        this.mxRearSlipPower = contact.rear.slipPower;
         this.slide = contact.lateralSpeed;
         this.yawKick = 0;
         this.wheelPickup = false; // Contact momentum already exchanged.
@@ -1449,8 +1455,13 @@ export class DirtBikeVehicle extends BikeVehicle {
       // Flight and recovery have no contact work, even if that sample remains.
       const use = grounded ? clamp(front ? d.frontUse : d.rearUse, 0, 1.5) : 0;
       const work = Math.hypot(t.fx, t.fy) * d.speed;
-      t.energy = work * 0.02;
-      t.wear = Math.min(1, t.wear + (work * dt) / (COMPOUNDS[t.compound].lifeJ * 10));
+      // Rolling contact can transmit a large lateral force with almost no
+      // irreversible soil work. Use rotor/patch relative-velocity loss for
+      // motocross; preserve the old thermal calibration for other bikes.
+      const slipWork = front ? this.mxFrontSlipPower : this.mxRearSlipPower;
+      t.energy = this.playerMotocross && grounded ? slipWork * dt : work * 0.02;
+      const wearWork = this.playerMotocross && grounded ? slipWork : work / 10;
+      t.wear = Math.min(1, t.wear + (wearWork * dt) / COMPOUNDS[t.compound].lifeJ);
       const carcass = ideal - 4 + 10 * use - 6 * clamp(c.water, 0, 1);
       t.carcassTemp += (carcass - t.carcassTemp) * (1 - Math.exp(-dt / 30));
       t.surfaceTemp += (t.carcassTemp + 8 * use - t.surfaceTemp) * (1 - Math.exp(-dt / 3));
