@@ -122,6 +122,11 @@ export function stepMotocrossGround(
     ay = 0;
   let front: MxContactForce = { ...EMPTY_FORCE };
   let rear: MxContactForce = { ...EMPTY_FORCE };
+  // Return forces averaged over the same microsteps that advanced momentum:
+  // F̄ = (Σ F_k Δt_k)/Δt. Sampling only the final brush state makes the
+  // chassis' finite impulse disagree with suspension, replay and tyre heat.
+  let ffx = 0, ffy = 0, rfx = 0, rfy = 0;
+  let fPower = 0, rPower = 0, fUse = 0, rUse = 0;
   const steer = clamp(p.steer, -0.75, 0.75),
     cs = Math.cos(steer),
     sn = Math.sin(steer);
@@ -145,6 +150,14 @@ export function stepMotocrossGround(
       p.rearMu,
       speed,
     );
+    ffx += front.fx * h;
+    ffy += front.fy * h;
+    rfx += rear.fx * h;
+    rfy += rear.fy * h;
+    fPower += front.slipPower * h;
+    rPower += rear.slipPower * h;
+    fUse += front.use * h;
+    rUse += rear.use * h;
     const fSide = front.fy * cs + front.fx * sn,
       fForward = front.fx * cs - front.fy * sn,
       netForward = fForward + rear.fx,
@@ -178,6 +191,19 @@ export function stepMotocrossGround(
   return {
     speed, lateralSpeed, yawRate, heading, frontOmega, rearOmega,
     dx, dz, longitudinal: ax, lateralAcceleration: ay + yawRate * speed,
-    front, rear,
+    front: {
+      ...front,
+      fx: ffx / dt,
+      fy: ffy / dt,
+      slipPower: fPower / dt,
+      use: fUse / dt,
+    },
+    rear: {
+      ...rear,
+      fx: rfx / dt,
+      fy: rfy / dt,
+      slipPower: rPower / dt,
+      use: rUse / dt,
+    },
   };
 }
