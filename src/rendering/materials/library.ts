@@ -293,10 +293,17 @@ export function glass(options: GlassOptions = {}) {
     blendSrc: T.OneFactor,
     blendDst: T.OneMinusSrcAlphaFactor,
   });
+  installGlassFresnel(material);
+  return tag(material, 'glass', false);
+}
+/** Premultiplied Fresnel output for an existing transparent material. */
+export function installGlassFresnel(material: T.Material) {
+  material.blending = T.CustomBlending;
+  material.blendSrc = T.OneFactor;
+  material.blendDst = T.OneMinusSrcAlphaFactor;
   chainShaderHook(material, 'library-glass-fresnel-v1', (shader) => {
     injectAfter(shader, 'opaque_fragment', GLASS_GLSL, 'fragment');
   });
-  return tag(material, 'glass', false);
 }
 
 // --- Road surfaces ---------------------------------------------------------
@@ -426,7 +433,12 @@ export function soil(options: SoilOptions = {}) {
   material.userData.soil = local;
   chainShaderHook(material, 'library-soil-v1', (shader) => {
     Object.assign(shader.uniforms, local);
-    injectDeclarations(shader, 'common', 'attribute vec3 apexSoilState;\nvarying vec3 vApexSoil;', 'vertex');
+    injectDeclarations(
+      shader,
+      'common',
+      'attribute vec3 apexSoilState;\nvarying vec3 vApexSoil;',
+      'vertex',
+    );
     injectAfter(shader, 'begin_vertex', SOIL_VERTEX, 'vertex');
     injectDeclarations(
       shader,

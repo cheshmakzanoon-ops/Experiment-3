@@ -89,8 +89,9 @@ export const GP_ROAD_RUBBER = Object.freeze({
   wander: 0.38,
   /** Variation length along the lap, closed at the start line. */
   variationLength: 44,
-  /** Light upright traffic, stronger braking/corner polish. */
-  deposit: [0.34, 0.88] as const,
+  /** Light upright traffic, stronger braking/corner polish. Raised so the
+   * laid paths read as the distinct dark bands of REF 030/031/038. */
+  deposit: [0.52, 1.2] as const,
 });
 
 /** Start-grid slots, as the simulation places cars (world.ts) and the circuit

@@ -34,12 +34,12 @@ beforeAll(() => {
 afterAll(() => vi.unstubAllGlobals());
 
 describe('100-reference GP presentation', () => {
-  it('ships finite authored metre geometry, complete normals/UVs and valid triangles at both LODs', () => {
+  it('ships the finite authored catalogue cowl with complete normals/UVs at both LODs', () => {
     expect(shell.unit).toBe('metre');
     expect(shell.forward).toBe('+Z');
     expect(shell.up).toBe('+Y');
     const counts = [];
-    for (const level of [shell.high, shell.mid]) {
+    for (const level of [shell.upperHigh, shell.upperMid]) {
       let triangles = 0;
       expect(level.length).toBeLessThanOrEqual(8);
       for (const part of level) {

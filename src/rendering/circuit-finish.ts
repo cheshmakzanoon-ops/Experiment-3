@@ -141,8 +141,9 @@ const finishes: Record<CircuitFinish, string> = {
   `,
   kerb: `
     float aa=max(length(fwidth(vFinishWorld.xz*33.0)),.001);
-    float chips=smoothstep(.65,.79,finishFilteredNoise(vFinishWorld.xz*33.0));
-    chips=mix(chips,.045,smoothstep(.3,1.5,aa));
+    // Sparse, soft paint chips; a dense sharp field read as confetti.
+    float chips=smoothstep(.76,.9,finishFilteredNoise(vFinishWorld.xz*33.0))*.6;
+    chips=mix(chips,.02,smoothstep(.3,1.5,aa));
     float jointPhase=vFinishMetres.y/3.0;
     float joints=apexStripeCoverage(jointPhase,fwidth(jointPhase),.012/3.0);
     diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.19,.18,.16),chips*.55);

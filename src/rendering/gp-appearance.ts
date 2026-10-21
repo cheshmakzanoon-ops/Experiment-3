@@ -1,4 +1,5 @@
 import * as T from 'three';
+import { installGlassFresnel } from './materials/library.ts';
 import type { BikeMaterials } from './bike.ts';
 import type { RiderDetail } from './rider.ts';
 
@@ -27,21 +28,23 @@ export function calibrateGpMaterials(materials: BikeMaterials, vehicle: string):
   // silencers did not. Mark their missing-attribute fallback explicitly.
   materials.titanium.userData.gpBareTitanium = true;
   materials.titanium.roughness = 0.4;
-  // Transmission owns the glass pass; do not alpha-composite its two sides
-  // over that result again. The curved sheet retains its real geometric edge.
-  materials.screen.color.setHex(0xffffff);
-  materials.screen.transmission = 1;
-  materials.screen.transparent = false;
-  materials.screen.opacity = 1;
-  materials.screen.depthWrite = false;
-  // This open curved sheet is a thin wall, not a closed refractive volume.
-  // A volume offset displaces the nearby dashboard where the glass crosses
-  // its sightline. Keep surface transmission and Fresnel reflections intact.
+  // Burnished, not polished: bare titanium reads warm grey, not white.
+  materials.titanium.color.setHex(0x8f8b85);
+  // R6 bubble: lightly smoked polycarbonate as premultiplied Fresnel glass.
+  // Nearly clear through the rider's sightline, reflective at grazing angles
+  // (REF 017, 028, 047), without three.js's extra opaque transmission pass,
+  // whose low-resolution target also showed through over dark backdrops.
+  materials.screen.color.setHex(0x7d8a91);
+  materials.screen.transmission = 0;
   materials.screen.thickness = 0;
-  materials.screen.roughness = 0.025;
-  materials.screenLight.color.setHex(0xe9eff1);
+  materials.screen.transparent = true;
+  materials.screen.opacity = 0.1;
+  materials.screen.depthWrite = false;
+  materials.screen.roughness = 0.03;
+  installGlassFresnel(materials.screen);
+  materials.screenLight.color.setHex(0x9aa6ad);
   materials.screenLight.metalness = 0;
-  materials.screenLight.opacity = 0.14;
+  materials.screenLight.opacity = 0.3;
   materials.screenLight.roughness = 0.12;
   return true;
 }

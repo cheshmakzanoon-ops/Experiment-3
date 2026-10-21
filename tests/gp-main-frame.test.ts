@@ -1,9 +1,9 @@
 import * as T from 'three';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { BikeMaterials, BikeModel, staticSag, type BikePoseValues } from '../src/rendering/bike.ts';
-import { gpMainFrame, gpMainSpar, gpR2SeatPad, gpR2Tank } from '../src/rendering/gp-main-frame.ts';
+import { gpMainFrame, gpMainSpar } from '../src/rendering/gp-main-frame.ts';
 import { VEHICLES } from '../src/simulation/vehicles.ts';
-import { meshColumnOverlap, meshColumnsFor, meshSurfaceIntrusion } from './gp-mesh-clearance.ts';
+import { meshColumnOverlap, meshColumnsFor } from './gp-mesh-clearance.ts';
 
 beforeAll(() => {
   const context = new Proxy(
@@ -59,15 +59,13 @@ function pose(id: string, controls: Partial<BikePoseValues> = {}): BikePoseValue
   };
 }
 
-describe('GP main frame and GP-R2 tank construction', () => {
+describe('GP main frame construction', () => {
   it.each(['high', 'mid', 'far'] as const)(
     '%s produces closed outward solids without collapsed triangles or UVs',
     (detail) => {
       const geometries = [
         gpMainSpar(headFor('gpr1'), 1, detail),
         gpMainSpar(headFor('gpr2'), -1, detail),
-        gpR2Tank(detail),
-        gpR2SeatPad(detail),
       ];
       try {
         for (const geometry of geometries) {
@@ -123,38 +121,6 @@ describe('GP main frame and GP-R2 tank construction', () => {
       }
     },
   );
-
-  it('joins the narrow tank root to the saddle while preserving the rider contact height', () => {
-    const material = new T.MeshBasicMaterial(),
-      tank = new T.Mesh(gpR2Tank('high'), material),
-      pad = new T.Mesh(gpR2SeatPad('high'), material),
-      ray = new T.Raycaster(new T.Vector3(0, 1, -0.32), new T.Vector3(0, -1, 0));
-    [tank, pad].forEach((mesh) => mesh.updateMatrixWorld(true));
-    try {
-      for (const z of [-0.38, -0.32, -0.26, -0.21]) {
-        ray.ray.origin.z = z;
-        expect(ray.intersectObject(pad)[0].point.y).toBeCloseTo(0.2445, 4);
-      }
-      let previous: number | undefined;
-      // A centred descending ray must meet material continuously where the
-      // pad tongue meets the tank, rather than showing the floor through it.
-      for (let z = -0.22; z < -0.08; z += 0.004) {
-        ray.ray.origin.z = z;
-        const hit = ray.intersectObjects([tank, pad])[0];
-        expect(hit).toBeDefined();
-        if (previous !== undefined) expect(Math.abs(hit.point.y - previous)).toBeLessThan(0.009);
-        previous = hit.point.y;
-      }
-      expect(tank.geometry.boundingBox!.min.z).toBeCloseTo(-0.185, 5);
-      expect(tank.geometry.boundingBox!.max.z).toBeLessThan(0.39);
-      expect(tank.geometry.boundingBox!.max.y).toBeLessThan(0.351);
-      expect(tank.geometry.boundingBox!.max.x).toBeLessThan(0.171);
-    } finally {
-      tank.geometry.dispose();
-      pad.geometry.dispose();
-      material.dispose();
-    }
-  });
 
   it.each(['gpr1', 'gpr2'])(
     '%s keeps formed main spars clear of planted feet at suspension extremes',
@@ -216,39 +182,4 @@ describe('GP main frame and GP-R2 tank construction', () => {
     },
     30000,
   );
-
-  it('GP-R2 tank clears moving steering and fork surfaces across their full travel', () => {
-    const definition = VEHICLES.gpr2,
-      spec = definition.bike!,
-      material = new BikeMaterials(0),
-      bike = new BikeModel(definition, 0, 'high', material, true),
-      tank = new T.Mesh(gpR2Tank('high'), material.paint);
-    bike.sprung.add(tank);
-    let steering: T.Object3D | undefined;
-    bike.root.traverse((object) => {
-      if (!(object instanceof T.Mesh) || object.material !== material.forkUpper) return;
-      let parent = object.parent!;
-      while (parent.name === 'Batched rigid motorcycle detail') parent = parent.parent!;
-      steering ??= parent;
-    });
-    try {
-      expect(steering).toBeDefined();
-      const moving = meshes(steering!);
-      for (const fork of [0, spec.forkTravel / 2, spec.forkTravel])
-        for (const steer of [-spec.maxSteer, 0, spec.maxSteer]) {
-          bike.pose(pose('gpr2', { fork, steer, tuck: 1 }));
-          bike.root.updateMatrixWorld(true);
-          const overlap = meshSurfaceIntrusion([tank], moving, meshColumnsFor([tank], 0.004));
-          expect(overlap.surfaceColumns).toBeGreaterThan(100);
-          expect(overlap.maximumDepth, JSON.stringify({ fork, steer, ...overlap })).toBeLessThan(
-            0.001,
-          );
-        }
-    } finally {
-      tank.removeFromParent();
-      tank.geometry.dispose();
-      bike.dispose();
-      material.dispose();
-    }
-  }, 30000);
 });

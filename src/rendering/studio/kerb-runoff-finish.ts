@@ -47,6 +47,8 @@ export const KERB = Object.freeze({
   // Fresh paint at 0.5 mirrored the blue sky at grazing angles (pink kerbs).
   roughness: Object.freeze({ fresh: 0.82, worn: 0.92 }),
   width: 1.1,
+  /** Fine transverse ribbing of the cast kerb top, metres. */
+  rib: 0.075,
 });
 export const RUNOFF = Object.freeze({
   from: 1.1,
@@ -140,7 +142,8 @@ export function installKerbFinish(
 	float grit = finishFilteredNoise( vFinishWorld.xz * 41.0 );
 	paint *= .9 + .2 * grit;
 	float chip = smoothstep( .74, .84, finishFilteredNoise( vFinishWorld.xz * 9.0 + vec2( 3.3, 1.7 ) ) * .7 + grit * .3 );
-	paint = mix( paint, vec3( .32, .31, .29 ) * ( .85 + .3 * grit ), chip * ( .25 + .6 * kerbUse ) );
+	// Chips only where tyres strike: the track-side half of a used kerb.
+	paint = mix( paint, vec3( .32, .31, .29 ) * ( .85 + .3 * grit ), chip * trackSide * ( .1 + .6 * kerbUse ) );
 	// Brown dust in the ridge troughs (the same 0.65 m phase as the relief),
 	// converged to its mean before the ridges alias.
 	float dustBand = smoothstep( ${f(KERB.ridge.from)}, ${f(KERB.ridge.from + 0.06)}, vKerbAcross ) * ( 1.0 - smoothstep( ${f(KERB.ridge.to - 0.06)}, ${f(KERB.ridge.to)}, vKerbAcross ) );
@@ -148,6 +151,15 @@ export function installKerbFinish(
 	float dustTrough = mix( .3, smoothstep( .2, 1.0, - sin( dustPhase ) ), 1.0 - smoothstep( .8, 2.5, fwidth( dustPhase ) ) );
 	paint = mix( paint, ${v3(KERB.dust)} * ( .8 + .4 * grime ), dustBand * dustTrough * ( .22 + .25 * grime ) );
 	paint = mix( paint, ${v3(KERB.rubber)}, kerbWear * .78 );
+	// Long rubber smears where tyres slide along the inner half, and the fine
+	// transverse ribbing of the cast top, converged before it aliases
+	// (REF 025, 031, 045).
+	float smear = smoothstep( .58, .86, finishFilteredNoise( vec2( vFinishMetres.y * .3, vKerbAcross * 7.0 ) ) ) * ( 1.0 - smoothstep( .25, .8, across ) ) * ( .35 + .65 * kerbUse );
+	paint = mix( paint, ${v3(KERB.rubber)} * ( .9 + .3 * grit ), smear * .6 );
+	kerbWear = max( kerbWear, smear * .7 );
+	float ribPhase = vFinishMetres.y * ${f((2 * Math.PI) / KERB.rib)};
+	float ribAA = 1.0 - smoothstep( .6, 2.0, fwidth( ribPhase ) );
+	paint *= 1.0 - .08 * dustBand * ribAA * smoothstep( .3, 1.0, - cos( ribPhase ) );
 	kerbPaint = paint;
 	diffuseColor.rgb = paint;
 }`,
@@ -170,6 +182,8 @@ export function installKerbFinish(
 	float ridgePhase = vFinishMetres.y * ${f((2 * Math.PI) / KERB.ridge.period)};
 	float ridgeAA = 1.0 - smoothstep( .8, 2.5, fwidth( ridgePhase ) );
 	normal = apexReliefNormal( normal, ${f(KERB.ridge.amplitude)} * sin( ridgePhase ) * band * ridgeAA );
+	float ribPhase = vFinishMetres.y * ${f((2 * Math.PI) / KERB.rib)};
+	normal = apexReliefNormal( normal, .0005 * sin( ribPhase ) * band * ( 1.0 - smoothstep( .6, 2.0, fwidth( ribPhase ) ) ) );
 }`,
       'fragment',
     );

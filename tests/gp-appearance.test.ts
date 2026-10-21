@@ -36,9 +36,11 @@ describe('GP refined surface and mechanical contracts', () => {
       const colour = m.paint.color.clone();
       for (let i = 0; i < 12; i++) calibrateGpMaterials(m, 'gpr1');
       expect(m.paint.color.equals(colour)).toBe(true);
-      expect(m.screen.transmission).toBe(1);
-      expect(m.screen.opacity).toBe(1);
-      expect(m.screen.transparent).toBe(false);
+      // Smoked Fresnel glass: no transmission render pass.
+      expect(m.screen.transmission).toBe(0);
+      expect(m.screen.opacity).toBe(0.1);
+      expect(m.screen.transparent).toBe(true);
+      expect(m.screen.depthWrite).toBe(false);
       expect(m.paint.metalness).toBe(0);
       expect(m.paint.roughness).toBe(0.36);
     } finally {

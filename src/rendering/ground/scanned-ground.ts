@@ -379,7 +379,7 @@ export function installScannedKerb(material: T.MeshStandardMaterial) {
 	// Thin rolled paint follows the concrete's tone and relief; its high
 	// points are scrubbed to the substrate first, more where tyres strike.
 	float apexHigh = ( apexK.height - 1.0 ) * 2.4 + apexK.n.x * 0.6;
-	float apexBare = smoothstep( 0.55, 1.05, apexHigh + 0.9 * kerbWear ) * ( 0.35 + 0.65 * kerbWear );
+	float apexBare = smoothstep( 0.7, 1.15, apexHigh + 0.9 * kerbWear ) * kerbWear;
 	vec3 apexSubstrate = vec3( 0.29, 0.285, 0.27 ) * apexK.ratio;
 	diffuseColor.rgb *= mix( vec3( 1.0 ), apexK.ratio, ${f(S.kerbThrough)} );
 	diffuseColor.rgb = mix( diffuseColor.rgb, apexSubstrate, apexBare * 0.85 );
