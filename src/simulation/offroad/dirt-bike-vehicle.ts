@@ -1226,6 +1226,7 @@ export class DirtBikeVehicle extends BikeVehicle {
         const along = this.flightSpeed * Math.cos(slopeAt) + this.vy * Math.sin(slopeAt);
         d.speed = Math.max(0, along);
         const yawError = this.airYaw;
+        const touchdownYawRate = this.airYawRate;
         if (Math.abs(yawError) > 1e-9) {
           // Re-express incoming ground-plane momentum in the now-yawed tyre
           // axes. The previous world velocity is preserved: the transverse
@@ -1242,7 +1243,10 @@ export class DirtBikeVehicle extends BikeVehicle {
           d.heading += yawError;
         }
         this.airYaw = this.airYawRate = 0;
-        this.mxYawRate = 0;
+        // The contact solver must absorb the *rotational* landing momentum
+        // too. A whipped landing or a mid-corner hop cannot erase yaw rate
+        // just because the air attitude channel is folded into heading.
+        this.mxYawRate = this.playerMotocross ? touchdownYawRate : 0;
         d.pitch = 0;
         this.wheelPickup =
           !this.playerMotocross &&
