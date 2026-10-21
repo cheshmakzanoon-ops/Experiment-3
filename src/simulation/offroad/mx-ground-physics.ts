@@ -47,6 +47,8 @@ export interface MxContactForce {
   slip: number;
   /** Combined force-circle utilization, 0..1. */
   use: number;
+  /** Irreversible slip work transferred to deforming soil and tyre (W). */
+  slipPower: number;
 }
 export interface MxGroundResult extends MxGroundState {
   /** Chassis centre displacement in world metres over dt. */
@@ -59,7 +61,7 @@ export interface MxGroundResult extends MxGroundState {
   rear: MxContactForce;
 }
 
-const EMPTY_FORCE: MxContactForce = { fx: 0, fy: 0, slip: 0, use: 0 };
+const EMPTY_FORCE: MxContactForce = { fx: 0, fy: 0, slip: 0, use: 0, slipPower: 0 };
 
 /** Saturating vector-brush soil shear; the same combined budget pays for
  * braking, driven-wheel spin and cornering. tanh(|s|)/|s| gives a smooth
@@ -85,6 +87,7 @@ export function motocrossTyreShear(
     fy,
     slip: longitudinalSlip / Math.max(3, Math.abs(groundSpeed)),
     use: Math.hypot(fx, fy) / peak,
+    slipPower: Math.max(0, fx * longitudinalSlip + fy * Math.tan(slipAngle) * Math.max(1, Math.abs(groundSpeed))),
   };
 }
 
