@@ -50,24 +50,67 @@ export function riderPanelTexture(colours: RiderColours, torso: boolean, outward
         c.stroke();
       }
       c.setLineDash([]);
+      // Graphic sweep: a broad secondary band edged in accent, rising across
+      // the panel the way factory leathers carry their colour (REF 018, 045).
+      const sweep = (points: readonly (readonly [number, number])[], fill: string) => {
+        c.beginPath();
+        points.forEach(([px, py], i) => (i ? c.lineTo(x + px, py) : c.moveTo(x + px, py)));
+        c.closePath();
+        c.fillStyle = fill;
+        c.fill();
+      };
+      sweep(
+        [
+          [42, 372],
+          [470, 286],
+          [470, 316],
+          [42, 404],
+        ],
+        css(colours.secondary),
+      );
+      sweep(
+        [
+          [42, 364],
+          [470, 278],
+          [470, 286],
+          [42, 372],
+        ],
+        css(colours.accent),
+      );
       c.strokeStyle = '#e4e6e0';
       if (torso) {
-        word(c, 'MOTOBOUND', x + 256, 151, 30, { weight: 0.19, slant: 0.13 });
-        word(c, 'WORKS RACING', x + 256, 195, 13, { weight: 0.14, tracking: 0.2 });
-        c.fillStyle = '#d9ddd6';
-        c.fillRect(x + 81, 224, 344, 67);
-        c.strokeStyle = '#1b262a';
-        word(c, 'MERIDIAN OIL', x + 253, 258, 28, {
+        word(c, 'MOTOBOUND', x + 256, 142, 26, { weight: 0.2, slant: 0.14 });
+        word(c, 'WORKS RACING', x + 256, 178, 11, { weight: 0.14, tracking: 0.24 });
+        // Title partner on a dark, rounded panel rather than a paper box.
+        c.fillStyle = '#1c2125';
+        c.beginPath();
+        c.roundRect(x + 128, 210, 256, 48, 10);
+        c.fill();
+        c.strokeStyle = '#e8eae4';
+        word(c, 'MERIDIAN OIL', x + 256, 236, 20, {
           weight: 0.19,
           width: 0.88,
           slant: 0.1,
         });
+        // Dense small partner marks at real patch scale.
         c.strokeStyle = '#e4e6e0';
-        word(c, 'KESTREL', x + 151, 320, 14, { weight: 0.16, tracking: 0.1 });
-        word(c, 'VOLTEX', x + 353, 320, 15, { weight: 0.18, slant: 0.15 });
+        for (const [text, px, py, h] of [
+          ['KESTREL', 120, 300, 10],
+          ['VOLTEX', 392, 300, 11],
+          ['NORDFIN', 256, 288, 9],
+          ['AXON', 96, 222, 9],
+          ['TITAN-X', 418, 222, 9],
+          ['GRIPLINE', 256, 432, 10],
+        ] as const)
+          word(c, text, x + px, py, h, { weight: 0.16, tracking: 0.1 });
       } else {
-        word(c, 'WORKS', x + 250, 182, 30, { weight: 0.21, slant: 0.18 });
-        word(c, 'RACING', x + 250, 220, 15, { weight: 0.15, tracking: 0.3 });
+        word(c, 'WORKS', x + 250, 176, 22, { weight: 0.21, slant: 0.18 });
+        word(c, 'RACING', x + 250, 204, 11, { weight: 0.15, tracking: 0.3 });
+        for (const [text, py] of [
+          ['VOLTEX', 248],
+          ['KESTREL', 270],
+        ] as const)
+          word(c, text, x + 250, py, 9, { weight: 0.16, tracking: 0.12 });
       }
       c.fillStyle = css(colours.secondary);
     }

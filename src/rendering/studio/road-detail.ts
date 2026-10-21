@@ -83,15 +83,16 @@ export const ROAD_DETAIL = Object.freeze({
  * show open tarmac between corners. These are appearance dimensions, not a
  * grip model. The simulation's rubber channel remains the sole amplitude. */
 export const GP_ROAD_RUBBER = Object.freeze({
-  /** Slowly varying path spacing and width, metres. */
-  spacing: [0.26, 0.86] as const,
-  width: [0.24, 0.34] as const,
+  /** Slowly varying path spacing and width, metres: wide enough that the
+   * passes read as a band of separate paths rather than one inked line. */
+  spacing: [0.42, 1.05] as const,
+  width: [0.3, 0.44] as const,
   wander: 0.38,
   /** Variation length along the lap, closed at the start line. */
   variationLength: 44,
-  /** Light upright traffic, stronger braking/corner polish. Raised so the
-   * laid paths read as the distinct dark bands of REF 030/031/038. */
-  deposit: [0.52, 1.2] as const,
+  /** Light upright traffic, stronger braking/corner polish: the braking
+   * end reads as the distinct dark bands of REF 030/031/038. */
+  deposit: [0.34, 1.15] as const,
 });
 
 /** Start-grid slots, as the simulation places cars (world.ts) and the circuit

@@ -155,16 +155,19 @@ function gridGeometry(
   ridge = false,
 ): T.BufferGeometry | null {
   const position: number[] = [],
+    uv: number[] = [],
     index: number[] = [];
   const width = grid.find((row) => row)?.length ?? 0;
   if (!width) return null;
   const ids: number[][] = [];
-  for (const row of grid) {
+  for (const [r, row] of grid.entries()) {
     const line: number[] = [];
     if (row)
-      for (const p of row) {
+      for (const [k, p] of row.entries()) {
         line.push(position.length / 3);
         position.push(p[0] * mirror, p[1], p[2]);
+        // Net parameters; painted panels replace these with livery UVs.
+        uv.push(k / Math.max(1, width - 1), r / Math.max(1, grid.length - 1));
       }
     ids.push(line);
   }
@@ -200,6 +203,7 @@ function gridGeometry(
   if (!index.length) return null;
   const g = new T.BufferGeometry();
   g.setAttribute('position', new T.Float32BufferAttribute(position, 3));
+  g.setAttribute('uv', new T.Float32BufferAttribute(uv, 2));
   g.setIndex(index);
   g.computeVertexNormals();
   // A closed centre seam must shade as one surface (unless it is a ridge).
@@ -229,11 +233,13 @@ function capGeometry(ring: P3[], mirror: -1 | 1, facing: 1 | -1): T.BufferGeomet
   }
   pos.push(0, cy, cz);
   for (const p of ring) pos.push(p[0] * mirror, p[1], p[2]);
+  const uv = new Float32Array((pos.length / 3) * 2).fill(0.5);
   for (let k = 1; k < ring.length; k++)
     if (facing * mirror > 0) idx.push(0, k, k + 1);
     else idx.push(0, k + 1, k);
   const c = new T.BufferGeometry();
   c.setAttribute('position', new T.Float32BufferAttribute(pos, 3));
+  c.setAttribute('uv', new T.BufferAttribute(uv, 2));
   c.setIndex(idx);
   c.computeVertexNormals();
   return c;

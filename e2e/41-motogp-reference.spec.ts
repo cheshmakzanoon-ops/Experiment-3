@@ -141,6 +141,9 @@ test('GP reference R1.1: authored LODs, production onboard and same-instance wet
   // The ray census deliberately admits glass, so retain a real optical A/B
   // for visual review as well. Only thickness changes: every sample keeps
   // the production display, windscreen shape, camera, pose and illumination.
+  // The R6 screen is premultiplied Fresnel glass with no transmission pass,
+  // so the former 2 mm volume setting must be optically inert: the dashboard
+  // can no longer be displaced or doubled by refraction through the bubble.
   for (const id of ['gpr1', 'gpr2']) {
     const optics = await page.evaluate(
       (id) =>
@@ -157,7 +160,7 @@ test('GP reference R1.1: authored LODs, production onboard and same-instance wet
       id,
     );
     expect(optics).toHaveLength(4);
-    const names = ['before-volume', 'after-thin-wall'];
+    const names = ['legacy-volume-setting', 'production-fresnel-glass'];
     for (let i = 0; i < names.length; i++)
       await info.attach(`${id}-optics-${names[i]}.png`, {
         body: Buffer.from(optics[i].image.split(',')[1], 'base64'),
@@ -179,7 +182,7 @@ test('GP reference R1.1: authored LODs, production onboard and same-instance wet
       expect(sample.calls).toBe(optics[0].calls);
       expect(sample.triangles).toBe(optics[0].triangles);
     }
-    expect(optics[0].hash).not.toBe(optics[1].hash);
+    expect(optics[0].hash).toBe(optics[1].hash);
     expect(optics[1].hash).toBe(optics[2].hash);
     expect(optics[0].hash).toBe(optics[3].hash);
   }

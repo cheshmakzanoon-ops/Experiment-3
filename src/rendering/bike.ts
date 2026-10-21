@@ -1677,7 +1677,7 @@ export class BikeModel {
         m.lamp,
         0,
         definition.id === 'gpr2' ? 0.318 : 0.33,
-        -0.985,
+        -0.955,
         false,
       );
       lamp.name = 'GP tail rain light';

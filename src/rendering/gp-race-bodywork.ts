@@ -346,26 +346,26 @@ function tailNet(variant: GpShellVariant): P3[][] {
   const top = (y: number) => 0.262 + (y - 0.262) * hump;
   return net([
     {
-      z: -0.985,
+      z: -0.955,
       c: [
         [0, top(0.384)],
-        [0.04, top(0.383)],
-        [0.06, top(0.374)],
-        [0.062, 0.33],
-        [0.058, 0.286],
-        [0.036, 0.272],
+        [0.034, top(0.383)],
+        [0.05, top(0.374)],
+        [0.052, 0.33],
+        [0.049, 0.286],
+        [0.03, 0.272],
         [0, 0.27],
       ],
     },
     {
-      z: -0.93,
+      z: -0.905,
       c: [
         [0, top(0.405)],
-        [0.05, top(0.404)],
-        [0.073, top(0.394)],
-        [0.076, 0.335],
-        [0.072, 0.264],
-        [0.045, 0.25],
+        [0.042, top(0.404)],
+        [0.061, top(0.394)],
+        [0.064, 0.335],
+        [0.06, 0.264],
+        [0.038, 0.25],
         [0, 0.247],
       ],
     },
@@ -373,11 +373,11 @@ function tailNet(variant: GpShellVariant): P3[][] {
       z: -0.78,
       c: [
         [0, top(0.416)],
-        [0.058, top(0.415)],
-        [0.086, top(0.402)],
-        [0.09, 0.33],
-        [0.087, 0.244],
-        [0.055, 0.225],
+        [0.049, top(0.415)],
+        [0.072, top(0.402)],
+        [0.076, 0.33],
+        [0.073, 0.244],
+        [0.046, 0.225],
         [0, 0.221],
       ],
     },
@@ -385,11 +385,11 @@ function tailNet(variant: GpShellVariant): P3[][] {
       z: -0.63,
       c: [
         [0, top(0.39)],
-        [0.066, top(0.388)],
-        [0.1, top(0.374)],
-        [0.104, 0.305],
-        [0.1, 0.221],
-        [0.066, 0.196],
+        [0.055, top(0.388)],
+        [0.084, top(0.374)],
+        [0.087, 0.305],
+        [0.084, 0.221],
+        [0.055, 0.196],
         [0, 0.192],
       ],
     },
@@ -397,11 +397,11 @@ function tailNet(variant: GpShellVariant): P3[][] {
       z: -0.53,
       c: [
         [0, top(0.31)],
-        [0.075, top(0.308)],
-        [0.11, top(0.296)],
-        [0.116, 0.25],
-        [0.113, 0.188],
-        [0.075, 0.164],
+        [0.063, top(0.308)],
+        [0.092, top(0.296)],
+        [0.097, 0.25],
+        [0.095, 0.188],
+        [0.063, 0.164],
         [0, 0.159],
       ],
     },
@@ -409,11 +409,11 @@ function tailNet(variant: GpShellVariant): P3[][] {
       z: -0.34,
       c: [
         [0, 0.262],
-        [0.085, 0.26],
-        [0.124, 0.252],
-        [0.132, 0.212],
-        [0.13, 0.155],
-        [0.09, 0.128],
+        [0.079, 0.26],
+        [0.115, 0.252],
+        [0.123, 0.212],
+        [0.121, 0.155],
+        [0.084, 0.128],
         [0, 0.122],
       ],
     },
@@ -728,11 +728,13 @@ export function gpSwingarmSpoon(arm: number, detail: RiderDetail): T.BufferGeome
     const z = -arm + Math.cos(angle) * r,
       y = -Math.sin(angle) * r;
     const lip = 0.035;
+    // Lip first, keel last: with stations ascending along +Z this winds the
+    // visible underside outward (down), the lip outward (sideways).
     return [
-      [0, y, z],
-      [w * 0.6, y - 0.004, z],
-      [w, y + 0.006, z],
       [w + 0.01, y + lip, z + 0.01],
+      [w, y + 0.006, z],
+      [w * 0.6, y - 0.004, z],
+      [0, y, z],
     ];
   };
   return shellPanelGeometry({
@@ -742,10 +744,10 @@ export function gpSwingarmSpoon(arm: number, detail: RiderDetail): T.BufferGeome
       section(0.78, 0.372, 0.095),
       section(0.58, 0.375, 0.11),
       section(0.4, 0.378, 0.1),
-    ].reverse(),
+    ],
     rows,
     cols,
-    creases: [2],
+    creases: [1],
   });
 }
 

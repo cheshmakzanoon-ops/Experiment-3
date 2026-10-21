@@ -135,6 +135,10 @@ describe('GP race shell R6 on the production models', () => {
               for (let i = 0; i < g.index.count; i++) expect(g.index.getX(i)).toBeLessThan(p.count);
             count += (g.index?.count ?? p.count) / 3;
           });
+          // Every mesh carries UVs: carbon and seat finishes sample maps.
+          shell.root.traverse((o) => {
+            if (o instanceof T.Mesh) expect(o.geometry.getAttribute('uv')).toBeTruthy();
+          });
           for (const part of [shell.body, shell.tank, shell.tail]) {
             expect(part.material).toBe(paint);
             expect(part.geometry.getAttribute('uv')).toBeTruthy();
@@ -200,7 +204,7 @@ describe('GP race shell R6 on the production models', () => {
       expect(body.min.y).toBeLessThan(-0.53);
       expect(body.max.z).toBeGreaterThan(0.95);
       expect(screen.max.y).toBeGreaterThan(0.49);
-      expect(tail.min.z).toBeLessThan(-0.97);
+      expect(tail.min.z).toBeLessThan(-0.94);
       expect(tail.max.y).toBeGreaterThan(0.4);
       // Narrow tail, wider fairing.
       expect(tail.max.x).toBeLessThan(0.15);
