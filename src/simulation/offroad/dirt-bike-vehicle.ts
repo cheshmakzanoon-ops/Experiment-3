@@ -160,6 +160,12 @@ export class DirtBikeVehicle extends BikeVehicle {
   /** Independent MX ground yaw and previous physical speed. */
   private mxYawRate = 0;
   private mxReferenceSpeed = 0;
+  /** Last solved wheel-frame soil forces, authoritative for tyre/skid heat. */
+  private mxFrontFx = 0;
+  private mxRearFx = 0;
+  private mxFrontFy = 0;
+  private mxRearFy = 0;
+  private mxLateralAcceleration = 0;
   private readonly probe = surfaceSample();
   constructor(
     id: number,
@@ -256,6 +262,8 @@ export class DirtBikeVehicle extends BikeVehicle {
     this.frontSpin = this.dynamics.speed / this.bikeSpec.frontWheelRadius;
     this.mxYawRate = 0;
     this.mxReferenceSpeed = this.dynamics.speed;
+    this.mxFrontFx = this.mxRearFx = this.mxFrontFy = this.mxRearFy = 0;
+    this.mxLateralAcceleration = 0;
     this.writeBody(this.lastTrack!, 0);
   }
   private lastTrack: Track | null = null;
@@ -369,6 +377,10 @@ export class DirtBikeVehicle extends BikeVehicle {
     d.p.independentRearBrake = this.playerMotocross;
     if (!this.playerMotocross || !this.riding) this.wheelPickup = false;
     const mxGround = this.playerMotocross && this.riding && !this.airborne;
+    if (!mxGround) {
+      this.mxFrontFx = this.mxRearFx = this.mxFrontFy = this.mxRearFy = 0;
+      this.mxLateralAcceleration = 0;
+    }
     // A test harness can explicitly set road speed without driving the
     // wheels first. This is distinct from collision and landing impulses.
     if (
@@ -512,6 +524,11 @@ export class DirtBikeVehicle extends BikeVehicle {
         this.rearSpin = contact.rearOmega;
         this.mxYawRate = contact.yawRate;
         this.mxReferenceSpeed = contact.speed;
+        this.mxFrontFx = contact.front.fx;
+        this.mxRearFx = contact.rear.fx;
+        this.mxFrontFy = contact.front.fy;
+        this.mxRearFy = contact.rear.fy;
+        this.mxLateralAcceleration = contact.lateralAcceleration;
         this.slide = contact.lateralSpeed;
         this.yawKick = 0;
         this.wheelPickup = false; // Contact momentum already exchanged.
@@ -1397,11 +1414,21 @@ export class DirtBikeVehicle extends BikeVehicle {
       t.load = riding ? (front ? this.forceFront : this.forceRear) : 0;
       const grounded = riding && !this.airborne;
       t.fx = grounded
-        ? front
-          ? -d.frontBrakeForce + this.pickupFrontForce
-          : d.driveForce - d.rearBrakeForce + this.pickupRearForce
+        ? this.playerMotocross
+          ? front
+            ? this.mxFrontFx
+            : this.mxRearFx
+          : front
+            ? -d.frontBrakeForce + this.pickupFrontForce
+            : d.driveForce - d.rearBrakeForce + this.pickupRearForce
         : 0;
-      t.fy = grounded ? (m * lateral * (front ? spec.cgToRear : spec.cgToFront)) / L : 0;
+      t.fy = grounded
+        ? this.playerMotocross
+          ? front
+            ? this.mxFrontFy
+            : this.mxRearFy
+          : (m * lateral * (front ? spec.cgToRear : spec.cgToFront)) / L
+        : 0;
       const inheritedSlip =
         grounded && (this.wheelPickup || this.playerMotocross)
           ? Math.abs(t.omega * t.radius - d.speed) / Math.max(3, d.speed)
@@ -1499,7 +1526,11 @@ export class DirtBikeVehicle extends BikeVehicle {
     this.steer = d.steer;
     this.lateral = track.nearest(d.x, d.z, this.trackPosition, this.groundY);
     this.s = this.trackPosition.s;
-    const lateralAccel = this.riding && !this.airborne ? d.speed * d.speed * d.curvature : 0;
+    const lateralAccel = this.riding && !this.airborne
+      ? this.playerMotocross
+        ? this.mxLateralAcceleration
+        : d.speed * d.speed * d.curvature
+      : 0;
     this.gLong = d.longitudinal / G;
     this.gLat = lateralAccel / G;
     this.gVert = (this.forceFront + this.forceRear) / (d.mass * G);
