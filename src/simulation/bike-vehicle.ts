@@ -135,6 +135,16 @@ export class BikeVehicle extends Vehicle {
       parameters.frontContactSteering = true;
     }
     this.dynamics = new Bike(this.riderAids, parameters);
+    if (definition.id === 'gpr1' || definition.id === 'gpr2')
+      this.dynamics.enableMotoGPPhysics({
+        frontArm: parameters.cgToFront,
+        rearArm: parameters.cgToRear,
+        yawInertia: Math.max(1, definition.spec.inertia[1]),
+        frontRadius: this.bikeSpec.frontWheelRadius,
+        rearRadius: this.bikeSpec.rearWheelRadius,
+        frontWheelInertia: 0.6,
+        rearWheelInertia: definition.spec.wheelInertia,
+      });
     this.gearing = this.setup.gearing;
     this.engineBrake =
       ENGINE_BRAKE_MAPS[Math.min(3, Math.max(0, Math.round(this.setup.engineBrakeMap)))];
@@ -178,6 +188,7 @@ export class BikeVehicle extends Vehicle {
     d.z = p.z + p.nz * offset;
     d.heading = Math.atan2(p.tx, p.tz);
     d.speed = d.lean = d.leanRate = d.steer = d.pitch = 0;
+    d.motoGP?.reset();
     this.slide = this.yawKick = 0;
     this.groundY = p.y;
     this.writeBody(track, 0);
@@ -192,6 +203,7 @@ export class BikeVehicle extends Vehicle {
     d.z = z;
     d.heading = heading;
     d.speed = d.lean = d.leanRate = d.steer = d.pitch = 0;
+    d.motoGP?.reset();
     this.slide = this.yawKick = 0;
     this.stuckClock = 0;
     this.groundY = groundY;
@@ -607,7 +619,8 @@ export class BikeVehicle extends Vehicle {
       : 0.02;
     this.fork += (forkTarget - this.fork) * (1 - Math.exp(-dt / (0.04 * this.forkFirmness)));
     this.shock += (shockTarget - this.shock) * (1 - Math.exp(-dt / (0.04 * this.shockFirmness)));
-    const m = d.mass,
+    const gp = d.motoGP,
+      m = d.mass,
       lateral = d.speed * d.speed * d.curvature,
       L = this.spec.wheelbase;
     for (let i = 0; i < 4; i++) {
@@ -616,12 +629,24 @@ export class BikeVehicle extends Vehicle {
         c = this.contacts[i],
         ideal = COMPOUNDS[t.compound].ideal;
       const rolling = riding || d.state === 'remount';
-      t.omega = rolling ? d.speed / t.radius : t.omega * Math.exp(-1.5 * dt);
+      t.omega = rolling
+        ? gp
+          ? front
+            ? gp.frontOmega
+            : gp.rearOmega
+          : d.speed / t.radius
+        : t.omega * Math.exp(-1.5 * dt);
       advanceWheelRotation(t, t.omega * dt);
       t.load = riding ? (front ? d.frontLoad : d.rearLoad) : 0;
       t.fx = riding ? (front ? -d.frontBrakeForce : d.driveForce - d.rearBrakeForce) : 0;
-      t.fy = riding ? (m * lateral * (front ? spec.cgToRear : spec.cgToFront)) / L : 0;
-      t.slip = front ? 0 : Math.min(0.3, d.rearSlip);
+      t.fy = riding
+        ? gp
+          ? front
+            ? gp.frontFy
+            : gp.rearFy
+          : (m * lateral * (front ? spec.cgToRear : spec.cgToFront)) / L
+        : 0;
+      t.slip = gp ? (front ? gp.frontSlip : gp.rearSlip) : front ? 0 : Math.min(0.3, d.rearSlip);
       t.angle = front ? d.steer : 0;
       t.compression = front ? this.fork : this.shock;
       t.length = (front ? spec.forkTravel : spec.shockTravel) - t.compression + 0.2;
@@ -631,7 +656,11 @@ export class BikeVehicle extends Vehicle {
       // a large value. It is not an unbounded heat source, and a separated
       // rider must not keep heating tyres from the last pre-crash sample.
       const use = riding ? clamp(front ? d.frontUse : d.rearUse, 0, 1.5) : 0;
-      const work = Math.hypot(t.fx, t.fy) * d.speed;
+      const work = gp && riding
+        ? front
+          ? gp.frontSlidingPower
+          : gp.rearSlidingPower
+        : Math.hypot(t.fx, t.fy) * d.speed;
       t.energy = work * 0.02;
       t.wear = Math.min(1, t.wear + (work * dt) / (COMPOUNDS[t.compound].lifeJ * 10));
       const carcass = ideal - 4 + 10 * use - 6 * clamp(c.water, 0, 1);
@@ -712,11 +741,12 @@ export class BikeVehicle extends Vehicle {
     b.orientation.rotate(this.offset, this.scratch);
     b.position.copy(this.pivot).add(this.scratch);
     this.groundY = lerp(rear.y, front.y, spec.cgToRear / L);
-    const v = Math.hypot(d.speed, this.slide);
+    const sideSpeed = this.slide + (d.motoGP?.lateralSpeed ?? 0);
+    const v = Math.hypot(d.speed, sideSpeed);
     b.velocity.set(
-      sh * d.speed + ch * this.slide,
+      sh * d.speed + ch * sideSpeed,
       dt > 0 && Math.abs(b.position.y - previousY) < 0.5 ? (b.position.y - previousY) / dt : 0,
-      ch * d.speed - sh * this.slide,
+      ch * d.speed - sh * sideSpeed,
     );
     this.writeAngularKinematics(dt, fallen);
     b.orientation.rotate(this.scratch.set(0, 0, 1), this.forward);
@@ -726,7 +756,9 @@ export class BikeVehicle extends Vehicle {
     this.steer = d.steer;
     this.lateral = track.nearest(d.x, d.z, this.trackPosition, this.groundY);
     this.s = this.trackPosition.s;
-    const lateralAccel = this.riding ? d.speed * d.speed * d.curvature : 0;
+    const lateralAccel = this.riding
+      ? (d.motoGP?.lateralAcceleration ?? d.speed * d.speed * d.curvature)
+      : 0;
     this.gLong = d.longitudinal / G;
     this.gLat = lateralAccel / G;
     this.gVert = Math.hypot(1, this.gLat);
@@ -805,6 +837,7 @@ export class BikeVehicle extends Vehicle {
     d.z = this.remount.z;
     d.heading = this.remount.heading;
     d.lean = d.leanRate = d.steer = d.pitch = 0;
+    d.motoGP?.reset(d.speed);
     this.remount.active = false;
     this.slide = this.yawKick = 0;
     this.stuckClock = 0;

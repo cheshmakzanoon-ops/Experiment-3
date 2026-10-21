@@ -1,5 +1,6 @@
 import { clamp, G, lerp } from '../core/math.ts';
 import { GP_FRONT_SETTLE_RATE, gpFrontSteeringContact } from './gp-front-contact.ts';
+import { MotoGPChassis, type MotoGPGeometry } from './motogp-physics.ts';
 
 /** Reduced-order road-racing motorcycle model (WP33, masterplan §8). It began
  * as an isolated research model that settled the control contract and the
@@ -168,6 +169,8 @@ export class Bike {
   rearLoad: number;
   riderOffset = 0;
   rearSlip = 0;
+  /** GP-R1/R2 only: independently integrated cambered tyre / yaw / lateral state. */
+  motoGP: MotoGPChassis | null = null;
   state: BikeState = 'riding';
   /** Seconds in the current crash/recovery state. */
   stateClock = 0;
@@ -208,6 +211,11 @@ export class Bike {
     this.mass = p.mass;
     this.frontLoad = (p.mass * G * p.cgToRear) / p.wheelbase;
     this.rearLoad = (p.mass * G * p.cgToFront) / p.wheelbase;
+  }
+  /** GP adapter opt-in. Research/road/MX bikes keep their previous dynamics. */
+  enableMotoGPPhysics(geometry: MotoGPGeometry) {
+    this.motoGP = new MotoGPChassis(geometry);
+    this.motoGP.reset(this.speed);
   }
   get curvature() {
     const p = this.p,
@@ -278,6 +286,17 @@ export class Bike {
       );
       const kappa = lateral / (v * v);
       steerTarget = Math.atan((kappa * p.wheelbase) / Math.max(0.2, Math.cos(this.lean)));
+      if (this.motoGP && this.speed > 3) {
+        // Feedback on physical yaw and drift, not the bars' geometric path.
+        // Rider intent remains a lean target; rear slip must not induce a
+        // self-reinforcing steering correction at high corner-entry speed.
+        steerTarget += clamp(
+          0.08 * (lateral / v - this.motoGP.yawRate) +
+            0.2 * Math.atan2(this.motoGP.lateralSpeed, v),
+          -0.08,
+          0.08,
+        );
+      }
     } else {
       // Expert: the stick is a steer demand over the range usable at speed.
       const usable = Math.atan((p.wheelbase * 1.4 * G) / (v * v));
@@ -315,7 +334,7 @@ export class Bike {
     const rearCapacity = rearMu * this.rearLoad;
     // Lean-sensitive traction control: drive is kept inside what the rear
     // friction circle leaves after the cornering force it carries.
-    const lateralNow = Math.abs(this.speed * this.speed * this.curvature),
+    const lateralNow = Math.abs(this.motoGP?.lateralAcceleration ?? this.speed * this.speed * this.curvature),
       rearLatNow = m * lateralNow * (p.cgToFront / p.wheelbase);
     if (a.traction)
       drive = Math.min(
@@ -464,9 +483,30 @@ export class Bike {
     if (settlingFront) this.pitch = Math.max(0, this.pitch);
     if (this.pitch > 0.75 || this.pitch < -0.4) return this.fall('highside');
     this.speed = Math.max(0, this.speed + ax * dt);
-    // --- Roll balance: gravity vs centripetal torque, rider offset helps.
+    // GP prototypes integrate a physically separate contact-patch/yaw state.
+    // The shared car and off-road solvers never enter this code path.
+    const gp = this.motoGP?.step({
+      dt,
+      speed: this.speed,
+      mass: m,
+      lean: this.lean,
+      steer: this.steer,
+      frontLoad: this.frontLoad,
+      rearLoad: this.rearLoad,
+      frontMu,
+      rearMu,
+      frontFx: frontApplied,
+      rearFx: rearApplied,
+      frontContact:
+        clamp(this.frontLoad / Math.max(1, 0.05 * staticFront), 0, 1) *
+        gpFrontSteeringContact(this.pitch, p.wheelbase),
+      frontBrakeExcess: a.abs ? 0 : Math.max(0, p.frontBrake * front - this.frontBrakeForce),
+      rearDriveExcess: a.traction || a.wheelie ? 0 : Math.max(0, requested - drive),
+      rearBrakeExcess: a.abs ? 0 : Math.max(0, brakeR - this.rearBrakeForce),
+    });
+    // --- Roll balance: gravity vs tyre-generated lateral acceleration.
     const kappa = this.curvature;
-    const lateralAccel = this.speed * this.speed * kappa;
+    const lateralAccel = gp ? gp.lateralAcceleration : this.speed * this.speed * kappa;
     const h = p.cgHeight;
     const rollAccel =
       (G * Math.sin(this.lean) - lateralAccel * Math.cos(this.lean)) / h +
@@ -480,8 +520,8 @@ export class Bike {
     // --- Grip limits: lateral demand against each friction circle.
     const camber = 1 - 0.18 * Math.max(0, Math.abs(this.lean) - 0.8);
     const lateralForce = m * Math.abs(lateralAccel);
-    const frontLat = lateralForce * (p.cgToRear / p.wheelbase),
-      rearLat = lateralForce * (p.cgToFront / p.wheelbase);
+    const frontLat = gp ? Math.abs(gp.frontFy) : lateralForce * (p.cgToRear / p.wheelbase),
+      rearLat = gp ? Math.abs(gp.rearFy) : lateralForce * (p.cgToFront / p.wheelbase);
     // A front skimming the road in a wheelie steers nothing; it is not a lowside.
     const frontUse =
       this.frontLoad < 0.05 * m * G
@@ -507,9 +547,10 @@ export class Bike {
       if (rearApplied <= 0 && rearCorneringUse > 1.45) return this.fall('lowside');
     }
     if (Math.abs(this.lean) > 1.25) return this.fall('lowside');
-    this.heading += this.speed * kappa * dt;
-    this.x += Math.sin(this.heading) * this.speed * dt;
-    this.z += Math.cos(this.heading) * this.speed * dt;
+    this.heading += (gp ? gp.yawRate : this.speed * kappa) * dt;
+    const sideSpeed = gp?.lateralSpeed ?? 0;
+    this.x += (Math.sin(this.heading) * this.speed + Math.cos(this.heading) * sideSpeed) * dt;
+    this.z += (Math.cos(this.heading) * this.speed - Math.sin(this.heading) * sideSpeed) * dt;
     return this.state;
   }
   /** Start a crash (grip exceeded here, or a contact reported by the adapter). */
@@ -518,6 +559,7 @@ export class Bike {
     this.state = kind;
     this.stateClock = 0;
     this.crashes++;
+    this.motoGP?.reset(this.speed);
     this.driveForce =
       this.frontBrakeForce =
       this.rearBrakeForce =
@@ -554,6 +596,7 @@ export class Bike {
       this.state = 'riding';
       this.lean = this.leanRate = this.steer = this.pitch = this.rearSlip = 0;
       this.riderOffset = 0;
+      this.motoGP?.reset(this.speed);
       this.stateClock = 0;
     }
     return this.state;
