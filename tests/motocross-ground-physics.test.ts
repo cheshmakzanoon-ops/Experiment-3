@@ -53,6 +53,20 @@ describe('independent motocross wheel/soil/yaw dynamics', () => {
     const after = p.mass * result.speed ** 2 + p.rearInertia * result.rearOmega ** 2;
     expect(after).toBeLessThan(before);
   });
+  it('publishes exactly the substep impulses exchanged by chassis and rear wheel', () => {
+    const initial = { ...state(), rearOmega: state().rearOmega + 30 };
+    const p = params();
+    p.frontLoad = 0;
+    p.rearLoad = 1100;
+    const dt = 1 / 60;
+    const result = stepMotocrossGround(initial, p, dt);
+    const chassisImpulse = p.mass * (result.speed - initial.speed);
+    const wheelImpulse = p.rearInertia * (result.rearOmega - initial.rearOmega);
+    expect(chassisImpulse).toBeCloseTo(result.rear.fx * dt, 8);
+    expect(wheelImpulse).toBeCloseTo(-result.rear.fx * p.rearRadius * dt, 8);
+    expect(result.rear.slipPower * dt).toBeGreaterThan(0);
+  });
+
   it('keeps unloaded front braking off the bike but slows the free rotor', () => {
     const p = params();
     p.frontLoad = 0;
