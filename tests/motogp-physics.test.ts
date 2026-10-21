@@ -114,6 +114,35 @@ describe('MotoGP-only single-track tyre/yaw dynamics', () => {
     expect(raw.rearOmega).toBeCloseTo(20 / geometry.rearRadius);
   });
 
+  it('stabilizes an assisted dry-grip corner entry and an upright recovery', () => {
+    for (const speed of [15, 30, 50, 70]) {
+      const bike = new Bike(NOVICE, {
+        ...new BikeVehicle(0, 'medium', DEFAULT_SETUP, 'sport', GP_R1).dynamics.p,
+      });
+      bike.enableMotoGPPhysics(geometry);
+      bike.speed = speed;
+      bike.motoGP!.reset(speed);
+      for (let n = 0; n < 6 / DT; n++) {
+        const t = n * DT;
+        const lean = t < 0.8 ? 0 : t < 4 ? 0.55 : 0;
+        bike.step(
+          {
+            lean,
+            rider: lean,
+            throttle: 0.3,
+            frontBrake: 0,
+            rearBrake: 0,
+            drive: 0.215 * bike.speed * bike.speed,
+          },
+          DT,
+        );
+        expect(bike.state).toBe('riding');
+        expect(Math.abs(bike.lean)).toBeLessThan(1.2);
+      }
+      expect(Math.abs(bike.lean)).toBeLessThan(0.4);
+    }
+  });
+
   it('tracks a steady corner consistently at 120 Hz and 240 Hz substeps', () => {
     const run = (dt: number) => {
       const bike = new MotoGPChassis(geometry);

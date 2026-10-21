@@ -290,12 +290,14 @@ export class Bike {
         // Feedback on physical yaw and drift, not the bars' geometric path.
         // Rider intent remains a lean target; rear slip must not induce a
         // self-reinforcing steering correction at high corner-entry speed.
-        steerTarget += clamp(
-          0.08 * (lateral / v - this.motoGP.yawRate) +
-            0.2 * Math.atan2(this.motoGP.lateralSpeed, v),
-          -0.08,
-          0.08,
-        );
+        steerTarget +=
+          clamp(0.02 * (lateral - this.motoGP.lateralAcceleration), -0.12, 0.12) +
+          clamp(
+            0.08 * (lateral / v - this.motoGP.yawRate) +
+              0.2 * Math.atan2(this.motoGP.lateralSpeed, v),
+            -0.08,
+            0.08,
+          );
       }
     } else {
       // Expert: the stick is a steer demand over the range usable at speed.
