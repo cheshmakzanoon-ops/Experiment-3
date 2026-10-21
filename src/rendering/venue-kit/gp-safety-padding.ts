@@ -5,6 +5,8 @@ import { isGpCourse } from '../../simulation/gp-corner-shape.ts';
 import { trackPoint } from '../../simulation/track.ts';
 import { chainShaderHook, injectAfter, injectDeclarations } from '../studio/shader-hooks.ts';
 import { tagWeatherSurface } from '../weather-presentation.ts';
+import { canvasTexture } from '../geometry.ts';
+import { drawWordmark, fitHeight } from '../studio/brand-atlas.ts';
 import type { VenueKitContext } from './context.ts';
 import { venuePoint } from './sweep.ts';
 
@@ -140,7 +142,80 @@ float gpPaddingLine(float d, float width) {
       'fragment',
     );
   });
+  // Printed partner panels, as on the reference air fences (REF_030/031/044):
+  // one shared four-row wordmark atlas per venue material, chosen per module
+  // from its own placement, so the cover remains one instanced draw.
+  const ads = gpPaddingPrintAtlas();
+  material.userData.gpPaddingPrint = ads;
+  material.addEventListener('dispose', () => ads.dispose());
+  chainShaderHook(material, 'gp-safety-cover-print-v1', (shader) => {
+    shader.uniforms.gpPaddingAds = { value: ads };
+    injectDeclarations(shader, 'common', 'varying float vGpPaddingBrand;', 'vertex');
+    injectAfter(
+      shader,
+      'begin_vertex',
+      `#ifdef USE_INSTANCING
+  vec2 gpModule = floor(instanceMatrix[3].xz / 4.8);
+  vGpPaddingBrand = floor(fract(sin(dot(gpModule, vec2(12.9898, 78.233))) * 43758.5453) * 4.);
+#else
+  vGpPaddingBrand = 0.;
+#endif`,
+      'vertex',
+    );
+    injectDeclarations(
+      shader,
+      'common',
+      'uniform sampler2D gpPaddingAds;\nvarying float vGpPaddingBrand;',
+      'fragment',
+    );
+    injectAfter(
+      shader,
+      'color_fragment',
+      `{
+  vec3 p = vGpPaddingMetres;
+  // Both long faces carry print; each reads left to right from outside.
+  float face = smoothstep(.5, .56, abs(p.x));
+  vec2 printUv = vec2(.5 - sign(p.x) * p.z / 2.05, (p.y - .2) / .66);
+  float inside = step(0., printUv.x) * step(printUv.x, 1.) * step(0., printUv.y) * step(printUv.y, 1.);
+  vec4 ad = texture2D(gpPaddingAds, vec2(printUv.x, (vGpPaddingBrand + clamp(printUv.y, 0., 1.)) / 4.));
+  float tone = dot(diffuseColor.rgb, vec3(.2126, .7152, .0722));
+  vec3 ink = tone < .3 ? vec3(.86, .87, .84) : ad.rgb;
+  diffuseColor.rgb = mix(diffuseColor.rgb, ink, ad.a * face * inside);
+}`,
+      'fragment',
+    );
+  });
   return tagWeatherSurface(material, 'fabric');
+}
+
+/** Original fictional partners only (the project's own brand atlas). Row b
+ * of the texture (from the bottom) holds brand b's wordmark in its ink. */
+function gpPaddingPrintAtlas() {
+  const brands = [
+    ['APEX CORSA', '#b3242b'],
+    ['ORBITEL', '#1f4387'],
+    ['SLICK 18', '#17191b'],
+    ['VOLTEX', '#c7861a'],
+  ] as const;
+  // Headless geometry/contract checks have no canvas; print nothing there.
+  if (typeof document === 'undefined') {
+    const blank = new T.DataTexture(new Uint8Array(4), 1, 1);
+    blank.needsUpdate = true;
+    return blank;
+  }
+  const texture = canvasTexture(1024, 512, (c) => {
+    c.clearRect(0, 0, 1024, 512);
+    brands.forEach(([name, ink], b) => {
+      const row = 3 - b,
+        style = { weight: 0.2, width: 0.92, tracking: 0.12, slant: 0.12, corner: 0.08 };
+      c.strokeStyle = ink;
+      drawWordmark(c, name, 512, row * 128 + 64 - 30, fitHeight(name, 820, 60, style), style);
+      c.fillStyle = ink;
+      c.fillRect(90, row * 128 + 104, 844, 6);
+    });
+  });
+  texture.anisotropy = 8;
+  return texture;
 }
 
 /** Fit short modules to the boundary chord and the existing bank plane. The

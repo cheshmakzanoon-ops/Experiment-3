@@ -61,25 +61,49 @@ export function installTrackEdgeHelpers(
 /** Only grass ribbons have the edgeMetres attribute. The far terrain keeps
  * its existing treatment rather than assuming it is a circuit verge. */
 export function installVergeFinish(material: T.MeshStandardMaterial) {
-  return chainShaderHook(material, 'track-verge-wear-v1', (shader) => {
-    installTrackEdgeHelpers(shader, 1);
-    injectDeclarations(
-      shader,
-      'common',
-      'attribute float edgeMetres; varying float vVergeEdge;',
-      'vertex',
-    );
-    injectAfter(shader, 'begin_vertex', 'vVergeEdge = edgeMetres;', 'vertex');
-    injectDeclarations(shader, 'common', 'varying float vVergeEdge;', 'fragment');
-    // After the photographed turf: keep the original scan's fine structure,
-    // while the actual material boundary becomes worn soil instead of a ruler.
+  return (
+    chainShaderHook(material, 'track-verge-wear-v1', (shader) => {
+      installTrackEdgeHelpers(shader, 1);
+      injectDeclarations(
+        shader,
+        'common',
+        'attribute float edgeMetres; varying float vVergeEdge;',
+        'vertex',
+      );
+      injectAfter(shader, 'begin_vertex', 'vVergeEdge = edgeMetres;', 'vertex');
+      injectDeclarations(shader, 'common', 'varying float vVergeEdge;', 'fragment');
+      // After the photographed turf: keep the original scan's fine structure,
+      // while the actual material boundary becomes worn soil instead of a ruler.
+      injectAfter(
+        shader,
+        'color_fragment',
+        `{
+	float soil = apexVergeWear( vFinishWorld.xz, vVergeEdge );
+	float detail = clamp( dot( diffuseColor.rgb, vec3( .2126, .7152, .0722 ) ) / .095, .65, 1.3 );
+	diffuseColor.rgb = mix( diffuseColor.rgb, apexVergeSoil( vFinishWorld.xz ) * detail, soil * .88 );
+}`,
+        'fragment',
+      );
+    }) && installVergeMowing(material)
+  );
+}
+
+/** Mown lanes parallel to the circuit (REF_044/046/098): alternating 3.2 m
+ * passes of lighter and darker grass, softened at each pass edge, fading in
+ * past the worn verge and out again before the distant terrain. The lane
+ * index comes from the shared edge distance, so held frames are exact. */
+function installVergeMowing(material: T.MeshStandardMaterial) {
+  return chainShaderHook(material, 'track-verge-mowing-v1', (shader) => {
     injectAfter(
       shader,
       'color_fragment',
       `{
-	float soil = apexVergeWear( vFinishWorld.xz, vVergeEdge );
-	float detail = clamp( dot( diffuseColor.rgb, vec3( .2126, .7152, .0722 ) ) / .095, .65, 1.3 );
-	diffuseColor.rgb = mix( diffuseColor.rgb, apexVergeSoil( vFinishWorld.xz ) * detail, soil * .88 );
+	float lane = vVergeEdge / 6.4;
+	float aa = max( fwidth( lane ) * 2., .02 );
+	float pass = smoothstep( .5 - aa, .5 + aa, abs( fract( lane ) - .5 ) * 2. );
+	float reach = smoothstep( 1.4, 3.2, vVergeEdge ) * ( 1. - smoothstep( 34., 52., vVergeEdge ) );
+	float sheen = ( pass - .5 ) * .16 * reach * ( 1. - smoothstep( .35, 1.2, aa ) );
+	diffuseColor.rgb *= 1. + sheen;
 }`,
       'fragment',
     );
