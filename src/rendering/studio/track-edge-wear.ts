@@ -102,7 +102,7 @@ function installVergeMowing(material: T.MeshStandardMaterial) {
 	float aa = max( fwidth( lane ) * 2., .02 );
 	float pass = smoothstep( .5 - aa, .5 + aa, abs( fract( lane ) - .5 ) * 2. );
 	float reach = smoothstep( 1.4, 3.2, vVergeEdge ) * ( 1. - smoothstep( 34., 52., vVergeEdge ) );
-	float sheen = ( pass - .5 ) * .16 * reach * ( 1. - smoothstep( .35, 1.2, aa ) );
+	float sheen = ( pass - .5 ) * .26 * reach * ( 1. - smoothstep( .35, 1.2, aa ) );
 	diffuseColor.rgb *= 1. + sheen;
 }`,
       'fragment',

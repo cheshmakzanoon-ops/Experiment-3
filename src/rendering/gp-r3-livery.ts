@@ -221,14 +221,14 @@ function paintAtlas(entrant: number) {
       // Partner marks sized and spaced like a works livery: one title partner
       // across the main flank, smaller technical partners on the pods, nose
       // and tail. All names are the project's fictional brands.
-      word(sidePixel(side, 0.07, -0.025), scheme.title, 150, 24, contrast);
-      word(sidePixel(side, 0.24, -0.3), scheme.partners[0], 130, 16, ink);
-      word(sidePixel(side, 0.06, -0.37), scheme.partners[1], 140, 17, ink);
+      word(sidePixel(side, 0.115, -0.138), scheme.title, 165, 24, ink);
+      word(sidePixel(side, 0.2, -0.312), scheme.partners[0], 105, 14, ink);
+      word(sidePixel(side, 0.04, -0.385), scheme.partners[1], 105, 14, ink);
       word(sidePixel(side, 0.74, 0.17), 'MOTOBOUND', 140, 18, contrast);
-      word(sidePixel(side, 0.62, 0.115), scheme.partners[1], 110, 12, contrast);
-      word(sidePixel(side, -0.48, 0.24), 'MOTOBOUND', 150, 20, contrast);
+      word(sidePixel(side, 0.7, 0.122), scheme.partners[1], 90, 11, contrast);
+      word(sidePixel(side, -0.62, 0.262), 'MOTOBOUND', 105, 15, contrast);
       word(sidePixel(side, -0.66, 0.16), scheme.partners[0], 120, 13, ink);
-      word(sidePixel(side, 0.12, -0.2), 'WORKS RACING', 150, 15, ink);
+      word(sidePixel(side, 0.1, -0.235), 'WORKS RACING', 120, 13, ink);
       // Machined-looking cooling gills printed as recessed dark slots.
       for (let k = 0; k < 5; k++) {
         const z = 0.05 - k * 0.028;
