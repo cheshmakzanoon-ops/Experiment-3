@@ -31,6 +31,35 @@ const ABORT_MARGIN = 2.5;
 /** Heading error to the course direction (rad) beyond which a rider only
  * steers back toward it. */
 const HEADING_LIMIT = 0.5;
+
+/** Preserve front support at turn-in. Sustained drive can lever the front
+ * spring free before the legacy lean controller notices its lost contact.
+ * This is a requested-throttle aid, not a second source of tyre force. */
+export function motocrossFrontGripThrottle(
+  throttle: number,
+  frontLoad: number,
+  mass: number,
+  leanFraction: number,
+): number {
+  if (!(mass > 0) || !Number.isFinite(frontLoad)) return throttle;
+  if (leanFraction < 0.25) return throttle;
+  const supported = clamp(frontLoad / (mass * G), 0, 1);
+  // At >= 30% front load there is no intervention. An unweighted front
+  // in a corner holds 18% throttle for stable, measured recovery.
+  const limit = 0.18 + 0.82 * clamp(supported / 0.3, 0, 1);
+  return Math.min(throttle, limit);
+}
+
+/** Counter an actual across-chassis slide, rather than looking only at the
+ * bike's pointing direction. A rut or collision cannot be corrected by
+ * following the geometric tangent while the CG is still moving sideways. */
+export function motocrossDriftSteer(
+  steer: number,
+  slide: number,
+  speed: number,
+): number {
+  return clamp(steer - 0.8 * Math.atan2(slide, Math.max(3, speed)), -0.6, 0.6);
+}
 /** Seconds after the gate drop the field launches flat out. */
 const LAUNCH_SECONDS = 1.6;
 /** Grade (sine of the ground slope) and speed (m/s) below which a rider
@@ -77,8 +106,36 @@ export class DirtBikeAIDriver extends BikeAIDriver {
     this.climbFace();
     this.headingGuard(track);
     this.gateLaunch(track, race);
+    this.turnContactReserve(track, race);
     this.unstick(dt, track, race);
   }
+  /** Full-lap cornering reserve: retain the existing calibrated line and
+   * jump target; trim only corner drive that has unweighted the steering
+   * contact, and correct real transverse CG motion before it compounds. */
+  private turnContactReserve(track: Track, race: RaceDirector) {
+    const c = this.rider;
+    if (!c.riding || c.airborne || c.speed < 6 ||
+        race.phase !== PHASE.RACING || race.raceTime <= LAUNCH_SECONDS)
+      return;
+    const d = c.dynamics;
+    const slide = c.slide;
+    if (Math.abs(slide) > 0.4)
+      c.input.steer = motocrossDriftSteer(c.input.steer, slide, d.speed);
+    const steerDemand = Math.max(
+      Math.abs(c.input.steer),
+      Math.abs(d.lean) / Math.max(0.1, d.leanLimit),
+    );
+    if (steerDemand < 0.25) return;
+    // Clearing riders require an uninterrupted, already surveyed face
+    // approach. Keep the new corner aid out of the locked jump corridor.
+    if (this.plan?.clear &&
+        mod(this.plan.jump.takeoff - c.s, track.length) < 28)
+      return;
+    c.input.throttle = motocrossFrontGripThrottle(
+      c.input.throttle, c.forceFront, d.mass, steerDemand,
+    );
+  }
+
   /** Gate start: every rider goes flat out as the gate drops (the traffic
    * planner would otherwise wait for a gap in a row of bikes abreast). */
   private gateLaunch(track: Track, race: RaceDirector) {
