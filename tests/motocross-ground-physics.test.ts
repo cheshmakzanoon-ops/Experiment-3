@@ -76,6 +76,23 @@ describe('independent motocross wheel/soil/yaw dynamics', () => {
     expect(a.lateralSpeed).toBeCloseTo(-b.lateralSpeed, 8);
     expect(a.front.use).toBeLessThanOrEqual(1);
   });
+  it('converts only tyre slip into soil dissipation, never pure rolling grip work', () => {
+    const noSlip = motocrossTyreShear(0, 0, 920, 0.85, 18);
+    const driven = motocrossTyreShear(3, 0.2, 920, 0.85, 18);
+    const braking = motocrossTyreShear(-3, -0.2, 920, 0.85, 18);
+    expect(noSlip.slipPower).toBe(0);
+    expect(driven.slipPower).toBeGreaterThan(0);
+    expect(driven.slipPower).toBeCloseTo(braking.slipPower, 10);
+    expect(driven.slipPower).toBeCloseTo(
+      driven.fx * 3 + driven.fy * Math.tan(0.2) * 18,
+      8,
+    );
+    const free = motocrossTyreShear(5, 1, 0, 0.85, 18);
+    expect(free.slipPower).toBe(0);
+    const r = stepMotocrossGround(state(), params(), 1 / 120);
+    expect(r.front.slipPower + r.rear.slipPower).toBe(0);
+  });
+
   it('reconciles coarse/fine timesteps without unstable wheel-speed divergence', () => {
     const p = params(); p.driveTorque = 420;
     const run = (dt: number) => {
