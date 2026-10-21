@@ -13,6 +13,8 @@ import { offroadCourse } from './venues.ts';
 import type { OffroadBikeSpec } from './types.ts';
 import { LANDING_RULES } from './riding-feedback.ts';
 import { wheelPickupImpulse } from './wheel-pickup.ts';
+import { engineTorque } from '../vehicle.ts';
+import { stepMotocrossGround } from './mx-ground-physics.ts';
 import { RiderWeight } from './rider-weight.ts';
 import { factoryBikeSag, risingRateSag } from './suspension-geometry.ts';
 
@@ -155,6 +157,9 @@ export class DirtBikeVehicle extends BikeVehicle {
   private playerMotocross = false;
   private pickupFrontForce = 0;
   private pickupRearForce = 0;
+  /** Independent MX ground yaw and previous physical speed. */
+  private mxYawRate = 0;
+  private mxReferenceSpeed = 0;
   private readonly probe = surfaceSample();
   constructor(
     id: number,
@@ -249,6 +254,8 @@ export class DirtBikeVehicle extends BikeVehicle {
     this.projectedContact = false;
     this.rearSpin = this.dynamics.speed / this.bikeSpec.rearWheelRadius;
     this.frontSpin = this.dynamics.speed / this.bikeSpec.frontWheelRadius;
+    this.mxYawRate = 0;
+    this.mxReferenceSpeed = this.dynamics.speed;
     this.writeBody(this.lastTrack!, 0);
   }
   private lastTrack: Track | null = null;
@@ -260,6 +267,59 @@ export class DirtBikeVehicle extends BikeVehicle {
   get groundPitch() {
     return this.roadPitch;
   }
+  override shift(direction: number) {
+    if (!this.playerMotocross) return super.shift(direction);
+    if (this.shiftClock > 0) return;
+    const spec = this.spec;
+    const next = clamp(this.gear + Math.sign(direction), 1, spec.gearRatios.length - 2);
+    if (next === this.gear) return;
+    const nextRpm =
+      (this.rearSpin * spec.gearRatios[next + 1] * spec.finalDrive * this.gearing * 30) /
+      Math.PI;
+    if (nextRpm > spec.limiterRPM) return;
+    this.gear = next;
+    this.shiftClock = Math.max(0.02, this.bikeSpec.shiftCut);
+  }
+  /** Drivetrain RPM follows actual driven-rotor speed, not ground speed.
+   * Road bikes, GP and calibrated AI continue using BikeVehicle.drive. */
+  protected override drive(dt: number, throttle: number) {
+    if (!this.playerMotocross) return super.drive(dt, throttle);
+    const spec = this.spec;
+    if (this.input.shift) {
+      this.shift(this.input.shift);
+      this.input.shift = 0;
+      this.autoShift = false;
+    }
+    this.shiftClock = Math.max(0, this.shiftClock - dt);
+    let ratio = spec.gearRatios[this.gear + 1] * spec.finalDrive * this.gearing;
+    const wheelRpm = (this.rearSpin * ratio * 30) / Math.PI;
+    const roadRpm = ((this.dynamics.speed / spec.wheelRadius) * ratio * 30) / Math.PI;
+    if (this.autoShift) {
+      // Wheelspin alone is not a full-speed upshift. A locked rotor
+      // cannot demand a downshift that over-revs when traction returns.
+      if (wheelRpm > spec.shiftRPM && roadRpm > 0.78 * spec.shiftRPM)
+        this.shift(1);
+      else if (roadRpm < spec.downshiftRPM && this.gear > 1)
+        this.shift(-1);
+    }
+    ratio = spec.gearRatios[this.gear + 1] * spec.finalDrive * this.gearing;
+    const coupled = (this.rearSpin * ratio * 30) / Math.PI;
+    const launch = this.gear === 1
+      ? lerp(spec.idleRPM, this.bikeSpec.launchRPM, throttle)
+      : spec.idleRPM;
+    this.rpm = approach(
+      this.rpm,
+      Math.min(Math.max(coupled, launch), spec.limiterRPM + 150),
+      40000 * dt,
+    );
+    let torque = this.riding && this.fuel > 0 && this.rpm <= spec.limiterRPM
+      ? engineTorque(this.rpm, spec) * throttle
+      : 0;
+    if (this.shiftClock > 0) torque = 0;
+    this.engineOutputTorque = torque;
+    this.clutch.engineOmega = (this.rpm * Math.PI) / 30;
+    return (torque * ratio * this.bikeSpec.drivelineEfficiency) / spec.wheelRadius;
+  }
   override step(dt: number, track: Track) {
     this.lastTrack = track;
     this.clock += dt;
@@ -267,7 +327,9 @@ export class DirtBikeVehicle extends BikeVehicle {
       b = this.body,
       spec = this.bikeSpec;
     this.debris.step(dt, track);
+    const speedBeforeCollision = d.speed;
     this.absorbExternal(dt);
+    const externalSpeedImpulse = Math.abs(d.speed - speedBeforeCollision) > 0.05;
     const ai = this.aiSteps > 0;
     d.assists = ai ? NOVICE : this.riderAids;
     if (this.aiSteps > 0) this.aiSteps--;
@@ -306,6 +368,18 @@ export class DirtBikeVehicle extends BikeVehicle {
     // while covering a wheelie. AI keeps its surveyed linked-brake map.
     d.p.independentRearBrake = this.playerMotocross;
     if (!this.playerMotocross || !this.riding) this.wheelPickup = false;
+    const mxGround = this.playerMotocross && this.riding && !this.airborne;
+    // A test harness can explicitly set road speed without driving the
+    // wheels first. This is distinct from collision and landing impulses.
+    if (
+      mxGround && !externalSpeedImpulse &&
+      this.clock - (this.lastLanding?.time ?? -100) > 0.3 &&
+      Math.abs(d.speed - this.mxReferenceSpeed) > 2.5
+    ) {
+      this.frontSpin = d.speed / spec.frontWheelRadius;
+      this.rearSpin = d.speed / spec.rearWheelRadius;
+      this.mxYawRate = 0;
+    }
     // Ground grip: tyre/surface peak (knobby bite from the material table),
     // the load the suspension actually carries, and berm support.
     // Smoothed: a hop or a rut edge does not change the rider's lean budget
@@ -348,7 +422,10 @@ export class DirtBikeVehicle extends BikeVehicle {
     else if (this.airborne) this.coast(dt);
     else {
       const x0 = d.x,
-        z0 = d.z;
+        z0 = d.z,
+        initialSpeed = d.speed,
+        initialHeading = d.heading,
+        initialSlide = this.slide;
       if (this.playerMotocross && this.riding) {
         // The sprung chassis has already resolved these contact loads.
         // Supplying them before the core's force solve makes an unloaded
@@ -371,12 +448,81 @@ export class DirtBikeVehicle extends BikeVehicle {
         },
         dt,
       );
+      // The road-bike core remains the lean-intent and crash/recovery
+      // controller. Actual MX acceleration, wheel pickup and yaw now come
+      // from the separate two-contact soil force solver.
+      if (mxGround && d.state === 'riding') {
+        const frontPedal = d.assists.combinedBrakes ? brake * 0.78 : brake;
+        const rearPedal = d.assists.combinedBrakes ? Math.max(rear, brake * 0.3) : rear;
+        const engineBraking = this.requestedEngineBraking(throttle);
+        const contact = stepMotocrossGround(
+          {
+            speed: initialSpeed,
+            lateralSpeed: initialSlide,
+            yawRate: this.mxYawRate + this.yawKick,
+            heading: initialHeading,
+            frontOmega: this.frontSpin,
+            rearOmega: this.rearSpin,
+          },
+          {
+            mass: d.mass,
+            frontArm: spec.cgToFront,
+            rearArm: spec.cgToRear,
+            frontRadius: spec.frontWheelRadius,
+            rearRadius: spec.rearWheelRadius,
+            frontInertia: this.tires[0].inertia,
+            rearInertia: this.air.spinInertia,
+            frontLoad: this.forceFront,
+            rearLoad: this.forceRear,
+            frontMu: d.p.mu * (d.frontGrip ?? d.grip),
+            rearMu: d.p.mu * (d.rearGrip ?? d.grip),
+            steer: d.steer,
+            driveTorque: force * spec.rearWheelRadius,
+            frontBrakeTorque: frontPedal * d.p.frontBrake * spec.frontWheelRadius,
+            rearBrakeTorque: (rearPedal * d.p.rearBrake + engineBraking) * spec.rearWheelRadius,
+            drag: d.p.drag * d.dragScale * initialSpeed ** 2 +
+              (initialSpeed > 0.05 ? (d.p.rolling ?? 0) * d.mass * G : 0),
+            slope: G * d.slope,
+            tractionControl: d.assists.traction,
+            abs: d.assists.abs,
+          },
+          dt,
+        );
+        const coreLateral = d.speed * d.speed * d.curvature;
+        d.leanRate += clamp(
+          ((coreLateral - contact.lateralAcceleration) * Math.cos(d.lean) * dt) / spec.cgHeight,
+          -0.3, 0.3,
+        );
+        d.speed = contact.speed;
+        d.x = x0 + contact.dx;
+        d.z = z0 + contact.dz;
+        d.heading = contact.heading;
+        d.longitudinal = contact.longitudinal;
+        d.frontBrakeForce = Math.max(0, -contact.front.fx);
+        d.driveForce = Math.max(0, contact.rear.fx);
+        d.rearBrakeForce = Math.max(0, -contact.rear.fx);
+        d.engineBrakeForce = Math.min(d.rearBrakeForce, engineBraking);
+        d.frontLoad = this.forceFront;
+        d.rearLoad = this.forceRear;
+        d.frontUse = contact.front.use;
+        d.rearUse = contact.rear.use;
+        d.lateralUse = Math.max(contact.front.use, contact.rear.use);
+        d.rearSlip = this.forceRear > 0 ? Math.max(0, contact.rear.slip) : 0;
+        this.frontSpin = contact.frontOmega;
+        this.rearSpin = contact.rearOmega;
+        this.mxYawRate = contact.yawRate;
+        this.mxReferenceSpeed = contact.speed;
+        this.slide = contact.lateralSpeed;
+        this.yawKick = 0;
+        this.wheelPickup = false; // Contact momentum already exchanged.
+        this.longitudinal = contact.front.fx + contact.rear.fx;
+      }
       // A free tyre cannot work soil, even if its requested torque exceeds
       // a zero contact budget. Keep that raw-mode demand out of roost/mud
       // accumulation; wheel spin in a real flight remains explicit state.
       if (this.playerMotocross && this.forceRear <= 0) d.rearSlip = 0;
       const coreSpeed = d.speed;
-      if (this.wheelPickup && this.riding) {
+      if (!mxGround && this.wheelPickup && this.riding) {
         this.pickupWheels(dt);
         d.longitudinal += (d.speed - coreSpeed) / dt;
         // Keep this contact step's travel consistent with its corrected
@@ -417,7 +563,7 @@ export class DirtBikeVehicle extends BikeVehicle {
           d.speed = Math.max(0, d.speed - 1.5 * dt);
         }
       }
-      this.longitudinal =
+      if (!mxGround) this.longitudinal =
         d.driveForce -
         d.frontBrakeForce -
         d.rearBrakeForce +
@@ -447,7 +593,7 @@ export class DirtBikeVehicle extends BikeVehicle {
       this.airborne = false;
     }
     // Contact slide decays with grip; rut walls steer the wheels (tramlining).
-    if (!this.airborne) {
+    if (!this.airborne && !mxGround) {
       if (this.slide !== 0) {
         const decel = Math.max(1, 0.7 * d.p.mu * d.grip * G) * dt;
         this.slide = Math.abs(this.slide) <= decel ? 0 : this.slide - Math.sign(this.slide) * decel;
@@ -464,8 +610,10 @@ export class DirtBikeVehicle extends BikeVehicle {
       }
     }
     const h = d.heading;
-    d.x += Math.cos(h) * this.slide * dt;
-    d.z -= Math.sin(h) * this.slide * dt;
+    if (!mxGround) {
+      d.x += Math.cos(h) * this.slide * dt;
+      d.z -= Math.sin(h) * this.slide * dt;
+    }
     if (this.yawKick !== 0) {
       d.heading += this.yawKick * dt;
       this.yawKick *= Math.exp(-8 * dt);
@@ -551,10 +699,11 @@ export class DirtBikeVehicle extends BikeVehicle {
     const ratio = spec.gearRatios[this.gear + 1] * spec.finalDrive * this.gearing,
       limit = (spec.limiterRPM * Math.PI) / 30 / ratio,
       previous = this.rearSpin;
-    this.rearSpin = clamp(
-      this.rearSpin + (pedal * a.spinUp - rearBrake * a.spinBrake - 2) * dt,
+    // Cut torque at the limiter; never clamp a spinning wheel's momentum.
+    const spinDrive = this.rearSpin < limit ? pedal * a.spinUp : 0;
+    this.rearSpin = Math.max(
       0,
-      limit,
+      this.rearSpin + (spinDrive - rearBrake * a.spinBrake - 2) * dt,
     );
     this.rpm = clamp((this.rearSpin * ratio * 30) / Math.PI, spec.idleRPM, spec.limiterRPM);
     const spinTorque = (a.spinInertia * (this.rearSpin - previous)) / dt;
@@ -1076,13 +1225,14 @@ export class DirtBikeVehicle extends BikeVehicle {
           d.heading += yawError;
         }
         this.airYaw = this.airYawRate = 0;
+        this.mxYawRate = 0;
         d.pitch = 0;
         this.wheelPickup =
-          this.playerMotocross &&
+          !this.playerMotocross &&
           this.airTime > LANDING_RULES.minimumAirTime &&
           this.takeoffSpeed > LANDING_RULES.rollingHopSpeed;
         this.pickupSpeed = d.speed;
-        if (!this.wheelPickup) {
+        if (!this.playerMotocross && !this.wheelPickup) {
           this.rearSpin = d.speed / spec.rearWheelRadius;
           this.frontSpin = d.speed / spec.frontWheelRadius;
         }
@@ -1116,7 +1266,8 @@ export class DirtBikeVehicle extends BikeVehicle {
         // Initialise composite momentum from the real take-off rate; any
         // rider movement already begun on the ground is not applied twice.
         this.riderAirRate = -coupling * this.riderWeight.velocity;
-        this.airYaw = this.airYawRate = 0;
+        this.airYaw = 0;
+        this.airYawRate = this.playerMotocross ? this.mxYawRate : 0;
         // The last wheel leaves along its own face: that slope splits the
         // speed into the plan-view flight speed (the springs gave vy).
         this.flightSpeed = d.speed * Math.cos(Math.atan(this.faceSlope));
@@ -1129,7 +1280,7 @@ export class DirtBikeVehicle extends BikeVehicle {
         // A rebound before pickup has finished retains its real rotor
         // speeds. Tiny terrain hops from ordinary rolling keep the original
         // surveyed take-off behaviour.
-        if (!this.wheelPickup) {
+        if (!this.playerMotocross && !this.wheelPickup) {
           this.rearSpin = d.speed / spec.rearWheelRadius;
           this.frontSpin = d.speed / spec.frontWheelRadius;
         }
@@ -1235,7 +1386,7 @@ export class DirtBikeVehicle extends BikeVehicle {
         ideal = COMPOUNDS[t.compound].ideal;
       const rolling = (riding || d.state === 'remount') && !this.airborne;
       t.omega =
-        this.airborne || (this.wheelPickup && riding)
+        this.airborne || (this.playerMotocross && riding) || (this.wheelPickup && riding)
           ? front
             ? this.frontSpin
             : this.rearSpin
@@ -1252,10 +1403,12 @@ export class DirtBikeVehicle extends BikeVehicle {
         : 0;
       t.fy = grounded ? (m * lateral * (front ? spec.cgToRear : spec.cgToFront)) / L : 0;
       const inheritedSlip =
-        grounded && this.wheelPickup
+        grounded && (this.wheelPickup || this.playerMotocross)
           ? Math.abs(t.omega * t.radius - d.speed) / Math.max(3, d.speed)
           : 0;
-      t.slip = grounded ? Math.max(front ? 0 : Math.min(0.3, d.rearSlip), inheritedSlip) : 0;
+      t.slip = grounded && t.load > 0
+        ? Math.max(front ? 0 : Math.min(0.3, d.rearSlip), inheritedSlip)
+        : 0;
       t.angle = front ? d.steer : 0;
       t.compression = front ? this.fork : this.shock;
       t.length = (front ? spec.forkTravel : spec.shockTravel) - t.compression + 0.2;
