@@ -65,7 +65,7 @@ try {
   page.on('pageerror', (e) => errors.push(e.message));
   page.on('console', (m) => {
     if (m.type() === 'error') errors.push(m.text());
-    else if (/^(prepared|captured) /.test(m.text())) console.log(m.text());
+    else if (/^(prepared|captured|first) /.test(m.text())) console.log(m.text());
   });
   await page.exposeFunction('saveCapture', (name, url) =>
     writeFileSync(resolve(out, name), Buffer.from(url.split(',')[1], 'base64')),

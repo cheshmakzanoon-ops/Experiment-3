@@ -29,12 +29,14 @@ export async function captureGPMoments(o: HyperrealCaptureOptions = {}) {
     { RacingRenderer },
     { graphicsPreset },
     { F, B, BIKE_BASE, carBase },
+    { GpuFrameGate },
   ] = await Promise.all([
     import('../../src/simulation/world.ts'),
     import('../../src/simulation/config.ts'),
     import('../../src/rendering/renderer.ts'),
     import('../../src/rendering/options.ts'),
     import('../../src/simulation/protocol.ts'),
+    import('../../src/rendering/gpu-frame-gate.ts'),
   ]);
   const weather = o.weather ?? 'clear';
   const preset = o.preset ?? 'high';
@@ -83,16 +85,25 @@ export async function captureGPMoments(o: HyperrealCaptureOptions = {}) {
     brake: number;
     throttle: number;
   }[] = [];
-  // Same GPU fence as RacingRenderer.waitForPreparedFrame, with a review-only
-  // deadline: a CPU rasteriser needs minutes for each newly visible program
-  // (the cockpit view's first-person materials), not the shipped 45 s.
-  const gpuFrames = (renderer as unknown as { gpuFrames: { ready(): boolean } }).gpuFrames;
+  // Review-only GPU fence: a CPU rasteriser (llvmpipe) can spend minutes on one
+  // full High/Medium circuit frame, so the shipped 120 s stall limit and 45 s
+  // preparation deadline are replaced for this capture only.
+  const internals = renderer as unknown as { gpuFrames: InstanceType<typeof GpuFrameGate> };
+  internals.gpuFrames.dispose();
+  const gpuFrames = (internals.gpuFrames = new GpuFrameGate(
+    renderer.renderer.getContext() as WebGL2RenderingContext,
+    undefined,
+    1000,
+    10000,
+    1800000,
+  ));
   const settle = async () => {
-    const deadline = performance.now() + 600000;
+    const started = performance.now();
     while (!gpuFrames.ready()) {
-      if (performance.now() >= deadline) throw new Error('GPU frame not ready within 600 s');
+      if (performance.now() - started >= 1800000) throw new Error('GPU frame not ready in 30 min');
       await yieldGpu();
     }
+    return (performance.now() - started) / 1000;
   };
   try {
     const prepared = await renderer.prepare(
@@ -122,7 +133,7 @@ export async function captureGPMoments(o: HyperrealCaptureOptions = {}) {
           advance(1 / 12);
           time += 1 / 12;
           renderer.draw(previous, current, 1, 1 / 12, false);
-          if (f === 0) await settle();
+          if (f === 0) console.log(`first ${view} frame GPU ${(await settle()).toFixed(1)} s`);
         }
         await settle();
         renderer.draw(previous, current, 1, 1 / 60, false);
