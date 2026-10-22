@@ -8,11 +8,18 @@ import {
   type TyreConstruction,
 } from './tyre-force.ts';
 
-/** Original road-racing tyre calibration; not OEM or proprietary MotoGP data. */
+/** Original road-racing tyre calibration; not OEM or proprietary MotoGP data.
+ * A motorcycle slick corners mostly on camber: with the camber/cornering
+ * stiffness ratio of published racing-tyre measurements (≈0.065/rad, e.g.
+ * Cossalter, Motorcycle Dynamics, ch. 2), camber alone supplies ~90% of the
+ * force a 57° contact lean needs, and the remainder comes from 2-5° of slip.
+ * The lateral curve peaks near 8.5° total slip and falls ~15% by 23°, so a
+ * front pushed past its peak washes out instead of holding a broad plateau. */
 export const MOTOGP_SLICK: TyreConstruction = Object.freeze({
   ...FORMULA_SLICK,
   nominalLoad: 1200,
-  camberStiffness: 1.12,
+  lateral: Object.freeze({ C: 1.6, E: -0.3, stiffness: 26.8 }),
+  camberStiffness: 1.75,
   camberOptimum: 0.6,
   camberSensitivity: 0.5,
   relaxationLength: 0.23,
@@ -47,6 +54,67 @@ export interface MotoGPGeometry {
   rearRadius: number;
   frontWheelInertia: number;
   rearWheelInertia: number;
+  /** Roll inertia of bike + rider about its own CG (kg m²); absent: 24. */
+  rollInertia?: number;
+}
+
+/** Share of the combined mass that moves with the hanging-off rider. The
+ * same share the reduced core has always used for its hang-off torque. */
+export const GP_RIDER_SHARE = 0.25;
+/** Steering-head rake (rad), the renderer's fork angle (rendering/bike.ts). */
+export const GP_RAKE = 0.42;
+const DEFAULT_ROLL_INERTIA = 24;
+
+/** Lean the hanging-off rider adds to the bike's own contact-to-CG lean: the
+ * combined CG of a rider displaced `offset` metres across the bike plane at
+ * CG height h lies atan(share·offset/h) further into the corner. This is the
+ * whole hang-off effect: tan(φ_bike + θ) = a_y/g, so the bike itself needs
+ * θ less lean for the same corner (≈7° at full hang-off). */
+export function gpHangOffAngle(offset: number, cgHeight: number) {
+  return Math.atan((GP_RIDER_SHARE * offset) / Math.max(0.2, cgHeight));
+}
+
+/** Roll inertia about the tyre contact line (kg m²): own + m h². */
+export function gpRollInertia(geometry: MotoGPGeometry, mass: number, cgHeight: number) {
+  return (geometry.rollInertia ?? DEFAULT_ROLL_INERTIA) + mass * cgHeight * cgHeight;
+}
+
+/** Spin angular momentum of both road wheels at rolling speed (N m s per m/s).
+ * Their sum, times yaw rate, is the gyroscopic moment that stands a turning
+ * bike up; the front wheel's share opposes steering rotation. */
+export function gpSpinPerSpeed(geometry: MotoGPGeometry) {
+  return (
+    geometry.frontWheelInertia / geometry.frontRadius +
+    geometry.rearWheelInertia / geometry.rearRadius
+  );
+}
+
+/** Kinematic ground-plane steer of handlebars turned δ about a head raked ε
+ * on a bike leaned φ: tan Δ = tan δ · cos ε / cos φ (small-angle form of
+ * Cossalter's relation). A leaned bike turns more for the same bar angle. */
+export function gpGroundSteer(steer: number, lean: number) {
+  return Math.atan((Math.tan(steer) * Math.cos(GP_RAKE)) / Math.max(0.35, Math.cos(lean)));
+}
+export function gpBarSteer(ground: number, lean: number) {
+  return Math.atan((Math.tan(ground) * Math.max(0.35, Math.cos(lean))) / Math.cos(GP_RAKE));
+}
+
+/** Peak-friction factor of the slick's shoulder at a lean (rad): full grip
+ * through the racing camber range, then the tread edge gives way. */
+export function gpCamberFriction(lean: number) {
+  return 1 - 0.08 * Math.max(0, Math.abs(lean) - 0.7);
+}
+
+/** Roll-rate ceiling of the assisted rider (rad/s). The bar torque a rider
+ * can apply is bounded; rolling the bike at rate p asks the front wheel's
+ * spin momentum H_f = I_f·v/R_f for a precession torque H_f·p at the bars on
+ * top of the chassis's own inertia share. p_max = p0 / (1 + H_f/H_ref), so a
+ * flick at 250 km/h is markedly slower than at 100 km/h. p0 = 2.6 rad/s and
+ * H_ref = 160 N m s are authored rider-effort values, not measured data. */
+export const GP_ROLL_EFFORT = Object.freeze({ lowSpeedRate: 2.6, referenceMomentum: 160 });
+export function gpRollRateLimit(speed: number, geometry: MotoGPGeometry) {
+  const spin = (geometry.frontWheelInertia * Math.max(0, speed)) / geometry.frontRadius;
+  return GP_ROLL_EFFORT.lowSpeedRate / (1 + spin / GP_ROLL_EFFORT.referenceMomentum);
 }
 
 /** MotoGP-only single-track contact and chassis dynamics, independent of
@@ -75,6 +143,18 @@ export class MotoGPChassis {
   rearOmega = 0;
   frontSlidingPower = 0;
   rearSlidingPower = 0;
+  /** Ground-plane steer of the last step (rad), from bar steer and lean. */
+  groundSteer = 0;
+  /** Front tyre cornering stiffness at the last step's load (N/rad): the
+   * instantaneous lateral force a ground-steer change produces. */
+  frontStiffness = 0;
+  /** Lean-intent assist: integral steer trim on lateral-acceleration error
+   * (ground-plane rad). Deterministic controller memory, reset with the
+   * contact state. */
+  steerTrim = 0;
+  /** Lean-intent assist: the combined-CG lean it is steering toward (rad).
+   * Traction and wheelie control keep tyre capacity for it. */
+  leanTarget = 0;
   private lastSpeed = 0;
   private readonly front = slipState();
   private readonly rear = slipState();
@@ -90,6 +170,7 @@ export class MotoGPChassis {
     this.frontFy = this.rearFy = this.frontSlipAngle = this.rearSlipAngle = 0;
     this.frontSlip = this.rearSlip = 0;
     this.frontSlidingPower = this.rearSlidingPower = 0;
+    this.groundSteer = this.steerTrim = this.leanTarget = 0;
     this.frontOmega = speed / this.geometry.frontRadius;
     this.rearOmega = speed / this.geometry.rearRadius;
     this.lastSpeed = speed;
@@ -105,7 +186,7 @@ export class MotoGPChassis {
     if (Math.abs(v - this.lastSpeed) > 5) {
       this.frontOmega = v / g.frontRadius;
       this.rearOmega = v / g.rearRadius;
-      this.lateralSpeed = this.yawRate = 0;
+      this.lateralSpeed = this.yawRate = this.steerTrim = 0;
     }
     this.lastSpeed = v;
     const contact = clamp(q.frontContact, 0, 1);
@@ -122,11 +203,14 @@ export class MotoGPChassis {
       return this;
     }
 
+    // The tyre sees the ground-plane steer of the raked, leaned fork.
+    const steer = (this.groundSteer = gpGroundSteer(q.steer, q.lean));
     const frontFy = this.sideForce(
-      this.front, q.frontLoad * contact, q.frontMu, q.lean, q.steer,
+      this.front, q.frontLoad * contact, q.frontMu, q.lean, steer,
       this.lateralSpeed + g.frontArm * this.yawRate, v, q.frontFx,
     );
     this.frontSlipAngle = this.front.alpha;
+    this.frontStiffness = q.frontLoad * contact > 1 ? this.front.corneringStiffness : 0;
     const rearFy = this.sideForce(
       this.rear, q.rearLoad, q.rearMu, q.lean, 0,
       this.lateralSpeed - g.rearArm * this.yawRate, v, q.rearFx,
@@ -136,7 +220,7 @@ export class MotoGPChassis {
     const mix = 1 - Math.exp((-dt * Math.max(v, 3)) / MOTOGP_SLICK.relaxationLength);
     this.frontFy += (frontFy - this.frontFy) * mix;
     this.rearFy += (rearFy - this.rearFy) * mix;
-    const frontSide = this.frontFy * Math.cos(q.steer) + q.frontFx * Math.sin(q.steer);
+    const frontSide = this.frontFy * Math.cos(steer) + q.frontFx * Math.sin(steer);
     const lateral = frontSide + this.rearFy;
     const yawMoment = g.frontArm * frontSide - g.rearArm * this.rearFy;
     this.lateralAcceleration = lateral / Math.max(1, q.mass);
@@ -154,7 +238,7 @@ export class MotoGPChassis {
     steer: number, lateralVelocity: number, speed: number, longitudinal: number,
   ) {
     if (load <= 1 || mu <= 0) return 0;
-    const friction = Math.max(0.05, mu) * (1 - 0.08 * Math.max(0, Math.abs(lean) - 0.7));
+    const friction = Math.max(0.05, mu) * gpCamberFriction(lean);
     prepareSlip(MOTOGP_SLICK, load, friction, 1, 1, 1, state);
     const alpha = Math.atan2(lateralVelocity, Math.max(1, speed)) - steer;
     state.alpha = alpha - camberShift(MOTOGP_SLICK, load, state, lean, speed);

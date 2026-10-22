@@ -1,6 +1,34 @@
 import { clamp, G, lerp } from '../core/math.ts';
 import { GP_FRONT_SETTLE_RATE, gpFrontSteeringContact } from './gp-front-contact.ts';
-import { MotoGPChassis, type MotoGPGeometry } from './motogp-physics.ts';
+import {
+  GP_RAKE,
+  MotoGPChassis,
+  gpBarSteer,
+  gpCamberFriction,
+  gpHangOffAngle,
+  gpRollInertia,
+  gpRollRateLimit,
+  gpSpinPerSpeed,
+  type MotoGPGeometry,
+} from './motogp-physics.ts';
+
+/** GP lean-intent assist calibration (docs/motogp-physics-model.md). The
+ * assisted rider leans the combined CG to at most `leanMargin` of the tyres'
+ * present lateral capacity and may spend up to `recovery` of it to arrest a
+ * roll; the margin between the two is what makes every target recoverable.
+ * `rollGain` (1/s) and `rateGain` (1/s) shape the roll-rate reference and
+ * its tracking; `trimRate`/`trimLimit` bound the integral steer trim. */
+export const GP_ASSIST = Object.freeze({
+  leanMargin: 0.9,
+  recovery: 0.985,
+  rollGain: 4.5,
+  rateGain: 9,
+  stopShare: 0.75,
+  lead: 0.05,
+  trimRate: 4,
+  trimLimit: 0.035,
+  feedback: 1.2,
+});
 
 /** Reduced-order road-racing motorcycle model (WP33, masterplan §8). It began
  * as an isolated research model that settled the control contract and the
@@ -238,17 +266,131 @@ export class Bike {
       gpFrontSteeringContact(this.pitch, p.wheelbase)
     );
   }
-  /** Lateral acceleration the rider's hang-off adds at a lean, in units of g. */
+  /** Lateral acceleration the rider's hang-off adds at a lean, in units of g.
+   * GP prototypes use the exact combined-CG geometry (gpHangOffAngle). */
   riderGain(offset = this.riderOffset, lean = this.lean) {
+    if (this.motoGP) {
+      const theta = gpHangOffAngle(offset, this.p.cgHeight);
+      return Math.tan(clamp(lean + theta, -1.45, 1.45)) - Math.tan(lean);
+    }
     return (offset * 0.25) / (this.p.cgHeight * Math.max(0.2, Math.cos(lean)));
   }
   /** Lean the assist will request at full stick on the current surface (rad):
    * the lean whose cornering force, with full hang-off, stays inside 90% of
-   * the assist's friction budget, so a held target is always recoverable. */
+   * the assist's friction budget, so a held target is always recoverable.
+   * GP prototypes: the lean of the COMBINED bike + rider CG (tan ψ = a_y/g),
+   * bounded by the tyres' lateral friction and by the chassis's own ground
+   * clearance with the rider fully off; the bike's lean is ψ minus hang-off. */
   get leanLimit() {
-    const p = this.p,
-      gain = (p.riderOffsetMax * 0.25) / p.cgHeight;
+    const p = this.p;
+    if (this.motoGP) {
+      const clearance = p.maxLean + gpHangOffAngle(p.riderOffsetMax, p.cgHeight);
+      return Math.min(clearance, Math.atan(GP_ASSIST.leanMargin * this.gpFriction(clearance)));
+    }
+    const gain = (p.riderOffsetMax * 0.25) / p.cgHeight;
     return Math.min(p.maxLean, Math.atan(Math.max(0.2, 0.72 * p.mu * this.grip - gain)));
+  }
+  /** Steady lateral friction (in g) of both GP slicks at a combined lean,
+   * including wing load, the shoulder's camber factor and the gyroscopic
+   * moment of the spinning wheels (which asks ~3% more lean per g). */
+  private gpFriction(lean: number) {
+    const p = this.p,
+      gp = this.motoGP!,
+      m = this.mass,
+      wing = 1 + ((p.downforce ?? 0) * this.speed * this.speed) / (m * G),
+      gyro = 1 + (gpSpinPerSpeed(gp.geometry) * Math.cos(lean)) / (m * p.cgHeight);
+    return (p.mu * this.grip * gpCamberFriction(lean) * wing) / gyro;
+  }
+  /** Lateral acceleration (m/s²) both GP tyres can supply now: each contact's
+   * friction circle less the longitudinal force it already carries, bounded
+   * by whichever end limits the static front/rear share of cornering force. */
+  private gpLateralCapacity(frontMu: number, rearMu: number) {
+    const p = this.p,
+      m = this.mass,
+      shoulder = gpCamberFriction(this.lean),
+      front = Math.sqrt(
+        Math.max(0, (frontMu * shoulder * this.frontLoad) ** 2 - this.frontBrakeForce ** 2),
+      ),
+      rearFx = this.driveForce - this.rearBrakeForce,
+      rear = Math.sqrt(Math.max(0, (rearMu * shoulder * this.rearLoad) ** 2 - rearFx ** 2));
+    return Math.max(
+      0.5,
+      Math.min(front / ((m * p.cgToRear) / p.wheelbase), rear / ((m * p.cgToFront) / p.wheelbase)),
+    );
+  }
+  /** GP lean-intent assist: handlebar angle that brings the combined CG lean
+   * ψ to the rider's target. A roll-rate reference stays inside both the
+   * rider's steering effort (gpRollRateLimit) and the energy the tyres can
+   * still spend to stop the roll at the target; inverting the roll balance
+   * gives the lateral acceleration to ask for, and the kinematic ground steer
+   * for that acceleration plus a bounded integral trim on the measured
+   * acceleration gives the bars. The tyres, not this law, decide the motion. */
+  private gpSteer(stick: number, frontMu: number, rearMu: number, dt: number) {
+    const p = this.p,
+      gp = this.motoGP!,
+      v = Math.max(this.speed, 3),
+      m = this.mass,
+      h = p.cgHeight,
+      inertia = gpRollInertia(gp.geometry, m, h),
+      k = (m * h) / inertia,
+      capacity = this.gpLateralCapacity(frontMu, rearMu),
+      recovery = GP_ASSIST.recovery * capacity,
+      psi = this.lean + gpHangOffAngle(this.riderOffset, h),
+      gyro = gpSpinPerSpeed(gp.geometry) * this.speed * gp.yawRate * Math.cos(this.lean);
+    // Target: the stick's share of the steady lean limit (surface grip, wing
+    // load). Cornering ABS, traction and wheelie control keep the margin
+    // between it and the tyres' present capacity, which bounds recovery.
+    const target = (gp.leanTarget = clamp(stick, -1, 1) * this.leanLimit);
+    // The lateral force answers a steer change within a fraction of a second
+    // (sideslip and yaw modes); plan from where the roll will be by then.
+    const cornering = Math.max(4000, gp.frontStiffness),
+      lag = GP_ASSIST.lead + (m * this.speed) / (2 * cornering),
+      ahead = psi + lag * this.leanRate,
+      error = target - ahead,
+      direction = Math.sign(error);
+    // Roll energy left to stop at the target with the recovery acceleration:
+    // ∫ k(a_rec·cos s − dir·g·sin s) ds from ψ to the target.
+    const stopping =
+      k *
+      (recovery * direction * (Math.sin(target) - Math.sin(ahead)) +
+        G * (Math.cos(target) - Math.cos(ahead)));
+    const rate =
+      direction *
+      Math.min(
+        gpRollRateLimit(this.speed, gp.geometry),
+        GP_ASSIST.rollGain * Math.abs(error),
+        Math.sqrt(2 * GP_ASSIST.stopShare * Math.max(0, stopping)),
+      );
+    const rollAccel = GP_ASSIST.rateGain * (rate - this.leanRate);
+    // Inverse roll balance: I·ψ'' = m h (g sinψ − a cosψ) − H·r·cosφ.
+    const lateral = clamp(
+      (m * h * G * Math.sin(psi) - gyro - inertia * rollAccel) /
+        (m * h * Math.max(0.3, Math.cos(psi))),
+      -recovery,
+      recovery,
+    );
+    const measured = gp.lateralAcceleration,
+      saturated = Math.abs(lateral) >= recovery * 0.999;
+    // Integral trim: tyre slip angles the kinematic law does not know about.
+    if (!saturated || Math.sign(lateral - measured) !== Math.sign(gp.steerTrim))
+      gp.steerTrim = clamp(
+        gp.steerTrim + (GP_ASSIST.trimRate * p.wheelbase * (lateral - measured) * dt) / (v * v),
+        -GP_ASSIST.trimLimit,
+        GP_ASSIST.trimLimit,
+      );
+    // Proportional term through the front tyre's own cornering stiffness: a
+    // ground-steer change acts on the lateral force at once, long before the
+    // yaw and sideslip modes have settled (counter-steer transient).
+    const ground =
+      Math.atan((p.wheelbase * lateral) / (v * v)) +
+      gp.steerTrim +
+      clamp(
+        (GP_ASSIST.feedback * m * (lateral - measured)) / cornering,
+        -0.06,
+        0.06,
+      );
+    (gp as unknown as { debug: number[] }).debug = [target, psi, rate, lateral, measured, capacity, stopping, ground];
+    return gpBarSteer(ground, this.lean);
   }
   step(input: BikeInput, dt: number) {
     if (!(dt > 0) || dt > 0.05) throw new Error('Invalid bike timestep');
@@ -259,7 +401,11 @@ export class Bike {
       mu = p.mu * this.grip,
       frontMu = p.mu * (this.frontGrip ?? this.grip),
       rearMu = p.mu * (this.rearGrip ?? this.grip);
-    // Rider hang-off moves toward its command at a bounded rate.
+    // Rider hang-off moves toward its command at a bounded rate. On a GP
+    // prototype the combined lean is conserved while the rider moves: the
+    // bike rolls the other way by the hang-off angle (an internal force).
+    const offsetBefore = this.riderOffset,
+      steerBefore = this.steer;
     this.riderOffset += clamp(
       clamp(input.rider, -1, 1) * p.riderOffsetMax - this.riderOffset,
       -0.6 * dt,
@@ -268,7 +414,9 @@ export class Bike {
     // --- Steering: assisted intention or direct steer.
     const v = Math.max(this.speed, 0.1);
     let steerTarget: number;
-    if (a.lean) {
+    if (a.lean && this.motoGP && this.speed > 3)
+      steerTarget = this.gpSteer(input.lean, frontMu, rearMu, dt);
+    else if (a.lean) {
       // Stable intention: the requested lean is capped by what grip allows.
       // The assist commands the lateral acceleration that makes the lean
       // converge (less than g·tanφ to fall in, more to stand up): this is
@@ -337,20 +485,50 @@ export class Bike {
     // Lean-sensitive traction control: drive is kept inside what the rear
     // friction circle leaves after the cornering force it carries.
     const lateralNow = Math.abs(this.motoGP?.lateralAcceleration ?? this.speed * this.speed * this.curvature),
-      rearLatNow = m * lateralNow * (p.cgToFront / p.wheelbase);
+      rearLatNow = m * lateralNow * (p.cgToFront / p.wheelbase),
+      // GP traction control keeps the rear's share of the lean assist's
+      // recovery reserve, not just today's cornering force: drive that
+      // spends the margin leaves nothing to stand the bike up with.
+      // The lean itself sets that need (it changes slowly), so the reserve
+      // cannot collapse and re-arm the drive within one roll correction.
+      gpReserve = this.motoGP
+        ? m *
+          Math.max(
+            lateralNow,
+            G *
+              Math.tan(
+                Math.min(
+                  1.3,
+                  Math.max(
+                    Math.abs(this.lean + gpHangOffAngle(this.riderOffset, p.cgHeight)),
+                    a.lean ? Math.abs(this.motoGP.leanTarget) : 0,
+                  ),
+                ),
+              ),
+          ) *
+          (GP_ASSIST.recovery / GP_ASSIST.leanMargin)
+        : 0,
+      rearLatReserve = this.motoGP ? gpReserve * (p.cgToFront / p.wheelbase) : rearLatNow,
+      rearDriveCapacity = this.motoGP ? rearCapacity * gpCamberFriction(this.lean) : rearCapacity;
     if (a.traction)
       drive = Math.min(
         drive,
-        Math.sqrt(Math.max(0, rearCapacity ** 2 - rearLatNow ** 2)) * (p.tractionMargin ?? 0.92),
+        Math.sqrt(Math.max(0, rearDriveCapacity ** 2 - rearLatReserve ** 2)) *
+          (p.tractionMargin ?? 0.92),
       );
     // Wheelie control cuts drive before the acceleration that unloads the
     // front: it keeps a fifth of the static load, and in a corner the load
     // the front tyre needs for its share of the cornering force.
+    // GP: the front keeps the load its share of the assist's reserve needs;
+    // drive that unloads it below that pushes the front wide on the exit.
     const frontLatNow = m * lateralNow * (p.cgToRear / p.wheelbase);
     if (a.wheelie) {
+      const frontNeed = this.motoGP
+        ? (gpReserve * (p.cgToRear / p.wheelbase)) / (frontMu * gpCamberFriction(this.lean))
+        : frontLatNow / (0.8 * frontMu);
       const keep = Math.min(
         staticFront,
-        Math.max((p.wheelieKeep ?? 0.2) * staticFront, frontLatNow / (0.8 * frontMu)),
+        Math.max((p.wheelieKeep ?? 0.2) * staticFront, frontNeed),
       );
       drive = Math.min(drive, ((staticFront - keep) * p.wheelbase) / p.cgHeight);
     }
@@ -437,7 +615,7 @@ export class Bike {
       const capacity = tractionGrip * Math.max(0, staticRear + frontApplied * transferRatio);
       const coupling = tractionGrip * transferRatio;
       if (coupling < 1) {
-        const lateral = margin * rearLatNow;
+        const lateral = margin * rearLatReserve;
         const discriminant = capacity * capacity - (1 - coupling * coupling) * lateral * lateral;
         const limit =
           discriminant > 0
@@ -510,15 +688,39 @@ export class Bike {
     const kappa = this.curvature;
     const lateralAccel = gp ? gp.lateralAcceleration : this.speed * this.speed * kappa;
     const h = p.cgHeight;
-    const rollAccel =
-      (G * Math.sin(this.lean) - lateralAccel * Math.cos(this.lean)) / h +
-      ((G * this.riderOffset) / (h * h)) * 0.25;
     // Low-speed balance assist (explicit, §8.3): below walking pace the rider
     // supports the bike, so lean is held near upright instead of toppling.
     const support = a.lean ? 1 - clamp((this.speed - 1) / 4, 0, 1) : 0;
-    this.leanRate += (rollAccel - support * (this.lean * 40 + this.leanRate * 10)) * dt;
-    this.leanRate *= Math.exp(-(p.rollDamping ?? 1.2) * dt);
-    this.lean += this.leanRate * dt;
+    if (gp) {
+      // GP: roll of the COMBINED CG ψ = φ + θ(hang-off) about the contact
+      // line with the full roll inertia, I·ψ'' = m h (g sinψ − a_y cosψ)
+      // − H·r·cosφ − H_f·δ'·cosε. H is the wheels' measured spin momentum:
+      // yawing it stands the bike up (more lean per g at any speed), and
+      // turning the bars precesses the front wheel (counter-steer helps the
+      // roll begin). The rider's own movement conserves ψ, so hang-off rolls
+      // the bike φ = ψ − θ less far over for the same corner.
+      const geometry = gp.geometry,
+        inertia = gpRollInertia(geometry, m, h),
+        psi = this.lean + gpHangOffAngle(offsetBefore, h),
+        frontSpin = geometry.frontWheelInertia * gp.frontOmega,
+        spin = frontSpin + geometry.rearWheelInertia * gp.rearOmega,
+        steerRate = (this.steer - steerBefore) / dt;
+      const rollAccel =
+        (m * h * (G * Math.sin(psi) - lateralAccel * Math.cos(psi)) -
+          spin * gp.yawRate * Math.cos(this.lean) -
+          frontSpin * steerRate * Math.cos(GP_RAKE)) /
+        inertia;
+      this.leanRate += (rollAccel - support * (psi * 40 + this.leanRate * 10)) * dt;
+      this.leanRate *= Math.exp(-(p.rollDamping ?? 1.2) * dt);
+      this.lean = psi + this.leanRate * dt - gpHangOffAngle(this.riderOffset, h);
+    } else {
+      const rollAccel =
+        (G * Math.sin(this.lean) - lateralAccel * Math.cos(this.lean)) / h +
+        ((G * this.riderOffset) / (h * h)) * 0.25;
+      this.leanRate += (rollAccel - support * (this.lean * 40 + this.leanRate * 10)) * dt;
+      this.leanRate *= Math.exp(-(p.rollDamping ?? 1.2) * dt);
+      this.lean += this.leanRate * dt;
+    }
     // --- Grip limits: lateral demand against each friction circle.
     const camber = 1 - 0.18 * Math.max(0, Math.abs(this.lean) - 0.8);
     const lateralForce = m * Math.abs(lateralAccel);
