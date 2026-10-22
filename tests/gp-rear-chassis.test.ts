@@ -258,7 +258,8 @@ describe('GP rear structure on the production motorcycle', () => {
         // windscreen transmission passes. Keep that observed regression out.
         if (detail === 'high') expect(original.meshes).toBeLessThan(110);
         expect(original.materials.size).toBeLessThanOrEqual(34);
-        expect(original.textures.size).toBeLessThanOrEqual(19);
+        // +1: the GP screen's printed-border alpha map (gp-appearance.ts).
+        expect(original.textures.size).toBeLessThanOrEqual(20);
       } finally {
         for (const geometry of inventory(rearStructure).geometries) geometry.dispose();
         tray.dispose();

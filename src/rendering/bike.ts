@@ -13,7 +13,7 @@ import { gpRadialBrakeCaliper } from './gp-radial-caliper.ts';
 import { GPFrontHydraulics } from './gp-front-hydraulics.ts';
 import { gpBrakeRotor, GP_FRONT_DISC } from './gp-brake-rotor.ts';
 import { gpDiscGlow } from './gp-disc-glow.ts';
-import { gpForkCrowns } from './gp-fork-crown.ts';
+import { gpForkCrowns, GP_FORK_TUBE_TOP } from './gp-fork-crown.ts';
 import { gpMainFrame } from './gp-main-frame.ts';
 import { gpForgedWheel, gpTyreCompoundMarkings } from './gp-forged-wheel.ts';
 import { bindGpTyre, installGpTyreFinish, type GpTyreAppearance } from './gp-tyre-finish.ts';
@@ -877,14 +877,16 @@ export class BikeModel {
     this.steerMount.rotation.x = -RAKE;
     this.sprung.add(this.steerMount);
     this.steerMount.add(this.steer);
-    // Upper (outer) fork tubes and triple clamps.
+    // Upper (outer) fork tubes and triple clamps. GP tubes stop 12 mm above
+    // the top clamp under a low machined cap (gp-fork-crown.ts).
+    const tubeTop = gpPrototype ? GP_FORK_TUBE_TOP : 0.05;
     for (const side of [1, -1]) {
       add(
         this.steer,
-        new T.CylinderGeometry(0.029, 0.029, 0.4, sides / 2),
+        new T.CylinderGeometry(0.029, 0.029, tubeTop + 0.35, sides / 2),
         m.forkUpper,
         side * 0.105,
-        -0.15,
+        (tubeTop - 0.35) / 2,
         FORK_OFFSET,
       );
       if (detail !== 'far' && !gpPrototype)
@@ -1575,7 +1577,7 @@ export class BikeModel {
       );
     // Instrument display behind the screen.
     if (detail === 'high' && full) {
-      this.cockpit = new BikeCockpit(definition.spec.limiterRPM);
+      this.cockpit = new BikeCockpit(definition.spec.limiterRPM, gpPrototype);
       this.sprung.add(this.cockpit.root);
       // Wiring and reservoir give onboard views mechanical depth without
       // changing the grip/steering anchors or obscuring the rider's sightline.
@@ -2059,14 +2061,19 @@ export const BIKE_ONBOARD = Object.freeze({
   tail: [0, 0.78, -0.95] as const,
   tailPitch: -0.12,
 });
-/** GP eye clears the steering bridge while retaining the original road
- * pitch. The modest rearward/upward move reveals the controls below the
- * display; the wider lens preserves peripheral track visibility. The mount
- * is checked against the full-tuck rider and both prototypes' instruments. */
+/** GP onboard socket (REF 017/074/088): inside the followed rider's hidden
+ * helmet at the eye level of a full tuck (the helmet spans z 0.03-0.33 and
+ * y 0.39-0.68 there), just below the screen crown and 0.15 m behind the top
+ * clamp, with the original road pitch. The horizon sits at 38 % of the
+ * frame with the screen's rim arcing above it; the inner upper fairing and
+ * the race TFT fill the lower third and the fork caps sit on the bottom
+ * edge (leaving it under braking pitch), as in REF 017.
+ * The mount is checked against both prototypes' instruments through
+ * steering, lean and fork travel. */
 export const GP_ONBOARD = Object.freeze({
-  eye: [0, 0.5, 0.18] as const,
+  eye: [0, 0.48, 0.24] as const,
   pitch: BIKE_ONBOARD.pitch,
-  fovExtra: 6,
+  fovExtra: 2,
 });
 /** Helmet-height motocross eye above the raised bars and number board. The
  * GP windscreen socket sits directly behind the MX plate, obscuring the road. */

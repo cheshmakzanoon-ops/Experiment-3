@@ -537,6 +537,61 @@ function screenNet(variant: GpShellVariant): P3[][] {
   ]);
 }
 
+/** Inner upper fairing (REF 017, 074, 088): the carbon cockpit floor inside
+ * the nose, between the screen's base edges, that frames the race TFT from
+ * the rider's eye. Its rear lip stays ahead of the fork tubes' sweep at
+ * racing lock (z >= 0.505); it dips under the dash so the display stands
+ * proud of it. Columns: centre line to the screen-base edge (faces up). */
+export function gpInnerFairingNet(): P3[][] {
+  return net([
+    {
+      z: 0.505,
+      c: [
+        [0, 0.279],
+        [0.05, 0.281],
+        [0.095, 0.287],
+        [0.134, 0.296],
+      ],
+    },
+    {
+      z: 0.52,
+      c: [
+        [0, 0.278],
+        [0.05, 0.28],
+        [0.097, 0.287],
+        [0.137, 0.298],
+      ],
+    },
+    {
+      z: 0.575,
+      c: [
+        [0, 0.274],
+        [0.045, 0.277],
+        [0.085, 0.285],
+        [0.12, 0.295],
+      ],
+    },
+    {
+      z: 0.63,
+      c: [
+        [0, 0.272],
+        [0.04, 0.275],
+        [0.075, 0.282],
+        [0.105, 0.29],
+      ],
+    },
+    {
+      z: 0.7,
+      c: [
+        [0, 0.266],
+        [0.025, 0.268],
+        [0.05, 0.272],
+        [0.072, 0.278],
+      ],
+    },
+  ]);
+}
+
 /** A closed aerofoil swept along a path; the chord follows +Z. */
 function sweptFoil(
   path: readonly P3[],
@@ -1283,13 +1338,20 @@ export function gpRaceBodywork(
       materials.seat,
       'GP race shell / seat pad',
     );
+    mesh(
+      shellPanelGeometry({ name: 'GP inner upper fairing', net: gpInnerFairingNet(), rows, cols }),
+      materials.carbon,
+      'GP race shell / inner upper fairing',
+    );
   }
   const screen = mesh(
     shellPanelGeometry({
       name: 'GP screen',
       net: screenNet(variant),
       rows: high ? 4 : 2,
-      cols: high ? 4 : 2,
+      // Finer around the arch at high LOD: its free rim is the onboard view's
+      // horizon line and must read as a curve, not a polygon.
+      cols: high ? 7 : 2,
     }),
     transmissive ? materials.screen : materials.screenLight,
     'GP race shell / screen',

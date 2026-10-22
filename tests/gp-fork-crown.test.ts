@@ -8,7 +8,7 @@ import {
   staticSag,
   type BikePoseValues,
 } from '../src/rendering/bike.ts';
-import { gpForkCrowns } from '../src/rendering/gp-fork-crown.ts';
+import { gpForkCrowns, GP_FORK_CROWN as C } from '../src/rendering/gp-fork-crown.ts';
 import { VEHICLES } from '../src/simulation/vehicles.ts';
 import { inspectBikeCockpit } from '../e2e/fixtures/bike-cockpit-contract.ts';
 
@@ -84,7 +84,7 @@ function state(root: T.Object3D) {
 }
 
 describe('GP fork crowns above the real opaque fork tubes', () => {
-  it('has an open retaining bore and a physically recessed screw slot within the old envelope', () => {
+  it('has an open retaining bore and a physically recessed screw slot in a low envelope', () => {
     const materials = new BikeMaterials(0);
     for (const detail of ['high', 'mid'] as const) {
       const root = new T.Group();
@@ -92,10 +92,12 @@ describe('GP fork crowns above the real opaque fork tubes', () => {
       try {
         root.updateMatrixWorld(true);
         const bounds = new T.Box3().setFromObject(root);
-        expect(bounds.min.y).toBeGreaterThanOrEqual(0.05);
-        expect(bounds.max.y).toBeLessThan(0.075);
-        expect(bounds.min.x).toBeGreaterThan(-0.136001);
-        expect(bounds.max.x).toBeLessThan(0.136001);
+        // The caps sit on the 12 mm tube stub and rise no more than 15 mm
+        // (the former stack stood 48 mm above the top clamp).
+        expect(bounds.min.y).toBeGreaterThanOrEqual(0.034 - 1e-6);
+        expect(bounds.max.y).toBeLessThan(0.049);
+        expect(bounds.min.x).toBeGreaterThan(-0.134001);
+        expect(bounds.max.x).toBeLessThan(0.134001);
         for (const side of [-1, 1]) {
           const origin = new T.Vector3(side * 0.105, 0.12, 0.03),
             ring = root.getObjectByName(`GP ${side > 0 ? 'left' : 'right'} fork retaining ring`)!;
@@ -103,7 +105,7 @@ describe('GP fork crowns above the real opaque fork tubes', () => {
           const axial = new T.Raycaster(origin, new T.Vector3(0, -1, 0));
           expect(axial.intersectObject(ring)).toHaveLength(0);
           const centre = axial.intersectObject(root, true)[0];
-          expect(centre.point.y).toBeCloseTo(detail === 'high' ? 0.0665 : 0.064, 7);
+          expect(centre.point.y).toBeCloseTo(detail === 'high' ? C.slotFloor : C.hexTop, 7);
           if (detail === 'high') {
             origin.z += 0.002;
             axial.set(origin, new T.Vector3(0, -1, 0));
@@ -148,15 +150,16 @@ describe('GP fork crowns above the real opaque fork tubes', () => {
           camera.lookAt(camera.position.clone().add(direction));
           camera.updateMatrixWorld(true);
           for (const side of [-1, 1]) {
+            // Ring top, preload hex top and (high) the slotted adjuster head.
             const witnesses = [
-              [-0.006, 0.0595, -0.025],
-              [0.006, 0.0595, -0.025],
-              [-0.011, 0.064, 0],
-              [0.011, 0.064, 0],
+              [-0.006, C.ringTop, -0.024],
+              [0.006, C.ringTop, -0.024],
+              [-0.008, C.hexTop, 0],
+              [0.008, C.hexTop, 0],
               ...(detail === 'high'
                 ? [
-                    [-0.002, 0.068, 0.002],
-                    [0.002, 0.068, 0.002],
+                    [-0.002, C.screwTop, 0.002],
+                    [0.002, C.screwTop, 0.002],
                   ]
                 : []),
             ];
@@ -169,10 +172,12 @@ describe('GP fork crowns above the real opaque fork tubes', () => {
               expect(hit!.point.distanceTo(target)).toBeLessThan(0.00001);
               const projected = target.clone().project(camera);
               expect(Math.abs(projected.x)).toBeLessThan(1);
-              // The low rear lip can leave the frame as the fork compresses
-              // and steers. The control faces stay visible in every pose;
-              // the entire sampled crown is visible at its settled position.
-              if (y >= 0.064 || value === values[0]) expect(Math.abs(projected.y)).toBeLessThan(1);
+              // REF 017 framing: the caps sit on the lens's bottom edge (the
+              // ring's rear lip may be cut) with the hex and adjuster in view
+              // at the settled pose; they leave it as the sprung front dives
+              // under braking and never rise into the middle of the view.
+              expect(projected.y).toBeLessThan(-0.6);
+              if (value === values[0] && y >= C.hexTop) expect(projected.y).toBeGreaterThan(-1);
             }
           }
           if (detail === 'high')
