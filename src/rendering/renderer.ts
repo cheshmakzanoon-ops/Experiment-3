@@ -131,6 +131,20 @@ import { Sky } from 'three/addons/objects/Sky.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { SceneAmbientPass } from './scene-ambient-pass.ts';
 import { BroadcastGradePass, GRADE_PROFILES } from './broadcast-grade.ts';
+import {
+  GP_PHOTOGRAPHIC,
+  applyGpDaylight,
+  gpGradeProfile,
+  gpPhotographicActive,
+  type GpPhotographicLook,
+} from './gp-photographic-light.ts';
+import {
+  GP_CHASE,
+  GP_SHUTTER,
+  GpChaseDynamics,
+  gpChase,
+  gpSubjectLens,
+} from './gp-photographic-camera.ts';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { FormulaCar } from './car.ts';
 import { carLod } from './lod.ts';
@@ -242,6 +256,13 @@ export class RacingRenderer {
   private readonly gpRoadPreview = new MotorcycleRoadPreview();
   /** Accessibility master switch: no motion blur (camera vibration is set by the app). */
   reducedMotion = false;
+  /** W1: the GP photographic light/grade (gp-photographic-light.ts), used only
+   * while a GP prototype is followed on a live circuit view. */
+  gpLook: Readonly<GpPhotographicLook> = GP_PHOTOGRAPHIC;
+  /** W1: the GP chase rig, lens and shutter (gp-photographic-camera.ts) for a
+   * followed GP prototype; false restores the shared bike camera (evidence). */
+  gpCamera = true;
+  private readonly gpChaseDynamics = new GpChaseDynamics();
   readonly studioFrame = new StudioFrame();
   /** Time Trial ghost, built on first use; posed from setGhost() each frame. */
   private ghost: GhostCar | null = null;
@@ -1139,6 +1160,7 @@ export class RacingRenderer {
     this.inertia.reset();
     this.viewOrientation.reset();
     this.motocrossCamera.reset();
+    this.gpChaseDynamics.reset();
     this.trackside.reset();
     this.lookX = 0;
     this.lookY = 0;
@@ -1157,6 +1179,7 @@ export class RacingRenderer {
     this.inertia.reset();
     this.viewOrientation.reset();
     this.motocrossCamera.reset();
+    this.gpChaseDynamics.reset();
     this.trackside.reset();
     this.effectPlayback.reset();
     this.sampleCount = 0;
@@ -1194,6 +1217,7 @@ export class RacingRenderer {
       this.inertia.reset();
       this.viewOrientation.reset();
       this.motocrossCamera.reset();
+      this.gpChaseDynamics.reset();
       this.trackside.reset();
       this.audioView.reset();
       this.initialized = false;
@@ -1210,9 +1234,12 @@ export class RacingRenderer {
         !!followedDefinition.bike?.offroad;
     this.circuit.setMotorcyclePresentation(bikeFollow, followedDefinition.classId === 'gp-bike');
     this.circuit.setGrandPrixGrid(gpGridForFrame(presented));
+    // W1: a followed GP prototype gets the GP chase rig, lens and shutter.
+    const gpFollow =
+      bikeFollow && !motocrossFollow && followedDefinition.classId === 'gp-bike' && this.gpCamera;
     const bikeView =
       bikeFollow && !motocrossFollow
-        ? motorcycleChase(
+        ? (gpFollow ? gpChase : motorcycleChase)(
             presented[o + F.SPEED],
             presented[o + F.BRAKE],
             presented[o + BIKE_BASE + B.LEAN],
@@ -1268,6 +1295,11 @@ export class RacingRenderer {
       daylight.fill = 0.25;
       daylight.environment = 0.3;
     }
+    // W1: GP sessions trade diffuse sky fill for a dominant sun key and hazier air.
+    const gpLook = gpPhotographicActive(followedDefinition.classId, studio, illumination)
+      ? this.gpLook
+      : null;
+    if (gpLook) applyGpDaylight(daylight, gpLook);
     this.venueLighting.update(
       illumination !== 'day',
       car.root.position,
@@ -1282,6 +1314,11 @@ export class RacingRenderer {
     this.scene.environmentIntensity = daylight.environment;
     // Sky fallback and already-lit local radiance have different gains.
     const specularIBL = setIblEnergy(daylight.environment, illumination, undefined, !studio);
+    if (gpLook)
+      iblUniforms.apexSkyIrradianceSaturation.value = Math.max(
+        iblUniforms.apexSkyIrradianceSaturation.value,
+        gpLook.shadowSaturation,
+      );
     // A photographed dome keeps the physical sky's diffuse colour balance.
     const photoSaturation = studio
       ? null
@@ -1525,6 +1562,26 @@ export class RacingRenderer {
             T.MathUtils.lerp(chase.lookAhead, CHASE_PIT.lookAhead, pit),
           );
         this.gaze.y += T.MathUtils.lerp(chase.lookLift, CHASE_PIT.lookLift, pit);
+        if (gpFollow && !menu && !this.photo && !pregame) {
+          // Bounded load response (pull-back on drive, close-in and forward
+          // pitch on braking) and fine high-speed vibration, in the rig frame.
+          const d = this.gpChaseDynamics.update(
+            cameraDt,
+            presented[o + F.G_LONG],
+            speed,
+            time,
+            this.shake,
+            this.reducedMotion,
+          );
+          this.desired.add(
+            this.temporary.set(d.eyeX, d.eyeY, -d.distance).applyQuaternion(this.chaseBasis),
+          );
+          this.gaze.add(
+            this.temporary
+              .set(d.gazeX, d.gazeY - d.pitch * chase.lookAhead, 0)
+              .applyQuaternion(this.chaseBasis),
+          );
+        }
       }
       if (this.lookX || this.lookY) {
         this.direction
@@ -1598,7 +1655,12 @@ export class RacingRenderer {
       if (cameraMode === 'chase') {
         if (motocrossFollow && !pregame) this.camera.up.copy(this.motocrossCamera.up);
         else
-          this.camera.up.lerp(this.temporary, this.reducedMotion ? 0 : BIKE_CHASE_ROLL).normalize();
+          this.camera.up
+            .lerp(
+              this.temporary,
+              this.reducedMotion ? 0 : gpFollow ? GP_CHASE.roll : BIKE_CHASE_ROLL,
+            )
+            .normalize();
       } else if (cameraMode === 'cockpit' || cameraMode === 'pod')
         this.camera.up.copy(this.temporary);
     }
@@ -1836,7 +1898,7 @@ export class RacingRenderer {
       );
       this.drawLedger.mark('other');
       this.motionBlur.setStrength(
-        this.reducedMotion ? 0 : this.graphics.motionBlur,
+        this.reducedMotion ? 0 : this.graphics.motionBlur * (gpFollow ? GP_SHUTTER : 1),
         !this.photo && !menu,
       );
       this.motionBlur.prepareFrame(presented, this.camera, this.follow, cameraMode, replay);
@@ -1844,7 +1906,9 @@ export class RacingRenderer {
       const lens: SubjectLens | null =
         pregame && this.gridShot.maxblur > 0
           ? this.gridShot
-          : subjectLens(menu, !!this.photo, cameraMode, this.camera.fov);
+          : gpFollow && !menu && !this.photo
+            ? gpSubjectLens(cameraMode, this.camera.fov)
+            : subjectLens(menu, !!this.photo, cameraMode, this.camera.fov);
       if (lens?.thinLens) {
         this.broadcastFocus ??= new DepthOfFieldPass(
           this.camera,
@@ -1897,6 +1961,7 @@ export class RacingRenderer {
       this.grade.photoOverride = this.photo
         ? photoGrade(GRADE_PROFILES[studio ? 'studio' : illumination], this.photo)
         : null;
+      this.grade.sessionOverride = gpLook ? gpGradeProfile(illumination, gpLook) : null;
       postLensFrame(
         this.grade,
         this.bloom,

@@ -20,8 +20,11 @@ import type { DepthOfFieldPass } from './dof-pass.ts';
 export interface SubjectLens {
   aperture: number;
   maxblur: number;
-  /** Thin-lens model (gate height, f-number): lensK from the camera's fov. */
-  thinLens?: Readonly<{ fNumber: number; sensorHeight: number }>;
+  /** Thin-lens model (gate height, f-number): lensK from the camera's fov.
+   * `fixedK` instead holds the far-field circle (screen heights) constant: the
+   * thin lens's distance-ratio response, art-directed to the GP references
+   * where a physical lens at the game's camera distances would be sharp. */
+  thinLens?: Readonly<{ fNumber: number; sensorHeight: number; fixedK?: number }>;
 }
 export const BROADCAST_LENS: SubjectLens = Object.freeze({
   aperture: 0,
@@ -56,12 +59,9 @@ export function focusOnSubject(
     if (!uniforms.lensK) throw new Error('Thin-lens subject focus needs a thin-lens pass');
     const focus = Math.max(REPLAY_LENS.minFocus, depth);
     uniforms.focus.value = focus;
-    uniforms.lensK.value = thinLensScale(
-      camera.fov,
-      focus,
-      lens.thinLens.fNumber,
-      lens.thinLens.sensorHeight,
-    );
+    uniforms.lensK.value =
+      lens.thinLens.fixedK ??
+      thinLensScale(camera.fov, focus, lens.thinLens.fNumber, lens.thinLens.sensorHeight);
   } else uniforms.focus.value = depth;
   pass.enabled = true;
 }
