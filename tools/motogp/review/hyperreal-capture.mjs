@@ -63,7 +63,13 @@ const errors = [];
 try {
   const page = await browser.newPage({ viewport: { width, height } });
   page.on('pageerror', (e) => errors.push(e.message));
-  page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
+  page.on('console', (m) => {
+    if (m.type() === 'error') errors.push(m.text());
+    else if (/^(prepared|captured) /.test(m.text())) console.log(m.text());
+  });
+  await page.exposeFunction('saveCapture', (name, url) =>
+    writeFileSync(resolve(out, name), Buffer.from(url.split(',')[1], 'base64')),
+  );
   await page.setContent('<!doctype html><title>MotoGP hyperrealism capture</title>');
   await page.addScriptTag({ content: chunk.code });
   await page.evaluate((a) => window.GPHyperreal.installOfflineAssets(a), assets);

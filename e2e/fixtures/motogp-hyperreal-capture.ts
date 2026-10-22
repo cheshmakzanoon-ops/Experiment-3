@@ -102,6 +102,7 @@ export async function captureGPMoments(o: HyperrealCaptureOptions = {}) {
       yieldGpu,
     );
     if (!prepared) throw new Error('GP composition preparation cancelled');
+    console.log(`prepared ${preset} scene in ${(performance.now() / 1000).toFixed(1)} s`);
     const moments = (o.moments ?? [24, 32, 40]).slice().sort((a, b) => a - b);
     const views = o.views ?? (['chase', 'cockpit', 'trackside'] as CameraMode[]);
     let time = 0;
@@ -111,14 +112,19 @@ export async function captureGPMoments(o: HyperrealCaptureOptions = {}) {
         time = moment;
       }
       for (const view of views) {
+        const started = performance.now();
         renderer.changeCamera(view);
-        // Settle camera damping over real simulated motion (~0.4 s at 60 Hz).
-        for (let f = 0; f < 24; f++) {
-          advance(1 / 60);
-          time += 1 / 60;
-          renderer.draw(previous, current, 1, 1 / 60, false);
-          if (f % 6 === 5) await settle();
+        // Settle camera damping over ~0.5 s of real simulated motion. Few long
+        // steps (draw clamps dt to 0.08 s): each draw of a 5–6 M triangle High
+        // scene costs seconds on a CPU rasteriser. Newly visible programs
+        // compile on the first draw, so the fence is awaited right after it.
+        for (let f = 0; f < 6; f++) {
+          advance(1 / 12);
+          time += 1 / 12;
+          renderer.draw(previous, current, 1, 1 / 12, false);
+          if (f === 0) await settle();
         }
+        await settle();
         renderer.draw(previous, current, 1, 1 / 60, false);
         const image = canvas.toDataURL('image/jpeg', 0.92);
         const base = carBase(0);
@@ -133,6 +139,13 @@ export async function captureGPMoments(o: HyperrealCaptureOptions = {}) {
           brake: current[base + F.BRAKE],
           throttle: current[base + F.THROTTLE],
         });
+        // The review runner persists each frame immediately when it exposes this.
+        await (
+          globalThis as { saveCapture?: (name: string, url: string) => Promise<void> }
+        ).saveCapture?.(`${view}-${moment}s.jpg`, image);
+        console.log(
+          `captured ${view}@${moment}s in ${((performance.now() - started) / 1000).toFixed(1)} s`,
+        );
       }
     }
     return {
