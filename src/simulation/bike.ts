@@ -24,10 +24,11 @@ export const GP_ASSIST = Object.freeze({
   rollGain: 4.5,
   rateGain: 9,
   stopShare: 0.75,
-  lead: 0.05,
+  lead: 0.06,
   trimRate: 4,
   trimLimit: 0.035,
   feedback: 1.2,
+  yawDamping: 4,
 });
 
 /** Reduced-order road-racing motorcycle model (WP33, masterplan §8). It began
@@ -343,9 +344,17 @@ export class Bike {
     const target = (gp.leanTarget = clamp(stick, -1, 1) * this.leanLimit);
     // The lateral force answers a steer change within a fraction of a second
     // (sideslip and yaw modes); plan from where the roll will be by then.
-    const cornering = Math.max(4000, gp.frontStiffness),
-      lag = GP_ASSIST.lead + (m * this.speed) / (2 * cornering),
-      ahead = psi + lag * this.leanRate,
+    // The present roll acceleration (from the measured tyre force) carries
+    // the roll rate on for that lag too.
+    const measured = gp.lateralAcceleration,
+      cornering = Math.max(4000, gp.frontStiffness),
+      // The front-force steering answers within a relaxation length, so the
+      // look-ahead is short; rateGain·lead < 1 keeps the measured-force
+      // prediction from feeding a step-to-step oscillation.
+      lag = GP_ASSIST.lead,
+      rolling = (m * h * (G * Math.sin(psi) - measured * Math.cos(psi)) - gyro) / inertia,
+      rateAhead = this.leanRate + lag * rolling,
+      ahead = psi + lag * this.leanRate + 0.5 * lag * lag * rolling,
       error = target - ahead,
       direction = Math.sign(error);
     // Roll energy left to stop at the target with the recovery acceleration:
@@ -361,35 +370,40 @@ export class Bike {
         GP_ASSIST.rollGain * Math.abs(error),
         Math.sqrt(2 * GP_ASSIST.stopShare * Math.max(0, stopping)),
       );
-    const rollAccel = GP_ASSIST.rateGain * (rate - this.leanRate);
+    const rollAccel = GP_ASSIST.rateGain * (rate - rateAhead);
     // Inverse roll balance: I·ψ'' = m h (g sinψ − a cosψ) − H·r·cosφ.
-    const lateral = clamp(
+    const demand =
       (m * h * G * Math.sin(psi) - gyro - inertia * rollAccel) /
-        (m * h * Math.max(0.3, Math.cos(psi))),
-      -recovery,
-      recovery,
-    );
-    const measured = gp.lateralAcceleration,
-      saturated = Math.abs(lateral) >= recovery * 0.999;
-    // Integral trim: tyre slip angles the kinematic law does not know about.
+      (m * h * Math.max(0.3, Math.cos(psi)));
+    // Traction and wheelie control give way to the roll control asked for.
+    gp.lateralDemand = Math.min(Math.abs(demand), 2 * G);
+    const lateral = clamp(demand, -recovery, recovery);
+    const saturated = Math.abs(lateral) >= recovery * 0.999;
+    // Integral trim on the measured acceleration: relaxation and the slip
+    // the inverse below does not model (combined-slip weighting).
     if (!saturated || Math.sign(lateral - measured) !== Math.sign(gp.steerTrim))
       gp.steerTrim = clamp(
         gp.steerTrim + (GP_ASSIST.trimRate * p.wheelbase * (lateral - measured) * dt) / (v * v),
         -GP_ASSIST.trimLimit,
         GP_ASSIST.trimLimit,
       );
-    // Proportional term through the front tyre's own cornering stiffness: a
-    // ground-steer change acts on the lateral force at once, long before the
-    // yaw and sideslip modes have settled (counter-steer transient).
+    // The front tyre supplies what the rear presently does not, less a yaw
+    // correction toward the path's own yaw rate (a/v): with the rear light
+    // under braking, nothing else damps the yaw. Steering the front for a
+    // force, through the inverse of its own curve at its present slip,
+    // camber and sideslip, answers within one relaxation length.
+    const yawError = gp.yawRate - lateral / v,
+      frontForce =
+        m * lateral -
+        gp.rearFy -
+        (GP_ASSIST.yawDamping * gp.geometry.yawInertia * yawError) / gp.geometry.frontArm,
+      inverse = gp.frontSteerFor(frontForce, this.lean, this.speed, this.frontBrakeForce);
     const ground =
-      Math.atan((p.wheelbase * lateral) / (v * v)) +
-      gp.steerTrim +
-      clamp(
-        (GP_ASSIST.feedback * m * (lateral - measured)) / cornering,
-        -0.06,
-        0.06,
-      );
-    (gp as unknown as { debug: number[] }).debug = [target, psi, rate, lateral, measured, capacity, stopping, ground];
+      (inverse ??
+        Math.atan((p.wheelbase * lateral) / (v * v)) +
+          clamp((GP_ASSIST.feedback * m * (lateral - measured)) / cornering, -0.06, 0.06)) +
+      gp.steerTrim;
+    (gp as unknown as { debug: number[] }).debug = [target, psi, rate, lateral, measured, capacity, frontForce, gp.frontFy, gp.rearFy, inverse ?? NaN, ground, gp.steerTrim];
     return gpBarSteer(ground, this.lean);
   }
   step(input: BikeInput, dt: number) {
@@ -505,6 +519,7 @@ export class Bike {
                   ),
                 ),
               ),
+            a.lean ? this.motoGP.lateralDemand : 0,
           ) *
           (GP_ASSIST.recovery / GP_ASSIST.leanMargin)
         : 0,

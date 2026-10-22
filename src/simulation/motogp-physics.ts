@@ -4,6 +4,7 @@ import {
   camberShift,
   combinedForces,
   prepareSlip,
+  slipCurve,
   slipState,
   type TyreConstruction,
 } from './tyre-force.ts';
@@ -155,6 +156,9 @@ export class MotoGPChassis {
   /** Lean-intent assist: the combined-CG lean it is steering toward (rad).
    * Traction and wheelie control keep tyre capacity for it. */
   leanTarget = 0;
+  /** Lateral acceleration the assist's roll control asked for (m/s², ≥ 0). */
+  lateralDemand = 0;
+  private frontLoadUsed = 0;
   private lastSpeed = 0;
   private readonly front = slipState();
   private readonly rear = slipState();
@@ -170,7 +174,7 @@ export class MotoGPChassis {
     this.frontFy = this.rearFy = this.frontSlipAngle = this.rearSlipAngle = 0;
     this.frontSlip = this.rearSlip = 0;
     this.frontSlidingPower = this.rearSlidingPower = 0;
-    this.groundSteer = this.steerTrim = this.leanTarget = 0;
+    this.groundSteer = this.steerTrim = this.leanTarget = this.lateralDemand = 0;
     this.frontOmega = speed / this.geometry.frontRadius;
     this.rearOmega = speed / this.geometry.rearRadius;
     this.lastSpeed = speed;
@@ -198,7 +202,7 @@ export class MotoGPChassis {
         : 0;
       this.lateralSpeed = 0;
       this.frontFy = this.rearFy = this.lateralAcceleration = 0;
-      this.frontSlipAngle = this.rearSlipAngle = 0;
+      this.frontSlipAngle = this.rearSlipAngle = this.frontLoadUsed = 0;
       this.stepWheels(q);
       return this;
     }
@@ -211,6 +215,7 @@ export class MotoGPChassis {
     );
     this.frontSlipAngle = this.front.alpha;
     this.frontStiffness = q.frontLoad * contact > 1 ? this.front.corneringStiffness : 0;
+    this.frontLoadUsed = q.frontLoad * contact;
     const rearFy = this.sideForce(
       this.rear, q.rearLoad, q.rearMu, q.lean, 0,
       this.lateralSpeed - g.rearArm * this.yawRate, v, q.rearFx,
@@ -231,6 +236,35 @@ export class MotoGPChassis {
     this.lateralSpeed = clamp(this.lateralSpeed, -0.8 * Math.max(v, 1), 0.8 * Math.max(v, 1));
     this.stepWheels(q);
     return this;
+  }
+
+  /** Ground-plane steer at which the front tyre, in its present contact
+   * state (load, friction, longitudinal force, camber, yaw and sideslip),
+   * produces `force` newtons of lateral force: the exact inverse of the
+   * pure-slip curve below its peak, with the friction ellipse reduced by
+   * the longitudinal force. Steering for a force rather than a path is what
+   * a rider does through the bars; it also steers into a sliding rear.
+   * Returns null when the front is not on the road. */
+  frontSteerFor(force: number, lean: number, speed: number, longitudinal: number) {
+    const state = this.front,
+      load = this.frontLoadUsed;
+    if (!(load > 1 && state.dy > 1 && speed >= 2.5)) return null;
+    const limit = Math.sqrt(Math.max(1, state.dy ** 2 - longitudinal ** 2)),
+      fraction = Math.min(0.97, Math.abs(force) / limit);
+    // Bisection on σ ∈ [0, 0.9]: the curve rises monotonically to its peak.
+    let lo = 0,
+      hi = 0.9;
+    for (let i = 0; i < 18; i++) {
+      const mid = 0.5 * (lo + hi);
+      if (slipCurve(mid, state.cy, state.ey, state.x0y) < fraction) lo = mid;
+      else hi = mid;
+    }
+    const slip = -Math.sign(force) * 0.5 * (lo + hi) * state.alphaRef,
+      geometric = Math.atan2(
+        this.lateralSpeed + this.geometry.frontArm * this.yawRate,
+        Math.max(1, speed),
+      );
+    return geometric - camberShift(MOTOGP_SLICK, load, state, lean, speed) - slip;
   }
 
   private sideForce(
