@@ -1,3 +1,4 @@
+import { GP_CLEAR_SKY } from './assets/sky-catalogue.ts';
 import type { GradeProfile } from './broadcast-grade.ts';
 import type { LightingMode } from './daylight.ts';
 
@@ -28,6 +29,9 @@ import type { LightingMode } from './daylight.ts';
  *    instead of the 40 km visibility of the shared clear sky.
  *  - `shadowSaturation` keeps more of the sky's blue in the diffuse fill
  *    (cool open shade under a warm key; 0.75 is the shared day value).
+ *  - `clearSky` puts a clear photographed day sky ahead of venue ramps that
+ *    open with cumulus (assets/sky-catalogue.ts withClearSky), as every
+ *    lighting reference is shot under a clear sky; null keeps the venue's.
  *  - `grade` is the GP broadcast grade over ACES (broadcast-grade.ts).
  *
  * Pure data and pure functions of the presented lighting: no time source.
@@ -39,6 +43,7 @@ export interface GpPhotographicLook {
   exposureEV: number;
   haze: number;
   shadowSaturation: number;
+  clearSky: string | null;
   grade: Readonly<Record<'day' | 'sunset', Readonly<GradeProfile>>>;
 }
 
@@ -49,6 +54,7 @@ export const GP_PHOTOGRAPHIC: Readonly<GpPhotographicLook> = Object.freeze({
   exposureEV: 0.25,
   haze: 3,
   shadowSaturation: 0.9,
+  clearSky: GP_CLEAR_SKY,
   grade: Object.freeze({
     day: Object.freeze({
       contrast: 0.24,

@@ -1,5 +1,6 @@
 import { clamp, smooth } from '../core/math.ts';
 import type { SubjectLens } from './studio/subject-focus.ts';
+import type { TracksideLens } from './trackside.ts';
 
 /**
  * GP photographic camera (W1 hyperrealism): the chase rig, its bounded
@@ -7,12 +8,16 @@ import type { SubjectLens } from './studio/subject-focus.ts';
  * the trackside broadcast lens, for a followed GP prototype only. Road bikes
  * keep motorcycle-camera.ts, motocross its own rig, cars the CHASE rig.
  *
- * Composition (REF_019/020/021 game chase, REF_055/077/089 broadcast chase):
- * the camera sits lower and closer behind the bike than the shared bike rig
- * (eye about 1.1 m above the road instead of 1.5 m) behind a longer lens
- * (43 degrees vertical instead of 51), so the rider and machine fill the lower
- * centre of the frame and the road compresses toward a horizon a little above
- * mid-frame. Distances are relative to the bike's centre of gravity.
+ * Composition (REF_014 game chase, REF_055/077/089 broadcast chase): the
+ * camera sits lower and closer behind the bike than the shared bike rig (eye
+ * about 1.1 m above the road instead of 1.5 m) behind a longer lens (43
+ * degrees vertical instead of 51), pitched down a fixed 6.2 degrees. The
+ * shared rig puts the rear contact patch just below the frame edge; this one
+ * keeps the contact patch and its cast shadow in frame (77-85 % of the
+ * half-height below centre) with the rider's helmet just above centre, so the
+ * machine fills about half the frame height (shared: about 40 %) and the
+ * horizon sits a little above mid-frame. Distances are relative to the
+ * bike's centre of gravity.
  *
  * Dynamics (felt mass, REF_049/059/071): longitudinal load, filtered with a
  * fixed time constant in presented camera time, pulls the camera back under
@@ -23,18 +28,18 @@ import type { SubjectLens } from './studio/subject-focus.ts';
  */
 export const GP_CHASE = Object.freeze({
   /** Eye height above the CG at rest, metres (shared bike rig: 0.88). */
-  height: 0.6,
+  height: 0.5,
   heightPerMS: 0.0012,
   /** Rise of the eye under full brake, metres. */
   brakeRise: 0.06,
   /** Distance behind the CG at rest, metres (shared bike rig: 3.2). */
-  distance: 2.95,
+  distance: 3.2,
   distancePerMS: 0.003,
   lookAhead: 10,
   lookAheadPerMS: 0.06,
   lookAheadMax: 4.5,
-  /** Gaze lift above the CG, metres: negative sets the bike lower in frame. */
-  lookLift: -0.02,
+  /** Downward view pitch, degrees; the gaze lift is derived from it. */
+  pitchDeg: 6.2,
   /** Vertical field of view, degrees, and its speed widening (cap). */
   fov: 43,
   fovGain: 4,
@@ -67,19 +72,43 @@ export const GP_CHASE = Object.freeze({
  * streak the background and wheels at speed. */
 export const GP_SHUTTER = 1.6;
 
-/** The GP chase rig for this frame (same shape as motorcycleChase). */
-export function gpChase(speed: number, brake: number, lean: number, reducedMotion = false) {
+/** A chase rig in the renderer's terms (renderer.ts CHASE, motorcycleChase). */
+export interface ChaseRig {
+  height: number;
+  heightPerMS: number;
+  distance: number;
+  distancePerMS: number;
+  lookAhead: number;
+  lookLift: number;
+  fov: number;
+  fovGain: number;
+  yaw: number;
+}
+
+/** The GP chase rig for this frame (same shape as motorcycleChase). The gaze
+ * lift holds the authored pitch at this speed's height, distance and reach. */
+export function gpChase(
+  speed: number,
+  brake: number,
+  lean: number,
+  reducedMotion = false,
+): ChaseRig {
   const v = Number.isFinite(speed) ? clamp(Math.abs(speed), 0, 110) : 0;
   const braking = Number.isFinite(brake) ? clamp(brake, 0, 1) : 0;
   const angle = Number.isFinite(lean) ? clamp(lean, -1.12, 1.12) : 0;
   const c = GP_CHASE;
+  const height = c.height + (reducedMotion ? 0 : c.brakeRise * braking),
+    heightPerMS = reducedMotion ? 0 : c.heightPerMS,
+    distancePerMS = reducedMotion ? 0 : c.distancePerMS,
+    lookAhead = c.lookAhead + Math.min(c.lookAheadMax, v * c.lookAheadPerMS);
+  const reach = c.distance + v * distancePerMS + lookAhead;
   return {
-    height: c.height + (reducedMotion ? 0 : c.brakeRise * braking),
-    heightPerMS: reducedMotion ? 0 : c.heightPerMS,
+    height,
+    heightPerMS,
     distance: c.distance,
-    distancePerMS: reducedMotion ? 0 : c.distancePerMS,
-    lookAhead: c.lookAhead + Math.min(c.lookAheadMax, v * c.lookAheadPerMS),
-    lookLift: c.lookLift,
+    distancePerMS,
+    lookAhead,
+    lookLift: height + v * heightPerMS - Math.tan((c.pitchDeg * Math.PI) / 180) * reach,
     fov: c.fov,
     fovGain: reducedMotion ? 0 : c.fovGain,
     // As motorcycleChase: ~0.22 s preview of the steady-turn rate, capped.
@@ -151,6 +180,24 @@ export class GpChaseDynamics {
     return o;
   }
 }
+
+/**
+ * Trackside GP framing (REF_027/030/031/032/038): long-lens panning shots in
+ * which the bike and rider fill a third to a half of the frame height. The
+ * shared broadcast policy frames a car's 3.1 m sphere at half the screen
+ * between 12 and 24 degrees, which leaves a motorcycle 5-10 % of the frame
+ * on the authored 36-45 m rigs. A GP machine and tucked rider fit a 1.2 m
+ * sphere; it fills 66 % of the smaller axis, down to a 3 degree lens. A
+ * battle still widens to the true bounding sphere of every participant
+ * (race-composition.ts with this radius) and the safety cone and immediate
+ * widening are the director's own.
+ */
+export const GP_TELEPHOTO: Readonly<TracksideLens> = Object.freeze({
+  fill: 0.66,
+  minFov: 3,
+  maxFov: 24,
+  subjectRadius: 1.2,
+});
 
 /**
  * Trackside GP lens. The shared broadcast lens (a physical f/4 on a 2/3-inch

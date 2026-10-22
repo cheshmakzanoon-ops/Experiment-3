@@ -6,7 +6,13 @@ import type { AerialPalette } from '../studio/aerial-perspective.ts';
 import { SKY_IRRADIANCE_SATURATION } from '../studio/ibl-energy.ts';
 import { loadGainMapTextures, gainMapSupported, type GainMapTextures } from './gain-map.ts';
 import type { PhotoSkyUniforms } from './photo-sky-shader.ts';
-import { SKY_RAMPS, skyBlend, skyRotation, type SkyPalette } from './sky-catalogue.ts';
+import {
+  SKY_RAMPS,
+  skyBlend,
+  skyRotation,
+  withClearSky,
+  type SkyPalette,
+} from './sky-catalogue.ts';
 import { thirdPartyAsset, type HdriInfo, type ShippedAsset } from './third-party.ts';
 
 /** Shipped variant per preset: Low keeps the procedural sky. */
@@ -109,9 +115,19 @@ export class PhotoSky implements PhotoSkyBinding {
   get enabled() {
     return this.variant !== null && gainMapSupported() && !this.disposed;
   }
+  /** A clear day sky ahead of a palette whose day ramp opens with cloud
+   * (sky-catalogue.ts withClearSky; GP sessions), or null. */
+  clearDay: string | null = null;
   /** Changes whenever the skies a capture would bind change. */
   get key() {
-    return this.enabled ? `${this.palette}:${this.variant}:${this.version}` : '';
+    return this.enabled
+      ? `${this.palette}:${this.clearDay ?? ''}:${this.variant}:${this.version}`
+      : '';
+  }
+  /** The ramp of `mode` for this palette (and the clear day sky, if set). */
+  private stops(mode: LightingMode) {
+    const stops = SKY_RAMPS[this.palette][mode];
+    return this.clearDay && mode === 'day' ? withClearSky(stops, this.clearDay) : stops;
   }
 
   private entry(id: string): Entry | null {
@@ -171,7 +187,7 @@ export class PhotoSky implements PhotoSkyBinding {
    * failure or when photographed skies are off). */
   async ready(cover: number, mode: LightingMode, timeoutMs = 20000) {
     if (!this.enabled) return false;
-    const blend = skyBlend(SKY_RAMPS[this.palette][mode], cover);
+    const blend = skyBlend(this.stops(mode), cover);
     const wanted = [...new Set([blend.a, blend.b])].map((id) => this.entry(id));
     if (wanted.some((e) => !e)) return false;
     let timer: ReturnType<typeof setTimeout> | undefined;
@@ -219,7 +235,7 @@ export class PhotoSky implements PhotoSkyBinding {
       return false;
     };
     if (!this.enabled) return off();
-    const stops = SKY_RAMPS[this.palette][mode],
+    const stops = this.stops(mode),
       blend = skyBlend(stops, cover);
     // Request what this cover needs (no-op when resident or in flight).
     this.entry(blend.a);
@@ -262,7 +278,7 @@ export class PhotoSky implements PhotoSkyBinding {
    * scene units, for the pair shown at `cover`; null when none is resident. */
   fogPalette(cover: number, mode: LightingMode): AerialPalette | null {
     if (!this.enabled) return null;
-    const stops = SKY_RAMPS[this.palette][mode],
+    const stops = this.stops(mode),
       blend = skyBlend(stops, cover),
       a = this.resident(stops, blend.a),
       b = blend.weight > 0 ? this.resident(stops, blend.b) : a;

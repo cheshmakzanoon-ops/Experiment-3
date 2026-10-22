@@ -141,6 +141,7 @@ import {
 import {
   GP_CHASE,
   GP_SHUTTER,
+  GP_TELEPHOTO,
   GpChaseDynamics,
   gpChase,
   gpSubjectLens,
@@ -939,6 +940,9 @@ export class RacingRenderer {
         vehicleAt(Math.round(frame[carBase(this.follow) + RACE_BASE + R.VEHICLE])).classId ===
           'gp-bike',
       );
+      // A GP grid's clear day sky is loaded with the venue's own.
+      this.photoSky.clearDay =
+        gpGrid && this.lighting === 'day' ? (this.gpLook.clearSky ?? null) : null;
       if (this.photoSky?.enabled) {
         progress('Loading the photographed sky…');
         await this.photoSky.ready(frame[H.CLOUD], this.lighting);
@@ -1275,6 +1279,12 @@ export class RacingRenderer {
     const studio =
       (menu && this.showroomOnly) || (!!this.photo && this.photo.backdrop !== 'circuit');
     const illumination: LightingMode = studio ? 'day' : this.lighting;
+    // W1: GP sessions trade diffuse sky fill for a dominant sun key, clearer
+    // skies and hazier air (gp-photographic-light.ts).
+    const gpLook = gpPhotographicActive(followedDefinition.classId, studio, illumination)
+      ? this.gpLook
+      : null;
+    if (this.photoSky) this.photoSky.clearDay = gpLook?.clearSky ?? null;
     const daylight = circuitLightState(presented[H.CLOUD], presented[H.RAIN], illumination);
     // Distant haze takes the horizon colours of the photographed sky.
     const photoPalette =
@@ -1295,10 +1305,6 @@ export class RacingRenderer {
       daylight.fill = 0.25;
       daylight.environment = 0.3;
     }
-    // W1: GP sessions trade diffuse sky fill for a dominant sun key and hazier air.
-    const gpLook = gpPhotographicActive(followedDefinition.classId, studio, illumination)
-      ? this.gpLook
-      : null;
     if (gpLook) applyGpDaylight(daylight, gpLook);
     this.venueLighting.update(
       illumination !== 'day',
@@ -1402,7 +1408,12 @@ export class RacingRenderer {
       this.gaze.z -= this.temporary.x * showroom.shift;
       this.camera.fov = showroom.fov;
     } else if (cameraMode === 'trackside') {
-      const composition = this.composition.update(presented, this.follow);
+      // A GP motorcycle is framed as itself on a long lens, not as a car sphere.
+      const composition = this.composition.update(
+        presented,
+        this.follow,
+        gpFollow ? GP_TELEPHOTO.subjectRadius : undefined,
+      );
       this.trackside.update(
         presented[o + F.S],
         composition.target,
@@ -1412,6 +1423,7 @@ export class RacingRenderer {
         composition.radius,
         true,
         composition.visibility,
+        gpFollow ? GP_TELEPHOTO : undefined,
       );
       this.desired.copy(this.trackside.position);
       this.gaze.copy(this.trackside.gaze);

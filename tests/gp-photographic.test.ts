@@ -14,6 +14,7 @@ import {
   GpChaseDynamics,
   gpChase,
   gpSubjectLens,
+  type ChaseRig,
 } from '../src/rendering/gp-photographic-camera.ts';
 import { motorcycleChase } from '../src/rendering/motorcycle-camera.ts';
 import { BroadcastGradePass, GRADE_PROFILES } from '../src/rendering/broadcast-grade.ts';
@@ -23,6 +24,15 @@ import { DepthOfFieldPass } from '../src/rendering/studio/dof-pass.ts';
 import { BROADCAST_LENS, focusOnSubject } from '../src/rendering/studio/subject-focus.ts';
 import { MOTION_BLUR } from '../src/rendering/studio/velocity.ts';
 import { graphicsPreset } from '../src/rendering/options.ts';
+import {
+  GP_CLEAR_SKY,
+  SKY_RAMPS,
+  skyBlend,
+  withClearSky,
+} from '../src/rendering/assets/sky-catalogue.ts';
+import { PhotoSky } from '../src/rendering/assets/photo-sky.ts';
+import { TELEPHOTO, tracksideFraming } from '../src/rendering/trackside.ts';
+import { GP_TELEPHOTO } from '../src/rendering/gp-photographic-camera.ts';
 
 describe('GP photographic light', () => {
   it('applies only to a followed GP prototype on a live circuit view by day or golden hour', () => {
@@ -115,17 +125,36 @@ describe('GP photographic light', () => {
 });
 
 describe('GP photographic camera', () => {
-  it('frames the bike lower, closer and through a longer lens than the shared bike rig', () => {
-    for (const speed of [0, 30, 80]) {
+  it('frames the bike lower and larger through a longer lens, contact patch in frame', () => {
+    // GP-R1 geometry: CG 0.62 m above the road, 0.75 m ahead of the rear axle.
+    const view = (r: ChaseRig, speed: number) => {
+      const h = r.height + speed * r.heightPerMS,
+        d = r.distance + speed * r.distancePerMS,
+        fov = r.fov + Math.min(r.fovGain, speed * 0.06),
+        pitch = Math.atan((h - r.lookLift) / (d + r.lookAhead)),
+        half = (fov * Math.PI) / 360;
+      return {
+        // Rear contact patch below the view centre, as a share of the half fov.
+        contact: (Math.atan((h + 0.62) / (d - 0.75)) - pitch) / half,
+        // Subject scale ~ 1 / (distance tan(fov / 2)).
+        scale: 1 / (d * Math.tan(half)),
+        pitchDeg: (pitch * 180) / Math.PI,
+      };
+    };
+    for (const speed of [0, 12, 30, 80]) {
       const gp = gpChase(speed, 0, 0),
         shared = motorcycleChase(speed, 0, 0);
       expect(gp.height).toBeLessThan(shared.height);
-      expect(gp.distance).toBeLessThan(shared.distance);
+      expect(gp.distance).toBeLessThanOrEqual(shared.distance);
       expect(gp.fov).toBeLessThan(shared.fov);
-      // Subject scale ~ 1 / (distance tan(fov / 2)): at least 25 % larger.
-      const scale = (r: typeof gp) =>
-        1 / ((r.distance + speed * r.distancePerMS) * Math.tan((r.fov * Math.PI) / 360));
-      expect(scale(gp) / scale(shared)).toBeGreaterThan(1.25);
+      const g = view(gp, speed),
+        s = view(shared, speed);
+      expect(g.scale / s.scale).toBeGreaterThan(1.15);
+      // The shared rig crops the contact patch at the bottom edge; GP keeps it.
+      expect(s.contact).toBeGreaterThan(0.98);
+      expect(g.contact).toBeGreaterThan(0.72);
+      expect(g.contact).toBeLessThan(0.9);
+      expect(g.pitchDeg).toBeCloseTo(GP_CHASE.pitchDeg, 6);
     }
     const left = gpChase(45, 0.4, 0.8),
       right = gpChase(45, 0.4, -0.8);
@@ -240,5 +269,54 @@ describe('GP photographic camera', () => {
     focusOnSubject(pass, camera, new T.Vector3(0, 4, -40), BROADCAST_LENS, new T.Vector3());
     expect(u.lensK.value).toBeLessThan(k / 5);
     pass.dispose();
+  });
+
+  it('frames a GP motorcycle on a long lens while cars keep the broadcast policy', () => {
+    const aspect = 16 / 9;
+    for (const distance of [40, 60, 90, 130]) {
+      const car = tracksideFraming(distance, 40, aspect),
+        legacy = tracksideFraming(distance, 40, aspect, 3.1, false, TELEPHOTO),
+        bike = tracksideFraming(
+          distance,
+          40,
+          aspect,
+          GP_TELEPHOTO.subjectRadius,
+          false,
+          GP_TELEPHOTO,
+        );
+      expect(legacy).toEqual(car);
+      expect(car.fov).toBeGreaterThanOrEqual(TELEPHOTO.minFov);
+      expect(bike.fov).toBeLessThan(car.fov);
+      expect(bike.fov).toBeGreaterThanOrEqual(GP_TELEPHOTO.minFov);
+      expect(bike.fits).toBe(true);
+      // A 1.15 m machine-and-rider height fills a third to a half of the frame
+      // (REF_027/030/031) wherever the minimum lens does not bind.
+      const share = 1.15 / (2 * distance * Math.tan((bike.fov * Math.PI) / 360));
+      expect(share).toBeGreaterThan(distance <= 60 ? 0.3 : 0.15);
+      expect(share).toBeLessThan(0.55);
+    }
+    // A car-sized subject is still rejected below the car sphere by the car lens.
+    expect(() => tracksideFraming(60, 40, aspect, 1.2)).toThrow();
+  });
+
+  it('opens clear GP days under a clear sky only where the venue ramp opens with cloud', () => {
+    const green = SKY_RAMPS.green.day;
+    const ramp = withClearSky(green);
+    expect(ramp[0]).toEqual({ id: GP_CLEAR_SKY, cover: 0.2 });
+    expect(ramp.slice(1)).toEqual([...green]);
+    expect(withClearSky(green)).toBe(ramp);
+    // The clear preset (0.12) shows it alone; changeable and rain keep the venue's.
+    expect(skyBlend(ramp, 0.12)).toEqual({ a: GP_CLEAR_SKY, b: GP_CLEAR_SKY, weight: 0 });
+    expect(skyBlend(ramp, 0.95)).toEqual(skyBlend(green, 0.95));
+    expect(skyBlend(ramp, 0.6)).toEqual(skyBlend(green, 0.6));
+    for (const palette of ['coast', 'arid', 'alpine', 'desert'] as const)
+      expect(withClearSky(SKY_RAMPS[palette].day)).toBe(SKY_RAMPS[palette].day);
+    const sky = new PhotoSky('green');
+    const key = sky.key;
+    sky.clearDay = GP_CLEAR_SKY;
+    // Captures re-bin when the GP clear sky is switched on (skies enabled).
+    if (key) expect(sky.key).not.toBe(key);
+    else expect(sky.key).toBe('');
+    sky.dispose();
   });
 });

@@ -92,6 +92,24 @@ export const SKY_RAMPS: Readonly<
   },
 });
 
+/** GP sessions (W1 hyperrealism): the MotoGP references are shot under a
+ * clear sky with a high sun (REF_001/002/003/019/020/046). A day ramp whose
+ * first stop is cloud (green, city and flat country) gains this clear sky,
+ * 51 degree sun and distant low ridges only, ahead of its own stops, so a
+ * clear GP day is clear; changeable and rain weather keep the venue's skies.
+ * Ramps that already open clear are returned unchanged. */
+export const GP_CLEAR_SKY = 'kiara-5-noon';
+const clearRamps = new Map<readonly SkyStop[], readonly SkyStop[]>();
+export function withClearSky(stops: readonly SkyStop[], id: string = GP_CLEAR_SKY) {
+  if (!stops.length || stops[0].cover <= 0.2 || stops.some((s) => s.id === id)) return stops;
+  let ramp = clearRamps.get(stops);
+  if (!ramp || ramp[0].id !== id) {
+    ramp = Object.freeze([Object.freeze({ id, cover: 0.2 }), ...stops]);
+    clearRamps.set(stops, ramp);
+  }
+  return ramp;
+}
+
 /** Landscape of every venue theme (catalogue and off-road venues). */
 export const THEME_PALETTE: Readonly<Record<VenueTheme, SkyPalette>> = Object.freeze({
   parkland: 'green',
