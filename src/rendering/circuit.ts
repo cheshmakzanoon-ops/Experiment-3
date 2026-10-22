@@ -70,7 +70,7 @@ import {
 } from './studio/road-detail.ts';
 import { installWetDetail } from './studio/wet-detail.ts';
 import { kerbHeight } from '../simulation/contact.ts';
-import { Track, CELL_ROWS, CELL_COLS, trackPoint } from '../simulation/track.ts';
+import { Track, CELL_ROWS, CELL_COLS, SURFACE, trackPoint } from '../simulation/track.ts';
 import { H } from '../simulation/protocol.ts';
 import { allFinite, clamp } from '../core/math.ts';
 import { buildTracksideBranding, type BrandingBuild } from './studio/trackside-branding.ts';
@@ -81,6 +81,7 @@ import { installLightPools } from './studio/light-pools.ts';
 import { buildForestBelts } from './studio/forest-belts.ts';
 import { venueKitFor, type VenueKit } from './venue-kit/index.ts';
 import { gpCornerPaint, gpEdgeDesign } from './venue-kit/gp-edge-design.ts';
+import { isGpCourse } from '../simulation/gp-corner-shape.ts';
 import { batchScene, box, canvasTexture, label, mesh, unprintedBack } from './geometry.ts';
 import { offroadSceneFor, type OffroadScene } from './offroad/index.ts';
 import { isMotocrossVenue } from './offroad/mx-boundary.ts';
@@ -221,6 +222,8 @@ export class CircuitScene {
       surfaceGridFor(track),
       this.gpSurface,
       gpLaunchGridFor(track, this.grandPrixGrid),
+      // GP venues: permanent polish band and dusty off-line tarmac.
+      isGpCourse(track),
     );
     // Sub-cell puddles and an emerging dry line (D22).
     installWetDetail(this.roadMaterial);
@@ -682,7 +685,9 @@ export class CircuitScene {
       kerb: number[] = [],
       runoff: number[] = [],
       gpPaint: number[] = [],
+      gpGravel: number[] = [],
       indices: number[] = [];
+    const gpDesign = gpEdgeDesign(this.track);
     const p = trackPoint(),
       line: [number, number] = [0, 0];
     for (let i = 0; i <= rows; i++) {
@@ -715,6 +720,11 @@ export class CircuitScene {
           const side = Math.sign(l) || 1;
           runoff.push(kerbUsage(Math.abs(apexLineAt(this.track, s, side * p.width, line)[0])));
           gpPaint.push(gpCornerPaint(this.track, s, l));
+          // GP: is the verge beyond this apron edge a gravel trap? (litter)
+          if (gpDesign)
+            gpGravel.push(
+              this.track.runoffSurface(p, side * (p.width + 5.5)) === SURFACE.GRAVEL ? 1 : 0,
+            );
         }
       }
     }
@@ -756,8 +766,10 @@ export class CircuitScene {
       );
     }
     if (options.runoff) {
-      if (gpEdgeDesign(this.track))
+      if (gpDesign) {
         g.setAttribute('gpCornerPaint', new T.Float32BufferAttribute(gpPaint, 1));
+        g.setAttribute('gpVergeGravel', new T.Float32BufferAttribute(gpGravel, 1));
+      }
       g.setAttribute(
         'runoffStyle',
         new T.Float32BufferAttribute(

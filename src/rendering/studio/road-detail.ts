@@ -95,6 +95,26 @@ export const GP_ROAD_RUBBER = Object.freeze({
   deposit: [0.34, 1.15] as const,
 });
 
+/** A used GP venue's asphalt (the four motorcycle-GP circuits only; compiled
+ * in, never a runtime branch on other venues). REF_006/019/030/031/038:
+ * a broad, soft band of polished, rubber-darkened tarmac through every
+ * braking zone and corner wider than any one line; lighter, dusty, unpolished
+ * tarmac off the line and toward the edges; a darker binder overall. It
+ * adds to, and never replaces, the simulation-driven line above. */
+export const GP_VENUE_ROAD = Object.freeze({
+  /** Albedo of the whole surface (newer, binder-rich GP resurfacing). */
+  tone: 0.9,
+  /** Polished band: Gaussian sigma (m) and darkening off and at full braking. */
+  bandSigma: 1.9,
+  bandDarkening: [0.06, 0.2] as const,
+  /** Off-line tarmac lightens from `offLine[0]` to `offLine[1]` m off the line. */
+  offLine: [2.0, 4.6] as const,
+  offLineLift: 0.1,
+  /** Edge dust reach (m) and lift, replacing ROAD_DETAIL's narrower band. */
+  dustWidth: 1.7,
+  dustLift: 0.12,
+});
+
 /** Start-grid slots, as the simulation places cars (world.ts) and the circuit
  * paints the boxes: the front row this many metres before the line, rows
  * `spacing` apart, columns at +-`lateral` metres. */
@@ -369,8 +389,10 @@ export function installRoadDetail(
   grid: SurfaceGrid = START_GRID,
   grandPrix: T.IUniform<number> = { value: 0 },
   gpGrid?: GpLaunchGrid,
+  gpVenue = false,
 ) {
   if (!Number.isFinite(lapLength) || lapLength <= 0) throw new Error('Invalid road lap length');
+  const V = GP_VENUE_ROAD;
   const R = ROAD_DETAIL,
     GP = GP_ROAD_RUBBER,
     G = grid,
@@ -388,7 +410,7 @@ export function installRoadDetail(
     : launchBack;
   return chainShaderHook(
     material,
-    gpGrid ? 'road-detail-gp-grid-v8' : 'road-detail-v7',
+    (gpGrid ? 'road-detail-gp-grid-v8' : 'road-detail-v7') + (gpVenue ? '-gp-venue-v1' : ''),
     (shader) => {
       shader.uniforms.apexMotorcycleSurface = motorcycle;
       shader.uniforms.apexGpSurface = grandPrix;
@@ -495,6 +517,21 @@ export function installRoadDetail(
         vec3 apexGrey = vec3(dot(diffuseColor.rgb, vec3(0.2126, 0.7152, 0.0722)));
         // Rubber is a neutral black: darken toward grey, not along the hue.
         diffuseColor.rgb = mix(diffuseColor.rgb, apexGrey, 0.45 * apexDark) * (1.0 - apexDark);
+        ${
+          gpVenue
+            ? `// GP venue: seasons of traffic polish a band wider than the line,
+        // darkest where everything brakes; off the line the tarmac stays
+        // dusty and pale (GP_VENUE_ROAD). Static, so held frames are exact.
+        {
+          float venueBrake = max(vApexLine.y, vApexBikeBrake);
+          float venueBand = exp(-0.5 * apexX * apexX / ${g(V.bandSigma * V.bandSigma)});
+          float venueDark = venueBand * mix(${g(V.bandDarkening[0])}, ${g(V.bandDarkening[1])}, venueBrake);
+          diffuseColor.rgb = mix(diffuseColor.rgb, apexGrey, 0.4 * venueDark) * (1.0 - venueDark) * ${g(V.tone)};
+          apexLineMask = max(apexLineMask, 0.35 * venueDark / ${g(V.bandDarkening[1])});
+          diffuseColor.rgb *= 1.0 + ${g(V.offLineLift)} * smoothstep(${g(V.offLine[0])}, ${g(V.offLine[1])}, abs(apexX));
+        }`
+            : ''
+        }
         // Launch rubber on the grid, continuous across the start line.
         float apexFromLine = vRoadMetres.y > ${g(lapLength * 0.5)} ? vRoadMetres.y - ${g(lapLength)} : vRoadMetres.y;
         float apexLaunch = 0.0;
@@ -543,9 +580,9 @@ export function installRoadDetail(
         }
         // Dust and fine debris collect toward the edges, off the line.
         // (The striated line mask peaks at 1.2: clamp before using it as a share.)
-        apexDust = smoothstep(-${g(R.dustWidth)}, -0.12, vEdgeMetres) * max(0.0, 1.0 - apexLineMask) *
+        apexDust = smoothstep(-${g(gpVenue ? V.dustWidth : R.dustWidth)}, -0.12, vEdgeMetres) * max(0.0, 1.0 - apexLineMask) *
           (0.7 + 0.6 * apexRoadNoise(vAsphaltWorld * 2.7));
-        diffuseColor.rgb *= 1.0 + ${g(R.dustLift)} * apexDust;
+        diffuseColor.rgb *= 1.0 + ${g(gpVenue ? V.dustLift : R.dustLift)} * apexDust;
         vec3 apexRepairState = apexRoadRepair(vRoadMetres, ${g(lapLength)});
         apexRepair = apexRepairState.x;
         diffuseColor.rgb *= mix(1.0, apexRepairState.y, apexRepair);
