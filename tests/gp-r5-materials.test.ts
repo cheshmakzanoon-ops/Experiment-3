@@ -104,7 +104,7 @@ describe('GP R5 recorded tyre material state', () => {
     const shader = shaderFor(material);
     expect(shader.uniforms.gpTyreFront).toBe(finish.front);
     expect(shader.uniforms.gpTyreRear).toBe(finish.rear);
-    expect(material.customProgramCacheKey()).toContain('gp-tyre-drainage-v2');
+    expect(material.customProgramCacheKey()).toContain('gp-tyre-drainage-v3');
     material.dispose();
   });
   it('bounds damaged telemetry and does not allocate replacement uniform vectors', () => {

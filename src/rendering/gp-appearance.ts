@@ -19,9 +19,12 @@ export function calibrateGpMaterials(materials: BikeMaterials, vehicle: string):
   }
   materials.paint.color.multiplyScalar(0.84);
   materials.paint.userData.gpAppearance = 'r5-refined';
-  materials.carbon.roughness = 0.47;
-  materials.carbon.clearcoat = 0.32;
-  materials.carbon.clearcoatRoughness = 0.24;
+  // Visible carbon covers are lacquered (REF 056 tank cover, REF 073): a
+  // deep clear coat over the twill, so the weave flips under sky reflections.
+  // Inner and structural carbon uses the raw satin finish instead.
+  materials.carbon.roughness = 0.42;
+  materials.carbon.clearcoat = 0.8;
+  materials.carbon.clearcoatRoughness = 0.09;
   materials.aluminium.roughness = 0.41;
   materials.wheel.roughness = 0.42;
   materials.wheel.clearcoat = 0.2;
@@ -38,9 +41,9 @@ export function calibrateGpMaterials(materials: BikeMaterials, vehicle: string):
   materials.forkUpper.color.setHex(0x232427);
   materials.forkUpper.metalness = 0.72;
   materials.forkUpper.roughness = 0.34;
-  materials.forkLower.color.setHex(0x9a7a3e);
+  materials.forkLower.color.setHex(0x7a6236);
   materials.forkLower.metalness = 1;
-  materials.forkLower.roughness = 0.2;
+  materials.forkLower.roughness = 0.26;
   // Brake fluid pot: smoked amber nylon with dark fluid, not a white cup.
   materials.reservoir.color.setHex(0x4a3a24);
   materials.reservoir.roughness = 0.32;

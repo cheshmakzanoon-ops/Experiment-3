@@ -257,9 +257,11 @@ describe('GP rear structure on the production motorcycle', () => {
         // A lower triangle count can still add rigid draws to the opaque and
         // windscreen transmission passes. Keep that observed regression out.
         if (detail === 'high') expect(original.meshes).toBeLessThan(110);
-        expect(original.materials.size).toBeLessThanOrEqual(34);
-        // +1: the GP screen's printed-border alpha map (gp-appearance.ts).
-        expect(original.textures.size).toBeLessThanOrEqual(20);
+        // +1: satin carbon of the inner upper fairing (gp-race-bodywork.ts).
+        expect(original.materials.size).toBeLessThanOrEqual(35);
+        // +2: the GP screen's printed-border alpha map (gp-appearance.ts) and
+        // the livery's clear-coat orange-peel normal map (gp-race-bodywork.ts).
+        expect(original.textures.size).toBeLessThanOrEqual(21);
       } finally {
         for (const geometry of inventory(rearStructure).geometries) geometry.dispose();
         tray.dispose();

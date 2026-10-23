@@ -15,7 +15,7 @@ import { gpBrakeRotor, GP_FRONT_DISC } from './gp-brake-rotor.ts';
 import { gpDiscGlow } from './gp-disc-glow.ts';
 import { gpForkCrowns, GP_FORK_TUBE_TOP } from './gp-fork-crown.ts';
 import { gpMainFrame } from './gp-main-frame.ts';
-import { gpForgedWheel, gpTyreCompoundMarkings } from './gp-forged-wheel.ts';
+import { gpForgedWheel, gpTyreCompoundMarkings, gpWheelMachinedLip } from './gp-forged-wheel.ts';
 import { bindGpTyre, installGpTyreFinish, type GpTyreAppearance } from './gp-tyre-finish.ts';
 import { gpRadiator } from './gp-radiator.ts';
 import { GPChainDrive } from './gp-chain-drive.ts';
@@ -774,6 +774,8 @@ export class BikeModel {
         this.rings.push(ring);
         if (gpPrototype) {
           add(spin, gpForgedWheel(rim, halfWidth, detail), m.wheel);
+          // Same shadow flags as the disc carrier, so both join one batch.
+          add(spin, gpWheelMachinedLip(rim, halfWidth, detail), m.aluminium);
         } else {
           // Catalogue bikes retain their original cast or laced wheel identity.
           add(

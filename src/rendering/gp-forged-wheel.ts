@@ -132,6 +132,34 @@ export function gpForgedWheel(rim: number, halfWidth: number, detail: RiderDetai
   return geometry;
 }
 
+/** Diamond-cut lip on both rim flanges (REF 003/018/046): a 6.5 mm bright
+ * ring standing 0.4 mm proud of the black flange face, so the forged wheel
+ * reads as machined metal under paint rather than a plain black disc. One
+ * owned geometry for the caller's existing bright-metal batch. Axle is X. */
+export function gpWheelMachinedLip(rim: number, halfWidth: number, detail: RiderDetail) {
+  if (!Number.isFinite(rim) || rim < 0.15 || rim > 0.3)
+    throw new RangeError('Invalid GP wheel rim radius');
+  if (!Number.isFinite(halfWidth) || halfWidth < 0.04 || halfWidth > 0.12)
+    throw new RangeError('Invalid GP wheel half-width');
+  const width = halfWidth * 0.76 + 0.0004,
+    segments = detail === 'high' ? 64 : 32,
+    pieces: T.BufferGeometry[] = [];
+  for (const side of [-1, 1]) {
+    // Annulus in the flange plane, facing outward along the axle.
+    const g = new T.RingGeometry(rim - 0.0085, rim - 0.002, segments, 1);
+    g.rotateY((side * Math.PI) / 2);
+    g.translate(side * width, 0, 0);
+    pieces.push(g);
+  }
+  const geometry = mergeGeometries(pieces, false);
+  pieces.forEach((g) => g.dispose());
+  if (!geometry) throw new Error('Could not merge GP rim lips');
+  geometry.name = 'GP diamond-cut rim lips';
+  geometry.computeBoundingBox();
+  geometry.computeBoundingSphere();
+  return geometry;
+}
+
 /** Two opposing painted compound arcs per side, fitted to the actual tyre
  * facets. Sampling its source vertices (including angular interpolation)
  * prevents floating rings or stripes buried in the wider rear sidewall.
