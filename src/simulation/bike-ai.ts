@@ -99,7 +99,32 @@ export class BikeAIDriver extends AIDriver {
     command.reverse = false;
     command.clutch = 0;
     command.steer = this.steerIntent(track, command.steer);
+    if (c.definition.id === 'gpr1' || c.definition.id === 'gpr2') this.gpPedals(dt);
     c.aiControlled();
+  }
+  private lastThrottle = 0;
+  private lastBrake = 0;
+  /** A GP rider's hands, not a car's pedals: the lever is squeezed on over
+   * ~0.12 s and eased off over ~0.25 s, the throttle rolls open over ~0.4 s,
+   * and never while the bike is sliding sideways (sideslip above ~2°): a
+   * light, sliding rear that is suddenly loaded snaps the bike's yaw. These
+   * are authored rider-skill rates; the physics alone decides what happens. */
+  private gpPedals(dt: number) {
+    const c = this.bike,
+      command = c.input,
+      gp = c.dynamics.motoGP,
+      slip = gp ? Math.abs(Math.atan2(gp.lateralSpeed, Math.max(5, c.dynamics.speed))) : 0;
+    const brake = clamp(
+      command.brake,
+      this.lastBrake - GP_AI_HANDS.brakeRelease * dt,
+      this.lastBrake + GP_AI_HANDS.brakeApply * dt,
+    );
+    let throttle = Math.min(command.throttle, this.lastThrottle + GP_AI_HANDS.throttleOpen * dt);
+    throttle = Math.min(throttle, 1 - clamp((slip - 0.035) / 0.05, 0, 0.85));
+    // Still on the lever: the throttle stays shut until it is released.
+    if (brake > 0.05) throttle = Math.min(throttle, 0.05);
+    command.brake = this.lastBrake = brake;
+    command.throttle = this.lastThrottle = throttle;
   }
   protected override pitLine(track: Track, s: number) {
     const lane = super.pitLine(track, s);
@@ -268,6 +293,8 @@ export function gpPassingLateralScale(c: BikeVehicle, track: Track, cars: readon
   const turning = clamp((lean - 0.15) / 0.6, 0, 1);
   return lerp(0.7, 1, turning * turning * (3 - 2 * turning));
 }
+/** GP AI input rates (per second): lever apply/release, throttle opening. */
+export const GP_AI_HANDS = Object.freeze({ brakeApply: 8, brakeRelease: 4, throttleOpen: 2.5 });
 /** Bike path-tracking gains: preview (s), bandwidth (rad/s), damping ratio. */
 export const BIKE_AI = Object.freeze({
   preview: 0.3,
