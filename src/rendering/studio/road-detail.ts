@@ -121,6 +121,9 @@ export const GP_VENUE_ROAD = Object.freeze({
   laneTone: 0.045,
   driftScale: 31,
   driftTone: 0.05,
+  /** Share of the crack-sealant "tar snakes" kept: a resurfaced GP track
+   * shows few (REF_006/019), and at riding height they read as scribbles. */
+  sealant: 0.3,
 });
 
 /** Start-grid slots, as the simulation places cars (world.ts) and the circuit
@@ -603,7 +606,7 @@ export function installRoadDetail(
         vec3 apexRepairState = apexRoadRepair(vRoadMetres, ${g(lapLength)});
         apexRepair = apexRepairState.x;
         diffuseColor.rgb *= mix(1.0, apexRepairState.y, apexRepair);
-        apexSealant = max(apexRoadSealant(vAsphaltWorld), apexRepairState.z);
+        apexSealant = max(apexRoadSealant(vAsphaltWorld)${gpVenue ? ` * ${g(V.sealant)}` : ''}, apexRepairState.z);
         diffuseColor.rgb = mix(diffuseColor.rgb, apexSealantColour, apexSealant * 0.85);
       }`,
       );
