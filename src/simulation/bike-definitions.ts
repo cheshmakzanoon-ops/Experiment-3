@@ -237,6 +237,11 @@ export function bikeSetupParameters(
     rollDamping: 1.2 * dampingFirmness((setup.frontDamping + setup.rearDamping) / 2),
   };
 }
+/** GP riders plan their stops with a deceleration the cornering ABS can
+ * still deliver while the bike is already leaning toward the apex: the lean
+ * assist keeps each tyre the lateral force of the roll it is asked for, so
+ * trail braking stops less hard than an upright straight-line stop. */
+const GP_AI_MARGINS = Object.freeze({ brakingMargin: 0.7 });
 const GP_BIKE: BikeSpec = Object.freeze({
   riderMass: 72,
   fuel: 16,
@@ -368,7 +373,7 @@ export const GP_R1: VehicleDefinition = Object.freeze({
   hybrid: false,
   drs: false,
   setupKeys: BIKE_SETUP_KEYS.electronic,
-  ai: bikeEnvelope(GP_BIKE, 1.45, 157 + GP_BIKE.riderMass + GP_BIKE.fuel, 99),
+  ai: bikeEnvelope(GP_BIKE, 1.45, 157 + GP_BIKE.riderMass + GP_BIKE.fuel, 99, GP_AI_MARGINS),
   bike: GP_BIKE,
 });
 /** An original production-based 1000 cc superbike: ~215 hp (160 kW), 200 kg,
@@ -545,6 +550,7 @@ export const GP_R2: VehicleDefinition = roadBike({
   ],
   halfExtents: [0.37, 0.56, 1.02],
   topSpeed: 96,
+  aiMargins: GP_AI_MARGINS,
 });
 /** An original 600 cc four-cylinder supersport: about 95 kW at 14 500 rpm,
  * 175 kg, road-legal racing tyres, quickshifter six-speed. Generic design. */
