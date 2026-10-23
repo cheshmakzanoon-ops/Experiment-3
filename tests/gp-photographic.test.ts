@@ -26,6 +26,7 @@ import { MOTION_BLUR } from '../src/rendering/studio/velocity.ts';
 import { graphicsPreset } from '../src/rendering/options.ts';
 import {
   GP_CLEAR_SKY,
+  GP_CLEAR_SKYLINE,
   SKY_RAMPS,
   skyBlend,
   withClearSky,
@@ -302,7 +303,7 @@ describe('GP photographic camera', () => {
   it('opens clear GP days under a clear sky only where the venue ramp opens with cloud', () => {
     const green = SKY_RAMPS.green.day;
     const ramp = withClearSky(green);
-    expect(ramp[0]).toEqual({ id: GP_CLEAR_SKY, cover: 0.2 });
+    expect(ramp[0]).toEqual({ id: GP_CLEAR_SKY, cover: 0.2, skyline: GP_CLEAR_SKYLINE });
     expect(ramp.slice(1)).toEqual([...green]);
     expect(withClearSky(green)).toBe(ramp);
     // The clear preset (0.12) shows it alone; changeable and rain keep the venue's.

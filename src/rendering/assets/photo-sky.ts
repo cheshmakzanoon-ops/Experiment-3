@@ -245,14 +245,17 @@ export class PhotoSky implements PhotoSkyBinding {
     if (!a?.textures || !b?.textures) return off();
     const scale = this.scale(cover, mode),
       sun = skyLightDirection(mode),
-      gain = (id: string) => stops.find((s) => s.id === id)?.gain ?? 1;
+      gain = (id: string) => stops.find((s) => s.id === id)?.gain ?? 1,
+      skyline = (entry: Entry) =>
+        ((stops.find((s) => s.id === entry.id)?.skyline ?? entry.info.skyline ?? 0) * Math.PI) /
+        180;
     u.photoBaseA!.value = a.textures.base;
     u.photoGainA!.value = a.textures.gain;
     u.photoA!.value.set(
       skyRotation(a.info.sunAzimuth, sun),
       a.textures.gainMax,
       scale * gain(a.id),
-      ((a.info.skyline ?? 0) * Math.PI) / 180,
+      skyline(a),
     );
     u.photoBaseB!.value = b.textures.base;
     u.photoGainB!.value = b.textures.gain;
@@ -260,7 +263,7 @@ export class PhotoSky implements PhotoSkyBinding {
       skyRotation(b.info.sunAzimuth, sun),
       b.textures.gainMax,
       scale * gain(b.id),
-      ((b.info.skyline ?? 0) * Math.PI) / 180,
+      skyline(b),
     );
     u.photoWeight!.value = a === b ? 0 : blend.weight;
     u.photoAmount!.value = 1;

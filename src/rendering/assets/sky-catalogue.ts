@@ -26,6 +26,9 @@ export interface SkyStop {
   /** Radiance gain over the physical dome it replaces (default 1): a city's
    * low cloud glows above the near-black floodlit-venue night. */
   gain?: number;
+  /** Skyline elevation in degrees for this use of the sky (default: the
+   * photo's own): the land below it gives way to the blurred haze band. */
+  skyline?: number;
 }
 
 const ramp = (...stops: [string, number, number?][]): readonly SkyStop[] =>
@@ -99,12 +102,21 @@ export const SKY_RAMPS: Readonly<
  * clear GP day is clear; changeable and rain weather keep the venue's skies.
  * Ramps that already open clear are returned unchanged. */
 export const GP_CLEAR_SKY = 'kiara-5-noon';
+/** Its arid ridges reach 8.4 degrees (95th percentile of the 2k photo's
+ * columns); over a green venue they read as desert mountains above the tree
+ * line, so the GP stop replaces everything below 9 degrees with the haze band
+ * of the sky just above (the venue's own terrain stands in front of it). */
+export const GP_CLEAR_SKYLINE = 9;
 const clearRamps = new Map<readonly SkyStop[], readonly SkyStop[]>();
-export function withClearSky(stops: readonly SkyStop[], id: string = GP_CLEAR_SKY) {
+export function withClearSky(
+  stops: readonly SkyStop[],
+  id: string = GP_CLEAR_SKY,
+  skyline: number = GP_CLEAR_SKYLINE,
+) {
   if (!stops.length || stops[0].cover <= 0.2 || stops.some((s) => s.id === id)) return stops;
   let ramp = clearRamps.get(stops);
-  if (!ramp || ramp[0].id !== id) {
-    ramp = Object.freeze([Object.freeze({ id, cover: 0.2 }), ...stops]);
+  if (!ramp || ramp[0].id !== id || ramp[0].skyline !== skyline) {
+    ramp = Object.freeze([Object.freeze({ id, cover: 0.2, skyline }), ...stops]);
     clearRamps.set(stops, ramp);
   }
   return ramp;
