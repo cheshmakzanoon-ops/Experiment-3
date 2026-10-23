@@ -20,7 +20,11 @@ export class RaceComposition {
     this.radius = 3.1;
     this.kind = 'single';
   }
-  update(frame: Float32Array, followed: number) {
+  /** `subjectRadius`: the bounding sphere of one complete participant
+   * (3.1 m: a car; a GP motorcycle and rider is smaller). */
+  update(frame: Float32Array, followed: number, subjectRadius = 3.1) {
+    if (!Number.isFinite(subjectRadius) || subjectRadius <= 0)
+      throw new Error('Invalid composition subject radius');
     const count = frame[H.CARS];
     if (
       !Number.isInteger(count) ||
@@ -41,7 +45,7 @@ export class RaceComposition {
     const anchor = this.positions[followed].set(frame[o + F.X], frame[o + F.Y], frame[o + F.Z]);
     this.target.copy(anchor);
     this.velocity.set(frame[o + F.VX], frame[o + F.VY], frame[o + F.VZ]);
-    this.radius = 3.1;
+    this.radius = subjectRadius;
     const previous = new Set(this.participants);
     this.participants = [followed];
     this.kind = frame[o + F.IN_PIT]
@@ -98,7 +102,10 @@ export class RaceComposition {
     // A true bounding sphere centred at the composed target, not a distance
     // heuristic around just the player. Every selected complete car must fit.
     for (const id of this.participants)
-      this.radius = Math.max(this.radius, this.positions[id].distanceTo(this.target) + 3.1);
+      this.radius = Math.max(
+        this.radius,
+        this.positions[id].distanceTo(this.target) + subjectRadius,
+      );
     if (this.kind === 'single' && this.participants.length > 1)
       this.kind = this.participants.length > 2 ? 'pack' : 'battle';
     return this;

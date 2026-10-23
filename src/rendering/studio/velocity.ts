@@ -25,6 +25,13 @@ import { STUDIO_CAR_HALF_EXTENTS, STUDIO_MAX_CARS, studioUniforms } from './stud
  *  - still (menu, photo, held replay): no motion at all.
  * The followed car is always locked to the camera (zero velocity): the player
  * car stays sharp while the track streaks, which is the F1 broadcast look.
+ *
+ * Spinning wheels (GP motorcycles, `MotionField.wheels`): a pixel inside a
+ * wheel disc (its chassis-frame centre, axle along chassis X, radius and half
+ * width) also turns back about the axle by its presented spin over the
+ * shutter, so tread, sidewall, rim and disc streak along their arc while the
+ * chassis, fork and swingarm stay as sharp as their car. Up to
+ * `MOTION_MAX_WHEELS` discs; Formula wheels keep their material-level blur.
  */
 export const MOTION_BLUR = Object.freeze({
   /** Gather taps along the streak (PRODUCTION_PLAN P10). */
@@ -43,6 +50,18 @@ export const MOTION_BLUR = Object.freeze({
 });
 
 export type MotionCamera = 'attached' | 'pan' | 'still';
+
+/** Spinning wheel discs the field can carry (three motorcycles). */
+export const MOTION_MAX_WHEELS = 6;
+/** A spinning wheel of car `car`, in that car's chassis frame (axle along X). */
+export interface MotionWheel {
+  car: number;
+  centre: T.Vector3;
+  radius: number;
+  halfWidth: number;
+  /** Spin about the axle, rad/s (the streak is symmetric: its sign is free). */
+  omega: number;
+}
 
 /** Camera rig → motion model. Anything not a live driving view is still. */
 export function motionCameraFor(mode: string): MotionCamera {
@@ -72,6 +91,11 @@ export interface MotionUniforms {
   motionProjection: T.IUniform<T.Matrix4>;
   /** Streak length limit in pixels. */
   motionMaxPixels: T.IUniform<number>;
+  motionWheels: T.IUniform<number>;
+  /** View space → unit disc space of each wheel (inside: |x| < 1, y² + z² < 1). */
+  motionWheelBox: T.IUniform<T.Matrix4[]>;
+  /** View space → clip space at shutter-open for a point on each wheel. */
+  motionWheelPrev: T.IUniform<T.Matrix4[]>;
 }
 
 export function createMotionUniforms(): MotionUniforms {
@@ -83,6 +107,9 @@ export function createMotionUniforms(): MotionUniforms {
     motionWorldPrev: { value: new T.Matrix4() },
     motionProjection: { value: new T.Matrix4() },
     motionMaxPixels: { value: 0 },
+    motionWheels: { value: 0 },
+    motionWheelBox: { value: Array.from({ length: MOTION_MAX_WHEELS }, () => new T.Matrix4()) },
+    motionWheelPrev: { value: Array.from({ length: MOTION_MAX_WHEELS }, () => new T.Matrix4()) },
   };
 }
 
@@ -100,11 +127,25 @@ export const MOTION_VELOCITY_GLSL = /* glsl */ `
   uniform mat4 motionWorldPrev;
   uniform mat4 motionProjection;
   uniform float motionMaxPixels;
+  #define MOTION_MAX_WHEELS ${MOTION_MAX_WHEELS}
+  uniform int motionWheels;
+  uniform mat4 motionWheelBox[MOTION_MAX_WHEELS];
+  uniform mat4 motionWheelPrev[MOTION_MAX_WHEELS];
   vec2 motionPixels(vec3 p, vec2 resolution) {
     vec4 position = vec4(p, 1.0);
     mat4 previous = motionWorldPrev;
+    bool wheel = false;
+    for (int i = 0; i < MOTION_MAX_WHEELS; i++) {
+      if (i >= motionWheels) break;
+      vec3 disc = (motionWheelBox[i] * position).xyz;
+      if (abs(disc.x) < 1.0 && dot(disc.yz, disc.yz) < 1.0) {
+        previous = motionWheelPrev[i];
+        wheel = true;
+        break;
+      }
+    }
     for (int i = 0; i < MOTION_MAX_CARS; i++) {
-      if (i >= motionCars) break;
+      if (wheel || i >= motionCars) break;
       vec3 box = abs((motionBox[i] * position).xyz);
       if (max(box.x, max(box.y, box.z)) < 1.0) { previous = motionPrev[i]; break; }
     }
@@ -139,6 +180,19 @@ export class MotionField {
   private readonly from = new T.Vector3();
   private readonly to = new T.Vector3();
   private readonly eye = new T.Vector3();
+  private readonly spinMatrix = new T.Matrix4();
+  private readonly spinOffset = new T.Matrix4();
+  private readonly cameraInverse = new T.Matrix4();
+  /** Spinning wheel discs for the next `update` (the first `wheelCount`);
+   * the renderer fills them from the presented snapshot each frame. */
+  readonly wheels: MotionWheel[] = Array.from({ length: MOTION_MAX_WHEELS }, () => ({
+    car: -1,
+    centre: new T.Vector3(),
+    radius: 0,
+    halfWidth: 0,
+    omega: 0,
+  }));
+  wheelCount = 0;
 
   /** No motion this frame: velocity is exactly zero everywhere. */
   still() {
@@ -235,6 +289,34 @@ export class MotionField {
           .multiply(cameraWorld);
     }
     u.motionCars.value = cars;
+    // Wheels: view → chassis → about the axle back by ω·shutter → the car's
+    // own shutter-open map. Discs of cars outside this frame are skipped.
+    let wheels = 0;
+    this.cameraInverse.copy(cameraWorld).invert();
+    for (let i = 0; i < Math.min(this.wheelCount, MOTION_MAX_WHEELS); i++) {
+      const w = this.wheels[i];
+      if (!(w.car >= 0 && w.car < cars) || !(w.radius > 0) || !(w.halfWidth > 0)) continue;
+      if (![w.centre.x, w.centre.y, w.centre.z, w.omega].every(Number.isFinite)) continue;
+      const now = carNow[w.car];
+      const toChassis = this.inverse.copy(now).invert().multiply(cameraWorld);
+      u.motionWheelBox.value[wheels]
+        .makeScale(1 / w.halfWidth, 1 / w.radius, 1 / w.radius)
+        .multiply(this.scratch.makeTranslation(-w.centre.x, -w.centre.y, -w.centre.z))
+        .multiply(toChassis);
+      // Spin in view space: camera⁻¹ · now · T(c) · Rx(-ω s) · T(-c) · now⁻¹ · camera.
+      this.spinMatrix
+        .makeTranslation(w.centre.x, w.centre.y, w.centre.z)
+        .multiply(this.scratch.makeRotationX(-w.omega * shutter))
+        .multiply(this.spinOffset.makeTranslation(-w.centre.x, -w.centre.y, -w.centre.z));
+      u.motionWheelPrev.value[wheels]
+        .copy(u.motionPrev.value[w.car])
+        .multiply(this.cameraInverse)
+        .multiply(now)
+        .multiply(this.spinMatrix)
+        .multiply(toChassis);
+      wheels++;
+    }
+    u.motionWheels.value = wheels;
     u.motionActive.value = 1;
   }
 
@@ -243,8 +325,17 @@ export class MotionField {
     const u = this.uniforms;
     if (!u.motionActive.value) return out.set(0, 0);
     const p = new T.Vector4(world.x, world.y, world.z, 1).applyMatrix4(camera.matrixWorldInverse);
-    let previous = u.motionWorldPrev.value;
-    for (let id = 0; id < u.motionCars.value; id++) {
+    let previous = u.motionWorldPrev.value,
+      wheel = false;
+    for (let i = 0; i < u.motionWheels.value; i++) {
+      const disc = p.clone().applyMatrix4(u.motionWheelBox.value[i]);
+      if (Math.abs(disc.x) < 1 && disc.y * disc.y + disc.z * disc.z < 1) {
+        previous = u.motionWheelPrev.value[i];
+        wheel = true;
+        break;
+      }
+    }
+    for (let id = 0; id < u.motionCars.value && !wheel; id++) {
       const box = p.clone().applyMatrix4(u.motionBox.value[id]);
       if (Math.max(Math.abs(box.x), Math.abs(box.y), Math.abs(box.z)) < 1) {
         previous = u.motionPrev.value[id];

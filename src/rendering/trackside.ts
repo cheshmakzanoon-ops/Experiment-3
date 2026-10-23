@@ -138,19 +138,33 @@ export const TELEPHOTO = Object.freeze({
   minFov: 12,
   maxFov: 24,
   dofBelow: 20,
+  /** Smallest subject sphere: a complete car fits within 3.1 m. */
+  subjectRadius: 3.1,
 });
+/** A trackside lens policy: the subject sphere's share of the smaller screen
+ * axis (at a 40 degree authored rig), the zoom range and the smallest
+ * subject sphere it frames (TELEPHOTO: cars; gp-photographic-camera.ts
+ * GP_TELEPHOTO: GP motorcycles). */
+export interface TracksideLens {
+  fill: number;
+  minFov: number;
+  maxFov: number;
+  subjectRadius: number;
+}
 // The lens itself is a broadcast camera's thin lens (studio/subject-focus.ts
 // BROADCAST_LENS): a depth-proportional blur reached 10 m either side of focus
 // made every held broadcast shot a tilt-shift miniature (photoreal review).
 
-/** A complete car fits within a 3.1 m bounding sphere. Reserve composition
- * room on the smaller screen axis, including narrow/portrait viewports. */
+/** A complete car fits within a 3.1 m bounding sphere (a lens may frame a
+ * smaller subject: `lens.subjectRadius`). Reserve composition room on the
+ * smaller screen axis, including narrow/portrait viewports. */
 export function tracksideFraming(
   distanceM: number,
   baseFov: number,
   aspect = 16 / 9,
   subjectRadius = 3.1,
   service = false,
+  lens: Readonly<TracksideLens> = TELEPHOTO,
 ) {
   if (
     !Number.isFinite(distanceM) ||
@@ -159,7 +173,7 @@ export function tracksideFraming(
     !Number.isFinite(aspect) ||
     aspect <= 0 ||
     !Number.isFinite(subjectRadius) ||
-    subjectRadius < 3.1
+    subjectRadius < lens.subjectRadius
   )
     throw new Error('Invalid trackside framing');
   const smallAxis = Math.min(1, aspect);
@@ -171,11 +185,11 @@ export function tracksideFraming(
   // The old 24-degree floor left a legal distant lens showing mostly scenery.
   // Reserve the same 28% angular margin, but let the existing physical rig use
   // a telephoto lens. Ordinary moving-car and pack compositions stay unchanged.
-  const fill = (TELEPHOTO.fill * 40) / clamp(baseFov, 30, 50);
+  const fill = (lens.fill * 40) / clamp(baseFov, 30, 50);
   const tele = (2 * Math.atan(Math.tan(radius) / (fill * smallAxis)) * 180) / Math.PI;
   const fov = service
     ? clamp(required, 4, 55)
-    : Math.min(55, Math.max(clamp(tele, TELEPHOTO.minFov, TELEPHOTO.maxFov), required));
+    : Math.min(55, Math.max(clamp(tele, lens.minFov, lens.maxFov), required));
   const half = Math.atan(Math.tan((fov * Math.PI) / 360) * smallAxis);
   return {
     fov,
@@ -233,6 +247,7 @@ export class TracksideDirector {
     radius = 3.1,
     strictRadius = false,
     visibility?: BroadcastSubjectVisibility,
+    lens: Readonly<TracksideLens> = TELEPHOTO,
   ) {
     if (
       !Number.isFinite(
@@ -273,6 +288,7 @@ export class TracksideDirector {
           aspect,
           radius,
           true,
+          lens,
         ).fits;
       // Prefer a previously chosen service lens while its physical view remains
       // suitable. A stopped car must not cut back and forth at a road-sector edge.
@@ -339,12 +355,14 @@ export class TracksideDirector {
       }
       if (
         strictRadius &&
-        radius > 3.1 &&
+        radius > lens.subjectRadius &&
         !tracksideFraming(
           Math.max(0.001, this.rigs[id].position.distanceTo(target)),
           this.rigs[id].baseFov,
           aspect,
           radius,
+          false,
+          lens,
         ).fits
       ) {
         // A real pack requires a suitable physical camera, not a secretly reduced
@@ -362,6 +380,8 @@ export class TracksideDirector {
               rig.baseFov,
               aspect,
               radius,
+              false,
+              lens,
             ).fits
           );
         });
@@ -387,11 +407,19 @@ export class TracksideDirector {
       aspect,
       radius,
       !!visibility,
+      lens,
     );
     this.subjectRadius = radius;
-    if (!framing.fits && radius > 3.1 && !strictRadius && !visibility) {
-      this.subjectRadius = 3.1;
-      framing = tracksideFraming(Math.max(0.001, distanceM), rig.baseFov, aspect);
+    if (!framing.fits && radius > lens.subjectRadius && !strictRadius && !visibility) {
+      this.subjectRadius = lens.subjectRadius;
+      framing = tracksideFraming(
+        Math.max(0.001, distanceM),
+        rig.baseFov,
+        aspect,
+        lens.subjectRadius,
+        false,
+        lens,
+      );
     }
     this.framingFits = framing.fits;
     const speed = velocity.length();

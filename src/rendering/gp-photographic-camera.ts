@@ -1,0 +1,319 @@
+import { clamp, smooth } from '../core/math.ts';
+import {
+  B,
+  BIKE_BASE,
+  F,
+  H,
+  R,
+  RACE_BASE,
+  W,
+  WHEEL_BASE,
+  WHEEL_STRIDE,
+  carBase,
+} from '../simulation/protocol.ts';
+import { vehicleAt } from '../simulation/vehicles.ts';
+import type { MotionWheel } from './studio/velocity.ts';
+import type { SubjectLens } from './studio/subject-focus.ts';
+import type { TracksideLens } from './trackside.ts';
+
+/**
+ * GP photographic camera (W1 hyperrealism): the chase rig, its bounded
+ * response to the bike's longitudinal load, a fine high-speed vibration and
+ * the trackside broadcast lens, for a followed GP prototype only. Road bikes
+ * keep motorcycle-camera.ts, motocross its own rig, cars the CHASE rig.
+ *
+ * Composition (REF_014 game chase, REF_055/077/089 broadcast chase): the
+ * camera sits lower and closer behind the bike than the shared bike rig (eye
+ * about 1.1 m above the road instead of 1.5 m) behind a longer lens (43
+ * degrees vertical instead of 51), pitched down a fixed 6.2 degrees. The
+ * shared rig puts the rear contact patch just below the frame edge; this one
+ * keeps the contact patch and its cast shadow in frame (77-85 % of the
+ * half-height below centre) with the rider's helmet just above centre, so the
+ * machine fills about half the frame height (shared: about 40 %) and the
+ * horizon sits a little above mid-frame. Distances are relative to the
+ * bike's centre of gravity.
+ *
+ * Dynamics (felt mass, REF_049/059/071): longitudinal load, filtered with a
+ * fixed time constant in presented camera time, pulls the camera back under
+ * drive (the bike surges away, then the rig catches up) and in under braking,
+ * where the gaze also pitches forward toward the braking point. Both are
+ * bounded, zero in reduced motion, and a pure function of presented state
+ * plus the filter (reset on every camera cut), so replays reproduce them.
+ */
+export const GP_CHASE = Object.freeze({
+  /** Eye height above the CG at rest, metres (shared bike rig: 0.88). */
+  height: 0.5,
+  heightPerMS: 0.0012,
+  /** Rise of the eye under full brake, metres. */
+  brakeRise: 0.06,
+  /** Distance behind the CG at rest, metres (shared bike rig: 3.2). */
+  distance: 3.2,
+  distancePerMS: 0.003,
+  lookAhead: 10,
+  lookAheadPerMS: 0.06,
+  lookAheadMax: 4.5,
+  /** Downward view pitch, degrees; the gaze lift is derived from it. */
+  pitchDeg: 6.2,
+  /** Vertical field of view, degrees, and its speed widening (cap). */
+  fov: 43,
+  fovGain: 4,
+  /** Partial horizon roll with lean (shared bike rig: 0.35). */
+  roll: 0.35,
+  /** Low-pass time constant of the longitudinal load, seconds. */
+  loadSeconds: 0.32,
+  /** Pull-back per g of drive, and its bound (metres). */
+  driveBack: 0.42,
+  driveBackMax: 0.5,
+  /** Close-in per g of braking, and its bound (metres). */
+  brakeIn: 0.16,
+  brakeInMax: 0.26,
+  /** Forward gaze pitch per g of braking, and its bound (radians). */
+  brakePitch: 0.022,
+  brakePitchMax: 0.035,
+  /** Fine vibration: speed where it starts / is full (m/s), amplitude of the
+   * eye (metres) and of the gaze (metres at the look-ahead point) at full
+   * camera-vibration setting, and its two incommensurate frequencies (Hz). */
+  vibrationFrom: 30,
+  vibrationFull: 85,
+  vibrationEye: 0.004,
+  vibrationGaze: 0.018,
+  vibrationHz: Object.freeze([13.7, 21.9] as const),
+});
+
+/** Shutter multiplier on the motion-blur setting for GP views (clamped by
+ * MOTION_BLUR.maxStrength): Medium 0.35 -> 0.56 (1/107 s), High 0.5 -> 0.6
+ * (1/100 s), the 180-degree shutter of 50 Hz broadcast. REF_049/059/071
+ * streak the background and wheels at speed. */
+export const GP_SHUTTER = 1.6;
+
+/** A chase rig in the renderer's terms (renderer.ts CHASE, motorcycleChase). */
+export interface ChaseRig {
+  height: number;
+  heightPerMS: number;
+  distance: number;
+  distancePerMS: number;
+  lookAhead: number;
+  lookLift: number;
+  fov: number;
+  fovGain: number;
+  yaw: number;
+}
+
+/** The GP chase rig for this frame (same shape as motorcycleChase). The gaze
+ * lift holds the authored pitch at this speed's height, distance and reach. */
+export function gpChase(
+  speed: number,
+  brake: number,
+  lean: number,
+  reducedMotion = false,
+): ChaseRig {
+  const v = Number.isFinite(speed) ? clamp(Math.abs(speed), 0, 110) : 0;
+  const braking = Number.isFinite(brake) ? clamp(brake, 0, 1) : 0;
+  const angle = Number.isFinite(lean) ? clamp(lean, -1.12, 1.12) : 0;
+  const c = GP_CHASE;
+  const height = c.height + (reducedMotion ? 0 : c.brakeRise * braking),
+    heightPerMS = reducedMotion ? 0 : c.heightPerMS,
+    distancePerMS = reducedMotion ? 0 : c.distancePerMS,
+    lookAhead = c.lookAhead + Math.min(c.lookAheadMax, v * c.lookAheadPerMS);
+  const reach = c.distance + v * distancePerMS + lookAhead;
+  return {
+    height,
+    heightPerMS,
+    distance: c.distance,
+    distancePerMS,
+    lookAhead,
+    lookLift: height + v * heightPerMS - Math.tan((c.pitchDeg * Math.PI) / 180) * reach,
+    fov: c.fov,
+    fovGain: reducedMotion ? 0 : c.fovGain,
+    // As motorcycleChase: ~0.22 s preview of the steady-turn rate, capped.
+    yaw: reducedMotion
+      ? 0
+      : clamp((9.81 * Math.tan(angle) * 0.22) / Math.max(12, v), -0.11, 0.11) * Math.min(1, v / 8),
+  };
+}
+
+/** Bounded, filtered chase response to longitudinal load plus vibration.
+ * Allocation-free; `reset` on camera cuts, seeks and follow changes. */
+export class GpChaseDynamics {
+  /** Filtered longitudinal load, g (positive: drive). */
+  load = 0;
+  private primed = false;
+  /** Outputs of the last `update`. */
+  readonly out = { distance: 0, pitch: 0, eyeX: 0, eyeY: 0, gazeX: 0, gazeY: 0 };
+  reset() {
+    this.load = 0;
+    this.primed = false;
+    const o = this.out;
+    o.distance = o.pitch = o.eyeX = o.eyeY = o.gazeX = o.gazeY = 0;
+  }
+  /**
+   * `dt` presented camera seconds; `longG` the bike's longitudinal load (g);
+   * `time` presented simulation time (vibration phase); `vibration` the
+   * camera-vibration setting 0..1. Offsets are in the chase frame: distance
+   * along the rig's back axis, pitch about its right axis, eye/gaze lateral
+   * and vertical metres.
+   */
+  update(
+    dt: number,
+    longG: number,
+    speed: number,
+    time: number,
+    vibration: number,
+    reducedMotion: boolean,
+  ) {
+    const o = this.out,
+      c = GP_CHASE;
+    const g = Number.isFinite(longG) ? clamp(longG, -2.5, 2.5) : 0;
+    if (!this.primed || !(dt >= 0) || !Number.isFinite(dt)) {
+      this.load = g;
+      this.primed = true;
+    } else this.load += (g - this.load) * -Math.expm1(-Math.min(dt, 0.25) / c.loadSeconds);
+    if (reducedMotion) {
+      o.distance = o.pitch = o.eyeX = o.eyeY = o.gazeX = o.gazeY = 0;
+      return o;
+    }
+    const drive = Math.max(0, this.load),
+      braking = Math.max(0, -this.load);
+    o.distance =
+      Math.min(c.driveBackMax, drive * c.driveBack) - Math.min(c.brakeInMax, braking * c.brakeIn);
+    o.pitch = Math.min(c.brakePitchMax, braking * c.brakePitch);
+    const v = Number.isFinite(speed) ? Math.abs(speed) : 0;
+    const amount =
+      clamp(Number.isFinite(vibration) ? vibration : 0, 0, 1) *
+      smooth(c.vibrationFrom, c.vibrationFull, v);
+    if (amount > 0 && Number.isFinite(time)) {
+      const [f1, f2] = c.vibrationHz,
+        a = Math.sin(2 * Math.PI * f1 * time),
+        b = Math.sin(2 * Math.PI * f2 * time + 1.3),
+        d = Math.sin(2 * Math.PI * f2 * time * 0.71 + 2.1);
+      o.eyeX = c.vibrationEye * amount * (0.6 * b + 0.4 * d);
+      o.eyeY = c.vibrationEye * amount * (0.7 * a + 0.3 * b);
+      o.gazeX = c.vibrationGaze * amount * (0.5 * a - 0.5 * d);
+      o.gazeY = c.vibrationGaze * amount * (0.6 * d + 0.4 * a);
+    } else o.eyeX = o.eyeY = o.gazeX = o.gazeY = 0;
+    return o;
+  }
+}
+
+/**
+ * Trackside GP framing (REF_027/030/031/032/038): long-lens panning shots in
+ * which the bike and rider fill a third to a half of the frame height. The
+ * shared broadcast policy frames a car's 3.1 m sphere at half the screen
+ * between 12 and 24 degrees, which leaves a motorcycle 5-10 % of the frame
+ * on the authored 36-45 m rigs. A GP machine and tucked rider fit a 1.2 m
+ * sphere; it fills 66 % of the smaller axis, down to a 3 degree lens. A
+ * battle still widens to the true bounding sphere of every participant
+ * (race-composition.ts with this radius) and the safety cone and immediate
+ * widening are the director's own.
+ */
+export const GP_TELEPHOTO: Readonly<TracksideLens> = Object.freeze({
+  fill: 0.66,
+  minFov: 3,
+  maxFov: 24,
+  subjectRadius: 1.2,
+});
+
+/**
+ * Trackside GP lens. The shared broadcast lens (a physical f/4 on a 2/3-inch
+ * gate, below 20 degrees) leaves a 40 m trackside shot sharp to the horizon
+ * (far circle about 0.3 px at 720p); so would any physical lens at the game's
+ * camera distances (f/2.8 Super 35: about 0.7 px). The MotoGP references
+ * (REF_008/022/027/030/035/042/046) separate the followed bike from the
+ * stands, fence and verge behind it and soften near blockers. The GP lens
+ * keeps the thin lens's distance-ratio response c(d) = K (1 - s/d), so blur
+ * grows with depth RATIO (photographic, not the tilt-shift miniature of a
+ * depth-difference blur), with a fixed far-field circle K: at twice the
+ * focus distance 0.5 K, toward the horizon K (4 px at 720p), a blocker at
+ * half the focus distance -K, all capped at `maxblur`. Reuses the scene
+ * pass depth and the existing gather (no scene re-render; in-focus pixels
+ * exit after one depth fetch).
+ */
+export const GP_TRACKSIDE_LENS: SubjectLens = Object.freeze({
+  aperture: 0,
+  maxblur: 0.008,
+  thinLens: Object.freeze({ fNumber: 2.8, sensorHeight: 0.014, fixedK: 0.0055 }),
+});
+/** Widest trackside lens (vertical degrees) that still gets the GP lens. */
+export const GP_TRACKSIDE_DOF_BELOW = 30;
+
+/** The GP subject lens for a live camera (null: no depth of field). */
+export function gpSubjectLens(camera: string, fov: number): SubjectLens | null {
+  return camera === 'trackside' && Number.isFinite(fov) && fov < GP_TRACKSIDE_DOF_BELOW
+    ? GP_TRACKSIDE_LENS
+    : null;
+}
+
+/**
+ * Spinning GP wheels for the motion field (studio/velocity.ts): the two
+ * wheels of the GP prototypes nearest the camera (at most `wheels.length / 2`
+ * bikes), from the presented snapshot only. Centres are the definition's
+ * chassis-frame wheel positions (the presented pose carries lean and pitch;
+ * fork travel moves the front centre a few centimetres, inside the disc
+ * margin), the spin is the presented tyre rate (rolling rate if absent), and
+ * the half widths cover tread, rim and brake disc but not the fork legs or
+ * swingarm (which stay as sharp as the chassis). A fallen or retired bike's
+ * wheels are skipped. Returns the number of discs written.
+ */
+export const GP_WHEEL_BLUR = Object.freeze({
+  /** Disc half widths, metres (front tyre 120 mm, rear 200 mm wide). */
+  frontHalfWidth: 0.075,
+  rearHalfWidth: 0.11,
+  /** Lean beyond which the bike has fallen (rad). */
+  fallenLean: 1.2,
+});
+const nearest = new Float64Array(12);
+const nearestId = new Int32Array(12);
+export function gpMotionWheels(
+  presented: Float32Array,
+  eyeX: number,
+  eyeY: number,
+  eyeZ: number,
+  wheels: MotionWheel[],
+) {
+  const cars = presented[H.CARS];
+  if (!Number.isInteger(cars) || cars < 1 || cars > 12) return 0;
+  let found = 0;
+  for (let id = 0; id < cars; id++) {
+    const o = carBase(id);
+    const definition = vehicleAt(Math.round(presented[o + RACE_BASE + R.VEHICLE]));
+    if (definition.classId !== 'gp-bike' || !definition.bike || presented[o + F.RETIRED]) continue;
+    if (!(Math.abs(presented[o + BIKE_BASE + B.LEAN]) < GP_WHEEL_BLUR.fallenLean)) continue;
+    const d = Math.hypot(
+      presented[o + F.X] - eyeX,
+      presented[o + F.Y] - eyeY,
+      presented[o + F.Z] - eyeZ,
+    );
+    if (!Number.isFinite(d)) continue;
+    // Insertion into the sorted nearest list (at most twelve entries).
+    let k = found++;
+    while (k > 0 && nearest[k - 1] > d) {
+      nearest[k] = nearest[k - 1];
+      nearestId[k] = nearestId[k - 1];
+      k--;
+    }
+    nearest[k] = d;
+    nearestId[k] = id;
+  }
+  let count = 0;
+  for (let n = 0; n < found && count + 2 <= wheels.length; n++) {
+    const id = nearestId[n],
+      o = carBase(id),
+      definition = vehicleAt(Math.round(presented[o + RACE_BASE + R.VEHICLE])),
+      spec = definition.bike!;
+    for (const [slot, radius, halfWidth] of [
+      [0, spec.frontWheelRadius, GP_WHEEL_BLUR.frontHalfWidth],
+      [2, spec.rearWheelRadius, GP_WHEEL_BLUR.rearHalfWidth],
+    ] as const) {
+      const wheel = wheels[count++],
+        omega = presented[o + WHEEL_BASE + slot * WHEEL_STRIDE + W.OMEGA];
+      wheel.car = id;
+      wheel.centre.fromArray(definition.wheelPositions[slot]);
+      wheel.radius = radius;
+      wheel.halfWidth = halfWidth;
+      wheel.omega = Number.isFinite(omega)
+        ? omega
+        : (Number.isFinite(presented[o + F.SPEED]) ? presented[o + F.SPEED] : 0) / radius;
+    }
+  }
+  return count;
+}
