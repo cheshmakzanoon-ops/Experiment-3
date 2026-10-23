@@ -1,6 +1,7 @@
 import * as T from 'three';
 import { mod } from '../../core/math.ts';
 import { trackPoint, type Track } from '../../simulation/track.ts';
+import { isGpCourse } from '../../simulation/gp-corner-shape.ts';
 import type { CatalogueMeta } from '../../simulation/circuit-catalogue/venue-data.ts';
 import { StaticTransformGroup } from '../static-transform-group.ts';
 import { venueKitMaterials, type VenueKitMaterials } from './materials.ts';
@@ -32,7 +33,7 @@ export class VenueKitContext {
   constructor(readonly track: Track) {
     this.meta = track.circuit.catalogue!;
     this.style = VENUE_THEMES[this.meta.theme];
-    this.materials = venueKitMaterials(this.style);
+    this.materials = venueKitMaterials(this.style, isGpCourse(track));
     this.root.name = `Venue kit · ${this.meta.venueName} (${this.meta.layout})`;
   }
   /** Register a circular footprint that planting and scatter must avoid. */

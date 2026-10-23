@@ -176,7 +176,12 @@ describe('GP edge shader variants', () => {
         expect(shader.fragmentShader).toContain('apexEdgeScuffs');
         if (kind === 'paint') {
           expect(shader.vertexShader).toContain('attribute float gpCornerPaint');
-          expect(shader.fragmentShader).toContain('smoothstep(.05, .7, vGpCornerPaint)');
+          expect(shader.fragmentShader).toContain('smoothstep( .05, .7, vGpCornerPaint )');
+          // GP aprons are flat colour fields with a white separator, and gravel
+          // litter where a trap lies beyond (no chevrons).
+          expect(shader.vertexShader).toContain('attribute float gpVergeGravel');
+          expect(shader.fragmentShader).toContain('float separator');
+          expect(shader.fragmentShader).not.toContain('chevPhase');
         }
         material.dispose();
       }

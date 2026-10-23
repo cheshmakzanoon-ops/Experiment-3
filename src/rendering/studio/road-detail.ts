@@ -113,6 +113,14 @@ export const GP_VENUE_ROAD = Object.freeze({
   /** Edge dust reach (m) and lift, replacing ROAD_DETAIL's narrower band. */
   dustWidth: 1.7,
   dustLift: 0.12,
+  /** Share of the periodic 4.5 m meso tone kept (the rest reads as tiling). */
+  mesoKeep: 0.35,
+  /** Aperiodic longitudinal lanes (m across, m along) and broad drifts (m). */
+  laneWidth: 0.85,
+  laneLength: 26,
+  laneTone: 0.045,
+  driftScale: 31,
+  driftTone: 0.05,
 });
 
 /** Start-grid slots, as the simulation places cars (world.ts) and the circuit
@@ -408,6 +416,30 @@ export function installRoadDetail(
   const gpLaunchBack = gpGrid
     ? Math.max(...Array.from({ length: gpSlots }, (_, i) => -gpGrid.slots[i * 2]))
     : launchBack;
+  // GP venue: seasons of traffic polish a band wider than the line, darkest
+  // where everything brakes; off the line the tarmac stays dusty and pale
+  // (GP_VENUE_ROAD). Static, so held frames are exact. Other venues compile
+  // the original source byte for byte.
+  const venueGlsl = gpVenue
+    ? `
+        {
+          float venueBrake = max(vApexLine.y, vApexBikeBrake);
+          float venueBand = exp(-0.5 * apexX * apexX / ${g(V.bandSigma * V.bandSigma)});
+          float venueDark = venueBand * mix(${g(V.bandDarkening[0])}, ${g(V.bandDarkening[1])}, venueBrake);
+          diffuseColor.rgb = mix(diffuseColor.rgb, apexGrey, 0.4 * venueDark) * (1.0 - venueDark) * ${g(V.tone)};
+          apexLineMask = max(apexLineMask, 0.35 * venueDark / ${g(V.bandDarkening[1])});
+          diffuseColor.rgb *= 1.0 + ${g(V.offLineLift)} * smoothstep(${g(V.offLine[0])}, ${g(V.offLine[1])}, abs(apexX));
+          // The 4.5 m meso tile repeats down a straight: keep a quarter of its
+          // tone, and lay aperiodic lap-long lanes and broad drifts instead.
+          diffuseColor.rgb *= (1.0 + (apexMeso - 0.5) * ${g(ASPHALT_DETAIL.mesoTone * V.mesoKeep)}) /
+            (1.0 + (apexMeso - 0.5) * ${g(ASPHALT_DETAIL.mesoTone)});
+          vec2 venueLaneP = vec2(vRoadMetres.x / ${g(V.laneWidth)}, vRoadMetres.y / ${g(V.laneLength)});
+          float venueLaneAA = 1.0 - smoothstep(0.3, 0.9, fwidth(venueLaneP.x));
+          float venueLane = mix(0.5, apexRoadNoise(venueLaneP) * 0.6 + apexRoadNoise(venueLaneP * vec2(2.3, 1.7) + 9.1) * 0.4, venueLaneAA);
+          float venueDrift = apexRoadNoise(vAsphaltWorld / ${g(V.driftScale)} + 3.7);
+          diffuseColor.rgb *= 1.0 + ${g(V.laneTone)} * (venueLane - 0.5) * 2.0 + ${g(V.driftTone)} * (venueDrift - 0.5) * 2.0;
+        }`
+    : '';
   return chainShaderHook(
     material,
     (gpGrid ? 'road-detail-gp-grid-v8' : 'road-detail-v7') + (gpVenue ? '-gp-venue-v1' : ''),
@@ -516,22 +548,7 @@ export function installRoadDetail(
         float apexDark = min(0.8, (${g(R.lineDarkening)} + ${g(R.brakeDarkening)} * apexBrake) * apexLineMask);
         vec3 apexGrey = vec3(dot(diffuseColor.rgb, vec3(0.2126, 0.7152, 0.0722)));
         // Rubber is a neutral black: darken toward grey, not along the hue.
-        diffuseColor.rgb = mix(diffuseColor.rgb, apexGrey, 0.45 * apexDark) * (1.0 - apexDark);
-        ${
-          gpVenue
-            ? `// GP venue: seasons of traffic polish a band wider than the line,
-        // darkest where everything brakes; off the line the tarmac stays
-        // dusty and pale (GP_VENUE_ROAD). Static, so held frames are exact.
-        {
-          float venueBrake = max(vApexLine.y, vApexBikeBrake);
-          float venueBand = exp(-0.5 * apexX * apexX / ${g(V.bandSigma * V.bandSigma)});
-          float venueDark = venueBand * mix(${g(V.bandDarkening[0])}, ${g(V.bandDarkening[1])}, venueBrake);
-          diffuseColor.rgb = mix(diffuseColor.rgb, apexGrey, 0.4 * venueDark) * (1.0 - venueDark) * ${g(V.tone)};
-          apexLineMask = max(apexLineMask, 0.35 * venueDark / ${g(V.bandDarkening[1])});
-          diffuseColor.rgb *= 1.0 + ${g(V.offLineLift)} * smoothstep(${g(V.offLine[0])}, ${g(V.offLine[1])}, abs(apexX));
-        }`
-            : ''
-        }
+        diffuseColor.rgb = mix(diffuseColor.rgb, apexGrey, 0.45 * apexDark) * (1.0 - apexDark);${venueGlsl}
         // Launch rubber on the grid, continuous across the start line.
         float apexFromLine = vRoadMetres.y > ${g(lapLength * 0.5)} ? vRoadMetres.y - ${g(lapLength)} : vRoadMetres.y;
         float apexLaunch = 0.0;

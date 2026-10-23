@@ -104,6 +104,8 @@ interface RibbonOptions {
   columns?: number;
   road?: boolean;
   include?: (s: number, lateral: number) => boolean;
+  /** Extra per-vertex float attributes by name (GP gravel cover). */
+  attributes?: Readonly<Record<string, (s: number, lateral: number) => number>>;
 }
 /** All surfaces are constructed from the same metre-valued track queries as physics. */
 export class CircuitScene {
@@ -242,7 +244,7 @@ export class CircuitScene {
     // D28: night floodlight pools on every track ribbon (lap-space lamp rows).
     for (const m of [this.roadMaterial, grass, runOff, gravel]) installLightPools(m);
     // Photographed ground (Medium and above, once resident; ground/scan-store.ts).
-    installScannedAsphalt(this.roadMaterial);
+    installScannedAsphalt(this.roadMaterial, isGpCourse(track));
     installScannedAsphalt(runOff);
     installScannedTurf(grass);
     installVergeFinish(grass);
@@ -686,6 +688,9 @@ export class CircuitScene {
       runoff: number[] = [],
       gpPaint: number[] = [],
       gpGravel: number[] = [],
+      custom = Object.entries(options.attributes ?? {}).map(
+        ([name, value]) => [name, value, [] as number[]] as const,
+      ),
       indices: number[] = [];
     const gpDesign = gpEdgeDesign(this.track);
     const p = trackPoint(),
@@ -703,6 +708,7 @@ export class CircuitScene {
         // Signed metres beyond the asphalt edge (negative on the road), shared
         // by the kerb, verge and terrain shaders.
         edge.push(Math.abs(l) - p.width);
+        for (const [, value, out] of custom) out.push(value(s, l));
         if (options.road) {
           apex.push(...apexLineAt(this.track, s, l, line));
           bikeBrake.push(apexLineAt(this.track, s, l, line, true)[1]);
@@ -744,6 +750,7 @@ export class CircuitScene {
     g.setAttribute('uv', new T.Float32BufferAttribute(uv, 2));
     g.setAttribute('trackUV', new T.Float32BufferAttribute(state, 2));
     g.setAttribute('edgeMetres', new T.Float32BufferAttribute(edge, 1));
+    for (const [name, , out] of custom) g.setAttribute(name, new T.Float32BufferAttribute(out, 1));
     if (options.road) {
       g.setAttribute('apexLine', new T.Float32BufferAttribute(apex, 2));
       g.setAttribute('apexBikeBrake', new T.Float32BufferAttribute(bikeBrake, 1));

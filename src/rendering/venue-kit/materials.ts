@@ -1,5 +1,6 @@
 import * as T from 'three';
 import { installGpWallPrint } from './gp-wall-print.ts';
+import { installGpGravel, installGpTurf } from '../ground/gp-ground.ts';
 import { Random } from '../../core/math.ts';
 import { valueNoise } from '../terrain-profile.ts';
 import { canvasTexture } from '../geometry.ts';
@@ -239,7 +240,9 @@ export function installFacadeStreetLight(material: T.MeshStandardMaterial) {
   });
 }
 
-export function venueKitMaterials(style: VenueThemeStyle) {
+/** `gp`: the motorcycle-GP venues' turf and gravel (ground/gp-ground.ts);
+ * every other venue's palette is built exactly as before. */
+export function venueKitMaterials(style: VenueThemeStyle, gp = false) {
   const groundKind =
     style.ground === 'sand' ? 'gravel' : style.ground === 'grass' ? 'grass' : 'concrete';
   const ground = surfaceMaterial(groundKind, groundKind === 'concrete' ? 'concrete' : undefined);
@@ -320,6 +323,10 @@ export function venueKitMaterials(style: VenueThemeStyle) {
   } else if (groundKind === 'gravel') installScannedGravel(ground);
   else installScannedConcrete(ground);
   installScannedGravel(gravel);
+  if (gp) {
+    installGpGravel(gravel);
+    if (groundKind === 'grass') installGpTurf(ground);
+  }
   installScannedAsphalt(runoff);
   const rockAlbedo = albedoOf(style.rockTint).map((v) => v * 0.9) as [number, number, number];
   installScannedMaps(rock, 'rock', rockAlbedo, 1);
