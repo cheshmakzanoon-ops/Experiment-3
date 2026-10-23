@@ -568,6 +568,11 @@ export class Rider {
         leather.roughness = 0.63;
         leather.clearcoat = 0.055;
         leather.clearcoatRoughness = 0.43;
+        // REF_018/056: finished hide carries a soft grazing sheen over its
+        // satin lacquer; the plain textile/stretch panels stay matte.
+        leather.sheen = 0.32;
+        leather.sheenRoughness = 0.48;
+        leather.sheenColor.setHex(0x9aa0a8);
         panel.roughness = 0.69;
       }
       Object.assign(glove, bikeSurfaceMaps('seat'));
