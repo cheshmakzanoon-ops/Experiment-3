@@ -16,6 +16,8 @@ import { gpDiscGlow } from './gp-disc-glow.ts';
 import { gpForkCrowns, GP_FORK_TUBE_TOP } from './gp-fork-crown.ts';
 import { gpMainFrame } from './gp-main-frame.ts';
 import { gpForgedWheel, gpTyreCompoundMarkings, gpWheelMachinedLip } from './gp-forged-wheel.ts';
+import { GpRiderBody } from './gp-rider-dynamics.ts';
+import type { GpRiderBodyState } from './gp-rider-posture.ts';
 import { bindGpTyre, installGpTyreFinish, type GpTyreAppearance } from './gp-tyre-finish.ts';
 import { gpRadiator } from './gp-radiator.ts';
 import { GPChainDrive } from './gp-chain-drive.ts';
@@ -1904,6 +1906,9 @@ export class BikeModel {
     this.rider.seat.set(0, 0.3, -0.32);
     this.rider.pegs[0].set(0.17, -0.2, -0.3);
     this.rider.pegs[1].set(-0.17, -0.2, -0.3);
+    // Road plane for the GP knee/elbow sliders and planted boots (CG frame).
+    this.rider.ground.height = b.cgHeight;
+    this.rider.ground.crown = b.crownRadius;
     if (this.gpFrontBrakeLever) this.rider.brakeFingerTargets = this.gpBrakeTargets;
     this.sprung.add(this.rider.root);
     for (const group of [
@@ -1999,6 +2004,10 @@ export class BikeModel {
         speed: v.speed,
         suspensionPitch: this.sprung.rotation.x,
         rearBraking: v.rearBrake,
+        throttle: v.throttle,
+        gLong: v.gLong,
+        leanRate: v.leanRate,
+        gpBody: v.gpBody,
       });
     }
   }
@@ -2040,6 +2049,12 @@ export interface BikePoseValues extends GpTyreAppearance {
   body?: number;
   mud?: number;
   mudWet?: number;
+  /** GP rider inputs: throttle 0..1, longitudinal g, chassis roll rate
+   * (rad/s) and the spring-damped body state (gp-rider-dynamics.ts). */
+  throttle?: number;
+  gLong?: number;
+  leanRate?: number;
+  gpBody?: GpRiderBodyState;
   /** Pit service (bike frame, m): rear wheel out of the swingarm (backwards)
    * and front wheel out of the fork (down), from the shared service pose. */
   rearWheelOut?: number;
@@ -2052,6 +2067,8 @@ interface Entry {
   level: number;
   /** Paddock stands and carried wheels, shown only during a pit service. */
   rig: BikeServiceRig;
+  /** GP prototypes: the rider's spring-damped mass (gp-rider-dynamics). */
+  riderBody?: GpRiderBody;
 }
 const COMPOUND_COLOURS = Object.values(COMPOUNDS).map((c) => c.color);
 /** Chase-camera roll as a fraction of the followed bike's lean. */
@@ -2157,7 +2174,10 @@ export class BikeShells {
     const rig = new BikeServiceRig(bikeServiceGeometry(definition));
     this.root.add(rig.root);
     this.install(rig.root);
-    return { definition, materials, levels, level: -1, rig };
+    // One spring-damped rider body per GP entrant, shared by its LODs.
+    const riderBody =
+      definition.id === 'gpr1' || definition.id === 'gpr2' ? new GpRiderBody() : undefined;
+    return { definition, materials, levels, level: -1, rig, riderBody };
   }
   private dispose(entry: Entry) {
     for (const level of entry.levels) {
@@ -2270,7 +2290,7 @@ export class BikeShells {
       // recorded lift along its own up axis; the stands stay on the floor.
       if (service)
         model.root.position.add(this.lift.set(0, service.lift, 0).applyQuaternion(car.quaternion));
-      this.pose(model, a, b, t, id);
+      this.pose(model, a, b, t, id, entry.riderBody);
     }
   }
   private pose(
@@ -2279,6 +2299,7 @@ export class BikeShells {
     b: Float32Array,
     t: number,
     id: number,
+    riderBody?: GpRiderBody,
   ) {
     const o = carBase(id),
       bike = model.definition.bike!,
@@ -2315,6 +2336,12 @@ export class BikeShells {
     v.body = sampleOffroadField(a, b, o, O.BODY, t);
     v.mud = sampleOffroadField(a, b, o, O.MUD, t);
     v.mudWet = sampleOffroadField(a, b, o, O.MOISTURE, t);
+    // GP rider body language: presented controls, acceleration and roll rate,
+    // plus the entrant's spring-damped body state on the simulation clock.
+    v.throttle = sampleValue(a, b, o + F.THROTTLE, t);
+    v.gLong = sampleValue(a, b, o + F.G_LONG, t);
+    v.leanRate = sampleBikeField(a, b, o, B.LEAN_RATE, t);
+    v.gpBody = riderBody?.sample(a, b, t, o, v.riding);
     const rider = model.rider;
     if (v.riding && rider.root.parent !== model.sprung) {
       model.sprung.add(rider.root);

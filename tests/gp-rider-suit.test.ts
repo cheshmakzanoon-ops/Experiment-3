@@ -115,16 +115,22 @@ describe('GP fitted racing leathers', () => {
         // contact. Their limb lengths and actual mesh contact have a separate
         // production-model contract in gp-rider-contact.test.ts.
         expect(anchors(gp).contacts).toEqual(anchors(legacy).contacts);
-        // The seat position remains fixed while GP chest/pelvis articulation
-        // and road-relative gaze intentionally differ from the old rigid pose.
-        expect(gp.root.getObjectByName('Rider torso')!.position.toArray()).toEqual(
-          legacy.root.getObjectByName('Rider torso')!.position.toArray(),
-        );
+        // The GP posture solver owns the pelvis (gp-rider-posture.ts); it
+        // stays on the same seat, within a hand's breadth of the road pose.
+        expect(
+          gp.root
+            .getObjectByName('Rider torso')!
+            .position.distanceTo(legacy.root.getObjectByName('Rider torso')!.position),
+        ).toBeLessThan(0.12);
       }
       for (const phase of [0, 1, 2]) {
         legacy.separated(phase, 0.75, 2);
         gp.separated(phase, 0.75, 2);
-        expect(anchors(gp)).toEqual(anchors(legacy));
+        // The GP race helmet pivots on its own neck (atlas), so only the
+        // contacts and pelvis keep the legacy recovery transforms exactly.
+        const [gpAnchors, legacyAnchors] = [anchors(gp), anchors(legacy)];
+        expect(gpAnchors.contacts).toEqual(legacyAnchors.contacts);
+        expect(gpAnchors.torso).toEqual(legacyAnchors.torso);
         // Recovery changes only the GP foot's attachment and calf cuff.
         // Preserve the existing torso and limb trajectories for every kit.
         expect(

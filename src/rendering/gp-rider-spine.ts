@@ -19,6 +19,7 @@ export class GpRiderSpine {
   readonly skeleton: T.Skeleton;
   readonly meshes: T.SkinnedMesh[] = [];
   private readonly euler = new T.Euler();
+  private readonly chestAngles = new T.Euler();
   private readonly pivot = new T.Vector3();
   private readonly offset = new T.Vector3();
 
@@ -111,11 +112,19 @@ export class GpRiderSpine {
       flex = 0.075 + tuck * 0.18 - braking * 0.055 * (1 - tuck * 0.6),
       twist = T.MathUtils.clamp(hang * 0.48 + lean * 0.03, -0.15, 0.15) * (1 - tuck * 0.25),
       sideBend = T.MathUtils.clamp(lean * 0.045 + hang * 0.1, -0.085, 0.085);
-    this.pelvis.position.copy(position);
-    this.pelvis.quaternion.setFromEuler(
+    this.pose(
+      position,
       this.euler.set(pitch - flex, yaw - twist, roll + sideBend, 'ZYX'),
+      this.chestAngles.set(pitch, yaw, roll, 'ZYX'),
     );
-    this.chest.quaternion.setFromEuler(this.euler.set(pitch, yaw, roll, 'ZYX'));
+  }
+
+  /** Explicit pelvis and chest attitudes from the GP posture solver. The
+   * lumbar frame shares their bend; both frames keep the spine continuous. */
+  pose(position: T.Vector3, pelvis: T.Euler, chest: T.Euler) {
+    this.pelvis.position.copy(position);
+    this.pelvis.quaternion.setFromEuler(pelvis);
+    this.chest.quaternion.setFromEuler(chest);
     this.lumbar.quaternion.copy(this.pelvis.quaternion).slerp(this.chest.quaternion, 0.55);
     this.placeFrame(this.lumbar, this.pelvis, LUMBAR_HEIGHT);
     this.placeFrame(this.chest, this.lumbar, CHEST_HEIGHT);
