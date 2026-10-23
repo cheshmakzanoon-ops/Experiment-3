@@ -124,7 +124,7 @@ import {
   type Quality,
   type QualityPreset,
 } from './options.ts';
-import { UltraPipeline } from './ultra/pipeline.ts';
+import { TONE_MAPPING, UltraPipeline } from './ultra/pipeline.ts';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { FXAAShader } from 'three/addons/shaders/FXAAShader.js';
 import { Sky } from 'three/addons/objects/Sky.js';
@@ -136,6 +136,7 @@ import {
   applyGpDaylight,
   gpGradeProfile,
   gpPhotographicActive,
+  tintGpSun,
   type GpPhotographicLook,
 } from './gp-photographic-light.ts';
 import {
@@ -1316,16 +1317,12 @@ export class RacingRenderer {
     REAR_LAMP.gain = this.bloom.energyConserving ? REAR_LAMP_PHYSICAL_GAIN : 1;
     setBrandLedLighting(studio ? 'day' : illumination);
     applyCircuitLightPalette(this.sun, this.hemisphere, daylight.cover, illumination);
+    if (gpLook) tintGpSun(this.sun.color, gpLook);
     this.sun.intensity = daylight.sun;
     this.hemisphere.intensity = daylight.fill;
     this.scene.environmentIntensity = daylight.environment;
     // Sky fallback and already-lit local radiance have different gains.
     const specularIBL = setIblEnergy(daylight.environment, illumination, undefined, !studio);
-    if (gpLook)
-      iblUniforms.apexSkyIrradianceSaturation.value = Math.max(
-        iblUniforms.apexSkyIrradianceSaturation.value,
-        gpLook.shadowSaturation,
-      );
     // A photographed dome keeps the physical sky's diffuse colour balance.
     const photoSaturation = studio
       ? null
@@ -1985,6 +1982,11 @@ export class RacingRenderer {
         ? photoGrade(GRADE_PROFILES[studio ? 'studio' : illumination], this.photo)
         : null;
       this.grade.sessionOverride = gpLook ? gpGradeProfile(illumination, gpLook) : null;
+      // GP frames may use their own display transform (OutputPass reads it;
+      // nothing else draws to the screen). Every other frame keeps the preset's.
+      const toneMapper = gpLook?.toneMapper ?? this.graphics.toneMapper;
+      this.renderer.toneMapping = TONE_MAPPING[toneMapper];
+      this.grade.filmic = toneMapper !== 'aces';
       postLensFrame(
         this.grade,
         this.bloom,
