@@ -587,6 +587,55 @@ export function gpInnerFairingNet(): P3[][] {
   ]);
 }
 
+/** Ram-air duct face under the cockpit floor's rear lip: the dark airbox
+ * entry that, on the real machines, fills the view between the dash and the
+ * steering head (REF 017). Without it the onboard lens saw the road through
+ * the open nose. It stands just ahead of the steering sweep and above the
+ * hoses' and fender's paths at racing lock and full fork travel. */
+export const GP_DUCT_FACE = Object.freeze({
+  z: 0.585,
+  top: 0.275,
+  bottom: 0.17,
+  halfWidth: 0.118,
+});
+
+/** Cockpit floor plus duct face, one satin-carbon geometry. */
+export function gpInnerFairingGeometry(rows: number, cols: number) {
+  const floor = shellPanelGeometry({
+    name: 'GP inner upper fairing',
+    net: gpInnerFairingNet(),
+    rows,
+    cols,
+  });
+  // An exactly vertical quad facing the rider (-Z), authored from vertices
+  // (a rotated plane carries ~1e-16 tilt that column rasters read as a lid).
+  const d = GP_DUCT_FACE,
+    face = new T.BufferGeometry();
+  face.setAttribute(
+    'position',
+    new T.Float32BufferAttribute(
+      [
+        [-d.halfWidth, d.top],
+        [d.halfWidth, d.top],
+        [-d.halfWidth, d.bottom],
+        [d.halfWidth, d.bottom],
+      ].flatMap(([x, y]) => [x, y, d.z]),
+      3,
+    ),
+  );
+  face.setAttribute(
+    'normal',
+    new T.Float32BufferAttribute([0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1], 3),
+  );
+  face.setAttribute('uv', new T.Float32BufferAttribute([0, 1, 1, 1, 0, 0, 1, 0], 2));
+  face.setIndex([0, 1, 2, 1, 3, 2]);
+  const merged = mergeGeometries([floor, face], false)!;
+  floor.dispose();
+  face.dispose();
+  merged.name = 'GP inner upper fairing and duct face';
+  return merged;
+}
+
 /** A closed aerofoil swept along a path; the chord follows +Z. */
 function sweptFoil(
   path: readonly P3[],
@@ -1360,7 +1409,7 @@ export function gpRaceBodywork(
       'GP race shell / seat pad',
     );
     mesh(
-      shellPanelGeometry({ name: 'GP inner upper fairing', net: gpInnerFairingNet(), rows, cols }),
+      gpInnerFairingGeometry(rows, cols),
       gpSatinCarbon(materials),
       'GP race shell / inner upper fairing',
     );
