@@ -53,6 +53,12 @@ export type MotionCamera = 'attached' | 'pan' | 'still';
 
 /** Spinning wheel discs the field can carry (three motorcycles). */
 export const MOTION_MAX_WHEELS = 6;
+/** Largest wheel turn gathered over the shutter, radians. The streak is a
+ * straight gather between the shutter-open and current points; at racing
+ * speed a wheel turns ~160 degrees in 1/100 s, whose chord would cut through
+ * the hub. 0.6 rad keeps the streak on the tangent, and its length at the
+ * rim is still beyond the streak cap (`maxWidth`) in close views. */
+export const MOTION_MAX_WHEEL_TURN = 0.6;
 /** A spinning wheel of car `car`, in that car's chassis frame (axle along X). */
 export interface MotionWheel {
   car: number;
@@ -306,7 +312,11 @@ export class MotionField {
       // Spin in view space: camera⁻¹ · now · T(c) · Rx(-ω s) · T(-c) · now⁻¹ · camera.
       this.spinMatrix
         .makeTranslation(w.centre.x, w.centre.y, w.centre.z)
-        .multiply(this.scratch.makeRotationX(-w.omega * shutter))
+        .multiply(
+          this.scratch.makeRotationX(
+            -Math.max(-MOTION_MAX_WHEEL_TURN, Math.min(MOTION_MAX_WHEEL_TURN, w.omega * shutter)),
+          ),
+        )
         .multiply(this.spinOffset.makeTranslation(-w.centre.x, -w.centre.y, -w.centre.z));
       u.motionWheelPrev.value[wheels]
         .copy(u.motionPrev.value[w.car])

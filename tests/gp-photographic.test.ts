@@ -39,7 +39,11 @@ import {
 import { PhotoSky } from '../src/rendering/assets/photo-sky.ts';
 import { TELEPHOTO, tracksideFraming } from '../src/rendering/trackside.ts';
 import { GP_TELEPHOTO, gpMotionWheels } from '../src/rendering/gp-photographic-camera.ts';
-import { MotionField, shutterSeconds } from '../src/rendering/studio/velocity.ts';
+import {
+  MOTION_MAX_WHEEL_TURN,
+  MotionField,
+  shutterSeconds,
+} from '../src/rendering/studio/velocity.ts';
 import { createStudioUniforms, StudioFrame } from '../src/rendering/studio/studio-frame.ts';
 import {
   B,
@@ -426,7 +430,10 @@ describe('GP photographic camera', () => {
     const turned = top
       .clone()
       .sub(centre)
-      .applyAxisAngle(new T.Vector3(1, 0, 0), -rear.omega * shutter)
+      .applyAxisAngle(
+        new T.Vector3(1, 0, 0),
+        -Math.min(MOTION_MAX_WHEEL_TURN, rear.omega * shutter),
+      )
       .add(centre);
     const now = top.clone().project(camera),
       before = turned.clone().project(camera);
@@ -445,6 +452,14 @@ describe('GP photographic camera', () => {
     // Without discs the same tyre point is as still as its locked chassis.
     run(0);
     expect(field.pixels(top, camera, size).length()).toBeLessThan(1e-6);
+    // At racing speed the gathered turn is capped (a short arc near the
+    // tangent, not a chord through the hub): 12x the spin, the same streak.
+    for (const w of field.wheels.slice(0, count)) w.omega *= 12;
+    run(count);
+    const fast = field.pixels(top, camera, size);
+    expect(rear.omega * shutter).toBeGreaterThan(MOTION_MAX_WHEEL_TURN);
+    expect(fast.x).toBeCloseTo(measured.x, 6);
+    expect(fast.y).toBeCloseTo(measured.y, 6);
     // Non-GP vehicles get no discs.
     frame[carBase(1) + RACE_BASE + R.VEHICLE] = vehicleIndex('apx01');
     frame[carBase(0) + RACE_BASE + R.VEHICLE] = vehicleIndex('apx01');
