@@ -252,11 +252,15 @@ describe('GP race shell R6 on the production models', () => {
         model.root.traverse((object) => {
           if (
             object instanceof T.Mesh &&
-            /^GP race shell \/ (flank and nose|box wings|ground-effect scoops)/.test(object.name)
+            /^GP race shell \/ (flank and nose|box wings|ground-effect scoops|inner upper fairing)/.test(
+              object.name,
+            )
           )
             surfaces.push(object);
         });
-        expect(surfaces.length).toBe(3);
+        // The carbon inner upper fairing sits just ahead of the fork tubes'
+        // sweep and must clear them at racing lock and full travel too.
+        expect(surfaces.length).toBe(4);
         let steering: T.Object3D | undefined;
         model.root.traverse((object) => {
           if (!(object instanceof T.Mesh) || object.material !== materials.forkUpper) return;

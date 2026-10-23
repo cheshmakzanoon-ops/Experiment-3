@@ -9,7 +9,10 @@ import { sampleProfile } from './profile-sampling.ts';
  * the dark, enclosed underside of the tail. Dimensions are authored metres,
  * not measurements recovered from those images. Wheels and chain retain
  * their own geometry, transforms, service articulation and materials. */
-type Materials = Pick<BikeMaterials, 'carbon' | 'aluminium' | 'steel' | 'dark' | 'band'>;
+type Materials = Pick<
+  BikeMaterials,
+  'carbon' | 'aluminium' | 'steel' | 'dark' | 'band' | 'forkUpper'
+>;
 const UP = new T.Vector3(0, 1, 0);
 const STATIONS = [0, 0.12, 0.28, 0.4, 0.55, 0.8, 1];
 const ARM_X = [0.075, 0.075, 0.12, 0.16, 0.162, 0.158, 0.158];
@@ -312,7 +315,9 @@ export class GPRearSuspension {
         detail === 'high' ? 5 : 4,
         false,
       ),
-      materials.band,
+      // Not the compound-paint material: that is recoloured every frame to
+      // the tyre compound (white on mediums), which made a toy white coil.
+      materials.forkUpper,
       'Compact wound shock spring',
     );
     batchBikeRigidMeshes(this.upperEye);

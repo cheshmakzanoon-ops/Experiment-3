@@ -39,13 +39,13 @@ describe('GP cockpit real-camera contract', () => {
         offroad = !!definition?.bike?.offroad;
       shells.onboard(root, eye, direction, false, definition);
       expect(eye.toArray()).toEqual(
-        offroad ? [0, 1.05, -0.4] : gp ? [0, 0.5, 0.18] : [0, 0.435, 0.34],
+        offroad ? [0, 1.05, -0.4] : gp ? [0, 0.48, 0.24] : [0, 0.435, 0.34],
       );
       const pitch = offroad ? -0.4 : -0.14;
       expect(direction.toArray()).toEqual([0, Math.sin(pitch), Math.cos(pitch)]);
       for (const speed of [0, 42, 90]) {
         expect(bikeOnboardFov(speed, definition)).toBe(
-          tcamFov(speed) + (offroad ? 10 : gp ? 6 : 0),
+          tcamFov(speed) + (offroad ? 10 : gp ? 2 : 0),
         );
         expect(bikeOnboardFov(speed, definition, true)).toBe(tcamFov(speed));
       }

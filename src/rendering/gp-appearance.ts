@@ -19,9 +19,12 @@ export function calibrateGpMaterials(materials: BikeMaterials, vehicle: string):
   }
   materials.paint.color.multiplyScalar(0.84);
   materials.paint.userData.gpAppearance = 'r5-refined';
-  materials.carbon.roughness = 0.47;
-  materials.carbon.clearcoat = 0.32;
-  materials.carbon.clearcoatRoughness = 0.24;
+  // Visible carbon covers are lacquered (REF 056 tank cover, REF 073): a
+  // deep clear coat over the twill, so the weave flips under sky reflections.
+  // Inner and structural carbon uses the raw satin finish instead.
+  materials.carbon.roughness = 0.42;
+  materials.carbon.clearcoat = 0.8;
+  materials.carbon.clearcoatRoughness = 0.09;
   materials.aluminium.roughness = 0.41;
   materials.wheel.roughness = 0.42;
   materials.wheel.clearcoat = 0.2;
@@ -32,6 +35,18 @@ export function calibrateGpMaterials(materials: BikeMaterials, vehicle: string):
   materials.titanium.roughness = 0.4;
   // Burnished, not polished: bare titanium reads warm grey, not white.
   materials.titanium.color.setHex(0x8f8b85);
+  // Fork: hard-anodised graphite outer tubes and caps' recess, TiN-coated
+  // gold stanchions sliding below them (REF 018/028/060). The former bright
+  // gold outer tubes read as toy brass at the top clamp from every view.
+  materials.forkUpper.color.setHex(0x232427);
+  materials.forkUpper.metalness = 0.72;
+  materials.forkUpper.roughness = 0.34;
+  materials.forkLower.color.setHex(0x7a6236);
+  materials.forkLower.metalness = 1;
+  materials.forkLower.roughness = 0.26;
+  // Brake fluid pot: smoked amber nylon with dark fluid, not a white cup.
+  materials.reservoir.color.setHex(0x4a3a24);
+  materials.reservoir.roughness = 0.32;
   // R6 bubble: lightly smoked polycarbonate as premultiplied Fresnel glass.
   // Nearly clear through the rider's sightline, reflective at grazing angles
   // (REF 017, 028, 047), without three.js's extra opaque transmission pass,
@@ -40,7 +55,11 @@ export function calibrateGpMaterials(materials: BikeMaterials, vehicle: string):
   materials.screen.transmission = 0;
   materials.screen.thickness = 0;
   materials.screen.transparent = true;
-  materials.screen.opacity = 0.1;
+  // Nearly clear through the sightline with a printed border along the free
+  // rear rim and the fairing base: from the onboard eye the bubble reads as
+  // an edge arcing over the track (REF 017/088), not as a grey smoked blob.
+  materials.screen.opacity = 1;
+  materials.screen.alphaMap = gpScreenBorderMap();
   materials.screen.depthWrite = false;
   materials.screen.roughness = 0.03;
   installGlassFresnel(materials.screen);
@@ -49,6 +68,36 @@ export function calibrateGpMaterials(materials: BikeMaterials, vehicle: string):
   materials.screenLight.opacity = 0.3;
   materials.screenLight.roughness = 0.12;
   return true;
+}
+
+/** Screen coverage over the GP screen panel's net UVs (u: base edge 0 to
+ * crown 1 around the half section; v: rear free rim 0 to the nose 1). Linear
+ * data in the green channel, as three.js samples alpha maps. */
+export const GP_SCREEN_ALPHA = Object.freeze({ clear: 0.05, rim: 0.55, base: 0.38 });
+export function gpScreenAlpha(u: number, v: number) {
+  const a = GP_SCREEN_ALPHA,
+    rim = 1 - T.MathUtils.smoothstep(v, 0.014, 0.024),
+    base = 1 - T.MathUtils.smoothstep(u, 0.035, 0.06);
+  return Math.max(a.clear, a.rim * rim, a.base * base);
+}
+function gpScreenBorderMap() {
+  const w = 32,
+    h = 128,
+    data = new Uint8Array(w * h * 4);
+  for (let y = 0; y < h; y++)
+    for (let x = 0; x < w; x++) {
+      const value = Math.round(gpScreenAlpha((x + 0.5) / w, (y + 0.5) / h) * 255);
+      data.set([value, value, value, 255], (y * w + x) * 4);
+    }
+  const texture = new T.DataTexture(data, w, h, T.RGBAFormat);
+  texture.name = 'GP screen printed border (alpha)';
+  texture.colorSpace = T.NoColorSpace;
+  texture.wrapS = texture.wrapT = T.ClampToEdgeWrapping;
+  texture.magFilter = T.LinearFilter;
+  texture.minFilter = T.LinearMipmapLinearFilter;
+  texture.generateMipmaps = true;
+  texture.needsUpdate = true;
+  return texture;
 }
 
 /** Carbon front fender with a transverse crown, tapered nose and returned

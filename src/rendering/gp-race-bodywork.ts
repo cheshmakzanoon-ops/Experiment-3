@@ -13,6 +13,8 @@ import {
   type WordmarkStyle,
 } from './studio/brand-atlas.ts';
 import { tagWeatherSurface } from './weather-presentation.ts';
+import { carbonMaterial } from './materials.ts';
+import { bikeSurfaceMaps } from './bike-surface-detail.ts';
 import {
   GP_LIVERY_FRAME,
   installShellInterior,
@@ -532,6 +534,54 @@ function screenNet(variant: GpShellVariant): P3[][] {
         [0.005, 0.261],
         [0.004, 0.263],
         [0, 0.264],
+      ],
+    },
+  ]);
+}
+
+/** Inner upper fairing (REF 017, 074, 088): the carbon cockpit floor inside
+ * the nose, between the screen's base edges, that frames the race TFT from
+ * the rider's eye. Its rear lip stays ahead of everything the steering
+ * sweeps at racing lock and full fork travel (fork tubes, clamp, hoses;
+ * z >= 0.545, checked in tests/gp-race-shell.test.ts); it dips under the
+ * dash so the display stands proud of it. Columns: centre line to the
+ * screen-base edge (faces up). */
+export function gpInnerFairingNet(): P3[][] {
+  return net([
+    {
+      z: 0.545,
+      c: [
+        [0, 0.276],
+        [0.048, 0.278],
+        [0.091, 0.286],
+        [0.128, 0.296],
+      ],
+    },
+    {
+      z: 0.575,
+      c: [
+        [0, 0.274],
+        [0.045, 0.277],
+        [0.085, 0.285],
+        [0.12, 0.295],
+      ],
+    },
+    {
+      z: 0.63,
+      c: [
+        [0, 0.272],
+        [0.04, 0.275],
+        [0.075, 0.282],
+        [0.105, 0.29],
+      ],
+    },
+    {
+      z: 0.7,
+      c: [
+        [0, 0.266],
+        [0.025, 0.268],
+        [0.05, 0.272],
+        [0.072, 0.278],
       ],
     },
   ]);
@@ -1150,6 +1200,26 @@ function noseNumberTexture(entrant: number, accent: string) {
 // ---- Assembly -----------------------------------------------------------
 
 const liveryMaterials = new WeakMap<BikeMaterials, Map<GpShellVariant, T.MeshPhysicalMaterial>>();
+const satinCarbon = new WeakMap<BikeMaterials, T.MeshPhysicalMaterial>();
+
+/** Raw satin carbon for the inner upper fairing: matte so the cockpit floor
+ * throws no sky glare into the rider's sightline (REF 017/088). */
+export function gpSatinCarbon(materials: BikeMaterials) {
+  let material = satinCarbon.get(materials);
+  if (material) return material;
+  material = carbonMaterial('satin');
+  material.name = 'GP satin carbon (inner fairing)';
+  tagWeatherSurface(material, 'paint', 0.8);
+  materials.list.push(material);
+  satinCarbon.set(materials, material);
+  return material;
+}
+
+/** Orange peel in the clear coat only (REF 018/028/056): a filtered
+ * polyurethane height field at about 1.5 mm cells, sampled in the livery's
+ * side-view UVs (one U unit spans 4.08 m, one V unit 1.24 m). The paint
+ * colour and decals below stay flat; the coat's reflections ripple. */
+const PAINT_PEEL = Object.freeze({ repeat: [200, 60] as const, scale: 0.16 });
 const noseMaterials = new WeakMap<BikeMaterials, T.MeshPhysicalMaterial>();
 
 /** Entrant paint shared by all LODs of one machine. */
@@ -1163,6 +1233,10 @@ export function gpLiveryMaterial(
   let material = byVariant.get(variant);
   if (material) return material;
   const { map, finish } = gpLiveryTextures(entrant, variant);
+  const peel = bikeSurfaceMaps('paint');
+  peel.roughnessMap.dispose();
+  peel.normalMap.repeat.set(...PAINT_PEEL.repeat);
+  peel.normalMap.name = 'GP clear-coat orange peel';
   material = new T.MeshPhysicalMaterial({
     map,
     roughness: 1,
@@ -1171,6 +1245,8 @@ export function gpLiveryMaterial(
     clearcoat: 1,
     clearcoatMap: finish,
     clearcoatRoughness: 0.035,
+    clearcoatNormalMap: peel.normalMap,
+    clearcoatNormalScale: new T.Vector2(PAINT_PEEL.scale, PAINT_PEEL.scale),
     name: 'GP race shell livery (clear-coated)',
   });
   installShellInterior(material);
@@ -1283,13 +1359,20 @@ export function gpRaceBodywork(
       materials.seat,
       'GP race shell / seat pad',
     );
+    mesh(
+      shellPanelGeometry({ name: 'GP inner upper fairing', net: gpInnerFairingNet(), rows, cols }),
+      gpSatinCarbon(materials),
+      'GP race shell / inner upper fairing',
+    );
   }
   const screen = mesh(
     shellPanelGeometry({
       name: 'GP screen',
       net: screenNet(variant),
       rows: high ? 4 : 2,
-      cols: high ? 4 : 2,
+      // Finer around the arch at high LOD: its free rim is the onboard view's
+      // horizon line and must read as a curve, not a polygon.
+      cols: high ? 7 : 2,
     }),
     transmissive ? materials.screen : materials.screenLight,
     'GP race shell / screen',

@@ -6,7 +6,9 @@ import {
   bindGpBareMetal,
   calibrateGpMaterials,
   gpFrontFender,
+  gpScreenAlpha,
   gpSilencer,
+  GP_SCREEN_ALPHA,
 } from '../src/rendering/gp-appearance.ts';
 
 beforeAll(() => {
@@ -38,7 +40,16 @@ describe('GP refined surface and mechanical contracts', () => {
       expect(m.paint.color.equals(colour)).toBe(true);
       // Smoked Fresnel glass: no transmission render pass.
       expect(m.screen.transmission).toBe(0);
-      expect(m.screen.opacity).toBe(0.1);
+      // Clear sightline, printed rim and base border (REF 017/088).
+      expect(m.screen.opacity).toBe(1);
+      expect(m.screen.alphaMap?.colorSpace).toBe(T.NoColorSpace);
+      expect(gpScreenAlpha(0.5, 0.5)).toBe(GP_SCREEN_ALPHA.clear);
+      expect(gpScreenAlpha(0.5, 0)).toBe(GP_SCREEN_ALPHA.rim);
+      expect(gpScreenAlpha(0, 0.5)).toBe(GP_SCREEN_ALPHA.base);
+      expect(GP_SCREEN_ALPHA.clear).toBeLessThan(0.1);
+      // Fork: graphite outer tubes, gold stanchions; smoked fluid pot.
+      expect(m.forkUpper.color.getHex()).toBe(0x232427);
+      expect(m.reservoir.color.getHex()).toBe(0x4a3a24);
       expect(m.screen.transparent).toBe(true);
       expect(m.screen.depthWrite).toBe(false);
       expect(m.paint.metalness).toBe(0);
