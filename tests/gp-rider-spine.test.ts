@@ -1,6 +1,7 @@
 import * as T from 'three';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { Rider, type RiderPose } from '../src/rendering/rider.ts';
+import { GpRiderPosture } from '../src/rendering/gp-rider-posture.ts';
 
 beforeAll(() => {
   const context = new Proxy(
@@ -69,11 +70,11 @@ describe('GP articulated spine and connected one-piece suit', () => {
             for (const braking of [0, 1]) {
               const pose = { ...base, lean, offset: lean * 0.2, tuck, braking };
               rider.ride(pose);
-              const expectedSeat = rider.seat.clone();
-              expectedSeat.x += pose.offset * 0.6;
-              expectedSeat.y -= Math.abs(pose.offset) * 0.15 + tuck * 0.03;
-              expectedSeat.z += braking * 0.05 - tuck * 0.05;
+              // The pelvis sits where the GP posture solver places it: on the
+              // seat, slid within a hand's breadth (hang-off, tuck, braking).
+              const expectedSeat = new GpRiderPosture().solve(pose, rider.seat).pelvis;
               expect(pelvis.position.distanceTo(expectedSeat)).toBeLessThan(1e-12);
+              expect(pelvis.position.distanceTo(rider.seat)).toBeLessThan(0.2);
               const angle = relative
                 .copy(pelvis.quaternion)
                 .invert()
