@@ -2,6 +2,7 @@ import * as T from 'three';
 import { clamp, Random, smooth } from '../core/math.ts';
 import { envelopeCornerSpeed } from '../simulation/ai.ts';
 import { GP_R1 } from '../simulation/bike-definitions.ts';
+import { isGpCourse } from '../simulation/gp-corner-shape.ts';
 import { racingLineFor } from '../simulation/racing-line.ts';
 import { trackPoint, type Track } from '../simulation/track.ts';
 import { canvasTexture } from './geometry.ts';
@@ -56,6 +57,35 @@ export const GP_TYRE_MARKS = Object.freeze({
   length: [6, 34] as const,
   strength: [0.14, 0.31] as const,
   maximumPasses: 8,
+});
+
+/** Permanent rubber of a used GP venue (REF_003, 030, 031, 038): years of
+ * race weekends — bikes, support classes, track days — leave dense, dark,
+ * curving streaks in every braking zone and arcs that run wide on the exits,
+ * whichever vehicle the session follows. Only the four motorcycle-GP venues
+ * carry this layer (`isGpCourse`); every other circuit is unchanged. Seeded
+ * per venue, static, presentation only (grip is the simulation's). */
+export const GP_VENUE_STREAKS = Object.freeze({
+  seed: 8821,
+  /** Streaks per braking zone, scaled by the speed lost (m/s / 2). */
+  brakingPasses: [12, 30] as const,
+  /** Exit arcs per slow corner. */
+  exitPasses: [8, 16] as const,
+  /** Tread width range, metres (bike tyres to car rears). */
+  width: [0.13, 0.27] as const,
+  /** Braking streak and exit arc lengths, metres. */
+  brakingLength: [16, 72] as const,
+  exitLength: [14, 48] as const,
+  /** Peak opacity range of one streak. */
+  strength: [0.26, 0.6] as const,
+  /** Lateral scatter of streak starts about the racing line, metres. */
+  spread: 1.7,
+  /** Sideways bow of a curving streak and the drift of the crossing ones, m. */
+  bow: 0.85,
+  crossing: 2.6,
+  crossingShare: 0.18,
+  /** How far an exit arc runs wide toward the outside kerb, metres. */
+  runWide: [0.6, 2.8] as const,
 });
 
 export interface TyreMarkZone {
@@ -277,6 +307,82 @@ export function tyreMarks(
   return marks;
 }
 
+/** The GP venue's permanent streaks (GP_VENUE_STREAKS): curving braking
+ * streaks scattered about the racing line into each apex, a share of them
+ * crossing it, and exit arcs drifting toward the outside kerb. Deterministic
+ * per track; every streak stays on the asphalt. */
+export function gpVenueStreaks(track: Track, zones = tyreMarkZones(track, true)): TyreMark[] {
+  const V = GP_VENUE_STREAKS,
+    line = racingLineFor(track),
+    random = new Random(V.seed + Math.round(track.length)),
+    p = trackPoint(),
+    marks: TyreMark[] = [];
+  const range = (r: readonly [number, number]) => r[0] + random.next() * (r[1] - r[0]);
+  for (const zone of zones) {
+    const braking = zone.kind === 'braking',
+      span = Math.max(zone.end - zone.start, 1);
+    // The corner side: positive curvature turns toward +lateral, so the
+    // outside (where exits run wide) is the opposite sign.
+    let bend = 0;
+    for (let d = 0; d <= 40; d += 4)
+      bend += line.curvatureAt(braking ? zone.end + d - 10 : zone.start + d);
+    const outside = bend > 0 ? -1 : 1;
+    const count = Math.round(
+      braking
+        ? clamp(zone.strength / 2, V.brakingPasses[0], V.brakingPasses[1])
+        : clamp(zone.strength / 1.8, V.exitPasses[0], V.exitPasses[1]),
+    );
+    const window = Math.min(span, braking ? 150 : 90);
+    for (let m = 0; m < count; m++) {
+      const width = range(V.width);
+      const markLength = Math.min(range(braking ? V.brakingLength : V.exitLength), window + 15);
+      // Braking streaks end through the last part of the approach (a few run
+      // just past the apex); exit arcs start around the apex.
+      const from = braking
+        ? zone.end - window * 0.85 * random.next() ** 1.4 + (random.next() - 0.3) * 18 - markLength
+        : zone.start + window * 0.35 * random.next() - 4;
+      const start = (random.next() + random.next() - 1) * V.spread;
+      const crossing = braking && random.next() < V.crossingShare;
+      const drift = crossing
+        ? (random.next() - 0.5) * 2 * V.crossing
+        : braking
+          ? -outside * random.next() * 0.6
+          : outside * range(V.runWide);
+      const bow = (random.next() - 0.5) * 2 * V.bow;
+      const strength = range(V.strength) * (braking ? clamp(zone.strength / 36, 0.65, 1) : 0.85);
+      const rate = 5 + random.next() * 6,
+        phase = random.next() * 6.283;
+      const samples = Math.max(2, Math.ceil(markLength / 1.2) + 1);
+      const s = new Float32Array(samples),
+        lateral = new Float32Array(samples),
+        alpha = new Float32Array(samples);
+      for (let k = 0; k < samples; k++) {
+        const u = k / (samples - 1),
+          at = from + u * markLength;
+        track.at(at, p);
+        const limit = Math.max(0, p.width - width / 2 - 0.12);
+        s[k] = at;
+        lateral[k] = clamp(
+          line.offsetAt(at) +
+            start * (braking ? 1 : 0.6) +
+            drift * u ** (braking ? 1.2 : 1.6) +
+            bow * Math.sin(u * Math.PI),
+          -limit,
+          limit,
+        );
+        const envelope = braking
+          ? smooth(0, 0.16, u) * (1 - smooth(0.68, 1, u))
+          : smooth(0, 0.1, u) * (1 - smooth(0.5, 1, u));
+        // Slip varies along a streak: darker lock-ups and lighter stretches.
+        const breakup = 0.42 + 0.58 * Math.sin(u * rate + phase) ** 2;
+        alpha[k] = strength * envelope * breakup;
+      }
+      marks.push({ s, lateral, alpha, width });
+    }
+  }
+  return marks;
+}
+
 /** Fine rubber streaks along a mark (u across, v along), with a soft edge. */
 function markTexture() {
   return canvasTexture(64, 256, (context) => {
@@ -423,6 +529,8 @@ export class TyreMarkPresentation {
   private family: TyreMarkFamily = 'car';
   private ready = false;
   private material: T.MeshStandardMaterial | undefined;
+  /** The GP venue's permanent rubber (GP_VENUE_STREAKS); null elsewhere. */
+  private venue: T.Group | null = null;
 
   constructor(
     private readonly track: Track,
@@ -435,6 +543,20 @@ export class TyreMarkPresentation {
     if (this.ready) return;
     this.ready = true;
     parent.add(this.root);
+    // A GP venue's permanent rubber, built once and shown whichever vehicle
+    // family is followed (it shares the one mark material and program).
+    if (isGpCourse(this.track)) {
+      this.venue = new T.Group();
+      this.venue.name = 'GP venue rubber history';
+      buildTyreMarks(
+        this.track,
+        this.venue,
+        gpVenueStreaks(this.track),
+        this.state,
+        (this.material ??= tyreMarkMaterial(this.state)),
+      );
+      this.root.add(this.venue);
+    }
     this.showLayer();
   }
 
@@ -477,6 +599,7 @@ export class TyreMarkPresentation {
       mode: this.family,
       cachedLayers: this.layers.size,
       activeMeshes: active?.children.length ?? 0,
+      venueMeshes: this.venue?.children.length ?? 0,
       treadWidth:
         this.family === 'gp'
           ? GP_TYRE_MARKS.width

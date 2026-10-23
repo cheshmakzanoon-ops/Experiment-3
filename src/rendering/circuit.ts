@@ -70,7 +70,7 @@ import {
 } from './studio/road-detail.ts';
 import { installWetDetail } from './studio/wet-detail.ts';
 import { kerbHeight } from '../simulation/contact.ts';
-import { Track, CELL_ROWS, CELL_COLS, trackPoint } from '../simulation/track.ts';
+import { Track, CELL_ROWS, CELL_COLS, SURFACE, trackPoint } from '../simulation/track.ts';
 import { H } from '../simulation/protocol.ts';
 import { allFinite, clamp } from '../core/math.ts';
 import { buildTracksideBranding, type BrandingBuild } from './studio/trackside-branding.ts';
@@ -81,6 +81,7 @@ import { installLightPools } from './studio/light-pools.ts';
 import { buildForestBelts } from './studio/forest-belts.ts';
 import { venueKitFor, type VenueKit } from './venue-kit/index.ts';
 import { gpCornerPaint, gpEdgeDesign } from './venue-kit/gp-edge-design.ts';
+import { isGpCourse } from '../simulation/gp-corner-shape.ts';
 import { batchScene, box, canvasTexture, label, mesh, unprintedBack } from './geometry.ts';
 import { offroadSceneFor, type OffroadScene } from './offroad/index.ts';
 import { isMotocrossVenue } from './offroad/mx-boundary.ts';
@@ -103,6 +104,8 @@ interface RibbonOptions {
   columns?: number;
   road?: boolean;
   include?: (s: number, lateral: number) => boolean;
+  /** Extra per-vertex float attributes by name (GP gravel cover). */
+  attributes?: Readonly<Record<string, (s: number, lateral: number) => number>>;
 }
 /** All surfaces are constructed from the same metre-valued track queries as physics. */
 export class CircuitScene {
@@ -221,6 +224,8 @@ export class CircuitScene {
       surfaceGridFor(track),
       this.gpSurface,
       gpLaunchGridFor(track, this.grandPrixGrid),
+      // GP venues: permanent polish band and dusty off-line tarmac.
+      isGpCourse(track),
     );
     // Sub-cell puddles and an emerging dry line (D22).
     installWetDetail(this.roadMaterial);
@@ -239,7 +244,7 @@ export class CircuitScene {
     // D28: night floodlight pools on every track ribbon (lap-space lamp rows).
     for (const m of [this.roadMaterial, grass, runOff, gravel]) installLightPools(m);
     // Photographed ground (Medium and above, once resident; ground/scan-store.ts).
-    installScannedAsphalt(this.roadMaterial);
+    installScannedAsphalt(this.roadMaterial, isGpCourse(track));
     installScannedAsphalt(runOff);
     installScannedTurf(grass);
     installVergeFinish(grass);
@@ -391,7 +396,7 @@ export class CircuitScene {
       this.surfaceMaterials.add(land);
       // D17: forest carpet, strata rock and dry meadows by distance to the circuit.
       terrainTrackDistance(track, terrain);
-      installTerrainFinish(land);
+      installTerrainFinish(land, isGpCourse(track));
       if (model.seaLevel !== null && model.coastZ) {
         const shore = new Float32Array(pos.count);
         for (let i = 0; i < pos.count; i++)
@@ -682,7 +687,12 @@ export class CircuitScene {
       kerb: number[] = [],
       runoff: number[] = [],
       gpPaint: number[] = [],
+      gpGravel: number[] = [],
+      custom = Object.entries(options.attributes ?? {}).map(
+        ([name, value]) => [name, value, [] as number[]] as const,
+      ),
       indices: number[] = [];
+    const gpDesign = gpEdgeDesign(this.track);
     const p = trackPoint(),
       line: [number, number] = [0, 0];
     for (let i = 0; i <= rows; i++) {
@@ -698,6 +708,7 @@ export class CircuitScene {
         // Signed metres beyond the asphalt edge (negative on the road), shared
         // by the kerb, verge and terrain shaders.
         edge.push(Math.abs(l) - p.width);
+        for (const [, value, out] of custom) out.push(value(s, l));
         if (options.road) {
           apex.push(...apexLineAt(this.track, s, l, line));
           bikeBrake.push(apexLineAt(this.track, s, l, line, true)[1]);
@@ -715,6 +726,11 @@ export class CircuitScene {
           const side = Math.sign(l) || 1;
           runoff.push(kerbUsage(Math.abs(apexLineAt(this.track, s, side * p.width, line)[0])));
           gpPaint.push(gpCornerPaint(this.track, s, l));
+          // GP: is the verge beyond this apron edge a gravel trap? (litter)
+          if (gpDesign)
+            gpGravel.push(
+              this.track.runoffSurface(p, side * (p.width + 5.5)) === SURFACE.GRAVEL ? 1 : 0,
+            );
         }
       }
     }
@@ -734,6 +750,7 @@ export class CircuitScene {
     g.setAttribute('uv', new T.Float32BufferAttribute(uv, 2));
     g.setAttribute('trackUV', new T.Float32BufferAttribute(state, 2));
     g.setAttribute('edgeMetres', new T.Float32BufferAttribute(edge, 1));
+    for (const [name, , out] of custom) g.setAttribute(name, new T.Float32BufferAttribute(out, 1));
     if (options.road) {
       g.setAttribute('apexLine', new T.Float32BufferAttribute(apex, 2));
       g.setAttribute('apexBikeBrake', new T.Float32BufferAttribute(bikeBrake, 1));
@@ -756,8 +773,10 @@ export class CircuitScene {
       );
     }
     if (options.runoff) {
-      if (gpEdgeDesign(this.track))
+      if (gpDesign) {
         g.setAttribute('gpCornerPaint', new T.Float32BufferAttribute(gpPaint, 1));
+        g.setAttribute('gpVergeGravel', new T.Float32BufferAttribute(gpGravel, 1));
+      }
       g.setAttribute(
         'runoffStyle',
         new T.Float32BufferAttribute(

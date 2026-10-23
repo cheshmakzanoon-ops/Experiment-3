@@ -294,16 +294,22 @@ export function installScannedGravel(material: T.MeshStandardMaterial) {
   });
 }
 
+/** The racing surface of the motorcycle-GP venues: the concrete scan's broad
+ * blotches repeat every ~13 m and read as tiling down a long straight, where
+ * REF_006/019 show an even, fine-grained surface, so they are kept faint. */
+export const GP_SCANNED_ASPHALT = Object.freeze({ stains: 0.15 });
+
 /** Racing surface, pit lane and run-off asphalt (after `installAsphaltDetail`;
- * reads `apexMicro` and the procedural texel means it cancels). */
-export function installScannedAsphalt(material: T.MeshStandardMaterial) {
+ * reads `apexMicro` and the procedural texel means it cancels). `gp` selects
+ * the GP venue racing surface (GP_SCANNED_ASPHALT); others are unchanged. */
+export function installScannedAsphalt(material: T.MeshStandardMaterial, gp = false) {
   const means = material.userData.asphaltMeans as
     | { albedo: readonly [number, number, number]; roughness: number; contrast: number }
     | undefined;
   if (!means) throw new Error('Scanned asphalt needs surfaceMaterial asphalt means');
   const S = SCANNED_GROUND;
   return scanHook(material, {
-    key: 'scanned-asphalt-v1',
+    key: gp ? 'scanned-asphalt-gp-v1' : 'scanned-asphalt-v1',
     layers: ['asphalt', 'concrete'],
     edit: (shader) => {
       if (!shader.fragmentShader.includes('float apexMicro'))
@@ -327,7 +333,7 @@ ApexScanSample apexAsphalt = ${scanLayerCall('asphalt', 'vScanWorld.xz', 'apexSc
 	// Broad stains and binder-rich patches (the weathered concrete scan's
 	// blotches at ~13 m): mottling the chip tile cannot carry at range.
 	vec3 apexBroad = ${scanMacroCall('concrete', 'vScanWorld.xz', 1 / 4.5)};
-	apexRatio *= 1.0 + ${f(S.asphaltStains)} * ( dot( apexBroad, ${LUMA} ) - 1.0 );
+	apexRatio *= 1.0 + ${f(gp ? GP_SCANNED_ASPHALT.stains : S.asphaltStains)} * ( dot( apexBroad, ${LUMA} ) - 1.0 );
 	diffuseColor.rgb *= apexRatio;
 	apexScanN = apexAsphalt.n;
 	apexScanRough = clamp( apexAsphalt.rough, 0.7, 1.35 );

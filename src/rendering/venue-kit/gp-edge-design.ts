@@ -6,6 +6,8 @@ export interface GpEdgeDesign {
   readonly id: string;
   readonly kerb: readonly [number, number];
   readonly apron: number;
+  /** Second colour field on the escape side of a bend (REF_004, 033). */
+  readonly apronOuter: number;
   readonly marking: number;
   /** Existing style indices remain meaningful in geometry diagnostics. */
   readonly kerbStyle: number;
@@ -20,6 +22,7 @@ const DESIGNS: Readonly<Record<string, GpEdgeDesign>> = Object.freeze({
     id: 'tuscan-red-and-sage',
     kerb: Object.freeze([0xa82a26, 0xcfccc3] as const),
     apron: 0x397363,
+    apronOuter: 0x2f4f86,
     marking: 0xc9c7bc,
     kerbStyle: 0,
     runoffStyle: 0,
@@ -28,6 +31,7 @@ const DESIGNS: Readonly<Record<string, GpEdgeDesign>> = Object.freeze({
     id: 'coastal-blue-and-chalk',
     kerb: Object.freeze([0x315e88, 0xcdcec7] as const),
     apron: 0x327d95,
+    apronOuter: 0x3d7350,
     marking: 0xc7ccc8,
     kerbStyle: 1,
     runoffStyle: 2,
@@ -36,6 +40,7 @@ const DESIGNS: Readonly<Record<string, GpEdgeDesign>> = Object.freeze({
     id: 'heath-blue-and-ochre',
     kerb: Object.freeze([0x31577c, 0xc5ad59] as const),
     apron: 0x335c89,
+    apronOuter: 0x8e3a33,
     marking: 0xc9b66d,
     kerbStyle: 1,
     runoffStyle: 2,
@@ -44,6 +49,7 @@ const DESIGNS: Readonly<Record<string, GpEdgeDesign>> = Object.freeze({
     id: 'sierra-oxide-and-limestone',
     kerb: Object.freeze([0xa33b31, 0xd0cabd] as const),
     apron: 0xa24d3a,
+    apronOuter: 0xb8963e,
     marking: 0xd1c9b6,
     kerbStyle: 0,
     runoffStyle: 1,

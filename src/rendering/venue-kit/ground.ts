@@ -1,6 +1,7 @@
 import type * as T from 'three';
 import { clamp } from '../../core/math.ts';
 import { SURFACE, trackPoint } from '../../simulation/track.ts';
+import { isGpCourse } from '../../simulation/gp-corner-shape.ts';
 import type { BuildQueue } from '../build-queue.ts';
 import { terrainFor } from '../terrain.ts';
 import type { VenueKitContext } from './context.ts';
@@ -19,6 +20,7 @@ export interface RibbonHost {
       height?: (s: number, l: number, t: number) => number;
       columns?: number;
       include?: (s: number, lateral: number) => boolean;
+      attributes?: Readonly<Record<string, (s: number, lateral: number) => number>>;
     },
   ): T.Mesh;
 }
@@ -29,10 +31,16 @@ export interface RibbonHost {
  * (hairpin legs, stacked or crossing roads) are dropped. */
 export function queueGround(kit: VenueKitContext, host: RibbonHost) {
   const track = kit.track,
+    gp = isGpCourse(track),
     p = trackPoint(),
     m = kit.materials,
     terrain = terrainFor(track);
   const inner = (s: number) => track.at(s, p).width + 4;
+  const surfaceAt = (s: number, lateral: number) => track.runoffSurface(track.at(s, p), lateral);
+  // GP venues: a gravel trap's ribbon reaches one quad into the grass either
+  // side, carrying `gravelCover` (0 off the physical trap), so the trap ends
+  // in scattered drifts (ground/gp-ground.ts) rather than a 4 m staircase.
+  const scattered = (kind: number) => gp && kind === SURFACE.GRAVEL;
   const verge = (side: 1 | -1, kind: number, material: T.Material, lift: number) => ({
     step: 4,
     columns: 2,
@@ -44,7 +52,18 @@ export function queueGround(kit: VenueKitContext, host: RibbonHost) {
     },
     height: () => lift,
     include: (s: number, lateral: number) =>
-      Math.abs(lateral) > inner(s) + 0.05 && track.runoffSurface(track.at(s, p), lateral) === kind,
+      Math.abs(lateral) > inner(s) + 0.05 &&
+      (surfaceAt(s, lateral) === kind ||
+        (scattered(kind) &&
+          (surfaceAt(s - 4, lateral) === kind || surfaceAt(s + 4, lateral) === kind))),
+    ...(scattered(kind)
+      ? {
+          attributes: {
+            gravelCover: (s: number, lateral: number) =>
+              surfaceAt(s, lateral) === SURFACE.GRAVEL ? 1 : 0,
+          },
+        }
+      : {}),
   });
   const skirt = (side: 1 | -1) => ({
     step: 4,
