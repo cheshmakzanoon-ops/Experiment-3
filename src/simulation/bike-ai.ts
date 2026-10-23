@@ -147,7 +147,10 @@ export class BikeAIDriver extends AIDriver {
         : 0
       : (this.steeringLineOffset(track, c.s + 3) - this.steeringLineOffset(track, c.s - 3)) / 6;
     const slope = pathSlope / Math.max(0.5, 1 - p.curvature * target);
-    const heading = mod(d.heading - Math.atan2(p.tx, p.tz) + Math.PI, Math.PI * 2) - Math.PI;
+    // GP chassis: the path follows the velocity, which slips a degree or two
+    // from the chassis heading in a corner; track the course, not the nose.
+    const course = d.heading + (d.motoGP ? Math.atan2(d.motoGP.lateralSpeed, Math.max(v, 1)) : 0);
+    const heading = mod(course - Math.atan2(p.tx, p.tz) + Math.PI, Math.PI * 2) - Math.PI;
     const error = target - c.lateral,
       headingError = Math.atan(slope) - heading;
     // Feed-forward: the lane's curvature where the bike will be once it has leaned.

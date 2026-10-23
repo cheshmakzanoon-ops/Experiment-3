@@ -363,20 +363,24 @@ export class Bike {
       k *
       (recovery * direction * (Math.sin(target) - Math.sin(ahead)) +
         G * (Math.cos(target) - Math.cos(ahead)));
+    const effort =
+      direction *
+      Math.min(gpRollRateLimit(this.speed, gp.geometry), GP_ASSIST.rollGain * Math.abs(error));
     const rate =
       direction *
-      Math.min(
-        gpRollRateLimit(this.speed, gp.geometry),
-        GP_ASSIST.rollGain * Math.abs(error),
-        Math.sqrt(2 * GP_ASSIST.stopShare * Math.max(0, stopping)),
-      );
-    const rollAccel = GP_ASSIST.rateGain * (rate - rateAhead);
+      Math.min(Math.abs(effort), Math.sqrt(2 * GP_ASSIST.stopShare * Math.max(0, stopping)));
     // Inverse roll balance: I·ψ'' = m h (g sinψ − a cosψ) − H·r·cosφ.
-    const demand =
-      (m * h * G * Math.sin(psi) - gyro - inertia * rollAccel) /
-      (m * h * Math.max(0.3, Math.cos(psi)));
-    // Traction and wheelie control give way to the roll control asked for.
-    gp.lateralDemand = Math.min(Math.abs(demand), 2 * G);
+    const balance = (accel: number) =>
+      (m * h * G * Math.sin(psi) - gyro - inertia * accel) / (m * h * Math.max(0.3, Math.cos(psi)));
+    const demand = balance(GP_ASSIST.rateGain * (rate - rateAhead));
+    // Traction and wheelie control give way to the roll the rider asks for:
+    // the reserve is the lateral acceleration of the effort-limited roll,
+    // not of the slower roll today's (drive-reduced) capacity permits, or a
+    // light front under full throttle could never regain steering.
+    gp.lateralDemand = Math.min(
+      Math.max(Math.abs(demand), Math.abs(balance(GP_ASSIST.rateGain * (effort - rateAhead)))),
+      2 * G,
+    );
     const lateral = clamp(demand, -recovery, recovery);
     const saturated = Math.abs(lateral) >= recovery * 0.999;
     // Integral trim on the measured acceleration: relaxation and the slip
@@ -403,7 +407,20 @@ export class Bike {
         Math.atan((p.wheelbase * lateral) / (v * v)) +
           clamp((GP_ASSIST.feedback * m * (lateral - measured)) / cornering, -0.06, 0.06)) +
       gp.steerTrim;
-    (gp as unknown as { debug: number[] }).debug = [target, psi, rate, lateral, measured, capacity, frontForce, gp.frontFy, gp.rearFy, inverse ?? NaN, ground, gp.steerTrim];
+    (gp as unknown as { debug: number[] }).debug = [
+      target,
+      psi,
+      rate,
+      lateral,
+      measured,
+      capacity,
+      frontForce,
+      gp.frontFy,
+      gp.rearFy,
+      inverse ?? NaN,
+      ground,
+      gp.steerTrim,
+    ];
     return gpBarSteer(ground, this.lean);
   }
   step(input: BikeInput, dt: number) {
@@ -498,7 +515,9 @@ export class Bike {
     const rearCapacity = rearMu * this.rearLoad;
     // Lean-sensitive traction control: drive is kept inside what the rear
     // friction circle leaves after the cornering force it carries.
-    const lateralNow = Math.abs(this.motoGP?.lateralAcceleration ?? this.speed * this.speed * this.curvature),
+    const lateralNow = Math.abs(
+        this.motoGP?.lateralAcceleration ?? this.speed * this.speed * this.curvature,
+      ),
       rearLatNow = m * lateralNow * (p.cgToFront / p.wheelbase),
       // GP traction control keeps the rear's share of the lean assist's
       // recovery reserve, not just today's cornering force: drive that
@@ -541,11 +560,9 @@ export class Bike {
       const frontNeed = this.motoGP
         ? (gpReserve * (p.cgToRear / p.wheelbase)) / (frontMu * gpCamberFriction(this.lean))
         : frontLatNow / (0.8 * frontMu);
-      const keep = Math.min(
-        staticFront,
-        Math.max((p.wheelieKeep ?? 0.2) * staticFront, frontNeed),
-      );
+      const keep = Math.min(staticFront, Math.max((p.wheelieKeep ?? 0.2) * staticFront, frontNeed));
       drive = Math.min(drive, ((staticFront - keep) * p.wheelbase) / p.cgHeight);
+      if (this.motoGP) (this.motoGP as unknown as { debug2: number[] }).debug2 = [gpReserve, frontNeed, keep, drive, requested, staticFront];
     }
     this.intervention = requested > 1 ? clamp(1 - drive / requested, 0, 1) : 0;
     // Stoppie assist (with the wheelie assist): like lift-mitigating ABS, cap
@@ -564,13 +581,18 @@ export class Bike {
       ? Math.max(0, ((p.stoppieMargin ?? 0.92) * staticRear * p.wheelbase) / p.cgHeight - rearHeld)
       : Infinity;
     let brakeF = Math.min(liftLimit, p.frontBrake * front) * (v > 0.2 ? 1 : 0);
+    // GP cornering ABS keeps each tyre the lateral force of the roll the
+    // rider is asking for (trail braking trades stopping for turning), not
+    // only the cornering force of the lean it happens to have reached.
+    const frontLatAbs = this.motoGP ? gpReserve * (p.cgToRear / p.wheelbase) : frontLatNow,
+      rearLatAbs = this.motoGP ? rearLatReserve : rearLatNow;
     if (a.abs) {
       // Cornering ABS: the front stays inside its friction circle, and the
       // weight it takes off the rear leaves the rear its cornering load.
-      const rearLatKeep = rearLatNow / (0.85 * rearMu);
+      const rearLatKeep = rearLatAbs / (0.85 * rearMu);
       brakeF = Math.min(
         brakeF,
-        0.95 * Math.sqrt(Math.max(0, (frontMu * this.frontLoad) ** 2 - frontLatNow ** 2)),
+        0.95 * Math.sqrt(Math.max(0, (frontMu * this.frontLoad) ** 2 - frontLatAbs ** 2)),
         Math.max(0, ((staticRear - rearLatKeep) * p.wheelbase) / p.cgHeight - rearHeld),
       );
     }
@@ -591,11 +613,11 @@ export class Bike {
         const coupling = rearBrakeGrip * transferRatio;
         // q² + Fy² = (capacity - coupling*q)². This rationalized
         // positive root remains well conditioned even when coupling ≈ 1.
-        const remaining = capacity * capacity - rearLatNow * rearLatNow;
+        const remaining = capacity * capacity - rearLatAbs * rearLatAbs;
         const limit =
           remaining > 0
             ? remaining /
-              (capacity * coupling + Math.sqrt(remaining + (coupling * rearLatNow) ** 2))
+              (capacity * coupling + Math.sqrt(remaining + (coupling * rearLatAbs) ** 2))
             : 0;
         rearApplied = Math.max(rearApplied, -limit);
       }
@@ -606,7 +628,7 @@ export class Bike {
       const coupling = frontBrakeGrip * transferRatio;
       if (frontApplied < 0 && coupling < 1) {
         const capacity = frontBrakeGrip * Math.max(0, staticFront - rearApplied * transferRatio);
-        const discriminant = capacity * capacity - (1 - coupling * coupling) * frontLatNow ** 2;
+        const discriminant = capacity * capacity - (1 - coupling * coupling) * frontLatAbs ** 2;
         const limit =
           discriminant > 0
             ? (capacity * coupling + Math.sqrt(discriminant)) / (1 - coupling * coupling)
