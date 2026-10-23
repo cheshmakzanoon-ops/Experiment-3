@@ -23,9 +23,10 @@ import type { TracksideLens } from './trackside.ts';
  * keep motorcycle-camera.ts, motocross its own rig, cars the CHASE rig.
  *
  * Composition (REF_014 game chase, REF_055/077/089 broadcast chase): the
- * camera sits lower and closer behind the bike than the shared bike rig (eye
- * about 1.1 m above the road instead of 1.5 m) behind a longer lens (43
- * degrees vertical instead of 51), pitched down a fixed 6.2 degrees. The
+ * camera sits lower behind the bike than the shared bike rig (eye about 1.1 m
+ * above the road instead of 1.5 m, at the same 3.2 m) behind a longer lens
+ * (43 degrees vertical instead of 51; 1.2x subject scale), pitched down a
+ * fixed 6.2 degrees. The
  * shared rig puts the rear contact patch just below the frame edge; this one
  * keeps the contact patch and its cast shadow in frame (77-85 % of the
  * half-height below centre) with the rider's helmet just above centre, so the

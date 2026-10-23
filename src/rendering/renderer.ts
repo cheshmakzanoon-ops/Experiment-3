@@ -1281,8 +1281,8 @@ export class RacingRenderer {
     const studio =
       (menu && this.showroomOnly) || (!!this.photo && this.photo.backdrop !== 'circuit');
     const illumination: LightingMode = studio ? 'day' : this.lighting;
-    // W1: GP sessions trade diffuse sky fill for a dominant sun key, clearer
-    // skies and hazier air (gp-photographic-light.ts).
+    // W1: GP sessions get their own sky, air, key, display transform and grade
+    // (gp-photographic-light.ts); every other session keeps the shared light.
     const gpLook = gpPhotographicActive(followedDefinition.classId, studio, illumination)
       ? this.gpLook
       : null;
