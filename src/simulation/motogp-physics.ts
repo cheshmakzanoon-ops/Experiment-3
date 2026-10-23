@@ -159,6 +159,9 @@ export class MotoGPChassis {
   /** Lateral acceleration the assist's roll control asked for (m/s², ≥ 0). */
   lateralDemand = 0;
   private frontLoadUsed = 0;
+  private frontLimit = 0;
+  private rearLimit = 0;
+  private sideLimit = 0;
   private lastSpeed = 0;
   private readonly front = slipState();
   private readonly rear = slipState();
@@ -213,6 +216,7 @@ export class MotoGPChassis {
       this.front, q.frontLoad * contact, q.frontMu, q.lean, steer,
       this.lateralSpeed + g.frontArm * this.yawRate, v, q.frontFx,
     );
+    this.frontLimit = this.sideLimit;
     this.frontSlipAngle = this.front.alpha;
     this.frontStiffness = q.frontLoad * contact > 1 ? this.front.corneringStiffness : 0;
     this.frontLoadUsed = q.frontLoad * contact;
@@ -220,11 +224,14 @@ export class MotoGPChassis {
       this.rear, q.rearLoad, q.rearMu, q.lean, 0,
       this.lateralSpeed - g.rearArm * this.yawRate, v, q.rearFx,
     );
+    this.rearLimit = this.sideLimit;
     this.rearSlipAngle = this.rear.alpha;
     // Transient lateral contact forces relax over distance travelled.
     const mix = 1 - Math.exp((-dt * Math.max(v, 3)) / MOTOGP_SLICK.relaxationLength);
-    this.frontFy += (frontFy - this.frontFy) * mix;
-    this.rearFy += (rearFy - this.rearFy) * mix;
+    // Relaxation delays the build-up of carcass deflection, never the friction
+    // limit: a contact whose load or grip falls cannot keep its old force.
+    this.frontFy = clamp(this.frontFy + (frontFy - this.frontFy) * mix, -this.frontLimit, this.frontLimit);
+    this.rearFy = clamp(this.rearFy + (rearFy - this.rearFy) * mix, -this.rearLimit, this.rearLimit);
     const frontSide = this.frontFy * Math.cos(steer) + q.frontFx * Math.sin(steer);
     const lateral = frontSide + this.rearFy;
     const yawMoment = g.frontArm * frontSide - g.rearArm * this.rearFy;
@@ -271,6 +278,7 @@ export class MotoGPChassis {
     state: ReturnType<typeof slipState>, load: number, mu: number, lean: number,
     steer: number, lateralVelocity: number, speed: number, longitudinal: number,
   ) {
+    this.sideLimit = 0;
     if (load <= 1 || mu <= 0) return 0;
     const friction = Math.max(0.05, mu) * gpCamberFriction(lean);
     prepareSlip(MOTOGP_SLICK, load, friction, 1, 1, 1, state);
@@ -280,7 +288,7 @@ export class MotoGPChassis {
     const ratio = clamp(longitudinal / Math.max(1, state.dx), -1, 1);
     const kappa = Math.sign(ratio) * Math.min(0.95, Math.abs(ratio)) * state.kappaRef;
     combinedForces(state, kappa, this.force);
-    const sideLimit = Math.sqrt(Math.max(0, state.dy ** 2 - longitudinal ** 2));
+    const sideLimit = (this.sideLimit = Math.sqrt(Math.max(0, state.dy ** 2 - longitudinal ** 2)));
     return clamp(this.force.fy, -sideLimit, sideLimit);
   }
 
