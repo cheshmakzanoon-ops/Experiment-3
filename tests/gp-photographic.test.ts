@@ -33,7 +33,24 @@ import {
 } from '../src/rendering/assets/sky-catalogue.ts';
 import { PhotoSky } from '../src/rendering/assets/photo-sky.ts';
 import { TELEPHOTO, tracksideFraming } from '../src/rendering/trackside.ts';
-import { GP_TELEPHOTO } from '../src/rendering/gp-photographic-camera.ts';
+import { GP_TELEPHOTO, gpMotionWheels } from '../src/rendering/gp-photographic-camera.ts';
+import { MotionField, shutterSeconds } from '../src/rendering/studio/velocity.ts';
+import { createStudioUniforms, StudioFrame } from '../src/rendering/studio/studio-frame.ts';
+import {
+  B,
+  BIKE_BASE,
+  CAR_STRIDE,
+  F,
+  H,
+  HEADER,
+  R,
+  RACE_BASE,
+  W,
+  WHEEL_BASE,
+  WHEEL_STRIDE,
+  carBase,
+} from '../src/simulation/protocol.ts';
+import { VEHICLES, vehicleIndex } from '../src/simulation/vehicles.ts';
 
 describe('GP photographic light', () => {
   it('applies only to a followed GP prototype on a live circuit view by day or golden hour', () => {
@@ -319,5 +336,95 @@ describe('GP photographic camera', () => {
     if (key) expect(sky.key).not.toBe(key);
     else expect(sky.key).toBe('');
     sky.dispose();
+  });
+
+  it('spin-blurs GP wheel discs along their arc while chassis and fork stay locked', () => {
+    // One followed GP-R1 heading +Z at 30 m/s, camera attached behind it.
+    const frame = new Float32Array(HEADER + 3 * CAR_STRIDE);
+    frame[H.TIME] = 10;
+    frame[H.CARS] = 3;
+    const spec = VEHICLES.gpr1.bike!;
+    for (const [id, x, z, vehicle, lean] of [
+      [0, 0, 0, 'gpr1', 0],
+      [1, 3, 40, 'gpr2', 0],
+      [2, -2, 8, 'gpr1', 1.4],
+    ] as const) {
+      const o = carBase(id);
+      frame[o + F.X] = x;
+      frame[o + F.Y] = spec.cgHeight;
+      frame[o + F.Z] = z;
+      frame[o + F.QW] = 1;
+      frame[o + F.VZ] = 30;
+      frame[o + F.SPEED] = 30;
+      frame[o + RACE_BASE + R.VEHICLE] = vehicleIndex(vehicle);
+      frame[o + BIKE_BASE + B.LEAN] = lean;
+      frame[o + WHEEL_BASE + 0 * WHEEL_STRIDE + W.OMEGA] = 30 / spec.frontWheelRadius;
+      frame[o + WHEEL_BASE + 2 * WHEEL_STRIDE + W.OMEGA] = 30 / spec.rearWheelRadius;
+    }
+    const size = new T.Vector2(1280, 720);
+    const camera = new T.PerspectiveCamera(43, size.x / size.y, 0.05, 5000);
+    camera.position.set(1.2, 1.1, -3.2);
+    camera.lookAt(0, 0.4, 6);
+    camera.updateMatrixWorld(true);
+    const uniforms = createStudioUniforms();
+    const sun = new T.DirectionalLight();
+    sun.position.set(-140, 235, -115);
+    sun.updateMatrixWorld(true);
+    new StudioFrame(uniforms).update(frame, camera, sun, 'test');
+    const field = new MotionField();
+    const shutter = shutterSeconds(0.56);
+    const run = (wheels: number) => {
+      field.wheelCount = wheels;
+      field.update(
+        frame,
+        camera,
+        0,
+        'attached',
+        shutter,
+        uniforms.studioCarNow.value,
+        uniforms.studioCarPose.value,
+        uniforms.studioCarCount.value,
+      );
+    };
+    // The nearest standing bikes only: the fallen bike is skipped, the
+    // followed bike comes first, the far rival second.
+    const count = gpMotionWheels(frame, 1.2, 1.1, -3.2, field.wheels);
+    expect(count).toBe(4);
+    expect(field.wheels.slice(0, 4).map((w) => w.car)).toEqual([0, 0, 1, 1]);
+    const rear = field.wheels[1];
+    expect(rear.centre.toArray()).toEqual([...VEHICLES.gpr1.wheelPositions[2]]);
+    expect(rear.radius).toBe(spec.rearWheelRadius);
+    run(count);
+    // Rear tyre crown (top of the wheel, chassis frame) streaks by ω r s.
+    const centre = new T.Vector3(...VEHICLES.gpr1.wheelPositions[2]).add(
+      new T.Vector3(0, spec.cgHeight, 0),
+    );
+    const top = centre.clone().add(new T.Vector3(0, spec.rearWheelRadius * 0.95, 0));
+    const turned = top
+      .clone()
+      .sub(centre)
+      .applyAxisAngle(new T.Vector3(1, 0, 0), -rear.omega * shutter)
+      .add(centre);
+    const now = top.clone().project(camera),
+      before = turned.clone().project(camera);
+    const expected = new T.Vector2(
+      ((now.x - before.x) * size.x) / 2,
+      ((now.y - before.y) * size.y) / 2,
+    );
+    const measured = field.pixels(top, camera, size);
+    expect(expected.length()).toBeGreaterThan(3);
+    expect(measured.x).toBeCloseTo(expected.x, 4);
+    expect(measured.y).toBeCloseTo(expected.y, 4);
+    // Chassis above the wheel, and the fork/swingarm plane beside the disc, stay locked.
+    expect(field.pixels(new T.Vector3(0, spec.cgHeight + 0.3, 0), camera, size).length()).toBe(0);
+    const beside = top.clone().add(new T.Vector3(0.13, 0, 0));
+    expect(field.pixels(beside, camera, size).length()).toBeLessThan(1e-6);
+    // Without discs the same tyre point is as still as its locked chassis.
+    run(0);
+    expect(field.pixels(top, camera, size).length()).toBeLessThan(1e-6);
+    // Non-GP vehicles get no discs.
+    frame[carBase(1) + RACE_BASE + R.VEHICLE] = vehicleIndex('apx01');
+    frame[carBase(0) + RACE_BASE + R.VEHICLE] = vehicleIndex('apx01');
+    expect(gpMotionWheels(frame, 1.2, 1.1, -3.2, field.wheels)).toBe(0);
   });
 });

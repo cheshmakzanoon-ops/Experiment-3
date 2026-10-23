@@ -1,4 +1,18 @@
 import { clamp, smooth } from '../core/math.ts';
+import {
+  B,
+  BIKE_BASE,
+  F,
+  H,
+  R,
+  RACE_BASE,
+  W,
+  WHEEL_BASE,
+  WHEEL_STRIDE,
+  carBase,
+} from '../simulation/protocol.ts';
+import { vehicleAt } from '../simulation/vehicles.ts';
+import type { MotionWheel } from './studio/velocity.ts';
 import type { SubjectLens } from './studio/subject-focus.ts';
 import type { TracksideLens } from './trackside.ts';
 
@@ -227,4 +241,79 @@ export function gpSubjectLens(camera: string, fov: number): SubjectLens | null {
   return camera === 'trackside' && Number.isFinite(fov) && fov < GP_TRACKSIDE_DOF_BELOW
     ? GP_TRACKSIDE_LENS
     : null;
+}
+
+/**
+ * Spinning GP wheels for the motion field (studio/velocity.ts): the two
+ * wheels of the GP prototypes nearest the camera (at most `wheels.length / 2`
+ * bikes), from the presented snapshot only. Centres are the definition's
+ * chassis-frame wheel positions (the presented pose carries lean and pitch;
+ * fork travel moves the front centre a few centimetres, inside the disc
+ * margin), the spin is the presented tyre rate (rolling rate if absent), and
+ * the half widths cover tread, rim and brake disc but not the fork legs or
+ * swingarm (which stay as sharp as the chassis). A fallen or retired bike's
+ * wheels are skipped. Returns the number of discs written.
+ */
+export const GP_WHEEL_BLUR = Object.freeze({
+  /** Disc half widths, metres (front tyre 120 mm, rear 200 mm wide). */
+  frontHalfWidth: 0.075,
+  rearHalfWidth: 0.11,
+  /** Lean beyond which the bike has fallen (rad). */
+  fallenLean: 1.2,
+});
+const nearest = new Float64Array(12);
+const nearestId = new Int32Array(12);
+export function gpMotionWheels(
+  presented: Float32Array,
+  eyeX: number,
+  eyeY: number,
+  eyeZ: number,
+  wheels: MotionWheel[],
+) {
+  const cars = presented[H.CARS];
+  if (!Number.isInteger(cars) || cars < 1 || cars > 12) return 0;
+  let found = 0;
+  for (let id = 0; id < cars; id++) {
+    const o = carBase(id);
+    const definition = vehicleAt(Math.round(presented[o + RACE_BASE + R.VEHICLE]));
+    if (definition.classId !== 'gp-bike' || !definition.bike || presented[o + F.RETIRED]) continue;
+    if (!(Math.abs(presented[o + BIKE_BASE + B.LEAN]) < GP_WHEEL_BLUR.fallenLean)) continue;
+    const d = Math.hypot(
+      presented[o + F.X] - eyeX,
+      presented[o + F.Y] - eyeY,
+      presented[o + F.Z] - eyeZ,
+    );
+    if (!Number.isFinite(d)) continue;
+    // Insertion into the sorted nearest list (at most twelve entries).
+    let k = found++;
+    while (k > 0 && nearest[k - 1] > d) {
+      nearest[k] = nearest[k - 1];
+      nearestId[k] = nearestId[k - 1];
+      k--;
+    }
+    nearest[k] = d;
+    nearestId[k] = id;
+  }
+  let count = 0;
+  for (let n = 0; n < found && count + 2 <= wheels.length; n++) {
+    const id = nearestId[n],
+      o = carBase(id),
+      definition = vehicleAt(Math.round(presented[o + RACE_BASE + R.VEHICLE])),
+      spec = definition.bike!;
+    for (const [slot, radius, halfWidth] of [
+      [0, spec.frontWheelRadius, GP_WHEEL_BLUR.frontHalfWidth],
+      [2, spec.rearWheelRadius, GP_WHEEL_BLUR.rearHalfWidth],
+    ] as const) {
+      const wheel = wheels[count++],
+        omega = presented[o + WHEEL_BASE + slot * WHEEL_STRIDE + W.OMEGA];
+      wheel.car = id;
+      wheel.centre.fromArray(definition.wheelPositions[slot]);
+      wheel.radius = radius;
+      wheel.halfWidth = halfWidth;
+      wheel.omega = Number.isFinite(omega)
+        ? omega
+        : (Number.isFinite(presented[o + F.SPEED]) ? presented[o + F.SPEED] : 0) / radius;
+    }
+  }
+  return count;
 }

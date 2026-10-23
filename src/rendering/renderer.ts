@@ -144,6 +144,7 @@ import {
   GP_TELEPHOTO,
   GpChaseDynamics,
   gpChase,
+  gpMotionWheels,
   gpSubjectLens,
 } from './gp-photographic-camera.ts';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
@@ -1913,6 +1914,16 @@ export class RacingRenderer {
         this.reducedMotion ? 0 : this.graphics.motionBlur * (gpFollow ? GP_SHUTTER : 1),
         !this.photo && !menu,
       );
+      // W1: the nearest GP wheels spin-blur with the shutter (velocity.ts).
+      this.motionBlur.field.wheelCount = gpFollow
+        ? gpMotionWheels(
+            presented,
+            this.camera.position.x,
+            this.camera.position.y,
+            this.camera.position.z,
+            this.motionBlur.field.wheels,
+          )
+        : 0;
       this.motionBlur.prepareFrame(presented, this.camera, this.follow, cameraMode, replay);
       // D29/D30: depth of field on the subject car (showroom, broadcast telephoto).
       const lens: SubjectLens | null =
