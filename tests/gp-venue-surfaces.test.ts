@@ -24,6 +24,13 @@ import { isGpCourse } from '../src/simulation/gp-corner-shape.ts';
 import { CIRCUITS } from '../src/simulation/circuits.ts';
 import { SURFACE, Track, trackPoint } from '../src/simulation/track.ts';
 import { BuildQueue } from '../src/rendering/build-queue.ts';
+import { installCircuitFinish } from '../src/rendering/circuit-finish.ts';
+import {
+  FAR,
+  GP_FAR,
+  TERRAIN_FINISH_HOOK,
+  installTerrainFinish,
+} from '../src/rendering/studio/terrain-finish.ts';
 
 class Canvas {
   width = 300;
@@ -197,5 +204,26 @@ describe('GP verge turf and gravel', () => {
       // Each trap end contributes a feathered quad over the grass.
       expect(partial).toBeGreaterThan(0);
     }
+  });
+});
+
+describe('GP venue hills', () => {
+  it('lays the canopy carpet nearer the circuit only at GP venues', () => {
+    const terrain = (gp: boolean) => {
+      const material = new T.MeshStandardMaterial();
+      installCircuitFinish(material, 'terrain');
+      installTerrainFinish(material, gp);
+      return material;
+    };
+    const gp = terrain(true),
+      plain = terrain(false);
+    expect(studioHookKeys(plain)).toEqual([TERRAIN_FINISH_HOOK]);
+    expect(studioHookKeys(gp)).toEqual(['terrain-finish-gp-v1']);
+    const near = `smoothstep( ${GP_FAR.forestFrom.toFixed(4)}, ${GP_FAR.forestFull.toFixed(4)}, vTrackDistance )`;
+    const far = `smoothstep( ${FAR.forestFrom.toFixed(4)}, ${FAR.forestFull.toFixed(4)}, vTrackDistance )`;
+    expect(compile(gp).fragmentShader).toContain(near);
+    expect(compile(plain).fragmentShader).toContain(far);
+    expect(compile(plain).fragmentShader).not.toContain(near);
+    expect(GP_FAR.forestFull).toBeLessThan(FAR.forestFrom);
   });
 });

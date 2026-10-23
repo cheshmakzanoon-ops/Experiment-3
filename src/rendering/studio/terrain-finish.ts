@@ -76,7 +76,20 @@ const LANDFORM_GLSL = LANDFORM.octaves
   )
   .join('');
 
-const FINISH = /* glsl */ `{
+/** Motorcycle-GP venues (REF_003, 027, 044-046): their hills are wooded up
+ * to the forest belts, so the canopy carpet starts much nearer and glades
+ * are rarer. Other venues keep FAR's bands. */
+export const GP_FAR = Object.freeze({
+  forestFrom: 140,
+  forestFull: 250,
+  glade: Object.freeze([0.16, 0.3] as const),
+});
+
+const finishGlsl = (
+  forestFrom: number,
+  forestFull: number,
+  glade: readonly [number, number],
+) => /* glsl */ `{
 	// D17 far landscape: canopy carpet, strata rock, dry south meadows.
 	float slope = 1.0 - clamp( normalize( vFinishNormal ).y, 0.0, 1.0 );
 	// Landform relief and its moisture tone (see LANDFORM).
@@ -86,8 +99,8 @@ const FINISH = /* glsl */ `{
 	${LANDFORM_GLSL}
 	apexLandGrad *= 1.0 + ${f(LANDFORM.steepGain)} * smoothstep( 0.15, 0.5, slope );
 	diffuseColor.rgb *= 1.0 + ${f(LANDFORM.tone)} * landTone;
-	float far = smoothstep( ${f(FAR.forestFrom)}, ${f(FAR.forestFull)}, vTrackDistance );
-	float glade = smoothstep( 0.28, 0.42, finishFilteredNoise( vFinishWorld.xz * 0.0021 + vec2( 7.3, 1.9 ) ) );
+	float far = smoothstep( ${f(forestFrom)}, ${f(forestFull)}, vTrackDistance );
+	float glade = smoothstep( ${glade[0].toFixed(2)}, ${glade[1].toFixed(2)}, finishFilteredNoise( vFinishWorld.xz * 0.0021 + vec2( 7.3, 1.9 ) ) );
 	float flatEnough = 1.0 - smoothstep( ${f(FAR.maxForestSlope - 0.1)}, ${f(FAR.maxForestSlope)}, slope );
 	float forest = far * glade * flatEnough;
 	float crownA = finishFilteredNoise( vFinishWorld.xz / ${f(FAR.crownMetres[1])} );
@@ -108,9 +121,13 @@ const FINISH = /* glsl */ `{
 }`;
 
 export const TERRAIN_FINISH_HOOK = 'terrain-finish-v1';
-/** Chain the far-landscape finish onto the terrain material. */
-export function installTerrainFinish(material: T.Material) {
-  return chainShaderHook(material, TERRAIN_FINISH_HOOK, (shader) => {
+/** Chain the far-landscape finish onto the terrain material (`gp`: the
+ * motorcycle-GP venues' nearer, denser canopy, GP_FAR). */
+export function installTerrainFinish(material: T.Material, gp = false) {
+  const FINISH = gp
+    ? finishGlsl(GP_FAR.forestFrom, GP_FAR.forestFull, GP_FAR.glade)
+    : finishGlsl(FAR.forestFrom, FAR.forestFull, [0.28, 0.42]);
+  return chainShaderHook(material, gp ? 'terrain-finish-gp-v1' : TERRAIN_FINISH_HOOK, (shader) => {
     injectDeclarations(
       shader,
       'common',

@@ -396,7 +396,7 @@ export class CircuitScene {
       this.surfaceMaterials.add(land);
       // D17: forest carpet, strata rock and dry meadows by distance to the circuit.
       terrainTrackDistance(track, terrain);
-      installTerrainFinish(land);
+      installTerrainFinish(land, isGpCourse(track));
       if (model.seaLevel !== null && model.coastZ) {
         const shore = new Float32Array(pos.count);
         for (let i = 0; i < pos.count; i++)
