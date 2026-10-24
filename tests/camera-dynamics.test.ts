@@ -176,6 +176,7 @@ describe('production cockpit force timeline', () => {
       circuit: { setMotorcyclePresentation: vi.fn(), setGrandPrixGrid: vi.fn() },
       composition: reset(),
       motocrossCamera: reset(),
+      gpChaseDynamics: reset(),
       viewOrientation: reset(),
       trackside: reset(),
       audioView: reset(),

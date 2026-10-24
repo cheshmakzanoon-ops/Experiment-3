@@ -943,8 +943,9 @@ export class RacingRenderer {
           'gp-bike',
       );
       // A GP grid's clear day sky is loaded with the venue's own.
-      this.photoSky.clearDay =
-        gpGrid && this.lighting === 'day' ? (this.gpLook.clearSky ?? null) : null;
+      if (this.photoSky)
+        this.photoSky.clearDay =
+          gpGrid && this.lighting === 'day' ? (this.gpLook.clearSky ?? null) : null;
       if (this.photoSky?.enabled) {
         progress('Loading the photographed sky…');
         await this.photoSky.ready(frame[H.CLOUD], this.lighting);

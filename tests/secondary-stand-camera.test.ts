@@ -52,6 +52,8 @@ function primeLanding(camera: MotocrossChaseCamera) {
 
 function view() {
   const reset = vi.fn();
+  // The GP chase rig is reset by the same camera transaction.
+  const gpReset = vi.fn();
   // The production constructor owns this stateful controller in every mode.
   // Keep it real so a view cut must actually clear flight/landing history.
   const motocrossCamera = new MotocrossChaseCamera();
@@ -68,13 +70,14 @@ function view() {
     inertia: { reset },
     viewOrientation: { reset },
     motocrossCamera,
+    gpChaseDynamics: { reset: gpReset },
     trackside: { reset },
     changeCamera: RacingRenderer.prototype.changeCamera,
   } as unknown as RacingRenderer;
-  return { target, reset, motocrossCamera, motocrossReset };
+  return { target, reset, gpReset, motocrossCamera, motocrossReset };
 }
 it('switches a held cockpit to chase through the production camera transaction', () => {
-  const { target, reset, motocrossCamera, motocrossReset } = view();
+  const { target, reset, gpReset, motocrossCamera, motocrossReset } = view();
   const continuing = primeLanding(motocrossCamera);
   const fresh = cameraPose(new MotocrossChaseCamera().update(0, flat, landed));
   expect(continuing).not.toEqual(fresh);
@@ -84,26 +87,31 @@ it('switches a held cockpit to chase through the production camera transaction',
   expect(target.lookX).toBe(0);
   expect(target.lookY).toBe(0);
   expect(reset).toHaveBeenCalledTimes(7);
+  expect(gpReset).toHaveBeenCalledOnce();
   expect(motocrossReset).toHaveBeenCalledOnce();
   expect(cameraPose(motocrossCamera.update(0, flat, landed))).toEqual(fresh);
 });
 it('does not reset camera continuation when consecutive samples keep the same view', () => {
-  const { target, reset, motocrossCamera, motocrossReset } = view();
+  const { target, reset, gpReset, motocrossCamera, motocrossReset } = view();
   const initial = primeLanding(motocrossCamera);
   selectSecondaryStandView(target, 'cockpit');
   expect(reset).not.toHaveBeenCalled();
+  expect(gpReset).not.toHaveBeenCalled();
   expect(motocrossReset).not.toHaveBeenCalled();
   expect(cameraPose(motocrossCamera.update(0, flat, landed))).toEqual(initial);
   selectSecondaryStandView(target, 'chase');
   reset.mockClear();
+  gpReset.mockClear();
   motocrossReset.mockClear();
   const continuing = primeLanding(motocrossCamera);
   selectSecondaryStandView(target, 'chase');
   expect(reset).not.toHaveBeenCalled();
+  expect(gpReset).not.toHaveBeenCalled();
   expect(motocrossReset).not.toHaveBeenCalled();
   expect(cameraPose(motocrossCamera.update(0, flat, landed))).toEqual(continuing);
   selectSecondaryStandView(target, 'cockpit');
   expect(reset).toHaveBeenCalledTimes(7);
+  expect(gpReset).toHaveBeenCalledOnce();
   expect(motocrossReset).toHaveBeenCalledOnce();
   expect(cameraPose(motocrossCamera.update(0, flat, landed))).toEqual(
     cameraPose(new MotocrossChaseCamera().update(0, flat, landed)),
