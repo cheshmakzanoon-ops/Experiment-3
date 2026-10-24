@@ -45,7 +45,10 @@ const FROZEN: Readonly<Record<string, string>> = {
   // became the motorcycle parameters (preload, damping, steering damper,
   // gearing, rider-aid maps) instead of an unused brake bias. Dynamics at
   // the default setup are unchanged (docs/vehicle-calibration.json).
-  gpr1: 'acdbb92a',
+  // GP-R1 changed a second time, deliberately: its AI plans trail-braking
+  // stops at 70% of the braking envelope instead of 78% (the GP cornering
+  // ABS keeps the lateral force of the requested roll; MotoGP programme).
+  gpr1: 'eca1c71a',
   sbk1000: '7593a112',
   jf2: 'a3c619ff',
   hf67: 'ceea2a89',
