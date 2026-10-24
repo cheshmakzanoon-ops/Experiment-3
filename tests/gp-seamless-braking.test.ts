@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { G } from '../src/core/math.ts';
 import { BikeVehicle } from '../src/simulation/bike-vehicle.ts';
+import { gpHangOffAngle } from '../src/simulation/motogp-physics.ts';
 import { DEFAULT_SETUP } from '../src/simulation/config.ts';
 import { Track } from '../src/simulation/track.ts';
 import { VEHICLES } from '../src/simulation/vehicles.ts';
@@ -93,7 +94,15 @@ describe('GP seamless coast engagement', () => {
         (d.p.wheelbase * G * (Math.tan(d.lean) + d.riderGain())) /
           (d.speed * d.speed * Math.cos(d.lean)),
       );
-      bike.input.steer = 0.25;
+      // The GP lean-intent stick is a share of the lean limit on the present
+      // (lower) grip: hold this corner's combined lean rather than ask the
+      // assist to stand the bike up when the rear sample drops.
+      const grip = d.grip,
+        rear = d.rearGrip;
+      d.grip = d.rearGrip = rearGrip;
+      bike.input.steer = (d.lean + gpHangOffAngle(d.riderOffset, d.p.cgHeight)) / d.leanLimit;
+      d.grip = grip;
+      d.rearGrip = rear;
       bike.input.brake = 0.3;
       bike.input.clutch = 0.1;
       for (let i = 0; i < 12; i++) {
@@ -104,7 +113,9 @@ describe('GP seamless coast engagement', () => {
         expect(d.engineBrakeForce).toBeGreaterThan(50);
         expect(d.frontUse).toBeLessThanOrEqual(1);
         expect(d.rearUse).toBeLessThanOrEqual(1);
-        expect(d.rearUse).toBeGreaterThan(0.8);
+        // The first sample still builds the tyres' forces from the synthetic
+        // start; the circle is shared from then on.
+        expect(d.rearUse).toBeGreaterThan(i === 0 ? 0.35 : 0.55);
         expect(d.lean).toBeGreaterThan(0.2);
         const pedalForce = d.rearBrakeForce - d.engineBrakeForce;
         expect(pedalForce).toBeGreaterThan(0);
@@ -112,6 +123,9 @@ describe('GP seamless coast engagement', () => {
         expect(d.state).toBe('riding');
         expect(d.speed).toBeCloseTo(beforeSpeed + d.longitudinal * DT, 10);
       }
+      // GP cornering ABS fills the rear circle up to the lean assist's
+      // recovery reserve (0.985/0.9 of the lateral force, 95% friction).
+      expect(d.rearUse).toBeGreaterThan(0.7);
       expect(bike.gear).toBe(3);
     },
   );
