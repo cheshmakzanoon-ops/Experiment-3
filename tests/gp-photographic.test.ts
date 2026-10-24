@@ -5,6 +5,7 @@ import {
   applyGpDaylight,
   gpGradeProfile,
   gpPhotographicActive,
+  tintGpSun,
 } from '../src/rendering/gp-photographic-light.ts';
 import {
   GP_CHASE,
@@ -17,7 +18,11 @@ import {
   type ChaseRig,
 } from '../src/rendering/gp-photographic-camera.ts';
 import { motorcycleChase } from '../src/rendering/motorcycle-camera.ts';
-import { BroadcastGradePass, GRADE_PROFILES } from '../src/rendering/broadcast-grade.ts';
+import {
+  BroadcastGradePass,
+  FILMIC_GRADE_PROFILES,
+  GRADE_PROFILES,
+} from '../src/rendering/broadcast-grade.ts';
 import { circuitLightState } from '../src/rendering/daylight.ts';
 import { specularIBLGain } from '../src/rendering/studio/ibl-energy.ts';
 import { DepthOfFieldPass } from '../src/rendering/studio/dof-pass.ts';
@@ -34,7 +39,11 @@ import {
 import { PhotoSky } from '../src/rendering/assets/photo-sky.ts';
 import { TELEPHOTO, tracksideFraming } from '../src/rendering/trackside.ts';
 import { GP_TELEPHOTO, gpMotionWheels } from '../src/rendering/gp-photographic-camera.ts';
-import { MotionField, shutterSeconds } from '../src/rendering/studio/velocity.ts';
+import {
+  MOTION_MAX_WHEEL_TURN,
+  MotionField,
+  shutterSeconds,
+} from '../src/rendering/studio/velocity.ts';
 import { createStudioUniforms, StudioFrame } from '../src/rendering/studio/studio-frame.ts';
 import {
   B,
@@ -69,21 +78,37 @@ describe('GP photographic light', () => {
       expect(gpPhotographicActive(other, false, 'day')).toBe(false);
   });
 
-  it('trades diffuse sky fill for a dominant key while specular sky keeps the dome', () => {
+  it('opens the shadow band through AgX, a hazier beam and more bias fill, sky share at the dome', () => {
     const shared = circuitLightState(0, 0, 'day');
     const gp = applyGpDaylight(circuitLightState(0, 0, 'day'));
+    expect(GP_PHOTOGRAPHIC.toneMapper).toBe('agx');
+    // Hazier air: a slightly dimmer direct beam, more fill, 3x aerosols.
     expect(gp.sun).toBeCloseTo(shared.sun * GP_PHOTOGRAPHIC.sun, 12);
-    expect(gp.environment).toBeLessThan(shared.environment);
-    expect(gp.fill).toBeLessThan(shared.fill);
-    expect(gp.haze).toBeGreaterThan(shared.haze);
-    // Key-to-fill: the sun against the diffuse sky share rises by 1 / skyFill.
-    expect(gp.sun / gp.environment).toBeCloseTo(
-      shared.sun / shared.environment / GP_PHOTOGRAPHIC.skyFill,
-      9,
-    );
-    // The IBL split keeps reflections at the dome's on-screen radiance.
+    expect(gp.sun).toBeLessThan(shared.sun);
+    expect(gp.fill).toBeGreaterThan(shared.fill);
+    expect(gp.haze).toBeCloseTo(shared.haze * 3, 12);
+    // The diffuse sky share never rises above the dome, so the IBL split
+    // keeps reflections at the dome's on-screen radiance.
+    expect(gp.environment).toBe(shared.environment);
     expect(gp.environment * specularIBLGain(gp.environment)).toBeCloseTo(1, 9);
+    const bright = applyGpDaylight(circuitLightState(0, 0, 'day'), {
+      ...GP_PHOTOGRAPHIC,
+      skyFill: 1.6,
+    });
+    expect(bright.environment).toBe(shared.environment);
     expect(gp.exposure).toBeCloseTo(shared.exposure * 2 ** GP_PHOTOGRAPHIC.exposureEV, 12);
+    // A warmer key: red over blue rises, peak channel unchanged.
+    const key = tintGpSun({ r: 1, g: 0.96, b: 0.92 });
+    expect(key.r).toBe(1);
+    expect(key.r / key.b).toBeGreaterThan(1 / 0.92);
+    const kept = tintGpSun(
+      { r: 0.5, g: 0.5, b: 0.5 },
+      {
+        ...GP_PHOTOGRAPHIC,
+        sunTint: [NaN, -1, 2] as const,
+      },
+    );
+    expect([kept.r, kept.g, kept.b]).toEqual([0.5, 0.5, 1]);
     // Degenerate looks stay finite and positive.
     const odd = applyGpDaylight(circuitLightState(0.4, 3, 'sunset'), {
       ...GP_PHOTOGRAPHIC,
@@ -99,11 +124,13 @@ describe('GP photographic light', () => {
     }
   });
 
-  it('grades GP frames warm in the key and cool in the shade, over a deeper curve', () => {
+  it('grades GP frames warm in the key and cool in the shade over AgX', () => {
     for (const mode of ['day', 'sunset'] as const) {
       const gp = gpGradeProfile(mode)!,
         shared = GRADE_PROFILES[mode];
-      expect(gp.contrast).toBeGreaterThan(shared.contrast);
+      // A deeper curve than the light filmic grade it replaces over AgX.
+      expect(gp.contrast).toBeGreaterThan(FILMIC_GRADE_PROFILES[mode].contrast);
+      expect(gp.saturation).toBeGreaterThan(FILMIC_GRADE_PROFILES[mode].saturation);
       expect(gp.highlightTint[0] / gp.highlightTint[2]).toBeGreaterThan(
         shared.highlightTint[0] / shared.highlightTint[2],
       );
@@ -403,7 +430,10 @@ describe('GP photographic camera', () => {
     const turned = top
       .clone()
       .sub(centre)
-      .applyAxisAngle(new T.Vector3(1, 0, 0), -rear.omega * shutter)
+      .applyAxisAngle(
+        new T.Vector3(1, 0, 0),
+        -Math.min(MOTION_MAX_WHEEL_TURN, rear.omega * shutter),
+      )
       .add(centre);
     const now = top.clone().project(camera),
       before = turned.clone().project(camera);
@@ -422,6 +452,14 @@ describe('GP photographic camera', () => {
     // Without discs the same tyre point is as still as its locked chassis.
     run(0);
     expect(field.pixels(top, camera, size).length()).toBeLessThan(1e-6);
+    // At racing speed the gathered turn is capped (a short arc near the
+    // tangent, not a chord through the hub): 12x the spin, the same streak.
+    for (const w of field.wheels.slice(0, count)) w.omega *= 12;
+    run(count);
+    const fast = field.pixels(top, camera, size);
+    expect(rear.omega * shutter).toBeGreaterThan(MOTION_MAX_WHEEL_TURN);
+    expect(fast.x).toBeCloseTo(measured.x, 6);
+    expect(fast.y).toBeCloseTo(measured.y, 6);
     // Non-GP vehicles get no discs.
     frame[carBase(1) + RACE_BASE + R.VEHICLE] = vehicleIndex('apx01');
     frame[carBase(0) + RACE_BASE + R.VEHICLE] = vehicleIndex('apx01');
