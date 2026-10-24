@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { G } from '../src/core/math.ts';
 import { Bike, NOVICE } from '../src/simulation/bike.ts';
 import { BikeVehicle } from '../src/simulation/bike-vehicle.ts';
+import { gpHangOffAngle } from '../src/simulation/motogp-physics.ts';
 import { DEFAULT_SETUP, type Assist } from '../src/simulation/config.ts';
 import { Track } from '../src/simulation/track.ts';
 import { VEHICLES } from '../src/simulation/vehicles.ts';
@@ -131,7 +132,13 @@ describe('GP rear pedal acts independently of the front lever', () => {
           // Hold a cornering demand on the reduced-grip lean range; a
           // quarter-stick request would instead stand the bike up here.
           bike.input.steer = 0.5;
-          for (let i = 0; i < 0.2 / dt; i++) {
+          // GP prototypes roll about the combined bike + rider CG: the
+          // corner is held by ψ = φ + θ(hang-off), and as the rider moves
+          // out to full hang-off the chassis itself rolls up by θ. From the
+          // synthetic zero-sideslip start the tyres need ~0.3 s to build a
+          // steady corner, so the window covers 0.4 s.
+          const combined = () => d.lean + gpHangOffAngle(d.riderOffset, d.p.cgHeight);
+          for (let i = 0; i < 0.4 / dt; i++) {
             bike.contacts[0].grip = bike.contacts[1].grip = frontGrip;
             bike.contacts[2].grip = bike.contacts[3].grip = rearGrip;
             bike.step(dt, track);
@@ -142,9 +149,12 @@ describe('GP rear pedal acts independently of the front lever', () => {
             expect(d.frontBrakeForce).toBeLessThanOrEqual(d.p.frontBrake * 0.08 * 0.78);
             expect(d.engineBrakeForce).toBeGreaterThan(50);
             expect(d.rearBrakeForce).toBeGreaterThan(d.engineBrakeForce);
+            // Never stands up: the combined lean starts at 0.213 rad.
+            expect(combined()).toBeGreaterThan(0.2);
           }
           expect(d.speed).toBeLessThan(34.5);
-          expect(d.lean).toBeGreaterThan(0.15);
+          expect(combined()).toBeGreaterThan(0.22);
+          expect(d.lean).toBeGreaterThan(0.12);
           expect(Math.abs(bike.tires[2].fy)).toBeGreaterThan(250);
         }
       }
