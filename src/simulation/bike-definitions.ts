@@ -1,5 +1,6 @@
 import { clamp, G } from '../core/math.ts';
 import type { BikeParameters } from './bike.ts';
+import { gpHangOffAngle } from './motogp-physics.ts';
 import type { Setup } from './config.ts';
 import type { CapabilityEnvelope, VehicleDefinition } from './vehicles.ts';
 import type { OffroadBikeSpec } from './offroad/types.ts';
@@ -241,7 +242,22 @@ export function bikeSetupParameters(
  * still deliver while the bike is already leaning toward the apex: the lean
  * assist keeps each tyre the lateral force of the roll it is asked for, so
  * trail braking stops less hard than an upright straight-line stop. */
-const GP_AI_MARGINS = Object.freeze({ brakingMargin: 0.7 });
+const GP_AI_MARGINS = Object.freeze({ brakingMargin: 0.74 });
+const GP_AI_FRICTION_SHARE = 0.8;
+/** GP envelope: the lateral base is planned at 80% of the slicks' friction,
+ * below the 90% the GP lean assist will hold (GP_ASSIST.leanMargin) so the
+ * line follower keeps headroom to correct and to flick into the next bend;
+ * bounded by ground clearance with the rider fully off. The shared bike
+ * formula predates the combined-CG lean model and reads ~6% lower. */
+function gpEnvelope(def: VehicleDefinition): VehicleDefinition {
+  const b = def.bike!,
+    clearance = dynamicLean(b.maxLean, b) + gpHangOffAngle(b.riderOffsetMax, b.cgHeight),
+    lateral = G * Math.min(Math.tan(clearance), GP_AI_FRICTION_SHARE * b.mu);
+  return Object.freeze({
+    ...def,
+    ai: Object.freeze({ ...def.ai, lateralBase: Math.round(lateral * 100) / 100 }),
+  });
+}
 const GP_BIKE: BikeSpec = Object.freeze({
   riderMass: 72,
   fuel: 16,
@@ -326,7 +342,7 @@ const wheels = (spec: BikeSpec) =>
 /** An original 1000 cc prototype-class racing motorcycle: ~300 hp (224 kW),
  * 157 kg, carbon wings, seamless six-speed gearbox, ~350 km/h. Generic
  * design; no real manufacturer, team or series is represented. */
-export const GP_R1: VehicleDefinition = Object.freeze({
+export const GP_R1: VehicleDefinition = gpEnvelope({
   id: 'gpr1',
   version: 1,
   name: 'GP-R1 PROTOTYPE',
@@ -511,47 +527,49 @@ function roadBike(sheet: {
  * stands on its nose later and brakes shorter but lifts the front sooner;
  * with the weaker bottom end and the draggier fairing it gives away launch
  * and top speed. Generic design. */
-export const GP_R2: VehicleDefinition = roadBike({
-  id: 'gpr2',
-  name: 'GP-R2 PROTOTYPE',
-  classId: 'gp-bike',
-  bike: Object.freeze({
-    ...GP_BIKE,
-    cgHeight: 0.61,
-    cgToFront: 0.72,
-    cgToRear: 0.73,
-    maxLean: 1.13,
-    frontBrake: 7700,
-    drag: 0.25,
-    tuckDrag: 0.09,
-    downforce: 0.062,
-    downforceFront: 0.7,
-    launchRPM: 9000,
-    wheelieLimit: 0.09,
+export const GP_R2: VehicleDefinition = gpEnvelope(
+  roadBike({
+    id: 'gpr2',
+    name: 'GP-R2 PROTOTYPE',
+    classId: 'gp-bike',
+    bike: Object.freeze({
+      ...GP_BIKE,
+      cgHeight: 0.61,
+      cgToFront: 0.72,
+      cgToRear: 0.73,
+      maxLean: 1.13,
+      frontBrake: 7700,
+      drag: 0.25,
+      tuckDrag: 0.09,
+      downforce: 0.062,
+      downforceFront: 0.7,
+      launchRPM: 9000,
+      wheelieLimit: 0.09,
+    }),
+    machineMass: 157,
+    wheelInertia: 0.9,
+    inertia: [61, 54, 24],
+    finalDrive: 2.6,
+    gearRatios: [0, 0, 4.6, 3.8, 3.2, 2.82, 2.53, 2.34],
+    idleRPM: 4300,
+    shiftRPM: 18000,
+    downshiftRPM: 11800,
+    limiterRPM: 18500,
+    powerW: 216000,
+    torqueCurve: [
+      [4000, 46],
+      [8000, 76],
+      [11000, 98],
+      [14000, 116],
+      [16500, 124],
+      [17800, 117],
+      [18500, 100],
+    ],
+    halfExtents: [0.37, 0.56, 1.02],
+    topSpeed: 96,
+    aiMargins: GP_AI_MARGINS,
   }),
-  machineMass: 157,
-  wheelInertia: 0.9,
-  inertia: [61, 54, 24],
-  finalDrive: 2.6,
-  gearRatios: [0, 0, 4.6, 3.8, 3.2, 2.82, 2.53, 2.34],
-  idleRPM: 4300,
-  shiftRPM: 18000,
-  downshiftRPM: 11800,
-  limiterRPM: 18500,
-  powerW: 216000,
-  torqueCurve: [
-    [4000, 46],
-    [8000, 76],
-    [11000, 98],
-    [14000, 116],
-    [16500, 124],
-    [17800, 117],
-    [18500, 100],
-  ],
-  halfExtents: [0.37, 0.56, 1.02],
-  topSpeed: 96,
-  aiMargins: GP_AI_MARGINS,
-});
+);
 /** An original 600 cc four-cylinder supersport: about 95 kW at 14 500 rpm,
  * 175 kg, road-legal racing tyres, quickshifter six-speed. Generic design. */
 export const SS_600: VehicleDefinition = roadBike({
