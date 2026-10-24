@@ -1133,61 +1133,93 @@ function drawLivery(p: LiveryPen, entrant: number, variant: GpShellVariant) {
       'matte',
     );
   }
-  // Title partner across the flank; secondary partners and model badges.
-  p.text(scheme.title, [0.06, -0.06], 0.055, 0.3, ink, {
-    weight: 0.24,
-    slant: 0.14,
-    tracking: 0.06,
-  });
-  p.text(scheme.partners[0], [0.16, -0.225], 0.026, 0.26, '#f1f2ed');
-  p.text(scheme.partners[1], [0.68, 0.17], 0.02, 0.16, ink);
-  p.text('MOTOBOUND', [0.0, -0.38], 0.03, 0.34, '#f1f2ed', {
+  // Sponsor hierarchy of a factory machine (REF 001/006/018/056): one huge
+  // race number on the nose cheek, the title partner on a dark panel across
+  // the side panel, mid-size partner badges on keel, tail and lower fairing,
+  // then legible small tags (>= 17 mm caps, ~9 atlas pixels). All marks are
+  // the repo's original fictional brands.
+  const luminance = (hex: string) => {
+    const c = new T.Color(hex);
+    return 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b;
+  };
+  const keelInk = luminance(keel) > 0.55 ? '#15191d' : '#f1f2ed';
+  const reserved = new Set<string>([scheme.title, ...scheme.partners, 'APEX CORSA', 'SLICK 18']);
+  const extras = Object.keys(BRAND_ART).filter((b) => !reserved.has(b));
+  const extra = (k: number) => extras[(entrant * 3 + k) % extras.length];
+  // Race number: dark keyline under the ink, heavy italic.
+  const numberStyle = { weight: 0.27, slant: 0.17, tracking: 0.1, width: 1 };
+  const outline = luminance(scheme.primary) > 0.55 ? '#f1f2ed' : '#0c0e10';
+  p.text(number, [0.725, 0.168], 0.112, 0.21, outline, { ...numberStyle, weight: 0.38 });
+  p.text(number, [0.725, 0.168], 0.112, 0.21, ink === '#15191d' ? '#15191d' : '#f4f5f0', numberStyle);
+  // Title partner on a raked dark panel with an accent top edge.
+  p.poly(
+    [
+      [0.31, -0.042],
+      [-0.09, -0.062],
+      [-0.1, -0.168],
+      [0.27, -0.142],
+    ],
+    '#0c0e10',
+  );
+  p.line(
+    [
+      [0.31, -0.042],
+      [-0.09, -0.062],
+    ],
+    0.006,
+    accent,
+  );
+  p.mark(scheme.title, [0.105, -0.104], 0.36, 0.086, '#f4f5f0');
+  // Mid-size partners.
+  p.mark(scheme.partners[0], [0.1, -0.35], 0.3, 0.066, keelInk);
+  p.mark(scheme.partners[1], [-0.6, 0.29], 0.2, 0.05, ink);
+  p.mark(extra(0), [0.38, -0.27], 0.15, 0.042, keelInk);
+  p.mark(extra(1), [0.5, 0.198], 0.14, 0.034, ink);
+  p.mark(extra(2), [-0.7, 0.356], 0.12, 0.028, ink);
+  // Tyre partner beside the front wheel, constructor on the belly.
+  p.mark('APEX CORSA', [0.385, -0.128], 0.12, 0.028, ink);
+  p.text('MOTOBOUND', [0.0, -0.44], 0.032, 0.3, keelInk, {
     weight: 0.22,
     slant: 0.16,
     tracking: 0.12,
   });
-  p.text(r2 ? 'GP-R2  PROTOTYPE' : 'GP-R1  PROTOTYPE', [0.33, 0.2], 0.012, 0.16, ink, {
+  p.text(r2 ? 'GP-R2  PROTOTYPE' : 'GP-R1  PROTOTYPE', [0.33, 0.2], 0.017, 0.2, ink, {
     weight: 0.16,
-    tracking: 0.2,
+    tracking: 0.18,
   });
-  // Dense small partner tags at a real machine's sticker scale.
+  // Small technical-partner tags.
   const tags: [string, ZY, number, string][] = [
-    ['TITAN-X', [0.85, 0.105], 0.07, ink],
-    ['KESTREL', [0.73, 0.115], 0.07, ink],
-    ['VOLTEX', [0.06, 0.07], 0.1, ink],
-    ['GRIPLINE', [0.36, -0.29], 0.1, '#f1f2ed'],
-    ['ORBITEL', [0.22, -0.42], 0.09, '#f1f2ed'],
-    ['AXON', [0.55, -0.2], 0.05, '#f1f2ed'],
-    ['NORTHLINE', [-0.4, 0.2], 0.11, ink],
-    ['VANTA', [-0.88, 0.25], 0.06, ink],
-    ['SILVERLINE', [0.1, 0.015], 0.1, ink],
+    ['TITAN-X', [0.875, 0.062], 0.07, '#f1f2ed'],
+    ['KESTREL', [0.575, 0.118], 0.08, ink],
+    ['VOLTEX', [0.03, 0.1], 0.09, ink],
+    ['SILVERLINE', [0.04, 0.03], 0.12, ink],
+    ['GRIPLINE', [0.2, -0.29], 0.1, keelInk],
+    ['ORBITEL', [0.22, -0.47], 0.09, keelInk],
+    ['AXON', [0.47, -0.03], 0.05, ink],
+    ['NORTHLINE', [-0.4, 0.2], 0.12, ink],
+    ['VANTA', [-0.9, 0.25], 0.06, ink],
   ];
   for (const [value, at, width, colour] of tags)
-    p.text(value, at, 0.014, width, colour, { weight: 0.16, tracking: 0.08 });
-  // Tail: number in a light raked bay, partner on the hump.
+    p.text(value, at, 0.017, width, colour, { weight: 0.17, tracking: 0.08 });
+  // Tail: a compact number bay at the squared rear, as on the real tails.
   p.poly(
     [
-      [-0.6, 0.36],
-      [-0.94, 0.395],
-      [-0.96, 0.278],
-      [-0.64, 0.262],
+      [-0.82, 0.39],
+      [-0.952, 0.396],
+      [-0.955, 0.29],
+      [-0.825, 0.285],
     ],
     '#eceee8',
   );
   p.line(
     [
-      [-0.6, 0.36],
-      [-0.64, 0.262],
+      [-0.82, 0.39],
+      [-0.825, 0.285],
     ],
-    0.008,
+    0.007,
     accent,
   );
-  p.text(number, [-0.79, 0.322], 0.08, 0.2, '#16191d', {
-    weight: 0.27,
-    slant: 0.17,
-    tracking: 0.12,
-    width: 1,
-  });
+  p.text(number, [-0.888, 0.34], 0.064, 0.11, '#16191d', numberStyle);
   p.line(
     [
       [-0.2, 0.13],
@@ -1250,6 +1282,28 @@ function noseNumberTexture(entrant: number, accent: string) {
 
 const liveryMaterials = new WeakMap<BikeMaterials, Map<GpShellVariant, T.MeshPhysicalMaterial>>();
 const satinCarbon = new WeakMap<BikeMaterials, T.MeshPhysicalMaterial>();
+
+const wingPaints = new WeakMap<BikeMaterials, T.MeshPhysicalMaterial>();
+/** Box wings in the entrant's clear-coated body colour (REF 001/056): they
+ * sit over the matte nose duct in the side-view atlas, which painted them
+ * black and read as goggles on the nose. */
+export function gpWingPaint(materials: BikeMaterials, entrant: number) {
+  let material = wingPaints.get(materials);
+  if (material) return material;
+  material = new T.MeshPhysicalMaterial({
+    color: liveryScheme(entrant).primary,
+    metalness: 0,
+    roughness: 0.28,
+    clearcoat: 1,
+    clearcoatRoughness: 0.035,
+    name: 'GP box wing paint (clear-coated)',
+  });
+  installShellInterior(material);
+  tagWeatherSurface(material, 'paint');
+  materials.list.push(material);
+  wingPaints.set(materials, material);
+  return material;
+}
 
 /** Raw satin carbon for the inner upper fairing: matte so the cockpit floor
  * throws no sky glare into the rider's sightline (REF 017/088). */
@@ -1396,7 +1450,11 @@ export function gpRaceBodywork(
   const tank = mesh(tankGeometry, paint, 'GP race shell / tank');
   const tail = mesh(tailGeometry, paint, 'GP race shell / tail');
   if (!far) {
-    mesh(painted([boxWings(variant, detail)]), paint, 'GP race shell / box wings');
+    mesh(
+      painted([boxWings(variant, detail)]),
+      gpWingPaint(materials, entrant),
+      'GP race shell / box wings',
+    );
     mesh(
       painted([lowerScoops(variant, detail)]),
       materials.carbon,
