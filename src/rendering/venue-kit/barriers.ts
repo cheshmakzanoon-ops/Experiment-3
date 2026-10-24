@@ -213,7 +213,13 @@ export function buildBarrierChunk(kit: VenueKitContext, from: number, to: number
   };
   instanced(postGeometry(), m.steel, posts, 'Armco posts');
   instanced(tyreGeometry(), m.tyre, tyres, 'Tyre wall');
-  instanced(fencePostGeometry(), m.darkSteel, fencePosts, 'Catch-fence posts');
+  // GP venues: galvanised catch-fence posts (REF_044/045), not painted dark.
+  instanced(
+    fencePostGeometry(),
+    isGpCourse(track) ? m.steel : m.darkSteel,
+    fencePosts,
+    'Catch-fence posts',
+  );
   if (detail.children.length) kit.detail(detail, 520);
 }
 let fenceShared: T.Material | null = null;

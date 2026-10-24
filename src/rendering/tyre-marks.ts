@@ -72,12 +72,12 @@ export const GP_VENUE_STREAKS = Object.freeze({
   /** Exit arcs per slow corner. */
   exitPasses: [8, 16] as const,
   /** Tread width range, metres (bike tyres to car rears). */
-  width: [0.13, 0.27] as const,
+  width: [0.16, 0.33] as const,
   /** Braking streak and exit arc lengths, metres. */
   brakingLength: [16, 72] as const,
   exitLength: [14, 48] as const,
   /** Peak opacity range of one streak. */
-  strength: [0.26, 0.6] as const,
+  strength: [0.3, 0.62] as const,
   /** Lateral scatter of streak starts about the racing line, metres. */
   spread: 1.7,
   /** Sideways bow of a curving streak and the drift of the crossing ones, m. */

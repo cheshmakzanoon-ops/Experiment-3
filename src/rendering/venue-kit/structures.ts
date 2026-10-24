@@ -123,7 +123,17 @@ export function buildPaddock(kit: VenueKitContext) {
     ],
     { step: 4, base: () => pit.offset - 4.3, closed: true },
   );
-  root.add(kitMesh(wall, m.concrete, 'Pit wall'));
+  if (isGpCourse(track)) {
+    // GP pit walls carry the same printed partner boards as the circuit
+    // walls (REF_006): metre UVs (station, height) / 5, read left to right
+    // from the circuit. Only the track face falls inside the board band.
+    const uv = wall.getAttribute('uv'),
+      mid = track.at((wallFrom + wallTo) / 2, trackPoint()),
+      readsRight = mid.tx * -(side * mid.nz) + mid.tz * (side * mid.nx) > 0;
+    for (let i = 0; i < uv.count; i++)
+      uv.setXY(i, ((readsRight ? 1 : -1) * uv.getX(i)) / 5, uv.getY(i) / 5);
+    root.add(kitMesh(wall, m.gpWall, 'Pit wall'));
+  } else root.add(kitMesh(wall, m.concrete, 'Pit wall'));
   // Garage-front apron and kit spans for planting exclusion.
   for (let s = span.from; s <= span.to; s += 15) {
     const f = frame(track, s, side * (front + 10), 0);
