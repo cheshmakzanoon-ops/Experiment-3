@@ -21,9 +21,9 @@ import {
 export const GP_ASSIST = Object.freeze({
   leanMargin: 0.9,
   recovery: 0.985,
-  rollGain: 7,
+  rollGain: 4.5,
   rateGain: 9,
-  stopShare: 0.9,
+  stopShare: 0.75,
   lead: 0.06,
   trimRate: 4,
   trimLimit: 0.035,
