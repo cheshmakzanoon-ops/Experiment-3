@@ -1150,7 +1150,14 @@ function drawLivery(p: LiveryPen, entrant: number, variant: GpShellVariant) {
   const numberStyle = { weight: 0.27, slant: 0.17, tracking: 0.1, width: 1 };
   const outline = luminance(scheme.primary) > 0.55 ? '#f1f2ed' : '#0c0e10';
   p.text(number, [0.725, 0.168], 0.112, 0.21, outline, { ...numberStyle, weight: 0.38 });
-  p.text(number, [0.725, 0.168], 0.112, 0.21, ink === '#15191d' ? '#15191d' : '#f4f5f0', numberStyle);
+  p.text(
+    number,
+    [0.725, 0.168],
+    0.112,
+    0.21,
+    ink === '#15191d' ? '#15191d' : '#f4f5f0',
+    numberStyle,
+  );
   // Title partner on a raked dark panel with an accent top edge.
   p.poly(
     [

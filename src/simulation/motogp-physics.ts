@@ -200,9 +200,10 @@ export class MotoGPChassis {
     if (contact <= 1e-6 || v < 2.5) {
       // No fictitious front road steering while raised. Below walking speed
       // retain the geometric pit-box steering model instead of freezing turn.
-      this.yawRate = contact > 1e-6 && v < 2.5
-        ? (v * Math.tan(q.steer) * Math.cos(q.lean) * contact) / (g.frontArm + g.rearArm)
-        : 0;
+      this.yawRate =
+        contact > 1e-6 && v < 2.5
+          ? (v * Math.tan(q.steer) * Math.cos(q.lean) * contact) / (g.frontArm + g.rearArm)
+          : 0;
       this.lateralSpeed = 0;
       this.frontFy = this.rearFy = this.lateralAcceleration = 0;
       this.frontSlipAngle = this.rearSlipAngle = this.frontLoadUsed = 0;
@@ -213,16 +214,28 @@ export class MotoGPChassis {
     // The tyre sees the ground-plane steer of the raked, leaned fork.
     const steer = (this.groundSteer = gpGroundSteer(q.steer, q.lean));
     const frontFy = this.sideForce(
-      this.front, q.frontLoad * contact, q.frontMu, q.lean, steer,
-      this.lateralSpeed + g.frontArm * this.yawRate, v, q.frontFx,
+      this.front,
+      q.frontLoad * contact,
+      q.frontMu,
+      q.lean,
+      steer,
+      this.lateralSpeed + g.frontArm * this.yawRate,
+      v,
+      q.frontFx,
     );
     this.frontLimit = this.sideLimit;
     this.frontSlipAngle = this.front.alpha;
     this.frontStiffness = q.frontLoad * contact > 1 ? this.front.corneringStiffness : 0;
     this.frontLoadUsed = q.frontLoad * contact;
     const rearFy = this.sideForce(
-      this.rear, q.rearLoad, q.rearMu, q.lean, 0,
-      this.lateralSpeed - g.rearArm * this.yawRate, v, q.rearFx,
+      this.rear,
+      q.rearLoad,
+      q.rearMu,
+      q.lean,
+      0,
+      this.lateralSpeed - g.rearArm * this.yawRate,
+      v,
+      q.rearFx,
     );
     this.rearLimit = this.sideLimit;
     this.rearSlipAngle = this.rear.alpha;
@@ -230,8 +243,16 @@ export class MotoGPChassis {
     const mix = 1 - Math.exp((-dt * Math.max(v, 3)) / MOTOGP_SLICK.relaxationLength);
     // Relaxation delays the build-up of carcass deflection, never the friction
     // limit: a contact whose load or grip falls cannot keep its old force.
-    this.frontFy = clamp(this.frontFy + (frontFy - this.frontFy) * mix, -this.frontLimit, this.frontLimit);
-    this.rearFy = clamp(this.rearFy + (rearFy - this.rearFy) * mix, -this.rearLimit, this.rearLimit);
+    this.frontFy = clamp(
+      this.frontFy + (frontFy - this.frontFy) * mix,
+      -this.frontLimit,
+      this.frontLimit,
+    );
+    this.rearFy = clamp(
+      this.rearFy + (rearFy - this.rearFy) * mix,
+      -this.rearLimit,
+      this.rearLimit,
+    );
     const frontSide = this.frontFy * Math.cos(steer) + q.frontFx * Math.sin(steer);
     const lateral = frontSide + this.rearFy;
     const yawMoment = g.frontArm * frontSide - g.rearArm * this.rearFy;
@@ -275,8 +296,14 @@ export class MotoGPChassis {
   }
 
   private sideForce(
-    state: ReturnType<typeof slipState>, load: number, mu: number, lean: number,
-    steer: number, lateralVelocity: number, speed: number, longitudinal: number,
+    state: ReturnType<typeof slipState>,
+    load: number,
+    mu: number,
+    lean: number,
+    steer: number,
+    lateralVelocity: number,
+    speed: number,
+    longitudinal: number,
   ) {
     this.sideLimit = 0;
     if (load <= 1 || mu <= 0) return 0;
@@ -301,15 +328,26 @@ export class MotoGPChassis {
     const targetRearSlip = clamp(q.rearFx / rearPeak, -0.98, 0.98) * 0.065;
     const targetFront = (v + targetFrontSlip * Math.max(2, v)) / g.frontRadius;
     const targetRear = (v + targetRearSlip * Math.max(2, v)) / g.rearRadius;
-    const frontTau = clamp(g.frontWheelInertia * Math.max(v, 4) / (4000 * g.frontRadius ** 2), 0.012, 0.09);
-    const rearTau = clamp(g.rearWheelInertia * Math.max(v, 4) / (4000 * g.rearRadius ** 2), 0.012, 0.09);
+    const frontTau = clamp(
+      (g.frontWheelInertia * Math.max(v, 4)) / (4000 * g.frontRadius ** 2),
+      0.012,
+      0.09,
+    );
+    const rearTau = clamp(
+      (g.rearWheelInertia * Math.max(v, 4)) / (4000 * g.rearRadius ** 2),
+      0.012,
+      0.09,
+    );
     this.frontOmega += (targetFront - this.frontOmega) * (1 - Math.exp(-q.dt / frontTau));
     this.rearOmega += (targetRear - this.rearOmega) * (1 - Math.exp(-q.dt / rearTau));
     this.frontOmega = Math.max(
-      0, this.frontOmega - (q.frontBrakeExcess * g.frontRadius * q.dt) / g.frontWheelInertia,
+      0,
+      this.frontOmega - (q.frontBrakeExcess * g.frontRadius * q.dt) / g.frontWheelInertia,
     );
     this.rearOmega = Math.max(
-      0, this.rearOmega + ((q.rearDriveExcess - q.rearBrakeExcess) * g.rearRadius * q.dt) / g.rearWheelInertia,
+      0,
+      this.rearOmega +
+        ((q.rearDriveExcess - q.rearBrakeExcess) * g.rearRadius * q.dt) / g.rearWheelInertia,
     );
     this.frontOmega = Math.min(500, this.frontOmega);
     this.rearOmega = Math.min(500, this.rearOmega);

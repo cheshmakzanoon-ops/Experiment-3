@@ -562,7 +562,15 @@ export class Bike {
         : frontLatNow / (0.8 * frontMu);
       const keep = Math.min(staticFront, Math.max((p.wheelieKeep ?? 0.2) * staticFront, frontNeed));
       drive = Math.min(drive, ((staticFront - keep) * p.wheelbase) / p.cgHeight);
-      if (this.motoGP) (this.motoGP as unknown as { debug2: number[] }).debug2 = [gpReserve, frontNeed, keep, drive, requested, staticFront];
+      if (this.motoGP)
+        (this.motoGP as unknown as { debug2: number[] }).debug2 = [
+          gpReserve,
+          frontNeed,
+          keep,
+          drive,
+          requested,
+          staticFront,
+        ];
     }
     this.intervention = requested > 1 ? clamp(1 - drive / requested, 0, 1) : 0;
     // Stoppie assist (with the wheelie assist): like lift-mitigating ABS, cap
