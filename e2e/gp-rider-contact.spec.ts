@@ -67,9 +67,9 @@ for (const id of ['gpr1', 'gpr2']) {
         expect(result.glError).toBe(0);
         expect(result.sourceFrameUnchanged).toBe(true);
         expect(result.instance).toBe(sequence[0].instance);
-        // Exact production totals with the procedural R6 race shell (the
-        // former pins predated later rider and hydraulics passes).
-        expect(result.triangles).toBe(id === 'gpr1' ? 97137 : 96358);
+        // Exact production totals with the procedural R6 race shell and the
+        // w3 GP rider (elongated helmet: 2,108 fewer rider triangles).
+        expect(result.triangles).toBe(id === 'gpr1' ? 95029 : 94250);
         expect(result.calls).toBeLessThan(220);
         if (i > 1) expect(result.resources).toEqual(sequence[1].resources);
         if (i < 2)
@@ -111,7 +111,7 @@ test('gpr1 rider recovery restores the original wrist and ankle cuff pose after 
   for (const result of recovery) {
     expect(result.glError).toBe(0);
     expect(result.instance).toBe(recovery[0].instance);
-    expect(result.triangles).toBe(97137);
+    expect(result.triangles).toBe(95029);
   }
   await info.attach('gpr1-rider-recovery.png', {
     body: Buffer.from(recovery[0].image.split(',')[1], 'base64'),

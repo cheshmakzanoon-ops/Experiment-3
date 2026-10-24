@@ -153,7 +153,7 @@ export class GpRiderPosture {
         .lerp(tmp.set(side * 0.13, -0.42, 0.04), tuck);
       elbow.lerp(tmp.set(side * 0.34, -0.12, -0.16), sitUp);
       elbow.lerp(tmp.set(side * 0.62, -0.32, 0.02), inside * (1 - tuck));
-      elbow.lerp(tmp.set(side * 0.16, 0.12, -0.12), outside * (1 - tuck));
+      elbow.lerp(tmp.set(side * 0.14, -0.1, -0.16), outside * (1 - tuck));
       elbow.lerp(tmp.set(side * 0.55, -0.12, -0.04), plant);
       // Knees: gripping the tank in a tuck and on the outside of a turn,
       // inside knee opened out and down toward the kerb, splayed at a stop.
