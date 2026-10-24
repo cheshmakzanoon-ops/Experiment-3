@@ -258,7 +258,9 @@ describe('GP rear structure on the production motorcycle', () => {
         // windscreen transmission passes. Keep that observed regression out.
         if (detail === 'high') expect(original.meshes).toBeLessThan(110);
         // +1: satin carbon of the inner upper fairing (gp-race-bodywork.ts).
-        expect(original.materials.size).toBeLessThanOrEqual(35);
+        // +1: the box wings' clear-coated body colour (gpWingPaint); the
+        // wings were already their own mesh, so no draw is added.
+        expect(original.materials.size).toBeLessThanOrEqual(36);
         // +2: the GP screen's printed-border alpha map (gp-appearance.ts) and
         // the livery's clear-coat orange-peel normal map (gp-race-bodywork.ts).
         expect(original.textures.size).toBeLessThanOrEqual(21);

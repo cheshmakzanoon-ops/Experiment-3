@@ -940,10 +940,20 @@ function pen(
     },
     mark(brand, at, w, h, colour) {
       if (finishOnly || !(brand in BRAND_ART)) return;
-      const [x, y] = atlasPoint(side, at);
+      const [x, y] = atlasPoint(side, at),
+        art = BRAND_ART[brand as keyof typeof BRAND_ART],
+        tab = new T.Color(accent),
+        light = 0.2126 * tab.r + 0.7152 * tab.g + 0.0722 * tab.b > 0.55;
       drawMark(
         c,
-        { ...BRAND_ART[brand as keyof typeof BRAND_ART], ink: colour, accent },
+        // A boxed mark's second word is drawn in `fill` on an accent tab:
+        // keep it legible against this entrant's accent, not in the ink.
+        {
+          ...art,
+          ink: colour,
+          accent,
+          fill: art.kind === 'boxed' ? (light ? '#0c0e10' : '#f4f5f0') : art.fill,
+        },
         x - (w * PX_PER_M) / 2,
         y - (h * PX_PER_M) / 2,
         w * PX_PER_M,
