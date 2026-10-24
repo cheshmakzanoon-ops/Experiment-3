@@ -227,8 +227,11 @@ describe('GP front-contact steering', () => {
         expect(Math.abs(frame[base + WHEEL_BASE + W.FY])).toBe(0);
         frames.set(sim.tick, frame);
       }
+      // The GP ride-by-wire closes over 0.1 s (GP_RIDE_BY_WIRE): the front
+      // descends under load once the delivered opening is shut.
       if (
         releaseTick &&
+        bike.throttle === 0 &&
         gpFrontWheelClearance(bike.dynamics.pitch, bike.dynamics.p.wheelbase) >=
           GP_FRONT_TOUCHDOWN_CLEARANCE
       ) {

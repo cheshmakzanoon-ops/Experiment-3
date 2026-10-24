@@ -44,6 +44,13 @@ export const BIKE_RECOVERY = Object.freeze({
   /** A riding bike that cannot move under throttle this long is helped back. */
   stuckSeconds: 6,
 });
+/** GP ride-by-wire: the throttle bodies follow a closing grip at a bounded
+ * rate (per second; full to shut in 0.1 s), as a rider's roll-off and the
+ * torque strategy do; opening is not limited here. An instant chop removes
+ * ~2.5 kN of drive in one step and moves ~1.2 kN onto a front tyre that was
+ * running near-peak slip on its light load, which yawed the chassis into a
+ * spin from 10 deg of lean at 200 km/h (scripted AI pass at Poggio Alto). */
+export const GP_RIDE_BY_WIRE = Object.freeze({ closeRate: 10 });
 /** q = yaw(heading) · pitch(nose-up) · roll(lean + left), body-first order. */
 export function bikeOrientation(q: Quat, heading: number, pitch: number, lean: number) {
   const hy = heading / 2,
@@ -92,6 +99,8 @@ export class BikeVehicle extends Vehicle {
   protected aiSteps = 0;
   protected readonly riderAids: BikeAssists;
   protected stuckClock = 0;
+  /** GP ride-by-wire opening delivered last step (0..1). */
+  protected gpThrottle = 0;
   /** Dynamics state at the end of the last step: transitions are detected
    * against it, so a fall started outside step() still separates the rider. */
   protected lastState: Bike['state'] = 'riding';
@@ -189,7 +198,7 @@ export class BikeVehicle extends Vehicle {
     d.heading = Math.atan2(p.tx, p.tz);
     d.speed = d.lean = d.leanRate = d.steer = d.pitch = 0;
     d.motoGP?.reset();
-    this.slide = this.yawKick = 0;
+    this.slide = this.yawKick = this.gpThrottle = 0;
     this.groundY = p.y;
     this.writeBody(track, 0);
   }
@@ -204,7 +213,7 @@ export class BikeVehicle extends Vehicle {
     d.heading = heading;
     d.speed = d.lean = d.leanRate = d.steer = d.pitch = 0;
     d.motoGP?.reset();
-    this.slide = this.yawKick = 0;
+    this.slide = this.yawKick = this.gpThrottle = 0;
     this.stuckClock = 0;
     this.groundY = groundY;
     this.writeBody(track, 0);
@@ -329,6 +338,11 @@ export class BikeVehicle extends Vehicle {
     b.mass = this.definition.spec.dryMass + this.fuel - this.lostMass;
     d.mass = b.mass;
     let throttle = clamp(this.input.throttle, 0, 1);
+    if (gpPrototype)
+      this.gpThrottle = throttle =
+        d.state === 'riding'
+          ? Math.max(throttle, this.gpThrottle - GP_RIDE_BY_WIRE.closeRate * dt)
+          : throttle;
     let brake = clamp(this.input.brake, 0, 1);
     // Rear brake: the secondary (clutch) input — a bike session has no clutch pedal.
     const rear = clamp(this.input.clutch, 0, 1);
@@ -656,11 +670,12 @@ export class BikeVehicle extends Vehicle {
       // a large value. It is not an unbounded heat source, and a separated
       // rider must not keep heating tyres from the last pre-crash sample.
       const use = riding ? clamp(front ? d.frontUse : d.rearUse, 0, 1.5) : 0;
-      const work = gp && riding
-        ? front
-          ? gp.frontSlidingPower
-          : gp.rearSlidingPower
-        : Math.hypot(t.fx, t.fy) * d.speed;
+      const work =
+        gp && riding
+          ? front
+            ? gp.frontSlidingPower
+            : gp.rearSlidingPower
+          : Math.hypot(t.fx, t.fy) * d.speed;
       t.energy = work * 0.02;
       t.wear = Math.min(1, t.wear + (work * dt) / (COMPOUNDS[t.compound].lifeJ * 10));
       const carcass = ideal - 4 + 10 * use - 6 * clamp(c.water, 0, 1);

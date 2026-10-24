@@ -271,7 +271,9 @@ describe('GP traction uses the current front-brake load transfer', () => {
         // still computes tyre condition, torque, aids and thermal work.
         bike.contacts[0].grip = bike.contacts[1].grip = 1;
         bike.contacts[2].grip = bike.contacts[3].grip = 0.65;
-        if (i === 16) sim.setInput({ ...bike.input, throttle: 0, brake: 0, steer: 0.8, clutch: 0 });
+        // Released 12 ticks before the third sample: the GP ride-by-wire
+        // closes over 0.1 s (GP_RIDE_BY_WIRE), so drive is gone by then.
+        if (i === 4) sim.setInput({ ...bike.input, throttle: 0, brake: 0, steer: 0.8, clutch: 0 });
         sim.step(1 / 120);
         expect(d.state).toBe('riding');
         expect(d.rearUse).toBeLessThanOrEqual(1.001);
