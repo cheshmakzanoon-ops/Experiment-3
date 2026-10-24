@@ -86,7 +86,7 @@ export const GP_KERB = Object.freeze({
   outerLine: 0.1,
   apronRoughness: 0.72,
   /** Gravel litter on the apron next to a trap: from this edge distance (m). */
-  litter: 3.15,
+  litter: 3.5,
   litterColour: 0x9a8a6c,
 });
 
@@ -358,7 +358,7 @@ ${
 		float stone = step( .62, finishHash( floor( stoneCell ) ) ) * smoothstep( .45, .2, length( fract( stoneCell ) - .5 ) );
 		float reach = smoothstep( ${f(GP_KERB.litter)}, 3.98, e + ( finishFilteredNoise( vFinishWorld.xz * .9 ) - .5 ) * .5 ) * vGpVergeGravel;
 		float litter = reach * mix( .45, stone, stoneAA );
-		surface = mix( surface, ${v3(GP_KERB.litterColour)} * ( .75 + .5 * finishHash( floor( stoneCell ) + 7.0 ) ), litter * .85 );
+		surface = mix( surface, ${v3(GP_KERB.litterColour)} * ( .75 + .5 * finishHash( floor( stoneCell ) + 7.0 ) ), litter * .7 );
 	}`
       : ''
   }
