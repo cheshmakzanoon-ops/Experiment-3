@@ -1,0 +1,134 @@
+{
+  "commit": "261ebe8 (base: 2107a9f + capture tooling)",
+  "suites": "tests/{bike,gp,motogp,rider}*.test.ts",
+  "tests": 622,
+  "passed": 597,
+  "failed": 25,
+  "failures": [
+    {
+      "file": "bike-pit-service.test.ts",
+      "test": "motorcycle pit service: production session serves a real bike stop through the bike crew to release",
+      "message": "AssertionError: expected [] to deeply equal [ 2, 3, 4, 5, 6 ]"
+    },
+    {
+      "file": "bike-session.test.ts",
+      "test": "WP34 motorcycles in real sessions laps a circuit under AI with lean, gears, tyre wear and valid timing",
+      "message": "AssertionError: expected 10 to be +0 // Object.is equality"
+    },
+    {
+      "file": "bike-session.test.ts",
+      "test": "WP34 motorcycles in real sessions crash flows through race control: rider down, separation, remount, back on track",
+      "message": "AssertionError: expected 0 to be greater than 30"
+    },
+    {
+      "file": "bike-session.test.ts",
+      "test": "WP34 motorcycles in real sessions services a bike in the pit lane and releases it",
+      "message": "AssertionError: expected false to be true // Object.is equality"
+    },
+    {
+      "file": "bike-session.test.ts",
+      "test": "WP35 seeded AI bike race finishes a mixed GP/superbike race with bounded incidents and no stuck rider",
+      "message": "AssertionError: expected 2 to be 3 // Object.is equality"
+    },
+    {
+      "file": "bike-setup.test.ts",
+      "test": "motorcycle setup: physical effect dirt bike gearing holds in the air: no rpm step at take-off, the limiter through the same ratio",
+      "message": "AssertionError: gearing 0.92: expected 76.02600459679189 to be close to 75.38133826638337, received difference is 0.6446663304085263, but expected 5e-7"
+    },
+    {
+      "file": "gp-braking-approach.test.ts",
+      "test": "GP stopping-distance preview gpr1 reaches the same hairpin entry under control in clear after a 324 km/h approach",
+      "message": "AssertionError: expected undefined to be defined"
+    },
+    {
+      "file": "gp-braking-approach.test.ts",
+      "test": "GP stopping-distance preview gpr2 reaches the same hairpin entry under control in clear after a 324 km/h approach",
+      "message": "AssertionError: expected 2 to be +0 // Object.is equality"
+    },
+    {
+      "file": "gp-braking-approach.test.ts",
+      "test": "GP stopping-distance preview gpr1 reaches the same hairpin entry under control in rain after a 324 km/h approach",
+      "message": "AssertionError: expected undefined to be defined"
+    },
+    {
+      "file": "gp-braking-approach.test.ts",
+      "test": "GP stopping-distance preview gpr2 reaches the same hairpin entry under control in rain after a 324 km/h approach",
+      "message": "AssertionError: expected undefined to be defined"
+    },
+    {
+      "file": "gp-contact-effects.test.ts",
+      "test": "GP contact effects in the bounded production particle pool uses actual wet GP practice snapshots and measured wheel water/load to form the trail",
+      "message": "AssertionError: expected 0 to be greater than 5"
+    },
+    {
+      "file": "gp-control-feedback.test.ts",
+      "test": "GP control feedback reads the actual two tyre contacts reads a real simulation snapshot and reports a heated front brake only while braking",
+      "message": "AssertionError: expected 3.609565359740683 to be greater than 15"
+    },
+    {
+      "file": "gp-corner-phases.test.ts",
+      "test": "GP corner progression follows each actual bend reads a real GP simulation through the entire long first corner",
+      "message": "AssertionError: expected Set{ 'entry' } to deeply equal Set{ 'entry', 'apex', 'exit' }"
+    },
+    {
+      "file": "gp-pit-departure.test.ts",
+      "test": "GP service-bay departure physically queues gpr1 behind an occupied gpr2 bay in rain and merges both safely",
+      "message": "AssertionError: expected 0.9916666666666667 to be +0 // Object.is equality"
+    },
+    {
+      "file": "gp-pit-departure.test.ts",
+      "test": "GP service-bay departure physically queues gpr2 behind an occupied gpr1 bay in rain and merges both safely",
+      "message": "AssertionError: expected 0.9916666666666667 to be +0 // Object.is equality"
+    },
+    {
+      "file": "gp-riding-control.test.ts",
+      "test": "GP passing corridors completes a real catch-and-pass without contact and reproduces the same snapshot",
+      "message": "AssertionError: expected null not to be null"
+    },
+    {
+      "file": "gp-seamless-braking.test.ts",
+      "test": "GP seamless coast engagement gpr1 shares its rear circle during a downshift with pedal, lean and rear grip 1",
+      "message": "AssertionError: expected 0.6324152628485211 to be greater than 0.8"
+    },
+    {
+      "file": "gp-seamless-braking.test.ts",
+      "test": "GP seamless coast engagement gpr2 shares its rear circle during a downshift with pedal, lean and rear grip 1",
+      "message": "AssertionError: expected 0.6436533136736727 to be greater than 0.8"
+    },
+    {
+      "file": "gp-seamless-braking.test.ts",
+      "test": "GP seamless coast engagement gpr1 shares its rear circle during a downshift with pedal, lean and rear grip 0.5",
+      "message": "AssertionError: expected 0.6384633733037676 to be greater than 0.8"
+    },
+    {
+      "file": "gp-seamless-braking.test.ts",
+      "test": "GP seamless coast engagement gpr2 shares its rear circle during a downshift with pedal, lean and rear grip 0.5",
+      "message": "AssertionError: expected 0.6712316369701617 to be greater than 0.8"
+    },
+    {
+      "file": "gp-seamless-braking.test.ts",
+      "test": "GP seamless coast engagement gpr1 shares its rear circle during a downshift with pedal, lean and rear grip 0.3",
+      "message": "AssertionError: expected 0.5602994196767268 to be greater than 0.8"
+    },
+    {
+      "file": "gp-seamless-braking.test.ts",
+      "test": "GP seamless coast engagement gpr2 shares its rear circle during a downshift with pedal, lean and rear grip 0.3",
+      "message": "AssertionError: expected 0.5676634842126624 to be greater than 0.8"
+    },
+    {
+      "file": "gp-tyre-contact.test.ts",
+      "test": "GP contact grip in production races classifies all eight GP riders at 'aurel' in 'clear' without a contact or crash",
+      "message": "AssertionError: expected 2 to be 3 // Object.is equality"
+    },
+    {
+      "file": "gp-tyre-contact.test.ts",
+      "test": "GP contact grip in production races classifies all eight GP riders at 'poggio-alto' in 'clear' without a contact or crash",
+      "message": "AssertionError: expected 2 to be 3 // Object.is equality"
+    },
+    {
+      "file": "gp-tyre-contact.test.ts",
+      "test": "GP contact grip in production races classifies all eight GP riders at 'poggio-alto' in 'rain' without a contact or crash",
+      "message": "AssertionError: expected 2 to be 3 // Object.is equality"
+    }
+  ]
+}

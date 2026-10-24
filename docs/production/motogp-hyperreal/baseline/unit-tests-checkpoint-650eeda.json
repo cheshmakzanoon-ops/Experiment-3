@@ -1,0 +1,74 @@
+{
+  "commit": "650eeda (integration checkpoint)",
+  "suites": "tests/{bike,gp,motogp,rider}*.test.ts",
+  "tests": 656,
+  "passed": 643,
+  "failed": 13,
+  "failures": [
+    {
+      "file": "bike-setup.test.ts",
+      "test": "motorcycle setup: physical effect dirt bike gearing holds in the air: no rpm step at take-off, the limiter through the same ratio",
+      "message": "AssertionError: gearing 0.92: expected 76.02600459679189 to be close to 75.38133826638337, received difference is 0.6446663304085263, but expected 5e-7"
+    },
+    {
+      "file": "gp-braking-approach.test.ts",
+      "test": "GP stopping-distance preview gpr2 reaches the same hairpin entry under control in clear after a 324 km/h approach",
+      "message": "AssertionError: expected 24.241627239810576 to be less than 24"
+    },
+    {
+      "file": "gp-rear-pedal.test.ts",
+      "test": "GP rear pedal acts independently of the front lever gpr1 shares the rear-pedal and engine-braking budget through reduced-grip trail braking",
+      "message": "AssertionError: expected 0.13740653937444675 to be greater than 0.15"
+    },
+    {
+      "file": "gp-rear-pedal.test.ts",
+      "test": "GP rear pedal acts independently of the front lever gpr2 shares the rear-pedal and engine-braking budget through reduced-grip trail braking",
+      "message": "AssertionError: expected 0.1368254733003386 to be greater than 0.15"
+    },
+    {
+      "file": "gp-riding-control.test.ts",
+      "test": "GP passing corridors completes a real catch-and-pass without contact and reproduces the same snapshot",
+      "message": "AssertionError: expected 0.9833333333333334 to be +0 // Object.is equality"
+    },
+    {
+      "file": "gp-seamless-braking.test.ts",
+      "test": "GP seamless coast engagement gpr1 shares its rear circle during a downshift with pedal, lean and rear grip 1",
+      "message": "AssertionError: expected 0.5954990938478888 to be greater than 0.8"
+    },
+    {
+      "file": "gp-seamless-braking.test.ts",
+      "test": "GP seamless coast engagement gpr2 shares its rear circle during a downshift with pedal, lean and rear grip 1",
+      "message": "AssertionError: expected 0.5573593458752435 to be greater than 0.8"
+    },
+    {
+      "file": "gp-seamless-braking.test.ts",
+      "test": "GP seamless coast engagement gpr1 shares its rear circle during a downshift with pedal, lean and rear grip 0.5",
+      "message": "AssertionError: expected 0.2329784895951137 to be greater than 0.8"
+    },
+    {
+      "file": "gp-seamless-braking.test.ts",
+      "test": "GP seamless coast engagement gpr2 shares its rear circle during a downshift with pedal, lean and rear grip 0.5",
+      "message": "AssertionError: expected 0.23777745885036392 to be greater than 0.8"
+    },
+    {
+      "file": "gp-seamless-braking.test.ts",
+      "test": "GP seamless coast engagement gpr1 shares its rear circle during a downshift with pedal, lean and rear grip 0.3",
+      "message": "AssertionError: expected 0 to be greater than 50"
+    },
+    {
+      "file": "gp-seamless-braking.test.ts",
+      "test": "GP seamless coast engagement gpr2 shares its rear circle during a downshift with pedal, lean and rear grip 0.3",
+      "message": "AssertionError: expected 0 to be greater than 50"
+    },
+    {
+      "file": "gp-tyre-contact.test.ts",
+      "test": "GP contact grip in production races classifies all eight GP riders at 'poggio-alto' in 'clear' without a contact or crash",
+      "message": "AssertionError: expected 1 to be +0 // Object.is equality"
+    },
+    {
+      "file": "gp-tyre-contact.test.ts",
+      "test": "GP contact grip in production races classifies all eight GP riders at 'poggio-alto' in 'rain' without a contact or crash",
+      "message": "AssertionError: expected 0.9916666666666667 to be +0 // Object.is equality"
+    }
+  ]
+}
