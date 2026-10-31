@@ -21,6 +21,7 @@ export class BabylonCircuitScene {
   readonly entrants: TransformNode[] = [];
   private target = new Vector3();
   private desired = new Vector3();
+  private heading = 0;
   constructor(engine: AbstractEngine, track: Track, count: number) {
     this.scene = new Scene(engine);
     this.scene.useRightHandedSystem = true;
@@ -86,7 +87,16 @@ export class BabylonCircuitScene {
     this.target.copyFrom(root.position);
     this.target.y += 0.7;
     const speed = Math.hypot(frame[o + F.VX], frame[o + F.VZ]);
-    const heading = speed > 0.5 ? Math.atan2(frame[o + F.VX], frame[o + F.VZ]) : 0;
+    if (speed > 0.5) this.heading = Math.atan2(frame[o + F.VX], frame[o + F.VZ]);
+    else {
+      // The simulation's vehicle nose is local +Z, even in a right-handed
+      // Babylon scene. Its horizontal projection defines a parked heading.
+      const q = root.rotationQuaternion!;
+      const forwardX = 2 * (q.x * q.z + q.w * q.y);
+      const forwardZ = 1 - 2 * (q.x * q.x + q.y * q.y);
+      if (Math.hypot(forwardX, forwardZ) > 1e-6) this.heading = Math.atan2(forwardX, forwardZ);
+    }
+    const heading = this.heading;
     this.desired.set(
       this.target.x - Math.sin(heading) * 12,
       this.target.y + 5,

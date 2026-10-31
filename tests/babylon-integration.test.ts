@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { Epsilon } from '@babylonjs/core/Maths/math.constants.js';
 import { NullEngine } from '@babylonjs/core/Engines/nullEngine.js';
 import { Scene } from '@babylonjs/core/scene.js';
 import { TransformNode } from '@babylonjs/core/Meshes/transformNode.js';
@@ -114,4 +115,41 @@ it('does not drop a gear-change edge between high-refresh render frames or repea
     direct.step(1 / 120);
   }
   expect(host.frame).toEqual(direct.makeFrame());
+});
+
+it('keeps the chase camera behind a stopped vehicle instead of snapping to world north', async () => {
+  const { BabylonCircuitScene } = await import('../src/engine/babylon/circuit-scene.ts');
+  const engine = new NullEngine(),
+    host = new SimulationComponent(options);
+  const view = new BabylonCircuitScene(engine, host.simulation.track, 1),
+    o = carBase(0);
+  try {
+    host.frame[o + F.VX] = host.frame[o + F.VZ] = 0;
+    host.frame[o + F.QX] = host.frame[o + F.QZ] = 0;
+    host.frame[o + F.QY] = host.frame[o + F.QW] = Math.SQRT1_2; // Nose points +X.
+    const before = host.frame.slice();
+    view.render(host.frame);
+    expect(view.camera.position.x).toBeCloseTo(host.frame[o + F.X] - 12, 6);
+    // TargetCamera.setTarget adds its documented epsilon when camera and
+    // target share Z. Preserve that framework behavior, not a loose tolerance.
+    expect(view.camera.position.z).toBeCloseTo(host.frame[o + F.Z] + Epsilon, 6);
+    expect(host.frame).toEqual(before);
+    // Preserve the existing velocity-following behavior at driving speed.
+    host.frame[o + F.VZ] = 10;
+    view.render(host.frame);
+    expect(view.camera.position.x).toBeCloseTo(host.frame[o + F.X], 6);
+    expect(view.camera.position.z).toBeCloseTo(host.frame[o + F.Z] - 12, 6);
+    host.frame[o + F.VZ] = 0;
+    view.render(host.frame);
+    expect(view.camera.position.x).toBeCloseTo(host.frame[o + F.X] - 12, 6);
+    // A vertical chassis has no horizontal forward projection. Retain the
+    // last meaningful heading, rather than choosing an arbitrary direction.
+    host.frame[o + F.QY] = 0;
+    host.frame[o + F.QX] = host.frame[o + F.QW] = Math.SQRT1_2;
+    view.render(host.frame);
+    expect(view.camera.position.x).toBeCloseTo(host.frame[o + F.X] - 12, 6);
+  } finally {
+    view.dispose();
+    engine.dispose();
+  }
 });

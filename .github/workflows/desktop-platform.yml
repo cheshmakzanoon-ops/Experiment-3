@@ -1,0 +1,75 @@
+name: Build and check one desktop platform
+on:
+  workflow_call:
+    inputs:
+      runner:
+        required: true
+        type: string
+      target:
+        required: true
+        type: string
+      arch:
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ${{ inputs.runner }}
+    timeout-minutes: 35
+    defaults:
+      run:
+        shell: bash
+    env:
+      CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+      MOTOBOUND_TARGET_ARCH: ${{ inputs.arch }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Validate desktop isolation and engine contracts
+        run: npx vitest run tests/desktop-policy.test.ts tests/desktop-target.test.ts tests/repository-portability.test.ts tests/motocross-ground-physics.test.ts tests/motocross-contact-impulse.test.ts tests/babylon-*.test.ts tests/input.test.ts
+      - name: Build the bundled offline desktop game
+        run: npm run desktop:package -- --${{ inputs.target }} --${{ inputs.arch }} --publish never
+      - name: Install Linux display dependencies
+        if: runner.os == 'Linux'
+        run: |
+          npx playwright install-deps chromium
+          sudo apt-get install -y libgl1-mesa-dri mesa-utils
+      - name: Launch the packaged Linux executable
+        if: runner.os == 'Linux'
+        env:
+          LIBGL_ALWAYS_SOFTWARE: '1'
+          MOTOBOUND_CI_GL: mesa
+        run: xvfb-run -a node scripts/desktop-smoke.mjs
+      - name: Launch the packaged Windows or macOS application
+        if: runner.os != 'Linux'
+        env:
+          MOTOBOUND_CI_GL: ${{ inputs.target == 'mac' && inputs.arch == 'x64' && 'swiftshader' || '' }}
+        run: node scripts/desktop-smoke.mjs
+      - name: Record package checksums and exact source
+        run: node scripts/desktop-checksums.mjs
+      - name: Preserve native launch evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-evidence-${{ inputs.target }}-${{ inputs.arch }}
+          path: desktop-evidence/
+          retention-days: 7
+      - name: Upload development installers
+        uses: actions/upload-artifact@v4
+        with:
+          name: motobound-package-${{ inputs.target }}-${{ inputs.arch }}
+          path: |
+            desktop-out/*.exe
+            desktop-out/*.dmg
+            desktop-out/*.AppImage
+            desktop-out/*.tar.gz
+            desktop-out/*.zip
+            desktop-out/SHA256SUMS-*.txt
+            desktop-out/source-*.json
+          if-no-files-found: error
+          retention-days: 7

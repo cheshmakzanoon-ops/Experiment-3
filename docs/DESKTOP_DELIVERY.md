@@ -15,18 +15,17 @@ The app preserves the existing keyboard/gamepad/touch input controller and Index
 - `scripts/desktop-checksums.mjs`: SHA-256 and target-specific source receipts.
 - `desktop-dist/`, `desktop-stage/`, `desktop-out/`, `desktop-evidence/`: generated outputs, not source.
 
-## Native OS matrix
+## Supported development-release matrix
 
 | Target | Runner | CI graphics | Packages |
 | --- | --- | --- | --- |
 | Windows x64 | windows-2022 | Native platform driver | EXE |
 | Linux x64 | ubuntu-22.04 | Explicit Mesa/llvmpipe | AppImage, tar.gz |
-| macOS x64 | macos-15-intel | Explicit SwiftShader GLES driver | DMG, ZIP |
 | macOS ARM | macos-15 | Native Metal driver | DMG, ZIP |
 
-The Intel CI candidate uses Chromium's documented OpenGL ES driver mode: `--use-gl=angle --use-angle=swiftshader`. It does **not** add `--enable-unsafe-swiftshader`, use `swiftshader-webgl` fallback, disable sandboxing or alter the shipped application's renderer flags. The report must identify the requested driver; failure stays a failure. This route requires its own successful run. [Chromium driver-mode documentation](https://chromium.googlesource.com/chromium/src/+/main/docs/gpu/swiftshader.md).
+Intel macOS is **experimental and unreleased**. Its separate `desktop-intel-experimental.yml` workflow is manual-only and cannot publish. Both workflows reuse `desktop-platform.yml`, so its failures are retained rather than bypassed with `continue-on-error`. The Intel CI candidate uses Chromium's documented OpenGL ES driver mode: `--use-gl=angle --use-angle=swiftshader`. It does **not** add `--enable-unsafe-swiftshader`, use `swiftshader-webgl` fallback, disable sandboxing or alter the shipped application's renderer flags. The report must identify the requested driver; failure stays a failure. This route requires its own successful run. [Chromium driver-mode documentation](https://chromium.googlesource.com/chromium/src/+/main/docs/gpu/swiftshader.md).
 
-All four lanes must build, launch and finish their checks before a source-addressed `desktop-dev-<commit>-<run>-<attempt>` prerelease publishes. Checksums and embedded source IDs accompany packages. Publication also checks that the tested source remains main. The current status is recorded in [CURRENT_STATUS.md](CURRENT_STATUS.md); no four-platform prerelease has qualified yet.
+With the owner’s approval on 2026-10-31, all three supported lanes must build, launch and finish their checks before a source-addressed `desktop-dev-<commit>-<run>-<attempt>` prerelease publishes. Checksums and embedded source IDs accompany packages. Publication also checks that the tested source remains main. The current status is recorded in [CURRENT_STATUS.md](CURRENT_STATUS.md); publication of the approved three-target development build is pending.
 
 ## Test-harness details
 

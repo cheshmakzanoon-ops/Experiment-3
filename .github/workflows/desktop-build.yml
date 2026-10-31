@@ -14,6 +14,7 @@ on:
       - 'vite.config.ts'
       - 'electron-builder.yml'
       - '.github/workflows/desktop-build.yml'
+      - '.github/workflows/desktop-platform.yml'
 permissions:
   contents: read
 concurrency:
@@ -33,70 +34,14 @@ jobs:
           - os: windows-2022
             target: win
             arch: x64
-          - os: macos-15-intel
-            target: mac
-            arch: x64
           - os: macos-15
             target: mac
             arch: arm64
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 35
-    defaults:
-      run:
-        shell: bash
-    env:
-      CSC_IDENTITY_AUTO_DISCOVERY: 'false'
-      MOTOBOUND_TARGET_ARCH: ${{ matrix.arch }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: npm
-      - run: npm ci --no-audit --no-fund
-      - name: Validate desktop isolation and engine contracts
-        run: npx vitest run tests/desktop-policy.test.ts tests/desktop-target.test.ts tests/repository-portability.test.ts tests/motocross-ground-physics.test.ts tests/motocross-contact-impulse.test.ts tests/babylon-*.test.ts tests/input.test.ts
-      - name: Build the bundled offline desktop game
-        run: npm run desktop:package -- --${{ matrix.target }} --${{ matrix.arch }} --publish never
-      - name: Install Linux display dependencies
-        if: runner.os == 'Linux'
-        run: |
-          npx playwright install-deps chromium
-          sudo apt-get install -y libgl1-mesa-dri mesa-utils
-      - name: Launch the packaged Linux executable
-        if: runner.os == 'Linux'
-        env:
-          LIBGL_ALWAYS_SOFTWARE: '1'
-          MOTOBOUND_CI_GL: mesa
-        run: xvfb-run -a node scripts/desktop-smoke.mjs
-      - name: Launch the packaged Windows or macOS application
-        if: runner.os != 'Linux'
-        env:
-          MOTOBOUND_CI_GL: ${{ matrix.target == 'mac' && matrix.arch == 'x64' && 'swiftshader' || '' }}
-        run: node scripts/desktop-smoke.mjs
-      - name: Record package checksums and exact source
-        run: node scripts/desktop-checksums.mjs
-      - name: Preserve native launch evidence
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: desktop-evidence-${{ matrix.target }}-${{ matrix.arch }}
-          path: desktop-evidence/
-          retention-days: 7
-      - name: Upload development installers
-        uses: actions/upload-artifact@v4
-        with:
-          name: motobound-package-${{ matrix.target }}-${{ matrix.arch }}
-          path: |
-            desktop-out/*.exe
-            desktop-out/*.dmg
-            desktop-out/*.AppImage
-            desktop-out/*.tar.gz
-            desktop-out/*.zip
-            desktop-out/SHA256SUMS-*.txt
-            desktop-out/source-*.json
-          if-no-files-found: error
-          retention-days: 7
+    uses: ./.github/workflows/desktop-platform.yml
+    with:
+      runner: ${{ matrix.os }}
+      target: ${{ matrix.target }}
+      arch: ${{ matrix.arch }}
   publish-development:
     needs: build
     if: github.ref == 'refs/heads/main'
@@ -125,7 +70,7 @@ jobs:
           if ! gh release view "$tag" >/dev/null 2>&1; then
             gh release create "$tag" --target "$GITHUB_SHA" --draft --prerelease --latest=false \
               --title "MOTOBOUND desktop development · ${GITHUB_SHA:0:7}" \
-              --notes "Unsigned development executables for Windows, macOS and Linux. Source: $GITHUB_SHA. All four package build and launch jobs passed. Linux and macOS x64 use explicitly checked software graphics drivers in CI; physical GPU performance remains unqualified. This is NOT a completed game or Steam-ready certification; Babylon migration and gameplay regressions remain documented in docs/CURRENT_STATUS.md. Signing and macOS notarization are not configured. Validation: https://github.com/$GH_REPO/actions/runs/$GITHUB_RUN_ID"
+              --notes "Unsigned development executables for Windows, macOS and Linux. Source: $GITHUB_SHA. Windows x64, Linux x64 and Apple Silicon macOS package build and launch jobs passed. Intel macOS remains experimental and is not included. Physical GPU performance and full-game qualification remain outstanding. This is NOT a completed game or Steam-ready certification; Babylon migration and gameplay regressions remain documented in docs/CURRENT_STATUS.md. Signing and macOS notarization are not configured. Validation: https://github.com/$GH_REPO/actions/runs/$GITHUB_RUN_ID"
           fi
           mkdir -p "$RUNNER_TEMP/desktop-existing"
           for file in packages/*; do

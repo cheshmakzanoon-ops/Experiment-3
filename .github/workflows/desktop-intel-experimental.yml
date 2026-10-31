@@ -1,0 +1,17 @@
+name: Experimental Intel macOS validation
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: motobound-intel-experimental-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  validate-intel:
+    # Explicitly outside the supported development-release targets. Failures
+    # remain failures; this workflow never publishes an installer or release.
+    uses: ./.github/workflows/desktop-platform.yml
+    with:
+      runner: macos-15-intel
+      target: mac
+      arch: x64

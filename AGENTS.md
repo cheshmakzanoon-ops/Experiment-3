@@ -10,6 +10,10 @@ Read README.md, docs/CURRENT_STATUS.md, docs/REPOSITORY_MAP.md and docs/DESKTOP_
 - Browser previews and browser-based tests are secondary engineering tools. An EXE wrapper, successful compile or diagnostic scene does not satisfy the goal of a professional game.
 - The quality ambition is high-end graphics, responsive controls, coherent atmosphere, fun and strong replay value. Do not claim perfection, PS5 parity, commercial readiness or guaranteed profits from automated tests.
 
+## Supported development-release targets
+
+The owner approved Windows x64, Linux x64 and Apple Silicon macOS development downloads on 2026-10-31. All three build/launch lanes are required. Intel macOS is experimental, manual-validation-only and unreleased until separately qualified. Preserve its failed evidence; do not relabel or hide failures as successes. The shared platform workflow prevents check drift between supported and experimental targets.
+
 ## Execution and evidence
 
 - Keep development on main. Preserve ancestry and all work before deleting any already-integrated branches. Never overwrite concurrent remote work.

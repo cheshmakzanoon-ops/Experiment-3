@@ -1,63 +1,42 @@
 # Current development status
 
-Updated 2026-10-31. This page separates source integration from successful validation and release readiness.
+Updated 2026-10-31. Source integration, automated evidence and release qualification are distinct.
 
-## Shipping direction
+## Product and supported targets
 
-**Desktop first:** Windows EXE, macOS DMG/app and Linux AppImage/archive builds through GitHub Actions. Babylon.js is the main engine direction with the custom simulation retained; the website is secondary. Native run [41169800313](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41169800313), source `27bfb66`, passes packaged launch, keyboard driving, pause/restart, original Formula-model import and renderer isolation on Windows x64, Linux x64 (Mesa CI) and Apple Silicon. Intel macOS packages build but the hosted VM cannot initialize EGL/OpenGL. Its x64 lane now builds/runs under Rosetta on Apple Silicon with explicit target/host/runtime architecture checks; the x64/Rosetta run starts Babylon with Metal/WebGL and reports the correct translated x64 process, but its pointer-action stability check timed out. Explicit native-window activation is being verified without extending that timeout. Physical Intel graphics validation, signing/notarization and a successful four-platform prerelease remain open. See [desktop delivery](DESKTOP_DELIVERY.md).
+MOTOBOUND is a desktop-first Windows/macOS/Linux game, not a browser-first product. Babylon.js is the primary engine direction, with the existing custom physics/simulation retained as the sole authoritative solver. The website is a secondary engineering preview.
 
-## Consolidation
+The owner approved development downloads for **Windows x64, Linux x64 and Apple Silicon macOS**. All three supported build/launch lanes must pass. Intel macOS is **experimental and unreleased**, with a separate manual workflow and no publishing job. Its failures remain failures. See [desktop delivery](DESKTOP_DELIVERY.md).
 
-All eight audited branch tips are ancestors of `29a6f871db184c39de791d8e210d90999069ffe5`. Main was fast-forwarded from `2107a9f1`, retaining 53 MotoGP development commits without dropping history. See [branch receipt](maintenance/branch-consolidation-2026-10-31.json). Remote cleanup completed successfully in [run 41160579689](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41160579689). A subsequent remote listing contains only `main`.
+Signing/notarization, Steam submission, physical-hardware qualification and a finished commercial game are not claimed. The first supported-target development publication is being validated.
 
-## Validation in progress
+## Repository consolidation
 
-- Full lint and TypeScript completed successfully after the documented portability-regex repair; do not confuse the earlier partial-log report with a completed pass.
-- TypeScript and the production build passed locally. The build reports a large application chunk (about 14.6 MB minified / 4.5 MB gzip), a loading/performance risk to investigate.
-- The broad integration diagnostic completed: **4,976 passed / 4,994 total, 18 failed, zero skipped**. See the [failure ledger and focused follow-ups](maintenance/validation-2026-10-31.json). Later focused fixes and test-contract reviews are recorded separately; this is not an exact-commit all-green release certification. The latest local motocross run is **572/572 passing** after physical fixes and explicitly documented test-contract corrections. GP mixed-class pace remains open.
-- A GP planner repair accounts for finite brake-lever application time. Wet-contact steering recovery is grip-aware without changing the dry controller; all three two-lap GP contact-race cases and the braking approach suite pass in the focused candidate run.
-- Formula, GP motorcycles, motocross/supercross and festival must each pass actual browser journeys. Menu presence alone does not prove playability.
-- Latest downloadable release remains `playable-3a6036de` (2026-10-06). It is not the latest source.
-- Pages is enabled and deployment [41161818741](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41161818741) succeeded. The live site returned HTTP 200 and `BUILD_IDENTITY.json` identified `59fefcb065d38e5436994262b70896b5ddaf184d` when checked at 04:36 UTC. Later commits require their own deployment verification.
-- New direct Formula / GP / Open World shortcuts have compatible-session unit tests. Their browser switching checks passed in Babylon integration run 41164885118.
-- The motocross airborne limiter regression passes without clamping existing overspeed momentum. A subsequent telemetry fix distinguishes passive wheel pickup from requested braking and retains unloaded-wheel kinematic slip. The subsequent passive hard-stop and touchdown repairs resolve four more cases without new failures. Brake/settling tests now exercise the finite-inertia model rather than assume instantaneous kinematic wheel constraints; the ledger distinguishes those contract changes from code fixes.
+All eight audited branch tips are ancestors of `29a6f871db184c39de791d8e210d90999069ffe5`. Main was fast-forwarded from `2107a9f1`, preserving 53 MotoGP commits. [Branch receipt](maintenance/branch-consolidation-2026-10-31.json). Cleanup [run 41160579689](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41160579689) succeeded; the subsequent remote listing contains only main. [Repository map](REPOSITORY_MAP.md).
 
-## Latest native and renderer evidence
+## Completed evidence
 
-Source `704e933` passed all packaged smoke/capture checks on Linux x64, Windows x64 and native Apple Silicon. Reports identify the actual executable architecture, observed renderer and no remote runtime requests. The same source passed all four Babylon WebGL journeys, including authored steering response and frozen pause. These use CI graphics backends, not representative physical-hardware performance qualification. Rosetta x64 still failed startup observation before controls; later capture showed rendering. Window-show ordering and timer-based readiness observation are being tested with unchanged deadlines and better stage timings. No four-platform prerelease has been published.
+- Frozen tracked source `207d5a6` completed four local unit shards: **5,004/5,006 passed, two failed, zero skipped**. Mixed GP/superbike pace remains a logical failure. A pit-release service-bay sweep exceeded its unchanged 30-second deadline under parallel load; all three tests in that file passed unchanged when rerun alone (case 18.61 seconds, process exit 0). The original full-run failure is retained in the [validation ledger](maintenance/validation-2026-10-31.json).
+- The latest complete local motocross suite passes **572/572** after physical fixes and explicitly documented finite-inertia test-contract corrections. This is not physical handling certification.
+- Source `704e933` passed all four [Babylon WebGL journeys](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41173504842), including the original model, left/right authored steering sampling, pause/restart and production inputs. The discipline-menu fixture checks routing/discoverability, not complete races in every mode. This is software-WebGL evidence, not physical GPU performance acceptance.
+- The same source passed packaged launch, real keyboard driving, paused physics, original-model import, screenshot, offline-request and renderer-isolation checks on Linux x64, Windows x64 and native Apple Silicon. Native images were inspected and show the original car.
+- The secondary Pages preview was verified at HTTP 200 with build identity `704e933`; later deployments require their own source verification.
+- Full lint, TypeScript and production builds pass on the latest tested increments. An earlier partial-log lint report was corrected explicitly; the ledger preserves that correction.
 
-## Full-suite checkpoint
+## Current game improvements
 
-Frozen tracked source `207d5a6` completed all four local shards: **5,004/5,006 passed, two failed, zero skipped**. The mixed-class GP pace case remains a logical failure. A pit-release service-bay sweep exceeded its unchanged 30-second timeout under parallel load; all three tests in that file passed when rerun alone (exit 0). The original full-suite failure remains in the [ledger](maintenance/validation-2026-10-31.json). This is not an all-green release claim.
+- GP overtaking reserves enough target-lane room for finite lean response without reducing stopping or swept-collision margins. The real catch-and-pass reproduces exactly without contact. Shared traffic and GP approach/riding checks pass; the separate mixed-class pace case remains open.
+- Deep motocross overlap recovery exchanges forward/heave/pitch momentum through a passive contact impulse. Original launch-height and crash bounds pass; 270 analytic contact combinations verify non-increasing kinetic energy. AI/supermoto touchdown no longer arms an obsolete one-frame pickup flag.
+- Brake/soil tests now represent finite rotor and tyre response. They retain material-force contrast within 16.7 ms, check each intermediate force against supported load, verify independently sampled grip exactly and require honest slip. These contract corrections are not counted as newly changed vehicle behavior.
+- The original authored driver steering clip is sampled from physics snapshots in Babylon, sharing the unchanged Three.js mapping. Model-ready status waits for completed rendered-ready frames; cancellation/disposal is covered.
+- The chase camera now uses the stopped chassis' horizontal forward axis instead of snapping to world north. A vertical pose retains the last meaningful heading; moving velocity-following behavior is unchanged. A regression first demonstrated the old 12 m wrong-axis displacement. All 17 Babylon unit cases, TypeScript, completed lint and production build pass locally after the repair; its real-renderer check is pending.
 
-## Latest Babylon increment
+## Remaining acceptance gates
 
-The rendered-ready import gate has visible-car evidence from the `395d7df` Apple Silicon native capture. Authored driver steering now has a snapshot-driven Babylon adapter sharing the original mapping; 42 focused engine/desktop/input/supplied-player tests, TypeScript, production build and completed lint pass locally. Real-input browser verification of this new driver adapter is pending. Native CI also retains the unchanged 30-second screenshot budget while switching to direct viewport capture, and treats Rosetta background scheduling explicitly as a test-host condition rather than shipping behavior.
+1. Resolve mixed-class GP pace and confirm the full suite under appropriate runner load without hiding failures or extending acceptance limits merely to pass.
+2. Exercise every discipline through real entry, driving, pause/restart and exit in the installed product. Existing full-content Three.js compatibility remains available; full four-discipline Babylon presentation is not ported yet.
+3. Complete material/environment, wheel/driver animation, LOD, audio, UI and asset parity. Current Babylon captures are a labelled integration workbench, not final graphics.
+4. Verify current-source packages and checksums, then installer upgrade/uninstall and controller-only navigation.
+5. Measure target-PC frame time, memory and loading; review asset rights and obtain independent playtests.
 
-## Latest handling verification
-
-- GP overtaking now reserves enough lane-target room for finite lean response. The unchanged real catch-and-pass test completes without contact and reproduces its snapshot exactly. Shared traffic and GP braking/riding checks pass (28 cases); mixed GP/superbike pace still fails.
-- Deep MX overlap recovery exchanges forward, vertical and pitch momentum through a passive contact impulse. The original raw/sport launch-height and crash assertions pass. A new 270-case analytic sweep verifies energy loss, not invented launch energy.
-- The recovery test follows accumulated travel across the lap boundary and rejects station jumps; its original recovery-time/crash requirements remain intact.
-- Finite wheel-inertia acceptance is explicit: braking acts on the rotor immediately and reaches the ground-force check within 16.7 ms. Forward-rider support is checked before 1 mm of fork movement. Settling requires honest sub-0.1% tyre slip and timestep convergence, not an impossible exact rolling clamp under drag.
-
-The last four soil-contact assertions were reviewed against the finite-brush model: independent material coefficients remain exact, while forces can differ through shared chassis velocity and load transfer. The original 40 N material contrast is retained within 16.7 ms, each intermediate force is bounded by its own supported contact, and driven tyres must report nonzero slip. The solver was not changed for this acceptance correction. The full local motocross suite passes, but this does not certify hardware handling or visuals.
-
-## Next acceptance gates
-
-1. Resolve failures without weakening physics, visual or browser acceptance assertions.
-2. Exercise each discipline from the real menu through input, driving, pause/resume and exit/restart.
-3. Publish only a reproducible build with an exact source identity; verify downloaded and deployed bytes.
-4. Establish representative PC frame time, memory and loading budgets, then test on physical hardware.
-5. Build a coherent offline product: onboarding, controller flow, progression, race feedback, recovery and presentation.
-6. Obtain independent playtests and market evidence before judging commercial readiness.
-
-## Engine direction and commercial target
-
-Owner direction (2026-10-31): **Babylon.js becomes the main engine**, retaining the existing physics/simulation as a component. Migration is underway with a built `/babylon.html` entry and passing engine-boundary unit tests; see [Babylon migration](BABYLON_MIGRATION.md). Four real-browser integration journeys passed in run 41164885118, including the existing Formula model import, controls and lifecycle. Full authored-asset and four-discipline Babylon parity remain pending. Three.js stays available as the existing playable fallback until assets, all four disciplines, presentation and performance meet parity checks. Do not replace the playable game with unfinished diagnostic geometry or run competing render loops.
-
-The owner's aspiration is US$10,000 profit. No technical test can guarantee sales or profit. Steam readiness requires product validation, packaging, asset rights, target-hardware QA and external demand evidence. This remains an in-development game, not a certified commercial release.
-
-## Intel CI route after Rosetta evidence
-
-`82b0692` again passed Linux, Windows and native ARM macOS. The translated x64 job passed startup observation but timed out reading the visible status element; its exact scheduling bottleneck is not proven. The next candidate returns to the native Intel runner and selects Chromium's documented SwiftShader GLES driver (not unsafe WebGL fallback). The driver must be observed explicitly and all original functional/isolation/deadline checks remain required. No result is claimed before that run finishes.
+The owner's US$10,000 profit aspiration is not a technical acceptance test or guarantee. Steam readiness requires product, hardware, rights and market evidence in addition to passing code checks.

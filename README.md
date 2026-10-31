@@ -14,10 +14,9 @@ MOTOBOUND targets **Windows, macOS and Linux executables**, built from TypeScrip
 | ------------------- | ------------------------ | ------------------- |
 | Windows x64         | EXE installer            | Windows             |
 | macOS Apple Silicon | DMG and app ZIP          | Apple Silicon macOS |
-| macOS Intel         | DMG and app ZIP          | Intel macOS + software graphics (CI) |
 | Linux x64           | AppImage and tar archive | Linux               |
 
-[Desktop build workflow](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/workflows/desktop-build.yml) builds and launches each packaged application on its target operating system. Source-addressed development prereleases are published only after all four native build/launch jobs succeed. Each package has SHA-256 checksums and embedded source identification. **Do not assume packages exist or passed until the workflow and release actually show them.**
+[Desktop build workflow](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/workflows/desktop-build.yml) builds and launches each packaged application on its target operating system. Source-addressed development prereleases are published only after all three supported-target build/launch jobs succeed. Each package has SHA-256 checksums and embedded source identification. **Do not assume packages exist or passed until the workflow and release actually show them.**
 
 Initial packages are **unsigned development builds**. Windows reputation/signing and macOS signing/notarization have not been configured. These builds are for development testing, not a claim of retail distribution readiness.
 
@@ -25,12 +24,14 @@ The desktop runtime uses Electron to provide a consistent bundled Chromium runti
 
 ## Latest verified progress · 2026-10-31
 
-- Windows x64, Linux x64 and Apple Silicon packages pass offline Babylon launch, keyboard driving, paused physics, original-model import and renderer isolation in [native run 41169800313](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41169800313). The Intel hosted VM still cannot initialize graphics. Rosetta testing remained unreliable after startup. The x64 macOS lane now tests a documented software graphics driver on a native Intel runner without the unsafe WebGL-fallback flag; its result and physical GPU qualification remain outstanding. No four-platform prerelease has passed yet.
+- Windows x64, Linux x64 and Apple Silicon passed packaged offline launch, driving, pause, original-model import, screenshots and isolation on `704e933`. The owner approved these three development-release targets. Intel Mac remains a manual experiment and is unreleased after hosted graphics/UI failures; no failure is relabelled as a pass. A fresh supported-target publication is being validated.
 - GP AI completes the real catch-and-pass without contact and reproduces its replay snapshot. Shared traffic and GP approach/riding checks: **28/28 passed**.
 - Motocross hard-stop recovery now exchanges momentum without inventing launch energy. Latest focused suite: **572/572 passed** after physical fixes and documented finite-inertia test-contract corrections. The separate mixed GP/superbike pace case remains open. Test-contract corrections for finite wheel inertia are itemized in the [validation ledger](docs/maintenance/validation-2026-10-31.json).
 - Full local suite on frozen `207d5a6` source: **5,004/5,006 passed**, zero skipped. The additional pit-release timeout passed an unchanged isolated rerun; the original full-run failure is retained in the ledger.
 - The original driver steering clip now has a snapshot-driven Babylon adapter using the unchanged existing mapping. Unit/type/build/lint checks and the real WebGL left/right/pause journey pass on `704e933`.
 - Babylon is still an integration workbench, not final-quality graphics. Native keyboard driving and original-model import are verified on the three passing platforms; full four-discipline presentation, performance and playtesting remain required.
+
+Intel macOS validation remains available as a separate manual experimental workflow. It reuses the same build/check implementation, never publishes, and is not a supported download target yet.
 
 ## Engine and content ownership
 
