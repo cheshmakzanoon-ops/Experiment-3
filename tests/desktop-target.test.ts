@@ -31,6 +31,10 @@ it('selects only the documented driver modes without unsafe WebGL fallback flags
     '--use-gl=angle',
     '--use-angle=swiftshader',
   ]);
+  expect(desktopGraphicsArguments('swiftshader', 'linux', 'x64')).toEqual([
+    '--use-gl=angle',
+    '--use-angle=swiftshader',
+  ]);
   expect(desktopGraphicsArguments('mesa', 'linux', 'x64')).toEqual([
     '--use-gl=angle',
     '--use-angle=gl',

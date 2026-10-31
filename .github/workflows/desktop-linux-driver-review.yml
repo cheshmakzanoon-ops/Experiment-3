@@ -1,0 +1,26 @@
+name: Compare Linux software graphics driver
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/desktop-linux-driver-review.yml'
+      - 'desktop/target.ts'
+      - 'scripts/desktop-smoke.mjs'
+      - 'scripts/desktop-compatibility.mjs'
+      - 'public/assets/basis/**'
+permissions:
+  contents: read
+concurrency:
+  group: linux-driver-review-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  compare:
+    # Diagnostic only. Required release validation still uses Mesa unchanged.
+    # This workflow cannot publish a release or turn a failed Mesa lane green.
+    uses: ./.github/workflows/desktop-platform.yml
+    with:
+      runner: ubuntu-22.04
+      target: linux
+      arch: x64
+      linux_graphics: swiftshader

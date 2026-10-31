@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "codecVersion": "1.50.0",
+  "license": "Apache-2.0",
+  "dependencies": [
+    {
+      "name": "Zstandard",
+      "license": "BSD-3-Clause",
+      "notice": "ZSTD_LICENSE.txt"
+    }
+  ],
+  "source": {
+    "repository": "https://github.com/BinomialLLC/basis_universal",
+    "commit": "051ad6d8a64bb95a79e8601c317055fd1782ad3e",
+    "tag": "v1_50_0"
+  },
+  "compiler": {
+    "sdkVersion": "4.0.19",
+    "repository": "https://github.com/emscripten-core/emsdk",
+    "commit": "7b4e60e4bfcba326025e373024369eaa9904af55"
+  },
+  "settings": {
+    "DYNAMIC_EXECUTION": 0,
+    "EMBIND_AOT": 1,
+    "MODULARIZE": 1,
+    "EXPORT_NAME": "BASIS",
+    "ALLOW_MEMORY_GROWTH": 1,
+    "EXPORTED_RUNTIME_METHODS": [
+      "HEAP8"
+    ]
+  },
+  "reference": {
+    "three": "0.180.0",
+    "wasmSHA256": "6cf17dc889352c42e9acf8897107978d127005fe3386c36a0e3845e27967630a"
+  },
+  "recipe": "scripts/assets/build-basis-csp.sh",
+  "recipeSHA256": "8911f0252a764b287802d0eabb9b983cab108268d479994859fa3431037fff00",
+  "files": {
+    "basis_transcoder.js": {
+      "bytes": 57367,
+      "sha256": "1c0708a241bd99dff06b11713250d64508381d5d3b213f70ad965ab8a51632a7"
+    },
+    "basis_transcoder.wasm": {
+      "bytes": 523370,
+      "sha256": "b875c5536dffc3d2f5800b9873bbd210484e2afec37511eb17cd7ed04f306797"
+    },
+    "LICENSE.txt": {
+      "bytes": 11357,
+      "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+    },
+    "ZSTD_LICENSE.txt": {
+      "bytes": 1530,
+      "sha256": "2c1a7fa704df8f3a606f6fc010b8b5aaebf403f3aeec339a12048f1ba7331a0b"
+    }
+  }
+}

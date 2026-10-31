@@ -11,6 +11,10 @@ on:
       arch:
         required: true
         type: string
+      linux_graphics:
+        required: false
+        type: string
+        default: mesa
 permissions:
   contents: read
 jobs:
@@ -33,7 +37,7 @@ jobs:
           cache: npm
       - run: npm ci --no-audit --no-fund
       - name: Validate desktop isolation and engine contracts
-        run: npx vitest run tests/desktop-policy.test.ts tests/desktop-target.test.ts tests/repository-portability.test.ts tests/motocross-ground-physics.test.ts tests/motocross-contact-impulse.test.ts tests/babylon-*.test.ts tests/input.test.ts tests/motion-receipt.test.ts tests/worker-pause.test.ts tests/open-world-traffic.test.ts
+        run: npx vitest run tests/desktop-policy.test.ts tests/desktop-target.test.ts tests/repository-portability.test.ts tests/motocross-ground-physics.test.ts tests/motocross-contact-impulse.test.ts tests/babylon-*.test.ts tests/input.test.ts tests/motion-receipt.test.ts tests/worker-pause.test.ts tests/open-world-traffic.test.ts tests/basis-transcoder.test.ts
       - name: Build the bundled offline desktop game
         run: npm run desktop:package -- --${{ inputs.target }} --${{ inputs.arch }} --publish never
       - name: Install Linux display dependencies
@@ -45,7 +49,7 @@ jobs:
         if: runner.os == 'Linux'
         env:
           LIBGL_ALWAYS_SOFTWARE: '1'
-          MOTOBOUND_CI_GL: mesa
+          MOTOBOUND_CI_GL: ${{ inputs.linux_graphics }}
         run: xvfb-run -a node scripts/desktop-smoke.mjs
       - name: Launch the packaged Windows or macOS application
         if: runner.os != 'Linux'

@@ -22,7 +22,11 @@ export function desktopGraphicsArguments(backend: string, platform: string, arch
   if (backend === 'native') return [];
   if (backend === 'mesa' && platform === 'linux')
     return ['--use-gl=angle', '--use-angle=gl', '--ignore-gpu-blocklist'];
-  if (backend === 'swiftshader' && platform === 'darwin' && arch === 'x64')
+  if (
+    backend === 'swiftshader' &&
+    arch === 'x64' &&
+    (platform === 'darwin' || platform === 'linux')
+  )
     return ['--use-gl=angle', '--use-angle=swiftshader'];
   throw new Error(`Unsupported CI graphics backend: ${backend} on ${platform}/${arch}`);
 }

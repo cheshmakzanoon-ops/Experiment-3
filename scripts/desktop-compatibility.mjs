@@ -22,6 +22,8 @@ export async function verifyDesktopCompatibility(application, page, report, capt
   await expect(page.locator('#modal')).toBeHidden({ timeout: 180000 });
   const read = () =>
     page.evaluate(() => {
+      const failure = document.querySelector('#errorMessage')?.textContent?.trim();
+      if (failure) throw new Error(`Retained game stopped: ${failure}`);
       const d = window.apexDiagnostics();
       return {
         state: d.state,

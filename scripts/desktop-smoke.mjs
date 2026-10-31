@@ -1,6 +1,7 @@
 import { verifyDesktopCompatibility } from './desktop-compatibility.mjs';
 import { _electron as electron } from '@playwright/test';
 import { mkdtemp, mkdir, writeFile, readFile } from 'node:fs/promises';
+import { writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import {
@@ -31,6 +32,7 @@ const report = {
 function stage(name) {
   const entry = { name, elapsedMs: Date.now() - startedAt };
   report.stages.push(entry);
+  writeFileSync('desktop-evidence/partial.json', JSON.stringify(report, null, 2));
   console.log(`[desktop smoke] ${JSON.stringify(entry)}`);
 }
 async function captureViewport(page, path) {
@@ -123,7 +125,7 @@ try {
   page.on('console', (message) =>
     report.console.push({ type: message.type(), text: message.text() }),
   );
-  page.on('pageerror', (error) => report.errors.push(error.message));
+  page.on('pageerror', (error) => report.errors.push(error.stack ?? error.message));
   page.on('response', (response) => {
     if (response.status() >= 400)
       report.assetFailures.push({ url: response.url(), status: response.status() });
